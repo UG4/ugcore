@@ -802,6 +802,9 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 #define ANSCHAULICH_ERZEUGE_SUDOS_ANHANG 0
 #endif
 
+#ifndef OLD_PROFREITER_STUFF
+#define OLD_PROFREITER_STUFF 0
+#endif
 
 bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>& fracInfos,
 						bool expandInnerFracBnds, bool expandOuterFracBnds)
@@ -842,6 +845,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	sel.enable_autoselection(false);
 	sel.enable_selection_inheritance(false);
 
+#if OLD_PROFREITER_STUFF
 	AInt aAdjMarker;	// used to mark how many adjacent fractures a vertex has.
 						// 0: no frac, 1: frac-boundary, >1: inner frac vertex
 	// TODO FIXME das sieht komisch aus, ist das immer so, wenn z.B. an einer Grenze sich zwei fracs treffen?
@@ -849,7 +853,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	Grid::VertexAttachmentAccessor<AInt> aaMarkVRT(grid, aAdjMarker);
 	grid.attach_to_edges_dv(aAdjMarker, 0);
 	Grid::EdgeAttachmentAccessor<AInt> aaMarkEDGE(grid, aAdjMarker);
-
+#endif
 
 	using IndexType = unsigned short;
 	using AttVerFracProp = Attachment<VertexFractureProperties<IndexType> >;
@@ -920,12 +924,16 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		{
 		//	mark edge and vertices
 			sel.select(*iter);
+
+#if OLD_PROFREITER_STUFF
 			aaMarkEDGE[*iter] = 1;
+#endif
 
 			aaMarkEdgeB[*iter] = true;
 
 		//	select associated vertices
-			for(size_t i = 0; i < 2; ++i){
+			for(size_t i = 0; i < 2; ++i)
+			{
 				Vertex* v = (*iter)->vertex(i);
 				sel.select(v);
 
@@ -935,12 +943,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				if( IsBoundaryVertex2D(grid, v) )
 					aaMarkVrtVFP[v].setIsBndFracVertex();
 
-				// das ist Sebastians loop, den wir noch lassen, weil wir nicht sicher sind, ob wir ihn wirklihc nicht brauchen
 
+#if OLD_PROFREITER_STUFF
+				// das ist Sebastians loop, den nicht mehr lassen lassen
 				//	if fracture boundaries are expanded, we'll regard all fracture vertices
 				//	as inner vertices
-				if(expandInnerFracBnds){
-					if(!expandOuterFracBnds){
+				if(expandInnerFracBnds)
+				{
+					if(!expandOuterFracBnds)
+					{
 						if(IsBoundaryVertex2D(grid, v))
 							aaMarkVRT[v]++;
 						else
@@ -951,12 +962,14 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				}
 				else
 					aaMarkVRT[v]++;
+#endif
 
 			}
 		}
 	}
 
 
+#if OLD_PROFREITER_STUFF
 //	Make sure that selected vertices that lie on the boundary of the geometry
 //	are treated as inner fracture vertices.
 //	This is only required if frac-boundaries are not expanded anyways.
@@ -971,7 +984,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			}
 		}
 	}
-
+	// TODO FIXME was soll das fuer ein Kaese sein?
+#endif
 
 	int dbg_flachen_passiert = 0;
 
@@ -2165,7 +2179,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //		// später auf mehr Klüfte ausdehnen, mit Problemstelle Kreuzung, aber erst, wenn eine Kluft funktioniert
 //
 
-	// TODO FIXME bis hier stimmt es, jetzt Seb Sachen
+	// jetzt Seb Sachen beinahe unverändert
 
 	////////////////////////////////
 	//	create new elements
@@ -2264,9 +2278,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 						//	remove the temporary attachments and throw an error
 
 						//	remove the temporary attachments
+#if OLD_PROFREITER_STUFF
 						grid.detach_from_vertices(aAdjMarker);
 						grid.detach_from_edges(aAdjMarker);
-
+#endif
 						grid.detach_from_vertices(aAdjMarkerVFP);
 						grid.detach_from_edges(aAdjMarkerB);
 
@@ -2345,9 +2360,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	// TODO FIXME wie ist es mit den Knoten, sind die alle richtig zugewiesen bezüglich subset?
 
 	//	remove the temporary attachments
+
+#if OLD_PROFREITER_STUFF
 	grid.detach_from_vertices(aAdjMarker);
 	grid.detach_from_edges(aAdjMarker);
-
+#endif
 	grid.detach_from_vertices(aAdjMarkerVFP);
 	grid.detach_from_edges(aAdjMarkerB);
 
@@ -2364,59 +2381,18 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	// ENDE NEUES ZEUG SELEKTION
 
 
-	////////////////////////////////
-//	create new vertices
 
-//	we have to associate a vector of vertices with each node in the fracture.
-//	since an empty vector is quite small, we can associate one with each vertex in
-//	the whole grid. This could be optimized if required, by using subset attachments.
-	//typedef Attachment<vector<Vertex*> > AVrtVec;
 
-	using AVrtVec = Attachment<vector<Vertex*> >;
 
-	AVrtVec aVrtVec;
-	grid.attach_to_vertices(aVrtVec);
-	Grid::VertexAttachmentAccessor<AVrtVec> aaVrtVecVRT(grid, aVrtVec);
 
-//	we also have to associate a vector of vertices for each face adjacent to the frac.
-//	it will store the a second set of vertices. An entry contains the new vertex, if the
-//	corresponding vertex is an inner fracture vertex, and NULL if not.
-	grid.attach_to_faces(aVrtVec);
-	Grid::FaceAttachmentAccessor<AVrtVec> aaVrtVecFACE(grid, aVrtVec);
 
-//	a callback that returns true if the edge is a fracture edge, altes System
-	AttachmentUnequal<Edge, Grid::EdgeAttachmentAccessor<AInt> > isFracEdge(aaMarkEDGE, 0);
+#if OLD_PROFREITER_STUFF
+	// TODO FIXME von diesem Loop kann man noch für oben die calculate crease normal lernen, vielleicht minimal abgewandelt, vielleicht exakt gleich
 
 	//	a callback that returns true if the edge is a fracture edge, neues System
 	AttachmentUnequal<Edge, Grid::EdgeAttachmentAccessor<ABool> > isFracEdgeB(aaMarkEdgeB, false);
 
-
-	// TODO FIXME schon ab hier braucht man vermutlich einen
-	// doppelten Loop ueber alle faces
-	// und man muss vermutlich bei den Kanten testen,
-	// ob der Vertex am einen Ende eine andere subdom hat
-	// als am anderen - dann naemlich ist man vermutlich
-	// in einem Kreuzungspunkt
-	// die Identifizierung von Kreuzungsvertizes ist elementar
-	// geschieht bisher ueberhaupt nicht
-	// an ihnen ist der Arte Algorithmus aus zu fuehren
-
-	// TODO FIXME Vertexerzeugung und Verschiebung muss komplett umgeschrieben werden, vermutlich frac loops in frac loops
-	// dadurch Vertexerzeugung im Arte Stil
-	// Achtung im Zentrum, und Frage, wie werden die Faces im Zentrum von Schnitten zugewiesen?
-	// in Arte nicht gelöst, aber in Arte auch nicht eindeutig, hier ein Mittelpunkt, der bleibt, wegen der doppelten Verschiebung, also 3 Ebenen am Ende statt 2 wie Arte
-
-	// testen, ob ein Schnittvertex vor liegt, indem die Anzahl der touches getestet wird, anhand einfacher Geometrien testen, was die Anzahl ist
-
-	// die nächsten beiden Hauptloops müssen vermutlich zusammen gelegt werden
-	// da muss der Arte Algorithmus für die neuen Vertizes rein
-	// die Erzeugung der neuen Elemente muss danach erfolgen
-	// das kann auch knifflig werden
-	// aber für den Moment ist wichtig, die neuen Knoten richtig zu erzeugen
-	// TODO FIXME hier sind wir gerade
-
-
-//	iterate over all surrounding faces and create new vertices.
+	//	iterate over all surrounding faces and create new vertices.
 	for(FaceIterator iter_sf = sel.faces_begin(); iter_sf != sel.faces_end(); ++iter_sf)
 	{
 		Face* sf = *iter_sf;
@@ -2437,6 +2413,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				vector3 n = CalculateCreaseNormal(grid, sf, vrt, isFracEdge, aaPos);
 
 				// NEU Test
+				// TODO FIXME so eine Funktion brauchen wir vielleicht oben auch zur Vereinfachung des Codes!!!
 				vector3 n_v2 = CalculateCreaseNormal(grid, sf, vrt, isFracEdgeB, aaPos);
 				// das calculate crease normal scheint mir ein Schwachsinn zu sein
 				// aber vielleicht doch nicht?
@@ -2466,213 +2443,14 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			}
 		}
 	}
-
-	// das folgende muss der eigentliche Käse sein
-
-//	assign the new positions
-	for(VertexIterator iter = sel.vertices_begin();
-		iter != sel.vertices_end(); ++iter)
-	{
-		Vertex* vrt = *iter;
-
-	//	calculate the width as the maximum of associated fracture widths
-		CollectEdges(edges, grid, vrt);
-
-		number width = 0;
-		for(size_t i = 0; i < edges.size(); ++i){
-			if(aaMarkEDGE[edges[i]])
-				width = max<number>(width, fracInfosBySubset.at(sh.get_subset_index(edges[i])).width);
-		}
-
-	//	iterate over associated vertices
-		vector<Vertex*>& vrtVec = aaVrtVecVRT[vrt];
-
-	//	note that the position attachment of new vertices holds their normal.
-		for(size_t i = 0; i < vrtVec.size(); ++i){
-			Vertex* nVrt = vrtVec[i];
-			if(width > 0){
-				vector3 n = aaPos[nVrt];
-				if(VecLengthSq(n) > SMALL)
-					VecNormalize(n, n);
-
-				VecScale(n, n, width / 2.);
-
-				UG_LOG("n: " << n << endl);
-
-			//	n now holds the offset for nVrt relative to vrt.
-			//	if width is higher than 0, we'll have to adjust the offset at
-			//	boundary vertices.
-				if(IsBoundaryVertex2D(grid, vrt)){
-				//	First determine the normal pointing outwards
-					vector3 nOut;
-					CalculateBoundaryVertexNormal2D(nOut, grid, vrt, aaPos);
-
-				//	flip it by 90 degrees
-					number tmp = nOut.x();
-					nOut.x() = -nOut.y();
-					nOut.y() = tmp;
-
-					UG_LOG("nOut: " << nOut << endl);
-
-				//	now project the offset onto this vector
-					VecScale(nOut, nOut, VecDot(nOut, n));
-
-				//	and now scale the new offset so that we receive the final offset.
-					number dot = VecDot(n, nOut);
-					if(dot > SMALL)
-						VecScale(n, nOut, VecLengthSq(n) / dot);
-				}
-
-				UG_LOG("nFinal: " << n << endl);
-				VecAdd(aaPos[nVrt], n, aaPos[vrt]);
-				UG_LOG("\n");
-			}
-			else
-				aaPos[nVrt] = aaPos[vrt];
-		}
-
-	//	the current position is only a guess. Especially vertices where
-	//	fractures cross, this is not yet optimal.
-	//todo: create an iterative spring system to find the new position.
-	}
-
-////////////////////////////////
-//	create new elements
-
-//	first we create new edges from selected ones which are connected to
-//	inner vertices. This allows to preserve old subsets.
-//	Since we have to make sure that we use the right vertices,
-//	we have to iterate over the selected faces and perform all actions on the edges
-//	of those faces.
-	for(FaceIterator iter_sf = sel.faces_begin(); iter_sf != sel.faces_end(); ++iter_sf)
-	{
-		Face* sf = *iter_sf;
-	//	check for each edge whether it has to be copied.
-		for(size_t i_edge = 0; i_edge < sf->num_edges(); ++i_edge){
-			Edge* e = grid.get_edge(sf, i_edge);
-			if(sel.is_selected(e)){
-			//	check the associated vertices through the volumes aaVrtVecVol attachment.
-			//	If at least one has an associated new vertex and if no edge between the
-			//	new vertices already exists, we'll create the new edge.
-				size_t ind0 = i_edge;
-				size_t ind1 = (i_edge + 1) % sf->num_edges();
-
-				Vertex* nv0 = (aaVrtVecFACE[sf])[ind0];
-				Vertex* nv1 = (aaVrtVecFACE[sf])[ind1];
-
-				if(nv0 || nv1){
-				//	if one vertex has no associated new one, then we use the vertex itself
-					if(!nv0)
-						nv0 = sf->vertex(ind0);
-					if(!nv1)
-						nv1 = sf->vertex(ind1);
-
-				//	create the new edge if it not already exists.
-					if(!grid.get_edge(nv0, nv1))
-						grid.create_by_cloning(e, EdgeDescriptor(nv0, nv1), e);
-				}
-			}
-		}
-	}
-
-//	iterate over all surrounding faces and create new vertices.
-//	Since faces are replaced on the fly, we have to take care with the iterator.
-	for(FaceIterator iter_sf = sel.faces_begin(); iter_sf != sel.faces_end();)
-	{
-		Face* sf = *iter_sf;
-		++iter_sf;
-
-		vector<Vertex*> newVrts = aaVrtVecFACE[sf];
-
-	//	all new vertices have been assigned to newVrts.
-	//	Note that if newVrts[i] == NULL, then we have to take the
-	//	old vertex sf->vertex(i).
-	//	now expand the fracture edges of sf to faces.
-		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt){
-			size_t iv1 = i_vrt;
-			size_t iv2 = (i_vrt + 1) % sf->num_vertices();
-			Edge* tEdge = grid.get_edge(sf->vertex(iv1), sf->vertex(iv2));
-			if(tEdge){
-				if(aaMarkEDGE[tEdge]){
-					Face* expFace = NULL;
-					if(newVrts[iv1] && newVrts[iv2]){
-					//	create a new quadrilateral
-						expFace = *grid.create<Quadrilateral>(
-									QuadrilateralDescriptor(sf->vertex(iv1), sf->vertex(iv2),
-															newVrts[iv2], newVrts[iv1]));
-					}
-					else if(newVrts[iv1]){
-					//	create a new triangle
-						expFace = *grid.create<Triangle>(
-									TriangleDescriptor(sf->vertex(iv1), sf->vertex(iv2), newVrts[iv1]));
-					}
-					else if(newVrts[iv2]){
-					//	create a new triangle
-						expFace = *grid.create<Triangle>(
-									TriangleDescriptor(sf->vertex(iv1), sf->vertex(iv2), newVrts[iv2]));
-					}
-					else{
-					//	this code-block should never be entered. If it is entered then
-					//	we selected the wrong faces. This is would be a BUG!!!
-					//	remove the temporary attachments and throw an error
-						grid.detach_from_vertices(aVrtVec);
-						grid.detach_from_faces(aVrtVec);
-						grid.detach_from_vertices(aAdjMarker);
-						grid.detach_from_edges(aAdjMarker);
-
-						grid.detach_from_vertices(aAdjMarkerVFP);
-						grid.detach_from_edges(aAdjMarkerB);
-
-						// TODO FIXME auch die weiteren Marker und INfos, alle Attachments, detachen!!!!
-
-						throw(UGError("Implementation error in ExpandFractures2d Arte."));
-					}
-
-					sh.assign_subset(expFace, fracInfosBySubset.at(sh.get_subset_index(tEdge)).newSubsetIndex);
-				}
-			}
-		}
+#endif
 
 
-	//	now set up a new face descriptor and replace the face.
-		if(fd.num_vertices() != sf->num_vertices())
-			fd.set_num_vertices(sf->num_vertices());
-
-		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt){
-			if(newVrts[i_vrt])
-				fd.set_vertex(i_vrt, newVrts[i_vrt]);
-			else
-				fd.set_vertex(i_vrt, sf->vertex(i_vrt));
-		}
-		grid.create_by_cloning(sf, fd, sf);
-		grid.erase(sf);
-	}
-
-//	we have to clean up unused edges.
-//	All selected edges with mark 0 have to be deleted.
-	for(EdgeIterator iter = sel.edges_begin(); iter != sel.edges_end();)
-	{
-	//	be careful with the iterator
-		Edge* e = *iter;
-		++iter;
-
-		if(!aaMarkEDGE[e])
-			grid.erase(e);
-	}
-
-//	remove the temporary attachments
-	grid.detach_from_vertices(aVrtVec);
-	grid.detach_from_faces(aVrtVec);
-	grid.detach_from_vertices(aAdjMarker);
-	grid.detach_from_edges(aAdjMarker);
-
-	grid.detach_from_vertices(aAdjMarkerVFP);
-	grid.detach_from_edges(aAdjMarkerB);
-
-	// TODO FIXME auch die weiteren Marker und INfos, alle Attachments, detachen!!!!
 
 
-	return true;
+
+
+
 }
 
 
