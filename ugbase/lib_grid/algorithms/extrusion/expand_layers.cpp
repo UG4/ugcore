@@ -1870,9 +1870,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			}
 
 		}
-//
-//		//	TODO WIEDER EIN	else  // different treatment for boundary vertizes
-//		if( false )
+//		// // different treatment for boundary vertizes
 		else
 		{
 
