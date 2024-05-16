@@ -2210,6 +2210,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		}
 	}
 
+	std::vector<Face * > newFaces;
+	std::vector<int> subsOfNewFaces;
+
 	//	iterate over all surrounding faces and create new vertices.
 	//	Since faces are replaced on the fly, we have to take care with the iterator.
 	for(FaceIterator iter_sf = sel.faces_begin(); iter_sf != sel.faces_end();)
@@ -2278,9 +2281,17 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					// TODO FIXME selektion closen irgendwie, damit auch alle Randkanten zum subset gehoeren!!!
 
 					sh.assign_subset(expFace, fracInfosBySubset.at(sh.get_subset_index(tEdge)).newSubsetIndex);
+
+					int subs = fracInfosBySubset.at(sh.get_subset_index(tEdge)).newSubsetIndex;
+
+					subsOfNewFaces.push_back( subs );
+
+					newFaces.push_back( expFace );
 				}
 			}
 		}
+
+
 
 
 		//	now set up a new face descriptor and replace the face.
@@ -2310,6 +2321,28 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		if(!aaMarkEdgeB[e])
 			grid.erase(e);
 	}
+
+	if( subsOfNewFaces.size() != newFaces.size() )
+	{
+		UG_THROW("andere zahl neue faces als subdoms " << std::endl);
+	}
+
+	IndexType nfn = 0;
+
+	for( auto const & nf : newFaces )
+	{
+		for(size_t i_edge = 0; i_edge < nf->num_edges(); ++i_edge)
+		{
+			Edge* edg = grid.get_edge(nf, i_edge);
+
+			sh.assign_subset( edg, subsOfNewFaces[nfn] );
+		}
+
+		nfn++;
+	}
+
+	// TODO FIXME sollen die Boundary Edges zur boundary gehören, oder zur Kluft?
+	// TODO FIXME wie ist es mit den Knoten, sind die alle richtig zugewiesen bezüglich subset?
 
 	//	remove the temporary attachments
 	grid.detach_from_vertices(aAdjMarker);
