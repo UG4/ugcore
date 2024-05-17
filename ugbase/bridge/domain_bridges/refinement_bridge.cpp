@@ -35,7 +35,9 @@
 #include <sstream>
 
 // include bridge
+#ifdef UG_FOR_LUA
 #include "bindings/lua/lua_user_data.h"
+#endif
 #include "bridge/bridge.h"
 #include "bridge/util.h"
 #include "bridge/util_domain_dependent.h"
@@ -1168,7 +1170,7 @@ void MarkForRefinement_ContainsSurfaceNode(TDomain& dom, SmartPtr<IRefiner> refi
 }
 
 
-
+#ifdef UG_FOR_LUA
 template <class TDomain>
 void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refiner,
 											 double time, size_t maxLvl,
@@ -1271,7 +1273,7 @@ void MarkForCoarsen_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refin
 		}
 	}
 }
-
+#endif
 
 template <class TDomain, class TSubsetHandler, class TElem>
 void MarkForRefinement_ElementsInSubset(TDomain& dom, IRefiner& refiner,
@@ -1888,12 +1890,14 @@ static void Domain(TRegistry& reg, string grp)
 		// .add_function("MarkForRefinement_AnisotropicElements2",
 		// 		&MarkForRefinement_AnisotropicElements2<domain_type>, grp,
 		// 		"", "dom#refiner#sizeRatio")
+#ifdef UG_FOR_LUA
 		.add_function("MarkForRefinement_ElementsByLuaCallback",
 				&MarkForRefinement_ElementsByLuaCallback<domain_type>, grp,
 				"", "dom#refiner#time#callbackName")
 		.add_function("MarkForCoarsen_ElementsByLuaCallback",
 				&MarkForCoarsen_ElementsByLuaCallback<domain_type>, grp,
 				"", "dom#refiner#time#callbackName")
+#endif
 		.add_function("MarkForRefinement_ElementsInSubset",
 				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler,
 							typename domain_traits<TDomain::dim>::element_type>,
