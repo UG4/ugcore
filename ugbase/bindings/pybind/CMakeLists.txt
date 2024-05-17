@@ -34,13 +34,14 @@ cmake_minimum_required(VERSION 2.8.12)
 project(UG_PYBIND11)
 
 if(USE_PYBIND11)
-	SET(pyPluginName ug4py) # Must match module name!
-	pybind11_add_module(${pyPluginName} ug_pybind.cpp python_user_data.cpp)
-	set_target_properties(${pyPluginName} PROPERTIES	
+	SET(pyModuleName pyugcore) # Must match module name!
+	pybind11_add_module(${pyModuleName} ug_pybind.cpp python_user_data.cpp)
+	set_target_properties(${pyModuleName} PROPERTIES	
   		CXX_STANDARD 11 
   		CXX_STANDARD_REQUIRED YES
    		CXX_EXTENSIONS NO)
    		
    	# '$targetLibraryName' is either ug4 or ug4_s	
-	target_link_libraries (${pyPluginName} PRIVATE ${targetLibraryName})
+	target_link_libraries (${pyModuleName} PRIVATE ${targetLibraryName})
+	install(TARGETS ${pyModuleName} LIBRARY DESTINATION ug4py COMPONENT pymodules)
 endif(USE_PYBIND11)

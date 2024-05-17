@@ -14,7 +14,7 @@
 #include "python_user_data.h"
 
 // Expose registry to python.
-PYBIND11_MODULE(ug4py, m)
+PYBIND11_MODULE(pyugcore, m)
 {
 	typedef ug::pybind::RegistryAdapter TRegistry;
 
