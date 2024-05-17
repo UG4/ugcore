@@ -61,7 +61,8 @@ if(USE_PYBIND11)
     MESSAGE(STATUS "Info: Pybind11 enabled.")
  	
  	# Check for Python.
-    FIND_PACKAGE(Python REQUIRED COMPONENTS Interpreter Development)
+    # FIND_PACKAGE(Python REQUIRED COMPONENTS Interpreter Development)
+	FIND_PACKAGE(Python REQUIRED COMPONENTS Interpreter Development.Module)
     MESSAGE(STATUS "Info: Found Python = ${Python_FOUND}")
     MESSAGE(STATUS "Info: Using INC${Python_INCLUDE_DIRS}")
     MESSAGE(STATUS "Info: Using LIB ${Python_LIBRARIES}")
