@@ -241,7 +241,7 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 	m_lastNumSteps = 0;
 	{
 		//	write start defect for debug
-		sprintf(ext, "_call%03d", m_dgbCall);
+		snprintf(ext, sizeof(ext), "_call%03d", m_dgbCall);
 		std::string name("NESTED_ITER_StartSolution");
 		name.append(ext);
 		write_debug(u, name.c_str());
@@ -266,7 +266,7 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 		m_spAss->adjust_solution(u, surfGridLevel);
 		NESTED_ITER_PROFILE_END();
 
-		sprintf(ext, "_call%03d_iter%03d", m_dgbCall, loopCnt);
+		snprintf(ext, sizeof(ext),"_call%03d_iter%03d", m_dgbCall, loopCnt);
 		{
 			// write initial data for debug
 			std::string name0("NESTED_ITER_InitialSolution"); name0.append(ext);

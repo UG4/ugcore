@@ -421,7 +421,7 @@ class BiCGStab
 		void write_debugXR(vector_type &x, vector_type &r, int loopCnt, char phase)
 		{
 			if(!this->vector_debug_writer_valid()) return;
-			char ext[20]; sprintf(ext, "-%c_iter%03d", phase, loopCnt);
+			char ext[20]; snprintf(ext, sizeof(ext), "-%c_iter%03d", phase, loopCnt);
 			write_debug(r, std::string("BiCGStab_Residual") + ext + ".vec");
 			write_debug(x, std::string("BiCGStab_Solution") + ext + ".vec");
 		}
@@ -430,7 +430,7 @@ class BiCGStab
 		void enter_precond_debug_section(int loopCnt, char phase)
 		{
 			if(!this->vector_debug_writer_valid()) return;
-			char ext[20]; sprintf(ext, "-%c_iter%03d", phase, loopCnt);
+			char ext[20]; snprintf(ext, sizeof(ext), "-%c_iter%03d", phase, loopCnt);
 			this->enter_vector_debug_writer_section(std::string("BiCGStab_Precond") + ext);
 		}
 
