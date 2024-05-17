@@ -91,6 +91,9 @@ if(USE_PYBIND11)
 	# Set define for UG4.
 	add_definitions(-DUG_USE_PYBIND11)
 
+	# Extend flags
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fvisibility=hidden")
+
     if(STATIC_BUILD)
 		# For Pybind with static builds, embedded plugins are disabled.
 		# Instead, individual static libs are build as temporaries
