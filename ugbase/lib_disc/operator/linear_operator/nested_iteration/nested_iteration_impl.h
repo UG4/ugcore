@@ -236,13 +236,14 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 	// Create tmp vectors
 	SmartPtr<vector_type> spD = u.clone_without_values();
 
-	char ext[50];
+	std::string ext; 	//char ext[50];
 	int loopCnt = 0;
 	m_lastNumSteps = 0;
 	{
 		//	write start defect for debug
-		snprintf(ext, sizeof(ext), "_call%03d", m_dgbCall);
+		//snprintf(ext, sizeof(ext), "_call%03d", m_dgbCall);
 		std::string name("NESTED_ITER_StartSolution");
+		ext = GetStringPrintf("_call%03d", m_dgbCall);
 		name.append(ext);
 		write_debug(u, name.c_str());
 	}
@@ -266,7 +267,8 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 		m_spAss->adjust_solution(u, surfGridLevel);
 		NESTED_ITER_PROFILE_END();
 
-		snprintf(ext, sizeof(ext),"_call%03d_iter%03d", m_dgbCall, loopCnt);
+		//snprintf(ext, sizeof(ext),"_call%03d_iter%03d", m_dgbCall, loopCnt);
+		ext = GetStringPrintf("_call%03d_iter%03d", m_dgbCall, loopCnt);
 		{
 			// write initial data for debug
 			std::string name0("NESTED_ITER_InitialSolution"); name0.append(ext);
