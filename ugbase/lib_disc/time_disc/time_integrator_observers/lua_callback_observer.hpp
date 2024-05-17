@@ -3,13 +3,12 @@
 #ifndef __H__UG__LIB_DISC__TIME_DISC__TIME_INTEGRATOR_OBSERVERS__LUA_CALLBACK_OBSERVER
 #define __H__UG__LIB_DISC__TIME_DISC__TIME_INTEGRATOR_OBSERVERS__LUA_CALLBACK_OBSERVER
 
-
+#ifdef UG_FOR_LUA
 
 #include "time_integrator_observer_interface.h"
 
 namespace ug {
 
-#ifdef UG_FOR_LUA
 
 template<class TDomain, class TAlgebra>
 class LuaCallbackObserver
@@ -57,6 +56,7 @@ protected:
 };
 
 }
-
 #endif
+
+
 #endif
