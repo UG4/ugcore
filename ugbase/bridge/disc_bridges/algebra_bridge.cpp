@@ -604,6 +604,7 @@ static void DomainAlgebra(TRegistry& reg, string parentGroup)
 		reg.add_class_to_group(name, "ITimeIntegratorObserver", tag);
 	}
 
+#ifdef UG_FOR_LUA
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/TimeIntegratorObservers");
 		// LuaCallbackObserver
@@ -620,6 +621,7 @@ static void DomainAlgebra(TRegistry& reg, string parentGroup)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LuaCallbackObserver", tag);
 	}
+#endif
 
 	{
 		std::string grp = parentGroup; grp.append("/Discretization");

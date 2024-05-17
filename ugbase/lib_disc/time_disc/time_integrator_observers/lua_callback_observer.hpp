@@ -9,6 +9,7 @@
 
 namespace ug {
 
+#ifdef UG_FOR_LUA
 
 template<class TDomain, class TAlgebra>
 class LuaCallbackObserver
@@ -57,4 +58,5 @@ protected:
 
 }
 
+#endif
 #endif
