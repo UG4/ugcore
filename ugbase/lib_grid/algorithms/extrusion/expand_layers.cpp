@@ -888,6 +888,23 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> aaVrtInfoFraTri(grid,  aAdjInfoAVVFT );
 
 
+	using VecEdge = std::vector<Edge*>;
+	using VecFace = std::vector<Face*>;
+
+	using AttVecEdge = Attachment<VecEdge>;
+	using AttVecFace = Attachment<VecFace>;
+
+	VecEdge noEdge;
+	VecFace noFace;
+	AttVecEdge aAdjInfoEdges;
+	AttVecFace aAdjInfoFaces;
+
+	grid.attach_to_vertices_dv( aAdjInfoEdges, noEdge );
+	Grid::VertexAttachmentAccessor<AttVecEdge> aaVrtInfoEdges( grid, aAdjInfoEdges );
+
+	grid.attach_to_vertices_dv( aAdjInfoFaces, noFace );
+	Grid::VertexAttachmentAccessor<AttVecFace> aaVrtInfoFaces( grid, aAdjInfoFaces );
+
 	// das ist Käse, ich brauche für jeden Vertex ein Attachment der Form
 	// class VertexTriple, bzw std vektoren von solchen vertex triplen
 	// da weiss dann jeder Vertex das triple
@@ -1012,11 +1029,28 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			// TODO FIXME hier ein attachment der associated faces und vertizes, am besten als Klasse, die std vertizes davon frisst, an jeden Vertex anhängen
 			// so muss man später nicht nochmal über alle Faces und Edges laufen, sondern hat die angehängten schon zur Hand
+			// im Fall, dass eine Kreuzung vorliegt, das Ganze irgendwann ordnen, dass nebeneinander liegende Faces und edges in eine verkettete Liste kommen
+			// vielleicht das aber nur bei den Schnittvertizes später
+			// und vielleicht sollen die Faces Zeiger auf ihre Edges bekommen, und die edges auf die faces, aber wird irgendwann zu wild verzeigert.....
+			// vielleicht einfach attachment von faces und edges unabhängig an jeden Fracture Vertex......
 
 			// testen, ob ein Schnittvertex vor liegt, indem die Anzahl der touches getestet wird, anhand einfacher Geometrien testen, was die Anzahl ist
 
 			// mit UG_LOG ausgeben, was die Koordinaten sind, und die Anzahl der hits
 
+			VecFace assFac;
+			VecEdge assEdg;
+
+			for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iter); iterFac != grid.associated_faces_end(*iter); iterFac++ )
+			{
+				assFac.push_back(*iterFac);
+			}
+
+
+			for( std::vector<Edge *>::iterator iterEdg = grid.associated_edges_begin(*iter); iterEdg != grid.associated_edges_end(*iter); iterEdg++ )
+			{
+				assEdg.push_back(*iterEdg);
+			}
 
 			UG_LOG("marked vertex wahl: " << aaPos[*iter] << " is bnd " << isBnd << " number cross frac " << numCrosFrac << std::endl );
 
@@ -1640,6 +1674,17 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 									int dbg_FaceIterator = 0;
 
+									VecFace assoFaces = aaVrtInfoFaces[*iterV];
+
+									for( auto const & ifac : assoFaces )
+									{
+										static_assert( std::is_same< decltype( ifac ), Face * const & >::value );
+
+										// TODO FIXME folgenden loop durch diesen ersetzen
+										// Achtung: Zeigerproblematik, Referenzen, etc.....
+										// *iterFac ersetzen durch ifac vermutlich, aber wer weiss
+									}
+
 //									for( auto iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
 									for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
 									{
@@ -1866,6 +1911,17 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				// TODO FIXME kreuzende Fractures im Innenraum -> Arte in Reinform implementieren
 				// hier geht es vor allem weiter!!!
 				// XXXXXXXXXXXXXXXXX
+
+				// verkettete Liste der anhängenden fractures in Reihenfolge
+				// der Anhängung mit INfo, ob eine Kluft vorliegt
+
+//				for( auto const & attVFT : vecVertFracTrip }
+				for( auto const & attVFT : vecVertFracTrip )
+				{
+					Edge * edg = attVFT.getEdge();
+					Face * fac = attVFT.getFace();
+					vector3 nv = attVFT.getNormal();
+				}
 
 			}
 
@@ -2290,6 +2346,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 						grid.detach_from_vertices( aAdjInfoAVVFT );
 						grid.detach_from_faces(attVrtVec);
 
+						grid.detach_from_vertices( aAdjInfoEdges );
+						grid.detach_from_vertices( aAdjInfoFaces );
+
+
 						// TODO FIXME auch die weiteren Marker und INfos, alle Attachments, detachen!!!!
 
 						throw(UGError("Implementation error in ExpandFractures2d Arte."));
@@ -2373,6 +2433,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	grid.detach_from_vertices( aAdjInfoAVVFT );
 	grid.detach_from_faces(attVrtVec);
 
+	grid.detach_from_vertices( aAdjInfoEdges );
+	grid.detach_from_vertices(aAdjInfoFaces );
 
 
 	// TODO FIXME alles detachen, was noch attached ist, da ist einiges hinzu gekommen!
