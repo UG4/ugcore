@@ -879,6 +879,51 @@ bool ElementSideRayIntersection(	size_t& sideOut,
 					From, Direction, bPositiv, vCornerCoords);
 }
 
+/// computes the closest node to a elem side ray intersection
+template <typename TRefElem, int TWorldDim>
+void GetNodeNextToCut(size_t& coOut,
+                      const MathVector<TWorldDim>& From,
+                      const MathVector<TWorldDim>& Direction,
+                      bool searchPositive,
+                      const MathVector<TWorldDim>* vCornerCoords)
+{
+//	help variables
+	size_t side = 0;
+	MathVector<TWorldDim> globalIntersection;
+	MathVector<TRefElem::dim> localIntersection;
+
+//	compute intersection of ray in direction of ip velocity with elem side
+//	we search the ray only in upwind direction
+	if(!ElementSideRayIntersection<TRefElem, TWorldDim>
+		(	side, globalIntersection, localIntersection,
+			From, Direction, searchPositive, vCornerCoords))
+		UG_THROW("GetNodeNextToCut: Cannot find cut side.");
+
+//	get reference element
+	static const TRefElem& rRefElem = Provider<TRefElem>::get();
+	const int dim = TRefElem::dim;
+
+// 	reset minimum
+	number min = std::numeric_limits<number>::max();
+
+// 	loop corners of side
+	for(size_t i = 0; i < rRefElem.num(dim-1, side, 0); ++i)
+	{
+	// 	get corner
+		const size_t co = rRefElem.id(dim-1, side, 0, i);
+
+	// 	Compute Distance to intersection
+		number dist = VecDistanceSq(globalIntersection, vCornerCoords[co]);
+
+	// 	if distance is smaller, choose this node
+		if(dist < min)
+		{
+			min = dist;
+			coOut = co;
+		}
+	}
+}
+
 
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
