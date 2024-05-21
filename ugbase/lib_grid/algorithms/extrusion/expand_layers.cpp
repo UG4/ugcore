@@ -1738,20 +1738,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 									int dbg_FaceIterator = 0;
 
-//									VecFace & assoFaces = aaVrtInfoFaces[*iterV];
-									// TODO FIXME hier braucht man das nicht zu ordnen
-									// aber bei Kreuzpunkten von Klueften muss es so geordnet werden, wie es nebeneinander liegt
-									// bei den Edges gibt es auch die benachbarten, und die edges haben das attachment, ob sie Kluftedges sind
-
-									for( auto const & ifac : assoFaces )
-									{
-										static_assert( std::is_same< decltype( ifac ), Face * const & >::value );
-
-										// TODO FIXME folgenden loop durch diesen ersetzen
-										// Achtung: Zeigerproblematik, Referenzen, etc.....
-										// *iterFac ersetzen durch ifac vermutlich, aber wer weiss
-									}
-
 #if 0
 //									for( auto iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
 									for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
@@ -1934,11 +1920,26 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 									}
 #else
-									std::vector<Face* > & assFaceVrt = aaVrtInfoFaces[*iterV];
+//									std::vector<Face* > & assFaceVrt = aaVrtInfoFaces[*iterV];
+
+									//									VecFace & assoFaces = aaVrtInfoFaces[*iterV];
+																		// TODO FIXME hier braucht man das nicht zu ordnen
+																		// aber bei Kreuzpunkten von Klueften muss es so geordnet werden, wie es nebeneinander liegt
+																		// bei den Edges gibt es auch die benachbarten, und die edges haben das attachment, ob sie Kluftedges sind
+
+									//									for( auto const & ifac : assoFaces )
+									//									{
+									//										static_assert( std::is_same< decltype( ifac ), Face * const & >::value );
+									//
+									//										// TODO FIXME folgenden loop durch diesen ersetzen
+									//										// Achtung: Zeigerproblematik, Referenzen, etc.....
+									//										// *iterFac ersetzen durch ifac vermutlich, aber wer weiss
+									//									}
+
 
 									//									for( auto iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
 									//for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
-									for( auto const & ifac : assFaceVrt )
+									for( auto const & ifac : assoFaces )
 									{
 										bool isFromFrac = false;
 
@@ -2004,15 +2005,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 #if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
 
-																					Vertex * otherFacCent = *grid.create<RegularVertex>();
-																					aaPos[otherFacCent] = facCenter;
-																					sh.assign_subset(otherFacCent, 5 );
+												Vertex * otherFacCent = *grid.create<RegularVertex>();
+												aaPos[otherFacCent] = facCenter;
+												sh.assign_subset(otherFacCent, 5 );
 
-																					Vertex * pp = *grid.create<RegularVertex>();
-																					aaPos[pp] = perpendicu;
-																					sh.assign_subset(pp, 6 );
+												Vertex * pp = *grid.create<RegularVertex>();
+												aaPos[pp] = perpendicu;
+												sh.assign_subset(pp, 6 );
 
-																					sh.assign_subset(*iterFac,7);
+												sh.assign_subset(*iterFac,7);
 #endif
 
 											}
@@ -2129,6 +2130,12 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					Edge * edg = attVFT.getEdge();
 					Face * fac = attVFT.getFace();
 					vector3 nv = attVFT.getNormal();
+				}
+
+				// hier werden  ALLE attached Faces benötigt, auch die, die zwischen den direkt an den fractures liegenden Faces sind
+				for( auto const & ifac : assoFaces )
+				{
+
 				}
 
 			}
