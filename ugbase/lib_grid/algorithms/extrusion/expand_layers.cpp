@@ -1752,6 +1752,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 										// *iterFac ersetzen durch ifac vermutlich, aber wer weiss
 									}
 
+#if 0
 //									for( auto iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
 									for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
 									{
@@ -1932,7 +1933,147 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 										dbg_FaceIterator++;
 
 									}
+#else
+									std::vector<Face* > & assFaceVrt = aaVrtInfoFaces[*iterV];
 
+									//									for( auto iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
+									//for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
+									for( auto const & ifac : assFaceVrt )
+									{
+										bool isFromFrac = false;
+
+
+										int dbg_innterFacFracIt = 0;
+
+										for( auto const & facFrac : attFac )
+										{
+
+//											static_assert( std::is_same<  decltype( const_cast<Face* & >(facFrac) ), decltype ( ifac ) >::value );
+											static_assert( std::is_same<  decltype( (facFrac) ), decltype ( ifac ) >::value );
+
+											if( ifac == facFrac )
+											{
+												isFromFrac = true;
+
+//												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), Face * & >::value  );
+												static_assert( std::is_same< decltype( (facFrac) ), Face * const & >::value  );
+//												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), decltype( ifac ) >::value  );
+												static_assert( std::is_same< decltype( (facFrac) ), decltype( ifac ) >::value  );
+
+											}
+										}
+
+										bool atRightSide = false;
+
+										if( isFromFrac )
+											atRightSide = true;
+
+										if( !isFromFrac )
+										{
+											// check if on same side of edge where the normal points to: compute cosinus between vector of face center
+											//  perpendicular to the edge
+
+											vector3 facCenter = CalculateCenter( ifac, aaPos );
+
+											vector3 perpendicu;
+
+											if( nextFracVrt.size() != 2 )
+											{
+												UG_THROW("komische Groesse" << std::endl);
+											}
+
+											DropAPerpendicular(perpendicu, facCenter, aaPos[nextFracVrt[0]], aaPos[nextFracVrt[1]]);
+
+											vector3 tmpN;
+
+											VecSubtract(tmpN, facCenter, perpendicu );
+
+											VecNormalize(tmpN, tmpN);
+
+											UG_LOG("Normale zum Face ist " << tmpN << std::endl);
+
+											number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, normSumNormed );
+
+											UG_LOG("Cosinus zur Normalen ist " << cosBetwFracEdgAndDirection2Face << std::endl);
+
+											if( cosBetwFracEdgAndDirection2Face > 0 )
+											{
+												UG_LOG("assuming face to be on richt side" << std::endl);
+
+												atRightSide = true;
+
+#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+
+																					Vertex * otherFacCent = *grid.create<RegularVertex>();
+																					aaPos[otherFacCent] = facCenter;
+																					sh.assign_subset(otherFacCent, 5 );
+
+																					Vertex * pp = *grid.create<RegularVertex>();
+																					aaPos[pp] = perpendicu;
+																					sh.assign_subset(pp, 6 );
+
+																					sh.assign_subset(*iterFac,7);
+#endif
+
+											}
+											else
+											{
+												UG_LOG("assuming face to be on wrong side" << std::endl);
+											}
+
+
+											dbg_flachen_passiert++;
+										}
+
+
+										if( atRightSide ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
+										{
+
+											// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
+											vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ ifac ];
+
+											IndexType vrtxFnd = 0;
+
+											for(size_t indVrt = 0; indVrt < (ifac)->num_vertices();  indVrt++ )
+											{
+												Vertex* facVrt = (ifac)->vertex(indVrt);
+
+												if(  facVrt == *iterV )
+												{
+													newVrts4Fac[ indVrt ] = newShiftVrtx;
+													vrtxFnd++;
+												}
+											}
+
+
+											if( vrtxFnd <= 0 )
+											{
+												UG_THROW("vertex not found!" << std::endl);
+																				}
+											else if( vrtxFnd > 1 )
+											{
+												UG_THROW("vertex zu oft gefunden " << vrtxFnd << std::endl );
+											}
+											else if ( vrtxFnd == 1 )
+											{
+											}
+											else
+											{
+												UG_THROW("vertex finden komisch " << std::endl);
+											}
+
+
+										}
+
+										dbg_innterFacFracIt++;
+
+
+
+										dbg_FaceIterator++;
+
+									}
+
+#endif
 
 
 
