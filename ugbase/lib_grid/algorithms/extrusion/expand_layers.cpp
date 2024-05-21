@@ -1041,16 +1041,24 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			VecFace assFac;
 			VecEdge assEdg;
 
+//			UG_LOG("----------" << std::endl);
+
 			for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iter); iterFac != grid.associated_faces_end(*iter); iterFac++ )
 			{
 				assFac.push_back(*iterFac);
+//				vector3 facCenter = CalculateCenter( *iterFac, aaPos );
+//				UG_LOG("fac center " << facCenter << std::endl);
 			}
 
+//			UG_LOG("----------" << std::endl);
 
 			for( std::vector<Edge *>::iterator iterEdg = grid.associated_edges_begin(*iter); iterEdg != grid.associated_edges_end(*iter); iterEdg++ )
 			{
 				assEdg.push_back(*iterEdg);
 			}
+
+			aaVrtInfoFaces[*iter] = assFac;
+			aaVrtInfoEdges[*iter] = assEdg;
 
 			UG_LOG("marked vertex wahl: " << aaPos[*iter] << " is bnd " << isBnd << " number cross frac " << numCrosFrac << std::endl );
 
@@ -1107,8 +1115,13 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			// get attached faces
 
+#if 0
 			std::vector<Face* > assFace;
 
+			// TODO FIXME dieser loop kann vielleicht vereinfacht werden, wenn dieser ganze loop umgebaut wird
+			// denn die Vertizes kennen dann die assosciated faces schon
+			// der Name AssociatedFaceIterator ist sowieso verwirrend, hat mit assosciated nix zu tun, bezieht sich auf alle std Vektoren von Face *
+			UG_LOG("XXXXXXXXXXXX" << std::endl);
 			for(Grid::AssociatedFaceIterator iterAFI = grid.associated_faces_begin( verticesEdg[0] );
 				iterAFI != grid.associated_faces_end( verticesEdg[0] );
 				iterAFI++ )
@@ -1118,10 +1131,50 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				{
 					assFace.push_back( *iterAFI );
 
+
+					vector3 facCenter = CalculateCenter( *iterAFI, aaPos );
+					UG_LOG("fac center " << facCenter << std::endl);
+
+
+
 //					sh.assign_subset( *iterAFI, sh.get_subset_index(*iterEdg));
 				}
 
 			}
+			UG_LOG("XXXXXXXXX" << std::endl);
+#else
+
+			std::vector<Face* > & assFaceVrt0 = aaVrtInfoFaces[verticesEdg[0]];
+
+			std::vector<Face* > assFace;
+
+//			static_assert( std::is_same< decltype( aaVrtInfoFaces[verticesEdg[0]] )[0], std::vector<Face *> >::value );
+			//static_assert( std::is_same< decltype( *(aaVrtInfoFaces[verticesEdg[0]]) ), Face * >::value );
+
+//			UG_LOG("XXXXXXXXXXXX" << std::endl);
+
+			for( auto const & ifa : assFaceVrt0 )
+			{
+				if(FaceContains( ifa, *iterEdg ))
+				{
+					assFace.push_back( ifa );
+
+//					vector3 facCenter = CalculateCenter( ifa, aaPos );
+//					UG_LOG("fac center " << facCenter << std::endl);
+				}
+			}
+
+//			UG_LOG("XXXXXXXXX" << std::endl);
+
+#endif
+			// von hier lernen:
+			//	VecFace & assoFaces = aaVrtInfoFaces[*iterV ist verticesEdg[0] ];
+			//		for( auto const & ifac : assoFaces )
+			//		{
+			//			static_assert( std::is_same< decltype( ifac ), Face * const & >::value );
+			//		}
+
+
 
 			// compute normal of edge
 
@@ -1256,7 +1309,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	{
 		Face* sf = *iter_sf;
 
-		vector<Vertex*>& newVrts = aaVrtVecFace[sf];
+		std::vector<Vertex*>& newVrts = aaVrtVecFace[sf];
 		newVrts.resize(sf->num_vertices());
 
 		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt)
@@ -1336,6 +1389,17 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		}
 
 		using VvftIterator = VecVertFracTrip::iterator;
+
+		VecFace & assoFaces = aaVrtInfoFaces[*iterV];
+		// TODO FIXME hier braucht man das nicht zu ordnen
+		// aber bei Kreuzpunkten von Klueften muss es so geordnet werden, wie es nebeneinander liegt
+		// bei den Edges gibt es auch die benachbarten, und die edges haben das attachment, ob sie Kluftedges sind
+
+//		for( auto const & ifac : assoFaces )
+//		{
+//			static_assert( std::is_same< decltype( ifac ), Face * const & >::value );
+//		}
+
 
 
 		// Anzahl der Kreuzungspunkte auslesen und danach unterscheiden, erstmal keine Kreuzung! TODO FIXME
@@ -1674,7 +1738,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 									int dbg_FaceIterator = 0;
 
-									VecFace assoFaces = aaVrtInfoFaces[*iterV];
+//									VecFace & assoFaces = aaVrtInfoFaces[*iterV];
+									// TODO FIXME hier braucht man das nicht zu ordnen
+									// aber bei Kreuzpunkten von Klueften muss es so geordnet werden, wie es nebeneinander liegt
+									// bei den Edges gibt es auch die benachbarten, und die edges haben das attachment, ob sie Kluftedges sind
 
 									for( auto const & ifac : assoFaces )
 									{
