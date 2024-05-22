@@ -2120,8 +2120,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			{
 
 				// TODO FIXME kreuzende Fractures im Innenraum -> Arte in Reinform implementieren
-				// hier geht es vor allem weiter!!!
-				// XXXXXXXXXXXXXXXXX
 
 				// verkettete Liste der anhängenden fractures in Reihenfolge
 				// der Anhängung mit INfo, ob eine Kluft vorliegt
@@ -2163,22 +2161,116 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				// note: we do not attach this info to the vertex, as we only need it local; in principle, in case of further need, it would
 				// be usful to establish some sort of attachment
 
-				// get starting point of the "rotation" around the vertex where fractures are crossing
-				for( auto const & attVFT : vecVertFracTrip )
-				{
-					Face * facAtVrtWithFrac = attVFT.getFace();
+				Edge* nextEdge;
+				nextEdge = NULL;
 
-					for( auto const & ifac : assoFaces )
+				// we start with the first fracture face edge stuff, copy it,  and delete this immidiately
+				VertFracTrip startVertFracTrip = vVFT[0];
+				vVFT.erase(vVFT.begin());
+
+				Face* fracFac = startVertFracTrip.getFace();
+				Edge* fracEdg = startVertFracTrip.getEdge();
+				vector3 fracNorm = startVertFracTrip.getNormal();
+
+				Edge* startEdg = fracEdg;
+
+				for( std::vector<Face*>::iterator itFac = aF.begin(); itFac != aF.end(); )
+				{
+					if( *itFac == fracFac )
 					{
-						if( ifac == facAtVrtWithFrac )
+						itFac = aF.erase(itFac);
+						break;
+					}
+				}
+
+				IndexType fndCommEdg = 0;
+
+				std::vector<Edge*> assoEdg2Fac;
+				std::vector<vector3> assoNorm2Fac; // will stay zero vector in case that next face contains no frac, i.e. if next edge no fracture edge
+
+				assoEdg2Fac.push_back( fracEdg );
+				assoNorm2Fac.push_back( fracNorm );
+
+				// now need to find the second edge and figure out if it is fracture
+
+
+
+				for( auto const & iE : allAssoEdges ) // werden nicht gelöscht, deswegen Zugriff auf attachment direkt
+				{
+					if( FaceContains(fracFac, iE) )
+					{
+						fndCommEdg++;
+						if( iE != startEdg )
+						{
+							nextEdge = iE;
+						}
+					}
+
+					if( fndCommEdg != 2 )
+					{
+						UG_THROW("komische Anzahl gemeinsamer Ecke " << fndCommEdg << std::endl);
+					}
+
+					if( nextEdge == NULL )
+					{
+						UG_THROW("wieso keine zweite Ecke gefunden???? " << std::endl);
+					}
+
+				}
+
+				assoEdg2Fac.push_back(nextEdge);
+
+
+				// now figure out to which face this next edge belongs, and if this is a fracture edge, then we have the triple and the normal info
+				// else we let the normal zero
+
+				// figure out if second edge is also frac edge, i.e. if it belongs to an edge  of the remaining vVFT elements
+				// first easily asking if it is marked as frac edge, simplifies research
+
+				// in principle from here on need to loop through all triples and through all faces, find out some way to construct next edge and to
+				// build one element after the other of the ordered faces vector, still even the first element is not completed
+
+				// TODO FIXME kreuzende Fractures im Innenraum -> Arte in Reinform implementieren
+				// hier geht es vor allem weiter!!!
+				// XXXXXXXXXXXXXXXXX
+
+
+				bool sndEdgIsFracEdgeAlso = aaMarkEdgeB[nextEdge];
+
+//				if( !sndEdgIsFracEdgeAlso )
+//				{
+//					; // normal remains zero vector
+//				}
+
+
+
+				// get starting point of the "rotation" around the vertex where fractures are crossing
+//				for( auto & attVFT : vVFT ) // not const, as we need to erase found elements!
+				for( VecVertFracTrip::iterator itAttVFT = vVFT.begin(); itAttVFT !=  vVFT.end(); )
+				{
+					Face * facAtVrtWithFrac = itAttVFT->getFace();
+
+					bool facFound = false;
+
+//					for( auto const & ifac : assoFaces ) // not const, as we need to erase found elements!
+					for( std::vector<Face*>::iterator itFac = aF.begin(); itFac != aF.end(); )
+					{
+						if( *itFac == facAtVrtWithFrac )
 						{
 							// found a starting face
+							// copy first the found info, then delete the original one
+							auto attVFTCop = *itAttVFT; // copy, not reference!
+
+							vVFT.erase(itAttVFT);
+							aF.erase(itFac);
+
+							// TODO FIXME erase ifac and attVFT, how to do?
 
 							Face * startFace = facAtVrtWithFrac;
 
 							// now determine the common edge(s), the first edge of the vector must be a frac edge, the second one might be one
 
-							Edge * startEdg = attVFT.getEdge();
+							Edge * startEdg = attVFTCop.getEdge();
 
 							// unnecessary check, but for test purposes at beginning, later should be removed
 							if( !FaceContains(facAtVrtWithFrac, startEdg ))
@@ -2192,15 +2284,87 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 							// check number of common edges containing the same vertex
 
 							IndexType fndCommEdg = 0;
+							std::vector<Edge*> assoEdg2Fac;
 
-							for( auto const & iE : allAssoEdges )
+							assoEdg2Fac.push_back( startEdg );
+
+							std::vector<vector3> assoNorm;
+
+							vector3 norm2Frac = attVFTCop.getNormal();
+
+							Edge * secondEdge;
+							secondEdge = NULL;
+
+							for( auto const & iE : allAssoEdges ) // werden nicht gelöscht, deswegen Zugriff auf attachment direkt
 							{
-								if( iE == startEdg )
+								if( FaceContains(facAtVrtWithFrac, iE) )
 								{
 									fndCommEdg++;
+									if( iE != startEdg )
+									{
+										secondEdge = iE;
+									}
+								}
+
+								if( fndCommEdg != 2 )
+								{
+									UG_THROW("komische Anzahl gemeinsamer Ecke " << fndCommEdg << std::endl);
+								}
+
+								if( secondEdge == NULL )
+								{
+									UG_THROW("wieso keine zweite Ecke gefunden???? " << std::endl);
+								}
+
+								assoEdg2Fac.push_back(secondEdge);
+
+								// check, if second edge belongs to anothter fracture fac, i.e. if it is also a fracture edge
+
+								// check if second edge is edge of a fracture face, i.e. either this edge, or another one is from a fracture
+
+								bool scndEdgIsFracEdg = aaMarkEdgeB[secondEdge];
+
+								if( scndEdgIsFracEdg )
+								{
+									// TODO FIXME figure out second vertex fracture info, in this case, we have found the next part of the chain!
+
+									for( VecVertFracTrip::iterator itAttVFTTwo = vVFT.begin(); itAttVFTTwo !=  vVFT.end(); )
+									{
+										// need to erase also this element soon, also in the list of all attached elements
+
+										Face* vFTTwoFac = itAttVFTTwo->getFace();
+
+										if( FaceContains( vFTTwoFac, secondEdge))
+										{
+											auto vVFT2 = *itAttVFTTwo;
+											vVFT.erase( itAttVFTTwo );
+
+											Face * nextFace = vFTTwoFac;
+
+											if( secondEdge != vVFT2.getEdge() )
+											{
+												UG_THROW("Ecke nicht Ecke " << std::endl);
+											}
+
+
+										}
+									}
+								}
+								else // find the next attached face, either from the
+								{
+
 								}
 							}
+
+							break;
 						}
+
+						if( ! facFound )
+						{
+							UG_THROW("Gesicht unauffindbar" << std::endl);
+						}
+
+						break;
 					}
 				}
 
