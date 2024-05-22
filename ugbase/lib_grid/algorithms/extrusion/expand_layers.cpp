@@ -2138,6 +2138,57 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				}
 
+				// copies of all faces and of fractured ones
+
+				auto vVFT = vecVertFracTrip; // caution: COPY, not reference!
+				auto aF = assoFaces; // caution: COPY, not reference!
+
+				// TODO FIXME erstmal die ganzen anhaengenden Faces ordnen, dass wir wissen, in welcher Reihenfolge wir durchlaufen muessen
+				// jede Edge hat ein bool attachment schon, das weiss, ob sie Fracture edge ist oder nicht
+				// Reihenfolge der faces und die edges auch dazu, vielleicht neues Triple oder dergleiche, dabei zwei edges und zwei normals
+				// und wie gesagt, die edges wissen, ob sie fractures sind, dazu keine neuen Variablen notwendig
+
+				using VertexOfFaceInfo = VertexFractureTriple< std::vector<Edge*>, Face*, std::vector<vector3> >;
+				// all edges of the attached face - must always be two, the face itself, and the normal vectors of the face in direction of the two edges
+				// the size of the normal vector vector also must be two
+				// however, if an edge of the face is not a fracture edge, we do not compute the normal, but assign zero as norm
+				// for those edges and faces which are Kluft edges, we assign the normal known from the info computed before, vertex fracture triple
+
+				using VecVertexOfFaceInfo = std::vector<VertexOfFaceInfo>;
+
+				VecVertexOfFaceInfo orderedFaces;
+
+				// note: we do not attach this info to the vertex, as we only need it local; in principle, in case of further need, it would
+				// be usful to establish some sort of attachment
+
+				// get starting point of the "rotation" around the vertex where fractures are crossing
+				for( auto const & attVFT : vecVertFracTrip )
+				{
+					Face * facAtVrtWithFrac = attVFT.getFace();
+
+					for( auto const & ifac : assoFaces )
+					{
+						if( ifac == facAtVrtWithFrac )
+						{
+							// found a starting point
+
+							// now determine the common edge(s), the first edge of the vector must be a frac edge, the second one might be one
+
+							Edge * startEdg = attVFT.getEdge();
+
+							// loop around the edges of the ifac face attached to the vertex
+
+						}
+					}
+				}
+
+				while( vVFT.size() != 0 )
+				{
+					while( aF.size() != 0 )
+					{
+
+					}
+				}
 			}
 
 		}
@@ -2171,12 +2222,20 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				std::vector<Edge* > adjBndEdgs;
 
+				std::vector<Edge*> & allAssoEdges = aaVrtInfoEdges[*iterV];
 
-				for( std::vector<Edge*>::iterator iterBVEdg = grid.associated_edges_begin(*iterV); iterBVEdg != grid.associated_edges_end(*iterV); iterBVEdg++  )
+//				for( std::vector<Edge*>::iterator iterBVEdg = grid.associated_edges_begin(*iterV); iterBVEdg != grid.associated_edges_end(*iterV); iterBVEdg++  )
+//				{
+//					if( IsBoundaryEdge2D(grid,*iterBVEdg) )
+//					{
+//						adjBndEdgs.push_back( *iterBVEdg );
+//					}
+//				}
+				for( auto const & iBVE : allAssoEdges )
 				{
-					if( IsBoundaryEdge2D(grid,*iterBVEdg) )
+					if( IsBoundaryEdge2D(grid, iBVE ) )
 					{
-						adjBndEdgs.push_back( *iterBVEdg );
+						adjBndEdgs.push_back( iBVE );
 					}
 				}
 
@@ -2313,6 +2372,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 							aaVrtExpMP[ *iterV ].push_back( vrtMtpl );
 
+#if 0
 							// the attached faces need to know that they need a new vertex to be shifted
 							for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
 							{
@@ -2423,6 +2483,117 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 								}
 
 							}
+#else
+							for( auto const & ifac : assoFaces )
+							{
+								bool isFromFrac = false;
+
+								for( auto const & facFrac : attFac )
+								{
+									if( ifac == facFrac )
+									{
+										isFromFrac = true;
+									}
+								}
+
+								bool atRightSide = false;
+
+								if( isFromFrac )
+									atRightSide = true;
+
+								if( !isFromFrac )
+								{
+
+									// check if on same side of edge where the normal points to: compute cosinus between vector of face center
+									//  perpendicular to the edge
+									// TODO FIXME
+
+									vector3 facCenter = CalculateCenter( ifac, aaPos );
+
+									vector3 perpendicu;
+
+									DropAPerpendicular(perpendicu, facCenter, aaPos[edgeOfFrac->vertex(0)], aaPos[edgeOfFrac->vertex(1)]);
+
+									vector3 tmpN;
+
+									VecSubtract(tmpN, facCenter, perpendicu );
+
+									VecNormalize(tmpN, tmpN);
+
+									UG_LOG("Normale Boundary zum Face ist " << tmpN << std::endl);
+
+									number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, nrmEdg );
+
+									UG_LOG("Cosinus Boundary zur Normalen ist " << cosBetwFracEdgAndDirection2Face << std::endl);
+
+									if( cosBetwFracEdgAndDirection2Face > 0 )
+									{
+										UG_LOG("assuming boundary face to be on richt side" << std::endl);
+
+										atRightSide = true;
+
+#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+												Vertex * otherFacCent = *grid.create<RegularVertex>();
+												aaPos[otherFacCent] = facCenter;
+												sh.assign_subset(otherFacCent, 5 );
+
+												Vertex * pp = *grid.create<RegularVertex>();
+												aaPos[pp] = perpendicu;
+												sh.assign_subset(pp, 6 );
+
+												sh.assign_subset(*iterFac,7);
+#endif
+
+
+									}
+									else
+									{
+										UG_LOG("assuming boundary face to be on wrong side" << std::endl);
+									}
+
+								}
+
+								if( atRightSide ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
+								{
+
+
+									vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ ifac ];
+
+									IndexType vrtxFnd = 0;
+
+									for(size_t indVrt = 0; indVrt < (ifac)->num_vertices();  indVrt++ )
+									{
+										Vertex* facVrt = (ifac)->vertex(indVrt);
+
+										if(  facVrt == *iterV )
+										{
+											newVrts4Fac[ indVrt ] = newShiftEdgVrtx;
+											vrtxFnd++;
+										}
+									}
+
+
+
+									if( vrtxFnd <= 0 )
+									{
+										UG_THROW("vertex not found bnd!" << std::endl);
+									}
+									else if( vrtxFnd > 1 )
+									{
+										UG_THROW("vertex zu oft gefunden bnd " << vrtxFnd << std::endl );
+									}
+									else if ( vrtxFnd == 1 )
+									{
+//														UG_LOG("vertex found abgeschlossen" << std::endl);
+									}
+									else
+									{
+										UG_THROW("vertex finden bnd komisch " << std::endl);
+									}
+								}
+							}
+
+#endif
 
 
 
