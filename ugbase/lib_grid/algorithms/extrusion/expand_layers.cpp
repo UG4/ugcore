@@ -900,10 +900,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	AttVecFace aAdjInfoFaces;
 
 	grid.attach_to_vertices_dv( aAdjInfoEdges, noEdge );
-	Grid::VertexAttachmentAccessor<AttVecEdge> aaVrtInfoEdges( grid, aAdjInfoEdges );
+	Grid::VertexAttachmentAccessor<AttVecEdge> aaVrtInfoAssoEdges( grid, aAdjInfoEdges );
 
 	grid.attach_to_vertices_dv( aAdjInfoFaces, noFace );
-	Grid::VertexAttachmentAccessor<AttVecFace> aaVrtInfoFaces( grid, aAdjInfoFaces );
+	Grid::VertexAttachmentAccessor<AttVecFace> aaVrtInfoAssoFaces( grid, aAdjInfoFaces );
 
 	// das ist Käse, ich brauche für jeden Vertex ein Attachment der Form
 	// class VertexTriple, bzw std vektoren von solchen vertex triplen
@@ -1057,8 +1057,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				assEdg.push_back(*iterEdg);
 			}
 
-			aaVrtInfoFaces[*iter] = assFac;
-			aaVrtInfoEdges[*iter] = assEdg;
+			aaVrtInfoAssoFaces[*iter] = assFac;
+			aaVrtInfoAssoEdges[*iter] = assEdg;
 
 			UG_LOG("marked vertex wahl: " << aaPos[*iter] << " is bnd " << isBnd << " number cross frac " << numCrosFrac << std::endl );
 
@@ -1144,12 +1144,12 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			UG_LOG("XXXXXXXXX" << std::endl);
 #else
 
-			std::vector<Face* > & assFaceVrt0 = aaVrtInfoFaces[verticesEdg[0]];
+			std::vector<Face* > & assFaceVrt0 = aaVrtInfoAssoFaces[verticesEdg[0]];
 
 			std::vector<Face* > assFace;
 
-//			static_assert( std::is_same< decltype( aaVrtInfoFaces[verticesEdg[0]] )[0], std::vector<Face *> >::value );
-			//static_assert( std::is_same< decltype( *(aaVrtInfoFaces[verticesEdg[0]]) ), Face * >::value );
+//			static_assert( std::is_same< decltype( aaVrtInfoAssoFaces[verticesEdg[0]] )[0], std::vector<Face *> >::value );
+			//static_assert( std::is_same< decltype( *(aaVrtInfoAssoFaces[verticesEdg[0]]) ), Face * >::value );
 
 //			UG_LOG("XXXXXXXXXXXX" << std::endl);
 
@@ -1168,7 +1168,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 #endif
 			// von hier lernen:
-			//	VecFace & assoFaces = aaVrtInfoFaces[*iterV ist verticesEdg[0] ];
+			//	VecFace & assoFaces = aaVrtInfoAssoFaces[*iterV ist verticesEdg[0] ];
 			//		for( auto const & ifac : assoFaces )
 			//		{
 			//			static_assert( std::is_same< decltype( ifac ), Face * const & >::value );
@@ -1372,6 +1372,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 		VecVertFracTrip & vecVertFracTrip = aaVrtInfoFraTri[*iterV];
 
+		std::vector<Edge*> & allAssoEdges = aaVrtInfoAssoEdges[*iterV];
+
 		static_assert( std::is_same< decltype( vecVertFracTrip[ vecVertFracTrip.size() - 1 ].getFace() ), Face * >::value );
 		static_assert( std::is_same< decltype( vecVertFracTrip[ vecVertFracTrip.size() - 1 ].getEdge() ), Edge * >::value );
 		static_assert( std::is_same< decltype( vecVertFracTrip[ vecVertFracTrip.size() - 1 ].getNormal() ), vector3 const >::value );
@@ -1390,7 +1392,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 		using VvftIterator = VecVertFracTrip::iterator;
 
-		VecFace & assoFaces = aaVrtInfoFaces[*iterV];
+		VecFace & assoFaces = aaVrtInfoAssoFaces[*iterV];
 		// TODO FIXME hier braucht man das nicht zu ordnen
 		// aber bei Kreuzpunkten von Klueften muss es so geordnet werden, wie es nebeneinander liegt
 		// bei den Edges gibt es auch die benachbarten, und die edges haben das attachment, ob sie Kluftedges sind
@@ -1920,9 +1922,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 									}
 #else
-//									std::vector<Face* > & assFaceVrt = aaVrtInfoFaces[*iterV];
+//									std::vector<Face* > & assFaceVrt = aaVrtInfoAssoFaces[*iterV];
 
-									//									VecFace & assoFaces = aaVrtInfoFaces[*iterV];
+									//									VecFace & assoFaces = aaVrtInfoAssoFaces[*iterV];
 																		// TODO FIXME hier braucht man das nicht zu ordnen
 																		// aber bei Kreuzpunkten von Klueften muss es so geordnet werden, wie es nebeneinander liegt
 																		// bei den Edges gibt es auch die benachbarten, und die edges haben das attachment, ob sie Kluftedges sind
@@ -2170,14 +2172,34 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					{
 						if( ifac == facAtVrtWithFrac )
 						{
-							// found a starting point
+							// found a starting face
+
+							Face * startFace = facAtVrtWithFrac;
 
 							// now determine the common edge(s), the first edge of the vector must be a frac edge, the second one might be one
 
 							Edge * startEdg = attVFT.getEdge();
 
+							// unnecessary check, but for test purposes at beginning, later should be removed
+							if( !FaceContains(facAtVrtWithFrac, startEdg ))
+							{
+								UG_THROW("face hat ecke nicht, die es haben soll" << std::endl);
+							}
+
 							// loop around the edges of the ifac face attached to the vertex
 
+							// determin second edge of the startFace, not stored in the vecVertFracTrip information
+							// check number of common edges containing the same vertex
+
+							IndexType fndCommEdg = 0;
+
+							for( auto const & iE : allAssoEdges )
+							{
+								if( iE == startEdg )
+								{
+									fndCommEdg++;
+								}
+							}
 						}
 					}
 				}
@@ -2222,7 +2244,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				std::vector<Edge* > adjBndEdgs;
 
-				std::vector<Edge*> & allAssoEdges = aaVrtInfoEdges[*iterV];
+//				std::vector<Edge*> & allAssoEdges = aaVrtInfoAssoEdges[*iterV];
 
 //				for( std::vector<Edge*>::iterator iterBVEdg = grid.associated_edges_begin(*iterV); iterBVEdg != grid.associated_edges_end(*iterV); iterBVEdg++  )
 //				{
