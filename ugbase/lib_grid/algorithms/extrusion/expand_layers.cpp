@@ -2145,6 +2145,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				auto vVFT = vecVertFracTrip; // caution: COPY, not reference!
 				auto aF = assoFaces; // caution: COPY, not reference!
 
+				UG_LOG("Gesamtanzahl faces um Knoten " <<  aF.size() << std::endl );
+
 				// TODO FIXME erstmal die ganzen anhaengenden Faces ordnen, dass wir wissen, in welcher Reihenfolge wir durchlaufen muessen
 				// jede Edge hat ein bool attachment schon, das weiss, ob sie Fracture edge ist oder nicht
 				// Reihenfolge der faces und die edges auch dazu, vielleicht neues Triple oder dergleiche, dabei zwei edges und zwei normals
@@ -2185,6 +2187,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				vector3 fracNorm = startVertFracTrip.getNormal();
 
 				Edge* originalStartEdge = startVertFracTrip.getEdge();
+
+				if( fracEdg != 0 )
+				{
+					countedCrossingFracEdgs++;
+				}
 
 				// do not change this pointer
 				Edge* startEdg = fracEdg;
@@ -2253,8 +2260,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				Face* nextFace = NULL;
 
+				UG_LOG("Gesamtanzahl faces um Knoten vor while " <<  aF.size() << std::endl );
+
+
 				while( aF.size() != 0 )
 				{
+
+					UG_LOG("Gesamtanzahl faces um Knoten Anfang while " <<  aF.size() << std::endl );
+
+
 					Face* face2Append = startFace;
 					Edge* startEdg2Append = startEdg;
 
@@ -2333,19 +2347,20 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 							}
 						}
 
-						if( fndCommEdg != 2 )
-						{
-							UG_THROW("komische Anzahl gemeinsamer Ecke " << fndCommEdg << std::endl);
-						}
-
-						if( nextEdge == NULL )
-						{
-							UG_THROW("wieso keine zweite Ecke gefunden???? " << std::endl);
-						}
 
 					}
 
-					if( edge2Append.first == NULL || edge2Append.second == NULL )
+					if( fndCommEdg != 2 )
+					{
+						UG_THROW("komische Anzahl gemeinsamer Ecke " << fndCommEdg << std::endl);
+					}
+
+					if( nextEdge == NULL )
+					{
+						UG_THROW("wieso keine zweite Ecke gefunden???? " << std::endl);
+					}
+
+						if( edge2Append.first == NULL || edge2Append.second == NULL )
 					{
 						UG_THROW("null immer noch?" << std::endl);
 					}
@@ -2358,22 +2373,53 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					{
 						Face * iFa = *itFac;
 
-						if( iFa == startFace && FaceContains( iFa, nextEdge ) && FaceContains(iFa, startEdg))
+						if( iFa == startFace &&  FaceContains( iFa, nextEdge ) && FaceContains(iFa, startEdg))
 						{
 							faceFound++;
 						}
 					}
 
+					int totalSubsNum = sh.num_subsets();
+
+					int newSubsToAdd = totalSubsNum;
+
 					if( faceFound != 1 )
 					{
+
+
+						sh.assign_subset(startFace,newSubsToAdd++);
+						sh.assign_subset(startEdg,newSubsToAdd++);
+						sh.assign_subset(nextEdge,newSubsToAdd++);
+
+						int faNum = aF.size();
+
+						UG_LOG("Gesamtzahl faces vor Absturz " << faNum << std::endl);
+
+						UG_LOG("Gesicht in falscher Anztahl gefunden " << faceFound << std::endl);
+
+						return true;
+
+
+
 						UG_THROW("Gesicht in falscher Anztahl gefunden " << faceFound << std::endl);
+					}
+					else
+					{
+						sh.assign_subset(startFace,newSubsToAdd++);
+						sh.assign_subset(startEdg,newSubsToAdd++);
+						sh.assign_subset(nextEdge,newSubsToAdd++);
+
+						int faNum = aF.size();
+
+						UG_LOG("Gesamtzahl faces ohne Absturz " << faNum << std::endl);
+
 					}
 
 					for( std::vector<Face*>::iterator itFac = aF.begin(); itFac != aF.end(); itFac++ )
 					{
 						Face * iFa = *itFac;
 
-						if( iFa == startFace && FaceContains( iFa, nextEdge ) )
+						if( iFa == startFace && FaceContains( iFa, nextEdge ) && FaceContains(iFa, startEdg) )
 						{
 							aF.erase(itFac);
 							break;
@@ -2389,6 +2435,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 					if( sndEdgIsFracEdgeAlso )
 					{
+
+						if( nextEdge != originalStartEdge )
+							countedCrossingFracEdgs++;
+
 						// we need to have a look for the next triple
 
 						// check if the next normal is a frac normal which contains the face as well
@@ -2486,6 +2536,20 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					startNormal = nuVe;
 					startEdg = nextEdge;
 
+					if( aF.size() == 0 )
+					{
+						if( nextEdge != originalStartEdge )
+						{
+							UG_THROW("Gesichter leer, aber keine Anfangsecke gefunden" << std::endl);
+						}
+						else
+						{
+							break; // while loop zu Ende, raus aus dem while loop, den Rest nicht mehr machen, würde schief gehen zwingendermassen
+						}
+
+					}
+
+
 					// TODO FIXME bleibt noch das nächste Gesicht heraus zu finden, dafür kommt eigentlich nur noch eines in Frage, da das zweite Gesicht vom edge
 					// geloescht sein muss in aF, es muss das einzig übrige face sein, das die jetzt start edge enthält, davon darf es nur eines geben, wir löschen aber noch nicht
 
@@ -2512,7 +2576,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 						if( FaceContains(iFa, startEdg ) )
 						{
-							aF.erase(itFac);
+//							aF.erase(itFac);
 							startFace = iFa;
 							break;
 						}
@@ -2536,9 +2600,20 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				if( 2 * numFracsCrossAtVrt != countedCrossingFracEdgs )
 				{
+
+					UG_LOG("gezaehlt und nicht gleiche Kreuzungszahl " << numFracsCrossAtVrt << " " << countedCrossingFracEdgs << std::endl);
+
+					return true;
+
 					UG_THROW("gezaehlt und nicht gleiche Kreuzungszahl" << std::endl);
 				}
 
+				if( segmentPart.size() != 0 )
+				{
+					UG_THROW("die Segmentteile muessen alle verarbeitet sein"  << std::endl);
+				}
+
+				return true;
 
 				// test if the segments and their partition produce sumething useful, for debug purposes
 
@@ -2570,8 +2645,28 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //				if( !sndEdgIsFracEdgeAlso )
 //				{
 //					; // normal remains zero vector
-//				}
+//				}sh
 
+				int totalSubsNum = sh.num_subsets();
+
+				int newSubsToAdd = totalSubsNum;
+
+				for( VertexOfFaceInfo const & vertFracInfo : orderedFaces )
+				{
+					Face * fa = vertFracInfo.getFace();
+
+					sh.assign_subset(fa,newSubsToAdd++);
+				}
+
+				for( VecVertexOfFaceInfo const & segPart : segments )
+				{
+					for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
+					{
+
+					}
+				}
+
+				return true;
 
 #if 0
 				// das folgende ist vermutlich Unsinn TODO FIXME, waren wohl Versuche am Anfang..... nochmal prüfen!!!!
