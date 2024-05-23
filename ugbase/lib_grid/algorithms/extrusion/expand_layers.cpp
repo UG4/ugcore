@@ -2808,9 +2808,44 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 					for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
 					{
-//						Face * fa = vertFracInfoSeg.getFace();
+						Face * fac = vertFracInfoSeg.getFace();
 
 //						sh.assign_subset(fa,newSubsToAdd);
+
+
+						// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
+						vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ fac ];
+
+						IndexType vrtxFnd = 0;
+
+						for(size_t indVrt = 0; indVrt < (fac)->num_vertices();  indVrt++ )
+						{
+							Vertex* facVrt = (fac)->vertex(indVrt);
+
+							if(  facVrt == *iterV )
+							{
+								newVrts4Fac[ indVrt ] = newShiftVrtx;
+								vrtxFnd++;
+							}
+						}
+
+
+						if( vrtxFnd <= 0 )
+						{
+							UG_THROW("vertex not found kreuzung!" << std::endl);
+															}
+						else if( vrtxFnd > 1 )
+						{
+							UG_THROW("vertex zu oft gefunden kreuzung " << vrtxFnd << std::endl );
+						}
+						else if ( vrtxFnd == 1 )
+						{
+						}
+						else
+						{
+							UG_THROW("vertex finden komisch kreuzung " << std::endl);
+						}
+
 					}
 				}
 
