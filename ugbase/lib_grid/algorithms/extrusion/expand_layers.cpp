@@ -2659,6 +2659,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 ////					sh.assign_subset(fa,newSubsToAdd++);
 //				}
 
+				number totAnglsEdg = 0;
+				number totAnglsNrm = 0;
+
 				for( VecVertexOfFaceInfo const & segPart : segments )
 				{
 					newSubsToAdd++;
@@ -2685,12 +2688,86 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					vector3 normalFracOne = normalBegin.first;
 					vector3 normalFracTwo = normalEnd.second;
 
-					sh.assign_subset(edgeFracOne, newSubsToAdd);
-
-					if( edgeFracTwo != originalStartEdge )
-						sh.assign_subset(edgeFracTwo, newSubsToAdd);
+//					sh.assign_subset(edgeFracOne, newSubsToAdd);
+//
+//					if( edgeFracTwo != originalStartEdge )
+//						sh.assign_subset(edgeFracTwo, newSubsToAdd);
 
 //					vertFracInfoSeg const & vFISBeg =
+
+					// neue Punkte erzeugen
+
+					number cosBetweenNormals = VecDot( normalFracOne, normalFracTwo );
+
+					// create normal vectors into direction of relevant edges
+
+					vector3 alongEdgeOne;
+					vector3 alongEdgeTwo;
+
+					Vertex * vrtEdgeOneBegin = NULL;
+					Vertex * vrtEdgeTwoBegin = NULL;
+					Vertex * vrtEdgeOneEnd = NULL;
+					Vertex * vrtEdgeTwoEnd = NULL;
+
+
+					for( size_t i = 0; i < 2; ++i )
+					{
+						Vertex * vrtFromEdgeOne = edgeFracOne->vertex(i);
+						Vertex * vrtFromEdgeTwo = edgeFracTwo->vertex(i);
+
+						if( vrtFromEdgeOne == *iterV )
+						{
+							vrtEdgeOneBegin = vrtFromEdgeOne;
+						}
+						else
+						{
+							vrtEdgeOneEnd = vrtFromEdgeOne;
+						}
+
+						if( vrtFromEdgeTwo == *iterV )
+						{
+							vrtEdgeTwoBegin = vrtFromEdgeTwo;
+						}
+						else
+						{
+							vrtEdgeTwoEnd = vrtFromEdgeTwo;
+						}
+
+					}
+
+					if( vrtEdgeOneBegin == NULL || vrtEdgeTwoBegin == NULL || vrtEdgeOneEnd == NULL || vrtEdgeTwoEnd == NULL )
+					{
+						UG_THROW("lauter Nullen vertizes" << std::endl);
+					}
+
+					vector3 fracVrtPos = aaPos[*iterV];
+
+					vector3 fracEdgOneEndPos = aaPos[ vrtEdgeOneEnd ];
+					vector3 fracEdgTwoEndPos = aaPos[ vrtEdgeTwoEnd ];
+
+					vector3 directionEdgOne;
+					VecSubtract(directionEdgOne, fracEdgOneEndPos, fracVrtPos);
+
+					vector3 directionEdgTwo;
+					VecSubtract(directionEdgTwo, fracEdgTwoEndPos, fracVrtPos);
+
+					vector3 nrmdVecEdgOne;
+					VecNormalize(nrmdVecEdgOne, directionEdgOne);
+
+					vector3 nrmdVecEdgTwo;
+					VecNormalize(nrmdVecEdgTwo, directionEdgTwo);
+
+					number cosBetweenEdges = VecDot(nrmdVecEdgOne,nrmdVecEdgTwo);
+
+					number angleEdges = std::acos( cosBetweenEdges );
+					number angleNormls = std::acos( cosBetweenNormals );
+
+					totAnglsEdg += angleEdges;
+					totAnglsNrm += angleNormls;
+
+					UG_LOG("cosinus Edges Normals " << cosBetweenEdges << "  " << cosBetweenNormals << std::endl);
+					UG_LOG("angles edges normals " << angleEdges << "  " << angleNormls << std::endl);
+
 
 					for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
 					{
@@ -2699,6 +2776,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //						sh.assign_subset(fa,newSubsToAdd);
 					}
 				}
+
+				UG_LOG("sum angles edges normals " << totAnglsEdg << "  " << totAnglsNrm << std::endl);
 
 				return true;
 
