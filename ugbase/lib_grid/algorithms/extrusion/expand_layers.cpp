@@ -2851,7 +2851,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				UG_LOG("sum angles edges normals " << totAnglsEdg << "  " << totAnglsNrm << std::endl);
 
-				return true;
+//				return true;
 
 #if 0
 				// das folgende ist vermutlich Unsinn TODO FIXME, waren wohl Versuche am Anfang..... nochmal prüfen!!!!
