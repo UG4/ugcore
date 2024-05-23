@@ -2160,6 +2160,13 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				VecVertexOfFaceInfo orderedFaces;
 
+				using SegmentsFractExtrus = std::vector<VecVertexOfFaceInfo>;
+
+				SegmentsFractExtrus segments;
+				// single components always from one fracture edge to the next one
+
+				VecVertexOfFaceInfo segmentPart;
+
 				// note: we do not attach this info to the vertex, as we only need it local; in principle, in case of further need, it would
 				// be usful to establish some sort of attachment
 
@@ -2462,6 +2469,16 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 					orderedFaces.push_back( vOFI );
 
+					segmentPart.push_back( vOFI );
+
+					if( sndEdgIsFracEdgeAlso )
+					{
+						segments.push_back( segmentPart );
+
+						segmentPart.clear();
+					}
+
+
 					// what is next face, what is next edge?
 					// wie kriegen wir es hin, auch das nächste Triple zu erasen, wenn es jetzt kommt als nächstes?
 
@@ -2517,6 +2534,14 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					UG_THROW("wir sind nicht am Anfang wieder angekommen" << std::endl);
 				}
 
+				if( 2 * numFracsCrossAtVrt != countedCrossingFracEdgs )
+				{
+					UG_THROW("gezaehlt und nicht gleiche Kreuzungszahl" << std::endl);
+				}
+
+
+				// test if the segments and their partition produce sumething useful, for debug purposes
+
 				// bis hier vermutlich sinnvoll
 
 				// als nächstes muss man die Klassen von durch Klüften abgetrennten ordered Faces durchgehen, und die Verschiebevertizes erzeugen
@@ -2548,6 +2573,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //				}
 
 
+#if 0
 				// das folgende ist vermutlich Unsinn TODO FIXME, waren wohl Versuche am Anfang..... nochmal prüfen!!!!
 
 				// get starting point of the "rotation" around the vertex where fractures are crossing
@@ -2682,10 +2708,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					}
 				}
 
-				if( 2 * numFracsCrossAtVrt != countedCrossingFracEdgs )
-				{
-					UG_THROW("gezaehlt und nicht gleiche Kreuzungszahl" << std::endl);
-				}
+#endif
+
 
 			}
 
