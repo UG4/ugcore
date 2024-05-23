@@ -2654,16 +2654,20 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				for( VertexOfFaceInfo const & vertFracInfo : orderedFaces )
 				{
-					Face * fa = vertFracInfo.getFace();
-
-					sh.assign_subset(fa,newSubsToAdd++);
+//					Face * fa = vertFracInfo.getFace();
+//
+//					sh.assign_subset(fa,newSubsToAdd++);
 				}
 
 				for( VecVertexOfFaceInfo const & segPart : segments )
 				{
+					newSubsToAdd++;
+
 					for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
 					{
+						Face * fa = vertFracInfoSeg.getFace();
 
+						sh.assign_subset(fa,newSubsToAdd);
 					}
 				}
 
