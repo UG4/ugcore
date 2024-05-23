@@ -2652,22 +2652,51 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				int newSubsToAdd = totalSubsNum;
 
-				for( VertexOfFaceInfo const & vertFracInfo : orderedFaces )
-				{
-//					Face * fa = vertFracInfo.getFace();
-//
-//					sh.assign_subset(fa,newSubsToAdd++);
-				}
+//				for( VertexOfFaceInfo const & vertFracInfo : orderedFaces )
+//				{
+////					Face * fa = vertFracInfo.getFace();
+////
+////					sh.assign_subset(fa,newSubsToAdd++);
+//				}
 
 				for( VecVertexOfFaceInfo const & segPart : segments )
 				{
 					newSubsToAdd++;
 
+					IndexType numbTriangs = segPart.size();
+
+					if( numbAttTripl == 0 )
+					{
+						UG_THROW("zu wenig Dreiecke " << std::endl);
+					}
+
+					VertexOfFaceInfo const & vFISBegin = segPart[0];
+					VertexOfFaceInfo const & vFISEnd = segPart[numbTriangs-1];
+
+					std::pair<Edge*, Edge* >  edgesBegin = vFISBegin.getEdge();
+					std::pair<Edge*, Edge* >  edgesEnd = vFISEnd.getEdge();
+
+					std::pair<vector3, vector3> normalBegin = vFISBegin.getNormal();
+					std::pair<vector3, vector3> normalEnd = vFISEnd.getNormal();
+
+					Edge* edgeFracOne = edgesBegin.first;
+					Edge* edgeFracTwo = edgesEnd.second;
+
+					vector3 normalFracOne = normalBegin.first;
+					vector3 normalFracTwo = normalEnd.second;
+
+					sh.assign_subset(edgeFracOne, newSubsToAdd);
+
+					if( edgeFracTwo != originalStartEdge )
+						sh.assign_subset(edgeFracTwo, newSubsToAdd);
+
+//					vertFracInfoSeg const & vFISBeg =
+
 					for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
 					{
-						Face * fa = vertFracInfoSeg.getFace();
+//						Face * fa = vertFracInfoSeg.getFace();
 
-						sh.assign_subset(fa,newSubsToAdd);
+//						sh.assign_subset(fa,newSubsToAdd);
 					}
 				}
 
