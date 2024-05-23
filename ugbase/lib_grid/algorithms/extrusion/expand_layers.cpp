@@ -2521,6 +2521,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				// als nächstes muss man die Klassen von durch Klüften abgetrennten ordered Faces durchgehen, und die Verschiebevertizes erzeugen
 				// TODO FIXME XXXXXXXXXXXXXX hier sind wir
+				// als nächstes die verschiedenen Sektionen durch gehen, eventuell nochmal extra Objekte dafür erzeugen
+				// oder gleich beim Durchgehen die neuen Vertizes erzeugen, Startsignal durch ein Face mit erster Edge KLuft, und dann die nächste
+				// Kluftedge finden, egal ob vom gleihen face oder von einem späteren face im kreis
 
 				// now figure out to which face this next edge belongs, and if this is a fracture edge, then we have the triple and the normal info
 				// else we let the normal zero
@@ -2545,7 +2548,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //				}
 
 
-				// das folgende ist vermutlich Unsinn
+				// das folgende ist vermutlich Unsinn TODO FIXME, waren wohl Versuche am Anfang..... nochmal prüfen!!!!
 
 				// get starting point of the "rotation" around the vertex where fractures are crossing
 //				for( auto & attVFT : vVFT ) // not const, as we need to erase found elements!
