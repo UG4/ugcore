@@ -2397,7 +2397,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 						UG_LOG("Gesicht in falscher Anztahl gefunden " << faceFound << std::endl);
 
-						return true;
+//						return true;
 
 
 
@@ -2405,9 +2405,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					}
 					else
 					{
-						sh.assign_subset(startFace,newSubsToAdd++);
-						sh.assign_subset(startEdg,newSubsToAdd++);
-						sh.assign_subset(nextEdge,newSubsToAdd++);
+//						sh.assign_subset(startFace,newSubsToAdd++);
+//						sh.assign_subset(startEdg,newSubsToAdd++);
+//						sh.assign_subset(nextEdge,newSubsToAdd++);
 
 						int faNum = aF.size();
 
@@ -2603,7 +2603,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 					UG_LOG("gezaehlt und nicht gleiche Kreuzungszahl " << numFracsCrossAtVrt << " " << countedCrossingFracEdgs << std::endl);
 
-					return true;
+//					return true;
 
 					UG_THROW("gezaehlt und nicht gleiche Kreuzungszahl" << std::endl);
 				}
@@ -2613,7 +2613,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					UG_THROW("die Segmentteile muessen alle verarbeitet sein"  << std::endl);
 				}
 
-				return true;
+				UG_LOG("Kreislauf geschlossen" << std::endl);
+
 
 				// test if the segments and their partition produce sumething useful, for debug purposes
 
