@@ -213,7 +213,7 @@ static void Domain(TRegistry& reg, string grp)
 				.add_method("add_source", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, MathVector<dim> &)>(&T::add_source),
 					"", "scale", "Set scale to scale (all) fluxes with.")
 #ifdef UG_FOR_LUA
-				.add_method("add_source", static_cast<void (T::*)(const char*)>(&T::add_transport_sink),
+				.add_method("add_source", static_cast<void (T::*)(const char*, MathVector<dim> &)>(&T::add_source),
 					"", "scale", "Set scale to scale (all) fluxes with.")
 #endif
 				.add_method("add_transport_sink", static_cast<void (T::*)(number)>(&T::add_transport_sink),

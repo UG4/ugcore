@@ -45,10 +45,15 @@ function UJS_Submit
 	local SlurmExclusive=""
 	if [ $exclusive == true ]; then
 		SlurmExclusive="--exclusive "
-	fi	
-	local additionalSlurm="$SlurmWalltime$SlurmMail$SlurmExclusive"
-	
-	commandline="salloc -N $nnodes -n $npe $additionalSlurm --job-name=$jobname mpirun $executable $args"
+	fi
+	local SlurmPartition=""
+	if [ ! -z $partition ]; then
+		SlurmPartition="--partition=$partition "
+	fi
+
+	local additionalSlurm="$SlurmWalltime$SlurmMail$SlurmExclusive$SlurmPartition"
+
+	commandline="salloc -N $nnodes -n $npe $additionalSlurm --job-name=$jobname $optionalParameters mpirun $executable $args"
 	echo " command:      "$commandline >> info.txt
 
 	if [ $test == true ]; then

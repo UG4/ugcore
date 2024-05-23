@@ -49,7 +49,7 @@ namespace ug{
 ///	Creates a global domain refiner.
 /**	Automatically chooses whether a parallel refiner is required.*/
 template <typename TDomain>
-static SmartPtr<IRefiner> GlobalDomainRefiner(TDomain* dom)
+static SmartPtr<IRefiner> GlobalDomainRefiner(TDomain& dom)
 {
 //todo: support normal grids, too!
 
@@ -57,15 +57,15 @@ static SmartPtr<IRefiner> GlobalDomainRefiner(TDomain* dom)
 		if(pcl::NumProcs() > 1){
 			return SmartPtr<IRefiner>(
 					new ParallelGlobalRefiner_MultiGrid(
-							*dom->distributed_grid_manager(),
-							dom->refinement_projector()));
+							*dom.distributed_grid_manager(),
+							dom.refinement_projector()));
 		}
 	#endif
 
 	return SmartPtr<IRefiner>(
 				new GlobalMultiGridRefiner(
-						*dom->grid(),
-						dom->refinement_projector()));
+						*dom.grid(),
+						dom.refinement_projector()));
 }
 
 }

@@ -64,13 +64,13 @@ public:
 	bool bVM;
 	LUACompiler()
 	{ 
-		m_f= NULL; 
+		m_f= nullptr;
 		m_name = "uninitialized"; 
 		m_pDyn = ""; 
-		m_libHandle = NULL;
+		m_libHandle = nullptr;
 		bInitialized = false;
 		bVM = false;
-		vm = NULL;
+		vm = nullptr;
 	}
 	
 	int num_in() const
@@ -93,9 +93,9 @@ public:
 		return bInitialized;
 	}
 	
-	bool create(const char *functionName, LuaFunctionHandle* pHandle = NULL);
-	bool createVM(const char *functionName, LuaFunctionHandle* pHandle = NULL);
-	bool createC(const char *functionName, LuaFunctionHandle* pHandle = NULL);
+	bool create(const char *functionName, LuaFunctionHandle* pHandle = nullptr);
+	bool createVM(const char *functionName, LuaFunctionHandle* pHandle = nullptr);
+	bool createC(const char *functionName, LuaFunctionHandle* pHandle = nullptr);
 	
 	bool call(double *ret, const double *in) const;
 	virtual ~LUACompiler();
