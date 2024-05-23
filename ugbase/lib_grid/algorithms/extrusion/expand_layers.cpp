@@ -2621,7 +2621,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				// bis hier vermutlich sinnvoll
 
 				// als nächstes muss man die Klassen von durch Klüften abgetrennten ordered Faces durchgehen, und die Verschiebevertizes erzeugen
-				// TODO FIXME XXXXXXXXXXXXXX hier sind wir
 				// als nächstes die verschiedenen Sektionen durch gehen, eventuell nochmal extra Objekte dafür erzeugen
 				// oder gleich beim Durchgehen die neuen Vertizes erzeugen, Startsignal durch ein Face mit erster Edge KLuft, und dann die nächste
 				// Kluftedge finden, egal ob vom gleihen face oder von einem späteren face im kreis
@@ -2636,8 +2635,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				// build one element after the other of the ordered faces vector, still even the first element is not completed
 
 				// TODO FIXME kreuzende Fractures im Innenraum -> Arte in Reinform implementieren
-				// hier geht es vor allem weiter!!!
-				// XXXXXXXXXXXXXXXXX
 				// later assign somehow next edge to start edge, or use new variable, when we have figured out next face
 				// at end, chech if we have arrived again at original first edge
 
@@ -2997,6 +2994,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //		// // different treatment for boundary vertizes
 		else
 		{
+
+			// TODO FIXME es muss wohl noch ein Problem mit den Verschiebungen bei boundary Vertizes geben.....
+			// TODO FIXME XXXXXXXXXXXXXX hier sind wir
+
 
 			if( numFracsCrossAtVrt < 1 )
 			{
