@@ -2768,6 +2768,43 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					UG_LOG("cosinus Edges Normals " << cosBetweenEdges << "  " << cosBetweenNormals << std::endl);
 					UG_LOG("angles edges normals " << angleEdges << "  " << angleNormls << std::endl);
 
+					// prject normal 1 onto edge 2 and normal 2 on edge 1, scale with width one half resp with width two half
+
+
+					number cosBetweenNrmFraOneEdgTwo = VecDot(normalFracOne,nrmdVecEdgTwo);
+					number cosBetweenNrmFraTwoEdgOne = VecDot(normalFracTwo,nrmdVecEdgOne);
+
+					vector3 projectNrmFraOneToEdgTwoDirection;
+					VecScale(projectNrmFraOneToEdgTwoDirection, nrmdVecEdgTwo, 1./cosBetweenNrmFraOneEdgTwo);
+
+					vector3 projectNrmFraTwoToEdgOneDirection;
+					VecScale(projectNrmFraTwoToEdgOneDirection, nrmdVecEdgOne, 1./cosBetweenNrmFraTwoEdgOne);
+
+					auto subsIndFracOne = sh.get_subset_index(edgeFracOne);
+					auto subsIndFracTwo = sh.get_subset_index(edgeFracTwo);
+
+					number shiftOne = fracInfosBySubset.at( subsIndFracOne ).width / 2. ;
+					number shiftTwo = fracInfosBySubset.at( subsIndFracTwo ).width / 2. ;
+
+					vector3 shiftAlongEdgeTwo;
+					VecScale(shiftAlongEdgeTwo, projectNrmFraOneToEdgTwoDirection, shiftOne);
+
+					vector3 shiftAlongEdgeOne;
+					VecScale(shiftAlongEdgeOne, projectNrmFraTwoToEdgOneDirection, shiftTwo);
+
+					vector3 shiftPart;
+					VecAdd(shiftPart, fracVrtPos, shiftAlongEdgeTwo);
+
+					vector3 posNewVrt;
+					VecAdd( posNewVrt, shiftPart, shiftAlongEdgeOne);
+
+					UG_LOG("neuer Vertex Kreuzung " << posNewVrt << std::endl );
+
+					Vertex * newShiftVrtx = *grid.create<RegularVertex>();
+					aaPos[newShiftVrtx] = posNewVrt;
+
+					sh.assign_subset(newShiftVrtx,  newSubsToAdd );
+
 
 					for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
 					{
