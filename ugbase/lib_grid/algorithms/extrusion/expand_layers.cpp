@@ -2647,7 +2647,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				int totalSubsNum = sh.num_subsets();
 
-				int newSubsToAdd = totalSubsNum;
+//				int newSubsToAdd = totalSubsNum;
 
 //				for( VertexOfFaceInfo const & vertFracInfo : orderedFaces )
 //				{
@@ -2661,7 +2661,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				for( VecVertexOfFaceInfo const & segPart : segments )
 				{
-					newSubsToAdd++;
+//					newSubsToAdd++;
 
 					IndexType numbTriangs = segPart.size();
 
@@ -2800,7 +2800,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					Vertex * newShiftVrtx = *grid.create<RegularVertex>();
 					aaPos[newShiftVrtx] = posNewVrt;
 
-					sh.assign_subset(newShiftVrtx,  newSubsToAdd );
+//					sh.assign_subset(newShiftVrtx,  newSubsToAdd );
 
 
 					for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
