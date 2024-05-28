@@ -41,6 +41,10 @@
 #include "common/log.h"
 #include "linear_solver_profiling.h"
 
+#ifdef UG_JSON
+#include "bindings/json/json_basics.hpp"
+#endif
+
 #undef DEBUG_FOR_AMG
 
 namespace ug{
@@ -237,4 +241,49 @@ class IPreconditionedLinearOperatorInverse
 };
 
 }
+
+#ifdef UG_JSON
+namespace ug {
+
+	// Draft for initialization using inheritance.
+	// Schema for Jacobi (derives from Preconditioner)
+	template <typename X>
+	struct json_schema<IPreconditionedLinearOperatorInverse<X>>{
+		static constexpr const char* value = R"(
+			{
+	  			"$schema": "http://json-schema.org/draft-07/schema#",
+				"$id": "schema:linearoperatorinverse",
+	  			"type": "object",
+				"properties": {
+					"recompute": { "type": "boolean" }
+				},
+				"additionalProperties": true
+			}
+		)";
+	};
+
+
+	// Defaults for Jacobi
+	template <typename X>
+	struct json_default<IPreconditionedLinearOperatorInverse<X>>{
+		static constexpr const char* value = R"(
+		{
+			"recompute" : False
+ 		}
+		)";
+	};
+
+	template <typename X>
+	struct json_assignment<IPreconditionedLinearOperatorInverse<X>>
+	{
+		static void from_json(const nlohmann::json& j, IPreconditionedLinearOperatorInverse<X>& obj)
+		{
+			obj.set_compute_fresh_defect_when_finished(j.at("recompute"));
+		}
+	};
+
+
+}// end namespace ug
+
+#endif
 #endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__PRECONDITIONED_LINEAR_OPERATOR_INVERSE__ */

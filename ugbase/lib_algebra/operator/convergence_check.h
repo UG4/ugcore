@@ -286,6 +286,103 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 		std::vector<number> _defects;
 };
 
+#ifdef UG_JSON
+	// Draft for initialization using inheritance.
+	// Schema for Jacobi (derives from Preconditioner)
+	template <typename TVector>
+	struct json_schema<StdConvCheck<TVector>>{
+		static constexpr const char* value = R"(
+			{
+	  			"$schema": "http://json-schema.org/draft-07/schema#",
+				"$id": "schema:stdconvcheck",
+				"$ref": "schema:iconvcheck",
+	  			"type": "object",
+				"properties": {
+        			"type": {
+           				 "description": "Name",
+           				 "type": "string",
+            			 "enum": ["standard", "composite"]
+       				 },
+        			"iterations": {
+            			"description": "Maximum number of iterations.",
+            			"type": "number",
+            			"minimum": 2,
+            			"default": 200,
+            			"maximum": 1000
+        			},
+        			"reduction": {
+            			"description": "Reduction factor for defect to be reached; e.g., 1e-8.",
+            			"type": "number",
+            			"default":1e-8,
+            			"maximum": 1.0
+           
+        			},
+        			"absolute": {
+            			"description": "Absolute defect to be reached; e.g., 1e-10.",
+            			"type": "number",
+            			"default":1e-12      
+        			},
+       				 "verbose": {
+            			"description": "Print convergence rates, if true",
+            			"type": "boolean",
+            			"default":false          
+        			},
+        			"supress_unsuccessful": {
+            			"description": "Always accepts, if true",
+           				 "type": "boolean",
+           				 "default":false          
+       				}
+        
+    		},
+    
+   			"required": [ "type", "iterations", "reduction", "absolute" ],
+			"additionalProperties": true
+		}
+	)";
+	};
+
+
+	// Defaults for Jacobi
+	template <typename TVector>
+	struct json_default<StdConvCheck<TVector>>{
+		static constexpr const char* value = R"(
+		{
+			"type": "standard", 
+			"iterations": 200,
+			"reduction": 1e-10,
+			"absolute": 1e-8
+ 		}
+		)";
+	};
+
+	template <typename TVector>
+	struct json_assignment<IConvergenceCheck<TVector>>
+	{
+			// TODO: Avoid manual assignment?
+			static void from_json(const nlohmann::json& j, IConvergenceCheck<TVector>& obj)
+			{
+				//typedef IPreconditioner<TAlgebra> TPreconditioner;
+				//json_assignment<TPreconditioner>::from_json(j, static_cast<TPreconditioner&>(obj)); // recursive call.
+				//obj.set_block(j.at("bBlock"));
+			}
+	};
+
+	template <typename TVector>
+	struct json_assignment<StdConvCheck<TVector>>
+	{
+		// TODO: Avoid manual assignment?
+		static void from_json(const nlohmann::json& j, StdConvCheck<TVector>& obj)
+		{
+			//typedef IConvergenceCheck<TVector> TConvergenceCheck;
+			//json_assignment<TConvergenceCheck>::from_json(j, static_cast<TPreconditioner&>(obj)); // recursive call.
+			obj.set_maximum_steps(j.at("iterations"));
+			obj.set_reduction(j.at("reduction"));
+			obj.set_minimum_defect(j.at("absolute"));
+		}
+	};
+
+#endif
+
 } // end namespace ug
 
 #include "convergence_check_impl.h"

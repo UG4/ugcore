@@ -322,14 +322,14 @@ class Jacobi : public IPreconditioner<TAlgebra>
 namespace ug {
 
 	// Draft for initialization using inheritance.
-	//! Generic schema.
+	// Schema for Jacobi (derives from Preconditioner)
 	template <typename TAlgebra>
 	struct json_schema<Jacobi<TAlgebra>>{
 		static constexpr const char* value = R"(
 			{
 	  			"$schema": "http://json-schema.org/draft-07/schema#",
-				"$id": "schema:preconditioner",
-				"$ref": "schema:jacobi",
+				"$id": "schema:jacobi",
+				"$ref": "schema:preconditioner",
 	  			"type": "object",
 				"properties": {
 					"bBlock": { "type": "boolean" }
@@ -340,7 +340,7 @@ namespace ug {
 	};
 
 
-	//! Generic defaults.
+	// Defaults for Jacobi
 	template <typename TAlgebra>
 	struct json_default<Jacobi<TAlgebra>>{
 		static constexpr const char* value = R"(

@@ -397,7 +397,8 @@ static void Algebra(Registry& reg, string grp)
 	{
 		typedef StdConvCheck<vector_type> T;
 		typedef IConvergenceCheck<vector_type> TBase;
-		string name = string("ConvCheck").append(suffix);
+		string short_name = string("ConvCheck");
+		string name(short_name); name.append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "Convergence Check")
 			.add_constructor()
 			.template add_constructor<void (*)(int, number, number, bool)>
@@ -425,6 +426,12 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("previous_defect", &T::previous_defect)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvCheck", tag);
+
+#ifdef UG_JSON
+		// ConvCheckBuilder
+		AddJSONBuilder<T, Registry>
+		(reg, short_name.append("Builder"), grp, tag, suffix, std::string("ConvCheck builder"));
+#endif
 	}
 
 

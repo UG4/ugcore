@@ -46,6 +46,10 @@
 #endif
 #include "common/util/string_util.h"
 
+#ifdef UG_JSON
+#include "bindings/json/json_basics.hpp"
+#endif
+
 namespace ug{
 
 ///	the BiCGStab method as a solver for linear operators
@@ -460,5 +464,58 @@ class BiCGStab
 };
 
 } // end namespace ug
+
+
+#ifdef UG_JSON
+namespace ug {
+
+	// Draft for initialization using inheritance.
+	// Schema for Jacobi (derives from Preconditioner)
+	template <typename TVector>
+	struct json_schema<BiCGStab<TVector>>{
+		static constexpr const char* value = R"(
+			{
+	  			"$schema": "http://json-schema.org/draft-07/schema#",
+				"$id": "schema:bicgstab",
+				"$ref": "schema:linearoperatorinverse",
+	  			"type": "object",
+				"properties": {
+					"num_restarts": { "type": "integer" },
+					"min_ortho": { "type": "number" }
+				},
+				"additionalProperties": true
+			}
+		)";
+	};
+
+
+	// Defaults for Jacobi
+	template <typename TVector>
+	struct json_default<BiCGStab<TVector>>{
+		static constexpr const char* value = R"(
+		{
+			"num_restarts" : 0,	
+			"min_ortho": 0.0,
+ 		}
+		)";
+	};
+
+	template <typename TVector>
+	struct json_assignment<BiCGStab<TVector>>
+	{
+		// TODO: Avoid manual assignment?
+		static void from_json(const nlohmann::json& j, BiCGStab<TVector>& obj)
+		{
+			typedef typename BiCGStab<TVector>::base_type TBase;
+			json_assignment<TBase>::from_json(j, static_cast<TBase&>(obj)); // recursive call.
+			obj.set_restart(j.at("num_restarts"));
+			obj.set_min_orthogonality(j.at("min_ortho"));
+		}
+	};
+
+
+}// end namespace ug
+
+#endif
 
 #endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__BICGSTAB__ */

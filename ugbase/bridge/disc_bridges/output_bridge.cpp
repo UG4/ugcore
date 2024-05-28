@@ -263,7 +263,8 @@ static void Dimension(Registry& reg, string grp)
 //	VTK Output
 	{
 		typedef VTKOutput<dim> T;
-		string name = string("VTKOutput").append(suffix);
+		string short_name("VTKOutput");
+		string name(short_name); name.append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("clear_selection", &T::clear_selection, "", "", "clears the selected output")
@@ -291,9 +292,10 @@ static void Dimension(Registry& reg, string grp)
 			.add_method("set_write_subset_indices", static_cast<void (T::*)(bool)>(&T::set_write_subset_indices))
 			.add_method("set_write_proc_ranks", static_cast<void (T::*)(bool)>(&T::set_write_proc_ranks))
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "VTKOutput", tag);
+		reg.add_class_to_group(name, short_name, tag);
 #ifdef UG_JSON
-		reg.add_json_functions<T>(name, grp);
+		AddJSONBuilder<T, Registry>
+		(reg, short_name.append("Builder"), grp, tag, suffix, std::string("VTKOutput builder"));
 #endif
 
 	}

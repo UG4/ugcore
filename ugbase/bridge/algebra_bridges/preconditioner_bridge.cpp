@@ -143,15 +143,19 @@ static void Algebra(Registry& reg, string grp)
 	{
 		typedef Jacobi<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
-		string name = string("Jacobi").append(suffix);
+		string short_name("Jacobi");
+		string name(short_name); name.append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Jacobi Preconditioner")
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("DampingFactor")
 			//.add_method("set_block", &T::set_block, "", "block", "if true, use block smoothing (default), else diagonal smoothing")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "Jacobi", tag);
+		reg.add_class_to_group(name, short_name, tag);
+
+
 #ifdef UG_JSON
-		reg.add_json_functions<T>(name, grp);
+		AddJSONBuilder<T, Registry>
+		(reg, short_name.append("Builder"), grp, tag, suffix, std::string("Jacobi builder"));
 #endif
 	}
 
@@ -174,33 +178,50 @@ static void Algebra(Registry& reg, string grp)
 	{
 		typedef GaussSeidel<TAlgebra> T;
 		typedef GaussSeidelBase<TAlgebra> TBase;
-		string name = string("GaussSeidel").append(suffix);
+		std::string short_name = string("GaussSeidel");
+		string name = short_name; name.append(suffix);
+
 		reg.add_class_<T,TBase>(name, grp, "Gauss-Seidel Preconditioner")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GaussSeidel", tag);
+#ifdef UG_JSON
+		AddJSONBuilder<T, Registry>
+		(reg, short_name.append("Builder"), grp, tag, suffix, std::string("GaussSeidel builder"));
+#endif
 	}
 
 //	Symmetric GaussSeidel
 	{
 		typedef SymmetricGaussSeidel<TAlgebra> T;
 		typedef GaussSeidelBase<TAlgebra> TBase;
-		string name = string("SymmetricGaussSeidel").append(suffix);
+		std::string short_name = string("SymmetricGaussSeidel");
+		std::string name = short_name; name.append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Symmetric Gauss Seidel Preconditioner")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "SymmetricGaussSeidel", tag);
+		reg.add_class_to_group(name, short_name, tag);
+#ifdef UG_JSON
+		AddJSONBuilder<T, Registry>
+		(reg, short_name.append("Builder"), grp, tag, suffix, std::string("SymmetricGaussSeidel builder"));
+#endif
 	}
 
 //	Backward GaussSeidel
 	{
 		typedef BackwardGaussSeidel<TAlgebra> T;
 		typedef GaussSeidelBase<TAlgebra> TBase;
-		string name = string("BackwardGaussSeidel").append(suffix);
+		std::string short_name = string("BackwardGaussSeidel");
+		string name = short_name; name.append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Backward Gauss Seidel Preconditioner")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BackwardGaussSeidel", tag);
+#ifdef UG_JSON
+		// BackwardGaussSeidelBuilder
+		AddJSONBuilder<T, Registry>
+		(reg, short_name.append("Builder"), grp, tag, suffix, std::string("BackwardGaussSeidel builder"));
+#endif
 	}
 
 //	BlockGaussSeidel
@@ -223,7 +244,8 @@ static void Algebra(Registry& reg, string grp)
 	{
 		typedef ILU<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
-		string name = string("ILU").append(suffix);
+		std::string short_name = string("ILU");
+		string name(short_name); name.append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition")
 			.add_constructor()
 			.add_method("set_beta", &T::set_beta, "", "beta")
@@ -237,7 +259,13 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("enable_consistent_interfaces", &T::enable_consistent_interfaces, "", "enable", "Make Matrix consistent for connections in interfaces.")
 			.add_method("enable_overlap", &T::enable_overlap, "", "enable", "Enables matrix overlap. This also means that interfaces are consistent.")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ILU", tag);
+		reg.add_class_to_group(name, short_name, tag);
+#ifdef UG_JSON
+		// ILUBuilder
+		// AddJSONBuilder<T, Registry>
+		// (reg, short_name.append("Builder"), grp, tag, suffix, std::string("BackwardGaussSeidel builder"));
+#endif
+
 	}
 
 //	ILU Threshold

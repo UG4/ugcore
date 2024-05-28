@@ -45,6 +45,10 @@
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
 #include "lib_algebra/algebra_common/permutation_util.h"
 
+#ifdef UG_JSON
+#include "bindings/json/json_basics.hpp"
+#endif
+
 namespace ug{
 
 template<typename TAlgebra>
@@ -380,5 +384,93 @@ public:
 };
 
 } // end namespace ug
+
+#ifdef UG_JSON
+namespace ug {
+
+	// Draft for initialization using inheritance.
+	// Schema for Jacobi (derives from Preconditioner)
+	template <typename TAlgebra>
+	struct json_schema<GaussSeidelBase<TAlgebra>>{
+		static constexpr const char* value = R"(
+			{
+	  			"$schema": "http://json-schema.org/draft-07/schema#",
+				"$id": "schema:gauss-seidel",
+				"$ref": "schema:preconditioner",
+	  			"type": "object",
+				"properties": {
+					"enable_overlap": { "type": "boolean" },
+					"relax": { "type": "number" }
+				},
+				"additionalProperties": true
+			}
+		)";
+	};
+
+
+	// Defaults for Jacobi
+	template <typename TAlgebra>
+	struct json_default<GaussSeidelBase<TAlgebra>>{
+		static constexpr const char* value = R"(
+		{
+			"damp" : 1.0,	
+			"relax": 1.0,
+ 			"enable_overlap" : true 
+ 		}
+		)";
+	};
+
+	template <typename TAlgebra>
+	struct json_assignment<GaussSeidelBase<TAlgebra>>
+	{
+		// TODO: Avoid manual assignment?
+		static void from_json(const nlohmann::json& j, GaussSeidelBase<TAlgebra>& obj)
+		{
+			typedef IPreconditioner<TAlgebra> TPreconditioner;
+			json_assignment<TPreconditioner>::from_json(j, static_cast<TPreconditioner&>(obj)); // recursive call.
+			obj.enable_overlap(j.at("enable_overlap"));
+			obj.set_sor_relax(j.at("relax"));
+		}
+	};
+
+
+	//! GaussSeidel
+	template <typename TAlgebra>
+	struct json_schema<GaussSeidel<TAlgebra>> : public json_schema<GaussSeidelBase<TAlgebra>> {};
+
+	template <typename TAlgebra>
+	struct json_default<GaussSeidel<TAlgebra>> : public json_default<GaussSeidelBase<TAlgebra>> {};
+
+	template <typename TAlgebra>
+	struct json_assignment<GaussSeidel<TAlgebra>> : public json_assignment<GaussSeidelBase<TAlgebra>> {};
+
+
+
+	//! BackwardGaussSeidel
+	template <typename TAlgebra>
+	struct json_schema<BackwardGaussSeidel<TAlgebra>> : public json_schema<GaussSeidelBase<TAlgebra>> {};
+
+	template <typename TAlgebra>
+	struct json_default<BackwardGaussSeidel<TAlgebra>> : public json_default<GaussSeidelBase<TAlgebra>> {};
+
+	template <typename TAlgebra>
+	struct json_assignment<BackwardGaussSeidel<TAlgebra>> : public json_assignment<GaussSeidelBase<TAlgebra>> {};
+
+
+
+	//! SymmetricGaussSeidel
+	template <typename TAlgebra>
+	struct json_schema<SymmetricGaussSeidel<TAlgebra>> : public json_schema<GaussSeidelBase<TAlgebra>> {};
+
+	template <typename TAlgebra>
+	struct json_default<SymmetricGaussSeidel<TAlgebra>> : public json_default<GaussSeidelBase<TAlgebra>> {};
+
+	template <typename TAlgebra>
+	struct json_assignment<SymmetricGaussSeidel<TAlgebra>> : public json_assignment<GaussSeidelBase<TAlgebra>> {};
+
+
+}// end namespace ug
+
+#endif
 
 #endif // __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GAUSS_SEIDEL__

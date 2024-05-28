@@ -193,18 +193,33 @@ class UG_API Registry {
 		                     std::string retValInfos = "", std::string paramInfos = "",
 		                     std::string tooltip = "", std::string help = "");
 #ifdef UG_JSON
+
 		template<typename T>
 		Registry& add_json_functions(std::string name, std::string group = "")
 		{
-			UG_ASSERT(json_default<T>::value, "Error: No valid JSON default set:" << json_default<T>::value);
-			UG_ASSERT(json_schema<T>::value, "Error: No valid JSON schema set:" << json_schema<T>::value);
-			// nlohmann::json j =  nlohmann::json::parse(json_default<T>::value);
+			//UG_ASSERT(json_default<T>::value, "Error: No valid JSON default set:" << json_default<T>::value);
+			//UG_ASSERT(json_schema<T>::value, "Error: No valid JSON schema set:" << json_schema<T>::value);
+			UG_LOG("Error: add_json_functions should be deleted:" << name)
 
-			// Create new object
+			/*
+			// Create new object (smart ptr).
 			this->add_function(
-					std::string("j").append(name),
+						std::string("JSONFactory_Smart_").append(name),
+						static_cast<SmartPtr<T> (*)(const nlohmann::json &)>(&json_factory<T>::create_smart_ptr),
+						group);
+
+			// Create new object w/ defaults (smart ptr).
+			this->add_function(
+					std::string("JSONFactory_Smart_").append(name),
+					static_cast<SmartPtr<T> (*)()>(&json_factory<T>::create_smart_ptr_),
+					group);
+
+			// Create object (raw pointer).
+			this->add_function(
+					std::string("JSONFactory_Raw_").append(name),
 					static_cast<T* (*)(const nlohmann::json &)>(&json_factory<T>::create_new),
 					group);
+
 
 			// Create new object (with defaults)
 
@@ -221,7 +236,7 @@ class UG_API Registry {
 					group);
 
 
-			return (*this);
+			return (*this);*/
 		}
 #endif
 
@@ -368,6 +383,28 @@ class UG_API Registry {
 /// \}
 
 } // end namespace registry
+
+
+#ifdef UG_JSON
+template <typename TClass, typename TRegistry>
+void AddJSONBuilder(TRegistry &reg, std::string bname0,
+		const std::string grp, const std::string tag, const std::string suffix,
+		const std::string btxt)
+{
+
+	typedef JSONBuilder<TClass> TBuilder;
+	std::string bname1(bname0);
+	bname1.append(suffix);
+
+	reg.template add_class_<TBuilder>(bname1, grp, btxt)
+		.add_constructor()
+		.template add_constructor<void (*)(nlohmann::json &)>("JSON object")
+		.add_method("build", &TBuilder::build);
+								// .set_construct_as_smart_pointer(true);
+	UG_LOG("Adding " << bname1 << std::endl);
+	reg.add_class_to_group(bname1, bname0, tag);
+}
+#endif
 
 } // end namespace ug
 

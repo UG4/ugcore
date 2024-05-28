@@ -571,8 +571,6 @@ class IExportedClass
 
 	/// get constructor for construction from json
 		virtual bool is_json_constructible() const = 0;
-
-		//virtual void* json_create(const nlohmann::json j)=0;
 #endif
 
 	///	true if the class shall be wrapped in a SmartPtr on construction
@@ -734,14 +732,6 @@ class ExportedClass : public ExportedClassBaseImpl
 	///	get groups
 		virtual const std::string& group() const {return ClassNameProvider<TClass>::group();}
 
-#ifdef UG_JSON
-	/// is json constructible
-		virtual bool is_json_constructible() const {
-			return ug::is_json_constructible<TClass>::value;
-			//return std::is_base_of<JSONConstructible, TClass>::value;
-		}
-#endif
-
 	//\todo: remove this method, use class name nodes instead
 	///	class-hierarchy
 		virtual const std::vector<const char*>* class_names() const	{return &ClassNameProvider<TClass>::names();}
@@ -896,6 +886,23 @@ class ExportedClass : public ExportedClassBaseImpl
 		{
 			return CastAndDelete<TClass>;
 		}
+
+#ifdef UG_JSON
+	/// is json constructible
+		virtual bool is_json_constructible() const {
+			return ug::is_json_constructible<TClass>::value;
+		}
+
+		template<typename T>
+		ExportedClass<TClass>& add_json_constructor(const nlohmann::json &j)
+		{
+
+			/*template <typename TFunc>
+			this->add_constructor<>()
+			json_assignment<T>::from_json(j, *this);
+			return (*this);*/
+		}
+#endif
 };
 
 // end group registry
