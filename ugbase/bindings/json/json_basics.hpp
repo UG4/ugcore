@@ -157,36 +157,47 @@ struct json_assignment
  *****************************************************************************/
 //! This class provides basic constructors.
 template <typename T>
-struct json_factory {
+class JSONBuilder {
 
-	//! Create a new un-initialized instance.
-	static T* create_new_empty()
-	{
-		return (is_json_constructible<T>::value) ? new T() : NULL;
-	}
+
+public:
+
+	JSONBuilder()
+	: m_json(nlohmann::json::parse(json_default_value<T>())) {}
+
+	JSONBuilder(nlohmann::json &j)
+	: m_json(j) {}
+
+	virtual ~JSONBuilder() {};
 
 	//! Create a new initialized instance.
-	static T* create_new(const nlohmann::json &j)
-	{
-		if (! is_json_constructible<T>::value) return NULL;
+	virtual SmartPtr<T> build()
+	{ return (class_is_json_constructible()) ? make_sp<T> (this->build_raw()) : SPNULL; }
 
-		T* obj=create_new_empty();
-		if (obj) json_assignment<T>::from_json(j, *obj);
+
+protected:
+
+	nlohmann::json m_json;
+
+	// Returns is_json_constructible<T>::value.
+	static bool class_is_json_constructible()
+	{
+		bool check = is_json_constructible<T>::value;
+		if (!check) UG_LOG("WARNING: is_json_constructible<T>::value.." << check);
+		return check;
+	}
+
+	// Create new instance & initialize.
+	T* build_raw()
+	{
+		T* obj = (class_is_json_constructible()) ? new T() : NULL;
+		if (obj) json_assignment<T>::from_json(m_json, *obj);
 		return obj;
-
 	}
 
-	static T* create_new_default()
-	{
 
-	}
-
-	//! Create a new initialized instance.
-	static SmartPtr<T> create_smart_ptr(const nlohmann::json &j)
-	{ return (is_json_constructible<T>::value) ? make_sp<T> (json_factory<T>::create_new(j)) : SPNULL; }
 
 };
-
 
 
 }
