@@ -4,7 +4,8 @@ default:
     - gitlab-org-docker
 
 variables:
-    GIT_CLONE_PATH: $CI_BUILDS_DIR/ug4/ugcore/
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ugcore/
+    WORKSPACE_PATH: $GIT_CLONE_PATH/../
 
 stages:
   - build
@@ -25,12 +26,13 @@ build-clang:
   timeout: 4 hours
   script:
     # move to CI "workspace" and install ug
-    - cd ../
+    - cd $WORKSPACE_PATH
+    - mkdir -p ug4
+    - cp -R /opt/ug4/. ug4
     - pwd
     - ls -a
     #- git clone https://github.com/UG4/ughub
     #- export PATH=$PATH:$(pwd)/ughub
-    #- mkdir -p ug4
     #- cd ug4
     #- ughub init
     #- ughub addsource quadruped gitolite3@quadruped.gcsc.uni-frankfurt.de:ug4-packages
@@ -40,8 +42,8 @@ build-clang:
     #- ughub git submodule update
     # replace ugcore
     #- ls -a
-    #- rm -r ugcore
-    #- mv ../ugcore ugcore
+    - rm -r ug4/ugcore
+    - mv ugcore ug4/ugcore
     # build ug
     - mkdir -p build
     - cd build
