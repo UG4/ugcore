@@ -15,10 +15,10 @@ stages:
 build-clang:
   stage: build
   variables:
-    CC: "ccache clang"
-    CXX: "ccache clang++"
+    CMAKE_C_COMPILER: "gcc"
+    CMAKE_CXX_COMPILER: "g++"
     CXX_FLAGS: "-O0 -coverage -fPIC"
-    UG_PACKAGES_TO_INSTALL: "ConvectionDiffusion ugcore tests unit_tests"
+    #UG_PACKAGES_TO_INSTALL: "ConvectionDiffusion ugcore tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore d3f_app tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
 
