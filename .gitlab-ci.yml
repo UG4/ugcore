@@ -5,7 +5,6 @@ default:
 
 variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ugcore
-    WORKSPACE_PATH: $GIT_CLONE_PATH/..
 
 stages:
   - build
@@ -26,7 +25,7 @@ build-clang:
   timeout: 4 hours
   script:
     # move to CI "workspace" and install ug
-    - cd $WORKSPACE_PATH
+    - cd ..
     - mkdir -p ug4
     - cp -R /opt/ug4/. ug4
     - pwd
