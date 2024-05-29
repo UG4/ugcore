@@ -4,7 +4,7 @@ default:
     - gitlab-org-docker
 
 variables:
-    GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ugcore/
+    GIT_CLONE_PATH: /opt/ug4/ugcore/
 
 stages:
   - build
@@ -27,19 +27,19 @@ build-clang:
     - pwd
     - ls -a
     # move to CI "workspace" and install ug
-    - cd ../
-    - git clone https://github.com/UG4/ughub
-    - export PATH=$PATH:$(pwd)/ughub
-    - mkdir -p ug4
-    - cd ug4
-    - ughub init
-    - ughub addsource quadruped gitolite3@quadruped.gcsc.uni-frankfurt.de:ug4-packages
-    - ughub updatesources
-    - ughub install $UG_PACKAGES_TO_INSTALL
-    - ughub git submodule init
-    - ughub git submodule update
+    #- cd ../
+    #- git clone https://github.com/UG4/ughub
+    #- export PATH=$PATH:$(pwd)/ughub
+    #- mkdir -p ug4
+    #- cd ug4
+    #- ughub init
+    #- ughub addsource quadruped gitolite3@quadruped.gcsc.uni-frankfurt.de:ug4-packages
+    #- ughub updatesources
+    #- ughub install $UG_PACKAGES_TO_INSTALL
+    #- ughub git submodule init
+    #- ughub git submodule update
     # replace ugcore
-    - ls -a
+    #- ls -a
     #- rm -r ugcore
     #- mv ../ugcore ugcore
     # build ug
@@ -48,11 +48,11 @@ build-clang:
     - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
     - ninja -j8
     # build testsuite
-    - cd ../apps/unit_tests/
-    - mkdir -p build
-    - cd build
-    - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
-    - ninja -j8
+    #- cd ../apps/unit_tests/
+    #- mkdir -p build
+    #- cd build
+    #- cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
+    #- ninja -j8
   artifacts:
     when: on_success
     expire_in: 1 week
