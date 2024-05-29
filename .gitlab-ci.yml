@@ -27,7 +27,7 @@ build-clang:
     - pwd
     - ls -a
     # move to CI "workspace" and install ug
-    #- cd ../
+    - cd ../
     #- git clone https://github.com/UG4/ughub
     #- export PATH=$PATH:$(pwd)/ughub
     #- mkdir -p ug4
