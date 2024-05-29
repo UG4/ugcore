@@ -1,5 +1,7 @@
 default:
   image: rigby132/ug4-minimal:latest
+  tags:
+    - gitlab-org-docker
 
 variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ugcore/
@@ -19,8 +21,7 @@ build-clang:
     UG_PACKAGES_TO_INSTALL: "ConvectionDiffusion ugcore tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore d3f_app tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
-  tags:
-    - linux
+
   timeout: 4 hours
   script:
     - pwd
