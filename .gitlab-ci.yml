@@ -44,6 +44,7 @@ build-clang:
     - rm -r ug4/ugcore
     - mv ugcore ug4/ugcore
     # build ug
+    - cd ug4
     - mkdir -p build
     - cd build
     - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
