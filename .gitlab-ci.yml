@@ -4,7 +4,7 @@ default:
     - gitlab-org-docker
 
 variables:
-    GIT_CLONE_PATH: /opt/ug4/ugcore/
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/ug4/ugcore/
 
 stages:
   - build
