@@ -54,6 +54,10 @@
 
 #include "lib_algebra/algebra_common/permutation_util.h"
 
+#ifdef UG_JSON
+#include "bindings/json/json_basics.hpp"
+#endif
+
 namespace ug{
 
 
@@ -735,6 +739,70 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		const vector_type* m_u;
 };
+
+#ifdef UG_JSON
+
+	// Draft for initialization using inheritance.
+	// Schema for Jacobi (derives from Preconditioner)
+	template <typename TAlgebra>
+	struct json_schema<ILU<TAlgebra>>{
+		static constexpr const char* value = R"(
+			{
+	  			"$schema": "http://json-schema.org/draft-07/schema#",
+				"$id": "schema:ilu",
+				"$ref": "schema:preconditioner",
+	  			"type": "object",
+				"properties": {
+					"beta": { "type": "number" },
+					"damping": { "type": "number" },
+					"inversionEps": { "type": "number" },
+					"sortEps": { "type": "number" },
+					"consistentInterfaces": { "type": "boolean" },
+					"overlap": { "type": "boolean" }
+				},
+				"additionalProperties": true
+			}
+		)";
+	};
+
+
+	// Defaults for Jacobi
+	template <typename TAlgebra>
+	struct json_default<ILU<TAlgebra>>{
+		static constexpr const char* value = R"(
+		{
+			"beta" : 0.0,
+ 			"damping" : 1.0, 
+			"consistentInterfaces": false,
+			"inversionEps": { "type": "number" },
+			"sortEps": { "type": "number" },
+			"overlap": false
+ 		}
+		)";
+	};
+
+
+	template <typename TAlgebra>
+	struct json_assignment<ILU<TAlgebra>>
+	{
+		// TODO: Avoid manual assignment?
+		static void from_json(const nlohmann::json& j, Jacobi<TAlgebra>& obj)
+		{
+			typedef IPreconditioner<TAlgebra> TPreconditioner;
+			json_assignment<TPreconditioner>::from_json(j, static_cast<TPreconditioner&>(obj)); // recursive call.
+			obj.set_beta(j.at("beta"));
+			obj.set_damp(j.at("damping"));
+			//obj.set_sort
+			//obj.set_ordering_algorithm
+			obj.set_sort_eps(j.at("sortEps"));
+			obj.set_inversion_eps(j.at("inversionEps"));
+			obj.enable_consistent_interfaces(j.at("consistentInterfaces"));
+			obj.enable_overlap(j.at("overlap"));
+		}
+	};
+
+#endif
+
 
 } // end namespace ug
 

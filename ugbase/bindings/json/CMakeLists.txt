@@ -1,5 +1,5 @@
-# Copyright (c) 2009-2015:  G-CSC, Goethe University Frankfurt
-# Author: Sebastian Reiter, Andreas Vogel
+# Copyright (c) 2024:  UG4 development team.
+# Author: Arne Naegel
 # 
 # This file is part of UG4.
 # 
@@ -28,89 +28,35 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-################################################
-# ugbase
-################################################
-
 cmake_minimum_required(VERSION 2.8.12...3.27.1)
 
-project(P_UGBASE)
+####
+# uginterface Library
+####
 
-# set global output paths for UGBASE
-# They are relative to the source dir for which cmake was executed.
+project(P_UGSCRIPT)
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-set(Sources	ug.cpp)
 
+include("../../../cmake/ug_includes.cmake")
+
+
+
+# use default version (shipped with ug4) 
+set(srcBindJSON	json_basics.cpp)
+
+set(incBindJSON	json_basics.hpp)
+
+
+
+################################################################################
+#	add sources to library
+################################################################################
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES(ugbase ${Sources})
+	EXPORTSOURCES(ugbase/bindings/json ${srcBindJSON})
 else(BUILD_ONE_LIB)
-	add_library(ugbase ${Sources})
+	add_library(common ${srcBindJSON})
 endif(BUILD_ONE_LIB)
-
-########################
-# information on the current compilation environment
-add_subdirectory(compile_info)
-
-########################
-# common
-add_subdirectory(common)
-
-########################
-# lib_grid
-if(buildGrid)
-	add_subdirectory(lib_grid)
-endif(buildGrid)
-
-########################
-# lib_registry
-if(buildRegistry)
-	add_subdirectory(registry)
-endif(buildRegistry)
-
-########################
-# bindings
-if(buildBindings)
-	add_subdirectory(bindings/lua)
-	add_subdirectory(bindings/json)
-	if(buildForVRL)
-    	add_subdirectory(bindings/vrl)
-	endif(buildForVRL)
-endif(buildBindings)
-
-########################
-# lib_algebra
-if(buildAlgebra)
-	add_subdirectory(lib_algebra)	
-endif(buildAlgebra)
-
-########################
-# lib_disc
-if(buildDisc)
-	add_subdirectory(lib_disc)
-endif(buildDisc)
-
-
-########################
-# pcl
-if(PARALLEL)
-	add_subdirectory(pcl)
-endif(PARALLEL)
-
-########################
-# bridge
-if(buildBridge)
-	add_subdirectory(bridge)
-endif(buildBridge)
-
-########################
-# ug4 shell
-if(buildUGShell)
-    add_subdirectory(ug_shell)
-endif(buildUGShell)
-
-if(INTERNAL_BOOST)
-	add_subdirectory(../../externals/BoostForUG4/libs externals/BoostForUG4/libs)
-endif(INTERNAL_BOOST)

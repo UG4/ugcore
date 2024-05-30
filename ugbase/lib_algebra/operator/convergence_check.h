@@ -342,18 +342,16 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 	};
 
 
-	// Defaults for Jacobi
+	// Defaults for StdConvCheck.
 	template <typename TVector>
 	struct json_default<StdConvCheck<TVector>>{
-		static constexpr const char* value = R"(
-		{
-			"type": "standard", 
-			"iterations": 200,
-			"reduction": 1e-10,
-			"absolute": 1e-8
- 		}
-		)";
+		static const nlohmann::json value;
 	};
+
+	template <typename TVector>
+	const nlohmann::json json_default<StdConvCheck<TVector>>::value
+	= json_predefined_defaults::solvers["convCheck"]["standard"];
+
 
 	template <typename TVector>
 	struct json_assignment<IConvergenceCheck<TVector>>

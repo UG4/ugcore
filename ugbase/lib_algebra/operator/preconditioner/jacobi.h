@@ -324,7 +324,7 @@ namespace ug {
 	// Draft for initialization using inheritance.
 	// Schema for Jacobi (derives from Preconditioner)
 	template <typename TAlgebra>
-	struct json_schema<Jacobi<TAlgebra>>{
+	struct json_schema<Jacobi<TAlgebra>> {
 		static constexpr const char* value = R"(
 			{
 	  			"$schema": "http://json-schema.org/draft-07/schema#",
@@ -343,13 +343,14 @@ namespace ug {
 	// Defaults for Jacobi
 	template <typename TAlgebra>
 	struct json_default<Jacobi<TAlgebra>>{
-		static constexpr const char* value = R"(
-		{
-			"damp" : 0.66,
- 			"bBlock" : true 
- 		}
-		)";
+		static const nlohmann::json value;
 	};
+
+	template <typename TAlgebra>
+	const nlohmann::json json_default<Jacobi<TAlgebra>>::value
+		= json_predefined_defaults::solvers["preconditioner"]["jac"];
+
+
 
 	template <typename TAlgebra>
 	struct json_assignment<Jacobi<TAlgebra>>

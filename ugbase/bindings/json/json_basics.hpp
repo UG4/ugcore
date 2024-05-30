@@ -34,17 +34,18 @@
 #pragma once
 
 #include <type_traits>
+#include <string>
 
 #include <nlohmann/json.hpp>
 
 #include "common/util/smart_pointer.h"
-
+#include "common/log.h"
 
 /*
  * For each class, we must supply the following:
  *
  * - is_json_constructible = true
- * - json_defaults = <valid JSON string>
+ * - json_defaults = <valid JSON>
  * - json_schema = <valid JSON schema >
  *
  * Optional defines:
@@ -60,6 +61,9 @@ namespace ug {
 struct JSONConstructible {};
 
 
+/*****************************************************************************
+ * Traits indicate, if objects are construtible.
+ *****************************************************************************/
 
 //! By default, an object is json_contructible, if it is default constructible
 template <typename T>
@@ -67,43 +71,8 @@ struct is_json_constructible {
 	constexpr static const bool value = std::is_default_constructible<T>::value;
 };
 
-/*****************************************************************************
- * JSON default values.
- *****************************************************************************/
-//! default value (empty)
-template <typename T>
-struct json_default{
-	 static constexpr const char* value = "{}"; // empty value
-//	 static const char* get_value() { return value; }
-};
 
-template <typename T>
-inline const char* json_default_value() {return json_default<T>::value;}
-
-
-/*****************************************************************************
- * JSON schema.
- *****************************************************************************/
-//! default schema (empty)
-template <typename T>
-struct json_schema{
-	 static constexpr const char* value = R"(
-			  {
-  				"$schema": "http://json-schema.org/draft-07/schema#",
-  				"type": "object",
- 				 "additionalProperties": false
-				}
-			)";
-	// static const char* get_value() { return value; }
-};
-
-
-template <typename T>
-inline const char* json_schema_value() {return json_schema<T>::value;}
-
-
-
-// Disallow some basic types
+// Disallow some basic types.
 template <>
 struct is_json_constructible<void> {
 	constexpr static const bool value = false;
@@ -141,6 +110,45 @@ struct is_json_constructible<LuaFunctionHandle> {
 };
 */
 
+
+/*****************************************************************************
+ * JSON default values.
+ *****************************************************************************/
+
+//! Default value (empty).
+template <typename T>
+struct json_default { static const nlohmann::json value; };
+
+template <typename T>
+const nlohmann::json json_default<T>::value = {};
+
+template <typename T>
+inline const nlohmann::json json_default_value()
+{ return json_default<T>::value; }
+
+
+
+
+/*****************************************************************************
+ * JSON schema.
+ *****************************************************************************/
+//! default schema (empty)
+template <typename T>
+struct json_schema{
+	 static constexpr const char* value = R"(
+	{
+  		"$schema": "http://json-schema.org/draft-07/schema#",
+  		"type": "object",
+ 		"additionalProperties": false
+	}
+	)";
+};
+
+
+template <typename T>
+inline const char* json_schema_value() {return json_schema<T>::value;}
+
+
 /*****************************************************************************
  * JSON assignment.
  *****************************************************************************/
@@ -153,17 +161,17 @@ struct json_assignment
 };
 
 /*****************************************************************************
- * JSON factory helpers.
+ * JSON builder.
  *****************************************************************************/
 //! This class provides basic constructors.
 template <typename T>
 class JSONBuilder {
 
-
 public:
 
 	JSONBuilder()
-	: m_json(nlohmann::json::parse(json_default_value<T>())) {}
+	: m_json(json_default<T>::value) {}
+
 
 	JSONBuilder(nlohmann::json &j)
 	: m_json(j) {}
@@ -174,6 +182,10 @@ public:
 	virtual SmartPtr<T> build()
 	{ return (class_is_json_constructible()) ? make_sp<T> (this->build_raw()) : SPNULL; }
 
+	std::string get_default()
+	{
+		return json_default_value<T>().dump();
+	}
 
 protected:
 
@@ -183,7 +195,7 @@ protected:
 	static bool class_is_json_constructible()
 	{
 		bool check = is_json_constructible<T>::value;
-		if (!check) UG_LOG("WARNING: is_json_constructible<T>::value.." << check);
+		if (!check) UG_LOG("WARNING: is_json_constructible<T>::value is false.");
 		return check;
 	}
 
@@ -200,4 +212,20 @@ protected:
 };
 
 
-}
+/*****************************************************************************
+ * JSON default definitions.
+ *****************************************************************************/
+struct json_predefined_defaults {
+	static const nlohmann::json solvers;
+};
+
+/*****************************************************************************
+ * JSON schema definitions.
+ *****************************************************************************/
+struct json_predefined_schemas {
+	static const nlohmann::json solvers;
+};
+
+
+
+} // namespace ug

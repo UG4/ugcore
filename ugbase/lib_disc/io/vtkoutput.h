@@ -957,11 +957,8 @@ protected:
 
 #ifdef UG_JSON
 #include "bindings/json/json_basics.hpp"
-#endif
 
-#ifdef UG_JSON
 namespace ug {
-
 
 #ifdef UG_DIM_1
 	void from_json(const nlohmann::json& j, VTKOutput<1>& p);
@@ -973,15 +970,15 @@ namespace ug {
 	void from_json(const nlohmann::json& j, VTKOutput<3>& p);
 #endif
 
-	//! All objects use identical defaults.
+	//! Defaults for VTKOutput (identical for all objects).
 	template <int dim>
-	struct json_default<VTKOutput<dim>>{
-		static constexpr const char* value = R"(
-			{
-	  			"binary" : true
-			}
-		)";
-	};
+	struct json_default<VTKOutput<dim>>
+	{ static const nlohmann::json value; };
+
+	template <int dim>
+	const nlohmann::json json_default<VTKOutput<dim>>::value
+	= R"({"binary" : true})";
+
 
 	//! All objects use identical schema.
 	template <int dim>

@@ -407,18 +407,15 @@ namespace ug {
 		)";
 	};
 
-
-	// Defaults for Jacobi
+	// Defaults for Gauss-Seidel
 	template <typename TAlgebra>
 	struct json_default<GaussSeidelBase<TAlgebra>>{
-		static constexpr const char* value = R"(
-		{
-			"damp" : 1.0,	
-			"relax": 1.0,
- 			"enable_overlap" : true 
- 		}
-		)";
+		static const nlohmann::json value;
 	};
+
+	template <typename TAlgebra>
+	const nlohmann::json json_default<GaussSeidelBase<TAlgebra>>::value
+		= json_predefined_defaults::solvers["preconditioner"]["gs"];
 
 	template <typename TAlgebra>
 	struct json_assignment<GaussSeidelBase<TAlgebra>>
