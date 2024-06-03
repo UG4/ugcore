@@ -176,6 +176,7 @@ class PythonUserFunction : public StdDataLinker<PythonUserFunction<TData, dim, T
 		int debug() const
 		{
 			UG_ASSERT(true, "This is a debug function");
+			return 0;
 		}
 		/**
 		 * \brief set input value for paramter \c i
