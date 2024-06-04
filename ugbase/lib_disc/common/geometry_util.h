@@ -820,7 +820,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 			if(rRefElem.num(dim-1, sideOut, 0) == 3) continue;
 
 			// get corner number 4
-			p2 = rRefElem.id(dim-1, sideOut, 0, 3);
+			p1 = rRefElem.id(dim-1, sideOut, 0, 3);
 
 			// if match: break
 			if(RayTriangleIntersection(	GlobalIntersectionPointOut, bc0, bc1, t,
