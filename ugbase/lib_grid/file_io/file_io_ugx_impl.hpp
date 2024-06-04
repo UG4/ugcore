@@ -301,7 +301,7 @@ create_vertex_node(RegularVertexIterator vrtsBegin,
 	}
 
 	char* buff = m_doc.allocate_string(NULL, 10);
-	sprintf(buff, "%d", numCoords);
+	snprintf(buff, 10, "%d", numCoords);
 	node->append_attribute(m_doc.allocate_attribute("coords", buff));
 
 //	return the node
@@ -363,7 +363,7 @@ create_constrained_vertex_node(ConstrainedVertexIterator vrtsBegin,
 	}
 
 	char* buff = m_doc.allocate_string(NULL, 10);
-	sprintf(buff, "%d", numCoords);
+	snprintf(buff, 10, "%d", numCoords);
 	node->append_attribute(m_doc.allocate_attribute("coords", buff));
 
 //	return the node

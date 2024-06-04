@@ -945,8 +945,7 @@ void WriteVectorCSV(const char *filename,
 	size_t iExtPos = name.find_last_of(".");
 	name.resize(iExtPos);
 	int rank = pcl::ProcRank();
-	char ext[20];
-	sprintf(ext, "_p%05d.csv", rank);
+	char ext[20]; snprintf(ext, 20, "_p%05d.csv", rank);
 	name.append(ext);
 #endif
 
