@@ -400,7 +400,9 @@ void AddJSONBuilder(TRegistry &reg, std::string bname0,
 		.add_constructor()
 		.template add_constructor<void (*)(nlohmann::json &)>("JSON object")
 		.add_method("build", &TBuilder::build)
-		.add_method("get_default", &TBuilder::get_default);
+		.add_method("get_default", &TBuilder::get_default)
+		.add_method("get_json", &TBuilder::get_json)
+		.add_method("get_json_default", &TBuilder::get_json_default);
 								// .set_construct_as_smart_pointer(true);
 	UG_LOG("Adding " << bname1 << std::endl);
 	reg.add_class_to_group(bname1, bname0, tag);

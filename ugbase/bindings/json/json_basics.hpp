@@ -187,6 +187,15 @@ public:
 		return json_default_value<T>().dump();
 	}
 
+	const nlohmann::json& get_json_default()
+	{ return json_default_value<T>(); }
+
+	const nlohmann::json& get_json()
+	{ return m_json; }
+
+
+
+
 protected:
 
 	nlohmann::json m_json;
