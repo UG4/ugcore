@@ -32,7 +32,6 @@
 
 #ifndef NUMBER_UTIL_H_
 #define NUMBER_UTIL_H_
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #include "common/math/ugmath.h"
 namespace ug{
