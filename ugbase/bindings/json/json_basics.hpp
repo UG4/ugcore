@@ -51,7 +51,7 @@
  * Optional defines:
  *
  * - json_assignment::from_json
- * - json_factory::create_new_empty, create_new, create_smart_ptr
+ *
  * */
 
 namespace ug {
