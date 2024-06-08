@@ -105,8 +105,8 @@ static void Dimension(Registry& reg, string grp)
 	string tag = ug::bridge::GetDimensionTag<dim>();
 
 	RegisterPythonUserDataType<number, dim>(reg, "Number", grp);
-	//RegisterPythonUserDataType<MathVector<dim>, dim>(reg, "Vector", grp);
-	//RegisterPythonUserDataType<MathMatrix<dim,dim>, dim>(reg, "Matrix", grp);
+	RegisterPythonUserDataType<MathVector<dim>, dim>(reg, "Vector", grp);
+	RegisterPythonUserDataType<MathMatrix<dim,dim>, dim>(reg, "Matrix", grp);
 
 	//	PythonUserFunction
 	{
