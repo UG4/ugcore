@@ -101,11 +101,14 @@ function UJS_Info
 	echo "qstat -u $USER"
 
 	(
-		echo "JOBID Username Queue Jobname SessID Elap-NDS TSK Memory Time Status Time"
+		echo "JOBID USERNAME QUEUE JOBNAME SessID ELAP-NDS TSK MEMORY TIME STATE TIME"
 		# grep: get only jobs scheduled with ugsubmit
 		qstat -u $USER | grep -E "job\.[0-9]+\.[0-9]+ *" | awk '
 		BEGIN { OFS = "\t" }
 		{
+			# remove everything after first dot in jobname
+			sub(/\..*$/, "", $1)
+
 			status = $10
 			if (status == "R") {
 			status = "RUNNING"
