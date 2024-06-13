@@ -290,6 +290,17 @@ static void Domain(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "PartialUpwind", tag);
 	}
+
+//	ConvectionShapesSkewedUpwind
+	{
+		typedef ConvectionShapesSkewedUpwind<dim> T;
+		typedef IConvectionShapes<dim> TBase;
+		string name = string("SkewedUpwind").append(suffix);
+		reg.add_class_<T, TBase>(name, upGrp)
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SkewedUpwind", tag);
+	}
 }
 
 /**

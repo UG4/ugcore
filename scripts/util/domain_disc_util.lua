@@ -66,6 +66,7 @@ function UpwindFV1(upwindType, upwindParam)
 		end
 		return upwind
 	elseif	upwindType == "partial" then return PartialUpwind ()
+    elseif	upwindType == "skewed" then return SkewedUpwind ()
 	else
 		print("UpwindFV1: no upwind type '"..upwindType.."' available. Aborting")
 		exit();
