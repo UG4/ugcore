@@ -141,7 +141,7 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 
 //	write start defect for debug
 	int loopCnt = 0;
-	char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+	char ext[20]; snprintf(ext, sizeof(ext),"_iter%03d", loopCnt);
 	std::string name("NLJacobi_Defect");
 	name.append(ext);
 	write_debug(*spD, name.c_str());
@@ -195,7 +195,7 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 
 	//	update counter
 		loopCnt++;
-		sprintf(ext, "_iter%03d", loopCnt);
+		snprintf(ext, sizeof(ext),"_iter%03d", loopCnt);
 
 	// 	check convergence
 		m_spConvCheck->update(*spD);
@@ -213,7 +213,7 @@ void NLJacobiSolver<TAlgebra>::write_debug(const vector_type& vec, const char* f
 {
 //	add iter count to name
 	std::string name(filename);
-	char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
+	char ext[20]; snprintf(ext, sizeof(ext),"_call%03d", m_dgbCall);
 	name.append(ext).append(".vec");
 
 //	write
@@ -225,7 +225,7 @@ void NLJacobiSolver<TAlgebra>::write_debug(const matrix_type& mat, const char* f
 {
 //	add iter count to name
 	std::string name(filename);
-	char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
+	char ext[20]; snprintf(ext, sizeof(ext),"_call%03d", m_dgbCall);
 	name.append(ext).append(".mat");
 
 //	write

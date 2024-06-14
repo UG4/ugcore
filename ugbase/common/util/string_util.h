@@ -38,6 +38,10 @@
 #include <algorithm> 
 #include <sstream>
 #include <cctype>
+#include <cstdio>
+#include <string>
+#include <cassert>
+
 #include "hash_function.h"
 #include "common/ug_config.h"
 #include "stringify.h"
@@ -438,6 +442,21 @@ inline const char *TrueFalseString(bool b)
 inline const char *OnOffString(bool b)
 {
 	return b ? "ON" : "OFF";
+}
+
+
+template< typename... Args >
+inline std::string GetStringPrintf( const char* format, Args... args )
+{
+  int length = std::snprintf( nullptr, 0, format, args... );
+  assert( length >= 0 );
+
+  char* buf = new char[length + 1];
+  std::snprintf( buf, length + 1, format, args... );
+
+  std::string str( buf );
+  delete[] buf;
+  return str;
 }
 
 } // end namespace ug

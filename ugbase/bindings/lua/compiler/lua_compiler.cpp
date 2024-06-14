@@ -70,10 +70,10 @@ bool LUACompiler::createC(const char *functionName, LuaFunctionHandle* pHandle)
 	PROFILE_BEGIN_GROUP(LUACompiler_createVM, "LUA2C");
 	UG_DLOG(DID_LUACOMPILER, 1, "LUA2C: parsing " << functionName << "... ");
 	try{
-		m_f=NULL;
+		m_f=nullptr;
 		LUAParserClass parser;
 		int ret = 0;
-		if(pHandle == NULL){
+		if(pHandle == nullptr){
 			ret = parser.parse_luaFunction(functionName);
 		} else {
 			ret = parser.parse_luaFunction(*pHandle);
@@ -167,11 +167,11 @@ bool LUACompiler::createC(const char *functionName, LuaFunctionHandle* pHandle)
 		}
 		m_f = (LUA2C_Function) GetLibraryProcedure(m_libHandle, functionName);
 
-		if(m_f !=NULL) { UG_DLOG(DID_LUACOMPILER, 1, "OK\n"); }
+		if(m_f !=nullptr) { UG_DLOG(DID_LUACOMPILER, 1, "OK\n"); }
 		else { UG_DLOG(DID_LUACOMPILER, 1, "FAILED\n"); }
-		if(m_f !=NULL)
+		if(m_f !=nullptr)
 			bInitialized = true;
-		return m_f != NULL;
+		return m_f != nullptr;
 	}
 	catch(...)
 	{
@@ -194,12 +194,12 @@ bool LUACompiler::createVM(const char *functionName, LuaFunctionHandle* pHandle)
 	try
 	{
 		int ret = 0;
-		if(pHandle == NULL){
+		if(pHandle == nullptr){
 			parser.parse_luaFunction(functionName);
 		} else {
 			parser.parse_luaFunction(*pHandle);
 		}
-		if(vm != NULL) delete vm;
+		if(vm != nullptr) delete vm;
 		vm = new VMAdd;
 		if(ret == LUAParserClass::LUAParserError)
 		{
@@ -246,7 +246,7 @@ bool LUACompiler::createVM(const char *functionName, LuaFunctionHandle* pHandle)
 
 LUACompiler::~LUACompiler()
 {
-	if(vm != NULL) delete vm;
+	if(vm != nullptr) delete vm;
 
     UG_DLOG(DID_LUACOMPILER, 2, "removing " << m_name << "\n");
 	if(m_libHandle)
@@ -269,7 +269,7 @@ bool LUACompiler::call(double *ret, const double *in) const
 	}
 	else
 	{
-		UG_ASSERT(m_f != NULL, "function " << m_name << " not valid");
+		UG_ASSERT(m_f != nullptr, "function " << m_name << " not valid");
 		m_f(ret, in);
 		return true;
 	}
