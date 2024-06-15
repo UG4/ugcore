@@ -75,9 +75,14 @@ inline void VecProdAdd(const double &a, const double &b, double &s)
 template<typename vector_t>
 inline void VecProdAdd(const vector_t &a, const vector_t &b, double &s)
 {
-	#pragma omp simd reduction(+:s)
+	// was: #pragma omp simd reduction(+:s)
+	#pragma omp parallel simd for shared(a,b) schedule(static) reduction(+:s)
 	for(size_t i=0; i<a.size(); i++)
-		VecProdAdd(a[i], b[i], s);
+	{
+		double dot=0.0;
+		VecProdAdd(a[i], b[i], dot);
+		s += dot;
+	}
 }
 
 
@@ -186,7 +191,7 @@ inline void VecScaleAdd(DenseVector<FixedArray1<double, 4>> &dest,
 template<typename vector_t, template <class T> class TE_VEC>
 inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vector_t> &v1, double alpha2, const TE_VEC<vector_t> &v2)
 {
-	#pragma omp simd
+	#pragma omp parallel for simd
 	for(size_t i=0; i<dest.size(); i++)
 		VecScaleAdd(dest[i], alpha1, v1[i], alpha2, v2[i]);
 }
@@ -206,9 +211,14 @@ inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vect
 template<typename vector_t>
 inline void VecProd(const vector_t &a, const vector_t &b, double &sum)
 {
-	#pragma omp simd reduction(+:sum)
+	// was: #pragma omp simd reduction(+:sum)
+	#pragma omp parallel simd for shared(a,b) schedule(static) reduction(+:s)
 	for(size_t i=0; i<a.size(); i++)
-		VecProdAdd(a[i], b[i], sum);
+	{
+		double dot = 0.0;
+		VecProdAdd(a[i], b[i], dot);
+		sum +=dot;
+	}
 }
 
 //! returns scal<a, b>
