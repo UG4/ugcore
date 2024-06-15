@@ -76,8 +76,9 @@ template<typename vector_t>
 inline void VecProdAdd(const vector_t &a, const vector_t &b, double &s)
 {
 	// was: #pragma omp simd reduction(+:s)
-	#pragma omp parallel simd for shared(a,b) schedule(static) reduction(+:s)
-	for(size_t i=0; i<a.size(); i++)
+	const size_t N= a.size();
+	#pragma omp parallel for simd shared(a,b, N) schedule(static) reduction(+:s)
+	for(size_t i=0; i<N; i++)
 	{
 		double dot=0.0;
 		VecProdAdd(a[i], b[i], dot);
@@ -212,7 +213,7 @@ template<typename vector_t>
 inline void VecProd(const vector_t &a, const vector_t &b, double &sum)
 {
 	// was: #pragma omp simd reduction(+:sum)
-	#pragma omp parallel simd for shared(a,b) schedule(static) reduction(+:s)
+	#pragma omp parallel for simd shared(a,b) schedule(static) reduction(+:sum)
 	for(size_t i=0; i<a.size(); i++)
 	{
 		double dot = 0.0;
@@ -235,9 +236,14 @@ inline double VecProd(const vector_t &a, const vector_t &b)
 template<typename vector_t>
 inline void VecNormSquaredAdd(const vector_t &a, double &sum)
 {
-	#pragma omp simd reduction(+:sum)
-	for(size_t i=0; i<a.size(); i++)
-		VecNormSquaredAdd(a[i], sum);
+	const size_t N =a.size();
+	#pragma omp parallel for simd shared(a, N) reduction(+:sum)
+	for(size_t i=0; i<N; i++)
+	{
+		double norm2=0.0;
+		VecNormSquaredAdd(a[i], norm2);
+		sum +=norm2;
+	}
 }
 
 //! returns norm_2^2(a)
