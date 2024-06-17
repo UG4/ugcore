@@ -1,7 +1,7 @@
 default:
   image: rigby132/ug4-minimal:latest
   tags:
-    - gitlab-org-docker
+    - docker
 
 variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ugcore
