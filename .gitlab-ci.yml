@@ -42,7 +42,7 @@ build-clang:
     # replace ugcore
     #- ls -a
     - rm -r ug4/ugcore
-    - cp ugcore ug4/ugcore
+    - cp -r ugcore ug4/ugcore
     # build ug
     - cd ug4
     - mkdir -p build
