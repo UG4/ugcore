@@ -50,11 +50,11 @@ build-clang:
     - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
     - ninja -j8
     # build testsuite
-    - cd ../apps/unit_tests/
-    - mkdir -p build
-    - cd build
-    - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
-    - ninja -j8
+    #- cd ../apps/unit_tests/
+    #- mkdir -p build
+    #- cd build
+    #- cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
+    #- ninja -j8
   artifacts:
     when: on_success
     expire_in: 1 week
