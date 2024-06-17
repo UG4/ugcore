@@ -42,7 +42,7 @@ build-clang:
     # replace ugcore
     #- ls -a
     - rm -r ug4/ugcore
-    - mv ugcore ug4/ugcore
+    - cp ugcore ug4/ugcore
     # build ug
     - cd ug4
     - mkdir -p build
@@ -59,7 +59,7 @@ build-clang:
     when: on_success
     expire_in: 1 week
     paths:
-      - ug4/bin
+      - ../ug4/bin
   #cache:
   #  policy: pull-push
   # unprotect: false
