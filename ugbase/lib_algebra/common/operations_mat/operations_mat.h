@@ -56,7 +56,7 @@ namespace ug
 
 //! calculates dest = beta1 * A1;
 template<typename vector_t, typename matrix_t>
-inline bool MatMult(vector_t &dest,
+constexpr bool MatMult(vector_t &dest,
 		const number &beta1, const matrix_t &A1, const vector_t &w1)
 {
 	return mat_operations_class<vector_t, matrix_t, matrix_algebra_type_traits<matrix_t>::type>
@@ -65,7 +65,7 @@ inline bool MatMult(vector_t &dest,
 
 //! calculates dest = alpha1*v1 + beta1 * A1 *w1;
 template<typename vector_t, typename matrix_t>
-inline bool MatMultAdd(vector_t &dest,
+constexpr bool MatMultAdd(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const matrix_t &A1, const vector_t &w1	)
 {
@@ -75,7 +75,7 @@ inline bool MatMultAdd(vector_t &dest,
 
 //! calculates dest = alpha1*v1 + alpha2*v2 + beta1 * A1 *w1;
 template<typename vector_t, typename matrix_t>
-inline bool MatMultAdd(vector_t &dest,
+constexpr bool MatMultAdd(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &alpha2, const vector_t &v2,
 		const number &beta1, const matrix_t &A1, const vector_t &w1)
@@ -86,7 +86,7 @@ inline bool MatMultAdd(vector_t &dest,
 
 //! calculates dest = beta1 * A1 *w1 + beta2 * A2*w2;
 template<typename vector_t, typename matrix_t>
-inline bool MatMultAdd(vector_t &dest,
+constexpr bool MatMultAdd(vector_t &dest,
 		const number &beta1, const matrix_t &A1, const vector_t &w1,
 		const number &beta2, const matrix_t &A2, const vector_t &w2)
 {
@@ -96,7 +96,7 @@ inline bool MatMultAdd(vector_t &dest,
 
 //! calculates dest = alpha1*v1 + beta1 * A1 *w1 + beta2 * A2*w2;
 template<typename vector_t, typename matrix_t>
-inline bool MatMultAdd(vector_t &dest,
+constexpr bool MatMultAdd(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const matrix_t &A1, const vector_t &w1,
 		const number &beta2, const matrix_t &A2, const vector_t &w2)
@@ -108,7 +108,7 @@ inline bool MatMultAdd(vector_t &dest,
 
 //! calculates dest = alpha1*v1 + beta1 * A1 *w1;
 template<typename vector_t, typename matrix_t>
-inline bool MatMultTransposed(vector_t &dest,
+constexpr bool MatMultTransposed(vector_t &dest,
 		const number &beta1, const matrix_t &A1, const vector_t &w1	)
 {
 	return mat_operations_class<vector_t, matrix_t, matrix_algebra_type_traits<matrix_t>::type>
@@ -118,7 +118,7 @@ inline bool MatMultTransposed(vector_t &dest,
 
 //! calculates dest = alpha1*v1 + beta1 * A1 *w1;
 template<typename vector_t, typename matrix_t>
-inline bool MatMultTransposedAdd(vector_t &dest,
+constexpr bool MatMultTransposedAdd(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const matrix_t &A1, const vector_t &w1	)
 {
