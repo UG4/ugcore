@@ -33,6 +33,10 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef UG_OPENMP
+#include <omp.h>
+#endif
+
 #include "ug.h"
 #include "bindings/lua/lua_util.h"
 #include "bridge/bridge.h"
@@ -135,8 +139,8 @@ void ugshell_print_header()
 	LOG("*   -outproc id:         Sets the output-proc to id. Default is 0.             *\n");
 	LOG("*   -ex scriptname:      Executes the specified script.                        *\n");
 	LOG("*   -noquit:             Runs the interactive shell after specified script.    *\n");
-  LOG("*   -quiet:              Disables printing of header and trailer.              *\n");
-  LOG("*   -help:               Print this help message and exit.                     *\n");
+	LOG("*   -quiet:              Disables printing of header and trailer.              *\n");
+	LOG("*   -help:               Print this help message and exit.                     *\n");
 	LOG("*   -noterm:             Terminal logging will be disabled.                    *\n");
 	LOG("*   -logtofile filename: Output will be written to the specified file.         *\n");
 #ifdef UG_PROFILER
@@ -421,6 +425,12 @@ int ugshell_main(int argc, char* argv[])
 
 //	INIT PLUGINS
 	ug_init_plugins(errorOccurred);
+
+
+#ifdef UG_OPENMP
+	LOG("* omp_get_num_threads="<<  omp_get_num_threads() << std::endl);
+	LOG("* omp_get_max_threads="<< omp_get_max_threads() << std::endl);
+#endif
   LOG("********************************************************************************\n");
 
 
