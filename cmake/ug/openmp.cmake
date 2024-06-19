@@ -32,25 +32,20 @@
 ########################################
 # OPENMP
 IF(OPENMP)
-	# writing to CMAKE_CXX_FLAGS directly can cause problems on some platforms.
-	# Please use add_definitions instead. Hope that works in this case, too. sreiter.
-  # The linker option '-lgomp' or '-liomp5' can not be added to add_definitions
-  # as these are not passed to the link then. But they have to. tklatt.
-	#	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp")
-  IF(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_cxx_flags("-fopenmp")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp")
-    ADD_DEFINITIONS(-DUG_OPENMP)
-    MESSAGE(STATUS "Info: Using OpenMP (experimental)")
-  ELSEIF(CMAKE_C_COMPILER_ID STREQUAL "Intel" OR CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    add_cxx_flags("-fopenmp")
-    SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -liomp5")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -liomp5")
-    ADD_DEFINITIONS(-DUG_OPENMP)
-    MESSAGE(STATUS "Info: Using OpenMP (experimental)")
-  ELSEIF(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    MESSAGE(WARNING "Clang does not support OpenMP yet.")
-  ELSE()
+  find_package(OpenMP)
+ 
+  IF (OpenMP_FOUND)
+    # ADD_DEFINITIONS(-DUG_OPENMP)
+    add_compile_options(${OpenMP_CXX_FLAGS})
+    # SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_LIB_NAMES} -L${OpenMP_CXX_LIBRARIES}")
+   # target_link_libraries(libug4 PUBLIC OpenMP::OpenMP_CXX)
+    MESSAGE(STATUS "Info: Using OpenMP (from CMake)")
+    MESSAGE(STATUS "Info:OpenMP_CXX_LIB_NAMES ${OpenMP_CXX_LIB_NAMES} ${OpenMP_CXX_LIBRARIES}")
+    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} ${OpenMP_CXX_LIBRARIES}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_CXX_LIBRARIES}")
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_LIBRARIES}")
+  ELSE (OpenMP_FOUND)
     MESSAGE(WARNING "Don't know compiler type, thus don't know how to enable OpenMP")
-  ENDIF()
+  ENDIF (OpenMP_FOUND)
+
 ENDIF(OPENMP)
