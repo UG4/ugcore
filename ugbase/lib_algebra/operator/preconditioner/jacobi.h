@@ -223,9 +223,15 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		{
 			PROFILE_BEGIN_GROUP(Jacobi_step, "algebra Jacobi");
 
+			const size_t n =m_diagInv.size();
+			UG_ASSERT(c.size()==n, "Size mismatch for c.");
+			UG_ASSERT(d.size()==n, "Size mismatch for d.");
+
 		// 	multiply defect with diagonal, c = damp * D^{-1} * d
 		//	note, that the damping is already included in the inverse diagonal
-			for(size_t i = 0; i < m_diagInv.size(); ++i)
+
+			#pragma omp parallel for simd
+			for(size_t i = 0; i < n; ++i)
 			{
 			// 	c[i] = m_diagInv[i] * d[i];
 				MatMult(c[i], 1.0, m_diagInv[i], d[i]);
