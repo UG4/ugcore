@@ -36,6 +36,10 @@
 #include <stddef.h> // size_t
 #include <cmath> // log, exp
 
+#include "../small_algebra/storage/fixed_array.h"
+#include "../small_algebra/small_matrix/densevector.h"
+
+
 namespace ug
 {
 
@@ -77,7 +81,7 @@ inline void VecProdAdd(const vector_t &a, const vector_t &b, double &s)
 {
 	// was: #pragma omp simd reduction(+:s)
 	const size_t N= a.size();
-	#pragma omp parallel for simd shared(a,b, N) schedule(static) reduction(+:s)
+	#pragma omp parallel for simd shared(a,b,N) schedule(static) reduction(+:s)
 	for(size_t i=0; i<N; i++)
 	{
 		double dot=0.0;
@@ -216,9 +220,9 @@ inline void VecProd(const vector_t &a, const vector_t &b, double &sum)
 	#pragma omp parallel for simd shared(a,b) schedule(static) reduction(+:sum)
 	for(size_t i=0; i<a.size(); i++)
 	{
-		double dot = 0.0;
-		VecProdAdd(a[i], b[i], dot);
-		sum +=dot;
+		// double dot = 0.0;
+		VecProdAdd(a[i], b[i], sum);
+		// sum +=dot;
 	}
 }
 
@@ -237,12 +241,12 @@ template<typename vector_t>
 inline void VecNormSquaredAdd(const vector_t &a, double &sum)
 {
 	const size_t N =a.size();
-	#pragma omp parallel for simd shared(a, N) reduction(+:sum)
+	#pragma omp parallel for simd shared(a) reduction(+:sum)
 	for(size_t i=0; i<N; i++)
 	{
-		double norm2=0.0;
-		VecNormSquaredAdd(a[i], norm2);
-		sum +=norm2;
+		// double norm2=0.0;
+		VecNormSquaredAdd(a[i], sum);
+		// sum +=norm2;
 	}
 }
 
