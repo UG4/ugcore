@@ -179,6 +179,16 @@ inline void VecScaleAdd(DenseVector<FixedArray1<double, 2>> &dest,
 }
 
 //! calculates dest = alpha1*v1 + alpha2*v2
+inline void VecScaleAdd(DenseVector<FixedArray1<double, 3>> &dest,
+			double alpha1, const DenseVector<FixedArray1<double, 3>> &v1,
+			double alpha2, const DenseVector<FixedArray1<double, 3>> &v2)
+{
+	dest[0] = alpha1*v1[0] + alpha2*v2[0];
+	dest[1] = alpha1*v1[1] + alpha2*v2[1];
+	dest[2] = alpha1*v1[2] + alpha2*v2[2];
+}
+
+//! calculates dest = alpha1*v1 + alpha2*v2
 inline void VecScaleAdd(DenseVector<FixedArray1<double, 4>> &dest,
 			double alpha1, const DenseVector<FixedArray1<double, 4>> &v1,
 			double alpha2, const DenseVector<FixedArray1<double, 4>> &v2)
@@ -228,7 +238,7 @@ inline void VecProd(const vector_t &a, const vector_t &b, double &sum)
 
 //! returns scal<a, b>
 template<typename vector_t>
-inline double VecProd(const vector_t &a, const vector_t &b)
+constexpr double VecProd(const vector_t &a, const vector_t &b)
 {
 	double sum=0;
 	VecProdAdd(a, b, sum);
