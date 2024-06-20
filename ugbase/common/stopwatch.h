@@ -128,12 +128,8 @@ class Stopwatch
      */
     Stopwatch() {
       // you cant be really sure when constructor is called
-#ifdef UG_CXX11
       begin = std::chrono::high_resolution_clock::now();
       end = std::chrono::high_resolution_clock::now();
-#else
-      beg = end = get_clock_s();
-#endif
       bRunning = false;
     }
     
@@ -142,11 +138,7 @@ class Stopwatch
      */
     void start() {
       std::cout.flush();
-#ifdef UG_CXX11
       begin = std::chrono::high_resolution_clock::now();
-#else
-      beg = get_clock_s();
-#endif
       bRunning = true;
     }
 
@@ -154,12 +146,8 @@ class Stopwatch
      * \brief Stops the Stopwatch
      */
     void stop() {
-#ifdef UG_CXX11
-      end = std::chrono::high_resolution_clock::now();
-#else
-      end = get_clock_s();
-#endif
-      bRunning = false;
+    	end = std::chrono::high_resolution_clock::now();
+    	bRunning = false;
     }
 
     /**
@@ -189,28 +177,23 @@ class Stopwatch
      * \return milliseconds
      */
     double ms() {
-#ifdef UG_CXX11
       if ( bRunning ) end = std::chrono::high_resolution_clock::now();
       return std::chrono::duration_cast<std::chrono::milliseconds> (end-begin).count();
-#else
-      if( bRunning ) end = get_clock_s();
-      return ( end - beg ) * 1000.0;
-#endif
+
     }
 
+    void tic() {start();}
+    double toc() {stop(); return ms()/1000.0;}
+
+
+
   private:
-#ifdef UG_CXX11
     /// Time point of the start of Stopwatch
     std::chrono::high_resolution_clock::time_point begin;
     /// Number of microseconds since \c begin
 
     std::chrono::high_resolution_clock::time_point end;
-#else
-    /// Time point of the start of Stopwatch
-    double beg;
-    /// Time point of the end of Stopwatch
-    double end;
-#endif
+
     /// Flag indicating state of Stopwatch
     bool bRunning;
 };

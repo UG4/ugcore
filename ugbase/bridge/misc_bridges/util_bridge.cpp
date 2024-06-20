@@ -233,6 +233,18 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 		    .add_method("cuckoo", &T::cuckoo);
 	}
 
+	{
+		// Matlab like stop watch
+		typedef Stopwatch T;
+		reg.add_class_<T>("Chronometer", grp)
+		 .add_constructor()
+			    .add_method("start", &T::start)
+			    .add_method("stop", &T::stop)
+			    .add_method("ms", &T::ms)
+				.add_method("tic", &T::tic)
+				.add_method("toc", &T::toc);
+	}
+
 #if defined (__APPLE__) || defined (__linux__)
 	// MemInfo provides information about memory usage
 	{
