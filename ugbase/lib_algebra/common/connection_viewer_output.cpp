@@ -73,12 +73,12 @@ string GetParallelName(string name, const pcl::ProcessCommunicator &pc, bool bWr
 		file << pc.size() << "\n";
 		for(size_t i=0; i<pc.size(); i++)
 		{
-			sprintf(buf, "_p%04d.%s", pc.get_proc_id(i), ext.c_str());
+			snprintf(buf, 20, "_p%04d.%s", pc.get_proc_id(i), ext.c_str());
 			file << name2 << buf << "\n";
 		}
 	}
 
-	sprintf(buf, "_p%04d.%s", rank, ext.c_str());
+	snprintf(buf, 20, "_p%04d.%s", rank, ext.c_str());
 	name.append(buf);
 	return name;
 }

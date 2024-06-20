@@ -187,7 +187,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	char debug_name_ext[20];
 	if (this->debug_writer_valid())
 	{
-		sprintf(debug_name_ext, "_iter%03d", loopCnt);
+		snprintf(debug_name_ext, 20, "_iter%03d", loopCnt);
 		write_debug(*spD, std::string("NEWTON_Defect") + debug_name_ext);
 		write_debug(u, "NEWTON_StartSolution");
 	}
@@ -311,7 +311,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	//	write defect for debug
 		if (this->debug_writer_valid())
 		{
-			sprintf(debug_name_ext, "_iter%03d", loopCnt);
+			snprintf(debug_name_ext, 20, "_iter%03d", loopCnt);
 			write_debug(*spD, std::string("NEWTON_Defect") + debug_name_ext);
 			write_debug(*spC, std::string("NEWTON_Correction") + debug_name_ext);
 			write_debug(u, std::string("NEWTON_Solution") + debug_name_ext);
@@ -416,7 +416,7 @@ template <typename TAlgebra>
 void NewtonSolver<TAlgebra>::write_debug(const vector_type& vec, std::string name)
 {
 //	add call count to name
-	char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
+	char ext[20]; snprintf(ext, 20, "_call%03d", m_dgbCall);
 
 //	write
 	typedef DebugWritingObject<TAlgebra> base_writer_type;
@@ -427,7 +427,7 @@ template <typename TAlgebra>
 void NewtonSolver<TAlgebra>::write_debug(const matrix_type& mat, std::string name)
 {
 //	add call count to name
-	char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
+	char ext[20]; snprintf(ext, 20, "_call%03d", m_dgbCall);
 
 //	write
 	typedef DebugWritingObject<TAlgebra> base_writer_type;

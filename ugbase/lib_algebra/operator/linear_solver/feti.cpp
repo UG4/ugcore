@@ -197,7 +197,7 @@ apply(vector_type& f, const vector_type& u)
 	{
 	//	add iter count to name
 		std::string name("FetiDirichletRhs");
-		char ext[20]; sprintf(ext, "_apply%03d.vec", m_applyCnt);
+		char ext[20]; snprintf(ext, 20, "_apply%03d.vec", m_applyCnt);
 		//name.append(m_statType);
 		name.append(ext);
 

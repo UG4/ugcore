@@ -85,7 +85,7 @@ bool CalculateEigenvalues(const ug::matrix33& mat, number& lambdaMinOut,
     z[ip] = 0;
   }
 	
-  int nrot = 0;
+  //int nrot = 0;
 	
   for(i = 1; i <= 50; i++) {
     sm = 0.0f;
@@ -188,7 +188,7 @@ bool CalculateEigenvalues(const ug::matrix33& mat, number& lambdaMinOut,
           for(j = 0; j < 3; j++)
             rot(V, s, tau, j, ip, j, iq);
 					
-          nrot ++;	
+          //nrot ++;	
 					
         }
       }
