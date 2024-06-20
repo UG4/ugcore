@@ -494,7 +494,7 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 //	iterate through the edges and set up the edgeStream.
 //int EDGE_GOID, int vrtInd1, int vrtInd2, [int numConstrainedVertices, {int constrainedVertexIndex}, int numConstrainedEdges, {int constrainedEdgeIndex}]
 	{
-		int edgeInd = 0;
+		//int edgeInd = 0;
 		
 	//	fill the stream
 	//	normal edges first.
@@ -509,7 +509,7 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 				iter != goc.end<RegularEdge>(); ++iter)
 			{
 				RegularEdge* e = *iter;
-				edgeInd++;
+				//edgeInd++;
 				out.write((char*)&aaIntVRT[e->vertex(0)], sizeof(int));
 				out.write((char*)&aaIntVRT[e->vertex(1)], sizeof(int));
 			}

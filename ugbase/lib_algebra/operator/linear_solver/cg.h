@@ -274,7 +274,7 @@ class CG
 		void write_debugXR(vector_type &x, vector_type &r, int loopCnt)
 		{
 			if(!this->vector_debug_writer_valid()) return;
-			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+			char ext[20]; snprintf(ext, 20, "_iter%03d", loopCnt);
 			write_debug(r, std::string("CG_Residual") + ext + ".vec");
 			write_debug(x, std::string("CG_Solution") + ext + ".vec");
 		}
@@ -283,7 +283,7 @@ class CG
 		void enter_precond_debug_section(int loopCnt)
 		{
 			if(!this->vector_debug_writer_valid()) return;
-			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+			char ext[20]; snprintf(ext, 20, "_iter%03d", loopCnt);
 			this->enter_vector_debug_writer_section(std::string("CG_Precond_") + ext);
 		}
 
