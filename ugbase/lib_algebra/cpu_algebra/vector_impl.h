@@ -73,8 +73,10 @@ inline double Vector<value_type>::dotprod(const Vector &w) //const
 {
 	UG_ASSERT(m_size == w.m_size,  *this << " has not same size as " << w);
 
-	double sum=0;
-	for(size_t i=0; i<m_size; i++)	sum += VecProd(values[i], w[i]);
+	//double sum=0;
+	//#pragma omp parallel for simd shared(values,w) reduction(+:sum)
+	//for(size_t i=0; i<m_size; i++)	sum += VecProd(values[i], w[i]);
+	double sum = VecProd<Vector<value_type>>(*this,w);
 	return sum;
 }
 
@@ -108,16 +110,18 @@ template<typename value_type>
 inline void Vector<value_type>::operator += (const vector_type &v)
 {
 	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
-	for(size_t i=0; i<m_size; i++)
-		values[i] += v[i];
+	//for(size_t i=0; i<m_size; i++)
+	//	values[i] += v[i];
+	VecScaleAdd(*this, 1.0, *this, 1.0, v);
 }
 
 template<typename value_type>
 inline void Vector<value_type>::operator -= (const vector_type &v)
 {
 	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
-	for(size_t i=0; i<m_size; i++)
-		values[i] -= v[i];
+	//for(size_t i=0; i<m_size; i++)
+	//	values[i] -= v[i];
+	VecScaleAdd(*this, 1.0, *this, -1.0, v);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -323,7 +327,9 @@ template<typename value_type>
 inline double Vector<value_type>::norm() const
 {
 	double d=0;
-	for(size_t i=0; i<size(); ++i)
+	const size_t n = size();
+	#pragma omp parallel for simd reduction(+:d)
+	for(size_t i=0; i<n; ++i)
 		d+=BlockNorm2(values[i]);
 	return sqrt(d);
 }
