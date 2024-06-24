@@ -55,9 +55,23 @@ inline void VecScaleAssign(double &dest, double alpha1, const double &v1)
 	dest = alpha1*v1;
 }
 
+
+//! calculates dest = alpha1*v1 + dest for doubles (FMA?)
+inline void VecScaleAdd(double &dest, double alpha1, const double &v1)
+{
+
+	//#ifdef FP_FAST_FMA
+	//			y[i] =std::fma(alpha, x[i], y[i]);
+	//#else
+	dest = alpha1*v1 + dest;
+}
+
 //! calculates dest = alpha1*v1 + alpha2*v2. for doubles
 inline void VecScaleAdd(double &dest, double alpha1, const double &v1, double alpha2, const double &v2)
 {
+	//#ifdef FP_FAST_FMA
+	//			dest[i] = std::fma(alpha1, v1[i], alpha2 *v2[i]);
+	//#else
 	dest = alpha1*v1 + alpha2*v2;
 }
 
@@ -81,7 +95,7 @@ inline void VecProdAdd(const vector_t &a, const vector_t &b, double &s)
 {
 	// was: #pragma omp simd reduction(+:s)
 	const size_t N= a.size();
-	#pragma omp parallel for simd shared(a,b,N) schedule(static) reduction(+:s)
+	// #pragma omp parallel for simd shared(a,b,N) schedule(static) reduction(+:s)
 	for(size_t i=0; i<N; i++)
 	{
 		double dot=0.0;
@@ -170,16 +184,18 @@ inline void VecAssign(vector_t &dest, const vector_t &v1)
 
 
 //! calculates dest = alpha1*v1 + alpha2*v2
-inline void VecScaleAdd(DenseVector<FixedArray1<double, 2>> &dest,
+template <int N>
+inline void VecScaleAdd(DenseVector<FixedArray1<double, N>> &dest,
 			double alpha1, const DenseVector<FixedArray1<double, 2>> &v1,
 			double alpha2, const DenseVector<FixedArray1<double, 2>> &v2)
 {
-	dest[0] = alpha1*v1[0] + alpha2*v2[0];
-	dest[1] = alpha1*v1[1] + alpha2*v2[1];
+	// #pragma unroll N
+	for (size_t i = 0; i<N; ++i)
+	{ dest[i] = alpha1*v1[i] + alpha2*v2[i]; }
 }
 
 //! calculates dest = alpha1*v1 + alpha2*v2
-inline void VecScaleAdd(DenseVector<FixedArray1<double, 3>> &dest,
+/*inline void VecScaleAdd(DenseVector<FixedArray1<double, 3>> &dest,
 			double alpha1, const DenseVector<FixedArray1<double, 3>> &v1,
 			double alpha2, const DenseVector<FixedArray1<double, 3>> &v2)
 {
@@ -201,12 +217,22 @@ inline void VecScaleAdd(DenseVector<FixedArray1<double, 4>> &dest,
 
 }
 
+*/
+
+//! calculates dest = alpha1*v1 + dest
+template<typename vector_t, template <class T> class TE_VEC>
+inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vector_t> &v1)
+{
+	// #pragma omp parallel for simd
+	for(size_t i=0; i<dest.size(); i++)
+		VecScaleAdd(dest[i], alpha1, v1[i]);
+}
 
 //! calculates dest = alpha1*v1 + alpha2*v2
 template<typename vector_t, template <class T> class TE_VEC>
 inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vector_t> &v1, double alpha2, const TE_VEC<vector_t> &v2)
 {
-	#pragma omp parallel for simd
+	// #pragma omp parallel for simd
 	for(size_t i=0; i<dest.size(); i++)
 		VecScaleAdd(dest[i], alpha1, v1[i], alpha2, v2[i]);
 }
@@ -227,7 +253,7 @@ template<typename vector_t>
 inline void VecProd(const vector_t &a, const vector_t &b, double &sum)
 {
 	// was: #pragma omp simd reduction(+:sum)
-	#pragma omp parallel for simd shared(a,b) schedule(static) reduction(+:sum)
+	// #pragma omp parallel for simd shared(a,b) schedule(static) reduction(+:sum)
 	for(size_t i=0; i<a.size(); i++)
 	{
 		// double dot = 0.0;
@@ -251,7 +277,7 @@ template<typename vector_t>
 inline void VecNormSquaredAdd(const vector_t &a, double &sum)
 {
 	const size_t N =a.size();
-	#pragma omp parallel for simd shared(a) reduction(+:sum)
+	// #pragma omp parallel for simd shared(a) reduction(+:sum)
 	for(size_t i=0; i<N; i++)
 	{
 		// double norm2=0.0;
@@ -292,6 +318,52 @@ inline void VecLog(vector_t &dest, const vector_t &v)
 	for(size_t i=0; i<dest.size(); i++)
 		VecLog(dest[i], v[i]);
 }
+
+
+
+//! We also provide this as a struct. This uses parallel execution.
+template<typename TVector>
+struct vector_operations
+{
+
+	static double dot(const TVector &a, const TVector &b, double sum=0.0)
+	{
+		const size_t N =a.size();
+		#pragma omp parallel for simd shared(a,b) schedule(static) reduction(+:sum)
+		for(size_t i=0; i<N; i++)
+		{ VecProdAdd(a[i], b[i], sum); }
+		return sum;
+	}
+
+	static double norm2(const TVector &a, double sum=0.0)
+	{
+		const size_t N =a.size();
+		#pragma omp parallel for simd shared(a) reduction(+:sum)
+		for(size_t i=0; i<N; i++)
+		{ VecNormSquaredAdd(a[i], sum); }
+		return sum;
+	}
+
+	// y = a*x + y
+	static void axpy(double alpha, const TVector &x, TVector &y)
+	{
+		const size_t N =y.size();
+		#pragma omp parallel for simd
+		for(size_t i=0; i<N; i++)
+		{ VecScaleAdd(y[i], alpha, x[i]); }
+	}
+
+	// z = alpha1 * v1 + alpha2 *v2
+	static void vec_scale_add(TVector &dest, double alpha1, const TVector &v1, double alpha2, const TVector &v2)
+	{
+		const size_t N =dest.size();
+		#pragma omp parallel for simd
+		for(size_t i=0; i<N; i++)
+		{ VecScaleAdd(dest[i], alpha1, v1[i], alpha2, v2[i]); }
+	}
+
+};
+
 
 } // namespace ug
 

@@ -76,8 +76,8 @@ inline double Vector<value_type>::dotprod(const Vector &w) //const
 	//double sum=0;
 	//#pragma omp parallel for simd shared(values,w) reduction(+:sum)
 	//for(size_t i=0; i<m_size; i++)	sum += VecProd(values[i], w[i]);
-	double sum = VecProd<Vector<value_type>>(*this,w);
-	return sum;
+	typedef vector_operations<Vector<value_type>> TVecOps;
+	return TVecOps::dot(w, *this);
 }
 
 // assign double to whole Vector
@@ -112,7 +112,8 @@ inline void Vector<value_type>::operator += (const vector_type &v)
 	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
 	//for(size_t i=0; i<m_size; i++)
 	//	values[i] += v[i];
-	VecScaleAdd(*this, 1.0, *this, 1.0, v);
+	typedef vector_operations<Vector<value_type>> TVecOps;
+	TVecOps::axpy(1.0, v, *this);	// VecScaleAdd(*this, 1.0, *this, 1.0, v);
 }
 
 template<typename value_type>
@@ -121,7 +122,8 @@ inline void Vector<value_type>::operator -= (const vector_type &v)
 	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
 	//for(size_t i=0; i<m_size; i++)
 	//	values[i] -= v[i];
-	VecScaleAdd(*this, 1.0, *this, -1.0, v);
+	typedef vector_operations<Vector<value_type>> TVecOps;
+	TVecOps::axpy(-1.0, v, *this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -321,6 +323,7 @@ template<typename value_type>
 double operator *(const TRANSPOSED<Vector<value_type> > &x, const Vector<value_type> &y)
 {
 	return x.T().dotprod(y);
+
 }
 
 template<typename value_type>
@@ -338,7 +341,9 @@ template<typename value_type>
 inline double Vector<value_type>::maxnorm() const
 {
 	double d=0;
-	for(size_t i=0; i<size(); ++i)
+	const size_t n = size();
+	#pragma omp parallel for simd reduction(max:d)
+	for(size_t i=0; i<n; ++i)
 		d = std::max(d, BlockMaxNorm(values[i]));
 	return d;
 }

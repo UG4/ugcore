@@ -253,7 +253,6 @@ VecScale(vector_t& vOut, const vector_t& v, typename vector_t::value_type s)
 {
 	typedef typename vector_t::size_type size_type;
 	const size_type N = vOut.size();
-	#pragma omp parallel for simd
 	for(size_type i = 0; i < N; ++i)
 	{
 		vOut[i] = s * v[i];
@@ -269,7 +268,6 @@ VecScaleAdd(vector_t& vOut, typename vector_t::value_type s1, const vector_t& v1
 {
 	typedef typename vector_t::size_type size_type;
 	const size_type N = vOut.size();
-	#pragma omp parallel for simd
 	for(size_type i = 0; i < N; ++i)
 	{
 		vOut[i] = s1 * v1[i] + s2 * v2[i];
@@ -286,7 +284,6 @@ VecScaleAdd(vector_t& vOut, typename vector_t::value_type s1, const vector_t& v1
 {
 	typedef typename vector_t::size_type size_type;
 	const size_type N = vOut.size();
-	#pragma omp parallel for simd
 	for(size_type i = 0; i < N; ++i)
 	{
 		vOut[i] = s1 * v1[i] + s2 * v2[i] + s3 * v3[i];
@@ -318,8 +315,6 @@ VecInterpolateLinear(vector_t& vOut, const vector_t& v1, const vector_t& v2,
 {
 	typedef typename vector_t::size_type size_type;
 	const size_type N =vOut.size();
-
-	#pragma omp parallel for simd
 	for(size_type i = 0; i < N; ++i)
 	{
 		vOut[i] = (1. - interpAmount) * v1[i] + interpAmount * v2[i];
@@ -336,8 +331,6 @@ VecLengthSq(const vector_t& v)
 
 	typedef typename vector_t::size_type size_type;
 	const size_type N =v.size();
-
-	#pragma omp parallel for simd shared(v, N) reduction(+:len)
 	for(size_type i = 0; i < N; ++i)
 	{
 		len += v[i] * v[i];

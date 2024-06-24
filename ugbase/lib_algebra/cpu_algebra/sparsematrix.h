@@ -700,6 +700,9 @@ private:
 	{
 		UG_ASSERT(i < rowEnd[row] && i >= rowStart[row], "row iterator row " << row << " pos " << i << " out of bounds [" << rowStart[row] << ", " << rowEnd[row] << "]");
 	}
+#ifdef UG_OPENMP
+public:
+#endif
     void assureValuesSize(size_t s);
     size_t get_nnz() const { return nnz; }
 

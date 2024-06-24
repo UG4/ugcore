@@ -709,6 +709,10 @@ template<typename T>
 void SparseMatrix<T>::copyToNewSize(size_t newSize, size_t maxCol)
 {
 	PROFILE_SPMATRIX(SparseMatrix_copyToNewSize);
+#ifdef UG_OPENMP1
+	#pragma omp critical
+	{
+#endif
 	/*UG_LOG("copyToNewSize: from " << values.size()  << " to " << newSize << "\n");
 	UG_LOG("sizes are " << cols.size() << " and " << values.size() << ", ");
 	UG_LOG(reset_floats << "capacities are " << cols.capacity() << " and " << values.capacity() << ", NNZ = " << nnz << ", fragmentation = " <<
@@ -753,13 +757,23 @@ void SparseMatrix<T>::copyToNewSize(size_t newSize, size_t maxCol)
 	maxValues = j;
 	if(bNeedsValues) values.swap(v);
 	cols.swap(c);
+#ifdef UG_OPENMP1
+	}
+#endif
 }
 
 template<typename T>
 void SparseMatrix<T>::check_fragmentation() const
 {
+#ifdef UG_OPENMP1
+	#pragma omp critical
+	{
+#endif
 	if((double)nnz/(double)maxValues < 0.9)
 		defragment();
+#ifdef UG_OPENMP1
+	}
+#endif
 }
 
 template<typename T>
