@@ -215,7 +215,7 @@ finish_timestep_elem(const number time, LocalVector& u, GridObject* elem, const 
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
-add_jac_A_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
+add_jac_A_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type) const
 {
 	UG_ASSERT(m_discPart & STIFF, "Using add_jac_A_elem, but not STIFF requested.");
 
@@ -252,7 +252,7 @@ add_jac_A_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVecto
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
-add_jac_M_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
+add_jac_M_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type) const
 {
 	UG_ASSERT(m_discPart & MASS, "Using add_jac_M_elem, but not MASS requested.");
 
@@ -282,7 +282,7 @@ add_jac_M_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVecto
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
-add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
+add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type) const
 {
 	UG_ASSERT(m_discPart & STIFF, "Using add_def_A_elem, but not STIFF requested.");
 
@@ -295,7 +295,7 @@ add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVecto
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
-add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
+add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type) const
 {
 	UG_ASSERT(m_discPart & EXPL, "Using add_def_A_elem, but not EXPL requested.");
 
@@ -308,7 +308,7 @@ add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const Math
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
-add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
+add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type) const
 {
 	UG_ASSERT(m_discPart & MASS, "Using add_def_M_elem, but not MASS requested.");
 
@@ -321,7 +321,7 @@ add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVecto
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
-add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
+add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type) const
 {
 	UG_ASSERT(m_discPart & RHS, "Using add_rhs_elem, but not RHS requested.");
 

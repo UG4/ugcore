@@ -210,22 +210,22 @@ public:
 			void finish_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 		///	compute local stiffness matrix for all IElemDiscs
-			void add_jac_A_elem(LocalMatrix& A, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+			void add_jac_A_elem(LocalMatrix& A, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL) const;
 
 		///	compute local mass matrix for all IElemDiscs
-			void add_jac_M_elem(LocalMatrix& M, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+			void add_jac_M_elem(LocalMatrix& M, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL) const;
 
 		///	compute local stiffness defect for all IElemDiscs
-			void add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+			void add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL) const;
 
 		///	compute local stiffness defect for all IElemDiscs explicit
-			void add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+			void add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL) const;
 
 		///	compute local mass defect for all IElemDiscs
-			void add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+			void add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL) const;
 
 		///	compute local rhs for all IElemDiscs
-			void add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+			void add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL) const;
 
 			using base_type::time_series_needed;
 protected:
