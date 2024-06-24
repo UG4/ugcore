@@ -41,6 +41,105 @@
 
 namespace ug{
 
+//! Assembles a single row (for linear interpolation).
+template <typename TDomain, typename TAlgebra>
+void StdTransfer<TDomain, TAlgebra>::
+assemble_prolongation_row_p1(matrix_type& P,
+						Vertex* child, const MultiGrid& mg, int si,
+                         const DoFDistribution& fineDD,
+                         const DoFDistribution& coarseDD)
+{
+	// Collector variables.
+	std::vector<size_t> vParentIndex, vChildIndex;
+	std::vector<DoFIndex> vParentDoF, vChildDoF;
+
+	//  get father
+	GridObject* parent = mg.get_parent(child);
+
+	//	check if child contained in coarseDD. This should always be false
+	//	for a GridLevel::LEVEL, but might be the case for GridLevel::SURFACE
+	//	and an adaptive grid-part used by both dds. In such a case we can
+	//	simply set identity.
+	if(coarseDD.is_contained(child)){
+		//	get indices
+		coarseDD.inner_algebra_indices(child, vParentIndex);
+		fineDD.inner_algebra_indices(child, vChildIndex);
+		UG_ASSERT(vParentIndex.size() == vChildIndex.size(), "Size mismatch");
+
+		//	set identity
+		for(size_t i = 0; i < vParentIndex.size(); ++i)
+			P(vChildIndex[i], vParentIndex[i]) = 1.0;
+
+		//	this child is perfectly handled
+		return;
+	}
+	else{
+		//	check if parent exists (this should always be the case, except in
+		//	the case that 'child' is a v-slave)
+		if(!parent) return;
+
+		if(!coarseDD.is_contained(parent)){
+			UG_THROW("StdTransfer: Parent element \n"
+					<< ElementDebugInfo(mg, parent) <<
+					"is not contained in coarse-dd nor the child element\n"
+					<< ElementDebugInfo(mg, child) <<
+					" in the coarse-dd. This should not happen.")
+		}
+	}
+
+	//	type of father
+	const ReferenceObjectID roid = parent->reference_object_id();
+
+	//	loop all components
+	for(size_t fct = 0; fct < fineDD.num_fct(); fct++)
+	{
+		//	check that fct defined on subset
+		if(!fineDD.is_def_in_subset(fct, si)) return;
+
+		//  get global indices
+		fineDD.inner_dof_indices(child, fct, vChildDoF);
+
+		//	detect type of father
+		switch(roid)
+		{
+		case ROID_VERTEX:
+		{
+			Vertex* vrt = dynamic_cast<Vertex*>(parent);
+			coarseDD.inner_dof_indices(vrt, fct, vParentDoF);
+			DoFRef(P, vChildDoF[0], vParentDoF[0]) = 1.0;
+		}
+		break;
+		case ROID_EDGE:
+			for(int i = 0; i < 2; ++i)
+			{
+				Edge* edge = dynamic_cast<Edge*>(parent);
+				coarseDD.inner_dof_indices(edge->vertex(i), fct, vParentDoF);
+				DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.5;
+			}
+			break;
+		case ROID_QUADRILATERAL:
+			for(int i = 0; i < 4; ++i)
+			{
+				Face* face = dynamic_cast<Face*>(parent);
+				coarseDD.inner_dof_indices(face->vertex(i), fct, vParentDoF);
+				DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.25;
+			}
+			break;
+		case ROID_HEXAHEDRON:
+			for(int i = 0; i < 8; ++i)
+			{
+				Volume* hexaeder = dynamic_cast<Volume*>(parent);
+				coarseDD.inner_dof_indices(hexaeder->vertex(i), fct, vParentDoF);
+				DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.125;
+			}
+			break;
+		default: UG_THROW("AssembleStdProlongationForP1Lagrange: Element father"
+				" is of unsupported type "<< roid << " for "
+				<< ElementDebugInfo(mg, child) << ".");
+		} // switch
+	} // for loop
+
+};
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
@@ -58,6 +157,10 @@ assemble_prolongation_p1(matrix_type& P,
 
 //  resize matrix
 	P.resize_and_clear(fineDD.num_indices(), coarseDD.num_indices());
+#ifdef UG_OPENMP_TODO
+	// Avoid any resize (and copy) for parallel tasks afterwards...
+	P.assureValuesSize(fineDD.num_indices()*8);
+#endif
 
 //  iterators
 	const MultiGrid& mg = *coarseDD.multi_grid();
@@ -65,105 +168,48 @@ assemble_prolongation_p1(matrix_type& P,
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on fine level
-	std::vector<size_t> vParentIndex, vChildIndex;
-	std::vector<DoFIndex> vParentDoF, vChildDoF;
+
 	for(int si = 0; si < fineDD.num_subsets(); ++si)
 	{
 		iterBegin = fineDD.template begin<Vertex>(si);
 		iterEnd = fineDD.template end<Vertex>(si);
 
-	//  loop vertices for fine level subset
-		for(iter = iterBegin; iter != iterEnd; ++iter)
+		//  loop vertices for fine level subset
+		// for(iter = iterBegin; iter != iterEnd; ++iter)
+		iter = iterBegin; //  = fineDD.template begin<Vertex>(si);
+
+#ifdef UG_OPENMP_TODO
+		#pragma omp parallel // create several threads
 		{
-		//	get element
-			Vertex* child = *iter;
-
-		//  get father
-			GridObject* parent = mg.get_parent(child);
-
-		//	check if child contained in coarseDD. This should always be false
-		//	for a GridLevel::LEVEL, but might be the case for GridLevel::SURFACE
-		//	and an adaptive grid-part used by both dds. In such a case we can
-		//	simply set identity.
-			if(coarseDD.is_contained(child)){
-			//	get indices
-				coarseDD.inner_algebra_indices(child, vParentIndex);
-				fineDD.inner_algebra_indices(child, vChildIndex);
-				UG_ASSERT(vParentIndex.size() == vChildIndex.size(), "Size mismatch");
-
-			//	set identity
-				for(size_t i = 0; i < vParentIndex.size(); ++i)
-					P(vChildIndex[i], vParentIndex[i]) = 1.0;
-
-			//	this child is perfectly handled
-				continue;
-			}
-			else{
-			//	check if parent exists (this should always be the case, except in
-			//	the case that 'child' is a v-slave)
-				if(!parent) continue;
-
-				if(!coarseDD.is_contained(parent)){
-					UG_THROW("StdTransfer: Parent element \n"
-							<< ElementDebugInfo(mg, parent) <<
-							"is not contained in coarse-dd nor the child element\n"
-							<< ElementDebugInfo(mg, child) <<
-							" in the coarse-dd. This should not happen.")
-				}
-			}
-
-		//	type of father
-			const ReferenceObjectID roid = parent->reference_object_id();
-
-		//	loop all components
-			for(size_t fct = 0; fct < fineDD.num_fct(); fct++)
+			#pragma omp single nowait // among those, a single thread creates all tasks
 			{
-			//	check that fct defined on subset
-				if(!fineDD.is_def_in_subset(fct, si)) continue;
-
-			//  get global indices
-				fineDD.inner_dof_indices(child, fct, vChildDoF);
-
-			//	detect type of father
-				switch(roid)
+#endif
+				while(iter != iterEnd)
 				{
-					case ROID_VERTEX:
+#ifdef UG_OPENMP_TODO
+					#pragma omp task firstprivate(iter)
 					{
-						Vertex* vrt = dynamic_cast<Vertex*>(parent);
-						coarseDD.inner_dof_indices(vrt, fct, vParentDoF);
-						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 1.0;
+#endif
+						//	get element
+						Vertex* child = *iter;
+						assemble_prolongation_row_p1(P, child,  mg, si, fineDD, coarseDD);
+
+						// problem: all tasks write simultaneously.
+						// this is a problem, if we (would )need to resize....
+#ifdef UG_OPENMP_TODO
 					}
-					break;
-					case ROID_EDGE:
-					for(int i = 0; i < 2; ++i)
-					{
-						Edge* edge = dynamic_cast<Edge*>(parent);
-						coarseDD.inner_dof_indices(edge->vertex(i), fct, vParentDoF);
-						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.5;
-					}
-					break;
-					case ROID_QUADRILATERAL:
-					for(int i = 0; i < 4; ++i)
-					{
-						Face* face = dynamic_cast<Face*>(parent);
-						coarseDD.inner_dof_indices(face->vertex(i), fct, vParentDoF);
-						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.25;
-					}
-					break;
-					case ROID_HEXAHEDRON:
-					for(int i = 0; i < 8; ++i)
-					{
-						Volume* hexaeder = dynamic_cast<Volume*>(parent);
-						coarseDD.inner_dof_indices(hexaeder->vertex(i), fct, vParentDoF);
-						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.125;
-					}
-					break;
-					default: UG_THROW("AssembleStdProlongationForP1Lagrange: Element father"
-									 " is of unsupported type "<< roid << " for "
-									 << ElementDebugInfo(mg, child) << ".");
-				}
+					// end task
+#endif
+
+					++iter;
+				}  // end of while loop
+#ifdef UG_OPENMP_TODO
 			}
+			// end single - no implied barrier (nowait)
 		}
+		// end parallel - implied barrier
+#endif
+
 	}
 }
 /*

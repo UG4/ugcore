@@ -190,6 +190,10 @@ class StdTransfer :
 		                             const DoFDistribution& fineDD,
 		                             const DoFDistribution& coarseDD);
 
+
+		void assemble_prolongation_row_p1(matrix_type& P, Vertex* child, const MultiGrid& mg, int si,
+		                         const DoFDistribution& fineDD, const DoFDistribution& coarseDD);
+
 	protected:
 	///	struct to distinguish already assembled operators
 		struct TransferKey{
