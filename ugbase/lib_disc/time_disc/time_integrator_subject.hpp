@@ -128,12 +128,12 @@ public:
 	void attach_observer(SmartPtr<process_observer_type> obs)
 	{
 		const bool isStaticallyAttached =
-			check_attach_init(obs) |
-			check_attach_rewind(obs) |
-			check_attach_finalize(obs) |
-			check_attach_preprocess(obs) |
-			check_attach_postprocess(obs) |
-			check_attach_start(obs) |
+			check_attach_init(obs) ||
+			check_attach_rewind(obs) ||
+			check_attach_finalize(obs) ||
+			check_attach_preprocess(obs) ||
+			check_attach_postprocess(obs) ||
+			check_attach_start(obs) ||
 			check_attach_end(obs);
 
 		if (!isStaticallyAttached)

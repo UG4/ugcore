@@ -28,7 +28,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-cmake_minimum_required(VERSION 2.8.12...3.27.1)
+include("../../cmake/ug_cmake_versions.cmake")
 
 project(P_LIB_DISCRETIZATION)
 
