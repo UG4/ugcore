@@ -321,7 +321,7 @@ inline void VecLog(vector_t &dest, const vector_t &v)
 
 
 
-//! We also provide this as a struct. This uses parallel execution.
+//! We also provide this as a struct. This uses thread-parallel execution.
 template<typename TVector>
 struct vector_operations
 {

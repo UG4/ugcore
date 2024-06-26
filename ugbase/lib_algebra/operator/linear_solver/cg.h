@@ -186,11 +186,16 @@ class CG
 			//	alpha = rho / (q,p)
 				const number alpha = rhoOld/lambda;
 
+#ifndef UG_OPENMP
 			// 	Update x := x + alpha*p
 				VecScaleAdd(x, 1.0, x, alpha, p);
 
 			// 	Update r := r - alpha*t
 				VecScaleAdd(r, 1.0, r, -alpha, q);
+#else
+				vector_operations<vector_type>::axpy(alpha, p, x);
+				vector_operations<vector_type>::axpy(-alpha, q,r);
+#endif
 
 				write_debugXR(x, r, convergence_check()->step());
 
@@ -229,9 +234,12 @@ class CG
 
 			// 	new beta = rho / rhoOld
 				const number beta = rho/rhoOld;
-
+#ifndef UG_OPENMP
 			// 	new direction p := beta * p + z
 				VecScaleAdd(p, beta, p, 1.0, z);
+#else
+				vector_operations<vector_type>::vec_scale_add(p, beta, p, 1.0, z);
+#endif
 
 			// 	remember old rho
 				rhoOld = rho;
