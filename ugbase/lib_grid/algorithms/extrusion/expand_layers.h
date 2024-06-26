@@ -75,6 +75,14 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh,
 						const std::vector<FractureInfo>& fracInfos,
 						bool expandInnerFracBnds, bool expandOuterFracBnds);
 
+/**
+ * 2 dimensional fracture expansion for finite extensions, using the Arte algorithm
+ *
+ */
+bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh,
+						const std::vector<FractureInfo>& fracInfos,
+						bool expandInnerFracBnds, bool expandOuterFracBnds);
+
 
 /**
  * This algorithm indirectly uses Grid::mark.
