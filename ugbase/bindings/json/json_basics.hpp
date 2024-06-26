@@ -54,6 +54,9 @@
  *
  * */
 
+
+#define UG_HAS_JSON_BASICS 1 // temporary
+
 namespace ug {
 
 //! Marks an object, with is constructible via JSON.
@@ -64,6 +67,7 @@ struct JSONConstructible {};
 /*****************************************************************************
  * Traits indicate, if objects are construtible.
  *****************************************************************************/
+
 
 //! By default, an object is json_contructible, if it is default constructible
 template <typename T>
