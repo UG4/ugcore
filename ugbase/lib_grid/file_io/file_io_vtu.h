@@ -297,7 +297,7 @@ class GridReaderVTU
 
 
 
-		inline static std::string m_regionOfInterest = "regions";	// ProMesh standard, in Braunschweig case	often "Material Id", but not always
+		static std::string m_regionOfInterest; // ProMesh standard = "regions", in Braunschweig case	often "Material Id", but not always
 
 };
 

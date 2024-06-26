@@ -889,4 +889,6 @@ find_child_node_by_argument_value(rapidxml::xml_node<>* parent,
 	return NULL;
 }
 
+std::string GridReaderVTU::m_regionOfInterest = "regions";
+
 }//	end of namespace
