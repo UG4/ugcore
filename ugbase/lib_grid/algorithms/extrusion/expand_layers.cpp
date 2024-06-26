@@ -941,7 +941,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		static_assert( std::is_same< decltype(*iter), Vertex * >::value );
 
 		bool isBnd = aaMarkVrtVFP[ *iter ].getIsBndFracVertex();
-		auto numCrosFrac = aaMarkVrtVFP[ *iter ].getNumberCrossingFracsInVertex();
+		auto numCrosFrac = aaMarkVrtVFP[ *iter ].getNumberFracEdgesInVertex();
 
 		if( wahl )
 		{
@@ -987,6 +987,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			// fuer Nicht Boundary Vertizes muessen wir durch 2 teilen, damit wir richtige Anzahl der
 			// Fracs haben, die durch den spezifischen Vertex durch geht
+			// FALSCH war mal so, ist schon abgestellt, es wird angezeigt, wieviele Ecken von Kanten rein kommen
 
 		}
 		else
@@ -1346,7 +1347,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
 
-		IndexType numFracsCrossAtVrt = aaMarkVrtVFP[*iterV].getNumberCrossingFracsInVertex();
+		IndexType numFracsCrossAtVrt = aaMarkVrtVFP[*iterV].getNumberFracEdgesInVertex();
 
 		UG_LOG("number crossing fracs " << numFracsCrossAtVrt << std::endl);
 
@@ -1361,8 +1362,13 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			{
 				UG_THROW("no fracs crossing but marked vertex? << std::endl");
 			}
+			else if( numFracsCrossAtVrt == 1 )
+			{
+				// inner vertex where fracture ends
+				// TODO FIXME
+			}
 
-			if( numFracsCrossAtVrt == 1 ) // free line of fracture, no crossing point, not at boundary
+			if( numFracsCrossAtVrt == 2 ) // free line of fracture, no crossing point, not at boundary
 			{
 				// in this case, we have two attached edges, and each of these edges has two attached faces
 				// the faces have a naormal, and based on the normal, we can decide which faces belong to the same side of the edges
@@ -2039,7 +2045,12 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 
 			}
-			else // fractures are crossing, numFracsCrossAtVrt > 1
+			else if( numFracsCrossAtVrt == 3 )
+			{
+				// one fracture end point at another facture passing by
+				// TODO FIXME
+			}
+			else // two fractures completely crossing, numFracsCrossAtVrt > 3
 			{
 
 				IndexType countedCrossingFracEdgs = 0;
@@ -2521,15 +2532,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					UG_THROW("wir sind nicht am Anfang wieder angekommen" << std::endl);
 				}
 
-				if( 2 * numFracsCrossAtVrt != countedCrossingFracEdgs )
-				{
-
-					UG_LOG("gezaehlt und nicht gleiche Kreuzungszahl " << numFracsCrossAtVrt << " " << countedCrossingFracEdgs << std::endl);
-
-//					return true;
-
-					UG_THROW("gezaehlt und nicht gleiche Kreuzungszahl" << std::endl);
-				}
+//				if( 2 * numFracsCrossAtVrt != countedCrossingFracEdgs )
+//				{
+//
+//					UG_LOG("gezaehlt und nicht gleiche Kreuzungszahl " << numFracsCrossAtVrt << " " << countedCrossingFracEdgs << std::endl);
+//
+////					return true;
+//
+//					UG_THROW("gezaehlt und nicht gleiche Kreuzungszahl" << std::endl);
+//				}
 
 				if( segmentPart.size() != 0 )
 				{
@@ -2926,8 +2937,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			{
 				UG_THROW("no fracs crossing but marked vertex at boundary? << std::endl");
 			}
-
-			if( numFracsCrossAtVrt == 1 ) // no crossing point  at boundary
+			else if( numFracsCrossAtVrt == 1 ) // no crossing point  at boundary
 			{
 				// in this case, we have ONE attached edges, the edges has two attached faces
 				// the faces have a naormal, and based on the normal, we can decide which faces belong to the same side of the edges
