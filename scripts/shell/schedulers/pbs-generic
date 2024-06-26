@@ -34,7 +34,7 @@ function UJS_Submit
 	
 
 	# PBSnodes="-l select=$nnodes:node_type=rome:mpiprocs=$nppn"
-	PBSnodes=""
+	PBSnodes="-l select=$nnodes:ncpus=$nppn:mpiprocs=$nppn"
 
 
 	if [ -z "$queue" ]; then
@@ -82,7 +82,7 @@ function UJS_Submit
 			exit
 		fi
 		jobid=`echo $jobid | sed 's/\([0-9]*\).*/\1/'`
-	fi	
+	fi
 }
 
 
