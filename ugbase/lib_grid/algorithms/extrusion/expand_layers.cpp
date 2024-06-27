@@ -1366,6 +1366,370 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			{
 				// inner vertex where fracture ends
 				// TODO FIXME
+
+				// in this case, we have two attached edges, and each of these edges has two attached faces
+				// the faces have a naormal, and based on the normal, we can decide which faces belong to the same side of the edges
+
+
+				if( numbAttTripl != 2 )
+				{
+					UG_THROW("Anzahl der angehaengten Triples kann nicht stimmen, Vertex einer Kluft ohne Schnittpunkte, nicht am Rand, Kluftende " << std::endl);
+				}
+
+				// Zuordnung der Edges und Faces, die auf der gleichen Seite der fracture sind
+
+				// und gleich auch Erzeugung der neuen Knoten, die dann
+				// in einem Doublett zusammen mit ihren Normalen an die alten Vertizes
+				// angehängt werden; der Winkel zur Normalen hilft später, die Seite
+				// heraus zu finden, Seite von den Edges
+
+				int dbg_iteratorAblaufen = 0;
+
+
+#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+
+				int dbg_laenge = 0;
+
+				for( auto const & vft : vecVertFracTrip )
+				{
+					dbg_laenge++;
+
+					UG_LOG("VERTEXFRACTRIP" << std::endl);
+
+					vector3 ve = vft.getNormal();
+
+					UG_LOG("NORMAL " << ve << std::endl);
+
+					UG_LOG("laenge " << dbg_laenge << std::endl );
+				}
+
+				int dbg_laenge_eins = 0;
+
+#endif
+
+
+
+				for( VvftIterator vvftV = vecVertFracTrip.begin();
+						vvftV != vecVertFracTrip.end();
+						vvftV++
+				)
+				{
+
+#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+					dbg_laenge_eins++;
+
+					if( dbg_laenge_eins > dbg_laenge )
+					{
+						break;
+					}
+
+#endif
+
+					vector3 nV = vvftV->getNormal();
+
+					Edge * edgeV = vvftV->getEdge();
+
+
+
+#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+
+					UG_LOG("NORMAL " << vvftV->getNormal() << std::endl);
+					UG_LOG("LAENGE EINZ " << dbg_laenge_eins << std::endl );
+#endif
+
+					Vertex * nextFracVrt;
+
+					IndexType foundThisVrt = 0;
+
+					for( size_t i = 0; i < 2; ++i )
+					{
+						Vertex * vrtEdgEnd = edgeV->vertex(i);
+
+						if( vrtEdgEnd == *iterV )
+						{
+							foundThisVrt++;
+						}
+						else
+						{
+							nextFracVrt = vrtEdgEnd ;
+						}
+
+					}
+
+					if( foundThisVrt != 1 )
+					{
+						UG_THROW("zu viel zu wenig vertizex one " << std::endl);
+					}
+
+
+
+					// Klasse schreiben, die als attachment an einen Fracture-Vertex
+					// die neuen Vertizes samt ihrer gemittelten Normalen speichert
+					// also std::vector von dieser neuen Klasse als Vertex attachment
+
+					std::vector<Edge * > attEdg;
+					std::vector<Face * > attFac;
+
+					attEdg.push_back( edgeV );
+
+					Face * facV = vvftV->getFace();
+
+					attFac.push_back( facV );
+
+					// jetzt neuen Vertex erzeugen in Richtung der Normalen
+					// sonst ist das attachment Schwachsinn!
+
+					vector3 posNewVrt;
+
+					vector3 moveVrt;
+
+					auto subsIndEdgV = sh.get_subset_index(edgeV);
+
+					number width = fracInfosBySubset.at(subsIndEdgV).width;
+
+					static constexpr bool expandInnerVertizes = true;
+
+					if( expandInnerVertizes )
+					{
+						// der Faktor ist Käse und muss noch aus den Eingaben übernommen werden
+						VecScale(moveVrt, nV, width/2. );
+					}
+					else
+					{
+						// auf Annes Wunsch hin werden die Normalen innendrin an einer endenen Kluft zu Null gesetzt
+
+						VecScale(moveVrt, nV, 0. );
+
+					}
+
+					VecAdd(posNewVrt, posOldVrt, moveVrt );
+
+					UG_LOG("neuer Vertex " << posNewVrt << std::endl );
+
+					// TODO FIXME hier ist das PROBLEM, SEGFAULT durch create regular vertex
+
+
+
+					Vertex * newShiftVrtx = *grid.create<RegularVertex>();
+					aaPos[newShiftVrtx] = posNewVrt;
+
+					sh.assign_subset(newShiftVrtx, subsIndEdgV );
+
+
+
+					// fuer was braucheh wir das eigentlich? selber schon vergessen.....
+
+					ExpandVertexMultiplett vrtMtpl( attEdg, attFac, nV );
+
+					aaVrtExpMP[ *iterV ].push_back( vrtMtpl );
+
+
+
+					// alle anhängenden faces müssen noch zu wissen bekommen
+					// dass es diesen neuen Vertex gibt, nicht nur die
+					// an den edges anhängenden
+					// vielleicht gibt es einen Loop über attached faces des
+					// Vertex, für die schon bekannten direkt angehängten klar
+					// wenn auch dort vermerkt werden muss im Attachment von Seb
+					// bei den anderen, die keine Edge haben von der Kluft
+					// da muss man die Normale ins Zentrum bestimmen
+					// um heraus zu finden, ob sie auf dieser seite sind
+					// am besten dann das Attachment der faces für vertizes
+					// von Seb recyclen
+
+					// loop über assosciated faces des vertex am besten
+					// vermutlich auch noch assosciated edges, um
+					// zu markieren, welche weg fallen sollen, wenn
+					// nicht von Kluft selber, sondern quasi verschoben
+					// und neu erzeugt
+
+					int dbg_FaceIterator = 0;
+
+
+
+					for( auto const & ifac : assoFaces )
+					{
+						bool isFromFrac = false;
+
+						for( auto const & facFrac : attFac )
+						{
+
+//											static_assert( std::is_same<  decltype( const_cast<Face* & >(facFrac) ), decltype ( ifac ) >::value );
+							static_assert( std::is_same<  decltype( (facFrac) ), decltype ( ifac ) >::value );
+
+							if( ifac == facFrac )
+							{
+								isFromFrac = true;
+
+//													static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), Face * & >::value  );
+								static_assert( std::is_same< decltype( (facFrac) ), Face * const & >::value  );
+//												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), decltype( ifac ) >::value  );
+								static_assert( std::is_same< decltype( (facFrac) ), decltype( ifac ) >::value  );
+
+							}
+						}
+
+
+						bool atRightSide = false;
+
+						if( isFromFrac )
+							atRightSide = true;
+
+						if( !isFromFrac )
+						{
+							// check if on same side of edge where the normal points to: compute cosinus between vector of face center
+							//  perpendicular to the edge
+
+
+
+
+							vector3 facCenter = CalculateCenter( ifac, aaPos );
+
+							vector3 perpendicu;
+
+
+//							UG_LOG("pos 0 " << aaPos[nextFracVrt[0]] << std::endl);
+//							UG_LOG("pos 1 " << aaPos[*iterV] << std::endl);
+//							UG_LOG("fac ce " << facCenter << std::endl);
+
+							DropAPerpendicular(perpendicu, facCenter, aaPos[nextFracVrt], aaPos[*iterV]);
+
+//							if( dbg_FaceIterator == 1 )
+//							{
+//								UG_LOG("huhu a0" << std::endl);
+//								return true;
+//							}
+
+
+							vector3 tmpN;
+
+							VecSubtract(tmpN, facCenter, perpendicu );
+
+							VecNormalize(tmpN, tmpN);
+
+							UG_LOG("Normale zum Face ist " << tmpN << std::endl);
+
+							number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, nV );
+
+							UG_LOG("Cosinus zur Normalen ist " << cosBetwFracEdgAndDirection2Face << std::endl);
+
+//							if( dbg_FaceIterator == 1 )
+//							{
+//								UG_LOG("huhu a" << std::endl);
+////								return true;
+//							}
+
+
+							if( cosBetwFracEdgAndDirection2Face > 0 )
+							{
+								UG_LOG("assuming face to be on richt side" << std::endl);
+
+								atRightSide = true;
+
+#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+
+								Vertex * otherFacCent = *grid.create<RegularVertex>();
+								aaPos[otherFacCent] = facCenter;
+								sh.assign_subset(otherFacCent, 6 );
+
+								Vertex * pp = *grid.create<RegularVertex>();
+								aaPos[pp] = perpendicu;
+								sh.assign_subset(pp, 7 );
+
+								sh.assign_subset(ifac,8);
+
+#endif
+
+							}
+							else
+							{
+								UG_LOG("assuming face to be on wrong side" << std::endl);
+							}
+
+
+							dbg_flachen_passiert++;
+						}
+
+
+//						if( dbg_FaceIterator == 1 )
+//						{
+//							UG_LOG("huhu b" << std::endl);
+////							return true;
+//						}
+
+
+
+						if( atRightSide ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
+						{
+
+							// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
+							vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ ifac ];
+
+							IndexType vrtxFnd = 0;
+
+							for(size_t indVrt = 0; indVrt < (ifac)->num_vertices();  indVrt++ )
+							{
+								Vertex* facVrt = (ifac)->vertex(indVrt);
+
+								if(  facVrt == *iterV )
+								{
+									newVrts4Fac[ indVrt ] = newShiftVrtx;
+									vrtxFnd++;
+								}
+							}
+
+
+							if( vrtxFnd <= 0 )
+							{
+								UG_THROW("vertex not found!" << std::endl);
+							}
+							else if( vrtxFnd > 1 )
+							{
+								UG_THROW("vertex zu oft gefunden " << vrtxFnd << std::endl );
+							}
+							else if ( vrtxFnd == 1 )
+							{
+							}
+							else
+							{
+								UG_THROW("vertex finden komisch " << std::endl);
+							}
+
+
+						}
+
+						dbg_FaceIterator++;
+
+					}
+
+
+
+
+
+
+
+
+				}
+
+
+
+				dbg_iteratorAblaufen++;
+
+
+
+//				// Ziel: die beiden parallelen Normalen mitteln, und in die jeweiligen beiden Richtungen je einen neuen Vertex erzeugen
+//				// irgendwie muss der Vertex oder die Edge besser sogar wissen, dass sie einen neuen Verschiebevertex bekommen hat
+//				// denn später müssen neue Edges und neue Faces basierend auf den neuen Vertizes erzeugt werden
+//				// vielleicht braucht die edge und das face ein Attachment, das ihnen das sagt, ähnlihc wie VertexTrible std Vektoren?
+//
+//
+//
+
+
+
+				UG_LOG("END THIS VERTEX NORMAL INNER ENDING CLEFT" << std::endl);
+
+
 			}
 
 			if( numFracsCrossAtVrt == 2 ) // free line of fracture, no crossing point, not at boundary
@@ -3358,6 +3722,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //		// die neuen Kanten und Faces erzeugen, die alten falschen Kanten löschen und ebenso die alten Faces
 //		// später auf mehr Klüfte ausdehnen, mit Problemstelle Kreuzung, aber erst, wenn eine Kluft funktioniert
 //
+
+	return 0;
 
 	// jetzt Seb Sachen beinahe unverändert
 
