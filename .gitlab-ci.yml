@@ -70,7 +70,7 @@ do-test:
     when: always
     expire_in: 1 week
     paths:
-      - report.xml
+      - ../report.xml
     reports:
       junit: report.xml
       #coverage_report:
