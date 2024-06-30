@@ -98,6 +98,27 @@ struct PyUserDataTraits<3>
 	{ return f(x[0],x[1],x[2],t,si); }
 };
 
+template <typename TData, typename TRet>
+struct PyUserDataTypeTraits
+{
+	static TRet return_value(py::object result_py)
+	{ return py::make_tuple(result_py)[0].cast<TData>();}
+
+	static TData data_value(py::object result_py)
+	{ return py::make_tuple(result_py)[1].cast<TData>();}
+
+};
+
+template <typename TData>
+struct PyUserDataTypeTraits<TData, void>
+{
+	static void return_value(py::object result_py)
+	{return void();}
+
+	static TData data_value(py::object result_py)
+	{ return result_py.cast<TData>();}
+
+};
 
 
 
@@ -105,28 +126,48 @@ struct PyUserDataTraits<3>
 
 template <typename TData, int dim, typename TRet = void>
 class PythonUserData
-	: public StdGlobPosData<PythonUserData<TData, dim, TRet>, TData, dim, TRet>
+: public StdGlobPosData<PythonUserData<TData, dim, TRet>, TData, dim, TRet>
 {
 
 	public:
 
-	///	Constructor
-	/**
-	 * Creates a PythonUserData that uses a Python function to evaluate some data.
-	 */
+	//!	Constructor
+	/*! Creates a PythonUserData that uses a Python function to evaluate some data. */
 	typedef py::object TFunction;
 
 	PythonUserData(TFunction f) : func(f)
 	{}
 
+protected:
+
+	static inline TRet evaluate_func(TFunction f, TData& value, const MathVector<dim>& x, number time, int si)
+	{
+		py::object result_py = PyUserDataTraits<dim>().call(f, x, time, si);
+		value = PyUserDataTypeTraits<TData, TRet>::data_value(result_py);
+		return PyUserDataTypeTraits<TData, TRet>::return_value(result_py);
+		// value = result_py.cast<TData>();
+		// return;
+	}
+
+public:
 	///	evaluates the data at a given point and time
 	inline TRet evaluate(TData& value, const MathVector<dim>& x, number time, int si) const
-	{
-		py::object result_py = PyUserDataTraits<dim>().call(func, x, time, si);
-		value = result_py.cast<TData>();
-		return;
-	};
+	{ return evaluate_func(func, value, x, time, si); };
 
+	//! This function checks, if the PYthon function has the correct signature.
+	/*! Performs dummy call and evaluates output. */
+	static bool check_callback_returns(TFunction func/*, const bool bThrow*/)
+	{
+		TData data; MathVector<dim> x = 0.0; number time = 0.0; int si = 0;
+
+		try {
+			evaluate_func(func, data, x, time, si);
+		} catch (std::exception &e) {
+			return false;
+		}
+		return true;
+
+	};
 
 	protected:
 		TFunction func;

@@ -45,6 +45,11 @@
 #include <map>
 #include <vector>
 
+#ifdef UG_USE_PYBIND11
+#include <Python.h>
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
+#endif
 
 // #define LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX 
 
@@ -127,6 +132,10 @@ class DirichletBoundary
 		void add(const char* name, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets);
 		void add(LuaFunctionHandle fct, const char* function, const char* subsets);
 		void add(LuaFunctionHandle fct, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets);
+#endif
+
+#ifdef UG_USE_PYBIND11
+		void add(py::object fct, const char* function, const char* subsets);
 #endif
 
 	///	adds a conditional user-defined value as dirichlet condition for a function on subsets
