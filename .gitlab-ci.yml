@@ -24,11 +24,10 @@ build-clang:
   script:
     # copy ug4 without overwriting existing files (ugcore)
     - cd ..
-    - cp -n -R /opt/ug4/. .
+    - cp --update=none -R /opt/ug4/. .
     - pwd
     - ls -a
     # build ug
-    - cd ug4
     - mkdir -p build
     - cd build
     - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
@@ -56,9 +55,7 @@ do-test:
   script:
     # copy ug4 without overwriting existing files (ugcore)
     - cd ..
-    - cp -n -R /opt/ug4/. .
-    - pwd
-    - ls -a
+    - cp --update=none -R /opt/ug4/. .
     # build testsuite
     - cd apps/unit_tests/
     - mkdir -p build
