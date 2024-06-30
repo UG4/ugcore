@@ -30,9 +30,8 @@ build-clang:
     - cd build
     - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
     - ninja -j8
-    # copy artifacts to clone dir
-    - cp ../bin/* /bin/.
-    - cp ../bin/plugins/* /bin/plugins/.
+    # move artifacts to clone dir
+    - mv ../bin bin
   artifacts:
     when: on_success
     expire_in: 1 week
