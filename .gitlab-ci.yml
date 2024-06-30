@@ -32,7 +32,6 @@ build-clang:
     - cd ..
     # move artifacts to clone dir
     - ls -a bin
-    - ls -a bin/plugins
     - mv bin ugcore/bin
   artifacts:
     when: on_success
