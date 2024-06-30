@@ -25,8 +25,6 @@ build-clang:
     # copy ug4 without overwriting existing files (ugcore)
     - cd ..
     - cp --update=none -R /opt/ug4/. .
-    - pwd
-    - ls -a
     # build ug
     - mkdir -p build
     - cd build
@@ -36,8 +34,8 @@ build-clang:
     when: on_success
     expire_in: 1 week
     paths:
-      - bin/*
-      - bin/plugins/*
+      - ../bin/*
+      - ../bin/plugins/*
   #cache:
   #  policy: pull-push
   # unprotect: false
