@@ -30,6 +30,7 @@ build-clang:
     - cd build
     - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
     - ninja -j8
+    - cd ..
     # move artifacts to clone dir
     - mv bin ugcore/bin
   artifacts:
@@ -66,6 +67,7 @@ do-test:
     - ninja -j8
     - cd ../../..
     - pwd
+    - ls -a
     - source ugcore/scripts/shell/ugbash
     - echo $UG4_ROOT
     - ./bin/testsuite --build-info=yes --log_level=all --log_format=XML -- --name report
