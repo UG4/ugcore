@@ -31,7 +31,7 @@ build-clang:
     - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
     - ninja -j8
     # move artifacts to clone dir
-    - mv ../bin bin
+    - mv bin ugcore/bin
   artifacts:
     when: on_success
     expire_in: 1 week
