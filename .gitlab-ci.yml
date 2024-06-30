@@ -4,9 +4,6 @@ default:
 
 variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ug4/ugcore
-    CMAKE_C_COMPILER: "gcc"
-    CMAKE_CXX_COMPILER: "g++"
-    CXX_FLAGS: "-O0 -coverage -fPIC"
     #UG_PACKAGES_TO_INSTALL: "ConvectionDiffusion ugcore tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore d3f_app tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
@@ -21,6 +18,10 @@ build-clang:
   stage: build
   image: rigby132/ug4-minimal:latest
   timeout: 4 hours
+  variables:
+    CMAKE_C_COMPILER: "gcc"
+    CMAKE_CXX_COMPILER: "g++"
+    CXX_FLAGS: "-O3 -fPIC"
   script:
     # copy ug4 without overwriting existing files (ugcore)
     - cd ..
@@ -28,10 +29,12 @@ build-clang:
     # build ug
     - mkdir -p build
     - cd build
-    - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
+    - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=OFF -GNinja
     - ninja -j8
     - cd ..
     # move artifacts to clone dir
+    - ls -a bin
+    - ls -a bin/plugins
     - mv bin ugcore/bin
   artifacts:
     when: on_success
@@ -53,12 +56,20 @@ do-test:
   stage: test
   image: rigby132/ug4-test:latest
   timeout: 4 hours
+  variables:
+    CMAKE_C_COMPILER: "gcc"
+    CMAKE_CXX_COMPILER: "g++"
+    CXX_FLAGS: "-O0 -coverage -fPIC"
   script:
     # copy ug4 without overwriting existing files (ugcore)
     - cd ..
     - cp --update=none -R /opt/ug4/. .
-    # move artifacts into correct dir
-    - mv ugcore/bin bin
+    # build ug in debug
+    - mkdir -p build
+    - cd build
+    - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
+    - ninja -j8
+    - cd ..
     # build testsuite
     - cd apps/unit_tests/
     - mkdir -p build
