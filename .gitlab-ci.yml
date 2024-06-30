@@ -3,7 +3,10 @@ default:
     - docker
 
 variables:
-    GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ugcore
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ug4/ugcore
+    CMAKE_C_COMPILER: "gcc"
+    CMAKE_CXX_COMPILER: "g++"
+    CXX_FLAGS: "-O0 -coverage -fPIC"
 
 stages:
   - build
@@ -14,19 +17,13 @@ stages:
 build-clang:
   stage: build
   image: rigby132/ug4-minimal:latest
-  variables:
-    CMAKE_C_COMPILER: "gcc"
-    CMAKE_CXX_COMPILER: "g++"
-    CXX_FLAGS: "-O0 -coverage -fPIC"
     #UG_PACKAGES_TO_INSTALL: "ConvectionDiffusion ugcore tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore d3f_app tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
   timeout: 4 hours
   script:
-    # move to CI "workspace" and install ug
-    - cd ..
-    - mkdir -p ug4
-    - cp -R /opt/ug4/. ug4
+    # copy ug4 without overwriting existing files (ugcore)
+    - cp -n -R /opt/ug4/. .
     - pwd
     - ls -a
     #- git clone https://github.com/UG4/ughub
@@ -52,8 +49,8 @@ build-clang:
     when: on_success
     expire_in: 1 week
     paths:
-      - ../ug4/bin/*
-      - ../ug4/bin/plugins/*
+      - bin/*
+      - bin/plugins/*
   #cache:
   #  policy: pull-push
   # unprotect: false
@@ -67,27 +64,27 @@ build-clang:
 do-test:
   stage: test
   image: rigby132/ug4-test:latest
-  variables:
-    GIT_STRATEGY: none # Do not clone repo again for this job.
   timeout: 4 hours
   script:
+    # copy ug4 without overwriting existing files (ugcore)
+    - cp -n -R /opt/ug4/. .
     - pwd
     - ls -a
-    - ls -a ../
     # build testsuite
-    #- cd ../apps/unit_tests/
-    #- mkdir -p build
-    #- cd build
-    #- cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
-    #- ninja -j8
-    - source scripts/shell/ugbash
-    - cd ../
+    - cd apps/unit_tests/
+    - mkdir -p build
+    - cd build
+    - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
+    - ninja -j8
+    - cd ../../..
+    - pwd
+    - source ugcore/scripts/shell/ugbash
     - echo $UG4_ROOT
-    - ./ug4/bin/testsuite --build-info=yes --log_level=all --log_format=XML -- --name report
+    - ./bin/testsuite --build-info=yes --log_level=all --log_format=XML -- --name report
     - mv ug_test_numprocs_1.log report.xml
   artifacts:
     when: always
-    expire_in: 4 week
+    expire_in: 1 week
     paths:
       - report.xml
     reports:
