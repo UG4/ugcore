@@ -1,5 +1,4 @@
 default:
-  image: rigby132/ug4-minimal:latest
   tags:
     - docker
 
@@ -14,6 +13,7 @@ stages:
 # BUILD sources on various platforms and compilers
 build-clang:
   stage: build
+  image: rigby132/ug4-minimal:latest
   variables:
     CMAKE_C_COMPILER: "gcc"
     CMAKE_CXX_COMPILER: "g++"
@@ -21,7 +21,6 @@ build-clang:
     #UG_PACKAGES_TO_INSTALL: "ConvectionDiffusion ugcore tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore d3f_app tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
-
   timeout: 4 hours
   script:
     # move to CI "workspace" and install ug
@@ -49,12 +48,6 @@ build-clang:
     - cd build
     - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
     - ninja -j8
-    # build testsuite
-    #- cd ../apps/unit_tests/
-    #- mkdir -p build
-    #- cd build
-    #- cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
-    #- ninja -j8
   artifacts:
     when: on_success
     expire_in: 1 week
@@ -73,12 +66,20 @@ build-clang:
 # TEST ug4
 do-test:
   stage: test
+  image: rigby132/ug4-test:latest
   variables:
     GIT_STRATEGY: none # Do not clone repo again for this job.
   timeout: 4 hours
   script:
     - pwd
     - ls -a
+    - ls -a ../
+    # build testsuite
+    #- cd ../apps/unit_tests/
+    #- mkdir -p build
+    #- cd build
+    #- cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
+    #- ninja -j8
     - source scripts/shell/ugbash
     - cd ../
     - echo $UG4_ROOT
