@@ -78,7 +78,7 @@ do-test:
     - ls -a
     - source ugcore/scripts/shell/ugbash
     - echo $UG4_ROOT
-    - ./bin/testsuite --build-info=yes --log_level=all --log_format=XML -- --name report
+    - ./bin/testsuite --build-info=yes --log_level=all --log_format=JUNIT -- --name report
     - mv ug_test_numprocs_1.log ugcore/report.xml
   artifacts:
     when: always
