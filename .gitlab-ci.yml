@@ -56,7 +56,7 @@ do-test:
   variables:
     CMAKE_C_COMPILER: "gcc"
     CMAKE_CXX_COMPILER: "g++"
-    CXX_FLAGS: "-O0 -coverage -fPIC"
+    #CXX_FLAGS: "-O0 -coverage -fPIC"
   script:
     # copy ug4 without overwriting existing files (ugcore)
     - cd ..
