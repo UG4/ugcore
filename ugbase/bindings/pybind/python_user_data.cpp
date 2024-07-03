@@ -80,6 +80,20 @@ void RegisterPythonUserDataType(Registry& reg, string type, string grp)
 		reg.add_class_to_group(name, string("PythonUser").append(type), tag);
 	}
 
+//	PythonCondUser"Type"
+	{
+		typedef ug::PythonUserData<TData, dim, bool> T;
+		typedef CplUserData<TData, dim, bool> TBase;
+		typedef UserData<TData, dim, bool> TBase2;
+
+		string name = string("PythonCondUser").append(type).append(suffix);
+		reg.add_class_<T, TBase, TBase2>(name, grp)
+				.template add_constructor<void (*)(py::object f)>("Callback")
+				.add_method("evaluate", &T::evaluate)
+				.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, string("PythonCondUser").append(type), tag);
+	}
+
 }
 
 /**

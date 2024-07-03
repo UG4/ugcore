@@ -187,11 +187,6 @@ static void DomainAlgebra(TRegistry& reg, string grp)
 			.add_method("add",static_cast<void (T::*)(LuaFunctionHandle, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add),
 						"", "LuaCallback#Function#Subsets")
 #endif
-
-#ifdef UG_USE_PYBIND11
-			.add_method("add",static_cast<void (T::*)(py::object, const char*, const char*)>(&T::add),
-												"", "LuaCallback#Function#Subsets")
-#endif
 			.add_method("clear", &T::clear)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DirichletBoundary", tag);

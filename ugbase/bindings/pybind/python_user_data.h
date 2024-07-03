@@ -102,7 +102,7 @@ template <typename TData, typename TRet>
 struct PyUserDataTypeTraits
 {
 	static TRet return_value(py::object result_py)
-	{ return py::make_tuple(result_py)[0].cast<TData>();}
+	{ return py::make_tuple(result_py)[0].cast<TRet>();}
 
 	static TData data_value(py::object result_py)
 	{ return py::make_tuple(result_py)[1].cast<TData>();}
@@ -136,7 +136,9 @@ class PythonUserData
 	typedef py::object TFunction;
 
 	PythonUserData(TFunction f) : func(f)
-	{}
+	{
+		UG_ASSERT(check_callback_returns(f), "Huhh: Function has invalid signature.")
+	}
 
 protected:
 
@@ -154,6 +156,7 @@ public:
 	inline TRet evaluate(TData& value, const MathVector<dim>& x, number time, int si) const
 	{ return evaluate_func(func, value, x, time, si); };
 
+protected:
 	//! This function checks, if the PYthon function has the correct signature.
 	/*! Performs dummy call and evaluates output. */
 	static bool check_callback_returns(TFunction func/*, const bool bThrow*/)
@@ -169,8 +172,7 @@ public:
 
 	};
 
-	protected:
-		TFunction func;
+	TFunction func;
 
 };
 
