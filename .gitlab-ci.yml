@@ -3,7 +3,7 @@ default:
     - docker
   before_script:
     - docker info
-    - docker login registry.gitlab.com
+    - echo "$CI_DEPLOY_PASSWORD" | docker login $CI_REGISTRY -u $CI_DEPLOY_USER --password-stdin
 
 variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ug4/ugcore
