@@ -7,46 +7,8 @@ variables:
     #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
 
 stages:
-  - build
   - test
-  - deploy
-
-# BUILD sources on various platforms and compilers
-build-clang:
-  stage: build
-  image: rigby132/ug4-minimal:latest
-  timeout: 4 hours
-  variables:
-    CMAKE_C_COMPILER: "gcc"
-    CMAKE_CXX_COMPILER: "g++"
-    CXX_FLAGS: "-O3 -fPIC"
-  script:
-    # copy ug4 without overwriting existing files (ugcore)
-    - cd ..
-    - cp --update=none -R /opt/ug4/. .
-    # build ug
-    - mkdir -p build
-    - cd build
-    - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=OFF -GNinja
-    - ninja -j8
-    - cd ..
-    # move artifacts to clone dir
-    - ls -a bin
-    - mv bin ugcore/bin
-  artifacts:
-    when: on_success
-    expire_in: 1 week
-    paths:
-      - bin/*
-      - bin/plugins/*
-  #cache:
-  #  policy: pull-push
-  # unprotect: false
-  # untracked: false
-  # when: on_success
-  # paths:
-  #   - "ug4/build"
-  #   - "ughub"
+  - build
 
 # TEST ug4
 do-test:
@@ -58,6 +20,7 @@ do-test:
     CMAKE_CXX_COMPILER: "g++"
     #CXX_FLAGS: "-O0 -coverage -fPIC"
   script:
+    - docker version
     # copy ug4 without overwriting existing files (ugcore)
     - cd ..
     - cp --update=none -R /opt/ug4/. .
@@ -101,12 +64,40 @@ do-test:
   #    - "ug4/build"
   #    - "ug4/apps/unit_tests/build"
   #    - "ughub"
-        
-# DEPLOY upload changes to repo and upload packages?
-deploy-job:      # TODO
+
+# BUILD sources on various platforms and compilers
+build-clang:
+  stage: build
+  image: rigby132/ug4-minimal:latest
+  timeout: 4 hours
   variables:
-    GIT_STRATEGY: none # Do not clone repo again for this job.
-  stage: deploy
-  environment: production
+    CMAKE_C_COMPILER: "gcc"
+    CMAKE_CXX_COMPILER: "g++"
+    CXX_FLAGS: "-O3 -fPIC"
   script:
-    - echo "Get release artifact and deploy it"
+    # copy ug4 without overwriting existing files (ugcore)
+    - cd ..
+    - cp --update=none -R /opt/ug4/. .
+    # build ug
+    - mkdir -p build
+    - cd build
+    - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=OFF -GNinja
+    - ninja -j8
+    - cd ..
+    # move artifacts to clone dir
+    - ls -a bin
+    - mv bin ugcore/bin
+  artifacts:
+    when: on_success
+    expire_in: 1 week
+    paths:
+      - bin/*
+      - bin/plugins/*
+  #cache:
+  #  policy: pull-push
+  # unprotect: false
+  # untracked: false
+  # when: on_success
+  # paths:
+  #   - "ug4/build"
+  #   - "ughub"
