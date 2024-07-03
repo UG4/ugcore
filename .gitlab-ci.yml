@@ -50,7 +50,15 @@ do-test:
     when: always
     expire_in: 1 week
     paths:
-ADD ug4 /opt/ug4
+      - report.xml
+      - test.log
+    reports:
+      junit: report.xml
+      #coverage_report:
+      #  coverage_format: cobertura
+      #  path: coverage_reports/${CI_COMMIT_SHORT_SHA}.xml
+  #cache:
+  #  policy: pull-push
   #  unprotect: false
   #  untracked: false
   #  when: on_success
