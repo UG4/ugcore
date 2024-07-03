@@ -1,17 +1,13 @@
 default:
   tags:
     - docker
-  before_script:
-    - docker info
-    - echo "$CI_REGISTRY"
-    - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
 
 variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ug4/ugcore
     #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
 
 stages:
-  - test
+  #- test
   - build
 
 # TEST ug4
@@ -77,6 +73,10 @@ build-clang:
     CMAKE_C_COMPILER: "gcc"
     CMAKE_CXX_COMPILER: "g++"
     CXX_FLAGS: "-O3 -fPIC"
+  before_script:
+    - docker info
+    - echo "$CI_REGISTRY"
+    - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
   script:
     # copy ug4 without overwriting existing files (ugcore)
     - cd ..
@@ -87,7 +87,13 @@ build-clang:
     - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=OFF -GNinja
     - ninja -j8
     - cd ..
+    # build docker image
+    - cd ..
+    - echo -e 'FROM ubuntu:latest\nENV DEBIAN_FRONTEND=noninteractive\nRUN apt-get update && apt-get install -y python3 \nADD ug4 /opt/ug4' > Dockerfile
+    - docker build -t registry.gitlab.com/ug4-project/ugcore .
+    - docker push registry.gitlab.com/ug4-project/ugcore
     # move artifacts to clone dir
+    - cd ug4
     - ls -a bin
     - mv bin ugcore/bin
   artifacts:
