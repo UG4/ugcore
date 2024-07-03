@@ -1,6 +1,8 @@
 default:
   tags:
     - docker
+  before_script:
+    - docker info
 
 variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ug4/ugcore
@@ -20,7 +22,6 @@ do-test:
     CMAKE_CXX_COMPILER: "g++"
     #CXX_FLAGS: "-O0 -coverage -fPIC"
   script:
-    - docker version
     # copy ug4 without overwriting existing files (ugcore)
     - cd ..
     - cp --update=none -R /opt/ug4/. .
