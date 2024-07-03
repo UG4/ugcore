@@ -7,12 +7,13 @@ variables:
     #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
 
 stages:
-  #- test
+  - test
   - build
 
 # TEST ug4
 do-test:
   stage: test
+  when: manual
   image: rigby132/ug4-test:latest
   timeout: 4 hours
   variables:
