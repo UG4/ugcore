@@ -13,7 +13,6 @@ stages:
 # TEST ug4
 do-test:
   stage: test
-  when: manual
   image: rigby132/ug4-test:latest
   timeout: 4 hours
   variables:
