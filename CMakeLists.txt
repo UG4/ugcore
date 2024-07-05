@@ -195,3 +195,10 @@ if(BUILD_ONE_LIB)
 	endif(buildEmbeddedPlugins)
    
 endif(BUILD_ONE_LIB)
+
+# 
+if(USE_PYBIND11)
+	# We some stuff (libug4_s, source files) for a developer version
+	install(TARGETS ${targetLibraryName} LIBRARY DESTINATION ug4py COMPONENT Develop)
+	install(TARGETS ${sources} PUBLIC_HEADER DESTINATION ug4/ugbase COMPONENT Develop)
+endif(USE_PYBIND11)

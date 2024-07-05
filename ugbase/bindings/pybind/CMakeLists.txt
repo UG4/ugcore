@@ -45,8 +45,6 @@ if(USE_PYBIND11)
 	target_link_libraries (${pyModuleName} PRIVATE ${targetLibraryName})
 	install(TARGETS ${pyModuleName} LIBRARY DESTINATION ug4py COMPONENT pymodules)
 	
-	# We add more stuff (libug4, source files) for the developer's version
-	install(TARGETS ${targetLibraryName} LIBRARY DESTINATION ug4py COMPONENT Develop)
-	install(TARGETS ${sources} PUBLIC_HEADER DESTINATION ug4/ugbase COMPONENT Develop)
+
 	
 endif(USE_PYBIND11)
