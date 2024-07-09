@@ -949,6 +949,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		bool isBnd = aaMarkVrtVFP[ *iter ].getIsBndFracVertex();
 		auto numCrosFrac = aaMarkVrtVFP[ *iter ].getNumberFracEdgesInVertex();
 
+		if( ! isBnd && numCrosFrac == 1 )
+		{
+			wahl = false;
+		}
+
 //		if( ! dehneInnereKluftGrenzpunkteAus )
 //		{
 //			if( numCrosFrac == 1 ) // inner frac boundary vertex
@@ -986,6 +991,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				assFac.push_back(*iterFac);
 //				vector3 facCenter = CalculateCenter( *iterFac, aaPos );
 //				UG_LOG("fac center " << facCenter << std::endl);
+
+//				sh.assign_subset(*iterFac, 10);
 			}
 
 //			UG_LOG("----------" << std::endl);
@@ -993,6 +1000,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			for( std::vector<Edge *>::iterator iterEdg = grid.associated_edges_begin(*iter); iterEdg != grid.associated_edges_end(*iter); iterEdg++ )
 			{
 				assEdg.push_back(*iterEdg);
+//				sh.assign_subset(*iterEdg,10);
 			}
 
 			aaVrtInfoAssoFaces[*iter] = assFac;
@@ -1011,6 +1019,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		}
 
 	}
+
+//	return true;
 
 	using pairIndDbl = std::pair<IndexType,double>;
 
@@ -1102,6 +1112,26 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //					UG_LOG("fac center " << facCenter << std::endl);
 				}
 			}
+
+			std::vector<Face* > & assFaceVrt1 = aaVrtInfoAssoFaces[verticesEdg[1]];
+
+			for( auto const & ifa : assFaceVrt1 )
+			{
+				if(FaceContains( ifa, *iterEdg ))
+				{
+					bool faceContained = false;
+
+					for( auto const & afa : assFace )
+					{
+						if( afa == ifa )
+							faceContained = true;
+					}
+
+					if( !faceContained )
+						assFace.push_back( ifa );
+				}
+			}
+
 
 //			UG_LOG("XXXXXXXXX" << std::endl);
 
@@ -1380,9 +1410,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			else if( numFracsCrossAtVrt == 1 )
 			{
 
+//				if( numbAttTripl != 0 )
+//				{
+//					UG_THROW("Anzahl der angehaengten Triples kann nicht stimmen, Vertex einer Kluft ohne Schnittpunkte, nicht am Rand, Kluftende " << std::endl);
+//				}
+
+
+
 				UG_LOG("END THIS VERTEX NORMAL INNER ENDING CLEFT" << std::endl);
 
-				break;
 
 //				if( ! dehneInnereKluftGrenzpunkteAus )
 //				{
@@ -1766,6 +1802,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				if( numbAttTripl != 4 )
 				{
+
+					UG_LOG("NUMBER OF TRIPLETTS " << numbAttTripl << std::endl);
+
+					return true;
+
 					UG_THROW("Anzahl der angehaengten Triples kann nicht stimmen, Vertex einer Kluft ohne Schnittpunkte, nicht am Rand " << std::endl);
 				}
 
@@ -2458,12 +2499,12 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					vector3 nv = attVFT.getNormal();
 				}
 
-				// hier werden  ALLE attached Faces benötigt, auch die, die zwischen den direkt an den fractures liegenden Faces sind
-				for( auto const & ifac : assoFaces )
-				{
-
-				}
-
+//				// hier werden  ALLE attached Faces benötigt, auch die, die zwischen den direkt an den fractures liegenden Faces sind
+//				for( auto const & ifac : assoFaces )
+//				{
+//
+//				}
+//
 				// copies of all faces and of fractured ones
 
 				auto vVFT = vecVertFracTrip; // caution: COPY, not reference!
@@ -3796,6 +3837,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		}
 	}
 
+
 	std::vector<Face * > newFaces;
 	std::vector<int> subsOfNewFaces;
 
@@ -3846,39 +3888,46 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					else
 					{
 
-						//	this code-block should never be entered. If it is entered then
-						//	we selected the wrong faces. This is would be a BUG!!!
-						//	remove the temporary attachments and throw an error
-
-						//	remove the temporary attachments
-#if OLD_PROFREITER_STUFF
-						grid.detach_from_vertices(aAdjMarker);
-						grid.detach_from_edges(aAdjMarker);
-#endif
-						grid.detach_from_vertices(aAdjMarkerVFP);
-						grid.detach_from_edges(aAdjMarkerB);
-
-						grid.detach_from_vertices( aAdjInfoAVVFT );
-						grid.detach_from_faces(attVrtVec);
-
-						grid.detach_from_vertices( aAdjInfoEdges );
-						grid.detach_from_vertices( aAdjInfoFaces );
-
-
-						// TODO FIXME auch die weiteren Marker und INfos, alle Attachments, detachen!!!!
-
-						throw(UGError("Implementation error in ExpandFractures2d Arte."));
+////						sh.assign_subset(*iter_sf,10);
+////						sh.assign_subset(tEdge,11);
+//
+//						return true;
+//						//	this code-block should never be entered. If it is entered then
+//						//	we selected the wrong faces. This is would be a BUG!!!
+//						//	remove the temporary attachments and throw an error
+//
+//						//	remove the temporary attachments
+//#if OLD_PROFREITER_STUFF
+//						grid.detach_from_vertices(aAdjMarker);
+//						grid.detach_from_edges(aAdjMarker);
+//#endif
+//						grid.detach_from_vertices(aAdjMarkerVFP);
+//						grid.detach_from_edges(aAdjMarkerB);
+//
+//						grid.detach_from_vertices( aAdjInfoAVVFT );
+//						grid.detach_from_faces(attVrtVec);
+//
+//						grid.detach_from_vertices( aAdjInfoEdges );
+//						grid.detach_from_vertices( aAdjInfoFaces );
+//
+//
+//						// TODO FIXME auch die weiteren Marker und INfos, alle Attachments, detachen!!!!
+//
+//						throw(UGError("Implementation error in ExpandFractures2d Arte."));
 					}
 
 					// TODO FIXME selektion closen irgendwie, damit auch alle Randkanten zum subset gehoeren!!!
 
-					sh.assign_subset(expFace, fracInfosBySubset.at(sh.get_subset_index(tEdge)).newSubsetIndex);
+					if( expFace )
+					{
+						sh.assign_subset(expFace, fracInfosBySubset.at(sh.get_subset_index(tEdge)).newSubsetIndex);
 
-					int subs = fracInfosBySubset.at(sh.get_subset_index(tEdge)).newSubsetIndex;
+						int subs = fracInfosBySubset.at(sh.get_subset_index(tEdge)).newSubsetIndex;
 
-					subsOfNewFaces.push_back( subs );
+						subsOfNewFaces.push_back( subs );
 
-					newFaces.push_back( expFace );
+						newFaces.push_back( expFace );
+					}
 				}
 			}
 		}
