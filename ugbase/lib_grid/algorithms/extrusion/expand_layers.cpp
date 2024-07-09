@@ -718,29 +718,35 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
 
-using VecVertFracTrip = std::vector<VertFracTrip>;
+//using VecVertFracTrip = std::vector<VertFracTrip>;
 
-using VvftIterator = VecVertFracTrip::iterator;
+//using VvftIterator = VecVertFracTrip::iterator;
 
 using AttVrtVec = Attachment<vector<Vertex*> >;
+
+using VertexOfFaceInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<vector3,vector3> >;
+
 
 using IndexType = unsigned short;
 
 template <typename ASOF >
 bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo,
- 									  Edge * const edgeOne, Edge * const edgeTwo,
-		                              VvftIterator const & vvftOne, VvftIterator const & vvftTwo,
+ 									  Edge * edgeOne, Edge * edgeTwo,
+									  Face * facOne, Face * facTwo,
 									  vector<FractureInfo> const & fracInfosBySubset,
 									  vector3 const & posOldVrt,
 									  Grid::VertexAttachmentAccessor<APosition> & aaPos,
 									  Grid & grid, SubsetHandler & sh,
-									  ASOF const & assoFaces,
+									  ASOF const & assoFaces
+									  ,
 									  std::vector<Vertex *> const & nextFracVrt,
 									  Grid::FaceAttachmentAccessor<AttVrtVec> & aaVrtVecFace,
 									  int & dbg_flachen_passiert,
 									  Vertex * iterV
 									  )
 {
+
+#if 1
 	// gleiche Seite vermutet oder gegeben
 
 	// average the normals
@@ -760,9 +766,6 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 
 	attEdg.push_back( edgeOne );
 	attEdg.push_back( edgeTwo );
-
-	Face * facOne = vvftOne->getFace();
-	Face * facTwo = vvftTwo->getFace();
 
 	attFac.push_back( facOne );
 	attFac.push_back( facTwo );
@@ -951,7 +954,7 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 		dbg_FaceIterator++;
 
 	}
-
+#endif
 
 	return true;
 
@@ -1044,7 +1047,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 //	using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
 //
-//	using VecVertFracTrip = std::vector<VertFracTrip>;
+	using VecVertFracTrip = std::vector<VertFracTrip>;
 
 	VecVertFracTrip vertexNoInfo;
 
@@ -1599,7 +1602,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 		}
 
-//		using VvftIterator = VecVertFracTrip::iterator;
+		using VvftIterator = VecVertFracTrip::iterator;
 
 		VecFace & assoFaces = aaVrtInfoAssoFaces[*iterV];
 		// TODO FIXME hier braucht man das nicht zu ordnen
@@ -2739,7 +2742,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //				// hier werden  ALLE attached Faces benötigt, auch die, die zwischen den direkt an den fractures liegenden Faces sind
 //
 				// copies of all faces and of fractured ones
-
 				auto vVFT = vecVertFracTrip; // caution: COPY, not reference!
 				auto aF = assoFaces; // caution: COPY, not reference!
 
@@ -3156,34 +3158,104 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 					auto subsIndFracOne = sh.get_subset_index(edgeFracOne);
 					auto subsIndFracTwo = sh.get_subset_index(edgeFracTwo);
 
+					vector3 normalFracOne = normalBegin.first;
+					vector3 normalFracTwo = normalEnd.second;
 
+//					sh.assign_subset(edgeFracOne, newSubsToAdd);
+//
+//					if( edgeFracTwo != originalStartEdge )
+//						sh.assign_subset(edgeFracTwo, newSubsToAdd);
+
+					// neue Punkte erzeugen
+
+					number cosBetweenNormals = VecDot( normalFracOne, normalFracTwo );
 
 					if( subsIndFracOne == subsIndFracTwo )
 					{
+						if( numFracsCrossAtVrt != 3 )
+						{
+							UG_THROW("Fracture Segment an beiden Seiten gleiche sudo, aber keine T Kreuzung?" << std::endl);
+						}
+
 						// dieselben Methoden wie im Fall von einer durchgehenden Kluft an einem Vertex, dort kopieren
 						// bzw Funktion schreiben, die beides macht
 
 						// TODO FIXME irgendwie muss hier der Fall abgezweigt werden, dass wir auf der durchgehenden Seite einer Kluft sind
 						// wenn wir eine T-Kreuzung haben
-						// XXXXXXXXXXXXXXXXX hier kritischer Punkt aktuell
+						// HHHHHHHHHHHH hier kritischer Punkt aktuell
+
+						std::vector<Vertex *> nextFracVrt;
+
+						IndexType foundThisVrtOne = 0;
+
+						for( size_t i = 0; i < 2; ++i )
+						{
+							Vertex * vrtEdgEnd = edgeFracOne->vertex(i);
+
+							if( vrtEdgEnd == *iterV )
+							{
+								foundThisVrtOne++;
+							}
+							else
+							{
+								nextFracVrt.push_back( vrtEdgEnd );
+							}
+
+						}
+
+						if( foundThisVrtOne != 1 )
+						{
+							UG_THROW("zu viel zu wenig vertizex one " << std::endl);
+						}
+
+
+						IndexType foundThisVrtTwo = 0;
+
+						for( size_t i = 0; i < 2; ++i )
+						{
+							Vertex * vrtEdgEnd = edgeFracTwo->vertex(i);
+
+							if( vrtEdgEnd == *iterV )
+							{
+								foundThisVrtTwo++;
+							}
+							else
+							{
+								nextFracVrt.push_back( vrtEdgEnd );
+							}
+
+						}
+
+						if( foundThisVrtTwo != 1 )
+						{
+							UG_THROW("zu viel zu wenig vertizex two " << std::endl);
+						}
+
+						Face *  faceBegin = vFISBegin.getFace();
+						Face *  faceEnd = vFISEnd.getFace();
+
+
+
+						expandSingleFractureAtGivenSide( normalFracTwo, normalFracTwo,
+														 edgeFracOne, edgeFracTwo,
+														 faceBegin, faceEnd,
+														 fracInfosBySubset,
+														 posOldVrt,
+														 aaPos,
+														 grid, sh,
+														 assoFaces
+														 ,
+														 nextFracVrt,
+														 aaVrtVecFace,
+														 dbg_flachen_passiert,
+														 *iterV
+														);
+
 
 
 					}
 					else
 					{
-
-						vector3 normalFracOne = normalBegin.first;
-						vector3 normalFracTwo = normalEnd.second;
-
-	//					sh.assign_subset(edgeFracOne, newSubsToAdd);
-	//
-	//					if( edgeFracTwo != originalStartEdge )
-	//						sh.assign_subset(edgeFracTwo, newSubsToAdd);
-
-						// neue Punkte erzeugen
-
-						number cosBetweenNormals = VecDot( normalFracOne, normalFracTwo );
-
 
 						// create normal vectors into direction of relevant edges
 
