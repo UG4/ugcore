@@ -737,8 +737,7 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 									  vector3 const & posOldVrt,
 									  Grid::VertexAttachmentAccessor<APosition> & aaPos,
 									  Grid & grid, SubsetHandler & sh,
-									  ASOF const & assoFaces
-									  ,
+									  ASOF const & assoFaces,
 									  std::vector<Vertex *> const & nextFracVrt,
 									  Grid::FaceAttachmentAccessor<AttVrtVec> & aaVrtVecFace,
 									  int & dbg_flachen_passiert,
@@ -2252,6 +2251,27 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 									// die neuen Vertizes samt ihrer gemittelten Normalen speichert
 									// also std::vector von dieser neuen Klasse als Vertex attachment
 
+#if 1
+
+									Face * facOne = vvftOne->getFace();
+									Face * facTwo = vvftTwo->getFace();
+
+									expandSingleFractureAtGivenSide( nOne, nTwo,
+																	 edgeOne, edgeTwo,
+																	 facOne, facTwo,
+																	 fracInfosBySubset,
+																	 posOldVrt,
+																	 aaPos,
+																	 grid, sh,
+																	 assoFaces
+																	 ,
+																	 nextFracVrt,
+																	 aaVrtVecFace,
+																	 dbg_flachen_passiert,
+																	 *iterV
+																	);
+
+#else
 
 									// average the normals
 
@@ -2271,8 +2291,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 									attEdg.push_back( edgeOne );
 									attEdg.push_back( edgeTwo );
 
-									Face * facOne = vvftOne->getFace();
-									Face * facTwo = vvftTwo->getFace();
+//									Face * facOne = vvftOne->getFace();
+//									Face * facTwo = vvftTwo->getFace();
 
 									attFac.push_back( facOne );
 									attFac.push_back( facTwo );
@@ -2681,7 +2701,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 #endif
 
-
+#endif
 
 								}
 								else
