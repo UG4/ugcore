@@ -733,7 +733,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 						bool expandInnerFracBnds, bool expandOuterFracBnds)
 {
 
-	static constexpr bool dehneInnereKluftGrenzpunkteAus = false;
+//	static constexpr bool dehneInnereKluftGrenzpunkteAus = false;
 
 //	expandInnerFracBnds = false;
 
@@ -1380,16 +1380,21 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			else if( numFracsCrossAtVrt == 1 )
 			{
 
-				if( ! dehneInnereKluftGrenzpunkteAus )
-				{
-					break;
-				}
+				UG_LOG("END THIS VERTEX NORMAL INNER ENDING CLEFT" << std::endl);
+
+				break;
+
+//				if( ! dehneInnereKluftGrenzpunkteAus )
+//				{
+//					break;
+//				}
 				// inner vertex where fracture ends
 				// TODO FIXME
 
 				// in this case, we have two attached edges, and each of these edges has two attached faces
 				// the faces have a naormal, and based on the normal, we can decide which faces belong to the same side of the edges
 
+#if 0
 
 				if( numbAttTripl != 2 )
 				{
@@ -1744,10 +1749,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //
 //
 //
-
-
-
 				UG_LOG("END THIS VERTEX NORMAL INNER ENDING CLEFT" << std::endl);
+
+#endif
+
 
 //				return true;
 
