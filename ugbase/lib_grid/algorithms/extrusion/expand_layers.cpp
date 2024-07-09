@@ -733,6 +733,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 						bool expandInnerFracBnds, bool expandOuterFracBnds)
 {
 
+	static constexpr bool dehneInnereKluftGrenzpunkteAus = false;
+
+//	expandInnerFracBnds = false;
+
+//	expandOuterFracBnds = true;
 
 //	access position attachment
 	if(!grid.has_vertex_attachment(aPosition)){
@@ -934,6 +939,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 		bool wahl = true;
 
+
 		// so stimmt es vielleicht, aber ist auch ein komischer Fall, innen expandieren und aussen nicht...... die Frage ist, ob es oonst Sinn macht.....
 		if( expandInnerFracBnds && !expandOuterFracBnds && aaMarkVrtVFP[*iter].getIsBndFracVertex() )
 			wahl = false;
@@ -942,6 +948,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 		bool isBnd = aaMarkVrtVFP[ *iter ].getIsBndFracVertex();
 		auto numCrosFrac = aaMarkVrtVFP[ *iter ].getNumberFracEdgesInVertex();
+
+//		if( ! dehneInnereKluftGrenzpunkteAus )
+//		{
+//			if( numCrosFrac == 1 ) // inner frac boundary vertex
+//			{
+//				wahl = false;
+//			}
+//		}
+
 
 		if( wahl )
 		{
@@ -1364,6 +1379,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			}
 			else if( numFracsCrossAtVrt == 1 )
 			{
+
+				if( ! dehneInnereKluftGrenzpunkteAus )
+				{
+					break;
+				}
 				// inner vertex where fracture ends
 				// TODO FIXME
 
@@ -1487,20 +1507,20 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 					number width = fracInfosBySubset.at(subsIndEdgV).width;
 
-					static constexpr bool expandInnerVertizes = true;
+//					if( expandInnerFracBnds )
+//					{
+//						// der Faktor ist Käse und muss noch aus den Eingaben übernommen werden
+//						VecScale(moveVrt, nV, width/2. );
+//					}
+//					else
+//					{
+//						// auf Annes Wunsch hin werden die Normalen innendrin an einer endenen Kluft zu Null gesetzt
+//
+//						VecScale(moveVrt, nV, 0. );
+//
+//					}
 
-					if( expandInnerVertizes )
-					{
-						// der Faktor ist Käse und muss noch aus den Eingaben übernommen werden
-						VecScale(moveVrt, nV, width/2. );
-					}
-					else
-					{
-						// auf Annes Wunsch hin werden die Normalen innendrin an einer endenen Kluft zu Null gesetzt
-
-						VecScale(moveVrt, nV, 0. );
-
-					}
+					VecScale(moveVrt, nV, width/2. );
 
 					VecAdd(posNewVrt, posOldVrt, moveVrt );
 
@@ -1729,10 +1749,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				UG_LOG("END THIS VERTEX NORMAL INNER ENDING CLEFT" << std::endl);
 
+//				return true;
+
 
 			}
-
-			if( numFracsCrossAtVrt == 2 ) // free line of fracture, no crossing point, not at boundary
+			else if( numFracsCrossAtVrt == 2 ) // free line of fracture, no crossing point, not at boundary
 			{
 				// in this case, we have two attached edges, and each of these edges has two attached faces
 				// the faces have a naormal, and based on the normal, we can decide which faces belong to the same side of the edges
@@ -3304,7 +3325,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			else if( numFracsCrossAtVrt == 1 ) // no crossing point  at boundary
 			{
 				// in this case, we have ONE attached edges, the edges has two attached faces
-				// the faces have a naormal, and based on the normal, we can decide which faces belong to the same side of the edges
+				// the faces have a normal, and based on the normal, we can decide which faces belong to the same side of the edges
 
 				if( numbAttTripl != 2 )
 				{
@@ -3723,7 +3744,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //		// später auf mehr Klüfte ausdehnen, mit Problemstelle Kreuzung, aber erst, wenn eine Kluft funktioniert
 //
 
-	return 0;
+//	return true;
 
 	// jetzt Seb Sachen beinahe unverändert
 
@@ -3819,6 +3840,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					}
 					else
 					{
+
 						//	this code-block should never be entered. If it is entered then
 						//	we selected the wrong faces. This is would be a BUG!!!
 						//	remove the temporary attachments and throw an error
