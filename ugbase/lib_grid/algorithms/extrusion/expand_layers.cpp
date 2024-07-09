@@ -1805,7 +1805,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 					UG_LOG("NUMBER OF TRIPLETTS " << numbAttTripl << std::endl);
 
-					return true;
+//					return true;
 
 					UG_THROW("Anzahl der angehaengten Triples kann nicht stimmen, Vertex einer Kluft ohne Schnittpunkte, nicht am Rand " << std::endl);
 				}
@@ -2476,13 +2476,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 
 			}
-			else if( numFracsCrossAtVrt == 3 )
+			else // two fractures completely crossing, numFracsCrossAtVrt >= 3, i.e. T crossing and two fractures completely crossing
 			{
-				// one fracture end point at another facture passing by
-				// TODO FIXME
-			}
-			else // two fractures completely crossing, numFracsCrossAtVrt > 3
-			{
+
+				// TODO FIXME in case of three fractures, we have to use the method for eine durchgehende fracture
+				// auf der Seite, wo die zweite fracture NICHT rein geht
 
 				IndexType countedCrossingFracEdgs = 0;
 
@@ -2491,7 +2489,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				// verkettete Liste der anhängenden fractures in Reihenfolge
 				// der Anhängung mit INfo, ob eine Kluft vorliegt
 
-//				for( auto const & attVFT : vecVertFracTrip }
 				for( auto const & attVFT : vecVertFracTrip )
 				{
 					Edge * edg = attVFT.getEdge();
@@ -2500,10 +2497,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				}
 
 //				// hier werden  ALLE attached Faces benötigt, auch die, die zwischen den direkt an den fractures liegenden Faces sind
-//				for( auto const & ifac : assoFaces )
-//				{
-//
-//				}
 //
 				// copies of all faces and of fractured ones
 
@@ -2512,7 +2505,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				UG_LOG("Gesamtanzahl faces um Knoten " <<  aF.size() << std::endl );
 
-				// TODO FIXME erstmal die ganzen anhaengenden Faces ordnen, dass wir wissen, in welcher Reihenfolge wir durchlaufen muessen
+				//  erstmal die ganzen anhaengenden Faces ordnen, dass wir wissen, in welcher Reihenfolge wir durchlaufen muessen
 				// jede Edge hat ein bool attachment schon, das weiss, ob sie Fracture edge ist oder nicht
 				// Reihenfolge der faces und die edges auch dazu, vielleicht neues Triple oder dergleiche, dabei zwei edges und zwei normals
 				// und wie gesagt, die edges wissen, ob sie fractures sind, dazu keine neuen Variablen notwendig
@@ -2562,66 +2555,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				Edge* startEdg = fracEdg;
 				Face* startFace = fracFac;
 
-//				for( std::vector<Face*>::iterator itFac = aF.begin(); itFac != aF.end(); )
-//				{
-//					if( *itFac == fracFac )
-//					{
-//						itFac = aF.erase(itFac);
-//						break;
-//					}
-//				}
-
 				vector3 startNormal = fracNorm;
-
-//				vector3 nuVe(0,0,0);
-//				IndexType fndCommEdg = 0;
-//
-//				std::pair<Edge*,Edge*> assoEdg2Fac;
-//				std::pair<vector3,vector3> assoNorm2Fac; // will stay zero vector in case that next face contains no frac, i.e. if next edge no fracture edge
-//
-//				Edge* nextEdge = NULL;
-//
-//				assoEdg2Fac.first = fracEdg;
-//				assoNorm2Fac.first = fracNorm;
-//
-//				assoEdg2Fac.second = NULL; // muss noch modifiziert werden
-//				assoNorm2Fac.second = nuVe; // wird nur modifiziert, wenn die zweite Ecke eine Kluftecke ist von dem face ebenso
-
-
-				// now need to find the second edge and figure out if it is fracture
-
-//				Face* nextFace = NULL;
-//
-//
-//				for( auto const & iE : allAssoEdges ) // werden nicht gelöscht, deswegen Zugriff auf attachment direkt
-//				{
-//					if( FaceContains(fracFac, iE) )
-//					{
-//						fndCommEdg++;
-//						if( iE != startEdg )
-//						{
-//							nextEdge = iE;
-//							assoEdg2Fac.second = iE;
-//						}
-//					}
-//
-//					if( fndCommEdg != 2 )
-//					{
-//						UG_THROW("komische Anzahl gemeinsamer Ecke " << fndCommEdg << std::endl);
-//					}
-//
-//					if( nextEdge == NULL )
-//					{
-//						UG_THROW("wieso keine zweite Ecke gefunden???? " << std::endl);
-//					}
-//
-//				}
-//
-//				if( assoEdg2Fac.second == NULL )
-//				{
-//					UG_THROW("null immer noch?" << std::endl);
-//				}
-//				assoEdg2Fac.push_back(nextEdge);
 
 				Face* nextFace = NULL;
 
@@ -2646,15 +2580,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					std::pair<Edge*, Edge *> edge2Append( startEdg2Append, nextEdge );
 					std::pair<vector3, vector3 > normal2Append( startNormal, nuVe );
 
-//					for( std::vector<Face*>::iterator itFac = aF.begin(); itFac != aF.end(); )
-//					{
-//						if( *itFac == startFace )
-//						{
-//							itFac = aF.erase(itFac);
-//							break;
-//						}
-//					}
-//
 
 					// if start face and start edge from a triple, then has to be erased this triple, exept for the entire start, as already erased
 					if( ! atFirstTriple )
@@ -2703,12 +2628,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 								edge2Append.second = iE;
 
-//								if(  edge2Append.second != nextEdge || edge2Append.second != iE )
-//								{
-//									UG_THROW("wieso wird die naechste Ecke nicht uebertragen?" << std::endl );
-//								}
-
-								//assoEdg2Fac.second = iE;
 							}
 						}
 
@@ -2843,42 +2762,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					}
 
 
-//					for( std::vector<Face*>::iterator itFac = aF.begin(); itFac != aF.end(); itFac++ )
-//					{
-//						if( FaceContains( *itFac, nextEdge ) )
-//						{
-//							Face * facFnd = *itFac;
-//							aF.erase(itFac);
-//
-//							faceEras = true;
-//							// check if
-////							for( VecVertFracTrip::iterator itAttVFT = vVFT.begin(); itAttVFT !=  vVFT.end(); itAttVFT++ )
-////							{
-////								Face * facTrip = itAttVFT->getFace();
-////
-////								if( facTrip == facFnd )
-////								{
-////									VertFracTrip fndVFT = *itAttVFT;
-//////									vVFT.erase(itAttVFT);
-////
-////									normal2Append.second = fndVFT.getNormal();
-////
-////									Edge * edgTrip = fndVFT.getEdge();
-////
-////									if( edgTrip != nextEdge )
-////									{
-////										UG_THROW("Ecken Denkfehler" << std::endl);
-////									}
-////
-////									break;
-////								}
-////							}
-//
-//							break;
-//						}
-//					}
-
-					// check if aF or vVFT still contain the former or the next face - must not be the case! TODO FIXME
+					// check if aF or vVFT still contain the former or the next face - must not be the case!
 
 					VertexOfFaceInfo vOFI( edge2Append, face2Append, normal2Append );
 
@@ -2915,7 +2799,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					}
 
 
-					// TODO FIXME bleibt noch das nächste Gesicht heraus zu finden, dafür kommt eigentlich nur noch eines in Frage, da das zweite Gesicht vom edge
+					// bleibt noch das nächste Gesicht heraus zu finden, dafür kommt eigentlich nur noch eines in Frage, da das zweite Gesicht vom edge
 					// geloescht sein muss in aF, es muss das einzig übrige face sein, das die jetzt start edge enthält, davon darf es nur eines geben, wir löschen aber noch nicht
 
 					IndexType nextFaceFound = 0;
@@ -2941,7 +2825,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 						if( FaceContains(iFa, startEdg ) )
 						{
-//							aF.erase(itFac);
 							startFace = iFa;
 							break;
 						}
@@ -2963,15 +2846,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					UG_THROW("wir sind nicht am Anfang wieder angekommen" << std::endl);
 				}
 
-//				if( 2 * numFracsCrossAtVrt != countedCrossingFracEdgs )
-//				{
-//
-//					UG_LOG("gezaehlt und nicht gleiche Kreuzungszahl " << numFracsCrossAtVrt << " " << countedCrossingFracEdgs << std::endl);
-//
-////					return true;
-//
-//					UG_THROW("gezaehlt und nicht gleiche Kreuzungszahl" << std::endl);
-//				}
 
 				if( segmentPart.size() != 0 )
 				{
@@ -2982,8 +2856,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 
 				// test if the segments and their partition produce sumething useful, for debug purposes
-
-				// bis hier vermutlich sinnvoll
 
 				// als nächstes muss man die Klassen von durch Klüften abgetrennten ordered Faces durchgehen, und die Verschiebevertizes erzeugen
 				// als nächstes die verschiedenen Sektionen durch gehen, eventuell nochmal extra Objekte dafür erzeugen
@@ -3003,12 +2875,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				// later assign somehow next edge to start edge, or use new variable, when we have figured out next face
 				// at end, chech if we have arrived again at original first edge
 
-
-
-//				if( !sndEdgIsFracEdgeAlso )
-//				{
-//					; // normal remains zero vector
-//				}sh
 
 				int totalSubsNum = sh.num_subsets();
 
@@ -3047,167 +2913,186 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					Edge* edgeFracOne = edgesBegin.first;
 					Edge* edgeFracTwo = edgesEnd.second;
 
-					vector3 normalFracOne = normalBegin.first;
-					vector3 normalFracTwo = normalEnd.second;
-
-//					sh.assign_subset(edgeFracOne, newSubsToAdd);
-//
-//					if( edgeFracTwo != originalStartEdge )
-//						sh.assign_subset(edgeFracTwo, newSubsToAdd);
-
-//					vertFracInfoSeg const & vFISBeg =
-
-					// neue Punkte erzeugen
-
-					number cosBetweenNormals = VecDot( normalFracOne, normalFracTwo );
-
-					// create normal vectors into direction of relevant edges
-
-					vector3 alongEdgeOne;
-					vector3 alongEdgeTwo;
-
-					Vertex * vrtEdgeOneBegin = NULL;
-					Vertex * vrtEdgeTwoBegin = NULL;
-					Vertex * vrtEdgeOneEnd = NULL;
-					Vertex * vrtEdgeTwoEnd = NULL;
-
-
-					for( size_t i = 0; i < 2; ++i )
-					{
-						Vertex * vrtFromEdgeOne = edgeFracOne->vertex(i);
-						Vertex * vrtFromEdgeTwo = edgeFracTwo->vertex(i);
-
-						if( vrtFromEdgeOne == *iterV )
-						{
-							vrtEdgeOneBegin = vrtFromEdgeOne;
-						}
-						else
-						{
-							vrtEdgeOneEnd = vrtFromEdgeOne;
-						}
-
-						if( vrtFromEdgeTwo == *iterV )
-						{
-							vrtEdgeTwoBegin = vrtFromEdgeTwo;
-						}
-						else
-						{
-							vrtEdgeTwoEnd = vrtFromEdgeTwo;
-						}
-
-					}
-
-					if( vrtEdgeOneBegin == NULL || vrtEdgeTwoBegin == NULL || vrtEdgeOneEnd == NULL || vrtEdgeTwoEnd == NULL )
-					{
-						UG_THROW("lauter Nullen vertizes" << std::endl);
-					}
-
-					vector3 fracVrtPos = aaPos[*iterV];
-
-					vector3 fracEdgOneEndPos = aaPos[ vrtEdgeOneEnd ];
-					vector3 fracEdgTwoEndPos = aaPos[ vrtEdgeTwoEnd ];
-
-					vector3 directionEdgOne;
-					VecSubtract(directionEdgOne, fracEdgOneEndPos, fracVrtPos);
-
-					vector3 directionEdgTwo;
-					VecSubtract(directionEdgTwo, fracEdgTwoEndPos, fracVrtPos);
-
-					vector3 nrmdVecEdgOne;
-					VecNormalize(nrmdVecEdgOne, directionEdgOne);
-
-					vector3 nrmdVecEdgTwo;
-					VecNormalize(nrmdVecEdgTwo, directionEdgTwo);
-
-					number cosBetweenEdges = VecDot(nrmdVecEdgOne,nrmdVecEdgTwo);
-
-					number angleEdges = std::acos( cosBetweenEdges );
-					number angleNormls = std::acos( cosBetweenNormals );
-
-					totAnglsEdg += angleEdges;
-					totAnglsNrm += angleNormls;
-
-					UG_LOG("cosinus Edges Normals " << cosBetweenEdges << "  " << cosBetweenNormals << std::endl);
-					UG_LOG("angles edges normals " << angleEdges << "  " << angleNormls << std::endl);
-
-					// prject normal 1 onto edge 2 and normal 2 on edge 1, scale with width one half resp with width two half
-
-
-					number cosBetweenNrmFraOneEdgTwo = VecDot(normalFracOne,nrmdVecEdgTwo);
-					number cosBetweenNrmFraTwoEdgOne = VecDot(normalFracTwo,nrmdVecEdgOne);
-
-					vector3 projectNrmFraOneToEdgTwoDirection;
-					VecScale(projectNrmFraOneToEdgTwoDirection, nrmdVecEdgTwo, 1./cosBetweenNrmFraOneEdgTwo);
-
-					vector3 projectNrmFraTwoToEdgOneDirection;
-					VecScale(projectNrmFraTwoToEdgOneDirection, nrmdVecEdgOne, 1./cosBetweenNrmFraTwoEdgOne);
-
 					auto subsIndFracOne = sh.get_subset_index(edgeFracOne);
 					auto subsIndFracTwo = sh.get_subset_index(edgeFracTwo);
 
-					number shiftOne = fracInfosBySubset.at( subsIndFracOne ).width / 2. ;
-					number shiftTwo = fracInfosBySubset.at( subsIndFracTwo ).width / 2. ;
-
-					vector3 shiftAlongEdgeTwo;
-					VecScale(shiftAlongEdgeTwo, projectNrmFraOneToEdgTwoDirection, shiftOne);
-
-					vector3 shiftAlongEdgeOne;
-					VecScale(shiftAlongEdgeOne, projectNrmFraTwoToEdgOneDirection, shiftTwo);
-
-					vector3 shiftPart;
-					VecAdd(shiftPart, fracVrtPos, shiftAlongEdgeTwo);
-
-					vector3 posNewVrt;
-					VecAdd( posNewVrt, shiftPart, shiftAlongEdgeOne);
-
-					UG_LOG("neuer Vertex Kreuzung " << posNewVrt << std::endl );
-
-					Vertex * newShiftVrtx = *grid.create<RegularVertex>();
-					aaPos[newShiftVrtx] = posNewVrt;
-
-//					sh.assign_subset(newShiftVrtx,  newSubsToAdd );
 
 
-					for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
+					if( subsIndFracOne == subsIndFracTwo )
 					{
-						Face * fac = vertFracInfoSeg.getFace();
+						// dieselben Methoden wie im Fall von einer durchgehenden Kluft an einem Vertex, dort kopieren
+						// bzw Funktion schreiben, die beides macht
 
-//						sh.assign_subset(fa,newSubsToAdd);
+						// TODO FIXME irgendwie muss hier der Fall abgezweigt werden, dass wir auf der durchgehenden Seite einer Kluft sind
+						// wenn wir eine T-Kreuzung haben
+						// XXXXXXXXXXXXXXXXX hier kritischer Punkt aktuell
 
 
-						// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
-						vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ fac ];
+					}
+					else
+					{
 
-						IndexType vrtxFnd = 0;
+						vector3 normalFracOne = normalBegin.first;
+						vector3 normalFracTwo = normalEnd.second;
 
-						for(size_t indVrt = 0; indVrt < (fac)->num_vertices();  indVrt++ )
+	//					sh.assign_subset(edgeFracOne, newSubsToAdd);
+	//
+	//					if( edgeFracTwo != originalStartEdge )
+	//						sh.assign_subset(edgeFracTwo, newSubsToAdd);
+
+						// neue Punkte erzeugen
+
+						number cosBetweenNormals = VecDot( normalFracOne, normalFracTwo );
+
+
+						// create normal vectors into direction of relevant edges
+
+						vector3 alongEdgeOne;
+						vector3 alongEdgeTwo;
+
+						Vertex * vrtEdgeOneBegin = NULL;
+						Vertex * vrtEdgeTwoBegin = NULL;
+						Vertex * vrtEdgeOneEnd = NULL;
+						Vertex * vrtEdgeTwoEnd = NULL;
+
+
+						for( size_t i = 0; i < 2; ++i )
 						{
-							Vertex* facVrt = (fac)->vertex(indVrt);
+							Vertex * vrtFromEdgeOne = edgeFracOne->vertex(i);
+							Vertex * vrtFromEdgeTwo = edgeFracTwo->vertex(i);
 
-							if(  facVrt == *iterV )
+							if( vrtFromEdgeOne == *iterV )
 							{
-								newVrts4Fac[ indVrt ] = newShiftVrtx;
-								vrtxFnd++;
+								vrtEdgeOneBegin = vrtFromEdgeOne;
 							}
+							else
+							{
+								vrtEdgeOneEnd = vrtFromEdgeOne;
+							}
+
+							if( vrtFromEdgeTwo == *iterV )
+							{
+								vrtEdgeTwoBegin = vrtFromEdgeTwo;
+							}
+							else
+							{
+								vrtEdgeTwoEnd = vrtFromEdgeTwo;
+							}
+
 						}
 
-
-						if( vrtxFnd <= 0 )
+						if( vrtEdgeOneBegin == NULL || vrtEdgeTwoBegin == NULL || vrtEdgeOneEnd == NULL || vrtEdgeTwoEnd == NULL )
 						{
-							UG_THROW("vertex not found kreuzung!" << std::endl);
-															}
-						else if( vrtxFnd > 1 )
-						{
-							UG_THROW("vertex zu oft gefunden kreuzung " << vrtxFnd << std::endl );
-						}
-						else if ( vrtxFnd == 1 )
-						{
-						}
-						else
-						{
-							UG_THROW("vertex finden komisch kreuzung " << std::endl);
+							UG_THROW("lauter Nullen vertizes" << std::endl);
 						}
 
+						vector3 fracVrtPos = aaPos[*iterV];
+
+						vector3 fracEdgOneEndPos = aaPos[ vrtEdgeOneEnd ];
+						vector3 fracEdgTwoEndPos = aaPos[ vrtEdgeTwoEnd ];
+
+						vector3 directionEdgOne;
+						VecSubtract(directionEdgOne, fracEdgOneEndPos, fracVrtPos);
+
+						vector3 directionEdgTwo;
+						VecSubtract(directionEdgTwo, fracEdgTwoEndPos, fracVrtPos);
+
+						vector3 nrmdVecEdgOne;
+						VecNormalize(nrmdVecEdgOne, directionEdgOne);
+
+						vector3 nrmdVecEdgTwo;
+						VecNormalize(nrmdVecEdgTwo, directionEdgTwo);
+
+						number cosBetweenEdges = VecDot(nrmdVecEdgOne,nrmdVecEdgTwo);
+
+						number angleEdges = std::acos( cosBetweenEdges );
+						number angleNormls = std::acos( cosBetweenNormals );
+
+						totAnglsEdg += angleEdges;
+						totAnglsNrm += angleNormls;
+
+						UG_LOG("cosinus Edges Normals " << cosBetweenEdges << "  " << cosBetweenNormals << std::endl);
+						UG_LOG("angles edges normals " << angleEdges << "  " << angleNormls << std::endl);
+
+						// prject normal 1 onto edge 2 and normal 2 on edge 1, scale with width one half resp with width two half
+
+
+						number cosBetweenNrmFraOneEdgTwo = VecDot(normalFracOne,nrmdVecEdgTwo);
+						number cosBetweenNrmFraTwoEdgOne = VecDot(normalFracTwo,nrmdVecEdgOne);
+
+						vector3 projectNrmFraOneToEdgTwoDirection;
+						VecScale(projectNrmFraOneToEdgTwoDirection, nrmdVecEdgTwo, 1./cosBetweenNrmFraOneEdgTwo);
+
+						vector3 projectNrmFraTwoToEdgOneDirection;
+						VecScale(projectNrmFraTwoToEdgOneDirection, nrmdVecEdgOne, 1./cosBetweenNrmFraTwoEdgOne);
+
+	//					auto subsIndFracOne = sh.get_subset_index(edgeFracOne);
+	//					auto subsIndFracTwo = sh.get_subset_index(edgeFracTwo);
+
+						number shiftOne = fracInfosBySubset.at( subsIndFracOne ).width / 2. ;
+						number shiftTwo = fracInfosBySubset.at( subsIndFracTwo ).width / 2. ;
+
+						vector3 shiftAlongEdgeTwo;
+						VecScale(shiftAlongEdgeTwo, projectNrmFraOneToEdgTwoDirection, shiftOne);
+
+						vector3 shiftAlongEdgeOne;
+						VecScale(shiftAlongEdgeOne, projectNrmFraTwoToEdgOneDirection, shiftTwo);
+
+						vector3 shiftPart;
+						VecAdd(shiftPart, fracVrtPos, shiftAlongEdgeTwo);
+
+						vector3 posNewVrt;
+						VecAdd( posNewVrt, shiftPart, shiftAlongEdgeOne);
+
+						UG_LOG("neuer Vertex Kreuzung " << posNewVrt << std::endl );
+
+						Vertex * newShiftVrtx = *grid.create<RegularVertex>();
+						aaPos[newShiftVrtx] = posNewVrt;
+
+	//					sh.assign_subset(newShiftVrtx,  newSubsToAdd );
+
+
+						for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
+						{
+							Face * fac = vertFracInfoSeg.getFace();
+
+	//						sh.assign_subset(fa,newSubsToAdd);
+
+
+							// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
+							vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ fac ];
+
+							IndexType vrtxFnd = 0;
+
+							for(size_t indVrt = 0; indVrt < (fac)->num_vertices();  indVrt++ )
+							{
+								Vertex* facVrt = (fac)->vertex(indVrt);
+
+								if(  facVrt == *iterV )
+								{
+									newVrts4Fac[ indVrt ] = newShiftVrtx;
+									vrtxFnd++;
+								}
+							}
+
+
+							if( vrtxFnd <= 0 )
+							{
+								UG_THROW("vertex not found kreuzung!" << std::endl);
+																}
+							else if( vrtxFnd > 1 )
+							{
+								UG_THROW("vertex zu oft gefunden kreuzung " << vrtxFnd << std::endl );
+							}
+							else if ( vrtxFnd == 1 )
+							{
+							}
+							else
+							{
+								UG_THROW("vertex finden komisch kreuzung " << std::endl);
+							}
+
+						}
 					}
 				}
 
