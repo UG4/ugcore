@@ -706,6 +706,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 }
 
 
+
 using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
 
 //using VecVertFracTrip = std::vector<VertFracTrip>;
@@ -4260,6 +4261,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 
 }
+
 
 
 
