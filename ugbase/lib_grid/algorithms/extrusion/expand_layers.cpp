@@ -3200,8 +3200,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 						// dieselben Methoden wie im Fall von einer durchgehenden Kluft an einem Vertex, dort kopieren
 						// bzw Funktion schreiben, die beides macht
 
-						// hier wird der Fall abgezweigt, dass wir auf der durchgehenden Seite einer Kluft sind
+						// TODO FIXME irgendwie muss hier der Fall abgezweigt werden, dass wir auf der durchgehenden Seite einer Kluft sind
 						// wenn wir eine T-Kreuzung haben
+						// HHHHHHHHHHHH hier kritischer Punkt aktuell
 
 						std::vector<Vertex *> nextFracVrt;
 
@@ -4198,12 +4199,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 		nfn++;
 	}
 
-	// sollen die Boundary Edges zur boundary gehören, oder zur Kluft?
-	// wie ist es mit den Knoten, sind die alle richtig zugewiesen bezüglich subset?
-
-	// TODO FIXME HHHHHHHHHHHHHHHHHH
-	// jetzt muss noch der Diamant erzeugt werden
-	// Ziel: KluftInnen erzeugen
+	// TODO FIXME sollen die Boundary Edges zur boundary gehören, oder zur Kluft?
+	// TODO FIXME wie ist es mit den Knoten, sind die alle richtig zugewiesen bezüglich subset?
 
 	//	remove the temporary attachments
 
