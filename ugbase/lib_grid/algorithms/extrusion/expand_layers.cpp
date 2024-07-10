@@ -39,17 +39,6 @@
 #include "lib_grid/grid/grid_util.h"
 //#include "lib_grid/util/simple_algebra/least_squares_solver.h"
 
-#include <utility>
-#include <vector>
-#include <type_traits>
-#include <limits>
-#include <atomic>
-#include <cstddef>
-#include <bitset>
-
-#include "support.h"
-
-
 using namespace std;
 
 namespace ug{
@@ -715,6 +704,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 	return true;
 }
+
 
 using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
 
