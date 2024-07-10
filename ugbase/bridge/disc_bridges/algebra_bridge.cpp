@@ -66,6 +66,14 @@
 #include "lib_disc/operator/composite_conv_check.h"
 #include "lib_disc/spatial_disc/local_to_global/local_to_global_mapper.h"
 
+#include "lib_disc/operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
+
+#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+
+#include "lib_disc/operator/non_linear_operator/newton_solver/newtonUpdaterGeneric.h"
+
+#endif
+
 using namespace std;
 
 
@@ -265,6 +273,23 @@ static void Algebra(Registry& reg, string parentGroup)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AssembledLinearOperator", tag);
 	}
+
+
+#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+	//	generic Newton updater
+	{
+		std::string grp = parentGroup; grp.append("/Discretization");
+		using T = NewtonUpdaterGeneric<vector_type>;
+		string name = string("NewtonUpdaterGeneric").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.add_constructor()
+//			.template add_constructor<void (*)(SmartPtr<NewtonUpdaterGeneric<vector_type> >)>("NewtonUpdaterGeneric")
+//			.add_method("updateNewton", static_cast<void(T::*)( vector_type &, vector_type const &, bool )> (&T::updateNewton))
+//			.add_method("updateNewton", static_cast<void(T::*)(vector_type &, number,  vector_type const &, number, vector_type const )> (&T::updateNewton))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "NewtonUpdaterGeneric", tag);
+	}
+#endif
 	
 
 //	NewtonSolver
@@ -301,6 +326,9 @@ static void Algebra(Registry& reg, string parentGroup)
 			.add_method("clear_inner_step_update", &T::clear_inner_step_update, "clear inner step update", "")
 			.add_method("add_step_update", &T::add_step_update, "data update called before every Newton step", "")
 			.add_method("clear_step_update", &T::clear_step_update, "clear step update", "")
+#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+			.add_method("setNewtonUpdater", &T::setNewtonUpdater, "set the Newton updater", "")
+#endif
 			.add_method("config_string", &T::config_string)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NewtonSolver", tag);
