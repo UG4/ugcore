@@ -31,8 +31,6 @@
  */
 
 #include "file_io_vtu.h"
-#include <string>
-#include <iostream>
 
 using namespace std;
 using namespace rapidxml;
@@ -413,8 +411,7 @@ GridReaderVTU::~GridReaderVTU()
 {
 }
 
-#if 0
-// original function
+
 bool GridReaderVTU::
 parse_file(const char* filename)
 {
@@ -445,81 +442,6 @@ parse_file(const char* filename)
 //	notify derived classes that a new document has been parsed.
 	return new_document_parsed();
 }
-#else
-
-bool GridReaderVTU::
-parse_file(const char* filename)
-{
-	ifstream in(filename, ios::binary);
-	if(!in)
-		return false;
-
-	m_filename = filename;
-
-//	get the length of the file
-	streampos posStart = in.tellg();
-	in.seekg(0, ios_base::end);
-	streampos posEnd = in.tellg();
-	streamsize size = posEnd - posStart;
-
-//	go back to the start of the file
-	in.seekg(posStart);
-
-	char * fileContentOriginal = new char[size + 1];
-
-	in.read(fileContentOriginal,size);
-	fileContentOriginal[size] = 0;
-	in.close();
-
-	std::string fiCo2Str(fileContentOriginal);
-
-	delete [] fileContentOriginal;
-	fileContentOriginal = NULL;
-
-	std::string regInf("RegionInfo");
-
-	if ( fiCo2Str.find(regInf) == std::string::npos && fiCo2Str.find(m_regionOfInterest) != std::string::npos  )
-	{
-		// we need to insert the additional string
-
-		std::string regInfLines;
-
-		regInfLines.append( "\n<RegionInfo Name=\"" );
-
-		regInfLines.append( m_regionOfInterest );
-
-		regInfLines.append("\">\n");
-
-		regInfLines.append( "</RegionInfo>" );
-
-		std::string insAft( "</CellData>" );
-
-		size_t cedava = fiCo2Str.find( insAft );
-
-		if( cedava == std::string::npos )
-			return false;
-
-		size_t insVal = cedava + insAft.size();
-
-		fiCo2Str.insert( insVal, regInfLines );
-
-	}
-
-	char* fileContent = m_doc.allocate_string(0, fiCo2Str.size() );
-
-	strcpy(fileContent, fiCo2Str.c_str());
-
-
-//	parse the xml-data
-	m_doc.parse<0>(fileContent);
-
-//	notify derived classes that a new document has been parsed.
-	return new_document_parsed();
-}
-
-#endif
-
-
 
 bool GridReaderVTU::
 new_document_parsed()
@@ -538,7 +460,6 @@ new_document_parsed()
 	while(curNode){
 		m_entries.push_back(GridEntry(curNode));
 		GridEntry& gridEntry = m_entries.back();
-
 
 	//	collect associated subset handlers
 		xml_node<>* curSHNode = curNode->first_node("RegionInfo");
@@ -647,14 +568,6 @@ subset_handler(ISubsetHandler& shOut,
 	vector<GridObject*>& cells = gridEntry.cells;
 	vector<int> subsetIndices;
 	read_scalar_data(subsetIndices, regionDataNode, true);
-
-	if( subsetIndices.size() != cells.size() )
-	{
-		vector<double> subsetIndicesDbl;
-		read_scalar_data(subsetIndicesDbl, regionDataNode, true);
-
-		trafoDblVec2Int( subsetIndicesDbl, subsetIndices );
-	}
 
 	UG_COND_THROW(subsetIndices.size() != cells.size(),
 				  "Mismatch regarding number of cells and number of region-indices!");
@@ -857,17 +770,6 @@ create_cells(std::vector<GridObject*>& cellsOut,
 	}
 
 	return true;
-}
-
-void GridReaderVTU::
-trafoDblVec2Int( std::vector<double> const & dblVec, std::vector<int> & intVec )
-{
-	intVec = std::vector<int>();
-
-	for( auto d : dblVec )
-	{
-		intVec.push_back( static_cast<int>( d ) );
-	}
 }
 
 

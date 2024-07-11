@@ -35,7 +35,6 @@
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/file_io/file_io.h"
 #include "lib_grid/file_io/file_io_ugx.h"
-#include "lib_grid/file_io/file_io_vtu.h"
 
 using namespace std;
 
@@ -76,13 +75,6 @@ bool SaveGridHierarchy(MultiGrid& mg, const char* filename)
 {
 	PROFILE_FUNC_GROUP("grid");
 	return SaveGridToFile(mg, mg.get_hierarchy_handler(), filename);
-}
-
-void SetVTURegionOfInterestIdentifier( char const * regOfInt )
-{
-	PROFILE_FUNC_GROUP("grid");
-	GridReaderVTU::setRegionOfInterestIdentifier( std::string( regOfInt ) );
-	return;
 }
 
 
@@ -137,8 +129,7 @@ void RegisterGridBridge_FileIO(Registry& reg, string parentGroup)
 		.add_function("SaveParallelGridLayout", &SaveParallelGridLayout,
 				grp, "", "mg#filename#offset")
 		.add_function("SaveSurfaceViewTransformed", &SaveSurfaceViewTransformed)
-		.add_function("SaveGridLevelToFile", &SaveGridLevelToFile)
-		.add_function("SetVTURegionOfInterestIdentifier", static_cast<void (*)(char const *)>(&SetVTURegionOfInterestIdentifier) );
+		.add_function("SaveGridLevelToFile", &SaveGridLevelToFile);
 }
 
 }//	end of namespace
