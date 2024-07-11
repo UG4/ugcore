@@ -16,6 +16,6 @@ jobs:
           jenkins-job: "ug-build-pipeline" # The name of the jenkins job to run
           jenkins-username: ${{ secrets.JENKINS_USER }} # user name for accessing jenkins
           jenkins-pat: ${{ secrets.JENKINS_TOKEN }} # personal Access token for accessing Jenkins
-          poll-time: 120 # how often (seconds) to poll the jenkins server for results
+          poll-time: 10 # how often (seconds) to poll the jenkins server for results
           timeout-value: 3600 # How long (seconds) to poll before timing out the action
           verbose: true # true/false - turns on extra logging
