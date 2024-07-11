@@ -22,4 +22,5 @@ jobs:
           username: ${{ secrets.JENKINS_USER }}
           api_token: ${{ secrets.JENKINS_TOKEN }}
           timeout: "3600"
-          interval: "300"
+          interval: "60"
+          start_timeout: "1800"
