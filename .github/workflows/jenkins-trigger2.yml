@@ -6,7 +6,7 @@ jobs:
         uses: mickeygoussetorg/trigger-jenkins-job@v1
         with:
           jenkins-server:  ${{ secrets.JENKINS_URL }} # URL of the jenkins server. ex: http://myjenkins.acme.com:8080
-          jenkins-job: "mySampleApp" # The name of the jenkins job to run
+          jenkins-job: "ug-build-pipeline" # The name of the jenkins job to run
           jenkins-username: ${{ secrets.JENKINS_USER }} # user name for accessing jenkins
           jenkins-pat: ${{ secrets.JENKINS_TOKEN }} # personal Access token for accessing Jenkins
           poll-time: 10 # how often (seconds) to poll the jenkins server for results
