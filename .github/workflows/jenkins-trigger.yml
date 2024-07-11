@@ -1,5 +1,4 @@
 name: Trigger Jenkins CI
-
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
@@ -7,18 +6,20 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-    
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  trigger-jenkins-job:
+  # This workflow contains a single job called "build"
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
-      - id: triggerjenkinsjob
-        uses: mickeygoussetorg/trigger-jenkins-job@v1
+      - name: Trigger jenkins job
+        uses: anaegel/jenkins-githubaction@master
         with:
-          jenkins-server:  ${{ secrets.JENKINS_URL }} # URL of the jenkins server. ex: http://myjenkins.acme.com:8080
-          jenkins-job: "ug-build-pipeline" # The name of the jenkins job to run
-          jenkins-username: ${{ secrets.JENKINS_USER }} # user name for accessing jenkins
-          jenkins-pat: ${{ secrets.JENKINS_TOKEN }} # personal Access token for accessing Jenkins
-          poll-time: 90 # how often (seconds) to poll the jenkins server for results
-          timeout-value: 3600 # How long (seconds) to poll before timing out the action
-          verbose: true # true/false - turns on extra logging
+          url: ${{ secrets.JENKINS_URL }}
+          job_name: ug-build-pipeline
+          username: ${{ secrets.JENKINS_USER }}
+          api_token: ${{ secrets.JENKINS_TOKEN }}
+          timeout: "3600"
+          interval: "300"
