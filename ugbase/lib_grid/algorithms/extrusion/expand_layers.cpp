@@ -4587,7 +4587,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				Vertex * shiftVrtxFound = nullptr;
 				IndexType fndVrt = 0;
 
-				IndexType suse = sh.num_subsets();
+//				IndexType suse = sh.num_subsets();
 
 				//sh.assign_subset(crossPt,suse);
 
@@ -4723,9 +4723,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				vecExpCrossFI.push_back(startFacInf);
 
-				IndexType sui = sh.num_subsets();
-
-				sh.assign_subset(assoFacConsider,sui);
+//				IndexType sui = sh.num_subsets();
+//
+//				sh.assign_subset(assoFacConsider,sui);
 
 //				UG_LOG("Debug Paarbildung	Rasieren " << std::endl);
 
