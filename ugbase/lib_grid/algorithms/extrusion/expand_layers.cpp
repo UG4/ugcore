@@ -730,12 +730,14 @@ using AttVrtVec = Attachment<vector<Vertex*> >;
 
 using IndexType = unsigned short;
 
-using ShiftInfoBasis = std::pair<Edge*, vector3>;
-
-using ShiftInfoSegment = std::pair<ShiftInfoBasis,ShiftInfoBasis>;
+//using ShiftInfoBasis = std::pair<Edge*, vector3>;
+//
+//using ShiftInfoSegment = std::pair<ShiftInfoBasis,ShiftInfoBasis>;
 
 //using CrossVertInf = CrossingVertexInfo<Vertex*, IndexType, Edge*, Face* >;
-using CrossVertInf = CrossingVertexInfo<Vertex*, IndexType, Edge*, ShiftInfoSegment  >;
+//using CrossVertInf = CrossingVertexInfo<Vertex*, IndexType, Edge*, ShiftInfoSegment  >;
+using CrossVertInf = CrossingVertexInfo<Vertex*, IndexType, Edge* >;
+
 
 // for cases with one fracture and no crossing points
 template <typename ASOF >
@@ -3478,7 +3480,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 						Vertex * newShiftVrtx = *grid.create<RegularVertex>();
 						aaPos[newShiftVrtx] = posNewVrt;
 
-	//					sh.assign_subset(newShiftVrtx,  newSubsToAdd );
+						//					sh.assign_subset(newShiftVrtx,  newSubsToAdd );
+						sh.assign_subset(newShiftVrtx, subsIndFracOne );
+						// could also be two, but have to select one, no Kompromiss possible......
 
 						crossVrtInf.addShiftVrtx(newShiftVrtx);
 
@@ -4362,11 +4366,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 	// new vertices which divide the fracture edges
 
-	AVertex aAdjVert; // used to know if an edge is frac edge and in the old faces
-	grid.attach_to_edges_dv( aAdjVert, nullptr );
-	grid.attach_to_faces_dv( aAdjVert, nullptr );
-	Grid::EdgeAttachmentAccessor<AVertex> aaEdgeVert( grid, aAdjVert );
-	Grid::FaceAttachmentAccessor<AVertex> aaFaceVert( grid, aAdjVert );
+//	AVertex aAdjVert; // used to know if an edge is frac edge and in the old faces
+//	grid.attach_to_edges_dv( aAdjVert, nullptr );
+//	grid.attach_to_faces_dv( aAdjVert, nullptr );
+//	Grid::EdgeAttachmentAccessor<AVertex> aaEdgeVert( grid, aAdjVert );
+//	Grid::FaceAttachmentAccessor<AVertex> aaFaceVert( grid, aAdjVert );
 
 	for( auto const & cfi : vecCrossVrtInf )
 	{
@@ -4385,6 +4389,14 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 //		UG_LOG("Shift Vectors Orig " <<  soc << std::endl);
 
+//		// aim: old cross vertex first, shift vertex second, new established vertex third
+//		using VrtxPair = std::pair<Vertex*, Vertex*>;
+//
+//		using DiamondVertexInfo = VertexFractureTriple<Edge*, Face*, Vertex *>;
+//
+//		using VecDiamondVertexInfo = std::vector<DiamondVertexInfo>;
+//
+//		VecDiamondVertexInfo vecDiamVrtInfo;
 
 		if( nuCroFra == 3 )
 		{
@@ -4885,8 +4897,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				IndexType indBefore = ( indC + vecExpCrossFI.size() ) % vecExpCrossFI.size();
 				IndexType indAfter = ( indC + 1 + vecExpCrossFI.size() ) % vecExpCrossFI.size();
 
-				ExpandCrossFracInfo expCFIBeforeFracEdg = vecExpCrossFI[ indBefore ];
-				ExpandCrossFracInfo expCFIAfterFracEdg = vecExpCrossFI[ indAfter ];
+				ExpandCrossFracInfo & expCFIBeforeFracEdg = vecExpCrossFI[ indBefore ];
+				ExpandCrossFracInfo & expCFIAfterFracEdg = vecExpCrossFI[ indAfter ];
 
 				// compute cross point
 
@@ -4904,8 +4916,14 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				Vertex * shiftBefore = vrtcsCrossSegBefore.first;
 				Vertex * shiftAfter = vrtcsCrossSegAfter.second;
 
+				// zur Zielsetzung
+//				Vertex * toBeEstablishedCutEdgeVrtBefore = vrtcsCrossSegBefore.second;
+//				Vertex * toBeEstablishedCutEdgeVrtAfter = vrtcsCrossSegAfter.first;
+
 				if(    vrtcsCrossSegBefore.second != nullptr ||  vrtcsCrossSegAfter.first != nullptr
 					|| 	shiftBefore == nullptr || shiftAfter == nullptr
+//				if(    toBeEstablishedCutEdgeVrtBefore != nullptr ||  toBeEstablishedCutEdgeVrtAfter != nullptr
+//					|| 	shiftBefore == nullptr || shiftAfter == nullptr
 				  )
 					UG_THROW("Nullpointer fehlen oder zu viel " << std::endl);
 
@@ -4983,12 +5001,33 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				UG_LOG("neuer Diamant Vorbereitungs Vertex " << posNewVrtOnEdg << std::endl);
 
-				// gleich neue Faces erzeugen?
+				//				Vertex * toBeEstablishedCutEdgeVrtBefore = vrtcsCrossSegBefore.second;
+				//				Vertex * toBeEstablishedCutEdgeVrtAfter = vrtcsCrossSegAfter.first;
 
-				// TODO FIXME nicht vergessen, den shift vertices eine subdom zu zu weisen!
+
+
+				// gleich neue Faces erzeugen?
+//				std::pair<Vertex*,Vertex*> vrtcsCrossSegBefore = expCFIBeforeFracEdg.getNormal();
+//				std::pair<Vertex*,Vertex*> vrtcsCrossSegAfter = expCFIAfterFracEdg.getNormal();
+
+				// insert the newly established vertex into the vertex info of the ExpandCrossFracInfo of the face
+//				vrtcsCrossSegBefore.second = newEdgVrtx;
+//				vrtcsCrossSegAfter.first = newEdgVrtx;
+//
+				expCFIBeforeFracEdg.setNewNormal( vrtcsCrossSegBefore );
+				expCFIAfterFracEdg.setNewNormal( vrtcsCrossSegAfter );
+
+
+
+//				 vecExpCrossFI[ indBefore ].setNewEdgVertex(newEdgVrtx);
+//				 vecExpCrossFI[ indAfter ].setNewEdgVertex(newEdgVrtx);
+
+//				 DiamondVertexInfo dviBefore();
+//				 DiamondVertexInfo dviAfter();
+
 			}
 
-
+			// create new edges and new faces
 
 			boundAtShiftVrtEdg = true;
 			atStartSort = true;
@@ -5153,7 +5192,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 		}
 	}
 
-	grid.detach_from_edges( aAdjVert );
+//	grid.detach_from_edges( aAdjVert );
 
 	// die frac vertices entfernen noch
 
