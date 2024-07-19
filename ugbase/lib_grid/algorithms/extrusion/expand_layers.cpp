@@ -46,6 +46,7 @@
 #include <atomic>
 #include <cstddef>
 #include <bitset>
+#include <string>
 
 #include "support.h"
 
@@ -5317,6 +5318,23 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			}
 
+//			sh.get_subset_name() XXXXX
+
+//			auto sunam = sh.get_subset_name(subdomList[0]);
+//
+//			for( auto const & su : subdomList )
+//			{
+//
+//			}
+
+//			using SuNaTyp = decltype( sh.get_subset_name(0) );
+
+			static_assert( std::is_same<char const *, decltype( sh.get_subset_name(subdomList[0]) ) >::value );
+
+			std::string diamNam = std::string("diamant_") + std::string(const_cast<char*>( sh.get_subset_name( subdomList[0] ) ))
+					              + std::string("_") + std::string(const_cast<char*>( sh.get_subset_name( subdomList[1] ) ));
+
+			sh.set_subset_name(diamNam.c_str(),diamantSubsNum);
 
 			// TODO FIXME in extra Funktion packen, vielfach aufgerufen in der Art!
 
@@ -5357,7 +5375,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				}
 
 			}
-
 
 
 			// at end delete all fracture edges which are too long
