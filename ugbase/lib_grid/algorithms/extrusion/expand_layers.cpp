@@ -736,7 +736,7 @@ using IndexType = unsigned short;
 
 //using CrossVertInf = CrossingVertexInfo<Vertex*, IndexType, Edge*, Face* >;
 //using CrossVertInf = CrossingVertexInfo<Vertex*, IndexType, Edge*, ShiftInfoSegment  >;
-using CrossVertInf = CrossingVertexInfo<Vertex*, IndexType, Edge* >;
+using CrossVertInf = CrossingVertexInfo<Vertex*, IndexType >; //, Edge* >;
 
 
 // for cases with one fracture and no crossing points
@@ -2839,7 +2839,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //					crossVrtInf.addOriginalFracEdge( aae );
 //				}
 
-				crossVrtInf.setOriginalFracEdge(allAssoEdges);
+//				crossVrtInf.setOriginalFracEdge(allAssoEdges);
 
 				// TODO FIXME in case of three fractures, we have to use the method for eine durchgehende fracture
 				// auf der Seite, wo die zweite fracture NICHT rein geht
@@ -4365,6 +4365,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 	grid.detach_from_faces(attVrtVec);
 	grid.detach_from_vertices( aAdjInfoVVEVM );
 
+//	sel.clear();
+
 //	return true;
 
 	//  alles detachen, was noch attached ist, da ist einiges hinzu gekommen!
@@ -4387,13 +4389,41 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 		Vertex * crossPt = cfi.getCrossVertex();
 
-		VecEdge origFracEdg = cfi.getVecOrigFracEdges();
+
 
 		std::vector<Vertex * > shiftVrtcs = cfi.getVecShiftedVrts();
 
-		IndexType shiffsOrig = shiftVrtcs.size();
+//		IndexType shiffsOrig = shiftVrtcs.size();
+//
+//		auto soc = shiffsOrig;
 
-		auto soc = shiffsOrig;
+		VecEdge origFracEdg; // = cfi.getVecOrigFracEdges();
+
+		VecEdge allAssoEdgCP;
+
+		for( std::vector<Edge *>::iterator iterEdg = grid.associated_edges_begin(crossPt); iterEdg != grid.associated_edges_end(crossPt); iterEdg++ )
+		{
+
+			allAssoEdgCP.push_back(*iterEdg);
+
+			bool hasShiftedVrtx = false;
+
+			for( IndexType i = 0; i < 2; i++ )
+			{
+				Vertex * side = (*iterEdg)->vertex(i);
+
+				for( auto const & vrt : shiftVrtcs )
+				{
+					if( side == vrt )
+						hasShiftedVrtx = true;
+				}
+
+			}
+
+			if( ! hasShiftedVrtx )
+				origFracEdg.push_back(*iterEdg);
+		}
+
 
 //		UG_LOG("Shift Vectors Orig " <<  soc << std::endl);
 
@@ -4580,7 +4610,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				IndexType effsOrig = edgesThisFac.size();
 
-				auto efeu = effsOrig;
+//				auto efeu = effsOrig;
 
 //				UG_LOG("Edges this fac Orig " << efeu <<  dbg_rndl << std::endl);
 
@@ -5342,21 +5372,21 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 					UG_THROW("hier fehlt ein Gesicht " << std::endl);
 			}
 
-			IndexType subsNumNow = sh.num_subsets();
-
-//			IndexType susu = subsNumNow;
-
-//			UG_LOG("subs num " << susu << std::endl);
-			UG_LOG("subs num " << subsNumNow << std::endl);
-
-			for( auto const & oEdg : origFracEdg )
+//			IndexType subsNumNow = sh.num_subsets();
+//
+////			IndexType susu = subsNumNow;
+//
+////			UG_LOG("subs num " << susu << std::endl);
+//			UG_LOG("subs num " << subsNumNow << std::endl);
+//
+			for( auto const & edg : allAssoEdgCP )
 			{
-				Edge * e2D = oEdg;
+//				Edge * e2D = oEdg;
 
-				if( e2D != nullptr )
+				if( edg != nullptr )
 				{
-//					grid.erase(edg2BeDel);
-					UG_LOG("will erasieren " << e2D << std::endl );
+					UG_LOG("will erasieren " << edg << std::endl );
+					grid.erase(edg);
 
 //					sh.assign_subset( e2D, subsNumNow );
 //					sh.assign_subset( e2D, subsNumNow );
@@ -5420,6 +5450,49 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //	grid.detach_from_edges( aAdjVert );
 
 	// die frac vertices entfernen noch
+
+//	for( auto const & cfi : vecCrossVrtInf )
+//	{
+//		IndexType nuCroFra =  cfi.getNumbCrossFracs();
+//
+//		VecEdge origFracEdg = cfi.getVecOrigFracEdges();
+//
+//
+//		if( nuCroFra == 3 )
+//		{
+//
+//		}
+//		else if( nuCroFra == 4 )
+//		{
+//			IndexType subsNumNow = sh.num_subsets();
+//
+//	//			IndexType susu = subsNumNow;
+//
+//	//			UG_LOG("subs num " << susu << std::endl);
+//			UG_LOG("subs num " << subsNumNow << std::endl);
+//
+//			for( auto const & oEdg : origFracEdg )
+//			{
+//				Edge * e2D = oEdg;
+//
+//				if( e2D != nullptr )
+//				{
+//	//					grid.erase(edg2BeDel);
+//					UG_LOG("will erasieren " << e2D << std::endl );
+//
+//					sh.assign_subset( e2D, subsNumNow );
+//	//					sh.assign_subset( e2D, subsNumNow );
+//				}
+//				else
+//				{
+//						UG_LOG("hier fehlt eine Ecke " << std::endl);
+//				}
+//			}
+//
+//		}
+//	}
+
+	UG_LOG("zu Ende gekommen mit Arte 2D" << std::endl);
 
 	return true;
 
