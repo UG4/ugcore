@@ -4320,6 +4320,14 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 			Edge* edg = grid.get_edge(nf, i_edge);
 
 			sh.assign_subset( edg, subsOfNewFaces[nfn] );
+
+		}
+
+		for( size_t iVrt = 0; iVrt < nf->num_vertices(); iVrt++ )
+		{
+			Vertex * vrt = nf->vertex(iVrt);
+
+			sh.assign_subset( vrt, subsOfNewFaces[nfn] );
 		}
 
 		nfn++;
@@ -5038,14 +5046,16 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			// create new edges and new faces
 
-			boundAtShiftVrtEdg = true;
-			atStartSort = true;
 
 //			IndexType diamantSubsNum = sh.num_subsets()+1; // +1 notwendig? TODO FIXME
 			IndexType diamantSubsNum = sh.num_subsets(); // +1 notwendig? TODO FIXME
 
 			std::vector<Face*> newFracFaceVec = std::vector<Face*>();
 			std::vector<Face*> newDiamFaceVec = std::vector<Face*>();
+
+
+			boundAtShiftVrtEdg = true;
+			atStartSort = true;
 
 
 			for( auto const & ecf : vecExpCrossFI )
@@ -5271,12 +5281,52 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				sh.assign_subset(newFracFace, diamantSubsNum );
 
-				newFracFaceVec.push_back(newFracFace);
+				newDiamFaceVec.push_back(newFracFace);
 
 
 
 			}
 
+
+			// TODO FIXME in extra Funktion packen, vielfach aufgerufen in der Art!
+
+			for( auto const & nF : newFracFaceVec )
+			{
+				for(size_t iEdge = 0; iEdge < nF->num_edges(); iEdge++ )
+				{
+					Edge* edg = grid.get_edge(nF, iEdge);
+
+					sh.assign_subset( edg, sh.get_subset_index(nF) );
+
+				}
+
+				for( size_t iVrt = 0; iVrt < nF->num_vertices(); iVrt++ )
+				{
+					Vertex * vrt = nF->vertex(iVrt);
+
+					sh.assign_subset( vrt, sh.get_subset_index(nF) );
+				}
+
+			}
+
+			for( auto const & nF : newDiamFaceVec )
+			{
+				for(size_t iEdge = 0; iEdge < nF->num_edges(); iEdge++ )
+				{
+					Edge* edg = grid.get_edge(nF, iEdge);
+
+					sh.assign_subset( edg, sh.get_subset_index(nF) );
+
+				}
+
+				for( size_t iVrt = 0; iVrt < nF->num_vertices(); iVrt++ )
+				{
+					Vertex * vrt = nF->vertex(iVrt);
+
+					sh.assign_subset( vrt, sh.get_subset_index(nF) );
+				}
+
+			}
 
 
 
@@ -5292,15 +5342,32 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 					UG_THROW("hier fehlt ein Gesicht " << std::endl);
 			}
 
-//			for( auto const & oEdg : origFracEdg )
-//			{
-//				Edge * edg2BeDel = oEdg;
-//
-//				if( edg2BeDel != nullptr )
+			IndexType subsNumNow = sh.num_subsets();
+
+//			IndexType susu = subsNumNow;
+
+//			UG_LOG("subs num " << susu << std::endl);
+			UG_LOG("subs num " << subsNumNow << std::endl);
+
+			for( auto const & oEdg : origFracEdg )
+			{
+				Edge * e2D = oEdg;
+
+				if( e2D != nullptr )
+				{
 //					grid.erase(edg2BeDel);
-//				else
-//					UG_THROW("hier fehlt eine Ecke " << std::endl);
-//			}
+					UG_LOG("will erasieren " << e2D << std::endl );
+
+//					sh.assign_subset( e2D, subsNumNow );
+//					sh.assign_subset( e2D, subsNumNow );
+				}
+				else
+				{
+					UG_LOG("hier fehlt eine Ecke " << std::endl);
+				}
+			}
+
+			UG_LOG("ALles erasiert " << std::endl);
 
 //			for( auto & afc : assoFacCross )
 //			{
