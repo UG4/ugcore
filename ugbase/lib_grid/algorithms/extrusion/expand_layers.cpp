@@ -5282,7 +5282,25 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			// at end delete all fracture edges which are too long
 
+			for( auto const & fdel : vecExpCrossFI )
+			{
+				Face * fac2BeDeleted = fdel.getFace();
 
+				if( fac2BeDeleted != nullptr )
+					grid.erase(fac2BeDeleted);
+				else
+					UG_THROW("hier fehlt ein Gesicht " << std::endl);
+			}
+
+//			for( auto const & oEdg : origFracEdg )
+//			{
+//				Edge * edg2BeDel = oEdg;
+//
+//				if( edg2BeDel != nullptr )
+//					grid.erase(edg2BeDel);
+//				else
+//					UG_THROW("hier fehlt eine Ecke " << std::endl);
+//			}
 
 //			for( auto & afc : assoFacCross )
 //			{
