@@ -40,7 +40,9 @@
 #include "bridge/util.h"
 #include "bridge/util_domain_dependent.h"
 
+#ifdef UG_FOR_LUA
 #include "bindings/lua/lua_user_data.h"
+#endif
 
 #ifdef UG_PARALLEL
 	#include "lib_disc/parallelization/domain_load_balancer.h"
@@ -106,7 +108,7 @@ namespace ug{
 
 	};
 
-
+#ifdef UG_FOR_LUA
 	template <class TDomain>
 	class BalanceWeightsLuaCallback : public IBalanceWeights
 	{
@@ -154,6 +156,7 @@ namespace ug{
 			number						m_time;
 			LuaFunction<number, number>	m_callback;
 	};
+#endif // #ifdef UG_FOR_LUA
 #endif
 
 // end group loadbalance_bridge
@@ -564,6 +567,7 @@ static void Domain(TRegistry& reg, string grp)
 			reg.add_class_to_group(name, "AnisotropicBalanceWeights", tag);
 		}
 
+#ifdef UG_FOR_LUA
 		{
 			typedef BalanceWeightsLuaCallback<TDomain> T;
 			string name = string("BalanceWeightsLuaCallback").append(suffix);
@@ -575,6 +579,7 @@ static void Domain(TRegistry& reg, string grp)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "BalanceWeightsLuaCallback", tag);
 		}
+#endif
 
 		{
 			string name = string("DomainLoadBalancer").append(suffix);
