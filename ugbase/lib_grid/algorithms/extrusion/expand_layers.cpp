@@ -4412,6 +4412,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 		VecEdge origFracEdg; // = cfi.getVecOrigFracEdges();
 
+		// all edges associated to the crossing point
 		VecEdge allAssoEdgCP;
 
 		for( std::vector<Edge *>::iterator iterEdg = grid.associated_edges_begin(crossPt); iterEdg != grid.associated_edges_end(crossPt); iterEdg++ )
@@ -4449,86 +4450,56 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //
 //		VecDiamondVertexInfo vecDiamVrtInfo;
 
-		//		if( nuCroFra == 3 )
-		if( fracTyp == CrossVertInf::TEnd )
+		// need to know the subsets of all faces!
+		std::vector<IndexType> subdomList;
+
+		// all faces associated to the crossing point
+		std::vector<Face *> assoFacCross;
+
+		for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(crossPt); iterFac != grid.associated_faces_end(crossPt); iterFac++ )
 		{
+			assoFacCross.push_back(*iterFac);
 
-			// TODO FIXME hier sind wir HHHHHHHHHHHHHHHHHHHH
+			bool sudoAlreadyThere = false;
 
+			IndexType sudo = sh.get_subset_index(*iterFac);
+
+			for( auto sl : subdomList )
+			{
+				if( sl == sudo )
+					sudoAlreadyThere = true;
+			}
+
+			if( !sudoAlreadyThere )
+				subdomList.push_back(sudo);
 		}
-		//		else if( nuCroFra == 4 )
-		else if( fracTyp == CrossVertInf::XCross )
+
+		if( subdomList.size() != 2 )
+			UG_THROW("wieviele Subdoms um Kreuz herum? 	" << subdomList.size() << std::endl );
+
+
+		// finales Ziel: alle neuen faces entfernen, die an den Schnittknoten anhängen
+		// ein Test noch
+
+		for( auto const & afc : assoFacCross )
 		{
-//			for( auto const & edg : origFracEdg )
-			for( auto edg : origFracEdg )
+			// figure out respective original frac edge, need to know all edges and all vertices of this fracture
+
+			// was sind die Ecken und Kanten dieses Faces? welche Ecke davon ist die originale Fracture edge?
+			// was ist die subdomain der originalen Fracture edge? klar das ist die subdomain des faces
+
+			auto subdom = sh.get_subset_index(afc);
+
+			bool subdomFnd = false;
+
+			for( auto const & sd : subdomList )
 			{
-
-				static_assert( std::is_same< decltype( edg ), Edge * >::value  );
-//				static_assert( std::is_same< const_cast<Edge*>(decltype( edg )), Edge * >::value  );
-
-//				//Vertex* vrtSpliEd =
-//				if( edg != nullptr )
-//				SplitEdge<Vertex>( grid, static_cast<Edge*>(edg) );
-////				else
-////					UG_LOG("Nullptr getroffen " << std::endl);
-//
-////				size_t numSubs = sh.num_subsets();
-////
-////				sh.assign_subset(edg, numSubs );
-//
-//				//SplitEdge
-//
-//				return true;
-
+				if( subdom == sd )
+					subdomFnd = true;
 			}
 
-			// alle neuen faces entfernen, die an den Schnittknoten anhängen
-
-			std::vector<Face *> assoFacCross;
-			std::vector<IndexType> subdomList;
-
-			for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(crossPt); iterFac != grid.associated_faces_end(crossPt); iterFac++ )
-			{
-				assoFacCross.push_back(*iterFac);
-
-				bool sudoAlreadyThere = false;
-
-				IndexType sudo = sh.get_subset_index(*iterFac);
-
-				for( auto sl : subdomList )
-				{
-					if( sl == sudo )
-						sudoAlreadyThere = true;
-				}
-
-				if( !sudoAlreadyThere )
-					subdomList.push_back(sudo);
-			}
-
-			// need to know the subsets of all faces!
-
-
-
-
-			for( auto const & afc : assoFacCross )
-			{
-				// figure out respective original frac edge, need to know all edges and all vertices of this fracture
-
-				// was sind die Ecken und Kanten dieses Faces? welche Ecke davon ist die originale Fracture edge?
-				// was ist die subdomain der originalen Fracture edge? klar das ist die subdomain des faces
-
-				auto subdom = sh.get_subset_index(afc);
-
-				bool subdomFnd = false;
-
-				for( auto const & sd : subdomList )
-				{
-					if( subdom == sd )
-						subdomFnd = true;
-				}
-
-				if( ! subdomFnd )
-					UG_THROW("SUBDOM NOT found" << std::endl);
+			if( ! subdomFnd )
+				UG_THROW("SUBDOM NOT found" << std::endl);
 
 //				for( auto const &  )
 //				AssociatedEdgeIterator associated_edges_begin(Face* face);///< DO NOT INVOKE! Subject to change.
@@ -4543,20 +4514,155 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //				}
 
 
+		}
+
+//		//			for( auto const & edg : origFracEdg )
+//					for( auto edg : origFracEdg )
+//					{
+//
+//						static_assert( std::is_same< decltype( edg ), Edge * >::value  );
+//		//				static_assert( std::is_same< const_cast<Edge*>(decltype( edg )), Edge * >::value  );
+//
+//		//				//Vertex* vrtSpliEd =
+//		//				if( edg != nullptr )
+//		//				SplitEdge<Vertex>( grid, static_cast<Edge*>(edg) );
+//		////				else
+//		////					UG_LOG("Nullptr getroffen " << std::endl);
+//		//
+//		////				size_t numSubs = sh.num_subsets();
+//		////
+//		////				sh.assign_subset(edg, numSubs );
+//		//
+//		//				//SplitEdge
+//		//
+//		//				return true;
+//
+//					}
+
+
+
+
+		// different Vorgehensweisen for T End and X Cross
+
+		//		if( nuCroFra == 3 )
+		if( fracTyp == CrossVertInf::TEnd )
+		{
+
+			std::vector<std::pair<Vertex*,bool>> shiftVertcsWithTI = cfi.getVecShiftedVrtsWithTypInfo();
+
+			// test if the vertex vector is the same as the vertex vector without info
+
+			if( shiftVertcsWithTI.size() != shiftVrtcs.size() )
+				UG_THROW("Unterschiedlich grosse shift vertices " << shiftVertcsWithTI.size() << " != " << shiftVrtcs.size()  << std::endl);
+
+			for( IndexType i = 0; i < shiftVertcsWithTI.size(); i++ )
+			{
+				if( shiftVertcsWithTI[i].first != shiftVrtcs[i]  )
+					UG_THROW("komische Shift vertizes" << std::endl);
 			}
 
-			if( subdomList.size() != 2 )
-				UG_THROW("wieviele Subdoms um Kreuz herum? 	" << subdomList.size() << std::endl );
+			// aim: sorting faces
+			auto assoFracTEndCop = assoFacCross;
 
+			// figure out that shift vertex that is at the T End
+
+			// start at defined face or edge
+			// start sorted faces at one of the faces which belong to the T End , i.e. that side where no fracture sorts
+			// figure out the corresponding index
+
+			int indxFrcWithTE = -1;
+			IndexType indxFnd = 0;
+			IndexType startEdgeFnd = 0;
+			IndexType endEdgFnd = 0;
+
+			IndexType cntr = 0;
+
+			// muss sofort festgelegt werden - Startecke
+			Edge * assoFacEdgBeg2Fix = nullptr;
+			Edge * assoFacSndEdg2Fix = nullptr;
+
+			for( auto const & aft : assoFracTEndCop )
+			{
+				for( auto const & svwi : shiftVertcsWithTI )
+				{
+					if( svwi.second == true )
+					{
+						if( FaceContains(aft, svwi.first ) )
+						{
+							indxFrcWithTE = cntr;
+							indxFnd++;
+
+							for( std::vector<Edge *>::iterator iterEdgF = grid.associated_edges_begin(aft);
+									iterEdgF != grid.associated_edges_end(aft); iterEdgF++ )
+							{
+
+								bool edgCntsShiVe = EdgeContains(*iterEdgF, svwi.first);
+								bool edgCntsCrsPt = EdgeContains(*iterEdgF,crossPt);
+
+//								if( EdgeContains(*iterEdgF, svwi.first) && EdgeContains(*iterEdgF,crossPt) )
+								if( edgCntsShiVe && edgCntsCrsPt )
+								{
+									assoFacEdgBeg2Fix = *iterEdgF;
+									startEdgeFnd++;
+								}
+								else if( edgCntsCrsPt && ! edgCntsShiVe )
+								{
+									assoFacSndEdg2Fix = *iterEdgF;
+									endEdgFnd++;
+								}
+							}
+
+						}
+					}
+				}
+
+				cntr++;
+			}
+
+			// we hit twice, and finally take the second one, as we also want to count
+
+			if( indxFrcWithTE < 0 || indxFrcWithTE >=  assoFracTEndCop.size() )
+				UG_THROW("Start nicht gefunden, freies Ende verloren " << std::endl);
+
+			if( indxFnd != 2 || startEdgeFnd != 2 || endEdgFnd != 2 )
+				UG_THROW("Index Free point or edge not found correct number " << indxFnd << " " << startEdgeFnd << " " << endEdgFnd << std::endl);
+
+			Edge * firstEdgeFac = assoFacEdgBeg2Fix;
+			Edge * secondEdgeFac = assoFacSndEdg2Fix;
+
+			if( firstEdgeFac == nullptr || secondEdgeFac == nullptr )
+				UG_THROW("nullecke am Anfang?" << std::endl);
+
+			Face * assoFacTConsider = assoFracTEndCop[ indxFrcWithTE ];
+
+			if( ! FaceContains(assoFacTConsider, firstEdgeFac ))
+				UG_THROW("Ecke verloren geangen T " << std::endl);
+
+			// soll erst ganz am Schluss festgelegt werden
+			Edge * assoFacEdgEnd2Fix = nullptr;
+
+			bool atStartSort = true;
+
+//			while( assoFacTConsider.size() != 0 )
+//			{
+//				;
+//			}
+
+			UG_LOG("T End Kreis fertig an " << aaPos[crossPt] << std::endl );
+
+		}
+		//		else if( nuCroFra == 4 )
+		else if( fracTyp == CrossVertInf::XCross )
+		{
 			// sort faces and corresponding edges, start with an oririnal fracture edge and select the next edge which
 			// has a newly created shift vertex
 
-			auto assoFacCrossCop = assoFacCross;
+			auto assoFacXCrossCop = assoFacCross;
 
 			// "durchdrehen"
 
-//			Face * assoFacConsider = *(assoFacCrossCop.begin());
-			Face * assoFacConsider = assoFacCrossCop[0];
+//			Face * assoFacConsider = *(assoFacXCrossCop.begin());
+			Face * assoFacConsider = assoFacXCrossCop[0];
 
 			// soll einmal am Anfang festgelegt werden und dann bleiben
 			Edge * assoFacEdgBeg2Fix = nullptr;
@@ -4564,7 +4670,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 			Edge * assoFacEdgEnd2Fix = nullptr;
 
 			// soll in jedem Lauf aktualisiert werden
-			Edge * firstEdgeFac = assoFacEdgBeg2Fix;;
+			Edge * firstEdgeFac = assoFacEdgBeg2Fix;
 			Edge * secondEdgeFac = nullptr;
 
 			bool atStartSort = true;
@@ -4584,7 +4690,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			IndexType dbg_rndl = 0;
 
-			while( assoFacCrossCop.size() != 0 )
+			while( assoFacXCrossCop.size() != 0 )
 			{
 
 //				UG_LOG("Debug Rundlauf " << dbg_rndl << std::endl);
@@ -4602,9 +4708,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				edgesThisFac.clear();
 
-				IndexType eoeo = edgesThisFac.size();
-
-				auto eiei = eoeo;
+//				IndexType eoeo = edgesThisFac.size();
+//
+//				auto eiei = eoeo;
 
 //				UG_LOG("Edges this fac Orig Orig " << eiei <<  " " << dbg_rndl << std::endl);
 
@@ -4808,7 +4914,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				IndexType dbg_it_er = 0;
 
-				for( std::vector<Face*>::iterator itFac = assoFacCrossCop.begin(); itFac != assoFacCrossCop.end(); itFac++ )
+				for( std::vector<Face*>::iterator itFac = assoFacXCrossCop.begin(); itFac != assoFacXCrossCop.end(); itFac++ )
 				{
 					Face * iFa = *itFac;
 
@@ -4831,7 +4937,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 					if( iFa == assoFacConsider && FaceContains( iFa, firstEdgeFac ) && FaceContains(iFa, secondEdgeFac) )
 					{
 //						UG_LOG("Erasieren " << std::endl);
-						assoFacCrossCop.erase(itFac);
+						assoFacXCrossCop.erase(itFac);
 						break;
 					}
 				}
@@ -4839,7 +4945,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //				UG_LOG("Debug Paarbildung	Rasieren durch " << std::endl);
 
 
-				if( assoFacCrossCop.size() == 0 )
+				if( assoFacXCrossCop.size() == 0 )
 				{
 					if( secondEdgeFac != assoFacEdgBeg2Fix )
 					{
@@ -4863,7 +4969,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				IndexType nextFaceFound = 0;
 
-				for( std::vector<Face*>::iterator itFac = assoFacCrossCop.begin(); itFac != assoFacCrossCop.end(); itFac++ )
+				for( std::vector<Face*>::iterator itFac = assoFacXCrossCop.begin(); itFac != assoFacXCrossCop.end(); itFac++ )
 				{
 					Face * iFa = *itFac;
 
@@ -4880,7 +4986,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 					UG_THROW("folgendes Gesicht in falscher Anztahl gefunden Diamant " << nextFaceFound << std::endl);
 				}
 
-				for( std::vector<Face*>::iterator itFac = assoFacCrossCop.begin(); itFac != assoFacCrossCop.end(); itFac++ )
+				for( std::vector<Face*>::iterator itFac = assoFacXCrossCop.begin(); itFac != assoFacXCrossCop.end(); itFac++ )
 				{
 					Face * iFa = *itFac;
 
@@ -4909,7 +5015,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //				UG_THROW("Shift vertizes nicht alle gefinden " << std::endl);
 //			}
 
-			if( assoFacCrossCop.size() != 0 )
+			if( assoFacXCrossCop.size() != 0 )
 			{
 				UG_LOG("nicht alle asso facs gefunden " << std::endl);
 //				return false;
