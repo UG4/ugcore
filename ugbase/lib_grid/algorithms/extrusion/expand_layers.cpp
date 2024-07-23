@@ -850,6 +850,12 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 
 	sh.assign_subset(newShiftVrtx, subsIndEdgOne );
 
+	if( insertCrossVrtInf )
+	{
+		crossVrtInf.addShiftVrtx(newShiftVrtx, true);
+	}
+	// only needed in case of crossing vertices
+
 
 
 	// alle anhängenden faces müssen noch zu wissen bekommen
@@ -975,9 +981,12 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 				}
 			}
 
-			if( insertCrossVrtInf )
-				crossVrtInf.setShiftVrtx(newVrts4Fac);
-			// only needed in case of crossing vertices
+//			if( insertCrossVrtInf )
+//			{
+////				crossVrtInf.setShiftVrtx(newVrts4Fac);
+//				crossVrtInf.addShiftVrtx(newVrts4Fac, true);
+//			}
+//			// only needed in case of crossing vertices
 
 			if( vrtxFnd <= 0 )
 			{
@@ -2833,7 +2842,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 //				CrossingVertexInfo<Vertex*, IndexType> crossVrtInf( *iterV, numFracsCrossAtVrt );
 
+				UG_LOG("number fracs " << numFracsCrossAtVrt << std::endl);
+
 				CrossVertInf crossVrtInf( *iterV, numFracsCrossAtVrt );
+
+				UG_LOG("Nummer vorbei " << std::endl);
 
 //				for( auto const & aae : allAssoEdges )
 //				{
@@ -4386,11 +4399,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 	for( auto const & cfi : vecCrossVrtInf )
 	{
 
-		IndexType nuCroFra =  cfi.getNumbCrossFracs();
+//		IndexType nuCroFra =  cfi.getNumbCrossFracs();
+		CrossVertInf::FracTyp fracTyp =  cfi.getFracTyp();
 
 		Vertex * crossPt = cfi.getCrossVertex();
-
-
 
 		std::vector<Vertex * > shiftVrtcs = cfi.getVecShiftedVrts();
 
@@ -4437,11 +4449,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //
 //		VecDiamondVertexInfo vecDiamVrtInfo;
 
-		if( nuCroFra == 3 )
+		//		if( nuCroFra == 3 )
+		if( fracTyp == CrossVertInf::TEnd )
 		{
 
+			// TODO FIXME hier sind wir HHHHHHHHHHHHHHHHHHHH
+
 		}
-		else if( nuCroFra == 4 )
+		//		else if( nuCroFra == 4 )
+		else if( fracTyp == CrossVertInf::XCross )
 		{
 //			for( auto const & edg : origFracEdg )
 			for( auto edg : origFracEdg )
