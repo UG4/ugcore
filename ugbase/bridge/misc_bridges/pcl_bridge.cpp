@@ -116,11 +116,21 @@ static vector<T> ParallelVecSum(const vector<T>& t)
 	return tmp;
 }
 
+void Init0()
+{return pcl::Init(nullptr, nullptr);}
+
 template <typename TRegistry>
 void RegisterBridge_PCL_(TRegistry& reg, string parentGroup)
 {
 	string grp(parentGroup);
 	grp.append("/pcl");
+
+
+	reg.add_function("PCL_Init", &Init0, grp,
+						"", "", "Initialize pcl (and MPI)");
+
+	reg.add_function("PCL_Finalize", &pcl::Finalize, grp,
+							"", "", "Finalize pcl (and MPI)");
 
 	reg.add_function("DisableMPIInit", &pcl::DisableMPIInit, grp, "", "",
 	                 "Tells PCL to not call MPI_Init and MPI_Finalize.");
