@@ -1020,6 +1020,375 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 
 }
 
+using VecEdge = std::vector<Edge*>;
+using VecFace = std::vector<Face*>;
+
+using ExpandCrossFracInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<Vertex*, Vertex*> >;
+// Vertex nullptr wo original fracture, und shift vertex, wo Keilecke, die weg soll - Fall X Cross
+
+using VecExpandCrossFracInfo = std::vector<ExpandCrossFracInfo>;
+
+
+bool SortFaces4DiamondCreation(	std::vector<Face *> & assoFacCrossCop, Edge * & firstEdgeFac, Edge * & secondEdgeFac,
+		Face * & assoFacConsider, VecEdge const & origFracEdg, std::vector<Vertex * > const & shiftVrtcs,
+		Vertex * const & crossPt, Edge * & assoFacEdgBeg2Fix, Edge * & assoFacEdgEnd2Fix, Grid& grid,
+		VecExpandCrossFracInfo & vecExpCrossFI,
+		bool isXCross = true // if false, then isTEnd, no other possibility
+		)
+{
+
+	// TODO FIXME noch die Abweichungen für den TEnd Fall einbauen
+
+	bool atStartSort = true;
+
+	bool boundAtShiftVrtEdg = true;
+
+//			auto shiftVrtcsCop = shiftVrtcs;
+
+//			UG_LOG("starting Rundlauf " << std::endl);
+
+	IndexType dbg_rndl = 0;
+
+	while( assoFacCrossCop.size() != 0 )
+	{
+
+
+		//				UG_LOG("Debug Rundlauf " << dbg_rndl << std::endl);
+
+		dbg_rndl++;
+
+		secondEdgeFac = nullptr;
+
+		Edge * fracEdge = nullptr;
+		Edge * shiftVrtxEdg = nullptr;
+
+		//				IndexType fndEdgEnd = 0;
+
+		std::vector<Edge*> edgesThisFac;
+
+		edgesThisFac.clear();
+
+		//				IndexType eoeo = edgesThisFac.size();
+		//
+		//				auto eiei = eoeo;
+
+		//				UG_LOG("Edges this fac Orig Orig " << eiei <<  " " << dbg_rndl << std::endl);
+
+
+		//				UG_LOG("Debug Ecken " << std::endl);
+
+		IndexType dbg_itEd = 0;
+
+		for( std::vector<Edge *>::iterator iterEdgF = grid.associated_edges_begin(assoFacConsider);
+				iterEdgF != grid.associated_edges_end(assoFacConsider); iterEdgF++ )
+		{
+			edgesThisFac.push_back(*iterEdgF);
+
+		//					UG_LOG("und noch eines dazu " << dbg_itEd << " " << dbg_rndl << std::endl);
+
+							//IndexType sudos = sh.num_subsets();
+
+							//sh.assign_subset(*iterEdgF,sudos);
+		}
+
+		//				IndexType effsOrig = edgesThisFac.size();
+
+		//				auto efeu = effsOrig;
+
+		//				UG_LOG("Edges this fac Orig " << efeu <<  dbg_rndl << std::endl);
+
+
+						// figure out original fracture edge
+
+		IndexType fndFracEdg = 0;
+
+		for( auto const & etf : edgesThisFac )
+		{
+			for( auto const & ofe : origFracEdg )
+			{
+				if( etf == ofe )
+				{
+					fndFracEdg++;
+					fracEdge = etf;
+				}
+			}
+		}
+
+		//				UG_LOG("Debug Ofen	 " << std::endl);
+
+
+		if( fracEdge == nullptr || fndFracEdg != 1 )
+		{
+			UG_LOG("Frac Orig Ecke nicht gefunden oder falsche Zahl " << fndFracEdg << " " << isXCross << std::endl );
+		//					return false;
+			UG_THROW("Frac Orig Ecke nicht gefunden oder falsche Zahl " << fndFracEdg << " " << isXCross << std::endl );
+		}
+
+
+						// find expanded shift vertex
+
+		Vertex * shiftVrtxFound = nullptr;
+		IndexType fndVrt = 0;
+
+		//				IndexType suse = sh.num_subsets();
+
+						//sh.assign_subset(crossPt,suse);
+
+		//				for( auto & sv : shiftVrtcsCop )
+		//				{
+		//					IndexType suseV = sh.num_subsets();
+		//					//sh.assign_subset(sv,suseV);
+		//				}
+
+		//				return true;
+
+		//				UG_LOG("Debug Entfernene	 " << std::endl);
+
+		IndexType dbg_edgnum = 0;
+
+		IndexType helpVarEdges = 0;
+
+		//				IndexType effs = edgesThisFac.size();
+		//				IndexType shiffs = shiftVrtcs.size();
+
+		//				UG_LOG("Edges this fac " <<  effs <<  dbg_rndl << std::endl);
+		//				UG_LOG("Shift Vectors " <<  shiffs <<  dbg_rndl << std::endl);
+
+
+		for( auto const & etf : edgesThisFac )
+		{
+
+			if( helpVarEdges >= edgesThisFac.size() )
+			{
+				UG_LOG("Indexueberschreitung Edges" << " " << isXCross <<  std::endl);
+				break;
+			}
+
+			helpVarEdges++;
+
+			dbg_edgnum++;
+
+			IndexType helpShiVaNum = 0;
+
+			IndexType dbg_shiVe = 0;
+
+		//					for( Vertex * const & sv : shiftVrtcs )
+			for( auto const & sv : shiftVrtcs )
+			{
+
+				if( helpShiVaNum >= shiftVrtcs.size() )
+				{
+					UG_LOG("Shift Vertex Index Verletzung " << " " << isXCross << std::endl);
+					break;
+				}
+
+				helpShiVaNum++;
+
+				dbg_shiVe++;
+
+				for( IndexType i = 0; i < 2; i++ )
+				{
+
+					// TODO FIXME ersetzen durch ElementContains Funktion
+		//							if( ( etf->vertex(i) == crossPt && etf->vertex((i+1)%2) == sv )  || (etf->vertex((i+1)%2) == crossPt && etf->vertex(i) == sv ))
+					if( etf->vertex(i) == crossPt && etf->vertex((i+1)%2) == sv )
+					{
+						shiftVrtxFound = sv;
+						fndVrt++;
+						shiftVrtxEdg = etf;
+
+		//								UG_LOG("Shift Vertex " << aaPos[shiftVrtxFound] << " " << dbg_edgnum << " " << dbg_shiVe << " " << dbg_rndl << std::endl);
+		//								UG_LOG("Cross Vertex " << aaPos[crossPt] << " " << dbg_edgnum << " " << dbg_shiVe <<  " " << dbg_rndl <<  std::endl );
+		//
+		//								UG_LOG("dbg edgenu shive " << dbg_edgnum << " " << dbg_shiVe <<  " " << dbg_rndl <<  std::endl);
+					}
+				}
+			}
+		}
+
+		//				UG_LOG("Debug Entfert durch	 " << std::endl);
+
+
+		if( fndVrt != 1 || shiftVrtxFound == nullptr || shiftVrtxEdg == nullptr )
+		{
+			UG_LOG("shift vertex komische Zahl oder null " << fndVrt << " " << isXCross << std::endl);
+		//					return false;
+			UG_THROW("shift vertex komische Zahl oder null " << fndVrt << " " << isXCross << std::endl);
+		}
+
+		//				UG_LOG("Debug Entfert Text durch	 " << std::endl);
+
+
+		//				for( std::vector<Vertex*>::iterator itV = shiftVrtcsCop.begin(); itV != shiftVrtcsCop.end(); itV++ )
+		//				{
+		//					Vertex * vrt = *itV;
+		//
+		//					if( vrt == shiftVrtxFound )
+		//					{
+		//						shiftVrtcsCop.erase(itV);
+		//						break;
+		//					}
+		//				}
+		//
+		//				UG_LOG("Debug Rasieren durch	 " << std::endl);
+
+
+		if( atStartSort )
+		{
+			assoFacEdgBeg2Fix = fracEdge;
+			atStartSort = false;
+		}
+
+		//				Edge * firstEdgeFac = fracEdge;
+		//				Edge * secondEdgeFac = shiftEdge;
+		firstEdgeFac = fracEdge;
+		secondEdgeFac = shiftVrtxEdg;
+
+
+		Vertex * firstVrt = nullptr;
+		Vertex * secondVrt = shiftVrtxFound;
+
+		if( !boundAtShiftVrtEdg )
+		{
+			firstEdgeFac = shiftVrtxEdg;
+			secondEdgeFac = fracEdge;
+
+			firstVrt = shiftVrtxFound;
+			secondVrt = nullptr;
+		}
+
+		//				UG_LOG("Debug Paarbildung	 " << std::endl);
+
+
+		std::pair<Edge*, Edge*> edgesFac( firstEdgeFac, secondEdgeFac );
+
+		std::pair<Vertex*,Vertex*> vrtcsSF( firstVrt, secondVrt );
+
+		ExpandCrossFracInfo startFacInf( edgesFac, assoFacConsider, vrtcsSF );
+
+		vecExpCrossFI.push_back(startFacInf);
+
+		//				IndexType sui = sh.num_subsets();
+		//
+		//				sh.assign_subset(assoFacConsider,sui);
+
+		//				UG_LOG("Debug Paarbildung	Rasieren " << std::endl);
+
+		IndexType dbg_it_er = 0;
+
+		for( std::vector<Face*>::iterator itFac = assoFacCrossCop.begin(); itFac != assoFacCrossCop.end(); itFac++ )
+		{
+			Face * iFa = *itFac;
+
+		//					UG_LOG("interieren " << dbg_it_er << std::endl );
+
+			dbg_it_er++;
+
+		//					UG_LOG("ifa " << iFa << std::endl );
+		//					UG_LOG("assoFac " << assoFacConsider << std::endl );
+
+		//					bool enthaltung = FaceContains( iFa, firstEdgeFac );
+		//
+		////					UG_LOG("Enthaltung " << std::endl);
+		//
+		//					bool entzwei = FaceContains(iFa, secondEdgeFac);
+		//
+		////					UG_LOG("Entzweiung " << std::endl);
+
+
+			if( iFa == assoFacConsider && FaceContains( iFa, firstEdgeFac ) && FaceContains(iFa, secondEdgeFac) )
+			{
+		//						UG_LOG("Erasieren " << std::endl);
+				assoFacCrossCop.erase(itFac);
+				break;
+			}
+		}
+
+		//				UG_LOG("Debug Paarbildung	Rasieren durch " << std::endl);
+
+
+		if( assoFacCrossCop.size() == 0 )
+		{
+			if( secondEdgeFac != assoFacEdgBeg2Fix )
+			{
+				UG_LOG("Gesichter Diamant leer, aber keine Anfangsecke gefunden" << " " << isXCross << std::endl);
+		//						return false;
+				UG_THROW("Gesichter Diamant leer, aber keine Anfangsecke gefunden" << " " << isXCross << std::endl);
+			}
+			else
+			{
+				assoFacEdgEnd2Fix = secondEdgeFac;
+
+				break; // while loop zu Ende, raus aus dem while loop, den Rest nicht mehr machen, würde schief gehen zwingendermassen
+			}
+
+		}
+
+						// figure out the next face
+
+		firstEdgeFac = secondEdgeFac;
+		secondEdgeFac = nullptr;
+
+		IndexType nextFaceFound = 0;
+
+		for( std::vector<Face*>::iterator itFac = assoFacCrossCop.begin(); itFac != assoFacCrossCop.end(); itFac++ )
+		{
+			Face * iFa = *itFac;
+
+			if( FaceContains(iFa, firstEdgeFac ) )
+			{
+				nextFaceFound++;
+			}
+		}
+
+		if( nextFaceFound != 1 )
+		{
+			UG_LOG("folgendes Gesicht in falscher Anztahl gefunden Diamant " << nextFaceFound << " " << isXCross << std::endl);
+		//					return false;
+			UG_THROW("folgendes Gesicht in falscher Anztahl gefunden Diamant " << nextFaceFound << " " << isXCross << std::endl);
+		}
+
+		for( std::vector<Face*>::iterator itFac = assoFacCrossCop.begin(); itFac != assoFacCrossCop.end(); itFac++ )
+		{
+			Face * iFa = *itFac;
+
+			if( FaceContains(iFa, firstEdgeFac ) )
+			{
+				assoFacConsider = iFa;
+				break;
+			}
+		}
+
+
+		boundAtShiftVrtEdg = ! boundAtShiftVrtEdg;
+
+	}
+
+	if( assoFacEdgEnd2Fix != assoFacEdgBeg2Fix || assoFacEdgEnd2Fix == nullptr || assoFacEdgBeg2Fix == nullptr )
+	{
+		UG_THROW("Anfang und Ende stimmen nicht ueberein " << isXCross << std::endl);
+//				return false;
+		UG_THROW("Anfang und Ende stimmen nicht ueberein " << isXCross << std::endl);
+	}
+
+//			if( shiftVrtcsCop.size() != 0 )
+//			{
+//				UG_LOG("Shift vertizes nicht alle gefinden " << std::endl);
+//				return false;
+//				UG_THROW("Shift vertizes nicht alle gefinden " << std::endl);
+//			}
+
+	if( assoFacCrossCop.size() != 0 )
+	{
+		UG_LOG("nicht alle asso facs gefunden " << isXCross << std::endl);
+//				return false;
+		UG_THROW("nicht alle asso facs gefunden " << isXCross << std::endl);
+	}
+
+
+	return true;
+}
+
 #ifndef NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
 #define NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX 1
 #endif
@@ -1136,8 +1505,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> aaVrtInfoFraTri(grid,  aAdjInfoAVVFT );
 
 
-	using VecEdge = std::vector<Edge*>;
-	using VecFace = std::vector<Face*>;
+//	using VecEdge = std::vector<Edge*>;
+//	using VecFace = std::vector<Face*>;
 
 	using AttVecEdge = Attachment<VecEdge>;
 	using AttVecFace = Attachment<VecFace>;
@@ -4544,6 +4913,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 		// different Vorgehensweisen for T End and X Cross
 
+//		using ExpandCrossFracInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<Vertex*, Vertex*> >;
+//		// Vertex nullptr wo original fracture, und shift vertex, wo Keilecke, die weg soll
+//
+//		using VecExpandCrossFracInfo = std::vector<ExpandCrossFracInfo>;
+
 		//		if( nuCroFra == 3 )
 		if( fracTyp == CrossVertInf::TEnd )
 		{
@@ -4577,9 +4951,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			IndexType cntr = 0;
 
-			// muss sofort festgelegt werden - Startecke
-			Edge * assoFacEdgBeg2Fix = nullptr;
-			Edge * assoFacSndEdg2Fix = nullptr;
+			// muss sofort festgelegt werden - Startecke und zweite Ecke des gewählten faces
+			Edge * shiftVrtxAtFirstFac = nullptr;
+			Edge * fracVrtxAtFirstFac = nullptr;
 
 			for( auto const & aft : assoFracTEndCop )
 			{
@@ -4602,12 +4976,12 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //								if( EdgeContains(*iterEdgF, svwi.first) && EdgeContains(*iterEdgF,crossPt) )
 								if( edgCntsShiVe && edgCntsCrsPt )
 								{
-									assoFacEdgBeg2Fix = *iterEdgF;
+									shiftVrtxAtFirstFac = *iterEdgF;
 									startEdgeFnd++;
 								}
 								else if( edgCntsCrsPt && ! edgCntsShiVe )
 								{
-									assoFacSndEdg2Fix = *iterEdgF;
+									fracVrtxAtFirstFac = *iterEdgF;
 									endEdgFnd++;
 								}
 							}
@@ -4627,8 +5001,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 			if( indxFnd != 2 || startEdgeFnd != 2 || endEdgFnd != 2 )
 				UG_THROW("Index Free point or edge not found correct number " << indxFnd << " " << startEdgeFnd << " " << endEdgFnd << std::endl);
 
-			Edge * firstEdgeFac = assoFacEdgBeg2Fix;
-			Edge * secondEdgeFac = assoFacSndEdg2Fix;
+			Edge * firstEdgeFac = shiftVrtxAtFirstFac;
+			Edge * secondEdgeFac = fracVrtxAtFirstFac;
 
 			if( firstEdgeFac == nullptr || secondEdgeFac == nullptr )
 				UG_THROW("nullecke am Anfang?" << std::endl);
@@ -4638,15 +5012,197 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 			if( ! FaceContains(assoFacTConsider, firstEdgeFac ))
 				UG_THROW("Ecke verloren geangen T " << std::endl);
 
+//			bool atStartSort = true;
+
 			// soll erst ganz am Schluss festgelegt werden
 			Edge * assoFacEdgEnd2Fix = nullptr;
 
-			bool atStartSort = true;
+			IndexType faceOrderNumber = 0;
 
-//			while( assoFacTConsider.size() != 0 )
-//			{
-//				;
-//			}
+#if 0
+			// TODO FIXME hier muss die FUnkiton verwendet und angepasst werden!
+			while( assoFracTEndCop.size() != 0 )
+			{
+				Edge * fracEdge = nullptr;
+				Edge * shiftVrtxEdg = nullptr;
+
+				std::vector<Edge*> edgesThisFac;
+
+				edgesThisFac.clear();
+
+				for( std::vector<Edge *>::iterator iterEdgF = grid.associated_edges_begin(assoFacTConsider);
+						iterEdgF != grid.associated_edges_end(assoFacTConsider); iterEdgF++ )
+				{
+					edgesThisFac.push_back(*iterEdgF);
+				}
+
+				if( ! atStartSort )
+				{
+					secondEdgeFac = nullptr;
+				}
+
+				IndexType fndFracEdg = 0;
+
+				for( auto const & etf : edgesThisFac )
+				{
+					for( auto const & ofe : origFracEdg )
+					{
+						if( etf == ofe )
+						{
+							fndFracEdg++;
+							fracEdge = etf;
+						}
+					}
+				}
+
+				if( fracEdge == nullptr || fndFracEdg != 1 )
+				{
+					UG_LOG("Frac Orig Ecke nicht gefunden oder falsche Zahl " << fndFracEdg << std::endl );
+//					return false;
+					UG_THROW("Frac Orig Ecke nicht gefunden oder falsche Zahl " << fndFracEdg << std::endl );
+				}
+
+				// find expanded shift vertex
+
+				Vertex * shiftVrtxFound = nullptr;
+				IndexType fndVrt = 0;
+				IndexType helpVarEdges = 0;
+
+				bool isAtFreeSideShiVe = false;
+
+				for( auto const & etf : edgesThisFac )
+				{
+					if( helpVarEdges >= edgesThisFac.size() )
+					{
+						UG_LOG("Indexueberschreitung Edges" << std::endl);
+						break;
+					}
+
+					helpVarEdges++;
+
+					IndexType helpShiVaNum = 0;
+
+					for( auto const & svwi : shiftVertcsWithTI )
+					{
+						Vertex * sv = svwi.first;
+
+						if( helpShiVaNum >= shiftVrtcs.size() )
+						{
+							UG_LOG("Shift Vertex Index Verletzung T " << std::endl);
+							break;
+						}
+
+						helpShiVaNum++;
+
+//						for( IndexType i = 0; i < 2; i++ )
+//						{
+//							if( etf->vertex(i) == crossPt && etf->vertex((i+1)%2) == sv )
+//							{
+//								shiftVrtxFound = sv;
+//								fndVrt++;
+//								shiftVrtxEdg = etf;
+//
+//							}
+//						}
+
+						// TODO FIXME expand this construct also to X Cross, so far loop
+						if( EdgeContains(etf, crossPt ) && EdgeContains( etf, sv ) )
+						{
+							shiftVrtxFound = sv;
+							fndVrt++;
+							shiftVrtxEdg = etf;
+
+							isAtFreeSideShiVe = svwi.second;
+						}
+					}
+				}
+
+				if( fndVrt != 1 || shiftVrtxFound == nullptr || shiftVrtxEdg == nullptr )
+				{
+					UG_LOG("shift vertex komische Zahl oder null T " << fndVrt << std::endl);
+//					return false;
+					UG_THROW("shift vertex komische Zahl oder null T " << fndVrt << std::endl);
+				}
+
+
+				Vertex * firstVrt = shiftVrtxFound;
+				Vertex * secondVrt = nullptr;
+
+				if( atStartSort )
+				{
+
+					if( fracEdge != secondEdgeFac || shiftVrtxEdg != firstEdgeFac )
+						UG_THROW("ALler Anfang ist schwer " << std::endl);
+
+					atStartSort = false;
+				}
+				else
+				{
+					bool setShftVrtFirst = false;
+//					bool boundAtShiftVrtEdg = true; TODO FIXME ist das global am Anfang vom while loop setzbar wie im anderen Fall?
+
+					// TODO FIXME erfuellt durch den Wechsel, sowieso die Funktion anpassen oben
+//					switch ( faceOrderNumber )
+//					{
+//						case 2:
+//							setShftVrtFirst = false;
+//							break;
+//						case 3:
+//							setShftVrtFirst = true;
+//							break;
+//						case 4:
+//							break;
+//						case 5:
+//							break;
+//						default:
+//							UG_THROW("zu grosse Ordnungsnummer " << std::endl);
+//							break;
+//					}
+
+					if( setShftVrtFirst )
+					{
+
+					}
+					else
+					{
+
+					}
+
+//					firstEdgeFac = fracEdge;
+//					secondEdgeFac = shiftVrtxEdg;
+
+
+//					if( isAtFreeSideShiVe ) // obviously not at start
+//					{
+//
+//						firstEdgeFac = fracEdge;
+//						secondEdgeFac = shiftVrtxEdg;
+//
+//					}
+//						firstEdgeFac = shiftVrtxEdg;
+//						secondEdgeFac = fracEdge;
+//
+//						firstVrt = shiftVrtxFound;
+//						secondVrt = nullptr;
+//					}
+//
+	//				UG_LOG("Debug Paarbildung	 " << std::endl);
+
+
+
+				}
+
+//				std::pair<Edge*, Edge*> edgesFac( firstEdgeFac, secondEdgeFac );
+//
+//				std::pair<Vertex*,Vertex*> vrtcsSF( firstVrt, secondVrt );
+//				ExpandCrossFracInfo startFacInf( edgesFac, assoFacConsider, vrtcsSF );
+
+
+				faceOrderNumber++;
+
+			}
+
+#endif
 
 			UG_LOG("T End Kreis fertig an " << aaPos[crossPt] << std::endl );
 
@@ -4673,23 +5229,32 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 			Edge * firstEdgeFac = assoFacEdgBeg2Fix;
 			Edge * secondEdgeFac = nullptr;
 
-			bool atStartSort = true;
+//			bool atStartSort = true;
 
-			using ExpandCrossFracInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<Vertex*, Vertex*> >;
-			// Vertex nullptr wo original fracture, und shift vertex, wo Keilecke, die weg soll
-
-			using VecExpandCrossFracInfo = std::vector<ExpandCrossFracInfo>;
+//			using ExpandCrossFracInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<Vertex*, Vertex*> >;
+//			// Vertex nullptr wo original fracture, und shift vertex, wo Keilecke, die weg soll
+//
+//			using VecExpandCrossFracInfo = std::vector<ExpandCrossFracInfo>;
 
 			VecExpandCrossFracInfo vecExpCrossFI;
 
-			bool boundAtShiftVrtEdg = true;
+//			bool boundAtShiftVrtEdg = true;
 
 //			auto shiftVrtcsCop = shiftVrtcs;
 
 //			UG_LOG("starting Rundlauf " << std::endl);
 
-			IndexType dbg_rndl = 0;
+//			IndexType dbg_rndl = 0;
 
+			if( ! SortFaces4DiamondCreation( assoFacXCrossCop, firstEdgeFac, secondEdgeFac,
+					assoFacConsider, origFracEdg, shiftVrtcs,
+					crossPt, assoFacEdgBeg2Fix, assoFacEdgEnd2Fix, grid, vecExpCrossFI,
+					true
+				)
+			)
+				UG_THROW("Ordnen Diamant X Cross schief gegangen " << std::endl);
+
+#if 0
 			while( assoFacXCrossCop.size() != 0 )
 			{
 
@@ -4731,7 +5296,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 					//sh.assign_subset(*iterEdgF,sudos);
 				}
 
-				IndexType effsOrig = edgesThisFac.size();
+//				IndexType effsOrig = edgesThisFac.size();
 
 //				auto efeu = effsOrig;
 
@@ -4788,8 +5353,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				IndexType helpVarEdges = 0;
 
-				IndexType effs = edgesThisFac.size();
-				IndexType shiffs = shiftVrtcs.size();
+//				IndexType effs = edgesThisFac.size();
+//				IndexType shiffs = shiftVrtcs.size();
 
 //				UG_LOG("Edges this fac " <<  effs <<  dbg_rndl << std::endl);
 //				UG_LOG("Shift Vectors " <<  shiffs <<  dbg_rndl << std::endl);
@@ -5001,6 +5566,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				boundAtShiftVrtEdg = ! boundAtShiftVrtEdg;
 			}
 
+
 			if( assoFacEdgEnd2Fix != assoFacEdgBeg2Fix || assoFacEdgEnd2Fix == nullptr || assoFacEdgBeg2Fix == nullptr )
 			{
 				UG_THROW("Anfang und Ende stimmen nicht ueberein " << std::endl);
@@ -5021,6 +5587,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //				return false;
 				UG_THROW("nicht alle asso facs gefunden " << std::endl);
 			}
+#endif
 
 			UG_LOG("Kreis des Diamanten X Fall geschlossen " << std::endl);
 
@@ -5207,8 +5774,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 			std::vector<Face*> newDiamFaceVec = std::vector<Face*>();
 
 
-			boundAtShiftVrtEdg = true;
-			atStartSort = true;
+			bool boundAtShiftVrtEdg = true;
+			bool atStartSort = true;
 
 
 			for( auto const & ecf : vecExpCrossFI )
