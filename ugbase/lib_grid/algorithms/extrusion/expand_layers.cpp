@@ -5102,14 +5102,188 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			UG_LOG("Kreis des Diamanten T End Fall geschlossen " << std::endl);
 
-			for( auto const & ecf : vecExpCrossFI )
+//			for( auto const & ecf : vecExpCrossFI )
+//			{
+//				Face * fac = ecf.getFace();
+//
+//				IndexType sudos = sh.num_subsets();
+//
+//				sh.assign_subset(fac,sudos);
+//			}
+
+			// create new vertex
+
+			// for the ending frac region, the same algorithm applies as for the X Cross in all 4 branches
+			// for the free end, no new vertex, but new vertices along the durchgehende fracture
+			// repectively along the original edges of the durchgehende fracture
+
+
+
+			IndexType sizeECF = vecExpCrossFI.size();
+
+			if( sizeECF != 6 )
+				UG_THROW("Momische Länge TEnd " << std::endl);
+
+			for( IndexType i = 0; i < sizeECF; i = i + 2 )
 			{
-				Face * fac = ecf.getFace();
-
-				IndexType sudos = sh.num_subsets();
-
-				sh.assign_subset(fac,sudos);
+				if( vecExpCrossFI[i].getNormal().first !=  vecExpCrossFI[(i+sizeECF-1) % sizeECF].getNormal().second  )
+					UG_THROW("Kleberei TEnd schief gegangen " << std::endl);
 			}
+//
+//			// new vertex between face 0 and 1 and between face 4 and 5
+//
+//			// first those along the passing fracture
+//
+////			ExpandCrossFracInfo & alongFreeEndStartF = vecExpCrossFI[0];
+////			ExpandCrossFracInfo & closeToEndingCleftBeginF = vecExpCrossFI[1];
+////			ExpandCrossFracInfo & endingCleftBeginF = vecExpCrossFI[2];
+////			ExpandCrossFracInfo & endingCleftEndF = vecExpCrossFI[3];
+////			ExpandCrossFracInfo & closeToEndingCleftEndF = vecExpCrossFI[4];
+////			ExpandCrossFracInfo & alongFreeEndEndF = vecExpCrossFI[5];
+////
+////			Vertex * remainVrtx = alongFreeEndStartF.getNormal().first;
+////			Vertex * shiftVrtxOne = closeToEndingCleftBeginF.getNormal().second;
+////			Vertex * shiftVrtxTwo = endingCleftEndF.getNomal().first;
+////
+////			vector3 posVRem = aaPos[remainVrtx];
+////			vector3 posVOne = aaPos[shiftVrtxOne];
+////			vector3 posVTwo = aaPos[shiftVrtxTwo];
+////
+////			vector3 distOne;
+////			VecSubtract(distOne, posVOne, posVRem);
+////
+////			vector3 distTwo;
+////			VecSubtract(distTwo, posVTwo, posVRem);
+////
+////			vector3 distOneHalf, distTwoHalf;
+////			VecScale(distOneHalf, distOne, 0.5 );
+////			VecScale(distTwoHalf, distTwo, 0.5 );
+////
+////			vector3 posNewVrtOne, posNewVrtTwo;
+////			VecAdd(posNewVrtOne, posVRem, distOneHalf);
+////			VecAdd(posNewVrtTwo, posVRem, distTwoHalf);
+////
+////			Vertex * newVrtOne = *grid.create<RegularVertex>();
+////			Vertex * newVrtTwo = *grid.create<RegularVertex>();
+////
+////			aaPos[newVrtOne] = posNewVrtOne;
+////			aaPos[newVrtTwo] = posNewVrtTwo;
+////
+////			IndexType sudoTEnd = sh.num_subsets();
+////
+////			sh.assign_subset(newVrtOne, sudoTEnd);
+////			sh.assign_subset(newVrtTwo, sudoTEnd);
+////
+////
+////			std::pair<Vertex*,Vertex*>  vrtcsAlongFreeEndStartF = alongFreeEndStartF.getNormal();
+////			std::pair<Vertex*,Vertex*>  vrtcsCloseToEndingCleftBeginF = closeToEndingCleftBeginF.getNormal();
+////			std::pair<Vertex*,Vertex*>  vrtcsEndingCleftBeginF = endingCleftBeginF.getNormal();
+////			std::pair<Vertex*,Vertex*>  vrtcsEndingCleftEndF = endingCleftEndF.getNormal();
+////			std::pair<Vertex*,Vertex*>  vrtcsCloseToEndingCleftEndF = closeToEndingCleftEndF.getNormal();
+////			std::pair<Vertex*,Vertex*>  vrtcsAlongFreeEndEndF = alongFreeEndEndF.getNormal();
+////
+////
+////			alongFreeEndStartF.setNewNormal( vrtcsAlongFreeEndStartF );
+////			closeToEndingCleftBeginF.setNewNormal( vrtcsCloseToEndingCleftBeginF );
+////			endingCleftBeginF.setNewNormal( vrtcsEndingCleftBeginF );
+////			endingCleftEndF.setNewNormal( vrtcsEndingCleftEndF );
+////			closeToEndingCleftEndF.setNewNormal( vrtcsCloseToEndingCleftEndF );
+////			alongFreeEndEndF.setNewNormal( vrtcsAlongFreeEndEndF );
+//
+			IndexType sudoTEnd = sh.num_subsets();
+
+			for( IndexType i = 0; i < sizeECF; i = i + ( sizeECF ) / 2 + 1 )
+			{
+				bool atStart = ( i < sizeECF / 2 );
+
+				IndexType firstInd = atStart ? ( i ) % sizeECF: ( i + 1 ) % sizeECF;
+				IndexType secndInd = atStart ? ( i + 1 ) % sizeECF : ( i ) % sizeECF;
+
+				UG_LOG("indices " << firstInd << " " << secndInd << std::endl);
+
+				ExpandCrossFracInfo & alongFreeEndF = vecExpCrossFI[firstInd];
+				ExpandCrossFracInfo & closeToTEndF = vecExpCrossFI[secndInd];
+
+				std::pair<Edge*, Edge*> freeEdgs = alongFreeEndF.getEdge();
+				std::pair<Edge*, Edge*> tEndEdgs = closeToTEndF.getEdge();
+
+				Edge * freeCommEdg = atStart ? freeEdgs.second : freeEdgs.first;
+				Edge * closTCommEdg = atStart ? tEndEdgs.first : tEndEdgs.second;
+
+				if( freeCommEdg != closTCommEdg || freeCommEdg == nullptr || closTCommEdg == nullptr )
+					UG_THROW("freie und geschlossene Ecke ungleich oder null " << freeCommEdg << " " << closTCommEdg << std::endl);
+
+				std::pair<Vertex*, Vertex*> freeVrtcs = alongFreeEndF.getNormal();
+				std::pair<Vertex*, Vertex*> tEndVrtcs = closeToTEndF.getNormal();
+
+				Vertex * remainVrtx = atStart ? freeVrtcs.first : freeVrtcs.second;
+				Vertex * shiftTVrt = atStart ? tEndVrtcs.second : tEndVrtcs.first;
+
+				Vertex * freeNull = atStart ? freeVrtcs.second : freeVrtcs.first;
+				Vertex * teNull = atStart ? tEndVrtcs.first : tEndVrtcs.second;
+
+				if( freeNull != nullptr || teNull != nullptr ||  remainVrtx == nullptr || shiftTVrt == nullptr )
+				{
+//					UG_THROW("TEnd schon falsch zugewiesene Vertizex" << std::endl);
+					UG_LOG("TEnd schon falsch zugewiesene Vertizex" << std::endl);
+
+					UG_LOG("Falsch feee null " << freeNull << " T " << teNull << " R " << remainVrtx << " S " << shiftTVrt << std::endl);
+
+					UG_THROW("TEnd schon falsch zugewiesene Vertizex" << std::endl);
+
+					UG_THROW("Falsch feee null " << freeNull << " T " << teNull << " R " << remainVrtx << " S " << shiftTVrt << std::endl);
+				}
+				else
+				{
+					UG_LOG("TEnd richtig zugewiesene Vertizex" << std::endl);
+
+					UG_LOG("Richtig feee null " << freeNull << " T " << teNull << " R " << remainVrtx << " S " << shiftTVrt << std::endl);
+
+				}
+
+				vector3 posVRem = aaPos[remainVrtx];
+				vector3 posShiVe = aaPos[shiftTVrt];
+
+//				UG_LOG("pos T " << posVRem << " " << posShiVe << std::endl);
+//
+				vector3 dist;
+				VecSubtract(dist, posShiVe, posVRem);
+//
+//				UG_LOG("dist TR " << dist << std::endl);
+//
+				vector3 distHalf;
+				VecScale(distHalf, dist, 0.5);
+//
+//				UG_LOG("dist half TR " << distHalf << std::endl);
+//
+				vector3 posNewVrt;
+				VecAdd(posNewVrt, posVRem, distHalf);
+//
+//				UG_LOG("neuer Vertex Position " << posNewVrt << std::endl);
+//
+				Vertex * newVrt = *grid.create<RegularVertex>();
+				aaPos[newVrt] = posNewVrt;
+
+				sh.assign_subset(newVrt, sudoTEnd);
+//
+				if( atStart )
+				{
+					freeVrtcs.second = newVrt;
+					tEndVrtcs.first = newVrt;
+				}
+				else
+				{
+					freeVrtcs.first = newVrt;
+					tEndVrtcs.second = newVrt;
+				}
+//
+				alongFreeEndF.setNewNormal( freeVrtcs );
+				closeToTEndF.setNewNormal( tEndVrtcs );
+
+			}
+
+			// new vertex in ending frac
+
 
 #if 0
 			IndexType faceOrderNumber = 0;
@@ -5718,6 +5892,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				IndexType indBefore = ( indC + vecExpCrossFI.size() ) % vecExpCrossFI.size();
 				IndexType indAfter = ( indC + 1 + vecExpCrossFI.size() ) % vecExpCrossFI.size();
+
+				// TODO FIXME ab hier in externe Funktion stecken, damit auch für TEnd endende Frac Seite verwendbar!!!!
 
 				ExpandCrossFracInfo & expCFIBeforeFracEdg = vecExpCrossFI[ indBefore ];
 				ExpandCrossFracInfo & expCFIAfterFracEdg = vecExpCrossFI[ indAfter ];
