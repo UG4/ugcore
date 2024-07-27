@@ -1028,9 +1028,14 @@ using ExpandCrossFracInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*
 
 using VecExpandCrossFracInfo = std::vector<ExpandCrossFracInfo>;
 
-
-bool SortFaces4DiamondCreation(	std::vector<Face *> & assoFacCrossCop, Edge * & firstEdgeFac, Edge * & secondEdgeFac,
-		Face * & assoFacConsider, VecEdge const & origFracEdg, std::vector<Vertex * > const & shiftVrtcs,
+// leider erst ab 17er Standard möglich
+//template <typename VRTCOMB >
+//template < typename SHIVET > distinguish shiftVrtcs for TEnd and XCross, using static conxtexpr for isXCross in calling
+// TODO FIXME change once std 17 available in UG4
+bool SortFaces4DiamondCreation(	SubsetHandler& sh, std::vector<Face *> & assoFacCrossCop, Edge * & firstEdgeFac, Edge * & secondEdgeFac,
+		Face * & assoFacConsider, VecEdge const & origFracEdg,
+		std::vector<Vertex * > const & shiftVrtcs,
+//		std::vector<VRTCOMB > const & shiftVrtcs,
 		Vertex * const & crossPt, Edge * & assoFacEdgBeg2Fix, Edge * & assoFacEdgEnd2Fix, Grid& grid,
 		VecExpandCrossFracInfo & vecExpCrossFI,
 		bool isXCross = true // if false, then isTEnd, no other possibility
@@ -1041,7 +1046,7 @@ bool SortFaces4DiamondCreation(	std::vector<Face *> & assoFacCrossCop, Edge * & 
 
 	bool atStartSort = true;
 
-	bool boundAtShiftVrtEdg = true;
+	bool boundAtShiftVrtEdg = isXCross; // false in case of TEnd at beginning
 
 //			auto shiftVrtcsCop = shiftVrtcs;
 
@@ -1051,13 +1056,38 @@ bool SortFaces4DiamondCreation(	std::vector<Face *> & assoFacCrossCop, Edge * & 
 
 	while( assoFacCrossCop.size() != 0 )
 	{
-
-
 		//				UG_LOG("Debug Rundlauf " << dbg_rndl << std::endl);
 
 		dbg_rndl++;
 
-		secondEdgeFac = nullptr;
+		// Original X Cross ganz einfach
+//		secondEdgeFac = nullptr;
+
+		// stattdessen bei T End
+//		if( ! atStartSort )
+//		{
+//			secondEdgeFac = nullptr;
+//		}
+
+//		 zusammengefasst, hoffentlich richtig so:
+		if( isXCross || ( ! isXCross && ! atStartSort )  )
+			secondEdgeFac = nullptr;
+
+		// leider erst ab std 17, zu cool für älteren Standard
+//		constexpr bool isXCross = std::is_same<Vertex*, VRTCOMB >::value;
+//
+//
+//		if constexpr ( std::is_same<Vertex*, VRTCOMB >::value )
+//		{
+//			secondEdgeFac = nullptr;
+//		}
+//
+//		if constexpr ( std::is_same< VRTCOMB, std::pair<Vertex*, bool > )
+//		{
+//			if( ! atStartSort )
+//				secondEdgeFac = nullptr;
+//		}
+
 
 		Edge * fracEdge = nullptr;
 		Edge * shiftVrtxEdg = nullptr;
@@ -1115,7 +1145,6 @@ bool SortFaces4DiamondCreation(	std::vector<Face *> & assoFacCrossCop, Edge * & 
 		}
 
 		//				UG_LOG("Debug Ofen	 " << std::endl);
-
 
 		if( fracEdge == nullptr || fndFracEdg != 1 )
 		{
@@ -1186,23 +1215,38 @@ bool SortFaces4DiamondCreation(	std::vector<Face *> & assoFacCrossCop, Edge * & 
 
 				dbg_shiVe++;
 
-				for( IndexType i = 0; i < 2; i++ )
+				if( EdgeContains(etf, crossPt ) && EdgeContains( etf, sv ) )
 				{
+					shiftVrtxFound = sv;
+					fndVrt++;
+					shiftVrtxEdg = etf;
 
-					// TODO FIXME ersetzen durch ElementContains Funktion
-		//							if( ( etf->vertex(i) == crossPt && etf->vertex((i+1)%2) == sv )  || (etf->vertex((i+1)%2) == crossPt && etf->vertex(i) == sv ))
-					if( etf->vertex(i) == crossPt && etf->vertex((i+1)%2) == sv )
-					{
-						shiftVrtxFound = sv;
-						fndVrt++;
-						shiftVrtxEdg = etf;
+//					UG_LOG("Shift Vertex " << aaPos[shiftVrtxFound] << " " << dbg_edgnum << " " << dbg_shiVe << " " << dbg_rndl << std::endl);
+//					UG_LOG("Cross Vertex " << aaPos[crossPt] << " " << dbg_edgnum << " " << dbg_shiVe <<  " " << dbg_rndl <<  std::endl );
+//
+//					UG_LOG("dbg edgenu shive " << dbg_edgnum << " " << dbg_shiVe <<  " " << dbg_rndl <<  std::endl);
 
-		//								UG_LOG("Shift Vertex " << aaPos[shiftVrtxFound] << " " << dbg_edgnum << " " << dbg_shiVe << " " << dbg_rndl << std::endl);
-		//								UG_LOG("Cross Vertex " << aaPos[crossPt] << " " << dbg_edgnum << " " << dbg_shiVe <<  " " << dbg_rndl <<  std::endl );
-		//
-		//								UG_LOG("dbg edgenu shive " << dbg_edgnum << " " << dbg_shiVe <<  " " << dbg_rndl <<  std::endl);
-					}
+//					isAtFreeSideShiVe = svwi.second;
 				}
+
+
+//				for( IndexType i = 0; i < 2; i++ )
+//				{
+//
+//					// done ersetzen durch ElementContains Funktion
+//		//							if( ( etf->vertex(i) == crossPt && etf->vertex((i+1)%2) == sv )  || (etf->vertex((i+1)%2) == crossPt && etf->vertex(i) == sv ))
+//					if( etf->vertex(i) == crossPt && etf->vertex((i+1)%2) == sv )
+//					{
+//						shiftVrtxFound = sv;
+//						fndVrt++;
+//						shiftVrtxEdg = etf;
+//
+//		//								UG_LOG("Shift Vertex " << aaPos[shiftVrtxFound] << " " << dbg_edgnum << " " << dbg_shiVe << " " << dbg_rndl << std::endl);
+//		//								UG_LOG("Cross Vertex " << aaPos[crossPt] << " " << dbg_edgnum << " " << dbg_shiVe <<  " " << dbg_rndl <<  std::endl );
+//		//
+//		//								UG_LOG("dbg edgenu shive " << dbg_edgnum << " " << dbg_shiVe <<  " " << dbg_rndl <<  std::endl);
+//					}
+//				}
 			}
 		}
 
@@ -1233,11 +1277,34 @@ bool SortFaces4DiamondCreation(	std::vector<Face *> & assoFacCrossCop, Edge * & 
 		//				UG_LOG("Debug Rasieren durch	 " << std::endl);
 
 
+//		if( atStartSort && isXCross )
+//		{
+//			assoFacEdgBeg2Fix = fracEdge;
+//		}
+//
+//		if( atStartSort && ! isXCross )
+//		{
+//			assoFacEdgBeg2Fix = fracEdge;
+//			atStartSort = false;
+//		}
+
+
 		if( atStartSort )
 		{
-			assoFacEdgBeg2Fix = fracEdge;
+			if( isXCross )
+			{
+				assoFacEdgBeg2Fix = fracEdge;
+			}
+			else
+			{
+				if( fracEdge != secondEdgeFac || shiftVrtxEdg != firstEdgeFac || assoFacEdgBeg2Fix != shiftVrtxEdg )
+					UG_THROW("ALler Anfang ist schwer TEnd " << std::endl);
+			}
+
 			atStartSort = false;
 		}
+
+
 
 		//				Edge * firstEdgeFac = fracEdge;
 		//				Edge * secondEdgeFac = shiftEdge;
@@ -1268,9 +1335,12 @@ bool SortFaces4DiamondCreation(	std::vector<Face *> & assoFacCrossCop, Edge * & 
 
 		vecExpCrossFI.push_back(startFacInf);
 
-		//				IndexType sui = sh.num_subsets();
-		//
-		//				sh.assign_subset(assoFacConsider,sui);
+//		if( !isXCross )
+//		{
+//			IndexType sui = sh.num_subsets();
+//
+//			sh.assign_subset(assoFacConsider,sui);
+//		}
 
 		//				UG_LOG("Debug Paarbildung	Rasieren " << std::endl);
 
@@ -1312,7 +1382,7 @@ bool SortFaces4DiamondCreation(	std::vector<Face *> & assoFacCrossCop, Edge * & 
 			if( secondEdgeFac != assoFacEdgBeg2Fix )
 			{
 				UG_LOG("Gesichter Diamant leer, aber keine Anfangsecke gefunden" << " " << isXCross << std::endl);
-		//						return false;
+				//return true;
 				UG_THROW("Gesichter Diamant leer, aber keine Anfangsecke gefunden" << " " << isXCross << std::endl);
 			}
 			else
@@ -4918,6 +4988,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //
 //		using VecExpandCrossFracInfo = std::vector<ExpandCrossFracInfo>;
 
+		VecExpandCrossFracInfo vecExpCrossFI;
+
 		//		if( nuCroFra == 3 )
 		if( fracTyp == CrossVertInf::TEnd )
 		{
@@ -4936,7 +5008,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 			}
 
 			// aim: sorting faces
-			auto assoFracTEndCop = assoFacCross;
+			auto assoFacTEndCop = assoFacCross;
 
 			// figure out that shift vertex that is at the T End
 
@@ -4955,7 +5027,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 			Edge * shiftVrtxAtFirstFac = nullptr;
 			Edge * fracVrtxAtFirstFac = nullptr;
 
-			for( auto const & aft : assoFracTEndCop )
+			for( auto const & aft : assoFacTEndCop )
 			{
 				for( auto const & svwi : shiftVertcsWithTI )
 				{
@@ -4995,7 +5067,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			// we hit twice, and finally take the second one, as we also want to count
 
-			if( indxFrcWithTE < 0 || indxFrcWithTE >=  assoFracTEndCop.size() )
+			if( indxFrcWithTE < 0 || indxFrcWithTE >=  assoFacTEndCop.size() )
 				UG_THROW("Start nicht gefunden, freies Ende verloren " << std::endl);
 
 			if( indxFnd != 2 || startEdgeFnd != 2 || endEdgFnd != 2 )
@@ -5007,21 +5079,43 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 			if( firstEdgeFac == nullptr || secondEdgeFac == nullptr )
 				UG_THROW("nullecke am Anfang?" << std::endl);
 
-			Face * assoFacTConsider = assoFracTEndCop[ indxFrcWithTE ];
+			Face * assoFacTEndConsider = assoFacTEndCop[ indxFrcWithTE ];
 
-			if( ! FaceContains(assoFacTConsider, firstEdgeFac ))
+			if( ! FaceContains(assoFacTEndConsider, firstEdgeFac ))
 				UG_THROW("Ecke verloren geangen T " << std::endl);
 
 //			bool atStartSort = true;
 
+			// already fixed in contrast to XCross case!
+			Edge * assoFacEdgBeg2Fix = firstEdgeFac;
+
 			// soll erst ganz am Schluss festgelegt werden
 			Edge * assoFacEdgEnd2Fix = nullptr;
 
-			IndexType faceOrderNumber = 0;
+			if( ! SortFaces4DiamondCreation( sh, assoFacTEndCop, firstEdgeFac, secondEdgeFac,
+					assoFacTEndConsider, origFracEdg, shiftVrtcs,
+					crossPt, assoFacEdgBeg2Fix, assoFacEdgEnd2Fix, grid, vecExpCrossFI
+					, false
+				)
+			)
+				UG_THROW("Ordnen Diamant TEnd schief gegangen " << std::endl);
+
+			UG_LOG("Kreis des Diamanten T End Fall geschlossen " << std::endl);
+
+			for( auto const & ecf : vecExpCrossFI )
+			{
+				Face * fac = ecf.getFace();
+
+				IndexType sudos = sh.num_subsets();
+
+				sh.assign_subset(fac,sudos);
+			}
 
 #if 0
+			IndexType faceOrderNumber = 0;
+
 			// TODO FIXME hier muss die FUnkiton verwendet und angepasst werden!
-			while( assoFracTEndCop.size() != 0 )
+			while( assoFacTEndCop.size() != 0 )
 			{
 				Edge * fracEdge = nullptr;
 				Edge * shiftVrtxEdg = nullptr;
@@ -5236,7 +5330,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //
 //			using VecExpandCrossFracInfo = std::vector<ExpandCrossFracInfo>;
 
-			VecExpandCrossFracInfo vecExpCrossFI;
+//			VecExpandCrossFracInfo vecExpCrossFI;
 
 //			bool boundAtShiftVrtEdg = true;
 
@@ -5246,10 +5340,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 //			IndexType dbg_rndl = 0;
 
-			if( ! SortFaces4DiamondCreation( assoFacXCrossCop, firstEdgeFac, secondEdgeFac,
+			if( ! SortFaces4DiamondCreation( sh, assoFacXCrossCop, firstEdgeFac, secondEdgeFac,
 					assoFacConsider, origFracEdg, shiftVrtcs,
-					crossPt, assoFacEdgBeg2Fix, assoFacEdgEnd2Fix, grid, vecExpCrossFI,
-					true
+					crossPt, assoFacEdgBeg2Fix, assoFacEdgEnd2Fix, grid, vecExpCrossFI
+					, true
 				)
 			)
 				UG_THROW("Ordnen Diamant X Cross schief gegangen " << std::endl);
