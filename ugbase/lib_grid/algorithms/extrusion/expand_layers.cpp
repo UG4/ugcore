@@ -5826,7 +5826,13 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			std::vector<Face*> newFracFaceVec = std::vector<Face*>();
 			std::vector<Face*> newDiamFaceVec = std::vector<Face*>();
 
+			bool boundAtShiftVrtEdg = false;
+			bool atStartSort = false;
 
+			for( IndexType i = indBeforeT; i <= indAfterT; i++ )
+			{
+				createNewFacesForExtXCrossFracs( vecExpCrossFI[i], newFracFaceVec, boundAtShiftVrtEdg, atStartSort, sh, grid, crossPt, subdomList );
+			}
 
 
 			UG_LOG("T End Kreis fertig an " << aaPos[crossPt] << std::endl );
