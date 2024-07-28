@@ -1459,6 +1459,138 @@ bool SortFaces4DiamondCreation(	SubsetHandler& sh, std::vector<Face *> & assoFac
 	return true;
 }
 
+void computeDiamondPointXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, ExpandCrossFracInfo & expCFIAfterFracEdg,
+									Vertex * const & crossPt, Grid::VertexAttachmentAccessor<APosition> & aaPos,
+									SubsetHandler & sh, Grid & grid )
+{
+	// compute cross point
+
+	std::pair<Edge*, Edge*> edgesCrossSegBefore = expCFIBeforeFracEdg.getEdge();
+	std::pair<Edge*, Edge*> edgesCrossSegAfter = expCFIAfterFracEdg.getEdge();
+
+	Edge * beforeShiftEdg = edgesCrossSegBefore.first;
+	Edge * beforeFracEdg = edgesCrossSegBefore.second;
+	Edge * afterFracEdg = edgesCrossSegAfter.first;
+	Edge * afterShiftEdg = edgesCrossSegAfter.second;
+
+	std::pair<Vertex*,Vertex*> vrtcsCrossSegBefore = expCFIBeforeFracEdg.getNormal();
+	std::pair<Vertex*,Vertex*> vrtcsCrossSegAfter = expCFIAfterFracEdg.getNormal();
+
+	Vertex * shiftBefore = vrtcsCrossSegBefore.first;
+	Vertex * shiftAfter = vrtcsCrossSegAfter.second;
+
+	// zur Zielsetzung
+//				Vertex * toBeEstablishedCutEdgeVrtBefore = vrtcsCrossSegBefore.second;
+//				Vertex * toBeEstablishedCutEdgeVrtAfter = vrtcsCrossSegAfter.first;
+
+	if(    vrtcsCrossSegBefore.second != nullptr ||  vrtcsCrossSegAfter.first != nullptr
+		|| 	shiftBefore == nullptr || shiftAfter == nullptr
+//				if(    toBeEstablishedCutEdgeVrtBefore != nullptr ||  toBeEstablishedCutEdgeVrtAfter != nullptr
+//					|| 	shiftBefore == nullptr || shiftAfter == nullptr
+	  )
+		UG_THROW("Nullpointer fehlen oder zu viel " << std::endl);
+
+	if(    beforeFracEdg != afterFracEdg || beforeFracEdg == nullptr || afterFracEdg == nullptr
+		|| beforeShiftEdg == nullptr || afterShiftEdg == nullptr
+	  )
+		UG_LOG("Ecken Nullpunkter " << std::endl);
+
+	// determin cut point of line between the shift vertices and the frac edge
+
+	Edge * fracEdge = beforeFracEdg; // muss gleich sein offenkundig afterFracEdge, ist getestet auch
+
+	// Gerade bestimmen, die durch fracEdge bestimmt wird, und Gerade, die durch Verbindungsvektor shift Verzices bestimmt wird
+
+	// figure out frac vertex which is the cross point
+
+	IndexType fracEdgInd = -1;
+
+	for( IndexType fiv = 0; fiv < 2; fiv++ )
+	{
+		if( fracEdge->vertex(fiv) == crossPt )
+			fracEdgInd = fiv;
+	}
+
+	if( fracEdgInd < 0 || fracEdgInd > 1 )
+		UG_THROW("cross point nicht Teil von fracture edge" << std::endl );
+
+	Vertex * fracEdgEnd = fracEdge->vertex( ( fracEdgInd + 1 ) % 2 );
+
+	vector3 posCrossPt = aaPos[ crossPt ];
+	vector3 posFracEnd = aaPos[ fracEdgEnd ];
+
+	vector3 posShiftBefore = aaPos[ shiftBefore ];
+	vector3 posShiftAfter = aaPos[ shiftAfter ];
+
+	vector3 directionFrac;
+
+	VecSubtract(directionFrac, posFracEnd, posCrossPt );
+
+	vector3 directionShiftBefore;
+
+	VecSubtract(directionShiftBefore, posShiftBefore, posCrossPt);
+
+	vector3 directionShiftAfter;
+
+	VecSubtract(directionShiftAfter, posShiftAfter, posCrossPt );
+
+	vector3 sumShift;
+
+	VecAdd(sumShift, directionShiftBefore, directionShiftAfter);
+
+	vector3 halfSumShift;
+
+	VecScale(halfSumShift,sumShift,0.5);
+
+	vector3 posNewVrtOnEdg;
+
+	VecAdd( posNewVrtOnEdg, posCrossPt, halfSumShift );
+
+	Vertex * newEdgVrtx = *grid.create<RegularVertex>();
+	aaPos[newEdgVrtx] = posNewVrtOnEdg;
+
+	IndexType sudoEdg = sh.get_subset_index(fracEdge);
+
+	Face * faceBefore = expCFIBeforeFracEdg.getFace();
+	Face * faceAfter = expCFIAfterFracEdg.getFace();
+
+	IndexType sudoBefore = sh.get_subset_index(faceBefore);
+	IndexType sudoAfter = sh.get_subset_index(faceAfter);
+
+	if( sudoEdg != sudoBefore || sudoBefore != sudoAfter )
+		UG_THROW("komische sudos vor Diamant " << std::endl);
+
+	sh.assign_subset(newEdgVrtx, sudoEdg);
+
+	UG_LOG("neuer Diamant Vorbereitungs Vertex " << posNewVrtOnEdg << std::endl);
+
+	//				Vertex * toBeEstablishedCutEdgeVrtBefore = vrtcsCrossSegBefore.second;
+	//				Vertex * toBeEstablishedCutEdgeVrtAfter = vrtcsCrossSegAfter.first;
+
+
+
+	// gleich neue Faces erzeugen?
+//				std::pair<Vertex*,Vertex*> vrtcsCrossSegBefore = expCFIBeforeFracEdg.getNormal();
+//				std::pair<Vertex*,Vertex*> vrtcsCrossSegAfter = expCFIAfterFracEdg.getNormal();
+
+	// insert the newly established vertex into the vertex info of the ExpandCrossFracInfo of the face
+////				vrtcsCrossSegBefore.second = newEdgVrtx;
+////				vrtcsCrossSegAfter.first = newEdgVrtx;
+////
+//				std::pair<Vertex*,Vertex*> vrtcsCrossSegBeforeNew( vrtcsCrossSegBefore.first, newEdgVrtx );
+//				std::pair<Vertex*,Vertex*> vrtcsCrossSegAfterNew( newEdgVrtx, vrtcsCrossSegAfter.second );
+//
+//
+//				expCFIBeforeFracEdg.setNewNormal( vrtcsCrossSegBeforeNew );
+//				expCFIAfterFracEdg.setNewNormal( vrtcsCrossSegAfterNew );
+
+	vrtcsCrossSegBefore.second = newEdgVrtx;
+	vrtcsCrossSegAfter.first = newEdgVrtx;
+	expCFIBeforeFracEdg.setNewNormal( vrtcsCrossSegBefore );
+	expCFIAfterFracEdg.setNewNormal( vrtcsCrossSegAfter );
+}
+
+
 #ifndef NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
 #define NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX 1
 #endif
@@ -5284,6 +5416,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			// new vertex in ending frac
 
+			// TODO FIXME gemeinsame Funktion wie bei XCross neue Punkte erzeugen und anwenden in dem einzigen speziellen Fall hier!
+
+
 
 #if 0
 			IndexType faceOrderNumber = 0;
@@ -5898,6 +6033,12 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				ExpandCrossFracInfo & expCFIBeforeFracEdg = vecExpCrossFI[ indBefore ];
 				ExpandCrossFracInfo & expCFIAfterFracEdg = vecExpCrossFI[ indAfter ];
 
+				computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg,
+						crossPt, aaPos, sh, grid );
+
+#if 0
+
+
 				// compute cross point
 
 				std::pair<Edge*, Edge*> edgesCrossSegBefore = expCFIBeforeFracEdg.getEdge();
@@ -6024,6 +6165,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				expCFIBeforeFracEdg.setNewNormal( vrtcsCrossSegBefore );
 				expCFIAfterFracEdg.setNewNormal( vrtcsCrossSegAfter );
 
+#endif
 
 //				 vecExpCrossFI[ indBefore ].setNewEdgVertex(newEdgVrtx);
 //				 vecExpCrossFI[ indAfter ].setNewEdgVertex(newEdgVrtx);
@@ -6037,7 +6179,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 			// create new edges and new faces
 
 
-//			IndexType diamantSubsNum = sh.num_subsets()+1; // +1 notwendig? TODO FIXME
+//			IndexType diamantSubsNum = sh.num_subsets()+1; // +1 notwendig? TODO FIXME wieso nicht +1?
 			IndexType diamantSubsNum = sh.num_subsets(); // +1 notwendig? TODO FIXME
 
 			std::vector<Face*> newFracFaceVec = std::vector<Face*>();
