@@ -1771,6 +1771,64 @@ void createNewFacesForExtXCrossFracs( ExpandCrossFracInfo const & ecf,  std::vec
 
 }
 
+void createDiamondFacesXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, ExpandCrossFracInfo & expCFIAfterFracEdg,
+		std::vector<Face*> & newDiamFaceVec,  SubsetHandler & sh, Grid & grid, IndexType diamantSubsNum, Vertex * & crossPt )
+{
+
+	Face * facBefore = expCFIBeforeFracEdg.getFace();
+	Face * facAfter = expCFIAfterFracEdg.getFace();
+
+	std::vector<Vertex*> vrtcsFaceBefore;
+	std::vector<Vertex*> vrtcsFaceAfter;
+
+	for(size_t iVrt = 0; iVrt < facBefore->num_vertices(); iVrt++ )
+	{
+		Vertex * vrt = facBefore->vertex(iVrt);
+		vrtcsFaceBefore.push_back( vrt );
+	}
+
+	for(size_t iVrt = 0; iVrt < facAfter->num_vertices(); iVrt++ )
+	{
+		Vertex * vrt = facAfter->vertex(iVrt);
+		vrtcsFaceAfter.push_back( vrt );
+	}
+
+	Vertex * newVrtBefore = expCFIBeforeFracEdg.getNewNormal().first;
+	Vertex * shiftVrt = expCFIBeforeFracEdg.getNewNormal().second;
+	Vertex * newVrtAfter = expCFIAfterFracEdg.getNewNormal().second;
+
+	if(    expCFIBeforeFracEdg.getNewNormal().second != expCFIBeforeFracEdg.getNormal().second
+		|| expCFIBeforeFracEdg.getNewNormal().second == nullptr
+		|| expCFIBeforeFracEdg.getNewNormal().second != expCFIAfterFracEdg.getNewNormal().first
+		|| expCFIAfterFracEdg.getNewNormal().first == nullptr
+		|| expCFIAfterFracEdg.getNewNormal().first != expCFIAfterFracEdg.getNormal().first
+	)
+	{
+		UG_THROW("Vektorchaos " << std::endl);
+	}
+
+	std::vector<Vertex *> vrtxSmallDiam;
+
+	vrtxSmallDiam.push_back( crossPt );
+	vrtxSmallDiam.push_back( newVrtBefore );
+	vrtxSmallDiam.push_back( shiftVrt );
+	vrtxSmallDiam.push_back( newVrtAfter );
+
+	Face * newFracFace =
+		*grid.create<Quadrilateral>( QuadrilateralDescriptor( vrtxSmallDiam[0], vrtxSmallDiam[1],
+															  vrtxSmallDiam[2], vrtxSmallDiam[3]
+									) );
+
+	sh.assign_subset(newFracFace, diamantSubsNum );
+
+	newDiamFaceVec.push_back(newFracFace);
+
+
+
+
+}
+
+
 #ifndef NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
 #define NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX 1
 #endif
@@ -6411,8 +6469,6 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			// create new edges and new faces
 
 			std::vector<Face*> newFracFaceVec = std::vector<Face*>();
-			std::vector<Face*> newDiamFaceVec = std::vector<Face*>();
-
 
 			bool boundAtShiftVrtEdg = true;
 			bool atStartSort = true;
@@ -6600,14 +6656,27 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 			UG_LOG("neue Gesichter ausserhalb Diamant erzeugt " << std::endl);
 
+			std::vector<Face*> newDiamFaceVec = std::vector<Face*>();
+
 			for( int indC = 0; indC < vecfis-1; indC = indC + 2 )
 			{
 				IndexType indBefore = ( indC + vecExpCrossFI.size() ) % vecExpCrossFI.size();
 				IndexType indAfter = ( indC + 1 + vecExpCrossFI.size() ) % vecExpCrossFI.size();
 
+
 				ExpandCrossFracInfo & expCFIBeforeFracEdg = vecExpCrossFI[ indBefore ];
 				ExpandCrossFracInfo & expCFIAfterFracEdg = vecExpCrossFI[ indAfter ];
 
+				// auslagern
+
+//				createDiamondFacesXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, ExpandCrossFracInfo & expCFIAfterFracEdg,
+//						std::vector<Face*> newDiamFaceVec )
+
+#if 1
+				createDiamondFacesXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg,
+						newDiamFaceVec,  sh, grid, diamantSubsNum, crossPt );
+
+#else
 				Face * facBefore = expCFIBeforeFracEdg.getFace();
 				Face * facAfter = expCFIAfterFracEdg.getFace();
 
@@ -6657,7 +6726,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 				newDiamFaceVec.push_back(newFracFace);
 
-
+#endif
 
 			}
 
