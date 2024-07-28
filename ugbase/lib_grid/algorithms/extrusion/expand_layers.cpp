@@ -1596,6 +1596,181 @@ void computeDiamondPointXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, E
 }
 
 
+
+void createNewFacesForExtXCrossFracs( ExpandCrossFracInfo const & ecf,  std::vector<Face*> & newFracFaceVec,
+									  bool & boundAtShiftVrtEdg, bool & atStartSort,
+									  SubsetHandler & sh, Grid & grid, Vertex * const & crossPt,
+									  std::vector<IndexType> const & subdomList
+									)
+{
+	// get new vertex at the original fracture edge
+
+	// extract this functionality to own function
+
+
+	std::pair<Edge*, Edge*> edgesCrossSeg = ecf.getEdge();
+
+	Face * facSeg = ecf.getFace();
+
+	std::pair<Vertex*, Vertex*> vertcsCrossSeg = ecf.getNormal();
+
+	std::pair<Vertex*, Vertex*> vertcsCrossSegWithNewV = ecf.getNewNormal();
+
+
+	if( atStartSort || boundAtShiftVrtEdg )
+	{
+		if( vertcsCrossSeg.first != nullptr || vertcsCrossSeg.second == nullptr )
+			UG_THROW("Verwechslung " << vertcsCrossSeg.first << " " << vertcsCrossSeg.second << std::endl);
+	}
+
+	atStartSort = false;
+
+	Edge * fracEdge = boundAtShiftVrtEdg ? edgesCrossSeg.first : edgesCrossSeg.second;
+	Edge * shiftVrtEdge = boundAtShiftVrtEdg ?  edgesCrossSeg.second : edgesCrossSeg.first;
+
+	Vertex * fracVrtNew =  boundAtShiftVrtEdg ? vertcsCrossSegWithNewV.first : vertcsCrossSegWithNewV.second; // should be nullptr at first segment, to be assigned afterwards / shifted
+	Vertex * shiftVrt = boundAtShiftVrtEdg ? vertcsCrossSeg.second : vertcsCrossSeg.first;
+	Vertex * shiftVrtTest = boundAtShiftVrtEdg ? vertcsCrossSegWithNewV.second : vertcsCrossSegWithNewV.first;
+
+	if( shiftVrtTest != shiftVrt )
+		UG_THROW("Shift Vertex verloren gegangen " << std::endl);
+
+	IndexType sudoFac = sh.get_subset_index(facSeg);
+
+	IndexType sudoFracEdge = sh.get_subset_index(fracEdge);
+
+	if( sudoFac != sudoFracEdge )
+	{
+		UG_THROW("subdoms frac edge und face nicht gleich " << std::endl);
+	}
+
+	// get all vertices of face, check if both known ones are contained, delete the face, create
+	// the additional needed edge, and create new face with new vertex
+
+
+	std::vector<Vertex*> vrtcsFace;
+	// assign first old vertices, then replace
+//				std::vector<Vertex*> vrtcsNewFaceFrac = vrtcsFace;
+//				std::vector<Vertex*> vrtcsNewFaceDiam = vrtcsFace;
+
+	//	all new vertices have been assigned to newVrts.
+	//	Note that if newVrts[i] == NULL, then we have to take the
+	//	old vertex sf->vertex(i).
+	//	now expand the fracture edges of sf to faces.
+	for(size_t iVrt = 0; iVrt < facSeg->num_vertices(); iVrt++ )
+	{
+
+		Vertex * vrt = facSeg->vertex(iVrt);
+		vrtcsFace.push_back( vrt );
+//					vrtcsNewFaceFrac.push_back( vrt );
+//					vrtcsNewFaceDiam.push_back( vrt );
+	}
+
+	std::vector<Vertex*> vrtcsNewFaceFrac = vrtcsFace;
+//				std::vector<Vertex*> vrtcsNewFaceDiam = vrtcsFace;
+
+
+	// check if known vertices are contained
+
+	IndexType fraVeNuInd = -1;
+	IndexType shiftVeNuInd = -1;
+
+	IndexType cntr = 0;
+
+	for( auto const & vf : vrtcsFace )
+	{
+		if( vf == fracVrtNew )
+		{
+			fraVeNuInd = cntr;
+			UG_THROW("wie kann man hierher kommen?" << std::endl);
+		}
+
+		if( vf == crossPt )
+		{
+			fraVeNuInd = cntr;
+		}
+
+//
+		if( vf == shiftVrt )
+			shiftVeNuInd = cntr;
+
+		cntr++;
+	}
+
+	if( fraVeNuInd < 0 || shiftVeNuInd < 0 )
+		UG_THROW("frac vertex oder shift vertex not contained " << std::endl);
+
+	UG_LOG("neuer frac vertex " << fraVeNuInd << " " << shiftVeNuInd << std::endl );
+
+	// replace vrtcs
+	vrtcsNewFaceFrac[fraVeNuInd] = fracVrtNew;
+
+	// compute shift of center vertex along frac edge
+
+	// check subdom of frac vertex and check if in subdom List of X cross
+
+	IndexType sudoOther = -1;
+
+	IndexType foundSudoOther = 0;
+	IndexType foundSudoFac = 0;
+
+	for( auto const & sd : subdomList )
+	{
+		if( sd != sudoFac )
+		{
+			sudoOther = sd;
+			foundSudoOther++;
+		}
+		else if( sd == sudoFac )
+		{
+			foundSudoFac++;
+		}
+		else
+		{
+			UG_THROW("Sudo not from frac and not from other?" << std::endl);
+		}
+	}
+
+	if( foundSudoFac != 1 && foundSudoOther != 1 )
+		UG_THROW("sudo zu oft oder zu selten gefunden " << std::endl);
+
+	// establish new edges and new faces
+
+	if( vrtcsNewFaceFrac.size() != 4 )
+		UG_LOG("komische Groesse Gesicht " << std::endl);
+
+	for( IndexType i = 0; i < vrtcsNewFaceFrac.size(); i++ )
+	{
+		if( vrtcsNewFaceFrac[i] == nullptr )
+		{
+			UG_THROW("null auf " << i << std::endl);
+		}
+//					else
+//					{
+//						UG_LOG("kein null auf " << i << std::endl );
+//					}
+	}
+
+
+	UG_LOG("neue Gesichter ausserhalb Diamant Ziel " << std::endl);
+
+//				int a = 1 + 2;
+//
+	Face * newFracFace =
+		*grid.create<Quadrilateral>( QuadrilateralDescriptor( vrtcsNewFaceFrac[0], vrtcsNewFaceFrac[1],
+															  vrtcsNewFaceFrac[2], vrtcsNewFaceFrac[3]
+									) );
+
+	sh.assign_subset(newFracFace, sh.get_subset_index(facSeg) );
+//				sh.assign_subset(newFracFace, diamantSubsNum ); testweise
+
+	newFracFaceVec.push_back(newFracFace);
+
+	boundAtShiftVrtEdg = ! boundAtShiftVrtEdg;
+
+
+}
+
 #ifndef NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
 #define NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX 1
 #endif
@@ -1608,7 +1783,7 @@ void computeDiamondPointXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, E
 #define OLD_PROFREITER_STUFF 0
 #endif
 
-bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> const & fracInfos,
+bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> const & fracInfos,
 						bool expandInnerFracBnds, bool expandOuterFracBnds)
 {
 
@@ -5537,7 +5712,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			vector3 distVecNewVrt2SCrossPt;
 
+			// new vertex in ending frac
+
 			computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg, crossPt, aaPos, sh, grid, sudoTEnd, distVecNewVrt2SCrossPt );
+
+			// shift of free shift point to virtual prolongation of ending fracture center line
 
 			vector3 posCrossPt = aaPos[crossPt];
 
@@ -5619,6 +5798,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //
 //				UG_LOG("neuer Vertex Position " << posNewVrt << std::endl);
 //
+
 				Vertex * newVrt = *grid.create<RegularVertex>();
 				aaPos[newVrt] = posNewVrt;
 
@@ -5640,7 +5820,13 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			}
 
-			// new vertex in ending frac
+
+			// create new edges and new faces
+
+			std::vector<Face*> newFracFaceVec = std::vector<Face*>();
+			std::vector<Face*> newDiamFaceVec = std::vector<Face*>();
+
+
 
 
 			UG_LOG("T End Kreis fertig an " << aaPos[crossPt] << std::endl );
@@ -6218,8 +6404,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			// create new edges and new faces
 
-
-
 			std::vector<Face*> newFracFaceVec = std::vector<Face*>();
 			std::vector<Face*> newDiamFaceVec = std::vector<Face*>();
 
@@ -6227,11 +6411,24 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 			bool boundAtShiftVrtEdg = true;
 			bool atStartSort = true;
 
+			// ecf typ: ExpandCrossFracInfo
 
 			for( auto const & ecf : vecExpCrossFI )
 			{
+
+				static_assert( std::is_same< ExpandCrossFracInfo const &, decltype( ecf ) >::value );
 				// get new vertex at the original fracture edge
 
+				// extract this functionality to own function
+
+//				void createNewFacesForExtXCrossFracs( ExpandCrossFracInfo const & ecf,
+//													  std::vector<Face*> & newFracFaceVec,
+//
+//				)
+
+				createNewFacesForExtXCrossFracs( ecf, newFracFaceVec, boundAtShiftVrtEdg, atStartSort, sh, grid, crossPt, subdomList );
+
+#if 0
 				std::pair<Edge*, Edge*> edgesCrossSeg = ecf.getEdge();
 
 				Face * facSeg = ecf.getFace();
@@ -6391,6 +6588,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				newFracFaceVec.push_back(newFracFace);
 
 				boundAtShiftVrtEdg = ! boundAtShiftVrtEdg;
+#endif
 
 			}
 
