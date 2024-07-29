@@ -1772,7 +1772,8 @@ void createNewFacesForExtXCrossFracs( ExpandCrossFracInfo const & ecf,  std::vec
 }
 
 void createDiamondFacesXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, ExpandCrossFracInfo & expCFIAfterFracEdg,
-		std::vector<Face*> & newDiamFaceVec,  SubsetHandler & sh, Grid & grid, IndexType diamantSubsNum, Vertex * & crossPt )
+		std::vector<Face*> & newDiamFaceVec,  SubsetHandler & sh, Grid & grid, IndexType diamantSubsNum, Vertex * & crossPt,
+		bool isFreeTEnd = false )
 {
 
 	Face * facBefore = expCFIBeforeFracEdg.getFace();
@@ -1822,26 +1823,59 @@ void createDiamondFacesXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, Ex
 		UG_THROW("Vektorchaos " << std::endl);
 	}
 
-	std::vector<Vertex *> vrtxSmallDiam;
+	if( ! isFreeTEnd ) // standard XCross case, also applicable for TEnd apart from the free end
+	{
+		std::vector<Vertex *> vrtxSmallDiam;
 
-	vrtxSmallDiam.push_back( crossPt );
-	vrtxSmallDiam.push_back( newVrtBefore );
-	vrtxSmallDiam.push_back( shiftVrt );
-	vrtxSmallDiam.push_back( newVrtAfter );
+		vrtxSmallDiam.push_back( crossPt );
+		vrtxSmallDiam.push_back( newVrtBefore );
+		vrtxSmallDiam.push_back( shiftVrt );
+		vrtxSmallDiam.push_back( newVrtAfter );
 
-	Face * newFracFace =
-		*grid.create<Quadrilateral>( QuadrilateralDescriptor( vrtxSmallDiam[0], vrtxSmallDiam[1],
-															  vrtxSmallDiam[2], vrtxSmallDiam[3]
-									) );
+		Face * newFracFace =
+			*grid.create<Quadrilateral>( QuadrilateralDescriptor( vrtxSmallDiam[0], vrtxSmallDiam[1],
+																  vrtxSmallDiam[2], vrtxSmallDiam[3]
+										) );
 
-	sh.assign_subset(newFracFace, diamantSubsNum );
+		sh.assign_subset(newFracFace, diamantSubsNum );
 
-	newDiamFaceVec.push_back(newFracFace);
+		newDiamFaceVec.push_back(newFracFace);
+
+	}
+	else
+	{
+		std::vector<Vertex *> vrtxSmallDiamBefore;
+		std::vector<Vertex *> vrtxSmallDiamAfter;
+
+		vrtxSmallDiamBefore.push_back( crossPt );
+		vrtxSmallDiamBefore.push_back( newVrtBefore );
+		vrtxSmallDiamBefore.push_back( shiftVrt );
+
+		vrtxSmallDiamAfter.push_back( crossPt );
+		vrtxSmallDiamAfter.push_back( shiftVrt );
+		vrtxSmallDiamAfter.push_back( newVrtAfter );
 
 
+		Face * newFracFaceBefore =
+			*grid.create<Triangle>( TriangleDescriptor( vrtxSmallDiamBefore[0], vrtxSmallDiamBefore[1], vrtxSmallDiamBefore[2] ) );
+
+		Face * newFracFaceAfter =
+			*grid.create<Triangle>( TriangleDescriptor( vrtxSmallDiamAfter[0], vrtxSmallDiamAfter[1], vrtxSmallDiamAfter[2] ) );
+
+
+		sh.assign_subset(newFracFaceBefore, diamantSubsNum );
+		sh.assign_subset(newFracFaceAfter, diamantSubsNum );
+
+		newDiamFaceVec.push_back(newFracFaceBefore);
+		newDiamFaceVec.push_back(newFracFaceAfter);
+
+	}
 
 
 }
+
+
+
 
 
 #ifndef NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
@@ -5916,8 +5950,12 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //									newDiamFaceVec,  sh, grid, sudoTEnd, crossPt );
 
 			// only the non free part
-			for( int indC = 1; indC < sizeECF-2; indC = indC + 2 )
+//			for( int indC = 1; indC < sizeECF-2; indC = indC + 2 )
+			for( int indC = -1; indC < sizeECF-2; indC = indC + 2 )
 			{
+
+				// Create Spitze at free side
+				bool isAtFreeEnd = ( indC == -1 );
 
 				IndexType indBefore = ( indC + sizeECF ) % sizeECF;
 				IndexType indAfter = ( indC + 1 + sizeECF ) % sizeECF;
@@ -5928,9 +5966,14 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 
 				createDiamondFacesXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg,
-						newDiamFaceVec,  sh, grid, sudoTEnd, crossPt );
+						newDiamFaceVec,  sh, grid, sudoTEnd, crossPt, isAtFreeEnd );
 
 			}
+
+
+
+
+
 
 			UG_LOG("T End Kreis fertig an " << aaPos[crossPt] << std::endl );
 
