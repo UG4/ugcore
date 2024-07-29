@@ -1874,8 +1874,29 @@ void createDiamondFacesXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, Ex
 
 }
 
+void assignFaceSubsetToClosedFace( std::vector<Face*> & faceVec, Grid & grid, SubsetHandler & sh )
+{
 
+	for( auto const & nF : faceVec )
+	{
+		for(size_t iEdge = 0; iEdge < nF->num_edges(); iEdge++ )
+		{
+			Edge* edg = grid.get_edge(nF, iEdge);
 
+			sh.assign_subset( edg, sh.get_subset_index(nF) );
+
+		}
+
+		for( size_t iVrt = 0; iVrt < nF->num_vertices(); iVrt++ )
+		{
+			Vertex * vrt = nF->vertex(iVrt);
+
+			sh.assign_subset( vrt, sh.get_subset_index(nF) );
+		}
+
+	}
+
+}
 
 
 #ifndef NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
@@ -5971,7 +5992,13 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			}
 
 
+			std::string diamNam = std::string("diamPfeil_") + std::string(const_cast<char*>( sh.get_subset_name( subdomList[0] ) ))
+					              + std::string("_") + std::string(const_cast<char*>( sh.get_subset_name( subdomList[1] ) ));
 
+			sh.set_subset_name(diamNam.c_str(),sudoTEnd);
+
+			assignFaceSubsetToClosedFace( newFracFaceVec, grid, sh );
+			assignFaceSubsetToClosedFace( newDiamFaceVec, grid, sh );
 
 
 
@@ -6834,43 +6861,48 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 			// TODO FIXME in extra Funktion packen, vielfach aufgerufen in der Art!
 
-			for( auto const & nF : newFracFaceVec )
-			{
-				for(size_t iEdge = 0; iEdge < nF->num_edges(); iEdge++ )
-				{
-					Edge* edg = grid.get_edge(nF, iEdge);
+			assignFaceSubsetToClosedFace( newFracFaceVec, grid, sh );
 
-					sh.assign_subset( edg, sh.get_subset_index(nF) );
+//			for( auto const & nF : newFracFaceVec )
+//			{
+//				for(size_t iEdge = 0; iEdge < nF->num_edges(); iEdge++ )
+//				{
+//					Edge* edg = grid.get_edge(nF, iEdge);
+//
+//					sh.assign_subset( edg, sh.get_subset_index(nF) );
+//
+//				}
+//
+//				for( size_t iVrt = 0; iVrt < nF->num_vertices(); iVrt++ )
+//				{
+//					Vertex * vrt = nF->vertex(iVrt);
+//
+//					sh.assign_subset( vrt, sh.get_subset_index(nF) );
+//				}
+//
+//			}
 
-				}
+			assignFaceSubsetToClosedFace( newDiamFaceVec, grid, sh );
 
-				for( size_t iVrt = 0; iVrt < nF->num_vertices(); iVrt++ )
-				{
-					Vertex * vrt = nF->vertex(iVrt);
 
-					sh.assign_subset( vrt, sh.get_subset_index(nF) );
-				}
-
-			}
-
-			for( auto const & nF : newDiamFaceVec )
-			{
-				for(size_t iEdge = 0; iEdge < nF->num_edges(); iEdge++ )
-				{
-					Edge* edg = grid.get_edge(nF, iEdge);
-
-					sh.assign_subset( edg, sh.get_subset_index(nF) );
-
-				}
-
-				for( size_t iVrt = 0; iVrt < nF->num_vertices(); iVrt++ )
-				{
-					Vertex * vrt = nF->vertex(iVrt);
-
-					sh.assign_subset( vrt, sh.get_subset_index(nF) );
-				}
-
-			}
+//			for( auto const & nF : newDiamFaceVec )
+//			{
+//				for(size_t iEdge = 0; iEdge < nF->num_edges(); iEdge++ )
+//				{
+//					Edge* edg = grid.get_edge(nF, iEdge);
+//
+//					sh.assign_subset( edg, sh.get_subset_index(nF) );
+//
+//				}
+//
+//				for( size_t iVrt = 0; iVrt < nF->num_vertices(); iVrt++ )
+//				{
+//					Vertex * vrt = nF->vertex(iVrt);
+//
+//					sh.assign_subset( vrt, sh.get_subset_index(nF) );
+//				}
+//
+//			}
 
 
 			// at end delete all fracture edges which are too long
