@@ -5465,8 +5465,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			IndexType cntr = 0;
 
 			// muss sofort festgelegt werden - Startecke und zweite Ecke des gewählten faces
-			Edge * shiftVrtxAtFirstFac = nullptr;
-			Edge * fracVrtxAtFirstFac = nullptr;
+			Edge * shiftVrtxAtFirstFacEdg = nullptr;
+			Edge * fracVrtxAtFirstFacEdg = nullptr;
 
 			Vertex * shiftVrtxAtFreeEnd = nullptr;
 
@@ -5496,12 +5496,12 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //								if( EdgeContains(*iterEdgF, svwi.first) && EdgeContains(*iterEdgF,crossPt) )
 								if( edgCntsShiVe && edgCntsCrsPt )
 								{
-									shiftVrtxAtFirstFac = *iterEdgF;
+									shiftVrtxAtFirstFacEdg = *iterEdgF;
 									startEdgeFnd++;
 								}
 								else if( edgCntsCrsPt && ! edgCntsShiVe )
 								{
-									fracVrtxAtFirstFac = *iterEdgF;
+									fracVrtxAtFirstFacEdg = *iterEdgF;
 									endEdgFnd++;
 								}
 							}
@@ -5521,8 +5521,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			if( indxFnd != 2 || startEdgeFnd != 2 || endEdgFnd != 2 )
 				UG_THROW("Index Free point or edge not found correct number " << indxFnd << " " << startEdgeFnd << " " << endEdgFnd << std::endl);
 
-			Edge * firstEdgeFac = shiftVrtxAtFirstFac;
-			Edge * secondEdgeFac = fracVrtxAtFirstFac;
+			Edge * firstEdgeFac = shiftVrtxAtFirstFacEdg;
+			Edge * secondEdgeFac = fracVrtxAtFirstFacEdg;
 
 			if( firstEdgeFac == nullptr || secondEdgeFac == nullptr )
 				UG_THROW("nullecke am Anfang?" << std::endl);
@@ -6012,6 +6012,25 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 				else
 					UG_THROW("hier fehlt ein Gesicht " << std::endl);
 			}
+
+			for( auto const & edg : allAssoEdgCP )
+			{
+//				Edge * e2D = oEdg;
+
+				if( edg != nullptr && edg != shiftVrtxAtFirstFacEdg )
+				{
+					UG_LOG("will erasieren " << edg << std::endl );
+					grid.erase(edg);
+
+//					sh.assign_subset( e2D, subsNumNow );
+//					sh.assign_subset( e2D, subsNumNow );
+				}
+				else
+				{
+					UG_LOG("hier fehlt eine Ecke " << std::endl);
+				}
+			}
+
 
 
 			UG_LOG("T End Kreis fertig an " << aaPos[crossPt] << std::endl );
