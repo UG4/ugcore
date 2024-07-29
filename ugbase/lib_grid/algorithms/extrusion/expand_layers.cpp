@@ -1598,7 +1598,7 @@ void computeDiamondPointXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, E
 
 
 void createNewFacesForExtXCrossFracs( ExpandCrossFracInfo const & ecf,  std::vector<Face*> & newFracFaceVec,
-									  bool & boundAtShiftVrtEdg, bool & atStartSort,
+									  bool & boundAtShiftVrtEdg, //bool & atStartSort,
 									  SubsetHandler & sh, Grid & grid, Vertex * const & crossPt,
 									  std::vector<IndexType> const & subdomList
 									)
@@ -1617,13 +1617,14 @@ void createNewFacesForExtXCrossFracs( ExpandCrossFracInfo const & ecf,  std::vec
 	std::pair<Vertex*, Vertex*> vertcsCrossSegWithNewV = ecf.getNewNormal();
 
 
-	if( atStartSort || boundAtShiftVrtEdg )
+//	if( atStartSort || boundAtShiftVrtEdg )
+	if( boundAtShiftVrtEdg )
 	{
 		if( vertcsCrossSeg.first != nullptr || vertcsCrossSeg.second == nullptr )
 			UG_THROW("Verwechslung " << vertcsCrossSeg.first << " " << vertcsCrossSeg.second << std::endl);
 	}
 
-	atStartSort = false;
+//	atStartSort = false;
 
 	Edge * fracEdge = boundAtShiftVrtEdg ? edgesCrossSeg.first : edgesCrossSeg.second;
 	Edge * shiftVrtEdge = boundAtShiftVrtEdg ?  edgesCrossSeg.second : edgesCrossSeg.first;
@@ -5954,11 +5955,13 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			std::vector<Face*> newFracFaceVec = std::vector<Face*>();
 
 			bool boundAtShiftVrtEdg = false;
-			bool atStartSort = false;
+//			bool atStartSort = false;
 
-			for( IndexType i = indBeforeT; i <= indAfterT; i++ )
+//			for( IndexType i = indBeforeT; i <= indAfterT; i++ )
+			for( auto const & ecf : vecExpCrossFI )
 			{
-				createNewFacesForExtXCrossFracs( vecExpCrossFI[i], newFracFaceVec, boundAtShiftVrtEdg, atStartSort, sh, grid, crossPt, subdomList );
+//				createNewFacesForExtXCrossFracs( vecExpCrossFI[i], newFracFaceVec, boundAtShiftVrtEdg, atStartSort, sh, grid, crossPt, subdomList );
+				createNewFacesForExtXCrossFracs( ecf, newFracFaceVec, boundAtShiftVrtEdg, sh, grid, crossPt, subdomList );
 			}
 
 			std::vector<Face*> newDiamFaceVec = std::vector<Face*>();
@@ -5992,7 +5995,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			}
 
 
-			std::string diamNam = std::string("diamPfeil_") + std::string(const_cast<char*>( sh.get_subset_name( subdomList[0] ) ))
+			std::string diamNam = std::string("spitzDiam_") + std::string(const_cast<char*>( sh.get_subset_name( subdomList[0] ) ))
 					              + std::string("_") + std::string(const_cast<char*>( sh.get_subset_name( subdomList[1] ) ));
 
 			sh.set_subset_name(diamNam.c_str(),sudoTEnd);
@@ -6000,6 +6003,15 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			assignFaceSubsetToClosedFace( newFracFaceVec, grid, sh );
 			assignFaceSubsetToClosedFace( newDiamFaceVec, grid, sh );
 
+			for( auto const & fdel : vecExpCrossFI )
+			{
+				Face * fac2BeDeleted = fdel.getFace();
+
+				if( fac2BeDeleted != nullptr )
+					grid.erase(fac2BeDeleted);
+				else
+					UG_THROW("hier fehlt ein Gesicht " << std::endl);
+			}
 
 
 			UG_LOG("T End Kreis fertig an " << aaPos[crossPt] << std::endl );
@@ -6580,7 +6592,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			std::vector<Face*> newFracFaceVec = std::vector<Face*>();
 
 			bool boundAtShiftVrtEdg = true;
-			bool atStartSort = true;
+//			bool atStartSort = true;
 
 			// ecf typ: ExpandCrossFracInfo
 
@@ -6597,7 +6609,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //
 //				)
 
-				createNewFacesForExtXCrossFracs( ecf, newFracFaceVec, boundAtShiftVrtEdg, atStartSort, sh, grid, crossPt, subdomList );
+//				createNewFacesForExtXCrossFracs( ecf, newFracFaceVec, boundAtShiftVrtEdg, atStartSort, sh, grid, crossPt, subdomList );
+				createNewFacesForExtXCrossFracs( ecf, newFracFaceVec, boundAtShiftVrtEdg, sh, grid, crossPt, subdomList );
 
 #if 0
 				std::pair<Edge*, Edge*> edgesCrossSeg = ecf.getEdge();
@@ -6905,6 +6918,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //			}
 
 
+#if 1
 			// at end delete all fracture edges which are too long
 
 			for( auto const & fdel : vecExpCrossFI )
@@ -6943,7 +6957,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			}
 
 			UG_LOG("ALles erasiert " << std::endl);
-
+#endif
 //			for( auto & afc : assoFacCross )
 //			{
 //				grid.erase(afc);
@@ -6990,6 +7004,34 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 
 		}
+
+#if 0
+		for( auto const & fdel : vecExpCrossFI )
+		{
+			Face * fac2BeDeleted = fdel.getFace();
+
+			if( fac2BeDeleted != nullptr )
+				grid.erase(fac2BeDeleted);
+			else
+				UG_THROW("hier fehlt ein Gesicht " << std::endl);
+		}
+
+		for( auto const & edg : allAssoEdgCP )
+		{
+			if( edg != nullptr )
+			{
+				UG_LOG("will erasieren " << edg << std::endl );
+				grid.erase(edg);
+
+			}
+			else
+			{
+				UG_LOG("hier fehlt eine Ecke " << std::endl);
+			}
+		}
+
+		UG_LOG("ALles erasiert " << std::endl);
+#endif
 	}
 
 //	grid.detach_from_edges( aAdjVert );
