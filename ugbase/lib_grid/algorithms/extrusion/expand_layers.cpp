@@ -1804,6 +1804,21 @@ void createDiamondFacesXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, Ex
 		|| expCFIAfterFracEdg.getNewNormal().first != expCFIAfterFracEdg.getNormal().first
 	)
 	{
+		UG_LOG("Vektoren " << expCFIBeforeFracEdg.getNewNormal().second << " != " <<  expCFIBeforeFracEdg.getNormal().second << std::endl
+		<< expCFIBeforeFracEdg.getNewNormal().second << std::endl
+		<< expCFIBeforeFracEdg.getNewNormal().second << " != " << expCFIAfterFracEdg.getNewNormal().first << std::endl
+		<< expCFIAfterFracEdg.getNewNormal().first << std::endl
+		<< expCFIAfterFracEdg.getNewNormal().first << " != " << expCFIAfterFracEdg.getNormal().first << std::endl );
+
+#if 0
+		Vektoren 0x591e03ec9c90 != 0x591e03ec9c90
+		0x591e03ec9c90
+		0x591e03ec9c90 != 0x591e03d00fa0
+		0x591e03d00fa0
+		0x591e03d00fa0 != 0x591e03d00fa0
+		Execution of tool Expand Layers 2d Arte failed with the following message:
+#endif
+
 		UG_THROW("Vektorchaos " << std::endl);
 	}
 
@@ -5882,7 +5897,6 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			// create new edges and new faces
 
 			std::vector<Face*> newFracFaceVec = std::vector<Face*>();
-			std::vector<Face*> newDiamFaceVec = std::vector<Face*>();
 
 			bool boundAtShiftVrtEdg = false;
 			bool atStartSort = false;
@@ -5892,6 +5906,31 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 				createNewFacesForExtXCrossFracs( vecExpCrossFI[i], newFracFaceVec, boundAtShiftVrtEdg, atStartSort, sh, grid, crossPt, subdomList );
 			}
 
+			std::vector<Face*> newDiamFaceVec = std::vector<Face*>();
+
+//			ExpandCrossFracInfo & expCFIBeforeFracEdg = vecExpCrossFI[ indBeforeT ];
+//			ExpandCrossFracInfo & expCFIAfterFracEdg = vecExpCrossFI[ indAfterT ];
+
+
+//			createDiamondFacesXCrossType( expCFIAfterFracEdg, expCFIBeforeFracEdg,
+//									newDiamFaceVec,  sh, grid, sudoTEnd, crossPt );
+
+			// only the non free part
+			for( int indC = 1; indC < sizeECF-2; indC = indC + 2 )
+			{
+
+				IndexType indBefore = ( indC + sizeECF ) % sizeECF;
+				IndexType indAfter = ( indC + 1 + sizeECF ) % sizeECF;
+
+
+				ExpandCrossFracInfo & expCFIBeforeFracEdg = vecExpCrossFI[ indBefore ];
+				ExpandCrossFracInfo & expCFIAfterFracEdg = vecExpCrossFI[ indAfter ];
+
+
+				createDiamondFacesXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg,
+						newDiamFaceVec,  sh, grid, sudoTEnd, crossPt );
+
+			}
 
 			UG_LOG("T End Kreis fertig an " << aaPos[crossPt] << std::endl );
 
@@ -6660,8 +6699,10 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 			for( int indC = 0; indC < vecfis-1; indC = indC + 2 )
 			{
-				IndexType indBefore = ( indC + vecExpCrossFI.size() ) % vecExpCrossFI.size();
-				IndexType indAfter = ( indC + 1 + vecExpCrossFI.size() ) % vecExpCrossFI.size();
+//				IndexType indBefore = ( indC + vecExpCrossFI.size() ) % vecExpCrossFI.size();
+//				IndexType indAfter = ( indC + 1 + vecExpCrossFI.size() ) % vecExpCrossFI.size();
+				IndexType indBefore = ( indC + vecfis ) % vecfis;
+				IndexType indAfter = ( indC + 1 + vecfis ) % vecfis;
 
 
 				ExpandCrossFracInfo & expCFIBeforeFracEdg = vecExpCrossFI[ indBefore ];
