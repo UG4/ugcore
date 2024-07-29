@@ -5429,6 +5429,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //
 //		using VecExpandCrossFracInfo = std::vector<ExpandCrossFracInfo>;
 
+		Edge * avoidToDeleteEdge = nullptr;
+
 		VecExpandCrossFracInfo vecExpCrossFI;
 
 		//		if( nuCroFra == 3 )
@@ -6003,35 +6005,35 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			assignFaceSubsetToClosedFace( newFracFaceVec, grid, sh );
 			assignFaceSubsetToClosedFace( newDiamFaceVec, grid, sh );
 
-			for( auto const & fdel : vecExpCrossFI )
-			{
-				Face * fac2BeDeleted = fdel.getFace();
+//			for( auto const & fdel : vecExpCrossFI )
+//			{
+//				Face * fac2BeDeleted = fdel.getFace();
+//
+//				if( fac2BeDeleted != nullptr )
+//					grid.erase(fac2BeDeleted);
+//				else
+//					UG_THROW("hier fehlt ein Gesicht " << std::endl);
+//			}
+//
+//			for( auto const & edg : allAssoEdgCP )
+//			{
+////				Edge * e2D = oEdg;
+//
+//				if( edg != nullptr && edg != shiftVrtxAtFirstFacEdg )
+//				{
+//					UG_LOG("will erasieren " << edg << std::endl );
+//					grid.erase(edg);
+//
+////					sh.assign_subset( e2D, subsNumNow );
+////					sh.assign_subset( e2D, subsNumNow );
+//				}
+//				else
+//				{
+//					UG_LOG("hier fehlt eine Ecke " << std::endl);
+//				}
+//			}
 
-				if( fac2BeDeleted != nullptr )
-					grid.erase(fac2BeDeleted);
-				else
-					UG_THROW("hier fehlt ein Gesicht " << std::endl);
-			}
-
-			for( auto const & edg : allAssoEdgCP )
-			{
-//				Edge * e2D = oEdg;
-
-				if( edg != nullptr && edg != shiftVrtxAtFirstFacEdg )
-				{
-					UG_LOG("will erasieren " << edg << std::endl );
-					grid.erase(edg);
-
-//					sh.assign_subset( e2D, subsNumNow );
-//					sh.assign_subset( e2D, subsNumNow );
-				}
-				else
-				{
-					UG_LOG("hier fehlt eine Ecke " << std::endl);
-				}
-			}
-
-
+			avoidToDeleteEdge = shiftVrtxAtFirstFacEdg;
 
 			UG_LOG("T End Kreis fertig an " << aaPos[crossPt] << std::endl );
 
@@ -6937,7 +6939,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //			}
 
 
-#if 1
+#if 0
 			// at end delete all fracture edges which are too long
 
 			for( auto const & fdel : vecExpCrossFI )
@@ -7024,7 +7026,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 		}
 
-#if 0
+#if 1
 		for( auto const & fdel : vecExpCrossFI )
 		{
 			Face * fac2BeDeleted = fdel.getFace();
@@ -7037,7 +7039,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 		for( auto const & edg : allAssoEdgCP )
 		{
-			if( edg != nullptr )
+			if( edg != nullptr && edg != avoidToDeleteEdge )
 			{
 				UG_LOG("will erasieren " << edg << std::endl );
 				grid.erase(edg);
