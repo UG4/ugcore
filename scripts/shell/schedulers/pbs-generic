@@ -82,7 +82,7 @@ function UJS_Submit
 			exit
 		fi
 		jobid=`echo $jobid | sed 's/\([0-9]*\).*/\1/'`
-	fi
+	fi	
 }
 
 
