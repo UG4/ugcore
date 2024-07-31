@@ -142,14 +142,14 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 		for( auto const & facFrac : attFac )
 		{
 
-			static_assert( std::is_same<  decltype( (facFrac) ), decltype ( ifac ) >::value );
+			//static_assert( std::is_same<  decltype( (facFrac) ), decltype ( ifac ) >::value );
 
 			if( ifac == facFrac )
 			{
 				isFromFrac = true;
 
-				static_assert( std::is_same< decltype( (facFrac) ), Face * const & >::value  );
-				static_assert( std::is_same< decltype( (facFrac) ), decltype( ifac ) >::value  );
+				//static_assert( std::is_same< decltype( (facFrac) ), Face * const & >::value  );
+				//static_assert( std::is_same< decltype( (facFrac) ), decltype( ifac ) >::value  );
 
 			}
 		}
@@ -193,7 +193,7 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 
 				atRightSide = true;
 
-#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+#if GRAPHICAL_SUDO_CREATION_DBG
 
 				Vertex * otherFacCent = *grid.create<RegularVertex>();
 				aaPos[otherFacCent] = facCenter;
@@ -269,20 +269,20 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 
 }
 
-#ifndef NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
-#define NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX 1
+#ifndef WORKAROUND_SEGFAULT_CREATE_VERTEX
+#define WORKAROUND_SEGFAULT_CREATE_VERTEX 1
 #endif
 
-#ifndef ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
-#define ANSCHAULICH_ERZEUGE_SUDOS_ANHANG 0
+#ifndef GRAPHICAL_SUDO_CREATION_DBG
+#define GRAPHICAL_SUDO_CREATION_DBG 0
 #endif
 
-#ifndef OLD_PROFREITER_STUFF
-#define OLD_PROFREITER_STUFF 0
+#ifndef FORMER_EXPANSION_TECHNIQUES
+#define FORMER_EXPANSION_TECHNIQUES 0
 #endif
 
-bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> const & fracInfos,
-						bool expandInnerFracBnds, bool expandOuterFracBnds)
+bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> const & fracInfos,
+						    bool expandInnerFracBnds, bool expandOuterFracBnds )
 {
 
 //	static constexpr bool dehneInnereKluftGrenzpunkteAus = false;
@@ -325,7 +325,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 	sel.enable_autoselection(false);
 	sel.enable_selection_inheritance(false);
 
-#if OLD_PROFREITER_STUFF
+#if FORMER_EXPANSION_TECHNIQUES
 	AInt aAdjMarker;	// used to mark how many adjacent fractures a vertex has.
 						// 0: no frac, 1: frac-boundary, >1: inner frac vertex
 	// TODO FIXME das sieht komisch aus, ist das immer so, wenn z.B. an einer Grenze sich zwei fracs treffen?
@@ -422,7 +422,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 		//	mark edge and vertices
 			sel.select(*iter);
 
-#if OLD_PROFREITER_STUFF
+#if FORMER_EXPANSION_TECHNIQUES
 			aaMarkEDGE[*iter] = 1;
 #endif
 
@@ -441,7 +441,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 					aaMarkVrtVFP[v].setIsBndFracVertex();
 
 
-#if OLD_PROFREITER_STUFF
+#if FORMER_EXPANSION_TECHNIQUES
 				// das ist Sebastians loop, den nicht mehr lassen lassen
 				//	if fracture boundaries are expanded, we'll regard all fracture vertices
 				//	as inner vertices
@@ -466,7 +466,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 	}
 
 
-#if OLD_PROFREITER_STUFF
+#if FORMER_EXPANSION_TECHNIQUES
 //	Make sure that selected vertices that lie on the boundary of the geometry
 //	are treated as inner fracture vertices.
 //	This is only required if frac-boundaries are not expanded anyways.
@@ -496,7 +496,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 		if( expandInnerFracBnds && !expandOuterFracBnds && aaMarkVrtVFP[*iter].getIsBndFracVertex() )
 			wahl = false;
 
-		static_assert( std::is_same< decltype(*iter), Vertex * >::value );
+		//static_assert( std::is_same< decltype(*iter), Vertex * >::value );
 
 		bool isBnd = aaMarkVrtVFP[ *iter ].getIsBndFracVertex();
 		auto numCrosFrac = aaMarkVrtVFP[ *iter ].getNumberFracEdgesInVertex();
@@ -601,15 +601,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			// get subdomain of edge
 
-			auto sudoEdg = sh.get_subset_index(*iterEdg);
+//			auto sudoEdg = sh.get_subset_index(*iterEdg);
 
-			static_assert( std::is_same< decltype(sudoEdg), int >::value );
+			//static_assert( std::is_same< decltype(sudoEdg), int >::value );
 
 			// get vertices of edge, always 2
 
 			std::vector<Vertex* > verticesEdg;
 
-			static_assert( std::is_same< Vertex*, decltype( (*iterEdg)->vertex(0) ) >::value );
+			//static_assert( std::is_same< Vertex*, decltype( (*iterEdg)->vertex(0) ) >::value );
 
 			for( size_t i = 0; i < 2; ++i )
 				verticesEdg.push_back( (*iterEdg)->vertex(i) );
@@ -649,8 +649,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 			std::vector<Face* > assFace;
 
-//			static_assert( std::is_same< decltype( aaVrtInfoAssoFaces[verticesEdg[0]] )[0], std::vector<Face *> >::value );
-			//static_assert( std::is_same< decltype( *(aaVrtInfoAssoFaces[verticesEdg[0]]) ), Face * >::value );
+//			//static_assert( std::is_same< decltype( aaVrtInfoAssoFaces[verticesEdg[0]] )[0], std::vector<Face *> >::value );
+			////static_assert( std::is_same< decltype( *(aaVrtInfoAssoFaces[verticesEdg[0]]) ), Face * >::value );
 
 //			UG_LOG("XXXXXXXXXXXX" << std::endl);
 
@@ -692,7 +692,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 			//	VecFace & assoFaces = aaVrtInfoAssoFaces[*iterV ist verticesEdg[0] ];
 			//		for( auto const & ifac : assoFaces )
 			//		{
-			//			static_assert( std::is_same< decltype( ifac ), Face * const & >::value );
+			//			//static_assert( std::is_same< decltype( ifac ), Face * const & >::value );
 			//		}
 
 
@@ -727,11 +727,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				edgeNormals.push_back( tmpN );
 
-				static_assert( std::is_same< Edge*, decltype(*iterEdg) >::value );
+				//static_assert( std::is_same< Edge*, decltype(*iterEdg) >::value );
 
-				static_assert( std::is_same< Face * const &, decltype(fac) >::value );
-				static_assert( std::is_same< Face *, decltype( const_cast<Face*>(fac) ) >::value );
-				static_assert( std::is_same< vector3, decltype( tmpN ) >::value );
+				//static_assert( std::is_same< Face * const &, decltype(fac) >::value );
+				//static_assert( std::is_same< Face *, decltype( const_cast<Face*>(fac) ) >::value );
+				//static_assert( std::is_same< vector3, decltype( tmpN ) >::value );
 
 				VertFracTrip infoVertizesThisEdge( *iterEdg, fac, tmpN );
 
@@ -742,21 +742,21 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				for( auto const & v : verticesEdg )
 				{
-					static_assert( std::is_same< decltype(v), Vertex * const & >::value );
-					static_assert( std::is_same< decltype(const_cast<Vertex*>(v)), Vertex *  >::value );
+					//static_assert( std::is_same< decltype(v), Vertex * const & >::value );
+					//static_assert( std::is_same< decltype(const_cast<Vertex*>(v)), Vertex *  >::value );
 					aaVrtInfoFraTri[v].push_back( infoVertizesThisEdge );
 
 //					VecVertFracTrip allInfosVrtxThisEdg = aaVrtInfoFraTri[v];
 
-//					static_assert( std::is_same< decltype(  aaVrtInfoFraTri[v] ),  VecVertFracTrip >::value );
+//					//static_assert( std::is_same< decltype(  aaVrtInfoFraTri[v] ),  VecVertFracTrip >::value );
 
 //					UG_LOG("type Fac " << typeid( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getFace() ).name() << std::endl);
 //					UG_LOG("type Edg " << typeid( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getEdge() ).name() << std::endl);
 //					UG_LOG("type Vec " << typeid( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getNormal() ).name() << std::endl);
 
-					static_assert( std::is_same< decltype( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getFace() ), Face * >::value );
-					static_assert( std::is_same< decltype( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getEdge() ), Edge * >::value );
-					static_assert( std::is_same< decltype( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getNormal() ), vector3 const >::value );
+					//static_assert( std::is_same< decltype( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getFace() ), Face * >::value );
+					//static_assert( std::is_same< decltype( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getEdge() ), Edge * >::value );
+					//static_assert( std::is_same< decltype( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getNormal() ), vector3 const >::value );
 				}
 
 			}
@@ -895,21 +895,21 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 		std::vector<Edge*> & allAssoEdges = aaVrtInfoAssoEdges[*iterV];
 
-		static_assert( std::is_same< decltype( vecVertFracTrip[ vecVertFracTrip.size() - 1 ].getFace() ), Face * >::value );
-		static_assert( std::is_same< decltype( vecVertFracTrip[ vecVertFracTrip.size() - 1 ].getEdge() ), Edge * >::value );
-		static_assert( std::is_same< decltype( vecVertFracTrip[ vecVertFracTrip.size() - 1 ].getNormal() ), vector3 const >::value );
+		//static_assert( std::is_same< decltype( vecVertFracTrip[ vecVertFracTrip.size() - 1 ].getFace() ), Face * >::value );
+		//static_assert( std::is_same< decltype( vecVertFracTrip[ vecVertFracTrip.size() - 1 ].getEdge() ), Edge * >::value );
+		//static_assert( std::is_same< decltype( vecVertFracTrip[ vecVertFracTrip.size() - 1 ].getNormal() ), vector3 const >::value );
 
-		for( auto const & vft : vecVertFracTrip )
-		{
-			static_assert( std::is_same< decltype( vft.getFace() ), Face * >::value );
-			static_assert( std::is_same< decltype( vft.getEdge() ), Edge * >::value );
-			static_assert( std::is_same< decltype( vft.getNormal() ), vector3 const >::value );
-
-			Face * f = vft.getFace();
-			Edge * e = vft.getEdge();
-			vector3 n = vft.getNormal();
-
-		}
+//		for( auto const & vft : vecVertFracTrip )
+//		{
+//			//static_assert( std::is_same< decltype( vft.getFace() ), Face * >::value );
+//			//static_assert( std::is_same< decltype( vft.getEdge() ), Edge * >::value );
+//			//static_assert( std::is_same< decltype( vft.getNormal() ), vector3 const >::value );
+//
+//			Face * f = vft.getFace();
+//			Edge * e = vft.getEdge();
+//			vector3 n = vft.getNormal();
+//
+//		}
 
 		using VvftIterator = VecVertFracTrip::iterator;
 
@@ -920,7 +920,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 //		for( auto const & ifac : assoFaces )
 //		{
-//			static_assert( std::is_same< decltype( ifac ), Face * const & >::value );
+//			//static_assert( std::is_same< decltype( ifac ), Face * const & >::value );
 //		}
 
 
@@ -999,7 +999,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				int dbg_iteratorAblaufen = 0;
 
 
-#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+#if WORKAROUND_SEGFAULT_CREATE_VERTEX
 
 				int dbg_laenge = 0;
 
@@ -1028,7 +1028,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				)
 				{
 
-#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+#if WORKAROUND_SEGFAULT_CREATE_VERTEX
 					dbg_laenge_eins++;
 
 					if( dbg_laenge_eins > dbg_laenge )
@@ -1044,7 +1044,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 
 
-#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+#if WORKAROUND_SEGFAULT_CREATE_VERTEX
 
 					UG_LOG("NORMAL " << vvftV->getNormal() << std::endl);
 					UG_LOG("LAENGE EINZ " << dbg_laenge_eins << std::endl );
@@ -1167,17 +1167,17 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 						for( auto const & facFrac : attFac )
 						{
 
-//											static_assert( std::is_same<  decltype( const_cast<Face* & >(facFrac) ), decltype ( ifac ) >::value );
-							static_assert( std::is_same<  decltype( (facFrac) ), decltype ( ifac ) >::value );
+//											//static_assert( std::is_same<  decltype( const_cast<Face* & >(facFrac) ), decltype ( ifac ) >::value );
+							//static_assert( std::is_same<  decltype( (facFrac) ), decltype ( ifac ) >::value );
 
 							if( ifac == facFrac )
 							{
 								isFromFrac = true;
 
-//													static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), Face * & >::value  );
-								static_assert( std::is_same< decltype( (facFrac) ), Face * const & >::value  );
-//												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), decltype( ifac ) >::value  );
-								static_assert( std::is_same< decltype( (facFrac) ), decltype( ifac ) >::value  );
+//													//static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), Face * & >::value  );
+								//static_assert( std::is_same< decltype( (facFrac) ), Face * const & >::value  );
+//												//static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), decltype( ifac ) >::value  );
+								//static_assert( std::is_same< decltype( (facFrac) ), decltype( ifac ) >::value  );
 
 							}
 						}
@@ -1239,7 +1239,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 								atRightSide = true;
 
-#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+#if GRAPHICAL_SUDO_CREATION_DBG
 
 								Vertex * otherFacCent = *grid.create<RegularVertex>();
 								aaPos[otherFacCent] = facCenter;
@@ -1373,7 +1373,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				int dbg_iteratorAblaufen = 0;
 
-#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+#if WORKAROUND_SEGFAULT_CREATE_VERTEX
 
 				int dbg_laenge = 0;
 
@@ -1435,7 +1435,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				)
 				{
 
-#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+#if WORKAROUND_SEGFAULT_CREATE_VERTEX
 					dbg_laenge_eins++;
 
 					if( dbg_laenge_eins > dbg_laenge )
@@ -1459,7 +1459,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 					)
 					{
 
-#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+#if WORKAROUND_SEGFAULT_CREATE_VERTEX
 						dbg_laenge_zwei++;
 
 						if( dbg_laenge_zwei > dbg_laenge )
@@ -1681,7 +1681,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 //										for( std::vector<Face *>::iterator iterF2 = attFac.begin(); iterF2 != attFac.end(); iterF2++ )
 //										{
-//											static_assert( std::is_same< decltype( *iterF2 ), decltype ( *iterFac ) >::value );
+//											//static_assert( std::is_same< decltype( *iterF2 ), decltype ( *iterFac ) >::value );
 //
 //										}
 
@@ -1695,7 +1695,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //
 //											UG_LOG("type iter Fac " << typeid( *iterFac ).name() << std::endl);
 
-											static_assert( std::is_same<  decltype( const_cast<Face* & >(facFrac) ), decltype ( *iterFac ) >::value );
+											//static_assert( std::is_same<  decltype( const_cast<Face* & >(facFrac) ), decltype ( *iterFac ) >::value );
 
 
 
@@ -1704,8 +1704,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 											{
 												isFromFrac = true;
 
-												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), Face * & >::value  );
-												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), decltype( * iterFac ) >::value  );
+												//static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), Face * & >::value  );
+												//static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), decltype( * iterFac ) >::value  );
 
 											}
 										}
@@ -1751,7 +1751,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 												atRightSide = true;
 
-#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+#if GRAPHICAL_SUDO_CREATION_DBG
 
 												Vertex * otherFacCent = *grid.create<RegularVertex>();
 												aaPos[otherFacCent] = facCenter;
@@ -1864,7 +1864,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 									//									for( auto const & ifac : assoFaces )
 									//									{
-									//										static_assert( std::is_same< decltype( ifac ), Face * const & >::value );
+									//										//static_assert( std::is_same< decltype( ifac ), Face * const & >::value );
 									//
 									//										// TODO FIXME folgenden loop durch diesen ersetzen
 									//										// Achtung: Zeigerproblematik, Referenzen, etc.....
@@ -1884,17 +1884,17 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 										for( auto const & facFrac : attFac )
 										{
 
-//											static_assert( std::is_same<  decltype( const_cast<Face* & >(facFrac) ), decltype ( ifac ) >::value );
-											static_assert( std::is_same<  decltype( (facFrac) ), decltype ( ifac ) >::value );
+//											//static_assert( std::is_same<  decltype( const_cast<Face* & >(facFrac) ), decltype ( ifac ) >::value );
+											//static_assert( std::is_same<  decltype( (facFrac) ), decltype ( ifac ) >::value );
 
 											if( ifac == facFrac )
 											{
 												isFromFrac = true;
 
-//												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), Face * & >::value  );
-												static_assert( std::is_same< decltype( (facFrac) ), Face * const & >::value  );
-//												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), decltype( ifac ) >::value  );
-												static_assert( std::is_same< decltype( (facFrac) ), decltype( ifac ) >::value  );
+//												//static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), Face * & >::value  );
+												//static_assert( std::is_same< decltype( (facFrac) ), Face * const & >::value  );
+//												//static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), decltype( ifac ) >::value  );
+												//static_assert( std::is_same< decltype( (facFrac) ), decltype( ifac ) >::value  );
 
 											}
 										}
@@ -1938,7 +1938,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 												atRightSide = true;
 
-#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+#if GRAPHICAL_SUDO_CREATION_DBG
 
 												Vertex * otherFacCent = *grid.create<RegularVertex>();
 												aaPos[otherFacCent] = facCenter;
@@ -2062,13 +2062,13 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				// verkettete Liste der anhängenden fractures in Reihenfolge
 				// der Anhängung mit INfo, ob eine Kluft vorliegt
 
-				for( auto const & attVFT : vecVertFracTrip )
-				{
-					Edge * edg = attVFT.getEdge();
-					Face * fac = attVFT.getFace();
-					vector3 nv = attVFT.getNormal();
-				}
-
+//				for( auto const & attVFT : vecVertFracTrip )
+//				{
+//					Edge * edg = attVFT.getEdge();
+//					Face * fac = attVFT.getFace();
+//					vector3 nv = attVFT.getNormal();
+//				}
+//
 //				// hier werden  ALLE attached Faces benötigt, auch die, die zwischen den direkt an den fractures liegenden Faces sind
 //
 				// copies of all faces and of fractured ones
@@ -2129,7 +2129,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 				vector3 startNormal = fracNorm;
 
-				Face* nextFace = NULL;
+//				Face* nextFace = NULL;
 
 				UG_LOG("Gesamtanzahl faces um Knoten vor while " <<  aF.size() << std::endl );
 
@@ -2448,7 +2448,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 				// at end, chech if we have arrived again at original first edge
 
 
-				int totalSubsNum = sh.num_subsets();
+//				int totalSubsNum = sh.num_subsets();
 
 //				int newSubsToAdd = totalSubsNum;
 
@@ -2942,9 +2942,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 //					std::vector<Vertex* > verticesEdg;
 
-					static_assert( std::is_same< Edge* const &, decltype( bE ) >::value );
+					//static_assert( std::is_same< Edge* const &, decltype( bE ) >::value );
 
-					static_assert( std::is_same< Vertex*, decltype( bE->vertex(0) ) >::value );
+					//static_assert( std::is_same< Vertex*, decltype( bE->vertex(0) ) >::value );
 
 					IndexType fndIV = 0;
 
@@ -2984,7 +2984,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 
 
-#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+#if WORKAROUND_SEGFAULT_CREATE_VERTEX
 
 				IndexType dbg_lim = vecVertFracTrip.size();
 
@@ -2996,7 +2996,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 						vvftAtBnd++
 				)
 				{
-#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+#if WORKAROUND_SEGFAULT_CREATE_VERTEX
 
 					if( dbg_lim == dbg_cnt )
 					{
@@ -3115,7 +3115,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 										atRightSide = true;
 
-#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+#if GRAPHICAL_SUDO_CREATION_DBG
 												Vertex * otherFacCent = *grid.create<RegularVertex>();
 												aaPos[otherFacCent] = facCenter;
 												sh.assign_subset(otherFacCent, 5 );
@@ -3225,7 +3225,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 										atRightSide = true;
 
-#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+#if GRAPHICAL_SUDO_CREATION_DBG
 												Vertex * otherFacCent = *grid.create<RegularVertex>();
 												aaPos[otherFacCent] = facCenter;
 												sh.assign_subset(otherFacCent, 5 );
@@ -3423,7 +3423,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 //						//	remove the temporary attachments and throw an error
 //
 //						//	remove the temporary attachments
-//#if OLD_PROFREITER_STUFF
+//#if FORMER_EXPANSION_TECHNIQUES
 //						grid.detach_from_vertices(aAdjMarker);
 //						grid.detach_from_edges(aAdjMarker);
 //#endif
@@ -3517,7 +3517,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 	//	remove the temporary attachments
 
-#if OLD_PROFREITER_STUFF
+#if FORMER_EXPANSION_TECHNIQUES
 	grid.detach_from_vertices(aAdjMarker);
 	grid.detach_from_edges(aAdjMarker);
 #endif
@@ -3544,7 +3544,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, vector<FractureInfo> c
 
 
 
-#if OLD_PROFREITER_STUFF
+#if FORMER_EXPANSION_TECHNIQUES
 	// TODO FIXME von diesem Loop kann man noch für oben die calculate crease normal lernen, vielleicht minimal abgewandelt, vielleicht exakt gleich
 
 	//	a callback that returns true if the edge is a fracture edge, neues System

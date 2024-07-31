@@ -15,9 +15,8 @@ namespace ug
  * 2 dimensional fracture expansion for finite extensions, using the Arte algorithm
  *
  */
-bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh,
-						const std::vector<FractureInfo>& fracInfos,
-						bool expandInnerFracBnds, bool expandOuterFracBnds);
+bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, std::vector<FractureInfo> const & fracInfos,
+						    bool expandInnerFracBnds, bool expandOuterFracBnds );
 
 
 
