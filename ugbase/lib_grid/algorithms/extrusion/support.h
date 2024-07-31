@@ -202,7 +202,7 @@ class VertexFractureTriple
 public:
 	
 	VertexFractureTriple( ECKENTYP const & edge, GESICHTSTYP const & face, SENKRECHTENTYP const & normal   )
-	: m_edge(edge), m_face(face), m_normal(normal)
+	: m_edge(edge), m_face(face), m_normal(normal), m_newNormal(normal)
 	{	
 	};
 
@@ -212,11 +212,15 @@ public:
 	
 	SENKRECHTENTYP const getNormal() const { return m_normal; } 
 
+	void setNewNormal( SENKRECHTENTYP const & chNorml ) { m_newNormal = chNorml; }
+	SENKRECHTENTYP const getNewNormal() const { return m_newNormal; }
+
 private:
 	
 	ECKENTYP m_edge;
 	GESICHTSTYP m_face;
 	SENKRECHTENTYP  m_normal;
+	SENKRECHTENTYP  m_newNormal;
 	
 	VertexFractureTriple()
 	{};
@@ -226,39 +230,135 @@ private:
 
 //////////////////////////////////////////////////////////////////
 
-template < typename VRT, typename IndTyp > //, typename EDG >
+template < typename VRT, typename IndTyp > //, typename EDG > //, typename SHIFTINFO > //, typename FAC >
 class CrossingVertexInfo
 {
+
 public:
 
-	CrossingVertexInfo( VRT const & crossVrt, IndTyp numbCrossFracs )
-	: m_crossVrt(crossVrt), m_numbCrossFracs( numbCrossFracs ), m_vecShiftedVrts(std::vector<VRT>())
-	//,m_vecOrigEdges(std::vector<EDG>())
-	{
+	enum FracTyp { SingleFrac = 2, TEnd = 3, XCross = 4 };
 
+	CrossingVertexInfo( VRT const & crossVrt, IndTyp numbCrossFracs )
+	: m_crossVrt(crossVrt), m_numbCrossFracs( numbCrossFracs ),
+	  m_vecShiftedVrts(std::vector<VRT>()) //, m_vecOrigEdges(std::vector<EDG>()) //, m_vecAdjFracFac( std::vector<FAC>() )
+//	  m_shiftInfo(std::vector<SHIFTINFO>())
+	,  m_vecShiftedVrtsWithTypInf(std::vector<std::pair<VRT,bool>>())
+	, m_numberAtFreeSide(0)
+	{
+		if( numbCrossFracs == 2 )
+		{
+			m_fracTyp = SingleFrac;
+		}
+		if( numbCrossFracs == 3 )
+		{
+			m_fracTyp = TEnd;
+		}
+		else if( numbCrossFracs == 4 )
+		{
+			m_fracTyp = XCross;
+		}
+		else
+		{
+			UG_LOG("frac typ wrong " << numbCrossFracs << std::endl);
+		}
 	}
 
 	VRT getCrossVertex() const { return m_crossVrt; }
 
-	IndTyp getNumbCrossFracs() const { return m_numbCrossFracs; }
+//	IndTyp getNumbCrossFracs() const { return m_numbCrossFracs; }
+	FracTyp getFracTyp() const { return m_fracTyp; }
 
-	void addShiftVrtx( VRT const & vrt )
+	void addShiftVrtx( VRT const & vrt, bool isAtFreeSide = false )
 	{
+//		if( m_fracTyp == XCross )
 		m_vecShiftedVrts.push_back(vrt);
+
+//		if( isAtFreeSide )
+//			UG_THROW("XCross ohne freie Seite " << std::endl);
+
+		if( m_fracTyp == TEnd )
+		{
+			std::pair<VRT, bool > addSVI( vrt, isAtFreeSide );
+			m_vecShiftedVrtsWithTypInf.push_back(addSVI);
+
+			if( isAtFreeSide )
+				m_numberAtFreeSide++;
+
+			if( m_numberAtFreeSide > 1 )
+				UG_THROW("was ist das fuer ein T Ende" << std::endl);
+		}
+
 	}
 
 //	void addOriginalFracEdge( EDG const & edg ) { m_vecOrigEdges.push_back(edg); }
 
-	std::vector<VRT> getVecShiftedVrts() const { return m_vecShiftedVrts; }
+//	void addShiftInfo( SHIFTINFO const & shi ) { m_shiftInfo.push_back(shi); }
+
+//	void addAdjntFracFaces( FAC const & fac ) { m_vecAdjFracFac.push_back(fac); }
+
+	void setShiftVrtx( std::vector<VRT> const & vecVrt ) { m_vecShiftedVrts = vecVrt; }
+
+//	void setOriginalFracEdge( std::vector<EDG>  const & vecEdg ) { m_vecOrigEdges = vecEdg; }
+
+//	void setShiftInfo( SHIFTINFO const & vecShi ) { m_shiftInfo = vecShi; }
+
+//	void setAdjntFracFaces( std::vector<FAC> const & vecFac ) { m_vecAdjFracFac = vecFac; }
+
+//	void addShiftVectors( vector3 const & projectNrmFraOneToEdgTwoDirection, vector3 const & projectNrmFraTwoToEdgOneDirection, IndexType segmentNum )
+//	{
+//		m_projectNrmFraOneToEdgTwoDirection = projectNrmFraOneToEdgTwoDirection;
+//		m_projectNrmFraTwoToEdgOneDirection = projectNrmFraTwoToEdgOneDirection;
+//	}
+
+
+
+	std::vector<VRT> getVecShiftedVrts() const
+	{
+//		if( m_fracTyp != XCross )
+//			UG_LOG("fuer Kreuz nicht erlaubt " << std::endl);
+
+		return m_vecShiftedVrts;
+	}
+
+	std::vector<std::pair<VRT,bool>> getVecShiftedVrtsWithTypInfo() const
+	{
+		if( m_fracTyp != TEnd )
+			UG_THROW("fuer Kreuz nicht erlaubt " << std::endl);
+
+		return m_vecShiftedVrtsWithTypInf;
+	}
+
 
 //	std::vector<EDG> getVecOrigFracEdges() const { return m_vecOrigEdges; }
+
+//	std::vector<SHIFTINFO> getShiftInfo() const { return m_shiftInfo; }
+
+
+
+//	std::vector<FAC> getVecAdjntFracFaces() const { return m_vecAdjFracFac; }
+
+//	std::pair<vector3,vector3> getShiftVectors( ) const
+//	{
+//		std::pair<vector3,vector3> shiVe;
+//
+//		shiVe.first  = m_projectNrmFraOneToEdgTwoDirection;
+//		shiVe.second = m_projectNrmFraTwoToEdgOneDirection;
+//
+//		return shiVe;
+//	}
 
 private:
 
 	VRT m_crossVrt;
 	IndTyp m_numbCrossFracs;
 	std::vector<VRT> m_vecShiftedVrts;
+	std::vector<std::pair<VRT,bool>> m_vecShiftedVrtsWithTypInf;
 //	std::vector<EDG> m_vecOrigEdges;
+//	std::vector<FAC> m_vecAdjFracFac;
+//	vector3 m_projectNrmFraOneToEdgTwoDirection, m_projectNrmFraTwoToEdgOneDirection;
+//	std::vector<SHIFTINFO> m_shiftInfo;
+	FracTyp m_fracTyp;
+	IndTyp m_numberAtFreeSide;
 };
 
 

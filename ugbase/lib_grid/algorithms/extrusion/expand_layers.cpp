@@ -740,9 +740,9 @@ using IndexType = unsigned short;
 using CrossVertInf = CrossingVertexInfo<Vertex*, IndexType >; //, Edge* >;
 
 
-#ifndef DECIDDE_CORRECT_ASSO_FACS_OLD_METHOD
-#define DECIDDE_CORRECT_ASSO_FACS_OLD_METHOD 1
-#endif
+//#ifndef DECIDDE_CORRECT_ASSO_FACS_OLD_METHOD
+//#define DECIDDE_CORRECT_ASSO_FACS_OLD_METHOD 1
+//#endif
 
 
 
@@ -1159,6 +1159,8 @@ bool expandSingleFractureAtGivenSide<VecVertexOfFaceInfo>
 	// average the normals -- das wird wohl der Fehler sein, wenn n1 und n2 nicht fast parallel sind, wenn man davon ausgehend
 	// bestimmt, auf welcher Seite benachbarte Dreiecke liegen, zur Berechnung des Verschiebevektors ist es aber gut
 
+	// TODO FIXME fuer grossere Winkel die Methode von XCross Projektionen übernehmen!!!
+
 	vector3 normSum;
 
 	VecAdd( normSum, nOne, nTwo );
@@ -1236,6 +1238,8 @@ bool expandSingleFractureAtGivenSide<VecVertexOfFaceInfo>
 	// zu markieren, welche weg fallen sollen, wenn
 	// nicht von Kluft selber, sondern quasi verschoben
 	// und neu erzeugt
+
+	// TODO FIXME in eigene Funktion stecken, taucht exakt gleich bei XCross auf am Ende!
 
 	for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
 	{
@@ -5167,6 +5171,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 //						UG_LOG("ADDED SHIFT VECTOR " << aaPos[newShiftVrtx] << std::endl);
 
+						// TODO FIXME eigene Funktion, da bei 2 und 3 Klüften exakt dieselbe Routine, mit copy und paste übernommen worden
 
 						for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
 						{
@@ -5487,6 +5492,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 				int dbg_cnt = 0;
 #endif
 
+				// TODO FIXME HHHHHHHHH hier die Sortierungsroutine einbauen, um die attachten faces sicher richtig zu zu ordnen!!!
+
 				for( VvftIterator vvftAtBnd = vecVertFracTrip.begin();
 						vvftAtBnd != vecVertFracTrip.end();
 						vvftAtBnd++
@@ -5673,6 +5680,9 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 							}
 #else
+
+							// TODO FIXME HHHHHHHHH hier die Sortierungsroutine einbauen, um die attachten faces sicher richtig zu zu ordnen!!!
+
 							for( auto const & ifac : assoFaces )
 							{
 								bool isFromFrac = false;
