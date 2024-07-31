@@ -740,6 +740,12 @@ using IndexType = unsigned short;
 using CrossVertInf = CrossingVertexInfo<Vertex*, IndexType >; //, Edge* >;
 
 
+#ifndef DECIDDE_CORRECT_ASSO_FACS_OLD_METHOD
+#define DECIDDE_CORRECT_ASSO_FACS_OLD_METHOD 1
+#endif
+
+
+
 // for cases with one fracture and no crossing points
 template <typename ASOF >
 bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo,
@@ -882,6 +888,7 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 
 	for( auto const & ifac : assoFaces )
 	{
+
 		bool isFromFrac = false;
 
 		int dbg_innterFacFracIt = 0;
@@ -1037,7 +1044,6 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 			dbg_flachen_passiert++;
 		}
 
-
 		if( atRightSide ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
 		{
 
@@ -1095,6 +1101,227 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 	return true;
 
 }
+
+using VecVertFracTrip = std::vector<VertFracTrip>;
+
+// needed for crossing points
+using VertexOfFaceInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<vector3,vector3> >;
+// all edges of the attached face - must always be two, the face itself, and the normal vectors of the face in direction of the two edges
+// the size of the normal vector vector also must be two
+// however, if an edge of the face is not a fracture edge, we do not compute the normal, but assign zero as norm
+// for those edges and faces which are Kluft edges, we assign the normal known from the info computed before, vertex fracture triple
+
+using VecVertexOfFaceInfo = std::vector<VertexOfFaceInfo>;
+
+using SegmentsFractExtrus = std::vector<VecVertexOfFaceInfo>;
+
+
+
+
+template <>
+// for the case of crossing points
+bool expandSingleFractureAtGivenSide<VecVertexOfFaceInfo>
+									( vector3 const & nOne, vector3 const & nTwo,
+ 									  Edge * edgeOne, Edge * edgeTwo,
+									  Face * facOne, Face * facTwo,
+									  vector<FractureInfo> const & fracInfosBySubset,
+									  vector3 const & posOldVrt,
+									  Grid::VertexAttachmentAccessor<APosition> & aaPos,
+									  Grid & grid, SubsetHandler & sh,
+									  VecVertexOfFaceInfo const & segPart,
+									  std::vector<Vertex *> const & nextFracVrt,
+									  Grid::FaceAttachmentAccessor<AttVrtVec> & aaVrtVecFace,
+									  int & dbg_flachen_passiert,
+									  Vertex * crossPt,
+									  CrossVertInf & crossVrtInf,
+									  bool insertCrossVrtInf
+									  )
+//
+//									( vector3 const & nOne, vector3 const & nTwo,
+// 									  Edge * edgeOne, Edge * edgeTwo,
+//									  Face * facOne, Face * facTwo,
+//									  vector<FractureInfo> const & fracInfosBySubset,
+//									  vector3 const & posOldVrt,
+//									  Grid::VertexAttachmentAccessor<APosition> & aaPos,
+//									  Grid & grid, SubsetHandler & sh,
+//									  VecVertexOfFaceInfo const & segPart,
+//									  std::vector<Vertex *> const & nextFracVrt,
+//									  Grid::FaceAttachmentAccessor<AttVrtVec> & aaVrtVecFace,
+//									  int & dbg_flachen_passiert,
+//									  Vertex const * & crossPt,
+//									  CrossVertInf & crossVrtInf,
+//									  bool insertCrossVrtInf // = true
+//									  )
+{
+
+	// gleiche Seite gegeben
+
+	// average the normals -- das wird wohl der Fehler sein, wenn n1 und n2 nicht fast parallel sind, wenn man davon ausgehend
+	// bestimmt, auf welcher Seite benachbarte Dreiecke liegen, zur Berechnung des Verschiebevektors ist es aber gut
+
+	vector3 normSum;
+
+	VecAdd( normSum, nOne, nTwo );
+
+	vector3 normSumNormed;
+
+	VecNormalize(normSumNormed, normSum);
+
+	UG_LOG("averaged normal " << normSumNormed << std::endl);
+
+	std::vector<Edge * > attEdg;
+	std::vector<Face * > attFac;
+
+	attEdg.push_back( edgeOne );
+	attEdg.push_back( edgeTwo );
+
+	attFac.push_back( facOne );
+	attFac.push_back( facTwo );
+
+	// jetzt neuen Vertex erzeugen in Richtung der Normalen
+	// sonst ist das attachment Schwachsinn!
+
+	vector3 posNewVrt;
+
+	vector3 moveVrt;
+
+	auto subsIndEdgOne = sh.get_subset_index(edgeOne);
+
+	auto subsIndEdgTwo = sh.get_subset_index(edgeTwo);
+
+	if( subsIndEdgOne != subsIndEdgTwo )
+	{
+		UG_THROW("subsets passen nicht Vereinheitlichung" << std::endl );
+	}
+
+	number width = fracInfosBySubset.at(subsIndEdgOne).width;
+
+	// FALSCH
+	// der Faktor ist Käse und muss noch aus den Eingaben übernommen werden
+	VecScale(moveVrt, normSumNormed, width/2. );
+
+	VecAdd(posNewVrt, posOldVrt, moveVrt );
+
+	UG_LOG("neuer Vertex " << posNewVrt << std::endl );
+
+	// TODO FIXME hier ist das PROBLEM, SEGFAULT durch create regular vertex
+
+	Vertex * newShiftVrtx = *grid.create<RegularVertex>();
+	aaPos[newShiftVrtx] = posNewVrt;
+
+	sh.assign_subset(newShiftVrtx, subsIndEdgOne );
+
+	if( insertCrossVrtInf )
+	{
+		crossVrtInf.addShiftVrtx(newShiftVrtx, true);
+	}
+	// only needed in case of crossing vertices
+
+
+
+	// alle anhängenden faces müssen noch zu wissen bekommen
+	// dass es diesen neuen Vertex gibt, nicht nur die
+	// an den edges anhängenden
+	// vielleicht gibt es einen Loop über attached faces des
+	// Vertex, für die schon bekannten direkt angehängten klar
+	// wenn auch dort vermerkt werden muss im Attachment von Seb
+	// bei den anderen, die keine Edge haben von der Kluft
+	// da muss man die Normale ins Zentrum bestimmen
+	// um heraus zu finden, ob sie auf dieser seite sind
+	// am besten dann das Attachment der faces für vertizes
+	// von Seb recyclen
+
+	// loop über assosciated faces des vertex am besten
+	// vermutlich auch noch assosciated edges, um
+	// zu markieren, welche weg fallen sollen, wenn
+	// nicht von Kluft selber, sondern quasi verschoben
+	// und neu erzeugt
+
+	for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
+	{
+		Face * fac = vertFracInfoSeg.getFace();
+
+//						sh.assign_subset(fa,newSubsToAdd);
+
+
+		// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
+		vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ fac ];
+
+		IndexType vrtxFnd = 0;
+
+		for(size_t indVrt = 0; indVrt < (fac)->num_vertices();  indVrt++ )
+		{
+			Vertex* facVrt = (fac)->vertex(indVrt);
+
+			if(  facVrt == crossPt )
+			{
+				newVrts4Fac[ indVrt ] = newShiftVrtx;
+				vrtxFnd++;
+
+
+			}
+		}
+
+		if( vrtxFnd <= 0 )
+		{
+			UG_THROW("vertex not found !" << std::endl);
+											}
+		else if( vrtxFnd > 1 )
+		{
+			UG_THROW("vertex zu oft gefunden  " << vrtxFnd << std::endl );
+		}
+		else if ( vrtxFnd == 1 )
+		{
+		}
+		else
+		{
+			UG_THROW("vertex finden komisch  " << std::endl);
+		}
+
+	}
+
+	return true;
+
+}
+
+
+template <>
+// for cases with one fracture and no crossing points
+bool expandSingleFractureAtGivenSide<VecVertexOfFaceInfo>
+									( vector3 const & nOne, vector3 const & nTwo,
+ 									  Edge * edgeOne, Edge * edgeTwo,
+									  Face * facOne, Face * facTwo,
+									  vector<FractureInfo> const & fracInfosBySubset,
+									  vector3 const & posOldVrt,
+									  Grid::VertexAttachmentAccessor<APosition> & aaPos,
+									  Grid & grid, SubsetHandler & sh,
+									  VecVertexOfFaceInfo const & segPart,
+									  std::vector<Vertex *> const & nextFracVrt,
+									  Grid::FaceAttachmentAccessor<AttVrtVec> & aaVrtVecFace,
+									  int & dbg_flachen_passiert,
+									  Vertex * iterV
+									  )
+{
+
+	CrossVertInf cvi( nullptr, 0 );
+
+	return expandSingleFractureAtGivenSide( nOne, nTwo,
+			  edgeOne, edgeTwo,
+			  facOne, facTwo,
+			  fracInfosBySubset,
+			  posOldVrt,
+			  aaPos,
+			  grid, sh,
+			  segPart,
+			  nextFracVrt,
+			  aaVrtVecFace,
+			  dbg_flachen_passiert,
+			  iterV,
+			  cvi,
+			  false
+			  );
+}
+
 
 using VecEdge = std::vector<Edge*>;
 using VecFace = std::vector<Face*>;
@@ -1976,18 +2203,18 @@ void assignFaceSubsetToClosedFace( std::vector<Face*> & faceVec, Grid & grid, Su
 }
 
 
-using VecVertFracTrip = std::vector<VertFracTrip>;
-
-// needed for crossing points
-using VertexOfFaceInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<vector3,vector3> >;
-// all edges of the attached face - must always be two, the face itself, and the normal vectors of the face in direction of the two edges
-// the size of the normal vector vector also must be two
-// however, if an edge of the face is not a fracture edge, we do not compute the normal, but assign zero as norm
-// for those edges and faces which are Kluft edges, we assign the normal known from the info computed before, vertex fracture triple
-
-using VecVertexOfFaceInfo = std::vector<VertexOfFaceInfo>;
-
-using SegmentsFractExtrus = std::vector<VecVertexOfFaceInfo>;
+//using VecVertFracTrip = std::vector<VertFracTrip>;
+//
+//// needed for crossing points
+//using VertexOfFaceInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<vector3,vector3> >;
+//// all edges of the attached face - must always be two, the face itself, and the normal vectors of the face in direction of the two edges
+//// the size of the normal vector vector also must be two
+//// however, if an edge of the face is not a fracture edge, we do not compute the normal, but assign zero as norm
+//// for those edges and faces which are Kluft edges, we assign the normal known from the info computed before, vertex fracture triple
+//
+//using VecVertexOfFaceInfo = std::vector<VertexOfFaceInfo>;
+//
+//using SegmentsFractExtrus = std::vector<VecVertexOfFaceInfo>;
 
 
 bool determineOrderOfFaces( CrossVertInf & crossVrtInf, VecVertFracTrip const & vecVertFracTrip,
@@ -3088,6 +3315,38 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 		if( ! vrtxIsBndVrt )
 		{
 
+#if 1
+			CrossVertInf crossVrtInf( *iterV, numFracsCrossAtVrt );
+
+			//				using VecVertexOfFaceInfo = std::vector<VertexOfFaceInfo>;
+			VecVertexOfFaceInfo orderedFaces;
+
+//				using SegmentsFractExtrus = std::vector<VecVertexOfFaceInfo>;
+
+			SegmentsFractExtrus segments;
+			// single components always from one fracture edge to the next one
+
+			VecVertexOfFaceInfo segmentPart;
+
+			// note: we do not attach this info to the vertex, as we only need it local; in principle, in case of further need, it would
+			// be usful to establish some sort of attachment
+
+			// TODO FIXME HHHHHHHHHHHHHHHHHHHH diesen Sortierungsalgorithmus bei allen inneren Knoten anwenden,
+			// um zweifelsfrei alle anhängenden Faces der richtigen Seite zuordnen zu können!!!!
+
+			// VecVertFracTrip & vecVertFracTrip = aaVrtInfoFraTri[*iterV];
+			// VecFace & assoFaces = aaVrtInfoAssoFaces[*iterV];
+
+			IndexType startIndex = 0;
+
+			if( numFracsCrossAtVrt > 1 )
+			{
+				determineOrderOfFaces( crossVrtInf, vecVertFracTrip, assoFaces,  orderedFaces,
+											segments, segmentPart, startIndex, allAssoEdges,
+											sh, aaMarkEdgeB
+										);
+			}
+#endif
 			if( numFracsCrossAtVrt < 1 )
 			{
 				UG_THROW("no fracs crossing but marked vertex? << std::endl");
@@ -3479,7 +3738,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 
 			}
-			else if( numFracsCrossAtVrt == 2 ) // free line of fracture, no crossing point, not at boundary
+//			else if( numFracsCrossAtVrt == 2 ) // free line of fracture, no crossing point, not at boundary
+			else if( false ) // free line of fracture, no crossing point, not at boundary
 			{
 				// in this case, we have two attached edges, and each of these edges has two attached faces
 				// the faces have a naormal, and based on the normal, we can decide which faces belong to the same side of the edges
@@ -3684,7 +3944,6 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 								//UG_LOG("sign between " << nOne << " and " << nTwo << " -> " << vz << std::endl );
 
 
-
 								if( cosinus > 0 )
 								{
 									// gleiche Seite vermutet
@@ -3707,8 +3966,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 																	 posOldVrt,
 																	 aaPos,
 																	 grid, sh,
-																	 assoFaces
-																	 ,
+																	 assoFaces,
 																	 nextFracVrt,
 																	 aaVrtVecFace,
 																	 dbg_flachen_passiert,
@@ -4154,7 +4412,6 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 								}
 
 
-
 							}
 
 
@@ -4183,14 +4440,14 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 
 			}
-			else // two fractures completely crossing, numFracsCrossAtVrt >= 3, i.e. T crossing and two fractures completely crossing
+//			else // two fractures completely crossing, numFracsCrossAtVrt >= 3, i.e. T crossing and two fractures completely crossing
+			else // two fractures completely crossing, numFracsCrossAtVrt >= 2, i.e. durchgehend, T crossing and two fractures completely crossing
 			{
 
 //				CrossingVertexInfo<Vertex*, IndexType> crossVrtInf( *iterV, numFracsCrossAtVrt );
 
 				UG_LOG("number fracs " << numFracsCrossAtVrt << std::endl);
 
-				CrossVertInf crossVrtInf( *iterV, numFracsCrossAtVrt );
 
 				UG_LOG("Nummer vorbei " << std::endl);
 
@@ -4209,20 +4466,20 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 				// verkettete Liste der anhängenden fractures in Reihenfolge
 				// der Anhängung mit INfo, ob eine Kluft vorliegt
 
-				for( auto const & attVFT : vecVertFracTrip )
-				{
-					Edge * edg = attVFT.getEdge();
-					Face * fac = attVFT.getFace();
-					vector3 nv = attVFT.getNormal();
-				}
+//				for( auto const & attVFT : vecVertFracTrip )
+//				{
+//					Edge * edg = attVFT.getEdge();
+//					Face * fac = attVFT.getFace();
+//					vector3 nv = attVFT.getNormal();
+//				}
 
 //				// hier werden  ALLE attached Faces benötigt, auch die, die zwischen den direkt an den fractures liegenden Faces sind
 //
 				// copies of all faces and of fractured ones
-				auto vVFT = vecVertFracTrip; // caution: COPY, not reference!
-				auto aF = assoFaces; // caution: COPY, not reference!
+//				auto vVFT = vecVertFracTrip; // caution: COPY, not reference!
+//				auto aF = assoFaces; // caution: COPY, not reference!
 
-				UG_LOG("Gesamtanzahl faces um Knoten " <<  aF.size() << std::endl );
+//				UG_LOG("Gesamtanzahl faces um Knoten " <<  aF.size() << std::endl );
 
 				//  erstmal die ganzen anhaengenden Faces ordnen, dass wir wissen, in welcher Reihenfolge wir durchlaufen muessen
 				// jede Edge hat ein bool attachment schon, das weiss, ob sie Fracture edge ist oder nicht
@@ -4235,7 +4492,10 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //				// however, if an edge of the face is not a fracture edge, we do not compute the normal, but assign zero as norm
 //				// for those edges and faces which are Kluft edges, we assign the normal known from the info computed before, vertex fracture triple
 //
-//				using VecVertexOfFaceInfo = std::vector<VertexOfFaceInfo>;
+#if 0
+				CrossVertInf crossVrtInf( *iterV, numFracsCrossAtVrt );
+
+				//				using VecVertexOfFaceInfo = std::vector<VertexOfFaceInfo>;
 
 				VecVertexOfFaceInfo orderedFaces;
 
@@ -4261,6 +4521,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 											segments, segmentPart, startIndex, allAssoEdges,
 											sh, aaMarkEdgeB
 										);
+#endif
+
 #if 0
 
 				IndexType countedCrossingFracEdgs = 0;
@@ -4665,9 +4927,11 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 					if( subsIndFracOne == subsIndFracTwo )
 					{
-						if( numFracsCrossAtVrt != 3 )
+//						if( numFracsCrossAtVrt != 3 )
+						if( numFracsCrossAtVrt != 2 && numFracsCrossAtVrt != 3 )
 						{
-							UG_THROW("Fracture Segment an beiden Seiten gleiche sudo, aber keine T Kreuzung?" << std::endl);
+//							UG_THROW("Fracture Segment an beiden Seiten gleiche sudo, aber keine T Kreuzung?" << std::endl);
+							UG_THROW("Fracture Segment an beiden Seiten gleiche sudo, aber keine durchgehende Kluft?" << std::endl);
 						}
 
 						// dieselben Methoden wie im Fall von einer durchgehenden Kluft an einem Vertex, dort kopieren
@@ -4727,7 +4991,22 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 						Face *  faceEnd = vFISEnd.getFace();
 
 
-
+						// TODO FIXME hier die Segmentinformation übergeben, da die Faces bekannt sind, die dran hängen!!!!!
+//						expandSingleFractureAtGivenSide( normalFracTwo, normalFracTwo,
+//														 edgeFracOne, edgeFracTwo,
+//														 faceBegin, faceEnd,
+//														 fracInfosBySubset,
+//														 posOldVrt,
+//														 aaPos,
+//														 grid, sh,
+//														 assoFaces,
+//														 nextFracVrt,
+//														 aaVrtVecFace,
+//														 dbg_flachen_passiert,
+//														 *iterV,
+//														 crossVrtInf,
+//														 ( numFracsCrossAtVrt == 3 )
+//														);
 						expandSingleFractureAtGivenSide( normalFracTwo, normalFracTwo,
 														 edgeFracOne, edgeFracTwo,
 														 faceBegin, faceEnd,
@@ -4735,13 +5014,13 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 														 posOldVrt,
 														 aaPos,
 														 grid, sh,
-														 assoFaces
-														 ,
+														 segPart,
 														 nextFracVrt,
 														 aaVrtVecFace,
 														 dbg_flachen_passiert,
 														 *iterV,
-														 crossVrtInf
+														 crossVrtInf,
+														 ( numFracsCrossAtVrt == 3 )
 														);
 
 
@@ -5767,6 +6046,9 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 //		IndexType nuCroFra =  cfi.getNumbCrossFracs();
 		CrossVertInf::FracTyp fracTyp =  cfi.getFracTyp();
+
+		if( fracTyp == CrossVertInf::SingleFrac )
+			continue;
 
 		Vertex * crossPt = cfi.getCrossVertex();
 
