@@ -5007,7 +5007,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //														 crossVrtInf,
 //														 ( numFracsCrossAtVrt == 3 )
 //														);
-						expandSingleFractureAtGivenSide( normalFracTwo, normalFracTwo,
+						expandSingleFractureAtGivenSide( normalFracOne, normalFracTwo,
 														 edgeFracOne, edgeFracTwo,
 														 faceBegin, faceEnd,
 														 fracInfosBySubset,
