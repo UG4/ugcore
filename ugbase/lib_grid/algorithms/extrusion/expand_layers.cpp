@@ -2060,15 +2060,41 @@ void createNewFacesForExtXCrossFracs( ExpandCrossFracInfo const & ecf,  std::vec
 
 //				int a = 1 + 2;
 //
-	Face * newFracFace =
-		*grid.create<Quadrilateral>( QuadrilateralDescriptor( vrtcsNewFaceFrac[0], vrtcsNewFaceFrac[1],
-															  vrtcsNewFaceFrac[2], vrtcsNewFaceFrac[3]
-									) );
+	Face * newFracFace = nullptr;
 
-	sh.assign_subset(newFracFace, sh.get_subset_index(facSeg) );
-//				sh.assign_subset(newFracFace, diamantSubsNum ); testweise
+	if(vrtcsNewFaceFrac.size() == 3 )
+	{
+		newFracFace =
+			*grid.create<Triangle>( TriangleDescriptor( vrtcsNewFaceFrac[0], vrtcsNewFaceFrac[1],
+																  vrtcsNewFaceFrac[2]
+										) );
 
-	newFracFaceVec.push_back(newFracFace);
+	}
+	else if( vrtcsNewFaceFrac.size() == 4 )
+	{
+		newFracFace =
+			*grid.create<Quadrilateral>( QuadrilateralDescriptor( vrtcsNewFaceFrac[0], vrtcsNewFaceFrac[1],
+																  vrtcsNewFaceFrac[2], vrtcsNewFaceFrac[3]
+										) );
+
+	}
+	else
+	{
+		UG_THROW("komisches Gesicht " << std::endl);
+	}
+
+	if( newFracFace != nullptr )
+	{
+		sh.assign_subset(newFracFace, sh.get_subset_index(facSeg) );
+		//				sh.assign_subset(newFracFace, diamantSubsNum ); testweise
+
+		newFracFaceVec.push_back(newFracFace);
+	}
+	else
+	{
+		UG_THROW("Gesicht ist nicht enstanden " << std::endl);
+	}
+
 
 	boundAtShiftVrtEdg = ! boundAtShiftVrtEdg;
 
