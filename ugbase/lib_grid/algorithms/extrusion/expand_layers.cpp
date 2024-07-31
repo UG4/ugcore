@@ -797,7 +797,8 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 #if 1
 	// gleiche Seite vermutet oder gegeben
 
-	// average the normals
+	// average the normals -- das wird wohl der Fehler sein, wenn n1 und n2 nicht fast parallel sind, wenn man davon ausgehend
+	// bestimmt, auf welcher Seite benachbarte Dreiecke liegen, zur Berechnung des Verschiebevektors ist es aber gut
 
 	vector3 normSum;
 
@@ -836,6 +837,7 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 
 	number width = fracInfosBySubset.at(subsIndEdgOne).width;
 
+	// FALSCH
 	// der Faktor ist Käse und muss noch aus den Eingaben übernommen werden
 	VecScale(moveVrt, normSumNormed, width/2. );
 
@@ -899,6 +901,13 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 			}
 		}
 
+//		if( ifac == facOne || ifac == facTwo )
+//			isFromFrac = true;
+
+//		if( FaceContains(facOne,edgeOne) || FaceContains(facTwo,edgeTwo) )
+//			isFromFrac = true;
+
+
 		bool atRightSide = false;
 
 		if( isFromFrac )
@@ -908,55 +917,122 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 		{
 			// check if on same side of edge where the normal points to: compute cosinus between vector of face center
 			//  perpendicular to the edge
+			// hier liegt wohl aber ein Fehler vor, wenn die beiden Ecken in einem Winkel zueinander stehen, der nicht fast parallel ist
 
 			vector3 facCenter = CalculateCenter( ifac, aaPos );
 
 			vector3 perpendicu;
+
+			constexpr bool decideSideBasedOnAveragedEdges = false;
 
 			if( nextFracVrt.size() != 2 )
 			{
 				UG_THROW("komische Groesse" << std::endl);
 			}
 
-			DropAPerpendicular(perpendicu, facCenter, aaPos[nextFracVrt[0]], aaPos[nextFracVrt[1]]);
-
-			vector3 tmpN;
-
-			VecSubtract(tmpN, facCenter, perpendicu );
-
-			VecNormalize(tmpN, tmpN);
-
-			UG_LOG("Normale zum Face ist " << tmpN << std::endl);
-
-			number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, normSumNormed );
-
-			UG_LOG("Cosinus zur Normalen ist " << cosBetwFracEdgAndDirection2Face << std::endl);
-
-			if( cosBetwFracEdgAndDirection2Face > 0 )
+			if( decideSideBasedOnAveragedEdges )
 			{
-				UG_LOG("assuming face to be on richt side" << std::endl);
+				DropAPerpendicular(perpendicu, facCenter, aaPos[nextFracVrt[0]], aaPos[nextFracVrt[1]]);
 
-				atRightSide = true;
+				vector3 tmpN;
+
+				VecSubtract(tmpN, facCenter, perpendicu );
+
+				VecNormalize(tmpN, tmpN);
+
+				UG_LOG("Normale zum Face ist " << tmpN << std::endl);
+
+				number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, normSumNormed );
+
+				UG_LOG("Cosinus zur Normalen ist " << cosBetwFracEdgAndDirection2Face << std::endl);
+
+				if( cosBetwFracEdgAndDirection2Face > 0 )
+				{
+					UG_LOG("assuming face to be on richt side" << std::endl);
+
+					atRightSide = true;
+
 
 #if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
 
-				Vertex * otherFacCent = *grid.create<RegularVertex>();
-				aaPos[otherFacCent] = facCenter;
-				sh.assign_subset(otherFacCent, 5 );
+					Vertex * otherFacCent = *grid.create<RegularVertex>();
+					aaPos[otherFacCent] = facCenter;
+	//				sh.assign_subset(otherFacCent, 5 );
+					sh.assign_subset(otherFacCent, sh.num_subsets() );
 
-				Vertex * pp = *grid.create<RegularVertex>();
-				aaPos[pp] = perpendicu;
-				sh.assign_subset(pp, 6 );
+					Vertex * pp = *grid.create<RegularVertex>();
+					aaPos[pp] = perpendicu;
+					sh.assign_subset(pp, sh.num_subsets() );
+	//				sh.assign_subset(pp, 6 );
 
-				sh.assign_subset(*iterFac,7);
+	//				sh.assign_subset(*iterFac,7);
+					sh.assign_subset( *iterFac, sh.num_subsets() );
 #endif
 
+				}
+				else
+				{
+					UG_LOG("assuming face to be on wrong side" << std::endl);
+				}
 			}
-			else
+			else // vielleicht besser so?
 			{
-				UG_LOG("assuming face to be on wrong side" << std::endl);
-			}
 
+				// dicide first to which of the edges the center is more close
+
+				vector3 perpendOne, perpendTwo;
+
+				DropAPerpendicular(perpendOne, facCenter, aaPos[edgeOne->vertex(0)], aaPos[edgeOne->vertex(1)] );
+				DropAPerpendicular(perpendTwo, facCenter, aaPos[edgeTwo->vertex(0)], aaPos[edgeTwo->vertex(1)] );
+
+				vector3 distOne, distTwo;
+
+				VecSubtract(distOne, facCenter, perpendOne );
+				VecSubtract(distOne, facCenter, perpendTwo );
+
+				auto lengthOne = VecLength(distOne);
+				auto lengthTwo = VecLength(distTwo);
+
+				// hier umgedreht, bewirkt Verbewwerung, wieso das?
+				bool oneSmallerThanTwo = ( lengthOne < lengthTwo );
+				// correct assumption?
+				//Edge * closerEdge = ( lengthOne > lengthTwo ) ? edgeTwo : edgeOne;
+				vector3 distMin = oneSmallerThanTwo ? distTwo : distOne;
+				vector3 distNorm;
+				VecNormalize(distNorm, distMin);
+
+				UG_LOG("Normale zum Face ist " << distNorm << std::endl);
+
+				vector3 normMin = oneSmallerThanTwo ? nTwo : nOne;
+				number cosBetwFracEdgAndDirection2Face = VecDot(distNorm, normMin );
+
+				UG_LOG("Cosinus zur Normalen ist " << cosBetwFracEdgAndDirection2Face << std::endl);
+
+				if( cosBetwFracEdgAndDirection2Face > 0 )
+				{
+					UG_LOG("assuming face to be on richt side" << std::endl);
+
+					atRightSide = true;
+
+
+#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+
+					Vertex * otherFacCent = *grid.create<RegularVertex>();
+					aaPos[otherFacCent] = facCenter;
+	//				sh.assign_subset(otherFacCent, 5 );
+					sh.assign_subset(otherFacCent, sh.num_subsets() );
+
+					Vertex * pp = *grid.create<RegularVertex>();
+					aaPos[pp] = perpendicu;
+					sh.assign_subset(pp, sh.num_subsets() );
+	//				sh.assign_subset(pp, 6 );
+
+	//				sh.assign_subset(*iterFac,7);
+					sh.assign_subset( *iterFac, sh.num_subsets() );
+#endif
+				}
+
+			}
 
 			dbg_flachen_passiert++;
 		}
@@ -1900,6 +1976,384 @@ void assignFaceSubsetToClosedFace( std::vector<Face*> & faceVec, Grid & grid, Su
 }
 
 
+using VecVertFracTrip = std::vector<VertFracTrip>;
+
+// needed for crossing points
+using VertexOfFaceInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<vector3,vector3> >;
+// all edges of the attached face - must always be two, the face itself, and the normal vectors of the face in direction of the two edges
+// the size of the normal vector vector also must be two
+// however, if an edge of the face is not a fracture edge, we do not compute the normal, but assign zero as norm
+// for those edges and faces which are Kluft edges, we assign the normal known from the info computed before, vertex fracture triple
+
+using VecVertexOfFaceInfo = std::vector<VertexOfFaceInfo>;
+
+using SegmentsFractExtrus = std::vector<VecVertexOfFaceInfo>;
+
+
+bool determineOrderOfFaces( CrossVertInf & crossVrtInf, VecVertFracTrip const & vecVertFracTrip,
+ 							VecFace const & assoFaces,  VecVertexOfFaceInfo & orderedFaces,
+							SegmentsFractExtrus & segments,
+							// single components always from one fracture edge to the next one
+							VecVertexOfFaceInfo & segmentPart,
+							// note: we do not attach this info to the vertex, as we only need it local; in principle, in case of further need, it would
+							// be usful to establish some sort of attachment,
+							//VertFracTrip & startVertFracTrip,
+							IndexType startIndex,
+							std::vector<Edge*> & allAssoEdges,
+							SubsetHandler & sh, Grid::EdgeAttachmentAccessor<ABool> const & aaMarkEdgeB
+						)
+{
+	IndexType countedCrossingFracEdgs = 0;
+	// copies of all faces and of fractured ones
+	auto aF = assoFaces; // caution: COPY, not reference!
+	auto vVFT = vecVertFracTrip; // caution: COPY, not reference!
+
+	UG_LOG("Gesamtanzahl faces um Knoten " <<  aF.size() << std::endl );
+
+	//  erstmal die ganzen anhaengenden Faces ordnen, dass wir wissen, in welcher Reihenfolge wir durchlaufen muessen
+	// jede Edge hat ein bool attachment schon, das weiss, ob sie Fracture edge ist oder nicht
+	// Reihenfolge der faces und die edges auch dazu, vielleicht neues Triple oder dergleiche, dabei zwei edges und zwei normals
+	// und wie gesagt, die edges wissen, ob sie fractures sind, dazu keine neuen Variablen notwendig
+
+	//				using VertexOfFaceInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<vector3,vector3> >;
+
+	// all edges of the attached face - must always be two, the face itself, and the normal vectors of the face in direction of the two edges
+	// the size of the normal vector vector also must be two
+	// however, if an edge of the face is not a fracture edge, we do not compute the normal, but assign zero as norm
+	// for those edges and faces which are Kluft edges, we assign the normal known from the info computed before, vertex fracture triple
+
+
+	if( vVFT.size() == 0 )
+		UG_THROW("vertex frac triple zu klein an Kreuzung " << std::endl);
+
+
+		// we start with the first fracture face edge stuff, copy it,  and delete this immidiately
+	VertFracTrip startVertFracTrip = vVFT[startIndex];
+
+	vVFT.erase( vVFT.begin() + startIndex );
+
+
+	bool atFirstTriple = true;
+
+	Face* fracFac = startVertFracTrip.getFace();
+	Edge* fracEdg = startVertFracTrip.getEdge();
+	vector3 fracNorm = startVertFracTrip.getNormal();
+
+	Edge* originalStartEdge = startVertFracTrip.getEdge();
+
+	if( fracEdg != 0 )
+	{
+		countedCrossingFracEdgs++;
+	}
+
+	// do not change this pointer
+	Edge* startEdg = fracEdg;
+	Face* startFace = fracFac;
+
+	vector3 startNormal = fracNorm;
+
+	Face* nextFace = NULL;
+
+	UG_LOG("Gesamtanzahl faces um Knoten vor while " <<  aF.size() << std::endl );
+
+	while( aF.size() != 0 )
+	{
+
+		UG_LOG("Gesamtanzahl faces um Knoten Anfang while " <<  aF.size() << std::endl );
+
+
+		Face* face2Append = startFace;
+		Edge* startEdg2Append = startEdg;
+
+
+		IndexType fndCommEdg = 0;
+		vector3 nuVe(0,0,0);
+
+		Edge* nextEdge = NULL;
+
+		std::pair<Edge*, Edge *> edge2Append( startEdg2Append, nextEdge );
+		std::pair<vector3, vector3 > normal2Append( startNormal, nuVe );
+
+
+		// if start face and start edge from a triple, then has to be erased this triple, exept for the entire start, as already erased
+		if( ! atFirstTriple )
+		{
+			for( VecVertFracTrip::iterator itAttVFT = vVFT.begin(); itAttVFT !=  vVFT.end(); itAttVFT++ )
+			{
+				auto vft = *itAttVFT;
+
+				Edge * edgIt = vft.getEdge();
+
+				Face * facIt = vft.getFace();
+
+				if( edgIt == startEdg && facIt == startFace )
+				{
+					// the first edge if from a fracture and the face is connected to it
+
+					vVFT.erase(itAttVFT);
+
+					normal2Append.first = vft.getNormal();
+
+					if( ! FaceContains( facIt, startEdg ))
+					{
+						UG_THROW("Face does not contain start edge of its edge" << std::endl);
+					}
+
+					break;
+				}
+			}
+
+		}
+		else // we can save the investigation if we have a triple, and we do not need to erase, as already erased.....
+		{
+			atFirstTriple = false;
+		}
+
+
+		for( auto const & iE : allAssoEdges ) // werden nicht gelöscht, deswegen Zugriff auf attachment direkt
+		{
+			if( FaceContains(face2Append, iE) )
+			{
+				fndCommEdg++;
+
+				if( iE != startEdg )
+				{
+					nextEdge = iE;
+
+					edge2Append.second = iE;
+
+				}
+			}
+
+
+		}
+
+		if( fndCommEdg != 2 )
+		{
+			UG_THROW("komische Anzahl gemeinsamer Ecke " << fndCommEdg << std::endl);
+		}
+
+		if( nextEdge == NULL )
+		{
+			UG_THROW("wieso keine zweite Ecke gefunden???? " << std::endl);
+		}
+
+			if( edge2Append.first == NULL || edge2Append.second == NULL )
+		{
+			UG_THROW("null immer noch?" << std::endl);
+		}
+
+		// erase the face from the list
+
+		IndexType faceFound = 0;
+
+		for( std::vector<Face*>::iterator itFac = aF.begin(); itFac != aF.end(); itFac++ )
+		{
+			Face * iFa = *itFac;
+
+			if( iFa == startFace &&  FaceContains( iFa, nextEdge ) && FaceContains(iFa, startEdg))
+			{
+				faceFound++;
+			}
+		}
+
+		int totalSubsNum = sh.num_subsets();
+
+		int newSubsToAdd = totalSubsNum;
+
+		if( faceFound != 1 )
+		{
+
+
+			sh.assign_subset(startFace,newSubsToAdd++);
+			sh.assign_subset(startEdg,newSubsToAdd++);
+			sh.assign_subset(nextEdge,newSubsToAdd++);
+
+			int faNum = aF.size();
+
+			UG_LOG("Gesamtzahl faces vor Absturz " << faNum << std::endl);
+
+			UG_LOG("Gesicht in falscher Anztahl gefunden " << faceFound << std::endl);
+
+	//						return true;
+
+			UG_THROW("Gesicht in falscher Anztahl gefunden " << faceFound << std::endl);
+
+			return false;
+
+		}
+		else
+		{
+	//						sh.assign_subset(startFace,newSubsToAdd++);
+	//						sh.assign_subset(startEdg,newSubsToAdd++);
+	//						sh.assign_subset(nextEdge,newSubsToAdd++);
+
+			int faNum = aF.size();
+
+			UG_LOG("Gesamtzahl faces ohne Absturz " << faNum << std::endl);
+
+		}
+
+		for( std::vector<Face*>::iterator itFac = aF.begin(); itFac != aF.end(); itFac++ )
+		{
+			Face * iFa = *itFac;
+
+			if( iFa == startFace && FaceContains( iFa, nextEdge ) && FaceContains(iFa, startEdg) )
+			{
+				aF.erase(itFac);
+				break;
+			}
+		}
+
+
+		bool sndEdgIsFracEdgeAlso = aaMarkEdgeB[nextEdge];
+
+		bool tripFound = false;
+
+		if( sndEdgIsFracEdgeAlso )
+		{
+
+			if( nextEdge != originalStartEdge )
+				countedCrossingFracEdgs++;
+
+			// we need to have a look for the next triple
+
+			// check if the next normal is a frac normal which contains the face as well
+
+			for( VecVertFracTrip::iterator itAttVFT = vVFT.begin(); itAttVFT !=  vVFT.end(); itAttVFT++ )
+			{
+				auto vft = *itAttVFT;
+
+				Edge * edgIt = vft.getEdge();
+
+				Face * facIt = vft.getFace();
+
+				if( edgIt == nextEdge && facIt == face2Append )
+				{
+					// the second edge if from a fracture and the face is connected to it
+
+					tripFound = true;
+
+					vVFT.erase(itAttVFT);
+
+					normal2Append.second = vft.getNormal();
+
+					if( ! FaceContains( facIt, nextEdge ))
+					{
+						UG_THROW("Face does not contain edge of its edge" << std::endl);
+					}
+
+					break;
+				}
+			}
+
+		}
+
+		if( ! tripFound && sndEdgIsFracEdgeAlso )
+		{
+			UG_THROW("Triple nicht gefunden trotz markierter Edge" << std::endl);
+		}
+
+
+		// check if aF or vVFT still contain the former or the next face - must not be the case!
+
+		VertexOfFaceInfo vOFI( edge2Append, face2Append, normal2Append );
+
+		orderedFaces.push_back( vOFI );
+
+		segmentPart.push_back( vOFI );
+
+		if( sndEdgIsFracEdgeAlso )
+		{
+			segments.push_back( segmentPart );
+
+			segmentPart.clear();
+		}
+
+
+		// what is next face, what is next edge?
+		// wie kriegen wir es hin, auch das nächste Triple zu erasen, wenn es jetzt kommt als nächstes?
+
+
+		startNormal = nuVe;
+		startEdg = nextEdge;
+
+		if( aF.size() == 0 )
+		{
+			if( nextEdge != originalStartEdge )
+			{
+				UG_THROW("Gesichter leer, aber keine Anfangsecke gefunden" << std::endl);
+			}
+			else
+			{
+				break; // while loop zu Ende, raus aus dem while loop, den Rest nicht mehr machen, würde schief gehen zwingendermassen
+			}
+
+		}
+
+
+		// bleibt noch das nächste Gesicht heraus zu finden, dafür kommt eigentlich nur noch eines in Frage, da das zweite Gesicht vom edge
+		// geloescht sein muss in aF, es muss das einzig übrige face sein, das die jetzt start edge enthält, davon darf es nur eines geben, wir löschen aber noch nicht
+
+		IndexType nextFaceFound = 0;
+
+		for( std::vector<Face*>::iterator itFac = aF.begin(); itFac != aF.end(); itFac++ )
+		{
+			Face * iFa = *itFac;
+
+			if( FaceContains(iFa, startEdg ) )
+			{
+				nextFaceFound++;
+			}
+		}
+
+		if( nextFaceFound != 1 )
+		{
+			UG_THROW("folgendes Gesicht in falscher Anztahl gefunden " << nextFaceFound << std::endl);
+		}
+
+		for( std::vector<Face*>::iterator itFac = aF.begin(); itFac != aF.end(); itFac++ )
+		{
+			Face * iFa = *itFac;
+
+			if( FaceContains(iFa, startEdg ) )
+			{
+				startFace = iFa;
+				break;
+			}
+		}
+
+
+	}
+
+	if( vVFT.size() != 0 )
+	{
+		UG_THROW("not all triples found! " << std::endl);
+	}
+
+	if( aF.size() != 0 )
+		UG_THROW("not all faces found " << std::endl);
+
+	if( startEdg != originalStartEdge )
+	{
+		UG_THROW("wir sind nicht am Anfang wieder angekommen" << std::endl);
+	}
+
+
+	if( segmentPart.size() != 0 )
+	{
+		UG_THROW("die Segmentteile muessen alle verarbeitet sein"  << std::endl);
+	}
+
+	UG_LOG("Kreislauf geschlossen" << std::endl);
+
+
+	return true;
+}
+
+
+
+
 #ifndef NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
 #define NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX 1
 #endif
@@ -2004,7 +2458,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 //	using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
 //
-	using VecVertFracTrip = std::vector<VertFracTrip>;
+//	using VecVertFracTrip = std::vector<VertFracTrip>;
 
 	VecVertFracTrip vertexNoInfo;
 
@@ -2329,7 +2783,18 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 					}
 
 					if( !faceContained )
-						assFace.push_back( ifa );
+					{
+						bool faceAlreadyIncluded = false;
+
+						for( auto const & af : assFace )
+						{
+							if( ifa == af )
+								faceAlreadyIncluded = true;
+						}
+
+						if( ! faceAlreadyIncluded )
+							assFace.push_back( ifa );
+					}
 				}
 			}
 
@@ -2530,16 +2995,16 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //	std::vector<CrossingVertexInfo<Vertex*, IndexType> > vecCrossVrtInf;
 	std::vector<CrossVertInf > vecCrossVrtInf;
 
-	// needed for crossing points
-	using VertexOfFaceInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<vector3,vector3> >;
-	// all edges of the attached face - must always be two, the face itself, and the normal vectors of the face in direction of the two edges
-	// the size of the normal vector vector also must be two
-	// however, if an edge of the face is not a fracture edge, we do not compute the normal, but assign zero as norm
-	// for those edges and faces which are Kluft edges, we assign the normal known from the info computed before, vertex fracture triple
-
-	using VecVertexOfFaceInfo = std::vector<VertexOfFaceInfo>;
-
-	using SegmentsFractExtrus = std::vector<VecVertexOfFaceInfo>;
+//	// needed for crossing points
+//	using VertexOfFaceInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<vector3,vector3> >;
+//	// all edges of the attached face - must always be two, the face itself, and the normal vectors of the face in direction of the two edges
+//	// the size of the normal vector vector also must be two
+//	// however, if an edge of the face is not a fracture edge, we do not compute the normal, but assign zero as norm
+//	// for those edges and faces which are Kluft edges, we assign the normal known from the info computed before, vertex fracture triple
+//
+//	using VecVertexOfFaceInfo = std::vector<VertexOfFaceInfo>;
+//
+//	using SegmentsFractExtrus = std::vector<VecVertexOfFaceInfo>;
 
 
 	// jetzt können wir alle Vertizes ablaufen und an ihnen neue Vertizes erzeugen, die anhand der gemittelten Normalen von den Vertizes weg gehen
@@ -3082,6 +3547,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 						vector3 nTwo = vvftTwo->getNormal();
 
 						number cosinus = VecDot( nOne, nTwo );
+
 						if( edgeOne != edgeTwo )
 						{
 							UG_LOG("COSI  between " << nOne << " and " << nTwo << " -> " << cosinus << std::endl );
@@ -3735,12 +4201,10 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 //				crossVrtInf.setOriginalFracEdge(allAssoEdges);
 
-				// TODO FIXME in case of three fractures, we have to use the method for eine durchgehende fracture
+				//  in case of three fractures, we have to use the method for eine durchgehende fracture
 				// auf der Seite, wo die zweite fracture NICHT rein geht
 
-				IndexType countedCrossingFracEdgs = 0;
-
-				// TODO FIXME kreuzende Fractures im Innenraum -> Arte in Reinform implementieren
+				//  kreuzende Fractures im Innenraum -> Arte in Reinform implementieren
 
 				// verkettete Liste der anhängenden fractures in Reihenfolge
 				// der Anhängung mit INfo, ob eine Kluft vorliegt
@@ -3785,6 +4249,22 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 				// note: we do not attach this info to the vertex, as we only need it local; in principle, in case of further need, it would
 				// be usful to establish some sort of attachment
 
+				// TODO FIXME HHHHHHHHHHHHHHHHHHHH diesen Sortierungsalgorithmus bei allen inneren Knoten anwenden,
+				// um zweifelsfrei alle anhängenden Faces der richtigen Seite zuordnen zu können!!!!
+
+				// VecVertFracTrip & vecVertFracTrip = aaVrtInfoFraTri[*iterV];
+				// VecFace & assoFaces = aaVrtInfoAssoFaces[*iterV];
+
+				IndexType startIndex = 0;
+
+				determineOrderOfFaces( crossVrtInf, vecVertFracTrip, assoFaces,  orderedFaces,
+											segments, segmentPart, startIndex, allAssoEdges,
+											sh, aaMarkEdgeB
+										);
+#if 0
+
+				IndexType countedCrossingFracEdgs = 0;
+
 				if( vVFT.size() == 0 )
 					UG_THROW("vertex frac triple zu klein an Kreuzung " << std::endl);
 
@@ -3815,7 +4295,6 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 				Face* nextFace = NULL;
 
 				UG_LOG("Gesamtanzahl faces um Knoten vor while " <<  aF.size() << std::endl );
-
 
 				while( aF.size() != 0 )
 				{
@@ -4109,6 +4588,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 				UG_LOG("Kreislauf geschlossen" << std::endl);
 
+#endif
 
 				// test if the segments and their partition produce sumething useful, for debug purposes
 
@@ -4937,15 +5417,21 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 										atRightSide = true;
 
 #if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
-												Vertex * otherFacCent = *grid.create<RegularVertex>();
-												aaPos[otherFacCent] = facCenter;
-												sh.assign_subset(otherFacCent, 5 );
 
-												Vertex * pp = *grid.create<RegularVertex>();
-												aaPos[pp] = perpendicu;
-												sh.assign_subset(pp, 6 );
+//										IndexType suNu = sh.num_subsets();
 
-												sh.assign_subset(*iterFac,7);
+										Vertex * otherFacCent = *grid.create<RegularVertex>();
+										aaPos[otherFacCent] = facCenter;
+										sh.assign_subset(otherFacCent, sh.num_subsets() );
+										// sh.assign_subset(otherFacCent, 5 );
+
+										Vertex * pp = *grid.create<RegularVertex>();
+										aaPos[pp] = perpendicu;
+//										sh.assign_subset(pp, 6 );
+										sh.assign_subset(pp, sh.num_subsets() );
+
+//										sh.assign_subset(*iterFac,7);
+										sh.assign_subset(*iterFac, sh.num_subsets() );
 #endif
 
 
