@@ -5129,6 +5129,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 						number cosBetweenEdges = VecDot(nrmdVecEdgOne,nrmdVecEdgTwo);
 
+						// TODO FIXME wenn Winkel zu klein, dann die Methode verwenden der Mittelung der beiden Normalen!!!!
+
 						number angleEdges = std::acos( cosBetweenEdges );
 						number angleNormls = std::acos( cosBetweenNormals );
 
