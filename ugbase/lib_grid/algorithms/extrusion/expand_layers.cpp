@@ -1769,7 +1769,10 @@ bool SortFaces4DiamondCreation(	SubsetHandler& sh, std::vector<Face *> & assoFac
 void computeDiamondPointXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, ExpandCrossFracInfo & expCFIAfterFracEdg,
 									Vertex * const & crossPt, Grid::VertexAttachmentAccessor<APosition> & aaPos,
 									SubsetHandler & sh, Grid & grid, IndexType const & diamantSubsNum,
-									vector3 & distVecNewVrt2SCrossPt )
+									vector3 & distVecNewVrt2SCrossPt
+//									vector3 & distVecNewVrt2ShiVeBefore = vector3(), vector3 & distVecNewVrt2ShiVeAfter = vector3(),
+//									bool computeDistancesNewVrtsToOldShiVe = false
+)
 {
 	// compute cross point
 
@@ -1900,6 +1903,13 @@ void computeDiamondPointXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, E
 	expCFIAfterFracEdg.setNewNormal( vrtcsCrossSegAfter );
 
 	VecSubtract(distVecNewVrt2SCrossPt, posCrossPt, posNewVrtOnEdg );
+
+	// only needed for TEnd case
+//	if( computeDistancesNewVrtsToOldShiVe )
+//	{
+//		VecSubtract(distVecNewVrt2ShiVeBefore, posShiftBefore, posNewVrtOnEdg );
+//		VecSubtract(distVecNewVrt2ShiVeAfter, posShiftAfter, posNewVrtOnEdg );
+//	}
 }
 
 
@@ -3361,7 +3371,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			// note: we do not attach this info to the vertex, as we only need it local; in principle, in case of further need, it would
 			// be usful to establish some sort of attachment
 
-			// TODO FIXME HHHHHHHHHHHHHHHHHHHH diesen Sortierungsalgorithmus bei allen inneren Knoten anwenden,
+			// fixed: diesen Sortierungsalgorithmus bei allen inneren Knoten anwenden,
 			// um zweifelsfrei alle anhängenden Faces der richtigen Seite zuordnen zu können!!!!
 
 			// VecVertFracTrip & vecVertFracTrip = aaVrtInfoFraTri[*iterV];
@@ -4539,7 +4549,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 				// note: we do not attach this info to the vertex, as we only need it local; in principle, in case of further need, it would
 				// be usful to establish some sort of attachment
 
-				// TODO FIXME HHHHHHHHHHHHHHHHHHHH diesen Sortierungsalgorithmus bei allen inneren Knoten anwenden,
+				// fixed diesen Sortierungsalgorithmus bei allen inneren Knoten anwenden,
 				// um zweifelsfrei alle anhängenden Faces der richtigen Seite zuordnen zu können!!!!
 
 				// VecVertFracTrip & vecVertFracTrip = aaVrtInfoFraTri[*iterV];
@@ -6031,7 +6041,6 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 	// sollen die Boundary Edges zur boundary gehören, oder zur Kluft?
 	// wie ist es mit den Knoten, sind die alle richtig zugewiesen bezüglich subset?
 
-	// TODO FIXME HHHHHHHHHHHHHHHHHH
 	// jetzt muss noch der Diamant erzeugt werden
 	// Ziel: KluftInnen erzeugen
 
@@ -6365,7 +6374,9 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //				sh.assign_subset(fac,sudos);
 //			}
 
-			// TODO FIXME HHHHHHHHHH first shift the free end shift vertex along prolongation of T End incoming edge, else later problematic
+			// erfuellt, aber keine so gute Idee
+			// im Falle von gekrümmten Fractures:
+			// first shift the free end shift vertex along prolongation of T End incoming edge, else later problematic
 
 
 
@@ -6649,109 +6660,248 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 			// new vertex in ending frac
 
-			computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg, crossPt, aaPos, sh, grid, sudoTEnd, distVecNewVrt2SCrossPt );
+//			computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg, crossPt, aaPos, sh, grid, sudoTEnd, distVecNewVrt2SCrossPt );
 
 			// shift of free shift point to virtual prolongation of ending fracture center line
 
-			vector3 posCrossPt = aaPos[crossPt];
+			computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg, crossPt, aaPos, sh, grid, sudoTEnd, distVecNewVrt2SCrossPt );
 
-			vector3 newPosFreeShiftPt;
+			constexpr bool shiftFreePt = false;
 
-			VecAdd(newPosFreeShiftPt,posCrossPt,distVecNewVrt2SCrossPt);
-
-			// assign this position to shift vertex at free end
-
-			aaPos[shiftVrtxAtFreeEnd] = newPosFreeShiftPt;
-
-
-			for( IndexType i = 0; i < sizeECF; i = i + ( sizeECF ) / 2 + 1 )
+			if( shiftFreePt )
 			{
-				bool atStart = ( i < sizeECF / 2 );
+//				computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg, crossPt, aaPos, sh, grid, sudoTEnd, distVecNewVrt2SCrossPt );
 
-				IndexType firstInd = atStart ? ( i ) % sizeECF: ( i + 1 ) % sizeECF;
-				IndexType secndInd = atStart ? ( i + 1 ) % sizeECF : ( i ) % sizeECF;
+				vector3 posCrossPt = aaPos[crossPt];
 
-				UG_LOG("indices " << firstInd << " " << secndInd << std::endl);
+				vector3 newPosFreeShiftPt;
 
-				ExpandCrossFracInfo & alongFreeEndF = vecExpCrossFI[firstInd];
-				ExpandCrossFracInfo & closeToTEndF = vecExpCrossFI[secndInd];
+				VecAdd(newPosFreeShiftPt,posCrossPt,distVecNewVrt2SCrossPt);
 
-				std::pair<Edge*, Edge*> freeEdgs = alongFreeEndF.getEdge();
-				std::pair<Edge*, Edge*> tEndEdgs = closeToTEndF.getEdge();
+				// assign this position to shift vertex at free end
 
-				Edge * freeCommEdg = atStart ? freeEdgs.second : freeEdgs.first;
-				Edge * closTCommEdg = atStart ? tEndEdgs.first : tEndEdgs.second;
+				aaPos[shiftVrtxAtFreeEnd] = newPosFreeShiftPt;
 
-				if( freeCommEdg != closTCommEdg || freeCommEdg == nullptr || closTCommEdg == nullptr )
-					UG_THROW("freie und geschlossene Ecke ungleich oder null " << freeCommEdg << " " << closTCommEdg << std::endl);
 
-				std::pair<Vertex*, Vertex*> freeVrtcs = alongFreeEndF.getNormal();
-				std::pair<Vertex*, Vertex*> tEndVrtcs = closeToTEndF.getNormal();
-
-				Vertex * remainVrtx = atStart ? freeVrtcs.first : freeVrtcs.second;
-				Vertex * shiftTVrt = atStart ? tEndVrtcs.second : tEndVrtcs.first;
-
-				Vertex * freeNull = atStart ? freeVrtcs.second : freeVrtcs.first;
-				Vertex * teNull = atStart ? tEndVrtcs.first : tEndVrtcs.second;
-
-				if( freeNull != nullptr || teNull != nullptr ||  remainVrtx == nullptr || shiftTVrt == nullptr )
+				for( IndexType i = 0; i < sizeECF; i = i + ( sizeECF ) / 2 + 1 )
 				{
-//					UG_THROW("TEnd schon falsch zugewiesene Vertizex" << std::endl);
-					UG_LOG("TEnd schon falsch zugewiesene Vertizex" << std::endl);
+					bool atStart = ( i < sizeECF / 2 );
 
-					UG_LOG("Falsch feee null " << freeNull << " T " << teNull << " R " << remainVrtx << " S " << shiftTVrt << std::endl);
+					IndexType firstInd = atStart ? ( i ) % sizeECF: ( i + 1 ) % sizeECF;
+					IndexType secndInd = atStart ? ( i + 1 ) % sizeECF : ( i ) % sizeECF;
 
-					UG_THROW("TEnd schon falsch zugewiesene Vertizex" << std::endl);
+					UG_LOG("indices " << firstInd << " " << secndInd << std::endl);
 
-					UG_THROW("Falsch feee null " << freeNull << " T " << teNull << " R " << remainVrtx << " S " << shiftTVrt << std::endl);
+					ExpandCrossFracInfo & alongFreeEndF = vecExpCrossFI[firstInd];
+					ExpandCrossFracInfo & closeToTEndF = vecExpCrossFI[secndInd];
+
+					std::pair<Edge*, Edge*> freeEdgs = alongFreeEndF.getEdge();
+					std::pair<Edge*, Edge*> tEndEdgs = closeToTEndF.getEdge();
+
+					Edge * freeCommEdg = atStart ? freeEdgs.second : freeEdgs.first;
+					Edge * closTCommEdg = atStart ? tEndEdgs.first : tEndEdgs.second;
+
+					if( freeCommEdg != closTCommEdg || freeCommEdg == nullptr || closTCommEdg == nullptr )
+						UG_THROW("freie und geschlossene Ecke ungleich oder null " << freeCommEdg << " " << closTCommEdg << std::endl);
+
+					std::pair<Vertex*, Vertex*> freeVrtcs = alongFreeEndF.getNormal();
+					std::pair<Vertex*, Vertex*> tEndVrtcs = closeToTEndF.getNormal();
+
+					Vertex * remainVrtx = atStart ? freeVrtcs.first : freeVrtcs.second;
+					Vertex * shiftTVrt = atStart ? tEndVrtcs.second : tEndVrtcs.first;
+
+					Vertex * freeNull = atStart ? freeVrtcs.second : freeVrtcs.first;
+					Vertex * teNull = atStart ? tEndVrtcs.first : tEndVrtcs.second;
+
+					if( freeNull != nullptr || teNull != nullptr ||  remainVrtx == nullptr || shiftTVrt == nullptr )
+					{
+	//					UG_THROW("TEnd schon falsch zugewiesene Vertizex" << std::endl);
+						UG_LOG("TEnd schon falsch zugewiesene Vertizex" << std::endl);
+
+						UG_LOG("Falsch feee null " << freeNull << " T " << teNull << " R " << remainVrtx << " S " << shiftTVrt << std::endl);
+
+						UG_THROW("TEnd schon falsch zugewiesene Vertizex" << std::endl);
+
+						UG_THROW("Falsch feee null " << freeNull << " T " << teNull << " R " << remainVrtx << " S " << shiftTVrt << std::endl);
+					}
+					else
+					{
+						UG_LOG("TEnd richtig zugewiesene Vertizex" << std::endl);
+
+						UG_LOG("Richtig feee null " << freeNull << " T " << teNull << " R " << remainVrtx << " S " << shiftTVrt << std::endl);
+
+					}
+
+					vector3 posVRem = aaPos[remainVrtx];
+					vector3 posShiVe = aaPos[shiftTVrt];
+
+	//				UG_LOG("pos T " << posVRem << " " << posShiVe << std::endl);
+	//
+					vector3 dist;
+					VecSubtract(dist, posShiVe, posVRem);
+	//
+	//				UG_LOG("dist TR " << dist << std::endl);
+	//
+					vector3 distHalf;
+					VecScale(distHalf, dist, 0.5);
+	//
+	//				UG_LOG("dist half TR " << distHalf << std::endl);
+	//
+					vector3 posNewVrt;
+					VecAdd(posNewVrt, posVRem, distHalf);
+	//
+	//				UG_LOG("neuer Vertex Position " << posNewVrt << std::endl);
+	//
+
+					Vertex * newVrt = *grid.create<RegularVertex>();
+					aaPos[newVrt] = posNewVrt;
+
+					sh.assign_subset(newVrt, sudoTEnd);
+	//
+					if( atStart )
+					{
+						freeVrtcs.second = newVrt;
+						tEndVrtcs.first = newVrt;
+					}
+					else
+					{
+						freeVrtcs.first = newVrt;
+						tEndVrtcs.second = newVrt;
+					}
+	//
+					alongFreeEndF.setNewNormal( freeVrtcs );
+					closeToTEndF.setNewNormal( tEndVrtcs );
+
 				}
-				else
+
+			}
+			else // go to left and right from crossPt at same distance as where the ending cleft enters the durchgehende one
+			{
+
+//				vector3 distVecNewVrt2ShiVeBefore;
+//				vector3 distVecNewVrt2ShiVeAfter;
+
+
+//				computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg, crossPt, aaPos, sh, grid, sudoTEnd,
+//											   distVecNewVrt2SCrossPt. distVecNewVrt2ShiVeBefore, distVecNewVrt2ShiVeAfter, true );
+				//		VecSubtract(distVecNewVrt2ShiVeBefore, posShiftBefore, posNewVrtOnEdg );
+
+
+				for( IndexType i = 0; i < sizeECF; i = i + ( sizeECF ) / 2 + 1 )
 				{
-					UG_LOG("TEnd richtig zugewiesene Vertizex" << std::endl);
+					bool atStart = ( i < sizeECF / 2 );
 
-					UG_LOG("Richtig feee null " << freeNull << " T " << teNull << " R " << remainVrtx << " S " << shiftTVrt << std::endl);
+					IndexType firstInd = atStart ? ( i ) % sizeECF: ( i + 1 ) % sizeECF;
+					IndexType secndInd = atStart ? ( i + 1 ) % sizeECF : ( i ) % sizeECF;
+
+					UG_LOG("indices " << firstInd << " " << secndInd << std::endl);
+
+					ExpandCrossFracInfo & alongFreeEndF = vecExpCrossFI[firstInd];
+					ExpandCrossFracInfo & closeToTEndF = vecExpCrossFI[secndInd];
+
+					std::pair<Edge*, Edge*> freeEdgs = alongFreeEndF.getEdge();
+					std::pair<Edge*, Edge*> tEndEdgs = closeToTEndF.getEdge();
+
+					Edge * freeCommEdg = atStart ? freeEdgs.second : freeEdgs.first;
+					Edge * closTCommEdg = atStart ? tEndEdgs.first : tEndEdgs.second;
+
+					if( freeCommEdg != closTCommEdg || freeCommEdg == nullptr || closTCommEdg == nullptr )
+						UG_THROW("freie und geschlossene Ecke ungleich oder null " << freeCommEdg << " " << closTCommEdg << std::endl);
+
+					std::pair<Vertex*, Vertex*> freeVrtcs = alongFreeEndF.getNormal();
+					std::pair<Vertex*, Vertex*> tEndVrtcs = closeToTEndF.getNormal();
+
+					Vertex * remainVrtx = atStart ? freeVrtcs.first : freeVrtcs.second;
+					Vertex * shiftTVrt = atStart ? tEndVrtcs.second : tEndVrtcs.first;
+
+					Vertex * freeNull = atStart ? freeVrtcs.second : freeVrtcs.first;
+					Vertex * teNull = atStart ? tEndVrtcs.first : tEndVrtcs.second;
+
+					if( freeNull != nullptr || teNull != nullptr ||  remainVrtx == nullptr || shiftTVrt == nullptr )
+					{
+	//					UG_THROW("TEnd schon falsch zugewiesene Vertizex" << std::endl);
+						UG_LOG("TEnd schon falsch zugewiesene Vertizex" << std::endl);
+
+						UG_LOG("Falsch feee null " << freeNull << " T " << teNull << " R " << remainVrtx << " S " << shiftTVrt << std::endl);
+
+						UG_THROW("TEnd schon falsch zugewiesene Vertizex" << std::endl);
+
+						UG_THROW("Falsch feee null " << freeNull << " T " << teNull << " R " << remainVrtx << " S " << shiftTVrt << std::endl);
+					}
+					else
+					{
+						UG_LOG("TEnd richtig zugewiesene Vertizex" << std::endl);
+
+						UG_LOG("Richtig feee null " << freeNull << " T " << teNull << " R " << remainVrtx << " S " << shiftTVrt << std::endl);
+
+					}
+
+					vector3 posCrossPt = aaPos[crossPt];
+					vector3 posShiVe = aaPos[shiftTVrt];
+
+					vector3 posNewVrtOnFrctrsTouchEdg;
+					VecSubtract( posNewVrtOnFrctrsTouchEdg, posCrossPt, distVecNewVrt2SCrossPt );
+
+					vector3 distNewTouchEdgVrt2ShiVe;
+					VecSubtract(distNewTouchEdgVrt2ShiVe, posShiVe, posNewVrtOnFrctrsTouchEdg);
+
+					number distNrm = VecLength(distNewTouchEdgVrt2ShiVe);
+
+					// go along old frac edge with this length
+
+					Vertex * endEdgFracV = nullptr;
+
+					IndexType fndCr = 0;
+
+					for( IndexType i = 0; i < 2; i++ )
+					{
+
+						Vertex * tV =  closTCommEdg->vertex(i);
+
+						if( tV == crossPt )
+							fndCr++;
+						else
+							endEdgFracV = tV;
+					}
+
+					if( fndCr != 1 || endEdgFracV == nullptr )
+						UG_THROW("ENde nicht gefunden " << std::endl);
+
+					vector3 posEndPt = aaPos[endEdgFracV];
+
+					vector3 crsPt2EndPt;
+					VecSubtract(crsPt2EndPt, posEndPt, posCrossPt);
+
+					vector3 unitAlong;
+					VecNormalize(unitAlong, crsPt2EndPt);
+
+					vector3 scaAlong;
+					VecScale(scaAlong, unitAlong, distNrm);
+
+					vector3 posNewVrt;
+
+					VecAdd(posNewVrt, posCrossPt, scaAlong);
+
+					Vertex * newVrt = *grid.create<RegularVertex>();
+					aaPos[newVrt] = posNewVrt;
+
+					sh.assign_subset(newVrt, sudoTEnd);
+	//
+					if( atStart )
+					{
+						freeVrtcs.second = newVrt;
+						tEndVrtcs.first = newVrt;
+					}
+					else
+					{
+						freeVrtcs.first = newVrt;
+						tEndVrtcs.second = newVrt;
+					}
+	//
+					alongFreeEndF.setNewNormal( freeVrtcs );
+					closeToTEndF.setNewNormal( tEndVrtcs );
 
 				}
-
-				vector3 posVRem = aaPos[remainVrtx];
-				vector3 posShiVe = aaPos[shiftTVrt];
-
-//				UG_LOG("pos T " << posVRem << " " << posShiVe << std::endl);
-//
-				vector3 dist;
-				VecSubtract(dist, posShiVe, posVRem);
-//
-//				UG_LOG("dist TR " << dist << std::endl);
-//
-				vector3 distHalf;
-				VecScale(distHalf, dist, 0.5);
-//
-//				UG_LOG("dist half TR " << distHalf << std::endl);
-//
-				vector3 posNewVrt;
-				VecAdd(posNewVrt, posVRem, distHalf);
-//
-//				UG_LOG("neuer Vertex Position " << posNewVrt << std::endl);
-//
-
-				Vertex * newVrt = *grid.create<RegularVertex>();
-				aaPos[newVrt] = posNewVrt;
-
-				sh.assign_subset(newVrt, sudoTEnd);
-//
-				if( atStart )
-				{
-					freeVrtcs.second = newVrt;
-					tEndVrtcs.first = newVrt;
-				}
-				else
-				{
-					freeVrtcs.first = newVrt;
-					tEndVrtcs.second = newVrt;
-				}
-//
-				alongFreeEndF.setNewNormal( freeVrtcs );
-				closeToTEndF.setNewNormal( tEndVrtcs );
 
 			}
 
