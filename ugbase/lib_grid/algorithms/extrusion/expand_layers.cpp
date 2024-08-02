@@ -2747,6 +2747,52 @@ bool determineOrderOfFaces( //CrossVertInf & crossVrtInf,
 }
 
 
+void teachAssoFacesNewVrtx( VecVertexOfFaceInfo const & segPart, Grid::FaceAttachmentAccessor<AttVrtVec> & aaVrtVecFace,
+							Vertex * const & crossPt, Vertex * const & newShiftVrtx )
+{
+	for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
+	{
+		Face * fac = vertFracInfoSeg.getFace();
+
+//						sh.assign_subset(fa,newSubsToAdd);
+
+		// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu SR! nicht später falsche verwenden!
+		vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ fac ];
+
+		IndexType vrtxFnd = 0;
+
+		for(size_t indVrt = 0; indVrt < (fac)->num_vertices();  indVrt++ )
+		{
+			Vertex* facVrt = (fac)->vertex(indVrt);
+
+			if(  facVrt == crossPt )
+			{
+				newVrts4Fac[ indVrt ] = newShiftVrtx;
+				vrtxFnd++;
+
+			}
+		}
+
+		if( vrtxFnd <= 0 )
+		{
+			UG_THROW("vertex not found kreuzung!" << std::endl);
+											}
+		else if( vrtxFnd > 1 )
+		{
+			UG_THROW("vertex zu oft gefunden kreuzung " << vrtxFnd << std::endl );
+		}
+		else if ( vrtxFnd == 1 )
+		{
+		}
+		else
+		{
+			UG_THROW("vertex finden komisch kreuzung " << std::endl);
+		}
+
+	}
+
+}
+
 
 
 #ifndef NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
@@ -5994,327 +6040,468 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 				}
 
 
+				constexpr bool useOldBndryOdering = false;
 
-#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
-
-				IndexType dbg_lim = vecVertFracTrip.size();
-
-				int dbg_cnt = 0;
-#endif
-
-				// TODO FIXME HHHHHHHHH hier die Sortierungsroutine einbauen, um die attachten faces sicher richtig zu zu ordnen!!!
-
-				for( VvftIterator vvftAtBnd = vecVertFracTrip.begin();
-						vvftAtBnd != vecVertFracTrip.end();
-						vvftAtBnd++
-				)
+				if( useOldBndryOdering )
 				{
+
 #if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
 
-					if( dbg_lim == dbg_cnt )
-					{
-						UG_LOG("DARF NICHT SEIN" << std::endl);
-						break;
-					}
+					IndexType dbg_lim = vecVertFracTrip.size();
 
-					dbg_cnt++;
+					int dbg_cnt = 0;
 #endif
 
-					// Ziel: den parallelen Anteil der Normalen auf die jeweilige Randkante projizieren
+					// TODO FIXME HHHHHHHHH hier die Sortierungsroutine einbauen, um die attachten faces sicher richtig zu zu ordnen!!!
 
-					vector3 nrmEdg = vvftAtBnd->getNormal();
-
-					Edge * edgeOfFrac = vvftAtBnd->getEdge();
-
-					// figure out the adjoint boundary edge into the same direction
-
-					// the normal in both directions have to be compared with the vectors in direction of boundary edges
-					for( auto bED : bndEdgeDirection )
+					for( VvftIterator vvftAtBnd = vecVertFracTrip.begin();
+							vvftAtBnd != vecVertFracTrip.end();
+							vvftAtBnd++
+					)
 					{
-						// check orientation of boundary edges wrt the normals
+#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+
+						if( dbg_lim == dbg_cnt )
+						{
+							UG_LOG("DARF NICHT SEIN" << std::endl);
+							break;
+						}
+
+						dbg_cnt++;
+#endif
+
+						// Ziel: den parallelen Anteil der Normalen auf die jeweilige Randkante projizieren
+
+						vector3 nrmEdg = vvftAtBnd->getNormal();
+
+						Edge * edgeOfFrac = vvftAtBnd->getEdge();
+
+						// figure out the adjoint boundary edge into the same direction
+
+						// the normal in both directions have to be compared with the vectors in direction of boundary edges
+						for( auto bED : bndEdgeDirection )
+						{
+							// check orientation of boundary edges wrt the normals
+
+							number cosinus = VecDot( nrmEdg, bED );
+
+							UG_LOG("BOUNDARY COSINUS between " << nrmEdg << " and " << bED << " -> " << cosinus << std::endl);
+
+							if( cosinus > 0 )
+							{
+								// gleiche Seite vermutet
+
+								// muessen wissen, wie lange das gestreckt werden soll
+
+								vector3 alongEdgV;
+
+								auto subsIndEdgOF = sh.get_subset_index(edgeOfFrac);
+
+								number width = fracInfosBySubset.at(subsIndEdgOF).width;
+
+								number scal = width / 2. / cosinus;
+
+								VecScale( alongEdgV, bED, scal );
+
+								vector3 posNewVrtOnBnd;
+
+								VecAdd(posNewVrtOnBnd, posOldVrt, alongEdgV );
+
+								UG_LOG("neuer Vertex Edge " << posNewVrtOnBnd << std::endl );
+
+								Vertex * newShiftEdgVrtx = *grid.create<RegularVertex>();
+								aaPos[newShiftEdgVrtx] = posNewVrtOnBnd;
+
+								sh.assign_subset(newShiftEdgVrtx, subsIndEdgOF );
+
+								std::vector<Edge * > attEdg;
+								std::vector<Face * > attFac;
+
+								attEdg.push_back(edgeOfFrac);
+
+								Face * facFrac = vvftAtBnd->getFace();
+
+								attFac.push_back( facFrac );
+
+								// we store the boundary edge direction for boundary verzizes rather than the normal, in contrast to inner vertizes, where we store the averaged normal
+								ExpandVertexMultiplett vrtMtpl( attEdg, attFac, bED );
+
+								aaVrtExpMP[ *iterV ].push_back( vrtMtpl );
+
+#if 0
+								// the attached faces need to know that they need a new vertex to be shifted
+								for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
+								{
+									bool isFromFrac = false;
+
+									for( auto const & facFrac : attFac )
+									{
+										if( *iterFac == facFrac )
+										{
+											isFromFrac = true;
+										}
+									}
+
+									bool atRightSide = false;
+
+									if( isFromFrac )
+										atRightSide = true;
+
+									if( !isFromFrac )
+									{
+
+										// check if on same side of edge where the normal points to: compute cosinus between vector of face center
+										//  perpendicular to the edge
+										// TODO FIXME
+
+										vector3 facCenter = CalculateCenter( *iterFac, aaPos );
+
+										vector3 perpendicu;
+
+										DropAPerpendicular(perpendicu, facCenter, aaPos[edgeOfFrac->vertex(0)], aaPos[edgeOfFrac->vertex(1)]);
+
+										vector3 tmpN;
+
+										VecSubtract(tmpN, facCenter, perpendicu );
+
+										VecNormalize(tmpN, tmpN);
+
+										UG_LOG("Normale Boundary zum Face ist " << tmpN << std::endl);
+
+										number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, nrmEdg );
+
+										UG_LOG("Cosinus Boundary zur Normalen ist " << cosBetwFracEdgAndDirection2Face << std::endl);
+
+										if( cosBetwFracEdgAndDirection2Face > 0 )
+										{
+											UG_LOG("assuming boundary face to be on richt side" << std::endl);
+
+											atRightSide = true;
+
+#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+													Vertex * otherFacCent = *grid.create<RegularVertex>();
+													aaPos[otherFacCent] = facCenter;
+													sh.assign_subset(otherFacCent, 5 );
+
+													Vertex * pp = *grid.create<RegularVertex>();
+													aaPos[pp] = perpendicu;
+													sh.assign_subset(pp, 6 );
+
+													sh.assign_subset(*iterFac,7);
+#endif
+
+
+										}
+										else
+										{
+											UG_LOG("assuming boundary face to be on wrong side" << std::endl);
+										}
+
+									}
+
+									if( atRightSide ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
+									{
+
+
+										vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ * iterFac ];
+
+										IndexType vrtxFnd = 0;
+
+										for(size_t indVrt = 0; indVrt < (*iterFac)->num_vertices();  indVrt++ )
+										{
+											Vertex* facVrt = (*iterFac)->vertex(indVrt);
+
+											if(  facVrt == *iterV )
+											{
+												newVrts4Fac[ indVrt ] = newShiftEdgVrtx;
+												vrtxFnd++;
+											}
+										}
+
+
+
+										if( vrtxFnd <= 0 )
+										{
+											UG_THROW("vertex not found bnd!" << std::endl);
+										}
+										else if( vrtxFnd > 1 )
+										{
+											UG_THROW("vertex zu oft gefunden bnd " << vrtxFnd << std::endl );
+										}
+										else if ( vrtxFnd == 1 )
+										{
+	//														UG_LOG("vertex found abgeschlossen" << std::endl);
+										}
+										else
+										{
+											UG_THROW("vertex finden bnd komisch " << std::endl);
+										}
+									}
+
+								}
+#else
+
+								// TODO FIXME HHHHHHHHH hier die Sortierungsroutine einbauen, um die attachten faces sicher richtig zu zu ordnen!!!
+
+								for( auto const & ifac : assoFaces )
+								{
+									bool isFromFrac = false;
+
+									for( auto const & facFrac : attFac )
+									{
+										if( ifac == facFrac )
+										{
+											isFromFrac = true;
+										}
+									}
+
+									bool atRightSide = false;
+
+									if( isFromFrac )
+										atRightSide = true;
+
+									if( !isFromFrac )
+									{
+
+										// check if on same side of edge where the normal points to: compute cosinus between vector of face center
+										//  perpendicular to the edge
+										// TODO FIXME
+
+										vector3 facCenter = CalculateCenter( ifac, aaPos );
+
+										vector3 perpendicu;
+
+										DropAPerpendicular(perpendicu, facCenter, aaPos[edgeOfFrac->vertex(0)], aaPos[edgeOfFrac->vertex(1)]);
+
+										vector3 tmpN;
+
+										VecSubtract(tmpN, facCenter, perpendicu );
+
+										VecNormalize(tmpN, tmpN);
+
+										UG_LOG("Normale Boundary zum Face ist " << tmpN << std::endl);
+
+										number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, nrmEdg );
+
+										UG_LOG("Cosinus Boundary zur Normalen ist " << cosBetwFracEdgAndDirection2Face << std::endl);
+
+										if( cosBetwFracEdgAndDirection2Face > 0 )
+										{
+											UG_LOG("assuming boundary face to be on richt side" << std::endl);
+
+											atRightSide = true;
+
+#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+
+	//										IndexType suNu = sh.num_subsets();
+
+											Vertex * otherFacCent = *grid.create<RegularVertex>();
+											aaPos[otherFacCent] = facCenter;
+											sh.assign_subset(otherFacCent, sh.num_subsets() );
+											// sh.assign_subset(otherFacCent, 5 );
+
+											Vertex * pp = *grid.create<RegularVertex>();
+											aaPos[pp] = perpendicu;
+	//										sh.assign_subset(pp, 6 );
+											sh.assign_subset(pp, sh.num_subsets() );
+
+	//										sh.assign_subset(*iterFac,7);
+											sh.assign_subset(*iterFac, sh.num_subsets() );
+#endif
+
+
+										}
+										else
+										{
+											UG_LOG("assuming boundary face to be on wrong side" << std::endl);
+										}
+
+									}
+
+									if( atRightSide ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
+									{
+
+
+										vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ ifac ];
+
+										IndexType vrtxFnd = 0;
+
+										for(size_t indVrt = 0; indVrt < (ifac)->num_vertices();  indVrt++ )
+										{
+											Vertex* facVrt = (ifac)->vertex(indVrt);
+
+											if(  facVrt == *iterV )
+											{
+												newVrts4Fac[ indVrt ] = newShiftEdgVrtx;
+												vrtxFnd++;
+											}
+										}
+
+
+
+										if( vrtxFnd <= 0 )
+										{
+											UG_THROW("vertex not found bnd!" << std::endl);
+										}
+										else if( vrtxFnd > 1 )
+										{
+											UG_THROW("vertex zu oft gefunden bnd " << vrtxFnd << std::endl );
+										}
+										else if ( vrtxFnd == 1 )
+										{
+	//														UG_LOG("vertex found abgeschlossen" << std::endl);
+										}
+										else
+										{
+											UG_THROW("vertex finden bnd komisch " << std::endl);
+										}
+									}
+								}
+
+#endif
+							}
+						}
+					}
+				}
+				else // sicher ordnungsbasiertes Arbeiten
+				{
+
+					IndexType numbSegments = segments.size();
+
+					if( numbSegments != 2 )
+						UG_THROW("only two segments possible at boundary as long as only one ending fracture " << std::endl;)
+
+					bool beforeFrac = true;
+
+					IndexType segInd = 0;
+
+					// TODO FIXME ausfuellen
+					for( VecVertexOfFaceInfo const & segPart : segments )
+					{
+
+						IndexType numbTriangs = segPart.size();
+
+						VertexOfFaceInfo const & vFISBegin = segPart[0];
+						VertexOfFaceInfo const & vFISEnd = segPart[numbTriangs-1];
+
+						Face * fracFace = vFISEnd.getFace();
+
+						std::pair<Edge*, Edge* >  edgesBegin = vFISBegin.getEdge();
+						std::pair<Edge*, Edge* >  edgesEnd = vFISEnd.getEdge();
+
+						std::pair<vector3, vector3> normalBegin = vFISBegin.getNormal();
+						std::pair<vector3, vector3> normalEnd = vFISEnd.getNormal();
+
+						Edge* edgeBnd = edgesBegin.first;
+						Edge* edgeFrac = edgesEnd.second;
+
+						vector3 normalBnd = normalBegin.first;
+						vector3 normalFrac = normalEnd.second;
+
+						if( ! beforeFrac )
+						{
+							fracFace = vFISBegin.getFace();
+
+							edgeBnd = edgesEnd.second;
+							edgeFrac = edgesBegin.first;
+
+							normalBnd = normalEnd.second;
+							normalFrac = normalBegin.first;
+						}
+
+						if( edgeBnd != adjBndEdgs[segInd] )
+							UG_THROW("Boundary edge does not fit " << segInd << std::endl);
+
+//						auto const & vft = vecVertFracTrip[segInd];
+//
+//						if( normalFrac != vft.getNormal())
+//							UG_THROW("Normale nicht gegeben " << segInd << std::endl);
+//
+//						if( edgeFrac != vft.getEdge() )
+//							UG_THROW("Kante nicht bekannt " << segInd << std::endl);
+//
+//						if( fracFace != vft.getFace() )
+//							UG_THROW("Gesicht nicht bekannt " << segInd << std::endl);
+
+						// check if belonging to one vertFracTrip of bnd vrtx
+
+						IndexType fndNormal = 0;
+						IndexType fndEdge = 0;
+						IndexType fndFace = 0;
+
+						for( auto const & vft : vecVertFracTrip )
+						{
+							if( vft.getNormal() == normalFrac )
+								fndNormal++;
+
+							if( vft.getEdge() == edgeFrac )
+								fndEdge++;
+
+							if( vft.getFace() == fracFace )
+								fndFace++;
+						}
+
+						if( fndNormal != 1 || fndEdge != 2 || fndFace != 1 )
+							UG_THROW("Findungen komisch " << fndNormal << " " << fndEdge << " " << fndFace << std::endl);
+
+						auto subsIndFrac = sh.get_subset_index(edgeFrac);
+
+						// neue Punkte erzeugen
+
+						auto & bED = bndEdgeDirection[segInd];
+
+						static_assert( std::is_same< decltype( bED), vector3 & >::value );
+
+						vector3 & nrmEdg = normalFrac; //normalBnd;
+
+						Edge * edgeOfFrac = edgeFrac;
 
 						number cosinus = VecDot( nrmEdg, bED );
 
 						UG_LOG("BOUNDARY COSINUS between " << nrmEdg << " and " << bED << " -> " << cosinus << std::endl);
 
-						if( cosinus > 0 )
+						if( cosinus < 0 )
 						{
-							// gleiche Seite vermutet
+							// andere Seite vermutet
 
-							// muessen wissen, wie lange das gestreckt werden soll
-
-							vector3 alongEdgV;
-
-							auto subsIndEdgOF = sh.get_subset_index(edgeOfFrac);
-
-							number width = fracInfosBySubset.at(subsIndEdgOF).width;
-
-							number scal = width / 2. / cosinus;
-
-							VecScale( alongEdgV, bED, scal );
-
-							vector3 posNewVrtOnBnd;
-
-							VecAdd(posNewVrtOnBnd, posOldVrt, alongEdgV );
-
-							UG_LOG("neuer Vertex Edge " << posNewVrtOnBnd << std::endl );
-
-							Vertex * newShiftEdgVrtx = *grid.create<RegularVertex>();
-							aaPos[newShiftEdgVrtx] = posNewVrtOnBnd;
-
-							sh.assign_subset(newShiftEdgVrtx, subsIndEdgOF );
-
-							std::vector<Edge * > attEdg;
-							std::vector<Face * > attFac;
-
-							attEdg.push_back(edgeOfFrac);
-
-							Face * facFrac = vvftAtBnd->getFace();
-
-							attFac.push_back( facFrac );
-
-							// we store the boundary edge direction for boundary verzizes rather than the normal, in contrast to inner vertizes, where we store the averaged normal
-							ExpandVertexMultiplett vrtMtpl( attEdg, attFac, bED );
-
-							aaVrtExpMP[ *iterV ].push_back( vrtMtpl );
-
-#if 0
-							// the attached faces need to know that they need a new vertex to be shifted
-							for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
-							{
-								bool isFromFrac = false;
-
-								for( auto const & facFrac : attFac )
-								{
-									if( *iterFac == facFrac )
-									{
-										isFromFrac = true;
-									}
-								}
-
-								bool atRightSide = false;
-
-								if( isFromFrac )
-									atRightSide = true;
-
-								if( !isFromFrac )
-								{
-
-									// check if on same side of edge where the normal points to: compute cosinus between vector of face center
-									//  perpendicular to the edge
-									// TODO FIXME
-
-									vector3 facCenter = CalculateCenter( *iterFac, aaPos );
-
-									vector3 perpendicu;
-
-									DropAPerpendicular(perpendicu, facCenter, aaPos[edgeOfFrac->vertex(0)], aaPos[edgeOfFrac->vertex(1)]);
-
-									vector3 tmpN;
-
-									VecSubtract(tmpN, facCenter, perpendicu );
-
-									VecNormalize(tmpN, tmpN);
-
-									UG_LOG("Normale Boundary zum Face ist " << tmpN << std::endl);
-
-									number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, nrmEdg );
-
-									UG_LOG("Cosinus Boundary zur Normalen ist " << cosBetwFracEdgAndDirection2Face << std::endl);
-
-									if( cosBetwFracEdgAndDirection2Face > 0 )
-									{
-										UG_LOG("assuming boundary face to be on richt side" << std::endl);
-
-										atRightSide = true;
-
-#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
-												Vertex * otherFacCent = *grid.create<RegularVertex>();
-												aaPos[otherFacCent] = facCenter;
-												sh.assign_subset(otherFacCent, 5 );
-
-												Vertex * pp = *grid.create<RegularVertex>();
-												aaPos[pp] = perpendicu;
-												sh.assign_subset(pp, 6 );
-
-												sh.assign_subset(*iterFac,7);
-#endif
-
-
-									}
-									else
-									{
-										UG_LOG("assuming boundary face to be on wrong side" << std::endl);
-									}
-
-								}
-
-								if( atRightSide ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
-								{
-
-
-									vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ * iterFac ];
-
-									IndexType vrtxFnd = 0;
-
-									for(size_t indVrt = 0; indVrt < (*iterFac)->num_vertices();  indVrt++ )
-									{
-										Vertex* facVrt = (*iterFac)->vertex(indVrt);
-
-										if(  facVrt == *iterV )
-										{
-											newVrts4Fac[ indVrt ] = newShiftEdgVrtx;
-											vrtxFnd++;
-										}
-									}
-
-
-
-									if( vrtxFnd <= 0 )
-									{
-										UG_THROW("vertex not found bnd!" << std::endl);
-									}
-									else if( vrtxFnd > 1 )
-									{
-										UG_THROW("vertex zu oft gefunden bnd " << vrtxFnd << std::endl );
-									}
-									else if ( vrtxFnd == 1 )
-									{
-//														UG_LOG("vertex found abgeschlossen" << std::endl);
-									}
-									else
-									{
-										UG_THROW("vertex finden bnd komisch " << std::endl);
-									}
-								}
-
-							}
-#else
-
-							// TODO FIXME HHHHHHHHH hier die Sortierungsroutine einbauen, um die attachten faces sicher richtig zu zu ordnen!!!
-
-							for( auto const & ifac : assoFaces )
-							{
-								bool isFromFrac = false;
-
-								for( auto const & facFrac : attFac )
-								{
-									if( ifac == facFrac )
-									{
-										isFromFrac = true;
-									}
-								}
-
-								bool atRightSide = false;
-
-								if( isFromFrac )
-									atRightSide = true;
-
-								if( !isFromFrac )
-								{
-
-									// check if on same side of edge where the normal points to: compute cosinus between vector of face center
-									//  perpendicular to the edge
-									// TODO FIXME
-
-									vector3 facCenter = CalculateCenter( ifac, aaPos );
-
-									vector3 perpendicu;
-
-									DropAPerpendicular(perpendicu, facCenter, aaPos[edgeOfFrac->vertex(0)], aaPos[edgeOfFrac->vertex(1)]);
-
-									vector3 tmpN;
-
-									VecSubtract(tmpN, facCenter, perpendicu );
-
-									VecNormalize(tmpN, tmpN);
-
-									UG_LOG("Normale Boundary zum Face ist " << tmpN << std::endl);
-
-									number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, nrmEdg );
-
-									UG_LOG("Cosinus Boundary zur Normalen ist " << cosBetwFracEdgAndDirection2Face << std::endl);
-
-									if( cosBetwFracEdgAndDirection2Face > 0 )
-									{
-										UG_LOG("assuming boundary face to be on richt side" << std::endl);
-
-										atRightSide = true;
-
-#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
-
-//										IndexType suNu = sh.num_subsets();
-
-										Vertex * otherFacCent = *grid.create<RegularVertex>();
-										aaPos[otherFacCent] = facCenter;
-										sh.assign_subset(otherFacCent, sh.num_subsets() );
-										// sh.assign_subset(otherFacCent, 5 );
-
-										Vertex * pp = *grid.create<RegularVertex>();
-										aaPos[pp] = perpendicu;
-//										sh.assign_subset(pp, 6 );
-										sh.assign_subset(pp, sh.num_subsets() );
-
-//										sh.assign_subset(*iterFac,7);
-										sh.assign_subset(*iterFac, sh.num_subsets() );
-#endif
-
-
-									}
-									else
-									{
-										UG_LOG("assuming boundary face to be on wrong side" << std::endl);
-									}
-
-								}
-
-								if( atRightSide ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
-								{
-
-
-									vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ ifac ];
-
-									IndexType vrtxFnd = 0;
-
-									for(size_t indVrt = 0; indVrt < (ifac)->num_vertices();  indVrt++ )
-									{
-										Vertex* facVrt = (ifac)->vertex(indVrt);
-
-										if(  facVrt == *iterV )
-										{
-											newVrts4Fac[ indVrt ] = newShiftEdgVrtx;
-											vrtxFnd++;
-										}
-									}
-
-
-
-									if( vrtxFnd <= 0 )
-									{
-										UG_THROW("vertex not found bnd!" << std::endl);
-									}
-									else if( vrtxFnd > 1 )
-									{
-										UG_THROW("vertex zu oft gefunden bnd " << vrtxFnd << std::endl );
-									}
-									else if ( vrtxFnd == 1 )
-									{
-//														UG_LOG("vertex found abgeschlossen" << std::endl);
-									}
-									else
-									{
-										UG_THROW("vertex finden bnd komisch " << std::endl);
-									}
-								}
-							}
-
-#endif
-
-
-
+							UG_THROW("check if really on same side " << std::endl);
 						}
+
+						// gleiche Seite muss es sein
+
+						// muessen wissen, wie lange das gestreckt werden soll
+
+						vector3 alongEdgV;
+
+						auto subsIndEdgOF = sh.get_subset_index(edgeOfFrac);
+
+						number width = fracInfosBySubset.at(subsIndEdgOF).width;
+
+						number scal = width / 2. / cosinus;
+
+						VecScale( alongEdgV, bED, scal );
+
+						vector3 posNewVrtOnBnd;
+
+						VecAdd(posNewVrtOnBnd, posOldVrt, alongEdgV );
+
+						UG_LOG("neuer Vertex Edge " << posNewVrtOnBnd << std::endl );
+
+						Vertex * newShiftEdgVrtx = *grid.create<RegularVertex>();
+						aaPos[newShiftEdgVrtx] = posNewVrtOnBnd;
+
+						sh.assign_subset(newShiftEdgVrtx, subsIndEdgOF );
+
+						teachAssoFacesNewVrtx(  segPart, aaVrtVecFace, *iterV, newShiftEdgVrtx );
+
+						segInd++;
+
+						beforeFrac = ! beforeFrac; // more complicated eventual if more than one ending frac, but no topic so far
 					}
+
 				}
+
+//				return true;
 
 			}
 			else // fractures are crossing at boundary even
