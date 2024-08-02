@@ -47,6 +47,7 @@
 #include <cstddef>
 #include <bitset>
 #include <string>
+#include <cmath>
 
 #include "support.h"
 
@@ -1101,6 +1102,82 @@ bool expandSingleFractureAtGivenSide( vector3 const & nOne, vector3 const & nTwo
 	return true;
 
 }
+
+#if 0
+void createShiftVertexPassingClefts( vector3 const & nOne, vector3 const nTwo, Vertex * & newShiftVrtx, SubsetHandler & sh,
+		vector3 const & posOldVrt, bool subsEqual = true )
+{
+
+	auto subsIndEdgOne = sh.get_subset_index(edgeOne);
+
+	auto subsIndEdgTwo = sh.get_subset_index(edgeTwo);
+
+	if( subsIndEdgOne != subsIndEdgTwo && subsEqual )
+	{
+		UG_THROW("subsets passen nicht Vereinheitlichung" << std::endl );
+	}
+
+	vector3 moveVrt;
+
+	number cosinus = VecDot(nOne,nTwo);
+
+	number pi = 3.1415926535897932385;
+
+	number cosinusLim = std::cos( pi/8. );
+
+	if( cosinus > cosinusLim )
+	{
+		vector3 normSum;
+
+		VecAdd( normSum, nOne, nTwo );
+
+		vector3 normSumNormed;
+
+		VecNormalize(normSumNormed, normSum);
+
+		UG_LOG("averaged normal " << normSumNormed << std::endl);
+
+		std::vector<Edge * > attEdg;
+		std::vector<Face * > attFac;
+
+		attEdg.push_back( edgeOne );
+		attEdg.push_back( edgeTwo );
+
+		attFac.push_back( facOne );
+		attFac.push_back( facTwo );
+
+		// jetzt neuen Vertex erzeugen in Richtung der Normalen
+		// sonst ist das attachment Schwachsinn!
+
+		number widthOne = fracInfosBySubset.at(subsIndEdgOne).width;
+		number widthTwo = fracInfosBySubset.at(subsIndEdgTwo).width;
+
+		number width = ( widthOne + widthTwo ) /2.;
+
+		// FALSCH
+		// der Faktor ist Käse und muss noch aus den Eingaben übernommen werden
+		VecScale(moveVrt, normSumNormed, width/2. );
+
+	}
+	else // abknickende Fractures
+	{
+
+	}
+
+	vector3 posNewVrt;
+
+	VecAdd(posNewVrt, posOldVrt, moveVrt );
+
+	UG_LOG("neuer Vertex " << posNewVrt << std::endl );
+
+	// TODO FIXME hier ist das PROBLEM, SEGFAULT durch create regular vertex
+
+	newShiftVrtx = *grid.create<RegularVertex>();
+	aaPos[newShiftVrtx] = posNewVrt;
+
+	sh.assign_subset(newShiftVrtx, subsIndEdgOne );
+}
+#endif
 
 using VecVertFracTrip = std::vector<VertFracTrip>;
 
@@ -4965,225 +5042,525 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 					number cosBetweenNormals = VecDot( normalFracOne, normalFracTwo );
 
-					if( subsIndFracOne == subsIndFracTwo )
+					constexpr bool useOldMethodeNotAngleDep = false;
+
+					if( useOldMethodeNotAngleDep )
 					{
-//						if( numFracsCrossAtVrt != 3 )
-						if( numFracsCrossAtVrt != 2 && numFracsCrossAtVrt != 3 )
+
+						if( subsIndFracOne == subsIndFracTwo )
 						{
-//							UG_THROW("Fracture Segment an beiden Seiten gleiche sudo, aber keine T Kreuzung?" << std::endl);
-							UG_THROW("Fracture Segment an beiden Seiten gleiche sudo, aber keine durchgehende Kluft?" << std::endl);
-						}
-
-						// dieselben Methoden wie im Fall von einer durchgehenden Kluft an einem Vertex, dort kopieren
-						// bzw Funktion schreiben, die beides macht
-
-						// hier wird der Fall abgezweigt, dass wir auf der durchgehenden Seite einer Kluft sind
-						// wenn wir eine T-Kreuzung haben
-
-						std::vector<Vertex *> nextFracVrt;
-
-						IndexType foundThisVrtOne = 0;
-
-						for( size_t i = 0; i < 2; ++i )
-						{
-							Vertex * vrtEdgEnd = edgeFracOne->vertex(i);
-
-							if( vrtEdgEnd == *iterV )
+	//						if( numFracsCrossAtVrt != 3 )
+							if( numFracsCrossAtVrt != 2 && numFracsCrossAtVrt != 3 )
 							{
-								foundThisVrtOne++;
-							}
-							else
-							{
-								nextFracVrt.push_back( vrtEdgEnd );
+	//							UG_THROW("Fracture Segment an beiden Seiten gleiche sudo, aber keine T Kreuzung?" << std::endl);
+								UG_THROW("Fracture Segment an beiden Seiten gleiche sudo, aber keine durchgehende Kluft?" << std::endl);
 							}
 
-						}
+							// dieselben Methoden wie im Fall von einer durchgehenden Kluft an einem Vertex, dort kopieren
+							// bzw Funktion schreiben, die beides macht
 
-						if( foundThisVrtOne != 1 )
-						{
-							UG_THROW("zu viel zu wenig vertizex one " << std::endl);
-						}
+							// hier wird der Fall abgezweigt, dass wir auf der durchgehenden Seite einer Kluft sind
+							// wenn wir eine T-Kreuzung haben
 
+							std::vector<Vertex *> nextFracVrt;
 
-						IndexType foundThisVrtTwo = 0;
+							IndexType foundThisVrtOne = 0;
 
-						for( size_t i = 0; i < 2; ++i )
-						{
-							Vertex * vrtEdgEnd = edgeFracTwo->vertex(i);
-
-							if( vrtEdgEnd == *iterV )
+							for( size_t i = 0; i < 2; ++i )
 							{
-								foundThisVrtTwo++;
+								Vertex * vrtEdgEnd = edgeFracOne->vertex(i);
+
+								if( vrtEdgEnd == *iterV )
+								{
+									foundThisVrtOne++;
+								}
+								else
+								{
+									nextFracVrt.push_back( vrtEdgEnd );
+								}
+
 							}
-							else
+
+							if( foundThisVrtOne != 1 )
 							{
-								nextFracVrt.push_back( vrtEdgEnd );
+								UG_THROW("zu viel zu wenig vertizex one " << std::endl);
 							}
 
-						}
 
-						if( foundThisVrtTwo != 1 )
+							IndexType foundThisVrtTwo = 0;
+
+							for( size_t i = 0; i < 2; ++i )
+							{
+								Vertex * vrtEdgEnd = edgeFracTwo->vertex(i);
+
+								if( vrtEdgEnd == *iterV )
+								{
+									foundThisVrtTwo++;
+								}
+								else
+								{
+									nextFracVrt.push_back( vrtEdgEnd );
+								}
+
+							}
+
+							if( foundThisVrtTwo != 1 )
+							{
+								UG_THROW("zu viel zu wenig vertizex two " << std::endl);
+							}
+
+							Face *  faceBegin = vFISBegin.getFace();
+							Face *  faceEnd = vFISEnd.getFace();
+
+
+							// TODO FIXME hier die Segmentinformation übergeben, da die Faces bekannt sind, die dran hängen!!!!!
+	//						expandSingleFractureAtGivenSide( normalFracTwo, normalFracTwo,
+	//														 edgeFracOne, edgeFracTwo,
+	//														 faceBegin, faceEnd,
+	//														 fracInfosBySubset,
+	//														 posOldVrt,
+	//														 aaPos,
+	//														 grid, sh,
+	//														 assoFaces,
+	//														 nextFracVrt,
+	//														 aaVrtVecFace,
+	//														 dbg_flachen_passiert,
+	//														 *iterV,
+	//														 crossVrtInf,
+	//														 ( numFracsCrossAtVrt == 3 )
+	//														);
+							expandSingleFractureAtGivenSide( normalFracOne, normalFracTwo,
+															 edgeFracOne, edgeFracTwo,
+															 faceBegin, faceEnd,
+															 fracInfosBySubset,
+															 posOldVrt,
+															 aaPos,
+															 grid, sh,
+															 segPart,
+															 nextFracVrt,
+															 aaVrtVecFace,
+															 dbg_flachen_passiert,
+															 *iterV,
+															 crossVrtInf,
+															 ( numFracsCrossAtVrt == 3 )
+															);
+
+
+
+						}
+						else
 						{
-							UG_THROW("zu viel zu wenig vertizex two " << std::endl);
+
+							// create normal vectors into direction of relevant edges
+
+							vector3 alongEdgeOne;
+							vector3 alongEdgeTwo;
+
+							Vertex * vrtEdgeOneBegin = nullptr;
+							Vertex * vrtEdgeTwoBegin = nullptr;
+							Vertex * vrtEdgeOneEnd = nullptr;
+							Vertex * vrtEdgeTwoEnd = nullptr;
+
+
+							for( size_t i = 0; i < 2; ++i )
+							{
+								Vertex * vrtFromEdgeOne = edgeFracOne->vertex(i);
+								Vertex * vrtFromEdgeTwo = edgeFracTwo->vertex(i);
+
+								if( vrtFromEdgeOne == *iterV )
+								{
+									vrtEdgeOneBegin = vrtFromEdgeOne;
+								}
+								else
+								{
+									vrtEdgeOneEnd = vrtFromEdgeOne;
+								}
+
+								if( vrtFromEdgeTwo == *iterV )
+								{
+									vrtEdgeTwoBegin = vrtFromEdgeTwo;
+								}
+								else
+								{
+									vrtEdgeTwoEnd = vrtFromEdgeTwo;
+								}
+
+							}
+
+							if( vrtEdgeOneBegin == NULL || vrtEdgeTwoBegin == NULL || vrtEdgeOneEnd == NULL || vrtEdgeTwoEnd == NULL )
+							{
+								UG_THROW("lauter Nullen vertizes" << std::endl);
+							}
+
+							vector3 fracVrtPos = aaPos[*iterV];
+
+							vector3 fracEdgOneEndPos = aaPos[ vrtEdgeOneEnd ];
+							vector3 fracEdgTwoEndPos = aaPos[ vrtEdgeTwoEnd ];
+
+							vector3 directionEdgOne;
+							VecSubtract(directionEdgOne, fracEdgOneEndPos, fracVrtPos);
+
+							vector3 directionEdgTwo;
+							VecSubtract(directionEdgTwo, fracEdgTwoEndPos, fracVrtPos);
+
+							vector3 nrmdVecEdgOne;
+							VecNormalize(nrmdVecEdgOne, directionEdgOne);
+
+							vector3 nrmdVecEdgTwo;
+							VecNormalize(nrmdVecEdgTwo, directionEdgTwo);
+
+							number cosBetweenEdges = VecDot(nrmdVecEdgOne,nrmdVecEdgTwo);
+
+							// TODO FIXME wenn Winkel zu klein, dann die Methode verwenden der Mittelung der beiden Normalen!!!!
+
+							number angleEdges = std::acos( cosBetweenEdges );
+							number angleNormls = std::acos( cosBetweenNormals );
+
+							totAnglsEdg += angleEdges;
+							totAnglsNrm += angleNormls;
+
+							UG_LOG("cosinus Edges Normals " << cosBetweenEdges << "  " << cosBetweenNormals << std::endl);
+							UG_LOG("angles edges normals " << angleEdges << "  " << angleNormls << std::endl);
+
+							// prject normal 1 onto edge 2 and normal 2 on edge 1, scale with width one half resp with width two half
+
+
+							number cosBetweenNrmFraOneEdgTwo = VecDot(normalFracOne,nrmdVecEdgTwo);
+							number cosBetweenNrmFraTwoEdgOne = VecDot(normalFracTwo,nrmdVecEdgOne);
+
+							vector3 projectNrmFraOneToEdgTwoDirection;
+							VecScale(projectNrmFraOneToEdgTwoDirection, nrmdVecEdgTwo, 1./cosBetweenNrmFraOneEdgTwo);
+
+							vector3 projectNrmFraTwoToEdgOneDirection;
+							VecScale(projectNrmFraTwoToEdgOneDirection, nrmdVecEdgOne, 1./cosBetweenNrmFraTwoEdgOne);
+
+		//					auto subsIndFracOne = sh.get_subset_index(edgeFracOne);
+		//					auto subsIndFracTwo = sh.get_subset_index(edgeFracTwo);
+
+							number shiftOne = fracInfosBySubset.at( subsIndFracOne ).width / 2. ;
+							number shiftTwo = fracInfosBySubset.at( subsIndFracTwo ).width / 2. ;
+
+							vector3 shiftAlongEdgeTwo;
+							VecScale(shiftAlongEdgeTwo, projectNrmFraOneToEdgTwoDirection, shiftOne);
+
+							vector3 shiftAlongEdgeOne;
+							VecScale(shiftAlongEdgeOne, projectNrmFraTwoToEdgOneDirection, shiftTwo);
+
+							vector3 shiftPart;
+							VecAdd(shiftPart, fracVrtPos, shiftAlongEdgeTwo);
+
+							vector3 posNewVrt;
+							VecAdd( posNewVrt, shiftPart, shiftAlongEdgeOne);
+
+							UG_LOG("neuer Vertex Kreuzung " << posNewVrt << std::endl );
+
+							Vertex * newShiftVrtx = *grid.create<RegularVertex>();
+							aaPos[newShiftVrtx] = posNewVrt;
+
+							//					sh.assign_subset(newShiftVrtx,  newSubsToAdd );
+							sh.assign_subset(newShiftVrtx, subsIndFracOne );
+							// could also be two, but have to select one, no Kompromiss possible......
+
+							crossVrtInf.addShiftVrtx(newShiftVrtx);
+
+	//						UG_LOG("ADDED SHIFT VECTOR " << aaPos[newShiftVrtx] << std::endl);
+
+							// TODO FIXME eigene Funktion, da bei 2 und 3 Klüften exakt dieselbe Routine, mit copy und paste übernommen worden
+
+							for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
+							{
+								Face * fac = vertFracInfoSeg.getFace();
+
+		//						sh.assign_subset(fa,newSubsToAdd);
+
+
+								// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
+								vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ fac ];
+
+								IndexType vrtxFnd = 0;
+
+								for(size_t indVrt = 0; indVrt < (fac)->num_vertices();  indVrt++ )
+								{
+									Vertex* facVrt = (fac)->vertex(indVrt);
+
+									if(  facVrt == *iterV )
+									{
+										newVrts4Fac[ indVrt ] = newShiftVrtx;
+										vrtxFnd++;
+
+	//									crossVrtInf.addShiftVrtx(newShiftVrtx);
+	//
+	//									UG_LOG("ADDED SHIFT VECTOR " << aaPos[newShiftVrtx] << std::endl);
+
+									}
+								}
+
+	//							crossVrtInf.setShiftVrtx(newVrts4Fac);
+
+								if( vrtxFnd <= 0 )
+								{
+									UG_THROW("vertex not found kreuzung!" << std::endl);
+																	}
+								else if( vrtxFnd > 1 )
+								{
+									UG_THROW("vertex zu oft gefunden kreuzung " << vrtxFnd << std::endl );
+								}
+								else if ( vrtxFnd == 1 )
+								{
+								}
+								else
+								{
+									UG_THROW("vertex finden komisch kreuzung " << std::endl);
+								}
+
+							}
 						}
-
-						Face *  faceBegin = vFISBegin.getFace();
-						Face *  faceEnd = vFISEnd.getFace();
-
-
-						// TODO FIXME hier die Segmentinformation übergeben, da die Faces bekannt sind, die dran hängen!!!!!
-//						expandSingleFractureAtGivenSide( normalFracTwo, normalFracTwo,
-//														 edgeFracOne, edgeFracTwo,
-//														 faceBegin, faceEnd,
-//														 fracInfosBySubset,
-//														 posOldVrt,
-//														 aaPos,
-//														 grid, sh,
-//														 assoFaces,
-//														 nextFracVrt,
-//														 aaVrtVecFace,
-//														 dbg_flachen_passiert,
-//														 *iterV,
-//														 crossVrtInf,
-//														 ( numFracsCrossAtVrt == 3 )
-//														);
-						expandSingleFractureAtGivenSide( normalFracOne, normalFracTwo,
-														 edgeFracOne, edgeFracTwo,
-														 faceBegin, faceEnd,
-														 fracInfosBySubset,
-														 posOldVrt,
-														 aaPos,
-														 grid, sh,
-														 segPart,
-														 nextFracVrt,
-														 aaVrtVecFace,
-														 dbg_flachen_passiert,
-														 *iterV,
-														 crossVrtInf,
-														 ( numFracsCrossAtVrt == 3 )
-														);
-
-
-
 					}
-					else
+					else // angle dependent, new method
 					{
-
-						// create normal vectors into direction of relevant edges
-
-						vector3 alongEdgeOne;
-						vector3 alongEdgeTwo;
-
-						Vertex * vrtEdgeOneBegin = nullptr;
-						Vertex * vrtEdgeTwoBegin = nullptr;
-						Vertex * vrtEdgeOneEnd = nullptr;
-						Vertex * vrtEdgeTwoEnd = nullptr;
-
-
-						for( size_t i = 0; i < 2; ++i )
+						if( subsIndFracOne == subsIndFracTwo )
 						{
-							Vertex * vrtFromEdgeOne = edgeFracOne->vertex(i);
-							Vertex * vrtFromEdgeTwo = edgeFracTwo->vertex(i);
-
-							if( vrtFromEdgeOne == *iterV )
+	//						if( numFracsCrossAtVrt != 3 )
+							if( numFracsCrossAtVrt != 2 && numFracsCrossAtVrt != 3 )
 							{
-								vrtEdgeOneBegin = vrtFromEdgeOne;
+	//							UG_THROW("Fracture Segment an beiden Seiten gleiche sudo, aber keine T Kreuzung?" << std::endl);
+								UG_THROW("Fracture Segment an beiden Seiten gleiche sudo, aber keine durchgehende Kluft?" << std::endl);
 							}
-							else
-							{
-								vrtEdgeOneEnd = vrtFromEdgeOne;
-							}
-
-							if( vrtFromEdgeTwo == *iterV )
-							{
-								vrtEdgeTwoBegin = vrtFromEdgeTwo;
-							}
-							else
-							{
-								vrtEdgeTwoEnd = vrtFromEdgeTwo;
-							}
-
 						}
 
-						if( vrtEdgeOneBegin == NULL || vrtEdgeTwoBegin == NULL || vrtEdgeOneEnd == NULL || vrtEdgeTwoEnd == NULL )
+						if( subsIndFracOne != subsIndFracTwo && numFracsCrossAtVrt == 2 )
 						{
-							UG_THROW("lauter Nullen vertizes" << std::endl);
+							UG_THROW("subsets passen nicht Vereinheitlichung" << std::endl );
 						}
 
-						vector3 fracVrtPos = aaPos[*iterV];
+						vector3 moveVrt;
 
-						vector3 fracEdgOneEndPos = aaPos[ vrtEdgeOneEnd ];
-						vector3 fracEdgTwoEndPos = aaPos[ vrtEdgeTwoEnd ];
+						number pi = 3.1415926535897932385;
 
-						vector3 directionEdgOne;
-						VecSubtract(directionEdgOne, fracEdgOneEndPos, fracVrtPos);
-
-						vector3 directionEdgTwo;
-						VecSubtract(directionEdgTwo, fracEdgTwoEndPos, fracVrtPos);
-
-						vector3 nrmdVecEdgOne;
-						VecNormalize(nrmdVecEdgOne, directionEdgOne);
-
-						vector3 nrmdVecEdgTwo;
-						VecNormalize(nrmdVecEdgTwo, directionEdgTwo);
-
-						number cosBetweenEdges = VecDot(nrmdVecEdgOne,nrmdVecEdgTwo);
-
-						// TODO FIXME wenn Winkel zu klein, dann die Methode verwenden der Mittelung der beiden Normalen!!!!
-
-						number angleEdges = std::acos( cosBetweenEdges );
-						number angleNormls = std::acos( cosBetweenNormals );
-
-						totAnglsEdg += angleEdges;
-						totAnglsNrm += angleNormls;
-
-						UG_LOG("cosinus Edges Normals " << cosBetweenEdges << "  " << cosBetweenNormals << std::endl);
-						UG_LOG("angles edges normals " << angleEdges << "  " << angleNormls << std::endl);
-
-						// prject normal 1 onto edge 2 and normal 2 on edge 1, scale with width one half resp with width two half
-
-
-						number cosBetweenNrmFraOneEdgTwo = VecDot(normalFracOne,nrmdVecEdgTwo);
-						number cosBetweenNrmFraTwoEdgOne = VecDot(normalFracTwo,nrmdVecEdgOne);
-
-						vector3 projectNrmFraOneToEdgTwoDirection;
-						VecScale(projectNrmFraOneToEdgTwoDirection, nrmdVecEdgTwo, 1./cosBetweenNrmFraOneEdgTwo);
-
-						vector3 projectNrmFraTwoToEdgOneDirection;
-						VecScale(projectNrmFraTwoToEdgOneDirection, nrmdVecEdgOne, 1./cosBetweenNrmFraTwoEdgOne);
-
-	//					auto subsIndFracOne = sh.get_subset_index(edgeFracOne);
-	//					auto subsIndFracTwo = sh.get_subset_index(edgeFracTwo);
-
-						number shiftOne = fracInfosBySubset.at( subsIndFracOne ).width / 2. ;
-						number shiftTwo = fracInfosBySubset.at( subsIndFracTwo ).width / 2. ;
-
-						vector3 shiftAlongEdgeTwo;
-						VecScale(shiftAlongEdgeTwo, projectNrmFraOneToEdgTwoDirection, shiftOne);
-
-						vector3 shiftAlongEdgeOne;
-						VecScale(shiftAlongEdgeOne, projectNrmFraTwoToEdgOneDirection, shiftTwo);
-
-						vector3 shiftPart;
-						VecAdd(shiftPart, fracVrtPos, shiftAlongEdgeTwo);
+						number cosinusLim = std::cos( pi/8. );
 
 						vector3 posNewVrt;
-						VecAdd( posNewVrt, shiftPart, shiftAlongEdgeOne);
 
-						UG_LOG("neuer Vertex Kreuzung " << posNewVrt << std::endl );
+						if( cosBetweenNormals > cosinusLim )
+						{
+							// dieselben Methoden wie im Fall von einer durchgehenden Kluft an einem Vertex, dort kopieren
+							// bzw Funktion schreiben, die beides macht
+
+							// hier wird der Fall abgezweigt, dass wir auf der durchgehenden Seite einer Kluft sind
+							// wenn wir eine T-Kreuzung haben
+
+							std::vector<Vertex *> nextFracVrt;
+
+							IndexType foundThisVrtOne = 0;
+
+							for( size_t i = 0; i < 2; ++i )
+							{
+								Vertex * vrtEdgEnd = edgeFracOne->vertex(i);
+
+								if( vrtEdgEnd == *iterV )
+								{
+									foundThisVrtOne++;
+								}
+								else
+								{
+									nextFracVrt.push_back( vrtEdgEnd );
+								}
+
+							}
+
+							if( foundThisVrtOne != 1 )
+							{
+								UG_THROW("zu viel zu wenig vertizex one " << std::endl);
+							}
+
+
+							IndexType foundThisVrtTwo = 0;
+
+							for( size_t i = 0; i < 2; ++i )
+							{
+								Vertex * vrtEdgEnd = edgeFracTwo->vertex(i);
+
+								if( vrtEdgEnd == *iterV )
+								{
+									foundThisVrtTwo++;
+								}
+								else
+								{
+									nextFracVrt.push_back( vrtEdgEnd );
+								}
+
+							}
+
+							if( foundThisVrtTwo != 1 )
+							{
+								UG_THROW("zu viel zu wenig vertizex two " << std::endl);
+							}
+
+							Face *  faceBegin = vFISBegin.getFace();
+							Face *  faceEnd = vFISEnd.getFace();
+
+
+							vector3 normSum;
+
+							VecAdd( normSum, normalFracOne, normalFracTwo );
+
+							vector3 normSumNormed;
+
+							VecNormalize(normSumNormed, normSum);
+
+							UG_LOG("averaged normal " << normSumNormed << std::endl);
+
+							std::vector<Edge * > attEdg;
+							std::vector<Face * > attFac;
+
+							attEdg.push_back( edgeFracOne );
+							attEdg.push_back( edgeFracTwo );
+
+							attFac.push_back( faceBegin );
+							attFac.push_back( faceEnd );
+
+							// jetzt neuen Vertex erzeugen in Richtung der Normalen
+							// sonst ist das attachment Schwachsinn!
+
+							number widthOne = fracInfosBySubset.at(subsIndFracOne).width;
+							number widthTwo = fracInfosBySubset.at(subsIndFracTwo).width;
+
+							number width = ( widthOne + widthTwo ) /2.;
+
+							// FALSCH
+							// der Faktor ist Käse und muss noch aus den Eingaben übernommen werden
+							VecScale(moveVrt, normSumNormed, width/2. );
+
+//							vector3 posNewVrt;
+
+							VecAdd(posNewVrt, posOldVrt, moveVrt );
+
+							UG_LOG("neuer Vertex " << posNewVrt << std::endl );
+
+							// TODO FIXME hier ist das PROBLEM, SEGFAULT durch create regular vertex
+
+						}
+						else
+						{
+							// create normal vectors into direction of relevant edges
+
+							vector3 alongEdgeOne;
+							vector3 alongEdgeTwo;
+
+							Vertex * vrtEdgeOneBegin = nullptr;
+							Vertex * vrtEdgeTwoBegin = nullptr;
+							Vertex * vrtEdgeOneEnd = nullptr;
+							Vertex * vrtEdgeTwoEnd = nullptr;
+
+
+							for( size_t i = 0; i < 2; ++i )
+							{
+								Vertex * vrtFromEdgeOne = edgeFracOne->vertex(i);
+								Vertex * vrtFromEdgeTwo = edgeFracTwo->vertex(i);
+
+								if( vrtFromEdgeOne == *iterV )
+								{
+									vrtEdgeOneBegin = vrtFromEdgeOne;
+								}
+								else
+								{
+									vrtEdgeOneEnd = vrtFromEdgeOne;
+								}
+
+								if( vrtFromEdgeTwo == *iterV )
+								{
+									vrtEdgeTwoBegin = vrtFromEdgeTwo;
+								}
+								else
+								{
+									vrtEdgeTwoEnd = vrtFromEdgeTwo;
+								}
+
+							}
+
+							if( vrtEdgeOneBegin == NULL || vrtEdgeTwoBegin == NULL || vrtEdgeOneEnd == NULL || vrtEdgeTwoEnd == NULL )
+							{
+								UG_THROW("lauter Nullen vertizes" << std::endl);
+							}
+
+							vector3 fracVrtPos = aaPos[*iterV];
+
+							vector3 fracEdgOneEndPos = aaPos[ vrtEdgeOneEnd ];
+							vector3 fracEdgTwoEndPos = aaPos[ vrtEdgeTwoEnd ];
+
+							vector3 directionEdgOne;
+							VecSubtract(directionEdgOne, fracEdgOneEndPos, fracVrtPos);
+
+							vector3 directionEdgTwo;
+							VecSubtract(directionEdgTwo, fracEdgTwoEndPos, fracVrtPos);
+
+							vector3 nrmdVecEdgOne;
+							VecNormalize(nrmdVecEdgOne, directionEdgOne);
+
+							vector3 nrmdVecEdgTwo;
+							VecNormalize(nrmdVecEdgTwo, directionEdgTwo);
+
+							number cosBetweenEdges = VecDot(nrmdVecEdgOne,nrmdVecEdgTwo);
+
+							// TODO FIXME wenn Winkel zu klein, dann die Methode verwenden der Mittelung der beiden Normalen!!!!
+
+							number angleEdges = std::acos( cosBetweenEdges );
+							number angleNormls = std::acos( cosBetweenNormals );
+
+							totAnglsEdg += angleEdges;
+							totAnglsNrm += angleNormls;
+
+							UG_LOG("cosinus Edges Normals " << cosBetweenEdges << "  " << cosBetweenNormals << std::endl);
+							UG_LOG("angles edges normals " << angleEdges << "  " << angleNormls << std::endl);
+
+							// prject normal 1 onto edge 2 and normal 2 on edge 1, scale with width one half resp with width two half
+
+
+							number cosBetweenNrmFraOneEdgTwo = VecDot(normalFracOne,nrmdVecEdgTwo);
+							number cosBetweenNrmFraTwoEdgOne = VecDot(normalFracTwo,nrmdVecEdgOne);
+
+							vector3 projectNrmFraOneToEdgTwoDirection;
+							VecScale(projectNrmFraOneToEdgTwoDirection, nrmdVecEdgTwo, 1./cosBetweenNrmFraOneEdgTwo);
+
+							vector3 projectNrmFraTwoToEdgOneDirection;
+							VecScale(projectNrmFraTwoToEdgOneDirection, nrmdVecEdgOne, 1./cosBetweenNrmFraTwoEdgOne);
+
+		//					auto subsIndFracOne = sh.get_subset_index(edgeFracOne);
+		//					auto subsIndFracTwo = sh.get_subset_index(edgeFracTwo);
+
+							number shiftOne = fracInfosBySubset.at( subsIndFracOne ).width / 2. ;
+							number shiftTwo = fracInfosBySubset.at( subsIndFracTwo ).width / 2. ;
+
+							vector3 shiftAlongEdgeTwo;
+							VecScale(shiftAlongEdgeTwo, projectNrmFraOneToEdgTwoDirection, shiftOne);
+
+							vector3 shiftAlongEdgeOne;
+							VecScale(shiftAlongEdgeOne, projectNrmFraTwoToEdgOneDirection, shiftTwo);
+
+							vector3 shiftPart;
+							VecAdd(shiftPart, fracVrtPos, shiftAlongEdgeTwo);
+
+//							vector3 posNewVrt;
+							VecAdd( posNewVrt, shiftPart, shiftAlongEdgeOne);
+
+							UG_LOG("neuer Vertex Kreuzung " << posNewVrt << std::endl );
+						}
 
 						Vertex * newShiftVrtx = *grid.create<RegularVertex>();
 						aaPos[newShiftVrtx] = posNewVrt;
 
-						//					sh.assign_subset(newShiftVrtx,  newSubsToAdd );
 						sh.assign_subset(newShiftVrtx, subsIndFracOne );
-						// could also be two, but have to select one, no Kompromiss possible......
 
-						crossVrtInf.addShiftVrtx(newShiftVrtx);
 
-//						UG_LOG("ADDED SHIFT VECTOR " << aaPos[newShiftVrtx] << std::endl);
+						if( numFracsCrossAtVrt > 2 )
+						{
+							bool isAtFreeTEnd = false;
 
-						// TODO FIXME eigene Funktion, da bei 2 und 3 Klüften exakt dieselbe Routine, mit copy und paste übernommen worden
+							if( numFracsCrossAtVrt == 3 && subsIndFracOne == subsIndFracTwo )
+								isAtFreeTEnd = true;
+
+							crossVrtInf.addShiftVrtx(newShiftVrtx, isAtFreeTEnd );
+						}
 
 						for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
 						{
@@ -5191,8 +5568,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 	//						sh.assign_subset(fa,newSubsToAdd);
 
-
-							// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
+							// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu SR! nicht später falsche verwenden!
 							vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ fac ];
 
 							IndexType vrtxFnd = 0;
@@ -5206,14 +5582,10 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 									newVrts4Fac[ indVrt ] = newShiftVrtx;
 									vrtxFnd++;
 
-//									crossVrtInf.addShiftVrtx(newShiftVrtx);
-//
 //									UG_LOG("ADDED SHIFT VECTOR " << aaPos[newShiftVrtx] << std::endl);
 
 								}
 							}
-
-//							crossVrtInf.setShiftVrtx(newVrts4Fac);
 
 							if( vrtxFnd <= 0 )
 							{
@@ -5232,7 +5604,9 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 							}
 
 						}
+
 					}
+
 				}
 
 				UG_LOG("sum angles edges normals " << totAnglsEdg << "  " << totAnglsNrm << std::endl);
