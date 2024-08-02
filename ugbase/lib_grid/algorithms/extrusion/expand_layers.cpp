@@ -2339,12 +2339,12 @@ bool determineOrderOfFaces( //CrossVertInf & crossVrtInf,
  							VecFace const & assoFaces,  VecVertexOfFaceInfo & orderedFaces,
 							SegmentsFractExtrus & segments,
 							// single components always from one fracture edge to the next one
-							VecVertexOfFaceInfo & segmentPart,
+							//VecVertexOfFaceInfo & segmentPart,
 							// note: we do not attach this info to the vertex, as we only need it local; in principle, in case of further need, it would
 							// be usful to establish some sort of attachment,
 							//VertFracTrip & startVertFracTrip,
 							IndexType startIndex,
-							std::vector<Edge*> & allAssoEdges,
+							std::vector<Edge*> const & allAssoEdges,
 							SubsetHandler & sh,
 							Grid::EdgeAttachmentAccessor<ABool> const & aaMarkEdgeB,
 							std::vector<Edge* > const & adjBndEdgs = std::vector<Edge* >(), // to allow for boundary constrained regions
@@ -2438,6 +2438,8 @@ bool determineOrderOfFaces( //CrossVertInf & crossVrtInf,
 	Face* nextFace = NULL;
 
 	UG_LOG("Gesamtanzahl faces um Knoten vor while " <<  aF.size() << std::endl );
+
+	VecVertexOfFaceInfo segmentPart;
 
 	while( aF.size() != 0 )
 	{
@@ -2670,6 +2672,14 @@ bool determineOrderOfFaces( //CrossVertInf & crossVrtInf,
 			}
 			else
 			{
+
+				if( ! isNormalNoBndCase )
+				{
+					segments.push_back( segmentPart );
+
+					segmentPart.clear();
+				}
+
 				break; // while loop zu Ende, raus aus dem while loop, den Rest nicht mehr machen, würde schief gehen zwingendermassen
 			}
 
@@ -2718,7 +2728,8 @@ bool determineOrderOfFaces( //CrossVertInf & crossVrtInf,
 	if( aF.size() != 0 )
 		UG_THROW("not all faces found " << std::endl);
 
-	if( startEdg != originalStartEdge )
+//	if( startEdg != originalStartEdge )
+	if( startEdg != targetedEndEdge )
 	{
 		UG_THROW("wir sind nicht am Anfang wieder angekommen" << std::endl);
 	}
@@ -3472,7 +3483,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 		if( ! vrtxIsBndVrt )
 		{
 
-#if 1
+#if 0
 			CrossVertInf crossVrtInf( *iterV, numFracsCrossAtVrt );
 
 			//				using VecVertexOfFaceInfo = std::vector<VertexOfFaceInfo>;
@@ -3511,6 +3522,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			}
 			else if( numFracsCrossAtVrt == 1 )
 			{
+
+				// do nothing
 
 //				if( numbAttTripl != 0 )
 //				{
@@ -4601,6 +4614,24 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //			else // two fractures completely crossing, numFracsCrossAtVrt >= 3, i.e. T crossing and two fractures completely crossing
 			else // two fractures completely crossing, numFracsCrossAtVrt >= 2, i.e. durchgehend, T crossing and two fractures completely crossing
 			{
+
+
+				CrossVertInf crossVrtInf( *iterV, numFracsCrossAtVrt );
+				VecVertexOfFaceInfo orderedFaces;
+				SegmentsFractExtrus segments;
+//				VecVertexOfFaceInfo segmentPart;
+
+				// note: we do not attach this info to the vertex, as we only need it local; in principle, in case of further need, it would
+				// be usful to establish some sort of attachment
+
+				IndexType startIndex = 0;
+
+				determineOrderOfFaces(
+						vecVertFracTrip, assoFaces,  orderedFaces,
+						segments, //segmentPart,
+						startIndex, allAssoEdges,
+						sh, aaMarkEdgeB
+				);
 
 //				CrossingVertexInfo<Vertex*, IndexType> crossVrtInf( *iterV, numFracsCrossAtVrt );
 
@@ -5832,6 +5863,10 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 					UG_THROW("Anzahl der angehaengten Triples kann nicht stimmen, Vertex einer Kluft ohne Schnittpunkte  am Rand " << std::endl);
 				}
 
+				VecVertexOfFaceInfo orderedFaces;
+				SegmentsFractExtrus segments;
+				//VecVertexOfFaceInfo segmentPart;
+
 				// Zuordnung der Edges und Faces, die auf der gleichen Seite der fracture sind
 
 				// und gleich auch Erzeugung der neuen Knoten, die dann
@@ -5859,6 +5894,54 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 						adjBndEdgs.push_back( iBVE );
 					}
 				}
+
+				if( adjBndEdgs.size() != 2  )
+					UG_THROW("how many boundary edges????" << std::endl);
+
+				IndexType startInd = -1; // to avoid errornous use
+
+				Face * attFaceOf1stBndEdg = nullptr; // TODO FIXME bestimmen sofort!!!
+
+				Edge * begOrdEdg = adjBndEdgs[0];
+
+				IndexType fndBndFac = 0;
+
+				for( std::vector<Face* >::iterator itFa = grid.associated_faces_begin(begOrdEdg);
+						itFa < grid.associated_faces_end(begOrdEdg);
+						itFa++ )
+				{
+					attFaceOf1stBndEdg = *itFa;
+					fndBndFac++;
+				}
+
+				if( fndBndFac != 1 || attFaceOf1stBndEdg == nullptr )
+				{
+					UG_THROW("Grenzgesicht nicht gefunden " << fndBndFac << std::endl);
+				}
+
+				determineOrderOfFaces( vecVertFracTrip, assoFaces, orderedFaces,
+										segments,  //segmentPart,
+										startInd,
+										allAssoEdges,
+										sh,
+										aaMarkEdgeB,
+										adjBndEdgs,
+										attFaceOf1stBndEdg
+										);
+
+//				for( auto const & segPart : segments )
+//				{
+//					for( auto const & vi : segPart )
+//					{
+//						Face * fac = vi.getFace();
+//
+//						IndexType sudoNew = sh.num_subsets();
+//
+//						sh.assign_subset(fac, sudoNew);
+//					}
+//				}
+//
+//				return true;
 
 				// to compute the normals, compute the vector of the edge and normalize it
 				std::vector<vector3> bndEdgeDirection;
