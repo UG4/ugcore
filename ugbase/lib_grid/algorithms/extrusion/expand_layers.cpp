@@ -2334,7 +2334,8 @@ void assignFaceSubsetToClosedFace( std::vector<Face*> & faceVec, Grid & grid, Su
 //using SegmentsFractExtrus = std::vector<VecVertexOfFaceInfo>;
 
 
-bool determineOrderOfFaces( CrossVertInf & crossVrtInf, VecVertFracTrip const & vecVertFracTrip,
+bool determineOrderOfFaces( //CrossVertInf & crossVrtInf,
+							VecVertFracTrip const & vecVertFracTrip,
  							VecFace const & assoFaces,  VecVertexOfFaceInfo & orderedFaces,
 							SegmentsFractExtrus & segments,
 							// single components always from one fracture edge to the next one
@@ -2344,7 +2345,10 @@ bool determineOrderOfFaces( CrossVertInf & crossVrtInf, VecVertFracTrip const & 
 							//VertFracTrip & startVertFracTrip,
 							IndexType startIndex,
 							std::vector<Edge*> & allAssoEdges,
-							SubsetHandler & sh, Grid::EdgeAttachmentAccessor<ABool> const & aaMarkEdgeB
+							SubsetHandler & sh,
+							Grid::EdgeAttachmentAccessor<ABool> const & aaMarkEdgeB,
+							std::vector<Edge* > const & adjBndEdgs = std::vector<Edge* >(), // to allow for boundary constrained regions
+							Face * const & attFaceOf1stBndEdg = nullptr
 						)
 {
 	IndexType countedCrossingFracEdgs = 0;
@@ -2370,22 +2374,57 @@ bool determineOrderOfFaces( CrossVertInf & crossVrtInf, VecVertFracTrip const & 
 	if( vVFT.size() == 0 )
 		UG_THROW("vertex frac triple zu klein an Kreuzung " << std::endl);
 
+	IndexType numbIncorpBnds = adjBndEdgs.size();
 
-		// we start with the first fracture face edge stuff, copy it,  and delete this immidiately
-	VertFracTrip startVertFracTrip = vVFT[startIndex];
+	if( numbIncorpBnds != 0 && numbIncorpBnds != 2 )
+		UG_THROW("komische Grenzstruktur" << numbIncorpBnds << std::endl);
 
-	vVFT.erase( vVFT.begin() + startIndex );
-
+	bool isNormalNoBndCase = ( numbIncorpBnds != 2 );
 
 	bool atFirstTriple = true;
 
-	Face* fracFac = startVertFracTrip.getFace();
-	Edge* fracEdg = startVertFracTrip.getEdge();
-	vector3 fracNorm = startVertFracTrip.getNormal();
+	vector3 nuVe(0,0,0);
 
-	Edge* originalStartEdge = startVertFracTrip.getEdge();
+	Face* fracFac = nullptr;
+	Edge* fracEdg = nullptr;
+	vector3 fracNorm = nuVe;
 
-	if( fracEdg != 0 )
+	Edge * originalStartEdge = nullptr;
+	Edge * targetedEndEdge = nullptr;
+
+	if( isNormalNoBndCase )
+	{
+			// we start with the first fracture face edge stuff, copy it,  and delete this immidiately
+		VertFracTrip startVertFracTrip = vVFT[startIndex];
+
+		vVFT.erase( vVFT.begin() + startIndex );
+
+		atFirstTriple = true;
+
+		fracFac = startVertFracTrip.getFace();
+		fracEdg = startVertFracTrip.getEdge();
+		fracNorm = startVertFracTrip.getNormal();
+
+		originalStartEdge = startVertFracTrip.getEdge();
+		targetedEndEdge = originalStartEdge;
+	}
+	else // boundary edge start
+	{
+		atFirstTriple = false;
+
+		// misleading names fracFac and fracEdg, as on boundary edge no fracture assumed, but to keep code overviewable
+		fracFac = attFaceOf1stBndEdg;
+		fracEdg = adjBndEdgs[0];
+//		fracNorm = startVertFracTrip.getNormal(); - assumed to be nullvector
+
+		originalStartEdge = adjBndEdgs[0];
+		targetedEndEdge = adjBndEdgs[1];
+
+
+	}
+
+
+	if( fracEdg != nullptr )
 	{
 		countedCrossingFracEdgs++;
 	}
@@ -2411,7 +2450,7 @@ bool determineOrderOfFaces( CrossVertInf & crossVrtInf, VecVertFracTrip const & 
 
 
 		IndexType fndCommEdg = 0;
-		vector3 nuVe(0,0,0);
+//		vector3 nuVe(0,0,0);
 
 		Edge* nextEdge = NULL;
 
@@ -2550,14 +2589,14 @@ bool determineOrderOfFaces( CrossVertInf & crossVrtInf, VecVertFracTrip const & 
 		}
 
 
-		bool sndEdgIsFracEdgeAlso = aaMarkEdgeB[nextEdge];
+		bool sndEdgIsFracEdge = aaMarkEdgeB[nextEdge];
 
 		bool tripFound = false;
 
-		if( sndEdgIsFracEdgeAlso )
+		if( sndEdgIsFracEdge )
 		{
 
-			if( nextEdge != originalStartEdge )
+			if( nextEdge != originalStartEdge || ! isNormalNoBndCase )
 				countedCrossingFracEdgs++;
 
 			// we need to have a look for the next triple
@@ -2593,7 +2632,7 @@ bool determineOrderOfFaces( CrossVertInf & crossVrtInf, VecVertFracTrip const & 
 
 		}
 
-		if( ! tripFound && sndEdgIsFracEdgeAlso )
+		if( ! tripFound && sndEdgIsFracEdge )
 		{
 			UG_THROW("Triple nicht gefunden trotz markierter Edge" << std::endl);
 		}
@@ -2607,7 +2646,7 @@ bool determineOrderOfFaces( CrossVertInf & crossVrtInf, VecVertFracTrip const & 
 
 		segmentPart.push_back( vOFI );
 
-		if( sndEdgIsFracEdgeAlso )
+		if( sndEdgIsFracEdge )
 		{
 			segments.push_back( segmentPart );
 
@@ -2624,7 +2663,8 @@ bool determineOrderOfFaces( CrossVertInf & crossVrtInf, VecVertFracTrip const & 
 
 		if( aF.size() == 0 )
 		{
-			if( nextEdge != originalStartEdge )
+//			if( nextEdge != originalStartEdge )
+			if( nextEdge != targetedEndEdge )
 			{
 				UG_THROW("Gesichter leer, aber keine Anfangsecke gefunden" << std::endl);
 			}
@@ -3458,10 +3498,11 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 			if( numFracsCrossAtVrt > 1 )
 			{
-				determineOrderOfFaces( crossVrtInf, vecVertFracTrip, assoFaces,  orderedFaces,
-											segments, segmentPart, startIndex, allAssoEdges,
-											sh, aaMarkEdgeB
-										);
+				determineOrderOfFaces( // crossVrtInf,
+										vecVertFracTrip, assoFaces,  orderedFaces,
+										segments, segmentPart, startIndex, allAssoEdges,
+										sh, aaMarkEdgeB
+									);
 			}
 #endif
 			if( numFracsCrossAtVrt < 1 )
@@ -6195,7 +6236,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			}
 			else // fractures are crossing at boundary even
 			{
-
+				UG_THROW("not implemented so far: multiple fractures crossing at boundary " << std::endl);
 			}
 
 
