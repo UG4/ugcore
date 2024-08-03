@@ -5680,6 +5680,10 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 							crossVrtInf.addShiftVrtx(newShiftVrtx, isAtFreeTEnd );
 						}
 
+#if 1
+						teachAssoFacesNewVrtx(  segPart, aaVrtVecFace, *iterV, newShiftVrtx );
+
+#else
 						for( VertexOfFaceInfo const & vertFracInfoSeg : segPart )
 						{
 							Face * fac = vertFracInfoSeg.getFace();
@@ -5722,7 +5726,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 							}
 
 						}
-
+#endif
 					}
 
 				}
