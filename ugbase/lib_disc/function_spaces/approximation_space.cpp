@@ -40,6 +40,7 @@
 	#include "pcl/pcl.h"
 #endif
 
+#include "common/types.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
 #include "grid_function.h"
 
@@ -542,10 +543,10 @@ void PrintDoFCount(const vector<DoFCount>& vDC,
 //	constants for selection
 	static const int ALL_FCT = DoFCount::ALL_FCT;
 	static const int ALL_SUBSET = DoFCount::ALL_SUBSET;
-	static const byte ALL_ES = DoFCount::ALL_ES;
-	static const byte ALL_SS = DoFCount::ALL_SS;
-	static const byte UNIQUE_ES = DoFCount::UNIQUE_ES;
-	static const byte UNIQUE_SS = DoFCount::UNIQUE_SS;
+	static const byte_t ALL_ES = DoFCount::ALL_ES;
+	static const byte_t ALL_SS = DoFCount::ALL_SS;
+	static const byte_t UNIQUE_ES = DoFCount::UNIQUE_ES;
+	static const byte_t UNIQUE_SS = DoFCount::UNIQUE_SS;
 
 //	Table Header
 	stringstream ssHead;
@@ -603,46 +604,46 @@ void PrintDoFCount(const vector<DoFCount>& vDC,
 		stringstream ssGL; ssGL << gl;
 
 	//	always print unique (w.r.t interface) number
-		vector<pair<string, byte> > vInIS;
-		vInIS.push_back(pair<string,byte>("unique",UNIQUE_ES));
-		vector<pair<string, byte> > vContainsIS;
+		vector<pair<string, byte_t> > vInIS;
+		vInIS.push_back(pair<string,byte_t>("unique",UNIQUE_ES));
+		vector<pair<string, byte_t> > vContainsIS;
 
 	//	if PrintInterface: add more output
 		if(bPrintInterface){
-			vContainsIS.push_back(pair<string,byte>("m (&)",ES_H_MASTER));
-			vContainsIS.push_back(pair<string,byte>("s (&)",ES_H_SLAVE));
-			vInIS.push_back(pair<string,byte>("all",ALL_ES));
+			vContainsIS.push_back(pair<string,byte_t>("m (&)",ES_H_MASTER));
+			vContainsIS.push_back(pair<string,byte_t>("s (&)",ES_H_SLAVE));
+			vInIS.push_back(pair<string,byte_t>("all",ALL_ES));
 
 		//	if grid level with ghost: add more output
 			if(gl.is_level() && gl.ghosts()){
-				vContainsIS.push_back(pair<string,byte>("vm (&)",ES_V_MASTER));
-				vContainsIS.push_back(pair<string,byte>("vs (&)",ES_V_SLAVE));
-				vInIS.push_back(pair<string,byte>("no (x)",ES_NONE));
-				vInIS.push_back(pair<string,byte>("m (x)",ES_H_MASTER));
-				vInIS.push_back(pair<string,byte>("s (x)",ES_H_SLAVE));
-				vInIS.push_back(pair<string,byte>("vm (x)",ES_V_MASTER));
-				vInIS.push_back(pair<string,byte>("vs (x)", ES_V_SLAVE));
-				vInIS.push_back(pair<string,byte>("m+vm (x)", ES_H_MASTER | ES_V_MASTER));
-				vInIS.push_back(pair<string,byte>("m+vs (x)", ES_H_MASTER | ES_V_SLAVE));
-				vInIS.push_back(pair<string,byte>("s+vm (x)", ES_H_SLAVE | ES_V_MASTER));
-				vInIS.push_back(pair<string,byte>("s+vs (x)", ES_H_SLAVE | ES_V_SLAVE));
+				vContainsIS.push_back(pair<string,byte_t>("vm (&)",ES_V_MASTER));
+				vContainsIS.push_back(pair<string,byte_t>("vs (&)",ES_V_SLAVE));
+				vInIS.push_back(pair<string,byte_t>("no (x)",ES_NONE));
+				vInIS.push_back(pair<string,byte_t>("m (x)",ES_H_MASTER));
+				vInIS.push_back(pair<string,byte_t>("s (x)",ES_H_SLAVE));
+				vInIS.push_back(pair<string,byte_t>("vm (x)",ES_V_MASTER));
+				vInIS.push_back(pair<string,byte_t>("vs (x)", ES_V_SLAVE));
+				vInIS.push_back(pair<string,byte_t>("m+vm (x)", ES_H_MASTER | ES_V_MASTER));
+				vInIS.push_back(pair<string,byte_t>("m+vs (x)", ES_H_MASTER | ES_V_SLAVE));
+				vInIS.push_back(pair<string,byte_t>("s+vm (x)", ES_H_SLAVE | ES_V_MASTER));
+				vInIS.push_back(pair<string,byte_t>("s+vs (x)", ES_H_SLAVE | ES_V_SLAVE));
 			}
 		}
 
 	//	always print unique (w.r.t. surface) number
-		vector<pair<string, byte> > vInSS;
+		vector<pair<string, byte_t> > vInSS;
 		if(gl.is_surface())
-			vInSS.push_back(pair<string,byte>("unique",UNIQUE_SS));
+			vInSS.push_back(pair<string,byte_t>("unique",UNIQUE_SS));
 		else
-			vInSS.push_back(pair<string,byte>("---",UNIQUE_SS));
+			vInSS.push_back(pair<string,byte_t>("---",UNIQUE_SS));
 
 	//	if PrintSurface and a surface level: add more output
 		if(bPrintSurface && gl.is_surface()){
-			vInSS.push_back(pair<string,byte>("all",ALL_SS));
-			vInSS.push_back(pair<string,byte>("pure",SurfaceView::MG_SURFACE_PURE));
-			vInSS.push_back(pair<string,byte>("shadowing",SurfaceView::MG_SURFACE_RIM));
-			vInSS.push_back(pair<string,byte>("shadow-cpy",SurfaceView::MG_SHADOW_RIM_COPY));
-			vInSS.push_back(pair<string,byte>("shadow-nocpy",SurfaceView::MG_SHADOW_RIM_NONCOPY));
+			vInSS.push_back(pair<string,byte_t>("all",ALL_SS));
+			vInSS.push_back(pair<string,byte_t>("pure",SurfaceView::MG_SURFACE_PURE));
+			vInSS.push_back(pair<string,byte_t>("shadowing",SurfaceView::MG_SURFACE_RIM));
+			vInSS.push_back(pair<string,byte_t>("shadow-cpy",SurfaceView::MG_SHADOW_RIM_COPY));
+			vInSS.push_back(pair<string,byte_t>("shadow-nocpy",SurfaceView::MG_SHADOW_RIM_NONCOPY));
 		}
 
 		UG_LOG(sLeft<<setw(LEVEL) << left << ssGL.str() << right);

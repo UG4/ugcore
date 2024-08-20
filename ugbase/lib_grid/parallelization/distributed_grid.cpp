@@ -33,6 +33,7 @@
 #include "distributed_grid.h"
 #include "common/serialization.h"
 #include "common/util/hash.h"
+#include "common/types.h"
 #include "pcl/pcl_interface_communicator.h"
 #include "lib_grid/algorithms/debug_util.h"
 
@@ -158,7 +159,7 @@ void DistributedGridManager::set_preliminary_ghost_states()
 	for(iterator iter = m_pGrid->begin<TElem>(); iter != m_pGrid->end<TElem>(); ++iter)
 	{
 		TElem* elem = *iter;
-		byte status = get_status(elem);
+		byte_t status = get_status(elem);
 
 		bool isGhost = true;
 
@@ -334,7 +335,7 @@ void DistributedGridManager::reset_elem_infos()
 ////////////////////////////////////////////////////////////////////////
 template <class TGeomObj, class TLayoutMap>
 void DistributedGridManager::
-update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus, bool addStatus)
+update_elem_info(TLayoutMap& layoutMap, int nodeType, byte_t newStatus, bool addStatus)
 {	
 	typedef typename TLayoutMap::template Types<TGeomObj>::Layout Layout;
 	if(layoutMap.template has_layout<TGeomObj>(nodeType)){
@@ -375,7 +376,7 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus, bool addSt
 	}
 }
 
-byte DistributedGridManager::
+byte_t DistributedGridManager::
 get_status(GridObject* go) const
 {
 	int baseType = go->base_object_id();
@@ -437,12 +438,12 @@ template <class TElem>
 void DistributedGridManager::
 add_element_to_interface(TElem* pElem, int procID)
 {
-	byte status = get_status(pElem);
+	byte_t status = get_status(pElem);
 	
 	typename GridLayoutMap::Types<TElem>::Interface::iterator iter;
 	typename GridLayoutMap::Types<TElem>::Interface* interface;
 	int intfcType = ES_NONE;
-	byte s = get_status(pElem);
+	byte_t s = get_status(pElem);
 	
 	if(status & ES_H_MASTER){
 		interface = &m_gridLayoutMap.get_layout<TElem>(INT_H_MASTER)

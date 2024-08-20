@@ -34,6 +34,7 @@
 #include "lib_disc/function_spaces/grid_function.h"
 
 #include "common/log.h"
+#include "common/types.h"
 #include "lib_disc/domain.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
 #include "lib_disc/reference_element/reference_element.h"
@@ -1593,7 +1594,7 @@ void DoFDistribution::sum_dof_count(DoFCount& cnt) const
 			continue;
 
 		// Interface State
-		byte InterfaceState = ES_NONE;
+		byte_t InterfaceState = ES_NONE;
 		if(spDstGrdMgr) InterfaceState = spDstGrdMgr->get_status(elem);
 
 		// loop all functions

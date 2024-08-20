@@ -42,6 +42,7 @@
 #include "subset_handler_multi_grid.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "common/util/flags.h"
+#include "common/types.h"
 
 namespace ug{
 
@@ -102,7 +103,7 @@ class SurfaceView
 			ALL = MG_ALL               | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE
 			// combo-states with flags as in level-view (end)
 		};
-		typedef Flag<SurfaceConstants, byte, SS_NONE>	SurfaceState;
+		typedef Flag<SurfaceConstants, byte_t, SS_NONE>	SurfaceState;
 		typedef Attachment<SurfaceState>				ASurfaceState;
 
 	public:
@@ -354,7 +355,7 @@ class SurfaceView
 	 * Make sure that all elements in lower levels have already been processed!*/
 		template <class TElem, class TSide>
 		void mark_sides_as_surface_or_shadow(TElem* elem,
-											 byte surfaceState = MG_SURFACE_PURE);
+											 byte_t surfaceState = MG_SURFACE_PURE);
 
 		template <class TElem>
 		void mark_shadowing(bool markSides = false);

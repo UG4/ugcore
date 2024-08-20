@@ -40,6 +40,7 @@
 #include "pcl_profiling.h"
 #include "pcl_datatype.h"
 #include "pcl_util.h"
+#include "common/types.h"
 
 using namespace std;
 using namespace ug;
@@ -499,7 +500,7 @@ send_data(void* pBuffer, int* pBufferSegSizes,
 	{
 		MPI_Isend(pBuffer, pBufferSegSizes[i], MPI_UNSIGNED_CHAR,
 				  pRecProcMap[i], tag, m_comm->m_mpiComm, &vSendRequests[i]);
-		pBuffer = (byte*)pBuffer + pBufferSegSizes[i];
+		pBuffer = (byte_t*)pBuffer + pBufferSegSizes[i];
 	}
 	
 //	wait until data has been received
@@ -543,7 +544,7 @@ distribute_data(void* recvBufOut, int* recvBufSegSizesOut,
 		MPI_Irecv(recvBufOut, recvBufSegSizesOut[i], MPI_UNSIGNED_CHAR,	
 				  recvFromRanks[i], tag, m_comm->m_mpiComm,
 				  &vReceiveRequests[i]);
-		recvBufOut = (byte*)recvBufOut + recvBufSegSizesOut[i];
+		recvBufOut = (byte_t*)recvBufOut + recvBufSegSizesOut[i];
 	}
 
 //	now send the data
@@ -552,7 +553,7 @@ distribute_data(void* recvBufOut, int* recvBufSegSizesOut,
 		MPI_Isend(sendBuf, sendBufSegSizes[i], MPI_UNSIGNED_CHAR,
 				  sendToRanks[i], tag, m_comm->m_mpiComm,
 				  &vSendRequests[i]);
-		sendBuf = (byte*)sendBuf + sendBufSegSizes[i];
+		sendBuf = (byte_t*)sendBuf + sendBufSegSizes[i];
 	}
 
 	//	wait until data has been received

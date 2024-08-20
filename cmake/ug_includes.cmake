@@ -427,7 +427,7 @@ endif(PCL_DEBUG_BARRIER)
 
 ########################################
 # C++11
-include(${UG_ROOT_CMAKE_PATH}/ug/cpp11.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/cpp_version.cmake)
 # OPENMP
 include(${UG_ROOT_CMAKE_PATH}/ug/openmp.cmake)
 # CUDA

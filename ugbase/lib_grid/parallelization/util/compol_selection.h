@@ -33,6 +33,7 @@
 #ifndef __H__UG__compol_selection__
 #define __H__UG__compol_selection__
 #include "pcl/pcl_communication_structs.h"
+#include "common/types.h"
 
 namespace ug
 {
@@ -58,7 +59,7 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 
 		virtual int
 		get_required_buffer_size(const Interface& interface)
-		{return interface.size() * sizeof(byte);}
+		{return interface.size() * sizeof(byte_t);}
 
 	///	writes 1 for selected and 0 for unselected interface entries
 		virtual bool
@@ -69,8 +70,8 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				byte refMark = m_sel.get_selection_status(elem);
-				buff.write((char*)&refMark, sizeof(byte));
+				byte_t refMark = m_sel.get_selection_status(elem);
+				buff.write((char*)&refMark, sizeof(byte_t));
 			}
 
 			return true;
@@ -80,12 +81,12 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 		virtual bool
 		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
-			byte val;
+			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				buff.read((char*)&val, sizeof(byte));
+				buff.read((char*)&val, sizeof(byte_t));
 				if(val && select_allowed())
 					m_sel.select(elem, val);
 				else if(!val && deselect_allowed())
@@ -119,13 +120,13 @@ class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout
 		typedef typename Layout::Interface			Interface;
 		typedef typename Interface::const_iterator	InterfaceIter;
 
-		ComPol_EnableSelectionStateBits(ISelector& sel, byte stateBits)
+		ComPol_EnableSelectionStateBits(ISelector& sel, byte_t stateBits)
 			 :	m_sel(sel), m_stateBits(stateBits)
 		{}
 
 		virtual int
 		get_required_buffer_size(const Interface& interface)
-		{return interface.size() * sizeof(byte);}
+		{return interface.size() * sizeof(byte_t);}
 
 	///	writes writes the selection states of the interface entries
 		virtual bool
@@ -136,8 +137,8 @@ class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				byte refMark = m_sel.get_selection_status(elem);
-				buff.write((char*)&refMark, sizeof(byte));
+				byte_t refMark = m_sel.get_selection_status(elem);
+				buff.write((char*)&refMark, sizeof(byte_t));
 			}
 
 			return true;
@@ -147,12 +148,12 @@ class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout
 		virtual bool
 		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
-			byte val;
+			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				buff.read((char*)&val, sizeof(byte));
+				buff.read((char*)&val, sizeof(byte_t));
 				m_sel.select(elem, m_sel.get_selection_status(elem)
 								   | (val & m_stateBits));
 			}
@@ -160,7 +161,7 @@ class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout
 		}
 
 		ISelector& m_sel;
-		byte m_stateBits;
+		byte_t m_stateBits;
 };
 
 }//	end of namespace

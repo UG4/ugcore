@@ -56,7 +56,7 @@ class ComPol_BoolMarker_AddMarks : public pcl::ICommunicationPolicy<TLayout>
 		{}
 
 		virtual int
-		get_required_buffer_size(const Interface& interface)		{return interface.size() * sizeof(byte);}
+		get_required_buffer_size(const Interface& interface)		{return interface.size() * sizeof(byte_t);}
 
 	///	writes 1 for marked and 0 for unmarked interface entries
 		virtual bool
@@ -68,8 +68,8 @@ class ComPol_BoolMarker_AddMarks : public pcl::ICommunicationPolicy<TLayout>
 			{
 				Element elem = interface.get_element(iter);
 				bool isMarked = m_rMarker.is_marked(elem);
-				byte refMark = (isMarked ? 1 : 0);
-				buff.write((char*)&refMark, sizeof(byte));
+				byte_t refMark = (isMarked ? 1 : 0);
+				buff.write((char*)&refMark, sizeof(byte_t));
 			}
 
 			return true;
@@ -79,12 +79,12 @@ class ComPol_BoolMarker_AddMarks : public pcl::ICommunicationPolicy<TLayout>
 		virtual bool
 		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
-			byte val;
+			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				buff.read((char*)&val, sizeof(byte));
+				buff.read((char*)&val, sizeof(byte_t));
 				if(val)	m_rMarker.mark(elem);
 			}
 			return true;
@@ -111,7 +111,7 @@ class ComPol_BoolMarker_RemoveMarks : public pcl::ICommunicationPolicy<TLayout>
 		{}
 
 		virtual int
-		get_required_buffer_size(const Interface& interface)		{return interface.size() * sizeof(byte);}
+		get_required_buffer_size(const Interface& interface)		{return interface.size() * sizeof(byte_t);}
 
 	///	writes 1 for marked and 0 for unmarked interface entries
 		virtual bool
@@ -123,8 +123,8 @@ class ComPol_BoolMarker_RemoveMarks : public pcl::ICommunicationPolicy<TLayout>
 			{
 				Element elem = interface.get_element(iter);
 				bool isMarked = m_rMarker.is_marked(elem);
-				byte refMark = (isMarked ? 1 : 0);
-				buff.write((char*)&refMark, sizeof(byte));
+				byte_t refMark = (isMarked ? 1 : 0);
+				buff.write((char*)&refMark, sizeof(byte_t));
 			}
 
 			return true;
@@ -134,12 +134,12 @@ class ComPol_BoolMarker_RemoveMarks : public pcl::ICommunicationPolicy<TLayout>
 		virtual bool
 		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
-			byte val;
+			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				buff.read((char*)&val, sizeof(byte));
+				buff.read((char*)&val, sizeof(byte_t));
 				if(!val)	m_rMarker.unmark(elem);
 			}
 			return true;
