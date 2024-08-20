@@ -387,16 +387,19 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	#endif()
     # for some reason -Wsign-compare is not in -Wall for Clang 
 	add_cxx_flag("-Wsign-compare")
-	add_cxx_flag(-Wno-unused-local-typedef)
-	add_cxx_flag(-Wno-unknown-warning-option)
-	add_cxx_flag(-Wno-undefined-var-template)
-	add_cxx_flag(-Wno-unneeded-internal-declaration)
+	add_cxx_flag("-Wno-unused-local-typedef")
+	add_cxx_flag("-Wno-unknown-warning-option")
+	add_cxx_flag("-Wno-undefined-var-template")
+	add_cxx_flag("-Wno-unneeded-internal-declaration")
 	#set(CMAKE_CPP_FLAGS	"${CMAKE_CPP_FLAGS} -Wno-overloaded-virtual -Wno-autological-compare" CACHE STRING "overriden flags!" FORCE)
 endif()
 
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" AND EXISTS /usr/bin/gcc)
-  message(WARNING "WARNING: C Compiler is Clang, might not work with CUDA. Try cmake -DCUDA_HOST_COMPILER=/usr/bin/gcc ..")
+	if (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 8.0)
+		message(WARNING "WARNING: C Compiler is Clang, might not work with CUDA. Try cmake -DCUDA_HOST_COMPILER=/usr/bin/gcc ..")
+	endif (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 8.0)
 endif()
+
 
 ########################################
 # DEBUG
