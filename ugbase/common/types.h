@@ -113,7 +113,7 @@ using std::size_t;
 //typedef unsigned char byte;
 typedef unsigned int uint;
 
-typedef uint8_t byte_t;
+typedef unsigned char byte_t;
 
 typedef ugtypes::uint32_t uint32;
 typedef ugtypes::uint64_t uint64;
