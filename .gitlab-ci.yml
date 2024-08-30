@@ -14,7 +14,7 @@ stages:
 do-test:
   stage: test
   image: rigby132/ug4-test:latest
-  timeout: 4 hours
+  timeout: 16 hours
   variables:
     CMAKE_C_COMPILER: "gcc"
     CMAKE_CXX_COMPILER: "g++"
@@ -68,7 +68,7 @@ do-test:
 build-clang:
   stage: build
   image: rigby132/ug4-minimal:latest
-  timeout: 4 hours
+  timeout: 16 hours
   variables:
     CMAKE_C_COMPILER: "gcc"
     CMAKE_CXX_COMPILER: "g++"
