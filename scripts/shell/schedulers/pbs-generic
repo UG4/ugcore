@@ -110,13 +110,15 @@ function UJS_Info
 			sub(/\..*$/, "", $1)
 
 			status = $10
-			if (status == "R") {
+			if (status == "R" || status == "E") {
 			status = "RUNNING"
-			} else if (status == "Q") {
+			} else if (status == "Q" || status == "H" || status == "W" || status == "T" || status == "S") {
+			status = "PENDING"
+			} else {
 			status = "PENDING"
 			}
 			print $1, $2, $3, $4, $5, $6, $7, $8, $9, status, $11
-		}'  # change status to RUNNING or PENDING
+		}'  # change every status to RUNNING or PENDING, fallback to PENDING
 	) | column -t  # format output as table
 }
 
