@@ -111,9 +111,79 @@ function FreeUserData()
    collectgarbage("collect")
 end
 
+--------------------------------------------------------------------------------
+-- Conversion of types
+--------------------------------------------------------------------------------
+
+function ToUserNumber (o, my_dim)
+	if my_dim == nil then my_dim = GetUGDim() end
+	
+	if type(o) == "number" then
+		return _G["ConstUserNumber"..my_dim.."d"](o)
+	elseif type(o) == "function" then
+		return _G["LuaUserNumber"..my_dim.."d"](o)
+	elseif type(o) == "string" then
+		return _G["LuaUserNumber"..my_dim.."d"](_G[o]) -- we assume a function as the argument
+	elseif type(o) == "userdata" then -- ToDo: Provide a better condition!
+		return o
+	end
+	return nil -- this indicates an error
+end
+
+function ToUserVector (o, my_dim)
+	if my_dim == nil then my_dim = GetUGDim() end
+	
+	if type(o) == "table" then
+		return _G["ConstUserVector"..my_dim.."d"](o)
+	elseif type(o) == "function" then
+		return _G["LuaUserVector"..my_dim.."d"](o)
+	elseif type(o) == "string" then
+		return _G["LuaUserVector"..my_dim.."d"](_G[o]) -- we assume a function as the argument
+	elseif type(o) == "userdata" then -- ToDo: Provide a better condition!
+		return o
+	end
+	return nil -- this indicates an error
+end
+
+function ToUserMatrix (o, my_dim)
+	if my_dim == nil then my_dim = GetUGDim() end
+	
+	if type(o) == "number" then
+		return _G["ConstUserMatrix"..my_dim.."d"](o)
+	elseif type(o) == "table" then
+		local i, j
+		local m = _G["ConstUserMatrix"..my_dim.."d"]()
+		for i = 0, my_dim-1 do
+			if type(o[i+1]) ~= "table" then
+				print ("Illegal specification of a matrix by a table: Specify the rows as subtables.\n")
+				return nil
+			end
+			for j = 0, my_dim-1 do
+				local val = o [i+1] [j+1]
+				if type(val) ~= "number" then
+					print ("Illegal specification of a matrix by a table at (" .. i+1 .. ", " .. j+1 ..").\n")
+					return nil
+				end
+				m:set_entry (i, j, val)
+			end
+		end
+		return m
+	elseif type(o) == "function" then
+		return LuaUserMatrix(o)
+	elseif type(o) == "string" then
+		return LuaUserMatrix(_G[o])
+	elseif type(o) == "userdata" then -- ToDo: Provide a better condition!
+		return o
+	end
+	return nil -- this indicates an error
+end
+
+--------------------------------------------------------------------------------
+---- Overloading Lua arithmetics operators for UserData
+--------------------------------------------------------------------------------
 
 
-function __ug__CheckUserDataArgType(r, l)
+local function __ug__CheckUserDataArgType(r, l)
 	local rType = ug_class_name(r)
 	local lType = ug_class_name(l)
 	local rDim = -1
@@ -175,11 +245,11 @@ function __ug__CheckUserDataArgType(r, l)
 end
 
 --------------------------------------------------------------------------------
--- Function to add/subtract UserData
+-- Function to Add/Subtract UserData
 --------------------------------------------------------------------------------
 
 --! functions user when '+/-' is called on an UserData (or a derived implementation)
-function __ug__UserNumber_sum(lScale, l, rScale, r)
+local function __ug__UserNumber_sum(lScale, l, rScale, r)
 	local rType, lType, rDim, lDim, Dim, rData, lData, Data = __ug__CheckUserDataArgType(r, l)
 
 	if l == nil or r == nil then
@@ -253,12 +323,12 @@ function __ug__UserNumber_sum(lScale, l, rScale, r)
 end
 
 --! functions used when '+' is called on an UserData (or a derived implementation)
-function __ug__UserNumber_add(l,r)
+local function __ug__UserNumber_add(l,r)
 	return __ug__UserNumber_sum(1.0, l, 1.0, r)
 end
 
 --! functions used when '-' is called on an UserData (or a derived implementation)
-function __ug__UserNumber_sub(l,r)
+local function __ug__UserNumber_sub(l,r)
 	return __ug__UserNumber_sum(1.0, l, -1.0, r)
 end
 
@@ -267,7 +337,7 @@ end
 --------------------------------------------------------------------------------
 
 --! functions user when '*' is called on an UserData (or a derived implementation)
-function __ug__UserNumber_mul(l, r)
+local function __ug__UserNumber_mul(l, r)
 	local rType, lType, rDim, lDim, Dim, rData, lData, Data = __ug__CheckUserDataArgType(r, l)
 
 	if l == nil or r == nil then
@@ -321,7 +391,7 @@ function __ug__UserNumber_mul(l, r)
 end
 
 --! functions user when '/' is called on an UserData (or a derived implementation)
-function __ug__UserNumber_div(l, r)
+local function __ug__UserNumber_div(l, r)
 	local rType, lType, rDim, lDim, Dim, rData, lData, Data = __ug__CheckUserDataArgType(r, l)
 
 	if l == nil or r == nil then
@@ -382,11 +452,11 @@ function __ug__UserNumber_div(l, r)
 end
 
 --------------------------------------------------------------------------------
--- Function to Multiply/Devide UserData
+-- Function to Raise UserData to a power
 --------------------------------------------------------------------------------
 
 --! functions user when '^' is called on an UserData (or a derived implementation)
-function __ug__UserNumber_pow(l, r)
+local function __ug__UserNumber_pow(l, r)
 	if l == nil or r == nil then
 		error("Error in '^': nil value (possibly uninitialized value?)")
 	end
@@ -430,28 +500,28 @@ function __ug__UserNumber_pow(l, r)
 end
 
 --------------------------------------------------------------------------------
--- Loop to set the __add functions for UserData
+-- Loop to set the arithmetic functions for UserData
 --------------------------------------------------------------------------------
 
-function set_user_data_overloads(name)
+local function set_user_data_overloads(name)
 	-- request metatable for the classname
 	mt = ug_get_metatable(name)
 	if mt == nil then return end
 
 	-- set __add function in metatable
-	mt.__add = _G["__ug__UserNumber_add"]
+	mt.__add = __ug__UserNumber_add
 
 	-- set __sub function in metatable
-	mt.__sub = _G["__ug__UserNumber_sub"]
+	mt.__sub = __ug__UserNumber_sub
 
 	-- set __mul function in metatable
-	mt.__mul = _G["__ug__UserNumber_mul"]
+	mt.__mul = __ug__UserNumber_mul
 
 	-- set __div function in metatable
-	mt.__div = _G["__ug__UserNumber_div"]
+	mt.__div = __ug__UserNumber_div
 
 	-- set __pow function in metatable
-	mt.__pow = _G["__ug__UserNumber_pow"]
+	mt.__pow = __ug__UserNumber_pow
 end
 
 -- loop some kinds of UserData implementation
