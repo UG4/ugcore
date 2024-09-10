@@ -77,9 +77,9 @@ build-clang:
     CMAKE_CXX_COMPILER: "g++"
     CXX_FLAGS: "-O3 -fPIC"
   before_script:
-    #- docker info
+    - docker info
     - echo "$CI_REGISTRY"
-    #- echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
   script:
     # copy ug4 without overwriting existing files (ugcore)
     - cd ..
