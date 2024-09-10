@@ -220,6 +220,12 @@ class GridReaderVTU
 							size_t refGridIndex,
 							size_t subsetHandlerIndex);
 
+		static std::string const getRegionOfInterestIdentifyer()
+		{ return m_regionOfInterest; }
+
+		static void setRegionOfInterestIdentifier( std::string const & regOfInt )
+		{ m_regionOfInterest = regOfInt; }
+
 	protected:
 		struct SubsetHandlerEntry
 		{
@@ -269,6 +275,8 @@ class GridReaderVTU
 							  rapidxml::xml_node<>* dataNode,
 							  bool clearData = true);
 
+		void trafoDblVec2Int( std::vector<double> const & dblVec, std::vector<int> & intVec );
+
 		template <class T>
 		void check_indices(std::vector<T>& inds, size_t first, size_t num, size_t max);
 
@@ -286,6 +294,11 @@ class GridReaderVTU
 
 	///	holds grids which already have been created
 		std::vector<GridEntry>		m_entries;
+
+
+
+		static std::string m_regionOfInterest; // ProMesh standard = "regions", in Braunschweig case	often "Material Id", but not always
+
 };
 
 }//	end of namespace

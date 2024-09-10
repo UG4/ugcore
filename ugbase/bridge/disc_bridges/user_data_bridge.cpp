@@ -597,7 +597,9 @@ static void Common(Registry& reg, string grp)
 
 //	UserDataInfo
 	{
-		reg.add_class_<UserDataInfo>("UserDataInfo", grp);
+		reg.add_class_<UserDataInfo>("UserDataInfo", grp)
+			.add_method("set_obj_name", &UserDataInfo::set_obj_name)
+			.add_method("obj_name", &UserDataInfo::obj_name);
 	}
 
 #ifdef UG_DIM_2
