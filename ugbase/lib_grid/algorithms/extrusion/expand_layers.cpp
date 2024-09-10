@@ -705,7 +705,6 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	return true;
 }
 
-
 /**	Selects all involved geometic objects and assigns marks to them.
  * If required, som edges may be split, so that we always operate
  * on a fully expandable fracture.

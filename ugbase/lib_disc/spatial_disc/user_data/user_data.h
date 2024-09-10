@@ -34,6 +34,8 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__USER_DATA__USER_DATA__
 
 #include <vector>
+#include <cstring>
+
 #include "common/types.h"
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/time_disc/solution_time_series.h"
@@ -77,6 +79,27 @@ class UserDataInfo {
 
 	///	number of functions this export depends on
 		size_t num_fct() const {return m_map.num_fct();}
+		
+	/// sets the name of the object (s. the field m_objName)
+		/**
+		 * Note that the object name is not unique in general. Several objects may have the same name.
+		 */
+		void set_obj_name(const char * name)
+		{
+			if (name == NULL) {m_objName = SPNULL; return;}
+			if (m_objName.valid ()) // we assume that the name is assigned once; otherwise we warn
+				UG_LOG ("Warning: Replacing existing UserData object name '" << m_objName.get() << "' with '" << name << "'.\n");
+			const size_t name_len = strnlen (name, 128);
+			SmartPtr<char> new_name (new char [name_len+1]);
+			memcpy (new_name.get(), name, name_len); (new_name.get()) [name_len] = '\0';
+			m_objName = new_name;
+		}
+	
+	/// gets the name of the object (s. the field m_objName)
+		/**
+		 * Note that the object name is not unique in general. Several objects may have the same name.
+		 */
+		const char * obj_name () {return m_objName.get ();}
 
 	protected:
 	/// functions the data depends on
@@ -84,6 +107,9 @@ class UserDataInfo {
 
 	///	Mapping for import fct
 		FunctionIndexMapping m_map;
+	
+	/// This field is used mainly for debugging: One can assign a name to the object to identify it when running
+		SmartPtr<char> m_objName; ///< this strange type underlines the debugging nature of this field: it is seldom used but should be easily accessed in a debugger 
 };
 
 ////////////////////////////////////////////////////////////////////////////////
