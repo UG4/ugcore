@@ -3,9 +3,6 @@ default:
     - docker
     - linux
 
-services:
-  - docker:dind
-
 variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ug4/ugcore
     #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
@@ -18,7 +15,7 @@ stages:
 do-test:
   stage: test
   image: rigby132/ug4-test:latest
-  timeout: 16 hours
+  timeout: 4 hours
   variables:
     CMAKE_C_COMPILER: "gcc"
     CMAKE_CXX_COMPILER: "g++"
@@ -72,14 +69,13 @@ do-test:
 build-clang:
   stage: build
   image: rigby132/ug4-minimal:latest
-  timeout: 16 hours
+  timeout: 4 hours
   variables:
-    DOCKER_HOST: "tcp://docker:2375"
     CMAKE_C_COMPILER: "gcc"
     CMAKE_CXX_COMPILER: "g++"
     CXX_FLAGS: "-O3 -fPIC"
   before_script:
-    #- docker info
+    - docker info
     - echo "$CI_REGISTRY"
     - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
   script:
