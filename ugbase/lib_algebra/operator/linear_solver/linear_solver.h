@@ -248,5 +248,74 @@ class LinearSolver
 };
 
 } // end namespace ug
+#ifdef UG_JSON
+namespace ug {
 
+    // Draft for initialization using inheritance.
+    // Schema for Jacobi (derives from Preconditioner)
+    template <typename TVector>
+    struct json_schema<LinearSolver<TVector>> {
+        static constexpr const char* value = R"(
+            {
+	  			"$schema": "http://json-schema.org/draft-07/schema#",
+				"$id": "schema:linearsolver",
+				"$ref": "schema:linearoperatorinverse"
+                "type": "object",
+				"properties": {
+					"type": {
+                        "description": "Linear Solver Type",
+                        "type": "string",
+                        "default": "linear",
+                        "enum": ["linear": {
+                                    "precond":{
+                                        "description": "preconditioner",
+                                        "$ref": "schema:preconditioner"
+                                            },
+                                    "convCheck" :{
+                                        "description": "ConvergenceCheck",
+                                        "$ref": "schema:stdconvcheck"   }
+                                    },
+                                  "cg":{
+                                        "precond":{
+                                        "description": "preconditioner",
+                                        "$ref": "schema:preconditioner"
+                                            },
+                                    "convCheck" :{
+                                        "description": "ConvergenceCheck",
+                                        "$ref": "schema:stdconvcheck"   }}] }
+				},
+				"additionalProperties": false
+			}
+		)";
+    };
+
+
+    // Defaults for Jacobi
+    template <typename TVector>
+    struct json_default<LinearSolver<TVector>>{
+        static const nlohmann::json value;
+    };
+
+    template <typename TVector>
+    const nlohmann::json json_default<LinearSolver<TVector>>::value
+            = json_predefined_defaults::solvers["linearSolver"]["linear"];
+
+
+
+    template <typename TVector>
+    struct json_assignment<LinearSolver<TVector>>
+    {
+        // TODO: Avoid manual assignment?
+        static void from_json(const nlohmann::json& j, LinearSolver<TVector>& obj)
+        {
+            typedef IPreconditionedLinearOperatorInverse<TVector> T;
+            json_assignment<T>::from_json(j, static_cast<T&>(obj)); // recursive call.
+
+        }
+    };
+
+
+}// end namespace ug
+
+#endif
 #endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__LINEAR_SOLVER__ */

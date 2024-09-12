@@ -711,7 +711,7 @@ template class VTKOutput<3>;
 	template struct json_schema<VTKOutput<2>>;
 	void from_json(const nlohmann::json& j, VTKOutput<2>& p){}
 #endif
-#ifdef UG_DIM_1
+#ifdef UG_DIM_3
 	template struct json_default<VTKOutput<3>>;
 	template struct json_schema<VTKOutput<3>>;
 	void from_json(const nlohmann::json& j, VTKOutput<3>& p){}

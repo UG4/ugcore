@@ -37,7 +37,7 @@
 #include "common/math/ugmath_types.h"
 
 namespace ug{
-
+    typedef unsigned char byte;
 #define DECLARE_ATTACHMENT_INFO_TRAITS(attachmentType, typeName)\
 		template <> struct attachment_info_traits<attachmentType> {\
 			static const char* type_name ()	{return typeName;}};

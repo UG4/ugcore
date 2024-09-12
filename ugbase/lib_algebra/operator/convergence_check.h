@@ -46,7 +46,7 @@
 #include <vector>
 #include <list>
 #include <math.h>
-
+#include "bindings/json/json_basics.hpp"
 #include "common/common.h"
 #include "common/stopwatch.h"
 #include "lib_disc/function_spaces/approximation_space.h"

@@ -42,7 +42,7 @@
 #include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
 #include "lib_grid/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.h"
 #include "lib_grid/refinement/ref_mark_adjusters/shadow_copy_adjuster.h"
-
+#include "lib_grid/parallelization/parallel_refinement/parallel_refinement.h"
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////

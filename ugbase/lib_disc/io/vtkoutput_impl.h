@@ -2,7 +2,7 @@
  * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
  * Author: Andreas Vogel
  * 
- * This file is part of UG4.
+ * This fi0*le is part of UG4.
  * 
  * UG4 is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License version 3 (as published by the
@@ -29,7 +29,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
-
+//#include "lib_grid/file_io/file_io_ugx.cpp"
 //other libraries
 #include <cstdio>
 #include <iostream>
@@ -198,7 +198,7 @@ print(const char* filename, TFunction& u, int step, number time, bool makeConsis
 		if(!u.is_def_everywhere(fct))
 			bEverywhere = false;
 	}
-
+        UG_LOG("    VTKOutput->writeToFile(): bEverywhere = " << bEverywhere << "\n")
 //	in case that all functions are defined everywhere, we write the grid as
 //	a whole. If not, we must write each subset separately and group the files
 //	later using a *.pvd file.
@@ -207,6 +207,7 @@ print(const char* filename, TFunction& u, int step, number time, bool makeConsis
 	//	write whole grid to a single file
 		try
 		{
+
 			SubsetGroup all_ss (u.domain()->subset_handler ());
 			all_ss.add_all ();
 			print_subsets(filename, u, all_ss, step, time, makeConsistent);
@@ -604,6 +605,7 @@ write_grid_solution_piece(VTKFileWriter& File,
 {
 //	counters
 	int numVert = 0, numElem = 0, numConn = 0;
+
 
 // 	Count needed sizes for vertices, elements and connections
 	try{
@@ -1710,6 +1712,7 @@ void VTKOutput<TDim>::
 write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& grid,
                          const SubsetGroup& ssGrp, const int dim, const int numVert)
 {
+    UG_LOG("write_nodal_values_piece()\n")
 	if(!m_vSymbFct.empty()){
 		for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
 				m_vSymbFct.begin(); iter != m_vSymbFct.end(); ++iter){
@@ -2141,7 +2144,7 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 //	loop all selected symbolic names
 	for(ComponentsIterator iter = m_vSymbFctElem.begin();
 			iter != m_vSymbFctElem.end(); ++iter)
-	{
+	{   UG_LOG("write_cell_value_piece iteration\n")
 	//	get symb function
 		const std::vector<std::string>& symbNames = (*iter).second;
 		const std::string& vtkName = (*iter).first;

@@ -323,6 +323,8 @@ class UG_API ISubsetHandler : public GridObserver
 		void set_subset_name(const char* name, int subsetIndex);
 
 	////////////////////////////////
+
+
 	/** if the subset at subsetIndex does not yet exist, it will be created.*/
 		void set_subset_info(int subsetIndex, const SubsetInfo& subsetInfo);
 

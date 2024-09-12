@@ -41,6 +41,7 @@
 #endif
 #include "common/util/smart_pointer.h"
 #include "lib_algebra/operator/interface/preconditioner.h"
+#include "lib_algebra/operator/preconditioner/jacobi.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_util.h"

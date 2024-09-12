@@ -71,8 +71,8 @@ bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh,
  *	This will be used as position-attachment in a call to the overloaded
  *	version of SaveGridToUGX.
  */
-bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh,
-				   const char* filename);
+bool SaveGridToUGX(Grid& grid, ConstSmartPtr<ISubsetHandler> sh,
+                   const char* filename);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Reads a grid to an ugx file. internally uses GridReaderUGX.
