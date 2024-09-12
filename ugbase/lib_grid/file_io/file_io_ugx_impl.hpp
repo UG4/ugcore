@@ -84,7 +84,7 @@ bool LoadGridFromUGX(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubse
 		}
 	}
 
-	if(ugxReader.num_projection_handlers(0) > 0){
+	if((num_ph = ugxReader.num_projection_handlers(0)) != 0){
 		ugxReader.projection_handler(*ph, 0, 0);
 		size_t shIndex = ugxReader.get_projection_handler_subset_handler_index(0, 0);
 		std::string shName2;

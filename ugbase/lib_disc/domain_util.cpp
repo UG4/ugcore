@@ -59,23 +59,13 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 	//domain.create_additional_subset_handler("markSH");
 	vector<string> additionalSHNames = domain.additional_subset_handler_names();
 	SPProjectionHandler ph = make_sp(new ProjectionHandler(domain.geometry3d(), domain.subset_handler()));
+	vector<SmartPtr<ISubsetHandler> > ash(additionalSHNames.size());
 
-	if(additionalSHNames.size()>0){
-		SmartPtr<ISubsetHandler> sh;
-		vector<SmartPtr<ISubsetHandler>> ash(additionalSHNames.size());
-		for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
-			SmartPtr<ISubsetHandler> sh = domain.additional_subset_handler(additionalSHNames[i_name]);
-			ash[i_name]= sh;
-		}
-
-		if(!LoadGridFromFile(*domain.grid(), ph, num_ph, *domain.subset_handler(), additionalSHNames, ash,
-								filename, domain.position_attachment(), procId))
-		{
-			UG_THROW("LoadDomain: Could not load file: "<<filename);
-		}
-	}
-	else if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
-								filename, domain.position_attachment(), procId))
+	for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name)
+		ash[i_name] = domain.additional_subset_handler(additionalSHNames[i_name]);
+			
+	if(!LoadGridFromFile(*domain.grid(), ph, num_ph, *domain.subset_handler(), additionalSHNames, ash,
+							filename, domain.position_attachment(), procId))
 	{
 		UG_THROW("LoadDomain: Could not load file: "<<filename);
 	}
