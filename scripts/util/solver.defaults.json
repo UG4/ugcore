@@ -1,4 +1,4 @@
-R"====({
+{
   "approxSpace":null,
   "discretization":null,
   
@@ -65,12 +65,12 @@ R"====({
       "ordering":"NativeCuthillMcKee"
     },
     "gs":{
-      "consistentInterfaces":false,
-      "overlap":false
+      "consistentInterfaces":false
+      "overlap":false,
     },
     "sgs":{
-      "consistentInterfaces":false,
-      "overlap":false
+      "consistentInterfaces":false
+      "overlap":false,
     },
    "jac":{
       "damping":0.66
@@ -87,7 +87,7 @@ R"====({
       "enableP1LagrangeOptimization":true,
       "debug":false
     }
-  },
+  }
   "convCheck":{
     "standard":{
       "iterations":100,
@@ -104,7 +104,7 @@ R"====({
       "checkAll":false,
       "acceptBest":true
     }
-  },
+  }
   "mgStats":{
     "standard":{
       "filenamePrefix":"mgstats",
@@ -122,4 +122,4 @@ R"====({
       "dt":0.1
     }
   }
-})===="
+}
