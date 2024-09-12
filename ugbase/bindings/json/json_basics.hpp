@@ -35,7 +35,7 @@
 
 #include <type_traits>
 #include <string>
-
+#include "../externals/JSONForUG4/json-cxx/include/nlohmann/json.hpp"
 #include <nlohmann/json.hpp>
 
 #include "common/util/smart_pointer.h"
