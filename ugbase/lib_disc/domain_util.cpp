@@ -70,10 +70,8 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 		UG_THROW("LoadDomain: Could not load file: "<<filename);
 	}
 	
-	if(num_ph > 0)
-	{
+	if(num_ph != 0)
 		domain.set_refinement_projector(ph);
-	}
 }
 
 
