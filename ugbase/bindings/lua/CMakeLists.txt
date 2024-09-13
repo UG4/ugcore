@@ -64,6 +64,9 @@ set(srcLua	externals/lua/lapi.c
 			externals/lua/liolib.c
 			externals/lua/llex.c
 			externals/lua/lmathlib.c
+			externals/lua/lua.c
+			#externals/lua/luac.c
+			externals/lua/lutf8lib.c
 			externals/lua/lmem.c
 			externals/lua/loadlib.c
 			externals/lua/lobject.c
@@ -73,6 +76,8 @@ set(srcLua	externals/lua/lapi.c
 			externals/lua/lstate.c
 			externals/lua/lstring.c
 			externals/lua/lstrlib.c
+			externals/lua/lcorolib.c
+			externals/lua/lctype.c
 			externals/lua/ltable.c
 			externals/lua/ltablib.c
 			externals/lua/ltm.c
@@ -84,6 +89,11 @@ set(headersLua	externals/lua/lapi.h
 				externals/lua/lauxlib.h
 				externals/lua/lcode.h
 				externals/lua/ldebug.h
+				externals/lua/lctype.h
+				externals/lua/ljumptab.h
+				externals/lua/lopnames.h
+				externals/lua/lprefix.h
+				externals/lua/lua.hpp
 				externals/lua/ldo.h
 				externals/lua/lfunc.h
 				externals/lua/lgc.h

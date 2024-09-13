@@ -35,11 +35,12 @@
 
 #include <vector>
 #include <string>
-
+#include "common/types.h"
 extern "C" {
 #include "externals/lua/lua.h"
 #include "externals/lua/lauxlib.h"
 #include "externals/lua/lualib.h"
+#include "externals/lua/lua.hpp"
 }
 
 
@@ -62,7 +63,7 @@ enum UserDataWrapperTypes{
 };
 
 struct UserDataWrapper{
-	byte type;
+	byte_t type;
 
 	bool is_const()		{return (type & IS_CONST) == IS_CONST;}
 	bool is_raw_ptr()	{return (type & RAW_POINTER) == RAW_POINTER;}

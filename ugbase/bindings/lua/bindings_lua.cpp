@@ -593,7 +593,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 						UserDataWrapper* self, const ClassNameNode* classNameNode,
 						bool errorOutput)
 {
-	ParameterStack paramsIn;;
+	ParameterStack paramsIn;
 	ParameterStack paramsOut;
 
 	//int badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
