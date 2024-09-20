@@ -2145,8 +2145,13 @@ void teachAssoFacesNewVrtx( VecVertexOfFaceInfo const & segPart, Grid::FaceAttac
 #endif
 
 bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> const & fracInfos,
-						bool expandInnerFracBnds, bool expandOuterFracBnds)
+//						bool expandInnerFracBnds, bool expandOuterFracBnds
+						bool useTrianglesInDiamonds, bool establishDiamonds
+)
 {
+
+	constexpr bool expandInnerFracBnds = false;
+	constexpr bool expandOuterFracBnds = true;
 
 //	for(EdgeIterator iter = sh.begin<Edge>(1); iter != sh.end<Edge>(1); ++iter)
 //	{
@@ -6100,6 +6105,10 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //	sel.clear();
 
 //	return true;
+
+	// only Keile, basic system
+	if( ! establishDiamonds )
+		return true;
 
 	//  alles detachen, was noch attached ist, da ist einiges hinzu gekommen!
 
