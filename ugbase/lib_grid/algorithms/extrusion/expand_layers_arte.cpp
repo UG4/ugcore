@@ -1183,7 +1183,8 @@ bool SortFaces4DiamondCreation(	SubsetHandler& sh, std::vector<Face *> & assoFac
 void computeDiamondPointXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, ExpandCrossFracInfo & expCFIAfterFracEdg,
 									Vertex * const & crossPt, Grid::VertexAttachmentAccessor<APosition> & aaPos,
 									SubsetHandler & sh, Grid & grid, IndexType const & diamantSubsNum,
-									vector3 & distVecNewVrt2SCrossPt
+									vector3 & distVecNewVrt2SCrossPt,
+									bool useTrianglesInDiamonds = false
 //									vector3 & distVecNewVrt2ShiVeBefore = vector3(), vector3 & distVecNewVrt2ShiVeAfter = vector3(),
 //									bool computeDistancesNewVrtsToOldShiVe = false
 )
@@ -1265,11 +1266,35 @@ void computeDiamondPointXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, E
 
 	vector3 halfSumShift;
 
-	VecScale(halfSumShift,sumShift,0.5);
+	number scaFa = useTrianglesInDiamonds ? 1 : 0.5;
+
+//	VecScale(halfSumShift, sumShift, 0.5);
+	VecScale( halfSumShift, sumShift, scaFa );
 
 	vector3 posNewVrtOnEdg;
 
 	VecAdd( posNewVrtOnEdg, posCrossPt, halfSumShift );
+
+	// check if not shifting into the wrong direction TODO FIXME
+	// if length between posFracEnd and posNewVrtOnEdg bigger than length between posFracEnd and crossPt
+	// then shifted into the wrong direction, Kommando zurück dann!
+
+	if( useTrianglesInDiamonds )
+	{
+
+		vector3 distVecOld;
+		VecSubtract(distVecOld, posFracEnd, posCrossPt );
+		vector3 distVecNew;
+		VecSubtract(distVecNew, posFracEnd, posNewVrtOnEdg);
+		number oldDistSq = VecLength(distVecOld);
+		number newDistSq = VecLength(distVecNew);
+
+		if( oldDistSq < newDistSq )
+		{
+			VecScale( halfSumShift, sumShift, - scaFa);
+			VecAdd(posNewVrtOnEdg, posCrossPt, halfSumShift);
+		}
+	}
 
 	Vertex * newEdgVrtx = *grid.create<RegularVertex>();
 	aaPos[newEdgVrtx] = posNewVrtOnEdg;
@@ -1326,7 +1351,8 @@ void computeDiamondPointXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, E
 //	}
 }
 
-
+// This function creates the new faces outside the diamond, directly attached to the diamond,
+// as part of post processing
 
 void createNewFacesForExtXCrossFracs( ExpandCrossFracInfo const & ecf,  std::vector<Face*> & newFracFaceVec,
 									  bool & boundAtShiftVrtEdg, //bool & atStartSort,
@@ -1529,6 +1555,8 @@ void createNewFacesForExtXCrossFracs( ExpandCrossFracInfo const & ecf,  std::vec
 
 }
 
+// this function creates the new faces of the diamond center, for XCross, but also for free TEnd type crossing fractures
+
 void createDiamondFacesXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, ExpandCrossFracInfo & expCFIAfterFracEdg,
 		std::vector<Face*> & newDiamFaceVec,  SubsetHandler & sh, Grid & grid, IndexType diamantSubsNum, Vertex * & crossPt,
 		bool isFreeTEnd = false )
@@ -1612,7 +1640,6 @@ void createDiamondFacesXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, Ex
 		vrtxSmallDiamAfter.push_back( crossPt );
 		vrtxSmallDiamAfter.push_back( shiftVrt );
 		vrtxSmallDiamAfter.push_back( newVrtAfter );
-
 
 		Face * newFracFaceBefore =
 			*grid.create<Triangle>( TriangleDescriptor( vrtxSmallDiamBefore[0], vrtxSmallDiamBefore[1], vrtxSmallDiamBefore[2] ) );
@@ -6701,7 +6728,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 			// shift of free shift point to virtual prolongation of ending fracture center line
 
-			computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg, crossPt, aaPos, sh, grid, sudoTEnd, distVecNewVrt2SCrossPt );
+//			computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg, crossPt, aaPos, sh, grid, sudoTEnd, distVecNewVrt2SCrossPt );
+			computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg, crossPt, aaPos, sh, grid, sudoTEnd, distVecNewVrt2SCrossPt, useTrianglesInDiamonds );
 
 			constexpr bool shiftFreePt = false;
 
@@ -6945,6 +6973,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 			// create new edges and new faces
 
+			// edges and faces outside the diamond, at the crossing fractures attached to the diamond
+
 			std::vector<Face*> newFracFaceVec = std::vector<Face*>();
 
 			bool boundAtShiftVrtEdg = false;
@@ -6956,6 +6986,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //				createNewFacesForExtXCrossFracs( vecExpCrossFI[i], newFracFaceVec, boundAtShiftVrtEdg, atStartSort, sh, grid, crossPt, subdomList );
 				createNewFacesForExtXCrossFracs( ecf, newFracFaceVec, boundAtShiftVrtEdg, sh, grid, crossPt, subdomList );
 			}
+
+			// edges and faces of the diamond itself respectively its analogon for the TEnd case here
 
 			std::vector<Face*> newDiamFaceVec = std::vector<Face*>();
 
@@ -6982,10 +7014,14 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 				ExpandCrossFracInfo & expCFIAfterFracEdg = vecExpCrossFI[ indAfter ];
 
 
+//				createDiamondFacesXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg,
+//						newDiamFaceVec,  sh, grid, sudoTEnd, crossPt, isAtFreeEnd );
 				createDiamondFacesXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg,
-						newDiamFaceVec,  sh, grid, sudoTEnd, crossPt, isAtFreeEnd );
+						newDiamFaceVec,  sh, grid, sudoTEnd, crossPt, isAtFreeEnd || useTrianglesInDiamonds );
 
 			}
+//			}
+
 
 
 			std::string diamNam = std::string("spitzDiam_") + std::string(const_cast<char*>( sh.get_subset_name( subdomList[0] ) ))
@@ -7457,7 +7493,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 				vector3 distVecNewVrt2SCrossPt; // not ot interest here, but only with c++17 possible to rule out computation in a clever way
 
-				computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg, crossPt, aaPos, sh, grid, diamantSubsNum, distVecNewVrt2SCrossPt );
+//				computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg, crossPt, aaPos, sh, grid, diamantSubsNum, distVecNewVrt2SCrossPt );
+				computeDiamondPointXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg, crossPt, aaPos, sh, grid, diamantSubsNum, distVecNewVrt2SCrossPt, useTrianglesInDiamonds );
 
 #if 0
 
@@ -7809,8 +7846,11 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //						std::vector<Face*> newDiamFaceVec )
 
 #if 1
+//				createDiamondFacesXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg,
+//						newDiamFaceVec,  sh, grid, diamantSubsNum, crossPt );
+
 				createDiamondFacesXCrossType( expCFIBeforeFracEdg, expCFIAfterFracEdg,
-						newDiamFaceVec,  sh, grid, diamantSubsNum, crossPt );
+						newDiamFaceVec,  sh, grid, diamantSubsNum, crossPt, useTrianglesInDiamonds );
 
 #else
 				Face * facBefore = expCFIBeforeFracEdg.getFace();
@@ -8028,19 +8068,30 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 				UG_THROW("hier fehlt ein Gesicht " << std::endl);
 		}
 
-		for( auto const & edg : allAssoEdgCP )
+		if( ! useTrianglesInDiamonds ) // stamdard case
 		{
-			if( edg != nullptr && edg != avoidToDeleteEdge )
+			for( auto const & edg : allAssoEdgCP )
 			{
-				UG_LOG("will erasieren " << edg << std::endl );
-				grid.erase(edg);
+				if( edg != nullptr && edg != avoidToDeleteEdge )
+				{
+					UG_LOG("will erasieren " << edg << std::endl );
+					grid.erase(edg);
 
-			}
-			else
-			{
-				UG_LOG("hier fehlt eine Ecke " << std::endl);
+				}
+				else
+				{
+					UG_LOG("hier fehlt eine Ecke " << std::endl);
+				}
 			}
 		}
+		else
+		{
+			for( auto const & edg : origFracEdg )
+			{
+				grid.erase(edg);
+			}
+		}
+
 
 		UG_LOG("ALles erasiert " << std::endl);
 #endif
