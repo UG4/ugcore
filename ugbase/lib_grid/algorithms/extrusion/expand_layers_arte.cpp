@@ -1279,22 +1279,39 @@ void computeDiamondPointXCrossType( ExpandCrossFracInfo & expCFIBeforeFracEdg, E
 	// if length between posFracEnd and posNewVrtOnEdg bigger than length between posFracEnd and crossPt
 	// then shifted into the wrong direction, Kommando zurück dann!
 
-	if( useTrianglesInDiamonds )
+//	if( useTrianglesInDiamonds )
+//	{
+	// always
+
+	vector3 distVecOld;
+	VecSubtract(distVecOld, posFracEnd, posCrossPt );
+	vector3 distVecNew;
+	VecSubtract(distVecNew, posFracEnd, posNewVrtOnEdg);
+	number oldDistSq = VecLength(distVecOld);
+	number newDistSq = VecLength(distVecNew);
+
+	if( oldDistSq < newDistSq )
 	{
-
-		vector3 distVecOld;
-		VecSubtract(distVecOld, posFracEnd, posCrossPt );
-		vector3 distVecNew;
-		VecSubtract(distVecNew, posFracEnd, posNewVrtOnEdg);
-		number oldDistSq = VecLength(distVecOld);
-		number newDistSq = VecLength(distVecNew);
-
-		if( oldDistSq < newDistSq )
-		{
-			VecScale( halfSumShift, sumShift, - scaFa);
-			VecAdd(posNewVrtOnEdg, posCrossPt, halfSumShift);
-		}
+		VecScale( halfSumShift, sumShift, - scaFa);
+		VecAdd(posNewVrtOnEdg, posCrossPt, halfSumShift);
 	}
+	else if( oldDistSq == newDistSq ) // cross pt would equal new position
+	{
+		if( posNewVrtOnEdg != posCrossPt || distVecNew != distVecOld )
+			UG_THROW("Denkfehler, Implementation extemer Spezialfall checken" << std::endl);
+
+		vector3 distCorr;
+		VecScale( distCorr, distVecOld, 0.05 );
+		VecAdd( posNewVrtOnEdg, posCrossPt, distCorr );
+		// Versuch, den Punkt ein wenig zu verschieben
+	}
+
+	// TODO FIXME eventuell noch testen, ob die beiden Punkte in einem kleinen Radius liegen und korrigieren,
+	// eventuell schon vorher, statt zu werfen
+	if( posNewVrtOnEdg == posCrossPt )
+		UG_THROW("Denkfehler Typ 2, Implementation extemer Spezialfall checken" << std::endl);
+
+//	}
 
 	Vertex * newEdgVrtx = *grid.create<RegularVertex>();
 	aaPos[newEdgVrtx] = posNewVrtOnEdg;
