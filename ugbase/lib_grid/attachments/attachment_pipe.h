@@ -238,24 +238,19 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 class UG_API IAttachment : public UID
 {
 	public:
-		IAttachment() : m_name("undefined"), m_passOnBehaviour(false)     {}
-		IAttachment(const char* name) : m_name(name), m_passOnBehaviour(false)
-		{assert(m_name);}
-	protected:
-		IAttachment(bool passOnBehaviour) : m_name("undefined"), m_passOnBehaviour(passOnBehaviour) {}
-		IAttachment(const char* name, bool passOnBehaviour) :  m_name(name), m_passOnBehaviour(passOnBehaviour)	{}
-	public:
+		IAttachment() : m_name("undefined")   {}
+		IAttachment(const char* name) : m_name(name)
+			{assert(m_name);}
 
 		virtual ~IAttachment()  {}
 		virtual IAttachment* clone() = 0;
 		virtual IAttachmentDataContainer*	create_container() = 0;
+		virtual bool default_pass_on_behaviour() const = 0;
 
-		bool default_pass_on_behaviour() const			{return m_passOnBehaviour;}
 		const char* get_name()  {return m_name;}    ///< should only be used for debug purposes.
 
 	protected:
 		const char* m_name; //only for debug
-		bool m_passOnBehaviour;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -270,16 +265,19 @@ template <class T> class UG_API Attachment : public IAttachment
 		typedef AttachmentDataContainer<T>	ContainerType;
 		typedef T							ValueType;
 
-		Attachment() : IAttachment()    {}
-		Attachment(bool passOnBehaviour) : IAttachment(passOnBehaviour)  {}
-		Attachment(const char* name) : IAttachment(name) {}
-		Attachment(const char* name, bool passOnBehaviour) : IAttachment(name, passOnBehaviour)	{}
+		Attachment() : IAttachment(), m_passOnBehaviour(false)    {}
+		Attachment(bool passOnBehaviour) : IAttachment(), m_passOnBehaviour(passOnBehaviour)    {}
+		Attachment(const char* name) : IAttachment(name), m_passOnBehaviour(false)   		{}
+		Attachment(const char* name, bool passOnBehaviour) : IAttachment(name), m_passOnBehaviour(passOnBehaviour)	{}
 
 		virtual ~Attachment()	{}
-		virtual IAttachment* clone()							{IAttachment* pA = new Attachment<T>(this->m_name, this->m_passOnBehaviour); return pA;}
+		virtual IAttachment* clone()							{IAttachment* pA = new Attachment<T>; *pA = *this; return pA;}
 		virtual IAttachmentDataContainer* create_container()	{return new ContainerType;}
-
+		virtual bool default_pass_on_behaviour() const			{return m_passOnBehaviour;}
 		IAttachmentDataContainer* create_container(const T& defaultValue)	{return new ContainerType(defaultValue);}
+
+	protected:
+		bool m_passOnBehaviour;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
