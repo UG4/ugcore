@@ -46,7 +46,7 @@
 namespace ug
 {
 
-ArteExpandFracs3DArte::ArteExpandFracs3D(
+ArteExpandFracs3D::ArteExpandFracs3D(
 		Grid & grid, SubsetHandler & sh,
 	    std::vector<FractureInfo> const & fracInfos,
 		bool useTrianglesInDiamonds, bool establishDiamonds )
@@ -60,7 +60,7 @@ ArteExpandFracs3DArte::ArteExpandFracs3D(
 }
 
 
-ArteExpandFracs3DArte::~ArteExpandFracs3D()
+ArteExpandFracs3D::~ArteExpandFracs3D()
 {
 	// TODO Auto-generated destructor stub
 }

@@ -84,9 +84,9 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/extrusion/cylinder_extrusion.cpp
 					algorithms/extrusion/expand_layers.cpp
 					algorithms/extrusion/expand_layers_arte.cpp
-					#algorithms/extrusion/expand_layers_arte3D.cpp
-					#algorithms/extrusion/ArteExpandFracs3D.cpp
-					#algorithms/projections/overlying_subset_finder.hpp
+					algorithms/extrusion/expand_layers_arte3D.cpp
+					algorithms/extrusion/ArteExpandFracs3D.cpp
+					algorithms/projections/overlying_subset_finder.hpp
 					algorithms/projections/z_ray_tracer.hpp
 					refinement/projectors/projection_handler.cpp
 					refinement/projectors/smooth_projector.cpp
