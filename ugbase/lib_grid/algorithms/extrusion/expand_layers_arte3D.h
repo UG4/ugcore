@@ -32,8 +32,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG__expand_layers__
-#define __H__UG__expand_layers__
+#ifndef UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_3D_H_
+#define UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_3D_H_
 
 #include <vector>
 #include "lib_grid/lg_base.h"

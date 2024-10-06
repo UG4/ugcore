@@ -76,10 +76,7 @@ public:
 
 public:
 
-	bool run()
-	{
-		return {};
-	}
+	bool run();
 
 private:
 

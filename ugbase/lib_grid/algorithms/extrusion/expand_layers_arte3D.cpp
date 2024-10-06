@@ -53,7 +53,7 @@ using namespace std;
 namespace ug{
 
 
-bool ExpandFractures3d( Grid& grid, SubsetHandler& sh,
+bool ExpandFractures3dArte( Grid& grid, SubsetHandler& sh,
 						    std::vector<FractureInfo> const & fracInfos,
 							bool useTrianglesInDiamonds, bool establishDiamonds )
 {
