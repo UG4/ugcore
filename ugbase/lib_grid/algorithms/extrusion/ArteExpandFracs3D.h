@@ -85,6 +85,19 @@ private:
 	std::vector<FractureInfo> m_fracInfos;
 	bool m_useTrianglesInDiamonds, m_establishDiamonds;
 
+	Grid::VertexAttachmentAccessor<APosition> m_aaPos;
+
+	//	objects for temporary results
+	FaceDescriptor m_facDescr;
+	VolumeDescriptor m_volDescr;
+
+	std::vector<Edge*> m_tmpEdges; // used for temporary results.
+	std::vector<Face*> m_tmpFaces; // used for temporary results.
+	std::vector<Volume*> m_tmpVols; // used for temporary results.
+
+
+
+	bool initialize();
 
 };
 

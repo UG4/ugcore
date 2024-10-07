@@ -54,7 +54,13 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_sh(sh),
 	  m_fracInfos(fracInfos),
 	  m_useTrianglesInDiamonds(useTrianglesInDiamonds),
-	  m_establishDiamonds(establishDiamonds)
+	  m_establishDiamonds(establishDiamonds),
+	  m_aaPos(Grid::VertexAttachmentAccessor<APosition>()),
+	  m_facDescr(FaceDescriptor()),
+	  m_volDescr(VolumeDescriptor()),
+	  m_tmpEdges(std::vector<Edge*>()),
+	  m_tmpFaces(std::vector<Face*>()),
+	  m_tmpVols(std::vector<Volume*>())
 {
 
 }
@@ -67,7 +73,42 @@ ArteExpandFracs3D::~ArteExpandFracs3D()
 
 bool ArteExpandFracs3D::run()
 {
+	if( ! initialize() )
+		return false;
+
 	UG_LOG("under construction " << std::endl);
+	return {};
+}
+
+bool ArteExpandFracs3D::initialize()
+{
+	UG_LOG("initialize " << std::endl);
+
+	//	access position attachment
+	if(!m_grid.has_vertex_attachment(aPosition) )
+	{
+		UG_LOG("Error in ExpandFractures Arte 3D: Missing position attachment");
+		return false;
+	}
+
+	m_aaPos = Grid::VertexAttachmentAccessor<APosition>(m_grid, aPosition);
+
+	//	make sure that the required options are enabled.
+
+	if( ! m_grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES) )
+	{
+		UG_LOG("WARNING in Arte 3D init : grid option VOLOPT_AUTOGENERATE_FACES autoenabled.\n");
+			m_grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
+	}
+
+	if( ! m_grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES) )
+	{
+		UG_LOG("WARNING in Arte 3D init: grid option FACEOPT_AUTOGENERATE_EDGES autoenabled.\n");
+		m_grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+	}
+
+
+
 	return {};
 }
 
