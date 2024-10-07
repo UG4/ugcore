@@ -55,6 +55,8 @@
 
 #include <vector>
 
+#include "support.h"
+
 
 
 #ifndef UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_ARTEEXPANDFRACS3D_H_
@@ -91,13 +93,40 @@ private:
 	FaceDescriptor m_facDescr;
 	VolumeDescriptor m_volDescr;
 
-	std::vector<Edge*> m_tmpEdges; // used for temporary results.
-	std::vector<Face*> m_tmpFaces; // used for temporary results.
-	std::vector<Volume*> m_tmpVols; // used for temporary results.
+//	std::vector<Edge*> m_tmpEdges; // used for temporary results.
+//	std::vector<Face*> m_tmpFaces; // used for temporary results.
+//	std::vector<Volume*> m_tmpVols; // used for temporary results.
 
+	std::vector<FractureInfo> m_fracInfosBySubset;
 
+	Selector m_sel;
 
 	bool initialize();
+
+	bool setSelector();
+
+	bool attachMarkers();
+
+	bool detachMarkers();
+
+	using IndexType = unsigned short;
+
+	using AttVerFracProp = Attachment<VertexFractureProperties<IndexType> >;
+
+	AttVerFracProp m_aAdjMarkerVFP;
+
+	Grid::VertexAttachmentAccessor<AttVerFracProp> m_aaMarkVrtVFP;
+
+	//	AttVerFracProp m_aAdjMarkerVFP; // used to know if an edge is frac edge, suffix vfp misleading....
+
+	Grid::EdgeAttachmentAccessor<AttVerFracProp> m_aaMarkEdgeVFP;
+	// used to know if an edge is frac edge, suffix vfp misleading....
+
+	ABool m_aAdjMarkerB; // used to know if an face is frac face
+
+	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceB;
+
+	bool distributeExpansionMarks3D();
 
 };
 

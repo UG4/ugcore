@@ -58,11 +58,20 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaPos(Grid::VertexAttachmentAccessor<APosition>()),
 	  m_facDescr(FaceDescriptor()),
 	  m_volDescr(VolumeDescriptor()),
-	  m_tmpEdges(std::vector<Edge*>()),
-	  m_tmpFaces(std::vector<Face*>()),
-	  m_tmpVols(std::vector<Volume*>())
+//	  m_tmpEdges(std::vector<Edge*>()),
+//	  m_tmpFaces(std::vector<Face*>()),
+//	  m_tmpVols(std::vector<Volume*>()),
+	  m_fracInfosBySubset(std::vector<FractureInfo>()),
+	  //m_sel(Selector()),
+	  m_aAdjMarkerVFP(AttVerFracProp()),
+	  m_aaMarkVrtVFP( Grid::VertexAttachmentAccessor<AttVerFracProp>()),
+//	  m_aAdjMarkerVFP(AttVerFracProp()),
+	  m_aaMarkEdgeVFP(Grid::EdgeAttachmentAccessor<AttVerFracProp>()),
+	  m_aAdjMarkerB(ABool()),
+	  m_aaMarkFaceB(Grid::FaceAttachmentAccessor<ABool>())
 {
-
+	// Notloesung, da copy constructor privat
+	m_sel = Selector();
 }
 
 
@@ -76,7 +85,20 @@ bool ArteExpandFracs3D::run()
 	if( ! initialize() )
 		return false;
 
+	if( ! setSelector() )
+		return false;
+
+	if( ! attachMarkers() )
+		return false;
+
+	if( ! distributeExpansionMarks3D() )
+		return false;
+
 	UG_LOG("under construction " << std::endl);
+
+	if( ! detachMarkers() )
+		return false;
+
 	return {};
 }
 
@@ -98,7 +120,7 @@ bool ArteExpandFracs3D::initialize()
 	if( ! m_grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES) )
 	{
 		UG_LOG("WARNING in Arte 3D init : grid option VOLOPT_AUTOGENERATE_FACES autoenabled.\n");
-			m_grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
+		m_grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
 	}
 
 	if( ! m_grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES) )
@@ -107,10 +129,96 @@ bool ArteExpandFracs3D::initialize()
 		m_grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 	}
 
+	//	vectors that allow to access fracture properties by subset index
+	m_fracInfosBySubset = std::vector<FractureInfo>( m_sh.num_subsets(), FractureInfo(-1, -1, 0) );
+
+	for( size_t i = 0; i < m_fracInfos.size(); ++i)
+	{
+		if( m_fracInfos[i].subsetIndex >= m_sh.num_subsets())
+		{
+			throw(UGError("Bad subsetIndex in given fracInfos."));
+		}
+
+		m_fracInfosBySubset[ m_fracInfos[i].subsetIndex] = m_fracInfos[i];
+
+	}
 
 
-	return {};
+	return true;
 }
+
+
+bool ArteExpandFracs3D::setSelector()
+{
+	//	Collect surrounding volumes, faces and edges of all fractures in a selector
+	//	and select fracture faces, edges and vertices too.
+
+	m_sel = Selector(m_grid);
+
+	m_sel.enable_autoselection(false);
+	m_sel.enable_selection_inheritance(true);	//required for DistributeExpansionMarks3D. disabled later on.
+	m_sel.enable_strict_inheritance(false);
+
+	return true;
+}
+
+
+bool ArteExpandFracs3D::attachMarkers()
+{
+	// attachment pair boundary is fracture, number fractures crossing
+
+	m_aAdjMarkerVFP = AttVerFracProp();
+
+	VertexFractureProperties<IndexType> vfp0( false, 0 );
+	// default value: no boundary fracture, no fractures crossing
+
+	m_grid.attach_to_vertices_dv( m_aAdjMarkerVFP, vfp0 );
+	m_aaMarkVrtVFP = Grid::VertexAttachmentAccessor<AttVerFracProp> ( m_grid, m_aAdjMarkerVFP );
+
+	//m_aAdjMarkerVFP = AttVerFracProp();
+	m_grid.attach_to_edges_dv( m_aAdjMarkerVFP, vfp0 );
+
+	m_aaMarkEdgeVFP = Grid::EdgeAttachmentAccessor<AttVerFracProp>( m_grid, m_aAdjMarkerVFP );
+
+	m_aAdjMarkerB = ABool(); // used to know if an face is frac face
+
+	m_grid.attach_to_faces_dv( m_aAdjMarkerB, false );
+	m_aaMarkFaceB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerB );
+
+
+
+
+	//  TODO FIXME
+	//  das fehlt hier , Analogon 2D Fall!!!!!!!!!!!!! der geht hier eigentlich weiter
+	// die Vertizes, Faces und Edges, die mit einer Kluft zu tun haben
+	//	using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
+	//	using VecVertFracTrip = std::vector<VertFracTrip>;
+	//	VecVertFracTrip vertexNoInfo;
+
+	return true;
+}
+
+
+bool ArteExpandFracs3D::detachMarkers()
+{
+	m_grid.detach_from_vertices( m_aAdjMarkerVFP );
+	m_grid.detach_from_edges( m_aAdjMarkerVFP );
+	m_grid.detach_from_faces( m_aAdjMarkerB );
+
+	return true;
+}
+
+bool ArteExpandFracs3D::distributeExpansionMarks3D()
+{
+	std::vector<Edge*> tmpEdges; // used for temporary results.
+	std::vector<Face*> tmpFaces; // used for temporary results.
+	std::vector<Volume*> tmpVols; // used for temporary results.
+
+	// TODO FIXME hier geht es vom 3D Fall Sebastianartig weiter
+
+	return true;
+}
+
 
 
 } /* namespace ug */
