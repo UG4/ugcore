@@ -4655,6 +4655,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 						else
 						{
 
+//							UG_THROW("in dieser Funktion alt" << std::endl);
+
 							// create normal vectors into direction of relevant edges
 
 							vector3 alongEdgeOne;
@@ -4691,7 +4693,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 							}
 
-							if( vrtEdgeOneBegin == NULL || vrtEdgeTwoBegin == NULL || vrtEdgeOneEnd == NULL || vrtEdgeTwoEnd == NULL )
+							if( vrtEdgeOneBegin == nullptr || vrtEdgeTwoBegin == nullptr || vrtEdgeOneEnd == nullptr || vrtEdgeTwoEnd == nullptr )
 							{
 								UG_THROW("lauter Nullen vertizes" << std::endl);
 							}
@@ -4845,8 +4847,15 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 						vector3 posNewVrt;
 
-						if( cosBetweenNormals > cosinusLim )
+//						if( cosBetweenNormals > cosinusLim )
+						if( cosBetweenNormals > cosinusLim && numFracsCrossAtVrt < 4 )
+//						if( cosBetweenNormals > cosinusLim && subsIndFracOne == subsIndFracTwo )
+//						if( false )
 						{
+
+//							UG_THROW("in dieser Funktion neu cos" << std::endl);
+
+
 							// dieselben Methoden wie im Fall von einer durchgehenden Kluft an einem Vertex, dort kopieren
 							// bzw Funktion schreiben, die beides macht
 
@@ -4946,6 +4955,9 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 						}
 						else
 						{
+
+//							UG_THROW("in dieser Funktion neu" << std::endl);
+
 							// create normal vectors into direction of relevant edges
 
 							vector3 alongEdgeOne;
@@ -4982,7 +4994,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 							}
 
-							if( vrtEdgeOneBegin == NULL || vrtEdgeTwoBegin == NULL || vrtEdgeOneEnd == NULL || vrtEdgeTwoEnd == NULL )
+							if( vrtEdgeOneBegin == nullptr || vrtEdgeTwoBegin == nullptr || vrtEdgeOneEnd == nullptr || vrtEdgeTwoEnd == nullptr )
 							{
 								UG_THROW("lauter Nullen vertizes" << std::endl);
 							}
