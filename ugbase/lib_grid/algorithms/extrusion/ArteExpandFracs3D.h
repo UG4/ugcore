@@ -105,9 +105,7 @@ private:
 
 	bool setSelector();
 
-	bool attachMarkersFirst();
-
-	bool attachMarkersSecond();
+	bool attachMarkers();
 
 	bool detachMarkers();
 
@@ -133,6 +131,13 @@ private:
 	std::vector<Face*> m_originalFractureFaces;
 
 	bool assignOrigFracInfos();
+
+
+	using AttVrtVec = Attachment<std::vector<Vertex*> >;
+
+	AttVrtVec m_attVrtVec;
+
+	Grid::VolumeAttachmentAccessor<AttVrtVec> m_aaVrtVecVolume;
 
 };
 

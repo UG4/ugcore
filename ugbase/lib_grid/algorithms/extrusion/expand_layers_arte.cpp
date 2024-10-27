@@ -65,7 +65,7 @@ using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
 
 //using VvftIterator = VecVertFracTrip::iterator;
 
-using AttVrtVec = Attachment<vector<Vertex*> >;
+using AttVrtVec = Attachment<std::vector<Vertex*> >;
 
 //using VertexOfFaceInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<vector3,vector3> >;
 //

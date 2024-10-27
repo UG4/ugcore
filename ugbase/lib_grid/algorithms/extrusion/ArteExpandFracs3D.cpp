@@ -66,7 +66,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaMarkEdgeVFP(Grid::EdgeAttachmentAccessor<AttVerFracProp>()),
 	  m_aAdjMarkerB(ABool()),
 	  m_aaMarkFaceB(Grid::FaceAttachmentAccessor<ABool>()),
-	  m_originalFractureFaces(std::vector<Face*>())
+	  m_originalFractureFaces(std::vector<Face*>()),
+	  m_aaVrtVecVolume( Grid::VolumeAttachmentAccessor<AttVrtVec>() )
 {
 	// Notloesung, da copy constructor privat
 	m_sel = Selector();
@@ -86,7 +87,7 @@ bool ArteExpandFracs3D::run()
 	if( ! setSelector() )
 		return false;
 
-	if( ! attachMarkersFirst() )
+	if( ! attachMarkers() )
 		return false;
 
 	if( ! countAndSelectFracBaseNums() )
@@ -95,8 +96,6 @@ bool ArteExpandFracs3D::run()
 	if( ! assignOrigFracInfos() )
 		return false;
 
-	if( ! attachMarkersSecond() )
-		return false;
 
 
 	UG_LOG("under construction " << std::endl);
@@ -168,8 +167,10 @@ bool ArteExpandFracs3D::setSelector()
 }
 
 
-bool ArteExpandFracs3D::attachMarkersFirst()
+bool ArteExpandFracs3D::attachMarkers()
 {
+	// first part
+
 	// attachment pair boundary is fracture, number fractures crossing
 
 	m_aAdjMarkerVFP = AttVerFracProp();
@@ -190,7 +191,15 @@ bool ArteExpandFracs3D::attachMarkersFirst()
 	m_grid.attach_to_faces_dv( m_aAdjMarkerB, false );
 	m_aaMarkFaceB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerB );
 
+	// second part
 
+	AttVrtVec m_attVrtVec;
+
+	//	associate a vector of vertices for each volume adjacent to the frac.
+	//	An entry contains the new vertex, if the
+	//	corresponding vertex is an inner fracture vertex, and nullptr if not.
+	m_grid.attach_to_volumes(m_attVrtVec);
+	m_aaVrtVecVolume = Grid::VolumeAttachmentAccessor<AttVrtVec>( m_grid, m_attVrtVec);
 
 
 	//  TODO FIXME
@@ -199,6 +208,7 @@ bool ArteExpandFracs3D::attachMarkersFirst()
 	//	using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
 	//	using VecVertFracTrip = std::vector<VertFracTrip>;
 	//	VecVertFracTrip vertexNoInfo;
+
 
 	return true;
 }
@@ -209,6 +219,8 @@ bool ArteExpandFracs3D::detachMarkers()
 	m_grid.detach_from_vertices( m_aAdjMarkerVFP );
 	m_grid.detach_from_edges( m_aAdjMarkerVFP );
 	m_grid.detach_from_faces( m_aAdjMarkerB );
+
+	m_grid.detach_from_volumes( m_attVrtVec );
 
 	return true;
 }
@@ -354,11 +366,6 @@ bool ArteExpandFracs3D::assignOrigFracInfos()
 	return true;
 }
 
-bool ArteExpandFracs3D::attachMarkersSecond()
-{
-
-	return {};
-}
 
 
 
