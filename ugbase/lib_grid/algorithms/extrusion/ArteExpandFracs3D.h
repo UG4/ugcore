@@ -150,6 +150,10 @@ private:
 	Grid::VertexAttachmentAccessor<AttVecEdge> m_aaVrtInfoAssoEdges;
 	Grid::VertexAttachmentAccessor<AttVecFace> m_aaVrtInfoAssoFaces;
 	Grid::VertexAttachmentAccessor<AttVecVol> m_aaVrtInfoAssoVols;
+
+	bool establishNewVrtBase();
+
+	bool establishNewVertices();
 };
 
 } /* namespace ug */

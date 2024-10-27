@@ -103,6 +103,11 @@ bool ArteExpandFracs3D::run()
 	if( ! assignOrigFracInfos() )
 		return false;
 
+	if( ! establishNewVrtBase() )
+		return false;
+
+	if( ! establishNewVertices() )
+		return false;
 
 
 	UG_LOG("under construction " << std::endl);
@@ -388,10 +393,6 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 		}
 	}
 
-
-
-	// TODO FIXME hier geht es vom 3D Fall Sebastianartig weiter
-
 	return true;
 }
 
@@ -423,8 +424,52 @@ bool ArteExpandFracs3D::assignOrigFracInfos()
 	return true;
 }
 
+bool ArteExpandFracs3D::establishNewVrtBase()
+{
+	//	iterate over all surrounding volumes to enable shifted vertices, this loop taken from SR but shortened
+
+	for( VolumeIterator iterSurrVol = m_sel.volumes_begin(); iterSurrVol != m_sel.volumes_end(); ++ iterSurrVol )
+	{
+		Volume* sv = *iterSurrVol;
+
+		std::vector<Vertex*> & newVrts = m_aaVrtVecVol[sv];
+		newVrts.resize(sv->num_vertices());
+
+		for(size_t iVrt = 0; iVrt < sv->num_vertices(); ++ iVrt )
+		{
+			newVrts[iVrt] = nullptr;
+		}
+
+		// erstmal so tun, als ob keine neuen Vertizes erzeugt werden an den alten Vertizes
+
+	}
+
+	return true;
+}
+
+// major function of new grid generation, in Keil Style, but functional grid, only the diamonds have to be
+// established in additional functionalities independent of this function
+bool ArteExpandFracs3D::establishNewVertices()
+{
+	// TODO FIXME sowas von der Art wird nötig sein als Vorbereitung für die Diamanten,
+	// Infos darin speichern, vielleicht auch noch notwendig, die Kanten zu speichern oder die faces,
+	// zu klären im Laufe der Implementation
+	// std::vector<CrossVertInf > vecCrossVrtInf;
+
+	// zentraler Loop
+
+	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); ++ iterV )
+	{
+		// Position dieses Vertex
+		vector3 posOldVrt = m_aaPos[*iterV];
+
+		// TODO FIXME diese Funktion mit Leben und Analytischer Geometrie 13. Klasse füllen
+
+	}
 
 
+	return false;
+}
 
 
 } /* namespace ug */

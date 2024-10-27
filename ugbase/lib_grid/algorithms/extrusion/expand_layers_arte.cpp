@@ -2776,7 +2776,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt)
 		{
-			newVrts[i_vrt] = NULL;
+			newVrts[i_vrt] = nullptr;
 		}
 			// erstmal so tun, als ob keine neuen Vertizes erzeugt werden an den alten Vertizes
 	}
