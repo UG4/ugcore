@@ -56,11 +56,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_useTrianglesInDiamonds(useTrianglesInDiamonds),
 	  m_establishDiamonds(establishDiamonds),
 	  m_aaPos(Grid::VertexAttachmentAccessor<APosition>()),
-	  m_facDescr(FaceDescriptor()),
-	  m_volDescr(VolumeDescriptor()),
-//	  m_tmpEdges(std::vector<Edge*>()),
-//	  m_tmpFaces(std::vector<Face*>()),
-//	  m_tmpVols(std::vector<Volume*>()),
+//	  m_facDescr(FaceDescriptor()),
+//	  m_volDescr(VolumeDescriptor()),
 	  m_fracInfosBySubset(std::vector<FractureInfo>()),
 	  //m_sel(Selector()),
 	  m_aAdjMarkerVFP(AttVerFracProp()),
@@ -91,7 +88,7 @@ bool ArteExpandFracs3D::run()
 	if( ! attachMarkers() )
 		return false;
 
-	if( ! distributeExpansionMarks3D() )
+	if( ! countAndSelectFracBaseNums() )
 		return false;
 
 	UG_LOG("under construction " << std::endl);
@@ -208,11 +205,113 @@ bool ArteExpandFracs3D::detachMarkers()
 	return true;
 }
 
-bool ArteExpandFracs3D::distributeExpansionMarks3D()
+bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 {
-	std::vector<Edge*> tmpEdges; // used for temporary results.
-	std::vector<Face*> tmpFaces; // used for temporary results.
-	std::vector<Volume*> tmpVols; // used for temporary results.
+	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
+	{
+		int fracInd = m_fracInfos[i_fi].subsetIndex;
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracInd); iter != m_sh.end<Face>(fracInd); ++iter )
+		{
+			Face* fac = *iter;
+
+			m_sel.select(fac);
+
+			m_aaMarkFaceB[fac] = true;
+
+			for(size_t i = 0; i < fac->num_vertices(); ++i)
+			{
+				Vertex* vrt = fac->vertex(i);
+				m_sel.select(vrt);
+				m_aaMarkVrtVFP[vrt]++;
+
+				if( IsBoundaryVertex3D(m_grid, vrt) )
+				{
+					m_aaMarkVrtVFP[vrt].setIsBndFracVertex();
+				}
+			}
+
+			std::vector<Edge*> tmpEdges; // used for temporary results.
+
+			CollectEdges( tmpEdges, m_grid, fac );
+
+			for( auto const & edg : tmpEdges )
+			{
+				m_aaMarkEdgeVFP[edg]++;
+
+				if( IsBoundaryEdge3D( m_grid, edg ) )
+					m_aaMarkEdgeVFP[edg].setIsBndFracVertex();
+
+				m_sel.select(edg);
+			}
+		}
+	}
+
+#if 0
+
+	// TODO FIXME das ist was komisches, was von Prof. Reiter da ist, es werden edges gesplittet, für was?
+
+	edges.clear();
+	for(EdgeIterator iter = sel.begin<Edge>();
+		iter != sel.end<Edge>(); ++iter)
+	{
+		Edge* e = *iter;
+		if(aaMarkVRT[e->vertex(0)] != 2 &&
+			aaMarkVRT[e->vertex(1)] != 2 &&
+			aaMarkEDGE[e] > 1)
+		{
+			edges.push_back(e);
+		}
+	}
+
+	for(size_t i = 0; i < edges.size(); ++i){
+		vector3 center = CalculateCenter(edges[i], aaPos);
+		RegularVertex* v =	SplitEdge<RegularVertex>(grid, edges[i], false);
+		aaPos[v] = center;
+		aaMarkVRT[v] = 2;
+		sel.select(v);
+	//	assign adjacency values for associated selected edges (2 to each)
+		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
+			iter != grid.associated_edges_end(v); ++iter)
+		{
+			if(sel.is_selected(*iter))
+				aaMarkEDGE[*iter] = 2;
+		}
+	}
+
+
+#endif
+
+	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+	{
+		Vertex* vrt = *iter;
+
+		bool wahl = true;
+
+		bool isBnd = m_aaMarkVrtVFP[ vrt ].getIsBndFracVertex();
+		auto numCrosFrac = m_aaMarkVrtVFP[ vrt ].getNumberFracEdgesInVertex();
+
+		// TODO FIXME das ist richtig für den 2D Fall, aber passt das auch im 3D Fall????
+		if( ! isBnd && numCrosFrac == 1 )
+		{
+			wahl = false;
+		}
+
+		// was, wenn numCrossFrac == 0 ist?
+		// wieso werden die boundary vrt ausgeschlossen, oder sollen die nicht ausgeschlossen werden?
+		// schon im 2D Fall unklar, hier noch wirrer!!! TODO FIXME
+
+		if( wahl )
+//		if( m_aaMarkVrtVFP[vrt].getNumberFracEdgesInVertex() > 1 ) // TODO FIXME stimmt das so?
+		{
+			//	select all associated edges, faces and volumes
+			m_sel.select( m_grid.associated_edges_begin(vrt), m_grid.associated_edges_end(vrt) );
+			m_sel.select( m_grid.associated_faces_begin(vrt), m_grid.associated_faces_end(vrt) );
+			m_sel.select( m_grid.associated_volumes_begin(vrt), m_grid.associated_volumes_end(vrt) );
+		}
+	}
+
+
 
 	// TODO FIXME hier geht es vom 3D Fall Sebastianartig weiter
 

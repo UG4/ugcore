@@ -126,7 +126,7 @@ private:
 
 	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceB;
 
-	bool distributeExpansionMarks3D();
+	bool countAndSelectFracBaseNums();
 
 };
 
