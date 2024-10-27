@@ -65,7 +65,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 //	  m_aAdjMarkerVFP(AttVerFracProp()),
 	  m_aaMarkEdgeVFP(Grid::EdgeAttachmentAccessor<AttVerFracProp>()),
 	  m_aAdjMarkerB(ABool()),
-	  m_aaMarkFaceB(Grid::FaceAttachmentAccessor<ABool>())
+	  m_aaMarkFaceB(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_originalFractureFaces(std::vector<Face*>())
 {
 	// Notloesung, da copy constructor privat
 	m_sel = Selector();
@@ -85,11 +86,18 @@ bool ArteExpandFracs3D::run()
 	if( ! setSelector() )
 		return false;
 
-	if( ! attachMarkers() )
+	if( ! attachMarkersFirst() )
 		return false;
 
 	if( ! countAndSelectFracBaseNums() )
 		return false;
+
+	if( ! assignOrigFracInfos() )
+		return false;
+
+	if( ! attachMarkersSecond() )
+		return false;
+
 
 	UG_LOG("under construction " << std::endl);
 
@@ -160,7 +168,7 @@ bool ArteExpandFracs3D::setSelector()
 }
 
 
-bool ArteExpandFracs3D::attachMarkers()
+bool ArteExpandFracs3D::attachMarkersFirst()
 {
 	// attachment pair boundary is fracture, number fractures crossing
 
@@ -317,6 +325,41 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 	return true;
 }
+
+bool ArteExpandFracs3D::assignOrigFracInfos()
+{
+	m_originalFractureFaces.clear();
+
+	for( FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>(); ++iter)
+	{
+		if( m_aaMarkFaceB[*iter] == true )
+			m_originalFractureFaces.push_back(*iter);
+	}
+
+	m_fracInfosBySubset = std::vector<FractureInfo>( m_sh.num_subsets(), FractureInfo(-1, -1, 0) );
+
+	for(size_t i = 0; i < m_fracInfos.size(); ++i)
+	{
+		if( m_fracInfos[i].subsetIndex >= m_sh.num_subsets())
+		{
+			throw(UGError("Bad subsetIndex in given fracInfos."));
+		}
+
+		m_fracInfosBySubset[ m_fracInfos[i].subsetIndex ] = m_fracInfos[i];
+	}
+
+//	disable selection inheritance to avoid infinite recursion.
+	m_sel.enable_selection_inheritance(false);
+
+	return true;
+}
+
+bool ArteExpandFracs3D::attachMarkersSecond()
+{
+
+	return {};
+}
+
 
 
 

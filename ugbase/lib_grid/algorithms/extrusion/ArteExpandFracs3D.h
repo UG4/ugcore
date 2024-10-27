@@ -105,7 +105,9 @@ private:
 
 	bool setSelector();
 
-	bool attachMarkers();
+	bool attachMarkersFirst();
+
+	bool attachMarkersSecond();
 
 	bool detachMarkers();
 
@@ -127,6 +129,10 @@ private:
 	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceB;
 
 	bool countAndSelectFracBaseNums();
+
+	std::vector<Face*> m_originalFractureFaces;
+
+	bool assignOrigFracInfos();
 
 };
 
