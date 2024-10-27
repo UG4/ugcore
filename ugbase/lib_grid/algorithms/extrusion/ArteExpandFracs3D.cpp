@@ -106,7 +106,10 @@ bool ArteExpandFracs3D::run()
 	if( ! establishNewVrtBase() )
 		return false;
 
-	if( ! establishNewVertices() )
+	if( ! generateVertexInfos() )
+		return false;
+
+	if( ! loop2EstablishNewVertices() )
 		return false;
 
 
@@ -447,9 +450,33 @@ bool ArteExpandFracs3D::establishNewVrtBase()
 	return true;
 }
 
+// Analogon zu VertrexFractureInfo in 2D, wo jeder Vertex eine Liste bekommt, wo alle die ihm angehängten
+// Ecken, Faces und Volumen gespeichert werden; dazu die Normalen, und vielleicht noch weitere Infos
+bool ArteExpandFracs3D::generateVertexInfos()
+{
+	// TODO FIXME das wird benötigt
+
+	// sowas von der Art als attachement bei den attachments, und dann mit Leben füllen für jeden Vertex
+	// in dieser Funktion;
+	// vielleicht braucht es auch Edge Infos, oder nur Edge Infos?
+//	VecVertFracTrip vertexNoInfo;
+//	using AttVecVertFracTrip = Attachment<VecVertFracTrip>;
+//	AttVecVertFracTrip aAdjInfoAVVFT;
+//	grid.attach_to_vertices_dv( aAdjInfoAVVFT, vertexNoInfo );
+//	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> aaVrtInfoFraTri(grid,  aAdjInfoAVVFT );
+
+	// Lebendigmachung in:
+	// 	for( auto & fsfpmv : fracSubdom_facePerpendMinVal ) .....
+	// von dort lernen!!!!!
+
+	return false;
+}
+
+
+
 // major function of new grid generation, in Keil Style, but functional grid, only the diamonds have to be
 // established in additional functionalities independent of this function
-bool ArteExpandFracs3D::establishNewVertices()
+bool ArteExpandFracs3D::loop2EstablishNewVertices()
 {
 	// TODO FIXME sowas von der Art wird nötig sein als Vorbereitung für die Diamanten,
 	// Infos darin speichern, vielleicht auch noch notwendig, die Kanten zu speichern oder die faces,

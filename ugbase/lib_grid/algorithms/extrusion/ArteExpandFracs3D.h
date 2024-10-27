@@ -153,7 +153,10 @@ private:
 
 	bool establishNewVrtBase();
 
-	bool establishNewVertices();
+	bool generateVertexInfos();
+
+	bool loop2EstablishNewVertices();
+
 };
 
 } /* namespace ug */
