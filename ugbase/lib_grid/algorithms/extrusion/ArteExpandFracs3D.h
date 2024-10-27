@@ -137,8 +137,19 @@ private:
 
 	AttVrtVec m_attVrtVec;
 
-	Grid::VolumeAttachmentAccessor<AttVrtVec> m_aaVrtVecVolume;
+	Grid::VolumeAttachmentAccessor<AttVrtVec> m_aaVrtVecVol;
 
+	using AttVecEdge = Attachment<std::vector<Edge*>>;
+	using AttVecFace = Attachment<std::vector<Face*>>;
+	using AttVecVol = Attachment<std::vector<Volume*>>;
+
+	AttVecEdge m_aAdjInfoEdges;
+	AttVecFace m_aAdjInfoFaces;
+	AttVecVol m_aAdjInfoVols;
+
+	Grid::VertexAttachmentAccessor<AttVecEdge> m_aaVrtInfoAssoEdges;
+	Grid::VertexAttachmentAccessor<AttVecFace> m_aaVrtInfoAssoFaces;
+	Grid::VertexAttachmentAccessor<AttVecVol> m_aaVrtInfoAssoVols;
 };
 
 } /* namespace ug */

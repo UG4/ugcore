@@ -67,9 +67,16 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aAdjMarkerB(ABool()),
 	  m_aaMarkFaceB(Grid::FaceAttachmentAccessor<ABool>()),
 	  m_originalFractureFaces(std::vector<Face*>()),
-	  m_aaVrtVecVolume( Grid::VolumeAttachmentAccessor<AttVrtVec>() )
+	  m_attVrtVec(AttVrtVec()),
+	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
+	  m_aAdjInfoEdges(AttVecEdge()),
+	  m_aAdjInfoFaces(AttVecFace()),
+	  m_aAdjInfoVols(AttVecVol()),
+	  m_aaVrtInfoAssoEdges( Grid::VertexAttachmentAccessor<AttVecEdge>()),
+	  m_aaVrtInfoAssoFaces( Grid::VertexAttachmentAccessor<AttVecFace>()),
+	  m_aaVrtInfoAssoVols( Grid::VertexAttachmentAccessor<AttVecVol>())
 {
-	// Notloesung, da copy constructor privat
+	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
 }
 
@@ -193,13 +200,28 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	// second part
 
-	AttVrtVec m_attVrtVec;
-
 	//	associate a vector of vertices for each volume adjacent to the frac.
 	//	An entry contains the new vertex, if the
 	//	corresponding vertex is an inner fracture vertex, and nullptr if not.
 	m_grid.attach_to_volumes(m_attVrtVec);
-	m_aaVrtVecVolume = Grid::VolumeAttachmentAccessor<AttVrtVec>( m_grid, m_attVrtVec);
+	m_aaVrtVecVol = Grid::VolumeAttachmentAccessor<AttVrtVec>( m_grid, m_attVrtVec);
+
+	std::vector<Edge*> noEdge;
+	std::vector<Face*> noFace;
+	std::vector<Volume*> noVol;
+
+	m_aAdjInfoEdges = AttVecEdge();
+	m_aAdjInfoFaces = AttVecFace();
+	m_aAdjInfoVols = AttVecVol();
+
+	m_grid.attach_to_vertices_dv( m_aAdjInfoEdges, noEdge );
+	m_aaVrtInfoAssoEdges = Grid::VertexAttachmentAccessor<AttVecEdge>( m_grid, m_aAdjInfoEdges );
+
+	m_grid.attach_to_vertices_dv( m_aAdjInfoFaces, noFace );
+	m_aaVrtInfoAssoFaces = Grid::VertexAttachmentAccessor<AttVecFace>( m_grid, m_aAdjInfoFaces );
+
+	m_grid.attach_to_vertices_dv( m_aAdjInfoVols, noVol );
+	m_aaVrtInfoAssoVols = Grid::VertexAttachmentAccessor<AttVecVol>( m_grid, m_aAdjInfoVols );
 
 
 	//  TODO FIXME
@@ -221,6 +243,10 @@ bool ArteExpandFracs3D::detachMarkers()
 	m_grid.detach_from_faces( m_aAdjMarkerB );
 
 	m_grid.detach_from_volumes( m_attVrtVec );
+
+	m_grid.detach_from_vertices( m_aAdjInfoEdges );
+	m_grid.detach_from_vertices( m_aAdjInfoFaces );
+	m_grid.detach_from_vertices( m_aAdjInfoVols );
 
 	return true;
 }
@@ -328,6 +354,37 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 			m_sel.select( m_grid.associated_edges_begin(vrt), m_grid.associated_edges_end(vrt) );
 			m_sel.select( m_grid.associated_faces_begin(vrt), m_grid.associated_faces_end(vrt) );
 			m_sel.select( m_grid.associated_volumes_begin(vrt), m_grid.associated_volumes_end(vrt) );
+
+			std::vector<Edge*> assoEdg;
+			std::vector<Face*> assoFac;
+			std::vector<Volume*> assoVol;
+
+			for( std::vector<Edge *>::iterator iterEdg = m_grid.associated_edges_begin(vrt);
+											   iterEdg != m_grid.associated_edges_end(vrt);
+											   iterEdg++ )
+			{
+				assoEdg.push_back(*iterEdg);
+			}
+
+			for( std::vector<Face *>::iterator iterFac = m_grid.associated_faces_begin(vrt);
+											   iterFac != m_grid.associated_faces_end(vrt);
+											   iterFac++ )
+			{
+				assoFac.push_back(*iterFac);
+			}
+
+			for( std::vector<Volume *>::iterator iterVol = m_grid.associated_volumes_begin(vrt);
+											   	 iterVol != m_grid.associated_volumes_end(vrt);
+											   	 iterVol++ )
+			{
+				assoVol.push_back(*iterVol);
+			}
+
+			m_aaVrtInfoAssoEdges[vrt] = assoEdg;
+			m_aaVrtInfoAssoFaces[vrt] = assoFac;
+			m_aaVrtInfoAssoVols[vrt] = assoVol;
+
+
 		}
 	}
 
