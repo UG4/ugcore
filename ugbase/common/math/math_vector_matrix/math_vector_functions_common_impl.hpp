@@ -699,6 +699,18 @@ VecAbsIsLess(const vector_t& v1, const typename vector_t::value_type s)
 	return true;
 }
 
+/// checks if the given point is in the bounding box given by two other points
+template <typename vector_t>
+inline
+bool
+VecIsInBB(const vector_t& v, const vector_t& low, const vector_t& high)
+{
+	for(typename vector_t::size_type i = 0; i < v.size(); ++i)
+		if (v[i] < low[i] || high[i] < v[i])
+			return false;
+	return true;
+}
+
 }//	end of namespace
 
 #endif /* __H__COMMON__MathVector_FUNCTIONS_COMMON_IMPL__ */

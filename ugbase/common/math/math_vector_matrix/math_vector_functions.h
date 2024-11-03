@@ -405,6 +405,12 @@ inline
 bool
 VecAbsIsLess(const vector_t& v1, const typename vector_t::value_type s);
 
+/// checks if the given point is in the bounding box given by two other points
+template <typename vector_t>
+inline
+bool
+VecIsInBB(const vector_t& v, const vector_t& low, const vector_t& high);
+
 }//	end of namespace
 
 ////////////////////////////////////////////////////////////////////////
