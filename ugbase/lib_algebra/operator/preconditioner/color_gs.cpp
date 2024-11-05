@@ -207,6 +207,7 @@ create_aux_vectors(const vector_type& d)
 {
 	const SlicingData &sd = slicing();
 
+	#pragma omp parallel for
 	for (size_t i = 0; i<ColorGS::MAX_COLORS; i++)
 	{
 
@@ -259,13 +260,12 @@ create_diag_vectors(const matrix_type& mat)
 	size_t count = 0;
 
 	// Create storage.
+	#pragma omp parallel for
 	for (size_t c = 0; c<ColorGS::MAX_COLORS; c++)
 	{
-
 		const size_t nelems = slicing().get_num_elems(c); // elements for this color
 		m_diag[c].reserve(nelems);
 		count += nelems;
-
 	} // for all colors
 
 
@@ -317,6 +317,7 @@ void ColorPrecond<TAlgebra>::
 clear_diag_vectors()
 {
 	// Clear all diagonal entries.
+	#pragma omp parallel for
 	for (size_t i = 0; i<ColorGS::MAX_COLORS; i++)
 	{
 		m_diag[i].clear();
@@ -350,7 +351,7 @@ schur_solver_forward(vector_type &u_inner, vector_type &f_inner)
 
 
 // solve a*c = beta*d
-void InverseMatMult(number & ci, double beta, const number &Aii, const number & di)
+void InverseMatMult(number& ci, const double beta, const number Aii, const number di)
 {
 	ci = beta*di/Aii;
 }
@@ -389,7 +390,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	// create short cuts
 	const SlicingData &slicing = this->slicing();
 
-
+	// Loop over colors (SEQUENTIAL).
 	for (size_t i = 0; i<ColorGS::MAX_COLORS; i++)
 	{
 		const size_t nelems = slicing.get_num_elems(i);
@@ -406,8 +407,6 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 
 		// UG_DLOG("Iter: "<< i << "(" << nelems << ")" << std::endl);
 
-
-
 		// Get (original) defect.
 		slicing.get_vector_slice(d, i, di);
 #ifdef UG_PARALLEL
@@ -418,8 +417,9 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 		slicing.get_vector_slice(c, i, ci);
 
 
-		// Consider all previous updates (TODO: this is slow...)
-		for (size_t j = 0; i<j; ++j)
+		// Consider all previous updates (TODO: this is serial and slow...)
+		#pragma omp parallel for
+		for (size_t j = 0; j<i; ++j)
 		{
 			// di = di - Aij*cj
 			vector_type &cj=*m_aux_sol[j];
@@ -427,16 +427,17 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 			matrix_type Aij;
 			slicing.get_matrix(pOp->get_matrix(), i,j, Aij);
 
+			#pragma omp critical UpdateDefect
 			Aij.axpy(di, 1.0, di, -1.0, cj);
 		}
 
 
 		// Jacobi iteration (in PARALLEL!).
-		#pragma omp parallel for
+		#pragma omp parallel for // simd
 		for (size_t ii=0; ii<nelems; ++ii)
 		{
-			const double mydamp = 0.66; //< neccessary for smoothing
-			InverseMatMult(ci[ii], mydamp, DiagAi[ii], di[ii]);
+			// const double mydamp = 1.0; //< neccessary for smoothing.
+			InverseMatMult(ci[ii], 1.0, DiagAi[ii], di[ii]);
 		}
 
 
