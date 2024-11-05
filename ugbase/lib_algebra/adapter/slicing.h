@@ -153,7 +153,7 @@ public:
 
     /// Copy: slice of vector -> small vector.
 	template<class VT>
-	void get_vector_slice(const VT &full_src, slice_desc_type desc, VT &small_dst) const
+	void get_vector_slice(const VT &full_src, const slice_desc_type desc, VT &small_dst) const
 	{
 		const slice_desc_set &slice_desc = slice(desc);
 
@@ -168,7 +168,7 @@ public:
 
 	/// Copy: small vector -> slice of a vector.
 	template<class VT>
-	void set_vector_slice(const VT &small_src, VT &full_dst, slice_desc_type desc) const
+	void set_vector_slice(const VT &small_src, VT &full_dst, const slice_desc_type desc) const
 	{
 		const slice_desc_set &slice_desc = slice(desc);
 		//UG_LOG("get_vector_slice:" << slice_desc.size());
@@ -295,12 +295,13 @@ public:
 		return clone;
 	}
 
+	//! returns type for a global index
+	slice_desc_type get_type(size_t gindex) const
+	{return m_slice_types[gindex];}
+
 
 protected:
 
-	//! returns type for a global index
-	slice_desc_type get_type(size_t index)
-	{return m_slice_types[index];}
 
 
 	//! returns the set of global indices for a given type
@@ -311,7 +312,7 @@ protected:
 	{return m_slice_set[type];}
 
 
-	//! returns: local index for a global index (if found) or undefined else.
+	//! Returns local index for a global index (if found) or undefined else.
 	bool find_index(slice_desc_type type, int gindex, int &index) const
 	{
 		// WARNING int index < size_t myset.size() WARNING
@@ -321,8 +322,9 @@ protected:
 		index = myset.size();
 
 		//slice_desc_set::const_iterator it = myset.find(gindex);
-		slice_desc_set::const_iterator it = lower_bound(myset.begin(), myset.end(), gindex);
-		if (it != myset.end() && *it == gindex) {
+		slice_desc_set::const_iterator it = std::lower_bound(myset.begin(), myset.end(), gindex);
+		if (it != myset.end() && *it == gindex)
+		{
 			//index =// *it;
 			index = std::distance(myset.begin(), it);
 			found = true;
