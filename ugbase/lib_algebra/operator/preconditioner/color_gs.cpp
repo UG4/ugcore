@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014-2015:  G-CSC, Goethe University Frankfurt
- * Author: Arne Nägel
+ * Copyright (c) 2024:  MSQC, Goethe University Frankfurt
+ * Author: Arne Naegel
  * 
  * This file is part of UG4.
  * 
@@ -30,13 +30,6 @@
  * GNU Lesser General Public License for more details.
  */
 
-//	THIS FILE IS ONLY TEMPORARY!
-//  When everything works as
-//	expected one should move the code in this file to
-//	schur_impl.h, so that it will work with all the different algebras.
-//
-//	In the moment, template instantiations are invoked at the end of this file.
-
 
 
 
@@ -61,9 +54,6 @@
 #include "common/profiler/profiler.h"        // additions for profiling
 
 // own header
-//#include "schur/schur.h"
-//#include "schur/schur_precond.h"
-//#include "schur/schur_complement_inverse_interface.h"
 #include "color_gs.h"
 
 namespace ug{
@@ -81,73 +71,10 @@ ColorPrecond<TAlgebra>::ColorPrecond()
 }
 
 
-
-/*
-
-template <typename TAlgebra>
-bool ColorPrecond<TAlgebra>::
-create_and_init_local_schur_complement(SmartPtr<MatrixOperator<matrix_type, vector_type> > A,
-		std::vector<schur_slice_desc_type> &skeletonMark)
-{
-	SCHUR_PROFILE_BEGIN(ColorPrecondInit_CreateInitLocalSchurComplement);
-
-	try{
-
-
-	/*m_spSchurComplementOp = make_sp(new SchurComplementOperator<TAlgebra>(A, skeletonMark));
-	if (m_spSchurComplementOp.invalid())
-	{
-		UG_ASSERT(m_spSchurComplementOp.invalid(), "Failed creating operator!")
-	}
-
-//	set dirichlet solver for local Schur complement
-	m_spSchurComplementOp->set_dirichlet_solver(m_spDirichletSolver);
-
-	if(debug_writer().valid())
-		m_spSchurComplementOp->set_debug(debug_writer());
-
-//	init
-	UG_DLOG(SchurDebug, 1, "\n%   - Init local Schur complement ... ");
-
-	m_spSchurComplementOp->init();
-	UG_DLOG(SchurDebug, 1, "done.\n");
-
-
-
-//	1.4 check all procs
-	bool bSuccess = true;
-	if(!pcl::AllProcsTrue(bSuccess))
-	{
-		UG_LOG("ERROR in ColorPrecond::init: Some processes could not init"
-				" local Schur complement.\n");
-		return false;
-	}
-	return true;
-
-	}UG_CATCH_THROW("ColorPrecond::" << __FUNCTION__ << " failed")
-	return false;
-}*/
-
-
-
 template <typename TAlgebra>
 bool ColorPrecond<TAlgebra>::
 check_requirements()
 {
-	/*
-	if(m_spDirichletSolver.invalid())
-	{
-		UG_LOG("ERROR in SchurSolver: No dirichlet solver set "
-				" for inversion of A_{II} in Local Schur complement.\n");
-		return false;
-	}
-
-	if(m_spSkeletonSolver.invalid())
-	{
-		UG_LOG("ERROR in ColorPrecond: No skeleton solver set.\n");
-		return false;
-	}
-*/
 	return true;
 }
 
@@ -164,19 +91,6 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 	m_pA = A;
 	if(check_requirements() == false)
 		return false;
-
-	/*
-//	Determine slicing for SchurComplementOperator
-	std::vector<schur_slice_desc_type> skeletonMark;
-	get_skeleton_slicing(A, skeletonMark);
-
-//	create & init local Schur complement object
-
-	if(create_and_init_local_schur_complement(A, skeletonMark) == false)
-		return false;
-*/
-//  configure schur complement solver
-// 	init_skeleton_solver();
 
 	create_diag_vectors(*A); // may happen on device
 
@@ -325,30 +239,6 @@ clear_diag_vectors()
 
 }
 
-/*
-//	Stepping routine
-template <typename TAlgebra>
-void ColorPrecond<TAlgebra>::
-schur_solver_forward(vector_type &u_inner, vector_type &f_inner)
-{
-	UG_DLOG(SchurDebug, 3, "\n% 'ColorPrecond::step() - forward':");
-	SCHUR_PROFILE_BEGIN(SchurSolverStep_Forward);
-
-	// solve
-	//UG_LOG("\nf_inner1="); UG_LOG_Vector<vector_type>(f_inner);
-
-	m_spDirichletSolver->apply_return_defect(u_inner, f_inner);
-	// store first correction -> will be used again
-	//UG_LOG("\nu_inner1="); UG_LOG_Vector<vector_type>(u_inner);
-
-	//UG_LOG("\nf_skeleton="); UG_LOG_Vector<vector_type>(f_skeleton);
-
-	// slicing.subtract_vector_slice(d, SD_SKELETON, f_skeleton);
-	/// f_skeleton *= -1.0;
-}
-*/
-
-
 
 // solve a*c = beta*d
 void InverseMatMult(number& ci, const double beta, const number Aii, const number di)
@@ -458,10 +348,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 
 } /* end 'ColorPrecond::step()' */
 
-
-
-
-
+‚
 
 }  // end of namespace ColorGS
 

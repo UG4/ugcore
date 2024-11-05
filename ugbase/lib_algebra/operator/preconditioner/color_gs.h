@@ -58,8 +58,6 @@
 
 #include "lib_algebra/adapter/slicing.h"
 
-// #include "schur/schur.h"
-
 
 namespace ug{
 
@@ -113,8 +111,6 @@ class ColorPrecond: public IPreconditioner<TAlgebra>
 		ColorPrecond(const ColorPrecond<TAlgebra> &parent) : base_type(parent)
 		{
 			// m_spDirichletSolver = parent.m_spDirichletSolver;
-			//m_spSkeletonSolver = parent.m_spSkeletonSolver;
-			//m_spSchurComplementOp = parent.m_spSchurComplementOp;
 		}
 
 
@@ -141,16 +137,15 @@ class ColorPrecond: public IPreconditioner<TAlgebra>
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d);
 
 		//	Postprocess routine
-		virtual bool postprocess();//  {return true;}
+		virtual bool postprocess();
 
 	///	returns if parallel solving is supported
 		virtual bool supports_parallel() const
 		{
-
 			return true;
 		}
 
-public:
+	public:
 		///	set debug output
 		void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
 		{
@@ -166,15 +161,9 @@ public:
 
 
 
-private:
-	/*	bool create_and_init_local_schur_complement(SmartPtr<MatrixOperator<matrix_type, vector_type> > A,
-				std::vector<schur_slice_desc_type> &skeletonMark);
-*/
+	private:
 
 		bool check_requirements();
-	/*	void get_skeleton_slicing(SmartPtr<MatrixOperator<matrix_type, vector_type> > A,
-				std::vector<schur_slice_desc_type> &skeletonMark);*/
-
 
 		void create_aux_vectors(const vector_type& d);
 		void clear_aux_vectors();
@@ -182,27 +171,18 @@ private:
 		void create_diag_vectors(const matrix_type& A);
 		void clear_diag_vectors();
 
-		// void sub_solver_forward(vector_type &u_inner, vector_type &f_inner);
-
 
 	protected:
 
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_pA;
 
-
-		// 	Reference to operator that is inverted by this Inverse Operator
-		//	SmartPtr<MatrixOperator<matrix_type,vector_type> > m_spOperator;
-
-		/// Solver Dirichlet problems \f$A_{II}\f$ (also used in Schur complement)
+		// Slicing data.
 		SlicingData m_slicing;
-
 
 		// temporary vectors for correction/defect
 		SmartPtr<vector_type> m_aux_rhs[MAX_COLORS];
 		SmartPtr<vector_type> m_aux_sol[MAX_COLORS];
 		std::vector<typename matrix_type::value_type> m_diag[MAX_COLORS];
-
-
 
 };
 
