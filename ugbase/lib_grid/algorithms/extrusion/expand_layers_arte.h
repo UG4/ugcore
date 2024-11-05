@@ -46,7 +46,7 @@ namespace ug
  *
  */
 bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, std::vector<FractureInfo> const & fracInfos,
-						    bool expandInnerFracBnds, bool expandOuterFracBnds );
+						    bool useTrianglesInDiamonds, bool establishDiamonds );
 
 
 

@@ -140,8 +140,8 @@ update(const TFVGeom* geo,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
-	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(Velocity != NULL, "Null pointer");
+	UG_ASSERT(geo != nullptr, "Null pointer");
+	UG_ASSERT(Velocity != nullptr, "Null pointer");
 
 //	\todo: think about: this should be something like scvf.num_sh()
 	const size_t numSH = geo->num_sh();
@@ -280,8 +280,8 @@ update(const TFVGeom* geo,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
-	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(Velocity != NULL, "Null pointer");
+	UG_ASSERT(geo != nullptr, "Null pointer");
+	UG_ASSERT(Velocity != nullptr, "Null pointer");
 
 //	\todo: think about: this should be something like scvf.num_sh()
 	const size_t numSH = geo->num_sh();
@@ -456,8 +456,8 @@ update(const TFVGeom* geo,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
-	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(Velocity != NULL, "Null pointer");
+	UG_ASSERT(geo != nullptr, "Null pointer");
+	UG_ASSERT(Velocity != nullptr, "Null pointer");
 
 //	\todo: think about: this should be something like scvf.num_sh()
 	const size_t numSH = geo->num_sh();
@@ -618,9 +618,9 @@ update(const TFVGeom* geo,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
-	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(Velocity != NULL, "Null pointer");
-//	UG_ASSERT(DiffDisp != NULL, "Null pointer");
+	UG_ASSERT(geo != nullptr, "Null pointer");
+	UG_ASSERT(Velocity != nullptr, "Null pointer");
+//	UG_ASSERT(DiffDisp != nullptr, "Null pointer");
 
 //	Compute Volume of Element
 //	typedef typename TFVGeom::ref_elem_type ref_elem_type;
@@ -644,7 +644,7 @@ update(const TFVGeom* geo,
 		number lambda = -1;
 
 	//	if DiffDisp-Tensor passed, compute lambda
-		if(DiffDisp != NULL)
+		if(DiffDisp != nullptr)
 		{
 		//  Get Gradients
 			MathVector<dim> DiffGrad;
@@ -679,7 +679,7 @@ update(const TFVGeom* geo,
 	//	Case 1:
 	//	full upwind is used
 	///////////////////////////////////////////////////////////////////
-		if(lambda <= 0 || DiffDisp == NULL)
+		if(lambda <= 0 || DiffDisp == nullptr)
 		{
 		//	Choose Upwind corner
 			const size_t up = (flux >= 0) ? scvf.from() : scvf.to();
@@ -902,8 +902,8 @@ bool ConvectionShapesSkewedUpwind<TDim>::
 		   const MathMatrix<dim, dim> *DiffDisp,
 		   bool computeDeriv)
 {
-	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(Velocity != NULL, "Null pointer");
+	UG_ASSERT(geo != nullptr, "Null pointer");
+	UG_ASSERT(Velocity != nullptr, "Null pointer");
 
 	//	\todo: think about: this should be something like scvf.num_sh()
 	const size_t numSH = geo->num_sh();
@@ -1071,8 +1071,8 @@ bool ConvectionShapesLinearProfileSkewedUpwind<TDim>::
 		   const MathMatrix<dim, dim> *DiffDisp,
 		   bool computeDeriv)
 {
-	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(Velocity != NULL, "Null pointer");
+	UG_ASSERT(geo != nullptr, "Null pointer");
+	UG_ASSERT(Velocity != nullptr, "Null pointer");
 
 	//	\todo: think about: this should be something like scvf.num_sh()
 	const size_t numSH = geo->num_sh();

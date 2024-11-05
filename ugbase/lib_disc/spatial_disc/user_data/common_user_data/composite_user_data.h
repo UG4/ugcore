@@ -33,13 +33,20 @@
 #ifndef __LIB_DISC__COMPOSITE_USER_DATA_H_
 #define __LIB_DISC__COMPOSITE_USER_DATA_H_
 
-// UG4
+#include <vector>
+#include <string>
+
+// UG4 headers
+#include "lib_grid/tools/subset_group.h"
 #include "lib_disc/spatial_disc/user_data/linker/linker.h"
 
 namespace ug{
 
-//! This is a compositum for user data from different subsets.
-/*! This is handy, but the implementation is rather slow. */
+/// This is a compositum for user data defined on different subsets
+/**
+ * This combines user data objects defined on several subsets which is handy,
+ * but may be slow.
+ */
 template <typename TData, int dim, typename TRet = void>
 class CompositeUserData : public UserData<TData, dim, TRet>
 {
@@ -47,47 +54,74 @@ protected:
 	typedef CplUserData<TData, dim, TRet> TCplUserData;
 public:
 	typedef UserData<TData, dim, TRet> base_type;
-	typedef SmartPtr<base_type> ref_type;
-	typedef std::map<int, ref_type>  map_type;
+	typedef SmartPtr<base_type> ref_type; ///< the attached UserData objects should have the same type as this class (i.e. they are "remapped")
 
-	CompositeUserData(bool continuous) : m_continuous(continuous), m_bRequiresGridFunction(false)
-	{}
+	CompositeUserData() : m_bContinuous(true), m_bRequiresGridFunction(false) {}
+	
+	CompositeUserData(bool continuous) : m_bContinuous(continuous), m_bRequiresGridFunction(false) {}
 
 	virtual ~CompositeUserData(){}
 
-	///! Add 'UserData' for given subset index.
-	void add(int si, ref_type ref)
-
+	/// Add 'UserData' object for given subset index.
+	void add
+	(
+		int si, ///< the subset index
+		ref_type ref ///< pointer to the user-data object
+	)
 	{
-		// UG_ASSERT(ref->continuous() == m_continuous, "ERROR: Mixing continuous and discontinuous data!");
-		m_map[si] = ref;
-		m_continuous = m_continuous && ref->continuous();
+		UG_ASSERT (si >= 0, "CompositeUserData: Non-existing subset index!");
+		
+		if ((size_t) si >= m_vData.size ())
+			m_vData.resize (si + 1);
+		m_vData[si] = ref;
+		
+		// UG_ASSERT(ref->continuous() == m_continuous, "CompositeUserData: Mixing continuous and discontinuous data!");
+		m_bContinuous = m_bContinuous && ref->continuous();
 		m_bRequiresGridFunction = m_bRequiresGridFunction || ref->requires_grid_fct();
 	}
+	
+	/// Add 'UserData' object for all subsets in a given group
+	void add
+	(
+		const SubsetGroup & ssg, ///< the subset group
+		ref_type ref ///< pointer to the user-data object
+	)
+	{
+		for (size_t i = 0; i < ssg.size (); i++) add (ssg[i], ref);
+	}
+	
+	/// Add 'UserData' object for all subsets by their names
+	void add
+	(
+		ConstSmartPtr<ISubsetHandler> ssh, ///< subset handler of the domain
+		const char * ss_names, ///< names of the subdomains
+		ref_type ref ///< pointer to the user-data object
+	)
+	{
+		std::vector<std::string> v_ss_names;
+		SubsetGroup ssg;
+		
+		TokenizeTrimString (std::string (ss_names), v_ss_names);
+		ssg.add (v_ss_names);
+		add (ssg, ref);
+	}
 
-	ref_type get(int si)
-	{ return (find(si)->second); }
+	/// Returns the value assigned to a subset index
+	ref_type get (int si) const { return find(si); }
 
-	bool has(int si)
-	{ return find(si) != m_map.end();}
-
-
-	bool is_coupled(int si)
-	{ return (has(si) && find(si)->second.template is_of_type<TCplUserData>()); }
-
-	SmartPtr<TCplUserData> get_coupled(int si)
-	{ return find(si)->second.template cast_dynamic<TCplUserData>(); }
+	/// Checks if anything is assigned to a given subset index
+	bool has(int si) const  { return si >= 0 && (size_t) si < m_vData.size () && find(si).valid ();}
 
 
+	bool is_coupled(int si) { return has(si) && find(si).template is_of_type<TCplUserData>(); }
 
+	SmartPtr<TCplUserData> get_coupled(int si) { return find(si).template cast_dynamic<TCplUserData>(); }
 
 	// Implementing virtual functions
 
-	virtual bool continuous() const
-	{return m_continuous;}
+	virtual bool continuous() const {return m_bContinuous;}
 
-
-	//! returns true, if at least one of the underlying UserData requires grid functions.
+	/// returns true, if at least one of the underlying UserData requires grid functions.
 	 virtual bool requires_grid_fct() const
 	 {
 		 return m_bRequiresGridFunction;
@@ -97,66 +131,71 @@ public:
 	 virtual TRet operator() (TData& value,
 									 const MathVector<dim>& globIP,
 									 number time, int si) const
-	{ return (*find(si)->second)(value, globIP, time, si); }
+	{ return (*find(si)) (value, globIP, time, si); }
 
-		///	returns values for global positions
-			virtual void operator()(TData vValue[],
+	///	returns values for global positions
+	virtual void operator()(TData vValue[],
+							const MathVector<dim> vGlobIP[],
+							number time, int si, const size_t nip) const
+	{ return (*find(si)) (vValue, vGlobIP, time, si, nip); }
+
+
+	virtual void operator()(TData vValue[],
 									const MathVector<dim> vGlobIP[],
-									number time, int si, const size_t nip) const
-			{ return (*find(si)->second)(vValue, vGlobIP, time, si, nip); }
-
-
-			virtual void operator()(TData vValue[],
-					                        const MathVector<dim> vGlobIP[],
-					                        number time, int si,
-					                        GridObject* elem,
-					                        const MathVector<dim> vCornerCoords[],
-					                        const MathVector<1> vLocIP[],
-					                        const size_t nip,
-					                        LocalVector* u,
-					                        const MathMatrix<1, dim>* vJT = NULL) const
-			{
-				return (*find(si)->second)(vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
-			}
-
-			virtual void operator()(TData vValue[],
-					                        const MathVector<dim> vGlobIP[],
-					                        number time, int si,
-					                        GridObject* elem,
-					                        const MathVector<dim> vCornerCoords[],
-					                        const MathVector<2> vLocIP[],
-					                        const size_t nip,
-					                        LocalVector* u,
-					                        const MathMatrix<2, dim>* vJT = NULL) const
-			{
-				return (*find(si)->second)(vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
-			}
-
-			virtual void operator()(TData vValue[],
-			                       const MathVector<dim> vGlobIP[],
-			                        number time, int si,
-			                        GridObject* elem,
-			                        const MathVector<dim> vCornerCoords[],
-			                        const MathVector<3> vLocIP[],
-			                        const size_t nip,
-			                        LocalVector* u,
-			                        const MathMatrix<3, dim>* vJT = NULL) const
-			{
-				return (*find(si)->second)(vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
-			}
-
-
-
-protected:
-	typename map_type::const_iterator find(int si) const
+									number time, int si,
+									GridObject* elem,
+									const MathVector<dim> vCornerCoords[],
+									const MathVector<1> vLocIP[],
+									const size_t nip,
+									LocalVector* u,
+									const MathMatrix<1, dim>* vJT = NULL) const
 	{
-		typename map_type::const_iterator it = m_map.find(si);
-		UG_ASSERT(it != m_map.end(), "ERROR: Subset not found!");
-		return it;
+		return (*find(si)) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 	}
 
-	map_type m_map;
-	bool m_continuous;
+	virtual void operator()(TData vValue[],
+									const MathVector<dim> vGlobIP[],
+									number time, int si,
+									GridObject* elem,
+									const MathVector<dim> vCornerCoords[],
+									const MathVector<2> vLocIP[],
+									const size_t nip,
+									LocalVector* u,
+									const MathMatrix<2, dim>* vJT = NULL) const
+	{
+		return (*find(si)) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
+	}
+
+	virtual void operator()(TData vValue[],
+						   const MathVector<dim> vGlobIP[],
+							number time, int si,
+							GridObject* elem,
+							const MathVector<dim> vCornerCoords[],
+							const MathVector<3> vLocIP[],
+							const size_t nip,
+							LocalVector* u,
+							const MathMatrix<3, dim>* vJT = NULL) const
+	{
+		return (*find(si)) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
+	}
+
+private:
+
+	// returns the reference to the user data in the given subset
+	const ref_type & find (int si) const
+	{
+		if (si < 0 || (size_t) si >= m_vData.size ())
+		{
+			UG_THROW ("CompositeUserData: No data for subset " << si);
+		}
+		
+		return m_vData [si];
+	}
+
+private:
+
+	std::vector<ref_type> m_vData;
+	bool m_bContinuous;
 	bool m_bRequiresGridFunction;
 };
 
