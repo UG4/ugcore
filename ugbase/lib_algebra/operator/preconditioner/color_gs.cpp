@@ -271,23 +271,24 @@ create_diag_vectors(const matrix_type& mat)
 
 	// Extract matrix diagonal.
 #ifdef UG_PARALLEL
-					//	temporary vector for the diagonal
+	// Temporary vector for the diagonal.
 	ParallelVector<Vector< typename matrix_type::value_type > > diag;
 	diag.resize(size);
 
-	//	copy the layouts+communicator into the vector
+	// Copy the layouts+communicator into the vector.
 	diag.set_layouts(mat.layouts());
 
-	// 	copy diagonal
+	// Copy diagonal.
 	for(size_t i = 0; i < diag.size(); ++i){
 		diag[i] = mat(i, i);
 	}
 
-	//	make diagonal consistent
+	// Make it consistent.
 	diag.set_storage_type(PST_ADDITIVE);
 	diag.change_storage_type(PST_CONSISTENT);
 
 
+	// Group by color.
 	if ((diag.size() > 0) && (CheckVectorInvertible(diag) == false))
 		return false;
 //			UG_ASSERT(CheckVectorInvertible(diag), "Jacobi: A has noninvertible diagonal");
@@ -299,20 +300,14 @@ create_diag_vectors(const matrix_type& mat)
 
 	diag.clear(); // will be executed automatically anyway...
 #else
+	UG_ASSERT(count == mat.num_rows(), "Sizes do not match!")
+
+	// Group by color.
 	for(size_t i = 0; i < mat.num_rows(); ++i){
 		size_t color=sd.get_type(i);
 		m_diag[color].push_back(mat(i, i));
 	}
-	UG_ASSERT(count == mat.num_rows(), "Sizes do not match!")
 #endif
-
-
-
-
-
-
-
-
 
 
 
@@ -321,6 +316,7 @@ template <typename TAlgebra>
 void ColorPrecond<TAlgebra>::
 clear_diag_vectors()
 {
+	// Clear all diagonal entries.
 	for (size_t i = 0; i<ColorGS::MAX_COLORS; i++)
 	{
 		m_diag[i].clear();
@@ -361,7 +357,6 @@ void InverseMatMult(number & ci, double beta, const number &Aii, const number & 
 
 
 
-
 template <typename TAlgebra>
 bool ColorPrecond<TAlgebra>::
 step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
@@ -377,10 +372,9 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	// const size_t n_skeleton=m_spSchurComplementOp->sub_size(SD_SKELETON);
 
 	//	check storage type
-
 	if(!d.has_storage_type(PST_ADDITIVE))
 	{
-		UG_LOG("ERROR: In 'ColorPrecond::step':Inadequate storage format of 'd'.\n");
+		UG_LOG("ERROR: In 'ColorPrecond::step': Inadequate storage format of 'd'.\n");
 		return false;
 	}
 #endif
@@ -399,11 +393,11 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	for (size_t i = 0; i<ColorGS::MAX_COLORS; i++)
 	{
 		const size_t nelems = slicing.get_num_elems(i);
+		if (nelems == 0) continue;
 
 		vector_type &di=*m_aux_rhs[i];
 		vector_type &ci=*m_aux_sol[i];
 		const auto DiagAi = m_diag[i];
-
 
 		// Some checks.
 		UG_ASSERT(nelems == m_diag[i].size(),  "Vector sizes do not match...")
@@ -413,10 +407,9 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 		// UG_DLOG("Iter: "<< i << "(" << nelems << ")" << std::endl);
 
 
+
 		// Get (original) defect.
 		slicing.get_vector_slice(d, i, di);
-
-
 #ifdef UG_PARALLEL
 		m_aux_rhs[i]->set_storage_type(PST_ADDITIVE);
 #endif
@@ -425,11 +418,9 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 		slicing.get_vector_slice(c, i, ci);
 
 
-
 		// Consider all previous updates (TODO: this is slow...)
 		for (size_t j = 0; i<j; ++j)
 		{
-
 			// di = di - Aij*cj
 			vector_type &cj=*m_aux_sol[j];
 
@@ -437,24 +428,20 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 			slicing.get_matrix(pOp->get_matrix(), i,j, Aij);
 
 			Aij.axpy(di, 1.0, di, -1.0, cj);
-
 		}
 
 
-		//  Jacobi iteration (in PARALLEL!).
+		// Jacobi iteration (in PARALLEL!).
 		#pragma omp parallel for
 		for (size_t ii=0; ii<nelems; ++ii)
 		{
-			InverseMatMult(ci[ii], 1.0, DiagAi[ii], di[ii]);
+			const double mydamp = 0.66; //< neccessary for smoothing
+			InverseMatMult(ci[ii], mydamp, DiagAi[ii], di[ii]);
 		}
+
 
 		// Set correction.
 		slicing.set_vector_slice(ci, c, i);
-
-
-		// Update defect (for j>i).
-
-
 
 
 	}  // end of loop over colors.
