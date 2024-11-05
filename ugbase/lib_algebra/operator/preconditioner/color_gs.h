@@ -69,7 +69,7 @@ namespace ColorGS {
 
 
 typedef std::vector<int> ColoringVector;
-static const size_t MAX_COLORS = 256;
+static const size_t MAX_COLORS = 16;
 
 typedef SlicingData<ColoringVector, MAX_COLORS> SlicingData;
 
@@ -168,9 +168,14 @@ class ColorPrecond: public IPreconditioner<TAlgebra>
 		void create_aux_vectors(const vector_type& d);
 		void clear_aux_vectors();
 
+		void create_aux_matrices(const matrix_type& A);
+		void clear_aux_matrices();
+
 		void create_diag_vectors(const matrix_type& A);
 		void clear_diag_vectors();
 
+		matrix_type& sub_matrix(size_t i, size_t j)
+		{ return m_aux_matrix[i*MAX_COLORS+j]; }
 
 	protected:
 
@@ -182,6 +187,7 @@ class ColorPrecond: public IPreconditioner<TAlgebra>
 		// temporary vectors for correction/defect
 		SmartPtr<vector_type> m_aux_rhs[MAX_COLORS];
 		SmartPtr<vector_type> m_aux_sol[MAX_COLORS];
+		matrix_type m_aux_matrix[MAX_COLORS*MAX_COLORS];
 		std::vector<typename matrix_type::value_type> m_diag[MAX_COLORS];
 
 };

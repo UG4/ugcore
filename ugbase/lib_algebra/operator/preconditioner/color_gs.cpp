@@ -93,6 +93,7 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 		return false;
 
 	create_diag_vectors(*A); // may happen on device
+	create_aux_matrices(*A);
 
 //	status
 	UG_DLOG(SchurDebug, 1, "\n% 'ColorPrecond::preprocess(A)' done!\n");
@@ -111,6 +112,7 @@ bool ColorPrecond<TAlgebra>::
 postprocess()
 {
 	clear_aux_vectors();
+	clear_aux_matrices();
 	return true;
 }
 
@@ -165,6 +167,39 @@ clear_aux_vectors()
 	}
 
 }
+
+
+template <typename TAlgebra>
+void ColorPrecond<TAlgebra>::
+create_aux_matrices(const matrix_type& mat)
+{
+	const SlicingData &sd = slicing();
+	for (size_t i = 0; i<ColorGS::MAX_COLORS; i++)
+	{
+		for (size_t j = 0; j<=i; j++)
+		{
+			sd.get_matrix(mat, i,j, sub_matrix(i,j));
+		}
+	}
+}
+
+template <typename TAlgebra>
+void ColorPrecond<TAlgebra>::
+clear_aux_matrices()
+{
+	// Clear all diagonal entries.
+	// #pragma omp parallel for
+	for (size_t i = 0; i<ColorGS::MAX_COLORS; i++)
+	{
+		for (size_t j = 0; j<ColorGS::MAX_COLORS; j++)
+		{
+			//sub_matrix(i,j);
+		}
+	}
+
+}
+
+
 
 template <typename TAlgebra>
 void ColorPrecond<TAlgebra>::
@@ -226,6 +261,7 @@ create_diag_vectors(const matrix_type& mat)
 
 
 }
+
 template <typename TAlgebra>
 void ColorPrecond<TAlgebra>::
 clear_diag_vectors()
@@ -308,16 +344,14 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 
 
 		// Consider all previous updates (TODO: this is serial and slow...)
-		#pragma omp parallel for
+		// #pragma omp parallel for
 		for (size_t j = 0; j<i; ++j)
 		{
 			// di = di - Aij*cj
-			vector_type &cj=*m_aux_sol[j];
+			vector_type&  cj = *m_aux_sol[j];
+			matrix_type& Aij = sub_matrix(i,j);
 
-			matrix_type Aij;
-			slicing.get_matrix(pOp->get_matrix(), i,j, Aij);
-
-			#pragma omp critical UpdateDefect
+			// #pragma omp critical UpdateDefect
 			Aij.axpy(di, 1.0, di, -1.0, cj);
 		}
 
@@ -326,7 +360,6 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 		#pragma omp parallel for // simd
 		for (size_t ii=0; ii<nelems; ++ii)
 		{
-			// const double mydamp = 1.0; //< neccessary for smoothing.
 			InverseMatMult(ci[ii], 1.0, DiagAi[ii], di[ii]);
 		}
 
@@ -348,7 +381,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 
 } /* end 'ColorPrecond::step()' */
 
-‚
+
 
 }  // end of namespace ColorGS
 
