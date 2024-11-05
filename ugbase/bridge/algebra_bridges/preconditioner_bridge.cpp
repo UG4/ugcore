@@ -50,6 +50,9 @@
 
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
 
+
+#include "lib_algebra/operator/preconditioner/color_gs.h"
+
 #include "../util_overloaded.h"
 using namespace std;
 
@@ -353,6 +356,39 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "AgglomeratingPreconditioner", tag);
 	}
 
+	{
+		using T = ColorGS::ColorPrecond<TAlgebra>;
+		using TBase = typename T::base_type;
+
+
+		string name = string("ColorPrecond").append(suffix);
+
+		reg.add_class_<T,TBase>(name, grp, "ColorPrecond")
+			   .add_constructor()
+			   .add_method("set_slicing", &T::set_slicing, "","Unterlying slicing")
+					// .ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type> > ) )("linOpInverse")
+					.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ColorPrecond", tag);
+	}
+
+}
+
+static void Common(Registry& reg, string parentGroup)
+{
+	std::string grp = parentGroup; grp.append("/ColorGS");
+
+	/// ColorGS
+	{
+		using T = ColorGS::SlicingData;
+		string name = string("ColorSlicing");
+		reg.add_class_<T>(name, grp, "ColorSlicing")
+		   .add_constructor()
+		   .add_method("set_types", &T::set_types, "","Colors to be used")
+		   .set_construct_as_smart_pointer(true);
+	}
+
+
+
 }
 	
 
@@ -371,6 +407,7 @@ void RegisterBridge_Preconditioner(Registry& reg, string grp)
 
 	try{
 		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterCommon<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

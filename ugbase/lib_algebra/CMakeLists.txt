@@ -53,6 +53,7 @@ set(src_Algebra	 ${src_Algebra}
 	algebra_common/permutation_util.cpp
 	ordering_strategies/algorithms/native_cuthill_mckee.cpp
 	operator/preconditioner/schur/schur.cpp
+	operator/preconditioner/color_gs.cpp
 	)
 	
 add_subdirectory(common/matrixio)
