@@ -46,8 +46,8 @@
 #include <vector>
 #include "lib_grid/lg_base.h"
 #include "expand_layers.h"
-#include "expand_layers_arte.h"
-#include "expand_layers_arte3D.h"
+	//#include "expand_layers_arte.h"
+	//#include "expand_layers_arte3D.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/callbacks/callbacks.h"
 #include "lib_grid/grid/grid_util.h"

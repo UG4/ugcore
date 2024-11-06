@@ -41,7 +41,30 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include <boost/function.hpp>
+
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/callbacks/callbacks.h"
+#include "lib_grid/grid/grid_util.h"
+
+#include <stack>
+#include <utility>
+#include <vector>
+#include <type_traits>
+#include <limits>
+#include <atomic>
+#include <cstddef>
+#include <bitset>
+#include <string>
+#include <cmath>
+
+#include "support.h"
+#include "support3D.h"
+
+
 #include <lib_grid/algorithms/extrusion/ArteExpandFracs3D.h>
+
+
 
 namespace ug
 {
@@ -468,6 +491,23 @@ bool ArteExpandFracs3D::generateVertexInfos()
 	// Lebendigmachung in:
 	// 	for( auto & fsfpmv : fracSubdom_facePerpendMinVal ) .....
 	// von dort lernen!!!!!
+
+	// notwendig: face, normal, volume, edge
+
+	for( auto const & fracInf : m_fracInfos )
+	{
+		IndexType fracSudo = fracInf.subsetIndex;
+
+
+//		for(EdgeIterator iterEdg = m_sh.begin<Edge>(fracInd); iterEdg != m_sh.end<Edge>(fracInd); iterEdg++ )
+//
+		for( FaceIterator iterFac = m_sh.begin<Face>(fracSudo); iterFac != m_sh.end<Face>(fracSudo); iterFac++ )
+		{
+
+		}
+
+
+	}
 
 	return false;
 }

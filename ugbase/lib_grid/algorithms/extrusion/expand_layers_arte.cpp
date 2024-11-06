@@ -57,7 +57,7 @@ using namespace std;
 
 namespace ug{
 
-
+//using namespace ug::support;
 
 using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
 
