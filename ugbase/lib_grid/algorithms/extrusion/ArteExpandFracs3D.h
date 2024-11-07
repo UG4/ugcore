@@ -56,6 +56,7 @@
 #include <vector>
 
 #include "support.h"
+#include "support3D.h"
 
 
 
@@ -156,6 +157,14 @@ private:
 	bool generateVertexInfos();
 
 	bool loop2EstablishNewVertices();
+
+//	ug::support::VertexFractureQuadrupel<Face*,vector3,Volume*,Edge*,IndexType> bla();
+
+	using VrtxFractrQuadrplArte3D = support::VertexFractureQuadrupel<Face*,vector3,Volume*,Edge*,IndexType>;
+
+	using VrtxFractrQuadrplArte3DVec = std::vector<VrtxFractrQuadrplArte3D>;
+
+	VrtxFractrQuadrplArte3DVec m_vrtxFractrQuadrplVec;
 
 };
 

@@ -38,10 +38,15 @@ public:
 	{
 	}
 
+
+
 private:
 
 	ELEMTYP m_elem;
 	INDEX_TYP m_sudo;
+
+	ElemInfo() {};
+
 
 };
 
@@ -55,21 +60,29 @@ typename INDEX_TYP
 class VertexFractureQuadrupel
 {
 public:
+
+	using ElemInfoFac = ElemInfo<FACETYP,INDEX_TYP>;
+
 	//face, normal, volume, edge
 
-	VertexFractureQuadrupel( ElemInfo<FACETYP,INDEX_TYP> const & fracFaceInfo,
+//	VertexFractureQuadrupel()
+//	{};
+
+
+	VertexFractureQuadrupel( ElemInfoFac const & fracFaceInfo,
 							 VOLUMETYP const & attVolume,
 							 NORMALTYP const & normal,
 							 std::pair<EDGETYP,EDGETYP> const & volCutEdges,
-							 std::pair<FACETYP,FACETYP> const & volCutEdgeFaces )
+							 std::pair<ElemInfoFac,ElemInfoFac> const & volCutEdgeFaces )
 	: m_fracFaceInfo(fracFaceInfo),
 	  m_attVolume(attVolume),
 	  m_normal(normal),
 	  m_volCutEdges(volCutEdges),
 	  m_volCutEdgeFaces(volCutEdgeFaces)
 	{
-
 	}
+
+	// todo fixme getter und ggf auch setter, aber vermutlich nur getter implementieren!!!
 
 private:
 
@@ -82,7 +95,7 @@ private:
 	VOLUMETYP m_attVolume;
 	NORMALTYP m_normal;
 	std::pair<EDGETYP,EDGETYP> m_volCutEdges;
-	std::pair<FACETYP,FACETYP> m_volCutEdgeFaces;
+	std::pair<ElemInfoFac,ElemInfoFac> m_volCutEdgeFaces;
 
 //private:
 //

@@ -97,7 +97,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aAdjInfoVols(AttVecVol()),
 	  m_aaVrtInfoAssoEdges( Grid::VertexAttachmentAccessor<AttVecEdge>()),
 	  m_aaVrtInfoAssoFaces( Grid::VertexAttachmentAccessor<AttVecFace>()),
-	  m_aaVrtInfoAssoVols( Grid::VertexAttachmentAccessor<AttVecVol>())
+	  m_aaVrtInfoAssoVols( Grid::VertexAttachmentAccessor<AttVecVol>()),
+	  m_vrtxFractrQuadrplVec(VrtxFractrQuadrplArte3DVec())
 {
 	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -494,6 +495,10 @@ bool ArteExpandFracs3D::generateVertexInfos()
 
 	// notwendig: face, normal, volume, edge
 
+	m_vrtxFractrQuadrplVec = VrtxFractrQuadrplArte3DVec();
+	// TODO FIXME diese Einträge erzeugen
+
+	
 	for( auto const & fracInf : m_fracInfos )
 	{
 		IndexType fracSudo = fracInf.subsetIndex;
@@ -504,6 +509,9 @@ bool ArteExpandFracs3D::generateVertexInfos()
 		for( FaceIterator iterFac = m_sh.begin<Face>(fracSudo); iterFac != m_sh.end<Face>(fracSudo); iterFac++ )
 		{
 
+//			VrtxFractrQuadrplArte3D vrtxFractrQuadrpl;
+
+			
 		}
 
 
@@ -525,6 +533,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 	// zentraler Loop
 
+	
 	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); ++ iterV )
 	{
 		// Position dieses Vertex
@@ -532,6 +541,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 		// TODO FIXME diese Funktion mit Leben und Analytischer Geometrie 13. Klasse füllen
 
+		
 	}
 
 
