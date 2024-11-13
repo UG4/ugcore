@@ -99,7 +99,7 @@ public:
 	)
 	{
 		std::vector<std::string> v_ss_names;
-		SubsetGroup ssg;
+		SubsetGroup ssg (ssh);
 		
 		TokenizeTrimString (std::string (ss_names), v_ss_names);
 		ssg.add (v_ss_names);
