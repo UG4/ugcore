@@ -2533,6 +2533,10 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 			auto sudoEdg = sh.get_subset_index(*iterEdg);
 
+			// sieht quasi doppelt gemoppelt aus
+			if( sudoEdg != fracInd )
+				UG_THROW("Subdomain Index Fehler " << std::endl);
+
 			// DEBUG ASSERT TEST static_assert( std::is_same< decltype(sudoEdg), int >::value );
 
 			// get vertices of edge, always 2

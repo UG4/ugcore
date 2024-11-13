@@ -98,7 +98,9 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaVrtInfoAssoEdges( Grid::VertexAttachmentAccessor<AttVecEdge>()),
 	  m_aaVrtInfoAssoFaces( Grid::VertexAttachmentAccessor<AttVecFace>()),
 	  m_aaVrtInfoAssoVols( Grid::VertexAttachmentAccessor<AttVecVol>()),
-	  m_vrtxFractrQuadrplVec(VrtxFractrQuadrplArte3DVec())
+	  m_aAdjInfoAVVFT( AttVecVertFracTrip() ),
+	  m_aaVrtInfoFraTri(Grid::VertexAttachmentAccessor<AttVecVertFracTrip>())
+//	  m_vrtxFractrQuadrplVec(VrtxFractrQuadrplArte3DVec())
 {
 	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -263,6 +265,16 @@ bool ArteExpandFracs3D::attachMarkers()
 	//	using VecVertFracTrip = std::vector<VertFracTrip>;
 	//	VecVertFracTrip vertexNoInfo;
 
+	// AttVecVertFracTrip m_aAdjInfoAVVFT;
+
+	VecVertFracTrip vertexNoInfo;
+
+	m_aAdjInfoAVVFT = AttVecVertFracTrip();
+
+	m_grid.attach_to_vertices_dv( m_aAdjInfoAVVFT, vertexNoInfo );
+
+	m_aaVrtInfoFraTri = Grid::VertexAttachmentAccessor<AttVecVertFracTrip>(m_grid,  m_aAdjInfoAVVFT );
+
 
 	return true;
 }
@@ -279,6 +291,9 @@ bool ArteExpandFracs3D::detachMarkers()
 	m_grid.detach_from_vertices( m_aAdjInfoEdges );
 	m_grid.detach_from_vertices( m_aAdjInfoFaces );
 	m_grid.detach_from_vertices( m_aAdjInfoVols );
+
+	m_grid.detach_from_vertices( m_aAdjInfoAVVFT  );
+
 
 	return true;
 }
@@ -495,7 +510,8 @@ bool ArteExpandFracs3D::generateVertexInfos()
 
 	// notwendig: face, normal, volume, edge
 
-	m_vrtxFractrQuadrplVec = VrtxFractrQuadrplArte3DVec();
+	// TODO FIXME das wollen wir nicht, sondern das alte Vertex Fracture Triple
+//	m_vrtxFractrQuadrplVec = VrtxFractrQuadrplArte3DVec();
 	// TODO FIXME diese Einträge erzeugen
 
 	
@@ -510,8 +526,18 @@ bool ArteExpandFracs3D::generateVertexInfos()
 		{
 
 //			VrtxFractrQuadrplArte3D vrtxFractrQuadrpl;
+			
+			Face* fac = *iterFac;
+			
+			auto sudoFacInnerLoop = m_sh.get_subset_index(fac);
+			
+			if( sudoFacInnerLoop != fracSudo )
+				UG_THROW("Subdomain Index Fehler 3D " << std::endl);
+
+//			std::vector<Edge*>
 
 			
+
 		}
 
 

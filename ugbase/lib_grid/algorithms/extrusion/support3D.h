@@ -86,7 +86,7 @@ public:
 
 private:
 
-//	FACETYP const getFace() const { return m_face; }
+//	FACETYP const getFace() const { return m_full; }
 //	NORMALTYP const getNormal() const { return m_normal; }
 //	VOLUMETYP const getVolume() const { return m_volume; }
 //	EDGETYP const getEdge() const { return m_edge; }
@@ -107,6 +107,48 @@ private:
 	VertexFractureQuadrupel()
 	{};
 };
+
+
+template <
+typename MANIFOLDTYP,
+typename FULLDIMTYP,
+typename SENKRECHTENTYP
+>
+class VertexFractureTripleMF
+{
+
+public:
+
+	VertexFractureTripleMF( MANIFOLDTYP const & manif, FULLDIMTYP const & full, SENKRECHTENTYP const & normal   )
+	: m_manif(manif), m_full(full), m_normal(normal), m_newNormal(normal)
+	{
+	};
+
+	MANIFOLDTYP const getManif() const { return m_manif; }
+
+	FULLDIMTYP const getFull() const { return m_full; }
+
+	SENKRECHTENTYP const getNormal() const { return m_normal; }
+
+	void setNewNormal( SENKRECHTENTYP const & chNorml ) { m_newNormal = chNorml; }
+	SENKRECHTENTYP const getNewNormal() const { return m_newNormal; }
+
+private:
+
+	MANIFOLDTYP m_manif;
+	FULLDIMTYP m_full;
+	SENKRECHTENTYP  m_normal;
+	SENKRECHTENTYP  m_newNormal;
+
+	VertexFractureTripleMF()
+	{};
+
+};
+
+
+//////////////////////////////////////////////////////////////////
+
+
 
 }
 

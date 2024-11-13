@@ -160,12 +160,21 @@ private:
 
 //	ug::support::VertexFractureQuadrupel<Face*,vector3,Volume*,Edge*,IndexType> bla();
 
-	using VrtxFractrQuadrplArte3D = support::VertexFractureQuadrupel<Face*,vector3,Volume*,Edge*,IndexType>;
+//	using VrtxFractrQuadrplArte3D = support::VertexFractureQuadrupel<Face*,vector3,Volume*,Edge*,IndexType>;
+//
+//	using VrtxFractrQuadrplArte3DVec = std::vector<VrtxFractrQuadrplArte3D>;
+//
+//	VrtxFractrQuadrplArte3DVec m_vrtxFractrQuadrplVec;
 
-	using VrtxFractrQuadrplArte3DVec = std::vector<VrtxFractrQuadrplArte3D>;
+	using VertFracTrip = support::VertexFractureTripleMF<Face*, Volume*, vector3>;
 
-	VrtxFractrQuadrplArte3DVec m_vrtxFractrQuadrplVec;
+	using VecVertFracTrip = std::vector<VertFracTrip>;
 
+	using AttVecVertFracTrip = Attachment<VecVertFracTrip>;
+
+	AttVecVertFracTrip m_aAdjInfoAVVFT;
+
+	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> m_aaVrtInfoFraTri;
 };
 
 } /* namespace ug */
