@@ -186,6 +186,12 @@ private:
 
 	Grid::VolumeAttachmentAccessor<AttVrtVec> m_aaVrtVecVol;
 
+	using CrossVertInf = support::CrossingVertexInfoVol<Vertex*, IndexType >;
+
+	std::vector<CrossVertInf> m_vecCrossVrtInf;
+
+
+
 };
 
 } /* namespace ug */

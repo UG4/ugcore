@@ -102,7 +102,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaVrtInfoFraTri(Grid::VertexAttachmentAccessor<AttVecVertFracTrip>()),
 //	  m_vrtxFractrQuadrplVec(VrtxFractrQuadrplArte3DVec())
 	  m_attVrtVec(AttVrtVec()),
-	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() )
+	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
+	  m_vecCrossVrtInf(std::vector<CrossVertInf>())
 {
 	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -702,6 +703,9 @@ bool ArteExpandFracs3D::collectFaceVertices( std::vector<Vertex*> & facVrt, Face
 // established in additional functionalities independent of this function
 bool ArteExpandFracs3D::loop2EstablishNewVertices()
 {
+	m_vecCrossVrtInf = std::vector<CrossVertInf>();
+
+
 	// TODO FIXME sowas von der Art wird nötig sein als Vorbereitung für die Diamanten,
 	// Infos darin speichern, vielleicht auch noch notwendig, die Kanten zu speichern oder die faces,
 	// zu klären im Laufe der Implementation
@@ -713,6 +717,8 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 	// ebenso seine Befüllung, braucht noch eine Funktion dazwischen, die attachments selber in die
 	// attach Funktion natürlich
 	
+
+
 	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); ++ iterV )
 	{
 		// Position dieses Vertex

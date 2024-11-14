@@ -148,6 +148,70 @@ private:
 
 //////////////////////////////////////////////////////////////////
 
+// TODO FIXME das muss angepasst werden, ist noch wie für 2D Fall bisher
+enum FracTypVol { SingleFrac = 2, TEnd = 3, XCross = 4 };
+
+template < typename VRT, typename IndTyp >
+class CrossingVertexInfoVol
+{
+
+public:
+
+	CrossingVertexInfoVol( VRT const & crossVrt, FracTypVol fracTyp )
+	: m_crossVrt(crossVrt), m_fracTyp( fracTyp ),
+	  m_vecShiftedVrts(std::vector<VRT>())
+	,  m_vecShiftedVrtsWithTypInf(std::vector<std::pair<VRT,bool>>())
+	, m_numberAtFreeSide(0)
+	{
+	}
+
+	VRT getCrossVertex() const { return m_crossVrt; }
+
+	FracTypVol getFracTyp() const { return m_fracTyp; }
+
+	void addShiftVrtx( VRT const & vrt, bool isAtFreeSide = false )
+	{
+		m_vecShiftedVrts.push_back(vrt);
+
+//		if( m_fracTyp == TEnd )
+//		{
+//			std::pair<VRT, bool > addSVI( vrt, isAtFreeSide );
+//			m_vecShiftedVrtsWithTypInf.push_back(addSVI);
+//
+//			if( isAtFreeSide )
+//				m_numberAtFreeSide++;
+//
+//			if( m_numberAtFreeSide > 1 )
+//				UG_THROW("was ist das fuer ein T Ende" << std::endl);
+//		}
+
+	}
+
+	void setShiftVrtx( std::vector<VRT> const & vecVrt ) { m_vecShiftedVrts = vecVrt; }
+
+	std::vector<VRT> getVecShiftedVrts() const
+	{
+		return m_vecShiftedVrts;
+	}
+
+	std::vector<std::pair<VRT,bool>> getVecShiftedVrtsWithTypInfo() const
+	{
+//		if( m_fracTyp != TEnd )
+//			UG_THROW("fuer Kreuz nicht erlaubt " << std::endl);
+
+		return m_vecShiftedVrtsWithTypInf;
+	}
+
+
+private:
+
+	VRT m_crossVrt;
+	std::vector<VRT> m_vecShiftedVrts;
+	std::vector<std::pair<VRT,bool>> m_vecShiftedVrtsWithTypInf;
+	FracTypVol m_fracTyp;
+	IndTyp m_numberAtFreeSide;
+};
+
 
 
 }
