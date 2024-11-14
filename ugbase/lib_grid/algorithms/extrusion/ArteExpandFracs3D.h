@@ -175,6 +175,10 @@ private:
 	AttVecVertFracTrip m_aAdjInfoAVVFT;
 
 	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> m_aaVrtInfoFraTri;
+
+	bool checkIfFacesVerticesCoincide( Face * const & facOne, Face * const & facTwo );
+
+	bool collectFaceVertices( std::vector<Vertex*> & facVrt, Face * const & fac );
 };
 
 } /* namespace ug */

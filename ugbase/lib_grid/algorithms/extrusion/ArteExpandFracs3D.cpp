@@ -534,16 +534,153 @@ bool ArteExpandFracs3D::generateVertexInfos()
 			if( sudoFacInnerLoop != fracSudo )
 				UG_THROW("Subdomain Index Fehler 3D " << std::endl);
 
-//			std::vector<Edge*>
+//			std::vector<Vertex*> verticesFac;
+//
+//			for( IndexType i = 0; i < fac->num_vertices(); i++ )
+//			{
+//				verticesFac.push_back( fac->vertex(i) );
+//			}
 
-			
+
+			std::vector<Volume*> assoVols;
+
+			if( ! m_grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES) )
+				UG_THROW("How to collect asso vols?" << std::endl);
+
+
+//			for( Grid::AssociatedVolumeIterator volIt  = m_grid.associated_volumes_begin(fac);
+//												volIt != m_grid.associated_volumes_end(fac);
+//												volIt++
+//			)
+//			{
+//				assoVols.push_back(*volIt);
+//			}
+
+			CollectVolumes(assoVols, m_grid, fac );
+
+//			using VolNormPair = std::pair< Volume*, vector3 >;
+//
+//			using VecVolNormPair = std::vector<VolNormPair>;
+//
+//			VecVolNormPair vecNormalsAwayVol;
+
+			for( auto const & kuhVol : assoVols )
+			{
+				bool facFound = false;
+				IndexType numFd = 0;
+
+				for( IndexType iSide = 0; iSide < kuhVol->num_sides(); iSide++ )
+				{
+					Face * kuhFac = m_grid.get_side(kuhVol, iSide);
+					// TODO FIXME eigentliches Ziel ist es, den face descriptor des Volumens zu finden,
+					// das mit dem face übereinstimmt, alle anderen Seiten des Volumens sind egal
+					// Funktion suchen, die ausgehend von einem Face, das ein Volumen begrenzt,
+					// den zum Volumen passenden FaceDescriptor findet, also auch richtige Orientierung
+					// der Vertices beinhaltet
+
+					if( checkIfFacesVerticesCoincide( kuhFac, fac ) )
+					{
+						facFound = true;
+						numFd++;
+
+						FaceDescriptor facDescr;
+
+						// TODO FIXME testen, ob der Face Descriptor von der Orientierung abhängt
+						// also testen, ob sich der face descriptor ändert, wenn das Volumen
+						// auf der einen und auf der anderen Seite des faces hängt
+						// deswegen auch die ganze Prozedur mit den kuhFacs, die hoffentlich
+						// je nach Volumen anders orientiert sind als das eigentliche Face,
+						// aber dieselben Vertices haben, also geometrisch gleich sind, aber anders orientiert!!!!
+
+						// TODO FIXME andere Hergehensweise vielleicht:
+						// von m_aaVrtInfoAssoVols ausgehen, darüber loopen, oder die in einen Vektor stecken,
+						// wo die Vertices dabei sind, dann kann man sich vielelicht ein paar Klimmzüge sparen,
+						// vielleicht aber auch nicht.....
+
+						kuhVol->face_desc( iSide, facDescr );
+
+						vector3 normal;
+
+						CalculateNormal( normal, & facDescr, m_aaPos );
+
+//						VolNormPair normalsAwayVol( kuhVol, normal );
+//
+//						vecNormalsAwayVol.push_back( normalsAwayVol );
+
+						VertFracTrip infoVerticesThisFace( fac, kuhVol, normal );
+
+						for( IndexType iF = 0; iF < fac->num_vertices(); iF++ )
+						{
+							Vertex * vrt = fac->vertex(iF);
+
+			//				verticesFac.push_back(vrt);
+
+							m_aaVrtInfoFraTri[vrt].push_back( infoVerticesThisFace );
+						}
+
+					}
+
+					if( ! facFound || numFd != 1 )
+						return false;
+				}
+			}
 
 		}
 
 
 	}
 
-	return false;
+	return true;
+}
+
+bool ArteExpandFracs3D::checkIfFacesVerticesCoincide( Face * const & facOne, Face * const & facTwo )
+{
+
+	if( facOne->size() != facTwo->size() )
+		return false;
+
+	std::vector<Vertex* > facOneVrtcs, facTwoVrtcs;
+
+	collectFaceVertices( facOneVrtcs, facOne );
+	collectFaceVertices( facTwoVrtcs, facTwo );
+
+	for( auto const & vrtOne : facOneVrtcs )
+	{
+		bool found = false;
+
+		IndexType numFd = 0;
+
+		for( auto const & vrtTwo : facTwoVrtcs )
+		{
+			if( vrtOne == vrtTwo )
+			{
+				found = true;
+				numFd++;
+			}
+		}
+
+		if( ! found || numFd != 1 )
+			return false;
+	}
+
+	return true;
+}
+
+bool ArteExpandFracs3D::collectFaceVertices( std::vector<Vertex*> & facVrt, Face * const & fac )
+{
+	if( fac == nullptr )
+		return false;
+
+	facVrt.clear();
+
+	for( IndexType iF = 0; iF < fac->num_vertices(); iF++ )
+	{
+		Vertex * vrt = fac->vertex(iF);
+
+		facVrt.push_back( vrt );
+	}
+
+	return true;
 }
 
 
