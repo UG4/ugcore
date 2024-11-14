@@ -134,11 +134,9 @@ private:
 	bool assignOrigFracInfos();
 
 
-	using AttVrtVec = Attachment<std::vector<Vertex*> >;
-
-	AttVrtVec m_attVrtVec;
-
-	Grid::VolumeAttachmentAccessor<AttVrtVec> m_aaVrtVecVol;
+//	using AttVrtVec = Attachment<std::vector<Vertex*> >;
+//	AttVrtVec m_attVrtVec;
+//	Grid::VolumeAttachmentAccessor<AttVrtVec> m_aaVrtVecVol;
 
 	using AttVecEdge = Attachment<std::vector<Edge*>>;
 	using AttVecFace = Attachment<std::vector<Face*>>;
@@ -179,6 +177,15 @@ private:
 	bool checkIfFacesVerticesCoincide( Face * const & facOne, Face * const & facTwo );
 
 	bool collectFaceVertices( std::vector<Vertex*> & facVrt, Face * const & fac );
+
+	bool createConditionForNewVrtcs();
+
+	using AttVrtVec = Attachment<std::vector<Vertex*> >;
+
+	AttVrtVec m_attVrtVec;
+
+	Grid::VolumeAttachmentAccessor<AttVrtVec> m_aaVrtVecVol;
+
 };
 
 } /* namespace ug */

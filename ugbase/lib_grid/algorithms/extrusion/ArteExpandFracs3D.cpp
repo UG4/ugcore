@@ -90,8 +90,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aAdjMarkerB(ABool()),
 	  m_aaMarkFaceB(Grid::FaceAttachmentAccessor<ABool>()),
 	  m_originalFractureFaces(std::vector<Face*>()),
-	  m_attVrtVec(AttVrtVec()),
-	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
+//	  m_attVrtVec(AttVrtVec()),
+//	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
 	  m_aAdjInfoEdges(AttVecEdge()),
 	  m_aAdjInfoFaces(AttVecFace()),
 	  m_aAdjInfoVols(AttVecVol()),
@@ -99,8 +99,10 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaVrtInfoAssoFaces( Grid::VertexAttachmentAccessor<AttVecFace>()),
 	  m_aaVrtInfoAssoVols( Grid::VertexAttachmentAccessor<AttVecVol>()),
 	  m_aAdjInfoAVVFT( AttVecVertFracTrip() ),
-	  m_aaVrtInfoFraTri(Grid::VertexAttachmentAccessor<AttVecVertFracTrip>())
+	  m_aaVrtInfoFraTri(Grid::VertexAttachmentAccessor<AttVecVertFracTrip>()),
 //	  m_vrtxFractrQuadrplVec(VrtxFractrQuadrplArte3DVec())
+	  m_attVrtVec(AttVrtVec()),
+	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() )
 {
 	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -133,6 +135,9 @@ bool ArteExpandFracs3D::run()
 		return false;
 
 	if( ! generateVertexInfos() )
+		return false;
+
+	if( ! createConditionForNewVrtcs() )
 		return false;
 
 	if( ! loop2EstablishNewVertices() )
@@ -234,11 +239,8 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	// second part
 
-	//	associate a vector of vertices for each volume adjacent to the frac.
-	//	An entry contains the new vertex, if the
-	//	corresponding vertex is an inner fracture vertex, and nullptr if not.
-	m_grid.attach_to_volumes(m_attVrtVec);
-	m_aaVrtVecVol = Grid::VolumeAttachmentAccessor<AttVrtVec>( m_grid, m_attVrtVec);
+//	m_grid.attach_to_volumes(m_attVrtVec);
+//	m_aaVrtVecVol = Grid::VolumeAttachmentAccessor<AttVrtVec>( m_grid, m_attVrtVec);
 
 	std::vector<Edge*> noEdge;
 	std::vector<Face*> noFace;
@@ -276,6 +278,17 @@ bool ArteExpandFracs3D::attachMarkers()
 	m_aaVrtInfoFraTri = Grid::VertexAttachmentAccessor<AttVecVertFracTrip>(m_grid,  m_aAdjInfoAVVFT );
 
 
+	//	associate a vector of vertices for each volume adjacent to the frac.
+	//	An entry later will contain the new vertex, if the
+	//	corresponding vertex is an inner fracture vertex, and nullptr if not.
+
+	m_attVrtVec = AttVrtVec();
+
+	m_grid.attach_to_volumes(m_attVrtVec);
+
+	m_aaVrtVecVol = Grid::VolumeAttachmentAccessor<AttVrtVec>(m_grid, m_attVrtVec);
+
+
 	return true;
 }
 
@@ -286,13 +299,13 @@ bool ArteExpandFracs3D::detachMarkers()
 	m_grid.detach_from_edges( m_aAdjMarkerVFP );
 	m_grid.detach_from_faces( m_aAdjMarkerB );
 
-	m_grid.detach_from_volumes( m_attVrtVec );
-
 	m_grid.detach_from_vertices( m_aAdjInfoEdges );
 	m_grid.detach_from_vertices( m_aAdjInfoFaces );
 	m_grid.detach_from_vertices( m_aAdjInfoVols );
 
 	m_grid.detach_from_vertices( m_aAdjInfoAVVFT  );
+
+	m_grid.detach_from_volumes( m_attVrtVec );
 
 
 	return true;
@@ -696,6 +709,9 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 	// zentraler Loop
 
+	// TODO FIXME vorher noch den attVrtVec und den aaVrtVecFac analog implementieren, das fehlt noch!!!
+	// ebenso seine Befüllung, braucht noch eine Funktion dazwischen, die attachments selber in die
+	// attach Funktion natürlich
 	
 	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); ++ iterV )
 	{
@@ -709,6 +725,28 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 
 	return false;
+}
+
+bool ArteExpandFracs3D::createConditionForNewVrtcs()
+{
+
+	//	iterate over all surrounding volumes to enable volume changes, this loop taken from SR but shortened
+	for(VolumeIterator iterSurrVol = m_sel.volumes_begin(); iterSurrVol != m_sel.volumes_end(); iterSurrVol++ )
+	{
+		Volume * sv = *iterSurrVol;
+
+		std::vector<Vertex*>& newVrts = m_aaVrtVecVol[sv];
+		newVrts.resize(sv->num_vertices());
+
+		for(size_t iVrt = 0; iVrt < sv->num_vertices(); iVrt++ )
+		{
+			newVrts[iVrt] = nullptr;
+		}
+			// erstmal so tun, als ob keine neuen Vertizes erzeugt werden an den alten Vertizes
+	}
+
+
+	return true;
 }
 
 
