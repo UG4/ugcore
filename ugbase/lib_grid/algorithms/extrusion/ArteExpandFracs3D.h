@@ -112,11 +112,18 @@ private:
 
 	using IndexType = unsigned short;
 
-	using AttVerFracProp = Attachment<VertexFractureProperties<IndexType> >;
+	using AttVerFracProp = Attachment<support::VertexFracturePropertiesVol<IndexType> >;
 
 	AttVerFracProp m_aAdjMarkerVFP;
 
+	// TODO FIXME verfehltes Konzept im 3D Fall!!! ERROR
 	Grid::VertexAttachmentAccessor<AttVerFracProp> m_aaMarkVrtVFP;
+	// TODO FIXME anstatt zu zählen, wieviele fractures angrenzen, was man ja lassen kann,
+	// vielleicht irgendwo auch gebraucht, muss man vor allem zählen, wieviele subdomains
+	// von fractures an dem Vertex zusammentreffen!!!!!
+	// und ob an dem Vertex, wenn er innen ist, eine fracture aufhört, oder weiter geht
+	// ob also der Vertex "rundum" von fracture faces umgeben ist, oder nur teilweise
+	// das vertex fracture properties Konzept vom 2D Fall ist also nicht ausreichend
 
 	//	AttVerFracProp m_aAdjMarkerVFP; // used to know if an edge is frac edge, suffix vfp misleading....
 

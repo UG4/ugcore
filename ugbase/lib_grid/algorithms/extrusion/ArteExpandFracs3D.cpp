@@ -222,7 +222,7 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	m_aAdjMarkerVFP = AttVerFracProp();
 
-	VertexFractureProperties<IndexType> vfp0( false, 0 );
+	support::VertexFracturePropertiesVol<IndexType> vfp0( false, 0 );
 	// default value: no boundary fracture, no fractures crossing
 
 	m_grid.attach_to_vertices_dv( m_aAdjMarkerVFP, vfp0 );
@@ -330,7 +330,13 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 			{
 				Vertex* vrt = fac->vertex(i);
 				m_sel.select(vrt);
+				// TODO FIXME hier anpassen, herausfinden ob fracture geschlossen
+				// oder inneres Ende, und Anzahl der umgebenden fractures bestimmen!!!
 				m_aaMarkVrtVFP[vrt]++;
+				// vielleicht auch in nachfolgendem Loop über alle selektierten Vertizes,
+				// wo dann die attached faces abgelaufen und dabei die Subdomain Nummer ermittelt wird
+				// kann eventuell sogar im Hauptloop gemacht werden, dann könnte man praktisch
+				// das alte vertex fracture properties von 2D weiter verwenden, noch zu klären
 
 				if( IsBoundaryVertex3D(m_grid, vrt) )
 				{
@@ -721,10 +727,24 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); ++ iterV )
 	{
+		Vertex * oldVrt = *iterV;
+
 		// Position dieses Vertex
-		vector3 posOldVrt = m_aaPos[*iterV];
+		vector3 posOldVrt = m_aaPos[oldVrt];
 
 		// TODO FIXME diese Funktion mit Leben und Analytischer Geometrie 13. Klasse füllen
+
+		VecVertFracTrip & vecVertFracTrip = m_aaVrtInfoFraTri[oldVrt];
+
+		std::vector<Edge*> & allAssoEdges = m_aaVrtInfoAssoEdges[oldVrt];
+		std::vector<Face*> & allAssoFaces = m_aaVrtInfoAssoFaces[oldVrt];
+		std::vector<Volume*> & allAssoVolumes = m_aaVrtInfoAssoVols[oldVrt];
+
+		UG_LOG("vertex at " << posOldVrt << std::endl);
+
+		bool vrtxIsBndVrt = m_aaMarkVrtVFP[oldVrt].getIsBndFracVertex();
+
+		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
 
 		
 	}

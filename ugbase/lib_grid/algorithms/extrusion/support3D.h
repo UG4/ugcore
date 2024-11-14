@@ -212,6 +212,94 @@ private:
 	IndTyp m_numberAtFreeSide;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+
+// class to help count and store a bool and a number of templete type
+// comparable to std::pair<bool,int> but more dedicated to the specific aim
+// TODO FIXME adapt for 3D case, figure out if inner end, and number of fracs sourrounding
+
+template< typename T >
+class VertexFracturePropertiesVol
+{
+public:
+
+	VertexFracturePropertiesVol( bool isBndFracVertex,  T numberCrossingFracsInVertex )
+	: m_isBndFracVertex(isBndFracVertex), m_numberCountedFracsInVertex(numberCrossingFracsInVertex)
+	{
+	};
+
+
+	VertexFracturePropertiesVol()
+	: VertexFracturePropertiesVol( false, 0 )
+	{
+	};
+
+	void setIsBndFracVertex( bool iBDV = true )
+	{
+		m_isBndFracVertex = iBDV;
+	}
+
+	void setNumberCrossingFracsInVertex( T const & nCFIV )
+	{
+		m_numberCountedFracsInVertex = nCFIV;
+	}
+
+	bool getIsBndFracVertex()
+	{
+		return m_isBndFracVertex;
+	}
+
+// 	T getCountedNumberFracsInVertex()
+// 	{
+// 		return m_numberCountedFracsInVertex;
+// 	}
+
+
+	T getNumberFracEdgesInVertex()
+	{
+		return m_numberCountedFracsInVertex;
+	}
+
+// 	T getNumberCrossingFracsInVertex()
+//  {
+// 		if( m_isBndFracVertex )
+// 			return m_numberCountedFracsInVertex;
+//
+// 		// for inner vertices, each edge passed when
+// 		// fractures are counted along their edges
+// 		// that the vertizes get hit twice for each fracture run
+// 		// only for boundary vertices, this happens only once per fracture
+// 		T multipeInnerHits = 2;
+//
+// 		T rest = m_numberCountedFracsInVertex % multipeInnerHits;
+//
+// 		if( rest != 0 )
+// 		{
+//// 			UG_THROW("Expand layers: rest division frac counting not zero " << m_numberCountedFracsInVertex << std::endl);
+//
+// 			throw std::runtime_error("error");
+//
+// 			return 0;
+// 		}
+//
+// 		return m_numberCountedFracsInVertex / multipeInnerHits;
+//  }
+
+	VertexFracturePropertiesVol & operator++( int a )
+	{
+		m_numberCountedFracsInVertex++;
+		return *this;
+	}
+
+
+private:
+	bool m_isBndFracVertex;
+	T m_numberCountedFracsInVertex;
+};
+
 
 
 }
