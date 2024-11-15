@@ -226,14 +226,21 @@ class VertexFracturePropertiesVol
 {
 public:
 
-	VertexFracturePropertiesVol( bool isBndFracVertex,  T numberCrossingFracsInVertex )
-	: m_isBndFracVertex(isBndFracVertex), m_numberCountedFracsInVertex(numberCrossingFracsInVertex)
-	{
-	};
+//	VertexFracturePropertiesVol( bool isBndFracVertex,  T numberCrossingFracsInVertex )
+//	: m_isBndFracVertex(isBndFracVertex), m_numberCountedFracsInVertex(numberCrossingFracsInVertex)
+//	{
+//	};
 
+	enum VrtxFracStatus { noFracSuDoAtt = 0,
+						  oneFracSuDoAtt = 1,
+						  twoFracSuDoAtt = 2,
+						  threeFracSuDoAtt = 3 };
 
 	VertexFracturePropertiesVol()
-	: VertexFracturePropertiesVol( false, 0 )
+	: m_isBndFracVertex(false), m_numberCountedFracsInVertex(0),
+	  m_status( noFracSuDoAtt ),
+	  m_sudoList( std::vector<T>() )
+//		VertexFracturePropertiesVol( false, 0 )
 	{
 	};
 
@@ -295,9 +302,92 @@ public:
 	}
 
 
+	VrtxFracStatus getVrtxFracStatus()
+	{
+		return m_status;
+	}
+
+	// caution: returns false if sudo already known, but no problem, feature, not bug
+	// so never stop the program if false returned here, this is good news
+	bool addFractSudo( T const & sudo )
+	{
+		bool alreadyInList = false;
+
+		for( auto const & availSudo : m_sudoList )
+		{
+			if( sudo == availSudo )
+				alreadyInList = true;
+		}
+
+		if( ! alreadyInList )
+		{
+			m_sudoList.push_back( sudo );
+		}
+
+		if( m_sudoList.size() > static_cast<T>( m_maxStatus ) )
+		{
+			UG_THROW("zu viele subdomains crossing in one Punkt" << std::endl);
+			return false;
+		}
+
+		return alreadyInList;
+	}
+
+	// TODO FIXME
+	bool getIsAClosedFractur( T sudo )
+	{
+//		static_assert(false);
+
+		return {};
+	}
+
+	void setIsAClosedFractur( T sudo, bool isClosed )
+	{
+		// TODO FIXME
+		//static_assert(false);
+	}
+
+	bool getInfoAllFracturesClosed()
+	{
+		//static_assert(false);
+
+		return {};
+	}
+
+	bool getInfoNoFracturesClosed()
+	{
+		//static_assert(false);
+
+		return {};
+	}
+
+	void setFracSurroundProts( bool surrounded, T sudo )
+	{
+		// TODO FIXME
+	}
+
+
 private:
 	bool m_isBndFracVertex;
 	T m_numberCountedFracsInVertex;
+
+	VrtxFracStatus m_status;
+
+	static VrtxFracStatus constexpr m_maxStatus = VrtxFracStatus::threeFracSuDoAtt;
+
+	std::vector<T> m_sudoList;
+
+	// better private, to avoid confusion
+	bool setVrtxFracStatus( VrtxFracStatus status )
+	{
+		m_status = status;
+
+		if( status < noFracSuDoAtt || status > threeFracSuDoAtt )
+			return false;
+
+		return true;
+	}
+
 };
 
 

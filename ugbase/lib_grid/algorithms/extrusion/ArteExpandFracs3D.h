@@ -112,12 +112,14 @@ private:
 
 	using IndexType = unsigned short;
 
-	using AttVerFracProp = Attachment<support::VertexFracturePropertiesVol<IndexType> >;
+	using VertxFracPropts = support::VertexFracturePropertiesVol<IndexType>;
 
-	AttVerFracProp m_aAdjMarkerVFP;
+	using AttVertFracProp = Attachment<VertxFracPropts>;
+
+	AttVertFracProp m_aAdjMarkerVFP;
 
 	// TODO FIXME verfehltes Konzept im 3D Fall!!! ERROR
-	Grid::VertexAttachmentAccessor<AttVerFracProp> m_aaMarkVrtVFP;
+	Grid::VertexAttachmentAccessor<AttVertFracProp> m_aaMarkVrtVFP;
 	// TODO FIXME anstatt zu zählen, wieviele fractures angrenzen, was man ja lassen kann,
 	// vielleicht irgendwo auch gebraucht, muss man vor allem zählen, wieviele subdomains
 	// von fractures an dem Vertex zusammentreffen!!!!!
@@ -125,9 +127,9 @@ private:
 	// ob also der Vertex "rundum" von fracture faces umgeben ist, oder nur teilweise
 	// das vertex fracture properties Konzept vom 2D Fall ist also nicht ausreichend
 
-	//	AttVerFracProp m_aAdjMarkerVFP; // used to know if an edge is frac edge, suffix vfp misleading....
+	//	AttVertFracProp m_aAdjMarkerVFP; // used to know if an edge is frac edge, suffix vfp misleading....
 
-	Grid::EdgeAttachmentAccessor<AttVerFracProp> m_aaMarkEdgeVFP;
+	Grid::EdgeAttachmentAccessor<AttVertFracProp> m_aaMarkEdgeVFP;
 	// used to know if an edge is frac edge, suffix vfp misleading....
 
 	ABool m_aAdjMarkerB; // used to know if an face is frac face
@@ -197,7 +199,7 @@ private:
 
 	std::vector<CrossVertInf> m_vecCrossVrtInf;
 
-
+	bool testFracFacSurround( Vertex * const & vrt, IndexType fracIndSudo, VertxFracPropts const & vrtxFracPrps );
 
 };
 

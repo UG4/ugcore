@@ -83,10 +83,10 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 //	  m_volDescr(VolumeDescriptor()),
 	  m_fracInfosBySubset(std::vector<FractureInfo>()),
 	  //m_sel(Selector()),
-	  m_aAdjMarkerVFP(AttVerFracProp()),
-	  m_aaMarkVrtVFP( Grid::VertexAttachmentAccessor<AttVerFracProp>()),
-//	  m_aAdjMarkerVFP(AttVerFracProp()),
-	  m_aaMarkEdgeVFP(Grid::EdgeAttachmentAccessor<AttVerFracProp>()),
+	  m_aAdjMarkerVFP(AttVertFracProp()),
+	  m_aaMarkVrtVFP( Grid::VertexAttachmentAccessor<AttVertFracProp>()),
+//	  m_aAdjMarkerVFP(AttVertFracProp()),
+	  m_aaMarkEdgeVFP(Grid::EdgeAttachmentAccessor<AttVertFracProp>()),
 	  m_aAdjMarkerB(ABool()),
 	  m_aaMarkFaceB(Grid::FaceAttachmentAccessor<ABool>()),
 	  m_originalFractureFaces(std::vector<Face*>()),
@@ -220,18 +220,18 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	// attachment pair boundary is fracture, number fractures crossing
 
-	m_aAdjMarkerVFP = AttVerFracProp();
+	m_aAdjMarkerVFP = AttVertFracProp();
 
-	support::VertexFracturePropertiesVol<IndexType> vfp0( false, 0 );
+	support::VertexFracturePropertiesVol<IndexType> vfp0; // false, 0 );
 	// default value: no boundary fracture, no fractures crossing
 
 	m_grid.attach_to_vertices_dv( m_aAdjMarkerVFP, vfp0 );
-	m_aaMarkVrtVFP = Grid::VertexAttachmentAccessor<AttVerFracProp> ( m_grid, m_aAdjMarkerVFP );
+	m_aaMarkVrtVFP = Grid::VertexAttachmentAccessor<AttVertFracProp> ( m_grid, m_aAdjMarkerVFP );
 
-	//m_aAdjMarkerVFP = AttVerFracProp();
+	//m_aAdjMarkerVFP = AttVertFracProp();
 	m_grid.attach_to_edges_dv( m_aAdjMarkerVFP, vfp0 );
 
-	m_aaMarkEdgeVFP = Grid::EdgeAttachmentAccessor<AttVerFracProp>( m_grid, m_aAdjMarkerVFP );
+	m_aaMarkEdgeVFP = Grid::EdgeAttachmentAccessor<AttVertFracProp>( m_grid, m_aAdjMarkerVFP );
 
 	m_aAdjMarkerB = ABool(); // used to know if an face is frac face
 
@@ -316,9 +316,9 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 {
 	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
 	{
-		int fracInd = m_fracInfos[i_fi].subsetIndex;
+		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
 
-		for( FaceIterator iter = m_sh.begin<Face>(fracInd); iter != m_sh.end<Face>(fracInd); ++iter )
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
 		{
 			Face* fac = *iter;
 
@@ -332,16 +332,27 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 				m_sel.select(vrt);
 				// TODO FIXME hier anpassen, herausfinden ob fracture geschlossen
 				// oder inneres Ende, und Anzahl der umgebenden fractures bestimmen!!!
-				m_aaMarkVrtVFP[vrt]++;
+
+				auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
+
+//				m_aaMarkVrtVFP[vrt]++;
+				vrtxFracPrps++;
 				// vielleicht auch in nachfolgendem Loop über alle selektierten Vertizes,
 				// wo dann die attached faces abgelaufen und dabei die Subdomain Nummer ermittelt wird
 				// kann eventuell sogar im Hauptloop gemacht werden, dann könnte man praktisch
 				// das alte vertex fracture properties von 2D weiter verwenden, noch zu klären
 
+//				m_aaMarkVrtVFP[vrt].addFractSudo(fracIndSudo);
+				vrtxFracPrps.addFractSudo(fracIndSudo);
+
 				if( IsBoundaryVertex3D(m_grid, vrt) )
 				{
-					m_aaMarkVrtVFP[vrt].setIsBndFracVertex();
+//					m_aaMarkVrtVFP[vrt].setIsBndFracVertex();
+					vrtxFracPrps.setIsBndFracVertex();
 				}
+
+				testFracFacSurround( vrt, fracIndSudo, vrtxFracPrps );
+
 			}
 
 			std::vector<Edge*> tmpEdges; // used for temporary results.
@@ -395,17 +406,31 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 #endif
 
+
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
 	{
 		Vertex* vrt = *iter;
 
 		bool wahl = true;
 
-		bool isBnd = m_aaMarkVrtVFP[ vrt ].getIsBndFracVertex();
-		auto numCrosFrac = m_aaMarkVrtVFP[ vrt ].getNumberFracEdgesInVertex();
+		auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
 
-		// TODO FIXME das ist richtig für den 2D Fall, aber passt das auch im 3D Fall????
-		if( ! isBnd && numCrosFrac == 1 )
+//		bool isBnd = m_aaMarkVrtVFP[ vrt ].getIsBndFracVertex();
+		bool isBnd = vrtxFracPrps.getIsBndFracVertex();
+//		auto numCrosFrac = m_aaMarkVrtVFP[ vrt ].getNumberFracEdgesInVertex();
+
+		VertxFracPropts::VrtxFracStatus vfpStatus =  vrtxFracPrps.getVrtxFracStatus();
+
+		if( vfpStatus == VertxFracPropts::noFracSuDoAtt )
+			UG_THROW("vertex selected and no frac " << std::endl);
+
+		// TODO FIXME das ist richtig für den 2D Fall, aber passt das auch im 3D Fall???? nein, da SudoFrac Zahl nötig
+//		if( ! isBnd && numCrosFrac == 1 )
+//		if( ! isBnd && vfpStatus == VertxFracPropts::oneFracSuDoAtt && )
+		// TODO FIXME was, wenn ein Teil geschlossen ist der fractures, und ein anderer nicht???
+		//static_assert(false);
+
+		if( ! isBnd && vrtxFracPrps.getInfoNoFracturesClosed() )
 		{
 			wahl = false;
 		}
@@ -457,6 +482,15 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 	return true;
 }
+
+// herausfinden für Sudo der frac, ob bezüglich dieser sudo die faces geschlossen sind, oder ob ein Fracture End vorliegt
+bool ArteExpandFracs3D::testFracFacSurround( Vertex * const & vrt, IndexType fracIndSudo, VertxFracPropts const & vrtxFracPrps )
+{
+	// TODO FIXME
+
+	return {};
+}
+
 
 bool ArteExpandFracs3D::assignOrigFracInfos()
 {
@@ -540,7 +574,7 @@ bool ArteExpandFracs3D::generateVertexInfos()
 		IndexType fracSudo = fracInf.subsetIndex;
 
 
-//		for(EdgeIterator iterEdg = m_sh.begin<Edge>(fracInd); iterEdg != m_sh.end<Edge>(fracInd); iterEdg++ )
+//		for(EdgeIterator iterEdg = m_sh.begin<Edge>(fracIndSudo); iterEdg != m_sh.end<Edge>(fracIndSudo); iterEdg++ )
 //
 		for( FaceIterator iterFac = m_sh.begin<Face>(fracSudo); iterFac != m_sh.end<Face>(fracSudo); iterFac++ )
 		{
