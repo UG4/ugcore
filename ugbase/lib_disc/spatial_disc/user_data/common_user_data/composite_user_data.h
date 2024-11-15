@@ -66,7 +66,7 @@ public:
 	void add
 	(
 		int si, ///< the subset index
-		ref_type ref ///< pointer to the user-data object
+		SmartPtr<base_type> ref ///< pointer to the user-data object
 	)
 	{
 		UG_ASSERT (si >= 0, "CompositeUserData: Non-existing subset index!");
@@ -84,7 +84,7 @@ public:
 	void add
 	(
 		const SubsetGroup & ssg, ///< the subset group
-		ref_type ref ///< pointer to the user-data object
+		SmartPtr<base_type> ref ///< pointer to the user-data object
 	)
 	{
 		for (size_t i = 0; i < ssg.size (); i++) add (ssg[i], ref);
@@ -95,7 +95,7 @@ public:
 	(
 		ConstSmartPtr<ISubsetHandler> ssh, ///< subset handler of the domain
 		const char * ss_names, ///< names of the subdomains
-		ref_type ref ///< pointer to the user-data object
+		SmartPtr<base_type> ref ///< pointer to the user-data object
 	)
 	{
 		std::vector<std::string> v_ss_names;
@@ -106,16 +106,14 @@ public:
 		add (ssg, ref);
 	}
 
-	/// Returns the value assigned to a subset index
-	ref_type get (int si) const { return find(si); }
-
 	/// Checks if anything is assigned to a given subset index
-	bool has(int si) const  { return si >= 0 && (size_t) si < m_vData.size () && find(si).valid ();}
+	bool has(int si) const  { return si >= 0 && (size_t) si < m_vData.size () && m_vData[si].valid ();}
+	
+	SmartPtr<base_type> get(int si) const { check (si); return m_vData[si]; }
+	
+	bool is_coupled(int si) { return has(si) && m_vData[si].template is_of_type<TCplUserData>(); }
 
-
-	bool is_coupled(int si) { return has(si) && find(si).template is_of_type<TCplUserData>(); }
-
-	SmartPtr<TCplUserData> get_coupled(int si) { return find(si).template cast_dynamic<TCplUserData>(); }
+	SmartPtr<TCplUserData> get_coupled(int si) { return m_vData[si].template cast_dynamic<TCplUserData>(); }
 
 	// Implementing virtual functions
 
@@ -131,13 +129,13 @@ public:
 	 virtual TRet operator() (TData& value,
 									 const MathVector<dim>& globIP,
 									 number time, int si) const
-	{ return (*find(si)) (value, globIP, time, si); }
+	{ check (si); return (*m_vData[si]) (value, globIP, time, si); }
 
 	///	returns values for global positions
 	virtual void operator()(TData vValue[],
 							const MathVector<dim> vGlobIP[],
 							number time, int si, const size_t nip) const
-	{ return (*find(si)) (vValue, vGlobIP, time, si, nip); }
+	{ check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, nip); }
 
 
 	virtual void operator()(TData vValue[],
@@ -150,7 +148,7 @@ public:
 									LocalVector* u,
 									const MathMatrix<1, dim>* vJT = NULL) const
 	{
-		return (*find(si)) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
+		check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 	}
 
 	virtual void operator()(TData vValue[],
@@ -163,7 +161,7 @@ public:
 									LocalVector* u,
 									const MathMatrix<2, dim>* vJT = NULL) const
 	{
-		return (*find(si)) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
+		check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 	}
 
 	virtual void operator()(TData vValue[],
@@ -176,25 +174,23 @@ public:
 							LocalVector* u,
 							const MathMatrix<3, dim>* vJT = NULL) const
 	{
-		return (*find(si)) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
+		check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 	}
 
 private:
 
-	// returns the reference to the user data in the given subset
-	const ref_type & find (int si) const
+	// checks if the subset si is present in the list
+	void check (int si) const
 	{
-		if (si < 0 || (size_t) si >= m_vData.size ())
+		if (! has (si))
 		{
 			UG_THROW ("CompositeUserData: No data for subset " << si);
 		}
-		
-		return m_vData [si];
 	}
 
 private:
 
-	std::vector<ref_type> m_vData;
+	std::vector<SmartPtr<base_type> > m_vData;
 	bool m_bContinuous;
 	bool m_bRequiresGridFunction;
 };
