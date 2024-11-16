@@ -329,13 +329,7 @@ public:
 			m_sudoList.push_back( sudo );
 		}
 
-		if( m_sudoList.size() > static_cast<T>( m_maxStatus ) )
-		{
-			UG_THROW("zu viele subdomains crossing in one Punkt" << std::endl);
-			return false;
-		}
-
-		return alreadyInList;
+		return adaptVrtxFracStatus();
 	}
 
 
@@ -478,6 +472,21 @@ private:
 
 		return true;
 	}
+
+	bool adaptVrtxFracStatus()
+	{
+		auto sudosNum = m_sudoList.size();
+		if( sudosNum > static_cast<T>( m_maxStatus ) )
+		{
+			UG_THROW("zu viele subdomains crossing in one Punkt" << std::endl);
+			return false;
+		}
+
+		m_status = static_cast<VrtxFracStatus>(sudosNum);
+
+		return true;
+	}
+
 
 	vecPairTB m_sudosClosed;
 

@@ -351,7 +351,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 					vrtxFracPrps.setIsBndFracVertex();
 				}
 
-				testFracFacSurround( vrt, fracIndSudo, vrtxFracPrps );
+				isVrtxSurroundedByFracFaces( vrt, fracIndSudo, vrtxFracPrps );
 
 			}
 
@@ -430,6 +430,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 		// TODO FIXME was, wenn ein Teil geschlossen ist der fractures, und ein anderer nicht???
 		//static_assert(false);
 
+		// TODO FIXME ist das so richtig? kann sein, dass das zu vereinfacht ist!!!!!
 		if( ! isBnd && vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
 		{
 			wahl = false;
@@ -484,9 +485,11 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 }
 
 // herausfinden für Sudo der frac, ob bezüglich dieser sudo die faces geschlossen sind, oder ob ein Fracture End vorliegt
-bool ArteExpandFracs3D::testFracFacSurround( Vertex * const & vrt, IndexType fracIndSudo, VertxFracPropts const & vrtxFracPrps )
+bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, IndexType fracIndSudo, VertxFracPropts const & vrtxFracPrps )
 {
 	// TODO FIXME
+	// ganz ähnlich wie im 2D Fall, Loopen, im Kreis drehen, kucken, ob wir vom Anfang ans Ende kommen,
+	// und ob das Ende der edges wieder der Anfang der edges ist, da wir uns auf faces drehen
 
 	return {};
 }
@@ -776,10 +779,50 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 		UG_LOG("vertex at " << posOldVrt << std::endl);
 
-		bool vrtxIsBndVrt = m_aaMarkVrtVFP[oldVrt].getIsBndFracVertex();
+		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+
+		bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
 
 		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
 
+		VertxFracPropts::VrtxFracStatus statusThisVrtx = vrtxFracPrps.getVrtxFracStatus();
+
+		if( ! vrtxIsBndVrt )
+		{
+			if( vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
+			{
+				// gar nix tun, alle offen, innerer Vertex, darf man hier ankommen? NEIN TODO FIXME
+				UG_THROW("hier sollten wir nicht angekommen sein " << std::endl);
+			}
+			// TODO FIXME: was, wenn ein Zwischending, Mischung?
+
+			if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::noFracSuDoAtt )
+			{
+				UG_THROW("gar keine Frac darf hier nicht ankommen " << std::endl );
+			}
+			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::oneFracSuDoAtt )
+			{
+				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
+			}
+			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::twoFracSuDoAtt )
+			{
+
+			}
+			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::threeFracSuDoAtt )
+			{
+
+			}
+			else
+			{
+				UG_THROW("was für ein Knoten Status???? " << std::endl);
+			}
+		}
+		else // boundary vertex
+		{
+
+		}
+
+		// TODO FIXME wichtig: surrounded status closed / open TODO FIXME, sowie Anzahl der schneidenden Fracs
 		
 	}
 

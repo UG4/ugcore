@@ -199,7 +199,7 @@ private:
 
 	std::vector<CrossVertInf> m_vecCrossVrtInf;
 
-	bool testFracFacSurround( Vertex * const & vrt, IndexType fracIndSudo, VertxFracPropts const & vrtxFracPrps );
+	bool isVrtxSurroundedByFracFaces( Vertex * const & vrt, IndexType fracIndSudo, VertxFracPropts const & vrtxFracPrps );
 
 };
 
