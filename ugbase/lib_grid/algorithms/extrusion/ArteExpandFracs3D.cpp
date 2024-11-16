@@ -430,7 +430,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 		// TODO FIXME was, wenn ein Teil geschlossen ist der fractures, und ein anderer nicht???
 		//static_assert(false);
 
-		if( ! isBnd && vrtxFracPrps.getInfoNoFracturesClosed() )
+		if( ! isBnd && vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
 		{
 			wahl = false;
 		}
