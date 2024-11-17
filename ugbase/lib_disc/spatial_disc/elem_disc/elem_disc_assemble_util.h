@@ -1850,6 +1850,7 @@ public:
 	 * \param[in]		iterEnd			element iterator
 	 * \param[in]		si				subset index
 	 * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+	 * \param[in]		bAsTimeDependent flag to simulate the instationary case for the initialization
 	 */
 	template <typename TElem, typename TIterator>
 	static void
@@ -1857,7 +1858,7 @@ public:
 				   ConstSmartPtr<DoFDistribution> dd,
 				   TIterator iterBegin,
 				   TIterator iterEnd,
-				   int si, bool bNonRegularGrid)
+				   int si, bool bNonRegularGrid, bool bAsTimeDependent)
 	{
 	//	check if there are any elements at all, otherwise return immediately
 		if(iterBegin == iterEnd) return;
@@ -1865,11 +1866,15 @@ public:
 	//	reference object id
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
+	//	dummy local time series (only to simulate the instationary case for the initialization)
+		LocalVectorTimeSeries locTimeSeries;
+		
 	//	prepare for given elem discs
 		try
 		{
 		DataEvaluator<domain_type> Eval(MASS | STIFF | RHS,
-						   vElemDisc, dd->function_pattern(), bNonRegularGrid);
+						   vElemDisc, dd->function_pattern(), bNonRegularGrid,
+						   bAsTimeDependent? &locTimeSeries : NULL);
 		Eval.set_time_point(0);
 
 	//	prepare loop

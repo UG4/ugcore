@@ -2109,7 +2109,7 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 
 template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
-init_all_exports(ConstSmartPtr<DoFDistribution> dd)
+init_all_exports(ConstSmartPtr<DoFDistribution> dd, bool bAsTimeDependent)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -2152,37 +2152,37 @@ init_all_exports(ConstSmartPtr<DoFDistribution> dd)
 		{
 		case 0:
 			this->template InitAllExports<RegularVertex>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			break;
 		case 1:
 			this->template InitAllExports<RegularEdge>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
 			this->template InitAllExports<ConstrainingEdge>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			break;
 		case 2:
 			this->template InitAllExports<Triangle>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			this->template InitAllExports<Quadrilateral>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
 			this->template InitAllExports<ConstrainingTriangle>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			this->template InitAllExports<ConstrainingQuadrilateral>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			break;
 		case 3:
 			this->template InitAllExports<Tetrahedron>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			this->template InitAllExports<Pyramid>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			this->template InitAllExports<Prism>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			this->template InitAllExports<Hexahedron>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			this->template InitAllExports<Octahedron>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::init_all_exports:"
@@ -2209,13 +2209,14 @@ init_all_exports(ConstSmartPtr<DoFDistribution> dd)
  * \param[in]		dd				DoF Distribution
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in]		bAsTimeDependent flag to simulate the instationary case for the initialization
  */
 template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 template <typename TElem>
 void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 InitAllExports(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 							ConstSmartPtr<DoFDistribution> dd,
-							int si, bool bNonRegularGrid)
+							int si, bool bNonRegularGrid, bool bAsTimeDependent)
 {
 	//	check if only some elements are selected
 	if(m_spAssTuner->selected_elements_used())
@@ -2226,7 +2227,7 @@ InitAllExports(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		gass_type::template InitAllExports<TElem>
-			(vElemDisc, dd, vElem.begin(), vElem.end(), si, bNonRegularGrid);
+			(vElemDisc, dd, vElem.begin(), vElem.end(), si, bNonRegularGrid, bAsTimeDependent);
 	}
 	else
 	{
@@ -2234,7 +2235,7 @@ InitAllExports(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		gass_type::template InitAllExports<TElem>
 			(vElemDisc, dd,
 				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid);
+					bNonRegularGrid, bAsTimeDependent);
 	}
 }
 

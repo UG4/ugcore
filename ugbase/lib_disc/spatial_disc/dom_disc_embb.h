@@ -414,7 +414,7 @@ public:
 				   ConstSmartPtr<DoFDistribution> dd,
 				   TIterator iterBegin,
 				   TIterator iterEnd,
-				   int si, bool bNonRegularGrid);
+				   int si, bool bNonRegularGrid, bool bAsTimeDependent);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Error estimators: Not implemented for the ghost-fluid method
