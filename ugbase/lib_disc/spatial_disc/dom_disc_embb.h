@@ -408,6 +408,14 @@ public:
 				   ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				   ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner);
 
+	template <typename TElem, typename TIterator>
+	void
+	InitAllExports(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+				   ConstSmartPtr<DoFDistribution> dd,
+				   TIterator iterBegin,
+				   TIterator iterEnd,
+				   int si, bool bNonRegularGrid);
+
 ////////////////////////////////////////////////////////////////////////////////
 // Error estimators: Not implemented for the ghost-fluid method
 ////////////////////////////////////////////////////////////////////////////////

@@ -252,6 +252,11 @@ class DomainDiscretizationBase
 	///////////////////////////
 	// Mass and Stiffness Matrix
 	///////////////////////////
+		virtual void init_all_exports(ConstSmartPtr<DoFDistribution> dd);
+		virtual void init_all_exports(const GridLevel& gl)
+		{init_all_exports(dd(gl));}
+		void init_all_exports()
+		{init_all_exports(GridLevel(GridLevel::TOP));}
 
 	/// assembles the mass matrix
 		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u,
@@ -266,6 +271,10 @@ class DomainDiscretizationBase
 		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		                                       const GridLevel& gl)
 		{assemble_stiffness_matrix(A, u, dd(gl));}
+
+	///////////////////////////
+	// Init. all exports (an optional operation, to use the exports for plotting etc.)
+	///////////////////////////
 
 	///////////////////////////////////////////////////////////
 	// Error estimator										///
@@ -617,6 +626,10 @@ public:
 									const std::vector<number>& vScaleMass,
 									const std::vector<number>& vScaleStiff,
 									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol);
+	template <typename TElem>
+	void InitAllExports(			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid);
 };
 
 /// domain discretization implementing the interface

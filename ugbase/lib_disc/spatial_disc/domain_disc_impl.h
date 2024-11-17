@@ -2104,6 +2104,141 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Initialization of the exports (optional)
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+init_all_exports(ConstSmartPtr<DoFDistribution> dd)
+{
+	PROFILE_FUNC_GROUP("discretization");
+//	update the elem discs
+	update_disc_items();
+
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+	std::vector<SubsetGroup> vSSGrp;
+
+//	create list of all subsets
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
+
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
+	{
+	//	get subset
+		const int si = unionSubsets[i];
+
+	//	get dimension of the subset
+		const int dim = DimensionOfSubset(*dd->subset_handler(), si);
+
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
+
+	//	assemble on suitable elements
+		try
+		{
+		switch(dim)
+		{
+		case 0:
+			this->template InitAllExports<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+			break;
+		case 1:
+			this->template InitAllExports<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			this->template InitAllExports<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+			break;
+		case 2:
+			this->template InitAllExports<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+			this->template InitAllExports<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			this->template InitAllExports<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+			this->template InitAllExports<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+			break;
+		case 3:
+			this->template InitAllExports<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+			this->template InitAllExports<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+			this->template InitAllExports<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+			this->template InitAllExports<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+			this->template InitAllExports<Octahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid);
+			break;
+		default:
+			UG_THROW("DomainDiscretization::init_all_exports:"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
+		}
+		}
+		UG_CATCH_THROW("DomainDiscretization::assemble_stiffness_matrix:"
+					" Assembling of elements of Dimension " << dim << " in "
+					" subset "<<si<< " failed.");
+	}
+
+}
+
+/**
+ * This function initalizes the exports and does not do anything else.
+ *
+ * It transfers the dof distributions to the exports and creates the function
+ * maps there.
+ *
+ * This initizalization is optional but after that, the exports can be used
+ * by other objects (like in the plotting).
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+InitAllExports(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+							ConstSmartPtr<DoFDistribution> dd,
+							int si, bool bNonRegularGrid)
+{
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template InitAllExports<TElem>
+			(vElemDisc, dd, vElem.begin(), vElem.end(), si, bNonRegularGrid);
+	}
+	else
+	{
+		//	general case: assembling over all elements in subset si
+		gass_type::template InitAllExports<TElem>
+			(vElemDisc, dd,
+				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 // Error estimator
 ///////////////////////////////////////////////////////////////////////////////
