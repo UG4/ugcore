@@ -455,9 +455,15 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 		// bestimmen, ob die vertizes der fracture vertizes von ihrer subdomain komplett umzingelt werden
 		// muss vor  hier geklärt werden!!!
 
-		isVrtxSurroundedByFracFaces( vrt, vrtxFracPrps );
+//		VecPairSudoBool sudoIsSourrounded;
+
+		bool allClosed = isVrtxSurroundedByFracFaces( vrt, vrtxFracPrps ); //, sudoIsSourrounded );
+
+		if( ! allClosed == vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
+			UG_THROW("da ist was schief gegangen " << std::endl);
 
 		// TODO FIXME ist das so richtig? kann sein, dass das zu vereinfacht ist!!!!!
+		// sudo is suourrounded muss übertragen werden TODO FIXME
 		if( ! isBnd && vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
 		{
 			wahl = false;
@@ -513,6 +519,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 // herausfinden für Sudo der frac, ob bezüglich dieser sudo die faces geschlossen sind, oder ob ein Fracture End vorliegt
 bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, VertxFracPropts & vrtxFracPrps )
+//, VecPairSudoBool & sudoSurrounded )
 {
 	// TODO FIXME
 	// ganz ähnlich wie im 2D Fall, Loopen, im Kreis drehen, kucken, ob wir vom Anfang ans Ende kommen,
@@ -530,11 +537,172 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 //
 //	}
 
-	// TODO FIXME HHHHHHHHHHHHHHHHHHHHHHHHH XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	// first compare sudo list, if equal
+
+	std::vector<IndexType> sudosTestList;
+
+	std::vector<bool> sudoFound( sudoList.size(), false );
+
+	for( auto const & af : vafes )
+	{
+		bool found = false;
+
+		IndexType sudo = af.getSudo();
+
+		for( IndexType i = 0; i < sudoList.size(); i++ )
+		{
+			if( sudo == sudoList[i] )
+			{
+				sudoFound[i] = true;
+				found = true;
+			}
+		}
+
+		if( ! found )
+			UG_THROW("sudo nicht gefunden muss aber da sein " << std::endl);
+	}
+
+	for( auto const & sf: sudoFound )
+	{
+		if( sf == false )
+			UG_THROW("sudo not found but must be there " << std::endl);
+	}
+
+	// sort faces with respect to subdomain - macht das wirklich Sinn, wie umständlich das gemacht wird jetzt?
+
+	// if we arrive here, all sudos found, the entire circle closing can start
+
+	VecPairSudoBool sudoSurrounded;
+
+	for( auto const & sudo : sudoList )
+	{
+		VecAttachedFaceEdgeSudo vecAttFacSudo;
+
+		for( auto const & attFac : vafes )
+		{
+			if( sudo == attFac.getSudo() )
+			{
+				vecAttFacSudo.push_back(attFac);
+			}
+		}
+
+		VecAttachedFaceEdgeSudo vecAttFacSudoSort;
+
+		bool isClosed = sortElemCircleIsClosed( vecAttFacSudo, vecAttFacSudoSort );
+
+		PairSudoBool ic( sudo, isClosed );
+
+		sudoSurrounded.push_back( ic );
+
+	}
+
+	vrtxFracPrps.setInfoAllFractureSudosIfClosed(sudoSurrounded);
+
+	bool allClosed = true;
+
+	for( auto const & ic : sudoSurrounded )
+	{
+		if( ! ic.second )
+			allClosed = false;
+	}
+
+	return allClosed;
+}
+
+bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & attFac,
+												VecAttachedFaceEdgeSudo & sortedFac,
+												IndexType startFacIndexUser,
+												IndexType endFacIndexUser,
+//												IndexType startEdgeIndexUser,
+//												IndexType endEdgeIndexUser
+//												Face * const & startFacUser,
+//												Face * const & endFacUser,
+												Edge * const & startEdgUser,
+												Edge * const & endEdgUser
+												)
+{
+	if( attFac.size() == 0 )
+	{
+		UG_THROW("zu klein zum sortieren " << std::endl);
+		return false;
+	}
+
+	VecAttachedFaceEdgeSudo copyAttFac = attFac;
+
+	IndexType beginIndx = 0;
+
+	if( startFacIndexUser != -1 )
+		beginIndx = startFacIndexUser;
+
+//	AttachedFaceEdgeSudo initialAFES = *(copyAttFac.begin());
+	AttachedFaceEdgeSudo initialAFES = copyAttFac[beginIndx];
+
+	Face * beginFacLoop = initialAFES.getManifElm();
+
+	Face * endFacLoop = nullptr;
+
+	if( endFacIndexUser != -1 )
+	{
+		endFacLoop = copyAttFac[endFacIndexUser].getManifElm();
+	}
+
+	EdgePair beginEdges = initialAFES.getLowElm();
+
+	Edge * beginEdgeLoop = beginEdges.first;
+	Edge * endEdgeLoop = beginEdges.first; // should be closed! should end at same edge as it begins!
+
+//	if( startEdgeIndexUser != -1 )
+//	{
+//		beginEdgeLoop =
+//	}
+
+//	if( startFacUser != nullptr )
+//	{
+//		beginFacLoop = startFacUser;
+//
+//	}
+//
+
+//	if( ! FaceContains(beginFacLoop,beginEdgeLoop->vertex(0)) )
+//		UG_THROW("Sortierung Gesicht hat nicht die gewünschte Ecke " << std::endl);
+//
+//	if( endFacUser != nullptr )
+//	{
+//		endFacLoop = endFacUser;
+//	}
+//
+
+	if( startEdgUser != nullptr )
+	{
+		beginEdgeLoop = startEdgUser;
+
+		// check if part of the begin face!
+
+		if( ! FaceContains( beginFacLoop, beginEdgeLoop ) )
+			UG_THROW("Anfangsgesicht hat keine Anfangsecke " << std::endl);
+
+	}
+
+
+
+	if( endEdgUser != nullptr )
+	{
+		// check if part of end face at end of loop somehow
+		endEdgeLoop = endEdgUser;
+
+		if( endFacLoop != nullptr )
+		{
+			if( ! FaceContains( endFacLoop, endEdgeLoop ) )
+				UG_THROW("Endgesicht hat keine Endecke " << std::endl);
+		}
+	}
+//
+
+
+
 
 	return {};
 }
-
 
 bool ArteExpandFracs3D::assignOrigFracInfos()
 {

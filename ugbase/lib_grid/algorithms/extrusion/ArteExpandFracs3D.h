@@ -205,8 +205,24 @@ private:
 
 	std::vector<CrossVertInf> m_vecCrossVrtInf;
 
-	bool isVrtxSurroundedByFracFaces( Vertex * const & vrt, VertxFracPropts & vrtxFracPrps );
+	using PairSudoBool = std::pair<IndexType,bool>;
+	using VecPairSudoBool = std::vector<PairSudoBool>;
 
+	bool isVrtxSurroundedByFracFaces( Vertex * const & vrt, VertxFracPropts & vrtxFracPrps );
+//									  VecPairSudoBool & sudoSurrounded );
+
+	// transform to template soon
+	bool sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & attFac,
+								 VecAttachedFaceEdgeSudo & sortedFac,
+								 IndexType startFaceIndexUser = -1,
+								 IndexType endFaceIndexUser = -1,
+//								 IndexType startEdgeIndexUser = -1,
+//								 IndexType endEdgeIndexUser = -1
+//								 Face * const & startFacUser = nullptr,
+//								 Face * const & endFacUser = nullptr,
+								 Edge * const & startEdgUser = nullptr,
+								 Edge * const & endEdgUser = nullptr
+								);
 };
 
 } /* namespace ug */

@@ -269,6 +269,89 @@ public:
 		return false;
 	}
 
+	bool const isNeighboured(  AttachedElem<MANIFELM,LOWDIMELM,INDEX_TXP> const & attElm )
+	const
+	{
+//		MANIFELM manifElmOther = attElm.getManifElm();
+		PairLowEl lowElmOther = attElm.getLowElm();
+//		INDEX_TXP sudoOther = attElm.getSudo();
+
+		PairLowEl lowElmThis = this->m_lowElm;
+
+		std::vector<bool> test;
+
+		test.push_back( lowElmOther.first  == lowElmThis.first );
+		test.push_back( lowElmOther.second  == lowElmThis.first );
+		test.push_back( lowElmOther.first  == lowElmThis.second );
+		test.push_back( lowElmOther.second  == lowElmThis.second );
+
+		INDEX_TXP countCorr = 0;
+
+		for( auto const t : test )
+		{
+			if( t )
+				countCorr++;
+		}
+
+		if( countCorr == 1 )
+			return true;
+
+		if( countCorr > 1 )
+			UG_THROW("zu viele gleiche Ecken " << std::endl);
+
+		return false;
+	}
+
+	bool const isNeighbouredAtSpecificSide( AttachedElem<MANIFELM,LOWDIMELM,INDEX_TXP> const & attElm,
+			  	  	  	  	  	  	  	  	LOWDIMELM const & specificLDE )
+	const
+	{
+		PairLowEl lowElmOther = attElm.getLowElm();
+
+		PairLowEl lowElmThis = this->m_lowElm;
+
+		// test if the specific element is part of at least
+		// one of the faces
+
+		bool otherFirst = ( lowElmOther.first == specificLDE );
+		bool otherSecond = ( lowElmOther.second == specificLDE );
+
+		bool thisFirst = ( lowElmThis.first == specificLDE );
+		bool thisSecond = ( lowElmThis.second == specificLDE );
+
+		bool isPartOfThisFace = ( thisFirst || thisSecond );
+		bool isPartOfOtherFace = ( otherFirst || otherSecond );
+
+		if( ! isPartOfOtherFace || ! isPartOfThisFace )
+		{
+			UG_LOG("not part of one of the faces " << std::endl);
+			return false;
+		}
+
+		if( otherFirst && thisFirst )
+		{
+			if( lowElmOther.first  == lowElmThis.first )
+				return true;
+		}
+		else if( otherFirst && thisSecond )
+		{
+			if( lowElmOther.first  == lowElmThis.second )
+				return true;
+		}
+		else if( otherSecond && thisFirst )
+		{
+			if( lowElmOther.second  == lowElmThis.first )
+				return true;
+		}
+		else if( otherSecond && thisSecond )
+		{
+			if( lowElmOther.second  == lowElmThis.second )
+				return true;
+		}
+
+		return false;
+	}
+
 private:
 	MANIFELM m_manifElm;
 	PairLowEl m_lowElm;
@@ -294,7 +377,7 @@ class VertexFracturePropertiesVol
 public:
 
 	using pairTB = std::pair<T,bool>;
-	using vecPairTB = std::vector<pairTB>;
+	using VecPairTB = std::vector<pairTB>;
 
 
 //	VertexFracturePropertiesVol( bool isBndFracVertex,  T numberCrossingFracsInVertex )
@@ -311,7 +394,7 @@ public:
 	: m_isBndFracVertex(false), m_numberCountedFracsInVertex(0),
 	  m_status( noFracSuDoAtt ),
 	  m_sudoList( std::vector<T>() ),
-	  m_sudosClosed(vecPairTB()),
+	  m_sudosClosed(VecPairTB()),
 	  m_vecAttElem(std::vector<ATT_ELEM>())
 //		VertexFracturePropertiesVol( false, 0 )
 	{
@@ -501,14 +584,21 @@ public:
 		return isClosedReturn;
 	}
 
-	vecPairTB getInfoAllFracSudosIfClosed()
+	bool setInfoAllFractureSudosIfClosed( VecPairTB const & sudosClosed )
+	{
+		m_sudosClosed = sudosClosed;
+
+		return true;
+	}
+
+	VecPairTB const getInfoAllFracSudosIfClosed() const
 	{
 		return m_sudosClosed;
 	}
 
 	// if all open or closed
 	template<bool B>
-	bool getInfoAllFracturesSameClosedState()
+	bool const getInfoAllFracturesSameClosedState() const
 	{
 		bool allFracsClos = B;
 
@@ -582,7 +672,7 @@ private:
 		return true;
 	}
 
-	vecPairTB m_sudosClosed;
+	VecPairTB m_sudosClosed;
 
 	bool setSudoList( std::vector<T> const & sudoList )
 	{
