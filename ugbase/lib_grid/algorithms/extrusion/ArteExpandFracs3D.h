@@ -112,7 +112,13 @@ private:
 
 	using IndexType = unsigned short;
 
-	using VertxFracPropts = support::VertexFracturePropertiesVol<IndexType>;
+	using AttachedFaceEdgeSudo = support::AttachedElem<Face*,Edge*,IndexType>;
+
+	using VecAttachedFaceEdgeSudo = std::vector<AttachedFaceEdgeSudo>;
+
+	using EdgePair = std::pair<Edge*,Edge*>;
+
+	using VertxFracPropts = support::VertexFracturePropertiesVol<IndexType, AttachedFaceEdgeSudo>;
 
 	using AttVertFracProp = Attachment<VertxFracPropts>;
 
@@ -173,7 +179,7 @@ private:
 //
 //	VrtxFractrQuadrplArte3DVec m_vrtxFractrQuadrplVec;
 
-	using VertFracTrip = support::VertexFractureTripleMF<Face*, Volume*, vector3>;
+	using VertFracTrip = support::VertexFractureTripleMF<Face*, IndexType, Volume*, vector3, Edge*>;
 
 	using VecVertFracTrip = std::vector<VertFracTrip>;
 
@@ -199,7 +205,7 @@ private:
 
 	std::vector<CrossVertInf> m_vecCrossVrtInf;
 
-	bool isVrtxSurroundedByFracFaces( Vertex * const & vrt, IndexType fracIndSudo, VertxFracPropts const & vrtxFracPrps );
+	bool isVrtxSurroundedByFracFaces( Vertex * const & vrt, VertxFracPropts & vrtxFracPrps );
 
 };
 

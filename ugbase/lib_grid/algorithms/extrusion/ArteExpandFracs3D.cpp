@@ -222,7 +222,8 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	m_aAdjMarkerVFP = AttVertFracProp();
 
-	support::VertexFracturePropertiesVol<IndexType> vfp0; // false, 0 );
+//	support::VertexFracturePropertiesVol<IndexType> vfp0; // false, 0 );
+	VertxFracPropts vfp0; // false, 0 );
 	// default value: no boundary fracture, no fractures crossing
 
 	m_grid.attach_to_vertices_dv( m_aAdjMarkerVFP, vfp0 );
@@ -326,6 +327,20 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 			m_aaMarkFaceB[fac] = true;
 
+			std::vector<Edge*> facEdges;
+
+			CollectEdges( facEdges, m_grid, fac );
+
+			for( auto const & edg : facEdges )
+			{
+				m_aaMarkEdgeVFP[edg]++;
+
+				if( IsBoundaryEdge3D( m_grid, edg ) )
+					m_aaMarkEdgeVFP[edg].setIsBndFracVertex();
+
+				m_sel.select(edg);
+			}
+
 			for(size_t i = 0; i < fac->num_vertices(); ++i)
 			{
 				Vertex* vrt = fac->vertex(i);
@@ -351,22 +366,28 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 					vrtxFracPrps.setIsBndFracVertex();
 				}
 
-				isVrtxSurroundedByFracFaces( vrt, fracIndSudo, vrtxFracPrps );
+				// die Ecken heraus filtern, die mit diesem Vertex assoziert sind
+				std::vector<Edge*> attEdg;
 
-			}
+				for( auto const & ae: facEdges )
+				{
+					if( EdgeContains(ae,vrt) )
+						attEdg.push_back(ae);
+				}
 
-			std::vector<Edge*> tmpEdges; // used for temporary results.
+				if( attEdg.size() == 2 )
+				{
+					EdgePair edgPr( attEdg[0], attEdg[1] );
 
-			CollectEdges( tmpEdges, m_grid, fac );
+					AttachedFaceEdgeSudo afes( fac, edgPr, fracIndSudo );
 
-			for( auto const & edg : tmpEdges )
-			{
-				m_aaMarkEdgeVFP[edg]++;
+					vrtxFracPrps.addAttachedElem(afes);
+				}
+				else
+				{
+					UG_THROW("number of attached edges wrong " << std::endl);
+				}
 
-				if( IsBoundaryEdge3D( m_grid, edg ) )
-					m_aaMarkEdgeVFP[edg].setIsBndFracVertex();
-
-				m_sel.select(edg);
 			}
 		}
 	}
@@ -430,6 +451,12 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 		// TODO FIXME was, wenn ein Teil geschlossen ist der fractures, und ein anderer nicht???
 		//static_assert(false);
 
+
+		// bestimmen, ob die vertizes der fracture vertizes von ihrer subdomain komplett umzingelt werden
+		// muss vor  hier geklärt werden!!!
+
+		isVrtxSurroundedByFracFaces( vrt, vrtxFracPrps );
+
 		// TODO FIXME ist das so richtig? kann sein, dass das zu vereinfacht ist!!!!!
 		if( ! isBnd && vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
 		{
@@ -485,11 +512,25 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 }
 
 // herausfinden für Sudo der frac, ob bezüglich dieser sudo die faces geschlossen sind, oder ob ein Fracture End vorliegt
-bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, IndexType fracIndSudo, VertxFracPropts const & vrtxFracPrps )
+bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, VertxFracPropts & vrtxFracPrps )
 {
 	// TODO FIXME
 	// ganz ähnlich wie im 2D Fall, Loopen, im Kreis drehen, kucken, ob wir vom Anfang ans Ende kommen,
 	// und ob das Ende der edges wieder der Anfang der edges ist, da wir uns auf faces drehen
+
+	VecAttachedFaceEdgeSudo vafes = vrtxFracPrps.getAllAttachedElems();
+
+	std::vector<IndexType> sudoList = vrtxFracPrps.getSudoList();
+
+//	for( auto const & sudo : sudoList )
+//	{
+//		std::vector<Face*> tmpFaces;
+//
+//		CollectFaces( tmpFace, m_grid, vrt );
+//
+//	}
+
+	// TODO FIXME HHHHHHHHHHHHHHHHHHHHHHHHH XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 	return {};
 }
@@ -571,6 +612,9 @@ bool ArteExpandFracs3D::generateVertexInfos()
 //	m_vrtxFractrQuadrplVec = VrtxFractrQuadrplArte3DVec();
 	// TODO FIXME diese Einträge erzeugen
 
+	// TODO FIXME kann vielleicht vereinfacht werden durch einen Loop über alle Vertizes,
+	// und das Abfragen der dort schon gespeicherten vertex property Geschichten, sonst
+	// wird manches doppelt gemoppelt
 	
 	for( auto const & fracInf : m_fracInfos )
 	{
@@ -664,7 +708,9 @@ bool ArteExpandFracs3D::generateVertexInfos()
 //
 //						vecNormalsAwayVol.push_back( normalsAwayVol );
 
-						VertFracTrip infoVerticesThisFace( fac, kuhVol, normal );
+						std::vector<Edge*> facEdgs;
+
+						CollectEdges( facEdgs, m_grid, fac);
 
 						for( IndexType iF = 0; iF < fac->num_vertices(); iF++ )
 						{
@@ -672,7 +718,25 @@ bool ArteExpandFracs3D::generateVertexInfos()
 
 			//				verticesFac.push_back(vrt);
 
-							m_aaVrtInfoFraTri[vrt].push_back( infoVerticesThisFace );
+							std::vector<Edge*> edgOfVrtx;
+
+							for( auto const & edg : facEdgs )
+							{
+								if( EdgeContains(edg, vrt) )
+								{
+									edgOfVrtx.push_back(edg);
+								}
+							}
+
+							if( edgOfVrtx.size() == 2 )
+							{
+								EdgePair commonEdges(edgOfVrtx[0], edgOfVrtx[1]); //  fill values
+								// edges commun between face and volume, with the vertex included as well, i.e. two possibilities
+
+								VertFracTrip infoVerticesThisFace( fac, fracSudo, kuhVol, normal, commonEdges );
+
+								m_aaVrtInfoFraTri[vrt].push_back( infoVerticesThisFace );
+							}
 						}
 
 					}

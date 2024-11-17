@@ -110,35 +110,49 @@ private:
 
 
 template <
-typename MANIFOLDTYP,
-typename FULLDIMTYP,
-typename SENKRECHTENTYP
+typename MANIFOLDTYP, // 3D: Face
+typename INDEXTYP, // int oder unsinged int oder short oder unsigned short etc
+typename FULLDIMTYP, // 3D: Volume
+typename SENKRECHTENTYP, // 3D und 2D: ug::vector3
+typename LOWDIMTYP // 3D: Edge (2D nicht benötigt)
 >
 class VertexFractureTripleMF
 {
 
 public:
 
-	VertexFractureTripleMF( MANIFOLDTYP const & manif, FULLDIMTYP const & full, SENKRECHTENTYP const & normal   )
-	: m_manif(manif), m_full(full), m_normal(normal), m_newNormal(normal)
+	VertexFractureTripleMF( MANIFOLDTYP const & manifElm, INDEXTYP sudo,
+							FULLDIMTYP const & fullElm,
+							SENKRECHTENTYP const & normal,
+							std::pair<LOWDIMTYP,LOWDIMTYP> const & pairLowElm )
+	: m_manifElm(manifElm), m_sudo(sudo), m_fullElm(fullElm),
+	  m_normal(normal), m_newNormal(normal),
+	  m_pairLowElm(pairLowElm)
 	{
 	};
 
-	MANIFOLDTYP const getManif() const { return m_manif; }
+	MANIFOLDTYP const getManifElm() const { return m_manifElm; }
 
-	FULLDIMTYP const getFull() const { return m_full; }
+	INDEXTYP const getSudoElm() const { return m_sudo; }
+
+	FULLDIMTYP const getFullElm() const { return m_fullElm; }
 
 	SENKRECHTENTYP const getNormal() const { return m_normal; }
 
 	void setNewNormal( SENKRECHTENTYP const & chNorml ) { m_newNormal = chNorml; }
+
 	SENKRECHTENTYP const getNewNormal() const { return m_newNormal; }
+
+	std::pair<LOWDIMTYP,LOWDIMTYP> const getPairLowElm() const { return m_pairLowElm; }
 
 private:
 
-	MANIFOLDTYP m_manif;
-	FULLDIMTYP m_full;
+	MANIFOLDTYP m_manifElm;
+	INDEXTYP m_sudo;
+	FULLDIMTYP m_fullElm;
 	SENKRECHTENTYP  m_normal;
 	SENKRECHTENTYP  m_newNormal;
+	std::pair<LOWDIMTYP,LOWDIMTYP> m_pairLowElm;
 
 	VertexFractureTripleMF()
 	{};
@@ -214,14 +228,67 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// info for a vertex: face and attached edges
+template <
+typename MANIFELM,
+typename LOWDIMELM,
+typename INDEX_TXP
+>
+class AttachedElem
+{
+public:
+	using PairLowEl = std::pair<LOWDIMELM,LOWDIMELM>;
+
+	AttachedElem( MANIFELM const & manifElm,
+				  PairLowEl & lowElm,
+				  INDEX_TXP sudo )
+	:
+		m_manifElm(manifElm), m_lowElm(lowElm), m_sudo(sudo)
+	{
+	};
+
+	MANIFELM const getManifElm() const { return m_manifElm;}
+	PairLowEl const getLowElm() const { return m_lowElm; }
+	INDEX_TXP const getSudo() const { return m_sudo; };
+
+	bool const testIfEquals( AttachedElem<MANIFELM,LOWDIMELM,INDEX_TXP> const & attElm )
+	const
+	{
+		MANIFELM manifElmOther = attElm.getManifElm();
+		PairLowEl lowElmOther = attElm.getLowElm();
+		INDEX_TXP sudoOther = attElm.getSudo();
+
+		if(    manifElmOther == this->m_manifElm
+			&& lowElmOther == this->m_lowElm
+			&& sudoOther == this->m_sudo
+		)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+private:
+	MANIFELM m_manifElm;
+	PairLowEl m_lowElm;
+	INDEX_TXP m_sudo;
+
+
+};
 
 //////////////////////////////////////////////////////////////////////////////
 
 // class to help count and store a bool and a number of templete type
 // comparable to std::pair<bool,int> but more dedicated to the specific aim
 // TODO FIXME adapt for 3D case, figure out if inner end, and number of fracs sourrounding
+// CAUTION is also used for edges, but still uses
+// vertex as indicator - name should be made more flexible
 
-template< typename T >
+template<
+typename T,
+typename ATT_ELEM
+>
 class VertexFracturePropertiesVol
 {
 public:
@@ -244,7 +311,8 @@ public:
 	: m_isBndFracVertex(false), m_numberCountedFracsInVertex(0),
 	  m_status( noFracSuDoAtt ),
 	  m_sudoList( std::vector<T>() ),
-	  m_sudosClosed(vecPairTB())
+	  m_sudosClosed(vecPairTB()),
+	  m_vecAttElem(std::vector<ATT_ELEM>())
 //		VertexFracturePropertiesVol( false, 0 )
 	{
 	};
@@ -332,6 +400,11 @@ public:
 		return adaptVrtxFracStatus();
 	}
 
+	// setter private to avoid abusive use
+	std::vector<T> const getSudoList() const
+	{
+		return m_sudoList;
+	}
 
 	bool setIsAClosedFracture( T sudoNow, bool isClosedNow )
 	{
@@ -451,6 +524,28 @@ public:
 		return allFracsClos;
 	}
 
+	bool addAttachedElem( ATT_ELEM const & attElem )
+	{
+		bool alreadyKnown = false;
+
+		for( auto const & aE : m_vecAttElem )
+		{
+			if( aE.testIfEquals(attElem) )
+				alreadyKnown = true;
+		}
+
+		if( ! alreadyKnown )
+			m_vecAttElem.push_back(attElem);
+
+		// returns true if ads it, false if no need as known
+		return ! alreadyKnown;
+	}
+
+	std::vector<ATT_ELEM> const & getAllAttachedElems()
+	const
+	{
+		return m_vecAttElem;
+	}
 
 private:
 	bool m_isBndFracVertex;
@@ -487,8 +582,16 @@ private:
 		return true;
 	}
 
-
 	vecPairTB m_sudosClosed;
+
+	bool setSudoList( std::vector<T> const & sudoList )
+	{
+		m_sudoList = sudoList;
+
+		return true;
+	}
+
+	std::vector<ATT_ELEM> m_vecAttElem;
 
 };
 
