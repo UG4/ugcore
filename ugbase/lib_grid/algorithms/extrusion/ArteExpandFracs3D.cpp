@@ -120,37 +120,58 @@ bool ArteExpandFracs3D::run()
 	if( ! initialize() )
 		return false;
 
+	UG_LOG("initialisiert" << std::endl);
+
 	if( ! setSelector() )
 		return false;
+
+	UG_LOG("selektiert" << std::endl);
 
 	if( ! attachMarkers() )
 		return false;
 
+	UG_LOG("attached" << std::endl);
+
 	if( ! countAndSelectFracBaseNums() )
 		return false;
+
+	return true;
+
+	UG_LOG("gezaehlt" << std::endl);
 
 	if( ! assignOrigFracInfos() )
 		return false;
 
+	UG_LOG("assigniert" << std::endl);
+
 	if( ! establishNewVrtBase() )
 		return false;
+
+	UG_LOG("etabliert" << std::endl);
 
 	if( ! generateVertexInfos() )
 		return false;
 
+	UG_LOG("generiert" << std::endl);
+
 	if( ! createConditionForNewVrtcs() )
 		return false;
+
+	UG_LOG("kreiert" << std::endl);
 
 	if( ! loop2EstablishNewVertices() )
 		return false;
 
+	UG_LOG("loopiert" << std::endl);
 
 	UG_LOG("under construction " << std::endl);
 
 	if( ! detachMarkers() )
 		return false;
 
-	return {};
+	UG_LOG("detachiert" << std::endl);
+
+	return true;
 }
 
 bool ArteExpandFracs3D::initialize()
@@ -204,11 +225,17 @@ bool ArteExpandFracs3D::setSelector()
 	//	Collect surrounding volumes, faces and edges of all fractures in a selector
 	//	and select fracture faces, edges and vertices too.
 
-	m_sel = Selector(m_grid);
+//	m_sel = Selector(m_grid);
+
+	m_sel.assign_grid(m_grid);
 
 	m_sel.enable_autoselection(false);
-	m_sel.enable_selection_inheritance(true);	//required for DistributeExpansionMarks3D. disabled later on.
+	m_sel.enable_selection_inheritance(true);	//required for select and mark, disabled later
 	m_sel.enable_strict_inheritance(false);
+
+//	bool strictInherit = m_sel.strict_inheritance_enabled();
+//
+//	UG_LOG("strikte Inheritenz ist " << strictInherit << " und false ist " << false << std::endl);
 
 	return true;
 }
@@ -315,21 +342,53 @@ bool ArteExpandFracs3D::detachMarkers()
 
 bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 {
+	UG_LOG("countandselect" << std::endl);
+
 	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
 	{
 		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
+
+		UG_LOG("sudo ind " << fracIndSudo << std::endl);
 
 		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
 		{
 			Face* fac = *iter;
 
+//			UG_LOG("Gesicht " << m_aaPos[fac] << std::endl);
+
+			vector3 facCenter = CalculateCenter( fac, m_aaPos );
+			UG_LOG("fac center " << facCenter << std::endl);
+
+			for( IndexType i = 0; i < fac->num_vertices(); i++ )
+				UG_LOG("Vertex " << i << " -> " << m_aaPos[fac->vertex(i)] << std::endl);
+
+			UG_LOG("alle Vertizes" << std::endl);
+
 			m_sel.select(fac);
+
+			UG_LOG("selektiert msel " << fac << std::endl);
 
 			m_aaMarkFaceB[fac] = true;
 
+			UG_LOG("mark bool " << fac << std::endl);
+
+//			return true;
+
 			std::vector<Edge*> facEdges;
 
+			UG_LOG("kollektiere ecken" << std::endl);
+
 			CollectEdges( facEdges, m_grid, fac );
+
+			IndexType d_anzahlEcken = facEdges.size();
+
+			if( d_anzahlEcken == 0 )
+			{
+				UG_LOG("keine Ecken " << std::endl);
+				return true;
+			}
+
+			UG_LOG("Anzahl Ecken " << d_anzahlEcken << std::endl);
 
 			for( auto const & edg : facEdges )
 			{
@@ -340,6 +399,8 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 				m_sel.select(edg);
 			}
+
+			UG_LOG("Ecken gesammelt " << std::endl);
 
 			for(size_t i = 0; i < fac->num_vertices(); ++i)
 			{
@@ -427,6 +488,8 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 #endif
 
+	UG_LOG("neuer Beginn" << std::endl);
+//	return true;
 
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
 	{
@@ -513,6 +576,9 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 		}
 	}
+
+	UG_LOG("vertex Infos Runde eins fertig " << std::endl);
+
 
 	return true;
 }
@@ -780,11 +846,11 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 				vecSortedFac.push_back(nextAttFES);
 
 				copyVecAttFac.erase(itAttFES);
+				foundCommEdg++;
+				startEdge2Append = nextEdge;
+
 			}
 
-			foundCommEdg++;
-
-			startEdge2Append = nextEdge;
 
 			break;
 		}
@@ -803,7 +869,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 		if( nextEdge == nullptr )
 		{
 			if( foundCommEdg != 0 )
-				UG_THROW("nicht konsistent, null und null v2" << std::endl);
+				UG_THROW("nicht konsistent, null und null v2 " << foundCommEdg << " -> " << nextEdge << std::endl);
 
 			return false;
 		}
