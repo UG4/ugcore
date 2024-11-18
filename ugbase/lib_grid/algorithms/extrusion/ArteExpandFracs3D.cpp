@@ -609,8 +609,8 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 	return allClosed;
 }
 
-bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & attFac,
-												VecAttachedFaceEdgeSudo & sortedFac,
+bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & vecAttFac,
+												VecAttachedFaceEdgeSudo & vecSortedFac,
 												IndexType startFacIndexUser,
 												IndexType endFacIndexUser,
 //												IndexType startEdgeIndexUser,
@@ -621,13 +621,15 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 												Edge * const & endEdgUser
 												)
 {
-	if( attFac.size() == 0 )
+	IndexType originalSize = vecAttFac.size();
+
+	if( originalSize == 0 )
 	{
 		UG_THROW("zu klein zum sortieren " << std::endl);
 		return false;
 	}
 
-	VecAttachedFaceEdgeSudo copyAttFac = attFac;
+	VecAttachedFaceEdgeSudo copyVecAttFac = vecAttFac;
 
 	IndexType beginIndx = 0;
 
@@ -635,7 +637,9 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 		beginIndx = startFacIndexUser;
 
 //	AttachedFaceEdgeSudo initialAFES = *(copyAttFac.begin());
-	AttachedFaceEdgeSudo initialAFES = copyAttFac[beginIndx];
+	AttachedFaceEdgeSudo initialAFES = copyVecAttFac[beginIndx];
+
+	IndexType sudo = initialAFES.getSudo();
 
 	Face * beginFacLoop = initialAFES.getManifElm();
 
@@ -643,13 +647,13 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 
 	if( endFacIndexUser != -1 )
 	{
-		endFacLoop = copyAttFac[endFacIndexUser].getManifElm();
+		endFacLoop = copyVecAttFac[endFacIndexUser].getManifElm();
 	}
 
 	EdgePair beginEdges = initialAFES.getLowElm();
 
-	Edge * beginEdgeLoop = beginEdges.first;
-	Edge * endEdgeLoop = beginEdges.first; // should be closed! should end at same edge as it begins!
+	Edge * beginEdgeLoop = beginEdges.second;
+	Edge * targetedEndEdgeLoop = beginEdges.first; // should be closed! should end at same edge as it begins!
 
 //	if( startEdgeIndexUser != -1 )
 //	{
@@ -688,20 +692,126 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 	if( endEdgUser != nullptr )
 	{
 		// check if part of end face at end of loop somehow
-		endEdgeLoop = endEdgUser;
+		targetedEndEdgeLoop = endEdgUser;
 
 		if( endFacLoop != nullptr )
 		{
-			if( ! FaceContains( endFacLoop, endEdgeLoop ) )
+			if( ! FaceContains( endFacLoop, targetedEndEdgeLoop ) )
 				UG_THROW("Endgesicht hat keine Endecke " << std::endl);
 		}
 	}
 //
 
+	// Du musst sortieren. Du musst einen Zeitplan machen. Das kann man lernen. Du kannst das selber machen.
+
+	IndexType countedCrossedFaces = 1;
+
+	vecSortedFac.push_back( initialAFES );
+
+	copyVecAttFac.erase( copyVecAttFac.begin() + startFacIndexUser );
 
 
 
-	return {};
+//	Face * face2Append = beginFacLoop;
+	Edge * startEdge2Append = beginEdgeLoop;
+
+
+	Edge * nextEdge = nullptr;
+
+	while( copyVecAttFac.size() != 0 )
+	{
+		IndexType foundCommEdg = 0;
+
+		nextEdge = nullptr;
+
+//		for( auto const & caf : copyVecAttFac )
+		for( VecAttachedFaceEdgeSudo::iterator itAttFES  = copyVecAttFac.begin();
+											   itAttFES != copyVecAttFac.end();
+											   itAttFES++
+		)
+		{
+			AttachedFaceEdgeSudo caf = *itAttFES;
+
+			EdgePair edgPr = caf.getLowElm();
+
+			Edge * edgOne = edgPr.first;
+			Edge * edgTwo = edgPr.second;
+
+			IndexType hasEdge = 0;
+
+			Edge * overNextEdge = nullptr;
+
+			if( edgOne == startEdge2Append )
+			{
+				nextEdge = edgOne;
+				overNextEdge = edgTwo;
+				hasEdge++;
+			}
+
+			if( edgTwo == startEdge2Append )
+			{
+				nextEdge = edgTwo;
+				overNextEdge = edgOne;
+				hasEdge++;
+			}
+
+			if( hasEdge > 1 )
+				UG_THROW("zu viele Ecken und Kanten " << std::endl);
+
+			if( hasEdge == 1 )
+			{
+				Face * fac2App = caf.getManifElm();
+				EdgePair edgesNextFace( edgOne, edgTwo );
+				AttachedFaceEdgeSudo nextAttFES( fac2App, edgesNextFace, sudo );
+
+				vecSortedFac.push_back(nextAttFES);
+
+				copyVecAttFac.erase(itAttFES);
+			}
+
+			foundCommEdg++;
+
+			startEdge2Append = nextEdge;
+
+			break;
+		}
+
+		if( foundCommEdg > 1 )
+			UG_THROW("Kein Anschluss unter dieser Nummer " << std::endl);
+
+		if( foundCommEdg == 0 )
+		{
+			UG_LOG("Kreislauf nicht geschlossen " << std::endl);
+
+			if( nextEdge != nullptr )
+				UG_THROW("nicht konsistent, null und null " << std::endl);
+		}
+
+		if( nextEdge == nullptr )
+		{
+			if( foundCommEdg != 0 )
+				UG_THROW("nicht konsistent, null und null v2" << std::endl);
+
+			return false;
+		}
+
+	}
+
+	if( nextEdge != targetedEndEdgeLoop )
+	{
+		UG_THROW("Ende nicht erreicht" << std::endl);
+		return false;
+	}
+
+	if( originalSize != vecSortedFac.size() )
+	{
+		UG_THROW("Sortierung hat nicht funktioniert " << std::endl);
+		return false;
+	}
+
+	UG_LOG("Kreislauf Faces 3D Test ob Knoten umrandet geschlossen " << std::endl);
+
+	return true;
 }
 
 bool ArteExpandFracs3D::assignOrigFracInfos()
@@ -846,11 +956,16 @@ bool ArteExpandFracs3D::generateVertexInfos()
 					// Funktion suchen, die ausgehend von einem Face, das ein Volumen begrenzt,
 					// den zum Volumen passenden FaceDescriptor findet, also auch richtige Orientierung
 					// der Vertices beinhaltet
+					// FRAGE TODO FIXME ist ein face descriptor von der Orientierung zum Volumen abhängig
+					// oder hängt der nur vom Face ab, das eine vorgegebene Oriertierung hat?
 
 					if( checkIfFacesVerticesCoincide( kuhFac, fac ) )
 					{
 						facFound = true;
 						numFd++;
+
+						if( kuhFac != fac )
+							UG_LOG("Kuh Fac ist nicht fac " << std::endl);
 
 						FaceDescriptor facDescr;
 
@@ -871,6 +986,16 @@ bool ArteExpandFracs3D::generateVertexInfos()
 						vector3 normal;
 
 						CalculateNormal( normal, & facDescr, m_aaPos );
+
+						vector3 facCenter = CalculateCenter( kuhFac, m_aaPos );
+						vector3 kuhCenter = CalculateCenter( fac, m_aaPos );
+
+
+						UG_LOG("Normale zum face descriptor " << normal << " , " << facCenter << std::endl);
+						UG_LOG("Normale zum Kuhh descriptor " << normal << " , " << kuhCenter << std::endl);
+
+						UG_LOG("fac " << fac << std::endl );
+						UG_LOG("kuh " << kuhFac << std::endl );
 
 //						VolNormPair normalsAwayVol( kuhVol, normal );
 //
@@ -905,12 +1030,19 @@ bool ArteExpandFracs3D::generateVertexInfos()
 
 								m_aaVrtInfoFraTri[vrt].push_back( infoVerticesThisFace );
 							}
+							else
+							{
+								UG_THROW("Mein Face das hat keine Ecken, keine Ecken hat mein Face" << std::endl);
+							}
 						}
 
 					}
 
 					if( ! facFound || numFd != 1 )
+					{
+						UG_THROW("Kein Kuh Volumen gefunden" << std::endl);
 						return false;
+					}
 				}
 			}
 
@@ -1035,6 +1167,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::oneFracSuDoAtt )
 			{
 				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
+				UG_LOG("aktuelles Ziel " << std::endl);
 			}
 			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::twoFracSuDoAtt )
 			{

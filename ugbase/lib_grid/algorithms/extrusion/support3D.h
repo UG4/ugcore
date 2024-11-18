@@ -108,6 +108,10 @@ private:
 	{};
 };
 
+// TODO FIXME vertex fracture triplett
+// vereinigen mit AttElem!!!!
+// doppelte Strukturen!!!
+
 
 template <
 typename MANIFOLDTYP, // 3D: Face
