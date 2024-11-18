@@ -590,6 +590,19 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 
 		bool isClosed = sortElemCircleIsClosed( vecAttFacSudo, vecAttFacSudoSort );
 
+		if( vecAttFacSudo.size() != vecAttFacSudoSort.size() )
+		{
+			UG_THROW("Die Sortierung ist komplett schief gegangen " << std::endl);
+		}
+
+		// DEBUG Zeug, später entfernen!!!!!!
+		for( auto const & afss : vecAttFacSudoSort )
+		{
+			Face * fac = afss.getManifElm();
+
+			m_sh.assign_subset(fac, m_sh.num_subsets());
+		}
+
 		PairSudoBool ic( sudo, isClosed );
 
 		sudoSurrounded.push_back( ic );
@@ -1028,7 +1041,14 @@ bool ArteExpandFracs3D::generateVertexInfos()
 
 								VertFracTrip infoVerticesThisFace( fac, fracSudo, kuhVol, normal, commonEdges );
 
+								// TODO FIXME hier irgendwie graphische Ausgabe von irgendwas
+
+								UG_LOG("Normale ist " << normal << " fac " << fac << " vol " << kuhVol << std::endl);
+
 								m_aaVrtInfoFraTri[vrt].push_back( infoVerticesThisFace );
+
+								// DEBUG OUTPUT; REMOVE LATER
+								m_sh.assign_subset(kuhVol,m_sh.num_subsets());
 							}
 							else
 							{
