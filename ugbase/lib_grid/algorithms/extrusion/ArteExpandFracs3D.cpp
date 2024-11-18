@@ -520,7 +520,33 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 //		VecPairSudoBool sudoIsSourrounded;
 
-		bool allClosed = isVrtxSurroundedByFracFaces( vrt, vrtxFracPrps ); //, sudoIsSourrounded );
+
+
+		bool allClosed = false;
+
+		if( ! isBnd )
+		{
+			UG_LOG("test if closed" << std::endl);
+
+			m_sh.assign_subset(vrt,m_sh.num_subsets());
+
+			UG_LOG("test if closed assign" << std::endl);
+
+
+			allClosed = isVrtxSurroundedByFracFaces( vrt, vrtxFracPrps ); //, sudoIsSourrounded );
+
+			return true;
+		}
+		else
+		{
+			continue; // TODO FIXME das muss noch angepasst werden!!!!
+		}
+		// TODO FIXME auch bei einer boundary muss das gemacht werden!
+
+		UG_LOG("getestet if closed" << std::endl);
+
+
+		return true;
 
 		if( ! allClosed == vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
 			UG_THROW("da ist was schief gegangen " << std::endl);
@@ -587,7 +613,9 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, VertxFracPropts & vrtxFracPrps )
 //, VecPairSudoBool & sudoSurrounded )
 {
-	// TODO FIXME
+	// TODO FIXME wenn an Boundary, dann auch auf closed open unterscheiden - sowohl wenn nur edge an
+	// boundary, aber auch wenn ein ganzes face dort, noch unklar, was das bedeutet
+
 	// ganz ähnlich wie im 2D Fall, Loopen, im Kreis drehen, kucken, ob wir vom Anfang ans Ende kommen,
 	// und ob das Ende der edges wieder der Anfang der edges ist, da wir uns auf faces drehen
 
@@ -609,14 +637,23 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 
 	std::vector<bool> sudoFound( sudoList.size(), false );
 
+	UG_LOG("sudo list size " << sudoList.size() << std::endl );
+
+	UG_LOG("vafes list size VA " << vafes.size() << std::endl );
+
+
 	for( auto const & af : vafes )
 	{
 		bool found = false;
 
 		IndexType sudo = af.getSudo();
 
+		UG_LOG("sudo af " << sudo << std::endl);
+
 		for( IndexType i = 0; i < sudoList.size(); i++ )
 		{
+			UG_LOG("sudo list dusso is " << sudoList[i] << std::endl);
+
 			if( sudo == sudoList[i] )
 			{
 				sudoFound[i] = true;
@@ -624,15 +661,25 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 			}
 		}
 
+
 		if( ! found )
 			UG_THROW("sudo nicht gefunden muss aber da sein " << std::endl);
 	}
 
+	UG_LOG("alles gefunden " << std::endl);
+
+
 	for( auto const & sf: sudoFound )
 	{
 		if( sf == false )
+		{
+			UG_LOG("Falsch" << std::endl);
 			UG_THROW("sudo not found but must be there " << std::endl);
+		}
 	}
+
+	UG_LOG("alles gefunden Test " << std::endl);
+
 
 	// sort faces with respect to subdomain - macht das wirklich Sinn, wie umständlich das gemacht wird jetzt?
 
@@ -648,6 +695,7 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 		{
 			if( sudo == attFac.getSudo() )
 			{
+				UG_LOG("die sudo gefunden " << sudo << std::endl);
 				vecAttFacSudo.push_back(attFac);
 			}
 		}
@@ -655,6 +703,8 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 		VecAttachedFaceEdgeSudo vecAttFacSudoSort;
 
 		bool isClosed = sortElemCircleIsClosed( vecAttFacSudo, vecAttFacSudoSort );
+
+		return true;
 
 		if( vecAttFacSudo.size() != vecAttFacSudoSort.size() )
 		{
@@ -690,8 +740,8 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 
 bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & vecAttFac,
 												VecAttachedFaceEdgeSudo & vecSortedFac,
-												IndexType startFacIndexUser,
-												IndexType endFacIndexUser,
+												int startFacIndexUser,
+//												int endFacIndexUser,
 //												IndexType startEdgeIndexUser,
 //												IndexType endEdgeIndexUser
 //												Face * const & startFacUser,
@@ -700,6 +750,8 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 												Edge * const & endEdgUser
 												)
 {
+	UG_LOG("Schliesstest" << std::endl);
+
 	IndexType originalSize = vecAttFac.size();
 
 	if( originalSize == 0 )
@@ -708,31 +760,61 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 		return false;
 	}
 
+	UG_LOG("Kopieren zwecks sortieren " << std::endl);
+
+	for( auto const & af : vecAttFac )
+	{
+		UG_LOG("die sudos innen sind " << af.getSudo() << std::endl);
+	}
+
 	VecAttachedFaceEdgeSudo copyVecAttFac = vecAttFac;
+
+	for( auto const & af : copyVecAttFac )
+	{
+		UG_LOG("die sudos kopiert sind " << af.getSudo() << std::endl);
+	}
 
 	IndexType beginIndx = 0;
 
+	UG_LOG("begin Index " << beginIndx << std::endl);
+
 	if( startFacIndexUser != -1 )
+	{
+		UG_LOG("Veränderung " << startFacIndexUser << std::endl);
 		beginIndx = startFacIndexUser;
+	}
+
+	UG_LOG("begin Index X " << beginIndx << std::endl);
+
 
 //	AttachedFaceEdgeSudo initialAFES = *(copyAttFac.begin());
 	AttachedFaceEdgeSudo initialAFES = copyVecAttFac[beginIndx];
 
 	IndexType sudo = initialAFES.getSudo();
 
+	UG_LOG("sudo " << beginIndx << " ist " << sudo << std::endl);
+
 	Face * beginFacLoop = initialAFES.getManifElm();
 
+	// TODO FIXME wird das irgendwo verwendet? wieso nicht?
 	Face * endFacLoop = nullptr;
 
-	if( endFacIndexUser != -1 )
-	{
-		endFacLoop = copyVecAttFac[endFacIndexUser].getManifElm();
-	}
+//	if( endFacIndexUser != -1 )
+//	{
+//		endFacLoop = copyVecAttFac[endFacIndexUser].getManifElm();
+//	}
 
 	EdgePair beginEdges = initialAFES.getLowElm();
 
 	Edge * beginEdgeLoop = beginEdges.second;
 	Edge * targetedEndEdgeLoop = beginEdges.first; // should be closed! should end at same edge as it begins!
+
+	// DEBUG
+//	m_sh.assign_subset(beginFacLoop, m_sh.num_subsets());
+//	m_sh.assign_subset(beginEdgeLoop, m_sh.num_subsets());
+//	m_sh.assign_subset(targetedEndEdgeLoop, m_sh.num_subsets());
+//
+//	return true;
 
 //	if( startEdgeIndexUser != -1 )
 //	{
@@ -773,11 +855,11 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 		// check if part of end face at end of loop somehow
 		targetedEndEdgeLoop = endEdgUser;
 
-		if( endFacLoop != nullptr )
-		{
-			if( ! FaceContains( endFacLoop, targetedEndEdgeLoop ) )
-				UG_THROW("Endgesicht hat keine Endecke " << std::endl);
-		}
+//		if( endFacLoop != nullptr )
+//		{
+//			if( ! FaceContains( endFacLoop, targetedEndEdgeLoop ) )
+//				UG_THROW("Endgesicht hat keine Endecke " << std::endl);
+//		}
 	}
 //
 
@@ -787,21 +869,28 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 
 	vecSortedFac.push_back( initialAFES );
 
-	copyVecAttFac.erase( copyVecAttFac.begin() + startFacIndexUser );
+	copyVecAttFac.erase( copyVecAttFac.begin() + beginIndx );
 
 
 
 //	Face * face2Append = beginFacLoop;
 	Edge * startEdge2Append = beginEdgeLoop;
 
+//	m_sh.assign_subset(startEdge2Append,m_sh.num_subsets());
 
-	Edge * nextEdge = nullptr;
+	UG_LOG("while loop anfangen " << std::endl);
+
+	IndexType d_whi = 0;
 
 	while( copyVecAttFac.size() != 0 )
 	{
+
+		UG_LOG("in while loop " << d_whi << std::endl);
+		d_whi++;
+
 		IndexType foundCommEdg = 0;
 
-		nextEdge = nullptr;
+		Edge * nextEdge = nullptr;
 
 //		for( auto const & caf : copyVecAttFac )
 		for( VecAttachedFaceEdgeSudo::iterator itAttFES  = copyVecAttFac.begin();
@@ -815,6 +904,9 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 
 			Edge * edgOne = edgPr.first;
 			Edge * edgTwo = edgPr.second;
+
+//			m_sh.assign_subset(edgOne,m_sh.num_subsets());
+//			m_sh.assign_subset(edgTwo,m_sh.num_subsets());
 
 			IndexType hasEdge = 0;
 
@@ -840,6 +932,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 			if( hasEdge == 1 )
 			{
 				Face * fac2App = caf.getManifElm();
+//				m_sh.assign_subset(fac2App,m_sh.num_subsets());
 				EdgePair edgesNextFace( edgOne, edgTwo );
 				AttachedFaceEdgeSudo nextAttFES( fac2App, edgesNextFace, sudo );
 
@@ -847,12 +940,12 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 
 				copyVecAttFac.erase(itAttFES);
 				foundCommEdg++;
-				startEdge2Append = nextEdge;
+				startEdge2Append = overNextEdge;
 
+				break;
 			}
 
 
-			break;
 		}
 
 		if( foundCommEdg > 1 )
@@ -876,7 +969,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 
 	}
 
-	if( nextEdge != targetedEndEdgeLoop )
+	if( startEdge2Append != targetedEndEdgeLoop )
 	{
 		UG_THROW("Ende nicht erreicht" << std::endl);
 		return false;

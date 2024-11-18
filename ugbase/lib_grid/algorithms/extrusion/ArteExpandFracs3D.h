@@ -214,8 +214,8 @@ private:
 	// transform to template soon
 	bool sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & vecAttFac,
 								 VecAttachedFaceEdgeSudo & vecSortedFac,
-								 IndexType startFaceIndexUser = -1,
-								 IndexType endFaceIndexUser = -1,
+								 int startFaceIndexUser = -1,
+//								 int endFaceIndexUser = -1,
 //								 IndexType startEdgeIndexUser = -1,
 //								 IndexType endEdgeIndexUser = -1
 //								 Face * const & startFacUser = nullptr,
