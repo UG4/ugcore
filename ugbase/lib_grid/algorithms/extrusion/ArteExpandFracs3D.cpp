@@ -1593,6 +1593,7 @@ bool ArteExpandFracs3D::collectFaceVertices( std::vector<Vertex*> & facVrt, Face
 
 
 
+
 // major function of new grid generation, in Keil Style, but functional grid, only the diamonds have to be
 // established in additional functionalities independent of this function
 bool ArteExpandFracs3D::loop2EstablishNewVertices()
@@ -1622,11 +1623,11 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 		// TODO FIXME diese Funktion mit Leben und Analytischer Geometrie 13. Klasse füllen
 
-		VecVertFracTrip & vecVertFracTrip = m_aaVrtInfoFraTri[oldVrt];
-
-		std::vector<Edge*> & allAssoEdges = m_aaVrtInfoAssoEdges[oldVrt];
-		std::vector<Face*> & allAssoFaces = m_aaVrtInfoAssoFaces[oldVrt];
-		std::vector<Volume*> & allAssoVolumes = m_aaVrtInfoAssoVols[oldVrt];
+//		VecVertFracTrip & vecVertFracTrip = m_aaVrtInfoFraTri[oldVrt];
+//
+//		std::vector<Edge*> & allAssoEdges = m_aaVrtInfoAssoEdges[oldVrt];
+//		std::vector<Face*> & allAssoFaces = m_aaVrtInfoAssoFaces[oldVrt];
+//		std::vector<Volume*> & allAssoVolumes = m_aaVrtInfoAssoVols[oldVrt];
 
 		UG_LOG("vertex at " << posOldVrt << std::endl);
 
@@ -1647,21 +1648,24 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 				UG_LOG("vertex nicht geschlossen alle subdoms, nix tun " << m_aaPos[oldVrt] << std::endl);
 			}
 			// TODO FIXME: was, wenn ein Zwischending, Mischung?
-			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::noFracSuDoAtt )
+			else if( statusThisVrtx == VrtxFracProptsStatus::noFracSuDoAtt )
 			{
 				UG_THROW("gar keine Frac darf hier nicht ankommen " << std::endl );
 			}
-			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::oneFracSuDoAtt )
+			else if( statusThisVrtx == VrtxFracProptsStatus::oneFracSuDoAtt )
 			{
 				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
 				UG_LOG("aktuelles Ziel eine sudo ausdehen " << m_aaPos[oldVrt] << std::endl);
+
+//				establishNewVertices<VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
+				// sufficient to tell the vertex, as the attachements are class members and can be asked in the function
 				//m_sh.assign_subset(oldVrt,m_sh.num_subsets());
 			}
-			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::twoFracSuDoAtt )
+			else if( statusThisVrtx == VrtxFracProptsStatus::twoFracSuDoAtt )
 			{
 				UG_LOG("zwei sudos kreuzen in " << m_aaPos[oldVrt] << std::endl);
 			}
-			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::threeFracSuDoAtt )
+			else if( statusThisVrtx == VrtxFracProptsStatus::threeFracSuDoAtt )
 			{
 				UG_LOG("drei sudos kreuzen in " << m_aaPos[oldVrt] << std::endl);
 
@@ -1683,6 +1687,178 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 	return true;
 }
+
+////////////////////////////////////////////////////////////////////
+
+template <>
+bool ArteExpandFracs3D::establishNewVertices<ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt>( Vertex * const & oldVrt )
+{
+	VecVertFracTrip & vecVertFracTrip = m_aaVrtInfoFraTri[oldVrt];
+
+	std::vector<Edge*> & allAssoEdges = m_aaVrtInfoAssoEdges[oldVrt];
+	std::vector<Face*> & allAssoFaces = m_aaVrtInfoAssoFaces[oldVrt];
+	std::vector<Volume*> & allAssoVolumes = m_aaVrtInfoAssoVols[oldVrt];
+
+	// TODO FIXME works if at all only for very simple geometries
+	// and works only in particular if all asso volumes are part of the triple, i.e. have all a common face with the fracture
+	// this is not selbstverständlich at all!!!!
+
+	VecVertFracTrip  vecVertFracTripCopy = m_aaVrtInfoFraTri[oldVrt]; // copy, not reference!
+
+
+	VecVertFracTrip firstSegment;
+	VecVertFracTrip secondSegment;
+
+	IndexType beginIndex = 0;
+
+	VertFracTrip startTrip = vecVertFracTripCopy[beginIndex];
+
+	firstSegment.push_back( startTrip );
+
+	vector3 normalOne = startTrip.getNormal();
+	vector3 normalTwo;
+	// vermute einfach umgekehrte Normale, ein Trick, der im einfachsten Fall geht......
+	VecScale(normalTwo,normalOne,-1);
+
+	vecVertFracTripCopy.erase( vecVertFracTripCopy.begin() + beginIndex );
+
+	while( vecVertFracTripCopy.size() != 0 )
+	{
+		for( VecVertFracTrip::iterator itVFT  = vecVertFracTripCopy.begin();
+									   itVFT != vecVertFracTripCopy.end();
+									   itVFT++
+		)
+		{
+			VertFracTrip actualVFT = *itVFT;
+
+			vector3 normalActual = actualVFT.getNormal();
+
+			// test direction
+
+			number cosinus2One = VecDot(normalOne,normalActual);
+			number cosinus2Two = VecDot(normalTwo,normalActual);
+
+			// if cosinus > 0, assume same side
+
+			if( ( cosinus2One >= 0 && cosinus2Two >= 0 ) || ( cosinus2One <= 0 && cosinus2Two <= 0 ) )
+				UG_THROW("kann nicht auf zwei Seiten hinken" << std::endl);
+
+			if( cosinus2One >= 0 )
+			{
+				firstSegment.push_back( actualVFT );
+			}
+			else if( cosinus2Two >= 0 )
+			{
+				secondSegment.push_back( actualVFT );
+			}
+			else
+			{
+				UG_THROW("muss wo dazu gehoeren wohl" << std::endl);
+			}
+
+			vecVertFracTripCopy.erase(itVFT);
+		}
+	}
+
+	// computer averaged normal
+
+	vector3 normalsOneSummed(0,0,0);
+	vector3 normalsTwoSummed(0,0,0);
+
+
+	for( auto const & seg: firstSegment )
+	{
+		vector3 tmpVec = normalsOneSummed;
+		VecAdd(normalsOneSummed,tmpVec,seg.getNormal());
+	}
+
+	for( auto const & seg: secondSegment )
+	{
+		vector3 tmpVec = normalsTwoSummed;
+		VecAdd(normalsTwoSummed,tmpVec,seg.getNormal());
+	}
+
+	vector3 normalsOneAveraged;
+	vector3 normalsTwoAveraged;
+
+	if( firstSegment.size() != 0 )
+	{
+		VecScale(normalsOneAveraged, normalsOneSummed, 1./firstSegment.size());
+	}
+
+	if( secondSegment.size() != 0 )
+	{
+		VecScale(normalsTwoAveraged, normalsTwoSummed, 1./secondSegment.size());
+	}
+
+	// get to know width of fracture
+
+	IndexType suse = startTrip.getSudoElm();
+
+	number width = m_fracInfosBySubset[suse].width;
+
+	number scal = width / 2.;
+
+	vector3 scaledNormalOne, scaledNormalTwo;
+	VecScale( scaledNormalOne, normalOne, scal );
+	VecScale( scaledNormalTwo, normalTwo, scal );
+
+	vector3 posOldVrt = m_aaPos[oldVrt];
+
+	vector3 posNewVrtOne, posNewVrtTwo;
+
+	VecAdd( posNewVrtOne, posOldVrt, scaledNormalOne);
+	VecAdd( posNewVrtTwo, posOldVrt, scaledNormalTwo);
+
+	Vertex * newShiftVrtxOne = *m_grid.create<RegularVertex>();
+	Vertex * newShiftVrtxTwo = *m_grid.create<RegularVertex>();
+
+	m_aaPos[newShiftVrtxOne] = posNewVrtOne;
+	m_aaPos[newShiftVrtxTwo] = posNewVrtTwo;
+
+	m_sh.assign_subset(newShiftVrtxOne, suse);
+	m_sh.assign_subset(newShiftVrtxTwo, suse);
+
+	for( auto const & fs : firstSegment )
+	{
+		Volume * vol = fs.getFullElm();
+
+		std::vector<Vertex*>& newVrts4Fac = m_aaVrtVecVol[ vol ];
+
+		for(size_t indVrt = 0; indVrt < (vol)->num_vertices();  indVrt++ )
+		{
+			Vertex* volVrt = (vol)->vertex(indVrt);
+
+			if(  volVrt == oldVrt )
+			{
+				newVrts4Fac[ indVrt ] = newShiftVrtxOne;
+			}
+		}
+	}
+
+	for( auto const & ses : secondSegment )
+	{
+		Volume * vol = ses.getFullElm();
+
+		std::vector<Vertex*>& newVrts4Fac = m_aaVrtVecVol[ vol ];
+
+		for(size_t indVrt = 0; indVrt < (vol)->num_vertices();  indVrt++ )
+		{
+			Vertex* volVrt = (vol)->vertex(indVrt);
+
+			if(  volVrt == oldVrt )
+			{
+				newVrts4Fac[ indVrt ] = newShiftVrtxTwo;
+			}
+		}
+	}
+
+
+	return {};
+}
+
+////////////////////////////////////////////////////////////////////
+
 
 bool ArteExpandFracs3D::createConditionForNewVrtcs()
 {

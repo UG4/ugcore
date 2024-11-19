@@ -23,6 +23,13 @@
 
 #include "support.h"
 
+// TODO FIXME
+// verschlanken,
+// Verdoppelungen weg,
+// Namen generalisieren
+// nicht vertex spezifisch zB
+// sondern lowest dim oder so
+
 namespace ug
 {
 
