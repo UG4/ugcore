@@ -137,22 +137,25 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("gezaehlt" << std::endl);
 
-	return true;
 
 	if( ! assignOrigFracInfos() )
 		return false;
 
 	UG_LOG("assigniert" << std::endl);
 
+
 	if( ! establishNewVrtBase() )
 		return false;
 
 	UG_LOG("etabliert" << std::endl);
 
+
 	if( ! generateVertexInfos() )
 		return false;
 
 	UG_LOG("generiert" << std::endl);
+
+	return true;
 
 	if( ! createConditionForNewVrtcs() )
 		return false;
@@ -846,14 +849,14 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 		UG_LOG("is closed " << isClosed << " at " << m_aaPos[vrt] << std::endl);
 		UG_LOG("-------------------------------" << std::endl);
 
-		if( isClosed )
-		{
-			m_sh.assign_subset(vrt,3);
-		}
-		else
-		{
-			m_sh.assign_subset(vrt,4);
-		}
+//		if( isClosed )
+//		{
+//			m_sh.assign_subset(vrt,3);
+//		}
+//		else
+//		{
+//			m_sh.assign_subset(vrt,4);
+//		}
 
 		if( vecAttFacSudo.size() != vecAttFacSudoSort.size() )
 		{
@@ -1372,8 +1375,16 @@ bool ArteExpandFracs3D::generateVertexInfos()
 
 			std::vector<Volume*> assoVols;
 
-			if( ! m_grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES) )
-				UG_THROW("How to collect asso vols?" << std::endl);
+			// wo kam denn der Käse her?
+//			if( ! m_grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES) )
+//				UG_THROW("How to collect asso vols?" << std::endl);
+
+
+			if(! m_grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES) )
+			{
+				UG_LOG("WARNING grid option VOLOPT_AUTOGENERATE_FACES autoenabled.\n");
+				m_grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
+			}
 
 
 //			for( Grid::AssociatedVolumeIterator volIt  = m_grid.associated_volumes_begin(fac);
@@ -1385,12 +1396,21 @@ bool ArteExpandFracs3D::generateVertexInfos()
 //			}
 
 			CollectVolumes(assoVols, m_grid, fac );
+//
+//			for( auto const & av : assoVols )
+//			{
+//				m_sh.assign_subset(av, m_sh.num_subsets());
+//			}
+//
+//			return true;
 
 //			using VolNormPair = std::pair< Volume*, vector3 >;
 //
 //			using VecVolNormPair = std::vector<VolNormPair>;
 //
 //			VecVolNormPair vecNormalsAwayVol;
+
+//			UG_LOG("Center Face " << CalculateCenter(fac,m_aaPos) << std::endl);
 
 			for( auto const & kuhVol : assoVols )
 			{
@@ -1400,6 +1420,9 @@ bool ArteExpandFracs3D::generateVertexInfos()
 				for( IndexType iSide = 0; iSide < kuhVol->num_sides(); iSide++ )
 				{
 					Face * kuhFac = m_grid.get_side(kuhVol, iSide);
+
+//					UG_LOG("Center Kuh Face " << CalculateCenter(kuhFac,m_aaPos) << std::endl);
+
 					// TODO FIXME eigentliches Ziel ist es, den face descriptor des Volumens zu finden,
 					// das mit dem face übereinstimmt, alle anderen Seiten des Volumens sind egal
 					// Funktion suchen, die ausgehend von einem Face, das ein Volumen begrenzt,
@@ -1408,7 +1431,9 @@ bool ArteExpandFracs3D::generateVertexInfos()
 					// FRAGE TODO FIXME ist ein face descriptor von der Orientierung zum Volumen abhängig
 					// oder hängt der nur vom Face ab, das eine vorgegebene Oriertierung hat?
 
-					if( checkIfFacesVerticesCoincide( kuhFac, fac ) )
+					bool checkCoincide = checkIfFacesVerticesCoincide( kuhFac, fac );
+
+					if( checkCoincide )
 					{
 						facFound = true;
 						numFd++;
@@ -1438,13 +1463,18 @@ bool ArteExpandFracs3D::generateVertexInfos()
 
 						vector3 facCenter = CalculateCenter( kuhFac, m_aaPos );
 						vector3 kuhCenter = CalculateCenter( fac, m_aaPos );
+						vector3 kuhVolCenter = CalculateCenter( kuhVol, m_aaPos);
 
+//						UG_LOG("Normale zum face descriptor " << normal << " , " << facCenter << std::endl);
+//						UG_LOG("Normale zum Kuhh descriptor " << normal << " , " << kuhCenter << std::endl);
+//						UG_LOG("Zentrum des Vol")
 
-						UG_LOG("Normale zum face descriptor " << normal << " , " << facCenter << std::endl);
-						UG_LOG("Normale zum Kuhh descriptor " << normal << " , " << kuhCenter << std::endl);
+//						UG_LOG("fac " << fac << std::endl );
+//						UG_LOG("kuh " << kuhFac << std::endl );
 
-						UG_LOG("fac " << fac << std::endl );
-						UG_LOG("kuh " << kuhFac << std::endl );
+						UG_LOG("Normale ist " << normal << " fac " << facCenter
+								<< " vol " << kuhVolCenter << std::endl);
+
 
 //						VolNormPair normalsAwayVol( kuhVol, normal );
 //
@@ -1479,12 +1509,10 @@ bool ArteExpandFracs3D::generateVertexInfos()
 
 								// TODO FIXME hier irgendwie graphische Ausgabe von irgendwas
 
-								UG_LOG("Normale ist " << normal << " fac " << fac << " vol " << kuhVol << std::endl);
-
 								m_aaVrtInfoFraTri[vrt].push_back( infoVerticesThisFace );
 
 								// DEBUG OUTPUT; REMOVE LATER
-								m_sh.assign_subset(kuhVol,m_sh.num_subsets());
+//								m_sh.assign_subset(kuhVol,m_sh.num_subsets());
 							}
 							else
 							{
@@ -1493,13 +1521,14 @@ bool ArteExpandFracs3D::generateVertexInfos()
 						}
 
 					}
-
-					if( ! facFound || numFd != 1 )
-					{
-						UG_THROW("Kein Kuh Volumen gefunden" << std::endl);
-						return false;
-					}
 				}
+
+				if( ! facFound || numFd != 1 )
+				{
+					UG_THROW("Kein Kuh Volumen gefunden" << std::endl);
+					return false;
+				}
+
 			}
 
 		}
