@@ -560,17 +560,20 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 //		return true;
 
-		if( ! allClosed == vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
+		if( allClosed == vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
 			UG_THROW("da ist was schief gegangen " << std::endl);
 
 		// TODO FIXME ist das so richtig? kann sein, dass das zu vereinfacht ist!!!!!
 		// sudo is suourrounded muss übertragen werden TODO FIXME
 //		if( ! isBnd && vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
+		// das !isBnd im 2D Fall wichtig, hier bestimmt auch, wie verallgemeinern?
 		// bei mehreren subdoms eventuell komplizierter, kommt aber hoffentlich am Rand nicht vor......
 		if( vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
 		{
 			wahl = false;
 		}
+
+		UG_LOG("SELEKTIERE " << m_aaPos[vrt] << " -> " << vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() << std::endl);
 
 		// was, wenn numCrossFrac == 0 ist?
 		// wieso werden die boundary vrt ausgeschlossen, oder sollen die nicht ausgeschlossen werden?
@@ -1652,6 +1655,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 			{
 				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
 				UG_LOG("aktuelles Ziel eine sudo ausdehen " << m_aaPos[oldVrt] << std::endl);
+				m_sh.assign_subset(oldVrt,m_sh.num_subsets());
 			}
 			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::twoFracSuDoAtt )
 			{

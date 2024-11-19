@@ -604,18 +604,18 @@ public:
 	template<bool B>
 	bool const getInfoAllFracturesSameClosedState() const
 	{
-		bool allFracsClos = B;
+		bool allFracsSame = true;
 
 		for( auto const & suSu : m_sudosClosed )
 		{
 			T const & sudoVal = suSu.first;
 			bool const & isClosedVal = suSu.second;
 
-			if( isClosedVal == ! B )
-				allFracsClos = ! B;
+			if( isClosedVal != B )
+				allFracsSame = false;
 		}
 
-		return allFracsClos;
+		return allFracsSame;
 	}
 
 	bool addAttachedElem( ATT_ELEM const & attElem )
