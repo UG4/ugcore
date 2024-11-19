@@ -241,6 +241,8 @@ private:
 		return false;
 	};
 
+	bool createNewElements();
+
 };
 
 // specification has to be declared outside central class context, else compilation error

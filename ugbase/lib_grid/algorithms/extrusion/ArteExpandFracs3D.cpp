@@ -168,6 +168,11 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("under construction " << std::endl);
 
+	if( ! createNewElements() )
+		return false;
+
+	UG_LOG("new elements created " << std::endl);
+
 	if( ! detachMarkers() )
 		return false;
 
@@ -1845,11 +1850,11 @@ bool ArteExpandFracs3D::establishNewVertices<ArteExpandFracs3D::VrtxFracProptsSt
 	UG_LOG("Created new vertex 1 at " <<m_aaPos[newShiftVrtxOne] << std::endl );
 	UG_LOG("Created new vertex 2 at " <<m_aaPos[newShiftVrtxTwo] << std::endl );
 
-//	m_sh.assign_subset(newShiftVrtxOne, suse);
-//	m_sh.assign_subset(newShiftVrtxTwo, suse);
+	m_sh.assign_subset(newShiftVrtxOne, suse);
+	m_sh.assign_subset(newShiftVrtxTwo, suse);
 
-	m_sh.assign_subset(newShiftVrtxOne, 3);
-	m_sh.assign_subset(newShiftVrtxTwo, 3);
+//	m_sh.assign_subset(newShiftVrtxOne, 3);
+//	m_sh.assign_subset(newShiftVrtxTwo, 3);
 
 	for( auto const & fs : firstSegment )
 	{
@@ -1914,5 +1919,326 @@ bool ArteExpandFracs3D::createConditionForNewVrtcs()
 	return true;
 }
 
+/////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::createNewElements()
+{
+	// practically copied from Sebastian, as this concept is fine
+
+	//	create new elements
+
+	//	holds local side vertex indices
+	std::vector<size_t>	locVrtInds;
+
+	//	first we create new edges from selected ones which are connected to
+	//	inner vertices. This allows to preserve old subsets.
+	//	Since we have to make sure that we use the right vertices,
+	//	we have to iterate over the selected volumes and perform all actions on the edges
+	//	of those volumes.
+	for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end(); ++iter_sv)
+	{
+		Volume* sv = *iter_sv;
+		//	check for each edge whether it has to be copied.
+		for(size_t i_edge = 0; i_edge < sv->num_edges(); ++i_edge)
+		{
+			Edge* e = m_grid.get_edge(sv, i_edge);
+
+			if(m_sel.is_selected(e))
+			{
+				//	check the associated vertices through the volumes aaVrtVecVol attachment.
+				//	If at least one has an associated new vertex and if no edge between the
+				//	new vertices already exists, we'll create the new edge.
+				size_t ind0, ind1;
+				sv->get_vertex_indices_of_edge(ind0, ind1, i_edge);
+				Vertex* nv0 = (m_aaVrtVecVol[sv])[ind0];
+				Vertex* nv1 = (m_aaVrtVecVol[sv])[ind1];
+
+				if(nv0 || nv1)
+				{
+					//	if one vertex has no associated new one, then we use the vertex itself
+					if(!nv0)
+						nv0 = sv->vertex(ind0);
+					if(!nv1)
+						nv1 = sv->vertex(ind1);
+
+					//	create the new edge if it not already exists.
+					if( ! m_grid.get_edge(nv0, nv1))
+						m_grid.create_by_cloning(e, EdgeDescriptor(nv0, nv1), e);
+				}
+			}
+		}
+	}
+
+	//	now we create new faces from selected ones which are connected to
+	//	inner vertices. This allows to preserve old subsets.
+	//	Since we have to make sure that we use the right vertices,
+	//	we have to iterate over the selected volumes and perform all actions on the side-faces
+	//	of those volumes.
+
+	FaceDescriptor fd;
+
+
+	for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end(); ++iter_sv)
+	{
+		Volume* sv = *iter_sv;
+		//	check for each face whether it has to be copied.
+		for(size_t i_face = 0; i_face < sv->num_faces(); ++i_face)
+		{
+			Face* sf = m_grid.get_face(sv, i_face);
+
+			if( m_sel.is_selected(sf))
+			{
+				//	check the associated vertices through the volumes aaVrtVecVol attachment.
+				//	If no face between the new vertices already exists, we'll create the new face.
+				sv->get_vertex_indices_of_face(locVrtInds, i_face);
+				fd.set_num_vertices(sf->num_vertices());
+
+				for(size_t i = 0; i < sf->num_vertices(); ++i)
+				{
+					Vertex* nVrt = (m_aaVrtVecVol[sv])[locVrtInds[i]];
+					if(nVrt)
+						fd.set_vertex(i, nVrt);
+					else
+						fd.set_vertex(i, sv->vertex(locVrtInds[i]));
+				}
+
+				//	if the new face does not already exist, we'll create it
+				if(!m_grid.get_face(fd))
+					m_grid.create_by_cloning(sf, fd, sf);
+			}
+		}
+	}
+
+	//	Expand all faces.
+	//	Since volumes are replaced on the fly, we have to take care with the iterator.
+	//	record all new volumes in a vector. This will help to adjust positions later on.
+
+	std::vector<Volume*> newFractureVolumes;
+	std::vector<IndexType> subsOfNewVolumes;
+
+	VolumeDescriptor vd;
+
+	for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end();)
+	{
+		Volume* sv = *iter_sv;
+		++iter_sv;
+
+		//	now expand the fracture faces of sv to volumes.
+		for(size_t i_side = 0; i_side < sv->num_sides(); ++i_side)
+		{
+			//	get the local vertex indices of the side of the volume
+			sv->get_vertex_indices_of_face(locVrtInds, i_side);
+
+			Face* tFace = m_grid.get_side(sv, i_side);
+
+			if(tFace)
+			{
+				if(m_aaMarkFaceB[tFace])
+				{
+					Volume* expVol = nullptr;
+
+					if(locVrtInds.size() == 3)
+					{
+						size_t iv0 = locVrtInds[0];
+						size_t iv1 = locVrtInds[1];
+						size_t iv2 = locVrtInds[2];
+
+						if(    ( m_aaVrtVecVol[sv] )[iv0]
+							&& ( m_aaVrtVecVol[sv] )[iv1]
+							&& ( m_aaVrtVecVol[sv] )[iv2]
+						)
+						{
+							//	create a new prism
+							expVol = *m_grid.create<Prism>(
+											PrismDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0]));
+						}
+						else if(    ( m_aaVrtVecVol[sv] )[iv0]
+								 && ( m_aaVrtVecVol[sv] )[iv1]
+						)
+						{
+							//	create a new Pyramid
+							expVol = *m_grid.create<Pyramid>(
+											PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+												(m_aaVrtVecVol[sv])[iv1],
+												(m_aaVrtVecVol[sv])[iv0],
+												sv->vertex(iv2)));
+						}
+						else if(    ( m_aaVrtVecVol[sv] )[iv1]
+								 && ( m_aaVrtVecVol[sv] )[iv2]
+						)
+						{
+							//	create a new Pyramid
+							expVol = *m_grid.create<Pyramid>(
+											PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+												(m_aaVrtVecVol[sv])[iv2],
+												(m_aaVrtVecVol[sv])[iv1],
+												sv->vertex(iv0)));
+						}
+						else if(    (m_aaVrtVecVol[sv])[iv0]
+								 && (m_aaVrtVecVol[sv])[iv2]
+						)
+						{
+							//	create a new Pyramid
+							expVol = *m_grid.create<Pyramid>(
+											PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+												(m_aaVrtVecVol[sv])[iv0],
+												(m_aaVrtVecVol[sv])[iv2],
+												sv->vertex(iv1)));
+						}
+						else if( ( m_aaVrtVecVol[sv])[iv0] )
+						{
+							//	create a new Tetrahedron
+							expVol = *m_grid.create<Tetrahedron>(
+											TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																 (m_aaVrtVecVol[sv])[iv0]));
+						}
+						else if( ( m_aaVrtVecVol[sv])[iv1] )
+						{
+							//	create a new Tetrahedron
+							expVol = *m_grid.create<Tetrahedron>(
+											TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																 (m_aaVrtVecVol[sv])[iv1]));
+						}
+						else if( ( m_aaVrtVecVol[sv])[iv2] )
+						{
+							//	create a new Tetrahedron
+							expVol = *m_grid.create<Tetrahedron>(
+											TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																 (m_aaVrtVecVol[sv])[iv2]));
+						}
+						else
+						{
+							//	this code-block should never be entered. If it is entered then
+							//	we either selected the wrong faces (this shouldn't happen), or there
+							//	are selected faces, which have fracture-boundary-vertices only.
+							//	This is the same is if inner fracture edges exists, which are
+							//	connected to two boundary vertices.
+							//	Since we tried to remove those edges above, something went wrong.
+							//	remove the temporary attachments and throw an error
+//								grid.detach_from_vertices(aVrtVec);
+//								grid.detach_from_volumes(aVrtVec);
+//								grid.detach_from_vertices(aAdjMarker);
+//								grid.detach_from_edges(aAdjMarker);
+								throw(UGError("Error in ExpandFractures3d. Implementation Error."));
+								return false;
+						}
+					}
+					else
+					{
+						//	currently only tetrahedrons are supported. This section thus raises an error
+//							grid.detach_from_vertices(aVrtVec);
+//							grid.detach_from_volumes(aVrtVec);
+//							grid.detach_from_vertices(aAdjMarker);
+//							grid.detach_from_edges(aAdjMarker);
+						throw(UGError("Incomplete implementation error in ExpandFractures3d: Only tetrahedrons are supported in the current implementation."));
+						return false;
+					}
+
+					if(expVol)
+					{
+
+						IndexType newSubs = m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex;
+
+						subsOfNewVolumes.push_back( newSubs );
+
+//						m_sh.assign_subset(expVol, m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex);
+						m_sh.assign_subset(expVol, newSubs);
+
+						newFractureVolumes.push_back(expVol);
+					}
+				}
+			}
+		}
+
+
+		//	now set up a new volume descriptor and replace the volume.
+		if(vd.num_vertices() != sv->num_vertices())
+			vd.set_num_vertices(sv->num_vertices());
+
+		for(size_t i_vrt = 0; i_vrt < sv->num_vertices(); ++i_vrt)
+		{
+			if( (m_aaVrtVecVol[sv])[i_vrt] )
+				vd.set_vertex(i_vrt, (m_aaVrtVecVol[sv])[i_vrt]);
+			else
+				vd.set_vertex(i_vrt, sv->vertex(i_vrt));
+		}
+
+		m_grid.create_by_cloning(sv, vd, sv);
+		m_grid.erase(sv);
+	}
+
+	//	we have to clean up unused faces and edges.
+	//	note that all selected edges with mark 0 may safley be deleted. - warum?
+	for(EdgeIterator iter = m_sel.begin<Edge>(); iter!= m_sel.end<Edge>();)
+	{
+		//	take care of the iterator
+		Edge* e = *iter;
+		++iter;
+
+		if( m_aaMarkEdgeVFP[e].getNumberFracEdgesInVertex() == 0 )
+			m_grid.erase(e);
+	}
+
+	//	make sure that no unused faces linger around (This should never happen!)
+	bool foundUnusedFaces = false;
+	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
+	{
+		Face* f = *iter;
+		++iter;
+
+		if( ! m_aaMarkFaceB[f] )
+		{
+			foundUnusedFaces = true;
+			m_grid.erase(f);
+		}
+	}
+
+	if(foundUnusedFaces)
+	{
+		UG_LOG("WARNING in ExpandFractures3D Arte: Unused faces encountered during cleanup. Removing them...\n");
+	}
+
+	if( subsOfNewVolumes.size() != newFractureVolumes.size() )
+	{
+		UG_THROW("andere zahl neue volumes als subdoms " << std::endl);
+	}
+
+	IndexType nfn = 0;
+
+	for( auto const & nf : newFractureVolumes )
+	{
+		for(size_t iFace = 0; iFace < nf->num_faces(); ++iFace)
+		{
+			Face * fac = m_grid.get_face(nf, iFace);
+
+			m_sh.assign_subset( fac, subsOfNewVolumes[nfn] );
+
+		}
+
+		for(size_t iEdge = 0; iEdge < nf->num_edges(); ++iEdge)
+		{
+			Edge* edg = m_grid.get_edge(nf, iEdge);
+
+			m_sh.assign_subset( edg, subsOfNewVolumes[nfn] );
+
+		}
+
+		for( size_t iVrt = 0; iVrt < nf->num_vertices(); iVrt++ )
+		{
+			Vertex * vrt = nf->vertex(iVrt);
+
+			m_sh.assign_subset( vrt, subsOfNewVolumes[nfn] );
+		}
+
+		nfn++;
+	}
+
+
+
+	return true;
+}
 
 } /* namespace ug */
