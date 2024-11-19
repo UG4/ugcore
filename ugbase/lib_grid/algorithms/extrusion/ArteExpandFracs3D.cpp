@@ -2126,14 +2126,48 @@ bool ArteExpandFracs3D::createNewElements()
 								return false;
 						}
 					}
+					else if ( locVrtInds.size() == 4 )
+					{
+						// newly implemented by Markus to test with Hexahedrons
+
+						size_t iv0 = locVrtInds[0];
+						size_t iv1 = locVrtInds[1];
+						size_t iv2 = locVrtInds[2];
+						size_t iv3 = locVrtInds[3];
+
+						if(    ( m_aaVrtVecVol[sv] )[iv0]
+							&& ( m_aaVrtVecVol[sv] )[iv1]
+							&& ( m_aaVrtVecVol[sv] )[iv2]
+							&& ( m_aaVrtVecVol[sv] )[iv3]
+						)
+						{
+							//	create a new prism
+							expVol = *m_grid.create<Hexahedron>(
+												HexahedronDescriptor(
+															sv->vertex(iv3), sv->vertex(iv2),
+															sv->vertex(iv1), sv->vertex(iv0),
+															(m_aaVrtVecVol[sv])[iv3],
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0])
+															);
+
+							m_sh.assign_subset(expVol, m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex);
+
+							return true;
+						}
+
+
+					}
 					else
 					{
-						//	currently only tetrahedrons are supported. This section thus raises an error
+						//	traditionally only tetrahedrons are supported. This section thus raises an error
+						// Markus tries to implement also Hexahedra
 //							grid.detach_from_vertices(aVrtVec);
 //							grid.detach_from_volumes(aVrtVec);
 //							grid.detach_from_vertices(aAdjMarker);
 //							grid.detach_from_edges(aAdjMarker);
-						throw(UGError("Incomplete implementation error in ExpandFractures3d: Only tetrahedrons are supported in the current implementation."));
+						throw(UGError("Incomplete implementation error in ExpandFractures3d Arte: Only tetrahedrons are supported in the current implementation, and hexahedra are in development."));
 						return false;
 					}
 
