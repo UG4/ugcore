@@ -2161,23 +2161,32 @@ bool ArteExpandFracs3D::createNewElements()
 						}
 						else if(    ( m_aaVrtVecVol[sv] )[iv0]
 								 && ( m_aaVrtVecVol[sv] )[iv1]
+
 						)
 						{
 							//	create a new prism
 							//	create a new prism
+//							expVol = *m_grid.create<Prism>(
+//											PrismDescriptor(sv->vertex(iv3),sv->vertex(iv2), sv->vertex(iv1),
+//															sv->vertex(iv0),
+//															(m_aaVrtVecVol[sv])[iv1],
+//															(m_aaVrtVecVol[sv])[iv0])
+//															);
+							//	create a new Prism
+							///	only used to initialize a prism. for all other tasks you should use VolumeDescripor.
+							/**
+							 * please be sure to pass the vertices in the correct order:
+							 * v1, v2, v3: bottom-vertices in counterclockwise order (if viewed from the top).
+							 * v4, v5, v6: top-vertices in counterclockwise order (if viewed from the top).
+							 * 		PrismDescriptor(Vertex* v1, Vertex* v2, Vertex* v3,
+						Vertex* v4, Vertex* v5, Vertex* v6);
+							 *
+							 */
 							expVol = *m_grid.create<Prism>(
-											PrismDescriptor(sv->vertex(iv3),sv->vertex(iv2), sv->vertex(iv1),
-															sv->vertex(iv0),
-															(m_aaVrtVecVol[sv])[iv1],
-															(m_aaVrtVecVol[sv])[iv0])
-															);
-							//	create a new Pyramid
-							expVol = *m_grid.create<Prism>(
-											PrismDescriptor(sv->vertex(iv0), sv->vertex(iv1),
-												(m_aaVrtVecVol[sv])[iv1],
-												(m_aaVrtVecVol[sv])[iv0],
-												sv->vertex(iv2),
-												sv->vertex(iv3))
+											PrismDescriptor( (m_aaVrtVecVol[sv])[iv0],
+													sv->vertex(iv0), sv->vertex(iv3),
+													(m_aaVrtVecVol[sv])[iv1], sv->vertex(iv1), sv->vertex(iv2)
+												)
 												);
 
 						}
