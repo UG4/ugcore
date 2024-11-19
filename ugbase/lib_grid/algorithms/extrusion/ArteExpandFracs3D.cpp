@@ -2189,20 +2189,51 @@ bool ArteExpandFracs3D::createNewElements()
 												)
 												);
 
+							UG_LOG("PRISM 0 1 " << std::endl);
 						}
 						else if(    ( m_aaVrtVecVol[sv] )[iv0]
 								 && ( m_aaVrtVecVol[sv] )[iv2]
 						)
 						{
-							//	create a new prism
-							//	create a new prism
-//							expVol = *m_grid.create<Prism>(
-//											PrismDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
-//															(m_aaVrtVecVol[sv])[iv2],
-//															(m_aaVrtVecVol[sv])[iv0],
-//															sv->vertex(iv3)
-//															)
-//														);
+							UG_LOG("PRISM 0 2 " << std::endl);
+							expVol = *m_grid.create<Prism>(
+											PrismDescriptor( (m_aaVrtVecVol[sv])[iv0],
+													sv->vertex(iv0), sv->vertex(iv3),
+													sv->vertex(iv2), (m_aaVrtVecVol[sv])[iv2], sv->vertex(iv1)
+												)
+												);
+
+							m_sh.assign_subset(expVol, m_sh.num_subsets());
+							m_sh.assign_subset( sv->vertex(iv0), m_sh.num_subsets());
+							m_sh.assign_subset( sv->vertex(iv1), m_sh.num_subsets());
+							m_sh.assign_subset( sv->vertex(iv2), m_sh.num_subsets());
+							m_sh.assign_subset( sv->vertex(iv3), m_sh.num_subsets());
+							m_sh.assign_subset( (m_aaVrtVecVol[sv])[iv0], m_sh.num_subsets());
+							m_sh.assign_subset( (m_aaVrtVecVol[sv])[iv2], m_sh.num_subsets());
+
+
+						}
+						else if(    ( m_aaVrtVecVol[sv] )[iv0]
+								 && ( m_aaVrtVecVol[sv] )[iv3]
+						)
+						{
+							UG_LOG("PRISM 0 3 " << std::endl);
+
+						}
+						else if(    ( m_aaVrtVecVol[sv] )[iv1]
+								 && ( m_aaVrtVecVol[sv] )[iv2]
+						)
+						{
+
+							UG_LOG("PRISM 1 2 " << std::endl);
+
+						}
+						else if(    ( m_aaVrtVecVol[sv] )[iv2]
+								 && ( m_aaVrtVecVol[sv] )[iv3]
+						)
+						{
+							UG_LOG("PRISM 2 3 " << std::endl);
+
 						}
 
 
