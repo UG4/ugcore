@@ -2152,9 +2152,9 @@ bool ArteExpandFracs3D::createNewElements()
 															(m_aaVrtVecVol[sv])[iv0])
 															);
 
-							m_sh.assign_subset(expVol, m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex);
-
-							return true;
+//							m_sh.assign_subset(expVol, m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex);
+//
+//							return true;
 						}
 
 
