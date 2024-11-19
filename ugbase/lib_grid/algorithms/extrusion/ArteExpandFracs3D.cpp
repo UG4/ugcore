@@ -155,7 +155,6 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("generiert" << std::endl);
 
-	return true;
 
 	if( ! createConditionForNewVrtcs() )
 		return false;
@@ -1641,25 +1640,26 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 			if( vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
 			{
 				// gar nix tun, alle offen, innerer Vertex, darf man hier ankommen? NEIN TODO FIXME
-				UG_THROW("hier sollten wir nicht angekommen sein " << std::endl);
+//				UG_THROW("hier sollten wir nicht angekommen sein " << std::endl);
+				UG_LOG("vertex nicht geschlossen alle subdoms, nix tun " << m_aaPos[oldVrt] << std::endl);
 			}
 			// TODO FIXME: was, wenn ein Zwischending, Mischung?
-
-			if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::noFracSuDoAtt )
+			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::noFracSuDoAtt )
 			{
 				UG_THROW("gar keine Frac darf hier nicht ankommen " << std::endl );
 			}
 			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::oneFracSuDoAtt )
 			{
 				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
-				UG_LOG("aktuelles Ziel " << std::endl);
+				UG_LOG("aktuelles Ziel eine sudo ausdehen " << m_aaPos[oldVrt] << std::endl);
 			}
 			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::twoFracSuDoAtt )
 			{
-
+				UG_LOG("zwei sudos kreuzen in " << m_aaPos[oldVrt] << std::endl);
 			}
 			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::threeFracSuDoAtt )
 			{
+				UG_LOG("drei sudos kreuzen in " << m_aaPos[oldVrt] << std::endl);
 
 			}
 			else
@@ -1669,7 +1669,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 		}
 		else // boundary vertex
 		{
-
+			UG_LOG("Boundary vertizes ausdehen folgend erst " << m_aaPos[oldVrt] << std::endl);
 		}
 
 		// TODO FIXME wichtig: surrounded status closed / open TODO FIXME, sowie Anzahl der schneidenden Fracs
@@ -1677,7 +1677,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 	}
 
 
-	return false;
+	return true;
 }
 
 bool ArteExpandFracs3D::createConditionForNewVrtcs()
