@@ -135,9 +135,9 @@ bool ArteExpandFracs3D::run()
 	if( ! countAndSelectFracBaseNums() )
 		return false;
 
-	return true;
-
 	UG_LOG("gezaehlt" << std::endl);
+
+	return true;
 
 	if( ! assignOrigFracInfos() )
 		return false;
@@ -524,36 +524,48 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 		bool allClosed = false;
 
-		if( ! isBnd )
-		{
-			UG_LOG("test if closed" << std::endl);
+		allClosed = isVrtxSurroundedByFracFaces( vrt, vrtxFracPrps ); //, sudoIsSourrounded );
+//			// case boundary: figure out if the vertex is surrounded by frac faces of which two end in
+//			// boundary edges, similar the case when the boundary face has itself two
+//			// boundary edges, where the vertex is connected to both of them, then it is easy
 
-			m_sh.assign_subset(vrt,m_sh.num_subsets());
+//		if( ! allClosed )
+//			return false;
 
-			UG_LOG("test if closed assign" << std::endl);
+//		return true;
+
+//		if( ! isBnd )
+//		{
+//			UG_LOG("test if closed" << std::endl);
+//
+////			m_sh.assign_subset(vrt,m_sh.num_subsets());
+//
+////			UG_LOG("test if closed assign" << std::endl);
+//
+//
+//		}
+//		else
+//		{
+//
+//
+//
+////			allClosed =
+//		}
+//		// TODO FIXME auch bei einer boundary muss das gemacht werden!
+
+		UG_LOG("getestet if closed " << m_aaPos[vrt] << std::endl);
 
 
-			allClosed = isVrtxSurroundedByFracFaces( vrt, vrtxFracPrps ); //, sudoIsSourrounded );
-
-			return true;
-		}
-		else
-		{
-			continue; // TODO FIXME das muss noch angepasst werden!!!!
-		}
-		// TODO FIXME auch bei einer boundary muss das gemacht werden!
-
-		UG_LOG("getestet if closed" << std::endl);
-
-
-		return true;
+//		return true;
 
 		if( ! allClosed == vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
 			UG_THROW("da ist was schief gegangen " << std::endl);
 
 		// TODO FIXME ist das so richtig? kann sein, dass das zu vereinfacht ist!!!!!
 		// sudo is suourrounded muss übertragen werden TODO FIXME
-		if( ! isBnd && vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
+//		if( ! isBnd && vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
+		// bei mehreren subdoms eventuell komplizierter, kommt aber hoffentlich am Rand nicht vor......
+		if( vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
 		{
 			wahl = false;
 		}
@@ -618,6 +630,11 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 
 	// ganz ähnlich wie im 2D Fall, Loopen, im Kreis drehen, kucken, ob wir vom Anfang ans Ende kommen,
 	// und ob das Ende der edges wieder der Anfang der edges ist, da wir uns auf faces drehen
+
+	// case boundary: figure out if the vertex is surrounded by frac faces of which two end in
+	// boundary edges, similar the case when the boundary face has itself two
+	// boundary edges, where the vertex is connected to both of them, then it is easy
+
 
 	VecAttachedFaceEdgeSudo vafes = vrtxFracPrps.getAllAttachedElems();
 
@@ -702,22 +719,156 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 
 		VecAttachedFaceEdgeSudo vecAttFacSudoSort;
 
-		bool isClosed = sortElemCircleIsClosed( vecAttFacSudo, vecAttFacSudoSort );
 
-		return true;
+
+		bool isClosed = false;
+
+		bool isBndVrtx = IsBoundaryVertex3D(m_grid,vrt);
+
+		if( ! isBndVrtx )
+		{
+			UG_LOG("No boundary vertex test closed " << m_aaPos[vrt] << std::endl);
+
+			if( vecAttFacSudo.size() == 1 )
+			{
+				// no need for further investigations for inner faces
+				isClosed = false;
+				vecAttFacSudoSort = vecAttFacSudo;
+			}
+			else
+			{
+				isClosed = sortElemCircleIsClosed( vecAttFacSudo, vecAttFacSudoSort );
+			}
+
+		}
+		else // different treatment boundary vertex
+		{
+			// figure out start face with a boundary edge, and figure out an eventual additional boundary edge
+			// if only one face, then check if two attached boundary edges, then true, else false
+
+			if( vecAttFacSudo.size() == 1 )
+			{
+				AttachedFaceEdgeSudo & singleEntry = vecAttFacSudo[0];
+
+				EdgePair faceEdgs = singleEntry.getLowElm();
+
+				if( IsBoundaryEdge3D(m_grid, faceEdgs.first) && IsBoundaryEdge3D(m_grid, faceEdgs.second ) )
+					isClosed = true;
+
+				// very simple
+				vecAttFacSudoSort = vecAttFacSudo;
+
+			}
+			else
+			{
+				// figure out a begin face with a boundary edge and figure out another face with a boundary edge
+
+				Edge * beginEdge = nullptr;
+				Edge * endEdge = nullptr;
+
+				IndexType startFaceIndx = 0;
+				IndexType endFaceIndx = 0;
+
+				for( auto const & afs : vecAttFacSudo )
+				{
+					Face * fac = afs.getManifElm();
+
+					EdgePair edgs = afs.getLowElm();
+
+					Edge * edgOne = edgs.first;
+					Edge * edgTwo = edgs.second;
+
+					if( beginEdge == nullptr )
+					{
+						if( IsBoundaryEdge3D(m_grid, edgOne) )
+						{
+							beginEdge = edgTwo;
+						}
+						else if( IsBoundaryEdge3D(m_grid, edgTwo) )
+						{
+							beginEdge = edgOne;
+						}
+						else
+						{
+							startFaceIndx++;
+						}
+					}
+					else
+					{
+						if( IsBoundaryEdge3D(m_grid, edgOne) )
+						{
+							endEdge = edgOne;
+						}
+						else if( IsBoundaryEdge3D(m_grid, edgTwo) )
+						{
+							endEdge = edgTwo;
+						}
+					}
+
+					if( endEdge != nullptr )
+						break;
+
+					endFaceIndx++;
+				}
+
+				if( beginEdge == nullptr && endFaceIndx == vecAttFacSudo.size() )
+//					|| beginEdge == nullptr || endEdge == nullptr )
+				{
+					UG_LOG("keine boundary edges" << std::endl);
+
+					startFaceIndx = -1;
+
+					if( endEdge != nullptr )
+						UG_THROW("Ende nicht null, Anfang null " << std::endl);
+				}
+
+				UG_LOG("Boundary vertex test closed " << m_aaPos[vrt] << std::endl);
+
+//				int d_num = 0;
+//				for( auto const & afs : vecAttFacSudo )
+//				{
+//					d_num++;
+//					Face * fac = afs.getManifElm();
+//					m_sh.assign_subset(fac, m_sh.num_subsets());
+//				}
+//				UG_LOG("number of surr faces " << d_num << std::endl );
+
+//				m_sh.assign_subset(beginEdge,m_sh.num_subsets());
+//				m_sh.assign_subset(endEdge,m_sh.num_subsets());
+//				m_sh.assign_subset(vecAttFacSudo[startFaceIndx].getManifElm(),m_sh.num_subsets());
+
+				isClosed = sortElemCircleIsClosed( vecAttFacSudo, vecAttFacSudoSort, startFaceIndx, beginEdge, endEdge );
+
+			}
+		}
+
+		UG_LOG("-------------------------------" << std::endl);
+		UG_LOG("is closed " << isClosed << " at " << m_aaPos[vrt] << std::endl);
+		UG_LOG("-------------------------------" << std::endl);
+
+		if( isClosed )
+		{
+			m_sh.assign_subset(vrt,3);
+		}
+		else
+		{
+			m_sh.assign_subset(vrt,4);
+		}
 
 		if( vecAttFacSudo.size() != vecAttFacSudoSort.size() )
 		{
+//			return false;
+
 			UG_THROW("Die Sortierung ist komplett schief gegangen " << std::endl);
 		}
 
 		// DEBUG Zeug, später entfernen!!!!!!
-		for( auto const & afss : vecAttFacSudoSort )
-		{
-			Face * fac = afss.getManifElm();
-
-			m_sh.assign_subset(fac, m_sh.num_subsets());
-		}
+//		for( auto const & afss : vecAttFacSudoSort )
+//		{
+//			Face * fac = afss.getManifElm();
+//
+//			m_sh.assign_subset(fac, m_sh.num_subsets());
+//		}
 
 		PairSudoBool ic( sudo, isClosed );
 
@@ -759,6 +910,10 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 		UG_THROW("zu klein zum sortieren " << std::endl);
 		return false;
 	}
+	else if ( originalSize == 1 )
+	{
+		UG_THROW("should not happen size 1, should have been mentioned before " << std::endl);
+	}
 
 	UG_LOG("Kopieren zwecks sortieren " << std::endl);
 
@@ -778,10 +933,102 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 
 	UG_LOG("begin Index " << beginIndx << std::endl);
 
-	if( startFacIndexUser != -1 )
+	bool simpleConnectionTest = false;
+
+	Edge * startEdgeForced = nullptr;
+
+	if( startFacIndexUser >= 0 )
 	{
 		UG_LOG("Veränderung " << startFacIndexUser << std::endl);
 		beginIndx = startFacIndexUser;
+		simpleConnectionTest = true; // user hopefully did it
+	}
+	else
+	{
+		// we need to ensure to start at a fracture which is not in between, in case that circle not closed
+		// so ensure that all fracture faces have a fracture face at both edges as neighbour,
+		// in principle this is already sufficient to answer the question which we want to know
+		// all the rest here is useless playing in principle
+
+		bool broken = false;
+
+		for( IndexType i = 0; i < vecAttFac.size(); i++ )
+		{
+			IndexType firstSideConnected = 0;
+			IndexType secondSideConnected = 0;
+
+			AttachedFaceEdgeSudo afBase = vecAttFac[i];
+
+			Face * faceBase = afBase.getManifElm();
+			EdgePair edgPairBase = afBase.getLowElm();
+
+			Edge * edgeBaseOne = edgPairBase.first;
+			Edge * edgeBaseTwo = edgPairBase.second;
+
+			for( IndexType j = 0; j < vecAttFac.size(); j++ )
+			{
+				if( i != j )
+				{
+					AttachedFaceEdgeSudo afCompr = vecAttFac[j];
+
+					Face * faceCompr = afCompr.getManifElm();
+					EdgePair edgPairCompr = afCompr.getLowElm();
+
+					Edge * edgeComprOne = edgPairCompr.first;
+					Edge * edgeComprTwo = edgPairCompr.second;
+
+					if( edgeComprOne == edgeBaseOne || edgeComprTwo == edgeBaseOne )
+						firstSideConnected++;
+
+					if( edgeComprOne == edgeBaseTwo || edgeComprTwo == edgeBaseTwo )
+						secondSideConnected++;
+				}
+
+			}
+
+			if( vecAttFac.size() > 2 && ( firstSideConnected > 1 || secondSideConnected > 1 ) )
+			{
+				UG_THROW("zu oft verbunden " << std::endl );
+			}
+			else if( vecAttFac.size() == 2 && ( firstSideConnected > 2 || secondSideConnected > 2 ) )
+			{
+				UG_THROW("zu oft verbunden " << std::endl );
+			}
+			else if( firstSideConnected == 0 )
+			{
+				// face is open into one direction, already clear that not closed!!
+
+				beginIndx = i;
+				simpleConnectionTest = false;
+				startEdgeForced = edgeBaseTwo;
+				UG_LOG("forcieren 1 " << std::endl);
+				broken = true;
+				break;
+			}
+			else if( secondSideConnected == 0 )
+			{
+				// face is open into one direction, already clear that not closed!!
+
+				beginIndx = i;
+				simpleConnectionTest = false;
+				startEdgeForced = edgeBaseOne;
+				UG_LOG("forcieren 2 " << std::endl);
+				broken = true;
+				break;
+			}
+			else if( firstSideConnected == 1 && secondSideConnected == 1 )
+			{
+				simpleConnectionTest = true; // as long as a look
+			}
+			else
+			{
+				UG_THROW("komischer Verbindungsfall " << std::endl);
+			}
+
+			if( broken )
+				break;
+
+		}
 	}
 
 	UG_LOG("begin Index X " << beginIndx << std::endl);
@@ -797,7 +1044,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 	Face * beginFacLoop = initialAFES.getManifElm();
 
 	// TODO FIXME wird das irgendwo verwendet? wieso nicht?
-	Face * endFacLoop = nullptr;
+//	Face * endFacLoop = nullptr;
 
 //	if( endFacIndexUser != -1 )
 //	{
@@ -809,10 +1056,6 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 	Edge * beginEdgeLoop = beginEdges.second;
 	Edge * targetedEndEdgeLoop = beginEdges.first; // should be closed! should end at same edge as it begins!
 
-	// DEBUG
-//	m_sh.assign_subset(beginFacLoop, m_sh.num_subsets());
-//	m_sh.assign_subset(beginEdgeLoop, m_sh.num_subsets());
-//	m_sh.assign_subset(targetedEndEdgeLoop, m_sh.num_subsets());
 //
 //	return true;
 
@@ -848,12 +1091,30 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 
 	}
 
+	if( startEdgeForced != nullptr )
+	{
+		beginEdgeLoop = startEdgeForced;
+
+		// check if part of the begin face!
+
+		if( ! FaceContains( beginFacLoop, beginEdgeLoop ) )
+			UG_THROW("Anfangsgesicht hat keine Anfangsecke forced " << std::endl);
+
+//		m_sh.assign_subset(startEdgeForced, m_sh.num_subsets());
+		UG_LOG("forciert " << std::endl);
+
+//		return false;
+
+	}
 
 
 	if( endEdgUser != nullptr )
 	{
 		// check if part of end face at end of loop somehow
 		targetedEndEdgeLoop = endEdgUser;
+
+		if( startEdgeForced != nullptr )
+			UG_THROW("das muss schief gehen, Chaos " << std::endl);
 
 //		if( endFacLoop != nullptr )
 //		{
@@ -863,6 +1124,12 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 	}
 //
 
+	// DEBUG
+//	m_sh.assign_subset(beginFacLoop, m_sh.num_subsets());
+//	m_sh.assign_subset(beginEdgeLoop, m_sh.num_subsets());
+//	m_sh.assign_subset(targetedEndEdgeLoop, m_sh.num_subsets());
+
+
 	// Du musst sortieren. Du musst einen Zeitplan machen. Das kann man lernen. Du kannst das selber machen.
 
 	IndexType countedCrossedFaces = 1;
@@ -870,8 +1137,6 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 	vecSortedFac.push_back( initialAFES );
 
 	copyVecAttFac.erase( copyVecAttFac.begin() + beginIndx );
-
-
 
 //	Face * face2Append = beginFacLoop;
 	Edge * startEdge2Append = beginEdgeLoop;
@@ -900,6 +1165,10 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 		{
 			AttachedFaceEdgeSudo caf = *itAttFES;
 
+			Face * d_Fac = caf.getManifElm();
+
+//			m_sh.assign_subset(d_Fac,m_sh.num_subsets());
+
 			EdgePair edgPr = caf.getLowElm();
 
 			Edge * edgOne = edgPr.first;
@@ -907,6 +1176,8 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 
 //			m_sh.assign_subset(edgOne,m_sh.num_subsets());
 //			m_sh.assign_subset(edgTwo,m_sh.num_subsets());
+
+//			return true;
 
 			IndexType hasEdge = 0;
 
@@ -957,6 +1228,8 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 
 			if( nextEdge != nullptr )
 				UG_THROW("nicht konsistent, null und null " << std::endl);
+
+			break;
 		}
 
 		if( nextEdge == nullptr )
@@ -964,15 +1237,9 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 			if( foundCommEdg != 0 )
 				UG_THROW("nicht konsistent, null und null v2 " << foundCommEdg << " -> " << nextEdge << std::endl);
 
-			return false;
+	//			return false;
 		}
 
-	}
-
-	if( startEdge2Append != targetedEndEdgeLoop )
-	{
-		UG_THROW("Ende nicht erreicht" << std::endl);
-		return false;
 	}
 
 	if( originalSize != vecSortedFac.size() )
@@ -980,6 +1247,16 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 		UG_THROW("Sortierung hat nicht funktioniert " << std::endl);
 		return false;
 	}
+
+	if( startEdge2Append != targetedEndEdgeLoop )
+	{
+		if( simpleConnectionTest )
+			UG_THROW("obwohl offen oder vorgegeben trotzdem Ziel nicht erreicht?" << std::endl);
+
+		UG_LOG("Ende nicht erreicht, Kreis nicht geschlossen, innerer Rand vermutlich" << std::endl);
+		return false;
+	}
+
 
 	UG_LOG("Kreislauf Faces 3D Test ob Knoten umrandet geschlossen " << std::endl);
 
