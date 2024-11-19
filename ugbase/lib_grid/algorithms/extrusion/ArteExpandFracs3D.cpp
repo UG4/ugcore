@@ -1657,7 +1657,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
 				UG_LOG("aktuelles Ziel eine sudo ausdehen " << m_aaPos[oldVrt] << std::endl);
 
-//				establishNewVertices<VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
+				establishNewVertices<VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
 				// sufficient to tell the vertex, as the attachements are class members and can be asked in the function
 				//m_sh.assign_subset(oldVrt,m_sh.num_subsets());
 			}
@@ -1722,43 +1722,69 @@ bool ArteExpandFracs3D::establishNewVertices<ArteExpandFracs3D::VrtxFracProptsSt
 
 	vecVertFracTripCopy.erase( vecVertFracTripCopy.begin() + beginIndex );
 
-	while( vecVertFracTripCopy.size() != 0 )
+//	for( VecVertFracTrip::iterator itVFT  = vecVertFracTripCopy.begin();
+//									   itVFT != vecVertFracTripCopy.end();
+//									   itVFT++
+//		)
+//		{
+//			VertFracTrip actualVFT = *itVFT;
+//
+//			vector3 volCenter = CalculateCenter(actualVFT.getFullElm(),m_aaPos);
+//			UG_LOG("Vol center" << volCenter << std::endl);
+//			vecVertFracTripCopy.erase(itVFT);
+//		}
+//
+//	return true;
+
+//	while( vecVertFracTripCopy.size() != 0 )
+//	{
+//		for( VecVertFracTrip::iterator itVFT  = vecVertFracTripCopy.begin();
+//									   itVFT != vecVertFracTripCopy.end();
+//									   itVFT++
+//		)
+	for( auto const & actualVFT : vecVertFracTripCopy )
 	{
-		for( VecVertFracTrip::iterator itVFT  = vecVertFracTripCopy.begin();
-									   itVFT != vecVertFracTripCopy.end();
-									   itVFT++
-		)
+//			VertFracTrip actualVFT = *itVFT;
+
+		vector3 normalActual = actualVFT.getNormal();
+
+		vector3 volCenter = CalculateCenter(actualVFT.getFullElm(),m_aaPos);
+		UG_LOG("Vol center" << volCenter << std::endl);
+
+		// test direction
+
+		number cosinus2One = VecDot(normalOne,normalActual);
+		number cosinus2Two = VecDot(normalTwo,normalActual);
+
+		UG_LOG("normal eins " << normalOne << std::endl);
+		UG_LOG("normal zwei " << normalTwo << std::endl);
+		UG_LOG("normal actu " << normalActual << std::endl);
+
+		UG_LOG("cosi one " << cosinus2One << std::endl );
+		UG_LOG("cosi two " << cosinus2Two << std::endl );
+
+
+		// if cosinus > 0, assume same side
+
+		if( ( cosinus2One >= 0 && cosinus2Two >= 0 ) || ( cosinus2One <= 0 && cosinus2Two <= 0 ) )
+			UG_THROW("kann nicht auf zwei Seiten hinken" << std::endl);
+
+		if( cosinus2One >= 0 )
 		{
-			VertFracTrip actualVFT = *itVFT;
-
-			vector3 normalActual = actualVFT.getNormal();
-
-			// test direction
-
-			number cosinus2One = VecDot(normalOne,normalActual);
-			number cosinus2Two = VecDot(normalTwo,normalActual);
-
-			// if cosinus > 0, assume same side
-
-			if( ( cosinus2One >= 0 && cosinus2Two >= 0 ) || ( cosinus2One <= 0 && cosinus2Two <= 0 ) )
-				UG_THROW("kann nicht auf zwei Seiten hinken" << std::endl);
-
-			if( cosinus2One >= 0 )
-			{
-				firstSegment.push_back( actualVFT );
-			}
-			else if( cosinus2Two >= 0 )
-			{
-				secondSegment.push_back( actualVFT );
-			}
-			else
-			{
-				UG_THROW("muss wo dazu gehoeren wohl" << std::endl);
-			}
-
-			vecVertFracTripCopy.erase(itVFT);
+			firstSegment.push_back( actualVFT );
+		}
+		else if( cosinus2Two >= 0 )
+		{
+			secondSegment.push_back( actualVFT );
+		}
+		else
+		{
+			UG_THROW("muss wo dazu gehoeren wohl" << std::endl);
 		}
 	}
+//			vecVertFracTripCopy.erase(itVFT);
+//		}
+//	}
 
 	// computer averaged normal
 
@@ -1816,8 +1842,14 @@ bool ArteExpandFracs3D::establishNewVertices<ArteExpandFracs3D::VrtxFracProptsSt
 	m_aaPos[newShiftVrtxOne] = posNewVrtOne;
 	m_aaPos[newShiftVrtxTwo] = posNewVrtTwo;
 
-	m_sh.assign_subset(newShiftVrtxOne, suse);
-	m_sh.assign_subset(newShiftVrtxTwo, suse);
+	UG_LOG("Created new vertex 1 at " <<m_aaPos[newShiftVrtxOne] << std::endl );
+	UG_LOG("Created new vertex 2 at " <<m_aaPos[newShiftVrtxTwo] << std::endl );
+
+//	m_sh.assign_subset(newShiftVrtxOne, suse);
+//	m_sh.assign_subset(newShiftVrtxTwo, suse);
+
+	m_sh.assign_subset(newShiftVrtxOne, 3);
+	m_sh.assign_subset(newShiftVrtxTwo, 3);
 
 	for( auto const & fs : firstSegment )
 	{
