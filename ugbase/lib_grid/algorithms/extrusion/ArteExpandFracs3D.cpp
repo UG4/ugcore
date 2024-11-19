@@ -1655,7 +1655,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 			{
 				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
 				UG_LOG("aktuelles Ziel eine sudo ausdehen " << m_aaPos[oldVrt] << std::endl);
-				m_sh.assign_subset(oldVrt,m_sh.num_subsets());
+				//m_sh.assign_subset(oldVrt,m_sh.num_subsets());
 			}
 			else if( statusThisVrtx == VertxFracPropts::VrtxFracStatus::twoFracSuDoAtt )
 			{
