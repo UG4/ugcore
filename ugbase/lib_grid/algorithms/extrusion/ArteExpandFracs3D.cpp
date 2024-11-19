@@ -1831,8 +1831,10 @@ bool ArteExpandFracs3D::establishNewVertices<ArteExpandFracs3D::VrtxFracProptsSt
 	number scal = width / 2.;
 
 	vector3 scaledNormalOne, scaledNormalTwo;
-	VecScale( scaledNormalOne, normalOne, scal );
-	VecScale( scaledNormalTwo, normalTwo, scal );
+	VecScale( scaledNormalOne, normalOne, - scal );
+	VecScale( scaledNormalTwo, normalTwo, - scal );
+	// Minuszeichen wichtig, sonst wird in die falsche Richtung gedrückt, und die Volumen gehen über die fracture
+	// raus und werden grösser, anstatt kleiner zu werden.....
 
 	vector3 posOldVrt = m_aaPos[oldVrt];
 
@@ -2149,13 +2151,51 @@ bool ArteExpandFracs3D::createNewElements()
 															(m_aaVrtVecVol[sv])[iv3],
 															(m_aaVrtVecVol[sv])[iv2],
 															(m_aaVrtVecVol[sv])[iv1],
-															(m_aaVrtVecVol[sv])[iv0])
-															);
+															(m_aaVrtVecVol[sv])[iv0]
+															)
+														);
 
 //							m_sh.assign_subset(expVol, m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex);
 //
 //							return true;
 						}
+						else if(    ( m_aaVrtVecVol[sv] )[iv0]
+								 && ( m_aaVrtVecVol[sv] )[iv1]
+						)
+						{
+							//	create a new prism
+							//	create a new prism
+							expVol = *m_grid.create<Prism>(
+											PrismDescriptor(sv->vertex(iv3),sv->vertex(iv2), sv->vertex(iv1),
+															sv->vertex(iv0),
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0])
+															);
+							//	create a new Pyramid
+							expVol = *m_grid.create<Prism>(
+											PrismDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+												(m_aaVrtVecVol[sv])[iv1],
+												(m_aaVrtVecVol[sv])[iv0],
+												sv->vertex(iv2),
+												sv->vertex(iv3))
+												);
+
+						}
+						else if(    ( m_aaVrtVecVol[sv] )[iv0]
+								 && ( m_aaVrtVecVol[sv] )[iv2]
+						)
+						{
+							//	create a new prism
+							//	create a new prism
+//							expVol = *m_grid.create<Prism>(
+//											PrismDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//															(m_aaVrtVecVol[sv])[iv2],
+//															(m_aaVrtVecVol[sv])[iv0],
+//															sv->vertex(iv3)
+//															)
+//														);
+						}
+
 
 
 					}
