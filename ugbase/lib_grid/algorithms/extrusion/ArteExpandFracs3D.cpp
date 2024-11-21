@@ -2203,13 +2203,13 @@ bool ArteExpandFracs3D::createNewElements()
 												)
 												);
 
-							m_sh.assign_subset(expVol, m_sh.num_subsets());
-							m_sh.assign_subset( sv->vertex(iv0), m_sh.num_subsets());
-							m_sh.assign_subset( sv->vertex(iv1), m_sh.num_subsets());
-							m_sh.assign_subset( sv->vertex(iv2), m_sh.num_subsets());
-							m_sh.assign_subset( sv->vertex(iv3), m_sh.num_subsets());
-							m_sh.assign_subset( (m_aaVrtVecVol[sv])[iv0], m_sh.num_subsets());
-							m_sh.assign_subset( (m_aaVrtVecVol[sv])[iv2], m_sh.num_subsets());
+//							m_sh.assign_subset(expVol, m_sh.num_subsets());
+//							m_sh.assign_subset( sv->vertex(iv0), m_sh.num_subsets());
+//							m_sh.assign_subset( sv->vertex(iv1), m_sh.num_subsets());
+//							m_sh.assign_subset( sv->vertex(iv2), m_sh.num_subsets());
+//							m_sh.assign_subset( sv->vertex(iv3), m_sh.num_subsets());
+//							m_sh.assign_subset( (m_aaVrtVecVol[sv])[iv0], m_sh.num_subsets());
+//							m_sh.assign_subset( (m_aaVrtVecVol[sv])[iv2], m_sh.num_subsets());
 
 
 						}
