@@ -86,7 +86,7 @@ class IConstraint
 								   const std::vector<number>* vScaleStiff = NULL) = 0;
 
 	///	adapts matrix and rhs (linear case) to enforce constraints
-		virtual void adjust_linear(matrix_type& mat, vector_type& rhs,
+		virtual void adjust_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 		                           ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0)  = 0;
 
 	///	adapts a rhs to enforce constraints
