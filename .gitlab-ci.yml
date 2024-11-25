@@ -111,6 +111,6 @@ build-clang:
   # paths:
   #   - "ug4/build"
   #   - "ughub"
-
-  include:
+ 
+include:
   - template: Jobs/SAST.gitlab-ci.yml
