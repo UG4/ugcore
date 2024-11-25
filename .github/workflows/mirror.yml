@@ -3,7 +3,7 @@ name: Mirror GitLab Repository
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   mirror:
