@@ -38,7 +38,10 @@
 #include <vector>
 #include <string>
 #include <limits>
+
 #include "common/progress.h"
+#include "common/util/string_util.h"
+
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #include "pcl/parallel_archive.h"
@@ -160,7 +163,7 @@ void WriteMatrixPar(std::string name, const Matrix_type &A, const postype *posit
 		if(pcl::NumProcs() == 1)
 			WriteMatrix(name, A, positions, dimensions);
 
-		char buf[20];
+		std::string buf; //char buf[20];
 		int rank = pcl::ProcRank();
 
 
@@ -175,12 +178,13 @@ void WriteMatrixPar(std::string name, const Matrix_type &A, const postype *posit
 			file << pc.size() << "\n";
 			for(size_t i=0; i<pc.size(); i++)
 			{
-				sprintf(buf, "_p%04d.%s", pc.get_proc_id(i), ext.c_str());
-				file << fname << buf << "\n";
+				// snprintf(buf, sizeof(buf), "_p%04d.%s", pc.get_proc_id(i), ext.c_str());
+				buf = GetStringPrintf("_p%04d.%s", pc.get_proc_id(i), ext.c_str());
+				file << fname << buf <<  "\n";
 			}
 		}
 		// create the .mat file
-		sprintf(buf, "_p%04d.%s", rank, ext.c_str());
+		buf = GetStringPrintf("_p%04d.%s", rank, ext.c_str());
 		WriteMatrix(ar.create_stringstream_file(fname + buf), A, positions, dimensions);
 	#endif
 	}

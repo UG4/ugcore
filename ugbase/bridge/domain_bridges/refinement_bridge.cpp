@@ -60,6 +60,8 @@
 
 #include "common/math/misc/math_util.h"
 
+#include "lib_grid/refinement/refiner_factory.hpp"
+
 using namespace std;
 
 namespace ug{
@@ -84,29 +86,6 @@ static RefinementMark StringToRefinementMark(std::string markType)
 	return RM_NONE;
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-///	Creates a global domain refiner.
-/**	Automatically chooses whether a parallel refiner is required.*/
-template <typename TDomain>
-static SmartPtr<IRefiner> GlobalDomainRefiner(TDomain* dom)
-{
-//todo: support normal grids, too!
-
-	#ifdef UG_PARALLEL
-		if(pcl::NumProcs() > 1){
-			return SmartPtr<IRefiner>(
-					new ParallelGlobalRefiner_MultiGrid(
-							*dom->distributed_grid_manager(),
-							dom->refinement_projector()));
-		}
-	#endif
-
-	return SmartPtr<IRefiner>(
-				new GlobalMultiGridRefiner(
-						*dom->grid(),
-						dom->refinement_projector()));
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Factory method, that creates a global subdivision domain refiner.

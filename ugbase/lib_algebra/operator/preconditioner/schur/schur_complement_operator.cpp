@@ -225,7 +225,7 @@ apply(vector_type& fskeleton, const vector_type& uskeleton)
 		//	Debug output of vector
 		//	add iter count to name
 			std::string name("Schur ");
-			char ext[20]; sprintf(ext, "_a_rhs_skeleton%03d.vec", m_applyCnt);
+			char ext[20]; snprintf(ext, 20, "_a_rhs_skeleton%03d.vec", m_applyCnt);
 			name.append(ext);
 			//UG_LOG("fskelton="<<fskeleton);
 			//debug_writer()->write_vector(fskeleton, name.c_str());

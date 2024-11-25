@@ -465,7 +465,7 @@ static int LuaProxyFunction(lua_State* L)
  * @param groupname if not nil, c is the default class of this group
  * @return The number of items pushed to the stack (should be one = 1 object).
  */
-static int LuaConstructor(lua_State* L, IExportedClass* c, const char *groupname=NULL)
+static int LuaConstructor(lua_State* L, IExportedClass* c, const char *groupname=nullptr)
 {
 //	try each constructor overlaod
 	int badParam = -2;
@@ -666,7 +666,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 	//	they were not. If the class has a base class, then we can try to
 	//	to find a method-group in one of the base classes and recursively
 	//	call this method.
-		if(classNameNode != NULL){
+		if(classNameNode != nullptr){
 		//	check whether a base-class contains overloads of this method-group
 		//	push all base classes to this queue of class name nodes
 			std::queue<const ClassNameNode*> qClassNameNodes;
@@ -684,7 +684,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 
 			//	check whether the metatable contains a method-group with
 			//	the given name
-				const ExportedMethodGroup* newMethodGrp = NULL;
+				const ExportedMethodGroup* newMethodGrp = nullptr;
 				if(!self->is_const()){
 				//	access the table which stores method-groups
 					lua_pushstring(L, "__method_grps");
@@ -833,7 +833,7 @@ static int LuaProxyMethod(lua_State* L)
 
 //	The call failed. We have to output errors
 	const char *classname = "(unknown class)";
-	if(classNameNode != NULL)
+	if(classNameNode != nullptr)
 		classname = classNameNode->name().c_str();
 
 	UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n");
@@ -1029,7 +1029,7 @@ static int LuaProxyDelete(lua_State* L)
 		RawUserDataWrapper* udata = (RawUserDataWrapper*)ptr;
 		if(udata->deleteFunc){
 			udata->deleteFunc(udata->obj);
-			((RawUserDataWrapper*)ptr)->obj = NULL;
+			((RawUserDataWrapper*)ptr)->obj = nullptr;
 		}
 		else{
 			UG_LOG("WARNING in LuaProxyDelete: Can't delete object, since"

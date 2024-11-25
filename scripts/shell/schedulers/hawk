@@ -39,7 +39,7 @@ function UJS_Submit
 	if [ -z "$queue" ]; then
 		qsubqueue=""
 	else
-		qsubqueue="-queue $queue"
+		qsubqueue="-q $queue"
 	fi			
 	
 	if [ $exclusive == true ]; then

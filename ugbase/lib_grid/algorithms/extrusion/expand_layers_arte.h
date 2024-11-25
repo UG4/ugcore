@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2013-2015:  G-CSC, Goethe University Frankfurt
- * Author: Martin Rupp
- * 
+ * expand_layers_arte.h
+ *
+ *  Created on: 5.8.2024
+ *      Author: Markus M. Knodel
  * This file is part of UG4.
  * 
  * UG4 is free software: you can redistribute it and/or modify it under the
@@ -30,79 +31,26 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __LUACompiler_H__
-#define	__LUACompiler_H__
+#ifndef UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_H_
+#define UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_H_
 
-#include <stdio.h>
-#include <string>
-#include "common/util/dynamic_library_util.h"
-#include "bindings/lua/lua_function_handle.h"
+#include <vector>
+#include "lib_grid/lg_base.h"
+#include "expand_layers.h"
 
-namespace ug{
-
-class VMAdd;
-
-namespace bridge {
-
-
-
-class LUACompiler
+namespace ug
 {
-	
-private:
-	typedef int (*LUA2C_Function)(double *, const double *) ;
-	
-	DynLibHandle m_libHandle;
-	std::string m_pDyn;
-	VMAdd* vm;
 
-public:
-	std::string m_name;
-	LUA2C_Function m_f;
-	int m_iIn, m_iOut;
-	bool bInitialized;
-	bool bVM;
-	LUACompiler()
-	{ 
-		m_f= nullptr;
-		m_name = "uninitialized"; 
-		m_pDyn = ""; 
-		m_libHandle = nullptr;
-		bInitialized = false;
-		bVM = false;
-		vm = nullptr;
-	}
-	
-	int num_in() const
-	{
-		return m_iIn;
-	}
-	
-	int num_out() const
-	{
-		return m_iOut;
-	}
-	
-	const std::string &name() const
-	{
-		return m_name;
-	}
-	
-	bool is_valid() const
-	{
-		return bInitialized;
-	}
-	
-	bool create(const char *functionName, LuaFunctionHandle* pHandle = nullptr);
-	bool createVM(const char *functionName, LuaFunctionHandle* pHandle = nullptr);
-	bool createC(const char *functionName, LuaFunctionHandle* pHandle = nullptr);
-	
-	bool call(double *ret, const double *in) const;
-	virtual ~LUACompiler();
-};
+/**
+ * 2 dimensional fracture expansion for finite extensions, using the Arte algorithm
+ *
+ */
+bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, std::vector<FractureInfo> const & fracInfos,
+						    bool useTrianglesInDiamonds, bool establishDiamonds );
+
 
 
 }
-}
-#endif	/* __LUACompiler_H__ */
+
+#endif /* UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_H_ */
 

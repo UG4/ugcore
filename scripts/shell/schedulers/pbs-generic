@@ -34,7 +34,7 @@ function UJS_Submit
 	
 
 	# PBSnodes="-l select=$nnodes:node_type=rome:mpiprocs=$nppn"
-	PBSnodes=""
+	PBSnodes="-l select=$nnodes:ncpus=$nppn:mpiprocs=$nppn"
 
 
 	if [ -z "$queue" ]; then
@@ -98,8 +98,28 @@ function UJS_GetOptions
 function UJS_Info
 {
 	echo "Using $UGSUBMIT_TYPE"
-	echo "qstat -u $USER -r"
-	qstat -u $USER	
+	echo "qstat -u $USER"
+
+	(
+		echo "JOBID USERNAME QUEUE JOBNAME SessID ELAP-NDS TSK MEMORY TIME STATE TIME"
+		# grep: get only jobs scheduled with ugsubmit
+		qstat -u $USER | grep -E "job\.[0-9]+\.[0-9]+ *" | awk '
+		BEGIN { OFS = "\t" }
+		{
+			# remove everything after first dot in jobname
+			sub(/\..*$/, "", $1)
+
+			status = $10
+			if (status == "R" || status == "E") {
+			status = "RUNNING"
+			} else if (status == "Q" || status == "H" || status == "W" || status == "T" || status == "S") {
+			status = "PENDING"
+			} else {
+			status = "PENDING"
+			}
+			print $1, $2, $3, $4, $5, $6, $7, $8, $9, status, $11
+		}'  # change every status to RUNNING or PENDING, fallback to PENDING
+	) | column -t  # format output as table
 }
 
 

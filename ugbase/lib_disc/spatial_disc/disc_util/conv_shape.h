@@ -140,8 +140,8 @@ update(const TFVGeom* geo,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
-	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(Velocity != NULL, "Null pointer");
+	UG_ASSERT(geo != nullptr, "Null pointer");
+	UG_ASSERT(Velocity != nullptr, "Null pointer");
 
 //	\todo: think about: this should be something like scvf.num_sh()
 	const size_t numSH = geo->num_sh();
@@ -280,8 +280,8 @@ update(const TFVGeom* geo,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
-	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(Velocity != NULL, "Null pointer");
+	UG_ASSERT(geo != nullptr, "Null pointer");
+	UG_ASSERT(Velocity != nullptr, "Null pointer");
 
 //	\todo: think about: this should be something like scvf.num_sh()
 	const size_t numSH = geo->num_sh();
@@ -456,8 +456,8 @@ update(const TFVGeom* geo,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
-	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(Velocity != NULL, "Null pointer");
+	UG_ASSERT(geo != nullptr, "Null pointer");
+	UG_ASSERT(Velocity != nullptr, "Null pointer");
 
 //	\todo: think about: this should be something like scvf.num_sh()
 	const size_t numSH = geo->num_sh();
@@ -618,9 +618,9 @@ update(const TFVGeom* geo,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
-	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(Velocity != NULL, "Null pointer");
-//	UG_ASSERT(DiffDisp != NULL, "Null pointer");
+	UG_ASSERT(geo != nullptr, "Null pointer");
+	UG_ASSERT(Velocity != nullptr, "Null pointer");
+//	UG_ASSERT(DiffDisp != nullptr, "Null pointer");
 
 //	Compute Volume of Element
 //	typedef typename TFVGeom::ref_elem_type ref_elem_type;
@@ -644,7 +644,7 @@ update(const TFVGeom* geo,
 		number lambda = -1;
 
 	//	if DiffDisp-Tensor passed, compute lambda
-		if(DiffDisp != NULL)
+		if(DiffDisp != nullptr)
 		{
 		//  Get Gradients
 			MathVector<dim> DiffGrad;
@@ -679,7 +679,7 @@ update(const TFVGeom* geo,
 	//	Case 1:
 	//	full upwind is used
 	///////////////////////////////////////////////////////////////////
-		if(lambda <= 0 || DiffDisp == NULL)
+		if(lambda <= 0 || DiffDisp == nullptr)
 		{
 		//	Choose Upwind corner
 			const size_t up = (flux >= 0) ? scvf.from() : scvf.to();
@@ -761,6 +761,418 @@ update(const TFVGeom* geo,
 //	we're done
 	return true;
 }
+
+/////////////////////////////////////////////////////////////////////////////
+// Skewed Upwind
+/////////////////////////////////////////////////////////////////////////////
+
+template <int TDim>
+class ConvectionShapesSkewedUpwind
+	: public IConvectionShapes<TDim>
+{
+public:
+	///	Base class
+	typedef IConvectionShapes<TDim> base_type;
+
+	///	This class
+	typedef ConvectionShapesSkewedUpwind<TDim> this_type;
+
+	///	Dimension
+	static const int dim = TDim;
+
+protected:
+	//	explicitly forward some function
+	using base_type::conv_shape;
+	using base_type::conv_shape_diffusion;
+	using base_type::D_vel;
+	using base_type::non_zero_deriv_diffusion;
+	using base_type::register_update_func;
+	using base_type::set_non_zero_deriv_diffusion_flag;
+
+public:
+	///	constructor
+	ConvectionShapesSkewedUpwind()
+	{
+		//	the shapes do not depend on the DiffDisp. Thus, we can set the
+		//	derivative to be always zero w.r.t. the DiffDisp for all shapes
+		set_non_zero_deriv_diffusion_flag(false);
+
+		//	register evaluation function
+		boost::mpl::for_each<typename domain_traits<dim>::AllElemList>(RegisterElemFunc(this));
+		boost::mpl::for_each<boost::mpl::range_c<int, 1, dim + 1>>(RegisterRefDimFunc(this));
+	}
+
+	///	update of values for FV geometry
+	template <typename TFVGeom>
+	bool update(const TFVGeom *geo,
+				const MathVector<dim> *Velocity,
+				const MathMatrix<dim, dim> *DiffDisp,
+				bool computeDeriv);
+
+private:
+	///	functor for registering the shapes for the element-templated FV geometries
+	struct RegisterElemFunc
+	{
+		this_type *m_pThis;
+		RegisterElemFunc(this_type *pThis) : m_pThis(pThis) {}
+		template <typename TElem>
+		void operator()(TElem &)
+		{
+			m_pThis->template register_func_for_elem_fvgeom<TElem, FV1Geometry<TElem, dim>>();
+			//m_pThis->template register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
+			//m_pThis->template register_func_for_elem_fvgeom< TElem, HFV1Geometry<TElem, dim> >();
+		}
+	};
+
+	/// registers the update function for an element type and a FV geometry
+	template <typename TElem, typename TFVGeom>
+	void register_func_for_elem_fvgeom()
+	{
+		typedef bool (this_type::*TFunc)(const TFVGeom *, const MathVector<dim> *, const MathMatrix<dim, dim> *, bool);
+		base_type::template register_update_func<TFVGeom, TFunc>(&this_type::template update<TFVGeom>);
+	}
+
+	///	functor for registering the shapes for the reference-dimension-templated FV geometries
+	struct RegisterRefDimFunc
+	{
+		this_type *m_pThis;
+		RegisterRefDimFunc(this_type *pThis) : m_pThis(pThis) {}
+		template <typename TRefDim>
+		void operator()(TRefDim &) { m_pThis->register_func_for_refDim<TRefDim::value>(); }
+	};
+
+	/// registers the update function for a reference dimension
+	template <int refDim>
+	void register_func_for_refDim()
+	{
+		//typedef DimFV1Geometry<refDim, dim> TGeom;
+		//typedef bool (this_type::*TFunc) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+		//base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
+	}
+};
+
+/// computes the closest node to a elem side ray intersection
+template <typename TRefElem, int TWorldDim>
+void GetNodeNextToCut(size_t &coOut,
+					  const MathVector<TWorldDim> &IP,
+					  const MathVector<TWorldDim> &IPVel,
+					  const MathVector<TWorldDim> *vCornerCoords)
+{
+	//	help variables
+	size_t side = 0;
+	MathVector<TWorldDim> globalIntersection;
+	MathVector<TRefElem::dim> localIntersection;
+
+	//	compute intersection of ray in direction of ip velocity with elem side
+	//	we search the ray only in upwind direction
+	if (!ElementSideRayIntersection<TRefElem, TWorldDim>(side, globalIntersection, localIntersection,
+														 IP, IPVel, false /* i.e. search upwind */, vCornerCoords))
+		UG_THROW("GetNodeNextToCut: ElementSideRayIntersection failed");
+
+	//	get reference element
+	static const TRefElem &rRefElem = Provider<TRefElem>::get();
+	const int dim = TRefElem::dim;
+
+	// 	reset minimum
+	number min = std::numeric_limits<number>::max();
+
+	// 	loop corners of side
+	for (size_t i = 0; i < rRefElem.num(dim - 1, side, 0); ++i)
+	{
+		// 	get corner
+		const size_t co = rRefElem.id(dim - 1, side, 0, i);
+
+		// 	Compute Distance to intersection
+		number dist = VecDistanceSq(globalIntersection, vCornerCoords[co]);
+
+		// 	if distance is smaller, choose this node
+		if (dist < min)
+		{
+			min = dist;
+			coOut = co;
+		}
+	}
+}
+
+template <int TDim>
+template <typename TFVGeom>
+bool ConvectionShapesSkewedUpwind<TDim>::
+	update(const TFVGeom *geo,
+		   const MathVector<dim> *Velocity,
+		   const MathMatrix<dim, dim> *DiffDisp,
+		   bool computeDeriv)
+{
+	UG_ASSERT(geo != nullptr, "Null pointer");
+	UG_ASSERT(Velocity != nullptr, "Null pointer");
+
+	//	\todo: think about: this should be something like scvf.num_sh()
+	const size_t numSH = geo->num_sh();
+
+	//	loop subcontrol volume faces
+	for (size_t ip = 0; ip < geo->num_scvf(); ++ip)
+	{
+		//	get subcontrol volume face
+		const typename TFVGeom::SCVF &scvf = geo->scvf(ip);
+
+		//	Compute flux
+		const number flux = VecDot(scvf.normal(), Velocity[ip]);
+
+		// Switch to no upwind in case of small velocity
+		if (VecTwoNorm(Velocity[ip]) < 1e-14)
+		{
+			// No upwind!
+			for (size_t sh = 0; sh < scvf.num_sh(); sh++)
+				conv_shape(ip, sh) = flux * scvf.shape(sh);
+			for (size_t sh = scvf.num_sh(); sh < numSH; sh++)
+				conv_shape(ip, sh) = 0.0;
+			if (computeDeriv)
+			{
+				for (size_t sh = 0; sh < scvf.num_sh(); sh++)
+					VecScale(D_vel(ip, sh), scvf.normal(), scvf.shape(sh));
+				// temporary: case of hanging nodes
+				for (size_t sh = scvf.num_sh(); sh < numSH; sh++)
+					VecSet(D_vel(ip, sh), 0.0);
+			}
+			continue;
+		}
+
+		//	initialize shapes with zeroes
+		for (size_t sh = 0; sh < scvf.num_sh(); sh++)
+			conv_shape(ip, sh) = 0.0;
+
+		//  Hanging nodes
+		//	this is introduced here, hopefully temporarily: The problem is, that
+		//	for hanging nodes the number of shape function is not the number of
+		//	corners, but scvf.num_sh() currently returns the number of corners.
+		//	this is actually enough to interpolate the function, but still we
+		//	should reset the interpolation adding for hanging dofs to zero
+		for (size_t sh = scvf.num_sh(); sh < numSH; sh++)
+			conv_shape(ip, sh) = 0.0;
+
+		const MathVector<dim> *vCornerCoords = geo->corners();
+		size_t up = 0;
+		try
+		{
+			GetNodeNextToCut<typename TFVGeom::ref_elem_type, dim>(up, scvf.global_ip(), Velocity[ip], vCornerCoords);
+		}
+		UG_CATCH_THROW("Skewed upwind: Cannot find node next to cut");
+
+		conv_shape(ip, up) = flux;
+
+		//	Write Derivatives if wanted
+		if (computeDeriv)
+		{
+			for (size_t sh = 0; sh < numSH; ++sh)
+				VecSet(D_vel(ip, sh), 0.0);
+			D_vel(ip, up) = scvf.normal();
+		}
+
+		//	The shapes do not depend of the diffusion tensor
+	}
+
+	//	we're done
+	return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// Linear Profile Skewed Upwind
+/////////////////////////////////////////////////////////////////////////////
+
+template <int TDim>
+class ConvectionShapesLinearProfileSkewedUpwind
+	: public IConvectionShapes<TDim>
+{
+public:
+	///	Base class
+	typedef IConvectionShapes<TDim> base_type;
+
+	///	This class
+	typedef ConvectionShapesLinearProfileSkewedUpwind<TDim> this_type;
+
+	///	Dimension
+	static const int dim = TDim;
+
+protected:
+	//	explicitly forward some function
+	using base_type::conv_shape;
+	using base_type::conv_shape_diffusion;
+	using base_type::D_vel;
+	using base_type::non_zero_deriv_diffusion;
+	using base_type::register_update_func;
+	using base_type::set_non_zero_deriv_diffusion_flag;
+
+public:
+	///	constructor
+	ConvectionShapesLinearProfileSkewedUpwind()
+	{
+		//	the shapes do not depend on the DiffDisp. Thus, we can set the
+		//	derivative to be always zero w.r.t. the DiffDisp for all shapes
+		set_non_zero_deriv_diffusion_flag(false);
+
+		//	register evaluation function
+		boost::mpl::for_each<typename domain_traits<dim>::AllElemList>(RegisterElemFunc(this));
+		boost::mpl::for_each<boost::mpl::range_c<int, 1, dim + 1>>(RegisterRefDimFunc(this));
+	}
+
+	///	update of values for FV geometry
+	template <typename TFVGeom>
+	bool update(const TFVGeom *geo,
+				const MathVector<dim> *Velocity,
+				const MathMatrix<dim, dim> *DiffDisp,
+				bool computeDeriv);
+
+private:
+	///	functor for registering the shapes for the element-templated FV geometries
+	struct RegisterElemFunc
+	{
+		this_type *m_pThis;
+		RegisterElemFunc(this_type *pThis) : m_pThis(pThis) {}
+		template <typename TElem>
+		void operator()(TElem &)
+		{
+			m_pThis->template register_func_for_elem_fvgeom<TElem, FV1Geometry<TElem, dim>>();
+			//m_pThis->template register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
+			//m_pThis->template register_func_for_elem_fvgeom< TElem, HFV1Geometry<TElem, dim> >();
+		}
+	};
+
+	/// registers the update function for an element type and a FV geometry
+	template <typename TElem, typename TFVGeom>
+	void register_func_for_elem_fvgeom()
+	{
+		typedef bool (this_type::*TFunc)(const TFVGeom *, const MathVector<dim> *, const MathMatrix<dim, dim> *, bool);
+		base_type::template register_update_func<TFVGeom, TFunc>(&this_type::template update<TFVGeom>);
+	}
+
+	///	functor for registering the shapes for the reference-dimension-templated FV geometries
+	struct RegisterRefDimFunc
+	{
+		this_type *m_pThis;
+		RegisterRefDimFunc(this_type *pThis) : m_pThis(pThis) {}
+		template <typename TRefDim>
+		void operator()(TRefDim &) { m_pThis->register_func_for_refDim<TRefDim::value>(); }
+	};
+
+	/// registers the update function for a reference dimension
+	template <int refDim>
+	void register_func_for_refDim()
+	{
+		//typedef DimFV1Geometry<refDim, dim> TGeom;
+		//typedef bool (this_type::*TFunc) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+		//base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
+	}
+};
+
+template <int TDim>
+template <typename TFVGeom>
+bool ConvectionShapesLinearProfileSkewedUpwind<TDim>::
+	update(const TFVGeom *geo,
+		   const MathVector<dim> *Velocity,
+		   const MathMatrix<dim, dim> *DiffDisp,
+		   bool computeDeriv)
+{
+	UG_ASSERT(geo != nullptr, "Null pointer");
+	UG_ASSERT(Velocity != nullptr, "Null pointer");
+
+	//	\todo: think about: this should be something like scvf.num_sh()
+	const size_t numSH = geo->num_sh();
+
+	//	loop subcontrol volume faces
+	for (size_t ip = 0; ip < geo->num_scvf(); ++ip)
+	{
+		//	get subcontrol volume face
+		const typename TFVGeom::SCVF &scvf = geo->scvf(ip);
+
+		//	Compute flux
+		const number flux = VecDot(scvf.normal(), Velocity[ip]);
+
+		// Switch to no upwind in case of small velocity
+		if (VecTwoNorm(Velocity[ip]) < 1e-14)
+		{
+			// No upwind!
+			for (size_t sh = 0; sh < scvf.num_sh(); sh++)
+				conv_shape(ip, sh) = flux * scvf.shape(sh);
+			for (size_t sh = scvf.num_sh(); sh < numSH; sh++)
+				conv_shape(ip, sh) = 0.0;
+			if (computeDeriv)
+			{
+				for (size_t sh = 0; sh < scvf.num_sh(); sh++)
+					VecScale(D_vel(ip, sh), scvf.normal(), scvf.shape(sh));
+				// temporary, see above
+				for (size_t sh = scvf.num_sh(); sh < numSH; sh++)
+					VecSet(D_vel(ip, sh), 0.0);
+			}
+			continue;
+		}
+
+		//	initialize shapes with zeroes
+		for (size_t sh = 0; sh < scvf.num_sh(); sh++)
+			conv_shape(ip, sh) = 0.0;
+
+		//  Hanging nodes
+		//	this is introduced here, hopefully temporarily: The problem is, that
+		//	for hanging nodes the number of shape function is not the number of
+		//	corners, but scvf.num_sh() currently returns the number of corners.
+		//	this is actually enough to interpolate the function, but still we
+		//	should reset the interpolation adding for hanging dofs to zero
+		for (size_t sh = scvf.num_sh(); sh < numSH; sh++)
+			conv_shape(ip, sh) = 0.0;
+
+		const MathVector<dim> *vCornerCoords = geo->corners();
+		// Reference element type
+		typedef typename TFVGeom::ref_elem_type TRefElem;
+		size_t side = 0;
+		MathVector<dim> globalIntersection;
+		MathVector<TRefElem::dim> localIntersection;
+
+		try
+		{
+			ElementSideRayIntersection<TRefElem, dim>(side, globalIntersection, localIntersection,
+													  scvf.global_ip(), Velocity[ip], false /* search upwind */, vCornerCoords);
+		}
+		UG_CATCH_THROW("GetLinearProfileSkewedUpwindShapes: Cannot find cut side.");
+
+		// 	get linear trial space
+		static const ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+		const LocalShapeFunctionSet<TRefElem::dim> &TrialSpace =
+			LocalFiniteElementProvider::get<TRefElem::dim>(roid, LFEID(LFEID::LAGRANGE, dim, 1));
+
+		// 	get Reference Element
+		static const TRefElem &rRefElem = Provider<TRefElem>::get();
+
+        // Shape function values 
+		std::vector<number> vShape;
+		// Values of shape function gradients
+		std::vector<MathVector<TRefElem::dim>> vShapeGrad;
+		// Get values at the intersection point
+		TrialSpace.shapes(vShape, localIntersection);
+		TrialSpace.grads(vShapeGrad, localIntersection);
+
+		size_t num_corners_inters_side = rRefElem.num(dim - 1, side, 0);
+
+		// 	loop corners of side
+		for (size_t j = 0; j < num_corners_inters_side; ++j)
+		{
+			// 	get corner
+			const size_t co = rRefElem.id(dim-1, side, 0, j);
+
+			//	write shape
+			conv_shape(ip, co) = flux * vShape[co];
+		}
+
+		//	Write Derivatives if wanted
+		if (computeDeriv)
+		{
+			// No derivatives yet!
+		}
+
+		//	The shapes do not depend of the diffusion tensor
+	}
+
+	//	we're done
+	return true;
+}
+
 
 } // end namespace ug
 

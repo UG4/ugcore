@@ -254,7 +254,7 @@ private:
 			LS_PROFILE_END(LS_ComputeStartDefect);
 
 			int loopCnt = 0;
-			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+			char ext[20]; snprintf(ext, 20, "_iter%03d", loopCnt);
 			std::string name("LS_Defect_"); name.append(ext).append(".vec");
 			write_debug(d, name.c_str());
 			name = std::string("LS_Solution_"); name.append(ext).append(".vec");

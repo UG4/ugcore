@@ -92,12 +92,37 @@ void DataEvaluator<TDomain>::finish_elem_loop()
 {
 //	finish each elem disc
 	try{
-		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
-			m_vElemDisc[PT_ALL][i]->do_fsh_elem_loop();
+		for(size_t d = 0; d < m_vElemDisc[PT_ALL].size(); ++d)
+		{
+			IElemDisc<TDomain>* disc = m_vElemDisc[PT_ALL][d];
+			
+			disc->do_fsh_elem_loop();
+			
+			/* TODO:
+			 * In prepare_elem_loop, the elemdiscs initialize the local ip's independently
+			 * on if they are used. For ex., the ip's used only for the mass matrix are
+			 * initialized, too, even if only the stiffness part is assembled. These ip's
+			 * are not cleared below as they do not get into the lists, and this creates
+			 * issues with the linkers that share subordinated userdata objects. For that,
+			 * we clear here all the assigned ip's.
+			 *
+			 * Should it be done here on in do_fsh_elem_loop?
+			 */
+			for (size_t i = 0; i < disc->num_imports(); ++i)
+			{
+				IDataImport<dim>& imp = disc->get_import(i);
+				if(imp.data_given())
+					imp.data()->clear();
+			}
+		}
 	}
 	UG_CATCH_THROW("DataEvaluatorBase::fsh_elem_loop: Cannot finish element loop");
 
 //	clear positions at user data
+	/* TODO:
+	 * Could it be done in a more elegant way? For ex., why clearing here all the ip
+	 * series and not only the ones assigned to the particular userdata objects?
+	 */
 	clear_positions_in_user_data();
 }
 

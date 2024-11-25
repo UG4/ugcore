@@ -460,8 +460,10 @@ static void Dimension(Registry& reg, string grp)
 			string name = string("CompositeUserNumber").append(dimSuffix);
 			typedef CompositeUserData<number, dim, void> T;
 			reg.add_class_<T,typename T::base_type>(name, grp)
-				.template add_constructor<void (*)(bool) >("")
-				.add_method("add", &T::add)
+				.template add_constructor<void (*)()>()
+				.template add_constructor<void (*)(bool)>("continuous")
+				.add_method("add", static_cast<void (T::*)(int, typename T::ref_type)>(&T::add), "assign a user data object to a subset index", "si#userdata")
+				.add_method("add", static_cast<void (T::*)(ConstSmartPtr<ISubsetHandler>, const char *, typename T::ref_type)>(&T::add), "assign a user data object to subsets by names", "names#userdata")
 				.add_method("has", &T::has)
 				.add_method("get", &T::get)
 				.add_method("is_coupled", &T::is_coupled)
@@ -476,8 +478,10 @@ static void Dimension(Registry& reg, string grp)
 			string name = string("CompositeUserVector").append(dimSuffix);
 			typedef CompositeUserData<MathVector<dim>, dim, void> T;
 			reg.add_class_<T,typename T::base_type>(name, grp)
-				.template add_constructor<void (*)(bool) >("")
-				.add_method("add", &T::add)
+				.template add_constructor<void (*)()>()
+				.template add_constructor<void (*)(bool)>("continuous")
+				.add_method("add", static_cast<void (T::*)(int, typename T::ref_type)>(&T::add), "assign a user data object to a subset index", "si#userdata")
+				.add_method("add", static_cast<void (T::*)(ConstSmartPtr<ISubsetHandler>, const char *, typename T::ref_type)>(&T::add), "assign a user data object to subsets by names", "names#userdata")
 				.add_method("has", &T::has)
 				.add_method("get", &T::get)
 				.add_method("is_coupled", &T::is_coupled)
@@ -597,7 +601,9 @@ static void Common(Registry& reg, string grp)
 
 //	UserDataInfo
 	{
-		reg.add_class_<UserDataInfo>("UserDataInfo", grp);
+		reg.add_class_<UserDataInfo>("UserDataInfo", grp)
+			.add_method("set_obj_name", &UserDataInfo::set_obj_name)
+			.add_method("obj_name", &UserDataInfo::obj_name);
 	}
 
 #ifdef UG_DIM_2

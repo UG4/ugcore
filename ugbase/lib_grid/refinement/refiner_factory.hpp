@@ -1,20 +1,20 @@
 /*
- * Copyright (c) 2013-2015:  G-CSC, Goethe University Frankfurt
- * Author: Martin Rupp
- * 
+ * Copyright (c) 2024: Goethe University Frankfurt
+ * Author: Arne Naegel
+ *
  * This file is part of UG4.
- * 
+ *
  * UG4 is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License version 3 (as published by the
  * Free Software Foundation) with the following additional attribution
  * requirements (according to LGPL/GPL v3 §7):
- * 
+ *
  * (1) The following notice must be displayed in the Appropriate Legal Notices
  * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
- * 
+ *
  * (2) The following notice must be displayed at a prominent place in the
  * terminal output of covered works: "Based on UG4 (www.ug4.org/license)".
- * 
+ *
  * (3) The following bibliography is recommended for citation and must be
  * preserved in all covered files:
  * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
@@ -23,86 +23,50 @@
  * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
  *   flexible software system for simulating pde based models on high performance
  *   computers. Computing and visualization in science 16, 4 (2013), 165-179"
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __LUACompiler_H__
-#define	__LUACompiler_H__
+#ifndef __H__UG__DOMAIN_REFINEMENT_BRIDGE_HPP__
+#define __H__UG__DOMAIN_REFINEMENT_BRIDGE_HPP__
 
-#include <stdio.h>
-#include <string>
-#include "common/util/dynamic_library_util.h"
-#include "bindings/lua/lua_function_handle.h"
+#include "lib_grid/lib_grid.h"
+#include "lib_grid/algorithms/refinement_mark_util.h"
+#include "lib_grid/refinement/adaptive_regular_mg_refiner.h"
+#include "lib_grid/refinement/global_fractured_media_refiner.h"
+#include "lib_grid/refinement/global_multi_grid_refiner.h"
+#include "lib_grid/refinement/global_subdivision_multi_grid_refiner.h"
+#include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
+#include "lib_grid/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.h"
+#include "lib_grid/refinement/ref_mark_adjusters/shadow_copy_adjuster.h"
 
 namespace ug{
 
-class VMAdd;
-
-namespace bridge {
-
-
-
-class LUACompiler
+////////////////////////////////////////////////////////////////////////////////
+///	Creates a global domain refiner.
+/**	Automatically chooses whether a parallel refiner is required.*/
+template <typename TDomain>
+static SmartPtr<IRefiner> GlobalDomainRefiner(TDomain& dom)
 {
-	
-private:
-	typedef int (*LUA2C_Function)(double *, const double *) ;
-	
-	DynLibHandle m_libHandle;
-	std::string m_pDyn;
-	VMAdd* vm;
+//todo: support normal grids, too!
 
-public:
-	std::string m_name;
-	LUA2C_Function m_f;
-	int m_iIn, m_iOut;
-	bool bInitialized;
-	bool bVM;
-	LUACompiler()
-	{ 
-		m_f= nullptr;
-		m_name = "uninitialized"; 
-		m_pDyn = ""; 
-		m_libHandle = nullptr;
-		bInitialized = false;
-		bVM = false;
-		vm = nullptr;
-	}
-	
-	int num_in() const
-	{
-		return m_iIn;
-	}
-	
-	int num_out() const
-	{
-		return m_iOut;
-	}
-	
-	const std::string &name() const
-	{
-		return m_name;
-	}
-	
-	bool is_valid() const
-	{
-		return bInitialized;
-	}
-	
-	bool create(const char *functionName, LuaFunctionHandle* pHandle = nullptr);
-	bool createVM(const char *functionName, LuaFunctionHandle* pHandle = nullptr);
-	bool createC(const char *functionName, LuaFunctionHandle* pHandle = nullptr);
-	
-	bool call(double *ret, const double *in) const;
-	virtual ~LUACompiler();
-};
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			return SmartPtr<IRefiner>(
+					new ParallelGlobalRefiner_MultiGrid(
+							*dom.distributed_grid_manager(),
+							dom.refinement_projector()));
+		}
+	#endif
 
+	return SmartPtr<IRefiner>(
+				new GlobalMultiGridRefiner(
+						*dom.grid(),
+						dom.refinement_projector()));
+}
 
 }
-}
-#endif	/* __LUACompiler_H__ */
-
+#endif

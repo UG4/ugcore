@@ -132,10 +132,14 @@ bool CreatePolyChain(std::vector<Vertex*>& polyChainOut, Grid& grid,
 	grid.begin_marking();
 
 //	mark and count edges
-	int numEdges = 0;
+/*
+	int numEdges = 0; // unused
+*/
 	for(TEdgeIter iter = edgesBegin; iter != edgesEnd; ++iter){
 		grid.mark(*iter);
-		++numEdges;
+		/*
+		++numEdges; // s. the counter above and the check below
+		*/
 	}
 
 //TODO: handle open chains.
@@ -173,7 +177,7 @@ bool CreatePolyChain(std::vector<Vertex*>& polyChainOut, Grid& grid,
 
 	grid.end_marking();
 /*
-	if(polyChainOut.size() != numEdges)
+	if(polyChainOut.size() != numEdges) // s. the commented counter above
 		return false;
 */
 	return true;

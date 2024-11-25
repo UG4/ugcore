@@ -84,7 +84,7 @@ bool LoadGridFromUGX(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubse
 		}
 	}
 
-	if(ugxReader.num_projection_handlers(0) > 0){
+	if((num_ph = ugxReader.num_projection_handlers(0)) != 0){
 		ugxReader.projection_handler(*ph, 0, 0);
 		size_t shIndex = ugxReader.get_projection_handler_subset_handler_index(0, 0);
 		std::string shName2;
@@ -301,7 +301,7 @@ create_vertex_node(RegularVertexIterator vrtsBegin,
 	}
 
 	char* buff = m_doc.allocate_string(NULL, 10);
-	sprintf(buff, "%d", numCoords);
+	snprintf(buff, 10, "%d", numCoords);
 	node->append_attribute(m_doc.allocate_attribute("coords", buff));
 
 //	return the node
@@ -363,7 +363,7 @@ create_constrained_vertex_node(ConstrainedVertexIterator vrtsBegin,
 	}
 
 	char* buff = m_doc.allocate_string(NULL, 10);
-	sprintf(buff, "%d", numCoords);
+	snprintf(buff, 10, "%d", numCoords);
 	node->append_attribute(m_doc.allocate_attribute("coords", buff));
 
 //	return the node

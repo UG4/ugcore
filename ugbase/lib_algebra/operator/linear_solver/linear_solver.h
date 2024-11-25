@@ -228,7 +228,7 @@ class LinearSolver
 		void write_debugXCD(vector_type &x, vector_type &c, vector_type &d, int loopCnt, bool bWriteC)
 		{
 			if(!this->vector_debug_writer_valid()) return;
-			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+			char ext[20]; snprintf(ext, sizeof(ext),"_iter%03d", loopCnt);
 			write_debug(d, std::string("LS_Defect") + ext + ".vec");
 			if(bWriteC) write_debug(c, std::string("LS_Correction") + ext + ".vec");
 			write_debug(x, std::string("LS_Solution") + ext + ".vec");
@@ -238,7 +238,7 @@ class LinearSolver
 		void enter_precond_debug_section(int loopCnt)
 		{
 			if(!this->vector_debug_writer_valid()) return;
-			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+			char ext[20]; snprintf(ext, sizeof(ext),"_iter%03d", loopCnt);
 			this->enter_vector_debug_writer_section(std::string("LS_Precond_") + ext);
 		}
 
