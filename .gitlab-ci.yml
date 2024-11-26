@@ -14,6 +14,8 @@ variables:
 stages:
 - test
 - build
+- sync
+
 do-test:
   stage: test
   image: rigby132/ug4-test:latest
@@ -51,6 +53,7 @@ do-test:
     - test.log
     reports:
       junit: report.xml
+      
 build-clang:
   stage: build
   image: rigby132/ug4-minimal:latest
@@ -85,8 +88,11 @@ build-clang:
     paths:
     - bin/*
     - bin/plugins/*
+    
 include:
 - template: Jobs/SAST.gitlab-ci.yml
 - template: Security/SAST.gitlab-ci.yml
+- local: '/.gitlab/mirror-main.yml'
+
 sast:
   stage: test
