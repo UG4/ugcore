@@ -1,0 +1,17 @@
+stages:
+  - sync
+
+sync_to_github:
+  stage: sync
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache git
+    - git config --global user.name "UG4_BOT"
+    - git config --global user.email "ug4-bot@ug4.uni-frankfurt.de"
+  script:
+    - git clone --mirror https://oauth2:${CI_JOB_TOKEN}@gitlab.com/ug4-project/ugcore.git repo
+    - cd repo
+    - git remote add github https://${GITHUB_UG4BOT_NAME}:${GITHUB_UG4BOT_TOKEN}@github.com/UG4/ugcore.git
+    - git push --mirror github
+  only:
+    - main # Trigger on pushes to the main branch only
