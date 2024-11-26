@@ -42,7 +42,9 @@ do-test:
   - source ugcore/scripts/shell/ugbash
   - echo $UG4_ROOT
   - "./bin/testsuite --build-info=yes --log_level=all --log_format=JUNIT --log_sink=report.xml --name report"
+  - cat ug_test_numprocs_1.log
   - mv ug_test_numprocs_1.log ugcore/test.log
+  - cat report.xml
   - mv report.xml ugcore/report.xml
   artifacts:
     when: always
