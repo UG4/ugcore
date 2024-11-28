@@ -560,7 +560,16 @@ template <size_t N, size_t M, typename T>
 inline typename MathMatrix<N,M,T>::value_type
 Inverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m)
 {
-	UG_THROW("Inverse for matrix of size "<<N<<"x"<<M<<" not implemented.");
+	//UG_THROW("Inverse for matrix of size "<<M<<"x"<<N<<" not implemented.");
+	if(M<N){//UG_LOG("Right Inverse for matrix of size "<<M<<"x"<<N<<".");
+		return RightInverse(mOut,m);
+	}
+
+	if(M>N){//UG_LOG("Left Inverse for matrix of size "<<M<<"x"<<N<<".");
+		return LeftInverse(mOut,m);
+	}	
+	return Inverse(mOut,m);
+	/*UG_LOG("Pseudo Inverse for matrix of size "<<N<<"x"<<M<<" implemented using Moore-Penrose, i.e. (ATxA)⁻1xAT, i.e.LeftInverse");*/
 }
 
 template <typename T>

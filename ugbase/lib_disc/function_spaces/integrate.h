@@ -2793,18 +2793,20 @@ class H1EnergyDistIntegrand
 				MathMatrix<worldDim, elemDim> fineJTInv;
 				Inverse(fineJTInv, vJT[ip]);
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
-				MatVecMult(fineLocTmp, elemWeights[ip], fineGradIP);
+				MathVector<worldDim> fineWorldLocTmp(0.0);
+				MatVecMult(fineWorldLocTmp, elemWeights[ip], fineGradIP);
 
 			//	compute global D*gradient
 				MathVector<worldDim> coarseGradIP;
 				MathMatrix<worldDim, elemDim> coarseJTInv;
 				map.jacobian_transposed_inverse(coarseJTInv, vCoarseLocIP[ip]);
 				MatVecMult(coarseGradIP, coarseJTInv, coarseLocTmp);
-				MatVecMult(coarseLocTmp, elemWeights[ip], coarseGradIP);
+				MathVector<worldDim> coarseWorldLocTmp(0.0);
+				MatVecMult(coarseWorldLocTmp, elemWeights[ip], coarseGradIP);
 
 			//	get squared difference
-				vValue[ip] = VecDistanceSq(fineLocTmp, coarseLocTmp);
-
+				vValue[ip] = VecDistanceSq(fineWorldLocTmp, coarseWorldLocTmp);
+				//vValue[ip] = VecDistanceSq(fineGradIP, coarseGradIP, elemWeights[ip]);
 			}
 
 			}
