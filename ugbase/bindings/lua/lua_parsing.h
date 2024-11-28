@@ -36,7 +36,7 @@
 #ifdef USE_LUAJIT
 #include <lua.h>
 #else
-#include "externals/lua/lua.h"
+#include "externals/lua/src/lua.hpp"
 #endif
 
 #include "bindings_lua.h"

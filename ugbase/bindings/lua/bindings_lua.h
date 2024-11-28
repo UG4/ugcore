@@ -36,12 +36,12 @@
 #include <vector>
 #include <string>
 
-extern "C" {
-#include "externals/lua/lua.h"
-#include "externals/lua/lauxlib.h"
-#include "externals/lua/lualib.h"
-}
-
+//extern "C" {
+//#include "externals/lua/lua.h"
+//#include "externals/lua/lauxlib.h"
+//#include "externals/lua/lualib.h"
+//}
+#include "externals/lua/src/lua.hpp"
 
 #include "common/common.h"
 #include "registry/registry.h"

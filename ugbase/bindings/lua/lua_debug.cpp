@@ -55,9 +55,10 @@
 #include "common/util/string_util.h"
 
 #ifndef USE_LUAJIT
-extern "C" { // lua default
-#include "externals/lua/lstate.h"
-}
+//extern "C" { // lua default
+//#include "externals/lua/lstate.h"
+//}
+#include "externals/lua/src/lua.hpp"
 #else
 #include <lua.h>
 #endif
