@@ -211,23 +211,6 @@ class MathMatrix
 			}
 			return res;
 		}
-		
-		/** 
-		 *\brief Identifies the matrix element-wise with another matrix
-		 *
-		 * \param v The Matrix.
-		 * \return identity
-		*/
-		bool operator== (const MathMatrix& v) const{
-			for(std::size_t i=0; i<N; ++i){
-				for(std::size_t j=0; j<M; ++j){
-					number diff=std::abs(m_data[i][j]-v.m_data[i][j]);
-					if(diff>SMALL)
-							return false;
-				}
-			}
-			return true;
-		}
 
 		inline std::size_t num_rows() const {return N;}
 		inline std::size_t num_cols() const {return M;}
