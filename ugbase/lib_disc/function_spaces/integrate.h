@@ -1352,7 +1352,9 @@ class H1ErrorIntegrand
 				#ifdef UG_DEBUG
 				MathMatrix<worldDim, elemDim> JTInv1;
 				GeneralizedInverse(JTInv1, vJT[ip]); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
-				UG_ASSERT(JTInv==JTInv1, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+				MathMatrix<worldDim, elemDim> diffJTInv;
+				MatSubtract(diffJTInv, JTInv, JTInv1);
+				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
 				#endif //UG_DEBUG
 
 				MatVecMult(approxGradIP, JTInv, locTmp);
@@ -2079,7 +2081,9 @@ class H1SemiIntegrand
 				#ifdef UG_DEBUG
 				MathMatrix<worldDim, elemDim> JTInv1;
 				GeneralizedInverse(JTInv1, vJT[ip]); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
-				UG_ASSERT(JTInv==JTInv1, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+				MathMatrix<worldDim, elemDim> diffJTInv;
+				MatSubtract(diffJTInv, JTInv, JTInv1);
+				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
 				#endif //UG_DEBUG
 
 				MatVecMult(approxGradIP, JTInv, tmpVec);
@@ -2345,7 +2349,9 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 				#ifdef UG_DEBUG
 				MathMatrix<worldDim, elemDim> fineJTInv1;
 				GeneralizedInverse(fineJTInv1, vJT[ip]); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
-				UG_ASSERT(fineJTInv==fineJTInv1, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+				MathMatrix<worldDim, elemDim> diffJTInv;
+				MatSubtract(diffJTInv, fineJTInv, fineJTInv1);
+				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
 				#endif //UG_DEBUG
 
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
@@ -2570,7 +2576,9 @@ class H1EnergyIntegrand
 				#ifdef UG_DEBUG
 				MathMatrix<worldDim, elemDim> JTInv1;
 				GeneralizedInverse(JTInv1, vJT[ip]); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
-				UG_ASSERT(JTInv==JTInv1, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+				MathMatrix<worldDim, elemDim> diffJTInv;
+				MatSubtract(diffJTInv, JTInv, JTInv1);
+				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
 				#endif //UG_DEBUG
 
 				MatVecMult(approxGradIP, JTInv, tmpVec);
@@ -2837,7 +2845,9 @@ class H1EnergyDistIntegrand
 				#ifdef UG_DEBUG
 				MathMatrix<worldDim, elemDim> fineJTInv1;
 				GeneralizedInverse(fineJTInv1, vJT[ip]); // old algorithms with Inverse(), but Inverse is only defined for NxN Matrix.
-				UG_ASSERT(fineJTInv==fineJTInv1, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+				MathMatrix<worldDim, elemDim> diffJTInv;
+				MatSubtract(diffJTInv, fineJTInv, fineJTInv1);
+				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
 				#endif //UG_DEBUG
 
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
@@ -2994,7 +3004,9 @@ class H1NormIntegrand
 				#ifdef UG_DEBUG
 				MathMatrix<worldDim, elemDim> JTInv1;
 				RightInverse(JTInv1, vJT[ip]); // old algorithms with RightInverse()
-				UG_ASSERT(JTInv==JTInv1, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+				MathMatrix<worldDim, elemDim> diffJTInv;
+				MatSubtract(diffJTInv, JTInv, JTInv1);
+				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
 				#endif //UG_DEBUG
 
 				MatVecMult(approxGradIP, JTInv, locTmp);
@@ -3192,7 +3204,9 @@ class H1DistIntegrand
 				#ifdef UG_DEBUG
 				MathMatrix<worldDim, elemDim> fineJTInv1;
 				RightInverse(fineJTInv1, vJT[ip]); // old algorithms with RightInverse()
-				UG_ASSERT(fineJTInv==fineJTInv1, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+				MathMatrix<worldDim, elemDim> diffJTInv;
+				MatSubtract(diffJTInv, fineJTInv, fineJTInv1);
+				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
 				#endif //UG_DEBUG
 
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
