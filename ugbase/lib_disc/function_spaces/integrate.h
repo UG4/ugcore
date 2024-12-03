@@ -1349,13 +1349,12 @@ class H1ErrorIntegrand
 				MathMatrix<worldDim, elemDim> JTInv;
 				map.jacobian_transposed_inverse(JTInv, vLocIP[ip]); //Inverse(JTInv, vJT[ip]);
 				
-				#ifdef UG_DEBUG
-				MathMatrix<worldDim, elemDim> JTInv1;
-				GeneralizedInverse(JTInv1, vJT[ip]); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
-				MathMatrix<worldDim, elemDim> diffJTInv;
-				MatSubtract(diffJTInv, JTInv, JTInv1);
-				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
-				#endif //UG_DEBUG
+#ifdef UG_DEBUG
+				MathMatrix<worldDim, elemDim> myTmp;
+				GeneralizedInverse(myTmp, vJT[ip]); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
+				MatSubtract(myTmp, JTInv, myTmp);
+				UG_ASSERT(MatMaxNorm(myTmp)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+#endif //UG_DEBUG
 
 				MatVecMult(approxGradIP, JTInv, locTmp);
 
@@ -2078,13 +2077,12 @@ class H1SemiIntegrand
 				MathMatrix<worldDim, elemDim> JTInv;
 				map.jacobian_transposed_inverse(JTInv, vLocIP[ip]);//Inverse(JTInv, vJT[ip]);
 
-				#ifdef UG_DEBUG
-				MathMatrix<worldDim, elemDim> JTInv1;
-				GeneralizedInverse(JTInv1, vJT[ip]); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
-				MathMatrix<worldDim, elemDim> diffJTInv;
-				MatSubtract(diffJTInv, JTInv, JTInv1);
-				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
-				#endif //UG_DEBUG
+#ifdef UG_DEBUG
+				MathMatrix<worldDim, elemDim> myTmp;
+				GeneralizedInverse(myTmp, vJT[ip]); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
+				MatSubtract(myTmp, JTInv, myTmp);
+				UG_ASSERT(MatMaxNorm(myTmp)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+#endif //UG_DEBUG
 
 				MatVecMult(approxGradIP, JTInv, tmpVec);
 
@@ -2346,13 +2344,12 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 				MathMatrix<worldDim, elemDim> fineJTInv;
 				mapF.jacobian_transposed_inverse(fineJTInv, vFineLocIP[ip]);//Inverse(fineJTInv, vJT[ip]);
 
-				#ifdef UG_DEBUG
-				MathMatrix<worldDim, elemDim> fineJTInv1;
-				GeneralizedInverse(fineJTInv1, vJT[ip]); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
-				MathMatrix<worldDim, elemDim> diffJTInv;
-				MatSubtract(diffJTInv, fineJTInv, fineJTInv1);
-				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
-				#endif //UG_DEBUG
+#ifdef UG_DEBUG
+				MathMatrix<worldDim, elemDim> fineTmp;
+				GeneralizedInverse(fineTmp, vJT[ip]); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
+				MatSubtract(fineTmp, fineJTInv, fineTmp);
+				UG_ASSERT(MatMaxNorm(fineTmp)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+#endif //UG_DEBUG
 
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
 
@@ -2573,13 +2570,12 @@ class H1EnergyIntegrand
 				MathMatrix<worldDim, elemDim> JTInv;
 				map.jacobian_transposed_inverse(JTInv, vLocIP[ip]);//Inverse(JTInv, vJT[ip]);
 
-				#ifdef UG_DEBUG
-				MathMatrix<worldDim, elemDim> JTInv1;
-				GeneralizedInverse(JTInv1, vJT[ip]); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
-				MathMatrix<worldDim, elemDim> diffJTInv;
-				MatSubtract(diffJTInv, JTInv, JTInv1);
-				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
-				#endif //UG_DEBUG
+#ifdef UG_DEBUG
+				MathMatrix<worldDim, elemDim> myTmp;
+				GeneralizedInverse(myTmp, vJT[ip]); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
+				MatSubtract(myTmp, JTInv, myTmp);
+				UG_ASSERT(MatMaxNorm(myTmp)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+#endif //UG_DEBUG
 
 				MatVecMult(approxGradIP, JTInv, tmpVec);
 
@@ -2842,13 +2838,12 @@ class H1EnergyDistIntegrand
 				MathMatrix<worldDim, elemDim> fineJTInv;
 				mapF.jacobian_transposed_inverse(fineJTInv, vFineLocIP[ip]);//Inverse(fineJTInv, vJT[ip]);
 
-				#ifdef UG_DEBUG
-				MathMatrix<worldDim, elemDim> fineJTInv1;
-				GeneralizedInverse(fineJTInv1, vJT[ip]); // old algorithms with Inverse(), but Inverse is only defined for NxN Matrix.
-				MathMatrix<worldDim, elemDim> diffJTInv;
-				MatSubtract(diffJTInv, fineJTInv, fineJTInv1);
-				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
-				#endif //UG_DEBUG
+#ifdef UG_DEBUG
+				MathMatrix<worldDim, elemDim> fineTmp;
+				GeneralizedInverse(fineTmp, vJT[ip]); // old algorithms with Inverse(), but Inverse is only defined for NxN Matrix.
+				MatSubtract(fineTmp, fineJTInv, fineTmp);
+				UG_ASSERT(MatMaxNorm(fineTmp)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+#endif //UG_DEBUG
 
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
 				MathVector<worldDim> fineWorldLocTmp(0.0);
@@ -3201,13 +3196,12 @@ class H1DistIntegrand
 				MathMatrix<worldDim, elemDim> fineJTInv;
 				mapF.jacobian_transposed_inverse(fineJTInv, vFineLocIP[ip]);//RightInverse(fineJTInv, vJT[ip]);
 
-				#ifdef UG_DEBUG
-				MathMatrix<worldDim, elemDim> fineJTInv1;
-				RightInverse(fineJTInv1, vJT[ip]); // old algorithms with RightInverse()
-				MathMatrix<worldDim, elemDim> diffJTInv;
-				MatSubtract(diffJTInv, fineJTInv, fineJTInv1);
-				UG_ASSERT(MatMaxNorm(diffJTInv)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
-				#endif //UG_DEBUG
+#ifdef UG_DEBUG
+				MathMatrix<worldDim, elemDim> fineTmp;
+				RightInverse(fineTmp, vJT[ip]); // old algorithms with RightInverse()
+				MatSubtract(fineTmp, fineJTInv, fineTmp);
+				UG_ASSERT(MatMaxNorm(fineTmp)<SMALL, "The inverse matrix is not identity to the map jocabian transposed inverse.");
+#endif //UG_DEBUG
 
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
 
