@@ -318,6 +318,23 @@ local_ips_changed(const size_t seriesID, const size_t newNumIP)
 
 template <typename TImpl, typename TData, int dim>
 void StdDataLinker<TImpl,TData,dim>::
+local_ip_series_to_be_cleared()
+{
+//	loop inputs
+	for(size_t i = 0; i < m_vspICplUserData.size(); ++i)
+	{
+	//	skip unset data
+		UG_ASSERT(m_vspICplUserData[i].valid(), "No Input set, but requested.");
+		
+		m_vspICplUserData[i]->clear ();
+	}
+	
+//	postprocess the base class
+	DependentUserData<TData, dim>::local_ip_series_to_be_cleared();
+}
+
+template <typename TImpl, typename TData, int dim>
+void StdDataLinker<TImpl,TData,dim>::
 global_ips_changed(const size_t seriesID, const MathVector<dim>* vPos, const size_t numIP)
 {
 //	loop inputs

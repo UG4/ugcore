@@ -555,12 +555,11 @@ SqrtGramDeterminant(const MathMatrix<3,3,T>& m)
 ////////////////////////////////////////////////////////////////////////////////
 // Inverse of Matrix
 ////////////////////////////////////////////////////////////////////////////////
-
 template <size_t N, size_t M, typename T>
 inline typename MathMatrix<N,M,T>::value_type
 Inverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m)
 {
-	UG_THROW("Inverse for matrix of size "<<N<<"x"<<M<<" not implemented.");
+	UG_THROW("Inverse for matrix of size "<<M<<"x"<<N<<" not implemented. You could use GeneralizedInverse for pseudo-Inverse.");
 }
 
 template <typename T>
@@ -743,6 +742,23 @@ LeftInverse(MathMatrix<2,2>& mOut, const MathMatrix<2,2>& m){return fabs(Inverse
 template <typename T>
 inline typename MathMatrix<3,3,T>::value_type
 LeftInverse(MathMatrix<3,3>& mOut, const MathMatrix<3,3>& m){return fabs(Inverse(mOut, m));}
+
+////////////////////////////////////////////////////////////////////////////////
+// Generalized-Inverse of Matrix
+////////////////////////////////////////////////////////////////////////////////
+template<size_t N, size_t M, typename T>
+inline typename MathMatrix<N,M,T>::value_type
+GeneralizedInverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m)
+{
+	if(M<N){//UG_LOG("Right Inverse for matrix of size "<<M<<"x"<<N<<".");
+		return RightInverse(mOut,m);
+	}
+
+	if(M>N){//UG_LOG("Left Inverse for matrix of size "<<M<<"x"<<N<<".");
+		return LeftInverse(mOut,m);
+	}	
+	return Inverse(mOut,m);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Trace of Matrix
