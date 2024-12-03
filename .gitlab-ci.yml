@@ -93,7 +93,7 @@ build-clang:
 include:
 - template: Jobs/SAST.gitlab-ci.yml
 - template: Security/SAST.gitlab-ci.yml
-- local: '/.gitlab/mirror-main.yml'
+# - local: '/.gitlab/mirror-main.yml' # Push mirror is disabled.
 
 sast:
   stage: test
