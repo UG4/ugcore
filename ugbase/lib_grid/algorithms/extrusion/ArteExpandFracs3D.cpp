@@ -103,9 +103,11 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 //	  m_vrtxFractrQuadrplVec(VrtxFractrQuadrplArte3DVec())
 	  m_attVrtVec(AttVrtVec()),
 	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
-	  m_vecCrossVrtInf(std::vector<CrossVertInf>())
+	  m_vecCrossVrtInf(std::vector<CrossVertInf>()),
+	  m_aAdjVolElmInfo(AttVecAttachedVolumeElemInfo()),
+	  m_aaVolElmInfo(Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>())
 {
-	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
+//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
 }
 
@@ -325,6 +327,14 @@ bool ArteExpandFracs3D::attachMarkers()
 	m_aaVrtVecVol = Grid::VolumeAttachmentAccessor<AttVrtVec>(m_grid, m_attVrtVec);
 
 
+	VecAttachedVolumeElemInfo noVolInfo;
+
+	m_aAdjVolElmInfo = AttVecAttachedVolumeElemInfo();
+	m_aaVolElmInfo = Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>();
+
+	m_grid.attach_to_vertices_dv(m_aAdjVolElmInfo,noVolInfo);
+
+
 	return true;
 }
 
@@ -343,6 +353,7 @@ bool ArteExpandFracs3D::detachMarkers()
 
 	m_grid.detach_from_volumes( m_attVrtVec );
 
+	m_grid.detach_from_vertices(m_aAdjVolElmInfo);
 
 	return true;
 }
@@ -627,6 +638,29 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 	UG_LOG("vertex Infos Runde eins fertig " << std::endl);
 
+
+	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+	{
+		Vertex* vrt = *iter;
+
+		std::vector<Volume*> & attVol = m_aaVrtInfoAssoVols[vrt];
+
+		auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
+
+		VecAttachedFaceEdgeSudo vecAttFacEdgSudo = vrtxFracPrps.getAllAttachedElems();
+
+		for( auto & vol : attVol )
+		{
+			AttachedVolumeElemInfo attVolElmInfo( vol );
+
+			for( auto & afes : vecAttFacEdgSudo )
+			{
+				attVolElmInfo.addManifElem(afes, m_grid);
+			}
+		}
+	}
+
+	UG_LOG("vertex Infos Runde eins fertig Volumen auch" << std::endl);
 
 	return true;
 }

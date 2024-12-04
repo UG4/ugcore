@@ -243,6 +243,14 @@ private:
 
 	bool createNewElements();
 
+	using AttachedVolumeElemInfo = support::AttachedFullDimElemInfo<Volume*, Face *, Edge *, IndexType>;
+	using VecAttachedVolumeElemInfo = std::vector<AttachedVolumeElemInfo>;
+	using AttVecAttachedVolumeElemInfo = Attachment<VecAttachedVolumeElemInfo>;
+
+	AttVecAttachedVolumeElemInfo m_aAdjVolElmInfo;
+	Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo> m_aaVolElmInfo;
+
+
 };
 
 // specification has to be declared outside central class context, else compilation error

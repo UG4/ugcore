@@ -697,6 +697,199 @@ private:
 };
 
 
+// intention, explained for volume:
+template<typename FULLDIM_ELEM,
+typename MANIFELM,
+typename LOWDIMELM,
+typename INDEX_TXP
+>
+class AttachedFullDimElemInfo
+{
+
+public:
+
+	using AttachedManifElemInfo = AttachedElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+
+	using VecAttachedManifElemInfo = std::vector<AttachedManifElemInfo>;
+
+	AttachedFullDimElemInfo( FULLDIM_ELEM const & fullDimElm )
+	: m_fullDimElm(fullDimElm),
+	  m_vecManifElm(VecAttachedManifElemInfo()),
+	  m_vecManifElmTouchInfo(VecAttManifElmTouchInf()),
+	  m_allSidesTouched(false)
+	{
+	}
+
+	FULLDIM_ELEM const getFulldimElem() const
+	{
+		return m_fullDimElm;
+	}
+
+
+	bool addManifElem( AttachedManifElemInfo const & manifElm, Grid & grid )
+	{
+		// Caution: first test if manifold elem is at all part of the fulldim elem manifols
+		// if not, return false directly
+
+		if( ! fullDimElmContainsManif( manifElm.getManifElm(), grid ) )
+			return false;
+
+		// if manif elem is in principle part of the fulldim elem manifolds,
+		// then we need to check if it is already integrated
+
+		bool hasElemAlready = false;
+
+
+		for( auto const & me : m_vecManifElm )
+		{
+			if( manifElm.testIfEquals(me) )
+			{
+				hasElemAlready = true;
+				break;
+			}
+		}
+
+		if( ! hasElemAlready )
+		{
+			m_vecManifElm.push_back( manifElm );
+
+			AttManifElmTouchInf pamei( manifElm, false );
+
+			m_vecManifElmTouchInfo.push_back(pamei);
+		}
+
+		return ! hasElemAlready;
+	}
+
+	VecAttachedManifElemInfo const getVecManifElem() const
+	{
+		return m_vecManifElm;
+	}
+
+	bool const tryToTouchManifElem( AttachedManifElemInfo const & manifElemOther ) const
+	{
+		bool managed2Touch = false;
+
+		for( auto & ameti : m_vecManifElmTouchInfo )
+		{
+			AttachedManifElemInfo & manifElmTest = ameti.first;
+			bool & alreadyTouched = ameti.second;
+
+			if( ! alreadyTouched )
+			{
+				if( manifElemOther.testIfEquals( manifElmTest ) )
+				{
+					alreadyTouched = true;
+				}
+			}
+
+			if( alreadyTouched )
+			{
+				managed2Touch = true;
+				break;
+			}
+		}
+
+		return managed2Touch;
+	}
+
+	VecAttachedManifElemInfo const getAlreadyTouchedManifElems() const
+	{
+		VecAttachedManifElemInfo alreadyTouchedManifElms;
+
+		for( const auto & ameti : m_vecManifElmTouchInfo )
+		{
+			if( ameti.second )
+				alreadyTouchedManifElms.push_back( ameti );
+		}
+
+		return alreadyTouchedManifElms;
+	}
+
+	VecAttachedManifElemInfo const getSoFarUnTouchedManifElems() const
+	{
+		VecAttachedManifElemInfo unTouchedManifElms;
+
+		for( const auto & ameti : m_vecManifElmTouchInfo )
+		{
+			if( ! ameti.second )
+				unTouchedManifElms.push_back( ameti );
+		}
+
+		return unTouchedManifElms;
+	}
+
+	bool const testIfAllSidesTouched() const
+	{
+		if( m_allSidesTouched )
+			return true;
+
+		bool allSidesTouched = true;
+
+		for( const auto & ameti : m_vecManifElmTouchInfo )
+		{
+			if( ! ameti.second )
+			{
+				allSidesTouched = false;
+			}
+		}
+
+		m_allSidesTouched = allSidesTouched;
+
+		return m_allSidesTouched;
+	}
+
+private:
+
+	using AttManifElmTouchInf = std::pair<AttachedManifElemInfo,bool>;
+	using VecAttManifElmTouchInf = std::vector<AttManifElmTouchInf>;
+
+	FULLDIM_ELEM m_fullDimElm;
+	VecAttachedManifElemInfo m_vecManifElm;
+	VecAttManifElmTouchInf m_vecManifElmTouchInfo;
+
+	bool m_allSidesTouched;
+
+//    template<
+////	typename std::enable_if<std::is_same<FULLDIM_ELEM,Volume* const &>::value, true>,
+////	typename std::enable_if<std::is_same<MANIFELM,Face* const &>::value, true>
+////	typename std::enable_if<std::is_same<FULLDIM_ELEM,Volume* const &>::value, true>,
+//	typename std::enable_if<std::is_same<MANIFELM,Face* const &>::value,bool>
+//	>
+	//std::enable_if<std::is_same<MANIFELM,Face* const &>::value>
+	template
+	<
+	typename = std::enable_if<std::is_same<Volume*,FULLDIM_ELEM>::value>,
+	typename = std::enable_if<std::is_same<Face*,MANIFELM>::value>
+//	typename = std::enable_if<std::is_same<Volume* const &,FULLDIM_ELEM>::value>,
+//	typename = std::enable_if<std::is_same<Face* const &,MANIFELM>::value>
+	>
+	bool fullDimElmContainsManif( MANIFELM const & manifEl, Grid & grid )
+	{
+		bool contained = false;
+
+		for( INDEX_TXP iFac = 0; iFac < m_fullDimElm->num_faces(); iFac++ )
+		{
+
+			static_assert(std::is_same<decltype(m_fullDimElm), Volume *>::value);
+
+			Face * fac = grid.get_face(m_fullDimElm,iFac);
+
+			if( fac == manifEl )
+			{
+				contained = true;
+				break;
+			}
+		}
+
+		return false;
+	}
+
+
+
+};
+
+
 
 }
 
