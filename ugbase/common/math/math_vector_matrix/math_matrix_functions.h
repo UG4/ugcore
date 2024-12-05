@@ -402,6 +402,27 @@ LeftInverse(MathMatrix<3,3>& mOut, const MathMatrix<3,3>& m);
 /// \}
 
 ////////////////////////////////////////////////////////////////////////////////
+// Generalized-Inverse of Matrix
+////////////////////////////////////////////////////////////////////////////////
+/**
+ * Computes the pseudo-Inverse of a MxN Matrix (N!=M) and returns the square root of the
+ * gram determinate or the inverse of a matrix (M=N) and returns the determinante.
+ * 
+ * For M<N, Right-Inverse of Matrix
+ * For M>N, Left-Inverse of Matrix
+ * For M=N,  Inverse of Matrix
+ *
+ * @param mOut 		(pseundo)-Inverse of Matrix
+ * @param m		Matrix
+ * @return		Square root of gram determinate of Matrix or determinate
+ */
+/// \{
+template<size_t N, size_t M, typename T>
+inline typename MathMatrix<N,M,T>::value_type
+GeneralizedInverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m);
+/// \}
+
+////////////////////////////////////////////////////////////////////////////////
 // Trace of Matrix
 ////////////////////////////////////////////////////////////////////////////////
 

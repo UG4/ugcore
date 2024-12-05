@@ -171,6 +171,9 @@ class StdDataLinker
 	///	forwards the local positions to the data inputs
 		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP);
 
+	///	requests cleaning of the ip series in the data inputs
+		virtual void local_ip_series_to_be_cleared();
+
 	///	forwards the global positions to the data inputs
 		virtual void global_ips_changed(const size_t seriesID, const MathVector<dim>* vPos, const size_t numIP);
 
