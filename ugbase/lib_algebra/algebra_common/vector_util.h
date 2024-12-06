@@ -34,7 +34,7 @@
 #define VECTOR_UTIL_H_
 
 #include "lib_algebra/small_algebra/blocks.h"
-#include <boost/math/special_functions/fpclassify.hpp>
+//#include <boost/math/special_functions/fpclassify.hpp>
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif

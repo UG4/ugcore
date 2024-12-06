@@ -67,14 +67,14 @@
 
 namespace ug {
 
-#ifndef isnan
+/*#ifndef isnan // (ø)[[only checks for C99 macro instead of c++ macro / function | cmath vs math.h ]]
 using boost::math::isnan;
 #endif
 
 #ifndef isinf
 using boost::math::isinf;
 #endif
-
+#endif*/
 
 template <typename TBaseElem, typename TGridFunction>
 static void ScaleGFOnElems
