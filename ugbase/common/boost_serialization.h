@@ -33,11 +33,11 @@
 #ifndef __H__UG_boost_serialization
 #define __H__UG_boost_serialization
 
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/export.hpp>
-#include <boost/serialization/level.hpp>
+//#include <boost/serialization/access.hpp>
+//#include <boost/serialization/export.hpp>
+//#include <boost/serialization/level.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
+//#include <boost/serialization/version.hpp>
 
 /* Include this file if you want to add serialization functionality to your types.
  * If you want to perform serialization, please make sure to also include
@@ -67,7 +67,7 @@ enum ArchiveType {
 };
 
 ///	Provides custom information for different archives
-template <class TArchive>
+template <class TArchive> // (ø)[[unused template argument]] // todo remove template parameter or fix if unintended
 struct ArchiveInfo {
 	static const ArchiveType TYPE = AT_DATA;
 };

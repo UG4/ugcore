@@ -34,7 +34,7 @@
 #define __H__UG_quadrialteral_util_impl
 
 #include <set>
-#include "boost/iterator/transform_iterator.hpp"
+#include <boost/iterator/transform_iterator.hpp>
 #include "quadrilateral_util.h"
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 #include "common/util/hash.h"

@@ -45,7 +45,7 @@
 #ifndef __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__DIRAC_SOURCE__LAGRANGE_DIRAC_SOURCE_H__
 #define __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__DIRAC_SOURCE__LAGRANGE_DIRAC_SOURCE_H__
 
-#include <boost/function.hpp>
+//#include <boost/function.hpp>
 #include <vector>
 #include <string>
 #include <utility>      // std::pair

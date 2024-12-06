@@ -31,7 +31,7 @@
  */
 
 #include <vector>
-#include "boost/container/vector.hpp"	// for bool-vectors
+#include <boost/container/vector.hpp>	// for bool-vectors
 #include "regular_refinement.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/selection_util.h"

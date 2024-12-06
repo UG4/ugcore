@@ -35,7 +35,7 @@
 
 #include <functional>
 #include <cstring>
-#include <boost/pointee.hpp>
+// #include <boost/pointee.hpp> (ø)[[see below]] todo check plugins for usage or delete
 
 /// \addtogroup ugbase_common_util
 /// \{
@@ -844,7 +844,7 @@ SmartPtr<T> make_sp(T* inst)
 {
 	return SmartPtr<T>(inst);
 }
-
+/* (ø)[[seems unused]] todo check plugins for usage then delete
 namespace boost
 {
   template <class T>
@@ -858,7 +858,7 @@ namespace boost
   {
       typedef T type;
   };
-}
+}*/
 
 // end group ugbase_common_util
 /// \}

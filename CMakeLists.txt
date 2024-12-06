@@ -148,6 +148,7 @@ if(BUILD_ONE_LIB)
 		   MESSAGE(${targetLibraryName}) # (ø)[[boost]]
 		   add_library(${targetLibraryName} SHARED ${ug4libSources})
 		   add_compile_definitions(${targetLibraryName} PRIVATE BOOST_FILESYSTEM_NO_CXX20_ATOMIC_REF=1)
+		   add_compile_definitions(${targetLibraryName} PRIVATE BOOST_NO_CXX98_FUNCTION_BASE=1)
 		   #add_compile_definitions(${targetLibraryName} PRIVATE BOOST_BIND_NO_PLACEHOLDERS=1)
 		   install(TARGETS ${targetLibraryName}
 		   			LIBRARY DESTINATION lib
