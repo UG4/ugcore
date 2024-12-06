@@ -892,10 +892,11 @@ public:
 	AttachedFullDimElemInfo( FULLDIM_ELEM const & fullDimElm )
 	: m_fullDimElm(fullDimElm),
 	  m_vecFractManifElm(VecAttachedFractManifElemInfo()),
-	  m_vecFractManifElmTouchInfo(VecAttFractManifElmTouchInf()),
-	  m_allSidesTouched(false),
+//	  m_vecFractManifElmTouchInfo(VecAttFractManifElmTouchInf()),
+//	  m_allSidesTouched(false),
 	  m_vecGenerManifElm(VecAttachedGenerManifElemInfo()),
-	  m_vecGenerManifElmTouchInfo(VecAttFractManifElmTouchInf())
+//	  m_vecGenerManifElmTouchInfo(VecAttFractManifElmTouchInf())
+	  m_vecInnerSegmentManifElm(VecAttachedGenerManifElemInfo())
 	{
 	}
 
@@ -904,139 +905,193 @@ public:
 		return m_fullDimElm;
 	}
 
-
-	bool addFractureManifElem( AttachedFractManifElemInfo const & manifElm, Grid & grid )
+	bool addFractManifElem( AttachedFractManifElemInfo const & manifFractElm, Grid & grid )
 	{
-		// Caution: first test if manifold elem is at all part of the fulldim elem manifols
-		// if not, return false directly
-
-		if( ! fullDimElmContainsManif( manifElm.getManifElm(), grid ) )
-			return false;
-
-		// if manif elem is in principle part of the fulldim elem manifolds,
-		// then we need to check if it is already integrated
-
-		bool hasElemAlready = false;
-
-
-		for( auto const & me : m_vecFractManifElm )
-		{
-			if( manifElm.testIfEquals(me) )
-			{
-				hasElemAlready = true;
-				break;
-			}
-		}
-
-		if( ! hasElemAlready )
-		{
-			m_vecFractManifElm.push_back( manifElm );
-
-			AttFractManifElmTouchInf pamei( manifElm, false );
-
-			m_vecFractManifElmTouchInfo.push_back(pamei);
-		}
-
-		return ! hasElemAlready;
+		return addManifElem( manifFractElm, m_vecFractManifElm, grid );
 	}
+
+	bool addGenerManifElem( AttachedGenerManifElemInfo const & manifGenerElm, Grid & grid )
+	{
+		return addManifElem( manifGenerElm, m_vecFractManifElm, grid );
+	}
+
+	// will form new "surface" of next inner round in a segment
+	bool addInnerSegmentManifElem( AttachedGenerManifElemInfo const & manifInnerSegmentElm, Grid & grid )
+	{
+		return addManifElem( manifInnerSegmentElm, m_vecInnerSegmentManifElm, grid );
+	}
+
+
+//	bool addFractureManifElem( AttachedFractManifElemInfo const & manifElm, Grid & grid )
+//	{
+//		// Caution: first test if manifold elem is at all part of the fulldim elem manifols
+//		// if not, return false directly
+//
+//		if( ! fullDimElmContainsManif( manifElm.getManifElm(), grid ) )
+//			return false;
+//
+//		// if manif elem is in principle part of the fulldim elem manifolds,
+//		// then we need to check if it is already integrated
+//
+//		bool hasElemAlready = false;
+//
+//
+//		for( auto const & me : m_vecFractManifElm )
+//		{
+//			if( manifElm.testIfEquals(me) )
+//			{
+//				hasElemAlready = true;
+//				break;
+//			}
+//		}
+//
+//		if( ! hasElemAlready )
+//		{
+//			m_vecFractManifElm.push_back( manifElm );
+//
+////			AttFractManifElmTouchInf pamei( manifElm, false );
+////
+////			m_vecFractManifElmTouchInfo.push_back(pamei);
+//		}
+//
+//		return ! hasElemAlready;
+//	}
 
 	VecAttachedFractManifElemInfo const getVecManifElem() const
 	{
 		return m_vecFractManifElm;
 	}
 
-	bool const tryToTouchManifElem( AttachedFractManifElemInfo const & manifElemOther ) const
+	bool const searchGenerManifElem( AttachedGenerManifElemInfo const & manifGenerElemOther, bool eraseFound = true )
 	{
-		bool managed2Touch = false;
-
-		for( auto & ameti : m_vecFractManifElmTouchInfo )
-		{
-			AttachedFractManifElemInfo & manifElmTest = ameti.first;
-			bool & alreadyTouched = ameti.second;
-
-			if( ! alreadyTouched )
-			{
-				if( manifElemOther.testIfEquals( manifElmTest ) )
-				{
-					alreadyTouched = true;
-				}
-			}
-
-			if( alreadyTouched )
-			{
-				managed2Touch = true;
-				break;
-			}
-		}
-
-		return managed2Touch;
+		return searchManifElem( manifGenerElemOther, m_vecGenerManifElm, eraseFound );
 	}
 
-	VecAttachedFractManifElemInfo const getAlreadyTouchedManifElems() const
+	bool const searchFractManifElem( AttachedFractManifElemInfo const & manifFractElemOther, bool eraseFound = true )
 	{
-		VecAttachedFractManifElemInfo alreadyTouchedManifElms;
-
-		for( const auto & ameti : m_vecFractManifElmTouchInfo )
-		{
-			if( ameti.second )
-				alreadyTouchedManifElms.push_back( ameti );
-		}
-
-		return alreadyTouchedManifElms;
+		return searchManifElem( manifFractElemOther, m_vecFractManifElm, eraseFound );
 	}
 
-	VecAttachedFractManifElemInfo const getSoFarUnTouchedManifElems() const
+	bool const searchInnerSegmentManifElem( AttachedGenerManifElemInfo const & manifInnerSegmElemOther, bool eraseFound = true )
 	{
-		VecAttachedFractManifElemInfo unTouchedManifElms;
-
-		for( const auto & ameti : m_vecFractManifElmTouchInfo )
-		{
-			if( ! ameti.second )
-				unTouchedManifElms.push_back( ameti );
-		}
-
-		return unTouchedManifElms;
+		return searchManifElem( manifInnerSegmElemOther, m_vecInnerSegmentManifElm, eraseFound );
 	}
 
-	bool const testIfAllSidesTouched() const
-	{
-		if( m_allSidesTouched )
-			return true;
+//	bool const tryToTouchManifElem( AttachedFractManifElemInfo const & manifElemOther ) const
+//	{
+////		bool managed2Touch = false;
+//
+//		for( typename VecAttachedFractManifElemInfo::iterator afeiIter  = m_vecFractManifElm.begin();
+//													 afeiIter != m_vecFractManifElm.end();
+//													 afeiIter++
+//		)
+//		{
+//			AttachedFractManifElemInfo & manifElmTest = *afeiIter;
+//
+//			if( manifElemOther.testIfEquals(manifElmTest) )
+//			{
+//				managed2Touch = true;
+//
+//				m_vecFractManifElm.erase(afeiIter);
+//
+//				return true;
+//			}
+//		}
+//
+//		return false;
+//
+////		return managed2Touch;
+//
+////		for( auto & ameti : m_vecFractManifElmTouchInfo )
+////		{
+////			AttachedFractManifElemInfo & manifElmTest = ameti.first;
+////			bool & alreadyTouched = ameti.second;
+////
+////			if( ! alreadyTouched )
+////			{
+////				if( manifElemOther.testIfEquals( manifElmTest ) )
+////				{
+////					alreadyTouched = true;
+////				}
+////			}
+////
+////			if( alreadyTouched )
+////			{
+////				managed2Touch = true;
+////				break;
+////			}
+////		}
+//
+//		return managed2Touch;
+//	}
 
-		bool allSidesTouched = true;
+//	VecAttachedFractManifElemInfo const getAlreadyTouchedManifElems() const
+//	{
+//		VecAttachedFractManifElemInfo alreadyTouchedManifElms;
+//
+//		for( const auto & ameti : m_vecFractManifElmTouchInfo )
+//		{
+//			if( ameti.second )
+//				alreadyTouchedManifElms.push_back( ameti );
+//		}
+//
+//		return alreadyTouchedManifElms;
+//	}
 
-		for( const auto & ameti : m_vecFractManifElmTouchInfo )
-		{
-			if( ! ameti.second )
-			{
-				allSidesTouched = false;
-			}
-		}
+//	VecAttachedFractManifElemInfo const getSoFarUnTouchedManifElems() const
+//	{
+//		VecAttachedFractManifElemInfo unTouchedManifElms;
+//
+//		for( const auto & ameti : m_vecFractManifElmTouchInfo )
+//		{
+//			if( ! ameti.second )
+//				unTouchedManifElms.push_back( ameti );
+//		}
+//
+//		return unTouchedManifElms;
+//	}
 
-		m_allSidesTouched = allSidesTouched;
-
-		return m_allSidesTouched;
-	}
+//	bool const testIfAllSidesTouched() const
+//	{
+//		if( m_allSidesTouched )
+//			return true;
+//
+//		bool allSidesTouched = true;
+//
+//		for( const auto & ameti : m_vecFractManifElmTouchInfo )
+//		{
+//			if( ! ameti.second )
+//			{
+//				allSidesTouched = false;
+//			}
+//		}
+//
+//		m_allSidesTouched = allSidesTouched;
+//
+//		return m_allSidesTouched;
+//	}
 
 private:
 
-	bool m_allSidesTouched;
+//	bool m_allSidesTouched;
 
 	FULLDIM_ELEM m_fullDimElm;
 
 	VecAttachedFractManifElemInfo m_vecFractManifElm;
 
-	using AttFractManifElmTouchInf = std::pair<AttachedFractManifElemInfo,bool>;
-	using VecAttFractManifElmTouchInf = std::vector<AttFractManifElmTouchInf>;
-
-	VecAttFractManifElmTouchInf m_vecFractManifElmTouchInfo;
+//	using AttFractManifElmTouchInf = std::pair<AttachedFractManifElemInfo,bool>;
+//	using VecAttFractManifElmTouchInf = std::vector<AttFractManifElmTouchInf>;
+//
+//	VecAttFractManifElmTouchInf m_vecFractManifElmTouchInfo;
 
 	VecAttachedGenerManifElemInfo m_vecGenerManifElm;
 
-	using AttGenerManifElmTouchInf = std::pair<AttachedGenerManifElemInfo,bool>;
-	using VecAttGenerManifElmTouchInf = std::vector<AttGenerManifElmTouchInf>;
+	VecAttachedGenerManifElemInfo m_vecInnerSegmentManifElm;
 
-	VecAttFractManifElmTouchInf m_vecGenerManifElmTouchInfo;
+//	using AttGenerManifElmTouchInf = std::pair<AttachedGenerManifElemInfo,bool>;
+//	using VecAttGenerManifElmTouchInf = std::vector<AttGenerManifElmTouchInf>;
+//
+//	VecAttFractManifElmTouchInf m_vecGenerManifElmTouchInfo;
 
 
 //    template<
@@ -1074,6 +1129,75 @@ private:
 		return contained;
 	}
 
+
+	template <typename ATT_MANIF_ELM_INF >
+	bool const searchManifElem( ATT_MANIF_ELM_INF const & manifElemOther,
+								std::vector<ATT_MANIF_ELM_INF> & memVecManifElem,
+								bool eraseFound = true )
+	const
+	{
+
+		for( typename std::vector<ATT_MANIF_ELM_INF>::iterator afeiIter  = memVecManifElem.begin();
+															   afeiIter != memVecManifElem.end();
+															   afeiIter++
+		)
+		{
+			ATT_MANIF_ELM_INF & manifElmTest = *afeiIter;
+
+			if( manifElemOther.testIfEquals(manifElmTest) )
+			{
+
+				if( eraseFound )
+					memVecManifElem.erase(afeiIter);
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+
+	template <typename ATT_MANIF_ELM_INFO >
+	bool addManifElem( ATT_MANIF_ELM_INFO const & manifElm,
+					   std::vector<ATT_MANIF_ELM_INFO> & memVecManifElm,
+					   Grid & grid )
+	{
+		// Caution: first test if manifold elem is at all part of the fulldim elem manifols
+		// if not, return false directly
+
+		if( ! fullDimElmContainsManif( manifElm.getManifElm(), grid ) )
+			return false;
+
+		// if manif elem is in principle part of the fulldim elem manifolds,
+		// then we need to check if it is already integrated
+
+//		bool hasElemAlready = false;
+
+		for( auto const & me : memVecManifElm )
+		{
+			if( manifElm.testIfEquals(me) )
+			{
+				memVecManifElm.push_back( manifElm );
+
+				return true;
+			}
+		}
+
+		return false;
+
+//		if( ! hasElemAlready )
+//		{
+//			memVecManifElm.push_back( manifElm );
+//
+////			AttFractManifElmTouchInf pamei( manifElm, false );
+////
+////			m_vecFractManifElmTouchInfo.push_back(pamei);
+//		}
+//
+//		return ! hasElemAlready;
+	}
 
 
 };

@@ -656,7 +656,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 			// add those faces which are fracture faces
 			for( auto & afes : vecAttFacEdgSudo )
 			{
-				attVolElmInfo.addFractureManifElem(afes, m_grid);
+				attVolElmInfo.addFractManifElem(afes, m_grid);
 			}
 
 			// add those faces which are NOT fracture faces, assign them arbitraryly subdomain  -1
@@ -727,12 +727,15 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 					AttachedFaceEdgeSudo afesTest( fac, edgesFaceVrtx, sudoThisFace );
 
-					if( attVolElmInfo.addFractureManifElem( afesTest, m_grid) )
+					if( attVolElmInfo.addFractManifElem( afesTest, m_grid) )
 					{
 						UG_LOG("manifold element already contained!" << std::endl);
 						UG_THROW("manifold element already contained!" << std::endl);
 						return false;
 					}
+
+					// TEST DELETE TODO FIXME
+					attVolElmInfo.searchFractManifElem( afesTest );
 				}
 				else
 				{
