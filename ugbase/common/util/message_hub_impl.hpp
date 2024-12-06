@@ -57,7 +57,7 @@ register_class_callback(TClass* cls,
 	typedef void (TClass::*ClassCallback)(const IMessage&);
 
 	return register_callback_impl<TMsg>(
-					boost::bind((ClassCallback)callback, cls, _1),
+					boost::bind((ClassCallback)callback, cls, boost::placeholders::_1),
 					autoFree);
 }
 

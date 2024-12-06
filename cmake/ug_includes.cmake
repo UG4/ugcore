@@ -472,11 +472,11 @@ include(${UG_ROOT_CMAKE_PATH}/ug/opencl.cmake)
 
 if(INTERNAL_BOOST)
 	add_definitions( -DBOOST_ALL_NO_LIB )
-	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/BoostForUG4/)
+	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/BoostForUG4/boost)
 	set(BOOST_ROOT ${INTERNAL_BOOST_PATH})
 	set(Boost_INCLUDE_DIRS ${INTERNAL_BOOST_PATH})
 	set(Boost_MAJOR_VERSION 1)
-	set(Boost_MINOR_VERSION 71)
+	set(Boost_MINOR_VERSION 86)
 	message(STATUS "Info: Internal Boost ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}")
 else(INTERNAL_BOOST)
 	find_package(Boost 1.71 REQUIRED) # automatic detection
