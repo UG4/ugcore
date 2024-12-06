@@ -12,6 +12,7 @@
 // this plugin
 #include "ug_pybind.h"
 #include "python_user_data.h"
+#include "python_views.h"
 
 // Expose registry to python.
 PYBIND11_MODULE(pyugcore, m)
@@ -24,5 +25,6 @@ PYBIND11_MODULE(pyugcore, m)
 	std::string grp("UG4");
 	ug::pybind::RegisterStandardBridges(reg, grp);
 	ug::pybind::RegisterPythonUserData(reg, grp);
+	ug::pybind::RegisterPythonViews(reg, grp);
 }
 // #endif
