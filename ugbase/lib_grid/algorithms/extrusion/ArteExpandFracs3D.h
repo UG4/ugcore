@@ -261,10 +261,17 @@ private:
 };
 
 // specification has to be declared outside central class context, else compilation error
+
+template <>
+bool ArteExpandFracs3D::establishNewVertices< Tetrahedron,
+											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
+											>( Vertex * const & oldVrt );
+
 template <>
 bool ArteExpandFracs3D::establishNewVertices< Hexahedron,
 											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
 											>( Vertex * const & oldVrt );
+
 
 } /* namespace ug */
 
