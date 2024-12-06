@@ -788,7 +788,7 @@ public:
 
 		for( auto const & suSu : m_sudosClosed )
 		{
-			T const & sudoVal = suSu.first;
+			//T const & sudoVal = suSu.first;
 			bool const & isClosedVal = suSu.second;
 
 			if( isClosedVal != B )
@@ -912,14 +912,29 @@ public:
 
 	bool addGenerManifElem( AttachedGenerManifElemInfo const & manifGenerElm, Grid & grid )
 	{
-		return addManifElem( manifGenerElm, m_vecFractManifElm, grid );
+//		static_assert(std::is_same<AttachedGenerManifElemInfo, decltype( manifGenerElm ) >::value);
+
+		return addManifElem( manifGenerElm, m_vecGenerManifElm, grid );
 	}
+
+	// necessary to avoid stupid casting from derived class AttachedFractManifElemInfo
+	// else, addGenerManifElem would also eat objects of derived class
+	// however not it only accepts explicit base class objects
+	template <typename NOGEN>
+	bool addGenerManifElem( NOGEN const & noGener, Grid & grid )
+	= delete;
+
 
 	// will form new "surface" of next inner round in a segment
 	bool addInnerSegmentManifElem( AttachedGenerManifElemInfo const & manifInnerSegmentElm, Grid & grid )
 	{
 		return addManifElem( manifInnerSegmentElm, m_vecInnerSegmentManifElm, grid );
 	}
+
+	template <typename NOGEN>
+	bool addInnerSegmentElem( NOGEN const & noGener, Grid & grid )
+	= delete;
+
 
 
 //	bool addFractureManifElem( AttachedFractManifElemInfo const & manifElm, Grid & grid )

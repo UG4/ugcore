@@ -458,7 +458,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 				{
 					EdgePair edgPr( attEdg[0], attEdg[1] );
 
-					AttachedFaceEdgeSudo afes( fac, edgPr, fracIndSudo );
+					AttachedFractFaceEdgeSudo afes( fac, edgPr, fracIndSudo );
 
 					vrtxFracPrps.addAttachedFractElem(afes);
 				}
@@ -647,7 +647,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 		auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
 
-		VecAttachedFaceEdgeSudo vecAttFacEdgSudo = vrtxFracPrps.getAllAttachedFractElems();
+		VecAttachedFractFaceEdgeSudo vecAttFacEdgSudo = vrtxFracPrps.getAllAttachedFractElems();
 
 		for( auto & vol : attVol )
 		{
@@ -725,7 +725,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 					// if it belongs, construct it again and test if it already belongs to the fracture faces
 					// MUST be already part of the list, else major error appeared!
 
-					AttachedFaceEdgeSudo afesTest( fac, edgesFaceVrtx, sudoThisFace );
+					AttachedFractFaceEdgeSudo afesTest( fac, edgesFaceVrtx, sudoThisFace );
 
 					if( attVolElmInfo.addFractManifElem( afesTest, m_grid) )
 					{
@@ -734,8 +734,12 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 						return false;
 					}
 
-					// TEST DELETE TODO FIXME
-					attVolElmInfo.searchFractManifElem( afesTest );
+					AttachedGenerFaceEdgeSudo afesTest2( fac, edgesFaceVrtx );
+
+					// TODO FIXME das darf nicht kompilieren für afesTest,, aber es tut es, da abgeleitete Klasse......
+					attVolElmInfo.addGenerManifElem( afesTest2, m_grid);
+					// muss aber für afesTest2, dafür geht es aber mit static_assert schief..... komisch......
+					// Ableitung zur Basisklasse muss verboten werden! Cast verbieten!!!
 				}
 				else
 				{
@@ -750,6 +754,8 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 					// ein face bei der nächsten weiter inneren Runde quasi äussere Begrenzung sein muss
 					// gilt sowohl für fracture faces, die können das in erster Runde auch sein am Ende
 					// der Runde, sowie danach nur noch für nicht-fracture-faces
+
+
 
 				}
 
@@ -786,7 +792,7 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 	// boundary edges, where the vertex is connected to both of them, then it is easy
 
 
-	VecAttachedFaceEdgeSudo vafes = vrtxFracPrps.getAllAttachedFractElems();
+	VecAttachedFractFaceEdgeSudo vafes = vrtxFracPrps.getAllAttachedFractElems();
 
 	std::vector<IndexType> sudoList = vrtxFracPrps.getSudoList();
 
@@ -856,7 +862,7 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 
 	for( auto const & sudo : sudoList )
 	{
-		VecAttachedFaceEdgeSudo vecAttFacSudo;
+		VecAttachedFractFaceEdgeSudo vecAttFacSudo;
 
 		for( auto const & attFac : vafes )
 		{
@@ -867,7 +873,7 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 			}
 		}
 
-		VecAttachedFaceEdgeSudo vecAttFacSudoSort;
+		VecAttachedFractFaceEdgeSudo vecAttFacSudoSort;
 
 
 
@@ -898,7 +904,7 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 
 			if( vecAttFacSudo.size() == 1 )
 			{
-				AttachedFaceEdgeSudo & singleEntry = vecAttFacSudo[0];
+				AttachedFractFaceEdgeSudo & singleEntry = vecAttFacSudo[0];
 
 				EdgePair faceEdgs = singleEntry.getLowElm();
 
@@ -1039,8 +1045,8 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 	return allClosed;
 }
 
-bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & vecAttFac,
-												VecAttachedFaceEdgeSudo & vecSortedFac,
+bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo const & vecAttFac,
+												VecAttachedFractFaceEdgeSudo & vecSortedFac,
 												int startFacIndexUser,
 //												int endFacIndexUser,
 //												IndexType startEdgeIndexUser,
@@ -1072,7 +1078,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 		UG_LOG("die sudos innen sind " << af.getSudo() << std::endl);
 	}
 
-	VecAttachedFaceEdgeSudo copyVecAttFac = vecAttFac;
+	VecAttachedFractFaceEdgeSudo copyVecAttFac = vecAttFac;
 
 	for( auto const & af : copyVecAttFac )
 	{
@@ -1107,7 +1113,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 			IndexType firstSideConnected = 0;
 			IndexType secondSideConnected = 0;
 
-			AttachedFaceEdgeSudo afBase = vecAttFac[i];
+			AttachedFractFaceEdgeSudo afBase = vecAttFac[i];
 
 			Face * faceBase = afBase.getManifElm();
 			EdgePair edgPairBase = afBase.getLowElm();
@@ -1119,7 +1125,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 			{
 				if( i != j )
 				{
-					AttachedFaceEdgeSudo afCompr = vecAttFac[j];
+					AttachedFractFaceEdgeSudo afCompr = vecAttFac[j];
 
 					Face * faceCompr = afCompr.getManifElm();
 					EdgePair edgPairCompr = afCompr.getLowElm();
@@ -1184,8 +1190,8 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 	UG_LOG("begin Index X " << beginIndx << std::endl);
 
 
-//	AttachedFaceEdgeSudo initialAFES = *(copyAttFac.begin());
-	AttachedFaceEdgeSudo initialAFES = copyVecAttFac[beginIndx];
+//	AttachedFractFaceEdgeSudo initialAFES = *(copyAttFac.begin());
+	AttachedFractFaceEdgeSudo initialAFES = copyVecAttFac[beginIndx];
 
 	IndexType sudo = initialAFES.getSudo();
 
@@ -1308,12 +1314,12 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 		Edge * nextEdge = nullptr;
 
 //		for( auto const & caf : copyVecAttFac )
-		for( VecAttachedFaceEdgeSudo::iterator itAttFES  = copyVecAttFac.begin();
+		for( VecAttachedFractFaceEdgeSudo::iterator itAttFES  = copyVecAttFac.begin();
 											   itAttFES != copyVecAttFac.end();
 											   itAttFES++
 		)
 		{
-			AttachedFaceEdgeSudo caf = *itAttFES;
+			AttachedFractFaceEdgeSudo caf = *itAttFES;
 
 			Face * d_Fac = caf.getManifElm();
 
@@ -1355,7 +1361,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & 
 				Face * fac2App = caf.getManifElm();
 //				m_sh.assign_subset(fac2App,m_sh.num_subsets());
 				EdgePair edgesNextFace( edgOne, edgTwo );
-				AttachedFaceEdgeSudo nextAttFES( fac2App, edgesNextFace, sudo );
+				AttachedFractFaceEdgeSudo nextAttFES( fac2App, edgesNextFace, sudo );
 
 				vecSortedFac.push_back(nextAttFES);
 

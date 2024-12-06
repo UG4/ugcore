@@ -112,13 +112,18 @@ private:
 
 	using IndexType = unsigned short;
 
-	using AttachedFaceEdgeSudo = support::AttachedFractElem<Face*,Edge*,IndexType>;
+	using AttachedFractFaceEdgeSudo = support::AttachedFractElem<Face*,Edge*,IndexType>;
 
-	using VecAttachedFaceEdgeSudo = std::vector<AttachedFaceEdgeSudo>;
+	using VecAttachedFractFaceEdgeSudo = std::vector<AttachedFractFaceEdgeSudo>;
+
+	using AttachedGenerFaceEdgeSudo = support::AttachedGeneralElem<Face*,Edge*,IndexType>;
+
+	using VecAttachedGenerFaceEdgeSudo = std::vector<AttachedGenerFaceEdgeSudo>;
+
 
 	using EdgePair = std::pair<Edge*,Edge*>;
 
-	using VertxFracPropts = support::VertexFracturePropertiesVol<IndexType, AttachedFaceEdgeSudo>;
+	using VertxFracPropts = support::VertexFracturePropertiesVol<IndexType, AttachedFractFaceEdgeSudo>;
 
 	using AttVertFracProp = Attachment<VertxFracPropts>;
 
@@ -212,8 +217,8 @@ private:
 //									  VecPairSudoBool & sudoSurrounded );
 
 	// transform to template soon
-	bool sortElemCircleIsClosed( VecAttachedFaceEdgeSudo const & vecAttFac,
-								 VecAttachedFaceEdgeSudo & vecSortedFac,
+	bool sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo const & vecAttFac,
+								 VecAttachedFractFaceEdgeSudo & vecSortedFac,
 								 int startFaceIndexUser = -1,
 //								 int endFaceIndexUser = -1,
 //								 IndexType startEdgeIndexUser = -1,
@@ -230,7 +235,7 @@ public:
 private:
 //	static_assert< std::is_same< VrtxFracProptsStatus,support::VertexFracturePropertiesVol::VrtxFracStatus>::value );
 //	static_assert( std::is_same<VrtxFracProptsStatus,support::VertexFracturePropertiesVol::VrtxFracStatus>::value );
-//	static_assert( std::is_same<VrtxFracProptsStatus,support::VertexFracturePropertiesVol<IndexType, AttachedFaceEdgeSudo>::VrtxFracStatus>::value );
+//	static_assert( std::is_same<VrtxFracProptsStatus,support::VertexFracturePropertiesVol<IndexType, AttachedFractFaceEdgeSudo>::VrtxFracStatus>::value );
 
 	template<VrtxFracProptsStatus vfps>
 //	template<support::VertexFracturePropertiesVol::VrtxFracStatus vfp>
