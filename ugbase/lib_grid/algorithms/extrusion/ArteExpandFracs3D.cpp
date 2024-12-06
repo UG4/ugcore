@@ -330,6 +330,7 @@ bool ArteExpandFracs3D::attachMarkers()
 	VecAttachedVolumeElemInfo noVolInfo;
 
 	m_aAdjVolElmInfo = AttVecAttachedVolumeElemInfo();
+
 	m_aaVolElmInfo = Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>();
 
 	m_grid.attach_to_vertices_dv(m_aAdjVolElmInfo,noVolInfo);
@@ -668,9 +669,11 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 			for( IndexType iFac = 0; iFac < vol->num_faces(); iFac++ )
 			{
-				if( VolumeContains(vol,vrt) )
+				Face * fac = m_grid.get_face(vol,iFac);
+
+				if( FaceContains( fac, vrt ) )
 				{
-					volFacesContainingVrtx.push_back( m_grid.get_face(vol,iFac) );
+					volFacesContainingVrtx.push_back( fac );
 				}
 			}
 
@@ -694,8 +697,8 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 				if( vecEdgesFaceVrtx.size() != 2 )
 				{
-					UG_LOG("edge number Unsinn" << std::endl);
-					UG_THROW("edge number Unsinn" << std::endl);
+					UG_LOG("edge number Unsinn " << vecEdgesFaceVrtx.size() << std::endl);
+					UG_THROW("edge number Unsinn " << vecEdgesFaceVrtx.size() << std::endl);
 					return false;
 				}
 
