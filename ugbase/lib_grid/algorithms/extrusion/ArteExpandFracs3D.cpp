@@ -460,7 +460,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 					AttachedFaceEdgeSudo afes( fac, edgPr, fracIndSudo );
 
-					vrtxFracPrps.addAttachedElem(afes);
+					vrtxFracPrps.addAttachedFractElem(afes);
 				}
 				else
 				{
@@ -647,18 +647,121 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 		auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
 
-		VecAttachedFaceEdgeSudo vecAttFacEdgSudo = vrtxFracPrps.getAllAttachedElems();
+		VecAttachedFaceEdgeSudo vecAttFacEdgSudo = vrtxFracPrps.getAllAttachedFractElems();
 
 		for( auto & vol : attVol )
 		{
 			AttachedVolumeElemInfo attVolElmInfo( vol );
 
+			// add those faces which are fracture faces
 			for( auto & afes : vecAttFacEdgSudo )
 			{
-				attVolElmInfo.addManifElem(afes, m_grid);
+				attVolElmInfo.addFractureManifElem(afes, m_grid);
 			}
+
+			// add those faces which are NOT fracture faces, assign them arbitraryly subdomain  -1
+			// to indicate that they are not from the manifold, independent of their subdomain
+
+			// collect all volume faces which incorporate the vertex
+
+			std::vector<Face*> volFacesContainingVrtx;
+
+			for( IndexType iFac = 0; iFac < vol->num_faces(); iFac++ )
+			{
+				if( VolumeContains(vol,vrt) )
+				{
+					volFacesContainingVrtx.push_back( m_grid.get_face(vol,iFac) );
+				}
+			}
+
+			for( auto const & fac : volFacesContainingVrtx )
+			{
+				// get the edges of the face connected to the vertex
+
+				std::vector<Edge*> vecEdgesFaceVrtx;
+
+				// need to be two edges always, check
+
+				for( IndexType iEdge = 0; iEdge < fac->num_edges(); iEdge++ )
+				{
+					Edge * edg = m_grid.get_edge(fac,iEdge);
+
+					if( EdgeContains(edg,vrt) )
+					{
+						vecEdgesFaceVrtx.push_back(edg);
+					}
+				}
+
+				if( vecEdgesFaceVrtx.size() != 2 )
+				{
+					UG_LOG("edge number Unsinn" << std::endl);
+					UG_THROW("edge number Unsinn" << std::endl);
+					return false;
+				}
+
+				EdgePair edgesFaceVrtx( vecEdgesFaceVrtx[0], vecEdgesFaceVrtx[1] );
+
+				// test the subdomain first, if from the subdomains of the cleft manifolds
+
+				IndexType sudoThisFace = m_sh.get_subset_index(fac);
+
+				std::vector<IndexType> const & sudoList = vrtxFracPrps.getSudoList();
+
+				// test if sudo of face belongs to the fracture face subdom list
+
+				bool belongsToFracFaceSudo = false;
+
+				for( auto const & sudoFrac : sudoList )
+				{
+					if( sudoFrac == sudoThisFace )
+					{
+						belongsToFracFaceSudo = true;
+					}
+				}
+
+
+				if( belongsToFracFaceSudo )
+				{
+					// if it belongs, construct it again and test if it already belongs to the fracture faces
+					// MUST be already part of the list, else major error appeared!
+
+					AttachedFaceEdgeSudo afesTest( fac, edgesFaceVrtx, sudoThisFace );
+
+					if( attVolElmInfo.addFractureManifElem( afesTest, m_grid) )
+					{
+						UG_LOG("manifold element already contained!" << std::endl);
+						UG_THROW("manifold element already contained!" << std::endl);
+						return false;
+					}
+				}
+				else
+				{
+					// we construct the attached manifold, given that it is NOT a fracture manifold
+
+					//  TODO FIXME need function addGeneralManifElem to AttachedFullDimElemInfo
+					// and the needed functions and member variables
+					// call then this function here
+					// also incorporate touched info into the AttachedFulldimEleminfo for general manifolds
+
+					// notwendig auch, dass es eine Markierungsmöglichkeit gibt dafür, ob
+					// ein face bei der nächsten weiter inneren Runde quasi äussere Begrenzung sein muss
+					// gilt sowohl für fracture faces, die können das in erster Runde auch sein am Ende
+					// der Runde, sowie danach nur noch für nicht-fracture-faces
+
+				}
+
+			}
+
 		}
 	}
+
+	// TODO FIXME riesige Dummheit - jetzt fehlen alle Faces, die keine fractures sind
+	// die müssen noch irgendwie als nicht-fracture-faces auch dazu gefügt werden
+	// die sind in den attached volumes schon enthalten,
+	// Frage: wie prüfen, dass die gar keine fractures sind, die Infos sollten bekannt sein.....
+	// wichtig auch, dass nur die faces dazu kommen, die den Vertex enthalten!!!
+	// irgendwas von der Art "nonFractureFaceInfos" oder sowas dazu hängen, mit Info
+	// ob schon getouched oder noch nicht.....
 
 	UG_LOG("vertex Infos Runde eins fertig Volumen auch" << std::endl);
 
@@ -680,7 +783,7 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 	// boundary edges, where the vertex is connected to both of them, then it is easy
 
 
-	VecAttachedFaceEdgeSudo vafes = vrtxFracPrps.getAllAttachedElems();
+	VecAttachedFaceEdgeSudo vafes = vrtxFracPrps.getAllAttachedFractElems();
 
 	std::vector<IndexType> sudoList = vrtxFracPrps.getSudoList();
 

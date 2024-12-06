@@ -112,7 +112,7 @@ private:
 
 	using IndexType = unsigned short;
 
-	using AttachedFaceEdgeSudo = support::AttachedElem<Face*,Edge*,IndexType>;
+	using AttachedFaceEdgeSudo = support::AttachedFractElem<Face*,Edge*,IndexType>;
 
 	using VecAttachedFaceEdgeSudo = std::vector<AttachedFaceEdgeSudo>;
 

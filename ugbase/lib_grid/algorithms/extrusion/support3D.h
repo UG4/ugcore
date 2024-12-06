@@ -239,48 +239,31 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// info for a vertex: face and attached edges
 template <
 typename MANIFELM,
 typename LOWDIMELM,
 typename INDEX_TXP
 >
-class AttachedElem
+class AttachedGeneralElem
 {
 public:
 	using PairLowEl = std::pair<LOWDIMELM,LOWDIMELM>;
 
-	AttachedElem( MANIFELM const & manifElm,
-				  PairLowEl & lowElm,
-				  INDEX_TXP sudo )
+	using AttGenElm = AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+
+	// for fracture elements
+	AttachedGeneralElem( MANIFELM const & manifElm,
+				  PairLowEl & lowElm
+				  )
 	:
-		m_manifElm(manifElm), m_lowElm(lowElm), m_sudo(sudo)
+		m_manifElm(manifElm), m_lowElm(lowElm)
 	{
 	};
 
 	MANIFELM const getManifElm() const { return m_manifElm;}
 	PairLowEl const getLowElm() const { return m_lowElm; }
-	INDEX_TXP const getSudo() const { return m_sudo; };
 
-	bool const testIfEquals( AttachedElem<MANIFELM,LOWDIMELM,INDEX_TXP> const & attElm )
-	const
-	{
-		MANIFELM manifElmOther = attElm.getManifElm();
-		PairLowEl lowElmOther = attElm.getLowElm();
-		INDEX_TXP sudoOther = attElm.getSudo();
-
-		if(    manifElmOther == this->m_manifElm
-			&& lowElmOther == this->m_lowElm
-			&& sudoOther == this->m_sudo
-		)
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-	bool const isNeighboured(  AttachedElem<MANIFELM,LOWDIMELM,INDEX_TXP> const & attElm )
+	bool const isNeighboured( AttGenElm const & attElm )
 	const
 	{
 //		MANIFELM manifElmOther = attElm.getManifElm();
@@ -313,7 +296,7 @@ public:
 		return false;
 	}
 
-	bool const isNeighbouredAtSpecificSide( AttachedElem<MANIFELM,LOWDIMELM,INDEX_TXP> const & attElm,
+	bool const isNeighbouredAtSpecificSide( AttGenElm const & attElm,
 			  	  	  	  	  	  	  	  	LOWDIMELM const & specificLDE )
 	const
 	{
@@ -363,9 +346,199 @@ public:
 		return false;
 	}
 
-private:
+	bool const testIfEquals( AttGenElm const & attElm )
+	const
+	{
+		MANIFELM manifElmOther = attElm.getManifElm();
+		PairLowEl lowElmOther = attElm.getLowElm();
+
+		if(    manifElmOther == this->m_manifElm
+			&& lowElmOther == this->m_lowElm
+		)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+
+protected:
+
 	MANIFELM m_manifElm;
 	PairLowEl m_lowElm;
+
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+// info for a vertex: face and attached edges, for fractures only
+// TODO FIXME should be derived from the similar class without fracture property!
+template <
+typename MANIFELM,
+typename LOWDIMELM,
+typename INDEX_TXP
+>
+class AttachedFractElem
+: public AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>
+// TODO FIXME derive from AttachedGeneralElem
+{
+public:
+	using PairLowEl = std::pair<LOWDIMELM,LOWDIMELM>;
+
+	using AttFractElm = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+
+	using AttGenElm = AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+
+	// for fracture elements
+	AttachedFractElem( MANIFELM const & manifElm,
+				  PairLowEl & lowElm,
+				  INDEX_TXP sudo )
+	:
+		AttGenElm(manifElm,lowElm),
+		//m_manifElm(manifElm), m_lowElm(lowElm),
+		m_sudo(sudo)
+	{
+	};
+
+
+//	MANIFELM const getManifElm() const { return m_manifElm;}
+//	PairLowEl const getLowElm() const { return m_lowElm; }
+	INDEX_TXP const getSudo() const { return m_sudo; };
+
+	bool const testIfEquals( AttFractElm const & attElm )
+	const
+	{
+		bool geomEqu = AttGenElm::testIfEquals(attElm);
+
+//		MANIFELM manifElmOther = attElm.getManifElm();
+//		PairLowEl lowElmOther = attElm.getLowElm();
+		INDEX_TXP sudoOther = attElm.getSudo();
+
+//		if(    manifElmOther == this->m_manifElm
+//			&& lowElmOther == this->m_lowElm
+//			&& sudoOther == this->m_sudo
+//		)
+//		{
+//			return true;
+//		}
+
+		if( geomEqu && sudoOther == this->m_sudo )
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+
+//	bool const testIfEquals( AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP> const & attElm )
+//	const
+//	{
+//		MANIFELM manifElmOther = attElm.getManifElm();
+//		PairLowEl lowElmOther = attElm.getLowElm();
+//		INDEX_TXP sudoOther = attElm.getSudo();
+//
+//		if(    manifElmOther == this->m_manifElm
+//			&& lowElmOther == this->m_lowElm
+//			&& sudoOther == this->m_sudo
+//		)
+//		{
+//			return true;
+//		}
+//
+//		return false;
+//	}
+
+//	bool const isNeighboured(  AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP> const & attElm )
+//	const
+//	{
+////		MANIFELM manifElmOther = attElm.getManifElm();
+//		PairLowEl lowElmOther = attElm.getLowElm();
+////		INDEX_TXP sudoOther = attElm.getSudo();
+//
+//		PairLowEl lowElmThis = this->m_lowElm;
+//
+//		std::vector<bool> test;
+//
+//		test.push_back( lowElmOther.first  == lowElmThis.first );
+//		test.push_back( lowElmOther.second  == lowElmThis.first );
+//		test.push_back( lowElmOther.first  == lowElmThis.second );
+//		test.push_back( lowElmOther.second  == lowElmThis.second );
+//
+//		INDEX_TXP countCorr = 0;
+//
+//		for( auto const t : test )
+//		{
+//			if( t )
+//				countCorr++;
+//		}
+//
+//		if( countCorr == 1 )
+//			return true;
+//
+//		if( countCorr > 1 )
+//			UG_THROW("zu viele gleiche Ecken " << std::endl);
+//
+//		return false;
+//	}
+//
+//	bool const isNeighbouredAtSpecificSide( AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP> const & attElm,
+//			  	  	  	  	  	  	  	  	LOWDIMELM const & specificLDE )
+//	const
+//	{
+//		PairLowEl lowElmOther = attElm.getLowElm();
+//
+//		PairLowEl lowElmThis = this->m_lowElm;
+//
+//		// test if the specific element is part of at least
+//		// one of the faces
+//
+//		bool otherFirst = ( lowElmOther.first == specificLDE );
+//		bool otherSecond = ( lowElmOther.second == specificLDE );
+//
+//		bool thisFirst = ( lowElmThis.first == specificLDE );
+//		bool thisSecond = ( lowElmThis.second == specificLDE );
+//
+//		bool isPartOfThisFace = ( thisFirst || thisSecond );
+//		bool isPartOfOtherFace = ( otherFirst || otherSecond );
+//
+//		if( ! isPartOfOtherFace || ! isPartOfThisFace )
+//		{
+//			UG_LOG("not part of one of the faces " << std::endl);
+//			return false;
+//		}
+//
+//		if( otherFirst && thisFirst )
+//		{
+//			if( lowElmOther.first  == lowElmThis.first )
+//				return true;
+//		}
+//		else if( otherFirst && thisSecond )
+//		{
+//			if( lowElmOther.first  == lowElmThis.second )
+//				return true;
+//		}
+//		else if( otherSecond && thisFirst )
+//		{
+//			if( lowElmOther.second  == lowElmThis.first )
+//				return true;
+//		}
+//		else if( otherSecond && thisSecond )
+//		{
+//			if( lowElmOther.second  == lowElmThis.second )
+//				return true;
+//		}
+//
+//		return false;
+//	}
+
+private:
+//	MANIFELM m_manifElm;
+//	PairLowEl m_lowElm;
 	INDEX_TXP m_sudo;
 
 
@@ -625,7 +798,7 @@ public:
 		return allFracsSame;
 	}
 
-	bool addAttachedElem( ATT_ELEM const & attElem )
+	bool addAttachedFractElem( ATT_ELEM const & attElem )
 	{
 		bool alreadyKnown = false;
 
@@ -642,7 +815,7 @@ public:
 		return ! alreadyKnown;
 	}
 
-	std::vector<ATT_ELEM> const & getAllAttachedElems()
+	std::vector<ATT_ELEM> const & getAllAttachedFractElems()
 	const
 	{
 		return m_vecAttElem;
@@ -708,15 +881,21 @@ class AttachedFullDimElemInfo
 
 public:
 
-	using AttachedManifElemInfo = AttachedElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttachedFractManifElemInfo = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttachedGenerManifElemInfo = AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
 
-	using VecAttachedManifElemInfo = std::vector<AttachedManifElemInfo>;
+	using VecAttachedFractManifElemInfo = std::vector<AttachedFractManifElemInfo>;
+	using VecAttachedGenerManifElemInfo = std::vector<AttachedGenerManifElemInfo>;
+
+
 
 	AttachedFullDimElemInfo( FULLDIM_ELEM const & fullDimElm )
 	: m_fullDimElm(fullDimElm),
-	  m_vecManifElm(VecAttachedManifElemInfo()),
-	  m_vecManifElmTouchInfo(VecAttManifElmTouchInf()),
-	  m_allSidesTouched(false)
+	  m_vecFractManifElm(VecAttachedFractManifElemInfo()),
+	  m_vecFractManifElmTouchInfo(VecAttFractManifElmTouchInf()),
+	  m_allSidesTouched(false),
+	  m_vecGenerManifElm(VecAttachedGenerManifElemInfo()),
+	  m_vecGenerManifElmTouchInfo(VecAttFractManifElmTouchInf())
 	{
 	}
 
@@ -726,7 +905,7 @@ public:
 	}
 
 
-	bool addManifElem( AttachedManifElemInfo const & manifElm, Grid & grid )
+	bool addFractureManifElem( AttachedFractManifElemInfo const & manifElm, Grid & grid )
 	{
 		// Caution: first test if manifold elem is at all part of the fulldim elem manifols
 		// if not, return false directly
@@ -740,7 +919,7 @@ public:
 		bool hasElemAlready = false;
 
 
-		for( auto const & me : m_vecManifElm )
+		for( auto const & me : m_vecFractManifElm )
 		{
 			if( manifElm.testIfEquals(me) )
 			{
@@ -751,28 +930,28 @@ public:
 
 		if( ! hasElemAlready )
 		{
-			m_vecManifElm.push_back( manifElm );
+			m_vecFractManifElm.push_back( manifElm );
 
-			AttManifElmTouchInf pamei( manifElm, false );
+			AttFractManifElmTouchInf pamei( manifElm, false );
 
-			m_vecManifElmTouchInfo.push_back(pamei);
+			m_vecFractManifElmTouchInfo.push_back(pamei);
 		}
 
 		return ! hasElemAlready;
 	}
 
-	VecAttachedManifElemInfo const getVecManifElem() const
+	VecAttachedFractManifElemInfo const getVecManifElem() const
 	{
-		return m_vecManifElm;
+		return m_vecFractManifElm;
 	}
 
-	bool const tryToTouchManifElem( AttachedManifElemInfo const & manifElemOther ) const
+	bool const tryToTouchManifElem( AttachedFractManifElemInfo const & manifElemOther ) const
 	{
 		bool managed2Touch = false;
 
-		for( auto & ameti : m_vecManifElmTouchInfo )
+		for( auto & ameti : m_vecFractManifElmTouchInfo )
 		{
-			AttachedManifElemInfo & manifElmTest = ameti.first;
+			AttachedFractManifElemInfo & manifElmTest = ameti.first;
 			bool & alreadyTouched = ameti.second;
 
 			if( ! alreadyTouched )
@@ -793,11 +972,11 @@ public:
 		return managed2Touch;
 	}
 
-	VecAttachedManifElemInfo const getAlreadyTouchedManifElems() const
+	VecAttachedFractManifElemInfo const getAlreadyTouchedManifElems() const
 	{
-		VecAttachedManifElemInfo alreadyTouchedManifElms;
+		VecAttachedFractManifElemInfo alreadyTouchedManifElms;
 
-		for( const auto & ameti : m_vecManifElmTouchInfo )
+		for( const auto & ameti : m_vecFractManifElmTouchInfo )
 		{
 			if( ameti.second )
 				alreadyTouchedManifElms.push_back( ameti );
@@ -806,11 +985,11 @@ public:
 		return alreadyTouchedManifElms;
 	}
 
-	VecAttachedManifElemInfo const getSoFarUnTouchedManifElems() const
+	VecAttachedFractManifElemInfo const getSoFarUnTouchedManifElems() const
 	{
-		VecAttachedManifElemInfo unTouchedManifElms;
+		VecAttachedFractManifElemInfo unTouchedManifElms;
 
-		for( const auto & ameti : m_vecManifElmTouchInfo )
+		for( const auto & ameti : m_vecFractManifElmTouchInfo )
 		{
 			if( ! ameti.second )
 				unTouchedManifElms.push_back( ameti );
@@ -826,7 +1005,7 @@ public:
 
 		bool allSidesTouched = true;
 
-		for( const auto & ameti : m_vecManifElmTouchInfo )
+		for( const auto & ameti : m_vecFractManifElmTouchInfo )
 		{
 			if( ! ameti.second )
 			{
@@ -841,14 +1020,24 @@ public:
 
 private:
 
-	using AttManifElmTouchInf = std::pair<AttachedManifElemInfo,bool>;
-	using VecAttManifElmTouchInf = std::vector<AttManifElmTouchInf>;
+	bool m_allSidesTouched;
 
 	FULLDIM_ELEM m_fullDimElm;
-	VecAttachedManifElemInfo m_vecManifElm;
-	VecAttManifElmTouchInf m_vecManifElmTouchInfo;
 
-	bool m_allSidesTouched;
+	VecAttachedFractManifElemInfo m_vecFractManifElm;
+
+	using AttFractManifElmTouchInf = std::pair<AttachedFractManifElemInfo,bool>;
+	using VecAttFractManifElmTouchInf = std::vector<AttFractManifElmTouchInf>;
+
+	VecAttFractManifElmTouchInf m_vecFractManifElmTouchInfo;
+
+	VecAttachedGenerManifElemInfo m_vecGenerManifElm;
+
+	using AttGenerManifElmTouchInf = std::pair<AttachedGenerManifElemInfo,bool>;
+	using VecAttGenerManifElmTouchInf = std::vector<AttGenerManifElmTouchInf>;
+
+	VecAttFractManifElmTouchInf m_vecGenerManifElmTouchInfo;
+
 
 //    template<
 ////	typename std::enable_if<std::is_same<FULLDIM_ELEM,Volume* const &>::value, true>,
@@ -882,7 +1071,7 @@ private:
 			}
 		}
 
-		return false;
+		return contained;
 	}
 
 
