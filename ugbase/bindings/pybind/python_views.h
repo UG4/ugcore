@@ -58,58 +58,45 @@ namespace ug {
 namespace pybind{
 
 namespace PythonViews {
-//! This objcet provides an object view for Python.
+
+
+//! The NumpyVectorView provides an object view for Python.
+/*! The ownership of the object remains in UG4. Creation is based on a SmarPtr.
+ *  After the object is destroyed, the reference is deleted (and the UG4 object can be freed)
+ * */
 template <typename TVector>
-struct NumpyVectorView
+class NumpyVectorView
 {
+public:
 	typedef SmartPtr<TVector> TSmartPointer;
 
 	//! Create view. (Note: Storing reference prevents deletion of underlying object)
 	NumpyVectorView(TSmartPointer vec)
-	: sp(vec), ref(*vec),
+	: sp(vec),
 	  view(py::memoryview::from_buffer(
-			  &ref[0],
+			  &(*sp)[0],
 			  sizeof(typename TVector::value_type),
 			  py::format_descriptor<typename TVector::value_type>::format().c_str(),
-			  {ref.size()},
-			  {sizeof(typename TVector::value_type)}))
-
-	{
-	};
+			  { sp->size()},
+			  {sizeof(typename TVector::value_type)})) {};
 
 
 	//! Destroy view.
 	~NumpyVectorView()
-	{
-		sp = SPNULL;
-	}
-
+	{ sp = SPNULL; }
 
 	//! Get a python view.
-	/*py::array_t<double>& get()
-	{
-		return pyarray;
-	}*/
+	py::memoryview& memory()
+	{ return view; }
 
-	//! Get a python view.
-	py::memoryview& get_view()
-	{
-		return view;
-	}
-
-	//! Setter
-	void set(const py::array_t<double>& pyobj)
-	{
-		//pyarray = pyobj;
-	}
-
+protected:
+	//! Auxiliary
+	TVector &reference()
+	{ return (*sp)[0]; }
 
 	// Data structures.
-	TSmartPointer sp; 	// Reference to object
-	TVector &ref;		//
-
-	//py::array_t<double> pyarray;
-	py::memoryview view;
+	TSmartPointer sp; 		// Reference to UG4 object.
+	py::memoryview view;	// Python memory view.
 
 };
 

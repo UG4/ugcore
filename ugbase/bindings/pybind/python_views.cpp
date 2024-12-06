@@ -105,8 +105,9 @@ static void Common(Registry& reg, string grp)
 		typedef NumpyVectorView<CPUAlgebra::vector_type> T;
 		reg.template add_class_<T>("NumpyVectorView", grp)
 		  .template add_constructor<void (*)(typename T::TSmartPointer) >("internal id=1")
-		  .add_method("get_view", &T::get_view)
-		  .add_method("set", &T::set);
+		  // .add_method("array", &T::array)
+		  .add_method("memory", &T::memory);
+
 
 	}
 } // Common
