@@ -1125,23 +1125,25 @@ private:
 	>
 	bool fullDimElmContainsManif( MANIFELM const & manifEl, Grid & grid )
 	{
-		bool contained = false;
+//		bool contained = false;
 
 		for( INDEX_TXP iFac = 0; iFac < m_fullDimElm->num_faces(); iFac++ )
 		{
 
-			static_assert(std::is_same<decltype(m_fullDimElm), Volume *>::value);
+//			static_assert(std::is_same<decltype(m_fullDimElm), Volume *>::value);
 
 			Face * fac = grid.get_face(m_fullDimElm,iFac);
 
 			if( fac == manifEl )
 			{
-				contained = true;
-				break;
+				return true;
+//				contained = true;
+//				break;
 			}
 		}
 
-		return contained;
+//		return contained;
+		return false;
 	}
 
 
@@ -1188,30 +1190,19 @@ private:
 		// if manif elem is in principle part of the fulldim elem manifolds,
 		// then we need to check if it is already integrated
 
-//		bool hasElemAlready = false;
-
 		for( auto const & me : memVecManifElm )
 		{
 			if( manifElm.testIfEquals(me) )
 			{
-				memVecManifElm.push_back( manifElm );
-
-				return true;
+				return false;
 			}
 		}
 
-		return false;
+		// not contained so far, but part of the manifolds of the fulldim elem
+		memVecManifElm.push_back(manifElm);
 
-//		if( ! hasElemAlready )
-//		{
-//			memVecManifElm.push_back( manifElm );
-//
-////			AttFractManifElmTouchInf pamei( manifElm, false );
-////
-////			m_vecFractManifElmTouchInfo.push_back(pamei);
-//		}
-//
-//		return ! hasElemAlready;
+		return true;
+
 	}
 
 

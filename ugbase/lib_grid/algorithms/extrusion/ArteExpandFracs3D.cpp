@@ -716,6 +716,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 					if( sudoFrac == sudoThisFace )
 					{
 						belongsToFracFaceSudo = true;
+						break;
 					}
 				}
 
@@ -727,35 +728,28 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 					AttachedFractFaceEdgeSudo afesTest( fac, edgesFaceVrtx, sudoThisFace );
 
-					if( attVolElmInfo.addFractManifElem( afesTest, m_grid) )
+					if( attVolElmInfo.addFractManifElem( afesTest, m_grid ) )
 					{
 						UG_LOG("manifold element already contained!" << std::endl);
 						UG_THROW("manifold element already contained!" << std::endl);
 						return false;
 					}
 
-					AttachedGenerFaceEdgeSudo afesTest2( fac, edgesFaceVrtx );
+					// nothing to do, already added before hoffentlich
 
-					// TODO FIXME das darf nicht kompilieren für afesTest,, aber es tut es, da abgeleitete Klasse......
-					attVolElmInfo.addGenerManifElem( afesTest2, m_grid);
-					// muss aber für afesTest2, dafür geht es aber mit static_assert schief..... komisch......
-					// Ableitung zur Basisklasse muss verboten werden! Cast verbieten!!!
 				}
 				else
 				{
 					// we construct the attached manifold, given that it is NOT a fracture manifold
-
-					//  TODO FIXME need function addGeneralManifElem to AttachedFullDimElemInfo
-					// and the needed functions and member variables
-					// call then this function here
-					// also incorporate touched info into the AttachedFulldimEleminfo for general manifolds
 
 					// notwendig auch, dass es eine Markierungsmöglichkeit gibt dafür, ob
 					// ein face bei der nächsten weiter inneren Runde quasi äussere Begrenzung sein muss
 					// gilt sowohl für fracture faces, die können das in erster Runde auch sein am Ende
 					// der Runde, sowie danach nur noch für nicht-fracture-faces
 
+					AttachedGenerFaceEdgeSudo afesAdd( fac, edgesFaceVrtx );
 
+					attVolElmInfo.addGenerManifElem( afesAdd, m_grid );
 
 				}
 
