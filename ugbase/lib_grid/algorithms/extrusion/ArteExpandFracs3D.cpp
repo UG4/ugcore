@@ -743,6 +743,15 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 				}
 				else
 				{
+					// zeitweilig fehlten alle Faces, die keine fractures sind
+					// die müssen noch irgendwie als nicht-fracture-faces auch dazu gefügt werden
+					// die sind in den attached volumes schon enthalten,
+					// Frage: wie prüfen, dass die gar keine fractures sind, die Infos sollten bekannt sein.....
+					// wichtig auch, dass nur die faces dazu kommen, die den Vertex enthalten!!!
+					// irgendwas von der Art "nonFractureFaceInfos" oder sowas dazu hängen, mit Info
+					// ob schon getouched oder noch nicht.....
+
+
 					// we construct the attached manifold, given that it is NOT a fracture manifold
 
 					// notwendig auch, dass es eine Markierungsmöglichkeit gibt dafür, ob
@@ -761,13 +770,6 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 		}
 	}
 
-	// TODO FIXME riesige Dummheit - jetzt fehlen alle Faces, die keine fractures sind
-	// die müssen noch irgendwie als nicht-fracture-faces auch dazu gefügt werden
-	// die sind in den attached volumes schon enthalten,
-	// Frage: wie prüfen, dass die gar keine fractures sind, die Infos sollten bekannt sein.....
-	// wichtig auch, dass nur die faces dazu kommen, die den Vertex enthalten!!!
-	// irgendwas von der Art "nonFractureFaceInfos" oder sowas dazu hängen, mit Info
-	// ob schon getouched oder noch nicht.....
 
 	UG_LOG("vertex Infos Runde eins fertig Volumen auch" << std::endl);
 
@@ -1805,7 +1807,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
 				UG_LOG("aktuelles Ziel eine sudo ausdehen " << m_aaPos[oldVrt] << std::endl);
 
-				establishNewVertices<VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
+				establishNewVertices<Hexahedron, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
 				// sufficient to tell the vertex, as the attachements are class members and can be asked in the function
 				//m_sh.assign_subset(oldVrt,m_sh.num_subsets());
 			}
@@ -1839,7 +1841,9 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 ////////////////////////////////////////////////////////////////////
 
 template <>
-bool ArteExpandFracs3D::establishNewVertices<ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt>( Vertex * const & oldVrt )
+bool ArteExpandFracs3D::establishNewVertices< Hexahedron,
+											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
+											>( Vertex * const & oldVrt )
 {
 	VecVertFracTrip & vecVertFracTrip = m_aaVrtInfoFraTri[oldVrt];
 

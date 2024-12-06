@@ -237,7 +237,7 @@ private:
 //	static_assert( std::is_same<VrtxFracProptsStatus,support::VertexFracturePropertiesVol::VrtxFracStatus>::value );
 //	static_assert( std::is_same<VrtxFracProptsStatus,support::VertexFracturePropertiesVol<IndexType, AttachedFractFaceEdgeSudo>::VrtxFracStatus>::value );
 
-	template<VrtxFracProptsStatus vfps>
+	template<typename VOLUME_TYPE, VrtxFracProptsStatus vfps>
 //	template<support::VertexFracturePropertiesVol::VrtxFracStatus vfp>
 //	template<int I>
 	bool establishNewVertices( Vertex * const & oldVrt )
@@ -245,6 +245,8 @@ private:
 		UG_THROW("too general, should not be called presently " << std::endl);
 		return false;
 	};
+
+
 
 	bool createNewElements();
 
@@ -260,7 +262,9 @@ private:
 
 // specification has to be declared outside central class context, else compilation error
 template <>
-bool ArteExpandFracs3D::establishNewVertices<ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt>( Vertex * const & oldVrt );
+bool ArteExpandFracs3D::establishNewVertices< Hexahedron,
+											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
+											>( Vertex * const & oldVrt );
 
 } /* namespace ug */
 
