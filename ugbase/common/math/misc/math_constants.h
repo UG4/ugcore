@@ -33,7 +33,6 @@
 #ifndef __H__UGMATH__MATH_CONSTANTS_H_
 #define __H__UGMATH__MATH_CONSTANTS_H_
 
-#include <cmath> //math.h>
 #include "common/types.h"
 
 namespace ug
@@ -42,7 +41,12 @@ namespace ug
 	const number SMALL_SQ = SMALL * SMALL;
 
 //	80 digits of PI...
-	const number PI = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899;
+	// parse with L suffix for higher precision otherwise parsed as double
+	// constexpr long double PI = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899L;
+	// float32 / single : constexpr number double PI \approx 3.141592_
+	// float64 / double: constexpr number double  PI \approx 3.141592653589793_
+	// long double : constexpr number double      PI \approx 3.141592653589793238_ ( note compiler dependend )
+	constexpr number PI = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899;
 
 }//	end of namespace
 

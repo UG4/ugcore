@@ -37,6 +37,7 @@
 #include "common/error.h"
 #include "common/assert.h"
 #include "lib_grid/grid/grid_base_objects.h"
+#include "common/types.h"
 namespace ug{
 
 
@@ -117,7 +118,7 @@ struct MGEdgeInfo
 private:
 	Vertex*			m_pVrtChild;
 	Edge* 			m_pEdgeChild[MG_EDGE_MAX_EDGE_CHILDREN];
-	byte				m_numEdgeChildren;
+	byte_t				m_numEdgeChildren;
 };
 
 ///	Holds information about face relations. Used internally.
@@ -152,8 +153,8 @@ private:
 	Vertex*			m_pVrtChild;
 	Edge* 			m_pEdgeChild[MG_FACE_MAX_EDGE_CHILDREN];
 	Face*				m_pFaceChild[MG_FACE_MAX_FACE_CHILDREN];
-	byte				m_numEdgeChildren;
-	byte				m_numFaceChildren;
+	byte_t				m_numEdgeChildren;
+	byte_t				m_numFaceChildren;
 };
 
 ///	Holds information about volume relations. Used internally.

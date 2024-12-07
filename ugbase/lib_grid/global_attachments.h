@@ -37,6 +37,7 @@
 #include "attachments/attachment_io_traits.h"
 #include "algorithms/serialization.h"
 #include <algorithm>
+#include "common/types.h"
 
 namespace ug{
 
@@ -141,11 +142,11 @@ class GlobalAttachments {
 				UG_THROW("There are more than one proc loading the grid"<<
 						"please make sure all processes broadcast their GlobalAttachments");
 						
-			std::vector<byte> locDeclared(possible_attachment_names.size(), 0);
-			std::vector<byte> globDeclared(possible_attachment_names.size(), 0);
+			std::vector<byte_t> locDeclared(possible_attachment_names.size(), 0);
+			std::vector<byte_t> globDeclared(possible_attachment_names.size(), 0);
 			// record local info
 			for(size_t i = 0; i < possible_attachment_names.size(); ++i){
-				byte& b = locDeclared[i];
+				byte_t& b = locDeclared[i];
 				if(GlobalAttachments::is_declared(possible_attachment_names[i])){
 					b |= 1;
 					if(GlobalAttachments::is_attached<Vertex>(grid, possible_attachment_names[i]))
@@ -162,7 +163,7 @@ class GlobalAttachments {
 			procComm.allreduce(locDeclared, globDeclared, PCL_RO_BOR);
 			// update the local with the global
 			for(size_t i = 0; i < possible_attachment_names.size(); ++i){
-				byte& b = globDeclared[i];
+				byte_t& b = globDeclared[i];
 				if(b & 1){
 					if(!GlobalAttachments::is_declared(possible_attachment_names[i]))
 						GlobalAttachments::declare_attachment(possible_attachment_names[i], "double", true);
@@ -454,7 +455,7 @@ class GlobalAttachments {
 		//		(e.g. requires inclusion of 'ugmath_types.h').
 			register_attachment_type<Attachment<bool> >();
 			register_attachment_type<Attachment<char> >();
-			register_attachment_type<Attachment<byte> >();
+			register_attachment_type<Attachment<byte_t> >();
 			register_attachment_type<Attachment<int> >();
 			register_attachment_type<Attachment<uint> >();
 			register_attachment_type<Attachment<float> >();

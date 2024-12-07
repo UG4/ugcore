@@ -37,11 +37,12 @@
 
 #ifndef USE_LUAJIT
 // default lua
-extern "C" {
-#include "externals/lua/lua.h"
-#include "externals/lua/lauxlib.h"
-#include "externals/lua/lualib.h"
-}
+//extern "C" {
+//#include "externals/lua/lua.h"
+//#include "externals/lua/lauxlib.h"
+//#include "externals/lua/lualib.h"
+//}
+#include "externals/lua/src/lua.hpp"
 #else
 // luajit
 #include <lua.hpp>

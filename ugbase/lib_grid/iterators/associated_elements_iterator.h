@@ -47,9 +47,17 @@ namespace ug{
  * elements shall be sorted in the order in which they appear in the reference
  * element of given element (false by default).*/
 template <class TElem, class TAssocElem, bool VSorted = false>
-class AssocElemIter : public std::iterator<std::input_iterator_tag, TAssocElem*>
+class AssocElemIter /* todo remove deprecated inheritance
+	todo evaluate if simplification of type from TAssocElem* to TAssocElem is possible?
+	: public std::iterator<std::input_iterator_tag, TAssocElem*>*/
 {
 		public:
+			using iterator_category = std::input_iterator_tag;
+			using value_type = TAssocElem*;
+			using difference_type = std::ptrdiff_t;
+			using pointer = TAssocElem**;
+			using reference = TAssocElem*&;
+
 			AssocElemIter(typename Grid::traits<TAssocElem>::callback cbConsiderElem =
 							ConsiderAll()) :
 				m_i(0),

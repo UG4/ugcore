@@ -43,6 +43,7 @@
 #include "lib_grid/attachments/attachment_info_traits.h"
 #include "common/math/ugmath_types.h"
 #include "grid/grid_base_objects.h"
+#include "common/types.h"
 
 namespace ug
 {
@@ -51,7 +52,7 @@ namespace ug
 //	attachment-types
 typedef Attachment<bool>		ABool;
 typedef Attachment<char>		AChar;
-typedef Attachment<byte>		AByte;
+typedef Attachment<byte_t>		AByte;
 typedef Attachment<int>			AInt;
 typedef Attachment<uint>		AUInt;
 typedef Attachment<number>		ANumber;

@@ -110,8 +110,10 @@ namespace ugtypes
 
 using std::size_t;
 
-typedef unsigned char byte;
+//typedef unsigned char byte;
 typedef unsigned int uint;
+
+using byte_t = unsigned char ;
 
 typedef ugtypes::uint32_t uint32;
 typedef ugtypes::uint64_t uint64;

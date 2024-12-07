@@ -5,12 +5,13 @@
 #include <assert.h>
 #include "common/util/variant.h"
 
-extern "C" {
-#include "externals/lua/lua.h"
-#include "externals/lua/lauxlib.h"
-#include "externals/lua/lualib.h"
-#include "externals/lua/ldo.h"
-}
+//extern "C" {
+//#include "externals/lua/lua.h"
+//#include "externals/lua/lauxlib.h"
+//#include "externals/lua/lualib.h"
+//#include "externals/lua/ldo.h"
+//}
+#include "externals/lua/src/lua.hpp"
 
 #define untested() ( std::cerr <<  "@@#\n@@@:"<< __FILE__ << ":"<< __LINE__ \
           <<":" << __func__ << "\n" )
@@ -105,7 +106,7 @@ public:
 			++n;
 		}
 #else
-		n = lua_objlen(_L, _index);
+		n = lua_rawlen(_L, (_index));
 #endif
 		return n;
 	}

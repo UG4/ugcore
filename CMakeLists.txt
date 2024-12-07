@@ -28,7 +28,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-cmake_minimum_required(VERSION 2.8.12...3.27.1)
+cmake_minimum_required(VERSION 2.8.12...3.28.3)
 
 ################################################
 # ug4
@@ -149,6 +149,7 @@ if(BUILD_ONE_LIB)
 		   add_library(${targetLibraryName} SHARED ${ug4libSources})
 		   add_compile_definitions(${targetLibraryName} PRIVATE BOOST_FILESYSTEM_NO_CXX20_ATOMIC_REF=1)
 		   add_compile_definitions(${targetLibraryName} PRIVATE BOOST_NO_CXX98_FUNCTION_BASE=1)
+		   add_compile_definitions(${targetLibraryName} PRIVATE LUA_USE_POSIX=1)
 		   install(TARGETS ${targetLibraryName}
 		   			LIBRARY DESTINATION lib
 		   			COMPONENT libraries)

@@ -39,6 +39,7 @@
 #include "ref_mark_adjusters/std_hnode_adjuster.h"
 #include "lib_grid/tools/selector_multi_grid.h"
 #include "lib_grid/tools/periodic_boundary_manager.h"
+#include "common/types.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_util.h"
@@ -535,10 +536,10 @@ save_marks_to_file(const char* filename)
 	}
 
 	sh.subset_info(0).name = "_NONE_";
-	for (byte si = 1; si > 0; ++si)
+	for (byte_t si = 1; si > 0; ++si)
 	{
 		sh.subset_info(si).name = "_";
-		for (byte b = 1; b != 0; b = b << 1)
+		for (byte_t b = 1; b != 0; b = b << 1)
 			if (si & b)
 				switch (b)
 				{

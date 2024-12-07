@@ -42,9 +42,10 @@
 
 
 #ifndef USE_LUAJIT
-extern "C" {
-#include "externals/lua/lua.h"
-}
+//extern "C" {
+//#include "externals/lua/lua.h"
+//}
+#include "externals/lua/src/lua.hpp"
 #else
 #include <lua.hpp>
 #endif

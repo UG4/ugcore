@@ -36,6 +36,7 @@
 #include "lib_grid/parallelization/util/compol_boolmarker.h"
 #include "lib_grid/file_io/file_io.h"
 #include "periodic_boundary_manager.h"
+#include "common/types.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_interface_communicator.h"
@@ -69,7 +70,7 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 
 		virtual int get_required_buffer_size(const Interface& interface)
 		{
-			return interface.size() * sizeof(byte);
+			return interface.size() * sizeof(byte_t);
 		}
 
 	///	write surface state for each entry
@@ -79,8 +80,8 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
 			{
 				Element elem = intfc.get_element(iter);
-				byte val = m_aaESS[elem].get();
-				buff.write((char*)&val, sizeof(byte));
+				byte_t val = m_aaESS[elem].get();
+				buff.write((char*)&val, sizeof(byte_t));
 			}
 			return true;
 		}
@@ -91,8 +92,8 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
 			{
 				Element elem = intfc.get_element(iter);
-				byte nv;
-				buff.read((char*)&nv, sizeof(byte));
+				byte_t nv;
+				buff.read((char*)&nv, sizeof(byte_t));
 				if(nv > m_aaESS[elem].get())
 					m_aaESS[elem] = nv;
 			}
@@ -197,7 +198,7 @@ refresh_surface_states()
 
 template <class TElem, class TSide>
 void SurfaceView::
-mark_sides_as_surface_or_shadow(TElem* elem, byte surfaceState)
+mark_sides_as_surface_or_shadow(TElem* elem, byte_t surfaceState)
 {
 	typedef typename PeriodicBoundaryManager::Group<TSide>::SlaveContainer
 		periodic_slave_container_t;

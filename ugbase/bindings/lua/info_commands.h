@@ -30,7 +30,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "externals/lua/lua.h"
+#include "externals/lua/src/lua.h"
 #include "registry/registry.h"
 #include <string>
 

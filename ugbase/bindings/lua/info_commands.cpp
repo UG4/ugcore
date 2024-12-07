@@ -69,8 +69,9 @@
 #ifndef USE_LUAJIT
 extern "C" // default lua
 {
-#include "bindings/lua/externals/lua/lstate.h"
+#include "bindings/lua/externals/lua/src/lstate.h"
 }
+#include "externals/lua/src/lua.hpp"
 #else
 // luajit
 #include <lua.hpp>
@@ -581,11 +582,11 @@ bool ClassInstantiations(const char *classname)
 	// iterate through all of lua's global string table
 	for(int i=0; i<G(L)->strt.size; i++)
 	{
-		GCObject *obj;
-		for (obj = G(L)->strt.hash[i]; obj != NULL; obj = obj->gch.next)
+		TString *obj;
+		for (obj = G(L)->strt.hash[i]; obj != NULL; obj = obj->u.hnext)
 		{
 			// get the string
-			TString *ts = rawgco2ts(obj);
+			TString *ts = obj;
 			if(ts == NULL) continue;
 
 			const char *luastr = getstr(ts);
@@ -687,7 +688,7 @@ string LuaGetScriptFunctionString(lua_State *L, int index)
 	{
 
 		const char *p=GetFileLine(ar.source[0] == '@' ? ar.source+1 : ar.source,
-								  ar.linedefined).c_str();
+								  ar.linedefined).c_str(); // (ø)[[dangeling pointer?]]{define std::string before expression to extend lifetime until function ends}
 		p+=strspn(p, " \t");
 		return p;
 	}
