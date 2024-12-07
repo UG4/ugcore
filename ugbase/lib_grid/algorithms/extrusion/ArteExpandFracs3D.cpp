@@ -919,7 +919,7 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 			{
 				AttachedFractFaceEdgeSudo & singleEntry = vecAttFacSudo[0];
 
-				EdgePair faceEdgs = singleEntry.getLowElm();
+				EdgePair faceEdgs = singleEntry.getPairLowElm();
 
 				if( IsBoundaryEdge3D(m_grid, faceEdgs.first) && IsBoundaryEdge3D(m_grid, faceEdgs.second ) )
 					isClosed = true;
@@ -942,7 +942,7 @@ bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, Vertx
 				{
 					Face * fac = afs.getManifElm();
 
-					EdgePair edgs = afs.getLowElm();
+					EdgePair edgs = afs.getPairLowElm();
 
 					Edge * edgOne = edgs.first;
 					Edge * edgTwo = edgs.second;
@@ -1129,7 +1129,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo con
 			AttachedFractFaceEdgeSudo afBase = vecAttFac[i];
 
 			Face * faceBase = afBase.getManifElm();
-			EdgePair edgPairBase = afBase.getLowElm();
+			EdgePair edgPairBase = afBase.getPairLowElm();
 
 			Edge * edgeBaseOne = edgPairBase.first;
 			Edge * edgeBaseTwo = edgPairBase.second;
@@ -1141,7 +1141,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo con
 					AttachedFractFaceEdgeSudo afCompr = vecAttFac[j];
 
 					Face * faceCompr = afCompr.getManifElm();
-					EdgePair edgPairCompr = afCompr.getLowElm();
+					EdgePair edgPairCompr = afCompr.getPairLowElm();
 
 					Edge * edgeComprOne = edgPairCompr.first;
 					Edge * edgeComprTwo = edgPairCompr.second;
@@ -1220,7 +1220,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo con
 //		endFacLoop = copyVecAttFac[endFacIndexUser].getManifElm();
 //	}
 
-	EdgePair beginEdges = initialAFES.getLowElm();
+	EdgePair beginEdges = initialAFES.getPairLowElm();
 
 	Edge * beginEdgeLoop = beginEdges.second;
 	Edge * targetedEndEdgeLoop = beginEdges.first; // should be closed! should end at same edge as it begins!
@@ -1338,7 +1338,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo con
 
 //			m_sh.assign_subset(d_Fac,m_sh.num_subsets());
 
-			EdgePair edgPr = caf.getLowElm();
+			EdgePair edgPr = caf.getPairLowElm();
 
 			Edge * edgOne = edgPr.first;
 			Edge * edgTwo = edgPr.second;

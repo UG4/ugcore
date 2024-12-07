@@ -35,6 +35,9 @@ namespace ug
 
 namespace support
 {
+
+#if 0
+
 template<typename ELEMTYP, typename INDEX_TYP>
 class ElemInfo
 {
@@ -114,9 +117,148 @@ private:
 	VertexFractureQuadrupel()
 	{};
 };
+#endif
+
+
+template <
+typename MANIFELM,
+typename LOWDIMELM,
+typename INDEX_TXP
+>
+class AttachedGeneralElem
+{
+public:
+	using PairLowEl = std::pair<LOWDIMELM,LOWDIMELM>;
+
+	using AttGenElm = AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+
+	// for fracture elements
+	AttachedGeneralElem( MANIFELM const & manifElm,
+				  PairLowEl const & lowElm
+				  )
+	:
+		m_manifElm(manifElm), m_pairLowElm(lowElm)
+	{
+	};
+
+	MANIFELM const getManifElm() const { return m_manifElm;}
+//	PairLowEl const getLowElm() const { return m_lowElm; }
+	PairLowEl const getPairLowElm() const { return m_pairLowElm; }
+
+	bool const isNeighboured( AttGenElm const & attElm )
+	const
+	{
+//		MANIFELM manifElmOther = attElm.getManifElm();
+		PairLowEl lowElmOther = attElm.getPairLowElm();
+//		INDEX_TXP sudoOther = attElm.getSudo();
+
+		PairLowEl lowElmThis = this->m_pairLowElm;
+
+		std::vector<bool> test;
+
+		test.push_back( lowElmOther.first  == lowElmThis.first );
+		test.push_back( lowElmOther.second  == lowElmThis.first );
+		test.push_back( lowElmOther.first  == lowElmThis.second );
+		test.push_back( lowElmOther.second  == lowElmThis.second );
+
+		INDEX_TXP countCorr = 0;
+
+		for( auto const t : test )
+		{
+			if( t )
+				countCorr++;
+		}
+
+		if( countCorr == 1 )
+			return true;
+
+		if( countCorr > 1 )
+			UG_THROW("zu viele gleiche Ecken " << std::endl);
+
+		return false;
+	}
+
+	bool const isNeighbouredAtSpecificSide( AttGenElm const & attElm,
+			  	  	  	  	  	  	  	  	LOWDIMELM const & specificLDE )
+	const
+	{
+		PairLowEl lowElmOther = attElm.getPairLowElm();
+
+		PairLowEl lowElmThis = this->m_pairLowElm;
+
+		// test if the specific element is part of at least
+		// one of the faces
+
+		bool otherFirst = ( lowElmOther.first == specificLDE );
+		bool otherSecond = ( lowElmOther.second == specificLDE );
+
+		bool thisFirst = ( lowElmThis.first == specificLDE );
+		bool thisSecond = ( lowElmThis.second == specificLDE );
+
+		bool isPartOfThisFace = ( thisFirst || thisSecond );
+		bool isPartOfOtherFace = ( otherFirst || otherSecond );
+
+		if( ! isPartOfOtherFace || ! isPartOfThisFace )
+		{
+			UG_LOG("not part of one of the faces " << std::endl);
+			return false;
+		}
+
+		if( otherFirst && thisFirst )
+		{
+			if( lowElmOther.first  == lowElmThis.first )
+				return true;
+		}
+		else if( otherFirst && thisSecond )
+		{
+			if( lowElmOther.first  == lowElmThis.second )
+				return true;
+		}
+		else if( otherSecond && thisFirst )
+		{
+			if( lowElmOther.second  == lowElmThis.first )
+				return true;
+		}
+		else if( otherSecond && thisSecond )
+		{
+			if( lowElmOther.second  == lowElmThis.second )
+				return true;
+		}
+
+		return false;
+	}
+
+	bool const testIfEquals( AttGenElm const & attElm )
+	const
+	{
+		MANIFELM manifElmOther = attElm.getManifElm();
+		PairLowEl lowElmOther = attElm.getPairLowElm();
+
+		if(    manifElmOther == this->m_manifElm
+			&& lowElmOther == this->m_pairLowElm
+		)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+
+protected:
+
+	MANIFELM m_manifElm;
+	PairLowEl m_pairLowElm;
+
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
 
 // TODO FIXME vertex fracture triplett
-// vereinigen mit AttElem!!!!
+// vereinigen mit  AttachedGeneralElem !!! davon ableiten!!!
 // doppelte Strukturen!!!
 
 
@@ -128,21 +270,30 @@ typename SENKRECHTENTYP, // 3D und 2D: ug::vector3
 typename LOWDIMTYP // 3D: Edge (2D nicht benötigt)
 >
 class VertexFractureTripleMF
+: public AttachedGeneralElem<MANIFOLDTYP,LOWDIMTYP,INDEXTYP>
 {
 
+private:
+	using AttGenEl = AttachedGeneralElem<MANIFOLDTYP,LOWDIMTYP,INDEXTYP>;
+
 public:
+
+	using PairLowEl = std::pair<LOWDIMTYP,LOWDIMTYP>;
 
 	VertexFractureTripleMF( MANIFOLDTYP const & manifElm, INDEXTYP sudo,
 							FULLDIMTYP const & fullElm,
 							SENKRECHTENTYP const & normal,
-							std::pair<LOWDIMTYP,LOWDIMTYP> const & pairLowElm )
-	: m_manifElm(manifElm), m_sudo(sudo), m_fullElm(fullElm),
-	  m_normal(normal), m_newNormal(normal),
-	  m_pairLowElm(pairLowElm)
+							PairLowEl const & pairLowElm )
+	: //m_manifElm(manifElm),
+	  AttGenEl(manifElm,pairLowElm),
+	  m_sudo(sudo), m_fullElm(fullElm),
+	  m_normal(normal), m_newNormal(normal)
+//		,
+//	  m_pairLowElm(pairLowElm)
 	{
 	};
 
-	MANIFOLDTYP const getManifElm() const { return m_manifElm; }
+//	MANIFOLDTYP const getManifElm() const { return m_manifElm; }
 
 	INDEXTYP const getSudoElm() const { return m_sudo; }
 
@@ -154,16 +305,16 @@ public:
 
 	SENKRECHTENTYP const getNewNormal() const { return m_newNormal; }
 
-	std::pair<LOWDIMTYP,LOWDIMTYP> const getPairLowElm() const { return m_pairLowElm; }
+//	PairLowEl const getPairLowElm() const { return m_pairLowElm; }
 
 private:
 
-	MANIFOLDTYP m_manifElm;
+//	MANIFOLDTYP m_manifElm;
 	INDEXTYP m_sudo;
 	FULLDIMTYP m_fullElm;
 	SENKRECHTENTYP  m_normal;
 	SENKRECHTENTYP  m_newNormal;
-	std::pair<LOWDIMTYP,LOWDIMTYP> m_pairLowElm;
+//	PairLowEl m_pairLowElm;
 
 	VertexFractureTripleMF()
 	{};
@@ -239,144 +390,10 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <
-typename MANIFELM,
-typename LOWDIMELM,
-typename INDEX_TXP
->
-class AttachedGeneralElem
-{
-public:
-	using PairLowEl = std::pair<LOWDIMELM,LOWDIMELM>;
-
-	using AttGenElm = AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
-
-	// for fracture elements
-	AttachedGeneralElem( MANIFELM const & manifElm,
-				  PairLowEl & lowElm
-				  )
-	:
-		m_manifElm(manifElm), m_lowElm(lowElm)
-	{
-	};
-
-	MANIFELM const getManifElm() const { return m_manifElm;}
-	PairLowEl const getLowElm() const { return m_lowElm; }
-
-	bool const isNeighboured( AttGenElm const & attElm )
-	const
-	{
-//		MANIFELM manifElmOther = attElm.getManifElm();
-		PairLowEl lowElmOther = attElm.getLowElm();
-//		INDEX_TXP sudoOther = attElm.getSudo();
-
-		PairLowEl lowElmThis = this->m_lowElm;
-
-		std::vector<bool> test;
-
-		test.push_back( lowElmOther.first  == lowElmThis.first );
-		test.push_back( lowElmOther.second  == lowElmThis.first );
-		test.push_back( lowElmOther.first  == lowElmThis.second );
-		test.push_back( lowElmOther.second  == lowElmThis.second );
-
-		INDEX_TXP countCorr = 0;
-
-		for( auto const t : test )
-		{
-			if( t )
-				countCorr++;
-		}
-
-		if( countCorr == 1 )
-			return true;
-
-		if( countCorr > 1 )
-			UG_THROW("zu viele gleiche Ecken " << std::endl);
-
-		return false;
-	}
-
-	bool const isNeighbouredAtSpecificSide( AttGenElm const & attElm,
-			  	  	  	  	  	  	  	  	LOWDIMELM const & specificLDE )
-	const
-	{
-		PairLowEl lowElmOther = attElm.getLowElm();
-
-		PairLowEl lowElmThis = this->m_lowElm;
-
-		// test if the specific element is part of at least
-		// one of the faces
-
-		bool otherFirst = ( lowElmOther.first == specificLDE );
-		bool otherSecond = ( lowElmOther.second == specificLDE );
-
-		bool thisFirst = ( lowElmThis.first == specificLDE );
-		bool thisSecond = ( lowElmThis.second == specificLDE );
-
-		bool isPartOfThisFace = ( thisFirst || thisSecond );
-		bool isPartOfOtherFace = ( otherFirst || otherSecond );
-
-		if( ! isPartOfOtherFace || ! isPartOfThisFace )
-		{
-			UG_LOG("not part of one of the faces " << std::endl);
-			return false;
-		}
-
-		if( otherFirst && thisFirst )
-		{
-			if( lowElmOther.first  == lowElmThis.first )
-				return true;
-		}
-		else if( otherFirst && thisSecond )
-		{
-			if( lowElmOther.first  == lowElmThis.second )
-				return true;
-		}
-		else if( otherSecond && thisFirst )
-		{
-			if( lowElmOther.second  == lowElmThis.first )
-				return true;
-		}
-		else if( otherSecond && thisSecond )
-		{
-			if( lowElmOther.second  == lowElmThis.second )
-				return true;
-		}
-
-		return false;
-	}
-
-	bool const testIfEquals( AttGenElm const & attElm )
-	const
-	{
-		MANIFELM manifElmOther = attElm.getManifElm();
-		PairLowEl lowElmOther = attElm.getLowElm();
-
-		if(    manifElmOther == this->m_manifElm
-			&& lowElmOther == this->m_lowElm
-		)
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-
-protected:
-
-	MANIFELM m_manifElm;
-	PairLowEl m_lowElm;
-
-};
-
-
-
-///////////////////////////////////////////////////////////////////////////////
 
 
 // info for a vertex: face and attached edges, for fractures only
-// TODO FIXME should be derived from the similar class without fracture property!
+//  derived from the similar class without fracture property!
 template <
 typename MANIFELM,
 typename LOWDIMELM,
