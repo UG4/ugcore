@@ -94,10 +94,10 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 //	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
 	  m_aAdjInfoEdges(AttVecEdge()),
 	  m_aAdjInfoFaces(AttVecFace()),
-	  m_aAdjInfoVols(AttVecVol()),
+//	  m_aAdjInfoVols(AttVecVol()),
 	  m_aaVrtInfoAssoEdges( Grid::VertexAttachmentAccessor<AttVecEdge>()),
 	  m_aaVrtInfoAssoFaces( Grid::VertexAttachmentAccessor<AttVecFace>()),
-	  m_aaVrtInfoAssoVols( Grid::VertexAttachmentAccessor<AttVecVol>()),
+//	  m_aaVrtInfoAssoVols( Grid::VertexAttachmentAccessor<AttVecVol>()),
 	  m_aAdjInfoAVVFT( AttVecVertFracTrip() ),
 	  m_aaVrtInfoFraTri(Grid::VertexAttachmentAccessor<AttVecVertFracTrip>()),
 //	  m_vrtxFractrQuadrplVec(VrtxFractrQuadrplArte3DVec())
@@ -282,11 +282,11 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	std::vector<Edge*> noEdge;
 	std::vector<Face*> noFace;
-	std::vector<Volume*> noVol;
+//	std::vector<Volume*> noVol;
 
 	m_aAdjInfoEdges = AttVecEdge();
 	m_aAdjInfoFaces = AttVecFace();
-	m_aAdjInfoVols = AttVecVol();
+//	m_aAdjInfoVols = AttVecVol();
 
 	m_grid.attach_to_vertices_dv( m_aAdjInfoEdges, noEdge );
 	m_aaVrtInfoAssoEdges = Grid::VertexAttachmentAccessor<AttVecEdge>( m_grid, m_aAdjInfoEdges );
@@ -294,8 +294,8 @@ bool ArteExpandFracs3D::attachMarkers()
 	m_grid.attach_to_vertices_dv( m_aAdjInfoFaces, noFace );
 	m_aaVrtInfoAssoFaces = Grid::VertexAttachmentAccessor<AttVecFace>( m_grid, m_aAdjInfoFaces );
 
-	m_grid.attach_to_vertices_dv( m_aAdjInfoVols, noVol );
-	m_aaVrtInfoAssoVols = Grid::VertexAttachmentAccessor<AttVecVol>( m_grid, m_aAdjInfoVols );
+//	m_grid.attach_to_vertices_dv( m_aAdjInfoVols, noVol );
+//	m_aaVrtInfoAssoVols = Grid::VertexAttachmentAccessor<AttVecVol>( m_grid, m_aAdjInfoVols );
 
 
 	//  TODO FIXME
@@ -331,10 +331,9 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	m_aAdjVolElmInfo = AttVecAttachedVolumeElemInfo();
 
-	m_aaVolElmInfo = Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>();
-
 	m_grid.attach_to_vertices_dv(m_aAdjVolElmInfo,noVolInfo);
 
+	m_aaVolElmInfo = Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>(m_grid, m_aAdjVolElmInfo);
 
 	return true;
 }
@@ -348,7 +347,7 @@ bool ArteExpandFracs3D::detachMarkers()
 
 	m_grid.detach_from_vertices( m_aAdjInfoEdges );
 	m_grid.detach_from_vertices( m_aAdjInfoFaces );
-	m_grid.detach_from_vertices( m_aAdjInfoVols );
+//	m_grid.detach_from_vertices( m_aAdjInfoVols );
 
 	m_grid.detach_from_vertices( m_aAdjInfoAVVFT  );
 
@@ -607,6 +606,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 			std::vector<Edge*> assoEdg;
 			std::vector<Face*> assoFac;
 			std::vector<Volume*> assoVol;
+			VecAttachedVolumeElemInfo assoVolElemInfo;
 
 			for( std::vector<Edge *>::iterator iterEdg = m_grid.associated_edges_begin(vrt);
 											   iterEdg != m_grid.associated_edges_end(vrt);
@@ -627,12 +627,16 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 											   	 iterVol++ )
 			{
 				assoVol.push_back(*iterVol);
+
+				AttachedVolumeElemInfo avei(*iterVol);
+
+				assoVolElemInfo.push_back(avei);
 			}
 
 			m_aaVrtInfoAssoEdges[vrt] = assoEdg;
 			m_aaVrtInfoAssoFaces[vrt] = assoFac;
-			m_aaVrtInfoAssoVols[vrt] = assoVol;
-
+//			m_aaVrtInfoAssoVols[vrt] = assoVol;
+			m_aaVolElmInfo[vrt] = assoVolElemInfo;
 
 		}
 	}
@@ -644,15 +648,25 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 	{
 		Vertex* vrt = *iter;
 
-		std::vector<Volume*> & attVol = m_aaVrtInfoAssoVols[vrt];
+//		std::vector<Volume*> & attVol = m_aaVrtInfoAssoVols[vrt];
 
 		auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
 
 		VecAttachedFractFaceEdgeSudo vecAttFacEdgSudo = vrtxFracPrps.getAllAttachedFractElems();
 
-		for( auto & vol : attVol )
+		auto & vecVolElmInfo = m_aaVolElmInfo[vrt];
+
+		// TODO FIXME eigentlich eine Dummheit, das auf zu teilen in ein VolElemInfo und ein VrtInfoAssoVols
+		// denn die InfoAssoVols haben als Info nur die Volumen, die VolElmInfos haben die Volumen
+		// und noch viel mehr Infos zu den Faces und den Edges....
+		// mittelfristig die m_aaVrtInfoAssoVols abschaffen und alles auf die AttachedFullDimElemInfo
+		// übertragen, dann geht der folgende Loop gleich über den Vektor darüber, bzw. gleichbedeutend
+		// über m_aaVolElmInfo
+//		for( auto & vol : attVol )
+		for( AttachedVolumeElemInfo & attVolElmInfo : vecVolElmInfo )
 		{
-			AttachedVolumeElemInfo attVolElmInfo( vol );
+//			AttachedVolumeElemInfo attVolElmInfo( vol );
+			Volume * vol = attVolElmInfo.getFulldimElem();
 
 			// add those faces which are fracture faces
 			for( auto & afes : vecAttFacEdgSudo )
@@ -1868,6 +1882,10 @@ bool ArteExpandFracs3D::establishNewVertices< Tetrahedron,
 {
 	UG_LOG("under construction Tetrahedra limited" << std::endl);
 
+	// TODO FIXME hier sind wir
+
+	// Sortierung der angehängten Tetrahedra
+
 	return {};
 }
 
@@ -1884,7 +1902,7 @@ bool ArteExpandFracs3D::establishNewVertices< Hexahedron,
 
 	std::vector<Edge*> & allAssoEdges = m_aaVrtInfoAssoEdges[oldVrt];
 	std::vector<Face*> & allAssoFaces = m_aaVrtInfoAssoFaces[oldVrt];
-	std::vector<Volume*> & allAssoVolumes = m_aaVrtInfoAssoVols[oldVrt];
+//	std::vector<Volume*> & allAssoVolumes = m_aaVrtInfoAssoVols[oldVrt];
 
 	// TODO FIXME works if at all only for very simple geometries
 	// and works only in particular if all asso volumes are part of the triple, i.e. have all a common face with the fracture

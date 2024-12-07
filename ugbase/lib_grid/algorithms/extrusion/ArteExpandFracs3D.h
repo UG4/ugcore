@@ -160,15 +160,15 @@ private:
 
 	using AttVecEdge = Attachment<std::vector<Edge*>>;
 	using AttVecFace = Attachment<std::vector<Face*>>;
-	using AttVecVol = Attachment<std::vector<Volume*>>;
+//	using AttVecVol = Attachment<std::vector<Volume*>>;
 
 	AttVecEdge m_aAdjInfoEdges;
 	AttVecFace m_aAdjInfoFaces;
-	AttVecVol m_aAdjInfoVols;
+//	AttVecVol m_aAdjInfoVols;
 
 	Grid::VertexAttachmentAccessor<AttVecEdge> m_aaVrtInfoAssoEdges;
 	Grid::VertexAttachmentAccessor<AttVecFace> m_aaVrtInfoAssoFaces;
-	Grid::VertexAttachmentAccessor<AttVecVol> m_aaVrtInfoAssoVols;
+//	Grid::VertexAttachmentAccessor<AttVecVol> m_aaVrtInfoAssoVols;
 
 	bool establishNewVrtBase();
 
