@@ -1821,8 +1821,8 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
 				UG_LOG("aktuelles Ziel eine sudo ausdehen " << m_aaPos[oldVrt] << std::endl);
 
-				constexpr bool restrictToHexahedra = true;
 				constexpr bool restrictToTetrahedra = false;
+				constexpr bool restrictToHexahedra = ! restrictToTetrahedra;
 
 				if( restrictToTetrahedra )
 				{
@@ -1882,9 +1882,16 @@ bool ArteExpandFracs3D::establishNewVertices< Tetrahedron,
 {
 	UG_LOG("under construction Tetrahedra limited" << std::endl);
 
-	// TODO FIXME hier sind wir
 
-	// Sortierung der angehängten Tetrahedra
+	// Sortierung der angehängten Tetrahedra notwendig und zusätzlich auch die Kenntnis der Normalen
+	// der Vertex Info tropletts notwendig
+
+	VecVertFracTrip const & vecVertFracTrip = m_aaVrtInfoFraTri[oldVrt];
+
+	VecAttachedVolumeElemInfo const & vecAttVolElemInfo = m_aaVolElmInfo[oldVrt];
+
+	// TODO FIXME hier die Fifos basteln der Rundreise in den Segmenten!!!! dafür gleich eigene Funktion!!!
+	// TODO FIXME hier sind wir
 
 	return {};
 }
@@ -1900,8 +1907,8 @@ bool ArteExpandFracs3D::establishNewVertices< Hexahedron,
 {
 	VecVertFracTrip & vecVertFracTrip = m_aaVrtInfoFraTri[oldVrt];
 
-	std::vector<Edge*> & allAssoEdges = m_aaVrtInfoAssoEdges[oldVrt];
-	std::vector<Face*> & allAssoFaces = m_aaVrtInfoAssoFaces[oldVrt];
+//	std::vector<Edge*> & allAssoEdges = m_aaVrtInfoAssoEdges[oldVrt];
+//	std::vector<Face*> & allAssoFaces = m_aaVrtInfoAssoFaces[oldVrt];
 //	std::vector<Volume*> & allAssoVolumes = m_aaVrtInfoAssoVols[oldVrt];
 
 	// TODO FIXME works if at all only for very simple geometries
