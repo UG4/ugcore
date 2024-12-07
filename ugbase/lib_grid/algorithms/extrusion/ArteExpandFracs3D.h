@@ -237,16 +237,38 @@ private:
 //	static_assert( std::is_same<VrtxFracProptsStatus,support::VertexFracturePropertiesVol::VrtxFracStatus>::value );
 //	static_assert( std::is_same<VrtxFracProptsStatus,support::VertexFracturePropertiesVol<IndexType, AttachedFractFaceEdgeSudo>::VrtxFracStatus>::value );
 
-	template<typename VOLUME_TYPE, VrtxFracProptsStatus vfps>
-//	template<support::VertexFracturePropertiesVol::VrtxFracStatus vfp>
-//	template<int I>
-	bool establishNewVertices( Vertex * const & oldVrt )
-	{
-		UG_THROW("too general, should not be called presently " << std::endl);
-		return false;
-	};
+//	template<typename VOLUME_TYPE, VrtxFracProptsStatus vfps>
+////	template<support::VertexFracturePropertiesVol::VrtxFracStatus vfp>
+////	template<int I>
+//	bool establishNewVertices( Vertex * const & oldVrt )
+//	{
+//		UG_THROW("too general, should not be called presently " << std::endl);
+//		return false;
+//	};
+
+//	template< bool APPLY_GENERAL_SEGMENT_ORDERING,
+//			  ArteExpandFracs3D::VrtxFracProptsStatus vfp,
+//			  std::enable_if<APPLY_GENERAL_SEGMENT_ORDERING, bool>::type = true
+//			>
+//	bool establishNewVertices( Vertex * const & oldVrt );
+
+	template< bool APPLY_GENERAL_SEGMENT_ORDERING,
+			  ArteExpandFracs3D::VrtxFracProptsStatus vfp
+	>
+	bool establishNewVertices( Vertex * const & oldVrt );
 
 
+//	template< bool APPLY_GENERAL_SEGMENT_ORDERING,
+//			  ArteExpandFracs3D::VrtxFracProptsStatus vfp,
+//			  std::enable_if<APPLY_GENERAL_SEGMENT_ORDERING, bool>::type = true
+//			>
+//	bool establishNewVertices( Vertex * const & oldVrt );
+//
+//	template< bool APPLY_GENERAL_SEGMENT_ORDERING,
+//			  ArteExpandFracs3D::VrtxFracProptsStatus vfp,
+//			  typename std::enable_if< std::integral_constant<bool,!APPLY_GENERAL_SEGMENT_ORDERING>>
+//			>
+//	bool establishNewVertices( Vertex * const & oldVrt );
 
 	bool createNewElements();
 
@@ -263,12 +285,12 @@ private:
 // specification has to be declared outside central class context, else compilation error
 
 template <>
-bool ArteExpandFracs3D::establishNewVertices< Tetrahedron,
+bool ArteExpandFracs3D::establishNewVertices< true,
 											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
 											>( Vertex * const & oldVrt );
 
 template <>
-bool ArteExpandFracs3D::establishNewVertices< Hexahedron,
+bool ArteExpandFracs3D::establishNewVertices< false,
 											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
 											>( Vertex * const & oldVrt );
 

@@ -1821,30 +1821,31 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
 				UG_LOG("aktuelles Ziel eine sudo ausdehen " << m_aaPos[oldVrt] << std::endl);
 
-				constexpr bool restrictToTetrahedra = false;
-				constexpr bool restrictToHexahedra = ! restrictToTetrahedra;
+				constexpr bool applyGeneralSegmentOrdering = false;
 
-				if( restrictToTetrahedra )
-				{
-					UG_LOG("restrict to Tetrahedra, under construction" << std::endl);
-					// Zustand Maulbronn, teilweise funktionierend für Hexahedra, aber nicht zuverlässig
-					// und nicht funktional für Tetrahedra
-					establishNewVertices<Tetrahedron, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
+				establishNewVertices<applyGeneralSegmentOrdering, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
 
-				}
-				else if( restrictToHexahedra )
-				{
-					UG_LOG("restrict to Hexahedra, works only in part" << std::endl);
-					// Zustand Maulbronn, teilweise funktionierend für Hexahedra, aber nicht zuverlässig
-					// und nicht funktional für Tetrahedra
-					establishNewVertices<Hexahedron, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
-					// sufficient to tell the vertex, as the attachements are class members and can be asked in the function
-					//m_sh.assign_subset(oldVrt,m_sh.num_subsets());
-				}
-				else
-				{
-					UG_THROW("keine Ahnung auf was beschraenkt" << std::endl);
-				}
+
+//				if( applyGeneralSegmentOrdering )
+//				{
+//					UG_LOG("restrict to Tetrahedra, under construction" << std::endl);
+//					// Zustand Maulbronn, teilweise funktionierend für Hexahedra, aber nicht zuverlässig
+//					// und nicht funktional für Tetrahedra
+//
+//				}
+//				else
+//				{
+//					UG_LOG("restrict to Hexahedra, works only in part" << std::endl);
+//					// Zustand Maulbronn, teilweise funktionierend für Hexahedra, aber nicht zuverlässig
+//					// und nicht funktional für Tetrahedra
+//					establishNewVertices<Hexahedron, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
+//					// sufficient to tell the vertex, as the attachements are class members and can be asked in the function
+//					//m_sh.assign_subset(oldVrt,m_sh.num_subsets());
+//				}
+//				else
+//				{
+//					UG_THROW("keine Ahnung auf was beschraenkt" << std::endl);
+//				}
 			}
 			else if( statusThisVrtx == VrtxFracProptsStatus::twoFracSuDoAtt )
 			{
@@ -1875,8 +1876,16 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 ////////////////////////////////////////////////////////////////////
 
+//template <>
+//bool ArteExpandFracs3D::establishNewVertices< Tetrahedron,
+//											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
+//											>( Vertex * const & oldVrt )
+//template< bool APPLY_GENERAL_SEGMENT_ORDERING,
+//		  ArteExpandFracs3D::VrtxFracProptsStatus vfp,
+//		  typename std::enable_if< std::integral_constant<bool,APPLY_GENERAL_SEGMENT_ORDERING>>
+//		>
 template <>
-bool ArteExpandFracs3D::establishNewVertices< Tetrahedron,
+bool ArteExpandFracs3D::establishNewVertices< true,
 											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
 											>( Vertex * const & oldVrt )
 {
@@ -1900,8 +1909,16 @@ bool ArteExpandFracs3D::establishNewVertices< Tetrahedron,
 ////////////////////////////////////////////////////////////////////
 
 
+//template <>
+//bool ArteExpandFracs3D::establishNewVertices< Hexahedron,
+//											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
+//											>( Vertex * const & oldVrt )
+//template< bool APPLY_GENERAL_SEGMENT_ORDERING,
+//		  ArteExpandFracs3D::VrtxFracProptsStatus vfp,
+//		  typename std::enable_if< std::integral_constant<bool,!APPLY_GENERAL_SEGMENT_ORDERING>>
+//		>
 template <>
-bool ArteExpandFracs3D::establishNewVertices< Hexahedron,
+bool ArteExpandFracs3D::establishNewVertices< false,
 											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
 											>( Vertex * const & oldVrt )
 {

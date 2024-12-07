@@ -908,12 +908,13 @@ public:
 
 	AttachedFullDimElemInfo( FULLDIM_ELEM const & fullDimElm )
 	: m_fullDimElm(fullDimElm),
+	  m_elementMarked(false),
 	  m_vecFractManifElm(VecAttachedFractManifElemInfo()),
 //	  m_vecFractManifElmTouchInfo(VecAttFractManifElmTouchInf()),
 //	  m_allSidesTouched(false),
-	  m_vecGenerManifElm(VecAttachedGenerManifElemInfo()),
+	  m_vecGenerManifElm(VecAttachedGenerManifElemInfo())
 //	  m_vecGenerManifElmTouchInfo(VecAttFractManifElmTouchInf())
-	  m_vecInnerSegmentManifElm(VecAttachedGenerManifElemInfo())
+//	  m_vecInnerSegmentManifElm(VecAttachedGenerManifElemInfo())
 	{
 	}
 
@@ -921,6 +922,8 @@ public:
 	{
 		return m_fullDimElm;
 	}
+
+	bool const isMarked() const { return m_elementMarked; }
 
 	bool addFractManifElem( AttachedFractManifElemInfo const & manifFractElm, Grid & grid )
 	{
@@ -942,15 +945,15 @@ public:
 	= delete;
 
 
-	// will form new "surface" of next inner round in a segment
-	bool addInnerSegmentManifElem( AttachedGenerManifElemInfo const & manifInnerSegmentElm, Grid & grid )
-	{
-		return addManifElem( manifInnerSegmentElm, m_vecInnerSegmentManifElm, grid );
-	}
-
-	template <typename NOGEN>
-	bool addInnerSegmentElem( NOGEN const & noGener, Grid & grid )
-	= delete;
+//	// will form new "surface" of next inner round in a segment
+//	bool addInnerSegmentManifElem( AttachedGenerManifElemInfo const & manifInnerSegmentElm, Grid & grid )
+//	{
+//		return addManifElem( manifInnerSegmentElm, m_vecInnerSegmentManifElm, grid );
+//	}
+//
+//	template <typename NOGEN>
+//	bool addInnerSegmentElem( NOGEN const & noGener, Grid & grid )
+//	= delete;
 
 
 
@@ -996,18 +999,46 @@ public:
 
 	bool const searchGenerManifElem( AttachedGenerManifElemInfo const & manifGenerElemOther, bool eraseFound = true )
 	{
-		return searchManifElem( manifGenerElemOther, m_vecGenerManifElm, eraseFound );
+		bool found = searchManifElem( manifGenerElemOther, m_vecGenerManifElm, eraseFound );
+
+		if( found && eraseFound )
+		{
+			m_elementMarked = true;
+		}
+
+		return found;
 	}
 
-	bool const searchFractManifElem( AttachedFractManifElemInfo const & manifFractElemOther, bool eraseFound = true )
+	template <typename NOGEN>
+	bool searchGenerManifElem( NOGEN const & manifGenerElemOther, bool eraseFound ) = delete;
+
+//	bool const searchFractManifElem( AttachedFractManifElemInfo const & manifFractElemOther, bool eraseFound = true )
+	bool const searchFractManifElem( AttachedFractManifElemInfo const & manifFractElemOther, bool shiftToGeneral = true )
 	{
-		return searchManifElem( manifFractElemOther, m_vecFractManifElm, eraseFound );
+		bool found = searchManifElem( manifFractElemOther, m_vecFractManifElm, shiftToGeneral );
+
+		if( found && shiftToGeneral )
+		{
+			// for the case that a fracture is not closed at a vertex, shift the in principle
+			// fracture vertex to the gerneral vertices, as useless for segmente construction
+			// and useless for expansion
+
+			MANIFELM const & manifel = manifFractElemOther.getManifElm();
+			typename AttachedGenerManifElemInfo::PairLowEl const & pairLowEl = manifFractElemOther.getPairLowElm();
+
+			AttachedGenerManifElemInfo agmei( manifel, pairLowEl );
+
+			m_vecGenerManifElm.push_back(agmei);
+		}
+
+		return found;
+
 	}
 
-	bool const searchInnerSegmentManifElem( AttachedGenerManifElemInfo const & manifInnerSegmElemOther, bool eraseFound = true )
-	{
-		return searchManifElem( manifInnerSegmElemOther, m_vecInnerSegmentManifElm, eraseFound );
-	}
+//	bool const searchInnerSegmentManifElem( AttachedGenerManifElemInfo const & manifInnerSegmElemOther, bool eraseFound = true )
+//	{
+//		return searchManifElem( manifInnerSegmElemOther, m_vecInnerSegmentManifElm, eraseFound );
+//	}
 
 //	bool const tryToTouchManifElem( AttachedFractManifElemInfo const & manifElemOther ) const
 //	{
@@ -1109,6 +1140,8 @@ private:
 
 	FULLDIM_ELEM m_fullDimElm;
 
+	bool m_elementMarked;
+
 	VecAttachedFractManifElemInfo m_vecFractManifElm;
 
 //	using AttFractManifElmTouchInf = std::pair<AttachedFractManifElemInfo,bool>;
@@ -1118,7 +1151,7 @@ private:
 
 	VecAttachedGenerManifElemInfo m_vecGenerManifElm;
 
-	VecAttachedGenerManifElemInfo m_vecInnerSegmentManifElm;
+//	VecAttachedGenerManifElemInfo m_vecInnerSegmentManifElm;
 
 //	using AttGenerManifElmTouchInf = std::pair<AttachedGenerManifElemInfo,bool>;
 //	using VecAttGenerManifElmTouchInf = std::vector<AttGenerManifElmTouchInf>;
