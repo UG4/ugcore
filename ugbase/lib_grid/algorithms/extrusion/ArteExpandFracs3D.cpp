@@ -1821,7 +1821,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
 				UG_LOG("aktuelles Ziel eine sudo ausdehen " << m_aaPos[oldVrt] << std::endl);
 
-				constexpr bool applyGeneralSegmentOrdering = false;
+				constexpr bool applyGeneralSegmentOrdering = true;
 
 				establishNewVertices<applyGeneralSegmentOrdering, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
 
@@ -1901,6 +1901,53 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 
 	// TODO FIXME hier die Fifos basteln der Rundreise in den Segmenten!!!! dafür gleich eigene Funktion!!!
 	// TODO FIXME hier sind wir
+
+	// starten mit einem Volumen, das mindestens ein fracture face hat
+	// alle Volumen finden, die ein gemeinsames Nicht-fracture Face mit dem Ursprungsvolumen haben
+	// diese Volumen markieren
+	// die Berührungsfaces "löschen"
+	// das Ursprungsvolumen "löschen"
+	// Start mit einem Volumen, das markiert ist
+	// wieder alle Nicht-Fracture-Faces suchen, die mit anderen Volumen koinzidieren
+	// die damit verbunden Volumen markieren, die Verbindungs- faces "löschen", das aktuelle Start-Volumen "löschen"
+	// und dann so weiter mit dem nächsten markierten Volumen, bis es keine markierten Volumen mehr gibt
+	// dann ist ein Segment geschlossen, und wir starten wieder mit einem Volumen mit einer Fracture,
+	// bis alle beiden while Schleifen den Fifi geleert haben
+
+	VecAttachedVolumeElemInfo vecAttVolElemInfoCop = vecAttVolElemInfo; // echte KOPIE
+
+	// suche Startelementvol mit fracture
+
+	IndexType startIndex = 0;
+
+	for( AttachedVolumeElemInfo const & aveic : vecAttVolElemInfoCop )
+	{
+		if( aveic.hasFracture() )
+		{
+			break;
+		}
+
+		startIndex++;
+	}
+
+	if( startIndex >= vecAttVolElemInfo.size() )
+	{
+		UG_LOG("no fracture at all connected to any vrtx volume " << std::endl);
+		UG_THROW("no fracture at all connected to any vrtx volume " << std::endl);
+		return false;
+	}
+
+	AttachedVolumeElemInfo & startVol = vecAttVolElemInfoCop[startIndex];
+
+	// jetzt fracture faces raus suchen, und dann die Nicht-Fracture-Verbindungsfaces suchen
+	// die ebenso die Nicht-Fracture-Faces beinhaltenden Volumen markieren, deren
+	// Nicht-Fracture-Faces, die schon berührt sind, löschen
+	// dann das Start-Volumen löschen
+	// und dann mit dem erstbesten markierten Volumen weiter machen
+	// alle Nicht-Fracture-Faces Verbindungen suchen
+	// (fracture faces taugen nicht als Verbindungen innerhalb eines Segments, also die "egal")
+	// und wieder die dadurch benachbarten Elemente markieren, das Volumen löschen
+	// zum nächsten markierten Volumen.....
 
 	return {};
 }

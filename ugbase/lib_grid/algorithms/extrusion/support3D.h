@@ -925,6 +925,8 @@ public:
 
 	bool const isMarked() const { return m_elementMarked; }
 
+	bool const hasFracture() const { return ( m_vecFractManifElm.size() > 0 ); }
+
 	bool addFractManifElem( AttachedFractManifElemInfo const & manifFractElm, Grid & grid )
 	{
 		return addManifElem( manifFractElm, m_vecFractManifElm, grid );
