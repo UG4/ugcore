@@ -279,6 +279,8 @@ private:
 	AttVecAttachedVolumeElemInfo m_aAdjVolElmInfo;
 	Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo> m_aaVolElmInfo;
 
+	using SegmentVolElmInfo = VecAttachedVolumeElemInfo;
+	using VecSegmentVolElmInfo = std::vector<SegmentVolElmInfo>;
 
 };
 

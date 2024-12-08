@@ -1916,28 +1916,28 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 
 	VecAttachedVolumeElemInfo vecAttVolElemInfoCop = vecAttVolElemInfo; // echte KOPIE
 
-	// suche Startelementvol mit fracture
-
-	IndexType startIndex = 0;
-
-	for( AttachedVolumeElemInfo const & aveic : vecAttVolElemInfoCop )
-	{
-		if( aveic.hasFracture() )
-		{
-			break;
-		}
-
-		startIndex++;
-	}
-
-	if( startIndex >= vecAttVolElemInfo.size() )
-	{
-		UG_LOG("no fracture at all connected to any vrtx volume " << std::endl);
-		UG_THROW("no fracture at all connected to any vrtx volume " << std::endl);
-		return false;
-	}
-
-	AttachedVolumeElemInfo & startVol = vecAttVolElemInfoCop[startIndex];
+//	// suche Startelementvol mit fracture - unnötig
+//
+//	IndexType startIndex = 0;
+//
+//	for( AttachedVolumeElemInfo const & aveic : vecAttVolElemInfoCop )
+//	{
+//		if( aveic.hasFracture() )
+//		{
+//			break;
+//		}
+//
+//		startIndex++;
+//	}
+//
+//	if( startIndex >= vecAttVolElemInfo.size() )
+//	{
+//		UG_LOG("no fracture at all connected to any vrtx volume " << std::endl);
+//		UG_THROW("no fracture at all connected to any vrtx volume " << std::endl);
+//		return false;
+//	}
+//
+//	AttachedVolumeElemInfo & startVol = vecAttVolElemInfoCop[startIndex];
 
 	// jetzt fracture faces raus suchen, und dann die Nicht-Fracture-Verbindungsfaces suchen
 	// die ebenso die Nicht-Fracture-Faces beinhaltenden Volumen markieren, deren
@@ -1949,11 +1949,134 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 	// und wieder die dadurch benachbarten Elemente markieren, das Volumen löschen
 	// zum nächsten markierten Volumen.....
 
+	// also doppelte while schleife zum fifo abarbeiten und in richtiger Reihenfolge neu zu speichern
+	// bzw in die Segemente davon, die jeweils die Elemente enthalten sollen, die im Segment sind
+	// while aussen jeweils ein Volumen mit fractures bestimmen,
+	// while innen alle damit per nicht-fracture verbundenen Volumen finden, bzw. den schon gefundenen markierten
+	// ohne Fracture Grenzen zu überschreiten, und in Segment Vektoren speichern, die aussen noch einen Vektor rum bekommen
+	// später auch testen, ob die Fractures am Rand der Segmente geschlossen sind
+	// wenn nicht, ist was schief gegangen
+
+	// viel später dann die VertexFractureTriples aufrufen und verschrauben, aber nicht in dieser Funktion
+
+	/*
+	 * Prinzip "Jumping Volumes Adjacent" Algorithmus (JVA-Algorithmus)
+	 * notiert in Worten und alle technischen Voraussetzungen geschaffen,
+	 * um ihn direkt qua while-Doppelloop zu implementieren
+	 */
+
+	VecAttachedVolumeElemInfo reconstructedVecAttVolElmInf;
+
+	VecSegmentVolElmInfo vecSegVolElmInfo;
+
+	while( vecAttVolElemInfoCop.size() != 0 )
+	{
+		SegmentVolElmInfo segmentAVEI;
+
+		// we can start with any arbitrary element and search all neighbored not separated by a fracture
+		// this forms a closed segment!
+
+		// KÄSE in der zweiten Runde, da müssen die markierten ran!!! gilt erst, wenn keine Markierungen mehr da sind!!!
+		// nochmal umschreiben!!! TODO FIXME
+
+		AttachedVolumeElemInfo & startVolInfoThisSegment = vecAttVolElemInfoCop[0];
+
+		VecAttachedGenerFaceEdgeSudo const & vecGenerManifElms = startVolInfoThisSegment.getVecGenerManifElem();
+
+		Volume * startVol = startVolInfoThisSegment.getFulldimElem();
+
+		// find corresponding entire original volume info
+
+		for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
+		{
+			Volume * possVol = possibleOrigVolInfo.getFulldimElem();
+
+			if( possVol == startVol )
+			{
+				segmentAVEI.push_back(possibleOrigVolInfo);
+				reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
+				break;
+			}
+		}
+
+		if( segmentAVEI.size() != 1 )
+		{
+			UG_LOG("No start volume reconstructible " << std::endl);
+			UG_THROW("No start volume reconstructible " << std::endl);
+			return false;
+		}
+
+
+		if( vecAttVolElemInfoCop.size() > 1 )
+		{
+
+//			for( AttachedVolumeElemInfo & possibleNeighbour : vecAttVolElemInfoCop )
+			for( VecAttachedVolumeElemInfo::iterator aveiIt = vecAttVolElemInfoCop.begin() + 1; // da begin schon als Ausgangspunkt
+													 aveiIt < vecAttVolElemInfoCop.end();
+													 aveiIt++
+			)
+			{
+				AttachedVolumeElemInfo & possibleNeighbour = *aveiIt;
+
+				if( possibleNeighbour.testFullDimElmNeighbour(startVolInfoThisSegment, true ) )
+				{
+					Volume * neighbVol = possibleNeighbour.getFulldimElem();
+
+					for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
+					{
+						Volume * possVol = possibleOrigVolInfo.getFulldimElem();
+
+						if( possVol == neighbVol )
+						{
+							segmentAVEI.push_back(possibleOrigVolInfo);
+							reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
+							vecAttVolElemInfoCop.erase(aveiIt);
+							break;
+						}
+					}
+
+				}
+			}
+		}
+
+		// delete the found element, as it is stored in its original form
+		vecAttVolElemInfoCop.erase(vecAttVolElemInfoCop.begin());
+
+//		bool switchedFine = support::switchFulldimInfo( startVolInfoThisSegment,
+//													    vecAttVolElemInfo,
+//													    segmentAVEI,
+////													    AttachedVolumeElemInfo::getFulldimElem,
+//													    getFulldimElem,
+//														0
+//													   );
+
+//		if( ! switchedFine )
+//		{
+//			UG_LOG("switching volumes impossible " << std::endl);
+//			UG_THROW("switching volumes impossible " << std::endl);
+//			return false;
+//		}
+
+		vecSegVolElmInfo.push_back(segmentAVEI);
+	}
+
+	// noch Verbindungs-fracture faces, die von nicht geschlossenen Segmenten sind,
+	// in Generelle faces "verschieben", also wo sich zwei derartige Volumen mit gleichem Face
+	// innerhalb eines Segments begegnen
+
+	// testen, ob faces der segmente geschlossen sind
+
+	// diese Geschichte könnte auch am Anfang sein, um zu fragen, ob es mehr als ein Segment gibt
+	// ansonsten verschieben in nicht selektiert, vergleichbar an Boundary, wenn da auch raffinierter vermutlich
+
+	// am Ende die Vertex Fracture Tripletts aufrufen, die zu den Segment Grenzen gehören, Vol + Face + normal
+
 	return {};
 }
 
 
 ////////////////////////////////////////////////////////////////////
+
 
 
 //template <>

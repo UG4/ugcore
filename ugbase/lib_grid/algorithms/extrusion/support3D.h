@@ -904,7 +904,7 @@ public:
 	using VecAttachedFractManifElemInfo = std::vector<AttachedFractManifElemInfo>;
 	using VecAttachedGenerManifElemInfo = std::vector<AttachedGenerManifElemInfo>;
 
-
+	using AttFullDimElmInfo = AttachedFullDimElemInfo<FULLDIM_ELEM,MANIFELM,LOWDIMELM,INDEX_TXP>;
 
 	AttachedFullDimElemInfo( FULLDIM_ELEM const & fullDimElm )
 	: m_fullDimElm(fullDimElm),
@@ -994,9 +994,14 @@ public:
 //		return ! hasElemAlready;
 //	}
 
-	VecAttachedFractManifElemInfo const getVecManifElem() const
+	VecAttachedFractManifElemInfo const getVecFractManifElem() const
 	{
 		return m_vecFractManifElm;
+	}
+
+	VecAttachedGenerManifElemInfo const getVecGenerManifElem() const
+	{
+		return m_vecGenerManifElm;
 	}
 
 	bool const searchGenerManifElem( AttachedGenerManifElemInfo const & manifGenerElemOther, bool eraseFound = true )
@@ -1010,6 +1015,28 @@ public:
 
 		return found;
 	}
+
+	bool const testFullDimElmNeighbour( AttFullDimElmInfo const & attFullDimElmInfOther, bool eraseFound = true )
+	{
+		VecAttachedGenerManifElemInfo const & vecGenerManifElmOther = attFullDimElmInfOther.getVecGenerManifElem();
+
+		bool manifNeighbored = false;
+
+		for( AttachedGenerManifElemInfo const & generManifElemOther : vecGenerManifElmOther )
+		{
+			if(	searchManifElem( generManifElemOther, m_vecGenerManifElm, eraseFound ) )
+				manifNeighbored = true;
+
+		}
+
+		if( manifNeighbored && eraseFound )
+		{
+			m_elementMarked = true;
+		}
+
+		return manifNeighbored;
+	}
+
 
 	template <typename NOGEN>
 	bool searchGenerManifElem( NOGEN const & manifGenerElemOther, bool eraseFound ) = delete;
@@ -1260,7 +1287,44 @@ private:
 
 };
 
+#if 0
+template <typename VEC_AVEI, typename OPERATION, typename INDX_TYP  >
+bool switchFulldimInfo( VEC_AVEI & vecAttVolElemInfoCop,
+					    VEC_AVEI const & vecAttVolElemInfo,
+					    VEC_AVEI & segmentAVEI,
+					    OPERATION opera,
+						INDX_TYP switchInd = 0
+					 )
+{
+	auto & startVolInfoThisSegment = vecAttVolElemInfoCop[switchInd];
 
+	auto const & startVol = startVolInfoThisSegment.opera();
+
+	for( auto & possibleOrigVolInfo : vecAttVolElemInfo )
+	{
+		auto const & possVol = possibleOrigVolInfo.opera();
+
+		if( possVol == startVol )
+		{
+			segmentAVEI().push_back(possibleOrigVolInfo);
+			break;
+		}
+	}
+
+	if( segmentAVEI().size() != 1 )
+	{
+		UG_LOG("No start volume reconstructible " << std::endl);
+		UG_THROW("No start volume reconstructible " << std::endl);
+		return false;
+	}
+
+	if( ! vecAttVolElemInfoCop.erase( vecAttVolElemInfoCop.begin() + switchInd ) )
+		return false;
+
+	return true;
+
+}
+#endif
 
 }
 
