@@ -1979,9 +1979,21 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 		// KÄSE in der zweiten Runde, da müssen die markierten ran!!! gilt erst, wenn keine Markierungen mehr da sind!!!
 		// nochmal umschreiben!!! TODO FIXME
 
+		/*
+		 * While Schleifen aufbauen für den
+		 * Search the adjacent surface interatively - Algorithmus
+		 * (Stasi Algorithmus)
+		 *
+		 */
+
+		// es braucht wohl einen Vektor, wo alle markierten drin stecken, und wo noch mehr markierte rein kommen
+		// können, und über die gibt es dann einen while loop, der so lange läuft, bis er wirklich leer ist
+		// erst dann wird das neue Segment gestartet
+		// auch im Markierten Vektor wird immer mit null angefangen
+
 		AttachedVolumeElemInfo & startVolInfoThisSegment = vecAttVolElemInfoCop[0];
 
-		VecAttachedGenerFaceEdgeSudo const & vecGenerManifElms = startVolInfoThisSegment.getVecGenerManifElem();
+//		VecAttachedGenerFaceEdgeSudo const & vecGenerManifElms = startVolInfoThisSegment.getVecGenerManifElem();
 
 		Volume * startVol = startVolInfoThisSegment.getFulldimElem();
 
@@ -2006,6 +2018,9 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 			return false;
 		}
 
+		VecAttachedVolumeElemInfo vecMarkedVolElmInfo;
+
+//		VecAttachedVolumeElemInfo markedVolElmInfo; // darüber einen while loop
 
 		if( vecAttVolElemInfoCop.size() > 1 )
 		{
@@ -2016,6 +2031,7 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 													 aveiIt++
 			)
 			{
+
 				AttachedVolumeElemInfo & possibleNeighbour = *aveiIt;
 
 				if( possibleNeighbour.testFullDimElmNeighbour(startVolInfoThisSegment, true ) )
@@ -2030,6 +2046,8 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 						{
 							segmentAVEI.push_back(possibleOrigVolInfo);
 							reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
+							vecMarkedVolElmInfo.push_back(possibleOrigVolInfo);
+
 							vecAttVolElemInfoCop.erase(aveiIt);
 							break;
 						}
@@ -2039,8 +2057,58 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 			}
 		}
 
+
 		// delete the found element, as it is stored in its original form
 		vecAttVolElemInfoCop.erase(vecAttVolElemInfoCop.begin());
+
+		while( vecMarkedVolElmInfo.size() != 0 )
+		{
+			AttachedVolumeElemInfo & markStartVolElmInf = vecMarkedVolElmInfo[0];
+
+			if( ! markStartVolElmInf.isMarked() )
+			{
+				UG_LOG("why no mark?" << std::endl);
+				UG_THROW("why no mark?" << std::endl);
+				return false;
+			}
+
+			if( vecMarkedVolElmInfo.size() > 1 )
+			{
+				for( VecAttachedVolumeElemInfo::iterator aveiIt = vecMarkedVolElmInfo.begin() + 1; // da begin schon als Ausgangspunkt
+														 aveiIt < vecAttVolElemInfoCop.end();
+														 aveiIt++
+				)
+				{
+
+					AttachedVolumeElemInfo & possibleNeighbour = *aveiIt;
+
+
+					if( possibleNeighbour.testFullDimElmNeighbour( markStartVolElmInf, true ) )
+					{
+								Volume * neighbVol = possibleNeighbour.getFulldimElem();
+
+								for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
+								{
+									Volume * possVol = possibleOrigVolInfo.getFulldimElem();
+
+									if( possVol == neighbVol )
+									{
+										if( ! possibleNeighbour.isMarked() )
+										{
+											segmentAVEI.push_back(possibleOrigVolInfo);
+											reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
+											vecMarkedVolElmInfo.push_back(possibleOrigVolInfo);
+										}
+
+										vecMarkedVolElmInfo.erase(aveiIt);
+										break;
+									}
+								}
+
+							}
+				}
+			}
+		}
 
 //		bool switchedFine = support::switchFulldimInfo( startVolInfoThisSegment,
 //													    vecAttVolElemInfo,
@@ -2056,6 +2124,8 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 //			UG_THROW("switching volumes impossible " << std::endl);
 //			return false;
 //		}
+
+
 
 		vecSegVolElmInfo.push_back(segmentAVEI);
 	}
