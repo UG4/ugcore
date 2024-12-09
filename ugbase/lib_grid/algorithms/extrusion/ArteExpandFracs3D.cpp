@@ -151,12 +151,10 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("etabliert" << std::endl);
 
-
 	if( ! generateVertexInfos() )
 		return false;
 
 	UG_LOG("generiert" << std::endl);
-
 
 	if( ! createConditionForNewVrtcs() )
 		return false;
@@ -1070,6 +1068,7 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo con
 												Edge * const & endEdgUser
 												)
 {
+
 	UG_LOG("Schliesstest" << std::endl);
 
 	IndexType originalSize = vecAttFac.size();
@@ -1776,7 +1775,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 	// ebenso seine Befüllung, braucht noch eine Funktion dazwischen, die attachments selber in die
 	// attach Funktion natürlich
 	
-
+	int untilVrt = 0;
 
 	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); ++ iterV )
 	{
@@ -1825,7 +1824,6 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 				establishNewVertices<applyGeneralSegmentOrdering, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
 
-
 //				if( applyGeneralSegmentOrdering )
 //				{
 //					UG_LOG("restrict to Tetrahedra, under construction" << std::endl);
@@ -1870,6 +1868,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 		
 	}
 
+	return false;
 
 	return true;
 }
@@ -1890,7 +1889,6 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 											>( Vertex * const & oldVrt )
 {
 	UG_LOG("under construction Tetrahedra limited" << std::endl);
-
 
 	// Sortierung der angehängten Tetrahedra notwendig und zusätzlich auch die Kenntnis der Normalen
 	// der Vertex Info tropletts notwendig
@@ -1995,7 +1993,20 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 
 		startVolInfoThisSegment.markIt();
 
-//		VecAttachedGenerFaceEdgeSudo const & vecGenerManifElms = startVolInfoThisSegment.getVecGenerManifElem();
+		Volume * volSta = startVolInfoThisSegment.getFulldimElem();
+
+		vector3 center;
+
+		if( volSta != nullptr )
+			center = CalculateCenter(volSta,m_aaPos);
+
+		UG_LOG("volume center " << center << std::endl );
+
+//		m_sh.assign_subset(volSta, m_sh.num_subsets());
+//
+//		return false;
+
+		//		VecAttachedGenerFaceEdgeSudo const & vecGenerManifElms = startVolInfoThisSegment.getVecGenerManifElem();
 
 //		Volume * startVol = startVolInfoThisSegment.getFulldimElem();
 //
@@ -2054,6 +2065,10 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 //				}
 //			}
 
+			Volume * startVol = startVolInfoMarkLoop.getFulldimElem();
+//			m_sh.assign_subset(startVol, m_sh.num_subsets());
+
+
 			for( VecAttachedVolumeElemInfo::iterator aveiIt = vecAttVolElemInfoCop.begin();
 													 aveiIt < vecAttVolElemInfoCop.end();
 													 aveiIt++
@@ -2067,7 +2082,14 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 				}
 				else
 				{
-					possibleNeighbour.testFullDimElmNeighbour( startVolInfoMarkLoop );
+					bool neighbourFound = possibleNeighbour.testFullDimElmNeighbour( startVolInfoMarkLoop );
+
+					if( neighbourFound )
+					{
+						Volume * vol = possibleNeighbour.getFulldimElem();
+
+//						m_sh.assign_subset(vol, m_sh.num_subsets());
+					}
 				}
 
 //				if( possibleNeighbour.testFullDimElmNeighbour( startVolInfoMarkLoop ) ) // causes marking
@@ -2101,6 +2123,14 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 		}
 
 		vecSegVolElmInfo.push_back(segmentAVEI);
+
+	}
+
+	if( reconstructedVecAttVolElmInf.size() != vecAttVolElemInfo.size() )
+	{
+		UG_LOG("Rekonstruktion schief gegangen " << std::endl);
+		UG_THROW("Rekonstruktion schief gegangen " << std::endl);
+		return false;
 	}
 
 	for( SegmentVolElmInfo const & svei : vecSegVolElmInfo )
