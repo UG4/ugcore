@@ -1914,7 +1914,7 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 		 *
 		 */
 
-	IndexType segmenteErledigt = 0;
+	IndexType d_segmenteErledigt = 0;
 
 	while( vecAttVolElemInfoCop.size() != 0 )
 	{
@@ -1933,7 +1933,7 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 
 //		UG_LOG("volume center " << center << std::endl );
 
-		int loopsDone = 0;
+		int d_loopsDone = 0;
 
 		while( vecAttVolElemInfoCop.size() != 0 )
 		{
@@ -2026,7 +2026,7 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 
 			vecAttVolElemInfoCop.erase( vecAttVolElemInfoCop.begin() + startIndexInner );
 
-//			if( loopsDone == 1 )
+//			if( d_loopsDone == 1 )
 //				return false;
 
 			for( VecAttachedVolumeElemInfo::iterator aveiIt = vecAttVolElemInfoCop.begin();
@@ -2055,16 +2055,16 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 			}
 
 
-			loopsDone++;
+			d_loopsDone++;
 
 
 		}
 
 		vecSegVolElmInfo.push_back(segmentAVEI);
 
-//		segmenteErledigt++;
+//		d_segmenteErledigt++;
 //
-//		if( segmenteErledigt == 1 )
+//		if( d_segmenteErledigt == 1 )
 //		return false;
 	}
 
@@ -2077,6 +2077,7 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 
 	for( SegmentVolElmInfo const & svei : vecSegVolElmInfo )
 	{
+		// TODO FIXME das hier wieder entfernen, die Subdomain Zuweisung, nur für debug Zwecke
 		IndexType sudoMax = m_sh.num_subsets();
 
 		for( AttachedVolumeElemInfo const & vei : svei )
