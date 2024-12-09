@@ -1824,6 +1824,13 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 				establishNewVertices<applyGeneralSegmentOrdering, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
 
+//				if( untilVrt == 10 )
+//					return false;
+//
+//				untilVrt++;
+
+//				return false;
+
 //				if( applyGeneralSegmentOrdering )
 //				{
 //					UG_LOG("restrict to Tetrahedra, under construction" << std::endl);
@@ -1907,6 +1914,8 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 		 *
 		 */
 
+	IndexType segmenteErledigt = 0;
+
 	while( vecAttVolElemInfoCop.size() != 0 )
 	{
 		SegmentVolElmInfo segmentAVEI;
@@ -1940,7 +1949,7 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 				if( volElInfCop.isMarked() )
 				{
 					Volume * vol = volElInfCop.getFulldimElem();
-					m_sh.assign_subset(vol, m_sh.num_subsets());
+//					m_sh.assign_subset(vol, m_sh.num_subsets());
 
 					vector3 center = CalculateCenter(vol,m_aaPos);
 
@@ -1991,7 +2000,7 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 
 			UG_LOG("DAS ZENTRUM DANACH " << startIndexInner << " -> " <<  centerX << std::endl);
 
-			m_sh.assign_subset(stattVoll, m_sh.num_subsets());
+//			m_sh.assign_subset(stattVoll, m_sh.num_subsets());
 #if 0
 			for( int i = 0; i < vecAttVolElemInfoCop.size(); i++ )
 			{
@@ -2039,7 +2048,7 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 					{
 						Volume * vol = possibleNeighbour.getFulldimElem();
 
-						m_sh.assign_subset(vol, m_sh.num_subsets());
+//						m_sh.assign_subset(vol, m_sh.num_subsets());
 
 					}
 				}
@@ -2048,10 +2057,15 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 
 			loopsDone++;
 
+
 		}
 
 		vecSegVolElmInfo.push_back(segmentAVEI);
 
+//		segmenteErledigt++;
+//
+//		if( segmenteErledigt == 1 )
+//		return false;
 	}
 
 	if( reconstructedVecAttVolElmInf.size() != vecAttVolElemInfo.size() )
