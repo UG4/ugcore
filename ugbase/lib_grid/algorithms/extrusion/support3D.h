@@ -923,7 +923,17 @@ public:
 		return m_fullDimElm;
 	}
 
+	bool const hasSameFulldimElem( AttFullDimElmInfo const & otherFullDimElmInf )
+	const
+	{
+		FULLDIM_ELEM otherFullDimElm = otherFullDimElmInf.getFulldimElem();
+
+		return ( otherFullDimElm == m_fullDimElm );
+	}
+
 	bool const isMarked() const { return m_elementMarked; }
+
+	void markIt() { m_elementMarked = true; } // to allow in loop to be start element
 
 	bool const hasFracture() const { return ( m_vecFractManifElm.size() > 0 ); }
 
@@ -1016,7 +1026,7 @@ public:
 		return found;
 	}
 
-	bool const testFullDimElmNeighbour( AttFullDimElmInfo const & attFullDimElmInfOther, bool eraseFound = true )
+	bool const testFullDimElmNeighbour( AttFullDimElmInfo const & attFullDimElmInfOther, bool eraseFoundManif = true )
 	{
 		VecAttachedGenerManifElemInfo const & vecGenerManifElmOther = attFullDimElmInfOther.getVecGenerManifElem();
 
@@ -1024,12 +1034,12 @@ public:
 
 		for( AttachedGenerManifElemInfo const & generManifElemOther : vecGenerManifElmOther )
 		{
-			if(	searchManifElem( generManifElemOther, m_vecGenerManifElm, eraseFound ) )
+			if(	searchManifElem( generManifElemOther, m_vecGenerManifElm, eraseFoundManif ) )
 				manifNeighbored = true;
 
 		}
 
-		if( manifNeighbored && eraseFound )
+		if( manifNeighbored && eraseFoundManif )
 		{
 			m_elementMarked = true;
 		}

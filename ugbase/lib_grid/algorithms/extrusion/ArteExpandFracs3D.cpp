@@ -1993,122 +1993,180 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 
 		AttachedVolumeElemInfo & startVolInfoThisSegment = vecAttVolElemInfoCop[0];
 
+		startVolInfoThisSegment.markIt();
+
 //		VecAttachedGenerFaceEdgeSudo const & vecGenerManifElms = startVolInfoThisSegment.getVecGenerManifElem();
 
-		Volume * startVol = startVolInfoThisSegment.getFulldimElem();
+//		Volume * startVol = startVolInfoThisSegment.getFulldimElem();
+//
+//		// find corresponding entire original volume info
+//
+//		for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
+//		{
+//			Volume * possVol = possibleOrigVolInfo.getFulldimElem();
+//
+//			if( possVol == startVol )
+//			{
+//				segmentAVEI.push_back(possibleOrigVolInfo);
+//				reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
+//				break;
+//			}
+//		}
 
-		// find corresponding entire original volume info
+//		if( segmentAVEI.size() != 1 )
+//		{
+//			UG_LOG("No start volume reconstructible " << std::endl);
+//			UG_THROW("No start volume reconstructible " << std::endl);
+//			return false;
+//		}
 
-		for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
-		{
-			Volume * possVol = possibleOrigVolInfo.getFulldimElem();
-
-			if( possVol == startVol )
-			{
-				segmentAVEI.push_back(possibleOrigVolInfo);
-				reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
-				break;
-			}
-		}
-
-		if( segmentAVEI.size() != 1 )
-		{
-			UG_LOG("No start volume reconstructible " << std::endl);
-			UG_THROW("No start volume reconstructible " << std::endl);
-			return false;
-		}
-
-		VecAttachedVolumeElemInfo vecMarkedVolElmInfo;
+//		VecAttachedVolumeElemInfo vecMarkedVolElmInfo;
 
 //		VecAttachedVolumeElemInfo markedVolElmInfo; // darüber einen while loop
 
-		if( vecAttVolElemInfoCop.size() > 1 )
+//		if( vecAttVolElemInfoCop.size() > 1 )
+		while( vecAttVolElemInfoCop.size() != 0 )
 		{
+			// count number of marked elements
+			IndexType numMarkedElems = 0;
 
-//			for( AttachedVolumeElemInfo & possibleNeighbour : vecAttVolElemInfoCop )
-			for( VecAttachedVolumeElemInfo::iterator aveiIt = vecAttVolElemInfoCop.begin() + 1; // da begin schon als Ausgangspunkt
+			for( AttachedVolumeElemInfo const & volElInfCop : vecAttVolElemInfoCop )
+			{
+				if( volElInfCop.isMarked() )
+					numMarkedElems++;
+			}
+
+			if( numMarkedElems == 0 )
+				break;
+
+			IndexType startIndexInner = numMarkedElems - 1;
+
+			AttachedVolumeElemInfo & startVolInfoMarkLoop = vecAttVolElemInfoCop[startIndexInner];
+
+//			for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
+//			{
+//				if( possibleOrigVolInfo.hasSameFulldimElem( startVolInfoMarkLoop ) )
+//				{
+//					segmentAVEI.push_back(possibleOrigVolInfo);
+//					reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
+//					vecAttVolElemInfoCop.erase(aveiIt);
+//					break;
+//				}
+//			}
+
+			for( VecAttachedVolumeElemInfo::iterator aveiIt = vecAttVolElemInfoCop.begin();
 													 aveiIt < vecAttVolElemInfoCop.end();
 													 aveiIt++
 			)
 			{
-
 				AttachedVolumeElemInfo & possibleNeighbour = *aveiIt;
 
-				if( possibleNeighbour.testFullDimElmNeighbour(startVolInfoThisSegment, true ) )
+				if( possibleNeighbour.hasSameFulldimElem( startVolInfoMarkLoop ) )
 				{
-					Volume * neighbVol = possibleNeighbour.getFulldimElem();
+					continue;
+				}
+				else
+				{
+					possibleNeighbour.testFullDimElmNeighbour( startVolInfoMarkLoop );
+				}
 
-					for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
-					{
-						Volume * possVol = possibleOrigVolInfo.getFulldimElem();
+//				if( possibleNeighbour.testFullDimElmNeighbour( startVolInfoMarkLoop ) ) // causes marking
+//				{
+//					for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
+//					{
+//						if( possibleOrigVolInfo.hasSameFulldimElem( possibleNeighbour ) )
+//						{
+//							segmentAVEI.push_back(possibleOrigVolInfo);
+//							reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
+//							vecAttVolElemInfoCop.erase(aveiIt);
+//							break;
+//						}
+//					}
+//
+//				}
+			}
 
-						if( possVol == neighbVol )
-						{
-							segmentAVEI.push_back(possibleOrigVolInfo);
-							reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
-							vecMarkedVolElmInfo.push_back(possibleOrigVolInfo);
-
-							vecAttVolElemInfoCop.erase(aveiIt);
-							break;
-						}
-					}
-
+			for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
+			{
+				if( possibleOrigVolInfo.hasSameFulldimElem( startVolInfoMarkLoop ) )
+				{
+					segmentAVEI.push_back(possibleOrigVolInfo);
+					reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
+					break;
 				}
 			}
+
+			vecAttVolElemInfoCop.erase( vecAttVolElemInfoCop.begin() + startIndexInner );
+
 		}
+
+		vecSegVolElmInfo.push_back(segmentAVEI);
+	}
+
+	for( SegmentVolElmInfo const & svei : vecSegVolElmInfo )
+	{
+		IndexType sudoMax = m_sh.num_subsets();
+
+		for( AttachedVolumeElemInfo const & vei : svei )
+		{
+			Volume * vol = vei.getFulldimElem();
+
+			m_sh.assign_subset( vol, sudoMax );
+		}
+	}
 
 
 		// delete the found element, as it is stored in its original form
-		vecAttVolElemInfoCop.erase(vecAttVolElemInfoCop.begin());
+//		vecAttVolElemInfoCop.erase(vecAttVolElemInfoCop.begin());
 
-		while( vecMarkedVolElmInfo.size() != 0 )
-		{
-			AttachedVolumeElemInfo & markStartVolElmInf = vecMarkedVolElmInfo[0];
-
-			if( ! markStartVolElmInf.isMarked() )
-			{
-				UG_LOG("why no mark?" << std::endl);
-				UG_THROW("why no mark?" << std::endl);
-				return false;
-			}
-
-			if( vecMarkedVolElmInfo.size() > 1 )
-			{
-				for( VecAttachedVolumeElemInfo::iterator aveiIt = vecMarkedVolElmInfo.begin() + 1; // da begin schon als Ausgangspunkt
-														 aveiIt < vecAttVolElemInfoCop.end();
-														 aveiIt++
-				)
-				{
-
-					AttachedVolumeElemInfo & possibleNeighbour = *aveiIt;
-
-
-					if( possibleNeighbour.testFullDimElmNeighbour( markStartVolElmInf, true ) )
-					{
-								Volume * neighbVol = possibleNeighbour.getFulldimElem();
-
-								for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
-								{
-									Volume * possVol = possibleOrigVolInfo.getFulldimElem();
-
-									if( possVol == neighbVol )
-									{
-										if( ! possibleNeighbour.isMarked() )
-										{
-											segmentAVEI.push_back(possibleOrigVolInfo);
-											reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
-											vecMarkedVolElmInfo.push_back(possibleOrigVolInfo);
-										}
-
-										vecMarkedVolElmInfo.erase(aveiIt);
-										break;
-									}
-								}
-
-							}
-				}
-			}
-		}
+//		while( vecMarkedVolElmInfo.size() != 0 )
+//		{
+//			AttachedVolumeElemInfo & markStartVolElmInf = vecMarkedVolElmInfo[0];
+//
+//			if( ! markStartVolElmInf.isMarked() )
+//			{
+//				UG_LOG("why no mark?" << std::endl);
+//				UG_THROW("why no mark?" << std::endl);
+//				return false;
+//			}
+//
+//			if( vecMarkedVolElmInfo.size() > 1 )
+//			{
+//				for( VecAttachedVolumeElemInfo::iterator aveiIt = vecMarkedVolElmInfo.begin() + 1; // da begin schon als Ausgangspunkt
+//														 aveiIt < vecAttVolElemInfoCop.end();
+//														 aveiIt++
+//				)
+//				{
+//
+//					AttachedVolumeElemInfo & possibleNeighbour = *aveiIt;
+//
+//
+//					if( possibleNeighbour.testFullDimElmNeighbour( markStartVolElmInf, true ) )
+//					{
+//								Volume * neighbVol = possibleNeighbour.getFulldimElem();
+//
+//								for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
+//								{
+//									Volume * possVol = possibleOrigVolInfo.getFulldimElem();
+//
+//									if( possVol == neighbVol )
+//									{
+//										segmentAVEI.push_back(possibleOrigVolInfo);
+//										reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
+//										vecMarkedVolElmInfo.push_back(possibleOrigVolInfo);
+//
+//										vecMarkedVolElmInfo.erase(aveiIt);
+//										break;
+//									}
+//								}
+//
+//							}
+//				}
+//			}
+//
+//			vecMarkedVolElmInfo.erase(vecMarkedVolElmInfo.begin());
+//
+//		}
 
 //		bool switchedFine = support::switchFulldimInfo( startVolInfoThisSegment,
 //													    vecAttVolElemInfo,
@@ -2127,8 +2185,8 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 
 
 
-		vecSegVolElmInfo.push_back(segmentAVEI);
-	}
+//		vecSegVolElmInfo.push_back(segmentAVEI);
+//	}
 
 	// noch Verbindungs-fracture faces, die von nicht geschlossenen Segmenten sind,
 	// in Generelle faces "verschieben", also wo sich zwei derartige Volumen mit gleichem Face
@@ -2141,7 +2199,7 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 
 	// am Ende die Vertex Fracture Tripletts aufrufen, die zu den Segment Grenzen gehören, Vol + Face + normal
 
-	return {};
+	return true;
 }
 
 
