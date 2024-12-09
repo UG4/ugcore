@@ -507,11 +507,34 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 	UG_LOG("neuer Beginn" << std::endl);
 //	return true;
 
+	// TODO FIXME hier Loop über alle selektierten Vertizes
+	// darin für jeden Vertex die adjungierten Volumen bestimmen ohne Vorbedingung
+	// dann den Loop zur Vorbereitung des StammiBene Algorithmus aufrufen
+	// für jeden Vertex wieder, der hat dann schon die Basisinfo von der
+	// VecAttachedVolumeElemInfo Klasse an jedem Vertex
+	// auf die aufbauend fügt er Fracture  Manifolds, general manifolds,
+	// und NEU auch boundary manifolds in einer eigenen Member dazu
+	// danach wird für jeden Vertex der StammiBene Algorithmus aufgerufen
+	// später werden Boundary Faces wie eine eigene Subdomain Ebene
+	// mit Expansion null behandelt
+	// was an Knicken aussen an boundary zu tun ist, noch zu überlegen
+	// XXXXXXXXXXXXXXXXXXXXXXXX hier fangen wir an HHHHHHHHHHHHHHHH
+
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
 	{
 		Vertex* vrt = *iter;
 
 		bool wahl = true;
+
+		// TODO FIXME
+		// hier den Stammi-bene Algorithmus einfügen
+		// Search the merged manifold interatively between each basic element
+		// dazu noch für boundary faces ein eigenes member einführen,
+		// das vom Typ General statt fracture manifold ist, aber sonst wie general
+		// später wirken die boundary faces wie eine fracture, die aber
+		// um den Wert null nur verschoben wird
+		// die Anzahl der Segmente bestimmt, ob der Vertex gewählt wird
+		// damit er gewählt wird, muss mehr als ein Segment vorhanden sein
 
 		auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
 
@@ -620,6 +643,11 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 				assoFac.push_back(*iterFac);
 			}
 
+			// TODO FIXME das nach oben verschieben, wo der Stammi Bene Algo sein soll
+			// die asso edges und faces brauchen wir vielleicht gar nicht
+			// bzw asso edges und asso faces können hier bleiben wo gewählt wird
+			// die assoVolElemInfo wird schon oben erzeugt vor der Wahl
+			// und dann wird die danach folgende Loop Info
 			for( std::vector<Volume *>::iterator iterVol = m_grid.associated_volumes_begin(vrt);
 											   	 iterVol != m_grid.associated_volumes_end(vrt);
 											   	 iterVol++ )
@@ -642,6 +670,8 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 	UG_LOG("vertex Infos Runde eins fertig " << std::endl);
 
 
+	// Voraussetzung  FÜR StammiBene Aufrufung
+	// Stammi-Bene-Vorbereitung
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
 	{
 		Vertex* vrt = *iter;
