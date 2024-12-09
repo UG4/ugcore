@@ -1890,92 +1890,15 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 {
 	UG_LOG("under construction Tetrahedra limited" << std::endl);
 
-	// Sortierung der angehängten Tetrahedra notwendig und zusätzlich auch die Kenntnis der Normalen
-	// der Vertex Info tropletts notwendig
-
 	VecVertFracTrip const & vecVertFracTrip = m_aaVrtInfoFraTri[oldVrt];
 
 	VecAttachedVolumeElemInfo const & vecAttVolElemInfo = m_aaVolElmInfo[oldVrt];
 
-	// TODO FIXME hier die Fifos basteln der Rundreise in den Segmenten!!!! dafür gleich eigene Funktion!!!
-	// TODO FIXME hier sind wir
-
-	// starten mit einem Volumen, das mindestens ein fracture face hat
-	// alle Volumen finden, die ein gemeinsames Nicht-fracture Face mit dem Ursprungsvolumen haben
-	// diese Volumen markieren
-	// die Berührungsfaces "löschen"
-	// das Ursprungsvolumen "löschen"
-	// Start mit einem Volumen, das markiert ist
-	// wieder alle Nicht-Fracture-Faces suchen, die mit anderen Volumen koinzidieren
-	// die damit verbunden Volumen markieren, die Verbindungs- faces "löschen", das aktuelle Start-Volumen "löschen"
-	// und dann so weiter mit dem nächsten markierten Volumen, bis es keine markierten Volumen mehr gibt
-	// dann ist ein Segment geschlossen, und wir starten wieder mit einem Volumen mit einer Fracture,
-	// bis alle beiden while Schleifen den Fifi geleert haben
-
 	VecAttachedVolumeElemInfo vecAttVolElemInfoCop = vecAttVolElemInfo; // echte KOPIE
-
-//	// suche Startelementvol mit fracture - unnötig
-//
-//	IndexType startIndex = 0;
-//
-//	for( AttachedVolumeElemInfo const & aveic : vecAttVolElemInfoCop )
-//	{
-//		if( aveic.hasFracture() )
-//		{
-//			break;
-//		}
-//
-//		startIndex++;
-//	}
-//
-//	if( startIndex >= vecAttVolElemInfo.size() )
-//	{
-//		UG_LOG("no fracture at all connected to any vrtx volume " << std::endl);
-//		UG_THROW("no fracture at all connected to any vrtx volume " << std::endl);
-//		return false;
-//	}
-//
-//	AttachedVolumeElemInfo & startVol = vecAttVolElemInfoCop[startIndex];
-
-	// jetzt fracture faces raus suchen, und dann die Nicht-Fracture-Verbindungsfaces suchen
-	// die ebenso die Nicht-Fracture-Faces beinhaltenden Volumen markieren, deren
-	// Nicht-Fracture-Faces, die schon berührt sind, löschen
-	// dann das Start-Volumen löschen
-	// und dann mit dem erstbesten markierten Volumen weiter machen
-	// alle Nicht-Fracture-Faces Verbindungen suchen
-	// (fracture faces taugen nicht als Verbindungen innerhalb eines Segments, also die "egal")
-	// und wieder die dadurch benachbarten Elemente markieren, das Volumen löschen
-	// zum nächsten markierten Volumen.....
-
-	// also doppelte while schleife zum fifo abarbeiten und in richtiger Reihenfolge neu zu speichern
-	// bzw in die Segemente davon, die jeweils die Elemente enthalten sollen, die im Segment sind
-	// while aussen jeweils ein Volumen mit fractures bestimmen,
-	// while innen alle damit per nicht-fracture verbundenen Volumen finden, bzw. den schon gefundenen markierten
-	// ohne Fracture Grenzen zu überschreiten, und in Segment Vektoren speichern, die aussen noch einen Vektor rum bekommen
-	// später auch testen, ob die Fractures am Rand der Segmente geschlossen sind
-	// wenn nicht, ist was schief gegangen
-
-	// viel später dann die VertexFractureTriples aufrufen und verschrauben, aber nicht in dieser Funktion
-
-	/*
-	 * Prinzip "Jumping Volumes Adjacent" Algorithmus (JVA-Algorithmus)
-	 * notiert in Worten und alle technischen Voraussetzungen geschaffen,
-	 * um ihn direkt qua while-Doppelloop zu implementieren
-	 */
 
 	VecAttachedVolumeElemInfo reconstructedVecAttVolElmInf;
 
 	VecSegmentVolElmInfo vecSegVolElmInfo;
-
-	while( vecAttVolElemInfoCop.size() != 0 )
-	{
-		SegmentVolElmInfo segmentAVEI;
-
-		// we can start with any arbitrary element and search all neighbored not separated by a fracture
-		// this forms a closed segment!
-
-		// KÄSE in der zweiten Runde, da müssen die markierten ran!!! gilt erst, wenn keine Markierungen mehr da sind!!!
-		// nochmal umschreiben!!! TODO FIXME
 
 		/*
 		 * While Schleifen aufbauen für den
@@ -1984,10 +1907,9 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 		 *
 		 */
 
-		// es braucht wohl einen Vektor, wo alle markierten drin stecken, und wo noch mehr markierte rein kommen
-		// können, und über die gibt es dann einen while loop, der so lange läuft, bis er wirklich leer ist
-		// erst dann wird das neue Segment gestartet
-		// auch im Markierten Vektor wird immer mit null angefangen
+	while( vecAttVolElemInfoCop.size() != 0 )
+	{
+		SegmentVolElmInfo segmentAVEI;
 
 		AttachedVolumeElemInfo & startVolInfoThisSegment = vecAttVolElemInfoCop[0];
 
@@ -2000,74 +1922,103 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 		if( volSta != nullptr )
 			center = CalculateCenter(volSta,m_aaPos);
 
-		UG_LOG("volume center " << center << std::endl );
+//		UG_LOG("volume center " << center << std::endl );
 
-//		m_sh.assign_subset(volSta, m_sh.num_subsets());
-//
-//		return false;
+		int loopsDone = 0;
 
-		//		VecAttachedGenerFaceEdgeSudo const & vecGenerManifElms = startVolInfoThisSegment.getVecGenerManifElem();
-
-//		Volume * startVol = startVolInfoThisSegment.getFulldimElem();
-//
-//		// find corresponding entire original volume info
-//
-//		for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
-//		{
-//			Volume * possVol = possibleOrigVolInfo.getFulldimElem();
-//
-//			if( possVol == startVol )
-//			{
-//				segmentAVEI.push_back(possibleOrigVolInfo);
-//				reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
-//				break;
-//			}
-//		}
-
-//		if( segmentAVEI.size() != 1 )
-//		{
-//			UG_LOG("No start volume reconstructible " << std::endl);
-//			UG_THROW("No start volume reconstructible " << std::endl);
-//			return false;
-//		}
-
-//		VecAttachedVolumeElemInfo vecMarkedVolElmInfo;
-
-//		VecAttachedVolumeElemInfo markedVolElmInfo; // darüber einen while loop
-
-//		if( vecAttVolElemInfoCop.size() > 1 )
 		while( vecAttVolElemInfoCop.size() != 0 )
 		{
 			// count number of marked elements
 			IndexType numMarkedElems = 0;
+			IndexType markPoint = 0;
+
+//			IndexType lastMarkPt = 0;
+			IndexType startIndexInner = 0;
 
 			for( AttachedVolumeElemInfo const & volElInfCop : vecAttVolElemInfoCop )
 			{
 				if( volElInfCop.isMarked() )
+				{
+					Volume * vol = volElInfCop.getFulldimElem();
+					m_sh.assign_subset(vol, m_sh.num_subsets());
+
+					vector3 center = CalculateCenter(vol,m_aaPos);
+
+//					UG_LOG("DAS ZENTRUM " << numMarkedElems << " -> " << center << std::endl);
+
+					startIndexInner = markPoint;
 					numMarkedElems++;
+
+				}
+
+				markPoint++;
 			}
+
+			UG_LOG("LOOPS DONE " << numMarkedElems << std::endl);
 
 			if( numMarkedElems == 0 )
 				break;
 
-			IndexType startIndexInner = numMarkedElems - 1;
-
-			AttachedVolumeElemInfo & startVolInfoMarkLoop = vecAttVolElemInfoCop[startIndexInner];
-
-//			for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
+//			int startIndexInner = -1;
+//
+//			for( int i = 0; i < vecAttVolElemInfoCop.size(); i++ )
 //			{
-//				if( possibleOrigVolInfo.hasSameFulldimElem( startVolInfoMarkLoop ) )
-//				{
-//					segmentAVEI.push_back(possibleOrigVolInfo);
-//					reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
-//					vecAttVolElemInfoCop.erase(aveiIt);
-//					break;
-//				}
+//				AttachedVolumeElemInfo vi = vecAttVolElemInfoCop[i];
+//
+//				Volume * vo = vi.getFulldimElem();
+//
+//				vector3 center = CalculateCenter(vo,m_aaPos);
+//
+//				UG_LOG("DAS ZENTRUM ZAHL VOR " << i << " -> " <<  center << std::endl);
+//
+//				if( vi.isMarked() )
+//					startIndexInner = i;
 //			}
+//
+//			if( startIndexInner < 0 )
+//			{
+//				UG_THROW("kein Anfang gefunden " << std::endl);
+//			}
+//
+//#if 0
+//			IndexType startIndexInner = markPoint - 1;
+//#endif
+			AttachedVolumeElemInfo startVolInfoMarkLoop = vecAttVolElemInfoCop[startIndexInner];
 
-			Volume * startVol = startVolInfoMarkLoop.getFulldimElem();
-//			m_sh.assign_subset(startVol, m_sh.num_subsets());
+			Volume * stattVoll = startVolInfoMarkLoop.getFulldimElem();
 
+			vector3 centerX = CalculateCenter(stattVoll,m_aaPos);
+
+			UG_LOG("DAS ZENTRUM DANACH " << startIndexInner << " -> " <<  centerX << std::endl);
+
+			m_sh.assign_subset(stattVoll, m_sh.num_subsets());
+#if 0
+			for( int i = 0; i < vecAttVolElemInfoCop.size(); i++ )
+			{
+				AttachedVolumeElemInfo vi = vecAttVolElemInfoCop[i];
+
+				Volume * vo = vi.getFulldimElem();
+
+				vector3 center = CalculateCenter(vo,m_aaPos);
+
+				UG_LOG("DAS ZENTRUM ZAHL " << i << " -> " <<  center << std::endl);
+
+			}
+#endif
+			for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
+			{
+				if( possibleOrigVolInfo.hasSameFulldimElem( startVolInfoMarkLoop ) )
+				{
+					segmentAVEI.push_back(possibleOrigVolInfo);
+					reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
+					break;
+				}
+			}
+
+			vecAttVolElemInfoCop.erase( vecAttVolElemInfoCop.begin() + startIndexInner );
+
+//			if( loopsDone == 1 )
+//				return false;
 
 			for( VecAttachedVolumeElemInfo::iterator aveiIt = vecAttVolElemInfoCop.begin();
 													 aveiIt < vecAttVolElemInfoCop.end();
@@ -2088,37 +2039,14 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 					{
 						Volume * vol = possibleNeighbour.getFulldimElem();
 
-//						m_sh.assign_subset(vol, m_sh.num_subsets());
+						m_sh.assign_subset(vol, m_sh.num_subsets());
+
 					}
 				}
-
-//				if( possibleNeighbour.testFullDimElmNeighbour( startVolInfoMarkLoop ) ) // causes marking
-//				{
-//					for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
-//					{
-//						if( possibleOrigVolInfo.hasSameFulldimElem( possibleNeighbour ) )
-//						{
-//							segmentAVEI.push_back(possibleOrigVolInfo);
-//							reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
-//							vecAttVolElemInfoCop.erase(aveiIt);
-//							break;
-//						}
-//					}
-//
-//				}
 			}
 
-			for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
-			{
-				if( possibleOrigVolInfo.hasSameFulldimElem( startVolInfoMarkLoop ) )
-				{
-					segmentAVEI.push_back(possibleOrigVolInfo);
-					reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
-					break;
-				}
-			}
 
-			vecAttVolElemInfoCop.erase( vecAttVolElemInfoCop.begin() + startIndexInner );
+			loopsDone++;
 
 		}
 
@@ -2144,90 +2072,6 @@ bool ArteExpandFracs3D::establishNewVertices< true,
 			m_sh.assign_subset( vol, sudoMax );
 		}
 	}
-
-
-		// delete the found element, as it is stored in its original form
-//		vecAttVolElemInfoCop.erase(vecAttVolElemInfoCop.begin());
-
-//		while( vecMarkedVolElmInfo.size() != 0 )
-//		{
-//			AttachedVolumeElemInfo & markStartVolElmInf = vecMarkedVolElmInfo[0];
-//
-//			if( ! markStartVolElmInf.isMarked() )
-//			{
-//				UG_LOG("why no mark?" << std::endl);
-//				UG_THROW("why no mark?" << std::endl);
-//				return false;
-//			}
-//
-//			if( vecMarkedVolElmInfo.size() > 1 )
-//			{
-//				for( VecAttachedVolumeElemInfo::iterator aveiIt = vecMarkedVolElmInfo.begin() + 1; // da begin schon als Ausgangspunkt
-//														 aveiIt < vecAttVolElemInfoCop.end();
-//														 aveiIt++
-//				)
-//				{
-//
-//					AttachedVolumeElemInfo & possibleNeighbour = *aveiIt;
-//
-//
-//					if( possibleNeighbour.testFullDimElmNeighbour( markStartVolElmInf, true ) )
-//					{
-//								Volume * neighbVol = possibleNeighbour.getFulldimElem();
-//
-//								for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
-//								{
-//									Volume * possVol = possibleOrigVolInfo.getFulldimElem();
-//
-//									if( possVol == neighbVol )
-//									{
-//										segmentAVEI.push_back(possibleOrigVolInfo);
-//										reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
-//										vecMarkedVolElmInfo.push_back(possibleOrigVolInfo);
-//
-//										vecMarkedVolElmInfo.erase(aveiIt);
-//										break;
-//									}
-//								}
-//
-//							}
-//				}
-//			}
-//
-//			vecMarkedVolElmInfo.erase(vecMarkedVolElmInfo.begin());
-//
-//		}
-
-//		bool switchedFine = support::switchFulldimInfo( startVolInfoThisSegment,
-//													    vecAttVolElemInfo,
-//													    segmentAVEI,
-////													    AttachedVolumeElemInfo::getFulldimElem,
-//													    getFulldimElem,
-//														0
-//													   );
-
-//		if( ! switchedFine )
-//		{
-//			UG_LOG("switching volumes impossible " << std::endl);
-//			UG_THROW("switching volumes impossible " << std::endl);
-//			return false;
-//		}
-
-
-
-//		vecSegVolElmInfo.push_back(segmentAVEI);
-//	}
-
-	// noch Verbindungs-fracture faces, die von nicht geschlossenen Segmenten sind,
-	// in Generelle faces "verschieben", also wo sich zwei derartige Volumen mit gleichem Face
-	// innerhalb eines Segments begegnen
-
-	// testen, ob faces der segmente geschlossen sind
-
-	// diese Geschichte könnte auch am Anfang sein, um zu fragen, ob es mehr als ein Segment gibt
-	// ansonsten verschieben in nicht selektiert, vergleichbar an Boundary, wenn da auch raffinierter vermutlich
-
-	// am Ende die Vertex Fracture Tripletts aufrufen, die zu den Segment Grenzen gehören, Vol + Face + normal
 
 	return true;
 }
