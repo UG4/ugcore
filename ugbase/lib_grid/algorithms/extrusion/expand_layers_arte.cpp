@@ -57,7 +57,7 @@ using namespace std;
 
 namespace ug{
 
-
+//using namespace ug::support;
 
 using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
 
@@ -65,7 +65,7 @@ using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
 
 //using VvftIterator = VecVertFracTrip::iterator;
 
-using AttVrtVec = Attachment<vector<Vertex*> >;
+using AttVrtVec = Attachment<std::vector<Vertex*> >;
 
 //using VertexOfFaceInfo = VertexFractureTriple< std::pair<Edge*, Edge*>, Face*, std::pair<vector3,vector3> >;
 //
@@ -2533,6 +2533,10 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 			auto sudoEdg = sh.get_subset_index(*iterEdg);
 
+			// sieht quasi doppelt gemoppelt aus
+			if( sudoEdg != fracInd )
+				UG_THROW("Subdomain Index Fehler " << std::endl);
+
 			// DEBUG ASSERT TEST static_assert( std::is_same< decltype(sudoEdg), int >::value );
 
 			// get vertices of edge, always 2
@@ -2776,7 +2780,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt)
 		{
-			newVrts[i_vrt] = NULL;
+			newVrts[i_vrt] = nullptr;
 		}
 			// erstmal so tun, als ob keine neuen Vertizes erzeugt werden an den alten Vertizes
 	}
@@ -4655,6 +4659,8 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 						else
 						{
 
+//							UG_THROW("in dieser Funktion alt" << std::endl);
+
 							// create normal vectors into direction of relevant edges
 
 							vector3 alongEdgeOne;
@@ -4691,7 +4697,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 							}
 
-							if( vrtEdgeOneBegin == NULL || vrtEdgeTwoBegin == NULL || vrtEdgeOneEnd == NULL || vrtEdgeTwoEnd == NULL )
+							if( vrtEdgeOneBegin == nullptr || vrtEdgeTwoBegin == nullptr || vrtEdgeOneEnd == nullptr || vrtEdgeTwoEnd == nullptr )
 							{
 								UG_THROW("lauter Nullen vertizes" << std::endl);
 							}
@@ -4845,8 +4851,15 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 						vector3 posNewVrt;
 
-						if( cosBetweenNormals > cosinusLim )
+//						if( cosBetweenNormals > cosinusLim )
+						if( cosBetweenNormals > cosinusLim && numFracsCrossAtVrt < 4 )
+//						if( cosBetweenNormals > cosinusLim && subsIndFracOne == subsIndFracTwo )
+//						if( false )
 						{
+
+//							UG_THROW("in dieser Funktion neu cos" << std::endl);
+
+
 							// dieselben Methoden wie im Fall von einer durchgehenden Kluft an einem Vertex, dort kopieren
 							// bzw Funktion schreiben, die beides macht
 
@@ -4946,6 +4959,9 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 						}
 						else
 						{
+
+//							UG_THROW("in dieser Funktion neu" << std::endl);
+
 							// create normal vectors into direction of relevant edges
 
 							vector3 alongEdgeOne;
@@ -4982,7 +4998,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 							}
 
-							if( vrtEdgeOneBegin == NULL || vrtEdgeTwoBegin == NULL || vrtEdgeOneEnd == NULL || vrtEdgeTwoEnd == NULL )
+							if( vrtEdgeOneBegin == nullptr || vrtEdgeTwoBegin == nullptr || vrtEdgeOneEnd == nullptr || vrtEdgeTwoEnd == nullptr )
 							{
 								UG_THROW("lauter Nullen vertizes" << std::endl);
 							}
