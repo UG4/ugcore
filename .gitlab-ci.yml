@@ -13,9 +13,18 @@ build-and-test:
   stage: test
   image: ubuntu:24.04
   timeout: 4 hours
+  parallel:
+    matrix:
+      - UG_BUILD_ID: build-gcc-13
+        UG_C_COMPILER: "gcc"
+        UG_CXX_COMPILER: "g++"
+      - UG_BUILD_ID: build-clang-15
+        UG_C_COMPILER: "clang-15"
+        UG_CXX_COMPILER: "clang++-15"
+  #tags:
+  #  - ${PROVIDER}-${STACK}
+  #environment: $PROVIDER/$STACK
   variables:
-    CMAKE_C_COMPILER: "gcc"
-    CMAKE_CXX_COMPILER: "g++"
     UGHUB_DIR: "$CI_PROJECT_DIR/ughub"
     UG4_OLD_DIR: "$CI_PROJECT_DIR/ug4-old"
     UG4_NEW_DIR: "$CI_PROJECT_DIR/ug4-new"
@@ -23,7 +32,7 @@ build-and-test:
     - echo "Setting up base ug4 enviroment."
     - mkdir -p $UG4_NEW_DIR/ugcore
     - mv * $UG4_NEW_DIR/ugcore || true
-    - apt-get update >/dev/null && apt-get install -y python3 git cmake build-essential >/dev/null
+    - apt-get update >/dev/null && apt-get install -y python3 git cmake build-essential clang-15 >/dev/null
     - cd $CI_PROJECT_DIR && git clone https://gitlab.com/ug4-project/ughub.git
     - export PATH="$PATH:$UGHUB_DIR"
     - mkdir $UG4_OLD_DIR && cd $UG4_OLD_DIR
@@ -36,12 +45,12 @@ build-and-test:
     - cp --update=none -R $UG4_OLD_DIR/* $UG4_NEW_DIR
     # build ug4 in release
     - cd $UG4_NEW_DIR
-    - mkdir -p build && cd build
-    - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=OFF -DCMAKE_BUILD_TYPE=Release
+    - mkdir -p $UG_BUILD_ID && cd $UG_BUILD_ID
+    - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=$UG_CXX_COMPILER -DCMAKE_C_COMPILER=$UG_C_COMPILER
     - make -j 4
     # build testsuite
     - cd $UG4_NEW_DIR/apps/unit_tests
-    - mkdir -p build && cd build
+    - mkdir -p $UG_BUILD_ID && cd $UG_BUILD_ID
     - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=OFF -DCMAKE_BUILD_TYPE=Release
     - make -j 4
     - cd $UG4_NEW_DIR
@@ -54,10 +63,11 @@ build-and-test:
     paths:
       - $UG4_NEW_DIR/report.xml
       - $UG4_NEW_DIR/test.log
+      # - $UG4_NEW_DIR/lib/*
       - $UG4_NEW_DIR/bin/*
       - $UG4_NEW_DIR/bin/plugins/*
     reports:
-      junit: report.xml
+      junit: $UG4_NEW_DIR/report.xml
 
 # BUILD sources on various platforms and compilers
 deploy-docker:
