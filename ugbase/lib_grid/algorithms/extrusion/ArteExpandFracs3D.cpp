@@ -507,6 +507,8 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 	UG_LOG("neuer Beginn" << std::endl);
 //	return true;
 
+	//	StammiBene Algorithmus erklärt und in Worten Plan erstellt
+	//	Search the adjacent merged manifold iteratively between each necessary element
 	// TODO FIXME hier Loop über alle selektierten Vertizes
 	// darin für jeden Vertex die adjungierten Volumen bestimmen ohne Vorbedingung
 	// dann den Loop zur Vorbereitung des StammiBene Algorithmus aufrufen
