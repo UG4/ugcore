@@ -57,7 +57,7 @@ build-and-test:
       - $UG4_NEW_DIR/bin/*
       - $UG4_NEW_DIR/bin/plugins/*
     reports:
-      junit: report.xml
+      junit: $UG4_NEW_DIR/report.xml
 
 # BUILD sources on various platforms and compilers
 deploy-docker:
