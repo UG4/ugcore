@@ -75,9 +75,16 @@ private:
 	typedef typename boost::graph_traits<T>::vertex_iterator base_vertex_iterator;
 	typedef typename boost::graph_traits<T>::out_edge_iterator base_edge_iterator;
 	class vertex_iterator_ // facade?
-		: public std::iterator<std::input_iterator_tag, vertex_descriptor,
-		                       ptrdiff_t, vertex_descriptor, vertex_descriptor> { //
+	{ //
+
 	public:
+
+		using iterator_category = std::input_iterator_tag;
+		using value_type = vertex_descriptor;
+		using difference_type = ptrdiff_t;
+		using pointer = vertex_descriptor*;
+		using reference = vertex_descriptor;
+
 		explicit vertex_iterator_() : _owners(nullptr) {}
 		explicit vertex_iterator_(base_vertex_iterator b, owners const* o) : _base(b), _owners(o) {
 		}
@@ -121,8 +128,17 @@ private:
 public:
 	typedef boost::filter_iterator<filter_local, vertex_iterator_> vertex_iterator;
 	class adjacency_iterator // facade?
-		:public std::iterator<std::input_iterator_tag, vertex_descriptor, ptrdiff_t, vertex_descriptor, vertex_descriptor> { //
+		/* todo remove deprecated inheritance
+		 :public std::iterator<std::input_iterator_tag, vertex_descriptor, ptrdiff_t, vertex_descriptor, vertex_descriptor> */
+	{ //
 	public:
+
+		using iterator_category = std::input_iterator_tag;
+		using value_type = vertex_descriptor;
+		using difference_type = ptrdiff_t;
+		using pointer = vertex_descriptor*;
+		using reference = vertex_descriptor;
+
 		typedef typename boost::graph_traits<T>::adjacency_iterator base;
 	public:
 		adjacency_iterator()
