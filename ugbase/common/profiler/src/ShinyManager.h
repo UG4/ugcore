@@ -83,7 +83,7 @@ namespace Shiny {
 		//
 
 		SHINY_INLINE void _appendTicksToCurNode(void) {
-			register tick_t curTick;
+			tick_t curTick;
 			GetTicks(&curTick);
 
 			_curNode->appendTicks(curTick - _lastTick);
