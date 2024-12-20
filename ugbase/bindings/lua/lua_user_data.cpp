@@ -39,31 +39,32 @@
 #include "bridge/util.h"
 
 #include "lua_user_data.h"
+#include "lua_util.h"
+#include "lua_traits.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 	
 
 ///	returns true if callback exists
 bool CheckLuaCallbackName(const char* name)
 {
 //	get lua state
-	lua_State* L = ug::script::GetDefaultLuaState();
+	lua_State* L = script::GetDefaultLuaState();
 
 //	obtain a reference
 	lua_getglobal(L, name);
 
 //	check if reference is valid
-	if(lua_isnil(L, -1)) return false;
-	else return true;
+	if(lua_isnil(L, -1)){ return false;}
+	return true;
 }
 
 
 LuaUserNumberNumberFunction::LuaUserNumberNumberFunction()
 {
-	m_L = ug::script::GetDefaultLuaState();
+	m_L = script::GetDefaultLuaState();
 	m_callbackRef = LUA_NOREF;
 }
 
@@ -82,7 +83,7 @@ void LuaUserNumberNumberFunction::set_lua_callback(const char* luaCallback)
 	m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
 }
 
-number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
+number LuaUserNumberNumberFunction::operator() (const int numArgs, ...) const
 {
 //	push the callback function on the stack
 	lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
@@ -92,7 +93,7 @@ number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
 
 	for(int i = 0; i < numArgs; ++i)
 	{
-		number val = va_arg(ap, number);
+		const number val = va_arg(ap, number);
 		lua_pushnumber(m_L, val);
 //		UG_LOG("Push value i=" << i << ": " << val<<"\n");
 	}
@@ -121,16 +122,16 @@ namespace LuaUserData{
 
 
 template <typename TData, int dim>
-void RegisterLuaUserDataType(Registry& reg, string type, string grp)
+void RegisterLuaUserDataType(Registry& reg, const string& type, const string grp)
 {
 	string suffix = GetDimensionSuffix<dim>();
 	string tag = GetDimensionTag<dim>();
 
 //	LuaUser"Type"
 	{
-		typedef ug::LuaUserData<TData, dim> T;
-		typedef CplUserData<TData, dim> TBase;
-		string name = string("LuaUser").append(type).append(suffix);
+		using T = ug::LuaUserData<TData, dim>;
+		using TBase = CplUserData<TData, dim>;
+		const string name = string("LuaUser").append(type).append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*)>("Callback")
 			.template add_constructor<void (*)(LuaFunctionHandle)>("handle")
@@ -140,9 +141,9 @@ void RegisterLuaUserDataType(Registry& reg, string type, string grp)
 
 //	LuaCondUser"Type"
 	{
-		typedef ug::LuaUserData<TData, dim, bool> T;
-		typedef CplUserData<TData, dim, bool> TBase;
-		string name = string("LuaCondUser").append(type).append(suffix);
+		using T = ug::LuaUserData<TData, dim, bool>;
+		using TBase = CplUserData<TData, dim, bool>;
+		const string name = string("LuaCondUser").append(type).append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*)>("Callback")
 			.template add_constructor<void (*)(LuaFunctionHandle)>("handle")
@@ -165,13 +166,13 @@ struct Functionality
  * available Dimension types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp		        parent group for sorting of functionality
  */
 template <int dim>
-static void Dimension(Registry& reg, string grp)
+static void Dimension(Registry& reg, const string grp)
 {
-	string suffix = GetDimensionSuffix<dim>();
-	string tag = GetDimensionTag<dim>();
+	const string suffix = GetDimensionSuffix<dim>();
+	const string tag = GetDimensionTag<dim>();
 
 	RegisterLuaUserDataType<number, dim>(reg, "Number", grp);
 	RegisterLuaUserDataType<MathVector<dim>, dim>(reg, "Vector", grp);
@@ -179,9 +180,9 @@ static void Dimension(Registry& reg, string grp)
 
 //	LuaUserFunctionNumber
 	{
-		typedef LuaUserFunction<number, dim, number> T;
-		typedef DependentUserData<number, dim> TBase;
-		string name = string("LuaUserFunctionNumber").append(suffix);
+		using T = LuaUserFunction<number, dim, number>;
+		using TBase = DependentUserData<number, dim>;
+		const string name = string("LuaUserFunctionNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName#NumberOfArguments")
 			.template add_constructor<void (*)(const char*, int, bool)>("LuaCallbackName#NumberOfArguments#PosTimeFlag")
@@ -198,9 +199,9 @@ static void Dimension(Registry& reg, string grp)
 
 //	LuaUserFunctionMatrixNumber
 	{
-		typedef LuaUserFunction<MathMatrix<dim,dim>, dim, number> T;
-		typedef DependentUserData<MathMatrix<dim,dim>, dim> TBase;
-		string name = string("LuaUserFunctionMatrixNumber").append(suffix);
+		using T = LuaUserFunction<MathMatrix<dim,dim>, dim, number>;
+		using TBase = DependentUserData<MathMatrix<dim,dim>, dim>;
+		const string name = string("LuaUserFunctionMatrixNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName#NumberOfArguments")
 			.template add_constructor<void (*)(const char*, int, bool)>("LuaCallbackName#NumberOfArguments#PosTimeFlag")
@@ -215,9 +216,9 @@ static void Dimension(Registry& reg, string grp)
 
 //	LuaUserFunctionVectorNumber
 	{
-		typedef LuaUserFunction<MathVector<dim>, dim, number > T;
-		typedef DependentUserData<MathVector<dim>, dim> TBase;
-		string name = string("LuaUserFunctionVectorNumber").append(suffix);
+		using T = LuaUserFunction<MathVector<dim>, dim, number >;
+		using TBase = DependentUserData<MathVector<dim>, dim>;
+		const string name = string("LuaUserFunctionVectorNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName#NumberOfArguments")
 			.template add_constructor<void (*)(const char*, int, bool)>("LuaCallbackName#NumberOfArguments#PosTimeFlag")
@@ -232,8 +233,8 @@ static void Dimension(Registry& reg, string grp)
 /*
 //	LuaUserFunctionNumberVector
 	{
-		typedef LuaUserFunction<number, dim, MathVector<dim> > T;
-		typedef DependentUserData<number, dim> TBase;
+		using T = LuaUserFunction<number, dim, MathVector<dim> > ;
+		using TBase =  DependentUserData<number, dim> ;
 		string name = string("LuaUserFunctionNumberVector").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
@@ -253,14 +254,14 @@ static void Dimension(Registry& reg, string grp)
  * are to be placed here when registering.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp		        parent group for sorting of functionality
  */
-static void Common(Registry& reg, string grp)
+static void Common(Registry& reg, const string &grp)
 {
 
 //	LuaUserNumberNumberFunction
 	{
-		typedef LuaUserNumberNumberFunction T;
+		using T = LuaUserNumberNumberFunction;
 		reg.add_class_<T>("LuaUserNumberNumberFunction", grp)
 			.add_constructor()
 			.add_method("set_lua_callback", &T::set_lua_callback)
@@ -269,21 +270,21 @@ static void Common(Registry& reg, string grp)
 
 //	LuaFunctionNumber
 	{
-		typedef LuaFunction<number, number> T;
-		typedef IFunction<number, number> TBase;
+		using T = LuaFunction<number, number>;
+		using TBase = IFunction<number>;
 		reg.add_class_<T, TBase>("LuaFunctionNumber", grp)
 			.add_constructor()
 			.add_method("set_lua_callback", &T::set_lua_callback)
 			.set_construct_as_smart_pointer(true);
 	}
 
-} // Common
+}  // Common
 }; // end Functionality
-}// end LuaUserData
+}  // end LuaUserData
 
-void RegisterLuaUserData(Registry& reg, string grp)
+void RegisterLuaUserData(Registry& reg, const string &grp)
 {
-	typedef LuaUserData::Functionality Functionality;
+	using Functionality = LuaUserData::Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);
@@ -292,5 +293,5 @@ void RegisterLuaUserData(Registry& reg, string grp)
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
-}// namespace bridge
-}// namespace ug
+}
+}

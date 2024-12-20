@@ -46,6 +46,7 @@ include("../../../cmake/ug_includes.cmake")
 
 if(UNIX)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_POSIX")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLUA_USE_POSIX")
 endif(UNIX)
 
 if (NOT USE_LUAJIT) 
@@ -111,17 +112,6 @@ else (NOT USE_LUAJIT)
 set(srcLua )
 endif(NOT USE_LUAJIT)
 
-#find_package(BISON)
-#find_package(FLEX)
-#BISON_TARGET(MyParser parser.y parser.cc)
-#FLEX_TARGET(MyScanner lexer.l  lexer.cc)
-#ADD_FLEX_BISON_DEPENDENCY(MyScanner MyParser)
-# Create target for the parser
-#ADD_CUSTOM_TARGET(FooParser echo “Creating parser.c”)
-# Create custom command for flex/lex (note the outputs)
-
-
-
 set(srcUGScript		lua_util.cpp
 					info_commands.cpp
 					bindings_lua.cpp
@@ -161,6 +151,12 @@ endif(USE_LUA2C)
 
 if(BUILD_ONE_LIB)
 	EXPORTSOURCES(ugbase/bindings/lua  ${Sources})
-else(BUILD_ONE_LIB)
+	add_compile_definitions( USE_MKSTEMP=1)
+	add_compile_definitions( LUA_USE_POSIX=1)
+	add_compile_definitions(LUA_TMPNAMTEMPLATE=1)
+else()
+	message("not one lib")
 	add_library(bindings_lua  ${Sources})
-endif(BUILD_ONE_LIB)
+	target_compile_definitions(bindings_lua PRIVATE USE_MKSTEMP=1)
+	target_compile_definitions(bindings_lua PRIVATE LUA_TMPNAMTEMPLATE=1)
+endif()
