@@ -28,7 +28,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-cmake_minimum_required(VERSION 2.8.12...3.27.1)
+cmake_minimum_required(VERSION 3.5...3.27.1)
 
 ####
 # uginterface Library
@@ -44,10 +44,7 @@ include_directories(${P_UGSCRIPT_SOURCE_DIR}/externals/lua)
 
 include("../../../cmake/ug_includes.cmake")
 
-if(UNIX)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_POSIX")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLUA_USE_POSIX")
-endif(UNIX)
+
 
 if (NOT USE_LUAJIT) 
 # use default version (shipped with ug4) 
@@ -151,12 +148,22 @@ endif(USE_LUA2C)
 
 if(BUILD_ONE_LIB)
 	EXPORTSOURCES(ugbase/bindings/lua  ${Sources})
-	add_compile_definitions( USE_MKSTEMP=1)
-	add_compile_definitions( LUA_USE_POSIX=1)
-	add_compile_definitions(LUA_TMPNAMTEMPLATE=1)
+	if(UNIX)
+		add_compile_definitions ( USE_MKSTEMP=1 )
+		add_compile_definitions ( LUA_USE_POSIX=1 )
+		add_compile_definitions ( LUA_TMPNAMTEMPLATE=1 )
+	endif()
 else()
 	message("not one lib")
 	add_library(bindings_lua  ${Sources})
-	target_compile_definitions(bindings_lua PRIVATE USE_MKSTEMP=1)
-	target_compile_definitions(bindings_lua PRIVATE LUA_TMPNAMTEMPLATE=1)
+	if(UNIX)
+		target_compile_definitions ( bindings_lua PRIVATE USE_MKSTEMP=1 )
+		target_compile_definitions ( bindings_lua PRIVATE LUA_TMPNAMTEMPLATE=1 )
+	endif()
+endif()
+
+
+if(UNIX)
+	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_POSIX" )
+	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLUA_USE_POSIX" )
 endif()
