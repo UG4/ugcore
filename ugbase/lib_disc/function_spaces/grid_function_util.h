@@ -36,7 +36,7 @@
 #include <vector>
 #include <string>
 #include <cmath>  // for isinf, isnan
-#include <boost/function.hpp>
+//#include <boost/function.hpp>
 
 
 #include "common/util/file_util.h"

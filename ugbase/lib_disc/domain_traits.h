@@ -33,7 +33,7 @@
 #ifndef __H__UG__LIB_DISC__DOMAIN_TRAITS__
 #define __H__UG__LIB_DISC__DOMAIN_TRAITS__
 
-#include <boost/mpl/for_each.hpp>
+//#include <boost/mpl/for_each.hpp>
 #include "lib_grid/grid_objects/grid_dim_traits.h"
 
 namespace ug{

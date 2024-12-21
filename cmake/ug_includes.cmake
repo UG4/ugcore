@@ -476,7 +476,7 @@ if(INTERNAL_BOOST)
 	set(BOOST_ROOT ${INTERNAL_BOOST_PATH})
 	set(Boost_INCLUDE_DIRS ${INTERNAL_BOOST_PATH})
 	set(Boost_MAJOR_VERSION 1)
-	set(Boost_MINOR_VERSION 86)
+	set(Boost_MINOR_VERSION 87)
 	message(STATUS "Info: Internal Boost ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}")
 else(INTERNAL_BOOST)
 	find_package(Boost 1.71 REQUIRED) # automatic detection

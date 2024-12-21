@@ -33,6 +33,8 @@
 #ifndef __H__UG__message_hub_impl__
 #define __H__UG__message_hub_impl__
 
+#include <boost/bind/bind.hpp>
+
 namespace ug
 {
 
