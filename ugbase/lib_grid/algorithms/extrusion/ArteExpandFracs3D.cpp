@@ -2630,7 +2630,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 	}
 
 	// for debugging
-	return false;
+//	return false;
 
 	return true;
 }
@@ -2690,8 +2690,6 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 template<>
 bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo )
 {
-
-	// TODO FIXME Hier sind wir HHHHHHHHHHHHHHHHHH
 
 	// get all fracture faces, check if they belong to the same subdomain, must be the case here!
 
@@ -2779,7 +2777,7 @@ bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt
 	{
 		Volume * vol = avei.getFulldimElem();
 
-		std::vector<Vertex*>& newVrts4Fac = m_aaVrtVecVol[ vol ];
+		std::vector<Vertex*> & newVrts4Fac = m_aaVrtVecVol[ vol ];
 
 		for(size_t indVrt = 0; indVrt < (vol)->num_vertices();  indVrt++ )
 		{
@@ -3260,6 +3258,8 @@ bool ArteExpandFracs3D::createNewElements()
 
 	//	create new elements
 
+	UG_LOG("want to create new elems" << std::endl );
+
 	//	holds local side vertex indices
 	std::vector<size_t>	locVrtInds;
 
@@ -3271,6 +3271,9 @@ bool ArteExpandFracs3D::createNewElements()
 	for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end(); ++iter_sv)
 	{
 		Volume* sv = *iter_sv;
+
+		UG_LOG("entering volume to create new elems " << CalculateCenter(sv, m_aaPos) << std::endl);
+
 		//	check for each edge whether it has to be copied.
 		for(size_t i_edge = 0; i_edge < sv->num_edges(); ++i_edge)
 		{
@@ -3302,6 +3305,8 @@ bool ArteExpandFracs3D::createNewElements()
 		}
 	}
 
+	UG_LOG("Vol enter clone finished " << std::endl);
+
 	//	now we create new faces from selected ones which are connected to
 	//	inner vertices. This allows to preserve old subsets.
 	//	Since we have to make sure that we use the right vertices,
@@ -3315,6 +3320,9 @@ bool ArteExpandFracs3D::createNewElements()
 	{
 		Volume* sv = *iter_sv;
 		//	check for each face whether it has to be copied.
+
+		UG_LOG("Face descriptor for vol " << CalculateCenter(sv, m_aaPos) << std::endl);
+
 		for(size_t i_face = 0; i_face < sv->num_faces(); ++i_face)
 		{
 			Face* sf = m_grid.get_face(sv, i_face);
@@ -3342,6 +3350,8 @@ bool ArteExpandFracs3D::createNewElements()
 		}
 	}
 
+	UG_LOG("Face descriptor left" << std::endl);
+
 	//	Expand all faces.
 	//	Since volumes are replaced on the fly, we have to take care with the iterator.
 	//	record all new volumes in a vector. This will help to adjust positions later on.
@@ -3355,6 +3365,9 @@ bool ArteExpandFracs3D::createNewElements()
 	{
 		Volume* sv = *iter_sv;
 		++iter_sv;
+
+		UG_LOG("Volume new creation try at " << CalculateCenter(sv, m_aaPos) << std::endl);
+
 
 		//	now expand the fracture faces of sv to volumes.
 		for(size_t i_side = 0; i_side < sv->num_sides(); ++i_side)
@@ -3444,7 +3457,8 @@ bool ArteExpandFracs3D::createNewElements()
 						}
 						else
 						{
-							//	this code-block should never be entered. If it is entered then
+							//	Text SR, might be different now:
+							//  this code-block should never be entered. If it is entered then
 							//	we either selected the wrong faces (this shouldn't happen), or there
 							//	are selected faces, which have fracture-boundary-vertices only.
 							//	This is the same is if inner fracture edges exists, which are
@@ -3455,8 +3469,12 @@ bool ArteExpandFracs3D::createNewElements()
 //								grid.detach_from_volumes(aVrtVec);
 //								grid.detach_from_vertices(aAdjMarker);
 //								grid.detach_from_edges(aAdjMarker);
-								throw(UGError("Error in ExpandFractures3d. Implementation Error."));
+								//return false;
+							UG_LOG("Tetraeder Fehlt eine Loesung " << std::endl);
+#if 0
+								throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
 								return false;
+#endif
 						}
 					}
 					else if ( locVrtInds.size() == 4 )
@@ -3598,7 +3616,6 @@ bool ArteExpandFracs3D::createNewElements()
 			}
 		}
 
-
 		//	now set up a new volume descriptor and replace the volume.
 		if(vd.num_vertices() != sv->num_vertices())
 			vd.set_num_vertices(sv->num_vertices());
@@ -3614,6 +3631,11 @@ bool ArteExpandFracs3D::createNewElements()
 		m_grid.create_by_cloning(sv, vd, sv);
 		m_grid.erase(sv);
 	}
+
+	UG_LOG("Volumes erzeugt " << std::endl);
+
+//	return false;
+
 
 	//	we have to clean up unused faces and edges.
 	//	note that all selected edges with mark 0 may safley be deleted. - warum?
