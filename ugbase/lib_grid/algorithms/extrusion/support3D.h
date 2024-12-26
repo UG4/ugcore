@@ -235,10 +235,17 @@ public:
 		PairLowEl lowElmOther = attElm.getPairLowElm();
 
 		if(    manifElmOther == this->m_manifElm
-			&& lowElmOther == this->m_pairLowElm
+			&& hasSameEdgePair( lowElmOther )
+//				&& lowElmOther == this->m_pairLowElm
 		)
 		{
 			return true;
+		}
+
+		if( manifElmOther == this->m_manifElm && ! hasSameEdgePair( lowElmOther ) )
+		{
+			UG_LOG("gleiches face aber andere Ecken???" << std::endl);
+			UG_THROW("gleiches face aber andere Ecken???" << std::endl);
 		}
 
 		return false;
@@ -249,6 +256,20 @@ protected:
 
 	MANIFELM m_manifElm;
 	PairLowEl m_pairLowElm;
+
+	bool const hasSameEdgePair( PairLowEl const & epTwo ) const
+	{
+		PairLowEl const & epOne = this->m_pairLowElm;
+
+		if(    ( epOne.first == epTwo.first && epOne.second == epTwo.second )
+			||	( epOne.first == epTwo.second && epOne.second == epTwo.first )
+		)
+		{
+			return true;
+		}
+
+		return false;
+	}
 
 };
 

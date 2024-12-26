@@ -81,6 +81,9 @@ public:
 
 	bool run();
 
+	using IndexType = unsigned short;
+
+
 private:
 
 	Grid & m_grid;
@@ -109,8 +112,6 @@ private:
 	bool attachMarkers();
 
 	bool detachMarkers();
-
-	using IndexType = unsigned short;
 
 	using NormalVectorFacIntoVol = vector3;
 
@@ -307,9 +308,18 @@ private:
 
 	bool establishNewVertizesStasiBased( Vertex * const & oldVrt );
 
+	template< IndexType NUM_SURR_FRACS, bool isBndryVrtx >
+	bool expandWithinTheSegment( Vertex * const & oldVrt, SegmentVolElmInfo const & svei );
+
+	IndexType shiftUnclosedFracFacesToGenerFaces( Vertex * const & vrt );
+
 };
 
 // specification has to be declared outside central class context, else compilation error
+
+// for only one surrounding subdom around the segment
+template<>
+bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt, SegmentVolElmInfo const & svei );
 
 //template <>
 //bool ArteExpandFracs3D::establishNewVertices< true,

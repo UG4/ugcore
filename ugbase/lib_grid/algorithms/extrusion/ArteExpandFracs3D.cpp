@@ -746,7 +746,6 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 					// TODO FIXME hier muss entschieden werden, ob es eine boundary face ist
 					// die kommt dann auch nochmal in ein anderes Konstrukt, was aber
 					// dem fracture face ähnelt
-					// HHHHHHHHHHHHHHHHHHH
 					// am Ende müssen die Frac Faces, die nicht geschlossen sind, und doppelt in einem Segment
 					// in die general faces verschoben werden, da stören sie nicht, und sind egal
 
@@ -779,7 +778,6 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 						// mithin steckt die Normale NICHT in diesen Informationen drin
 						// sondern extra in den vertex fracture tripeln
 						// vielleicht dort die boundaries irgendwie dazu würgen.....
-						// HHHHHHHHHHHHHHHHH
 
 					}
 					else // normal face, no fracture, no boundary
@@ -905,17 +903,125 @@ bool ArteExpandFracs3D::distinguishSegments()
 	{
 		Vertex* vrt = *iter;
 
-		stasiAlgo( vrt );
+		if( ! stasiAlgo( vrt ) )
+		{
+			UG_LOG("Stasi schief gegangen " << std::endl);
+			UG_THROW("Stasi schief gegangen" << std::endl);
+			return false;
+		}
 	}
 
 	UG_LOG("Stasi Algo alle Vrt End << std::endl");
 
+	// TODO FIXME
+	// es müssen in den Segmenten noch die fracture faces zu generellen faces verschoben werden,
+	// die nicht abgeschlossen sind, und umgangen werden können, und so in die Landschaft ragen
+	// also die fracture faces, die für die Segmenteigenschaft unerheblich sind
+
+	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+	{
+		Vertex* vrt = *iter;
+
+		IndexType shiFraFac = shiftUnclosedFracFacesToGenerFaces( vrt );
+
+		UG_LOG("shifted frac faces at " << m_aaPos[vrt] << shiFraFac << std::endl);
+
+		constexpr bool d_highlightVrtcsWithShifts = false;
+
+		if( d_highlightVrtcsWithShifts )
+		{
+			if( shiFraFac > 0 )
+			{
+				IndexType sudoNum = m_sh.num_subsets();
+
+				m_sh.assign_subset(vrt, sudoNum );
+			}
+		}
+	}
 
 	// Debug purpose
-	return false;
+//	return false;
 
 	return true;
 }
+
+//////////////////////////////////////////////////////////////////
+
+ArteExpandFracs3D::IndexType ArteExpandFracs3D::shiftUnclosedFracFacesToGenerFaces( Vertex * const & vrt )
+{
+	IndexType shiftedFracFaces = 0;
+
+	// TODO FIXME still to be implemented - shift those fracture faces which appear
+	// twice in the segment volumes, i.e. which are part of two volumes of the
+	// segment, i.e. which touch each other, but are not closed,
+	// shift them to the general faces, to avoid that they are taken into account
+	// for the creation of new vertices, they must not have any influence
+
+	UG_LOG("SHIFT FRAC 2 GENER" << std::endl);
+
+	VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+	for( SegmentVolElmInfo & svei : vecSegVolElmInf )
+	{
+//		VecAttachedFractFaceEdgeSudo vecAttFractList;
+
+		for( AttachedVolumeElemInfo & attVolEIOne : svei )
+		{
+			VecAttachedFractFaceEdgeSudo vecAttFracFaceOne = attVolEIOne.getVecFractManifElem();
+
+			for( AttachedVolumeElemInfo & attVolEITwo : svei )
+			{
+				if( ! attVolEIOne.hasSameFulldimElem( attVolEITwo ) )
+				{
+					VecAttachedFractFaceEdgeSudo vecAttFracFaceTwo = attVolEITwo.getVecFractManifElem();
+
+					for( AttachedFractFaceEdgeSudo & afesOne : vecAttFracFaceOne )
+					{
+						for( AttachedFractFaceEdgeSudo & afesTwo : vecAttFracFaceTwo )
+						{
+							if( afesOne.testIfEquals( afesTwo ) )
+							{
+								// beide in die generellen Faces verschieben!
+
+								if( ! attVolEIOne.searchFractManifElem( afesOne, true ) )
+								{
+									UG_THROW("im einen nicht gefunden "<< std::endl);
+								}
+
+								if( ! attVolEITwo.searchFractManifElem( afesTwo, true ) )
+								{
+									UG_THROW("im anderen nicht gefunden "<< std::endl);
+								}
+
+								shiftedFracFaces++;
+							}
+						}
+					}
+				}
+			}
+
+
+//			for( AttachedFractFaceEdgeSudo & affe : nextVolFacs )
+//			{
+//				vecAttFractList.push_back( affe );
+//			}
+			// TODO FIXME HHHHHHHHHHHHHHHHHH
+			// create a full chain of all fracture faces, and if one appears twice, shift it for both
+			// volumes where it is in to the general faces, i.e. count after establishing, and when twice,
+			// then shift
+		}
+	}
+
+	UG_LOG("SHIFT FRAC 2 GENER" << std::endl);
+
+
+
+	return shiftedFracFaces;
+}
+
+//////////////////////////////////////////////////////////////////
+
+
 
 bool ArteExpandFracs3D::seletForSegmented()
 {
@@ -1447,27 +1553,30 @@ bool ArteExpandFracs3D::stasiAlgo( Vertex * const & oldVrt )
 		return false;
 	}
 
+// for debug purposes
 
+	constexpr bool d_assignSudos2Segments = false;
 
-	if( vecSegVolElmInfo.size() > 1 )
+	if( d_assignSudos2Segments )
 	{
-		for( SegmentVolElmInfo const & svei : vecSegVolElmInfo )
+		if( vecSegVolElmInfo.size() > 1 )
 		{
-			// TODO FIXME das hier wieder entfernen, die Subdomain Zuweisung, nur für debug Zwecke
-			IndexType sudoMax = m_sh.num_subsets();
-
-			for( AttachedVolumeElemInfo const & vei : svei )
+			for( SegmentVolElmInfo const & svei : vecSegVolElmInfo )
 			{
-				Volume * vol = vei.getFulldimElem();
+				// TODO FIXME das hier wieder entfernen, die Subdomain Zuweisung, nur für debug Zwecke
+				IndexType sudoMax = m_sh.num_subsets();
 
-				m_sh.assign_subset( vol, sudoMax );
+				for( AttachedVolumeElemInfo const & vei : svei )
+				{
+					Volume * vol = vei.getFulldimElem();
+
+					m_sh.assign_subset( vol, sudoMax );
+				}
 			}
 		}
 	}
 
-
 	UG_LOG("Stasi END " << m_aaPos[oldVrt] << std::endl);
-
 
 	return true;
 }
@@ -2493,21 +2602,26 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 		UG_LOG("vertex at " << posOldVrt << std::endl);
 
-		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
-
-		bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
-
-		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
-
-		VertxFracPropts::VrtxFracStatus statusThisVrtx = vrtxFracPrps.getVrtxFracStatus();
+//		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+//
+//		bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
+//
+//		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
+//
+//		VertxFracPropts::VrtxFracStatus statusThisVrtx = vrtxFracPrps.getVrtxFracStatus();
 
 
 
 		// testweise, später verallgemeinert mit den Boundary faces
-		if( ! vrtxIsBndVrt )
+//		if( ! vrtxIsBndVrt )
+//		{
+		if( ! establishNewVertizesStasiBased(oldVrt) )
 		{
-
+			UG_LOG("Vertex Erzeugung schief gegangen " << std::endl);
+			return false;
 		}
+
+//		}
 
 
 		
@@ -2526,10 +2640,62 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 {
 	// anfangs nur für innere Vertizes mit einer fracture
 
+	VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[oldVrt];
 
+	if( vecSegVolElmInf.size() < 2 )
+	{
+		UG_LOG("nur ein Segment, aber will frische Vertizes?" << std::endl);
+//		UG_THROW("nur ein Segment, aber will frische Vertizes?" << std::endl);
+//		return false;
+		return true;
+	}
+
+	for( SegmentVolElmInfo const & svei : vecSegVolElmInf )
+	{
+		// count the number of the fracture subdomains surrounding the segment
+		// in case of boundary vertex, also count the number of boundary subdomains
+
+		// check if is boundary vertex
+
+		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+
+		bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
+
+		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
+
+		if( ! vrtxIsBndVrt )
+		{
+			// count number of fracture subdomains in the Segment, should have been done before......
+
+			// standard case
+			if( ! expandWithinTheSegment<1,false>( oldVrt, svei ) )
+			{
+				UG_LOG("Expandierung einfachster Fall schief gegangen " << std::endl);
+			}
+		}
+		else
+		{
+			// boundary faces counted as fracture faces, but no expansion
+		}
+
+	}
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////
+
+// for only one surrounding subdom around the segment, for example only one fracture, or T End like ending side
+template<>
+bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt, SegmentVolElmInfo const & svei )
+{
+
+	// TODO FIXME Hier sind wir HHHHHHHHHHHHHHHHHH
 
 	return {};
 }
+
+
 
 ////////////////////////////////////////////////////////////////////
 
