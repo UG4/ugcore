@@ -149,6 +149,10 @@ private:
 
 	bool countAndSelectFracBaseNums();
 
+	bool distinguishSegments();
+
+	bool testIfFractrsClosed();
+
 	std::vector<Face*> m_originalFractureFaces;
 
 	bool assignOrigFracInfos();
@@ -273,6 +277,8 @@ private:
 	bool createNewElements();
 
 	using AttachedVolumeElemInfo = support::AttachedFullDimElemInfo<Volume*, Face *, Edge *, IndexType>;
+
+
 	using VecAttachedVolumeElemInfo = std::vector<AttachedVolumeElemInfo>;
 	using AttVecAttachedVolumeElemInfo = Attachment<VecAttachedVolumeElemInfo>;
 
@@ -281,6 +287,10 @@ private:
 
 	using SegmentVolElmInfo = VecAttachedVolumeElemInfo;
 	using VecSegmentVolElmInfo = std::vector<SegmentVolElmInfo>;
+
+	bool stasiAlgo( Vertex * const & oldVrt );
+	bool prepareStasi( Vertex * const & vrt, AttachedVolumeElemInfo & attVolElmInfo );
+
 
 };
 
