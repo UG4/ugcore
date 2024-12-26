@@ -156,10 +156,10 @@ bool ArteExpandFracs3D::run()
 //
 //	if( generVrtInfoFirst )
 //	{
-	if( ! generateVertexInfos() )
-		return false;
-
-	UG_LOG("generiert zuerst " << std::endl);
+//	if( ! generateVertexInfos() )
+//		return false;
+//
+//	UG_LOG("generiert zuerst " << std::endl);
 
 //	}
 
@@ -411,6 +411,20 @@ bool ArteExpandFracs3D::detachMarkers()
 	m_grid.detach_from_vertices(m_attAdjVecSegVolElmInfo);
 
 	return true;
+}
+
+bool ArteExpandFracs3D::enableVolOptAutoGenFac()
+{
+	// brauchen wir das? für was? von SR irgendwie übernommen, wo dort was entfernt ähnliches gemacht wird....
+	if(! m_grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES) )
+	{
+		UG_LOG("WARNING grid option VOLOPT_AUTOGENERATE_FACES autoenabled.\n");
+		m_grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
+		return true;
+	}
+
+	return false;
+
 }
 
 bool ArteExpandFracs3D::countAndSelectFracBaseNums()
@@ -2144,6 +2158,7 @@ bool ArteExpandFracs3D::establishNewVrtBase()
 	return true;
 }
 
+#if 0
 // Analogon zu VertrexFractureInfo in 2D, wo jeder Vertex eine Liste bekommt, wo alle die ihm angehängten
 // Ecken, Faces und Volumen gespeichert werden; dazu die Normalen, und vielleicht noch weitere Infos
 bool ArteExpandFracs3D::generateVertexInfos()
@@ -2374,6 +2389,7 @@ bool ArteExpandFracs3D::generateVertexInfos()
 
 	return true;
 }
+#endif
 
 bool ArteExpandFracs3D::checkIfFacesVerticesCoincide( Face * const & facOne, Face * const & facTwo )
 {

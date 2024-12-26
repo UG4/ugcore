@@ -181,7 +181,7 @@ private:
 
 	bool establishNewVrtBase();
 
-	bool generateVertexInfos();
+//	bool generateVertexInfos();
 
 	bool loop2EstablishNewVertices();
 
@@ -301,8 +301,9 @@ private:
 	AttVecSegmentVolElmInfo m_attAdjVecSegVolElmInfo;
 	Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo> m_accsAttVecSegVolElmInfo;
 
-	// TODO FIXME define
 	bool computeNormalKuhVolProcedure( Volume * const & kuhVol, Face * const & fac, NormalVectorFacIntoVol & normalIntoVol );
+
+	bool enableVolOptAutoGenFac();
 
 };
 
