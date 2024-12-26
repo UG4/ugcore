@@ -193,15 +193,15 @@ private:
 //
 //	VrtxFractrQuadrplArte3DVec m_vrtxFractrQuadrplVec;
 
-	using VertFracTrip = support::VertexFractureTripleMF<Face*, IndexType, Volume*, vector3, Edge*>;
+//	using VertFracTrip = support::VertexFractureTripleMF<Face*, IndexType, Volume*, vector3, Edge*>;
+//
+//	using VecVertFracTrip = std::vector<VertFracTrip>;
+//
+//	using AttVecVertFracTrip = Attachment<VecVertFracTrip>;
 
-	using VecVertFracTrip = std::vector<VertFracTrip>;
-
-	using AttVecVertFracTrip = Attachment<VecVertFracTrip>;
-
-	AttVecVertFracTrip m_aAdjInfoAVVFT;
-
-	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> m_aaVrtInfoFraTri;
+//	AttVecVertFracTrip m_aAdjInfoAVVFT;
+//
+//	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> m_aaVrtInfoFraTri;
 
 	bool checkIfFacesVerticesCoincide( Face * const & facOne, Face * const & facTwo );
 

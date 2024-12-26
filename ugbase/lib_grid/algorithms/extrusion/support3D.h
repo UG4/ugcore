@@ -261,6 +261,7 @@ protected:
 // vereinigen mit  AttachedGeneralElem !!! davon ableiten!!!
 // doppelte Strukturen!!!
 
+#if 0
 // [[DEPRECATED]]
 // wird abgelöst durch fortschrittlichere Klassen, bald nicht mehr nötig
 template <
@@ -324,7 +325,7 @@ private:
 	{};
 
 };
-
+#endif
 
 //////////////////////////////////////////////////////////////////
 

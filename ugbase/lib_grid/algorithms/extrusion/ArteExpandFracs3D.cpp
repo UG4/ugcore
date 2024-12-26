@@ -98,8 +98,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaVrtInfoAssoEdges( Grid::VertexAttachmentAccessor<AttVecEdge>()),
 	  m_aaVrtInfoAssoFaces( Grid::VertexAttachmentAccessor<AttVecFace>()),
 //	  m_aaVrtInfoAssoVols( Grid::VertexAttachmentAccessor<AttVecVol>()),
-	  m_aAdjInfoAVVFT( AttVecVertFracTrip() ),
-	  m_aaVrtInfoFraTri(Grid::VertexAttachmentAccessor<AttVecVertFracTrip>()),
+//	  m_aAdjInfoAVVFT( AttVecVertFracTrip() ),
+//	  m_aaVrtInfoFraTri(Grid::VertexAttachmentAccessor<AttVecVertFracTrip>()),
 //	  m_vrtxFractrQuadrplVec(VrtxFractrQuadrplArte3DVec())
 	  m_attVrtVec(AttVrtVec()),
 	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
@@ -149,6 +149,16 @@ bool ArteExpandFracs3D::run()
 		return false;
 
 	UG_LOG("assigniert zuerst " << std::endl);
+
+	if( ! enableVolOptAutoGenFac() )
+	{
+		UG_LOG("autogen war schon eingestellt" << std::endl);
+	}
+	else
+	{
+		UG_LOG("Autogen einstellen" << std::endl);
+	}
+	// TODO FIXME für was gebraucht????
 
 //	}
 
@@ -351,13 +361,13 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	// AttVecVertFracTrip m_aAdjInfoAVVFT;
 
-	VecVertFracTrip vertexNoInfo;
-
-	m_aAdjInfoAVVFT = AttVecVertFracTrip();
-
-	m_grid.attach_to_vertices_dv( m_aAdjInfoAVVFT, vertexNoInfo );
-
-	m_aaVrtInfoFraTri = Grid::VertexAttachmentAccessor<AttVecVertFracTrip>(m_grid,  m_aAdjInfoAVVFT );
+//	VecVertFracTrip vertexNoInfo;
+//
+//	m_aAdjInfoAVVFT = AttVecVertFracTrip();
+//
+//	m_grid.attach_to_vertices_dv( m_aAdjInfoAVVFT, vertexNoInfo );
+//
+//	m_aaVrtInfoFraTri = Grid::VertexAttachmentAccessor<AttVecVertFracTrip>(m_grid,  m_aAdjInfoAVVFT );
 
 
 	//	associate a vector of vertices for each volume adjacent to the frac.
@@ -402,7 +412,7 @@ bool ArteExpandFracs3D::detachMarkers()
 	m_grid.detach_from_vertices( m_aAdjInfoFaces );
 //	m_grid.detach_from_vertices( m_aAdjInfoVols );
 
-	m_grid.detach_from_vertices( m_aAdjInfoAVVFT  );
+//	m_grid.detach_from_vertices( m_aAdjInfoAVVFT  );
 
 	m_grid.detach_from_volumes( m_attVrtVec );
 
@@ -1242,7 +1252,7 @@ bool ArteExpandFracs3D::stasiAlgo( Vertex * const & oldVrt )
 
 	UG_LOG("under construction Tetrahedra limited Stasi Algo" << std::endl);
 
-	VecVertFracTrip const & vecVertFracTrip = m_aaVrtInfoFraTri[oldVrt];
+//	VecVertFracTrip const & vecVertFracTrip = m_aaVrtInfoFraTri[oldVrt];
 
 	VecAttachedVolumeElemInfo assoVolElemInfo;
 
