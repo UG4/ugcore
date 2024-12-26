@@ -305,6 +305,8 @@ private:
 
 	bool enableVolOptAutoGenFac();
 
+	bool establishNewVertizesStasiBased( Vertex * const & oldVrt );
+
 };
 
 // specification has to be declared outside central class context, else compilation error

@@ -381,7 +381,7 @@ bool ArteExpandFracs3D::attachMarkers()
 	m_aaVrtVecVol = Grid::VolumeAttachmentAccessor<AttVrtVec>(m_grid, m_attVrtVec);
 
 
-	VecAttachedVolumeElemInfo noVolInfo;
+//	VecAttachedVolumeElemInfo noVolInfo;
 
 //	m_aAdjVolElmInfo = AttVecAttachedVolumeElemInfo();
 //
@@ -1040,8 +1040,8 @@ bool ArteExpandFracs3D::seletForSegmented()
 
 			std::vector<Edge*> assoEdg;
 			std::vector<Face*> assoFac;
-			std::vector<Volume*> assoVol;
-			VecAttachedVolumeElemInfo assoVolElemInfo;
+//			std::vector<Volume*> assoVol;
+//			VecAttachedVolumeElemInfo assoVolElemInfo;
 
 			for( std::vector<Edge *>::iterator iterEdg = m_grid.associated_edges_begin(vrt);
 											   iterEdg != m_grid.associated_edges_end(vrt);
@@ -1446,6 +1446,8 @@ bool ArteExpandFracs3D::stasiAlgo( Vertex * const & oldVrt )
 		UG_THROW("Rekonstruktion schief gegangen " << std::endl);
 		return false;
 	}
+
+
 
 	if( vecSegVolElmInfo.size() > 1 )
 	{
@@ -2491,9 +2493,6 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 		UG_LOG("vertex at " << posOldVrt << std::endl);
 
-
-#if 0
-
 		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
 
 		bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
@@ -2502,90 +2501,34 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 		VertxFracPropts::VrtxFracStatus statusThisVrtx = vrtxFracPrps.getVrtxFracStatus();
 
+
+
+		// testweise, später verallgemeinert mit den Boundary faces
 		if( ! vrtxIsBndVrt )
 		{
-			if( vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
-			{
-				// gar nix tun, alle offen, innerer Vertex, darf man hier ankommen? NEIN TODO FIXME
-//				UG_THROW("hier sollten wir nicht angekommen sein " << std::endl);
-				UG_LOG("vertex nicht geschlossen alle subdoms, nix tun " << m_aaPos[oldVrt] << std::endl);
-			}
-			// TODO FIXME: was, wenn ein Zwischending, Mischung?
-			else if( statusThisVrtx == VrtxFracProptsStatus::noFracSuDoAtt )
-			{
-				UG_THROW("gar keine Frac darf hier nicht ankommen " << std::endl );
-			}
-			else if( statusThisVrtx == VrtxFracProptsStatus::oneFracSuDoAtt )
-			{
-				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
-				UG_LOG("aktuelles Ziel eine sudo ausdehen " << m_aaPos[oldVrt] << std::endl);
 
-				// ist vorverlegt
-//				if( false )
-//				{
-//					constexpr bool applyGeneralSegmentOrdering = true;
-//
-//					establishNewVertices<applyGeneralSegmentOrdering, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
-//
-//				}
-
-
-//				if( untilVrt == 10 )
-//					return false;
-//
-//				untilVrt++;
-
-//				return false;
-
-//				if( applyGeneralSegmentOrdering )
-//				{
-//					UG_LOG("restrict to Tetrahedra, under construction" << std::endl);
-//					// Zustand Maulbronn, teilweise funktionierend für Hexahedra, aber nicht zuverlässig
-//					// und nicht funktional für Tetrahedra
-//
-//				}
-//				else
-//				{
-//					UG_LOG("restrict to Hexahedra, works only in part" << std::endl);
-//					// Zustand Maulbronn, teilweise funktionierend für Hexahedra, aber nicht zuverlässig
-//					// und nicht funktional für Tetrahedra
-//					establishNewVertices<Hexahedron, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
-//					// sufficient to tell the vertex, as the attachements are class members and can be asked in the function
-//					//m_sh.assign_subset(oldVrt,m_sh.num_subsets());
-//				}
-//				else
-//				{
-//					UG_THROW("keine Ahnung auf was beschraenkt" << std::endl);
-//				}
-			}
-			else if( statusThisVrtx == VrtxFracProptsStatus::twoFracSuDoAtt )
-			{
-				UG_LOG("zwei sudos kreuzen in " << m_aaPos[oldVrt] << std::endl);
-			}
-			else if( statusThisVrtx == VrtxFracProptsStatus::threeFracSuDoAtt )
-			{
-				UG_LOG("drei sudos kreuzen in " << m_aaPos[oldVrt] << std::endl);
-
-			}
-			else
-			{
-				UG_THROW("was für ein Knoten Status???? " << std::endl);
-			}
-		}
-		else // boundary vertex
-		{
-			UG_LOG("Boundary vertizes ausdehen folgend erst " << m_aaPos[oldVrt] << std::endl);
 		}
 
-		// TODO FIXME wichtig: surrounded status closed / open TODO FIXME, sowie Anzahl der schneidenden Fracs
+
 		
-#endif
+
 	}
 
 	// for debugging
 	return false;
 
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
+{
+	// anfangs nur für innere Vertizes mit einer fracture
+
+
+
+	return {};
 }
 
 ////////////////////////////////////////////////////////////////////
