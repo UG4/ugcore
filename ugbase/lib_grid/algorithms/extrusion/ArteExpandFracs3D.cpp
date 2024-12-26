@@ -141,27 +141,27 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("gezaehlt" << std::endl);
 
-	constexpr bool assignFracInfosFirst = true;
+//	constexpr bool assignFracInfosFirst = true;
+//
+//	if( assignFracInfosFirst )
+//	{
+	if( ! assignOrigFracInfos() )
+		return false;
 
-	if( assignFracInfosFirst )
-	{
-		if( ! assignOrigFracInfos() )
-			return false;
+	UG_LOG("assigniert zuerst " << std::endl);
 
-		UG_LOG("assigniert zuerst " << std::endl);
+//	}
 
-	}
+//	constexpr bool generVrtInfoFirst = true;
+//
+//	if( generVrtInfoFirst )
+//	{
+	if( ! generateVertexInfos() )
+		return false;
 
-	constexpr bool generVrtInfoFirst = true;
+	UG_LOG("generiert zuerst " << std::endl);
 
-	if( generVrtInfoFirst )
-	{
-		if( ! generateVertexInfos() )
-			return false;
-
-		UG_LOG("generiert zuerst " << std::endl);
-
-	}
+//	}
 
 //	if( ! prepareStasi() )
 //		return false;
@@ -173,19 +173,19 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("Segmente erzeugt " << std::endl);
 
-	if( ! testIfFractrsClosed() )
+	if( ! seletForSegmented() )
 		return false;
 
 	UG_LOG("Closed Open Vertex Fract untersucht " << std::endl);
 
-	if( ! assignFracInfosFirst )
-	{
-		if( ! assignOrigFracInfos() )
-			return false;
-
-		UG_LOG("assigniert danach " << std::endl);
-
-	}
+//	if( ! assignFracInfosFirst )
+//	{
+//		if( ! assignOrigFracInfos() )
+//			return false;
+//
+//		UG_LOG("assigniert danach " << std::endl);
+//
+//	}
 
 
 	if( ! establishNewVrtBase() )
@@ -193,14 +193,14 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("etabliert" << std::endl);
 
-	if( ! generVrtInfoFirst )
-	{
-
-		if( ! generateVertexInfos() )
-			return false;
-
-		UG_LOG("generiert danach " << std::endl);
-	}
+//	if( ! generVrtInfoFirst )
+//	{
+//
+//		if( ! generateVertexInfos() )
+//			return false;
+//
+//		UG_LOG("generiert danach " << std::endl);
+//	}
 
 	if( ! createConditionForNewVrtcs() )
 		return false;
@@ -682,6 +682,13 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 				}
 				else
 				{
+					// TODO FIXME hier muss entschieden werden, ob es eine boundary face ist
+					// die kommt dann auch nochmal in ein anderes Konstrukt, was aber
+					// dem fracture face ähnelt
+					// HHHHHHHHHHHHHHHHHHH
+					// am Ende müssen die Frac Faces, die nicht geschlossen sind, und doppelt in einem Segment
+					// in die general faces verschoben werden, da stören sie nicht, und sind egal
+
 					// zeitweilig fehlten alle Faces, die keine fractures sind
 					// die müssen noch irgendwie als nicht-fracture-faces auch dazu gefügt werden
 					// die sind in den attached volumes schon enthalten,
@@ -698,9 +705,29 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 					// gilt sowohl für fracture faces, die können das in erster Runde auch sein am Ende
 					// der Runde, sowie danach nur noch für nicht-fracture-faces
 
-					AttachedGenerFaceEdgeSudo afesAdd( fac, edgesFaceVrtx );
+					if( IsBoundaryFace3D( m_grid, fac ) )
+					{
+						AttachedBndryFaceEdgeSudo afesBndry( fac, edgesFaceVrtx, sudoThisFace );
 
-					attVolElmInfo.addGenerManifElem( afesAdd, m_grid );
+						attVolElmInfo.addBndryManifElem( afesBndry, m_grid );
+
+						// TODO FIXME sehr wichtig, die Boundary faces brauchen auch
+						// noch ihre Normale in das Volumen hinein, analog zu den Fracture faces!!!
+						// die haben die allerdings dummerweise in die boundary vertizes gesteckt
+						// vielleicht boundaries wie fractures behandeln? keine gute Idee......
+						// mithin steckt die Normale NICHT in diesen Informationen drin
+						// sondern extra in den vertex fracture tripeln
+						// vielleicht dort die boundaries irgendwie dazu würgen.....
+						// HHHHHHHHHHHHHHHHH
+
+					}
+					else // normal face, no fracture, no boundary
+					{
+						AttachedGenerFaceEdgeSudo afesAdd( fac, edgesFaceVrtx );
+
+						attVolElmInfo.addGenerManifElem( afesAdd, m_grid );
+					}
+
 
 				}
 
@@ -731,7 +758,6 @@ bool ArteExpandFracs3D::distinguishSegments()
 	// später werden Boundary Faces wie eine eigene Subdomain Ebene
 	// mit Expansion null behandelt
 	// was an Knicken aussen an boundary zu tun ist, noch zu überlegen
-	// XXXXXXXXXXXXXXXXXXXXXXXX hier fangen wir an HHHHHHHHHHHHHHHH
 
 	UG_LOG("Stasi Algo alle Vrt Start << std::endl");
 
@@ -751,7 +777,7 @@ bool ArteExpandFracs3D::distinguishSegments()
 	return true;
 }
 
-bool ArteExpandFracs3D::testIfFractrsClosed()
+bool ArteExpandFracs3D::seletForSegmented()
 {
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
 	{
@@ -1066,7 +1092,7 @@ bool ArteExpandFracs3D::testIfFractrsClosed()
 	return true;
 }
 
-bool ArteExpandFracs3D::stasiAlgo(  Vertex * const & oldVrt )
+bool ArteExpandFracs3D::stasiAlgo( Vertex * const & oldVrt )
 {
 
 	UG_LOG("Stasi start " << m_aaPos[oldVrt] << std::endl);
@@ -2314,6 +2340,9 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 		UG_LOG("vertex at " << posOldVrt << std::endl);
 
+
+#if 0
+
 		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
 
 		bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
@@ -2341,13 +2370,13 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 				UG_LOG("aktuelles Ziel eine sudo ausdehen " << m_aaPos[oldVrt] << std::endl);
 
 				// ist vorverlegt
-				if( false )
-				{
-					constexpr bool applyGeneralSegmentOrdering = true;
-
-					establishNewVertices<applyGeneralSegmentOrdering, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
-
-				}
+//				if( false )
+//				{
+//					constexpr bool applyGeneralSegmentOrdering = true;
+//
+//					establishNewVertices<applyGeneralSegmentOrdering, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
+//
+//				}
 
 
 //				if( untilVrt == 10 )
@@ -2399,8 +2428,10 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 		// TODO FIXME wichtig: surrounded status closed / open TODO FIXME, sowie Anzahl der schneidenden Fracs
 		
+#endif
 	}
 
+	// for debugging
 	return false;
 
 	return true;

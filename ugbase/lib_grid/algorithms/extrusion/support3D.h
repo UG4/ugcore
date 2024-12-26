@@ -563,6 +563,35 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
+// a quasi exact double, but only used for boundary faces, to avoid mismatch with frac faces
+template <
+typename MANIFELM,
+typename LOWDIMELM,
+typename INDEX_TXP
+>
+class AttachedBoundryElem
+: public AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP>
+{
+public:
+	using PairLowEl = std::pair<LOWDIMELM,LOWDIMELM>;
+
+	using AttBndryElm = AttachedBoundryElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+
+	using AttFractElm = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+
+
+	// for boundary elements
+	AttachedBoundryElem( MANIFELM const & manifElm,
+				  PairLowEl & lowElm,
+				  INDEX_TXP sudo )
+	:
+		AttFractElm(manifElm,lowElm,sudo)
+	{
+	};
+};
+
+////////////////////////////////////////////////////////////////////////////
+
 // class to help count and store a bool and a number of templete type
 // comparable to std::pair<bool,int> but more dedicated to the specific aim
 // TODO FIXME adapt for 3D case, figure out if inner end, and number of fracs sourrounding
@@ -900,9 +929,11 @@ public:
 
 	using AttachedFractManifElemInfo = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
 	using AttachedGenerManifElemInfo = AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttachedBndryManifElemInfo = AttachedBoundryElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
 
 	using VecAttachedFractManifElemInfo = std::vector<AttachedFractManifElemInfo>;
 	using VecAttachedGenerManifElemInfo = std::vector<AttachedGenerManifElemInfo>;
+	using VecAttachedBndryManifElemInfo = std::vector<AttachedBndryManifElemInfo>;
 
 	using AttFullDimElmInfo = AttachedFullDimElemInfo<FULLDIM_ELEM,MANIFELM,LOWDIMELM,INDEX_TXP>;
 
@@ -912,7 +943,8 @@ public:
 	  m_vecFractManifElm(VecAttachedFractManifElemInfo()),
 //	  m_vecFractManifElmTouchInfo(VecAttFractManifElmTouchInf()),
 //	  m_allSidesTouched(false),
-	  m_vecGenerManifElm(VecAttachedGenerManifElemInfo())
+	  m_vecGenerManifElm(VecAttachedGenerManifElemInfo()),
+	  m_vecBndryManifElm(VecAttachedBndryManifElemInfo())
 //	  m_vecGenerManifElmTouchInfo(VecAttFractManifElmTouchInf())
 //	  m_vecInnerSegmentManifElm(VecAttachedGenerManifElemInfo())
 	{
@@ -949,11 +981,20 @@ public:
 		return addManifElem( manifGenerElm, m_vecGenerManifElm, grid );
 	}
 
+	bool addBndryManifElem( AttachedBndryManifElemInfo const & manifBndryElm, Grid & grid )
+	{
+		return addManifElem( manifBndryElm, m_vecBndryManifElm, grid );
+	}
+
 	// necessary to avoid stupid casting from derived class AttachedFractManifElemInfo
 	// else, addGenerManifElem would also eat objects of derived class
 	// however not it only accepts explicit base class objects
 	template <typename NOGEN>
 	bool addGenerManifElem( NOGEN const & noGener, Grid & grid )
+	= delete;
+
+	template <typename NOGEN>
+	bool addBndryManifElem( NOGEN const & noGener, Grid & grid )
 	= delete;
 
 
@@ -1014,6 +1055,12 @@ public:
 		return m_vecGenerManifElm;
 	}
 
+	VecAttachedBndryManifElemInfo const getVecBndryManifElem() const
+	{
+		return m_vecBndryManifElm;
+	}
+
+
 	bool const searchGenerManifElem( AttachedGenerManifElemInfo const & manifGenerElemOther, bool eraseFound = true )
 	{
 		bool found = searchManifElem( manifGenerElemOther, m_vecGenerManifElm, eraseFound );
@@ -1072,6 +1119,14 @@ public:
 
 		return found;
 
+	}
+
+	template <typename NOGEN>
+	bool const searchFractManifElem( NOGEN const & manifFractElemOther, bool shiftToGeneral ) = delete;
+
+	bool const searchBndryManifElem( AttachedBndryManifElemInfo const & manifBndryElemOther )
+	{
+		return searchManifElem( manifBndryElemOther, m_vecBndryManifElm, false );
 	}
 
 //	bool const searchInnerSegmentManifElem( AttachedGenerManifElemInfo const & manifInnerSegmElemOther, bool eraseFound = true )
@@ -1189,6 +1244,8 @@ private:
 //	VecAttFractManifElmTouchInf m_vecFractManifElmTouchInfo;
 
 	VecAttachedGenerManifElemInfo m_vecGenerManifElm;
+
+	VecAttachedBndryManifElemInfo m_vecBndryManifElm;
 
 //	VecAttachedGenerManifElemInfo m_vecInnerSegmentManifElm;
 

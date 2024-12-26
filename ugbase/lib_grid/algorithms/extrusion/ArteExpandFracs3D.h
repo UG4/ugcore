@@ -120,6 +120,9 @@ private:
 
 	using VecAttachedGenerFaceEdgeSudo = std::vector<AttachedGenerFaceEdgeSudo>;
 
+	using AttachedBndryFaceEdgeSudo = support::AttachedBoundryElem<Face*,Edge*,IndexType>;
+
+	using VecAttachedBndryFaceEdgeSudo = std::vector<AttachedBndryFaceEdgeSudo>;
 
 	using EdgePair = std::pair<Edge*,Edge*>;
 
@@ -151,7 +154,7 @@ private:
 
 	bool distinguishSegments();
 
-	bool testIfFractrsClosed();
+	bool seletForSegmented();
 
 	std::vector<Face*> m_originalFractureFaces;
 
@@ -256,10 +259,10 @@ private:
 //			>
 //	bool establishNewVertices( Vertex * const & oldVrt );
 
-	template< bool APPLY_GENERAL_SEGMENT_ORDERING,
-			  ArteExpandFracs3D::VrtxFracProptsStatus vfp
-	>
-	bool establishNewVertices( Vertex * const & oldVrt );
+//	template< bool APPLY_GENERAL_SEGMENT_ORDERING,
+//			  ArteExpandFracs3D::VrtxFracProptsStatus vfp
+//	>
+//	bool establishNewVertices( Vertex * const & oldVrt );
 
 
 //	template< bool APPLY_GENERAL_SEGMENT_ORDERING,
@@ -299,15 +302,15 @@ private:
 
 // specification has to be declared outside central class context, else compilation error
 
-template <>
-bool ArteExpandFracs3D::establishNewVertices< true,
-											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
-											>( Vertex * const & oldVrt );
-
-template <>
-bool ArteExpandFracs3D::establishNewVertices< false,
-											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
-											>( Vertex * const & oldVrt );
+//template <>
+//bool ArteExpandFracs3D::establishNewVertices< true,
+//											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
+//											>( Vertex * const & oldVrt );
+//
+//template <>
+//bool ArteExpandFracs3D::establishNewVertices< false,
+//											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
+//											>( Vertex * const & oldVrt );
 
 
 } /* namespace ug */
