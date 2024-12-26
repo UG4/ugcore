@@ -112,7 +112,9 @@ private:
 
 	using IndexType = unsigned short;
 
-	using AttachedFractFaceEdgeSudo = support::AttachedFractElem<Face*,Edge*,IndexType>;
+	using NormalVectorFacIntoVol = vector3;
+
+	using AttachedFractFaceEdgeSudo = support::AttachedFractElem<Face*,Edge*,IndexType,NormalVectorFacIntoVol>;
 
 	using VecAttachedFractFaceEdgeSudo = std::vector<AttachedFractFaceEdgeSudo>;
 
@@ -120,7 +122,7 @@ private:
 
 	using VecAttachedGenerFaceEdgeSudo = std::vector<AttachedGenerFaceEdgeSudo>;
 
-	using AttachedBndryFaceEdgeSudo = support::AttachedBoundryElem<Face*,Edge*,IndexType>;
+	using AttachedBndryFaceEdgeSudo = support::AttachedBoundryElem<Face*,Edge*,IndexType,NormalVectorFacIntoVol>;
 
 	using VecAttachedBndryFaceEdgeSudo = std::vector<AttachedBndryFaceEdgeSudo>;
 
@@ -220,21 +222,22 @@ private:
 	using PairSudoBool = std::pair<IndexType,bool>;
 	using VecPairSudoBool = std::vector<PairSudoBool>;
 
-	bool isVrtxSurroundedByFracFaces( Vertex * const & vrt, VertxFracPropts & vrtxFracPrps );
+	// deprecated due to Stasi algo
+//	bool isVrtxSurroundedByFracFaces( Vertex * const & vrt, VertxFracPropts & vrtxFracPrps );
 //									  VecPairSudoBool & sudoSurrounded );
 
-	// transform to template soon
-	bool sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo const & vecAttFac,
-								 VecAttachedFractFaceEdgeSudo & vecSortedFac,
-								 int startFaceIndexUser = -1,
-//								 int endFaceIndexUser = -1,
-//								 IndexType startEdgeIndexUser = -1,
-//								 IndexType endEdgeIndexUser = -1
-//								 Face * const & startFacUser = nullptr,
-//								 Face * const & endFacUser = nullptr,
-								 Edge * const & startEdgUser = nullptr,
-								 Edge * const & endEdgUser = nullptr
-								);
+	// deprecated due to Stasi Algorithm
+//	bool sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo const & vecAttFac,
+//								 VecAttachedFractFaceEdgeSudo & vecSortedFac,
+//								 int startFaceIndexUser = -1,
+////								 int endFaceIndexUser = -1,
+////								 IndexType startEdgeIndexUser = -1,
+////								 IndexType endEdgeIndexUser = -1
+////								 Face * const & startFacUser = nullptr,
+////								 Face * const & endFacUser = nullptr,
+//								 Edge * const & startEdgUser = nullptr,
+//								 Edge * const & endEdgUser = nullptr
+//								);
 
 public:
 	using VrtxFracProptsStatus = VertxFracPropts::VrtxFracStatus;
@@ -279,8 +282,7 @@ private:
 
 	bool createNewElements();
 
-	using AttachedVolumeElemInfo = support::AttachedFullDimElemInfo<Volume*, Face *, Edge *, IndexType>;
-
+	using AttachedVolumeElemInfo = support::AttachedFullDimElemInfo<Volume*, Face *, Edge *, IndexType, NormalVectorFacIntoVol>;
 
 	using VecAttachedVolumeElemInfo = std::vector<AttachedVolumeElemInfo>;
 	using AttVecAttachedVolumeElemInfo = Attachment<VecAttachedVolumeElemInfo>;
@@ -298,6 +300,10 @@ private:
 
 	AttVecSegmentVolElmInfo m_attAdjVecSegVolElmInfo;
 	Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo> m_accsAttVecSegVolElmInfo;
+
+	// TODO FIXME define
+	bool computeNormalKuhVolProcedure( Volume * const & kuhVol, Face * const & fac, NormalVectorFacIntoVol & normalIntoVol );
+
 };
 
 // specification has to be declared outside central class context, else compilation error

@@ -261,7 +261,8 @@ protected:
 // vereinigen mit  AttachedGeneralElem !!! davon ableiten!!!
 // doppelte Strukturen!!!
 
-
+// [[DEPRECATED]]
+// wird abgelöst durch fortschrittlichere Klassen, bald nicht mehr nötig
 template <
 typename MANIFOLDTYP, // 3D: Face
 typename INDEXTYP, // int oder unsinged int oder short oder unsigned short etc
@@ -301,6 +302,9 @@ public:
 
 	SENKRECHTENTYP const getNormal() const { return m_normal; }
 
+	// TODO FIXME unklar, ob neue Normale irgendwo gebraucht wird
+	// falls notwendig in die Fracture Klasse einführen,
+	// die diese Klasse hier mittelfristig ablösen soll vollständig
 	void setNewNormal( SENKRECHTENTYP const & chNorml ) { m_newNormal = chNorml; }
 
 	SENKRECHTENTYP const getNewNormal() const { return m_newNormal; }
@@ -397,7 +401,8 @@ private:
 template <
 typename MANIFELM,
 typename LOWDIMELM,
-typename INDEX_TXP
+typename INDEX_TXP,
+typename NORMAL_VEC
 >
 class AttachedFractElem
 : public AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>
@@ -406,18 +411,20 @@ class AttachedFractElem
 public:
 	using PairLowEl = std::pair<LOWDIMELM,LOWDIMELM>;
 
-	using AttFractElm = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttFractElm = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
 
 	using AttGenElm = AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
 
 	// for fracture elements
 	AttachedFractElem( MANIFELM const & manifElm,
 				  PairLowEl & lowElm,
-				  INDEX_TXP sudo )
+				  INDEX_TXP sudo,
+				  NORMAL_VEC const & normalVec )
 	:
 		AttGenElm(manifElm,lowElm),
 		//m_manifElm(manifElm), m_lowElm(lowElm),
-		m_sudo(sudo)
+		m_sudo(sudo),
+		m_normalVec(normalVec)
 	{
 	};
 
@@ -425,6 +432,8 @@ public:
 //	MANIFELM const getManifElm() const { return m_manifElm;}
 //	PairLowEl const getLowElm() const { return m_lowElm; }
 	INDEX_TXP const getSudo() const { return m_sudo; };
+
+	NORMAL_VEC const getNormalVec() const { return m_normalVec; }
 
 	bool const testIfEquals( AttFractElm const & attElm )
 	const
@@ -557,6 +566,7 @@ private:
 //	MANIFELM m_manifElm;
 //	PairLowEl m_lowElm;
 	INDEX_TXP m_sudo;
+	NORMAL_VEC m_normalVec;
 
 
 };
@@ -567,25 +577,27 @@ private:
 template <
 typename MANIFELM,
 typename LOWDIMELM,
-typename INDEX_TXP
+typename INDEX_TXP,
+typename NORMAL_VEC
 >
 class AttachedBoundryElem
-: public AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP>
+: public AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>
 {
 public:
 	using PairLowEl = std::pair<LOWDIMELM,LOWDIMELM>;
 
-	using AttBndryElm = AttachedBoundryElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttBndryElm = AttachedBoundryElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
 
-	using AttFractElm = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttFractElm = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
 
 
 	// for boundary elements
 	AttachedBoundryElem( MANIFELM const & manifElm,
 				  PairLowEl & lowElm,
-				  INDEX_TXP sudo )
+				  INDEX_TXP sudo,
+				  NORMAL_VEC const & normalVec )
 	:
-		AttFractElm(manifElm,lowElm,sudo)
+		AttFractElm( manifElm, lowElm, sudo, normalVec)
 	{
 	};
 };
@@ -598,6 +610,11 @@ public:
 // CAUTION is also used for edges, but still uses
 // vertex as indicator - name should be made more flexible
 
+// die meisten Funktionen in dieser Klasse:
+// DEPRECATED, to be replaced in near future everywhere, not really useful any more
+// due to the Stasi algorithm
+// [[deprecated]] ab C++14, leider nicht passend zur Konvention C++11
+// die Sudo-Liste wollen wir aber lassen
 template<
 typename T,
 typename ATT_ELEM
@@ -844,22 +861,23 @@ public:
 		return allFracsSame;
 	}
 
-	bool addAttachedFractElem( ATT_ELEM const & attElem )
-	{
-		bool alreadyKnown = false;
-
-		for( auto const & aE : m_vecAttElem )
-		{
-			if( aE.testIfEquals(attElem) )
-				alreadyKnown = true;
-		}
-
-		if( ! alreadyKnown )
-			m_vecAttElem.push_back(attElem);
-
-		// returns true if ads it, false if no need as known
-		return ! alreadyKnown;
-	}
+	// DEPRECATED; REMOVE
+//	bool addAttachedFractElem( ATT_ELEM const & attElem )
+//	{
+//		bool alreadyKnown = false;
+//
+//		for( auto const & aE : m_vecAttElem )
+//		{
+//			if( aE.testIfEquals(attElem) )
+//				alreadyKnown = true;
+//		}
+//
+//		if( ! alreadyKnown )
+//			m_vecAttElem.push_back(attElem);
+//
+//		// returns true if ads it, false if no need as known
+//		return ! alreadyKnown;
+//	}
 
 	std::vector<ATT_ELEM> const & getAllAttachedFractElems()
 	const
@@ -920,22 +938,23 @@ private:
 template<typename FULLDIM_ELEM,
 typename MANIFELM,
 typename LOWDIMELM,
-typename INDEX_TXP
+typename INDEX_TXP,
+typename NORMAL_VEC
 >
 class AttachedFullDimElemInfo
 {
 
 public:
 
-	using AttachedFractManifElemInfo = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttachedFractManifElemInfo = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
 	using AttachedGenerManifElemInfo = AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
-	using AttachedBndryManifElemInfo = AttachedBoundryElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttachedBndryManifElemInfo = AttachedBoundryElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
 
 	using VecAttachedFractManifElemInfo = std::vector<AttachedFractManifElemInfo>;
 	using VecAttachedGenerManifElemInfo = std::vector<AttachedGenerManifElemInfo>;
 	using VecAttachedBndryManifElemInfo = std::vector<AttachedBndryManifElemInfo>;
 
-	using AttFullDimElmInfo = AttachedFullDimElemInfo<FULLDIM_ELEM,MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttFullDimElmInfo = AttachedFullDimElemInfo<FULLDIM_ELEM,MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
 
 	AttachedFullDimElemInfo( FULLDIM_ELEM const & fullDimElm )
 	: m_fullDimElm(fullDimElm),

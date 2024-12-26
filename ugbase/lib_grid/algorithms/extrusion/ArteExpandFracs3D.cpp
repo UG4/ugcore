@@ -500,27 +500,28 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 					vrtxFracPrps.setIsBndFracVertex();
 				}
 
-				// die Ecken heraus filtern, die mit diesem Vertex assoziert sind
-				std::vector<Edge*> attEdg;
-
-				for( auto const & ae: facEdges )
-				{
-					if( EdgeContains(ae,vrt) )
-						attEdg.push_back(ae);
-				}
-
-				if( attEdg.size() == 2 )
-				{
-					EdgePair edgPr( attEdg[0], attEdg[1] );
-
-					AttachedFractFaceEdgeSudo afes( fac, edgPr, fracIndSudo );
-
-					vrtxFracPrps.addAttachedFractElem(afes);
-				}
-				else
-				{
-					UG_THROW("number of attached edges wrong " << std::endl);
-				}
+				// nicht mehr notwendig
+//				// die Ecken heraus filtern, die mit diesem Vertex assoziert sind
+//				std::vector<Edge*> attEdg;
+//
+//				for( auto const & ae: facEdges )
+//				{
+//					if( EdgeContains(ae,vrt) )
+//						attEdg.push_back(ae);
+//				}
+//
+//				if( attEdg.size() == 2 )
+//				{
+//					EdgePair edgPr( attEdg[0], attEdg[1] );
+//
+//					AttachedFractFaceEdgeSudo afes( fac, edgPr, fracIndSudo );
+//
+//					vrtxFracPrps.addAttachedFractElem(afes);
+//				}
+//				else
+//				{
+//					UG_THROW("number of attached edges wrong " << std::endl);
+//				}
 
 			}
 		}
@@ -577,7 +578,12 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 
 		auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
 
-		VecAttachedFractFaceEdgeSudo vecAttFacEdgSudo = vrtxFracPrps.getAllAttachedFractElems();
+		// TODO FIXME das hier soll wegfallen, und an dieser Stelle direkt berechnet werden
+		// damit es einheitlich für echte fracture faces und auch für boundary faces gilt,
+		// die eine Art Fracture sind, an denen mit dem Durchmesser 0 der neue Vertex verschoben wird
+
+		// die erzeugen wir an Ort und Stelle neu und verteilen nicht alles auf hundert Plätze
+//		VecAttachedFractFaceEdgeSudo vecAttFacEdgSudo = vrtxFracPrps.getAllAttachedFractElems();
 
 //		auto & vecVolElmInfo = m_aaVolElmInfo[vrt];
 
@@ -594,10 +600,11 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 			Volume * vol = attVolElmInfo.getFulldimElem();
 
 			// add those faces which are fracture faces
-			for( auto & afes : vecAttFacEdgSudo )
-			{
-				attVolElmInfo.addFractManifElem(afes, m_grid);
-			}
+			// TODO FIXME hier müssen die fracture faces neu erzeugt und addiert werden, oder weiter unten.....
+//			for( auto & afes : vecAttFacEdgSudo )
+//			{
+//				attVolElmInfo.addFractManifElem(afes, m_grid);
+//			}
 
 			// add those faces which are NOT fracture faces, assign them arbitraryly subdomain  -1
 			// to indicate that they are not from the manifold, independent of their subdomain
@@ -651,31 +658,61 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 
 				// test if sudo of face belongs to the fracture face subdom list
 
-				bool belongsToFracFaceSudo = false;
+				bool faceBelongsToFracSudo = false;
 
 				for( auto const & sudoFrac : sudoList )
 				{
 					if( sudoFrac == sudoThisFace )
 					{
-						belongsToFracFaceSudo = true;
+						faceBelongsToFracSudo = true;
 						break;
 					}
 				}
 
+				// TODO FIXME für Boundary faces und für Fracture faces soll die Normale berechnet werden ins VOlumen hinein
+				// hier die KuhVol-Prozedur
 
-				if( belongsToFracFaceSudo )
+				bool isBoundaryFace = false;
+
+				if( ! faceBelongsToFracSudo )
+				{
+					if( IsBoundaryFace3D( m_grid, fac ) )
+					{
+						isBoundaryFace = true;
+					}
+				}
+
+				if( isBoundaryFace && faceBelongsToFracSudo )
+					UG_THROW("not allowed to be fracture at boundary" << std::endl);
+
+				// will get a nonzero value in case that fracture face or boundary face
+				NormalVectorFacIntoVol normalIntoVol(0,0,0);
+
+				if( isBoundaryFace || faceBelongsToFracSudo )
+				{
+					// TODO FIXME compute normal into volume, needed to know!!!
+					// kuhVol Procedure
+					if( ! computeNormalKuhVolProcedure(vol,fac,normalIntoVol) )
+						return false;
+				}
+
+				if( faceBelongsToFracSudo )
 				{
 					// if it belongs, construct it again and test if it already belongs to the fracture faces
 					// MUST be already part of the list, else major error appeared!
 
-					AttachedFractFaceEdgeSudo afesTest( fac, edgesFaceVrtx, sudoThisFace );
+					AttachedFractFaceEdgeSudo afesFract( fac, edgesFaceVrtx, sudoThisFace, normalIntoVol );
+					// TODO FIXME hier sollte auch gleich die Normale relativ zum VOlumen dazu gespeichert werden!!
 
-					if( attVolElmInfo.addFractManifElem( afesTest, m_grid ) )
-					{
-						UG_LOG("manifold element already contained!" << std::endl);
-						UG_THROW("manifold element already contained!" << std::endl);
-						return false;
-					}
+					attVolElmInfo.addFractManifElem( afesFract, m_grid );
+
+					// vorher soll es nicht mehr gespeichert werden, da die Infos vorher weg fallen sollen
+//					if( attVolElmInfo.addFractManifElem( afesFract, m_grid ) )
+//					{
+//						UG_LOG("manifold element already contained!" << std::endl);
+//						UG_THROW("manifold element already contained!" << std::endl);
+//						return false;
+//					}
 
 					// nothing to do, already added before hoffentlich
 
@@ -707,7 +744,7 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 
 					if( IsBoundaryFace3D( m_grid, fac ) )
 					{
-						AttachedBndryFaceEdgeSudo afesBndry( fac, edgesFaceVrtx, sudoThisFace );
+						AttachedBndryFaceEdgeSudo afesBndry( fac, edgesFaceVrtx, sudoThisFace, normalIntoVol );
 
 						attVolElmInfo.addBndryManifElem( afesBndry, m_grid );
 
@@ -735,6 +772,85 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 
 		}
 	}
+
+	return true;
+}
+
+bool ArteExpandFracs3D::computeNormalKuhVolProcedure( Volume * const & kuhVol, Face * const & fac, NormalVectorFacIntoVol & normalIntoVol )
+{
+	IndexType numFd = 0;
+
+	for( IndexType iSide = 0; iSide < kuhVol->num_sides(); iSide++ )
+	{
+		Face * kuhFac = m_grid.get_side(kuhVol, iSide);
+
+//					UG_LOG("Center Kuh Face " << CalculateCenter(kuhFac,m_aaPos) << std::endl);
+
+		//  eigentliches Ziel ist es, den face descriptor des Volumens zu finden,
+		// das mit dem face übereinstimmt, alle anderen Seiten des Volumens sind egal
+		// Funktion suchen, die ausgehend von einem Face, das ein Volumen begrenzt,
+		// den zum Volumen passenden FaceDescriptor findet, also auch richtige Orientierung
+		// der Vertices beinhaltet
+		// FRAGE: ist ein face descriptor von der Orientierung zum Volumen abhängig
+		// oder hängt der nur vom Face ab, das eine vorgegebene Oriertierung hat?
+
+		bool checkCoincide = checkIfFacesVerticesCoincide( kuhFac, fac );
+
+		if( checkCoincide )
+		{
+			numFd++;
+
+			if( kuhFac != fac )
+				UG_LOG("Kuh Fac ist nicht fac " << std::endl);
+
+			FaceDescriptor facDescr;
+
+			// testen, ob der Face Descriptor von der Orientierung abhängt
+			// also testen, ob sich der face descriptor ändert, wenn das Volumen
+			// auf der einen und auf der anderen Seite des faces hängt
+			// deswegen auch die ganze Prozedur mit den kuhFacs, die hoffentlich
+			// je nach Volumen anders orientiert sind als das eigentliche Face,
+			// aber dieselben Vertices haben, also geometrisch gleich sind, aber anders orientiert!!!!
+
+			//  andere Hergehensweise vielleicht:
+			// von m_aaVrtInfoAssoVols ausgehen, darüber loopen, oder die in einen Vektor stecken,
+			// wo die Vertices dabei sind, dann kann man sich vielelicht ein paar Klimmzüge sparen,
+			// vielleicht aber auch nicht.....
+
+			kuhVol->face_desc( iSide, facDescr );
+
+			vector3 normal;
+
+			CalculateNormal( normal, & facDescr, m_aaPos );
+
+			vector3 facCenter = CalculateCenter( kuhFac, m_aaPos );
+			vector3 kuhCenter = CalculateCenter( fac, m_aaPos );
+			vector3 kuhVolCenter = CalculateCenter( kuhVol, m_aaPos);
+
+//						UG_LOG("Normale zum face descriptor " << normal << " , " << facCenter << std::endl);
+//						UG_LOG("Normale zum Kuhh descriptor " << normal << " , " << kuhCenter << std::endl);
+//						UG_LOG("Zentrum des Vol")
+
+//						UG_LOG("fac " << fac << std::endl );
+//						UG_LOG("kuh " << kuhFac << std::endl );
+
+			UG_LOG("Normale ist " << normal << " fac " << facCenter
+					<< " vol " << kuhVolCenter << std::endl);
+
+
+//						VolNormPair normalsAwayVol( kuhVol, normal );
+//
+//						vecNormalsAwayVol.push_back( normalsAwayVol );
+
+		}
+	}
+
+	if( numFd != 1 )
+	{
+		UG_THROW("Kein Kuh Volumen gefunden" << std::endl);
+		return false;
+	}
+
 
 	return true;
 }
@@ -1330,6 +1446,8 @@ bool ArteExpandFracs3D::stasiAlgo( Vertex * const & oldVrt )
 	return true;
 }
 
+#if 0
+// Deprecated due to Stasi Algo
 // herausfinden für Sudo der frac, ob bezüglich dieser sudo die faces geschlossen sind, oder ob ein Fracture End vorliegt
 bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, VertxFracPropts & vrtxFracPrps )
 //, VecPairSudoBool & sudoSurrounded )
@@ -1973,6 +2091,8 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo con
 	return true;
 }
 
+#endif
+
 bool ArteExpandFracs3D::assignOrigFracInfos()
 {
 	m_originalFractureFaces.clear();
@@ -2067,6 +2187,10 @@ bool ArteExpandFracs3D::generateVertexInfos()
 
 //			VrtxFractrQuadrplArte3D vrtxFractrQuadrpl;
 			
+			// TODO FIXME die Innereien dieses Loops irgendwie für boundary faces hinbiegen,
+			// vermutlich nicht viel verändern, dafür eigene Routine, die dann für jeweils ein face den
+			// Müll umsetzt
+
 			Face* fac = *iterFac;
 			
 			auto sudoFacInnerLoop = m_sh.get_subset_index(fac);
@@ -2088,7 +2212,7 @@ bool ArteExpandFracs3D::generateVertexInfos()
 //			if( ! m_grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES) )
 //				UG_THROW("How to collect asso vols?" << std::endl);
 
-
+			// brauchen wir das? für was? von SR irgendwie übernommen, wo dort was entfernt ähnliches gemacht wird....
 			if(! m_grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES) )
 			{
 				UG_LOG("WARNING grid option VOLOPT_AUTOGENERATE_FACES autoenabled.\n");
@@ -2214,6 +2338,7 @@ bool ArteExpandFracs3D::generateVertexInfos()
 								EdgePair commonEdges(edgOfVrtx[0], edgOfVrtx[1]); //  fill values
 								// edges commun between face and volume, with the vertex included as well, i.e. two possibilities
 
+								// TODO FIXME diese Info muss woanders hin, in der AttachedFractFaceEdgeSudo Klasse speichern!
 								VertFracTrip infoVerticesThisFace( fac, fracSudo, kuhVol, normal, commonEdges );
 
 								// TODO FIXME hier irgendwie graphische Ausgabe von irgendwas
