@@ -104,8 +104,10 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_attVrtVec(AttVrtVec()),
 	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
 	  m_vecCrossVrtInf(std::vector<CrossVertInf>()),
-	  m_aAdjVolElmInfo(AttVecAttachedVolumeElemInfo()),
-	  m_aaVolElmInfo(Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>())
+//	  m_aAdjVolElmInfo(AttVecAttachedVolumeElemInfo()),
+//	  m_aaVolElmInfo(Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>()),
+	  m_attAdjVecSegVolElmInfo( AttVecSegmentVolElmInfo() ),
+	  m_accsAttVecSegVolElmInfo( Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo>() )
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -371,11 +373,20 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	VecAttachedVolumeElemInfo noVolInfo;
 
-	m_aAdjVolElmInfo = AttVecAttachedVolumeElemInfo();
+//	m_aAdjVolElmInfo = AttVecAttachedVolumeElemInfo();
+//
+//	m_grid.attach_to_vertices_dv(m_aAdjVolElmInfo,noVolInfo);
+//
+//	m_aaVolElmInfo = Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>(m_grid, m_aAdjVolElmInfo);
 
-	m_grid.attach_to_vertices_dv(m_aAdjVolElmInfo,noVolInfo);
 
-	m_aaVolElmInfo = Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>(m_grid, m_aAdjVolElmInfo);
+	VecSegmentVolElmInfo noSegmts;
+
+	m_attAdjVecSegVolElmInfo = AttVecSegmentVolElmInfo();
+
+	m_grid.attach_to_vertices_dv( m_attAdjVecSegVolElmInfo, noSegmts );
+
+	m_accsAttVecSegVolElmInfo = Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo>( m_grid, m_attAdjVecSegVolElmInfo );
 
 	return true;
 }
@@ -395,7 +406,9 @@ bool ArteExpandFracs3D::detachMarkers()
 
 	m_grid.detach_from_volumes( m_attVrtVec );
 
-	m_grid.detach_from_vertices(m_aAdjVolElmInfo);
+//	m_grid.detach_from_vertices(m_aAdjVolElmInfo);
+
+	m_grid.detach_from_vertices(m_attAdjVecSegVolElmInfo);
 
 	return true;
 }
@@ -726,7 +739,7 @@ bool ArteExpandFracs3D::distinguishSegments()
 	{
 		Vertex* vrt = *iter;
 
-		stasiAlgo(vrt);
+		stasiAlgo( vrt );
 	}
 
 	UG_LOG("Stasi Algo alle Vrt End << std::endl");
@@ -743,6 +756,8 @@ bool ArteExpandFracs3D::testIfFractrsClosed()
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
 	{
 		Vertex* vrt = *iter;
+
+#if 0
 
 		bool wahl = true;
 
@@ -830,7 +845,20 @@ bool ArteExpandFracs3D::testIfFractrsClosed()
 			wahl = false;
 		}
 
-		UG_LOG("SELEKTIERE " << m_aaPos[vrt] << " -> " << vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() << std::endl);
+#else
+
+		VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+		bool wahl = ( vecSegVolElmInf.size() > 1 );
+
+
+#endif
+
+
+//		UG_LOG("SELEKTIERE " << m_aaPos[vrt] << " -> " << vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() << std::endl);
+
+		UG_LOG("SELEKTIERE " << m_aaPos[vrt] << " -> " << wahl << std::endl);
+
 
 		// was, wenn numCrossFrac == 0 ist?
 		// wieso werden die boundary vrt ausgeschlossen, oder sollen die nicht ausgeschlossen werden?
@@ -868,28 +896,28 @@ bool ArteExpandFracs3D::testIfFractrsClosed()
 			// bzw asso edges und asso faces können hier bleiben wo gewählt wird
 			// die assoVolElemInfo wird schon oben erzeugt vor der Wahl
 			// und dann wird die danach folgende Loop Info
-			for( std::vector<Volume *>::iterator iterVol = m_grid.associated_volumes_begin(vrt);
-											   	 iterVol != m_grid.associated_volumes_end(vrt);
-											   	 iterVol++ )
-			{
-				assoVol.push_back(*iterVol);
-
-				AttachedVolumeElemInfo avei(*iterVol);
-
-				assoVolElemInfo.push_back(avei);
-			}
+//			for( std::vector<Volume *>::iterator iterVol = m_grid.associated_volumes_begin(vrt);
+//											   	 iterVol != m_grid.associated_volumes_end(vrt);
+//											   	 iterVol++ )
+//			{
+//				assoVol.push_back(*iterVol);
+//
+//				AttachedVolumeElemInfo avei(*iterVol);
+//
+//				assoVolElemInfo.push_back(avei);
+//			}
 
 			m_aaVrtInfoAssoEdges[vrt] = assoEdg;
 			m_aaVrtInfoAssoFaces[vrt] = assoFac;
 //			m_aaVrtInfoAssoVols[vrt] = assoVol;
-			m_aaVolElmInfo[vrt] = assoVolElemInfo;
+//			m_aaVolElmInfo[vrt] = assoVolElemInfo;
 
 		}
 	}
 
 	UG_LOG("vertex Infos Runde eins fertig " << std::endl);
 
-
+#if 0
 	// Voraussetzung  FÜR StammiBene Aufrufung
 	// Stammi-Bene-Vorbereitung
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
@@ -1031,7 +1059,7 @@ bool ArteExpandFracs3D::testIfFractrsClosed()
 
 		}
 	}
-
+#endif
 
 	UG_LOG("vertex Infos Runde eins fertig Volumen auch" << std::endl);
 
@@ -1051,6 +1079,8 @@ bool ArteExpandFracs3D::stasiAlgo(  Vertex * const & oldVrt )
 	vector3 posOldVrt = m_aaPos[oldVrt];
 
 	UG_LOG("vertex at " << posOldVrt << std::endl);
+
+	VecSegmentVolElmInfo & vecSegVolElmInfo = m_accsAttVecSegVolElmInfo[oldVrt];
 
 	auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
 
@@ -1082,8 +1112,6 @@ bool ArteExpandFracs3D::stasiAlgo(  Vertex * const & oldVrt )
 	VecAttachedVolumeElemInfo vecAttVolElemInfoCop = vecAttVolElemInfo; // echte KOPIE
 
 	VecAttachedVolumeElemInfo reconstructedVecAttVolElmInf;
-
-	VecSegmentVolElmInfo vecSegVolElmInfo;
 
 		/*
 		 * While Schleifen aufbauen für den
@@ -2380,6 +2408,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 ////////////////////////////////////////////////////////////////////
 
+#if 0
 //template <>
 //bool ArteExpandFracs3D::establishNewVertices< Tetrahedron,
 //											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
@@ -2804,6 +2833,8 @@ bool ArteExpandFracs3D::establishNewVertices< false,
 
 	return true;
 }
+
+#endif
 
 ////////////////////////////////////////////////////////////////////
 

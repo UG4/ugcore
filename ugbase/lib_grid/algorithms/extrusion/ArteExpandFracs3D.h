@@ -282,8 +282,8 @@ private:
 	using VecAttachedVolumeElemInfo = std::vector<AttachedVolumeElemInfo>;
 	using AttVecAttachedVolumeElemInfo = Attachment<VecAttachedVolumeElemInfo>;
 
-	AttVecAttachedVolumeElemInfo m_aAdjVolElmInfo;
-	Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo> m_aaVolElmInfo;
+//	AttVecAttachedVolumeElemInfo m_aAdjVolElmInfo;
+//	Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo> m_aaVolElmInfo;
 
 	using SegmentVolElmInfo = VecAttachedVolumeElemInfo;
 	using VecSegmentVolElmInfo = std::vector<SegmentVolElmInfo>;
@@ -291,7 +291,10 @@ private:
 	bool stasiAlgo( Vertex * const & oldVrt );
 	bool prepareStasi( Vertex * const & vrt, AttachedVolumeElemInfo & attVolElmInfo );
 
+	using AttVecSegmentVolElmInfo = Attachment<VecSegmentVolElmInfo>;
 
+	AttVecSegmentVolElmInfo m_attAdjVecSegVolElmInfo;
+	Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo> m_accsAttVecSegVolElmInfo;
 };
 
 // specification has to be declared outside central class context, else compilation error
