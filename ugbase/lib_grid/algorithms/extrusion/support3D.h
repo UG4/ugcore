@@ -640,9 +640,9 @@ public:
 	VertexFracturePropertiesVol()
 	: m_isBndFracVertex(false), m_numberCountedFracsInVertex(0),
 	  m_status( noFracSuDoAtt ),
-	  m_sudoList( std::vector<T>() ),
-	  m_sudosClosed(VecPairTB()),
-	  m_vecAttElem(std::vector<ATT_ELEM>())
+	  m_sudoList( std::vector<T>() ) //,
+//	  m_sudosClosed(VecPairTB()),
+//	  m_vecAttElem(std::vector<ATT_ELEM>())
 //		VertexFracturePropertiesVol( false, 0 )
 	{
 	};
@@ -736,130 +736,130 @@ public:
 		return m_sudoList;
 	}
 
-	bool setIsAClosedFracture( T sudoNow, bool isClosedNow )
-	{
-
-		T alreadyKnownMult = 0;
-
-		for( auto & suSu : m_sudosClosed )
-		{
-			T & sudoVal = suSu.first;
-			bool & isClosedVal = suSu.second;
-
-			if( sudoVal == sudoNow )
-			{
-				alreadyKnownMult++;
-
-				UG_LOG("Reassign sudo surround " << std::endl);
-
-				if( isClosedVal != isClosedNow )
-					UG_THROW("change property sudo surrounded, why?" << std::endl);
-
-				isClosedVal = isClosedNow;
-			}
-		}
-
-		if( alreadyKnownMult == 0 )
-		{
-			pairTB infoSudoSurr( sudoNow, isClosedNow );
-
-			m_sudosClosed.push_back( infoSudoSurr );
-
-		}
-		else if( alreadyKnownMult > 1 )
-		{
-			UG_THROW("zu oft bekannt " << std::endl);
-			return false;
-		}
-
-		// check if now correct
-
-		T testKnownFine = 0;
-
-		for( auto const & suSu : m_sudosClosed )
-		{
-			T & sudoVal = suSu.first;
-			bool & isClosedVal = suSu.second;
-
-			if( sudoVal == sudoNow )
-			{
-				testKnownFine++;
-
-				if( isClosedVal != isClosedNow )
-				{
-					UG_THROW("NOT set property sudo surrounded, why?" << std::endl);
-					return false;
-				}
-
-			}
-		}
-
-		if( testKnownFine == 0 || testKnownFine > 1 )
-		{
-			UG_THROW("immer noch nicht bekannt?" << std::endl);
-			return false;
-
-		}
-
-		return true;
-	}
-
-	bool getIsAClosedFracture( T sudoNow )
-	{
-		T foundMultpl = 0;
-
-		bool isClosedReturn = false;
-
-		for( auto const & suSu : m_sudosClosed )
-		{
-			T const & sudoVal = suSu.first;
-			bool const & isClosedVal = suSu.second;
-
-			if( sudoVal == sudoNow )
-			{
-				foundMultpl++;
-				isClosedReturn = isClosedVal;
-			}
-		}
-
-		if( foundMultpl != 1 )
-		{
-			UG_THROW("not known status closed or not sudo" << std::endl);
-			return false;
-		}
-
-		return isClosedReturn;
-	}
-
-	bool setInfoAllFractureSudosIfClosed( VecPairTB const & sudosClosed )
-	{
-		m_sudosClosed = sudosClosed;
-
-		return true;
-	}
-
-	VecPairTB const getInfoAllFracSudosIfClosed() const
-	{
-		return m_sudosClosed;
-	}
-
-	// if all open or closed
-	template<bool B>
-	bool const getInfoAllFracturesSameClosedState() const
-	{
-		bool allFracsSame = true;
-
-		for( auto const & suSu : m_sudosClosed )
-		{
-			//T const & sudoVal = suSu.first;
-			bool const & isClosedVal = suSu.second;
-
-			if( isClosedVal != B )
-				allFracsSame = false;
-		}
-
-		return allFracsSame;
-	}
+//	bool setIsAClosedFracture( T sudoNow, bool isClosedNow )
+//	{
+//
+//		T alreadyKnownMult = 0;
+//
+//		for( auto & suSu : m_sudosClosed )
+//		{
+//			T & sudoVal = suSu.first;
+//			bool & isClosedVal = suSu.second;
+//
+//			if( sudoVal == sudoNow )
+//			{
+//				alreadyKnownMult++;
+//
+//				UG_LOG("Reassign sudo surround " << std::endl);
+//
+//				if( isClosedVal != isClosedNow )
+//					UG_THROW("change property sudo surrounded, why?" << std::endl);
+//
+//				isClosedVal = isClosedNow;
+//			}
+//		}
+//
+//		if( alreadyKnownMult == 0 )
+//		{
+//			pairTB infoSudoSurr( sudoNow, isClosedNow );
+//
+//			m_sudosClosed.push_back( infoSudoSurr );
+//
+//		}
+//		else if( alreadyKnownMult > 1 )
+//		{
+//			UG_THROW("zu oft bekannt " << std::endl);
+//			return false;
+//		}
+//
+//		// check if now correct
+//
+//		T testKnownFine = 0;
+//
+//		for( auto const & suSu : m_sudosClosed )
+//		{
+//			T & sudoVal = suSu.first;
+//			bool & isClosedVal = suSu.second;
+//
+//			if( sudoVal == sudoNow )
+//			{
+//				testKnownFine++;
+//
+//				if( isClosedVal != isClosedNow )
+//				{
+//					UG_THROW("NOT set property sudo surrounded, why?" << std::endl);
+//					return false;
+//				}
+//
+//			}
+//		}
+//
+//		if( testKnownFine == 0 || testKnownFine > 1 )
+//		{
+//			UG_THROW("immer noch nicht bekannt?" << std::endl);
+//			return false;
+//
+//		}
+//
+//		return true;
+//	}
+//
+//	bool getIsAClosedFracture( T sudoNow )
+//	{
+//		T foundMultpl = 0;
+//
+//		bool isClosedReturn = false;
+//
+//		for( auto const & suSu : m_sudosClosed )
+//		{
+//			T const & sudoVal = suSu.first;
+//			bool const & isClosedVal = suSu.second;
+//
+//			if( sudoVal == sudoNow )
+//			{
+//				foundMultpl++;
+//				isClosedReturn = isClosedVal;
+//			}
+//		}
+//
+//		if( foundMultpl != 1 )
+//		{
+//			UG_THROW("not known status closed or not sudo" << std::endl);
+//			return false;
+//		}
+//
+//		return isClosedReturn;
+//	}
+//
+//	bool setInfoAllFractureSudosIfClosed( VecPairTB const & sudosClosed )
+//	{
+//		m_sudosClosed = sudosClosed;
+//
+//		return true;
+//	}
+//
+//	VecPairTB const getInfoAllFracSudosIfClosed() const
+//	{
+//		return m_sudosClosed;
+//	}
+//
+//	// if all open or closed
+//	template<bool B>
+//	bool const getInfoAllFracturesSameClosedState() const
+//	{
+//		bool allFracsSame = true;
+//
+//		for( auto const & suSu : m_sudosClosed )
+//		{
+//			//T const & sudoVal = suSu.first;
+//			bool const & isClosedVal = suSu.second;
+//
+//			if( isClosedVal != B )
+//				allFracsSame = false;
+//		}
+//
+//		return allFracsSame;
+//	}
 
 	// DEPRECATED; REMOVE
 //	bool addAttachedFractElem( ATT_ELEM const & attElem )
@@ -879,11 +879,11 @@ public:
 //		return ! alreadyKnown;
 //	}
 
-	std::vector<ATT_ELEM> const & getAllAttachedFractElems()
-	const
-	{
-		return m_vecAttElem;
-	}
+//	std::vector<ATT_ELEM> const & getAllAttachedFractElems()
+//	const
+//	{
+//		return m_vecAttElem;
+//	}
 
 private:
 	bool m_isBndFracVertex;
@@ -920,7 +920,7 @@ private:
 		return true;
 	}
 
-	VecPairTB m_sudosClosed;
+//	VecPairTB m_sudosClosed;
 
 	bool setSudoList( std::vector<T> const & sudoList )
 	{
@@ -929,7 +929,7 @@ private:
 		return true;
 	}
 
-	std::vector<ATT_ELEM> m_vecAttElem;
+//	std::vector<ATT_ELEM> m_vecAttElem;
 
 };
 
