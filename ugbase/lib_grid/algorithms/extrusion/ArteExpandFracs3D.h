@@ -309,7 +309,7 @@ private:
 	bool establishNewVertizesStasiBased( Vertex * const & oldVrt );
 
 	template< IndexType NUM_SURR_FRACS, bool isBndryVrtx >
-	bool expandWithinTheSegment( Vertex * const & oldVrt, SegmentVolElmInfo const & svei );
+	bool expandWithinTheSegment( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo );
 
 	IndexType shiftUnclosedFracFacesToGenerFaces( Vertex * const & vrt );
 
@@ -319,7 +319,7 @@ private:
 
 // for only one surrounding subdom around the segment
 template<>
-bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt, SegmentVolElmInfo const & svei );
+bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo );
 
 //template <>
 //bool ArteExpandFracs3D::establishNewVertices< true,

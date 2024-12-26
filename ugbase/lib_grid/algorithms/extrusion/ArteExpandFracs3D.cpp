@@ -725,8 +725,10 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 					// if it belongs, construct it again and test if it already belongs to the fracture faces
 					// MUST be already part of the list, else major error appeared!
 
+					UG_LOG("Kuh Normale " << normalIntoVol << std::endl);
+
 					AttachedFractFaceEdgeSudo afesFract( fac, edgesFaceVrtx, sudoThisFace, normalIntoVol );
-					// TODO FIXME hier sollte auch gleich die Normale relativ zum VOlumen dazu gespeichert werden!!
+					//  hier soll auch gleich die Normale relativ zum VOlumen dazu gespeichert werden!!
 
 					attVolElmInfo.addFractManifElem( afesFract, m_grid );
 
@@ -841,9 +843,9 @@ bool ArteExpandFracs3D::computeNormalKuhVolProcedure( Volume * const & kuhVol, F
 
 			kuhVol->face_desc( iSide, facDescr );
 
-			vector3 normal;
+//			vector3 normal;
 
-			CalculateNormal( normal, & facDescr, m_aaPos );
+			CalculateNormal( normalIntoVol, & facDescr, m_aaPos );
 
 			vector3 facCenter = CalculateCenter( kuhFac, m_aaPos );
 			vector3 kuhCenter = CalculateCenter( fac, m_aaPos );
@@ -856,7 +858,7 @@ bool ArteExpandFracs3D::computeNormalKuhVolProcedure( Volume * const & kuhVol, F
 //						UG_LOG("fac " << fac << std::endl );
 //						UG_LOG("kuh " << kuhFac << std::endl );
 
-			UG_LOG("Normale ist " << normal << " fac " << facCenter
+			UG_LOG("Normale ist " << normalIntoVol << " fac " << facCenter
 					<< " vol " << kuhVolCenter << std::endl);
 
 
@@ -1005,7 +1007,6 @@ ArteExpandFracs3D::IndexType ArteExpandFracs3D::shiftUnclosedFracFacesToGenerFac
 //			{
 //				vecAttFractList.push_back( affe );
 //			}
-			// TODO FIXME HHHHHHHHHHHHHHHHHH
 			// create a full chain of all fracture faces, and if one appears twice, shift it for both
 			// volumes where it is in to the general faces, i.e. count after establishing, and when twice,
 			// then shift
@@ -2687,12 +2688,111 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 
 // for only one surrounding subdom around the segment, for example only one fracture, or T End like ending side
 template<>
-bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt, SegmentVolElmInfo const & svei )
+bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo )
 {
 
 	// TODO FIXME Hier sind wir HHHHHHHHHHHHHHHHHH
 
-	return {};
+	// get all fracture faces, check if they belong to the same subdomain, must be the case here!
+
+	VecAttachedFractFaceEdgeSudo vecAttFractFaces;
+
+	for( AttachedVolumeElemInfo const & avei : segmVolElmInfo )
+	{
+		VecAttachedFractFaceEdgeSudo const & vecAttFractVol = avei.getVecFractManifElem();
+
+		for( AttachedFractFaceEdgeSudo const & affe : vecAttFractVol )
+		{
+			vecAttFractFaces.push_back(affe);
+		}
+	}
+
+	IndexType numbContrFracFaces = vecAttFractFaces.size();
+
+	if( numbContrFracFaces < 1 )
+	{
+		UG_LOG("Kein Affe da " << std::endl);
+		UG_THROW("Kein Affe da " << std::endl);
+		return false;
+	}
+
+	IndexType sudoBase = vecAttFractFaces[0].getSudo();
+
+	// check if all sudos equal
+	for( AttachedFractFaceEdgeSudo const & affe : vecAttFractFaces )
+	{
+		IndexType sudoTest = affe.getSudo();
+
+		if( sudoTest != sudoBase )
+		{
+			UG_LOG("unterschiedliche Sudos an einer einzelnen Fracture?" << std::endl);
+			UG_THROW("unterschiedliche Sudos an einer einzelnen Fracture?" << std::endl);
+			return false;
+		}
+	}
+
+	// now we are sure we have the same sudo, now we average the normals
+
+	NormalVectorFacIntoVol normalsFacInVolSummed(0,0,0);
+
+	for( AttachedFractFaceEdgeSudo const & affe : vecAttFractFaces )
+	{
+		NormalVectorFacIntoVol tmpVec = normalsFacInVolSummed;
+		UG_LOG("Normal Vec " << tmpVec << std::endl);
+		VecAdd(normalsFacInVolSummed, tmpVec, affe.getNormalVec() );
+	}
+
+	NormalVectorFacIntoVol normalsAveraged;
+
+	VecScale( normalsAveraged, normalsFacInVolSummed, 1. / ( static_cast<number>(numbContrFracFaces) ) );
+
+	number width = m_fracInfosBySubset[sudoBase].width;
+
+	number scal = width / 2.;
+
+	NormalVectorFacIntoVol scaledNormal;
+
+	VecScale( scaledNormal, normalsAveraged, - scal );
+
+	vector3 posOldVrt = m_aaPos[oldVrt];
+
+	vector3 posNewVrt;
+
+	VecAdd( posNewVrt, posOldVrt, scaledNormal );
+
+	Vertex * newShiftVrtx = *m_grid.create<RegularVertex>();
+
+	if( newShiftVrtx == nullptr )
+	{
+		UG_LOG("Nullen erzeugt" << std::endl);
+		UG_THROW("Nullen erzeugt" << std::endl);
+		return false;
+	}
+
+	m_aaPos[newShiftVrtx] = posNewVrt;
+
+	UG_LOG("Created new vertex at " << m_aaPos[newShiftVrtx] << std::endl );
+
+	m_sh.assign_subset(newShiftVrtx, sudoBase);
+
+	for( AttachedVolumeElemInfo const & avei : segmVolElmInfo )
+	{
+		Volume * vol = avei.getFulldimElem();
+
+		std::vector<Vertex*>& newVrts4Fac = m_aaVrtVecVol[ vol ];
+
+		for(size_t indVrt = 0; indVrt < (vol)->num_vertices();  indVrt++ )
+		{
+			Vertex* volVrt = (vol)->vertex(indVrt);
+
+			if(  volVrt == oldVrt )
+			{
+				newVrts4Fac[ indVrt ] = newShiftVrtx;
+			}
+		}
+	}
+
+	return true;
 }
 
 
