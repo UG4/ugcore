@@ -654,6 +654,7 @@ public:
 //	{
 //	};
 
+	// DEPRECATED, kann entfernt werden vermutlich, CHECK, TODO FIXME
 	enum VrtxFracStatus { noFracSuDoAtt = 0,
 						  oneFracSuDoAtt = 1,
 						  twoFracSuDoAtt = 2,
