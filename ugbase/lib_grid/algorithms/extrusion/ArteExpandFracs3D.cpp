@@ -551,6 +551,63 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 		}
 	}
 
+
+	//	now make sure that no inner edge is associated with two
+	//	boundary vertices (referring to the selection)
+
+	std::vector<Edge*> tmpEdges;
+
+	for(EdgeIterator iterEdg = m_sel.begin<Edge>(); iterEdg != m_sel.end<Edge>(); iterEdg++ )
+	{
+		Edge* edg = *iterEdg;
+
+		Vertex * vrtZer = edg->vertex(0);
+		Vertex * vrtOne = edg->vertex(1);
+
+		VertxFracPropts & vrtxFracPrpsVrtZer = m_aaMarkVrtVFP[ vrtZer ];
+		VertxFracPropts & vrtxFracPrpsVrtOne = m_aaMarkVrtVFP[ vrtOne ];
+		VertxFracPropts & edgeFracPrps = m_aaMarkEdgeVFP[ edg ];
+
+		if(      vrtxFracPrpsVrtZer.getIsBndFracVertex()
+			&&   vrtxFracPrpsVrtOne.getIsBndFracVertex()
+			&& ! edgeFracPrps.getIsBndFracVertex()
+		)
+		{
+			tmpEdges.push_back(edg);
+		}
+
+	}
+
+	for( Edge * edg : tmpEdges )
+	{
+		vector3 center = CalculateCenter(edg, m_aaPos);
+		RegularVertex* vrt = SplitEdge<RegularVertex>(m_grid, edg, false);
+		m_aaPos[vrt] = center;
+		m_sel.select(vrt);
+		auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
+		vrtxFracPrps++;
+
+		vrtxFracPrps.setIsBndFracVertex(false);
+
+		//	assign adjacency values for associated selected edges (2 to each)
+		for(Grid::AssociatedEdgeIterator iterEdg  = m_grid.associated_edges_begin(vrt);
+										 iterEdg != m_grid.associated_edges_end(vrt);
+										 iterEdg++
+		)
+		{
+			Edge * assoEdg = *iterEdg;
+
+			if( m_sel.is_selected(assoEdg) )
+			{
+				auto & edgFracPrps = m_aaMarkEdgeVFP[assoEdg];
+				edgFracPrps.setIsBndFracVertex(false);
+			}
+		}
+	}
+
+	// TODO FIXME unsicher, ob das hier richtig übertragen von Prof. Reiter......
+
+
 #if 0
 
 	// TODO FIXME das ist was komisches, was von Prof. Reiter da ist, es werden edges gesplittet, für was?
@@ -1122,8 +1179,17 @@ bool ArteExpandFracs3D::seletForSegmented()
 
 		VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
 
-		bool wahl = ( vecSegVolElmInf.size() > 1 );
+		auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
 
+//		bool isBnd = m_aaMarkVrtVFP[ vrt ].getIsBndFracVertex();
+		bool isBnd = vrtxFracPrps.getIsBndFracVertex();
+
+//		bool wahl = ( vecSegVolElmInf.size() > 1 );
+		bool wahl = ( vecSegVolElmInf.size() > 1 && ! isBnd );
+		// TODO FIXME danach vielleicht auch fuer boundary wieder selektieren
+		// sobald die Boundary Behandlung wie Pseudo Fracture mit Expansion null
+		// aber solange die bounaries nicht behandelt werden, führt
+		// die Selektion der Boundary Vertizes zu Problemen
 
 #endif
 
@@ -3457,7 +3523,7 @@ bool ArteExpandFracs3D::createNewElements()
 						}
 						else
 						{
-							//	Text SR, might be different now:
+							//	Text from SR, still similar:
 							//  this code-block should never be entered. If it is entered then
 							//	we either selected the wrong faces (this shouldn't happen), or there
 							//	are selected faces, which have fracture-boundary-vertices only.
@@ -3465,15 +3531,12 @@ bool ArteExpandFracs3D::createNewElements()
 							//	connected to two boundary vertices.
 							//	Since we tried to remove those edges above, something went wrong.
 							//	remove the temporary attachments and throw an error
-//								grid.detach_from_vertices(aVrtVec);
-//								grid.detach_from_volumes(aVrtVec);
-//								grid.detach_from_vertices(aAdjMarker);
-//								grid.detach_from_edges(aAdjMarker);
-								//return false;
+
 							UG_LOG("Tetraeder Fehlt eine Loesung " << std::endl);
-#if 0
-								throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
-								return false;
+#if 1
+							detachMarkers();
+							throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+							return false;
 #endif
 						}
 					}
