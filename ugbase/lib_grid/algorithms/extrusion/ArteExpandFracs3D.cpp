@@ -2734,15 +2734,36 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 		{
 			// count number of fracture subdomains in the Segment, should have been done before......
 
-			// standard case
-			if( ! expandWithinTheSegment<1,false>( oldVrt, svei ) )
+			// TODO FIXME ersetze das altmodische VrtxFracProptsStatus durch ein Zählen
+			// der subdomains, die pro Segment wirklich vorkommen, nachdem die
+			// auslaufenden fracture faces den generellen Faces zugeschlagen worden sind
+			// HHHHHHHHHHHHHHHHHH hier sind wir
+			// diese Zählweise ist die erste Folgeaufgabe, damit der komische vrtxFractureProperties Status
+			// weg geworfen werden kann, der ist nämlich nutzlos inzwischen, da er auch auslaufende
+			// fracture faces zählt, was Unsinn ist.......
+			// später folgt auch die Verallgemeinerung auf boundary vertizes, dann muss deren Wahl
+			// vielleicht wieder dazu genommen werden.....
+
+			if( vrtxFracPrps.getVrtxFracStatus() == VrtxFracProptsStatus::oneFracSuDoAtt )
 			{
-				UG_LOG("Expandierung einfachster Fall schief gegangen " << std::endl);
+				// standard case, one fracture
+				if( ! expandWithinTheSegment<1,false>( oldVrt, svei ) )
+				{
+					UG_LOG("Expandierung einfachster Fall schief gegangen " << std::endl);
+					return false;
+				}
 			}
+			else // unterscheiden zwei und drei vermutlich..... aber wichtiger Segmentzahl.....
+			{
+				// TODO FIXME HHHHHHHHHHHHHHHHHHH
+
+			}
+
 		}
 		else
 		{
 			// boundary faces counted as fracture faces, but no expansion
+			// TODO FIXME HHHHHHHHHHHHHHHHHHH
 		}
 
 	}
