@@ -313,6 +313,8 @@ private:
 
 	IndexType shiftUnclosedFracFacesToGenerFaces( Vertex * const & vrt );
 
+	bool extracFracttSudosOfSegment(SegmentVolElmInfo const & segmVolElmInfo, std::vector<IndexType> & sudosInSegment );
+
 };
 
 // specification has to be declared outside central class context, else compilation error

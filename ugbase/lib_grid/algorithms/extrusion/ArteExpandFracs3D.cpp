@@ -2722,6 +2722,17 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 		// count the number of the fracture subdomains surrounding the segment
 		// in case of boundary vertex, also count the number of boundary subdomains
 
+		std::vector<IndexType> sudosInSegment;
+
+		if( ! extracFracttSudosOfSegment( svei, sudosInSegment ) )
+		{
+			UG_LOG("kann sudos nicht extrahieren " << std::endl);
+			UG_THROW("kann sudos nicht extrahieren " << std::endl);
+			return false;
+		}
+
+		IndexType sudoNumInSeg = sudosInSegment.size();
+
 		// check if is boundary vertex
 
 		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
@@ -2744,7 +2755,14 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 			// später folgt auch die Verallgemeinerung auf boundary vertizes, dann muss deren Wahl
 			// vielleicht wieder dazu genommen werden.....
 
-			if( vrtxFracPrps.getVrtxFracStatus() == VrtxFracProptsStatus::oneFracSuDoAtt )
+			//Vorbereitung Ersetzung VertexFractureProperties Status
+			// durch Zählen der Fracture Subdomains von jedem Segment
+			// die Zählerei kann dann gemacht werden, wenn die doppelten offenen fracture faces
+			// in die allgemeinen faces verschoben werden, dann geht das in einem Abwasch,
+			// gehe dazu in die entsprechende Funktion
+
+//			if( vrtxFracPrps.getVrtxFracStatus() == VrtxFracProptsStatus::oneFracSuDoAtt )
+			if( sudoNumInSeg == 1 )
 			{
 				// standard case, one fracture
 				if( ! expandWithinTheSegment<1,false>( oldVrt, svei ) )
@@ -2753,7 +2771,7 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 					return false;
 				}
 			}
-			else // unterscheiden zwei und drei vermutlich..... aber wichtiger Segmentzahl.....
+			else // unterscheiden zwei und drei vermutlich..... aber wichtiger Segmentzahl..... und dann kommt es darauf an, wieviele subdoms im einzelnen Segment sind
 			{
 				// TODO FIXME HHHHHHHHHHHHHHHHHHH
 
@@ -2764,12 +2782,69 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 		{
 			// boundary faces counted as fracture faces, but no expansion
 			// TODO FIXME HHHHHHHHHHHHHHHHHHH
+			// zuerst aber die inneren Schnittvertizes, weil bei denen die Nicht-Null Expansion
+			// gelernt werden kann, dann anzuwenden auf Null-Expansion senkrecht zu den boundaries......
 		}
 
 	}
 
 	return true;
 }
+
+////////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::extracFracttSudosOfSegment( SegmentVolElmInfo const & segmVolElmInfo, std::vector<ArteExpandFracs3D::IndexType> & sudosInSegment )
+{
+	VecAttachedFractFaceEdgeSudo vecAttFractFaces;
+
+	for( AttachedVolumeElemInfo const & avei : segmVolElmInfo )
+	{
+		VecAttachedFractFaceEdgeSudo const & vecAttFractVol = avei.getVecFractManifElem();
+
+		for( AttachedFractFaceEdgeSudo const & affe : vecAttFractVol )
+		{
+			vecAttFractFaces.push_back(affe);
+		}
+	}
+
+	IndexType numbContrFracFaces = vecAttFractFaces.size();
+
+	if( numbContrFracFaces < 1 )
+	{
+		UG_LOG("Kein Affe da " << std::endl);
+		UG_THROW("Kein Affe da " << std::endl);
+		return false;
+	}
+
+	IndexType sudoBase = vecAttFractFaces[0].getSudo();
+
+	sudosInSegment.push_back(sudoBase);
+
+	// add sudos different from the base one
+	for( AttachedFractFaceEdgeSudo const & affe : vecAttFractFaces )
+	{
+		IndexType sudoNeeded = affe.getSudo();
+
+		bool sudoIsKnown = false;
+
+		for( IndexType sudoInList : sudosInSegment )
+		{
+			if( sudoNeeded == sudoInList )
+			{
+				sudoIsKnown = true;
+			}
+		}
+
+		if( ! sudoIsKnown )
+		{
+			sudosInSegment.push_back(sudoNeeded);
+		}
+
+	}
+
+	return true;
+}
+
 
 ////////////////////////////////////////////////////////////////////
 
