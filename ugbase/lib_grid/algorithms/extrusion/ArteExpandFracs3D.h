@@ -308,20 +308,42 @@ private:
 
 	bool establishNewVertizesStasiBased( Vertex * const & oldVrt );
 
-	template< IndexType NUM_SURR_FRACS, bool isBndryVrtx >
-	bool expandWithinTheSegment( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo );
+//	template< IndexType NUM_SURR_FRACS, bool isBndryVrtx >
+//	bool expandWithinTheSegment( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo );
 
 	IndexType shiftUnclosedFracFacesToGenerFaces( Vertex * const & vrt );
 
-	bool extracFracttSudosOfSegment(SegmentVolElmInfo const & segmVolElmInfo, std::vector<IndexType> & sudosInSegment );
+//	bool extracFractSudosOfSegment(SegmentVolElmInfo const & segmVolElmInfo, std::vector<IndexType> & sudosInSegment );
+
+public:
+	using SegmentLimitingSides = support::SegmentSides<Volume*,Face*,Edge*,IndexType,vector3,Vertex*>;
+
+	using SegmentLimitSidesPairSudoNorml = SegmentLimitingSides::PairSudoNormlV;
+
+	using VecSegmentLimitSidesPairSudoNorml = SegmentLimitingSides::VecPairSudoNormlV;
+
+	using SegmentVrtxFracStatus = SegmentLimitingSides::VrtxFracStatus;
+
+private:
+	template< SegmentVrtxFracStatus seVrtFracStat >
+	bool expandWithinTheSegment( SegmentLimitingSides const & segmLimSides );
 
 };
 
 // specification has to be declared outside central class context, else compilation error
 
 // for only one surrounding subdom around the segment
+//template<>
+//bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo );
+
+
+//using ArteOneFractCrossSegment = ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt;
+
+//template<>
+//bool ArteExpandFracs3D::expandWithinTheSegment<ArteOneFractCrossSegment>( SegmentLimitingSides const & segmLimSides );
 template<>
-bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo );
+bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>( SegmentLimitingSides const & segmLimSides );
+
 
 //template <>
 //bool ArteExpandFracs3D::establishNewVertices< true,

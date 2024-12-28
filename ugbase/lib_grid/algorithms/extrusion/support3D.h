@@ -1396,6 +1396,375 @@ private:
 
 };
 
+//////////////////////////////////////////////////////////////////
+
+
+template <
+typename FULLDIM_ELEM,
+typename MANIFELM,
+typename LOWDIMELM,
+typename INDEX_TXP,
+typename NORMAL_VEC,
+typename VRTXTYP
+>
+class SegmentSides
+{
+public:
+
+	enum VrtxFracStatus { noFracSuDoAtt = 0,
+						  oneFracSuDoAtt = 1,
+						  twoFracSuDoAtt = 2,
+						  threeFracSuDoAtt = 3 };
+
+	using AttFractElm = AttachedFractElem<MANIFELM, LOWDIMELM, INDEX_TXP, NORMAL_VEC>;
+	using AttBndryElm = AttachedBoundryElem<MANIFELM, LOWDIMELM, INDEX_TXP, NORMAL_VEC>;
+
+	using PairSudoNormlV = std::pair<INDEX_TXP,NORMAL_VEC>;
+	using VecPairSudoNormlV = std::vector<PairSudoNormlV>;
+
+	SegmentSides( VRTXTYP const & vrt, bool isBndry = false )
+	: m_vrt(vrt),
+	  m_vecAttFractElms(VecAttFractElm()),
+	  m_vecAttBndryElms(VecAttBndryElm()),
+	  m_vecFractSudosNormlV(VecPairSudoNormlV()),
+	  m_vecBndrySudosNormlV(VecPairSudoNormlV()),
+	  m_isBoundary(isBndry),
+	  m_averaged(false),
+	  m_contribFulldimElm(std::vector<FULLDIM_ELEM>())
+	{};
+
+	VRTXTYP const spuckVertex() const
+	{
+		return m_vrt;
+	}
+
+	void schluckFulldimElem( FULLDIM_ELEM const & fudielm )
+	{
+		m_contribFulldimElm.push_back(fudielm);
+	}
+
+	void const spuckFulldimElemList( std::vector<FULLDIM_ELEM> & fudielm ) const
+	{
+		fudielm = m_contribFulldimElm;
+	}
+
+	VrtxFracStatus const spuckCrossingTyp() const
+	{
+		VrtxFracStatus vfsFract =  static_cast<VrtxFracStatus>(m_vecFractSudosNormlV.size());
+
+		if( m_isBoundary )
+		{
+			VrtxFracStatus vfsBndry = static_cast<VrtxFracStatus>(m_vecBndrySudosNormlV.size());
+
+			return static_cast<VrtxFracStatus>( static_cast<INDEX_TXP>(vfsFract) + static_cast<INDEX_TXP>(vfsBndry) );
+		}
+
+		return vfsFract;
+	}
+
+	bool schluckVecAttFractElm( std::vector<AttFractElm> const & vecAtFracEl )
+	{
+		return schluckVecAttElm( vecAtFracEl, m_vecAttFractElms );
+	}
+
+	template< typename NOFRACT >
+	bool schluckVecAttFractElm( std::vector<NOFRACT> const & vecAtFracEl ) = delete;
+
+	bool schluckVecAttBndryElm( std::vector<AttBndryElm> const & vecAtBndryEl )
+	{
+		if( ! checkIfIsAtBndry() )
+			return false;
+
+		return schluckVecAttElm( vecAtBndryEl, m_vecAttBndryElms );
+	}
+
+
+	bool schluckAttFractElm( AttFractElm const & afeNew )
+	{
+		return schluckAttElm( afeNew, m_vecAttFractElms );
+
+//		if( ! isStillUnknown( afeNew, m_vecAttFractElms ) )
+//		{
+//			return false;
+//		}
+//
+//		m_vecAttFractElms.push_back(afeNew);
+//
+//		return true;
+	}
+
+	template< typename NOFRACT >
+	bool schluckAttFractElm( NOFRACT const & afeNew ) = delete;
+
+
+	bool schluckAttBndryElm( AttBndryElm const & afeNew )
+	{
+		if( ! checkIfIsAtBndry() )
+			return false;
+
+		return schluckAttElm( afeNew, m_vecAttBndryElms );
+
+//		if( ! isStillUnknown( afeNew, m_vecAttBndryElms ) )
+//		{
+//			return false;
+//		}
+//
+//		m_vecAttBndryElms.push_back(afeNew);
+//
+//		return true;
+	}
+
+	bool averageAll()
+	{
+		if( m_isBoundary )
+		{
+			if( ! averageBndryNormals() )
+				return false;
+		}
+
+		if( ! averageFractNormals() )
+			return false;
+
+		m_averaged = true;
+
+		return m_averaged;
+	}
+
+	bool const spuckFractSudoNormls( VecPairSudoNormlV & vecFractSudosNormlV ) const
+	{
+		if( ! m_averaged )
+		{
+			UG_LOG("please average " << std::endl);
+			UG_THROW("please average " << std::endl);
+			return false;
+		}
+
+		vecFractSudosNormlV = m_vecFractSudosNormlV;
+
+		return true;
+	}
+
+	bool spuckBndrySudoNormls( VecPairSudoNormlV & vecBndrySudosNormlV )
+	{
+		if( ! checkIfIsAtBndry() )
+			return false;
+
+		if( ! m_averaged )
+		{
+			UG_LOG("please average " << std::endl);
+			UG_THROW("please average " << std::endl);
+			return false;
+		}
+
+		vecBndrySudosNormlV = m_vecBndrySudosNormlV;
+
+		return true;
+	}
+
+
+private:
+
+	VRTXTYP m_vrt;
+
+	using VecAttFractElm = std::vector<AttFractElm>;
+	using VecAttBndryElm = std::vector<AttBndryElm>;
+
+	VecAttFractElm m_vecAttFractElms;
+	VecAttBndryElm m_vecAttBndryElms;
+
+	VecPairSudoNormlV m_vecFractSudosNormlV;
+	VecPairSudoNormlV m_vecBndrySudosNormlV;
+
+	bool m_isBoundary;
+	bool m_averaged;
+
+	std::vector<FULLDIM_ELEM> m_contribFulldimElm;
+
+	template <typename ATT_ELM, typename VEC_ATT_ELM,
+			  typename = std::enable_if<std::is_same<std::vector<ATT_ELM>,VEC_ATT_ELM>::value>,
+			  typename 	= std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+			>
+	bool isStillUnknown( ATT_ELM const & afeNew, VEC_ATT_ELM const & vecAttELm )
+	{
+		for( ATT_ELM const & afeAlt : vecAttELm )
+		{
+			if( afeAlt.testIfEquals(afeNew) )
+			{
+				UG_LOG("Strange, already known?" << std::endl);
+				UG_THROW("Strange, already known?" << std::endl);
+				return false;
+			}
+		}
+
+		return true;
+
+	}
+
+	template <typename ATT_ELM,
+			  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+			>
+	bool extractSudoList( std::vector<INDEX_TXP> & sudoListSegment, std::vector<ATT_ELM> const & vecAttELm )
+	{
+		for( AttFractElm const & me : vecAttELm )
+		{
+			INDEX_TXP sudoNeeded = me.getSudo();
+
+			bool sudoIsKnown = false;
+
+			for( INDEX_TXP sudoInList : sudoListSegment )
+			{
+				if( sudoInList == sudoNeeded )
+				{
+					sudoIsKnown = true;
+					break;
+				}
+			}
+
+			if( ! sudoIsKnown )
+				sudoListSegment.push_back(sudoNeeded);
+		}
+
+		return true;
+	}
+
+	template <typename ATT_ELM,
+			  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+			>
+	bool averageNormlForEachSudo( std::vector<ATT_ELM> const & vecAttElm, VecPairSudoNormlV & vecPSudoNrml )
+	{
+		// first determine appearing sudos
+
+		std::vector<INDEX_TXP> sudoListSegment;
+
+		extractSudoList(sudoListSegment,vecAttElm);
+
+		for( INDEX_TXP sudo : sudoListSegment )
+		{
+			NORMAL_VEC normlAvrg;
+
+			if( ! averageNormalForSpecificSudo( sudo, vecAttElm, normlAvrg ) )
+				return false;
+
+			std::pair<INDEX_TXP, NORMAL_VEC> sudoNorml( sudo, normlAvrg );
+
+			vecPSudoNrml.push_back(sudoNorml);
+		}
+
+		return true;
+	}
+
+	template <typename ATT_ELM,
+			  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+			>
+	bool averageNormalForSpecificSudo( INDEX_TXP specfcSudo, std::vector<ATT_ELM> const & vecAttElm, NORMAL_VEC & normlAvrg )
+	{
+		NORMAL_VEC normsSum(0,0,0);
+		INDEX_TXP numContrNrmls = 0;
+
+		for( ATT_ELM const & ae : vecAttElm )
+		{
+			INDEX_TXP sudoElm = ae.getSudo();
+
+			if( specfcSudo == sudoElm )
+			{
+				NORMAL_VEC normElm = ae.getNormalVec();
+
+				NORMAL_VEC tmpSum = normsSum;
+
+				VecAdd( normsSum, normElm, tmpSum );
+
+				numContrNrmls++;
+			}
+		}
+
+		if( numContrNrmls == 0 )
+		{
+			UG_LOG("Kein Beitrag in SUdo? " << std::endl);
+			UG_THROW("Kein Beitrag in SUdo? " << std::endl);
+			return false;
+		}
+
+		VecScale( normlAvrg, normsSum, 1. / static_cast<number>(numContrNrmls) );
+
+		return true;
+
+	}
+
+	bool averageFractNormals()
+	{
+		return averageNormlForEachSudo( m_vecAttFractElms, m_vecFractSudosNormlV );
+	}
+
+	bool averageBndryNormals()
+	{
+		if( m_isBoundary )
+		{
+			return averageNormlForEachSudo( m_vecAttFractElms, m_vecFractSudosNormlV );
+		}
+		else
+		{
+			UG_LOG("no boundary, no averaging");
+			return false;
+		}
+	}
+
+	template
+	< typename ATT_ELM,
+	  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+	>
+	bool schluckVecAttElm( std::vector<ATT_ELM> const & vecAttElNew, std::vector<ATT_ELM> & vecAttElmKnown )
+	{
+		for( ATT_ELM const & aeN : vecAttElNew )
+		{
+			if( ! schluckAttElm( aeN, vecAttElmKnown) )
+			{
+				UG_LOG("ist schon bekannt" << std::endl);
+				UG_THROW("ist schon bekannt" << std::endl);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	template
+	< typename ATT_ELM,
+	  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+	>
+	bool schluckAttElm( ATT_ELM const & attElNew, std::vector<ATT_ELM> & vecAttElmKnown )
+	{
+		m_averaged = false;
+
+		if( ! isStillUnknown( attElNew, vecAttElmKnown ) )
+		{
+			UG_LOG("ist schon bekannt" << std::endl);
+			UG_THROW("ist schon bekannt" << std::endl);
+			return false;
+		}
+
+		vecAttElmKnown.push_back(attElNew);
+
+		return true;
+	}
+
+	bool checkIfIsAtBndry()
+	{
+		if( ! m_isBoundary )
+		{
+			UG_LOG("gibts keine Bndry " << std::endl);
+			UG_THROW("gibts keine Bndry " << std::endl);
+			return false;
+		}
+
+		return m_isBoundary;
+	}
+
+};
+
+//////////////////////////////////////////////////////////////////
+
+
+
 #if 0
 template <typename VEC_AVEI, typename OPERATION, typename INDX_TYP  >
 bool switchFulldimInfo( VEC_AVEI & vecAttVolElemInfoCop,

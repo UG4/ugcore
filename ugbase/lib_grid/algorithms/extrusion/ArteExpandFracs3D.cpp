@@ -2669,17 +2669,6 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 		UG_LOG("vertex at " << posOldVrt << std::endl);
 
-//		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
-//
-//		bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
-//
-//		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
-//
-//		VertxFracPropts::VrtxFracStatus statusThisVrtx = vrtxFracPrps.getVrtxFracStatus();
-
-
-
-		// testweise, später verallgemeinert mit den Boundary faces
 //		if( ! vrtxIsBndVrt )
 //		{
 		if( ! establishNewVertizesStasiBased(oldVrt) )
@@ -2703,6 +2692,7 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 ////////////////////////////////////////////////////////////////////
 
+#if 0
 bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 {
 	// anfangs nur für innere Vertizes mit einer fracture
@@ -2724,7 +2714,7 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 
 		std::vector<IndexType> sudosInSegment;
 
-		if( ! extracFracttSudosOfSegment( svei, sudosInSegment ) )
+		if( ! extracFractSudosOfSegment( svei, sudosInSegment ) )
 		{
 			UG_LOG("kann sudos nicht extrahieren " << std::endl);
 			UG_THROW("kann sudos nicht extrahieren " << std::endl);
@@ -2790,11 +2780,205 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 
 	return true;
 }
+#endif
+
+
+bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
+{
+	// anfangs nur für innere Vertizes mit einer fracture
+
+	// testweise, später verallgemeinert mit den Boundary faces
+
+	auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+
+	bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
+
+	UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
+
+	if( vrtxIsBndVrt )
+	{
+		UG_LOG("boundary noch zu lösen, bisher nix machen" << std::endl);
+		return true;
+	}
+
+	VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[oldVrt];
+
+	if( vecSegVolElmInf.size() < 2 )
+	{
+		UG_LOG("nur ein Segment, aber will frische Vertizes?" << std::endl);
+//		UG_THROW("nur ein Segment, aber will frische Vertizes?" << std::endl);
+//		return false;
+		return true;
+	}
+
+
+	for( SegmentVolElmInfo const & segVolsElInf : vecSegVolElmInf )
+	{
+		// count the number of the fracture subdomains surrounding the segment
+		// in case of boundary vertex, also count the number of boundary subdomains
+
+//		std::vector<IndexType> sudosInSegment;
+
+		// hier die neue Klasse und ihr averaing einführen, oder im Hauptloop der neuen Elemente.....
+		// SegmentSides<....> in .h file für die richtigen template parameter Kurznamen geben und hier
+		// Objekt erstellen und je nach ob mit oder ohne Bndry entsprechend aufladen und averagen.....
+		// und zwar für jedes Segment einzeln, und abhängig von boundary oder nicht die boundary Geschichten
+		// dazu oder auch nicht...... also einen VecSegmentSides erstellen auch, das einzelne Objekt
+		// weiss dann, ob es eine Boundary ist..... vielleicht noch den Vektor dazu als übergebener Parameter
+		// damit man den da drin weiter reichen kann?
+		// wenn jedes Objekt des Vektors von SegmentSIdes sowohl seinen Vertex kennt als auch weiss,
+		// ob es boundary oder nicht ist, kann danach darüber geloopt werden, ohne nochmal
+		// aussen den Vertex mit geben zu müssen, oder die Info, ob bndry oder nicht.....
+		// danach gibts dann Funktionen, die alleine ein Objekt von der Sorte SegmentSides schlucken brauchen
+		// und hier nur ein Loop über den ganzen Vektor davon, wo für jedes Element dann die Fkt aufgerufen wird....
+
+		SegmentLimitingSides segLimSids( oldVrt, vrtxIsBndVrt );
+
+		for( AttachedVolumeElemInfo const & volElmInf : segVolsElInf )
+		{
+			if( ! segLimSids.schluckVecAttFractElm( volElmInf.getVecFractManifElem() ) )
+			{
+				UG_LOG("schlucken schief gegangen " << std::endl);
+				UG_THROW("schlucken schief gegangen " << std::endl);
+				return false;
+			}
+
+			Volume * vol2Add = volElmInf.getFulldimElem();
+			segLimSids.schluckFulldimElem(vol2Add);
+		}
+
+		if( ! segLimSids.averageAll() )
+		{
+			UG_LOG("keine Mittelung " << std::endl);
+			UG_THROW("keine Mittelung " << std::endl);
+			return false;
+		}
+
+//		for( SegmentLimitSidesPairSudoNorml segLimSiPSN : vecSegmLimSidPrSudoNorml )
+//		{
+//
+//		}
+
+		SegmentVrtxFracStatus segStatFract = segLimSids.spuckCrossingTyp();
+
+		switch( segStatFract )
+		{
+			case SegmentVrtxFracStatus::noFracSuDoAtt :
+			{
+				UG_LOG("is not a fracture, but a segment?" << std::endl);
+				UG_THROW("is not a fracture, but a segment?" << std::endl);
+				return false;
+			}
+			case SegmentVrtxFracStatus::oneFracSuDoAtt :
+			{
+				if( ! expandWithinTheSegment<SegmentVrtxFracStatus::oneFracSuDoAtt>(segLimSids) )
+				{
+					UG_LOG("Expandierung schief gegangen " << std::endl);
+					UG_THROW("Expandierung schief gegangen " << std::endl);
+					return false;
+				}
+				break;
+			}
+			case SegmentVrtxFracStatus::twoFracSuDoAtt :
+			{
+				break; // TODO FIXME implementieren
+			}
+			case SegmentVrtxFracStatus::threeFracSuDoAtt :
+			{
+				break; // TODO FIXME implementieren
+			}
+			default :
+			{
+				UG_LOG("strange fracture crossing" << std::endl);
+				UG_THROW("strange fracture crossing?" << std::endl);
+				return false;
+			}
+		}
+	}
+
+	UG_LOG("Vertex creation hat funktioniert " << std::endl);
+	//	UG_THROW("Vertex creation failed " << std::endl);
+
+	return true;
+}
+
+
+//		if( ! extracFractSudosOfSegment( svei, sudosInSegment ) )
+//		{
+//			UG_LOG("kann sudos nicht extrahieren " << std::endl);
+//			UG_THROW("kann sudos nicht extrahieren " << std::endl);
+//			return false;
+//		}
+//
+//		IndexType sudoNumInSeg = sudosInSegment.size();
+//
+//		// check if is boundary vertex
+//
+//		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+//
+//
+//		if( ! vrtxIsBndVrt )
+//		{
+//			// count number of fracture subdomains in the Segment, should have been done before......
+//
+//			// TODO FIXME ersetze das altmodische VrtxFracProptsStatus durch ein Zählen
+//			// der subdomains, die pro Segment wirklich vorkommen, nachdem die
+//			// auslaufenden fracture faces den generellen Faces zugeschlagen worden sind
+//			// HHHHHHHHHHHHHHHHHH hier sind wir
+//			// diese Zählweise ist die erste Folgeaufgabe, damit der komische vrtxFractureProperties Status
+//			// weg geworfen werden kann, der ist nämlich nutzlos inzwischen, da er auch auslaufende
+//			// fracture faces zählt, was Unsinn ist.......
+//			// später folgt auch die Verallgemeinerung auf boundary vertizes, dann muss deren Wahl
+//			// vielleicht wieder dazu genommen werden.....
+//
+//			//Vorbereitung Ersetzung VertexFractureProperties Status
+//			// durch Zählen der Fracture Subdomains von jedem Segment
+//			// die Zählerei kann dann gemacht werden, wenn die doppelten offenen fracture faces
+//			// in die allgemeinen faces verschoben werden, dann geht das in einem Abwasch,
+//			// gehe dazu in die entsprechende Funktion
+//
+////			if( vrtxFracPrps.getVrtxFracStatus() == VrtxFracProptsStatus::oneFracSuDoAtt )
+//			if( sudoNumInSeg == 1 )
+//			{
+//				// standard case, one fracture
+//				if( ! expandWithinTheSegment<1,false>( oldVrt, svei ) )
+//				{
+//					UG_LOG("Expandierung einfachster Fall schief gegangen " << std::endl);
+//					return false;
+//				}
+//			}
+//			else // unterscheiden zwei und drei vermutlich..... aber wichtiger Segmentzahl..... und dann kommt es darauf an, wieviele subdoms im einzelnen Segment sind
+//			{
+//				// TODO FIXME HHHHHHHHHHHHHHHHHHH
+//
+//			}
+//
+//		}
+//		else
+//		{
+//			// boundary faces counted as fracture faces, but no expansion
+//			// TODO FIXME HHHHHHHHHHHHHHHHHHH
+//			// zuerst aber die inneren Schnittvertizes, weil bei denen die Nicht-Null Expansion
+//			// gelernt werden kann, dann anzuwenden auf Null-Expansion senkrecht zu den boundaries......
+//		}
+//
+//	}
+
+//	UG_LOG("Vertex creation failed " << std::endl);
+//	UG_THROW("Vertex creation failed " << std::endl);
+//
+//
+//	return false;
+//
+
 
 ////////////////////////////////////////////////////////////////////
 
-bool ArteExpandFracs3D::extracFracttSudosOfSegment( SegmentVolElmInfo const & segmVolElmInfo, std::vector<ArteExpandFracs3D::IndexType> & sudosInSegment )
+#if 0
+bool ArteExpandFracs3D::extracFractSudosOfSegment( SegmentVolElmInfo const & segmVolElmInfo, std::vector<ArteExpandFracs3D::IndexType> & sudosInSegment )
 {
+
+
 	VecAttachedFractFaceEdgeSudo vecAttFractFaces;
 
 	for( AttachedVolumeElemInfo const & avei : segmVolElmInfo )
@@ -2844,11 +3028,96 @@ bool ArteExpandFracs3D::extracFracttSudosOfSegment( SegmentVolElmInfo const & se
 
 	return true;
 }
+#endif
 
 
 ////////////////////////////////////////////////////////////////////
 
 // for only one surrounding subdom around the segment, for example only one fracture, or T End like ending side
+
+template<>
+bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>( SegmentLimitingSides const & segmLimSides )
+{
+	VecSegmentLimitSidesPairSudoNorml vecSegmLimSidPrSudoNrml;
+
+	if( ! segmLimSides.spuckFractSudoNormls( vecSegmLimSidPrSudoNrml ) )
+	{
+		UG_LOG("Spucken schief gegangen eins " << std::endl);
+		UG_THROW("Spucken schief gegangen eins " << std::endl);
+		return false;
+	}
+
+	if( vecSegmLimSidPrSudoNrml.size() != 1 )
+	{
+		UG_LOG("only one fracture, but not one normal and sudo?"  <<  std::endl);
+		UG_THROW("only one fracture, but not one normal and sudo?" << std::endl);
+		return false;
+	}
+
+	SegmentLimitSidesPairSudoNorml & sudoAndNormal = vecSegmLimSidPrSudoNrml[0];
+
+	IndexType sudoBase = sudoAndNormal.first;
+	vector3 normalsAveraged = sudoAndNormal.second;
+
+	Vertex * oldVrt = segmLimSides.spuckVertex();
+
+	number width = m_fracInfosBySubset[sudoBase].width;
+
+	number scal = width / 2.;
+
+	NormalVectorFacIntoVol scaledNormal;
+
+	VecScale( scaledNormal, normalsAveraged, - scal );
+
+	vector3 posOldVrt = m_aaPos[oldVrt];
+
+	UG_LOG("NORMAL OLD VRTX " << posOldVrt << " -> " << normalsAveraged << std::endl );
+
+	vector3 posNewVrt;
+
+	VecAdd( posNewVrt, posOldVrt, scaledNormal );
+
+	Vertex * newShiftVrtx = *m_grid.create<RegularVertex>();
+
+	if( newShiftVrtx == nullptr )
+	{
+		UG_LOG("Nullen erzeugt" << std::endl);
+		UG_THROW("Nullen erzeugt" << std::endl);
+		return false;
+	}
+
+	m_aaPos[newShiftVrtx] = posNewVrt;
+
+	UG_LOG("Created new vertex at " << m_aaPos[newShiftVrtx] << std::endl );
+
+	m_sh.assign_subset(newShiftVrtx, sudoBase);
+
+	std::vector<Volume*> volsInSegm;
+
+	segmLimSides.spuckFulldimElemList( volsInSegm );
+
+	for( Volume * const & vol : volsInSegm )
+	{
+		std::vector<Vertex*> & newVrts4Fac = m_aaVrtVecVol[ vol ];
+
+		for(size_t indVrt = 0; indVrt < (vol)->num_vertices();  indVrt++ )
+		{
+			Vertex* volVrt = (vol)->vertex(indVrt);
+
+			if(  volVrt == oldVrt )
+			{
+				newVrts4Fac[ indVrt ] = newShiftVrtx;
+			}
+		}
+	}
+
+	return true;
+
+
+}
+
+
+#if 0
 template<>
 bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo )
 {
@@ -2954,7 +3223,7 @@ bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt
 
 	return true;
 }
-
+#endif
 
 
 ////////////////////////////////////////////////////////////////////
