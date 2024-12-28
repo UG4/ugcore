@@ -1433,6 +1433,8 @@ public:
 	  m_contribFulldimElm(std::vector<FULLDIM_ELEM>())
 	{};
 
+	bool const isBoundary() const { return m_isBoundary; }
+
 	VRTXTYP const spuckVertex() const
 	{
 		return m_vrt;

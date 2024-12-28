@@ -3038,6 +3038,15 @@ bool ArteExpandFracs3D::extracFractSudosOfSegment( SegmentVolElmInfo const & seg
 template<>
 bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>( SegmentLimitingSides const & segmLimSides )
 {
+	// should not be called for boundary vertices
+
+	if( segmLimSides.isBoundary() )
+	{
+		UG_LOG("one fracture at boundary should be treated different " << std::endl);
+		UG_THROW("one fracture at boundary should be treated different " << std::endl);
+		return false;
+	}
+
 	VecSegmentLimitSidesPairSudoNorml vecSegmLimSidPrSudoNrml;
 
 	if( ! segmLimSides.spuckFractSudoNormls( vecSegmLimSidPrSudoNrml ) )
