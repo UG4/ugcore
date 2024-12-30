@@ -958,7 +958,8 @@ private:
 
 
 // intention, explained for volume:
-template<typename FULLDIM_ELEM,
+template<
+typename FULLDIM_ELEM,
 typename MANIFELM,
 typename LOWDIMELM,
 typename INDEX_TXP,
@@ -1399,12 +1400,154 @@ private:
 //////////////////////////////////////////////////////////////////
 
 
+// Ebenentyp: a x1 + b x2 + c x3 = rhs, normal * ( vecX - baseVect ) = 0
+template<typename VECTOR_TYP>
+class ManifoldDescriptor
+{
+public:
+
+	enum ManifoldType { isFracture, isBoundary, isArtificial };
+
+	template<typename = std::enable_if<std::is_same<VECTOR_TYP,vector3>::value>>
+//			ManifoldDescriptor( int sudo = -1, number scaleShiftNormal = 0 )
+	ManifoldDescriptor()
+	: m_normalVect(vector3()),
+	  m_baseVect(vector3()),
+	  m_rhs(0),
+	  m_scaleShiftNormal(0),
+	  m_dim(3),
+	  m_sudo(-1),
+	  m_manifTyp( isArtificial )
+	{
+	}
+
+
+	template<typename = std::enable_if<std::is_same<VECTOR_TYP,vector3>::value>>
+	ManifoldDescriptor( VECTOR_TYP const & normalVect,
+						VECTOR_TYP const & baseVect,
+						int sudo = -1,
+						ManifoldType manifTyp = isArtificial,
+						number scaleShiftNormal = 0
+						)
+	: m_normalVect(normalVect),
+	  m_baseVect(baseVect),
+	  m_scaleShiftNormal(scaleShiftNormal),
+	  m_dim(3),
+	  m_sudo(sudo),
+	  m_manifTyp( manifTyp )
+	{
+		m_rhs = 0;
+
+		UG_LOG("Ebenenkoordinatenform ");
+
+		for( int i = 0; i < m_dim; i++ )
+		{
+			m_rhs += normalVect[i]*baseVect[i];
+
+			UG_LOG( " + " << normalVect[i] << " x_" << i << " " );
+		}
+
+		UG_LOG(" = " << m_rhs << std::endl);
+
+	}
+
+	VECTOR_TYP const & spuckNormalVector() const { return m_normalVect; }
+	VECTOR_TYP const & spuckBaseVector() const { return m_baseVect; }
+
+	int const spuckSudo() const { return m_sudo; }
+
+	ManifoldType const spuckManifTyp() const { return m_manifTyp; }
+
+	number const spuckScaleShiftNormal() const { return m_scaleShiftNormal; }
+
+	void schluckSudo( int sudo ) { m_sudo = sudo; }
+
+	void schluckManifTyp( ManifoldType manifTyp )  { m_manifTyp = manifTyp; }
+
+	void schluckScaleShiftNormal( number scaleShiftNormal )
+	{
+		m_scaleShiftNormal = scaleShiftNormal;
+	}
+
+	number const & spuckRHS() const { return m_rhs; }
+
+	template<typename = std::enable_if<    std::is_same<VECTOR_TYP,vector3>::value
+//										|| std::is_same<VECTOR_TYP,vector2>::value>
+									>
+	>
+	bool spuckPlaneShiftedAlong( VECTOR_TYP const & shiftVec, ManifoldDescriptor & manifoldDescr )
+	{
+		VECTOR_TYP shiftedBaseVect;
+//		number rhsShiftedPlane = 0;
+
+		VecAdd( shiftedBaseVect, m_baseVect, shiftVec );
+
+		UG_LOG("Ebenenkoordinatenform Shifted Plane " << std::endl);
+
+//		ManifoldDescriptor( VECTOR_TYP const & normalVect,
+//							VECTOR_TYP const & baseVect,
+//							int sudo = -1,
+//							ManifoldType = isArtificial,
+//							number scaleShiftNormal = 0
+//							)
+
+		manifoldDescr = ManifoldDescriptor( m_normalVect, shiftedBaseVect, m_sudo, m_manifTyp, 0 );
+
+		return true;
+
+	}
+
+	template<typename = std::enable_if<std::is_same<VECTOR_TYP,vector3>::value >>
+	bool spuckPlaneShifted( ManifoldDescriptor & manifoldDescr )
+	{
+
+		UG_LOG("Ebenenkoordinatenform Shifted Plane " << std::endl);
+
+		manifoldDescr = ManifoldDescriptor( m_normalVect, spuckShiftedBaseVect(), m_sudo, m_manifTyp, 0 );
+
+		return true;
+
+	}
+
+
+	template<typename = std::enable_if< std::is_same<VECTOR_TYP,vector3>::value>>
+	VECTOR_TYP spuckShiftedBaseVect()
+	{
+		VECTOR_TYP shiftVec;
+
+		VecScale(shiftVec, m_normalVect, m_scaleShiftNormal );
+
+		VECTOR_TYP shiftedBaseVec;
+
+		VecAdd( shiftedBaseVec, m_baseVect, shiftVec );
+
+		return shiftedBaseVec;
+	}
+
+private:
+
+	VECTOR_TYP m_normalVect;
+	VECTOR_TYP m_baseVect;
+	number m_rhs;
+	number m_scaleShiftNormal;
+
+	// could be defined as static const variable, but then depending on the template parameter
+	// might be an idea for future, but no real use, but would be "nice" from the meta programmig point of view
+	int m_dim;
+	int m_sudo;
+	ManifoldType m_manifTyp;
+};
+
+
+//////////////////////////////////////////////////////////////////
+
+
 template <
 typename FULLDIM_ELEM,
 typename MANIFELM,
 typename LOWDIMELM,
 typename INDEX_TXP,
-typename NORMAL_VEC,
+typename VECTOR_TYP,
 typename VRTXTYP
 >
 class SegmentSides
@@ -1416,11 +1559,22 @@ public:
 						  twoFracSuDoAtt = 2,
 						  threeFracSuDoAtt = 3 };
 
-	using AttFractElm = AttachedFractElem<MANIFELM, LOWDIMELM, INDEX_TXP, NORMAL_VEC>;
-	using AttBndryElm = AttachedBoundryElem<MANIFELM, LOWDIMELM, INDEX_TXP, NORMAL_VEC>;
+	using AttFractElm = AttachedFractElem<MANIFELM, LOWDIMELM, INDEX_TXP, VECTOR_TYP>;
+	using AttBndryElm = AttachedBoundryElem<MANIFELM, LOWDIMELM, INDEX_TXP, VECTOR_TYP>;
 
-	using PairSudoNormlV = std::pair<INDEX_TXP,NORMAL_VEC>;
+	using PairSudoNormlV = std::pair<INDEX_TXP,VECTOR_TYP>;
 	using VecPairSudoNormlV = std::vector<PairSudoNormlV>;
+	using ManifDescr = ManifoldDescriptor<VECTOR_TYP>;
+	using VecManifDescr = std::vector<ManifDescr>;
+
+	// TODO FIXME das soll gleich durch den Manifold Descriptor ersetzt werden
+	// oder eine Basisklasse von ihm, die nicht so viele Infos enthält
+	// aber mindestens NormalenVektor, Sudo, und ob Boundary oder Fracture
+	// kann auch vielleicht einfach eine Klasse sein, die noch einen Parameter enthält
+	// der sich abfragen lässt, auch als Template vielleicht, true false, fracture or not
+	// also was wie template < index, normal, bool > pairsudonormlbla, oder sowas.....
+	// oder man kann einen Parameter setzen für diese Klasse, die extern definiert wird......
+	// bool isFracture true false.....
 
 	SegmentSides( VRTXTYP const & vrt, bool isBndry = false )
 	: m_vrt(vrt),
@@ -1445,7 +1599,7 @@ public:
 		m_contribFulldimElm.push_back(fudielm);
 	}
 
-	void const spuckFulldimElemList( std::vector<FULLDIM_ELEM> & fudielm ) const
+	void spuckFulldimElemList( std::vector<FULLDIM_ELEM> & fudielm ) const
 	{
 		fudielm = m_contribFulldimElm;
 	}
@@ -1546,6 +1700,50 @@ public:
 		return true;
 	}
 
+	template<typename = std::enable_if< std::is_same<VECTOR_TYP,vector3>::value>>
+	bool const spuckFractManifDescr( VecManifDescr & vecManifDesc, Grid::VertexAttachmentAccessor<APosition> const & aaPos ) const
+	{
+		return spuckManifDescr<ManifDescr::ManifoldType::isFracture>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
+//		return spuckManifDescr<0>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
+	}
+
+
+//	bool spuckFractManifDescr( VecManifDescr & vecManifDesc, Grid::VertexAttachmentAccessor<APosition> const & aaPos )
+//	{
+//		if( ! m_averaged )
+//		{
+//			UG_LOG("please average " << std::endl);
+//			UG_THROW("please average " << std::endl);
+//			return false;
+//		}
+//
+//		VecPairSudoNormlV const & vecFractSudosNormlV = m_vecFractSudosNormlV;
+//
+//		vecManifDesc.clear();
+//
+//		for( PairSudoNormlV const & psn : vecFractSudosNormlV )
+//		{
+//			VECTOR_TYP posVrt = aaPos[m_vrt];
+//
+//			int sudo = psn.first;
+//			VECTOR_TYP normlVec = psn.second;
+//
+////			ManifoldDescriptor( VECTOR_TYP const & normalVect,
+////								VECTOR_TYP const & baseVect,
+////								int sudo = -1,
+////								ManifoldType = isArtificial,
+////								number scaleShiftNormal = 0
+////								)
+////
+//
+//			ManifDescr manifDesc( normlVec, posVrt, sudo, ManifDescr::ManifoldType::isFracture );
+//
+//			vecManifDesc.push_back( manifDesc );
+//		}
+//
+//		return true;
+//	}
+
 	bool spuckBndrySudoNormls( VecPairSudoNormlV & vecBndrySudosNormlV )
 	{
 		if( ! checkIfIsAtBndry() )
@@ -1561,6 +1759,13 @@ public:
 		vecBndrySudosNormlV = m_vecBndrySudosNormlV;
 
 		return true;
+	}
+
+	template<typename = std::enable_if< std::is_same<VECTOR_TYP,vector3>::value>>
+	bool const spuckBndryManifDescr( VecManifDescr & vecManifDesc, Grid::VertexAttachmentAccessor<APosition> const & aaPos ) const
+	{
+		return spuckManifDescr<ManifDescr::ManifoldType::isBoundary>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
+//		return spuckManifDescr<2>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
 	}
 
 
@@ -1642,12 +1847,12 @@ private:
 
 		for( INDEX_TXP sudo : sudoListSegment )
 		{
-			NORMAL_VEC normlAvrg;
+			VECTOR_TYP normlAvrg;
 
 			if( ! averageNormalForSpecificSudo( sudo, vecAttElm, normlAvrg ) )
 				return false;
 
-			std::pair<INDEX_TXP, NORMAL_VEC> sudoNorml( sudo, normlAvrg );
+			std::pair<INDEX_TXP, VECTOR_TYP> sudoNorml( sudo, normlAvrg );
 
 			vecPSudoNrml.push_back(sudoNorml);
 		}
@@ -1658,9 +1863,9 @@ private:
 	template <typename ATT_ELM,
 			  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
 			>
-	bool averageNormalForSpecificSudo( INDEX_TXP specfcSudo, std::vector<ATT_ELM> const & vecAttElm, NORMAL_VEC & normlAvrg )
+	bool averageNormalForSpecificSudo( INDEX_TXP specfcSudo, std::vector<ATT_ELM> const & vecAttElm, VECTOR_TYP & normlAvrg )
 	{
-		NORMAL_VEC normsSum(0,0,0);
+		VECTOR_TYP normsSum(0,0,0);
 		INDEX_TXP numContrNrmls = 0;
 
 		for( ATT_ELM const & ae : vecAttElm )
@@ -1669,9 +1874,9 @@ private:
 
 			if( specfcSudo == sudoElm )
 			{
-				NORMAL_VEC normElm = ae.getNormalVec();
+				VECTOR_TYP normElm = ae.getNormalVec();
 
-				NORMAL_VEC tmpSum = normsSum;
+				VECTOR_TYP tmpSum = normsSum;
 
 				VecAdd( normsSum, normElm, tmpSum );
 
@@ -1761,6 +1966,47 @@ private:
 		return m_isBoundary;
 	}
 
+//	template<ManifDescr::ManifoldType manifTyp,
+//	template<typename ManifDescr::ManifoldType manifTyp,
+	template<typename ManifDescr::ManifoldType manifTyp,
+			 typename = std::enable_if< std::is_same<VECTOR_TYP,vector3>::value>
+			>
+	bool const spuckManifDescr( VecManifDescr & vecManifDesc, Grid::VertexAttachmentAccessor<APosition> const & aaPos, VecPairSudoNormlV const & vecFractSudosNormlV ) const
+	{
+		if( ! m_averaged )
+		{
+			UG_LOG("please average " << std::endl);
+			UG_THROW("please average " << std::endl);
+			return false;
+		}
+
+		vecManifDesc.clear();
+
+		for( PairSudoNormlV const & psn : vecFractSudosNormlV )
+		{
+			VECTOR_TYP posVrt = aaPos[m_vrt];
+
+			int sudo = psn.first;
+			VECTOR_TYP normlVec = psn.second;
+
+//			ManifoldDescriptor( VECTOR_TYP const & normalVect,
+//								VECTOR_TYP const & baseVect,
+//								int sudo = -1,
+//								ManifoldType = isArtificial,
+//								number scaleShiftNormal = 0
+//								)
+//
+
+			UG_LOG("ASSIGN MANIF TYP " << manifTyp << std::endl);
+			ManifDescr manifDesc( normlVec, posVrt, sudo, manifTyp );
+
+			vecManifDesc.push_back( manifDesc );
+		}
+
+		return true;
+	}
+
+
 };
 
 //////////////////////////////////////////////////////////////////
@@ -1805,6 +2051,12 @@ bool switchFulldimInfo( VEC_AVEI & vecAttVolElemInfoCop,
 
 }
 #endif
+
+
+//////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
 
 }
 

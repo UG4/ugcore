@@ -2738,7 +2738,6 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 			// TODO FIXME ersetze das altmodische VrtxFracProptsStatus durch ein Zählen
 			// der subdomains, die pro Segment wirklich vorkommen, nachdem die
 			// auslaufenden fracture faces den generellen Faces zugeschlagen worden sind
-			// HHHHHHHHHHHHHHHHHH hier sind wir
 			// diese Zählweise ist die erste Folgeaufgabe, damit der komische vrtxFractureProperties Status
 			// weg geworfen werden kann, der ist nämlich nutzlos inzwischen, da er auch auslaufende
 			// fracture faces zählt, was Unsinn ist.......
@@ -2763,7 +2762,6 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 			}
 			else // unterscheiden zwei und drei vermutlich..... aber wichtiger Segmentzahl..... und dann kommt es darauf an, wieviele subdoms im einzelnen Segment sind
 			{
-				// TODO FIXME HHHHHHHHHHHHHHHHHHH
 
 			}
 
@@ -2771,7 +2769,6 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 		else
 		{
 			// boundary faces counted as fracture faces, but no expansion
-			// TODO FIXME HHHHHHHHHHHHHHHHHHH
 			// zuerst aber die inneren Schnittvertizes, weil bei denen die Nicht-Null Expansion
 			// gelernt werden kann, dann anzuwenden auf Null-Expansion senkrecht zu den boundaries......
 		}
@@ -2781,6 +2778,11 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 	return true;
 }
 #endif
+
+///////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////
 
 
 bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
@@ -2834,6 +2836,8 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 
 		SegmentLimitingSides segLimSids( oldVrt, vrtxIsBndVrt );
 
+//		std::vector<Volume*> vecVolsOfSegment;
+
 		for( AttachedVolumeElemInfo const & volElmInf : segVolsElInf )
 		{
 			if( ! segLimSids.schluckVecAttFractElm( volElmInf.getVecFractManifElem() ) )
@@ -2859,41 +2863,56 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 //
 //		}
 
-		SegmentVrtxFracStatus segStatFract = segLimSids.spuckCrossingTyp();
+//		expandWithinTheSegment<SegmentVrtxFracStatus::oneFracSuDoAtt>(segLimSids
 
-		switch( segStatFract )
+		if( ! expandWithinTheSegment(segLimSids) )
 		{
-			case SegmentVrtxFracStatus::noFracSuDoAtt :
-			{
-				UG_LOG("is not a fracture, but a segment?" << std::endl);
-				UG_THROW("is not a fracture, but a segment?" << std::endl);
-				return false;
-			}
-			case SegmentVrtxFracStatus::oneFracSuDoAtt :
-			{
-				if( ! expandWithinTheSegment<SegmentVrtxFracStatus::oneFracSuDoAtt>(segLimSids) )
-				{
-					UG_LOG("Expandierung schief gegangen " << std::endl);
-					UG_THROW("Expandierung schief gegangen " << std::endl);
-					return false;
-				}
-				break;
-			}
-			case SegmentVrtxFracStatus::twoFracSuDoAtt :
-			{
-				break; // TODO FIXME implementieren
-			}
-			case SegmentVrtxFracStatus::threeFracSuDoAtt :
-			{
-				break; // TODO FIXME implementieren
-			}
-			default :
-			{
-				UG_LOG("strange fracture crossing" << std::endl);
-				UG_THROW("strange fracture crossing?" << std::endl);
-				return false;
-			}
+			UG_LOG("schief gegangen Vertex Erzeugung " << std::endl);
+			UG_THROW("schief gegangen Vertex Erzeugung " << std::endl);
+			return false;
 		}
+
+//		SegmentVrtxFracStatus segStatFract = segLimSids.spuckCrossingTyp();
+//
+//		switch( segStatFract )
+//		{
+//			case SegmentVrtxFracStatus::noFracSuDoAtt :
+//			{
+//				UG_LOG("is not a fracture, but a segment?" << std::endl);
+//				UG_THROW("is not a fracture, but a segment?" << std::endl);
+//				return false;
+//			}
+//			case SegmentVrtxFracStatus::oneFracSuDoAtt :
+//			{
+//				if( ! expandWithinTheSegment<SegmentVrtxFracStatus::oneFracSuDoAtt,false,false>(segLimSids, vecVolsOfSegment) )
+//				{
+//					UG_LOG("Expandierung 1 schief gegangen " << std::endl);
+//					UG_THROW("Expandierung 1 schief gegangen " << std::endl);
+//					return false;
+//				}
+//				break;
+//			}
+//			case SegmentVrtxFracStatus::twoFracSuDoAtt :
+//			{
+//				break; // TODO FIXME implementieren
+//			}
+//			case SegmentVrtxFracStatus::threeFracSuDoAtt :
+//			{
+//				if( ! expandWithinTheSegment<SegmentVrtxFracStatus::threeFracSuDoAtt,false,false>(segLimSids, vecVolsOfSegment) )
+//				{
+//					UG_LOG("Expandierung 3 schief gegangen " << std::endl);
+//					UG_THROW("Expandierung 3 schief gegangen " << std::endl);
+//					return false;
+//				}
+//				break;
+//			}
+//			default :
+//			{
+//				UG_LOG("strange fracture crossing" << std::endl);
+//				UG_THROW("strange fracture crossing?" << std::endl);
+//				return false;
+//			}
+//		}
 	}
 
 	UG_LOG("Vertex creation hat funktioniert " << std::endl);
@@ -2924,7 +2943,6 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 //			// TODO FIXME ersetze das altmodische VrtxFracProptsStatus durch ein Zählen
 //			// der subdomains, die pro Segment wirklich vorkommen, nachdem die
 //			// auslaufenden fracture faces den generellen Faces zugeschlagen worden sind
-//			// HHHHHHHHHHHHHHHHHH hier sind wir
 //			// diese Zählweise ist die erste Folgeaufgabe, damit der komische vrtxFractureProperties Status
 //			// weg geworfen werden kann, der ist nämlich nutzlos inzwischen, da er auch auslaufende
 //			// fracture faces zählt, was Unsinn ist.......
@@ -2949,7 +2967,6 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 //			}
 //			else // unterscheiden zwei und drei vermutlich..... aber wichtiger Segmentzahl..... und dann kommt es darauf an, wieviele subdoms im einzelnen Segment sind
 //			{
-//				// TODO FIXME HHHHHHHHHHHHHHHHHHH
 //
 //			}
 //
@@ -2957,7 +2974,6 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 //		else
 //		{
 //			// boundary faces counted as fracture faces, but no expansion
-//			// TODO FIXME HHHHHHHHHHHHHHHHHHH
 //			// zuerst aber die inneren Schnittvertizes, weil bei denen die Nicht-Null Expansion
 //			// gelernt werden kann, dann anzuwenden auf Null-Expansion senkrecht zu den boundaries......
 //		}
@@ -3034,57 +3050,159 @@ bool ArteExpandFracs3D::extracFractSudosOfSegment( SegmentVolElmInfo const & seg
 ////////////////////////////////////////////////////////////////////
 
 // for only one surrounding subdom around the segment, for example only one fracture, or T End like ending side
-
-template<>
-bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>( SegmentLimitingSides const & segmLimSides )
+// TODO FIXME alles in eine einzige Funktion, die verschiedene Unterfunktionen aufruft für verschiedene Zahlen
+// von Seiten innen und aussen!!!!
+//template<>
+//bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>( SegmentLimitingSides const & segmLimSides )
+bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimitingSides const & segmLimSides )
 {
 	// should not be called for boundary vertices
 
-	if( segmLimSides.isBoundary() )
+	bool isBndry = segmLimSides.isBoundary();
+
+	if( isBndry )
 	{
-		UG_LOG("one fracture at boundary should be treated different " << std::endl);
-		UG_THROW("one fracture at boundary should be treated different " << std::endl);
+		UG_LOG("boundary noch zu behandeln " << std::endl);
+		UG_THROW("boundary noch zu behandeln " << std::endl);
 		return false;
 	}
 
-	VecSegmentLimitSidesPairSudoNorml vecSegmLimSidPrSudoNrml;
+//	VecSegmentLimitSidesPairSudoNorml vecSegmLimSidPrSudoNrml;
+	VecPlaneDescriptor vecPlaneDescr;
 
-	if( ! segmLimSides.spuckFractSudoNormls( vecSegmLimSidPrSudoNrml ) )
+	//	if( ! segmLimSides.spuckFractSudoNormls( vecSegmLimSidPrSudoNrml ) )
+	if( ! segmLimSides.spuckFractManifDescr( vecPlaneDescr, m_aaPos ) )
 	{
-		UG_LOG("Spucken schief gegangen eins " << std::endl);
-		UG_THROW("Spucken schief gegangen eins " << std::endl);
+		UG_LOG("Spucken schief gegangen  " << segmLimSides.spuckCrossingTyp() << std::endl);
+		UG_THROW("Spucken schief gegangen  " << segmLimSides.spuckCrossingTyp() << std::endl);
 		return false;
 	}
 
-	if( vecSegmLimSidPrSudoNrml.size() != 1 )
-	{
-		UG_LOG("only one fracture, but not one normal and sudo?"  <<  std::endl);
-		UG_THROW("only one fracture, but not one normal and sudo?" << std::endl);
-		return false;
-	}
-
-	SegmentLimitSidesPairSudoNorml & sudoAndNormal = vecSegmLimSidPrSudoNrml[0];
-
-	IndexType sudoBase = sudoAndNormal.first;
-	vector3 normalsAveraged = sudoAndNormal.second;
+	// falls Boundary, hier noch spuckBndryManifDescr aufrufen
 
 	Vertex * oldVrt = segmLimSides.spuckVertex();
+//	vector3 posOldVrt = m_aaPos[oldVrt];
 
-	number width = m_fracInfosBySubset[sudoBase].width;
+	VecPlaneDescriptor vecShiftedPlaneDescript;
 
-	number scal = width / 2.;
+//	for( SegmentLimitSidesPairSudoNorml const & segLimSidPrSN : vecSegmLimSidPrSudoNrml )
+	for( PlaneDescriptor & planeDescr : vecPlaneDescr )
+	{
+		UG_LOG("GOT MANIF TYP " << planeDescr.spuckManifTyp() << std::endl );
+//		IndexType const & sudoSide = segLimSidPrSN.first;
+//		vector3 const & normlAvrg = segLimSidPrSN.second;
+//
+//		// normal computed standard mässig directs of of the volume, we need that one into the volume
+//		vector3 normalOutsideVol;
 
-	NormalVectorFacIntoVol scaledNormal;
+		// hier testen, ob die Subdomain von der Liste der fracture subdomains ist,
+		// damit für den Fall von sich zwei schneidenden Ebenen für die dritte,
+		// die als senkrecht zu den beiden anderen gesetzt werden soll, mit Verschiebung null,
+		// analog Boundary sides, die künstliche Weite null erhalten kann hier
+		number width = 0;
+//
+		int sudoSide = planeDescr.spuckSudo();
 
-	VecScale( scaledNormal, normalsAveraged, - scal );
+		// ensure that the width is nonzero only for real fractures, not for pseudo vectors or such stuff
+		if( ! isBndry )
+		{
+			if( planeDescr.spuckManifTyp() == PlaneDescriptorType::isFracture )
+			{
+				width = m_fracInfosBySubset[sudoSide].width;
+			}
+			else
+			{
+				UG_LOG("Manif Typ is " << planeDescr.spuckManifTyp() << std::endl );
+				UG_LOG("Fract wäre " << PlaneDescriptorType::isFracture << std::endl );
+				UG_LOG("Bndry wäre " << PlaneDescriptorType::isBoundary << std::endl );
+				UG_LOG("Artif wäre " << PlaneDescriptorType::isArtificial << std::endl );
 
-	vector3 posOldVrt = m_aaPos[oldVrt];
+				UG_THROW("keine Boundary, aber will Boundary Manif" << std::endl);
+			}
+		}
 
-	UG_LOG("NORMAL OLD VRTX " << posOldVrt << " -> " << normalsAveraged << std::endl );
 
-	vector3 posNewVrt;
+//		else
+//		{
+//	TODO FIXME		bei boundary auch noch für die entsprechenden boundaries
+//		}
 
-	VecAdd( posNewVrt, posOldVrt, scaledNormal );
+		number shiftScal = width / 2.;
+		planeDescr.schluckScaleShiftNormal( - shiftScal );
+
+//		vector3 shiftVec4Plane;
+//
+//		// as normal outside vol, but we need to go inside the volumes / segment side
+//		VecScale( shiftVec4Plane, normalOutsideVol, - shiftScal );
+
+//		vecShiftVec4Plane.push_back( shiftVec4Plane );
+//		vecSudosSides.push_back( sudoSide );
+//		vecNormalsAveraged.push_back( normalIntoVol );
+
+//		PlaneDescriptor planeDescr( normalOutsideVol, posOldVrt, shiftScal );
+
+		PlaneDescriptor shiftedPlaneDescr;
+		planeDescr.spuckPlaneShifted( shiftedPlaneDescr );
+
+		//		planeDescr.spuckPlaneShiftedAlong( shiftVec4Plane, shiftedPlaneDescr );
+
+		vecShiftedPlaneDescript.push_back( shiftedPlaneDescr );
+	}
+
+	// will get the sudo of the shifted vertex
+	IndexType sudoExample = (vecPlaneDescr[0]).spuckSudo();
+	vector3 posNewVrt; // to be determined depending on the segment properties
+
+	if( ! isBndry && vecShiftedPlaneDescript.size() == 1 )
+	{
+//		// one single inner fracture, Testfall Anfang
+//		computeShiftVector( vecShiftedPlaneDescript[0] );
+		posNewVrt = (vecPlaneDescr[0]).spuckShiftedBaseVect();
+	}
+	else
+	{
+		// vector shifted plane descriptor kriegt was dazu, wenn es keine drei sind ohne boundary
+		vector3 shiftedCrossingPoint;
+
+		computeCrossingPointOf3Planes( vecShiftedPlaneDescript, shiftedCrossingPoint );
+
+	}
+
+
+
+//	if( vecSegmLimSidPrSudoNrml.size() != 1 )
+//	{
+//		UG_LOG("only one fracture, but not one normal and sudo?"  <<  std::endl);
+//		UG_THROW("only one fracture, but not one normal and sudo?" << std::endl);
+//		return false;
+//	}
+
+	// FALL eins extra Funktion, unterscheiden nach Länge
+
+//	if(  )
+
+
+//	SegmentLimitSidesPairSudoNorml & sudoAndNormal = vecSegmLimSidPrSudoNrml[0];
+//
+//	IndexType sudoBase = sudoAndNormal.first;
+//	vector3 normalsAveraged = sudoAndNormal.second;
+//
+//	Vertex * oldVrt = segmLimSides.spuckVertex();
+//
+//	number width = m_fracInfosBySubset[sudoBase].width;
+//
+//	number scal = width / 2.;
+//
+//	NormalVectorFacIntoVol scaledNormal;
+//
+//	VecScale( scaledNormal, normalsAveraged, - scal );
+//
+//	vector3 posOldVrt = m_aaPos[oldVrt];
+//
+//	UG_LOG("NORMAL OLD VRTX " << posOldVrt << " -> " << normalsAveraged << std::endl );
+
+
+//	VecAdd( posNewVrt, posOldVrt, scaledNormal );
 
 	Vertex * newShiftVrtx = *m_grid.create<RegularVertex>();
 
@@ -3099,7 +3217,8 @@ bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFra
 
 	UG_LOG("Created new vertex at " << m_aaPos[newShiftVrtx] << std::endl );
 
-	m_sh.assign_subset(newShiftVrtx, sudoBase);
+//	m_sh.assign_subset(newShiftVrtx, sudoExample);
+//	m_sh.assign_subset(newShiftVrtx, m_sh.num_subsets());
 
 	std::vector<Volume*> volsInSegm;
 
@@ -3236,6 +3355,130 @@ bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt
 
 
 ////////////////////////////////////////////////////////////////////
+
+//template<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>
+//bool ArteExpandFracs3D::computeShiftVector( ArteExpandFracs3D::VecSegmentLimitSidesPairSudoNorml const & vecSegmLimSidPrSudoNrml )
+//{
+//	return {};
+//}
+
+
+////////////////////////////////////////////////////////////////////
+
+// TODO FIXME muss verschwinden!
+//template<>
+//bool ArteExpandFracs3D::computeShiftVector( VecSegmentLimitSidesPairSudoNorml const & vecSegmLimSidPrSudoNrml )
+////bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::threeFracSuDoAtt>( SegmentLimitingSides const & segmLimSides )
+//{
+//	// wenn es nur zwei Segmentnormalen und sudos sind, dann wird die dritte auf Normale senkrecht zu
+//	// den beiden anderen gesetzt, und um Null verschoben, ihr
+//
+////	if( segmLimSides.isBoundary() )
+////	{
+////		UG_LOG("three fracture at boundary need implementation " << std::endl);
+////		UG_THROW("three fracture at boundary need implementation " << std::endl);
+////		return false;
+////	}
+//
+////	VecSegmentLimitSidesPairSudoNorml vecSegmLimSidPrSudoNrml;
+//
+//	Vertex * oldVrt = segmLimSides.spuckVertex();
+//
+//	if( ! segmLimSides.spuckFractSudoNormls( vecSegmLimSidPrSudoNrml ) )
+//	{
+//		UG_LOG("Spucken schief gegangen three " << std::endl);
+//		UG_THROW("Spucken schief gegangen three " << std::endl);
+//		return false;
+//	}
+//
+//	if( vecSegmLimSidPrSudoNrml.size() != 3 )
+//	{
+//		UG_LOG("three fractures, but not three normals and sudo?"  <<  std::endl);
+//		UG_THROW("three fracture, but not three normal and sudo?" << std::endl);
+//		return false;
+//	}
+//
+//	// select one of the sudos of the sourrounding sudos of the segment, to which we want to assign the new vertex
+//	IndexType sudoExample = (vecSegmLimSidPrSudoNrml[0]).first;
+//
+////	std::vector<IndexType> vecSudosSides;
+////	std::vector<vector3> vecNormalsAveraged;
+////	std::vector<vector3> vecShiftVec4Plane;
+//
+//	vector3 posOldVrt = m_aaPos[oldVrt];
+//
+//	VecPlaneDescriptor vecShiftedPlaneDescript;
+//
+////	IndexType side = 0;
+//
+//	for( SegmentLimitSidesPairSudoNorml const & segLimSidPrSN : vecSegmLimSidPrSudoNrml )
+//	{
+//		IndexType const & sudoSide = segLimSidPrSN.first;
+//		vector3 const & normlAvrg = segLimSidPrSN.second;
+//
+//		// normal computed standard mässig directs of of the volume, we need that one into the volume
+//		vector3 normalOutsideVol;
+//
+//		// hier testen, ob die Subdomain von der Liste der fracture subdomains ist,
+//		// damit für den Fall von sich zwei schneidenden Ebenen für die dritte,
+//		// die als senkrecht zu den beiden anderen gesetzt werden soll, mit Verschiebung null,
+//		// analog Boundary sides, die künstliche Weite null erhalten kann hier
+//		number width = 0;
+//
+//		// ensure that the width is nonzero only for real fractures, not for pseudo vectors or such stuff
+//		if( ( side == 1 && ! artificialNormalTwo ) ||  ( side == 2 && ! artificialNormalThree ) )
+//			width = m_fracInfosBySubset[sudoSide].width;
+//
+//		side++;
+//
+//		number shiftScal = width / 2.;
+//
+//		vector3 shiftVec4Plane;
+//
+//		// as normal outside vol, but we need to go inside the volumes / segment side
+//		VecScale( shiftVec4Plane, normalOutsideVol, - shiftScal );
+//
+////		vecShiftVec4Plane.push_back( shiftVec4Plane );
+////		vecSudosSides.push_back( sudoSide );
+////		vecNormalsAveraged.push_back( normalIntoVol );
+//
+//		PlaneDescriptor planeDescr( normalOutsideVol, posOldVrt );
+//
+//		PlaneDescriptor shiftedPlaneDescr;
+//
+//		planeDescr.spuckPlaneShiftedAlong( shiftVec4Plane, shiftedPlaneDescr );
+//
+//		vecShiftedPlaneDescript.push_back( shiftedPlaneDescr );
+//	}
+//
+//	// KÄSE alles!!! wenn es eine boundary ist oder eine Kreuzung von zwei Ebenen innendrin,
+//	// dann muss hier DANACH noch was dazu kommen, das heisst, alles, was hier gemacht wird,
+//	// soll für den Fall sein, dass es keine einzelne Fracture innen drin ist,
+//	// und alle bool template Parameter sind MÜLL!!!!
+//	// das für zwei Fractures muss hier auch dazu
+//	// vielleicht am einfachsten, wenn man den template parameter auf true oder false stellt
+//	// für eine fracture innen oder allen anderen Rest......
+//
+//	// TODO FIXME compute crossing point of the three new planes!!!! need functions from lib_disc, cf FiniteStrainMechanics, solve LGS exact
+//
+//	vector3 shiftedCrossingPoint;
+//
+//	computeCrossingPointOf3Planes( vecShiftedPlaneDescript, shiftedCrossingPoint );
+//
+//	return true;
+//}
+
+////////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::computeCrossingPointOf3Planes(  VecPlaneDescriptor const & vecPlaneDescr, vector3 & crossingPoint )
+{
+
+	return {};
+}
+
+////////////////////////////////////////////////////////////////////
+
+
 
 #if 0
 //template <>

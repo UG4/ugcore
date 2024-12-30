@@ -318,19 +318,43 @@ private:
 public:
 	using SegmentLimitingSides = support::SegmentSides<Volume*,Face*,Edge*,IndexType,vector3,Vertex*>;
 
-	using SegmentLimitSidesPairSudoNorml = SegmentLimitingSides::PairSudoNormlV;
-
-	using VecSegmentLimitSidesPairSudoNorml = SegmentLimitingSides::VecPairSudoNormlV;
+//	using SegmentLimitSidesPairSudoNorml = SegmentLimitingSides::PairSudoNormlV;
+//
+//	using VecSegmentLimitSidesPairSudoNorml = SegmentLimitingSides::VecPairSudoNormlV;
 
 	using SegmentVrtxFracStatus = SegmentLimitingSides::VrtxFracStatus;
 
 private:
-	template< SegmentVrtxFracStatus seVrtFracStat >
+
+	// the artificial normals are for the case of two crossing fractures inside, and the case
+	// of boundary vertices, i.e. one fracture at one boundary sudo, two fracture at one boundary sudo, one fracture at two boundary sudos
+//	template< SegmentVrtxFracStatus seVrtFracStat >
 	bool expandWithinTheSegment( SegmentLimitingSides const & segmLimSides );
+
+	using PlaneDescriptor = support::ManifoldDescriptor<vector3>;
+
+	using VecPlaneDescriptor = std::vector<PlaneDescriptor>;
+
+	using PlaneDescriptorType = PlaneDescriptor::ManifoldType;
+
+	bool computeCrossingPointOf3Planes( VecPlaneDescriptor const & vecPlaneDescr, vector3 & crossingPoint );
+
+//	template<SegmentVrtxFracStatus svfs>
+	// For the case of one inner fracture
+//	bool computeShiftVector( VecPlaneDescriptor const & vecPl );
+
+	// For the case of two and three inner fractures, and
+	// the case of one or two fractures at one outer boundary subdomain
+	// for the case of one fracture at one outer boundary subdomain
+//	bool computeShiftVector( VecSegmentLimitSidesPairSudoNorml const & vecSegmLimSidPrSudoNrml );
 
 };
 
 // specification has to be declared outside central class context, else compilation error
+
+//template<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>
+//bool computeShiftVector( );
+
 
 // for only one surrounding subdom around the segment
 //template<>
@@ -341,8 +365,12 @@ private:
 
 //template<>
 //bool ArteExpandFracs3D::expandWithinTheSegment<ArteOneFractCrossSegment>( SegmentLimitingSides const & segmLimSides );
-template<>
-bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>( SegmentLimitingSides const & segmLimSides );
+//template<>
+//bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>( SegmentLimitingSides const & segmLimSides );
+//
+//
+//template<bool artificialNormalTwo, bool artificialNormalThree>
+//bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::threeFracSuDoAtt>( SegmentLimitingSides const & segmLimSides, std::vector<Volume*> const & vecVolsOfSegment );
 
 
 //template <>
