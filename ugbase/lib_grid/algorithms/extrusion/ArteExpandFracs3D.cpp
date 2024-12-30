@@ -64,6 +64,8 @@
 
 #include <lib_grid/algorithms/extrusion/ArteExpandFracs3D.h>
 
+#include "simpleMatrixOps.h"
+
 
 
 namespace ug
@@ -3161,10 +3163,32 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 	}
 	else
 	{
-		// vector shifted plane descriptor kriegt was dazu, wenn es keine drei sind ohne boundary
-		vector3 shiftedCrossingPoint;
+		if( ! isBndry && vecShiftedPlaneDescript.size() > 1 )
+		{
+			vector3 posOldVrt = m_aaPos[oldVrt];
 
-		computeCrossingPointOf3Planes( vecShiftedPlaneDescript, shiftedCrossingPoint );
+			if( vecShiftedPlaneDescript.size() == 2 )
+			{
+				// we need to add an artificial plane which gets extended with scale 0
+
+				vector3 artificialNormal;
+				VecCross( artificialNormal, vecShiftedPlaneDescript[0].spuckNormalVector(), vecShiftedPlaneDescript[1].spuckNormalVector() );
+
+				PlaneDescriptor artificialPlane( artificialNormal, posOldVrt );
+
+				vecShiftedPlaneDescript.push_back(artificialPlane);
+			}
+
+			// now we should have three planes to cross
+
+		}
+
+		// vector shifted plane descriptor kriegt was dazu, wenn es keine drei sind ohne boundary
+
+		if( vecShiftedPlaneDescript.size() != 3 )
+			UG_THROW("wie gross soll es denn sein" << std::endl);
+
+		computeCrossingPointOf3Planes( vecShiftedPlaneDescript, posNewVrt );
 
 	}
 
@@ -3472,8 +3496,41 @@ bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt
 
 bool ArteExpandFracs3D::computeCrossingPointOf3Planes(  VecPlaneDescriptor const & vecPlaneDescr, vector3 & crossingPoint )
 {
+	// n_i * vecX_i = a_i * n_i , i=1,2,3, ohne Summenkonvention, und n_i, vecX_i, a_i jeweils Vektoren Grösse 3
+	// es entsteht also ein LGS für drei Unbekannte und drei Gleichungen
 
-	return {};
+//	 vector<vector<double>> coefficients = {{2, 1}, {1, -3}};
+//	 vector<double> constants = {5, -1};
+//	 vector<double> solutions = cramer_rule(coefficients, constants);
+//	 cout << "Solution for x: " << solutions[0] << endl;
+//	 cout << "Solution for y: " << solutions[1] << endl;
+
+	PlaneDescriptor const & planeDescrZero = vecPlaneDescr[0];
+	PlaneDescriptor const & planeDescrOne = vecPlaneDescr[1];
+	PlaneDescriptor const & planeDescrTwo = vecPlaneDescr[2];
+
+	vector3 const & normalZero = planeDescrZero.spuckNormalVector();
+	vector3 const & normalOne = planeDescrOne.spuckNormalVector();
+	vector3 const & normalTwo = planeDescrTwo.spuckNormalVector();
+
+	number const & rhsZero = planeDescrZero.spuckRHS();
+	number const & rhsOne = planeDescrOne.spuckRHS();
+	number const & rhsTwo = planeDescrTwo.spuckRHS();
+
+
+
+	std::vector<std::vector<double>> coefficients = { {normalZero[0], normalZero[1], normalZero[2]},
+													  {normalOne[0], normalOne[1], normalOne[2]},
+													  {normalTwo[0], normalTwo[1], normalTwo[2]},
+													};
+
+	std::vector<double> constants = { rhsZero, rhsOne, rhsTwo };
+
+	std::vector<double> solutions = ug::simpleMatrOps::cramerRule(coefficients, constants);
+
+	crossingPoint = vector3( solutions[0], solutions[1], solutions[2] );
+
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////
