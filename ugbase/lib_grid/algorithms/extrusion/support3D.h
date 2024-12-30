@@ -1628,8 +1628,8 @@ public:
 
 	bool schluckVecAttBndryElm( std::vector<AttBndryElm> const & vecAtBndryEl )
 	{
-		if( ! checkIfIsAtBndry() )
-			return false;
+//		if( ! checkIfIsAtBndry() )
+//			return false;
 
 		return schluckVecAttElm( vecAtBndryEl, m_vecAttBndryElms );
 	}
@@ -1655,8 +1655,8 @@ public:
 
 	bool schluckAttBndryElm( AttBndryElm const & afeNew )
 	{
-		if( ! checkIfIsAtBndry() )
-			return false;
+//		if( ! checkIfIsAtBndry() )
+//			return false;
 
 		return schluckAttElm( afeNew, m_vecAttBndryElms );
 
@@ -1701,9 +1701,12 @@ public:
 	}
 
 	template<typename = std::enable_if< std::is_same<VECTOR_TYP,vector3>::value>>
-	bool const spuckFractManifDescr( VecManifDescr & vecManifDesc, Grid::VertexAttachmentAccessor<APosition> const & aaPos ) const
+	bool const spuckFractManifDescr( VecManifDescr & vecManifDesc,
+									 Grid::VertexAttachmentAccessor<APosition> const & aaPos,
+									 bool clearDescVec = true
+	) const
 	{
-		return spuckManifDescr<ManifDescr::ManifoldType::isFracture>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
+		return spuckManifDescr<ManifDescr::ManifoldType::isFracture>( vecManifDesc, aaPos, m_vecFractSudosNormlV, clearDescVec );
 //		return spuckManifDescr<0>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
 	}
 
@@ -1746,8 +1749,8 @@ public:
 
 	bool spuckBndrySudoNormls( VecPairSudoNormlV & vecBndrySudosNormlV )
 	{
-		if( ! checkIfIsAtBndry() )
-			return false;
+//		if( ! checkIfIsAtBndry() )
+//			return false;
 
 		if( ! m_averaged )
 		{
@@ -1762,10 +1765,13 @@ public:
 	}
 
 	template<typename = std::enable_if< std::is_same<VECTOR_TYP,vector3>::value>>
-	bool const spuckBndryManifDescr( VecManifDescr & vecManifDesc, Grid::VertexAttachmentAccessor<APosition> const & aaPos ) const
+	bool const spuckBndryManifDescr( VecManifDescr & vecManifDesc,
+									 Grid::VertexAttachmentAccessor<APosition> const & aaPos,
+									 bool clearDescVec = true
+	) const
 	{
-		return spuckManifDescr<ManifDescr::ManifoldType::isBoundary>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
-//		return spuckManifDescr<2>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
+		return spuckManifDescr<ManifDescr::ManifoldType::isBoundary>( vecManifDesc, aaPos, m_vecBndrySudosNormlV, clearDescVec );
+		//		return spuckManifDescr<2>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
 	}
 
 
@@ -1906,7 +1912,7 @@ private:
 	{
 		if( m_isBoundary )
 		{
-			return averageNormlForEachSudo( m_vecAttFractElms, m_vecFractSudosNormlV );
+			return averageNormlForEachSudo( m_vecAttBndryElms, m_vecBndrySudosNormlV );
 		}
 		else
 		{
@@ -1971,7 +1977,11 @@ private:
 	template<typename ManifDescr::ManifoldType manifTyp,
 			 typename = std::enable_if< std::is_same<VECTOR_TYP,vector3>::value>
 			>
-	bool const spuckManifDescr( VecManifDescr & vecManifDesc, Grid::VertexAttachmentAccessor<APosition> const & aaPos, VecPairSudoNormlV const & vecFractSudosNormlV ) const
+	bool const spuckManifDescr( VecManifDescr & vecManifDesc,
+								Grid::VertexAttachmentAccessor<APosition> const & aaPos,
+								VecPairSudoNormlV const & vecFractSudosNormlV,
+								bool clearDescVec = true
+	) const
 	{
 		if( ! m_averaged )
 		{
@@ -1980,7 +1990,8 @@ private:
 			return false;
 		}
 
-		vecManifDesc.clear();
+		if( clearDescVec )
+			vecManifDesc.clear();
 
 		for( PairSudoNormlV const & psn : vecFractSudosNormlV )
 		{

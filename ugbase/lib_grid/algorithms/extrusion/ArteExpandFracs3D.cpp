@@ -826,11 +826,16 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 					// gilt sowohl für fracture faces, die können das in erster Runde auch sein am Ende
 					// der Runde, sowie danach nur noch für nicht-fracture-faces
 
-					if( IsBoundaryFace3D( m_grid, fac ) )
+//					if( IsBoundaryFace3D( m_grid, fac ) )
+					if( isBoundaryFace )
 					{
 						AttachedBndryFaceEdgeSudo afesBndry( fac, edgesFaceVrtx, sudoThisFace, normalIntoVol );
 
 						attVolElmInfo.addBndryManifElem( afesBndry, m_grid );
+
+						UG_LOG("Boundary element added" << m_aaPos[vrt] << " -> " << normalIntoVol << std::endl);
+
+//						UG_THROW("da ist es " << std::endl);
 
 						// TODO FIXME sehr wichtig, die Boundary faces brauchen auch
 						// noch ihre Normale in das Volumen hinein, analog zu den Fracture faces!!!
@@ -1187,7 +1192,8 @@ bool ArteExpandFracs3D::seletForSegmented()
 		bool isBnd = vrtxFracPrps.getIsBndFracVertex();
 
 //		bool wahl = ( vecSegVolElmInf.size() > 1 );
-		bool wahl = ( vecSegVolElmInf.size() > 1 && ! isBnd );
+//		bool wahl = ( vecSegVolElmInf.size() > 1 && ! isBnd );
+		bool wahl = ( vecSegVolElmInf.size() > 1 );
 		// TODO FIXME danach vielleicht auch fuer boundary wieder selektieren
 		// sobald die Boundary Behandlung wie Pseudo Fracture mit Expansion null
 		// aber solange die bounaries nicht behandelt werden, führt
@@ -1444,7 +1450,17 @@ bool ArteExpandFracs3D::stasiAlgo( Vertex * const & oldVrt )
 		assoVolElemInfo.push_back(avei);
 	}
 
-
+//	if( vrtxFracPrps.getIsBndFracVertex() )
+//	{
+//		for( AttachedVolumeElemInfo ave : assoVolElemInfo )
+//		{
+//			UG_LOG("BONDVERT " << m_aaPos[oldVrt] << " -> " << ave.getVecBndryManifElem().size()  << std::endl);
+//			if(  ave.getVecBndryManifElem().size() == 0 )
+//			{
+//				UG_THROW("VERLUST" << std::endl);
+//			}
+//		}
+//	}
 
 	// von copy und paste angepasst, die unsinnige Verdopplung von vecAttVolElemInfo und assoVolElemInfo
 	// vielleicht noch entfernen
@@ -2799,11 +2815,11 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 
 	UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
 
-	if( vrtxIsBndVrt )
-	{
-		UG_LOG("boundary noch zu lösen, bisher nix machen" << std::endl);
-		return true;
-	}
+//	if( vrtxIsBndVrt )
+//	{
+//		UG_LOG("boundary noch zu lösen, bisher nix machen" << std::endl);
+//		return true;
+//	}
 
 	VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[oldVrt];
 
@@ -2849,6 +2865,19 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 				return false;
 			}
 
+			if( vrtxIsBndVrt )
+			{
+				if( ! segLimSids.schluckVecAttBndryElm( volElmInf.getVecBndryManifElem() ) )
+				{
+					UG_LOG("schlucken B schief gegangen " << std::endl);
+					UG_THROW("schlucken B schief gegangen " << std::endl);
+					return false;
+				}
+
+				if( (volElmInf.getVecBndryManifElem()).size() == 0  )
+					UG_LOG("Grenze verloren gegangen " << m_aaPos[oldVrt] << std::endl);
+			}
+
 			Volume * vol2Add = volElmInf.getFulldimElem();
 			segLimSids.schluckFulldimElem(vol2Add);
 		}
@@ -2859,6 +2888,11 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 			UG_THROW("keine Mittelung " << std::endl);
 			return false;
 		}
+
+//		if( vrtxIsBndVrt )
+//		{
+//			if( segLimSids. )
+//		}
 
 //		for( SegmentLimitSidesPairSudoNorml segLimSiPSN : vecSegmLimSidPrSudoNorml )
 //		{
@@ -3062,18 +3096,21 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 	bool isBndry = segmLimSides.isBoundary();
 
-	if( isBndry )
-	{
-		UG_LOG("boundary noch zu behandeln " << std::endl);
-		UG_THROW("boundary noch zu behandeln " << std::endl);
-		return false;
-	}
+//	if( isBndry )
+//		return true;
+
+//	if( isBndry )
+//	{
+//		UG_LOG("boundary noch zu behandeln " << std::endl);
+//		UG_THROW("boundary noch zu behandeln " << std::endl);
+//		return false;
+//	}
 
 //	VecSegmentLimitSidesPairSudoNorml vecSegmLimSidPrSudoNrml;
-	VecPlaneDescriptor vecPlaneDescr;
+	VecPlaneDescriptor vecPlaneFracDescr;
 
 	//	if( ! segmLimSides.spuckFractSudoNormls( vecSegmLimSidPrSudoNrml ) )
-	if( ! segmLimSides.spuckFractManifDescr( vecPlaneDescr, m_aaPos ) )
+	if( ! segmLimSides.spuckFractManifDescr( vecPlaneFracDescr, m_aaPos ) )
 	{
 		UG_LOG("Spucken schief gegangen  " << segmLimSides.spuckCrossingTyp() << std::endl);
 		UG_THROW("Spucken schief gegangen  " << segmLimSides.spuckCrossingTyp() << std::endl);
@@ -3083,12 +3120,12 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 	// falls Boundary, hier noch spuckBndryManifDescr aufrufen
 
 	Vertex * oldVrt = segmLimSides.spuckVertex();
-//	vector3 posOldVrt = m_aaPos[oldVrt];
+	vector3 posOldVrt = m_aaPos[oldVrt];
 
 	VecPlaneDescriptor vecShiftedPlaneDescript;
 
 //	for( SegmentLimitSidesPairSudoNorml const & segLimSidPrSN : vecSegmLimSidPrSudoNrml )
-	for( PlaneDescriptor & planeDescr : vecPlaneDescr )
+	for( PlaneDescriptor & planeDescr : vecPlaneFracDescr )
 	{
 		UG_LOG("GOT MANIF TYP " << planeDescr.spuckManifTyp() << std::endl );
 //		IndexType const & sudoSide = segLimSidPrSN.first;
@@ -3101,27 +3138,34 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 		// damit für den Fall von sich zwei schneidenden Ebenen für die dritte,
 		// die als senkrecht zu den beiden anderen gesetzt werden soll, mit Verschiebung null,
 		// analog Boundary sides, die künstliche Weite null erhalten kann hier
-		number width = 0;
+
+		if( planeDescr.spuckManifTyp() != PlaneDescriptorType::isFracture )
+			UG_THROW("muss fracture sein " << std::endl);
 //
 		int sudoSide = planeDescr.spuckSudo();
+		number width = m_fracInfosBySubset[sudoSide].width;;
 
 		// ensure that the width is nonzero only for real fractures, not for pseudo vectors or such stuff
-		if( ! isBndry )
-		{
-			if( planeDescr.spuckManifTyp() == PlaneDescriptorType::isFracture )
-			{
-				width = m_fracInfosBySubset[sudoSide].width;
-			}
-			else
-			{
-				UG_LOG("Manif Typ is " << planeDescr.spuckManifTyp() << std::endl );
-				UG_LOG("Fract wäre " << PlaneDescriptorType::isFracture << std::endl );
-				UG_LOG("Bndry wäre " << PlaneDescriptorType::isBoundary << std::endl );
-				UG_LOG("Artif wäre " << PlaneDescriptorType::isArtificial << std::endl );
-
-				UG_THROW("keine Boundary, aber will Boundary Manif" << std::endl);
-			}
-		}
+//		if( ! isBndry )
+//		{
+//			if( planeDescr.spuckManifTyp() == PlaneDescriptorType::isFracture )
+//			{
+//				width = m_fracInfosBySubset[sudoSide].width;
+//			}
+//			else
+//			{
+//				UG_LOG("Manif Typ is " << planeDescr.spuckManifTyp() << std::endl );
+//				UG_LOG("Fract wäre " << PlaneDescriptorType::isFracture << std::endl );
+//				UG_LOG("Bndry wäre " << PlaneDescriptorType::isBoundary << std::endl );
+//				UG_LOG("Artif wäre " << PlaneDescriptorType::isArtificial << std::endl );
+//
+//				UG_THROW("keine Boundary, aber will Boundary Manif" << std::endl);
+//			}
+//		}
+//		else
+//		{
+//			UG_THROW("hier nur keine boundary" << std::endl);
+//		}
 
 
 //		else
@@ -3152,20 +3196,19 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 	}
 
 	// will get the sudo of the shifted vertex
-	IndexType sudoExample = (vecPlaneDescr[0]).spuckSudo();
+	IndexType sudoExample = (vecPlaneFracDescr[0]).spuckSudo();
 	vector3 posNewVrt; // to be determined depending on the segment properties
 
 	if( ! isBndry && vecShiftedPlaneDescript.size() == 1 )
 	{
 //		// one single inner fracture, Testfall Anfang
 //		computeShiftVector( vecShiftedPlaneDescript[0] );
-		posNewVrt = (vecPlaneDescr[0]).spuckShiftedBaseVect();
+		posNewVrt = (vecPlaneFracDescr[0]).spuckShiftedBaseVect();
 	}
 	else
 	{
 		if( ! isBndry && vecShiftedPlaneDescript.size() > 1 )
 		{
-			vector3 posOldVrt = m_aaPos[oldVrt];
 
 			if( vecShiftedPlaneDescript.size() == 2 )
 			{
@@ -3179,7 +3222,99 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 				vecShiftedPlaneDescript.push_back(artificialPlane);
 			}
 
+			if( vecShiftedPlaneDescript.size() > 3  )
+				UG_THROW("too much fractures" << std::endl);
+
 			// now we should have three planes to cross
+
+		}
+		else if( isBndry )
+		{
+			VecPlaneDescriptor vecPlaneBndryDescr;
+
+			//	if( ! segmLimSides.spuckFractSudoNormls( vecSegmLimSidPrSudoNrml ) )
+			if( ! segmLimSides.spuckBndryManifDescr( vecPlaneBndryDescr, m_aaPos ) )
+			{
+				UG_LOG("Spucken schief gegangen bndry " << segmLimSides.spuckCrossingTyp() << std::endl);
+				UG_THROW("Spucken schief gegangen bndry " << segmLimSides.spuckCrossingTyp() << std::endl);
+				return false;
+			}
+
+			if( vecPlaneBndryDescr.size() < 1 )
+			{
+				UG_LOG("at point " << m_aaPos[oldVrt] << std::endl);
+
+				UG_THROW("NO boundary sudos " << std::endl);
+			}
+
+			if( vecPlaneBndryDescr.size() > 2 )
+			{
+				UG_LOG("dudos" << std::endl);
+				for( PlaneDescriptor pd : vecPlaneBndryDescr )
+				{
+					int sudo = pd.spuckSudo();
+					UG_LOG("sudos " << sudo << std::endl);
+
+				}
+				UG_LOG("at point " << m_aaPos[oldVrt] << std::endl);
+				UG_THROW("too much boundary sudos " << vecPlaneBndryDescr.size() << std::endl);
+			}
+
+
+			if( vecShiftedPlaneDescript.size() + vecPlaneBndryDescr.size() > 3 )
+				UG_THROW("too much crossing stuff at boundary"<<std::endl);
+
+			for( PlaneDescriptor pbd : vecPlaneBndryDescr )
+			{
+				vecShiftedPlaneDescript.push_back( pbd );
+			}
+
+			if( vecPlaneBndryDescr.size() == 2 )
+			{
+				if( vecShiftedPlaneDescript.size() != 3 ||  vecPlaneFracDescr.size() != 1 )
+					UG_THROW("noch nicht genug Grenzen " << std::endl);
+			}
+			else if( vecPlaneBndryDescr.size() == 1 )
+			{
+				if( vecShiftedPlaneDescript.size() < 3 )
+					UG_LOG("noch nicht genug Grenzen " << std::endl);
+
+				if( vecShiftedPlaneDescript.size() > 3 )
+					UG_LOG("too much Grenzen " << std::endl);
+
+				if( vecPlaneFracDescr.size() != 1 && vecPlaneFracDescr.size() != 2 )
+					UG_THROW("Nicht passend Fract plus Bndry" << std::endl);
+
+//				if( vecPlaneFracDescr.size() == 1 && vecPlaneFracDescr.size() == 2 )
+//					if( vecShiftedPlaneDescript.size() != 3 )
+//						UG_THROW"SO viele unsinnige Kombinationen " << std::endl );
+
+				if( vecPlaneFracDescr.size() == 2 )
+				{
+					if( vecShiftedPlaneDescript.size() != 3 )
+						UG_THROW("da passt nicht zusammen was 3 sein sollte" << std::endl);
+
+					// sonst nix zu tun
+				}
+				else if( vecPlaneFracDescr.size() == 1 )
+				{
+					if( vecShiftedPlaneDescript.size() != 2 )
+						UG_LOG("1+2 nicht 3" << std::endl);
+
+					// add an artificial perpendicular plane with move vector zero
+
+					vector3 artificialNormal;
+					VecCross( artificialNormal, vecShiftedPlaneDescript[0].spuckNormalVector(), vecShiftedPlaneDescript[1].spuckNormalVector() );
+
+					PlaneDescriptor artificialPlane( artificialNormal, posOldVrt );
+
+					vecShiftedPlaneDescript.push_back(artificialPlane);
+
+				}
+
+
+
+			}
 
 		}
 
@@ -3241,7 +3376,7 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 	UG_LOG("Created new vertex at " << m_aaPos[newShiftVrtx] << std::endl );
 
-//	m_sh.assign_subset(newShiftVrtx, sudoExample);
+	m_sh.assign_subset(newShiftVrtx, sudoExample);
 //	m_sh.assign_subset(newShiftVrtx, m_sh.num_subsets());
 
 	std::vector<Volume*> volsInSegm;
