@@ -29,11 +29,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
- 
-#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_ITERS__
-#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_ITERS__
 
 #include <tuple>
+#include <vector>
 
 namespace ug{
 
@@ -192,4 +190,3 @@ std::tuple<non_dirichlet_iterator<TAlgebra>, non_dirichlet_iterator<TAlgebra> > 
 
 } //namespace
 
-#endif //guard
