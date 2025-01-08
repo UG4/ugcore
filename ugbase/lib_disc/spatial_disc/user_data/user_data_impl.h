@@ -274,7 +274,7 @@ register_storage_callback(DataImport<TData,dim>* obj, void (DataImport<TData,dim
 {
 	typedef std::pair<DataImport<TData,dim>*, CallbackFct> Pair;
 	//	m_vCallback.push_back(Pair(obj,func));
-	m_vCallback.push_back(Pair(obj, boost::bind(func, obj)));
+	m_vCallback.push_back(Pair(obj, std::bind(func, obj)));
 }
 
 template <typename TData, int dim, typename TRet>

@@ -33,7 +33,7 @@
 #ifndef __H__UG__message_hub_impl__
 #define __H__UG__message_hub_impl__
 
-#include <boost/bind/bind.hpp>
+//#include <boost/bind/bind.hpp>
 
 namespace ug
 {
@@ -58,9 +58,12 @@ register_class_callback(TClass* cls,
 {
 	typedef void (TClass::*ClassCallback)(const IMessage&);
 
+	//return register_callback_impl<TMsg>(
+	//				boost::bind((ClassCallback)callback, cls, boost::placeholders::_1),
+	//				autoFree);
 	return register_callback_impl<TMsg>(
-					boost::bind((ClassCallback)callback, cls, boost::placeholders::_1),
-					autoFree);
+		std::bind((ClassCallback)callback, cls, std::placeholders::_1),
+		autoFree);
 }
 
 
@@ -82,7 +85,7 @@ post_message(const TMsg& msg)
 
 template <class TMsg>
 MessageHub::SPCallbackId MessageHub::
-register_callback_impl(boost::function<void (const IMessage&)> callback,
+register_callback_impl(std::function<void (const IMessage&)> callback,
 					   bool autoFree)
 {
 	size_t id = GetUniqueTypeID<TMsg>();
