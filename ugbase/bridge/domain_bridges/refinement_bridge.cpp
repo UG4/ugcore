@@ -1512,31 +1512,6 @@ void MarkNeighborsForLocalRefinement(IRefiner& refiner, bool sideNbrsOnly)
 }
 
 
-
-template <class TDomain>
-void MarkForRefinement_AnisotropicDirection (
-		TDomain& dom,
-		IRefiner& refiner,
-		const MathVector<TDomain::dim>& dir,
-		number minEdgeRatio)
-{
-	MarkForRefinement_AnisotropicDirection_<TDomain>
-	(dom, refiner, dir, minEdgeRatio, RM_CLOSURE);
-}
-
-
-template <class TDomain>
-void MarkForRefinement_AnisotropicDirection2 (
-		TDomain& dom,
-		IRefiner& refiner,
-		const MathVector<TDomain::dim>& dir,
-		number minEdgeRatio, std::string markType)
-{
-	MarkForRefinement_AnisotropicDirection_<TDomain>
-	(dom, refiner, dir, minEdgeRatio, StringToRefinementMark(markType));
-}
-
-		
 template <class TDomain>
 void MarkForRefinement_AnisotropicDirection_ (
 		TDomain& dom,
@@ -1609,6 +1584,33 @@ void MarkForRefinement_AnisotropicDirection_ (
 		}
 	}lg_end_for;
 }
+
+
+template <class TDomain>
+void MarkForRefinement_AnisotropicDirection (
+		TDomain& dom,
+		IRefiner& refiner,
+		const MathVector<TDomain::dim>& dir,
+		number minEdgeRatio)
+{
+	MarkForRefinement_AnisotropicDirection_<TDomain>
+	(dom, refiner, dir, minEdgeRatio, RM_CLOSURE);
+}
+
+
+template <class TDomain>
+void MarkForRefinement_AnisotropicDirection2 (
+		TDomain& dom,
+		IRefiner& refiner,
+		const MathVector<TDomain::dim>& dir,
+		number minEdgeRatio, std::string markType)
+{
+	MarkForRefinement_AnisotropicDirection_<TDomain>
+	(dom, refiner, dir, minEdgeRatio, StringToRefinementMark(markType));
+}
+
+
+
 
 template <class TDomain>
 void MarkForRefinement_EdgeDirection (
