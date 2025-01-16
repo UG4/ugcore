@@ -557,58 +557,63 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 	//	now make sure that no inner edge is associated with two
 	//	boundary vertices (referring to the selection)
 
-	std::vector<Edge*> tmpEdges;
+	constexpr bool splitEdgesTwoBdryVrt = false;
 
-	for(EdgeIterator iterEdg = m_sel.begin<Edge>(); iterEdg != m_sel.end<Edge>(); iterEdg++ )
+	if( splitEdgesTwoBdryVrt )
 	{
-		Edge* edg = *iterEdg;
 
-		Vertex * vrtZer = edg->vertex(0);
-		Vertex * vrtOne = edg->vertex(1);
+		std::vector<Edge*> tmpEdges;
 
-		VertxFracPropts & vrtxFracPrpsVrtZer = m_aaMarkVrtVFP[ vrtZer ];
-		VertxFracPropts & vrtxFracPrpsVrtOne = m_aaMarkVrtVFP[ vrtOne ];
-		VertxFracPropts & edgeFracPrps = m_aaMarkEdgeVFP[ edg ];
-
-		if(      vrtxFracPrpsVrtZer.getIsBndFracVertex()
-			&&   vrtxFracPrpsVrtOne.getIsBndFracVertex()
-			&& ! edgeFracPrps.getIsBndFracVertex()
-		)
+		for(EdgeIterator iterEdg = m_sel.begin<Edge>(); iterEdg != m_sel.end<Edge>(); iterEdg++ )
 		{
-			tmpEdges.push_back(edg);
+			Edge* edg = *iterEdg;
+
+			Vertex * vrtZer = edg->vertex(0);
+			Vertex * vrtOne = edg->vertex(1);
+
+			VertxFracPropts & vrtxFracPrpsVrtZer = m_aaMarkVrtVFP[ vrtZer ];
+			VertxFracPropts & vrtxFracPrpsVrtOne = m_aaMarkVrtVFP[ vrtOne ];
+			VertxFracPropts & edgeFracPrps = m_aaMarkEdgeVFP[ edg ];
+
+			if(      vrtxFracPrpsVrtZer.getIsBndFracVertex()
+				&&   vrtxFracPrpsVrtOne.getIsBndFracVertex()
+				&& ! edgeFracPrps.getIsBndFracVertex()
+			)
+			{
+				tmpEdges.push_back(edg);
+			}
+
 		}
 
-	}
-
-	for( Edge * edg : tmpEdges )
-	{
-		vector3 center = CalculateCenter(edg, m_aaPos);
-		RegularVertex* vrt = SplitEdge<RegularVertex>(m_grid, edg, false);
-		m_aaPos[vrt] = center;
-		m_sel.select(vrt);
-		auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
-		vrtxFracPrps++;
-
-		vrtxFracPrps.setIsBndFracVertex(false);
-
-		//	assign adjacency values for associated selected edges (2 to each)
-		for(Grid::AssociatedEdgeIterator iterEdg  = m_grid.associated_edges_begin(vrt);
-										 iterEdg != m_grid.associated_edges_end(vrt);
-										 iterEdg++
-		)
+		for( Edge * edg : tmpEdges )
 		{
-			Edge * assoEdg = *iterEdg;
+			vector3 center = CalculateCenter(edg, m_aaPos);
+			RegularVertex* vrt = SplitEdge<RegularVertex>(m_grid, edg, false);
+			m_aaPos[vrt] = center;
+			m_sel.select(vrt);
+			auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
+			vrtxFracPrps++;
 
-			if( m_sel.is_selected(assoEdg) )
+			vrtxFracPrps.setIsBndFracVertex(false);
+
+			//	assign adjacency values for associated selected edges (2 to each)
+			for(Grid::AssociatedEdgeIterator iterEdg  = m_grid.associated_edges_begin(vrt);
+											 iterEdg != m_grid.associated_edges_end(vrt);
+											 iterEdg++
+			)
 			{
-				auto & edgFracPrps = m_aaMarkEdgeVFP[assoEdg];
-				edgFracPrps.setIsBndFracVertex(false);
+				Edge * assoEdg = *iterEdg;
+
+				if( m_sel.is_selected(assoEdg) )
+				{
+					auto & edgFracPrps = m_aaMarkEdgeVFP[assoEdg];
+					edgFracPrps.setIsBndFracVertex(false);
+				}
 			}
 		}
+
+		// TODO FIXME unsicher, ob das hier richtig übertragen von Prof. Reiter......
 	}
-
-	// TODO FIXME unsicher, ob das hier richtig übertragen von Prof. Reiter......
-
 
 #if 0
 
