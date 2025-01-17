@@ -295,7 +295,7 @@ private:
 	using VecSegmentVolElmInfo = std::vector<SegmentVolElmInfo>;
 
 	bool stasiAlgo( Vertex * const & oldVrt );
-	bool prepareStasi( Vertex * const & vrt, AttachedVolumeElemInfo & attVolElmInfo );
+	int prepareStasi( Vertex * const & vrt, AttachedVolumeElemInfo & attVolElmInfo );
 
 	using AttVecSegmentVolElmInfo = Attachment<VecSegmentVolElmInfo>;
 

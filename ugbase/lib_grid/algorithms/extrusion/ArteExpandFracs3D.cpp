@@ -553,7 +553,7 @@ int ArteExpandFracs3D::splitInnerFreeFracEdgs()
 					}
 				}
 
-				if( ! innerEdges == 1 )
+				if( innerEdges != 1 )
 				{
 					UG_LOG("inner edge number strange " << innerEdges << std::endl);
 					UG_THROW("inner edge number strange " << innerEdges << std::endl);
@@ -1077,17 +1077,23 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 }
 
-bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemInfo & attVolElmInfo )
+int ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemInfo & attVolElmInfo )
 {
+	// NOTE returns number of boundary faces
+
 	// Voraussetzung  FÜR StammiBene Aufrufung
 	// Stammi-Bene-Vorbereitung
 //	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
-	{
+//	{
 //		Vertex* vrt = *iter;
 
 //		std::vector<Volume*> & attVol = m_aaVrtInfoAssoVols[vrt];
 
-		auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
+	auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
+
+//	bool isBndryVrtx = vrtxFracPrps.getIsBndFracVertex();
+
+	IndexType numBndryFacs = 0;
 
 		// TODO FIXME das hier soll wegfallen, und an dieser Stelle direkt berechnet werden
 		// damit es einheitlich für echte fracture faces und auch für boundary faces gilt,
@@ -1106,9 +1112,9 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 		// über m_aaVolElmInfo
 //		for( auto & vol : attVol )
 //		for( AttachedVolumeElemInfo & attVolElmInfo : vecVolElmInfo )
-		{
+//		{
 //			AttachedVolumeElemInfo attVolElmInfo( vol );
-			Volume * vol = attVolElmInfo.getFulldimElem();
+	Volume * vol = attVolElmInfo.getFulldimElem();
 
 			// add those faces which are fracture faces
 			// TODO FIXME hier müssen die fracture faces neu erzeugt und addiert werden, oder weiter unten.....
@@ -1122,102 +1128,106 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 
 			// collect all volume faces which incorporate the vertex
 
-			std::vector<Face*> volFacesContainingVrtx;
+	std::vector<Face*> volFacesContainingVrtx;
 
-			for( IndexType iFac = 0; iFac < vol->num_faces(); iFac++ )
-			{
-				Face * fac = m_grid.get_face(vol,iFac);
+	for( IndexType iFac = 0; iFac < vol->num_faces(); iFac++ )
+	{
+		Face * fac = m_grid.get_face(vol,iFac);
 
-				if( FaceContains( fac, vrt ) )
-				{
-					volFacesContainingVrtx.push_back( fac );
-				}
-			}
+		if( FaceContains( fac, vrt ) )
+		{
+			volFacesContainingVrtx.push_back( fac );
+		}
+	}
 
-			for( auto const & fac : volFacesContainingVrtx )
-			{
+	for( auto const & fac : volFacesContainingVrtx )
+	{
 				// get the edges of the face connected to the vertex
 
-				std::vector<Edge*> vecEdgesFaceVrtx;
+		std::vector<Edge*> vecEdgesFaceVrtx;
 
 				// need to be two edges always, check
 
-				for( IndexType iEdge = 0; iEdge < fac->num_edges(); iEdge++ )
-				{
-					Edge * edg = m_grid.get_edge(fac,iEdge);
+		for( IndexType iEdge = 0; iEdge < fac->num_edges(); iEdge++ )
+		{
+			Edge * edg = m_grid.get_edge(fac,iEdge);
 
-					if( EdgeContains(edg,vrt) )
-					{
-						vecEdgesFaceVrtx.push_back(edg);
-					}
-				}
+			if( EdgeContains(edg,vrt) )
+			{
+				vecEdgesFaceVrtx.push_back(edg);
+			}
+		}
 
-				if( vecEdgesFaceVrtx.size() != 2 )
-				{
-					UG_LOG("edge number Unsinn " << vecEdgesFaceVrtx.size() << std::endl);
-					UG_THROW("edge number Unsinn " << vecEdgesFaceVrtx.size() << std::endl);
-					return false;
-				}
+		if( vecEdgesFaceVrtx.size() != 2 )
+		{
+			UG_LOG("edge number Unsinn " << vecEdgesFaceVrtx.size() << std::endl);
+			UG_THROW("edge number Unsinn " << vecEdgesFaceVrtx.size() << std::endl);
+			return false;
+		}
 
-				EdgePair edgesFaceVrtx( vecEdgesFaceVrtx[0], vecEdgesFaceVrtx[1] );
+		EdgePair edgesFaceVrtx( vecEdgesFaceVrtx[0], vecEdgesFaceVrtx[1] );
 
 				// test the subdomain first, if from the subdomains of the cleft manifolds
 
-				IndexType sudoThisFace = m_sh.get_subset_index(fac);
+		IndexType sudoThisFace = m_sh.get_subset_index(fac);
 
-				std::vector<IndexType> const & sudoList = vrtxFracPrps.getSudoList();
+		std::vector<IndexType> const & sudoList = vrtxFracPrps.getSudoList();
 
 				// test if sudo of face belongs to the fracture face subdom list
 
-				bool faceBelongsToFracSudo = false;
+		bool faceBelongsToFracSudo = false;
 
-				for( auto const & sudoFrac : sudoList )
-				{
-					if( sudoFrac == sudoThisFace )
-					{
-						faceBelongsToFracSudo = true;
-						break;
-					}
-				}
+		for( auto const & sudoFrac : sudoList )
+		{
+			if( sudoFrac == sudoThisFace )
+			{
+				faceBelongsToFracSudo = true;
+				break;
+			}
+		}
 
 				// TODO FIXME für Boundary faces und für Fracture faces soll die Normale berechnet werden ins VOlumen hinein
 				// hier die KuhVol-Prozedur
 
-				bool isBoundaryFace = false;
+		bool isBoundaryFace = false;
 
-				if( ! faceBelongsToFracSudo )
-				{
-					if( IsBoundaryFace3D( m_grid, fac ) )
-					{
-						isBoundaryFace = true;
-					}
-				}
+		if( ! faceBelongsToFracSudo )
+		{
+			if( IsBoundaryFace3D( m_grid, fac ) )
+			{
+				isBoundaryFace = true;
+			}
+		}
 
-				if( isBoundaryFace && faceBelongsToFracSudo )
-					UG_THROW("not allowed to be fracture at boundary" << std::endl);
+		if( isBoundaryFace && faceBelongsToFracSudo )
+			UG_THROW("not allowed to be fracture at boundary" << std::endl);
 
-				// will get a nonzero value in case that fracture face or boundary face
-				NormalVectorFacIntoVol normalIntoVol(0,0,0);
+		// will get a nonzero value in case that fracture face or boundary face
+		NormalVectorFacIntoVol normalIntoVol(0,0,0);
 
-				if( isBoundaryFace || faceBelongsToFracSudo )
-				{
-					// TODO FIXME compute normal into volume, needed to know!!!
+		if( isBoundaryFace || faceBelongsToFracSudo )
+		{
+				// TODO FIXME compute normal into volume, needed to know!!!
 					// kuhVol Procedure
-					if( ! computeNormalKuhVolProcedure(vol,fac,normalIntoVol) )
-						return false;
-				}
+			if( ! computeNormalKuhVolProcedure(vol,fac,normalIntoVol) )
+			{
+				UG_LOG("Kuh VOl schief gegangen " << std::endl);
+				UG_THROW("Kuh VOl schief gegangen " << std::endl);
+				return numBndryFacs;
+			}
+		}
 
-				if( faceBelongsToFracSudo )
-				{
+		if( faceBelongsToFracSudo )
+		{
 					// if it belongs, construct it again and test if it already belongs to the fracture faces
 					// MUST be already part of the list, else major error appeared!
 
-					UG_LOG("Kuh Normale " << normalIntoVol << std::endl);
+			UG_LOG("Kuh Normale " << normalIntoVol << std::endl);
 
-					AttachedFractFaceEdgeSudo afesFract( fac, edgesFaceVrtx, sudoThisFace, normalIntoVol );
+			AttachedFractFaceEdgeSudo afesFract( fac, edgesFaceVrtx, sudoThisFace, normalIntoVol );
 					//  hier soll auch gleich die Normale relativ zum VOlumen dazu gespeichert werden!!
 
-					attVolElmInfo.addFractManifElem( afesFract, m_grid );
+			attVolElmInfo.addFractManifElem( afesFract, m_grid );
 
 					// vorher soll es nicht mehr gespeichert werden, da die Infos vorher weg fallen sollen
 //					if( attVolElmInfo.addFractManifElem( afesFract, m_grid ) )
@@ -1229,11 +1239,11 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 
 					// nothing to do, already added before hoffentlich
 
-				}
-				else
-				{
+		}
+		else
+		{
 					// TODO FIXME hier muss entschieden werden, ob es eine boundary face ist
-					// die kommt dann auch nochmal in ein anderes Konstrukt, was aber
+			// die kommt dann auch nochmal in ein anderes Konstrukt, was aber
 					// dem fracture face ähnelt
 					// am Ende müssen die Frac Faces, die nicht geschlossen sind, und doppelt in einem Segment
 					// in die general faces verschoben werden, da stören sie nicht, und sind egal
@@ -1253,19 +1263,20 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 					// ein face bei der nächsten weiter inneren Runde quasi äussere Begrenzung sein muss
 					// gilt sowohl für fracture faces, die können das in erster Runde auch sein am Ende
 					// der Runde, sowie danach nur noch für nicht-fracture-faces
-
 //					if( IsBoundaryFace3D( m_grid, fac ) )
-					if( isBoundaryFace )
-					{
-						AttachedBndryFaceEdgeSudo afesBndry( fac, edgesFaceVrtx, sudoThisFace, normalIntoVol );
+			if( isBoundaryFace )
+			{
+				AttachedBndryFaceEdgeSudo afesBndry( fac, edgesFaceVrtx, sudoThisFace, normalIntoVol );
 
-						attVolElmInfo.addBndryManifElem( afesBndry, m_grid );
+				attVolElmInfo.addBndryManifElem( afesBndry, m_grid );
 
-						UG_LOG("Boundary element added" << m_aaPos[vrt] << " -> " << normalIntoVol << std::endl);
+				UG_LOG("Boundary element added" << m_aaPos[vrt] << " -> " << normalIntoVol << std::endl);
 
-//						UG_THROW("da ist es " << std::endl);
+				numBndryFacs++;
 
-						// TODO FIXME sehr wichtig, die Boundary faces brauchen auch
+//							UG_THROW("da ist es " << std::endl);
+
+				// TODO FIXME sehr wichtig, die Boundary faces brauchen auch
 						// noch ihre Normale in das Volumen hinein, analog zu den Fracture faces!!!
 						// die haben die allerdings dummerweise in die boundary vertizes gesteckt
 						// vielleicht boundaries wie fractures behandeln? keine gute Idee......
@@ -1273,23 +1284,28 @@ bool ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemIn
 						// sondern extra in den vertex fracture tripeln
 						// vielleicht dort die boundaries irgendwie dazu würgen.....
 
-					}
-					else // normal face, no fracture, no boundary
-					{
-						AttachedGenerFaceEdgeSudo afesAdd( fac, edgesFaceVrtx );
+			}
+			else // normal face, no fracture, no boundary
+			{
+				AttachedGenerFaceEdgeSudo afesAdd( fac, edgesFaceVrtx );
 
-						attVolElmInfo.addGenerManifElem( afesAdd, m_grid );
-					}
-
-
-				}
-
+				attVolElmInfo.addGenerManifElem( afesAdd, m_grid );
 			}
 
+
 		}
+
 	}
 
-	return true;
+//		}
+//	}
+
+//	if( isBndryVrtx && numBndryFacs == 0 )
+//	{
+//		UG_LOG("boundary vertex but no boundary faces ")
+//	}
+
+	return numBndryFacs;
 }
 
 bool ArteExpandFracs3D::computeNormalKuhVolProcedure( Volume * const & kuhVol, Face * const & fac, NormalVectorFacIntoVol & normalIntoVol )
@@ -1859,11 +1875,15 @@ bool ArteExpandFracs3D::stasiAlgo( Vertex * const & oldVrt )
 
 	auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
 
+	bool isBndryVrtx = vrtxFracPrps.getIsBndFracVertex();
+
 	UG_LOG("under construction Tetrahedra limited Stasi Algo" << std::endl);
 
 //	VecVertFracTrip const & vecVertFracTrip = m_aaVrtInfoFraTri[oldVrt];
 
 	VecAttachedVolumeElemInfo assoVolElemInfo;
+
+	int bndryFacsFnd = 0;
 
 	for( std::vector<Volume *>::iterator iterVol = m_grid.associated_volumes_begin(oldVrt);
 									   	 iterVol != m_grid.associated_volumes_end(oldVrt);
@@ -1873,10 +1893,18 @@ bool ArteExpandFracs3D::stasiAlgo( Vertex * const & oldVrt )
 
 		AttachedVolumeElemInfo avei(vol);
 
-		prepareStasi(oldVrt, avei);
+		bndryFacsFnd += prepareStasi(oldVrt, avei);
 
 		assoVolElemInfo.push_back(avei);
 	}
+
+	if( isBndryVrtx && bndryFacsFnd == 0 )
+	{
+		UG_LOG("Boundary vertex with no boundary faces adjoint" << std::endl);
+		UG_THROW("Boundary vertex with no boundary faces adjoint" << std::endl);
+		return false;
+	}
+
 
 //	if( vrtxFracPrps.getIsBndFracVertex() )
 //	{
@@ -3284,6 +3312,8 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 
 //		std::vector<Volume*> vecVolsOfSegment;
 
+		IndexType boundarySites = 0;
+
 		for( AttachedVolumeElemInfo const & volElmInf : segVolsElInf )
 		{
 			if( ! segLimSids.schluckVecAttFractElm( volElmInf.getVecFractManifElem() ) )
@@ -3295,19 +3325,34 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 
 			if( vrtxIsBndVrt )
 			{
-				if( ! segLimSids.schluckVecAttBndryElm( volElmInf.getVecBndryManifElem() ) )
+				auto vecBndryManifelm = volElmInf.getVecBndryManifElem();
+
+				IndexType sizeVecBndryManifElm = volElmInf.getVecBndryManifElem().size();
+
+				boundarySites += sizeVecBndryManifElm;
+
+//				if( ! segLimSids.schluckVecAttBndryElm( volElmInf.getVecBndryManifElem() ) )
+				if( ! segLimSids.schluckVecAttBndryElm( vecBndryManifelm ) )
 				{
 					UG_LOG("schlucken B schief gegangen " << std::endl);
 					UG_THROW("schlucken B schief gegangen " << std::endl);
 					return false;
 				}
 
-				if( (volElmInf.getVecBndryManifElem()).size() == 0  )
+				// TODO FIXME es muss abgefangen werden, wenn bei einem boundary vertex gar keine boundary Seiten da sind
+//				if( (volElmInf.getVecBndryManifElem()).size() == 0  )
+				if( sizeVecBndryManifElm == 0  )
 					UG_LOG("Grenze verloren gegangen " << m_aaPos[oldVrt] << std::endl);
 			}
 
 			Volume * vol2Add = volElmInf.getFulldimElem();
 			segLimSids.schluckFulldimElem(vol2Add);
+		}
+
+		if( vrtxIsBndVrt && boundarySites == 0 )
+		{
+			UG_LOG("No boundary sites at " << m_aaPos[oldVrt] << std::endl);
+			UG_THROW("No boundary sites at " << m_aaPos[oldVrt] << std::endl);
 		}
 
 		if( ! segLimSids.averageAll() )
@@ -3672,6 +3717,34 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 			{
 				UG_LOG("at point " << m_aaPos[oldVrt] << std::endl);
 
+				UG_LOG("BOUNRARY PPPPP vertex BOUNDARY size problem " << m_aaPos[oldVrt] << std::endl);
+
+				UG_LOG("Boundaries" << std::endl);
+				for( PlaneDescriptor pd : vecPlaneBndryDescr  )
+				{
+					UG_LOG("Subdom " << pd.spuckSudo() << std::endl);
+					UG_LOG("Base " << pd.spuckBaseVector() << std::endl);
+					UG_LOG("Normal " << pd.spuckNormalVector() <<std::endl);
+				}
+
+				UG_LOG("Shifted" << std::endl);
+				for( PlaneDescriptor pd : vecShiftedPlaneDescript  )
+				{
+					UG_LOG("Subdom S " << pd.spuckSudo() << std::endl);
+					UG_LOG("Base S " << pd.spuckBaseVector() << std::endl);
+					UG_LOG("Normal S " << pd.spuckNormalVector() <<std::endl);
+				}
+
+				UG_LOG("Fracs " << std::endl);
+				for( PlaneDescriptor pd : vecPlaneFracDescr  )
+				{
+					UG_LOG("Subdom F " << pd.spuckSudo() << std::endl);
+					UG_LOG("Base F " << pd.spuckBaseVector() << std::endl);
+					UG_LOG("Normal F " << pd.spuckNormalVector() <<std::endl);
+				}
+
+
+				// PROBLEM PPPPPPPPPPPPPPPPP
 				UG_THROW("NO boundary sudos " << std::endl);
 			}
 
@@ -3692,15 +3765,45 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 			if( vecShiftedPlaneDescript.size() + vecPlaneBndryDescr.size() > 3 )
 				UG_THROW("too much crossing stuff at boundary"<<std::endl);
 
-			for( PlaneDescriptor pbd : vecPlaneBndryDescr )
+			for( PlaneDescriptor const & pbd : vecPlaneBndryDescr )
 			{
 				vecShiftedPlaneDescript.push_back( pbd );
 			}
 
 			if( vecPlaneBndryDescr.size() == 2 )
 			{
+				// PROBLEM PPPPPPPPPPPPPPPP
 				if( vecShiftedPlaneDescript.size() != 3 ||  vecPlaneFracDescr.size() != 1 )
+				{
+					UG_LOG("BOUNRARY PPPPP vertex TWO problem " << m_aaPos[oldVrt] << std::endl);
+
+					UG_LOG("Boundaries" << std::endl);
+					for( PlaneDescriptor pd : vecPlaneBndryDescr  )
+					{
+						UG_LOG("Subdom " << pd.spuckSudo() << std::endl);
+						UG_LOG("Base " << pd.spuckBaseVector() << std::endl);
+						UG_LOG("Normal " << pd.spuckNormalVector() <<std::endl);
+					}
+
+					UG_LOG("Shifted" << std::endl);
+					for( PlaneDescriptor pd : vecShiftedPlaneDescript  )
+					{
+						UG_LOG("Subdom S " << pd.spuckSudo() << std::endl);
+						UG_LOG("Base S " << pd.spuckBaseVector() << std::endl);
+						UG_LOG("Normal S " << pd.spuckNormalVector() <<std::endl);
+					}
+
+					UG_LOG("Fracs " << std::endl);
+					for( PlaneDescriptor pd : vecPlaneFracDescr  )
+					{
+						UG_LOG("Subdom F " << pd.spuckSudo() << std::endl);
+						UG_LOG("Base F " << pd.spuckBaseVector() << std::endl);
+						UG_LOG("Normal F " << pd.spuckNormalVector() <<std::endl);
+					}
+
 					UG_THROW("noch nicht genug Grenzen " << std::endl);
+
+				}
 			}
 			else if( vecPlaneBndryDescr.size() == 1 )
 			{
