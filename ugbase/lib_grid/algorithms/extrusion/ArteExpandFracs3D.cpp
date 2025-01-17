@@ -138,6 +138,14 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("attached" << std::endl);
 
+	int splittedEdges = splitInnerFreeFracEdgs();
+
+	UG_LOG("splitted edges " << splittedEdges << std::endl);
+//
+//	return false;
+//
+//	UG_LOG("Splitted inner free frac edges" << splittedEdges << std::endl);
+
 	if( ! countAndSelectFracBaseNums() )
 		return false;
 
@@ -439,6 +447,422 @@ bool ArteExpandFracs3D::enableVolOptAutoGenFac()
 
 }
 
+//////////////////////////////////////////////////////////////////
+
+int ArteExpandFracs3D::splitInnerFreeFracEdgs()
+{
+	int splittedEdges = 0;
+
+	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
+	{
+		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
+
+		UG_LOG("sudo ind " << fracIndSudo << std::endl);
+
+		AttVertFracProp func_aAdjMarkerVFP;
+		VertxFracPropts vfp0;
+		m_grid.attach_to_edges_dv( func_aAdjMarkerVFP, vfp0 );
+		Grid::EdgeAttachmentAccessor<AttVertFracProp> func_aaMarkEdgeVFP( m_grid, func_aAdjMarkerVFP );
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
+		{
+			Face* fac = *iter;
+
+			std::vector<Edge*> facEdges;
+
+			CollectEdges( facEdges, m_grid, fac );
+
+			for( auto const & edg : facEdges )
+			{
+				if( func_aaMarkEdgeVFP[edg]. getNumberFracEdgesInVertex() != 0 )
+					UG_THROW("Attachment nicht auf default " << std::endl);
+//				func_aaMarkEdgeVFP[edg].setNumberCrossingFracsInVertex(0);
+			}
+		}
+
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
+		{
+			Face* fac = *iter;
+
+			std::vector<Edge*> facEdges;
+
+			CollectEdges( facEdges, m_grid, fac );
+
+			for( auto const & edg : facEdges )
+			{
+				func_aaMarkEdgeVFP[edg]++;
+			}
+		}
+
+		std::vector<Edge *> edgesToBeSplitted;
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
+		{
+			Face* fac = *iter;
+
+			std::vector<Edge*> facEdges;
+
+			CollectEdges( facEdges, m_grid, fac );
+
+			IndexType openEdges = 0;
+
+			for( auto const & edg : facEdges )
+			{
+				VertxFracPropts & edgeFracPrps = func_aaMarkEdgeVFP[edg];
+
+				IndexType fracEdgesOverlap = edgeFracPrps.getNumberFracEdgesInVertex();
+
+				if( fracEdgesOverlap == 1 )
+				{
+					openEdges++;
+				}
+				else if( fracEdgesOverlap == 2 )
+				{
+					; // fine, inner edge of fracture
+				}
+				else
+				{
+					m_sh.assign_subset(edg, m_sh.num_subsets());
+
+					UG_LOG("how many fractures at this edge " << fracEdgesOverlap << std::endl);
+					UG_LOG("sudo " << fracIndSudo << std::endl);
+					UG_THROW("how many fractures at this edge " << fracEdgesOverlap << std::endl);
+					UG_THROW("sudo " << fracIndSudo << std::endl);
+//					return splittedEdges;
+//					UG_THROW("how many fractures at this edge " << fracEdgesOverlap << std::endl);
+				}
+			}
+
+			if( openEdges == 2 )
+			{
+				// figure out that edge that is not open, this must be splitted
+
+				IndexType innerEdges = 0;
+
+				for( auto const & edg : facEdges )
+				{
+					VertxFracPropts & edgeFracPrps = func_aaMarkEdgeVFP[edg];
+
+					IndexType fracEdgesOverlap = edgeFracPrps.getNumberFracEdgesInVertex();
+
+					if( fracEdgesOverlap == 2 )
+					{
+						edgesToBeSplitted.push_back(edg);
+						innerEdges++;
+					}
+				}
+
+				if( ! innerEdges == 1 )
+				{
+					UG_LOG("inner edge number strange " << innerEdges << std::endl);
+					UG_THROW("inner edge number strange " << innerEdges << std::endl);
+				}
+
+
+			}
+		}
+
+		for( Edge * edg : edgesToBeSplitted )
+		{
+			vector3 center = CalculateCenter(edg, m_aaPos);
+			UG_LOG("splitting edge at " << center << std::endl);
+			RegularVertex* vrt = SplitEdge<RegularVertex>(m_grid, edg, false);
+			m_aaPos[vrt] = center;
+			splittedEdges++;
+		}
+
+		m_grid.detach_from_edges( func_aAdjMarkerVFP );
+	}
+
+	return splittedEdges;
+}
+
+#if 0
+int ArteExpandFracs3D::splitInnerFreeFracEdgs()
+{
+	int splittedEdges = 0;
+
+	UG_LOG("search inner frac edges with two inner boundary edges" << std::endl);
+
+	// TODO FIXME
+
+
+	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
+	{
+		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
+
+		UG_LOG("sudo ind " << fracIndSudo << std::endl);
+
+//		std::vector<Edge *> edgesToBeSplitted;
+
+		std::vector<Face*> facesAtInnerBoundary;
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
+		{
+			Face* fac = *iter;
+
+//			std::vector<Vertex*> assoVrt;
+//
+//			CollectVertices( assoVrt, m_grid, fac );
+//
+//			// check number of edges which have only one fracture face around
+//
+//			for( Vertex * vrt : assoVrt )
+//			{
+			std::vector<Edge*> assoEdg;
+
+			CollectEdges( assoEdg, m_grid, fac );
+
+			for( Edge * edg : assoEdg )
+			{
+				// check if edge is inner boundary edge, i.e. if has at one side non-fracture face
+				// only check for those edges which have one fracture face on one side
+
+				// split only inner edges at the moment in case of problems
+				if( IsBoundaryEdge3D(m_grid, edg) )
+				{
+					continue;
+				}
+
+				std::vector<Face *> assoFac;
+
+				CollectFaces( assoFac, m_grid, edg );
+
+				IndexType numFacsFromFracSudo = 0;
+
+				for( Face * testFac : assoFac )
+				{
+					IndexType testSudo = m_sh.get_subset_index(testFac);
+
+					if( testSudo == fracIndSudo )
+						numFacsFromFracSudo++;
+				}
+
+				if( numFacsFromFracSudo == 0 )
+				{
+//					UG_LOG("no facs at edg " << std::endl );
+						; // nothing to do, belongs from an edge not relevant for the fracture
+				}
+				else if( numFacsFromFracSudo == 1 )
+				{
+					// relevant! edge needs to be split
+
+//					UG_LOG("one fac at edg" << std::endl);
+
+					addElem( facesAtInnerBoundary, fac );
+				}
+				else if( numFacsFromFracSudo == 2 )
+				{
+//						UG_LOG("two fac sides at edge " << std::endl);
+						; // nothing to do, edge at both sides surrounded by fracture face
+				}
+				else
+				{
+					UG_LOG("komische Ecke" << std::endl);
+					UG_THROW("komische Ecke" << std::endl);
+				}
+			}
+
+		}
+
+		std::vector<Edge *> edgesToBeSplitted;
+
+		for( Face * fac : facesAtInnerBoundary )
+		{
+			std::vector<Vertex *> assoVrt;
+
+			CollectVertices(assoVrt, m_grid, fac);
+
+			// check if at a vertex of a frac face is associated with two inner boundary edges
+
+			for( Vertex * vrt : assoVrt )
+			{
+				std::vector<Edge*> assoEdg;
+
+				CollectEdges( assoEdg, m_grid, vrt );
+
+				IndexType innerBoundaryEdges = 0;
+
+				// count number of edges of the vertex which have one free side
+
+				for( Edge * edg : assoEdg )
+				{
+					// check if edge is inner boundary edge, i.e. if has at one side non-fracture face
+					// only check for those edges which have one fracture face on one side
+
+					// split only inner edges at the moment in case of problems
+					if( IsBoundaryEdge3D(m_grid, edg) )
+					{
+						continue;
+					}
+
+					std::vector<Face *> assoFac;
+
+					CollectFaces( assoFac, m_grid, edg );
+
+					IndexType numFacsFromFracSudo = 0;
+
+					for( Face * testFac : assoFac )
+					{
+						IndexType testSudo = m_sh.get_subset_index(testFac);
+
+						if( testSudo == fracIndSudo )
+							numFacsFromFracSudo++;
+					}
+
+					if( numFacsFromFracSudo == 0 )
+					{
+//						UG_LOG("no facs at edg " << std::endl );
+						; // nothing to do, belongs from an edge not relevant for the fracture
+					}
+					else if( numFacsFromFracSudo == 1 )
+					{
+						// relevant! edge needs to be split
+
+//						UG_LOG("one fac at edg" << std::endl);
+
+//						addElemToSplit( edgesToBeSplitted, edg );
+						innerBoundaryEdges++;
+					}
+					else if( numFacsFromFracSudo == 2 )
+					{
+//						UG_LOG("two fac sides at edge " << std::endl);
+						; // nothing to do, edge at both sides surrounded by fracture face
+					}
+					else
+					{
+						UG_LOG("komische Ecke" << std::endl);
+						UG_THROW("komische Ecke" << std::endl);
+					}
+
+				}
+
+				if( innerBoundaryEdges == 0  || 1 || 3 )
+				{
+//					UG_LOG("komische innere Grenze ohne Grenze " << std::endl);
+//					UG_THROW("komische innere Grenze ohne Grenze " << std::endl);
+//					; // nothing to do
+//				}
+//				else if( innerBoundaryEdges == 1 )
+//				{
+					; // nothing to do, entire boundary edge with no problem, or external edge
+				}
+				else if( innerBoundaryEdges == 2 )
+				{
+					// figure out that edge that is NOT the boundary edge
+
+					UG_LOG("we have two inner boundary edges" << std::endl);
+
+					std::vector<Edge*> assoEdg;
+
+					CollectEdges( assoEdg, m_grid, fac );
+
+					for( Edge * edg : assoEdg )
+					{
+						// check if edge is inner boundary edge, i.e. if has at one side non-fracture face
+						// only check for those edges which have one fracture face on one side
+
+						// split only inner edges at the moment in case of problems
+						if( IsBoundaryEdge3D(m_grid, edg) )
+						{
+							continue;
+						}
+
+						std::vector<Face *> assoFac;
+
+						CollectFaces( assoFac, m_grid, edg );
+
+						IndexType numFacsFromFracSudo = 0;
+
+						for( Face * testFac : assoFac )
+						{
+							IndexType testSudo = m_sh.get_subset_index(testFac);
+
+							if( testSudo == fracIndSudo )
+								numFacsFromFracSudo++;
+						}
+
+						if( numFacsFromFracSudo == 0 ||  numFacsFromFracSudo == 1 )
+						{
+							// relevant! edge needs to be split
+
+		//					UG_LOG("one fac at edg" << std::endl);
+							;
+//							addElem( facesAtInnerBoundary, fac );
+						}
+						else if( numFacsFromFracSudo == 2 )
+						{
+		//						UG_LOG("two fac sides at edge " << std::endl);
+								; // nothing to do, edge at both sides surrounded by fracture face
+								addElem(edgesToBeSplitted, edg);
+						}
+						else
+						{
+							UG_LOG("komische Ecke" << std::endl);
+							UG_THROW("komische Ecke" << std::endl);
+						}
+					}
+
+				}
+				else
+				{
+					UG_LOG("how many inner boundary edges at a fracture face???" << std::endl) ;
+					UG_THROW("how many inner boundary edges at a fracture face???" << std::endl) ;
+				}
+			}
+
+			// figure out that edge that needs to be splitted - it is that one which is in touch with the fracture on two sides
+
+//			for( Face * fac : facesAtInnerBoundary )
+
+
+
+		}
+
+		for( Edge * edg : edgesToBeSplitted )
+		{
+			vector3 center = CalculateCenter(edg, m_aaPos);
+			UG_LOG("splitting edge at " << center << std::endl);
+			RegularVertex* vrt = SplitEdge<RegularVertex>(m_grid, edg, false);
+			m_aaPos[vrt] = center;
+		}
+
+	}
+
+
+	return splittedEdges;
+
+}
+
+#endif
+
+//////////////////////////////////////////////////////////////////
+
+template<typename ELEMTYP>
+bool ArteExpandFracs3D::addElem(std::vector<ELEMTYP> & elemToBeSplitted, ELEMTYP elem )
+{
+	bool unknown = true;
+
+	for( ELEMTYP edgKnown : elemToBeSplitted )
+	{
+		if( elem == edgKnown )
+		{
+			unknown = false;
+			break;
+		}
+	}
+
+	if( unknown )
+		elemToBeSplitted.push_back(elem);
+
+	return unknown;
+
+}
+
+//////////////////////////////////////////////////////////////////
+
+
 bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 {
 	UG_LOG("countandselect" << std::endl);
@@ -561,7 +985,6 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 	if( splitEdgesTwoBdryVrt )
 	{
-
 		std::vector<Edge*> tmpEdges;
 
 		for(EdgeIterator iterEdg = m_sel.begin<Edge>(); iterEdg != m_sel.end<Edge>(); iterEdg++ )

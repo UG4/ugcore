@@ -348,6 +348,13 @@ private:
 	// for the case of one fracture at one outer boundary subdomain
 //	bool computeShiftVector( VecSegmentLimitSidesPairSudoNorml const & vecSegmLimSidPrSudoNrml );
 
+	int splitInnerFreeFracEdgs();
+
+	template<typename ELEMTYP>
+	bool addElem( std::vector<ELEMTYP> & elemsToBeSplitted, ELEMTYP elem );
+
+
+
 };
 
 // specification has to be declared outside central class context, else compilation error
