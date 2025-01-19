@@ -82,7 +82,7 @@ class StdTransfer :
 						m_p1LagrangeOptimizationEnabled(true),
 						m_dampRes(1.0), m_dampProl(1.0),
 						bCached(true), m_bUseTransposed(true),
-						m_spDebugWriter(NULL)
+						m_spDebugWriter(nullptr)
 		{};
 
 	/// virtual destructor

@@ -40,7 +40,7 @@ using namespace std;
 
 namespace ug{
 
-FunctionGroup::FunctionGroup() : m_spFunctionPattern(NULL) {clear();}
+FunctionGroup::FunctionGroup() : m_spFunctionPattern(nullptr) {clear();}
 
 FunctionGroup::FunctionGroup(ConstSmartPtr<FunctionPattern> spFuncPattern)
 	: m_spFunctionPattern(spFuncPattern)

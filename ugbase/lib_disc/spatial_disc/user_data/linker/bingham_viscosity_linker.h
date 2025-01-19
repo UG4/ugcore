@@ -66,10 +66,10 @@ class BinghamViscosityLinker
 	//  Constructor
 	public:
 		BinghamViscosityLinker() :
-			m_spDensity(NULL), m_spDDensity(NULL),
-			m_spViscosity(NULL), m_spDViscosity(NULL),
-			m_spYieldStress(NULL), m_spDYieldStress(NULL),
-			m_spVelocityGrad(NULL), m_spDVelocityGrad(NULL)
+			m_spDensity(nullptr), m_spDDensity(nullptr),
+			m_spViscosity(nullptr), m_spDViscosity(nullptr),
+			m_spYieldStress(nullptr), m_spDYieldStress(nullptr),
+			m_spVelocityGrad(nullptr), m_spDVelocityGrad(nullptr)
 		{
 		//	this linker needs exactly four input
 			this->set_num_input(4);

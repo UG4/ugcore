@@ -79,12 +79,12 @@ NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
 template <typename TAlgebra>
 NewtonSolver<TAlgebra>::
 NewtonSolver() :
-	m_spLinearSolver(NULL),
+	m_spLinearSolver(nullptr),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_spLineSearch(NULL),
-	m_N(NULL),
-	m_J(NULL),
-	m_spAss(NULL),
+	m_spLineSearch(nullptr),
+	m_N(nullptr),
+	m_J(nullptr),
+	m_spAss(nullptr),
 	m_reassembe_J_freq(0),
 	m_dgbCall(0),
 	m_lastNumSteps(0)
@@ -97,12 +97,12 @@ NewtonSolver() :
 template <typename TAlgebra>
 NewtonSolver<TAlgebra>::
 NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
-	m_spLinearSolver(NULL),
+	m_spLinearSolver(nullptr),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_spLineSearch(NULL),
-	m_N(NULL),
-	m_J(NULL),
-	m_spAss(NULL),
+	m_spLineSearch(nullptr),
+	m_N(nullptr),
+	m_J(nullptr),
+	m_spAss(nullptr),
 	m_reassembe_J_freq(0),
 	m_dgbCall(0),
 	m_lastNumSteps(0)
@@ -117,12 +117,12 @@ NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
 template <typename TAlgebra>
 NewtonSolver<TAlgebra>::
 NewtonSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
-	m_spLinearSolver(NULL),
+	m_spLinearSolver(nullptr),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_spLineSearch(NULL),
-	m_N(NULL),
-	m_J(NULL),
-	m_spAss(NULL),
+	m_spLineSearch(nullptr),
+	m_N(nullptr),
+	m_J(nullptr),
+	m_spAss(nullptr),
 	m_reassembe_J_freq(0),
 	m_dgbCall(0),
 	m_lastNumSteps(0)
