@@ -30,17 +30,17 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA_IMPL_
-#define __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA_IMPL_
+#ifndef UG_BASE_BINDINGS_LUA_LUA_USER_DATA_IMPL_H
+#define UG_BASE_BINDINGS_LUA_LUA_USER_DATA_IMPL_H
 
-#ifdef UG_FOR_LUA
-#include "lua_user_data.h"
-#endif
 #include "lib_disc/spatial_disc/user_data/linker/linker_traits.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
-#include "info_commands.h"
 #include "common/util/number_util.h"
+
+#include "info_commands.h"
+#include "lua_traits.h"
+#include "lua_util.h"
 
 #if 0
 #define PROFILE_CALLBACK() PROFILE_FUNC_GROUP("luacallback")
@@ -90,6 +90,7 @@ std::string LuaUserData<TData,dim,TRet>::name()
 	return ss.str();
 }
 
+
 template <typename TData, int dim, typename TRet>
 LuaUserData<TData,dim,TRet>::LuaUserData(const char* luaCallback)
 	: m_callbackName(luaCallback), m_bFromFactory(false)
@@ -117,6 +118,7 @@ LuaUserData<TData,dim,TRet>::LuaUserData(const char* luaCallback)
 	#endif
 }
 
+
 template <typename TData, int dim, typename TRet>
 LuaUserData<TData,dim,TRet>::LuaUserData(LuaFunctionHandle handle)
 	: m_callbackName("__anonymous__lua__function__"), m_bFromFactory(false)
@@ -139,11 +141,11 @@ LuaUserData<TData,dim,TRet>::LuaUserData(LuaFunctionHandle handle)
 
 template <typename TData, int dim, typename TRet>
 bool LuaUserData<TData,dim,TRet>::
-check_callback_returns(lua_State* L, int callbackRef, const char* callName, const bool bThrow)
+check_callback_returns(lua_State* L, int callbackRef, const char* callName, bool bThrow)
 {
     PROFILE_CALLBACK()
 //	get current stack level
-	const int level = lua_gettop(L);
+	int level = lua_gettop(L);
 
 //	dummy values to invoke the callback once
 	MathVector<dim> x; x = 0.0;
@@ -163,12 +165,12 @@ check_callback_returns(lua_State* L, int callbackRef, const char* callName, cons
 	lua_traits<int>::push(L, si);
 
 //	compute total args size
-	const int argSize = lua_traits<MathVector<dim> >::size
+	int argSize = lua_traits<MathVector<dim> >::size
 							+ lua_traits<number>::size
 							+ lua_traits<int>::size;
 
 //	compute total return size
-	const int retSize = lua_traits<TData>::size + lua_traits<TRet>::size;
+	int retSize = lua_traits<TData>::size + lua_traits<TRet>::size;
 
 //	call lua function
 	if(lua_pcall(L, argSize, LUA_MULTRET, 0) != 0)
@@ -177,7 +179,7 @@ check_callback_returns(lua_State* L, int callbackRef, const char* callName, cons
 						" lua message: "<< lua_tostring(L, -1));
 
     //	get number of results
-	const int numResults = lua_gettop(L) - level;
+	int numResults = lua_gettop(L) - level;
 
 //	success flag
 	bool bRet = true;
@@ -229,24 +231,26 @@ check_callback_returns(lua_State* L, int callbackRef, const char* callName, cons
 	return bRet;
 }
 
+
 template <typename TData, int dim, typename TRet>
 bool LuaUserData<TData,dim,TRet>::
-check_callback_returns(LuaFunctionHandle handle, const bool bThrow)
+check_callback_returns(const LuaFunctionHandle &handle, bool bThrow)
 {
     PROFILE_CALLBACK()
 //	get lua state
-	lua_State* L = ug::script::GetDefaultLuaState();
+	lua_State* L = script::GetDefaultLuaState();
 
 //	forward call
-	bool bRet = check_callback_returns(L, handle.ref, "__lua_function_handle__", bThrow);
+    bool bRet = check_callback_returns(L, handle.ref, "__lua_function_handle__", bThrow);
 
 //	return match
 	return bRet;
 }
 
+
 template <typename TData, int dim, typename TRet>
 bool LuaUserData<TData,dim,TRet>::
-check_callback_returns(const char* callName, const bool bThrow)
+check_callback_returns(const char* callName, bool bThrow)
 {
     PROFILE_CALLBACK()
 //	get lua state
@@ -267,10 +271,10 @@ check_callback_returns(const char* callName, const bool bThrow)
 	}
 
 //	get reference
-	int callbackRef = luaL_ref(L, LUA_REGISTRYINDEX);
+    int callbackRef = luaL_ref(L, LUA_REGISTRYINDEX);
 
 //	forward call
-	bool bRet = check_callback_returns(L, callbackRef, callName, bThrow);
+    bool bRet = check_callback_returns(L, callbackRef, callName, bThrow);
 
 //	free reference to callback
 	luaL_unref(L, LUA_REGISTRYINDEX, callbackRef);
@@ -295,7 +299,7 @@ evaluate(TData& D, const MathVector<dim>& x, number time, int si) const
 		double ret[lua_traits<TData>::size+1];
 		m_luaComp.call(ret, d);
 		//TData D2;
-		TRet *t=NULL;
+		TRet *t=nullptr;
 		lua_traits<TData>::read(D, ret, t);
 		return lua_traits<TRet>::do_return(ret[0]);
 	}
@@ -315,12 +319,12 @@ evaluate(TData& D, const MathVector<dim>& x, number time, int si) const
 		lua_traits<int>::push(m_L, si);
 
 	//	compute total args size
-		const int argSize = lua_traits<MathVector<dim> >::size
+		int argSize = lua_traits<MathVector<dim> >::size
 							+ lua_traits<number>::size
 							+ lua_traits<int>::size;
 
 	//	compute total return size
-		const int retSize = lua_traits<TData>::size + lua_traits<TRet>::size;
+		int retSize = lua_traits<TData>::size + lua_traits<TRet>::size;
 
 	//	call lua function
 		if(lua_pcall(m_L, argSize, retSize, 0) != 0)
@@ -351,6 +355,7 @@ evaluate(TData& D, const MathVector<dim>& x, number time, int si) const
 	}
 }
 
+
 template <typename TData, int dim, typename TRet>
 LuaUserData<TData,dim,TRet>::~LuaUserData()
 {
@@ -361,6 +366,7 @@ LuaUserData<TData,dim,TRet>::~LuaUserData()
 		LuaUserDataFactory<TData,dim,TRet>::remove(m_callbackName);
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // LuaUserDataFactory
 ////////////////////////////////////////////////////////////////////////////////
@@ -370,8 +376,8 @@ SmartPtr<LuaUserData<TData,dim,TRet> >
 LuaUserDataFactory<TData,dim,TRet>::provide_or_create(const std::string& name)
 {
 	PROFILE_CALLBACK();
-	typedef std::map<std::string, std::pair<LuaUserData<TData,dim,TRet>*, int*> > Map;
-	typedef typename Map::iterator iterator;
+	using Map = std::map<std::string, std::pair<LuaUserData<TData,dim,TRet>*, int*> >;
+	using iterator = typename Map::iterator;
 
 //	check for element
 	iterator iter = m_mData.find(name);
@@ -412,12 +418,13 @@ LuaUserDataFactory<TData,dim,TRet>::provide_or_create(const std::string& name)
 	}
 }
 
+
 template <typename TData, int dim, typename TRet>
 void
 LuaUserDataFactory<TData,dim,TRet>::remove(const std::string& name)
 {
-	typedef std::map<std::string, std::pair<LuaUserData<TData,dim,TRet>*, int*> > Map;
-	typedef typename Map::iterator iterator;
+	using Map = std::map<std::string, std::pair<LuaUserData<TData,dim,TRet>*, int*> >;
+	using iterator = typename Map::iterator;
 
 //	check for element
 	iterator iter = m_mData.find(name);
@@ -680,7 +687,7 @@ void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ..
 				m_luaComp.name() << ", " << m_luaComp.num_in() << " != " << numArgs << " or " << m_luaComp.num_out() << " != " << lua_traits<TData>::size);
 		m_luaComp.call(ret, d);
 		//TData D2;
-		void *t=NULL;
+		void *t=nullptr;
 		//TData out2;
 		lua_traits<TData>::read(out, ret, t);
 		return;
@@ -760,7 +767,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vecto
 		double ret[lua_traits<TData>::size];
 		m_luaComp.call(ret, d);
 		//TData D2;
-		void *t=NULL;
+		void *t=nullptr;
 		//TData out2;
 		UG_ASSERT(m_luaComp.num_out() == lua_traits<TData>::size, m_luaComp.name() << ", " << m_luaComp.num_out() << " != " << lua_traits<TData>::size);
 		lua_traits<TData>::read(out, ret, t);
@@ -845,7 +852,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 		double ret[lua_traits<TData>::size+1];
 		luaComp.call(ret, d);
 		//TData D2;
-		void *t=NULL;
+		void *t=nullptr;
 		//TData out2;
 		lua_traits<TData>::read(out, ret, t);
 		return;
@@ -933,7 +940,7 @@ evaluate(TData vValue[],
          GridObject* elem,
          const MathVector<dim> vCornerCoords[],
          const MathVector<refDim> vLocIP[],
-         const size_t nip,
+         size_t nip,
          LocalVector* u,
          const MathMatrix<refDim, dim>* vJT) const
 {
@@ -962,7 +969,7 @@ eval_and_deriv(TData vValue[],
 				GridObject* elem,
 				const MathVector<dim> vCornerCoords[],
 				const MathVector<refDim> vLocIP[],
-				const size_t nip,
+				size_t nip,
 				LocalVector* u,
 				bool bDeriv,
 				int s,
@@ -1012,7 +1019,7 @@ eval_and_deriv(TData vValue[],
 			for(size_t fct = 0; fct < this->input_num_fct(c); ++fct)
 			{
 			//	get common fct id for this function
-				const size_t commonFct = this->input_common_fct(c, fct);
+				size_t commonFct = this->input_common_fct(c, fct);
 
 			//	loop dofs
 				for(size_t dof = 0; dof < this->num_sh(fct); ++dof)
@@ -1158,9 +1165,6 @@ void LuaFunction<TData,TDataIn>::operator() (TData& out, int numArgs, ...)
 
     PROFILE_CALLBACK_END();
 }
+}
 
-
-
-} // end namespace ug
-
-#endif /* LUA_USER_DATA_IMPL_H_ */
+#endif

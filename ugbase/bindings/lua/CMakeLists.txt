@@ -44,80 +44,70 @@ include_directories(${P_UGSCRIPT_SOURCE_DIR}/externals/lua)
 
 include("../../../cmake/ug_includes.cmake")
 
-if(UNIX)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_POSIX")
-endif(UNIX)
+
 
 if (NOT USE_LUAJIT) 
 # use default version (shipped with ug4) 
-set(srcLua	externals/lua/lapi.c
-			externals/lua/lauxlib.c
-			externals/lua/lbaselib.c
-			externals/lua/lcode.c
-			externals/lua/ldblib.c
-			externals/lua/ldebug.c
-			externals/lua/ldo.c
-			externals/lua/ldump.c
-			externals/lua/lfunc.c
-			externals/lua/lgc.c
-			externals/lua/linit.c
-			externals/lua/liolib.c
-			externals/lua/llex.c
-			externals/lua/lmathlib.c
-			externals/lua/lmem.c
-			externals/lua/loadlib.c
-			externals/lua/lobject.c
-			externals/lua/lopcodes.c
-			externals/lua/loslib.c
-			externals/lua/lparser.c
-			externals/lua/lstate.c
-			externals/lua/lstring.c
-			externals/lua/lstrlib.c
-			externals/lua/ltable.c
-			externals/lua/ltablib.c
-			externals/lua/ltm.c
-			externals/lua/lundump.c
-			externals/lua/lvm.c
-			externals/lua/lzio.c)
+set(srcLua	externals/lua/src/lapi.c
+			externals/lua/src/lauxlib.c
+			externals/lua/src/lbaselib.c
+			externals/lua/src/lcode.c
+			externals/lua/src/lctype.c
+			externals/lua/src/lcorolib.c
+			externals/lua/src/lutf8lib.c
+			externals/lua/src/ldblib.c
+			externals/lua/src/ldebug.c
+			externals/lua/src/ldo.c
+			externals/lua/src/ldump.c
+			externals/lua/src/lfunc.c
+			externals/lua/src/lgc.c
+			externals/lua/src/linit.c
+			externals/lua/src/liolib.c
+			externals/lua/src/llex.c
+			externals/lua/src/lmathlib.c
+			externals/lua/src/lmem.c
+			externals/lua/src/loadlib.c
+			externals/lua/src/lobject.c
+			externals/lua/src/lopcodes.c
+			externals/lua/src/loslib.c
+			externals/lua/src/lparser.c
+			externals/lua/src/lstate.c
+			externals/lua/src/lstring.c
+			externals/lua/src/lstrlib.c
+			externals/lua/src/ltable.c
+			externals/lua/src/ltablib.c
+			externals/lua/src/ltm.c
+			externals/lua/src/lundump.c
+			externals/lua/src/lvm.c
+			externals/lua/src/lzio.c)
 
-set(headersLua	externals/lua/lapi.h
-				externals/lua/lauxlib.h
-				externals/lua/lcode.h
-				externals/lua/ldebug.h
-				externals/lua/ldo.h
-				externals/lua/lfunc.h
-				externals/lua/lgc.h
-				externals/lua/llex.h
-				externals/lua/llimits.h
-				externals/lua/lmem.h
-				externals/lua/lobject.h
-				externals/lua/lopcodes.h
-				externals/lua/lparser.h
-				externals/lua/lstate.h
-				externals/lua/lstring.h
-				externals/lua/ltable.h
-				externals/lua/ltm.h
-				externals/lua/lua.h
-				externals/lua/luaconf.h
-				externals/lua/lualib.h
-				externals/lua/lundump.h
-				externals/lua/lvm.h
-				externals/lua/lzio.h)
+set(headersLua	externals/lua/src/lapi.h
+				externals/lua/src/lauxlib.h
+				externals/lua/src/lcode.h
+				externals/lua/src/ldebug.h
+				externals/lua/src/ldo.h
+				externals/lua/src/lfunc.h
+				externals/lua/src/lgc.h
+				externals/lua/src/llex.h
+				externals/lua/src/llimits.h
+				externals/lua/src/lmem.h
+				externals/lua/src/lobject.h
+				externals/lua/src/lopcodes.h
+				externals/lua/src/lparser.h
+				externals/lua/src/lstate.h
+				externals/lua/src/lstring.h
+				externals/lua/src/ltable.h
+				externals/lua/src/ltm.h
+				externals/lua/src/lua.h
+				externals/lua/src/luaconf.h
+				externals/lua/src/lualib.h
+				externals/lua/src/lundump.h
+				externals/lua/src/lvm.h
+				externals/lua/src/lzio.h)
 else (NOT USE_LUAJIT)
 # not need to compile when using luajit library 
 set(srcLua )
 endif(NOT USE_LUAJIT)
-
-#find_package(BISON)
-#find_package(FLEX)
-#BISON_TARGET(MyParser parser.y parser.cc)
-#FLEX_TARGET(MyScanner lexer.l  lexer.cc)
-#ADD_FLEX_BISON_DEPENDENCY(MyScanner MyParser)
-# Create target for the parser
-#ADD_CUSTOM_TARGET(FooParser echo “Creating parser.c”)
-# Create custom command for flex/lex (note the outputs)
-
-
 
 set(srcUGScript		lua_util.cpp
 					info_commands.cpp
@@ -158,6 +148,22 @@ endif(USE_LUA2C)
 
 if(BUILD_ONE_LIB)
 	EXPORTSOURCES(ugbase/bindings/lua  ${Sources})
-else(BUILD_ONE_LIB)
+	if(UNIX)
+		add_compile_definitions ( USE_MKSTEMP=1 )
+		add_compile_definitions ( LUA_USE_POSIX=1 )
+		add_compile_definitions ( LUA_TMPNAMTEMPLATE=1 )
+	endif()
+else()
+	message("not one lib")
 	add_library(bindings_lua  ${Sources})
-endif(BUILD_ONE_LIB)
+	if(UNIX)
+		target_compile_definitions ( bindings_lua PRIVATE USE_MKSTEMP=1 )
+		target_compile_definitions ( bindings_lua PRIVATE LUA_TMPNAMTEMPLATE=1 )
+	endif()
+endif()
+
+
+if(UNIX)
+	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_POSIX" )
+	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLUA_USE_POSIX" )
+endif()

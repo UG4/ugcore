@@ -30,12 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef LUA_TRAITS_H
-#define	LUA_TRAITS_H
+#ifndef UG_BASE_BINDINGS_LUA_LUA_TRAITS_H
+#define	UG_BASE_BINDINGS_LUA_LUA_TRAITS_H
 
 #include "common/util/number_util.h"
 
-namespace ug{
+namespace ug {
 ///////////////////////////////////////////////////////////////////////////////
 // Lua Traits
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ inline number ReturnValueToNumber(lua_State* L, int index){
 
 /// Helper to access a return value on the stack.
 /**	If the value can't be converted to a boolean, an error is thrown*/
-inline number ReturnValueToBool(lua_State* L, int index){
+inline int ReturnValueToBool(lua_State* L, int index){
 	if(!lua_isboolean(L, index))
 		UG_THROW("ReturnValueToBool: Data passed from Lua: "
 						"Can't convert return value to boolean!");
@@ -66,7 +66,7 @@ inline number ReturnValueToBool(lua_State* L, int index){
 /// Helper to access a return value on the stack.
 /**	If the value can't be converted to a integer, an error is thrown*/
 inline int ReturnValueToInteger(lua_State* L, int index){
-	if(!lua_isnumber(L, index))
+	if(!lua_isnumber(L, index)) // todo any reason no check for integer
 		UG_THROW("ReturnValueToBool: Data passed from Lua: "
 						"Can't convert return value to integer!");
 
@@ -81,13 +81,13 @@ struct lua_traits;
 template <>
 struct lua_traits<void>
 {
-	static const int size = 0;
+	static constexpr int size = 0;
 
 	static void push(lua_State*	L, const bool&){}
 
 	static void read(lua_State* L, bool&, int index = -1){}
 
-	static void do_return(const bool&) {return;}
+	static void do_return(const bool&) {}
 
 	static bool check(lua_State* L, int index = -1){return true;}
 
@@ -105,7 +105,7 @@ struct lua_traits<void>
 template <>
 struct lua_traits<bool>
 {
-	static const int size = 1;
+	static constexpr int size = 1;
 
 	static void push(lua_State*	L, const bool& b)
 	{
@@ -138,7 +138,7 @@ struct lua_traits<bool>
 template <>
 struct lua_traits<int>
 {
-	static const int size = 1;
+	static constexpr int size = 1;
 
 	static void push(lua_State*	L, const int& c)
 	{
@@ -169,7 +169,7 @@ struct lua_traits<int>
 template <>
 struct lua_traits<number>
 {
-	static const int size = 1;
+	static constexpr int size = 1;
 
 	static void push(lua_State*	L, const number& c)
 	{
@@ -207,7 +207,7 @@ struct lua_traits<number>
 };
 
 template <std::size_t dim>
-struct lua_traits< ug::MathVector<dim> >
+struct lua_traits<MathVector<dim> >
 {
 	static const int size = dim;
 
@@ -384,6 +384,4 @@ inline bool compare(MathMatrix<2, 2, double> &A, MathMatrix<2, 2, double> &B)
 }*/
 
 }
-#endif	/* LUA_TRAITS_H */
-
-
+#endif
