@@ -30,16 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef LUA_STACK_H_
-#define LUA_STACK_H_
+#ifndef UG_BASE_BINDINGS_LUA_LUA_STACK_H
+#define UG_BASE_BINDINGS_LUA_LUA_STACK_H
 
 #include "registry/registry.h"
-#include "lua_parsing.h"
-#include "bindings_lua.h"
+
 #include "common/util/smart_pointer.h"
 
-namespace ug
-{
+#include "lua_parsing.h"
+
+namespace ug {
 namespace bridge {
 
 ///	copies parameter values from the lua-stack to a parameter-list.
@@ -163,4 +163,4 @@ static bool PushLuaStackPointerEntryToParamStack(ParameterStack& ps, lua_State* 
 
 }
 }
-#endif /* LUA_STACK_H_ */
+#endif
