@@ -33,8 +33,6 @@
 #ifndef __H__UG__message_hub_impl__
 #define __H__UG__message_hub_impl__
 
-//#include <boost/bind/bind.hpp>
-
 namespace ug
 {
 
@@ -58,9 +56,6 @@ register_class_callback(TClass* cls,
 {
 	typedef void (TClass::*ClassCallback)(const IMessage&);
 
-	//return register_callback_impl<TMsg>(
-	//				boost::bind((ClassCallback)callback, cls, boost::placeholders::_1),
-	//				autoFree);
 	return register_callback_impl<TMsg>(
 		std::bind((ClassCallback)callback, cls, std::placeholders::_1),
 		autoFree);

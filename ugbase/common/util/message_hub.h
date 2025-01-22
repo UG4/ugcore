@@ -37,9 +37,7 @@
 #include <list>
 #include <string>
 #include <map>
-//#include <boost/function.hpp>
-//#include <boost/function_equal.hpp>
-//#include <boost/bind/bind.hpp>
+
 #include "common/assert.h"
 #include "common/util/smart_pointer.h"
 #include "common/util/metaprogramming_util.h"

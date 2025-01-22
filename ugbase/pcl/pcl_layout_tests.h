@@ -49,7 +49,6 @@
 #include "common/serialization.h"
 #include "common/profiler/profiler.h"
 
-//#include <boost/function.hpp>
 
 namespace pcl
 {
