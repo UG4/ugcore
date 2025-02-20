@@ -89,8 +89,11 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaMarkVrtVFP( Grid::VertexAttachmentAccessor<AttVertFracProp>()),
 //	  m_aAdjMarkerVFP(AttVertFracProp()),
 	  m_aaMarkEdgeVFP(Grid::EdgeAttachmentAccessor<AttVertFracProp>()),
-	  m_aAdjMarkerB(ABool()),
-	  m_aaMarkFaceB(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerFaceIsFracB(ABool()),
+	  m_aaMarkFaceIsFracB(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_aaMarkFaceIsUnclosedFracB(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerVrtxHasUnclosedFracB(ABool()),
+	  m_aaMarkVrtxHasUnclosedFracB(Grid::VertexAttachmentAccessor<ABool>()),
 	  m_originalFractureFaces(std::vector<Face*>()),
 //	  m_attVrtVec(AttVrtVec()),
 //	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
@@ -334,10 +337,20 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	m_aaMarkEdgeVFP = Grid::EdgeAttachmentAccessor<AttVertFracProp>( m_grid, m_aAdjMarkerVFP );
 
-	m_aAdjMarkerB = ABool(); // used to know if an face is frac face
+	m_aAdjMarkerFaceIsFracB = ABool(); // used to know if an face is frac face
 
-	m_grid.attach_to_faces_dv( m_aAdjMarkerB, false );
-	m_aaMarkFaceB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerB );
+	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceIsFracB, false );
+	m_aaMarkFaceIsFracB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceIsFracB );
+
+	m_aAdjMarkerFaceIsUnclosedFracB = ABool();
+
+	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceIsUnclosedFracB, false );
+	m_aaMarkFaceIsUnclosedFracB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceIsUnclosedFracB );
+
+	m_aAdjMarkerVrtxHasUnclosedFracB = ABool();
+
+	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxHasUnclosedFracB, false );
+	m_aaMarkVrtxHasUnclosedFracB = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxHasUnclosedFracB );
 
 	// second part
 
@@ -416,7 +429,10 @@ bool ArteExpandFracs3D::detachMarkers()
 {
 	m_grid.detach_from_vertices( m_aAdjMarkerVFP );
 	m_grid.detach_from_edges( m_aAdjMarkerVFP );
-	m_grid.detach_from_faces( m_aAdjMarkerB );
+	m_grid.detach_from_faces( m_aAdjMarkerFaceIsFracB );
+	m_grid.detach_from_faces( m_aAdjMarkerFaceIsUnclosedFracB );
+
+	m_grid.detach_from_vertices( m_aAdjMarkerVrtxHasUnclosedFracB );
 
 	m_grid.detach_from_vertices( m_aAdjInfoEdges );
 	m_grid.detach_from_vertices( m_aAdjInfoFaces );
@@ -891,7 +907,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 			UG_LOG("selektiert msel " << fac << std::endl);
 
-			m_aaMarkFaceB[fac] = true;
+			m_aaMarkFaceIsFracB[fac] = true;
 
 			UG_LOG("mark bool " << fac << std::endl);
 
@@ -1432,7 +1448,7 @@ bool ArteExpandFracs3D::distinguishSegments()
 	{
 		Vertex* vrt = *iter;
 
-		IndexType shiFraFac = shiftUnclosedFracFacesToGenerFaces( vrt );
+		IndexType shiFraFac = specificTreatementUnclosedFracFaces( vrt );
 
 		UG_LOG("shifted frac faces at " << m_aaPos[vrt] << shiFraFac << std::endl);
 
@@ -1457,7 +1473,12 @@ bool ArteExpandFracs3D::distinguishSegments()
 
 //////////////////////////////////////////////////////////////////
 
-ArteExpandFracs3D::IndexType ArteExpandFracs3D::shiftUnclosedFracFacesToGenerFaces( Vertex * const & vrt )
+// TODO FIXME diese Funktion macht nur in Teilen das richtige
+// die ungeschlossenen Faces zeigen an, dass eine Kluft hier endet
+// wird bisher nicht berücksichtigt
+// irgendwie muss das markiert werden, damit die Kluft, die zu Ende geht.
+// im Durchstich trotzdem berücksichtigt wird
+ArteExpandFracs3D::IndexType ArteExpandFracs3D::specificTreatementUnclosedFracFaces( Vertex * const & vrt )
 {
 	IndexType shiftedFracFaces = 0;
 
@@ -1504,6 +1525,17 @@ ArteExpandFracs3D::IndexType ArteExpandFracs3D::shiftUnclosedFracFacesToGenerFac
 								}
 
 								shiftedFracFaces++;
+
+								Face * unclosedFace = afesOne.getManifElm();
+								// tested if same as that one from afesTwo
+
+								m_aaMarkFaceIsUnclosedFracB[ unclosedFace ] = true;
+
+								m_aaMarkVrtxHasUnclosedFracB[vrt] = true;
+
+								//  added vertex attachment that knows if at vertex there is an unclosed fracture
+
+
 							}
 						}
 					}
@@ -2775,7 +2807,7 @@ bool ArteExpandFracs3D::assignOrigFracInfos()
 
 	for( FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>(); ++iter)
 	{
-		if( m_aaMarkFaceB[*iter] == true )
+		if( m_aaMarkFaceIsFracB[*iter] == true )
 			m_originalFractureFaces.push_back(*iter);
 	}
 
@@ -4785,7 +4817,7 @@ bool ArteExpandFracs3D::createNewElements()
 
 			if(tFace)
 			{
-				if(m_aaMarkFaceB[tFace])
+				if(m_aaMarkFaceIsFracB[tFace])
 				{
 					Volume* expVol = nullptr;
 
@@ -5059,7 +5091,7 @@ bool ArteExpandFracs3D::createNewElements()
 		Face* f = *iter;
 		++iter;
 
-		if( ! m_aaMarkFaceB[f] )
+		if( ! m_aaMarkFaceIsFracB[f] )
 		{
 			foundUnusedFaces = true;
 			m_grid.erase(f);

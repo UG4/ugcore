@@ -149,9 +149,17 @@ private:
 	Grid::EdgeAttachmentAccessor<AttVertFracProp> m_aaMarkEdgeVFP;
 	// used to know if an edge is frac edge, suffix vfp misleading....
 
-	ABool m_aAdjMarkerB; // used to know if an face is frac face
+	ABool m_aAdjMarkerFaceIsFracB; // used to know if an face is frac face
 
-	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceB;
+	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceIsFracB;
+
+	ABool m_aAdjMarkerFaceIsUnclosedFracB;
+
+	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceIsUnclosedFracB;
+
+	ABool m_aAdjMarkerVrtxHasUnclosedFracB;
+
+	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtxHasUnclosedFracB;
 
 	bool countAndSelectFracBaseNums();
 
@@ -311,7 +319,7 @@ private:
 //	template< IndexType NUM_SURR_FRACS, bool isBndryVrtx >
 //	bool expandWithinTheSegment( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo );
 
-	IndexType shiftUnclosedFracFacesToGenerFaces( Vertex * const & vrt );
+	IndexType specificTreatementUnclosedFracFaces( Vertex * const & vrt );
 
 //	bool extracFractSudosOfSegment(SegmentVolElmInfo const & segmVolElmInfo, std::vector<IndexType> & sudosInSegment );
 

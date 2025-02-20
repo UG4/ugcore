@@ -984,6 +984,7 @@ public:
 	: m_fullDimElm(fullDimElm),
 	  m_elementMarked(false),
 	  m_vecFractManifElm(VecAttachedFractManifElemInfo()),
+	  m_vecUnclosedFractManifElm(VecAttachedFractManifElemInfo()),
 //	  m_vecFractManifElmTouchInfo(VecAttFractManifElmTouchInf()),
 //	  m_allSidesTouched(false),
 	  m_vecGenerManifElm(VecAttachedGenerManifElemInfo()),
@@ -1011,6 +1012,8 @@ public:
 	void markIt() { m_elementMarked = true; } // to allow in loop to be start element
 
 	bool const hasFracture() const { return ( m_vecFractManifElm.size() > 0 ); }
+
+	bool const hasUnclosedFracture() const { return ( m_vecUnclosedFractManifElm.size() > 0 ); }
 
 	bool addFractManifElem( AttachedFractManifElemInfo const & manifFractElm, Grid & grid )
 	{
@@ -1093,6 +1096,12 @@ public:
 		return m_vecFractManifElm;
 	}
 
+	VecAttachedFractManifElemInfo const getVecUnclosedFractManifElem() const
+	{
+		return m_vecUnclosedFractManifElm;
+	}
+
+
 	VecAttachedGenerManifElemInfo const getVecGenerManifElem() const
 	{
 		return m_vecGenerManifElm;
@@ -1142,22 +1151,25 @@ public:
 	bool searchGenerManifElem( NOGEN const & manifGenerElemOther, bool eraseFound ) = delete;
 
 //	bool const searchFractManifElem( AttachedFractManifElemInfo const & manifFractElemOther, bool eraseFound = true )
-	bool const searchFractManifElem( AttachedFractManifElemInfo const & manifFractElemOther, bool shiftToGeneral = true )
+	bool const searchFractManifElem( AttachedFractManifElemInfo const & manifFractElemOther, bool shiftToUnclosedFracts = true )
 	{
-		bool found = searchManifElem( manifFractElemOther, m_vecFractManifElm, shiftToGeneral );
+		bool found = searchManifElem( manifFractElemOther, m_vecFractManifElm, shiftToUnclosedFracts );
 
-		if( found && shiftToGeneral )
+		if( found && shiftToUnclosedFracts )
 		{
 			// for the case that a fracture is not closed at a vertex, shift the in principle
 			// fracture vertex to the gerneral vertices, as useless for segmente construction
 			// and useless for expansion
 
-			MANIFELM const & manifel = manifFractElemOther.getManifElm();
-			typename AttachedGenerManifElemInfo::PairLowEl const & pairLowEl = manifFractElemOther.getPairLowElm();
+			m_vecUnclosedFractManifElm.push_back(manifFractElemOther);
 
-			AttachedGenerManifElemInfo agmei( manifel, pairLowEl );
 
-			m_vecGenerManifElm.push_back(agmei);
+//			MANIFELM const & manifel = manifFractElemOther.getManifElm();
+//			typename AttachedGenerManifElemInfo::PairLowEl const & pairLowEl = manifFractElemOther.getPairLowElm();
+//
+//			AttachedGenerManifElemInfo agmei( manifel, pairLowEl );
+
+//			m_vecUnclosedFractManifElm.push_back(agmei);
 		}
 
 		return found;
@@ -1280,6 +1292,9 @@ private:
 	bool m_elementMarked;
 
 	VecAttachedFractManifElemInfo m_vecFractManifElm;
+
+	VecAttachedFractManifElemInfo m_vecUnclosedFractManifElm;
+
 
 //	using AttFractManifElmTouchInf = std::pair<AttachedFractManifElemInfo,bool>;
 //	using VecAttFractManifElmTouchInf = std::vector<AttFractManifElmTouchInf>;
