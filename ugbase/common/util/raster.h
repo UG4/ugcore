@@ -34,6 +34,7 @@
 #define __H__UG_raster
 
 #include "common/math/ugmath_types.h"
+#include "common/math/misc/shapes.h"
 
 namespace ug{
 
@@ -217,6 +218,10 @@ class Raster{
 	///	blurs (smoothens) the values by repeatedly averaging between direct neighbors
 		void blur(T alpha, size_t iterations);
 
+	/// 
+		const MultiIndex& node_index(const Coordinate& coord, int order) const;
+
+		const AABox<number> bounding_box(const MultiIndex& mi) const;
 
 	/// Creates and runs the specified kernel on all nodes and returns its result
 	/** The class TKernel has to feature a default constructor, a typedef 'result_t',
@@ -302,6 +307,8 @@ class Raster{
 
 	///	interpolates the value with the given order at the cursor position
 		T interpolate_at_cursor (int order) const;
+
+		//Raster partial_value(BoundingBox box) const;
 
 	private:
 		template <class TKernel>

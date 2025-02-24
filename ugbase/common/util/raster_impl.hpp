@@ -421,6 +421,44 @@ extension (int dim) const
 	return m_extension[dim];
 }
 
+template <class T, int TDIM>
+const typename Raster<T, TDIM>::MultiIndex&  Raster<T,TDIM>::
+node_index(const Coordinate& coord, int order) const
+{
+	MultiIndex mi(-1);
+	for(size_t d = 0; d < TDIM; ++d)
+	{ 
+		switch(order){
+		case 0: {
+			mi[d] = static_cast<int>(0.5 + (coord[d] - m_minCorner[d]) / m_cellExtension[d]);
+			if(mi[d] < 0)					mi[d] = 0;
+			else if(mi[d] >= num_nodes(d))	mi[d] = num_nodes(d) - 1;
+		}break;
+
+		case 1:{
+			mi[d] = static_cast<int>((coord[d] - m_minCorner[d]) / m_cellExtension[d]);
+			if(mi[d] < 0)					mi[d] = 0;
+			else if(mi[d]+1 >= num_nodes(d))	mi[d] = num_nodes(d) - 2;
+		}break;
+
+		default:
+			UG_THROW("Raster::interpolate(): Unsupported interpolation order: " << order);
+		}
+	}
+	return mi;
+}
+
+template<class T, int TDIM>
+const AABox<number> Raster<T,TDIM>::
+bounding_box(const MultiIndex& mi) const{
+	AABox<MathVector<TDIM, number> > box;
+	for(size_t d = 0; d < TDIM; ++d)
+	{
+		box.min[d]=(number)mi[d] * m_cellExtension[d]+ m_minCorner[d];
+		box.max[d]=box.min[d]+m_cellExtension[d];
+	}	
+	return box;
+}
 
 template <class T, int TDIM>
 T Raster<T, TDIM>::
