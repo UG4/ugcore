@@ -1020,8 +1020,56 @@ template <>
 inline bool PointIsInsideTriangle(const MathVector<3>& v, const MathVector<3>& v0,
 						   	   	   	   	    const MathVector<3>& v1, const MathVector<3>& v2)
 {
-	UG_THROW("Not implemented for 3D!");
+	//UG_THROW("Not implemented for 3D!");
+	//  we'll check for each side of the tri, whether v and the point of
+//  the tri, that does not lie on the edge, do lie on the same side.
+MathVector<3> e1,e2,ec;         // the examined edge
+MathVector<3> edgeNorm; // the normal of the examined edge
+MathVector<3> tv1, tv2; // the direction of a tri-point to v
+
+//  We compare against a small-constant which is
+//  relative to the first edge of the triangle under examination.
+//  Note: If we do not do this in a relative fashion, sufficiently
+//  small-scale triangles will always return true!
+
+VecSubtract(e1, v1, v0); //vector e1: v0->v1
+number locSmall = VecTwoNormSq(e1);
+locSmall = locSmall * locSmall * SMALL;
+
+
+VecSubtract(e2, v2, v0); //vector e2: v0->v2
+VecCross(ec, e1, e2); // ec: e1(v)*e2(v), ec is the normal vector of the triangle
+VecNormalize(ec,ec); 
+
+//VecCross(): Vector perpendicular to the plane of the triangle,
+// which is used to determine whether point v is on the same side as a vertex of the triangle
+VecCross(edgeNorm, e1, ec); 
+VecSubtract(tv1, v2, v0);
+VecSubtract(tv2, v, v0);
+
+//NewAdd(Test For 3D)
+if(VecDot(ec,tv2)!=0)
 	return false;
+
+if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmall) 
+	return false;
+
+VecSubtract(e1, v2, v1);
+VecCross(edgeNorm, e1, ec);
+VecSubtract(tv1, v0, v1);
+VecSubtract(tv2, v, v1);
+if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmall)
+	return false;
+
+VecSubtract(e1, v0, v2);
+VecCross(edgeNorm, e1, ec);
+VecSubtract(tv1, v1, v2);
+VecSubtract(tv2, v, v2);
+if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmall)
+	return false;
+
+//  all tests succeeded. return true.
+return true;
 }
 
 
