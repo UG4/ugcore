@@ -81,6 +81,9 @@ public:
 
 	bool run();
 
+	using IndexType = unsigned short;
+
+
 private:
 
 	Grid & m_grid;
@@ -110,9 +113,9 @@ private:
 
 	bool detachMarkers();
 
-	using IndexType = unsigned short;
+	using NormalVectorFacIntoVol = vector3;
 
-	using AttachedFractFaceEdgeSudo = support::AttachedFractElem<Face*,Edge*,IndexType>;
+	using AttachedFractFaceEdgeSudo = support::AttachedFractElem<Face*,Edge*,IndexType,NormalVectorFacIntoVol>;
 
 	using VecAttachedFractFaceEdgeSudo = std::vector<AttachedFractFaceEdgeSudo>;
 
@@ -120,6 +123,9 @@ private:
 
 	using VecAttachedGenerFaceEdgeSudo = std::vector<AttachedGenerFaceEdgeSudo>;
 
+	using AttachedBndryFaceEdgeSudo = support::AttachedBoundryElem<Face*,Edge*,IndexType,NormalVectorFacIntoVol>;
+
+	using VecAttachedBndryFaceEdgeSudo = std::vector<AttachedBndryFaceEdgeSudo>;
 
 	using EdgePair = std::pair<Edge*,Edge*>;
 
@@ -143,11 +149,23 @@ private:
 	Grid::EdgeAttachmentAccessor<AttVertFracProp> m_aaMarkEdgeVFP;
 	// used to know if an edge is frac edge, suffix vfp misleading....
 
-	ABool m_aAdjMarkerB; // used to know if an face is frac face
+	ABool m_aAdjMarkerFaceIsFracB; // used to know if an face is frac face
 
-	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceB;
+	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceIsFracB;
+
+	ABool m_aAdjMarkerFaceIsUnclosedFracB;
+
+	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceIsUnclosedFracB;
+
+	ABool m_aAdjMarkerVrtxHasUnclosedFracB;
+
+	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtxHasUnclosedFracB;
 
 	bool countAndSelectFracBaseNums();
+
+	bool distinguishSegments();
+
+	bool seletForSegmented();
 
 	std::vector<Face*> m_originalFractureFaces;
 
@@ -172,7 +190,7 @@ private:
 
 	bool establishNewVrtBase();
 
-	bool generateVertexInfos();
+//	bool generateVertexInfos();
 
 	bool loop2EstablishNewVertices();
 
@@ -184,15 +202,15 @@ private:
 //
 //	VrtxFractrQuadrplArte3DVec m_vrtxFractrQuadrplVec;
 
-	using VertFracTrip = support::VertexFractureTripleMF<Face*, IndexType, Volume*, vector3, Edge*>;
+//	using VertFracTrip = support::VertexFractureTripleMF<Face*, IndexType, Volume*, vector3, Edge*>;
+//
+//	using VecVertFracTrip = std::vector<VertFracTrip>;
+//
+//	using AttVecVertFracTrip = Attachment<VecVertFracTrip>;
 
-	using VecVertFracTrip = std::vector<VertFracTrip>;
-
-	using AttVecVertFracTrip = Attachment<VecVertFracTrip>;
-
-	AttVecVertFracTrip m_aAdjInfoAVVFT;
-
-	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> m_aaVrtInfoFraTri;
+//	AttVecVertFracTrip m_aAdjInfoAVVFT;
+//
+//	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> m_aaVrtInfoFraTri;
 
 	bool checkIfFacesVerticesCoincide( Face * const & facOne, Face * const & facTwo );
 
@@ -213,21 +231,22 @@ private:
 	using PairSudoBool = std::pair<IndexType,bool>;
 	using VecPairSudoBool = std::vector<PairSudoBool>;
 
-	bool isVrtxSurroundedByFracFaces( Vertex * const & vrt, VertxFracPropts & vrtxFracPrps );
+	// deprecated due to Stasi algo
+//	bool isVrtxSurroundedByFracFaces( Vertex * const & vrt, VertxFracPropts & vrtxFracPrps );
 //									  VecPairSudoBool & sudoSurrounded );
 
-	// transform to template soon
-	bool sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo const & vecAttFac,
-								 VecAttachedFractFaceEdgeSudo & vecSortedFac,
-								 int startFaceIndexUser = -1,
-//								 int endFaceIndexUser = -1,
-//								 IndexType startEdgeIndexUser = -1,
-//								 IndexType endEdgeIndexUser = -1
-//								 Face * const & startFacUser = nullptr,
-//								 Face * const & endFacUser = nullptr,
-								 Edge * const & startEdgUser = nullptr,
-								 Edge * const & endEdgUser = nullptr
-								);
+	// deprecated due to Stasi Algorithm
+//	bool sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo const & vecAttFac,
+//								 VecAttachedFractFaceEdgeSudo & vecSortedFac,
+//								 int startFaceIndexUser = -1,
+////								 int endFaceIndexUser = -1,
+////								 IndexType startEdgeIndexUser = -1,
+////								 IndexType endEdgeIndexUser = -1
+////								 Face * const & startFacUser = nullptr,
+////								 Face * const & endFacUser = nullptr,
+//								 Edge * const & startEdgUser = nullptr,
+//								 Edge * const & endEdgUser = nullptr
+//								);
 
 public:
 	using VrtxFracProptsStatus = VertxFracPropts::VrtxFracStatus;
@@ -252,10 +271,10 @@ private:
 //			>
 //	bool establishNewVertices( Vertex * const & oldVrt );
 
-	template< bool APPLY_GENERAL_SEGMENT_ORDERING,
-			  ArteExpandFracs3D::VrtxFracProptsStatus vfp
-	>
-	bool establishNewVertices( Vertex * const & oldVrt );
+//	template< bool APPLY_GENERAL_SEGMENT_ORDERING,
+//			  ArteExpandFracs3D::VrtxFracProptsStatus vfp
+//	>
+//	bool establishNewVertices( Vertex * const & oldVrt );
 
 
 //	template< bool APPLY_GENERAL_SEGMENT_ORDERING,
@@ -272,29 +291,112 @@ private:
 
 	bool createNewElements();
 
-	using AttachedVolumeElemInfo = support::AttachedFullDimElemInfo<Volume*, Face *, Edge *, IndexType>;
+	using AttachedVolumeElemInfo = support::AttachedFullDimElemInfo<Volume*, Face *, Edge *, IndexType, NormalVectorFacIntoVol>;
+
 	using VecAttachedVolumeElemInfo = std::vector<AttachedVolumeElemInfo>;
 	using AttVecAttachedVolumeElemInfo = Attachment<VecAttachedVolumeElemInfo>;
 
-	AttVecAttachedVolumeElemInfo m_aAdjVolElmInfo;
-	Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo> m_aaVolElmInfo;
+//	AttVecAttachedVolumeElemInfo m_aAdjVolElmInfo;
+//	Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo> m_aaVolElmInfo;
 
 	using SegmentVolElmInfo = VecAttachedVolumeElemInfo;
 	using VecSegmentVolElmInfo = std::vector<SegmentVolElmInfo>;
+
+	bool stasiAlgo( Vertex * const & oldVrt );
+	int prepareStasi( Vertex * const & vrt, AttachedVolumeElemInfo & attVolElmInfo );
+
+	using AttVecSegmentVolElmInfo = Attachment<VecSegmentVolElmInfo>;
+
+	AttVecSegmentVolElmInfo m_attAdjVecSegVolElmInfo;
+	Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo> m_accsAttVecSegVolElmInfo;
+
+	bool computeNormalKuhVolProcedure( Volume * const & kuhVol, Face * const & fac, NormalVectorFacIntoVol & normalIntoVol );
+
+	bool enableVolOptAutoGenFac();
+
+	bool establishNewVertizesStasiBased( Vertex * const & oldVrt );
+
+//	template< IndexType NUM_SURR_FRACS, bool isBndryVrtx >
+//	bool expandWithinTheSegment( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo );
+
+	IndexType specificTreatementUnclosedFracFaces( Vertex * const & vrt );
+
+//	bool extracFractSudosOfSegment(SegmentVolElmInfo const & segmVolElmInfo, std::vector<IndexType> & sudosInSegment );
+
+public:
+	using SegmentLimitingSides = support::SegmentSides<Volume*,Face*,Edge*,IndexType,vector3,Vertex*>;
+
+//	using SegmentLimitSidesPairSudoNorml = SegmentLimitingSides::PairSudoNormlV;
+//
+//	using VecSegmentLimitSidesPairSudoNorml = SegmentLimitingSides::VecPairSudoNormlV;
+
+	using SegmentVrtxFracStatus = SegmentLimitingSides::VrtxFracStatus;
+
+private:
+
+	// the artificial normals are for the case of two crossing fractures inside, and the case
+	// of boundary vertices, i.e. one fracture at one boundary sudo, two fracture at one boundary sudo, one fracture at two boundary sudos
+//	template< SegmentVrtxFracStatus seVrtFracStat >
+	bool expandWithinTheSegment( SegmentLimitingSides const & segmLimSides );
+
+	using PlaneDescriptor = support::ManifoldDescriptor<vector3>;
+
+	using VecPlaneDescriptor = std::vector<PlaneDescriptor>;
+
+	using PlaneDescriptorType = PlaneDescriptor::ManifoldType;
+
+	bool computeCrossingPointOf3Planes( VecPlaneDescriptor const & vecPlaneDescr, vector3 & crossingPoint );
+
+//	template<SegmentVrtxFracStatus svfs>
+	// For the case of one inner fracture
+//	bool computeShiftVector( VecPlaneDescriptor const & vecPl );
+
+	// For the case of two and three inner fractures, and
+	// the case of one or two fractures at one outer boundary subdomain
+	// for the case of one fracture at one outer boundary subdomain
+//	bool computeShiftVector( VecSegmentLimitSidesPairSudoNorml const & vecSegmLimSidPrSudoNrml );
+
+	int splitInnerFreeFracEdgs();
+
+	template<typename ELEMTYP>
+	bool addElem( std::vector<ELEMTYP> & elemsToBeSplitted, ELEMTYP elem );
+
+
 
 };
 
 // specification has to be declared outside central class context, else compilation error
 
-template <>
-bool ArteExpandFracs3D::establishNewVertices< true,
-											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
-											>( Vertex * const & oldVrt );
+//template<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>
+//bool computeShiftVector( );
 
-template <>
-bool ArteExpandFracs3D::establishNewVertices< false,
-											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
-											>( Vertex * const & oldVrt );
+
+// for only one surrounding subdom around the segment
+//template<>
+//bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo );
+
+
+//using ArteOneFractCrossSegment = ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt;
+
+//template<>
+//bool ArteExpandFracs3D::expandWithinTheSegment<ArteOneFractCrossSegment>( SegmentLimitingSides const & segmLimSides );
+//template<>
+//bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>( SegmentLimitingSides const & segmLimSides );
+//
+//
+//template<bool artificialNormalTwo, bool artificialNormalThree>
+//bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::threeFracSuDoAtt>( SegmentLimitingSides const & segmLimSides, std::vector<Volume*> const & vecVolsOfSegment );
+
+
+//template <>
+//bool ArteExpandFracs3D::establishNewVertices< true,
+//											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
+//											>( Vertex * const & oldVrt );
+//
+//template <>
+//bool ArteExpandFracs3D::establishNewVertices< false,
+//											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
+//											>( Vertex * const & oldVrt );
 
 
 } /* namespace ug */

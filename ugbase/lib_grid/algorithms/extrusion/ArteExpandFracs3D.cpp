@@ -64,6 +64,8 @@
 
 #include <lib_grid/algorithms/extrusion/ArteExpandFracs3D.h>
 
+#include "simpleMatrixOps.h"
+
 
 
 namespace ug
@@ -87,8 +89,11 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaMarkVrtVFP( Grid::VertexAttachmentAccessor<AttVertFracProp>()),
 //	  m_aAdjMarkerVFP(AttVertFracProp()),
 	  m_aaMarkEdgeVFP(Grid::EdgeAttachmentAccessor<AttVertFracProp>()),
-	  m_aAdjMarkerB(ABool()),
-	  m_aaMarkFaceB(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerFaceIsFracB(ABool()),
+	  m_aaMarkFaceIsFracB(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_aaMarkFaceIsUnclosedFracB(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerVrtxHasUnclosedFracB(ABool()),
+	  m_aaMarkVrtxHasUnclosedFracB(Grid::VertexAttachmentAccessor<ABool>()),
 	  m_originalFractureFaces(std::vector<Face*>()),
 //	  m_attVrtVec(AttVrtVec()),
 //	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
@@ -98,14 +103,16 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaVrtInfoAssoEdges( Grid::VertexAttachmentAccessor<AttVecEdge>()),
 	  m_aaVrtInfoAssoFaces( Grid::VertexAttachmentAccessor<AttVecFace>()),
 //	  m_aaVrtInfoAssoVols( Grid::VertexAttachmentAccessor<AttVecVol>()),
-	  m_aAdjInfoAVVFT( AttVecVertFracTrip() ),
-	  m_aaVrtInfoFraTri(Grid::VertexAttachmentAccessor<AttVecVertFracTrip>()),
+//	  m_aAdjInfoAVVFT( AttVecVertFracTrip() ),
+//	  m_aaVrtInfoFraTri(Grid::VertexAttachmentAccessor<AttVecVertFracTrip>()),
 //	  m_vrtxFractrQuadrplVec(VrtxFractrQuadrplArte3DVec())
 	  m_attVrtVec(AttVrtVec()),
 	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
 	  m_vecCrossVrtInf(std::vector<CrossVertInf>()),
-	  m_aAdjVolElmInfo(AttVecAttachedVolumeElemInfo()),
-	  m_aaVolElmInfo(Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>())
+//	  m_aAdjVolElmInfo(AttVecAttachedVolumeElemInfo()),
+//	  m_aaVolElmInfo(Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>()),
+	  m_attAdjVecSegVolElmInfo( AttVecSegmentVolElmInfo() ),
+	  m_accsAttVecSegVolElmInfo( Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo>() )
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -134,16 +141,74 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("attached" << std::endl);
 
+	int splittedEdges = splitInnerFreeFracEdgs();
+
+	UG_LOG("splitted edges " << splittedEdges << std::endl);
+//
+//	return false;
+//
+//	UG_LOG("Splitted inner free frac edges" << splittedEdges << std::endl);
+
 	if( ! countAndSelectFracBaseNums() )
 		return false;
 
 	UG_LOG("gezaehlt" << std::endl);
 
-
+//	constexpr bool assignFracInfosFirst = true;
+//
+//	if( assignFracInfosFirst )
+//	{
 	if( ! assignOrigFracInfos() )
 		return false;
 
-	UG_LOG("assigniert" << std::endl);
+	UG_LOG("assigniert zuerst " << std::endl);
+
+	if( ! enableVolOptAutoGenFac() )
+	{
+		UG_LOG("autogen war schon eingestellt" << std::endl);
+	}
+	else
+	{
+		UG_LOG("Autogen einstellen" << std::endl);
+	}
+	// TODO FIXME für was gebraucht????
+
+//	}
+
+//	constexpr bool generVrtInfoFirst = true;
+//
+//	if( generVrtInfoFirst )
+//	{
+//	if( ! generateVertexInfos() )
+//		return false;
+//
+//	UG_LOG("generiert zuerst " << std::endl);
+
+//	}
+
+//	if( ! prepareStasi() )
+//		return false;
+//
+//	UG_LOG("Stasi vorbereitet " << std::endl);
+
+	if( ! distinguishSegments() )
+		return false;
+
+	UG_LOG("Segmente erzeugt " << std::endl);
+
+	if( ! seletForSegmented() )
+		return false;
+
+	UG_LOG("Closed Open Vertex Fract untersucht " << std::endl);
+
+//	if( ! assignFracInfosFirst )
+//	{
+//		if( ! assignOrigFracInfos() )
+//			return false;
+//
+//		UG_LOG("assigniert danach " << std::endl);
+//
+//	}
 
 
 	if( ! establishNewVrtBase() )
@@ -151,10 +216,14 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("etabliert" << std::endl);
 
-	if( ! generateVertexInfos() )
-		return false;
-
-	UG_LOG("generiert" << std::endl);
+//	if( ! generVrtInfoFirst )
+//	{
+//
+//		if( ! generateVertexInfos() )
+//			return false;
+//
+//		UG_LOG("generiert danach " << std::endl);
+//	}
 
 	if( ! createConditionForNewVrtcs() )
 		return false;
@@ -268,10 +337,20 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	m_aaMarkEdgeVFP = Grid::EdgeAttachmentAccessor<AttVertFracProp>( m_grid, m_aAdjMarkerVFP );
 
-	m_aAdjMarkerB = ABool(); // used to know if an face is frac face
+	m_aAdjMarkerFaceIsFracB = ABool(); // used to know if an face is frac face
 
-	m_grid.attach_to_faces_dv( m_aAdjMarkerB, false );
-	m_aaMarkFaceB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerB );
+	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceIsFracB, false );
+	m_aaMarkFaceIsFracB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceIsFracB );
+
+	m_aAdjMarkerFaceIsUnclosedFracB = ABool();
+
+	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceIsUnclosedFracB, false );
+	m_aaMarkFaceIsUnclosedFracB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceIsUnclosedFracB );
+
+	m_aAdjMarkerVrtxHasUnclosedFracB = ABool();
+
+	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxHasUnclosedFracB, false );
+	m_aaMarkVrtxHasUnclosedFracB = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxHasUnclosedFracB );
 
 	// second part
 
@@ -305,13 +384,13 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	// AttVecVertFracTrip m_aAdjInfoAVVFT;
 
-	VecVertFracTrip vertexNoInfo;
-
-	m_aAdjInfoAVVFT = AttVecVertFracTrip();
-
-	m_grid.attach_to_vertices_dv( m_aAdjInfoAVVFT, vertexNoInfo );
-
-	m_aaVrtInfoFraTri = Grid::VertexAttachmentAccessor<AttVecVertFracTrip>(m_grid,  m_aAdjInfoAVVFT );
+//	VecVertFracTrip vertexNoInfo;
+//
+//	m_aAdjInfoAVVFT = AttVecVertFracTrip();
+//
+//	m_grid.attach_to_vertices_dv( m_aAdjInfoAVVFT, vertexNoInfo );
+//
+//	m_aaVrtInfoFraTri = Grid::VertexAttachmentAccessor<AttVecVertFracTrip>(m_grid,  m_aAdjInfoAVVFT );
 
 
 	//	associate a vector of vertices for each volume adjacent to the frac.
@@ -325,13 +404,22 @@ bool ArteExpandFracs3D::attachMarkers()
 	m_aaVrtVecVol = Grid::VolumeAttachmentAccessor<AttVrtVec>(m_grid, m_attVrtVec);
 
 
-	VecAttachedVolumeElemInfo noVolInfo;
+//	VecAttachedVolumeElemInfo noVolInfo;
 
-	m_aAdjVolElmInfo = AttVecAttachedVolumeElemInfo();
+//	m_aAdjVolElmInfo = AttVecAttachedVolumeElemInfo();
+//
+//	m_grid.attach_to_vertices_dv(m_aAdjVolElmInfo,noVolInfo);
+//
+//	m_aaVolElmInfo = Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>(m_grid, m_aAdjVolElmInfo);
 
-	m_grid.attach_to_vertices_dv(m_aAdjVolElmInfo,noVolInfo);
 
-	m_aaVolElmInfo = Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>(m_grid, m_aAdjVolElmInfo);
+	VecSegmentVolElmInfo noSegmts;
+
+	m_attAdjVecSegVolElmInfo = AttVecSegmentVolElmInfo();
+
+	m_grid.attach_to_vertices_dv( m_attAdjVecSegVolElmInfo, noSegmts );
+
+	m_accsAttVecSegVolElmInfo = Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo>( m_grid, m_attAdjVecSegVolElmInfo );
 
 	return true;
 }
@@ -341,20 +429,455 @@ bool ArteExpandFracs3D::detachMarkers()
 {
 	m_grid.detach_from_vertices( m_aAdjMarkerVFP );
 	m_grid.detach_from_edges( m_aAdjMarkerVFP );
-	m_grid.detach_from_faces( m_aAdjMarkerB );
+	m_grid.detach_from_faces( m_aAdjMarkerFaceIsFracB );
+	m_grid.detach_from_faces( m_aAdjMarkerFaceIsUnclosedFracB );
+
+	m_grid.detach_from_vertices( m_aAdjMarkerVrtxHasUnclosedFracB );
 
 	m_grid.detach_from_vertices( m_aAdjInfoEdges );
 	m_grid.detach_from_vertices( m_aAdjInfoFaces );
 //	m_grid.detach_from_vertices( m_aAdjInfoVols );
 
-	m_grid.detach_from_vertices( m_aAdjInfoAVVFT  );
+//	m_grid.detach_from_vertices( m_aAdjInfoAVVFT  );
 
 	m_grid.detach_from_volumes( m_attVrtVec );
 
-	m_grid.detach_from_vertices(m_aAdjVolElmInfo);
+//	m_grid.detach_from_vertices(m_aAdjVolElmInfo);
+
+	m_grid.detach_from_vertices(m_attAdjVecSegVolElmInfo);
 
 	return true;
 }
+
+bool ArteExpandFracs3D::enableVolOptAutoGenFac()
+{
+	// brauchen wir das? für was? von SR irgendwie übernommen, wo dort was entfernt ähnliches gemacht wird....
+	if(! m_grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES) )
+	{
+		UG_LOG("WARNING grid option VOLOPT_AUTOGENERATE_FACES autoenabled.\n");
+		m_grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
+		return true;
+	}
+
+	return false;
+
+}
+
+//////////////////////////////////////////////////////////////////
+
+int ArteExpandFracs3D::splitInnerFreeFracEdgs()
+{
+	int splittedEdges = 0;
+
+	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
+	{
+		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
+
+		UG_LOG("sudo ind " << fracIndSudo << std::endl);
+
+		AttVertFracProp func_aAdjMarkerVFP;
+		VertxFracPropts vfp0;
+		m_grid.attach_to_edges_dv( func_aAdjMarkerVFP, vfp0 );
+		Grid::EdgeAttachmentAccessor<AttVertFracProp> func_aaMarkEdgeVFP( m_grid, func_aAdjMarkerVFP );
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
+		{
+			Face* fac = *iter;
+
+			std::vector<Edge*> facEdges;
+
+			CollectEdges( facEdges, m_grid, fac );
+
+			for( auto const & edg : facEdges )
+			{
+				if( func_aaMarkEdgeVFP[edg]. getNumberFracEdgesInVertex() != 0 )
+					UG_THROW("Attachment nicht auf default " << std::endl);
+//				func_aaMarkEdgeVFP[edg].setNumberCrossingFracsInVertex(0);
+			}
+		}
+
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
+		{
+			Face* fac = *iter;
+
+			std::vector<Edge*> facEdges;
+
+			CollectEdges( facEdges, m_grid, fac );
+
+			for( auto const & edg : facEdges )
+			{
+				func_aaMarkEdgeVFP[edg]++;
+			}
+		}
+
+		std::vector<Edge *> edgesToBeSplitted;
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
+		{
+			Face* fac = *iter;
+
+			std::vector<Edge*> facEdges;
+
+			CollectEdges( facEdges, m_grid, fac );
+
+			IndexType openEdges = 0;
+
+			for( auto const & edg : facEdges )
+			{
+				VertxFracPropts & edgeFracPrps = func_aaMarkEdgeVFP[edg];
+
+				IndexType fracEdgesOverlap = edgeFracPrps.getNumberFracEdgesInVertex();
+
+				if( fracEdgesOverlap == 1 )
+				{
+					openEdges++;
+				}
+				else if( fracEdgesOverlap == 2 )
+				{
+					; // fine, inner edge of fracture
+				}
+				else
+				{
+					m_sh.assign_subset(edg, m_sh.num_subsets());
+
+					UG_LOG("how many fractures at this edge " << fracEdgesOverlap << std::endl);
+					UG_LOG("sudo " << fracIndSudo << std::endl);
+					UG_THROW("how many fractures at this edge " << fracEdgesOverlap << std::endl);
+					UG_THROW("sudo " << fracIndSudo << std::endl);
+//					return splittedEdges;
+//					UG_THROW("how many fractures at this edge " << fracEdgesOverlap << std::endl);
+				}
+			}
+
+			if( openEdges == 2 )
+			{
+				// figure out that edge that is not open, this must be splitted
+
+				IndexType innerEdges = 0;
+
+				for( auto const & edg : facEdges )
+				{
+					VertxFracPropts & edgeFracPrps = func_aaMarkEdgeVFP[edg];
+
+					IndexType fracEdgesOverlap = edgeFracPrps.getNumberFracEdgesInVertex();
+
+					if( fracEdgesOverlap == 2 )
+					{
+						edgesToBeSplitted.push_back(edg);
+						innerEdges++;
+					}
+				}
+
+				if( innerEdges != 1 )
+				{
+					UG_LOG("inner edge number strange " << innerEdges << std::endl);
+					UG_THROW("inner edge number strange " << innerEdges << std::endl);
+				}
+
+
+			}
+		}
+
+		for( Edge * edg : edgesToBeSplitted )
+		{
+			vector3 center = CalculateCenter(edg, m_aaPos);
+			UG_LOG("splitting edge at " << center << std::endl);
+			RegularVertex* vrt = SplitEdge<RegularVertex>(m_grid, edg, false);
+			m_aaPos[vrt] = center;
+			splittedEdges++;
+		}
+
+		m_grid.detach_from_edges( func_aAdjMarkerVFP );
+	}
+
+	return splittedEdges;
+}
+
+#if 0
+int ArteExpandFracs3D::splitInnerFreeFracEdgs()
+{
+	int splittedEdges = 0;
+
+	UG_LOG("search inner frac edges with two inner boundary edges" << std::endl);
+
+	// TODO FIXME
+
+
+	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
+	{
+		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
+
+		UG_LOG("sudo ind " << fracIndSudo << std::endl);
+
+//		std::vector<Edge *> edgesToBeSplitted;
+
+		std::vector<Face*> facesAtInnerBoundary;
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
+		{
+			Face* fac = *iter;
+
+//			std::vector<Vertex*> assoVrt;
+//
+//			CollectVertices( assoVrt, m_grid, fac );
+//
+//			// check number of edges which have only one fracture face around
+//
+//			for( Vertex * vrt : assoVrt )
+//			{
+			std::vector<Edge*> assoEdg;
+
+			CollectEdges( assoEdg, m_grid, fac );
+
+			for( Edge * edg : assoEdg )
+			{
+				// check if edge is inner boundary edge, i.e. if has at one side non-fracture face
+				// only check for those edges which have one fracture face on one side
+
+				// split only inner edges at the moment in case of problems
+				if( IsBoundaryEdge3D(m_grid, edg) )
+				{
+					continue;
+				}
+
+				std::vector<Face *> assoFac;
+
+				CollectFaces( assoFac, m_grid, edg );
+
+				IndexType numFacsFromFracSudo = 0;
+
+				for( Face * testFac : assoFac )
+				{
+					IndexType testSudo = m_sh.get_subset_index(testFac);
+
+					if( testSudo == fracIndSudo )
+						numFacsFromFracSudo++;
+				}
+
+				if( numFacsFromFracSudo == 0 )
+				{
+//					UG_LOG("no facs at edg " << std::endl );
+						; // nothing to do, belongs from an edge not relevant for the fracture
+				}
+				else if( numFacsFromFracSudo == 1 )
+				{
+					// relevant! edge needs to be split
+
+//					UG_LOG("one fac at edg" << std::endl);
+
+					addElem( facesAtInnerBoundary, fac );
+				}
+				else if( numFacsFromFracSudo == 2 )
+				{
+//						UG_LOG("two fac sides at edge " << std::endl);
+						; // nothing to do, edge at both sides surrounded by fracture face
+				}
+				else
+				{
+					UG_LOG("komische Ecke" << std::endl);
+					UG_THROW("komische Ecke" << std::endl);
+				}
+			}
+
+		}
+
+		std::vector<Edge *> edgesToBeSplitted;
+
+		for( Face * fac : facesAtInnerBoundary )
+		{
+			std::vector<Vertex *> assoVrt;
+
+			CollectVertices(assoVrt, m_grid, fac);
+
+			// check if at a vertex of a frac face is associated with two inner boundary edges
+
+			for( Vertex * vrt : assoVrt )
+			{
+				std::vector<Edge*> assoEdg;
+
+				CollectEdges( assoEdg, m_grid, vrt );
+
+				IndexType innerBoundaryEdges = 0;
+
+				// count number of edges of the vertex which have one free side
+
+				for( Edge * edg : assoEdg )
+				{
+					// check if edge is inner boundary edge, i.e. if has at one side non-fracture face
+					// only check for those edges which have one fracture face on one side
+
+					// split only inner edges at the moment in case of problems
+					if( IsBoundaryEdge3D(m_grid, edg) )
+					{
+						continue;
+					}
+
+					std::vector<Face *> assoFac;
+
+					CollectFaces( assoFac, m_grid, edg );
+
+					IndexType numFacsFromFracSudo = 0;
+
+					for( Face * testFac : assoFac )
+					{
+						IndexType testSudo = m_sh.get_subset_index(testFac);
+
+						if( testSudo == fracIndSudo )
+							numFacsFromFracSudo++;
+					}
+
+					if( numFacsFromFracSudo == 0 )
+					{
+//						UG_LOG("no facs at edg " << std::endl );
+						; // nothing to do, belongs from an edge not relevant for the fracture
+					}
+					else if( numFacsFromFracSudo == 1 )
+					{
+						// relevant! edge needs to be split
+
+//						UG_LOG("one fac at edg" << std::endl);
+
+//						addElemToSplit( edgesToBeSplitted, edg );
+						innerBoundaryEdges++;
+					}
+					else if( numFacsFromFracSudo == 2 )
+					{
+//						UG_LOG("two fac sides at edge " << std::endl);
+						; // nothing to do, edge at both sides surrounded by fracture face
+					}
+					else
+					{
+						UG_LOG("komische Ecke" << std::endl);
+						UG_THROW("komische Ecke" << std::endl);
+					}
+
+				}
+
+				if( innerBoundaryEdges == 0  || 1 || 3 )
+				{
+//					UG_LOG("komische innere Grenze ohne Grenze " << std::endl);
+//					UG_THROW("komische innere Grenze ohne Grenze " << std::endl);
+//					; // nothing to do
+//				}
+//				else if( innerBoundaryEdges == 1 )
+//				{
+					; // nothing to do, entire boundary edge with no problem, or external edge
+				}
+				else if( innerBoundaryEdges == 2 )
+				{
+					// figure out that edge that is NOT the boundary edge
+
+					UG_LOG("we have two inner boundary edges" << std::endl);
+
+					std::vector<Edge*> assoEdg;
+
+					CollectEdges( assoEdg, m_grid, fac );
+
+					for( Edge * edg : assoEdg )
+					{
+						// check if edge is inner boundary edge, i.e. if has at one side non-fracture face
+						// only check for those edges which have one fracture face on one side
+
+						// split only inner edges at the moment in case of problems
+						if( IsBoundaryEdge3D(m_grid, edg) )
+						{
+							continue;
+						}
+
+						std::vector<Face *> assoFac;
+
+						CollectFaces( assoFac, m_grid, edg );
+
+						IndexType numFacsFromFracSudo = 0;
+
+						for( Face * testFac : assoFac )
+						{
+							IndexType testSudo = m_sh.get_subset_index(testFac);
+
+							if( testSudo == fracIndSudo )
+								numFacsFromFracSudo++;
+						}
+
+						if( numFacsFromFracSudo == 0 ||  numFacsFromFracSudo == 1 )
+						{
+							// relevant! edge needs to be split
+
+		//					UG_LOG("one fac at edg" << std::endl);
+							;
+//							addElem( facesAtInnerBoundary, fac );
+						}
+						else if( numFacsFromFracSudo == 2 )
+						{
+		//						UG_LOG("two fac sides at edge " << std::endl);
+								; // nothing to do, edge at both sides surrounded by fracture face
+								addElem(edgesToBeSplitted, edg);
+						}
+						else
+						{
+							UG_LOG("komische Ecke" << std::endl);
+							UG_THROW("komische Ecke" << std::endl);
+						}
+					}
+
+				}
+				else
+				{
+					UG_LOG("how many inner boundary edges at a fracture face???" << std::endl) ;
+					UG_THROW("how many inner boundary edges at a fracture face???" << std::endl) ;
+				}
+			}
+
+			// figure out that edge that needs to be splitted - it is that one which is in touch with the fracture on two sides
+
+//			for( Face * fac : facesAtInnerBoundary )
+
+
+
+		}
+
+		for( Edge * edg : edgesToBeSplitted )
+		{
+			vector3 center = CalculateCenter(edg, m_aaPos);
+			UG_LOG("splitting edge at " << center << std::endl);
+			RegularVertex* vrt = SplitEdge<RegularVertex>(m_grid, edg, false);
+			m_aaPos[vrt] = center;
+		}
+
+	}
+
+
+	return splittedEdges;
+
+}
+
+#endif
+
+//////////////////////////////////////////////////////////////////
+
+template<typename ELEMTYP>
+bool ArteExpandFracs3D::addElem(std::vector<ELEMTYP> & elemToBeSplitted, ELEMTYP elem )
+{
+	bool unknown = true;
+
+	for( ELEMTYP edgKnown : elemToBeSplitted )
+	{
+		if( elem == edgKnown )
+		{
+			unknown = false;
+			break;
+		}
+	}
+
+	if( unknown )
+		elemToBeSplitted.push_back(elem);
+
+	return unknown;
+
+}
+
+//////////////////////////////////////////////////////////////////
+
 
 bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 {
@@ -384,7 +907,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 			UG_LOG("selektiert msel " << fac << std::endl);
 
-			m_aaMarkFaceB[fac] = true;
+			m_aaMarkFaceIsFracB[fac] = true;
 
 			UG_LOG("mark bool " << fac << std::endl);
 
@@ -443,30 +966,92 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 					vrtxFracPrps.setIsBndFracVertex();
 				}
 
-				// die Ecken heraus filtern, die mit diesem Vertex assoziert sind
-				std::vector<Edge*> attEdg;
-
-				for( auto const & ae: facEdges )
-				{
-					if( EdgeContains(ae,vrt) )
-						attEdg.push_back(ae);
-				}
-
-				if( attEdg.size() == 2 )
-				{
-					EdgePair edgPr( attEdg[0], attEdg[1] );
-
-					AttachedFractFaceEdgeSudo afes( fac, edgPr, fracIndSudo );
-
-					vrtxFracPrps.addAttachedFractElem(afes);
-				}
-				else
-				{
-					UG_THROW("number of attached edges wrong " << std::endl);
-				}
+				// nicht mehr notwendig
+//				// die Ecken heraus filtern, die mit diesem Vertex assoziert sind
+//				std::vector<Edge*> attEdg;
+//
+//				for( auto const & ae: facEdges )
+//				{
+//					if( EdgeContains(ae,vrt) )
+//						attEdg.push_back(ae);
+//				}
+//
+//				if( attEdg.size() == 2 )
+//				{
+//					EdgePair edgPr( attEdg[0], attEdg[1] );
+//
+//					AttachedFractFaceEdgeSudo afes( fac, edgPr, fracIndSudo );
+//
+//					vrtxFracPrps.addAttachedFractElem(afes);
+//				}
+//				else
+//				{
+//					UG_THROW("number of attached edges wrong " << std::endl);
+//				}
 
 			}
 		}
+	}
+
+
+	//	now make sure that no inner edge is associated with two
+	//	boundary vertices (referring to the selection)
+
+	constexpr bool splitEdgesTwoBdryVrt = false;
+
+	if( splitEdgesTwoBdryVrt )
+	{
+		std::vector<Edge*> tmpEdges;
+
+		for(EdgeIterator iterEdg = m_sel.begin<Edge>(); iterEdg != m_sel.end<Edge>(); iterEdg++ )
+		{
+			Edge* edg = *iterEdg;
+
+			Vertex * vrtZer = edg->vertex(0);
+			Vertex * vrtOne = edg->vertex(1);
+
+			VertxFracPropts & vrtxFracPrpsVrtZer = m_aaMarkVrtVFP[ vrtZer ];
+			VertxFracPropts & vrtxFracPrpsVrtOne = m_aaMarkVrtVFP[ vrtOne ];
+			VertxFracPropts & edgeFracPrps = m_aaMarkEdgeVFP[ edg ];
+
+			if(      vrtxFracPrpsVrtZer.getIsBndFracVertex()
+				&&   vrtxFracPrpsVrtOne.getIsBndFracVertex()
+				&& ! edgeFracPrps.getIsBndFracVertex()
+			)
+			{
+				tmpEdges.push_back(edg);
+			}
+
+		}
+
+		for( Edge * edg : tmpEdges )
+		{
+			vector3 center = CalculateCenter(edg, m_aaPos);
+			RegularVertex* vrt = SplitEdge<RegularVertex>(m_grid, edg, false);
+			m_aaPos[vrt] = center;
+			m_sel.select(vrt);
+			auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
+			vrtxFracPrps++;
+
+			vrtxFracPrps.setIsBndFracVertex(false);
+
+			//	assign adjacency values for associated selected edges (2 to each)
+			for(Grid::AssociatedEdgeIterator iterEdg  = m_grid.associated_edges_begin(vrt);
+											 iterEdg != m_grid.associated_edges_end(vrt);
+											 iterEdg++
+			)
+			{
+				Edge * assoEdg = *iterEdg;
+
+				if( m_sel.is_selected(assoEdg) )
+				{
+					auto & edgFracPrps = m_aaMarkEdgeVFP[assoEdg];
+					edgFracPrps.setIsBndFracVertex(false);
+				}
+			}
+		}
+
+		// TODO FIXME unsicher, ob das hier richtig übertragen von Prof. Reiter......
 	}
 
 #if 0
@@ -504,7 +1089,324 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 #endif
 
-	UG_LOG("neuer Beginn" << std::endl);
+	return true;
+
+}
+
+int ArteExpandFracs3D::prepareStasi( Vertex * const & vrt, AttachedVolumeElemInfo & attVolElmInfo )
+{
+	// NOTE returns number of boundary faces
+
+	// Voraussetzung  FÜR StammiBene Aufrufung
+	// Stammi-Bene-Vorbereitung
+//	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+//	{
+//		Vertex* vrt = *iter;
+
+//		std::vector<Volume*> & attVol = m_aaVrtInfoAssoVols[vrt];
+
+	auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
+
+//	bool isBndryVrtx = vrtxFracPrps.getIsBndFracVertex();
+
+	IndexType numBndryFacs = 0;
+
+		// TODO FIXME das hier soll wegfallen, und an dieser Stelle direkt berechnet werden
+		// damit es einheitlich für echte fracture faces und auch für boundary faces gilt,
+		// die eine Art Fracture sind, an denen mit dem Durchmesser 0 der neue Vertex verschoben wird
+
+		// die erzeugen wir an Ort und Stelle neu und verteilen nicht alles auf hundert Plätze
+//		VecAttachedFractFaceEdgeSudo vecAttFacEdgSudo = vrtxFracPrps.getAllAttachedFractElems();
+
+//		auto & vecVolElmInfo = m_aaVolElmInfo[vrt];
+
+		// TODO FIXME eigentlich eine Dummheit, das auf zu teilen in ein VolElemInfo und ein VrtInfoAssoVols
+		// denn die InfoAssoVols haben als Info nur die Volumen, die VolElmInfos haben die Volumen
+		// und noch viel mehr Infos zu den Faces und den Edges....
+		// mittelfristig die m_aaVrtInfoAssoVols abschaffen und alles auf die AttachedFullDimElemInfo
+		// übertragen, dann geht der folgende Loop gleich über den Vektor darüber, bzw. gleichbedeutend
+		// über m_aaVolElmInfo
+//		for( auto & vol : attVol )
+//		for( AttachedVolumeElemInfo & attVolElmInfo : vecVolElmInfo )
+//		{
+//			AttachedVolumeElemInfo attVolElmInfo( vol );
+	Volume * vol = attVolElmInfo.getFulldimElem();
+
+			// add those faces which are fracture faces
+			// TODO FIXME hier müssen die fracture faces neu erzeugt und addiert werden, oder weiter unten.....
+//			for( auto & afes : vecAttFacEdgSudo )
+//			{
+//				attVolElmInfo.addFractManifElem(afes, m_grid);
+//			}
+
+			// add those faces which are NOT fracture faces, assign them arbitraryly subdomain  -1
+			// to indicate that they are not from the manifold, independent of their subdomain
+
+			// collect all volume faces which incorporate the vertex
+
+	std::vector<Face*> volFacesContainingVrtx;
+
+	for( IndexType iFac = 0; iFac < vol->num_faces(); iFac++ )
+	{
+		Face * fac = m_grid.get_face(vol,iFac);
+
+		if( FaceContains( fac, vrt ) )
+		{
+			volFacesContainingVrtx.push_back( fac );
+		}
+	}
+
+	for( auto const & fac : volFacesContainingVrtx )
+	{
+				// get the edges of the face connected to the vertex
+
+		std::vector<Edge*> vecEdgesFaceVrtx;
+
+				// need to be two edges always, check
+
+		for( IndexType iEdge = 0; iEdge < fac->num_edges(); iEdge++ )
+		{
+			Edge * edg = m_grid.get_edge(fac,iEdge);
+
+			if( EdgeContains(edg,vrt) )
+			{
+				vecEdgesFaceVrtx.push_back(edg);
+			}
+		}
+
+		if( vecEdgesFaceVrtx.size() != 2 )
+		{
+			UG_LOG("edge number Unsinn " << vecEdgesFaceVrtx.size() << std::endl);
+			UG_THROW("edge number Unsinn " << vecEdgesFaceVrtx.size() << std::endl);
+			return false;
+		}
+
+		EdgePair edgesFaceVrtx( vecEdgesFaceVrtx[0], vecEdgesFaceVrtx[1] );
+
+				// test the subdomain first, if from the subdomains of the cleft manifolds
+
+		IndexType sudoThisFace = m_sh.get_subset_index(fac);
+
+		std::vector<IndexType> const & sudoList = vrtxFracPrps.getSudoList();
+
+				// test if sudo of face belongs to the fracture face subdom list
+
+		bool faceBelongsToFracSudo = false;
+
+		for( auto const & sudoFrac : sudoList )
+		{
+			if( sudoFrac == sudoThisFace )
+			{
+				faceBelongsToFracSudo = true;
+				break;
+			}
+		}
+
+				// TODO FIXME für Boundary faces und für Fracture faces soll die Normale berechnet werden ins VOlumen hinein
+				// hier die KuhVol-Prozedur
+
+		bool isBoundaryFace = false;
+
+		if( ! faceBelongsToFracSudo )
+		{
+			if( IsBoundaryFace3D( m_grid, fac ) )
+			{
+				isBoundaryFace = true;
+			}
+		}
+
+		if( isBoundaryFace && faceBelongsToFracSudo )
+			UG_THROW("not allowed to be fracture at boundary" << std::endl);
+
+		// will get a nonzero value in case that fracture face or boundary face
+		NormalVectorFacIntoVol normalIntoVol(0,0,0);
+
+		if( isBoundaryFace || faceBelongsToFracSudo )
+		{
+				// TODO FIXME compute normal into volume, needed to know!!!
+					// kuhVol Procedure
+			if( ! computeNormalKuhVolProcedure(vol,fac,normalIntoVol) )
+			{
+				UG_LOG("Kuh VOl schief gegangen " << std::endl);
+				UG_THROW("Kuh VOl schief gegangen " << std::endl);
+				return numBndryFacs;
+			}
+		}
+
+		if( faceBelongsToFracSudo )
+		{
+					// if it belongs, construct it again and test if it already belongs to the fracture faces
+					// MUST be already part of the list, else major error appeared!
+
+			UG_LOG("Kuh Normale " << normalIntoVol << std::endl);
+
+			AttachedFractFaceEdgeSudo afesFract( fac, edgesFaceVrtx, sudoThisFace, normalIntoVol );
+					//  hier soll auch gleich die Normale relativ zum VOlumen dazu gespeichert werden!!
+
+			attVolElmInfo.addFractManifElem( afesFract, m_grid );
+
+					// vorher soll es nicht mehr gespeichert werden, da die Infos vorher weg fallen sollen
+//					if( attVolElmInfo.addFractManifElem( afesFract, m_grid ) )
+//					{
+//						UG_LOG("manifold element already contained!" << std::endl);
+//						UG_THROW("manifold element already contained!" << std::endl);
+//						return false;
+//					}
+
+					// nothing to do, already added before hoffentlich
+
+		}
+		else
+		{
+					// TODO FIXME hier muss entschieden werden, ob es eine boundary face ist
+			// die kommt dann auch nochmal in ein anderes Konstrukt, was aber
+					// dem fracture face ähnelt
+					// am Ende müssen die Frac Faces, die nicht geschlossen sind, und doppelt in einem Segment
+					// in die general faces verschoben werden, da stören sie nicht, und sind egal
+
+					// zeitweilig fehlten alle Faces, die keine fractures sind
+					// die müssen noch irgendwie als nicht-fracture-faces auch dazu gefügt werden
+					// die sind in den attached volumes schon enthalten,
+					// Frage: wie prüfen, dass die gar keine fractures sind, die Infos sollten bekannt sein.....
+					// wichtig auch, dass nur die faces dazu kommen, die den Vertex enthalten!!!
+					// irgendwas von der Art "nonFractureFaceInfos" oder sowas dazu hängen, mit Info
+					// ob schon getouched oder noch nicht.....
+
+
+					// we construct the attached manifold, given that it is NOT a fracture manifold
+
+					// notwendig auch, dass es eine Markierungsmöglichkeit gibt dafür, ob
+					// ein face bei der nächsten weiter inneren Runde quasi äussere Begrenzung sein muss
+					// gilt sowohl für fracture faces, die können das in erster Runde auch sein am Ende
+					// der Runde, sowie danach nur noch für nicht-fracture-faces
+//					if( IsBoundaryFace3D( m_grid, fac ) )
+			if( isBoundaryFace )
+			{
+				AttachedBndryFaceEdgeSudo afesBndry( fac, edgesFaceVrtx, sudoThisFace, normalIntoVol );
+
+				attVolElmInfo.addBndryManifElem( afesBndry, m_grid );
+
+				UG_LOG("Boundary element added" << m_aaPos[vrt] << " -> " << normalIntoVol << std::endl);
+
+				numBndryFacs++;
+
+//							UG_THROW("da ist es " << std::endl);
+
+				// TODO FIXME sehr wichtig, die Boundary faces brauchen auch
+						// noch ihre Normale in das Volumen hinein, analog zu den Fracture faces!!!
+						// die haben die allerdings dummerweise in die boundary vertizes gesteckt
+						// vielleicht boundaries wie fractures behandeln? keine gute Idee......
+						// mithin steckt die Normale NICHT in diesen Informationen drin
+						// sondern extra in den vertex fracture tripeln
+						// vielleicht dort die boundaries irgendwie dazu würgen.....
+
+			}
+			else // normal face, no fracture, no boundary
+			{
+				AttachedGenerFaceEdgeSudo afesAdd( fac, edgesFaceVrtx );
+
+				attVolElmInfo.addGenerManifElem( afesAdd, m_grid );
+			}
+
+
+		}
+
+	}
+
+//		}
+//	}
+
+//	if( isBndryVrtx && numBndryFacs == 0 )
+//	{
+//		UG_LOG("boundary vertex but no boundary faces ")
+//	}
+
+	return numBndryFacs;
+}
+
+bool ArteExpandFracs3D::computeNormalKuhVolProcedure( Volume * const & kuhVol, Face * const & fac, NormalVectorFacIntoVol & normalIntoVol )
+{
+	IndexType numFd = 0;
+
+	for( IndexType iSide = 0; iSide < kuhVol->num_sides(); iSide++ )
+	{
+		Face * kuhFac = m_grid.get_side(kuhVol, iSide);
+
+//					UG_LOG("Center Kuh Face " << CalculateCenter(kuhFac,m_aaPos) << std::endl);
+
+		//  eigentliches Ziel ist es, den face descriptor des Volumens zu finden,
+		// das mit dem face übereinstimmt, alle anderen Seiten des Volumens sind egal
+		// Funktion suchen, die ausgehend von einem Face, das ein Volumen begrenzt,
+		// den zum Volumen passenden FaceDescriptor findet, also auch richtige Orientierung
+		// der Vertices beinhaltet
+		// FRAGE: ist ein face descriptor von der Orientierung zum Volumen abhängig
+		// oder hängt der nur vom Face ab, das eine vorgegebene Oriertierung hat?
+
+		bool checkCoincide = checkIfFacesVerticesCoincide( kuhFac, fac );
+
+		if( checkCoincide )
+		{
+			numFd++;
+
+			if( kuhFac != fac )
+				UG_LOG("Kuh Fac ist nicht fac " << std::endl);
+
+			FaceDescriptor facDescr;
+
+			// testen, ob der Face Descriptor von der Orientierung abhängt
+			// also testen, ob sich der face descriptor ändert, wenn das Volumen
+			// auf der einen und auf der anderen Seite des faces hängt
+			// deswegen auch die ganze Prozedur mit den kuhFacs, die hoffentlich
+			// je nach Volumen anders orientiert sind als das eigentliche Face,
+			// aber dieselben Vertices haben, also geometrisch gleich sind, aber anders orientiert!!!!
+
+			//  andere Hergehensweise vielleicht:
+			// von m_aaVrtInfoAssoVols ausgehen, darüber loopen, oder die in einen Vektor stecken,
+			// wo die Vertices dabei sind, dann kann man sich vielelicht ein paar Klimmzüge sparen,
+			// vielleicht aber auch nicht.....
+
+			kuhVol->face_desc( iSide, facDescr );
+
+//			vector3 normal;
+
+			CalculateNormal( normalIntoVol, & facDescr, m_aaPos );
+
+			vector3 facCenter = CalculateCenter( kuhFac, m_aaPos );
+			vector3 kuhCenter = CalculateCenter( fac, m_aaPos );
+			vector3 kuhVolCenter = CalculateCenter( kuhVol, m_aaPos);
+
+//						UG_LOG("Normale zum face descriptor " << normal << " , " << facCenter << std::endl);
+//						UG_LOG("Normale zum Kuhh descriptor " << normal << " , " << kuhCenter << std::endl);
+//						UG_LOG("Zentrum des Vol")
+
+//						UG_LOG("fac " << fac << std::endl );
+//						UG_LOG("kuh " << kuhFac << std::endl );
+
+			UG_LOG("Normale ist " << normalIntoVol << " fac " << facCenter
+					<< " vol " << kuhVolCenter << std::endl);
+
+
+//						VolNormPair normalsAwayVol( kuhVol, normal );
+//
+//						vecNormalsAwayVol.push_back( normalsAwayVol );
+
+		}
+	}
+
+	if( numFd != 1 )
+	{
+		UG_THROW("Kein Kuh Volumen gefunden" << std::endl);
+		return false;
+	}
+
+
+	return true;
+}
+
+bool ArteExpandFracs3D::distinguishSegments()
+{
+
+	UG_LOG("neuer Beginn Segmente" << std::endl);
 //	return true;
 
 	//	StammiBene Algorithmus erklärt und in Worten Plan erstellt
@@ -520,11 +1422,155 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 	// später werden Boundary Faces wie eine eigene Subdomain Ebene
 	// mit Expansion null behandelt
 	// was an Knicken aussen an boundary zu tun ist, noch zu überlegen
-	// XXXXXXXXXXXXXXXXXXXXXXXX hier fangen wir an HHHHHHHHHHHHHHHH
+
+	UG_LOG("Stasi Algo alle Vrt Start << std::endl");
 
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
 	{
 		Vertex* vrt = *iter;
+
+		if( ! stasiAlgo( vrt ) )
+		{
+			UG_LOG("Stasi schief gegangen " << std::endl);
+			UG_THROW("Stasi schief gegangen" << std::endl);
+			return false;
+		}
+	}
+
+	UG_LOG("Stasi Algo alle Vrt End << std::endl");
+
+	// TODO FIXME
+	// es müssen in den Segmenten noch die fracture faces zu generellen faces verschoben werden,
+	// die nicht abgeschlossen sind, und umgangen werden können, und so in die Landschaft ragen
+	// also die fracture faces, die für die Segmenteigenschaft unerheblich sind
+
+	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+	{
+		Vertex* vrt = *iter;
+
+		IndexType shiFraFac = specificTreatementUnclosedFracFaces( vrt );
+
+		UG_LOG("shifted frac faces at " << m_aaPos[vrt] << shiFraFac << std::endl);
+
+		constexpr bool d_highlightVrtcsWithShifts = false;
+
+		if( d_highlightVrtcsWithShifts )
+		{
+			if( shiFraFac > 0 )
+			{
+				IndexType sudoNum = m_sh.num_subsets();
+
+				m_sh.assign_subset(vrt, sudoNum );
+			}
+		}
+	}
+
+	// Debug purpose
+//	return false;
+
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////
+
+// TODO FIXME diese Funktion macht nur in Teilen das richtige
+// die ungeschlossenen Faces zeigen an, dass eine Kluft hier endet
+// wird bisher nicht berücksichtigt
+// irgendwie muss das markiert werden, damit die Kluft, die zu Ende geht.
+// im Durchstich trotzdem berücksichtigt wird
+ArteExpandFracs3D::IndexType ArteExpandFracs3D::specificTreatementUnclosedFracFaces( Vertex * const & vrt )
+{
+	IndexType shiftedFracFaces = 0;
+
+	// TODO FIXME still to be implemented - shift those fracture faces which appear
+	// twice in the segment volumes, i.e. which are part of two volumes of the
+	// segment, i.e. which touch each other, but are not closed,
+	// shift them to the general faces, to avoid that they are taken into account
+	// for the creation of new vertices, they must not have any influence
+
+	UG_LOG("SHIFT FRAC 2 GENER" << std::endl);
+
+	VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+	for( SegmentVolElmInfo & svei : vecSegVolElmInf )
+	{
+//		VecAttachedFractFaceEdgeSudo vecAttFractList;
+
+		for( AttachedVolumeElemInfo & attVolEIOne : svei )
+		{
+			VecAttachedFractFaceEdgeSudo vecAttFracFaceOne = attVolEIOne.getVecFractManifElem();
+
+			for( AttachedVolumeElemInfo & attVolEITwo : svei )
+			{
+				if( ! attVolEIOne.hasSameFulldimElem( attVolEITwo ) )
+				{
+					VecAttachedFractFaceEdgeSudo vecAttFracFaceTwo = attVolEITwo.getVecFractManifElem();
+
+					for( AttachedFractFaceEdgeSudo & afesOne : vecAttFracFaceOne )
+					{
+						for( AttachedFractFaceEdgeSudo & afesTwo : vecAttFracFaceTwo )
+						{
+							if( afesOne.testIfEquals( afesTwo ) )
+							{
+								// beide in die generellen Faces verschieben!
+
+								if( ! attVolEIOne.searchFractManifElem( afesOne, true ) )
+								{
+									UG_THROW("im einen nicht gefunden "<< std::endl);
+								}
+
+								if( ! attVolEITwo.searchFractManifElem( afesTwo, true ) )
+								{
+									UG_THROW("im anderen nicht gefunden "<< std::endl);
+								}
+
+								shiftedFracFaces++;
+
+								Face * unclosedFace = afesOne.getManifElm();
+								// tested if same as that one from afesTwo
+
+								m_aaMarkFaceIsUnclosedFracB[ unclosedFace ] = true;
+
+								m_aaMarkVrtxHasUnclosedFracB[vrt] = true;
+
+								//  added vertex attachment that knows if at vertex there is an unclosed fracture
+
+
+							}
+						}
+					}
+				}
+			}
+
+
+//			for( AttachedFractFaceEdgeSudo & affe : nextVolFacs )
+//			{
+//				vecAttFractList.push_back( affe );
+//			}
+			// create a full chain of all fracture faces, and if one appears twice, shift it for both
+			// volumes where it is in to the general faces, i.e. count after establishing, and when twice,
+			// then shift
+		}
+	}
+
+	UG_LOG("SHIFT FRAC 2 GENER" << std::endl);
+
+
+
+	return shiftedFracFaces;
+}
+
+//////////////////////////////////////////////////////////////////
+
+
+
+bool ArteExpandFracs3D::seletForSegmented()
+{
+	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+	{
+		Vertex* vrt = *iter;
+
+#if 0
 
 		bool wahl = true;
 
@@ -612,7 +1658,30 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 			wahl = false;
 		}
 
-		UG_LOG("SELEKTIERE " << m_aaPos[vrt] << " -> " << vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() << std::endl);
+#else
+
+		VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+		auto & vrtxFracPrps = m_aaMarkVrtVFP[ vrt ];
+
+//		bool isBnd = m_aaMarkVrtVFP[ vrt ].getIsBndFracVertex();
+		bool isBnd = vrtxFracPrps.getIsBndFracVertex();
+
+//		bool wahl = ( vecSegVolElmInf.size() > 1 );
+//		bool wahl = ( vecSegVolElmInf.size() > 1 && ! isBnd );
+		bool wahl = ( vecSegVolElmInf.size() > 1 );
+		// TODO FIXME danach vielleicht auch fuer boundary wieder selektieren
+		// sobald die Boundary Behandlung wie Pseudo Fracture mit Expansion null
+		// aber solange die bounaries nicht behandelt werden, führt
+		// die Selektion der Boundary Vertizes zu Problemen
+
+#endif
+
+
+//		UG_LOG("SELEKTIERE " << m_aaPos[vrt] << " -> " << vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() << std::endl);
+
+		UG_LOG("SELEKTIERE " << m_aaPos[vrt] << " -> " << wahl << std::endl);
+
 
 		// was, wenn numCrossFrac == 0 ist?
 		// wieso werden die boundary vrt ausgeschlossen, oder sollen die nicht ausgeschlossen werden?
@@ -628,8 +1697,8 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 			std::vector<Edge*> assoEdg;
 			std::vector<Face*> assoFac;
-			std::vector<Volume*> assoVol;
-			VecAttachedVolumeElemInfo assoVolElemInfo;
+//			std::vector<Volume*> assoVol;
+//			VecAttachedVolumeElemInfo assoVolElemInfo;
 
 			for( std::vector<Edge *>::iterator iterEdg = m_grid.associated_edges_begin(vrt);
 											   iterEdg != m_grid.associated_edges_end(vrt);
@@ -650,28 +1719,28 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 			// bzw asso edges und asso faces können hier bleiben wo gewählt wird
 			// die assoVolElemInfo wird schon oben erzeugt vor der Wahl
 			// und dann wird die danach folgende Loop Info
-			for( std::vector<Volume *>::iterator iterVol = m_grid.associated_volumes_begin(vrt);
-											   	 iterVol != m_grid.associated_volumes_end(vrt);
-											   	 iterVol++ )
-			{
-				assoVol.push_back(*iterVol);
-
-				AttachedVolumeElemInfo avei(*iterVol);
-
-				assoVolElemInfo.push_back(avei);
-			}
+//			for( std::vector<Volume *>::iterator iterVol = m_grid.associated_volumes_begin(vrt);
+//											   	 iterVol != m_grid.associated_volumes_end(vrt);
+//											   	 iterVol++ )
+//			{
+//				assoVol.push_back(*iterVol);
+//
+//				AttachedVolumeElemInfo avei(*iterVol);
+//
+//				assoVolElemInfo.push_back(avei);
+//			}
 
 			m_aaVrtInfoAssoEdges[vrt] = assoEdg;
 			m_aaVrtInfoAssoFaces[vrt] = assoFac;
 //			m_aaVrtInfoAssoVols[vrt] = assoVol;
-			m_aaVolElmInfo[vrt] = assoVolElemInfo;
+//			m_aaVolElmInfo[vrt] = assoVolElemInfo;
 
 		}
 	}
 
 	UG_LOG("vertex Infos Runde eins fertig " << std::endl);
 
-
+#if 0
 	// Voraussetzung  FÜR StammiBene Aufrufung
 	// Stammi-Bene-Vorbereitung
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
@@ -813,13 +1882,280 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 		}
 	}
-
+#endif
 
 	UG_LOG("vertex Infos Runde eins fertig Volumen auch" << std::endl);
 
 	return true;
 }
 
+bool ArteExpandFracs3D::stasiAlgo( Vertex * const & oldVrt )
+{
+
+	UG_LOG("Stasi start " << m_aaPos[oldVrt] << std::endl);
+	// TODO FIXME übernehmen von loop2EstablishNewVertices und establishNewVertices
+	// plus Boundary faces ähnlich Fracture
+	// am Ende die in Segment verbundenen offenen Fracture Faces verschwinden lassen
+	// Segmente erstellen Ziel hier, aber auch raus finden, ob es mehr als eines gibt
+	// oder ob es offen ist, wegen wahl
+
+	vector3 posOldVrt = m_aaPos[oldVrt];
+
+	UG_LOG("vertex at " << posOldVrt << std::endl);
+
+	VecSegmentVolElmInfo & vecSegVolElmInfo = m_accsAttVecSegVolElmInfo[oldVrt];
+
+	auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+
+	bool isBndryVrtx = vrtxFracPrps.getIsBndFracVertex();
+
+	UG_LOG("under construction Tetrahedra limited Stasi Algo" << std::endl);
+
+//	VecVertFracTrip const & vecVertFracTrip = m_aaVrtInfoFraTri[oldVrt];
+
+	VecAttachedVolumeElemInfo assoVolElemInfo;
+
+	int bndryFacsFnd = 0;
+
+	for( std::vector<Volume *>::iterator iterVol = m_grid.associated_volumes_begin(oldVrt);
+									   	 iterVol != m_grid.associated_volumes_end(oldVrt);
+									   	 iterVol++ )
+	{
+		Volume * vol = *iterVol;
+
+		AttachedVolumeElemInfo avei(vol);
+
+		bndryFacsFnd += prepareStasi(oldVrt, avei);
+
+		assoVolElemInfo.push_back(avei);
+	}
+
+	if( isBndryVrtx && bndryFacsFnd == 0 )
+	{
+		UG_LOG("Boundary vertex with no boundary faces adjoint" << std::endl);
+		UG_THROW("Boundary vertex with no boundary faces adjoint" << std::endl);
+		return false;
+	}
+
+
+//	if( vrtxFracPrps.getIsBndFracVertex() )
+//	{
+//		for( AttachedVolumeElemInfo ave : assoVolElemInfo )
+//		{
+//			UG_LOG("BONDVERT " << m_aaPos[oldVrt] << " -> " << ave.getVecBndryManifElem().size()  << std::endl);
+//			if(  ave.getVecBndryManifElem().size() == 0 )
+//			{
+//				UG_THROW("VERLUST" << std::endl);
+//			}
+//		}
+//	}
+
+	// von copy und paste angepasst, die unsinnige Verdopplung von vecAttVolElemInfo und assoVolElemInfo
+	// vielleicht noch entfernen
+	VecAttachedVolumeElemInfo const & vecAttVolElemInfo = assoVolElemInfo; // m_aaVolElmInfo[oldVrt];
+
+	VecAttachedVolumeElemInfo vecAttVolElemInfoCop = vecAttVolElemInfo; // echte KOPIE
+
+	VecAttachedVolumeElemInfo reconstructedVecAttVolElmInf;
+
+		/*
+		 * While Schleifen aufbauen für den
+		 * Search the adjacent surface interatively - Algorithmus
+		 * (Stasi Algorithmus)
+		 *
+		 */
+
+	IndexType d_segmenteErledigt = 0;
+
+	while( vecAttVolElemInfoCop.size() != 0 )
+	{
+		SegmentVolElmInfo segmentAVEI;
+
+		AttachedVolumeElemInfo & startVolInfoThisSegment = vecAttVolElemInfoCop[0];
+
+		startVolInfoThisSegment.markIt();
+
+		Volume * volSta = startVolInfoThisSegment.getFulldimElem();
+
+		vector3 center;
+
+		if( volSta != nullptr )
+			center = CalculateCenter(volSta,m_aaPos);
+
+//		UG_LOG("volume center " << center << std::endl );
+
+		int d_loopsDone = 0;
+
+		while( vecAttVolElemInfoCop.size() != 0 )
+		{
+			// count number of marked elements
+			IndexType numMarkedElems = 0;
+			IndexType markPoint = 0;
+
+//			IndexType lastMarkPt = 0;
+			IndexType startIndexInner = 0;
+
+			for( AttachedVolumeElemInfo const & volElInfCop : vecAttVolElemInfoCop )
+			{
+				if( volElInfCop.isMarked() )
+				{
+					Volume * vol = volElInfCop.getFulldimElem();
+//					m_sh.assign_subset(vol, m_sh.num_subsets());
+
+					vector3 center = CalculateCenter(vol,m_aaPos);
+
+//					UG_LOG("DAS ZENTRUM " << numMarkedElems << " -> " << center << std::endl);
+
+					startIndexInner = markPoint;
+					numMarkedElems++;
+
+				}
+
+				markPoint++;
+			}
+
+			UG_LOG("LOOPS DONE " << numMarkedElems << std::endl);
+
+			if( numMarkedElems == 0 )
+				break;
+
+//			int startIndexInner = -1;
+//
+//			for( int i = 0; i < vecAttVolElemInfoCop.size(); i++ )
+//			{
+//				AttachedVolumeElemInfo vi = vecAttVolElemInfoCop[i];
+//
+//				Volume * vo = vi.getFulldimElem();
+//
+//				vector3 center = CalculateCenter(vo,m_aaPos);
+//
+//				UG_LOG("DAS ZENTRUM ZAHL VOR " << i << " -> " <<  center << std::endl);
+//
+//				if( vi.isMarked() )
+//					startIndexInner = i;
+//			}
+//
+//			if( startIndexInner < 0 )
+//			{
+//				UG_THROW("kein Anfang gefunden " << std::endl);
+//			}
+//
+//#if 0
+//			IndexType startIndexInner = markPoint - 1;
+//#endif
+			AttachedVolumeElemInfo startVolInfoMarkLoop = vecAttVolElemInfoCop[startIndexInner];
+
+			Volume * stattVoll = startVolInfoMarkLoop.getFulldimElem();
+
+			vector3 centerX = CalculateCenter(stattVoll,m_aaPos);
+
+			UG_LOG("DAS ZENTRUM DANACH STASI" << startIndexInner << " -> " <<  centerX << std::endl);
+
+//			m_sh.assign_subset(stattVoll, m_sh.num_subsets());
+#if 0
+			for( int i = 0; i < vecAttVolElemInfoCop.size(); i++ )
+			{
+				AttachedVolumeElemInfo vi = vecAttVolElemInfoCop[i];
+
+				Volume * vo = vi.getFulldimElem();
+
+				vector3 center = CalculateCenter(vo,m_aaPos);
+
+				UG_LOG("DAS ZENTRUM ZAHL " << i << " -> " <<  center << std::endl);
+
+			}
+#endif
+			for( AttachedVolumeElemInfo const & possibleOrigVolInfo : vecAttVolElemInfo )
+			{
+				if( possibleOrigVolInfo.hasSameFulldimElem( startVolInfoMarkLoop ) )
+				{
+					segmentAVEI.push_back(possibleOrigVolInfo);
+					reconstructedVecAttVolElmInf.push_back(possibleOrigVolInfo);
+					break;
+				}
+			}
+
+			vecAttVolElemInfoCop.erase( vecAttVolElemInfoCop.begin() + startIndexInner );
+
+//			if( d_loopsDone == 1 )
+//				return false;
+
+			for( VecAttachedVolumeElemInfo::iterator aveiIt = vecAttVolElemInfoCop.begin();
+													 aveiIt < vecAttVolElemInfoCop.end();
+													 aveiIt++
+			)
+			{
+				AttachedVolumeElemInfo & possibleNeighbour = *aveiIt;
+
+				if( possibleNeighbour.hasSameFulldimElem( startVolInfoMarkLoop ) )
+				{
+					continue;
+				}
+				else
+				{
+					bool neighbourFound = possibleNeighbour.testFullDimElmNeighbour( startVolInfoMarkLoop );
+
+					if( neighbourFound )
+					{
+						Volume * vol = possibleNeighbour.getFulldimElem();
+
+//						m_sh.assign_subset(vol, m_sh.num_subsets());
+
+					}
+				}
+			}
+
+
+			d_loopsDone++;
+
+
+		}
+
+		vecSegVolElmInfo.push_back(segmentAVEI);
+
+//		d_segmenteErledigt++;
+//
+//		if( d_segmenteErledigt == 1 )
+//		return false;
+	}
+
+	if( reconstructedVecAttVolElmInf.size() != vecAttVolElemInfo.size() )
+	{
+		UG_LOG("Rekonstruktion schief gegangen " << std::endl);
+		UG_THROW("Rekonstruktion schief gegangen " << std::endl);
+		return false;
+	}
+
+// for debug purposes
+
+	constexpr bool d_assignSudos2Segments = false;
+
+	if( d_assignSudos2Segments )
+	{
+		if( vecSegVolElmInfo.size() > 1 )
+		{
+			for( SegmentVolElmInfo const & svei : vecSegVolElmInfo )
+			{
+				// TODO FIXME das hier wieder entfernen, die Subdomain Zuweisung, nur für debug Zwecke
+				IndexType sudoMax = m_sh.num_subsets();
+
+				for( AttachedVolumeElemInfo const & vei : svei )
+				{
+					Volume * vol = vei.getFulldimElem();
+
+					m_sh.assign_subset( vol, sudoMax );
+				}
+			}
+		}
+	}
+
+	UG_LOG("Stasi END " << m_aaPos[oldVrt] << std::endl);
+
+	return true;
+}
+
+#if 0
+// Deprecated due to Stasi Algo
 // herausfinden für Sudo der frac, ob bezüglich dieser sudo die faces geschlossen sind, oder ob ein Fracture End vorliegt
 bool ArteExpandFracs3D::isVrtxSurroundedByFracFaces( Vertex * const & vrt, VertxFracPropts & vrtxFracPrps )
 //, VecPairSudoBool & sudoSurrounded )
@@ -1463,13 +2799,15 @@ bool ArteExpandFracs3D::sortElemCircleIsClosed( VecAttachedFractFaceEdgeSudo con
 	return true;
 }
 
+#endif
+
 bool ArteExpandFracs3D::assignOrigFracInfos()
 {
 	m_originalFractureFaces.clear();
 
 	for( FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>(); ++iter)
 	{
-		if( m_aaMarkFaceB[*iter] == true )
+		if( m_aaMarkFaceIsFracB[*iter] == true )
 			m_originalFractureFaces.push_back(*iter);
 	}
 
@@ -1514,10 +2852,13 @@ bool ArteExpandFracs3D::establishNewVrtBase()
 	return true;
 }
 
+#if 0
 // Analogon zu VertrexFractureInfo in 2D, wo jeder Vertex eine Liste bekommt, wo alle die ihm angehängten
 // Ecken, Faces und Volumen gespeichert werden; dazu die Normalen, und vielleicht noch weitere Infos
 bool ArteExpandFracs3D::generateVertexInfos()
 {
+	UG_LOG("Starte Generierung" << std::endl);
+
 	// TODO FIXME das wird benötigt
 
 	// sowas von der Art als attachement bei den attachments, und dann mit Leben füllen für jeden Vertex
@@ -1555,6 +2896,10 @@ bool ArteExpandFracs3D::generateVertexInfos()
 
 //			VrtxFractrQuadrplArte3D vrtxFractrQuadrpl;
 			
+			// TODO FIXME die Innereien dieses Loops irgendwie für boundary faces hinbiegen,
+			// vermutlich nicht viel verändern, dafür eigene Routine, die dann für jeweils ein face den
+			// Müll umsetzt
+
 			Face* fac = *iterFac;
 			
 			auto sudoFacInnerLoop = m_sh.get_subset_index(fac);
@@ -1576,7 +2921,7 @@ bool ArteExpandFracs3D::generateVertexInfos()
 //			if( ! m_grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES) )
 //				UG_THROW("How to collect asso vols?" << std::endl);
 
-
+			// brauchen wir das? für was? von SR irgendwie übernommen, wo dort was entfernt ähnliches gemacht wird....
 			if(! m_grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES) )
 			{
 				UG_LOG("WARNING grid option VOLOPT_AUTOGENERATE_FACES autoenabled.\n");
@@ -1702,6 +3047,7 @@ bool ArteExpandFracs3D::generateVertexInfos()
 								EdgePair commonEdges(edgOfVrtx[0], edgOfVrtx[1]); //  fill values
 								// edges commun between face and volume, with the vertex included as well, i.e. two possibilities
 
+								// TODO FIXME diese Info muss woanders hin, in der AttachedFractFaceEdgeSudo Klasse speichern!
 								VertFracTrip infoVerticesThisFace( fac, fracSudo, kuhVol, normal, commonEdges );
 
 								// TODO FIXME hier irgendwie graphische Ausgabe von irgendwas
@@ -1733,8 +3079,11 @@ bool ArteExpandFracs3D::generateVertexInfos()
 
 	}
 
+	UG_LOG("GEnerierung gelungen " << std::endl);
+
 	return true;
 }
+#endif
 
 bool ArteExpandFracs3D::checkIfFacesVerticesCoincide( Face * const & facOne, Face * const & facTwo )
 {
@@ -1826,94 +3175,1067 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 		UG_LOG("vertex at " << posOldVrt << std::endl);
 
-		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
-
-		bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
-
-		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
-
-		VertxFracPropts::VrtxFracStatus statusThisVrtx = vrtxFracPrps.getVrtxFracStatus();
-
-		if( ! vrtxIsBndVrt )
+//		if( ! vrtxIsBndVrt )
+//		{
+		if( ! establishNewVertizesStasiBased(oldVrt) )
 		{
-			if( vrtxFracPrps.getInfoAllFracturesSameClosedState<false>() )
-			{
-				// gar nix tun, alle offen, innerer Vertex, darf man hier ankommen? NEIN TODO FIXME
-//				UG_THROW("hier sollten wir nicht angekommen sein " << std::endl);
-				UG_LOG("vertex nicht geschlossen alle subdoms, nix tun " << m_aaPos[oldVrt] << std::endl);
-			}
-			// TODO FIXME: was, wenn ein Zwischending, Mischung?
-			else if( statusThisVrtx == VrtxFracProptsStatus::noFracSuDoAtt )
-			{
-				UG_THROW("gar keine Frac darf hier nicht ankommen " << std::endl );
-			}
-			else if( statusThisVrtx == VrtxFracProptsStatus::oneFracSuDoAtt )
-			{
-				// TODO FIXME erster Fall, eine Fracture, innen, geschlossen, kann eigentlich nur hier ankommen
-				UG_LOG("aktuelles Ziel eine sudo ausdehen " << m_aaPos[oldVrt] << std::endl);
-
-				constexpr bool applyGeneralSegmentOrdering = true;
-
-				establishNewVertices<applyGeneralSegmentOrdering, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
-
-//				if( untilVrt == 10 )
-//					return false;
-//
-//				untilVrt++;
-
-//				return false;
-
-//				if( applyGeneralSegmentOrdering )
-//				{
-//					UG_LOG("restrict to Tetrahedra, under construction" << std::endl);
-//					// Zustand Maulbronn, teilweise funktionierend für Hexahedra, aber nicht zuverlässig
-//					// und nicht funktional für Tetrahedra
-//
-//				}
-//				else
-//				{
-//					UG_LOG("restrict to Hexahedra, works only in part" << std::endl);
-//					// Zustand Maulbronn, teilweise funktionierend für Hexahedra, aber nicht zuverlässig
-//					// und nicht funktional für Tetrahedra
-//					establishNewVertices<Hexahedron, VrtxFracProptsStatus::oneFracSuDoAtt>( oldVrt );
-//					// sufficient to tell the vertex, as the attachements are class members and can be asked in the function
-//					//m_sh.assign_subset(oldVrt,m_sh.num_subsets());
-//				}
-//				else
-//				{
-//					UG_THROW("keine Ahnung auf was beschraenkt" << std::endl);
-//				}
-			}
-			else if( statusThisVrtx == VrtxFracProptsStatus::twoFracSuDoAtt )
-			{
-				UG_LOG("zwei sudos kreuzen in " << m_aaPos[oldVrt] << std::endl);
-			}
-			else if( statusThisVrtx == VrtxFracProptsStatus::threeFracSuDoAtt )
-			{
-				UG_LOG("drei sudos kreuzen in " << m_aaPos[oldVrt] << std::endl);
-
-			}
-			else
-			{
-				UG_THROW("was für ein Knoten Status???? " << std::endl);
-			}
-		}
-		else // boundary vertex
-		{
-			UG_LOG("Boundary vertizes ausdehen folgend erst " << m_aaPos[oldVrt] << std::endl);
+			UG_LOG("Vertex Erzeugung schief gegangen " << std::endl);
+			return false;
 		}
 
-		// TODO FIXME wichtig: surrounded status closed / open TODO FIXME, sowie Anzahl der schneidenden Fracs
+//		}
+
+
 		
+
 	}
 
-	return false;
+	// for debugging
+//	return false;
 
 	return true;
 }
 
 ////////////////////////////////////////////////////////////////////
 
+#if 0
+bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
+{
+	// anfangs nur für innere Vertizes mit einer fracture
+
+	VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[oldVrt];
+
+	if( vecSegVolElmInf.size() < 2 )
+	{
+		UG_LOG("nur ein Segment, aber will frische Vertizes?" << std::endl);
+//		UG_THROW("nur ein Segment, aber will frische Vertizes?" << std::endl);
+//		return false;
+		return true;
+	}
+
+	for( SegmentVolElmInfo const & svei : vecSegVolElmInf )
+	{
+		// count the number of the fracture subdomains surrounding the segment
+		// in case of boundary vertex, also count the number of boundary subdomains
+
+		std::vector<IndexType> sudosInSegment;
+
+		if( ! extracFractSudosOfSegment( svei, sudosInSegment ) )
+		{
+			UG_LOG("kann sudos nicht extrahieren " << std::endl);
+			UG_THROW("kann sudos nicht extrahieren " << std::endl);
+			return false;
+		}
+
+		IndexType sudoNumInSeg = sudosInSegment.size();
+
+		// check if is boundary vertex
+
+		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+
+		bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
+
+		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
+
+		if( ! vrtxIsBndVrt )
+		{
+			// count number of fracture subdomains in the Segment, should have been done before......
+
+			// TODO FIXME ersetze das altmodische VrtxFracProptsStatus durch ein Zählen
+			// der subdomains, die pro Segment wirklich vorkommen, nachdem die
+			// auslaufenden fracture faces den generellen Faces zugeschlagen worden sind
+			// diese Zählweise ist die erste Folgeaufgabe, damit der komische vrtxFractureProperties Status
+			// weg geworfen werden kann, der ist nämlich nutzlos inzwischen, da er auch auslaufende
+			// fracture faces zählt, was Unsinn ist.......
+			// später folgt auch die Verallgemeinerung auf boundary vertizes, dann muss deren Wahl
+			// vielleicht wieder dazu genommen werden.....
+
+			//Vorbereitung Ersetzung VertexFractureProperties Status
+			// durch Zählen der Fracture Subdomains von jedem Segment
+			// die Zählerei kann dann gemacht werden, wenn die doppelten offenen fracture faces
+			// in die allgemeinen faces verschoben werden, dann geht das in einem Abwasch,
+			// gehe dazu in die entsprechende Funktion
+
+//			if( vrtxFracPrps.getVrtxFracStatus() == VrtxFracProptsStatus::oneFracSuDoAtt )
+			if( sudoNumInSeg == 1 )
+			{
+				// standard case, one fracture
+				if( ! expandWithinTheSegment<1,false>( oldVrt, svei ) )
+				{
+					UG_LOG("Expandierung einfachster Fall schief gegangen " << std::endl);
+					return false;
+				}
+			}
+			else // unterscheiden zwei und drei vermutlich..... aber wichtiger Segmentzahl..... und dann kommt es darauf an, wieviele subdoms im einzelnen Segment sind
+			{
+
+			}
+
+		}
+		else
+		{
+			// boundary faces counted as fracture faces, but no expansion
+			// zuerst aber die inneren Schnittvertizes, weil bei denen die Nicht-Null Expansion
+			// gelernt werden kann, dann anzuwenden auf Null-Expansion senkrecht zu den boundaries......
+		}
+
+	}
+
+	return true;
+}
+#endif
+
+///////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////
+
+
+bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
+{
+	// anfangs nur für innere Vertizes mit einer fracture
+
+	// testweise, später verallgemeinert mit den Boundary faces
+
+	auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+
+	bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
+
+	UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
+
+//	if( vrtxIsBndVrt )
+//	{
+//		UG_LOG("boundary noch zu lösen, bisher nix machen" << std::endl);
+//		return true;
+//	}
+
+	VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[oldVrt];
+
+	if( vecSegVolElmInf.size() < 2 )
+	{
+		UG_LOG("nur ein Segment, aber will frische Vertizes?" << std::endl);
+//		UG_THROW("nur ein Segment, aber will frische Vertizes?" << std::endl);
+//		return false;
+		return true;
+	}
+
+
+	for( SegmentVolElmInfo const & segVolsElInf : vecSegVolElmInf )
+	{
+		// count the number of the fracture subdomains surrounding the segment
+		// in case of boundary vertex, also count the number of boundary subdomains
+
+//		std::vector<IndexType> sudosInSegment;
+
+		// hier die neue Klasse und ihr averaing einführen, oder im Hauptloop der neuen Elemente.....
+		// SegmentSides<....> in .h file für die richtigen template parameter Kurznamen geben und hier
+		// Objekt erstellen und je nach ob mit oder ohne Bndry entsprechend aufladen und averagen.....
+		// und zwar für jedes Segment einzeln, und abhängig von boundary oder nicht die boundary Geschichten
+		// dazu oder auch nicht...... also einen VecSegmentSides erstellen auch, das einzelne Objekt
+		// weiss dann, ob es eine Boundary ist..... vielleicht noch den Vektor dazu als übergebener Parameter
+		// damit man den da drin weiter reichen kann?
+		// wenn jedes Objekt des Vektors von SegmentSIdes sowohl seinen Vertex kennt als auch weiss,
+		// ob es boundary oder nicht ist, kann danach darüber geloopt werden, ohne nochmal
+		// aussen den Vertex mit geben zu müssen, oder die Info, ob bndry oder nicht.....
+		// danach gibts dann Funktionen, die alleine ein Objekt von der Sorte SegmentSides schlucken brauchen
+		// und hier nur ein Loop über den ganzen Vektor davon, wo für jedes Element dann die Fkt aufgerufen wird....
+
+		SegmentLimitingSides segLimSids( oldVrt, vrtxIsBndVrt );
+
+//		std::vector<Volume*> vecVolsOfSegment;
+
+		IndexType boundarySites = 0;
+
+		for( AttachedVolumeElemInfo const & volElmInf : segVolsElInf )
+		{
+			if( ! segLimSids.schluckVecAttFractElm( volElmInf.getVecFractManifElem() ) )
+			{
+				UG_LOG("schlucken schief gegangen " << std::endl);
+				UG_THROW("schlucken schief gegangen " << std::endl);
+				return false;
+			}
+
+			if( vrtxIsBndVrt )
+			{
+				auto vecBndryManifelm = volElmInf.getVecBndryManifElem();
+
+				IndexType sizeVecBndryManifElm = volElmInf.getVecBndryManifElem().size();
+
+				boundarySites += sizeVecBndryManifElm;
+
+//				if( ! segLimSids.schluckVecAttBndryElm( volElmInf.getVecBndryManifElem() ) )
+				if( ! segLimSids.schluckVecAttBndryElm( vecBndryManifelm ) )
+				{
+					UG_LOG("schlucken B schief gegangen " << std::endl);
+					UG_THROW("schlucken B schief gegangen " << std::endl);
+					return false;
+				}
+
+				// TODO FIXME es muss abgefangen werden, wenn bei einem boundary vertex gar keine boundary Seiten da sind
+//				if( (volElmInf.getVecBndryManifElem()).size() == 0  )
+				if( sizeVecBndryManifElm == 0  )
+					UG_LOG("Grenze verloren gegangen " << m_aaPos[oldVrt] << std::endl);
+			}
+
+			Volume * vol2Add = volElmInf.getFulldimElem();
+			segLimSids.schluckFulldimElem(vol2Add);
+		}
+
+		if( vrtxIsBndVrt && boundarySites == 0 )
+		{
+			UG_LOG("No boundary sites at " << m_aaPos[oldVrt] << std::endl);
+			UG_THROW("No boundary sites at " << m_aaPos[oldVrt] << std::endl);
+		}
+
+		if( ! segLimSids.averageAll() )
+		{
+			UG_LOG("keine Mittelung " << std::endl);
+			UG_THROW("keine Mittelung " << std::endl);
+			return false;
+		}
+
+//		if( vrtxIsBndVrt )
+//		{
+//			if( segLimSids. )
+//		}
+
+//		for( SegmentLimitSidesPairSudoNorml segLimSiPSN : vecSegmLimSidPrSudoNorml )
+//		{
+//
+//		}
+
+//		expandWithinTheSegment<SegmentVrtxFracStatus::oneFracSuDoAtt>(segLimSids
+
+		if( ! expandWithinTheSegment(segLimSids) )
+		{
+			UG_LOG("schief gegangen Vertex Erzeugung " << std::endl);
+			UG_THROW("schief gegangen Vertex Erzeugung " << std::endl);
+			return false;
+		}
+
+//		SegmentVrtxFracStatus segStatFract = segLimSids.spuckCrossingTyp();
+//
+//		switch( segStatFract )
+//		{
+//			case SegmentVrtxFracStatus::noFracSuDoAtt :
+//			{
+//				UG_LOG("is not a fracture, but a segment?" << std::endl);
+//				UG_THROW("is not a fracture, but a segment?" << std::endl);
+//				return false;
+//			}
+//			case SegmentVrtxFracStatus::oneFracSuDoAtt :
+//			{
+//				if( ! expandWithinTheSegment<SegmentVrtxFracStatus::oneFracSuDoAtt,false,false>(segLimSids, vecVolsOfSegment) )
+//				{
+//					UG_LOG("Expandierung 1 schief gegangen " << std::endl);
+//					UG_THROW("Expandierung 1 schief gegangen " << std::endl);
+//					return false;
+//				}
+//				break;
+//			}
+//			case SegmentVrtxFracStatus::twoFracSuDoAtt :
+//			{
+//				break; // TODO FIXME implementieren
+//			}
+//			case SegmentVrtxFracStatus::threeFracSuDoAtt :
+//			{
+//				if( ! expandWithinTheSegment<SegmentVrtxFracStatus::threeFracSuDoAtt,false,false>(segLimSids, vecVolsOfSegment) )
+//				{
+//					UG_LOG("Expandierung 3 schief gegangen " << std::endl);
+//					UG_THROW("Expandierung 3 schief gegangen " << std::endl);
+//					return false;
+//				}
+//				break;
+//			}
+//			default :
+//			{
+//				UG_LOG("strange fracture crossing" << std::endl);
+//				UG_THROW("strange fracture crossing?" << std::endl);
+//				return false;
+//			}
+//		}
+	}
+
+	UG_LOG("Vertex creation hat funktioniert " << std::endl);
+	//	UG_THROW("Vertex creation failed " << std::endl);
+
+	return true;
+}
+
+
+//		if( ! extracFractSudosOfSegment( svei, sudosInSegment ) )
+//		{
+//			UG_LOG("kann sudos nicht extrahieren " << std::endl);
+//			UG_THROW("kann sudos nicht extrahieren " << std::endl);
+//			return false;
+//		}
+//
+//		IndexType sudoNumInSeg = sudosInSegment.size();
+//
+//		// check if is boundary vertex
+//
+//		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+//
+//
+//		if( ! vrtxIsBndVrt )
+//		{
+//			// count number of fracture subdomains in the Segment, should have been done before......
+//
+//			// TODO FIXME ersetze das altmodische VrtxFracProptsStatus durch ein Zählen
+//			// der subdomains, die pro Segment wirklich vorkommen, nachdem die
+//			// auslaufenden fracture faces den generellen Faces zugeschlagen worden sind
+//			// diese Zählweise ist die erste Folgeaufgabe, damit der komische vrtxFractureProperties Status
+//			// weg geworfen werden kann, der ist nämlich nutzlos inzwischen, da er auch auslaufende
+//			// fracture faces zählt, was Unsinn ist.......
+//			// später folgt auch die Verallgemeinerung auf boundary vertizes, dann muss deren Wahl
+//			// vielleicht wieder dazu genommen werden.....
+//
+//			//Vorbereitung Ersetzung VertexFractureProperties Status
+//			// durch Zählen der Fracture Subdomains von jedem Segment
+//			// die Zählerei kann dann gemacht werden, wenn die doppelten offenen fracture faces
+//			// in die allgemeinen faces verschoben werden, dann geht das in einem Abwasch,
+//			// gehe dazu in die entsprechende Funktion
+//
+////			if( vrtxFracPrps.getVrtxFracStatus() == VrtxFracProptsStatus::oneFracSuDoAtt )
+//			if( sudoNumInSeg == 1 )
+//			{
+//				// standard case, one fracture
+//				if( ! expandWithinTheSegment<1,false>( oldVrt, svei ) )
+//				{
+//					UG_LOG("Expandierung einfachster Fall schief gegangen " << std::endl);
+//					return false;
+//				}
+//			}
+//			else // unterscheiden zwei und drei vermutlich..... aber wichtiger Segmentzahl..... und dann kommt es darauf an, wieviele subdoms im einzelnen Segment sind
+//			{
+//
+//			}
+//
+//		}
+//		else
+//		{
+//			// boundary faces counted as fracture faces, but no expansion
+//			// zuerst aber die inneren Schnittvertizes, weil bei denen die Nicht-Null Expansion
+//			// gelernt werden kann, dann anzuwenden auf Null-Expansion senkrecht zu den boundaries......
+//		}
+//
+//	}
+
+//	UG_LOG("Vertex creation failed " << std::endl);
+//	UG_THROW("Vertex creation failed " << std::endl);
+//
+//
+//	return false;
+//
+
+
+////////////////////////////////////////////////////////////////////
+
+#if 0
+bool ArteExpandFracs3D::extracFractSudosOfSegment( SegmentVolElmInfo const & segmVolElmInfo, std::vector<ArteExpandFracs3D::IndexType> & sudosInSegment )
+{
+
+
+	VecAttachedFractFaceEdgeSudo vecAttFractFaces;
+
+	for( AttachedVolumeElemInfo const & avei : segmVolElmInfo )
+	{
+		VecAttachedFractFaceEdgeSudo const & vecAttFractVol = avei.getVecFractManifElem();
+
+		for( AttachedFractFaceEdgeSudo const & affe : vecAttFractVol )
+		{
+			vecAttFractFaces.push_back(affe);
+		}
+	}
+
+	IndexType numbContrFracFaces = vecAttFractFaces.size();
+
+	if( numbContrFracFaces < 1 )
+	{
+		UG_LOG("Kein Affe da " << std::endl);
+		UG_THROW("Kein Affe da " << std::endl);
+		return false;
+	}
+
+	IndexType sudoBase = vecAttFractFaces[0].getSudo();
+
+	sudosInSegment.push_back(sudoBase);
+
+	// add sudos different from the base one
+	for( AttachedFractFaceEdgeSudo const & affe : vecAttFractFaces )
+	{
+		IndexType sudoNeeded = affe.getSudo();
+
+		bool sudoIsKnown = false;
+
+		for( IndexType sudoInList : sudosInSegment )
+		{
+			if( sudoNeeded == sudoInList )
+			{
+				sudoIsKnown = true;
+			}
+		}
+
+		if( ! sudoIsKnown )
+		{
+			sudosInSegment.push_back(sudoNeeded);
+		}
+
+	}
+
+	return true;
+}
+#endif
+
+
+////////////////////////////////////////////////////////////////////
+
+// for only one surrounding subdom around the segment, for example only one fracture, or T End like ending side
+// TODO FIXME alles in eine einzige Funktion, die verschiedene Unterfunktionen aufruft für verschiedene Zahlen
+// von Seiten innen und aussen!!!!
+//template<>
+//bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>( SegmentLimitingSides const & segmLimSides )
+bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimitingSides const & segmLimSides )
+{
+	// should not be called for boundary vertices
+
+	bool isBndry = segmLimSides.isBoundary();
+
+//	if( isBndry )
+//		return true;
+
+//	if( isBndry )
+//	{
+//		UG_LOG("boundary noch zu behandeln " << std::endl);
+//		UG_THROW("boundary noch zu behandeln " << std::endl);
+//		return false;
+//	}
+
+//	VecSegmentLimitSidesPairSudoNorml vecSegmLimSidPrSudoNrml;
+	VecPlaneDescriptor vecPlaneFracDescr;
+
+	//	if( ! segmLimSides.spuckFractSudoNormls( vecSegmLimSidPrSudoNrml ) )
+	if( ! segmLimSides.spuckFractManifDescr( vecPlaneFracDescr, m_aaPos ) )
+	{
+		UG_LOG("Spucken schief gegangen  " << segmLimSides.spuckCrossingTyp() << std::endl);
+		UG_THROW("Spucken schief gegangen  " << segmLimSides.spuckCrossingTyp() << std::endl);
+		return false;
+	}
+
+	// falls Boundary, hier noch spuckBndryManifDescr aufrufen
+
+	Vertex * oldVrt = segmLimSides.spuckVertex();
+	vector3 posOldVrt = m_aaPos[oldVrt];
+
+	VecPlaneDescriptor vecShiftedPlaneDescript;
+
+//	for( SegmentLimitSidesPairSudoNorml const & segLimSidPrSN : vecSegmLimSidPrSudoNrml )
+	for( PlaneDescriptor & planeDescr : vecPlaneFracDescr )
+	{
+		UG_LOG("GOT MANIF TYP " << planeDescr.spuckManifTyp() << std::endl );
+//		IndexType const & sudoSide = segLimSidPrSN.first;
+//		vector3 const & normlAvrg = segLimSidPrSN.second;
+//
+//		// normal computed standard mässig directs of of the volume, we need that one into the volume
+//		vector3 normalOutsideVol;
+
+		// hier testen, ob die Subdomain von der Liste der fracture subdomains ist,
+		// damit für den Fall von sich zwei schneidenden Ebenen für die dritte,
+		// die als senkrecht zu den beiden anderen gesetzt werden soll, mit Verschiebung null,
+		// analog Boundary sides, die künstliche Weite null erhalten kann hier
+
+		if( planeDescr.spuckManifTyp() != PlaneDescriptorType::isFracture )
+			UG_THROW("muss fracture sein " << std::endl);
+//
+		int sudoSide = planeDescr.spuckSudo();
+		number width = m_fracInfosBySubset[sudoSide].width;;
+
+		// ensure that the width is nonzero only for real fractures, not for pseudo vectors or such stuff
+//		if( ! isBndry )
+//		{
+//			if( planeDescr.spuckManifTyp() == PlaneDescriptorType::isFracture )
+//			{
+//				width = m_fracInfosBySubset[sudoSide].width;
+//			}
+//			else
+//			{
+//				UG_LOG("Manif Typ is " << planeDescr.spuckManifTyp() << std::endl );
+//				UG_LOG("Fract wäre " << PlaneDescriptorType::isFracture << std::endl );
+//				UG_LOG("Bndry wäre " << PlaneDescriptorType::isBoundary << std::endl );
+//				UG_LOG("Artif wäre " << PlaneDescriptorType::isArtificial << std::endl );
+//
+//				UG_THROW("keine Boundary, aber will Boundary Manif" << std::endl);
+//			}
+//		}
+//		else
+//		{
+//			UG_THROW("hier nur keine boundary" << std::endl);
+//		}
+
+
+//		else
+//		{
+//	TODO FIXME		bei boundary auch noch für die entsprechenden boundaries
+//		}
+
+		number shiftScal = width / 2.;
+		planeDescr.schluckScaleShiftNormal( - shiftScal );
+
+//		vector3 shiftVec4Plane;
+//
+//		// as normal outside vol, but we need to go inside the volumes / segment side
+//		VecScale( shiftVec4Plane, normalOutsideVol, - shiftScal );
+
+//		vecShiftVec4Plane.push_back( shiftVec4Plane );
+//		vecSudosSides.push_back( sudoSide );
+//		vecNormalsAveraged.push_back( normalIntoVol );
+
+//		PlaneDescriptor planeDescr( normalOutsideVol, posOldVrt, shiftScal );
+
+		PlaneDescriptor shiftedPlaneDescr;
+		planeDescr.spuckPlaneShifted( shiftedPlaneDescr );
+
+		//		planeDescr.spuckPlaneShiftedAlong( shiftVec4Plane, shiftedPlaneDescr );
+
+		vecShiftedPlaneDescript.push_back( shiftedPlaneDescr );
+	}
+
+	// will get the sudo of the shifted vertex
+	IndexType sudoExample = (vecPlaneFracDescr[0]).spuckSudo();
+	vector3 posNewVrt; // to be determined depending on the segment properties
+
+	if( ! isBndry && vecShiftedPlaneDescript.size() == 1 )
+	{
+//		// one single inner fracture, Testfall Anfang
+//		computeShiftVector( vecShiftedPlaneDescript[0] );
+		posNewVrt = (vecPlaneFracDescr[0]).spuckShiftedBaseVect();
+	}
+	else
+	{
+		if( ! isBndry && vecShiftedPlaneDescript.size() > 1 )
+		{
+
+			if( vecShiftedPlaneDescript.size() == 2 )
+			{
+				// we need to add an artificial plane which gets extended with scale 0
+
+				vector3 artificialNormal;
+				VecCross( artificialNormal, vecShiftedPlaneDescript[0].spuckNormalVector(), vecShiftedPlaneDescript[1].spuckNormalVector() );
+
+				PlaneDescriptor artificialPlane( artificialNormal, posOldVrt );
+
+				vecShiftedPlaneDescript.push_back(artificialPlane);
+			}
+
+			if( vecShiftedPlaneDescript.size() > 3  )
+				UG_THROW("too much fractures" << std::endl);
+
+			// now we should have three planes to cross
+
+		}
+		else if( isBndry )
+		{
+			VecPlaneDescriptor vecPlaneBndryDescr;
+
+			//	if( ! segmLimSides.spuckFractSudoNormls( vecSegmLimSidPrSudoNrml ) )
+			if( ! segmLimSides.spuckBndryManifDescr( vecPlaneBndryDescr, m_aaPos ) )
+			{
+				UG_LOG("Spucken schief gegangen bndry " << segmLimSides.spuckCrossingTyp() << std::endl);
+				UG_THROW("Spucken schief gegangen bndry " << segmLimSides.spuckCrossingTyp() << std::endl);
+				return false;
+			}
+
+			if( vecPlaneBndryDescr.size() < 1 )
+			{
+				UG_LOG("at point " << m_aaPos[oldVrt] << std::endl);
+
+				UG_LOG("BOUNRARY PPPPP vertex BOUNDARY size problem " << m_aaPos[oldVrt] << std::endl);
+
+				UG_LOG("Boundaries" << std::endl);
+				for( PlaneDescriptor pd : vecPlaneBndryDescr  )
+				{
+					UG_LOG("Subdom " << pd.spuckSudo() << std::endl);
+					UG_LOG("Base " << pd.spuckBaseVector() << std::endl);
+					UG_LOG("Normal " << pd.spuckNormalVector() <<std::endl);
+				}
+
+				UG_LOG("Shifted" << std::endl);
+				for( PlaneDescriptor pd : vecShiftedPlaneDescript  )
+				{
+					UG_LOG("Subdom S " << pd.spuckSudo() << std::endl);
+					UG_LOG("Base S " << pd.spuckBaseVector() << std::endl);
+					UG_LOG("Normal S " << pd.spuckNormalVector() <<std::endl);
+				}
+
+				UG_LOG("Fracs " << std::endl);
+				for( PlaneDescriptor pd : vecPlaneFracDescr  )
+				{
+					UG_LOG("Subdom F " << pd.spuckSudo() << std::endl);
+					UG_LOG("Base F " << pd.spuckBaseVector() << std::endl);
+					UG_LOG("Normal F " << pd.spuckNormalVector() <<std::endl);
+				}
+
+
+				// PROBLEM PPPPPPPPPPPPPPPPP
+				UG_THROW("NO boundary sudos " << std::endl);
+			}
+
+			if( vecPlaneBndryDescr.size() > 2 )
+			{
+				UG_LOG("dudos" << std::endl);
+				for( PlaneDescriptor pd : vecPlaneBndryDescr )
+				{
+					int sudo = pd.spuckSudo();
+					UG_LOG("sudos " << sudo << std::endl);
+
+				}
+				UG_LOG("at point " << m_aaPos[oldVrt] << std::endl);
+				UG_THROW("too much boundary sudos " << vecPlaneBndryDescr.size() << std::endl);
+			}
+
+
+			if( vecShiftedPlaneDescript.size() + vecPlaneBndryDescr.size() > 3 )
+				UG_THROW("too much crossing stuff at boundary"<<std::endl);
+
+			for( PlaneDescriptor const & pbd : vecPlaneBndryDescr )
+			{
+				vecShiftedPlaneDescript.push_back( pbd );
+			}
+
+			if( vecPlaneBndryDescr.size() == 2 )
+			{
+				// PROBLEM PPPPPPPPPPPPPPPP
+				if( vecShiftedPlaneDescript.size() != 3 ||  vecPlaneFracDescr.size() != 1 )
+				{
+					UG_LOG("BOUNRARY PPPPP vertex TWO problem " << m_aaPos[oldVrt] << std::endl);
+
+					UG_LOG("Boundaries" << std::endl);
+					for( PlaneDescriptor pd : vecPlaneBndryDescr  )
+					{
+						UG_LOG("Subdom " << pd.spuckSudo() << std::endl);
+						UG_LOG("Base " << pd.spuckBaseVector() << std::endl);
+						UG_LOG("Normal " << pd.spuckNormalVector() <<std::endl);
+					}
+
+					UG_LOG("Shifted" << std::endl);
+					for( PlaneDescriptor pd : vecShiftedPlaneDescript  )
+					{
+						UG_LOG("Subdom S " << pd.spuckSudo() << std::endl);
+						UG_LOG("Base S " << pd.spuckBaseVector() << std::endl);
+						UG_LOG("Normal S " << pd.spuckNormalVector() <<std::endl);
+					}
+
+					UG_LOG("Fracs " << std::endl);
+					for( PlaneDescriptor pd : vecPlaneFracDescr  )
+					{
+						UG_LOG("Subdom F " << pd.spuckSudo() << std::endl);
+						UG_LOG("Base F " << pd.spuckBaseVector() << std::endl);
+						UG_LOG("Normal F " << pd.spuckNormalVector() <<std::endl);
+					}
+
+					UG_THROW("noch nicht genug Grenzen " << std::endl);
+
+				}
+			}
+			else if( vecPlaneBndryDescr.size() == 1 )
+			{
+				if( vecShiftedPlaneDescript.size() < 3 )
+					UG_LOG("noch nicht genug Grenzen " << std::endl);
+
+				if( vecShiftedPlaneDescript.size() > 3 )
+					UG_LOG("too much Grenzen " << std::endl);
+
+				if( vecPlaneFracDescr.size() != 1 && vecPlaneFracDescr.size() != 2 )
+					UG_THROW("Nicht passend Fract plus Bndry" << std::endl);
+
+//				if( vecPlaneFracDescr.size() == 1 && vecPlaneFracDescr.size() == 2 )
+//					if( vecShiftedPlaneDescript.size() != 3 )
+//						UG_THROW"SO viele unsinnige Kombinationen " << std::endl );
+
+				if( vecPlaneFracDescr.size() == 2 )
+				{
+					if( vecShiftedPlaneDescript.size() != 3 )
+						UG_THROW("da passt nicht zusammen was 3 sein sollte" << std::endl);
+
+					// sonst nix zu tun
+				}
+				else if( vecPlaneFracDescr.size() == 1 )
+				{
+					if( vecShiftedPlaneDescript.size() != 2 )
+						UG_LOG("1+2 nicht 3" << std::endl);
+
+					// add an artificial perpendicular plane with move vector zero
+
+					vector3 artificialNormal;
+					VecCross( artificialNormal, vecShiftedPlaneDescript[0].spuckNormalVector(), vecShiftedPlaneDescript[1].spuckNormalVector() );
+
+					PlaneDescriptor artificialPlane( artificialNormal, posOldVrt );
+
+					vecShiftedPlaneDescript.push_back(artificialPlane);
+
+				}
+
+
+
+			}
+
+		}
+
+		// vector shifted plane descriptor kriegt was dazu, wenn es keine drei sind ohne boundary
+
+		if( vecShiftedPlaneDescript.size() != 3 )
+			UG_THROW("wie gross soll es denn sein" << std::endl);
+
+		computeCrossingPointOf3Planes( vecShiftedPlaneDescript, posNewVrt );
+
+	}
+
+
+
+//	if( vecSegmLimSidPrSudoNrml.size() != 1 )
+//	{
+//		UG_LOG("only one fracture, but not one normal and sudo?"  <<  std::endl);
+//		UG_THROW("only one fracture, but not one normal and sudo?" << std::endl);
+//		return false;
+//	}
+
+	// FALL eins extra Funktion, unterscheiden nach Länge
+
+//	if(  )
+
+
+//	SegmentLimitSidesPairSudoNorml & sudoAndNormal = vecSegmLimSidPrSudoNrml[0];
+//
+//	IndexType sudoBase = sudoAndNormal.first;
+//	vector3 normalsAveraged = sudoAndNormal.second;
+//
+//	Vertex * oldVrt = segmLimSides.spuckVertex();
+//
+//	number width = m_fracInfosBySubset[sudoBase].width;
+//
+//	number scal = width / 2.;
+//
+//	NormalVectorFacIntoVol scaledNormal;
+//
+//	VecScale( scaledNormal, normalsAveraged, - scal );
+//
+//	vector3 posOldVrt = m_aaPos[oldVrt];
+//
+//	UG_LOG("NORMAL OLD VRTX " << posOldVrt << " -> " << normalsAveraged << std::endl );
+
+
+//	VecAdd( posNewVrt, posOldVrt, scaledNormal );
+
+	Vertex * newShiftVrtx = *m_grid.create<RegularVertex>();
+
+	if( newShiftVrtx == nullptr )
+	{
+		UG_LOG("Nullen erzeugt" << std::endl);
+		UG_THROW("Nullen erzeugt" << std::endl);
+		return false;
+	}
+
+	m_aaPos[newShiftVrtx] = posNewVrt;
+
+	UG_LOG("Created new vertex at " << m_aaPos[newShiftVrtx] << std::endl );
+
+	m_sh.assign_subset(newShiftVrtx, sudoExample);
+//	m_sh.assign_subset(newShiftVrtx, m_sh.num_subsets());
+
+	std::vector<Volume*> volsInSegm;
+
+	segmLimSides.spuckFulldimElemList( volsInSegm );
+
+	for( Volume * const & vol : volsInSegm )
+	{
+		std::vector<Vertex*> & newVrts4Fac = m_aaVrtVecVol[ vol ];
+
+		for(size_t indVrt = 0; indVrt < (vol)->num_vertices();  indVrt++ )
+		{
+			Vertex* volVrt = (vol)->vertex(indVrt);
+
+			if(  volVrt == oldVrt )
+			{
+				newVrts4Fac[ indVrt ] = newShiftVrtx;
+			}
+		}
+	}
+
+	return true;
+
+
+}
+
+
+#if 0
+template<>
+bool ArteExpandFracs3D::expandWithinTheSegment<1,false>( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo )
+{
+
+	// get all fracture faces, check if they belong to the same subdomain, must be the case here!
+
+	VecAttachedFractFaceEdgeSudo vecAttFractFaces;
+
+	for( AttachedVolumeElemInfo const & avei : segmVolElmInfo )
+	{
+		VecAttachedFractFaceEdgeSudo const & vecAttFractVol = avei.getVecFractManifElem();
+
+		for( AttachedFractFaceEdgeSudo const & affe : vecAttFractVol )
+		{
+			vecAttFractFaces.push_back(affe);
+		}
+	}
+
+	IndexType numbContrFracFaces = vecAttFractFaces.size();
+
+	if( numbContrFracFaces < 1 )
+	{
+		UG_LOG("Kein Affe da " << std::endl);
+		UG_THROW("Kein Affe da " << std::endl);
+		return false;
+	}
+
+	IndexType sudoBase = vecAttFractFaces[0].getSudo();
+
+	// check if all sudos equal
+	for( AttachedFractFaceEdgeSudo const & affe : vecAttFractFaces )
+	{
+		IndexType sudoTest = affe.getSudo();
+
+		if( sudoTest != sudoBase )
+		{
+			UG_LOG("unterschiedliche Sudos an einer einzelnen Fracture?" << std::endl);
+			UG_THROW("unterschiedliche Sudos an einer einzelnen Fracture?" << std::endl);
+			return false;
+		}
+	}
+
+	// now we are sure we have the same sudo, now we average the normals
+
+	NormalVectorFacIntoVol normalsFacInVolSummed(0,0,0);
+
+	for( AttachedFractFaceEdgeSudo const & affe : vecAttFractFaces )
+	{
+		NormalVectorFacIntoVol tmpVec = normalsFacInVolSummed;
+		UG_LOG("Normal Vec " << tmpVec << std::endl);
+		VecAdd(normalsFacInVolSummed, tmpVec, affe.getNormalVec() );
+	}
+
+	NormalVectorFacIntoVol normalsAveraged;
+
+	VecScale( normalsAveraged, normalsFacInVolSummed, 1. / ( static_cast<number>(numbContrFracFaces) ) );
+
+	number width = m_fracInfosBySubset[sudoBase].width;
+
+	number scal = width / 2.;
+
+	NormalVectorFacIntoVol scaledNormal;
+
+	VecScale( scaledNormal, normalsAveraged, - scal );
+
+	vector3 posOldVrt = m_aaPos[oldVrt];
+
+	vector3 posNewVrt;
+
+	VecAdd( posNewVrt, posOldVrt, scaledNormal );
+
+	Vertex * newShiftVrtx = *m_grid.create<RegularVertex>();
+
+	if( newShiftVrtx == nullptr )
+	{
+		UG_LOG("Nullen erzeugt" << std::endl);
+		UG_THROW("Nullen erzeugt" << std::endl);
+		return false;
+	}
+
+	m_aaPos[newShiftVrtx] = posNewVrt;
+
+	UG_LOG("Created new vertex at " << m_aaPos[newShiftVrtx] << std::endl );
+
+	m_sh.assign_subset(newShiftVrtx, sudoBase);
+
+	for( AttachedVolumeElemInfo const & avei : segmVolElmInfo )
+	{
+		Volume * vol = avei.getFulldimElem();
+
+		std::vector<Vertex*> & newVrts4Fac = m_aaVrtVecVol[ vol ];
+
+		for(size_t indVrt = 0; indVrt < (vol)->num_vertices();  indVrt++ )
+		{
+			Vertex* volVrt = (vol)->vertex(indVrt);
+
+			if(  volVrt == oldVrt )
+			{
+				newVrts4Fac[ indVrt ] = newShiftVrtx;
+			}
+		}
+	}
+
+	return true;
+}
+#endif
+
+
+////////////////////////////////////////////////////////////////////
+
+//template<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>
+//bool ArteExpandFracs3D::computeShiftVector( ArteExpandFracs3D::VecSegmentLimitSidesPairSudoNorml const & vecSegmLimSidPrSudoNrml )
+//{
+//	return {};
+//}
+
+
+////////////////////////////////////////////////////////////////////
+
+// TODO FIXME muss verschwinden!
+//template<>
+//bool ArteExpandFracs3D::computeShiftVector( VecSegmentLimitSidesPairSudoNorml const & vecSegmLimSidPrSudoNrml )
+////bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::threeFracSuDoAtt>( SegmentLimitingSides const & segmLimSides )
+//{
+//	// wenn es nur zwei Segmentnormalen und sudos sind, dann wird die dritte auf Normale senkrecht zu
+//	// den beiden anderen gesetzt, und um Null verschoben, ihr
+//
+////	if( segmLimSides.isBoundary() )
+////	{
+////		UG_LOG("three fracture at boundary need implementation " << std::endl);
+////		UG_THROW("three fracture at boundary need implementation " << std::endl);
+////		return false;
+////	}
+//
+////	VecSegmentLimitSidesPairSudoNorml vecSegmLimSidPrSudoNrml;
+//
+//	Vertex * oldVrt = segmLimSides.spuckVertex();
+//
+//	if( ! segmLimSides.spuckFractSudoNormls( vecSegmLimSidPrSudoNrml ) )
+//	{
+//		UG_LOG("Spucken schief gegangen three " << std::endl);
+//		UG_THROW("Spucken schief gegangen three " << std::endl);
+//		return false;
+//	}
+//
+//	if( vecSegmLimSidPrSudoNrml.size() != 3 )
+//	{
+//		UG_LOG("three fractures, but not three normals and sudo?"  <<  std::endl);
+//		UG_THROW("three fracture, but not three normal and sudo?" << std::endl);
+//		return false;
+//	}
+//
+//	// select one of the sudos of the sourrounding sudos of the segment, to which we want to assign the new vertex
+//	IndexType sudoExample = (vecSegmLimSidPrSudoNrml[0]).first;
+//
+////	std::vector<IndexType> vecSudosSides;
+////	std::vector<vector3> vecNormalsAveraged;
+////	std::vector<vector3> vecShiftVec4Plane;
+//
+//	vector3 posOldVrt = m_aaPos[oldVrt];
+//
+//	VecPlaneDescriptor vecShiftedPlaneDescript;
+//
+////	IndexType side = 0;
+//
+//	for( SegmentLimitSidesPairSudoNorml const & segLimSidPrSN : vecSegmLimSidPrSudoNrml )
+//	{
+//		IndexType const & sudoSide = segLimSidPrSN.first;
+//		vector3 const & normlAvrg = segLimSidPrSN.second;
+//
+//		// normal computed standard mässig directs of of the volume, we need that one into the volume
+//		vector3 normalOutsideVol;
+//
+//		// hier testen, ob die Subdomain von der Liste der fracture subdomains ist,
+//		// damit für den Fall von sich zwei schneidenden Ebenen für die dritte,
+//		// die als senkrecht zu den beiden anderen gesetzt werden soll, mit Verschiebung null,
+//		// analog Boundary sides, die künstliche Weite null erhalten kann hier
+//		number width = 0;
+//
+//		// ensure that the width is nonzero only for real fractures, not for pseudo vectors or such stuff
+//		if( ( side == 1 && ! artificialNormalTwo ) ||  ( side == 2 && ! artificialNormalThree ) )
+//			width = m_fracInfosBySubset[sudoSide].width;
+//
+//		side++;
+//
+//		number shiftScal = width / 2.;
+//
+//		vector3 shiftVec4Plane;
+//
+//		// as normal outside vol, but we need to go inside the volumes / segment side
+//		VecScale( shiftVec4Plane, normalOutsideVol, - shiftScal );
+//
+////		vecShiftVec4Plane.push_back( shiftVec4Plane );
+////		vecSudosSides.push_back( sudoSide );
+////		vecNormalsAveraged.push_back( normalIntoVol );
+//
+//		PlaneDescriptor planeDescr( normalOutsideVol, posOldVrt );
+//
+//		PlaneDescriptor shiftedPlaneDescr;
+//
+//		planeDescr.spuckPlaneShiftedAlong( shiftVec4Plane, shiftedPlaneDescr );
+//
+//		vecShiftedPlaneDescript.push_back( shiftedPlaneDescr );
+//	}
+//
+//	// KÄSE alles!!! wenn es eine boundary ist oder eine Kreuzung von zwei Ebenen innendrin,
+//	// dann muss hier DANACH noch was dazu kommen, das heisst, alles, was hier gemacht wird,
+//	// soll für den Fall sein, dass es keine einzelne Fracture innen drin ist,
+//	// und alle bool template Parameter sind MÜLL!!!!
+//	// das für zwei Fractures muss hier auch dazu
+//	// vielleicht am einfachsten, wenn man den template parameter auf true oder false stellt
+//	// für eine fracture innen oder allen anderen Rest......
+//
+//	// TODO FIXME compute crossing point of the three new planes!!!! need functions from lib_disc, cf FiniteStrainMechanics, solve LGS exact
+//
+//	vector3 shiftedCrossingPoint;
+//
+//	computeCrossingPointOf3Planes( vecShiftedPlaneDescript, shiftedCrossingPoint );
+//
+//	return true;
+//}
+
+////////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::computeCrossingPointOf3Planes(  VecPlaneDescriptor const & vecPlaneDescr, vector3 & crossingPoint )
+{
+	// n_i * vecX_i = a_i * n_i , i=1,2,3, ohne Summenkonvention, und n_i, vecX_i, a_i jeweils Vektoren Grösse 3
+	// es entsteht also ein LGS für drei Unbekannte und drei Gleichungen
+
+//	 vector<vector<double>> coefficients = {{2, 1}, {1, -3}};
+//	 vector<double> constants = {5, -1};
+//	 vector<double> solutions = cramer_rule(coefficients, constants);
+//	 cout << "Solution for x: " << solutions[0] << endl;
+//	 cout << "Solution for y: " << solutions[1] << endl;
+
+	PlaneDescriptor const & planeDescrZero = vecPlaneDescr[0];
+	PlaneDescriptor const & planeDescrOne = vecPlaneDescr[1];
+	PlaneDescriptor const & planeDescrTwo = vecPlaneDescr[2];
+
+	vector3 const & normalZero = planeDescrZero.spuckNormalVector();
+	vector3 const & normalOne = planeDescrOne.spuckNormalVector();
+	vector3 const & normalTwo = planeDescrTwo.spuckNormalVector();
+
+	number const & rhsZero = planeDescrZero.spuckRHS();
+	number const & rhsOne = planeDescrOne.spuckRHS();
+	number const & rhsTwo = planeDescrTwo.spuckRHS();
+
+
+
+	std::vector<std::vector<double>> coefficients = { {normalZero[0], normalZero[1], normalZero[2]},
+													  {normalOne[0], normalOne[1], normalOne[2]},
+													  {normalTwo[0], normalTwo[1], normalTwo[2]},
+													};
+
+	std::vector<double> constants = { rhsZero, rhsOne, rhsTwo };
+
+	std::vector<double> solutions = ug::simpleMatrOps::cramerRule(coefficients, constants);
+
+	crossingPoint = vector3( solutions[0], solutions[1], solutions[2] );
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////
+
+
+
+#if 0
 //template <>
 //bool ArteExpandFracs3D::establishNewVertices< Tetrahedron,
 //											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
@@ -2339,6 +4661,8 @@ bool ArteExpandFracs3D::establishNewVertices< false,
 	return true;
 }
 
+#endif
+
 ////////////////////////////////////////////////////////////////////
 
 
@@ -2372,6 +4696,8 @@ bool ArteExpandFracs3D::createNewElements()
 
 	//	create new elements
 
+	UG_LOG("want to create new elems" << std::endl );
+
 	//	holds local side vertex indices
 	std::vector<size_t>	locVrtInds;
 
@@ -2383,6 +4709,9 @@ bool ArteExpandFracs3D::createNewElements()
 	for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end(); ++iter_sv)
 	{
 		Volume* sv = *iter_sv;
+
+		UG_LOG("entering volume to create new elems " << CalculateCenter(sv, m_aaPos) << std::endl);
+
 		//	check for each edge whether it has to be copied.
 		for(size_t i_edge = 0; i_edge < sv->num_edges(); ++i_edge)
 		{
@@ -2414,6 +4743,8 @@ bool ArteExpandFracs3D::createNewElements()
 		}
 	}
 
+	UG_LOG("Vol enter clone finished " << std::endl);
+
 	//	now we create new faces from selected ones which are connected to
 	//	inner vertices. This allows to preserve old subsets.
 	//	Since we have to make sure that we use the right vertices,
@@ -2427,6 +4758,9 @@ bool ArteExpandFracs3D::createNewElements()
 	{
 		Volume* sv = *iter_sv;
 		//	check for each face whether it has to be copied.
+
+		UG_LOG("Face descriptor for vol " << CalculateCenter(sv, m_aaPos) << std::endl);
+
 		for(size_t i_face = 0; i_face < sv->num_faces(); ++i_face)
 		{
 			Face* sf = m_grid.get_face(sv, i_face);
@@ -2454,6 +4788,8 @@ bool ArteExpandFracs3D::createNewElements()
 		}
 	}
 
+	UG_LOG("Face descriptor left" << std::endl);
+
 	//	Expand all faces.
 	//	Since volumes are replaced on the fly, we have to take care with the iterator.
 	//	record all new volumes in a vector. This will help to adjust positions later on.
@@ -2468,6 +4804,9 @@ bool ArteExpandFracs3D::createNewElements()
 		Volume* sv = *iter_sv;
 		++iter_sv;
 
+		UG_LOG("Volume new creation try at " << CalculateCenter(sv, m_aaPos) << std::endl);
+
+
 		//	now expand the fracture faces of sv to volumes.
 		for(size_t i_side = 0; i_side < sv->num_sides(); ++i_side)
 		{
@@ -2478,7 +4817,7 @@ bool ArteExpandFracs3D::createNewElements()
 
 			if(tFace)
 			{
-				if(m_aaMarkFaceB[tFace])
+				if(m_aaMarkFaceIsFracB[tFace])
 				{
 					Volume* expVol = nullptr;
 
@@ -2556,19 +4895,21 @@ bool ArteExpandFracs3D::createNewElements()
 						}
 						else
 						{
-							//	this code-block should never be entered. If it is entered then
+							//	Text from SR, still similar:
+							//  this code-block should never be entered. If it is entered then
 							//	we either selected the wrong faces (this shouldn't happen), or there
 							//	are selected faces, which have fracture-boundary-vertices only.
 							//	This is the same is if inner fracture edges exists, which are
 							//	connected to two boundary vertices.
 							//	Since we tried to remove those edges above, something went wrong.
 							//	remove the temporary attachments and throw an error
-//								grid.detach_from_vertices(aVrtVec);
-//								grid.detach_from_volumes(aVrtVec);
-//								grid.detach_from_vertices(aAdjMarker);
-//								grid.detach_from_edges(aAdjMarker);
-								throw(UGError("Error in ExpandFractures3d. Implementation Error."));
-								return false;
+
+							UG_LOG("Tetraeder Fehlt eine Loesung " << std::endl);
+#if 1
+							detachMarkers();
+							throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+							return false;
+#endif
 						}
 					}
 					else if ( locVrtInds.size() == 4 )
@@ -2710,7 +5051,6 @@ bool ArteExpandFracs3D::createNewElements()
 			}
 		}
 
-
 		//	now set up a new volume descriptor and replace the volume.
 		if(vd.num_vertices() != sv->num_vertices())
 			vd.set_num_vertices(sv->num_vertices());
@@ -2726,6 +5066,11 @@ bool ArteExpandFracs3D::createNewElements()
 		m_grid.create_by_cloning(sv, vd, sv);
 		m_grid.erase(sv);
 	}
+
+	UG_LOG("Volumes erzeugt " << std::endl);
+
+//	return false;
+
 
 	//	we have to clean up unused faces and edges.
 	//	note that all selected edges with mark 0 may safley be deleted. - warum?
@@ -2746,7 +5091,14 @@ bool ArteExpandFracs3D::createNewElements()
 		Face* f = *iter;
 		++iter;
 
-		if( ! m_aaMarkFaceB[f] )
+		if( m_aAdjMarkerFaceIsUnclosedFracB[f] )
+		{
+			UG_LOG("want to delete unclosed frac face " << std::endl);
+			// todo fixme XXXXXXXXXXXXXXXXXX
+			return false;
+		}
+
+		if( ! m_aaMarkFaceIsFracB[f] )
 		{
 			foundUnusedFaces = true;
 			m_grid.erase(f);
