@@ -74,6 +74,8 @@ static void RegisterRaster(Registry& reg, string name, string grp)
 			"", "dim # coordinate", "set the extension of the raster for the given dimension.")
 		.add_method("extension", static_cast<number (T::*)(int) const>(&T::extension),
 			"coordinate", "dim", "returns the extension of the raster for the given dimension.")
+		.add_method("set_reverse_dimension", &T::set_reverse_dimension, 
+			"", "dimension", "set the dimension for Harmonisches Mittel.")
 		.add_method("select_node", static_cast<void (T::*)(int, size_t)>(&T::select_node),
 			"", "dim # index", "select a node by specifying the index in each dimension.")
 		.add_method("selected_node_value", &T::selected_node_value,
@@ -84,6 +86,8 @@ static void RegisterRaster(Registry& reg, string name, string grp)
 			"", "dim # coordinate", "set the coordinate of the cursor for each dimension.")
 		.add_method("interpolate_at_cursor", &T::interpolate_at_cursor,
 			"value", "", "returns the interpolated value (using the given order) at the cursor (use 'set_cursor' to set the cursor).")
+		/*.add_method("interpolate", &T::interpolate,
+				"value", "", "returns the interpolated value (using the cursor and the given order).")*/
 		.add_method("set_no_data_value", &T::set_no_data_value,
 			"", "value", "set the 'no-data-value'of the raster. Nodes with this value are ignored in some applications.")
 		.add_method("no_data_value", &T::no_data_value,
