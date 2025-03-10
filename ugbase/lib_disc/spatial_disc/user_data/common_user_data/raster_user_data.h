@@ -50,7 +50,7 @@ public:
 	typedef number TData;
 	typedef CplUserData<TData, dim> base_type;
 
-	typedef Raster<number, 2> TRaster;
+	typedef Raster<number, dim> TRaster;
 	// typedef Raster<number, 1> TRaster1;
 	// typedef Raster<number, 2> TRaster2;
 	// typedef Raster<number, 3> TRaster3;

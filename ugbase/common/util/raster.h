@@ -219,9 +219,13 @@ class Raster{
 		void blur(T alpha, size_t iterations);
 
 	/// 
+		void set_reverse_dimension(int dim);
+
 		const MultiIndex& node_index(const Coordinate& coord, int order) const;
 
-		const AABox<number> bounding_box(const MultiIndex& mi) const;
+		const AABox<number> bounding_box(const MultiIndex& mi, int order) const;
+
+		const Coordinate& linear_rate(const Coordinate& coord, const MultiIndex& mi) const;
 
 	/// Creates and runs the specified kernel on all nodes and returns its result
 	/** The class TKernel has to feature a default constructor, a typedef 'result_t',
@@ -331,6 +335,12 @@ class Raster{
 				Coordinate& localCoord,
 				int curDim = TDIM) const;
 
+		T interpolate_linear_reverse (
+					const MultiIndex& minNodeInd,
+					Coordinate& localCoord,
+					int curDim = TDIM) const;		
+	
+
 		T*			m_data;
 		MultiIndex	m_numNodes;
 		MultiIndex	m_selNode;
@@ -340,6 +350,7 @@ class Raster{
 		Coordinate	m_cursor;
 		size_t		m_numNodesTotal;
 		T			m_noDataValue;
+		bool 		m_reverseDim[TDIM];
 };
 
 }//	end of namespace

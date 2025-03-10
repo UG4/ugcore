@@ -345,6 +345,11 @@ create ()
 	if(num){
 		m_data = new T[num];
 	}
+
+	for(size_t d = 0; d < TDIM; ++d)
+	{ 
+			m_reverseDim[d]=false;
+	}
 }
 
 
@@ -422,27 +427,28 @@ extension (int dim) const
 }
 
 template <class T, int TDIM>
+void Raster<T, TDIM>::
+set_reverse_dimension(int dim)
+{
+	m_reverseDim[dim]=true;
+}
+
+
+template <class T, int TDIM>
 const typename Raster<T, TDIM>::MultiIndex&  Raster<T,TDIM>::
 node_index(const Coordinate& coord, int order) const
 {
 	MultiIndex mi(-1);
 	for(size_t d = 0; d < TDIM; ++d)
 	{ 
-		switch(order){
-		case 0: {
+		if(order==0){
 			mi[d] = static_cast<int>(0.5 + (coord[d] - m_minCorner[d]) / m_cellExtension[d]);
 			if(mi[d] < 0)					mi[d] = 0;
 			else if(mi[d] >= num_nodes(d))	mi[d] = num_nodes(d) - 1;
-		}break;
-
-		case 1:{
+		}else{
 			mi[d] = static_cast<int>((coord[d] - m_minCorner[d]) / m_cellExtension[d]);
 			if(mi[d] < 0)					mi[d] = 0;
 			else if(mi[d]+1 >= num_nodes(d))	mi[d] = num_nodes(d) - 2;
-		}break;
-
-		default:
-			UG_THROW("Raster::interpolate(): Unsupported interpolation order: " << order);
 		}
 	}
 	return mi;
@@ -450,14 +456,35 @@ node_index(const Coordinate& coord, int order) const
 
 template<class T, int TDIM>
 const AABox<number> Raster<T,TDIM>::
-bounding_box(const MultiIndex& mi) const{
+bounding_box(const MultiIndex& mi, int order) const{
 	AABox<MathVector<TDIM, number> > box;
 	for(size_t d = 0; d < TDIM; ++d)
 	{
-		box.min[d]=(number)mi[d] * m_cellExtension[d]+ m_minCorner[d];
+		if(order==0){
+			box.min[d]=((number)mi[d]-0.5)* m_cellExtension[d]+ m_minCorner[d];
+		}else{
+			box.min[d]=(number)mi[d] * m_cellExtension[d]+ m_minCorner[d];
+		}
+
 		box.max[d]=box.min[d]+m_cellExtension[d];
 	}	
 	return box;
+}
+
+template <class T, int TDIM>
+const typename Raster<T, TDIM>::Coordinate&  Raster<T,TDIM>::
+linear_rate(const Coordinate& coord, const MultiIndex& mi) const
+{
+Coordinate lc;
+for(size_t d = 0; d < TDIM; ++d)
+{
+	lc[d] = ( coord[d]- ((number)mi[d] * m_cellExtension[d]
+		 + m_minCorner[d]))
+  / m_cellExtension[d];
+
+  	lc[d]=std::min(std::max(0,lc[d]),1);
+}
+  return  lc;
 }
 
 template <class T, int TDIM>
@@ -498,8 +525,14 @@ interpolate (const Coordinate& coord, int order) const
 				}
 			}
 
-			return interpolate_linear(mi, lc);
+			return interpolate_linear_reverse(mi, lc);
 		} break;
+
+		case 2:{
+			MultiIndex mi=node_index(coord, order);
+			Coordinate lc(0.5);
+			return interpolate_linear_reverse(mi, lc);
+		}
 
 		default:
 			UG_THROW("Raster::interpolate(): Unsupported interpolation order: " << order);
@@ -961,6 +994,35 @@ interpolate_linear (
 	val0 *= (1. - localCoord[curDim - 1]);
 	val1 *= localCoord[curDim - 1];
 	val0 += val1;
+	return val0;
+}
+
+template <class T, int TDIM>
+T Raster<T, TDIM>::
+interpolate_linear_reverse (
+		const MultiIndex& minNodeInd,
+		Coordinate& localCoord,
+		int curDim) const
+{
+	if(curDim == 0)
+		return node_value(minNodeInd);
+
+	MultiIndex miMax = minNodeInd;
+	miMax[curDim - 1] += 1;
+
+	T val0 = interpolate_linear_reverse(minNodeInd, localCoord, curDim - 1);
+	T val1 = interpolate_linear_reverse(miMax, localCoord, curDim - 1);
+
+//	perform linear interpolation
+ 	if(m_reverseDim[curDim]){
+			val0 =(1. - localCoord[curDim - 1])/val0;
+			val1 =(localCoord[curDim - 1])/val1;
+			val0 = 1/(val0+val1);
+ 	}else{
+		val0 *= (1. - localCoord[curDim - 1]);
+		val1 *= localCoord[curDim - 1];
+		val0 += val1;
+	}
 	return val0;
 }
 

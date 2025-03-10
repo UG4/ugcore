@@ -49,6 +49,7 @@
 #include "lib_disc/spatial_disc/user_data/common_user_data/common_user_data.h"
 #include "lib_disc/spatial_disc/user_data/common_user_data/raster_user_data.h"
 
+
 #include "lib_disc/spatial_disc/user_data/linker/linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/scale_add_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/inverse_linker.h"
@@ -58,6 +59,7 @@
 #include "lib_disc/spatial_disc/user_data/linker/adapter.h"
 #include "lib_disc/spatial_disc/user_data/linker/interval_linker.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
+
 
 
 using namespace std;
@@ -584,7 +586,21 @@ static void Domain(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "OutNormCmp", tag);
 	}
+   
 
+	{ // Raster
+		string name = string("HomoRasterUserData").append(suffix);
+		typedef HomoRasterUserData<TDomain> T;
+		typedef UserData<number, dim> TBase;
+		
+		reg.add_class_<T, TBase> (name, grp)
+			.template add_constructor<void (*)(typename T::input_type)>("Raster")
+			.add_method("set_order", &T::set_order)
+			.add_method("set_domain", &T::set_domain)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "HomoRasterUserData", tag);
+	
+	}
 }
 		
 /**
@@ -650,6 +666,9 @@ static void RegisterRasterUserData(Registry& reg, string name, string grp)
 	}
 
 }
+
+
+
 
 /// \addtogroup userdata_bridge
 void RegisterBridge_UserData(Registry& reg, string grp)
