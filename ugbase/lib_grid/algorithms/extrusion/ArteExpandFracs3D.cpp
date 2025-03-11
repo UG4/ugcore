@@ -5095,7 +5095,7 @@ bool ArteExpandFracs3D::createNewElements()
 		{
 			UG_LOG("want to delete unclosed frac face " << std::endl);
 			// todo fixme XXXXXXXXXXXXXXXXXX
-			return false;
+			//return false;
 		}
 
 		if( ! m_aaMarkFaceIsFracB[f] )
