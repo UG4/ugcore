@@ -42,6 +42,6 @@
 #include "element_orientation_data.h"
 #include "dim_dim_user_data.h"
 #include "glob_attachment_user_data.h"
-#include "homo_raster_user_data.h"
+//#include "homo_raster_user_data.h"
 
 #endif // __H__UG__LIB_DISC__SPATIAL_DISC__COMMON_USER_DATA__

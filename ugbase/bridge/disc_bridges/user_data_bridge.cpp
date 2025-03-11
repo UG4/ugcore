@@ -588,7 +588,7 @@ static void Domain(Registry& reg, string grp)
 	}
    
 
-	{ // Raster
+	/*{ // Raster
 		string name = string("HomoRasterUserData").append(suffix);
 		typedef HomoRasterUserData<TDomain> T;
 		typedef UserData<number, dim> TBase;
@@ -600,7 +600,7 @@ static void Domain(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "HomoRasterUserData", tag);
 	
-	}
+	}*/
 }
 		
 /**
