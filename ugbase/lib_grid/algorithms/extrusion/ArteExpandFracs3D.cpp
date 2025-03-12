@@ -91,9 +91,15 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaMarkEdgeVFP(Grid::EdgeAttachmentAccessor<AttVertFracProp>()),
 	  m_aAdjMarkerFaceIsFracB(ABool()),
 	  m_aaMarkFaceIsFracB(Grid::FaceAttachmentAccessor<ABool>()),
-	  m_aaMarkFaceIsUnclosedFracB(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_aaMarkFaceHasUnclosedFracSideB(Grid::FaceAttachmentAccessor<ABool>()),
 	  m_aAdjMarkerVrtxHasUnclosedFracB(ABool()),
 	  m_aaMarkVrtxHasUnclosedFracB(Grid::VertexAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerFaceWithEndingCrossingCleft(ABool()),
+	  m_aaMarkFaceWithEndingCrossingCleft(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerVrtxAtEndingCrossingCleft(ABool()),
+	  m_aaMarkVrtxAtEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract(ABool()),
+	  m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract(Grid::VertexAttachmentAccessor<ABool>()),
 	  m_originalFractureFaces(std::vector<Face*>()),
 //	  m_attVrtVec(AttVrtVec()),
 //	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
@@ -195,6 +201,11 @@ bool ArteExpandFracs3D::run()
 		return false;
 
 	UG_LOG("Segmente erzeugt " << std::endl);
+
+	if( ! detectEndingCrossingClefts() )
+		return false;
+
+	UG_LOG("Ending crossing clefts detected" << std::endl);
 
 	if( ! seletForSegmented() )
 		return false;
@@ -342,15 +353,33 @@ bool ArteExpandFracs3D::attachMarkers()
 	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceIsFracB, false );
 	m_aaMarkFaceIsFracB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceIsFracB );
 
-	m_aAdjMarkerFaceIsUnclosedFracB = ABool();
+	m_aAdjMarkerFaceHasUnclosedFracSideB = ABool();
 
-	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceIsUnclosedFracB, false );
-	m_aaMarkFaceIsUnclosedFracB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceIsUnclosedFracB );
+	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceHasUnclosedFracSideB, false );
+	m_aaMarkFaceHasUnclosedFracSideB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceHasUnclosedFracSideB );
 
 	m_aAdjMarkerVrtxHasUnclosedFracB = ABool();
 
 	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxHasUnclosedFracB, false );
 	m_aaMarkVrtxHasUnclosedFracB = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxHasUnclosedFracB );
+
+	m_aAdjMarkerFaceWithEndingCrossingCleft = ABool();
+
+	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceWithEndingCrossingCleft, false );
+
+	m_aaMarkFaceWithEndingCrossingCleft = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceWithEndingCrossingCleft );
+
+	m_aAdjMarkerVrtxAtEndingCrossingCleft = ABool();
+
+	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxAtEndingCrossingCleft, false );
+
+	m_aaMarkVrtxAtEndingCrossingCleft = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxAtEndingCrossingCleft );
+
+	m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract = ABool();
+
+	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract, false );
+
+	m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract );
 
 	// second part
 
@@ -430,9 +459,13 @@ bool ArteExpandFracs3D::detachMarkers()
 	m_grid.detach_from_vertices( m_aAdjMarkerVFP );
 	m_grid.detach_from_edges( m_aAdjMarkerVFP );
 	m_grid.detach_from_faces( m_aAdjMarkerFaceIsFracB );
-	m_grid.detach_from_faces( m_aAdjMarkerFaceIsUnclosedFracB );
+	m_grid.detach_from_faces( m_aAdjMarkerFaceHasUnclosedFracSideB );
 
 	m_grid.detach_from_vertices( m_aAdjMarkerVrtxHasUnclosedFracB );
+
+	m_grid.detach_from_faces( m_aAdjMarkerFaceWithEndingCrossingCleft );
+	m_grid.detach_from_vertices( m_aAdjMarkerVrtxAtEndingCrossingCleft );
+	m_grid.detach_from_vertices( m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract );
 
 	m_grid.detach_from_vertices( m_aAdjInfoEdges );
 	m_grid.detach_from_vertices( m_aAdjInfoFaces );
@@ -1444,13 +1477,18 @@ bool ArteExpandFracs3D::distinguishSegments()
 	// die nicht abgeschlossen sind, und umgangen werden können, und so in die Landschaft ragen
 	// also die fracture faces, die für die Segmenteigenschaft unerheblich sind
 
+	bool unclosedFracFacesPresent = false;
+
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
 	{
 		Vertex* vrt = *iter;
 
 		IndexType shiFraFac = specificTreatementUnclosedFracFaces( vrt );
 
-		UG_LOG("shifted frac faces at " << m_aaPos[vrt] << shiFraFac << std::endl);
+		UG_LOG("shifted frac faces at " << m_aaPos[vrt] << " -> " << shiFraFac << std::endl);
+
+		if( shiFraFac > 0 )
+			unclosedFracFacesPresent = true;
 
 		constexpr bool d_highlightVrtcsWithShifts = false;
 
@@ -1465,10 +1503,131 @@ bool ArteExpandFracs3D::distinguishSegments()
 		}
 	}
 
-	// Debug purpose
-//	return false;
+
+	IndexType unclosedFracFacesFound = 0;
+
+	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
+	{
+
+		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
+		{
+			Face* fac = *iter;
+
+			UG_LOG("Check for unclosed frac faces " << CalculateCenter(fac, m_aaPos) << std::endl);
+
+			if( m_aaMarkFaceHasUnclosedFracSideB[fac] )
+			{
+				unclosedFracFacesFound++;
+
+//				m_sh.assign_subset( fac, m_sh.num_subsets());
+			}
+
+		}
+
+	}
+
+	if( unclosedFracFacesFound > 0  || unclosedFracFacesPresent )
+	{
+		UG_LOG("unclosed Frac faces " << unclosedFracFacesFound << std::endl);
+//		return false;
+	}
+
 
 	return true;
+
+}
+
+//////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::detectEndingCrossingClefts()
+{
+	// TODO FIXME fill!!! XXXXXXXXXXXXXXXXXXXXXXXX hier sind wir
+
+	IndexType numEndingCrossingClefts = 0;
+
+	std::vector<Face*> faFas;
+
+	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
+	{
+		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); iter++ )
+		{
+			Face* fac = *iter;
+
+			UG_LOG("Detect for unclosed ending cleft frac faces " << CalculateCenter(fac, m_aaPos) << std::endl);
+
+			if( m_aaMarkFaceHasUnclosedFracSideB[fac] )
+			{
+
+				// figure out the vertice(s) where the face is unclosed
+				// check if at one of these vertices, two fractures are crossing and one ending
+				// by checking if there are at least two segments as precondition, else no matter
+
+				std::vector<Vertex *> assoVrt;
+
+				CollectVertices(assoVrt, m_grid, fac);
+
+				for( Vertex * vrt : assoVrt )
+				{
+					if( m_aaMarkVrtxHasUnclosedFracB[vrt] )
+					{
+						VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+						if( vecSegVolElmInf.size() > 1 ) // expansion takes place here
+						{
+//							m_sh.assign_subset(fac,m_sh.num_subsets());
+							numEndingCrossingClefts++;
+							faFas.push_back(fac);
+						}
+
+					}
+				}
+
+
+			}
+
+		}
+
+	}
+
+
+//	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
+//	{
+//
+//		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
+//
+//		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
+//		{
+//			Face* fac = *iter;
+//
+//			UG_LOG("Check for unclosed frac faces " << CalculateCenter(fac, m_aaPos) << std::endl);
+//
+//			if( m_aaMarkFaceHasUnclosedFracSideB[fac] )
+//			{
+//				numEndingCrossingClefts++;
+//
+//				faFas.push_back(fac);
+//
+////				m_sh.assign_subset( fac, m_sh.num_subsets());
+//			}
+//
+//		}
+//
+//	}
+
+
+	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
+
+	for( Face * fac : faFas )
+	{
+		m_sh.assign_subset( fac, m_sh.num_subsets());
+
+	}
+
+	return false;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -1529,7 +1688,11 @@ ArteExpandFracs3D::IndexType ArteExpandFracs3D::specificTreatementUnclosedFracFa
 								Face * unclosedFace = afesOne.getManifElm();
 								// tested if same as that one from afesTwo
 
-								m_aaMarkFaceIsUnclosedFracB[ unclosedFace ] = true;
+								m_aaMarkFaceHasUnclosedFracSideB[ unclosedFace ] = true;
+
+								UG_LOG("unclosed face " << CalculateCenter( unclosedFace, m_aaPos ) << std::endl);
+
+//								m_sh.assign_subset( unclosedFace, m_sh.num_subsets());
 
 								m_aaMarkVrtxHasUnclosedFracB[vrt] = true;
 
@@ -4817,7 +4980,7 @@ bool ArteExpandFracs3D::createNewElements()
 
 			if(tFace)
 			{
-				if(m_aaMarkFaceIsFracB[tFace])
+				if( m_aaMarkFaceIsFracB[tFace] ) // && ! m_aaMarkFaceHasUnclosedFracSideB[tFace] )
 				{
 					Volume* expVol = nullptr;
 
@@ -5086,12 +5249,13 @@ bool ArteExpandFracs3D::createNewElements()
 
 	//	make sure that no unused faces linger around (This should never happen!)
 	bool foundUnusedFaces = false;
+
 	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
 	{
 		Face* f = *iter;
 		++iter;
 
-		if( m_aaMarkFaceIsUnclosedFracB[f] )
+		if( m_aaMarkFaceHasUnclosedFracSideB[f] )
 		{
 			UG_LOG("want to delete unclosed frac face " << std::endl);
 			// todo fixme XXXXXXXXXXXXXXXXXX

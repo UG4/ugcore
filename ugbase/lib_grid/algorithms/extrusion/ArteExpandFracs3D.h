@@ -153,17 +153,31 @@ private:
 
 	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceIsFracB;
 
-	ABool m_aAdjMarkerFaceIsUnclosedFracB;
+	ABool m_aAdjMarkerFaceHasUnclosedFracSideB;
 
-	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceIsUnclosedFracB;
+	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceHasUnclosedFracSideB;
 
 	ABool m_aAdjMarkerVrtxHasUnclosedFracB;
 
 	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtxHasUnclosedFracB;
 
+	ABool m_aAdjMarkerFaceWithEndingCrossingCleft;
+
+	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceWithEndingCrossingCleft;
+
+	ABool m_aAdjMarkerVrtxAtEndingCrossingCleft;
+
+	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtxAtEndingCrossingCleft;
+
+	ABool m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract;
+
+	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract;
+
 	bool countAndSelectFracBaseNums();
 
 	bool distinguishSegments();
+
+	bool detectEndingCrossingClefts();
 
 	bool seletForSegmented();
 
