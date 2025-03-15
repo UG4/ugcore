@@ -177,7 +177,7 @@ private:
 
 	bool distinguishSegments();
 
-	bool checkUnclosedFracFaces();
+//	bool checkUnclosedFracFaces();
 
 	bool detectEndingCrossingClefts();
 

@@ -204,20 +204,20 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("Segmente erzeugt " << std::endl);
 
-	if( ! checkUnclosedFracFaces() )
+	if( ! detectEndingCrossingClefts() )
 		return false;
 
 	UG_LOG("check unclosed frac faces" << std::endl);
+	UG_LOG("Ending crossing clefts detected" << std::endl);
 
 	if( ! establishSegmentLimitingSidesInfo() )
 		return false;
 
 	UG_LOG("established Segment limiting sides info" << std::endl);
 
-	if( ! detectEndingCrossingClefts() )
-		return false;
+//	if( ! detectEndingCrossingClefts() )
+//		return false;
 
-	UG_LOG("Ending crossing clefts detected" << std::endl);
 
 	if( ! seletForSegmented() )
 		return false;
@@ -1509,7 +1509,7 @@ bool ArteExpandFracs3D::distinguishSegments()
 
 //////////////////////////////////////////////////////////////////
 
-bool ArteExpandFracs3D::checkUnclosedFracFaces()
+bool ArteExpandFracs3D::detectEndingCrossingClefts()
 {
 	bool unclosedFracFacesPresent = false;
 
@@ -1568,13 +1568,177 @@ bool ArteExpandFracs3D::checkUnclosedFracFaces()
 //		return false;
 	}
 
-	return true;
+//	return true;
+
+	// TODO FIXME fill!!!
+
+	// TODO FIXME wieso die ending crossing cleft faces nicht aus den Segmenten raus holen,
+	// und zwar aus den ungeschlossenen Faces, die im Segment liegen?
+	// müssen doch dieselben sein, dann sollte die komische Prozedur hier unnötig werden!!!
+	// XXXXXXXXXXXXXXXXXXXXXXXXXx
+
+	IndexType numEndingCrossingClefts = 0;
+
+	std::vector<Face*> endingCrossingCleftFaces;
+
+	std::vector<Vertex*> endingCrossingCleftVrtcs;
+
+//	UG_THROW("KÄSE" << std::endl);
+
+	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
+	{
+		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); iter++ )
+		{
+			Face* fac = *iter;
+
+			UG_LOG("Detect for unclosed ending cleft frac faces " << CalculateCenter(fac, m_aaPos) << std::endl);
+
+			if( m_aaMarkFaceHasUnclosedFracSideB[fac] )
+			{
+
+				// figure out the vertice(s) where the face is unclosed
+				// check if at one of these vertices, two fractures are crossing and one ending
+				// by checking if there are at least two segments as precondition, else no matter
+
+				std::vector<Vertex *> assoVrt;
+
+				CollectVertices(assoVrt, m_grid, fac);
+
+				for( Vertex * vrt : assoVrt )
+				{
+					if( m_aaMarkVrtxHasUnclosedFracB[vrt] )
+					{
+						VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+						if( vecSegVolElmInf.size() > 1 ) // expansion takes place here
+						{
+//							m_sh.assign_subset(fac,m_sh.num_subsets());
+							numEndingCrossingClefts++;
+							endingCrossingCleftFaces.push_back(fac);
+							endingCrossingCleftVrtcs.push_back(vrt);
+							// TODO FIXME vielleicht eine Klasse, wo die Faces und Vertices einer
+							// jeweiligen ending Crossing Cleft Stelle zusammengefasst werden?
+							// statt unabhängige Listen? gemeinsame Liste?
+						}
+
+					}
+				}
+
+
+			}
+
+		}
+
+	}
+
+	// TODO FIXME endingCrossingCleftVrtcs 	endingCrossingCleftFaces globale member vielleicht?
+
+#if 0
+//	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); iterV++ )
+	for( Vertex * vrt : endingCrossingCleftVrtcs )
+	{
+//		Vertex * vrt = *iterV;
+
+		// search neigbours of ending crossing cleft faces
+
+		if( m_aaMarkVrtxHasUnclosedFracB[vrt] )
+		{
+			VecSegmentVolElmInfo const & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+			for( SegmentVolElmInfo const & svei : vecSegVolElmInf )
+			{
+				for( AttachedVolumeElemInfo const & attVolEI : svei )
+				{
+					VecAttachedFractFaceEdgeSudo vecAttFracFace = attVolEI.getVecFractManifElem();
+					// die sind alle von den echten das Segment begrenzenden Faces
+
+					for( AttachedFractFaceEdgeSudo & afes : vecAttFracFace )
+					{
+						Face * faceSegmLim = afes.getManifElm();
+
+						IndexType sudoSegmLim = afes.getSudo();
+
+						std::pair<Edge*,Edge*> const & edgePair = afes.getPairLowElm();
+
+						// figure out neighbours of ending crossing cleft faces at ending node
+
+						// rule out free edge
+
+						Edge * freeEdge = nullptr;
+						Edge * boundedEdge = nullptr;
+
+						for( Face * eccf : endingCrossingCleftFaces )
+						{
+							if( FaceContains( eccf, vrt ) )
+							{
+								if( eccf != fac )
+								{
+									if( FaceContains( eccf, edgePair.first ) || FaceContains( eccf, edgePair.second ) )
+									{
+
+									}
+								}
+							}
+						}
+//						if( )
+					}
+
+				}
+
+
+			}
+		}
+		else
+		{
+			UG_LOG("only ending crossing cleft vertices allowed here" << std::endl);
+			UG_THROW("only ending crossing cleft vertices allowed here" << std::endl);
+			return false;
+		}
+
+	}
+
+#endif
+
+
+	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
+
+	if( numEndingCrossingClefts == 0 )
+		return true;
+
+	// debug for ending crossing clefts
+
+	for( Face * fac : endingCrossingCleftFaces )
+	{
+		m_sh.assign_subset( fac, m_sh.num_subsets());
+
+	}
+
+	for( Vertex * vrt : endingCrossingCleftVrtcs )
+	{
+		m_sh.assign_subset( vrt, m_sh.num_subsets());
+	}
+
+	// TODO FIXME unterscheide Faces entlang der expandierten Kreuzungskluft,
+	// mit 2 Knoten an Kreuzungspunkten, ein Knoten voll expandiert für beide subsets
+	// von solchen, die in der Luft hängen am Ende der Kluft, wo nur die durchgehende Kluft expandiert
+
+	// TODO FIXME need to detect attached faces from the durchgehende cleft which gets expanded
+	// as specific structures needed also there
+
+	// TODO FIXME auch die Kante, die an dem auslaufenden Face entlang geht im Schnitt mit dem ausgedehnten,
+	// per edge attachment markieren! bool
+	// und die anhängenden faces der kreuzenden durchgehenden Kluft ebenso markieren irgendwie per face attachment bool
+
+	return false;
+
 
 }
 
 ////////////////////////////////////////////////////////////////////
 
-
+#if 0
 bool ArteExpandFracs3D::detectEndingCrossingClefts()
 {
 	// TODO FIXME fill!!!
@@ -1740,6 +1904,8 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 
 	return false;
 }
+
+#endif
 
 //////////////////////////////////////////////////////////////////
 
