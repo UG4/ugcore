@@ -1735,6 +1735,10 @@ public:
 		return true;
 	}
 
+	bool const hasUnclosedFaces() const
+	{
+		return ( m_vecAttUnclosedFractElms.size() > 0 );
+	}
 
 
 	bool averageAll()

@@ -179,6 +179,8 @@ private:
 
 //	bool checkUnclosedFracFaces();
 
+	bool shiftUnclosedFracFaces();
+
 	bool detectEndingCrossingClefts();
 
 	bool seletForSegmented();
@@ -335,7 +337,7 @@ private:
 //	template< IndexType NUM_SURR_FRACS, bool isBndryVrtx >
 //	bool expandWithinTheSegment( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo );
 
-	IndexType specificTreatementUnclosedFracFaces( Vertex * const & vrt );
+	IndexType shiftUnclosedFracFacesToGenerFaces( Vertex * const & vrt );
 
 //	bool extracFractSudosOfSegment(SegmentVolElmInfo const & segmVolElmInfo, std::vector<IndexType> & sudosInSegment );
 

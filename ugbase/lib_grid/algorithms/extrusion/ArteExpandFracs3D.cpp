@@ -204,20 +204,18 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("Segmente erzeugt " << std::endl);
 
-	if( ! detectEndingCrossingClefts() )
-		return false;
 
 	UG_LOG("check unclosed frac faces" << std::endl);
-	UG_LOG("Ending crossing clefts detected" << std::endl);
 
 	if( ! establishSegmentLimitingSidesInfo() )
 		return false;
 
 	UG_LOG("established Segment limiting sides info" << std::endl);
 
-//	if( ! detectEndingCrossingClefts() )
-//		return false;
+	if( ! detectEndingCrossingClefts() )
+		return false;
 
+	UG_LOG("Ending crossing clefts detected" << std::endl);
 
 	if( ! seletForSegmented() )
 		return false;
@@ -1501,6 +1499,14 @@ bool ArteExpandFracs3D::distinguishSegments()
 	// die nicht abgeschlossen sind, und umgangen werden können, und so in die Landschaft ragen
 	// also die fracture faces, die für die Segmenteigenschaft unerheblich sind
 
+	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+	{
+		Vertex* vrt = *iter;
+
+		IndexType shiFraFac = shiftUnclosedFracFacesToGenerFaces( vrt );
+
+		UG_LOG("shifted frac faces at " << m_aaPos[vrt] << shiFraFac << std::endl);
+	}
 
 
 	return true;
@@ -1511,32 +1517,64 @@ bool ArteExpandFracs3D::distinguishSegments()
 
 bool ArteExpandFracs3D::detectEndingCrossingClefts()
 {
-	bool unclosedFracFacesPresent = false;
+//	bool unclosedFracFacesPresent = false;
+//
+//	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+//	{
+//		Vertex* vrt = *iter;
+//
+//		IndexType shiFraFac = shiftUnclosedFracFacesToGenerFaces( vrt );
+//
+//		UG_LOG("shifted frac faces at " << m_aaPos[vrt] << " -> " << shiFraFac << std::endl);
+//
+//		if( shiFraFac > 0 )
+//			unclosedFracFacesPresent = true;
+//
+////		constexpr bool d_highlightVrtcsWithShifts = false;
+////
+////		if( d_highlightVrtcsWithShifts )
+////		{
+////			if( shiFraFac > 0 )
+////			{
+////				IndexType sudoNum = m_sh.num_subsets();
+////
+////				m_sh.assign_subset(vrt, sudoNum );
+////			}
+////		}
+//	}
 
-	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
-	{
-		Vertex* vrt = *iter;
+	IndexType numEndingCrossingClefts = 0;
 
-		IndexType shiFraFac = specificTreatementUnclosedFracFaces( vrt );
+	std::vector<Face*> endingCrossingCleftFaces;
 
-		UG_LOG("shifted frac faces at " << m_aaPos[vrt] << " -> " << shiFraFac << std::endl);
+	std::vector<Vertex*> endingCrossingCleftVrtcs;
 
-		if( shiFraFac > 0 )
-			unclosedFracFacesPresent = true;
 
-		constexpr bool d_highlightVrtcsWithShifts = false;
+//	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+//	{
+//		Vertex* vrt = *iter;
+//
+//
+//
+//	}
 
-		if( d_highlightVrtcsWithShifts )
-		{
-			if( shiFraFac > 0 )
-			{
-				IndexType sudoNum = m_sh.num_subsets();
 
-				m_sh.assign_subset(vrt, sudoNum );
-			}
-		}
-	}
 
+	// TODO FIXME unterscheide Faces entlang der expandierten Kreuzungskluft,
+	// mit 2 Knoten an Kreuzungspunkten, ein Knoten voll expandiert für beide subsets
+	// von solchen, die in der Luft hängen am Ende der Kluft, wo nur die durchgehende Kluft expandiert
+
+	// TODO FIXME need to detect attached faces from the durchgehende cleft which gets expanded
+	// as specific structures needed also there
+
+	// TODO FIXME auch die Kante, die an dem auslaufenden Face entlang geht im Schnitt mit dem ausgedehnten,
+	// per edge attachment markieren! bool
+	// und die anhängenden faces der kreuzenden durchgehenden Kluft ebenso markieren irgendwie per face attachment bool
+
+
+
+
+#if 1
 
 	IndexType unclosedFracFacesFound = 0;
 
@@ -1562,7 +1600,7 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 
 	}
 
-	if( unclosedFracFacesFound > 0  || unclosedFracFacesPresent )
+	if( unclosedFracFacesFound > 0 ) // || unclosedFracFacesPresent )
 	{
 		UG_LOG("unclosed Frac faces " << unclosedFracFacesFound << std::endl);
 //		return false;
@@ -1577,11 +1615,6 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 	// müssen doch dieselben sein, dann sollte die komische Prozedur hier unnötig werden!!!
 	// XXXXXXXXXXXXXXXXXXXXXXXXXx
 
-	IndexType numEndingCrossingClefts = 0;
-
-	std::vector<Face*> endingCrossingCleftFaces;
-
-	std::vector<Vertex*> endingCrossingCleftVrtcs;
 
 //	UG_THROW("KÄSE" << std::endl);
 
@@ -1633,74 +1666,6 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 
 	}
 
-	// TODO FIXME endingCrossingCleftVrtcs 	endingCrossingCleftFaces globale member vielleicht?
-
-#if 0
-//	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); iterV++ )
-	for( Vertex * vrt : endingCrossingCleftVrtcs )
-	{
-//		Vertex * vrt = *iterV;
-
-		// search neigbours of ending crossing cleft faces
-
-		if( m_aaMarkVrtxHasUnclosedFracB[vrt] )
-		{
-			VecSegmentVolElmInfo const & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
-
-			for( SegmentVolElmInfo const & svei : vecSegVolElmInf )
-			{
-				for( AttachedVolumeElemInfo const & attVolEI : svei )
-				{
-					VecAttachedFractFaceEdgeSudo vecAttFracFace = attVolEI.getVecFractManifElem();
-					// die sind alle von den echten das Segment begrenzenden Faces
-
-					for( AttachedFractFaceEdgeSudo & afes : vecAttFracFace )
-					{
-						Face * faceSegmLim = afes.getManifElm();
-
-						IndexType sudoSegmLim = afes.getSudo();
-
-						std::pair<Edge*,Edge*> const & edgePair = afes.getPairLowElm();
-
-						// figure out neighbours of ending crossing cleft faces at ending node
-
-						// rule out free edge
-
-						Edge * freeEdge = nullptr;
-						Edge * boundedEdge = nullptr;
-
-						for( Face * eccf : endingCrossingCleftFaces )
-						{
-							if( FaceContains( eccf, vrt ) )
-							{
-								if( eccf != fac )
-								{
-									if( FaceContains( eccf, edgePair.first ) || FaceContains( eccf, edgePair.second ) )
-									{
-
-									}
-								}
-							}
-						}
-//						if( )
-					}
-
-				}
-
-
-			}
-		}
-		else
-		{
-			UG_LOG("only ending crossing cleft vertices allowed here" << std::endl);
-			UG_THROW("only ending crossing cleft vertices allowed here" << std::endl);
-			return false;
-		}
-
-	}
-
-#endif
-
 
 	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
 
@@ -1720,18 +1685,11 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 		m_sh.assign_subset( vrt, m_sh.num_subsets());
 	}
 
-	// TODO FIXME unterscheide Faces entlang der expandierten Kreuzungskluft,
-	// mit 2 Knoten an Kreuzungspunkten, ein Knoten voll expandiert für beide subsets
-	// von solchen, die in der Luft hängen am Ende der Kluft, wo nur die durchgehende Kluft expandiert
+#endif
 
-	// TODO FIXME need to detect attached faces from the durchgehende cleft which gets expanded
-	// as specific structures needed also there
-
-	// TODO FIXME auch die Kante, die an dem auslaufenden Face entlang geht im Schnitt mit dem ausgedehnten,
-	// per edge attachment markieren! bool
-	// und die anhängenden faces der kreuzenden durchgehenden Kluft ebenso markieren irgendwie per face attachment bool
 
 	return false;
+
 
 
 }
@@ -1914,7 +1872,7 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 // wird bisher nicht berücksichtigt
 // irgendwie muss das markiert werden, damit die Kluft, die zu Ende geht.
 // im Durchstich trotzdem berücksichtigt wird
-ArteExpandFracs3D::IndexType ArteExpandFracs3D::specificTreatementUnclosedFracFaces( Vertex * const & vrt )
+ArteExpandFracs3D::IndexType ArteExpandFracs3D::shiftUnclosedFracFacesToGenerFaces( Vertex * const & vrt )
 {
 	IndexType shiftedFracFaces = 0;
 
@@ -1927,6 +1885,10 @@ ArteExpandFracs3D::IndexType ArteExpandFracs3D::specificTreatementUnclosedFracFa
 	UG_LOG("SHIFT FRAC 2 GENER" << std::endl);
 
 	VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+	IndexType segmentNumber = 0;
+
+
 
 	for( SegmentVolElmInfo & svei : vecSegVolElmInf )
 	{
