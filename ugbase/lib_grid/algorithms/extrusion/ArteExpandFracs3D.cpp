@@ -118,7 +118,9 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 //	  m_aAdjVolElmInfo(AttVecAttachedVolumeElemInfo()),
 //	  m_aaVolElmInfo(Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>()),
 	  m_attAdjVecSegVolElmInfo( AttVecSegmentVolElmInfo() ),
-	  m_accsAttVecSegVolElmInfo( Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo>() )
+	  m_accsAttVecSegVolElmInfo( Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo>() ),
+	  m_attVecSegmLimSid(AttVecSegmLimSid()),
+	  m_vrtxAttAccsVecSegmLimSid(Grid::VertexAttachmentAccessor<AttVecSegmLimSid>())
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -201,6 +203,16 @@ bool ArteExpandFracs3D::run()
 		return false;
 
 	UG_LOG("Segmente erzeugt " << std::endl);
+
+	if( ! checkUnclosedFracFaces() )
+		return false;
+
+	UG_LOG("check unclosed frac faces" << std::endl);
+
+	if( ! establishSegmentLimitingSidesInfo() )
+		return false;
+
+	UG_LOG("established Segment limiting sides info" << std::endl);
 
 	if( ! detectEndingCrossingClefts() )
 		return false;
@@ -450,6 +462,14 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	m_accsAttVecSegVolElmInfo = Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo>( m_grid, m_attAdjVecSegVolElmInfo );
 
+	VecSegmentLimitingSides emptyVecSegmLimSid;
+
+	AttVecSegmLimSid m_attVecSegmLimSid;
+
+	m_grid.attach_to_vertices_dv( m_attVecSegmLimSid, emptyVecSegmLimSid );
+
+	m_vrtxAttAccsVecSegmLimSid = Grid::VertexAttachmentAccessor<AttVecSegmLimSid>( m_grid, m_attVecSegmLimSid );
+
 	return true;
 }
 
@@ -477,7 +497,9 @@ bool ArteExpandFracs3D::detachMarkers()
 
 //	m_grid.detach_from_vertices(m_aAdjVolElmInfo);
 
-	m_grid.detach_from_vertices(m_attAdjVecSegVolElmInfo);
+	m_grid.detach_from_vertices( m_attAdjVecSegVolElmInfo );
+
+	m_grid.detach_from_vertices( m_attVecSegmLimSid );
 
 	return true;
 }
@@ -523,7 +545,7 @@ int ArteExpandFracs3D::splitInnerFreeFracEdgs()
 
 			for( auto const & edg : facEdges )
 			{
-				if( func_aaMarkEdgeVFP[edg]. getNumberFracEdgesInVertex() != 0 )
+				if( func_aaMarkEdgeVFP[edg].getNumberFracEdgesInVertex() != 0 )
 					UG_THROW("Attachment nicht auf default " << std::endl);
 //				func_aaMarkEdgeVFP[edg].setNumberCrossingFracsInVertex(0);
 			}
@@ -1436,6 +1458,8 @@ bool ArteExpandFracs3D::computeNormalKuhVolProcedure( Volume * const & kuhVol, F
 	return true;
 }
 
+//////////////////////////////////////////////////////////////////
+
 bool ArteExpandFracs3D::distinguishSegments()
 {
 
@@ -1477,6 +1501,16 @@ bool ArteExpandFracs3D::distinguishSegments()
 	// die nicht abgeschlossen sind, und umgangen werden können, und so in die Landschaft ragen
 	// also die fracture faces, die für die Segmenteigenschaft unerheblich sind
 
+
+
+	return true;
+
+}
+
+//////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::checkUnclosedFracFaces()
+{
 	bool unclosedFracFacesPresent = false;
 
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
@@ -1534,20 +1568,29 @@ bool ArteExpandFracs3D::distinguishSegments()
 //		return false;
 	}
 
-
 	return true;
 
 }
 
-//////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
 
 bool ArteExpandFracs3D::detectEndingCrossingClefts()
 {
-	// TODO FIXME fill!!! XXXXXXXXXXXXXXXXXXXXXXXX hier sind wir
+	// TODO FIXME fill!!!
+
+	// TODO FIXME wieso die ending crossing cleft faces nicht aus den Segmenten raus holen,
+	// und zwar aus den ungeschlossenen Faces, die im Segment liegen?
+	// müssen doch dieselben sein, dann sollte die komische Prozedur hier unnötig werden!!!
+	// XXXXXXXXXXXXXXXXXXXXXXXXXx
 
 	IndexType numEndingCrossingClefts = 0;
 
-	std::vector<Face*> faFas;
+	std::vector<Face*> endingCrossingCleftFaces;
+
+	std::vector<Vertex*> endingCrossingCleftVrtcs;
+
+//	UG_THROW("KÄSE" << std::endl);
 
 	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
 	{
@@ -1580,7 +1623,11 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 						{
 //							m_sh.assign_subset(fac,m_sh.num_subsets());
 							numEndingCrossingClefts++;
-							faFas.push_back(fac);
+							endingCrossingCleftFaces.push_back(fac);
+							endingCrossingCleftVrtcs.push_back(vrt);
+							// TODO FIXME vielleicht eine Klasse, wo die Faces und Vertices einer
+							// jeweiligen ending Crossing Cleft Stelle zusammengefasst werden?
+							// statt unabhängige Listen? gemeinsame Liste?
 						}
 
 					}
@@ -1593,39 +1640,103 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 
 	}
 
+	// TODO FIXME endingCrossingCleftVrtcs 	endingCrossingCleftFaces globale member vielleicht?
 
-//	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
-//	{
-//
-//		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
-//
-//		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
-//		{
-//			Face* fac = *iter;
-//
-//			UG_LOG("Check for unclosed frac faces " << CalculateCenter(fac, m_aaPos) << std::endl);
-//
-//			if( m_aaMarkFaceHasUnclosedFracSideB[fac] )
-//			{
-//				numEndingCrossingClefts++;
-//
-//				faFas.push_back(fac);
-//
-////				m_sh.assign_subset( fac, m_sh.num_subsets());
-//			}
-//
-//		}
-//
-//	}
+#if 0
+//	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); iterV++ )
+	for( Vertex * vrt : endingCrossingCleftVrtcs )
+	{
+//		Vertex * vrt = *iterV;
+
+		// search neigbours of ending crossing cleft faces
+
+		if( m_aaMarkVrtxHasUnclosedFracB[vrt] )
+		{
+			VecSegmentVolElmInfo const & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+			for( SegmentVolElmInfo const & svei : vecSegVolElmInf )
+			{
+				for( AttachedVolumeElemInfo const & attVolEI : svei )
+				{
+					VecAttachedFractFaceEdgeSudo vecAttFracFace = attVolEI.getVecFractManifElem();
+					// die sind alle von den echten das Segment begrenzenden Faces
+
+					for( AttachedFractFaceEdgeSudo & afes : vecAttFracFace )
+					{
+						Face * faceSegmLim = afes.getManifElm();
+
+						IndexType sudoSegmLim = afes.getSudo();
+
+						std::pair<Edge*,Edge*> const & edgePair = afes.getPairLowElm();
+
+						// figure out neighbours of ending crossing cleft faces at ending node
+
+						// rule out free edge
+
+						Edge * freeEdge = nullptr;
+						Edge * boundedEdge = nullptr;
+
+						for( Face * eccf : endingCrossingCleftFaces )
+						{
+							if( FaceContains( eccf, vrt ) )
+							{
+								if( eccf != fac )
+								{
+									if( FaceContains( eccf, edgePair.first ) || FaceContains( eccf, edgePair.second ) )
+									{
+
+									}
+								}
+							}
+						}
+//						if( )
+					}
+
+				}
+
+
+			}
+		}
+		else
+		{
+			UG_LOG("only ending crossing cleft vertices allowed here" << std::endl);
+			UG_THROW("only ending crossing cleft vertices allowed here" << std::endl);
+			return false;
+		}
+
+	}
+
+#endif
 
 
 	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
 
-	for( Face * fac : faFas )
+	if( numEndingCrossingClefts == 0 )
+		return true;
+
+	// debug for ending crossing clefts
+
+	for( Face * fac : endingCrossingCleftFaces )
 	{
 		m_sh.assign_subset( fac, m_sh.num_subsets());
 
 	}
+
+	for( Vertex * vrt : endingCrossingCleftVrtcs )
+	{
+		m_sh.assign_subset( vrt, m_sh.num_subsets());
+	}
+
+	// TODO FIXME unterscheide Faces entlang der expandierten Kreuzungskluft,
+	// mit 2 Knoten an Kreuzungspunkten, ein Knoten voll expandiert für beide subsets
+	// von solchen, die in der Luft hängen am Ende der Kluft, wo nur die durchgehende Kluft expandiert
+
+	// TODO FIXME need to detect attached faces from the durchgehende cleft which gets expanded
+	// as specific structures needed also there
+
+	// TODO FIXME auch die Kante, die an dem auslaufenden Face entlang geht im Schnitt mit dem ausgedehnten,
+	// per edge attachment markieren! bool
+	// und die anhängenden faces der kreuzenden durchgehenden Kluft ebenso markieren irgendwie per face attachment bool
 
 	return false;
 }
@@ -3450,9 +3561,186 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 
 ///////////////////////////////////////////////////////////////////
 
+bool ArteExpandFracs3D::establishSegmentLimitingSidesInfo()
+{
+
+	UG_LOG("ESTABLISH SGEMENT LIM SIDE INFO" << std::endl );
+
+	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); ++ iterV )
+	{
+		Vertex * oldVrt = *iterV;
+
+		UG_LOG("establish segm lim sides for " << m_aaPos[oldVrt] << std::endl);
+
+		VecSegmentLimitingSides & vecSegmLimSid = m_vrtxAttAccsVecSegmLimSid[oldVrt];
+
+		UG_LOG("Segment limiting sides got " << std::endl);
+
+		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+
+		bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
+
+		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
+
+		VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[oldVrt];
+
+		UG_LOG("CHECK SIZE" << std::endl);
+
+		if( vecSegVolElmInf.size() < 2 )
+		{
+			UG_LOG("nur ein Segment, aber will frische Vertizes?" << std::endl);
+	//		UG_THROW("nur ein Segment, aber will frische Vertizes?" << std::endl);
+	//		return false;
+//			return true;
+			continue;
+		}
+
+		UG_LOG("CONTINUED" << std::endl);
+
+		for( SegmentVolElmInfo const & segVolsElInf : vecSegVolElmInf )
+		{
+			// count the number of the fracture subdomains surrounding the segment
+			// in case of boundary vertex, also count the number of boundary subdomains
+
+	//		std::vector<IndexType> sudosInSegment;
+
+			// hier die neue Klasse und ihr averaing einführen, oder im Hauptloop der neuen Elemente.....
+			// SegmentSides<....> in .h file für die richtigen template parameter Kurznamen geben und hier
+			// Objekt erstellen und je nach ob mit oder ohne Bndry entsprechend aufladen und averagen.....
+			// und zwar für jedes Segment einzeln, und abhängig von boundary oder nicht die boundary Geschichten
+			// dazu oder auch nicht...... also einen VecSegmentSides erstellen auch, das einzelne Objekt
+			// weiss dann, ob es eine Boundary ist..... vielleicht noch den Vektor dazu als übergebener Parameter
+			// damit man den da drin weiter reichen kann?
+			// wenn jedes Objekt des Vektors von SegmentSIdes sowohl seinen Vertex kennt als auch weiss,
+			// ob es boundary oder nicht ist, kann danach darüber geloopt werden, ohne nochmal
+			// aussen den Vertex mit geben zu müssen, oder die Info, ob bndry oder nicht.....
+			// danach gibts dann Funktionen, die alleine ein Objekt von der Sorte SegmentSides schlucken brauchen
+			// und hier nur ein Loop über den ganzen Vektor davon, wo für jedes Element dann die Fkt aufgerufen wird....
+
+			SegmentLimitingSides segLimSids( oldVrt, vrtxIsBndVrt );
+
+	//		std::vector<Volume*> vecVolsOfSegment;
+
+			IndexType boundarySites = 0;
+
+			for( AttachedVolumeElemInfo const & volElmInf : segVolsElInf )
+			{
+				if( ! segLimSids.schluckVecAttFractElm( volElmInf.getVecFractManifElem() ) )
+				{
+					UG_LOG("schlucken schief gegangen " << std::endl);
+					UG_THROW("schlucken schief gegangen " << std::endl);
+					return false;
+				}
+
+				if( vrtxIsBndVrt )
+				{
+					auto vecBndryManifelm = volElmInf.getVecBndryManifElem();
+
+					IndexType sizeVecBndryManifElm = volElmInf.getVecBndryManifElem().size();
+
+					boundarySites += sizeVecBndryManifElm;
+
+	//				if( ! segLimSids.schluckVecAttBndryElm( volElmInf.getVecBndryManifElem() ) )
+					if( ! segLimSids.schluckVecAttBndryElm( vecBndryManifelm ) )
+					{
+						UG_LOG("schlucken B schief gegangen " << std::endl);
+						UG_THROW("schlucken B schief gegangen " << std::endl);
+						return false;
+					}
+
+					// TODO FIXME es muss abgefangen werden, wenn bei einem boundary vertex gar keine boundary Seiten da sind
+	//				if( (volElmInf.getVecBndryManifElem()).size() == 0  )
+					if( sizeVecBndryManifElm == 0  )
+						UG_LOG("Grenze verloren gegangen " << m_aaPos[oldVrt] << std::endl);
+				}
+
+				Volume * vol2Add = volElmInf.getFulldimElem();
+				segLimSids.schluckFulldimElem(vol2Add);
+			}
+
+			if( vrtxIsBndVrt && boundarySites == 0 )
+			{
+				UG_LOG("No boundary sites at " << m_aaPos[oldVrt] << std::endl);
+				UG_THROW("No boundary sites at " << m_aaPos[oldVrt] << std::endl);
+			}
+
+			if( ! segLimSids.averageAll() )
+			{
+				UG_LOG("keine Mittelung " << std::endl);
+				UG_THROW("keine Mittelung " << std::endl);
+				return false;
+			}
+
+			vecSegmLimSid.push_back(segLimSids);
+		}
+
+
+	}
+
+	UG_LOG("END ESTABLISH SGEMENT LIM SIDE INFO" << std::endl );
+
+
+	return true;
+}
 
 ///////////////////////////////////////////////////////////////////////
 
+bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
+{
+
+	auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+
+	bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
+
+	UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
+
+
+//	VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[oldVrt];
+//
+//	if( vecSegVolElmInf.size() < 2 )
+//	{
+//		UG_LOG("nur ein Segment, aber will frische Vertizes?" << std::endl);
+////		UG_THROW("nur ein Segment, aber will frische Vertizes?" << std::endl);
+////		return false;
+//		return true;
+//	}
+
+	VecSegmentLimitingSides & vecSegmLimSid = m_vrtxAttAccsVecSegmLimSid[oldVrt];
+
+	if(  vecSegmLimSid.size() == 0 )
+	{
+		UG_LOG("keine verschiedenen Segmente" << std::endl);
+		return true;
+	}
+
+	if( vecSegmLimSid.size() == 1 )
+	{
+		UG_LOG("sonderbarer Fall von nur einem Segment " << std::endl );
+		UG_THROW("sonderbarer Fall von nur einem Segment " << std::endl );
+		return false;
+	}
+
+	for( SegmentLimitingSides const & segLimSids : vecSegmLimSid )
+	{
+
+		if( ! expandWithinTheSegment(segLimSids) )
+		{
+			UG_LOG("schief gegangen Vertex Erzeugung " << std::endl);
+			UG_THROW("schief gegangen Vertex Erzeugung " << std::endl);
+			return false;
+		}
+	}
+
+	UG_LOG("Vertex creation hat funktioniert " << std::endl);
+	//	UG_THROW("Vertex creation failed " << std::endl);
+
+	return true;
+
+}
+
+/////////////////////////////////////////////////////////////////
+
+#if 0
 
 bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 {
@@ -3625,6 +3913,7 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 	return true;
 }
 
+#endif
 
 //		if( ! extracFractSudosOfSegment( svei, sudosInSegment ) )
 //		{

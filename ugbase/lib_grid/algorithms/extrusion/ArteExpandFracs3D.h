@@ -177,6 +177,8 @@ private:
 
 	bool distinguishSegments();
 
+	bool checkUnclosedFracFaces();
+
 	bool detectEndingCrossingClefts();
 
 	bool seletForSegmented();
@@ -337,7 +339,7 @@ private:
 
 //	bool extracFractSudosOfSegment(SegmentVolElmInfo const & segmVolElmInfo, std::vector<IndexType> & sudosInSegment );
 
-public:
+//public:
 	using SegmentLimitingSides = support::SegmentSides<Volume*,Face*,Edge*,IndexType,vector3,Vertex*>;
 
 //	using SegmentLimitSidesPairSudoNorml = SegmentLimitingSides::PairSudoNormlV;
@@ -346,7 +348,25 @@ public:
 
 	using SegmentVrtxFracStatus = SegmentLimitingSides::VrtxFracStatus;
 
+	using VecSegmentLimitingSides = std::vector<SegmentLimitingSides>;
+
+	using AttVecSegmLimSid = Attachment<VecSegmentLimitingSides>;
+
 private:
+
+	AttVecSegmLimSid m_attVecSegmLimSid;
+
+	Grid::VertexAttachmentAccessor<AttVecSegmLimSid> m_vrtxAttAccsVecSegmLimSid;
+
+	// establish an attechment of type SegmentLimitingSides for all vertices
+	// transfer the functionality of establishNewVertizesStasiBased here
+	// incorportate also the free ending clefts here and if it is a free ending cleft and so on
+	bool establishSegmentLimitingSidesInfo();
+	// unclear if useful to implement this
+	// Ziel eigentlich: die frei endenden Faces, die als offene Faces da sind, jedem Segment zu zu ordnen
+	// irgendwie sollen für jedes Segment die segment limiting sides bestimmt werden, als attachment vector
+	// die Segment limiting sides sollen auch die in ihnen eingeschlossenen unvollendeten Faces kennen#
+	// vielleicht auch gar nicht als attachment nötig, da die Segmente ihren Vertex kennen
 
 	// the artificial normals are for the case of two crossing fractures inside, and the case
 	// of boundary vertices, i.e. one fracture at one boundary sudo, two fracture at one boundary sudo, one fracture at two boundary sudos

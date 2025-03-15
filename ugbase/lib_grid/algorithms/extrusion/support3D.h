@@ -1594,6 +1594,7 @@ public:
 	SegmentSides( VRTXTYP const & vrt, bool isBndry = false )
 	: m_vrt(vrt),
 	  m_vecAttFractElms(VecAttFractElm()),
+	  m_vecAttUnclosedFractElms(VecAttFractElm()),
 	  m_vecAttBndryElms(VecAttBndryElm()),
 	  m_vecFractSudosNormlV(VecPairSudoNormlV()),
 	  m_vecBndrySudosNormlV(VecPairSudoNormlV()),
@@ -1601,6 +1602,20 @@ public:
 	  m_averaged(false),
 	  m_contribFulldimElm(std::vector<FULLDIM_ELEM>())
 	{};
+
+//	template<typename = std::enable_if< std::is_pointer<VRTXTYP>::value>>
+//	SegmentSides()
+//	: m_vrt(nullptr),
+//	  m_vecAttFractElms(VecAttFractElm()),
+//	  m_vecAttUnclosedFractElms(VecAttFractElm()),
+//	  m_vecAttBndryElms(VecAttBndryElm()),
+//	  m_vecFractSudosNormlV(VecPairSudoNormlV()),
+//	  m_vecBndrySudosNormlV(VecPairSudoNormlV()),
+//	  m_isBoundary(false),
+//	  m_averaged(false),
+//	  m_contribFulldimElm(std::vector<FULLDIM_ELEM>())
+//	{};
+
 
 	bool const isBoundary() const { return m_isBoundary; }
 
@@ -1641,15 +1656,6 @@ public:
 	template< typename NOFRACT >
 	bool schluckVecAttFractElm( std::vector<NOFRACT> const & vecAtFracEl ) = delete;
 
-	bool schluckVecAttBndryElm( std::vector<AttBndryElm> const & vecAtBndryEl )
-	{
-//		if( ! checkIfIsAtBndry() )
-//			return false;
-
-		return schluckVecAttElm( vecAtBndryEl, m_vecAttBndryElms );
-	}
-
-
 	bool schluckAttFractElm( AttFractElm const & afeNew )
 	{
 		return schluckAttElm( afeNew, m_vecAttFractElms );
@@ -1667,6 +1673,21 @@ public:
 	template< typename NOFRACT >
 	bool schluckAttFractElm( NOFRACT const & afeNew ) = delete;
 
+	// soll auch in der Lage sein, die einzenlen Fracture faces wieder aus zu spucken als Liste
+	// analog auch danach die boundary Geschichten
+	bool const spuckVecAttFactElm( std::vector<AttFractElm> & vecAttFracEl ) const
+	{
+		vecAttFracEl = m_vecAttFractElms;
+		return true;
+	}
+
+	bool schluckVecAttBndryElm( std::vector<AttBndryElm> const & vecAtBndryEl )
+	{
+//		if( ! checkIfIsAtBndry() )
+//			return false;
+
+		return schluckVecAttElm( vecAtBndryEl, m_vecAttBndryElms );
+	}
 
 	bool schluckAttBndryElm( AttBndryElm const & afeNew )
 	{
@@ -1684,6 +1705,37 @@ public:
 //
 //		return true;
 	}
+
+	bool spuckVecAttBndryElm( std::vector<AttBndryElm> & vecAtBndryEl )
+	{
+		vecAtBndryEl = m_vecAttBndryElms;
+		return true;
+	}
+
+
+	bool schluckVecAttUnclosedFractElm( std::vector<AttFractElm> const & vecAtFracEl )
+	{
+		return schluckVecAttElm( vecAtFracEl, m_vecAttUnclosedFractElms );
+	}
+
+	template< typename NOFRACT >
+	bool schluckVecAttUnclosedFractElm( std::vector<NOFRACT> const & vecAtFracEl ) = delete;
+
+	bool schluckAttUnclosedFractElm( AttFractElm const & afeNew )
+	{
+		return schluckAttElm( afeNew, m_vecAttUnclosedFractElms );
+	}
+
+	template< typename NOFRACT >
+	bool schluckAttUnclosedFractElm( NOFRACT const & afeNew ) = delete;
+
+	bool spuckVecAttUnclosedFractElm( std::vector<AttFractElm> & vecAttFracEl )
+	{
+		vecAttFracEl = m_vecAttUnclosedFractElms;
+		return true;
+	}
+
+
 
 	bool averageAll()
 	{
@@ -1798,7 +1850,11 @@ private:
 	using VecAttBndryElm = std::vector<AttBndryElm>;
 
 	VecAttFractElm m_vecAttFractElms;
+	VecAttFractElm m_vecAttUnclosedFractElms;
+
 	VecAttBndryElm m_vecAttBndryElms;
+
+
 
 	VecPairSudoNormlV m_vecFractSudosNormlV;
 	VecPairSudoNormlV m_vecBndrySudosNormlV;
