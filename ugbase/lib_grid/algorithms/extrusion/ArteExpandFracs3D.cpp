@@ -1785,8 +1785,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 	}
 
-	if( endingCrossingCleftVrtcs.size() == 0 )
-		return true;
+//	if( endingCrossingCleftVrtcs.size() == 0 )
+	return true;
 
 	assignDebugSubsets();
 
