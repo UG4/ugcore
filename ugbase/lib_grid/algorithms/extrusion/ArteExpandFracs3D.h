@@ -414,8 +414,17 @@ private:
 								   Edge * & commonEdge
 								  );
 
+	std::vector<Face*> endingCrossingCleftFaces;
 
+	std::vector<Vertex*> endingCrossingCleftVrtcs;
 
+	std::vector<Edge*> cuttingEdges;
+	std::vector<Face*> crossingNotEndingFaces;
+
+	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
+	std::vector<Face*> nextFaceOfCrossingNotEndingFaces;
+
+	void assignDebugSubsets();
 };
 
 // specification has to be declared outside central class context, else compilation error

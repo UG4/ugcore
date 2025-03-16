@@ -268,8 +268,70 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("detachiert" << std::endl);
 
+	assignDebugSubsets();
+
 	return true;
 }
+
+////////////////////////////////////////////////
+
+void ArteExpandFracs3D::assignDebugSubsets()
+{
+//	if( numEndingCrossingClefts == 0 )
+//		return true;
+
+	// debug for ending crossing clefts
+
+	for( Face * fac : endingCrossingCleftFaces )
+	{
+		m_sh.assign_subset( fac, m_sh.num_subsets());
+
+	}
+
+	for( Vertex * vrt : endingCrossingCleftVrtcs )
+	{
+		m_sh.assign_subset( vrt, m_sh.num_subsets());
+	}
+
+	for( Edge * edg : cuttingEdges )
+	{
+		if( edg == nullptr )
+		{
+			UG_LOG("NULL UNERLAUBT" << std::endl);
+			UG_THROW("NULL UNERLAUBT" << std::endl);
+		}
+
+		m_sh.assign_subset( edg, m_sh.num_subsets());
+
+	}
+
+	for( Face * fac : crossingNotEndingFaces )
+	{
+		m_sh.assign_subset( fac, m_sh.num_subsets());
+	}
+
+	for( Edge * edg : otherEdgeOfCrossingNotEndingFace )
+	{
+		if( edg == nullptr )
+		{
+			UG_LOG("NULL C UNERLAUBT" << std::endl);
+			UG_THROW("NULL C UNERLAUBT" << std::endl);
+		}
+
+		m_sh.assign_subset( edg, m_sh.num_subsets());
+
+	}
+
+	for( Face * fac : nextFaceOfCrossingNotEndingFaces )
+	{
+		m_sh.assign_subset( fac, m_sh.num_subsets());
+	}
+
+
+//	return false;
+}
+
+////////////////////////////////////////////////
 
 bool ArteExpandFracs3D::initialize()
 {
@@ -1529,15 +1591,15 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 	IndexType numEndingCrossingClefts = 0;
 
-	std::vector<Face*> endingCrossingCleftFaces;
-
-	std::vector<Vertex*> endingCrossingCleftVrtcs;
-
-	std::vector<Edge*> cuttingEdges;
-	std::vector<Face*> crossingNotEndingFaces;
-
-	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
-	std::vector<Face*> nextFaceOfCrossingNotEndingFaces;
+//	std::vector<Face*> endingCrossingCleftFaces;
+//
+//	std::vector<Vertex*> endingCrossingCleftVrtcs;
+//
+//	std::vector<Edge*> cuttingEdges;
+//	std::vector<Face*> crossingNotEndingFaces;
+//
+//	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
+//	std::vector<Face*> nextFaceOfCrossingNotEndingFaces;
 
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
 	{
@@ -1680,58 +1742,60 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
 
-	if( numEndingCrossingClefts == 0 )
-		return true;
+	return true;
 
-	// debug for ending crossing clefts
-
-	for( Face * fac : endingCrossingCleftFaces )
-	{
-		m_sh.assign_subset( fac, m_sh.num_subsets());
-
-	}
-
-	for( Vertex * vrt : endingCrossingCleftVrtcs )
-	{
-		m_sh.assign_subset( vrt, m_sh.num_subsets());
-	}
-
-	for( Edge * edg : cuttingEdges )
-	{
-		if( edg == nullptr )
-		{
-			UG_LOG("NULL UNERLAUBT" << std::endl);
-			UG_THROW("NULL UNERLAUBT" << std::endl);
-		}
-
-		m_sh.assign_subset( edg, m_sh.num_subsets());
-
-	}
-
-	for( Face * fac : crossingNotEndingFaces )
-	{
-		m_sh.assign_subset( fac, m_sh.num_subsets());
-	}
-
-	for( Edge * edg : otherEdgeOfCrossingNotEndingFace )
-	{
-		if( edg == nullptr )
-		{
-			UG_LOG("NULL C UNERLAUBT" << std::endl);
-			UG_THROW("NULL C UNERLAUBT" << std::endl);
-		}
-
-		m_sh.assign_subset( edg, m_sh.num_subsets());
-
-	}
-
-	for( Face * fac : nextFaceOfCrossingNotEndingFaces )
-	{
-		m_sh.assign_subset( fac, m_sh.num_subsets());
-	}
-
-
-	return false;
+//	if( numEndingCrossingClefts == 0 )
+//		return true;
+//
+//	// debug for ending crossing clefts
+//
+//	for( Face * fac : endingCrossingCleftFaces )
+//	{
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+//
+//	}
+//
+//	for( Vertex * vrt : endingCrossingCleftVrtcs )
+//	{
+//		m_sh.assign_subset( vrt, m_sh.num_subsets());
+//	}
+//
+//	for( Edge * edg : cuttingEdges )
+//	{
+//		if( edg == nullptr )
+//		{
+//			UG_LOG("NULL UNERLAUBT" << std::endl);
+//			UG_THROW("NULL UNERLAUBT" << std::endl);
+//		}
+//
+//		m_sh.assign_subset( edg, m_sh.num_subsets());
+//
+//	}
+//
+//	for( Face * fac : crossingNotEndingFaces )
+//	{
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+//	}
+//
+//	for( Edge * edg : otherEdgeOfCrossingNotEndingFace )
+//	{
+//		if( edg == nullptr )
+//		{
+//			UG_LOG("NULL C UNERLAUBT" << std::endl);
+//			UG_THROW("NULL C UNERLAUBT" << std::endl);
+//		}
+//
+//		m_sh.assign_subset( edg, m_sh.num_subsets());
+//
+//	}
+//
+//	for( Face * fac : nextFaceOfCrossingNotEndingFaces )
+//	{
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+//	}
+//
+//
+//	return false;
 }
 
 //////////////////////////////////////////////////////////////////
