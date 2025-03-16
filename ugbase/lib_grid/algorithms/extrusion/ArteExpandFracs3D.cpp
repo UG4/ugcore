@@ -94,10 +94,10 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 //	  m_aaMarkFaceHasUnclosedFracSideB(Grid::FaceAttachmentAccessor<ABool>()),
 //	  m_aAdjMarkerVrtxHasUnclosedFracB(ABool()),
 //	  m_aaMarkVrtxHasUnclosedFracB(Grid::VertexAttachmentAccessor<ABool>()),
-//	  m_aAdjMarkerFaceWithEndingCrossingCleft(ABool()),
-//	  m_aaMarkFaceWithEndingCrossingCleft(Grid::FaceAttachmentAccessor<ABool>()),
-//	  m_aAdjMarkerVrtxAtEndingCrossingCleft(ABool()),
-//	  m_aaMarkVrtxAtEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerFaceWithEndingCrossingCleft(ABool()),
+	  m_aaMarkFaceWithEndingCrossingCleft(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerVrtxAtEndingCrossingCleft(ABool()),
+	  m_aaMarkVrtxAtEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
 //	  m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract(ABool()),
 //	  m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract(Grid::VertexAttachmentAccessor<ABool>()),
 	  m_originalFractureFaces(std::vector<Face*>()),
@@ -373,17 +373,17 @@ bool ArteExpandFracs3D::attachMarkers()
 //	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxHasUnclosedFracB, false );
 //	m_aaMarkVrtxHasUnclosedFracB = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxHasUnclosedFracB );
 //
-//	m_aAdjMarkerFaceWithEndingCrossingCleft = ABool();
-//
-//	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceWithEndingCrossingCleft, false );
-//
-//	m_aaMarkFaceWithEndingCrossingCleft = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceWithEndingCrossingCleft );
-//
-//	m_aAdjMarkerVrtxAtEndingCrossingCleft = ABool();
-//
-//	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxAtEndingCrossingCleft, false );
-//
-//	m_aaMarkVrtxAtEndingCrossingCleft = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxAtEndingCrossingCleft );
+	m_aAdjMarkerFaceWithEndingCrossingCleft = ABool();
+
+	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceWithEndingCrossingCleft, false );
+
+	m_aaMarkFaceWithEndingCrossingCleft = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceWithEndingCrossingCleft );
+
+	m_aAdjMarkerVrtxAtEndingCrossingCleft = ABool();
+
+	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxAtEndingCrossingCleft, false );
+
+	m_aaMarkVrtxAtEndingCrossingCleft = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxAtEndingCrossingCleft );
 //
 //	m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract = ABool();
 //
@@ -481,8 +481,8 @@ bool ArteExpandFracs3D::detachMarkers()
 //
 //	m_grid.detach_from_vertices( m_aAdjMarkerVrtxHasUnclosedFracB );
 //
-//	m_grid.detach_from_faces( m_aAdjMarkerFaceWithEndingCrossingCleft );
-//	m_grid.detach_from_vertices( m_aAdjMarkerVrtxAtEndingCrossingCleft );
+	m_grid.detach_from_faces( m_aAdjMarkerFaceWithEndingCrossingCleft );
+	m_grid.detach_from_vertices( m_aAdjMarkerVrtxAtEndingCrossingCleft );
 //	m_grid.detach_from_vertices( m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract );
 
 	m_grid.detach_from_vertices( m_aAdjInfoEdges );
@@ -1518,11 +1518,26 @@ bool ArteExpandFracs3D::distinguishSegments()
 bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 {
 
+	// TODO FIXME eigene Klasse erzeugen, die die ganzen Infos an endenden Klüften speichert, wo sich
+	// zwei Klüfte kreuzen
+	// Vertex, auslaufende faces, wo anders aufgeblasen werden muss,
+	// Edges der Kreuzung, die anhängenden faces der anderen Kluft, die
+	// die Basis sind für die Aufblasungen, die auch anders funktionieren
+	// von dieser Klasse dann ein attachment an die vertizes und vielleicht die faces,
+	// die problematisch sind
+	// (noch zu klären, ob vielleicht ein paar der auskommentierten attachments doch sinnvoll)
+
 	IndexType numEndingCrossingClefts = 0;
 
 	std::vector<Face*> endingCrossingCleftFaces;
 
 	std::vector<Vertex*> endingCrossingCleftVrtcs;
+
+	std::vector<Edge*> cuttingEdges;
+	std::vector<Face*> crossingNotEndingFaces;
+
+	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
+	std::vector<Face*> nextFaceOfCrossingNotEndingFaces;
 
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
 	{
@@ -1552,16 +1567,110 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				endingCrossingCleftVrtcs.push_back( segLimSids.spuckVertex() );
 
-				VecSegLimSidesFractFace vecSegmLimSiFF;
+				UG_LOG("vertex gefunden an ending crossing cleft " << std::endl);
 
-				if( ! segLimSids.spuckVecAttUnclosedFractElm( vecSegmLimSiFF ) )
+				m_aaMarkVrtxAtEndingCrossingCleft[vrt] = true;
+
+				// the unclosed ending crossing faces
+				VecSegLimSidesFractFace vecSegmLimSiFFUnclosed;
+
+				if( ! segLimSids.spuckVecAttUnclosedFractElm( vecSegmLimSiFFUnclosed ) )
 					return false;
 
-				for( SegLimSidesFractFace const & slsff : vecSegmLimSiFF )
+				// figure out the faces that are in touch with the ending faces, and the corresponding edges
+
+				VecSegLimSidesFractFace vecSegmLimSiFFClosed;
+
+				if( ! segLimSids.spuckVecAttFractElm( vecSegmLimSiFFClosed ) )
+					return false;
+
+				UG_LOG("Faces suchen an ending crossing cleft " << std::endl);
+
+				for( SegLimSidesFractFace const & slsffUncl : vecSegmLimSiFFUnclosed )
 				{
-					Face * fac = slsff.getManifElm();
-					endingCrossingCleftFaces.push_back(fac);
+					Face * facUncl = slsffUncl.getManifElm();
+					endingCrossingCleftFaces.push_back(facUncl);
+					m_aaMarkFaceWithEndingCrossingCleft[facUncl] = true;
+
+					for( SegLimSidesFractFace const & slsffClos : vecSegmLimSiFFClosed )
+					{
+						// we need different subdoms, as want to have the not ending crossing fracture neighbours
+						// that have a common edge
+						Edge * commonEdge = nullptr;
+
+						if( fractFacesAreNeighboured<false>( slsffClos, slsffUncl, commonEdge ) )
+						{
+							Face * facClos = slsffClos.getManifElm();
+							crossingNotEndingFaces.push_back( facClos );
+							if( commonEdge == nullptr )
+							{
+								UG_LOG("NULL COMMON" << std::endl);
+								UG_THROW("NULL COMMON" << std::endl);
+							}
+							cuttingEdges.push_back(commonEdge);
+
+							// search the durchgehende fracture face which is neighboured to the durchgehende one
+							// same vertex, other edge
+
+							EdgePair const & edgesClosedFracFace = slsffClos.getPairLowElm();
+
+							Edge * notCommonEdgeOfNotEndingCleft = nullptr;
+
+							if(  edgesClosedFracFace.first == commonEdge )
+							{
+								notCommonEdgeOfNotEndingCleft = edgesClosedFracFace.second;
+							}
+							else if( edgesClosedFracFace.second == commonEdge )
+							{
+								notCommonEdgeOfNotEndingCleft = edgesClosedFracFace.first;
+							}
+
+							if( notCommonEdgeOfNotEndingCleft == nullptr )
+							{
+								UG_LOG("no not common edge?" << std::endl);
+								UG_THROW("no not common edge?" << std::endl);
+							}
+
+//							otherEdgeOfCrossingNotEndingFace.push_back( notCommonEdgeOfNotEndingCleft );
+
+							Edge * closedCommonEdge = nullptr;
+
+							for( SegLimSidesFractFace const & slsffClosOther : vecSegmLimSiFFClosed )
+							{
+								if( fractFacesAreNeighboured<true>( slsffClos, slsffClosOther, closedCommonEdge ) )
+								{
+
+									if( closedCommonEdge == nullptr )
+									{
+										UG_LOG("NULL NOT COMMON" << std::endl);
+										UG_THROW("NULL NOT COMMON" << std::endl);
+									}
+
+									if( closedCommonEdge != notCommonEdgeOfNotEndingCleft )
+									{
+										UG_LOG("Ecke passt nicht " << CalculateCenter(closedCommonEdge, m_aaPos) << " - " << CalculateCenter( notCommonEdgeOfNotEndingCleft, m_aaPos) << std::endl);
+//										UG_THROW("Ecke verloren " << std::endl);
+									}
+									else
+									{
+										Face * facClosOther = slsffClosOther.getManifElm();
+
+										nextFaceOfCrossingNotEndingFaces.push_back( facClosOther );
+										otherEdgeOfCrossingNotEndingFace.push_back(notCommonEdgeOfNotEndingCleft);
+									}
+
+
+								}
+							}
+
+
+						}
+					}
+
 				}
+
+				UG_LOG("Faces vielleicht gefunden an ending crossing cleft " << std::endl);
+
 			}
 		}
 
@@ -1587,12 +1696,125 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 		m_sh.assign_subset( vrt, m_sh.num_subsets());
 	}
 
+	for( Edge * edg : cuttingEdges )
+	{
+		if( edg == nullptr )
+		{
+			UG_LOG("NULL UNERLAUBT" << std::endl);
+			UG_THROW("NULL UNERLAUBT" << std::endl);
+		}
+
+		m_sh.assign_subset( edg, m_sh.num_subsets());
+
+	}
+
+	for( Face * fac : crossingNotEndingFaces )
+	{
+		m_sh.assign_subset( fac, m_sh.num_subsets());
+	}
+
+	for( Edge * edg : otherEdgeOfCrossingNotEndingFace )
+	{
+		if( edg == nullptr )
+		{
+			UG_LOG("NULL C UNERLAUBT" << std::endl);
+			UG_THROW("NULL C UNERLAUBT" << std::endl);
+		}
+
+		m_sh.assign_subset( edg, m_sh.num_subsets());
+
+	}
+
+	for( Face * fac : nextFaceOfCrossingNotEndingFaces )
+	{
+		m_sh.assign_subset( fac, m_sh.num_subsets());
+	}
+
 
 	return false;
-
 }
 
 //////////////////////////////////////////////////////////////////
+
+template< bool FACES_HAVE_SAME_SUDO >
+bool ArteExpandFracs3D::fractFacesAreNeighboured( SegLimSidesFractFace const & fractFaceOne,
+							   	   	   	   	   	  SegLimSidesFractFace const & fractFaceTwo,
+												  Edge * & commonEdge
+												 )
+{
+	commonEdge = nullptr; // general case
+
+	bool facesHaveSameSudo = FACES_HAVE_SAME_SUDO;
+
+	// exclude that the elements are the same
+
+	Face * facOne = fractFaceOne.getManifElm();
+	Face * facTwo = fractFaceTwo.getManifElm();
+
+	if( facOne == facTwo )
+	{
+		UG_LOG("Faces coincide" << std::endl);
+		return false;
+	}
+
+	EdgePair const & edgesFacOne = fractFaceOne.getPairLowElm();
+	EdgePair const & edgesFacTwo = fractFaceTwo.getPairLowElm();
+
+	Edge * edgeOneFrst = edgesFacOne.first;
+	Edge * edgeOneScnd = edgesFacOne.second;
+
+	Edge * edgeTwoFrst = edgesFacTwo.first;
+	Edge * edgeTwoScnd = edgesFacTwo.second;
+
+	bool edgeCondA = ( edgeOneFrst == edgeTwoFrst );
+	bool edgeCondB = ( edgeOneFrst == edgeTwoScnd );
+	bool edgeCondC = ( edgeOneScnd == edgeTwoFrst );
+	bool edgeCondD = ( edgeOneScnd == edgeTwoScnd );
+
+
+	bool fractFacsNeighbr = (    edgeCondA
+							  || edgeCondB
+							  || edgeCondC
+							  || edgeCondD
+							);
+
+	IndexType sudoOne = fractFaceOne.getSudo();
+	IndexType sudoTwo = fractFaceTwo.getSudo();
+
+	bool sudosCoincide = ( sudoOne == sudoTwo );
+
+	bool necessarySudoProperty = ( facesHaveSameSudo == sudosCoincide );
+
+	bool neighbrsWithRequestedSudo = ( fractFacsNeighbr && necessarySudoProperty );
+
+	if( neighbrsWithRequestedSudo )
+	{
+		if( edgeCondA || edgeCondB )
+		{
+			commonEdge = edgeOneFrst;
+		}
+		else if( edgeCondC || edgeCondD )
+		{
+			commonEdge = edgeOneScnd;
+		}
+
+		if( commonEdge == nullptr )
+		{
+			UG_LOG("COMMON NULL " << std::endl);
+			UG_THROW("COMMON NULL " << std::endl);
+		}
+		else
+		{
+			UG_LOG("COORDINATES NOT NULL " << CalculateCenter( commonEdge, m_aaPos ) << std::endl );
+		}
+	}
+
+	return neighbrsWithRequestedSudo;
+}
+
+
+//////////////////////////////////////////////////////////////////
+
 
 #if 0
 bool ArteExpandFracs3D::detectEndingCrossingClefts()

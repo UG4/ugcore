@@ -1678,7 +1678,7 @@ public:
 
 	// soll auch in der Lage sein, die einzenlen Fracture faces wieder aus zu spucken als Liste
 	// analog auch danach die boundary Geschichten
-	bool const spuckVecAttFactElm( std::vector<AttFractElm> & vecAttFracEl ) const
+	bool const spuckVecAttFractElm( std::vector<AttFractElm> & vecAttFracEl ) const
 	{
 		vecAttFracEl = m_vecAttFractElms;
 		return true;

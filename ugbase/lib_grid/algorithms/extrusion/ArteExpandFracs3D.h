@@ -163,6 +163,12 @@ private:
 
 	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtxHasUnclosedFracB;
 
+	ABool m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract;
+
+	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract;
+
+#endif
+
 	ABool m_aAdjMarkerFaceWithEndingCrossingCleft;
 
 	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceWithEndingCrossingCleft;
@@ -171,10 +177,7 @@ private:
 
 	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtxAtEndingCrossingCleft;
 
-	ABool m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract;
 
-	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract;
-#endif
 
 	bool countAndSelectFracBaseNums();
 
@@ -346,7 +349,7 @@ private:
 
 //	bool extracFractSudosOfSegment(SegmentVolElmInfo const & segmVolElmInfo, std::vector<IndexType> & sudosInSegment );
 
-//public:
+public:
 	using SegmentLimitingSides = support::SegmentSides<Volume*,Face*,Edge*,IndexType,vector3,Vertex*>;
 
 //	using SegmentLimitSidesPairSudoNorml = SegmentLimitingSides::PairSudoNormlV;
@@ -404,6 +407,12 @@ private:
 
 	template<typename ELEMTYP>
 	bool addElem( std::vector<ELEMTYP> & elemsToBeSplitted, ELEMTYP elem );
+
+	template< bool FACES_HAVE_SAME_SUDO >
+	bool fractFacesAreNeighboured( SegLimSidesFractFace const & fractFaceOne,
+								   SegLimSidesFractFace const & fractFaceTwo,
+								   Edge * & commonEdge
+								  );
 
 
 
