@@ -91,15 +91,15 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaMarkEdgeVFP(Grid::EdgeAttachmentAccessor<AttVertFracProp>()),
 	  m_aAdjMarkerFaceIsFracB(ABool()),
 	  m_aaMarkFaceIsFracB(Grid::FaceAttachmentAccessor<ABool>()),
-	  m_aaMarkFaceHasUnclosedFracSideB(Grid::FaceAttachmentAccessor<ABool>()),
-	  m_aAdjMarkerVrtxHasUnclosedFracB(ABool()),
-	  m_aaMarkVrtxHasUnclosedFracB(Grid::VertexAttachmentAccessor<ABool>()),
-	  m_aAdjMarkerFaceWithEndingCrossingCleft(ABool()),
-	  m_aaMarkFaceWithEndingCrossingCleft(Grid::FaceAttachmentAccessor<ABool>()),
-	  m_aAdjMarkerVrtxAtEndingCrossingCleft(ABool()),
-	  m_aaMarkVrtxAtEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
-	  m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract(ABool()),
-	  m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract(Grid::VertexAttachmentAccessor<ABool>()),
+//	  m_aaMarkFaceHasUnclosedFracSideB(Grid::FaceAttachmentAccessor<ABool>()),
+//	  m_aAdjMarkerVrtxHasUnclosedFracB(ABool()),
+//	  m_aaMarkVrtxHasUnclosedFracB(Grid::VertexAttachmentAccessor<ABool>()),
+//	  m_aAdjMarkerFaceWithEndingCrossingCleft(ABool()),
+//	  m_aaMarkFaceWithEndingCrossingCleft(Grid::FaceAttachmentAccessor<ABool>()),
+//	  m_aAdjMarkerVrtxAtEndingCrossingCleft(ABool()),
+//	  m_aaMarkVrtxAtEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
+//	  m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract(ABool()),
+//	  m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract(Grid::VertexAttachmentAccessor<ABool>()),
 	  m_originalFractureFaces(std::vector<Face*>()),
 //	  m_attVrtVec(AttVrtVec()),
 //	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
@@ -363,33 +363,33 @@ bool ArteExpandFracs3D::attachMarkers()
 	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceIsFracB, false );
 	m_aaMarkFaceIsFracB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceIsFracB );
 
-	m_aAdjMarkerFaceHasUnclosedFracSideB = ABool();
-
-	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceHasUnclosedFracSideB, false );
-	m_aaMarkFaceHasUnclosedFracSideB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceHasUnclosedFracSideB );
-
-	m_aAdjMarkerVrtxHasUnclosedFracB = ABool();
-
-	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxHasUnclosedFracB, false );
-	m_aaMarkVrtxHasUnclosedFracB = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxHasUnclosedFracB );
-
-	m_aAdjMarkerFaceWithEndingCrossingCleft = ABool();
-
-	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceWithEndingCrossingCleft, false );
-
-	m_aaMarkFaceWithEndingCrossingCleft = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceWithEndingCrossingCleft );
-
-	m_aAdjMarkerVrtxAtEndingCrossingCleft = ABool();
-
-	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxAtEndingCrossingCleft, false );
-
-	m_aaMarkVrtxAtEndingCrossingCleft = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxAtEndingCrossingCleft );
-
-	m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract = ABool();
-
-	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract, false );
-
-	m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract );
+//	m_aAdjMarkerFaceHasUnclosedFracSideB = ABool();
+//
+//	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceHasUnclosedFracSideB, false );
+//	m_aaMarkFaceHasUnclosedFracSideB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceHasUnclosedFracSideB );
+//
+//	m_aAdjMarkerVrtxHasUnclosedFracB = ABool();
+//
+//	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxHasUnclosedFracB, false );
+//	m_aaMarkVrtxHasUnclosedFracB = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxHasUnclosedFracB );
+//
+//	m_aAdjMarkerFaceWithEndingCrossingCleft = ABool();
+//
+//	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceWithEndingCrossingCleft, false );
+//
+//	m_aaMarkFaceWithEndingCrossingCleft = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceWithEndingCrossingCleft );
+//
+//	m_aAdjMarkerVrtxAtEndingCrossingCleft = ABool();
+//
+//	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxAtEndingCrossingCleft, false );
+//
+//	m_aaMarkVrtxAtEndingCrossingCleft = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxAtEndingCrossingCleft );
+//
+//	m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract = ABool();
+//
+//	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract, false );
+//
+//	m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract );
 
 	// second part
 
@@ -477,13 +477,13 @@ bool ArteExpandFracs3D::detachMarkers()
 	m_grid.detach_from_vertices( m_aAdjMarkerVFP );
 	m_grid.detach_from_edges( m_aAdjMarkerVFP );
 	m_grid.detach_from_faces( m_aAdjMarkerFaceIsFracB );
-	m_grid.detach_from_faces( m_aAdjMarkerFaceHasUnclosedFracSideB );
-
-	m_grid.detach_from_vertices( m_aAdjMarkerVrtxHasUnclosedFracB );
-
-	m_grid.detach_from_faces( m_aAdjMarkerFaceWithEndingCrossingCleft );
-	m_grid.detach_from_vertices( m_aAdjMarkerVrtxAtEndingCrossingCleft );
-	m_grid.detach_from_vertices( m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract );
+//	m_grid.detach_from_faces( m_aAdjMarkerFaceHasUnclosedFracSideB );
+//
+//	m_grid.detach_from_vertices( m_aAdjMarkerVrtxHasUnclosedFracB );
+//
+//	m_grid.detach_from_faces( m_aAdjMarkerFaceWithEndingCrossingCleft );
+//	m_grid.detach_from_vertices( m_aAdjMarkerVrtxAtEndingCrossingCleft );
+//	m_grid.detach_from_vertices( m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract );
 
 	m_grid.detach_from_vertices( m_aAdjInfoEdges );
 	m_grid.detach_from_vertices( m_aAdjInfoFaces );
@@ -2006,16 +2006,16 @@ ArteExpandFracs3D::IndexType ArteExpandFracs3D::shiftUnclosedFracFacesToGenerFac
 
 								shiftedFracFaces++;
 
-								Face * unclosedFace = afesOne.getManifElm();
-								// tested if same as that one from afesTwo
-
-								m_aaMarkFaceHasUnclosedFracSideB[ unclosedFace ] = true;
-
-								UG_LOG("unclosed face " << CalculateCenter( unclosedFace, m_aaPos ) << std::endl);
+//								Face * unclosedFace = afesOne.getManifElm();
+//								// tested if same as that one from afesTwo
+//
+////								m_aaMarkFaceHasUnclosedFracSideB[ unclosedFace ] = true;
+//
+//								UG_LOG("unclosed face " << CalculateCenter( unclosedFace, m_aaPos ) << std::endl);
 
 //								m_sh.assign_subset( unclosedFace, m_sh.num_subsets());
 
-								m_aaMarkVrtxHasUnclosedFracB[vrt] = true;
+//								m_aaMarkVrtxHasUnclosedFracB[vrt] = true;
 
 								//  added vertex attachment that knows if at vertex there is an unclosed fracture
 
@@ -5765,12 +5765,12 @@ bool ArteExpandFracs3D::createNewElements()
 		Face* f = *iter;
 		++iter;
 
-		if( m_aaMarkFaceHasUnclosedFracSideB[f] )
-		{
-			UG_LOG("want to delete unclosed frac face " << std::endl);
-			// todo fixme XXXXXXXXXXXXXXXXXX
-			//return false;
-		}
+//		if( m_aaMarkFaceHasUnclosedFracSideB[f] )
+//		{
+//			UG_LOG("want to delete unclosed frac face " << std::endl);
+//			// todo fixme XXXXXXXXXXXXXXXXXX
+//			//return false;
+//		}
 
 		if( ! m_aaMarkFaceIsFracB[f] )
 		{

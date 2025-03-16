@@ -153,6 +153,8 @@ private:
 
 	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceIsFracB;
 
+	// TODO FIXME die hier können alle entfernt werden im Prinzip
+#if 0
 	ABool m_aAdjMarkerFaceHasUnclosedFracSideB;
 
 	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceHasUnclosedFracSideB;
@@ -172,6 +174,7 @@ private:
 	ABool m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract;
 
 	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract;
+#endif
 
 	bool countAndSelectFracBaseNums();
 
