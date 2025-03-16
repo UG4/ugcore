@@ -181,7 +181,9 @@ private:
 
 	bool shiftUnclosedFracFaces();
 
-	bool detectEndingCrossingClefts();
+//	bool detectEndingCrossingClefts();
+
+	bool detectEndingCrossingCleftsSegmBased();
 
 	bool seletForSegmented();
 
@@ -353,6 +355,9 @@ private:
 	using VecSegmentLimitingSides = std::vector<SegmentLimitingSides>;
 
 	using AttVecSegmLimSid = Attachment<VecSegmentLimitingSides>;
+
+	using SegLimSidesFractFace = SegmentLimitingSides::AttFractElm;
+	using VecSegLimSidesFractFace = SegmentLimitingSides::VecAttFractElm;
 
 private:
 

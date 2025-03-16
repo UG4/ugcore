@@ -212,7 +212,7 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("established Segment limiting sides info" << std::endl);
 
-	if( ! detectEndingCrossingClefts() )
+	if( ! detectEndingCrossingCleftsSegmBased() )
 		return false;
 
 	UG_LOG("Ending crossing clefts detected" << std::endl);
@@ -1515,6 +1515,86 @@ bool ArteExpandFracs3D::distinguishSegments()
 
 //////////////////////////////////////////////////////////////////
 
+bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
+{
+
+	IndexType numEndingCrossingClefts = 0;
+
+	std::vector<Face*> endingCrossingCleftFaces;
+
+	std::vector<Vertex*> endingCrossingCleftVrtcs;
+
+	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+	{
+
+		Vertex* vrt = *iter;
+
+		VecSegmentLimitingSides & vecSegmLimSid = m_vrtxAttAccsVecSegmLimSid[vrt];
+
+		if(  vecSegmLimSid.size() == 0 )
+		{
+			UG_LOG("keine verschiedenen Segmente ECCV" << std::endl);
+//			return true;
+		}
+
+		if( vecSegmLimSid.size() == 1 )
+		{
+			UG_LOG("sonderbarer Fall von nur einem Segment ECCV" << std::endl );
+			UG_THROW("sonderbarer Fall von nur einem Segment ECCV" << std::endl );
+			return false;
+		}
+
+		for( SegmentLimitingSides const & segLimSids : vecSegmLimSid )
+		{
+			if( segLimSids.hasUnclosedFaces() )
+			{
+				numEndingCrossingClefts++;
+
+				endingCrossingCleftVrtcs.push_back( segLimSids.spuckVertex() );
+
+				VecSegLimSidesFractFace vecSegmLimSiFF;
+
+				if( ! segLimSids.spuckVecAttUnclosedFractElm( vecSegmLimSiFF ) )
+					return false;
+
+				for( SegLimSidesFractFace const & slsff : vecSegmLimSiFF )
+				{
+					Face * fac = slsff.getManifElm();
+					endingCrossingCleftFaces.push_back(fac);
+				}
+			}
+		}
+
+	}
+
+
+
+	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
+
+	if( numEndingCrossingClefts == 0 )
+		return true;
+
+	// debug for ending crossing clefts
+
+	for( Face * fac : endingCrossingCleftFaces )
+	{
+		m_sh.assign_subset( fac, m_sh.num_subsets());
+
+	}
+
+	for( Vertex * vrt : endingCrossingCleftVrtcs )
+	{
+		m_sh.assign_subset( vrt, m_sh.num_subsets());
+	}
+
+
+	return false;
+
+}
+
+//////////////////////////////////////////////////////////////////
+
+#if 0
 bool ArteExpandFracs3D::detectEndingCrossingClefts()
 {
 //	bool unclosedFracFacesPresent = false;
@@ -1693,6 +1773,8 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 
 
 }
+
+#endif
 
 ////////////////////////////////////////////////////////////////////
 
@@ -3758,6 +3840,17 @@ bool ArteExpandFracs3D::establishSegmentLimitingSidesInfo()
 					UG_LOG("schlucken schief gegangen " << std::endl);
 					UG_THROW("schlucken schief gegangen " << std::endl);
 					return false;
+				}
+
+
+				if( volElmInf.hasUnclosedFracture() )
+				{
+					if( ! segLimSids.schluckVecAttUnclosedFractElm( volElmInf.getVecUnclosedFractManifElem() ) )
+					{
+						UG_LOG("Schlucken von unclosed schief gegangen " << std::endl);
+//						UG_THROW("Schlucken von unclosed schief gegangen " << std::endl);
+//						return false;
+					}
 				}
 
 				if( vrtxIsBndVrt )

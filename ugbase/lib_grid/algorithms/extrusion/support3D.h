@@ -1577,6 +1577,9 @@ public:
 	using AttFractElm = AttachedFractElem<MANIFELM, LOWDIMELM, INDEX_TXP, VECTOR_TYP>;
 	using AttBndryElm = AttachedBoundryElem<MANIFELM, LOWDIMELM, INDEX_TXP, VECTOR_TYP>;
 
+	using VecAttFractElm = std::vector<AttFractElm>;
+	using VecAttBndryElm = std::vector<AttBndryElm>;
+
 	using PairSudoNormlV = std::pair<INDEX_TXP,VECTOR_TYP>;
 	using VecPairSudoNormlV = std::vector<PairSudoNormlV>;
 	using ManifDescr = ManifoldDescriptor<VECTOR_TYP>;
@@ -1715,7 +1718,7 @@ public:
 
 	bool schluckVecAttUnclosedFractElm( std::vector<AttFractElm> const & vecAtFracEl )
 	{
-		return schluckVecAttElm( vecAtFracEl, m_vecAttUnclosedFractElms );
+		return schluckVecAttElm( vecAtFracEl, m_vecAttUnclosedFractElms, true );
 	}
 
 	template< typename NOFRACT >
@@ -1723,13 +1726,13 @@ public:
 
 	bool schluckAttUnclosedFractElm( AttFractElm const & afeNew )
 	{
-		return schluckAttElm( afeNew, m_vecAttUnclosedFractElms );
+		return schluckAttElm( afeNew, m_vecAttUnclosedFractElms, true );
 	}
 
 	template< typename NOFRACT >
 	bool schluckAttUnclosedFractElm( NOFRACT const & afeNew ) = delete;
 
-	bool spuckVecAttUnclosedFractElm( std::vector<AttFractElm> & vecAttFracEl )
+	bool const spuckVecAttUnclosedFractElm( std::vector<AttFractElm> & vecAttFracEl ) const
 	{
 		vecAttFracEl = m_vecAttUnclosedFractElms;
 		return true;
@@ -1850,8 +1853,6 @@ private:
 
 	VRTXTYP m_vrt;
 
-	using VecAttFractElm = std::vector<AttFractElm>;
-	using VecAttBndryElm = std::vector<AttBndryElm>;
 
 	VecAttFractElm m_vecAttFractElms;
 	VecAttFractElm m_vecAttUnclosedFractElms;
@@ -1872,14 +1873,15 @@ private:
 			  typename = std::enable_if<std::is_same<std::vector<ATT_ELM>,VEC_ATT_ELM>::value>,
 			  typename 	= std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
 			>
-	bool isStillUnknown( ATT_ELM const & afeNew, VEC_ATT_ELM const & vecAttELm )
+	bool isStillUnknown( ATT_ELM const & afeNew, VEC_ATT_ELM const & vecAttELm, bool acceptUnknowns = false )
 	{
 		for( ATT_ELM const & afeAlt : vecAttELm )
 		{
 			if( afeAlt.testIfEquals(afeNew) )
 			{
 				UG_LOG("Strange, already known?" << std::endl);
-				UG_THROW("Strange, already known?" << std::endl);
+				if( ! acceptUnknowns )
+					UG_THROW("Strange, already known?" << std::endl);
 				return false;
 			}
 		}
@@ -2000,33 +2002,38 @@ private:
 	< typename ATT_ELM,
 	  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
 	>
-	bool schluckVecAttElm( std::vector<ATT_ELM> const & vecAttElNew, std::vector<ATT_ELM> & vecAttElmKnown )
+	bool schluckVecAttElm( std::vector<ATT_ELM> const & vecAttElNew, std::vector<ATT_ELM> & vecAttElmKnown, bool acceptUnknowns = false )
 	{
+		bool allUnknown = true;
+
 		for( ATT_ELM const & aeN : vecAttElNew )
 		{
-			if( ! schluckAttElm( aeN, vecAttElmKnown) )
+			if( ! schluckAttElm( aeN, vecAttElmKnown, acceptUnknowns ) )
 			{
+				allUnknown = false;
 				UG_LOG("ist schon bekannt" << std::endl);
-				UG_THROW("ist schon bekannt" << std::endl);
-				return false;
+				if( ! acceptUnknowns)
+					UG_THROW("ist schon bekannt" << std::endl);
+				//return false;
 			}
 		}
 
-		return true;
+		return allUnknown;
 	}
 
 	template
 	< typename ATT_ELM,
 	  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
 	>
-	bool schluckAttElm( ATT_ELM const & attElNew, std::vector<ATT_ELM> & vecAttElmKnown )
+	bool schluckAttElm( ATT_ELM const & attElNew, std::vector<ATT_ELM> & vecAttElmKnown, bool acceptUnknowns = false )
 	{
 		m_averaged = false;
 
-		if( ! isStillUnknown( attElNew, vecAttElmKnown ) )
+		if( ! isStillUnknown( attElNew, vecAttElmKnown, acceptUnknowns ) )
 		{
 			UG_LOG("ist schon bekannt" << std::endl);
-			UG_THROW("ist schon bekannt" << std::endl);
+			if( ! acceptUnknowns )
+				UG_THROW("ist schon bekannt" << std::endl);
 			return false;
 		}
 
