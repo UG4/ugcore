@@ -120,7 +120,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_attAdjVecSegVolElmInfo( AttVecSegmentVolElmInfo() ),
 	  m_accsAttVecSegVolElmInfo( Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo>() ),
 	  m_attVecSegmLimSid(AttVecSegmLimSid()),
-	  m_vrtxAttAccsVecSegmLimSid(Grid::VertexAttachmentAccessor<AttVecSegmLimSid>())
+	  m_vrtxAttAccsVecSegmLimSid(Grid::VertexAttachmentAccessor<AttVecSegmLimSid>()),
+	  m_vecEndCrossFractSegmInfo( VecEndingCrossingFractureSegmentInfo() )
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -282,16 +283,24 @@ void ArteExpandFracs3D::assignDebugSubsets()
 
 	// debug for ending crossing clefts
 
+	int suse = m_sh.num_subsets();
+
 	for( Face * fac : endingCrossingCleftFaces )
 	{
-		m_sh.assign_subset( fac, m_sh.num_subsets());
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+		m_sh.assign_subset( fac, suse );
 
 	}
+
+	suse = m_sh.num_subsets();
 
 	for( Vertex * vrt : endingCrossingCleftVrtcs )
 	{
-		m_sh.assign_subset( vrt, m_sh.num_subsets());
+//		m_sh.assign_subset( vrt, m_sh.num_subsets());
+		m_sh.assign_subset( vrt, suse );
 	}
+
+	suse = m_sh.num_subsets();
 
 	for( Edge * edg : cuttingEdges )
 	{
@@ -301,30 +310,44 @@ void ArteExpandFracs3D::assignDebugSubsets()
 			UG_THROW("NULL UNERLAUBT" << std::endl);
 		}
 
-		m_sh.assign_subset( edg, m_sh.num_subsets());
+//		m_sh.assign_subset( edg, m_sh.num_subsets());
+		m_sh.assign_subset( edg, suse );
 
 	}
 
-	for( Face * fac : crossingNotEndingFaces )
+	suse = m_sh.num_subsets();
+
+	for( Face * fac : crossingNeighboredNotEndingFaces )
 	{
-		m_sh.assign_subset( fac, m_sh.num_subsets());
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+		m_sh.assign_subset( fac, suse );
 	}
 
-	for( Edge * edg : otherEdgeOfCrossingNotEndingFace )
+//	for( Edge * edg : otherEdgeOfCrossingNotEndingFace )
+//	{
+//		if( edg == nullptr )
+//		{
+//			UG_LOG("NULL C UNERLAUBT" << std::endl);
+//			UG_THROW("NULL C UNERLAUBT" << std::endl);
+//		}
+//
+//		m_sh.assign_subset( edg, m_sh.num_subsets());
+//
+//	}
+	suse = m_sh.num_subsets();
+
+	for( Face * fac : notEndingCrossingFacesNotNeighbour )
 	{
-		if( edg == nullptr )
-		{
-			UG_LOG("NULL C UNERLAUBT" << std::endl);
-			UG_THROW("NULL C UNERLAUBT" << std::endl);
-		}
-
-		m_sh.assign_subset( edg, m_sh.num_subsets());
-
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+		m_sh.assign_subset( fac, suse );
 	}
 
-	for( Face * fac : nextFaceOfCrossingNotEndingFaces )
+	suse = m_sh.num_subsets();
+
+	for( Face * fac : crossingNeighboredNotEndingFacesCommEdg )
 	{
-		m_sh.assign_subset( fac, m_sh.num_subsets());
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+		m_sh.assign_subset( fac, suse );
 	}
 
 
@@ -1663,73 +1686,97 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 						if( fractFacesAreNeighboured<false>( slsffClos, slsffUncl, commonEdge ) )
 						{
 							Face * facClos = slsffClos.getManifElm();
-							crossingNotEndingFaces.push_back( facClos );
+							crossingNeighboredNotEndingFaces.push_back( facClos );
+
 							if( commonEdge == nullptr )
 							{
 								UG_LOG("NULL COMMON" << std::endl);
 								UG_THROW("NULL COMMON" << std::endl);
 							}
+
 							cuttingEdges.push_back(commonEdge);
-
-							// search the durchgehende fracture face which is neighboured to the durchgehende one
-							// same vertex, other edge
-
-							EdgePair const & edgesClosedFracFace = slsffClos.getPairLowElm();
-
-							Edge * notCommonEdgeOfNotEndingCleft = nullptr;
-
-							if(  edgesClosedFracFace.first == commonEdge )
-							{
-								notCommonEdgeOfNotEndingCleft = edgesClosedFracFace.second;
-							}
-							else if( edgesClosedFracFace.second == commonEdge )
-							{
-								notCommonEdgeOfNotEndingCleft = edgesClosedFracFace.first;
-							}
-
-							if( notCommonEdgeOfNotEndingCleft == nullptr )
-							{
-								UG_LOG("no not common edge?" << std::endl);
-								UG_THROW("no not common edge?" << std::endl);
-							}
-
-//							otherEdgeOfCrossingNotEndingFace.push_back( notCommonEdgeOfNotEndingCleft );
-
-							Edge * closedCommonEdge = nullptr;
-
-							for( SegLimSidesFractFace const & slsffClosOther : vecSegmLimSiFFClosed )
-							{
-								if( fractFacesAreNeighboured<true>( slsffClos, slsffClosOther, closedCommonEdge ) )
-								{
-
-									if( closedCommonEdge == nullptr )
-									{
-										UG_LOG("NULL NOT COMMON" << std::endl);
-										UG_THROW("NULL NOT COMMON" << std::endl);
-									}
-
-									if( closedCommonEdge != notCommonEdgeOfNotEndingCleft )
-									{
-										UG_LOG("Ecke passt nicht " << CalculateCenter(closedCommonEdge, m_aaPos) << " - " << CalculateCenter( notCommonEdgeOfNotEndingCleft, m_aaPos) << std::endl);
-//										UG_THROW("Ecke verloren " << std::endl);
-									}
-									else
-									{
-										Face * facClosOther = slsffClosOther.getManifElm();
-
-										nextFaceOfCrossingNotEndingFaces.push_back( facClosOther );
-										otherEdgeOfCrossingNotEndingFace.push_back(notCommonEdgeOfNotEndingCleft);
-									}
-
-
-								}
-							}
+							crossingNeighboredNotEndingFacesCommEdg.push_back(facUncl);
+//							// search the durchgehende fracture face which is neighboured to the durchgehende one
+//							// same vertex, other edge
+//
+//							EdgePair const & edgesClosedFracFace = slsffClos.getPairLowElm();
+//
+//							Edge * notCommonEdgeOfNotEndingCleft = nullptr;
+//
+//							if(  edgesClosedFracFace.first == commonEdge )
+//							{
+//								notCommonEdgeOfNotEndingCleft = edgesClosedFracFace.second;
+//							}
+//							else if( edgesClosedFracFace.second == commonEdge )
+//							{
+//								notCommonEdgeOfNotEndingCleft = edgesClosedFracFace.first;
+//							}
+//
+//							if( notCommonEdgeOfNotEndingCleft == nullptr )
+//							{
+//								UG_LOG("no not common edge?" << std::endl);
+//								UG_THROW("no not common edge?" << std::endl);
+//							}
+//
+////							otherEdgeOfCrossingNotEndingFace.push_back( notCommonEdgeOfNotEndingCleft );
+//
+//							Edge * closedCommonEdge = nullptr;
+//
+//							for( SegLimSidesFractFace const & slsffClosOther : vecSegmLimSiFFClosed )
+//							{
+//								if( fractFacesAreNeighboured<true>( slsffClos, slsffClosOther, closedCommonEdge ) )
+//								{
+//
+//									if( closedCommonEdge == nullptr )
+//									{
+//										UG_LOG("NULL NOT COMMON" << std::endl);
+//										UG_THROW("NULL NOT COMMON" << std::endl);
+//									}
+//
+//									if( closedCommonEdge != notCommonEdgeOfNotEndingCleft )
+//									{
+//										UG_LOG("Ecke passt nicht " << CalculateCenter(closedCommonEdge, m_aaPos) << " - " << CalculateCenter( notCommonEdgeOfNotEndingCleft, m_aaPos) << std::endl);
+////										UG_THROW("Ecke verloren " << std::endl);
+//									}
+//									else
+//									{
+//										Face * facClosOther = slsffClosOther.getManifElm();
+//
+//										nextFaceOfCrossingNotEndingFaces.push_back( facClosOther );
+//										otherEdgeOfCrossingNotEndingFace.push_back(notCommonEdgeOfNotEndingCleft);
+//									}
+//
+//
+//								}
+//							}
 
 
 						}
 					}
 
 				}
+
+				for( SegLimSidesFractFace const & slsffClos : vecSegmLimSiFFClosed )
+				{
+					Face * facClos = slsffClos.getManifElm();
+
+					bool facGiven = false;
+
+					for( Face * facClosNoNei : crossingNeighboredNotEndingFaces )
+					{
+						if( facClosNoNei == facClos )
+						{
+							facGiven = true;
+							break;
+						}
+					}
+
+					if( ! facGiven )
+					{
+						notEndingCrossingFacesNotNeighbour.push_back( facClos );
+					}
+				}
+
 
 				UG_LOG("Faces vielleicht gefunden an ending crossing cleft " << std::endl);
 
@@ -1738,6 +1785,12 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 	}
 
+	if( endingCrossingCleftVrtcs.size() == 0 )
+		return true;
+
+	assignDebugSubsets();
+
+	return false;
 
 
 	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
@@ -4903,7 +4956,7 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 	std::vector<Volume*> volsInSegm;
 
-	segmLimSides.spuckFulldimElemList( volsInSegm );
+	segmLimSides.spuckVecFulldimElem( volsInSegm );
 
 	for( Volume * const & vol : volsInSegm )
 	{

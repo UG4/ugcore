@@ -1632,7 +1632,7 @@ public:
 		m_contribFulldimElm.push_back(fudielm);
 	}
 
-	void spuckFulldimElemList( std::vector<FULLDIM_ELEM> & fudielm ) const
+	void spuckVecFulldimElem( std::vector<FULLDIM_ELEM> & fudielm ) const
 	{
 		fudielm = m_contribFulldimElm;
 	}
@@ -1677,7 +1677,7 @@ public:
 	bool schluckAttFractElm( NOFRACT const & afeNew ) = delete;
 
 	// soll auch in der Lage sein, die einzenlen Fracture faces wieder aus zu spucken als Liste
-	// analog auch danach die boundary Geschichten
+	// analog auch dan	ach die boundary Geschichten
 	bool const spuckVecAttFractElm( std::vector<AttFractElm> & vecAttFracEl ) const
 	{
 		vecAttFracEl = m_vecAttFractElms;
@@ -2148,6 +2148,57 @@ bool switchFulldimInfo( VEC_AVEI & vecAttVolElemInfoCop,
 
 //////////////////////////////////////////////////////////////////////////
 
+template
+<
+typename FULLDIMEL,
+typename MANIFEL,
+typename LOWDIMEL,
+typename VRTXTYP
+>
+class EndingCrossingFractSegmentInfo
+{
+public:
+
+	EndingCrossingFractSegmentInfo(
+									VRTXTYP const & vrt,
+									MANIFEL const & endingFractManifCutting,
+									MANIFEL const & endingFractManifNotCutting,
+									LOWDIMEL const & oldLowDimElCut,
+									std::pair<MANIFEL,MANIFEL> const & pairNeighbouredFractClosedManifEl
+								  )
+	:
+		m_unclosedVrtx(vrt),
+		m_endingFractManifCutting(endingFractManifCutting),
+		m_endingFractManifNotCutting(endingFractManifNotCutting),
+		m_pairNeighbouredFractClosedManifEl(pairNeighbouredFractClosedManifEl),
+		m_vecClosedFracManifEl(std::vector<MANIFEL>()),
+		m_oldLowDimElCut( oldLowDimElCut ),
+		m_sudoFractEnding(-1),
+		m_sudoFractNotEnding(-1),
+		m_vecFulldimEl(std::vector<FULLDIMEL>())
+	{
+	};
+
+private:
+
+	// TODO FIXME vielleicht statt Manifel die Klasse,  Attached Fracture Objekte? mit richtig geordneten Edges?
+
+	VRTXTYP m_unclosedVrtx;
+	MANIFEL m_endingFractManifCutting;
+	MANIFEL m_endingFractManifNotCutting;
+
+	std::pair<MANIFEL,MANIFEL> m_pairNeighbouredFractClosedManifEl;
+
+	std::vector<MANIFEL> m_vecClosedFracManifEl;
+
+	LOWDIMEL m_oldLowDimElCut; // common edge between ending frac face with one sudo and durchgehende frac faces with another sudo
+//	LOWDIMEL m_newLowDimElCut;
+
+	int m_sudoFractEnding;
+	int m_sudoFractNotEnding;
+
+	std::vector<FULLDIMEL> m_vecFulldimEl;
+};
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -419,12 +419,21 @@ private:
 	std::vector<Vertex*> endingCrossingCleftVrtcs;
 
 	std::vector<Edge*> cuttingEdges;
-	std::vector<Face*> crossingNotEndingFaces;
+	std::vector<Face*> crossingNeighboredNotEndingFaces;
+	std::vector<Face*> crossingNeighboredNotEndingFacesCommEdg;
 
-	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
-	std::vector<Face*> nextFaceOfCrossingNotEndingFaces;
+//	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
+//	std::vector<Face*> nextFaceOfCrossingNotEndingFaces;
+
+	std::vector<Face*> notEndingCrossingFacesNotNeighbour;
 
 	void assignDebugSubsets();
+
+	using EndingCrossingFractureSegmentInfo = support::EndingCrossingFractSegmentInfo<Volume*, Face*, Edge*, Vertex* >;
+
+	using VecEndingCrossingFractureSegmentInfo = std::vector<EndingCrossingFractureSegmentInfo>;
+
+	VecEndingCrossingFractureSegmentInfo m_vecEndCrossFractSegmInfo;
 };
 
 // specification has to be declared outside central class context, else compilation error
