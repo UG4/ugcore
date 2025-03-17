@@ -1881,6 +1881,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 		return false;
 	}
 
+	return true;
 
 	//	if( numEndingCrossingClefts == 0 )
 	//		return true;
