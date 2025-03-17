@@ -5928,6 +5928,44 @@ bool ArteExpandFracs3D::createNewElements()
 			{
 				if( m_aaMarkFaceIsFracB[tFace] ) // && ! m_aaMarkFaceHasUnclosedFracSideB[tFace] )
 				{
+					bool avoidFace = false;
+
+					for( Face * testFac :  m_d_endingCrossingCleftFaces )
+					{
+						if( testFac == tFace )
+						{
+							avoidFace = true;
+						}
+					}
+
+					for( Face * testFac :  m_d_crossingNeighboredNotEndingFaces )
+					{
+						if( testFac == tFace )
+						{
+							avoidFace = true;
+						}
+					}
+
+					for( Face * testFac :  m_d_crossingNeighboredNotEndingFacesCommEdg )
+					{
+						if( testFac == tFace )
+						{
+							avoidFace = true;
+						}
+					}
+
+					for( Face * testFac :  m_d_notEndingCrossingFacesNotNeighbour )
+					{
+						if( testFac == tFace )
+						{
+							avoidFace = true;
+						}
+					}
+
+
+					if( avoidFace )
+						continue;
+
 					Volume* expVol = nullptr;
 
 					if(locVrtInds.size() == 3)
