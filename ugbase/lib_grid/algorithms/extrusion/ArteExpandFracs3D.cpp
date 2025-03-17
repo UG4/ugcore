@@ -276,8 +276,50 @@ bool ArteExpandFracs3D::run()
 
 ////////////////////////////////////////////////
 
+bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
+{
+	int suse = m_sh.num_subsets();
+
+	for( Edge * edg : m_d_allContributingEdges )
+	{
+		for( Vertex * vrtOne : m_d_endingCrossingCleftVrtcs )
+		{
+			for( Vertex * vrtTwo : m_d_endingCrossingCleftVrtcs )
+			{
+				if( vrtOne != vrtTwo )
+				{
+					if( EdgeContains(edg, vrtOne) && EdgeContains( edg, vrtTwo) )
+					{
+						UG_LOG("Edge needs to be splitted" << std::endl);
+
+						m_sh.assign_subset( edg, suse );
+
+						vector3 center = CalculateCenter(edg, m_aaPos);
+						UG_LOG("splitting ECCV edge at " << center << std::endl);
+						RegularVertex* vrtSE = SplitEdge<RegularVertex>(m_grid, edg, false);
+						m_aaPos[vrtSE] = center;
+
+						UG_LOG("Edge splitted, please restart process with the thus changed geometry" << std::endl);
+
+						return true;
+
+					}
+				}
+			}
+
+		}
+	}
+
+	return false;
+
+}
+
+////////////////////////////////////////////////
+
 void ArteExpandFracs3D::assignDebugSubsets()
 {
+
+
 //	if( numEndingCrossingClefts == 0 )
 //		return true;
 
@@ -285,7 +327,7 @@ void ArteExpandFracs3D::assignDebugSubsets()
 
 	int suse = m_sh.num_subsets();
 
-	for( Face * fac : endingCrossingCleftFaces )
+	for( Face * fac : m_d_endingCrossingCleftFaces )
 	{
 //		m_sh.assign_subset( fac, m_sh.num_subsets());
 		m_sh.assign_subset( fac, suse );
@@ -294,7 +336,7 @@ void ArteExpandFracs3D::assignDebugSubsets()
 
 	suse = m_sh.num_subsets();
 
-	for( Vertex * vrt : endingCrossingCleftVrtcs )
+	for( Vertex * vrt : m_d_endingCrossingCleftVrtcs )
 	{
 //		m_sh.assign_subset( vrt, m_sh.num_subsets());
 		m_sh.assign_subset( vrt, suse );
@@ -302,7 +344,7 @@ void ArteExpandFracs3D::assignDebugSubsets()
 
 	suse = m_sh.num_subsets();
 
-	for( Edge * edg : cuttingEdges )
+	for( Edge * edg : m_d_cuttingEdges )
 	{
 		if( edg == nullptr )
 		{
@@ -317,7 +359,7 @@ void ArteExpandFracs3D::assignDebugSubsets()
 
 	suse = m_sh.num_subsets();
 
-	for( Face * fac : crossingNeighboredNotEndingFaces )
+	for( Face * fac : m_d_crossingNeighboredNotEndingFaces )
 	{
 //		m_sh.assign_subset( fac, m_sh.num_subsets());
 		m_sh.assign_subset( fac, suse );
@@ -336,7 +378,7 @@ void ArteExpandFracs3D::assignDebugSubsets()
 //	}
 	suse = m_sh.num_subsets();
 
-	for( Face * fac : notEndingCrossingFacesNotNeighbour )
+	for( Face * fac : m_d_notEndingCrossingFacesNotNeighbour )
 	{
 //		m_sh.assign_subset( fac, m_sh.num_subsets());
 		m_sh.assign_subset( fac, suse );
@@ -344,11 +386,43 @@ void ArteExpandFracs3D::assignDebugSubsets()
 
 	suse = m_sh.num_subsets();
 
-	for( Face * fac : crossingNeighboredNotEndingFacesCommEdg )
+	for( Face * fac : m_d_crossingNeighboredNotEndingFacesCommEdg )
 	{
 //		m_sh.assign_subset( fac, m_sh.num_subsets());
 		m_sh.assign_subset( fac, suse );
 	}
+
+//	suse = m_sh.num_subsets();
+//
+//	for( Edge * edg : m_d_allContributingEdges )
+//	{
+//		for( Vertex * vrtOne : m_d_endingCrossingCleftVrtcs )
+//		{
+//			for( Vertex * vrtTwo : m_d_endingCrossingCleftVrtcs )
+//			{
+//				if( vrtOne != vrtTwo )
+//				{
+//					if( EdgeContains(edg, vrtOne) && EdgeContains( edg, vrtTwo) )
+//					{
+//						UG_LOG("Edge needs to be splitted" << std::endl);
+//
+//						m_sh.assign_subset( edg, suse );
+//
+//
+////						vector3 center = CalculateCenter(edg, m_aaPos);
+////						UG_LOG("splitting ECCV edge at " << center << std::endl);
+////						RegularVertex* vrtSE = SplitEdge<RegularVertex>(m_grid, edg, false);
+////						m_aaPos[vrtSE] = center;
+//
+//					}
+//				}
+//			}
+//
+//		}
+//	}
+
+
+	return;
 
 
 //	return false;
@@ -1614,11 +1688,11 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 	IndexType numEndingCrossingClefts = 0;
 
-//	std::vector<Face*> endingCrossingCleftFaces;
+//	std::vector<Face*> m_d_endingCrossingCleftFaces;
 //
-//	std::vector<Vertex*> endingCrossingCleftVrtcs;
+//	std::vector<Vertex*> m_d_endingCrossingCleftVrtcs;
 //
-//	std::vector<Edge*> cuttingEdges;
+//	std::vector<Edge*> m_d_cuttingEdges;
 //	std::vector<Face*> crossingNotEndingFaces;
 //
 //	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
@@ -1650,7 +1724,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 			{
 				numEndingCrossingClefts++;
 
-				endingCrossingCleftVrtcs.push_back( segLimSids.spuckVertex() );
+				m_d_endingCrossingCleftVrtcs.push_back( segLimSids.spuckVertex() );
 
 				UG_LOG("vertex gefunden an ending crossing cleft " << std::endl);
 
@@ -1674,11 +1748,22 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 				for( SegLimSidesFractFace const & slsffUncl : vecSegmLimSiFFUnclosed )
 				{
 					Face * facUncl = slsffUncl.getManifElm();
-					endingCrossingCleftFaces.push_back(facUncl);
+					m_d_endingCrossingCleftFaces.push_back(facUncl);
 					m_aaMarkFaceWithEndingCrossingCleft[facUncl] = true;
+
+					EdgePair const & epU = slsffUncl.getPairLowElm();
+
+					m_d_allContributingEdges.push_back(epU.first);
+					m_d_allContributingEdges.push_back(epU.second);
 
 					for( SegLimSidesFractFace const & slsffClos : vecSegmLimSiFFClosed )
 					{
+						EdgePair const & epC = slsffClos.getPairLowElm();
+
+						m_d_allContributingEdges.push_back(epC.first);
+						m_d_allContributingEdges.push_back(epC.second);
+
+
 						// we need different subdoms, as want to have the not ending crossing fracture neighbours
 						// that have a common edge
 						Edge * commonEdge = nullptr;
@@ -1686,7 +1771,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 						if( fractFacesAreNeighboured<false>( slsffClos, slsffUncl, commonEdge ) )
 						{
 							Face * facClos = slsffClos.getManifElm();
-							crossingNeighboredNotEndingFaces.push_back( facClos );
+							m_d_crossingNeighboredNotEndingFaces.push_back( facClos );
 
 							if( commonEdge == nullptr )
 							{
@@ -1694,8 +1779,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 								UG_THROW("NULL COMMON" << std::endl);
 							}
 
-							cuttingEdges.push_back(commonEdge);
-							crossingNeighboredNotEndingFacesCommEdg.push_back(facUncl);
+							m_d_cuttingEdges.push_back(commonEdge);
+							m_d_crossingNeighboredNotEndingFacesCommEdg.push_back(facUncl);
 //							// search the durchgehende fracture face which is neighboured to the durchgehende one
 //							// same vertex, other edge
 //
@@ -1762,7 +1847,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 					bool facGiven = false;
 
-					for( Face * facClosNoNei : crossingNeighboredNotEndingFaces )
+					for( Face * facClosNoNei : m_d_crossingNeighboredNotEndingFaces )
 					{
 						if( facClosNoNei == facClos )
 						{
@@ -1773,7 +1858,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 					if( ! facGiven )
 					{
-						notEndingCrossingFacesNotNeighbour.push_back( facClos );
+						m_d_notEndingCrossingFacesNotNeighbour.push_back( facClos );
 					}
 				}
 
@@ -1785,35 +1870,46 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 	}
 
-//	if( endingCrossingCleftVrtcs.size() == 0 )
-	return true;
+	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
+
+	if( m_d_endingCrossingCleftVrtcs.size() == 0 )
+		return true;
+
+	if( splitEdgesOfNeighboredEndingCrossingFracVrtcs() )
+	{
+		UG_LOG("needed to split, please restart with this geometry" << std::endl);
+		return false;
+	}
+
+
+	//	if( numEndingCrossingClefts == 0 )
+	//		return true;
 
 	assignDebugSubsets();
+
+	UG_LOG("problematic elements highlighted " << std::endl);
 
 	return false;
 
 
-	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
-
-	return true;
 
 //	if( numEndingCrossingClefts == 0 )
 //		return true;
 //
 //	// debug for ending crossing clefts
 //
-//	for( Face * fac : endingCrossingCleftFaces )
+//	for( Face * fac : m_d_endingCrossingCleftFaces )
 //	{
 //		m_sh.assign_subset( fac, m_sh.num_subsets());
 //
 //	}
 //
-//	for( Vertex * vrt : endingCrossingCleftVrtcs )
+//	for( Vertex * vrt : m_d_endingCrossingCleftVrtcs )
 //	{
 //		m_sh.assign_subset( vrt, m_sh.num_subsets());
 //	}
 //
-//	for( Edge * edg : cuttingEdges )
+//	for( Edge * edg : m_d_cuttingEdges )
 //	{
 //		if( edg == nullptr )
 //		{
@@ -1964,9 +2060,9 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 
 	IndexType numEndingCrossingClefts = 0;
 
-	std::vector<Face*> endingCrossingCleftFaces;
+	std::vector<Face*> m_d_endingCrossingCleftFaces;
 
-	std::vector<Vertex*> endingCrossingCleftVrtcs;
+	std::vector<Vertex*> m_d_endingCrossingCleftVrtcs;
 
 
 //	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
@@ -2068,8 +2164,8 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 						{
 //							m_sh.assign_subset(fac,m_sh.num_subsets());
 							numEndingCrossingClefts++;
-							endingCrossingCleftFaces.push_back(fac);
-							endingCrossingCleftVrtcs.push_back(vrt);
+							m_d_endingCrossingCleftFaces.push_back(fac);
+							m_d_endingCrossingCleftVrtcs.push_back(vrt);
 							// TODO FIXME vielleicht eine Klasse, wo die Faces und Vertices einer
 							// jeweiligen ending Crossing Cleft Stelle zusammengefasst werden?
 							// statt unabhängige Listen? gemeinsame Liste?
@@ -2093,13 +2189,13 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 
 	// debug for ending crossing clefts
 
-	for( Face * fac : endingCrossingCleftFaces )
+	for( Face * fac : m_d_endingCrossingCleftFaces )
 	{
 		m_sh.assign_subset( fac, m_sh.num_subsets());
 
 	}
 
-	for( Vertex * vrt : endingCrossingCleftVrtcs )
+	for( Vertex * vrt : m_d_endingCrossingCleftVrtcs )
 	{
 		m_sh.assign_subset( vrt, m_sh.num_subsets());
 	}
@@ -2129,9 +2225,9 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 
 	IndexType numEndingCrossingClefts = 0;
 
-	std::vector<Face*> endingCrossingCleftFaces;
+	std::vector<Face*> m_d_endingCrossingCleftFaces;
 
-	std::vector<Vertex*> endingCrossingCleftVrtcs;
+	std::vector<Vertex*> m_d_endingCrossingCleftVrtcs;
 
 //	UG_THROW("KÄSE" << std::endl);
 
@@ -2166,8 +2262,8 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 						{
 //							m_sh.assign_subset(fac,m_sh.num_subsets());
 							numEndingCrossingClefts++;
-							endingCrossingCleftFaces.push_back(fac);
-							endingCrossingCleftVrtcs.push_back(vrt);
+							m_d_endingCrossingCleftFaces.push_back(fac);
+							m_d_endingCrossingCleftVrtcs.push_back(vrt);
 							// TODO FIXME vielleicht eine Klasse, wo die Faces und Vertices einer
 							// jeweiligen ending Crossing Cleft Stelle zusammengefasst werden?
 							// statt unabhängige Listen? gemeinsame Liste?
@@ -2183,11 +2279,11 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 
 	}
 
-	// TODO FIXME endingCrossingCleftVrtcs 	endingCrossingCleftFaces globale member vielleicht?
+	// TODO FIXME m_d_endingCrossingCleftVrtcs 	m_d_endingCrossingCleftFaces globale member vielleicht?
 
 #if 0
 //	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); iterV++ )
-	for( Vertex * vrt : endingCrossingCleftVrtcs )
+	for( Vertex * vrt : m_d_endingCrossingCleftVrtcs )
 	{
 //		Vertex * vrt = *iterV;
 
@@ -2219,7 +2315,7 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 						Edge * freeEdge = nullptr;
 						Edge * boundedEdge = nullptr;
 
-						for( Face * eccf : endingCrossingCleftFaces )
+						for( Face * eccf : m_d_endingCrossingCleftFaces )
 						{
 							if( FaceContains( eccf, vrt ) )
 							{
@@ -2259,13 +2355,13 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 
 	// debug for ending crossing clefts
 
-	for( Face * fac : endingCrossingCleftFaces )
+	for( Face * fac : m_d_endingCrossingCleftFaces )
 	{
 		m_sh.assign_subset( fac, m_sh.num_subsets());
 
 	}
 
-	for( Vertex * vrt : endingCrossingCleftVrtcs )
+	for( Vertex * vrt : m_d_endingCrossingCleftVrtcs )
 	{
 		m_sh.assign_subset( vrt, m_sh.num_subsets());
 	}

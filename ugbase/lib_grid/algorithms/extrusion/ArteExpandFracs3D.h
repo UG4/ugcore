@@ -414,20 +414,24 @@ private:
 								   Edge * & commonEdge
 								  );
 
-	std::vector<Face*> endingCrossingCleftFaces;
+	std::vector<Face*> m_d_endingCrossingCleftFaces;
 
-	std::vector<Vertex*> endingCrossingCleftVrtcs;
+	std::vector<Vertex*> m_d_endingCrossingCleftVrtcs;
 
-	std::vector<Edge*> cuttingEdges;
-	std::vector<Face*> crossingNeighboredNotEndingFaces;
-	std::vector<Face*> crossingNeighboredNotEndingFacesCommEdg;
+	std::vector<Edge*> m_d_cuttingEdges;
+	std::vector<Face*> m_d_crossingNeighboredNotEndingFaces;
+	std::vector<Face*> m_d_crossingNeighboredNotEndingFacesCommEdg;
 
 //	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
 //	std::vector<Face*> nextFaceOfCrossingNotEndingFaces;
 
-	std::vector<Face*> notEndingCrossingFacesNotNeighbour;
+	std::vector<Face*> m_d_notEndingCrossingFacesNotNeighbour;
+	std::vector<Edge*> m_d_allContributingEdges;
 
 	void assignDebugSubsets();
+
+	bool splitEdgesOfNeighboredEndingCrossingFracVrtcs();
+
 
 	using EndingCrossingFractureSegmentInfo = support::EndingCrossingFractSegmentInfo<Volume*, Face*, Edge*, Vertex* >;
 

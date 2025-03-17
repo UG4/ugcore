@@ -2159,6 +2159,17 @@ class EndingCrossingFractSegmentInfo
 {
 public:
 
+	// TODO FIXME
+	// wenn zwei an Kreuzungen endende Klüfte nur eine edge voneinander entfernt sind
+	// dann ist ein edge split an allen Ecken notwendig, die die beiden Problemzonen
+	// miteinander verbinden
+	// eventuell muss man danach die ganze Prozedur nochmal von vorne anfangen
+	// alternativ überlegen, ob man solche Punkte schon vor allen Segmentbildungen
+	// heraus filtern kann, etwa mit der altmodischen Art und Weise, wie anfangs,
+	// mit Loops über die Fracture faces...... um mindestens diese Stellen zu finden.....
+	// und gleich ein split edge an allen notwendigen Verbindungen durch zu führen.....
+	// hätte man die alte Methode vielleicht behalten sollen.......
+
 	EndingCrossingFractSegmentInfo(
 									VRTXTYP const & vrt,
 									MANIFEL const & endingFractManifCutting,
