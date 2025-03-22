@@ -286,9 +286,19 @@ bool ArteExpandFracs3D::run()
 
 ////////////////////////////////////////////////
 
-ArteExpandFracs3D::IndexType ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
+bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
 {
-	IndexType numberSplittedEdges = 0;
+//	IndexType numberSplittedEdges = 0;
+
+	// TODO FIXME vergleichen, was bei den debug Ecken alles an Randvertizes ist, und was bei
+	// den hochstehenden Edges für Randvertizes sind, ob da was verloren gegangen ist
+	// oder ob bei den modernen SegmentEnding Infos was fehlt an Vertizes.....
+	// angefangen mit dem simplen Beispiel!
+	// wenn das klappt, können die debug m_d_ Variablen entfernt werden.....
+
+	UG_LOG("NUMBER EDGES DIRECT " << m_vecEdgeDirectConnectingEndingCrossCleftVrtcs.size() << std::endl );
+
+	UG_LOG("NUMBER VERTICES FRAC SEGMENTS " << m_vecEndCrossFractSegmInfo.size() << std::endl );
 
 	for( Edge * edg : m_vecEdgeDirectConnectingEndingCrossCleftVrtcs )
 	{
@@ -296,7 +306,7 @@ ArteExpandFracs3D::IndexType ArteExpandFracs3D::splitEdgesOfNeighboredEndingCros
 		UG_LOG("trying to split edge " << CalculateCenter( edg, m_aaPos ) << std::endl);
 
 		UG_LOG("E VERTEX ONE " << m_aaPos[ edg->vertex(0) ] << std::endl);
-		UG_LOG("E VERTEX ONE " << m_aaPos[ edg->vertex(1) ] << std::endl);
+		UG_LOG("E VERTEX TWO " << m_aaPos[ edg->vertex(1) ] << std::endl);
 
 		for( EndingCrossingFractureSegmentInfo const & ecfsiOne : m_vecEndCrossFractSegmInfo )
 		{
@@ -327,31 +337,45 @@ ArteExpandFracs3D::IndexType ArteExpandFracs3D::splitEdgesOfNeighboredEndingCros
 
 						UG_LOG("Edge splitted, please restart process with the thus changed geometry" << std::endl);
 
+						return true;
 
 					}
+
 				}
+
 			}
+
 
 		}
 	}
 
-	if( numberSplittedEdges > 0 )
-		UG_LOG("Edge splitted, please restart process with the thus changed geometry, new edges " << numberSplittedEdges << std::endl);
+	return false;
 
-	return numberSplittedEdges;
+//	if( numberSplittedEdges > 0 )
+//		UG_LOG("Edge splitted, please restart process with the thus changed geometry, new edges " << numberSplittedEdges << std::endl);
+//
+//	return numberSplittedEdges;
 
 	// TODO FIXME das ganze nochmal mit dem Debug Zeug
 
-
-
-//	suse = m_sh.num_subsets();
+//	UG_LOG("DEBUG" << std::endl);
+//
+//	int suse = m_sh.num_subsets();
 //
 //	for( Edge * edg : m_d_allContributingEdges )
 //	{
+//		UG_LOG("E VERTEX ONE " << m_aaPos[ edg->vertex(0) ] << std::endl);
+//		UG_LOG("E VERTEX TWO " << m_aaPos[ edg->vertex(1) ] << std::endl);
+//
 //		for( Vertex * vrtOne : m_d_endingCrossingCleftVrtcs )
 //		{
+//			UG_LOG("V ONE " << m_aaPos[vrtOne] << std::endl);
+//
 //			for( Vertex * vrtTwo : m_d_endingCrossingCleftVrtcs )
 //			{
+//
+//				UG_LOG("V Two " << m_aaPos[vrtTwo] << std::endl);
+//
 //				if( vrtOne != vrtTwo )
 //				{
 //					if( EdgeContains(edg, vrtOne) && EdgeContains( edg, vrtTwo) )
@@ -367,7 +391,7 @@ ArteExpandFracs3D::IndexType ArteExpandFracs3D::splitEdgesOfNeighboredEndingCros
 //
 //						UG_LOG("Edge splitted, please restart process with the thus changed geometry" << std::endl);
 //
-//						return true;
+//						return 1;
 //
 //					}
 //				}
@@ -375,6 +399,8 @@ ArteExpandFracs3D::IndexType ArteExpandFracs3D::splitEdgesOfNeighboredEndingCros
 //
 //		}
 //	}
+//
+//	return 0;
 //
 //	return false;
 
@@ -2016,13 +2042,11 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 					m_d_allContributingEdges.push_back(epU.first);
 					m_d_allContributingEdges.push_back(epU.second);
 
+					addElem( m_vecEdgeDirectConnectingEndingCrossCleftVrtcs, epU.first );
+					addElem( m_vecEdgeDirectConnectingEndingCrossCleftVrtcs, epU.second );
+
 					for( SegLimSidesFractFace const & slsffClos : vecSegmLimSiFFClosed )
 					{
-						EdgePair const & epC = slsffClos.getPairLowElm();
-
-						m_d_allContributingEdges.push_back(epC.first);
-						m_d_allContributingEdges.push_back(epC.second);
-
 						// we need different subdoms, as want to have the not ending crossing fracture neighbours
 						// that have a common edge
 						Edge * commonEdge = nullptr;
@@ -2118,6 +2142,15 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 				for( SegLimSidesFractFace const & slsffClos : vecSegmLimSiFFClosed )
 				{
 					Face * facClos = slsffClos.getManifElm();
+
+					EdgePair const & epC = slsffClos.getPairLowElm();
+
+					m_d_allContributingEdges.push_back(epC.first);
+					m_d_allContributingEdges.push_back(epC.second);
+
+					addElem( m_vecEdgeDirectConnectingEndingCrossCleftVrtcs, epC.first );
+					addElem( m_vecEdgeDirectConnectingEndingCrossCleftVrtcs, epC.second );
+
 
 					IndexType sudoClos = slsffClos.getSudo();
 
@@ -2250,8 +2283,6 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				Edge * oldLowDimElCut = vecContCuttingEdges[0];
 
-				m_vecEdgeDirectConnectingEndingCrossCleftVrtcs.push_back(oldLowDimElCut);
-
 				UG_LOG("Pushing back Edge" << std::endl);
 
 				if(  vecClosedFracFacNoNeighbr.size() + vecNeighbouredFacesClosedFract.size()
@@ -2290,7 +2321,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 //	if( m_d_endingCrossingCleftVrtcs.size() == 0 )
 //		return true;
 
-	if( splitEdgesOfNeighboredEndingCrossingFracVrtcs() > 0 )
+	if( splitEdgesOfNeighboredEndingCrossingFracVrtcs() )
 	{
 		UG_LOG("needed to split, please restart with this geometry" << std::endl);
 		return false;

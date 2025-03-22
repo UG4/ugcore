@@ -429,7 +429,7 @@ private:
 
 	void assignDebugSubsets();
 
-	IndexType splitEdgesOfNeighboredEndingCrossingFracVrtcs();
+	bool splitEdgesOfNeighboredEndingCrossingFracVrtcs();
 
 
 	using EndingCrossingFractureSegmentInfo = support::EndingCrossingFractSegmentInfo<Volume*, Face*, Edge*, Vertex*, IndexType >;
