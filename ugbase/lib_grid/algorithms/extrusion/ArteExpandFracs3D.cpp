@@ -121,7 +121,17 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_accsAttVecSegVolElmInfo( Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo>() ),
 	  m_attVecSegmLimSid(AttVecSegmLimSid()),
 	  m_vrtxAttAccsVecSegmLimSid(Grid::VertexAttachmentAccessor<AttVecSegmLimSid>()),
-	  m_vecEndCrossFractSegmInfo( VecEndingCrossingFractureSegmentInfo() )
+	  m_vecEdgeDirectConnectingEndingCrossCleftVrtcs( std::vector<Edge* >() ),
+	  m_vecEndCrossFractSegmInfo( VecEndingCrossingFractureSegmentInfo() ),
+//	  m_vecEndCrossFractSegmInfo(VecEndingCrossingFractureSegmentInfo()),
+	  m_attAtVrtxVecEndingCrossFractSegmInfo(AttVecEndingCrossingFractureSegmentInfo()),
+	  m_vrtxAttAccsVecEndingCrossFractSegmInfo(Grid::VertexAttachmentAccessor<AttVecEndingCrossingFractureSegmentInfo>()),
+//	  m_attAtVrtxIfVrtxIsEndingCrossingCleftVrtx(ABool()),
+//	  m_vrtxAttAccsVrtxIsEndingCrossingCleftVrtx(Grid::VertexAttachmentAccessor<ABool>()),
+	  m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft(ABool()),
+	  m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_attAtVolIfVolTouchesEndingCrossingCleft(ABool()),
+	  m_volAttAccsVolTouchesEndingCrossingCleft(Grid::VolumeAttachmentAccessor<ABool>())
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -276,21 +286,37 @@ bool ArteExpandFracs3D::run()
 
 ////////////////////////////////////////////////
 
-bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
+ArteExpandFracs3D::IndexType ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
 {
-	int suse = m_sh.num_subsets();
+	IndexType numberSplittedEdges = 0;
 
-	for( Edge * edg : m_d_allContributingEdges )
+	for( Edge * edg : m_vecEdgeDirectConnectingEndingCrossCleftVrtcs )
 	{
-		for( Vertex * vrtOne : m_d_endingCrossingCleftVrtcs )
+
+		UG_LOG("trying to split edge " << CalculateCenter( edg, m_aaPos ) << std::endl);
+
+		UG_LOG("E VERTEX ONE " << m_aaPos[ edg->vertex(0) ] << std::endl);
+		UG_LOG("E VERTEX ONE " << m_aaPos[ edg->vertex(1) ] << std::endl);
+
+		for( EndingCrossingFractureSegmentInfo const & ecfsiOne : m_vecEndCrossFractSegmInfo )
 		{
-			for( Vertex * vrtTwo : m_d_endingCrossingCleftVrtcs )
+			Vertex * vrtOne = ecfsiOne.spuckUnclosedVrtx();
+
+			UG_LOG("V ONE " << m_aaPos[vrtOne] << std::endl);
+
+			for( EndingCrossingFractureSegmentInfo const & ecfsiTwo : m_vecEndCrossFractSegmInfo )
 			{
+				Vertex * vrtTwo = ecfsiTwo.spuckUnclosedVrtx();
+
+				UG_LOG("V TWO " << m_aaPos[vrtTwo] << std::endl);
+
 				if( vrtOne != vrtTwo )
 				{
 					if( EdgeContains(edg, vrtOne) && EdgeContains( edg, vrtTwo) )
 					{
 						UG_LOG("Edge needs to be splitted" << std::endl);
+
+						int suse = m_sh.num_subsets();
 
 						m_sh.assign_subset( edg, suse );
 
@@ -301,7 +327,6 @@ bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
 
 						UG_LOG("Edge splitted, please restart process with the thus changed geometry" << std::endl);
 
-						return true;
 
 					}
 				}
@@ -310,7 +335,48 @@ bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
 		}
 	}
 
-	return false;
+	if( numberSplittedEdges > 0 )
+		UG_LOG("Edge splitted, please restart process with the thus changed geometry, new edges " << numberSplittedEdges << std::endl);
+
+	return numberSplittedEdges;
+
+	// TODO FIXME das ganze nochmal mit dem Debug Zeug
+
+
+
+//	suse = m_sh.num_subsets();
+//
+//	for( Edge * edg : m_d_allContributingEdges )
+//	{
+//		for( Vertex * vrtOne : m_d_endingCrossingCleftVrtcs )
+//		{
+//			for( Vertex * vrtTwo : m_d_endingCrossingCleftVrtcs )
+//			{
+//				if( vrtOne != vrtTwo )
+//				{
+//					if( EdgeContains(edg, vrtOne) && EdgeContains( edg, vrtTwo) )
+//					{
+//						UG_LOG("Edge needs to be splitted" << std::endl);
+//
+//						m_sh.assign_subset( edg, suse );
+//
+//						vector3 center = CalculateCenter(edg, m_aaPos);
+//						UG_LOG("splitting ECCV edge at " << center << std::endl);
+//						RegularVertex* vrtSE = SplitEdge<RegularVertex>(m_grid, edg, false);
+//						m_aaPos[vrtSE] = center;
+//
+//						UG_LOG("Edge splitted, please restart process with the thus changed geometry" << std::endl);
+//
+//						return true;
+//
+//					}
+//				}
+//			}
+//
+//		}
+//	}
+//
+//	return false;
 
 }
 
@@ -318,14 +384,131 @@ bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
 
 void ArteExpandFracs3D::assignDebugSubsets()
 {
+	std::vector<Face*> d_endingCrossingCleftFaces;
+	std::vector<Face*> d_endingCrossingCleftFacesNoCut;
+	std::vector<Vertex*> d_endingCrossingCleftVrtcs;
+	std::vector<Edge*> d_cuttingEdges;
+	std::vector<Face*> d_crossingNeighboredNotEndingFaces;
+	std::vector<Face*> d_crossingNeighboredNotEndingFacesCommEdg;
+	std::vector<Face*> d_notEndingCrossingFacesNotNeighbour;
+	std::vector<Volume*> d_vols;
 
+	for( EndingCrossingFractureSegmentInfo const & ecfsi : m_vecEndCrossFractSegmInfo )
+	{
+		Vertex * vrt = ecfsi.spuckUnclosedVrtx();
+
+		d_endingCrossingCleftVrtcs.push_back(vrt);
+
+		std::vector<Face*> vecClosFracFacNoNeig = ecfsi.spuckVecClosedFracManifElNoNeighbr();
+
+		for( Face * fac : vecClosFracFacNoNeig )
+		{
+			d_crossingNeighboredNotEndingFaces.push_back(fac);
+		}
+
+		Face * endingFacCut = ecfsi.spuckEndingFractManifCutting();
+
+		d_endingCrossingCleftFaces.push_back(endingFacCut);
+
+		Face * endingFacNoCut = ecfsi.spuckEndingFractManifNotCutting();
+
+		if( endingFacNoCut != nullptr )
+		{
+			d_endingCrossingCleftFacesNoCut.push_back(endingFacNoCut);
+		}
+
+		Edge * cutEdge = ecfsi.spuckOldLowDimElCut();
+
+		d_cuttingEdges.push_back(cutEdge);
+
+		std::pair<Face*,Face*> const & neighrdFacsClos = ecfsi.spuckPairNeighbouredFractClosedManifEl();
+
+		d_crossingNeighboredNotEndingFacesCommEdg.push_back(neighrdFacsClos.first);
+		d_crossingNeighboredNotEndingFacesCommEdg.push_back(neighrdFacsClos.second);
+
+		std::vector<Volume*> vols = ecfsi.spuckVecFulldimEl();
+
+		for( Volume * v : vols )
+		{
+			d_vols.push_back(v);
+		}
+
+	}
+
+	int suse = m_sh.num_subsets();
+
+	for( Face * fac : d_endingCrossingCleftFaces )
+	{
+		m_sh.assign_subset( fac, suse );
+
+	}
+
+	suse = m_sh.num_subsets();
+
+	for( Face * fac : d_endingCrossingCleftFacesNoCut )
+	{
+		m_sh.assign_subset( fac, suse );
+
+	}
+
+	suse = m_sh.num_subsets();
+
+	for( Vertex * vrt : d_endingCrossingCleftVrtcs )
+	{
+		m_sh.assign_subset( vrt, suse );
+	}
+
+	suse = m_sh.num_subsets();
+
+	for( Edge * edg : d_cuttingEdges )
+	{
+		if( edg == nullptr )
+		{
+			UG_LOG("NULL UNERLAUBT" << std::endl);
+			UG_THROW("NULL UNERLAUBT" << std::endl);
+		}
+
+		m_sh.assign_subset( edg, suse );
+
+	}
+
+
+	suse = m_sh.num_subsets();
+
+	for( Face * fac : d_crossingNeighboredNotEndingFaces )
+	{
+		m_sh.assign_subset( fac, suse );
+	}
+
+	suse = m_sh.num_subsets();
+
+	for( Face * fac : d_notEndingCrossingFacesNotNeighbour )
+	{
+		m_sh.assign_subset( fac, suse );
+	}
+
+	suse = m_sh.num_subsets();
+
+	for( Face * fac : d_crossingNeighboredNotEndingFacesCommEdg )
+	{
+		m_sh.assign_subset( fac, suse );
+	}
+
+	suse = m_sh.num_subsets();
+
+	for( Volume * v : d_vols )
+	{
+		m_sh.assign_subset( v, suse );
+	}
+
+	return;
 
 //	if( numEndingCrossingClefts == 0 )
 //		return true;
 
 	// debug for ending crossing clefts
 
-	int suse = m_sh.num_subsets();
+	suse = m_sh.num_subsets();
 
 	for( Face * fac : m_d_endingCrossingCleftFaces )
 	{
@@ -627,6 +810,33 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	m_vrtxAttAccsVecSegmLimSid = Grid::VertexAttachmentAccessor<AttVecSegmLimSid>( m_grid, m_attVecSegmLimSid );
 
+	VecEndingCrossingFractureSegmentInfo emptyVECFSI;
+
+	m_attAtVrtxVecEndingCrossFractSegmInfo = AttVecEndingCrossingFractureSegmentInfo();
+
+	m_grid.attach_to_vertices_dv( m_attAtVrtxVecEndingCrossFractSegmInfo, emptyVECFSI );
+
+	m_vrtxAttAccsVecEndingCrossFractSegmInfo = Grid::VertexAttachmentAccessor<AttVecEndingCrossingFractureSegmentInfo>( m_grid, m_attAtVrtxVecEndingCrossFractSegmInfo );
+
+//	m_attAtVrtxIfVrtxIsEndingCrossingCleftVrtx = ABool();
+//
+//	m_grid.attach_to_vertices_dv( m_attAtVrtxIfVrtxIsEndingCrossingCleftVrtx, false );
+//
+//	m_vrtxAttAccsVrtxIsEndingCrossingCleftVrtx = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_attAtVrtxIfVrtxIsEndingCrossingCleftVrtx );
+
+	m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft = ABool();
+
+	m_grid.attach_to_faces_dv( m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft, false );
+
+	m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft );
+
+	m_attAtVolIfVolTouchesEndingCrossingCleft = ABool();
+
+	m_grid.attach_to_volumes_dv( m_attAtVolIfVolTouchesEndingCrossingCleft, false );
+
+	m_volAttAccsVolTouchesEndingCrossingCleft = Grid::VolumeAttachmentAccessor<ABool>( m_grid, m_attAtVolIfVolTouchesEndingCrossingCleft );
+
+
 	return true;
 }
 
@@ -657,6 +867,15 @@ bool ArteExpandFracs3D::detachMarkers()
 	m_grid.detach_from_vertices( m_attAdjVecSegVolElmInfo );
 
 	m_grid.detach_from_vertices( m_attVecSegmLimSid );
+
+	m_grid.detach_from_vertices( m_attAtVrtxVecEndingCrossFractSegmInfo );
+
+//	m_grid.detach_from_vertices( m_attAtVrtxIfVrtxIsEndingCrossingCleftVrtx );
+
+	m_grid.detach_from_faces( m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft );
+
+	m_grid.detach_from_volumes( m_attAtVolIfVolTouchesEndingCrossingCleft );
+
 
 	return true;
 }
@@ -1068,13 +1287,13 @@ int ArteExpandFracs3D::splitInnerFreeFracEdgs()
 //////////////////////////////////////////////////////////////////
 
 template<typename ELEMTYP>
-bool ArteExpandFracs3D::addElem(std::vector<ELEMTYP> & elemToBeSplitted, ELEMTYP elem )
+bool ArteExpandFracs3D::addElem(std::vector<ELEMTYP> & knownElems, ELEMTYP elemToAdd )
 {
 	bool unknown = true;
 
-	for( ELEMTYP edgKnown : elemToBeSplitted )
+	for( ELEMTYP elmKnown : knownElems )
 	{
-		if( elem == edgKnown )
+		if( elemToAdd == elmKnown )
 		{
 			unknown = false;
 			break;
@@ -1082,7 +1301,7 @@ bool ArteExpandFracs3D::addElem(std::vector<ELEMTYP> & elemToBeSplitted, ELEMTYP
 	}
 
 	if( unknown )
-		elemToBeSplitted.push_back(elem);
+		knownElems.push_back(elemToAdd);
 
 	return unknown;
 
@@ -1674,8 +1893,11 @@ bool ArteExpandFracs3D::distinguishSegments()
 
 //////////////////////////////////////////////////////////////////
 
+
 bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 {
+
+	m_vecEdgeDirectConnectingEndingCrossCleftVrtcs = std::vector<Edge*>();
 
 	// TODO FIXME eigene Klasse erzeugen, die die ganzen Infos an endenden Klüften speichert, wo sich
 	// zwei Klüfte kreuzen
@@ -1700,7 +1922,6 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
 	{
-
 		Vertex* vrt = *iter;
 
 		VecSegmentLimitingSides & vecSegmLimSid = m_vrtxAttAccsVecSegmLimSid[vrt];
@@ -1724,7 +1945,23 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 			{
 				numEndingCrossingClefts++;
 
-				m_d_endingCrossingCleftVrtcs.push_back( segLimSids.spuckVertex() );
+				std::vector<Volume*> volsOfUnclosedSegm;
+
+				if( ! segLimSids.spuckVecFulldimElem(volsOfUnclosedSegm) )
+				{
+					UG_LOG("No volumes at segment with ending cleft" << std::endl);
+					UG_THROW("No volumes at segment with ending cleft" << std::endl);
+					return false;
+				}
+
+				for( Volume * vol : volsOfUnclosedSegm )
+				{
+					m_volAttAccsVolTouchesEndingCrossingCleft[vol] = true;
+				}
+
+				Vertex * endingCrossingCleftVrtx = segLimSids.spuckVertex();
+
+				m_d_endingCrossingCleftVrtcs.push_back( endingCrossingCleftVrtx );
 
 				UG_LOG("vertex gefunden an ending crossing cleft " << std::endl);
 
@@ -1745,11 +1982,34 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				UG_LOG("Faces suchen an ending crossing cleft " << std::endl);
 
+//				Face * endingFractManifCutting = nullptr;
+//				Face * endingFractManifNotCutting = nullptr;
+//				Edge * oldLowDimElCut = nullptr;
+//				std::pair<Face*,Face*> pairNeighbouredFractClosedManifEl(nullptr,nullptr);
+//				IndexType sudoFractEnding = std::numeric_limits<IndexType>::max();
+//				IndexType sudoFractNotEnding = std::numeric_limits<IndexType>::max();
+
+				std::vector<Face*> vecEndingFractFaceCutting; // must have size two after been filled but both same content
+				std::vector<Face*> vecEndingFractFaceNotCutting; // must have size maximum two same content both, or zero
+				std::vector<Face*> vecNeighbouredFacesClosedFract; // must have size 2
+
+				std::vector<IndexType> vecSudoFractFacsEnding; // must be filled with same number
+				std::vector<IndexType> vecSudoFractFacsNotEnding; // must be filled with same number
+
+				std::vector<Edge*> vecCuttingEdges; // must contain only same element, twice
+
+				UG_LOG("size of vec segm unclos " << vecSegmLimSiFFUnclosed.size() << std::endl);
+
 				for( SegLimSidesFractFace const & slsffUncl : vecSegmLimSiFFUnclosed )
 				{
+					bool isCuttingTheClosed = false;
+
 					Face * facUncl = slsffUncl.getManifElm();
 					m_d_endingCrossingCleftFaces.push_back(facUncl);
 					m_aaMarkFaceWithEndingCrossingCleft[facUncl] = true;
+
+					IndexType sudoUncl = slsffUncl.getSudo();
+					vecSudoFractFacsEnding.push_back(sudoUncl);
 
 					EdgePair const & epU = slsffUncl.getPairLowElm();
 
@@ -1763,13 +2023,14 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 						m_d_allContributingEdges.push_back(epC.first);
 						m_d_allContributingEdges.push_back(epC.second);
 
-
 						// we need different subdoms, as want to have the not ending crossing fracture neighbours
 						// that have a common edge
 						Edge * commonEdge = nullptr;
 
 						if( fractFacesAreNeighboured<false>( slsffClos, slsffUncl, commonEdge ) )
 						{
+							isCuttingTheClosed = true;
+
 							Face * facClos = slsffClos.getManifElm();
 							m_d_crossingNeighboredNotEndingFaces.push_back( facClos );
 
@@ -1783,8 +2044,13 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 							m_d_crossingNeighboredNotEndingFacesCommEdg.push_back(facUncl);
 //							// search the durchgehende fracture face which is neighboured to the durchgehende one
 //							// same vertex, other edge
-//
-//							EdgePair const & edgesClosedFracFace = slsffClos.getPairLowElm();
+
+							vecNeighbouredFacesClosedFract.push_back(facClos);
+							vecCuttingEdges.push_back(commonEdge);
+							vecEndingFractFaceCutting.push_back(facUncl);
+
+
+							//							EdgePair const & edgesClosedFracFace = slsffClos.getPairLowElm();
 //
 //							Edge * notCommonEdgeOfNotEndingCleft = nullptr;
 //
@@ -1839,11 +2105,26 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 						}
 					}
 
+					if( ! isCuttingTheClosed )
+					{
+						vecEndingFractFaceNotCutting.push_back(facUncl);
+					}
+
 				}
+
+
+				std::vector<Face*> vecClosedFracFacNoNeighbr;
 
 				for( SegLimSidesFractFace const & slsffClos : vecSegmLimSiFFClosed )
 				{
 					Face * facClos = slsffClos.getManifElm();
+
+					IndexType sudoClos = slsffClos.getSudo();
+
+					vecSudoFractFacsNotEnding.push_back(sudoClos);
+
+					// valid for all closed faces
+					m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft[facClos] = true;
 
 					bool facGiven = false;
 
@@ -1859,11 +2140,143 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 					if( ! facGiven )
 					{
 						m_d_notEndingCrossingFacesNotNeighbour.push_back( facClos );
+						vecClosedFracFacNoNeighbr.push_back( facClos );
 					}
 				}
 
 
 				UG_LOG("Faces vielleicht gefunden an ending crossing cleft " << std::endl);
+
+				//				Face * endingFractManifCutting = nullptr;
+				//				Face * endingFractManifNotCutting = nullptr;
+				//				Edge * oldLowDimElCut = nullptr;
+				//				std::pair<Face*,Face*> pairNeighbouredFractClosedManifEl(nullptr,nullptr);
+				//				IndexType sudoFractEnding = std::numeric_limits<IndexType>::max();
+				//				IndexType sudoFractNotEnding = std::numeric_limits<IndexType>::max();
+
+				std::vector<Face*> vecContEndingFractFaceCutting; // must have size two after been filled but both same content
+				std::vector<Face*> vecContEndingFractFaceNotCutting; // must have size maximum two same content both, or zero
+				std::vector<Face*> vecContNeighbouredFacesClosedFract; // must have size 2
+
+
+				std::vector<IndexType> vecContSudoFractFacsEnding; // must be filled with same number
+				std::vector<IndexType> vecContSudoFractFacsNotEnding; // must be filled with same number
+
+				std::vector<Edge*> vecContCuttingEdges; // must contain only same element, twice
+
+				if( vecEndingFractFaceCutting.size() == 2 )
+				{
+					if( ! checkIfContentUnique( vecEndingFractFaceCutting, vecContEndingFractFaceCutting, 1 ) )
+					{
+						UG_THROW("Problem with cutting fac " << std::endl);
+					}
+				}
+				else
+				{
+					UG_THROW("Problem with cutting fac size " << std::endl);
+
+				}
+
+				Face * endingFractManifCutting = vecContEndingFractFaceCutting[0];
+
+				Face * endingFractManifNotCutting = nullptr;
+
+				if( vecEndingFractFaceNotCutting.size() != 0 )
+				{
+					if( vecEndingFractFaceNotCutting.size() == 1 )
+					{
+						if( ! checkIfContentUnique( vecEndingFractFaceNotCutting, vecContEndingFractFaceNotCutting, 1 ) )
+						{
+							UG_THROW("Problem with not cutting fac " << std::endl);
+						}
+
+						endingFractManifNotCutting = vecContEndingFractFaceNotCutting[0];
+
+					}
+					else
+					{
+						UG_THROW("Problem with not cutting fac size " << vecEndingFractFaceNotCutting.size() << std::endl);
+					}
+
+				}
+
+
+				if( vecNeighbouredFacesClosedFract.size() == 2  )
+				{
+					if( ! checkIfContentUnique( vecNeighbouredFacesClosedFract, vecContNeighbouredFacesClosedFract, 2 ) )
+					{
+						UG_THROW("Problem with neigh clos fac " << std::endl);
+					}
+
+				}
+				else
+				{
+					UG_THROW("Problem with neigh clos fac size " << std::endl);
+				}
+
+				std::pair<Face*,Face*> pairNeighbouredFractClosedManifEl( vecContNeighbouredFacesClosedFract[0],
+																		  vecContNeighbouredFacesClosedFract[1]
+																		 );
+
+
+				if(  ! checkIfContentUnique( vecSudoFractFacsEnding, vecContSudoFractFacsEnding, 1 ) )
+				{
+					UG_THROW("Problem with sudo ending " << std::endl);
+				}
+
+				IndexType sudoFractEnding = vecContSudoFractFacsEnding[0];
+
+				if(  ! checkIfContentUnique( vecSudoFractFacsNotEnding, vecContSudoFractFacsNotEnding, 1 ) )
+				{
+					UG_THROW("Problem with sudo not ending " << std::endl);
+				}
+
+
+				IndexType sudoFractNotEnding = vecContSudoFractFacsNotEnding[0];
+
+				if( vecCuttingEdges.size() == 2 )
+				{
+					if(  ! checkIfContentUnique( vecCuttingEdges, vecContCuttingEdges, 1 ) )
+					{
+						UG_THROW("Problem with edges unique " << std::endl);
+					}
+
+				}
+				else
+				{
+					UG_THROW("Problem with edges unique size " << std::endl);
+
+				}
+
+				Edge * oldLowDimElCut = vecContCuttingEdges[0];
+
+				m_vecEdgeDirectConnectingEndingCrossCleftVrtcs.push_back(oldLowDimElCut);
+
+				UG_LOG("Pushing back Edge" << std::endl);
+
+				if(  vecClosedFracFacNoNeighbr.size() + vecNeighbouredFacesClosedFract.size()
+					!=  vecSegmLimSiFFClosed.size()
+				)
+				{
+					UG_THROW("size sum clos not fit " << std::endl);
+				}
+
+				EndingCrossingFractureSegmentInfo ecfsi( vrt,
+													     endingFractManifCutting,
+													     endingFractManifNotCutting,
+														 oldLowDimElCut,
+														 pairNeighbouredFractClosedManifEl,
+														 sudoFractEnding,
+														 sudoFractNotEnding
+													    );
+
+				ecfsi.schluckVecClosedFracManifElNoNeighbr( vecClosedFracFacNoNeighbr );
+
+				ecfsi.schluckVecFulldimElm( volsOfUnclosedSegm );
+
+				m_vrtxAttAccsVecEndingCrossFractSegmInfo[vrt].push_back( ecfsi );
+
+				m_vecEndCrossFractSegmInfo.push_back( ecfsi );
 
 			}
 		}
@@ -1872,19 +2285,21 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
 
-	if( m_d_endingCrossingCleftVrtcs.size() == 0 )
-		return true;
+	UG_LOG("EDGES number " << m_vecEdgeDirectConnectingEndingCrossCleftVrtcs.size() << std::endl);
 
-	if( splitEdgesOfNeighboredEndingCrossingFracVrtcs() )
+//	if( m_d_endingCrossingCleftVrtcs.size() == 0 )
+//		return true;
+
+	if( splitEdgesOfNeighboredEndingCrossingFracVrtcs() > 0 )
 	{
 		UG_LOG("needed to split, please restart with this geometry" << std::endl);
 		return false;
 	}
 
-	return true;
+//	return true;
 
-	//	if( numEndingCrossingClefts == 0 )
-	//		return true;
+	if( numEndingCrossingClefts == 0 )
+			return true;
 
 	assignDebugSubsets();
 
@@ -1946,6 +2361,42 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 //
 //
 //	return false;
+}
+
+//////////////////////////////////////////////////////////////////
+
+template<typename ELMTYP>
+bool ArteExpandFracs3D::checkIfContentUnique( std::vector<ELMTYP> const & vecTest, std::vector<ELMTYP> & content, IndexType mandatoryDifferentElems )
+{
+	if( vecTest.size() == 0 )
+	{
+		UG_LOG("zero vector testing nonsense" << std::endl);
+		UG_THROW("zero vector testing nonsense" << std::endl);
+	}
+
+	std::vector<ELMTYP> vecTestCop = vecTest; // copy
+
+	while( vecTestCop.size() != 0 )
+	{
+		ELMTYP elmCont = vecTestCop[0];
+
+		content.push_back(elmCont);
+
+		for( typename std::vector<ELMTYP>::iterator itEl = vecTestCop.begin(); itEl != vecTestCop.end(); )
+		{
+			ELMTYP elmTest = *itEl;
+
+			if( elmCont == elmTest )
+			{
+				itEl = vecTestCop.erase(itEl);
+			}
+			else
+				++itEl;
+		}
+
+	}
+
+	return ( mandatoryDifferentElems == content.size() );
 }
 
 //////////////////////////////////////////////////////////////////
@@ -5907,6 +6358,12 @@ bool ArteExpandFracs3D::createNewElements()
 	std::vector<IndexType> subsOfNewVolumes;
 
 	VolumeDescriptor vd;
+
+	// beim Volumen fängt das Abfangen an, es muss abgefragt werden, ob das Volumen aus
+	// einem Segment ist, wo bisher falsch expandiert wird
+	// erst beim Face ab zu fangen ist viel zu spät TODO FIXME
+	// nicht zu vergessen, die Edges ordentlich sortiert zu sammeln, die zwei endende Vertizes enthalten,
+	// und dann zu splitten, wenn alle Attachements entfernt sind, dann Neustart anfordern mit neuer Geometrie
 
 	for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end();)
 	{

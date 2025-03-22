@@ -406,7 +406,7 @@ private:
 	int splitInnerFreeFracEdgs();
 
 	template<typename ELEMTYP>
-	bool addElem( std::vector<ELEMTYP> & elemsToBeSplitted, ELEMTYP elem );
+	bool addElem( std::vector<ELEMTYP> & knownElems, ELEMTYP elemToAdd );
 
 	template< bool FACES_HAVE_SAME_SUDO >
 	bool fractFacesAreNeighboured( SegLimSidesFractFace const & fractFaceOne,
@@ -415,29 +415,52 @@ private:
 								  );
 
 	std::vector<Face*> m_d_endingCrossingCleftFaces;
-
 	std::vector<Vertex*> m_d_endingCrossingCleftVrtcs;
-
 	std::vector<Edge*> m_d_cuttingEdges;
 	std::vector<Face*> m_d_crossingNeighboredNotEndingFaces;
 	std::vector<Face*> m_d_crossingNeighboredNotEndingFacesCommEdg;
-
 //	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
 //	std::vector<Face*> nextFaceOfCrossingNotEndingFaces;
-
 	std::vector<Face*> m_d_notEndingCrossingFacesNotNeighbour;
 	std::vector<Edge*> m_d_allContributingEdges;
 
+	// edges that connect two ending crossing cleft vertices directly, need to be splitted
+	std::vector<Edge *> m_vecEdgeDirectConnectingEndingCrossCleftVrtcs;
+
 	void assignDebugSubsets();
 
-	bool splitEdgesOfNeighboredEndingCrossingFracVrtcs();
+	IndexType splitEdgesOfNeighboredEndingCrossingFracVrtcs();
 
 
-	using EndingCrossingFractureSegmentInfo = support::EndingCrossingFractSegmentInfo<Volume*, Face*, Edge*, Vertex* >;
+	using EndingCrossingFractureSegmentInfo = support::EndingCrossingFractSegmentInfo<Volume*, Face*, Edge*, Vertex*, IndexType >;
 
 	using VecEndingCrossingFractureSegmentInfo = std::vector<EndingCrossingFractureSegmentInfo>;
 
+	// TODO FIXME all need to be initialized in constructor and attached and detached
+
 	VecEndingCrossingFractureSegmentInfo m_vecEndCrossFractSegmInfo;
+
+	using AttVecEndingCrossingFractureSegmentInfo = Attachment<VecEndingCrossingFractureSegmentInfo>;
+
+	AttVecEndingCrossingFractureSegmentInfo m_attAtVrtxVecEndingCrossFractSegmInfo;
+
+	Grid::VertexAttachmentAccessor<AttVecEndingCrossingFractureSegmentInfo> m_vrtxAttAccsVecEndingCrossFractSegmInfo;
+
+//	ABool m_attAtVrtxIfVrtxIsEndingCrossingCleftVrtx;
+//
+//	Grid::VertexAttachmentAccessor<ABool> m_vrtxAttAccsVrtxIsEndingCrossingCleftVrtx;
+
+	ABool m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft;
+
+	Grid::FaceAttachmentAccessor<ABool> m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft;
+
+	ABool m_attAtVolIfVolTouchesEndingCrossingCleft;
+
+	Grid::VolumeAttachmentAccessor<ABool> m_volAttAccsVolTouchesEndingCrossingCleft;
+
+	template<typename ELMTYP>
+	bool checkIfContentUnique( std::vector<ELMTYP> const & vecTest, std::vector<ELMTYP> & content, IndexType mandatoryDifferentElems );
+
 };
 
 // specification has to be declared outside central class context, else compilation error

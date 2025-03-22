@@ -1632,9 +1632,11 @@ public:
 		m_contribFulldimElm.push_back(fudielm);
 	}
 
-	void spuckVecFulldimElem( std::vector<FULLDIM_ELEM> & fudielm ) const
+	bool spuckVecFulldimElem( std::vector<FULLDIM_ELEM> & fudielm ) const
 	{
 		fudielm = m_contribFulldimElm;
+
+		return ( m_contribFulldimElm.size() != 0 );
 	}
 
 	VrtxFracStatus const spuckCrossingTyp() const
@@ -2153,7 +2155,8 @@ template
 typename FULLDIMEL,
 typename MANIFEL,
 typename LOWDIMEL,
-typename VRTXTYP
+typename VRTXTYP,
+typename INDEXTYP
 >
 class EndingCrossingFractSegmentInfo
 {
@@ -2170,27 +2173,180 @@ public:
 	// und gleich ein split edge an allen notwendigen Verbindungen durch zu führen.....
 	// hätte man die alte Methode vielleicht behalten sollen.......
 
-	EndingCrossingFractSegmentInfo(
-									VRTXTYP const & vrt,
+	using ManifelPair = std::pair<MANIFEL,MANIFEL>;
+
+	EndingCrossingFractSegmentInfo( VRTXTYP const & vrt,
 									MANIFEL const & endingFractManifCutting,
 									MANIFEL const & endingFractManifNotCutting,
 									LOWDIMEL const & oldLowDimElCut,
-									std::pair<MANIFEL,MANIFEL> const & pairNeighbouredFractClosedManifEl
+									ManifelPair const & pairNeighbouredFractClosedManifEl,
+									INDEXTYP sudoFractEnding,
+									INDEXTYP sudoFractNotEnding
 								  )
 	:
+		m_isEndingCleft(true),
 		m_unclosedVrtx(vrt),
 		m_endingFractManifCutting(endingFractManifCutting),
 		m_endingFractManifNotCutting(endingFractManifNotCutting),
 		m_pairNeighbouredFractClosedManifEl(pairNeighbouredFractClosedManifEl),
-		m_vecClosedFracManifEl(std::vector<MANIFEL>()),
+		m_vecClosedFracManifElNoNeighbr(std::vector<MANIFEL>()),
 		m_oldLowDimElCut( oldLowDimElCut ),
-		m_sudoFractEnding(-1),
-		m_sudoFractNotEnding(-1),
+		m_sudoFractEnding(sudoFractEnding),
+		m_sudoFractNotEnding(sudoFractNotEnding),
 		m_vecFulldimEl(std::vector<FULLDIMEL>())
 	{
 	};
 
+	template<   typename = std::enable_if< std::is_pointer<MANIFEL>::value>
+			>
+	// if there is no ending fract manif no cutting available
+	EndingCrossingFractSegmentInfo( VRTXTYP const & vrt,
+									MANIFEL const & endingFractManifCutting,
+									LOWDIMEL const & oldLowDimElCut,
+									ManifelPair const & pairNeighbouredFractClosedManifEl,
+									int sudoFractEnding,
+									int sudoFractNotEnding
+								  )
+	:
+		m_isEndingCleft(true),
+		m_unclosedVrtx(vrt),
+		m_endingFractManifCutting(endingFractManifCutting),
+		m_endingFractManifNotCutting(nullptr),
+		m_pairNeighbouredFractClosedManifEl(pairNeighbouredFractClosedManifEl),
+		m_vecClosedFracManifElNoNeighbr(std::vector<MANIFEL>()),
+		m_oldLowDimElCut( oldLowDimElCut ),
+		m_sudoFractEnding(sudoFractEnding),
+		m_sudoFractNotEnding(sudoFractNotEnding),
+		m_vecFulldimEl(std::vector<FULLDIMEL>())
+	{
+	};
+
+	template<   typename = std::enable_if< std::is_pointer<MANIFEL>::value>,
+				typename = std::enable_if< std::is_pointer<LOWDIMEL>::value>,
+				typename = std::enable_if< std::is_pointer<VRTXTYP>::value>,
+				typename = std::enable_if< std::is_integral<INDEXTYP>::value>
+			>
+	// if there is no ending fract manif no cutting available
+	EndingCrossingFractSegmentInfo()
+	:
+		m_isEndingCleft(false),
+		m_unclosedVrtx(nullptr),
+		m_endingFractManifCutting(nullptr),
+		m_endingFractManifNotCutting(nullptr),
+		m_pairNeighbouredFractClosedManifEl(ManifelPair(nullptr,nullptr)),
+		m_vecClosedFracManifElNoNeighbr(std::vector<MANIFEL>()),
+		m_oldLowDimElCut( nullptr ),
+		m_sudoFractEnding(std::numeric_limits<INDEXTYP>::max()),
+		m_sudoFractNotEnding(std::numeric_limits<INDEXTYP>::max()),
+		m_vecFulldimEl(std::vector<FULLDIMEL>())
+	{
+	};
+
+	bool isEndingCleft() { return m_isEndingCleft; }
+
+	// schluck
+
+	bool schluckClosedFracManifElNoNeighbr( MANIFEL const & closFracME )
+	{
+		return schluckElem( closFracME, m_vecClosedFracManifElNoNeighbr );
+
+	}
+
+	bool schluckVecClosedFracManifElNoNeighbr( std::vector<MANIFEL> const & vecClosFracME )
+	{
+		return schluckVecElem( vecClosFracME, m_vecClosedFracManifElNoNeighbr );
+	}
+
+	bool schluckFulldimElm( FULLDIMEL const & fuDiEl )
+	{
+		return schluckElem( fuDiEl, m_vecFulldimEl );
+	}
+
+	bool schluckVecFulldimElm( std::vector<FULLDIMEL> const & vecFuDiEl )
+	{
+		return schluckVecElem( vecFuDiEl, m_vecFulldimEl );
+	}
+
+	// spuck
+
+//	bool spuckUnclosedVrtx( VRTXTYP & vrt )
+//	{
+//		vrt = m_unclosedVrtx;
+//		return true;
+//	}
+//
+//	bool spuckVecClosedFracManifElNoNeighbr( std::vector<MANIFEL> & vecClosFracManifEl )
+//	{
+//		vecClosFracManifEl = m_vecClosedFracManifElNoNeighbr;
+//
+//		return (m_vecClosedFracManifElNoNeighbr.size() != 0 );
+//	}
+//
+//	bool spuckEndingFractManifCutting( MANIFEL & endingFractManifCutting )
+//	{
+//		endingFractManifCutting = m_endingFractManifCutting;
+//		return true;
+//	}
+//
+//	bool spuckEndingFractManifNotCutting( MANIFEL & efmnc )
+//	{
+//		efmnc = m_endingFractManifNotCutting;
+//		return true;
+//	}
+//
+//	bool spuckOldLowDimElCut( LOWDIMEL & ldec )
+//	{
+//		ldec = m_oldLowDimElCut;
+//		return true;
+//	}
+//
+//	bool spuckPairNeighbouredFractClosedManifEl( ManifelPair & neighFracClosME )
+//	{
+//		neighFracClosME = m_pairNeighbouredFractClosedManifEl;
+//		return true;
+//	}
+
+	VRTXTYP const spuckUnclosedVrtx() const
+	{
+		return m_unclosedVrtx;
+	}
+
+	std::vector<MANIFEL> const spuckVecClosedFracManifElNoNeighbr() const
+	{
+		return m_vecClosedFracManifElNoNeighbr;
+	}
+
+	MANIFEL const spuckEndingFractManifCutting() const
+	{
+		return m_endingFractManifCutting;
+	}
+
+	MANIFEL const spuckEndingFractManifNotCutting() const
+	{
+		return m_endingFractManifNotCutting;
+	}
+
+	LOWDIMEL const spuckOldLowDimElCut() const
+	{
+		return m_oldLowDimElCut;
+	}
+
+	ManifelPair const spuckPairNeighbouredFractClosedManifEl() const
+	{
+		return m_pairNeighbouredFractClosedManifEl;
+	}
+
+	INDEXTYP const spuckSudoFractEnding() const { return m_sudoFractEnding; }
+	INDEXTYP const spuckSudoFractNotEnding() const { return m_sudoFractNotEnding; }
+
+	std::vector<FULLDIMEL> const spuckVecFulldimEl() const
+	{
+		return m_vecFulldimEl;
+	}
+
 private:
+
+	bool m_isEndingCleft;
 
 	// TODO FIXME vielleicht statt Manifel die Klasse,  Attached Fracture Objekte? mit richtig geordneten Edges?
 
@@ -2198,17 +2354,54 @@ private:
 	MANIFEL m_endingFractManifCutting;
 	MANIFEL m_endingFractManifNotCutting;
 
-	std::pair<MANIFEL,MANIFEL> m_pairNeighbouredFractClosedManifEl;
+	ManifelPair m_pairNeighbouredFractClosedManifEl;
 
-	std::vector<MANIFEL> m_vecClosedFracManifEl;
+	// NOTE here only those which do not have a common edge with the ending cleft!
+	std::vector<MANIFEL> m_vecClosedFracManifElNoNeighbr;
 
 	LOWDIMEL m_oldLowDimElCut; // common edge between ending frac face with one sudo and durchgehende frac faces with another sudo
 //	LOWDIMEL m_newLowDimElCut;
 
-	int m_sudoFractEnding;
-	int m_sudoFractNotEnding;
+	INDEXTYP m_sudoFractEnding;
+	INDEXTYP m_sudoFractNotEnding;
 
 	std::vector<FULLDIMEL> m_vecFulldimEl;
+
+	template <typename ELEMTYP>
+	bool schluckElem( ELEMTYP const & anotherEl, std::vector<ELEMTYP> & vecElmKnown )
+	{
+		bool elemNotKnown = true;
+
+		for( ELEMTYP me : vecElmKnown )
+		{
+			if( me == anotherEl )
+			{
+				elemNotKnown = false;
+				break;
+			}
+		}
+
+		if( elemNotKnown )
+			vecElmKnown.push_back(anotherEl);
+
+		return elemNotKnown;
+	}
+
+	template <typename ELEMTYP>
+	bool schluckVecElem( std::vector<ELEMTYP> const & anotherVecEl, std::vector<ELEMTYP> & vecElmKnown )
+	{
+		bool someElemsUnknown = false;
+
+		for( ELEMTYP me : anotherVecEl )
+		{
+			if( schluckElem( me, vecElmKnown ) )
+			{
+				someElemsUnknown = true;
+			}
+		}
+
+		return someElemsUnknown;
+	}
 };
 
 //////////////////////////////////////////////////////////////////////////
