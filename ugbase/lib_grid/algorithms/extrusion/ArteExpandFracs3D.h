@@ -79,7 +79,7 @@ public:
 
 public:
 
-	bool run();
+	bool run( bool & needToRestart );
 
 	using IndexType = unsigned short;
 
@@ -190,6 +190,8 @@ private:
 //	bool detectEndingCrossingClefts();
 
 	bool detectEndingCrossingCleftsSegmBased();
+
+	bool m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx;
 
 	bool seletForSegmented();
 

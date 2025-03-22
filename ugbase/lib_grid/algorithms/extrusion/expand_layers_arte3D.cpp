@@ -57,10 +57,29 @@ bool ExpandFractures3dArte( Grid& grid, SubsetHandler& sh,
 						    std::vector<FractureInfo> const & fracInfos,
 							bool useTrianglesInDiamonds, bool establishDiamonds )
 {
-	ArteExpandFracs3D ef3dA ( grid, sh, fracInfos,
+
+	bool need2Restart = false;
+
+	bool runResult = false;
+
+	do
+	{
+
+		ArteExpandFracs3D ef3dA ( grid, sh, fracInfos,
 							  useTrianglesInDiamonds, establishDiamonds );
 
-	return ef3dA.run();
+		runResult = ef3dA.run( need2Restart );
+
+//		return runResult;
+
+		if( runResult )
+		{
+			return true;
+		}
+
+	} while( need2Restart );
+
+	return runResult;
 
 }
 

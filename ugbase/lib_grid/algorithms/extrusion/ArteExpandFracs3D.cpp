@@ -131,7 +131,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft(ABool()),
 	  m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft(Grid::FaceAttachmentAccessor<ABool>()),
 	  m_attAtVolIfVolTouchesEndingCrossingCleft(ABool()),
-	  m_volAttAccsVolTouchesEndingCrossingCleft(Grid::VolumeAttachmentAccessor<ABool>())
+	  m_volAttAccsVolTouchesEndingCrossingCleft(Grid::VolumeAttachmentAccessor<ABool>()),
+	  m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx(false)
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -143,7 +144,7 @@ ArteExpandFracs3D::~ArteExpandFracs3D()
 	//  Auto-generated destructor stub
 }
 
-bool ArteExpandFracs3D::run()
+bool ArteExpandFracs3D::run( bool & needToRestart )
 {
 	if( ! initialize() )
 		return false;
@@ -224,7 +225,20 @@ bool ArteExpandFracs3D::run()
 	UG_LOG("established Segment limiting sides info" << std::endl);
 
 	if( ! detectEndingCrossingCleftsSegmBased() )
+	{
+		if( m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx )
+		{
+			needToRestart = true;
+			UG_LOG("Restart due to splitted edges" << std::endl);
+		}
+		else
+		{
+			needToRestart = false;
+			UG_LOG("No need to restart due to splitted edges" << std::endl);
+		}
+
 		return false;
+	}
 
 	UG_LOG("Ending crossing clefts detected" << std::endl);
 
@@ -329,6 +343,9 @@ bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
 						int suse = m_sh.num_subsets();
 
 						m_sh.assign_subset( edg, suse );
+
+						UG_LOG("need to detach markers" << std::endl);
+						detachMarkers();
 
 						vector3 center = CalculateCenter(edg, m_aaPos);
 						UG_LOG("splitting ECCV edge at " << center << std::endl);
@@ -2324,7 +2341,12 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 	if( splitEdgesOfNeighboredEndingCrossingFracVrtcs() )
 	{
 		UG_LOG("needed to split, please restart with this geometry" << std::endl);
+		m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx = true;
 		return false;
+	}
+	else
+	{
+		m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx = false;
 	}
 
 //	return true;
