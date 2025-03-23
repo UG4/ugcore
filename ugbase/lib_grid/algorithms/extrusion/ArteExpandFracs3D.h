@@ -472,6 +472,8 @@ private:
 	template<typename ELMTYP>
 	bool checkIfContentUnique( std::vector<ELMTYP> const & vecTest, std::vector<ELMTYP> & content, IndexType mandatoryDifferentElems );
 
+	bool computeCrossPointOfPlaneWithLine( PlaneDescriptor const & shiftedPlane, Edge * const & shiftDirectionEdg, Vertex * const & oldVrt, vector3 & posCrossingPt );
+
 };
 
 // specification has to be declared outside central class context, else compilation error

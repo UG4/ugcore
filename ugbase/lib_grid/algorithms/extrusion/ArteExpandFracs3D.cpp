@@ -5410,6 +5410,7 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 	bool isBndry = segmLimSides.isBoundary();
 
+
 //	if( isBndry )
 //		return true;
 
@@ -5437,6 +5438,8 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 	vector3 posOldVrt = m_aaPos[oldVrt];
 
 	VecPlaneDescriptor vecShiftedPlaneDescript;
+
+
 
 //	for( SegmentLimitSidesPairSudoNorml const & segLimSidPrSN : vecSegmLimSidPrSudoNrml )
 	for( PlaneDescriptor & planeDescr : vecPlaneFracDescr )
@@ -5470,7 +5473,7 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 //			{
 //				UG_LOG("Manif Typ is " << planeDescr.spuckManifTyp() << std::endl );
 //				UG_LOG("Fract wäre " << PlaneDescriptorType::isFracture << std::endl );
-//				UG_LOG("Bndry wäre " << PlaneDescriptorType::isBoundary << std::endl );
+//				UG_LOG("Bndry wäre " << PlaneDescriptorType:: << std::endl );
 //				UG_LOG("Artif wäre " << PlaneDescriptorType::isArtificial << std::endl );
 //
 //				UG_THROW("keine Boundary, aber will Boundary Manif" << std::endl);
@@ -5515,9 +5518,53 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 	if( ! isBndry && vecShiftedPlaneDescript.size() == 1 )
 	{
-//		// one single inner fracture, Testfall Anfang
-//		computeShiftVector( vecShiftedPlaneDescript[0] );
-		posNewVrt = (vecPlaneFracDescr[0]).spuckShiftedBaseVect();
+		// TODO FIXME die unclosed crossing faces behandeln!!!
+
+		bool withUnclosedFaces = segmLimSides.hasUnclosedFaces();
+
+		if( ! withUnclosedFaces ) // standard case, just shift perpendicular to the plane, no SLE to solve
+		{
+			//		// one single inner fracture, Testfall Anfang
+			//		computeShiftVector( vecShiftedPlaneDescript[0] );
+			posNewVrt = (vecPlaneFracDescr[0]).spuckShiftedBaseVect();
+
+		}
+		else
+		{
+			// NOTE: TODO FIXME funktioniert vermutlich auch, wenn der Vertex ein Boundary Vertex ist
+			// ob der Spezialfall aber auch praktisch vorkommt, fragwürdig
+			// Test der Methode erstmal innen drin, später ggf. Ausweitung auf Grenzvertizes
+			// dann würde das hier raus wandern aus dem Frage ob Boundary oder nicht, isBndry wäre egal
+			// relevant wäre dass size des vecShiftPlaneDescr 1 ist und withUnclosedFaces true
+
+
+			Edge * shiftDirectionEdg = nullptr;
+
+			if( ! segmLimSides.spuckLowdimElmShiftDirectionIfUnclosedFractPresent(shiftDirectionEdg) )
+			{
+				UG_LOG("no shift direction " << std::endl);
+				UG_THROW("no shift direction " << std::endl);
+
+			}
+
+			if( shiftDirectionEdg == nullptr )
+			{
+				UG_LOG("Null Shift cross end?" << std::endl);
+				UG_THROW("Null Shift cross end?" << std::endl);
+			}
+
+			// jetzt sollte also die shift direction bekannt sein, muss normalisiert werden,
+			// vielleicht kann man das im PlaneDescriptor drin auch machen
+
+			PlaneDescriptor const & shiftedPlane = vecShiftedPlaneDescript[0];
+
+
+			if( ! computeCrossPointOfPlaneWithLine( shiftedPlane, shiftDirectionEdg, oldVrt, posNewVrt ) )
+			{
+				UG_LOG("Not possible to compute crossing point plane with line" << std::endl);
+				UG_THROW("Not possible to compute crossing point plane with line" << std::endl);
+			}
+		}
 	}
 	else
 	{
@@ -5774,6 +5821,94 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 
 }
+
+//////////////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const & shiftedPlane, Edge * const & shiftDirectionEdg, Vertex * const & oldVrt, vector3 & posCrossingPt )
+{
+	vector3 const & normalShiftedPlane = shiftedPlane.spuckNormalVector();
+	vector3 const & baseShiftedPlane = shiftedPlane.spuckBaseVector();
+	number const & rhs = shiftedPlane.spuckRHS();
+
+	// vector3 posOldVrt Aufpunkt der Edge, entland der verschoben werden soll
+	// establish
+
+	if( ! ( EdgeContains(shiftDirectionEdg, oldVrt ) ) )
+	{
+		UG_LOG("Shift edge ohne alten Vertex?" << std::endl);
+		UG_THROW("Shift edge ohne alten Vertex?" << std::endl);
+	}
+
+	vector3 posOldVrt = m_aaPos[oldVrt];
+
+	vector3 const & shiftVecBase = posOldVrt;
+
+	Vertex * const & shiftEdgeVrtOne = shiftDirectionEdg->vertex(0);
+	Vertex * const & shiftEdgeVrtTwo = shiftDirectionEdg->vertex(1);
+
+	vector3 shiftVecEnd = shiftVecBase; // needs to be changed still
+
+	if( shiftEdgeVrtOne == oldVrt )
+	{
+		shiftVecEnd = m_aaPos[shiftEdgeVrtTwo];
+	}
+	else if( shiftEdgeVrtTwo == oldVrt )
+	{
+		shiftVecEnd = m_aaPos[shiftEdgeVrtOne];
+	}
+	else
+	{
+		UG_LOG("no end vertex" << std::endl);
+		UG_THROW("no end vertex" << std::endl);
+	}
+
+	vector3 directionVec;
+
+	VecSubtract(directionVec, shiftVecEnd, posOldVrt );
+
+	// x = aufpunkt + s * richtung einsetzen in ( x - x_0 ) * n = 0, auflösen nach r
+	// x*n = rhs = x_0*n
+	// ( a + s . r -x0 ) * n = 0
+	// a * n + s . n * r - x0*n = 0
+	// s . ( n * r ) = x0 * n - a * n
+	// s = ( x0*n - a*n ) / ( n*r )
+
+	number planeBaseMultNormal = VecDot(baseShiftedPlane,normalShiftedPlane);
+	number lineBaseMultNormal = VecDot(posOldVrt,normalShiftedPlane);
+	number lineDirMultNormal = VecDot( directionVec, normalShiftedPlane );
+
+	UG_LOG("COMPARE RHS AND LBMN " << rhs << " - " << planeBaseMultNormal << std::endl);
+
+	number fbs = std::fabs( ( rhs - planeBaseMultNormal ) / ( rhs + planeBaseMultNormal) );
+
+	UG_LOG("RELATIVE DIFF " << fbs << std::endl);
+
+	number const d_toler = 1e-4;
+
+	if( fbs > d_toler )
+	{
+		UG_LOG("RELATIVE DIFF TOO BIG " << std::endl);
+		UG_THROW("RELATIVE DIFF TOO BIG " << std::endl);
+	}
+
+	if( lineDirMultNormal == 0. )
+	{
+		UG_THROW("denominator zero division " << std::endl);
+		UG_LOG("denominator zero division " << std::endl);
+	}
+
+	number moveAlongLine = ( planeBaseMultNormal - lineBaseMultNormal ) / lineDirMultNormal;
+
+	vector3 shiftAlongLine;
+
+	VecScale( shiftAlongLine, directionVec, moveAlongLine );
+
+	VecAdd( posCrossingPt, posOldVrt, shiftAlongLine );
+
+	return true;
+
+}
+//////////////////////////////////////////////////////////////////////////
 
 
 #if 0

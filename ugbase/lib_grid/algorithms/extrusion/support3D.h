@@ -1771,7 +1771,7 @@ public:
 
 	template<   typename = std::enable_if< std::is_pointer<LOWDIMELM>::value>
 			>
-	bool spuckLowdimElmShiftDirectionIfUnclosedFractPresent( LOWDIMELM & shiftDirectionElm )
+	bool const spuckLowdimElmShiftDirectionIfUnclosedFractPresent( LOWDIMELM & shiftDirectionElm ) const
 	{
 		if( m_shiftDirectionIfUnclosedFractPresent != nullptr )
 		{
