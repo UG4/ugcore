@@ -293,7 +293,9 @@ bool ArteExpandFracs3D::run( bool & needToRestart )
 
 	UG_LOG("detachiert" << std::endl);
 
-	assignDebugSubsets();
+	assignDebugSubsets( false );
+
+	UG_LOG("Debug subsets assigned" << std::endl );
 
 	return true;
 }
@@ -425,7 +427,7 @@ bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
 
 ////////////////////////////////////////////////
 
-void ArteExpandFracs3D::assignDebugSubsets()
+void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 {
 	std::vector<Face*> d_endingCrossingCleftFaces;
 	std::vector<Face*> d_endingCrossingCleftFacesNoCut;
@@ -480,68 +482,80 @@ void ArteExpandFracs3D::assignDebugSubsets()
 
 	int suse = m_sh.num_subsets();
 
-	for( Face * fac : d_endingCrossingCleftFaces )
+	if( ! intermediate )
 	{
-		m_sh.assign_subset( fac, suse );
 
-	}
-
-	suse = m_sh.num_subsets();
-
-	for( Face * fac : d_endingCrossingCleftFacesNoCut )
-	{
-		m_sh.assign_subset( fac, suse );
-
-	}
-
-	suse = m_sh.num_subsets();
-
-	for( Vertex * vrt : d_endingCrossingCleftVrtcs )
-	{
-		m_sh.assign_subset( vrt, suse );
-	}
-
-	suse = m_sh.num_subsets();
-
-	for( Edge * edg : d_cuttingEdges )
-	{
-		if( edg == nullptr )
+		for( Face * fac : d_endingCrossingCleftFaces )
 		{
-			UG_LOG("NULL UNERLAUBT" << std::endl);
-			UG_THROW("NULL UNERLAUBT" << std::endl);
+			if( fac != nullptr )
+				m_sh.assign_subset( fac, suse );
+
 		}
 
-		m_sh.assign_subset( edg, suse );
+		suse = m_sh.num_subsets();
 
+		for( Face * fac : d_endingCrossingCleftFacesNoCut )
+		{
+			if( fac != nullptr )
+				m_sh.assign_subset( fac, suse );
+
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Vertex * vrt : d_endingCrossingCleftVrtcs )
+		{
+			if( vrt != nullptr )
+				m_sh.assign_subset( vrt, suse );
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Edge * edg : d_cuttingEdges )
+		{
+			if( edg == nullptr )
+			{
+				UG_LOG("NULL UNERLAUBT" << std::endl);
+				UG_THROW("NULL UNERLAUBT" << std::endl);
+			}
+
+			m_sh.assign_subset( edg, suse );
+
+		}
+
+
+		suse = m_sh.num_subsets();
+
+		for( Face * fac : d_crossingNeighboredNotEndingFaces )
+		{
+			if( fac != nullptr )
+				m_sh.assign_subset( fac, suse );
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Face * fac : d_notEndingCrossingFacesNotNeighbour )
+		{
+			m_sh.assign_subset( fac, suse );
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Face * fac : d_crossingNeighboredNotEndingFacesCommEdg )
+		{
+			m_sh.assign_subset( fac, suse );
+		}
+
+//	suse = m_sh.num_subsets();
 	}
-
-
-	suse = m_sh.num_subsets();
-
-	for( Face * fac : d_crossingNeighboredNotEndingFaces )
+	else
 	{
-		m_sh.assign_subset( fac, suse );
-	}
 
-	suse = m_sh.num_subsets();
-
-	for( Face * fac : d_notEndingCrossingFacesNotNeighbour )
-	{
-		m_sh.assign_subset( fac, suse );
-	}
-
-	suse = m_sh.num_subsets();
-
-	for( Face * fac : d_crossingNeighboredNotEndingFacesCommEdg )
-	{
-		m_sh.assign_subset( fac, suse );
-	}
-
-	suse = m_sh.num_subsets();
-
-	for( Volume * v : d_vols )
-	{
-		m_sh.assign_subset( v, suse );
+		for( Volume * v : d_vols )
+		{
+			if( v != nullptr )
+				m_sh.assign_subset( v, suse );
+		}
 	}
 
 	return;
@@ -2354,11 +2368,11 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 	if( numEndingCrossingClefts == 0 )
 			return true;
 
-	assignDebugSubsets();
+	assignDebugSubsets( true );
+//
+//	UG_LOG("problematic elements highlighted " << std::endl);
 
-	UG_LOG("problematic elements highlighted " << std::endl);
-
-	return false;
+	return true;
 
 
 
@@ -6425,6 +6439,7 @@ bool ArteExpandFracs3D::createNewElements()
 
 		UG_LOG("Volume new creation try at " << CalculateCenter(sv, m_aaPos) << std::endl);
 
+		bool volHasEndingCrossingCleftFace = m_volAttAccsVolTouchesEndingCrossingCleft[sv];
 
 		//	now expand the fracture faces of sv to volumes.
 		for(size_t i_side = 0; i_side < sv->num_sides(); ++i_side)
@@ -6438,39 +6453,43 @@ bool ArteExpandFracs3D::createNewElements()
 			{
 				if( m_aaMarkFaceIsFracB[tFace] ) // && ! m_aaMarkFaceHasUnclosedFracSideB[tFace] )
 				{
-					bool avoidFace = false;
+					bool faceIsSegmLimEndCrossCleft = m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft[tFace];
+					bool faceIsEndingCleftCrossFace = m_aaMarkFaceWithEndingCrossingCleft[tFace];
 
-					for( Face * testFac :  m_d_endingCrossingCleftFaces )
-					{
-						if( testFac == tFace )
-						{
-							avoidFace = true;
-						}
-					}
 
-					for( Face * testFac :  m_d_crossingNeighboredNotEndingFaces )
-					{
-						if( testFac == tFace )
-						{
-							avoidFace = true;
-						}
-					}
+					bool avoidFace = ( volHasEndingCrossingCleftFace && ( faceIsSegmLimEndCrossCleft || faceIsEndingCleftCrossFace ) );
 
-					for( Face * testFac :  m_d_crossingNeighboredNotEndingFacesCommEdg )
-					{
-						if( testFac == tFace )
-						{
-							avoidFace = true;
-						}
-					}
-
-					for( Face * testFac :  m_d_notEndingCrossingFacesNotNeighbour )
-					{
-						if( testFac == tFace )
-						{
-							avoidFace = true;
-						}
-					}
+//					for( Face * testFac :  m_d_endingCrossingCleftFaces )
+//					{
+//						if( testFac == tFace )
+//						{
+//							avoidFace = true;
+//						}
+//					}
+//
+//					for( Face * testFac :  m_d_crossingNeighboredNotEndingFaces )
+//					{
+//						if( testFac == tFace )
+//						{
+//							avoidFace = true;
+//						}
+//					}
+//
+//					for( Face * testFac :  m_d_crossingNeighboredNotEndingFacesCommEdg )
+//					{
+//						if( testFac == tFace )
+//						{
+//							avoidFace = true;
+//						}
+//					}
+//
+//					for( Face * testFac :  m_d_notEndingCrossingFacesNotNeighbour )
+//					{
+//						if( testFac == tFace )
+//						{
+//							avoidFace = true;
+//						}
+//					}
 
 
 					if( avoidFace )

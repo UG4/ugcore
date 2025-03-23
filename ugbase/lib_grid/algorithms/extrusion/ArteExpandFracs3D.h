@@ -429,7 +429,7 @@ private:
 	// edges that connect two ending crossing cleft vertices directly, need to be splitted
 	std::vector<Edge *> m_vecEdgeDirectConnectingEndingCrossCleftVrtcs;
 
-	void assignDebugSubsets();
+	void assignDebugSubsets( bool intermediate );
 
 	bool splitEdgesOfNeighboredEndingCrossingFracVrtcs();
 
