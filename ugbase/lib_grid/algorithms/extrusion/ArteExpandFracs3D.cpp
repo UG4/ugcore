@@ -2072,7 +2072,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				std::vector<Edge*> vecCuttingEdges; // must contain only same element, twice
 
-				std::vector<Edge*> vecShiftEdge; // must get same element twice
+				std::vector<Edge*> vecUncuttingEdge; // must get same element twice
 
 				UG_LOG("size of vec segm unclos " << vecSegmLimSiFFUnclosed.size() << std::endl);
 
@@ -2123,21 +2123,21 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 							vecCuttingEdges.push_back(commonEdge);
 							vecEndingFractFaceCutting.push_back(facUncl);
 
-							Edge * shiftEdgeUnclosedFac = nullptr;
+							Edge * uncuttingEdgeUnclosedFac = nullptr;
 
-							if( ! assignShiftEdgeUnclosedCrossingCleft( slsffUncl, commonEdge, shiftEdgeUnclosedFac ) )
+							if( ! assignNotCuttingEdgeUnclosedCrossingCleft( slsffUncl, commonEdge, uncuttingEdgeUnclosedFac ) )
 							{
 								UG_LOG("NO shift edge" << std::endl);
 								UG_THROW("NO shift edge" << std::endl);
 							}
 
-							if( shiftEdgeUnclosedFac == nullptr )
+							if( uncuttingEdgeUnclosedFac == nullptr )
 							{
 								UG_LOG("NO shift edge Z" << std::endl);
 								UG_THROW("NO shift edge Z" << std::endl);
 							}
 
-							vecShiftEdge.push_back(shiftEdgeUnclosedFac);
+							vecUncuttingEdge.push_back(uncuttingEdgeUnclosedFac);
 
 							//							EdgePair const & edgesClosedFracFace = slsffClos.getPairLowElm();
 //
@@ -2262,7 +2262,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				std::vector<Edge*> vecContCuttingEdges; // must contain only same element, twice
 
-				std::vector<Edge*> vecContShiftEdge; // must get same element twice
+				std::vector<Edge*> vecContUncuttingEdge; // must get same element twice
 
 				if( vecEndingFractFaceCutting.size() == 2 )
 				{
@@ -2352,9 +2352,9 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				UG_LOG("Pushing back Edge" << std::endl);
 
-				if( vecShiftEdge.size() == 2 )
+				if( vecUncuttingEdge.size() == 2 )
 				{
-					if(  ! checkIfContentUnique( vecShiftEdge, vecContShiftEdge, 1 ) )
+					if(  ! checkIfContentUnique( vecUncuttingEdge, vecContUncuttingEdge, 1 ) )
 					{
 						UG_THROW("Problem with edges shift unique " << std::endl);
 					}
@@ -2366,8 +2366,27 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				}
 
-				Edge * shiftLowDimEl = vecContShiftEdge[0];
+				Edge * uncuttingLowDimEl = vecContUncuttingEdge[0];
 
+				Edge * shiftLowDimEl = nullptr;
+
+				if( ! findShiftEdgeUncuttingCrossingCleft( vecSegmLimSiFFUnclosed,
+														   endingFractManifCutting,
+													       endingFractManifNotCutting,
+														   uncuttingLowDimEl,
+														   shiftLowDimEl
+														  )
+					)
+				{
+					UG_LOG("Kein shift Element gefunden" << std::endl);
+					UG_THROW("Kein shift Element gefunden" << std::endl);
+				}
+
+				if( shiftLowDimEl == nullptr )
+				{
+					UG_LOG("SHift El null " << std::endl);
+					UG_THROW("SHift El null " << std::endl);
+				}
 
 				if(  vecClosedFracFacNoNeighbr.size() + vecNeighbouredFacesClosedFract.size()
 					!=  vecSegmLimSiFFClosed.size()
@@ -2488,7 +2507,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 //////////////////////////////////////////////////////////////////
 
-bool ArteExpandFracs3D::assignShiftEdgeUnclosedCrossingCleft( SegLimSidesFractFace const & slsffUncl, Edge * const & commonEdge, Edge * & shiftEdge )
+bool ArteExpandFracs3D::assignNotCuttingEdgeUnclosedCrossingCleft( SegLimSidesFractFace const & slsffUncl, Edge * const & commonEdge, Edge * & shiftEdge )
 {
 	EdgePair const & edgesFac = slsffUncl.getPairLowElm();
 
@@ -2513,6 +2532,81 @@ bool ArteExpandFracs3D::assignShiftEdgeUnclosedCrossingCleft( SegLimSidesFractFa
 		return true;
 
 	UG_LOG("shift edge null" << std::endl);
+
+	return false;
+
+}
+
+//////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::findShiftEdgeUncuttingCrossingCleft( VecSegLimSidesFractFace const & vecSegmLimSiFFUnclosed,
+															 Face * const & endingFractManifCutting,
+		  	  	  	  	  	  	  	  	  	  	  	  	     Face * const & endingFractManifNotCutting,
+															 Edge * const & uncuttingLowDimEl,
+															 Edge * & shiftLowDimEl
+															)
+{
+	if( uncuttingLowDimEl == nullptr )
+	{
+		UG_LOG("null uncut" << std::endl );
+		UG_THROW("null uncut" << std::endl );
+	}
+
+	if( endingFractManifNotCutting == nullptr )
+	{
+		shiftLowDimEl = uncuttingLowDimEl;
+		return true;
+	}
+
+	IndexType edgeWasFound = 0;
+
+	for( SegLimSidesFractFace const & slsffUncl : vecSegmLimSiFFUnclosed )
+	{
+
+		Face * facUncl = slsffUncl.getManifElm();
+
+		if( facUncl == endingFractManifNotCutting )
+		{
+			EdgePair const & epU = slsffUncl.getPairLowElm();
+
+			Edge * edgeOne = epU.first;
+			Edge * edgeTwo = epU.second;
+
+			if( edgeOne == uncuttingLowDimEl )
+			{
+				shiftLowDimEl = edgeTwo;
+			}
+			else if( edgeTwo == uncuttingLowDimEl )
+			{
+				shiftLowDimEl = edgeOne;
+			}
+			else
+			{
+				UG_LOG("No edge found uncutting shift?" << std::endl);
+				UG_THROW("No edge found uncutting shift?" << std::endl);
+			}
+
+			edgeWasFound++;
+
+		}
+	}
+
+	if( edgeWasFound == 0 )
+	{
+		UG_LOG("NO shift edge " << std::endl);
+		return false;
+	}
+	else if( edgeWasFound == 1 )
+	{
+		return true;
+	}
+	if( edgeWasFound > 1 )
+	{
+		UG_LOG("Many shift edges " << edgeWasFound << std::endl);
+		return false;
+	}
+
+	UG_LOG("Cannot come here at this edge" << std::endl);
 
 	return false;
 
