@@ -100,6 +100,7 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaMarkVrtxAtEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
 //	  m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract(ABool()),
 //	  m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract(Grid::VertexAttachmentAccessor<ABool>()),
+	  m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx(false),
 	  m_originalFractureFaces(std::vector<Face*>()),
 //	  m_attVrtVec(AttVrtVec()),
 //	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
@@ -131,8 +132,7 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft(ABool()),
 	  m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft(Grid::FaceAttachmentAccessor<ABool>()),
 	  m_attAtVolIfVolTouchesEndingCrossingCleft(ABool()),
-	  m_volAttAccsVolTouchesEndingCrossingCleft(Grid::VolumeAttachmentAccessor<ABool>()),
-	  m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx(false)
+	  m_volAttAccsVolTouchesEndingCrossingCleft(Grid::VolumeAttachmentAccessor<ABool>())
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -433,6 +433,7 @@ void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 	std::vector<Face*> d_endingCrossingCleftFacesNoCut;
 	std::vector<Vertex*> d_endingCrossingCleftVrtcs;
 	std::vector<Edge*> d_cuttingEdges;
+	std::vector<Edge*> d_shiftEdges;
 	std::vector<Face*> d_crossingNeighboredNotEndingFaces;
 	std::vector<Face*> d_crossingNeighboredNotEndingFacesCommEdg;
 	std::vector<Face*> d_notEndingCrossingFacesNotNeighbour;
@@ -478,6 +479,8 @@ void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 			d_vols.push_back(v);
 		}
 
+		Edge * shiftEdge = ecfsi.spuckLowdimElmShiftDirection();
+		d_shiftEdges.push_back(shiftEdge);
 	}
 
 	int suse = m_sh.num_subsets();
@@ -512,6 +515,20 @@ void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 		suse = m_sh.num_subsets();
 
 		for( Edge * edg : d_cuttingEdges )
+		{
+			if( edg == nullptr )
+			{
+				UG_LOG("NULL UNERLAUBT" << std::endl);
+				UG_THROW("NULL UNERLAUBT" << std::endl);
+			}
+
+			m_sh.assign_subset( edg, suse );
+
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Edge * edg : d_shiftEdges )
 		{
 			if( edg == nullptr )
 			{
@@ -1996,7 +2013,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 			return false;
 		}
 
-		for( SegmentLimitingSides const & segLimSids : vecSegmLimSid )
+		for( SegmentLimitingSides & segLimSids : vecSegmLimSid )
 		{
 			if( segLimSids.hasUnclosedFaces() )
 			{
@@ -2055,6 +2072,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				std::vector<Edge*> vecCuttingEdges; // must contain only same element, twice
 
+				std::vector<Edge*> vecShiftEdge; // must get same element twice
+
 				UG_LOG("size of vec segm unclos " << vecSegmLimSiFFUnclosed.size() << std::endl);
 
 				for( SegLimSidesFractFace const & slsffUncl : vecSegmLimSiFFUnclosed )
@@ -2104,6 +2123,21 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 							vecCuttingEdges.push_back(commonEdge);
 							vecEndingFractFaceCutting.push_back(facUncl);
 
+							Edge * shiftEdgeUnclosedFac = nullptr;
+
+							if( ! assignShiftEdgeUnclosedCrossingCleft( slsffUncl, commonEdge, shiftEdgeUnclosedFac ) )
+							{
+								UG_LOG("NO shift edge" << std::endl);
+								UG_THROW("NO shift edge" << std::endl);
+							}
+
+							if( shiftEdgeUnclosedFac == nullptr )
+							{
+								UG_LOG("NO shift edge Z" << std::endl);
+								UG_THROW("NO shift edge Z" << std::endl);
+							}
+
+							vecShiftEdge.push_back(shiftEdgeUnclosedFac);
 
 							//							EdgePair const & edgesClosedFracFace = slsffClos.getPairLowElm();
 //
@@ -2228,6 +2262,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				std::vector<Edge*> vecContCuttingEdges; // must contain only same element, twice
 
+				std::vector<Edge*> vecContShiftEdge; // must get same element twice
+
 				if( vecEndingFractFaceCutting.size() == 2 )
 				{
 					if( ! checkIfContentUnique( vecEndingFractFaceCutting, vecContEndingFractFaceCutting, 1 ) )
@@ -2316,6 +2352,23 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				UG_LOG("Pushing back Edge" << std::endl);
 
+				if( vecShiftEdge.size() == 2 )
+				{
+					if(  ! checkIfContentUnique( vecShiftEdge, vecContShiftEdge, 1 ) )
+					{
+						UG_THROW("Problem with edges shift unique " << std::endl);
+					}
+
+				}
+				else
+				{
+					UG_THROW("Problem with edges shift unique size " << std::endl);
+
+				}
+
+				Edge * shiftLowDimEl = vecContShiftEdge[0];
+
+
 				if(  vecClosedFracFacNoNeighbr.size() + vecNeighbouredFacesClosedFract.size()
 					!=  vecSegmLimSiFFClosed.size()
 				)
@@ -2328,6 +2381,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 													     endingFractManifNotCutting,
 														 oldLowDimElCut,
 														 pairNeighbouredFractClosedManifEl,
+														 shiftLowDimEl,
 														 sudoFractEnding,
 														 sudoFractNotEnding
 													    );
@@ -2340,6 +2394,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				m_vecEndCrossFractSegmInfo.push_back( ecfsi );
 
+
+				segLimSids.schluckLowdimElmShiftDirectionIfUnclosedFractPresent(shiftLowDimEl);
 			}
 		}
 
@@ -2432,6 +2488,38 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 //////////////////////////////////////////////////////////////////
 
+bool ArteExpandFracs3D::assignShiftEdgeUnclosedCrossingCleft( SegLimSidesFractFace const & slsffUncl, Edge * const & commonEdge, Edge * & shiftEdge )
+{
+	EdgePair const & edgesFac = slsffUncl.getPairLowElm();
+
+	Edge * edgeFrst = edgesFac.first;
+	Edge * edgeScnd = edgesFac.second;
+
+	if( edgeFrst == commonEdge )
+	{
+		shiftEdge = edgeScnd;
+	}
+	else if( edgeScnd == commonEdge )
+	{
+		shiftEdge = edgeFrst;
+	}
+	else
+	{
+		UG_LOG("common and shift edge different face " << std::endl);
+		UG_THROW("common and shift edge different face " << std::endl);
+	}
+
+	if( shiftEdge != nullptr )
+		return true;
+
+	UG_LOG("shift edge null" << std::endl);
+
+	return false;
+
+}
+
+//////////////////////////////////////////////////////////////////
+
 template<typename ELMTYP>
 bool ArteExpandFracs3D::checkIfContentUnique( std::vector<ELMTYP> const & vecTest, std::vector<ELMTYP> & content, IndexType mandatoryDifferentElems )
 {
@@ -2472,7 +2560,7 @@ template< bool FACES_HAVE_SAME_SUDO >
 bool ArteExpandFracs3D::fractFacesAreNeighboured( SegLimSidesFractFace const & fractFaceOne,
 							   	   	   	   	   	  SegLimSidesFractFace const & fractFaceTwo,
 												  Edge * & commonEdge
-												 )
+												)
 {
 	commonEdge = nullptr; // general case
 

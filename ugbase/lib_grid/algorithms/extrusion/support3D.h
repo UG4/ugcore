@@ -1594,8 +1594,11 @@ public:
 	// oder man kann einen Parameter setzen für diese Klasse, die extern definiert wird......
 	// bool isFracture true false.....
 
+	template<   typename = std::enable_if< std::is_pointer<LOWDIMELM>::value>
+			>
 	SegmentSides( VRTXTYP const & vrt, bool isBndry = false )
 	: m_vrt(vrt),
+	  m_shiftDirectionIfUnclosedFractPresent(nullptr),
 	  m_vecAttFractElms(VecAttFractElm()),
 	  m_vecAttUnclosedFractElms(VecAttFractElm()),
 	  m_vecAttBndryElms(VecAttBndryElm()),
@@ -1745,6 +1748,39 @@ public:
 		return ( m_vecAttUnclosedFractElms.size() > 0 );
 	}
 
+	template<   typename = std::enable_if< std::is_pointer<LOWDIMELM>::value>
+			>
+	bool schluckLowdimElmShiftDirectionIfUnclosedFractPresent( LOWDIMELM const & shiftDirectionElm )
+	{
+		if(    m_shiftDirectionIfUnclosedFractPresent != nullptr
+			&& shiftDirectionElm != m_shiftDirectionIfUnclosedFractPresent
+		  )
+		{
+			UG_LOG("Shift direction already set different " << std::endl);
+			UG_THROW("Shift direction already set different " << std::endl);
+		}
+
+		if( shiftDirectionElm != nullptr )
+		{
+			m_shiftDirectionIfUnclosedFractPresent = shiftDirectionElm;
+			return true;
+		}
+
+		return false;
+	}
+
+	template<   typename = std::enable_if< std::is_pointer<LOWDIMELM>::value>
+			>
+	bool spuckLowdimElmShiftDirectionIfUnclosedFractPresent( LOWDIMELM & shiftDirectionElm )
+	{
+		if( m_shiftDirectionIfUnclosedFractPresent != nullptr )
+		{
+			shiftDirectionElm = m_shiftDirectionIfUnclosedFractPresent;
+			return true;
+		}
+
+		return false;
+	}
 
 	bool averageAll()
 	{
@@ -1855,6 +1891,7 @@ private:
 
 	VRTXTYP m_vrt;
 
+	LOWDIMELM m_shiftDirectionIfUnclosedFractPresent;
 
 	VecAttFractElm m_vecAttFractElms;
 	VecAttFractElm m_vecAttUnclosedFractElms;
@@ -2180,6 +2217,7 @@ public:
 									MANIFEL const & endingFractManifNotCutting,
 									LOWDIMEL const & oldLowDimElCut,
 									ManifelPair const & pairNeighbouredFractClosedManifEl,
+									LOWDIMEL const & shiftDirectionElm,
 									INDEXTYP sudoFractEnding,
 									INDEXTYP sudoFractNotEnding
 								  )
@@ -2191,6 +2229,7 @@ public:
 		m_pairNeighbouredFractClosedManifEl(pairNeighbouredFractClosedManifEl),
 		m_vecClosedFracManifElNoNeighbr(std::vector<MANIFEL>()),
 		m_oldLowDimElCut( oldLowDimElCut ),
+		m_shiftDirectionElm(shiftDirectionElm),
 		m_sudoFractEnding(sudoFractEnding),
 		m_sudoFractNotEnding(sudoFractNotEnding),
 		m_vecFulldimEl(std::vector<FULLDIMEL>())
@@ -2204,6 +2243,7 @@ public:
 									MANIFEL const & endingFractManifCutting,
 									LOWDIMEL const & oldLowDimElCut,
 									ManifelPair const & pairNeighbouredFractClosedManifEl,
+									LOWDIMEL const & shiftDirectionElm,
 									int sudoFractEnding,
 									int sudoFractNotEnding
 								  )
@@ -2215,6 +2255,7 @@ public:
 		m_pairNeighbouredFractClosedManifEl(pairNeighbouredFractClosedManifEl),
 		m_vecClosedFracManifElNoNeighbr(std::vector<MANIFEL>()),
 		m_oldLowDimElCut( oldLowDimElCut ),
+		m_shiftDirectionElm(shiftDirectionElm),
 		m_sudoFractEnding(sudoFractEnding),
 		m_sudoFractNotEnding(sudoFractNotEnding),
 		m_vecFulldimEl(std::vector<FULLDIMEL>())
@@ -2236,6 +2277,7 @@ public:
 		m_pairNeighbouredFractClosedManifEl(ManifelPair(nullptr,nullptr)),
 		m_vecClosedFracManifElNoNeighbr(std::vector<MANIFEL>()),
 		m_oldLowDimElCut( nullptr ),
+		m_shiftDirectionElm(nullptr),
 		m_sudoFractEnding(std::numeric_limits<INDEXTYP>::max()),
 		m_sudoFractNotEnding(std::numeric_limits<INDEXTYP>::max()),
 		m_vecFulldimEl(std::vector<FULLDIMEL>())
@@ -2344,6 +2386,17 @@ public:
 		return m_vecFulldimEl;
 	}
 
+	// shift element edge
+
+
+	template<   typename = std::enable_if< std::is_pointer<LOWDIMEL>::value>
+			>
+	LOWDIMEL const spuckLowdimElmShiftDirection() const
+	{
+		return m_shiftDirectionElm;
+	}
+
+
 private:
 
 	bool m_isEndingCleft;
@@ -2361,6 +2414,8 @@ private:
 
 	LOWDIMEL m_oldLowDimElCut; // common edge between ending frac face with one sudo and durchgehende frac faces with another sudo
 //	LOWDIMEL m_newLowDimElCut;
+
+	LOWDIMEL m_shiftDirectionElm;
 
 	INDEXTYP m_sudoFractEnding;
 	INDEXTYP m_sudoFractNotEnding;
