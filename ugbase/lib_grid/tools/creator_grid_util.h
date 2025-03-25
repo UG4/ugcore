@@ -65,7 +65,7 @@ Edge* CreateEdge(Grid& grid, Vertex* vrts[], const size_t numVrts){
      switch(numVrts){
 		case 2:{//	create edge
 				if(!grid.get_edge(vrts[0], vrts[1]))
-					e = *grid.create<ug::RegularEdge>(ug::EdgeDescriptor(&vrts[0], &vrts[1]));
+					e = *grid.create<ug::RegularEdge>(ug::EdgeDescriptor(vrts[0], vrts[1]));
 				else{
 					UG_LOG("Can't create edge: RegularEdge already exists.\n");
 				}
@@ -91,7 +91,7 @@ Edge* CreateEdge(Grid& grid, Vertex* vrt0, Vertex* vrt1)
     vrts[0]=vrt0;
     vrts[1]=vrt1;
     //	create edge
-   return CreateEdge(grid, *vrts, 2);
+   return CreateEdge(grid, vrts, 2);
 }
 
 /*Edge* CreateEdge(Grid& grid, std::vector<Vertex*> vrts){
