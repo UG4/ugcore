@@ -209,10 +209,12 @@ void CreatePlane(Grid& grid,
                  const TPosition& upRight,
                  const TPosition& lowLeft,
                  const TPosition& lowRight,
-                 Grid::VertexAttachmentAccessor<Attachment<TPosition> >& aaPos
+                 Grid::VertexAttachmentAccessor<Attachment<TPosition> >& aaPos,
                  bool fill)
 {   
     Vertex* vrts[4];
+	/*std::vector<Vertex*> vrts;
+	vrts.resize(4);*/
 	for(size_t i = 0; i < 4; ++i)
 		vrts[i] = *grid.create<RegularVertex>();
 
@@ -222,7 +224,8 @@ void CreatePlane(Grid& grid,
 	aaPos[vrts[3]] = upRight;
 
     if(fill){
-        CreateFace(grid, vrts, 4);
+		UG_LOG("CreateFace: Please test before using. ");
+        CreateFace(grid,*vrts, 4);
     }else{
         for(size_t i = 0; i < 4; ++i){
 			int i0 = i;
