@@ -1556,6 +1556,19 @@ private:
 
 //////////////////////////////////////////////////////////////////
 
+//// needs to be declared as members used in following class
+//template
+//<
+//typename FULLDIMEL,
+//typename MANIFEL,
+//typename LOWDIMEL,
+//typename VRTXTYP,
+//typename INDEXTYP
+//>
+//class EndingCrossingFractSegmentInfo;
+
+//////////////////////////////////////////////////////////////
+
 
 template <
 typename FULLDIM_ELEM,
@@ -1908,6 +1921,10 @@ private:
 
 	std::vector<FULLDIM_ELEM> m_contribFulldimElm;
 
+	// zu heikel, weil dabei Änderungen nicht übernommen würden, es sei denn, es wäre pointer, aber die
+	// wollen wir auch vermeiden
+//	EndingCrossingFractSegmentInfo<FULLDIM_ELEM, MANIFELM, LOWDIMELM, VRTXTYP, INDEX_TXP> m_endingCrossFractSegmInf;
+
 	template <typename ATT_ELM, typename VEC_ATT_ELM,
 			  typename = std::enable_if<std::is_same<std::vector<ATT_ELM>,VEC_ATT_ELM>::value>,
 			  typename 	= std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
@@ -2212,6 +2229,7 @@ public:
 
 	using ManifelPair = std::pair<MANIFEL,MANIFEL>;
 
+	template< typename = std::enable_if< std::is_pointer<VRTXTYP>::value> >
 	EndingCrossingFractSegmentInfo( VRTXTYP const & vrt,
 									MANIFEL const & endingFractManifCutting,
 									MANIFEL const & endingFractManifNotCutting,
@@ -2232,11 +2250,13 @@ public:
 		m_shiftDirectionElm(shiftDirectionElm),
 		m_sudoFractEnding(sudoFractEnding),
 		m_sudoFractNotEnding(sudoFractNotEnding),
-		m_vecFulldimEl(std::vector<FULLDIMEL>())
+		m_vecFulldimEl(std::vector<FULLDIMEL>()),
+		m_shiftVrtx(nullptr)
 	{
 	};
 
-	template<   typename = std::enable_if< std::is_pointer<MANIFEL>::value>
+	template<   typename = std::enable_if< std::is_pointer<MANIFEL>::value>,
+				typename = std::enable_if< std::is_pointer<VRTXTYP>::value>
 			>
 	// if there is no ending fract manif no cutting available
 	EndingCrossingFractSegmentInfo( VRTXTYP const & vrt,
@@ -2258,7 +2278,8 @@ public:
 		m_shiftDirectionElm(shiftDirectionElm),
 		m_sudoFractEnding(sudoFractEnding),
 		m_sudoFractNotEnding(sudoFractNotEnding),
-		m_vecFulldimEl(std::vector<FULLDIMEL>())
+		m_vecFulldimEl(std::vector<FULLDIMEL>()),
+		m_shiftVrtx(nullptr)
 	{
 	};
 
@@ -2280,9 +2301,48 @@ public:
 		m_shiftDirectionElm(nullptr),
 		m_sudoFractEnding(std::numeric_limits<INDEXTYP>::max()),
 		m_sudoFractNotEnding(std::numeric_limits<INDEXTYP>::max()),
-		m_vecFulldimEl(std::vector<FULLDIMEL>())
+		m_vecFulldimEl(std::vector<FULLDIMEL>()),
+		m_shiftVrtx(nullptr)
 	{
 	};
+
+	bool schluckShiftVrtx( VRTXTYP const & shiftVrtx )
+	{
+
+		if(    m_shiftVrtx != nullptr
+			&& shiftVrtx != m_shiftVrtx
+		  )
+		{
+			UG_LOG("Shift Vertex already set different " << std::endl);
+			UG_THROW("Shift Vertex already set different " << std::endl);
+			return false;
+		}
+
+		if( shiftVrtx != nullptr )
+		{
+			m_shiftVrtx = shiftVrtx;
+			return true;
+		}
+
+		// else
+
+//		UG_LOG("SHift vertex already set " << std::endl);
+//		UG_THROW("SHift vertex already set " << std::endl);
+
+		return false;
+	}
+
+	VRTXTYP const spuckShiftVrtx() const
+	{
+		return m_shiftVrtx;
+//		if( m_shiftVrtx != nullptr )
+//		{
+//			shiftVrtx = m_shiftVrtx;
+//			return true;
+//		}
+//
+//		return false;
+	}
 
 	bool isEndingCleft() { return m_isEndingCleft; }
 
@@ -2421,6 +2481,8 @@ private:
 	INDEXTYP m_sudoFractNotEnding;
 
 	std::vector<FULLDIMEL> m_vecFulldimEl;
+
+	VRTXTYP m_shiftVrtx;
 
 	template <typename ELEMTYP>
 	bool schluckElem( ELEMTYP const & anotherEl, std::vector<ELEMTYP> & vecElmKnown )

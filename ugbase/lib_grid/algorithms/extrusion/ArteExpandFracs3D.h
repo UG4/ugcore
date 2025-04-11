@@ -347,7 +347,7 @@ private:
 //	template< IndexType NUM_SURR_FRACS, bool isBndryVrtx >
 //	bool expandWithinTheSegment( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo );
 
-	IndexType shiftUnclosedFracFacesToGenerFaces( Vertex * const & vrt );
+	IndexType shiftUnclosedFracFacesToUnclosedFractFaces( Vertex * const & vrt );
 
 //	bool extracFractSudosOfSegment(SegmentVolElmInfo const & segmVolElmInfo, std::vector<IndexType> & sudosInSegment );
 
@@ -473,6 +473,11 @@ private:
 	bool checkIfContentUnique( std::vector<ELMTYP> const & vecTest, std::vector<ELMTYP> & content, IndexType mandatoryDifferentElems );
 
 	bool computeCrossPointOfPlaneWithLine( PlaneDescriptor const & shiftedPlane, Edge * const & shiftDirectionEdg, Vertex * const & oldVrt, vector3 & posCrossingPt );
+
+	ABool m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft;
+	Grid::VertexAttachmentAccessor<ABool> m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft;
+
+	std::vector<Vertex*> m_vrtxArisesFromExpandedEndingCrossingCleft;
 
 };
 

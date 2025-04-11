@@ -132,7 +132,10 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft(ABool()),
 	  m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft(Grid::FaceAttachmentAccessor<ABool>()),
 	  m_attAtVolIfVolTouchesEndingCrossingCleft(ABool()),
-	  m_volAttAccsVolTouchesEndingCrossingCleft(Grid::VolumeAttachmentAccessor<ABool>())
+	  m_volAttAccsVolTouchesEndingCrossingCleft(Grid::VolumeAttachmentAccessor<ABool>()),
+	  m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft(ABool()),
+	  m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
+	  m_vrtxArisesFromExpandedEndingCrossingCleft(std::vector<Vertex*>())
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -438,6 +441,9 @@ void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 	std::vector<Face*> d_crossingNeighboredNotEndingFacesCommEdg;
 	std::vector<Face*> d_notEndingCrossingFacesNotNeighbour;
 	std::vector<Volume*> d_vols;
+	std::vector<Vertex*> d_shiftVrtcs;
+
+	UG_LOG("Number ending crossing clefts " << m_vecEndCrossFractSegmInfo.size()  << std::endl);
 
 	for( EndingCrossingFractureSegmentInfo const & ecfsi : m_vecEndCrossFractSegmInfo )
 	{
@@ -481,6 +487,26 @@ void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 
 		Edge * shiftEdge = ecfsi.spuckLowdimElmShiftDirection();
 		d_shiftEdges.push_back(shiftEdge);
+
+
+		if( ! intermediate )
+		{
+			Vertex * shiVe = ecfsi.spuckShiftVrtx();
+
+			if( shiVe == nullptr )
+			{
+				m_sh.assign_subset(vrt, m_sh.num_subsets());
+				m_sh.assign_subset(shiftEdge, m_sh.num_subsets());
+
+				UG_LOG("no shift vertex for ending crossing cleft segment " << std::endl);
+				UG_THROW("no shift vertex for ending crossing cleft segment " << std::endl);
+
+			}
+			d_shiftVrtcs.push_back(shiVe);
+		}
+
+
+
 	}
 
 	int suse = m_sh.num_subsets();
@@ -561,6 +587,14 @@ void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 		for( Face * fac : d_crossingNeighboredNotEndingFacesCommEdg )
 		{
 			m_sh.assign_subset( fac, suse );
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Vertex * vrtx : d_shiftVrtcs )
+		{
+			if( vrtx != nullptr )
+				m_sh.assign_subset( vrtx, suse );
 		}
 
 //	suse = m_sh.num_subsets();
@@ -910,6 +944,11 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	m_volAttAccsVolTouchesEndingCrossingCleft = Grid::VolumeAttachmentAccessor<ABool>( m_grid, m_attAtVolIfVolTouchesEndingCrossingCleft );
 
+	m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft = ABool();
+
+	m_grid.attach_to_vertices_dv( m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft, false );
+
+	m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft );
 
 	return true;
 }
@@ -950,6 +989,7 @@ bool ArteExpandFracs3D::detachMarkers()
 
 	m_grid.detach_from_volumes( m_attAtVolIfVolTouchesEndingCrossingCleft );
 
+	m_grid.detach_from_vertices( m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft );
 
 	return true;
 }
@@ -1955,7 +1995,7 @@ bool ArteExpandFracs3D::distinguishSegments()
 	{
 		Vertex* vrt = *iter;
 
-		IndexType shiFraFac = shiftUnclosedFracFacesToGenerFaces( vrt );
+		IndexType shiFraFac = shiftUnclosedFracFacesToUnclosedFractFaces( vrt );
 
 		UG_LOG("shifted frac faces at " << m_aaPos[vrt] << shiFraFac << std::endl);
 	}
@@ -2017,6 +2057,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 		{
 			if( segLimSids.hasUnclosedFaces() )
 			{
+				UG_LOG("im distinguisch ungeschlossene Gesichter " << std::endl );
+
 				numEndingCrossingClefts++;
 
 				std::vector<Volume*> volsOfUnclosedSegm;
@@ -2295,6 +2337,15 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 					}
 					else
 					{
+						for( Face * fac : vecEndingFractFaceNotCutting )
+						{
+							m_sh.assign_subset( fac, m_sh.num_subsets() );
+						}
+
+						UG_LOG("schief gegangen " << std::endl);
+
+						return false;
+
 						UG_THROW("Problem with not cutting fac size " << vecEndingFractFaceNotCutting.size() << std::endl);
 					}
 
@@ -2415,6 +2466,16 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 
 				segLimSids.schluckLowdimElmShiftDirectionIfUnclosedFractPresent(shiftLowDimEl);
+
+				// schlechte Idee: die segment limiting sides müssen die ganze EndingCrossingFractureSegmentInfo zu wissen bekommen
+				// klar alternativ sollte die shift direction reichen, um die ending crossing fracture segment info rekonstruieren zu können
+				// wäre aber ein Umweg!!!
+				// besser aber der Umweg, ansonsten entsteht das Henne Ei Problem:
+				// wer ist von was der Ursprung? wer schluckt was,
+				// die Segment Seite die Ending crossing fracture segment info, oder umgekehrt?
+				// und wenn es dann als Kopie geschluckt wird, was passiert wenn was verändert wird,
+				// es müssten also Pointer sein, und es entsteht eine unsinnige Kaskade.....
+
 			}
 		}
 
@@ -2439,6 +2500,21 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 	}
 
 //	return true;
+
+
+	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+	{
+		Vertex* vrt = *iter;
+
+		VecSegmentLimitingSides & vecSegmLimSid = m_vrtxAttAccsVecSegmLimSid[vrt];
+
+		for( SegmentLimitingSides const & sls : vecSegmLimSid )
+		{
+			if( sls.hasUnclosedFaces())
+				UG_LOG("Hier nach detect hat das Gesicht noch ungeschlossene " << std::endl);
+		}
+
+	}
 
 	if( numEndingCrossingClefts == 0 )
 			return true;
@@ -2739,7 +2815,7 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 //	{
 //		Vertex* vrt = *iter;
 //
-//		IndexType shiFraFac = shiftUnclosedFracFacesToGenerFaces( vrt );
+//		IndexType shiFraFac = shiftUnclosedFracFacesToUnclosedFractFaces( vrt );
 //
 //		UG_LOG("shifted frac faces at " << m_aaPos[vrt] << " -> " << shiFraFac << std::endl);
 //
@@ -2824,12 +2900,10 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 
 //	return true;
 
-	// TODO FIXME fill!!!
 
-	// TODO FIXME wieso die ending crossing cleft faces nicht aus den Segmenten raus holen,
+	//  wieso die ending crossing cleft faces nicht aus den Segmenten raus holen,
 	// und zwar aus den ungeschlossenen Faces, die im Segment liegen?
 	// müssen doch dieselben sein, dann sollte die komische Prozedur hier unnötig werden!!!
-	// XXXXXXXXXXXXXXXXXXXXXXXXXx
 
 
 //	UG_THROW("KÄSE" << std::endl);
@@ -2917,12 +2991,10 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 #if 0
 bool ArteExpandFracs3D::detectEndingCrossingClefts()
 {
-	// TODO FIXME fill!!!
 
-	// TODO FIXME wieso die ending crossing cleft faces nicht aus den Segmenten raus holen,
+	//  wieso die ending crossing cleft faces nicht aus den Segmenten raus holen,
 	// und zwar aus den ungeschlossenen Faces, die im Segment liegen?
 	// müssen doch dieselben sein, dann sollte die komische Prozedur hier unnötig werden!!!
-	// XXXXXXXXXXXXXXXXXXXXXXXXXx
 
 	IndexType numEndingCrossingClefts = 0;
 
@@ -3090,7 +3162,7 @@ bool ArteExpandFracs3D::detectEndingCrossingClefts()
 // wird bisher nicht berücksichtigt
 // irgendwie muss das markiert werden, damit die Kluft, die zu Ende geht.
 // im Durchstich trotzdem berücksichtigt wird
-ArteExpandFracs3D::IndexType ArteExpandFracs3D::shiftUnclosedFracFacesToGenerFaces( Vertex * const & vrt )
+ArteExpandFracs3D::IndexType ArteExpandFracs3D::shiftUnclosedFracFacesToUnclosedFractFaces( Vertex * const & vrt )
 {
 	IndexType shiftedFracFaces = 0;
 
@@ -4795,6 +4867,14 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 		UG_LOG("vertex at " << posOldVrt << std::endl);
 
+		VecSegmentLimitingSides & vecSegmLimSid = m_vrtxAttAccsVecSegmLimSid[oldVrt];
+
+		for( SegmentLimitingSides const & sls : vecSegmLimSid )
+		{
+			if( sls.hasUnclosedFaces())
+				UG_LOG("Hier hat das Gesicht noch ungeschlossene " << std::endl);
+		}
+
 //		if( ! vrtxIsBndVrt )
 //		{
 		if( ! establishNewVertizesStasiBased(oldVrt) )
@@ -4987,6 +5067,16 @@ bool ArteExpandFracs3D::establishSegmentLimitingSidesInfo()
 //						UG_THROW("Schlucken von unclosed schief gegangen " << std::endl);
 //						return false;
 					}
+					else
+					{
+						UG_LOG("ungeschlossene fracture geschluckt " << std::endl);
+					}
+
+					if( ! segLimSids.hasUnclosedFaces() )
+					{
+						UG_LOG("keine ungeschlossenen Gesichter " << std::endl);
+						UG_THROW("keine ungeschlossenen Gesichter " << std::endl);
+					}
 				}
 
 				if( vrtxIsBndVrt )
@@ -5079,6 +5169,11 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 
 	for( SegmentLimitingSides const & segLimSids : vecSegmLimSid )
 	{
+
+		if( segLimSids.hasUnclosedFaces() )
+		{
+			UG_LOG("beim ausdehnen ungeschlossene Gesichter " << std::endl);
+		}
 
 		if( ! expandWithinTheSegment(segLimSids) )
 		{
@@ -5516,13 +5611,24 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 	IndexType sudoExample = (vecPlaneFracDescr[0]).spuckSudo();
 	vector3 posNewVrt; // to be determined depending on the segment properties
 
+	bool hasUnclosedFaces = segmLimSides.hasUnclosedFaces();
+
+	if( hasUnclosedFaces )
+	{
+		UG_LOG("hat ungeschlossene Seiten " << std::endl);
+	}
+
 	if( ! isBndry && vecShiftedPlaneDescript.size() == 1 )
 	{
 		// TODO FIXME die unclosed crossing faces behandeln!!!
 
-		bool withUnclosedFaces = segmLimSides.hasUnclosedFaces();
+		// XXXXX muss wieder eingeschaltet werden hier
+		// TODO FIXME use the hasUnclosedFaces property, but for visual debugging, better set as false
+//		bool distinguishUnclosedFaces = segmLimSides.hasUnclosedFaces();
+		constexpr bool distinguishUnclosedFaces = false; // segmLimSides.hasUnclosedFaces();
+		UG_LOG("Please use switch unclosed faces in final version, please remove debugging set false" << std::endl);
 
-		if( ! withUnclosedFaces ) // standard case, just shift perpendicular to the plane, no SLE to solve
+		if( ! distinguishUnclosedFaces ) // standard case, just shift perpendicular to the plane, no SLE to solve
 		{
 			//		// one single inner fracture, Testfall Anfang
 			//		computeShiftVector( vecShiftedPlaneDescript[0] );
@@ -5797,6 +5903,88 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 	m_sh.assign_subset(newShiftVrtx, sudoExample);
 //	m_sh.assign_subset(newShiftVrtx, m_sh.num_subsets());
+
+	m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft[newShiftVrtx] = hasUnclosedFaces;
+
+	// TODO FIXME das auch verwenden
+
+	if( hasUnclosedFaces )
+	{
+		// TEST AUF ANZAHL der kreuzenden Klüfte, zusätzlich, ob es eine ist nur
+		// zur Sicherheit
+		if( isBndry || vecShiftedPlaneDescript.size() != 1 )
+		{
+			UG_LOG("Shift vertex but boundary or more than one shift direction " << std::endl);
+			UG_THROW("Shift vertex but boundary or more than one shift direction " << std::endl);
+		}
+
+		if( ! addElem( m_vrtxArisesFromExpandedEndingCrossingCleft, newShiftVrtx ) )
+		{
+			UG_LOG("Shifted ecf vertex schon bekannt " << std::endl);
+			UG_THROW("Shifted ecf vertex schon bekannt " << std::endl);
+		}
+
+		// TODO FIXME figure out segment limiting side of the member vector and add the shift vertex
+
+		Edge * shiftDirection = nullptr;
+
+		if( ! segmLimSides.spuckLowdimElmShiftDirectionIfUnclosedFractPresent( shiftDirection ) )
+		{
+			UG_LOG("No shift direction in ending crossing cleft segment " << std::endl);
+			UG_THROW("No shift direction in ending crossing cleft segment " << std::endl);
+		}
+
+		IndexType numFoundECFSI = 0;
+
+		// figure out the Ending crossing cleft segment info corresponding to this shift edge
+		for( EndingCrossingFractureSegmentInfo const & ecfs : m_vecEndCrossFractSegmInfo )
+		{
+			if( ecfs.spuckLowdimElmShiftDirection() == shiftDirection )
+				numFoundECFSI++;
+		}
+
+		if( numFoundECFSI != 1 )
+		{
+			UG_LOG("not one cefsi found " << numFoundECFSI << std::endl);
+			UG_THROW("not one cefsi found " << numFoundECFSI << std::endl);
+		}
+
+		for( EndingCrossingFractureSegmentInfo & ecfs : m_vecEndCrossFractSegmInfo )
+		{
+			if( ecfs.spuckLowdimElmShiftDirection() == shiftDirection )
+			{
+				if( ! ecfs.schluckShiftVrtx( newShiftVrtx ) )
+				{
+					UG_LOG("Shift vertex wird nicht geschluckt" << m_aaPos[newShiftVrtx] << std::endl );
+					UG_THROW("Shift vertex wird nicht geschluckt" << m_aaPos[newShiftVrtx] << std::endl );
+					return false;
+				}
+
+				break;
+			}
+		}
+
+		IndexType numFoundAssigned = 0;
+
+		for( EndingCrossingFractureSegmentInfo const & ecfs : m_vecEndCrossFractSegmInfo )
+		{
+			if( ecfs.spuckShiftVrtx() != nullptr && ecfs.spuckLowdimElmShiftDirection() == shiftDirection )
+				numFoundAssigned++;
+		}
+
+		if( numFoundAssigned != 1 )
+		{
+			m_sh.assign_subset( oldVrt, m_sh.num_subsets());
+			m_sh.assign_subset( shiftDirection, m_sh.num_subsets());
+
+
+			UG_LOG( "num found assigend wrong " << numFoundAssigned );
+			UG_THROW( "num found assigend wrong " << numFoundAssigned );
+		}
+
+		UG_LOG("ending crossing cleft shift vertex generated " << std::endl);
+
+	}
 
 	std::vector<Volume*> volsInSegm;
 
@@ -6636,7 +6824,7 @@ bool ArteExpandFracs3D::createConditionForNewVrtcs()
 
 bool ArteExpandFracs3D::createNewElements()
 {
-	// practically copied from Sebastian, as this concept is fine
+	// originally practically copied from Sebastian, as this concept was fine for 2D, but adapted in 3D
 
 	//	create new elements
 
@@ -6809,7 +6997,9 @@ bool ArteExpandFracs3D::createNewElements()
 //					}
 
 
-					if( avoidFace )
+					constexpr bool debugTest = false;
+
+					if( avoidFace && debugTest )
 						continue;
 
 					Volume* expVol = nullptr;
