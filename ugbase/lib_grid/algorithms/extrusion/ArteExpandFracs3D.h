@@ -479,6 +479,9 @@ private:
 
 	std::vector<Vertex*> m_vrtxArisesFromExpandedEndingCrossingCleft;
 
+	bool etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes );
+
+
 };
 
 // specification has to be declared outside central class context, else compilation error

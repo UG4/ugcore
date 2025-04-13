@@ -2078,6 +2078,11 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				Vertex * endingCrossingCleftVrtx = segLimSids.spuckVertex();
 
+				if( endingCrossingCleftVrtx != vrt )
+				{
+					UG_THROW("System von attachments und vektoren durcheinander " << std::endl);
+				}
+
 				//  commented out the debug members:  m_d_endingCrossingCleftVrtcs.push_back( endingCrossingCleftVrtx );
 
 				UG_LOG("vertex gefunden an ending crossing cleft " << std::endl);
@@ -6902,6 +6907,9 @@ bool ArteExpandFracs3D::createNewElements()
 					//					{
 					//						UG_LOG("Edge clone from ending crossing cleft new shift vertex" << std::endl);
 					//					}
+
+					// Ergebnis dieses debug Teils: alle edges, die geclont werden, sind notwendig
+					// auch bei ending crossing clefts
 #endif
 				}
 			}
@@ -6947,20 +6955,38 @@ bool ArteExpandFracs3D::createNewElements()
 						fd.set_vertex(i, nVrt);
 					else
 						fd.set_vertex(i, sv->vertex(locVrtInds[i]));
-
-//					if(  )
 				}
 
+#if 1
 				//	if the new face does not already exist, we'll create it
 				if(!m_grid.get_face(fd))
 					m_grid.create_by_cloning(sf, fd, sf);
+#else
+				//	if the new face does not already exist, we'll create it
+				if( ! m_grid.get_face(fd) )
+				{
+					Face * fac = *( m_grid.create_by_cloning(sf, fd, sf) );
+
+					bool faceAtEndingCrossingCleft = m_aaMarkFaceWithEndingCrossingCleft[sf];
+
+					bool faceTouchingEndingCrossingCleft = m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft[sf];
+
+					if( faceAtEndingCrossingCleft || faceTouchingEndingCrossingCleft )
+					{
+						m_sh.assign_subset( fac, m_sh.num_subsets() );
+						UG_LOG("Face at ending crossing cleft" << std::endl);
+					}
+				}
+
+				// Ergebnis dieses debug Teils: alle faces, die geclont werden, sind notwendig
+				// auch bei ending crossing clefts
+#endif
+
 			}
 		}
 	}
 
 	UG_LOG("Face descriptor left" << std::endl);
-
-//	return false;
 
 	//	Expand all faces.
 	//	Since volumes are replaced on the fly, we have to take care with the iterator.
@@ -6968,6 +6994,16 @@ bool ArteExpandFracs3D::createNewElements()
 
 	std::vector<Volume*> newFractureVolumes;
 	std::vector<IndexType> subsOfNewVolumes;
+
+	// create alternative volumes where there are ending crossing clefts
+
+//	etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes );
+	if( ! etablishVolumesAtEndingCrossingClefts( newFractureVolumes, subsOfNewVolumes ) )
+	{
+		UG_LOG("unable to establish volumes at ending crossing clefts" << std::endl);
+		return false;
+	}
+
 
 	VolumeDescriptor vd;
 
@@ -7037,7 +7073,7 @@ bool ArteExpandFracs3D::createNewElements()
 //					}
 
 
-					constexpr bool debugTest = false;
+					constexpr bool debugTest = true;
 
 					if( avoidFace && debugTest )
 						continue;
@@ -7295,6 +7331,8 @@ bool ArteExpandFracs3D::createNewElements()
 //	return false;
 
 
+
+
 	//	we have to clean up unused faces and edges.
 	//	note that all selected edges with mark 0 may safley be deleted. - warum?
 	for(EdgeIterator iter = m_sel.begin<Edge>(); iter!= m_sel.end<Edge>();)
@@ -7373,5 +7411,127 @@ bool ArteExpandFracs3D::createNewElements()
 
 	return true;
 }
+
+////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes )
+{
+
+	for( EndingCrossingFractureSegmentInfo const & ecfsi : m_vecEndCrossFractSegmInfo )
+	{
+		std::vector<Volume*> const & attVolsOfSegm = ecfsi.spuckVecFulldimEl();
+
+		Vertex * baseVrtx = ecfsi.spuckUnclosedVrtx();
+
+		Vertex * shiftVrtx = ecfsi.spuckShiftVrtx();
+
+		Edge * cutEdge = ecfsi.spuckOldLowDimElCut();
+
+		Vertex * secondVrtxCutEdge = nullptr;
+
+		if( cutEdge->vertex(0) == baseVrtx )
+		{
+			secondVrtxCutEdge = cutEdge->vertex(1);
+		}
+		else if( cutEdge->vertex(1) == baseVrtx )
+		{
+			secondVrtxCutEdge = cutEdge->vertex(0);
+		}
+		else
+		{
+			UG_LOG("no second vertex of cut edge " << std::endl);
+			UG_THROW("no second vertex of cut edge " << std::endl);
+			return false;
+		}
+
+		Edge * divisionEdge = *m_grid.create<RegularEdge>( EdgeDescriptor( secondVrtxCutEdge, shiftVrtx ) );
+
+		m_sh.assign_subset(divisionEdge, m_sh.num_subsets());
+
+		Face * hiddenCutFracFace = *m_grid.create<Triangle>(TriangleDescriptor( baseVrtx, shiftVrtx, secondVrtxCutEdge ));
+
+		m_sh.assign_subset(hiddenCutFracFace, m_sh.num_subsets());
+
+		Face * endingFractFacCutting = ecfsi.spuckEndingFractManifCutting();
+
+		IndexType const triangVrtxNum = 3;
+
+		if( endingFractFacCutting->num_vertices() != triangVrtxNum )
+		{
+			UG_LOG("only triangles allowed " << std::endl);
+			UG_THROW("only triangles allowed " << std::endl);
+		}
+
+
+		IndexType foundNotTouchVrtx = 0;
+
+		Vertex * notTouchingVrtx = nullptr;
+
+
+		// figure out that vertex of the ending fracture faces that is not touching the crossing not ending cleft
+		for( IndexType vrtIndx = 0; vrtIndx < triangVrtxNum; vrtIndx++ )
+		{
+			Vertex * testVrt = endingFractFacCutting->vertex(vrtIndx);
+
+			if( ! EdgeContains( cutEdge, testVrt ) )
+			{
+				foundNotTouchVrtx++;
+				notTouchingVrtx = testVrt;
+			}
+		}
+
+		if( foundNotTouchVrtx != 1 || ! notTouchingVrtx  )
+		{
+			UG_LOG("not touching vertex not found " << std::endl);
+			UG_THROW("not touching vertex not found " << std::endl);
+		}
+
+		// replace the face that touches with an edge
+		Face * replaceEndingFractCutFac = *m_grid.create<Triangle>(TriangleDescriptor( shiftVrtx, secondVrtxCutEdge, notTouchingVrtx ));
+
+		m_sh.assign_subset( replaceEndingFractCutFac, m_sh.num_subsets() );
+
+		// replace the face that has only the base vertex common, if existing
+		Face * endingFractFacNotCutting = ecfsi.spuckEndingFractManifNotCutting();
+
+		if( endingFractFacNotCutting )
+		{
+			if( endingFractFacNotCutting->num_vertices() != triangVrtxNum )
+			{
+				UG_LOG("only triangles allowed NC" << std::endl);
+				UG_THROW("only triangles allowed NC" << std::endl);
+			}
+
+			std::vector<Vertex*> vrtcsNotBase;
+
+			// figure out those vertices which are not the basis vertex
+			for( IndexType vrtIndx = 0; vrtIndx < triangVrtxNum; vrtIndx++ )
+			{
+				Vertex * testVrt = endingFractFacNotCutting->vertex(vrtIndx);
+
+				if( testVrt != baseVrtx )
+					vrtcsNotBase.push_back(testVrt);
+			}
+
+			if( vrtcsNotBase.size() != 2 )
+			{
+				UG_LOG("strange number vertices " << vrtcsNotBase.size() << std::endl);
+				UG_THROW("strange number vertices " << vrtcsNotBase.size() << std::endl);
+			}
+
+			Face * replaceEndingFractNotCutFac = *m_grid.create<Triangle>(TriangleDescriptor( shiftVrtx, vrtcsNotBase[0], vrtcsNotBase[1] ));
+
+			m_sh.assign_subset( replaceEndingFractNotCutFac, m_sh.num_subsets() );
+
+		}
+
+
+
+
+	}
+
+	return false;
+}
+
 
 } /* namespace ug */
