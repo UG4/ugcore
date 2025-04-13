@@ -7290,6 +7290,7 @@ bool ArteExpandFracs3D::createNewElements()
 //							grid.detach_from_volumes(aVrtVec);
 //							grid.detach_from_vertices(aAdjMarker);
 //							grid.detach_from_edges(aAdjMarker);
+						detachMarkers();
 						throw(UGError("Incomplete implementation error in ExpandFractures3d Arte: Only tetrahedrons are supported in the current implementation, and hexahedra are in development."));
 						return false;
 					}
@@ -7419,8 +7420,6 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 	for( EndingCrossingFractureSegmentInfo const & ecfsi : m_vecEndCrossFractSegmInfo )
 	{
-		std::vector<Volume*> const & attVolsOfSegm = ecfsi.spuckVecFulldimEl();
-
 		Vertex * baseVrtx = ecfsi.spuckUnclosedVrtx();
 
 		Vertex * shiftVrtx = ecfsi.spuckShiftVrtx();
@@ -7525,9 +7524,393 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 		}
 
+//		for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end();)
+		for( Volume * const & sv : ecfsi.spuckVecFulldimEl() )
+		{
+
+			UG_LOG("CEC Volume new creation try at " << CalculateCenter(sv, m_aaPos) << std::endl);
+
+			bool volHasEndingCrossingCleftFace = m_volAttAccsVolTouchesEndingCrossingCleft[sv];
+
+			// should be true!
+
+			if( ! volHasEndingCrossingCleftFace )
+			{
+				UG_LOG("Was ist da los, ending cleft und doch nicht " << std::endl);
+				UG_THROW("Was ist da los, ending cleft und doch nicht " << std::endl);
+			}
+
+			// check if volume contains the base vertex
+
+			if( ! VolumeContains(sv, baseVrtx))
+			{
+				UG_LOG("VOlume ausdehenen ECC ohne base vertex " << std::endl);
+				UG_THROW("VOlume ausdehenen ECC ohne base vertex " << std::endl);
+			}
+
+			//	now expand the fracture faces of sv to volumes.
+			for(size_t i_side = 0; i_side < sv->num_sides(); ++i_side)
+			{
+				//	holds local side vertex indices
+				std::vector<size_t>	locVrtInds;
+
+				//	get the local vertex indices of the side of the volume
+				sv->get_vertex_indices_of_face(locVrtInds, i_side);
+
+				Face* tFace = m_grid.get_side(sv, i_side);
+
+				if(tFace)
+				{
+					if( m_aaMarkFaceIsFracB[tFace] )
+					{
+						bool faceIsSegmLimEndCrossCleft = m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft[tFace];
+						bool faceIsEndingCleftCrossFace = m_aaMarkFaceWithEndingCrossingCleft[tFace];
+
+						bool avoidFace = ( volHasEndingCrossingCleftFace && ( faceIsSegmLimEndCrossCleft || faceIsEndingCleftCrossFace ) );
+
+						if( endingFractFacCutting == tFace || endingFractFacNotCutting == tFace )
+						{
+							if( ! faceIsEndingCleftCrossFace )
+							{
+								UG_LOG("Widerspruch ending but not ending ECC" << std::endl);
+							}
+
+							UG_LOG("Volumenerzeugung Versuch ECC Anfang" << std::endl);
+
+							Volume* expVol = nullptr;
+
+							if(locVrtInds.size() == 3)
+							{
+								size_t iv0 = locVrtInds[0];
+								size_t iv1 = locVrtInds[1];
+								size_t iv2 = locVrtInds[2];
+
+								Vertex * vrtxOne = ( m_aaVrtVecVol[sv] )[iv0];
+								Vertex * vrtxTwo = ( m_aaVrtVecVol[sv] )[iv1];
+								Vertex * vrtxThree = ( m_aaVrtVecVol[sv] )[iv2];
+
+								// figure out which vertex is the base vertex
+
+								int indBasVrtx = -1;
+
+								for( IndexType vrtxInd = 0; vrtxInd < triangVrtxNum; vrtxInd++ )
+								{
+									if( sv->vertex(vrtxInd) == baseVrtx )
+										indBasVrtx = vrtxInd;
+								}
+
+								// der Index des Basisvertex ist tabu für die Ausehnung der endenden fracture
+
+								if( iv0 == indBasVrtx )
+								{
+									if(    ( m_aaVrtVecVol[sv] )[iv0]
+										&& ( m_aaVrtVecVol[sv] )[iv1]
+										&& ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new pyramid
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv1),
+//																		(m_aaVrtVecVol[sv])[iv2],
+//																		(m_aaVrtVecVol[sv])[iv1],
+//																		(m_aaVrtVecVol[sv])[iv0]));
+
+										expVol = *m_grid.create<Pyramid>(
+														PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0]));
+
+									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											 && ( m_aaVrtVecVol[sv] )[iv1]
+									)
+									{
+										//	create a new tetrahedron
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv1),
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0],
+															sv->vertex(iv2)));
+									}
+//									else if(    ( m_aaVrtVecVol[sv] )[iv1]
+//											 && ( m_aaVrtVecVol[sv] )[iv2]
+//									)
+//									{
+//										//	create a new Pyramid
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+//															(m_aaVrtVecVol[sv])[iv2],
+//															(m_aaVrtVecVol[sv])[iv1],
+//															sv->vertex(iv0)));
+//									}
+									else if(    (m_aaVrtVecVol[sv])[iv0]
+											 && (m_aaVrtVecVol[sv])[iv2]
+									)
+									{
+										//	create a new tetrahedron
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv2),
+															(m_aaVrtVecVol[sv])[iv0],
+															(m_aaVrtVecVol[sv])[iv2],
+															sv->vertex(iv1)));
+									}
+//									else if( ( m_aaVrtVecVol[sv])[iv0] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv0]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv1] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv1]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv2] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv2]));
+//									}
+									else
+									{
+										//	Text from SR, still similar:
+										//  this code-block should never be entered. If it is entered then
+										//	we either selected the wrong faces (this shouldn't happen), or there
+										//	are selected faces, which have fracture-boundary-vertices only.
+										//	This is the same is if inner fracture edges exists, which are
+										//	connected to two boundary vertices.
+										//	Since we tried to remove those edges above, something went wrong.
+										//	remove the temporary attachments and throw an error
+
+										UG_LOG("Tetraeder ECC Fehlt eine Loesung " << std::endl);
+										detachMarkers();
+										throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+										return false;
+									}
+
+								}
+								else if( iv1 == indBasVrtx )
+								{
+									if(    ( m_aaVrtVecVol[sv] )[iv0]
+										&& ( m_aaVrtVecVol[sv] )[iv1]
+										&& ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new prism
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor( sv->vertex(iv2), sv->vertex(iv0),
+//																				(m_aaVrtVecVol[sv])[iv2],
+//																				(m_aaVrtVecVol[sv])[iv1],
+//																				(m_aaVrtVecVol[sv])[iv0]));
 
 
+										expVol = *m_grid.create<Pyramid>(
+														PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+															(m_aaVrtVecVol[sv])[iv0],
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1]));
 
+									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											 && ( m_aaVrtVecVol[sv] )[iv1]
+									)
+									{
+										//	create a new Pyramid
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv0),
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0],
+															sv->vertex(iv2)));
+									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											 && ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new Pyramid
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv2),
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1],
+															sv->vertex(iv0)));
+									}
+//									else if(    (m_aaVrtVecVol[sv])[iv0]
+//											 && (m_aaVrtVecVol[sv])[iv2]
+//									)
+//									{
+//										//	create a new Pyramid
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+//															(m_aaVrtVecVol[sv])[iv0],
+//															(m_aaVrtVecVol[sv])[iv2],
+//															sv->vertex(iv1)));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv0] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv0]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv1] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv1]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv2] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv2]));
+//									}
+									else
+									{
+										//	Text from SR, still similar:
+										//  this code-block should never be entered. If it is entered then
+										//	we either selected the wrong faces (this shouldn't happen), or there
+										//	are selected faces, which have fracture-boundary-vertices only.
+										//	This is the same is if inner fracture edges exists, which are
+										//	connected to two boundary vertices.
+										//	Since we tried to remove those edges above, something went wrong.
+										//	remove the temporary attachments and throw an error
+
+										UG_LOG("Tetraeder ECC Fehlt eine Loesung " << std::endl);
+										detachMarkers();
+										throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+										return false;
+									}
+								}
+								else if( iv2 == indBasVrtx )
+								{
+									if(    ( m_aaVrtVecVol[sv] )[iv0]
+										&& ( m_aaVrtVecVol[sv] )[iv1]
+										&& ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new prism
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv0),
+//																		(m_aaVrtVecVol[sv])[iv2],
+//																		(m_aaVrtVecVol[sv])[iv1],
+//																		(m_aaVrtVecVol[sv])[iv0]));
+
+										expVol = *m_grid.create<Pyramid>(
+														PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0],
+															(m_aaVrtVecVol[sv])[iv2]));
+
+									}
+//									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+//											 && ( m_aaVrtVecVol[sv] )[iv1]
+//									)
+//									{
+//										//	create a new Pyramid
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+//															(m_aaVrtVecVol[sv])[iv1],
+//															(m_aaVrtVecVol[sv])[iv0],
+//															sv->vertex(iv2)));
+//									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											 && ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new Pyramid
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv1),
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1],
+															sv->vertex(iv0)));
+									}
+									else if(    (m_aaVrtVecVol[sv])[iv0]
+											 && (m_aaVrtVecVol[sv])[iv2]
+									)
+									{
+										//	create a new Pyramid
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv0),
+															(m_aaVrtVecVol[sv])[iv0],
+															(m_aaVrtVecVol[sv])[iv2],
+															sv->vertex(iv1)));
+									}
+//									else if( ( m_aaVrtVecVol[sv])[iv0] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv0]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv1] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv1]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv2] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv2]));
+//									}
+									else
+									{
+										//	Text from SR, still similar:
+										//  this code-block should never be entered. If it is entered then
+										//	we either selected the wrong faces (this shouldn't happen), or there
+										//	are selected faces, which have fracture-boundary-vertices only.
+										//	This is the same is if inner fracture edges exists, which are
+										//	connected to two boundary vertices.
+										//	Since we tried to remove those edges above, something went wrong.
+										//	remove the temporary attachments and throw an error
+
+										UG_LOG("Tetraeder ECC Fehlt eine Loesung " << std::endl);
+										detachMarkers();
+										throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+										return false;
+									}
+
+								}
+
+							}
+							else
+							{
+								//	traditionally only tetrahedrons are supported. This section thus raises an error
+								// Markus tries to implement also Hexahedra
+		//							grid.detach_from_vertices(aVrtVec);
+		//							grid.detach_from_volumes(aVrtVec);
+		//							grid.detach_from_vertices(aAdjMarker);
+		//							grid.detach_from_edges(aAdjMarker);
+								detachMarkers();
+								throw(UGError("Incomplete implementation error in ExpandFractures3d Arte ending crossing clefts."));
+								return false;
+							}
+
+							if(expVol)
+							{
+
+								IndexType newSubs = m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex;
+
+								subsOfNewVolumes.push_back( newSubs );
+
+								m_sh.assign_subset(expVol, newSubs);
+
+								newFractureVolumes.push_back(expVol);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	return false;
