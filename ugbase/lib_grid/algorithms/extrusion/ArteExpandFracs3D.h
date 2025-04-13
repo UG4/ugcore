@@ -425,15 +425,15 @@ private:
 											  Edge * & shiftLowDimEl
 											);
 
-	std::vector<Face*> m_d_endingCrossingCleftFaces;
-	std::vector<Vertex*> m_d_endingCrossingCleftVrtcs;
-	std::vector<Edge*> m_d_cuttingEdges;
-	std::vector<Face*> m_d_crossingNeighboredNotEndingFaces;
-	std::vector<Face*> m_d_crossingNeighboredNotEndingFacesCommEdg;
-//	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
-//	std::vector<Face*> nextFaceOfCrossingNotEndingFaces;
-	std::vector<Face*> m_d_notEndingCrossingFacesNotNeighbour;
-	std::vector<Edge*> m_d_allContributingEdges;
+//	std::vector<Face*> m_d_endingCrossingCleftFaces;
+//	std::vector<Vertex*> m_d_endingCrossingCleftVrtcs;
+//	std::vector<Edge*> m_d_cuttingEdges;
+//	std::vector<Face*> m_d_crossingNeighboredNotEndingFaces;
+//	std::vector<Face*> m_d_crossingNeighboredNotEndingFacesCommEdg;
+////	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
+////	std::vector<Face*> nextFaceOfCrossingNotEndingFaces;
+//	std::vector<Face*> m_d_notEndingCrossingFacesNotNeighbour;
+//	std::vector<Edge*> m_d_allContributingEdges;
 
 	// edges that connect two ending crossing cleft vertices directly, need to be splitted
 	std::vector<Edge *> m_vecEdgeDirectConnectingEndingCrossCleftVrtcs;

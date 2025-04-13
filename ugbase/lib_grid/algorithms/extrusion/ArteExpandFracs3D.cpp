@@ -611,6 +611,7 @@ void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 
 	return;
 
+#if 0
 //	if( numEndingCrossingClefts == 0 )
 //		return true;
 
@@ -714,7 +715,7 @@ void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 
 
 	return;
-
+#endif
 
 //	return false;
 }
@@ -2077,7 +2078,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				Vertex * endingCrossingCleftVrtx = segLimSids.spuckVertex();
 
-				m_d_endingCrossingCleftVrtcs.push_back( endingCrossingCleftVrtx );
+				//  commented out the debug members:  m_d_endingCrossingCleftVrtcs.push_back( endingCrossingCleftVrtx );
 
 				UG_LOG("vertex gefunden an ending crossing cleft " << std::endl);
 
@@ -2123,7 +2124,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 					bool isCuttingTheClosed = false;
 
 					Face * facUncl = slsffUncl.getManifElm();
-					m_d_endingCrossingCleftFaces.push_back(facUncl);
+					//  commented out the debug members:  m_d_endingCrossingCleftFaces.push_back(facUncl);
 					m_aaMarkFaceWithEndingCrossingCleft[facUncl] = true;
 
 					IndexType sudoUncl = slsffUncl.getSudo();
@@ -2131,8 +2132,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 					EdgePair const & epU = slsffUncl.getPairLowElm();
 
-					m_d_allContributingEdges.push_back(epU.first);
-					m_d_allContributingEdges.push_back(epU.second);
+					//  commented out the debug members:  m_d_allContributingEdges.push_back(epU.first);
+					//  commented out the debug members:  m_d_allContributingEdges.push_back(epU.second);
 
 					addElem( m_vecEdgeDirectConnectingEndingCrossCleftVrtcs, epU.first );
 					addElem( m_vecEdgeDirectConnectingEndingCrossCleftVrtcs, epU.second );
@@ -2148,7 +2149,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 							isCuttingTheClosed = true;
 
 							Face * facClos = slsffClos.getManifElm();
-							m_d_crossingNeighboredNotEndingFaces.push_back( facClos );
+							//  commented out the debug members:  m_d_crossingNeighboredNotEndingFaces.push_back( facClos );
 
 							if( commonEdge == nullptr )
 							{
@@ -2156,8 +2157,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 								UG_THROW("NULL COMMON" << std::endl);
 							}
 
-							m_d_cuttingEdges.push_back(commonEdge);
-							m_d_crossingNeighboredNotEndingFacesCommEdg.push_back(facUncl);
+							//  commented out the debug members:  m_d_cuttingEdges.push_back(commonEdge);
+							//  commented out the debug members:  m_d_crossingNeighboredNotEndingFacesCommEdg.push_back(facUncl);
 //							// search the durchgehende fracture face which is neighboured to the durchgehende one
 //							// same vertex, other edge
 
@@ -2252,8 +2253,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 					EdgePair const & epC = slsffClos.getPairLowElm();
 
-					m_d_allContributingEdges.push_back(epC.first);
-					m_d_allContributingEdges.push_back(epC.second);
+					//  commented out the debug members:  m_d_allContributingEdges.push_back(epC.first);
+					//  commented out the debug members:  m_d_allContributingEdges.push_back(epC.second);
 
 					addElem( m_vecEdgeDirectConnectingEndingCrossCleftVrtcs, epC.first );
 					addElem( m_vecEdgeDirectConnectingEndingCrossCleftVrtcs, epC.second );
@@ -2268,7 +2269,13 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 					bool facGiven = false;
 
-					for( Face * facClosNoNei : m_d_crossingNeighboredNotEndingFaces )
+					// ATTENTION hier ausgetauscht erst später, Gefahr von Fehler
+					// m_d_ Variable war Teil von echtem Algorithmus, gefährlich
+					// hoffentlich richtig getauscht
+					// im Falle von bugs hier nochmal testen, ob die m_d Variable
+					// richtig getauscht wurde!!!
+//					for( Face * facClosNoNei : m_d_crossingNeighboredNotEndingFaces )
+					for( Face * facClosNoNei : vecNeighbouredFacesClosedFract )
 					{
 						if( facClosNoNei == facClos )
 						{
@@ -2279,7 +2286,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 					if( ! facGiven )
 					{
-						m_d_notEndingCrossingFacesNotNeighbour.push_back( facClos );
+						//  commented out the debug members:  m_d_notEndingCrossingFacesNotNeighbour.push_back( facClos );
 						vecClosedFracFacNoNeighbr.push_back( facClos );
 					}
 				}
@@ -5904,6 +5911,9 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 	m_sh.assign_subset(newShiftVrtx, sudoExample);
 //	m_sh.assign_subset(newShiftVrtx, m_sh.num_subsets());
 
+	// wenn der neue Vertex mit einer ungeschlossenen endenden Kluft zu tun hat
+	// muss am Ende vom Kernvertex, old vertex, die edge, die nicht mit der
+	// kreuzenden nicht endenden KLuft geht, gelöscht werden
 	m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft[newShiftVrtx] = hasUnclosedFaces;
 
 	// TODO FIXME das auch verwenden
@@ -6867,9 +6877,32 @@ bool ArteExpandFracs3D::createNewElements()
 					if(!nv1)
 						nv1 = sv->vertex(ind1);
 
+#if 1
 					//	create the new edge if it not already exists.
 					if( ! m_grid.get_edge(nv0, nv1))
 						m_grid.create_by_cloning(e, EdgeDescriptor(nv0, nv1), e);
+#else // only for debugging purposes
+
+					//					if( ! ( m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft[nv0] || m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft[nv0] ) )
+					{
+						//	create the new edge if it not already exists.
+						if( ! m_grid.get_edge(nv0, nv1))
+						{
+							Edge * cloneEdge = * ( m_grid.create_by_cloning(e, EdgeDescriptor(nv0, nv1), e) );
+
+							if( ( m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft[nv0] || m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft[nv1] ) )
+							{
+								m_sh.assign_subset(cloneEdge, m_sh.num_subsets());
+								UG_LOG("Edge clone from ending crossing cleft new shift vertex" << std::endl);
+
+							}
+						}
+					}
+					//					else
+					//					{
+					//						UG_LOG("Edge clone from ending crossing cleft new shift vertex" << std::endl);
+					//					}
+#endif
 				}
 			}
 		}
@@ -6904,13 +6937,18 @@ bool ArteExpandFracs3D::createNewElements()
 				sv->get_vertex_indices_of_face(locVrtInds, i_face);
 				fd.set_num_vertices(sf->num_vertices());
 
+				bool containsEndingCrossingCleftVrtx = false;
+
 				for(size_t i = 0; i < sf->num_vertices(); ++i)
 				{
 					Vertex* nVrt = (m_aaVrtVecVol[sv])[locVrtInds[i]];
+
 					if(nVrt)
 						fd.set_vertex(i, nVrt);
 					else
 						fd.set_vertex(i, sv->vertex(locVrtInds[i]));
+
+//					if(  )
 				}
 
 				//	if the new face does not already exist, we'll create it
@@ -6921,6 +6959,8 @@ bool ArteExpandFracs3D::createNewElements()
 	}
 
 	UG_LOG("Face descriptor left" << std::endl);
+
+//	return false;
 
 	//	Expand all faces.
 	//	Since volumes are replaced on the fly, we have to take care with the iterator.
