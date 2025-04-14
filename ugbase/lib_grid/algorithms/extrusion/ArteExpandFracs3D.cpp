@@ -8044,6 +8044,74 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 								std::vector<Face*> const & closedNotNeighbr = ecfsi.spuckVecClosedFracManifElNoNeighbr();
 
+								for( Face * fac : closedNotNeighbr )
+								{
+									if( fac == tFace )
+									{
+										if( iv0 == indBasVrtx )
+										{
+
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+
+												expVolTwo = *m_grid.create<Pyramid>(
+																PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+																	(m_aaVrtVecVol[sv])[iv2],
+																	(m_aaVrtVecVol[sv])[iv1],
+																	( m_aaVrtVecVol[sv] )[iv0]));
+
+											}
+
+
+
+										}
+
+										if( iv1 == indBasVrtx )
+										{
+
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv1]));
+
+												expVolTwo = *m_grid.create<Pyramid>(
+																PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+																	(m_aaVrtVecVol[sv])[iv0],
+																	(m_aaVrtVecVol[sv])[iv2],
+																	( m_aaVrtVecVol[sv] )[iv1]));
+
+											}
+
+										}
+
+										if( iv2 == indBasVrtx )
+										{
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+
+											expVolTwo = *m_grid.create<Pyramid>(
+															PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+																(m_aaVrtVecVol[sv])[iv1],
+																(m_aaVrtVecVol[sv])[iv0],
+																( m_aaVrtVecVol[sv] )[iv2]));
+
+										}
+
+									}
+								}
+
 #if 0
 
 								if(    ( m_aaVrtVecVol[sv] )[iv0]
