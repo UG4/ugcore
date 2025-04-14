@@ -7623,19 +7623,23 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 							size_t iv1 = locVrtInds[1];
 							size_t iv2 = locVrtInds[2];
 
-							Vertex * vrtxOne = ( m_aaVrtVecVol[sv] )[iv0];
-							Vertex * vrtxTwo = ( m_aaVrtVecVol[sv] )[iv1];
-							Vertex * vrtxThree = ( m_aaVrtVecVol[sv] )[iv2];
+//							Vertex * vrtxOne = ( m_aaVrtVecVol[sv] )[iv0];
+//							Vertex * vrtxTwo = ( m_aaVrtVecVol[sv] )[iv1];
+//							Vertex * vrtxThree = ( m_aaVrtVecVol[sv] )[iv2];
 
 							// figure out which vertex is the base vertex
 
 							int indBasVrtx = -1;
 
-							for( IndexType vrtxInd = 0; vrtxInd < triangVrtxNum; vrtxInd++ )
+							// wie kann das nur stimmen, das Volumen hat doch mehr als 3 Vertizes....
+							// zufällig für das Testbeispiel vielleicht richtig?
+//							for( IndexType vrtxInd = 0; vrtxInd < triangVrtxNum; vrtxInd++ )
+							for( IndexType vrtxInd = 0; vrtxInd < sv->num_vertices(); vrtxInd++ )
 							{
 								if( sv->vertex(vrtxInd) == baseVrtx )
 									indBasVrtx = vrtxInd;
 							}
+							// muss der Loop nicht über die Vertizes des volumens gehen?????
 
 							// der Index des Basisvertex ist tabu für die Ausehnung der endenden fracture
 
@@ -7932,15 +7936,132 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 								std::pair<Face*,Face*> const & closedNeighbrs = ecfsi.spuckPairNeighbouredFractClosedManifEl();
 
-								std::vector<Face*> const & closedNotNeighbr = ecfsi.spuckVecClosedFracManifElNoNeighbr();
 
 								if( closedNeighbrs.first == tFace || closedNeighbrs.second == tFace )
 								{
+
+									// figure out the vertex that is not from the cut edge
+
+									int freeVrtxInd = -1;
+									int secondCutEdgVrtxInd = -1;
+
+									// wasn das für ein Käse.....
+									for( IndexType vrtxInd = 0; vrtxInd < triangVrtxNum; vrtxInd++ )
+									{
+										if( ! EdgeContains(cutEdge, tFace->vertex(vrtxInd)))
+											freeVrtxInd = vrtxInd;
+
+										if( secondVrtxCutEdge == tFace->vertex(vrtxInd))
+											secondCutEdgVrtxInd = vrtxInd;
+
+									}
+
+
+									// for the "pyramid", exclude the base Vertex
+									// for the other tetrahedron, exclude the shifted of the non-base of the cut edge
+									// i.e. of secondVrtxCutEdge
+
+//									Vertex * vrtxNotFromCutEdge = tFace->vertex(freeVrtxInd);
+
+									// relate iv0, iv1, iv2 to vrtxNotFromCutEdge, base
+
+//									if(  )
+
 
 
 
 								}
 
+
+								std::vector<Face*> const & closedNotNeighbr = ecfsi.spuckVecClosedFracManifElNoNeighbr();
+
+#if 0
+
+								if(    ( m_aaVrtVecVol[sv] )[iv0]
+									&& ( m_aaVrtVecVol[sv] )[iv1]
+									&& ( m_aaVrtVecVol[sv] )[iv2]
+								)
+								{
+									//	create a new prism
+									expVol = *m_grid.create<Prism>(
+													PrismDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																	(m_aaVrtVecVol[sv])[iv2],
+																	(m_aaVrtVecVol[sv])[iv1],
+																	(m_aaVrtVecVol[sv])[iv0]));
+								}
+								else if(    ( m_aaVrtVecVol[sv] )[iv0]
+										 && ( m_aaVrtVecVol[sv] )[iv1]
+								)
+								{
+									//	create a new Pyramid
+									expVol = *m_grid.create<Pyramid>(
+													PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+														(m_aaVrtVecVol[sv])[iv1],
+														(m_aaVrtVecVol[sv])[iv0],
+														sv->vertex(iv2)));
+								}
+								else if(    ( m_aaVrtVecVol[sv] )[iv1]
+										 && ( m_aaVrtVecVol[sv] )[iv2]
+								)
+								{
+									//	create a new Pyramid
+									expVol = *m_grid.create<Pyramid>(
+													PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+														(m_aaVrtVecVol[sv])[iv2],
+														(m_aaVrtVecVol[sv])[iv1],
+														sv->vertex(iv0)));
+								}
+								else if(    (m_aaVrtVecVol[sv])[iv0]
+										 && (m_aaVrtVecVol[sv])[iv2]
+								)
+								{
+									//	create a new Pyramid
+									expVol = *m_grid.create<Pyramid>(
+													PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+														(m_aaVrtVecVol[sv])[iv0],
+														(m_aaVrtVecVol[sv])[iv2],
+														sv->vertex(iv1)));
+								}
+								else if( ( m_aaVrtVecVol[sv])[iv0] )
+								{
+									//	create a new Tetrahedron
+									expVol = *m_grid.create<Tetrahedron>(
+													TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																		 (m_aaVrtVecVol[sv])[iv0]));
+								}
+								else if( ( m_aaVrtVecVol[sv])[iv1] )
+								{
+									//	create a new Tetrahedron
+									expVol = *m_grid.create<Tetrahedron>(
+													TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																		 (m_aaVrtVecVol[sv])[iv1]));
+								}
+								else if( ( m_aaVrtVecVol[sv])[iv2] )
+								{
+									//	create a new Tetrahedron
+									expVol = *m_grid.create<Tetrahedron>(
+													TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																		 (m_aaVrtVecVol[sv])[iv2]));
+								}
+								else
+								{
+									//	Text from SR, still similar:
+									//  this code-block should never be entered. If it is entered then
+									//	we either selected the wrong faces (this shouldn't happen), or there
+									//	are selected faces, which have fracture-boundary-vertices only.
+									//	This is the same is if inner fracture edges exists, which are
+									//	connected to two boundary vertices.
+									//	Since we tried to remove those edges above, something went wrong.
+									//	remove the temporary attachments and throw an error
+
+									UG_LOG("Tetraeder Fehlt eine Loesung " << std::endl);
+									detachMarkers();
+									throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+									return false;
+								}
+
+
+#endif
 
 							}
 
