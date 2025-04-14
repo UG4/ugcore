@@ -432,6 +432,8 @@ bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
 
 void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 {
+	return;
+
 	std::vector<Face*> d_endingCrossingCleftFaces;
 	std::vector<Face*> d_endingCrossingCleftFacesNoCut;
 	std::vector<Vertex*> d_endingCrossingCleftVrtcs;
@@ -7451,6 +7453,20 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 		m_sh.assign_subset(hiddenCutFracFace, m_sh.num_subsets());
 
+		IndexType subsNewFacesEdges = m_sh.num_subsets();
+
+		for(size_t iEdge = 0; iEdge < hiddenCutFracFace->num_edges(); ++iEdge)
+		{
+			Edge* edg = m_grid.get_edge(hiddenCutFracFace, iEdge);
+
+			m_sh.assign_subset( edg, subsNewFacesEdges );
+			UG_LOG("HEDGE CENTER " << CalculateCenter( edg, m_aaPos ) << std::endl );
+
+			UG_LOG("HEdge subdom " << m_sh.get_subset_index(edg) << std::endl );
+
+		}
+
+
 		Face * endingFractFacCutting = ecfsi.spuckEndingFractManifCutting();
 
 		IndexType const triangVrtxNum = 3;
@@ -7490,6 +7506,21 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 		m_sh.assign_subset( replaceEndingFractCutFac, m_sh.num_subsets() );
 
+		IndexType subsNewFacesEdgesC = m_sh.num_subsets();
+
+		UG_LOG("EDGE NUMBER CCS CC " << replaceEndingFractCutFac->num_edges() << std::endl);
+
+		for(size_t iEdge = 0; iEdge < replaceEndingFractCutFac->num_edges(); ++iEdge)
+		{
+			Edge* edg = m_grid.get_edge(replaceEndingFractCutFac, iEdge);
+
+			m_sh.assign_subset( edg, subsNewFacesEdgesC );
+			UG_LOG("EDGE CENTER " << CalculateCenter( edg, m_aaPos ) << std::endl );
+
+			UG_LOG("Edge subdom " << m_sh.get_subset_index(edg) << std::endl );
+
+		}
+
 		// replace the face that has only the base vertex common, if existing
 		Face * endingFractFacNotCutting = ecfsi.spuckEndingFractManifNotCutting();
 
@@ -7521,6 +7552,23 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 			Face * replaceEndingFractNotCutFac = *m_grid.create<Triangle>(TriangleDescriptor( shiftVrtx, vrtcsNotBase[0], vrtcsNotBase[1] ));
 
 			m_sh.assign_subset( replaceEndingFractNotCutFac, m_sh.num_subsets() );
+
+			IndexType subsNewFacesEdges = m_sh.num_subsets();
+
+			UG_LOG("EDGE NUMBER CCS " << replaceEndingFractNotCutFac->num_edges() << std::endl);
+
+			for(size_t iEdge = 0; iEdge < replaceEndingFractNotCutFac->num_edges(); ++iEdge)
+			{
+				Edge* edg = m_grid.get_edge(replaceEndingFractNotCutFac, iEdge);
+
+				m_sh.assign_subset( edg, subsNewFacesEdges );
+
+				UG_LOG("EDGE CENTER " << CalculateCenter( edg, m_aaPos ) << std::endl );
+
+				UG_LOG("Edge subdom " << m_sh.get_subset_index(edg) << std::endl );
+
+			}
+
 
 		}
 
