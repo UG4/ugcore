@@ -7006,6 +7006,7 @@ bool ArteExpandFracs3D::createNewElements()
 		return false;
 	}
 
+//	return false;
 
 	VolumeDescriptor vd;
 
@@ -7378,6 +7379,10 @@ bool ArteExpandFracs3D::createNewElements()
 	{
 		UG_THROW("andere zahl neue volumes als subdoms " << std::endl);
 	}
+
+
+	return true;
+
 
 	IndexType nfn = 0;
 
@@ -7995,7 +8000,24 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 																				 (m_aaVrtVecVol[sv])[iv0]));
 
 										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+												 && ( m_aaVrtVecVol[sv] )[iv1]
+										)
+										{
 
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+										}
+										if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+										}
 
 
 									}
@@ -8019,6 +8041,25 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 																				 (m_aaVrtVecVol[sv])[iv1]));
 
 										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv1]
+										)
+										{
+
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+										}
+										if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+										}
+
 
 									}
 
@@ -8035,6 +8076,25 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 																			 (m_aaVrtVecVol[sv])[iv2]));
 
 									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+										&& ( m_aaVrtVecVol[sv] )[iv1]
+									)
+									{
+
+									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv1]
+										&& ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+
+									}
+									if(    ( m_aaVrtVecVol[sv] )[iv0]
+										&& ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+
+									}
+
 
 
 
@@ -8068,6 +8128,25 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 																	( m_aaVrtVecVol[sv] )[iv0]));
 
 											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+											)
+											{
+
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+
+											}
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+
+											}
+
 
 
 
@@ -8092,6 +8171,25 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 																	( m_aaVrtVecVol[sv] )[iv1]));
 
 											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+											)
+											{
+
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+
+											}
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+
+											}
+
 
 										}
 
@@ -8108,6 +8206,25 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 																( m_aaVrtVecVol[sv] )[iv2]));
 
 										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv1]
+										)
+										{
+
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+										}
+										if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+										}
+
 
 									}
 								}
@@ -8248,7 +8365,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 	}
 
 
-	return false;
+	return true;
 }
 
 
