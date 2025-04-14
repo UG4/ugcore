@@ -2229,7 +2229,9 @@ public:
 
 	using ManifelPair = std::pair<MANIFEL,MANIFEL>;
 
-	template< typename = std::enable_if< std::is_pointer<VRTXTYP>::value> >
+	template<   typename = std::enable_if< std::is_pointer<MANIFEL>::value>,
+				typename = std::enable_if< std::is_pointer<VRTXTYP>::value>
+			>
 	EndingCrossingFractSegmentInfo( VRTXTYP const & vrt,
 									MANIFEL const & endingFractManifCutting,
 									MANIFEL const & endingFractManifNotCutting,
@@ -2251,7 +2253,8 @@ public:
 		m_sudoFractEnding(sudoFractEnding),
 		m_sudoFractNotEnding(sudoFractNotEnding),
 		m_vecFulldimEl(std::vector<FULLDIMEL>()),
-		m_shiftVrtx(nullptr)
+		m_shiftVrtx(nullptr),
+		m_hiddenCutManifEl(nullptr)
 	{
 	};
 
@@ -2279,7 +2282,8 @@ public:
 		m_sudoFractEnding(sudoFractEnding),
 		m_sudoFractNotEnding(sudoFractNotEnding),
 		m_vecFulldimEl(std::vector<FULLDIMEL>()),
-		m_shiftVrtx(nullptr)
+		m_shiftVrtx(nullptr),
+		m_hiddenCutManifEl(nullptr)
 	{
 	};
 
@@ -2302,7 +2306,8 @@ public:
 		m_sudoFractEnding(std::numeric_limits<INDEXTYP>::max()),
 		m_sudoFractNotEnding(std::numeric_limits<INDEXTYP>::max()),
 		m_vecFulldimEl(std::vector<FULLDIMEL>()),
-		m_shiftVrtx(nullptr)
+		m_shiftVrtx(nullptr),
+		m_hiddenCutManifEl(nullptr)
 	{
 	};
 
@@ -2456,6 +2461,21 @@ public:
 		return m_shiftDirectionElm;
 	}
 
+	bool schluckHiddenCutFractManifEl( MANIFEL const & manifel )
+	{
+		if( m_hiddenCutManifEl == nullptr && manifel != m_hiddenCutManifEl )
+		{
+			m_hiddenCutManifEl = manifel;
+			return true;
+		}
+
+		return false;
+	}
+
+	MANIFEL const spuckHiddenCutFractManifEl() const
+	{
+		return m_hiddenCutManifEl;
+	}
 
 private:
 
@@ -2483,6 +2503,8 @@ private:
 	std::vector<FULLDIMEL> m_vecFulldimEl;
 
 	VRTXTYP m_shiftVrtx;
+
+	MANIFEL m_hiddenCutManifEl;
 
 	template <typename ELEMTYP>
 	bool schluckElem( ELEMTYP const & anotherEl, std::vector<ELEMTYP> & vecElmKnown )

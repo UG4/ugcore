@@ -296,7 +296,7 @@ bool ArteExpandFracs3D::run( bool & needToRestart )
 
 	UG_LOG("detachiert" << std::endl);
 
-	assignDebugSubsets( false );
+//	assignDebugSubsets( false );
 
 	UG_LOG("Debug subsets assigned" << std::endl );
 
@@ -432,7 +432,7 @@ bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
 
 void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 {
-	return;
+//	return;
 
 	std::vector<Face*> d_endingCrossingCleftFaces;
 	std::vector<Face*> d_endingCrossingCleftFacesNoCut;
@@ -2533,7 +2533,7 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 	if( numEndingCrossingClefts == 0 )
 			return true;
 
-	assignDebugSubsets( true );
+//	assignDebugSubsets( true );
 //
 //	UG_LOG("problematic elements highlighted " << std::endl);
 
@@ -7381,7 +7381,7 @@ bool ArteExpandFracs3D::createNewElements()
 	}
 
 
-	return true;
+//	return true;
 
 
 	IndexType nfn = 0;
@@ -7414,6 +7414,31 @@ bool ArteExpandFracs3D::createNewElements()
 		nfn++;
 	}
 
+	for( EndingCrossingFractureSegmentInfo const & ecfsi : m_vecEndCrossFractSegmInfo )
+	{
+		Face * hiddenCutFracFace = ecfsi.spuckHiddenCutFractManifEl();
+
+		IndexType subsECC = ecfsi.spuckSudoFractEnding();
+
+		m_sh.assign_subset( hiddenCutFracFace, subsECC );
+
+		for(size_t iEdge = 0; iEdge < hiddenCutFracFace->num_edges(); ++iEdge)
+		{
+			Edge* edg = m_grid.get_edge(hiddenCutFracFace, iEdge);
+
+			m_sh.assign_subset( edg, subsECC );
+
+		}
+
+		for( size_t iVrt = 0; iVrt < hiddenCutFracFace->num_vertices(); iVrt++ )
+		{
+			Vertex * vrt = hiddenCutFracFace->vertex(iVrt);
+
+			m_sh.assign_subset( vrt, subsECC );
+		}
+
+
+	}
 
 
 	return true;
@@ -7424,7 +7449,7 @@ bool ArteExpandFracs3D::createNewElements()
 bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes )
 {
 
-	for( EndingCrossingFractureSegmentInfo const & ecfsi : m_vecEndCrossFractSegmInfo )
+	for( EndingCrossingFractureSegmentInfo & ecfsi : m_vecEndCrossFractSegmInfo )
 	{
 		Vertex * baseVrtx = ecfsi.spuckUnclosedVrtx();
 
@@ -7451,11 +7476,15 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 		Edge * divisionEdge = *m_grid.create<RegularEdge>( EdgeDescriptor( secondVrtxCutEdge, shiftVrtx ) );
 
-		m_sh.assign_subset(divisionEdge, m_sh.num_subsets());
+		IndexType subsetECC = ecfsi.spuckSudoFractEnding();
+
+//		m_sh.assign_subset(divisionEdge, m_sh.num_subsets());
+		m_sh.assign_subset(divisionEdge, subsetECC);
 
 		Face * hiddenCutFracFace = *m_grid.create<Triangle>(TriangleDescriptor( baseVrtx, shiftVrtx, secondVrtxCutEdge ));
 
-		m_sh.assign_subset(hiddenCutFracFace, m_sh.num_subsets());
+//		m_sh.assign_subset(hiddenCutFracFace, m_sh.num_subsets());
+		m_sh.assign_subset(hiddenCutFracFace, subsetECC);
 
 		IndexType subsNewFacesEdges = m_sh.get_subset_index(hiddenCutFracFace);
 
@@ -7470,6 +7499,11 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 		}
 
+		if( ! ecfsi.schluckHiddenCutFractManifEl( hiddenCutFracFace ))
+		{
+			UG_LOG("hidden cut face Problem" << std::endl);
+			UG_THROW("hidden cut face Problem" << std::endl);
+		}
 
 		Face * endingFractFacCutting = ecfsi.spuckEndingFractManifCutting();
 
@@ -7508,7 +7542,8 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 		// replace the face that touches with an edge
 		Face * replaceEndingFractCutFac = *m_grid.create<Triangle>(TriangleDescriptor( shiftVrtx, secondVrtxCutEdge, notTouchingVrtx ));
 
-		m_sh.assign_subset( replaceEndingFractCutFac, m_sh.num_subsets() );
+//		m_sh.assign_subset( replaceEndingFractCutFac, m_sh.num_subsets() );
+		m_sh.assign_subset( replaceEndingFractCutFac, subsetECC );
 
 		IndexType subsNewFacesEdgesC = m_sh.get_subset_index(replaceEndingFractCutFac);
 
@@ -7555,7 +7590,8 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 			Face * replaceEndingFractNotCutFac = *m_grid.create<Triangle>(TriangleDescriptor( shiftVrtx, vrtcsNotBase[0], vrtcsNotBase[1] ));
 
-			m_sh.assign_subset( replaceEndingFractNotCutFac, m_sh.num_subsets() );
+//			m_sh.assign_subset( replaceEndingFractNotCutFac, m_sh.num_subsets() );
+			m_sh.assign_subset( replaceEndingFractNotCutFac, subsetECC );
 
 			IndexType subsNewFacesEdges = m_sh.get_subset_index(replaceEndingFractNotCutFac);
 
