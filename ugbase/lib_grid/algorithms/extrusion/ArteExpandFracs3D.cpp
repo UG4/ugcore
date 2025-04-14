@@ -8085,45 +8085,52 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 									if( iv2 == indBasVrtx )
 									{
-										expVol = *m_grid.create<Pyramid>(
-														PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
-															(m_aaVrtVecVol[sv])[iv1],
-															(m_aaVrtVecVol[sv])[iv0],
-															( m_aaVrtVecVol[sv] )[iv2]));
 
-										expVolTwo = *m_grid.create<Tetrahedron>(
-														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
-																			 (m_aaVrtVecVol[sv])[iv2]));
+										if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+											expVol = *m_grid.create<Pyramid>(
+															PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+																(m_aaVrtVecVol[sv])[iv1],
+																(m_aaVrtVecVol[sv])[iv0],
+																( m_aaVrtVecVol[sv] )[iv2]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+										}
+
+	//									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+	//										&& ( m_aaVrtVecVol[sv] )[iv1]
+	//									)
+	//									{
+	//
+	//									}
+										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+										}
+
+
 
 									}
-//									else if(    ( m_aaVrtVecVol[sv] )[iv0]
-//										&& ( m_aaVrtVecVol[sv] )[iv1]
-//									)
-//									{
-//
-//									}
-									else if(    ( m_aaVrtVecVol[sv] )[iv1]
-										&& ( m_aaVrtVecVol[sv] )[iv2]
-									)
-									{
-										expVolTwo = *m_grid.create<Tetrahedron>(
-														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
-																			 (m_aaVrtVecVol[sv])[iv2]));
-
-									}
-									else if(    ( m_aaVrtVecVol[sv] )[iv0]
-										&& ( m_aaVrtVecVol[sv] )[iv2]
-									)
-									{
-
-										expVolTwo = *m_grid.create<Tetrahedron>(
-														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
-																			 (m_aaVrtVecVol[sv])[iv2]));
-									}
-
-
-
-
 
 								}
 
@@ -8233,6 +8240,12 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 										if( iv2 == indBasVrtx )
 										{
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+
 											expVol = *m_grid.create<Tetrahedron>(
 															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
 																				 (m_aaVrtVecVol[sv])[iv2]));
@@ -8243,32 +8256,32 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 																(m_aaVrtVecVol[sv])[iv0],
 																( m_aaVrtVecVol[sv] )[iv2]));
 
-										}
-//										else if(    ( m_aaVrtVecVol[sv] )[iv0]
-//											&& ( m_aaVrtVecVol[sv] )[iv1]
-//										)
-//										{
-//
-//										}
-										else if(    ( m_aaVrtVecVol[sv] )[iv1]
-											&& ( m_aaVrtVecVol[sv] )[iv2]
-										)
-										{
-											expVol = *m_grid.create<Tetrahedron>(
-															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
-																				 (m_aaVrtVecVol[sv])[iv2]));
+											}
+	//										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+	//											&& ( m_aaVrtVecVol[sv] )[iv1]
+	//										)
+	//										{
+	//
+	//										}
+											else if(    ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv2]));
 
-										}
-										else if(    ( m_aaVrtVecVol[sv] )[iv0]
-											&& ( m_aaVrtVecVol[sv] )[iv2]
-										)
-										{
-											expVol = *m_grid.create<Tetrahedron>(
-															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
-																				 (m_aaVrtVecVol[sv])[iv2]));
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv2]));
 
+											}
 										}
-
 
 									}
 								}
