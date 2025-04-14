@@ -8012,7 +8012,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 										{
 
 										}
-										if(    ( m_aaVrtVecVol[sv] )[iv0]
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
 											&& ( m_aaVrtVecVol[sv] )[iv2]
 										)
 										{
@@ -8053,7 +8053,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 										{
 
 										}
-										if(    ( m_aaVrtVecVol[sv] )[iv0]
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
 											&& ( m_aaVrtVecVol[sv] )[iv2]
 										)
 										{
@@ -8088,7 +8088,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 									{
 
 									}
-									if(    ( m_aaVrtVecVol[sv] )[iv0]
+									else if(    ( m_aaVrtVecVol[sv] )[iv0]
 										&& ( m_aaVrtVecVol[sv] )[iv2]
 									)
 									{
@@ -8140,7 +8140,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 											{
 
 											}
-											if(    ( m_aaVrtVecVol[sv] )[iv0]
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
 												&& ( m_aaVrtVecVol[sv] )[iv2]
 											)
 											{
@@ -8183,7 +8183,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 											{
 
 											}
-											if(    ( m_aaVrtVecVol[sv] )[iv0]
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
 												&& ( m_aaVrtVecVol[sv] )[iv2]
 											)
 											{
@@ -8218,7 +8218,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 										{
 
 										}
-										if(    ( m_aaVrtVecVol[sv] )[iv0]
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
 											&& ( m_aaVrtVecVol[sv] )[iv2]
 										)
 										{
