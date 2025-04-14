@@ -7617,6 +7617,9 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 						Volume* expVol = nullptr;
 
+						Volume* expVolTwo = nullptr;
+
+
 						if(locVrtInds.size() == 3)
 						{
 							size_t iv0 = locVrtInds[0];
@@ -7942,18 +7945,26 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 									// figure out the vertex that is not from the cut edge
 
-									int freeVrtxInd = -1;
-									int secondCutEdgVrtxInd = -1;
+									Vertex * freeVrtx = nullptr;
 
 									// wasn das für ein Käse.....
 									for( IndexType vrtxInd = 0; vrtxInd < triangVrtxNum; vrtxInd++ )
+//									for( IndexType vrtxInd = 0; vrtxInd < sv->num_vertices(); vrtxInd++ )
 									{
 										if( ! EdgeContains(cutEdge, tFace->vertex(vrtxInd)))
+											freeVrtx = tFace->vertex(vrtxInd);
+									}
+
+									int freeVrtxInd = -1;
+									int secondCutEdgVrtxInd = -1;
+
+									for( IndexType vrtxInd = 0; vrtxInd < sv->num_vertices(); vrtxInd++ )
+									{
+										if( ! EdgeContains(cutEdge, freeVrtx))
 											freeVrtxInd = vrtxInd;
 
-										if( secondVrtxCutEdge == tFace->vertex(vrtxInd))
+										if( secondVrtxCutEdge == secondVrtxCutEdge)
 											secondCutEdgVrtxInd = vrtxInd;
-
 									}
 
 
@@ -7965,7 +7976,65 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 									// relate iv0, iv1, iv2 to vrtxNotFromCutEdge, base
 
-//									if(  )
+									if( iv0 == indBasVrtx )
+									{
+
+										if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+											expVol = *m_grid.create<Pyramid>(
+															PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+																(m_aaVrtVecVol[sv])[iv2],
+																(m_aaVrtVecVol[sv])[iv1],
+																( m_aaVrtVecVol[sv] )[iv0]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv0]));
+
+										}
+
+
+
+									}
+
+									if( iv1 == indBasVrtx )
+									{
+
+										if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+											expVol = *m_grid.create<Pyramid>(
+															PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+																(m_aaVrtVecVol[sv])[iv0],
+																(m_aaVrtVecVol[sv])[iv2],
+																( m_aaVrtVecVol[sv] )[iv1]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv1]));
+
+										}
+
+									}
+
+									if( iv2 == indBasVrtx )
+									{
+										expVol = *m_grid.create<Pyramid>(
+														PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0],
+															( m_aaVrtVecVol[sv] )[iv2]));
+
+										expVolTwo = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																			 (m_aaVrtVecVol[sv])[iv2]));
+
+									}
 
 
 
@@ -8091,6 +8160,19 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 							newFractureVolumes.push_back(expVol);
 						}
+
+						if(expVolTwo)
+						{
+
+							IndexType newSubs = m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex;
+
+							subsOfNewVolumes.push_back( newSubs );
+
+							m_sh.assign_subset(expVolTwo, newSubs);
+
+							newFractureVolumes.push_back(expVolTwo);
+						}
+
 					}
 				}
 			}
