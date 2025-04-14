@@ -7039,7 +7039,6 @@ bool ArteExpandFracs3D::createNewElements()
 					bool faceIsSegmLimEndCrossCleft = m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft[tFace];
 					bool faceIsEndingCleftCrossFace = m_aaMarkFaceWithEndingCrossingCleft[tFace];
 
-
 					bool avoidFace = ( volHasEndingCrossingCleftFace && ( faceIsSegmLimEndCrossCleft || faceIsEndingCleftCrossFace ) );
 
 //					for( Face * testFac :  m_d_endingCrossingCleftFaces )
@@ -7453,7 +7452,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 		m_sh.assign_subset(hiddenCutFracFace, m_sh.num_subsets());
 
-		IndexType subsNewFacesEdges = m_sh.num_subsets();
+		IndexType subsNewFacesEdges = m_sh.get_subset_index(hiddenCutFracFace);
 
 		for(size_t iEdge = 0; iEdge < hiddenCutFracFace->num_edges(); ++iEdge)
 		{
@@ -7506,7 +7505,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 		m_sh.assign_subset( replaceEndingFractCutFac, m_sh.num_subsets() );
 
-		IndexType subsNewFacesEdgesC = m_sh.num_subsets();
+		IndexType subsNewFacesEdgesC = m_sh.get_subset_index(replaceEndingFractCutFac);
 
 		UG_LOG("EDGE NUMBER CCS CC " << replaceEndingFractCutFac->num_edges() << std::endl);
 
@@ -7553,7 +7552,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 			m_sh.assign_subset( replaceEndingFractNotCutFac, m_sh.num_subsets() );
 
-			IndexType subsNewFacesEdges = m_sh.num_subsets();
+			IndexType subsNewFacesEdges = m_sh.get_subset_index(replaceEndingFractNotCutFac);
 
 			UG_LOG("EDGE NUMBER CCS " << replaceEndingFractNotCutFac->num_edges() << std::endl);
 
@@ -7614,40 +7613,38 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 						bool faceIsSegmLimEndCrossCleft = m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft[tFace];
 						bool faceIsEndingCleftCrossFace = m_aaMarkFaceWithEndingCrossingCleft[tFace];
 
-						bool avoidFace = ( volHasEndingCrossingCleftFace && ( faceIsSegmLimEndCrossCleft || faceIsEndingCleftCrossFace ) );
+						UG_LOG("Volumenerzeugung Versuch ECC Anfang" << std::endl);
 
-						if( endingFractFacCutting == tFace || endingFractFacNotCutting == tFace )
+						Volume* expVol = nullptr;
+
+						if(locVrtInds.size() == 3)
 						{
-							if( ! faceIsEndingCleftCrossFace )
+							size_t iv0 = locVrtInds[0];
+							size_t iv1 = locVrtInds[1];
+							size_t iv2 = locVrtInds[2];
+
+							Vertex * vrtxOne = ( m_aaVrtVecVol[sv] )[iv0];
+							Vertex * vrtxTwo = ( m_aaVrtVecVol[sv] )[iv1];
+							Vertex * vrtxThree = ( m_aaVrtVecVol[sv] )[iv2];
+
+							// figure out which vertex is the base vertex
+
+							int indBasVrtx = -1;
+
+							for( IndexType vrtxInd = 0; vrtxInd < triangVrtxNum; vrtxInd++ )
 							{
-								UG_LOG("Widerspruch ending but not ending ECC" << std::endl);
+								if( sv->vertex(vrtxInd) == baseVrtx )
+									indBasVrtx = vrtxInd;
 							}
 
-							UG_LOG("Volumenerzeugung Versuch ECC Anfang" << std::endl);
+							// der Index des Basisvertex ist tabu für die Ausehnung der endenden fracture
 
-							Volume* expVol = nullptr;
-
-							if(locVrtInds.size() == 3)
+							if( endingFractFacCutting == tFace || endingFractFacNotCutting == tFace )
 							{
-								size_t iv0 = locVrtInds[0];
-								size_t iv1 = locVrtInds[1];
-								size_t iv2 = locVrtInds[2];
-
-								Vertex * vrtxOne = ( m_aaVrtVecVol[sv] )[iv0];
-								Vertex * vrtxTwo = ( m_aaVrtVecVol[sv] )[iv1];
-								Vertex * vrtxThree = ( m_aaVrtVecVol[sv] )[iv2];
-
-								// figure out which vertex is the base vertex
-
-								int indBasVrtx = -1;
-
-								for( IndexType vrtxInd = 0; vrtxInd < triangVrtxNum; vrtxInd++ )
+								if( ! faceIsEndingCleftCrossFace )
 								{
-									if( sv->vertex(vrtxInd) == baseVrtx )
-										indBasVrtx = vrtxInd;
+									UG_LOG("Widerspruch ending but not ending ECC" << std::endl);
 								}
-
-								// der Index des Basisvertex ist tabu für die Ausehnung der endenden fracture
 
 								if( iv0 == indBasVrtx )
 								{
@@ -7928,38 +7925,57 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 									}
 
 								}
-
 							}
 							else
 							{
-								//	traditionally only tetrahedrons are supported. This section thus raises an error
-								// Markus tries to implement also Hexahedra
-		//							grid.detach_from_vertices(aVrtVec);
-		//							grid.detach_from_volumes(aVrtVec);
+								// test if face belongs to the closed faces
+
+								std::pair<Face*,Face*> const & closedNeighbrs = ecfsi.spuckPairNeighbouredFractClosedManifEl();
+
+								std::vector<Face*> const & closedNotNeighbr = ecfsi.spuckVecClosedFracManifElNoNeighbr();
+
+								if( closedNeighbrs.first == tFace || closedNeighbrs.second == tFace )
+								{
+
+
+
+								}
+
+
+							}
+
+
+						}
+						else
+						{
+							//	traditionally only tetrahedrons are supported. This section thus raises an error
+							// Markus tries to implement also Hexahedra
+		//									grid.detach_from_vertices(aVrtVec);
+		//								grid.detach_from_volumes(aVrtVec);
 		//							grid.detach_from_vertices(aAdjMarker);
 		//							grid.detach_from_edges(aAdjMarker);
-								detachMarkers();
-								throw(UGError("Incomplete implementation error in ExpandFractures3d Arte ending crossing clefts."));
-								return false;
-							}
+							detachMarkers();
+							throw(UGError("Incomplete implementation error in ExpandFractures3d Arte ending crossing clefts."));
+							return false;
+						}
 
-							if(expVol)
-							{
+						if(expVol)
+						{
 
-								IndexType newSubs = m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex;
+							IndexType newSubs = m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex;
 
-								subsOfNewVolumes.push_back( newSubs );
+							subsOfNewVolumes.push_back( newSubs );
 
-								m_sh.assign_subset(expVol, newSubs);
+							m_sh.assign_subset(expVol, newSubs);
 
-								newFractureVolumes.push_back(expVol);
-							}
+							newFractureVolumes.push_back(expVol);
 						}
 					}
 				}
 			}
 		}
 	}
+
 
 	return false;
 }
