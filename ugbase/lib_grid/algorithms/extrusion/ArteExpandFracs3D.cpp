@@ -5642,8 +5642,8 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 		// XXXXX muss wieder eingeschaltet werden hier
 		// TODO FIXME use the hasUnclosedFaces property, but for visual debugging, better set as false
-//		bool distinguishUnclosedFaces = segmLimSides.hasUnclosedFaces();
-		constexpr bool distinguishUnclosedFaces = false; // segmLimSides.hasUnclosedFaces();
+		bool distinguishUnclosedFaces = segmLimSides.hasUnclosedFaces();
+//		constexpr bool distinguishUnclosedFaces = false; // segmLimSides.hasUnclosedFaces();
 		UG_LOG("Please use switch unclosed faces in final version, please remove debugging set false" << std::endl);
 
 		if( ! distinguishUnclosedFaces ) // standard case, just shift perpendicular to the plane, no SLE to solve
