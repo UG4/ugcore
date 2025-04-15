@@ -481,6 +481,7 @@ private:
 
 	bool etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes );
 
+	IndexType deleteEndingCrossingCleftOrigFacs();
 
 };
 

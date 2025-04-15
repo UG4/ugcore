@@ -300,6 +300,10 @@ bool ArteExpandFracs3D::run( bool & needToRestart )
 
 	UG_LOG("Debug subsets assigned" << std::endl );
 
+	IndexType numDelEndCrossCleftFacs = deleteEndingCrossingCleftOrigFacs();
+
+	UG_LOG("deleted ending crossing cleft changed faces and direction edges " << numDelEndCrossCleftFacs << std::endl);
+
 	return true;
 }
 
@@ -7437,11 +7441,67 @@ bool ArteExpandFracs3D::createNewElements()
 			m_sh.assign_subset( vrt, subsECC );
 		}
 
-
 	}
 
 
 	return true;
+}
+
+ArteExpandFracs3D::IndexType ArteExpandFracs3D::deleteEndingCrossingCleftOrigFacs()
+{
+	IndexType numOfDelSegs = 0;
+
+	for( EndingCrossingFractureSegmentInfo const & ecfsi : m_vecEndCrossFractSegmInfo )
+	{
+
+		Edge * directionEdge = ecfsi.spuckLowdimElmShiftDirection();
+
+		Face * oldFractFacCut = ecfsi.spuckEndingFractManifCutting();
+
+		Face * oldFractFacNotCut = ecfsi.spuckEndingFractManifNotCutting();
+
+		Edge * commonEdge = nullptr;
+
+		if( oldFractFacNotCut )
+		{
+			for(size_t iEdge = 0; iEdge < oldFractFacCut->num_edges(); ++iEdge)
+			{
+				Edge* edgC = m_grid.get_edge(oldFractFacCut, iEdge);
+
+				for(size_t iEdge = 0; iEdge < oldFractFacNotCut->num_edges(); ++iEdge)
+				{
+					Edge* edgN = m_grid.get_edge(oldFractFacNotCut, iEdge);
+
+					if( edgC == edgN )
+					{
+						commonEdge = edgC;
+						break;
+					}
+
+				}
+
+				if( commonEdge )
+					break;
+
+			}
+		}
+
+		if( oldFractFacCut )
+			m_grid.erase(oldFractFacCut);
+
+		if( oldFractFacNotCut )
+			m_grid.erase(oldFractFacNotCut);
+
+		if( directionEdge )
+			m_grid.erase(directionEdge);
+
+		if( commonEdge )
+			m_grid.erase(commonEdge);
+
+		numOfDelSegs++;
+	}
+
+	return numOfDelSegs;
 }
 
 ////////////////////////////////////////////////////////////
