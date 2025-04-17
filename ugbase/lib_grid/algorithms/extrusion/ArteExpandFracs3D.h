@@ -419,10 +419,11 @@ private:
 	bool assignNotCuttingEdgeUnclosedCrossingCleft( SegLimSidesFractFace const & slsffUncl, Edge * const & commonEdge, Edge * & shiftEdge );
 
 	bool findShiftEdgeUncuttingCrossingCleft( VecSegLimSidesFractFace const & vecSegmLimSiFFUnclosed,
-											  Face * const & endingFractManifCutting,
-											  Face * const & endingFractManifNotCutting,
+//											  Face * const & endingFractManifCutting,
+											  std::vector<Face*> const & vecEndingFractManifNotCutting,
 											  Edge * const & uncuttingLowDimEl,
-											  Edge * & shiftLowDimEl
+											  Edge * & shiftLowDimEl,
+											  std::vector<Edge*> & vecEdgsNotCutFaces
 											);
 
 //	std::vector<Face*> m_d_endingCrossingCleftFaces;

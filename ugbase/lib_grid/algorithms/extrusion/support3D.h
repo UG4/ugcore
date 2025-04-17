@@ -2234,10 +2234,11 @@ public:
 			>
 	EndingCrossingFractSegmentInfo( VRTXTYP const & vrt,
 									MANIFEL const & endingFractManifCutting,
-									MANIFEL const & endingFractManifNotCutting,
+									std::vector<MANIFEL> const & vecEndingFractManifNotCutting,
 									LOWDIMEL const & oldLowDimElCut,
 									ManifelPair const & pairNeighbouredFractClosedManifEl,
 									LOWDIMEL const & shiftDirectionElm,
+									std::vector<LOWDIMEL> const & vecLowDimElmsOfNotCuttingManifs,
 									INDEXTYP sudoFractEnding,
 									INDEXTYP sudoFractNotEnding
 								  )
@@ -2245,10 +2246,11 @@ public:
 		m_isEndingCleft(true),
 		m_unclosedVrtx(vrt),
 		m_endingFractManifCutting(endingFractManifCutting),
-		m_endingFractManifNotCutting(endingFractManifNotCutting),
+		m_vecEndingFractManifNotCutting(vecEndingFractManifNotCutting),
 		m_pairNeighbouredFractClosedManifEl(pairNeighbouredFractClosedManifEl),
 		m_vecClosedFracManifElNoNeighbr(std::vector<MANIFEL>()),
 		m_oldLowDimElCut( oldLowDimElCut ),
+		m_vecLowDimElmsOfNotCuttingManifs(vecLowDimElmsOfNotCuttingManifs),
 		m_shiftDirectionElm(shiftDirectionElm),
 		m_sudoFractEnding(sudoFractEnding),
 		m_sudoFractNotEnding(sudoFractNotEnding),
@@ -2274,10 +2276,11 @@ public:
 		m_isEndingCleft(true),
 		m_unclosedVrtx(vrt),
 		m_endingFractManifCutting(endingFractManifCutting),
-		m_endingFractManifNotCutting(nullptr),
+		m_vecEndingFractManifNotCutting(std::vector<MANIFEL>()),
 		m_pairNeighbouredFractClosedManifEl(pairNeighbouredFractClosedManifEl),
 		m_vecClosedFracManifElNoNeighbr(std::vector<MANIFEL>()),
 		m_oldLowDimElCut( oldLowDimElCut ),
+		m_vecLowDimElmsOfNotCuttingManifs(std::vector<LOWDIMEL>()),
 		m_shiftDirectionElm(shiftDirectionElm),
 		m_sudoFractEnding(sudoFractEnding),
 		m_sudoFractNotEnding(sudoFractNotEnding),
@@ -2298,10 +2301,11 @@ public:
 		m_isEndingCleft(false),
 		m_unclosedVrtx(nullptr),
 		m_endingFractManifCutting(nullptr),
-		m_endingFractManifNotCutting(nullptr),
+		m_vecEndingFractManifNotCutting(std::vector<MANIFEL>()),
 		m_pairNeighbouredFractClosedManifEl(ManifelPair(nullptr,nullptr)),
 		m_vecClosedFracManifElNoNeighbr(std::vector<MANIFEL>()),
 		m_oldLowDimElCut( nullptr ),
+		m_vecLowDimElmsOfNotCuttingManifs(std::vector<LOWDIMEL>()),
 		m_shiftDirectionElm(nullptr),
 		m_sudoFractEnding(std::numeric_limits<INDEXTYP>::max()),
 		m_sudoFractNotEnding(std::numeric_limits<INDEXTYP>::max()),
@@ -2428,14 +2432,19 @@ public:
 		return m_endingFractManifCutting;
 	}
 
-	MANIFEL const spuckEndingFractManifNotCutting() const
+	std::vector<MANIFEL> const spuckVecEndingFractManifNotCutting() const
 	{
-		return m_endingFractManifNotCutting;
+		return m_vecEndingFractManifNotCutting;
 	}
 
 	LOWDIMEL const spuckOldLowDimElCut() const
 	{
 		return m_oldLowDimElCut;
+	}
+
+	std::vector<LOWDIMEL> const spuckVecLowDimElmsOfNotCuttingManifs()
+	{
+		return m_vecLowDimElmsOfNotCuttingManifs;
 	}
 
 	ManifelPair const spuckPairNeighbouredFractClosedManifEl() const
@@ -2485,7 +2494,8 @@ private:
 
 	VRTXTYP m_unclosedVrtx;
 	MANIFEL m_endingFractManifCutting;
-	MANIFEL m_endingFractManifNotCutting;
+//	MANIFEL m_endingFractManifNotCutting;
+	std::vector<MANIFEL> m_vecEndingFractManifNotCutting;
 
 	ManifelPair m_pairNeighbouredFractClosedManifEl;
 
@@ -2494,6 +2504,8 @@ private:
 
 	LOWDIMEL m_oldLowDimElCut; // common edge between ending frac face with one sudo and durchgehende frac faces with another sudo
 //	LOWDIMEL m_newLowDimElCut;
+
+	std::vector<LOWDIMEL> m_vecLowDimElmsOfNotCuttingManifs;
 
 	LOWDIMEL m_shiftDirectionElm;
 
