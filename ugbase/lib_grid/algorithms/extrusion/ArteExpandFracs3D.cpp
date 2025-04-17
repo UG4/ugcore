@@ -2325,6 +2325,15 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 				{
 					if( ! checkIfContentUnique( vecEndingFractFaceCutting, vecContEndingFractFaceCutting, 1 ) )
 					{
+						for( Face * fac : vecEndingFractFaceCutting  )
+						{
+							m_sh.assign_subset( fac, m_sh.num_subsets());
+
+							UG_LOG("fract face cutting strange behaviour at " << CalculateCenter( fac, m_aaPos ) << std::endl);
+						}
+
+						UG_LOG("Problem with cutting fac " << std::endl);
+						return false;
 						UG_THROW("Problem with cutting fac " << std::endl);
 					}
 				}
