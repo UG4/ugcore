@@ -91,9 +91,16 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaMarkEdgeVFP(Grid::EdgeAttachmentAccessor<AttVertFracProp>()),
 	  m_aAdjMarkerFaceIsFracB(ABool()),
 	  m_aaMarkFaceIsFracB(Grid::FaceAttachmentAccessor<ABool>()),
-	  m_aaMarkFaceIsUnclosedFracB(Grid::FaceAttachmentAccessor<ABool>()),
-	  m_aAdjMarkerVrtxHasUnclosedFracB(ABool()),
-	  m_aaMarkVrtxHasUnclosedFracB(Grid::VertexAttachmentAccessor<ABool>()),
+//	  m_aaMarkFaceHasUnclosedFracSideB(Grid::FaceAttachmentAccessor<ABool>()),
+//	  m_aAdjMarkerVrtxHasUnclosedFracB(ABool()),
+//	  m_aaMarkVrtxHasUnclosedFracB(Grid::VertexAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerFaceWithEndingCrossingCleft(ABool()),
+	  m_aaMarkFaceWithEndingCrossingCleft(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerVrtxAtEndingCrossingCleft(ABool()),
+	  m_aaMarkVrtxAtEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
+//	  m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract(ABool()),
+//	  m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract(Grid::VertexAttachmentAccessor<ABool>()),
+	  m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx(false),
 	  m_originalFractureFaces(std::vector<Face*>()),
 //	  m_attVrtVec(AttVrtVec()),
 //	  m_aaVrtVecVol( Grid::VolumeAttachmentAccessor<AttVrtVec>() ),
@@ -112,7 +119,23 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 //	  m_aAdjVolElmInfo(AttVecAttachedVolumeElemInfo()),
 //	  m_aaVolElmInfo(Grid::VertexAttachmentAccessor<AttVecAttachedVolumeElemInfo>()),
 	  m_attAdjVecSegVolElmInfo( AttVecSegmentVolElmInfo() ),
-	  m_accsAttVecSegVolElmInfo( Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo>() )
+	  m_accsAttVecSegVolElmInfo( Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo>() ),
+	  m_attVecSegmLimSid(AttVecSegmLimSid()),
+	  m_vrtxAttAccsVecSegmLimSid(Grid::VertexAttachmentAccessor<AttVecSegmLimSid>()),
+	  m_vecEdgeDirectConnectingEndingCrossCleftVrtcs( std::vector<Edge* >() ),
+	  m_vecEndCrossFractSegmInfo( VecEndingCrossingFractureSegmentInfo() ),
+//	  m_vecEndCrossFractSegmInfo(VecEndingCrossingFractureSegmentInfo()),
+	  m_attAtVrtxVecEndingCrossFractSegmInfo(AttVecEndingCrossingFractureSegmentInfo()),
+	  m_vrtxAttAccsVecEndingCrossFractSegmInfo(Grid::VertexAttachmentAccessor<AttVecEndingCrossingFractureSegmentInfo>()),
+//	  m_attAtVrtxIfVrtxIsEndingCrossingCleftVrtx(ABool()),
+//	  m_vrtxAttAccsVrtxIsEndingCrossingCleftVrtx(Grid::VertexAttachmentAccessor<ABool>()),
+	  m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft(ABool()),
+	  m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft(Grid::FaceAttachmentAccessor<ABool>()),
+	  m_attAtVolIfVolTouchesEndingCrossingCleft(ABool()),
+	  m_volAttAccsVolTouchesEndingCrossingCleft(Grid::VolumeAttachmentAccessor<ABool>()),
+	  m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft(ABool()),
+	  m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
+	  m_vrtxArisesFromExpandedEndingCrossingCleft(std::vector<Vertex*>())
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -124,7 +147,7 @@ ArteExpandFracs3D::~ArteExpandFracs3D()
 	//  Auto-generated destructor stub
 }
 
-bool ArteExpandFracs3D::run()
+bool ArteExpandFracs3D::run( bool & needToRestart )
 {
 	if( ! initialize() )
 		return false;
@@ -196,6 +219,32 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("Segmente erzeugt " << std::endl);
 
+
+	UG_LOG("check unclosed frac faces" << std::endl);
+
+	if( ! establishSegmentLimitingSidesInfo() )
+		return false;
+
+	UG_LOG("established Segment limiting sides info" << std::endl);
+
+	if( ! detectEndingCrossingCleftsSegmBased() )
+	{
+		if( m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx )
+		{
+			needToRestart = true;
+			UG_LOG("Restart due to splitted edges" << std::endl);
+		}
+		else
+		{
+			needToRestart = false;
+			UG_LOG("No need to restart due to splitted edges" << std::endl);
+		}
+
+		return false;
+	}
+
+	UG_LOG("Ending crossing clefts detected" << std::endl);
+
 	if( ! seletForSegmented() )
 		return false;
 
@@ -247,8 +296,438 @@ bool ArteExpandFracs3D::run()
 
 	UG_LOG("detachiert" << std::endl);
 
+//	assignDebugSubsets( false );
+
+	UG_LOG("Debug subsets assigned" << std::endl );
+
+	IndexType numDelEndCrossCleftFacs = deleteEndingCrossingCleftOrigFacs();
+
+	UG_LOG("deleted ending crossing cleft changed faces and direction edges " << numDelEndCrossCleftFacs << std::endl);
+
 	return true;
 }
+
+////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
+{
+//	IndexType numberSplittedEdges = 0;
+
+	// TODO FIXME vergleichen, was bei den debug Ecken alles an Randvertizes ist, und was bei
+	// den hochstehenden Edges für Randvertizes sind, ob da was verloren gegangen ist
+	// oder ob bei den modernen SegmentEnding Infos was fehlt an Vertizes.....
+	// angefangen mit dem simplen Beispiel!
+	// wenn das klappt, können die debug m_d_ Variablen entfernt werden.....
+
+	UG_LOG("NUMBER EDGES DIRECT " << m_vecEdgeDirectConnectingEndingCrossCleftVrtcs.size() << std::endl );
+
+	UG_LOG("NUMBER VERTICES FRAC SEGMENTS " << m_vecEndCrossFractSegmInfo.size() << std::endl );
+
+	for( Edge * edg : m_vecEdgeDirectConnectingEndingCrossCleftVrtcs )
+	{
+
+		UG_LOG("trying to split edge " << CalculateCenter( edg, m_aaPos ) << std::endl);
+
+		UG_LOG("E VERTEX ONE " << m_aaPos[ edg->vertex(0) ] << std::endl);
+		UG_LOG("E VERTEX TWO " << m_aaPos[ edg->vertex(1) ] << std::endl);
+
+		for( EndingCrossingFractureSegmentInfo const & ecfsiOne : m_vecEndCrossFractSegmInfo )
+		{
+			Vertex * vrtOne = ecfsiOne.spuckUnclosedVrtx();
+
+			UG_LOG("V ONE " << m_aaPos[vrtOne] << std::endl);
+
+			for( EndingCrossingFractureSegmentInfo const & ecfsiTwo : m_vecEndCrossFractSegmInfo )
+			{
+				Vertex * vrtTwo = ecfsiTwo.spuckUnclosedVrtx();
+
+				UG_LOG("V TWO " << m_aaPos[vrtTwo] << std::endl);
+
+				if( vrtOne != vrtTwo )
+				{
+					if( EdgeContains(edg, vrtOne) && EdgeContains( edg, vrtTwo) )
+					{
+						UG_LOG("Edge needs to be splitted" << std::endl);
+
+						int suse = m_sh.num_subsets();
+
+						m_sh.assign_subset( edg, suse );
+
+						UG_LOG("need to detach markers" << std::endl);
+						detachMarkers();
+
+						vector3 center = CalculateCenter(edg, m_aaPos);
+						UG_LOG("splitting ECCV edge at " << center << std::endl);
+						RegularVertex* vrtSE = SplitEdge<RegularVertex>(m_grid, edg, false);
+						m_aaPos[vrtSE] = center;
+
+						UG_LOG("Edge splitted, please restart process with the thus changed geometry" << std::endl);
+
+						return true;
+
+					}
+
+				}
+
+			}
+
+
+		}
+	}
+
+	return false;
+
+//	if( numberSplittedEdges > 0 )
+//		UG_LOG("Edge splitted, please restart process with the thus changed geometry, new edges " << numberSplittedEdges << std::endl);
+//
+//	return numberSplittedEdges;
+
+	// TODO FIXME das ganze nochmal mit dem Debug Zeug
+
+//	UG_LOG("DEBUG" << std::endl);
+//
+//	int suse = m_sh.num_subsets();
+//
+//	for( Edge * edg : m_d_allContributingEdges )
+//	{
+//		UG_LOG("E VERTEX ONE " << m_aaPos[ edg->vertex(0) ] << std::endl);
+//		UG_LOG("E VERTEX TWO " << m_aaPos[ edg->vertex(1) ] << std::endl);
+//
+//		for( Vertex * vrtOne : m_d_endingCrossingCleftVrtcs )
+//		{
+//			UG_LOG("V ONE " << m_aaPos[vrtOne] << std::endl);
+//
+//			for( Vertex * vrtTwo : m_d_endingCrossingCleftVrtcs )
+//			{
+//
+//				UG_LOG("V Two " << m_aaPos[vrtTwo] << std::endl);
+//
+//				if( vrtOne != vrtTwo )
+//				{
+//					if( EdgeContains(edg, vrtOne) && EdgeContains( edg, vrtTwo) )
+//					{
+//						UG_LOG("Edge needs to be splitted" << std::endl);
+//
+//						m_sh.assign_subset( edg, suse );
+//
+//						vector3 center = CalculateCenter(edg, m_aaPos);
+//						UG_LOG("splitting ECCV edge at " << center << std::endl);
+//						RegularVertex* vrtSE = SplitEdge<RegularVertex>(m_grid, edg, false);
+//						m_aaPos[vrtSE] = center;
+//
+//						UG_LOG("Edge splitted, please restart process with the thus changed geometry" << std::endl);
+//
+//						return 1;
+//
+//					}
+//				}
+//			}
+//
+//		}
+//	}
+//
+//	return 0;
+//
+//	return false;
+
+}
+
+////////////////////////////////////////////////
+
+void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
+{
+//	return;
+
+	std::vector<Face*> d_endingCrossingCleftFaces;
+	std::vector<Face*> d_endingCrossingCleftFacesNoCut;
+	std::vector<Vertex*> d_endingCrossingCleftVrtcs;
+	std::vector<Edge*> d_cuttingEdges;
+	std::vector<Edge*> d_shiftEdges;
+	std::vector<Face*> d_crossingNeighboredNotEndingFaces;
+	std::vector<Face*> d_crossingNeighboredNotEndingFacesCommEdg;
+	std::vector<Face*> d_notEndingCrossingFacesNotNeighbour;
+	std::vector<Volume*> d_vols;
+	std::vector<Vertex*> d_shiftVrtcs;
+
+	UG_LOG("Number ending crossing clefts " << m_vecEndCrossFractSegmInfo.size()  << std::endl);
+
+	for( EndingCrossingFractureSegmentInfo const & ecfsi : m_vecEndCrossFractSegmInfo )
+	{
+		Vertex * vrt = ecfsi.spuckUnclosedVrtx();
+
+		d_endingCrossingCleftVrtcs.push_back(vrt);
+
+		std::vector<Face*> vecClosFracFacNoNeig = ecfsi.spuckVecClosedFracManifElNoNeighbr();
+
+		for( Face * fac : vecClosFracFacNoNeig )
+		{
+			d_crossingNeighboredNotEndingFaces.push_back(fac);
+		}
+
+		Face * endingFacCut = ecfsi.spuckEndingFractManifCutting();
+
+		d_endingCrossingCleftFaces.push_back(endingFacCut);
+
+		for( Face * endingFacNoCut : ecfsi.spuckVecEndingFractManifNotCutting() )
+		{
+			if( endingFacNoCut != nullptr )
+			{
+				d_endingCrossingCleftFacesNoCut.push_back(endingFacNoCut);
+			}
+		}
+
+		Edge * cutEdge = ecfsi.spuckOldLowDimElCut();
+
+		d_cuttingEdges.push_back(cutEdge);
+
+		std::pair<Face*,Face*> const & neighrdFacsClos = ecfsi.spuckPairNeighbouredFractClosedManifEl();
+
+		d_crossingNeighboredNotEndingFacesCommEdg.push_back(neighrdFacsClos.first);
+		d_crossingNeighboredNotEndingFacesCommEdg.push_back(neighrdFacsClos.second);
+
+		std::vector<Volume*> vols = ecfsi.spuckVecFulldimEl();
+
+		for( Volume * v : vols )
+		{
+			d_vols.push_back(v);
+		}
+
+		Edge * shiftEdge = ecfsi.spuckLowdimElmShiftDirection();
+		d_shiftEdges.push_back(shiftEdge);
+
+
+		if( ! intermediate )
+		{
+			Vertex * shiVe = ecfsi.spuckShiftVrtx();
+
+			if( shiVe == nullptr )
+			{
+				m_sh.assign_subset(vrt, m_sh.num_subsets());
+				m_sh.assign_subset(shiftEdge, m_sh.num_subsets());
+
+				UG_LOG("no shift vertex for ending crossing cleft segment " << std::endl);
+				UG_THROW("no shift vertex for ending crossing cleft segment " << std::endl);
+
+			}
+			d_shiftVrtcs.push_back(shiVe);
+		}
+
+
+
+	}
+
+	int suse = m_sh.num_subsets();
+
+	if( ! intermediate )
+	{
+
+		for( Face * fac : d_endingCrossingCleftFaces )
+		{
+			if( fac != nullptr )
+				m_sh.assign_subset( fac, suse );
+
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Face * fac : d_endingCrossingCleftFacesNoCut )
+		{
+			if( fac != nullptr )
+				m_sh.assign_subset( fac, suse );
+
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Vertex * vrt : d_endingCrossingCleftVrtcs )
+		{
+			if( vrt != nullptr )
+				m_sh.assign_subset( vrt, suse );
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Edge * edg : d_cuttingEdges )
+		{
+			if( edg == nullptr )
+			{
+				UG_LOG("NULL UNERLAUBT" << std::endl);
+				UG_THROW("NULL UNERLAUBT" << std::endl);
+			}
+
+			m_sh.assign_subset( edg, suse );
+
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Edge * edg : d_shiftEdges )
+		{
+			if( edg == nullptr )
+			{
+				UG_LOG("NULL UNERLAUBT" << std::endl);
+				UG_THROW("NULL UNERLAUBT" << std::endl);
+			}
+
+			m_sh.assign_subset( edg, suse );
+
+		}
+
+
+		suse = m_sh.num_subsets();
+
+		for( Face * fac : d_crossingNeighboredNotEndingFaces )
+		{
+			if( fac != nullptr )
+				m_sh.assign_subset( fac, suse );
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Face * fac : d_notEndingCrossingFacesNotNeighbour )
+		{
+			m_sh.assign_subset( fac, suse );
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Face * fac : d_crossingNeighboredNotEndingFacesCommEdg )
+		{
+			m_sh.assign_subset( fac, suse );
+		}
+
+		suse = m_sh.num_subsets();
+
+		for( Vertex * vrtx : d_shiftVrtcs )
+		{
+			if( vrtx != nullptr )
+				m_sh.assign_subset( vrtx, suse );
+		}
+
+//	suse = m_sh.num_subsets();
+	}
+	else
+	{
+
+		for( Volume * v : d_vols )
+		{
+			if( v != nullptr )
+				m_sh.assign_subset( v, suse );
+		}
+	}
+
+	return;
+
+#if 0
+//	if( numEndingCrossingClefts == 0 )
+//		return true;
+
+	// debug for ending crossing clefts
+
+	suse = m_sh.num_subsets();
+
+	for( Face * fac : m_d_endingCrossingCleftFaces )
+	{
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+		m_sh.assign_subset( fac, suse );
+
+	}
+
+	suse = m_sh.num_subsets();
+
+	for( Vertex * vrt : m_d_endingCrossingCleftVrtcs )
+	{
+//		m_sh.assign_subset( vrt, m_sh.num_subsets());
+		m_sh.assign_subset( vrt, suse );
+	}
+
+	suse = m_sh.num_subsets();
+
+	for( Edge * edg : m_d_cuttingEdges )
+	{
+		if( edg == nullptr )
+		{
+			UG_LOG("NULL UNERLAUBT" << std::endl);
+			UG_THROW("NULL UNERLAUBT" << std::endl);
+		}
+
+//		m_sh.assign_subset( edg, m_sh.num_subsets());
+		m_sh.assign_subset( edg, suse );
+
+	}
+
+	suse = m_sh.num_subsets();
+
+	for( Face * fac : m_d_crossingNeighboredNotEndingFaces )
+	{
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+		m_sh.assign_subset( fac, suse );
+	}
+
+//	for( Edge * edg : otherEdgeOfCrossingNotEndingFace )
+//	{
+//		if( edg == nullptr )
+//		{
+//			UG_LOG("NULL C UNERLAUBT" << std::endl);
+//			UG_THROW("NULL C UNERLAUBT" << std::endl);
+//		}
+//
+//		m_sh.assign_subset( edg, m_sh.num_subsets());
+//
+//	}
+	suse = m_sh.num_subsets();
+
+	for( Face * fac : m_d_notEndingCrossingFacesNotNeighbour )
+	{
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+		m_sh.assign_subset( fac, suse );
+	}
+
+	suse = m_sh.num_subsets();
+
+	for( Face * fac : m_d_crossingNeighboredNotEndingFacesCommEdg )
+	{
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+		m_sh.assign_subset( fac, suse );
+	}
+
+//	suse = m_sh.num_subsets();
+//
+//	for( Edge * edg : m_d_allContributingEdges )
+//	{
+//		for( Vertex * vrtOne : m_d_endingCrossingCleftVrtcs )
+//		{
+//			for( Vertex * vrtTwo : m_d_endingCrossingCleftVrtcs )
+//			{
+//				if( vrtOne != vrtTwo )
+//				{
+//					if( EdgeContains(edg, vrtOne) && EdgeContains( edg, vrtTwo) )
+//					{
+//						UG_LOG("Edge needs to be splitted" << std::endl);
+//
+//						m_sh.assign_subset( edg, suse );
+//
+//
+////						vector3 center = CalculateCenter(edg, m_aaPos);
+////						UG_LOG("splitting ECCV edge at " << center << std::endl);
+////						RegularVertex* vrtSE = SplitEdge<RegularVertex>(m_grid, edg, false);
+////						m_aaPos[vrtSE] = center;
+//
+//					}
+//				}
+//			}
+//
+//		}
+//	}
+
+
+	return;
+#endif
+
+//	return false;
+}
+
+////////////////////////////////////////////////
 
 bool ArteExpandFracs3D::initialize()
 {
@@ -342,15 +821,33 @@ bool ArteExpandFracs3D::attachMarkers()
 	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceIsFracB, false );
 	m_aaMarkFaceIsFracB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceIsFracB );
 
-	m_aAdjMarkerFaceIsUnclosedFracB = ABool();
+//	m_aAdjMarkerFaceHasUnclosedFracSideB = ABool();
+//
+//	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceHasUnclosedFracSideB, false );
+//	m_aaMarkFaceHasUnclosedFracSideB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceHasUnclosedFracSideB );
+//
+//	m_aAdjMarkerVrtxHasUnclosedFracB = ABool();
+//
+//	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxHasUnclosedFracB, false );
+//	m_aaMarkVrtxHasUnclosedFracB = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxHasUnclosedFracB );
+//
+	m_aAdjMarkerFaceWithEndingCrossingCleft = ABool();
 
-	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceIsUnclosedFracB, false );
-	m_aaMarkFaceIsUnclosedFracB = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceIsUnclosedFracB );
+	m_grid.attach_to_faces_dv( m_aAdjMarkerFaceWithEndingCrossingCleft, false );
 
-	m_aAdjMarkerVrtxHasUnclosedFracB = ABool();
+	m_aaMarkFaceWithEndingCrossingCleft = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerFaceWithEndingCrossingCleft );
 
-	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxHasUnclosedFracB, false );
-	m_aaMarkVrtxHasUnclosedFracB = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxHasUnclosedFracB );
+	m_aAdjMarkerVrtxAtEndingCrossingCleft = ABool();
+
+	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxAtEndingCrossingCleft, false );
+
+	m_aaMarkVrtxAtEndingCrossingCleft = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxAtEndingCrossingCleft );
+//
+//	m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract = ABool();
+//
+//	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract, false );
+//
+//	m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract );
 
 	// second part
 
@@ -421,6 +918,46 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	m_accsAttVecSegVolElmInfo = Grid::VertexAttachmentAccessor<AttVecSegmentVolElmInfo>( m_grid, m_attAdjVecSegVolElmInfo );
 
+	VecSegmentLimitingSides emptyVecSegmLimSid;
+
+	AttVecSegmLimSid m_attVecSegmLimSid;
+
+	m_grid.attach_to_vertices_dv( m_attVecSegmLimSid, emptyVecSegmLimSid );
+
+	m_vrtxAttAccsVecSegmLimSid = Grid::VertexAttachmentAccessor<AttVecSegmLimSid>( m_grid, m_attVecSegmLimSid );
+
+	VecEndingCrossingFractureSegmentInfo emptyVECFSI;
+
+	m_attAtVrtxVecEndingCrossFractSegmInfo = AttVecEndingCrossingFractureSegmentInfo();
+
+	m_grid.attach_to_vertices_dv( m_attAtVrtxVecEndingCrossFractSegmInfo, emptyVECFSI );
+
+	m_vrtxAttAccsVecEndingCrossFractSegmInfo = Grid::VertexAttachmentAccessor<AttVecEndingCrossingFractureSegmentInfo>( m_grid, m_attAtVrtxVecEndingCrossFractSegmInfo );
+
+//	m_attAtVrtxIfVrtxIsEndingCrossingCleftVrtx = ABool();
+//
+//	m_grid.attach_to_vertices_dv( m_attAtVrtxIfVrtxIsEndingCrossingCleftVrtx, false );
+//
+//	m_vrtxAttAccsVrtxIsEndingCrossingCleftVrtx = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_attAtVrtxIfVrtxIsEndingCrossingCleftVrtx );
+
+	m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft = ABool();
+
+	m_grid.attach_to_faces_dv( m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft, false );
+
+	m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft );
+
+	m_attAtVolIfVolTouchesEndingCrossingCleft = ABool();
+
+	m_grid.attach_to_volumes_dv( m_attAtVolIfVolTouchesEndingCrossingCleft, false );
+
+	m_volAttAccsVolTouchesEndingCrossingCleft = Grid::VolumeAttachmentAccessor<ABool>( m_grid, m_attAtVolIfVolTouchesEndingCrossingCleft );
+
+	m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft = ABool();
+
+	m_grid.attach_to_vertices_dv( m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft, false );
+
+	m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft );
+
 	return true;
 }
 
@@ -430,9 +967,13 @@ bool ArteExpandFracs3D::detachMarkers()
 	m_grid.detach_from_vertices( m_aAdjMarkerVFP );
 	m_grid.detach_from_edges( m_aAdjMarkerVFP );
 	m_grid.detach_from_faces( m_aAdjMarkerFaceIsFracB );
-	m_grid.detach_from_faces( m_aAdjMarkerFaceIsUnclosedFracB );
-
-	m_grid.detach_from_vertices( m_aAdjMarkerVrtxHasUnclosedFracB );
+//	m_grid.detach_from_faces( m_aAdjMarkerFaceHasUnclosedFracSideB );
+//
+//	m_grid.detach_from_vertices( m_aAdjMarkerVrtxHasUnclosedFracB );
+//
+	m_grid.detach_from_faces( m_aAdjMarkerFaceWithEndingCrossingCleft );
+	m_grid.detach_from_vertices( m_aAdjMarkerVrtxAtEndingCrossingCleft );
+//	m_grid.detach_from_vertices( m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract );
 
 	m_grid.detach_from_vertices( m_aAdjInfoEdges );
 	m_grid.detach_from_vertices( m_aAdjInfoFaces );
@@ -444,7 +985,19 @@ bool ArteExpandFracs3D::detachMarkers()
 
 //	m_grid.detach_from_vertices(m_aAdjVolElmInfo);
 
-	m_grid.detach_from_vertices(m_attAdjVecSegVolElmInfo);
+	m_grid.detach_from_vertices( m_attAdjVecSegVolElmInfo );
+
+	m_grid.detach_from_vertices( m_attVecSegmLimSid );
+
+	m_grid.detach_from_vertices( m_attAtVrtxVecEndingCrossFractSegmInfo );
+
+//	m_grid.detach_from_vertices( m_attAtVrtxIfVrtxIsEndingCrossingCleftVrtx );
+
+	m_grid.detach_from_faces( m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft );
+
+	m_grid.detach_from_volumes( m_attAtVolIfVolTouchesEndingCrossingCleft );
+
+	m_grid.detach_from_vertices( m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft );
 
 	return true;
 }
@@ -490,7 +1043,7 @@ int ArteExpandFracs3D::splitInnerFreeFracEdgs()
 
 			for( auto const & edg : facEdges )
 			{
-				if( func_aaMarkEdgeVFP[edg]. getNumberFracEdgesInVertex() != 0 )
+				if( func_aaMarkEdgeVFP[edg].getNumberFracEdgesInVertex() != 0 )
 					UG_THROW("Attachment nicht auf default " << std::endl);
 //				func_aaMarkEdgeVFP[edg].setNumberCrossingFracsInVertex(0);
 			}
@@ -856,13 +1409,13 @@ int ArteExpandFracs3D::splitInnerFreeFracEdgs()
 //////////////////////////////////////////////////////////////////
 
 template<typename ELEMTYP>
-bool ArteExpandFracs3D::addElem(std::vector<ELEMTYP> & elemToBeSplitted, ELEMTYP elem )
+bool ArteExpandFracs3D::addElem(std::vector<ELEMTYP> & knownElems, ELEMTYP elemToAdd )
 {
 	bool unknown = true;
 
-	for( ELEMTYP edgKnown : elemToBeSplitted )
+	for( ELEMTYP elmKnown : knownElems )
 	{
-		if( elem == edgKnown )
+		if( elemToAdd == elmKnown )
 		{
 			unknown = false;
 			break;
@@ -870,7 +1423,7 @@ bool ArteExpandFracs3D::addElem(std::vector<ELEMTYP> & elemToBeSplitted, ELEMTYP
 	}
 
 	if( unknown )
-		elemToBeSplitted.push_back(elem);
+		knownElems.push_back(elemToAdd);
 
 	return unknown;
 
@@ -1403,6 +1956,8 @@ bool ArteExpandFracs3D::computeNormalKuhVolProcedure( Volume * const & kuhVol, F
 	return true;
 }
 
+//////////////////////////////////////////////////////////////////
+
 bool ArteExpandFracs3D::distinguishSegments()
 {
 
@@ -1448,28 +2003,1273 @@ bool ArteExpandFracs3D::distinguishSegments()
 	{
 		Vertex* vrt = *iter;
 
-		IndexType shiFraFac = specificTreatementUnclosedFracFaces( vrt );
+		IndexType shiFraFac = shiftUnclosedFracFacesToUnclosedFractFaces( vrt );
 
 		UG_LOG("shifted frac faces at " << m_aaPos[vrt] << shiFraFac << std::endl);
+	}
 
-		constexpr bool d_highlightVrtcsWithShifts = false;
 
-		if( d_highlightVrtcsWithShifts )
+	return true;
+
+}
+
+//////////////////////////////////////////////////////////////////
+
+
+bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
+{
+
+	m_vecEdgeDirectConnectingEndingCrossCleftVrtcs = std::vector<Edge*>();
+
+	// TODO FIXME eigene Klasse erzeugen, die die ganzen Infos an endenden Klüften speichert, wo sich
+	// zwei Klüfte kreuzen
+	// Vertex, auslaufende faces, wo anders aufgeblasen werden muss,
+	// Edges der Kreuzung, die anhängenden faces der anderen Kluft, die
+	// die Basis sind für die Aufblasungen, die auch anders funktionieren
+	// von dieser Klasse dann ein attachment an die vertizes und vielleicht die faces,
+	// die problematisch sind
+	// (noch zu klären, ob vielleicht ein paar der auskommentierten attachments doch sinnvoll)
+
+	IndexType numEndingCrossingClefts = 0;
+
+//	std::vector<Face*> m_d_endingCrossingCleftFaces;
+//
+//	std::vector<Vertex*> m_d_endingCrossingCleftVrtcs;
+//
+//	std::vector<Edge*> m_d_cuttingEdges;
+//	std::vector<Face*> crossingNotEndingFaces;
+//
+//	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
+//	std::vector<Face*> nextFaceOfCrossingNotEndingFaces;
+
+	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+	{
+		Vertex* vrt = *iter;
+
+		VecSegmentLimitingSides & vecSegmLimSid = m_vrtxAttAccsVecSegmLimSid[vrt];
+
+		if(  vecSegmLimSid.size() == 0 )
 		{
-			if( shiFraFac > 0 )
-			{
-				IndexType sudoNum = m_sh.num_subsets();
+			UG_LOG("keine verschiedenen Segmente ECCV" << std::endl);
+//			return true;
+		}
 
-				m_sh.assign_subset(vrt, sudoNum );
+		if( vecSegmLimSid.size() == 1 )
+		{
+			UG_LOG("sonderbarer Fall von nur einem Segment ECCV" << std::endl );
+			UG_THROW("sonderbarer Fall von nur einem Segment ECCV" << std::endl );
+			return false;
+		}
+
+		for( SegmentLimitingSides & segLimSids : vecSegmLimSid )
+		{
+			if( segLimSids.hasUnclosedFaces() )
+			{
+				UG_LOG("im distinguisch ungeschlossene Gesichter " << std::endl );
+
+				numEndingCrossingClefts++;
+
+				std::vector<Volume*> volsOfUnclosedSegm;
+
+				if( ! segLimSids.spuckVecFulldimElem(volsOfUnclosedSegm) )
+				{
+					UG_LOG("No volumes at segment with ending cleft" << std::endl);
+					UG_THROW("No volumes at segment with ending cleft" << std::endl);
+					return false;
+				}
+
+				for( Volume * vol : volsOfUnclosedSegm )
+				{
+					m_volAttAccsVolTouchesEndingCrossingCleft[vol] = true;
+				}
+
+				Vertex * endingCrossingCleftVrtx = segLimSids.spuckVertex();
+
+				if( endingCrossingCleftVrtx != vrt )
+				{
+					UG_THROW("System von attachments und vektoren durcheinander " << std::endl);
+				}
+
+				//  commented out the debug members:  m_d_endingCrossingCleftVrtcs.push_back( endingCrossingCleftVrtx );
+
+				UG_LOG("vertex gefunden an ending crossing cleft " << std::endl);
+
+				m_aaMarkVrtxAtEndingCrossingCleft[vrt] = true;
+
+				// the unclosed ending crossing faces
+				VecSegLimSidesFractFace vecSegmLimSiFFUnclosed;
+
+				if( ! segLimSids.spuckVecAttUnclosedFractElm( vecSegmLimSiFFUnclosed ) )
+					return false;
+
+				// figure out the faces that are in touch with the ending faces, and the corresponding edges
+
+				VecSegLimSidesFractFace vecSegmLimSiFFClosed;
+
+				if( ! segLimSids.spuckVecAttFractElm( vecSegmLimSiFFClosed ) )
+					return false;
+
+				UG_LOG("Faces suchen an ending crossing cleft " << std::endl);
+
+//				Face * endingFractManifCutting = nullptr;
+//				Face * endingFractManifNotCutting = nullptr;
+//				Edge * oldLowDimElCut = nullptr;
+//				std::pair<Face*,Face*> pairNeighbouredFractClosedManifEl(nullptr,nullptr);
+//				IndexType sudoFractEnding = std::numeric_limits<IndexType>::max();
+//				IndexType sudoFractNotEnding = std::numeric_limits<IndexType>::max();
+
+				std::vector<Face*> vecEndingFractFaceCutting; // must have size two after been filled but both same content
+				std::vector<Face*> vecEndingFractFaceNotCutting; // can contain an arbitrary number from zero to .....
+				std::vector<Face*> vecNeighbouredFacesClosedFract; // must have size 2
+
+				std::vector<IndexType> vecSudoFractFacsEnding; // must be filled with same number
+				std::vector<IndexType> vecSudoFractFacsNotEnding; // must be filled with same number
+
+				std::vector<Edge*> vecCuttingEdges; // must contain only same element, twice
+
+				std::vector<Edge*> vecUncuttingEdge; // must get same element twice
+
+				UG_LOG("size of vec segm unclos " << vecSegmLimSiFFUnclosed.size() << std::endl);
+
+				for( SegLimSidesFractFace const & slsffUncl : vecSegmLimSiFFUnclosed )
+				{
+					bool isCuttingTheClosed = false;
+
+					Face * facUncl = slsffUncl.getManifElm();
+					//  commented out the debug members:  m_d_endingCrossingCleftFaces.push_back(facUncl);
+					m_aaMarkFaceWithEndingCrossingCleft[facUncl] = true;
+
+					IndexType sudoUncl = slsffUncl.getSudo();
+					vecSudoFractFacsEnding.push_back(sudoUncl);
+
+					EdgePair const & epU = slsffUncl.getPairLowElm();
+
+					//  commented out the debug members:  m_d_allContributingEdges.push_back(epU.first);
+					//  commented out the debug members:  m_d_allContributingEdges.push_back(epU.second);
+
+					addElem( m_vecEdgeDirectConnectingEndingCrossCleftVrtcs, epU.first );
+					addElem( m_vecEdgeDirectConnectingEndingCrossCleftVrtcs, epU.second );
+
+					for( SegLimSidesFractFace const & slsffClos : vecSegmLimSiFFClosed )
+					{
+						// we need different subdoms, as want to have the not ending crossing fracture neighbours
+						// that have a common edge
+						Edge * commonEdge = nullptr;
+
+						if( fractFacesAreNeighboured<false>( slsffClos, slsffUncl, commonEdge ) )
+						{
+							isCuttingTheClosed = true;
+
+							Face * facClos = slsffClos.getManifElm();
+							//  commented out the debug members:  m_d_crossingNeighboredNotEndingFaces.push_back( facClos );
+
+							if( commonEdge == nullptr )
+							{
+								UG_LOG("NULL COMMON" << std::endl);
+								UG_THROW("NULL COMMON" << std::endl);
+							}
+
+							//  commented out the debug members:  m_d_cuttingEdges.push_back(commonEdge);
+							//  commented out the debug members:  m_d_crossingNeighboredNotEndingFacesCommEdg.push_back(facUncl);
+//							// search the durchgehende fracture face which is neighboured to the durchgehende one
+//							// same vertex, other edge
+
+							vecNeighbouredFacesClosedFract.push_back(facClos);
+							vecCuttingEdges.push_back(commonEdge);
+							vecEndingFractFaceCutting.push_back(facUncl);
+
+							Edge * uncuttingEdgeUnclosedFac = nullptr;
+
+							if( ! assignNotCuttingEdgeUnclosedCrossingCleft( slsffUncl, commonEdge, uncuttingEdgeUnclosedFac ) )
+							{
+								UG_LOG("NO shift edge" << std::endl);
+								UG_THROW("NO shift edge" << std::endl);
+							}
+
+							if( uncuttingEdgeUnclosedFac == nullptr )
+							{
+								UG_LOG("NO shift edge Z" << std::endl);
+								UG_THROW("NO shift edge Z" << std::endl);
+							}
+
+							vecUncuttingEdge.push_back(uncuttingEdgeUnclosedFac);
+
+							//							EdgePair const & edgesClosedFracFace = slsffClos.getPairLowElm();
+//
+//							Edge * notCommonEdgeOfNotEndingCleft = nullptr;
+//
+//							if(  edgesClosedFracFace.first == commonEdge )
+//							{
+//								notCommonEdgeOfNotEndingCleft = edgesClosedFracFace.second;
+//							}
+//							else if( edgesClosedFracFace.second == commonEdge )
+//							{
+//								notCommonEdgeOfNotEndingCleft = edgesClosedFracFace.first;
+//							}
+//
+//							if( notCommonEdgeOfNotEndingCleft == nullptr )
+//							{
+//								UG_LOG("no not common edge?" << std::endl);
+//								UG_THROW("no not common edge?" << std::endl);
+//							}
+//
+////							otherEdgeOfCrossingNotEndingFace.push_back( notCommonEdgeOfNotEndingCleft );
+//
+//							Edge * closedCommonEdge = nullptr;
+//
+//							for( SegLimSidesFractFace const & slsffClosOther : vecSegmLimSiFFClosed )
+//							{
+//								if( fractFacesAreNeighboured<true>( slsffClos, slsffClosOther, closedCommonEdge ) )
+//								{
+//
+//									if( closedCommonEdge == nullptr )
+//									{
+//										UG_LOG("NULL NOT COMMON" << std::endl);
+//										UG_THROW("NULL NOT COMMON" << std::endl);
+//									}
+//
+//									if( closedCommonEdge != notCommonEdgeOfNotEndingCleft )
+//									{
+//										UG_LOG("Ecke passt nicht " << CalculateCenter(closedCommonEdge, m_aaPos) << " - " << CalculateCenter( notCommonEdgeOfNotEndingCleft, m_aaPos) << std::endl);
+////										UG_THROW("Ecke verloren " << std::endl);
+//									}
+//									else
+//									{
+//										Face * facClosOther = slsffClosOther.getManifElm();
+//
+//										nextFaceOfCrossingNotEndingFaces.push_back( facClosOther );
+//										otherEdgeOfCrossingNotEndingFace.push_back(notCommonEdgeOfNotEndingCleft);
+//									}
+//
+//
+//								}
+//							}
+
+
+						}
+					}
+
+					if( ! isCuttingTheClosed )
+					{
+						vecEndingFractFaceNotCutting.push_back(facUncl);
+					}
+
+				}
+
+
+				std::vector<Face*> vecClosedFracFacNoNeighbr;
+
+				for( SegLimSidesFractFace const & slsffClos : vecSegmLimSiFFClosed )
+				{
+					Face * facClos = slsffClos.getManifElm();
+
+					EdgePair const & epC = slsffClos.getPairLowElm();
+
+					//  commented out the debug members:  m_d_allContributingEdges.push_back(epC.first);
+					//  commented out the debug members:  m_d_allContributingEdges.push_back(epC.second);
+
+					addElem( m_vecEdgeDirectConnectingEndingCrossCleftVrtcs, epC.first );
+					addElem( m_vecEdgeDirectConnectingEndingCrossCleftVrtcs, epC.second );
+
+
+					IndexType sudoClos = slsffClos.getSudo();
+
+					vecSudoFractFacsNotEnding.push_back(sudoClos);
+
+					// valid for all closed faces
+					m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft[facClos] = true;
+
+					bool facGiven = false;
+
+					// ATTENTION hier ausgetauscht erst später, Gefahr von Fehler
+					// m_d_ Variable war Teil von echtem Algorithmus, gefährlich
+					// hoffentlich richtig getauscht
+					// im Falle von bugs hier nochmal testen, ob die m_d Variable
+					// richtig getauscht wurde!!!
+//					for( Face * facClosNoNei : m_d_crossingNeighboredNotEndingFaces )
+					for( Face * facClosNoNei : vecNeighbouredFacesClosedFract )
+					{
+						if( facClosNoNei == facClos )
+						{
+							facGiven = true;
+							break;
+						}
+					}
+
+					if( ! facGiven )
+					{
+						//  commented out the debug members:  m_d_notEndingCrossingFacesNotNeighbour.push_back( facClos );
+						vecClosedFracFacNoNeighbr.push_back( facClos );
+					}
+				}
+
+
+				UG_LOG("Faces vielleicht gefunden an ending crossing cleft " << std::endl);
+
+				//				Face * endingFractManifCutting = nullptr;
+				//				Face * endingFractManifNotCutting = nullptr;
+				//				Edge * oldLowDimElCut = nullptr;
+				//				std::pair<Face*,Face*> pairNeighbouredFractClosedManifEl(nullptr,nullptr);
+				//				IndexType sudoFractEnding = std::numeric_limits<IndexType>::max();
+				//				IndexType sudoFractNotEnding = std::numeric_limits<IndexType>::max();
+
+				std::vector<Face*> vecContEndingFractFaceCutting; // must have size two after been filled but both same content
+				std::vector<Face*> vecContEndingFractFaceNotCutting; // must have size maximum two same content both, or zero
+				std::vector<Face*> vecContNeighbouredFacesClosedFract; // must have size 2
+
+
+				std::vector<IndexType> vecContSudoFractFacsEnding; // must be filled with same number
+				std::vector<IndexType> vecContSudoFractFacsNotEnding; // must be filled with same number
+
+				if( vecEndingFractFaceCutting.size() == 2 )
+				{
+					if( ! checkIfContentUnique( vecEndingFractFaceCutting, vecContEndingFractFaceCutting, 1 ) )
+					{
+						for( Face * fac : vecEndingFractFaceCutting  )
+						{
+							m_sh.assign_subset( fac, m_sh.num_subsets());
+
+							UG_LOG("fract face cutting strange behaviour at " << CalculateCenter( fac, m_aaPos ) << std::endl);
+						}
+
+						UG_LOG("Problem with cutting fac " << std::endl);
+						return false;
+						UG_THROW("Problem with cutting fac " << std::endl);
+					}
+				}
+				else
+				{
+					UG_THROW("Problem with cutting fac size " << std::endl);
+
+				}
+
+				Face * endingFractManifCutting = vecContEndingFractFaceCutting[0];
+//
+//				std::vector<Face> endingFractManifNotCutting; // = nullptr;
+//
+//				if( vecEndingFractFaceNotCutting.size() != 0 )
+//				{
+//					if( vecEndingFractFaceNotCutting.size() == 1 )
+//					{
+//						if( ! checkIfContentUnique( vecEndingFractFaceNotCutting, vecContEndingFractFaceNotCutting, 1 ) )
+//						{
+//							UG_THROW("Problem with not cutting fac " << std::endl);
+//						}
+//
+//						endingFractManifNotCutting = vecContEndingFractFaceNotCutting[0];
+//
+//					}
+//					else
+//					{
+//						for( Face * fac : vecEndingFractFaceNotCutting )
+//						{
+//							m_sh.assign_subset( fac, m_sh.num_subsets() );
+//						}
+//
+//						UG_LOG("schief gegangen " << std::endl);
+//						UG_LOG("Problem with not cutting fac size " << vecEndingFractFaceNotCutting.size() << std::endl);
+//
+//						return false;
+//						UG_THROW("Problem with not cutting fac size " << vecEndingFractFaceNotCutting.size() << std::endl);
+//
+//					}
+//
+//				}
+
+
+				if( vecNeighbouredFacesClosedFract.size() == 2  )
+				{
+					if( ! checkIfContentUnique( vecNeighbouredFacesClosedFract, vecContNeighbouredFacesClosedFract, 2 ) )
+					{
+						UG_THROW("Problem with neigh clos fac " << std::endl);
+					}
+
+				}
+				else
+				{
+					UG_THROW("Problem with neigh clos fac size " << std::endl);
+				}
+
+				std::pair<Face*,Face*> pairNeighbouredFractClosedManifEl( vecContNeighbouredFacesClosedFract[0],
+																		  vecContNeighbouredFacesClosedFract[1]
+																		 );
+
+
+				if(  ! checkIfContentUnique( vecSudoFractFacsEnding, vecContSudoFractFacsEnding, 1 ) )
+				{
+					UG_THROW("Problem with sudo ending " << std::endl);
+				}
+
+				IndexType sudoFractEnding = vecContSudoFractFacsEnding[0];
+
+				if(  ! checkIfContentUnique( vecSudoFractFacsNotEnding, vecContSudoFractFacsNotEnding, 1 ) )
+				{
+					UG_THROW("Problem with sudo not ending " << std::endl);
+				}
+
+
+				IndexType sudoFractNotEnding = vecContSudoFractFacsNotEnding[0];
+
+				std::vector<Edge*> vecContCuttingEdges; // must contain only same element, twice
+
+				if( vecCuttingEdges.size() == 2 )
+				{
+					if(  ! checkIfContentUnique( vecCuttingEdges, vecContCuttingEdges, 1 ) )
+					{
+						UG_THROW("Problem with edges unique " << std::endl);
+					}
+
+				}
+				else
+				{
+					UG_THROW("Problem with edges unique size " << std::endl);
+
+				}
+
+				Edge * oldLowDimElCut = vecContCuttingEdges[0];
+
+				UG_LOG("Pushing back Edge" << std::endl);
+
+				std::vector<Edge*> vecContUncuttingEdge; // must get same elemes twice
+
+				if( vecUncuttingEdge.size() == 2 )
+				{
+					if(  ! checkIfContentUnique( vecUncuttingEdge, vecContUncuttingEdge, 1 ) )
+					{
+						UG_THROW("Problem with edges shift unique " << std::endl);
+					}
+
+				}
+				else
+				{
+					UG_THROW("Problem with edges shift unique size " << std::endl);
+
+				}
+
+				Edge * uncuttingLowDimEl = vecContUncuttingEdge[0];
+
+				Edge * shiftLowDimEl = nullptr;
+
+				std::vector<Edge*> vecEdgsNotCutFaces;
+
+				if( ! findShiftEdgeUncuttingCrossingCleft( vecSegmLimSiFFUnclosed,
+//														   endingFractManifCutting,
+													       vecEndingFractFaceNotCutting,
+														   uncuttingLowDimEl,
+														   shiftLowDimEl,
+														   vecEdgsNotCutFaces
+														  )
+					)
+				{
+					UG_LOG("Kein shift Element gefunden" << std::endl);
+					UG_THROW("Kein shift Element gefunden" << std::endl);
+				}
+
+				if( shiftLowDimEl == nullptr )
+				{
+					UG_LOG("SHift El null " << std::endl);
+					UG_THROW("SHift El null " << std::endl);
+				}
+
+				if(  vecClosedFracFacNoNeighbr.size() + vecNeighbouredFacesClosedFract.size()
+					!=  vecSegmLimSiFFClosed.size()
+				)
+				{
+					UG_THROW("size sum clos not fit " << std::endl);
+				}
+
+				EndingCrossingFractureSegmentInfo ecfsi( vrt,
+													     endingFractManifCutting,
+													     vecEndingFractFaceNotCutting,
+														 oldLowDimElCut,
+														 pairNeighbouredFractClosedManifEl,
+														 shiftLowDimEl,
+														 vecEdgsNotCutFaces,
+														 sudoFractEnding,
+														 sudoFractNotEnding
+													    );
+
+				ecfsi.schluckVecClosedFracManifElNoNeighbr( vecClosedFracFacNoNeighbr );
+
+				ecfsi.schluckVecFulldimElm( volsOfUnclosedSegm );
+
+				m_vrtxAttAccsVecEndingCrossFractSegmInfo[vrt].push_back( ecfsi );
+
+				m_vecEndCrossFractSegmInfo.push_back( ecfsi );
+
+
+				segLimSids.schluckLowdimElmShiftDirectionIfUnclosedFractPresent(shiftLowDimEl);
+
+				// schlechte Idee: die segment limiting sides müssen die ganze EndingCrossingFractureSegmentInfo zu wissen bekommen
+				// klar alternativ sollte die shift direction reichen, um die ending crossing fracture segment info rekonstruieren zu können
+				// wäre aber ein Umweg!!!
+				// besser aber der Umweg, ansonsten entsteht das Henne Ei Problem:
+				// wer ist von was der Ursprung? wer schluckt was,
+				// die Segment Seite die Ending crossing fracture segment info, oder umgekehrt?
+				// und wenn es dann als Kopie geschluckt wird, was passiert wenn was verändert wird,
+				// es müssten also Pointer sein, und es entsteht eine unsinnige Kaskade.....
+
+			}
+		}
+
+	}
+
+	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
+
+	UG_LOG("EDGES number " << m_vecEdgeDirectConnectingEndingCrossCleftVrtcs.size() << std::endl);
+
+//	if( m_d_endingCrossingCleftVrtcs.size() == 0 )
+//		return true;
+
+	if( splitEdgesOfNeighboredEndingCrossingFracVrtcs() )
+	{
+		UG_LOG("needed to split, please restart with this geometry" << std::endl);
+		m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx = true;
+		return false;
+	}
+	else
+	{
+		m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx = false;
+	}
+
+//	return true;
+
+
+	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+	{
+		Vertex* vrt = *iter;
+
+		VecSegmentLimitingSides & vecSegmLimSid = m_vrtxAttAccsVecSegmLimSid[vrt];
+
+		for( SegmentLimitingSides const & sls : vecSegmLimSid )
+		{
+			if( sls.hasUnclosedFaces())
+				UG_LOG("Hier nach detect hat das Gesicht noch ungeschlossene " << std::endl);
+		}
+
+	}
+
+	if( numEndingCrossingClefts == 0 )
+			return true;
+
+//	assignDebugSubsets( true );
+//
+//	UG_LOG("problematic elements highlighted " << std::endl);
+
+	return true;
+
+
+
+//	if( numEndingCrossingClefts == 0 )
+//		return true;
+//
+//	// debug for ending crossing clefts
+//
+//	for( Face * fac : m_d_endingCrossingCleftFaces )
+//	{
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+//
+//	}
+//
+//	for( Vertex * vrt : m_d_endingCrossingCleftVrtcs )
+//	{
+//		m_sh.assign_subset( vrt, m_sh.num_subsets());
+//	}
+//
+//	for( Edge * edg : m_d_cuttingEdges )
+//	{
+//		if( edg == nullptr )
+//		{
+//			UG_LOG("NULL UNERLAUBT" << std::endl);
+//			UG_THROW("NULL UNERLAUBT" << std::endl);
+//		}
+//
+//		m_sh.assign_subset( edg, m_sh.num_subsets());
+//
+//	}
+//
+//	for( Face * fac : crossingNotEndingFaces )
+//	{
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+//	}
+//
+//	for( Edge * edg : otherEdgeOfCrossingNotEndingFace )
+//	{
+//		if( edg == nullptr )
+//		{
+//			UG_LOG("NULL C UNERLAUBT" << std::endl);
+//			UG_THROW("NULL C UNERLAUBT" << std::endl);
+//		}
+//
+//		m_sh.assign_subset( edg, m_sh.num_subsets());
+//
+//	}
+//
+//	for( Face * fac : nextFaceOfCrossingNotEndingFaces )
+//	{
+//		m_sh.assign_subset( fac, m_sh.num_subsets());
+//	}
+//
+//
+//	return false;
+}
+
+//////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::assignNotCuttingEdgeUnclosedCrossingCleft( SegLimSidesFractFace const & slsffUncl, Edge * const & commonEdge, Edge * & shiftEdge )
+{
+	EdgePair const & edgesFac = slsffUncl.getPairLowElm();
+
+	Edge * edgeFrst = edgesFac.first;
+	Edge * edgeScnd = edgesFac.second;
+
+	if( edgeFrst == commonEdge )
+	{
+		shiftEdge = edgeScnd;
+	}
+	else if( edgeScnd == commonEdge )
+	{
+		shiftEdge = edgeFrst;
+	}
+	else
+	{
+		UG_LOG("common and shift edge different face " << std::endl);
+		UG_THROW("common and shift edge different face " << std::endl);
+	}
+
+	if( shiftEdge != nullptr )
+		return true;
+
+	UG_LOG("shift edge null" << std::endl);
+
+	return false;
+
+}
+
+//////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::findShiftEdgeUncuttingCrossingCleft( VecSegLimSidesFractFace const & vecSegmLimSiFFUnclosed,
+//															 Face * const & endingFractManifCutting,
+		  	  	  	  	  	  	  	  	  	  	  	  	     std::vector<Face*> const & vecEndingFractManifNotCutting,
+															 Edge * const & uncuttingLowDimEl,
+															 Edge * & shiftLowDimEl,
+															 std::vector<Edge*> & vecEdgsNotCutFaces
+															)
+{
+
+	if( uncuttingLowDimEl == nullptr )
+	{
+		UG_LOG("null uncut" << std::endl );
+		UG_THROW("null uncut" << std::endl );
+	}
+
+	if( vecEndingFractManifNotCutting.size() == 0 )
+	{
+		shiftLowDimEl = uncuttingLowDimEl;
+		return true;
+	}
+
+	std::vector<Edge*> vecEdgsCollectMulti;
+
+	std::vector<Edge*> vecEdgsCollectSingle;
+
+	for( SegLimSidesFractFace const & slsffUncl : vecSegmLimSiFFUnclosed )
+	{
+
+		Face * facUncl = slsffUncl.getManifElm();
+
+		for( Face * facNotCut : vecEndingFractManifNotCutting )
+		{
+			if( facNotCut == facUncl )
+			{
+				EdgePair const & epU = slsffUncl.getPairLowElm();
+
+				Edge * edgeOne = epU.first;
+				Edge * edgeTwo = epU.second;
+
+				if( edgeOne != uncuttingLowDimEl )
+				{
+					vecEdgsCollectMulti.push_back(edgeOne);
+
+					addElem(vecEdgsCollectSingle, edgeOne);
+				}
+
+				if( edgeTwo != uncuttingLowDimEl )
+				{
+					vecEdgsCollectMulti.push_back(edgeTwo);
+
+					addElem(vecEdgsCollectSingle,edgeTwo);
+				}
 			}
 		}
 	}
 
-	// Debug purpose
-//	return false;
+	if(    ( vecEdgsCollectMulti.size() != vecEdgsCollectSingle.size() * 2 - 1  )
+		|| ( vecEdgsCollectMulti.size() != ( ( vecSegmLimSiFFUnclosed.size() - 1 ) * 2 ) - 1  )
+		|| ( vecEdgsCollectSingle.size() != vecSegmLimSiFFUnclosed.size() - 1 )
+	  )
+	{
+		UG_LOG("Konzept der wilden Ecken schief gegangen " << std::endl);
+
+		UG_LOG("multi " << vecEdgsCollectMulti.size() << std::endl );
+		UG_LOG("single " << vecEdgsCollectSingle.size() << std::endl );
+		UG_LOG("segm uncl " << vecSegmLimSiFFUnclosed.size() << std::endl );
+
+		UG_THROW("Konzept der wilden Ecken schief gegangen " << std::endl);
+	}
+
+	IndexType numShiftEdgFnd = 0;
+
+	for( Edge * eS : vecEdgsCollectSingle )
+	{
+		IndexType singleFoundInMulti = 0;
+
+		for( Edge * eM : vecEdgsCollectMulti )
+		{
+			if( eS == eM )
+				singleFoundInMulti++;
+		}
+
+		if( singleFoundInMulti == 1 )
+		{
+			numShiftEdgFnd++;
+
+			shiftLowDimEl = eS;
+		}
+		else if( singleFoundInMulti == 2 )
+		{
+			vecEdgsNotCutFaces.push_back( eS );
+		}
+		else
+		{
+			UG_LOG("Edge not in useful number " << singleFoundInMulti << std::endl);
+			UG_THROW("Edge not in useful number " << singleFoundInMulti << std::endl);
+		}
+
+	}
 
 	return true;
+
+//	IndexType edgeWasFound = 0;
+
+//	for( SegLimSidesFractFace const & slsffUncl : vecSegmLimSiFFUnclosed )
+//	{
+//
+//		Face * facUncl = slsffUncl.getManifElm();
+//
+//		if( facUncl == endingFractManifNotCutting )
+//		{
+//			EdgePair const & epU = slsffUncl.getPairLowElm();
+//
+//			Edge * edgeOne = epU.first;
+//			Edge * edgeTwo = epU.second;
+//
+//			if( edgeOne == uncuttingLowDimEl )
+//			{
+//				shiftLowDimEl = edgeTwo;
+//			}
+//			else if( edgeTwo == uncuttingLowDimEl )
+//			{
+//				shiftLowDimEl = edgeOne;
+//			}
+//			else
+//			{
+//				UG_LOG("No edge found uncutting shift?" << std::endl);
+//				UG_THROW("No edge found uncutting shift?" << std::endl);
+//			}
+//
+//			edgeWasFound++;
+//
+//		}
+//	}
+//
+//	if( edgeWasFound == 0 )
+//	{
+//		UG_LOG("NO shift edge " << std::endl);
+//		return false;
+//	}
+//	else if( edgeWasFound == 1 )
+//	{
+//		return true;
+//	}
+//	if( edgeWasFound > 1 )
+//	{
+//		UG_LOG("Many shift edges " << edgeWasFound << std::endl);
+//		return false;
+//	}
+
+	UG_LOG("Cannot come here at this edge" << std::endl);
+
+	return false;
+
 }
+
+//////////////////////////////////////////////////////////////////
+
+template<typename ELMTYP>
+bool ArteExpandFracs3D::checkIfContentUnique( std::vector<ELMTYP> const & vecTest, std::vector<ELMTYP> & content, IndexType mandatoryDifferentElems )
+{
+	if( vecTest.size() == 0 )
+	{
+		UG_LOG("zero vector testing nonsense" << std::endl);
+		UG_THROW("zero vector testing nonsense" << std::endl);
+	}
+
+	std::vector<ELMTYP> vecTestCop = vecTest; // copy
+
+	while( vecTestCop.size() != 0 )
+	{
+		ELMTYP elmCont = vecTestCop[0];
+
+		content.push_back(elmCont);
+
+		for( typename std::vector<ELMTYP>::iterator itEl = vecTestCop.begin(); itEl != vecTestCop.end(); )
+		{
+			ELMTYP elmTest = *itEl;
+
+			if( elmCont == elmTest )
+			{
+				itEl = vecTestCop.erase(itEl);
+			}
+			else
+				++itEl;
+		}
+
+	}
+
+	return ( mandatoryDifferentElems == content.size() );
+}
+
+//////////////////////////////////////////////////////////////////
+
+template< bool FACES_HAVE_SAME_SUDO >
+bool ArteExpandFracs3D::fractFacesAreNeighboured( SegLimSidesFractFace const & fractFaceOne,
+							   	   	   	   	   	  SegLimSidesFractFace const & fractFaceTwo,
+												  Edge * & commonEdge
+												)
+{
+	commonEdge = nullptr; // general case
+
+	bool facesHaveSameSudo = FACES_HAVE_SAME_SUDO;
+
+	// exclude that the elements are the same
+
+	Face * facOne = fractFaceOne.getManifElm();
+	Face * facTwo = fractFaceTwo.getManifElm();
+
+	if( facOne == facTwo )
+	{
+		UG_LOG("Faces coincide" << std::endl);
+		return false;
+	}
+
+	EdgePair const & edgesFacOne = fractFaceOne.getPairLowElm();
+	EdgePair const & edgesFacTwo = fractFaceTwo.getPairLowElm();
+
+	Edge * edgeOneFrst = edgesFacOne.first;
+	Edge * edgeOneScnd = edgesFacOne.second;
+
+	Edge * edgeTwoFrst = edgesFacTwo.first;
+	Edge * edgeTwoScnd = edgesFacTwo.second;
+
+	bool edgeCondA = ( edgeOneFrst == edgeTwoFrst );
+	bool edgeCondB = ( edgeOneFrst == edgeTwoScnd );
+	bool edgeCondC = ( edgeOneScnd == edgeTwoFrst );
+	bool edgeCondD = ( edgeOneScnd == edgeTwoScnd );
+
+
+	bool fractFacsNeighbr = (    edgeCondA
+							  || edgeCondB
+							  || edgeCondC
+							  || edgeCondD
+							);
+
+	IndexType sudoOne = fractFaceOne.getSudo();
+	IndexType sudoTwo = fractFaceTwo.getSudo();
+
+	bool sudosCoincide = ( sudoOne == sudoTwo );
+
+	bool necessarySudoProperty = ( facesHaveSameSudo == sudosCoincide );
+
+	bool neighbrsWithRequestedSudo = ( fractFacsNeighbr && necessarySudoProperty );
+
+	if( neighbrsWithRequestedSudo )
+	{
+		if( edgeCondA || edgeCondB )
+		{
+			commonEdge = edgeOneFrst;
+		}
+		else if( edgeCondC || edgeCondD )
+		{
+			commonEdge = edgeOneScnd;
+		}
+
+		if( commonEdge == nullptr )
+		{
+			UG_LOG("COMMON NULL " << std::endl);
+			UG_THROW("COMMON NULL " << std::endl);
+		}
+		else
+		{
+			UG_LOG("COORDINATES NOT NULL " << CalculateCenter( commonEdge, m_aaPos ) << std::endl );
+		}
+	}
+
+	return neighbrsWithRequestedSudo;
+}
+
+
+//////////////////////////////////////////////////////////////////
+
+
+#if 0
+bool ArteExpandFracs3D::detectEndingCrossingClefts()
+{
+//	bool unclosedFracFacesPresent = false;
+//
+//	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+//	{
+//		Vertex* vrt = *iter;
+//
+//		IndexType shiFraFac = shiftUnclosedFracFacesToUnclosedFractFaces( vrt );
+//
+//		UG_LOG("shifted frac faces at " << m_aaPos[vrt] << " -> " << shiFraFac << std::endl);
+//
+//		if( shiFraFac > 0 )
+//			unclosedFracFacesPresent = true;
+//
+////		constexpr bool d_highlightVrtcsWithShifts = false;
+////
+////		if( d_highlightVrtcsWithShifts )
+////		{
+////			if( shiFraFac > 0 )
+////			{
+////				IndexType sudoNum = m_sh.num_subsets();
+////
+////				m_sh.assign_subset(vrt, sudoNum );
+////			}
+////		}
+//	}
+
+	IndexType numEndingCrossingClefts = 0;
+
+	std::vector<Face*> m_d_endingCrossingCleftFaces;
+
+	std::vector<Vertex*> m_d_endingCrossingCleftVrtcs;
+
+
+//	for( VertexIterator iter = m_sel.begin<Vertex>(); iter != m_sel.end<Vertex>(); ++iter)
+//	{
+//		Vertex* vrt = *iter;
+//
+//
+//
+//	}
+
+
+
+	// TODO FIXME unterscheide Faces entlang der expandierten Kreuzungskluft,
+	// mit 2 Knoten an Kreuzungspunkten, ein Knoten voll expandiert für beide subsets
+	// von solchen, die in der Luft hängen am Ende der Kluft, wo nur die durchgehende Kluft expandiert
+
+	// TODO FIXME need to detect attached faces from the durchgehende cleft which gets expanded
+	// as specific structures needed also there
+
+	// TODO FIXME auch die Kante, die an dem auslaufenden Face entlang geht im Schnitt mit dem ausgedehnten,
+	// per edge attachment markieren! bool
+	// und die anhängenden faces der kreuzenden durchgehenden Kluft ebenso markieren irgendwie per face attachment bool
+
+
+
+
+#if 1
+
+	IndexType unclosedFracFacesFound = 0;
+
+	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
+	{
+
+		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); ++iter )
+		{
+			Face* fac = *iter;
+
+			UG_LOG("Check for unclosed frac faces " << CalculateCenter(fac, m_aaPos) << std::endl);
+
+			if( m_aaMarkFaceHasUnclosedFracSideB[fac] )
+			{
+				unclosedFracFacesFound++;
+
+//				m_sh.assign_subset( fac, m_sh.num_subsets());
+			}
+
+		}
+
+	}
+
+	if( unclosedFracFacesFound > 0 ) // || unclosedFracFacesPresent )
+	{
+		UG_LOG("unclosed Frac faces " << unclosedFracFacesFound << std::endl);
+//		return false;
+	}
+
+//	return true;
+
+
+	//  wieso die ending crossing cleft faces nicht aus den Segmenten raus holen,
+	// und zwar aus den ungeschlossenen Faces, die im Segment liegen?
+	// müssen doch dieselben sein, dann sollte die komische Prozedur hier unnötig werden!!!
+
+
+//	UG_THROW("KÄSE" << std::endl);
+
+	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
+	{
+		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); iter++ )
+		{
+			Face* fac = *iter;
+
+			UG_LOG("Detect for unclosed ending cleft frac faces " << CalculateCenter(fac, m_aaPos) << std::endl);
+
+			if( m_aaMarkFaceHasUnclosedFracSideB[fac] )
+			{
+
+				// figure out the vertice(s) where the face is unclosed
+				// check if at one of these vertices, two fractures are crossing and one ending
+				// by checking if there are at least two segments as precondition, else no matter
+
+				std::vector<Vertex *> assoVrt;
+
+				CollectVertices(assoVrt, m_grid, fac);
+
+				for( Vertex * vrt : assoVrt )
+				{
+					if( m_aaMarkVrtxHasUnclosedFracB[vrt] )
+					{
+						VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+						if( vecSegVolElmInf.size() > 1 ) // expansion takes place here
+						{
+//							m_sh.assign_subset(fac,m_sh.num_subsets());
+							numEndingCrossingClefts++;
+							m_d_endingCrossingCleftFaces.push_back(fac);
+							m_d_endingCrossingCleftVrtcs.push_back(vrt);
+							// TODO FIXME vielleicht eine Klasse, wo die Faces und Vertices einer
+							// jeweiligen ending Crossing Cleft Stelle zusammengefasst werden?
+							// statt unabhängige Listen? gemeinsame Liste?
+						}
+
+					}
+				}
+
+
+			}
+
+		}
+
+	}
+
+
+	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
+
+	if( numEndingCrossingClefts == 0 )
+		return true;
+
+	// debug for ending crossing clefts
+
+	for( Face * fac : m_d_endingCrossingCleftFaces )
+	{
+		m_sh.assign_subset( fac, m_sh.num_subsets());
+
+	}
+
+	for( Vertex * vrt : m_d_endingCrossingCleftVrtcs )
+	{
+		m_sh.assign_subset( vrt, m_sh.num_subsets());
+	}
+
+#endif
+
+
+	return false;
+
+
+
+}
+
+#endif
+
+////////////////////////////////////////////////////////////////////
+
+#if 0
+bool ArteExpandFracs3D::detectEndingCrossingClefts()
+{
+
+	//  wieso die ending crossing cleft faces nicht aus den Segmenten raus holen,
+	// und zwar aus den ungeschlossenen Faces, die im Segment liegen?
+	// müssen doch dieselben sein, dann sollte die komische Prozedur hier unnötig werden!!!
+
+	IndexType numEndingCrossingClefts = 0;
+
+	std::vector<Face*> m_d_endingCrossingCleftFaces;
+
+	std::vector<Vertex*> m_d_endingCrossingCleftVrtcs;
+
+//	UG_THROW("KÄSE" << std::endl);
+
+	for(size_t i_fi = 0; i_fi < m_fracInfos.size(); ++i_fi )
+	{
+		int fracIndSudo = m_fracInfos[i_fi].subsetIndex;
+
+		for( FaceIterator iter = m_sh.begin<Face>(fracIndSudo); iter != m_sh.end<Face>(fracIndSudo); iter++ )
+		{
+			Face* fac = *iter;
+
+			UG_LOG("Detect for unclosed ending cleft frac faces " << CalculateCenter(fac, m_aaPos) << std::endl);
+
+			if( m_aaMarkFaceHasUnclosedFracSideB[fac] )
+			{
+
+				// figure out the vertice(s) where the face is unclosed
+				// check if at one of these vertices, two fractures are crossing and one ending
+				// by checking if there are at least two segments as precondition, else no matter
+
+				std::vector<Vertex *> assoVrt;
+
+				CollectVertices(assoVrt, m_grid, fac);
+
+				for( Vertex * vrt : assoVrt )
+				{
+					if( m_aaMarkVrtxHasUnclosedFracB[vrt] )
+					{
+						VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+						if( vecSegVolElmInf.size() > 1 ) // expansion takes place here
+						{
+//							m_sh.assign_subset(fac,m_sh.num_subsets());
+							numEndingCrossingClefts++;
+							m_d_endingCrossingCleftFaces.push_back(fac);
+							m_d_endingCrossingCleftVrtcs.push_back(vrt);
+							// TODO FIXME vielleicht eine Klasse, wo die Faces und Vertices einer
+							// jeweiligen ending Crossing Cleft Stelle zusammengefasst werden?
+							// statt unabhängige Listen? gemeinsame Liste?
+						}
+
+					}
+				}
+
+
+			}
+
+		}
+
+	}
+
+	// TODO FIXME m_d_endingCrossingCleftVrtcs 	m_d_endingCrossingCleftFaces globale member vielleicht?
+
+#if 0
+//	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); iterV++ )
+	for( Vertex * vrt : m_d_endingCrossingCleftVrtcs )
+	{
+//		Vertex * vrt = *iterV;
+
+		// search neigbours of ending crossing cleft faces
+
+		if( m_aaMarkVrtxHasUnclosedFracB[vrt] )
+		{
+			VecSegmentVolElmInfo const & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+			for( SegmentVolElmInfo const & svei : vecSegVolElmInf )
+			{
+				for( AttachedVolumeElemInfo const & attVolEI : svei )
+				{
+					VecAttachedFractFaceEdgeSudo vecAttFracFace = attVolEI.getVecFractManifElem();
+					// die sind alle von den echten das Segment begrenzenden Faces
+
+					for( AttachedFractFaceEdgeSudo & afes : vecAttFracFace )
+					{
+						Face * faceSegmLim = afes.getManifElm();
+
+						IndexType sudoSegmLim = afes.getSudo();
+
+						std::pair<Edge*,Edge*> const & edgePair = afes.getPairLowElm();
+
+						// figure out neighbours of ending crossing cleft faces at ending node
+
+						// rule out free edge
+
+						Edge * freeEdge = nullptr;
+						Edge * boundedEdge = nullptr;
+
+						for( Face * eccf : m_d_endingCrossingCleftFaces )
+						{
+							if( FaceContains( eccf, vrt ) )
+							{
+								if( eccf != fac )
+								{
+									if( FaceContains( eccf, edgePair.first ) || FaceContains( eccf, edgePair.second ) )
+									{
+
+									}
+								}
+							}
+						}
+//						if( )
+					}
+
+				}
+
+
+			}
+		}
+		else
+		{
+			UG_LOG("only ending crossing cleft vertices allowed here" << std::endl);
+			UG_THROW("only ending crossing cleft vertices allowed here" << std::endl);
+			return false;
+		}
+
+	}
+
+#endif
+
+
+	UG_LOG("detected ending crossing cleft faces " << numEndingCrossingClefts << std::endl);
+
+	if( numEndingCrossingClefts == 0 )
+		return true;
+
+	// debug for ending crossing clefts
+
+	for( Face * fac : m_d_endingCrossingCleftFaces )
+	{
+		m_sh.assign_subset( fac, m_sh.num_subsets());
+
+	}
+
+	for( Vertex * vrt : m_d_endingCrossingCleftVrtcs )
+	{
+		m_sh.assign_subset( vrt, m_sh.num_subsets());
+	}
+
+	// TODO FIXME unterscheide Faces entlang der expandierten Kreuzungskluft,
+	// mit 2 Knoten an Kreuzungspunkten, ein Knoten voll expandiert für beide subsets
+	// von solchen, die in der Luft hängen am Ende der Kluft, wo nur die durchgehende Kluft expandiert
+
+	// TODO FIXME need to detect attached faces from the durchgehende cleft which gets expanded
+	// as specific structures needed also there
+
+	// TODO FIXME auch die Kante, die an dem auslaufenden Face entlang geht im Schnitt mit dem ausgedehnten,
+	// per edge attachment markieren! bool
+	// und die anhängenden faces der kreuzenden durchgehenden Kluft ebenso markieren irgendwie per face attachment bool
+
+	return false;
+}
+
+#endif
 
 //////////////////////////////////////////////////////////////////
 
@@ -1478,7 +3278,7 @@ bool ArteExpandFracs3D::distinguishSegments()
 // wird bisher nicht berücksichtigt
 // irgendwie muss das markiert werden, damit die Kluft, die zu Ende geht.
 // im Durchstich trotzdem berücksichtigt wird
-ArteExpandFracs3D::IndexType ArteExpandFracs3D::specificTreatementUnclosedFracFaces( Vertex * const & vrt )
+ArteExpandFracs3D::IndexType ArteExpandFracs3D::shiftUnclosedFracFacesToUnclosedFractFaces( Vertex * const & vrt )
 {
 	IndexType shiftedFracFaces = 0;
 
@@ -1491,6 +3291,10 @@ ArteExpandFracs3D::IndexType ArteExpandFracs3D::specificTreatementUnclosedFracFa
 	UG_LOG("SHIFT FRAC 2 GENER" << std::endl);
 
 	VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[vrt];
+
+	IndexType segmentNumber = 0;
+
+
 
 	for( SegmentVolElmInfo & svei : vecSegVolElmInf )
 	{
@@ -1526,12 +3330,16 @@ ArteExpandFracs3D::IndexType ArteExpandFracs3D::specificTreatementUnclosedFracFa
 
 								shiftedFracFaces++;
 
-								Face * unclosedFace = afesOne.getManifElm();
-								// tested if same as that one from afesTwo
+//								Face * unclosedFace = afesOne.getManifElm();
+//								// tested if same as that one from afesTwo
+//
+////								m_aaMarkFaceHasUnclosedFracSideB[ unclosedFace ] = true;
+//
+//								UG_LOG("unclosed face " << CalculateCenter( unclosedFace, m_aaPos ) << std::endl);
 
-								m_aaMarkFaceIsUnclosedFracB[ unclosedFace ] = true;
+//								m_sh.assign_subset( unclosedFace, m_sh.num_subsets());
 
-								m_aaMarkVrtxHasUnclosedFracB[vrt] = true;
+//								m_aaMarkVrtxHasUnclosedFracB[vrt] = true;
 
 								//  added vertex attachment that knows if at vertex there is an unclosed fracture
 
@@ -3175,6 +4983,14 @@ bool ArteExpandFracs3D::loop2EstablishNewVertices()
 
 		UG_LOG("vertex at " << posOldVrt << std::endl);
 
+		VecSegmentLimitingSides & vecSegmLimSid = m_vrtxAttAccsVecSegmLimSid[oldVrt];
+
+		for( SegmentLimitingSides const & sls : vecSegmLimSid )
+		{
+			if( sls.hasUnclosedFaces())
+				UG_LOG("Hier hat das Gesicht noch ungeschlossene " << std::endl);
+		}
+
 //		if( ! vrtxIsBndVrt )
 //		{
 		if( ! establishNewVertizesStasiBased(oldVrt) )
@@ -3287,9 +5103,212 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 
 ///////////////////////////////////////////////////////////////////
 
+bool ArteExpandFracs3D::establishSegmentLimitingSidesInfo()
+{
+
+	UG_LOG("ESTABLISH SGEMENT LIM SIDE INFO" << std::endl );
+
+	for( VertexIterator iterV = m_sel.begin<Vertex>(); iterV != m_sel.end<Vertex>(); ++ iterV )
+	{
+		Vertex * oldVrt = *iterV;
+
+		UG_LOG("establish segm lim sides for " << m_aaPos[oldVrt] << std::endl);
+
+		VecSegmentLimitingSides & vecSegmLimSid = m_vrtxAttAccsVecSegmLimSid[oldVrt];
+
+		UG_LOG("Segment limiting sides got " << std::endl);
+
+		auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+
+		bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
+
+		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
+
+		VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[oldVrt];
+
+		UG_LOG("CHECK SIZE" << std::endl);
+
+		if( vecSegVolElmInf.size() < 2 )
+		{
+			UG_LOG("nur ein Segment, aber will frische Vertizes?" << std::endl);
+	//		UG_THROW("nur ein Segment, aber will frische Vertizes?" << std::endl);
+	//		return false;
+//			return true;
+			continue;
+		}
+
+		UG_LOG("CONTINUED" << std::endl);
+
+		for( SegmentVolElmInfo const & segVolsElInf : vecSegVolElmInf )
+		{
+			// count the number of the fracture subdomains surrounding the segment
+			// in case of boundary vertex, also count the number of boundary subdomains
+
+	//		std::vector<IndexType> sudosInSegment;
+
+			// hier die neue Klasse und ihr averaing einführen, oder im Hauptloop der neuen Elemente.....
+			// SegmentSides<....> in .h file für die richtigen template parameter Kurznamen geben und hier
+			// Objekt erstellen und je nach ob mit oder ohne Bndry entsprechend aufladen und averagen.....
+			// und zwar für jedes Segment einzeln, und abhängig von boundary oder nicht die boundary Geschichten
+			// dazu oder auch nicht...... also einen VecSegmentSides erstellen auch, das einzelne Objekt
+			// weiss dann, ob es eine Boundary ist..... vielleicht noch den Vektor dazu als übergebener Parameter
+			// damit man den da drin weiter reichen kann?
+			// wenn jedes Objekt des Vektors von SegmentSIdes sowohl seinen Vertex kennt als auch weiss,
+			// ob es boundary oder nicht ist, kann danach darüber geloopt werden, ohne nochmal
+			// aussen den Vertex mit geben zu müssen, oder die Info, ob bndry oder nicht.....
+			// danach gibts dann Funktionen, die alleine ein Objekt von der Sorte SegmentSides schlucken brauchen
+			// und hier nur ein Loop über den ganzen Vektor davon, wo für jedes Element dann die Fkt aufgerufen wird....
+
+			SegmentLimitingSides segLimSids( oldVrt, vrtxIsBndVrt );
+
+	//		std::vector<Volume*> vecVolsOfSegment;
+
+			IndexType boundarySites = 0;
+
+			for( AttachedVolumeElemInfo const & volElmInf : segVolsElInf )
+			{
+				if( ! segLimSids.schluckVecAttFractElm( volElmInf.getVecFractManifElem() ) )
+				{
+					UG_LOG("schlucken schief gegangen " << std::endl);
+					UG_THROW("schlucken schief gegangen " << std::endl);
+					return false;
+				}
+
+
+				if( volElmInf.hasUnclosedFracture() )
+				{
+					if( ! segLimSids.schluckVecAttUnclosedFractElm( volElmInf.getVecUnclosedFractManifElem() ) )
+					{
+						UG_LOG("Schlucken von unclosed schief gegangen " << std::endl);
+//						UG_THROW("Schlucken von unclosed schief gegangen " << std::endl);
+//						return false;
+					}
+					else
+					{
+						UG_LOG("ungeschlossene fracture geschluckt " << std::endl);
+					}
+
+					if( ! segLimSids.hasUnclosedFaces() )
+					{
+						UG_LOG("keine ungeschlossenen Gesichter " << std::endl);
+						UG_THROW("keine ungeschlossenen Gesichter " << std::endl);
+					}
+				}
+
+				if( vrtxIsBndVrt )
+				{
+					auto vecBndryManifelm = volElmInf.getVecBndryManifElem();
+
+					IndexType sizeVecBndryManifElm = volElmInf.getVecBndryManifElem().size();
+
+					boundarySites += sizeVecBndryManifElm;
+
+	//				if( ! segLimSids.schluckVecAttBndryElm( volElmInf.getVecBndryManifElem() ) )
+					if( ! segLimSids.schluckVecAttBndryElm( vecBndryManifelm ) )
+					{
+						UG_LOG("schlucken B schief gegangen " << std::endl);
+						UG_THROW("schlucken B schief gegangen " << std::endl);
+						return false;
+					}
+
+					// TODO FIXME es muss abgefangen werden, wenn bei einem boundary vertex gar keine boundary Seiten da sind
+	//				if( (volElmInf.getVecBndryManifElem()).size() == 0  )
+					if( sizeVecBndryManifElm == 0  )
+						UG_LOG("Grenze verloren gegangen " << m_aaPos[oldVrt] << std::endl);
+				}
+
+				Volume * vol2Add = volElmInf.getFulldimElem();
+				segLimSids.schluckFulldimElem(vol2Add);
+			}
+
+			if( vrtxIsBndVrt && boundarySites == 0 )
+			{
+				UG_LOG("No boundary sites at " << m_aaPos[oldVrt] << std::endl);
+				UG_THROW("No boundary sites at " << m_aaPos[oldVrt] << std::endl);
+			}
+
+			if( ! segLimSids.averageAll() )
+			{
+				UG_LOG("keine Mittelung " << std::endl);
+				UG_THROW("keine Mittelung " << std::endl);
+				return false;
+			}
+
+			vecSegmLimSid.push_back(segLimSids);
+		}
+
+
+	}
+
+	UG_LOG("END ESTABLISH SGEMENT LIM SIDE INFO" << std::endl );
+
+
+	return true;
+}
 
 ///////////////////////////////////////////////////////////////////////
 
+bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
+{
+
+	auto & vrtxFracPrps = m_aaMarkVrtVFP[ oldVrt ];
+
+	bool vrtxIsBndVrt = vrtxFracPrps.getIsBndFracVertex();
+
+	UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
+
+
+//	VecSegmentVolElmInfo & vecSegVolElmInf = m_accsAttVecSegVolElmInfo[oldVrt];
+//
+//	if( vecSegVolElmInf.size() < 2 )
+//	{
+//		UG_LOG("nur ein Segment, aber will frische Vertizes?" << std::endl);
+////		UG_THROW("nur ein Segment, aber will frische Vertizes?" << std::endl);
+////		return false;
+//		return true;
+//	}
+
+	VecSegmentLimitingSides & vecSegmLimSid = m_vrtxAttAccsVecSegmLimSid[oldVrt];
+
+	if(  vecSegmLimSid.size() == 0 )
+	{
+		UG_LOG("keine verschiedenen Segmente" << std::endl);
+		return true;
+	}
+
+	if( vecSegmLimSid.size() == 1 )
+	{
+		UG_LOG("sonderbarer Fall von nur einem Segment " << std::endl );
+		UG_THROW("sonderbarer Fall von nur einem Segment " << std::endl );
+		return false;
+	}
+
+	for( SegmentLimitingSides const & segLimSids : vecSegmLimSid )
+	{
+
+		if( segLimSids.hasUnclosedFaces() )
+		{
+			UG_LOG("beim ausdehnen ungeschlossene Gesichter " << std::endl);
+		}
+
+		if( ! expandWithinTheSegment(segLimSids) )
+		{
+			UG_LOG("schief gegangen Vertex Erzeugung " << std::endl);
+			UG_THROW("schief gegangen Vertex Erzeugung " << std::endl);
+			return false;
+		}
+	}
+
+	UG_LOG("Vertex creation hat funktioniert " << std::endl);
+	//	UG_THROW("Vertex creation failed " << std::endl);
+
+	return true;
+
+}
+
+/////////////////////////////////////////////////////////////////
+
+#if 0
 
 bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 {
@@ -3462,6 +5481,7 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 	return true;
 }
 
+#endif
 
 //		if( ! extracFractSudosOfSegment( svei, sudosInSegment ) )
 //		{
@@ -3601,6 +5621,7 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 	bool isBndry = segmLimSides.isBoundary();
 
+
 //	if( isBndry )
 //		return true;
 
@@ -3628,6 +5649,8 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 	vector3 posOldVrt = m_aaPos[oldVrt];
 
 	VecPlaneDescriptor vecShiftedPlaneDescript;
+
+
 
 //	for( SegmentLimitSidesPairSudoNorml const & segLimSidPrSN : vecSegmLimSidPrSudoNrml )
 	for( PlaneDescriptor & planeDescr : vecPlaneFracDescr )
@@ -3661,7 +5684,7 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 //			{
 //				UG_LOG("Manif Typ is " << planeDescr.spuckManifTyp() << std::endl );
 //				UG_LOG("Fract wäre " << PlaneDescriptorType::isFracture << std::endl );
-//				UG_LOG("Bndry wäre " << PlaneDescriptorType::isBoundary << std::endl );
+//				UG_LOG("Bndry wäre " << PlaneDescriptorType:: << std::endl );
 //				UG_LOG("Artif wäre " << PlaneDescriptorType::isArtificial << std::endl );
 //
 //				UG_THROW("keine Boundary, aber will Boundary Manif" << std::endl);
@@ -3704,11 +5727,66 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 	IndexType sudoExample = (vecPlaneFracDescr[0]).spuckSudo();
 	vector3 posNewVrt; // to be determined depending on the segment properties
 
+	bool hasUnclosedFaces = segmLimSides.hasUnclosedFaces();
+
+	if( hasUnclosedFaces )
+	{
+		UG_LOG("hat ungeschlossene Seiten " << std::endl);
+	}
+
 	if( ! isBndry && vecShiftedPlaneDescript.size() == 1 )
 	{
-//		// one single inner fracture, Testfall Anfang
-//		computeShiftVector( vecShiftedPlaneDescript[0] );
-		posNewVrt = (vecPlaneFracDescr[0]).spuckShiftedBaseVect();
+		// TODO FIXME die unclosed crossing faces behandeln!!!
+
+		// XXXXX muss wieder eingeschaltet werden hier
+		// TODO FIXME use the hasUnclosedFaces property, but for visual debugging, better set as false
+		bool distinguishUnclosedFaces = segmLimSides.hasUnclosedFaces();
+//		constexpr bool distinguishUnclosedFaces = false; // segmLimSides.hasUnclosedFaces();
+		UG_LOG("Please use switch unclosed faces in final version, please remove debugging set false" << std::endl);
+
+		if( ! distinguishUnclosedFaces ) // standard case, just shift perpendicular to the plane, no SLE to solve
+		{
+			//		// one single inner fracture, Testfall Anfang
+			//		computeShiftVector( vecShiftedPlaneDescript[0] );
+			posNewVrt = (vecPlaneFracDescr[0]).spuckShiftedBaseVect();
+
+		}
+		else
+		{
+			// NOTE: TODO FIXME funktioniert vermutlich auch, wenn der Vertex ein Boundary Vertex ist
+			// ob der Spezialfall aber auch praktisch vorkommt, fragwürdig
+			// Test der Methode erstmal innen drin, später ggf. Ausweitung auf Grenzvertizes
+			// dann würde das hier raus wandern aus dem Frage ob Boundary oder nicht, isBndry wäre egal
+			// relevant wäre dass size des vecShiftPlaneDescr 1 ist und withUnclosedFaces true
+
+
+			Edge * shiftDirectionEdg = nullptr;
+
+			if( ! segmLimSides.spuckLowdimElmShiftDirectionIfUnclosedFractPresent(shiftDirectionEdg) )
+			{
+				UG_LOG("no shift direction " << std::endl);
+				UG_THROW("no shift direction " << std::endl);
+
+			}
+
+			if( shiftDirectionEdg == nullptr )
+			{
+				UG_LOG("Null Shift cross end?" << std::endl);
+				UG_THROW("Null Shift cross end?" << std::endl);
+			}
+
+			// jetzt sollte also die shift direction bekannt sein, muss normalisiert werden,
+			// vielleicht kann man das im PlaneDescriptor drin auch machen
+
+			PlaneDescriptor const & shiftedPlane = vecShiftedPlaneDescript[0];
+
+
+			if( ! computeCrossPointOfPlaneWithLine( shiftedPlane, shiftDirectionEdg, oldVrt, posNewVrt ) )
+			{
+				UG_LOG("Not possible to compute crossing point plane with line" << std::endl);
+				UG_THROW("Not possible to compute crossing point plane with line" << std::endl);
+			}
+		}
 	}
 	else
 	{
@@ -3942,9 +6020,94 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 	m_sh.assign_subset(newShiftVrtx, sudoExample);
 //	m_sh.assign_subset(newShiftVrtx, m_sh.num_subsets());
 
+	// wenn der neue Vertex mit einer ungeschlossenen endenden Kluft zu tun hat
+	// muss am Ende vom Kernvertex, old vertex, die edge, die nicht mit der
+	// kreuzenden nicht endenden KLuft geht, gelöscht werden
+	m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft[newShiftVrtx] = hasUnclosedFaces;
+
+	// TODO FIXME das auch verwenden
+
+	if( hasUnclosedFaces )
+	{
+		// TEST AUF ANZAHL der kreuzenden Klüfte, zusätzlich, ob es eine ist nur
+		// zur Sicherheit
+		if( isBndry || vecShiftedPlaneDescript.size() != 1 )
+		{
+			UG_LOG("Shift vertex but boundary or more than one shift direction " << std::endl);
+			UG_THROW("Shift vertex but boundary or more than one shift direction " << std::endl);
+		}
+
+		if( ! addElem( m_vrtxArisesFromExpandedEndingCrossingCleft, newShiftVrtx ) )
+		{
+			UG_LOG("Shifted ecf vertex schon bekannt " << std::endl);
+			UG_THROW("Shifted ecf vertex schon bekannt " << std::endl);
+		}
+
+		// TODO FIXME figure out segment limiting side of the member vector and add the shift vertex
+
+		Edge * shiftDirection = nullptr;
+
+		if( ! segmLimSides.spuckLowdimElmShiftDirectionIfUnclosedFractPresent( shiftDirection ) )
+		{
+			UG_LOG("No shift direction in ending crossing cleft segment " << std::endl);
+			UG_THROW("No shift direction in ending crossing cleft segment " << std::endl);
+		}
+
+		IndexType numFoundECFSI = 0;
+
+		// figure out the Ending crossing cleft segment info corresponding to this shift edge
+		for( EndingCrossingFractureSegmentInfo const & ecfs : m_vecEndCrossFractSegmInfo )
+		{
+			if( ecfs.spuckLowdimElmShiftDirection() == shiftDirection )
+				numFoundECFSI++;
+		}
+
+		if( numFoundECFSI != 1 )
+		{
+			UG_LOG("not one cefsi found " << numFoundECFSI << std::endl);
+			UG_THROW("not one cefsi found " << numFoundECFSI << std::endl);
+		}
+
+		for( EndingCrossingFractureSegmentInfo & ecfs : m_vecEndCrossFractSegmInfo )
+		{
+			if( ecfs.spuckLowdimElmShiftDirection() == shiftDirection )
+			{
+				if( ! ecfs.schluckShiftVrtx( newShiftVrtx ) )
+				{
+					UG_LOG("Shift vertex wird nicht geschluckt" << m_aaPos[newShiftVrtx] << std::endl );
+					UG_THROW("Shift vertex wird nicht geschluckt" << m_aaPos[newShiftVrtx] << std::endl );
+					return false;
+				}
+
+				break;
+			}
+		}
+
+		IndexType numFoundAssigned = 0;
+
+		for( EndingCrossingFractureSegmentInfo const & ecfs : m_vecEndCrossFractSegmInfo )
+		{
+			if( ecfs.spuckShiftVrtx() != nullptr && ecfs.spuckLowdimElmShiftDirection() == shiftDirection )
+				numFoundAssigned++;
+		}
+
+		if( numFoundAssigned != 1 )
+		{
+			m_sh.assign_subset( oldVrt, m_sh.num_subsets());
+			m_sh.assign_subset( shiftDirection, m_sh.num_subsets());
+
+
+			UG_LOG( "num found assigend wrong " << numFoundAssigned );
+			UG_THROW( "num found assigend wrong " << numFoundAssigned );
+		}
+
+		UG_LOG("ending crossing cleft shift vertex generated " << std::endl);
+
+	}
+
 	std::vector<Volume*> volsInSegm;
 
-	segmLimSides.spuckFulldimElemList( volsInSegm );
+	segmLimSides.spuckVecFulldimElem( volsInSegm );
 
 	for( Volume * const & vol : volsInSegm )
 	{
@@ -3965,6 +6128,94 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 
 }
+
+//////////////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const & shiftedPlane, Edge * const & shiftDirectionEdg, Vertex * const & oldVrt, vector3 & posCrossingPt )
+{
+	vector3 const & normalShiftedPlane = shiftedPlane.spuckNormalVector();
+	vector3 const & baseShiftedPlane = shiftedPlane.spuckBaseVector();
+	number const & rhs = shiftedPlane.spuckRHS();
+
+	// vector3 posOldVrt Aufpunkt der Edge, entland der verschoben werden soll
+	// establish
+
+	if( ! ( EdgeContains(shiftDirectionEdg, oldVrt ) ) )
+	{
+		UG_LOG("Shift edge ohne alten Vertex?" << std::endl);
+		UG_THROW("Shift edge ohne alten Vertex?" << std::endl);
+	}
+
+	vector3 posOldVrt = m_aaPos[oldVrt];
+
+	vector3 const & shiftVecBase = posOldVrt;
+
+	Vertex * const & shiftEdgeVrtOne = shiftDirectionEdg->vertex(0);
+	Vertex * const & shiftEdgeVrtTwo = shiftDirectionEdg->vertex(1);
+
+	vector3 shiftVecEnd = shiftVecBase; // needs to be changed still
+
+	if( shiftEdgeVrtOne == oldVrt )
+	{
+		shiftVecEnd = m_aaPos[shiftEdgeVrtTwo];
+	}
+	else if( shiftEdgeVrtTwo == oldVrt )
+	{
+		shiftVecEnd = m_aaPos[shiftEdgeVrtOne];
+	}
+	else
+	{
+		UG_LOG("no end vertex" << std::endl);
+		UG_THROW("no end vertex" << std::endl);
+	}
+
+	vector3 directionVec;
+
+	VecSubtract(directionVec, shiftVecEnd, posOldVrt );
+
+	// x = aufpunkt + s * richtung einsetzen in ( x - x_0 ) * n = 0, auflösen nach r
+	// x*n = rhs = x_0*n
+	// ( a + s . r -x0 ) * n = 0
+	// a * n + s . n * r - x0*n = 0
+	// s . ( n * r ) = x0 * n - a * n
+	// s = ( x0*n - a*n ) / ( n*r )
+
+	number planeBaseMultNormal = VecDot(baseShiftedPlane,normalShiftedPlane);
+	number lineBaseMultNormal = VecDot(posOldVrt,normalShiftedPlane);
+	number lineDirMultNormal = VecDot( directionVec, normalShiftedPlane );
+
+	UG_LOG("COMPARE RHS AND LBMN " << rhs << " - " << planeBaseMultNormal << std::endl);
+
+	number fbs = std::fabs( ( rhs - planeBaseMultNormal ) / ( rhs + planeBaseMultNormal) );
+
+	UG_LOG("RELATIVE DIFF " << fbs << std::endl);
+
+	number const d_toler = 1e-4;
+
+	if( fbs > d_toler )
+	{
+		UG_LOG("RELATIVE DIFF TOO BIG " << std::endl);
+		UG_THROW("RELATIVE DIFF TOO BIG " << std::endl);
+	}
+
+	if( lineDirMultNormal == 0. )
+	{
+		UG_THROW("denominator zero division " << std::endl);
+		UG_LOG("denominator zero division " << std::endl);
+	}
+
+	number moveAlongLine = ( planeBaseMultNormal - lineBaseMultNormal ) / lineDirMultNormal;
+
+	vector3 shiftAlongLine;
+
+	VecScale( shiftAlongLine, directionVec, moveAlongLine );
+
+	VecAdd( posCrossingPt, posOldVrt, shiftAlongLine );
+
+	return true;
+
+}
+//////////////////////////////////////////////////////////////////////////
 
 
 #if 0
@@ -4692,7 +6943,7 @@ bool ArteExpandFracs3D::createConditionForNewVrtcs()
 
 bool ArteExpandFracs3D::createNewElements()
 {
-	// practically copied from Sebastian, as this concept is fine
+	// originally practically copied from Sebastian, as this concept was fine for 2D, but adapted in 3D
 
 	//	create new elements
 
@@ -4735,9 +6986,35 @@ bool ArteExpandFracs3D::createNewElements()
 					if(!nv1)
 						nv1 = sv->vertex(ind1);
 
+#if 1
 					//	create the new edge if it not already exists.
 					if( ! m_grid.get_edge(nv0, nv1))
 						m_grid.create_by_cloning(e, EdgeDescriptor(nv0, nv1), e);
+#else // only for debugging purposes
+
+					//					if( ! ( m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft[nv0] || m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft[nv0] ) )
+					{
+						//	create the new edge if it not already exists.
+						if( ! m_grid.get_edge(nv0, nv1))
+						{
+							Edge * cloneEdge = * ( m_grid.create_by_cloning(e, EdgeDescriptor(nv0, nv1), e) );
+
+							if( ( m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft[nv0] || m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft[nv1] ) )
+							{
+								m_sh.assign_subset(cloneEdge, m_sh.num_subsets());
+								UG_LOG("Edge clone from ending crossing cleft new shift vertex" << std::endl);
+
+							}
+						}
+					}
+					//					else
+					//					{
+					//						UG_LOG("Edge clone from ending crossing cleft new shift vertex" << std::endl);
+					//					}
+
+					// Ergebnis dieses debug Teils: alle edges, die geclont werden, sind notwendig
+					// auch bei ending crossing clefts
+#endif
 				}
 			}
 		}
@@ -4772,18 +7049,43 @@ bool ArteExpandFracs3D::createNewElements()
 				sv->get_vertex_indices_of_face(locVrtInds, i_face);
 				fd.set_num_vertices(sf->num_vertices());
 
+				bool containsEndingCrossingCleftVrtx = false;
+
 				for(size_t i = 0; i < sf->num_vertices(); ++i)
 				{
 					Vertex* nVrt = (m_aaVrtVecVol[sv])[locVrtInds[i]];
+
 					if(nVrt)
 						fd.set_vertex(i, nVrt);
 					else
 						fd.set_vertex(i, sv->vertex(locVrtInds[i]));
 				}
 
+#if 1
 				//	if the new face does not already exist, we'll create it
 				if(!m_grid.get_face(fd))
 					m_grid.create_by_cloning(sf, fd, sf);
+#else
+				//	if the new face does not already exist, we'll create it
+				if( ! m_grid.get_face(fd) )
+				{
+					Face * fac = *( m_grid.create_by_cloning(sf, fd, sf) );
+
+					bool faceAtEndingCrossingCleft = m_aaMarkFaceWithEndingCrossingCleft[sf];
+
+					bool faceTouchingEndingCrossingCleft = m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft[sf];
+
+					if( faceAtEndingCrossingCleft || faceTouchingEndingCrossingCleft )
+					{
+						m_sh.assign_subset( fac, m_sh.num_subsets() );
+						UG_LOG("Face at ending crossing cleft" << std::endl);
+					}
+				}
+
+				// Ergebnis dieses debug Teils: alle faces, die geclont werden, sind notwendig
+				// auch bei ending crossing clefts
+#endif
+
 			}
 		}
 	}
@@ -4797,7 +7099,24 @@ bool ArteExpandFracs3D::createNewElements()
 	std::vector<Volume*> newFractureVolumes;
 	std::vector<IndexType> subsOfNewVolumes;
 
+	// create alternative volumes where there are ending crossing clefts
+
+//	etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes );
+	if( ! etablishVolumesAtEndingCrossingClefts( newFractureVolumes, subsOfNewVolumes ) )
+	{
+		UG_LOG("unable to establish volumes at ending crossing clefts" << std::endl);
+		return false;
+	}
+
+//	return false;
+
 	VolumeDescriptor vd;
+
+	// beim Volumen fängt das Abfangen an, es muss abgefragt werden, ob das Volumen aus
+	// einem Segment ist, wo bisher falsch expandiert wird
+	// erst beim Face ab zu fangen ist viel zu spät TODO FIXME
+	// nicht zu vergessen, die Edges ordentlich sortiert zu sammeln, die zwei endende Vertizes enthalten,
+	// und dann zu splitten, wenn alle Attachements entfernt sind, dann Neustart anfordern mit neuer Geometrie
 
 	for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end();)
 	{
@@ -4806,6 +7125,7 @@ bool ArteExpandFracs3D::createNewElements()
 
 		UG_LOG("Volume new creation try at " << CalculateCenter(sv, m_aaPos) << std::endl);
 
+		bool volHasEndingCrossingCleftFace = m_volAttAccsVolTouchesEndingCrossingCleft[sv];
 
 		//	now expand the fracture faces of sv to volumes.
 		for(size_t i_side = 0; i_side < sv->num_sides(); ++i_side)
@@ -4817,8 +7137,51 @@ bool ArteExpandFracs3D::createNewElements()
 
 			if(tFace)
 			{
-				if(m_aaMarkFaceIsFracB[tFace])
+				if( m_aaMarkFaceIsFracB[tFace] ) // && ! m_aaMarkFaceHasUnclosedFracSideB[tFace] )
 				{
+					bool faceIsSegmLimEndCrossCleft = m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft[tFace];
+					bool faceIsEndingCleftCrossFace = m_aaMarkFaceWithEndingCrossingCleft[tFace];
+
+					bool avoidFace = ( volHasEndingCrossingCleftFace && ( faceIsSegmLimEndCrossCleft || faceIsEndingCleftCrossFace ) );
+
+//					for( Face * testFac :  m_d_endingCrossingCleftFaces )
+//					{
+//						if( testFac == tFace )
+//						{
+//							avoidFace = true;
+//						}
+//					}
+//
+//					for( Face * testFac :  m_d_crossingNeighboredNotEndingFaces )
+//					{
+//						if( testFac == tFace )
+//						{
+//							avoidFace = true;
+//						}
+//					}
+//
+//					for( Face * testFac :  m_d_crossingNeighboredNotEndingFacesCommEdg )
+//					{
+//						if( testFac == tFace )
+//						{
+//							avoidFace = true;
+//						}
+//					}
+//
+//					for( Face * testFac :  m_d_notEndingCrossingFacesNotNeighbour )
+//					{
+//						if( testFac == tFace )
+//						{
+//							avoidFace = true;
+//						}
+//					}
+
+
+					constexpr bool debugTest = true;
+
+					if( avoidFace && debugTest )
+						continue;
+
 					Volume* expVol = nullptr;
 
 					if(locVrtInds.size() == 3)
@@ -5031,6 +7394,7 @@ bool ArteExpandFracs3D::createNewElements()
 //							grid.detach_from_volumes(aVrtVec);
 //							grid.detach_from_vertices(aAdjMarker);
 //							grid.detach_from_edges(aAdjMarker);
+						detachMarkers();
 						throw(UGError("Incomplete implementation error in ExpandFractures3d Arte: Only tetrahedrons are supported in the current implementation, and hexahedra are in development."));
 						return false;
 					}
@@ -5072,6 +7436,8 @@ bool ArteExpandFracs3D::createNewElements()
 //	return false;
 
 
+
+
 	//	we have to clean up unused faces and edges.
 	//	note that all selected edges with mark 0 may safley be deleted. - warum?
 	for(EdgeIterator iter = m_sel.begin<Edge>(); iter!= m_sel.end<Edge>();)
@@ -5086,17 +7452,18 @@ bool ArteExpandFracs3D::createNewElements()
 
 	//	make sure that no unused faces linger around (This should never happen!)
 	bool foundUnusedFaces = false;
+
 	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
 	{
 		Face* f = *iter;
 		++iter;
 
-		if( m_aaMarkFaceIsUnclosedFracB[f] )
-		{
-			UG_LOG("want to delete unclosed frac face " << std::endl);
-			// todo fixme XXXXXXXXXXXXXXXXXX
-			//return false;
-		}
+//		if( m_aaMarkFaceHasUnclosedFracSideB[f] )
+//		{
+//			UG_LOG("want to delete unclosed frac face " << std::endl);
+//			// todo fixme XXXXXXXXXXXXXXXXXX
+//			//return false;
+//		}
 
 		if( ! m_aaMarkFaceIsFracB[f] )
 		{
@@ -5114,6 +7481,10 @@ bool ArteExpandFracs3D::createNewElements()
 	{
 		UG_THROW("andere zahl neue volumes als subdoms " << std::endl);
 	}
+
+
+//	return true;
+
 
 	IndexType nfn = 0;
 
@@ -5145,9 +7516,1251 @@ bool ArteExpandFracs3D::createNewElements()
 		nfn++;
 	}
 
+	for( EndingCrossingFractureSegmentInfo const & ecfsi : m_vecEndCrossFractSegmInfo )
+	{
+		Face * hiddenCutFracFace = ecfsi.spuckHiddenCutFractManifEl();
+
+		IndexType subsECC = ecfsi.spuckSudoFractEnding();
+
+		m_sh.assign_subset( hiddenCutFracFace, subsECC );
+
+		for(size_t iEdge = 0; iEdge < hiddenCutFracFace->num_edges(); ++iEdge)
+		{
+			Edge* edg = m_grid.get_edge(hiddenCutFracFace, iEdge);
+
+			m_sh.assign_subset( edg, subsECC );
+
+		}
+
+		for( size_t iVrt = 0; iVrt < hiddenCutFracFace->num_vertices(); iVrt++ )
+		{
+			Vertex * vrt = hiddenCutFracFace->vertex(iVrt);
+
+			m_sh.assign_subset( vrt, subsECC );
+		}
+
+	}
 
 
 	return true;
 }
+
+ArteExpandFracs3D::IndexType ArteExpandFracs3D::deleteEndingCrossingCleftOrigFacs()
+{
+
+	IndexType numOfDelSegs = 0;
+
+	for( EndingCrossingFractureSegmentInfo const & ecfsi : m_vecEndCrossFractSegmInfo )
+	{
+		Vertex * vrt = ecfsi.spuckUnclosedVrtx();
+
+		Edge * directionEdge = ecfsi.spuckLowdimElmShiftDirection();
+
+		Face * oldFractFacCut = ecfsi.spuckEndingFractManifCutting();
+
+		std::vector<Face*> vecOldFractFacNotCut = ecfsi.spuckVecEndingFractManifNotCutting();
+
+//		Edge * commonEdge = nullptr;
+
+		std::vector<Edge*> innerEdges;
+
+		for( Face * oldFractFacNotCut : vecOldFractFacNotCut )
+		{
+//			for(size_t iEdge = 0; iEdge < oldFractFacCut->num_edges(); ++iEdge)
+//			{
+//				Edge* edgC = m_grid.get_edge(oldFractFacCut, iEdge);
+
+			for(size_t iEdge = 0; iEdge < oldFractFacNotCut->num_edges(); ++iEdge)
+			{
+				Edge* edgN = m_grid.get_edge(oldFractFacNotCut, iEdge);
+
+				if( edgN != directionEdge && EdgeContains(edgN, vrt) )
+					addElem(innerEdges, edgN);
+//					if( edgC == edgN )
+//					{
+//						commonEdge = edgC;
+//						break;
+//					}
+
+			}
+//				if( commonEdge )
+//					break;
+//
+//			}
+		}
+
+		if( oldFractFacCut )
+			m_grid.erase(oldFractFacCut);
+
+		for( Face * oldFractFacNotCut : vecOldFractFacNotCut )
+		{
+			if( oldFractFacNotCut )
+				m_grid.erase(oldFractFacNotCut);
+		}
+
+		if( directionEdge )
+			m_grid.erase(directionEdge);
+
+		for( Edge * iE : innerEdges )
+		{
+			if( iE )
+			{
+				m_grid.erase(iE);
+//				m_sh.assign_subset( iE, m_sh.num_subsets());
+			}
+		}
+
+		numOfDelSegs++;
+	}
+
+	return numOfDelSegs;
+}
+
+////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes )
+{
+
+	for( EndingCrossingFractureSegmentInfo & ecfsi : m_vecEndCrossFractSegmInfo )
+	{
+		Vertex * baseVrtx = ecfsi.spuckUnclosedVrtx();
+
+		Vertex * shiftVrtx = ecfsi.spuckShiftVrtx();
+
+		Edge * cutEdge = ecfsi.spuckOldLowDimElCut();
+
+		Vertex * secondVrtxCutEdge = nullptr;
+
+		if( cutEdge->vertex(0) == baseVrtx )
+		{
+			secondVrtxCutEdge = cutEdge->vertex(1);
+		}
+		else if( cutEdge->vertex(1) == baseVrtx )
+		{
+			secondVrtxCutEdge = cutEdge->vertex(0);
+		}
+		else
+		{
+			UG_LOG("no second vertex of cut edge " << std::endl);
+			UG_THROW("no second vertex of cut edge " << std::endl);
+			return false;
+		}
+
+		Edge * divisionEdge = *m_grid.create<RegularEdge>( EdgeDescriptor( secondVrtxCutEdge, shiftVrtx ) );
+
+		IndexType subsetECC = ecfsi.spuckSudoFractEnding();
+
+//		m_sh.assign_subset(divisionEdge, m_sh.num_subsets());
+		m_sh.assign_subset(divisionEdge, subsetECC);
+
+		Face * hiddenCutFracFace = *m_grid.create<Triangle>(TriangleDescriptor( baseVrtx, shiftVrtx, secondVrtxCutEdge ));
+
+//		m_sh.assign_subset(hiddenCutFracFace, m_sh.num_subsets());
+		m_sh.assign_subset(hiddenCutFracFace, subsetECC);
+
+		IndexType subsNewFacesEdges = m_sh.get_subset_index(hiddenCutFracFace);
+
+		for(size_t iEdge = 0; iEdge < hiddenCutFracFace->num_edges(); ++iEdge)
+		{
+			Edge* edg = m_grid.get_edge(hiddenCutFracFace, iEdge);
+
+			m_sh.assign_subset( edg, subsNewFacesEdges );
+			UG_LOG("HEDGE CENTER " << CalculateCenter( edg, m_aaPos ) << std::endl );
+
+			UG_LOG("HEdge subdom " << m_sh.get_subset_index(edg) << std::endl );
+
+		}
+
+		if( ! ecfsi.schluckHiddenCutFractManifEl( hiddenCutFracFace ))
+		{
+			UG_LOG("hidden cut face Problem" << std::endl);
+			UG_THROW("hidden cut face Problem" << std::endl);
+		}
+
+		Face * endingFractFacCutting = ecfsi.spuckEndingFractManifCutting();
+
+		IndexType const triangVrtxNum = 3;
+
+		if( endingFractFacCutting->num_vertices() != triangVrtxNum )
+		{
+			UG_LOG("only triangles allowed " << std::endl);
+			UG_THROW("only triangles allowed " << std::endl);
+		}
+
+
+		IndexType foundNotTouchVrtx = 0;
+
+		Vertex * notTouchingVrtx = nullptr;
+
+
+		// figure out that vertex of the ending fracture faces that is not touching the crossing not ending cleft
+		for( IndexType vrtIndx = 0; vrtIndx < triangVrtxNum; vrtIndx++ )
+		{
+			Vertex * testVrt = endingFractFacCutting->vertex(vrtIndx);
+
+			if( ! EdgeContains( cutEdge, testVrt ) )
+			{
+				foundNotTouchVrtx++;
+				notTouchingVrtx = testVrt;
+			}
+		}
+
+		if( foundNotTouchVrtx != 1 || ! notTouchingVrtx  )
+		{
+			UG_LOG("not touching vertex not found " << std::endl);
+			UG_THROW("not touching vertex not found " << std::endl);
+		}
+
+		// replace the face that touches with an edge
+		Face * replaceEndingFractCutFac = *m_grid.create<Triangle>(TriangleDescriptor( shiftVrtx, secondVrtxCutEdge, notTouchingVrtx ));
+
+//		m_sh.assign_subset( replaceEndingFractCutFac, m_sh.num_subsets() );
+		m_sh.assign_subset( replaceEndingFractCutFac, subsetECC );
+
+		IndexType subsNewFacesEdgesC = m_sh.get_subset_index(replaceEndingFractCutFac);
+
+		UG_LOG("EDGE NUMBER CCS CC " << replaceEndingFractCutFac->num_edges() << std::endl);
+
+		for(size_t iEdge = 0; iEdge < replaceEndingFractCutFac->num_edges(); ++iEdge)
+		{
+			Edge* edg = m_grid.get_edge(replaceEndingFractCutFac, iEdge);
+
+			m_sh.assign_subset( edg, subsNewFacesEdgesC );
+			UG_LOG("EDGE CENTER " << CalculateCenter( edg, m_aaPos ) << std::endl );
+
+			UG_LOG("Edge subdom " << m_sh.get_subset_index(edg) << std::endl );
+
+		}
+
+//		// replace the face that has only the base vertex common, if existing
+//		Face * endingFractFacNotCutting = ecfsi.spuckEndingFractManifNotCutting();
+//
+		for( Face * const & endingFractFacNotCutting : ecfsi.spuckVecEndingFractManifNotCutting() )
+		{
+			if( endingFractFacNotCutting )
+			{
+
+				if( endingFractFacNotCutting->num_vertices() != triangVrtxNum )
+				{
+					UG_LOG("only triangles allowed NC" << std::endl);
+					UG_THROW("only triangles allowed NC" << std::endl);
+				}
+
+				std::vector<Vertex*> vrtcsNotBase;
+
+				// figure out those vertices which are not the basis vertex
+				for( IndexType vrtIndx = 0; vrtIndx < triangVrtxNum; vrtIndx++ )
+				{
+					Vertex * testVrt = endingFractFacNotCutting->vertex(vrtIndx);
+
+					if( testVrt != baseVrtx )
+						vrtcsNotBase.push_back(testVrt);
+				}
+
+				if( vrtcsNotBase.size() != 2 )
+				{
+					UG_LOG("strange number vertices " << vrtcsNotBase.size() << std::endl);
+					UG_THROW("strange number vertices " << vrtcsNotBase.size() << std::endl);
+				}
+
+				Face * replaceEndingFractNotCutFac = *m_grid.create<Triangle>(TriangleDescriptor( shiftVrtx, vrtcsNotBase[0], vrtcsNotBase[1] ));
+
+	//			m_sh.assign_subset( replaceEndingFractNotCutFac, m_sh.num_subsets() );
+				m_sh.assign_subset( replaceEndingFractNotCutFac, subsetECC );
+
+				IndexType subsNewFacesEdges = m_sh.get_subset_index(replaceEndingFractNotCutFac);
+
+				UG_LOG("EDGE NUMBER CCS " << replaceEndingFractNotCutFac->num_edges() << std::endl);
+
+				for(size_t iEdge = 0; iEdge < replaceEndingFractNotCutFac->num_edges(); ++iEdge)
+				{
+					Edge* edg = m_grid.get_edge(replaceEndingFractNotCutFac, iEdge);
+
+					m_sh.assign_subset( edg, subsNewFacesEdges );
+
+					UG_LOG("EDGE CENTER " << CalculateCenter( edg, m_aaPos ) << std::endl );
+
+					UG_LOG("Edge subdom " << m_sh.get_subset_index(edg) << std::endl );
+
+				}
+
+			}
+
+		}
+
+//		for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end();)
+		for( Volume * const & sv : ecfsi.spuckVecFulldimEl() )
+		{
+
+			UG_LOG("CEC Volume new creation try at " << CalculateCenter(sv, m_aaPos) << std::endl);
+
+			bool volHasEndingCrossingCleftFace = m_volAttAccsVolTouchesEndingCrossingCleft[sv];
+
+			// should be true!
+
+			if( ! volHasEndingCrossingCleftFace )
+			{
+				UG_LOG("Was ist da los, ending cleft und doch nicht " << std::endl);
+				UG_THROW("Was ist da los, ending cleft und doch nicht " << std::endl);
+			}
+
+			// check if volume contains the base vertex
+
+			if( ! VolumeContains(sv, baseVrtx))
+			{
+				UG_LOG("VOlume ausdehenen ECC ohne base vertex " << std::endl);
+				UG_THROW("VOlume ausdehenen ECC ohne base vertex " << std::endl);
+			}
+
+			//	now expand the fracture faces of sv to volumes.
+			for(size_t i_side = 0; i_side < sv->num_sides(); ++i_side)
+			{
+				//	holds local side vertex indices
+				std::vector<size_t>	locVrtInds;
+
+				//	get the local vertex indices of the side of the volume
+				sv->get_vertex_indices_of_face(locVrtInds, i_side);
+
+				Face* tFace = m_grid.get_side(sv, i_side);
+
+				if(tFace)
+				{
+					if( m_aaMarkFaceIsFracB[tFace] )
+					{
+						bool faceIsSegmLimEndCrossCleft = m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft[tFace];
+						bool faceIsEndingCleftCrossFace = m_aaMarkFaceWithEndingCrossingCleft[tFace];
+
+						UG_LOG("Volumenerzeugung Versuch ECC Anfang" << std::endl);
+
+						Volume* expVol = nullptr;
+
+						Volume* expVolTwo = nullptr;
+
+
+						if(locVrtInds.size() == 3)
+						{
+							size_t iv0 = locVrtInds[0];
+							size_t iv1 = locVrtInds[1];
+							size_t iv2 = locVrtInds[2];
+
+//							Vertex * vrtxOne = ( m_aaVrtVecVol[sv] )[iv0];
+//							Vertex * vrtxTwo = ( m_aaVrtVecVol[sv] )[iv1];
+//							Vertex * vrtxThree = ( m_aaVrtVecVol[sv] )[iv2];
+
+							// figure out which vertex is the base vertex
+
+							int indBasVrtx = -1;
+
+							// wie kann das nur stimmen, das Volumen hat doch mehr als 3 Vertizes....
+							// zufällig für das Testbeispiel vielleicht richtig?
+//							for( IndexType vrtxInd = 0; vrtxInd < triangVrtxNum; vrtxInd++ )
+							for( IndexType vrtxInd = 0; vrtxInd < sv->num_vertices(); vrtxInd++ )
+							{
+								if( sv->vertex(vrtxInd) == baseVrtx )
+									indBasVrtx = vrtxInd;
+							}
+							// muss der Loop nicht über die Vertizes des volumens gehen?????
+
+							// der Index des Basisvertex ist tabu für die Ausehnung der endenden fracture
+
+							bool belongsToEndingCleftFaces = (endingFractFacCutting == tFace);
+
+							bool belongstToEndingNotCuttingFacs = false;
+
+							for( Face * const & endingFractFacNotCutting : ecfsi.spuckVecEndingFractManifNotCutting() )
+							{
+								if( tFace == endingFractFacNotCutting )
+								{
+									belongsToEndingCleftFaces = true;
+									belongstToEndingNotCuttingFacs = true;
+									UG_LOG("Want to create for not cutting ending fract face vol " << std::endl);
+								}
+							}
+
+							if( belongsToEndingCleftFaces != faceIsEndingCleftCrossFace )
+							{
+								UG_LOG("Widerspruch ending but not ending ECC" << std::endl);
+								UG_THROW("Widerspruch ending but not ending ECC" << std::endl);
+
+							}
+
+							if( belongsToEndingCleftFaces )
+							{
+								if( ! faceIsEndingCleftCrossFace )
+								{
+									UG_LOG("Widerspruch ending but not ending ECC" << std::endl);
+								}
+
+								if( iv0 == indBasVrtx )
+								{
+									if(    ( m_aaVrtVecVol[sv] )[iv0]
+										&& ( m_aaVrtVecVol[sv] )[iv1]
+										&& ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new pyramid
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv1),
+//																		(m_aaVrtVecVol[sv])[iv2],
+//																		(m_aaVrtVecVol[sv])[iv1],
+//																		(m_aaVrtVecVol[sv])[iv0]));
+
+										expVol = *m_grid.create<Pyramid>(
+														PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0]));
+
+									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											 && ( m_aaVrtVecVol[sv] )[iv1]
+									)
+									{
+										//	create a new tetrahedron
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv1),
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0],
+															sv->vertex(iv2)));
+									}
+//									else if(    ( m_aaVrtVecVol[sv] )[iv1]
+//											 && ( m_aaVrtVecVol[sv] )[iv2]
+//									)
+//									{
+//										//	create a new Pyramid
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+//															(m_aaVrtVecVol[sv])[iv2],
+//															(m_aaVrtVecVol[sv])[iv1],
+//															sv->vertex(iv0)));
+//									}
+									else if(    (m_aaVrtVecVol[sv])[iv0]
+											 && (m_aaVrtVecVol[sv])[iv2]
+									)
+									{
+										//	create a new tetrahedron
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv2),
+															(m_aaVrtVecVol[sv])[iv0],
+															(m_aaVrtVecVol[sv])[iv2],
+															sv->vertex(iv1)));
+									}
+//									else if( ( m_aaVrtVecVol[sv])[iv0] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv0]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv1] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv1]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv2] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv2]));
+//									}
+									else
+									{
+										//	Text from SR, still similar:
+										//  this code-block should never be entered. If it is entered then
+										//	we either selected the wrong faces (this shouldn't happen), or there
+										//	are selected faces, which have fracture-boundary-vertices only.
+										//	This is the same is if inner fracture edges exists, which are
+										//	connected to two boundary vertices.
+										//	Since we tried to remove those edges above, something went wrong.
+										//	remove the temporary attachments and throw an error
+
+										UG_LOG("Tetraeder ECC Fehlt eine Loesung " << std::endl);
+										detachMarkers();
+										throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+										return false;
+									}
+
+								}
+								else if( iv1 == indBasVrtx )
+								{
+									if(    ( m_aaVrtVecVol[sv] )[iv0]
+										&& ( m_aaVrtVecVol[sv] )[iv1]
+										&& ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new prism
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor( sv->vertex(iv2), sv->vertex(iv0),
+//																				(m_aaVrtVecVol[sv])[iv2],
+//																				(m_aaVrtVecVol[sv])[iv1],
+//																				(m_aaVrtVecVol[sv])[iv0]));
+
+
+										expVol = *m_grid.create<Pyramid>(
+														PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+															(m_aaVrtVecVol[sv])[iv0],
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1]));
+
+									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											 && ( m_aaVrtVecVol[sv] )[iv1]
+									)
+									{
+										//	create a new Pyramid
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv0),
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0],
+															sv->vertex(iv2)));
+									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											 && ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new Pyramid
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv2),
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1],
+															sv->vertex(iv0)));
+									}
+//									else if(    (m_aaVrtVecVol[sv])[iv0]
+//											 && (m_aaVrtVecVol[sv])[iv2]
+//									)
+//									{
+//										//	create a new Pyramid
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+//															(m_aaVrtVecVol[sv])[iv0],
+//															(m_aaVrtVecVol[sv])[iv2],
+//															sv->vertex(iv1)));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv0] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv0]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv1] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv1]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv2] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv2]));
+//									}
+									else
+									{
+										//	Text from SR, still similar:
+										//  this code-block should never be entered. If it is entered then
+										//	we either selected the wrong faces (this shouldn't happen), or there
+										//	are selected faces, which have fracture-boundary-vertices only.
+										//	This is the same is if inner fracture edges exists, which are
+										//	connected to two boundary vertices.
+										//	Since we tried to remove those edges above, something went wrong.
+										//	remove the temporary attachments and throw an error
+
+										UG_LOG("Tetraeder ECC Fehlt eine Loesung " << std::endl);
+										detachMarkers();
+										throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+										return false;
+									}
+								}
+								else if( iv2 == indBasVrtx )
+								{
+									if(    ( m_aaVrtVecVol[sv] )[iv0]
+										&& ( m_aaVrtVecVol[sv] )[iv1]
+										&& ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new prism
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv0),
+//																		(m_aaVrtVecVol[sv])[iv2],
+//																		(m_aaVrtVecVol[sv])[iv1],
+//																		(m_aaVrtVecVol[sv])[iv0]));
+
+										expVol = *m_grid.create<Pyramid>(
+														PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0],
+															(m_aaVrtVecVol[sv])[iv2]));
+
+									}
+//									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+//											 && ( m_aaVrtVecVol[sv] )[iv1]
+//									)
+//									{
+//										//	create a new Pyramid
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+//															(m_aaVrtVecVol[sv])[iv1],
+//															(m_aaVrtVecVol[sv])[iv0],
+//															sv->vertex(iv2)));
+//									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											 && ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new Pyramid
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv1),
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1],
+															sv->vertex(iv0)));
+									}
+									else if(    (m_aaVrtVecVol[sv])[iv0]
+											 && (m_aaVrtVecVol[sv])[iv2]
+									)
+									{
+										//	create a new Pyramid
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv0),
+															(m_aaVrtVecVol[sv])[iv0],
+															(m_aaVrtVecVol[sv])[iv2],
+															sv->vertex(iv1)));
+									}
+//									else if( ( m_aaVrtVecVol[sv])[iv0] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv0]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv1] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv1]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv2] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv2]));
+//									}
+									else
+									{
+										//	Text from SR, still similar:
+										//  this code-block should never be entered. If it is entered then
+										//	we either selected the wrong faces (this shouldn't happen), or there
+										//	are selected faces, which have fracture-boundary-vertices only.
+										//	This is the same is if inner fracture edges exists, which are
+										//	connected to two boundary vertices.
+										//	Since we tried to remove those edges above, something went wrong.
+										//	remove the temporary attachments and throw an error
+
+										UG_LOG("Tetraeder ECC Fehlt eine Loesung " << std::endl);
+										detachMarkers();
+										throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+										return false;
+									}
+
+								}
+
+								if( belongstToEndingNotCuttingFacs )
+								{
+									if( expVol )
+									{
+										UG_LOG("not cutting vol created at " << CalculateCenter(expVol, m_aaPos ) << std::endl );
+//										m_sh.assign_subset(expVol, m_sh.num_subsets());
+									}
+									else
+									{
+										UG_LOG("was not able to create vol for not cutting " << std::endl);
+									}
+								}
+							}
+							else
+							{
+								// test if face belongs to the closed faces
+
+								std::pair<Face*,Face*> const & closedNeighbrs = ecfsi.spuckPairNeighbouredFractClosedManifEl();
+
+
+								if( closedNeighbrs.first == tFace || closedNeighbrs.second == tFace )
+								{
+
+									// figure out the vertex that is not from the cut edge
+
+									Vertex * freeVrtx = nullptr;
+
+									// wasn das für ein Käse.....
+									for( IndexType vrtxInd = 0; vrtxInd < triangVrtxNum; vrtxInd++ )
+//									for( IndexType vrtxInd = 0; vrtxInd < sv->num_vertices(); vrtxInd++ )
+									{
+										if( ! EdgeContains(cutEdge, tFace->vertex(vrtxInd)))
+											freeVrtx = tFace->vertex(vrtxInd);
+									}
+
+									if( freeVrtx == nullptr )
+									{
+										UG_LOG("Immer noch null " << std::endl);
+										UG_THROW("Immer noch null " << std::endl);
+									}
+
+//									int freeVrtxInd = -1;
+//									int secondCutEdgVrtxInd = -1;
+//
+//									for( IndexType vrtxInd = 0; vrtxInd < sv->num_vertices(); vrtxInd++ )
+//									{
+//										if( ! EdgeContains(cutEdge, freeVrtx))
+//											freeVrtxInd = vrtxInd;
+//
+//										if( secondVrtxCutEdge == secondVrtxCutEdge)
+//											secondCutEdgVrtxInd = vrtxInd;
+//									}
+
+
+									// for the "pyramid", exclude the base Vertex
+									// for the other tetrahedron, exclude the shifted of the non-base of the cut edge
+									// i.e. of secondVrtxCutEdge
+
+//									Vertex * vrtxNotFromCutEdge = tFace->vertex(freeVrtxInd);
+
+									// relate iv0, iv1, iv2 to vrtxNotFromCutEdge, base
+
+									if( iv0 == indBasVrtx )
+									{
+
+										if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+											expVol = *m_grid.create<Pyramid>(
+															PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+																(m_aaVrtVecVol[sv])[iv2],
+																(m_aaVrtVecVol[sv])[iv1],
+																( m_aaVrtVecVol[sv] )[iv0]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv0]));
+
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+												 && ( m_aaVrtVecVol[sv] )[iv1]
+										)
+										{
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), ( m_aaVrtVecVol[sv] )[iv0],
+																				 (m_aaVrtVecVol[sv])[iv1]));
+
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv0]));
+										}
+//										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+//											&& ( m_aaVrtVecVol[sv] )[iv2]
+//										)
+//										{
+//
+//										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1),  ( m_aaVrtVecVol[sv] )[iv0],
+																				 (m_aaVrtVecVol[sv])[iv2]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv0]));
+										} //
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+										)
+										{
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv0]));
+										} //
+
+
+
+									}
+
+									if( iv1 == indBasVrtx )
+									{
+
+										if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+											expVol = *m_grid.create<Pyramid>(
+															PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+																(m_aaVrtVecVol[sv])[iv0],
+																(m_aaVrtVecVol[sv])[iv2],
+																( m_aaVrtVecVol[sv] )[iv1]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv1]));
+
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv1]
+										)
+										{
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv1], sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv0]));
+
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv1]));
+
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv1], sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv1]));
+
+										}
+//										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+//											&& ( m_aaVrtVecVol[sv] )[iv2]
+//										)
+//										{
+//
+//										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+										)
+										{
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv1]));
+
+										}
+
+
+									}
+
+									if( iv2 == indBasVrtx )
+									{
+
+										if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+											expVol = *m_grid.create<Pyramid>(
+															PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+																(m_aaVrtVecVol[sv])[iv1],
+																(m_aaVrtVecVol[sv])[iv0],
+																( m_aaVrtVecVol[sv] )[iv2]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+										}
+
+	//									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+	//										&& ( m_aaVrtVecVol[sv] )[iv1]
+	//									)
+	//									{
+	//
+	//									}
+										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(( m_aaVrtVecVol[sv] )[iv2], sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv1]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor( sv->vertex(iv1) , sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), ( m_aaVrtVecVol[sv] )[iv0],
+																				 (m_aaVrtVecVol[sv])[iv2]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+										} //
+										else if( ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor( sv->vertex(iv1) , sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+										}
+
+
+
+									}
+
+								}
+
+
+								std::vector<Face*> const & closedNotNeighbr = ecfsi.spuckVecClosedFracManifElNoNeighbr();
+
+								for( Face * fac : closedNotNeighbr )
+								{
+									if( fac == tFace )
+									{
+										if( iv0 == indBasVrtx )
+										{
+
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+
+												expVolTwo = *m_grid.create<Pyramid>(
+																PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+																	(m_aaVrtVecVol[sv])[iv2],
+																	(m_aaVrtVecVol[sv])[iv1],
+																	( m_aaVrtVecVol[sv] )[iv0]));
+
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), ( m_aaVrtVecVol[sv] )[iv0],
+																					 (m_aaVrtVecVol[sv])[iv1]));
+
+											}
+//											else if(    ( m_aaVrtVecVol[sv] )[iv1]
+//												&& ( m_aaVrtVecVol[sv] )[iv2]
+//											)
+//											{
+//
+//											}
+//												&& ( m_aaVrtVecVol[sv] )[iv2]
+//											)
+//											{
+//
+//											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+
+
+											}
+
+
+
+
+										}
+
+										if( iv1 == indBasVrtx )
+										{
+
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv1]));
+
+												expVolTwo = *m_grid.create<Pyramid>(
+																PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+																	(m_aaVrtVecVol[sv])[iv0],
+																	(m_aaVrtVecVol[sv])[iv2],
+																	( m_aaVrtVecVol[sv] )[iv1]));
+
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv1]));
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv1], sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv1]));
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv1], sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv2]));
+
+											}
+//											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+//												&& ( m_aaVrtVecVol[sv] )[iv2]
+//											)
+//											{
+//
+//											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv1]));
+
+											}
+
+
+										}
+
+										if( iv2 == indBasVrtx )
+										{
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv2]));
+
+												expVolTwo = *m_grid.create<Pyramid>(
+																PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+																	(m_aaVrtVecVol[sv])[iv1],
+																	(m_aaVrtVecVol[sv])[iv0],
+																	( m_aaVrtVecVol[sv] )[iv2]));
+
+											}
+	//										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+	//											&& ( m_aaVrtVecVol[sv] )[iv1]
+	//										)
+	//										{
+	//
+	//										}
+											else if(    ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv2]));
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor( ( m_aaVrtVecVol[sv] )[iv2], sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv1]));
+
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv2]));
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor( ( m_aaVrtVecVol[sv] )[iv2], sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+
+											}	//
+											else if(   ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv2]));
+
+
+											}
+
+										}
+
+									}
+								}
+
+#if 0
+
+								if(    ( m_aaVrtVecVol[sv] )[iv0]
+									&& ( m_aaVrtVecVol[sv] )[iv1]
+									&& ( m_aaVrtVecVol[sv] )[iv2]
+								)
+								{
+									//	create a new prism
+									expVol = *m_grid.create<Prism>(
+													PrismDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																	(m_aaVrtVecVol[sv])[iv2],
+																	(m_aaVrtVecVol[sv])[iv1],
+																	(m_aaVrtVecVol[sv])[iv0]));
+								}
+								else if(    ( m_aaVrtVecVol[sv] )[iv0]
+										 && ( m_aaVrtVecVol[sv] )[iv1]
+								)
+								{
+									//	create a new Pyramid
+									expVol = *m_grid.create<Pyramid>(
+													PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+														(m_aaVrtVecVol[sv])[iv1],
+														(m_aaVrtVecVol[sv])[iv0],
+														sv->vertex(iv2)));
+								}
+								else if(    ( m_aaVrtVecVol[sv] )[iv1]
+										 && ( m_aaVrtVecVol[sv] )[iv2]
+								)
+								{
+									//	create a new Pyramid
+									expVol = *m_grid.create<Pyramid>(
+													PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+														(m_aaVrtVecVol[sv])[iv2],
+														(m_aaVrtVecVol[sv])[iv1],
+														sv->vertex(iv0)));
+								}
+								else if(    (m_aaVrtVecVol[sv])[iv0]
+										 && (m_aaVrtVecVol[sv])[iv2]
+								)
+								{
+									//	create a new Pyramid
+									expVol = *m_grid.create<Pyramid>(
+													PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+														(m_aaVrtVecVol[sv])[iv0],
+														(m_aaVrtVecVol[sv])[iv2],
+														sv->vertex(iv1)));
+								}
+								else if( ( m_aaVrtVecVol[sv])[iv0] )
+								{
+									//	create a new Tetrahedron
+									expVol = *m_grid.create<Tetrahedron>(
+													TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																		 (m_aaVrtVecVol[sv])[iv0]));
+								}
+								else if( ( m_aaVrtVecVol[sv])[iv1] )
+								{
+									//	create a new Tetrahedron
+									expVol = *m_grid.create<Tetrahedron>(
+													TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																		 (m_aaVrtVecVol[sv])[iv1]));
+								}
+								else if( ( m_aaVrtVecVol[sv])[iv2] )
+								{
+									//	create a new Tetrahedron
+									expVol = *m_grid.create<Tetrahedron>(
+													TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																		 (m_aaVrtVecVol[sv])[iv2]));
+								}
+								else
+								{
+									//	Text from SR, still similar:
+									//  this code-block should never be entered. If it is entered then
+									//	we either selected the wrong faces (this shouldn't happen), or there
+									//	are selected faces, which have fracture-boundary-vertices only.
+									//	This is the same is if inner fracture edges exists, which are
+									//	connected to two boundary vertices.
+									//	Since we tried to remove those edges above, something went wrong.
+									//	remove the temporary attachments and throw an error
+
+									UG_LOG("Tetraeder Fehlt eine Loesung " << std::endl);
+									detachMarkers();
+									throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+									return false;
+								}
+
+
+#endif
+
+							}
+
+
+						}
+						else
+						{
+							//	traditionally only tetrahedrons are supported. This section thus raises an error
+							// Markus tries to implement also Hexahedra
+		//									grid.detach_from_vertices(aVrtVec);
+		//								grid.detach_from_volumes(aVrtVec);
+		//							grid.detach_from_vertices(aAdjMarker);
+		//							grid.detach_from_edges(aAdjMarker);
+							detachMarkers();
+							throw(UGError("Incomplete implementation error in ExpandFractures3d Arte ending crossing clefts."));
+							return false;
+						}
+
+						if(expVol)
+						{
+
+							IndexType newSubs = m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex;
+
+							subsOfNewVolumes.push_back( newSubs );
+
+							m_sh.assign_subset(expVol, newSubs);
+
+							newFractureVolumes.push_back(expVol);
+						}
+
+						if(expVolTwo)
+						{
+
+							IndexType newSubs = m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex;
+
+							subsOfNewVolumes.push_back( newSubs );
+
+							m_sh.assign_subset(expVolTwo, newSubs);
+
+							newFractureVolumes.push_back(expVolTwo);
+						}
+
+					}
+				}
+			}
+		}
+	}
+
+
+	return true;
+}
+
 
 } /* namespace ug */

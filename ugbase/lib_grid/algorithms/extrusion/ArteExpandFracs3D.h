@@ -79,7 +79,7 @@ public:
 
 public:
 
-	bool run();
+	bool run( bool & needToRestart );
 
 	using IndexType = unsigned short;
 
@@ -153,17 +153,45 @@ private:
 
 	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceIsFracB;
 
-	ABool m_aAdjMarkerFaceIsUnclosedFracB;
+	// TODO FIXME die hier können alle entfernt werden im Prinzip
+#if 0
+	ABool m_aAdjMarkerFaceHasUnclosedFracSideB;
 
-	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceIsUnclosedFracB;
+	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceHasUnclosedFracSideB;
 
 	ABool m_aAdjMarkerVrtxHasUnclosedFracB;
 
 	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtxHasUnclosedFracB;
 
+	ABool m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract;
+
+	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract;
+
+#endif
+
+	ABool m_aAdjMarkerFaceWithEndingCrossingCleft;
+
+	Grid::FaceAttachmentAccessor<ABool> m_aaMarkFaceWithEndingCrossingCleft;
+
+	ABool m_aAdjMarkerVrtxAtEndingCrossingCleft;
+
+	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtxAtEndingCrossingCleft;
+
+
+
 	bool countAndSelectFracBaseNums();
 
 	bool distinguishSegments();
+
+//	bool checkUnclosedFracFaces();
+
+	bool shiftUnclosedFracFaces();
+
+//	bool detectEndingCrossingClefts();
+
+	bool detectEndingCrossingCleftsSegmBased();
+
+	bool m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx;
 
 	bool seletForSegmented();
 
@@ -319,7 +347,7 @@ private:
 //	template< IndexType NUM_SURR_FRACS, bool isBndryVrtx >
 //	bool expandWithinTheSegment( Vertex * const & oldVrt, SegmentVolElmInfo const & segmVolElmInfo );
 
-	IndexType specificTreatementUnclosedFracFaces( Vertex * const & vrt );
+	IndexType shiftUnclosedFracFacesToUnclosedFractFaces( Vertex * const & vrt );
 
 //	bool extracFractSudosOfSegment(SegmentVolElmInfo const & segmVolElmInfo, std::vector<IndexType> & sudosInSegment );
 
@@ -332,7 +360,28 @@ public:
 
 	using SegmentVrtxFracStatus = SegmentLimitingSides::VrtxFracStatus;
 
+	using VecSegmentLimitingSides = std::vector<SegmentLimitingSides>;
+
+	using AttVecSegmLimSid = Attachment<VecSegmentLimitingSides>;
+
+	using SegLimSidesFractFace = SegmentLimitingSides::AttFractElm;
+	using VecSegLimSidesFractFace = SegmentLimitingSides::VecAttFractElm;
+
 private:
+
+	AttVecSegmLimSid m_attVecSegmLimSid;
+
+	Grid::VertexAttachmentAccessor<AttVecSegmLimSid> m_vrtxAttAccsVecSegmLimSid;
+
+	// establish an attechment of type SegmentLimitingSides for all vertices
+	// transfer the functionality of establishNewVertizesStasiBased here
+	// incorportate also the free ending clefts here and if it is a free ending cleft and so on
+	bool establishSegmentLimitingSidesInfo();
+	// unclear if useful to implement this
+	// Ziel eigentlich: die frei endenden Faces, die als offene Faces da sind, jedem Segment zu zu ordnen
+	// irgendwie sollen für jedes Segment die segment limiting sides bestimmt werden, als attachment vector
+	// die Segment limiting sides sollen auch die in ihnen eingeschlossenen unvollendeten Faces kennen#
+	// vielleicht auch gar nicht als attachment nötig, da die Segmente ihren Vertex kennen
 
 	// the artificial normals are for the case of two crossing fractures inside, and the case
 	// of boundary vertices, i.e. one fracture at one boundary sudo, two fracture at one boundary sudo, one fracture at two boundary sudos
@@ -359,9 +408,81 @@ private:
 	int splitInnerFreeFracEdgs();
 
 	template<typename ELEMTYP>
-	bool addElem( std::vector<ELEMTYP> & elemsToBeSplitted, ELEMTYP elem );
+	bool addElem( std::vector<ELEMTYP> & knownElems, ELEMTYP elemToAdd );
+
+	template< bool FACES_HAVE_SAME_SUDO >
+	bool fractFacesAreNeighboured( SegLimSidesFractFace const & fractFaceOne,
+								   SegLimSidesFractFace const & fractFaceTwo,
+								   Edge * & commonEdge
+								  );
+
+	bool assignNotCuttingEdgeUnclosedCrossingCleft( SegLimSidesFractFace const & slsffUncl, Edge * const & commonEdge, Edge * & shiftEdge );
+
+	bool findShiftEdgeUncuttingCrossingCleft( VecSegLimSidesFractFace const & vecSegmLimSiFFUnclosed,
+//											  Face * const & endingFractManifCutting,
+											  std::vector<Face*> const & vecEndingFractManifNotCutting,
+											  Edge * const & uncuttingLowDimEl,
+											  Edge * & shiftLowDimEl,
+											  std::vector<Edge*> & vecEdgsNotCutFaces
+											);
+
+//	std::vector<Face*> m_d_endingCrossingCleftFaces;
+//	std::vector<Vertex*> m_d_endingCrossingCleftVrtcs;
+//	std::vector<Edge*> m_d_cuttingEdges;
+//	std::vector<Face*> m_d_crossingNeighboredNotEndingFaces;
+//	std::vector<Face*> m_d_crossingNeighboredNotEndingFacesCommEdg;
+////	std::vector<Edge*> otherEdgeOfCrossingNotEndingFace;
+////	std::vector<Face*> nextFaceOfCrossingNotEndingFaces;
+//	std::vector<Face*> m_d_notEndingCrossingFacesNotNeighbour;
+//	std::vector<Edge*> m_d_allContributingEdges;
+
+	// edges that connect two ending crossing cleft vertices directly, need to be splitted
+	std::vector<Edge *> m_vecEdgeDirectConnectingEndingCrossCleftVrtcs;
+
+	void assignDebugSubsets( bool intermediate );
+
+	bool splitEdgesOfNeighboredEndingCrossingFracVrtcs();
 
 
+	using EndingCrossingFractureSegmentInfo = support::EndingCrossingFractSegmentInfo<Volume*, Face*, Edge*, Vertex*, IndexType >;
+
+	using VecEndingCrossingFractureSegmentInfo = std::vector<EndingCrossingFractureSegmentInfo>;
+
+	// TODO FIXME all need to be initialized in constructor and attached and detached
+
+	VecEndingCrossingFractureSegmentInfo m_vecEndCrossFractSegmInfo;
+
+	using AttVecEndingCrossingFractureSegmentInfo = Attachment<VecEndingCrossingFractureSegmentInfo>;
+
+	AttVecEndingCrossingFractureSegmentInfo m_attAtVrtxVecEndingCrossFractSegmInfo;
+
+	Grid::VertexAttachmentAccessor<AttVecEndingCrossingFractureSegmentInfo> m_vrtxAttAccsVecEndingCrossFractSegmInfo;
+
+//	ABool m_attAtVrtxIfVrtxIsEndingCrossingCleftVrtx;
+//
+//	Grid::VertexAttachmentAccessor<ABool> m_vrtxAttAccsVrtxIsEndingCrossingCleftVrtx;
+
+	ABool m_attAtFaceIfFaceIsSegmLimFaceEndingCrossingCleft;
+
+	Grid::FaceAttachmentAccessor<ABool> m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft;
+
+	ABool m_attAtVolIfVolTouchesEndingCrossingCleft;
+
+	Grid::VolumeAttachmentAccessor<ABool> m_volAttAccsVolTouchesEndingCrossingCleft;
+
+	template<typename ELMTYP>
+	bool checkIfContentUnique( std::vector<ELMTYP> const & vecTest, std::vector<ELMTYP> & content, IndexType mandatoryDifferentElems );
+
+	bool computeCrossPointOfPlaneWithLine( PlaneDescriptor const & shiftedPlane, Edge * const & shiftDirectionEdg, Vertex * const & oldVrt, vector3 & posCrossingPt );
+
+	ABool m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft;
+	Grid::VertexAttachmentAccessor<ABool> m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft;
+
+	std::vector<Vertex*> m_vrtxArisesFromExpandedEndingCrossingCleft;
+
+	bool etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes );
+
+	IndexType deleteEndingCrossingCleftOrigFacs();
 
 };
 
