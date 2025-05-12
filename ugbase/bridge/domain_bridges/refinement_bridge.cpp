@@ -81,8 +81,11 @@ static RefinementMark StringToRefinementMark(std::string markType)
 {
 	TrimString(markType);
 	std::transform(markType.begin(), markType.end(), markType.begin(), ::tolower);
+	if(markType == "closure") return RM_CLOSURE;
+	if(markType == "local") return RM_LOCAL;
 	if(markType == "refine") return RM_REFINE;
 	if(markType == "coarsen") return RM_COARSEN;
+
 
 	UG_THROW("StringToRefinementMark: non-supported type: "<<markType);
 	return RM_NONE;
@@ -1254,9 +1257,10 @@ void MarkForCoarsen_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refin
 }
 #endif
 
+
 template <class TDomain, class TSubsetHandler, class TElem>
-void MarkForRefinement_ElementsInSubset(TDomain& dom, IRefiner& refiner,
-										TSubsetHandler& sh, int subsetIndex)
+void MarkForAdaption_ElementsInSubset_(TDomain& dom, IRefiner& refiner,
+										TSubsetHandler& sh, int subsetIndex, RefinementMark rmMark)
 {
 	PROFILE_FUNC();
 	typedef typename GridObjectCollection::traits<TElem>::iterator iterator_t;
@@ -1267,9 +1271,25 @@ void MarkForRefinement_ElementsInSubset(TDomain& dom, IRefiner& refiner,
 		for(iterator_t iter = goc.begin<TElem>(lvl);
 			iter != goc.end<TElem>(lvl); ++iter)
 		{
-			refiner.mark(*iter);
+			refiner.mark(*iter, rmMark);
 		}
 	}
+}
+
+template <class TDomain, class TSubsetHandler, class TElem>
+void MarkForAdaption_ElementsInSubset(TDomain& dom, IRefiner& refiner,
+										TSubsetHandler& sh, int subsetIndex, std::string markType)
+{
+	RefinementMark rmMark = StringToRefinementMark(markType);
+	MarkForAdaption_ElementsInSubset_<TDomain,TSubsetHandler,TElem>(dom, refiner, sh, subsetIndex, rmMark);
+}
+
+
+template <class TDomain, class TSubsetHandler, class TElem>
+void MarkForRefinement_ElementsInSubset(TDomain& dom, IRefiner& refiner,
+										TSubsetHandler& sh, int subsetIndex)
+{
+	MarkForAdaption_ElementsInSubset_<TDomain,TSubsetHandler,TElem>(dom, refiner, sh, subsetIndex, RM_REFINE);
 }
 
 
@@ -1488,13 +1508,20 @@ void MarkNeighborsForAnisotropicRefinement(IRefiner& refiner, bool sideNbrsOnly)
 	refiner.mark_neighborhood(1, RM_ANISOTROPIC, sideNbrsOnly);
 }
 
+void MarkNeighborsForLocalRefinement(IRefiner& refiner, bool sideNbrsOnly)
+{
+	refiner.mark_neighborhood(1, RM_LOCAL, sideNbrsOnly);
+}
+
 
 template <class TDomain>
-void MarkForRefinement_AnisotropicDirection (
+void MarkForRefinement_AnisotropicDirection_ (
 		TDomain& dom,
 		IRefiner& refiner,
-		MathVector<TDomain::dim>& dir,
-		number minEdgeRatio)
+		const MathVector<TDomain::dim>& dir,
+		number minEdgeRatio,
+		RefinementMark elem_default_mark)
+				
 {
 	using std::min;
 	using std::max;
@@ -1502,6 +1529,7 @@ void MarkForRefinement_AnisotropicDirection (
 	typedef MathVector<TDomain::dim> 							vector_t;
 	typedef typename domain_traits<TDomain::dim>::element_type	TElem;
 
+	// (normalized) user direction d
 	vector_t ndir;
 	VecNormalize(ndir, dir);
 
@@ -1521,22 +1549,28 @@ void MarkForRefinement_AnisotropicDirection (
 		number longestNormalEdgeSq = 0;
 
 	//	we'll mark all elements as closure since we use copy elements anyway
-		refiner.mark(elem, RM_CLOSURE);
+		refiner.mark(elem, elem_default_mark);
 
 		anisoEdges.clear();
 		normalEdges.clear();
 
 		mg.associated_elements(assEdges, elem);
 		for_each_in_vec(Edge* e, assEdges){
+
+			// normalized edge direction e
 			vector_t edgeDir;
 			VecSubtract(edgeDir, aaPos[e->vertex(0)], aaPos[e->vertex(1)]);
 			VecNormalize(edgeDir, edgeDir);
+
+			// e*d = cos(alpha)
 			number dot = VecDot(edgeDir, ndir);
-			if((dot + SMALL >= 1) || (dot - SMALL <= -1)){
+			if((dot + SMALL >= 1.0) || (dot - SMALL <= -1.0)){
+				// measure shortest edge in direction
 				anisoEdges.push_back(e);
 				shortestAnisoEdgeSq = min(shortestAnisoEdgeSq, EdgeLengthSq(e, aaPos));
 			}
 			else{
+				// measure longest normal edge
 				normalEdges.push_back(e);
 				longestNormalEdgeSq = max(longestNormalEdgeSq, EdgeLengthSq(e, aaPos));
 			}
@@ -1552,6 +1586,33 @@ void MarkForRefinement_AnisotropicDirection (
 		}
 	}lg_end_for;
 }
+
+
+template <class TDomain>
+void MarkForRefinement_AnisotropicDirection (
+		TDomain& dom,
+		IRefiner& refiner,
+		const MathVector<TDomain::dim>& dir,
+		number minEdgeRatio)
+{
+	MarkForRefinement_AnisotropicDirection_<TDomain>
+	(dom, refiner, dir, minEdgeRatio, RM_CLOSURE);
+}
+
+
+template <class TDomain>
+void MarkForRefinement_AnisotropicDirection2 (
+		TDomain& dom,
+		IRefiner& refiner,
+		const MathVector<TDomain::dim>& dir,
+		number minEdgeRatio, std::string markType)
+{
+	MarkForRefinement_AnisotropicDirection_<TDomain>
+	(dom, refiner, dir, minEdgeRatio, StringToRefinementMark(markType));
+}
+
+
+
 
 template <class TDomain>
 void MarkForRefinement_EdgeDirection (
@@ -1788,7 +1849,10 @@ static void Common(TRegistry& reg, string grp)
 				&MarkNeighborsForFullRefinement,
 				grp, "", "refiner#sideNeighborsOnly")
 		.add_function("MarkNeighborsForAnisotropicRefinement",
-				&MarkNeighborsForAnisotropicRefinement,
+						&MarkNeighborsForAnisotropicRefinement,
+						grp, "", "refiner#sideNeighborsOnly")
+		.add_function("MarkNeighborsForLocalRefinement",
+				&MarkNeighborsForLocalRefinement,
 				grp, "", "refiner#sideNeighborsOnly");
 
 	reg.add_function("AddShadowCopyAdjuster", &AddShadowCopyAdjuster, grp, "", "refiner");
@@ -1881,6 +1945,10 @@ static void Domain(TRegistry& reg, string grp)
 				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler,
 							typename domain_traits<TDomain::dim>::element_type>,
 				grp, "", "dom#refiner#subsetHandler#subsetIndex")
+		.add_function("MarkForAdaption_ElementsInSubset",
+				&MarkForAdaption_ElementsInSubset<domain_type, MGSubsetHandler,
+				typename domain_traits<TDomain::dim>::element_type>,
+				grp, "", "dom#refiner#subsetHandler#subsetIndex#mark")
 		.add_function("MarkForRefinement_VerticesInSubset",
 				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, Vertex>,
 				grp, "", "dom#refiner#subsetHandler#subsetIndex")
@@ -1913,6 +1981,9 @@ static void Domain(TRegistry& reg, string grp)
 				grp, "", "dom#refiner#minEdgeRatio")
 		.add_function("MarkForRefinement_AnisotropicDirection",
 				&MarkForRefinement_AnisotropicDirection<domain_type>,
+				grp, "", "dom#refiner#dir#minEdgeRatio")
+		.add_function("MarkForRefinement_AnisotropicDirection2",
+				&MarkForRefinement_AnisotropicDirection2<domain_type>,
 				grp, "", "dom#refiner#dir#minEdgeRatio")
 		.add_function("MarkForRefinement_EdgeDirection",
 				&MarkForRefinement_EdgeDirection<domain_type>,

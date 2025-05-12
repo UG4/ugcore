@@ -1,95 +1,89 @@
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Secret Detection customization: https://docs.gitlab.com/ee/user/application_security/secret_detection/pipeline/#customization
-# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
-# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 default:
   tags:
-  - docker
-  - linux
-variables:
-  GIT_CLONE_PATH: "$CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ug4/ugcore"
-stages:
-- test
-- build
-- sync
+    - docker
+    - linux
 
-do-test:
+stages:
+  - test
+  - deploy
+  - sync
+
+# TEST ug4
+build-and-test:
   stage: test
-  image: rigby132/ug4-test:latest
+  image: ubuntu:24.04
   timeout: 4 hours
+  parallel:
+    matrix:
+      - UG_BUILD_ID: build-gcc-13
+        UG_C_COMPILER: "gcc"
+        UG_CXX_COMPILER: "g++"
+      - UG_BUILD_ID: build-clang-15
+        UG_C_COMPILER: "clang-15"
+        UG_CXX_COMPILER: "clang++-15"
+  #tags:
+  #  - ${PROVIDER}-${STACK}
+  #environment: $PROVIDER/$STACK
   variables:
-    CMAKE_C_COMPILER: gcc
-    CMAKE_CXX_COMPILER: g++
+    UGHUB_DIR: "$CI_PROJECT_DIR/ughub"
+    UG4_OLD_DIR: "$CI_PROJECT_DIR/ug4-old"
+    UG4_NEW_DIR: "$CI_PROJECT_DIR/ug4-new"
+  before_script:
+    - echo "Setting up base ug4 enviroment."
+    - mkdir -p $UG4_NEW_DIR/ugcore
+    - mv * $UG4_NEW_DIR/ugcore || true
+    - apt-get update >/dev/null && apt-get install -y python3 git cmake build-essential clang-15 >/dev/null
+    - cd $CI_PROJECT_DIR && git clone https://gitlab.com/ug4-project/ughub.git
+    - export PATH="$PATH:$UGHUB_DIR"
+    - mkdir $UG4_OLD_DIR && cd $UG4_OLD_DIR
+    - ughub init && ughub install ugcore ConvectionDiffusion
+    - git clone https://gitlab.com/ug4-project/apps/unit_tests.git $UG4_OLD_DIR/apps/unit_tests
   script:
-  - cd ..
-  - cp --update=none -R /opt/ug4/. .
-  - mkdir -p build
-  - cd build
-  - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
-  - ninja -j8
-  - cd ..
-  - cd apps/unit_tests/
-  - mkdir -p build
-  - cd build
-  - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
-  - ninja -j8
-  - cd ../../..
-  - pwd
-  - ls -a
-  - source ugcore/scripts/shell/ugbash
-  - echo $UG4_ROOT
-  - "./bin/testsuite --build-info=yes --log_level=all --log_format=JUNIT --log_sink=report.xml -- --name report"
-  - cat ug_test_numprocs_1.log
-  - mv ug_test_numprocs_1.log ugcore/test.log
-  - cat report.xml
-  - mv report.xml ugcore/report.xml
+    - echo "Building and testing ug4"
+    # copy ug4 except for ugcore
+    - cd $CI_PROJECT_DIR
+    - cp --update=none -R $UG4_OLD_DIR/* $UG4_NEW_DIR
+    # build ug4 in release
+    - cd $UG4_NEW_DIR
+    - mkdir -p $UG_BUILD_ID && cd $UG_BUILD_ID
+    - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=$UG_CXX_COMPILER -DCMAKE_C_COMPILER=$UG_C_COMPILER
+    - make -j 4
+    # build testsuite
+    - cd $UG4_NEW_DIR/apps/unit_tests
+    - mkdir -p $UG_BUILD_ID && cd $UG_BUILD_ID
+    - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=OFF -DCMAKE_BUILD_TYPE=Release
+    - make -j 4
+    - cd $UG4_NEW_DIR
+    - source ugcore/scripts/shell/ugbash
+    - ./bin/testsuite --build-info=yes --log_level=all --log_format=JUNIT --log_sink=report.xml -- --name report
+    - mv ug_test_numprocs_1.log test.log
   artifacts:
     when: always
     expire_in: 1 week
     paths:
-    - report.xml
-    - test.log
+      - $UG4_NEW_DIR/report.xml
+      - $UG4_NEW_DIR/test.log
+      # - $UG4_NEW_DIR/lib/*
+      - $UG4_NEW_DIR/bin/*
+      - $UG4_NEW_DIR/bin/plugins/*
     reports:
-      junit: report.xml
-      
-build-clang:
-  stage: build
-  image: rigby132/ug4-minimal:latest
-  timeout: 4 hours
-  variables:
-    CMAKE_C_COMPILER: gcc
-    CMAKE_CXX_COMPILER: g++
-    CXX_FLAGS: "-O3 -fPIC"
+      junit: $UG4_NEW_DIR/report.xml
+
+# BUILD sources on various platforms and compilers
+deploy-docker:
+  stage: deploy
+  image: docker:latest
   before_script:
-  - docker info
-  - echo "$CI_REGISTRY"
-  - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - docker info
+    - echo "$CI_REGISTRY"
+    - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
   script:
-  - cd ..
-  - cp --update=none -R /opt/ug4/. .
-  - mkdir -p build
-  - cd build
-  - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=OFF -GNinja
-  - ninja -j8
-  - cd ..
-  - cd ..
-  - echo -e 'FROM ubuntu:latest\nENV DEBIAN_FRONTEND=noninteractive\nRUN apt-get update
-    && apt-get install -y python3 \nADD ug4 /opt/ug4' > Dockerfile
-  - docker build -t registry.gitlab.com/ug4-project/ugcore .
-  - docker push registry.gitlab.com/ug4-project/ugcore
-  - cd ug4
-  - ls -a bin
-  - mv bin ugcore/bin
-  artifacts:
-    when: on_success
-    expire_in: 1 week
-    paths:
-    - bin/*
-    - bin/plugins/*
-    
+    # build docker image
+    - docker build -t registry.gitlab.com/ug4-project/ugcore .
+    - docker push registry.gitlab.com/ug4-project/ugcore
+  rules:
+    - if: $CI_COMMIT_TAG
+
 include:
 - template: Jobs/SAST.gitlab-ci.yml
 - template: Security/SAST.gitlab-ci.yml

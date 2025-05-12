@@ -1,6 +1,8 @@
 /*
- * Copyright (c) 2020:  G-CSC, Goethe University Frankfurt
- * Author: Lukas Larisch
+ * expand fractures using the Arte algorithm, 3D case
+ *
+ * Copyright (c) 2011-2015:  G-CSC, Goethe University Frankfurt
+ * Author: Markus Knodel, inspired by Arte from Fuchs and Sebastian Reiters code for fracture expansion without Arte
  * 
  * This file is part of UG4.
  * 
@@ -30,52 +32,22 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_IORDERINGALGORITHM_H
-#define UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_IORDERINGALGORITHM_H
+#ifndef UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_3D_H_
+#define UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_3D_H_
 
-#include "common/util/smart_pointer.h"
+#include <vector>
+#include "lib_grid/lg_base.h"
+#include "expand_layers.h"
+#include "expand_layers_arte.h"
 
-namespace ug{
+namespace ug
+{
 
-/*
-	Interface for ordering algorithms. O_t denotes the ordering container type.
-	Ordering algorithms have to implement
-		compute() - triggers computation of an ordering
-	as well as
-		ordering() - returns a reference to an ordering of type O_t
-	O_t usually is a std::vector<size_t>
-	G_t (not required here) denotes the underlying graph type, e.g.,
-                                                        a boost graph
-*/
 
-template <typename TAlgebra, typename O_t=std::vector<size_t> >
-class IOrderingAlgorithm{
-public:
-	typedef typename TAlgebra::matrix_type M_t;
-	typedef typename TAlgebra::vector_type V_t;
+bool ExpandFractures3dArte( Grid& grid, SubsetHandler& sh,
+						    std::vector<FractureInfo> const & fracInfos,
+							bool useTrianglesInDiamonds, bool establishDiamonds );
 
-	IOrderingAlgorithm(){}
-	virtual ~IOrderingAlgorithm(){}
-
-	virtual void compute() = 0;
-	virtual void check() = 0;
-
-	virtual O_t& ordering() = 0;
-
-	//lib_algebra only
-	virtual void init(M_t*) = 0;
-	//lib_disc
-	virtual void init(M_t*, const V_t&) = 0;
-	//lib_algebra only, induced matrix
-	virtual void init(M_t*, const std::vector<size_t>&) = 0;
-	//lib_disc, induced matrix
-	virtual void init(M_t*, const V_t&, const std::vector<size_t>&) = 0;
-
-	virtual SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone() = 0;
-
-	virtual const char* name() const = 0;
-};
-
-}
+}//	end of namespace
 
 #endif
