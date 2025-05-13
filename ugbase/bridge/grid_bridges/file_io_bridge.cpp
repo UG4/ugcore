@@ -78,13 +78,13 @@ bool SaveGridHierarchy(MultiGrid& mg, const char* filename)
 }
 
 // TODO: Is this function used somewhere?
-void SetVTURegionOfInterestIdentifier( char const * regOfInt )
+/*void SetVTURegionOfInterestIdentifier( char const * regOfInt )
 {
 	PROFILE_FUNC_GROUP("grid");
 	GridReaderVTU::setRegionOfInterestIdentifier( std::string( regOfInt ) );
 	return;
 }
-
+*/
 template <typename TRegistry=Registry>
 void RegisterGridBridge_FileIO_(TRegistry& reg, string parentGroup)
 {
