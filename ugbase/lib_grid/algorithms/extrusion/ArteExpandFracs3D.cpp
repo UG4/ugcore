@@ -135,7 +135,10 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_volAttAccsVolTouchesEndingCrossingCleft(Grid::VolumeAttachmentAccessor<ABool>()),
 	  m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft(ABool()),
 	  m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
-	  m_vrtxArisesFromExpandedEndingCrossingCleft(std::vector<Vertex*>())
+	  m_vrtxArisesFromExpandedEndingCrossingCleft(std::vector<Vertex*>()),
+	  m_allowedSqueeze(0.8),
+	  m_vrtcsViolatingExpansion(std::vector<Vertex*>()),
+	  m_volsViolatingExpansion(std::vector<Volume*>())
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -1411,21 +1414,23 @@ int ArteExpandFracs3D::splitInnerFreeFracEdgs()
 template<typename ELEMTYP>
 bool ArteExpandFracs3D::addElem(std::vector<ELEMTYP> & knownElems, ELEMTYP elemToAdd )
 {
-	bool unknown = true;
+	return support::addElem(knownElems, elemToAdd);
 
-	for( ELEMTYP elmKnown : knownElems )
-	{
-		if( elemToAdd == elmKnown )
-		{
-			unknown = false;
-			break;
-		}
-	}
-
-	if( unknown )
-		knownElems.push_back(elemToAdd);
-
-	return unknown;
+//	bool unknown = true;
+//
+//	for( ELEMTYP elmKnown : knownElems )
+//	{
+//		if( elemToAdd == elmKnown )
+//		{
+//			unknown = false;
+//			break;
+//		}
+//	}
+//
+//	if( unknown )
+//		knownElems.push_back(elemToAdd);
+//
+//	return unknown;
 
 }
 
@@ -5283,7 +5288,7 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 		return false;
 	}
 
-	for( SegmentLimitingSides const & segLimSids : vecSegmLimSid )
+	for( SegmentLimitingSides & segLimSids : vecSegmLimSid )
 	{
 
 		if( segLimSids.hasUnclosedFaces() )
@@ -5609,13 +5614,12 @@ bool ArteExpandFracs3D::extracFractSudosOfSegment( SegmentVolElmInfo const & seg
 
 
 ////////////////////////////////////////////////////////////////////
-
 // for only one surrounding subdom around the segment, for example only one fracture, or T End like ending side
 // TODO FIXME alles in eine einzige Funktion, die verschiedene Unterfunktionen aufruft für verschiedene Zahlen
 // von Seiten innen und aussen!!!!
 //template<>
 //bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>( SegmentLimitingSides const & segmLimSides )
-bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimitingSides const & segmLimSides )
+bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimitingSides & segmLimSides )
 {
 	// should not be called for boundary vertices
 
@@ -5723,6 +5727,21 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 		vecShiftedPlaneDescript.push_back( shiftedPlaneDescr );
 	}
 
+	// TODO FIXME test if the new points might squeeze the volumes
+
+//	std::vector<Volume*> volsOfSegm;
+//
+//	if( ! segmLimSides.spuckListLowdimElmsOfVols( volsOfSegm, m_grid ) )
+//	{
+//		UG_LOG("which attached edges? " << std::endl);
+//		UG_LOG("which attached edges? " << std::endl);
+//	}
+
+	if( ! testIfNewPointsSqueezeVolumes( segmLimSides, vecShiftedPlaneDescript ) )
+	{
+		UG_LOG("CAUTION: expansion probably violates the surrounding volumes!" << std::endl);
+	}
+
 	// will get the sudo of the shifted vertex
 	IndexType sudoExample = (vecPlaneFracDescr[0]).spuckSudo();
 	vector3 posNewVrt; // to be determined depending on the segment properties
@@ -5783,8 +5802,10 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 			if( ! computeCrossPointOfPlaneWithLine( shiftedPlane, shiftDirectionEdg, oldVrt, posNewVrt ) )
 			{
-				UG_LOG("Not possible to compute crossing point plane with line" << std::endl);
-				UG_THROW("Not possible to compute crossing point plane with line" << std::endl);
+				UG_LOG("CAUTION: shifting cross point along ending crossing cleft edge might break volumes " << std::endl);
+
+//				UG_LOG("Not possible to compute crossing point plane with line" << std::endl);
+//				UG_THROW("Not possible to compute crossing point plane with line" << std::endl);
 			}
 		}
 	}
@@ -6131,6 +6152,93 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 //////////////////////////////////////////////////////////////////////////
 
+
+bool ArteExpandFracs3D::testIfNewPointsSqueezeVolumes( ArteExpandFracs3D::SegmentLimitingSides & segmLimSides,
+		ArteExpandFracs3D::VecPlaneDescriptor const & vecShiftedPlaneDescript )
+{
+	// TODO FIXME test if the new points might squeeze the volumes
+
+	bool notViolated = true;
+
+	IndexType debugSubs = m_sh.num_subsets();
+
+	Vertex * oldVrt = segmLimSides.spuckVertex();
+	vector3 posOldVrt = m_aaPos[oldVrt];
+
+	vector3 posTestVertex;
+
+	std::vector<Edge*> vecEdgesOfSegVols;
+
+	if( ! segmLimSides.spuckListLowdimElmsOfVols( vecEdgesOfSegVols, m_grid ) )
+	{
+		UG_LOG("which attached edges? " << std::endl);
+		UG_LOG("which attached edges? " << std::endl);
+	}
+
+	if( vecEdgesOfSegVols.size() == 0 )
+	{
+		UG_LOG("NO EDGES" << std::endl);
+	}
+
+	std::vector<Volume*> attVols;
+
+	segmLimSides.spuckVecFulldimElem(attVols);
+
+	if( attVols.size() == 0 )
+	{
+		UG_LOG("NO VOLS " << std::endl);
+	}
+
+	for( PlaneDescriptor const & shiftedPlane : vecShiftedPlaneDescript )
+	{
+		for( Edge * testEdge : vecEdgesOfSegVols )
+		{
+//			if( ! testEdge )
+//				continue;
+
+			// abuse of the compute cross point function originally developped for ending crossing cleft purposes
+			if( ! computeCrossPointOfPlaneWithLine( shiftedPlane, testEdge, oldVrt, posTestVertex ) )
+			{
+				UG_LOG("CAUTION: shifting cross point along ending crossing cleft edge might break volumes " << std::endl);
+
+				notViolated = false;
+
+				for( IndexType i = 0; i < 2; i++ )
+				{
+					Vertex * testVertex = testEdge->vertex(i);
+
+					if( testVertex != oldVrt )
+					{
+						addElem( m_vrtcsViolatingExpansion, testVertex );
+						break;
+					}
+				}
+
+				for( Volume * vol : attVols )
+				{
+					if( VolumeContains( vol, testEdge ))
+					{
+						addElem(m_volsViolatingExpansion, vol);
+						m_sh.assign_subset( vol, debugSubs );
+						UG_LOG("CAUTION quenched volume, assigning debug subset " << debugSubs
+								<< " for vol with center " << CalculateCenter( vol, m_aaPos )
+								<< " for fracture subdomain " << shiftedPlane.spuckSudo() << std::endl);
+					}
+				}
+
+			}
+
+		}
+
+	}
+
+	return notViolated;
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+
 bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const & shiftedPlane, Edge * const & shiftDirectionEdg, Vertex * const & oldVrt, vector3 & posCrossingPt )
 {
 	vector3 const & normalShiftedPlane = shiftedPlane.spuckNormalVector();
@@ -6173,12 +6281,21 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 
 	VecSubtract(directionVec, shiftVecEnd, posOldVrt );
 
-	// x = aufpunkt + s * richtung einsetzen in ( x - x_0 ) * n = 0, auflösen nach r
+	// x = aufpunkt + s . r
+	// richtung einsetzen in ( x - x_0 ) * n = 0, auflösen nach s
+	// . gilt als Skalarprodukt, * als Kreuzprodukt hier in Notation
 	// x*n = rhs = x_0*n
 	// ( a + s . r -x0 ) * n = 0
 	// a * n + s . n * r - x0*n = 0
 	// s . ( n * r ) = x0 * n - a * n
 	// s = ( x0*n - a*n ) / ( n*r )
+	// Spezialfall: n*r = 0 dann, wenn Richtungsvektor Gerade und Normalenvektor Ebene übereinstimmen
+	// also wenn Verschiebung entlang der Normalen
+	// dann ist (x0-a) parallel zu n bzw r, dann ist die Frage, was für ein Vielfaches von r ist (x0-a)
+	// also a + s . r - x0 = 0 auflösen nach s
+	// s . r = x0 - a , muss auch für den Betrag gelten
+	// also s | r | = | x_0 - a |
+	// also s = | x_0 - a | / | r |
 
 	number planeBaseMultNormal = VecDot(baseShiftedPlane,normalShiftedPlane);
 	number lineBaseMultNormal = VecDot(posOldVrt,normalShiftedPlane);
@@ -6198,19 +6315,59 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 		UG_THROW("RELATIVE DIFF TOO BIG " << std::endl);
 	}
 
+	number moveAlongLine = 0;
+
 	if( lineDirMultNormal == 0. )
 	{
-		UG_THROW("denominator zero division " << std::endl);
-		UG_LOG("denominator zero division " << std::endl);
+		UG_LOG("SHIFT denominator zero division " << std::endl);
+//		UG_THROW("denominator zero division " << std::endl);
+
+		vector3 connectNewAndOldBase;
+		VecSubtract(connectNewAndOldBase, baseShiftedPlane, posOldVrt );
+
+		// Test also if the connection vector parallel to normalShiftedPlane and directionVec
+
+		number testParallShiftPlan = std::fabs( VecDot( connectNewAndOldBase, normalShiftedPlane ) );
+		number testParallDirVec = std::fabs( VecDot( connectNewAndOldBase, directionVec ) );
+
+		if( testParallDirVec > d_toler || testParallDirVec > d_toler )
+		{
+			UG_LOG("VECTORS PARALLEL AND NOT " << std::endl);
+			UG_THROW("VECTORS PARALLEL AND NOT " << std::endl);
+		}
+
+		number lengthDirVec = VecLength(directionVec);
+		number lengthConnVec = VecLength(connectNewAndOldBase);
+
+		moveAlongLine = lengthConnVec / lengthDirVec;
+
+	}
+	else
+	{
+		moveAlongLine = ( planeBaseMultNormal - lineBaseMultNormal ) / lineDirMultNormal;
 	}
 
-	number moveAlongLine = ( planeBaseMultNormal - lineBaseMultNormal ) / lineDirMultNormal;
+	if( moveAlongLine == 0. )
+	{
+		UG_LOG("No Moving?" << std::endl);
+		UG_THROW("No Moving?" << std::endl);
+	}
 
 	vector3 shiftAlongLine;
 
 	VecScale( shiftAlongLine, directionVec, moveAlongLine );
 
 	VecAdd( posCrossingPt, posOldVrt, shiftAlongLine );
+
+//	m_allowedSqueeze = 0.8;
+
+//	UG_LOG("MOVING " << moveAlongLine << std::endl);
+
+	if( moveAlongLine > m_allowedSqueeze )
+	{
+		UG_LOG("MOVING ALONG LINE TOO BIG " << std::endl);
+		return false;
+	}
 
 	return true;
 

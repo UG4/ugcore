@@ -36,6 +36,28 @@ namespace ug
 namespace support
 {
 
+template<typename ELEMTYP>
+bool addElem(std::vector<ELEMTYP> & knownElems, ELEMTYP elemToAdd )
+{
+	bool unknown = true;
+
+	for( ELEMTYP elmKnown : knownElems )
+	{
+		if( elemToAdd == elmKnown )
+		{
+			unknown = false;
+			break;
+		}
+	}
+
+	if( unknown )
+		knownElems.push_back(elemToAdd);
+
+	return unknown;
+
+}
+
+
 #if 0
 
 template<typename ELEMTYP, typename INDEX_TYP>
@@ -1619,7 +1641,9 @@ public:
 	  m_vecBndrySudosNormlV(VecPairSudoNormlV()),
 	  m_isBoundary(isBndry),
 	  m_averaged(false),
-	  m_contribFulldimElm(std::vector<FULLDIM_ELEM>())
+	  m_contribFulldimElm(std::vector<FULLDIM_ELEM>()),
+	  m_volEdgesDetermined(false),
+	  m_vecVolEdges(std::vector<LOWDIMELM>())
 	{};
 
 //	template<typename = std::enable_if< std::is_pointer<VRTXTYP>::value>>
@@ -1643,17 +1667,37 @@ public:
 		return m_vrt;
 	}
 
-	void schluckFulldimElem( FULLDIM_ELEM const & fudielm )
+	bool schluckFulldimElem( FULLDIM_ELEM const & fudielm )
 	{
-		m_contribFulldimElm.push_back(fudielm);
+		m_volEdgesDetermined = false;
+		return addElem(m_contribFulldimElm, fudielm);
+//		m_contribFulldimElm.push_back(fudielm);
 	}
 
-	bool spuckVecFulldimElem( std::vector<FULLDIM_ELEM> & fudielm ) const
+	bool const spuckVecFulldimElem( std::vector<FULLDIM_ELEM> & fudielm ) const
 	{
 		fudielm = m_contribFulldimElm;
 
 		return ( m_contribFulldimElm.size() != 0 );
 	}
+
+	template< //typename GRID,
+			  //typename = std::enable_if< std::is_same<GRID, Grid >::value>,
+			  typename = std::enable_if< std::is_same<FULLDIM_ELEM,Volume*>::value>,
+			  typename = std::enable_if< std::is_same<FULLDIM_ELEM,Volume*>::value>
+			>
+	bool spuckListLowdimElmsOfVols( std::vector<LOWDIMELM> & listLowdimElms, Grid & grid )
+	{
+		if( ! m_volEdgesDetermined )
+		{
+			determineListLowdimElms( grid );
+		}
+
+		listLowdimElms = m_vecVolEdges;
+
+		return m_volEdgesDetermined;
+	}
+
 
 	VrtxFracStatus const spuckCrossingTyp() const
 	{
@@ -1921,6 +1965,9 @@ private:
 
 	std::vector<FULLDIM_ELEM> m_contribFulldimElm;
 
+	bool m_volEdgesDetermined;
+	std::vector<LOWDIMELM> m_vecVolEdges;
+
 	// zu heikel, weil dabei Änderungen nicht übernommen würden, es sei denn, es wäre pointer, aber die
 	// wollen wir auch vermeiden
 //	EndingCrossingFractSegmentInfo<FULLDIM_ELEM, MANIFELM, LOWDIMELM, VRTXTYP, INDEX_TXP> m_endingCrossFractSegmInf;
@@ -2153,6 +2200,30 @@ private:
 		}
 
 		return true;
+	}
+
+	template< //typename GRID,
+			  //typename = std::enable_if< std::is_same<GRID, Grid >::value>,
+			  typename = std::enable_if< std::is_same<FULLDIM_ELEM,Volume*>::value>,
+			  typename = std::enable_if< std::is_same<FULLDIM_ELEM,Volume*>::value>
+			>
+	void determineListLowdimElms( Grid & grid )
+	{
+		for( FULLDIM_ELEM const & fe : m_contribFulldimElm )
+		{
+			for(size_t i_edge = 0; i_edge < fe->num_edges(); ++i_edge)
+			{
+				LOWDIMELM lowDimElm = grid.get_edge( fe, i_edge );
+
+				if( EdgeContains(lowDimElm, m_vrt))
+				{
+					addElem(m_vecVolEdges, lowDimElm);
+				}
+			}
+
+		}
+
+		m_volEdgesDetermined = true;
 	}
 
 
