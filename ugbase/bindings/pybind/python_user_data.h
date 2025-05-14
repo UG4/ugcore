@@ -123,7 +123,7 @@ struct PyUserDataTypeTraits<TData, void>
 
 
 
-
+//! This object allows to evaluate a function with arguments (x, t, si)
 template <typename TData, int dim, typename TRet = void>
 class PythonUserData
 : public StdGlobPosData<PythonUserData<TData, dim, TRet>, TData, dim, TRet>
@@ -131,10 +131,10 @@ class PythonUserData
 
 	public:
 
-	//!	Constructor
-	/*! Creates a PythonUserData that uses a Python function to evaluate some data. */
 	typedef py::object TFunction;
 
+	//!	Constructor
+	/*! Creates a PythonUserData that uses a Python function to evaluate some data. */
 	PythonUserData(TFunction f) : func(f)
 	{
 		UG_ASSERT(check_callback_returns(f), "Huhh: Function has invalid signature.")
@@ -147,19 +147,17 @@ protected:
 		py::object result_py = PyUserDataTraits<dim>().call(f, x, time, si);
 		value = PyUserDataTypeTraits<TData, TRet>::data_value(result_py);
 		return PyUserDataTypeTraits<TData, TRet>::return_value(result_py);
-		// value = result_py.cast<TData>();
-		// return;
 	}
 
 public:
-	///	evaluates the data at a given point and time
+	//!	Evaluates the data at a given point and time.
 	inline TRet evaluate(TData& value, const MathVector<dim>& x, number time, int si) const
 	{ return evaluate_func(func, value, x, time, si); };
 
 protected:
-	//! This function checks, if the PYthon function has the correct signature.
+	//! This function checks, if the Python function has the correct signature.
 	/*! Performs dummy call and evaluates output. */
-	static bool check_callback_returns(TFunction func/*, const bool bThrow*/)
+	static bool check_callback_returns(TFunction func)
 	{
 		TData data; MathVector<dim> x = 0.0; number time = 0.0; int si = 0;
 
@@ -172,6 +170,7 @@ protected:
 
 	};
 
+	//! Callback function
 	TFunction func;
 
 };
