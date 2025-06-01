@@ -136,7 +136,7 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft(ABool()),
 	  m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
 	  m_vrtxArisesFromExpandedEndingCrossingCleft(std::vector<Vertex*>()),
-	  m_allowedSqueeze(0.8),
+	  m_allowedSqueeze(0.9),
 	  m_vrtcsViolatingExpansion(std::vector<Vertex*>()),
 	  m_volsViolatingExpansion(std::vector<Volume*>())
 {
@@ -152,6 +152,8 @@ ArteExpandFracs3D::~ArteExpandFracs3D()
 
 bool ArteExpandFracs3D::run( bool & needToRestart )
 {
+	needToRestart = false;
+
 	if( ! initialize() )
 		return false;
 
@@ -5299,7 +5301,7 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 		if( ! expandWithinTheSegment(segLimSids) )
 		{
 			UG_LOG("schief gegangen Vertex Erzeugung " << std::endl);
-			UG_THROW("schief gegangen Vertex Erzeugung " << std::endl);
+			//UG_THROW("schief gegangen Vertex Erzeugung " << std::endl);
 			return false;
 		}
 	}
@@ -5654,8 +5656,6 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 	VecPlaneDescriptor vecShiftedPlaneDescript;
 
-
-
 //	for( SegmentLimitSidesPairSudoNorml const & segLimSidPrSN : vecSegmLimSidPrSudoNrml )
 	for( PlaneDescriptor & planeDescr : vecPlaneFracDescr )
 	{
@@ -5737,9 +5737,15 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 //		UG_LOG("which attached edges? " << std::endl);
 //	}
 
-	if( ! testIfNewPointsSqueezeVolumes( segmLimSides, vecShiftedPlaneDescript ) )
+	bool testNewPoints = testIfNewPointsSqueezeVolumes( segmLimSides, vecShiftedPlaneDescript );
+
+	UG_LOG("TESTING NEW POINTS IS " << testNewPoints << " of " << true << " or " << false << std::endl);
+
+//	if( ! testIfNewPointsSqueezeVolumes( segmLimSides, vecShiftedPlaneDescript ) )
+	if( ! testNewPoints )
 	{
 		UG_LOG("CAUTION: expansion probably violates the surrounding volumes!" << std::endl);
+		return false;
 	}
 
 	// will get the sudo of the shifted vertex
@@ -5755,10 +5761,10 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 	if( ! isBndry && vecShiftedPlaneDescript.size() == 1 )
 	{
-		// TODO FIXME die unclosed crossing faces behandeln!!!
+		// die unclosed crossing faces behandeln!!!
 
-		// XXXXX muss wieder eingeschaltet werden hier
-		// TODO FIXME use the hasUnclosedFaces property, but for visual debugging, better set as false
+		// muss wieder eingeschaltet werden hier
+		// use the hasUnclosedFaces property, but for visual debugging, better set as false
 		bool distinguishUnclosedFaces = segmLimSides.hasUnclosedFaces();
 //		constexpr bool distinguishUnclosedFaces = false; // segmLimSides.hasUnclosedFaces();
 		UG_LOG("Please use switch unclosed faces in final version, please remove debugging set false" << std::endl);
@@ -5889,7 +5895,10 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 				}
 				UG_LOG("at point " << m_aaPos[oldVrt] << std::endl);
-				UG_THROW("too much boundary sudos " << vecPlaneBndryDescr.size() << std::endl);
+				UG_THROW("too much boundary sudos - NEED TO AVERAGE OVER ALL - introduce pseudo boundary descriptor, size 1" << vecPlaneBndryDescr.size() << std::endl);
+
+				// TODO FIXME: AVERAGE in this case and introduce an averaged pseudo boundary descriptor
+				// AAAAAAAAAAAAAAAA
 			}
 
 
@@ -6158,6 +6167,8 @@ bool ArteExpandFracs3D::testIfNewPointsSqueezeVolumes( ArteExpandFracs3D::Segmen
 {
 	// TODO FIXME test if the new points might squeeze the volumes
 
+	UG_LOG("TEST POINTS BEGIN " << std::endl);
+
 	bool notViolated = true;
 
 	IndexType debugSubs = m_sh.num_subsets();
@@ -6189,12 +6200,46 @@ bool ArteExpandFracs3D::testIfNewPointsSqueezeVolumes( ArteExpandFracs3D::Segmen
 		UG_LOG("NO VOLS " << std::endl);
 	}
 
+	UG_LOG("TEST POINTS MIDDLE " << notViolated << std::endl);
+
+
 	for( PlaneDescriptor const & shiftedPlane : vecShiftedPlaneDescript )
 	{
+		std::vector<Edge *> manifoldEdges;
+
+		if( ! shiftedPlane.spuckLowDimElms(manifoldEdges) )
+		{
+			UG_LOG("NO MANIFOLD EDGED OF PLANE " << std::endl);
+			UG_THROW("NO MANIFOLD EDGED OF PLANE " << std::endl);
+		}
+
+		// TODO FIXME nur die Edges, die NICHT zur Basis-Ebene gehören, die, die zur Mannigfaltigkeit
+		// gehören, die expandiert wird, müssen raus gefiltert werden!!!!!
 		for( Edge * testEdge : vecEdgesOfSegVols )
 		{
 //			if( ! testEdge )
 //				continue;
+
+			// test if testEdge belongs to the allowed Edges
+
+			bool isManifEdg = false;
+
+			for( Edge * me : manifoldEdges )
+			{
+				if( me == testEdge )
+				{
+					isManifEdg = true;
+					UG_LOG("Test edge is manifold edge" << std::endl);
+					continue;
+				}
+
+				// if edge belongs to manifold, it must not be considered!!!
+			}
+
+			if( isManifEdg )
+				continue;
+
+			UG_LOG("TESTING CROSS POINT " << notViolated << std::endl);
 
 			// abuse of the compute cross point function originally developped for ending crossing cleft purposes
 			if( ! computeCrossPointOfPlaneWithLine( shiftedPlane, testEdge, oldVrt, posTestVertex ) )
@@ -6232,7 +6277,10 @@ bool ArteExpandFracs3D::testIfNewPointsSqueezeVolumes( ArteExpandFracs3D::Segmen
 
 	}
 
-	return notViolated;
+	UG_LOG("TEST POINTS END " << notViolated << " of " << true << " " << false << std::endl);
+
+
+	return true;
 
 }
 
@@ -6241,6 +6289,8 @@ bool ArteExpandFracs3D::testIfNewPointsSqueezeVolumes( ArteExpandFracs3D::Segmen
 
 bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const & shiftedPlane, Edge * const & shiftDirectionEdg, Vertex * const & oldVrt, vector3 & posCrossingPt )
 {
+	UG_LOG("computing cross point start " << std::endl);
+
 	vector3 const & normalShiftedPlane = shiftedPlane.spuckNormalVector();
 	vector3 const & baseShiftedPlane = shiftedPlane.spuckBaseVector();
 	number const & rhs = shiftedPlane.spuckRHS();
@@ -6255,6 +6305,8 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 	}
 
 	vector3 posOldVrt = m_aaPos[oldVrt];
+
+	UG_LOG("Pos old vertex CCP " << posOldVrt << std::endl);
 
 	vector3 const & shiftVecBase = posOldVrt;
 
@@ -6281,6 +6333,10 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 
 	VecSubtract(directionVec, shiftVecEnd, posOldVrt );
 
+	UG_LOG("SHIVEEND " << shiftVecEnd << std::endl);
+	UG_LOG("POS OLD " << posOldVrt << std::endl);
+
+
 	// x = aufpunkt + s . r
 	// richtung einsetzen in ( x - x_0 ) * n = 0, auflösen nach s
 	// . gilt als Skalarprodukt, * als Kreuzprodukt hier in Notation
@@ -6288,6 +6344,8 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 	// ( a + s . r -x0 ) * n = 0
 	// a * n + s . n * r - x0*n = 0
 	// s . ( n * r ) = x0 * n - a * n
+	// "Normallfall": n*r != 0
+	// dann gilt
 	// s = ( x0*n - a*n ) / ( n*r )
 	// Spezialfall: n*r = 0 dann, wenn Richtungsvektor Gerade und Normalenvektor Ebene übereinstimmen
 	// also wenn Verschiebung entlang der Normalen
@@ -6300,6 +6358,12 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 	number planeBaseMultNormal = VecDot(baseShiftedPlane,normalShiftedPlane);
 	number lineBaseMultNormal = VecDot(posOldVrt,normalShiftedPlane);
 	number lineDirMultNormal = VecDot( directionVec, normalShiftedPlane );
+
+	UG_LOG("base shift plane " << baseShiftedPlane << std::endl);
+	UG_LOG("normal shift plane " << normalShiftedPlane << std::endl);
+	UG_LOG("pos Old " << posOldVrt << std::endl);
+	UG_LOG("direction " << directionVec << std::endl);
+
 
 	UG_LOG("COMPARE RHS AND LBMN " << rhs << " - " << planeBaseMultNormal << std::endl);
 
@@ -6341,10 +6405,13 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 
 		moveAlongLine = lengthConnVec / lengthDirVec;
 
+		UG_LOG("MONULL " << lengthConnVec << " " << lengthDirVec << std::endl );
 	}
 	else
 	{
 		moveAlongLine = ( planeBaseMultNormal - lineBaseMultNormal ) / lineDirMultNormal;
+
+		UG_LOG("MOAL  " << planeBaseMultNormal << " " <<  lineBaseMultNormal << " " <<  lineDirMultNormal << std::endl );
 	}
 
 	if( moveAlongLine == 0. )
@@ -6357,17 +6424,39 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 
 	VecScale( shiftAlongLine, directionVec, moveAlongLine );
 
+	UG_LOG("SHIFT " << shiftAlongLine << " Dir " << directionVec << " MOV " << moveAlongLine << std::endl );
+
 	VecAdd( posCrossingPt, posOldVrt, shiftAlongLine );
 
 //	m_allowedSqueeze = 0.8;
 
 //	UG_LOG("MOVING " << moveAlongLine << std::endl);
 
+	// falsch bei ending crossing cleft Verschiebung u.U. , zweiten Parameter dazu zur Unterscheidung?
+	// Vertex erzeugen wenn Problem an der Stelle? um zu sehen, wo es hin will?
 	if( moveAlongLine > m_allowedSqueeze )
 	{
-		UG_LOG("MOVING ALONG LINE TOO BIG " << std::endl);
+		UG_LOG("MOVING ALONG LINE TOO BIG C " << posCrossingPt << " Old " << posOldVrt << " move " << shiftAlongLine << std::endl);
+
+		// create debug vertex at position of crossing point
+
+		Vertex * dbgVrtx = *m_grid.create<RegularVertex>();
+
+		m_aaPos[dbgVrtx] = posCrossingPt;
+
+		IndexType strangeSubs = m_sh.num_subsets();
+
+		m_sh.assign_subset(dbgVrtx, strangeSubs);
+
+		m_sh.assign_subset( shiftDirectionEdg, strangeSubs );
+
+		UG_LOG("computing cross point end false " << std::endl);
+
 		return false;
 	}
+
+	UG_LOG("computing cross point end true " << std::endl);
+
 
 	return true;
 

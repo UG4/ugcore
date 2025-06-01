@@ -1438,7 +1438,9 @@ private:
 
 
 // Ebenentyp: a x1 + b x2 + c x3 = rhs, normal * ( vecX - baseVect ) = 0
-template<typename VECTOR_TYP>
+template<typename VECTOR_TYP,
+		 typename LOWDIMELM
+>
 class ManifoldDescriptor
 {
 public:
@@ -1471,7 +1473,8 @@ public:
 	  m_scaleShiftNormal(scaleShiftNormal),
 	  m_dim(3),
 	  m_sudo(sudo),
-	  m_manifTyp( manifTyp )
+	  m_manifTyp( manifTyp ),
+	  m_lowDimElms(std::vector<LOWDIMELM>())
 	{
 		m_rhs = 0;
 
@@ -1542,6 +1545,11 @@ public:
 
 		manifoldDescr = ManifoldDescriptor( m_normalVect, spuckShiftedBaseVect(), m_sudo, m_manifTyp, 0 );
 
+		if( ! manifoldDescr.schluckLowDimElms(m_lowDimElms) )
+		{
+			UG_LOG("Neuer Manifold Descripter verschoben ohne Ecken" << std::endl);
+		}
+
 		return true;
 
 	}
@@ -1561,6 +1569,18 @@ public:
 		return shiftedBaseVec;
 	}
 
+	bool schluckLowDimElms( std::vector<LOWDIMELM> const & lowDimElms )
+	{
+		m_lowDimElms = lowDimElms;
+		return ( m_lowDimElms.size() > 0 );
+	}
+
+	bool const spuckLowDimElms( std::vector<LOWDIMELM> & lowDimElms ) const
+	{
+		lowDimElms = m_lowDimElms;
+		return ( m_lowDimElms.size() > 0 );
+	}
+
 private:
 
 	VECTOR_TYP m_normalVect;
@@ -1573,6 +1593,8 @@ private:
 	int m_dim;
 	int m_sudo;
 	ManifoldType m_manifTyp;
+
+	std::vector<LOWDIMELM> m_lowDimElms;
 };
 
 
@@ -1617,7 +1639,11 @@ public:
 
 	using PairSudoNormlV = std::pair<INDEX_TXP,VECTOR_TYP>;
 	using VecPairSudoNormlV = std::vector<PairSudoNormlV>;
-	using ManifDescr = ManifoldDescriptor<VECTOR_TYP>;
+
+	using PairSudoVecLowDiEl = std::pair<INDEX_TXP, std::vector<LOWDIMELM> >;
+	using VecPairSudoVecLowDiEl = std::vector<PairSudoVecLowDiEl>;
+
+	using ManifDescr = ManifoldDescriptor<VECTOR_TYP, LOWDIMELM>;
 	using VecManifDescr = std::vector<ManifDescr>;
 
 	// TODO FIXME das soll gleich durch den Manifold Descriptor ersetzt werden
@@ -1639,6 +1665,8 @@ public:
 	  m_vecAttBndryElms(VecAttBndryElm()),
 	  m_vecFractSudosNormlV(VecPairSudoNormlV()),
 	  m_vecBndrySudosNormlV(VecPairSudoNormlV()),
+	  m_vecFractSudoLowDiEl(VecPairSudoVecLowDiEl()),
+	  m_vecBndrySudoLowDiEl(VecPairSudoVecLowDiEl()),
 	  m_isBoundary(isBndry),
 	  m_averaged(false),
 	  m_contribFulldimElm(std::vector<FULLDIM_ELEM>()),
@@ -1875,9 +1903,11 @@ public:
 									 bool clearDescVec = true
 	) const
 	{
-		return spuckManifDescr<ManifDescr::ManifoldType::isFracture>( vecManifDesc, aaPos, m_vecFractSudosNormlV, clearDescVec );
+		return spuckManifDescr<ManifDescr::ManifoldType::isFracture>( vecManifDesc, aaPos, m_vecFractSudosNormlV, m_vecFractSudoLowDiEl, clearDescVec );
 //		return spuckManifDescr<0>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
 	}
+
+
 
 
 //	bool spuckFractManifDescr( VecManifDescr & vecManifDesc, Grid::VertexAttachmentAccessor<APosition> const & aaPos )
@@ -1939,7 +1969,7 @@ public:
 									 bool clearDescVec = true
 	) const
 	{
-		return spuckManifDescr<ManifDescr::ManifoldType::isBoundary>( vecManifDesc, aaPos, m_vecBndrySudosNormlV, clearDescVec );
+		return spuckManifDescr<ManifDescr::ManifoldType::isBoundary>( vecManifDesc, aaPos, m_vecBndrySudosNormlV, m_vecBndrySudoLowDiEl, clearDescVec );
 		//		return spuckManifDescr<2>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
 	}
 
@@ -1959,6 +1989,10 @@ private:
 
 	VecPairSudoNormlV m_vecFractSudosNormlV;
 	VecPairSudoNormlV m_vecBndrySudosNormlV;
+
+	VecPairSudoVecLowDiEl m_vecFractSudoLowDiEl;
+	VecPairSudoVecLowDiEl m_vecBndrySudoLowDiEl;
+
 
 	bool m_isBoundary;
 	bool m_averaged;
@@ -2023,7 +2057,7 @@ private:
 	template <typename ATT_ELM,
 			  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
 			>
-	bool averageNormlForEachSudo( std::vector<ATT_ELM> const & vecAttElm, VecPairSudoNormlV & vecPSudoNrml )
+	bool averageNormlForEachSudo( std::vector<ATT_ELM> const & vecAttElm, VecPairSudoNormlV & vecPSudoNrml, VecPairSudoVecLowDiEl & vecPSudoVecLowDiElm )
 	{
 		// first determine appearing sudos
 
@@ -2041,6 +2075,18 @@ private:
 			std::pair<INDEX_TXP, VECTOR_TYP> sudoNorml( sudo, normlAvrg );
 
 			vecPSudoNrml.push_back(sudoNorml);
+
+			// TODO FIXME auch Liste mit Sudo plus Ecken, die auf der Mannigfaltigkeit liegen!!!!
+
+			std::vector<LOWDIMELM> vecLowDimElmsSudo;
+
+			if( ! extractLowDimElemsForSpecificSudo( sudo, vecAttElm, vecLowDimElmsSudo ) )
+				return false;
+
+			PairSudoVecLowDiEl sudoLDE( sudo, vecLowDimElmsSudo );
+
+			vecPSudoVecLowDiElm.push_back( sudoLDE );
+
 		}
 
 		return true;
@@ -2083,16 +2129,39 @@ private:
 
 	}
 
+	template <typename ATT_ELM,
+			  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+			>
+	bool extractLowDimElemsForSpecificSudo( INDEX_TXP specfcSudo, std::vector<ATT_ELM> const & vecAttElm, std::vector<LOWDIMELM> & vecLowDimElms )
+	{
+		for( ATT_ELM const & ae : vecAttElm )
+		{
+			INDEX_TXP sudoElm = ae.getSudo();
+
+			if( specfcSudo == sudoElm )
+			{
+				std::pair<LOWDIMELM,LOWDIMELM> paLoDiEl = ae.getPairLowElm();
+
+				addElem(vecLowDimElms, paLoDiEl.first);
+				addElem(vecLowDimElms, paLoDiEl.second);
+			}
+
+		}
+
+		return true;
+	}
+
+
 	bool averageFractNormals()
 	{
-		return averageNormlForEachSudo( m_vecAttFractElms, m_vecFractSudosNormlV );
+		return averageNormlForEachSudo( m_vecAttFractElms, m_vecFractSudosNormlV, m_vecFractSudoLowDiEl );
 	}
 
 	bool averageBndryNormals()
 	{
 		if( m_isBoundary )
 		{
-			return averageNormlForEachSudo( m_vecAttBndryElms, m_vecBndrySudosNormlV );
+			return averageNormlForEachSudo( m_vecAttBndryElms, m_vecBndrySudosNormlV, m_vecBndrySudoLowDiEl );
 		}
 		else
 		{
@@ -2165,6 +2234,7 @@ private:
 	bool const spuckManifDescr( VecManifDescr & vecManifDesc,
 								Grid::VertexAttachmentAccessor<APosition> const & aaPos,
 								VecPairSudoNormlV const & vecFractSudosNormlV,
+								VecPairSudoVecLowDiEl const & vecFractSudosLDE,
 								bool clearDescVec = true
 	) const
 	{
@@ -2195,11 +2265,50 @@ private:
 
 			UG_LOG("ASSIGN MANIF TYP " << manifTyp << std::endl);
 			ManifDescr manifDesc( normlVec, posVrt, sudo, manifTyp );
+			// TODO FIXME der Manifold Descriptor muss noch die Vertizes wissen, die ihn aufspannen
+			// abgesehen vom Zentrums-Vertex
+
+			if( ! addLowDimElmListForSudo( manifDesc, sudo, vecFractSudosLDE ) )
+			{
+				UG_LOG("No low dim elems " << std::endl);
+				UG_THROW("No low dim elems " << std::endl);
+				return false;
+			}
 
 			vecManifDesc.push_back( manifDesc );
 		}
 
 		return true;
+	}
+
+	bool const addLowDimElmListForSudo( ManifDescr & md, INDEX_TXP sudo, VecPairSudoVecLowDiEl const & vecFractSudosLDE ) const
+	{
+		INDEX_TXP foundSudo = 0;
+
+		for( PairSudoVecLowDiEl const & psvlde : vecFractSudosLDE )
+		{
+			INDEX_TXP sudoFract = psvlde.first;
+
+			if( sudoFract == sudo )
+			{
+				foundSudo++;
+
+				std::vector<LOWDIMELM> const & vecLoDiEl = psvlde.second;
+
+				if( ! md.schluckLowDimElms( vecLoDiEl ) )
+				{
+					UG_LOG("NO LOWDIM ELEMS" << std::endl);
+					return false;
+				}
+			}
+		}
+
+		if( foundSudo != 1 )
+		{
+			UG_LOG("NO SUDO FOUND LDE" << std::endl);
+		}
+
+		return ( foundSudo == 1 );
 	}
 
 	template< //typename GRID,

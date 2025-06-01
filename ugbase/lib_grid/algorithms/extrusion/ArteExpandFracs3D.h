@@ -388,7 +388,7 @@ private:
 //	template< SegmentVrtxFracStatus seVrtFracStat >
 	bool expandWithinTheSegment( SegmentLimitingSides & segmLimSides );
 
-	using PlaneDescriptor = support::ManifoldDescriptor<vector3>;
+	using PlaneDescriptor = support::ManifoldDescriptor<vector3, Edge*>;
 
 	using VecPlaneDescriptor = std::vector<PlaneDescriptor>;
 
