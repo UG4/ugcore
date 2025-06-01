@@ -493,6 +493,10 @@ private:
 
 	std::vector<Vertex*> m_vrtcsViolatingExpansion;
 	std::vector<Volume*> m_volsViolatingExpansion;
+
+
+	bool averageBndryNormals( VecPlaneDescriptor const & vecPlaneBndryDescr, vector3 & averagedNormal );
+
 };
 
 // specification has to be declared outside central class context, else compilation error

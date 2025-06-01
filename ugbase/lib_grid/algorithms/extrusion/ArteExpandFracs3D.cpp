@@ -5885,8 +5885,11 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 				UG_THROW("NO boundary sudos " << std::endl);
 			}
 
+			bool needToAverage = false;
+
 			if( vecPlaneBndryDescr.size() > 2 )
 			{
+
 				UG_LOG("dudos" << std::endl);
 				for( PlaneDescriptor pd : vecPlaneBndryDescr )
 				{
@@ -5895,97 +5898,139 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 				}
 				UG_LOG("at point " << m_aaPos[oldVrt] << std::endl);
-				UG_THROW("too much boundary sudos - NEED TO AVERAGE OVER ALL - introduce pseudo boundary descriptor, size 1" << vecPlaneBndryDescr.size() << std::endl);
+				UG_LOG("too much boundary sudos - NEED TO AVERAGE OVER ALL - introduce pseudo boundary descriptor, size 1" << vecPlaneBndryDescr.size() << std::endl);
 
-				// TODO FIXME: AVERAGE in this case and introduce an averaged pseudo boundary descriptor
+				needToAverage = true;
+			}
+			else if( vecPlaneBndryDescr.size() == 2 &&  vecPlaneFracDescr.size() == 2  )
+			{
+				UG_LOG("zwei Boundary subdoms plus zwei Kreuzungen " << std::endl);
+				needToAverage = true;
+			}
+
+			if( ! needToAverage  )
+			{
+
+				if( vecShiftedPlaneDescript.size() + vecPlaneBndryDescr.size() > 3 )
+					UG_THROW("too much crossing stuff at boundary"<<std::endl);
+
+				for( PlaneDescriptor const & pbd : vecPlaneBndryDescr )
+				{
+					vecShiftedPlaneDescript.push_back( pbd );
+				}
+
+				if( vecPlaneBndryDescr.size() == 2 )
+				{
+					// PROBLEM PPPPPPPPPPPPPPPP
+					if( vecShiftedPlaneDescript.size() != 3 ||  vecPlaneFracDescr.size() != 1 )
+					{
+						UG_LOG("BOUNRARY PPPPP vertex TWO problem " << m_aaPos[oldVrt] << std::endl);
+
+						UG_LOG("Boundaries" << std::endl);
+						for( PlaneDescriptor pd : vecPlaneBndryDescr  )
+						{
+							UG_LOG("Subdom " << pd.spuckSudo() << std::endl);
+							UG_LOG("Base " << pd.spuckBaseVector() << std::endl);
+							UG_LOG("Normal " << pd.spuckNormalVector() <<std::endl);
+						}
+
+						UG_LOG("Shifted" << std::endl);
+						for( PlaneDescriptor pd : vecShiftedPlaneDescript  )
+						{
+							UG_LOG("Subdom S " << pd.spuckSudo() << std::endl);
+							UG_LOG("Base S " << pd.spuckBaseVector() << std::endl);
+							UG_LOG("Normal S " << pd.spuckNormalVector() <<std::endl);
+						}
+
+						UG_LOG("Fracs " << std::endl);
+						for( PlaneDescriptor pd : vecPlaneFracDescr  )
+						{
+							UG_LOG("Subdom F " << pd.spuckSudo() << std::endl);
+							UG_LOG("Base F " << pd.spuckBaseVector() << std::endl);
+							UG_LOG("Normal F " << pd.spuckNormalVector() <<std::endl);
+						}
+
+						UG_THROW("noch nicht genug Grenzen " << std::endl);
+
+					}
+				}
+				else if( vecPlaneBndryDescr.size() == 1 )
+				{
+					if( vecShiftedPlaneDescript.size() < 3 )
+						UG_LOG("noch nicht genug Grenzen " << std::endl);
+
+					if( vecShiftedPlaneDescript.size() > 3 )
+						UG_LOG("too much Grenzen " << std::endl);
+
+					if( vecPlaneFracDescr.size() != 1 && vecPlaneFracDescr.size() != 2 )
+						UG_THROW("Nicht passend Fract plus Bndry" << std::endl);
+
+	//				if( vecPlaneFracDescr.size() == 1 && vecPlaneFracDescr.size() == 2 )
+	//					if( vecShiftedPlaneDescript.size() != 3 )
+	//						UG_THROW"SO viele unsinnige Kombinationen " << std::endl );
+
+					if( vecPlaneFracDescr.size() == 2 )
+					{
+						if( vecShiftedPlaneDescript.size() != 3 )
+							UG_THROW("da passt nicht zusammen was 3 sein sollte" << std::endl);
+
+						// sonst nix zu tun
+					}
+					else if( vecPlaneFracDescr.size() == 1 )
+					{
+						if( vecShiftedPlaneDescript.size() != 2 )
+							UG_LOG("1+2 nicht 3" << std::endl);
+
+						// add an artificial perpendicular plane with move vector zero
+
+						vector3 artificialNormal;
+						VecCross( artificialNormal, vecShiftedPlaneDescript[0].spuckNormalVector(), vecShiftedPlaneDescript[1].spuckNormalVector() );
+
+						PlaneDescriptor artificialPlane( artificialNormal, posOldVrt );
+
+						vecShiftedPlaneDescript.push_back(artificialPlane);
+
+					}
+
+
+
+				}
+
+			}
+			else
+			{
+				// need to average boundaries
+
+				// AVERAGE in this case and introduce an averaged pseudo boundary descriptor
 				// AAAAAAAAAAAAAAAA
-			}
 
+				vector3 averagedNormal;
 
-			if( vecShiftedPlaneDescript.size() + vecPlaneBndryDescr.size() > 3 )
-				UG_THROW("too much crossing stuff at boundary"<<std::endl);
-
-			for( PlaneDescriptor const & pbd : vecPlaneBndryDescr )
-			{
-				vecShiftedPlaneDescript.push_back( pbd );
-			}
-
-			if( vecPlaneBndryDescr.size() == 2 )
-			{
-				// PROBLEM PPPPPPPPPPPPPPPP
-				if( vecShiftedPlaneDescript.size() != 3 ||  vecPlaneFracDescr.size() != 1 )
+//				if( ! averageBndryNormals( VecPlaneDescriptor const & vecPlaneBndryDescr, vector3 & averagedNormal ) )
+				if( ! averageBndryNormals( vecPlaneBndryDescr, averagedNormal ) )
 				{
-					UG_LOG("BOUNRARY PPPPP vertex TWO problem " << m_aaPos[oldVrt] << std::endl);
-
-					UG_LOG("Boundaries" << std::endl);
-					for( PlaneDescriptor pd : vecPlaneBndryDescr  )
-					{
-						UG_LOG("Subdom " << pd.spuckSudo() << std::endl);
-						UG_LOG("Base " << pd.spuckBaseVector() << std::endl);
-						UG_LOG("Normal " << pd.spuckNormalVector() <<std::endl);
-					}
-
-					UG_LOG("Shifted" << std::endl);
-					for( PlaneDescriptor pd : vecShiftedPlaneDescript  )
-					{
-						UG_LOG("Subdom S " << pd.spuckSudo() << std::endl);
-						UG_LOG("Base S " << pd.spuckBaseVector() << std::endl);
-						UG_LOG("Normal S " << pd.spuckNormalVector() <<std::endl);
-					}
-
-					UG_LOG("Fracs " << std::endl);
-					for( PlaneDescriptor pd : vecPlaneFracDescr  )
-					{
-						UG_LOG("Subdom F " << pd.spuckSudo() << std::endl);
-						UG_LOG("Base F " << pd.spuckBaseVector() << std::endl);
-						UG_LOG("Normal F " << pd.spuckNormalVector() <<std::endl);
-					}
-
-					UG_THROW("noch nicht genug Grenzen " << std::endl);
-
+					UG_LOG("NORMAL NOT AVERAGABLE" << std::endl);
+					UG_THROW("NORMAL NOT AVERAGABLE" << std::endl);
+					return false;
 				}
-			}
-			else if( vecPlaneBndryDescr.size() == 1 )
-			{
-				if( vecShiftedPlaneDescript.size() < 3 )
-					UG_LOG("noch nicht genug Grenzen " << std::endl);
 
-				if( vecShiftedPlaneDescript.size() > 3 )
-					UG_LOG("too much Grenzen " << std::endl);
+				PlaneDescriptor averagedBoundaryPlane( averagedNormal, posOldVrt );
+				vecShiftedPlaneDescript.push_back(averagedBoundaryPlane);
 
-				if( vecPlaneFracDescr.size() != 1 && vecPlaneFracDescr.size() != 2 )
-					UG_THROW("Nicht passend Fract plus Bndry" << std::endl);
-
-//				if( vecPlaneFracDescr.size() == 1 && vecPlaneFracDescr.size() == 2 )
-//					if( vecShiftedPlaneDescript.size() != 3 )
-//						UG_THROW"SO viele unsinnige Kombinationen " << std::endl );
-
-				if( vecPlaneFracDescr.size() == 2 )
+				if( vecPlaneFracDescr.size() == 1 )
 				{
-					if( vecShiftedPlaneDescript.size() != 3 )
-						UG_THROW("da passt nicht zusammen was 3 sein sollte" << std::endl);
-
-					// sonst nix zu tun
-				}
-				else if( vecPlaneFracDescr.size() == 1 )
-				{
-					if( vecShiftedPlaneDescript.size() != 2 )
-						UG_LOG("1+2 nicht 3" << std::endl);
-
-					// add an artificial perpendicular plane with move vector zero
+					// behave as if we would have one boundary and thus need one additional artificial normal
 
 					vector3 artificialNormal;
-					VecCross( artificialNormal, vecShiftedPlaneDescript[0].spuckNormalVector(), vecShiftedPlaneDescript[1].spuckNormalVector() );
+					VecCross( artificialNormal, vecShiftedPlaneDescript[0].spuckNormalVector(), averagedNormal );
 
 					PlaneDescriptor artificialPlane( artificialNormal, posOldVrt );
 
 					vecShiftedPlaneDescript.push_back(artificialPlane);
-
 				}
 
-
-
 			}
+
 
 		}
 
@@ -6161,6 +6206,34 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 //////////////////////////////////////////////////////////////////////////
 
+
+bool ArteExpandFracs3D::averageBndryNormals( VecPlaneDescriptor const & vecPlaneBndryDescr, vector3 & averagedNormal  )
+{
+	if( vecPlaneBndryDescr.size() == 0 )
+	{
+		UG_LOG("no boundary" << std::endl);
+		return false;
+	}
+
+	vector3 normalsSum;
+
+	for( PlaneDescriptor const & pd : vecPlaneBndryDescr )
+	{
+		vector3 const & norml = pd.spuckNormalVector();
+
+		vector3 normalsSumBefore = normalsSum;
+
+		VecAdd(normalsSum, norml, normalsSumBefore );
+	}
+
+	VecScale( averagedNormal, normalsSum, static_cast<number>(vecPlaneBndryDescr.size()) );
+
+	return true;
+
+}
+
+
+///////////////////////////////////////////////////////////////////////////
 
 bool ArteExpandFracs3D::testIfNewPointsSqueezeVolumes( ArteExpandFracs3D::SegmentLimitingSides & segmLimSides,
 		ArteExpandFracs3D::VecPlaneDescriptor const & vecShiftedPlaneDescript )
