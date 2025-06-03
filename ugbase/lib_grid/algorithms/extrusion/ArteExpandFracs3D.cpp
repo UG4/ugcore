@@ -5921,7 +5921,7 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 					number crossProdBetween = VecDot(normalOne, normalTwo);
 
-					number tol = 1e-9;
+					number tol = 1e-4;
 
 					number deviationOne = std::fabs( (lengthOne - 1.) / (lengthOne + 1 ) );
 					number deviationTwo = std::fabs( (lengthTwo - 1.) / (lengthTwo + 1 ) );
