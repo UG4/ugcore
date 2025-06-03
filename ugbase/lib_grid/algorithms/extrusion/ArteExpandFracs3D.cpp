@@ -5902,11 +5902,52 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 				needToAverage = true;
 			}
-			else if( vecPlaneBndryDescr.size() == 2 &&  vecPlaneFracDescr.size() == 2  )
+			else if( vecPlaneBndryDescr.size() == 2 )
 			{
-				UG_LOG("zwei Boundary subdoms plus zwei Kreuzungen " << std::endl);
-				needToAverage = true;
+				if( vecPlaneFracDescr.size() == 2  )
+				{
+					UG_LOG("zwei Boundary subdoms plus zwei Kreuzungen " << std::endl);
+					needToAverage = true;
+				}
+				else
+				{
+					// depending on angle between the two boundary normals, an averaging also useful, if too similar
+
+					vector3 const & normalOne = vecPlaneBndryDescr[0].spuckNormalVector();
+					vector3 const & normalTwo = vecPlaneBndryDescr[1].spuckNormalVector();
+
+					number lengthOne = VecLength(normalOne);
+					number lengthTwo = VecLength(normalTwo);
+
+					number crossProdBetween = VecDot(normalOne, normalTwo);
+
+					number tol = 1e-9;
+
+					number deviationOne = std::fabs( (lengthOne - 1.) / (lengthOne + 1 ) );
+					number deviationTwo = std::fabs( (lengthTwo - 1.) / (lengthTwo + 1 ) );
+
+					if( deviationOne > tol || deviationTwo > tol )
+					{
+						UG_LOG("Normals no length one " << normalOne << " " << normalTwo << std::endl);
+						UG_THROW("Normals no length one " << normalOne << " " << normalTwo << std::endl);
+					}
+
+					number sinBetween = std::fabs( crossProdBetween / lengthOne / lengthTwo );
+
+					number decisionSin = 0.05;
+
+					if( decisionSin > sinBetween )
+					{
+						needToAverage = true;
+						UG_LOG("Averaging boundary normals, as quite close " << sinBetween << std::endl);
+
+					}
+
+					// very close, so better average, as they might be even parallel
+				}
 			}
+
+
 
 			if( ! needToAverage  )
 			{
