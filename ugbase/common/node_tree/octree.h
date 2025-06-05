@@ -41,6 +41,15 @@
 namespace ug{
 namespace node_tree
 {
+
+void CalculateBoundingBox(vector1& boxMinOut, vector1& boxMaxOut,
+			const vector1* points, size_t numPoints);
+void CalculateBoundingBox(vector2& boxMinOut, vector2& boxMaxOut,
+			const vector2* points, size_t numPoints);
+void CalculateBoundingBox(vector3& boxMinOut, vector3& boxMaxOut,
+				const vector3* points, size_t numPoints);
+
+
 ////////////////////////////////////////////////////////////////////////
 //	CreateOctree
 ///	Creates an Octree from a list of elements

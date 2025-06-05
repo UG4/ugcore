@@ -42,19 +42,21 @@ namespace node_tree
 
 ////////////////////////////////////////////////////////////////////////
 /**	calculates the bounding box around a set of points*/
-static void
-CalculateBoundingBox(vector3& boxMinOut, vector3& boxMaxOut,
-					const vector3* points, size_t numPoints)
+template <int dim>
+struct tools
+{
+static void CalculateBoundingBox(MathVector<dim>& boxMinOut, MathVector<dim>& boxMaxOut,
+					const MathVector<dim>* points, size_t numPoints)
 {
 	if(numPoints < 1){
-		boxMinOut = boxMaxOut = vector3(0, 0, 0);
+		boxMinOut = boxMaxOut = MathVector<dim>(0.0);
 		return;
 	}
 	
 	boxMinOut = boxMaxOut = points[0];
 	
 	for(size_t i = 0; i < numPoints; ++i){
-		for(size_t j = 0; j < 3; ++j)
+		for(size_t j = 0; j < dim; ++j)
 		{
 			const number& coord = points[i][j];
 			if(coord < boxMinOut[j])
@@ -64,6 +66,21 @@ CalculateBoundingBox(vector3& boxMinOut, vector3& boxMaxOut,
 		}
 	}
 }
+};
+
+
+void CalculateBoundingBox(vector1& boxMinOut, vector1& boxMaxOut,
+		const vector1* points, size_t numPoints)
+{ tools<1>::CalculateBoundingBox(boxMinOut,boxMaxOut,points,numPoints); }
+
+void CalculateBoundingBox(vector2& boxMinOut, vector2& boxMaxOut,
+		const vector2* points, size_t numPoints)
+{ tools<2>::CalculateBoundingBox(boxMinOut,boxMaxOut,points,numPoints); }
+
+void CalculateBoundingBox(vector3& boxMinOut, vector3& boxMaxOut,
+		const vector3* points, size_t numPoints)
+{ tools<3>::CalculateBoundingBox(boxMinOut,boxMaxOut,points,numPoints); }
+
 
 ////////////////////////////////////////////////////////////////////////
 /**	calculates the bounding box around a set of elements which are
