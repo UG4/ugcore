@@ -5745,7 +5745,7 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 	if( ! testNewPoints )
 	{
 		UG_LOG("CAUTION: expansion probably violates the surrounding volumes!" << std::endl);
-		return false;
+//		return false;
 	}
 
 	// will get the sudo of the shifted vertex
@@ -6362,6 +6362,10 @@ bool ArteExpandFracs3D::testIfNewPointsSqueezeVolumes( ArteExpandFracs3D::Segmen
 
 				notViolated = false;
 
+				UG_LOG("DEBUGGING WITH SUDO " << debugSubs << std::endl );
+
+//				return false;
+
 				for( IndexType i = 0; i < 2; i++ )
 				{
 					Vertex * testVertex = testEdge->vertex(i);
@@ -6562,7 +6566,13 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 
 		m_sh.assign_subset(dbgVrtx, strangeSubs);
 
-		m_sh.assign_subset( shiftDirectionEdg, strangeSubs );
+//		m_sh.assign_subset( shiftDirectionEdg, strangeSubs );
+		m_sh.assign_subset( shiftDirectionEdg, m_sh.num_subsets() );
+
+		m_sh.assign_subset( shiftDirectionEdg->vertex(0), m_sh.num_subsets() );
+		m_sh.assign_subset( shiftDirectionEdg->vertex(1), m_sh.num_subsets() );
+		m_sh.assign_subset( oldVrt, m_sh.num_subsets() );
+
 
 		UG_LOG("computing cross point end false " << std::endl);
 
