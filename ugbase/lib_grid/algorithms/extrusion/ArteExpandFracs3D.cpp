@@ -6566,12 +6566,12 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 
 		m_sh.assign_subset(dbgVrtx, strangeSubs);
 
-//		m_sh.assign_subset( shiftDirectionEdg, strangeSubs );
-		m_sh.assign_subset( shiftDirectionEdg, m_sh.num_subsets() );
+		m_sh.assign_subset( shiftDirectionEdg, strangeSubs );
+//		m_sh.assign_subset( shiftDirectionEdg, m_sh.num_subsets() );
 
-		m_sh.assign_subset( shiftDirectionEdg->vertex(0), m_sh.num_subsets() );
-		m_sh.assign_subset( shiftDirectionEdg->vertex(1), m_sh.num_subsets() );
-		m_sh.assign_subset( oldVrt, m_sh.num_subsets() );
+		m_sh.assign_subset( shiftDirectionEdg->vertex(0), strangeSubs );
+		m_sh.assign_subset( shiftDirectionEdg->vertex(1), strangeSubs );
+		m_sh.assign_subset( oldVrt, strangeSubs );
 
 
 		UG_LOG("computing cross point end false " << std::endl);
