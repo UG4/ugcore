@@ -5919,7 +5919,11 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 					number lengthOne = VecLength(normalOne);
 					number lengthTwo = VecLength(normalTwo);
 
-					number crossProdBetween = VecDot(normalOne, normalTwo);
+					vector3 crossVec;
+
+					VecCross(crossVec, normalOne, normalTwo);
+
+					number crossProdBetween = VecLength(crossVec);
 
 					number tol = 1e-1;
 
@@ -5939,7 +5943,8 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 					if( decisionSin > sinBetween )
 					{
 						needToAverage = true;
-						UG_LOG("Averaging boundary normals, as quite close " << sinBetween << std::endl);
+//						m_sh.assign_subset(oldVrt, m_sh.num_subsets());
+//						return false;
 
 					}
 
