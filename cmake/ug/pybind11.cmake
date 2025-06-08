@@ -68,7 +68,8 @@ function(get_libug4_from_pip RETURN_VAR)
 	
 	# Extract possible location of pip-package
 	execute_process(
-    		COMMAND pip show ug4py-base
+    		#COMMAND pip show ug4py-base
+			COMMAND python3 -m pip show ug4py-base
     		OUTPUT_VARIABLE PIP_SHOW_OUTPUT
     		OUTPUT_STRIP_TRAILING_WHITESPACE
 	)
