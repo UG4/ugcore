@@ -30,6 +30,7 @@
 
 # included from ug_includes.cmake
 
+message(STATUS "This is pybind11.cmake")
 if(USE_PYBIND11)
 
 cmake_minimum_required(VERSION 3.12)
@@ -38,6 +39,7 @@ cmake_minimum_required(VERSION 3.12)
 # argument1: name of Python module
 # argument2: source files
 # argument3: source files
+message(STATUS "Installing ug4pybind_add_module")
 function(ug4pybind_add_module pyPluginName myPluginSources myLinkLibs)
   	
   	# Add module.
