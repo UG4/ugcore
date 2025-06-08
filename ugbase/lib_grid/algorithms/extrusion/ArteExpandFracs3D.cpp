@@ -6358,7 +6358,7 @@ bool ArteExpandFracs3D::testIfNewPointsSqueezeVolumes( ArteExpandFracs3D::Segmen
 			// abuse of the compute cross point function originally developped for ending crossing cleft purposes
 			if( ! computeCrossPointOfPlaneWithLine( shiftedPlane, testEdge, oldVrt, posTestVertex ) )
 			{
-				UG_LOG("CAUTION: shifting cross point along ending crossing cleft edge might break volumes " << std::endl);
+				UG_LOG("CAUTION: shifting cross point along test procedure cleft edge might break volumes " << std::endl);
 
 				notViolated = false;
 
