@@ -75,11 +75,15 @@ function(get_libug4_from_pip RETURN_VAR)
 	)
 
 	# Extract the "Location" line & remove the ' prefix to get the actual path
-	string(REGEX MATCH "Location: .+" LOCATION_LINE "${PIP_SHOW_OUTPUT}")
-	string(REPLACE "Location: " "" UG4PY_BASE_PACKAGE_PATH "${LOCATION_LINE}")
-	string(REGEX MATCH "^[^\n\r]*" UG4PY_BASE_PACKAGE_PATH "${UG4PY_BASE_PACKAGE_PATH}") # remove lines.
-	message(STATUS "Package path: '${UG4PY_BASE_PACKAGE_PATH}'")
-	
+	set(UG4PY_BASE_PACKAGE_PATH "")
+	string(COMPARE EQUAL "${PIP_SHOW_OUTPUT}" "" ISEMPTY)
+	if (NOT ISEMPTY)
+		string(REGEX MATCH "Location: .+" LOCATION_LINE "${PIP_SHOW_OUTPUT}")
+		string(REPLACE "Location: " "" UG4PY_BASE_PACKAGE_PATH "${LOCATION_LINE}")
+		string(REGEX MATCH "^[^\n\r]*" UG4PY_BASE_PACKAGE_PATH "${UG4PY_BASE_PACKAGE_PATH}") # remove lines.
+	endif()
+	message(STATUS "Package path hint: '${UG4PY_BASE_PACKAGE_PATH}'")
+
 	# Find library.
 	find_library(PYUG4_STATIC_LIBRARY
     			NAMES ${UG4_STATIC_LIB_BASENAME} lib${UG4_STATIC_LIB_BASENAME}
