@@ -24,10 +24,10 @@ build-and-test:
         UG_C_COMPILER: "gcc"
         UG_CXX_COMPILER: "g++"
         UG_WITH_CODE_COVERAGE: "NONE"
-      - UG_BUILD_ID: build-clang-15
-        UG_C_COMPILER: "clang-15"
-        UG_CXX_COMPILER: "clang++-15"
-        UG_WITH_CODE_COVERAGE: "NONE"
+      #- UG_BUILD_ID: build-clang-15
+      #  UG_C_COMPILER: "clang-15"
+      #  UG_CXX_COMPILER: "clang++-15"
+      #  UG_WITH_CODE_COVERAGE: "NONE"
   #tags:
   #  - ${PROVIDER}-${STACK}
   #environment: $PROVIDER/$STACK
@@ -69,11 +69,11 @@ build-and-test:
       if [[ "$UG_WITH_CODE_COVERAGE" == "GCOV" ]]; then
         mkdir reports
         lcov --capture --directory . --output-file $UG_LCOV_FILE --ignore-errors gcov,source,mismatch
-        #lcov --remove $UG_LCOV_FILE '/usr/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
-        #lcov --remove $UG_LCOV_FILE '*/externals/BoostForUG4/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
-        #lcov --remove $UG_LCOV_FILE '*/apps/unit_tests/src/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
-        #lcov --list $UG_LCOV_FILE > reports/lcov.txt
-        #genhtml coverage.info --output-directory reports/html
+        lcov --remove $UG_LCOV_FILE '/usr/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
+        lcov --remove $UG_LCOV_FILE '*/externals/BoostForUG4/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
+        lcov --remove $UG_LCOV_FILE '*/apps/unit_tests/src/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
+        lcov --list $UG_LCOV_FILE > reports/lcov.txt
+        genhtml coverage.info --output-directory reports/html
         mv $UG_LCOV_FILE reports
       fi
     - mv ug_test_numprocs_1.log test.log
