@@ -67,9 +67,9 @@ build-and-test:
     - ./bin/testsuite --build-info=yes --log_level=all --log_format=JUNIT --log_sink=report.xml -- --name report
     - |
       if [[ "$UG_WITH_CODE_COVERAGE" == "GCOV" ]]; then
-        lcov --capture --directory . --output-file $UG_LCOV_FILE
-        lcov --remove $LCOV_OUTPUT_FILE '/usr/*' --output-file $UG_LCOV_FILE
-        lcov --list $UG_LCOV_FILE
+        lcov --capture --directory . --output-file $UG_LCOV_FILE --ignore-errors gcov,source
+        #lcov --remove $LCOV_OUTPUT_FILE '/usr/*' --output-file $UG_LCOV_FILE
+        #lcov --list $UG_LCOV_FILE
       fi
     - mv ug_test_numprocs_1.log test.log
   artifacts:
