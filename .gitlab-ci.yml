@@ -60,7 +60,7 @@ build-and-test:
     # build testsuite
     - cd $UG4_NEW_DIR/apps/unit_tests
     - mkdir -p $UG_BUILD_ID && cd $UG_BUILD_ID
-    - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=OFF -DCMAKE_BUILD_TYPE=Release
+    - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DCOVERAGE=$UG_WITH_CODE_COVERAGE
     - make -j 4
     - cd $UG4_NEW_DIR
     - source ugcore/scripts/shell/ugbash
