@@ -55,7 +55,7 @@ build-and-test:
     # build ug4 in release
     - cd $UG4_NEW_DIR
     - mkdir -p $UG_BUILD_ID && cd $UG_BUILD_ID
-    - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=$UG_CXX_COMPILER -DCMAKE_C_COMPILER=$UG_C_COMPILER
+    - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=$UG_CXX_COMPILER -DCMAKE_C_COMPILER=$UG_C_COMPILER -DCODE_COVERAGE=$UG_WITH_CODE_COVERAGE
     - make -j 4
     # build testsuite
     - cd $UG4_NEW_DIR/apps/unit_tests
