@@ -386,9 +386,9 @@ private:
 	// the artificial normals are for the case of two crossing fractures inside, and the case
 	// of boundary vertices, i.e. one fracture at one boundary sudo, two fracture at one boundary sudo, one fracture at two boundary sudos
 //	template< SegmentVrtxFracStatus seVrtFracStat >
-	bool expandWithinTheSegment( SegmentLimitingSides const & segmLimSides );
+	bool expandWithinTheSegment( SegmentLimitingSides & segmLimSides );
 
-	using PlaneDescriptor = support::ManifoldDescriptor<vector3>;
+	using PlaneDescriptor = support::ManifoldDescriptor<vector3, Edge*>;
 
 	using VecPlaneDescriptor = std::vector<PlaneDescriptor>;
 
@@ -483,6 +483,19 @@ private:
 	bool etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes );
 
 	IndexType deleteEndingCrossingCleftOrigFacs();
+
+	number m_allowedSqueeze;
+
+	void setAllowedSqueeze( number allowedSqueeze = 0.8 ) { m_allowedSqueeze = allowedSqueeze; }
+
+	bool testIfNewPointsSqueezeVolumes( SegmentLimitingSides & segmLimSides,
+										VecPlaneDescriptor const & vecShiftedPlaneDescript );
+
+	std::vector<Vertex*> m_vrtcsViolatingExpansion;
+	std::vector<Volume*> m_volsViolatingExpansion;
+
+
+	bool averageBndryNormals( VecPlaneDescriptor const & vecPlaneBndryDescr, vector3 & averagedNormal );
 
 };
 

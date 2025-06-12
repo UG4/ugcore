@@ -135,7 +135,10 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_volAttAccsVolTouchesEndingCrossingCleft(Grid::VolumeAttachmentAccessor<ABool>()),
 	  m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft(ABool()),
 	  m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
-	  m_vrtxArisesFromExpandedEndingCrossingCleft(std::vector<Vertex*>())
+	  m_vrtxArisesFromExpandedEndingCrossingCleft(std::vector<Vertex*>()),
+	  m_allowedSqueeze(0.9),
+	  m_vrtcsViolatingExpansion(std::vector<Vertex*>()),
+	  m_volsViolatingExpansion(std::vector<Volume*>())
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
@@ -149,6 +152,8 @@ ArteExpandFracs3D::~ArteExpandFracs3D()
 
 bool ArteExpandFracs3D::run( bool & needToRestart )
 {
+	needToRestart = false;
+
 	if( ! initialize() )
 		return false;
 
@@ -1411,21 +1416,23 @@ int ArteExpandFracs3D::splitInnerFreeFracEdgs()
 template<typename ELEMTYP>
 bool ArteExpandFracs3D::addElem(std::vector<ELEMTYP> & knownElems, ELEMTYP elemToAdd )
 {
-	bool unknown = true;
+	return support::addElem(knownElems, elemToAdd);
 
-	for( ELEMTYP elmKnown : knownElems )
-	{
-		if( elemToAdd == elmKnown )
-		{
-			unknown = false;
-			break;
-		}
-	}
-
-	if( unknown )
-		knownElems.push_back(elemToAdd);
-
-	return unknown;
+//	bool unknown = true;
+//
+//	for( ELEMTYP elmKnown : knownElems )
+//	{
+//		if( elemToAdd == elmKnown )
+//		{
+//			unknown = false;
+//			break;
+//		}
+//	}
+//
+//	if( unknown )
+//		knownElems.push_back(elemToAdd);
+//
+//	return unknown;
 
 }
 
@@ -5283,7 +5290,7 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 		return false;
 	}
 
-	for( SegmentLimitingSides const & segLimSids : vecSegmLimSid )
+	for( SegmentLimitingSides & segLimSids : vecSegmLimSid )
 	{
 
 		if( segLimSids.hasUnclosedFaces() )
@@ -5294,7 +5301,7 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 		if( ! expandWithinTheSegment(segLimSids) )
 		{
 			UG_LOG("schief gegangen Vertex Erzeugung " << std::endl);
-			UG_THROW("schief gegangen Vertex Erzeugung " << std::endl);
+			//UG_THROW("schief gegangen Vertex Erzeugung " << std::endl);
 			return false;
 		}
 	}
@@ -5609,13 +5616,12 @@ bool ArteExpandFracs3D::extracFractSudosOfSegment( SegmentVolElmInfo const & seg
 
 
 ////////////////////////////////////////////////////////////////////
-
 // for only one surrounding subdom around the segment, for example only one fracture, or T End like ending side
 // TODO FIXME alles in eine einzige Funktion, die verschiedene Unterfunktionen aufruft für verschiedene Zahlen
 // von Seiten innen und aussen!!!!
 //template<>
 //bool ArteExpandFracs3D::expandWithinTheSegment<ArteExpandFracs3D::SegmentVrtxFracStatus::oneFracSuDoAtt>( SegmentLimitingSides const & segmLimSides )
-bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimitingSides const & segmLimSides )
+bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimitingSides & segmLimSides )
 {
 	// should not be called for boundary vertices
 
@@ -5649,8 +5655,6 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 	vector3 posOldVrt = m_aaPos[oldVrt];
 
 	VecPlaneDescriptor vecShiftedPlaneDescript;
-
-
 
 //	for( SegmentLimitSidesPairSudoNorml const & segLimSidPrSN : vecSegmLimSidPrSudoNrml )
 	for( PlaneDescriptor & planeDescr : vecPlaneFracDescr )
@@ -5723,6 +5727,27 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 		vecShiftedPlaneDescript.push_back( shiftedPlaneDescr );
 	}
 
+	// TODO FIXME test if the new points might squeeze the volumes
+
+//	std::vector<Volume*> volsOfSegm;
+//
+//	if( ! segmLimSides.spuckListLowdimElmsOfVols( volsOfSegm, m_grid ) )
+//	{
+//		UG_LOG("which attached edges? " << std::endl);
+//		UG_LOG("which attached edges? " << std::endl);
+//	}
+
+	bool testNewPoints = testIfNewPointsSqueezeVolumes( segmLimSides, vecShiftedPlaneDescript );
+
+	UG_LOG("TESTING NEW POINTS IS " << testNewPoints << " of " << true << " or " << false << std::endl);
+
+//	if( ! testIfNewPointsSqueezeVolumes( segmLimSides, vecShiftedPlaneDescript ) )
+	if( ! testNewPoints )
+	{
+		UG_LOG("CAUTION: expansion probably violates the surrounding volumes!" << std::endl);
+//		return false;
+	}
+
 	// will get the sudo of the shifted vertex
 	IndexType sudoExample = (vecPlaneFracDescr[0]).spuckSudo();
 	vector3 posNewVrt; // to be determined depending on the segment properties
@@ -5736,10 +5761,10 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 	if( ! isBndry && vecShiftedPlaneDescript.size() == 1 )
 	{
-		// TODO FIXME die unclosed crossing faces behandeln!!!
+		// die unclosed crossing faces behandeln!!!
 
-		// XXXXX muss wieder eingeschaltet werden hier
-		// TODO FIXME use the hasUnclosedFaces property, but for visual debugging, better set as false
+		// muss wieder eingeschaltet werden hier
+		// use the hasUnclosedFaces property, but for visual debugging, better set as false
 		bool distinguishUnclosedFaces = segmLimSides.hasUnclosedFaces();
 //		constexpr bool distinguishUnclosedFaces = false; // segmLimSides.hasUnclosedFaces();
 		UG_LOG("Please use switch unclosed faces in final version, please remove debugging set false" << std::endl);
@@ -5783,8 +5808,10 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 			if( ! computeCrossPointOfPlaneWithLine( shiftedPlane, shiftDirectionEdg, oldVrt, posNewVrt ) )
 			{
-				UG_LOG("Not possible to compute crossing point plane with line" << std::endl);
-				UG_THROW("Not possible to compute crossing point plane with line" << std::endl);
+				UG_LOG("CAUTION: shifting cross point along ending crossing cleft edge might break volumes " << std::endl);
+
+//				UG_LOG("Not possible to compute crossing point plane with line" << std::endl);
+//				UG_THROW("Not possible to compute crossing point plane with line" << std::endl);
 			}
 		}
 	}
@@ -5858,8 +5885,11 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 				UG_THROW("NO boundary sudos " << std::endl);
 			}
 
+			bool needToAverage = false;
+
 			if( vecPlaneBndryDescr.size() > 2 )
 			{
+
 				UG_LOG("dudos" << std::endl);
 				for( PlaneDescriptor pd : vecPlaneBndryDescr )
 				{
@@ -5868,94 +5898,185 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 				}
 				UG_LOG("at point " << m_aaPos[oldVrt] << std::endl);
-				UG_THROW("too much boundary sudos " << vecPlaneBndryDescr.size() << std::endl);
+				UG_LOG("too much boundary sudos - NEED TO AVERAGE OVER ALL - introduce pseudo boundary descriptor, size 1" << vecPlaneBndryDescr.size() << std::endl);
+
+				needToAverage = true;
 			}
-
-
-			if( vecShiftedPlaneDescript.size() + vecPlaneBndryDescr.size() > 3 )
-				UG_THROW("too much crossing stuff at boundary"<<std::endl);
-
-			for( PlaneDescriptor const & pbd : vecPlaneBndryDescr )
+			else if( vecPlaneBndryDescr.size() == 2 )
 			{
-				vecShiftedPlaneDescript.push_back( pbd );
-			}
-
-			if( vecPlaneBndryDescr.size() == 2 )
-			{
-				// PROBLEM PPPPPPPPPPPPPPPP
-				if( vecShiftedPlaneDescript.size() != 3 ||  vecPlaneFracDescr.size() != 1 )
+				if( vecPlaneFracDescr.size() == 2  )
 				{
-					UG_LOG("BOUNRARY PPPPP vertex TWO problem " << m_aaPos[oldVrt] << std::endl);
+					UG_LOG("zwei Boundary subdoms plus zwei Kreuzungen " << std::endl);
+					needToAverage = true;
+				}
+				else
+				{
+					// depending on angle between the two boundary normals, an averaging also useful, if too similar
 
-					UG_LOG("Boundaries" << std::endl);
-					for( PlaneDescriptor pd : vecPlaneBndryDescr  )
+					vector3 const & normalOne = vecPlaneBndryDescr[0].spuckNormalVector();
+					vector3 const & normalTwo = vecPlaneBndryDescr[1].spuckNormalVector();
+
+					number lengthOne = VecLength(normalOne);
+					number lengthTwo = VecLength(normalTwo);
+
+					vector3 crossVec;
+
+					VecCross(crossVec, normalOne, normalTwo);
+
+					number crossProdBetween = VecLength(crossVec);
+
+					number tol = 1e-1;
+
+					number deviationOne = std::fabs( (lengthOne - 1.) / (lengthOne + 1 ) );
+					number deviationTwo = std::fabs( (lengthTwo - 1.) / (lengthTwo + 1 ) );
+
+					if( deviationOne > tol || deviationTwo > tol )
 					{
-						UG_LOG("Subdom " << pd.spuckSudo() << std::endl);
-						UG_LOG("Base " << pd.spuckBaseVector() << std::endl);
-						UG_LOG("Normal " << pd.spuckNormalVector() <<std::endl);
+						UG_LOG("Normals no length one " << normalOne << " " << normalTwo << std::endl);
+						UG_THROW("Normals no length one " << normalOne << " " << normalTwo << std::endl);
 					}
 
-					UG_LOG("Shifted" << std::endl);
-					for( PlaneDescriptor pd : vecShiftedPlaneDescript  )
+					number sinBetween = std::fabs( crossProdBetween / lengthOne / lengthTwo );
+
+					number decisionSin = 0.05;
+
+					if( decisionSin > sinBetween )
 					{
-						UG_LOG("Subdom S " << pd.spuckSudo() << std::endl);
-						UG_LOG("Base S " << pd.spuckBaseVector() << std::endl);
-						UG_LOG("Normal S " << pd.spuckNormalVector() <<std::endl);
+						needToAverage = true;
+//						m_sh.assign_subset(oldVrt, m_sh.num_subsets());
+//						return false;
+
 					}
 
-					UG_LOG("Fracs " << std::endl);
-					for( PlaneDescriptor pd : vecPlaneFracDescr  )
-					{
-						UG_LOG("Subdom F " << pd.spuckSudo() << std::endl);
-						UG_LOG("Base F " << pd.spuckBaseVector() << std::endl);
-						UG_LOG("Normal F " << pd.spuckNormalVector() <<std::endl);
-					}
-
-					UG_THROW("noch nicht genug Grenzen " << std::endl);
-
+					// very close, so better average, as they might be even parallel
 				}
 			}
-			else if( vecPlaneBndryDescr.size() == 1 )
+
+
+
+			if( ! needToAverage  )
 			{
-				if( vecShiftedPlaneDescript.size() < 3 )
-					UG_LOG("noch nicht genug Grenzen " << std::endl);
 
-				if( vecShiftedPlaneDescript.size() > 3 )
-					UG_LOG("too much Grenzen " << std::endl);
+				if( vecShiftedPlaneDescript.size() + vecPlaneBndryDescr.size() > 3 )
+					UG_THROW("too much crossing stuff at boundary"<<std::endl);
 
-				if( vecPlaneFracDescr.size() != 1 && vecPlaneFracDescr.size() != 2 )
-					UG_THROW("Nicht passend Fract plus Bndry" << std::endl);
-
-//				if( vecPlaneFracDescr.size() == 1 && vecPlaneFracDescr.size() == 2 )
-//					if( vecShiftedPlaneDescript.size() != 3 )
-//						UG_THROW"SO viele unsinnige Kombinationen " << std::endl );
-
-				if( vecPlaneFracDescr.size() == 2 )
+				for( PlaneDescriptor const & pbd : vecPlaneBndryDescr )
 				{
-					if( vecShiftedPlaneDescript.size() != 3 )
-						UG_THROW("da passt nicht zusammen was 3 sein sollte" << std::endl);
-
-					// sonst nix zu tun
+					vecShiftedPlaneDescript.push_back( pbd );
 				}
-				else if( vecPlaneFracDescr.size() == 1 )
-				{
-					if( vecShiftedPlaneDescript.size() != 2 )
-						UG_LOG("1+2 nicht 3" << std::endl);
 
-					// add an artificial perpendicular plane with move vector zero
+				if( vecPlaneBndryDescr.size() == 2 )
+				{
+					// PROBLEM PPPPPPPPPPPPPPPP
+					if( vecShiftedPlaneDescript.size() != 3 ||  vecPlaneFracDescr.size() != 1 )
+					{
+						UG_LOG("BOUNRARY PPPPP vertex TWO problem " << m_aaPos[oldVrt] << std::endl);
+
+						UG_LOG("Boundaries" << std::endl);
+						for( PlaneDescriptor pd : vecPlaneBndryDescr  )
+						{
+							UG_LOG("Subdom " << pd.spuckSudo() << std::endl);
+							UG_LOG("Base " << pd.spuckBaseVector() << std::endl);
+							UG_LOG("Normal " << pd.spuckNormalVector() <<std::endl);
+						}
+
+						UG_LOG("Shifted" << std::endl);
+						for( PlaneDescriptor pd : vecShiftedPlaneDescript  )
+						{
+							UG_LOG("Subdom S " << pd.spuckSudo() << std::endl);
+							UG_LOG("Base S " << pd.spuckBaseVector() << std::endl);
+							UG_LOG("Normal S " << pd.spuckNormalVector() <<std::endl);
+						}
+
+						UG_LOG("Fracs " << std::endl);
+						for( PlaneDescriptor pd : vecPlaneFracDescr  )
+						{
+							UG_LOG("Subdom F " << pd.spuckSudo() << std::endl);
+							UG_LOG("Base F " << pd.spuckBaseVector() << std::endl);
+							UG_LOG("Normal F " << pd.spuckNormalVector() <<std::endl);
+						}
+
+						UG_THROW("noch nicht genug Grenzen " << std::endl);
+
+					}
+				}
+				else if( vecPlaneBndryDescr.size() == 1 )
+				{
+					if( vecShiftedPlaneDescript.size() < 3 )
+						UG_LOG("noch nicht genug Grenzen " << std::endl);
+
+					if( vecShiftedPlaneDescript.size() > 3 )
+						UG_LOG("too much Grenzen " << std::endl);
+
+					if( vecPlaneFracDescr.size() != 1 && vecPlaneFracDescr.size() != 2 )
+						UG_THROW("Nicht passend Fract plus Bndry" << std::endl);
+
+	//				if( vecPlaneFracDescr.size() == 1 && vecPlaneFracDescr.size() == 2 )
+	//					if( vecShiftedPlaneDescript.size() != 3 )
+	//						UG_THROW"SO viele unsinnige Kombinationen " << std::endl );
+
+					if( vecPlaneFracDescr.size() == 2 )
+					{
+						if( vecShiftedPlaneDescript.size() != 3 )
+							UG_THROW("da passt nicht zusammen was 3 sein sollte" << std::endl);
+
+						// sonst nix zu tun
+					}
+					else if( vecPlaneFracDescr.size() == 1 )
+					{
+						if( vecShiftedPlaneDescript.size() != 2 )
+							UG_LOG("1+2 nicht 3" << std::endl);
+
+						// add an artificial perpendicular plane with move vector zero
+
+						vector3 artificialNormal;
+						VecCross( artificialNormal, vecShiftedPlaneDescript[0].spuckNormalVector(), vecShiftedPlaneDescript[1].spuckNormalVector() );
+
+						PlaneDescriptor artificialPlane( artificialNormal, posOldVrt );
+
+						vecShiftedPlaneDescript.push_back(artificialPlane);
+
+					}
+
+
+
+				}
+
+			}
+			else
+			{
+				// need to average boundaries
+
+				// AVERAGE in this case and introduce an averaged pseudo boundary descriptor
+				// AAAAAAAAAAAAAAAA
+
+				vector3 averagedNormal;
+
+//				if( ! averageBndryNormals( VecPlaneDescriptor const & vecPlaneBndryDescr, vector3 & averagedNormal ) )
+				if( ! averageBndryNormals( vecPlaneBndryDescr, averagedNormal ) )
+				{
+					UG_LOG("NORMAL NOT AVERAGABLE" << std::endl);
+					UG_THROW("NORMAL NOT AVERAGABLE" << std::endl);
+					return false;
+				}
+
+				PlaneDescriptor averagedBoundaryPlane( averagedNormal, posOldVrt );
+				vecShiftedPlaneDescript.push_back(averagedBoundaryPlane);
+
+				if( vecPlaneFracDescr.size() == 1 )
+				{
+					// behave as if we would have one boundary and thus need one additional artificial normal
 
 					vector3 artificialNormal;
-					VecCross( artificialNormal, vecShiftedPlaneDescript[0].spuckNormalVector(), vecShiftedPlaneDescript[1].spuckNormalVector() );
+					VecCross( artificialNormal, vecShiftedPlaneDescript[0].spuckNormalVector(), averagedNormal );
 
 					PlaneDescriptor artificialPlane( artificialNormal, posOldVrt );
 
 					vecShiftedPlaneDescript.push_back(artificialPlane);
-
 				}
 
-
-
 			}
+
 
 		}
 
@@ -6131,8 +6252,168 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 //////////////////////////////////////////////////////////////////////////
 
+
+bool ArteExpandFracs3D::averageBndryNormals( VecPlaneDescriptor const & vecPlaneBndryDescr, vector3 & averagedNormal  )
+{
+	if( vecPlaneBndryDescr.size() == 0 )
+	{
+		UG_LOG("no boundary" << std::endl);
+		return false;
+	}
+
+	vector3 normalsSum;
+
+	for( PlaneDescriptor const & pd : vecPlaneBndryDescr )
+	{
+		vector3 const & norml = pd.spuckNormalVector();
+
+		vector3 normalsSumBefore = normalsSum;
+
+		VecAdd(normalsSum, norml, normalsSumBefore );
+	}
+
+	VecScale( averagedNormal, normalsSum, static_cast<number>(vecPlaneBndryDescr.size()) );
+
+	return true;
+
+}
+
+
+///////////////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::testIfNewPointsSqueezeVolumes( ArteExpandFracs3D::SegmentLimitingSides & segmLimSides,
+		ArteExpandFracs3D::VecPlaneDescriptor const & vecShiftedPlaneDescript )
+{
+	// TODO FIXME test if the new points might squeeze the volumes
+
+	UG_LOG("TEST POINTS BEGIN " << std::endl);
+
+	bool notViolated = true;
+
+	IndexType debugSubs = m_sh.num_subsets();
+
+	Vertex * oldVrt = segmLimSides.spuckVertex();
+	vector3 posOldVrt = m_aaPos[oldVrt];
+
+	vector3 posTestVertex;
+
+	std::vector<Edge*> vecEdgesOfSegVols;
+
+	if( ! segmLimSides.spuckListLowdimElmsOfVols( vecEdgesOfSegVols, m_grid ) )
+	{
+		UG_LOG("which attached edges? " << std::endl);
+		UG_LOG("which attached edges? " << std::endl);
+	}
+
+	if( vecEdgesOfSegVols.size() == 0 )
+	{
+		UG_LOG("NO EDGES" << std::endl);
+	}
+
+	std::vector<Volume*> attVols;
+
+	segmLimSides.spuckVecFulldimElem(attVols);
+
+	if( attVols.size() == 0 )
+	{
+		UG_LOG("NO VOLS " << std::endl);
+	}
+
+	UG_LOG("TEST POINTS MIDDLE " << notViolated << std::endl);
+
+
+	for( PlaneDescriptor const & shiftedPlane : vecShiftedPlaneDescript )
+	{
+		std::vector<Edge *> manifoldEdges;
+
+		if( ! shiftedPlane.spuckLowDimElms(manifoldEdges) )
+		{
+			UG_LOG("NO MANIFOLD EDGED OF PLANE " << std::endl);
+			UG_THROW("NO MANIFOLD EDGED OF PLANE " << std::endl);
+		}
+
+		// TODO FIXME nur die Edges, die NICHT zur Basis-Ebene gehören, die, die zur Mannigfaltigkeit
+		// gehören, die expandiert wird, müssen raus gefiltert werden!!!!!
+		for( Edge * testEdge : vecEdgesOfSegVols )
+		{
+//			if( ! testEdge )
+//				continue;
+
+			// test if testEdge belongs to the allowed Edges
+
+			bool isManifEdg = false;
+
+			for( Edge * me : manifoldEdges )
+			{
+				if( me == testEdge )
+				{
+					isManifEdg = true;
+					UG_LOG("Test edge is manifold edge" << std::endl);
+					continue;
+				}
+
+				// if edge belongs to manifold, it must not be considered!!!
+			}
+
+			if( isManifEdg )
+				continue;
+
+			UG_LOG("TESTING CROSS POINT " << notViolated << std::endl);
+
+			// abuse of the compute cross point function originally developped for ending crossing cleft purposes
+			if( ! computeCrossPointOfPlaneWithLine( shiftedPlane, testEdge, oldVrt, posTestVertex ) )
+			{
+				UG_LOG("CAUTION: shifting cross point along test procedure cleft edge might break volumes " << std::endl);
+
+				notViolated = false;
+
+				UG_LOG("DEBUGGING WITH SUDO " << debugSubs << std::endl );
+
+//				return false;
+
+				for( IndexType i = 0; i < 2; i++ )
+				{
+					Vertex * testVertex = testEdge->vertex(i);
+
+					if( testVertex != oldVrt )
+					{
+						addElem( m_vrtcsViolatingExpansion, testVertex );
+						break;
+					}
+				}
+
+				for( Volume * vol : attVols )
+				{
+					if( VolumeContains( vol, testEdge ))
+					{
+						addElem(m_volsViolatingExpansion, vol);
+						m_sh.assign_subset( vol, debugSubs );
+						UG_LOG("CAUTION quenched volume, assigning debug subset " << debugSubs
+								<< " for vol with center " << CalculateCenter( vol, m_aaPos )
+								<< " for fracture subdomain " << shiftedPlane.spuckSudo() << std::endl);
+					}
+				}
+
+			}
+
+		}
+
+	}
+
+	UG_LOG("TEST POINTS END " << notViolated << " of " << true << " " << false << std::endl);
+
+
+	return true;
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+
 bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const & shiftedPlane, Edge * const & shiftDirectionEdg, Vertex * const & oldVrt, vector3 & posCrossingPt )
 {
+	UG_LOG("computing cross point start " << std::endl);
+
 	vector3 const & normalShiftedPlane = shiftedPlane.spuckNormalVector();
 	vector3 const & baseShiftedPlane = shiftedPlane.spuckBaseVector();
 	number const & rhs = shiftedPlane.spuckRHS();
@@ -6147,6 +6428,8 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 	}
 
 	vector3 posOldVrt = m_aaPos[oldVrt];
+
+	UG_LOG("Pos old vertex CCP " << posOldVrt << std::endl);
 
 	vector3 const & shiftVecBase = posOldVrt;
 
@@ -6173,16 +6456,37 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 
 	VecSubtract(directionVec, shiftVecEnd, posOldVrt );
 
-	// x = aufpunkt + s * richtung einsetzen in ( x - x_0 ) * n = 0, auflösen nach r
+	UG_LOG("SHIVEEND " << shiftVecEnd << std::endl);
+	UG_LOG("POS OLD " << posOldVrt << std::endl);
+
+
+	// x = aufpunkt + s . r
+	// richtung einsetzen in ( x - x_0 ) * n = 0, auflösen nach s
+	// . gilt als Skalarprodukt, * als Kreuzprodukt hier in Notation
 	// x*n = rhs = x_0*n
 	// ( a + s . r -x0 ) * n = 0
 	// a * n + s . n * r - x0*n = 0
 	// s . ( n * r ) = x0 * n - a * n
+	// "Normallfall": n*r != 0
+	// dann gilt
 	// s = ( x0*n - a*n ) / ( n*r )
+	// Spezialfall: n*r = 0 dann, wenn Richtungsvektor Gerade und Normalenvektor Ebene übereinstimmen
+	// also wenn Verschiebung entlang der Normalen
+	// dann ist (x0-a) parallel zu n bzw r, dann ist die Frage, was für ein Vielfaches von r ist (x0-a)
+	// also a + s . r - x0 = 0 auflösen nach s
+	// s . r = x0 - a , muss auch für den Betrag gelten
+	// also s | r | = | x_0 - a |
+	// also s = | x_0 - a | / | r |
 
 	number planeBaseMultNormal = VecDot(baseShiftedPlane,normalShiftedPlane);
 	number lineBaseMultNormal = VecDot(posOldVrt,normalShiftedPlane);
 	number lineDirMultNormal = VecDot( directionVec, normalShiftedPlane );
+
+	UG_LOG("base shift plane " << baseShiftedPlane << std::endl);
+	UG_LOG("normal shift plane " << normalShiftedPlane << std::endl);
+	UG_LOG("pos Old " << posOldVrt << std::endl);
+	UG_LOG("direction " << directionVec << std::endl);
+
 
 	UG_LOG("COMPARE RHS AND LBMN " << rhs << " - " << planeBaseMultNormal << std::endl);
 
@@ -6198,19 +6502,90 @@ bool ArteExpandFracs3D::computeCrossPointOfPlaneWithLine( PlaneDescriptor const 
 		UG_THROW("RELATIVE DIFF TOO BIG " << std::endl);
 	}
 
+	number moveAlongLine = 0;
+
 	if( lineDirMultNormal == 0. )
 	{
-		UG_THROW("denominator zero division " << std::endl);
-		UG_LOG("denominator zero division " << std::endl);
+		UG_LOG("SHIFT denominator zero division " << std::endl);
+//		UG_THROW("denominator zero division " << std::endl);
+
+		vector3 connectNewAndOldBase;
+		VecSubtract(connectNewAndOldBase, baseShiftedPlane, posOldVrt );
+
+		// Test also if the connection vector parallel to normalShiftedPlane and directionVec
+
+		number testParallShiftPlan = std::fabs( VecDot( connectNewAndOldBase, normalShiftedPlane ) );
+		number testParallDirVec = std::fabs( VecDot( connectNewAndOldBase, directionVec ) );
+
+		if( testParallDirVec > d_toler || testParallDirVec > d_toler )
+		{
+			UG_LOG("VECTORS PARALLEL AND NOT " << std::endl);
+			UG_THROW("VECTORS PARALLEL AND NOT " << std::endl);
+		}
+
+		number lengthDirVec = VecLength(directionVec);
+		number lengthConnVec = VecLength(connectNewAndOldBase);
+
+		moveAlongLine = lengthConnVec / lengthDirVec;
+
+		UG_LOG("MONULL " << lengthConnVec << " " << lengthDirVec << std::endl );
+	}
+	else
+	{
+		moveAlongLine = ( planeBaseMultNormal - lineBaseMultNormal ) / lineDirMultNormal;
+
+		UG_LOG("MOAL  " << planeBaseMultNormal << " " <<  lineBaseMultNormal << " " <<  lineDirMultNormal << std::endl );
 	}
 
-	number moveAlongLine = ( planeBaseMultNormal - lineBaseMultNormal ) / lineDirMultNormal;
+	if( moveAlongLine == 0. )
+	{
+		UG_LOG("No Moving?" << std::endl);
+		UG_THROW("No Moving?" << std::endl);
+	}
 
 	vector3 shiftAlongLine;
 
 	VecScale( shiftAlongLine, directionVec, moveAlongLine );
 
+	UG_LOG("SHIFT " << shiftAlongLine << " Dir " << directionVec << " MOV " << moveAlongLine << std::endl );
+
 	VecAdd( posCrossingPt, posOldVrt, shiftAlongLine );
+
+//	m_allowedSqueeze = 0.8;
+
+//	UG_LOG("MOVING " << moveAlongLine << std::endl);
+
+	// falsch bei ending crossing cleft Verschiebung u.U. , zweiten Parameter dazu zur Unterscheidung?
+	// Vertex erzeugen wenn Problem an der Stelle? um zu sehen, wo es hin will?
+	if( moveAlongLine > m_allowedSqueeze )
+	{
+		UG_LOG("MOVING ALONG LINE TOO BIG C " << posCrossingPt << " Old " << posOldVrt << " move " << shiftAlongLine << std::endl);
+
+		// create debug vertex at position of crossing point
+
+		Vertex * dbgVrtx = *m_grid.create<RegularVertex>();
+
+		m_aaPos[dbgVrtx] = posCrossingPt;
+
+		IndexType strangeSubs = m_sh.num_subsets();
+
+		m_sh.assign_subset(dbgVrtx, strangeSubs);
+
+		m_sh.assign_subset( shiftDirectionEdg, strangeSubs );
+//		m_sh.assign_subset( shiftDirectionEdg, m_sh.num_subsets() );
+
+		m_sh.assign_subset( shiftDirectionEdg->vertex(0), strangeSubs );
+		m_sh.assign_subset( shiftDirectionEdg->vertex(1), strangeSubs );
+		m_sh.assign_subset( oldVrt, strangeSubs );
+
+
+		UG_LOG("computing cross point end false " << std::endl);
+
+		return false;
+	}
+
+	UG_LOG("computing cross point end true " << std::endl);
+
 
 	return true;
 
