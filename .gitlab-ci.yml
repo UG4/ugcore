@@ -67,9 +67,14 @@ build-and-test:
     - ./bin/testsuite --build-info=yes --log_level=all --log_format=JUNIT --log_sink=report.xml -- --name report
     - |
       if [[ "$UG_WITH_CODE_COVERAGE" == "GCOV" ]]; then
+        mkdir reports
         lcov --capture --directory . --output-file $UG_LCOV_FILE --ignore-errors gcov,source,mismatch
-        #lcov --remove $LCOV_OUTPUT_FILE '/usr/*' --output-file $UG_LCOV_FILE
-        #lcov --list $UG_LCOV_FILE
+        lcov --remove $UG_LCOV_FILE '/usr/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
+        lcov --remove $UG_LCOV_FILE '*/externals/BoostForUG4/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
+        lcov --remove $UG_LCOV_FILE '*/apps/unit_tests/src/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
+        lcov --list $UG_LCOV_FILE > reports/lcov.txt
+        genhtml coverage.info --output-directory reports/html
+        mv $UG_LCOV_FILE reports
       fi
     - mv ug_test_numprocs_1.log test.log
   artifacts:
@@ -81,7 +86,7 @@ build-and-test:
       # - $UG4_NEW_DIR/lib/*
       - $UG4_NEW_DIR/bin/*
       - $UG4_NEW_DIR/bin/plugins/*
-      - $UG4_NEW_DIR/$UG_LCOV_FILE
+      - $UG4_NEW_DIR/reports/*
     reports:
       junit: $UG4_NEW_DIR/report.xml
 
