@@ -8,6 +8,7 @@ stages:
   - deploy
   - sync
 
+
 # TEST ug4
 build-and-test:
   stage: test
@@ -18,9 +19,15 @@ build-and-test:
       - UG_BUILD_ID: build-gcc-13
         UG_C_COMPILER: "gcc"
         UG_CXX_COMPILER: "g++"
+        UG_WITH_CODE_COVERAGE: "NONE"
+      - UG_BUILD_ID: cover-gcc-13
+        UG_C_COMPILER: "gcc"
+        UG_CXX_COMPILER: "g++"
+        UG_WITH_CODE_COVERAGE: "GCOV"
       - UG_BUILD_ID: build-clang-15
         UG_C_COMPILER: "clang-15"
         UG_CXX_COMPILER: "clang++-15"
+        UG_WITH_CODE_COVERAGE: "NONE"
   #tags:
   #  - ${PROVIDER}-${STACK}
   #environment: $PROVIDER/$STACK
@@ -28,11 +35,13 @@ build-and-test:
     UGHUB_DIR: "$CI_PROJECT_DIR/ughub"
     UG4_OLD_DIR: "$CI_PROJECT_DIR/ug4-old"
     UG4_NEW_DIR: "$CI_PROJECT_DIR/ug4-new"
+    UG_LCOV_FILE: "coverage.info"
   before_script:
     - echo "Setting up base ug4 enviroment."
     - mkdir -p $UG4_NEW_DIR/ugcore
     - mv * $UG4_NEW_DIR/ugcore || true
     - apt-get update >/dev/null && apt-get install -y python3 git cmake build-essential clang-15 >/dev/null
+    - if [[ "$UG_WITH_CODE_COVERAGE" == "GCOV" ]]; then apt-get update && apt-get install -y lcov gcovr; fi
     - cd $CI_PROJECT_DIR && git clone https://gitlab.com/ug4-project/ughub.git
     - export PATH="$PATH:$UGHUB_DIR"
     - mkdir $UG4_OLD_DIR && cd $UG4_OLD_DIR
@@ -56,6 +65,12 @@ build-and-test:
     - cd $UG4_NEW_DIR
     - source ugcore/scripts/shell/ugbash
     - ./bin/testsuite --build-info=yes --log_level=all --log_format=JUNIT --log_sink=report.xml -- --name report
+    - |
+      if [[ "$UG_WITH_CODE_COVERAGE" == "GCOV" ]]; then
+        lcov --capture --directory . --output-file $LCOV_OUTPUT_FILE
+        lcov --remove $LCOV_OUTPUT_FILE '/usr/*' --output-file $LCOV_OUTPUT_FILE
+        lcov --list $LCOV_OUTPUT_FILE
+      fi
     - mv ug_test_numprocs_1.log test.log
   artifacts:
     when: always
@@ -68,6 +83,8 @@ build-and-test:
       - $UG4_NEW_DIR/bin/plugins/*
     reports:
       junit: $UG4_NEW_DIR/report.xml
+
+# BUILD coverage
 
 # BUILD sources on various platforms and compilers
 deploy-docker:
