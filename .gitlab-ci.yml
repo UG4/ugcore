@@ -69,11 +69,11 @@ build-and-test:
       if [[ "$UG_WITH_CODE_COVERAGE" == "GCOV" ]]; then
         mkdir reports
         lcov --capture --directory . --output-file $UG_LCOV_FILE --ignore-errors gcov,source,mismatch
-        lcov --remove $UG_LCOV_FILE '/usr/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
-        lcov --remove $UG_LCOV_FILE '*/externals/BoostForUG4/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
-        lcov --remove $UG_LCOV_FILE '*/apps/unit_tests/src/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
-        lcov --list $UG_LCOV_FILE > reports/lcov.txt
-        genhtml coverage.info --output-directory reports/html
+        #lcov --remove $UG_LCOV_FILE '/usr/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
+        #lcov --remove $UG_LCOV_FILE '*/externals/BoostForUG4/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
+        #lcov --remove $UG_LCOV_FILE '*/apps/unit_tests/src/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
+        #lcov --list $UG_LCOV_FILE > reports/lcov.txt
+        #genhtml coverage.info --output-directory reports/html
         mv $UG_LCOV_FILE reports
       fi
     - mv ug_test_numprocs_1.log test.log
@@ -81,6 +81,7 @@ build-and-test:
     when: always
     expire_in: 1 week
     paths:
+      - $UG4_NEW_DIR/*
       - $UG4_NEW_DIR/report.xml
       - $UG4_NEW_DIR/test.log
       # - $UG4_NEW_DIR/lib/*
