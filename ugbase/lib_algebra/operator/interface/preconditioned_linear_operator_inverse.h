@@ -83,7 +83,7 @@ class IPreconditionedLinearOperatorInverse
 	public:
 	///	Empty constructor
 		IPreconditionedLinearOperatorInverse()
-			: m_bRecompute(false), m_spPrecond(NULL)
+			: m_bRecompute(false), m_spPrecond(nullptr)
 #ifdef DEBUG_FOR_AMG
 , m_amgDebug(0)
 #endif

@@ -58,7 +58,7 @@ public:
 
 	public:
 
-		UserVectorEntryAdapter() :  m_index(0), m_spEncaps(NULL)
+		UserVectorEntryAdapter() :  m_index(0), m_spEncaps(nullptr)
 		{
 			this->set_num_input(_INPUT_+1); //	this linker has one inoput
 		}

@@ -123,11 +123,11 @@ CreateOctree(vector3* points, size_t numPoints,
 {
 //	if there are no elements, we'll return an empty node
 	if(numElemInds == 0)
-		return SPCollisionTreeRootNode(NULL);
+		return SPCollisionTreeRootNode(nullptr);
 		
 //	if the number of indices per elements is not right, we'll return, too.
 	if(numIndsPerElem < 2 || numIndsPerElem > 3)
-		return SPCollisionTreeRootNode(NULL);
+		return SPCollisionTreeRootNode(nullptr);
 
 //	calculate the bounding-box of the tree
 	vector3 boxMin, boxMax;
