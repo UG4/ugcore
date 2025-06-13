@@ -117,7 +117,7 @@ pages:
     paths:
       - public
   only:
-    - main
+    - master
 
 
 # BUILD sources on various platforms and compilers
