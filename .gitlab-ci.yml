@@ -24,10 +24,10 @@ build-and-test:
         UG_C_COMPILER: "gcc"
         UG_CXX_COMPILER: "g++"
         UG_WITH_CODE_COVERAGE: "NONE"
-      #- UG_BUILD_ID: build-clang-15
-      #  UG_C_COMPILER: "clang-15"
-      #  UG_CXX_COMPILER: "clang++-15"
-      #  UG_WITH_CODE_COVERAGE: "NONE"
+      - UG_BUILD_ID: build-clang-15
+        UG_C_COMPILER: "clang-15"
+        UG_CXX_COMPILER: "clang++-15"
+        UG_WITH_CODE_COVERAGE: "NONE"
   #tags:
   #  - ${PROVIDER}-${STACK}
   #environment: $PROVIDER/$STACK
@@ -51,6 +51,7 @@ build-and-test:
     - echo "Building and testing ug4"
     # copy ug4 except for ugcore
     - cd $CI_PROJECT_DIR
+    - echo "$UG_BUILD_ID" > id.txt
     - cp --update=none -R $UG4_OLD_DIR/* $UG4_NEW_DIR
     # build ug4 in release
     - cd $UG4_NEW_DIR
@@ -79,6 +80,7 @@ build-and-test:
       fi
     - mv ug_test_numprocs_1.log test.log
   artifacts:
+    name: artifact-${UG_BUILD_ID}
     when: always
     expire_in: 1 week
     paths:
@@ -91,6 +93,32 @@ build-and-test:
       - $UG4_NEW_DIR/reports/*
     reports:
       junit: $UG4_NEW_DIR/report.xml
+
+# Deploy to gitlab pages
+pages:
+  stage: deploy
+  needs:
+    - job: build-and-test
+      artifacts: true
+      optional: true
+  script:
+    - echo "Checking for required builds..."
+    - mv coverage public  # GitLab Pages expects content in a folder named 'public'
+    - |
+      for dir in "*/; do
+      # Remove trailing slash from dir for nicer output
+      dir="${dir%/}"
+      if [[ -d "$dir/reports/html" ]]; then
+        echo "Directory '$dir' contains subdirectory 'reports'"
+        mv $dir/reports/html public
+      fi
+      done
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+
 
 # BUILD sources on various platforms and compilers
 deploy-docker:
