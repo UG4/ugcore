@@ -88,7 +88,7 @@ build-and-test:
       junit: $UG4_NEW_DIR/report.xml
       coverage_report:
         coverage_format: cobertura
-        path: reports/cobertura-coverage.xml
+        path: $UG4_NEW_DIR/reports/cobertura-coverage.xml
 
 
 
