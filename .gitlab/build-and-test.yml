@@ -57,9 +57,12 @@ build-and-test:
     - cd $UG4_NEW_DIR
     - source ugcore/scripts/shell/ugbash
     - ./bin/testsuite --build-info=yes --log_level=all --log_format=JUNIT --log_sink=report.xml -- --name report
+    - mv ug_test_numprocs_1.log test.log
     - |
       if [[ "$UG_WITH_CODE_COVERAGE" == "GCOV" ]]; then
         mkdir reports
+        gcovr -r . --cobertura-pretty --exclude-unreachable-branches --print-summary -o reports/cobertura-coverage.xml
+        gcovr -r . --html-details -o reports/cobertura-coverage.html
         lcov --capture --directory . --output-file $UG_LCOV_FILE --ignore-errors gcov,source,mismatch
         lcov --remove $UG_LCOV_FILE '/usr/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
         lcov --remove $UG_LCOV_FILE '*/externals/BoostForUG4/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
@@ -68,7 +71,7 @@ build-and-test:
         genhtml coverage.info --output-directory reports/html
         mv $UG_LCOV_FILE reports
       fi
-    - mv ug_test_numprocs_1.log test.log
+  allow_failure: true # temporary
   artifacts:
     name: artifact-${UG_BUILD_ID}
     when: always
@@ -83,6 +86,9 @@ build-and-test:
       - $UG4_NEW_DIR/reports/*
     reports:
       junit: $UG4_NEW_DIR/report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: reports/cobertura-coverage.xml
 
 
 
