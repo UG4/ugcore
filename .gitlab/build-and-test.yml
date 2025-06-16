@@ -61,8 +61,8 @@ build-and-test:
     - |
       if [[ "$UG_WITH_CODE_COVERAGE" == "GCOV" ]]; then
         mkdir reports
-        gcovr -r . --cobertura-pretty --exclude-unreachable-branches --print-summary -o reports/cobertura-coverage.xml
-        gcovr -r . --html-details -o reports/cobertura-coverage.html
+        gcovr -r . --cobertura-pretty --exclude-unreachable-branches --gcov-exclude-directories 'apps/unit_tests' --gcov-exclude-directories 'externals/BoostForUG4' --print-summary -o reports/cobertura-coverage.xml
+        gcovr -r . --gcov-exclude-directories 'apps/unit_tests' --gcov-exclude-directories 'externals/BoostForUG4' --html-details -o reports/cobertura-coverage.html
         lcov --capture --directory . --output-file $UG_LCOV_FILE --ignore-errors gcov,source,mismatch
         lcov --remove $UG_LCOV_FILE '/usr/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
         lcov --remove $UG_LCOV_FILE '*/externals/BoostForUG4/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
