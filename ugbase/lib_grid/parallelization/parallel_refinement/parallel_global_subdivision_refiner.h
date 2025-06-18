@@ -33,12 +33,10 @@
 #ifndef __H__LIB_GRID__PARALLEL_GLOBAL_SUBDIVISION_REFINER__
 #define __H__LIB_GRID__PARALLEL_GLOBAL_SUBDIVISION_REFINER__
 
-#include "../distributed_grid.h"
 #include "lib_grid/refinement/global_subdivision_multi_grid_refiner.h"
 #include "parallel_global_refiner_t.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup lib_grid_parallelization_refinement
 /// @{
@@ -48,16 +46,18 @@ template <class TAPosition>
 class ParallelGlobalSubdivisionRefiner : public TParallelGlobalRefiner<GlobalSubdivisionMultiGridRefiner<TAPosition> >
 {
 	public:
-		ParallelGlobalSubdivisionRefiner(DistributedGridManager& distGridMgr,
+		explicit ParallelGlobalSubdivisionRefiner(DistributedGridManager& distGridMgr,
 											SPRefinementProjector projector = SPNULL);
-		virtual ~ParallelGlobalSubdivisionRefiner();
+
+		~ParallelGlobalSubdivisionRefiner() override = default;
 
 	protected:
-		virtual void refinement_step_ends();
+		void refinement_step_ends() override;
 };
 
 /// @}
 }//	end of namespace
 
+#include "parallel_global_subdivision_refiner_impl.h"
 
 #endif

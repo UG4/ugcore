@@ -29,12 +29,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
+#ifndef UGCORE_LIBGRID_PARALLEL_REFINEMENT_GLOBAL_SUBDIVISION_REFINER_IMPL_H
+#define UGCORE_LIBGRID_PARALLEL_REFINEMENT_GLOBAL_SUBDIVISION_REFINER_IMPL_H
 
-#include <vector>
+// #include <vector>
 #include "parallel_global_subdivision_refiner.h"
 
-namespace ug
-{
+namespace ug {
 
 template <class TAPosition>
 ParallelGlobalSubdivisionRefiner<TAPosition>::
@@ -43,11 +44,7 @@ ParallelGlobalSubdivisionRefiner(DistributedGridManager& distGridMgr, SPRefineme
 {
 }
 
-template <class TAPosition>
-ParallelGlobalSubdivisionRefiner<TAPosition>::
-~ParallelGlobalSubdivisionRefiner()
-{
-}
+
 
 template <class TAPosition>
 void ParallelGlobalSubdivisionRefiner<TAPosition>::
@@ -62,3 +59,5 @@ refinement_step_ends()
 
 
 }//	end of namespace
+
+#endif
