@@ -36,6 +36,7 @@
 #include "bindings/lua/lua_stack_check.h"
 #include "bindings/lua/info_commands.h"
 #include "common/util/file_util.h"
+#include "common/util/path_provider.h"
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
