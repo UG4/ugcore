@@ -93,10 +93,10 @@ struct RegisterDomainAlgebraDependent
 };
 
 
-template <	typename Functionality, typename AlgebraList = CompileAlgebraList>
+template <	typename Functionality, typename AlgebraList = CompileAlgebraList, typename TRegistry=Registry>
 struct RegisterDomain1dAlgebraDependent
 {
-	RegisterDomain1dAlgebraDependent(Registry& reg, std::string grp)
+	RegisterDomain1dAlgebraDependent(TRegistry& reg, std::string grp)
 	{
 #ifdef UG_DIM_1
 		RegisterDomainAlgebraDependent<Functionality, boost::mpl::list<Domain1d>, AlgebraList>(reg, grp);
@@ -104,10 +104,10 @@ struct RegisterDomain1dAlgebraDependent
 	}
 };
 
-template <	typename Functionality, typename AlgebraList = CompileAlgebraList>
+template <	typename Functionality, typename AlgebraList = CompileAlgebraList, typename TRegistry=Registry>
 struct RegisterDomain2dAlgebraDependent
 {
-	RegisterDomain2dAlgebraDependent(Registry& reg, std::string grp)
+	RegisterDomain2dAlgebraDependent(TRegistry& reg, std::string grp)
 	{
 #ifdef UG_DIM_2
 		RegisterDomainAlgebraDependent<Functionality, boost::mpl::list<Domain2d>, AlgebraList>(reg, grp);
@@ -116,10 +116,10 @@ struct RegisterDomain2dAlgebraDependent
 };
 
 
-template <	typename Functionality,	typename AlgebraList = CompileAlgebraList>
+template <	typename Functionality,	typename AlgebraList = CompileAlgebraList, typename TRegistry=Registry>
 struct RegisterDomain3dAlgebraDependent
 {
-	RegisterDomain3dAlgebraDependent(Registry& reg, std::string grp)
+	RegisterDomain3dAlgebraDependent(TRegistry& reg, std::string grp)
 	{
 #ifdef UG_DIM_3
 		RegisterDomainAlgebraDependent<Functionality, boost::mpl::list<Domain3d>, AlgebraList>(reg, grp);
@@ -127,13 +127,13 @@ struct RegisterDomain3dAlgebraDependent
 	}
 };
 
-template <	typename Functionality,	typename AlgebraList = CompileAlgebraList>
+template <	typename Functionality,	typename AlgebraList = CompileAlgebraList, typename TRegistry=Registry>
 struct RegisterDomain2d3dAlgebraDependent
 {
-	RegisterDomain2d3dAlgebraDependent(Registry& reg, std::string grp)
+	RegisterDomain2d3dAlgebraDependent(TRegistry& reg, std::string grp)
 	{
-		RegisterDomain2dAlgebraDependent<Functionality, AlgebraList>(reg, grp);
-		RegisterDomain3dAlgebraDependent<Functionality, AlgebraList>(reg, grp);
+		RegisterDomain2dAlgebraDependent<Functionality, AlgebraList, TRegistry>(reg, grp);
+		RegisterDomain3dAlgebraDependent<Functionality, AlgebraList, TRegistry>(reg, grp);
 	}
 };
 
