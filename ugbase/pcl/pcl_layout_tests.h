@@ -145,7 +145,7 @@ bool TestLayoutIsDoubleEnded(const pcl::ProcessCommunicator processCommunicator,
 	return true;
 }
 
-/// if processor P1 has a interface to P2, then the size of the interface P1->P2 has to be the same as the size of interface P2->P1
+/// if processor P1 has an interface to P2, then the size of the interface P1->P2 has to be the same as the size of interface P2->P1
 /**	You may specify a callback, which allows to print not the elements in the
  * interfaces directly, but to print associated values. This is useful, if e.g.
  * pointers are stored in the layouts.

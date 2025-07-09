@@ -83,7 +83,7 @@ double Time();
 ///	sends data to another process. data may be received using \sa ReceiveData or \sa CollectData.
 void SendData(ProcID destProc, void* pBuffer, int bufferSize, int tag);
 
-///	receives the data that was send with \sa SendData or \sa DistributeData.
+///	receives the data that was sent with \sa SendData or \sa DistributeData.
 void ReceiveData(void* pBuffOut, ProcID srcProc, int bufferSize, int tag);
 
 ///	collect the data send with send_data from proc firstSendProc to numSendProcs excluding destProc.
@@ -115,7 +115,7 @@ void DistributeData(ProcID thisProcID, int* pRecProcMap, int numRecProcs,
 /**
  * Both, sendBuf and recBuf have to hold count elements of the specified type.
  * \param sendBuf	Sending buffer
- * \param recBuf	Recieve buffer
+ * \param recBuf	Receiving buffer
  * \param count
  * \param type		Data type
  * \param op has to be one of the

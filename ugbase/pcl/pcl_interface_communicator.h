@@ -82,13 +82,13 @@ class InterfaceCommunicator
 	//	SEND
 	
 	///	sends raw data to a target-proc.
-	/**	Shedules the data in pBuff to be sent to the target-proc
+	/**	Schedules the data in pBuff to be sent to the target-proc
 	 *	pBuff can be reused or cleared directly after the call returns.
 	 *
 	 *	Data sent with this method can be received using receive_raw.
 	 *
 	 *	Please note that this method should only be used if custom data
-	 *	should be send in a block with data that is communicated through
+	 *	should be sent in a block with data that is communicated through
 	 *	interfaces, since an additional copy-operation at the target process
 	 *	has to be performed.
 	 *	If you're only interested in sending raw data, you should take a
@@ -97,21 +97,21 @@ class InterfaceCommunicator
 		void send_raw(int targetProc, const void* pBuff, int bufferSize,
 					  bool bSizeKnownAtTarget = false);
 
-	///	collects data that will be send during communicate.
+	///	collects data that will be sent during communicate.
 	/**	Calls ICommunicationPolicy<TLayout>::collect with the specified
 	 *	interface and the binary stream that is associated with the
 	 *	specified target process.
-	 *	Note that data will not be send until communicate has been called.
+	 *	Note that data will not be sent until communicate has been called.
 	 *	\sa receive_data, exchange_data*/
 		void send_data(int targetProc,
 					   const Interface& interface,
 					   ICommunicationPolicy<TLayout>& commPol);
 
-	///	collects data that will be send during communicate.
+	///	collects data that will be sent during communicate.
 	/**	Calls ICommunicationPolicy<TLayout>::collect with the specified
 	 *	layout and the binary stream that is associated with the
 	 *	layouts target processes.
-	 *	Note that data will not be send until communicate has been called.
+	 *	Note that data will not be sent until communicate has been called.
 	 *	\sa receive_data, exchange_data*/
 		void send_data(const Layout& layout,
 					   ICommunicationPolicy<TLayout>& commPol);
@@ -129,7 +129,7 @@ class InterfaceCommunicator
 	 *	executed.
 	 *
 	 *	Please note that this method should only be used if custom data
-	 *	should be send in a block with data that is communicated through
+	 *	should be sent in a block with data that is communicated through
 	 *	interfaces, since an additional copy-operation has to be performed.
 	 *	If you're only interested in sending raw data, you should take a
 	 *	look into pcl::ProcessCommunicator::receive.
@@ -147,7 +147,7 @@ class InterfaceCommunicator
 	 *	communicate has been executed.
 	 *
 	 *	Please note that this method should only be used if custom data
-	 *	should be send in a block with data that is communicated through
+	 *	should be sent in a block with data that is communicated through
 	 *	interfaces, since an additional copy-operation has to be performed.
 	 *	If you're only interested in sending raw data, you should take a
 	 *	look into pcl::ProcessCommunicator::receive.
@@ -190,7 +190,7 @@ class InterfaceCommunicator
 	 *
 	 *	The methods will only be called with type InterfaceCommunicator::Type. 
 	 *
-	 *	This method is particularily useful if you categorize layouts on a
+	 *	This method is particularly useful if you categorize layouts on a
 	 *	process. If you separate your layouts into master and slave layouts,
 	 *	you could use this method e.g. to copy data from all master-layouts
 	 *	to all slave-layouts of a type with a single call.*/
@@ -201,7 +201,7 @@ class InterfaceCommunicator
 						   ICommunicationPolicy<TLayout>& commPol);
 	
 	///	sends and receives the collected data.
-	/**	The collected data will be send to the associated processes.
+	/**	The collected data will be sent to the associated processes.
 	 *	The extract routines of the communication-policies which were registered
 	 *	through Communicator::receive_data will be called with the received
 	 *	data. After all received data is processed, the communication-policies are
@@ -227,7 +227,7 @@ class InterfaceCommunicator
 	 * 			while communication is performed.
 	 * \note	A call to communicate_and_resume() has to be followed by a call to wait().
 	 * 			You may not call communicate_and_resume() twice on a single communicator
-	 * 			without callin wait() in between.
+	 * 			without calling wait() in between.
 	 * \param tag	For internal communications the provided tag is used. The
 	 *				default value is fine in most cases and normally only has to be
 	 *				adjusted if one performs multiple communications at the same time
@@ -301,7 +301,7 @@ class InterfaceCommunicator
 	/**	The given map holds pairs of procID, bufferSize
 	 *	If buffer-sizes can't be determined, false is returned.
 	 *	if pMmapBuffSizesOut == NULL, the method will simply determine
-	 *	whether all buffersizes can be calculated.*/
+	 *	whether all buffer sizes can be calculated.*/
 	 	bool collect_layout_buffer_sizes(const TLayout& layout,
 										 ICommunicationPolicy<TLayout>& commPol,
 										 std::map<int, int>* pMapBuffSizesOut,
@@ -311,7 +311,7 @@ class InterfaceCommunicator
 	/**	The given map holds pairs of procID, bufferSize
 	 *	If buffer-sizes can't be determined, false is returned.
 	 *	if pMmapBuffSizesOut == NULL, the method will simply determine
-	 *	whether all buffersizes can be calculated.*/
+	 *	whether all buffer sizes can be calculated.*/
 	 	bool collect_layout_buffer_sizes(const TLayout& layout,
 										 ICommunicationPolicy<TLayout>& commPol,
 										 std::map<int, int>* pMapBuffSizesOut,
@@ -333,7 +333,7 @@ class InterfaceCommunicator
 	///	holds information that will be passed to the extract routines.
 	/**	if srcProc == -1, the layout will be used for extraction.
 	 *	if srcProc >= 0, either the buffer, the binaryStream or the
-	 *	interace will be used for extraction, depending on which is
+	 *	interface will be used for extraction, depending on which is
 	 *	not NULL.
 	 */
 		struct ExtractorInfo

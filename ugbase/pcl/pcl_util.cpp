@@ -154,7 +154,7 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 			if(vGlobalProcList[vDisplacements[i] + j] == localProcRank)
 			{
 				vReceiveFromRanksOut.push_back(procComm.get_proc_id(i));
-			//	the j-th proc is handled completly. resume with the next.
+			//	the j-th proc is handled completely. resume with the next.
 				break;
 			}
 		}
@@ -169,7 +169,7 @@ bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
 						const ProcessCommunicator& involvedProcs)
 {
 	PCL_PROFILE_FUNC();
-//	we overwrite some data in recvFrom - thats why we need a copy
+//	we overwrite some data in recvFrom - that's why we need a copy
 	std::vector<int> recvFrom = recvFromTmp;
 	
 //	make sure that all processes know, who is sending data to them

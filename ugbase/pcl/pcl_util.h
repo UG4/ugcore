@@ -119,7 +119,7 @@ bool RemoveUnselectedInterfaceEntries(TLayout& layout, TSelector& sel)
 //	iterate over all interfaces of the layout.
 //	for each we'll create a new one, into which elements selected
 //	elements will be inserted.
-//	Finally we'll swap the content of the those interfaces.
+//	Finally, we'll swap the content of the those interfaces.
 //	if the interface is empty at the end of the operation, it will be
 //	removed from the layout.
 	bool retVal = false;
@@ -326,9 +326,9 @@ void AddLayout(TLayout &destLayout, const TLayout &sourceLayout)
 /** \sa ReadFile in serial
  * \param filename filename (in/out!)
  * \param file the file
- * \param if true, use r instead of rb for file functions
+ * \param bText if true, use r instead of rb for file functions
  * \param bDistributedLoad if false, just use ReadFile.
- * \param rank which should open files.
+ * \param pc rank which should open files.
  * core with rank pc.get_proc_id(0) reads this filename. status, filename, and file are transmitted to other cores
  * \return false on all cores if
  */

@@ -99,7 +99,7 @@ send_data(const Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
 	PCL_PROFILE(pcl_IntCom_send_layout_data);
 	if(!layout.empty()){
-	//	through the the category_tag we're able to find the correct send method.
+	//	through the category_tag we're able to find the correct send method.
 		send_data(layout, commPol, typename TLayout::category_tag());
 	}
 }
@@ -557,7 +557,7 @@ communicate_and_resume(int tag)
 		int counter;
 		std::vector<int> streamSizes;
 
-	//	shedule receives first
+	//	schedule receives first
 		counter = 0;
 		for(std::set<int>::iterator iter = m_curInProcs.begin();
 			iter != m_curInProcs.end(); ++iter, ++counter)
@@ -585,7 +585,7 @@ communicate_and_resume(int tag)
 		Waitall(m_vReceiveRequests, m_vSendRequests);
 	}
 
-//	we can now resize the receive buffers to their final sizes
+//	we can now resize the received buffers to their final sizes
 	{
 		PCL_PROFILE(pcl_IntCom_communicate_resizeRecvBufs);
 		size_t counter = 0;

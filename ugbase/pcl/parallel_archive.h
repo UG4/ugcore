@@ -59,7 +59,7 @@ struct FileBufferDescriptor
 	{	}
 
 	// Initializing buf with buf.str().c_str() is unsafe, as _buf.str() is only temporary.
-	// Therefore commenting out (not used anywhere anyhow).
+	// Therefore, commenting out (not used anywhere anyhow).
 	//FileBufferDescriptor(std::string _name, std::stringstream& _buf) :
 	//				name(_name), buf(_buf.str().c_str()), size(_buf.str().length())
 	//{	}
@@ -82,13 +82,14 @@ void WriteParallelArchive(pcl::ProcessCommunicator &pc, std::string strFilename,
 }
 
 /**
- * This class creates one .a archive out of several parallel file writes
+ * This class creates one `.a` archive out of several parallel file writes.
+ *
  * This has two advantages
  * 1. Instead of writing 1024 files for 1024 cores, this writes 1 file
  * 2. It uses MPI I/O, which will be a LOT faster when number of cores are high
  *
  * For extracting the archive use
- *   ar x thefile.a
+ *   `ar x filename.a`
  *
  * Example usage:
  * \code
@@ -220,7 +221,7 @@ public:
 	/**
 	 * add raw buffer descriptors (see FileBufferDescriptor)
 	 * NOTE: be sure all data/pointers are valid until ::write is called
-	 * NOTE: You HAVE to use ParallelArchive::write explicitely
+	 * NOTE: You HAVE to use ParallelArchive::write explicitly
 	 * using deconstructors is UNSAFE since data can be deconstructed before ParallelArchive.
 	 * @param f
 	 */
@@ -231,7 +232,7 @@ public:
 	}
 
 	/**
-	 * explicitely writes the data
+	 * explicitly writes the data
 	 * NOTE: Communication happens here.
 	 */
 	void write()

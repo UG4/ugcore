@@ -124,7 +124,7 @@ create_sub_communicator(bool participate) const
 	UG_COND_THROW(is_local(), "not available");
 	PCL_PROFILE(pcl_ProcCom_create_sub_com__participate);
 
-//	if the current communicator is empty theres nothing to do
+//	if the current communicator is empty there is nothing to do
 	if(empty())
 		return ProcessCommunicator(PCD_EMPTY);
 
@@ -166,7 +166,7 @@ create_sub_communicator(bool participate) const
 	newProcs.reserve(size);
 
 	// note: ranks are ranks in the (group!) communicator m_comm->m_mpiComm
-	// since we building the new group relative to the old,
+	// since we're building the new group relative to the old,
 	// we add to newProcs the group ranks
 	// these are NOT the global ranks like in pcl::ProcRank
 	for(size_t i = 0; i < destArray.size(); ++i){
@@ -566,7 +566,7 @@ distribute_data(void* recvBufOut, int* recvBufSegSizesOut,
 	 * as indicated in recvBufferSegsizes. This small piece of code can check
 	 * whether all of it has been received.
 	 * However, in general, the MPI routines used here allow that less data is
-	 * actually received. Which is why the assert is not active by default.
+	 * actually received. Which is why the assertion is not active by default.
 	// check how much data was actually received
 	int numRcvd = 0;
 	for (int i = 0; i < numRecvs; ++i)

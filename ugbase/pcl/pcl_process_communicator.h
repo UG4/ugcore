@@ -70,7 +70,7 @@ class ProcessCommunicator
 {
 	public:
 	///	creates a communicator.
-	/**	By default a communicator for all processes is generated.*/
+	/**	By default, a communicator for all processes is generated.*/
 		ProcessCommunicator(ProcessCommunicatorDefaults pcd = PCD_WORLD);
 		
 	///	returns true if the communicator is empty, false if not.
@@ -171,7 +171,7 @@ class ProcessCommunicator
 	/**	The arrays specified in sendBuf will be copied to recBufOut
 	 * on root. recBufOut is thus only important on root. The order
 	 * of the arrays is the same as the order of the sending processes
-	 * in this ProcessCommnicator.
+	 * in this ProcessCommunicator.
 	 * You can optionally specify an array pSizesOut, which will be
 	 * filled with the size of the array that was received from each
 	 * process (only relevant on root) and an array in which the
@@ -233,7 +233,7 @@ class ProcessCommunicator
 	/**	The arrays specified in sendBuf will be copied to all processes
 	 * in the ProcessCommunicator. The order of the arrays in recBufOut
 	 * is the same as the order of the sending processes in this
-	 * ProcessCommnicator.
+	 * ProcessCommunicator.
 	 * You can optionally specify an array pSizesOut, which will be
 	 * filled with the size of the array that was received from each
 	 * process and an array in which the offsets of each array are stored -
@@ -315,7 +315,7 @@ class ProcessCommunicator
 					   pcl::ReduceOperation op) const;
 
 
-	/** performs a MPI_Bcast
+	/** performs an MPI_Bcast
 	 * @param v		pointer to data
 	 * @param size	size of data
 	 * @param type	type of data
@@ -332,7 +332,7 @@ class ProcessCommunicator
 		inline void broadcast(T *p, size_t size=1, int root=0) const;
 
 	/** Bcast for objects
-	 * @param v		object to be broadcasted (uses Serialize/Deserialize)
+	 * @param t		object to be broadcasted (uses Serialize/Deserialize)
 	 * @param root	process that distributes data (default 0)
 	 * @sa Serialize, Deserialize*/
 		template<typename T>
@@ -370,8 +370,8 @@ class ProcessCommunicator
 	 *					of pRecProcMap.
 	 *	\param pBufferSegSizes: The i-th entry holds the size of the i-th block in pBuffer.
 	 *	\param pRecProcMap: The i-th entry holds the process-rank to which the i-th
-	 *						block shall be send.
-	 *	\param numRecProcs: The number of processes to which data shall be send.
+	 *						block shall be sent.
+	 *	\param numRecProcs: The number of processes to which data shall be sent.
 	 *						Note that pBufferSegSizes and pRecProcMap have to have
 	 *						numRecProcs entries.
 	 *	\param tag: A tag that tags the message. Use the same tag in receive_data.*/
@@ -392,10 +392,10 @@ class ProcessCommunicator
 	 *						  Has to be the same as the size of pBufferOutSegSizes and
 	 *						  pSenderProcMap.
 	 *
-	 * \param pBuffer: Holds the data that is to be send to other processes.
+	 * \param pBuffer: Holds the data that is to be sent to other processes.
 	 * \param pBufferSegSizes: i-th entry corresponds to the size of the i-th
 	 *						   segment in pBuffer.
-	 * \param pRecvProcMap: ranks of processes to which data will be send.
+	 * \param pRecvProcMap: ranks of processes to which data will be sent.
 	 * \param numRecvProcs: Number of processes in pRecvProcMap. Also corresponds
 	 *						to the size of pBufferSegSizes and to the number of
 	 *						segments in pBuffer.
@@ -421,11 +421,11 @@ class ProcessCommunicator
 	 * 						this process. Has to have size numRecvFroms.
 	 * \param numRecvFroms	Specifies from how many processes this process
 	 * 						will receive data.
-	 * \param sendBuf		Contains the data which will be send to other
+	 * \param sendBuf		Contains the data which will be sent to other
 	 * 						processes. Make sure that it is big enough
 	 * 						(sum of all sendSegSizes).
 	 * \param sendSegSizes	The i-th entry corresponds to the block-size
-	 * 						which will be send to the i-th process in
+	 * 						which will be sent to the i-th process in
 	 * 						sendToRanks. Has to have size numSendTos.
 	 * \param sendToRanks	An array of process ids, which defines to where
 	 * 						data shall be sent. Has to have size numSendTos.
@@ -440,13 +440,13 @@ class ProcessCommunicator
 	/** Note that it has to communicate twice, since the buffer-sizes also
 	 * have to be communicated.
 	 *
-	 * \param recvBufs		Received data will be written to this buffers.
+	 * \param recvBufs		Received data will be written to these buffers.
 	 *						This array has to be of the size numRecvs
 	 * \param recvFromRanks	Array containing the ranks from which data
 	 * 						shall be received. Has to have size numRecvs.
 	 * \param numRecvs		Specifies from how many processes this process
 	 * 						will receive data.
-	 * \param sendBufs		Array of buffers whose data will be send to other
+	 * \param sendBufs		Array of buffers whose data will be sent to other
 	 * 						processes. Has to be of size numSends
 	 * \param sendToRanks	An array of process ids, which defines to where
 	 * 						data shall be sent. Has to have size numSends.
@@ -455,9 +455,9 @@ class ProcessCommunicator
 							 ug::BinaryBuffer* sendBufs, int* sendToRanks, int numSendTos,
 							 int tag = 1) const;
 	private:
-	///	holds an mpi-communicator.
+	///	holds an MPI-communicator.
 	/**	A variable stores whether the communicator has to be freed when the
-	 *	the wrapper is deleted.*/
+	 *	 wrapper is deleted.*/
 		struct CommWrapper{
 		///	initializes the commWrapper with PCL_COMM_WORLD
 			CommWrapper();

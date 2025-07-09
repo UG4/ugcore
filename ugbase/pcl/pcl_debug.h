@@ -84,7 +84,7 @@ void LogLayoutStructure(TLayout& layout, const char* prefix = "")
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	LogLayoutMapStrucure
+//	LogLayoutMapStructure
 ///	Logs the internals of a layout-map for a given type.
 /**
  * Supported layouts are pcl::SingleLevelLayout and pcl::MultiLevelLayout.

@@ -33,7 +33,7 @@
 /**	This file defines some macros which should be used for profiling
  * the pcl. If PROFILE_PCL is defined, the profiling is executed,
  * if not, then no profiling will be done. You should enable PROFILE_PCL
- * only during code optimization, since it introduces a noticable overhead.
+ * only during code optimization, since it introduces a noticeable overhead.
  */
 
 #ifndef __H__UG__pcl_profiling__
