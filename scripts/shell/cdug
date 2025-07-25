@@ -19,12 +19,12 @@ function cdug() {
   fi
 }
 
-
-function ugupdate() {
-  cdug
-  svn update
-  cd -   
-}
+# 2025-07
+#function ugupdate() {
+#  cdug
+#  svn update
+#  cd -
+#}
 
 cdug_complete() {
   local word="${COMP_WORDS[COMP_CWORD]}"

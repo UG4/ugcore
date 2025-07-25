@@ -446,12 +446,12 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDefaultClassNameFromGroup
 
 	return (jstring) NULL;
 }
-
+/*2025-07
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getSvnRevision(JNIEnv *env,
 		jobject obj) {
 	std::string revision = ug::vrl::svnRevision();
 	return ug::vrl::stringC2J(env, revision.c_str());
-}
+}*/
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getCompileDate(JNIEnv *env,
 		jobject obj) {
