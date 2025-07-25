@@ -58,7 +58,7 @@
 //	If you changed something that requires a new version number, please contact
 //	sreiter@gcsc.uni-frankfurt.de (for the moment...)
 //	See docs/ug4/additional_pages/releases.doxygen for information on the different releases.
-std::string gUGVersionString("4.0.2");
+std::string gUGVersionString("4.25.7");
 
 
 /** Tells whether profile-output is desired on exit.*/
