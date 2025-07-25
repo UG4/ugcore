@@ -88,7 +88,6 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/extrusion/ArteExpandFracs3D.cpp
 					algorithms/extrusion/simpleMatrixOps.cpp
 					algorithms/projections/overlying_subset_finder.hpp
-					algorithms/projections/z_ray_tracer.hpp
 					refinement/projectors/projection_handler.cpp
 					refinement/projectors/smooth_projector.cpp
 					refinement/projectors/subdivision_projector.cpp
@@ -184,7 +183,8 @@ if(PARALLEL)
 							parallelization/parallel_refinement/parallel_hnode_adjuster.cpp)
 	
 else(PARALLEL)
-	set(srcParallelization	parallelization/deprecated/load_balancing.cpp
+	set(srcParallelization
+			                #2025-07 parallelization/deprecated/load_balancing.cpp # already included above
 							parallelization/parallel_grid_layout.cpp)
 endif(PARALLEL)
 

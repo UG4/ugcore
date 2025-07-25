@@ -58,7 +58,6 @@ set(infoFileName ${CMAKE_BINARY_DIR}/compile_info_vars.cpp)
 	file(WRITE ${infoFileName} 
 		"namespace ug\n"
 		"{\n"
-		"const char *UG_SVN_REVISION=\"UNKNOWN\";\n"
 		"const char *UG_GIT_REVISION=\"UNKNOWN\";\n"
 		"const char *UG_BUILD_HOST=\"UNKNOWN\";\n"
 		"const char *UG_COMPILE_DATE=\"UNKNOWN\";\n"

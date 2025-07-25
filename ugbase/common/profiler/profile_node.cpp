@@ -773,7 +773,7 @@ void WriteProfileDataXML(const char *filename, int procId)
 		f << "<!-- ug4 created profile data -->\n";
 		f << "<ProfileData>\n";
 		f << "<AdditionalInfo>\n";
-		f << "<SVNRevision>" << UGSvnRevision() << "</SVNRevision>\n";
+		//2025-07 f << "<SVNRevision>" << UGSvnRevision() << "</SVNRevision>\n";
 		f << "<BuildHostname>" << UGBuildHost() << "</BuildHostname>\n";
 		f << "<CompileDate>" << UGCompileDate() << "</CompileDate>\n";
 		f << "</AdditionalInfo>\n";

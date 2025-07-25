@@ -413,10 +413,10 @@ void SetDebugLevel(const char* strTag, int level)
 	GetLogAssistant().set_debug_level(strTag, level);
 }
 
-string GetSVNRevision()
+/*2025-07 string GetSVNRevision()
 {
 	return string(UGSvnRevision());
-}
+}*/
 
 string GetGITRevision()
 {
@@ -546,7 +546,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		
 		
 
-		reg.add_function("GetSVNRevision", &GetSVNRevision, grp);
+		//2025-07 reg.add_function("GetSVNRevision", &GetSVNRevision, grp);
 		reg.add_function("GetGITRevision", &GetGITRevision, grp);
 		reg.add_function("GetCompileDate", &GetCompileDate, grp);
 		reg.add_function("GetBuildHostname", &GetBuildHostname, grp);

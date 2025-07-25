@@ -50,7 +50,7 @@
 #include "lib_disc/spatial_disc/elem_disc/neumann_boundary/fv1/neumann_boundary_fv1.h"
 #include "lib_disc/spatial_disc/elem_disc/neumann_boundary/fv/neumann_boundary_fv.h"
 #include "lib_disc/spatial_disc/elem_disc/neumann_boundary/fe/neumann_boundary_fe.h"
-#include "lib_disc/spatial_disc/elem_disc/inner_boundary/inner_boundary.h"
+//2025-07 #include "lib_disc/spatial_disc/elem_disc/inner_boundary/inner_boundary.h"
 #include "lib_disc/spatial_disc/elem_disc/dirac_source/lagrange_dirac_source.h"
 
 using namespace std;

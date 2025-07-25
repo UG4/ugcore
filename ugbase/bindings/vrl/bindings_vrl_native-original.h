@@ -87,14 +87,14 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDefaultClassNameFromGroup
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
   (JNIEnv *, jobject, jstring, jboolean, jobjectArray);
 
-/*
+/* 2025-07
  * Class:     edu_gcsc_vrl_ug_UG
  * Method:    _getSvnRevision
  * Signature: ()Ljava/lang/String;
- */
+
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getSvnRevision
   (JNIEnv *, jobject);
-
+  */
 /*
  * Class:     edu_gcsc_vrl_ug_UG
  * Method:    _getUGVersion

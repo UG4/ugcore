@@ -43,7 +43,7 @@
 #include "lib_grid/attachments/attachment_pipe.h"
 #include "lib_grid/attachments/attached_list.h"
 #include "common/util/hash_function.h"
-#include "common/allocators/small_object_allocator.h"
+//2025-07 #include "common/allocators/small_object_allocator.h"
 #include "common/math/ugmath_types.h"
 #include "common/util/pointer_const_array.h"
 

@@ -73,13 +73,13 @@ if(PARALLEL)
 						 )
 endif(PARALLEL)
 
-if(CUDA_FOUND)
-	set(src_Algebra ${src_Algebra} 
-			 	gpu_algebra/cuda/cuda_error.cpp
-				gpu_algebra/cuda/cuda_manager.cpp                
-                gpu_algebra/cuda/common_cuda.cu
-				)
-endif(CUDA_FOUND)
+#2025-07 if(CUDA_FOUND)
+#	set(src_Algebra ${src_Algebra}
+#            ../../arkiv/ugbase/lib_algebra/gpu_algebra/cuda/cuda_error.cpp
+#            ../../arkiv/ugbase/lib_algebra/gpu_algebra/cuda/cuda_manager.cpp
+#            ../../arkiv/ugbase/lib_algebra/gpu_algebra/cuda/common_cuda.cu
+#				)
+#endif(CUDA_FOUND)
 
 ##########################
 # setup library

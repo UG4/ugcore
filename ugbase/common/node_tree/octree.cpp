@@ -33,6 +33,7 @@
 #include <cassert>
 #include <vector>
 #include "octree.h"
+#include "collision_triangles_node.h"
 
 using namespace std;
 

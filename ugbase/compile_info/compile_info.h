@@ -46,7 +46,6 @@ namespace ug
  * \{
  */
 
-UG_API const char* UGSvnRevision();
 UG_API const char* UGGitRevision();
 UG_API const char* UGBuildHost();
 UG_API const char* UGCompileDate();
