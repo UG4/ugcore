@@ -26,7 +26,7 @@
 #include "pcl/pcl_process_communicator.cpp"
 #include "pcl/pcl_comm_world.cpp"
 
-#include "boost/graph/graph_utility.hpp"
+#include <boost/graph/graph_utility.hpp>
 
 #include "lib_algebra/parallelization/algebra_layouts.cpp" // operator<<
 #include "lib_algebra/parallelization/parallel_index_layout.cpp"

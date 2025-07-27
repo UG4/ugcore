@@ -31,7 +31,7 @@
  */
 
 #include <cstring>
-#include "boost/crc.hpp"
+#include <boost/crc.hpp>
 #include "crc32.h"
 
 namespace ug{

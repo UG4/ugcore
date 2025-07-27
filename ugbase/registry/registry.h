@@ -38,8 +38,6 @@
 #include <cstring>
 #include <typeinfo>
 #include <iostream>
-#include <boost/function.hpp>
-#include <boost/type_traits.hpp>
 
 
 #include "global_function.h"
@@ -68,7 +66,7 @@ class Registry;
  * pass a normal function or a member function of a class
  * (Have a look at boost::bind in the second case).
  */
-typedef boost::function<void (Registry* pReg)> FuncRegistryChanged;
+using FuncRegistryChanged = std::function<void (Registry* pReg)> ;
 
 
 ///	groups classes. One of the members is the default member.

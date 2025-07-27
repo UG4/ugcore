@@ -35,7 +35,7 @@
 
 #include <functional>
 #include <cstring>
-#include <boost/pointee.hpp>
+// #include <boost/pointee.hpp>
 
 /// \addtogroup ugbase_common_util
 /// \{
@@ -845,6 +845,7 @@ SmartPtr<T> make_sp(T* inst)
 	return SmartPtr<T>(inst);
 }
 
+/*
 namespace boost
 {
   template <class T>
@@ -859,7 +860,7 @@ namespace boost
       typedef T type;
   };
 }
-
+*/
 // end group ugbase_common_util
 /// \}
 

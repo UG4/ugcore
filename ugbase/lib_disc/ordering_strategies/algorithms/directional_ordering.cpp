@@ -33,9 +33,9 @@
 #ifndef __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_DIRECTIONAL_ORDERING__
 #define __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_DIRECTIONAL_ORDERING__
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/properties.hpp>
+//#include <boost/graph/adjacency_list.hpp>
+//#include <boost/graph/graph_traits.hpp>
+//#include <boost/graph/properties.hpp>
 
 #include <boost/graph/cuthill_mckee_ordering.hpp>
 
