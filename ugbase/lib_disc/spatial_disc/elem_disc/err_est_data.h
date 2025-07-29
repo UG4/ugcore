@@ -52,7 +52,7 @@
  	#include "lib_grid/parallelization/util/compol_copy_attachment.h"
 #endif
 
-//#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/for_each.hpp>
 
 
 namespace ug{
