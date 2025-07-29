@@ -70,6 +70,7 @@
 extern "C" // default lua
 {
 #include "bindings/lua/externals/lua/lstate.h"
+#include "externals/lua/lua.h"
 }
 #else
 // luajit
@@ -581,11 +582,12 @@ bool ClassInstantiations(const char *classname)
 	// iterate through all of lua's global string table
 	for(int i=0; i<G(L)->strt.size; i++)
 	{
-		GCObject *obj;
-		for (obj = G(L)->strt.hash[i]; obj != NULL; obj = obj->gch.next)
+		TString *obj;
+		for (obj = G(L)->strt.hash[i]; obj != NULL; obj = obj->u.hnext)
 		{
 			// get the string
-			TString *ts = rawgco2ts(obj);
+			//TString *ts = rawgco2ts(obj);
+			TString * ts = obj;
 			if(ts == NULL) continue;
 
 			const char *luastr = getstr(ts);
@@ -751,7 +753,7 @@ void LuaPrintTable(lua_State *L, size_t iSpace, int index)
 		else
 		{
 			const char * value = lua_tostring(L, index2);
-			if(value) { UG_LOG(" = \"" << value << "\"") };
+			if(value) { UG_LOG(" = \"" << value << "\"") }
 		}
 		UG_LOG("\n");
 	}

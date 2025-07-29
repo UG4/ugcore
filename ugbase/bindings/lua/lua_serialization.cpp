@@ -50,18 +50,19 @@
 #include "bridge/bridge.h"
 #include "bridge/util.h"
 #include "registry/class_helper.h"
-#include "common/util/sort_util.h"
+//#include "common/util/sort_util.h"
 #include "common/util/string_util.h"
-#include "lua_stack_check.h"
+//#include "lua_stack_check.h"
 #include "registry/class_name_provider.h"
-#include "common/util/string_util.h"
+//#include "common/util/string_util.h"
 
 #include "common/util/stringify.h"
 //#include "bridge/misc_bridges/serialization.h"
-#include "bindings_lua.h"
+//#include "bindings_lua.h"
 //#include "lua_parsing.h"
 
 #include "info_commands.h"
+
 
 using namespace std;
 

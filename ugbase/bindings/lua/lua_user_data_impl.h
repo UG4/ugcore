@@ -33,9 +33,7 @@
 #ifndef __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA_IMPL_
 #define __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA_IMPL_
 
-#ifdef UG_FOR_LUA
 #include "lua_user_data.h"
-#endif
 #include "lib_disc/spatial_disc/user_data/linker/linker_traits.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
