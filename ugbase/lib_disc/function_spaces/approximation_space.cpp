@@ -111,7 +111,7 @@ IApproximationSpace::
 ~IApproximationSpace()
 {
 	if(m_spSurfaceView.valid())
-		m_spSurfaceView = SmartPtr<SurfaceView>(NULL);
+		m_spSurfaceView = SmartPtr<SurfaceView>(nullptr);
 }
 
 template <typename TElem>

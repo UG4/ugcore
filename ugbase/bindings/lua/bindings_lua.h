@@ -30,28 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG__INTERFACE__BINDINGS_LUA__
-#define __H__UG__INTERFACE__BINDINGS_LUA__
+#ifndef UG_BASE_BINDINGS_LUA_BINDINGS_LUA_H
+#define UG_BASE_BINDINGS_LUA_BINDINGS_LUA_H
 
-#include <vector>
-#include <string>
-
-extern "C" {
-#include "externals/lua/lua.h"
-#include "externals/lua/lauxlib.h"
-#include "externals/lua/lualib.h"
-}
-
-
-#include "common/common.h"
 #include "registry/registry.h"
 
-namespace ug
-{
-namespace bridge
-{
-namespace lua
-{
+namespace ug {
+namespace bridge {
+namespace lua {
 
 extern const bool IMLPICIT_SMART_PTR_TO_PTR_CONVERSION;
 
@@ -62,24 +48,24 @@ enum UserDataWrapperTypes{
 };
 
 struct UserDataWrapper{
-	byte type;
+	byte_t type;
 
-	bool is_const()		{return (type & IS_CONST) == IS_CONST;}
-	bool is_raw_ptr()	{return (type & RAW_POINTER) == RAW_POINTER;}
-	bool is_smart_ptr()	{return (type & SMART_POINTER) == SMART_POINTER;}
+	bool is_const() const {return (type & IS_CONST) == IS_CONST;}
+	bool is_raw_ptr() const {return (type & RAW_POINTER) == RAW_POINTER;}
+	bool is_smart_ptr() const {return (type & SMART_POINTER) == SMART_POINTER;}
 };
 
-struct SmartUserDataWrapper : public UserDataWrapper
+struct SmartUserDataWrapper : UserDataWrapper
 {
 	SmartPtr<void>	smartPtr;
 };
 
-struct ConstSmartUserDataWrapper : public UserDataWrapper
+struct ConstSmartUserDataWrapper : UserDataWrapper
 {
 	ConstSmartPtr<void>	smartPtr;
 };
 
-struct RawUserDataWrapper : public UserDataWrapper
+struct RawUserDataWrapper : UserDataWrapper
 {
 	void*	obj;
 	void (*deleteFunc)(const void*);
@@ -102,8 +88,8 @@ RawUserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
 									  bool is_const);
 
 
-}//	end of namespace
-}//	end of namespace
-}//	end of namespace
+}
+}
+}
 
 #endif

@@ -30,15 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef LUA_DEBUG_H_
-#define LUA_DEBUG_H_
+#ifndef UG_BASE_BINDINGS_LUA_DEBUG_H
+#define UG_BASE_BINDINGS_LUA_DEBUG_H
 
 #include "registry/registry.h"
 
-namespace ug
-{
-namespace script
-{
+namespace ug {
+namespace script {
 
 /**
  * enum used to control execution flow in debug mode
@@ -58,7 +56,7 @@ enum debug_return
  * @return true
  * @sa debug_return
  */
-UG_API bool RegisterLuaDebug(ug::bridge::Registry &reg);
+UG_API bool RegisterLuaDebug(bridge::Registry &reg);
 
 /**
  * function called when a breakpoint is reached
@@ -91,4 +89,4 @@ UG_API void DebugHold();
 }
 }
 
-#endif /* LUA_DEBUG_H_ */
+#endif

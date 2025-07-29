@@ -157,7 +157,7 @@ class DoFDistributionInfoProvider{
 		{}
 
 		/// constructor
-		DoFDistributionInfoProvider() : m_spDDI(0) {}
+		DoFDistributionInfoProvider() : m_spDDI(nullptr) {}
 
 		/// sets the dd info
 		void set_dof_distribution_info(ConstSmartPtr<DoFDistributionInfo> spDDI) {m_spDDI = spDDI;}

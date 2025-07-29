@@ -73,7 +73,7 @@ class IDataImport
 	public:
 	/// Constructor
 		IDataImport(bool compLinDefect = true)
-			: m_spICplUserData(NULL), m_part(STIFF),
+			: m_spICplUserData(nullptr), m_part(STIFF),
 			 m_bCompLinDefect(compLinDefect)
 		{}
 
@@ -182,8 +182,8 @@ class DataImport : public IDataImport<dim>
 	/// Constructor
 		DataImport(bool bLinDefect = true) : IDataImport<dim>(bLinDefect),
 			m_id(ROID_UNKNOWN),
-			m_seriesID(-1),	m_spUserData(NULL), m_vValue(NULL),
-			m_numIP(0), m_spDependentUserData(NULL)
+			m_seriesID(-1),	m_spUserData(nullptr), m_vValue(nullptr),
+			m_numIP(0), m_spDependentUserData(nullptr)
 		{clear_fct();
 		}
 

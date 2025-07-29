@@ -1,16 +1,13 @@
 // LICENSE HEADER
+// (ø) todo license header?
 
-#include "lua_table_handle.h"
 #include <iostream>
-#include <assert.h>
+#include <cassert>
 #include "common/util/variant.h"
 
-extern "C" {
-#include "externals/lua/lua.h"
-#include "externals/lua/lauxlib.h"
-#include "externals/lua/lualib.h"
-#include "externals/lua/ldo.h"
-}
+#include "externals/lua/src/lua.hpp"
+
+#include "lua_table_handle.h"
 
 #define untested() ( std::cerr <<  "@@#\n@@@:"<< __FILE__ << ":"<< __LINE__ \
           <<":" << __func__ << "\n" )
@@ -18,23 +15,23 @@ extern "C" {
 namespace ug {
 namespace impl {
 
-static ug::Variant pop2var(lua_State* _L)
+static Variant pop2var(lua_State* _L)
 {
-	int t = lua_type(_L, -1);
-	ug::Variant ret;
+	const int t = lua_type(_L, -1);
+	Variant ret;
 
 	if(t == LUA_TTABLE){
-		LuaTableHandle h(_L, -1);
-		ret = ug::Variant(h);
+		const LuaTableHandle h(_L, -1);
+		ret = Variant(h);
 	}else if(t == LUA_TNUMBER){
-		number n = lua_tonumber(_L, -1);
-		ret = ug::Variant(n);
+		const number n = lua_tonumber(_L, -1);
+		ret = Variant(n);
 	}else if(t == LUA_TBOOLEAN){
-		bool b = lua_toboolean(_L, -1);
-		ret = ug::Variant(b);
+		const bool b = lua_toboolean(_L, -1);
+		ret = Variant(b);
 	}else if(lua_isstring(_L, -1)){
-		std::string s(lua_tostring(_L, -1));
-		ret = ug::Variant(s);
+		const std::string s(lua_tostring(_L, -1));
+		ret = Variant(s);
 	}else if(t == LUA_TNIL){
 	}else{
 		std::cerr << "type not handled " << t << "\n";
@@ -44,17 +41,16 @@ static ug::Variant pop2var(lua_State* _L)
 }
 
 struct LuaTableHandle_{
-public:
 	LuaTableHandle_(lua_State*, int);
 	~LuaTableHandle_();
 	lua_State* _L{nullptr};
 	int _ref{0};
 	int _index{0};
 
-	bool operator==(LuaTableHandle_ const& o) const{
+	bool operator==(const LuaTableHandle_ & o) const{
 		return _ref == o._ref;
 	}
-	bool operator!=(LuaTableHandle_ const& o) const{
+	bool operator!=(const LuaTableHandle_ & o) const{
 		return !operator==(o);
 	}
 
@@ -85,13 +81,14 @@ public:
 	static void detach(LuaTableHandle_** from) {
 		assert(from);
 		if (*from) {
-			assert((**from)._attach_count > 0);
-			--((**from)._attach_count);
-			if ((**from)._attach_count == 0) { untested();
+			assert((*from)->_attach_count > 0);
+			--((*from)->_attach_count);
+			if ((*from)->_attach_count == 0) {
+				untested();
 				delete *from;
 			}else{
 			}
-			*from = NULL;
+			*from = nullptr;
 		}else{
 		}
 	}
@@ -105,29 +102,29 @@ public:
 			++n;
 		}
 #else
-		n = lua_objlen(_L, _index);
+		n = lua_rawlen(_L, _index);
 #endif
 		return n;
 	}
 
-	ug::Variant get(int const& key) const{
+	Variant get(const int & key) const{
 		lua_rawgeti(_L, LUA_REGISTRYINDEX, _ref);
 		lua_rawgeti(_L, _index, key+1); // lua starts at 1.
 
-		ug::Variant ret = pop2var(_L);
+		Variant ret = pop2var(_L);
 
 		lua_pop(_L, 1); // pop value
 		lua_pop(_L, 1); // pop ref
 
 		return ret;
 	}
-	ug::Variant get(std::string const& key) const{
+	Variant get(const std::string & key) const{
 		lua_rawgeti(_L, LUA_REGISTRYINDEX, _ref);
 		lua_getfield(_L, _index, key.c_str());
 
 		// std::cerr << "getfield " << key << " type " << lua_type(_L, -1) << "\n";
 
-		ug::Variant ret = pop2var(_L);
+		Variant ret = pop2var(_L);
 
 		lua_pop(_L, 1); // pop value
 		lua_pop(_L, 1); // pop ref
@@ -171,14 +168,14 @@ LuaTableHandle::LuaTableHandle(lua_State* L, int index)
 	//lua_gettop(L); // lapi.c?
 }
 
-LuaTableHandle::LuaTableHandle(LuaTableHandle const& p)
+LuaTableHandle::LuaTableHandle(const LuaTableHandle & p)
     : _data(nullptr)
 {
 	impl::LuaTableHandle_::attach(p._data, &_data);
 }
 
-LuaTableHandle::LuaTableHandle(LuaTableHandle&& p)
-    : _data(nullptr)
+LuaTableHandle::LuaTableHandle(LuaTableHandle&& p) noexcept
+	: _data(nullptr)
 {
 	impl::LuaTableHandle_::attach(p._data, &_data);
 	impl::LuaTableHandle_::detach(&p._data);
@@ -190,14 +187,14 @@ LuaTableHandle::~LuaTableHandle()
 }
 
 
-LuaTableHandle& LuaTableHandle::operator=(LuaTableHandle const& p)
-{ untested();
+LuaTableHandle& LuaTableHandle::operator=(const LuaTableHandle & p)
+{
+	untested();
 	impl::LuaTableHandle_::attach(p._data, &_data);
 	return *this;
 }
 
-LuaTableHandle& LuaTableHandle::operator=(LuaTableHandle&& p)
-{
+LuaTableHandle& LuaTableHandle::operator=(LuaTableHandle&& p) noexcept {
 	impl::LuaTableHandle_::attach(p._data, &_data);
 	impl::LuaTableHandle_::detach(&p._data);
 	return *this;
@@ -209,16 +206,16 @@ size_t LuaTableHandle::size() const
 	return _data->size();
 }
 
-ug::Variant LuaTableHandle::get(std::string const& key) const
+Variant LuaTableHandle::get(const std::string & key) const
 {
 	assert(_data);
 	return _data->get(key);
 }
 
-ug::Variant LuaTableHandle::get(int const& key) const
+Variant LuaTableHandle::get(int & key) const
 {
 	assert(_data);
 	return _data->get(key);
 }
 
-} // ug
+}

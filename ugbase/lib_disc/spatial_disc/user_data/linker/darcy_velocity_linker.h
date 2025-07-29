@@ -68,11 +68,11 @@ class DarcyVelocityLinker
 
 	public:
 		DarcyVelocityLinker() :
-			m_spPermeability(NULL), m_spDPermeability(NULL),
-			m_spViscosity(NULL), m_spDViscosity(NULL),
-			m_spDensity(NULL), m_spDDensity(NULL),
-			m_spGravity(NULL), m_spDGravity(NULL),
-			m_spPressureGrad(NULL), m_spDPressureGrad(NULL), m_partialDerivMask(0)
+			m_spPermeability(nullptr), m_spDPermeability(nullptr),
+			m_spViscosity(nullptr), m_spDViscosity(nullptr),
+			m_spDensity(nullptr), m_spDDensity(nullptr),
+			m_spGravity(nullptr), m_spDGravity(nullptr),
+			m_spPressureGrad(nullptr), m_spDPressureGrad(nullptr), m_partialDerivMask(0)
 		{
 		//	this linker needs exactly five input
 			this->set_num_input(5);

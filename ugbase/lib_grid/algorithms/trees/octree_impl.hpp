@@ -51,12 +51,12 @@ CreateOctree(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
 	const char* logMsgPrefix = "  CreateOctree: ";
 
 	if(elemsBegin == elemsEnd)
-		return node_tree::SPCollisionTreeRootNode(NULL);
+		return node_tree::SPCollisionTreeRootNode(nullptr);
 
 //	access the position attachment of the grid.	
 	if(!grid.has_vertex_attachment(aPos)){
 		UG_LOG(logMsgPrefix << "vertex-attachment missing: aPos\n");
-		return node_tree::SPCollisionTreeRootNode(NULL);
+		return node_tree::SPCollisionTreeRootNode(nullptr);
 	}
 	
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
