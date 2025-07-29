@@ -923,6 +923,7 @@ SmartPtr<T> make_sp(T* inst)
 	return SmartPtr<T>(inst);
 }
 
+/*
 namespace boost
 {
   template <class T>
@@ -937,7 +938,7 @@ namespace boost
 	  using type = T;
   };
 }
-
+*/
 // end group ugbase_common_util
 /// \}
 

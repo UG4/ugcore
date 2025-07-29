@@ -145,8 +145,11 @@ if(BUILD_ONE_LIB)
 		   CUDA_add_library(${targetLibraryName} SHARED ${ug4libSources})
 		else(CUDA_FOUND)
 		   # dynamic; w/o cuda
+		   MESSAGE(${targetLibraryName}) # (ø)[[boost]]
 		   add_library(${targetLibraryName} SHARED ${ug4libSources})
-		   install(TARGETS ${targetLibraryName} 
+		   add_compile_definitions(${targetLibraryName} PRIVATE BOOST_FILESYSTEM_NO_CXX20_ATOMIC_REF=1)
+		   add_compile_definitions(${targetLibraryName} PRIVATE BOOST_NO_CXX98_FUNCTION_BASE=1)
+		   install(TARGETS ${targetLibraryName}
 		   			LIBRARY DESTINATION lib
 		   			COMPONENT libraries)
 		endif(CUDA_FOUND)

@@ -34,7 +34,7 @@
 #define __H__LIB_GRID__PARALLELIZATION_UTIL__
 
 #include "distributed_grid.h"
-#include <boost/function.hpp>
+//#include <boost/function.hpp>
 
 #define PROFILE_GRID_DISTRIBUTION
 #ifdef PROFILE_GRID_DISTRIBUTION

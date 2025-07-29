@@ -34,6 +34,7 @@
 #define VECTOR_UTIL_H_
 
 #include "lib_algebra/small_algebra/blocks.h"
+
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif

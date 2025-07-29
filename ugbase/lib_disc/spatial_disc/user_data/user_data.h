@@ -578,7 +578,7 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 
 	///	registered callbacks
 //		typedef void (DataImport<TData,dim>::*CallbackFct)();
-		typedef boost::function<void ()> CallbackFct;
+		using CallbackFct = std::function<void ()> ;
 		std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > m_vCallback;
 
 };

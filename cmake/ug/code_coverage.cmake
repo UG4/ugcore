@@ -1,5 +1,5 @@
-# Copyright (c) 2013:  G-CSC, Goethe University Frankfurt
-# Author: Martin Rupp
+# Copyright (c) 2025:  Goethe University Frankfurt
+# Author: Arne Naegel
 # 
 # This file is part of UG4.
 # 
@@ -30,36 +30,17 @@
 
 # included from ug_includes.cmake
 ########################################
-# C++11
+# CODE_COVERAGE
 
-IF ("${CMAKE_VERSION}" VERSION_LESS 3.1)
-    IF(${CMAKE_CXX_COMPILER_ID} MATCHES GNU|Clang|Intel|PGI)
-        # Check for the compilers's C++11 capabilities
-        INCLUDE(CheckCXXCompilerFlag)
-        CHECK_CXX_COMPILER_FLAG(-std=c++0x HAVE_CXX0X)
-        CHECK_CXX_COMPILER_FLAG(-std=c++11 HAVE_CXX11)
-        # Add appropriate compiler flags
-        IF(HAVE_CXX11)
-            SET(CXX11_FLAG "-std=c++11")
-        ELSEIF(HAVE_CXX0X)
-            SET(CXX11_FLAG "-std=c++0x")
-        ENDIF()
-        IF(CXX11_FLAG)
-            add_cpp_flag(${CXX11_FLAG})
-            MESSAGE(STATUS "Info: C++11 enabled. (flag: ${CXX11_FLAG})")
-        ELSE()
-            MESSAGE(FATAL_ERROR "Error: Compiler does not support the C++11 standard.")
-        ENDIF()
-    ELSE()
-        MESSAGE(STATUS "Info: Enabling C++11 is currently only supported with GCC, Clang, Intel,")
-        MESSAGE(STATUS "Info: and PGI. Continuing with the assumption that the compiler accepts")
-        MESSAGE(STATUS "Info: C++11 anyway.")
-    ENDIF()
-ELSE("${CMAKE_VERSION}" VERSION_LESS 3.1)
-    set(CMAKE_CXX_STANDARD 11)
-    set(CMAKE_CXX_EXTENSIONS OFF)
 
-    # Boost extensions
-    add_compile_definitions(BOOST_NO_CXX98_FUNCTION_BASE)
-    MESSAGE(STATUS "Info: Trying to activate 'CMAKE_CXX_STANDARD 11'")
-ENDIF("${CMAKE_VERSION}" VERSION_LESS 3.1)
+if(NOT "${CODE_COVERAGE}" STREQUAL "NONE")
+    if("${CODE_COVERAGE}" STREQUAL "GCOV")
+        add_compile_options("--coverage")
+        add_link_options("--coverage")  
+    #elseif("${CODE_COVERAGE}" STREQUAL "llvm-cov")
+    else ()
+        message(FATAL_ERROR "Unsupported COVERAGE: ${CODE_COVERAGE}. Options are: ${coverageOptions}")
+    endif("${CODE_COVERAGE}" STREQUAL "GCOV")
+    
+endif(NOT "${CODE_COVERAGE}" STREQUAL "NONE")
+
