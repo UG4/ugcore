@@ -313,9 +313,9 @@ class DataImport : public IDataImport<dim>
 
 	public:
 	///	type of evaluation function
-		using LinDefectFunc = std::function<void (const LocalVector& u,
+		typedef boost::function<void (const LocalVector& u,
 		                              std::vector<std::vector<TData> > vvvLinDefect[],
-		                              const size_t nip)> ;
+		                              const size_t nip)> LinDefectFunc;
 
 	///	sets the geometric object type
 		virtual void set_roid(ReferenceObjectID id);

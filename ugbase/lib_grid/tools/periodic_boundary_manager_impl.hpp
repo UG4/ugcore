@@ -41,7 +41,7 @@
 #include "common/error.h"
 #include "pcl/pcl_base.h"
 
-//#include <boost/mpl/map.hpp>
+#include <boost/mpl/map.hpp>
 #include <boost/mpl/at.hpp>
 
 #include <algorithm>

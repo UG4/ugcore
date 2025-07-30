@@ -36,7 +36,7 @@
 #include <vector>
 #include <string>
 #include <cmath>  // for isinf, isnan
-//#include <boost/function.hpp>
+#include <boost/function.hpp>
 
 
 #include "common/util/file_util.h"
@@ -67,14 +67,14 @@
 
 namespace ug {
 
-/*#ifndef isnan // (ø)[[only checks for C99 macro instead of c++ macro / function | cmath vs math.h ]]
+#ifndef isnan
 using boost::math::isnan;
 #endif
 
 #ifndef isinf
 using boost::math::isinf;
 #endif
-#endif*/
+
 
 template <typename TBaseElem, typename TGridFunction>
 static void ScaleGFOnElems

@@ -32,7 +32,7 @@
 
 #include <iostream>
 #include <sstream>
-#include <boost/bind/bind.hpp>
+#include <boost/bind.hpp>
 #include "registry/registry.h"
 #include "bridge/bridge.h"
 #include "bridge/util.h"

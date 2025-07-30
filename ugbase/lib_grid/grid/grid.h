@@ -36,7 +36,7 @@
 #include <vector>
 #include <list>
 #include <memory>
-//#include <boost/function.hpp>
+#include <boost/function.hpp>
 #include "common/util/message_hub.h"
 #include "common/ug_config.h"
 #include "grid_constants.h"
@@ -147,7 +147,7 @@ class UG_API Grid
 
 		//	CALLBACKS
 		///	callback type for the elements base type.
-			using callback = std::function<bool (base_object*)>;
+			typedef boost::function<bool (base_object*)>			callback;
 		};
 
 	///	Convenience access to grid elements

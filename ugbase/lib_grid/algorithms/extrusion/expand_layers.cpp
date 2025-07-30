@@ -30,7 +30,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-//#include <boost/function.hpp>
+#include <boost/function.hpp>
 #include <stack>
 #include <vector>
 #include "expand_layers.h"

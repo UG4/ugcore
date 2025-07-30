@@ -111,5 +111,5 @@ if(buildUGShell)
 endif(buildUGShell)
 
 if(INTERNAL_BOOST)
-	add_subdirectory(../../externals/BoostForUG4 externals/BoostForUG4)
+	add_subdirectory(../../externals/BoostForUG4/libs externals/BoostForUG4/libs)
 endif(INTERNAL_BOOST)
