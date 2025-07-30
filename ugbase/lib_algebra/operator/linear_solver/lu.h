@@ -75,7 +75,7 @@ class LU
 
 	public:
 	///	constructor
-		LU() : m_spOperator(nullptr), m_mat(), m_bSortSparse(true), m_bInfo(false), m_bShowProgress(true)
+		LU() : m_spOperator(NULL), m_mat(), m_bSortSparse(true), m_bInfo(false), m_bShowProgress(true)
 		{
 #ifdef LAPACK_AVAILABLE
 			m_iMinimumForSparse = 4000;

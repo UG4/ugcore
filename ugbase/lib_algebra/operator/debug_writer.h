@@ -269,7 +269,7 @@ class VectorDebugWritingObject
 		typedef TVector vector_type;
 
 	public:
-		VectorDebugWritingObject() : m_spVectorDebugWriter(nullptr) {}
+		VectorDebugWritingObject() : m_spVectorDebugWriter(NULL) {}
 		VectorDebugWritingObject(SmartPtr<IVectorDebugWriter<vector_type> > spDebugWriter)
 			: m_spVectorDebugWriter(spDebugWriter) {}
 
@@ -367,7 +367,7 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 		using VectorDebugWritingObject<vector_type>::set_debug;
 
 	public:
-		DebugWritingObject() : m_spDebugWriter(nullptr) {}
+		DebugWritingObject() : m_spDebugWriter(NULL) {}
 		DebugWritingObject(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
 			: 	VectorDebugWritingObject<vector_type>(spDebugWriter),
 				m_spDebugWriter(spDebugWriter) {}

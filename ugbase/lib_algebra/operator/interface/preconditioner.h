@@ -123,20 +123,20 @@ class IPreconditioner :
 	public:
 	///	default constructor
 		IPreconditioner() :
-			m_spDefectOperator(nullptr), m_spApproxOperator(nullptr), m_bInit(false), m_bOtherApproxOperator(false)
+			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false), m_bOtherApproxOperator(false)
 		{};
 
 	///	constructor setting debug writer
 		IPreconditioner(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter) :
 			DebugWritingObject<TAlgebra>(spDebugWriter),
-			m_spDefectOperator(nullptr), m_spApproxOperator(nullptr), m_bInit(false), m_bOtherApproxOperator(false)
+			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false), m_bOtherApproxOperator(false)
 		{};
 
 	/// clone constructor
 		IPreconditioner( const IPreconditioner<TAlgebra> &parent ) :
 			ILinearIterator<vector_type>(parent),
 			DebugWritingObject<TAlgebra>(parent),
-			m_spDefectOperator(nullptr), m_spApproxOperator(nullptr), m_bInit(false), m_bOtherApproxOperator(false)
+			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false), m_bOtherApproxOperator(false)
 		{
 		}
 	protected:

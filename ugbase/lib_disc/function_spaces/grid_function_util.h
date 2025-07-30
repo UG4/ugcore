@@ -1370,7 +1370,7 @@ public:
 public:
 	///	Constructor
 	GridFunctionVectorWriterDirichlet0() :
-			m_pApproxSpace(nullptr), m_spPostProcess(nullptr), m_level(-1) {
+			m_pApproxSpace(NULL), m_spPostProcess(NULL), m_level(-1) {
 	}
 
 	void set_level(size_t level) {

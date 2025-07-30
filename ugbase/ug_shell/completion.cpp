@@ -50,10 +50,8 @@
 #ifndef USE_LUAJIT
 // internal lua (default)
 extern "C" {
-#include "bindings/lua/externals/lua/src/lstate.h"
+#include "bindings/lua/externals/lua/lstate.h"
 }
-//
-//#include "bindings/lua/externals/lua/src/lua.hpp"
 #else
 // luajit
 #include <lua.hpp>
@@ -364,11 +362,11 @@ static size_t GetGlobalsCompletitions(char *buf, int len, std::vector<string> &m
 	// iterate through all of lua's global string table
 	for(int i=0; i<G(L)->strt.size; i++)
 	{
-		TString *obj;
-		for (obj = L->l_G->strt.hash[i]; obj != NULL; obj = obj->u.hnext)
+		GCObject *obj;
+		for (obj = G(L)->strt.hash[i]; obj != NULL; obj = obj->gch.next)
 		{
 			// get the string
-			TString *ts = obj;
+			TString *ts = rawgco2ts(obj);
 			if(ts == NULL) continue;
 
 			const char *luastr = getstr(ts);

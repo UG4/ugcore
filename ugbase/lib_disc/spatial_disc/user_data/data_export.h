@@ -317,7 +317,7 @@ class DataExport :
 		template <int refDim>
 		class Functor{
 			public:
-				Functor() : m_spImpl(nullptr) {}
+				Functor() : m_spImpl(NULL) {}
 
 				template <typename FreeFunc>
 				Functor(FreeFunc f) : m_spImpl(new FreeFunctionFunctor<refDim>(f)) {}

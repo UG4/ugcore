@@ -73,7 +73,7 @@ class AssembledLinearOperator :
 
 	public:
 	///	Default Constructor
-		AssembledLinearOperator() :	m_spAss(nullptr) {};
+		AssembledLinearOperator() :	m_spAss(NULL) {};
 
 	///	Constructor
 		AssembledLinearOperator(SmartPtr<IAssemble<TAlgebra> > ass) : m_spAss(ass) {};

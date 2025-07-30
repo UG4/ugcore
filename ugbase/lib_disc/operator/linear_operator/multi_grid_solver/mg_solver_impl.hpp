@@ -77,7 +77,7 @@ namespace ug{
 template <typename TDomain, typename TAlgebra>
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 AssembledMultiGridCycle() :
-	m_spSurfaceMat(nullptr), m_pSurfaceSol(nullptr), m_spAss(nullptr), m_spApproxSpace(nullptr),
+	m_spSurfaceMat(NULL), m_pSurfaceSol(nullptr), m_spAss(NULL), m_spApproxSpace(SPNULL),
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_cycleType(_V_),
 	m_numPreSmooth(2), m_numPostSmooth(2),
@@ -86,7 +86,7 @@ AssembledMultiGridCycle() :
 	m_bCommCompOverlap(false),
 	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
 	m_spPostSmootherPrototype(m_spPreSmootherPrototype),
-	m_spProjectionPrototype(nullptr),
+	m_spProjectionPrototype(SPNULL),
 	m_spProlongationPrototype(new StdTransfer<TDomain,TAlgebra>()),
 	m_spRestrictionPrototype(m_spProlongationPrototype),
 	m_spBaseSolver(new LU<TAlgebra>()),
@@ -95,14 +95,14 @@ AssembledMultiGridCycle() :
 	m_ignoreInitForBaseSolver(false),
 	m_bMatrixStructureIsConst(false),
 	m_pC(nullptr),
-	m_spDebugWriter(nullptr), m_dbgIterCnt(0)
+	m_spDebugWriter(NULL), m_dbgIterCnt(0)
 {};
 
 
 template <typename TDomain, typename TAlgebra>
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
-	m_spSurfaceMat(nullptr), m_pSurfaceSol(nullptr), m_spAss(nullptr), m_spApproxSpace(approxSpace),
+	m_spSurfaceMat(NULL), m_pSurfaceSol(nullptr), m_spAss(NULL), m_spApproxSpace(approxSpace),
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_cycleType(_V_),
 	m_numPreSmooth(2), m_numPostSmooth(2),
@@ -120,7 +120,7 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_ignoreInitForBaseSolver(false),
 	m_bMatrixStructureIsConst(false),
 	m_pC(nullptr),
-	m_spDebugWriter(nullptr), m_dbgIterCnt(0)
+	m_spDebugWriter(NULL), m_dbgIterCnt(0)
 {};
 
 template <typename TDomain, typename TAlgebra>

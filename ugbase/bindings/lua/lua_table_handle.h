@@ -30,19 +30,18 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef UG_BASE_BINDINGS_LUA_LUA_TABLE_HANDLE_H
-#define UG_BASE_BINDINGS_LUA_LUA_TABLE_HANDLE_H
+#ifndef H__UG__LUA_TABLE_HANDLE__
+#define H__UG__LUA_TABLE_HANDLE__
 
 #include <string>
 #include <cstddef>
 using std::size_t;
 
-using lua_State = struct lua_State;
+typedef struct lua_State lua_State;
 
-namespace ug {
+namespace ug{
 class Variant;
-
-namespace impl {
+namespace impl{
 struct LuaTableHandle_;
 }
 
@@ -50,23 +49,23 @@ struct LuaTableHandle_;
 class LuaTableHandle /* public SuitableBaseClass */ {
 public:
 	LuaTableHandle() = delete;
-	LuaTableHandle(const LuaTableHandle &);
-	LuaTableHandle(LuaTableHandle&&) noexcept;
-	explicit LuaTableHandle(lua_State* L, int index);
+	LuaTableHandle(LuaTableHandle const&);
+	LuaTableHandle(LuaTableHandle&&);
+	explicit LuaTableHandle(lua_State* ref, int idx);
 	~LuaTableHandle();
 
 public:
 	size_t size() const;
-	Variant get(const std::string & key) const;
-	Variant get(int & key) const;
+	ug::Variant get(std::string const& key) const;
+	ug::Variant get(int const& key) const;
 
-	LuaTableHandle& operator=(const LuaTableHandle &);
-	LuaTableHandle& operator=(LuaTableHandle&&) noexcept;
+	LuaTableHandle& operator=(LuaTableHandle const&);
+	LuaTableHandle& operator=(LuaTableHandle&&);
 
 private:
 	impl::LuaTableHandle_* _data;
 };
 
-}
+} // ug
 
-#endif
+#endif // guard

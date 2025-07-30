@@ -105,7 +105,7 @@ void MultiGridSubsetHandler::cleanup()
 		detach_data();
 
 	//	unregister the previously registered callback
-		m_callbackId = MessageHub::SPCallbackId(nullptr);
+		m_callbackId = MessageHub::SPCallbackId(NULL);
 
 		m_pMG = NULL;
 	}

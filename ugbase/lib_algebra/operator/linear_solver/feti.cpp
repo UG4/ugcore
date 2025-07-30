@@ -100,7 +100,7 @@ LocalSchurComplement() :
 	m_pFetiLayouts(NULL),
 	m_spDirichletOperator(new MatrixOperator<matrix_type, vector_type>),
 	m_pDirichletMatrix(NULL),
-	m_spDirichletSolver(nullptr)
+	m_spDirichletSolver(NULL)
 {
 }
 
@@ -365,16 +365,16 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 template <typename TAlgebra>
 PrimalSubassembledMatrixInverse<TAlgebra>::
 PrimalSubassembledMatrixInverse() :
-	m_spOperator(nullptr),
-	m_pMatrix(nullptr),
-	m_pFetiLayouts(nullptr),
+	m_spOperator(NULL),
+	m_pMatrix(NULL),
+	m_pFetiLayouts(NULL),
 	m_spNeumannOperator(new MatrixOperator<matrix_type, vector_type>),
-	m_pNeumannMatrix(nullptr),
-	m_spNeumannSolver(nullptr),
-	m_spCoarseProblemSolver(nullptr),
+	m_pNeumannMatrix(NULL),
+	m_spNeumannSolver(NULL),
+	m_spCoarseProblemSolver(NULL),
 	m_primalRootProc(-1),
 	m_spRootSchurComplementOp(new MatrixOperator<matrix_type, vector_type>),
-	m_pRootSchurComplementMatrix(nullptr),
+	m_pRootSchurComplementMatrix(NULL),
 	m_statType(""),
 	m_bTestOneToManyLayouts(false)
 {
@@ -1361,10 +1361,10 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 template <typename TAlgebra>
 FETISolver<TAlgebra>::
 FETISolver() :
-	m_spOperator(nullptr),
-	m_pMatrix(nullptr),
-	m_spDirichletSolver(nullptr),
-	m_spNeumannSolver(nullptr)
+	m_spOperator(NULL),
+	m_pMatrix(NULL),
+	m_spDirichletSolver(NULL),
+	m_spNeumannSolver(NULL)
 {
 
 }

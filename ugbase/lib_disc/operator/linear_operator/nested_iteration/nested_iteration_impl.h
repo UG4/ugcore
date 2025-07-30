@@ -69,10 +69,10 @@ NestedIterationSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolve
 template <typename TDomain, typename TAlgebra>
 NestedIterationSolver<TDomain,TAlgebra>::
 NestedIterationSolver() :
-	m_spLinearSolver(nullptr),
-	m_N(nullptr),
-	m_J(nullptr),
-	m_spAss(nullptr),
+	m_spLinearSolver(NULL),
+	m_N(NULL),
+	m_J(NULL),
+	m_spAss(NULL),
 	m_dgbCall(0),
 	m_lastNumSteps(0),
 	m_bUseAdaptiveRefinement(true),
@@ -82,10 +82,10 @@ NestedIterationSolver() :
 template <typename TDomain, typename TAlgebra>
 NestedIterationSolver<TDomain,TAlgebra>::
 NestedIterationSolver(SmartPtr<IOperator<vector_type> > N) :
-	m_spLinearSolver(nullptr),
-	m_N(nullptr),
-	m_J(nullptr),
-	m_spAss(nullptr),
+	m_spLinearSolver(NULL),
+	m_N(NULL),
+	m_J(NULL),
+	m_spAss(NULL),
 	m_dgbCall(0),
 	m_lastNumSteps(0),
 	m_bUseAdaptiveRefinement(true),
@@ -97,9 +97,9 @@ NestedIterationSolver(SmartPtr<IOperator<vector_type> > N) :
 template <typename TDomain, typename TAlgebra>
 NestedIterationSolver<TDomain,TAlgebra>::
 NestedIterationSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
-	m_spLinearSolver(nullptr),
-	m_N(nullptr),
-	m_J(nullptr),
+	m_spLinearSolver(NULL),
+	m_N(NULL),
+	m_J(NULL),
 	m_spAss(spAss),
 	m_spDomErr(spAss),
 	m_dgbCall(0),
@@ -115,9 +115,9 @@ NestedIterationSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
 template <typename TDomain, typename TAlgebra>
 NestedIterationSolver<TDomain,TAlgebra>::
 NestedIterationSolver(SmartPtr<IAssemble<TAlgebra> > spAss, SmartPtr<IAssemble<TAlgebra> > spDomErr) :
-	m_spLinearSolver(nullptr),
-	m_N(nullptr),
-	m_J(nullptr),
+	m_spLinearSolver(NULL),
+	m_N(NULL),
+	m_J(NULL),
 	m_spAss(spAss),
 	m_spDomErr(spDomErr),
 	m_dgbCall(0),

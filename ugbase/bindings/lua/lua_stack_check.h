@@ -30,13 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef UG_BASE_BINDINGS_LUA_LUA_STACK_CHECK_H
-#define UG_BASE_BINDINGS_LUA_LUA_STACK_CHECK_H
+#ifndef LUA_STACK_CHECK_H_
+#define LUA_STACK_CHECK_H_
 
-#include "externals/lua/src/lua.hpp"
-
-namespace ug {
-namespace bridge {
+namespace ug
+{
+namespace bridge
+{
 
 #ifndef NDEBUG
 class LuaStackCheck
@@ -75,4 +75,4 @@ private:
 
 }
 }
-#endif
+#endif /* LUA_STACK_CHECK_H_ */

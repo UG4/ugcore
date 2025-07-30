@@ -30,45 +30,46 @@
  * GNU Lesser General Public License for more details.
  */
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 //extern libraries
 #include <cassert>
 #include <cstring>
 #include <string>
 #include <stack>
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 // ug libraries
 #include "ug.h"
-
+#include "lua_util.h"
+#include "common/util/file_util.h"
+#include "bindings_lua.h"
 #include "bridge/bridge.h"
-
-#include "common/util/string_util.h"
 #include "registry/class_helper.h"
-#include "registry/registry.h"
-
-#ifdef USE_LUAJIT
-#include <lua.hpp>
-#else
-#include "externals/lua/src/lua.hpp"
-#endif
-
 #ifdef UG_DISC
-#include "lua_user_data.h"
+	#include "lua_user_data.h"
 #endif
-
-#ifdef UG_PROFILER
-#include "common/profiler/runtime_profile_info.h"
-#endif
-
-
+#include "registry/registry.h"
 #include "info_commands.h"
 #include "lua_debug.h"
-#include "lua_util.h"
+#include "common/profiler/runtime_profile_info.h"
+#include "common/util/string_util.h"
+
+#ifndef USE_LUAJIT
+extern "C" { // lua default
+#include "externals/lua/lstate.h"
+}
+#else
+#include <lua.h>
+#endif
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using namespace std;
 
-namespace ug {
-namespace script {
+namespace ug
+{
+
+namespace script
+{
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // globals
@@ -78,7 +79,7 @@ static bool bDebugging = false;
 static int debugMode  = DEBUG_CONTINUE;
 static bool bProfiling = false;
 static std::map<std::string, std::map<int, bool> > breakpoints;
-static debug_return (*pDebugShell)() = nullptr;
+static debug_return (*pDebugShell)() = NULL;
 static std::string lastsource;
 static int lastline = -1;
 static int currentDepth = -1;
@@ -125,14 +126,14 @@ void CheckHook()
 	{
 		if(curHookMask)
 		{
-			lua_sethook (GetDefaultLuaState(), nullptr, 0, 0);
+			lua_sethook (GetDefaultLuaState(), NULL, 0, 0);
 			curHookMask=0;
 		}
 	}
 	else
 	{
-		constexpr int DEBUG_HOOK_MASK = LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE;
-		constexpr int PROFILER_HOOK_MASK = LUA_MASKCALL | LUA_MASKRET;
+		const int DEBUG_HOOK_MASK = LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE;
+		const int PROFILER_HOOK_MASK = LUA_MASKCALL | LUA_MASKRET;
 		
 		if(bDebugging && curHookMask != DEBUG_HOOK_MASK)
 		{
@@ -149,16 +150,16 @@ void CheckHook()
 }
 
 
-void AddBreakpoint(const char*source, const int line)
+void AddBreakpoint(const char*source, int line)
 {
-	if(pDebugShell==nullptr)
+	if(pDebugShell==NULL)
 	{
 		UG_LOG("No Debug Shell set!\n");
 		return;
 	}
-	const char *s=nullptr;
+	const char *s=NULL;
 
-	const string relativeFilename=source;
+	string relativeFilename=source;
 	string absoluteFilename;
 
 	if(GetAbsoluteUGScriptFilename(relativeFilename, absoluteFilename))
@@ -182,10 +183,10 @@ void PrintBreakpoints()
 	std::map<int, bool>::iterator it2;
 	for(it1 = breakpoints.begin(); it1 != breakpoints.end(); ++it1)
 	{
-		std::map<int, bool> &m = it1->second;
+		std::map<int, bool> &m = (*it1).second;
 		for(it2 = m.begin(); it2 != m.end(); ++it2)
 		{
-			UG_LOG(it1->first << ":" << it2->first << ( it2->second?" enabled":" disabled") << "\n")
+			UG_LOG((*it1).first << ":" << (*it2).first << ((*it2).second?" enabled":" disabled") << "\n")
 		}
 	}
 }
@@ -201,26 +202,27 @@ void DebugHold()
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void breakpoint()
 {
-	if(pDebugShell==nullptr)
+	if(pDebugShell==NULL)
 	{
 		UG_LOG("Breakpoint reached, no Debug Shell set.\n");
 		return;
 	}
-
 	debug_return r=pDebugShell();
 	if(r == DEBUG_EXIT)
 		UGForceExit();
 	else if(r == DEBUG_CONTINUE)
 	{
 		debugMode = DEBUG_CONTINUE;
-		bDebugging = !breakpoints.empty();
+		bDebugging = breakpoints.size() > 0;
 		CheckHook();
+		return;
 	}
 	else if(r == DEBUG_NEXT || r == DEBUG_STEP || r == DEBUG_FINISH)
 	{
 		debugMode=r;
 		bDebugging=true;
 		CheckHook();
+		return;
 	}
 }
 
@@ -261,7 +263,7 @@ void breakpoint_in_script()
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void luaDebug(lua_State *L, const char *source, int line)
 {
-	if(source == nullptr || line < 0 || pDebugShell==nullptr) return;
+	if(source == NULL || line < 0 || pDebugShell==NULL) return;
 	if(source[0]=='@') source++;
 
 	bool bfound=false;
@@ -270,7 +272,7 @@ void luaDebug(lua_State *L, const char *source, int line)
 		int d = getDepth();
 		if( ((debugMode == DEBUG_NEXT && d <= currentDepth)
 				|| (debugMode == DEBUG_FINISH && d < currentDepth))
-				&& (lastsource==source && lastline == line) == false)
+				&& (lastsource.compare(source)==0 && lastline == line) == false)
 		{
 			lastsource = source;
 			lastline = line;
@@ -280,7 +282,7 @@ void luaDebug(lua_State *L, const char *source, int line)
 	}
 	else if(debugMode == DEBUG_STEP)
 	{
-		if((lastsource==source && lastline == line) == false)
+		if((lastsource.compare(source)==0 && lastline == line) == false)
 		{
 			lastsource = source;
 			lastline = line;
@@ -290,7 +292,7 @@ void luaDebug(lua_State *L, const char *source, int line)
 	}
 
 
-	if(!bfound && !breakpoints.empty())
+	if(!bfound && breakpoints.size() > 0)
 	{
 		lua_Debug entry;
 		for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
@@ -299,10 +301,10 @@ void luaDebug(lua_State *L, const char *source, int line)
 			if(entry.currentline >= 0)
 			{
 				std::map<int, bool> &m = breakpoints[entry.source+1];
-				auto it = m.find(entry.currentline);
+				std::map<int, bool>::iterator it = m.find(entry.currentline);
 				//UG_LOG(entry.source+1 << ":" << entry.currentline << "\n");
-				if(it != m.end() && it->second == true &&
-						(lastline != entry.currentline || lastsource!=entry.source+1))
+				if(it != m.end() && (*it).second == true &&
+						(lastline != entry.currentline || lastsource.compare(entry.source+1)!=0))
 				{
 					lastsource = entry.source+1;
 					lastline = entry.currentline;
@@ -311,7 +313,7 @@ void luaDebug(lua_State *L, const char *source, int line)
 					break;
 				}
 			}
-			if(bfound) {break;}
+			if(bfound) break;
 		}
 
 
@@ -325,13 +327,40 @@ void luaDebug(lua_State *L, const char *source, int line)
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void LuaCallHook(lua_State *L, lua_Debug *ar)
 {
+#if 0
+	{
+	UG_LOG("------------------------\n");
+	{
+		if(ar->event == LUA_HOOKCALL) UG_LOG("HOOKCALL\n");
+		if(ar->event == LUA_HOOKLINE) UG_LOG("HOOKLINE\n");
+		if(ar->event == LUA_HOOKRET) UG_LOG("HOOKRET\n");
+	    lua_Debug entry;
+	    for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
+		{
+	    	int status = lua_getinfo(L, "Sln", &entry);
+	    	//if(entry.currentline <0) continue;
+	    	if(entry.short_src && entry.currentline>0)
+	    		UG_LOG(entry.short_src << ":" << entry.currentline);
+	    	if(entry.what)
+	    	{
+	    		UG_LOG(" what=" << entry.what);
+	    	}
+	    	if(entry.name)
+	    	{
+	    		UG_LOG(" entry.name=" << entry.name);
+	    	}
+	    	UG_LOG("\n");
+	    }
+	}
+	}
+#endif
 	if(bDebugging)
 	{			
 		if(ar->event == LUA_HOOKCALL || ar->event ==LUA_HOOKLINE)
 		{
 			
 			lua_getinfo(L, "Sln", ar);
-			auto source = "unknown";
+			const char *source = "unknown";
 			int line = 0;
 			if(ar->currentline < 0)
 			{
@@ -395,7 +424,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			// if a return, reduce depth. If depth == 0, we also have to
 			// finish the current profile node, since this must be the return
 			// from the original c-call
-			else if(ar->event == LUA_HOOKRET || ar->event == LUA_HOOKTAILCALL){
+			else if(ar->event == LUA_HOOKRET || ar->event == LUA_HOOKTAILRET){
 				if(--profileDepthInCcall != 0) return;
 			}
 			else{
@@ -414,7 +443,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 		if(bDebugLuaProfiler){
 			std::string type = "call";
 			if(ar->event == LUA_HOOKRET) type = "ret ";
-			else if(ar->event == LUA_HOOKTAILCALL) type = "tailret ";
+			else if(ar->event == LUA_HOOKTAILRET) type = "tailret ";
 			UG_LOG(repeat(' ', pisStack.size()) << "## lua profile: source: "<<ar->source<<", line: "
 			       <<ar->currentline<<" "<<type<<" " << ar->what);
 		}
@@ -441,9 +470,11 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 		if(bDebugLuaProfiler){
 			std::string type = "call";
 			if(entry.event == LUA_HOOKRET) type = "ret ";
-			else if(entry.event == LUA_HOOKTAILCALL) type = "tailret ";
+			else if(entry.event == LUA_HOOKTAILRET) type = "tailret ";
 			UG_LOG(",  corr: source: "<<source<<", line: "<<line<<" "<<type<<" " << entry.what << "\n");
 		}
+
+
 
 
 		// may still be unavailable, then we ignore this issue
@@ -457,7 +488,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			 pRuntimeProfileInfo &pi = pis[source][line];
 
 			 // if not yet initialized, create new node
-			 if(pi == nullptr){
+			 if(pi == NULL){
 				 char buf[1024];
 				 if(source[0]=='@') source++;
 				 if(strncmp(source, "./../scripts/", 13)==0)
@@ -478,14 +509,14 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			 // profileDepthInCcall > 1. The only exception is the call to
 			 // 'ug_load_script', that is a c-call but should be profiled
 			 //	also internally since it just loads other lua-scripts
-			 if(ar->name != nullptr && strcmp(ar->name, "ug_load_script") == 0)
+			 if(ar->name != NULL && strcmp(ar->name, "ug_load_script") == 0)
 				 return;
 			 if(ar->what[0] == 'C')
 				 	 profileDepthInCcall = 1;
 		}
 
 		// a return
-		else if(ar->event == LUA_HOOKRET || ar->event == LUA_HOOKTAILCALL)
+		else if(ar->event == LUA_HOOKRET || ar->event == LUA_HOOKTAILRET)
 		{		
 			 // if only starting the profiling, do not react on returns
 			 if(bStartProfiling) { bStartProfiling = false; return; }
@@ -498,7 +529,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			 {
 				 // get profile node
 				 pRuntimeProfileInfo pi;
-				 if(line < 0 || ar->event == LUA_HOOKTAILCALL)
+				 if(line < 0 || ar->event == LUA_HOOKTAILRET)
 					 pi = pisStack.top();
 				 else
 				 {
@@ -528,16 +559,17 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 		else{
 			UG_ASSERT(0, "wrong event already parsed: " << ar->event);
 		}
+
 	}
 #endif
 
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-void ProfileLUA(bool bProfile)
+void ProfileLUA(bool b)
 {
 #ifdef UG_PROFILER
-	if(bProfiling==false && bProfile==true)
+	if(bProfiling==false && b==true)
 	{	
 		bStartProfiling=true;
 		bEndProfiling=false;
@@ -545,7 +577,7 @@ void ProfileLUA(bool bProfile)
 		CheckHook();
 		
 	}
-	else if(bProfiling == true && bProfile==false)
+	else if(bProfiling == true && b==false)
 	{
 		bEndProfiling=true;
 	}
@@ -576,10 +608,11 @@ void DebugList()
 		}
 		depth--;
 	}
+	// todo
 }
 void DebugBacktrace(int fromLevel)
 {
-	bridge::LuaStackTrace(fromLevel);
+	ug::bridge::LuaStackTrace(fromLevel);
 }
 
 
@@ -626,7 +659,7 @@ void DebugDown()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-bool RegisterLuaDebug(bridge::Registry &reg)
+bool RegisterLuaDebug(ug::bridge::Registry &reg)
 {
 	reg.add_function("breakpoint", &AddBreakpoint, "/ug4/lua");
 	reg.add_function("breakpoint", &breakpoint_in_script, "/ug4/lua");
@@ -639,25 +672,25 @@ bool RegisterLuaDebug(bridge::Registry &reg)
 
 
 
-void SetLuaDebug(lua_State* L, const string &id)
+void SetLuaDebug(lua_State* L, string id)
 {
-	const string& name = id;
+	string name = id;
 	string rest = name;
-	string pre;
+	string pre = "";
 
-	while(true)
+	while(1)
 	{
-		const int dotPos = rest.find('.');
+		int dotPos = rest.find(".");
 		if(dotPos == -1) break;
 		string sub = rest.substr(0, dotPos);
 		rest = rest.substr(dotPos+1, rest.size());
 
 		//ug::bridge::SetLuaNamespace(pre+sub+".group", pre+sub+".*");
 		//string p = std::string("") + "debugID." + pre+sub + " = " + "debugID." + pre+sub + " or {}\n" + "function debugID." + pre+sub + ".set_group_level(level) GetLogAssistant():set_debug_level(\"" + pre+sub + ".*\", level) end\n";
-		string p = std::string("") + "debugID." + pre+sub + " = " + "debugID." + pre+sub + " or {}\n" + "debugID." + pre+sub + ".id = \"" + pre+sub + "\"\n"; // todo avoid +
+		string p = std::string("") + "debugID." + pre+sub + " = " + "debugID." + pre+sub + " or {}\n" + "debugID." + pre+sub + ".id = \"" + pre+sub + "\"\n";
 		//UG_LOGN(p);
-		ParseAndExecuteBuffer(p.c_str(), "SetLuaDebug");
-		pre += sub+".";
+		script::ParseAndExecuteBuffer(p.c_str(), "SetLuaDebug");
+		pre = pre+sub+".";
 
 	}
 
@@ -665,12 +698,12 @@ void SetLuaDebug(lua_State* L, const string &id)
 //	string p = std::string("") + "debugID." + name + " = " + "debugID." + name + " or {}\n" + "function debugID." + name + ".set_level(level) GetLogAssistant():set_debug_level(\"" + name + "\", level) end\n";
 	string p = std::string("") + "debugID." + name + " = " + "debugID." + name + " or {}\n" + "debugID." + name + ".id = \"" + name + "\"\n";
 	//UG_LOGN(p);
-	ParseAndExecuteBuffer(p.c_str(), "SetLuaDebug");
+	script::ParseAndExecuteBuffer(p.c_str(), "SetLuaDebug");
 }
 
 void SetLuaDebugIDs(lua_State* L)
 {
-	ParseAndExecuteBuffer(
+	script::ParseAndExecuteBuffer(
 			"debugID = {}\n"
 			"function SetDebugLevel(did, level)\n"
 			"if(did == nil) then\n"
@@ -682,5 +715,7 @@ void SetLuaDebugIDs(lua_State* L)
 	for(size_t i=0; i<s.size(); i++)
 		SetLuaDebug(L, s[i]);
 }
+
+
 }
 }

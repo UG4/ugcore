@@ -40,4 +40,4 @@ namespace ug{
 extern DebugID DID_LUACOMPILER;
 }
 
-#endif
+#endif /* _LUA2C_DEBUG_H */

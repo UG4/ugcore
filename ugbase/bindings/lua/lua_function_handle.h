@@ -30,10 +30,10 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef UG_BASE_BINDINGS_LUA_LUA_FUNCTOIN_HANDLE_H
-#define UG_BASE_BINDINGS_LUA_LUA_FUNCTOIN_HANDLE_H
+#ifndef __H__UG__LUA_FUNCTION_HANDLE__
+#define __H__UG__LUA_FUNCTION_HANDLE__
 
-namespace ug {
+namespace ug{
 
 /// Handle for a lua reference
 class LuaFunctionHandle
@@ -42,6 +42,6 @@ class LuaFunctionHandle
 		int ref;
 };
 
-}
+} // end namespace ug
 
-#endif
+#endif /* __H__UG__LUA_FUNCTION_HANDLE__ */

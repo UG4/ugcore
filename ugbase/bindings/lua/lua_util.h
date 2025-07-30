@@ -30,33 +30,41 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef UG_BASE_BINDINGS_LUA_LUA_UTIL_H
-#define UG_BASE_BINDINGS_LUA_LUA_UTIL_H
-
+#ifndef __H__UG__UG_SCRIPT__
+#define __H__UG__UG_SCRIPT__
+#include <vector>
 #include <string>
 
-#ifdef USE_LUAJIT
-#include <lua.hpp>
-#else
+#ifndef USE_LUAJIT
 // default lua
 extern "C" {
-#include "externals/lua/src/lua.hpp" // for apps/unit_test
+#include "externals/lua/lua.h"
+#include "externals/lua/lauxlib.h"
+#include "externals/lua/lualib.h"
 }
+#else
+// luajit
+#include <lua.hpp>
 #endif
 
 #include "common/common.h"
+#include "common/util/path_provider.h"
 #include "registry/registry.h"
 
 
 
-namespace ug {
-namespace script {
+
+namespace ug
+{
+
+namespace script
+{
 
 ///	Error class thrown if an error occurs during parsing.
-class LuaError final : public UGError
+class LuaError : public UGError
 {
 	public:
-		explicit LuaError(const char* msg) : UGError(msg), bShowMsg(true)	{}
+		LuaError(const char* msg) : UGError(msg), bShowMsg(true)	{}
 		LuaError() : UGError(""), bShowMsg(false)	{}
 
 		bool show_msg() const {return bShowMsg;}
@@ -64,6 +72,7 @@ class LuaError final : public UGError
 	protected:
 		bool bShowMsg;
 };
+
 
 
 ///	loads and parses a file. Several paths are tried if the file is not found.
@@ -78,19 +87,18 @@ class LuaError final : public UGError
  * PathProvider when parsing starts, and pops it when parsing is done.
  * \param filename The filename for the script to be loaded. may be relative to ug4/apps/
  * \param bDistributed if true, loads the script on core 0 and distributes
- * \param bThrowOnError if true throws on error, else returns false
  * the script to all other cores via pcl::broadcast . Use this whenever
  * possible when doing parallel work otherwise this routine can take a long time
  * (ignored if UG_PARALLEL not defined)
  */
-UG_API bool LoadUGScript(const char* filename, bool bDistributed, bool bThrowOnError);
+UG_API bool LoadUGScript(const char* filename, bool bDistributed);
 /// calls LoadUGScript with bDistributed=true
 UG_API bool LoadUGScript_Parallel(const char* filename);
 /// calls LoadUGScript with bDistributed=false . Avoid. (\sa LoadUGScript)
 UG_API bool LoadUGScript_Single(const char* filename);
 
 /// registers lua only functionality at the registry
-UG_API void RegisterDefaultLuaBridge(bridge::Registry* reg, const std::string& grp = "/ug4");
+UG_API void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp = "/ug4");
 
 ///	returns the default lua state
 /**	When called for the first time, or after ReleaseDefaultLuaState,
@@ -161,12 +169,12 @@ UG_API void RegisterStdLUAFunctions(lua_State *L);
  * - in PathProvider::get_path(APPS_PATH) (ug4/apps)
  * - in PathProvider::get_path(ROOT_PATH) (ug4)
  * \param filename in: relative filename to paths above. out: absolute filename (if found)
- * \param absoluteFilename returns the absolut filename where the file was found
  * \return true if found, else false
  */
 UG_API bool GetAbsoluteUGScriptFilename(const std::string &filename, std::string &absoluteFilename);
 
-}
-}
+}//	end of namespace
+}//	end of namespace
+
 
 #endif
