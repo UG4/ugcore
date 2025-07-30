@@ -34,6 +34,7 @@
 #include <stack>
 #include <queue>
 #include <map>
+
 #include "subset_util.h"
 #include "geom_obj_util/geom_obj_util.h"
 #include "polychain_util.h"
@@ -1099,7 +1100,7 @@ void AssignSidesToSubsets(ISubsetHandler& sh, ISelector* psel)
 {
 	typedef typename TElem::lower_dim_base_object 		Side;
 	typedef typename geometry_traits<Side>::iterator 	SideIter;
-	typedef basic_string<int> IntString;
+	typedef std::vector<int> IntString;
 
 //	access the grid on which sh operates.
 	if(!sh.grid())
@@ -1168,7 +1169,7 @@ void AssignSidesToSubsets(ISubsetHandler& sh, ISelector* psel)
 				if(marks[si] != curMark){
 				//	no - mark it and add si to subsets
 					marks[si] = curMark;
-					skey += si;
+					skey.push_back(si);
 				}
 			}
 		}
@@ -1183,7 +1184,7 @@ void AssignSidesToSubsets(ISubsetHandler& sh, ISelector* psel)
 			//	An outer interface element.
 			//	add -2 to skey to make sure that they go into a separate subset
 			//	(-1 might occur as a normal subset index)
-				skey += -2;
+				skey.push_back(-2);
 			}
 		}
 
