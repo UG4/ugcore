@@ -35,7 +35,7 @@
 
 #include <functional>
 #include <cstring>
-// #include <boost/pointee.hpp>
+#include <boost/pointee.hpp>
 
 /// \addtogroup ugbase_common_util
 /// \{
