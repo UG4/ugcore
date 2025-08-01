@@ -57,6 +57,9 @@ if(buildPlugins)
 		ENDIF()
 	ENDFOREACH()
 
+	include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/version_control.cmake")
+	ListGitRevision()
+
 	option(ENABLE_ALL_PLUGINS "If set to ON, all plugins will be enabled" OFF)
 	option(DISABLE_ALL_PLUGINS "If set to ON, all plugins will be disabled" OFF)
 	
