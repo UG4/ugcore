@@ -66,7 +66,7 @@
 #include "lib_disc/operator/composite_conv_check.h"
 #include "lib_disc/spatial_disc/local_to_global/local_to_global_mapper.h"
 
-#include "lib_disc/operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
+//#include "lib_disc/operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
 
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 

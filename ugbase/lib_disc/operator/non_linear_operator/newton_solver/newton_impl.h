@@ -41,7 +41,7 @@
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "common/util/string_util.h"
 
-#include "lib_disc/operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
+//#include "lib_disc/operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
 
 #define PROFILE_NEWTON
 #ifdef PROFILE_NEWTON
