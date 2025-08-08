@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
- * Author: Andreas Vogel
+ * Author: Andreas Vogel, modifications nested Newton: Markus Knodel
  * 
  * This file is part of UG4.
  * 
