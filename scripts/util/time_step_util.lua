@@ -91,8 +91,6 @@ function util.ParseTimeIntegratorCallbacks(timeIntegratorSubject, luaobject)
 		attachObservers(timeIntegratorSubject.attach_init_observer, luaobject.prepareTimeStep)
 	end
 	if luaobject.finalizeTimeStep ~= nil then
-		print(finalizeTimeStep)
-		exit()
 		attachObservers(timeIntegratorSubject.attach_finalize_observer, luaobject.finalizeTimeStep)
 	end
 	if luaobject.rewindTimeStep ~= nil then
