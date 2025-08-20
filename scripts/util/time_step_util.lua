@@ -91,6 +91,8 @@ function util.ParseTimeIntegratorCallbacks(timeIntegratorSubject, luaobject)
 		attachObservers(timeIntegratorSubject.attach_init_observer, luaobject.prepareTimeStep)
 	end
 	if luaobject.finalizeTimeStep ~= nil then
+		print(finalizeTimeStep)
+		exit()
 		attachObservers(timeIntegratorSubject.attach_finalize_observer, luaobject.finalizeTimeStep)
 	end
 	if luaobject.rewindTimeStep ~= nil then
@@ -288,14 +290,14 @@ function util.SolveNonlinearTimeProblem(
 		util.PrintUsageOfSolveTimeProblem()
 		exit()
 	end
-	
+	print("ø")
 	-- attach the given callbacks to a TimeIntegratorSubject
 	-- if this class is transcribed into c++, just inherit from TimeIntegratorSubject and attach the callbacks
 	local callbackDispatcher = TimeIntegratorSubject()
 	if postProcess ~= nil then
 		util.ParseTimeIntegratorCallbacks(callbackDispatcher, postProcess)
 	end
-		
+	print("ø")
 	-- bound on t-stepper from machine precision (conservative)
 	relPrecisionBound = 1e-12
 
