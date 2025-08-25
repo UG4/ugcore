@@ -10,9 +10,6 @@ stages:
 
 
 include:
-- local: '/.gitlab/build-and-test.yml'
-#- local: '/.gitlab/deploy-pages.yml'
-- local: '/.gitlab/deploy-docker.yml'
 - template: Jobs/SAST.gitlab-ci.yml
 - template: Security/SAST.gitlab-ci.yml
 # - local: '/.gitlab/mirror-main.yml' # Push mirror is disabled.

@@ -86,7 +86,6 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/extrusion/expand_layers_arte.cpp
 					algorithms/extrusion/expand_layers_arte3D.cpp
 					algorithms/extrusion/ArteExpandFracs3D.cpp
-					algorithms/extrusion/simpleMatrixOps.cpp
 					algorithms/projections/overlying_subset_finder.hpp
 					algorithms/projections/z_ray_tracer.hpp
 					refinement/projectors/projection_handler.cpp
