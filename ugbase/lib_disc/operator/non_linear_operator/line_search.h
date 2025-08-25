@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
- * Author: Andreas Vogel
+ * Author: Andreas Vogel, modifications nested Newton: Markus Knodel
  * 
  * This file is part of UG4.
  * 
@@ -42,13 +42,13 @@
 
 #include "common/common.h"
 
-#include "lib_disc/operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
+//#include "lib_disc/operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
 
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 
 #include "lib_disc/operator/non_linear_operator/newton_solver/newtonUpdaterGeneric.h"
 
-#endif
+//#endif
 
 
 
@@ -105,9 +105,11 @@ class ILineSearch
 	/// virtual destructor
 		virtual ~ILineSearch() {}
 
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 		virtual void setNewtonUpdater( SmartPtr<NewtonUpdaterGeneric<TVector> > nU ) = 0;
-#endif
+//#endif
+		virtual bool createNewtonUpdater() = 0;
+
 };
 
 /// standard implementation of the line search based on the "sufficient descent"
@@ -122,31 +124,34 @@ class StandardLineSearch : public ILineSearch<TVector>
 	///	default constructor (setting default values)
 		StandardLineSearch()
 		 :	 m_maxSteps(10), m_lambdaStart(1.0), m_lambdaReduce(0.5), m_alpha(0.25),
-		  	 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(false), m_bCheckAll(false), m_offset("")
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-			 ,
-			m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
-#endif
+		  	 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(false), m_bCheckAll(false), m_offset(""),
+			 m_newtonUpdater(SPNULL)
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//			 ,
+//			m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
+//#endif
 			 {};
 
 	///	constructor
 		StandardLineSearch(int maxSteps, number lambdaStart, number lambdaReduce, bool bAcceptBest)
 		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce), m_alpha(0.25),
-			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_bCheckAll(false), m_offset("")
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-			 ,
-			 m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
-#endif
+			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_bCheckAll(false), m_offset(""),
+			 m_newtonUpdater(SPNULL)
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//			 ,
+//			 m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
+//#endif
 			 {};
 
 	///	constructor
 		StandardLineSearch(int maxSteps, number lambdaStart, number lambdaReduce, bool bAcceptBest, bool bCheckAll)
 		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce), m_alpha(0.25),
-			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_bCheckAll(bCheckAll), m_offset("")
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-			 ,
-			 m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
-#endif
+			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_bCheckAll(bCheckAll), m_offset(""),
+			 m_newtonUpdater(SPNULL)
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//			 ,
+//			 m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
+//#endif
 			 {};
 
 	///	returns information about configuration parameters
@@ -215,48 +220,44 @@ class StandardLineSearch : public ILineSearch<TVector>
 		//	loop line search steps
 			for(int k = 1; k <= m_maxSteps; ++k)
 			{
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-				// 	try on line u := u - lambda*p
-
-				//if( m_newtonUpdater != NULL )
-				//{
-				bool acceptedNewtonUpdate = m_newtonUpdater->updateSolution(u, 1.0, u, (-1)*lambda, p);
-
-//					if( ! m_newtonUpdater->updateNewton(u, 1.0, u, (-1)*lambda, p) )
-				if( ! acceptedNewtonUpdate )
-//					if( m_newtonUpdater->updateNewton(u,p) )
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+				if( m_newtonUpdater != SPNULL )
 				{
-					UG_LOG("Update in Line Search did not work.\n");
-					norm = std::numeric_limits<number>::max();
-						//VecScaleAdd(u, 1.0, u, (-1)*lambda, p);
-					//return false;
+					// 	try on line u := u - lambda*p
+
+					bool acceptedNewtonUpdate = m_newtonUpdater->updateSolution(u, 1.0, u, (-1)*lambda, p);
+
+					if( ! acceptedNewtonUpdate )
+					{
+						UG_LOG("Update in Line Search did not work.\n");
+						norm = std::numeric_limits<number>::max();
+							//VecScaleAdd(u, 1.0, u, (-1)*lambda, p);
+						//return false;
+					}
+					else
+					{
+						// 	compute new Defect
+						spOp->prepare(u);
+						spOp->apply(d, u);
+
+						//	compute new Residuum
+						norm = d.norm();
+					}
 				}
 				else
 				{
-					// 	compute new Defect
+//#else
+				// 	try on line u := u - lambda*p
+					VecScaleAdd(u, 1.0, u, (-1)*lambda, p);
+
+				// 	compute new Defect
 					spOp->prepare(u);
 					spOp->apply(d, u);
 
-					//	compute new Residuum
+				//	compute new Residuum
 					norm = d.norm();
 				}
-				//}
-//				else
-//				{
-//					UG_LOG("Please set a Newton updater in Line search");
-//				}
-#else
-			// 	try on line u := u - lambda*p
-				VecScaleAdd(u, 1.0, u, (-1)*lambda, p);
-
-			// 	compute new Defect
-				spOp->prepare(u);
-				spOp->apply(d, u);
-
-			//	compute new Residuum
-				norm = d.norm();
-
-#endif
+//#endif
 
 
 			// 	compute reduction
@@ -315,41 +316,40 @@ class StandardLineSearch : public ILineSearch<TVector>
 						UG_LOG(m_offset << "   ++++ Accept Best: Accepting step " <<
 							best+1 << ", Rate = "<< vRho[best] <<".\n");
 
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-					// 	try on line u := u - lambda*p
-
-					//if( m_newtonUpdater != NULL )
-					//{
-					if( ! m_newtonUpdater->updateSolution(u, 1.0, s, (-1)*m_lambdaStart*std::pow(m_lambdaReduce, (number)best), p) )
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+					if( m_newtonUpdater != SPNULL )
 					{
-						UG_LOG("Update in Line Search kmax did not work.\n");
+						// 	try on line u := u - lambda*p
 
-						norm = std::numeric_limits<number>::max();
-						//return false;
+						if( ! m_newtonUpdater->updateSolution(u, 1.0, s, (-1)*m_lambdaStart*std::pow(m_lambdaReduce, (number)best), p) )
+						{
+							UG_LOG("Update in Line Search kmax did not work.\n");
+
+							norm = std::numeric_limits<number>::max();
+							//return false;
+						}
+						else
+						{
+							spOp->prepare(u);
+							spOp->apply(d, u);
+
+							// compute new Residuum
+							norm = d.norm();
+						}
 					}
 					else
 					{
+//#else
+					// 	try on line u := u - lambda*p
+						VecScaleAdd(u, 1.0, s, (-1)*m_lambdaStart*std::pow(m_lambdaReduce, (number)best), p);
+					// 	compute new Defect
 						spOp->prepare(u);
 						spOp->apply(d, u);
 
 						// compute new Residuum
 						norm = d.norm();
 					}
-					//}
-//					else
-//					{
-//						UG_LOG("Please set a Newton updater in Line search");
-//					}
-#else
-				// 	try on line u := u - lambda*p
-					VecScaleAdd(u, 1.0, s, (-1)*m_lambdaStart*std::pow(m_lambdaReduce, (number)best), p);
-				// 	compute new Defect
-					spOp->prepare(u);
-					spOp->apply(d, u);
-
-					// compute new Residuum
-					norm = d.norm();
-#endif
+//#endif
 
 
 					// check if defect-norm is smaller than maximum allowed defect value
@@ -364,14 +364,20 @@ class StandardLineSearch : public ILineSearch<TVector>
 					break;
 				}
 
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 
-				// 	reset u and eventual local variables
-				m_newtonUpdater->resetSolution(u,s);
-#else
-			// 	reset u
-				u = s;
-#endif
+				if( m_newtonUpdater != SPNULL )
+				{
+					// 	reset u and eventual local variables
+					m_newtonUpdater->resetSolution(u,s);
+				}
+				else
+				{
+//#else
+				// 	reset u
+					u = s;
+				}
+//#endif
 
 			}
 
@@ -384,26 +390,44 @@ class StandardLineSearch : public ILineSearch<TVector>
 			}
 
 
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-			if( ! m_newtonUpdater->tellAndFixUpdateEvents(u) )
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+			if( m_newtonUpdater != SPNULL )
 			{
-				UG_LOG("unable to fix local Newton updates" << std::endl );
-				return false;
+				if( ! m_newtonUpdater->tellAndFixUpdateEvents(u) )
+				{
+					UG_LOG("unable to fix local Newton updates" << std::endl );
+					return false;
+				}
 			}
-#endif
+//#endif
 		//	we're done
 			return true;
 		}
 
 
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 
 		virtual void setNewtonUpdater( SmartPtr<NewtonUpdaterGeneric<TVector> > nU )
 		{
 			m_newtonUpdater = nU;
 		}
 
-#endif
+		virtual bool createNewtonUpdater()
+		{
+			if( m_newtonUpdater != SPNULL )
+			{
+				m_newtonUpdater = SmartPtr<NewtonUpdaterGeneric<TVector> >
+										  (new NewtonUpdaterGeneric<TVector>{});
+
+				return true;
+			}
+
+			return false;
+
+		}
+
+
+//#endif
 
 	protected:
 	/// solution in line direction
@@ -437,10 +461,10 @@ class StandardLineSearch : public ILineSearch<TVector>
 	/// number of spaces inserted before output
 		std::string m_offset;
 
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 private:
 		SmartPtr<NewtonUpdaterGeneric<TVector> > m_newtonUpdater;
-#endif
+//#endif
 };
 
 } // end namespace ug

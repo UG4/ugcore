@@ -2,10 +2,8 @@
 #include <string>
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include <lib_grid/grid_objects/grid_dim_traits.h>
-#ifdef UG_PARALLEL
 #include "lib_grid/parallelization/gather_grid.h"
 #include "lib_grid/parallelization/distributed_grid.h"
-#endif
 #include "common/common.h"
 
 namespace ug
