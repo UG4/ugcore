@@ -274,7 +274,7 @@ static void Algebra(TRegistry& reg, string parentGroup)
 		std::string grp = parentGroup; grp.append("/Discretization");
 		using T = NewtonUpdaterGeneric<vector_type>;
 		string name = string("NewtonUpdaterGeneric").append(suffix);
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NewtonUpdaterGeneric", tag);
