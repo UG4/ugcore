@@ -172,6 +172,8 @@ if(BUILD_ONE_LIB)
   
   target_include_directories(${targetLibraryName} PUBLIC ${ug4libIncludes})
   target_link_libraries(${targetLibraryName} ${ug4libDependencies} ${linkLibraries})
+  
+  target_enable_sanitizers(${targetLibraryName} ${USE_SANITIZER})
 
 	if(buildEmbeddedPlugins)
 		# if we build with embedded plugins, the compile-info is also embedded

@@ -129,6 +129,10 @@ set(profilerDefault "None")
 # Option to set frequency
 set(cpufreqDefault OFF)
 
+# Options for sanitizers
+set(sanitizerOptions "OFF or combinations of MSAN, ASAN, UBSAN, LSAN")
+set(sanitizerDefault OFF)
+
 # If we run the script the first time, search for MPI to determine the default value.
 # Note that you may use -DMPI_DIR=... to set a custom MPI path.
 if(BUILTIN_MPI)
@@ -194,6 +198,7 @@ option(USE_AUTODIFF "Use Autodiff" OFF)
 option(USE_PYBIND11 "Use PYBIND11" OFF)
 option(USE_JSON "Use JSON" OFF)
 option(USE_XEUS "Use XEUS" OFF)
+option(USE_SANITIZER "Use " OFF)
 
 ################################################################################
 # set default values for pseudo-options
@@ -282,6 +287,7 @@ message(STATUS "Info: USE_JSON:          ${USE_JSON} (options are: ON, OFF)")
 message(STATUS "Info: USE_XEUS:          ${USE_XEUS} (options are: ON, OFF)")
 message(STATUS "Info: USE_PYBIND11:      ${USE_PYBIND11} (options are: ON, OFF)")
 message(STATUS "Info: USE_AUTODIFF:      ${USE_AUTODIFF} (options are: ON, OFF)")
+message(STATUS "Info: USE_SANITIZER:     ${USE_SANITIZER} (options are: ${sanitizerOptions})")
 message(STATUS "")
 message(STATUS "Info: C   Compiler: ${CMAKE_C_COMPILER} (ID: ${CMAKE_C_COMPILER_ID})")
 message(STATUS "Info: C++ Compiler: ${CMAKE_CXX_COMPILER} (ID: ${CMAKE_CXX_COMPILER_ID})")
@@ -444,6 +450,8 @@ include(${UG_ROOT_CMAKE_PATH}/ug/pybind11.cmake)
 include(${UG_ROOT_CMAKE_PATH}/ug/autodiff.cmake)
 # XEUS
 include(${UG_ROOT_CMAKE_PATH}/ug/xeus.cmake)
+# Memory sanitizer
+include(${UG_ROOT_CMAKE_PATH}/ug/sanitizer.cmake)
 
 ########################################
 # buildAlgebra
