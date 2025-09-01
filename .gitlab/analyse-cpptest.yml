@@ -21,8 +21,9 @@ cppcheck:
 
   artifacts:
     # Code quality JSON for inline MR annotations
-    reports:
-      codequality: cppcheck.json
+    # reports:
+    #  codequality: cppcheck.json
+    
     # Keep full XML as downloadable artifact
     paths:
       - cppcheck.xml
