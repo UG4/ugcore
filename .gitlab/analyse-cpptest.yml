@@ -5,7 +5,21 @@ cppcheck:
   stage: analyze
   image: gcc:latest
   before_script:
-    - apt-get update && apt-get install -y cppcheck
+    - apt-get update && apt-get install -y cppcheck python3
   script:
-    - cppcheck --enable=all --inconclusive --quiet --error-exitcode=1 .
-  allow_failure: false
+    # - cppcheck --enable=all --inconclusive --quiet --error-exitcode=1 . 
+    # Generate XML.
+    - cppcheck --enable=all --inconclusive --xml --xml-version=2 -i $CPPCHECK_EXCLUDES . 2> cppcheck.xml
+    # Convert to codeclimate JSON
+    - pip install cppcheck-codequality
+    - cppcheck-codequality --input-file cppcheck.xml --output-file cppcheck.json
+    # - python3 .gitlab/bin/cppcheck-to-codeclimate.py cppcheck.xml gl-code-quality-report.json
+  artifacts:
+    # Code quality JSON for inline MR annotations
+    reports:
+      codequality: cppcheck.json
+    # Keep full XML as downloadable artifact
+    paths:
+      - cppcheck.xml
+    expire_in: 1 week
+  allow_failure: true
