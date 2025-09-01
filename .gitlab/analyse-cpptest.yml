@@ -11,7 +11,7 @@ cppcheck:
     # Generate XML.
     - cppcheck --enable=all --inconclusive --xml --xml-version=2 ugbase/ 2> cppcheck.xml
     # Convert to codeclimate JSON
-    - pip install cppcheck-codequality
+    - python3 -m pip install cppcheck-codequality
     - cppcheck-codequality --input-file cppcheck.xml --output-file cppcheck.json
     # - python3 .gitlab/bin/cppcheck-to-codeclimate.py cppcheck.xml gl-code-quality-report.json
   artifacts:
