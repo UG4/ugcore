@@ -5,15 +5,17 @@ cppcheck:
   stage: analyze
   image: gcc:latest
   before_script:
-    - apt-get update && apt-get install -y cppcheck python3 python3-pip
+    - apt-get update && apt-get install -y cppcheck python3 python3-pip pipx
   script:
-    # - cppcheck --enable=all --inconclusive --quiet --error-exitcode=1 . 
-    # Generate XML.
+    # Install tools.
+    - pipx install cppcheck-codequality 
+    - pipx install cpplint
+    # Run cppcheck (XML and JSON)
+    
     - cppcheck --enable=all --inconclusive --xml --xml-version=2 ugbase/ 2> cppcheck.xml
-    # Convert to codeclimate JSON
-    - pip install cppcheck-codequality 
     - cppcheck-codequality --input-file cppcheck.xml --output-file cppcheck.json
     # - python3 .gitlab/bin/cppcheck-to-codeclimate.py cppcheck.xml gl-code-quality-report.json
+    # Run cpplint.
   artifacts:
     # Code quality JSON for inline MR annotations
     reports:
