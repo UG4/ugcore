@@ -6,10 +6,16 @@ cppcheck:
   image: gcc:latest
   before_script:
     - apt-get update && apt-get install -y cppcheck python3 python3-pip pipx
-  script:
-    # Install tools.
+    - python -m pipx ensurepath
+    # Make sure pipx bin path is on PATH
+    - export PATH="$PATH:$(python -m site --user-base)/bin"
     - pipx install cppcheck-codequality 
     - pipx install cpplint
+
+  script:
+    # Install tools.
+    #- pipx install cppcheck-codequality 
+    #- pipx install cpplint
     # Run cppcheck (XML and JSON)
     
     - cppcheck --enable=all --inconclusive --xml --xml-version=2 ugbase/ 2> cppcheck.xml
