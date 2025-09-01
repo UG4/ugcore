@@ -12,17 +12,13 @@ cppcheck:
 
 
   script:
-    # Install tools.
-    - pipx install cppcheck-codequality 
-    - pipx install cpplint
-    #- pipx install cppcheck-codequality 
-    #- pipx install cpplint
     # Run cppcheck (XML and JSON)
-    
+    - pipx install cppcheck-codequality 
     - cppcheck --enable=all --inconclusive --xml --xml-version=2 ugbase/ 2> cppcheck.xml
-    - cppcheck-codequality --base-dir ugbase/ --input-file cppcheck.xml --output-file cppcheck.json
-    # - python3 .gitlab/bin/cppcheck-to-codeclimate.py cppcheck.xml gl-code-quality-report.json
+    # - cppcheck-codequality --base-dir ugbase/ --input-file cppcheck.xml --output-file cppcheck.json
     # Run cpplint.
+    - pipx install cpplint
+
   artifacts:
     # Code quality JSON for inline MR annotations
     reports:
