@@ -1,0 +1,11 @@
+stages:
+  - analyze
+
+cppcheck:
+  stage: analyze
+  image: gcc:latest
+  before_script:
+    - apt-get update && apt-get install -y cppcheck
+  script:
+    - cppcheck --enable=all --inconclusive --quiet --error-exitcode=1 .
+  allow_failure: false
