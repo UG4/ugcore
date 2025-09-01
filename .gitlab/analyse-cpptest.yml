@@ -20,7 +20,7 @@ cppcheck:
     # Run cppcheck (XML and JSON)
     
     - cppcheck --enable=all --inconclusive --xml --xml-version=2 ugbase/ 2> cppcheck.xml
-    - cppcheck-codequality --base-dir ugbase --input-file cppcheck.xml --output-file cppcheck.json
+    - cppcheck-codequality --base-dir ugbase/ --input-file cppcheck.xml --output-file cppcheck.json
     # - python3 .gitlab/bin/cppcheck-to-codeclimate.py cppcheck.xml gl-code-quality-report.json
     # Run cpplint.
   artifacts:
