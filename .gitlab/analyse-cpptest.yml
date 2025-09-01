@@ -9,7 +9,7 @@ cppcheck:
   script:
     # - cppcheck --enable=all --inconclusive --quiet --error-exitcode=1 . 
     # Generate XML.
-    - cppcheck --enable=all --inconclusive --xml --xml-version=2 -i $CPPCHECK_EXCLUDES ugbase/ 2> cppcheck.xml
+    - cppcheck --enable=all --inconclusive --xml --xml-version=2 ugbase/ 2> cppcheck.xml
     # Convert to codeclimate JSON
     - pip install cppcheck-codequality
     - cppcheck-codequality --input-file cppcheck.xml --output-file cppcheck.json
