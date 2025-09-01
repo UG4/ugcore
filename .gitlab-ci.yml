@@ -5,11 +5,13 @@ default:
 
 stages:
   - test
+  - analyze
   - deploy
   - sync
 
 
 include:
+- local: '/.gitlab/analyse-cpptest.yml'
 - local: '/.gitlab/build-and-test.yml'
 #- local: '/.gitlab/deploy-pages.yml'
 - local: '/.gitlab/deploy-docker.yml'
