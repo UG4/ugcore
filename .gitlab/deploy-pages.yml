@@ -7,7 +7,7 @@ pages:
       optional: true
   script:
     - echo "Checking for required builds..."
-    - mv coverage public  # GitLab Pages expects content in a folder named 'public'
+    - mv cobertura public  # GitLab Pages expects content in a folder named 'public'
     - |
       for dir in "*/; do
       # Remove trailing slash from dir for nicer output
