@@ -8,15 +8,15 @@ pages:
   script:
     - echo "Checking for required builds..."
     - mv cobertura public  # GitLab Pages expects content in a folder named 'public'
-    - |
-      for dir in "*/; do
-      # Remove trailing slash from dir for nicer output
-      dir="${dir%/}"
-      if [[ -d "$dir/reports/html" ]]; then
-        echo "Directory '$dir' contains subdirectory 'reports'"
-        mv $dir/reports/html public
-      fi
-      done
+    #- |
+    #  for dir in "*/; do
+    #  # Remove trailing slash from dir for nicer output
+    #  dir="${dir%/}"
+    #  if [[ -d "$dir/reports/html" ]]; then
+    #    echo "Directory '$dir' contains subdirectory 'reports'"
+    #    mv $dir/reports/html public
+    # fi
+    #  done
   artifacts:
     paths:
       - public
