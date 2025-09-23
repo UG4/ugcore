@@ -584,6 +584,20 @@ static void Domain(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "OutNormCmp", tag);
 	}
+	
+//	User data for evaluation of scaled full-dimensional vector fields on hypersurfaces
+	{
+		string name = string("ScaledOutNormCmp").append(suffix);
+		typedef ScaledOutNormCmp<TDomain> T;
+		typedef UserData<MathVector<dim>, dim> TBase;
+		typedef UserData<number, dim> TScale;
+		
+		reg.add_class_<T, TBase> (name, grp)
+			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TScale>, SmartPtr<TBase>, const char*)>("Domain#Scaling#Vector#Subsets")
+			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TScale>, SmartPtr<TBase>)>("Domain#Scaling#Vector")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ScaledOutNormCmp", tag);
+	}
 
 }
 		
