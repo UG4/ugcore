@@ -36,6 +36,28 @@ namespace ug
 namespace support
 {
 
+template<typename ELEMTYP>
+bool addElem(std::vector<ELEMTYP> & knownElems, ELEMTYP elemToAdd )
+{
+	bool unknown = true;
+
+	for( ELEMTYP elmKnown : knownElems )
+	{
+		if( elemToAdd == elmKnown )
+		{
+			unknown = false;
+			break;
+		}
+	}
+
+	if( unknown )
+		knownElems.push_back(elemToAdd);
+
+	return unknown;
+
+}
+
+
 #if 0
 
 template<typename ELEMTYP, typename INDEX_TYP>
@@ -235,10 +257,17 @@ public:
 		PairLowEl lowElmOther = attElm.getPairLowElm();
 
 		if(    manifElmOther == this->m_manifElm
-			&& lowElmOther == this->m_pairLowElm
+			&& hasSameEdgePair( lowElmOther )
+//				&& lowElmOther == this->m_pairLowElm
 		)
 		{
 			return true;
+		}
+
+		if( manifElmOther == this->m_manifElm && ! hasSameEdgePair( lowElmOther ) )
+		{
+			UG_LOG("gleiches face aber andere Ecken???" << std::endl);
+			UG_THROW("gleiches face aber andere Ecken???" << std::endl);
 		}
 
 		return false;
@@ -249,6 +278,20 @@ protected:
 
 	MANIFELM m_manifElm;
 	PairLowEl m_pairLowElm;
+
+	bool const hasSameEdgePair( PairLowEl const & epTwo ) const
+	{
+		PairLowEl const & epOne = this->m_pairLowElm;
+
+		if(    ( epOne.first == epTwo.first && epOne.second == epTwo.second )
+			||	( epOne.first == epTwo.second && epOne.second == epTwo.first )
+		)
+		{
+			return true;
+		}
+
+		return false;
+	}
 
 };
 
@@ -261,7 +304,9 @@ protected:
 // vereinigen mit  AttachedGeneralElem !!! davon ableiten!!!
 // doppelte Strukturen!!!
 
-
+#if 0
+// [[DEPRECATED]]
+// wird abgelöst durch fortschrittlichere Klassen, bald nicht mehr nötig
 template <
 typename MANIFOLDTYP, // 3D: Face
 typename INDEXTYP, // int oder unsinged int oder short oder unsigned short etc
@@ -301,6 +346,9 @@ public:
 
 	SENKRECHTENTYP const getNormal() const { return m_normal; }
 
+	// TODO FIXME unklar, ob neue Normale irgendwo gebraucht wird
+	// falls notwendig in die Fracture Klasse einführen,
+	// die diese Klasse hier mittelfristig ablösen soll vollständig
 	void setNewNormal( SENKRECHTENTYP const & chNorml ) { m_newNormal = chNorml; }
 
 	SENKRECHTENTYP const getNewNormal() const { return m_newNormal; }
@@ -320,7 +368,7 @@ private:
 	{};
 
 };
-
+#endif
 
 //////////////////////////////////////////////////////////////////
 
@@ -397,7 +445,8 @@ private:
 template <
 typename MANIFELM,
 typename LOWDIMELM,
-typename INDEX_TXP
+typename INDEX_TXP,
+typename NORMAL_VEC
 >
 class AttachedFractElem
 : public AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>
@@ -406,18 +455,20 @@ class AttachedFractElem
 public:
 	using PairLowEl = std::pair<LOWDIMELM,LOWDIMELM>;
 
-	using AttFractElm = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttFractElm = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
 
 	using AttGenElm = AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
 
 	// for fracture elements
 	AttachedFractElem( MANIFELM const & manifElm,
 				  PairLowEl & lowElm,
-				  INDEX_TXP sudo )
+				  INDEX_TXP sudo,
+				  NORMAL_VEC const & normalVec )
 	:
 		AttGenElm(manifElm,lowElm),
 		//m_manifElm(manifElm), m_lowElm(lowElm),
-		m_sudo(sudo)
+		m_sudo(sudo),
+		m_normalVec(normalVec)
 	{
 	};
 
@@ -425,6 +476,8 @@ public:
 //	MANIFELM const getManifElm() const { return m_manifElm;}
 //	PairLowEl const getLowElm() const { return m_lowElm; }
 	INDEX_TXP const getSudo() const { return m_sudo; };
+
+	NORMAL_VEC const getNormalVec() const { return m_normalVec; }
 
 	bool const testIfEquals( AttFractElm const & attElm )
 	const
@@ -557,11 +610,43 @@ private:
 //	MANIFELM m_manifElm;
 //	PairLowEl m_lowElm;
 	INDEX_TXP m_sudo;
+	NORMAL_VEC m_normalVec;
 
 
 };
 
 //////////////////////////////////////////////////////////////////////////////
+
+// a quasi exact double, but only used for boundary faces, to avoid mismatch with frac faces
+template <
+typename MANIFELM,
+typename LOWDIMELM,
+typename INDEX_TXP,
+typename NORMAL_VEC
+>
+class AttachedBoundryElem
+: public AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>
+{
+public:
+	using PairLowEl = std::pair<LOWDIMELM,LOWDIMELM>;
+
+	using AttBndryElm = AttachedBoundryElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
+
+	using AttFractElm = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
+
+
+	// for boundary elements
+	AttachedBoundryElem( MANIFELM const & manifElm,
+				  PairLowEl & lowElm,
+				  INDEX_TXP sudo,
+				  NORMAL_VEC const & normalVec )
+	:
+		AttFractElm( manifElm, lowElm, sudo, normalVec)
+	{
+	};
+};
+
+////////////////////////////////////////////////////////////////////////////
 
 // class to help count and store a bool and a number of templete type
 // comparable to std::pair<bool,int> but more dedicated to the specific aim
@@ -569,6 +654,11 @@ private:
 // CAUTION is also used for edges, but still uses
 // vertex as indicator - name should be made more flexible
 
+// die meisten Funktionen in dieser Klasse:
+// DEPRECATED, to be replaced in near future everywhere, not really useful any more
+// due to the Stasi algorithm
+// [[deprecated]] ab C++14, leider nicht passend zur Konvention C++11
+// die Sudo-Liste wollen wir aber lassen
 template<
 typename T,
 typename ATT_ELEM
@@ -586,6 +676,7 @@ public:
 //	{
 //	};
 
+	// DEPRECATED, kann entfernt werden vermutlich, CHECK, TODO FIXME
 	enum VrtxFracStatus { noFracSuDoAtt = 0,
 						  oneFracSuDoAtt = 1,
 						  twoFracSuDoAtt = 2,
@@ -594,9 +685,9 @@ public:
 	VertexFracturePropertiesVol()
 	: m_isBndFracVertex(false), m_numberCountedFracsInVertex(0),
 	  m_status( noFracSuDoAtt ),
-	  m_sudoList( std::vector<T>() ),
-	  m_sudosClosed(VecPairTB()),
-	  m_vecAttElem(std::vector<ATT_ELEM>())
+	  m_sudoList( std::vector<T>() ) //,
+//	  m_sudosClosed(VecPairTB()),
+//	  m_vecAttElem(std::vector<ATT_ELEM>())
 //		VertexFracturePropertiesVol( false, 0 )
 	{
 	};
@@ -690,153 +781,154 @@ public:
 		return m_sudoList;
 	}
 
-	bool setIsAClosedFracture( T sudoNow, bool isClosedNow )
-	{
+//	bool setIsAClosedFracture( T sudoNow, bool isClosedNow )
+//	{
+//
+//		T alreadyKnownMult = 0;
+//
+//		for( auto & suSu : m_sudosClosed )
+//		{
+//			T & sudoVal = suSu.first;
+//			bool & isClosedVal = suSu.second;
+//
+//			if( sudoVal == sudoNow )
+//			{
+//				alreadyKnownMult++;
+//
+//				UG_LOG("Reassign sudo surround " << std::endl);
+//
+//				if( isClosedVal != isClosedNow )
+//					UG_THROW("change property sudo surrounded, why?" << std::endl);
+//
+//				isClosedVal = isClosedNow;
+//			}
+//		}
+//
+//		if( alreadyKnownMult == 0 )
+//		{
+//			pairTB infoSudoSurr( sudoNow, isClosedNow );
+//
+//			m_sudosClosed.push_back( infoSudoSurr );
+//
+//		}
+//		else if( alreadyKnownMult > 1 )
+//		{
+//			UG_THROW("zu oft bekannt " << std::endl);
+//			return false;
+//		}
+//
+//		// check if now correct
+//
+//		T testKnownFine = 0;
+//
+//		for( auto const & suSu : m_sudosClosed )
+//		{
+//			T & sudoVal = suSu.first;
+//			bool & isClosedVal = suSu.second;
+//
+//			if( sudoVal == sudoNow )
+//			{
+//				testKnownFine++;
+//
+//				if( isClosedVal != isClosedNow )
+//				{
+//					UG_THROW("NOT set property sudo surrounded, why?" << std::endl);
+//					return false;
+//				}
+//
+//			}
+//		}
+//
+//		if( testKnownFine == 0 || testKnownFine > 1 )
+//		{
+//			UG_THROW("immer noch nicht bekannt?" << std::endl);
+//			return false;
+//
+//		}
+//
+//		return true;
+//	}
+//
+//	bool getIsAClosedFracture( T sudoNow )
+//	{
+//		T foundMultpl = 0;
+//
+//		bool isClosedReturn = false;
+//
+//		for( auto const & suSu : m_sudosClosed )
+//		{
+//			T const & sudoVal = suSu.first;
+//			bool const & isClosedVal = suSu.second;
+//
+//			if( sudoVal == sudoNow )
+//			{
+//				foundMultpl++;
+//				isClosedReturn = isClosedVal;
+//			}
+//		}
+//
+//		if( foundMultpl != 1 )
+//		{
+//			UG_THROW("not known status closed or not sudo" << std::endl);
+//			return false;
+//		}
+//
+//		return isClosedReturn;
+//	}
+//
+//	bool setInfoAllFractureSudosIfClosed( VecPairTB const & sudosClosed )
+//	{
+//		m_sudosClosed = sudosClosed;
+//
+//		return true;
+//	}
+//
+//	VecPairTB const getInfoAllFracSudosIfClosed() const
+//	{
+//		return m_sudosClosed;
+//	}
+//
+//	// if all open or closed
+//	template<bool B>
+//	bool const getInfoAllFracturesSameClosedState() const
+//	{
+//		bool allFracsSame = true;
+//
+//		for( auto const & suSu : m_sudosClosed )
+//		{
+//			//T const & sudoVal = suSu.first;
+//			bool const & isClosedVal = suSu.second;
+//
+//			if( isClosedVal != B )
+//				allFracsSame = false;
+//		}
+//
+//		return allFracsSame;
+//	}
 
-		T alreadyKnownMult = 0;
+	// DEPRECATED; REMOVE
+//	bool addAttachedFractElem( ATT_ELEM const & attElem )
+//	{
+//		bool alreadyKnown = false;
+//
+//		for( auto const & aE : m_vecAttElem )
+//		{
+//			if( aE.testIfEquals(attElem) )
+//				alreadyKnown = true;
+//		}
+//
+//		if( ! alreadyKnown )
+//			m_vecAttElem.push_back(attElem);
+//
+//		// returns true if ads it, false if no need as known
+//		return ! alreadyKnown;
+//	}
 
-		for( auto & suSu : m_sudosClosed )
-		{
-			T & sudoVal = suSu.first;
-			bool & isClosedVal = suSu.second;
-
-			if( sudoVal == sudoNow )
-			{
-				alreadyKnownMult++;
-
-				UG_LOG("Reassign sudo surround " << std::endl);
-
-				if( isClosedVal != isClosedNow )
-					UG_THROW("change property sudo surrounded, why?" << std::endl);
-
-				isClosedVal = isClosedNow;
-			}
-		}
-
-		if( alreadyKnownMult == 0 )
-		{
-			pairTB infoSudoSurr( sudoNow, isClosedNow );
-
-			m_sudosClosed.push_back( infoSudoSurr );
-
-		}
-		else if( alreadyKnownMult > 1 )
-		{
-			UG_THROW("zu oft bekannt " << std::endl);
-			return false;
-		}
-
-		// check if now correct
-
-		T testKnownFine = 0;
-
-		for( auto const & suSu : m_sudosClosed )
-		{
-			T & sudoVal = suSu.first;
-			bool & isClosedVal = suSu.second;
-
-			if( sudoVal == sudoNow )
-			{
-				testKnownFine++;
-
-				if( isClosedVal != isClosedNow )
-				{
-					UG_THROW("NOT set property sudo surrounded, why?" << std::endl);
-					return false;
-				}
-
-			}
-		}
-
-		if( testKnownFine == 0 || testKnownFine > 1 )
-		{
-			UG_THROW("immer noch nicht bekannt?" << std::endl);
-			return false;
-
-		}
-
-		return true;
-	}
-
-	bool getIsAClosedFracture( T sudoNow )
-	{
-		T foundMultpl = 0;
-
-		bool isClosedReturn = false;
-
-		for( auto const & suSu : m_sudosClosed )
-		{
-			T const & sudoVal = suSu.first;
-			bool const & isClosedVal = suSu.second;
-
-			if( sudoVal == sudoNow )
-			{
-				foundMultpl++;
-				isClosedReturn = isClosedVal;
-			}
-		}
-
-		if( foundMultpl != 1 )
-		{
-			UG_THROW("not known status closed or not sudo" << std::endl);
-			return false;
-		}
-
-		return isClosedReturn;
-	}
-
-	bool setInfoAllFractureSudosIfClosed( VecPairTB const & sudosClosed )
-	{
-		m_sudosClosed = sudosClosed;
-
-		return true;
-	}
-
-	VecPairTB const getInfoAllFracSudosIfClosed() const
-	{
-		return m_sudosClosed;
-	}
-
-	// if all open or closed
-	template<bool B>
-	bool const getInfoAllFracturesSameClosedState() const
-	{
-		bool allFracsSame = true;
-
-		for( auto const & suSu : m_sudosClosed )
-		{
-			//T const & sudoVal = suSu.first;
-			bool const & isClosedVal = suSu.second;
-
-			if( isClosedVal != B )
-				allFracsSame = false;
-		}
-
-		return allFracsSame;
-	}
-
-	bool addAttachedFractElem( ATT_ELEM const & attElem )
-	{
-		bool alreadyKnown = false;
-
-		for( auto const & aE : m_vecAttElem )
-		{
-			if( aE.testIfEquals(attElem) )
-				alreadyKnown = true;
-		}
-
-		if( ! alreadyKnown )
-			m_vecAttElem.push_back(attElem);
-
-		// returns true if ads it, false if no need as known
-		return ! alreadyKnown;
-	}
-
-	std::vector<ATT_ELEM> const & getAllAttachedFractElems()
-	const
-	{
-		return m_vecAttElem;
-	}
+//	std::vector<ATT_ELEM> const & getAllAttachedFractElems()
+//	const
+//	{
+//		return m_vecAttElem;
+//	}
 
 private:
 	bool m_isBndFracVertex;
@@ -873,7 +965,7 @@ private:
 		return true;
 	}
 
-	VecPairTB m_sudosClosed;
+//	VecPairTB m_sudosClosed;
 
 	bool setSudoList( std::vector<T> const & sudoList )
 	{
@@ -882,37 +974,43 @@ private:
 		return true;
 	}
 
-	std::vector<ATT_ELEM> m_vecAttElem;
+//	std::vector<ATT_ELEM> m_vecAttElem;
 
 };
 
 
 // intention, explained for volume:
-template<typename FULLDIM_ELEM,
+template<
+typename FULLDIM_ELEM,
 typename MANIFELM,
 typename LOWDIMELM,
-typename INDEX_TXP
+typename INDEX_TXP,
+typename NORMAL_VEC
 >
 class AttachedFullDimElemInfo
 {
 
 public:
 
-	using AttachedFractManifElemInfo = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttachedFractManifElemInfo = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
 	using AttachedGenerManifElemInfo = AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttachedBndryManifElemInfo = AttachedBoundryElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
 
 	using VecAttachedFractManifElemInfo = std::vector<AttachedFractManifElemInfo>;
 	using VecAttachedGenerManifElemInfo = std::vector<AttachedGenerManifElemInfo>;
+	using VecAttachedBndryManifElemInfo = std::vector<AttachedBndryManifElemInfo>;
 
-	using AttFullDimElmInfo = AttachedFullDimElemInfo<FULLDIM_ELEM,MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttFullDimElmInfo = AttachedFullDimElemInfo<FULLDIM_ELEM,MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
 
 	AttachedFullDimElemInfo( FULLDIM_ELEM const & fullDimElm )
 	: m_fullDimElm(fullDimElm),
 	  m_elementMarked(false),
 	  m_vecFractManifElm(VecAttachedFractManifElemInfo()),
+	  m_vecUnclosedFractManifElm(VecAttachedFractManifElemInfo()),
 //	  m_vecFractManifElmTouchInfo(VecAttFractManifElmTouchInf()),
 //	  m_allSidesTouched(false),
-	  m_vecGenerManifElm(VecAttachedGenerManifElemInfo())
+	  m_vecGenerManifElm(VecAttachedGenerManifElemInfo()),
+	  m_vecBndryManifElm(VecAttachedBndryManifElemInfo())
 //	  m_vecGenerManifElmTouchInfo(VecAttFractManifElmTouchInf())
 //	  m_vecInnerSegmentManifElm(VecAttachedGenerManifElemInfo())
 	{
@@ -937,6 +1035,8 @@ public:
 
 	bool const hasFracture() const { return ( m_vecFractManifElm.size() > 0 ); }
 
+	bool const hasUnclosedFracture() const { return ( m_vecUnclosedFractManifElm.size() > 0 ); }
+
 	bool addFractManifElem( AttachedFractManifElemInfo const & manifFractElm, Grid & grid )
 	{
 		return addManifElem( manifFractElm, m_vecFractManifElm, grid );
@@ -949,11 +1049,20 @@ public:
 		return addManifElem( manifGenerElm, m_vecGenerManifElm, grid );
 	}
 
+	bool addBndryManifElem( AttachedBndryManifElemInfo const & manifBndryElm, Grid & grid )
+	{
+		return addManifElem( manifBndryElm, m_vecBndryManifElm, grid );
+	}
+
 	// necessary to avoid stupid casting from derived class AttachedFractManifElemInfo
 	// else, addGenerManifElem would also eat objects of derived class
 	// however not it only accepts explicit base class objects
 	template <typename NOGEN>
 	bool addGenerManifElem( NOGEN const & noGener, Grid & grid )
+	= delete;
+
+	template <typename NOGEN>
+	bool addBndryManifElem( NOGEN const & noGener, Grid & grid )
 	= delete;
 
 
@@ -1009,10 +1118,22 @@ public:
 		return m_vecFractManifElm;
 	}
 
+	VecAttachedFractManifElemInfo const getVecUnclosedFractManifElem() const
+	{
+		return m_vecUnclosedFractManifElm;
+	}
+
+
 	VecAttachedGenerManifElemInfo const getVecGenerManifElem() const
 	{
 		return m_vecGenerManifElm;
 	}
+
+	VecAttachedBndryManifElemInfo const getVecBndryManifElem() const
+	{
+		return m_vecBndryManifElm;
+	}
+
 
 	bool const searchGenerManifElem( AttachedGenerManifElemInfo const & manifGenerElemOther, bool eraseFound = true )
 	{
@@ -1052,26 +1173,37 @@ public:
 	bool searchGenerManifElem( NOGEN const & manifGenerElemOther, bool eraseFound ) = delete;
 
 //	bool const searchFractManifElem( AttachedFractManifElemInfo const & manifFractElemOther, bool eraseFound = true )
-	bool const searchFractManifElem( AttachedFractManifElemInfo const & manifFractElemOther, bool shiftToGeneral = true )
+	bool const searchFractManifElem( AttachedFractManifElemInfo const & manifFractElemOther, bool shiftToUnclosedFracts = true )
 	{
-		bool found = searchManifElem( manifFractElemOther, m_vecFractManifElm, shiftToGeneral );
+		bool found = searchManifElem( manifFractElemOther, m_vecFractManifElm, shiftToUnclosedFracts );
 
-		if( found && shiftToGeneral )
+		if( found && shiftToUnclosedFracts )
 		{
 			// for the case that a fracture is not closed at a vertex, shift the in principle
 			// fracture vertex to the gerneral vertices, as useless for segmente construction
 			// and useless for expansion
 
-			MANIFELM const & manifel = manifFractElemOther.getManifElm();
-			typename AttachedGenerManifElemInfo::PairLowEl const & pairLowEl = manifFractElemOther.getPairLowElm();
+			m_vecUnclosedFractManifElm.push_back(manifFractElemOther);
 
-			AttachedGenerManifElemInfo agmei( manifel, pairLowEl );
 
-			m_vecGenerManifElm.push_back(agmei);
+//			MANIFELM const & manifel = manifFractElemOther.getManifElm();
+//			typename AttachedGenerManifElemInfo::PairLowEl const & pairLowEl = manifFractElemOther.getPairLowElm();
+//
+//			AttachedGenerManifElemInfo agmei( manifel, pairLowEl );
+
+//			m_vecUnclosedFractManifElm.push_back(agmei);
 		}
 
 		return found;
 
+	}
+
+	template <typename NOGEN>
+	bool const searchFractManifElem( NOGEN const & manifFractElemOther, bool shiftToGeneral ) = delete;
+
+	bool const searchBndryManifElem( AttachedBndryManifElemInfo const & manifBndryElemOther )
+	{
+		return searchManifElem( manifBndryElemOther, m_vecBndryManifElm, false );
 	}
 
 //	bool const searchInnerSegmentManifElem( AttachedGenerManifElemInfo const & manifInnerSegmElemOther, bool eraseFound = true )
@@ -1183,12 +1315,17 @@ private:
 
 	VecAttachedFractManifElemInfo m_vecFractManifElm;
 
+	VecAttachedFractManifElemInfo m_vecUnclosedFractManifElm;
+
+
 //	using AttFractManifElmTouchInf = std::pair<AttachedFractManifElemInfo,bool>;
 //	using VecAttFractManifElmTouchInf = std::vector<AttFractManifElmTouchInf>;
 //
 //	VecAttFractManifElmTouchInf m_vecFractManifElmTouchInfo;
 
 	VecAttachedGenerManifElemInfo m_vecGenerManifElm;
+
+	VecAttachedBndryManifElemInfo m_vecBndryManifElm;
 
 //	VecAttachedGenerManifElemInfo m_vecInnerSegmentManifElm;
 
@@ -1297,6 +1434,914 @@ private:
 
 };
 
+//////////////////////////////////////////////////////////////////
+
+
+// Ebenentyp: a x1 + b x2 + c x3 = rhs, normal * ( vecX - baseVect ) = 0
+template<typename VECTOR_TYP,
+		 typename LOWDIMELM
+>
+class ManifoldDescriptor
+{
+public:
+
+	enum ManifoldType { isFracture, isBoundary, isArtificial };
+
+	template<typename = std::enable_if<std::is_same<VECTOR_TYP,vector3>::value>>
+//			ManifoldDescriptor( int sudo = -1, number scaleShiftNormal = 0 )
+	ManifoldDescriptor()
+	: m_normalVect(vector3()),
+	  m_baseVect(vector3()),
+	  m_rhs(0),
+	  m_scaleShiftNormal(0),
+	  m_dim(3),
+	  m_sudo(-1),
+	  m_manifTyp( isArtificial )
+	{
+	}
+
+
+	template<typename = std::enable_if<std::is_same<VECTOR_TYP,vector3>::value>>
+	ManifoldDescriptor( VECTOR_TYP const & normalVect,
+						VECTOR_TYP const & baseVect,
+						int sudo = -1,
+						ManifoldType manifTyp = isArtificial,
+						number scaleShiftNormal = 0
+						)
+	: m_normalVect(normalVect),
+	  m_baseVect(baseVect),
+	  m_scaleShiftNormal(scaleShiftNormal),
+	  m_dim(3),
+	  m_sudo(sudo),
+	  m_manifTyp( manifTyp ),
+	  m_lowDimElms(std::vector<LOWDIMELM>())
+	{
+		m_rhs = 0;
+
+		UG_LOG("Ebenenkoordinatenform ");
+
+		for( int i = 0; i < m_dim; i++ )
+		{
+			m_rhs += normalVect[i]*baseVect[i];
+
+			UG_LOG( " + " << normalVect[i] << " x_" << i << " " );
+		}
+
+		UG_LOG(" = " << m_rhs << std::endl);
+
+	}
+
+	VECTOR_TYP const & spuckNormalVector() const { return m_normalVect; }
+	VECTOR_TYP const & spuckBaseVector() const { return m_baseVect; }
+
+	int const spuckSudo() const { return m_sudo; }
+
+	ManifoldType const spuckManifTyp() const { return m_manifTyp; }
+
+	number const spuckScaleShiftNormal() const { return m_scaleShiftNormal; }
+
+	void schluckSudo( int sudo ) { m_sudo = sudo; }
+
+	void schluckManifTyp( ManifoldType manifTyp )  { m_manifTyp = manifTyp; }
+
+	void schluckScaleShiftNormal( number scaleShiftNormal )
+	{
+		m_scaleShiftNormal = scaleShiftNormal;
+	}
+
+	number const & spuckRHS() const { return m_rhs; }
+
+	template<typename = std::enable_if<    std::is_same<VECTOR_TYP,vector3>::value
+//										|| std::is_same<VECTOR_TYP,vector2>::value>
+									>
+	>
+	bool spuckPlaneShiftedAlong( VECTOR_TYP const & shiftVec, ManifoldDescriptor & manifoldDescr )
+	{
+		VECTOR_TYP shiftedBaseVect;
+//		number rhsShiftedPlane = 0;
+
+		VecAdd( shiftedBaseVect, m_baseVect, shiftVec );
+
+		UG_LOG("Ebenenkoordinatenform Shifted Plane " << std::endl);
+
+//		ManifoldDescriptor( VECTOR_TYP const & normalVect,
+//							VECTOR_TYP const & baseVect,
+//							int sudo = -1,
+//							ManifoldType = isArtificial,
+//							number scaleShiftNormal = 0
+//							)
+
+		manifoldDescr = ManifoldDescriptor( m_normalVect, shiftedBaseVect, m_sudo, m_manifTyp, 0 );
+
+		return true;
+
+	}
+
+	template<typename = std::enable_if<std::is_same<VECTOR_TYP,vector3>::value >>
+	bool spuckPlaneShifted( ManifoldDescriptor & manifoldDescr )
+	{
+
+		UG_LOG("Ebenenkoordinatenform Shifted Plane " << std::endl);
+
+		manifoldDescr = ManifoldDescriptor( m_normalVect, spuckShiftedBaseVect(), m_sudo, m_manifTyp, 0 );
+
+		if( ! manifoldDescr.schluckLowDimElms(m_lowDimElms) )
+		{
+			UG_LOG("Neuer Manifold Descripter verschoben ohne Ecken" << std::endl);
+		}
+
+		return true;
+
+	}
+
+
+	template<typename = std::enable_if< std::is_same<VECTOR_TYP,vector3>::value>>
+	VECTOR_TYP spuckShiftedBaseVect()
+	{
+		VECTOR_TYP shiftVec;
+
+		VecScale(shiftVec, m_normalVect, m_scaleShiftNormal );
+
+		VECTOR_TYP shiftedBaseVec;
+
+		VecAdd( shiftedBaseVec, m_baseVect, shiftVec );
+
+		return shiftedBaseVec;
+	}
+
+	bool schluckLowDimElms( std::vector<LOWDIMELM> const & lowDimElms )
+	{
+		m_lowDimElms = lowDimElms;
+		return ( m_lowDimElms.size() > 0 );
+	}
+
+	bool const spuckLowDimElms( std::vector<LOWDIMELM> & lowDimElms ) const
+	{
+		lowDimElms = m_lowDimElms;
+		return ( m_lowDimElms.size() > 0 );
+	}
+
+private:
+
+	VECTOR_TYP m_normalVect;
+	VECTOR_TYP m_baseVect;
+	number m_rhs;
+	number m_scaleShiftNormal;
+
+	// could be defined as static const variable, but then depending on the template parameter
+	// might be an idea for future, but no real use, but would be "nice" from the meta programmig point of view
+	int m_dim;
+	int m_sudo;
+	ManifoldType m_manifTyp;
+
+	std::vector<LOWDIMELM> m_lowDimElms;
+};
+
+
+//////////////////////////////////////////////////////////////////
+
+//// needs to be declared as members used in following class
+//template
+//<
+//typename FULLDIMEL,
+//typename MANIFEL,
+//typename LOWDIMEL,
+//typename VRTXTYP,
+//typename INDEXTYP
+//>
+//class EndingCrossingFractSegmentInfo;
+
+//////////////////////////////////////////////////////////////
+
+
+template <
+typename FULLDIM_ELEM,
+typename MANIFELM,
+typename LOWDIMELM,
+typename INDEX_TXP,
+typename VECTOR_TYP,
+typename VRTXTYP
+>
+class SegmentSides
+{
+public:
+
+	enum VrtxFracStatus { noFracSuDoAtt = 0,
+						  oneFracSuDoAtt = 1,
+						  twoFracSuDoAtt = 2,
+						  threeFracSuDoAtt = 3 };
+
+	using AttFractElm = AttachedFractElem<MANIFELM, LOWDIMELM, INDEX_TXP, VECTOR_TYP>;
+	using AttBndryElm = AttachedBoundryElem<MANIFELM, LOWDIMELM, INDEX_TXP, VECTOR_TYP>;
+
+	using VecAttFractElm = std::vector<AttFractElm>;
+	using VecAttBndryElm = std::vector<AttBndryElm>;
+
+	using PairSudoNormlV = std::pair<INDEX_TXP,VECTOR_TYP>;
+	using VecPairSudoNormlV = std::vector<PairSudoNormlV>;
+
+	using PairSudoVecLowDiEl = std::pair<INDEX_TXP, std::vector<LOWDIMELM> >;
+	using VecPairSudoVecLowDiEl = std::vector<PairSudoVecLowDiEl>;
+
+	using ManifDescr = ManifoldDescriptor<VECTOR_TYP, LOWDIMELM>;
+	using VecManifDescr = std::vector<ManifDescr>;
+
+	// TODO FIXME das soll gleich durch den Manifold Descriptor ersetzt werden
+	// oder eine Basisklasse von ihm, die nicht so viele Infos enthält
+	// aber mindestens NormalenVektor, Sudo, und ob Boundary oder Fracture
+	// kann auch vielleicht einfach eine Klasse sein, die noch einen Parameter enthält
+	// der sich abfragen lässt, auch als Template vielleicht, true false, fracture or not
+	// also was wie template < index, normal, bool > pairsudonormlbla, oder sowas.....
+	// oder man kann einen Parameter setzen für diese Klasse, die extern definiert wird......
+	// bool isFracture true false.....
+
+	template<   typename = std::enable_if< std::is_pointer<LOWDIMELM>::value>
+			>
+	SegmentSides( VRTXTYP const & vrt, bool isBndry = false )
+	: m_vrt(vrt),
+	  m_shiftDirectionIfUnclosedFractPresent(nullptr),
+	  m_vecAttFractElms(VecAttFractElm()),
+	  m_vecAttUnclosedFractElms(VecAttFractElm()),
+	  m_vecAttBndryElms(VecAttBndryElm()),
+	  m_vecFractSudosNormlV(VecPairSudoNormlV()),
+	  m_vecBndrySudosNormlV(VecPairSudoNormlV()),
+	  m_vecFractSudoLowDiEl(VecPairSudoVecLowDiEl()),
+	  m_vecBndrySudoLowDiEl(VecPairSudoVecLowDiEl()),
+	  m_isBoundary(isBndry),
+	  m_averaged(false),
+	  m_contribFulldimElm(std::vector<FULLDIM_ELEM>()),
+	  m_volEdgesDetermined(false),
+	  m_vecVolEdges(std::vector<LOWDIMELM>())
+	{};
+
+//	template<typename = std::enable_if< std::is_pointer<VRTXTYP>::value>>
+//	SegmentSides()
+//	: m_vrt(nullptr),
+//	  m_vecAttFractElms(VecAttFractElm()),
+//	  m_vecAttUnclosedFractElms(VecAttFractElm()),
+//	  m_vecAttBndryElms(VecAttBndryElm()),
+//	  m_vecFractSudosNormlV(VecPairSudoNormlV()),
+//	  m_vecBndrySudosNormlV(VecPairSudoNormlV()),
+//	  m_isBoundary(false),
+//	  m_averaged(false),
+//	  m_contribFulldimElm(std::vector<FULLDIM_ELEM>())
+//	{};
+
+
+	bool const isBoundary() const { return m_isBoundary; }
+
+	VRTXTYP const spuckVertex() const
+	{
+		return m_vrt;
+	}
+
+	bool schluckFulldimElem( FULLDIM_ELEM const & fudielm )
+	{
+		m_volEdgesDetermined = false;
+		return addElem(m_contribFulldimElm, fudielm);
+//		m_contribFulldimElm.push_back(fudielm);
+	}
+
+	bool const spuckVecFulldimElem( std::vector<FULLDIM_ELEM> & fudielm ) const
+	{
+		fudielm = m_contribFulldimElm;
+
+		return ( m_contribFulldimElm.size() != 0 );
+	}
+
+	template< //typename GRID,
+			  //typename = std::enable_if< std::is_same<GRID, Grid >::value>,
+			  typename = std::enable_if< std::is_same<FULLDIM_ELEM,Volume*>::value>,
+			  typename = std::enable_if< std::is_same<FULLDIM_ELEM,Volume*>::value>
+			>
+	bool spuckListLowdimElmsOfVols( std::vector<LOWDIMELM> & listLowdimElms, Grid & grid )
+	{
+		if( ! m_volEdgesDetermined )
+		{
+			determineListLowdimElms( grid );
+		}
+
+		listLowdimElms = m_vecVolEdges;
+
+		return m_volEdgesDetermined;
+	}
+
+
+	VrtxFracStatus const spuckCrossingTyp() const
+	{
+		VrtxFracStatus vfsFract =  static_cast<VrtxFracStatus>(m_vecFractSudosNormlV.size());
+
+		if( m_isBoundary )
+		{
+			VrtxFracStatus vfsBndry = static_cast<VrtxFracStatus>(m_vecBndrySudosNormlV.size());
+
+			return static_cast<VrtxFracStatus>( static_cast<INDEX_TXP>(vfsFract) + static_cast<INDEX_TXP>(vfsBndry) );
+		}
+
+		return vfsFract;
+	}
+
+	bool schluckVecAttFractElm( std::vector<AttFractElm> const & vecAtFracEl )
+	{
+		return schluckVecAttElm( vecAtFracEl, m_vecAttFractElms );
+	}
+
+	template< typename NOFRACT >
+	bool schluckVecAttFractElm( std::vector<NOFRACT> const & vecAtFracEl ) = delete;
+
+	bool schluckAttFractElm( AttFractElm const & afeNew )
+	{
+		return schluckAttElm( afeNew, m_vecAttFractElms );
+
+//		if( ! isStillUnknown( afeNew, m_vecAttFractElms ) )
+//		{
+//			return false;
+//		}
+//
+//		m_vecAttFractElms.push_back(afeNew);
+//
+//		return true;
+	}
+
+	template< typename NOFRACT >
+	bool schluckAttFractElm( NOFRACT const & afeNew ) = delete;
+
+	// soll auch in der Lage sein, die einzenlen Fracture faces wieder aus zu spucken als Liste
+	// analog auch dan	ach die boundary Geschichten
+	bool const spuckVecAttFractElm( std::vector<AttFractElm> & vecAttFracEl ) const
+	{
+		vecAttFracEl = m_vecAttFractElms;
+		return true;
+	}
+
+	bool schluckVecAttBndryElm( std::vector<AttBndryElm> const & vecAtBndryEl )
+	{
+//		if( ! checkIfIsAtBndry() )
+//			return false;
+
+		return schluckVecAttElm( vecAtBndryEl, m_vecAttBndryElms );
+	}
+
+	bool schluckAttBndryElm( AttBndryElm const & afeNew )
+	{
+//		if( ! checkIfIsAtBndry() )
+//			return false;
+
+		return schluckAttElm( afeNew, m_vecAttBndryElms );
+
+//		if( ! isStillUnknown( afeNew, m_vecAttBndryElms ) )
+//		{
+//			return false;
+//		}
+//
+//		m_vecAttBndryElms.push_back(afeNew);
+//
+//		return true;
+	}
+
+	bool spuckVecAttBndryElm( std::vector<AttBndryElm> & vecAtBndryEl )
+	{
+		vecAtBndryEl = m_vecAttBndryElms;
+		return true;
+	}
+
+
+	bool schluckVecAttUnclosedFractElm( std::vector<AttFractElm> const & vecAtFracEl )
+	{
+		return schluckVecAttElm( vecAtFracEl, m_vecAttUnclosedFractElms, true );
+	}
+
+	template< typename NOFRACT >
+	bool schluckVecAttUnclosedFractElm( std::vector<NOFRACT> const & vecAtFracEl ) = delete;
+
+	bool schluckAttUnclosedFractElm( AttFractElm const & afeNew )
+	{
+		return schluckAttElm( afeNew, m_vecAttUnclosedFractElms, true );
+	}
+
+	template< typename NOFRACT >
+	bool schluckAttUnclosedFractElm( NOFRACT const & afeNew ) = delete;
+
+	bool const spuckVecAttUnclosedFractElm( std::vector<AttFractElm> & vecAttFracEl ) const
+	{
+		vecAttFracEl = m_vecAttUnclosedFractElms;
+		return true;
+	}
+
+	bool const hasUnclosedFaces() const
+	{
+		return ( m_vecAttUnclosedFractElms.size() > 0 );
+	}
+
+	template<   typename = std::enable_if< std::is_pointer<LOWDIMELM>::value>
+			>
+	bool schluckLowdimElmShiftDirectionIfUnclosedFractPresent( LOWDIMELM const & shiftDirectionElm )
+	{
+		if(    m_shiftDirectionIfUnclosedFractPresent != nullptr
+			&& shiftDirectionElm != m_shiftDirectionIfUnclosedFractPresent
+		  )
+		{
+			UG_LOG("Shift direction already set different " << std::endl);
+			UG_THROW("Shift direction already set different " << std::endl);
+		}
+
+		if( shiftDirectionElm != nullptr )
+		{
+			m_shiftDirectionIfUnclosedFractPresent = shiftDirectionElm;
+			return true;
+		}
+
+		return false;
+	}
+
+	template<   typename = std::enable_if< std::is_pointer<LOWDIMELM>::value>
+			>
+	bool const spuckLowdimElmShiftDirectionIfUnclosedFractPresent( LOWDIMELM & shiftDirectionElm ) const
+	{
+		if( m_shiftDirectionIfUnclosedFractPresent != nullptr )
+		{
+			shiftDirectionElm = m_shiftDirectionIfUnclosedFractPresent;
+			return true;
+		}
+
+		return false;
+	}
+
+	bool averageAll()
+	{
+		if( m_isBoundary )
+		{
+			if( ! averageBndryNormals() )
+				return false;
+		}
+
+		if( ! averageFractNormals() )
+			return false;
+
+		m_averaged = true;
+
+		return m_averaged;
+	}
+
+	bool const spuckFractSudoNormls( VecPairSudoNormlV & vecFractSudosNormlV ) const
+	{
+		if( ! m_averaged )
+		{
+			UG_LOG("please average " << std::endl);
+			UG_THROW("please average " << std::endl);
+			return false;
+		}
+
+		vecFractSudosNormlV = m_vecFractSudosNormlV;
+
+		return true;
+	}
+
+	template<typename = std::enable_if< std::is_same<VECTOR_TYP,vector3>::value>>
+	bool const spuckFractManifDescr( VecManifDescr & vecManifDesc,
+									 Grid::VertexAttachmentAccessor<APosition> const & aaPos,
+									 bool clearDescVec = true
+	) const
+	{
+		return spuckManifDescr<ManifDescr::ManifoldType::isFracture>( vecManifDesc, aaPos, m_vecFractSudosNormlV, m_vecFractSudoLowDiEl, clearDescVec );
+//		return spuckManifDescr<0>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
+	}
+
+
+
+
+//	bool spuckFractManifDescr( VecManifDescr & vecManifDesc, Grid::VertexAttachmentAccessor<APosition> const & aaPos )
+//	{
+//		if( ! m_averaged )
+//		{
+//			UG_LOG("please average " << std::endl);
+//			UG_THROW("please average " << std::endl);
+//			return false;
+//		}
+//
+//		VecPairSudoNormlV const & vecFractSudosNormlV = m_vecFractSudosNormlV;
+//
+//		vecManifDesc.clear();
+//
+//		for( PairSudoNormlV const & psn : vecFractSudosNormlV )
+//		{
+//			VECTOR_TYP posVrt = aaPos[m_vrt];
+//
+//			int sudo = psn.first;
+//			VECTOR_TYP normlVec = psn.second;
+//
+////			ManifoldDescriptor( VECTOR_TYP const & normalVect,
+////								VECTOR_TYP const & baseVect,
+////								int sudo = -1,
+////								ManifoldType = isArtificial,
+////								number scaleShiftNormal = 0
+////								)
+////
+//
+//			ManifDescr manifDesc( normlVec, posVrt, sudo, ManifDescr::ManifoldType::isFracture );
+//
+//			vecManifDesc.push_back( manifDesc );
+//		}
+//
+//		return true;
+//	}
+
+	bool spuckBndrySudoNormls( VecPairSudoNormlV & vecBndrySudosNormlV )
+	{
+//		if( ! checkIfIsAtBndry() )
+//			return false;
+
+		if( ! m_averaged )
+		{
+			UG_LOG("please average " << std::endl);
+			UG_THROW("please average " << std::endl);
+			return false;
+		}
+
+		vecBndrySudosNormlV = m_vecBndrySudosNormlV;
+
+		return true;
+	}
+
+	template<typename = std::enable_if< std::is_same<VECTOR_TYP,vector3>::value>>
+	bool const spuckBndryManifDescr( VecManifDescr & vecManifDesc,
+									 Grid::VertexAttachmentAccessor<APosition> const & aaPos,
+									 bool clearDescVec = true
+	) const
+	{
+		return spuckManifDescr<ManifDescr::ManifoldType::isBoundary>( vecManifDesc, aaPos, m_vecBndrySudosNormlV, m_vecBndrySudoLowDiEl, clearDescVec );
+		//		return spuckManifDescr<2>( vecManifDesc, aaPos, m_vecFractSudosNormlV );
+	}
+
+
+private:
+
+	VRTXTYP m_vrt;
+
+	LOWDIMELM m_shiftDirectionIfUnclosedFractPresent;
+
+	VecAttFractElm m_vecAttFractElms;
+	VecAttFractElm m_vecAttUnclosedFractElms;
+
+	VecAttBndryElm m_vecAttBndryElms;
+
+
+
+	VecPairSudoNormlV m_vecFractSudosNormlV;
+	VecPairSudoNormlV m_vecBndrySudosNormlV;
+
+	VecPairSudoVecLowDiEl m_vecFractSudoLowDiEl;
+	VecPairSudoVecLowDiEl m_vecBndrySudoLowDiEl;
+
+
+	bool m_isBoundary;
+	bool m_averaged;
+
+	std::vector<FULLDIM_ELEM> m_contribFulldimElm;
+
+	bool m_volEdgesDetermined;
+	std::vector<LOWDIMELM> m_vecVolEdges;
+
+	// zu heikel, weil dabei Änderungen nicht übernommen würden, es sei denn, es wäre pointer, aber die
+	// wollen wir auch vermeiden
+//	EndingCrossingFractSegmentInfo<FULLDIM_ELEM, MANIFELM, LOWDIMELM, VRTXTYP, INDEX_TXP> m_endingCrossFractSegmInf;
+
+	template <typename ATT_ELM, typename VEC_ATT_ELM,
+			  typename = std::enable_if<std::is_same<std::vector<ATT_ELM>,VEC_ATT_ELM>::value>,
+			  typename 	= std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+			>
+	bool isStillUnknown( ATT_ELM const & afeNew, VEC_ATT_ELM const & vecAttELm, bool acceptUnknowns = false )
+	{
+		for( ATT_ELM const & afeAlt : vecAttELm )
+		{
+			if( afeAlt.testIfEquals(afeNew) )
+			{
+				UG_LOG("Strange, already known?" << std::endl);
+				if( ! acceptUnknowns )
+					UG_THROW("Strange, already known?" << std::endl);
+				return false;
+			}
+		}
+
+		return true;
+
+	}
+
+	template <typename ATT_ELM,
+			  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+			>
+	bool extractSudoList( std::vector<INDEX_TXP> & sudoListSegment, std::vector<ATT_ELM> const & vecAttELm )
+	{
+		for( AttFractElm const & me : vecAttELm )
+		{
+			INDEX_TXP sudoNeeded = me.getSudo();
+
+			bool sudoIsKnown = false;
+
+			for( INDEX_TXP sudoInList : sudoListSegment )
+			{
+				if( sudoInList == sudoNeeded )
+				{
+					sudoIsKnown = true;
+					break;
+				}
+			}
+
+			if( ! sudoIsKnown )
+				sudoListSegment.push_back(sudoNeeded);
+		}
+
+		return true;
+	}
+
+	template <typename ATT_ELM,
+			  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+			>
+	bool averageNormlForEachSudo( std::vector<ATT_ELM> const & vecAttElm, VecPairSudoNormlV & vecPSudoNrml, VecPairSudoVecLowDiEl & vecPSudoVecLowDiElm )
+	{
+		// first determine appearing sudos
+
+		std::vector<INDEX_TXP> sudoListSegment;
+
+		extractSudoList(sudoListSegment,vecAttElm);
+
+		for( INDEX_TXP sudo : sudoListSegment )
+		{
+			VECTOR_TYP normlAvrg;
+
+			if( ! averageNormalForSpecificSudo( sudo, vecAttElm, normlAvrg ) )
+				return false;
+
+			std::pair<INDEX_TXP, VECTOR_TYP> sudoNorml( sudo, normlAvrg );
+
+			vecPSudoNrml.push_back(sudoNorml);
+
+			// TODO FIXME auch Liste mit Sudo plus Ecken, die auf der Mannigfaltigkeit liegen!!!!
+
+			std::vector<LOWDIMELM> vecLowDimElmsSudo;
+
+			if( ! extractLowDimElemsForSpecificSudo( sudo, vecAttElm, vecLowDimElmsSudo ) )
+				return false;
+
+			PairSudoVecLowDiEl sudoLDE( sudo, vecLowDimElmsSudo );
+
+			vecPSudoVecLowDiElm.push_back( sudoLDE );
+
+		}
+
+		return true;
+	}
+
+	template <typename ATT_ELM,
+			  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+			>
+	bool averageNormalForSpecificSudo( INDEX_TXP specfcSudo, std::vector<ATT_ELM> const & vecAttElm, VECTOR_TYP & normlAvrg )
+	{
+		VECTOR_TYP normsSum(0,0,0);
+		INDEX_TXP numContrNrmls = 0;
+
+		for( ATT_ELM const & ae : vecAttElm )
+		{
+			INDEX_TXP sudoElm = ae.getSudo();
+
+			if( specfcSudo == sudoElm )
+			{
+				VECTOR_TYP normElm = ae.getNormalVec();
+
+				VECTOR_TYP tmpSum = normsSum;
+
+				VecAdd( normsSum, normElm, tmpSum );
+
+				numContrNrmls++;
+			}
+		}
+
+		if( numContrNrmls == 0 )
+		{
+			UG_LOG("Kein Beitrag in SUdo? " << std::endl);
+			UG_THROW("Kein Beitrag in SUdo? " << std::endl);
+			return false;
+		}
+
+		VecScale( normlAvrg, normsSum, 1. / static_cast<number>(numContrNrmls) );
+
+		return true;
+
+	}
+
+	template <typename ATT_ELM,
+			  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+			>
+	bool extractLowDimElemsForSpecificSudo( INDEX_TXP specfcSudo, std::vector<ATT_ELM> const & vecAttElm, std::vector<LOWDIMELM> & vecLowDimElms )
+	{
+		for( ATT_ELM const & ae : vecAttElm )
+		{
+			INDEX_TXP sudoElm = ae.getSudo();
+
+			if( specfcSudo == sudoElm )
+			{
+				std::pair<LOWDIMELM,LOWDIMELM> paLoDiEl = ae.getPairLowElm();
+
+				addElem(vecLowDimElms, paLoDiEl.first);
+				addElem(vecLowDimElms, paLoDiEl.second);
+			}
+
+		}
+
+		return true;
+	}
+
+
+	bool averageFractNormals()
+	{
+		return averageNormlForEachSudo( m_vecAttFractElms, m_vecFractSudosNormlV, m_vecFractSudoLowDiEl );
+	}
+
+	bool averageBndryNormals()
+	{
+		if( m_isBoundary )
+		{
+			return averageNormlForEachSudo( m_vecAttBndryElms, m_vecBndrySudosNormlV, m_vecBndrySudoLowDiEl );
+		}
+		else
+		{
+			UG_LOG("no boundary, no averaging");
+			return false;
+		}
+	}
+
+	template
+	< typename ATT_ELM,
+	  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+	>
+	bool schluckVecAttElm( std::vector<ATT_ELM> const & vecAttElNew, std::vector<ATT_ELM> & vecAttElmKnown, bool acceptUnknowns = false )
+	{
+		bool allUnknown = true;
+
+		for( ATT_ELM const & aeN : vecAttElNew )
+		{
+			if( ! schluckAttElm( aeN, vecAttElmKnown, acceptUnknowns ) )
+			{
+				allUnknown = false;
+				UG_LOG("ist schon bekannt" << std::endl);
+				if( ! acceptUnknowns)
+					UG_THROW("ist schon bekannt" << std::endl);
+				//return false;
+			}
+		}
+
+		return allUnknown;
+	}
+
+	template
+	< typename ATT_ELM,
+	  typename = std::enable_if<std::is_base_of<AttFractElm,ATT_ELM>::value>
+	>
+	bool schluckAttElm( ATT_ELM const & attElNew, std::vector<ATT_ELM> & vecAttElmKnown, bool acceptUnknowns = false )
+	{
+		m_averaged = false;
+
+		if( ! isStillUnknown( attElNew, vecAttElmKnown, acceptUnknowns ) )
+		{
+			UG_LOG("ist schon bekannt" << std::endl);
+			if( ! acceptUnknowns )
+				UG_THROW("ist schon bekannt" << std::endl);
+			return false;
+		}
+
+		vecAttElmKnown.push_back(attElNew);
+
+		return true;
+	}
+
+	bool checkIfIsAtBndry()
+	{
+		if( ! m_isBoundary )
+		{
+			UG_LOG("gibts keine Bndry " << std::endl);
+			UG_THROW("gibts keine Bndry " << std::endl);
+			return false;
+		}
+
+		return m_isBoundary;
+	}
+
+//	template<ManifDescr::ManifoldType manifTyp,
+//	template<typename ManifDescr::ManifoldType manifTyp,
+	template<typename ManifDescr::ManifoldType manifTyp,
+			 typename = std::enable_if< std::is_same<VECTOR_TYP,vector3>::value>
+			>
+	bool const spuckManifDescr( VecManifDescr & vecManifDesc,
+								Grid::VertexAttachmentAccessor<APosition> const & aaPos,
+								VecPairSudoNormlV const & vecFractSudosNormlV,
+								VecPairSudoVecLowDiEl const & vecFractSudosLDE,
+								bool clearDescVec = true
+	) const
+	{
+		if( ! m_averaged )
+		{
+			UG_LOG("please average " << std::endl);
+			UG_THROW("please average " << std::endl);
+			return false;
+		}
+
+		if( clearDescVec )
+			vecManifDesc.clear();
+
+		for( PairSudoNormlV const & psn : vecFractSudosNormlV )
+		{
+			VECTOR_TYP posVrt = aaPos[m_vrt];
+
+			int sudo = psn.first;
+			VECTOR_TYP normlVec = psn.second;
+
+//			ManifoldDescriptor( VECTOR_TYP const & normalVect,
+//								VECTOR_TYP const & baseVect,
+//								int sudo = -1,
+//								ManifoldType = isArtificial,
+//								number scaleShiftNormal = 0
+//								)
+//
+
+			UG_LOG("ASSIGN MANIF TYP " << manifTyp << std::endl);
+			ManifDescr manifDesc( normlVec, posVrt, sudo, manifTyp );
+			// TODO FIXME der Manifold Descriptor muss noch die Vertizes wissen, die ihn aufspannen
+			// abgesehen vom Zentrums-Vertex
+
+			if( ! addLowDimElmListForSudo( manifDesc, sudo, vecFractSudosLDE ) )
+			{
+				UG_LOG("No low dim elems " << std::endl);
+				UG_THROW("No low dim elems " << std::endl);
+				return false;
+			}
+
+			vecManifDesc.push_back( manifDesc );
+		}
+
+		return true;
+	}
+
+	bool const addLowDimElmListForSudo( ManifDescr & md, INDEX_TXP sudo, VecPairSudoVecLowDiEl const & vecFractSudosLDE ) const
+	{
+		INDEX_TXP foundSudo = 0;
+
+		for( PairSudoVecLowDiEl const & psvlde : vecFractSudosLDE )
+		{
+			INDEX_TXP sudoFract = psvlde.first;
+
+			if( sudoFract == sudo )
+			{
+				foundSudo++;
+
+				std::vector<LOWDIMELM> const & vecLoDiEl = psvlde.second;
+
+				if( ! md.schluckLowDimElms( vecLoDiEl ) )
+				{
+					UG_LOG("NO LOWDIM ELEMS" << std::endl);
+					return false;
+				}
+			}
+		}
+
+		if( foundSudo != 1 )
+		{
+			UG_LOG("NO SUDO FOUND LDE" << std::endl);
+		}
+
+		return ( foundSudo == 1 );
+	}
+
+	template< //typename GRID,
+			  //typename = std::enable_if< std::is_same<GRID, Grid >::value>,
+			  typename = std::enable_if< std::is_same<FULLDIM_ELEM,Volume*>::value>,
+			  typename = std::enable_if< std::is_same<FULLDIM_ELEM,Volume*>::value>
+			>
+	void determineListLowdimElms( Grid & grid )
+	{
+		for( FULLDIM_ELEM const & fe : m_contribFulldimElm )
+		{
+			for(size_t i_edge = 0; i_edge < fe->num_edges(); ++i_edge)
+			{
+				LOWDIMELM lowDimElm = grid.get_edge( fe, i_edge );
+
+				if( EdgeContains(lowDimElm, m_vrt))
+				{
+					addElem(m_vecVolEdges, lowDimElm);
+				}
+			}
+
+		}
+
+		m_volEdgesDetermined = true;
+	}
+
+
+};
+
+//////////////////////////////////////////////////////////////////
+
+
+
 #if 0
 template <typename VEC_AVEI, typename OPERATION, typename INDX_TYP  >
 bool switchFulldimInfo( VEC_AVEI & vecAttVolElemInfoCop,
@@ -1335,6 +2380,362 @@ bool switchFulldimInfo( VEC_AVEI & vecAttVolElemInfoCop,
 
 }
 #endif
+
+
+//////////////////////////////////////////////////////////////////////////
+
+template
+<
+typename FULLDIMEL,
+typename MANIFEL,
+typename LOWDIMEL,
+typename VRTXTYP,
+typename INDEXTYP
+>
+class EndingCrossingFractSegmentInfo
+{
+public:
+
+	// TODO FIXME
+	// wenn zwei an Kreuzungen endende Klüfte nur eine edge voneinander entfernt sind
+	// dann ist ein edge split an allen Ecken notwendig, die die beiden Problemzonen
+	// miteinander verbinden
+	// eventuell muss man danach die ganze Prozedur nochmal von vorne anfangen
+	// alternativ überlegen, ob man solche Punkte schon vor allen Segmentbildungen
+	// heraus filtern kann, etwa mit der altmodischen Art und Weise, wie anfangs,
+	// mit Loops über die Fracture faces...... um mindestens diese Stellen zu finden.....
+	// und gleich ein split edge an allen notwendigen Verbindungen durch zu führen.....
+	// hätte man die alte Methode vielleicht behalten sollen.......
+
+	using ManifelPair = std::pair<MANIFEL,MANIFEL>;
+
+	template<   typename = std::enable_if< std::is_pointer<MANIFEL>::value>,
+				typename = std::enable_if< std::is_pointer<VRTXTYP>::value>
+			>
+	EndingCrossingFractSegmentInfo( VRTXTYP const & vrt,
+									MANIFEL const & endingFractManifCutting,
+									std::vector<MANIFEL> const & vecEndingFractManifNotCutting,
+									LOWDIMEL const & oldLowDimElCut,
+									ManifelPair const & pairNeighbouredFractClosedManifEl,
+									LOWDIMEL const & shiftDirectionElm,
+									std::vector<LOWDIMEL> const & vecLowDimElmsOfNotCuttingManifs,
+									INDEXTYP sudoFractEnding,
+									INDEXTYP sudoFractNotEnding
+								  )
+	:
+		m_isEndingCleft(true),
+		m_unclosedVrtx(vrt),
+		m_endingFractManifCutting(endingFractManifCutting),
+		m_vecEndingFractManifNotCutting(vecEndingFractManifNotCutting),
+		m_pairNeighbouredFractClosedManifEl(pairNeighbouredFractClosedManifEl),
+		m_vecClosedFracManifElNoNeighbr(std::vector<MANIFEL>()),
+		m_oldLowDimElCut( oldLowDimElCut ),
+		m_vecLowDimElmsOfNotCuttingManifs(vecLowDimElmsOfNotCuttingManifs),
+		m_shiftDirectionElm(shiftDirectionElm),
+		m_sudoFractEnding(sudoFractEnding),
+		m_sudoFractNotEnding(sudoFractNotEnding),
+		m_vecFulldimEl(std::vector<FULLDIMEL>()),
+		m_shiftVrtx(nullptr),
+		m_hiddenCutManifEl(nullptr)
+	{
+	};
+
+	template<   typename = std::enable_if< std::is_pointer<MANIFEL>::value>,
+				typename = std::enable_if< std::is_pointer<VRTXTYP>::value>
+			>
+	// if there is no ending fract manif no cutting available
+	EndingCrossingFractSegmentInfo( VRTXTYP const & vrt,
+									MANIFEL const & endingFractManifCutting,
+									LOWDIMEL const & oldLowDimElCut,
+									ManifelPair const & pairNeighbouredFractClosedManifEl,
+									LOWDIMEL const & shiftDirectionElm,
+									int sudoFractEnding,
+									int sudoFractNotEnding
+								  )
+	:
+		m_isEndingCleft(true),
+		m_unclosedVrtx(vrt),
+		m_endingFractManifCutting(endingFractManifCutting),
+		m_vecEndingFractManifNotCutting(std::vector<MANIFEL>()),
+		m_pairNeighbouredFractClosedManifEl(pairNeighbouredFractClosedManifEl),
+		m_vecClosedFracManifElNoNeighbr(std::vector<MANIFEL>()),
+		m_oldLowDimElCut( oldLowDimElCut ),
+		m_vecLowDimElmsOfNotCuttingManifs(std::vector<LOWDIMEL>()),
+		m_shiftDirectionElm(shiftDirectionElm),
+		m_sudoFractEnding(sudoFractEnding),
+		m_sudoFractNotEnding(sudoFractNotEnding),
+		m_vecFulldimEl(std::vector<FULLDIMEL>()),
+		m_shiftVrtx(nullptr),
+		m_hiddenCutManifEl(nullptr)
+	{
+	};
+
+	template<   typename = std::enable_if< std::is_pointer<MANIFEL>::value>,
+				typename = std::enable_if< std::is_pointer<LOWDIMEL>::value>,
+				typename = std::enable_if< std::is_pointer<VRTXTYP>::value>,
+				typename = std::enable_if< std::is_integral<INDEXTYP>::value>
+			>
+	// if there is no ending fract manif no cutting available
+	EndingCrossingFractSegmentInfo()
+	:
+		m_isEndingCleft(false),
+		m_unclosedVrtx(nullptr),
+		m_endingFractManifCutting(nullptr),
+		m_vecEndingFractManifNotCutting(std::vector<MANIFEL>()),
+		m_pairNeighbouredFractClosedManifEl(ManifelPair(nullptr,nullptr)),
+		m_vecClosedFracManifElNoNeighbr(std::vector<MANIFEL>()),
+		m_oldLowDimElCut( nullptr ),
+		m_vecLowDimElmsOfNotCuttingManifs(std::vector<LOWDIMEL>()),
+		m_shiftDirectionElm(nullptr),
+		m_sudoFractEnding(std::numeric_limits<INDEXTYP>::max()),
+		m_sudoFractNotEnding(std::numeric_limits<INDEXTYP>::max()),
+		m_vecFulldimEl(std::vector<FULLDIMEL>()),
+		m_shiftVrtx(nullptr),
+		m_hiddenCutManifEl(nullptr)
+	{
+	};
+
+	bool schluckShiftVrtx( VRTXTYP const & shiftVrtx )
+	{
+
+		if(    m_shiftVrtx != nullptr
+			&& shiftVrtx != m_shiftVrtx
+		  )
+		{
+			UG_LOG("Shift Vertex already set different " << std::endl);
+			UG_THROW("Shift Vertex already set different " << std::endl);
+			return false;
+		}
+
+		if( shiftVrtx != nullptr )
+		{
+			m_shiftVrtx = shiftVrtx;
+			return true;
+		}
+
+		// else
+
+//		UG_LOG("SHift vertex already set " << std::endl);
+//		UG_THROW("SHift vertex already set " << std::endl);
+
+		return false;
+	}
+
+	VRTXTYP const spuckShiftVrtx() const
+	{
+		return m_shiftVrtx;
+//		if( m_shiftVrtx != nullptr )
+//		{
+//			shiftVrtx = m_shiftVrtx;
+//			return true;
+//		}
+//
+//		return false;
+	}
+
+	bool isEndingCleft() { return m_isEndingCleft; }
+
+	// schluck
+
+	bool schluckClosedFracManifElNoNeighbr( MANIFEL const & closFracME )
+	{
+		return schluckElem( closFracME, m_vecClosedFracManifElNoNeighbr );
+
+	}
+
+	bool schluckVecClosedFracManifElNoNeighbr( std::vector<MANIFEL> const & vecClosFracME )
+	{
+		return schluckVecElem( vecClosFracME, m_vecClosedFracManifElNoNeighbr );
+	}
+
+	bool schluckFulldimElm( FULLDIMEL const & fuDiEl )
+	{
+		return schluckElem( fuDiEl, m_vecFulldimEl );
+	}
+
+	bool schluckVecFulldimElm( std::vector<FULLDIMEL> const & vecFuDiEl )
+	{
+		return schluckVecElem( vecFuDiEl, m_vecFulldimEl );
+	}
+
+	// spuck
+
+//	bool spuckUnclosedVrtx( VRTXTYP & vrt )
+//	{
+//		vrt = m_unclosedVrtx;
+//		return true;
+//	}
+//
+//	bool spuckVecClosedFracManifElNoNeighbr( std::vector<MANIFEL> & vecClosFracManifEl )
+//	{
+//		vecClosFracManifEl = m_vecClosedFracManifElNoNeighbr;
+//
+//		return (m_vecClosedFracManifElNoNeighbr.size() != 0 );
+//	}
+//
+//	bool spuckEndingFractManifCutting( MANIFEL & endingFractManifCutting )
+//	{
+//		endingFractManifCutting = m_endingFractManifCutting;
+//		return true;
+//	}
+//
+//	bool spuckEndingFractManifNotCutting( MANIFEL & efmnc )
+//	{
+//		efmnc = m_endingFractManifNotCutting;
+//		return true;
+//	}
+//
+//	bool spuckOldLowDimElCut( LOWDIMEL & ldec )
+//	{
+//		ldec = m_oldLowDimElCut;
+//		return true;
+//	}
+//
+//	bool spuckPairNeighbouredFractClosedManifEl( ManifelPair & neighFracClosME )
+//	{
+//		neighFracClosME = m_pairNeighbouredFractClosedManifEl;
+//		return true;
+//	}
+
+	VRTXTYP const spuckUnclosedVrtx() const
+	{
+		return m_unclosedVrtx;
+	}
+
+	std::vector<MANIFEL> const spuckVecClosedFracManifElNoNeighbr() const
+	{
+		return m_vecClosedFracManifElNoNeighbr;
+	}
+
+	MANIFEL const spuckEndingFractManifCutting() const
+	{
+		return m_endingFractManifCutting;
+	}
+
+	std::vector<MANIFEL> const spuckVecEndingFractManifNotCutting() const
+	{
+		return m_vecEndingFractManifNotCutting;
+	}
+
+	LOWDIMEL const spuckOldLowDimElCut() const
+	{
+		return m_oldLowDimElCut;
+	}
+
+	std::vector<LOWDIMEL> const spuckVecLowDimElmsOfNotCuttingManifs()
+	{
+		return m_vecLowDimElmsOfNotCuttingManifs;
+	}
+
+	ManifelPair const spuckPairNeighbouredFractClosedManifEl() const
+	{
+		return m_pairNeighbouredFractClosedManifEl;
+	}
+
+	INDEXTYP const spuckSudoFractEnding() const { return m_sudoFractEnding; }
+	INDEXTYP const spuckSudoFractNotEnding() const { return m_sudoFractNotEnding; }
+
+	std::vector<FULLDIMEL> const spuckVecFulldimEl() const
+	{
+		return m_vecFulldimEl;
+	}
+
+	// shift element edge
+
+
+	template<   typename = std::enable_if< std::is_pointer<LOWDIMEL>::value>
+			>
+	LOWDIMEL const spuckLowdimElmShiftDirection() const
+	{
+		return m_shiftDirectionElm;
+	}
+
+	bool schluckHiddenCutFractManifEl( MANIFEL const & manifel )
+	{
+		if( m_hiddenCutManifEl == nullptr && manifel != m_hiddenCutManifEl )
+		{
+			m_hiddenCutManifEl = manifel;
+			return true;
+		}
+
+		return false;
+	}
+
+	MANIFEL const spuckHiddenCutFractManifEl() const
+	{
+		return m_hiddenCutManifEl;
+	}
+
+private:
+
+	bool m_isEndingCleft;
+
+	// TODO FIXME vielleicht statt Manifel die Klasse,  Attached Fracture Objekte? mit richtig geordneten Edges?
+
+	VRTXTYP m_unclosedVrtx;
+	MANIFEL m_endingFractManifCutting;
+//	MANIFEL m_endingFractManifNotCutting;
+	std::vector<MANIFEL> m_vecEndingFractManifNotCutting;
+
+	ManifelPair m_pairNeighbouredFractClosedManifEl;
+
+	// NOTE here only those which do not have a common edge with the ending cleft!
+	std::vector<MANIFEL> m_vecClosedFracManifElNoNeighbr;
+
+	LOWDIMEL m_oldLowDimElCut; // common edge between ending frac face with one sudo and durchgehende frac faces with another sudo
+//	LOWDIMEL m_newLowDimElCut;
+
+	std::vector<LOWDIMEL> m_vecLowDimElmsOfNotCuttingManifs;
+
+	LOWDIMEL m_shiftDirectionElm;
+
+	INDEXTYP m_sudoFractEnding;
+	INDEXTYP m_sudoFractNotEnding;
+
+	std::vector<FULLDIMEL> m_vecFulldimEl;
+
+	VRTXTYP m_shiftVrtx;
+
+	MANIFEL m_hiddenCutManifEl;
+
+	template <typename ELEMTYP>
+	bool schluckElem( ELEMTYP const & anotherEl, std::vector<ELEMTYP> & vecElmKnown )
+	{
+		bool elemNotKnown = true;
+
+		for( ELEMTYP me : vecElmKnown )
+		{
+			if( me == anotherEl )
+			{
+				elemNotKnown = false;
+				break;
+			}
+		}
+
+		if( elemNotKnown )
+			vecElmKnown.push_back(anotherEl);
+
+		return elemNotKnown;
+	}
+
+	template <typename ELEMTYP>
+	bool schluckVecElem( std::vector<ELEMTYP> const & anotherVecEl, std::vector<ELEMTYP> & vecElmKnown )
+	{
+		bool someElemsUnknown = false;
+
+		for( ELEMTYP me : anotherVecEl )
+		{
+			if( schluckElem( me, vecElmKnown ) )
+			{
+				someElemsUnknown = true;
+			}
+		}
+
+		return someElemsUnknown;
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
 
 }
 

@@ -70,6 +70,9 @@ build-and-test:
         lcov --list $UG_LCOV_FILE > reports/lcov.txt
         genhtml coverage.info --output-directory reports/html
         mv $UG_LCOV_FILE reports
+        mkdir $CI_PROJECT_DIR/cobertura
+        mv reports $CI_PROJECT_DIR/cobertura
+        mv $UG4_NEW_DIR/report.xml $CI_PROJECT_DIR/cobertura
       fi
   allow_failure: true # temporary
   artifacts:
@@ -78,17 +81,17 @@ build-and-test:
     expire_in: 1 week
     paths:
       # - $UG4_NEW_DIR/*
-      - $UG4_NEW_DIR/report.xml
+      #- $UG4_NEW_DIR/report.xml
       - $UG4_NEW_DIR/test.log
       # - $UG4_NEW_DIR/lib/*
       - $UG4_NEW_DIR/bin/*
       - $UG4_NEW_DIR/bin/plugins/*
-      - $UG4_NEW_DIR/reports/*
+      - cobertura/*
     reports:
-      junit: $UG4_NEW_DIR/report.xml
+      junit: cobertura/report.xml
       coverage_report:
         coverage_format: cobertura
-        path: $UG4_NEW_DIR/reports/cobertura-coverage.xml
+        path: cobertura/reports/cobertura-coverage.xml
 
 
 
