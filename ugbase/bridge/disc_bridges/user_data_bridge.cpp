@@ -599,6 +599,21 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "ScaledOutNormCmp", tag);
 	}
 
+//	User data for evaluation of scaled flux of a vector fields on hypersurfaces
+	{
+		string name = string("ScaledFluxData").append(suffix);
+		typedef ScaledFluxData<TDomain> T;
+		typedef UserData<number, dim> TBase;
+		typedef UserData<MathVector<dim>, dim> TVec;
+		typedef UserData<number, dim> TScale;
+		
+		reg.add_class_<T, TBase> (name, grp)
+			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TScale>, SmartPtr<TVec>, const char*)>("Domain#Scaling#Vector#Subsets")
+			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TScale>, SmartPtr<TVec>)>("Domain#Scaling#Vector")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ScaledFluxData", tag);
+	}
+
 }
 		
 /**
