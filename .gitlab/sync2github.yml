@@ -14,4 +14,4 @@ sync_to_github:
     - git remote add github https://${GITHUB_UG4BOT_NAME}:${GITHUB_UG4BOT_TOKEN}@github.com/UG4/ugcore.git
     - git push --mirror github
   only:
-    - main # Trigger on pushes to the main branch only
+    - feature-ci # Trigger on pushes to the main branch only

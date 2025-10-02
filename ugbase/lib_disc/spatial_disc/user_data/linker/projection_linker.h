@@ -45,9 +45,7 @@
 namespace ug {
 
 /**
- * User data projecting a given vector to the plane of degenerated elements.
- * The projection is computed only in the degenerated elements. For other elements,
- * 0 is returned.
+ * User data projecting a given vector filed to the plane of the low-dim. elements.
  */
 template <int dim>
 class ProjectionLinker

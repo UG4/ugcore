@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
- * Author: Andreas Vogel
+ * Author: Andreas Vogel, modifications nested Newton: Markus Knodel
  * 
  * This file is part of UG4.
  * 
@@ -47,13 +47,13 @@
 #include "newton_update_interface.h"
 #include "lib_algebra/operator/debug_writer.h"
 
-#include "nestedNewtonRFSwitch.h"
+//#include "nestedNewtonRFSwitch.h"
 
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-
-#include "newtonUpdaterGeneric.h"
-
-#endif
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//
+//#include "newtonUpdaterGeneric.h"
+//
+//#endif
 
 namespace ug {
 
@@ -156,12 +156,27 @@ class NewtonSolver
 		void set_reassemble_J_freq(int freq)
 			{m_reassembe_J_freq = freq;};
 
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 		void setNewtonUpdater( SmartPtr<NewtonUpdaterGeneric<vector_type> > nU )
 		{
 			m_newtonUpdater = nU;
 		}
-#endif
+//#endif
+
+		bool createNewtonUpdater()
+		{
+			if( m_newtonUpdater != SPNULL )
+			{
+				m_newtonUpdater = SmartPtr<NewtonUpdaterGeneric<vector_type> >
+										  (new NewtonUpdaterGeneric<vector_type>{});
+
+				return true;
+			}
+
+			return false;
+
+		}
+
 
 	private:
 	///	help functions for debug output
@@ -205,11 +220,11 @@ class NewtonSolver
 		std::vector<number> m_vLinSolverRates;
 	/// \}
 
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 
 		SmartPtr<NewtonUpdaterGeneric<vector_type> > m_newtonUpdater;
 
-#endif
+//#endif
 
 };
 

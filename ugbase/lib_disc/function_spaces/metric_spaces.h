@@ -194,6 +194,9 @@ protected:
 	std::string m_fctNames;
 	const char* m_ssNames;
 	int m_quadorder;
+	//bool m_opposite;
+	//number m_thickness;
+	//std::string m_type; 
 
 public:
 	typedef IGridFunctionSpace<TGridFunction> base_type;
@@ -206,7 +209,7 @@ public:
 	: m_fctNames(fctNames), m_ssNames(NULL), m_quadorder(order) {}
 
 	IComponentSpace(const char *fctNames, const char* ssNames, int order)
-	: m_fctNames(fctNames), m_ssNames(ssNames), m_quadorder(order) {}
+	: m_fctNames(fctNames), m_ssNames(ssNames), m_quadorder(order){}
 
 	virtual ~IComponentSpace() {};
 
@@ -221,6 +224,9 @@ public:
 	virtual double norm2(TGridFunction& uFine)  = 0;
 	virtual double distance2(TGridFunction& uFine, TGridFunction& uCoarse)  = 0;
 
+	std::string function_name(){return m_fctNames;}
+
+	//void set_opposite(bool opposite){m_opposite=opposite;}
 
 public:
 	/// print config string
