@@ -58,7 +58,7 @@
 namespace ug{
 
 extern "C" // solve generalized eigenvalue system
-	void dgegv_(char *cCalcLeftEV, char *cCalcRightEV, lapack_int *n,
+	void dggev_(char *cCalcLeftEV, char *cCalcRightEV, lapack_int *n,
 			lapack_double *pColMajorMatrixA, lapack_int *lda, lapack_double *pColMajorMatrixB,
 			lapack_int *ldb, lapack_double *alphar,	lapack_double *alphai, lapack_double *beta,
 			lapack_double *vl, lapack_int *ldvl, lapack_double *vr, lapack_int *ldvr, lapack_double *pWork,
@@ -72,7 +72,7 @@ inline lapack_int gegv(bool calcLeftEV, bool calcRightEV, lapack_int n,
 	char jobvl = calcLeftEV ? 'V' : 'N';
 	char jobvr = calcRightEV ? 'V' : 'N';
 	lapack_int info=0;
-	dgegv_(&jobvl, &jobvr, &n, pColMajorMatrixA, &leading_dim_a, pColMajorMatrixB, &leading_dim_b, alphar, alphai, beta, vl, &leading_dim_vl, vr, &leading_dim_vr, work, &worksize, &info);
+	dggev_(&jobvl, &jobvr, &n, pColMajorMatrixA, &leading_dim_a, pColMajorMatrixB, &leading_dim_b, alphar, alphai, beta, vl, &leading_dim_vl, vr, &leading_dim_vr, work, &worksize, &info);
 	return info;
 }
 
