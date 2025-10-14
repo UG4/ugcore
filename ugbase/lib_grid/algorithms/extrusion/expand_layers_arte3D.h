@@ -1,6 +1,8 @@
 /*
- * Copyright (c) 2013-2015:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * expand fractures using the Arte algorithm, 3D case
+ *
+ * Copyright (c) 2011-2015:  G-CSC, Goethe University Frankfurt
+ * Author: Markus Knodel, inspired by Arte from Fuchs and Sebastian Reiters code for fracture expansion without Arte
  * 
  * This file is part of UG4.
  * 
@@ -30,28 +32,22 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <dlfcn.h>
-#include "../dynamic_library_util.h"
-#include <string>
+#ifndef UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_3D_H_
+#define UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_3D_H_
 
-namespace ug{
+#include <vector>
+#include "lib_grid/lg_base.h"
+#include "expand_layers.h"
+#include "expand_layers_arte.h"
 
-DynLibHandle OpenLibrary(const char* fileName)
+namespace ug
 {
-	DynLibHandle dlh = dlopen(fileName, RTLD_LAZY| RTLD_GLOBAL);
-	if(dlh == NULL)
-		throw std::string(dlerror());
-	return dlh;
-}
 
-bool CloseLibrary(DynLibHandle h)
-{
-	return dlclose(h);
-}
 
-void* GetLibraryProcedure(DynLibHandle h, const char* procName)
-{
-	return dlsym(h, procName);
-}
+bool ExpandFractures3dArte( Grid& grid, SubsetHandler& sh,
+						    std::vector<FractureInfo> const & fracInfos,
+							bool useTrianglesInDiamonds, bool establishDiamonds );
 
-}// end of namespace
+}//	end of namespace
+
+#endif

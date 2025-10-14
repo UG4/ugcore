@@ -1,0 +1,20 @@
+name: Mirror GitLab Repository
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Push to GitLab
+        run: |
+          git remote add gitlab git@gitlab.com:ug4-project/ugcore.git
+          git push --mirror gitlab
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.GITLAB_SSH_PRIVATE_KEY }}
