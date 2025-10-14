@@ -217,7 +217,7 @@ public:
 
 	virtual const char* name() const {return "RiverOrdering";}
 
-	void select_sources(const char* ssName){
+	void select_sinks(const char* ssName){
 		//m_ssIdx = ssIdx;
 		m_ssName = ssName;
 	}
