@@ -125,7 +125,7 @@ enum SelectorElements
 class UG_API ISelector : public GridObserver
 {
 	public:
-		typedef byte	status_t;
+		typedef unsigned char	status_t;
 
 		enum{
 			DESELECTED = 0,
@@ -150,18 +150,18 @@ class UG_API ISelector : public GridObserver
 	 * in the list of selected elements.
 	 * \{
 	 */
-		inline void select(GridObject* elem, byte status);
+		inline void select(GridObject* elem, unsigned char status);
 		inline void select(GridObject* elem)
 		{select(elem, 1);}
 
 		template <class TElem>
-		inline void select(TElem* elem, byte status);
+		inline void select(TElem* elem, unsigned char status);
 		template <class TElem>
 		inline void select(TElem* elem)
 		{select(elem, 1);}
 
 		template <class TIterator>
-		inline void select(TIterator iterBegin, TIterator iterEnd, byte status = 1);
+		inline void select(TIterator iterBegin, TIterator iterEnd, unsigned char status = 1);
 	/**	\} */
 
 	///	selects an element
@@ -173,7 +173,7 @@ class UG_API ISelector : public GridObserver
 		{select(elem);}
 
 		template <class TElem>
-		inline void mark(TElem* elem, byte status)
+		inline void mark(TElem* elem, unsigned char status)
 		{select(elem, status);}
 	/** \} */
 
@@ -196,18 +196,18 @@ class UG_API ISelector : public GridObserver
 	//	selection status
 	///	returns the selection state of the specified elelent
 	/** \{ */
-		inline byte get_selection_status(GridObject* elem) const;
-		inline byte get_selection_status(Vertex* vrt) const	{if(!elements_are_supported(SE_VERTEX)) return 0; return m_aaSelVRT[vrt];}
-		inline byte get_selection_status(Edge* edge) const	{if(!elements_are_supported(SE_EDGE)) return 0; return m_aaSelEDGE[edge];}
-		inline byte get_selection_status(Face* face) const		{if(!elements_are_supported(SE_FACE)) return 0; return m_aaSelFACE[face];}
-		inline byte get_selection_status(Volume* vol) const		{if(!elements_are_supported(SE_VOLUME)) return 0; return m_aaSelVOL[vol];}
+		inline unsigned char get_selection_status(GridObject* elem) const;
+		inline unsigned char get_selection_status(Vertex* vrt) const	{if(!elements_are_supported(SE_VERTEX)) return 0; return m_aaSelVRT[vrt];}
+		inline unsigned char get_selection_status(Edge* edge) const	{if(!elements_are_supported(SE_EDGE)) return 0; return m_aaSelEDGE[edge];}
+		inline unsigned char get_selection_status(Face* face) const		{if(!elements_are_supported(SE_FACE)) return 0; return m_aaSelFACE[face];}
+		inline unsigned char get_selection_status(Volume* vol) const		{if(!elements_are_supported(SE_VOLUME)) return 0; return m_aaSelVOL[vol];}
 	/** \} */
 
 	///	returns the selection state of the specified elelent
 	/** In this context, 'get_mark' is simply a synonym for 'get_selection_status'
 	 * and simply forwards to the corresponding method.*/
 		template <class TElem>
-		inline byte get_mark(TElem* elem) const	
+		inline unsigned char get_mark(TElem* elem) const	
 		{return get_selection_status(elem);}
 
 	///	returns true if an element is selected
@@ -360,10 +360,10 @@ class UG_API ISelector : public GridObserver
 	//	Protected non-virtual to avoid virtual calls during construction
 		void disable_element_support(uint shElements);
 
-		inline void mark_selected(Vertex* elem, byte status)	{assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = status;}
-		inline void mark_selected(Edge* elem, byte status)		{assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = status;}
-		inline void mark_selected(Face* elem, byte status)			{assert(elements_are_supported(SE_FACE)); m_aaSelFACE[elem] = status;}
-		inline void mark_selected(Volume* elem, byte status)		{assert(elements_are_supported(SE_VOLUME)); m_aaSelVOL[elem] = status;}
+		inline void mark_selected(Vertex* elem, unsigned char status)	{assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = status;}
+		inline void mark_selected(Edge* elem, unsigned char status)		{assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = status;}
+		inline void mark_selected(Face* elem, unsigned char status)			{assert(elements_are_supported(SE_FACE)); m_aaSelFACE[elem] = status;}
+		inline void mark_selected(Volume* elem, unsigned char status)		{assert(elements_are_supported(SE_VOLUME)); m_aaSelVOL[elem] = status;}
 
 		inline void mark_deselected(Vertex* elem)	{assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = 0;}
 		inline void mark_deselected(Edge* elem)		{assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = 0;}

@@ -42,21 +42,21 @@ namespace ug{
 class DoFCount : public DoFDistributionInfoProvider
 {
 	public:
-		static const byte ES_MAX = (ES_V_MASTER | ES_H_MASTER | ES_H_SLAVE | ES_V_SLAVE);
-		static const byte SS_MAX = SurfaceView::ALL;
+		static const unsigned char ES_MAX = (ES_V_MASTER | ES_H_MASTER | ES_H_SLAVE | ES_V_SLAVE);
+		static const unsigned char SS_MAX = SurfaceView::ALL;
 
 		static const int ALL_FCT = -1;
 		static const int ALL_SUBSET = -1;
-		static const byte ALL_ES = ES_MAX + 1;
-		static const byte ALL_SS = SS_MAX + 1;
-		static const byte UNIQUE_ES = ES_MAX + 2;
-		static const byte UNIQUE_SS = SS_MAX + 2;
+		static const unsigned char ALL_ES = ES_MAX + 1;
+		static const unsigned char ALL_SS = SS_MAX + 1;
+		static const unsigned char UNIQUE_ES = ES_MAX + 2;
+		static const unsigned char UNIQUE_SS = SS_MAX + 2;
 
 	protected:
 		struct Cnt{
 
 			Cnt();
-			void add(uint64 num, SurfaceView::SurfaceState ss, byte is);
+			void add(uint64 num, SurfaceView::SurfaceState ss, unsigned char is);
 			void collect_values(std::vector<uint64>& vNum) const;
 			void set_values(const std::vector<uint64>& vNum, size_t& cnt);
 
@@ -65,10 +65,10 @@ class DoFCount : public DoFDistributionInfoProvider
 				PCnt();
 
 				// dofs exactly matching this state
-				uint64 num(byte is) const;
+				uint64 num(unsigned char is) const;
 
 				// dofs that contain this state
-				uint64 num_contains(byte is) const;
+				uint64 num_contains(unsigned char is) const;
 
 				void collect_values(std::vector<uint64>& vNum) const;
 				void set_values(const std::vector<uint64>& vNum, size_t& cnt);
@@ -76,8 +76,8 @@ class DoFCount : public DoFDistributionInfoProvider
 				std::vector<uint64> vNumIS;
 			};
 
-			uint64 num(SurfaceView::SurfaceState ss, byte is) const;
-			uint64 num_contains(SurfaceView::SurfaceState ss, byte is) const;
+			uint64 num(SurfaceView::SurfaceState ss, unsigned char is) const;
+			uint64 num_contains(SurfaceView::SurfaceState ss, unsigned char is) const;
 
 			std::vector<PCnt> vNumSS;
 		};
@@ -91,12 +91,12 @@ class DoFCount : public DoFDistributionInfoProvider
 		void collect_values(std::vector<uint64>& vNum) const;
 		void set_values(const std::vector<uint64>& vNum);
 
-		void add(int fct, int si, SurfaceView::SurfaceState ss, byte is, uint64 numDoF);
+		void add(int fct, int si, SurfaceView::SurfaceState ss, unsigned char is, uint64 numDoF);
 
 		const GridLevel& grid_level() const {return m_gridLevel;}
 
-		uint64 num(int fct, int si, SurfaceView::SurfaceState ss, byte is) const;
-		uint64 num_contains(int fct, int si, SurfaceView::SurfaceState ss, byte is) const;
+		uint64 num(int fct, int si, SurfaceView::SurfaceState ss, unsigned char is) const;
+		uint64 num_contains(int fct, int si, SurfaceView::SurfaceState ss, unsigned char is) const;
 
 	protected:
 		GridLevel m_gridLevel;

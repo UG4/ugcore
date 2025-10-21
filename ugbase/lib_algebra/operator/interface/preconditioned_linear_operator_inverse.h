@@ -151,6 +151,8 @@ class IPreconditionedLinearOperatorInverse
 
 		virtual bool apply(X& x, const X& b)
 		{
+
+
 		//	copy defect
 			SmartPtr<X> spB = b.clone(); X& bTmp = *spB;
 //			X bTmp; bTmp.resize(b.size()); bTmp = b;

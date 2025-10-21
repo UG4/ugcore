@@ -84,6 +84,7 @@ StdConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose,b
 template <typename TVector>
 void StdConvCheck<TVector>::start_defect(number initialDefect)
 {
+	//UG_LOG_ALL_PROCS("start defect is " << initialDefect << "\n")
 	_defects.clear();
 	m_initialDefect = initialDefect;
 	m_currentDefect = m_initialDefect;

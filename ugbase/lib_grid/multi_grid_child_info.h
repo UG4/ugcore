@@ -117,7 +117,7 @@ struct MGEdgeInfo
 private:
 	Vertex*			m_pVrtChild;
 	Edge* 			m_pEdgeChild[MG_EDGE_MAX_EDGE_CHILDREN];
-	byte				m_numEdgeChildren;
+	unsigned char				m_numEdgeChildren;
 };
 
 ///	Holds information about face relations. Used internally.
@@ -152,8 +152,8 @@ private:
 	Vertex*			m_pVrtChild;
 	Edge* 			m_pEdgeChild[MG_FACE_MAX_EDGE_CHILDREN];
 	Face*				m_pFaceChild[MG_FACE_MAX_FACE_CHILDREN];
-	byte				m_numEdgeChildren;
-	byte				m_numFaceChildren;
+	unsigned char				m_numEdgeChildren;
+	unsigned char				m_numFaceChildren;
 };
 
 ///	Holds information about volume relations. Used internally.

@@ -33,6 +33,7 @@
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACES__INTERPOLATE__
 #define __H__UG__LIB_DISC__FUNCTION_SPACES__INTERPOLATE__
 
+#include "grid_function_global_user_data.h"
 #include "common/common.h"
 #include "common/util/smart_pointer.h"
 
@@ -736,10 +737,126 @@ void Interpolate(LuaFunctionHandle LuaFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,const SmartPtr<CplUserData<MathVector<TGridFunction::dim>, TGridFunction::dim> > m_diff_pos)
 {InterpolateDiff(LuaFunction, spGridFct, cmp, NULL, 0.0, m_diff_pos);}
 
+
+
 #endif
+#ifdef UG_PARALLEL
+/// interpolates a gridFunction across similiar geometries with different meshing, where distribution across processes is not
+/// consistent. This is inefficient and should not be used in hot loops.
+/**
+ * Creates GlobalGridFunctionNumber and transfers unknown values across different vertex configurations on different processes
+ *
+ * @param[in] spGfSource			data providing interpolation values
+ * @param[out] spGfTarget			interpolated grid function
+ * @param[in] cmp					symbolic name of function component to be interpolated
+ * @param[in] time					time point
+ */
+template <typename TGridFunction>
+void InterpolateGlobalGridFunctionAcrossProcesses(SmartPtr<TGridFunction> spGfSource,
+		SmartPtr<TGridFunction> spGfTarget,
+		const char* cmp,
+		number time)
+{
+
+	static const int dim  = TGridFunction::dim;
+	SmartPtr<GlobalGridFunctionNumberData<TGridFunction> > data = make_sp(new GlobalGridFunctionNumberData<TGridFunction>(spGfSource, cmp)) ;
+	//	domain type and position_type
+
+	// check if we have multiple processes - if no we can just forward globalGfUserData to standard interpolate
+	if (pcl::NumProcs() == 1) {
+		Interpolate(data, spGfTarget, cmp, time);
+		return;
+	}
+	typedef typename TGridFunction::domain_type domain_type;
+	typedef typename domain_type::position_type position_type;
 
 
+	// get position accessor (of interpolated grid function)
+	const typename domain_type::position_accessor_type& aaPos
+										= spGfTarget->domain()->position_accessor();
 
+
+	std::vector<DoFIndex> ind;
+	typename TGridFunction::template dim_traits<0>::const_iterator iterEnd, iter;
+	const size_t fct = spGfSource->fct_id_by_name(cmp);
+
+
+	pcl::ProcessCommunicator com;
+	// each process iterates over its own local elements
+	for (int i = 0; i < pcl::NumProcs(); ++i){
+		// 	iterate over all elements
+		position_type glob_pos;
+		bool finished = false;
+		// check for active Proc
+		if (pcl::ProcRank() == i) {
+			iterEnd = spGfTarget->template end<Vertex>();
+			iter = spGfTarget->template begin<Vertex>();
+			for(; iter != iterEnd; )
+			{
+				//	get vertex
+				Vertex* vrt = *iter;
+
+				//	global position (in case this position is not contained on the same proc for both distributions, we have to
+				//	search all procs)
+				glob_pos = aaPos[vrt]; // position (of interpolated grid function)
+				// current active proc sends current evaluation position
+				com.broadcast(glob_pos, i);
+
+
+				//	value at position
+				number val;
+				// evaluate source grid function value for cmp and given position
+				// evaluate_global() is already mpi - parallelized and thus needs to be called with the same
+				// poosition from all procs - see logic for non active proc below
+				data->evaluate_global(val,  glob_pos);
+
+				// set local function value
+				//	get multiindices of element
+				spGfTarget->dof_indices(vrt, fct, ind);
+
+				// 	loop all dofs
+				for(size_t i = 0; i < ind.size(); ++i)
+				{
+					//	set value
+					DoFRef(*spGfTarget, ind[i]) = val;
+				}
+				++iter;
+				// check if active proc is finished with element loop and broadcast result
+				finished = (iter ==	iterEnd);
+				com.broadcast(finished, i);
+			}
+
+
+		}
+		// if we are not the active proc, we wait for the active proc to finish iterating over its local elements
+		// and answer the evaluate_global function call with the corresponding broadcasted position
+		else {
+			while (!finished){
+				// while active proc has elements, we recieve current position and evaluate
+				com.broadcast(glob_pos, i);
+
+				number val;
+				// matching evaluate_global call for active Proc
+				data->evaluate_global(val,  glob_pos);
+				com.broadcast(finished, i);
+				// finish loop when active proc has no elements left
+			}
+		}
+
+
+	}
+	// resulting vector is consistent
+	spGfTarget->set_storage_type(PST_CONSISTENT);
+
+}
+// implement as overload for Interpolate
+template <typename TGridFunction>
+void Interpolate(SmartPtr<TGridFunction> spGfSource,
+					SmartPtr<TGridFunction> spGfTarget,
+					const char* cmp,
+					number time)
+{InterpolateGlobalGridFunctionAcrossProcesses(spGfSource, spGfTarget,cmp, time);}
+#endif
 
 } // namespace ug
 

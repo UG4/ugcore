@@ -183,7 +183,11 @@ matmul_minus(TPVector &res, const TPVector &x) const
 	}
 
 //	apply on single process vector
+	//UG_LOG_ALL_PROCS("parallel atrix matmul_minus\n")
+
+	//UG_LOG_ALL_PROCS("0res norm " << res.norm() << "x norm " << x.norm() << "\n")
 	TMatrix::axpy(res, 1.0, res, -1.0, x);
+	//UG_LOG_ALL_PROCS("1res norm " << res.norm() << "x norm " << x.norm() << "\n")
 
 //	set outgoing vector to additive storage
 //	(it could have been PST_UNIQUE before)

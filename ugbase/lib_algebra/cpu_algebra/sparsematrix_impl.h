@@ -323,10 +323,15 @@ void SparseMatrix<T>::axpy(vector_t &dest,
 				mat_mult_add_row(i, dest[i], beta1, w1);
 			}
 		}
-		else
-			for(size_t i=0; i < num_rows(); i++)
+		else {
+			for(size_t i=0; i < num_rows(); i++) {
 				mat_mult_add_row(i, dest[i], beta1, w1);
 
+			}
+		}
+
+
+		//UG_LOG_ALL_PROCS("norm directly after axpy " << dest.norm() << "\n");
 	}
 	else
 	{

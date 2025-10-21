@@ -121,18 +121,18 @@ class DistributedGridManager : public GridObserver
 	 * in InterfaceNodeTypes and ElementStatusTypes.
 	 * \sa contains_status
 	 * \{ */
-		byte get_status(GridObject* go) const;
-		inline byte get_status(Vertex* vrt)	const	{return elem_info(vrt).get_status();}
-		inline byte get_status(Edge* edge) const	{return elem_info(edge).get_status();}
-		inline byte get_status(Face* face) const		{return elem_info(face).get_status();}
-		inline byte get_status(Volume* vol) const		{return elem_info(vol).get_status();}
+		unsigned char get_status(GridObject* go) const;
+		inline unsigned char get_status(Vertex* vrt)	const	{return elem_info(vrt).get_status();}
+		inline unsigned char get_status(Edge* edge) const	{return elem_info(edge).get_status();}
+		inline unsigned char get_status(Face* face) const		{return elem_info(face).get_status();}
+		inline unsigned char get_status(Volume* vol) const		{return elem_info(vol).get_status();}
 	/**	\} */
 
 	///	returns true if the status of the given object contains the given status.
 	/**	status can be an or-combination of constants enumerated in InterfaceNodeTypes
 	 * and ElementStatusTypes.*/
 		template <class TGeomObj>
-		bool contains_status(TGeomObj* o, byte status) const	{return (get_status(o) & status) == status;}
+		bool contains_status(TGeomObj* o, unsigned char status) const	{return (get_status(o) & status) == status;}
 
 	///	returns true if the element is a ghost
 	/**	ghost elements are vertical masters that are in no other interfaces.
@@ -176,7 +176,7 @@ class DistributedGridManager : public GridObserver
 	 	template <class TElem>
 	 	void collect_interface_entries(
 						std::vector<std::pair<int, size_t> >& vEntriesOut,
-						TElem* elem, byte statusType, bool clearContainer = true);
+						TElem* elem, unsigned char statusType, bool clearContainer = true);
 
 
 	///	Enables or disables interface managment. Use with care!
@@ -257,7 +257,7 @@ class DistributedGridManager : public GridObserver
 
 		template <class TGeomObj, class TLayoutMap>
 		void update_elem_info(TLayoutMap& layoutMap, int nodeType,
-							  byte newStatus, bool addStatus = false);
+							  unsigned char newStatus, bool addStatus = false);
 
 		template <class TGeomObj>
 		void update_all_elem_infos();
@@ -364,13 +364,13 @@ class DistributedGridManager : public GridObserver
 						return entries_end();
 					}
 				
-				void set_status(byte status)
+				void set_status(unsigned char status)
 				{
 					if(!has_data() && (status == ES_NONE))
 						return;
 					data().m_status = status;
 				}
-				byte get_status() const
+				unsigned char get_status() const
 				{
 					if(!has_data()) return ES_NONE;
 					return m_data->m_status;
@@ -386,7 +386,7 @@ class DistributedGridManager : public GridObserver
 				struct Data{
 					Data() : m_status(ES_NONE) {}
 					EntryList	m_entries;
-					byte		m_status;
+					unsigned char		m_status;
 				};
 
 			///	returns the data object. Creates it if necessary.

@@ -499,7 +499,7 @@ send_data(void* pBuffer, int* pBufferSegSizes,
 	{
 		MPI_Isend(pBuffer, pBufferSegSizes[i], MPI_UNSIGNED_CHAR,
 				  pRecProcMap[i], tag, m_comm->m_mpiComm, &vSendRequests[i]);
-		pBuffer = (byte*)pBuffer + pBufferSegSizes[i];
+		pBuffer = (unsigned char*)pBuffer + pBufferSegSizes[i];
 	}
 	
 //	wait until data has been received
@@ -543,7 +543,7 @@ distribute_data(void* recvBufOut, int* recvBufSegSizesOut,
 		MPI_Irecv(recvBufOut, recvBufSegSizesOut[i], MPI_UNSIGNED_CHAR,	
 				  recvFromRanks[i], tag, m_comm->m_mpiComm,
 				  &vReceiveRequests[i]);
-		recvBufOut = (byte*)recvBufOut + recvBufSegSizesOut[i];
+		recvBufOut = (unsigned char*)recvBufOut + recvBufSegSizesOut[i];
 	}
 
 //	now send the data
@@ -552,7 +552,7 @@ distribute_data(void* recvBufOut, int* recvBufSegSizesOut,
 		MPI_Isend(sendBuf, sendBufSegSizes[i], MPI_UNSIGNED_CHAR,
 				  sendToRanks[i], tag, m_comm->m_mpiComm,
 				  &vSendRequests[i]);
-		sendBuf = (byte*)sendBuf + sendBufSegSizes[i];
+		sendBuf = (unsigned char*)sendBuf + sendBufSegSizes[i];
 	}
 
 	//	wait until data has been received

@@ -69,7 +69,7 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 
 		virtual int get_required_buffer_size(const Interface& interface)
 		{
-			return interface.size() * sizeof(byte);
+			return interface.size() * sizeof(unsigned char);
 		}
 
 	///	write surface state for each entry
@@ -79,8 +79,8 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
 			{
 				Element elem = intfc.get_element(iter);
-				byte val = m_aaESS[elem].get();
-				buff.write((char*)&val, sizeof(byte));
+				unsigned char val = m_aaESS[elem].get();
+				buff.write((char*)&val, sizeof(unsigned char));
 			}
 			return true;
 		}
@@ -91,8 +91,8 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
 			{
 				Element elem = intfc.get_element(iter);
-				byte nv;
-				buff.read((char*)&nv, sizeof(byte));
+				unsigned char nv;
+				buff.read((char*)&nv, sizeof(unsigned char));
 				if(nv > m_aaESS[elem].get())
 					m_aaESS[elem] = nv;
 			}
@@ -197,7 +197,7 @@ refresh_surface_states()
 
 template <class TElem, class TSide>
 void SurfaceView::
-mark_sides_as_surface_or_shadow(TElem* elem, byte surfaceState)
+mark_sides_as_surface_or_shadow(TElem* elem, unsigned char surfaceState)
 {
 	typedef typename PeriodicBoundaryManager::Group<TSide>::SlaveContainer
 		periodic_slave_container_t;

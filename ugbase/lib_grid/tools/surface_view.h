@@ -66,7 +66,7 @@ class SurfaceView
 		 * Every grid-object is in exactly one SurfaceState. In addition some
 		 * combinations of the states are named for an easier usage.
 		 *
-		 * IMPORTANT: The order of the byte-flags is currently crucial. Do not
+		 * IMPORTANT: The order of the unsigned char-flags is currently crucial. Do not
 		 * 			  change them. See ComPol_GatherSurfaceStates.
 		 */
 		enum SurfaceConstants{
@@ -102,7 +102,7 @@ class SurfaceView
 			ALL = MG_ALL               | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE
 			// combo-states with flags as in level-view (end)
 		};
-		typedef Flag<SurfaceConstants, byte, SS_NONE>	SurfaceState;
+		typedef Flag<SurfaceConstants, unsigned char, SS_NONE>	SurfaceState;
 		typedef Attachment<SurfaceState>				ASurfaceState;
 
 	public:
@@ -354,7 +354,7 @@ class SurfaceView
 	 * Make sure that all elements in lower levels have already been processed!*/
 		template <class TElem, class TSide>
 		void mark_sides_as_surface_or_shadow(TElem* elem,
-											 byte surfaceState = MG_SURFACE_PURE);
+											 unsigned char surfaceState = MG_SURFACE_PURE);
 
 		template <class TElem>
 		void mark_shadowing(bool markSides = false);

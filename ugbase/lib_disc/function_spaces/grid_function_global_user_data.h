@@ -140,7 +140,7 @@ class GlobalGridFunctionNumberData
 		///	to full-fill UserData-Interface
 		inline void evaluate(number& value, const MathVector<dim>& x, number time, int si) const
 		{
-			if(!evaluate(value, x))
+			if(!evaluate_global(value, x))
 				UG_THROW("For function "<<m_fct<<" couldn't find an element containing the specified point: " << x);
 		}
 
@@ -203,7 +203,7 @@ class GlobalGridFunctionNumberData
 		}
 
 		/// evaluate value on all procs
-		inline void evaluate_global(number& value, const MathVector<dim>& x) const
+		inline bool evaluate_global(number& value, const MathVector<dim>& x) const
 		{
 			// evaluate at this proc
 			bool bFound = this->evaluate(value, x);
@@ -228,7 +228,7 @@ class GlobalGridFunctionNumberData
 			if(bFound)
 				if(LocalFiniteElementProvider::continuous(m_lfeID)){
 					if( fabs(value) > 1e-10 && fabs((globValue - value) / value) > 1e-8)
-						UG_THROW("Global mean "<<globValue<<" != local value "<<value);
+						UG_THROW("For point " << x << " Global mean "<<globValue<<" != local value "<<value);
 				}
 
 			// set as global value
@@ -238,6 +238,7 @@ class GlobalGridFunctionNumberData
 
 			if(!bFound)
 				UG_THROW("Couldn't find an element containing the specified point: " << x);
+			return bFound;
 		}
 
 		// evaluates at given position

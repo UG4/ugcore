@@ -535,10 +535,10 @@ save_marks_to_file(const char* filename)
 	}
 
 	sh.subset_info(0).name = "_NONE_";
-	for (byte si = 1; si > 0; ++si)
+	for (unsigned char si = 1; si > 0; ++si)
 	{
 		sh.subset_info(si).name = "_";
-		for (byte b = 1; b != 0; b = b << 1)
+		for (unsigned char b = 1; b != 0; b = b << 1)
 			if (si & b)
 				switch (b)
 				{

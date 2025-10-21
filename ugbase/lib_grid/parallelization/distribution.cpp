@@ -58,11 +58,11 @@ static DebugID LG_DIST("LG_DIST");
 struct TargetProcInfo
 {
 	TargetProcInfo() {}
-	TargetProcInfo(int pID, byte intfcState) :
+	TargetProcInfo(int pID, unsigned char intfcState) :
 		procID(pID), interfaceState(intfcState) {}
 
 	int procID;
-	byte interfaceState; // or-combinations of constants from InterfaceStates
+	unsigned char interfaceState; // or-combinations of constants from InterfaceStates
 };
 
 typedef Attachment<vector<TargetProcInfo> >	ADistInfo;
@@ -429,7 +429,7 @@ static void WriteDistInfosToTextFile(MultiGrid& mg, DistInfoSupplier& infoSuppli
 
 			for(size_t i = 0; i < infos.size(); ++i){
 				table(row, 2) << "p" << infos[i].procID << ": ";
-				byte is = infos[i].interfaceState;
+				unsigned char is = infos[i].interfaceState;
 				if(is & IS_NORMAL)	table(row, 2) << "normal ";
 				if(is & IS_VMASTER)	table(row, 2) << "vmaster ";
 				if(is & IS_VSLAVE)	table(row, 2) << "vslave ";
@@ -1237,7 +1237,7 @@ static void AddTargetProcToDistInfos(MGSelector& msel,
 			iter != msel.end<TElem>(lvl); ++iter)
 		{
 			TElem* e = *iter;
-			byte selState = msel.get_selection_status(e);
+			unsigned char selState = msel.get_selection_status(e);
 
 			distInfos.get(e).push_back(
 					TargetProcInfo(targetProc, selState));
@@ -1448,7 +1448,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 		//	element lies (ignore pure vertical masters)
 		//	this lowest rank is required to decide, which process a horizontal
 		//	master should reside on
-			byte localInterfaceState = 0;
+			unsigned char localInterfaceState = 0;
 			int minProc = pcl::NumProcs();
 			int minVMasterProc = pcl::NumProcs();
 			int minVMasterNoVSlave = pcl::NumProcs();
@@ -1764,9 +1764,9 @@ static void SynchronizeAttachedGlobalAttachments (
 
 	vector<string>	attachedNamesAndTypes;
 
-	vector<byte> locAttached(names.size(), 0);
+	vector<unsigned char> locAttached(names.size(), 0);
 	for(size_t i = 0; i < names.size(); ++i){
-		byte& b = locAttached[i];
+		unsigned char& b = locAttached[i];
 		if(GlobalAttachments::is_attached<Vertex>(g, names[i]))
 			b |= 1;
 		if(GlobalAttachments::is_attached<Edge>(g, names[i]))
@@ -1777,11 +1777,11 @@ static void SynchronizeAttachedGlobalAttachments (
 			b |= 1<<3;
 	}
 
-	vector<byte> globAttached(names.size());
+	vector<unsigned char> globAttached(names.size());
 	procComm.allreduce(locAttached, globAttached, PCL_RO_BOR);
 
 	for(size_t i = 0; i < names.size(); ++i){
-		byte& b = globAttached[i];
+		unsigned char& b = globAttached[i];
 		if((b & 1) && !GlobalAttachments::is_attached<Vertex>(g, names[i]))
 			GlobalAttachments::attach<Vertex>(g, names[i]);
 

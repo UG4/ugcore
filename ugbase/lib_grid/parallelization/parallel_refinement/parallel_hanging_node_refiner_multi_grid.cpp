@@ -210,7 +210,7 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter, ++counter)
 			{
-				byte mark = CT_IGNORE;
+				unsigned char mark = CT_IGNORE;
 				Element elem = interface.get_element(iter);
 				if(m_sel.is_selected(elem)){
 					int refMark = m_sel.get_selection_status(elem);
@@ -224,7 +224,7 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 
 				if(mark != CT_IGNORE){
 					buff.write((char*)&counter, sizeof(int));
-					buff.write((char*)&mark, sizeof(byte));
+					buff.write((char*)&mark, sizeof(unsigned char));
 				}
 			}
 
@@ -250,8 +250,8 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 				if(index == -1)
 					break;
 
-				byte mark;
-				buff.read((char*)&mark, sizeof(byte));
+				unsigned char mark;
+				buff.read((char*)&mark, sizeof(unsigned char));
 
 				while((counter < index) && (iter != interface.end())){
 					++iter;
@@ -553,7 +553,7 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 
 		virtual int
 		get_required_buffer_size(const Interface& interface)
-		{return interface.size() * sizeof(byte);}
+		{return interface.size() * sizeof(unsigned char);}
 
 	///	writes writes the selection states of the interface entries
 		virtual bool
@@ -564,8 +564,8 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				byte refMark = m_sel.get_selection_status(elem);
-				buff.write((char*)&refMark, sizeof(byte));
+				unsigned char refMark = m_sel.get_selection_status(elem);
+				buff.write((char*)&refMark, sizeof(unsigned char));
 			}
 
 			return true;
@@ -575,21 +575,21 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 		virtual bool
 		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
-			byte val;
+			unsigned char val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				buff.read((char*)&val, sizeof(byte));
+				buff.read((char*)&val, sizeof(unsigned char));
 
 			//	check the current status and adjust the mark accordingly
-				byte curVal = m_sel.get_selection_status(elem);
+				unsigned char curVal = m_sel.get_selection_status(elem);
 
 				if(curVal == val)
 					continue;
 
-				byte maxVal = max(curVal, val);
-				byte minVal = min(curVal, val);
+				unsigned char maxVal = max(curVal, val);
+				unsigned char minVal = min(curVal, val);
 
 				if(m_allowDeselection && (minVal == SE_NONE)){
 					m_sel.deselect(elem);

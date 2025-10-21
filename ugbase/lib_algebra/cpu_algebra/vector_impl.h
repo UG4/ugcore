@@ -323,8 +323,13 @@ template<typename value_type>
 inline double Vector<value_type>::norm() const
 {
 	double d=0;
-	for(size_t i=0; i<size(); ++i)
+	//UG_LOG_ALL_PROCS("vector norm: " );
+	for(size_t i=0; i<size(); ++i) {
+
+		if (isnan(BlockNorm2(values[i]))){UG_LOG("index " << i << " is " << values[i] << "\n");}
 		d+=BlockNorm2(values[i]);
+	}
+	//UG_LOG_ALL_PROCS(" local d is  " << d << "\n");
 	return sqrt(d);
 }
 

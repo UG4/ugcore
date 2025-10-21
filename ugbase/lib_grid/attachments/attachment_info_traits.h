@@ -49,7 +49,7 @@ struct attachment_info_traits {
 
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<bool>, "bool");
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<char>, "char");
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<byte>, "byte");
+DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<unsigned char>, "unsigned char");
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<int>, "int");
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<uint>, "uint");
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<float>, "float");

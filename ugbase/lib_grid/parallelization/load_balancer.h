@@ -151,7 +151,8 @@ class LoadBalancer{
 		void print_quality_records() const;
 		void print_last_quality_record() const;
 
-	private:
+	protected:
+
 		template <class TElem>
 		number estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut);
 

@@ -334,7 +334,7 @@ void DistributedGridManager::reset_elem_infos()
 ////////////////////////////////////////////////////////////////////////
 template <class TGeomObj, class TLayoutMap>
 void DistributedGridManager::
-update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus, bool addStatus)
+update_elem_info(TLayoutMap& layoutMap, int nodeType, unsigned char newStatus, bool addStatus)
 {	
 	typedef typename TLayoutMap::template Types<TGeomObj>::Layout Layout;
 	if(layoutMap.template has_layout<TGeomObj>(nodeType)){
@@ -375,7 +375,7 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus, bool addSt
 	}
 }
 
-byte DistributedGridManager::
+unsigned char DistributedGridManager::
 get_status(GridObject* go) const
 {
 	int baseType = go->base_object_id();
@@ -437,12 +437,12 @@ template <class TElem>
 void DistributedGridManager::
 add_element_to_interface(TElem* pElem, int procID)
 {
-	byte status = get_status(pElem);
+	unsigned char status = get_status(pElem);
 	
 	typename GridLayoutMap::Types<TElem>::Interface::iterator iter;
 	typename GridLayoutMap::Types<TElem>::Interface* interface;
 	int intfcType = ES_NONE;
-	byte s = get_status(pElem);
+	unsigned char s = get_status(pElem);
 	
 	if(status & ES_H_MASTER){
 		interface = &m_gridLayoutMap.get_layout<TElem>(INT_H_MASTER)

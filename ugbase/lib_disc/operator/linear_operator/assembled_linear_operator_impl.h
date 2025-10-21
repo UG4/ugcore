@@ -139,6 +139,7 @@ AssembledLinearOperator<TAlgebra>::apply_sub(vector_type& d, const vector_type& 
 		        " operation b -= A*x. Maybe the operator is not initialized ?");
 
 //	Apply Matrix
+	//UG_LOG_ALL_PROCS("assembled linear iterator apply sub")
 	base_type::matmul_minus(d,c);
 }
 

@@ -1593,7 +1593,7 @@ void DoFDistribution::sum_dof_count(DoFCount& cnt) const
 			continue;
 
 		// Interface State
-		byte InterfaceState = ES_NONE;
+		unsigned char InterfaceState = ES_NONE;
 		if(spDstGrdMgr) InterfaceState = spDstGrdMgr->get_status(elem);
 
 		// loop all functions

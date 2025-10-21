@@ -403,7 +403,7 @@ static bool ReadGridHeader(GridHeader& gridHeader, BinaryBuffer& in)
 ////////////////////////////////////////////////////////////////////////
 //	PARENT INFO
 ///	Stores a tuple (type, index), identifying a parent.
-typedef std::pair<byte, int> ParentInfo;
+typedef std::pair<unsigned char, int> ParentInfo;
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -2595,7 +2595,7 @@ void WriteSelectionStatesToStream(TElemIter iterBegin, TElemIter iterEnd,
 	for(;iterBegin != iterEnd; ++iterBegin)
 	{
 		int s = sel.get_selection_status(*iterBegin);
-		out.write((char*)&s, sizeof(byte));
+		out.write((char*)&s, sizeof(unsigned char));
 	}
 }
 
@@ -2655,8 +2655,8 @@ void ReadSelectionStatesFromStream(TElemIter iterBegin, TElemIter iterEnd,
 {
 	for(;iterBegin != iterEnd; ++iterBegin)
 	{
-		byte s;
-		in.read((char*)&s, sizeof(byte));
+		unsigned char s;
+		in.read((char*)&s, sizeof(unsigned char));
 		sel.select(*iterBegin, s);
 	}
 }
@@ -2740,12 +2740,12 @@ bool DeserializeSelector(Grid& grid, ISelector& sel,
 // 	out.write((char*)&magicNumber, sizeof(int));
 
 // 	if(ph.default_projector().valid()){
-// 		byte b = 1;
+// 		unsigned char b = 1;
 // 		out.write((char*)&b, sizeof(b));
 // 		SerializeProjector(out, *ph.default_projector());
 // 	}
 // 	else{
-// 		byte b = 0;
+// 		unsigned char b = 0;
 // 		out.write((char*)&b, sizeof(b));
 // 	}
 
@@ -2802,7 +2802,7 @@ bool DeserializeSelector(Grid& grid, ISelector& sel,
 // 	UG_COND_THROW(tmpMagicNumber != magicNumber,
 // 	              "Magic number mismatch in DeserializeProjectionHandler (1)!");
 
-// 	byte b;
+// 	unsigned char b;
 // 	in.read((char*)&b, sizeof(b));
 // 	if(b){
 // 		ph.set_default_projector(DeserializeProjector(in));

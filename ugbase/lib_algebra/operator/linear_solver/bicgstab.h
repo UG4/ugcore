@@ -44,6 +44,8 @@
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
+#include <ug.h>
+
 #include "common/util/string_util.h"
 
 namespace ug{
@@ -112,7 +114,7 @@ class BiCGStab
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
 			LS_PROFILE_BEGIN(LS_ApplyReturnDefect);
-
+			
 		//	check correct storage type in parallel
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT)){

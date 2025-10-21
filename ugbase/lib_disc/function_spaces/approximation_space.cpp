@@ -542,10 +542,10 @@ void PrintDoFCount(const vector<DoFCount>& vDC,
 //	constants for selection
 	static const int ALL_FCT = DoFCount::ALL_FCT;
 	static const int ALL_SUBSET = DoFCount::ALL_SUBSET;
-	static const byte ALL_ES = DoFCount::ALL_ES;
-	static const byte ALL_SS = DoFCount::ALL_SS;
-	static const byte UNIQUE_ES = DoFCount::UNIQUE_ES;
-	static const byte UNIQUE_SS = DoFCount::UNIQUE_SS;
+	static const unsigned char ALL_ES = DoFCount::ALL_ES;
+	static const unsigned char ALL_SS = DoFCount::ALL_SS;
+	static const unsigned char UNIQUE_ES = DoFCount::UNIQUE_ES;
+	static const unsigned char UNIQUE_SS = DoFCount::UNIQUE_SS;
 
 //	Table Header
 	stringstream ssHead;
@@ -603,46 +603,46 @@ void PrintDoFCount(const vector<DoFCount>& vDC,
 		stringstream ssGL; ssGL << gl;
 
 	//	always print unique (w.r.t interface) number
-		vector<pair<string, byte> > vInIS;
-		vInIS.push_back(pair<string,byte>("unique",UNIQUE_ES));
-		vector<pair<string, byte> > vContainsIS;
+		vector<pair<string, unsigned char> > vInIS;
+		vInIS.push_back(pair<string,unsigned char>("unique",UNIQUE_ES));
+		vector<pair<string, unsigned char> > vContainsIS;
 
 	//	if PrintInterface: add more output
 		if(bPrintInterface){
-			vContainsIS.push_back(pair<string,byte>("m (&)",ES_H_MASTER));
-			vContainsIS.push_back(pair<string,byte>("s (&)",ES_H_SLAVE));
-			vInIS.push_back(pair<string,byte>("all",ALL_ES));
+			vContainsIS.push_back(pair<string,unsigned char>("m (&)",ES_H_MASTER));
+			vContainsIS.push_back(pair<string,unsigned char>("s (&)",ES_H_SLAVE));
+			vInIS.push_back(pair<string,unsigned char>("all",ALL_ES));
 
 		//	if grid level with ghost: add more output
 			if(gl.is_level() && gl.ghosts()){
-				vContainsIS.push_back(pair<string,byte>("vm (&)",ES_V_MASTER));
-				vContainsIS.push_back(pair<string,byte>("vs (&)",ES_V_SLAVE));
-				vInIS.push_back(pair<string,byte>("no (x)",ES_NONE));
-				vInIS.push_back(pair<string,byte>("m (x)",ES_H_MASTER));
-				vInIS.push_back(pair<string,byte>("s (x)",ES_H_SLAVE));
-				vInIS.push_back(pair<string,byte>("vm (x)",ES_V_MASTER));
-				vInIS.push_back(pair<string,byte>("vs (x)", ES_V_SLAVE));
-				vInIS.push_back(pair<string,byte>("m+vm (x)", ES_H_MASTER | ES_V_MASTER));
-				vInIS.push_back(pair<string,byte>("m+vs (x)", ES_H_MASTER | ES_V_SLAVE));
-				vInIS.push_back(pair<string,byte>("s+vm (x)", ES_H_SLAVE | ES_V_MASTER));
-				vInIS.push_back(pair<string,byte>("s+vs (x)", ES_H_SLAVE | ES_V_SLAVE));
+				vContainsIS.push_back(pair<string,unsigned char>("vm (&)",ES_V_MASTER));
+				vContainsIS.push_back(pair<string,unsigned char>("vs (&)",ES_V_SLAVE));
+				vInIS.push_back(pair<string,unsigned char>("no (x)",ES_NONE));
+				vInIS.push_back(pair<string,unsigned char>("m (x)",ES_H_MASTER));
+				vInIS.push_back(pair<string,unsigned char>("s (x)",ES_H_SLAVE));
+				vInIS.push_back(pair<string,unsigned char>("vm (x)",ES_V_MASTER));
+				vInIS.push_back(pair<string,unsigned char>("vs (x)", ES_V_SLAVE));
+				vInIS.push_back(pair<string,unsigned char>("m+vm (x)", ES_H_MASTER | ES_V_MASTER));
+				vInIS.push_back(pair<string,unsigned char>("m+vs (x)", ES_H_MASTER | ES_V_SLAVE));
+				vInIS.push_back(pair<string,unsigned char>("s+vm (x)", ES_H_SLAVE | ES_V_MASTER));
+				vInIS.push_back(pair<string,unsigned char>("s+vs (x)", ES_H_SLAVE | ES_V_SLAVE));
 			}
 		}
 
 	//	always print unique (w.r.t. surface) number
-		vector<pair<string, byte> > vInSS;
+		vector<pair<string, unsigned char> > vInSS;
 		if(gl.is_surface())
-			vInSS.push_back(pair<string,byte>("unique",UNIQUE_SS));
+			vInSS.push_back(pair<string,unsigned char>("unique",UNIQUE_SS));
 		else
-			vInSS.push_back(pair<string,byte>("---",UNIQUE_SS));
+			vInSS.push_back(pair<string,unsigned char>("---",UNIQUE_SS));
 
 	//	if PrintSurface and a surface level: add more output
 		if(bPrintSurface && gl.is_surface()){
-			vInSS.push_back(pair<string,byte>("all",ALL_SS));
-			vInSS.push_back(pair<string,byte>("pure",SurfaceView::MG_SURFACE_PURE));
-			vInSS.push_back(pair<string,byte>("shadowing",SurfaceView::MG_SURFACE_RIM));
-			vInSS.push_back(pair<string,byte>("shadow-cpy",SurfaceView::MG_SHADOW_RIM_COPY));
-			vInSS.push_back(pair<string,byte>("shadow-nocpy",SurfaceView::MG_SHADOW_RIM_NONCOPY));
+			vInSS.push_back(pair<string,unsigned char>("all",ALL_SS));
+			vInSS.push_back(pair<string,unsigned char>("pure",SurfaceView::MG_SURFACE_PURE));
+			vInSS.push_back(pair<string,unsigned char>("shadowing",SurfaceView::MG_SURFACE_RIM));
+			vInSS.push_back(pair<string,unsigned char>("shadow-cpy",SurfaceView::MG_SHADOW_RIM_COPY));
+			vInSS.push_back(pair<string,unsigned char>("shadow-nocpy",SurfaceView::MG_SHADOW_RIM_NONCOPY));
 		}
 
 		UG_LOG(sLeft<<setw(LEVEL) << left << ssGL.str() << right);

@@ -51,7 +51,7 @@ namespace ug
 //	attachment-types
 typedef Attachment<bool>		ABool;
 typedef Attachment<char>		AChar;
-typedef Attachment<byte>		AByte;
+typedef Attachment<unsigned char>		AByte;
 typedef Attachment<int>			AInt;
 typedef Attachment<uint>		AUInt;
 typedef Attachment<number>		ANumber;

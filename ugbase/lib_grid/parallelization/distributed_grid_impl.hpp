@@ -50,7 +50,7 @@ template<class TElem>
 inline bool DistributedGridManager::
 is_in_horizontal_interface(TElem* elem) const
 {
-	byte status = get_status(elem);
+	unsigned char status = get_status(elem);
 	return 	(status & (ES_H_MASTER | ES_H_SLAVE)) != 0;
 }
 
@@ -58,7 +58,7 @@ template<class TElem>
 inline bool DistributedGridManager::
 is_in_vertical_interface(TElem* elem) const
 {
-	byte status = get_status(elem);
+	unsigned char status = get_status(elem);
 	return 	(status & (ES_V_MASTER | ES_V_SLAVE)) != 0;
 }
 
@@ -66,7 +66,7 @@ template<class TElem>
 inline bool DistributedGridManager::
 is_ghost(TElem* elem) const
 {
-	byte status = get_status(elem);
+	unsigned char status = get_status(elem);
 	return 	(status & (ES_V_MASTER | ES_H_MASTER | ES_H_SLAVE))
 			== ES_V_MASTER;
 
@@ -78,7 +78,7 @@ template <class TElem>
 void DistributedGridManager::
 collect_interface_entries(
 				std::vector<std::pair<int, size_t> >& vEntriesOut,
-				TElem* elem, byte statusType, bool clearContainer)
+				TElem* elem, unsigned char statusType, bool clearContainer)
 {
 //TODO: make sure that the localIDs match the position at which
 //		an element is stored in the interface

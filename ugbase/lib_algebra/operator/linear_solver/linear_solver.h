@@ -129,16 +129,18 @@ class LinearSolver
 			
 		// 	rename b as d (for convenience)
 			vector_type& d = b;
-
+			UG_LOG_ALL_PROCS("d norm 1 " << d.norm() << "\n")
+			UG_LOG_ALL_PROCS("x norm 1 " << x.norm() << "\n")
 		// 	build defect:  d := b - J*x
 			LS_PROFILE_BEGIN(LS_BuildDefect);
 			linear_operator()->apply_sub(d, x);
 			LS_PROFILE_END(LS_BuildDefect);
-
+			UG_LOG_ALL_PROCS("d norm 2 " << d.norm() << "\n")
 		// 	create correction
 			LS_PROFILE_BEGIN(LS_CreateCorrection);
 			SmartPtr<vector_type> spC = x.clone_without_values();
 			vector_type& c = *spC;
+			//c.set(0.0);
 			#ifdef UG_PARALLEL
 				// this is ok if clone_without_values() inits with zeros
 				c.set_storage_type(PST_CONSISTENT);
@@ -147,7 +149,9 @@ class LinearSolver
 
 			LS_PROFILE_BEGIN(LS_ComputeStartDefect);
 			prepare_conv_check();
+			UG_LOG_ALL_PROCS("d norm 3 " << d.norm() << "\n")
 			convergence_check()->start(d);
+
 			LS_PROFILE_END(LS_ComputeStartDefect);
 
 			int loopCnt = 0;

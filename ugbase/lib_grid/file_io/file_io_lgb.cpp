@@ -82,12 +82,12 @@ void SerializeProjectionHandler(BinaryBuffer& out, ProjectionHandler& ph)
 	out.write((char*)&magicNumber, sizeof(int));
 
 	if(ph.default_projector().valid()){
-		byte b = 1;
+		unsigned char b = 1;
 		out.write((char*)&b, sizeof(b));
 		SerializeProjector(out, *ph.default_projector());
 	}
 	else{
-		byte b = 0;
+		unsigned char b = 0;
 		out.write((char*)&b, sizeof(b));
 	}
 
@@ -146,7 +146,7 @@ void DeserializeProjectionHandler(BinaryBuffer& in, ProjectionHandler& ph)
 
 	ph.clear();
 	
-	byte b;
+	unsigned char b;
 	in.read((char*)&b, sizeof(b));
 	if(b){
 		ph.set_default_projector(DeserializeProjector(in));
@@ -197,14 +197,14 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 	BinaryBuffer tbuf;
 
 //	write the header
-	byte endianess = 1;
-	byte intSize = (byte)sizeof(int);
-	byte numberSize = (byte)sizeof(number);
+	unsigned char endianess = 1;
+	unsigned char intSize = (unsigned char)sizeof(int);
+	unsigned char numberSize = (unsigned char)sizeof(number);
 	int versionNumber = 4;
 	
-	tbuf.write((char*)&endianess, sizeof(byte));
-	tbuf.write((char*)&intSize, sizeof(byte));
-	tbuf.write((char*)&numberSize, sizeof(byte));
+	tbuf.write((char*)&endianess, sizeof(unsigned char));
+	tbuf.write((char*)&intSize, sizeof(unsigned char));
+	tbuf.write((char*)&numberSize, sizeof(unsigned char));
 	tbuf.write((char*)&versionNumber, sizeof(int));
 
 //	the options
@@ -323,14 +323,14 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 	in.close();
 
 //	read the header
-	byte endianess;
-	byte intSize;
-	byte numberSize;
+	unsigned char endianess;
+	unsigned char intSize;
+	unsigned char numberSize;
 	int versionNumber;
 
-	tbuf.read((char*)&endianess, sizeof(byte));
-	tbuf.read((char*)&intSize, sizeof(byte));
-	tbuf.read((char*)&numberSize, sizeof(byte));
+	tbuf.read((char*)&endianess, sizeof(unsigned char));
+	tbuf.read((char*)&intSize, sizeof(unsigned char));
+	tbuf.read((char*)&numberSize, sizeof(unsigned char));
 	tbuf.read((char*)&versionNumber, sizeof(int));
 
 //	check whether the values are ok

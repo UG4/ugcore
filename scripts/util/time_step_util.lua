@@ -818,15 +818,18 @@ function util.SolveLinearTimeProblem(
 				-- at the Dirichlet boundaries. Thus, it does not work correctly at the
 				-- Dirichlet boundary where the boundary condition is specified not explicitely
 				-- by a UserData object or LUA function but should be kept as in the initial condition.
+				print("jacobian")
 				timeDisc:assemble_jacobian(A, u, gl)
+				print("rhs")
 				timeDisc:assemble_rhs(b, gl)
+				print("init")
 				linSolver:init(A, u)
 				assembled_dt = currdt
 			else
 				timeDisc:prepare_step(solTimeSeries, currdt)
 				timeDisc:assemble_rhs(b, gl)
 			end
-			
+			print("assembled")
 			-- apply linear solver
 			if linSolver:apply(u,b) == false then
 				if retValAtSolver ~= nil then return retValAtSolver end
@@ -836,7 +839,7 @@ function util.SolveLinearTimeProblem(
 			else
 				bSuccess = true; 
 			end
-	
+			print("apply finished")
 			
 			-- check valid step size			
 			if(bSuccess == false and currdt < minStepSize) then
