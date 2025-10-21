@@ -659,21 +659,23 @@ update(const TFVGeom* geo,
 			lambda = - GradDiffGrad * vol;
 		}
 
-	//	Compute flux
-		const number flux = VecDot(scvf.normal(), Velocity[i]);
+		//	Compute flux
+	const number flux = VecDot(scvf.normal(), Velocity[i]);
 
-	//	reset values
-		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-			conv_shape(i, sh) = 0.0;
-		if(computeDeriv)
-			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				VecSet(D_vel(i, sh), 0.0);
+	//      reset values
+	for (size_t sh = 0; sh < scvf.num_sh(); ++sh)
+		conv_shape(i, sh) = 0.0;
+	if (computeDeriv)
+		for (size_t sh = 0; sh < scvf.num_sh(); ++sh) {
+			VecSet(D_vel(i, sh), 0.0);
+			MatSet(conv_shape_diffusion(i, sh), 0.0);
+		}
 
 
 	//	check: Currently hanging nodes not supported.
 	//	/todo: add support for hanging nodes
-		if(from >= scvf.num_sh() || to >= scvf.num_sh())
-			UG_THROW("PartialUpwind: Currently not implemented for hanging nodes.")
+	if (from >= scvf.num_sh() || to >= scvf.num_sh())
+	UG_THROW("PartialUpwind: Currently not implemented for hanging nodes.")
 
 	///////////////////////////////////////////////////////////////////
 	//	Case 1:
@@ -746,9 +748,6 @@ update(const TFVGeom* geo,
 
 		if (computeDeriv)
 		{
-			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				MatSet(conv_shape_diffusion(i, sh), 0.0);
-
 			for (size_t k = 0; k < (size_t)dim; k++)
 				for (size_t l = 0; l < (size_t)dim; l++)
 				{

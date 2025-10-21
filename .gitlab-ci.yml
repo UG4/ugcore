@@ -4,18 +4,23 @@ default:
     - linux
 
 stages:
+  - analyze
   - test
   - deploy
   - sync
 
 
 include:
-- local: '/.gitlab/build-and-test.yml'
-#- local: '/.gitlab/deploy-pages.yml'
-- local: '/.gitlab/deploy-docker.yml'
-- template: Jobs/SAST.gitlab-ci.yml
-- template: Security/SAST.gitlab-ci.yml
-# - local: '/.gitlab/sync2github.yml'    # Push mirror for github (master)
+  # Analysis
+  - local: '/.gitlab/analyse-cpptest.yml'
+  - template: Jobs/SAST.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+  # Tests
+  - local: '/.gitlab/build-and-test.yml'
+  # Deploy
+  - local: '/.gitlab/deploy-docker.yml'
+  - local: '/.gitlab/deploy-pages.yml'
+  # - local: '/.gitlab/sync2github.yml'    # Push mirror for github (master)
 
 sast:
-  stage: test
+  stage: analyze
