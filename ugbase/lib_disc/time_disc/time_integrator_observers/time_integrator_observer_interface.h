@@ -34,7 +34,7 @@
 #define __H__UG__LIB_DISC__TIME_DISC__TIME_INTEGRATOR_OBSERVERS__TIME_INTEGRATOR_OBSERVER_INTERFACE
 
 #include <registry/class.h>
-
+#include <lib_disc/function_spaces/grid_function.h>
 namespace ug {
 
 /// Abstract base class for time integration observer
