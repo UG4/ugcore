@@ -143,7 +143,9 @@ else(PARALLEL)
 endif(PARALLEL)
 
 set(Sources         ${srcParallelization}
-					${srcDiscretization})
+					${srcDiscretization}
+		operator/non_linear_operator/newton_solver/nweton_solver_adaptive.hpp
+		operator/non_linear_operator/newton_solver/newton_solver_adaptive_impl.hpp)
 
 if(BUILD_ONE_LIB)
 	EXPORTSOURCES(ugbase/lib_disc ${Sources})

@@ -162,10 +162,6 @@ clone()
 	return clone;
 }
 
-template <typename TDomain, typename TAlgebra>
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-~AssembledMultiGridCycle()
-{};
 
 ////////////////////////////////////////////////////////////////////////////////
 // apply and init

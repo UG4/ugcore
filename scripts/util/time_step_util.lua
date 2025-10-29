@@ -60,20 +60,41 @@ function util.ParseTimeIntegratorCallbacks(timeIntegratorSubject, luaobject)
 
 		-- user specified a function
 		if type(element) == "function" then
+			print("")
+			print("")
+			print("function")
+			print("")
+			print("")
 			local cb = util.LuaCallbackHelper:create(element)
 			attachFct(timeIntegratorSubject, cb.CPPCallback)
 
 		-- user specified a class created by util.LuaCallbackHelper.create()
-		elseif type(element) == "table" and element.CPPCallback ~= nil then	
+		elseif type(element) == "table" and element.CPPCallback ~= nil then
+			print("")
+			print("")
+			print("table")
+			print("")
+			print("")
 			attachFct(timeIntegratorSubject, element.CPPCallback)
 
 		-- user specified an cpp class, lets hope it implements ITimeIntegratorObserver
 		elseif type(element) == "userdata" then
+			print("")
+			print("")
+			print("userdata")
+			print("")
+			print("")
 			attachFct(timeIntegratorSubject, element)
 
 		-- smells like an array
 		elseif type(element) == "table" and element[1] ~= nil and donttraverse == false then
-			for i, child in ipairs(element) do		
+			print("")
+			print("")
+			print("table xx")
+			print("")
+			print("")
+			for i, child in ipairs(element) do
+				print(child)
 				attachObservers(attachFct, child, true)
 			end
 		end

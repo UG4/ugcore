@@ -63,7 +63,7 @@ public:
 		virtual bool name ## _action(SmartPtr<grid_function_type> u, int step, number time, number dt) = 0;\
 	};
 
-DECLARE_STAGE_OBSERVER(init)
+template <typename TDomain, typename TAlgebra> class ITimeIntegratorStageObserver_init { public: typedef GridFunction<TDomain, TAlgebra> grid_function_type; virtual ~ITimeIntegratorStageObserver_init() {} virtual bool init_action(SmartPtr<grid_function_type> u, int step, number time, number dt) = 0; };
 DECLARE_STAGE_OBSERVER(rewind)
 DECLARE_STAGE_OBSERVER(finalize)
 DECLARE_STAGE_OBSERVER(preprocess)

@@ -75,31 +75,31 @@ namespace ug{
  * that is set from outside. In addition an Assembling routine must be
  * specified that is used to assemble the coarse grid matrices.
  *
- * \tparam		TApproximationSpace		Type of Approximation Space
- * \tparam		TAlgebra				Type of Algebra
+ * \tparam		TDomain 		Type of Domain
+ * \tparam		TAlgebra		Type of Algebra
  */
 template <typename TDomain, typename TAlgebra>
 class AssembledMultiGridCycle :
- public ILinearIterator<	typename TAlgebra::vector_type>
+	public ILinearIterator<typename TAlgebra::vector_type>
 {
 	public:
 	///	Domain
-		typedef TDomain domain_type;
+	using domain_type = TDomain;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
+	using vector_type = typename algebra_type::vector_type;
 
 	///	Matrix type
-		typedef typename algebra_type::matrix_type matrix_type;
+	using matrix_type = typename algebra_type::matrix_type;
 
 	///	Grid Function type
-		typedef GridFunction<TDomain, TAlgebra> GF;
+	using GF = GridFunction<TDomain, TAlgebra>;
 
 	///	MGStats type
-		typedef MGStats<TDomain, TAlgebra> mg_stats_type;
+	using mg_stats_type = MGStats<TDomain, TAlgebra>;
 
 	///////////////////////////////////////////////////////////////////////////
 	//	Setup
@@ -110,7 +110,7 @@ class AssembledMultiGridCycle :
 		AssembledMultiGridCycle();
 
 	/// constructor setting approximation space
-		AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
+		explicit AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
 	///	sets MGStats, an object which records statistics for individual iterations
 	/**	Setting MGStats is optional. If set, a runtime overhead is incurred. Only
@@ -263,10 +263,10 @@ class AssembledMultiGridCycle :
 		virtual bool apply_update_defect(vector_type& c, vector_type& d);
 
 	///	Clone
-		SmartPtr<ILinearIterator<vector_type> > clone();
+		SmartPtr<ILinearIterator<vector_type> > clone() override;
 
 	///	Destructor
-		~AssembledMultiGridCycle();
+		~AssembledMultiGridCycle() override = default;
 
  	protected:
  	/// compute correction on level and update defect

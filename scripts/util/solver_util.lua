@@ -614,10 +614,13 @@ function util.solver.CreateSolver(solverDesc, solverutil)
 			util.solver.CreateLinearSolver(
 				desc.linSolver or defaults.linSolver, solverutil))
 
-		newtonSolver:set_convergence_check(
-			util.solver.CreateConvCheck(
-				desc.convCheck or defaults.convCheck, solverutil))
-		
+		conv_check = util.solver.CreateConvCheck(
+				desc.convCheck or defaults.convCheck, solverutil)
+		-- conv_check:set_supress_unsuccessful(true)
+		newtonSolver:set_convergence_check(conv_check
+			)
+
+
 		local lineSearch = desc.lineSearch or defaults.lineSearch
 		if lineSearch and lineSearch ~= "none" then
 			newtonSolver:set_line_search(
@@ -711,8 +714,9 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 	end
 
 	if createConvCheck == true then
-		linSolver:set_convergence_check(
-			util.solver.CreateConvCheck(desc.convCheck or defaults.convCheck, solverutil))
+		conv_check = util.solver.CreateConvCheck(desc.convCheck or defaults.convCheck, solverutil)
+		---conv_check:set_supress_unsuccessful(true)
+		linSolver:set_convergence_check(conv_check)
 	end
 	
 	util.solver.SetDebugWriter(linSolver, solverDesc, defaults, solverutil)

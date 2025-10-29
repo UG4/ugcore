@@ -409,9 +409,6 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	#set(CMAKE_CPP_FLAGS	"${CMAKE_CPP_FLAGS} -Wno-overloaded-virtual -Wno-autological-compare" CACHE STRING "overriden flags!" FORCE)
 endif()
 
-if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" AND EXISTS /usr/bin/gcc)
-  message(WARNING "WARNING: C Compiler is Clang, might not work with CUDA. Try cmake -DCUDA_HOST_COMPILER=/usr/bin/gcc ..")
-endif()
 
 ########################################
 # DEBUG

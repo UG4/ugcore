@@ -587,10 +587,10 @@ bool LiesOnBoundary(Grid& grid, Vertex* v)
 	if(IsBoundaryVertex1D(grid, v))
 		return true;
 
-	if((grid.num<Face>() > 0) && IsBoundaryVertex2D(grid, v))
+	if(grid.num<Face>() > 0 && IsBoundaryVertex2D(grid, v))
 		return true;
 
-	if((grid.num<Volume>() > 0) && IsBoundaryVertex3D(grid, v))
+	if(grid.num<Volume>() > 0 && IsBoundaryVertex3D(grid, v))
 		return true;
 
 	return false;

@@ -169,12 +169,12 @@ bool IsBoundaryEdge3D(Grid& grid, Edge* e)
 bool LiesOnBoundary(Grid& grid, Edge* e)
 {
 //	first check whether the edge is a 2d boundary element
-	if((grid.num<Face>() > 0) && IsBoundaryEdge2D(grid, e)){
+	if(grid.num<Face>() > 0 && IsBoundaryEdge2D(grid, e)){
 		return true;
 	}
 
 //	since it isn't a 2d boundary element, it might be a 3d boundary element
-	if((grid.num<Volume>() > 0) && IsBoundaryEdge3D(grid, e))
+	if(grid.num<Volume>() > 0 && IsBoundaryEdge3D(grid, e))
 		return true;
 
 //	ok - it isn't a boundary element
