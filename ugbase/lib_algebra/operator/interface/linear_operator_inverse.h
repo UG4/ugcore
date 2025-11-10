@@ -88,13 +88,13 @@ class ILinearOperatorInverse : public ILinearIterator<X,Y>
 	public:
 	///	constructor setting convergence check to (100, 1e-12, 1e-12, true)
 		ILinearOperatorInverse()
-			: m_spLinearOperator(nullptr),
+			: m_spLinearOperator(NULL),
 			  m_spConvCheck(new StdConvCheck<X>(100, 1e-12, 1e-12, true))
 		{}
 
 	///	Default constructor
 		ILinearOperatorInverse(SmartPtr<IConvergenceCheck<X> > spConvCheck)
-			: m_spLinearOperator(nullptr),
+			: m_spLinearOperator(NULL),
 			  m_spConvCheck(spConvCheck)
 		{}
 

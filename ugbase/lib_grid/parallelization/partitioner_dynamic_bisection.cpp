@@ -375,7 +375,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 	if(m_nextProcessHierarchy.valid()){
 		*m_processHierarchy = *m_nextProcessHierarchy;
-		m_nextProcessHierarchy = SPProcessHierarchy(nullptr);
+		m_nextProcessHierarchy = SPProcessHierarchy(NULL);
 	}
 
 	mg.detach_from<elem_t>(aWeight);

@@ -42,7 +42,7 @@ using namespace std;
 
 namespace ug{
 
-SubsetGroup::SubsetGroup() : m_pSH(nullptr) {clear();}
+SubsetGroup::SubsetGroup() : m_pSH(NULL) {clear();}
 SubsetGroup::SubsetGroup(ConstSmartPtr<ISubsetHandler> sh) : m_pSH(sh) {clear();}
 
 SubsetGroup::SubsetGroup(ConstSmartPtr<ISubsetHandler> sh, const char* names) : m_pSH(sh)

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
- * Author: Andreas Vogel
+ * Author: Andreas Vogel, modifications nested Newton: Markus Knodel
  * 
  * This file is part of UG4.
  * 
@@ -41,7 +41,7 @@
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "common/util/string_util.h"
 
-#include "lib_disc/operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
+//#include "lib_disc/operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
 
 #define PROFILE_NEWTON
 #ifdef PROFILE_NEWTON
@@ -69,47 +69,49 @@ NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
 			m_spAss(NULL),
 			m_reassembe_J_freq(0),
 			m_dgbCall(0),
-			m_lastNumSteps(0)
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-			,
-			m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
-#endif
+			m_lastNumSteps(0),
+			m_newtonUpdater(SPNULL)
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//			m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
+//#endif
 {};
 
 template <typename TAlgebra>
 NewtonSolver<TAlgebra>::
 NewtonSolver() :
-	m_spLinearSolver(nullptr),
+	m_spLinearSolver(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_spLineSearch(nullptr),
-	m_N(nullptr),
-	m_J(nullptr),
-	m_spAss(nullptr),
+	m_spLineSearch(NULL),
+	m_N(NULL),
+	m_J(NULL),
+	m_spAss(NULL),
 	m_reassembe_J_freq(0),
 	m_dgbCall(0),
-	m_lastNumSteps(0)
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-	,
-	m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
-#endif
+	m_lastNumSteps(0),
+	m_newtonUpdater(SPNULL)
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//	,
+//	m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
+//#endif
 {};
 
 template <typename TAlgebra>
 NewtonSolver<TAlgebra>::
 NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
-	m_spLinearSolver(nullptr),
+	m_spLinearSolver(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_spLineSearch(nullptr),
-	m_N(nullptr),
-	m_J(nullptr),
-	m_spAss(nullptr),
+	m_spLineSearch(NULL),
+	m_N(NULL),
+	m_J(NULL),
+	m_spAss(NULL),
 	m_reassembe_J_freq(0),
 	m_dgbCall(0),
-	m_lastNumSteps(0)
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-	,
-	m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
-#endif
+	m_lastNumSteps(0),
+	m_newtonUpdater(SPNULL)
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//	,
+//	m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
+//#endif
 {
 	init(N);
 };
@@ -117,19 +119,20 @@ NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
 template <typename TAlgebra>
 NewtonSolver<TAlgebra>::
 NewtonSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
-	m_spLinearSolver(nullptr),
+	m_spLinearSolver(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_spLineSearch(nullptr),
-	m_N(nullptr),
-	m_J(nullptr),
-	m_spAss(nullptr),
+	m_spLineSearch(NULL),
+	m_N(NULL),
+	m_J(NULL),
+	m_spAss(NULL),
 	m_reassembe_J_freq(0),
 	m_dgbCall(0),
-	m_lastNumSteps(0)
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-	,
-	m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
-#endif
+	m_lastNumSteps(0),
+	m_newtonUpdater(SPNULL)
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//	,
+//	m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
+//#endif
 {
 	m_spAss = spAss;
 	m_N = SmartPtr<AssembledOperator<TAlgebra> >(new AssembledOperator<TAlgebra>(m_spAss));
@@ -297,11 +300,12 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 				m_spLineSearch->set_offset("   #  ");
 				NEWTON_PROFILE_BEGIN(NewtonLineSearch);
 
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 
-				m_spLineSearch->setNewtonUpdater(m_newtonUpdater);
+				if( m_newtonUpdater != SPNULL )
+					m_spLineSearch->setNewtonUpdater(m_newtonUpdater);
 
-#endif
+//#endif
 				if(!m_spLineSearch->search(m_N, u, *spC, *spD, m_spConvCheck->defect()))
 				{
 					UG_LOG("ERROR in 'NewtonSolver::apply': "
@@ -313,34 +317,32 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		// 	No line search: Compute new defect
 			else
 			{
-#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-				// 	update solution
-				//u -= *spC;
-//				if( ! (*m_newtonUpdater)() )
-
-				//bool acceptedNewtonUpdate = m_newtonUpdater->updateNewton(u,*spC);
-
-				//if( ! acceptedNewtonUpdate )
-
-				if( ! m_newtonUpdater->updateSolution(u,*spC) )
+				if( m_newtonUpdater != SPNULL )
 				{
-					UG_LOG("ERROR in 'NewtonSolver::apply': "
-							"Newton Update did not work.\n");
-					// TODO FIXME was macht conv check update? wie kriege ich hier einfach ein riesiges Residuum rein, ohne was zu rechnen?
-					return false;
-				}
+//#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 
-				if( ! m_newtonUpdater->tellAndFixUpdateEvents(u) )
+					if( ! m_newtonUpdater->updateSolution(u,*spC) )
+					{
+						UG_LOG("ERROR in 'NewtonSolver::apply': "
+								"Newton Update did not work.\n");
+						// TODO FIXME was macht conv check update? wie kriege ich hier einfach ein riesiges Residuum rein, ohne was zu rechnen?
+						return false;
+					}
+
+					if( ! m_newtonUpdater->tellAndFixUpdateEvents(u) )
+					{
+						UG_LOG("unable to fix local Newton updates" << std::endl );
+						return false;
+					}
+
+				}
+				else
 				{
-					UG_LOG("unable to fix local Newton updates" << std::endl );
-					return false;
+//#else
+					// 	update solution
+					u -= *spC;
 				}
-
-
-#else
-			// 	update solution
-				u -= *spC;
-#endif
+//#endif
 
 			// 	compute new Defect
 				NEWTON_PROFILE_BEGIN(NewtonComputeDefect);

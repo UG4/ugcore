@@ -42,7 +42,7 @@
 #include <boost/mpl/front.hpp>
 #include <boost/mpl/pop_front.hpp>
 
-#include <boost/mpl/size.hpp>
+#include "boost/mpl/size.hpp"
 
 #include "common/util/end_boost_list.h"
 

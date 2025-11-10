@@ -42,7 +42,7 @@
 #include "threading.h"
 #include <iostream>
 #include <sstream>
-//#include <boost/function.hpp>
+#include <boost/function.hpp>
 #include <jni.h>
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 #include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"

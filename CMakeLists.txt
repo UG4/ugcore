@@ -145,11 +145,8 @@ if(BUILD_ONE_LIB)
 		   CUDA_add_library(${targetLibraryName} SHARED ${ug4libSources})
 		else(CUDA_FOUND)
 		   # dynamic; w/o cuda
-		   MESSAGE(${targetLibraryName}) # (ø)[[boost]]
 		   add_library(${targetLibraryName} SHARED ${ug4libSources})
-		   add_compile_definitions(${targetLibraryName} PRIVATE BOOST_FILESYSTEM_NO_CXX20_ATOMIC_REF=1)
-		   add_compile_definitions(${targetLibraryName} PRIVATE BOOST_NO_CXX98_FUNCTION_BASE=1)
-		   install(TARGETS ${targetLibraryName}
+		   install(TARGETS ${targetLibraryName} 
 		   			LIBRARY DESTINATION lib
 		   			COMPONENT libraries)
 		endif(CUDA_FOUND)
@@ -175,6 +172,8 @@ if(BUILD_ONE_LIB)
   
   target_include_directories(${targetLibraryName} PUBLIC ${ug4libIncludes})
   target_link_libraries(${targetLibraryName} ${ug4libDependencies} ${linkLibraries})
+  
+  target_enable_sanitizers(${targetLibraryName} ${USE_SANITIZER})
 
 	if(buildEmbeddedPlugins)
 		# if we build with embedded plugins, the compile-info is also embedded

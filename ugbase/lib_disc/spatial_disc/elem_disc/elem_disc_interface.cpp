@@ -37,8 +37,8 @@ namespace ug{
 
 template <typename TDomain>
 IElemDiscBase<TDomain>::IElemDiscBase(const char* functions, const char* subsets)
-	:	m_spApproxSpace(nullptr), m_spFctPattern(nullptr),
-	  	m_timePoint(0), m_pLocalVectorTimeSeries(nullptr), m_bStationaryForced(false)
+	:	m_spApproxSpace(NULL), m_spFctPattern(0),
+	  	m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false)
 		//,m_id(ROID_UNKNOWN)
 {
 	if(functions == NULL) functions = "";
@@ -53,8 +53,8 @@ template <typename TDomain>
 IElemDiscBase<TDomain>::
 IElemDiscBase(const std::vector<std::string>& vFct,
                               const std::vector<std::string>& vSubset)
-	: 	m_spApproxSpace(nullptr), m_spFctPattern(nullptr),
-		m_timePoint(0), m_pLocalVectorTimeSeries(nullptr), m_bStationaryForced(false)
+	: 	m_spApproxSpace(NULL), m_spFctPattern(0),
+		m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false)
 		//,m_id(ROID_UNKNOWN)
 {
 	set_functions(vFct);

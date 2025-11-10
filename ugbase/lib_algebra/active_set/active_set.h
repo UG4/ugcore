@@ -122,7 +122,7 @@ class ActiveSet
 
 	public:
 	///	constructor
-		ActiveSet() : m_bObs(false), m_spLagMultDisc(nullptr) {
+		ActiveSet() : m_bObs(false), m_spLagMultDisc(NULL) {
 			//	specifies the number of fcts
 			//value_type u_val;
 			//m_nrFcts = GetSize(u_val);  //ToDo: This field is only used in check_dist_to_obs which is commented out. Remove it completely?

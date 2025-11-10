@@ -54,7 +54,7 @@ public:
 	public:
 	///	default constructor
 		AssembledOperator()
-			: m_spAss(nullptr), m_gridLevel() {};
+			: m_spAss(NULL), m_gridLevel() {};
 
 	///	constructor
 		AssembledOperator(SmartPtr<IAssemble<TAlgebra> > ass)

@@ -49,6 +49,7 @@
 #include "common/serialization.h"
 #include "common/profiler/profiler.h"
 
+#include <boost/function.hpp>
 
 namespace pcl
 {
@@ -159,7 +160,7 @@ template<typename TLayout, typename TValue>
 bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com,
                                         const TLayout &masterLayout,
                                         const TLayout &slaveLayout, bool bPrint=false,
-					std::function<TValue (typename TLayout::Element)> cbToValue
+					boost::function<TValue (typename TLayout::Element)> cbToValue
 						= TrivialToValue<typename TLayout::Element>,
 					bool compareValues = false)
 {
@@ -300,7 +301,7 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
                 pcl::InterfaceCommunicator<TLayout> &com,
                 const TLayout &masterLayout,
                 const TLayout &slaveLayout, bool bPrint=false,
-				std::function<TValue (typename TLayout::Element)> cbToValue
+				boost::function<TValue (typename TLayout::Element)> cbToValue
 					= TrivialToValue<typename TLayout::Element>,
 				bool compareValues = false)
 {
@@ -343,7 +344,7 @@ template<typename TLayout, typename TValue>
 bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
                  pcl::InterfaceCommunicator<TLayout> &com, const TLayout &masterLayout,
                  const TLayout &slaveLayout,
-                 std::function<TValue (typename TLayout::Element)> cbToValue
+                 boost::function<TValue (typename TLayout::Element)> cbToValue
 					= TrivialToValue<typename TLayout::Element>)
 {
 	return TestLayout(processCommunicator, com, masterLayout, slaveLayout, true, cbToValue);

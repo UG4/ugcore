@@ -76,7 +76,7 @@ namespace ugtypes
 };
 
 /*
-#include <boost/cstdint.hpp>
+#include "boost/cstdint.hpp"
 namespace ugtypes
 {
 	using boost::int8_t;
@@ -112,8 +112,6 @@ using std::size_t;
 
 typedef unsigned char byte;
 typedef unsigned int uint;
-
-using byte_t = unsigned char ;
 
 typedef ugtypes::uint32_t uint32;
 typedef ugtypes::uint64_t uint64;

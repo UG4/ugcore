@@ -31,36 +31,41 @@
  */
 
 
-#ifndef UG_BASE_BINDINGS_LUA_LUA_USER_DATA_H
-#define UG_BASE_BINDINGS_LUA_LUA_USER_DATA_H
+#ifndef __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA__
+#define __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA__
 
-#include <cstdarg>
+#include <stdarg.h>
 #include <string>
-
 #include "registry/registry.h"
-#include "common/math/ugmath.h"
 
+
+
+
+#ifndef USE_LUAJIT
+extern "C" {
+#include "externals/lua/lua.h"
+}
+#else
+#include <lua.hpp>
+#endif
+
+
+
+#include "lua_util.h"
+
+#include "common/common.h"
+#include "common/math/ugmath.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 #include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 #include "lib_disc/spatial_disc/user_data/linker/linker.h"
-
+#include "lua_traits.h"
 
 #include "bindings/lua/lua_function_handle.h"
-
 
 #ifdef USE_LUA2C
 #include "bindings/lua/compiler/lua_compiler.h"
 #endif
-
-
-#ifdef USE_LUAJIT
-#include <lua.hpp>
-#else
-//#include "externals/lua/src/lua.hpp"
-#endif
-
-
 
 namespace ug
 {
@@ -86,8 +91,8 @@ class LuaUserDataFactory;
  * 		 of the instance LuaUserDataFactory::remove is called.
  */
 template <typename TData, int dim, typename TRet = void>
-class LuaUserData final
-		: public StdGlobPosData<LuaUserData<TData, dim, TRet>, TData, dim, TRet>
+class LuaUserData
+	: public StdGlobPosData<LuaUserData<TData, dim, TRet>, TData, dim, TRet>
 {
 	///	friend class
 		friend class LuaUserDataFactory<TData, dim, TRet>;
@@ -102,8 +107,8 @@ class LuaUserData final
 	 * @param luaCallback		Name of Lua Callback Function
 	 */
 	///{
-		explicit LuaUserData(const char* luaCallback);
-		explicit LuaUserData(LuaFunctionHandle handle);
+		LuaUserData(const char* luaCallback);
+		LuaUserData(LuaFunctionHandle handle);
 	///}
 
 	///	destructor: frees lua callback, unregisters from LuaUserDataFactory if used
@@ -117,15 +122,15 @@ class LuaUserData final
 
 	///	returns true if callback has correct return values
 		static bool check_callback_returns(const char* callName,
-										   bool bThrow = false);
+										   const bool bThrow = false);
 
 	///	returns true if callback has correct return values
-		static bool check_callback_returns(const LuaFunctionHandle &handle,
-										   bool bThrow = false);
+		static bool check_callback_returns(LuaFunctionHandle handle,
+										   const bool bThrow = false);
 
 	///	returns true if callback has correct return values
 		static bool check_callback_returns(lua_State* L, int callbackRef, const char* callName,
-		                                   bool bThrow = false);
+		                                   const bool bThrow = false);
 
 	///	evaluates the data at a given point and time
 		inline TRet evaluate(TData& D, const MathVector<dim>& x, number time, int si) const;
@@ -175,23 +180,24 @@ class LuaUserDataFactory
 {
 	friend class LuaUserData<TData,dim,TRet>;
 
-public:
-	//	disallow copy
-	LuaUserDataFactory(const LuaUserDataFactory&) = delete;
-	LuaUserDataFactory& operator=(const LuaUserDataFactory&) = delete;
-protected:
+	protected:
 	///	private constructor, since singleton
-	LuaUserDataFactory() = default;
+		LuaUserDataFactory(){};
+
+	//	disallow copy
+		LuaUserDataFactory(const LuaUserDataFactory&);
+		LuaUserDataFactory& operator=(const LuaUserDataFactory&);
 
 	///	singleton provider
-		static LuaUserDataFactory& instance()
+		static LuaUserDataFactory<TData,dim,TRet>& instance()
 		{
-			static LuaUserDataFactory inst;
+			static LuaUserDataFactory<TData,dim,TRet> inst;
 			return inst;
 		}
 
 	///	returns new Data if not already created, already existing else
-		static SmartPtr<LuaUserData<TData,dim,TRet> > provide_or_create(const std::string& name);
+		static SmartPtr<LuaUserData<TData,dim,TRet> > provide_or_create(
+				const std::string& name);
 
 	///	removes the user data
 		static void remove(const std::string& name);
@@ -231,12 +237,12 @@ protected:
  * a data (of the same type) is returned.
  */
 template <typename TData, int dim, typename TDataIn>
-class LuaUserFunction final
-		: public StdDataLinker<LuaUserFunction<TData, dim, TDataIn>, TData, dim>
+class LuaUserFunction
+	: public StdDataLinker<LuaUserFunction<TData, dim, TDataIn>, TData, dim>
 {
 	public:
 	//	type of base class
-		using base_type = StdDataLinker<LuaUserFunction, TData, dim> ;
+		typedef StdDataLinker<LuaUserFunction<TData, dim, TDataIn>, TData, dim> base_type;
 		using base_type::set_input;
 
 	public:
@@ -270,7 +276,6 @@ class LuaUserFunction final
 	/**
 	 * \brief set input value for paramter \c i
 	 * \param i parameter index this input is bind to
-	 * \param data todo describe parameter
 	 * \{
 	 */
 		void set_input(size_t i, SmartPtr<CplUserData<TDataIn, dim> > data);
@@ -294,9 +299,9 @@ class LuaUserFunction final
 		                     GridObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     const MathVector<refDim> vLocIP[],
-		                     size_t nip,
+		                     const size_t nip,
 		                     LocalVector* u,
-		                     const MathMatrix<refDim, dim>* vJT = nullptr) const;
+		                     const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 		template <int refDim>
 		void eval_and_deriv(TData vValue[],
@@ -305,12 +310,12 @@ class LuaUserFunction final
 		                    GridObject* elem,
 		                    const MathVector<dim> vCornerCoords[],
 		                    const MathVector<refDim> vLocIP[],
-		                    size_t nip,
+		                    const size_t nip,
 		                    LocalVector* u,
 		                    bool bDeriv,
 		                    int s,
 		                    std::vector<std::vector<TData> > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = nullptr);
+		                    const MathMatrix<refDim, dim>* vJT = NULL);
 
 	protected:
 	///	sets the Lua function used to compute the data
@@ -388,16 +393,15 @@ class LuaUserNumberNumberFunction
 
 /**
  * \tparam		TData		Return value type
- * \tparam		TDataIn		Input data type
+ * \tparam		TDataIn		Input daten type
  */
 template <typename TData, typename TDataIn>
-class LuaFunction final : public IFunction<TData, TDataIn>
+class LuaFunction : public IFunction<TData, TDataIn>
 {
 	public:
 	///	constructor
 		LuaFunction();
-
-	~LuaFunction() override = default;
+		virtual ~LuaFunction() {};
 
 	///	sets the Lua function used to compute the data
 	/**
@@ -408,7 +412,7 @@ class LuaFunction final : public IFunction<TData, TDataIn>
 		void set_lua_callback(const char* luaCallback, size_t numArgs);
 
 	///	evaluates the data
-		void operator() (TData& out, int numArgs, ...) override;
+		virtual void operator() (TData& out, int numArgs, ...);
 
 	protected:
 	///	callback name as string
@@ -428,11 +432,11 @@ class LuaFunction final : public IFunction<TData, TDataIn>
 
 namespace bridge{
 
-void RegisterLuaUserData(Registry& reg, const std::string &grp);
+void RegisterLuaUserData(Registry& reg, std::string grp);
 
-}
-}
+} // end namepace bridge
+} // end namespace ug
 
 #include "lua_user_data_impl.h"
 
-#endif
+#endif /* __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA__ */

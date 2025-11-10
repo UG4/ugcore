@@ -61,8 +61,8 @@ build-and-test:
     - |
       if [[ "$UG_WITH_CODE_COVERAGE" == "GCOV" ]]; then
         mkdir reports
-        gcovr -r . --cobertura-pretty --exclude-unreachable-branches --print-summary -o reports/cobertura-coverage.xml
-        gcovr -r . --html-details -o reports/cobertura-coverage.html
+        gcovr -r . --cobertura-pretty --exclude-unreachable-branches --gcov-exclude-directories 'apps/unit_tests' --gcov-exclude-directories 'externals/BoostForUG4' --print-summary -o reports/cobertura-coverage.xml
+        gcovr -r . --gcov-exclude-directories 'apps/unit_tests' --gcov-exclude-directories 'externals/BoostForUG4' --html-details -o reports/cobertura-coverage.html
         lcov --capture --directory . --output-file $UG_LCOV_FILE --ignore-errors gcov,source,mismatch
         lcov --remove $UG_LCOV_FILE '/usr/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
         lcov --remove $UG_LCOV_FILE '*/externals/BoostForUG4/*' --output-file $UG_LCOV_FILE --ignore-errors inconsistent
@@ -70,6 +70,9 @@ build-and-test:
         lcov --list $UG_LCOV_FILE > reports/lcov.txt
         genhtml coverage.info --output-directory reports/html
         mv $UG_LCOV_FILE reports
+        mkdir $CI_PROJECT_DIR/cobertura
+        mv reports $CI_PROJECT_DIR/cobertura
+        mv $UG4_NEW_DIR/report.xml $CI_PROJECT_DIR/cobertura
       fi
   allow_failure: true # temporary
   artifacts:
@@ -78,17 +81,17 @@ build-and-test:
     expire_in: 1 week
     paths:
       # - $UG4_NEW_DIR/*
-      - $UG4_NEW_DIR/report.xml
+      #- $UG4_NEW_DIR/report.xml
       - $UG4_NEW_DIR/test.log
       # - $UG4_NEW_DIR/lib/*
       - $UG4_NEW_DIR/bin/*
       - $UG4_NEW_DIR/bin/plugins/*
-      - $UG4_NEW_DIR/reports/*
+      - cobertura/*
     reports:
-      junit: $UG4_NEW_DIR/report.xml
+      junit: cobertura/report.xml
       coverage_report:
         coverage_format: cobertura
-        path: $UG4_NEW_DIR/reports/cobertura-coverage.xml
+        path: cobertura/reports/cobertura-coverage.xml
 
 
 

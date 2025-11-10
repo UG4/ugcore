@@ -45,25 +45,30 @@
  */
 
 #include <iomanip>
-
-#include "registry/class_helper.h"
-#include "registry/class_name_provider.h"
-
-#include "common/util/string_util.h"
-#include "common/util/stringify.h"
-
+#include "bindings/lua/lua_util.h"
+#include "bindings/lua/bindings_lua.h"
 #include "bridge/bridge.h"
 #include "bridge/util.h"
+#include "registry/class_helper.h"
+#include "common/util/sort_util.h"
+#include "common/util/string_util.h"
+#include "lua_stack_check.h"
+#include "registry/class_name_provider.h"
+#include "common/util/string_util.h"
+
+#include "common/util/stringify.h"
+//#include "bridge/misc_bridges/serialization.h"
+#include "bindings_lua.h"
+//#include "lua_parsing.h"
 
 #include "info_commands.h"
-#include "lua_util.h"
 
 using namespace std;
 
-namespace ug {
+namespace ug{
 size_t SerializerGetLastID();
 
-namespace bridge {
+namespace bridge{
 
 string LUAStringEscape(string s)
 {
@@ -159,7 +164,7 @@ const void *getPtr(lua::UserDataWrapper *self)
 TheSerializer theSerializer;
 #endif
 
-void WriteLUAObject2(lua_State* L, const std::string& name, std::ostream &s)
+void WriteLUAObject2(lua_State* L, std::string name, std::ostream &s)
 {
 	//UG_LOG(" " << lua_tostring(L, -1) << "\n");
 	if(lua_isnil(L, -1))
@@ -253,7 +258,7 @@ void WriteLUAObject2(lua_State* L, const std::string& name, std::ostream &s)
 	}
 
 }
-void WriteLUAObject(lua_State* L, const std::string &name, std::ostream &s)
+void WriteLUAObject(lua_State* L, std::string name, std::ostream &s)
 {
 	lua_getglobal(L, name.c_str());
 	WriteLUAObject2(L, name, s);
@@ -297,13 +302,13 @@ void LuaWriteCout(const char* obj)
 bool RegisterSerializationCommands(Registry &reg, const char* parentGroup)
 {
 	stringstream grpSS; grpSS << parentGroup << "/Serialization";
-	const std::string grp = grpSS.str();
+	std::string grp = grpSS.str();
 
 	try
 	{
 //		reg.add_function("LuaList_writeObjects", &LuaList_writeObjects, grp.c_str());
-		reg.add_function("LuaWrite", &LuaWrite, grp);
-		reg.add_function("LuaWriteCout", &LuaWriteCout, grp);
+		reg.add_function("LuaWrite", &LuaWrite, grp.c_str());
+		reg.add_function("LuaWriteCout", &LuaWriteCout, grp.c_str());
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 

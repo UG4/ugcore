@@ -75,7 +75,7 @@ void MGSelector::cleanup()
 	if(m_pMultiGrid){
 		disable_element_support(m_supportedElements);
 	//	unregister the previously registered callback
-		m_callbackId = MessageHub::SPCallbackId(nullptr);
+		m_callbackId = MessageHub::SPCallbackId(NULL);
 
 		m_pMultiGrid = NULL;
 	}

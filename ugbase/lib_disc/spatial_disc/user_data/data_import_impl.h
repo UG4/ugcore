@@ -88,7 +88,7 @@ set_fct(ReferenceObjectID id, TClass* obj,
 	if(id >= NUM_REFERENCE_OBJECTS)
 		UG_THROW("Reference Object id invalid: "<<id);
 
-	m_vLinDefectFunc[id] = std::bind(func, obj, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+	m_vLinDefectFunc[id] = boost::bind(func, obj, _1, _2, _3);
 }
 
 template <typename TData, int dim>

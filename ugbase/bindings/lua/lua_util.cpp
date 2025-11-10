@@ -36,17 +36,25 @@
 #include <string>
 #include <stack>
 
+
 // ug libraries
 #include "ug.h"
-
-#include "bridge/bridge.h"
-
+#include "lua_util.h"
 #include "common/util/path_provider.h"
 #include "common/util/file_util.h"
-
-#include "registry/class_name_provider.h"
+#include "bindings_lua.h"
+#include "bridge/bridge.h"
 #include "registry/class_helper.h"
+#include "info_commands.h"
+#ifdef UG_DISC
+	#include "lua_user_data.h"
+#endif
+#include "registry/class_name_provider.h"
 #include "registry/registry.h"
+#include "lua_debug.h"
+#include "lua_stack.h"
+#include "common/util/binary_buffer.h"
+
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
@@ -55,20 +63,7 @@
 
 #ifdef USE_LUAJIT
 #include <lua.hpp>
-#else
-#include "externals/lua/src/lua.hpp"
 #endif
-
-
-#ifdef UG_DISC
-#include "lua_user_data.h"
-#endif
-
-#include "bindings_lua.h"
-#include "info_commands.h"
-#include "lua_stack.h"
-#include "lua_debug.h"
-#include "lua_util.h"
 
 using namespace std;
 
@@ -83,8 +78,8 @@ namespace ug
 namespace script
 {
 
-#define PL_COULDNT_FIND (-2)
-#define PL_COULDNT_READ (-1)
+#define PL_COULDNT_FIND -2
+#define PL_COULDNT_READ -1
 
 
 /**
@@ -95,22 +90,22 @@ namespace script
  */
 bool GetNormalFilename(const string &filename, string &returnedFilename)
 {
-	if(FileExists(filename.c_str())==false) {return false;}
+	if(FileExists(filename.c_str())==false) return false;
 	returnedFilename = filename;
 	return true;
 }
 
 
 /**
- * assume UG4_ROOT is the root path of ug4 (containing ugbase, apps, scripts and so on)
+ * say UG4_ROOT is the root path of ug4 (containing ugbase, apps, scripts and so on)
  * This function will search a file (in this order)
  * 1.) relative to the current script path.
  * 2.) as a normal, i.e. absolute or relative to the working directory, filename
  * 3.) relative to SCRIPT_PATH (normally UG4_ROOT/scripts)
  * 4.) relative to APPS_PATH (normally UG4_ROOT/apps)
  * 5.) relative to UG4_ROOT
- * @param filename filename to search for
- * @param absoluteFilename absolut filename where the file was found
+ * @param filename
+ * @param absoluteFilename
  * @return true if a file could be found at one of the locations
  */
 bool GetAbsoluteUGScriptFilename(const string &filename, string &absoluteFilename)
@@ -136,42 +131,41 @@ std::string GetAbsoluteUGScriptFilenamePaths()
 
 /**
  *
- * @param filename			the 'relative' script name. \sa GetAbsoluteUGScriptFilename
- * @param bDistributed	true if loading should be done in parallel
+ * @param _filename			the 'relative' script name. \sa GetAbsoluteUGScriptFilename
+ * @param bDistributedLoad	true if loading should be done in parallel
  * @param bThrowOnError		true if errors should be thrown as UGError, else as return false
  * @return true if script could be found and read, false (or UGError) if not
  */
-bool LoadUGScript(const char *filename, bool bDistributed, bool bThrowOnError = false)
+bool LoadUGScript(const char *_filename, bool bDistributedLoad, bool bThrowOnError)
 {
 	PROFILE_FUNC();
-	string _filename = filename;
-	string absoluteFilename = _filename;
+	string filename=_filename;
+	string absoluteFilename=filename;
 
 	//UG_LOG("LoadUGScript("<<filename<<", "<<(bDistributedLoad?"true":"false") << "\n");
 	bool bSuccess = true;
 	std::vector<char> file;
 
 #ifdef UG_PARALLEL
-	if(pcl::NumProcs() == 1) {bDistributed = false;}
-	if(pcl::ProcRank() == 0 || bDistributed==false) {
-		bSuccess = GetAbsoluteUGScriptFilename(_filename, absoluteFilename);
-	}
+	if(pcl::NumProcs() == 1) bDistributedLoad = false;
+	if(pcl::ProcRank() == 0 || bDistributedLoad==false)
+		bSuccess = GetAbsoluteUGScriptFilename(filename, absoluteFilename);
 	bSuccess = pcl::AllProcsTrue(bSuccess);
 #else
-	bSuccess = GetAbsoluteUGScriptFilename(_filename, absoluteFilename);
+	bSuccess = GetAbsoluteUGScriptFilename(filename, absoluteFilename);
 #endif
 	if(bSuccess == false)
 	{
 		if(bThrowOnError)
 		{
-			UG_THROW("Couldn't find script " << filename << endl
+			UG_THROW("Couldn't find script " << _filename << endl
 					<< "Search paths: " << GetAbsoluteUGScriptFilenamePaths() << endl);
 		}
 		return false;
 	}
 
 #ifdef UG_PARALLEL
-	if(pcl::ParallelReadFile(absoluteFilename, file, true, bDistributed) == false)
+	if(pcl::ParallelReadFile(absoluteFilename, file, true, bDistributedLoad) == false)
 #else
 	if(ReadFile(absoluteFilename.c_str(), file, true) == false)
 #endif
@@ -199,26 +193,25 @@ bool LoadUGScript_Parallel(const char* filename)
 {
 	return LoadUGScript(filename, true, true);
 }
-
 bool LoadUGScript_Single(const char* filename)
 {
 	return LoadUGScript(filename, false, true);
 }
 
-static bridge::Registry* g_pRegistry = nullptr;
+static ug::bridge::Registry* g_pRegistry = NULL;
 
-static void UpdateScriptAfterRegistryChange(bridge::Registry* pReg)
+static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 {
 	PROFILE_FUNC();
 	UG_ASSERT(pReg == g_pRegistry, "static g_pRegistry does not match parameter pReg, someone messed up the registries!");
 	
 //	this can be called since CreateBindings automatically avoids
 //	double registration
-	bridge::lua::CreateBindings_LUA(GetDefaultLuaState(),
+	ug::bridge::lua::CreateBindings_LUA(GetDefaultLuaState(),
 										*pReg);
 }
 
-void RegisterDefaultLuaBridge(bridge::Registry* reg, const std::string& grp)
+void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp)
 {
 	if(reg->functionname_registered("ug_load_script"))
 		return;
@@ -233,7 +226,7 @@ void RegisterDefaultLuaBridge(bridge::Registry* reg, const std::string& grp)
 
 //	this define makes sure that no methods are referenced that
 //	use the algebra, even if no algebra is included.
-#ifdef UG_ALGEBRA
+	#ifdef UG_ALGEBRA
 //	Register info commands
 	RegisterInfoCommands(*reg, grp.c_str());
 #ifdef USE_LUA2C
@@ -242,10 +235,10 @@ void RegisterDefaultLuaBridge(bridge::Registry* reg, const std::string& grp)
 
 //	Register user functions
 	RegisterLuaUserData(*reg, grp);
-#endif
+	#endif
 }
 
-static lua_State* theLuaState = nullptr;
+static lua_State* theLuaState = NULL;
 lua_State* GetDefaultLuaState()
 {
 //	if the state has not already been opened then do it now.
@@ -254,14 +247,14 @@ lua_State* GetDefaultLuaState()
 		PROFILE_BEGIN(CreateLUARegistry);
 		if(!g_pRegistry){
 		//	store a pointer to the registry and avoid multiple callback registration
-			g_pRegistry = &bridge::GetUGRegistry();
+			g_pRegistry = &ug::bridge::GetUGRegistry();
 			g_pRegistry->add_callback(UpdateScriptAfterRegistryChange);
 		}
 		
 	//	open a lua state
-		theLuaState = luaL_newstate();
+		theLuaState = lua_open();
 #ifdef USE_LUAJIT
-		UG_ASSERT(theLuaState!=nullptr, "FATAL ERROR: Not enough memory for lua?")
+		UG_ASSERT(theLuaState!=NULL, "FATAL ERROR: Not enough memory for lua?")
 #endif
 
 	//	open standard libs
@@ -284,7 +277,7 @@ lua_State* GetDefaultLuaState()
 		lua_register(theLuaState, "ug_class_group", UGGetClassGroup);
 
 	//	create lua bindings for registered functions and objects
-		bridge::lua::CreateBindings_LUA(theLuaState, *g_pRegistry);
+		ug::bridge::lua::CreateBindings_LUA(theLuaState, *g_pRegistry);
 	}
 	
 	return theLuaState;
@@ -293,12 +286,13 @@ lua_State* GetDefaultLuaState()
 /// calls lua_close, which calls delete for all lua objects
 void ReleaseDefaultLuaState()
 {
-	if(theLuaState != nullptr)
+	if(theLuaState != NULL)
 	{
 		lua_close(theLuaState);
-		theLuaState = nullptr;
+		theLuaState = NULL;
 	}
 	FinalizeLUADebug();
+	return;
 }
 
 
@@ -306,7 +300,7 @@ void ReleaseDefaultLuaState()
 int luaCallStackError( lua_State *L )
 {
 	UG_LOG("LUA-ERROR! Call stack:\n");
-    bridge::LuaStackTrace(0);
+    ug::bridge::LuaStackTrace(0);
     return 1;
 }
 
@@ -330,22 +324,26 @@ bool ParseAndExecuteBuffer(const char* buffer, const char *bufferName)
 
 	if(error)
 	{
-		const string msg = lua_tostring(L, -1);
+		string msg = lua_tostring(L, -1);
 		lua_pop(L, 1);
 		if(msg.find("__UG__LUA__EMPTY__MSG__") == string::npos)
-			throw LuaError(msg.c_str());
-		throw LuaError();
+			throw(LuaError(msg.c_str()));
+		else
+			throw(LuaError());
 	}
+
 	return true;
+
 }
 
 
 static void GetToStringFromStack(lua_State *L, std::stringstream &ss)
 {
-	const int nArgs = lua_gettop(L);
+	int nArgs = lua_gettop(L);
+	int i;
 	lua_getglobal(L, "tostring");
 
-	for(int i = 1; i<=nArgs; i++)
+	for(i=1; i<=nArgs; i++)
 	{
 		lua_pushvalue(L, -1);
 		lua_pushvalue(L, i);
@@ -398,6 +396,29 @@ int UGLuaErrLog(lua_State *L)
 	GetLogAssistant().flush();
 	return 0;
 }
+//
+//static int LuaGetClassName(lua_State *L)
+//{
+//	UG_LOG(lua_typename(L, lua_upvalueindex(1)));
+//	bridge::IExportedClass* c = (bridge::IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
+//	bridge::ParameterStack out;
+//	if(c)
+//		out.push(c->name());
+//	else
+//		out.push("error");
+//	return bridge::ParamsToLuaStack(out, L);
+//}
+//
+//static int LuaGetClassGroup(lua_State *L)
+//{
+//	bridge::IExportedClass* c = (bridge::IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
+//	bridge::ParameterStack out;
+//	if(c)
+//		out.push(c->group());
+//	else
+//		out.push("error");
+//	return bridge::ParamsToLuaStack(out, L);
+//}
 
 void RegisterStdLUAFunctions(lua_State *L)
 {
@@ -405,6 +426,8 @@ void RegisterStdLUAFunctions(lua_State *L)
 	lua_register(L, "print_all", UGLuaPrintAllProcs );
 	lua_register(L, "write", UGLuaWrite );
 	lua_register(L, "err_log", UGLuaErrLog);
+//	lua_register(L, "GetClassName", LuaGetClassName);
+//	lua_register(L, "GetClassGroup", LuaGetClassGroup);
 }
 
 int UGGetMetatable(lua_State *L)
@@ -424,7 +447,7 @@ int UGGetClassName(lua_State *L)
 	{
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const auto* classNameNode = static_cast<const bridge::ClassNameNode *>(lua_touserdata(L, -1));
+		const ug::bridge::ClassNameNode* classNameNode = (const ug::bridge::ClassNameNode*) lua_touserdata(L, -1);
 		lua_pop(L, 2);
 
 		if(classNameNode)
@@ -445,7 +468,7 @@ int UGGetClassGroup(lua_State *L)
 	{
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const auto* classNameNode = static_cast<const bridge::ClassNameNode *>(lua_touserdata(L, -1));
+		const ug::bridge::ClassNameNode* classNameNode = (const ug::bridge::ClassNameNode*) lua_touserdata(L, -1);
 		lua_pop(L, 2);
 
 		if(classNameNode)
@@ -477,7 +500,7 @@ int UGIsBaseClass(lua_State *L)
 	{
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const auto* classNameNode = static_cast<const bridge::ClassNameNode *>(lua_touserdata(L, -1));
+		const ug::bridge::ClassNameNode* classNameNode = (const ug::bridge::ClassNameNode*) lua_touserdata(L, -1);
 		lua_pop(L, 2);
 
 		if(classNameNode)
@@ -498,20 +521,26 @@ int UGIsBaseClass(lua_State *L)
 	else{
 		UG_THROW("In UGIsBaseClass: Cannot find metatable for: "<< derivClass);
 	}
+
 	return 0;
 }
 
 void SetLuaUGArgs(lua_State* L, int argc, char* argv[])
 {
+
 	lua_newtable(L);
 	int ugargc=0;
 	for(int i = 0; i < argc; ++i){
-		lua_pushnumber(L, ++ugargc); //	push the index to the table
-		lua_pushstring(L, argv[i]); //	push the value to the table
-		lua_settable(L, -3); //	create the entry
+	//	push the index to the table
+		lua_pushnumber(L, ++ugargc);
+	//	push the value to the table
+		lua_pushstring(L, argv[i]);
+	//	create the entry
+		lua_settable(L, -3);
 	}
+	//	set the tables name
+	lua_setglobal(L, "ugargv");
 
-	lua_setglobal(L, "ugargv");//	set the tables name
 	lua_pushnumber(L, ugargc);
 	lua_setglobal(L, "ugargc");
 }
@@ -558,5 +587,5 @@ int UGAlgebraCompiled(lua_State *L)
 #endif
 	lua_pushboolean(L, false); return 1;
 }
-}
-}
+
+}}//	end of namespace

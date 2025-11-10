@@ -75,7 +75,7 @@ class MultiStepTimeDiscretization
 	/// constructor
 		MultiStepTimeDiscretization(SmartPtr<IDomainDiscretization<algebra_type> > spDD)
 			: ITimeDiscretization<TAlgebra>(spDD),
-			  m_pPrevSol(nullptr)
+			  m_pPrevSol(NULL)
 		{}
 
 		virtual ~MultiStepTimeDiscretization(){};

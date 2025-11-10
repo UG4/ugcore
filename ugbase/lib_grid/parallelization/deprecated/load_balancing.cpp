@@ -214,7 +214,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 template <class TGeomBaseObj>
 bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& mg, int numParts, size_t baseLevel,
-							 	  std::function<int (TGeomBaseObj*, TGeomBaseObj*)>& weightFct)
+							 	  boost::function<int (TGeomBaseObj*, TGeomBaseObj*)>& weightFct)
 {
 #ifdef UG_METIS
 	typedef TGeomBaseObj	TElem;
@@ -695,11 +695,11 @@ template bool PartitionMultiGrid_MetisKway<Volume>(SubsetHandler&, MultiGrid&,
 												   int, size_t, int, int);
 
 template bool PartitionMultiGrid_MetisKway<Edge>(SubsetHandler&, MultiGrid&, int, size_t,
-													 std::function<int (Edge*, Edge*)>&);
+													 boost::function<int (Edge*, Edge*)>&);
 template bool PartitionMultiGrid_MetisKway<Face>(SubsetHandler&, MultiGrid&, int, size_t,
-		 	 	 	 	 	 	 	 	 	 	 std::function<int (Face*, Face*)>&);
+		 	 	 	 	 	 	 	 	 	 	 boost::function<int (Face*, Face*)>&);
 template bool PartitionMultiGrid_MetisKway<Volume>(SubsetHandler&, MultiGrid&, int, size_t,
-												   std::function<int (Volume*, Volume*)>&);
+												   boost::function<int (Volume*, Volume*)>&);
 
 template bool PartitionMultiGridLevel_MetisKway<Edge>(SubsetHandler&,
 													MultiGrid&, int, size_t);

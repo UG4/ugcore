@@ -30,18 +30,18 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef UG_BASE_BINDINGS_LUA_LUA_PARSING_H
-#define UG_BASE_BINDINGS_LUA_LUA_PARSING_H
+#ifndef LUA_PARSING_H_
+#define LUA_PARSING_H_
 
 #ifdef USE_LUAJIT
-#include <lua.hpp>
+#include <lua.h>
 #else
-#include "externals/lua/src/lua.hpp"
+#include "externals/lua/lua.h"
 #endif
 
 #include "bindings_lua.h"
-#include "lua_function_handle.h"
-#include "lua_table_handle.h"
+#include "bindings/lua/lua_function_handle.h"
+#include "bindings/lua/lua_table_handle.h"
 
 namespace ug{
 namespace bridge{
@@ -59,7 +59,7 @@ struct LuaParsing<bool>{
 		return lua_toboolean(L, index);
 	}
 	static void push(lua_State* L, bool data){
-		lua_pushboolean(L, data ? 1 : 0);
+		lua_pushboolean(L, (data ? 1 : 0));
 	}
 };
 
@@ -69,10 +69,10 @@ struct LuaParsing<int>{
 		return lua_isnumber(L, index);
 	}
 	static int get(lua_State* L, int index){
-		return static_cast<int>(lua_tointeger(L, index));
+		return (int)lua_tointeger(L, index);
 	}
 	static void push(lua_State* L, int data){
-		lua_pushinteger(L, data);
+		lua_pushnumber(L, data);
 	}
 };
 
@@ -85,7 +85,7 @@ struct LuaParsing<size_t>{
 		return lua_tointeger(L, index);
 	}
 	static void push(lua_State* L, size_t data){
-		lua_pushinteger(L, static_cast<int>(data));
+		lua_pushnumber(L, (lua_Number)data);
 	}
 };
 
@@ -95,7 +95,7 @@ struct LuaParsing<float>{
 		return lua_isnumber(L, index);
 	}
 	static float get(lua_State* L, int index){
-		return static_cast<float>(lua_tonumber(L, index));
+		return (float)lua_tonumber(L, index);
 	}
 	static void push(lua_State* L, float data){
 		lua_pushnumber(L, data);
@@ -136,7 +136,7 @@ struct LuaParsing<std::string>{
 	static std::string get(lua_State* L, int index){
 		return std::string(lua_tostring(L, index));
 	}
-	static void push(lua_State* L, const std::string &data){
+	static void push(lua_State* L, std::string data){
 		lua_pushstring(L, data.c_str());
 	}
 };
@@ -158,7 +158,7 @@ struct LuaParsing<LuaFunctionHandle>{
 		return lua_isfunction(L, index);
 	}
 	static LuaFunctionHandle get(lua_State* L, int index){
-		LuaFunctionHandle tmp{};
+		LuaFunctionHandle tmp;
 		lua_pushvalue(L, index);
 		tmp.ref = luaL_ref(L, LUA_REGISTRYINDEX);
 		return tmp;
@@ -178,7 +178,7 @@ struct LuaParsing<LuaTableHandle>{
 		untested();
 		return tmp;
 	}
-	static void push(lua_State* L, const LuaTableHandle& data){
+	static void push(lua_State* L, LuaTableHandle data){
 		UG_THROW("Return value of type LuaTableHandle not implemented.");
 	}
 };
@@ -190,31 +190,32 @@ struct LuaParsing<void*>{
 	                        lua_State* L, int index, const char* baseClassName){
 		if(!lua_isuserdata(L, index)) return false;
 
-		auto* udata = reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+		UserDataWrapper* udata =
+			reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
 
 		if(udata->is_const()) return false;
 
 		//	extract the pointer to the object.
 		//	udata is either a RawUserData or a SmartUserDataWrapper
-		void* obj = nullptr;
-		if(udata->is_raw_ptr()) {
+		void* obj = NULL;
+		if(udata->is_raw_ptr())
 			obj = static_cast<RawUserDataWrapper*>(udata)->obj;
-		} else if(udata->is_smart_ptr() && IMLPICIT_SMART_PTR_TO_PTR_CONVERSION) {
+		else if(udata->is_smart_ptr() && IMLPICIT_SMART_PTR_TO_PTR_CONVERSION)
 			obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get();
-		} else {return false;}
+		else return false;
 
 		//	get the object and its metatable. Make sure that obj can be cast to
 		//	the type that is expected by the paramsTemplate.
-		if(lua_getmetatable(L, index) == 0) {return false;}
+		if(lua_getmetatable(L, index) == 0) return false;
 
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const auto* classNameNode = static_cast<const ClassNameNode *>(lua_touserdata(L, -1));
+		const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
 		lua_pop(L, 2);
 
-		if(!classNameNode) {return false;}
-		if(classNameNode->empty()) {return false;}
-		if(!ClassNameTreeContains(*classNameNode, baseClassName)) {return false;}
+		if(!classNameNode) return false;
+		if(classNameNode->empty()) return false;
+		if(!ClassNameTreeContains(*classNameNode, baseClassName)) return false;
 
 		res.first = obj;
 		res.second = classNameNode;
@@ -223,7 +224,7 @@ struct LuaParsing<void*>{
 	}
 
 	static void push(lua_State* L, void* data, const char* className){
-		CreateNewUserData(L, data, className, nullptr, false);
+		CreateNewUserData(L, data, className, NULL, false);
 	}
 };
 
@@ -233,35 +234,36 @@ struct LuaParsing<const void*>{
 	                        lua_State* L, int index, const char* baseClassName){
 		if(!lua_isuserdata(L, index)) return false;
 
-		auto* udata = reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+		UserDataWrapper* udata =
+			reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
 
 		//	extract the pointer to the object.
 		//	udata is either a RawUserData or a SmartUserDataWrapper
-		const void* obj = nullptr;
+		const void* obj = NULL;
 
-		if(udata->is_raw_ptr()) {
+		if(udata->is_raw_ptr())
 			obj = static_cast<RawUserDataWrapper*>(udata)->obj;
-		}else if(udata->is_smart_ptr() && IMLPICIT_SMART_PTR_TO_PTR_CONVERSION) {
+		else if(udata->is_smart_ptr() && IMLPICIT_SMART_PTR_TO_PTR_CONVERSION){
 			//	we have to distinguish between const and non-const smart pointers.
-			if(udata->is_const()) {
+			if(udata->is_const())
 				obj = static_cast<ConstSmartUserDataWrapper*>(udata)->smartPtr.get();
-			} else{
+			else
 				obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get();
-			}
-		} else {return false;}
+		}
+		else return false;
 
 		//	get the object and its metatable. Make sure that obj can be cast to
 		//	the type that is expected by the paramsTemplate.
-		if(lua_getmetatable(L, index) == 0) {return false;}
+		if(lua_getmetatable(L, index) == 0) return false;
 
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const auto* classNameNode = static_cast<const ClassNameNode *>(lua_touserdata(L, -1));
+		const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
 		lua_pop(L, 2);
 
-		if(!classNameNode) {return false;}
-		if(classNameNode->empty()) {return false;}
-		if(!ClassNameTreeContains(*classNameNode, baseClassName)) {return false;}
+		if(!classNameNode) return false;
+		if(classNameNode->empty()) return false;
+		if(!ClassNameTreeContains(*classNameNode, baseClassName)) return false;
 
 		res.first = obj;
 		res.second = classNameNode;
@@ -272,32 +274,33 @@ struct LuaParsing<const void*>{
 	static void push(lua_State* L, const void* data, const char* className){
 	//	we're removing const with a cast. However, it was made sure that
 	//	obj is treated as a const value.
-		CreateNewUserData(L, const_cast<void *>(data), className, nullptr, true);
+		CreateNewUserData(L, (void*)data, className, NULL, true);
 	}
 };
 
 template <>
 struct LuaParsing<SmartPtr<void> >{
 	static bool checkAndGet(std::pair<SmartPtr<void>, const ClassNameNode*>& res,
-	                        lua_State* L, const int index, const char* baseClassName) {
+	                        lua_State* L, int index, const char* baseClassName){
 		if(!lua_isuserdata(L, index)) return false;
 
-		const auto* udata = reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+		UserDataWrapper* udata =
+			reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
 
-		if(!udata->is_smart_ptr()) {return false;}
-		if(udata->is_const()) {return false;}
+		if(!udata->is_smart_ptr()) return false;
+		if(udata->is_const()) return false;
 
-		SmartPtr<void>& obj = static_cast<SmartUserDataWrapper *>(lua_touserdata(L, index))->smartPtr;
+		SmartPtr<void>& obj = ((SmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
 
-		if(lua_getmetatable(L, index) == 0) {return false;}
+		if(lua_getmetatable(L, index) == 0) return false;
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const auto* classNameNode = static_cast<const ClassNameNode *>(lua_touserdata(L, -1));
+		const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
 		lua_pop(L, 2);
 
-		if(!classNameNode) {return false;}
-		if(classNameNode->empty()) {return false;}
-		if(!ClassNameTreeContains(*classNameNode, baseClassName)) {return false;}
+		if(!classNameNode) return false;
+		if(classNameNode->empty()) return false;
+		if(!ClassNameTreeContains(*classNameNode, baseClassName)) return false;
 
 		res.first = obj;
 		res.second = classNameNode;
@@ -316,26 +319,26 @@ struct LuaParsing<ConstSmartPtr<void> >{
 	                        lua_State* L, int index, const char* baseClassName){
 		if(!lua_isuserdata(L, index)) return false;
 
-		auto* udata = reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+		UserDataWrapper* udata =
+			reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
 
-		if(!udata->is_smart_ptr()) {return false;}
+		if(!udata->is_smart_ptr()) return false;
 
 		ConstSmartPtr<void> obj;
-		if(static_cast<UserDataWrapper *>(lua_touserdata(L, index))->is_const()) {
-			obj = static_cast<ConstSmartUserDataWrapper *>(lua_touserdata(L, index))->smartPtr;
-		} else {
-			obj = static_cast<SmartUserDataWrapper *>(lua_touserdata(L, index))->smartPtr;
-		}
+		if(((UserDataWrapper*)lua_touserdata(L, index))->is_const())
+			obj = ((ConstSmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
+		else
+			obj = ((SmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
 
-		if(lua_getmetatable(L, index) == 0) {return false;}
+		if(lua_getmetatable(L, index) == 0) return false;
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const auto* classNameNode = static_cast<const ClassNameNode *>(lua_touserdata(L, -1));
+		const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
 		lua_pop(L, 2);
 
-		if(!classNameNode) { return false;}
-		if(classNameNode->empty()) {return false;}
-		if(!ClassNameTreeContains(*classNameNode, baseClassName)) {return false;}
+		if(!classNameNode) return false;
+		if(classNameNode->empty()) return false;
+		if(!ClassNameTreeContains(*classNameNode, baseClassName)) return false;
 
 		res.first = obj;
 		res.second = classNameNode;
@@ -352,5 +355,5 @@ struct LuaParsing<ConstSmartPtr<void> >{
 }
 }
 }
+#endif /* LUA_PARSING_H_ */
 
-#endif
