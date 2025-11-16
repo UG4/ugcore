@@ -252,7 +252,7 @@ lua_State* GetDefaultLuaState()
 		}
 		
 	//	open a lua state
-		theLuaState = lua_open();
+		theLuaState = luaL_newstate();
 #ifdef USE_LUAJIT
 		UG_ASSERT(theLuaState!=nullptr, "FATAL ERROR: Not enough memory for lua?")
 #endif

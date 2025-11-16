@@ -70,6 +70,7 @@
 extern "C" // default lua
 {
 #include "bindings/lua/externals/lua/lstate.h"
+#include "externals/lua/lua.h"
 }
 #else
 // luajit
@@ -447,7 +448,7 @@ int UGTypeInfo(const char *p)
 
 	// check if it is a class
 	const ClassGroupDesc *cg = reg.get_class_group(p);
-	const IExportedClass *c=nullptr;
+	const IExportedClass *c;
 	if(cg != nullptr)
 	{
 		UG_LOG("ClassGroup " << p << " consisting of classes\n");
@@ -581,11 +582,11 @@ bool ClassInstantiations(const char *classname)
 	// iterate through all of lua's global string table
 	for(int i=0; i<G(L)->strt.size; i++)
 	{
-		GCObject *obj;
-		for (obj = G(L)->strt.hash[i]; obj != nullptr; obj = obj->gch.next)
+		TString *obj;
+		for (obj = G(L)->strt.hash[i]; obj != nullptr; obj = obj->u.hnext)
 		{
 			// get the string
-			TString *ts = rawgco2ts(obj);
+			TString *ts = obj;
 			if(ts == nullptr) continue;
 
 			const char *luastr = getstr(ts);

@@ -105,7 +105,7 @@ public:
 			++n;
 		}
 #else
-		n = lua_objlen(_L, _index);
+		n = lua_rawlen(_L, (_index));
 #endif
 		return n;
 	}

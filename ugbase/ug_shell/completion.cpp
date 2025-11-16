@@ -362,11 +362,11 @@ static size_t GetGlobalsCompletitions(char *buf, int len, std::vector<string> &m
 	// iterate through all of lua's global string table
 	for(int i=0; i<G(L)->strt.size; i++)
 	{
-		GCObject *obj;
-		for (obj = G(L)->strt.hash[i]; obj != nullptr; obj = obj->gch.next)
+		TString *obj;
+		for (obj = G(L)->strt.hash[i]; obj != nullptr; obj = obj->u.hnext)
 		{
 			// get the string
-			TString *ts = rawgco2ts(obj);
+			TString *ts = obj;
 			if(ts == nullptr) continue;
 
 			const char *luastr = getstr(ts);
