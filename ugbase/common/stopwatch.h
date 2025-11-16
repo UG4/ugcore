@@ -96,7 +96,7 @@ protected:
 	inline double get_clock_s()
   {
     timeval time;
-    gettimeofday(&time, NULL);
+    gettimeofday(&time, nullptr);
     return time.tv_sec + time.tv_usec/1000000.0;
   }
 #else

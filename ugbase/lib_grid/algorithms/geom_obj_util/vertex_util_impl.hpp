@@ -236,7 +236,7 @@ Vertex* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
 						  	  	  TVrtIterator vrtsEnd)
 {
 	if(vrtsBegin == vrtsEnd)
-		return NULL;
+		return nullptr;
 
 	Vertex* v = *vrtsBegin;
 	++vrtsBegin;
@@ -259,7 +259,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 	if(!grid.has_vertex_attachment(aPos))
 		return;
 
-	typedef Attachment<MathVector<dim> > attachment_type;
+	using attachment_type = Attachment<MathVector<dim> >;
 	Grid::VertexAttachmentAccessor<attachment_type> aaPos(grid, aPos);
 
 	RemoveDoubles<dim>(grid, iterBegin, iterEnd, aaPos, threshold);
@@ -271,14 +271,14 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 					TAAPos aaPos,
 					number threshold)
 {
-	typedef Attachment<MathVector<dim> > attachment_type;
+	using attachment_type = Attachment<MathVector<dim> >;
 	KDTreeStatic<attachment_type, dim, MathVector<dim> > kdTree;
 	kdTree.create_from_grid(grid, iterBegin, iterEnd, aaPos, 20, 10, KDSD_LARGEST);
 
 //	we need temporary attachments:
 //	a vector<Vertex*> attachment, that stores for each vertex all other vertices
 //	closer than threshold, which have higher attachment data index.
-	typedef Attachment<std::list<Vertex*> >	AVertexList;
+	using AVertexList = Attachment<std::list<Vertex*> >;
 	AVertexList aVertexList;
 	grid.attach_to_vertices(aVertexList);
 	Grid::VertexAttachmentAccessor<AVertexList> aaVL(grid, aVertexList);

@@ -59,13 +59,13 @@ class SubsetIndicatorUserData
 {
 public:
 ///	Type of domain
-	typedef TDomain domain_type;
+	using domain_type = TDomain;
 	
 ///	World dimension
-	static const int dim = domain_type::dim;
+	static constexpr int dim = domain_type::dim;
 	
 /// subset handler type
-	typedef typename domain_type::subset_handler_type subset_handler_type;
+	using subset_handler_type = typename domain_type::subset_handler_type;
 
 private:
 	/// subset group representing the specified subdomain
@@ -112,7 +112,7 @@ public:
 		const MathVector<refDim> vLocIP [],
 		const size_t nip,
 		LocalVector * u,
-		const MathMatrix<refDim, dim> * vJT = NULL
+		const MathMatrix<refDim, dim> * vJT = nullptr
 	) const
 	{
 	//	Get the subset index of the element
@@ -166,13 +166,13 @@ class ValueIndicatorUserData
 	: public StdUserData<ValueIndicatorUserData<TDomain>, number, TDomain::dim, void, UserData<number, TDomain::dim, void> >
 {
 ///	the world dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 	
 ///	the domain type
-	typedef TDomain domain_type;
+	using domain_type = TDomain;
 	
 ///	the grid type
-	typedef typename TDomain::grid_type grid_type;
+	using grid_type = typename TDomain::grid_type;
 	
 ///	the original data
 	SmartPtr<UserData<number, dim, void> > m_spData;
@@ -217,7 +217,7 @@ public:
 		const MathVector<refDim> vLocIP [],
 		const size_t nip,
 		LocalVector * u,
-		const MathMatrix<refDim, dim> * vJT = NULL
+		const MathMatrix<refDim, dim> * vJT = nullptr
 	) const
 	{
 	//	Call the original UserData, get the values

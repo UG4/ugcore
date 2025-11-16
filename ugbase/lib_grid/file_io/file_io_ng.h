@@ -43,7 +43,7 @@ namespace ug
 bool ImportGridFromNG(Grid& grid,
                       const char* filename,
                       APosition& aPos = aPosition,
-                      ISubsetHandler* pSubdomainHandler = NULL);
+                      ISubsetHandler* pSubdomainHandler = nullptr);
 
 }//	end of namespace
 

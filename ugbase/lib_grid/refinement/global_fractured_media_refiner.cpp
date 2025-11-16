@@ -60,8 +60,8 @@ namespace ug
 GlobalFracturedMediaRefiner::
 GlobalFracturedMediaRefiner(SPRefinementProjector projector) :
 	IRefiner(projector),
-	m_pMG(NULL),
-	m_pSH(NULL)
+	m_pMG(nullptr),
+	m_pSH(nullptr)
 {
 //	initialize m_aPos to the default position attachment
 	//m_aPos = GetDefaultPositionAttachment<TAPosition>();
@@ -73,9 +73,9 @@ GlobalFracturedMediaRefiner(SPRefinementProjector projector) :
 GlobalFracturedMediaRefiner::
 GlobalFracturedMediaRefiner(MultiGrid& mg, SPRefinementProjector projector) :
 	IRefiner(projector),
-	m_pSH(NULL)
+	m_pSH(nullptr)
 {
-	m_pMG = NULL;
+	m_pMG = nullptr;
 	assign_grid(mg);
 //	initialize m_aPos to the default position attachment
 	//m_aPos = GetDefaultPositionAttachment<TAPosition>();
@@ -97,7 +97,7 @@ GlobalFracturedMediaRefiner::
 void GlobalFracturedMediaRefiner::
 grid_to_be_destroyed(Grid* grid)
 {
-	m_pMG = NULL;
+	m_pMG = nullptr;
 }
 
 
@@ -117,8 +117,8 @@ assign_grid(MultiGrid* mg)
 {
 	if(m_pMG){
 		m_pMG->unregister_observer(this);
-		m_marker.assign_grid(NULL);
-		m_pMG = NULL;
+		m_marker.assign_grid(nullptr);
+		m_pMG = nullptr;
 	}
 	
 	if(mg){
@@ -237,7 +237,7 @@ perform_refinement()
 		projector()->refinement_begins(&sg);
 	}
 	else
-		projector()->refinement_begins(NULL);
+		projector()->refinement_begins(nullptr);
 
 	UG_DLOG(LIB_GRID, 1, "REFINER: reserving memory...");
 
@@ -396,7 +396,7 @@ perform_refinement()
 			if(m_marker.is_marked(edge)){
 				vEdgeVrts.push_back(mg.get_child_vertex(edge));
 			}else{
-				vEdgeVrts.push_back(NULL);
+				vEdgeVrts.push_back(nullptr);
 			}
 		}
 
@@ -413,7 +413,7 @@ perform_refinement()
 
 		//GFDR_PROFILE(GFDR_Refine_CreatingFaces);
 		Vertex* newVrt;
-		if(f->refine(vFaces, &newVrt, &vEdgeVrts.front(), NULL, &vVrts.front())){
+		if(f->refine(vFaces, &newVrt, &vEdgeVrts.front(), nullptr, &vVrts.front())){
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				//GFDR_PROFILE(GFDR_Refine_CreatingVertices);
@@ -475,7 +475,7 @@ perform_refinement()
 	//	if we're performing tetrahedral refinement, we have to collect
 	//	the corner coordinates, so that the refinement algorithm may choose
 	//	the best interior diagonal.
-		vector3* pCorners = NULL;
+		vector3* pCorners = nullptr;
 		if((v->num_vertices() == 4) && m_projector.valid()){
 			for(size_t i = 0; i < 4; ++i){
 				corners[i] = m_projector->geometry()->pos(v->vertex(i));
@@ -485,7 +485,7 @@ perform_refinement()
 
 		Vertex* newVrt;
 		if(v->refine(vVols, &newVrt, &vEdgeVrts.front(), &vFaceVrts.front(),
-					NULL, RegularVertex(), &vVrts.front(), pCorners)){
+					nullptr, RegularVertex(), &vVrts.front(), pCorners)){
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				mg.register_element(newVrt, v);
@@ -525,8 +525,8 @@ template <class TElem>
 void GlobalFracturedMediaRefiner::
 assign_elem_and_side_marks()
 {
-	typedef typename MultiGrid::traits<TElem>::iterator	ElemIter;
-	typedef typename TElem::side	Side;
+	using ElemIter = typename MultiGrid::traits<TElem>::iterator;
+	using Side = typename TElem::side;
 
 	if(!m_pMG)
 		UG_THROW("No grid assigned!");
@@ -574,7 +574,7 @@ assign_elem_and_side_marks()
 
 	//	find the side which is connected to a non-fracture element
 		CollectAssociated(sides, mg, e);
-		Side* outerSide = NULL;
+		Side* outerSide = nullptr;
 		for(size_t i_side = 0; i_side < sides.size(); ++i_side){
 			Side* s = sides[i_side];
 			CollectAssociated(elems, mg, s);
@@ -643,7 +643,7 @@ assign_elem_and_side_marks()
 	//	If no neighbor is found with exactly one marked side, then an error is raised.
 	//	If more then one neighbors are found with exactly one marked side, then
 	//	the element is pushed back to queue.
-		Side* connectingSide = NULL;
+		Side* connectingSide = nullptr;
 		int elemsFound = 0;// set to true, if an element with exactly one marked side is found.
 		for(size_t i_side = 0; i_side < sides.size(); ++i_side){
 			Side* s = sides[i_side];
@@ -700,9 +700,9 @@ template <class TElem>
 void GlobalFracturedMediaRefiner::
 assign_elem_and_side_marks()
 {
-	typedef typename MultiGrid::traits<TElem>::iterator	ElemIter;
-	typedef typename TElem::side	Side;
-	typedef typename Side::side		SideOfSide;
+	using ElemIter = typename MultiGrid::traits<TElem>::iterator;
+	using Side = typename TElem::side;
+	using SideOfSide = typename Side::side;
 
 	if(!m_pMG)
 		UG_THROW("No grid assigned!");
@@ -773,7 +773,7 @@ assign_elem_and_side_marks()
 	//	we'll ignore the element. If no side is marked, we'll throw an error,
 	//	since the fracture does not feature the required topology in this case.
 		CollectAssociated(sides, mg, e);
-		Side* markedSide = NULL;
+		Side* markedSide = nullptr;
 		int numMarked = 0;
 		for(size_t i_side = 0; i_side < sides.size(); ++i_side){
 			Side* s = sides[i_side];
@@ -879,8 +879,8 @@ template <class TElem>
 void GlobalFracturedMediaRefiner::
 mark_sides_of_marked_top_level_elements()
 {
-	typedef typename MultiGrid::traits<TElem>::iterator	ElemIter;
-	typedef typename TElem::side	Side;
+	using ElemIter = typename MultiGrid::traits<TElem>::iterator;
+	using Side = typename TElem::side;
 	if(!m_pMG)
 		UG_THROW("No grid assigned!");
 

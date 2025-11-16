@@ -152,7 +152,7 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 	//	reg.add_function("PrintLUA", &PrintLUA, grp);
 
 
-	// typedef const UGProfileNode* TT;
+	// type definition const UGProfileNode* TT;
 	reg.add_function("GetProfileNode", OVERLOADED_FUNCTION_PTR(const UGProfileNode *, GetProfileNode, (const char*name)),
 			grp, "a profile node", "name", "if root = null, return");
 	reg.add_function("GetProfileNode", OVERLOADED_FUNCTION_PTR(const UGProfileNode *, GetProfileNode, (const char*name, const UGProfileNode*)),

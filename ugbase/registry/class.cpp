@@ -117,7 +117,7 @@ bool IExportedClass::check_consistency() const
 	const std::vector<const char*>* vClassNames = class_names();
 
 //	check if class name vector correct
-	if(vClassNames==NULL)
+	if(vClassNames==nullptr)
 	{
 		UG_ERR_LOG("#### Registry ERROR:"
 				" Class name vector of parent classes missing for "
@@ -132,7 +132,7 @@ bool IExportedClass::check_consistency() const
 		const char* baseName = (*vClassNames)[i];
 
 	//	check the name
-		if(baseName == NULL || *baseName == '\0' || baseName[0] == '[')
+		if(baseName == nullptr || *baseName == '\0' || baseName[0] == '[')
 		{
 			if(i>0){
 			UG_ERR_LOG("#### Registry ERROR:"
@@ -155,10 +155,6 @@ bool IExportedClass::check_consistency() const
 ////////////////////////////////////////////////////////////////////////////////
 // Implementation of ExportedClassBaseImpl
 ////////////////////////////////////////////////////////////////////////////////
-ExportedClassBaseImpl::
-ExportedClassBaseImpl()
-{
-}
 
 ExportedClassBaseImpl::
 ExportedClassBaseImpl(const ExportedClassBaseImpl& other)
@@ -167,7 +163,7 @@ ExportedClassBaseImpl(const ExportedClassBaseImpl& other)
 
 ExportedClassBaseImpl::
 ExportedClassBaseImpl(const std::string& tooltip)
-	: m_destructor(NULL), m_tooltip(tooltip), m_constructAsSmartPtr(false)
+	: m_destructor(nullptr), m_tooltip(tooltip), m_constructAsSmartPtr(false)
 {
 }
 
@@ -298,7 +294,7 @@ is_instantiable() const
 void ExportedClassBaseImpl::
 destroy(void* obj) const
 {
-	if(m_destructor != NULL)
+	if(m_destructor != nullptr)
 		(*m_destructor)(obj);
 }
 
@@ -339,7 +335,7 @@ get_exported_method_group(const std::string& name)
 		if(name == m_vMethod[i]->name())
 			return m_vMethod[i];
 
-	return NULL;
+	return nullptr;
 }
 
 const ExportedMethodGroup* ExportedClassBaseImpl::
@@ -349,7 +345,7 @@ get_exported_method_group(const std::string& name) const
 		if(name == m_vMethod[i]->name())
 			return m_vMethod[i];
 
-	return NULL;
+	return nullptr;
 }
 
 ExportedMethodGroup* ExportedClassBaseImpl::
@@ -359,7 +355,7 @@ get_const_exported_method_group(const std::string& name)
 		if(name == m_vConstMethod[i]->name())
 			return m_vConstMethod[i];
 
-	return NULL;
+	return nullptr;
 }
 
 const ExportedMethodGroup* ExportedClassBaseImpl::
@@ -369,7 +365,7 @@ get_const_exported_method_group(const std::string& name) const
 		if(name == m_vConstMethod[i]->name())
 			return m_vConstMethod[i];
 
-	return NULL;
+	return nullptr;
 }
 
 } // end namespace ug

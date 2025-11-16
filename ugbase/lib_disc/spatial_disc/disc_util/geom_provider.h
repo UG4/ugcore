@@ -58,7 +58,7 @@ class GeomProvider
 		 * In such a case we must store each combination in some data structure
 		 * and return the correct one based on the identifier.
 		 */
-		static const bool staticLocalData = TGeom::staticLocalData;
+		static constexpr bool staticLocalData = TGeom::staticLocalData;
 
 	protected:
 		/// private constructor
@@ -68,8 +68,8 @@ class GeomProvider
 		~GeomProvider() {clear_geoms();}
 
 		/// singleton provider
-		static GeomProvider<TGeom>& inst() {
-			static GeomProvider<TGeom> inst;
+		static GeomProvider& inst() {
+			static GeomProvider inst;
 			return inst;
 		}
 
@@ -90,7 +90,7 @@ class GeomProvider
 		};
 
 		/// vector holding instances
-		typedef std::map<LFEIDandQuadOrder, TGeom*> MapType;
+		using MapType = std::map<LFEIDandQuadOrder, TGeom*>;
 		static MapType m_mLFEIDandOrder;
 
 		/// returns class based on identifier
@@ -98,13 +98,13 @@ class GeomProvider
 
 			LFEIDandQuadOrder key(lfeID, quadOrder);
 
-			typedef std::pair<typename MapType::iterator,bool> ret_type;
-			ret_type ret = m_mLFEIDandOrder.insert(std::pair<LFEIDandQuadOrder,TGeom*>(key,NULL));
+			using ret_type = std::pair<typename MapType::iterator,bool>;
+			ret_type ret = m_mLFEIDandOrder.insert(std::pair<LFEIDandQuadOrder,TGeom*>(key,nullptr));
 
 			// newly inserted, need construction of data
 			if(ret.second == true){
-				if(ret.first->second != NULL){
-					UG_THROW("Newly inserted element must have Pointer = NULL");
+				if(ret.first->second != nullptr){
+					UG_THROW("Newly inserted element must have Pointer = nullptr");
 				}
 				else{
 					ret.first->second = new TGeom();
@@ -116,7 +116,7 @@ class GeomProvider
 
 		/// clears all instances
 		static void clear_geoms(){
-			typedef typename std::map<LFEIDandQuadOrder, TGeom*>::iterator MapIter;
+			using MapIter = typename std::map<LFEIDandQuadOrder, TGeom*>::iterator;
 			for(MapIter iter = m_mLFEIDandOrder.begin(); iter != m_mLFEIDandOrder.end(); ++iter)
 				if(iter->second)
 					delete iter->second;
@@ -126,7 +126,7 @@ class GeomProvider
 
 	public:
 		///	type of provided object
-		typedef TGeom Type;
+		using Type = TGeom;
 
 		///	returns a singleton based on the identifier
 		static inline TGeom& get(const LFEID lfeID, const int quadOrder){
@@ -154,7 +154,7 @@ class GeomProvider
 
 template <typename TGeom>
 std::map<typename GeomProvider<TGeom>::LFEIDandQuadOrder, TGeom*> GeomProvider<TGeom>::m_mLFEIDandOrder
-						= std::map<typename GeomProvider<TGeom>::LFEIDandQuadOrder, TGeom*>();
+						= std::map<LFEIDandQuadOrder, TGeom*>();
 
 
 } // end namespace ug

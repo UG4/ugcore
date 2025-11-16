@@ -83,17 +83,17 @@ int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_ty
 	int info;
 
 	if(A_type::ordering == RowMajor)
-		info = gegv(true, false, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], &X(0,0), N, NULL, 0, &dWorksize, worksize);
+		info = gegv(true, false, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], &X(0,0), N, nullptr, 0, &dWorksize, worksize);
 	if(A_type::ordering == ColMajor)
-		info = gegv(false, true, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], NULL, N, &X(0,0), N, &dWorksize, worksize);
+		info = gegv(false, true, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], nullptr, N, &X(0,0), N, &dWorksize, worksize);
 	UG_COND_THROW(info != 0, "gegv: failed to detect worksize");
 
 	worksize = (int)dWorksize;
 	double *dwork = new double[worksize];
 	if(A_type::ordering == RowMajor)
-		info = gegv(true, false, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], &X(0,0), N, NULL, 0, dwork, worksize);
+		info = gegv(true, false, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], &X(0,0), N, nullptr, 0, dwork, worksize);
 	if(A_type::ordering == ColMajor)
-		info = gegv(false, true, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], NULL, N, &X(0,0), N, dwork, worksize);
+		info = gegv(false, true, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], nullptr, N, &X(0,0), N, dwork, worksize);
 	UG_COND_THROW(info != 0, "gegv: failed calculate");
 
 	delete[] dwork;

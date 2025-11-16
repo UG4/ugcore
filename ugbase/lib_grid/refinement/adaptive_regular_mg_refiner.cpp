@@ -174,7 +174,7 @@ create_closure_elements_2d()
 					ed.set_vertices(mg.get_child_vertex(e->vertex(0)),
 									mg.get_child_vertex(e->vertex(1)));
 					mg.create<RegularEdge>(ed, e);
-					newEdgeVrts.push_back(NULL);
+					newEdgeVrts.push_back(nullptr);
 				}
 				else
 					newEdgeVrts.push_back(mg.get_child_vertex(e));
@@ -183,7 +183,7 @@ create_closure_elements_2d()
 		//	refine the element
 			Vertex* newFaceVrt;
 			if(elem->refine(newFaces, &newFaceVrt, &newEdgeVrts.front(),
-							NULL, &newVrtVrts.front()))
+							nullptr, &newVrtVrts.front()))
 			{
 				if(newFaceVrt){
 					mg.register_element(newFaceVrt, elem);
@@ -281,7 +281,7 @@ create_closure_elements_3d()
 					ed.set_vertices(mg.get_child_vertex(e->vertex(0)),
 									mg.get_child_vertex(e->vertex(1)));
 					mg.create<RegularEdge>(ed, e);
-					newVolEdgeVrts.push_back(NULL);
+					newVolEdgeVrts.push_back(nullptr);
 				}
 				else
 					newVolEdgeVrts.push_back(mg.get_child_vertex(e));
@@ -305,7 +305,7 @@ create_closure_elements_3d()
 				for(size_t i = 0; i < assFaceEdges.size(); ++i){
 					Vertex* child = mg.get_child_vertex(assFaceEdges[i]);
 					newFaceEdgeVrts.push_back(child);
-					faceRefinement |= (child != NULL);
+					faceRefinement |= (child != nullptr);
 				}				
 				
 				if(faceRefinement){
@@ -313,9 +313,9 @@ create_closure_elements_3d()
 					for(size_t i = 0; i < f->num_vertices(); ++i)
 						newFaceVrtVrts.push_back(mg.get_child_vertex(f->vertex(i)));
 					
-					Vertex* newFaceVrt = NULL;
+					Vertex* newFaceVrt = nullptr;
 					if(f->refine(newFaces, &newFaceVrt, &newFaceEdgeVrts.front(),
-								 NULL, &newFaceVrtVrts.front()))
+								 nullptr, &newFaceVrtVrts.front()))
 					{
 						if(newFaceVrt){
 							mg.register_element(newFaceVrt, f);
@@ -342,7 +342,7 @@ create_closure_elements_3d()
 													mg.get_child_vertex(fvrts[2]),
 													mg.get_child_vertex(fvrts[3])),
 												f);
-					newVolFaceVrts.push_back(NULL);
+					newVolFaceVrts.push_back(nullptr);
 				}
 			}
 
@@ -351,7 +351,7 @@ create_closure_elements_3d()
 		//	the corner coordinates, so that the refinement algorithm may choose
 		//	the best interior diagonal.
 			vector3 corners[4];
-			vector3* pCorners = NULL;
+			vector3* pCorners = nullptr;
 			if((elem->num_vertices() == 4) && m_projector.valid()){
 				for(size_t i = 0; i < 4; ++i){
 					corners[i] = m_projector->geometry()->pos(vrts[i]);
@@ -361,7 +361,7 @@ create_closure_elements_3d()
 
 			Vertex* newVolVrt;
 			if(elem->refine(newVols, &newVolVrt, &newVolEdgeVrts.front(),
-							&newVolFaceVrts.front(), NULL, RegularVertex(),
+							&newVolFaceVrts.front(), nullptr, RegularVertex(),
 							&newVolVrtVrts.front(), pCorners))
 			{
 				if(newVolVrt){
@@ -388,7 +388,7 @@ get_parents_of_marked_closure_elements(std::vector<GridObject*>& parents,
 	UG_ASSERT(multi_grid(), "A multi grid has to be assigned to the refiner.");
 	MultiGrid& mg = *multi_grid();
 
-	typedef typename BaseClass::selector_t::template traits<TElem>::iterator	TIter;
+	using TIter = typename selector_t::traits<TElem>::iterator;
 	for(TIter iter = m_selMarkedElements.begin<TElem>();
 		iter != m_selMarkedElements.end<TElem>(); ++iter)
 	{

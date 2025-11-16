@@ -171,7 +171,7 @@ const ReferenceElement& ReferenceElementProvider::get_elem(ReferenceObjectID roi
 {
 	UG_ASSERT(roid >= 0, "roid ="<<roid<<" wrong")
 	UG_ASSERT(roid < NUM_REFERENCE_OBJECTS, "roid ="<<roid<<" wrong")
-	UG_ASSERT(m_vElem[roid] != NULL, "Null pointer for roid ="<<roid);
+	UG_ASSERT(m_vElem[roid] != nullptr, "Null pointer for roid ="<<roid);
 	return *m_vElem[roid];
 }
 

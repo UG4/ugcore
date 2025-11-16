@@ -67,7 +67,7 @@ namespace ug
 class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 {
 	public:
-		typedef HangingNodeRefinerBase<MGSelector>	BaseClass;
+		using BaseClass = HangingNodeRefinerBase<MGSelector>;
 		using BaseClass::mark;
 
 		enum HNodeCoarsenMarks{
@@ -82,9 +82,8 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 		};
 
 	public:
-		HangingNodeRefiner_MultiGrid(SPRefinementProjector projector = SPNULL);
-		HangingNodeRefiner_MultiGrid(MultiGrid& mg,
-									SPRefinementProjector projector = SPNULL);
+		HangingNodeRefiner_MultiGrid(SPRefinementProjector projector = nullptr);
+		HangingNodeRefiner_MultiGrid(MultiGrid& mg, SPRefinementProjector projector = nullptr);
 
 		virtual ~HangingNodeRefiner_MultiGrid();
 
@@ -147,7 +146,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 
 	///	performs registration and deregistration at a grid.
 	/**	Initializes all grid related variables.
-	 *  call set_grid(NULL) to unregister the observer from a grid.
+	 *  call set_grid(nullptr) to unregister the observer from a grid.
 	 *
 	 * 	Please note that though the base grid features a set_grid method,
 	 *  it is not declared virtual. This is because we want to call it
@@ -176,17 +175,17 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 		virtual void process_constraining_edge(ConstrainingEdge* cge);
 
 		virtual void refine_edge_with_normal_vertex(Edge* e,
-											Vertex** newCornerVrts = NULL);
+											Vertex** newCornerVrts = nullptr);
 		virtual void refine_edge_with_hanging_vertex(Edge* e,
-											Vertex** newCornerVrts = NULL);
+											Vertex** newCornerVrts = nullptr);
 
 		virtual void refine_face_with_normal_vertex(Face* f,
-											Vertex** newCornerVrts = NULL);
+											Vertex** newCornerVrts = nullptr);
 		virtual void refine_face_with_hanging_vertex(Face* f,
-											Vertex** newCornerVrts = NULL);
+											Vertex** newCornerVrts = nullptr);
 
 		virtual void refine_volume_with_normal_vertex(Volume* v,
-											Vertex** newVolumeVrts = NULL);
+											Vertex** newVolumeVrts = nullptr);
 	/*	\} */
 
 	///	Returns the vertex associated with the edge

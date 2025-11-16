@@ -45,8 +45,8 @@ void SetInterpolation(TMatrix& A,
                       std::vector<std::vector<size_t> >& vConstrainingIndex,
 					  bool assembleLinearProblem = true)
 {
-	//typedef typename TMatrix::row_iterator row_iterator;
-	//typedef typename TMatrix::value_type block_type;
+	//using row_iterator = typename TMatrix::row_iterator;
+	//using block_type = typename TMatrix::value_type;
 
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
@@ -81,7 +81,7 @@ void InterpolateValues(TVector& u,
                        std::vector<size_t>& constrainedIndex,
                        std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
-	typedef typename TVector::value_type block_type;
+	using block_type = typename TVector::value_type;
 
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
@@ -114,8 +114,8 @@ void SplitAddRow_Symmetric(TMatrix& A,
                            std::vector<size_t>& constrainedIndex,
                            std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
-	typedef typename TMatrix::value_type block_type;
-	typedef typename TMatrix::row_iterator row_iterator;
+	using block_type = typename TMatrix::value_type;
+	using row_iterator = typename TMatrix::row_iterator;
 
 	size_t nConstrg = vConstrainingIndex.size();
 	UG_ASSERT(nConstrg, "There have to be constraining indices!");
@@ -205,8 +205,8 @@ void SplitAddRow_OneSide(TMatrix& A,
                          std::vector<size_t>& constrainedIndex,
                          std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
-	typedef typename TMatrix::value_type block_type;
-	typedef typename TMatrix::row_iterator row_iterator;
+	using block_type = typename TMatrix::value_type;
+	using row_iterator = typename TMatrix::row_iterator;
 
 	UG_ASSERT(!vConstrainingIndex.empty(), "There have to be constraining indices!");
 
@@ -271,7 +271,7 @@ void SplitAddRhs_Symmetric(TVector& rhs,
                          std::vector<size_t> & constrainedIndex,
                          std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
-	typedef typename TVector::value_type block_type;
+	using block_type = typename TVector::value_type;
 
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
@@ -303,7 +303,7 @@ void SplitAddRhs_OneSide(TVector& rhs,
                        std::vector<size_t> & constrainedIndex,
                        std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
-	typedef typename TVector::value_type block_type;
+	using block_type = typename TVector::value_type;
 
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
@@ -653,7 +653,7 @@ adjust_correction
 	number time
 )
 {
-	//typedef typename vector_type::value_type block_type;
+	//using block_type = typename vector_type::value_type;
 
 	if (this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
@@ -1115,7 +1115,7 @@ adjust_correction
 	number time
 )
 {
-	//typedef typename vector_type::value_type block_type;
+	//using block_type = typename vector_type::value_type;
 
 	if (this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "

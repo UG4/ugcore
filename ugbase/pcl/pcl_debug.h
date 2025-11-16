@@ -34,6 +34,7 @@
 #define __H__PCL_DEBUG__
 
 #include <iostream>
+
 #include "pcl_base.h"
 #include "pcl_methods.h"
 #include "pcl_communication_structs.h"
@@ -58,13 +59,13 @@ namespace pcl
 /**
  * Supported layouts are pcl::SingleLevelLayout and pcl::MultiLevelLayout.
  */
-template <class TLayout>
+template <typename TLayout>
 void LogLayoutStructure(TLayout& layout, const char* prefix = "")
 {
 	using namespace std;
-	
-	typedef typename TLayout::Interface Interface;
-	typedef typename TLayout::iterator InterfaceIter;
+
+	using Interface = typename TLayout::Interface;
+	using InterfaceIter = typename TLayout::iterator;
 
 	PCLLOG(prefix << "-- PCL_DEBUG: layout-structure --\n");
 	PCLLOG(prefix << "---- num_levels: " << layout.num_levels() << endl);
@@ -73,8 +74,7 @@ void LogLayoutStructure(TLayout& layout, const char* prefix = "")
 	{
 		PCLLOG(prefix << "---- interfaces on level " << lvl << " (proc id, size): ");
 				
-		for(InterfaceIter iiter = layout.begin(lvl);
-			iiter != layout.end(lvl); ++iiter)
+		for(InterfaceIter iiter = layout.begin(lvl); iiter != layout.end(lvl); ++iiter)
 		{
 			Interface& interface = layout.interface(iiter);
 			PCLLOG("(" << layout.proc_id(iiter) << ", " << interface.size() << "), ");
@@ -89,18 +89,17 @@ void LogLayoutStructure(TLayout& layout, const char* prefix = "")
 /**
  * Supported layouts are pcl::SingleLevelLayout and pcl::MultiLevelLayout.
  */
-template <class TType, class TLayoutMap>
+template <typename TType, typename TLayoutMap>
 void LogLayoutMapStructure(TLayoutMap& lm)
 {
 	using namespace std;
-	
-	typedef typename TLayoutMap::template Types<TType>::Map::iterator iterator;
-	typedef typename TLayoutMap::template Types<TType>::Layout		Layout;
+
+	using iterator = typename TLayoutMap::template Types<TType>::Map::iterator;
+	using Layout = typename TLayoutMap::template Types<TType>::Layout;
 
 	PCLLOG("-- PCL_DEBUG: layout-map-structure --\n");
 	
-	for(iterator iter = lm.template layouts_begin<TType>();
-		iter != lm.template layouts_end<TType>(); ++iter)
+	for(iterator iter = lm.template layouts_begin<TType>(); iter != lm.template layouts_end<TType>(); ++iter)
 	{
 	//	get the key
 		PCLLOG("---- has key: " << iter->first << endl);

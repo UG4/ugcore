@@ -57,12 +57,12 @@ class IDomainDecompositionInfo
 		virtual int get_num_spatial_dimensions() const = 0;
 
 		virtual void get_subdomain_procs(std::vector<int>& procsOut,
-										int subdomIndex) = 0;
+										 int subdomIndex) = 0;
 	public:
 		// destructor
-		virtual ~IDomainDecompositionInfo() {};
+		virtual ~IDomainDecompositionInfo() = default;
 
-}; /* end class 'IDomainDecompositionInfo' */
+};
 
 class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 {
@@ -77,10 +77,10 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 		StandardDomainDecompositionInfo(int numSubdomains) :
 			m_num_subdomains(numSubdomains),
 			m_num_procs_per_subdomain(-1)
-			/*m_pDebugWriter(NULL)*/
+			/*m_pDebugWriter(nullptr)*/
 		{
-			if(numSubdomains > 0 && pcl::NumProcs() > 1)
-				m_num_procs_per_subdomain = pcl::NumProcs() / numSubdomains;
+			if(numSubdomains > 0 && NumProcs() > 1)
+				m_num_procs_per_subdomain = NumProcs() / numSubdomains;
 			else
 				m_num_procs_per_subdomain = -1;
 		}
@@ -92,33 +92,31 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 	 * \param[out] 	procID		id of processor
 	 * \return 		int			id of subdomain the processor operates on
 	 */
-		int map_proc_id_to_subdomain_id(int procID) const
-        {
+		int map_proc_id_to_subdomain_id(int procID) const override {
 			return procID / m_num_procs_per_subdomain;
         }
 
 		void set_num_subdomains(int numSubdomains) {
 			m_num_subdomains = numSubdomains;
 
-			if(numSubdomains > 0 && pcl::NumProcs() > 1)
-				m_num_procs_per_subdomain = pcl::NumProcs() / numSubdomains;
+			if(numSubdomains > 0 && NumProcs() > 1)
+				m_num_procs_per_subdomain = NumProcs() / numSubdomains;
 			else
 				m_num_procs_per_subdomain = -1;
 		}
 
-		int get_num_subdomains() const {return m_num_subdomains;}
+		int get_num_subdomains() const override {return m_num_subdomains;}
 
 		void set_num_spatial_dimensions(int dim) {
 			m_num_spatial_dimensions = dim;
 		}
 
-		int get_num_spatial_dimensions() const {return m_num_spatial_dimensions;}
+		int get_num_spatial_dimensions() const override {return m_num_spatial_dimensions;}
 
 		//int get_num_procs_per_subdomain() const {return m_num_procs_per_subdomain;}
 
-		virtual void get_subdomain_procs(std::vector<int>& procsOut,
-										int subdomIndex)
-		{
+		void get_subdomain_procs(std::vector<int>& procsOut,
+	                         int subdomIndex) override {
 			procsOut.resize(m_num_procs_per_subdomain);
 			int first = subdomIndex * m_num_procs_per_subdomain;
 			for(int i = 0; i < m_num_procs_per_subdomain; ++i)
@@ -127,7 +125,7 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 
 	public:
 		// destructor
-		~StandardDomainDecompositionInfo() {};
+		~StandardDomainDecompositionInfo() override = default;
 
 	protected:
 	// 	number of subdomains
@@ -139,7 +137,7 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 	// 	number of procs per subdomains
 		//std::vector<int> m_vnum_procs_per_subdomain; // as vector, for variable distribution of processors over subdomains
 		int m_num_procs_per_subdomain;
-}; /* end class 'StandardDomainDecompositionInfo' */
+};
 
 // end group pcl
 /// \}

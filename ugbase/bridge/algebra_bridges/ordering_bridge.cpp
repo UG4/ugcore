@@ -72,7 +72,7 @@ struct Functionality
  * available Algebra types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TAlgebra>
 static void Algebra(Registry& reg, string grp)
@@ -80,10 +80,10 @@ static void Algebra(Registry& reg, string grp)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
-	typedef std::vector<size_t> ordering_container_type;
+	using ordering_container_type = std::vector<size_t>;
 
 	{
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		using TBase = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 		string name = string("IOrderingAlgorithm").append(suffix);
 		reg.add_class_<TBase>(name, grp);
 		reg.add_class_to_group(name, "IOrderingAlgorithm", tag);
@@ -91,8 +91,8 @@ static void Algebra(Registry& reg, string grp)
 
 //	Boost Cuthill McKee
 	{
-		typedef BoostCuthillMcKeeOrdering<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		using T = BoostCuthillMcKeeOrdering<TAlgebra, ordering_container_type>;
+		using TBase = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 		string name = string("BoostCuthillMcKeeOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "BoostCuthillMcKeeOrdering")
 			.add_constructor()
@@ -103,8 +103,8 @@ static void Algebra(Registry& reg, string grp)
 
 //	Boost Minimum-Degree
 	{
-		typedef BoostMinimumDegreeOrdering<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		using T = BoostMinimumDegreeOrdering<TAlgebra, ordering_container_type>;
+		using TBase = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 		string name = string("BoostMinimumDegreeOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "BoostMinimumDegreeOrdering")
 			.add_constructor()
@@ -114,8 +114,8 @@ static void Algebra(Registry& reg, string grp)
 
 //	Native Cuthill McKee
 	{
-		typedef NativeCuthillMcKeeOrdering<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		using T = NativeCuthillMcKeeOrdering<TAlgebra, ordering_container_type>;
+		using TBase = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 		string name = string("NativeCuthillMcKeeOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "NativeCuthillMcKeeOrdering")
 			.add_constructor()
@@ -126,8 +126,8 @@ static void Algebra(Registry& reg, string grp)
 
 //	Topological - for cycle-free matrices only
 	{
-		typedef TopologicalOrdering<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		using T = TopologicalOrdering<TAlgebra, ordering_container_type>;
+		using TBase = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 		string name = string("TopologicalOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "TopologicalOrdering")
 			.add_constructor()
@@ -137,8 +137,8 @@ static void Algebra(Registry& reg, string grp)
 
 //	Strongly connected components ordering
 	{
-		typedef SCCOrdering<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		using T = SCCOrdering<TAlgebra, ordering_container_type>;
+		using TBase = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 		string name = string("SCCOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "SCCOrdering")
 			.add_constructor()
@@ -160,7 +160,7 @@ static void Algebra(Registry& reg, string grp)
 void RegisterBridge_AlgebraOrdering(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Ordering");
-	typedef Ordering::Functionality Functionality;
+	using Functionality = Ordering::Functionality;
 
 	try{
 		RegisterAlgebraDependent<Functionality>(reg,grp);

@@ -46,16 +46,16 @@ class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 {
 	public:
 	///	type of matrix
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	type of vector
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	///	type of matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	/// type of base
-		typedef IDebugWriter<TAlgebra> base_type;
+		using base_type = IDebugWriter<TAlgebra>;
 		using base_type::get_base_dir;
 
 	public:

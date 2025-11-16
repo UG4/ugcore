@@ -33,70 +33,75 @@
 #ifndef __H__PCL_reduce_traits
 #define __H__PCL_reduce_traits
 
+
 #include <algorithm>
+
+#include "common/error.h"
+
+#include "pcl_methods.h"
 
 namespace pcl {
 	
 ///	methods defined in those traits are used by ComPol_AttachmentReduce
-/**	A default implementation is provided which works for integer types*/
-template <class TValue>
+/**	A default implementation is provided which works for integer types */
+template <typename TValue>
 struct reduce_traits
 {
-	typedef TValue value_t;
-	static inline value_t min(value_t v1, value_t v2)	{return std::min(v1, v2);}
-	static inline value_t max(value_t v1, value_t v2)	{return std::max(v1, v2);}
-	static inline value_t sum(value_t v1, value_t v2)	{return v1 + v2;}
-	static inline value_t prod(value_t v1, value_t v2)	{return v1 * v2;}
-	static inline value_t land(value_t v1, value_t v2)	{return v1 && v2;}
-	static inline value_t band(value_t v1, value_t v2)	{return v1 & v2;}
-	static inline value_t lor(value_t v1, value_t v2)	{return v1 || v2;}
-	static inline value_t bor(value_t v1, value_t v2)	{return v1 | v2;}
+	using value_t = TValue;
+	static value_t min(value_t v1, value_t v2) {return std::min(v1, v2);}
+	static value_t max(value_t v1, value_t v2) {return std::max(v1, v2);}
+	static value_t sum(value_t v1, value_t v2) {return v1 + v2;}
+	static value_t prod(value_t v1, value_t v2) {return v1 * v2;}
+	static value_t land(value_t v1, value_t v2) {return v1 && v2;}
+	static value_t band(value_t v1, value_t v2) {return v1 & v2;}
+	static value_t lor(value_t v1, value_t v2) {return v1 || v2;}
+	static value_t bor(value_t v1, value_t v2) {return v1 | v2;}
 };
 
-/**	Specialization for float. No band and bor operations are supported.*/
+/**	Specialization for float. No band and bor operations are supported. */
 template <>
 struct reduce_traits<float>
 {
-	typedef float value_t;
-	static inline value_t min(value_t v1, value_t v2)	{return std::min(v1, v2);}
-	static inline value_t max(value_t v1, value_t v2)	{return std::max(v1, v2);}
-	static inline value_t sum(value_t v1, value_t v2)	{return v1 + v2;}
-	static inline value_t prod(value_t v1, value_t v2)	{return v1 * v2;}
-	static inline value_t land(value_t v1, value_t v2)	{return v1 && v2;}
-	static inline value_t band(value_t v1, value_t v2)	{UG_THROW("floats do not support a binary and operation.");}
-	static inline value_t lor(value_t v1, value_t v2)	{return v1 || v2;}
-	static inline value_t bor(value_t v1, value_t v2)	{UG_THROW("floats do not support a binary or operation.");}
+	using value_t = float;
+	static value_t min(value_t v1, value_t v2) {return std::min(v1, v2);}
+	static value_t max(value_t v1, value_t v2) {return std::max(v1, v2);}
+	static value_t sum(value_t v1, value_t v2) {return v1 + v2;}
+	static value_t prod(value_t v1, value_t v2) {return v1 * v2;}
+	static value_t land(value_t v1, value_t v2) {return v1 && v2;}
+	static value_t band(value_t v1, value_t v2) {UG_THROW("floats do not support a binary and operation.");}
+	static value_t lor(value_t v1, value_t v2) {return v1 || v2;}
+	static value_t bor(value_t v1, value_t v2) {UG_THROW("floats do not support a binary or operation.");}
 };
 
-/**	Specialization for double. No band and bor operations are supported.*/
+/**	Specialization for double. No band and bor operations are supported. */
 template <>
 struct reduce_traits<double>
 {
-	typedef double value_t;
-	static inline value_t min(value_t v1, value_t v2)	{return std::min(v1, v2);}
-	static inline value_t max(value_t v1, value_t v2)	{return std::max(v1, v2);}
-	static inline value_t sum(value_t v1, value_t v2)	{return v1 + v2;}
-	static inline value_t prod(value_t v1, value_t v2)	{return v1 * v2;}
-	static inline value_t land(value_t v1, value_t v2)	{return v1 && v2;}
-	static inline value_t band(value_t v1, value_t v2)	{UG_THROW("doubles do not support a binary and operation.");}
-	static inline value_t lor(value_t v1, value_t v2)	{return v1 || v2;}
-	static inline value_t bor(value_t v1, value_t v2)	{UG_THROW("doubles do not support a binary or operation.");}
+	using value_t = double;
+	static value_t min(value_t v1, value_t v2) {return std::min(v1, v2);}
+	static value_t max(value_t v1, value_t v2) {return std::max(v1, v2);}
+	static value_t sum(value_t v1, value_t v2) {return v1 + v2;}
+	static value_t prod(value_t v1, value_t v2) {return v1 * v2;}
+	static value_t land(value_t v1, value_t v2) {return v1 && v2;}
+	static value_t band(value_t v1, value_t v2) {UG_THROW("doubles do not support a binary and operation.");}
+	static value_t lor(value_t v1, value_t v2) {return v1 || v2;}
+	static value_t bor(value_t v1, value_t v2) {UG_THROW("doubles do not support a binary or operation.");}
 };
 
 
-template <class T>
+template <typename T>
 class Reducer {
 public:
 	Reducer (ReduceOperation rop)
 	{
-		if(rop == MPI_MIN)			m_op = &reduce_traits<T>::min;
-		else if(rop == MPI_MAX)		m_op = &reduce_traits<T>::max;
-		else if(rop == MPI_SUM)		m_op = &reduce_traits<T>::sum;
-		else if(rop == MPI_PROD)	m_op = &reduce_traits<T>::prod;
-		else if(rop == MPI_LAND)	m_op = &reduce_traits<T>::land;
-		else if(rop == MPI_BAND)	m_op = &reduce_traits<T>::band;
-		else if(rop == MPI_LOR)		m_op = &reduce_traits<T>::lor;
-		else if(rop == MPI_BOR)		m_op = &reduce_traits<T>::bor;
+		if(rop == MPI_MIN) m_op = &reduce_traits<T>::min;
+		else if(rop == MPI_MAX) m_op = &reduce_traits<T>::max;
+		else if(rop == MPI_SUM) m_op = &reduce_traits<T>::sum;
+		else if(rop == MPI_PROD) m_op = &reduce_traits<T>::prod;
+		else if(rop == MPI_LAND) m_op = &reduce_traits<T>::land;
+		else if(rop == MPI_BAND) m_op = &reduce_traits<T>::band;
+		else if(rop == MPI_LOR) m_op = &reduce_traits<T>::lor;
+		else if(rop == MPI_BOR) m_op = &reduce_traits<T>::bor;
 		else {UG_THROW ("Unsupported reduce operation: " << rop)};
 	}
 

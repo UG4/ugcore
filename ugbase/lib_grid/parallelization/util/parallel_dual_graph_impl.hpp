@@ -44,7 +44,7 @@ template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
 ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 ParallelDualGraph(MultiGrid* pmg) :
 	m_procCom(pcl::PCD_EMPTY),
-	m_pMG(NULL)
+	m_pMG(nullptr)
 {
 	if(pmg)
 		set_grid(pmg);
@@ -158,10 +158,10 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 	UG_ASSERT(m_pMG, "A MultiGrid has to be set!");
 
 	using namespace std;
-	typedef TGeomBaseObj Elem;
-	typedef TConnectingObj ConElem;
-	typedef typename geometry_traits<Elem>::iterator ElemIterator;
-	typedef typename geometry_traits<ConElem>::iterator ConElemIterator;
+	using Elem = TGeomBaseObj;
+	using ConElem = TConnectingObj;
+	using ElemIterator = typename geometry_traits<Elem>::iterator;
+	using ConElemIterator = typename geometry_traits<ConElem>::iterator;
 
 	MultiGrid& mg = *m_pMG;
 	Grid::AttachmentAccessor<TGeomBaseObj, AElemIndex>& aaInd = m_aaElemIndex;
@@ -228,7 +228,7 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 	}
 
 //	communicate connected elements between horizontal interfaces on this level
-	typedef typename GridLayoutMap::Types<ConElem>::Layout::LevelLayout Layout;
+	using Layout = typename GridLayoutMap::Types<ConElem>::Layout::LevelLayout;
 	pcl::InterfaceCommunicator<Layout> com;
 
 	ComPol_GatherVecAttachment<Layout, AElemIndices> compolGather(mg, m_aElemIndices);

@@ -167,7 +167,7 @@ const int FACE_FROM_EDGES[][8] =
  * 			could not be performed.
  */
 int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
-		   vector3* corners = NULL, bool* isSnapPoint = NULL);
+		   vector3* corners = nullptr, bool* isSnapPoint = nullptr);
 
 
 ///	returns true if the specified edgeMarks would lead to a regular refinement

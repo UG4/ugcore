@@ -47,21 +47,21 @@ class IElemDiscModifier
 
 	protected:
 	///	own type
-		typedef IElemDiscModifier<TDomain> this_type;
+		using this_type = IElemDiscModifier<TDomain>;
 
 	public:
 	///	World dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 
 	public:
 	///	Constructor (setting default values)
 	/// \{
-		IElemDiscModifier(): m_pElemDisc(NULL){};
+		IElemDiscModifier(): m_pElemDisc(nullptr){};
 		IElemDiscModifier(IElemDisc<TDomain>* myElemDisc) : m_pElemDisc(myElemDisc) {};
 	 /// \}
 
 	/// Virtual destructor
-		virtual ~IElemDiscModifier(){}
+		virtual ~IElemDiscModifier()= default;
 
 
 	/// virtual initiates pre-computations before the standard element assembling

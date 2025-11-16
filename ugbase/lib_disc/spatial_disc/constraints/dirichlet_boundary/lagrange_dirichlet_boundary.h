@@ -50,37 +50,37 @@
 
 namespace ug{
 
-template <	typename TDomain, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class DirichletBoundary
 	: public IDomainConstraint<TDomain, TAlgebra>
 {
 	public:
 	///	Base Type
-		typedef IDomainConstraint<TDomain, TAlgebra> base_type;
+		using base_type = IDomainConstraint<TDomain, TAlgebra>;
 
 	///	Type of domain
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	///	world Dimension
-		static const int dim = domain_type::dim;
+		static constexpr int dim = domain_type::dim;
 
 	///	Type of position coordinates (e.g. position_type)
-		typedef typename domain_type::position_type position_type;
+		using position_type = typename domain_type::position_type;
 
 	///	Type of algebra
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	/// Type of value type
-		typedef typename matrix_type::value_type value_type;
+		using value_type = typename matrix_type::value_type;
 
 	/// error estimator type
-		typedef MultipleSideAndElemErrEstData<TDomain> err_est_type;
+		using err_est_type = MultipleSideAndElemErrEstData<TDomain>;
 
 
 	public:
@@ -91,7 +91,7 @@ class DirichletBoundary
 		DirichletBoundary()
 			:	m_bInvertSubsetSelection(false),
 				m_bDirichletColumns(false),
-				m_A(NULL) 
+				m_A(nullptr)
 #ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
 		 , m_bAdjustTransfers(true)
 #endif
@@ -101,7 +101,7 @@ class DirichletBoundary
 		DirichletBoundary(bool DirichletColumns)
 			:	m_bInvertSubsetSelection(false),
 				m_bDirichletColumns(DirichletColumns),
-				m_A(NULL) 
+				m_A(nullptr)
 #ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
 		 , m_bAdjustTransfers(true)
 #endif
@@ -112,7 +112,7 @@ class DirichletBoundary
 		DirichletBoundary(bool DirichletColumns, bool bAdjustTransfers)
 			:	m_bInvertSubsetSelection(false),
 				m_bDirichletColumns(DirichletColumns),
-				m_A(NULL),
+				m_A(nullptr),
 				m_bAdjustTransfers(bAdjustTransfers)
 
 			{clear();}
@@ -184,15 +184,15 @@ class DirichletBoundary
 	/// sets a unity row for all dirichlet indices
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
-                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
+                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
 							 const number s_a0 = 1.0);
 
 	/// sets a zero value in the defect for all dirichlet indices
 		void adjust_defect(vector_type& d, const vector_type& u,
 		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
-                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
-						   const std::vector<number>* vScaleMass = NULL,
-						   const std::vector<number>* vScaleStiff = NULL);
+                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
+						   const std::vector<number>* vScaleMass = nullptr,
+						   const std::vector<number>* vScaleStiff = nullptr);
 
 	/// sets the dirichlet value in the solution for all dirichlet indices
 		void adjust_solution(vector_type& u,
@@ -213,9 +213,9 @@ class DirichletBoundary
 	/// @copydoc IConstraint::adjust_error()
 		virtual void adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type,
 								  number time = 0.0,
-								  ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
-								  const std::vector<number>* vScaleMass = NULL,
-								  const std::vector<number>* vScaleStiff = NULL);
+								  ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
+								  const std::vector<number>* vScaleMass = nullptr,
+								  const std::vector<number>* vScaleStiff = nullptr);
 
 	///	sets constraints in prolongation
 		virtual void adjust_prolongation(matrix_type& P,
@@ -336,10 +336,10 @@ class DirichletBoundary
 	///	grouping for subset and non-conditional data
 		struct NumberData
 		{
-			const static bool isConditional = false;
-			const static bool setSolValue = true;
-			const static size_t numFct = 1;
-			typedef MathVector<1> value_type;
+			static constexpr bool isConditional = false;
+			static constexpr bool setSolValue = true;
+			static constexpr size_t numFct = 1;
+			using value_type = MathVector<1>;
 			NumberData(SmartPtr<UserData<number, dim> > functor_,
 			           std::string fctName_, std::string ssName_)
 				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
@@ -361,10 +361,10 @@ class DirichletBoundary
 	///	grouping for subset and conditional data
 		struct CondNumberData
 		{
-			const static bool isConditional = true;
-			const static bool setSolValue = true;
-			const static size_t numFct = 1;
-			typedef MathVector<1> value_type;
+			static constexpr bool isConditional = true;
+			static constexpr bool setSolValue = true;
+			static constexpr size_t numFct = 1;
+			using value_type = MathVector<1>;
 			CondNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
 			              std::string fctName_, std::string ssName_)
 				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
@@ -385,10 +385,10 @@ class DirichletBoundary
 	///	grouping for subset and constant data
 		struct ConstNumberData
 		{
-			const static bool isConditional = false;
-			const static bool setSolValue = true;
-			const static size_t numFct = 1;
-			typedef MathVector<1> value_type;
+			static constexpr bool isConditional = false;
+			static constexpr bool setSolValue = true;
+			static constexpr size_t numFct = 1;
+			using value_type = MathVector<1>;
 			ConstNumberData(number value_,
 			              std::string fctName_, std::string ssName_)
 				: functor(value_), fctName(fctName_), ssName(ssName_)
@@ -409,10 +409,10 @@ class DirichletBoundary
 	///	grouping for subset and non-conditional vector data
 		struct VectorData
 		{
-			const static bool isConditional = false;
-			const static bool setSolValue = true;
-			const static size_t numFct = dim;
-			typedef MathVector<dim> value_type;
+			static constexpr bool isConditional = false;
+			static constexpr bool setSolValue = true;
+			static const size_t numFct = dim;
+			using value_type = MathVector<dim>;
 			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > value_,
 			           std::string fctName_, std::string ssName_)
 				: spFunctor(value_), fctName(fctName_), ssName(ssName_)
@@ -433,10 +433,10 @@ class DirichletBoundary
 	///	grouping for subset and the data already stored in the solution
 		struct OldNumberData
 		{
-			const static bool isConditional = false;
-			const static bool setSolValue = false;
-			const static size_t numFct = 1;
-			typedef MathVector<1> value_type;
+			static constexpr bool isConditional = false;
+			static constexpr bool setSolValue = false;
+			static constexpr size_t numFct = 1;
+			using value_type = MathVector<1>;
 			OldNumberData(std::string fctName_, std::string ssName_)
 				: fctName(fctName_), ssName(ssName_)
 			{}

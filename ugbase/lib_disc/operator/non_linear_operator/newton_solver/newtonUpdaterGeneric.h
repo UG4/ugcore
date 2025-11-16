@@ -79,14 +79,14 @@ public:
 // und dann muss es soweit registriert werden, wie es noetig ist, damit man von aussen zu greifen kann
 // und die abgeleiteten Klassen brauchen ggf einen Konstruktor und so weiter
 ///	Vector type
-//typedef typename TAlgebra::vector_type vector_type;
+// using vector_type = typename TAlgebra::vector_type;
 
 //	using vector_type = TVector; // typename TAlgebra::vector_type;
 //	using vec_typ_val_typ = typename vector_type::value_type;
 
-//typedef TVector vector_type; // typename TAlgebra::vector_type;
-//typedef typename vector_type::value_type vec_typ_val_typ;
-//typedef typename vector_type::value_type value_type;
+// using vector_type = TVector; // typename TAlgebra::vector_type;
+// using vec_typ_val_typ = typename vector_type::value_type;
+// using value_type = typename vector_type::value_type;
 
 //	template <typename VecTyp> //, typename ScalTyp >
 //	template <typename ScalTyp> //, typename ScalTyp >
@@ -111,7 +111,7 @@ public:
 		// 	Standard: try on line u := u - lambda*p
 		//	VecScaleAdd(u, 1.0, u, (-1)*lambda, p);
 
-//		typedef typename vector_type::size_type size_type;
+// using size_type = typename vector_type::size_type;
 ////	    using size_type = typename vector_type::size_type;
 //
 //		for(size_type i = 0; i < solNew.size(); ++i)

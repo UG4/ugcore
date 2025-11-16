@@ -147,7 +147,7 @@ void OrderDirectionYForDofDist(SmartPtr<DoFDistribution> dd,
 		}
 
 	//	get position attachment
-		typedef typename std::pair<MathVector<TDomain::dim>, size_t> pos_type;
+		using pos_type = std::pair<MathVector<TDomain::dim>, size_t>;
 
 	//	get positions of indices
 		std::vector<pos_type> vPositions;
@@ -256,7 +256,7 @@ void OrderDirectionZForDofDist(SmartPtr<DoFDistribution> dd,
 		}
 
 	//	get position attachment
-		typedef typename std::pair<MathVector<TDomain::dim>, size_t> pos_type;
+		using pos_type = std::pair<MathVector<TDomain::dim>, size_t>;
 
 	//	get positions of indices
 		std::vector<pos_type> vPositions;
@@ -366,22 +366,22 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 {
 	public:
 	///	Domain
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 		
 	//	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	//	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	//	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+		using base_type = IPreconditioner<TAlgebra>;
 
 	protected:
 		using base_type::set_debug;
@@ -405,7 +405,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 		size_t m_nr_backwardz;
 
 		///	world dimension
-		static const int dim = domain_type::dim;
+		static constexpr int dim = domain_type::dim;
 
 		bool m_init;
 
@@ -706,22 +706,22 @@ class LineVanka : public IPreconditioner<TAlgebra>
 {
 	public:
 	///	Domain
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 		
 	//	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	//	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	//	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+		using base_type = IPreconditioner<TAlgebra>;
 
 	protected:
 		using base_type::set_debug;
@@ -745,7 +745,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		size_t m_nr_backwardz;
 
 		///	world dimension
-		static const int dim = domain_type::dim;
+		static constexpr int dim = domain_type::dim;
 
 		bool m_init;
 	
@@ -922,7 +922,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		DenseVector< VariableArray1<number> > localx;
 		DenseMatrix< VariableArray2<number> > mat;
 		
-		static const int MAXBLOCKSIZE = 19;
+		static constexpr int MAXBLOCKSIZE = 19;
 		size_t blockind[MAXBLOCKSIZE];
 		size_t blocksize;
 		// gs LL has preconditioning matrix

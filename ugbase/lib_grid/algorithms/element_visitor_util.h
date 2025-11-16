@@ -73,8 +73,8 @@ void VisitAreaBoundary(Grid& g, const TIter begin, const TIter end,
 		      boost::function<bool (typename TIter::value_type)> cbBelongsToArea,
 			  boost::function<void (typename Pointer2Value<typename TIter::value_type>::type::side)> cbVisitSide)
 {
-	typedef typename Pointer2Value<typename TIter::value_type>::type	TElem;
-	typedef typename TElem::side										TSide;
+	using TElem =  typename Pointer2Value<typename TIter::value_type>::type;
+	using TSide = typename TElem::side;
 
 	g.begin_marking();
 

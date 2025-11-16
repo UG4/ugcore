@@ -100,7 +100,7 @@ class IRefMarkAdjuster
 		bool	m_nodeDependencyOrder1;
 };
 
-typedef SmartPtr<IRefMarkAdjuster>	SPIRefMarkAdjuster;
+using SPIRefMarkAdjuster = SmartPtr<IRefMarkAdjuster>;
 
 /// @}
 

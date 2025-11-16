@@ -65,7 +65,7 @@ UG_API const std::vector<const char*> *GetClassNames(lua_State *L, int index);
 /**
  * \param L 		the lua state
  * \param name		the name of the lua object
- * \return the class names of the object or NULL if not found
+ * \return the class names of the object or nullptr if not found
  */
 UG_API const std::vector<const char*> *GetClassNames(lua_State* L, const char *name);
 
@@ -87,7 +87,7 @@ UG_API std::string LuaClassMethodInfo(lua_State *L, int index, const ExportedMet
  * \param bComplete		if complete, we print the source code of the function
  * \return 0
  */
-UG_API std::string FunctionInfo(lua_State *L, bool bComplete, const char *functionName=NULL);
+UG_API std::string FunctionInfo(lua_State *L, bool bComplete, const char *functionName=nullptr);
 
 UG_API int UGTypeInfo(const char *p);
 

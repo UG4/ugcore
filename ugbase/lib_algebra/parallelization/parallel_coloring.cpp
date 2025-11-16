@@ -59,7 +59,7 @@ int ParallelColoring::color(pcl::InterfaceCommunicator<IndexLayout> &com)
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	// 1. send all neighbors our number of neighbors
 	size_t myDegree = pids.size();
-	typedef std::set<int>::iterator setiterator;
+	using setiterator = std::set<int>::iterator;
 	std::map<int, size_t> othersDegree;
 	UG_DLOG(DBG_COLORING, 1, "my degree is " << myDegree);
 	UG_DLOG(DBG_COLORING, 1, "sending degree data to ");

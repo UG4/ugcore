@@ -49,11 +49,11 @@ template<class AT, class ST>
 class ScalarVectorAdapter{
 
 public:
-	typedef typename AT::vector_type encapsulated_vector_type;
-	typedef typename ST::vector_type::value_type value_type;
-	static const int blockSize = AT::blockSize;
+	using encapsulated_vector_type = typename AT::vector_type;
+	using value_type = typename ST::vector_type::value_type;
+	static constexpr int blockSize = AT::blockSize;
 
-	//typedef typename ST::vector_type::const_row_iterator const_row_iterator;
+	//using const_row_iterator = typename ST::vector_type::const_row_iterator;
 
 	ScalarVectorAdapter(encapsulated_vector_type& vec) : m_src(vec) {};
 
@@ -70,7 +70,7 @@ public:
 	{
 		m_src.reserve_exactly(newCapacity/blockSize, bCopyValues);
 	}
-	void print(const char * const text = NULL) const
+	void print(const char * const text = nullptr) const
 	{
 		m_src.print(text);
 	}

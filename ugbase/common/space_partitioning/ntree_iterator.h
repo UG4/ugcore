@@ -42,14 +42,14 @@ template <class elem_t, class entry_t>
 class const_ntree_element_iterator
 {
 	public:
-		typedef const_ntree_element_iterator	this_type;
-		typedef std::forward_iterator_tag		iterator_category;
-		typedef size_t							difference_type;
-		typedef elem_t*							pointer;
-		typedef elem_t							value_type;
-		typedef value_type&						reference;
+		using this_type = const_ntree_element_iterator;
+		using iterator_category = std::forward_iterator_tag;
+		using difference_type = size_t;
+		using pointer = elem_t*;
+		using value_type = elem_t;
+		using reference = value_type&;
 
-		const_ntree_element_iterator() : m_entries(NULL), m_entryInd(s_invalidIndex)	{}
+		const_ntree_element_iterator() : m_entries(nullptr), m_entryInd(s_invalidIndex)	{}
 		const_ntree_element_iterator(const entry_t* entries, size_t entryInd) :
 			m_entries(entries), m_entryInd(entryInd)	{}
 
@@ -79,7 +79,7 @@ class const_ntree_element_iterator
 		}
 
 	///	marks an index as invalid
-		static const size_t s_invalidIndex = -1;
+		static constexpr size_t s_invalidIndex = -1;
 
 		const entry_t*	m_entries;
 		size_t			m_entryInd;

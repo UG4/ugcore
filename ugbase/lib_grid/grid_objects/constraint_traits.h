@@ -42,44 +42,44 @@ namespace ug{
  * grid object types to a given grid object type.*/
 template <class TElem>
 struct constraint_traits{
-	typedef TElem	elem_t;
-	typedef void	constrained_t;
-	typedef void	constraining_t;
+	using elem_t = TElem;
+	using constrained_t = void;
+	using constraining_t = void;
 };
 
 template <>
 struct constraint_traits<Vertex>{
-	typedef Vertex				elem_t;
-	typedef ConstrainedVertex	constrained_t;
-	typedef void				constraining_t;
+	using elem_t = Vertex;
+	using constrained_t = ConstrainedVertex;
+	using constraining_t = void;
 };
 
 template <>
 struct constraint_traits<Edge>{
-	typedef Edge				elem_t;
-	typedef ConstrainedEdge		constrained_t;
-	typedef ConstrainingEdge	constraining_t;
+	using elem_t = Edge;
+	using constrained_t = ConstrainedEdge;
+	using constraining_t = ConstrainingEdge;
 };
 
 template <>
 struct constraint_traits<Face>{
-	typedef Face				elem_t;
-	typedef ConstrainedFace		constrained_t;
-	typedef ConstrainingFace	constraining_t;
+	using elem_t = Face;
+	using constrained_t = ConstrainedFace;
+	using constraining_t = ConstrainingFace;
 };
 
 template <>
 struct constraint_traits<Triangle>{
-	typedef Triangle				elem_t;
-	typedef ConstrainedTriangle		constrained_t;
-	typedef ConstrainingTriangle	constraining_t;
+	using elem_t = Triangle;
+	using constrained_t = ConstrainedTriangle;
+	using constraining_t = ConstrainingTriangle;
 };
 
 template <>
 struct constraint_traits<Quadrilateral>{
-	typedef Quadrilateral				elem_t;
-	typedef ConstrainedQuadrilateral	constrained_t;
-	typedef ConstrainingQuadrilateral	constraining_t;
+	using elem_t = Quadrilateral;
+	using constrained_t = ConstrainedQuadrilateral;
+	using constraining_t = ConstrainingQuadrilateral;
 };
 
 }//	end of namespace

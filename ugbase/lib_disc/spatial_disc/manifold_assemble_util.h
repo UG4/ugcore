@@ -59,7 +59,7 @@ namespace ug {
 template <typename TElem>
 static void MarkAllElemsForAssemblyButHSlaves(Grid& grid, BoolMarker& bMarker)
 {
-	typedef typename Grid::traits<TElem>::iterator ElemIter;
+	using ElemIter = typename Grid::traits<TElem>::iterator;
 
 //	Loop all elements and unmark H slaves
 	for(ElemIter eIter = grid.begin<TElem>(); eIter != grid.end<TElem>(); ++eIter)

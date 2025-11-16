@@ -641,9 +641,9 @@ int CollapseEdge (int* newIndsOut, int v0, int v1)
 
 bool IsRegularRefRule(const int edgeMarks)
 {
-	static const int allEdges = 511;	// 0b111111111
-	static const int allHEdges = 455;	// 0b111000111
-	static const int allVEdges = 56;	// 0b000111000
+	static constexpr int allEdges = 511;	// 0b111111111
+	static constexpr int allHEdges = 455;	// 0b111000111
+	static constexpr int allVEdges = 56;	// 0b000111000
 
 	return		(edgeMarks == allEdges)
 			||	(edgeMarks == allHEdges)

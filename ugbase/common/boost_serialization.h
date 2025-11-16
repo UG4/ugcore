@@ -50,7 +50,7 @@
  * the base class nevertheless.*/
 #define UG_EMPTY_BASE_CLASS_SERIALIZATION( clsDerived, clsBase)\
 		boost::serialization::void_cast_register<clsDerived, clsBase>(\
-				static_cast<clsDerived *>(NULL), static_cast<clsBase *>(NULL));
+				static_cast<clsDerived *>(nullptr), static_cast<clsBase *>(nullptr));
 
 namespace ug{
 
@@ -69,7 +69,7 @@ enum ArchiveType {
 ///	Provides custom information for different archives
 template <class TArchive>
 struct ArchiveInfo {
-	static const ArchiveType TYPE = AT_DATA;
+	static constexpr ArchiveType TYPE = AT_DATA;
 };
 
 

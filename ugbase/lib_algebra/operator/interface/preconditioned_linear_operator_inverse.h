@@ -63,13 +63,13 @@ class IPreconditionedLinearOperatorInverse
 {
 	public:
 	///	Domain space
-		typedef X domain_function_type;
+		using domain_function_type = X;
 
 	///	Range space
-		typedef X codomain_function_type;
+		using codomain_function_type = X;
 
 	///	Base class
-		typedef ILinearOperatorInverse<X,X> base_type;
+		using base_type = ILinearOperatorInverse<X,X>;
 
 	protected:
 		using base_type::linear_operator;
@@ -83,7 +83,7 @@ class IPreconditionedLinearOperatorInverse
 	public:
 	///	Empty constructor
 		IPreconditionedLinearOperatorInverse()
-			: m_bRecompute(false), m_spPrecond(NULL)
+			: m_bRecompute(false), m_spPrecond(nullptr)
 #ifdef DEBUG_FOR_AMG
 , m_amgDebug(0)
 #endif

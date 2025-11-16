@@ -93,11 +93,11 @@ static RefinementMark StringToRefinementMark(std::string markType)
 ////////////////////////////////////////////////////////////////////////////////
 ///	Factory method, that creates a global subdivision domain refiner.
 /**	Automatically chooses whether a parallel refiner is required.*/
-template <class TDomain>
+template <typename TDomain>
 static SmartPtr<GlobalSubdivisionMultiGridRefiner<typename TDomain::position_attachment_type> >
 GlobalSubdivisionDomainRefiner(TDomain* dom, const char* linearManifoldSubsets, bool constrained)
 {
-	typedef typename TDomain::position_attachment_type position_attachment_type;
+	using position_attachment_type = typename TDomain::position_attachment_type;
 
 //	Check if mandatory manifold marks exist in the given domain grid
 	try{
@@ -108,7 +108,7 @@ GlobalSubdivisionDomainRefiner(TDomain* dom, const char* linearManifoldSubsets, 
 			 "Please mark all surface manifold elements in the current multigrid.");
 
 //	Linear manifold subset handler management: check for optional specification by user
-	MGSubsetHandler* linearManifoldSH = NULL;
+	MGSubsetHandler* linearManifoldSH = nullptr;
 	if(linearManifoldSubsets[0] != '\0'){
 		try{
 			dom->additional_subset_handler("linearManifoldSH");
@@ -126,7 +126,7 @@ GlobalSubdivisionDomainRefiner(TDomain* dom, const char* linearManifoldSubsets, 
 	}
 
 //	Instantiation of GlobalSubdivisionMultiGridRefiner object
-	GlobalSubdivisionMultiGridRefiner<position_attachment_type>* ref = NULL;
+	GlobalSubdivisionMultiGridRefiner<position_attachment_type>* ref = nullptr;
 	#ifdef UG_PARALLEL
 		if(pcl::NumProcs() > 1){
 			ref = new ParallelGlobalSubdivisionRefiner<position_attachment_type>(
@@ -216,7 +216,7 @@ CreateGlobalFracturedDomainRefiner(TDomain* dom)
 				 	   "Construct the domain with isAdaptive enabled.");
 	}
 
-	GlobalFracturedMediaRefiner* ref = NULL;
+	GlobalFracturedMediaRefiner* ref = nullptr;
 	#ifdef UG_PARALLEL
 		if(pcl::NumProcs() > 1){
 			ref = new ParallelGlobalFracturedMediaRefiner(
@@ -241,7 +241,7 @@ CreateGlobalFracturedDomainRefiner(TDomain* dom)
  * domain is used to obtain the used position attachment.
  *
  * \note	ref has to be derived from HangingNodeRefinerBase*/
-template <class TDomain>
+template <typename TDomain>
 static SPIRefMarkAdjuster
 AddHorizontalAnisotropyAdjuster(IRefiner* ref, TDomain* dom)
 {
@@ -360,13 +360,13 @@ static void MarkForRefinement_AllAnisotropic(SmartPtr<IRefiner> ref)
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all vertices in the given d-dimensional sphere.
-template <class TDomain>
+template <typename TDomain>
 void MarkForAdaption_VerticesInSphereMaxLvl(TDomain& dom, SmartPtr<IRefiner> refiner,
                                       const typename TDomain::position_type& center,
                                       number radius, std::string markType, int maxLvl)
 {
 	PROFILE_FUNC_GROUP("grid");
-	typedef typename TDomain::position_accessor_type	position_accessor_type;
+	using position_accessor_type = typename TDomain::position_accessor_type;
 
 	RefinementMark rmMark = StringToRefinementMark(markType);
 
@@ -376,7 +376,7 @@ void MarkForAdaption_VerticesInSphereMaxLvl(TDomain& dom, SmartPtr<IRefiner> ref
 					"Refiner was not created for the specified domain. Aborting."));
 	}
 
-	typedef typename TDomain::grid_type TGrid;
+	using TGrid = typename TDomain::grid_type;
 
 	Grid& grid = *refiner->get_associated_grid();
 	TGrid& g = *dom.grid();
@@ -436,8 +436,8 @@ void MarkForRefinement_ElementsInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 									number radius)
 {
 	PROFILE_FUNC_GROUP("grid");
-	typedef typename TDomain::position_accessor_type	position_accessor_type;
-	typedef typename geometry_traits<TElem>::iterator	ElemIter;
+	using position_accessor_type = typename TDomain::position_accessor_type;
+	using ElemIter = typename geometry_traits<TElem>::iterator;
 
 //	make sure that the refiner was created for the given domain
 	if(refiner->get_associated_grid() != dom.grid().get()){
@@ -491,8 +491,8 @@ void MarkForAdaption_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 									std::string markType)
 {
 	PROFILE_FUNC_GROUP("grid");
-	typedef typename TDomain::position_type 			position_type;
-	typedef typename TDomain::position_accessor_type	position_accessor_type;
+	using position_type = typename TDomain::position_type;
+	using position_accessor_type = typename TDomain::position_accessor_type;
 
 	RefinementMark rmMark = StringToRefinementMark(markType);
 
@@ -555,8 +555,8 @@ void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 	UG_ASSERT(dom.grid().get() == refiner.get_associated_grid(),
 			  "Grids in domain and in refiner have to match!");
 
-	typedef typename domain_traits<TDomain::dim>::element_type	elem_t;
-	typedef typename MultiGrid::traits<elem_t>::iterator iter_t;
+	using elem_t = typename domain_traits<TDomain::dim>::element_type;
+	using iter_t = typename MultiGrid::traits<elem_t>::iterator;
 
 	typename TDomain::position_accessor_type aaPos = dom.position_accessor();
 	MultiGrid& mg = *dom.grid();
@@ -613,7 +613,7 @@ void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 // 											number sizeRatio)
 // {
 // 	PROFILE_FUNC_GROUP("grid");
-// 	typedef typename TDomain::position_accessor_type	position_accessor_type;
+// using position_accessor_type = typename TDomain::position_accessor_type;
 
 // //	make sure that the refiner was created for the given domain
 // 	if(refiner->get_associated_grid() != dom.grid().get()){
@@ -866,7 +866,7 @@ void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 // 												number sizeRatio)
 // {
 // 	PROFILE_FUNC_GROUP("grid");
-// 	typedef typename TDomain::position_accessor_type	position_accessor_type;
+// using position_accessor_type = typename TDomain::position_accessor_type;
 
 // //	make sure that the refiner was created for the given domain
 // 	if(refiner->get_associated_grid() != dom.grid().get()){
@@ -926,8 +926,8 @@ void AssignSubset_VerticesInCube(TDomain& dom,
 									const typename TDomain::position_type& min,
 									const typename TDomain::position_type& max, int si)
 {
-	typedef typename TDomain::position_type 			position_type;
-	typedef typename TDomain::position_accessor_type	position_accessor_type;
+	using position_type = typename TDomain::position_type;
+	using position_accessor_type = typename TDomain::position_accessor_type;
 
 	Grid& grid = *dom.grid();
 	position_accessor_type& aaPos = dom.position_accessor();
@@ -964,8 +964,8 @@ void AssignSubset_VerticesInSphere(TDomain& dom,
 									const typename TDomain::position_type& center,
 									const number radius, int si)
 {
-	typedef typename TDomain::position_type 			position_type;
-	typedef typename TDomain::position_accessor_type	position_accessor_type;
+	using position_type = typename TDomain::position_type;
+	using position_accessor_type = typename TDomain::position_accessor_type;
 
 	Grid& grid = *dom.grid();
 	position_accessor_type& aaPos = dom.position_accessor();
@@ -1039,13 +1039,13 @@ void MarkForRefinement_CloseToSurface(TDomain& dom, SmartPtr<IRefiner> refiner,
 										const TDomain& surfaceDomain)
 {
 	PROFILE_FUNC();
-	typedef typename TDomain::grid_type TGrid;
-	//typedef typename TDomain::subset_handler_type TSubsetHandler;
-	typedef typename TDomain::position_type TPos;
-	typedef typename TDomain::position_accessor_type TAAPos;
-	typedef typename domain_traits<TDomain::dim>::element_type TElem;
-	typedef typename domain_traits<TDomain::dim>::side_type TSide;
-	typedef typename TGrid::template traits<TElem>::iterator TIter;
+	using TGrid = typename TDomain::grid_type;
+	//using TSubsetHandler = typename TDomain::subset_handler_type;
+	using TPos = typename TDomain::position_type;
+	using TAAPos = typename TDomain::position_accessor_type;
+	using TElem = typename domain_traits<TDomain::dim>::element_type;
+	using TSide = typename domain_traits<TDomain::dim>::side_type;
+	using TIter = typename TGrid::template traits<TElem>::iterator;
 
 	TGrid& g = *dom.grid();
 	//TSubsetHandler& sh = *dom.subset_handler();
@@ -1105,13 +1105,13 @@ void MarkForRefinement_ContainsSurfaceNode(TDomain& dom, SmartPtr<IRefiner> refi
 										const TDomain& surfaceDomain)
 {
 	PROFILE_FUNC();
-	typedef typename TDomain::grid_type TGrid;
-	//typedef typename TDomain::subset_handler_type TSubsetHandler;
-	//typedef typename TDomain::position_type TPos;
-	typedef typename TDomain::position_accessor_type TAAPos;
-	typedef typename domain_traits<TDomain::dim>::element_type TElem;
-	typedef typename domain_traits<TDomain::dim>::side_type TSide;
-	typedef typename TGrid::template traits<TElem>::iterator TIter;
+	using TGrid = typename TDomain::grid_type;
+	//using TSubsetHandler = typename TDomain::subset_handler_type;
+	//using TPos = typename TDomain::position_type;
+	using TAAPos = typename TDomain::position_accessor_type;
+	using TElem = typename domain_traits<TDomain::dim>::element_type;
+	using TSide = typename domain_traits<TDomain::dim>::side_type;
+	using TIter = typename TGrid::template traits<TElem>::iterator;
 
 	TGrid& g = *dom.grid();
 	//TSubsetHandler& sh = *dom.subset_handler();
@@ -1157,12 +1157,12 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 											 const char* luaCallbackName)
 {
 	PROFILE_FUNC();
-	typedef typename TDomain::grid_type TGrid;
-	typedef typename TDomain::subset_handler_type TSubsetHandler;
-	typedef typename TDomain::position_type TPos;
-	typedef typename TDomain::position_accessor_type TAAPos;
-	typedef typename domain_traits<TDomain::dim>::element_type TElem;
-	typedef typename TGrid::template traits<TElem>::iterator TIter;
+	using TGrid = typename TDomain::grid_type;
+	using TSubsetHandler = typename TDomain::subset_handler_type;
+	using TPos = typename TDomain::position_type;
+	using TAAPos = typename TDomain::position_accessor_type;
+	using TElem = typename domain_traits<TDomain::dim>::element_type;
+	using TIter = typename TGrid::template traits<TElem>::iterator;
 
 	TGrid& g = *dom.grid();
 	TSubsetHandler& sh = *dom.subset_handler();
@@ -1222,12 +1222,12 @@ void MarkForCoarsen_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refin
 		return;
 	}
 
-	typedef typename TDomain::grid_type TGrid;
-	typedef typename TDomain::subset_handler_type TSubsetHandler;
-	typedef typename TDomain::position_type TPos;
-	typedef typename TDomain::position_accessor_type TAAPos;
-	typedef typename domain_traits<TDomain::dim>::element_type TElem;
-	typedef typename TGrid::template traits<TElem>::iterator TIter;
+	using TGrid = typename TDomain::grid_type;
+	using TSubsetHandler = typename TDomain::subset_handler_type;
+	using TPos = typename TDomain::position_type;
+	using TAAPos = typename TDomain::position_accessor_type;
+	using TElem = typename domain_traits<TDomain::dim>::element_type;
+	using TIter = typename TGrid::template traits<TElem>::iterator;
 
 	TGrid& g = *dom.grid();
 	TSubsetHandler& sh = *dom.subset_handler();
@@ -1261,7 +1261,7 @@ void MarkForAdaption_ElementsInSubset_(TDomain& dom, IRefiner& refiner,
 										TSubsetHandler& sh, int subsetIndex, RefinementMark rmMark)
 {
 	PROFILE_FUNC();
-	typedef typename GridObjectCollection::traits<TElem>::iterator iterator_t;
+	using iterator_t = typename GridObjectCollection::traits<TElem>::iterator;
 
 	GridObjectCollection goc = sh.get_grid_objects_in_subset(subsetIndex);
 
@@ -1297,10 +1297,10 @@ void MarkForAdaption_ElementsContainingPoint(TDomain& dom, IRefiner& refiner,
 											   std::string markType)
 {
 	PROFILE_FUNC();
-	typedef typename TDomain::grid_type TGrid;
-	typedef typename TDomain::position_type TPos;
-	typedef typename TDomain::position_accessor_type TAAPos;
-	typedef typename TGrid::template traits<TElem>::iterator TIter;
+	using TGrid = typename TDomain::grid_type;
+	using TPos = typename TDomain::position_type;
+	using TAAPos = typename TDomain::position_accessor_type;
+	using TIter = typename TGrid::template traits<TElem>::iterator;
 
 	RefinementMark rmMark = StringToRefinementMark(markType);
 
@@ -1326,9 +1326,9 @@ void MarkForAdaption_ElementsTouchingSubset(TDomain& dom, IRefiner& refiner,
 											std::string markType)
 {
 	PROFILE_FUNC();
-	typedef typename TDomain::grid_type TGrid;
-	typedef typename domain_traits<TDomain::dim>::element_type TElem;
-	typedef typename TGrid::template traits<TElem>::iterator TIter;
+	using TGrid = typename TDomain::grid_type;
+	using TElem = typename domain_traits<TDomain::dim>::element_type;
+	using TIter = typename TGrid::template traits<TElem>::iterator;
 
 	RefinementMark rmMark = StringToRefinementMark(markType);
 
@@ -1424,9 +1424,9 @@ void MarkForRefinement_SubsetInterfaceElements(IRefiner& refiner, ISubsetHandler
 
 	SetAttachmentValues (aaSI, grid.begin<elem_t>(), grid.end<elem_t>(), -1);
 
-	typedef typename elem_t::sideof						hdelem_t;
-	typedef typename Grid::traits<elem_t>::iterator		iter_t;
-	typedef typename Grid::traits<hdelem_t>::iterator	hditer_t;
+	using hdelem_t = typename elem_t::sideof;
+	using iter_t = typename Grid::traits<elem_t>::iterator;
+	using hditer_t = typename Grid::traits<hdelem_t>::iterator;
 	
 	typename Grid::traits<elem_t>::secure_container	sides;
 
@@ -1487,7 +1487,7 @@ template <class TDomain>
 void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 										 number minEdgeRatio)
 {
-	typedef typename domain_traits<TDomain::dim>::element_type	TElem;
+	using TElem = typename domain_traits<TDomain::dim>::element_type;
 
 	Grid& grid = *dom.grid();
 	MarkForAnisotropicRefinement(grid, refiner, minEdgeRatio,
@@ -1524,8 +1524,8 @@ void MarkForRefinement_AnisotropicDirection_ (
 	using std::min;
 	using std::max;
 
-	typedef MathVector<TDomain::dim> 							vector_t;
-	typedef typename domain_traits<TDomain::dim>::element_type	TElem;
+	using vector_t = MathVector<TDomain::dim>;
+	using TElem = typename domain_traits<TDomain::dim>::element_type;
 
 	// (normalized) user direction d
 	vector_t ndir;
@@ -1539,7 +1539,7 @@ void MarkForRefinement_AnisotropicDirection_ (
 	vector<Edge*> anisoEdges;
 	vector<Edge*> normalEdges;
 
-	lg_for_each_template(TElem, elem, mg){
+	for(typename Grid::traits<TElem>::iterator _feI = mg.begin<TElem>(); _feI != mg.end<TElem>(); ++_feI){ TElem* elem = *_feI;{
 		if(mg.has_children(elem))
 			continue;
 
@@ -1553,7 +1553,7 @@ void MarkForRefinement_AnisotropicDirection_ (
 		normalEdges.clear();
 
 		mg.associated_elements(assEdges, elem);
-		for_each_in_vec(Edge* e, assEdges){
+		for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){ Edge* e = assEdges[_vfeI];{
 
 			// normalized edge direction e
 			vector_t edgeDir;
@@ -1572,17 +1572,17 @@ void MarkForRefinement_AnisotropicDirection_ (
 				normalEdges.push_back(e);
 				longestNormalEdgeSq = max(longestNormalEdgeSq, EdgeLengthSq(e, aaPos));
 			}
-		}end_for;
+		}};
 
 		if(longestNormalEdgeSq > 0){
 			if(shortestAnisoEdgeSq / longestNormalEdgeSq <= sq(minEdgeRatio)){
 			//	mark all normal edges for full refinement
-				for_each_in_vec(Edge* e, normalEdges){
+				for(size_t _vfeI = 0; _vfeI < normalEdges.size(); ++_vfeI){ Edge* e = normalEdges[_vfeI];{
 					refiner.mark(e, RM_REFINE);	
-				}end_for;
+				}};
 			}
 		}
-	}lg_end_for;
+	}};
 }
 
 
@@ -1671,7 +1671,7 @@ void MarkForRefinement_EdgeDirection (
 // SmartPtr<IRefinementCallback>
 // SphereProjectorFactory(TDomain* dom, std::vector<number> center)
 // {
-// 	typedef SphereProjector<typename TDomain::position_attachment_type>	TRefProj;
+//   using TRefProj = SphereProjector<typename TDomain::position_attachment_type>;
 // 	return SmartPtr<TRefProj>(
 // 			new TRefProj(*dom->grid(), dom->position_attachment(),
 // 						 StdVecToMathVec<typename TDomain::position_type>(center)));
@@ -1687,7 +1687,7 @@ void MarkForRefinement_EdgeDirection (
 // SphericalFalloffProjectorFactory(TDomain* dom, std::vector<number> center,
 // 						  number innerRadius, number outerRadius)
 // {
-// 	typedef SphericalFalloffProjector<typename TDomain::position_attachment_type>	TRefProj;
+//	using TRefProj = SphericalFalloffProjector<typename TDomain::position_attachment_type>;
 // 	return SmartPtr<TRefProj>(
 // 			new TRefProj(*dom->grid(), dom->position_attachment(),
 // 						 StdVecToMathVec<typename TDomain::position_type>(center),
@@ -1702,7 +1702,7 @@ void MarkForRefinement_EdgeDirection (
 // SmartPtr<IRefinementCallback>
 // CylinderProjectorFactory(TDomain* dom, std::vector<number> c, std::vector<number> axis)
 // {
-// 	typedef CylinderProjector<typename TDomain::position_attachment_type>	TRefProj;
+//  using TRefProj = CylinderProjector<typename TDomain::position_attachment_type>;
 // 	return SmartPtr<TRefProj>(
 // 			new TRefProj(*dom->grid(), dom->position_attachment(),
 // 						StdVecToMathVec<typename TDomain::position_type>(c),
@@ -1715,7 +1715,7 @@ void MarkForRefinement_EdgeDirection (
 // 				  	  	  	  	   std::vector<number> a,
 // 				  	  	  	  	   number innerRadius, number outerRadius)
 // {
-// 	typedef CylindricalFalloffProjector<typename TDomain::position_attachment_type>	TRefProj;
+//  using TRefProj = CylindricalFalloffProjector<typename TDomain::position_attachment_type>;
 // 	return SmartPtr<TRefProj>(
 // 			new TRefProj(*dom->grid(), dom->position_attachment(),
 // 						StdVecToMathVec<typename TDomain::position_type>(c),
@@ -1727,7 +1727,7 @@ void MarkForRefinement_EdgeDirection (
 // SmartPtr<IRefinementCallback>
 // SubdivisionLoopProjectorFactory(TDomain* dom)
 // {
-// 	typedef SubdivisionLoopProjector<typename TDomain::position_attachment_type>	TRefProj;
+// using TRefProj = SubdivisionLoopProjector<typename TDomain::position_attachment_type>;
 // 	return SmartPtr<TRefProj>(
 // 			new TRefProj(*dom->grid(), dom->position_attachment(),
 // 						 dom->position_attachment()));
@@ -1747,9 +1747,9 @@ namespace domain_wrappers {
 void SetTetRefinementRule(std::string ruleName)
 {
 	ruleName = ToLower(ruleName);
-	if(ruleName.compare("standard") == 0)
+	if(ruleName == "standard")
 		tet_rules::SetRefinementRule(tet_rules::STANDARD);
-	else if(ruleName.compare("hybrid_tet_oct") == 0)
+	else if(ruleName == "hybrid_tet_oct")
 			tet_rules::SetRefinementRule(tet_rules::HYBRID_TET_OCT);
 	else{
 		UG_THROW("ERROR in SetTetRefinementRule:\n"
@@ -1764,15 +1764,15 @@ void SetTetRefinementRule(std::string ruleName)
 void SetSmoothSubdivisionVolumesBoundaryRefinementRule(std::string bndRefRule)
 {
 	bndRefRule = ToLower(bndRefRule);
-	if(bndRefRule.compare("linear") == 0)
+	if(bndRefRule == "linear")
 		SetBoundaryRefinementRule(LINEAR);
-	else if(bndRefRule.compare("subdiv_surf_loop_scheme") == 0)
+	else if(bndRefRule == "subdiv_surf_loop_scheme")
 		SetBoundaryRefinementRule(SUBDIV_SURF_LOOP_SCHEME);
-	else if(bndRefRule.compare("subdiv_surf_averaging_scheme") == 0)
+	else if(bndRefRule == "subdiv_surf_averaging_scheme")
 		SetBoundaryRefinementRule(SUBDIV_SURF_AVERAGING_SCHEME);
-	else if(bndRefRule.compare("subdiv_surf_butterfly_scheme") == 0)
+	else if(bndRefRule == "subdiv_surf_butterfly_scheme")
 			SetBoundaryRefinementRule(SUBDIV_SURF_BUTTERFLY_SCHEME);
-	else if(bndRefRule.compare("subdiv_vol") == 0)
+	else if(bndRefRule == "subdiv_vol")
 		SetBoundaryRefinementRule(SUBDIV_VOL);
 	else
 		UG_THROW("ERROR in SetBoundaryRefinementRule: Unknown boundary refinement rule!\n"
@@ -1867,8 +1867,8 @@ static void Common(Registry& reg, string grp)
 template <typename TDomain>
 static void Domain(Registry& reg, string grp)
 {
-	typedef TDomain domain_type;
-	typedef typename TDomain::position_attachment_type apos_type;
+	using domain_type = TDomain;
+	using apos_type = typename TDomain::position_attachment_type;
 
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
@@ -2009,7 +2009,7 @@ static void Domain(Registry& reg, string grp)
 
 //	register refinement projection handler and factories
 	// {
-	// 	typedef RefinementProjectionHandler<apos_type> T;
+	//	using T = RefinementProjectionHandler<apos_type>;
 	// 	string name = string("RefinementProjectionHandler").append(suffix);
 	// 	reg.add_class_<T, IRefinementCallback>(name, grp)
 	// 			.add_method("set_default_callback", &T::set_default_callback, grp)
@@ -2050,7 +2050,7 @@ static void Domain(Registry& reg, string grp)
 void RegisterBridge_Refinement(Registry& reg, string grp)
 {
 	grp.append("/Refinement");
-	typedef Refinement::Functionality Functionality;
+	using Functionality = Refinement::Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);

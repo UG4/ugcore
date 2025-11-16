@@ -30,22 +30,27 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "pcl_process_communicator.h"
-#include "common/util/binary_buffer.h"
-#include "common/log.h"
 #include <map>
 #include <string>
 #include <mpi.h>
 
+#include "common/log.h"
+#include "common/util/binary_buffer.h"
+
+#include "pcl_process_communicator.h"
+
+
+
+
 namespace pcl{
 
 
-void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc)
+void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename, ProcessCommunicator pc)
 {
 		MPI_Status status;
 	MPI_Comm m_mpiComm = pc.get_mpi_communicator();
 	MPI_File fh;
-	bool bFirst = pc.get_proc_id(0) == pcl::ProcRank();
+	bool bFirst = pc.get_proc_id(0) == ProcRank();
 
 	char filename[1024];
 	strcpy(filename, strFilename.c_str());
@@ -67,7 +72,7 @@ void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename
 
 	if(bFirst)
 	{
-		int numProcs = pcl::NumProcs();
+		int numProcs = NumProcs();
 		MPI_File_write(fh, &numProcs, sizeof(numProcs), MPI_BYTE, &status);
 		for(size_t i=0; i<allNextOffsets.size(); i++)
 		{
@@ -87,7 +92,7 @@ void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename
 	MPI_File_close(&fh);
 }
 
-void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc)
+void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename, ProcessCommunicator pc)
 {
 	MPI_Status status;
 	MPI_Comm m_mpiComm = pc.get_mpi_communicator();
@@ -102,7 +107,7 @@ void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename,
 	allNextOffsets.resize(pc.size()+1);
 
 	allNextOffsets[0] = (pc.size())*sizeof(long long) + sizeof(int);
-	bool bFirst = (pc.get_proc_id(0) == pcl::ProcRank());
+	bool bFirst = (pc.get_proc_id(0) == ProcRank());
 	if (bFirst)
 	{
 		int numProcs;

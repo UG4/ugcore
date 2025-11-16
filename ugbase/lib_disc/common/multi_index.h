@@ -49,7 +49,7 @@ template<int N, typename TSingleIndexType = size_t>
 class MultiIndex
 {
 	public:
-		typedef TSingleIndexType single_index_type;
+		using single_index_type = TSingleIndexType;
 
 	public:
 		/// number of indices in multi index
@@ -91,7 +91,7 @@ template <>
 class MultiIndex<1, size_t>
 {
 	public:
-		typedef size_t single_index_type;
+		using single_index_type = size_t;
 
 	public:
 	///	Default constructor
@@ -139,7 +139,7 @@ template <>
 class MultiIndex<2, size_t>
 {
 	public:
-		typedef size_t single_index_type;
+	using single_index_type = size_t;
 
 	public:
 	///	Default constructor
@@ -204,7 +204,7 @@ template <>
 class MultiIndex<3, size_t>
 {
 	public:
-		typedef size_t single_index_type;
+	using single_index_type = size_t;
 
 	public:
 	///	Default constructor
@@ -269,7 +269,7 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MultiIndex<N>& v)
 ////////////////////////////////////////////////////////////////////////////////
 
 /// type of DoF-Index used to identify an DoF in the Algebra
-typedef MultiIndex<2> DoFIndex;
+using DoFIndex = MultiIndex<2>;
 
 template <typename TMatrix>
 inline number&

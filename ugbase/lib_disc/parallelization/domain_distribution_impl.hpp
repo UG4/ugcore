@@ -68,9 +68,8 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 			return false;
 		}
 
-		typedef typename TDomain::position_attachment_type TAPos;
-		Grid::AttachmentAccessor<Vertex, TAPos> aaPos(*pMG,
-												domain.position_attachment());
+		using TAPos = typename TDomain::position_attachment_type;
+		Grid::AttachmentAccessor<Vertex, TAPos> aaPos(*pMG, domain.position_attachment());
 
 	//	this callback allows us to only distribute surface elements, which are no ghosts
 		IsRegularSurfaceElem cbConsiderElem(*domain.distributed_grid_manager());
@@ -368,7 +367,7 @@ static bool DistributeDomain(TDomain& domainOut,
 //todo	Use a process-communicator to restrict communication
 
 //	make sure that the input is fine
-	typedef typename TDomain::grid_type GridType;
+	using GridType = typename TDomain::grid_type;
 	SmartPtr<GridType> pGrid = domainOut.grid();
 	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
 
@@ -378,7 +377,7 @@ static bool DistributeDomain(TDomain& domainOut,
 
 #ifdef UG_PARALLEL
 
-	typedef typename TDomain::position_attachment_type	position_attachment_type;
+	using position_attachment_type = typename TDomain::position_attachment_type;
 	
 //	used to check whether all processes are correctly prepared for redistribution
 	//bool performDistribution = true;

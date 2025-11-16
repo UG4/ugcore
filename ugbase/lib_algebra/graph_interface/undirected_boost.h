@@ -16,13 +16,13 @@ class UM_adjacency_iterator : public iterator_facade<
 	size_t, // <= reference
 	std::intmax_t // difference_type
 	 >{ //
-	typedef ug::SparseMatrix<T> M;
-	typedef typename M::const_row_iterator iter_t;
+	using M = ug::SparseMatrix<T>;
+	using iter_t = typename M::const_row_iterator;
 
 public:
-	typedef iter_t* value_type;
-	typedef intmax_t difference_type;
-	typedef size_t reference;
+	using value_type = iter_t*;
+	using difference_type = intmax_t;
+	using reference = size_t;
 
 public:
 	UM_adjacency_iterator() : _base(nullptr), _end(nullptr){}
@@ -127,20 +127,20 @@ class UM_out_edge_iterator : public iterator_facade<
 	std::intmax_t // difference_type
 	 >{ //
 private: // types
-	typedef iterator_facade<
-	UM_out_edge_iterator<T>,
-	typename ug::UndirectedMatrix<T>::adjacency_iterator,
-	// bidirectional_traversal_tag, // breaks InputIterator (why?)
-	std::input_iterator_tag,
-	typename ug::UndirectedMatrix<T>::edge, // <= reference
-	std::intmax_t // difference_type
-	 > base_class;
+	using base_class = iterator_facade<
+			UM_out_edge_iterator<T>,
+			typename ug::UndirectedMatrix<T>::adjacency_iterator,
+			// bidirectional_traversal_tag, // breaks InputIterator (why?)
+			std::input_iterator_tag,
+			typename ug::UndirectedMatrix<T>::edge, // <= reference
+			std::intmax_t // difference_type
+			 > ;
 public: // types
-	typedef ug::SparseMatrix<T> M;
-	typedef typename ug::UndirectedMatrix<T>::adjacency_iterator value_type;
-	typedef intmax_t difference_type;
-	typedef typename ug::UndirectedMatrix<T>::edge reference;
-	typedef typename ug::UndirectedMatrix<T>::edge edge_type;
+	using M = ug::SparseMatrix<T>;
+	using value_type = typename ug::UndirectedMatrix<T>::adjacency_iterator;
+	using difference_type = intmax_t;
+	using reference = typename ug::UndirectedMatrix<T>::edge;
+	using edge_type = typename ug::UndirectedMatrix<T>::edge;
 
 public: // construct
 	explicit UM_out_edge_iterator() : base_class(), _base() {
@@ -220,17 +220,17 @@ private:
 #endif
 
 template <class T> struct graph_traits<ug::UndirectedMatrix<T>>{
-	typedef ug::UndirectedMatrix<T> G;
-	typedef int vertex_descriptor;
-	typedef typename G::edge edge_descriptor;
-	typedef undirected_tag directed_category;
-	typedef disallow_parallel_edge_tag edge_parallel_category;
-	typedef SM_traversal_tag traversal_category;
-	typedef counting_iterator<size_t> vertex_iterator;
-	typedef UM_out_edge_iterator<T> out_edge_iterator;
-	typedef typename G::adjacency_iterator adjacency_iterator;
-	typedef int degree_size_type;
-	typedef int vertices_size_type;
+	using G = ug::UndirectedMatrix<T>;
+	using vertex_descriptor = int;
+	using edge_descriptor = typename G::edge;
+	using directed_category = undirected_tag;
+	using edge_parallel_category = disallow_parallel_edge_tag;
+	using traversal_category = SM_traversal_tag;
+	using vertex_iterator = counting_iterator<size_t>;
+	using out_edge_iterator = UM_out_edge_iterator<T>;
+	using adjacency_iterator = typename G::adjacency_iterator ;
+	using degree_size_type = int ;
+	using vertices_size_type = int;
 };
 
 template<class T>
@@ -265,8 +265,8 @@ template<class T>
 std::pair<UM_out_edge_iterator<T>, UM_out_edge_iterator<T> >
 					out_edges(int v, ug::UndirectedMatrix<T> const& M)
 {
-	typedef typename ug::UndirectedMatrix<T>::adjacency_iterator ai;
-	typedef UM_out_edge_iterator<T> ei;
+	using ai = typename ug::UndirectedMatrix<T>::adjacency_iterator;
+	using ei = UM_out_edge_iterator<T>;
 
 	ai b(M.begin_row(v));
 	ai e(M.end_row(v));
@@ -279,7 +279,7 @@ std::pair<typename ug::UndirectedMatrix<T>::adjacency_iterator,
           typename ug::UndirectedMatrix<T>::adjacency_iterator >
 					adjacent_vertices(size_t v, ug::UndirectedMatrix<T> const& M)
 {
-	typedef typename ug::UndirectedMatrix<T>::adjacency_iterator ei;
+	using ei = typename ug::UndirectedMatrix<T>::adjacency_iterator;
 
 	ei b(M.begin_row(v));
 	ei e(M.end_row(v));
@@ -301,8 +301,8 @@ int target(typename T::edge const& e, T const&)
 
 template<class T>
 struct property_map<ug::UndirectedMatrix<T>, vertex_index_t>{
-	typedef sparse_matrix_index_map<T> type;
-	typedef type const_type;
+	using type = sparse_matrix_index_map<T>;
+	using const_type = type;
 };
 
 template<class T>
@@ -324,11 +324,11 @@ class degree_property_map< ug::UndirectedMatrix<T> >
       degree_property_map< ug::UndirectedMatrix<T> > >
 {
 public:
-	typedef ug::UndirectedMatrix<T> Graph;
-	typedef typename graph_traits< Graph >::vertex_descriptor key_type;
-	typedef typename graph_traits< Graph >::degree_size_type value_type;
-	typedef value_type reference;
-	typedef readable_property_map_tag category;
+	using Graph = ug::UndirectedMatrix<T>;
+	using key_type = typename graph_traits< Graph >::vertex_descriptor;
+	using value_type = typename graph_traits< Graph >::degree_size_type;
+	using reference = value_type;
+	using category = readable_property_map_tag;
 	degree_property_map(const Graph& g) : m_g(g) {}
 	value_type operator[](const key_type& v) const { return degree(v, m_g); }
 

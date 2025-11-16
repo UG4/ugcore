@@ -57,7 +57,7 @@ class MiniBubbleLDS : public LocalDoFSet
 {
 	protected:
 	///	dimension of reference element
-		static const int refDim = TRefElem::dim;
+		static constexpr int refDim = TRefElem::dim;
 
 	public:
 	///	constructor
@@ -135,23 +135,23 @@ class MiniBubbleLSFS<ReferenceEdge>
 {
 	public:
 	///	Order of Shape functions
-		static const size_t order = 1;
+		static constexpr size_t order = 1;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = 1;
+		static constexpr int dim = 1;
 
 	/// Number of shape functions
-		static const size_t nsh = 3;
+		static constexpr size_t nsh = 3;
 
 	public:
 	///	Shape type
-		typedef number shape_type;
+		using shape_type = number;
 
 	///	Gradient type
-		typedef MathVector<dim> grad_type;
+		using grad_type = MathVector<dim>;
 
 	///	Reference Element type
-		typedef ReferenceEdge reference_element_type;
+		using reference_element_type = ReferenceEdge;
 
 	public:
 	///	Constructor
@@ -221,26 +221,26 @@ class MiniBubbleLSFS<ReferenceTriangle>
 {
 	public:
 	///	Order of Shape functions
-		static const size_t order = 2;
+		static constexpr size_t order = 2;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = 2;
+		static constexpr int dim = 2;
 
 	/// Number of shape functions
-		static const size_t nsh = 4;
+		static constexpr size_t nsh = 4;
 	public:
 	///	Shape type
-		typedef number shape_type;
+	using shape_type = number;
 
 	///	Gradient type
-		typedef MathVector<dim> grad_type;
+	using grad_type = MathVector<dim>;
 
 	///	Reference Element type
-		typedef ReferenceTriangle reference_element_type;
+	using reference_element_type = ReferenceTriangle;
 
 	public:
 	///	Constructor
-		MiniBubbleLSFS(){}
+		MiniBubbleLSFS()= default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
@@ -324,23 +324,23 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 
 	public:
 	///	Order of Shape functions
-		static const size_t order = 2;
+		static constexpr size_t order = 2;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = 2;
+		static constexpr int dim = 2;
 
 	/// Number of shape functions
-		static const size_t nsh = 5;
+		static constexpr size_t nsh = 5;
 
 	public:
 	///	Shape type
-		typedef number shape_type;
+		using shape_type = number;
 
 	///	Gradient type
-		typedef MathVector<dim> grad_type;
+		using grad_type = MathVector<dim>;
 
 	///	Reference Element type
-		typedef ReferenceQuadrilateral reference_element_type;
+		using reference_element_type = ReferenceQuadrilateral;
 
 	public:
 	///	Constructor
@@ -438,27 +438,27 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 {
 	public:
 	///	Order of Shape functions
-		static const size_t order = 1;
+		static constexpr size_t order = 1;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = 3;
+		static constexpr int dim = 3;
 
 	/// Number of shape functions
-		static const size_t nsh = 4+1;
+		static constexpr size_t nsh = 4+1;
 
 	public:
 	///	Shape type
-		typedef number shape_type;
+	using shape_type = number;
 
 	///	Gradient type
-		typedef MathVector<dim> grad_type;
+	using grad_type = MathVector<dim>;
 
 	///	Reference Element type
-		typedef ReferenceTetrahedron reference_element_type;
+	using reference_element_type = ReferenceTetrahedron;
 
 	public:
 	///	Constructor
-		MiniBubbleLSFS(){}
+		MiniBubbleLSFS()= default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
@@ -544,27 +544,27 @@ class MiniBubbleLSFS<ReferenceHexahedron>
 {
 	public:
 	///	Order of Shape functions
-		static const size_t order = 6;
+		static constexpr size_t order = 6;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = 3;
+		static constexpr int dim = 3;
 
 	/// Number of shape functions
-		static const size_t nsh = 8+1;
+		static constexpr size_t nsh = 8+1;
 
 	public:
 	///	Shape type
-		typedef number shape_type;
+	using shape_type = number;
 
 	///	Gradient type
-		typedef MathVector<dim> grad_type;
+	using grad_type = MathVector<dim>;
 
 	///	Reference Element type
-		typedef ReferenceHexahedron reference_element_type;
+	using reference_element_type = ReferenceHexahedron;
 
 	public:
 	///	Constructor
-		MiniBubbleLSFS(){}
+		MiniBubbleLSFS()= default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
@@ -576,8 +576,7 @@ class MiniBubbleLSFS<ReferenceHexahedron>
 	///	\copydoc ug::LocalShapeFunctionSet::position()
 		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
-			static const DimReferenceElement<3>& refElem
-				= ReferenceElementProvider::get<3>(ROID_HEXAHEDRON);
+			static const DimReferenceElement<3>& refElem = ReferenceElementProvider::get<3>(ROID_HEXAHEDRON);
 
 			if (i<=7)
 			{ 	// corner

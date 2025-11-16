@@ -73,13 +73,13 @@ Registry::~Registry()
 //  delete registered functions
 	for(size_t i = 0; i < m_vFunction.size(); ++i)
 	{
-		if(m_vFunction[i] != NULL)
+		if(m_vFunction[i] != nullptr)
 			delete m_vFunction[i];
 	}
 //  delete registered classes
 	for(size_t i = 0; i < m_vClass.size(); ++i)
 	{
-		if(m_vClass[i] != NULL)
+		if(m_vClass[i] != nullptr)
 			delete m_vClass[i];
 	}
 //	delete registered class groups
@@ -170,7 +170,7 @@ IExportedClass* Registry::get_class(const std::string& name)
 		if(name == m_vClass[i]->name())
 			return m_vClass[i];
 
-	return NULL;
+	return nullptr;
 }
 
 const IExportedClass* Registry::get_class(const std::string& name) const
@@ -180,7 +180,7 @@ const IExportedClass* Registry::get_class(const std::string& name) const
 		if(name == m_vClass[i]->name())
 			return m_vClass[i];
 
-	return NULL;
+	return nullptr;
 }
 
 
@@ -281,7 +281,7 @@ bool Registry::check_consistency()
 	// check for duplicate class names. comparison is not case sensitive.
 	std::vector<std::string> classDuplicates = 
 			FindDuplicates(classNames);
-	bool classDuplicatesExist = classDuplicates.size()>0;
+	bool classDuplicatesExist = !classDuplicates.empty();
 	//todo: use stringstream
 	std::string duplicateClassMsg = 
 				"#### Registry ERROR: duplicate class names:\n";
@@ -362,7 +362,7 @@ ClassGroupDesc* Registry::get_class_group(const std::string& name)
 		<< " contains illegal characters. "<< GetRegistryIdentifierMessage());
 	}
 
-	ClassGroupDesc* classGroup = new ClassGroupDesc();
+	auto* classGroup = new ClassGroupDesc();
 	classGroup->set_name(name);
 	m_vClassGroups.push_back(classGroup);
 
@@ -377,7 +377,7 @@ const ClassGroupDesc* Registry::get_class_group(const std::string& name) const
 			return m_vClassGroups[i];
 
 //	since we reached this point, no class-group with the given name exists.
-	return NULL;
+	return nullptr;
 }
 
 void Registry::add_class_to_group(std::string className, std::string groupName,
@@ -405,7 +405,7 @@ void Registry::add_class_to_group(std::string className, std::string groupName,
 
 bool Registry::classname_registered(const std::string& name)
 {
-	return get_class(name) != NULL;
+	return get_class(name) != nullptr;
 }
 
 bool Registry::groupname_registered(const std::string& name)
@@ -434,7 +434,7 @@ ExportedFunctionGroup* Registry::get_exported_function_group(const std::string& 
 		if(name == m_vFunction[i]->name())
 			return m_vFunction[i];
 
-	return NULL;
+	return nullptr;
 }
 
 }// end of namespace

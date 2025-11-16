@@ -70,17 +70,17 @@ class geometry_traits
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	This Iterator will be used as base-class for iterators of specialized geometric objects.
-typedef ElementStorage<Vertex>::SectionContainer::iterator			VertexIterator;
-typedef ElementStorage<Vertex>::SectionContainer::const_iterator	ConstVertexIterator;
+using VertexIterator = ElementStorage<Vertex>::SectionContainer::iterator;
+using ConstVertexIterator = ElementStorage<Vertex>::SectionContainer::const_iterator;
 
-typedef ElementStorage<Edge>::SectionContainer::iterator			EdgeIterator;
-typedef ElementStorage<Edge>::SectionContainer::const_iterator		ConstEdgeIterator;
+using EdgeIterator = ElementStorage<Edge>::SectionContainer::iterator;
+using ConstEdgeIterator = ElementStorage<Edge>::SectionContainer::const_iterator;
 
-typedef ElementStorage<Face>::SectionContainer::iterator				FaceIterator;
-typedef ElementStorage<Face>::SectionContainer::const_iterator			ConstFaceIterator;
+using FaceIterator = ElementStorage<Face>::SectionContainer::iterator;
+using ConstFaceIterator = ElementStorage<Face>::SectionContainer::const_iterator;
 
-typedef ElementStorage<Volume>::SectionContainer::iterator				VolumeIterator;
-typedef ElementStorage<Volume>::SectionContainer::const_iterator		ConstVolumeIterator;
+using VolumeIterator = ElementStorage<Volume>::SectionContainer::iterator;
+using ConstVolumeIterator = ElementStorage<Volume>::SectionContainer::const_iterator;
 
 
 
@@ -102,18 +102,18 @@ template <>
 class geometry_traits<Vertex>
 {
 	public:
-		typedef VertexIterator		iterator;
-		typedef ConstVertexIterator	const_iterator;
+		using iterator = VertexIterator;
+		using const_iterator = ConstVertexIterator;
 
-		typedef Vertex	grid_base_object;
-		typedef VertexDescriptor GeneralDescriptor;
+		using grid_base_object = Vertex;
+		using GeneralDescriptor = VertexDescriptor;
 		
 		enum
 		{
 			CONTAINER_SECTION = -1,
 			BASE_OBJECT_ID = VERTEX
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
 };
 
 
@@ -121,18 +121,18 @@ template <>
 class geometry_traits<Edge>
 {
 	public:
-		typedef EdgeIterator		iterator;
-		typedef ConstEdgeIterator	const_iterator;
+		using iterator = EdgeIterator;
+		using const_iterator = ConstEdgeIterator;
 
-		typedef Edge	grid_base_object;
-		typedef EdgeDescriptor GeneralDescriptor;
+		using grid_base_object = Edge;
+		using GeneralDescriptor = EdgeDescriptor;
 
 		enum
 		{
 			CONTAINER_SECTION = -1,
 			BASE_OBJECT_ID = EDGE
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
 
 
@@ -140,36 +140,36 @@ template <>
 class geometry_traits<Face>
 {
 	public:
-		typedef FaceIterator		iterator;
-		typedef ConstFaceIterator	const_iterator;
+		using iterator = FaceIterator;
+		using const_iterator = ConstFaceIterator;
 
-		typedef Face	grid_base_object;
-		typedef FaceDescriptor GeneralDescriptor;
+		using grid_base_object = Face;
+		using GeneralDescriptor = FaceDescriptor;
 
 		enum
 		{
 			CONTAINER_SECTION = -1,
 			BASE_OBJECT_ID = FACE
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_UNKNOWN;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_UNKNOWN;
 };
 
 template <>
 class geometry_traits<Volume>
 {
 	public:
-		typedef VolumeIterator			iterator;
-		typedef ConstVolumeIterator		const_iterator;
+		using iterator = VolumeIterator;
+		using const_iterator = ConstVolumeIterator;
 
-		typedef Volume		grid_base_object;
-		typedef VolumeDescriptor GeneralDescriptor;
+		using grid_base_object = Volume;
+		using GeneralDescriptor = VolumeDescriptor;
 
 		enum
 		{
 			CONTAINER_SECTION = -1,
 			BASE_OBJECT_ID = VOLUME
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_UNKNOWN;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_UNKNOWN;
 };
 
 }//	end of namespace

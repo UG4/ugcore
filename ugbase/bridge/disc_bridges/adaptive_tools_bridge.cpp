@@ -211,7 +211,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	}
 
 	// MarkOutOfRangeElems
-	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+	using TGridFunction = GridFunction<TDomain, TAlgebra>;
 	reg.add_function("MarkOutOfRangeElems", static_cast<void (*) (SmartPtr<IRefiner>, ConstSmartPtr<TGridFunction>, size_t, number, number)>(MarkOutOfRangeElems<TGridFunction>),
 		grp.c_str(), "", "refiner # grid function # component # lower bound # upper bound",
 		"Marks elements next to out-of-range DoFs for refinement");
@@ -238,7 +238,7 @@ static void Domain(Registry& reg, string grp)
 
 	//  IElementMarkingStrategy
 	{
-		typedef IElementMarkingStrategy<TDomain> T;
+		using T = IElementMarkingStrategy<TDomain>;
 		string name = string("IElementMarkingStrategy").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_method("global_estimated_error", &T::global_estimated_error)
@@ -250,8 +250,8 @@ static void Domain(Registry& reg, string grp)
 
 	//  StdRefinementStrategy
 	{
-		typedef StdRefinementMarkingStrategy<TDomain> T;
-		typedef IElementMarkingStrategy<TDomain> TBase;
+		using T = StdRefinementMarkingStrategy<TDomain>;
+		using TBase = IElementMarkingStrategy<TDomain>;
 		string name = string("StdRefinementMarking").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(number, int)>("tolerated max error#max level")
@@ -264,8 +264,8 @@ static void Domain(Registry& reg, string grp)
 
 	//  GlobalMarking
 	{
-		typedef GlobalMarking<TDomain> T;
-		typedef IElementMarkingStrategy<TDomain> TBase;
+		using T = GlobalMarking<TDomain>;
+		using TBase = IElementMarkingStrategy<TDomain>;
 		string name = string("GlobalMarking").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(number, int)>("tolerated max error#max level")
@@ -278,8 +278,8 @@ static void Domain(Registry& reg, string grp)
 
 	//  StdCoarseningStrategy
 	{
-		typedef StdCoarseningMarkingStrategy<TDomain> T;
-		typedef IElementMarkingStrategy<TDomain> TBase;
+		using T = StdCoarseningMarkingStrategy<TDomain>;
+		using TBase = IElementMarkingStrategy<TDomain>;
 		string name = string("StdCoarseningMarking").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(number, number, int)>("tolerated max error#safety factor#min level")
@@ -293,8 +293,8 @@ static void Domain(Registry& reg, string grp)
 
 	//	ExpectedErrorMarkingStrategy
 	{
-		typedef ExpectedErrorMarkingStrategy<TDomain> T;
-		typedef IElementMarkingStrategy<TDomain> TBase;
+		using T = ExpectedErrorMarkingStrategy<TDomain>;
+		using TBase = IElementMarkingStrategy<TDomain>;
 		string name = string("ExpectedErrorMarkingStrategy").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(number, int, number, number)>
@@ -310,8 +310,8 @@ static void Domain(Registry& reg, string grp)
 
 	//  MaximumMarking
 	{
-			typedef MaximumMarking<TDomain> T;
-			typedef IElementMarkingStrategy<TDomain> TBase;
+			using T = MaximumMarking<TDomain>;
+			using TBase = IElementMarkingStrategy<TDomain>;
 			string name = string("MaximumMarking").append(suffix);
 			reg.add_class_<T, TBase>(name, grp)
 								   .template add_constructor<void (*)(number)>("theta")
@@ -325,8 +325,8 @@ static void Domain(Registry& reg, string grp)
 
 	//  MeanValueMarking
 	{
-			typedef MeanValueMarking<TDomain> T;
-			typedef IElementMarkingStrategy<TDomain> TBase;
+			using T = MeanValueMarking<TDomain>;
+			using TBase = IElementMarkingStrategy<TDomain>;
 			string name = string("MeanValueMarking").append(suffix);
 			reg.add_class_<T, TBase>(name, grp)
 								   .template add_constructor<void (*)(number, number)>("theta#factor")
@@ -336,8 +336,8 @@ static void Domain(Registry& reg, string grp)
 
 	//  VarianceMarking  (with eta^2)
 	{
-			typedef VarianceMarking<TDomain> T;
-			typedef IElementMarkingStrategy<TDomain> TBase;
+			using T = VarianceMarking<TDomain>;
+			using TBase = IElementMarkingStrategy<TDomain>;
 			string name = string("VarianceMarking").append(suffix);
 			reg.add_class_<T, TBase>(name, grp)
 									   .template add_constructor<void (*)(number)>("theta")
@@ -349,8 +349,8 @@ static void Domain(Registry& reg, string grp)
 
 	//  VarianceMarking (with eta)
 	{
-			typedef VarianceMarkingEta<TDomain> T;
-			typedef IElementMarkingStrategy<TDomain> TBase;
+			using T = VarianceMarkingEta<TDomain>;
+			using TBase = IElementMarkingStrategy<TDomain>;
 			string name = string("VarianceMarkingEta").append(suffix);
 			reg.add_class_<T, TBase>(name, grp)
 						.template add_constructor<void (*)(number)>("theta")
@@ -365,8 +365,8 @@ static void Domain(Registry& reg, string grp)
 
 	//  APosterioriCoarsening  (with eta^2)
 	{
-			typedef APosterioriCoarsening<TDomain> T;
-			typedef IElementMarkingStrategy<TDomain> TBase;
+			using T = APosterioriCoarsening<TDomain>;
+			using TBase = IElementMarkingStrategy<TDomain>;
 			string name = string("APosterioriCoarsening").append(suffix);
 			reg.add_class_<T, TBase>(name, grp)
 										.template add_constructor<void (*)(number)>("theta")
@@ -376,8 +376,8 @@ static void Domain(Registry& reg, string grp)
 
 	//  EquilibrationMarking
 	{
-		typedef EquilibrationMarkingStrategy<TDomain> T;
-		typedef IElementMarkingStrategy<TDomain> TBase;
+		using T = EquilibrationMarkingStrategy<TDomain>;
+		using TBase = IElementMarkingStrategy<TDomain>;
 		string name = string("EquilibrationMarking").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 									.template add_constructor<void (*)(number)>("theta")
@@ -388,8 +388,8 @@ static void Domain(Registry& reg, string grp)
 
 	//  AbsoluteMarking
 	{
-			typedef AbsoluteMarking<TDomain> T;
-			typedef IElementMarkingStrategy<TDomain> TBase;
+			using T = AbsoluteMarking<TDomain>;
+			using TBase = IElementMarkingStrategy<TDomain>;
 			string name = string("AbsoluteMarking").append(suffix);
 			reg.add_class_<T, TBase>(name, grp)
 										.template add_constructor<void (*)(number)>("eta")
@@ -461,7 +461,7 @@ static void Common(Registry& reg, string grp)
 void RegisterBridge_AdaptiveTools(Registry& reg, string grp)
 {
 	grp.append("/Discretization");
-	typedef AdaptiveTools::Functionality Functionality;
+	using Functionality = AdaptiveTools::Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);

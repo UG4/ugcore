@@ -75,7 +75,7 @@ namespace ug{
      num columns:  2
  * \endverbatim
  *
- * Note that several typedefs exist: StringTable, StringStreamTable
+ * Note that several type definitions exist: StringTable, StringStreamTable
  * \todo	different alignments for different columns / rows / fields
  */
 
@@ -206,7 +206,7 @@ class Table
 		size_t m_numRows;
 		size_t m_numCols;
 
-		typedef std::vector<std::vector<T*> > DataVec;
+		using DataVec = std::vector<std::vector<T*> >;
 		DataVec	m_data;
 
 		std::vector<char> m_colAlign;
@@ -245,8 +245,8 @@ std::string EntryToString(const Table<std::stringstream>& table,
 						  size_t rowInd, size_t colInd);
 
 
-typedef Table<std::string>	StringTable;
-typedef Table<std::stringstream> StringStreamTable;
+using StringTable = Table<std::string>;
+using StringStreamTable = Table<std::stringstream>;
 
 // end group ugbase_common_types
 /// \}

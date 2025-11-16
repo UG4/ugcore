@@ -54,8 +54,8 @@ size_t FileSize( const char *filename )
 	HANDLE file;
 	LARGE_INTEGER fileSize;
 
-	file = CreateFile(TEXT(filename), GENERIC_READ, FILE_SHARE_READ, NULL,
-					  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	file = CreateFile(TEXT(filename), GENERIC_READ, FILE_SHARE_READ, nullptr,
+					  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	UG_COND_THROW(INVALID_HANDLE_VALUE == file, "The file " << filename
 	              << " could not be opened. Error " << GetLastError() );
 	UG_COND_THROW(!GetFileSizeEx(file, &fileSize),
@@ -183,7 +183,7 @@ std::string CurrentWorkingDirectory()
 {
 	char * p_w_d;
 	
-	if ((p_w_d = _getcwd (NULL, 0)) == NULL )
+	if ((p_w_d = _getcwd (nullptr, 0)) == nullptr )
 		UG_THROW ("CurrentWorkingDirectory: Failed to get the current working path!");
 	
 	std::string the_pwd (p_w_d);

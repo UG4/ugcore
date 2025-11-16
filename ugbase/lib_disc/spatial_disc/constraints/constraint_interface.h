@@ -54,8 +54,6 @@ namespace ug{
  * situations it is important to apply the constraint modification in a certain
  * order.
  *
- * \tparam	TDomain				type of Domain
- * \tparam	TDoFDistribution	type of DoF Distribution
  * \tparam	TAlgebra			type of Algebra
  */
 template <typename TAlgebra>
@@ -63,27 +61,27 @@ class IConstraint
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	public:
 	///	adapts jacobian to enforce constraints
 		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                             ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
-		                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
+		                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
 									 const number s_a0 = 1.0) = 0;
 
 	///	adapts defect to enforce constraints
 		virtual void adjust_defect(vector_type& d, const vector_type& u,
 								   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
-								   ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
-								   const std::vector<number>* vScaleMass = NULL,
-								   const std::vector<number>* vScaleStiff = NULL) = 0;
+								   ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
+								   const std::vector<number>* vScaleMass = nullptr,
+								   const std::vector<number>* vScaleStiff = nullptr) = 0;
 
 	///	adapts matrix and rhs (linear case) to enforce constraints
 		virtual void adjust_linear(matrix_type& mat, vector_type& rhs,
@@ -111,9 +109,9 @@ class IConstraint
 	///	adjusts the assembled error estimator values in the attachments according to the constraint
 		virtual void adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type,
 								  number time = 0.0,
-								  ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
-								  const std::vector<number>* vScaleMass = NULL,
-								  const std::vector<number>* vScaleStiff = NULL) {};
+								  ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
+								  const std::vector<number>* vScaleMass = nullptr,
+								  const std::vector<number>* vScaleStiff = nullptr) {};
 
 	///	sets constraints in prolongation
 		virtual void adjust_prolongation(matrix_type& P,
@@ -162,21 +160,21 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 {
 	public:
 	///	Domain Type
-		typedef TDomain domain_type;
+	using domain_type = TDomain;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+	using matrix_type = typename algebra_type::matrix_type;
 
 	///	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+	using vector_type = typename algebra_type::vector_type;
 
 	public:
 	/// constructor
 		IDomainConstraint() : IConstraint<TAlgebra>(),
-	  		m_bDoErrEst(false), m_spErrEstData(SPNULL) {};
+	  		m_bDoErrEst(false), m_spErrEstData(nullptr) {};
 
 	///	sets the approximation space
 		virtual void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
@@ -200,7 +198,7 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		virtual int type() const = 0;
 
 	///	sets the assemble adapter for the constraints
-		void set_ass_tuner(ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssemblingTuner = NULL)
+		void set_ass_tuner(ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssemblingTuner = nullptr)
 		{
 			m_spAssTuner = spAssemblingTuner;
 		}
@@ -209,7 +207,7 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 	// Error estimator
 	// //////////////////////////
 	public:
-	///	sets the pointer to an error estimator data object (or NULL)
+	///	sets the pointer to an error estimator data object (or nullptr)
 	/**
 	 * This function sets the pointer to an error estimator data object
 	 * that should be used for this discretization. Note that the ElemDisc
@@ -223,7 +221,7 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 	/// find out whether or not a posteriori error estimation is to be performed for this disc
 		bool err_est_enabled() const {return m_bDoErrEst;}
 
-	///	returns the pointer to the error estimator data object (or NULL)
+	///	returns the pointer to the error estimator data object (or nullptr)
 		virtual SmartPtr<IErrEstData<TDomain> > err_est_data() {return m_spErrEstData;}
 
 	private:

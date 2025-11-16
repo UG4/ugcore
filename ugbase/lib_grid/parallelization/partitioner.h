@@ -74,7 +74,7 @@ class IBalanceWeights{
 	/** \} */
 };
 
-typedef SmartPtr<IBalanceWeights>		SPBalanceWeights;
+using SPBalanceWeights = SmartPtr<IBalanceWeights>;
 
 
 /**
@@ -109,7 +109,7 @@ class ICommunicationWeights
 		virtual bool reweigh(GridObject* conn) {return false;}
 };
 
-typedef SmartPtr<ICommunicationWeights>	SPCommunicationWeights;
+using SPCommunicationWeights = SmartPtr<ICommunicationWeights>;
 
 
 ///	allows to pre-process data before partitioning starts
@@ -118,7 +118,7 @@ typedef SmartPtr<ICommunicationWeights>	SPCommunicationWeights;
  */
 class IPartitionPreProcessor{
 	public:
-		virtual ~IPartitionPreProcessor()	{}
+		virtual ~IPartitionPreProcessor() = default;
 		
 		virtual void partitioning_starts (	MultiGrid* mg,
 		                                 	IPartitioner* partitioner) = 0;
@@ -126,7 +126,7 @@ class IPartitionPreProcessor{
 		                                	IPartitioner* partitioner) = 0;
 };
 
-typedef SmartPtr<IPartitionPreProcessor>	SPPartitionPreProcessor;
+using SPPartitionPreProcessor = SmartPtr<IPartitionPreProcessor>;
 
 
 
@@ -153,7 +153,7 @@ class IPartitionPostProcessor{
 		virtual void partitioning_done() = 0;
 };
 
-typedef SmartPtr<IPartitionPostProcessor>	SPPartitionPostProcessor;
+using SPPartitionPostProcessor = SmartPtr<IPartitionPostProcessor>;
 
 
 
@@ -226,8 +226,8 @@ class IPartitioner{
 			UG_LOG("IPartitioner::enable_static_partitioning not implemented");
 		};
 
-	///	returns the processes map. Updated during partitioning. may be NULL.
-	/**	If NULL is returned, this means that each subset index correspons to a
+	///	returns the processes map. Updated during partitioning. may be nullptr.
+	/**	If nullptr is returned, this means that each subset index correspons to a
 	 * global proc-rank.*/
 		virtual const std::vector<int>* get_process_map() const = 0;
 
@@ -247,7 +247,7 @@ class IPartitioner{
 		bool m_clusteredSiblings;
 };
 
-typedef SmartPtr<IPartitioner>		SPPartitioner;
+using SPPartitioner = SmartPtr<IPartitioner>;
 
 ///	\}
 

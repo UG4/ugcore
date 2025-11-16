@@ -48,8 +48,8 @@ template <typename TValueType>
 class MapVector : public Vector<TValueType>
 {
 public:
-	typedef TValueType value_type;
-	typedef MapVector<TValueType> vector_type;
+	using value_type = TValueType;
+	using vector_type = MapVector<TValueType>;
 
 	//! constructor
 	MapVector() : Vector<TValueType>() {}

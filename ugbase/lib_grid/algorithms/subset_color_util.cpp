@@ -31,6 +31,7 @@
  */
 
 #include "common/math/ugmath.h"
+#include "common/math/misc/math_constants.h"
 #include "subset_color_util.h"
 
 namespace ug {
@@ -61,7 +62,7 @@ vector3 GetColorFromDefaultPalette(int index)
 
 	index -= numCols;
 
-	float val = 2.f* 3.14159265 * (float)index / 3.148 + (float)index / 15.f;
+	float val = 2.f* M_PI * (float)index / 3.148 + (float)index / 15.f;
 	vector3 vCol(1.f + cos(val), 1.f + sin(0.6* val), 1.f - cos(0.373*val));
 
 	VecNormalize(vCol, vCol);

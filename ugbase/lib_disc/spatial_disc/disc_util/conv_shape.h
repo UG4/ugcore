@@ -53,13 +53,13 @@ class ConvectionShapesNoUpwind
 {
 	public:
 	///	Base class
-		typedef IConvectionShapes<TDim> base_type;
+		using base_type = IConvectionShapes<TDim>;
 
 	///	This class
-		typedef ConvectionShapesNoUpwind<TDim> this_type;
+		using this_type = ConvectionShapesNoUpwind<TDim>;
 
 	///	Dimension
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	protected:
 	//	explicitly forward some function
@@ -109,7 +109,7 @@ class ConvectionShapesNoUpwind
 		template <typename TElem, typename TFVGeom>
 		void register_func_for_elem_fvgeom()
 		{
-			typedef bool (this_type::*TFunc) (const TFVGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+			using TFunc = bool(this_type::*) (const TFVGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 			base_type::template register_update_func<TFVGeom, TFunc>(&this_type::template update<TFVGeom>);
 		}
 		
@@ -125,8 +125,8 @@ class ConvectionShapesNoUpwind
 		template <int refDim>
 		void register_func_for_refDim()
 		{
-			typedef DimFV1Geometry<refDim, dim> TGeom;
-			typedef bool (this_type::*TFunc) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+			using TGeom = DimFV1Geometry<refDim, dim>;
+			using TFunc = bool(this_type::*) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 		}
 };
@@ -194,13 +194,13 @@ class ConvectionShapesFullUpwind
 {
 	public:
 	///	Base class
-		typedef IConvectionShapes<TDim> base_type;
+	using base_type = IConvectionShapes<TDim>;
 
 	///	This class
-		typedef ConvectionShapesFullUpwind<TDim> this_type;
+	using this_type = ConvectionShapesFullUpwind<TDim>;
 
 	///	Dimension
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	protected:
 	//	explicitly forward some function
@@ -250,7 +250,7 @@ class ConvectionShapesFullUpwind
 		template <typename TElem, typename TFVGeom>
 		void register_func_for_elem_fvgeom()
 		{
-			typedef bool (this_type::*TFunc) (const TFVGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+			using TFunc = bool(this_type::*) (const TFVGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 			base_type::template register_update_func<TFVGeom, TFunc>(&this_type::template update<TFVGeom>);
 		}
 		
@@ -266,8 +266,8 @@ class ConvectionShapesFullUpwind
 		template <int refDim>
 		void register_func_for_refDim()
 		{
-			typedef DimFV1Geometry<refDim, dim> TGeom;
-			typedef bool (this_type::*TFunc) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+			using TGeom = DimFV1Geometry<refDim, dim>;
+			using TFunc = bool(this_type::*) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 		}
 };
@@ -349,13 +349,13 @@ class ConvectionShapesWeightedUpwind
 {
 	public:
 	///	Base class
-		typedef IConvectionShapes<TDim> base_type;
+		using base_type = IConvectionShapes<TDim>;
 
 	///	This class
-		typedef ConvectionShapesWeightedUpwind<TDim> this_type;
+		using this_type = ConvectionShapesWeightedUpwind<TDim>;
 
 	///	Dimension
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	protected:
 	//	explicitly forward some function
@@ -426,7 +426,7 @@ class ConvectionShapesWeightedUpwind
 		template <typename TElem, typename TFVGeom>
 		void register_func_for_elem_fvgeom()
 		{
-			typedef bool (this_type::*TFunc) (const TFVGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+			using TFunc = bool(this_type::*) (const TFVGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 			base_type::template register_update_func<TFVGeom, TFunc>(&this_type::template update<TFVGeom>);
 		}
 		
@@ -442,8 +442,8 @@ class ConvectionShapesWeightedUpwind
 		template <int refDim>
 		void register_func_for_refDim()
 		{
-			typedef DimFV1Geometry<refDim, dim> TGeom;
-			typedef bool (this_type::*TFunc) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+			using TGeom = DimFV1Geometry<refDim, dim>;
+			using TFunc = bool(this_type::*) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 		}
 };
@@ -536,13 +536,13 @@ class ConvectionShapesPartialUpwind
 {
 	public:
 	///	Base class
-		typedef IConvectionShapes<TDim> base_type;
+		using base_type = IConvectionShapes<TDim>;
 
 	///	This class
-		typedef ConvectionShapesPartialUpwind<TDim> this_type;
+		using this_type = ConvectionShapesPartialUpwind<TDim>;
 
 	///	Dimension
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	protected:
 	//	explicitly forward some function
@@ -587,7 +587,7 @@ class ConvectionShapesPartialUpwind
 		template <typename TElem, typename TFVGeom>
 		void register_func_for_elem_fvgeom()
 		{
-			typedef bool (this_type::*TFunc) (const TFVGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+			using TFunc = bool(this_type::*) (const TFVGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 			base_type::template register_update_func<TFVGeom, TFunc>(&this_type::template update<TFVGeom>);
 		}
 		
@@ -603,8 +603,8 @@ class ConvectionShapesPartialUpwind
 		template <int refDim>
 		void register_func_for_refDim()
 		{
-			typedef DimFV1Geometry<refDim, dim> TGeom;
-			typedef bool (this_type::*TFunc) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+			using TGeom = DimFV1Geometry<refDim, dim>;
+			using TFunc = bool(this_type::*) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 		}
 };
@@ -623,7 +623,7 @@ update(const TFVGeom* geo,
 //	UG_ASSERT(DiffDisp != nullptr, "Null pointer");
 
 //	Compute Volume of Element
-//	typedef typename TFVGeom::ref_elem_type ref_elem_type;
+	//using ref_elem_type = typename TFVGeom::ref_elem_type;
 	const number vol = ElementSize<dim>(geo->roid(), geo->corners());
 
 //	loop subcontrol volume faces
@@ -771,13 +771,13 @@ class ConvectionShapesSkewedUpwind
 {
 public:
 	///	Base class
-	typedef IConvectionShapes<TDim> base_type;
+	using base_type = IConvectionShapes<TDim>;
 
 	///	This class
-	typedef ConvectionShapesSkewedUpwind<TDim> this_type;
+	using this_type = ConvectionShapesSkewedUpwind<TDim>;
 
 	///	Dimension
-	static const int dim = TDim;
+	static constexpr int dim = TDim;
 
 protected:
 	//	explicitly forward some function
@@ -827,7 +827,7 @@ private:
 	template <typename TElem, typename TFVGeom>
 	void register_func_for_elem_fvgeom()
 	{
-		typedef bool (this_type::*TFunc)(const TFVGeom *, const MathVector<dim> *, const MathMatrix<dim, dim> *, bool);
+		using TFunc = bool(this_type::*)(const TFVGeom *, const MathVector<dim> *, const MathMatrix<dim, dim> *, bool);
 		base_type::template register_update_func<TFVGeom, TFunc>(&this_type::template update<TFVGeom>);
 	}
 
@@ -844,8 +844,8 @@ private:
 	template <int refDim>
 	void register_func_for_refDim()
 	{
-		//typedef DimFV1Geometry<refDim, dim> TGeom;
-		//typedef bool (this_type::*TFunc) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+		//using TGeom = DimFV1Geometry<refDim, dim>;
+		//using TFunc = bool(this_type::*) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 		//base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 	}
 };
@@ -983,13 +983,13 @@ class ConvectionShapesLinearProfileSkewedUpwind
 {
 public:
 	///	Base class
-	typedef IConvectionShapes<TDim> base_type;
+	using base_type = IConvectionShapes<TDim>;
 
 	///	This class
-	typedef ConvectionShapesLinearProfileSkewedUpwind<TDim> this_type;
+	using this_type = ConvectionShapesLinearProfileSkewedUpwind<TDim>;
 
 	///	Dimension
-	static const int dim = TDim;
+	static constexpr int dim = TDim;
 
 protected:
 	//	explicitly forward some function
@@ -1039,7 +1039,7 @@ private:
 	template <typename TElem, typename TFVGeom>
 	void register_func_for_elem_fvgeom()
 	{
-		typedef bool (this_type::*TFunc)(const TFVGeom *, const MathVector<dim> *, const MathMatrix<dim, dim> *, bool);
+		using TFunc = bool(this_type::*)(const TFVGeom *, const MathVector<dim> *, const MathMatrix<dim, dim> *, bool);
 		base_type::template register_update_func<TFVGeom, TFunc>(&this_type::template update<TFVGeom>);
 	}
 
@@ -1056,8 +1056,8 @@ private:
 	template <int refDim>
 	void register_func_for_refDim()
 	{
-		//typedef DimFV1Geometry<refDim, dim> TGeom;
-		//typedef bool (this_type::*TFunc) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+		//using TGeom = DimFV1Geometry<refDim, dim>;
+		//using TFunc = bool(this_type::*) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 		//base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 	}
 };
@@ -1119,7 +1119,7 @@ bool ConvectionShapesLinearProfileSkewedUpwind<TDim>::
 
 		const MathVector<dim> *vCornerCoords = geo->corners();
 		// Reference element type
-		typedef typename TFVGeom::ref_elem_type TRefElem;
+		using TRefElem = typename TFVGeom::ref_elem_type;
 		size_t side = 0;
 		MathVector<dim> globalIntersection;
 		MathVector<TRefElem::dim> localIntersection;
@@ -1132,7 +1132,7 @@ bool ConvectionShapesLinearProfileSkewedUpwind<TDim>::
 		UG_CATCH_THROW("GetLinearProfileSkewedUpwindShapes: Cannot find cut side.");
 
 		// 	get linear trial space
-		static const ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
 		const LocalShapeFunctionSet<TRefElem::dim> &TrialSpace =
 			LocalFiniteElementProvider::get<TRefElem::dim>(roid, LFEID(LFEID::LAGRANGE, dim, 1));
 

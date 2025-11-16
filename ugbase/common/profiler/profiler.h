@@ -70,7 +70,7 @@
 		CPU_FREQ_BEGIN_AUTO_END(id, file, line); 			\
 		AutoProfileNode	id;									\
 		static Shiny::ProfileZone __ShinyZone_##id = {		\
-			NULL, Shiny::ProfileZone::STATE_HIDDEN, name, 	\
+			nullptr, Shiny::ProfileZone::STATE_HIDDEN, name, 	\
 			group, file, line,								\
 			{ { 0, 0 }, { 0, 0 }, { 0, 0 } }				\
 		};													\
@@ -88,7 +88,7 @@
 	 * ends.
 	 */
 	#define PROFILE_BEGIN(name)						\
-			PROFILE_BEGIN_AUTO_END(apn_##name, #name, NULL, __FILE__, __LINE__)
+			PROFILE_BEGIN_AUTO_END(apn_##name, #name, nullptr, __FILE__, __LINE__)
 
 	/**	Ends profiling of the latest PROFILE_BEGIN section.*/
 	#define PROFILE_END()							\
@@ -97,7 +97,7 @@
 
 	/**	Profiles the whole function*/
 	#define PROFILE_FUNC()										\
-			PROFILE_BEGIN_AUTO_END(__ShinyFunction, __FUNCTION__, NULL, __FILE__, __LINE__)
+			PROFILE_BEGIN_AUTO_END(__ShinyFunction, __FUNCTION__, nullptr, __FILE__, __LINE__)
 
 	#define PROFILE_BEGIN_GROUP(name, group)					\
 		PROFILE_BEGIN_AUTO_END(apn_##name, #name, group, __FILE__, __LINE__)
@@ -147,7 +147,7 @@
 
 	namespace ProfilerDummy{
 		inline void Update(float a = 0.0f)			{}
-		inline bool Output(const char *a = NULL)	{return false;}
+		inline bool Output(const char *a = nullptr)	{return false;}
 		inline bool Output(std::ostream &a)			{return false;}
 	}
 
@@ -186,7 +186,7 @@
 
 	namespace ProfilerDummy{
 		inline void Update(float a = 0.0f)			{}
-		inline bool Output(const char *a = NULL)	{return false;}
+		inline bool Output(const char *a = nullptr)	{return false;}
 		inline bool Output(std::ostream &a)			{return false;}
 	}
 
@@ -227,7 +227,7 @@
 
 	namespace ProfilerDummy{
 		inline void Update(float a = 0.0f)			{}
-		inline bool Output(const char *a = NULL)	{return false;}
+		inline bool Output(const char *a = nullptr)	{return false;}
 		inline bool Output(std::ostream &a)			{return false;}
 	}
 
@@ -246,7 +246,7 @@
 
 	namespace ProfilerDummy{
 		inline void Update(float a = 0.0f)			{}
-		inline bool Output(const char *a = NULL)	{return false;}
+		inline bool Output(const char *a = nullptr)	{return false;}
 		inline bool Output(std::ostream &a)			{return false;}
 	}
 

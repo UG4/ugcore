@@ -63,8 +63,9 @@ class element_list_traits
 	{
 		template <typename TElem> class apply
 		{
-			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-			public: typedef boost::mpl::int_<ref_elem_type::numCorners> type; ///< returned type (i.e. result of the metafunction)
+			using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
+			public:
+				using type = boost::mpl::int_<ref_elem_type::numCorners>; ///< returned type (i.e. result of the metafunction)
 		};
 	};
 	
@@ -73,8 +74,9 @@ class element_list_traits
 	{
 		template <typename TElem> class apply
 		{
-			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-			public: typedef boost::mpl::int_<ref_elem_type::numEdges> type; ///< returned type (i.e. result of the metafunction)
+			using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
+			public:
+				using type = boost::mpl::int_<ref_elem_type::numEdges>; ///< returned type (i.e. result of the metafunction)
 		};
 	};
 	
@@ -83,8 +85,9 @@ class element_list_traits
 	{
 		template <typename TElem> class apply
 		{
-			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-			public: typedef boost::mpl::int_<ref_elem_type::numFaces> type; ///< returned type (i.e. result of the metafunction)
+			using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
+			public:
+				using type = boost::mpl::int_<ref_elem_type::numFaces>; ///< returned type (i.e. result of the metafunction)
 		};
 	};
 	
@@ -93,8 +96,9 @@ class element_list_traits
 	{
 		template <typename TElem> class apply
 		{
-			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-			public: typedef boost::mpl::int_<ref_elem_type::numVolumes> type; ///< returned type (i.e. result of the metafunction)
+			using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
+			public:
+				using type = boost::mpl::int_<ref_elem_type::numVolumes>; ///< returned type (i.e. result of the metafunction)
 		};
 	};
 	
@@ -103,54 +107,45 @@ class element_list_traits
 	{
 		template <typename TElem> class apply
 		{
-			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-			public: typedef boost::mpl::int_<ref_elem_type::numSides> type; ///< returned type (i.e. result of the metafunction)
+			using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
+			public:
+				using type = boost::mpl::int_<ref_elem_type::numSides>; ///< returned type (i.e. result of the metafunction)
 		};
 	};
 	
 public:
 	
 /// Max. number of corners of the elements in the element list (as a constant)
-	static const int maxCorners
-		= boost::mpl::fold
-			<
-				boost::mpl::transform_view<ElemList, mfc_num_corners_of_elem>,
+	static constexpr int maxCorners = boost::mpl::fold
+			< boost::mpl::transform_view<ElemList, mfc_num_corners_of_elem>,
 				boost::mpl::int_<0>,
 				boost::mpl::max<boost::mpl::_1,boost::mpl::_2>
 			>::type::value;
 	
 /// Max. number of edges of the elements in the element list (as a constant)
-	static const int maxEdges
-		= boost::mpl::fold
-			<
-				boost::mpl::transform_view<ElemList, mfc_num_edges_of_elem>,
+	static constexpr int maxEdges = boost::mpl::fold
+			< boost::mpl::transform_view<ElemList, mfc_num_edges_of_elem>,
 				boost::mpl::int_<0>,
 				boost::mpl::max<boost::mpl::_1,boost::mpl::_2>
 			>::type::value;
 	
 /// Max. number of faces of the elements in the element list (as a constant)
-	static const int maxFaces
-		= boost::mpl::fold
-			<
-				boost::mpl::transform_view<ElemList, mfc_num_faces_of_elem>,
+	static constexpr int maxFaces = boost::mpl::fold
+			< boost::mpl::transform_view<ElemList, mfc_num_faces_of_elem>,
 				boost::mpl::int_<0>,
 				boost::mpl::max<boost::mpl::_1,boost::mpl::_2>
 			>::type::value;
 	
 /// Max. number of volumes of the elements in the element list (as a constant)
-	static const int maxVolumes
-		= boost::mpl::fold
-			<
-				boost::mpl::transform_view<ElemList, mfc_num_volumes_of_elem>,
+	static constexpr int maxVolumes = boost::mpl::fold
+			< boost::mpl::transform_view<ElemList, mfc_num_volumes_of_elem>,
 				boost::mpl::int_<0>,
 				boost::mpl::max<boost::mpl::_1,boost::mpl::_2>
 			>::type::value;
 	
 /// Max. number of sides (edges or faces) of the elements in the element list (as a constant)
-	static const int maxSides
-		= boost::mpl::fold
-			<
-				boost::mpl::transform_view<ElemList, mfc_num_sides_of_elem>,
+	static constexpr int maxSides = boost::mpl::fold
+			< boost::mpl::transform_view<ElemList, mfc_num_sides_of_elem>,
 				boost::mpl::int_<0>,
 				boost::mpl::max<boost::mpl::_1,boost::mpl::_2>
 			>::type::value;

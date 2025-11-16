@@ -51,7 +51,7 @@ static void RegisterDegeneratedLayerManager(Registry& reg, string grp)
 	string suffix = GetDimensionSuffix<dim>();
 	string tag = GetDimensionTag<dim>();
 
-	typedef DegeneratedLayerManager<dim> T;
+	using T = DegeneratedLayerManager<dim>;
 	string name = string("DegeneratedLayerManager").append(suffix);
 	reg.add_class_<T>(name, grp)
 		.template add_constructor<void (*) (SmartPtr<MultiGridSubsetHandler>)>("MultiGridSubsetHandler")
@@ -100,7 +100,7 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 	RegisterDegeneratedLayerManager<3> (reg, grp);
 #endif
 
-	typedef vector<FractureInfo> FracInfoVec;
+	using FracInfoVec = vector<FractureInfo>;
 	reg.add_class_<FracInfoVec>("FractureInfoVec", grp);
 
 	reg.add_class_<ExpandLayersDesc, FracInfoVec>("ExpandLayersDesc", grp)

@@ -96,7 +96,7 @@ public:
 
         numOut = -1;
         returnType = RT_CALLBACK;
-		args = NULL;
+		args = nullptr;
 	}
 	
 	void set_name(const char *s)
@@ -257,7 +257,7 @@ public:
 		nodeType *p;
 
 		/* allocate node */
-		if ((p = new nodeType) == NULL)
+		if ((p = new nodeType) == nullptr)
 			yyerror("out of memory");
 
 		/* copy information */
@@ -283,7 +283,7 @@ public:
 		nodeType *p;
 
 		/* allocate node */
-		if ((p = new nodeType) == NULL)
+		if ((p = new nodeType) == nullptr)
 			yyerror("out of memory");
 
 		/* copy information */

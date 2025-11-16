@@ -70,18 +70,18 @@ template <int TDim>
 class QuadratureRule{
 	public:
 	///	Dimension of Reference Element
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	/// Position Type in Reference Element Space
-		typedef MathVector<dim> position_type;
+	using position_type = MathVector<dim>;
 
 	///	Type of weights
-		typedef number weight_type;
+	using weight_type = number;
 
 	public:
 	///	constructor
 		QuadratureRule() :
-			m_pvPoint(NULL), m_pvWeight(NULL),
+			m_pvPoint(nullptr), m_pvWeight(nullptr),
 			m_numPoints(0), m_order(0)
 		{}
 

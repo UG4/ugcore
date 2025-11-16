@@ -86,12 +86,11 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 //	assign subsets and material indices at the same time.
 	{
 		int objCounter = 0;
-		for(LoaderObj::ObjectIterator oIter = loader.objects_begin();
-			oIter != loader.objects_end(); ++oIter, ++objCounter)
+		for(auto oIter = loader.objects_begin(); oIter != loader.objects_end(); ++oIter, ++objCounter)
 		{
 			LoaderObj::Object& obj = *(*oIter);
 		//	set the subset-info of this object - if requested.
-			if(pSubsetHandler != NULL)
+			if(pSubsetHandler != nullptr)
 			{
 				SubsetInfo si = pSubsetHandler->subset_info(objCounter);
 				si.materialIndex = obj.m_iMaterialIndex;
@@ -102,7 +101,7 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 
 		//	create edges and faces.
 		//	creation differs if a subset handler is supplied.
-			if(pSubsetHandler == NULL)
+			if(pSubsetHandler == nullptr)
 			{
 			//	create edges
 				for(size_t i = 0; i < obj.m_vEdgeList.size(); i+=2){
@@ -181,7 +180,7 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 			}
 
 		//	assign texture coords if the corresponding attachment is supplied
-			if(paTexCoord != NULL)
+			if(paTexCoord != nullptr)
 			{
 			//	since you can specify texture coords for each face from the .obj specification,
 			//	and since libGrid only supports one texture coord per vertex, we reduce
@@ -194,7 +193,7 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 	}
 
 //	copy materials to pvMaterials - if supplied
-	if(pvMaterials != NULL)
+	if(pvMaterials != nullptr)
 	{
 		pvMaterials->resize(loader.num_materials());
 		for(int i = 0; i < loader.num_materials(); ++i)
@@ -317,7 +316,7 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 		}
 
 	//	if texture data is supplied we have to write it too
-		if(paTexCoord != NULL)
+		if(paTexCoord != nullptr)
 		{
 			indexDimension++;
 			Grid::VertexAttachmentAccessor<AVector2> aaTex(grid, *paTexCoord);
@@ -340,7 +339,7 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 					out << "o " << "sub_" << i << endl;
 
 			//	write material reference
-				if((pvMaterials != NULL) && (pSubsetHandler->subset_info(i).materialIndex != -1))
+				if((pvMaterials != nullptr) && (pSubsetHandler->subset_info(i).materialIndex != -1))
 					out << "usemtl " << (*pvMaterials)[pSubsetHandler->subset_info(i).materialIndex].m_strName << endl;
 				else
 					out << "usemtl (null)" << endl;

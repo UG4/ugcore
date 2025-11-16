@@ -41,10 +41,10 @@ namespace ug{
 template <typename TDomain, typename TAlgebra>
 class GridFunctionOrdering
 {
-	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-	typedef GridFunctionNumberData<GridFunction<TDomain, TAlgebra> > TGridFunctionNumberData;
+	using TGridFunction = GridFunction<TDomain, TAlgebra>;
+	using TGridFunctionNumberData = GridFunctionNumberData<GridFunction<TDomain, TAlgebra> >;
 
-	typedef typename TGridFunction::template traits<Vertex>::const_iterator VertexConstIterator;
+	using VertexConstIterator = typename TGridFunction::template traits<Vertex>::const_iterator;
 
 public:
 	GridFunctionOrdering(SmartPtr<TGridFunction> spGridFct, const char* name)

@@ -86,10 +86,10 @@ class IOperator
 {
 	public:
 	///	Domain space
-		typedef X domain_function_type;
+		using domain_function_type = X;
 
 	///	Range space
-		typedef Y codomain_function_type;
+		using codomain_function_type = Y;
 
 	public:
 	/// initializes the operator

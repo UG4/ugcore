@@ -52,7 +52,7 @@ class ProjectionLinker
 : public StdDataLinker<ProjectionLinker<dim>, MathVector<dim>, dim>
 {
 ///	Base class type
-	typedef StdDataLinker<ProjectionLinker<dim>, MathVector<dim>, dim> base_type;
+	using base_type = StdDataLinker<ProjectionLinker<dim>, MathVector<dim>, dim>;
 	
 public:
 
@@ -108,7 +108,7 @@ public:
 		const MathVector<refDim> vLocIP[],
 		const size_t nip,
 		LocalVector* u,
-		const MathMatrix<refDim, dim>* vJT = NULL
+		const MathMatrix<refDim, dim>* vJT = nullptr
 	) const
 	{
 	//	1. Get the vectors themselves
@@ -146,7 +146,7 @@ public:
 		bool bDeriv,
 		int s,
 		std::vector<std::vector<MathVector<dim> > > vvvDeriv[],
-		const MathMatrix<refDim, dim>* vJT = NULL
+		const MathMatrix<refDim, dim>* vJT = nullptr
 	) const
 	{
 	//	1. Get the vectors themselves

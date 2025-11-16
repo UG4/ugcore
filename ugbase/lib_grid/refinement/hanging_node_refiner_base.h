@@ -93,7 +93,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	public:
 		using IRefiner::mark;
 
-		typedef TSelector	selector_t;
+		using selector_t = TSelector;
 
 	/**	additional mark to RefinementMarks. Used to flag whether an element
 	 * will be refined with constraining.*/
@@ -105,7 +105,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		};
 
 	public:
-		HangingNodeRefinerBase(SPRefinementProjector projector = SPNULL);
+		HangingNodeRefinerBase(SPRefinementProjector projector = nullptr);
 		virtual ~HangingNodeRefinerBase();
 
 		virtual void grid_to_be_destroyed(Grid* grid);
@@ -189,10 +189,10 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		virtual bool save_marks_to_file(const char* filename);
 
 	protected:
-		typedef typename TSelector::template traits<Vertex>::iterator	sel_vrt_iter;
-		typedef typename TSelector::template traits<Edge>::iterator		sel_edge_iter;
-		typedef typename TSelector::template traits<Face>::iterator			sel_face_iter;
-		typedef typename TSelector::template traits<Volume>::iterator		sel_vol_iter;
+		using sel_vrt_iter = typename TSelector::template traits<Vertex>::iterator;
+		using sel_edge_iter = typename TSelector::template traits<Edge>::iterator;
+		using sel_face_iter = typename TSelector::template traits<Face>::iterator;
+		using sel_vol_iter = typename TSelector::template traits<Volume>::iterator;
 
 	///	performs refinement on the marked elements.
 	/**
@@ -233,7 +233,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 * 	The associated selector is also initialised with the given grid.
 	 * 	It is cruical to call this method or everything will fail.
 	 *
-	 *  call set_grid(NULL) to unregister the observer from a grid.
+	 *  call set_grid(nullptr) to unregister the observer from a grid.
 	 *
 	 *  Please note that this method is not declared virtual, since it
 	 *  is called during construction and destruction.*/
@@ -277,26 +277,26 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	//	refine methods
 	///	called to refine the specified element.
 	/**	Refines the element. Corner vertices of the newly created element
-	 *  can be specified through newCornerVrts. newCornerVrts = NULL (default)
+	 *  can be specified through newCornerVrts. newCornerVrts = nullptr (default)
 	 *  means, that the corner vertices of the original element shall be taken.
 	 *  \{ */
 		virtual void process_constrained_vertex(ConstrainedVertex* cdv);
 		virtual void process_constrained_edge(ConstrainedEdge* cde);
 		virtual void process_constraining_edge(ConstrainingEdge* cge);
 		virtual void refine_edge_with_normal_vertex(Edge* e,
-											Vertex** newCornerVrts = NULL);
+											Vertex** newCornerVrts = nullptr);
 		virtual void refine_edge_with_hanging_vertex(Edge* e,
-											Vertex** newCornerVrts = NULL);
+											Vertex** newCornerVrts = nullptr);
 
 		virtual void process_constrained_face(ConstrainedFace* cdf);
 		virtual void process_constraining_face(ConstrainingFace* cgf);
 		virtual void refine_face_with_normal_vertex(Face* f,
-											Vertex** newCornerVrts = NULL);
+											Vertex** newCornerVrts = nullptr);
 		virtual void refine_face_with_hanging_vertex(Face* f,
-											Vertex** newCornerVrts = NULL);
+											Vertex** newCornerVrts = nullptr);
 
 		virtual void refine_volume_with_normal_vertex(Volume* v,
-											Vertex** newVolumeVrts = NULL);
+											Vertex** newVolumeVrts = nullptr);
 	/**	\} */
 
 	////////////////////////////////////////////////////////////////////////
@@ -312,7 +312,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	///	Returns the vertex associated with the edge
 	/**	pure virtual method.
 	 *	Has to return the center vertex which was set to the edge via
-	 *	set_center_vertex. If no vertex was set, NULL has to be returned.*/
+	 *	set_center_vertex. If no vertex was set, nullptr has to be returned.*/
 		virtual Vertex* get_center_vertex(Edge* e) = 0;
 
 	///	Associates a vertex with the edge (pure virtual).
@@ -324,7 +324,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	///	Returns the vertex associated with the face
 	/**	pure virtual method.
 	 *	Has to return the center vertex which was set to the face via
-	 *	set_center_vertex. If no vertex was set, NULL has to be returned.*/
+	 *	set_center_vertex. If no vertex was set, nullptr has to be returned.*/
 		virtual Vertex* get_center_vertex(Face* f) = 0;
 
 	///	Associates a vertex with the face (pure virtual).

@@ -82,7 +82,7 @@ public:
 	void find(const TRowType &Ci, size_t i, cgraph &graph)
 	{
 		double dmax = 0.0;
-		typedef typename TRowType::const_iterator const_iterator;
+		using const_iterator = typename TRowType::const_iterator;
 
 		for(const_iterator conn = Ci.begin(); conn != Ci.end(); ++conn)
 		{
@@ -145,8 +145,8 @@ void GetBlockGSCorrection(const TSparseMatrixType &A, TVectorType &x, TVectorTyp
 	// assume tmp is big enough
 	size_t k;
 
-	typedef typename TSparseMatrixType::const_row_iterator const_row_iterator;
-	typedef typename TVectorType::value_type smallvec_type;
+	using const_row_iterator = typename TSparseMatrixType::const_row_iterator;
+	using smallvec_type = typename TVectorType::value_type;
 
 	k = 0;
 	tmp.resize(indices.size()*GetSize(b[0]));
@@ -199,8 +199,8 @@ void GetBlockGSCorrectionILUT(const TSparseMatrixType &A, TVectorType &x, TVecto
 {
 	size_t blockSize = GetSize(b[0]);
 	size_t k;
-	typedef typename TSparseMatrixType::const_row_iterator const_row_iterator;
-	typedef typename TVectorType::value_type smallvec_type;
+	using const_row_iterator = typename TSparseMatrixType::const_row_iterator;
+	using smallvec_type = typename TVectorType::value_type;
 
 	k = 0;
 	tmp.resize(indices.size()*blockSize);
@@ -288,16 +288,16 @@ class IBlockJacobiPreconditioner : public IPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	//	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	//	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 		IBlockJacobiPreconditioner() {}
 		IBlockJacobiPreconditioner(const IBlockJacobiPreconditioner &parent) : IPreconditioner<TAlgebra>(parent)
@@ -371,24 +371,24 @@ class BlockGaussSeidel : public IBlockJacobiPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	//	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	//	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+	using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	///	Base type
-		typedef IBlockJacobiPreconditioner<TAlgebra> base_type;
+	using base_type = IBlockJacobiPreconditioner<TAlgebra>;
 
-		typedef BlockGaussSeidel<algebra_type, backward, forward> this_type;
+	using this_type = BlockGaussSeidel<algebra_type, backward, forward>;
 
 	protected:
-		typedef typename matrix_type::value_type block_type;
+	using block_type = typename matrix_type::value_type;
 
 	public:
 	//	Constructor
@@ -411,9 +411,9 @@ class BlockGaussSeidel : public IBlockJacobiPreconditioner<TAlgebra>
 			return make_sp(new this_type(*this));
 		}
 
-		typedef typename matrix_type::value_type smallmat_type;
-		typedef typename vector_type::value_type smallvec_type;
-		typedef typename matrix_type::const_row_iterator const_row_iterator;
+		using smallmat_type = typename matrix_type::value_type;
+		using smallvec_type = typename vector_type::value_type;
+		using const_row_iterator = typename matrix_type::const_row_iterator;
 
 		std::vector< DenseMatrix<VariableArray2<double> > > AlocInv;
 		size_t m_depth;
@@ -464,8 +464,8 @@ class BlockGaussSeidel : public IBlockJacobiPreconditioner<TAlgebra>
 			return true;
 		}
 
-		typedef typename matrix_type::const_row_iterator matrix_const_row_iterator;
-		typedef typename matrix_type::row_iterator matrix_row_iterator;
+		using matrix_const_row_iterator = typename matrix_type::const_row_iterator;
+		using matrix_row_iterator = typename matrix_type::row_iterator;
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
@@ -522,24 +522,24 @@ class BlockGaussSeidelIterative : public IBlockJacobiPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	//	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	//	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	///	Base type
-		typedef IBlockJacobiPreconditioner<TAlgebra> base_type;
+		using base_type = IBlockJacobiPreconditioner<TAlgebra>;
 
-		typedef BlockGaussSeidelIterative<algebra_type, backward, forward> this_type;
+		using this_type = BlockGaussSeidelIterative<algebra_type, backward, forward>;
 
 	protected:
-		typedef typename matrix_type::value_type block_type;
+		using block_type = typename matrix_type::value_type;
 	public:
 	//	Constructor
 		BlockGaussSeidelIterative() {
@@ -564,9 +564,9 @@ class BlockGaussSeidelIterative : public IBlockJacobiPreconditioner<TAlgebra>
 			return make_sp(new this_type(*this));
 		}
 
-		typedef typename matrix_type::value_type smallmat_type;
-		typedef typename vector_type::value_type smallvec_type;
-		typedef typename matrix_type::const_row_iterator const_row_iterator;
+		using smallmat_type = typename matrix_type::value_type;
+		using smallvec_type = typename vector_type::value_type;
+		using const_row_iterator = typename matrix_type::const_row_iterator;
 
 		std::vector< DenseMatrix<VariableArray2<double> > > AlocInv;
 		size_t m_depth;
@@ -608,8 +608,8 @@ class BlockGaussSeidelIterative : public IBlockJacobiPreconditioner<TAlgebra>
 			return true;
 		}
 
-		typedef typename matrix_type::const_row_iterator matrix_const_row_iterator;
-		typedef typename matrix_type::row_iterator matrix_row_iterator;
+		using matrix_const_row_iterator = typename matrix_type::const_row_iterator;
+		using matrix_row_iterator = typename matrix_type::row_iterator;
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
@@ -703,23 +703,23 @@ class SparseBlockGaussSeidel : public IBlockJacobiPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	//	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	//	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+	using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	///	Base type
-		typedef IBlockJacobiPreconditioner<TAlgebra> base_type;
+	using base_type = IBlockJacobiPreconditioner<TAlgebra>;
 
 	protected:
-		typedef typename matrix_type::value_type block_type;
-		typedef SparseBlockGaussSeidel<TAlgebra, backward, forward> this_type;
+	using block_type = typename matrix_type::value_type;
+	using this_type = SparseBlockGaussSeidel<TAlgebra, backward, forward>;
 
 	public:
 	//	Constructor
@@ -743,9 +743,9 @@ class SparseBlockGaussSeidel : public IBlockJacobiPreconditioner<TAlgebra>
 		}
 
 
-		typedef typename matrix_type::value_type smallmat_type;
-		typedef typename vector_type::value_type smallvec_type;
-		typedef typename matrix_type::const_row_iterator const_row_iterator;
+		using smallmat_type = typename matrix_type::value_type;
+		using smallvec_type = typename vector_type::value_type;
+		using const_row_iterator = typename matrix_type::const_row_iterator;
 
 		std::map<size_t, SmartPtr<ILUTPreconditioner<CPUAlgebra> > > m_ilut;
 
@@ -816,8 +816,8 @@ class SparseBlockGaussSeidel : public IBlockJacobiPreconditioner<TAlgebra>
 			return true;
 		}
 
-		typedef typename matrix_type::const_row_iterator matrix_const_row_iterator;
-		typedef typename matrix_type::row_iterator matrix_row_iterator;
+		using matrix_const_row_iterator = typename matrix_type::const_row_iterator;
+		using matrix_row_iterator = typename matrix_type::row_iterator;
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
@@ -886,23 +886,23 @@ class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	//	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	//	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	///	Base type
-		typedef IBlockJacobiPreconditioner<TAlgebra> base_type;
-		typedef SparseBlockGaussSeidel2<TAlgebra, backward, forward> this_type;
+		using base_type = IBlockJacobiPreconditioner<TAlgebra>;
+		using this_type = SparseBlockGaussSeidel2<TAlgebra, backward, forward>;
 
 	protected:
-		typedef typename matrix_type::value_type block_type;
+	using block_type = typename matrix_type::value_type;
 	public:
 	//	Constructor
 		SparseBlockGaussSeidel2() {
@@ -924,9 +924,9 @@ class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 			return make_sp(new this_type(*this));
 		}
 
-		typedef typename matrix_type::value_type smallmat_type;
-		typedef typename vector_type::value_type smallvec_type;
-		typedef typename matrix_type::const_row_iterator const_row_iterator;
+		using smallmat_type = typename matrix_type::value_type;
+		using smallvec_type = typename vector_type::value_type;
+		using const_row_iterator = typename matrix_type::const_row_iterator;
 
 		std::map<size_t, SmartPtr<ILUTPreconditioner<CPUAlgebra> > > m_ilut;
 
@@ -1012,8 +1012,8 @@ class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 			return true;
 		}
 
-		typedef typename matrix_type::const_row_iterator matrix_const_row_iterator;
-		typedef typename matrix_type::row_iterator matrix_row_iterator;
+	using matrix_const_row_iterator = typename matrix_type::const_row_iterator;
+	using matrix_row_iterator = typename matrix_type::row_iterator;
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}

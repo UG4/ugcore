@@ -51,10 +51,10 @@ class AttachedElementListIterator : public std::iterator<
 											typename TAAEntry::element>
 {
 	public:
-		typedef typename TAAEntry::element				element;
-		typedef AttachedElementListIterator<TAAEntry>	iterator;
+		using element = typename TAAEntry::element;
+		using iterator = AttachedElementListIterator<TAAEntry>;
 
-		AttachedElementListIterator() : m_curElem(NULL)	{}
+		AttachedElementListIterator() : m_curElem(nullptr)	{}
 		AttachedElementListIterator(element curElem, const TAAEntry& aaEntry) :
 			m_aaEntry(aaEntry), m_curElem(curElem)	{}
 		AttachedElementListIterator(const AttachedElementListIterator& cpy) :
@@ -106,10 +106,10 @@ class ConstAttachedElementListIterator : public std::iterator<
 											const typename TAAEntry::element>
 {
 	public:
-		typedef typename TAAEntry::element					element;
-		typedef ConstAttachedElementListIterator<TAAEntry>	iterator;
+		using element = typename TAAEntry::element;
+		using iterator = ConstAttachedElementListIterator<TAAEntry>;
 
-		ConstAttachedElementListIterator() : m_curElem(NULL)	{}
+		ConstAttachedElementListIterator() : m_curElem(nullptr)	{}
 		ConstAttachedElementListIterator(element curElem, const TAAEntry& aaEntry) :
 			m_aaEntry(aaEntry), m_curElem(curElem)	{}
 		ConstAttachedElementListIterator(const ConstAttachedElementListIterator& it) :
@@ -162,7 +162,7 @@ class ConstAttachedElementListIterator : public std::iterator<
  * to the list. Note that each element may only be added once.
  *
  * Make sure that the attachment pipe on which the list operates
- * exists at least as long as the list itself, or call set_pipe(NULL),
+ * exists at least as long as the list itself, or call set_pipe(nullptr),
  * if the pipe is erased before.
  *
  * This list assumes that TAttachmentPipe::element is a pointer type.
@@ -181,28 +181,28 @@ template <class TAttachmentPipe>
 class AttachedElementList
 {
 	public:
-		typedef typename TAttachmentPipe::element		element;
+		using element = typename TAttachmentPipe::element;
 
 		struct Entry{
-			Entry() : prev(NULL), next(NULL)	{}
+			Entry() : prev(nullptr), next(nullptr)	{}
 			Entry(const element& p, const element& n) : prev(p), next(n) {}
 			element prev;
 			element next;
 		};
 
-		typedef Attachment<Entry> AEntry;
-		typedef typename TAttachmentPipe::ElementHandler ElemHandler;
-		typedef AttachmentAccessor<element, AEntry, ElemHandler> AAEntry;
+		using AEntry = Attachment<Entry>;
+		using ElemHandler = typename TAttachmentPipe::ElementHandler;
+		using AAEntry = AttachmentAccessor<element, AEntry, ElemHandler>;
 
-		typedef AttachedElementListIterator<AAEntry>		iterator;
-		typedef ConstAttachedElementListIterator<AAEntry>	const_iterator;
+		using iterator = AttachedElementListIterator<AAEntry>;
+		using const_iterator = ConstAttachedElementListIterator<AAEntry>;
 
 	public:
-		AttachedElementList(TAttachmentPipe* pipe = NULL) :
-			m_pipe(NULL),
+		AttachedElementList(TAttachmentPipe* pipe = nullptr) :
+			m_pipe(nullptr),
 			m_aEntry("AttachedElementList_Entry", false),
-			m_front(NULL),
-			m_back(NULL),
+			m_front(nullptr),
+			m_back(nullptr),
 			m_bSharedAttachment(false)
 		{
 			if(pipe)
@@ -211,26 +211,26 @@ class AttachedElementList
 
 	///	Note that auto-copy on aEntry has to be disabled.
 		AttachedElementList(AEntry aEntry) :
-			m_pipe(NULL),
+			m_pipe(nullptr),
 			m_aEntry(aEntry),
-			m_front(NULL),
-			m_back(NULL),
+			m_front(nullptr),
+			m_back(nullptr),
 			m_bSharedAttachment(false)
 		{}
 
 	///	Note that auto-copy on aEntry has to be disabled.
 		AttachedElementList(TAttachmentPipe* pipe, AEntry aEntry) :
-			m_pipe(NULL),
+			m_pipe(nullptr),
 			m_aEntry(aEntry),
-			m_front(NULL),
-			m_back(NULL),
+			m_front(nullptr),
+			m_back(nullptr),
 			m_bSharedAttachment(true)
 		{
 			if(pipe)
 				set_pipe(pipe);
 		}
 
-		AttachedElementList(const AttachedElementList& ael) : m_pipe(NULL)
+		AttachedElementList(const AttachedElementList& ael) : m_pipe(nullptr)
 		{
 			m_bSharedAttachment = ael.m_bSharedAttachment;
 			if(m_bSharedAttachment)
@@ -248,7 +248,7 @@ class AttachedElementList
 
 		~AttachedElementList()
 		{
-			set_pipe(NULL);
+			set_pipe(nullptr);
 		}
 
 		const AttachedElementList& operator=(const AttachedElementList& ael)
@@ -285,7 +285,7 @@ class AttachedElementList
 				m_aaEntry.access(*m_pipe, m_aEntry);
 			}
 
-			m_front = m_back = NULL;
+			m_front = m_back = nullptr;
 		}
 
 	///	Sets the pipe and a shared entry-attachment on which the list will operate
@@ -308,7 +308,7 @@ class AttachedElementList
 				m_aaEntry.access(*m_pipe, m_aEntry);
 			}
 
-			m_front = m_back = NULL;
+			m_front = m_back = nullptr;
 		}
 
 	///	clears the list. begin() == end() afterwards.
@@ -322,13 +322,13 @@ class AttachedElementList
 					m_aaEntry[elem] = Entry();
 				}
 
-				m_front = m_back = NULL;
+				m_front = m_back = nullptr;
 			}
 		}
 
 
 	///	retunrs true if the list is empty
-		bool empty() const				{return m_front == NULL;}
+		bool empty() const				{return m_front == nullptr;}
 
 	///	returns the first element in the list
 		element front()					{return m_front;}
@@ -343,7 +343,7 @@ class AttachedElementList
 	///	pushes an element to the end of the list
 		void push_back(const element& elem)
 		{
-			m_aaEntry[elem] = Entry(m_back, NULL);
+			m_aaEntry[elem] = Entry(m_back, nullptr);
 			if(empty())
 				m_front = elem;
 			else
@@ -366,7 +366,7 @@ class AttachedElementList
 					m_aaEntry[elem].prev = entry.prev;
 				}
 				else{
-					m_aaEntry[elem].prev = NULL;
+					m_aaEntry[elem].prev = nullptr;
 					m_front = elem;
 				}
 
@@ -431,21 +431,21 @@ class AttachedElementList
 	///	returns true if the element is in the list
 		bool is_in_list(const element& elem)
 		{
-			return (m_front == elem) || (m_aaEntry[elem].prev != NULL);
+			return (m_front == elem) || (m_aaEntry[elem].prev != nullptr);
 		}
 	///	returns an iterator to the beginning of the sequence.
 		iterator begin()				{return iterator(m_front, m_aaEntry);}
 
 	///	returns an iterator to the end of the sequence.
 	/**	Note that this is the iterator to the element behind the last one.*/
-		iterator end()					{return iterator(NULL, m_aaEntry);}
+		iterator end()					{return iterator(nullptr, m_aaEntry);}
 
 	///	returns an iterator to the beginning of the sequence.
 		const_iterator begin() const	{return const_iterator(m_front, m_aaEntry);}
 
 	///	returns an iterator to the end of the sequence.
 	/**	Note that this is the iterator to the element behind the last one.*/
-		const_iterator end() const		{return const_iterator(NULL, m_aaEntry);}
+		const_iterator end() const		{return const_iterator(nullptr, m_aaEntry);}
 
 	private:
 	//	the attachment pipe on which we'll operate

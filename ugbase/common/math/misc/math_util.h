@@ -468,15 +468,15 @@ bool RayTriangleIntersection(vector_t &vOut, const vector_t &p0,
  * \param rayDir:
  * \param boxMin:
  * \param boxMax:
- * \param tNearOut: can be NULL
- * \param tFarOut: can be NULL
+ * \param tNearOut: can be nullptr
+ * \param tFarOut: can be nullptr
  *
  * \sa LineBoxIntersection
  */
 template <class vector_t>
 bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 						const vector_t& boxMin, const vector_t& boxMax,
-						number* tNearOut = NULL, number* tFarOut = NULL);
+						number* tNearOut = nullptr, number* tFarOut = nullptr);
 
 ////////////////////////////////////////////////////////////////////////
 ///	checks whether the given line-segment (v1, v2) intersect the given box.
@@ -528,8 +528,8 @@ UG_API
 bool TriangleTriangleIntersection(const MathVector<3>& p0, const MathVector<3>& p1,
 								  const MathVector<3>& p2, const MathVector<3>& q0,
 								  const MathVector<3>& q1, const MathVector<3>& q2,
-								  MathVector<3>* ip1Out = NULL,
-								  MathVector<3>* ip2Out = NULL,
+								  MathVector<3>* ip1Out = nullptr,
+								  MathVector<3>* ip2Out = nullptr,
 								  number snapThreshold = SMALL);
 
 ////////////////////////////////////////////////////////////////////////

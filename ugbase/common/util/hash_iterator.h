@@ -41,19 +41,19 @@ template <class TKey, class TValue, class TEntry>
 class hash_iterator
 {
 	public:
-		typedef hash_iterator					this_type;
-		typedef std::forward_iterator_tag		iterator_category;
-		typedef size_t							difference_type;
-		typedef TValue*							pointer;
-		typedef TValue							value_type;
-		typedef TValue&							reference;
+		using this_type = hash_iterator;
+		using iterator_category = std::forward_iterator_tag;
+		using difference_type = size_t;
+		using pointer = TValue*;
+		using value_type = TValue;
+		using reference = TValue&;
 
-		typedef TKey 	key_t;
-		typedef TValue 	value_t;
-		typedef TEntry	entry_t;
+		using key_t = TKey;
+		using value_t = TValue;
+		using entry_t = TEntry;
 
 
-		hash_iterator() : m_entries(NULL), m_entryInd(s_invalidIndex)	{}
+		hash_iterator() : m_entries(nullptr), m_entryInd(s_invalidIndex)	{}
 		hash_iterator(const key_t& key, const entry_t* entries, size_t entryInd) :
 			m_key(key), m_entries(entries), m_entryInd(entryInd)	{}
 
@@ -88,7 +88,7 @@ class hash_iterator
 		}
 
 	///	marks an index as invalid
-		static const size_t s_invalidIndex = -1;
+		static constexpr size_t s_invalidIndex = -1;
 
 		key_t			m_key;
 		const entry_t*	m_entries;

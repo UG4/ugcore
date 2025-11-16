@@ -91,14 +91,14 @@ static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 		bSuccess = LoadGridFromGRDECL(grid, filename, aPos);
 	}
 	else if(strExt.compare("obj") == 0)
-		bSuccess = LoadGridFromOBJ(grid, filename, aPos, NULL, pSH);
+		bSuccess = LoadGridFromOBJ(grid, filename, aPos, nullptr, pSH);
 	else if(strExt.compare("lgb") == 0)
 	{
 		int numSHs = 0;
 		if(pSH)
 			numSHs = 1;
 
-		bSuccess = LoadGridFromLGB(grid, filename, &pSH, numSHs, NULL, aPos);
+		bSuccess = LoadGridFromLGB(grid, filename, &pSH, numSHs, nullptr, aPos);
 	}
 	else if(strExt.compare("2df") == 0)
 		bSuccess = LoadGridFrom2DF(grid, filename, pSH, aPos);
@@ -328,7 +328,7 @@ bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh,
 template <class TAPos>
 bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos, int procId)
 {
-	return LoadGrid(grid, NULL, filename, aPos, procId);
+	return LoadGrid(grid, nullptr, filename, aPos, procId);
 }
 
 bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh, const char* filename, int procId)
@@ -338,7 +338,7 @@ bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh, const char* filename, int 
 
 bool LoadGridFromFile(Grid& grid, const char* filename, int procId)
 {
-	return LoadGrid(grid, NULL, filename, aPosition, procId);
+	return LoadGrid(grid, nullptr, filename, aPosition, procId);
 }
 
 
@@ -354,14 +354,14 @@ static bool SaveGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 	if(strName.find(".2df") != string::npos)
 		return SaveGridTo2DF(grid, filename, pSH, aPos);
 	else if(strName.find(".obj") != string::npos)
-		return SaveGridToOBJ(grid, filename, aPos, NULL, pSH);
+		return SaveGridToOBJ(grid, filename, aPos, nullptr, pSH);
 	else if(strName.find(".lgb") != string::npos)
 	{
 		int numSHs = 0;
 		if(pSH)
 			numSHs = 1;
 
-		return SaveGridToLGB(grid, filename, &pSH, numSHs, NULL, aPos);
+		return SaveGridToLGB(grid, filename, &pSH, numSHs, nullptr, aPos);
 	}
 	else if(strName.find(".ele") != string::npos)
 		return SaveGridToELE(grid, filename, pSH, aPos);
@@ -474,7 +474,7 @@ bool SaveGridToFile(Grid& grid, ISubsetHandler& sh,
 template <class TAPos>
 bool SaveGridToFile(Grid& grid, const char* filename, TAPos& aPos)
 {
-	return SaveGrid(grid, NULL, filename, aPos);
+	return SaveGrid(grid, nullptr, filename, aPos);
 }
 
 bool SaveGridToFile(Grid& grid, ISubsetHandler& sh, const char* filename)
@@ -496,11 +496,11 @@ bool SaveGridToFile(Grid& grid, const char* filename)
 //	check whether one of the standard attachments is attached and call
 //	SaveGrid with that attachment
 	if(grid.has_vertex_attachment(aPosition))
-		return SaveGrid(grid, NULL, filename, aPosition);
+		return SaveGrid(grid, nullptr, filename, aPosition);
 	if(grid.has_vertex_attachment(aPosition2))
-		return SaveGrid(grid, NULL, filename, aPosition2);
+		return SaveGrid(grid, nullptr, filename, aPosition2);
 	if(grid.has_vertex_attachment(aPosition1))
-		return SaveGrid(grid, NULL, filename, aPosition1);
+		return SaveGrid(grid, nullptr, filename, aPosition1);
 	return false;
 }
 
@@ -598,7 +598,7 @@ static void AssignSubsetsByInterfaceType(SubsetHandler& sh, MultiGrid& mg)
 	for(int i = 0; i < 16; ++i)
 		sh.subset_info(i).name = subsetNames[i];
 
-	typedef typename Grid::traits<TElem>::iterator TIter;
+	using TIter = typename Grid::traits<TElem>::iterator;
 	for(TIter iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
 		int status = ES_NONE;
 
@@ -673,7 +673,7 @@ template <class TElem>
 static void AssignSubsetsBySurfaceViewState(SubsetHandler& sh, const SurfaceView& sv,
 											MultiGrid& mg)
 {
-	typedef typename Grid::traits<TElem>::iterator TIter;
+	using TIter = typename Grid::traits<TElem>::iterator;
 	for(TIter iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
 		TElem* e = *iter;
 
@@ -746,7 +746,7 @@ void CopyGridLevelElements(MultiGrid& srcMG, Grid& destGrid,
 	GridObjectCollection goc = srcMG.get_grid_objects();
 	CustomVertexGroup vrts;
 
-	typedef typename Grid::traits<TElem>::iterator iter_t;
+	using iter_t = typename Grid::traits<TElem>::iterator;
 
 	for(iter_t eIter = goc.begin<TElem>(lvl); eIter != goc.end<TElem>(lvl); ++eIter)
 	{

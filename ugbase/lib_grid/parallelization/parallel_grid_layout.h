@@ -48,28 +48,28 @@ namespace pcl
 template <>
 struct type_traits<ug::Vertex>
 {
-	typedef ug::Vertex* Elem;
+	using Elem = ug::Vertex*;
 };
 
 ///	Edge interfaces and layouts store elements of type Vertex*
 template <>
 struct type_traits<ug::Edge>
 {
-	typedef ug::Edge* Elem;
+	using Elem = ug::Edge*;
 };
 
 ///	Face interfaces and layouts store elements of type Vertex*
 template <>
 struct type_traits<ug::Face>
 {
-	typedef ug::Face* Elem;
+	using Elem = ug::Face*;
 };
 
 ///	Volume interfaces and layouts store elements of type Vertex*
 template <>
 struct type_traits<ug::Volume>
 {
-	typedef ug::Volume* Elem;
+	using Elem = ug::Volume*;
 };
 
 }//	end of namespace pcl
@@ -112,14 +112,10 @@ enum InterfaceNodeTypes
 //	require interface-element-iterators that stay valid even if the
 //	interface is altered.
 //	Make sure that those layouts match the ones in GridLayoutMap.
-typedef pcl::MultiLevelLayout<
-		pcl::OrderedInterface<Vertex, std::list> >	VertexLayout;
-typedef pcl::MultiLevelLayout<
-		pcl::OrderedInterface<Edge, std::list> >	EdgeLayout;
-typedef pcl::MultiLevelLayout<
-		pcl::OrderedInterface<Face, std::list> >		FaceLayout;
-typedef pcl::MultiLevelLayout<
-		pcl::OrderedInterface<Volume, std::list> >		VolumeLayout;
+using VertexLayout = pcl::MultiLevelLayout< pcl::OrderedInterface<Vertex, std::list> >;
+using EdgeLayout = pcl::MultiLevelLayout< pcl::OrderedInterface<Edge, std::list> >;
+using FaceLayout = pcl::MultiLevelLayout< pcl::OrderedInterface<Face, std::list> >;
+using VolumeLayout = pcl::MultiLevelLayout< pcl::OrderedInterface<Volume, std::list> >;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -151,16 +147,16 @@ typedef pcl::MultiLevelLayout<
 class GridLayoutMap
 {
 	public:
-		typedef int	Key;
+		using Key = int;
 
 	///	defines the types that are used by a LayoutMap for a given TType.
 		template <class TType>
 		struct Types
 		{
-			typedef pcl::OrderedInterface<TType, std::list> 	Interface;
-			typedef typename pcl::MultiLevelLayout<Interface>	Layout;
-			typedef typename Interface::Element					Element;
-			typedef std::map<Key, Layout>						Map;
+			using Interface = pcl::OrderedInterface<TType, std::list>;
+			using Layout = pcl::MultiLevelLayout<Interface>;
+			using Element = typename Interface::Element;
+			using Map = std::map<Key, Layout>;
 		};
 
 	public:

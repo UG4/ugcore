@@ -41,13 +41,13 @@ namespace ug
 
 MultiGridRefiner::MultiGridRefiner()
 {
-	m_pMG = NULL;
+	m_pMG = nullptr;
 	m_copyRange = 0;
 }
 
 MultiGridRefiner::MultiGridRefiner(MultiGrid& mg)
 {
-	m_pMG = NULL;
+	m_pMG = nullptr;
 	assign_grid(mg);
 	m_copyRange = 0;
 }
@@ -80,8 +80,8 @@ set_grid(Grid* grid)
 		m_pMG->detach_from_faces(m_aInt);
 		m_pMG->detach_from_volumes(m_aInt);
 
-		m_selMarks.assign_grid(NULL);
-		m_pMG = NULL;
+		m_selMarks.assign_grid(nullptr);
+		m_pMG = nullptr;
 	}
 	
 	if(grid){
@@ -114,7 +114,7 @@ set_grid(Grid* grid)
 void MultiGridRefiner::grid_to_be_destroyed(Grid* grid)
 {
 	if(m_pMG)
-		set_grid(NULL);
+		set_grid(nullptr);
 }
 
 void MultiGridRefiner::clear_marks()
@@ -285,7 +285,7 @@ void MultiGridRefiner::refine()
 				}
 */
 				Vertex* newVrt;
-				if(f->refine(vFaces, &newVrt, &vEdgeVrts.front(), NULL, &vVrts.front())){
+				if(f->refine(vFaces, &newVrt, &vEdgeVrts.front(), nullptr, &vVrts.front())){
 				//	if a new vertex was generated, we have to register it
 					if(newVrt){
 						mg.register_element(newVrt, f);

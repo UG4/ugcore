@@ -307,7 +307,7 @@ Edge* GetConnectingEdge(Grid& grid, Face* f1, Face* f2)
 				return edges1[i];
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -465,7 +465,7 @@ bool CollapseEdge(Grid& grid, Edge* e, Vertex* newVrt)
 		//	if v is a tetrahedron, two faces will be merged
 			if(v->num_vertices() == 4){
 			//	find the opposing edge of e
-				Edge* oppEdge = NULL;
+				Edge* oppEdge = nullptr;
 				grid.associated_elements(assEdges, v);
 				for_each_in_vec(Edge* te, assEdges){
 					if(!GetSharedVertex(e, te)){
@@ -592,7 +592,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 							Vertex* newVertex, AVertex* paAssociatedVertices)
 {
 
-	if((paAssociatedVertices == NULL) && (&destGrid != &srcGrid))
+	if((paAssociatedVertices == nullptr) && (&destGrid != &srcGrid))
 		return false;
 
 	vector<Vertex*> vVrts;
@@ -605,14 +605,14 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 //	the attachment-accessor
 	Grid::VertexAttachmentAccessor<AVertex> aaAssociatedVertices;
 
-	if(paAssociatedVertices != NULL)
+	if(paAssociatedVertices != nullptr)
 	{
 		AVertex& aAssociatedVertices = *paAssociatedVertices;
 
 	//	check if aVertex is properly attached.
 		if(!srcGrid.has_vertex_attachment(aAssociatedVertices))
 		//	attach it and initialize its values.
-			srcGrid.attach_to_vertices_dv(aAssociatedVertices, NULL, false);
+			srcGrid.attach_to_vertices_dv(aAssociatedVertices, nullptr, false);
 
 	//	initialize the attachment-accessor
 		aaAssociatedVertices.access(srcGrid, aAssociatedVertices);
@@ -627,7 +627,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 		Edge* parent = e;
 	//	the grids do not match then we can't pass e as a parent
 		if(&srcGrid != &destGrid)
-			parent = NULL;
+			parent = nullptr;
 			
 		if(paAssociatedVertices){
 			destGrid.create<RegularEdge>(EdgeDescriptor(aaAssociatedVertices[e->vertex(0)], newVertex), parent);
@@ -663,7 +663,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 			vNewFaces.clear();
 
 		//	get the substitute-vertices if they are required
-			if(paAssociatedVertices != NULL)
+			if(paAssociatedVertices != nullptr)
 			{
 				if(numVrts > vSubstituteVertices.size())
 					vSubstituteVertices.resize(numVrts);
@@ -674,7 +674,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 				{
 					for(uint i = 0; i < numVrts; ++i)
 					{
-						if(aaAssociatedVertices[oldFace->vertex(i)] == NULL)
+						if(aaAssociatedVertices[oldFace->vertex(i)] == nullptr)
 							aaAssociatedVertices[oldFace->vertex(i)] = *destGrid.create_by_cloning(oldFace->vertex(i));
 						vSubstituteVertices[i] = aaAssociatedVertices[oldFace->vertex(i)];
 					}
@@ -692,7 +692,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 
 		//	register all new faces at destGrid
 			{
-				Face* pParent = NULL;
+				Face* pParent = nullptr;
 				if(&srcGrid == &destGrid)
 					pParent = oldFace;
 
@@ -731,15 +731,15 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 				if(srcGrid.get_edge(oldVol, i_edge) == e)
 					edgeVrts.push_back(newVertex);
 				else
-					edgeVrts.push_back(NULL);
+					edgeVrts.push_back(nullptr);
 			}
 		
 		//	if refine creates a new vertex in the center of the volume,
 		//	it will be stored in this var.
-			Vertex* newVolVrt = NULL;
+			Vertex* newVolVrt = nullptr;
 			
 		//	get the substitute-vertices if they are required
-			if(paAssociatedVertices != NULL)
+			if(paAssociatedVertices != nullptr)
 			{
 				if(numVrts > vSubstituteVertices.size())
 					vSubstituteVertices.resize(numVrts);
@@ -750,27 +750,27 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 				{
 					for(uint i = 0; i < numVrts; ++i)
 					{
-						if(aaAssociatedVertices[oldVol->vertex(i)] == NULL)
+						if(aaAssociatedVertices[oldVol->vertex(i)] == nullptr)
 							aaAssociatedVertices[oldVol->vertex(i)] = *destGrid.create_by_cloning(oldVol->vertex(i));
 						vSubstituteVertices[i] = aaAssociatedVertices[oldVol->vertex(i)];
 					}
 				}
 
 			//	create the new faces by splitting the old face. use substitutes.
-				oldVol->refine(newVols, &newVolVrt, &edgeVrts.front(), NULL, NULL,
+				oldVol->refine(newVols, &newVolVrt, &edgeVrts.front(), nullptr, nullptr,
 							   RegularVertex(), &vSubstituteVertices.front());
 			}
 			else
 			{
 			//	create the new faces by splitting the old face.
 			//	no substitutes required
-				oldVol->refine(newVols, &newVolVrt, &edgeVrts.front(), NULL, NULL,
-							   RegularVertex(), NULL);
+				oldVol->refine(newVols, &newVolVrt, &edgeVrts.front(), nullptr, nullptr,
+							   RegularVertex(), nullptr);
 			}
 
 		//	register all new vertices and volumes at destGrid
 			{
-				Volume* pParent = NULL;
+				Volume* pParent = nullptr;
 				if(&srcGrid == &destGrid)
 					pParent = oldVol;
 				
@@ -797,13 +797,13 @@ Edge* SwapEdge(Grid& grid, Edge* e)
 	Face* f[2];
 	if(GetAssociatedFaces(f, grid, e, 2) != 2){
 		UG_LOG("Swap Failed: #neighbor-faces != 2.\n");
-		return NULL;
+		return nullptr;
 	}
 
 //	make sure that both faces are triangles
 	if((f[0]->num_vertices() != 3) || (f[1]->num_vertices() != 3)){
 		UG_LOG("Swap Failed: At least one neighbor-face is not a triangle.\n");
-		return NULL;
+		return nullptr;
 	}
 
 //	begin marking
@@ -817,7 +817,7 @@ Edge* SwapEdge(Grid& grid, Edge* e)
 	Vertex* v[2];
 	int vrtInd[2];
 	for(int j = 0; j < 2; ++j){
-		v[j] = NULL;
+		v[j] = nullptr;
 		for(int i = 0; i < 3; ++i){
 			Vertex* vrt = f[j]->vertex(i);
 			if(!grid.is_marked(vrt)){
@@ -834,13 +834,13 @@ Edge* SwapEdge(Grid& grid, Edge* e)
 //	make sure that both vertices have been found.
 	if(!(v[0] && v[1])){
 		UG_LOG("Swap Failed: connected vertices were not found correctly.\n");
-		return NULL;
+		return nullptr;
 	}
 
 //	make sure that no edge exists between v[0] and v[1]
 	if(grid.get_edge(v[0], v[1])){
 		UG_LOG("Swap Failed: New edge already exists in the grid.\n");
-		return NULL;
+		return nullptr;
 	}
 
 //	the indices of the marked points in the first triangle

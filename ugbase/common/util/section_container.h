@@ -58,12 +58,12 @@ template <class TValue, class TContainer>
 class SectionContainer
 {
 	public:
-		typedef TValue								value_type;
-		typedef TContainer							Container;
-		typedef typename Container::iterator		iterator;
-		typedef typename Container::const_iterator	const_iterator;
-		//typedef typename Container::reverse_iterator		reverse_iterator;
-		//typedef typename Container::const_reverse_iterator	const_reverse_iterator;
+		using value_type = TValue;
+		using Container = TContainer;
+		using iterator = typename Container::iterator;
+		using const_iterator = typename Container::const_iterator;
+		//using reverse_iterator = typename Container::reverse_iterator;
+		//using const_reverse_iterator = typename Container::const_reverse_iterator;
 		
 	public:
 		SectionContainer();
@@ -148,7 +148,7 @@ class SectionContainer
 			uint		m_numElements;
 		};
 
-		typedef std::vector<Section>	SectionVec;
+		using SectionVec = std::vector<Section>;
 
 	protected:
 		Container		m_container;

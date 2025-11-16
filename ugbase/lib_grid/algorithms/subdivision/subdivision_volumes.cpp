@@ -489,8 +489,8 @@ void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag)
 				 * In case of parallel distribution e.g. in level 2
 				 * there can be subsequently be elements which
 				 * locally don’t have a parent (esp. V_SLAVES),
-				 * i.e. parentVol = NULL. And elements with
-				 * parent = NULL are associated to mg.level = 0.
+				 * i.e. parentVol = nullptr. And elements with
+				 * parent = nullptr are associated to mg.level = 0.
 				 * Therefore, if(dgm->is_ghost(oct)) is not
 				 * sufficient.
 				 */
@@ -629,7 +629,7 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 	#endif
 
 //	Declare centroid coordinate vector
-	typedef typename TAPosition::ValueType position_type;
+	using position_type = typename TAPosition::ValueType;
 	position_type p;
 	VecSet(p, 0);
 
@@ -921,7 +921,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition
 	#endif
 
 //	Declare centroid coordinate vector
-	typedef typename TAPosition::ValueType position_type;
+	using position_type = typename TAPosition::ValueType;
 	position_type p;
 	VecSet(p, 0);
 
@@ -1125,7 +1125,7 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, TAPositi
 	#endif
 
 //	Declare centroid coordinate vector
-	typedef typename TAPosition::ValueType position_type;
+	using position_type = typename TAPosition::ValueType;
 	position_type p;
 	VecSet(p, 0);
 
@@ -1264,7 +1264,7 @@ void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPos
 	#endif
 
 //	Declare centroid coordinate vector
-	typedef typename TAPosition::ValueType position_type;
+	using position_type = typename TAPosition::ValueType;
 	position_type p;
 	position_type q;
 	VecSet(p, 0);
@@ -1660,7 +1660,7 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_hex(mg, aSmoothVolPos_hex);
 
 //	Declare volume centroid coordinate vector
-	typedef APosition::ValueType pos_type;
+	using pos_type = APosition::ValueType;
 	pos_type p;
 
 //	Loop all volumes of top_level
@@ -1812,7 +1812,7 @@ void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandle
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_toc(mg, aSmoothVolPos_toc);
 
 //	Declare volume centroid coordinate vector
-	typedef APosition::ValueType pos_type;
+	using pos_type = APosition::ValueType;
 	pos_type p;
 
 //	boundary neighbor counter
@@ -2333,7 +2333,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
  *****************************************/
 
 //	Position attachment value type
-	typedef typename TAPosition::ValueType position_type;
+	using position_type = typename TAPosition::ValueType;
 
 //	Vertex attachments for associated number of manifold edges and smooth position
 //	(distinguish between volume and boundary smooth vertex positions
@@ -2405,7 +2405,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
 		Vertex* vrt = *vrtIter;
 
 	//	Catch vertices without parent
-		if(mg.get_parent(vrt) == NULL)
+		if(mg.get_parent(vrt) == nullptr)
 			continue;
 
 	//	Smooth surfaces:
@@ -2510,7 +2510,7 @@ void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& 
  *****************************************/
 
 //	Position attachment value type
-	typedef typename TAPosition::ValueType position_type;
+	using position_type = typename TAPosition::ValueType;
 
 //	Vertex attachments for associated number of manifold edges and smooth position
 //	(distinguish between volume and boundary smooth vertex positions
@@ -2574,7 +2574,7 @@ void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& 
 		Vertex* vrt = *vrtIter;
 
 	//	Catch vertices without parent
-		if(mg.get_parent(vrt) == NULL)
+		if(mg.get_parent(vrt) == nullptr)
 			continue;
 
 	//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
@@ -2637,7 +2637,7 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, TAPosition& 
 	}
 
 //	Position attachment value type
-	typedef typename TAPosition::ValueType position_type;
+	using position_type = typename TAPosition::ValueType;
 
 //	Vertex attachments for associated number of manifold faces and smooth position
 	AInt aNumManifoldFaces_tri;

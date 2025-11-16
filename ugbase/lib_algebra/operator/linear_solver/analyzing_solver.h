@@ -49,13 +49,13 @@ class AnalyzingSolver
 {
 	public:
 	///	Domain space
-		typedef X domain_function_type;
+		using domain_function_type = X;
 
 	///	Range space
-		typedef Y codomain_function_type;
+		using codomain_function_type = Y;
 
 	///	Matrix type
-		typedef M matrix_type;
+		using matrix_type = M;
 
 	public:
 		virtual bool apply(Y& u, const X& f)

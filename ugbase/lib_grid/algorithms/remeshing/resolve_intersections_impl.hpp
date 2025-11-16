@@ -138,13 +138,13 @@ Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
 										   Edge* e, TAAPosVRT& aaPos,
 										   number snapThreshold)
 {
-	typedef typename TAAPosVRT::ValueType vector_t;
+	using vector_t = typename TAAPosVRT::ValueType;
 
 	number snapThresholdSq = snapThreshold * snapThreshold;
 
 //	make sure that the vertex is not an endpoint of e
 	if(EdgeContains(e, v))
-		return NULL;
+		return nullptr;
 
 //	we have to make sure that v and e are not connected by a face.
 //	This could lead to infinite recursion
@@ -153,7 +153,7 @@ Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
 	CollectFaces(faces, grid, e);
 	for(size_t i = 0; i < faces.size(); ++i){
 		if(FaceContains(faces[i], v))
-			return NULL;
+			return nullptr;
 	}
 */
 //	project the vertex to the line defined by the edge
@@ -176,7 +176,7 @@ Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
 */
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 /**
@@ -191,7 +191,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
 								   std::vector<Face*>* pNewFacesOut)
 {
 	using namespace std;
-	typedef typename TAAPosVRT::ValueType vector_t;
+	using vector_t = typename TAAPosVRT::ValueType;
 
 	if(pNewFacesOut)
 		pNewFacesOut->clear();
@@ -262,11 +262,11 @@ bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
 			ProjectPointToLine(pl, p, aaPos[ed.vertex(0)], aaPos[ed.vertex(1)]);
 			if(VecDistanceSq(pl, p) < snapThresholdSq){
 			//	we have to locally split the edge
-				Vertex* newEdgeVrts[4] = {NULL, NULL, NULL, NULL};
+				Vertex* newEdgeVrts[4] = {nullptr, nullptr, nullptr, nullptr};
 				newEdgeVrts[i] = v;
-				Vertex* newFaceVrt = NULL;
+				Vertex* newFaceVrt = nullptr;
 				vector<Face*> newFaces;
-				if(f->refine(newFaces, &newFaceVrt, newEdgeVrts, NULL)){
+				if(f->refine(newFaces, &newFaceVrt, newEdgeVrts, nullptr)){
 					if(newFaceVrt)
 						grid.register_element(newFaceVrt);
 				//	split the edge to make sure that properties are passed on to children
@@ -333,7 +333,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
 // 								   std::vector<Face*>* pNewFacesOut)
 // {
 // 	using namespace std;
-// 	typedef typename TAAPosVRT::ValueType vector_t;
+// 	using vector_t = typename TAAPosVRT::ValueType ;
 
 // 	if(pNewFacesOut)
 // 		pNewFacesOut->clear();
@@ -356,15 +356,15 @@ bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
 // 	if(VecDistanceSq(p, aaPos[v]) < snapThresholdSq){
 // 		bool refined = false;
 // 		vector<Face*> newFaces;
-// 		Vertex* newFaceVrt = NULL;
-// 		// Vertex* nVrt = NULL;
+// 		Vertex* newFaceVrt = nullptr;
+// 		// Vertex* nVrt = nullptr;
 // 		vector_t pi;
 // 	//	now we have to check whether the projection lies in the face
 // 		if(f->num_vertices() == 3){
 // 			if(RayTriangleIntersection(pi, aaPos[f->vertex(0)], aaPos[f->vertex(1)],
 // 										aaPos[f->vertex(2)], p, n))
 // 			{
-// 				Vertex* newEdgeVrts[3] = {NULL, NULL, NULL};
+// 				Vertex* newEdgeVrts[3] = {nullptr, nullptr, nullptr};
 // 				refined = f->refine(newFaces, &newFaceVrt, newEdgeVrts, v);
 // 			}
 // 		}
@@ -382,7 +382,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
 // 			}
 
 // 			if(success){
-// 				Vertex* newEdgeVrts[4] = {NULL, NULL, NULL, NULL};
+// 				Vertex* newEdgeVrts[4] = {nullptr, nullptr, nullptr, nullptr};
 // 				refined = f->refine(newFaces, &newFaceVrt, newEdgeVrts, v);
 // 			}
 // 		}
@@ -417,11 +417,11 @@ template <class TAAPosVRT>
 Vertex* ResolveEdgeEdgeIntersection(Grid& grid, Edge* e1, Edge* e2,
 										TAAPosVRT& aaPos, number snapThreshold)
 {
-	typedef typename TAAPosVRT::ValueType vector_t;
+	using vector_t = typename TAAPosVRT::ValueType;
 
 //	check whether one edge contains a vertex of another edge
 	if(EdgeContains(e1, e2->vertex(0)) || EdgeContains(e1, e2->vertex(1)))
-		return NULL;
+		return nullptr;
 
 	number snapThresholdSq = snapThreshold * snapThreshold;
 
@@ -465,7 +465,7 @@ Vertex* ResolveEdgeEdgeIntersection(Grid& grid, Edge* e1, Edge* e2,
 		*/
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 /**
@@ -478,7 +478,7 @@ bool ResolveEdgeFaceIntersection(Grid& grid, Edge* e, Face* f,
 								 TAAPosVRT& aaPos, number snapThreshold)
 {
 	using namespace std;
-	typedef typename TAAPosVRT::ValueType vector_t;
+	using vector_t = typename TAAPosVRT::ValueType;
 
 //	check whether one edge contains a vertex of another edge
 	if(FaceContains(f, e->vertex(0)) || FaceContains(f, e->vertex(1)))
@@ -491,8 +491,8 @@ bool ResolveEdgeFaceIntersection(Grid& grid, Edge* e, Face* f,
 	number t1, t2, s;
 	bool refined = false;
 	vector<Face*> newFaces;
-	Vertex* newFaceVrt = NULL;
-	Vertex* vrt = NULL;
+	Vertex* newFaceVrt = nullptr;
+	Vertex* vrt = nullptr;
 	if(f->num_vertices() == 3){
 		if(RayTriangleIntersection(p, t1, t2, s, aaPos[f->vertex(0)], aaPos[f->vertex(1)],
 									aaPos[f->vertex(2)], aaPos[e->vertex(0)], dir))
@@ -500,7 +500,7 @@ bool ResolveEdgeFaceIntersection(Grid& grid, Edge* e, Face* f,
 			if((s >= 0) && (s <= 1.)){
 			//	split the face
 				vrt = *grid.create<RegularVertex>();
-				Vertex* newEdgeVrts[3] = {NULL, NULL, NULL};
+				Vertex* newEdgeVrts[3] = {nullptr, nullptr, nullptr};
 				refined = f->refine(newFaces, &newFaceVrt, newEdgeVrts, vrt);
 			}
 		}
@@ -522,7 +522,7 @@ bool ResolveEdgeFaceIntersection(Grid& grid, Edge* e, Face* f,
 		{
 		//	split the face
 			vrt = *grid.create<RegularVertex>();
-			Vertex* newEdgeVrts[4] = {NULL, NULL, NULL, NULL};
+			Vertex* newEdgeVrts[4] = {nullptr, nullptr, nullptr, nullptr};
 			refined = f->refine(newFaces, &newFaceVrt, newEdgeVrts, vrt);
 		}
 	}
@@ -567,7 +567,7 @@ void SpacialVertexSort(std::multimap<number, Vertex*>& vrtsOut,
 						TAAPos aaPos,
 						bool clearContainer = true)
 {
-	typedef typename TAAPos::ValueType		vector_t;
+	using vector_t = typename TAAPos::ValueType	;
 
 	if(clearContainer)
 		vrtsOut.clear();
@@ -592,7 +592,7 @@ void MultiEdgeSplit(Grid& grid, Edge* edge,
 	if(vrtsBegin == vrtsEnd)
 		return;
 
-	typedef typename TAAPos::ValueType		vector_t;
+	using vector_t = typename TAAPos::ValueType	;
 	vector_t dir;
 	VecSubtract(dir, aaPos[edge->vertex(1)], aaPos[edge->vertex(0)]);
 
@@ -619,7 +619,7 @@ void MultiEdgeSplit(Grid& grid, Edge* edge,
 	for(size_t i = 0; i < faces.size(); ++i){
 		orientations[i] = EdgeOrientationMatches(edge, faces[i]);
 		conVrts[i] = GetConnectedVertex(edge, faces[i]);
-		UG_COND_THROW(conVrts[i] == NULL,
+		UG_COND_THROW(conVrts[i] == nullptr,
 					  " no connected vertex found to edge: " << ElementDebugInfo(grid, edge)
 					  << " and face " << ElementDebugInfo(grid, faces[i]));
 	}
@@ -699,9 +699,9 @@ bool ProjectVerticesToCloseEdges(Grid& grid,
 								 number snapThreshold)
 {
 //	to speed things up we'll use an octree!
-	typedef lg_ntree<3, 3, Vertex> octree_t;
-	typedef octree_t::box_t	box_t;
-	typedef typename TAPos::ValueType	vector_t;
+	using octree_t = lg_ntree<3, 3, Vertex>;
+	using box_t = octree_t::box_t;
+	using vector_t = typename TAPos::ValueType;
 
 	Grid::VertexAttachmentAccessor<TAPos> aaPos(grid, aPos);
 	number snapThresholdSq = sq(snapThreshold);
@@ -829,9 +829,9 @@ bool ProjectVerticesToCloseFaces(Grid& grid,
 								 number snapThreshold)
 {
 //	to speed things up we'll use an octree!
-	typedef lg_ntree<3, 3, Vertex> octree_t;
-	typedef octree_t::box_t	box_t;
-	typedef typename TAPos::ValueType	vector_t;
+	using octree_t = lg_ntree<3, 3, Vertex> ;
+	using box_t =  octree_t::box_t;
+	using vector_t = typename TAPos::ValueType;
 
 	Grid::VertexAttachmentAccessor<TAPos> aaPos(grid, aPos);
 	number snapThresholdSq = sq(snapThreshold);
@@ -1374,8 +1374,8 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 	Grid::VertexAttachmentAccessor<TAPos> aaPos(grid, aPos);
 
 //	to speed things up we'll use an octree!
-	typedef lg_ntree<3, 3, Face> octree_t;
-	typedef octree_t::box_t	box_t;
+	using octree_t = lg_ntree<3, 3, Face>;
+	using box_t = octree_t::box_t;
 
 	octree_t octree(grid, aPos);
 	octree.create_tree(trisBegin, trisEnd);
@@ -1391,8 +1391,8 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 
 //	we need some attachments in order to store new vertices and edges for
 //	each face.
-	typedef Attachment<vector<Vertex*> >		AVrtVec;
-	typedef Attachment<vector<pair<int, int> > >	AEdgeDescVec;
+	using AVrtVec = Attachment<vector<Vertex*> >;
+	using AEdgeDescVec = Attachment<vector<pair<int, int> > >;
 	AVrtVec aVrtVec;
 	AEdgeDescVec aEdgeDescVec;
 	grid.attach_to_faces(aVrtVec);
@@ -1636,7 +1636,7 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 	AVertex aVrt;
 	tgrid.attach_to_vertices(aPos);
 	tgrid.attach_to_vertices(aInt);
-	tgrid.attach_to_vertices_dv(aVrt, NULL);
+	tgrid.attach_to_vertices_dv(aVrt, nullptr);
 	Grid::VertexAttachmentAccessor<TAPos> taaPos(tgrid, aPos);
 	Grid::VertexAttachmentAccessor<AVertex> aaVrt(tgrid, aVrt);
 
@@ -1711,7 +1711,7 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 			// 		if(!v1)	continue;
 			// 		if(VecDistanceSq(aaPos[v0], aaPos[v1]) <= snapThresholdSq){
 			// 			MergeVertices(tgrid, v0, v1);
-			// 			dblVrts[j] = NULL;
+			// 			dblVrts[j] = nullptr;
 			// 		}
 			// 	}
 			// }

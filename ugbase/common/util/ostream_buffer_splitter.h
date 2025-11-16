@@ -64,10 +64,10 @@ class OStreamBufferSplitter : public std::streambuf
 		virtual int_type overflow(int_type c = traits_type::eof());
 
 	private:
-		static const int		BUF_SIZE = 128;
+		static constexpr int BUF_SIZE = 128;
 		std::streambuf*	m_buf1;
 		std::streambuf*	m_buf2;
-		char_type		m_buf[BUF_SIZE];
+		char_type m_buf[BUF_SIZE];
 };
 
 // end group ugbase_common_io

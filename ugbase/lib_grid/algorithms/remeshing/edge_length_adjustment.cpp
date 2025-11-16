@@ -52,7 +52,7 @@ namespace ug
  * \{ */
 //#define EDGE_LENGTH_ADJUSTMENT__GPLOT_ENABLED
 #ifdef EDGE_LENGTH_ADJUSTMENT__GPLOT_ENABLED
-	typedef vector<pair<number, number> > GnuplotData;
+	using GnuplotData = vector<pair<number, number> >;
 	static GnuplotData gplotLengthFac;
 	static GnuplotData gplotMinCurvature;
 	static GnuplotData gplotAverageCurvature;
@@ -259,8 +259,8 @@ number CalculateLengthFac(Grid& grid, SubsetHandler& shMarks,
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
 bool TrySwap(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
-			TAAIntVRT& aaInt, SubsetHandler* pshMarks = NULL,
-			EdgeSelector* pCandidates = NULL)
+			TAAIntVRT& aaInt, SubsetHandler* pshMarks = nullptr,
+			EdgeSelector* pCandidates = nullptr)
 {
 //	swaps are neither allowed for crease edges nor for fixed edges
 	if(pshMarks){
@@ -384,19 +384,19 @@ bool PerformSwaps(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 	return true;
 }
 
-/**	returns the resulting vertex or NULL, if no collapse was performed.*/
+/**	returns the resulting vertex or nullptr, if no collapse was performed.*/
 template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
 Vertex* TryCollapse(Grid& grid, Edge* e,
 				TAAPosVRT& aaPos, TAANormVRT& aaNorm, 
-				TAAIntVRT& aaInt, SubsetHandler* pshMarks = NULL,
-				EdgeSelector* pCandidates = NULL)
+				TAAIntVRT& aaInt, SubsetHandler* pshMarks = nullptr,
+				EdgeSelector* pCandidates = nullptr)
 {
 	if(pshMarks)
 	{
 		SubsetHandler& shMarks = *pshMarks;
 	//	collapses are not allowed for fixed edges
 		if(shMarks.get_subset_index(e) == REM_FIXED)
-			return NULL;
+			return nullptr;
 			
 	//	if both endpoints of are fixed vertices then
 	//	we may not collapse
@@ -405,13 +405,13 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 		vrtSI[1] = shMarks.get_subset_index(e->vertex(1));
 
 		if((vrtSI[0] == REM_FIXED) && (vrtSI[1] == REM_FIXED))
-			return NULL;
+			return nullptr;
 
 	//	if both endpoints are somehow marked, e has to be a
 	//	crease edge
 		if((vrtSI[0] != REM_NONE) && (vrtSI[1] != REM_NONE)
 			&&	(shMarks.get_subset_index(e) != REM_CREASE))
-			return NULL;
+			return nullptr;
 	}
 
 //	check whether the edge can be collapsed
@@ -423,7 +423,7 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 							aaPos, aaNorm, aaInt))
 		{
 			LOG("ObtainSimpleGrid failed. ignoring edge...\n");
-			return NULL;
+			return nullptr;
 		}
 		
 	//	calculate geometric-approximation-degree and triangle quality
@@ -436,11 +436,11 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 									1, aaPos, aaNorm, aaInt))
 		{
 			LOG("collapse edge failed...\n");
-			return NULL;
+			return nullptr;
 		}
 
 	//	get the positions of the old endpoints
-		static const int numTestPositions = 3;
+		static constexpr int numTestPositions = 3;
 		int newInd = 0;
 		vector3 v[numTestPositions];
 		v[0] = aaPos[e->vertex(0)];
@@ -501,7 +501,7 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 
 	//	if the shape-degree of the collapsed region is too bad, we'll skip the collapse
 		if(newShapeDeg[bestIndex] < 0.5 * shapeDeg)
-			return NULL;
+			return nullptr;
 /*
 	//	the approximation degree is only interesting if both endpoints of the
 	//	edge are regular surface vertices
@@ -564,7 +564,7 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 						}
 					
 						if(numMarked == 3){
-							return NULL;	//	case (a) applies
+							return nullptr;	//	case (a) applies
 						}
 						else if(numMarked == 2){
 						//	check which of the vrts is connected to two
@@ -613,7 +613,7 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -661,7 +661,7 @@ bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT, class TAANormVRT>
 bool TrySplit(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
-			  EdgeSelector* pCandidates = NULL, SubsetHandler* pshMarks = NULL)
+			  EdgeSelector* pCandidates = nullptr, SubsetHandler* pshMarks = nullptr)
 {
 	bool bCreaseEdge = false;
 //	splits are not allowed for fixed edges
@@ -749,7 +749,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 // static void RelocatePointBySmoothing(vector3& vOut, const vector3&v,
 // 						  std::vector<vector3>& vNodes,
 // 						  size_t numIterations, number stepSize,
-// 						  std::vector<number>* pvWeights = NULL)
+// 						  std::vector<number>* pvWeights = nullptr)
 // {
 // 	if(vNodes.empty())
 // 		return;
@@ -810,7 +810,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 // 		//	do something
 // 			if(q < qualityThreshold){
 // 			//	make sure that the selector is connected to the grid
-// 				if(sel.grid() == NULL)
+// 				if(sel.grid() == nullptr)
 // 					sel.assign_grid(grid);
 					
 // 			//	get associated edges and mark them for refinement
@@ -825,7 +825,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 // 	}
 	
 // //	if edges have been selected, we'll now call refine.
-// 	if(sel.grid() != NULL){
+// 	if(sel.grid() != nullptr){
 // 		if(sel.num<Edge>() > 0){
 // 			if(Refine(grid, sel)){
 // 				LOG(sel.num<Vertex>() << " new vertices... ");
@@ -970,7 +970,7 @@ template <class TGeomObj>
 void CopySelectionStatus(Selector& selOut, Grid& gridOut,
 						 Selector& selIn, Grid& gridIn)
 {
-	typedef typename geometry_traits<TGeomObj>::iterator GeomObjIter;
+	using GeomObjIter = typename geometry_traits<TGeomObj>::iterator;
 	GeomObjIter endOut = gridOut.end<TGeomObj>();
 	GeomObjIter endIn = gridIn.end<TGeomObj>();
 	GeomObjIter iterOut = gridOut.begin<TGeomObj>();

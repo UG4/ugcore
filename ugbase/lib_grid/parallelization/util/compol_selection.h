@@ -42,11 +42,11 @@ template <class TLayout>
 class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
 	///	Construct the communication policy with a ug::Selector.
 	/**	Through the parameters select and deselect one may specify whether
@@ -58,19 +58,19 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 
 		virtual int
 		get_required_buffer_size(const Interface& interface)
-		{return interface.size() * sizeof(byte);}
+		{return interface.size() * sizeof(byte_t);}
 
 	///	writes 1 for selected and 0 for unselected interface entries
 		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		collect(BinaryBuffer& buff, const Interface& interface)
 		{
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				byte refMark = m_sel.get_selection_status(elem);
-				buff.write((char*)&refMark, sizeof(byte));
+				byte_t refMark = m_sel.get_selection_status(elem);
+				buff.write((char*)&refMark, sizeof(byte_t));
 			}
 
 			return true;
@@ -78,14 +78,14 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 
 	///	reads marks from the given stream
 		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
+		extract(BinaryBuffer& buff, const Interface& interface)
 		{
-			byte val;
+			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				buff.read((char*)&val, sizeof(byte));
+				buff.read((char*)&val, sizeof(byte_t));
 				if(val && select_allowed())
 					m_sel.select(elem, val);
 				else if(!val && deselect_allowed())
@@ -113,31 +113,31 @@ template <class TLayout>
 class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+	using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
-		ComPol_EnableSelectionStateBits(ISelector& sel, byte stateBits)
+		ComPol_EnableSelectionStateBits(ISelector& sel, byte_t stateBits)
 			 :	m_sel(sel), m_stateBits(stateBits)
 		{}
 
 		virtual int
 		get_required_buffer_size(const Interface& interface)
-		{return interface.size() * sizeof(byte);}
+		{return interface.size() * sizeof(byte_t);}
 
 	///	writes writes the selection states of the interface entries
 		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		collect(BinaryBuffer& buff, const Interface& interface)
 		{
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				byte refMark = m_sel.get_selection_status(elem);
-				buff.write((char*)&refMark, sizeof(byte));
+				byte_t refMark = m_sel.get_selection_status(elem);
+				buff.write((char*)&refMark, sizeof(byte_t));
 			}
 
 			return true;
@@ -145,14 +145,14 @@ class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout
 
 	///	reads marks from the given stream
 		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
+		extract(BinaryBuffer& buff, const Interface& interface)
 		{
-			byte val;
+			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				buff.read((char*)&val, sizeof(byte));
+				buff.read((char*)&val, sizeof(byte_t));
 				m_sel.select(elem, m_sel.get_selection_status(elem)
 								   | (val & m_stateBits));
 			}
@@ -160,7 +160,7 @@ class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout
 		}
 
 		ISelector& m_sel;
-		byte m_stateBits;
+		byte_t m_stateBits;
 };
 
 }//	end of namespace

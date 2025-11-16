@@ -43,8 +43,8 @@ namespace ug{
 template <class TElemIter>
 void RemoveDuplicates(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd)
 {
-	typedef typename TElemIter::value_type					TElemPtr;
-	typedef typename PtrToValueType<TElemPtr>::base_type	TElem;
+	using TElemPtr = typename TElemIter::value_type;
+	using TElem = typename PtrToValueType<TElemPtr>::base_type;
 
 	grid.begin_marking();
 

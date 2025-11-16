@@ -58,9 +58,9 @@ template<typename T>
 class VariableArray1
 {
 public:
-	typedef T value_type;
-	typedef size_t size_type;
-	typedef variable_type storage_type;
+	using value_type = T;
+	using size_type = size_t;
+	using storage_type = variable_type;
 
 public:
 	// 'tors
@@ -138,13 +138,14 @@ template<typename T, eMatrixOrdering T_ordering=ColMajor>
 class VariableArray2
 {
 public:
-	typedef T value_type;
-	typedef size_t size_type;
-	static const eMatrixOrdering ordering = T_ordering;
+	using value_type = T;
+	using size_type = size_t;
+	static constexpr eMatrixOrdering ordering = T_ordering;
 	enum { is_static=false };
 	enum { static_num_rows=0};
 	enum { static_num_cols=0};
-	typedef variable_type storage_type;
+
+	using storage_type = variable_type;
 
 public:
 	VariableArray2();

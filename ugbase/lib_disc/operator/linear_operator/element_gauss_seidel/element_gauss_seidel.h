@@ -62,8 +62,8 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 #endif
 							)
 {
-	typedef typename TAlgebra::matrix_type::const_row_iterator const_row_iterator;
-	const static int blockSize = TAlgebra::blockSize;
+	using const_row_iterator = typename TAlgebra::matrix_type::const_row_iterator;
+	static constexpr int blockSize = TAlgebra::blockSize;
 
 	// memory for local algebra
 	DenseVector< VariableArray1<number> > s;
@@ -76,11 +76,11 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 #ifdef UG_PARALLEL
 	c.set_storage_type(PST_ADDITIVE);
 #endif
-	typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
+	using Element = typename GridFunction<TDomain, TAlgebra>::element_type;
 	std::vector<Element*> vElem;
 
 	// loop all grouping objects
-	typedef typename GridFunction<TDomain, TAlgebra>::template traits<TGroupObj>::const_iterator GroupObjIter;
+	using GroupObjIter = typename GridFunction<TDomain, TAlgebra>::template traits<TGroupObj>::const_iterator;
 	for(GroupObjIter iter = c.template begin<TGroupObj>();
 					 iter != c.template end<TGroupObj>(); ++iter){
 
@@ -305,26 +305,26 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+		using base_type = IPreconditioner<TAlgebra>;
 
 	protected:
 		using base_type::set_debug;
 		using base_type::debug_writer;
 		using base_type::write_debug;
 
-		typedef GridFunction<TDomain, TAlgebra> grid_function_type;
+		using grid_function_type = GridFunction<TDomain, TAlgebra>;
 
 	public:
 	///	default constructor
@@ -400,12 +400,12 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 		{
 			GridFunction<TDomain, TAlgebra>* pC
 							= dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
-			if(pC == NULL)
+			if(pC == nullptr)
 				UG_THROW("ElementGaussSeidel expects correction to be a GridFunction.");
 
 
-			typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
-			typedef typename GridFunction<TDomain, TAlgebra>::side_type Side;
+			using Element = typename GridFunction<TDomain, TAlgebra>::element_type;
+			using Side = typename GridFunction<TDomain, TAlgebra>::side_type;
 
 			
 #ifdef UG_PARALLEL

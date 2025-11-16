@@ -159,7 +159,7 @@ void MatMakeConsistentOverlap0(TMatrix& mat)
 template <typename TVector>
 void AdditiveToConsistent(	TVector* pVec,
                           	const IndexLayout& masterLayout, const IndexLayout& slaveLayout,
-                          	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+                          	pcl::InterfaceCommunicator<IndexLayout>* pCom = nullptr)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
@@ -203,7 +203,7 @@ void AdditiveToConsistent(	TVector* pVec,
 template <typename TVector>
 void UniqueToConsistent(	TVector* pVec,
 							const IndexLayout& masterLayout, const IndexLayout& slaveLayout,
-							pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+							pcl::InterfaceCommunicator<IndexLayout>* pCom = nullptr)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	create a new communicator if required.
@@ -227,7 +227,7 @@ void UniqueToConsistent(	TVector* pVec,
 template <typename TVector>
 void CopyValues(	TVector* pVec,
 					const IndexLayout& sourceLayout, const IndexLayout& targetLayout,
-					pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+					pcl::InterfaceCommunicator<IndexLayout>* pCom = nullptr)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	create a new communicator if required.
@@ -260,7 +260,7 @@ void CopyValues(	TVector* pVec,
 template <typename TVector>
 void AdditiveToUnique(	TVector* pVec,
 						const IndexLayout& masterLayout, const IndexLayout& slaveLayout,
-						pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+						pcl::InterfaceCommunicator<IndexLayout>* pCom = nullptr)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
@@ -405,7 +405,7 @@ void ConsistentToUnique(	TVector* pVec,
 template <typename TVector>
 void VecSubtractOnLayout(	TVector* pVec,
                          	const IndexLayout& masterLayout, const IndexLayout& slaveLayout,
-                         	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+                         	pcl::InterfaceCommunicator<IndexLayout>* pCom = nullptr)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
@@ -445,7 +445,7 @@ template <typename TVector>
 void VecSubtractOneSlaveFromMaster(	TVector* pVec,
                                    	const IndexLayout& masterLayout,
                                    	const IndexLayout& slaveLayout,
-                                   	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+                                   	pcl::InterfaceCommunicator<IndexLayout>* pCom = nullptr)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
@@ -481,7 +481,7 @@ void VecSubtractOneSlaveFromMaster(	TVector* pVec,
 template <typename TVector>
 void VecCopy(	TVector* pVec,
              	const IndexLayout& masterLayout, const IndexLayout& slaveLayout,
-             	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+             	pcl::InterfaceCommunicator<IndexLayout>* pCom = nullptr)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
@@ -552,7 +552,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 						  IndexLayout& masterLayout,
 						  IndexLayout& slaveLayout,
 						  pcl::ProcessCommunicator procComm,
-						  std::vector<int>* pNewMasterIDsOut = NULL);
+						  std::vector<int>* pNewMasterIDsOut = nullptr);
 
 
 
@@ -669,7 +669,7 @@ void MatWriteDiagOnLayout(	TMatrix* pMatrix,
 template <typename TAlgebra>
 void MatAdditiveToConsistentOnDiag(	typename TAlgebra::matrix_type* pMat,
                                    	const IndexLayout& masterLayout, const IndexLayout& slaveLayout,
-                                   	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+                                   	pcl::InterfaceCommunicator<IndexLayout>* pCom = nullptr)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	\todo: We could work on the matrix directly here, without temporary vector
@@ -707,7 +707,7 @@ void MatAdditiveToConsistentOnDiag(	typename TAlgebra::matrix_type* pMat,
 template <typename TVector>
 void VecGather(	TVector* pVecDest, const TVector* pVecSrc,
                	const IndexLayout& masterLayoutDest, const IndexLayout& slaveLayoutSrc,
-               	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+               	pcl::InterfaceCommunicator<IndexLayout>* pCom = nullptr)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
@@ -741,7 +741,7 @@ void VecGather(	TVector* pVecDest, const TVector* pVecSrc,
 template <typename TVector>
 void VecBroadcast(	TVector* pVecDest, const TVector* pVecSrc,
                   	const IndexLayout& slaveLayoutDest, const IndexLayout& masterLayoutSrc,
-                  	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+                  	pcl::InterfaceCommunicator<IndexLayout>* pCom = nullptr)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
@@ -800,7 +800,7 @@ void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,
 template <class TMatrix>
 void TestHorizontalAlgebraLayouts(
 			const TMatrix& mat,
-			std::vector<AlgebraID>* algebraIDs = NULL,
+			std::vector<AlgebraID>* algebraIDs = nullptr,
 			bool verbose = false);
 }//	end of namespace
 

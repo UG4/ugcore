@@ -97,8 +97,8 @@ bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
 		int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
 											&adjacencyMapStructure.front(),
 											&adjacencyMap.front(),
-											NULL, NULL, NULL,
-											&numParts, NULL, NULL, options,
+											nullptr, nullptr, nullptr,
+											&numParts, nullptr, nullptr, options,
 											&edgeCut, &partitionMap.front());
 		UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
 
@@ -109,7 +109,7 @@ bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
 
 	//	assign the subsets to the subset-handler
 		int counter = 0;
-		typedef typename geometry_traits<TGeomBaseObj>::iterator iterator;
+		using iterator = typename geometry_traits<TGeomBaseObj>::iterator ;
 		for(iterator iter = grid.begin<TGeomBaseObj>();
 			iter != grid.end<TGeomBaseObj>(); ++iter)
 		{
@@ -172,8 +172,8 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 		int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
 											&adjacencyMapStructure.front(),
 											&adjacencyMap.front(),
-											NULL, NULL, &edgeWeightMap.front(),
-											&numParts, NULL, NULL, options,
+											nullptr, nullptr, &edgeWeightMap.front(),
+											&numParts, nullptr, nullptr, options,
 											&edgeCut, &partitionMap.front());
 		UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
 
@@ -186,7 +186,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 	//	assign the subsets to the subset-handler
 		int counter = 0;
 		for(size_t lvl = baseLevel; lvl < mg.num_levels(); ++lvl){
-			typedef typename geometry_traits<TGeomBaseObj>::iterator iterator;
+			using iterator = typename geometry_traits<TGeomBaseObj>::iterator;
 			for(iterator iter = mg.begin<TGeomBaseObj>(lvl);
 				iter != mg.end<TGeomBaseObj>(lvl); ++iter)
 			{
@@ -217,7 +217,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 	  boost::function<int (TGeomBaseObj*, TGeomBaseObj*)>& weightFct)
 {
 #ifdef UG_METIS
-	typedef TGeomBaseObj	TElem;
+	using TElem = TGeomBaseObj;
 //	only call metis if more than 1 part is required
 	//if(numParts > 1){
 	//	here we'll store the dual graph
@@ -239,7 +239,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 			ConstructDualGraphMG<TGeomBaseObj, idx_t>(adjacencyMapStructure,
 														adjacencyMap, &edgeWeightMap,
 														mg, baseLevel, 1, 1,
-														NULL, &elems.front());
+														nullptr, &elems.front());
 
 			// correct edge weights by calling weightFct for all pairs of TElems
 			// found by ConstructDualGraphMG
@@ -284,8 +284,8 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 		int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
 											&adjacencyMapStructure.front(),
 											&adjacencyMap.front(),
-											NULL, NULL, &edgeWeightMap.front(),
-											&numParts, NULL, NULL, options,
+											nullptr, nullptr, &edgeWeightMap.front(),
+											&numParts, nullptr, nullptr, options,
 											&edgeCut, &partitionMap.front());
 		UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
 
@@ -298,7 +298,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 	//	assign the subsets to the subset-handler
 		int counter = 0;
 		for(size_t lvl = baseLevel; lvl < mg.num_levels(); ++lvl){
-			typedef typename geometry_traits<TGeomBaseObj>::iterator iterator;
+			using iterator = typename geometry_traits<TGeomBaseObj>::iterator;
 			for(iterator iter = mg.begin<TGeomBaseObj>(lvl);
 				iter != mg.end<TGeomBaseObj>(lvl); ++iter)
 			{
@@ -338,8 +338,8 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 		return true;
 
 #ifdef UG_METIS
-	typedef TGeomBaseObj	TElem;
-	typedef typename geometry_traits<TGeomBaseObj>::iterator	ElemIter;
+	using TElem = TGeomBaseObj;
+	using ElemIter = typename geometry_traits<TGeomBaseObj>::iterator;
 
 //	only call metis if more than 1 part is required
 	int rootProc = 0;
@@ -359,7 +359,7 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 		const idx_t siblingWeight = 2;
 
 	//	we'll reuse the index later on during assignment of the edge weights
-		typedef Attachment<idx_t> AIndex;
+		using AIndex = Attachment<idx_t>;
 		AIndex aIndex;
 		vector<TElem*> elems;
 
@@ -396,7 +396,7 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 
 	//	create a weight map for the vertices based on the number of children+1
 	//	for each graph-vertex. This is not necessary, if we're already on the top level
-		idx_t* pVrtSizeMap = NULL;
+		idx_t* pVrtSizeMap = nullptr;
 		vector<idx_t> vrtSizeMap;
 		if(level < mg.top_level()){
 			vrtSizeMap.reserve(nVrts);
@@ -412,7 +412,7 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 	//	we'll also create weights for the edges, since we want to cluster elements,
 	//	which have the same parent (this reduces several problems later on, like
 	//	additional vertical interfaces)
-		idx_t* pEdgeWeights = NULL;
+		idx_t* pEdgeWeights = nullptr;
 		vector<idx_t> edgeWeights;
 		if(useEdgeWeights){
 			edgeWeights.reserve(adjacencyMap.size());
@@ -435,8 +435,8 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 		int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
 											&adjacencyMapStructure.front(),
 											&adjacencyMap.front(),
-											NULL, pVrtSizeMap, pEdgeWeights,
-											&numParts, NULL, NULL, options,
+											nullptr, pVrtSizeMap, pEdgeWeights,
+											&numParts, nullptr, nullptr, options,
 											&edgeCut, &partitionMap.front());
 		UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
 
@@ -518,8 +518,8 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 	UG_DLOG(LIB_GRID, 1, "start - PartitionMultiGridLevel_ParmetisKway\n");
 
 #if defined UG_PARMETIS && defined UG_PARALLEL
-	typedef TGeomBaseObj	TElem;
-	typedef typename geometry_traits<TGeomBaseObj>::iterator	ElemIter;
+	using TElem =  TGeomBaseObj;
+	using ElemIter = typename geometry_traits<TGeomBaseObj>::iterator;
 
 	int localProc = pcl::ProcRank();
 	pcl::ProcessCommunicator procComWorld;
@@ -555,7 +555,7 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 	real_t ubvec = 1.05;
 //	create a weight map for the vertices based on the number of children+1
 //	for each graph-vertex. This is not necessary, if we're already on the top level
-	idx_t* pVrtSizeMap = NULL;
+	idx_t* pVrtSizeMap = nullptr;
 	vector<idx_t> vrtSizeMap;
 	{
 		vrtSizeMap.reserve(nVrts);
@@ -574,7 +574,7 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 		int metisRet =	ParMETIS_V3_PartKway(&nodeOffsetMap.front(),
 											&adjacencyMapStructure.front(),
 											&adjacencyMap.front(),
-											pVrtSizeMap, NULL, &wgtFlag,
+											pVrtSizeMap, nullptr, &wgtFlag,
 											&numFlag, &nConstraints,
 											&numParts, &tpwgts.front(), &ubvec, options,
 											&edgeCut, &partitionMap.front(),
@@ -604,7 +604,7 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 
 
 
-	typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout	ElemLayout;
+	using ElemLayout = typename GridLayoutMap::Types<TElem>::Layout::LevelLayout;
 	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
 	pcl::InterfaceCommunicator<ElemLayout>	com;
 	ComPol_Subset<ElemLayout>	compolSHCopy(shPartitionOut, true);

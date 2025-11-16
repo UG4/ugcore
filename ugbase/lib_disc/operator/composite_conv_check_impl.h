@@ -413,14 +413,14 @@ void CompositeConvCheck<TVector, TDomain>::start_defect(number initialDefect)
 template <typename TVector, typename Enable = void>
 struct MyVectorTraits
 {
-	static const size_t block_size = 1;
+	static constexpr size_t block_size = 1;
 };
 
 // specialization for all blocked vector types
 template <typename TVector>
 struct MyVectorTraits<TVector, typename boost::enable_if_c<TVector::value_type::is_static>::type>
 {
-	static const size_t block_size = TVector::value_type::static_size;
+	static constexpr size_t block_size = TVector::value_type::static_size;
 };
 
 

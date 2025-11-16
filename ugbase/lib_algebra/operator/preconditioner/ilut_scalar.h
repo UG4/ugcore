@@ -52,21 +52,14 @@ template <typename TAlgebra>
 class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 {
 	public:
-	//	Algebra type
-		typedef TAlgebra algebra_type;
-
-	//	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
-
-	//	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
-
-	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using algebra_type = TAlgebra;
+		using vector_type = typename TAlgebra::vector_type;
+		using matrix_type = typename TAlgebra::matrix_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	private:
-		typedef typename matrix_type::value_type block_type;
-		typedef IPreconditioner<TAlgebra> base_type;
+		using block_type = typename matrix_type::value_type;
+		using base_type = IPreconditioner<TAlgebra>;
 
 	public:
 	//	Constructor

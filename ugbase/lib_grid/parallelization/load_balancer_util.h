@@ -49,8 +49,8 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 //template <int dim>
 //class StdConnectionWeights : public ConnectionWeights<dim>{
 //	public:
-//		typedef ConnectionWeights<dim>			base_class;
-//		typedef typename base_class::elem_type	elem_type;
+//		using base_class = ConnectionWeights<dim>;
+//		using elem_type = typename base_class::elem_type;
 //
 //		StdConnectionWeights() : m_wgt(1.0)					{}
 //		StdConnectionWeights(number wgt) : m_wgt(wgt)		{}
@@ -99,8 +99,8 @@ class StdBalanceWeights : public IBalanceWeights{
 template <int dim>
 class AnisotropicBalanceWeights : public IBalanceWeights{
 	public:
-		typedef Attachment<MathVector<dim> >	position_attachment_t;
-		typedef typename GeomObjBaseTypeByDim<dim>::base_obj_type elem_t;
+		using position_attachment_t = Attachment<MathVector<dim> >;
+		using elem_t = typename GeomObjBaseTypeByDim<dim>::base_obj_type;
 		AnisotropicBalanceWeights() : m_weightFactor(1)	{}
 		virtual ~AnisotropicBalanceWeights()	{}
 

@@ -75,7 +75,7 @@ namespace bridge{
 template <int dim>
 static void RegisterBridge_VecMath(Registry& reg, string grp)
 {
-	typedef MathVector<dim, number> vec_type;
+	using vec_type = MathVector<dim, number>;
 	
 	try
 	{
@@ -100,7 +100,7 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 	try
 	{
 		{
-			typedef MathVector<1, number> vec_type;
+			using vec_type = MathVector<1, number>;
 			reg.add_class_<vec_type>("Vec1d", grp)
 				.add_constructor()
 #ifndef UG_FOR_VRL // TODO can we add all constructors to base class of class group? For now, use MakeVec for Java API.
@@ -113,7 +113,7 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 			reg.add_class_to_group("Vec1d", "Vec", GetDimensionTag<1>());
 		}
 		{
-			typedef MathVector<2, number> vec_type;
+			using vec_type = MathVector<2, number>;
 			reg.add_class_<vec_type>("Vec2d", grp)
 				.add_constructor()
 #ifndef UG_FOR_VRL // TODO can we add all constructors to base class of class group? For now, use MakeVec for Java API.
@@ -126,7 +126,7 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 			reg.add_class_to_group("Vec2d", "Vec", GetDimensionTag<2>());
 		}
 		{
-			typedef MathVector<3, number> vec_type;
+			using vec_type = MathVector<3, number>;
 			reg.add_class_<vec_type>("Vec3d", grp)
 				.add_constructor()
 #ifndef UG_FOR_VRL // TODO can we add all constructors to base class of class group? For now, use MakeVec for Java API.
@@ -139,7 +139,7 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 			reg.add_class_to_group("Vec3d", "Vec", GetDimensionTag<3>());
 		}
 		{
-			typedef MathVector<4, number> vec_type;
+			using vec_type = MathVector<4, number>;
 			reg.add_class_<vec_type>("Vec4d", grp)
 				.add_constructor()
 #ifndef UG_FOR_VRL // TODO can we add all constructors to base class of class group? For now, use MakeVec for Java API.

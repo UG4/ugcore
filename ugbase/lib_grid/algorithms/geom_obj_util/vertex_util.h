@@ -80,7 +80,7 @@ UG_API int GetVertexIndex(VolumeVertices* vol, Vertex* v);
 //	GetConnectedVertex
 ///	returns the vertex that is connected to v via e.
 /**
- * returns NULL if v is not contained in e.
+ * returns nullptr if v is not contained in e.
  */
 UG_API Vertex* GetConnectedVertex(Edge* e, Vertex* v);
 
@@ -102,7 +102,7 @@ UG_API Edge* GetConnectedEdge(Grid& g, Vertex* vrt, Face* tri);
 
 
 ////////////////////////////////////////////////////////////////////////
-///	returns the first vertex of vrts0 that is also contained in vrts1 (or NULL if no such vertex exists)
+///	returns the first vertex of vrts0 that is also contained in vrts1 (or nullptr if no such vertex exists)
 UG_API Vertex* GetSharedVertex(IVertexGroup* vrts0, IVertexGroup* vrts1);
 
 ////////////////////////////////////////////////////////////////////////
@@ -157,7 +157,7 @@ number VertexDistance(Vertex* v0, Vertex* v1, TAAPos& aaPos);
 //	FindVertexByCoordiante
 ///	returns the vertex that is the closest to the given coordinate
 /**
- * returns NULL if no vertex was found (if iterBegin == iterEnd).
+ * returns nullptr if no vertex was found (if iterBegin == iterEnd).
  */
 UG_API 
 Vertex* FindVertexByCoordiante(vector3& coord, VertexIterator iterBegin,

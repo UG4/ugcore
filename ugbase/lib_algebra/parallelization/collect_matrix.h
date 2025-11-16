@@ -149,7 +149,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 	M = A;
 	//M.print();
 	M.set_layouts(SmartPtr<AlgebraLayouts>(new AlgebraLayouts));
-	typedef std::map<int, BinaryBuffer> BufferMap;
+	using BufferMap = std::map<int, BinaryBuffer>;
 	BufferMap streams;
 
 	UG_DLOG(LIB_ALG_AMG, 3, "DestProc " << pcl::ProcRank() << " is waiting on data from ");
@@ -286,7 +286,7 @@ void GatherVectorOnOne(IndexLayout &agglomeratedMaster, IndexLayout &agglomerate
 {
 	try{
 	PROFILE_FUNC_GROUP("algebra parallelization");
-	typedef ParallelVector<T> vector_type;
+	using vector_type = ParallelVector<T>;
 	if(!bRoot)
 	{
 		ComPol_VecAdd<vector_type > compolAdd(&collectedVec, &vec);
@@ -340,7 +340,7 @@ void BroadcastVectorFromOne(IndexLayout &agglomeratedMaster, IndexLayout &agglom
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	try{
-	typedef ParallelVector<T> vector_type;
+		using vector_type = ParallelVector<T>;
 	if(!bRoot)
 	{
 		ComPol_VecCopy<vector_type> compolCopy(&vec, &collectedVec);

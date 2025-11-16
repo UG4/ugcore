@@ -289,7 +289,7 @@ void Deserialize(TIStream& buf, std::string& str)
 //	the buffers allow us to read small strings fast.
 //	for bigger ones we have to temporarily reserve memory.
 	char staticBuf[64];
-	char* flexBuf = NULL;
+	char* flexBuf = nullptr;
 	char* tBuf = staticBuf;
 
 	size_t len = Deserialize<size_t>(buf);
@@ -316,7 +316,7 @@ void Deserialize(TIStream& buf, std::string& str)
 
 ///	serializes a variant
 /**	Note that pointers can't be serialized in a meaningful way. We thus simply
- * do not serialize them. During deserialization pointers will be set to NULL.
+ * do not serialize them. During deserialization pointers will be set to nullptr.
  *
  * Note that c-strings (const char*) are converted to std::strings before
  * serialization. This means that they will be deserialized as std::string
@@ -343,7 +343,7 @@ void Serialize(TOStream& buf, const Variant& v)
 
 ///	deserializes data from a binary stream into a variant
 /** Note that pointers can't be serialized in a meaningful way. We thus simply
- * do not serialize them. During deserialization pointers will be set to NULL.
+ * do not serialize them. During deserialization pointers will be set to nullptr.
  */
 template <class TIStream>
 void Deserialize(TIStream& buf, Variant& v)
@@ -359,7 +359,7 @@ void Deserialize(TIStream& buf, Variant& v)
 		case Variant::VT_STDSTRING: v = Variant(Deserialize<std::string>(buf)); break;
 
 		case Variant::VT_POINTER:{
-			void* val = NULL;
+			void* val = nullptr;
 			v = Variant(val);
 		} break;
 

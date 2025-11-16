@@ -47,9 +47,9 @@ class MultiGrid;
 //	for edges amd faces.
 //	Note that no constants are defined for volumes since the range of
 //	possible children is too high (especially during adaptive refinement)
-const int MG_EDGE_MAX_EDGE_CHILDREN = 2;///< maximal number of edges that can be children of an edge.
-const int MG_FACE_MAX_EDGE_CHILDREN = 4;///< maximal number of edges that can be children of a face.
-const int MG_FACE_MAX_FACE_CHILDREN = 4;///< maximal number of faces that can be children of a face.
+constexpr int MG_EDGE_MAX_EDGE_CHILDREN = 2;///< maximal number of edges that can be children of an edge.
+constexpr int MG_FACE_MAX_EDGE_CHILDREN = 4;///< maximal number of edges that can be children of a face.
+constexpr int MG_FACE_MAX_FACE_CHILDREN = 4;///< maximal number of faces that can be children of a face.
 
 ///	Holds information about vertex relations. Used internally.
 /**
@@ -61,14 +61,14 @@ const int MG_FACE_MAX_FACE_CHILDREN = 4;///< maximal number of faces that can be
  */
 struct MGVertexInfo
 {
-	MGVertexInfo() : m_pParent(NULL), m_pVrtChild(NULL)		{}
-	inline void clear_children()	{m_pVrtChild = NULL;}
-	inline bool has_children() const {return m_pVrtChild != NULL;}
+	MGVertexInfo() : m_pParent(nullptr), m_pVrtChild(nullptr)		{}
+	inline void clear_children()	{m_pVrtChild = nullptr;}
+	inline bool has_children() const {return m_pVrtChild != nullptr;}
 	inline void add_child(Vertex* elem)		{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void add_child(Edge*)			{UG_THROW("INVALID OPERATION!");}//dummy...
 	inline void add_child(Face*)				{UG_THROW("INVALID OPERATION!");}//dummy...
 	inline void add_child(Volume*)				{UG_THROW("INVALID OPERATION!");}//dummy...
-	inline void remove_child(Vertex* elem)	{m_pVrtChild = NULL;}
+	inline void remove_child(Vertex* elem)	{m_pVrtChild = nullptr;}
 	inline void remove_child(Edge*)			{UG_THROW("INVALID OPERATION!");}//dummy...
 	inline void remove_child(Face*)				{UG_THROW("INVALID OPERATION!");}//dummy...
 	inline void remove_child(Volume*)			{UG_THROW("INVALID OPERATION!");}//dummy...
@@ -93,14 +93,14 @@ private:
  */
 struct MGEdgeInfo
 {
-	MGEdgeInfo() : m_pParent(NULL), m_pVrtChild(NULL), m_numEdgeChildren(0)		{}
-	inline void clear_children()	{m_pVrtChild = NULL; m_numEdgeChildren = 0;}
+	MGEdgeInfo() : m_pParent(nullptr), m_pVrtChild(nullptr), m_numEdgeChildren(0)		{}
+	inline void clear_children()	{m_pVrtChild = nullptr; m_numEdgeChildren = 0;}
 	inline bool has_children() const {return m_pVrtChild || m_numEdgeChildren;}
 	inline void add_child(Vertex* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void add_child(Edge* elem)	{assert(m_numEdgeChildren < MG_EDGE_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
 	inline void add_child(Face*)			{UG_THROW("INVALID OPERATION!");}//dummy...
 	inline void add_child(Volume*)			{UG_THROW("INVALID OPERATION!");}//dummy...
-	inline void remove_child(Vertex* elem)	{m_pVrtChild = NULL;}
+	inline void remove_child(Vertex* elem)	{m_pVrtChild = nullptr;}
 	inline void remove_child(Edge* elem)	{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
 	inline void remove_child(Face*)				{UG_THROW("INVALID OPERATION!");}//dummy...
 	inline void remove_child(Volume*)			{UG_THROW("INVALID OPERATION!");}//dummy...
@@ -115,59 +115,59 @@ struct MGEdgeInfo
 
 	GridObject*	m_pParent;
 private:
-	Vertex*			m_pVrtChild;
-	Edge* 			m_pEdgeChild[MG_EDGE_MAX_EDGE_CHILDREN];
-	byte				m_numEdgeChildren;
+	Vertex* m_pVrtChild;
+	Edge* m_pEdgeChild[MG_EDGE_MAX_EDGE_CHILDREN];
+	byte_t m_numEdgeChildren;
 };
 
 ///	Holds information about face relations. Used internally.
 /**	No parent included, since MGFaceInfos are not stored for surface elements.*/
 struct MGFaceInfo
 {
-	MGFaceInfo() : m_pVrtChild(NULL), m_numEdgeChildren(0), m_numFaceChildren(0)	{}
-	inline void clear_children()	{m_pVrtChild = NULL; m_numEdgeChildren = m_numFaceChildren = 0;}
+	MGFaceInfo() : m_pVrtChild(nullptr), m_numEdgeChildren(0), m_numFaceChildren(0)	{}
+	inline void clear_children() {m_pVrtChild = nullptr; m_numEdgeChildren = m_numFaceChildren = 0;}
 	inline bool has_children() const {return m_pVrtChild || m_numEdgeChildren || m_numFaceChildren;}
 	inline void add_child(Vertex* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
-	inline void add_child(Edge* elem)	{assert(m_numEdgeChildren < MG_FACE_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
-	inline void add_child(Face* elem)		{assert(m_numFaceChildren < MG_FACE_MAX_FACE_CHILDREN); m_pFaceChild[m_numFaceChildren++] = elem;}
-	inline void add_child(Volume*)			{UG_THROW("INVALID OPERATION!");}//dummy...
-	inline void remove_child(Vertex* elem)	{m_pVrtChild = NULL;}
-	inline void remove_child(Edge* elem)	{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
-	inline void remove_child(Face* elem)		{m_numFaceChildren = ArrayEraseEntry(m_pFaceChild, elem, m_numFaceChildren);}
-	inline void remove_child(Volume*)			{UG_THROW("INVALID OPERATION!");}//dummy...
+	inline void add_child(Edge* elem) {assert(m_numEdgeChildren < MG_FACE_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
+	inline void add_child(Face* elem) {assert(m_numFaceChildren < MG_FACE_MAX_FACE_CHILDREN); m_pFaceChild[m_numFaceChildren++] = elem;}
+	inline void add_child(Volume*) {UG_THROW("INVALID OPERATION!");}//dummy...
+	inline void remove_child(Vertex* elem) {m_pVrtChild = nullptr;}
+	inline void remove_child(Edge* elem) {m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
+	inline void remove_child(Face* elem) {m_numFaceChildren = ArrayEraseEntry(m_pFaceChild, elem, m_numFaceChildren);}
+	inline void remove_child(Volume*) {UG_THROW("INVALID OPERATION!");}//dummy...
 	inline void replace_child(Vertex* elem, Vertex* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
-	inline void replace_child(Edge* elem, Edge* child)		{ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
-	inline void replace_child(Face* elem, Face* child)				{ArrayReplaceEntry(m_pFaceChild, elem, child, m_numFaceChildren);}
+	inline void replace_child(Edge* elem, Edge* child) {ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
+	inline void replace_child(Face* elem, Face* child) {ArrayReplaceEntry(m_pFaceChild, elem, child, m_numFaceChildren);}
 	void unregister_from_children(MultiGrid& mg);
 
-	size_t num_child_vertices() const	{return m_pVrtChild ? 1 : 0;}
-	size_t num_child_edges() const		{return m_numEdgeChildren;}
-	size_t num_child_faces() const		{return m_numFaceChildren;}
+	size_t num_child_vertices() const {return m_pVrtChild ? 1 : 0;}
+	size_t num_child_edges() const {return m_numEdgeChildren;}
+	size_t num_child_faces() const {return m_numFaceChildren;}
 
 	Vertex* child_vertex() const {return m_pVrtChild;}
-	Edge* child_edge(size_t i) const	{assert(i < num_child_edges()); return m_pEdgeChild[i];}
-	Face* child_face(size_t i) const		{assert(i < num_child_faces()); return m_pFaceChild[i];}
+	Edge* child_edge(size_t i) const {assert(i < num_child_edges()); return m_pEdgeChild[i];}
+	Face* child_face(size_t i) const {assert(i < num_child_faces()); return m_pFaceChild[i];}
 
 private:
-	Vertex*			m_pVrtChild;
-	Edge* 			m_pEdgeChild[MG_FACE_MAX_EDGE_CHILDREN];
-	Face*				m_pFaceChild[MG_FACE_MAX_FACE_CHILDREN];
-	byte				m_numEdgeChildren;
-	byte				m_numFaceChildren;
+	Vertex* m_pVrtChild;
+	Edge* m_pEdgeChild[MG_FACE_MAX_EDGE_CHILDREN];
+	Face* m_pFaceChild[MG_FACE_MAX_FACE_CHILDREN];
+	byte_t m_numEdgeChildren;
+	byte_t m_numFaceChildren;
 };
 
 ///	Holds information about volume relations. Used internally.
 /**	No parent included, since MGFaceInfos are not stored for surface elements.*/
 struct MGVolumeInfo
 {
-	MGVolumeInfo() : m_pVrtChild(NULL)		{}
-	inline void clear_children()	{m_pVrtChild = NULL; m_edgeChildren.clear(); m_faceChildren.clear(); m_volumeChildren.clear();}
+	MGVolumeInfo() : m_pVrtChild(nullptr)		{}
+	inline void clear_children()	{m_pVrtChild = nullptr; m_edgeChildren.clear(); m_faceChildren.clear(); m_volumeChildren.clear();}
 	inline bool has_children()	const {return m_pVrtChild || !(m_edgeChildren.empty() && m_faceChildren.empty() && m_volumeChildren.empty());}
 	inline void add_child(Vertex* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void add_child(Edge* elem)	{m_edgeChildren.push_back(elem);}
 	inline void add_child(Face* elem)		{m_faceChildren.push_back(elem);}
 	inline void add_child(Volume* elem)		{m_volumeChildren.push_back(elem);}
-	inline void remove_child(Vertex* elem)	{m_pVrtChild = NULL;}
+	inline void remove_child(Vertex* elem)	{m_pVrtChild = nullptr;}
 	inline void remove_child(Edge* elem)	{ArraySwapWithLast(&m_edgeChildren.front(), elem, m_edgeChildren.size()); m_edgeChildren.pop_back();}
 	//{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
 	inline void remove_child(Face* elem)		{ArraySwapWithLast(&m_faceChildren.front(), elem, m_faceChildren.size()); m_faceChildren.pop_back();}
@@ -200,7 +200,7 @@ private:
 ///	access to connected types. used internally
 /**
  * has to contain:
- * 	- typedef info_type
+ * 	- type definition info_type
  */
 template <class TElem> class mginfo_traits{};
 
@@ -208,28 +208,28 @@ template <class TElem> class mginfo_traits{};
 template <> class mginfo_traits<Vertex>
 {
 	public:
-		typedef MGVertexInfo	info_type;
+		using info_type = MGVertexInfo;
 };
 
 ///	edge info traits. used internally.
 template <> class mginfo_traits<Edge>
 {
 	public:
-		typedef MGEdgeInfo	info_type;
+		using info_type = MGEdgeInfo;
 };
 
 ///	face info traits. used internally.
 template <> class mginfo_traits<Face>
 {
 	public:
-		typedef MGFaceInfo	info_type;
+		using info_type = MGFaceInfo;
 };
 
 ///	volume info traits. used internally.
 template <> class mginfo_traits<Volume>
 {
 	public:
-		typedef MGVolumeInfo	info_type;
+		using info_type = MGVolumeInfo;
 };
 
 }// end of namespace

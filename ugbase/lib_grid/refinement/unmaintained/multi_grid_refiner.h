@@ -147,7 +147,7 @@ class MultiGridRefiner : public GridObserver
 
 	protected:
 	///	performs registration and deregistration at a grid.
-	/**	call set_grid(NULL) to unregister the observer from a grid.*/
+	/**	call set_grid(nullptr) to unregister the observer from a grid.*/
 		void set_grid(Grid* grid);
 		
 		virtual void collect_objects_for_refine();

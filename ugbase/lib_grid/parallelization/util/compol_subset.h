@@ -42,11 +42,11 @@ template <class TLayout>
 class ComPol_Subset : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
 	///	Construct the communication policy with a ug::SubsetHandler.
 	/**	If overwrite is specified, the subset index in the target handler is
@@ -63,7 +63,7 @@ class ComPol_Subset : public pcl::ICommunicationPolicy<TLayout>
 
 	///	writes 1 for selected and 0 for unassigned interface entries
 		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		collect(BinaryBuffer& buff, const Interface& interface)
 		{
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
@@ -79,7 +79,7 @@ class ComPol_Subset : public pcl::ICommunicationPolicy<TLayout>
 
 	///	reads marks from the given stream
 		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
+		extract(BinaryBuffer& buff, const Interface& interface)
 		{
 			int nsi = -1;
 			bool retVal = true;

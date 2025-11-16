@@ -68,14 +68,14 @@ void ClassHierarchy::insert_class(const IExportedClass &c)
 
 	ClassHierarchy *base = this;
 
-	for(vector<std::string>::const_iterator it = vGroups.begin(); it != vGroups.end(); ++it)
+	for(auto it = vGroups.begin(); it != vGroups.end(); ++it)
 	{
 		const std::string thename = TrimString(*it);
-		if(thename.length() <= 0) continue;
+		if(thename.empty()) continue;
 		bool bFound = false;
 		for(size_t j=0; j<base->subclasses.size(); j++)
 		{
-			if(base->subclasses.at(j).name.compare(thename) == 0)
+			if(base->subclasses.at(j).name == thename)
 			{
 				base = &base->subclasses.at(j);
 				bFound = true;
@@ -95,15 +95,15 @@ void ClassHierarchy::insert_class(const IExportedClass &c)
 
 	const vector<const char *> *pNames = c.class_names();
 
-	if(pNames == NULL) return;
+	if(pNames == nullptr) return;
 
-	for(vector<const char*>::const_reverse_iterator rit = pNames->rbegin(); rit != pNames->rend(); ++rit)
+	for(auto rit = pNames->rbegin(); rit != pNames->rend(); ++rit)
 	{
 		const char *thename = (*rit);
 		bool bFound = false;
 		for(size_t j=0; j<base->subclasses.size(); j++)
 		{
-			if(base->subclasses.at(j).name.compare(thename) == 0)
+			if(base->subclasses.at(j).name == thename)
 			{
 				base = &base->subclasses.at(j);
 				bFound = true;
@@ -131,14 +131,14 @@ void ClassHierarchy::sort()
 
 ClassHierarchy *ClassHierarchy::find_class(const char *classname)
 {
-	if(name.compare(classname) == 0)
+	if(name == classname)
 		return this;
 	for(size_t i=0; i < subclasses.size(); i++)
 	{
 		ClassHierarchy *c = subclasses[i].find_class(classname);
 		if(c) return c;
 	}
-	return NULL;
+	return nullptr;
 }
 
 void GetClassHierarchy(ClassHierarchy &hierarchy, const Registry &reg)
@@ -158,7 +158,7 @@ void PrintClassSubHierarchy(ClassHierarchy &c, int level)
 {
 	for(int j=0; j<level; j++) UG_LOG("  ");
 	UG_LOG(c.name << endl);
-	if(c.subclasses.size())
+	if(!c.subclasses.empty())
 	{
 		for(size_t i=0; i<c.subclasses.size(); i++)
 			PrintClassSubHierarchy(c.subclasses[i], level+1);
@@ -169,7 +169,7 @@ string ClassHierarchyString(const Registry &reg, const char *classname)
 {
 	std::stringstream ss;
 	const IExportedClass *c = reg.get_class(classname);
-	if(c == NULL)
+	if(c == nullptr)
 	{
 		ss << "Class name " << classname << " not found\n";
 		return ss.str();
@@ -179,7 +179,7 @@ string ClassHierarchyString(const Registry &reg, const char *classname)
 
 	int level = 0;
 	const std::vector<const char*> *names = c->class_names();
-	if(names != NULL && !names->empty())
+	if(names != nullptr && !names->empty())
 	{
 		for(int i = names->size()-1; i>0; i--)
 		{
@@ -264,7 +264,7 @@ string PrintParametersIn(const T &thefunc, const char*highlightclassname)
 	{
 		if(i>0) ss << ", ";
 		bool b=false;
-		if(highlightclassname != NULL && thefunc.params_in().class_name(i) != NULL &&
+		if(highlightclassname != nullptr && thefunc.params_in().class_name(i) != nullptr &&
 				strcmp(thefunc.params_in().class_name(i), highlightclassname)==0)
 			b = true;
 		if(b) ss << "[";
@@ -278,8 +278,8 @@ string PrintParametersIn(const T &thefunc, const char*highlightclassname)
 	return ss.str();
 }
 
-//bool PrintParametersIn(const ExportedFunctionBase &thefunc, const char*highlightclassname = NULL);
-//bool PrintParametersIn(const ExportedConstructor &thefunc, const char*highlightclassname = NULL);
+//bool PrintParametersIn(const ExportedFunctionBase &thefunc, const char*highlightclassname = nullptr);
+//bool PrintParametersIn(const ExportedConstructor &thefunc, const char*highlightclassname = nullptr);
 
 string PrintParametersOut(const ExportedFunctionBase &thefunc)
 {
@@ -307,7 +307,7 @@ string PrintParametersOut(const ExportedFunctionBase &thefunc)
 /**
  *
  * Prints parameters of the function thefunc.
- * If highlightclassname != NULL, it highlights parameters which implement the highlightclassname class.
+ * If highlightclassname != nullptr, it highlights parameters which implement the highlightclassname class.
  */
 string FunctionInfo(const ExportedFunctionBase &thefunc, bool isConst, const char *classname, const char *highlightclassname, bool bPrintHelp)
 {
@@ -323,9 +323,9 @@ string FunctionInfo(const ExportedFunctionBase &thefunc, bool isConst, const cha
 	if(isConst) ss << " const";
 	if(bPrintHelp)
 	{
-		if(thefunc.tooltip().length() != 0)
+		if(thefunc.tooltip().empty())
 			ss << "\n     tooltip: " << thefunc.tooltip();
-		if(thefunc.help().length() != 0)
+		if(!thefunc.help().empty())
 			ss << "\n     help: " << thefunc.help();
 	}
 	return ss.str();
@@ -334,7 +334,7 @@ string FunctionInfo(const ExportedFunctionBase &thefunc, bool isConst, const cha
 /**
  *
  * Prints parameters of the constructor constr.
- * If highlightclassname != NULL, it highlights parameters which implement the highlightclassname class.
+ * If highlightclassname != nullptr, it highlights parameters which implement the highlightclassname class.
  */
 string ConstructorInfo(const ExportedConstructor &constr,
 		const char *classname, const char *highlightclassname)
@@ -351,7 +351,7 @@ const ExportedFunction *FindFunction(const Registry &reg, const char *functionna
 		if(strcmp(functionname, reg.get_function(i).name().c_str()) == 0)
 			return &reg.get_function(i);
 	}
-	return NULL;
+	return nullptr;
 }
 
 /**
@@ -363,7 +363,7 @@ string FunctionInfo(const Registry &reg, const char *functionname)
 	const ExportedFunction *f = FindFunction(reg, functionname);
 	if(f)
 	{
-		return FunctionInfo(*f, false, NULL, NULL, true);
+		return FunctionInfo(*f, false, nullptr, nullptr, true);
 	}
 	else
 		return "";
@@ -386,7 +386,7 @@ string ClassInfo(const IExportedClass &c)
 	for(size_t k=0; k<c.num_methods(); ++k)
 	{
 		ss << " - ";
-		ss << FunctionInfo(c.get_method(k), false, NULL, NULL, true);
+		ss << FunctionInfo(c.get_method(k), false, nullptr, nullptr, true);
 		ss << endl;
 	}
 	ss << " " << c.num_const_methods() << " const method(s):" << endl;
@@ -428,7 +428,7 @@ bool IsClassInParameters(const ParameterInfo &par, const char *classname)
 	{
 		if(par.type(i) != Variant::VT_POINTER && par.type(i) != Variant::VT_CONST_POINTER)
 			continue;
-		if(par.class_name_node(i) != NULL && strcmp(par.class_name(i), classname)==0)
+		if(par.class_name_node(i) != nullptr && strcmp(par.class_name(i), classname)==0)
 			break;
 	}
 

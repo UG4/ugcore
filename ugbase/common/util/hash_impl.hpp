@@ -272,7 +272,7 @@ template <class TKey, class TValue>
 typename Hash<TKey, TValue>::iterator Hash<TKey, TValue>::
 end(const key_t& key)
 {
-	return iterator(key, NULL, invalid_index());
+	return iterator(key, nullptr, invalid_index());
 }
 
 template <class TKey, class TValue>

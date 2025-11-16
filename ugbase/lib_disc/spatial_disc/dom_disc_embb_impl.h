@@ -74,7 +74,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 	
 //	reference object id
-	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
 	MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -232,7 +232,7 @@ AssembleMassMatrix( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	reference object id
-	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
 	MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -390,7 +390,7 @@ AssembleJacobian(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	reference object id
-	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
 	MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -556,7 +556,7 @@ AssembleJacobian(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	reference object id
-	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
 	MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -761,7 +761,7 @@ AssembleDefect( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	reference object id
-	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
 	MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -974,7 +974,7 @@ AssembleDefect( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	reference object id
-	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
 	MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -1278,7 +1278,7 @@ AssembleLinear( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	reference object id
-	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
 	MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -1415,7 +1415,7 @@ AssembleLinear( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	reference object id
-	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
 	MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -1791,7 +1791,7 @@ PrepareTimestepElem(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	reference object id
-	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
 	MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -1938,7 +1938,7 @@ FinishTimestepElem(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	reference object id
-	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
 	MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -2043,7 +2043,7 @@ InitAllExports(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	reference object id
-	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	dummy local time series (only to simulate the instationary case for the initialization)
 	LocalVectorTimeSeries locTimeSeries;
@@ -2053,7 +2053,7 @@ InitAllExports(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	{
 	DataEvaluator<domain_type> Eval(MASS | STIFF | RHS,
 					   vElemDisc, dd->function_pattern(), bNonRegularGrid,
-						   bAsTimeDependent? &locTimeSeries : NULL);
+						   bAsTimeDependent? &locTimeSeries : nullptr);
 	Eval.set_time_point(0);
 
 //	prepare loop

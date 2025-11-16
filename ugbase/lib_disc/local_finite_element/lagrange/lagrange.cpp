@@ -43,7 +43,7 @@ void SetLagrangeVertexMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
                         	size_t& index)
 {
 //	dimension of Reference element
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 //	get corner position integer
 	const MathVector<dim,int>* vCo = rRef.corner();
@@ -71,7 +71,7 @@ void SetLagrangeEdgeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
                       	size_t& index)
 {
 //	dimension of Reference element
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 //	only for 2d,3d elems we do something
 	if(dim < 1) return;
@@ -113,7 +113,7 @@ void SetLagrangeFaceMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
                       	size_t& index)
 {
 //	dimension of Reference element
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 //	only for 2d,3d elems we do something
 	if(dim < 2) return;
@@ -170,7 +170,7 @@ void SetLagrangeVolumeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
                                  	size_t& index)
 {
 //	dimension of Reference element
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 //	only for 3d elems we do something
 	if(dim < 3) return;

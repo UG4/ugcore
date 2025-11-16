@@ -138,7 +138,7 @@ template <class TAAPos>
 bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 {
 	using namespace std;
-	typedef typename TAAPos::ValueType vector_t;
+	using vector_t = typename TAAPos::ValueType;
 
 	Grid& grid = info.grid();
 	Face* nbrFaces[2];
@@ -287,8 +287,8 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 
 	using namespace std;
 
-	typedef typename TAAPos::ValueType vector_t;
-	typedef DelaunayInfo<TAAPos> DI;
+	using vector_t = typename TAAPos::ValueType;
+	using DI = DelaunayInfo<TAAPos>;
 
 	TAAPos aaPos = info.position_accessor();
 
@@ -380,19 +380,19 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 		//	locate the triangle which contains cc. Do this by traversing edges
 		//	as required. Note that since the delaunay property holds, we're only
 		//	traversing edges in a circle, which does not contain any vertices.
-			Edge* lastTraversedEdge = NULL;
+			Edge* lastTraversedEdge = nullptr;
 			Face* curFace = f;
 			//vector_t startPos = CalculateCenter(f, aaPos);
 			vector_t rayDir;
 			VecSubtract(rayDir, cc, faceCenter);
-			Vertex* pointInserted = NULL;
+			Vertex* pointInserted = nullptr;
 
 			// UG_LOG("curFace: " << faceCenter << "\n");
-			while(pointInserted == NULL){
+			while(pointInserted == nullptr){
 				//UG_LOG("curTri: " << CalculateCenter(curFace, aaPos) << "\n");
 			//	to make things as robust as possible, we'll always intersect the
 			//	same line with each edge
-				Edge* nextEdge = NULL;
+				Edge* nextEdge = nullptr;
 				bool split = false;
 
 				CollectAssociated(edges, grid, curFace);
@@ -611,7 +611,7 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 							//	local retriangulation. Add surrounding edges to
 							//	the 'edges' array
 							//	Store one face, which will be the parent for all new faces
-								Face* parent = NULL;
+								Face* parent = nullptr;
 								edges.clear();
 								CollectAssociated(faces, grid, vrt);
 								for(size_t i_face = 0; i_face < faces.size(); ++i_face){

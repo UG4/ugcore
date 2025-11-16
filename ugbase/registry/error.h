@@ -42,7 +42,7 @@ namespace bridge{
 /// \addtogroup registry
 /// \{
 
-struct UGRegistryError : public UGError
+struct UGRegistryError : UGError
 {
 	UGRegistryError(std::string name_,
 	                                     std::string msg_,

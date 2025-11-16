@@ -45,9 +45,9 @@ template <int dim>
 class PPP_ReplaceCoordinate : public IPartitionPreProcessor
 {
 public:
-	typedef MathVector<dim>							vector_t;
-	typedef Attachment<vector_t>					apos_t;
-	typedef Grid::VertexAttachmentAccessor<apos_t>	aapos_t;
+	using vector_t = MathVector<dim>;
+	using apos_t = Attachment<vector_t>;
+	using aapos_t = Grid::VertexAttachmentAccessor<apos_t>;
 
 	PPP_ReplaceCoordinate (apos_t aPos, ANumber aNewCoord, int newCoordIndex) :
 		m_aPos (aPos),

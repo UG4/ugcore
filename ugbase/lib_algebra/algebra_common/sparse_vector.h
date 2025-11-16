@@ -40,10 +40,11 @@ template<typename T>
 class SparseVector
 {
 	size_t m_size;
-	typedef std::map<size_t, T> container;
+	using container = std::map<size_t, T>;
 	container data;
 public:
-	typedef T value_type;
+	using value_type = T;
+
 	class const_iterator : public container::const_iterator
 	{
 		using container::const_iterator::operator *;

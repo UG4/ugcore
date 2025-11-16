@@ -257,7 +257,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 	UG_CATCH_THROW("DimCRFVGeometry: update failed.");
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	if(num_boundary_subsets() == 0 || ish == nullptr) return;
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
@@ -339,7 +339,7 @@ update_hanging(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, con
 		CollectEdgesSorted(vEdges, grid, pElem);
 		for(size_t side = 0; side < vEdges.size(); ++side){
 			ConstrainingEdge* constrainingObj = dynamic_cast<ConstrainingEdge*>(vEdges[side]);
-			if(constrainingObj == NULL) continue;
+			if(constrainingObj == nullptr) continue;
 			
 			// found constraining edge
 			MathVector<worldDim> globalMidpoint = m_vSCV[side].vGlobIP;
@@ -448,7 +448,7 @@ update_hanging(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, con
 		handledEdges.clear();
 		for(size_t face = 0; face < vFaces.size(); ++face){
 			ConstrainingFace* constrainingObj = dynamic_cast<ConstrainingFace*>(vFaces[face]);
-			if(constrainingObj == NULL) continue;
+			if(constrainingObj == nullptr) continue;
 			// found constraining face
 			MathVector<worldDim> globalMidpoint = m_vSCV[face].vGlobIP;
 			MathVector<dim> localMidpoint = m_vSCV[face].vLocIP;
@@ -743,7 +743,7 @@ update_hanging(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, con
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	if(num_boundary_subsets() == 0 || ish == nullptr) return;
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
@@ -933,7 +933,7 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 template <	typename TElem, int TWorldDim>
 CRFVGeometry<TElem, TWorldDim>::
 CRFVGeometry()
-	: m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()),
+	: m_pElem(nullptr), m_rRefElem(Provider<ref_elem_type>::get()),
 	  m_rTrialSpace(Provider<local_shape_fct_set_type>::get())
 {
 	update_local_data();
@@ -1012,7 +1012,7 @@ template <	typename TElem, int TWorldDim>
 void CRFVGeometry<TElem, TWorldDim>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != nullptr, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
 
 // 	If already update for this element, do nothing
@@ -1113,7 +1113,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	if(num_boundary_subsets() == 0 || ish == nullptr) return;
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 

@@ -83,7 +83,7 @@ void ng_delete(struct ng* n);
  *
  * \param filename The file to be read.
  * \param n The ng object to contain the file data.
- * \param fileinfo (optional) A ng_info object for status reporting, or NULL.
+ * \param fileinfo (optional) A ng_info object for status reporting, or nullptr.
  *
  * \returns A non-zero value indicates an error.
  */
@@ -96,7 +96,7 @@ int ng_read(const char* filename, struct ng* n, struct ng_info* fileinfo);
  *
  * \param filename The file to be written to.
  * \param n The ng to be written to file.
- * \param fileinfo (optional) A ng_info object for status reporting, or NULL.
+ * \param fileinfo (optional) A ng_info object for status reporting, or nullptr.
  *
  * \returns A non-zero value indicates an error.
  */

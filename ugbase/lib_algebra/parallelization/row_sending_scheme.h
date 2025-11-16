@@ -47,10 +47,10 @@ class RowSendingScheme
 {
 private:
 	bool m_bCreateNewNodes;
-	typedef std::map<int, BinaryBuffer>	BufferMap;
+	using BufferMap = std::map<int, BinaryBuffer>;
 	BufferMap rowsBufferMap;
 	const matrix_type &mat;
-	typedef typename matrix_type::connection connection;
+	using connection = typename matrix_type::connection;
 	std::map<size_t, std::vector<connection> > connections;
 	ParallelNodes &PN;
 	size_t rowMax, colMax;

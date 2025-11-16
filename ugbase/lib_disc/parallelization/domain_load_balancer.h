@@ -49,7 +49,7 @@ CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
 {
 	return CreateProcessHierarchy(dom, minNumElemsPerProcPerLvl,
 						maxNumRedistProcs, maxNumProcs, minDistLvl,
-						maxLevelsWithoutRedist, NULL);
+						maxLevelsWithoutRedist, nullptr);
 }
 
 template <class TDomain>
@@ -107,7 +107,7 @@ CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
 template <class TDomain>
 class DomainLoadBalancer : public LoadBalancer
 {
-	typedef LoadBalancer	base_class;
+	using base_class = LoadBalancer;
 
 	public:
 		using base_class::add_serializer;

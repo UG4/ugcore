@@ -80,16 +80,15 @@ static void Algebra(Registry& reg, string grp)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
-//	typedefs for this algebra
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using vector_type = typename TAlgebra::vector_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 
 
 //	PILU Threshold
 	{
-		typedef PILUTPreconditioner<TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
+		using T = PILUTPreconditioner<TAlgebra>;
+		using TBase = IPreconditioner<TAlgebra>;
 		string name = string("PILUT").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition with threshold")
 			.add_constructor()
@@ -118,7 +117,7 @@ static void Algebra(Registry& reg, string grp)
 void RegisterBridge_PILUT(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Preconditioner");
-	typedef Preconditioner::Functionality2 Functionality2;
+	using Functionality2 = Preconditioner::Functionality2;
 
 	try{
 		RegisterAlgebraDependent<Functionality2>(reg,grp);

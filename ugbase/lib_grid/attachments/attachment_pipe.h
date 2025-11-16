@@ -62,16 +62,16 @@ enum ATTACHMENT_CONSTANTS
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	IAttachedDataContainer
 ///	the interface for an attachment-data-container.
-/** In order to use an attachment-data-container you have to supply several Typedefs.
+/** In order to use an attachment-data-container you have to supply several type defintins.
 * Take a look at the derived generic class AttachmentDataContainer<T> to see which
-* typedefs and operations have to be supplied in addition to the interface-methods.
+* type defintion and operations have to be supplied in addition to the interface-methods.
 * if possible you should always use the derived generic class AttachmentDataContainer<T>
 * instead creating inheriting your own version of IAttachedDataContainer.
 */
 class UG_API IAttachmentDataContainer
 {
 	public:
-		virtual ~IAttachmentDataContainer()		{}
+		virtual ~IAttachmentDataContainer()	= default;
 
 		virtual void resize(size_t iSize) = 0;///< resize the data array
 		virtual size_t size() = 0;///< returns the size of the data-array.
@@ -109,15 +109,15 @@ class UG_API IAttachmentDataContainer
  */
 template <class TValue>
 struct attachment_value_traits{
-	typedef TValue&			reference;
-	typedef const TValue&	const_reference;
+	using reference = TValue&;
+	using const_reference = const TValue&;
 };
 
 ///	specialization of attachment_value_traits for the bool type
 template <>
 struct attachment_value_traits<bool>{
-	typedef std::vector<bool>::reference		reference;
-	typedef const std::vector<bool>::reference	const_reference;
+	using reference = std::vector<bool>::reference;
+	using const_reference = const std::vector<bool>::reference;
 };
 
 /* THOUGHTS
@@ -134,14 +134,14 @@ struct attachment_value_traits<bool>{
 template <class T> class UG_API AttachmentDataContainer : public IAttachmentDataContainer
 {
 	private:
-		typedef AttachmentDataContainer<T>	ClassType;
-		//typedef PageContainer<T>			DataContainer;
-		typedef std::vector<T>				DataContainer;
-		typedef typename attachment_value_traits<T>::reference			TRef;
-		typedef typename attachment_value_traits<T>::const_reference	TConstRef;
+		using ClassType = AttachmentDataContainer<T>;
+		// using DataContainer = PageContainer<T>;
+		using DataContainer = std::vector<T>;
+		using TRef = typename attachment_value_traits<T>::reference;
+		using TConstRef = typename attachment_value_traits<T>::const_reference;
 
 	public:
-		typedef T	ValueType;
+		using ValueType = T;
 
 		AttachmentDataContainer(const T& defaultValue = T())	: m_defaultValue(defaultValue)	{}
 
@@ -232,7 +232,7 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 /** Attachments can be attached to an AttachmentPipe and thus enhance the pipes elements by data,
  * whose type, container and behavior is defined by the Attachment itself.
  * In order to use an Attachment with libGrid (in particular with libGrids AttachmentAccessors),
- * derivatives of IAttachment have to feature some special typedefs (see Attachment<T> for more information).
+ * derivatives of IAttachment have to feature some special type defintion (see Attachment<T> for more information).
  * Whenever possible you should use the template-derivative Attachment<T> instead of IAttachment.
  */
 class UG_API IAttachment : public UID
@@ -242,7 +242,7 @@ class UG_API IAttachment : public UID
 		IAttachment(const char* name) : m_name(name)
 			{assert(m_name);}
 
-		virtual ~IAttachment()  {}
+		virtual ~IAttachment() = default;
 		virtual IAttachment* clone() = 0;
 		virtual IAttachmentDataContainer*	create_container() = 0;
 		virtual bool default_pass_on_behaviour() const = 0;
@@ -257,20 +257,20 @@ class UG_API IAttachment : public UID
 //	Attachment
 /// A generic specialization of IAttachment
 /** This class is intended to simplify the process of Attachment creation.
- * Note that there are typedefs, which are required by libGrids AttachmentAccessors.
+ * Note that there are type definitions, which are required by libGrids AttachmentAccessors.
  */
 template <class T> class UG_API Attachment : public IAttachment
 {
 	public:
-		typedef AttachmentDataContainer<T>	ContainerType;
-		typedef T							ValueType;
+		using ContainerType = AttachmentDataContainer<T>;
+		using ValueType = T;
 
 		Attachment() : IAttachment(), m_passOnBehaviour(false)    {}
 		Attachment(bool passOnBehaviour) : IAttachment(), m_passOnBehaviour(passOnBehaviour)    {}
 		Attachment(const char* name) : IAttachment(name), m_passOnBehaviour(false)   		{}
 		Attachment(const char* name, bool passOnBehaviour) : IAttachment(name), m_passOnBehaviour(passOnBehaviour)	{}
 
-		virtual ~Attachment()	{}
+		virtual ~Attachment() = default;
 		virtual IAttachment* clone()							{IAttachment* pA = new Attachment<T>; *pA = *this; return pA;}
 		virtual IAttachmentDataContainer* create_container()	{return new ContainerType;}
 		virtual bool default_pass_on_behaviour() const			{return m_passOnBehaviour;}
@@ -285,7 +285,7 @@ template <class T> class UG_API Attachment : public IAttachment
 ///	This struct is used by AttachmentPipe in order to manage its attachments
 struct AttachmentEntry
 {
-	AttachmentEntry() : m_pAttachment(NULL), m_pContainer(NULL), m_userData(0)	{}
+	AttachmentEntry() : m_pAttachment(nullptr), m_pContainer(nullptr), m_userData(0)	{}
 	AttachmentEntry(IAttachment* pAttachment, IAttachmentDataContainer* pContainer, uint userData = 0) :
 			m_pAttachment(pAttachment), m_pContainer(pContainer), m_userData(userData)	{}
 
@@ -304,13 +304,13 @@ template<class TElem, class TElemHandler>
 class attachment_traits
 {
 	public:
-		typedef TElem&		ElemRef;
-		typedef void*		ElemPtr;
-		typedef const void* ConstElemPtr;
-		typedef void*		ElemHandlerPtr;
-		typedef const void*	ConstElemHandlerPtr;
+		using ElemRef = TElem&;
+		using ElemPtr = void*;
+		using ConstElemPtr = const void*;
+		using ElemHandlerPtr = void*;
+		using ConstElemHandlerPtr = const void*;
 
-		typedef void		element_iterator;
+		using element_iterator = void;
 
 		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)					{}
 		static inline element_iterator elements_end(ElemHandlerPtr pHandler)					{}
@@ -336,13 +336,13 @@ template<class TElem, class TElemHandler>
 class UG_API AttachmentPipe
 {
 	public:
-		typedef TElem								element;
-		typedef TElemHandler						ElementHandler;
-		typedef std::list<AttachmentEntry>			AttachmentEntryContainer;
-		typedef AttachmentEntryContainer::iterator	AttachmentEntryIterator;
-		typedef AttachmentEntryContainer::const_iterator	ConstAttachmentEntryIterator;
-		typedef Hash<uint, AttachmentEntryIterator>		AttachmentEntryIteratorHash;
-		typedef attachment_traits<TElem, TElemHandler>	atraits;
+		using element = TElem;
+		using ElementHandler = TElemHandler;
+		using AttachmentEntryContainer = std::list<AttachmentEntry>;
+		using AttachmentEntryIterator = AttachmentEntryContainer::iterator;
+		using ConstAttachmentEntryIterator = AttachmentEntryContainer::const_iterator;
+		using AttachmentEntryIteratorHash = Hash<uint, AttachmentEntryIterator>;
+		using atraits = attachment_traits<TElem, TElemHandler>;
 
 	public:
 		AttachmentPipe();
@@ -471,7 +471,7 @@ class UG_API AttachmentPipe
 		inline size_t get_container_size();
 
 	protected:
-		typedef std::stack<size_t>		UINTStack;
+		using UINTStack = std::stack<size_t>;
 
 	protected:
 		AttachmentEntryContainer	m_attachmentEntryContainer;
@@ -509,13 +509,13 @@ template <class TElem, class TAttachment, class TElemHandler>
 class UG_API AttachmentAccessor
 {
 	public:
-		typedef TAttachment							attachment;
-		typedef TElem								element;
-		typedef typename TAttachment::ValueType		ValueType;
-		typedef typename TAttachment::ContainerType	ContainerType;
-		typedef TElemHandler						ElemHandler;
-		typedef attachment_traits<TElem, TElemHandler>	atraits;
-		typedef AttachmentPipe<TElem, TElemHandler>	attachment_pipe;
+		using attachment = TAttachment;
+		using element = TElem;
+		using ValueType = typename TAttachment::ValueType;
+		using ContainerType = typename TAttachment::ContainerType;
+		using ElemHandler = TElemHandler;
+		using atraits = attachment_traits<TElem, TElemHandler>;
+		using attachment_pipe = AttachmentPipe<TElem, TElemHandler>;
 
 	public:
 		AttachmentAccessor();
@@ -551,10 +551,10 @@ class UG_API AttachmentAccessor
 			}
 */
 		inline bool valid() const
-			{return m_pContainer != NULL;}
+			{return m_pContainer != nullptr;}
 
 		inline void invalidate()
-			{m_pContainer = NULL;}
+			{m_pContainer = nullptr;}
 			
 	///	calls swap on associated containers
 		void swap(AttachmentAccessor<TElem, TAttachment, TElemHandler>& acc)
@@ -564,7 +564,7 @@ class UG_API AttachmentAccessor
 
 	///	returns the raw pointer to the data of the associated container
 	/**	ATTENTION: Use this method with extreme care!
-	 * Returns NULL if no container was associated. 
+	 * Returns nullptr if no container was associated.
 	 */
 		ValueType* raw_data()
 		{
@@ -572,7 +572,7 @@ class UG_API AttachmentAccessor
 				if(m_pContainer->size() > 0)
 					return &(*m_pContainer)[0];
 			}
-			return NULL;
+			return nullptr;
 		}
 		
 	///	returns the data index of the given element regarding the associated container.

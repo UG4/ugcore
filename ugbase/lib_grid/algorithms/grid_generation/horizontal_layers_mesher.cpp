@@ -344,7 +344,7 @@ void ExtrudeLayers (
 	//	swap containers and perform extrusion
 		curVrts.swap(tmpVrts);
 		curFaces.swap(tmpFaces);
-		Extrude(grid, &curVrts, NULL, &curFaces, vector3(0, 0, 0), aaPos,
+		Extrude(grid, &curVrts, nullptr, &curFaces, vector3(0, 0, 0), aaPos,
 				EO_DEFAULT, &newVols);
 
 	// assign pre-determined subsets
@@ -374,37 +374,37 @@ void ExtrudeLayers (
 		Grid::volume_traits::secure_container	assVols;
 
 	//	all triangle-interface-elements shall store 'true' in aaIsInterface
-		lg_for_each(Face, f, grid){
+		for(Grid::traits<Face>::iterator _feI = grid.begin<Face>(); _feI != grid.end<Face>(); ++_feI){ Face* f = *_feI;{
 			if(f->num_vertices() != 3)
 				continue;
 
 			grid.associated_elements(assVols, f);
 			if(assVols.size() == 1){
-				lg_for_each_vertex_in_elem(vrt, f){
+				for(size_t _feI = 0; _feI < f->num_vertices(); ++_feI){ Vertex* vrt = f->vertex(_feI);{
 					aaInterface[vrt] = true;
-				}lg_end_for;
+				}};
 			}
 			else{
 				int si = -1;
-				for_each_in_vec(Volume* v, assVols){
+				for(size_t _vfeI = 0; _vfeI < assVols.size(); ++_vfeI){ Volume* v = assVols[_vfeI];{
 					if(si == -1)
 						si = sh.get_subset_index(v);
 					else if(sh.get_subset_index(v) != si){
-						lg_for_each_vertex_in_elem(vrt, f){
+						for(size_t _feI = 0; _feI < f->num_vertices(); ++_feI){ Vertex* vrt = f->vertex(_feI);{
 							aaInterface[vrt] = true;
-						}lg_end_for;
+						}};
 						break;
 					}
-				}end_for;
+				}};
 			}
-		}lg_end_for;
+		}};
 
 	//	all lower vertices of elements in invalidSub are collapse candidates and
 	//	are thus not considered to be interface elements
 		Grid::edge_traits::secure_container assEdges;
-		for_each_in_vec(Volume* vol, invalidVols){
+		for(size_t _vfeI = 0; _vfeI < invalidVols.size(); ++_vfeI){ Volume* vol = invalidVols[_vfeI];{
 			grid.associated_elements(assEdges, vol);
-			for_each_in_vec(Edge* e, assEdges){
+			for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){ Edge* e = assEdges[_vfeI];{
 				Vertex* v0 = e->vertex(0);
 				Vertex* v1 = e->vertex(1);
 
@@ -416,20 +416,20 @@ void ExtrudeLayers (
 				else if((-dir.z() > SMALL) && (fabs(dir.x()) < SMALL) && (fabs(dir.y()) < SMALL)){
 					aaInterface[v1] = false;
 				}
-			}end_for;
-		}end_for;
+			}};
+		}};
 
 	//	all unmarked vertices are collapse candidates
 		vector<Vertex*> candidates;
-		lg_for_each(Vertex, vrt, grid){
+		for(Grid::traits<Vertex>::iterator _feI = grid.begin<Vertex>(); _feI != grid.end<Vertex>(); ++_feI){ Vertex* vrt = *_feI;{
 			if(!aaInterface[vrt])
 				candidates.push_back(vrt);
-		}lg_end_for;
+		}};
 
 	//	merge each candidate with the next upper vertex.
-		for_each_in_vec(Vertex* vrt, candidates){
+		for(size_t _vfeI = 0; _vfeI < candidates.size(); ++_vfeI){ Vertex* vrt = candidates[_vfeI];{
 			grid.associated_elements(assEdges, vrt);
-			for_each_in_vec(Edge* e, assEdges){
+			for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){ Edge* e = assEdges[_vfeI];{
 				Vertex* cv = GetConnectedVertex(e, vrt);
 				if(cv == vrt)
 					continue;
@@ -440,8 +440,8 @@ void ExtrudeLayers (
 					CollapseEdge(grid, e, cv);
 					break;
 				}
-			}end_for;
-		}end_for;
+			}};
+		}};
 
 	//	clean up
 		grid.detach_from_vertices(aInterface);
@@ -609,7 +609,7 @@ void ExtrudeLayersMixed (
 			}
 			nextFaces.push_back(nextFace);
 
-			Volume* newVol = NULL;
+			Volume* newVol = nullptr;
 
 			switch(numNew){
 				case 0:// no new volume to be built.

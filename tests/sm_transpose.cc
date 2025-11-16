@@ -114,7 +114,7 @@ void test0(int N=7, int M=10)
 
 void test3(int N=7)
 {
-	typedef ug::SparseMatrix<double> T;
+	using T = ug::SparseMatrix<double>;
 	T A, B, C;
 
 	A.resize_and_clear(N, N);

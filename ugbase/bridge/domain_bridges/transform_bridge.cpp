@@ -59,7 +59,7 @@ template <class TDomain>
 void TranslateDomain(TDomain& dom, ISelector& sel, const vector3& offset)
 
 {
-	typedef typename TDomain::position_type pos_t;
+	using pos_t = typename TDomain::position_type;
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 
 	pos_t o;
@@ -82,10 +82,10 @@ template <class TDomain>
 void ScaleDomain(TDomain& dom, const vector3& center, const vector3& scale)
 
 {
-	typedef typename TDomain::position_type pos_t;
+	using pos_t = typename TDomain::position_type;
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
-	typedef typename TDomain::grid_type	grid_t;
-	typedef typename grid_t::template traits<Vertex>::iterator	vrt_iterator_t;
+	using grid_t = typename TDomain::grid_type;
+	using vrt_iterator_t = typename grid_t::template traits<Vertex>::iterator;
 
 	grid_t& g = *dom.grid();
 	pos_t c, s;
@@ -110,7 +110,7 @@ void ScaleDomain(TDomain& dom, ISelector& sel, const vector3& center,
 				 const vector3& scale)
 
 {
-	typedef typename TDomain::position_type pos_t;
+	using pos_t = typename TDomain::position_type;
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 
 	pos_t c, s;
@@ -138,7 +138,7 @@ void ScaleDomainSquaredWeighting(TDomain& dom, ISelector& sel, const vector3& ce
 				 const vector3& scale)
 
 {
-	typedef typename TDomain::position_type pos_t;
+	using pos_t = typename TDomain::position_type;
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 
 	pos_t c, s;
@@ -176,7 +176,7 @@ void ScaleDomainWeighting(TDomain& dom, ISelector& sel, const vector3& center,
 				 const vector3& scale)
 
 {
-	typedef typename TDomain::position_type pos_t;
+	using pos_t = typename TDomain::position_type;
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 
 	pos_t c, s;
@@ -214,7 +214,7 @@ void ScaleDomainSqrtWeighting(TDomain& dom, ISelector& sel, const vector3& cente
 				 const vector3& scale)
 
 {
-	typedef typename TDomain::position_type pos_t;
+	using pos_t = typename TDomain::position_type;
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 
 	pos_t c, s;
@@ -277,7 +277,7 @@ struct Functionality
 template <typename TDomain>
 static void Domain(Registry& reg, string grp)
 {
-	typedef TDomain 							domain_type;
+	using domain_type = TDomain;
 
 	reg.add_function("TranslateDomain", &TranslateDomain<domain_type>, grp, "", "dom#sel#offset");
 	reg.add_function("ScaleDomain",
@@ -303,7 +303,7 @@ static void Domain(Registry& reg, string grp)
 void RegisterBridge_Transform(Registry& reg, string grp)
 {
 	grp.append("/Transform");
-	typedef Transform::Functionality Functionality;
+	using Functionality = Transform::Functionality;
 
 	try{
 		RegisterDomainDependent<Functionality>(reg, grp);

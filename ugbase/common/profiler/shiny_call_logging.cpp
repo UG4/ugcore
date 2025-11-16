@@ -72,7 +72,7 @@ void ShinyCallLoggingEnd()
 	Shiny::GetTicks(&tnow);
 
 	if(N == 0)
-		profileCalls.push_back(ProfileCall(NULL, tnow));
+		profileCalls.push_back(ProfileCall(nullptr, tnow));
 	else
 		if( CheckEnoughTimePassedToNow(callsOnHold[N-1], tnow))
 	{
@@ -80,7 +80,7 @@ void ShinyCallLoggingEnd()
 			profileCalls.push_back(callsOnHold[i]);
 		callsOnHold.clear();
 
-		profileCalls.push_back(ProfileCall(NULL, tnow));
+		profileCalls.push_back(ProfileCall(nullptr, tnow));
 	}
 	else
 	{

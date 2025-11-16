@@ -33,6 +33,7 @@
 #ifndef __H__UG_mark_util_impl
 #define __H__UG_mark_util_impl
 
+#include "common/math/misc/math_constants.h"
 #include "lib_grid/algorithms/geom_obj_util/edge_util.h"
 namespace ug{
 
@@ -57,7 +58,7 @@ void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 	Face* f[2];
 	
 //	all dot-products between normals lower than minDot mark a crease.
-	number minDot = cos(angle * 3.14159265 / 180.f);
+	number minDot = cos(angle * M_PI / 180.f);
 	
 //	iterate through the edges
 	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
@@ -87,7 +88,7 @@ void MarkCorners(Grid& grid, ISubsetHandler& sh,
 				 int subsetIndex, number angle,
 				 TAPosition& aPos)
 {
-	typedef typename TAPosition::ValueType	vector_t;
+	using vector_t = typename TAPosition::ValueType;
 
 	if(!grid.has_vertex_attachment(aPos))
 		return;

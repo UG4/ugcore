@@ -64,9 +64,9 @@ template <typename TDomain, typename TAlgebra, typename TLinIt, typename = void>
 class ConstrainedLinearIterator : public TLinIt
 {
 	public:
-		typedef GridFunction<TDomain, TAlgebra> gf_type;
-		typedef typename TAlgebra::vector_type vector_type;
-		typedef TLinIt base_type;
+		using gf_type = GridFunction<TDomain, TAlgebra>;
+		using vector_type = typename TAlgebra::vector_type;
+		using base_type = TLinIt;
 
 		using TLinIt::init;
 

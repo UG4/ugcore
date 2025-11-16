@@ -437,7 +437,7 @@ static int f_write (lua_State *L) {
 
 
 static int f_seek (lua_State *L) {
-  static const int mode[] = {SEEK_SET, SEEK_CUR, SEEK_END};
+  static constexpr int mode[] = {SEEK_SET, SEEK_CUR, SEEK_END};
   static const char *const modenames[] = {"set", "cur", "end", NULL};
   FILE *f = tofile(L);
   int op = luaL_checkoption(L, 2, "cur", modenames);

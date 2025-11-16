@@ -53,7 +53,7 @@ class NedelecLDS
 {
 	protected:
 	///	dimension of reference element
-		static const int refDim = TRefElem::dim;
+		static constexpr int refDim = TRefElem::dim;
 
 	public:
 	///	constructor
@@ -127,28 +127,28 @@ class NedelecLSFS<ReferenceTriangle>
 {
 	public:
 	///	Reference Element type
-		typedef ReferenceTriangle reference_element_type;
+		using reference_element_type = ReferenceTriangle;
 
 	///	Order of Shape functions
-		static const size_t order = 1;
+		static constexpr size_t order = 1;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
+		static constexpr int dim = reference_element_type::dim;
 
 	private:
 	///	Base class
-		typedef BaseLSFS<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> > base_type;
+	using base_type = BaseLSFS<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> >;
 
 	public:
 	///	Shape type
-		typedef base_type::shape_type shape_type;
+	using shape_type = base_type::shape_type;
 
 	///	Gradient type
-		typedef base_type::grad_type grad_type;
+	using grad_type = base_type::grad_type;
 
 	protected:
 	///	number of shapes
-		static const size_t nsh = reference_element_type::numEdges;
+		static constexpr size_t nsh = reference_element_type::numEdges;
 
 	public:
 	///	Constructor
@@ -207,28 +207,28 @@ class NedelecLSFS<ReferenceTetrahedron>
 {
 	public:
 	///	Reference Element type
-		typedef ReferenceTetrahedron reference_element_type;
+	using reference_element_type = ReferenceTetrahedron;
 
 	///	Order of Shape functions
-		static const size_t order = 1;
+		static constexpr size_t order = 1;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
+		static constexpr int dim = reference_element_type::dim;
 
 	private:
 	///	Base class
-		typedef BaseLSFS<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> > base_type;
+	using base_type = BaseLSFS<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> >;
 
 	public:
 	///	Shape type
-		typedef base_type::shape_type shape_type;
+	using shape_type = base_type::shape_type;
 
 	///	Gradient type
-		typedef base_type::grad_type grad_type;
+	using grad_type = base_type::grad_type;
 
 	protected:
 	///	number of shapes
-		static const size_t nsh = reference_element_type::numEdges;
+		static constexpr size_t nsh = reference_element_type::numEdges;
 
 	public:
 	///	Constructor

@@ -50,7 +50,7 @@ template <class TElem, class TAAPos>
 AABox<typename TAAPos::ValueType>
 CalculateBoundingBox (TElem* e, TAAPos aaPos)
 {
-	typedef AABox<typename TAAPos::ValueType> box_t;
+	using box_t = AABox<typename TAAPos::ValueType>;
 	typename TElem::ConstVertexArray vrts = e->vertices();
 	box_t box(aaPos[vrts[0]], aaPos[vrts[0]]);
 	for(size_t i = 1; i < e->num_vertices(); ++i){

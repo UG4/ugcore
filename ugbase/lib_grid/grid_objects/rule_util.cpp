@@ -70,7 +70,7 @@ int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
 		UG_LOG("DEBUG: RecursiveRefine called on element with " << numVrts << " vertices.\n");
 		UG_LOG("       Edge mark pattern: ");
 		for(int i = 0; i < numEdges; ++i){
-			cout << " " << newEdgeVrts[i] != NULL;
+			cout << " " << newEdgeVrts[i] != nullptr;
 		}
 		cout << endl;
 	#endif

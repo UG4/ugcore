@@ -251,7 +251,7 @@ template<typename TArray>
 class StdArrayCommunicationScheme : public CommunicationScheme<StdArrayCommunicationScheme<TArray>,
 	typename TArray::value_type >
 {
-	typedef typename TArray::value_type value_type;
+	using value_type = typename TArray::value_type ;
 public:
 	StdArrayCommunicationScheme(TArray &t) : m_arr(t)
 	{

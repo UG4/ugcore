@@ -80,21 +80,21 @@ class ILinearOperatorInverse : public ILinearIterator<X,Y>
 {
 	public:
 	///	Domain space
-		typedef X domain_function_type;
+		using domain_function_type = X;
 
 	///	Range space
-		typedef Y codomain_function_type;
+		using codomain_function_type = Y;
 
 	public:
 	///	constructor setting convergence check to (100, 1e-12, 1e-12, true)
 		ILinearOperatorInverse()
-			: m_spLinearOperator(NULL),
+			: m_spLinearOperator(nullptr),
 			  m_spConvCheck(new StdConvCheck<X>(100, 1e-12, 1e-12, true))
 		{}
 
 	///	Default constructor
 		ILinearOperatorInverse(SmartPtr<IConvergenceCheck<X> > spConvCheck)
-			: m_spLinearOperator(NULL),
+			: m_spLinearOperator(nullptr),
 			  m_spConvCheck(spConvCheck)
 		{}
 
@@ -195,7 +195,7 @@ class ILinearOperatorInverse : public ILinearIterator<X,Y>
 		virtual SmartPtr<ILinearIterator<X,Y> > clone()
 		{
 			UG_THROW("No cloning implemented.");
-			return SPNULL;
+			return nullptr;
 		}
 
 	///	returns the convergence check

@@ -64,7 +64,7 @@ namespace ug{
 namespace bridge{
 
 int iOtherCompletitionsLength;
-const char **pOtherCompletitions=NULL;
+const char **pOtherCompletitions=nullptr;
 
 
 void print(const std::string& s)
@@ -120,7 +120,7 @@ static size_t GetNamespaceCompletitions(char *buf, int len, std::vector<string> 
 		{
 			const char *name = lua_tostring(L, -2);
 			if(strncmp(snip, name, sniplen) == 0)
-				matches.push_back(name);
+				matches.emplace_back(name);
 
 			lua_pop(L, 1);
 		}
@@ -176,26 +176,26 @@ static size_t GetMemberFunctionCompletitions(char *buf, int len, std::vector<str
 	name.append(p, snip-p-1);
 
 	const std::vector<const char*> *names = GetClassNames(L, name.c_str());
-	if(names == NULL) return 0;
+	if(names == nullptr) return 0;
 
 	// now we have the class names of the lua object
 	for(size_t i=0; i < names->size(); ++i)
 	{
 		const IExportedClass *c = reg.get_class((*names)[i]);
-		if(c == NULL) continue;
+		if(c == nullptr) continue;
 
 		// classname found, now add matching completions
 		for(size_t k=0; k<c->num_methods(); ++k)
 		{
 			const char *name = c->get_method(k).name().c_str();
 			if(strncmp(snip, name, sniplen) == 0)
-				matches.push_back(name);
+				matches.emplace_back(name);
 		}
 		for(size_t k=0; k<c->num_const_methods(); ++k)
 		{
 			const char *name = c->get_const_method(k).name().c_str();
 			if(strncmp(snip, name, sniplen) == 0)
-				matches.push_back(name);
+				matches.emplace_back(name);
 		}
 	}
 
@@ -293,19 +293,19 @@ static bool GetMemberFunctionInfo(char *buf, int len)
 	name.append(p, psnip-p-1);
 
 	const std::vector<const char*> *names = GetClassNames(L, name.c_str());
-	if(names == NULL) return 0;
+	if(names == nullptr) return false;
 
 	bool bFound = false;
 	// now we have the class names of the lua object
 	for(size_t i=0; i < names->size(); ++i)
 	{
 		const IExportedClass *c = reg.get_class((*names)[i]);
-		if(c == NULL) continue;
+		if(c == nullptr) continue;
 
 		// classname found, now add matching completions
 		for(size_t k=0; k<c->num_methods(); ++k)
 		{
-			if(snip.compare(c->get_method(k).name()) == 0)
+			if(snip == c->get_method(k).name())
 			{
 				printf("\n");
 				print(FunctionInfo(c->get_method(k), false, (*names)[i]));
@@ -314,7 +314,7 @@ static bool GetMemberFunctionInfo(char *buf, int len)
 		}
 		for(size_t k=0; k<c->num_const_methods(); ++k)
 		{
-			if(snip.compare(c->get_const_method(k).name()) == 0)
+			if(snip == c->get_const_method(k).name())
 			{
 				printf("\n");
 				print(FunctionInfo(c->get_method(k), false, (*names)[i]));
@@ -363,11 +363,11 @@ static size_t GetGlobalsCompletitions(char *buf, int len, std::vector<string> &m
 	for(int i=0; i<G(L)->strt.size; i++)
 	{
 		GCObject *obj;
-		for (obj = G(L)->strt.hash[i]; obj != NULL; obj = obj->gch.next)
+		for (obj = G(L)->strt.hash[i]; obj != nullptr; obj = obj->gch.next)
 		{
 			// get the string
 			TString *ts = rawgco2ts(obj);
-			if(ts == NULL) continue;
+			if(ts == nullptr) continue;
 
 			const char *luastr = getstr(ts);
 			// check is of a global variable
@@ -380,9 +380,9 @@ static size_t GetGlobalsCompletitions(char *buf, int len, std::vector<string> &m
 			lua_pop(L, 1); // remove global from stack
 
 			// it is a global variable, now try matching
-			if(luastr != NULL && strchr(luastr, ' ') == NULL
+			if(luastr != nullptr && strchr(luastr, ' ') == nullptr
 					&& strncmp(luastr, snip, sniplen) == 0)
-				matches.push_back(luastr);
+				matches.emplace_back(luastr);
 
 		}
 	}
@@ -396,7 +396,7 @@ static size_t GetGlobalsCompletitions(char *buf, int len, std::vector<string> &m
 	{
 		const char* luastr = lua_tostring(L,-2);
 
-		if ((luastr) && (strchr(luastr, ' ') == NULL) &&
+		if ((luastr) && (strchr(luastr, ' ') == nullptr) &&
 			strncmp(luastr, snip, sniplen) == 0)
 		{
 			 // std::cerr << "Matches global: " << luastr << std::endl;
@@ -465,12 +465,12 @@ size_t GetPathCompletitions(char *buf, int len, std::vector<string> &matches, si
 
 	// first we get the word left of the cursor to be completed.
 	// it can be a string or a path
-	char *lastSlash = NULL;
+	char *lastSlash = nullptr;
 	while(p >= buf &&
 		(isalnum(*p) || *p == '_'
 		|| *p == '/' ||  *p == '.' || *p == '\\' || *p == '-' )) // all?
 	{
-		if((*p == '/' || *p == '\\') && lastSlash == NULL)
+		if((*p == '/' || *p == '\\') && lastSlash == nullptr)
 			lastSlash=p;
 		p--;
 	}
@@ -504,7 +504,7 @@ size_t GetPathCompletitions(char *buf, int len, std::vector<string> &matches, si
 	d = opendir(dirname.c_str());
 	if (d)
 	{
-		while ((dir = readdir(d)) != NULL)
+		while ((dir = readdir(d)) != nullptr)
 			if(strncmp(dir->d_name, p, sniplen) == 0)
 			{
 				string filename(dirname);
@@ -520,7 +520,7 @@ size_t GetPathCompletitions(char *buf, int len, std::vector<string> &matches, si
 					matches.push_back(tmp);
 				}
 				else if(S_ISREG(stat_struct.st_mode))
-					matches.push_back(dir->d_name);
+					matches.emplace_back(dir->d_name);
 			}
 		closedir(d);
 	}
@@ -559,7 +559,7 @@ static size_t GetOtherCompletitions(char *buf, int len, std::vector<string> &mat
 		for(int i=0; i<iOtherCompletitionsLength; i++)
 		{
 			if(strncmp(pOtherCompletitions[i], snip, sniplen) == 0)
-				matches.push_back(pOtherCompletitions[i]);
+				matches.emplace_back(pOtherCompletitions[i]);
 		}
 
 	return matches.size() - matchesSizeBefore;
@@ -575,7 +575,7 @@ static size_t GetOtherCompletitions(char *buf, int len, std::vector<string> &mat
   * \param buf buffer from linenoise to complete
   * \param len length of the buf
   * \param buflen maximal length of the buffer buf
-  * \param iPrintCompletitionList number of times \<tab\> has been pushed, so we can display next 5 matches each time \<tab\> has been pushed.
+  * \param iPrintCompletionList number of times \<tab\> has been pushed, so we can display next 5 matches each time \<tab\> has been pushed.
  */
 int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 {
@@ -593,7 +593,7 @@ int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 		&& GetClassesCompletitions(buf, len, matches, sniplen, iPrintCompletionList)==0)
 		{ }
 
-	if(matches.size() == 0)
+	if(matches.empty())
 		return len; // no match
 	else if(matches.size() == 1)
 	{

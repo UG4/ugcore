@@ -105,19 +105,19 @@ class UG_API GridObserver
 	 *  and obj are pseudonyms for the concrete type).*/
 	/// \{
 		virtual void vertex_created(Grid* grid, Vertex* vrt,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false)			{}
 
 		virtual void edge_created(Grid* grid, Edge* e,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false)			{}
 
 		virtual void face_created(Grid* grid, Face* f,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false)			{}
 
 		virtual void volume_created(Grid* grid, Volume* vol,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false)			{}
 	///	\}
 
@@ -127,7 +127,7 @@ class UG_API GridObserver
 	/**	Erase callbacks are called in reverse order in which the GridObservers
 	 * 	were registered at the given grid.
 	 *
-	 * 	if replacedBy != NULL the erased object is only replaced by another
+	 * 	if replacedBy != nullptr the erased object is only replaced by another
 	 *  grid object of the same base type. This usually happens when constraining
 	 *  objects are replaced by regular objects in refinements. (E.g. a constraining
 	 *  edge by become a regular Edge; note that both objects are of type
@@ -135,16 +135,16 @@ class UG_API GridObserver
 	 *
 	 * \{ */
 		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
-										 Vertex* replacedBy = NULL)	{}
+										 Vertex* replacedBy = nullptr)	{}
 
 		virtual void edge_to_be_erased(Grid* grid, Edge* e,
-										 Edge* replacedBy = NULL)	{}
+										 Edge* replacedBy = nullptr)	{}
 
 		virtual void face_to_be_erased(Grid* grid, Face* f,
-										 Face* replacedBy = NULL)	{}
+										 Face* replacedBy = nullptr)	{}
 
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
-										 Volume* replacedBy = NULL)	{}
+										 Volume* replacedBy = nullptr)	{}
 
 	/**	\}	*/
 

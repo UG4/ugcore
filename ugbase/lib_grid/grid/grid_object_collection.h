@@ -98,8 +98,8 @@ class UG_API GridObjectCollection
 	///	The traits class holds some important types for each element-type
 		template <class TElem>
 		struct traits{
-			typedef typename geometry_traits<TElem>::iterator		iterator;
-			typedef typename geometry_traits<TElem>::const_iterator	const_iterator;
+			using iterator = typename geometry_traits<TElem>::iterator;
+			using const_iterator = typename geometry_traits<TElem>::const_iterator;
 		};
 
 	///	initializes the instance with an estimate of the number of levels.
@@ -217,9 +217,9 @@ class UG_API GridObjectCollection
 			ElementStorage<Face>::SectionContainer*			faceContainer;
 			ElementStorage<Volume>::SectionContainer*		volContainer;
 		};
-		
-		typedef std::vector<ContainerCollection> ContainerVec;
-		//typedef std::vector<GridObjectCollection> GOCVec;
+
+		using ContainerVec = std::vector<ContainerCollection>;
+		//using GOCVec = std::vector<GridObjectCollection>;
 
 	protected:
 		ContainerVec	m_levels;

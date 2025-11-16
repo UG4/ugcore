@@ -116,7 +116,7 @@ jobjectArray stringArrayC2J(JNIEnv *env,
 jobjectArray stringArrayC2J(JNIEnv *env,
 		const std::vector<const char*>* strings) {
 
-	if (strings != NULL && !strings->empty()) {
+	if (strings != nullptr && !strings->empty()) {
 		// it is safe to give a pointer to the first vector element as
 		// std::vector implementation uses contiguous memory
 		return stringArrayC2J(env, &(*strings)[0], strings->size());
@@ -170,7 +170,7 @@ const std::vector<const ug::bridge::IExportedClass*> getParentClasses(
 		const ug::bridge::IExportedClass* baseCls =
 				ug::vrl::invocation::getExportedClassPtrByName(reg,
 						(*clazz->class_names())[i]);
-		if (baseCls != NULL) {
+		if (baseCls != nullptr) {
 			result.push_back(baseCls);
 		}
 	}
@@ -240,7 +240,7 @@ void* jObject2Pointer(JNIEnv *env, jobject obj) {
 
 	if (result == 0) {
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-		env->ThrowNew(Exception, "Pointer is NULL!");
+		env->ThrowNew(Exception, "Pointer is nullptr!");
 	}
 
 	return (void*) result;
@@ -265,7 +265,7 @@ SmartPtr<void> jObject2SmartPointer(JNIEnv *env, jobject obj) {
 
 	jmethodID getSmartPointer = env->GetMethodID(argClass, "getSmartPointer", "()[B");
 	jbyteArray mem = (jbyteArray) env->CallObjectMethod(obj, getSmartPointer);
-	jbyte* memPtr = env->GetByteArrayElements(mem, NULL);
+	jbyte* memPtr = env->GetByteArrayElements(mem, nullptr);
 
 	// temporarily it is safe to use the memory provided by the Java byte array
 	SmartPtr<void>* smartPtr = reinterpret_cast<SmartPtr<void>*>((void*) memPtr);
@@ -292,7 +292,7 @@ ConstSmartPtr<void> jObject2ConstSmartPointer(JNIEnv *env, jobject obj) {
 				"getSmartPointer", "()[B");
 		jbyteArray mem = (jbyteArray) env->CallObjectMethod(obj,
 				getSmartPointer);
-		jbyte* memPtr = env->GetByteArrayElements(mem, NULL);
+		jbyte* memPtr = env->GetByteArrayElements(mem, nullptr);
 
 		ConstSmartPtr<void>* smartPtr =
 				reinterpret_cast<ConstSmartPtr<void>*>((void*) memPtr);
@@ -316,7 +316,7 @@ void invalidateJSmartPointer(JNIEnv *env, jobject obj) {
 	jmethodID getSmartPointer = env->GetMethodID(argClass, "getSmartPointer",
 			"()[B");
 	jbyteArray mem = (jbyteArray) env->CallObjectMethod(obj, getSmartPointer);
-	jbyte* memPtr = env->GetByteArrayElements(mem, NULL);
+	jbyte* memPtr = env->GetByteArrayElements(mem, nullptr);
 
 	// It is important to call the invalidate method directly on the
 	// smart-pointer instance that has been retrieved from the java object.
@@ -336,7 +336,7 @@ void invalidateJConstSmartPointer(JNIEnv *env, jobject obj) {
 	jmethodID getSmartPointer = env->GetMethodID(argClass, "getSmartPointer",
 			"()[B");
 	jbyteArray mem = (jbyteArray) env->CallObjectMethod(obj, getSmartPointer);
-	jbyte* memPtr = env->GetByteArrayElements(mem, NULL);
+	jbyte* memPtr = env->GetByteArrayElements(mem, nullptr);
 
 	// It is important to call the invalidate method directly on the
 	// smart-pointer instance that has been retrieved from the java object.
@@ -351,8 +351,8 @@ void invalidateJConstSmartPointer(JNIEnv *env, jobject obj) {
 
 jobject pointer2JObject(JNIEnv *env, void* value) {
 
-	if (value == NULL) {
-		return JNULL; // exception occured
+	if (value == nullptr) {
+		return Jnullptr; // exception occured
 	}
 
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Pointer");
@@ -362,8 +362,8 @@ jobject pointer2JObject(JNIEnv *env, void* value) {
 
 jobject constPointer2JObject(JNIEnv *env, const void* value) {
 
-	if (value == NULL) {
-		return JNULL; // exception occured
+	if (value == nullptr) {
+		return Jnullptr; // exception occured
 	}
 
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Pointer");
@@ -375,10 +375,10 @@ jobject smartPointer2JObject(JNIEnv *env, SmartPtr<void> value) {
 
 	jsize size = sizeof(SmartPtr<void> );
 	jbyteArray mem = env->NewByteArray(size);
-	jbyte* memPtr = env->GetByteArrayElements(mem, NULL);
+	jbyte* memPtr = env->GetByteArrayElements(mem, nullptr);
 
-	if (memPtr == NULL) {
-		return JNULL; // exception occured
+	if (memPtr == nullptr) {
+		return Jnullptr; // exception occured
 	}
 
 	new (memPtr) SmartPtr<void>(value);
@@ -398,10 +398,10 @@ jobject constSmartPointer2JObject(JNIEnv *env, ConstSmartPtr<void> value) {
 
 	jsize size = sizeof(ConstSmartPtr<void> );
 	jbyteArray mem = env->NewByteArray(size);
-	jbyte* memPtr = env->GetByteArrayElements(mem, NULL);
+	jbyte* memPtr = env->GetByteArrayElements(mem, nullptr);
 
-	if (memPtr == NULL) {
-		return JNULL; // exception occured
+	if (memPtr == nullptr) {
+		return Jnullptr; // exception occured
 	}
 
 	new (memPtr) ConstSmartPtr<void>(value);
@@ -552,7 +552,7 @@ std::string getParamClassName(JNIEnv *env, jobject obj) {
 		}
 		jobject resultObj = env->CallObjectMethod(obj, classNameMethodID);
 
-		if (resultObj == NULL) {
+		if (resultObj == nullptr) {
 			return "";
 		}
 
@@ -685,7 +685,7 @@ TypeAndArray paramClass2ParamType(JNIEnv *env, jobject obj) {
 	bool isArray = isJObjectAnArray(env, obj);
 	typeAndArray.isArray = isArray;
 
-	jobject sub_obj = NULL;
+	jobject sub_obj = nullptr;
 
 	if (isArray) {
 		// if array is not empty, get first elem to find out type
@@ -828,9 +828,9 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		jobject param = env->GetObjectArrayElement(params, i);
 
 		// we don't allow null values
-		if (param == NULL) {
+		if (param == nullptr) {
 			std::stringstream ss;
-			ss << "Value " << i << " == NULL!";
+			ss << "Value " << i << " == nullptr!";
 
 			ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 		}
@@ -903,9 +903,9 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 				ug::vrl::invocation::getClassNodePtrByName(reg,
 						getParamClassName(env, param));
 
-		if (classNameNode != NULL) {
+		if (classNameNode != nullptr) {
 
-			if (paramStack.class_name(i) != NULL) {
+			if (paramStack.class_name(i) != nullptr) {
 
 				if (!ug::bridge::ClassNameTreeContains(*classNameNode,
 						paramStack.class_name(i))) {
@@ -972,10 +972,10 @@ void jobjectArray2ParamStack
 		jobject value = env->GetObjectArrayElement(array, i);
 
 		// we do not allow null values
-		if (value == NULL)
+		if (value == nullptr)
 		{
 			std::stringstream ss;
-			ss << "Value " << i << " == NULL!";
+			ss << "Value " << i << " == nullptr!";
 
 			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 			env->ThrowNew(Exception, ss.str().c_str());
@@ -1447,8 +1447,8 @@ jobject boolVector2JObject(JNIEnv* env, const std::vector<bool>& bv)
 	size_t size = bv.size();
 	jclass cls = env->FindClass("Ljava/lang/Boolean;");
 
-	// allocate array of Booleans (constructing entries using NULL)
-	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) NULL);
+	// allocate array of Booleans (constructing entries using nullptr)
+	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) nullptr);
 
 	for (size_t i = 0; i < size; ++i)
 		env->SetObjectArrayElement(array, (jsize) i, boolean2JObject(env, (jboolean) bv[i]));
@@ -1462,8 +1462,8 @@ jobject intVector2JObject(JNIEnv* env, const std::vector<int>& iv)
 	size_t size = iv.size();
 	jclass cls = env->FindClass("Ljava/lang/Integer;");
 
-	// allocate array of Integers (constructing entries using NULL)
-	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) NULL);
+	// allocate array of Integers (constructing entries using nullptr)
+	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) nullptr);
 
 	for (size_t i = 0; i < size; ++i)
 		env->SetObjectArrayElement(array, (jsize) i, int2JObject(env, (jint) iv[i]));
@@ -1476,8 +1476,8 @@ jobject sizetVector2JObject(JNIEnv* env, const std::vector<size_t>& iv)
 	size_t size = iv.size();
 	jclass cls = env->FindClass("Ljava/lang/Integer;");
 
-	// allocate array of Integers (constructing entries using NULL)
-	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) NULL);
+	// allocate array of Integers (constructing entries using nullptr)
+	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) nullptr);
 
 	for (size_t i = 0; i < size; ++i)
 		env->SetObjectArrayElement(array, (jsize) i, int2JObject(env, (jint) iv[i]));
@@ -1490,8 +1490,8 @@ jobject numberVector2JObject(JNIEnv* env, const std::vector<number>& nv)
 	size_t size = nv.size();
 	jclass cls = env->FindClass("Ljava/lang/Double;");
 
-	// allocate array of Doubles (constructing entries using NULL)
-	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) NULL);
+	// allocate array of Doubles (constructing entries using nullptr)
+	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) nullptr);
 
 	for (size_t i = 0; i < size; ++i)
 		env->SetObjectArrayElement(array, (jsize) i, double2JObject(env, (jdouble) nv[i]));
@@ -1504,8 +1504,8 @@ jobject cStringVector2JObject(JNIEnv* env, const std::vector<const char*>& sv)
 	size_t size = sv.size();
 	jclass cls = env->FindClass("Ljava/lang/String;");
 
-	// allocate array of Strings (constructing entries using NULL)
-	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) NULL);
+	// allocate array of Strings (constructing entries using nullptr)
+	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) nullptr);
 
 	for (size_t i = 0; i < size; ++i)
 		env->SetObjectArrayElement(array, (jsize) i, string2JObject(env, sv[i]));
@@ -1518,8 +1518,8 @@ jobject stdStringVector2JObject(JNIEnv* env, const std::vector<std::string>& sv)
 	size_t size = sv.size();
 	jclass cls = env->FindClass("Ljava/lang/String;");
 
-	// allocate array of Strings (constructing entries using NULL)
-	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) NULL);
+	// allocate array of Strings (constructing entries using nullptr)
+	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) nullptr);
 
 	for (size_t i = 0; i < size; ++i)
 		env->SetObjectArrayElement(array, (jsize) i, string2JObject(env, sv[i].c_str()));
@@ -1532,8 +1532,8 @@ jobject ptrVector2JObject(JNIEnv* env, const std::vector<void*>& pv)
 	size_t size = pv.size();
 	jclass cls = env->FindClass("Ledu/gcsc/vrl/ug/Pointer;");
 
-	// allocate array of Pointers (constructing entries using NULL)
-	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) NULL);
+	// allocate array of Pointers (constructing entries using nullptr)
+	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) nullptr);
 
 	for (size_t i = 0; i < size; ++i)
 		env->SetObjectArrayElement(array, (jsize) i, pointer2JObject(env, pv[i]));
@@ -1546,8 +1546,8 @@ jobject constPtrVector2JObject(JNIEnv* env, const std::vector<const void*>& pv)
 	size_t size = pv.size();
 	jclass cls = env->FindClass("Ledu/gcsc/vrl/ug/Pointer;");
 
-	// allocate array of Pointers (constructing entries using NULL)
-	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) NULL);
+	// allocate array of Pointers (constructing entries using nullptr)
+	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) nullptr);
 
 	for (size_t i = 0; i < size; ++i)
 		env->SetObjectArrayElement(array, (jsize) i, constPointer2JObject(env, pv[i]));
@@ -1560,8 +1560,8 @@ jobject smartPtrVector2JObject(JNIEnv* env, const std::vector<SmartPtr<void> >& 
 	size_t size = pv.size();
 	jclass cls = env->FindClass("Ledu/gcsc/vrl/ug/SmartPointer;");
 
-	// allocate array of SmartPointers (constructing entries using NULL)
-	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) NULL);
+	// allocate array of SmartPointers (constructing entries using nullptr)
+	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) nullptr);
 
 	for (size_t i = 0; i < size; ++i)
 		env->SetObjectArrayElement(array, (jsize) i, smartPointer2JObject(env, pv[i]));
@@ -1574,8 +1574,8 @@ jobject constSmartPtrVector2JObject(JNIEnv* env, const std::vector<ConstSmartPtr
 	size_t size = pv.size();
 	jclass cls = env->FindClass("Ledu/gcsc/vrl/ug/SmartPointer;");
 
-	// allocate array of SmartPointers (constructing entries using NULL)
-	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) NULL);
+	// allocate array of SmartPointers (constructing entries using nullptr)
+	jobjectArray array = env->NewObjectArray((jsize) size, cls, (jobject) nullptr);
 
 	for (size_t i = 0; i < size; ++i)
 		env->SetObjectArrayElement(array, (jsize) i, constSmartPointer2JObject(env, pv[i]));
@@ -2065,8 +2065,8 @@ jobjectArray classes2NativeClasses(JNIEnv *env,
 
 		for (size_t j = 0; j < eCls.class_names()->size(); j++) {
 
-			if (eCls.class_names()->at(j) == NULL) {
-				std::cerr << name << ", baseCls(" << j << ")==NULL"
+			if (eCls.class_names()->at(j) == nullptr) {
+				std::cerr << name << ", baseCls(" << j << ")==nullptr"
 						<< std::endl;
 				exit(1);
 			}
@@ -2133,7 +2133,7 @@ jobjectArray classGroups2NativeClassGroups(JNIEnv *env,
 		// instantiate from java we have to check that!
 		std::string defaultClassName = "";
 
-		if (clsGrp->get_default_class() != NULL) {
+		if (clsGrp->get_default_class() != nullptr) {
 			defaultClassName = clsGrp->get_default_class()->name();
 		}
 

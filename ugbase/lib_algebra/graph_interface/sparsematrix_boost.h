@@ -35,20 +35,20 @@ class SM_adjacency_iterator : public iterator_facade<
 	size_t, // <= reference
 	std::intmax_t // difference_type
 	 >{ //
-	typedef ug::SparseMatrix<T> M;
-	typedef typename M::const_row_iterator iter_t;
-	typedef iterator_facade<
-	SM_adjacency_iterator<T>,
-	typename ug::SparseMatrix<T>::const_row_iterator,
-	std::input_iterator_tag,
-	size_t, // <= reference
-	std::intmax_t // difference_type
-	 > base_class;
+	using M = ug::SparseMatrix<T>;
+	using iter_t = typename M::const_row_iterator;
+	using base_class = iterator_facade<
+		SM_adjacency_iterator<T>,
+		typename ug::SparseMatrix<T>::const_row_iterator,
+		std::input_iterator_tag,
+		size_t, // <= reference
+		std::intmax_t // difference_type
+	>;
 
 public:
-	typedef iter_t* value_type;
-	typedef intmax_t difference_type;
-	typedef size_t reference;
+	using value_type = iter_t*;
+	using difference_type = intmax_t;
+	using reference = size_t;
 
 public:
 	SM_adjacency_iterator() : base_class(), _base(nullptr), _end(nullptr){
@@ -210,18 +210,18 @@ class SM_out_edge_iterator : public iterator_facade<
 	std::intmax_t // difference_type
 	 >{ //
 public: // types
-	typedef iterator_facade<
-	SM_out_edge_iterator<T, out>,
-	SM_adjacency_iterator<T>,
-	std::input_iterator_tag,
-	SM_edge<T>, // <= reference
-	std::intmax_t // difference_type
-	 > base_class;
-	typedef ug::SparseMatrix<T> M;
-	typedef SM_adjacency_iterator<T> value_type;
-	typedef intmax_t difference_type;
-	typedef SM_edge<T> reference;
-	typedef SM_edge<T> edge_type;
+	using base_class = iterator_facade<
+		SM_out_edge_iterator<T, out>,
+		SM_adjacency_iterator<T>,
+		std::input_iterator_tag,
+		SM_edge<T>, // <= reference
+		std::intmax_t // difference_type
+	>;
+	using M = ug::SparseMatrix<T>;
+	using value_type = SM_adjacency_iterator<T>;
+	using difference_type = intmax_t;
+	using reference = SM_edge<T>;
+	using edge_type = SM_edge<T>;
 
 public: // construct
 	explicit SM_out_edge_iterator() : base_class() {
@@ -309,16 +309,16 @@ struct SM_traversal_tag
     : adjacency_graph_tag, bidirectional_graph_tag, vertex_list_graph_tag {};
 
 template <class T> struct graph_traits<ug::SparseMatrix<T>>{
-	typedef int vertex_descriptor;
-	typedef SM_edge<T> edge_descriptor;
-	typedef directed_tag directed_category;
-	typedef disallow_parallel_edge_tag edge_parallel_category;
-	typedef SM_traversal_tag traversal_category;
-	typedef counting_iterator<size_t> vertex_iterator;
-	typedef SM_out_edge_iterator<T> out_edge_iterator;
-	typedef SM_adjacency_iterator<T> adjacency_iterator;
-	typedef int degree_size_type;
-	typedef int vertices_size_type;
+	using vertex_descriptor = int;
+	using edge_descriptor = SM_edge<T>;
+	using directed_category = directed_tag;
+	using edge_parallel_category = disallow_parallel_edge_tag;
+	using traversal_category = SM_traversal_tag;
+	using vertex_iterator = counting_iterator<size_t>;
+	using out_edge_iterator = SM_out_edge_iterator<T>;
+	using adjacency_iterator = SM_adjacency_iterator<T>;
+	using degree_size_type = int;
+	using vertices_size_type = int;
 };
 
 template<class T>
@@ -327,7 +327,7 @@ std::pair<typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator,
 inline adjacent_vertices(size_t v, ug::SparseMatrix<T> const& M)
 {
 	assert(v<M.num_rows());
-	typedef typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator a;
+	using a = typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator;
 
 	typename ug::SparseMatrix<T>::const_row_iterator b(M.begin_row(v));
 	typename ug::SparseMatrix<T>::const_row_iterator e(M.end_row(v));
@@ -340,8 +340,8 @@ inline std::pair<SM_out_edge_iterator<T>, SM_out_edge_iterator<T>>
 					out_edges(int v, ug::SparseMatrix<T> const& g)
 {
 	assert(size_t(v)<g.num_rows());
-	typedef SM_out_edge_iterator<T> Iter;
-   auto a = adjacent_vertices(v, g);
+	using Iter = SM_out_edge_iterator<T>;
+	auto a = adjacent_vertices(v, g);
 	return std::make_pair(Iter(a.first, v), Iter(a.second, v));
 }
 
@@ -349,12 +349,12 @@ template<class T>
 class sparse_matrix_index_map
     : public put_get_helper<size_t, sparse_matrix_index_map<T> > { //
 public:
-	typedef size_t vertex_index_type;
-	typedef size_t vertex_descriptor;
-	typedef readable_property_map_tag category;
-	typedef vertex_index_type value_type;
-	typedef vertex_index_type reference;
-	typedef vertex_descriptor key_type;
+	using vertex_index_type = size_t;
+	using vertex_descriptor = size_t;
+	using category = readable_property_map_tag;
+	using value_type = vertex_index_type;
+	using reference = vertex_index_type;
+	using key_type = vertex_descriptor;
 
 	sparse_matrix_index_map(sparse_matrix_index_map const& p) {
 	}
@@ -374,8 +374,8 @@ public:
 
 template<class T>
 struct property_map<ug::SparseMatrix<T>, vertex_index_t>{
-	typedef sparse_matrix_index_map<T> type;
-	typedef type const_type;
+	using type = sparse_matrix_index_map<T>;
+	using const_type = type;
 };
 
 template<class T>
@@ -423,12 +423,12 @@ template<class T, class M=ug::SparseMatrix<T>>
 class SM_edge_weight_map :
 	public put_get_helper< T /*algebraic connection?*/, SM_edge_weight_map<T> > { //
 public:
-	typedef T edge_weight_type;
-	typedef int vertex_descriptor;
-	typedef readable_property_map_tag category;
-	typedef edge_weight_type value_type;
-	typedef T& reference;
-	typedef vertex_descriptor key_type;
+	using edge_weight_type = T;
+	using vertex_descriptor = int;
+	using category = readable_property_map_tag;
+	using value_type = edge_weight_type;
+	using reference = T&;
+	using key_type = vertex_descriptor;
 
 	SM_edge_weight_map(SM_edge_weight_map const& p) : _g(p._g) { untested();
 	}
@@ -453,9 +453,9 @@ private:
 // g++ 'enumeral_type' in template unification not implemented workaround
 template<class T, class Tag>
 struct property_map<ug::SparseMatrix<T>, Tag> {
-//	typedef typename gala_graph_property_map<Tag>::template bind_<T> map_gen;
-//	typedef typename map_gen::type type;
-//	typedef typename map_gen::const_type const_type;
+//	using map_gen = typename gala_graph_property_map<Tag>::template bind_<T>;
+//	using type = typename map_gen::type;
+//	using const_type = typename map_gen::const_type;
 };
 
 template<class T>
@@ -469,8 +469,7 @@ get(edge_weight_t, ug::SparseMatrix<T> const & g) {
 template<class T>
 inline typename property_map<ug::SparseMatrix<T>, edge_all_t>::type
 get(edge_all_t, ug::SparseMatrix<T> & g) { incomplete();
-	typedef typename property_map<ug::SparseMatrix<T>, edge_all_t>::type
-		pmap_type;
+	using pmap_type = typename property_map<ug::SparseMatrix<T>, edge_all_t>::type;
 	return pmap_type(&g);
 }
 #endif

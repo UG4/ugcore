@@ -43,22 +43,22 @@ class TruncatedMonotoneTransfer:
 {
 	public:
 	/// This type
-		typedef TruncatedMonotoneTransfer<TDomain, TAlgebra> this_type;
+		using this_type = TruncatedMonotoneTransfer<TDomain, TAlgebra>;
 
 	/// base type
-		typedef StdTransfer<TDomain, TAlgebra> base_type;
+		using base_type = StdTransfer<TDomain, TAlgebra>;
 
 	///	Type of Domain
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	///	Type of algebra
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Type of Vector
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Type of Matrix
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	public:
 	///	Constructor

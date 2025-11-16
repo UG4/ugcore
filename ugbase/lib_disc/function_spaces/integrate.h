@@ -65,7 +65,7 @@ template <typename TGridFunction>
 class ScalarGridFunctionData
 {
 public:
-	typedef typename TGridFunction::domain_type domain_type;
+	using domain_type = typename TGridFunction::domain_type;
 
 	ScalarGridFunctionData(TGridFunction& gridFct, size_t cmp)
 	: m_gridFct(gridFct), m_fct(cmp),
@@ -121,10 +121,10 @@ class IIntegrand
 {
 	public:
 	///	world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	data type
-		typedef TData data_type;
+		using data_type = TData;
 
 	///	returns the values of the integrand for a bunch of ips
 	/**
@@ -181,10 +181,10 @@ class StdIntegrand : public IIntegrand<TData, TWorldDim>
 {
 	public:
 	///	world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	data type
-		typedef TData data_type;
+	using data_type = TData;
 
 	/// \copydoc IIntegrand::values
 	/// \{
@@ -251,7 +251,7 @@ class StdIntegrand : public IIntegrand<TData, TWorldDim>
  * \param[in]		integrand	Integrand
  * \param[in]		quadOrder	order of quadrature rule
  * \param[in]		quadType
- * \param[in]		paaElemContribs	(optional). If != NULL, the method will store
+ * \param[in]		paaElemContribs	(optional). If != nullptr, the method will store
  *									the contribution of each element in the
  *									associated attachment entry.
  * \returns			value of the integral
@@ -264,7 +264,7 @@ number Integrate(TConstIterator iterBegin,
                  int quadOrder, std::string quadType,
                  Grid::AttachmentAccessor<
                  	typename domain_traits<dim>::grid_base_object, ANumber>
-                 	*paaElemContribs = NULL
+                 	*paaElemContribs = nullptr
                  )
 {
 	PROFILE_FUNC();
@@ -278,7 +278,7 @@ number Integrate(TConstIterator iterBegin,
 
 //	this is the base element type (e.g. Face). This is the type when the
 //	iterators above are dereferenciated.
-	typedef typename domain_traits<dim>::grid_base_object grid_base_object;
+	using grid_base_object = typename domain_traits<dim>::grid_base_object;
 
 //	get quad type
 	if(quadType.empty()) quadType = "best";
@@ -375,8 +375,8 @@ number IntegrateSubset(IIntegrand<number, TGridFunction::dim> &spIntegrand,
                        int si, int quadOrder, std::string quadType)
 {
 //	integrate elements of subset
-	typedef typename TGridFunction::template dim_traits<dim>::grid_base_object grid_base_object;
-	typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
+	using grid_base_object = typename TGridFunction::template dim_traits<dim>::grid_base_object;
+	using const_iterator = typename TGridFunction::template dim_traits<dim>::const_iterator;
 
 	spIntegrand.set_subset(si);
 	
@@ -396,11 +396,11 @@ number IntegrateSubsets(IIntegrand<number, TGridFunction::dim> &spIntegrand,
                         std::string quadType = std::string())
 {
 //	world dimensions
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 
 //	read subsets
 	SubsetGroup ssGrp(spGridFct.domain()->subset_handler());
-	if(subsets != NULL)
+	if(subsets != nullptr)
 	{
 		ssGrp.add(TokenizeString(subsets));
 		UG_COND_THROW(!SameDimensionsInAllSubsets(ssGrp), "IntegrateSubsets: Subsets '"<<subsets<<"' do not have same dimension."
@@ -468,10 +468,10 @@ class UserDataIntegrand
 {
 	public:
 	//	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
+		static constexpr int worldDim = TGridFunction::dim;
 
 	//	data type
-		typedef TData data_type;
+	using data_type = TData;
 
 	private:
 	//  data to integrate
@@ -496,7 +496,7 @@ class UserDataIntegrand
 	/// constructor
 		UserDataIntegrand(SmartPtr<UserData<TData, worldDim> > spData,
 							  number time)
-		: m_spData(spData), m_spGridFct(NULL), m_time(time)
+		: m_spData(spData), m_spGridFct(nullptr), m_time(time)
 		{
 			UG_COND_THROW(m_spData->requires_grid_fct(),
 						"UserDataIntegrand: Missing GridFunction, but data requires grid function.");
@@ -557,10 +557,10 @@ class UserDataIntegrandSq
 {
 	public:
 	//	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
+		static constexpr int worldDim = TGridFunction::dim;
 
 	//	data type
-		typedef TData data_type;
+	using data_type = TData;
 
 	private:
 	//  data to integrate
@@ -585,7 +585,7 @@ class UserDataIntegrandSq
 	/// constructor
 		UserDataIntegrandSq(SmartPtr<UserData<TData, worldDim> > spData,
 							  number time)
-		: m_spData(spData), m_pGridFct(NULL), m_time(time)
+		: m_spData(spData), m_pGridFct(nullptr), m_time(time)
 		{
 			if(m_spData->requires_grid_fct())
 				UG_THROW("UserDataIntegrand: Missing GridFunction, but "
@@ -609,7 +609,7 @@ class UserDataIntegrandSq
 		//	get local solution if needed
 			if(m_spData->requires_grid_fct())
 			{
-				UG_ASSERT(m_pGridFct!=NULL, "Error: Requires valid pointer!")
+				UG_ASSERT(m_pGridFct!=nullptr, "Error: Requires valid pointer!")
 			//	create storage
 				LocalIndices ind;
 				LocalVector u;
@@ -668,8 +668,8 @@ class UserDataDistIntegrandSq
 {
 	public:
 	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-		// typedef typename L2Integrand<TGridFunction>::weight_type weight_type;
+		static constexpr int worldDim = TGridFunction::dim;
+		// using weight_type = typename L2Integrand<TGridFunction>::weight_type;
 
 	protected:
 		ScalarGridFunctionData<TGridFunction> m_fineData;
@@ -746,7 +746,7 @@ class UserDataDistIntegrandSq
 			}
 
 		//	get corner coordinates
-			typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object TElem;
+			using TElem = typename TGridFunction::template dim_traits<elemDim>::grid_base_object;
 			std::vector<MathVector<worldDim> > vCornerCoarse;
 			CollectCornerCoordinates(vCornerCoarse, *static_cast<TElem*>(pCoarseElem), *m_coarseData.domain());
 
@@ -761,7 +761,7 @@ class UserDataDistIntegrandSq
 			map.global_to_local(&vCoarseLocIP[0], vGlobIP, numIP);
 
 		// element weights
-		/*	typedef typename weight_type::data_type ipdata_type;
+		/*  using ipdata_type = typename weight_type::data_type;
 			std::vector<ipdata_type> fineElemWeights(numIP, 1.0);
 			UG_ASSERT(m_spWeight.valid(), "L2DistIntegrand::evaluate requires valid weights! ");
 			(*m_spWeight)(&fineElemWeights[0], vFineGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);*/
@@ -877,7 +877,7 @@ number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr
 
 template <typename TGridFunction>
 number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,number time)
-{return Integral(spData, spGridFct, NULL, time, 1, "best");}
+{return Integral(spData, spGridFct, nullptr, time, 1, "best");}
 
 template <typename TGridFunction>
 number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,const char* subsets)
@@ -885,7 +885,7 @@ number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr
 
 template <typename TGridFunction>
 number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct)
-{return Integral(spData, spGridFct, NULL, 0.0, 1, "best");}
+{return Integral(spData, spGridFct, nullptr, 0.0, 1, "best");}
 
 ///////////////
 // const data
@@ -896,7 +896,7 @@ number Integral(number val, SmartPtr<TGridFunction> spGridFct,
                 const char* subsets,
                 number time, int quadOrder)
 {
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 	SmartPtr<UserData<number, dim> > sp =
 			make_sp(new ConstUserNumber<dim>(val));
 	return Integral(sp, spGridFct, subsets, time, quadOrder);
@@ -908,7 +908,7 @@ number Integral(number val, SmartPtr<TGridFunction> spGridFct,const char* subset
 
 template <typename TGridFunction>
 number Integral(number val, SmartPtr<TGridFunction> spGridFct,number time)
-{return Integral(val, spGridFct, NULL, time, 1);}
+{return Integral(val, spGridFct, nullptr, time, 1);}
 
 template <typename TGridFunction>
 number Integral(number val, SmartPtr<TGridFunction> spGridFct,const char* subsets)
@@ -916,7 +916,7 @@ number Integral(number val, SmartPtr<TGridFunction> spGridFct,const char* subset
 
 template <typename TGridFunction>
 number Integral(number val, SmartPtr<TGridFunction> spGridFct)
-{return Integral(val, spGridFct, NULL, 0.0, 1);}
+{return Integral(val, spGridFct, nullptr, 0.0, 1);}
 
 ///////////////
 // lua data
@@ -929,7 +929,7 @@ number Integral(const char* luaFct,
                 const char* subsets, number time,
                 int quadOrder, std::string quadType)
 {
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 	SmartPtr<UserData<number, dim> > sp =
 			LuaUserDataFactory<number, dim>::create(luaFct);
 	return Integral(sp, *spGridFct, subsets, time, quadOrder, quadType);
@@ -945,7 +945,7 @@ number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct,const char
 
 template <typename TGridFunction>
 number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct,number time)
-{return Integral(luaFct, spGridFct, NULL, time, 1, "best");}
+{return Integral(luaFct, spGridFct, nullptr, time, 1, "best");}
 
 template <typename TGridFunction>
 number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct,const char* subsets)
@@ -953,7 +953,7 @@ number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct,const char
 
 template <typename TGridFunction>
 number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct)
-{return Integral(luaFct, spGridFct, NULL, 0.0, 1, "best");}
+{return Integral(luaFct, spGridFct, nullptr, 0.0, 1, "best");}
 
 #endif
 
@@ -965,7 +965,7 @@ class MaximumDistIntegrand
 {
 	public:
 	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
+		static constexpr int worldDim = TGridFunction::dim;
 
 	protected:
 		ScalarGridFunctionData<TGridFunction> m_scalarData;
@@ -1073,7 +1073,7 @@ class L2ErrorIntegrand
 {
 	public:
 	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
+		static constexpr int worldDim = TGridFunction::dim;
 
 	private:
 		ScalarGridFunctionData<TGridFunction> m_scalarData;
@@ -1207,7 +1207,7 @@ template <typename TGridFunction>
 number L2Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
                SmartPtr<TGridFunction> spGridFct, const char* cmp,
                number time, int quadOrder)
-{ return L2Error(spExactSol, *spGridFct, cmp, time, quadOrder, NULL); }
+{ return L2Error(spExactSol, *spGridFct, cmp, time, quadOrder, nullptr); }
 
 
 
@@ -1228,7 +1228,7 @@ number L2Error(const char* ExactSol,
                SmartPtr<TGridFunction> spGridFct, const char* cmp,
                number time, int quadOrder)
 {
-	return L2Error(ExactSol, spGridFct, cmp, time, quadOrder, NULL);
+	return L2Error(ExactSol, spGridFct, cmp, time, quadOrder, nullptr);
 }
 #endif //UG_FOR_LUA
 
@@ -1262,7 +1262,7 @@ class H1ErrorIntegrand
 {
 	public:
 	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
+		static constexpr int worldDim = TGridFunction::dim;
 
 	private:
 	/// grid function
@@ -1420,7 +1420,7 @@ number H1Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
 			   SmartPtr<TGridFunction> spGridFct, const char* cmp,
 			   number time, int quadOrder)
 {
-	return H1Error(spExactSol, spExactGrad, spGridFct, cmp, time, quadOrder, NULL);
+	return H1Error(spExactSol, spExactGrad, spGridFct, cmp, time, quadOrder, nullptr);
 }
 
 #ifdef UG_FOR_LUA
@@ -1429,7 +1429,7 @@ number H1Error(const char* ExactSol, const char* ExactGrad,
 			   SmartPtr<TGridFunction> spGridFct, const char* cmp,
 			   number time, int quadOrder, const char* subsets)
 {
-	static const int dim = TGridFunction::domain_type::dim;
+	static constexpr int dim = TGridFunction::domain_type::dim;
 	SmartPtr<UserData<number, dim> > spExactSol
 	 = make_sp(new LuaUserData<number, dim>(ExactSol));
 	SmartPtr<UserData<MathVector<dim>, dim> > spExactGrad
@@ -1442,7 +1442,7 @@ number H1Error(const char* ExactSol, const char* ExactGrad,
 			   SmartPtr<TGridFunction> spGridFct, const char* cmp,
 			   number time, int quadOrder)
 {
-	return H1Error(ExactSol, ExactGrad, spGridFct, cmp, time, quadOrder, NULL);
+	return H1Error(ExactSol, ExactGrad, spGridFct, cmp, time, quadOrder, nullptr);
 }
 #endif
 
@@ -1574,8 +1574,8 @@ class L2Integrand
 {
 	public:
 	//	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-		typedef UserData<number, worldDim> weight_type;
+		static constexpr int worldDim = TGridFunction::dim;
+		using weight_type = UserData<number, worldDim>;
 
 	protected:
 	// grid function data
@@ -1619,7 +1619,7 @@ class L2Integrand
 			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
 
 		// element weights
-			typedef typename weight_type::data_type ipdata_type;
+			using ipdata_type = typename weight_type::data_type;
 			std::vector<ipdata_type> locElemWeights(numIP, 1.0);
 			UG_ASSERT(m_spWeight.valid(), "L2Integrand::evaluate requires valid weights!");
 			(*m_spWeight)(&locElemWeights[0], vGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
@@ -1671,7 +1671,7 @@ class L2Integrand
  * \param[in]		cmp			symbolic name of function
  * \param[in]		quadOrder	order of quadrature rule
  * \param[in]		subsets		subsets, where to interpolate
- * 								(NULL indicates that all full-dimensional subsets
+ * 								(nullptr indicates that all full-dimensional subsets
  * 								shall be considered)
  * \returns			number 		l2-norm
  */
@@ -1723,7 +1723,7 @@ number L2Norm(TGridFunction& u, const char* cmp,
  */
 template <typename TGridFunction>
 number L2Norm(TGridFunction& gridFct, const char* cmp, int quadOrder)
-{ return L2Norm(gridFct, cmp, quadOrder, NULL); }
+{ return L2Norm(gridFct, cmp, quadOrder, nullptr); }
 
 template <typename TGridFunction>
 number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder, const char* subsets)
@@ -1731,7 +1731,7 @@ number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
 
 template <typename TGridFunction>
 number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
-{ return L2Norm(spGridFct, cmp, quadOrder, NULL); }
+{ return L2Norm(spGridFct, cmp, quadOrder, nullptr); }
 
 
 /// Integrand for the distance of two grid functions - evaluated in the (weighted) H1-semi norm
@@ -1741,8 +1741,8 @@ class L2DistIntegrand
 {
 	public:
 	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-		typedef typename L2Integrand<TGridFunction>::weight_type weight_type;
+		static constexpr int worldDim = TGridFunction::dim;
+		using weight_type = typename L2Integrand<TGridFunction>::weight_type;
 
 	protected:
 		ScalarGridFunctionData<TGridFunction> m_fineData;
@@ -1826,7 +1826,7 @@ class L2DistIntegrand
 		              const MathMatrix<elemDim, worldDim> vJT[],
 		              const size_t numIP)
 		{
-			typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object Element;
+			using Element = typename TGridFunction::template dim_traits<elemDim>::grid_base_object;
 
 			//	get coarse element
 			GridObject* pCoarseElem = pFineElem;
@@ -1856,7 +1856,7 @@ class L2DistIntegrand
 			map.global_to_local(&vCoarseLocIP[0], vFineGlobIP, numIP);
 
 		// element weights
-			typedef typename weight_type::data_type ipdata_type;
+			using ipdata_type = typename weight_type::data_type;
 			std::vector<ipdata_type> fineElemWeights(numIP, 1.0);
 			UG_ASSERT(m_spWeight.valid(), "L2DistIntegrand::evaluate requires valid weights! ");
 			(*m_spWeight)(&fineElemWeights[0], vFineGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
@@ -1943,7 +1943,7 @@ number L2Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
                SmartPtr<TGridFunction> spGridFct2, const char* cmp2,
                int quadOrder)
 {
-	return L2Distance(*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, NULL);
+	return L2Distance(*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, nullptr);
 }
 
 template <typename TGridFunction>
@@ -1967,8 +1967,8 @@ class H1SemiIntegrand
 {
 	public:
 	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-		typedef UserData<MathMatrix<worldDim, worldDim>, worldDim> weight_type;
+		static constexpr int worldDim = TGridFunction::dim;
+		using weight_type = UserData<MathMatrix<worldDim, worldDim>, worldDim>;
 
 	protected:
 	/// grid function data
@@ -2015,7 +2015,7 @@ class H1SemiIntegrand
 			DimReferenceMapping<elemDim, worldDim>& map
 				= ReferenceMappingProvider::get<elemDim, worldDim>(roid, vCornerCoords);
 
-			typedef typename weight_type::data_type ipdata_type;
+			using ipdata_type = typename weight_type::data_type;
 
 			std::vector<ipdata_type> elemWeights(numIP, MathMatrix<worldDim, worldDim>());
 			UG_ASSERT(m_spWeight.valid(), "H1SemiIntegrand::evaluate requires valid weights!");
@@ -2033,7 +2033,7 @@ class H1SemiIntegrand
 				//	compute data
 				try{
 					(*m_spWeight)(&elemWeights[0], vGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), pElem,
-							vCornerCoords, vLocIP, numIP, &uloc, NULL);
+							vCornerCoords, vLocIP, numIP, &uloc, nullptr);
 				} UG_CATCH_THROW("H1SemiIntegrand: Cannot evaluate weight data.");
 			}
 			else
@@ -2122,8 +2122,8 @@ class H1SemiIntegrand
  * \returns			number 		l2-norm
  */
 template <typename TGridFunction>
-number H1SemiNorm2(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=NULL,
-				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
+number H1SemiNorm2(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=nullptr,
+				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = nullptr)
 {
 //	get function id of name
 	const size_t fct = gridFct.fct_id_by_name(cmp);
@@ -2142,8 +2142,8 @@ number H1SemiNorm2(TGridFunction& gridFct, const char* cmp, int quadOrder, const
 
 /// Computes the H1SemiNorm
 template <typename TGridFunction>
-number H1SemiNorm(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=NULL,
-				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
+number H1SemiNorm(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=nullptr,
+				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = nullptr)
 {
 	return (sqrt(H1SemiNorm2(gridFct, cmp, quadOrder, subsets, weights)));
 }
@@ -2155,17 +2155,17 @@ number H1SemiNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOr
 
 template <typename TGridFunction>
 number H1SemiNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
-		const char* subsets, ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
+		const char* subsets, ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = nullptr)
 { return H1SemiNorm(*spGridFct, cmp, quadOrder, subsets, weights); }
 
 template <typename TGridFunction>
 number H1SemiNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
-{ return H1SemiNorm(*spGridFct, cmp, quadOrder, NULL); }
+{ return H1SemiNorm(*spGridFct, cmp, quadOrder, nullptr); }
 
 template <typename TGridFunction>
 number H1SemiNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
 		ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights)
-{ return H1SemiNorm(*spGridFct, cmp, quadOrder, NULL, weights); }
+{ return H1SemiNorm(*spGridFct, cmp, quadOrder, nullptr, weights); }
 
 /// Integrand for the distance of two grid functions - evaluated in the (weighted) H1-semi norm
 template <typename TGridFunction>
@@ -2173,8 +2173,8 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 {
 	public:
 	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-		typedef typename H1SemiIntegrand<TGridFunction>::weight_type weight_type;
+		static constexpr int worldDim = TGridFunction::dim;
+		using weight_type = typename H1SemiIntegrand<TGridFunction>::weight_type;
 
 	private:
 		ScalarGridFunctionData<TGridFunction> m_fineData;
@@ -2244,7 +2244,7 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 		              const MathMatrix<elemDim, worldDim> vJT[],
 		              const size_t numIP)
 		{
-			typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object Element;
+			using Element = typename TGridFunction::template dim_traits<elemDim>::grid_base_object;
 
 			const TGridFunction &fineGridFct  = m_fineData.grid_function();
 			const TGridFunction &coarseGridFct  = m_coarseData.grid_function();
@@ -2296,7 +2296,7 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 				//	compute data
 				try{
 					(*m_spWeight)(&elemWeights[0], vFineGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), pFineElem,
-							vCornerCoords, vFineLocIP, numIP, &u, NULL);
+							vCornerCoords, vFineLocIP, numIP, &u, nullptr);
 				} UG_CATCH_THROW("H1SemiDistIntegrand: Cannot evaluate data.");
 			}
 			else
@@ -2404,7 +2404,7 @@ number H1SemiError(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
                SmartPtr<TGridFunction> spGridFct2, const char* cmp2,
                int quadOrder)
 {
-	return H1SemiError(*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, NULL);
+	return H1SemiError(*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, nullptr);
 }
 
 //! Squared distance in H1 semi norm (with select subsets & weights)
@@ -2431,14 +2431,14 @@ template <typename TGridFunction>
 number H1SemiDistance2(TGridFunction& spGridFct1, const char* cmp1,
 					  TGridFunction& spGridFct2, const char* cmp2,
                int quadOrder, ConstSmartPtr<typename H1SemiDistIntegrand<TGridFunction>::weight_type > weights)
-{ return H1SemiDistance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL, weights); }
+{ return H1SemiDistance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, nullptr, weights); }
 
 //! Distance in H1 semi norm (all subsets, with weights)
 template <typename TGridFunction>
 number H1SemiDistance(TGridFunction& spGridFct1, const char* cmp1,
 					  TGridFunction& spGridFct2, const char* cmp2,
                int quadOrder, ConstSmartPtr<typename H1SemiDistIntegrand<TGridFunction>::weight_type > weights)
-{ return sqrt(H1SemiDistance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL, weights)); }
+{ return sqrt(H1SemiDistance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, nullptr, weights)); }
 
 
 
@@ -2454,8 +2454,8 @@ class H1EnergyIntegrand
 {
 	public:
 	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-		typedef UserData<MathMatrix<worldDim, worldDim>, worldDim> weight_type;
+		static constexpr int worldDim = TGridFunction::dim;
+		using weight_type = UserData<MathMatrix<worldDim, worldDim>, worldDim>;
 
 	protected:
 	/// grid function data
@@ -2502,7 +2502,7 @@ class H1EnergyIntegrand
 			DimReferenceMapping<elemDim, worldDim>& map
 				= ReferenceMappingProvider::get<elemDim, worldDim>(roid, vCornerCoords);
 
-			typedef typename weight_type::data_type ipdata_type;
+			using ipdata_type = typename weight_type::data_type;
 
 			std::vector<ipdata_type> elemWeights(numIP, MathMatrix<worldDim, worldDim>());
 			UG_ASSERT(m_spWeight.valid(), "H1EnergyIntegrand::evaluate requires valid weights!");
@@ -2520,7 +2520,7 @@ class H1EnergyIntegrand
 				//	compute data
 				try{
 					(*m_spWeight)(&elemWeights[0], vGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), pElem,
-							vCornerCoords, vLocIP, numIP, &uloc, NULL);
+							vCornerCoords, vLocIP, numIP, &uloc, nullptr);
 				} UG_CATCH_THROW("H1EnergyIntegrand: Cannot evaluate weight data.");
 			}
 			else
@@ -2610,8 +2610,8 @@ class H1EnergyIntegrand
  * \returns			number 		l2-norm
  */
 template <typename TGridFunction>
-number H1EnergyNorm2(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=NULL,
-				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
+number H1EnergyNorm2(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=nullptr,
+				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = nullptr)
 {
 //	get function id of name
 	const size_t fct = gridFct.fct_id_by_name(cmp);
@@ -2628,25 +2628,25 @@ number H1EnergyNorm2(TGridFunction& gridFct, const char* cmp, int quadOrder, con
 	}
 }
 template <typename TGridFunction>
-number H1EnergyNorm(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=NULL,
-				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
+number H1EnergyNorm(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=nullptr,
+				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = nullptr)
 {
 	return (sqrt(H1EnergyNorm2(gridFct, cmp, quadOrder, subsets, weights)));
 }
 
 template <typename TGridFunction>
 number H1EnergyNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
-		const char* subsets, ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
+		const char* subsets, ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = nullptr)
 { return H1EnergyNorm(*spGridFct, cmp, quadOrder, subsets, weights); }
 
 template <typename TGridFunction>
 number H1EnergyNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
-{ return H1EnergyNorm(spGridFct, cmp, quadOrder, NULL); }
+{ return H1EnergyNorm(spGridFct, cmp, quadOrder, nullptr); }
 
 template <typename TGridFunction>
 number H1EnergyNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
 		ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights)
-{ return H1EnergyNorm(spGridFct, cmp, quadOrder, NULL, weights); }
+{ return H1EnergyNorm(spGridFct, cmp, quadOrder, nullptr, weights); }
 
 
 
@@ -2658,8 +2658,8 @@ class H1EnergyDistIntegrand
 {
 	public:
 	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-		typedef typename H1SemiIntegrand<TGridFunction>::weight_type weight_type;
+		static constexpr int worldDim = TGridFunction::dim;
+		using weight_type = typename H1SemiIntegrand<TGridFunction>::weight_type;
 
 	private:
 		ScalarGridFunctionData<TGridFunction> m_fineData;
@@ -2733,7 +2733,7 @@ class H1EnergyDistIntegrand
 		              const MathMatrix<elemDim, worldDim> vJT[],
 		              const size_t numIP)
 		{
-			typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object Element;
+			using Element = typename TGridFunction::template dim_traits<elemDim>::grid_base_object;
 
 			const TGridFunction &fineGridFct  = m_fineData.grid_function();
 			const TGridFunction &coarseGridFct  = m_coarseData.grid_function();
@@ -2785,7 +2785,7 @@ class H1EnergyDistIntegrand
 				//	compute data
 				try{
 					(*m_spWeight)(&elemWeights[0], vFineGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), pFineElem,
-							vCornerCoords, vFineLocIP, numIP, &u, NULL);
+							vCornerCoords, vFineLocIP, numIP, &u, nullptr);
 				} UG_CATCH_THROW("H1SemiDistIntegrand: Cannot evaluate data.");
 			}
 			else
@@ -2896,14 +2896,14 @@ template <typename TGridFunction>
 number H1EnergyDistance2(TGridFunction& spGridFct1, const char* cmp1,
 					  TGridFunction& spGridFct2, const char* cmp2,
                int quadOrder, ConstSmartPtr<typename H1SemiDistIntegrand<TGridFunction>::weight_type > weights)
-{ return H1EnergyDistance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL, weights); }
+{ return H1EnergyDistance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, nullptr, weights); }
 
 //! Distance in H1 semi norm (all subsets, with weights)
 template <typename TGridFunction>
 number H1EnergyDistance(TGridFunction& spGridFct1, const char* cmp1,
 					  TGridFunction& spGridFct2, const char* cmp2,
                int quadOrder, ConstSmartPtr<typename H1SemiDistIntegrand<TGridFunction>::weight_type > weights)
-{ return sqrt(H1EnergyDistance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL, weights)); }
+{ return sqrt(H1EnergyDistance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, nullptr, weights)); }
 
 
 
@@ -2917,7 +2917,7 @@ class H1NormIntegrand
 {
 	public:
 	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
+		static constexpr int worldDim = TGridFunction::dim;
 
 	private:
 		ScalarGridFunctionData<TGridFunction> m_scalarData;
@@ -3021,7 +3021,7 @@ class H1NormIntegrand
 
 template <typename TGridFunction>
 number H1Norm2(TGridFunction& u, const char* cmp,
-			   int quadOrder, const char* subsets=NULL)
+			   int quadOrder, const char* subsets=nullptr)
 {
 //	get function id of name
 	const size_t fct = u.fct_id_by_name(cmp);
@@ -3038,7 +3038,7 @@ number H1Norm2(TGridFunction& u, const char* cmp,
 
 template <typename TGridFunction>
 number H1Norm(TGridFunction& u, const char* cmp,
-			   int quadOrder, const char* subsets=NULL)
+			   int quadOrder, const char* subsets=nullptr)
 {
 	return sqrt(H1Norm2(u, cmp, quadOrder,subsets));
 }
@@ -3053,7 +3053,7 @@ number H1Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 template <typename TGridFunction>
 number H1Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
 {
-	return H1Norm(*spGridFct, cmp, quadOrder, NULL);
+	return H1Norm(*spGridFct, cmp, quadOrder, nullptr);
 }
 
 
@@ -3065,7 +3065,7 @@ class H1DistIntegrand
 {
 	public:
 	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
+		static constexpr int worldDim = TGridFunction::dim;
 
 	private:
 		ScalarGridFunctionData<TGridFunction> m_fineData;
@@ -3120,7 +3120,7 @@ class H1DistIntegrand
 		              const MathMatrix<elemDim, worldDim> vJT[],
 		              const size_t numIP)
 		{
-			typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object Element;
+			using Element = typename TGridFunction::template dim_traits<elemDim>::grid_base_object;
 
 			//	get coarse element
 			GridObject* pCoarseElem = pFineElem;
@@ -3225,7 +3225,7 @@ class H1DistIntegrand
 template <typename TGridFunction>
 number H1Distance2(TGridFunction& spGridFct1, const char* cmp1,
                TGridFunction& spGridFct2, const char* cmp2,
-               int quadOrder, const char* subsets=NULL)
+               int quadOrder, const char* subsets=nullptr)
 {
 	return GridFunctionDistance2<H1DistIntegrand<TGridFunction>, TGridFunction>
 		(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, subsets);
@@ -3235,7 +3235,7 @@ number H1Distance2(TGridFunction& spGridFct1, const char* cmp1,
 template <typename TGridFunction>
 number H1Distance(TGridFunction& spGridFct1, const char* cmp1,
                TGridFunction& spGridFct2, const char* cmp2,
-               int quadOrder, const char* subsets=NULL)
+               int quadOrder, const char* subsets=nullptr)
 {
 	return sqrt(H1Distance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, subsets));
 }
@@ -3254,7 +3254,7 @@ number H1Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
                SmartPtr<TGridFunction> spGridFct2, const char* cmp2,
                int quadOrder)
 {
-	return H1Distance(*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, NULL);
+	return H1Distance(*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, nullptr);
 }
 
 
@@ -3268,7 +3268,7 @@ class StdFuncIntegrand
 {
 	public:
 	//	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
+		static constexpr int worldDim = TGridFunction::dim;
 
 	private:
 	// grid function
@@ -3357,8 +3357,8 @@ number StdFuncIntegralOnVertex(TGridFunction& gridFct,
 							   int si)
 {
 //	integrate elements of subset
-	typedef typename TGridFunction::template dim_traits<0>::grid_base_object grid_base_object;
-	typedef typename TGridFunction::template dim_traits<0>::const_iterator const_iterator;
+	using grid_base_object = typename TGridFunction::template dim_traits<0>::grid_base_object;
+	using const_iterator = typename TGridFunction::template dim_traits<0>::const_iterator;
 
 	//	reset the result
 	number integral = 0;
@@ -3411,7 +3411,7 @@ number Integral(TGridFunction& gridFct, const char* cmp,
 
 //	read subsets
 	SubsetGroup ssGrp(gridFct.domain()->subset_handler());
-	if(subsets != NULL)
+	if(subsets != nullptr)
 	{
 		ssGrp.add(TokenizeString(subsets));
 		if(!SameDimensionsInAllSubsets(ssGrp))
@@ -3467,7 +3467,7 @@ number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 template <typename TGridFunction>
 number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp)
 {
-	return Integral(spGridFct, cmp, NULL, 1);
+	return Integral(spGridFct, cmp, nullptr, 1);
 }
 
 
@@ -3494,7 +3494,7 @@ number IntegralNormalComponentOnManifoldUsingFV1Geom(TConstIterator iterBegin,
 
 //	this is the base element type (e.g. Face). This is the type when the
 //	iterators above are dereferenciated.
-	typedef typename domain_traits<dim>::grid_base_object grid_base_object;
+	using grid_base_object = typename domain_traits<dim>::grid_base_object;
 
 //	create a FV1 Geometry
 	DimFV1Geometry<dim> geo;
@@ -3536,7 +3536,7 @@ number IntegralNormalComponentOnManifoldUsingFV1Geom(TConstIterator iterBegin,
 			const int bndSubset = bndSSGrp[s];
 
 		//	get all bf of this subset
-			typedef typename DimFV1Geometry<dim>::BF BF;
+		using	BF = typename DimFV1Geometry<dim>::BF;
 			const std::vector<BF>& vBF = geo.bf(bndSubset);
 
 		//	loop boundary faces
@@ -3595,8 +3595,8 @@ number IntegralNormalComponentOnManifoldGeneral(
 
 //	this is the base element type (e.g. Face). This is the type when the
 //	iterators above are dereferenciated.
-	typedef typename domain_traits<dim>::element_type Element;
-	typedef typename domain_traits<dim>::side_type Side;
+	using Element = typename domain_traits<dim>::element_type;
+	using Side = typename domain_traits<dim>::side_type;
 
 //	vector of corner coordinates of element corners (to be filled for each elem)
 	std::vector<MathVector<WorldDim> > vCorner;
@@ -3712,9 +3712,9 @@ number IntegralNormalComponentOnManifoldSubset(SmartPtr<IIntegrand<MathVector<TG
                                  int si, const SubsetGroup& bndSSGrp, int quadOrder)
 {
 //	integrate elements of subset
-	typedef typename TGridFunction::template dim_traits<dim>::grid_base_object grid_base_object;
-	typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
-	static const int WorldDim = TGridFunction::dim;
+	using grid_base_object = typename TGridFunction::template dim_traits<dim>::grid_base_object;
+	using const_iterator = typename TGridFunction::template dim_traits<dim>::const_iterator;
+	static constexpr int WorldDim = TGridFunction::dim;
 
 	spIntegrand->set_subset(si);
 
@@ -3744,11 +3744,11 @@ number IntegralNormalComponentOnManifoldSubsets(
 		int quadOrder)
 {
 //	world dimensions
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 
 //	read subsets
 	SubsetGroup innerSSGrp(spGridFct->domain()->subset_handler());
-	if(InnerSubsets != NULL)
+	if(InnerSubsets != nullptr)
 	{
 		innerSSGrp.add(TokenizeString(InnerSubsets));
 		if(!SameDimensionsInAllSubsets(innerSSGrp))
@@ -3764,7 +3764,7 @@ number IntegralNormalComponentOnManifoldSubsets(
 
 //	read subsets
 	SubsetGroup bndSSGrp(spGridFct->domain()->subset_handler());
-	if(BndSubsets != NULL)
+	if(BndSubsets != nullptr)
 		bndSSGrp.add(TokenizeString(BndSubsets));
 	else
 		UG_THROW("IntegralNormalComponentOnManifold: No boundary subsets passed.");
@@ -3836,7 +3836,7 @@ number IntegralNormalComponentOnManifold(
 		SmartPtr<TGridFunction> spGridFct,
 		const char* BndSubset,
 		number time)
-{return IntegralNormalComponentOnManifold(spData, spGridFct, BndSubset, NULL, time, 1);}
+{return IntegralNormalComponentOnManifold(spData, spGridFct, BndSubset, nullptr, time, 1);}
 
 template <typename TGridFunction>
 number IntegralNormalComponentOnManifold(
@@ -3850,7 +3850,7 @@ number IntegralNormalComponentOnManifold(
 		SmartPtr<UserData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
 		SmartPtr<TGridFunction> spGridFct,
 		const char* BndSubset)
-{return IntegralNormalComponentOnManifold(spData, spGridFct, BndSubset, NULL, 0.0, 1);}
+{return IntegralNormalComponentOnManifold(spData, spGridFct, BndSubset, nullptr, 0.0, 1);}
 
 ///////////////
 // lua data
@@ -3863,7 +3863,7 @@ number IntegralNormalComponentOnManifold(
 		const char* BndSubset, const char* InnerSubset,
 		number time, int quadOrder)
 {
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 	SmartPtr<UserData<MathVector<dim>, dim> > sp =
 			LuaUserDataFactory<MathVector<dim>, dim>::create(luaFct);
 	return IntegralNormalComponentOnManifold(sp, spGridFct, BndSubset, InnerSubset, time, quadOrder);
@@ -3881,7 +3881,7 @@ number IntegralNormalComponentOnManifold(
 		const char* luaFct, SmartPtr<TGridFunction> spGridFct,
 		const char* BndSubset,
 		number time)
-{return IntegralNormalComponentOnManifold(luaFct, spGridFct, BndSubset, NULL, time, 1);}
+{return IntegralNormalComponentOnManifold(luaFct, spGridFct, BndSubset, nullptr, time, 1);}
 
 template <typename TGridFunction>
 number IntegralNormalComponentOnManifold(
@@ -3893,7 +3893,7 @@ template <typename TGridFunction>
 number IntegralNormalComponentOnManifold(
 		const char* luaFct, SmartPtr<TGridFunction> spGridFct,
 		const char* BndSubset)
-{return IntegralNormalComponentOnManifold(luaFct, spGridFct, BndSubset, NULL, 0.0, 1);}
+{return IntegralNormalComponentOnManifold(luaFct, spGridFct, BndSubset, nullptr, 0.0, 1);}
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3944,13 +3944,13 @@ number IntegrateNormalComponentOnManifold(TGridFunction& u, const char* cmp,
 		if(!u.is_def_in_subset(fct, si)) continue;
 
 	//	create integration kernel
-		static const int dim = TGridFunction::dim;
+		static constexpr int dim = TGridFunction::dim;
 
 	//	integrate elements of subset
-		typedef typename domain_traits<dim>::grid_base_object grid_base_object;
+		using grid_base_object = typename domain_traits<dim>::grid_base_object;
 
 	//	get iterators for all elems on subset
-		typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
+		using const_iterator = typename TGridFunction::template dim_traits<dim>::const_iterator;
 		const_iterator iter = u.template begin<grid_base_object>();
 		const_iterator iterEnd = u.template end<grid_base_object>();
 
@@ -3998,7 +3998,7 @@ number IntegrateNormalComponentOnManifold(TGridFunction& u, const char* cmp,
 				const int bndSubset = bndSSGrp[s];
 
 			//	get all bf of this subset
-				typedef typename DimFV1Geometry<dim>::BF BF;
+				using BF = typename DimFV1Geometry<dim>::BF;
 				const std::vector<BF>& vBF = geo.bf(bndSubset);
 
 			//	loop boundary faces
@@ -4062,7 +4062,7 @@ number IntegrateNormalComponentOnManifold(TGridFunction& u, const char* cmp,
  */
 template <typename TGridFunction>
 number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
-                                   const char* BndSubset, const char* InnerSubset = NULL)
+                                   const char* BndSubset, const char* InnerSubset = nullptr)
 {
 //	get function id of name
 	const size_t fct = u.fct_id_by_name(cmp);
@@ -4078,14 +4078,14 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 
 //	read subsets
 	SubsetGroup innerSSGrp(u.domain()->subset_handler());
-	if(InnerSubset != NULL)
+	if(InnerSubset != nullptr)
 		innerSSGrp.add(TokenizeString(InnerSubset));
 	else // add all if no subset specified
 		innerSSGrp.add_all();
 
 //	read bnd subsets
 	SubsetGroup bndSSGrp(u.domain()->subset_handler());
-	if(InnerSubset != NULL){
+	if(InnerSubset != nullptr){
 		bndSSGrp.add(TokenizeString(BndSubset));
 	}
 	else{
@@ -4109,13 +4109,13 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 			UG_THROW("IntegrateNormalGradientOnManifold: Element dimension does not match world dimension!");
 
 	//	create integration kernel
-		static const int dim = TGridFunction::dim;
+		static constexpr int dim = TGridFunction::dim;
 
 	//	integrate elements of subset
-		typedef typename domain_traits<dim>::grid_base_object grid_base_object;
+		using grid_base_object = typename domain_traits<dim>::grid_base_object;
 
 	//	get iterators for all elems on subset
-		typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
+		using const_iterator = typename TGridFunction::template dim_traits<dim>::const_iterator;
 		const_iterator iter = u.template begin<grid_base_object>();
 		const_iterator iterEnd = u.template end<grid_base_object>();
 
@@ -4163,7 +4163,7 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 				const int bndSubset = bndSSGrp[s];
 
 			//	get all bf of this subset
-				typedef typename DimFV1Geometry<dim>::BF BF;
+				using BF = typename DimFV1Geometry<dim>::BF;
 				const std::vector<BF>& vBF = geo.bf(bndSubset);
 
 			//	loop boundary faces

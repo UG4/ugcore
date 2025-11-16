@@ -56,19 +56,19 @@ class MathTensor
 {
 	public:
 		// type of value
-		typedef MathTensor<TRank-1, N, T> value_type;
+		using value_type = MathTensor<TRank-1, N, T>;
 
 		// size type
-		typedef size_t size_type;
+		using size_type = size_t;
 
 		// Dimension of tensor
-		static const size_t Dimension = N;
+		static constexpr size_t Dimension = N;
 
 		// Rank of tensor (i.e. number of indices)
-		static const size_t Rank = TRank;
+		static constexpr size_t Rank = TRank;
 
 	public:
-		MathTensor() {}
+		MathTensor() = default;
 		MathTensor(const MathTensor& v)	{assign(v);}
 
 		// operations with other vectors
@@ -101,16 +101,16 @@ class MathTensor<1, N, T>
 {
 	public:
 		// type of value
-		typedef T value_type;
+		using value_type = T;
 
 		// size type
-		typedef size_t size_type;
+		using size_type = size_t;
 
 		// Dimension of tensor
-		static const size_t Dimension = N;
+		static constexpr size_t Dimension = N;
 
 		// Rank of tensor (i.e. number of indices)
-		static const size_t Rank = 1;
+		static constexpr size_t Rank = 1;
 
 	public:
 		MathTensor(const bool init = true) { if(init) set(0.0);}
@@ -159,17 +159,14 @@ template <typename TEntry, size_t N>
 class MathTensorX
 {
 public:
-	// type of value
-	typedef TEntry value_type;
-
-	// size type
-	typedef size_t size_type;
+	using value_type = TEntry;
+	using size_type = size_t;
 
 	// Dimension of tensor
-	static const size_t Dimension = N;
+	static constexpr size_t Dimension = N;
 
 	// Rank of tensor (i.e. number of indices)
-	static const size_t Rank = TEntry::Rank+1;
+	static constexpr size_t Rank = TEntry::Rank+1;
 
 public:
 	MathTensorX() { }

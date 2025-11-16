@@ -46,14 +46,14 @@ class IFinishedCondition
 {
     public:
         virtual bool check_finished(number time, int step) { return false; }
-		virtual ~IFinishedCondition() {}
+		virtual ~IFinishedCondition() = default;
 };
 
 class FinishedTester
 {
 	public:
-		typedef SmartPtr<IFinishedCondition> cond_type;
-		FinishedTester(){}
+		using cond_type = SmartPtr<IFinishedCondition>;
+		FinishedTester()= default;
 
 		bool is_finished(number time, int step)
 		{

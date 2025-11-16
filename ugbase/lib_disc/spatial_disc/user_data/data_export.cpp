@@ -55,7 +55,7 @@ void ValueDataExport<dim>::eval_and_deriv(number vValue[],
                     const MathMatrix<refDim, dim>* vJT) const
 {
 //	abbreviation for component
-	static const int _C_ = 0;
+	static constexpr int _C_ = 0;
 
 //	reference object id
 	const ReferenceObjectID roid = elem->reference_object_id();
@@ -108,7 +108,7 @@ void ValueDataExport<dim>::check_setup() const
 template <int dim>
 bool ValueDataExport<dim>::continuous() const
 {
-	static const int _C_ = 0;
+	static constexpr int _C_ = 0;
 	const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
 	return LocalFiniteElementProvider::continuous(lfeID);
 }
@@ -133,7 +133,7 @@ void GradientDataExport<dim>::eval_and_deriv(MathVector<dim> vValue[],
                     const MathMatrix<refDim, dim>* vJT) const
 {
 //	abbreviation for component
-	static const int _C_ = 0;
+	static constexpr int _C_ = 0;
 
 //	reference object id
 	const ReferenceObjectID roid = elem->reference_object_id();

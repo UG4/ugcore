@@ -43,11 +43,11 @@ GlobalSubdivisionMultiGridRefiner<TAPosition>::
 GlobalSubdivisionMultiGridRefiner(SPRefinementProjector projector) :
 	GlobalMultiGridRefiner(projector)
 {
-	m_pMG = NULL;
-	m_pSH = NULL;
-	m_pMarkSH = NULL;
-	m_spLinearManifoldSH = NULL;
-	m_pAPos = NULL;
+	m_pMG = nullptr;
+	m_pSH = nullptr;
+	m_pMarkSH = nullptr;
+	m_spLinearManifoldSH = nullptr;
+	m_pAPos = nullptr;
 	m_bConstrained = false;
 }
 
@@ -56,10 +56,10 @@ GlobalSubdivisionMultiGridRefiner<TAPosition>::
 GlobalSubdivisionMultiGridRefiner(MultiGrid& mg, SPRefinementProjector projector) :
 	GlobalMultiGridRefiner(mg, projector)
 {
-	m_pSH = NULL;
-	m_pMarkSH = NULL;
-	m_spLinearManifoldSH = NULL;
-	m_pAPos = NULL;
+	m_pSH = nullptr;
+	m_pMarkSH = nullptr;
+	m_spLinearManifoldSH = nullptr;
+	m_pAPos = nullptr;
 	m_bConstrained = false;
 }
 
@@ -70,17 +70,17 @@ GlobalSubdivisionMultiGridRefiner(MultiGrid& mg, TAPosition& aPos, MGSubsetHandl
 							SPRefinementProjector projector) :
 	GlobalMultiGridRefiner(mg, projector)
 {
-	m_pSH = NULL;
+	m_pSH = nullptr;
 	assign_subset_handler(sh);
 
-	m_pMarkSH = NULL;
+	m_pMarkSH = nullptr;
 	assign_mark_subset_handler(markSH);
 
 //	m_spLinearManifoldSH = SmartPtr<MGSubsetHandler>(new MGSubsetHandler(*m_pMG));
-	m_spLinearManifoldSH = NULL;
+	m_spLinearManifoldSH = nullptr;
 //	set_linear_manifold_subsets(*m_spLinearManifoldSH, "");
 
-	m_pAPos = NULL;
+	m_pAPos = nullptr;
 	assign_position_attachment(aPos);
 }
 

@@ -62,10 +62,10 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 {
 	public:
 	///	Type of Subset Handler
-		typedef MGSubsetHandler subset_handler_type;
+	using subset_handler_type = MGSubsetHandler;
 
 	///	Type of Subset Handler
-		typedef MultiGrid grid_type;
+	using grid_type = MultiGrid;
 
 	public:
 	///	Constructor
@@ -279,13 +279,13 @@ class ApproximationSpace : public IApproximationSpace
 {
 	public:
 	///	Domain type
-		typedef TDomain domain_type;
+	using domain_type = TDomain;
 
 	///	World Dimension
-		static const int dim = domain_type::dim;
+		static constexpr int dim = domain_type::dim;
 
 	///	Subset Handler type
-		typedef typename domain_type::subset_handler_type subset_handler_type;
+	using subset_handler_type = typename domain_type::subset_handler_type;
 
 	public:
 	/// constructor

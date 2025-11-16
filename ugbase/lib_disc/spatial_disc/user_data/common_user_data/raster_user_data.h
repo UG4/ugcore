@@ -47,16 +47,16 @@ class RasterUserData : public StdGlobPosData<RasterUserData<dim>, number, dim, v
 {
 
 public:
-	typedef number TData;
-	typedef CplUserData<TData, dim> base_type;
+	using TData = number;
+	using base_type = CplUserData<TData, dim>;
 
-	typedef Raster<number, 2> TRaster;
-	// typedef Raster<number, 1> TRaster1;
-	// typedef Raster<number, 2> TRaster2;
-	// typedef Raster<number, 3> TRaster3;
-	//typedef StdGlobPosData<RasterUserData<dim>, number, dim, void> base_type;
+	using TRaster = Raster<number, 2>;
+	//using TRaster1 = Raster<number, 1>;
+	//using TRaster2 = Raster<number, 2>;
+	//using TRaster3 = Raster<number, 3>;
+	//using base_type = StdGlobPosData<RasterUserData<dim>, number, dim, void>;
 
-	typedef SmartPtr<TRaster> input_type;
+	using input_type = SmartPtr<TRaster>;
 
 
 private:
@@ -73,17 +73,15 @@ public:
 	: m_spRaster(myRaster), m_interpOrder(1), m_rescale(1.0)
 	{}
 
-	virtual ~RasterUserData()
-	{}
+	virtual ~RasterUserData() = default;
 
 
 	inline void evaluate(number& y, const MathVector<dim>& x, number t, int si) const
 	{
-		typename TRaster::Coordinate xcoord;
+		TRaster::Coordinate xcoord;
 		xcoord[0] = x[0];
 		if (dim>1) { xcoord[1] = x[1];}
 		y = m_spRaster->interpolate(xcoord, m_interpOrder)*m_rescale;
-		return;
 	}
 
 	void set_order(int order) {m_interpOrder = order;}

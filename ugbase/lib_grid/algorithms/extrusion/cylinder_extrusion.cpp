@@ -95,7 +95,7 @@ static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, Vertex* vrt,
 	vector3 scaledDir;
 	VecScale(scaledDir, direction, height);
 	
-	Extrude(grid, NULL, &vEdges, &vFaces, scaledDir, EO_CREATE_FACES, aPosition);
+	Extrude(grid, nullptr, &vEdges, &vFaces, scaledDir, EO_CREATE_FACES, aPosition);
 
 	if(sh){
 	//	restore subset handler
@@ -124,7 +124,7 @@ bool ExtrudeCylinder(Grid& grid, Vertex* vrt,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
 					Selector* pSel)
 {
-	return ExtrudeCylinder(grid, NULL, vrt, direction, height, radius,
+	return ExtrudeCylinder(grid, nullptr, vrt, direction, height, radius,
 							rimSnapThreshold, aaPos, -1, -1, pSel);
 }
 					

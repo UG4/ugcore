@@ -64,13 +64,13 @@ NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
 			m_spLinearSolver(LinearSolver),
 			m_spConvCheck(spConvCheck),
 			m_spLineSearch(spLineSearch),
-			m_N(NULL),
-			m_J(NULL),
-			m_spAss(NULL),
+			m_N(nullptr),
+			m_J(nullptr),
+			m_spAss(nullptr),
 			m_reassembe_J_freq(0),
 			m_dgbCall(0),
 			m_lastNumSteps(0),
-			m_newtonUpdater(SPNULL)
+			m_newtonUpdater(nullptr)
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 //			m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
 //#endif
@@ -79,16 +79,16 @@ NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
 template <typename TAlgebra>
 NewtonSolver<TAlgebra>::
 NewtonSolver() :
-	m_spLinearSolver(NULL),
+	m_spLinearSolver(nullptr),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_spLineSearch(NULL),
-	m_N(NULL),
-	m_J(NULL),
-	m_spAss(NULL),
+	m_spLineSearch(nullptr),
+	m_N(nullptr),
+	m_J(nullptr),
+	m_spAss(nullptr),
 	m_reassembe_J_freq(0),
 	m_dgbCall(0),
 	m_lastNumSteps(0),
-	m_newtonUpdater(SPNULL)
+	m_newtonUpdater(nullptr)
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 //	,
 //	m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
@@ -98,16 +98,16 @@ NewtonSolver() :
 template <typename TAlgebra>
 NewtonSolver<TAlgebra>::
 NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
-	m_spLinearSolver(NULL),
+	m_spLinearSolver(nullptr),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_spLineSearch(NULL),
-	m_N(NULL),
-	m_J(NULL),
-	m_spAss(NULL),
+	m_spLineSearch(nullptr),
+	m_N(nullptr),
+	m_J(nullptr),
+	m_spAss(nullptr),
 	m_reassembe_J_freq(0),
 	m_dgbCall(0),
 	m_lastNumSteps(0),
-	m_newtonUpdater(SPNULL)
+	m_newtonUpdater(nullptr)
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 //	,
 //	m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
@@ -119,16 +119,16 @@ NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
 template <typename TAlgebra>
 NewtonSolver<TAlgebra>::
 NewtonSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
-	m_spLinearSolver(NULL),
+	m_spLinearSolver(nullptr),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_spLineSearch(NULL),
-	m_N(NULL),
-	m_J(NULL),
-	m_spAss(NULL),
+	m_spLineSearch(nullptr),
+	m_N(nullptr),
+	m_J(nullptr),
+	m_spAss(nullptr),
 	m_reassembe_J_freq(0),
 	m_dgbCall(0),
 	m_lastNumSteps(0),
-	m_newtonUpdater(SPNULL)
+	m_newtonUpdater(nullptr)
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 //	,
 //	m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
@@ -302,7 +302,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 
-				if( m_newtonUpdater != SPNULL )
+				if( m_newtonUpdater != nullptr )
 					m_spLineSearch->setNewtonUpdater(m_newtonUpdater);
 
 //#endif
@@ -317,7 +317,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		// 	No line search: Compute new defect
 			else
 			{
-				if( m_newtonUpdater != SPNULL )
+				if( m_newtonUpdater != nullptr )
 				{
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 
@@ -472,7 +472,7 @@ void NewtonSolver<TAlgebra>::write_debug(const vector_type& vec, std::string nam
 	char ext[20]; snprintf(ext, 20, "_call%03d", m_dgbCall);
 
 //	write
-	typedef DebugWritingObject<TAlgebra> base_writer_type;
+	using base_writer_type = DebugWritingObject<TAlgebra>;
 	base_writer_type::write_debug(vec, name + ext);
 }
 
@@ -483,7 +483,7 @@ void NewtonSolver<TAlgebra>::write_debug(const matrix_type& mat, std::string nam
 	char ext[20]; snprintf(ext, 20, "_call%03d", m_dgbCall);
 
 //	write
-	typedef DebugWritingObject<TAlgebra> base_writer_type;
+	using base_writer_type = DebugWritingObject<TAlgebra>;
 	base_writer_type::write_debug(mat, name + ext);
 }
 

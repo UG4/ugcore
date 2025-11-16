@@ -47,7 +47,7 @@ class PiecewiseConstantLSFS
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = TRefElem::dim;
+		static constexpr int dim = TRefElem::dim;
 
 	public:
 	///	Constructor

@@ -80,14 +80,14 @@ public:
 	T &downcast()
 	{
 		T *t =dynamic_cast<T*>(this);
-		UG_ASSERT(t != NULL, "could not downcast " << TypeName(this) << " to " << TypeName<T>());
+		UG_ASSERT(t != nullptr, "could not downcast " << TypeName(this) << " to " << TypeName<T>());
 		return *t;
 	}
 	template<typename T>
 	const T &downcast() const
 	{
 		const T *t =dynamic_cast<const T*>(this);
-		UG_ASSERT(t != NULL, "could not downcast " << TypeName(this) << " to " << TypeName<T>());
+		UG_ASSERT(t != nullptr, "could not downcast " << TypeName(this) << " to " << TypeName<T>());
 		return *t;
 	}
 
@@ -146,7 +146,7 @@ public:
 template<typename TVec>
 class IVector_AlgebraDownCastTo : public IVector
 {
-	typedef IVector_AlgebraDownCastTo<TVec> this_type;
+	using this_type = IVector_AlgebraDownCastTo<TVec> ;
 	TVec &downcast()
 	{
 		return *((TVec*) this);

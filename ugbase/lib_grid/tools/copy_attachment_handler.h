@@ -168,7 +168,7 @@ class CopyAttachmentHandler : public GridObserver
 		(
 			Grid* grid,
 			Vertex* vrt,
-			GridObject* pParent = NULL,
+			GridObject* pParent = nullptr,
 			bool replacesParent = false
 		)
 		{
@@ -179,7 +179,7 @@ class CopyAttachmentHandler : public GridObserver
 		(
 			Grid* grid,
 			Edge* e,
-			GridObject* pParent = NULL,
+			GridObject* pParent = nullptr,
 			bool replacesParent = false
 		)
 		{
@@ -190,7 +190,7 @@ class CopyAttachmentHandler : public GridObserver
 		(
 			Grid* grid,
 			Face* f,
-			GridObject* pParent = NULL,
+			GridObject* pParent = nullptr,
 			bool replacesParent = false
 		)
 		{
@@ -201,7 +201,7 @@ class CopyAttachmentHandler : public GridObserver
 		(
 			Grid* grid,
 			Volume* vol,
-			GridObject* pParent = NULL,
+			GridObject* pParent = nullptr,
 			bool replacesParent = false
 		)
 		{
@@ -295,7 +295,7 @@ class CopyAttachmentHandler : public GridObserver
 			// copy from vMasters to vSlaves
 			if (pcl::NumProcs() > 1 && vertComm)
 			{
-				typedef typename GridLayoutMap::Types<TElem>::Layout layout_type;
+				using layout_type = typename GridLayoutMap::Types<TElem>::Layout;
 				DistributedGridManager& dgm = *m_spMG->distributed_grid_manager();
 				GridLayoutMap& glm = dgm.grid_layout_map();
 				pcl::InterfaceCommunicator<layout_type> icom;
@@ -306,7 +306,7 @@ class CopyAttachmentHandler : public GridObserver
 			}
 #endif
 			// iterate over all TElems of level
-			typedef typename geometry_traits<TElem>::const_iterator iter_type;
+			using iter_type = typename geometry_traits<TElem>::const_iterator;
 			iter_type iter = m_spMG->begin<TElem>(lvl);
 			iter_type iter_end = m_spMG->end<TElem>(lvl);
 			for (; iter != iter_end; ++iter)

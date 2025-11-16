@@ -56,19 +56,19 @@ template <typename TAlgebra, typename O_t>
 class SCCOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
-	typedef typename TAlgebra::matrix_type M_t;
-	typedef typename TAlgebra::vector_type V_t;
-	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> G_t;
-	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
+	using M_t = typename TAlgebra::matrix_type;
+	using V_t = typename TAlgebra::vector_type;
+	using G_t = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS>;
+	using baseclass = IOrderingAlgorithm<TAlgebra, O_t>;
 
-	typedef std::vector<size_t> ordering_container_type;
-	typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> ordering_algo_type;
+	using ordering_container_type = std::vector<size_t>;
+	using ordering_algo_type = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 
-	typedef boost::graph_traits<G_t>::vertex_descriptor vd_t;
-	typedef boost::graph_traits<G_t>::vertex_iterator vIt_t;
-	typedef boost::graph_traits<G_t>::adjacency_iterator nIt_t;
-	typedef boost::graph_traits<G_t>::adjacency_iterator adj_iter;
-	typedef boost::graph_traits<G_t>::in_edge_iterator inedge_iter;
+	using vd_t = boost::graph_traits<G_t>::vertex_descriptor;
+	using vIt_t = boost::graph_traits<G_t>::vertex_iterator;
+	using nIt_t = boost::graph_traits<G_t>::adjacency_iterator;
+	using adj_iter = boost::graph_traits<G_t>::adjacency_iterator;
+	using inedge_iter = boost::graph_traits<G_t>::in_edge_iterator;
 
 	SCCOrdering(){}
 

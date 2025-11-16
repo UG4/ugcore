@@ -47,7 +47,7 @@ template<typename T>
 VariableArray1<T>::VariableArray1()
 {
 	n = 0;
-	values = NULL;
+	values = nullptr;
 }
 
 
@@ -55,7 +55,7 @@ template<typename T>
 VariableArray1<T>::VariableArray1(size_t n_)
 {
 	n = 0;
-	values = NULL;
+	values = nullptr;
 	resize(n_, false);
 }
 
@@ -64,7 +64,7 @@ VariableArray1<T>::VariableArray1(const VariableArray1<T> &other)
 {
 	if(this == &other) return;
 	n = 0;
-	values = NULL;
+	values = nullptr;
 	resize(other.size(), false);
 	for(size_type i=0; i<n; i++)
 		values[i] = other[i];
@@ -73,7 +73,7 @@ VariableArray1<T>::VariableArray1(const VariableArray1<T> &other)
 template<typename T>
 VariableArray1<T>::~VariableArray1()
 {
-	if(values) { delete[] values; values = NULL; }
+	if(values) { delete[] values; values = nullptr; }
 	n = 0;
 }
 
@@ -96,13 +96,13 @@ VariableArray1<T>::resize(size_t newN, bool bCopyValues)
 	if(newN <= 0)
 	{
 		if(values) delete[] values;
-		values = NULL;
+		values = nullptr;
 		n = 0;
 		return true;
 	}
 	value_type *new_values = new T[newN];
-	UG_ASSERT(new_values != NULL, "out of memory");
-	if(new_values == NULL) return false;
+	UG_ASSERT(new_values != nullptr, "out of memory");
+	if(new_values == nullptr) return false;
 	memset(reinterpret_cast<void *> (new_values), 0, sizeof(T)*newN); // todo: think about that
 
 	if(bCopyValues)
@@ -181,7 +181,7 @@ std::ostream &operator << (std::ostream &out, const VariableArray1<T> &arr)
 template<typename T, eMatrixOrdering T_ordering>
 VariableArray2<T, T_ordering>::VariableArray2()
 {
-	values = NULL;
+	values = nullptr;
 	rows = 0;
 	cols = 0;
 }
@@ -190,7 +190,7 @@ VariableArray2<T, T_ordering>::VariableArray2()
 template<typename T, eMatrixOrdering T_ordering>
 VariableArray2<T, T_ordering>::VariableArray2(size_t rows, size_t cols)
 {
-	values = NULL;
+	values = nullptr;
 	rows = 0;
 	cols = 0;
 	resize(rows, cols);
@@ -200,7 +200,7 @@ template<typename T, eMatrixOrdering T_ordering>
 VariableArray2<T, T_ordering>::VariableArray2(const VariableArray2<T, T_ordering> &other)
 {
 	if(this == &other) return;
-	values = NULL;
+	values = nullptr;
 	rows = 0;
 	cols = 0;
 	resize(other.num_rows(), other.num_cols(), false);
@@ -211,7 +211,7 @@ VariableArray2<T, T_ordering>::VariableArray2(const VariableArray2<T, T_ordering
 template<typename T, eMatrixOrdering T_ordering>
 VariableArray2<T, T_ordering>::~VariableArray2()
 {
-	if(values) { delete[] values; values = NULL; }
+	if(values) { delete[] values; values = nullptr; }
 	rows = cols = 0;
 }
 
@@ -242,14 +242,14 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols, bool bCopy
 	{
 		rows = cols = 0;
 		if(values) delete[] values;
-		values = NULL;
+		values = nullptr;
 		return true;
 	}
 
 	value_type *new_values = new T[newRows*newCols];
 	memset(reinterpret_cast<void *> (new_values), 0, sizeof(T)*newRows*newCols); // todo: think about that
-	UG_ASSERT(new_values != NULL, "out of memory");
-	if(new_values==NULL) return false;
+	UG_ASSERT(new_values != nullptr, "out of memory");
+	if(new_values==nullptr) return false;
 	/*
 	if(storage_traits<value_type>::is_static)
 	{
@@ -311,7 +311,7 @@ std::ostream &operator << (std::ostream &out, const VariableArray2<T, T_ordering
 {
 	out << "[ ";
 	//out << "VariableArray2 (" << arr.num_rows() << "x" << arr.num_cols() << "), " << ((T_ordering == ColMajor) ? "ColMajor" : "RowMajor") << endl;
-	typedef size_t size_type;
+	using size_type  = size_t ;
 	for(size_type r=0; r<arr.num_rows(); r++)
 	{
 		for(size_type c=0; c<arr.num_cols(); c++)

@@ -62,8 +62,8 @@ template <class T>
 class OwnedPtr
 {
 	public:
-		typedef T* TPtr;
-		typedef T& TRef;
+		using TPtr = T*;
+		using TRef = T&;
 
 		OwnedPtr(TPtr p = 0) : m_p(p)	{}
 

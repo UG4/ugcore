@@ -106,7 +106,7 @@ void PrintElementEdgeRatios(Grid& grid, TIterator elemsBegin, TIterator elemsEnd
 							TAAPos aaPos)
 {
 	using namespace std;
-	typedef typename PtrToValueType<typename TIterator::value_type>::base_type	elem_t;
+	using elem_t = typename PtrToValueType<typename TIterator::value_type>::base_type;
 	UG_COND_THROW(elem_t::BASE_OBJECT_ID == VERTEX || elem_t::BASE_OBJECT_ID == EDGE,
 				  "Can't evaluate anisotropy statistics for vertices or edges.");
 

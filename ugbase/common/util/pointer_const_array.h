@@ -46,7 +46,7 @@ namespace ug
 ///	Container which holds an array of pointers
 /**	Gives access to an array of elements of type TPtr. TPtr is assumed to be a
  * pointer type and treated as thus. This means it has to support assignment
- * of NULL. Furthermore no destructors are called when an array is cleared or
+ * of nullptr. Furthermore no destructors are called when an array is cleared or
  * shrinks. Operators +(int) and ++ also have to be supported.
  *
  * The array provided by PointerArray is either managed by the PointerArray class
@@ -82,8 +82,8 @@ namespace ug
  */
 template <class TPtr>
 class PointerConstArray{
-	typedef TPtr const*	ConstPtrArray;
-	typedef TPtr*		PtrArray;
+	using ConstPtrArray = TPtr const*;
+	using PtrArray = TPtr*;
 
 	public:
 		PointerConstArray();

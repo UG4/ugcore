@@ -66,9 +66,9 @@ class MatrixRow
 	TMatrix &A;
 	size_t r;
 public:
-	typedef typename TMatrix::row_iterator iterator;
-	typedef typename TMatrix::const_row_iterator const_iterator;
-	typedef typename TMatrix::value_type value_type;
+	using iterator = typename TMatrix::row_iterator;
+	using const_iterator = typename TMatrix::const_row_iterator;
+	using value_type = typename TMatrix::value_type;
 	MatrixRow(TMatrix &_A, size_t _r) : A(_A), r(_r)
 	{
 	}
@@ -119,8 +119,9 @@ class ConstMatrixRow
 	const TMatrix &A;
 	size_t r;
 public:
-	typedef typename TMatrix::const_row_iterator const_iterator;
-	typedef typename TMatrix::value_type value_type;
+	using const_iterator = typename TMatrix::const_row_iterator;
+	using value_type = typename TMatrix::value_type;
+
 	ConstMatrixRow(const TMatrix &_A, size_t _r) : A(_A), r(_r)
 	{
 	}

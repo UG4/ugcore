@@ -68,8 +68,8 @@ namespace ug{
 class cgraph
 {
 public:
-	typedef const size_t * const_row_iterator;
-	typedef size_t * row_iterator;
+	using const_row_iterator = const size_t *;
+	using row_iterator = size_t *;
 public:
 	/** constructor
 	 */
@@ -89,7 +89,7 @@ public:
 	{
 		consmem.resize(10*n, 0);
 		iMaxTotalNrOfConnections = consmem.size();
-		cons.resize(n+1, NULL);
+		cons.resize(n+1, nullptr);
 		iTotalNrOfConnections = 0;
 	}
 
@@ -103,14 +103,14 @@ public:
 	size_t num_connections(size_t node) const
 	{
 		size_check(node);
-		if(cons[node+1] == NULL) return 0;
+		if(cons[node+1] == nullptr) return 0;
 		return cons[node+1]-cons[node];
 	}
 
 	bool is_isolated(size_t i) const
 	{
 		size_check(i);
-		if(cons[i+1] == NULL) return false;
+		if(cons[i+1] == nullptr) return false;
 		return num_connections(i)==0 ||
 				(num_connections(i)==1 && cons[i][0] == i);
 	}
@@ -127,7 +127,7 @@ public:
 		int j;
 		for(j=i; j>0; j--)
 		{
-			if(cons[j] != NULL)
+			if(cons[j] != nullptr)
 				break;
 		}
 
@@ -138,7 +138,7 @@ public:
 			j = 1;
 		}
 
-		while(j<=i && cons[j+1] == NULL)
+		while(j<=i && cons[j+1] == nullptr)
 		{
 			cons[j+1] = cons[j];
 			j++;
@@ -149,12 +149,12 @@ public:
 	{
 		size_check(from, to);
 
-		UG_ASSERT(from == size()-1 || cons[from+2] == NULL, "only from back to front! ( from is " << from
+		UG_ASSERT(from == size()-1 || cons[from+2] == nullptr, "only from back to front! ( from is " << from
 				<< ", cons[from+2] = " << cons[from+2] << "\n");
 
-		if(cons[from+1]==NULL)
+		if(cons[from+1]==nullptr)
 			init(from);
-		UG_ASSERT(cons[from+1]!=NULL, "??? (from = " << from << ", size = " << size());
+		UG_ASSERT(cons[from+1]!=nullptr, "??? (from = " << from << ", size = " << size());
 
 		if(iTotalNrOfConnections+1 >= iMaxTotalNrOfConnections)
 			increase_maxtotalnrofconnections();
@@ -168,7 +168,7 @@ public:
 	row_iterator begin_row(size_t row)
 	{
 		size_check(row);
-		if(cons[row+1] == NULL) return NULL;
+		if(cons[row+1] == nullptr) return nullptr;
 		return cons[row];
 	}
 
@@ -181,7 +181,7 @@ public:
 	const_row_iterator begin_row(size_t row) const
 	{
 		size_check(row);
-		if(cons[row+1] == NULL) return NULL;
+		if(cons[row+1] == nullptr) return nullptr;
 		return cons[row];
 	}
 
@@ -296,7 +296,7 @@ private:
 		{
 			for(size_t i=0; i<consmem; i++)
 			{
-				if(cons[i] == NULL) continue;
+				if(cons[i] == nullptr) continue;
 				cons[i] -= pOld;
 				cons[i] += pNew;
 			}

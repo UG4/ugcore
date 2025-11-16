@@ -49,7 +49,7 @@ namespace ug
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-///	returns the shared side between the two elements or NULL if no such side exists.
+///	returns the shared side between the two elements or nullptr if no such side exists.
 template <class TElem>
 UG_API
 typename TElem::side*

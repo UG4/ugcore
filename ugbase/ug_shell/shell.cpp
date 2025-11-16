@@ -77,7 +77,7 @@ namespace bridge
 		quit=false;
 		string ret;
 		char *str=readline(prompt);
-		if(str==NULL)
+		if(str==nullptr)
 			ret="";
 		else ret=str;
 		free(str);
@@ -94,7 +94,7 @@ namespace bridge
 			quit=false;
 			string ret;
 			char *str=linenoise(prompt);
-			if(str==NULL)
+			if(str==nullptr)
 			{
 				quit=true;
 				ret="";
@@ -134,11 +134,11 @@ void InitShell()
 // normal shell
 int RunShell(const char *prompt)
 {
-	if(prompt == NULL) prompt=UG_PROMPT;
+	if(prompt == nullptr) prompt=UG_PROMPT;
 
 	//	run the shell
 	const char *completitions[] ={"quit", "exit"};
-	while(1)
+	while(true)
 	{
 #if defined(UG_USE_LINENOISE)
 		SetOtherCompletions(completitions, sizeof(completitions)/sizeof(completitions[0]));
@@ -153,13 +153,13 @@ int RunShell(const char *prompt)
 
 
 #if defined(UG_USE_LINENOISE)
-		SetOtherCompletions(NULL, 0);
+		SetOtherCompletions(nullptr, 0);
 #endif
 		if(quit) break;
 		size_t len = buf.length();
 		if(len)
 		{
-			if(buf.compare("exit")==0 || buf.compare("quit")==0)
+			if(buf=="exit" || buf=="quit")
 				break;
 
 			ug_cacheline(buf);
@@ -167,19 +167,19 @@ int RunShell(const char *prompt)
 			if(buf[len-1]=='?')
 			{
 				buf.resize(len-1);
-				bridge::UGTypeInfo(buf.c_str());
+				UGTypeInfo(buf.c_str());
 				continue;
 			}
 			if(len > 6 && strncmp(buf.c_str(), "print ", 6)==0 && buf[6] != '(')
 			{
-				script::ParseAndExecuteBuffer((std::string("PrintTemporaryObject=")+buf.substr(6)).c_str(), "debug shell");
-				bridge::UGTypeInfo("PrintTemporaryObject");
+				ParseAndExecuteBuffer((std::string("PrintTemporaryObject=")+buf.substr(6)).c_str(), "debug shell");
+				UGTypeInfo("PrintTemporaryObject");
 				continue;
 			}
 
 			try
 			{
-				script::ParseAndExecuteBuffer(buf.c_str(), "interactive shell");
+				ParseAndExecuteBuffer(buf.c_str(), "interactive shell");
 			}
 			catch(LuaError& err)
 			{
@@ -213,7 +213,7 @@ debug_return DebugShell()
 
 	static string last="";
 
-	ug::bridge::LuaStackTrace(0);
+	LuaStackTrace(0);
 	//ug::bridge::LuaPrintCurrentLine(GetDefaultLuaState());
 
 #ifdef UG_PARALLEL
@@ -227,7 +227,7 @@ debug_return DebugShell()
 	//	run the shell
 	const char *completitions[]={"quit", "exit", "step", "next", "cont", "continue", "finish", "list", "backtrace", "bt",
 			"up", "down"};
-	while(1)
+	while(true)
 	{
 #if defined(UG_USE_LINENOISE)
 		SetOtherCompletions(completitions, sizeof(completitions)/sizeof(completitions[0]));
@@ -241,7 +241,7 @@ debug_return DebugShell()
 
 
 #if defined(UG_USE_LINENOISE)
-		SetOtherCompletions(NULL, 0);
+		SetOtherCompletions(nullptr, 0);
 #endif
 		if(quit) return DEBUG_EXIT;
 		size_t len = buf.length();
@@ -259,32 +259,32 @@ debug_return DebugShell()
 			}
 		}
 
-		if(buf.compare("exit")==0 || buf.compare("quit")==0)
+		if(buf=="exit" || buf=="quit")
 			return DEBUG_EXIT;
-		else if(buf.compare("continue")==0 || buf.compare("cont")==0)
+		else if(buf=="continue" || buf=="cont")
 			return DEBUG_CONTINUE;
-		else if(buf.compare("next")==0)
+		else if(buf=="next")
 			return DEBUG_NEXT;
-		else if(buf.compare("step")==0)
+		else if(buf=="step")
 			return DEBUG_STEP;
-		else if(buf.compare("finish")==0)
+		else if(buf=="finish")
 			return DEBUG_FINISH;
-		else if(buf.compare("list")==0)
+		else if(buf=="list")
 		{
 			DebugList();
 			continue;
 		}
-		else if(buf.compare("backtrace")==0 || buf.compare("bt")==0)
+		else if(buf=="backtrace" || buf=="bt")
 		{
 			DebugBacktrace(0);
 			continue;
 		}
-		else if(buf.compare("up")==0)
+		else if(buf=="up")
 		{
 			DebugUp();
 			continue;
 		}
-		else if(buf.compare("down")==0)
+		else if(buf=="down")
 		{
 			DebugDown();
 			continue;

@@ -43,8 +43,8 @@ namespace ug{
 template <typename TDomain, typename TAlgebra>
 class MGStats {
 	public:
-		typedef GridFunction<TDomain, TAlgebra> grid_func_t;
-		typedef SmartPtr<grid_func_t>			sp_grid_func_t;
+		using grid_func_t = GridFunction<TDomain, TAlgebra>;
+		using sp_grid_func_t = SmartPtr<grid_func_t>;
 
 
 	///	Defines at which stage data is recorded in a given multigrid cycle
@@ -56,7 +56,7 @@ class MGStats {
 			INVALID					// always last!
 		};
 
-		static const int NUM_STAGES = INVALID + 1;
+		static constexpr int NUM_STAGES = INVALID + 1;
 
 		MGStats();
 

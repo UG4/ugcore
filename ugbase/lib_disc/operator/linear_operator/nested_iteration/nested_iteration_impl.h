@@ -57,9 +57,9 @@ template <typename TDomain, typename TAlgebra>
 NestedIterationSolver<TDomain,TAlgebra>::
 NestedIterationSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver) :
 			m_spLinearSolver(LinearSolver),
-			m_N(NULL),
-			m_J(NULL),
-			m_spAss(NULL),
+			m_N(nullptr),
+			m_J(nullptr),
+			m_spAss(nullptr),
 			m_dgbCall(0),
 			m_lastNumSteps(0),
 			m_bUseAdaptiveRefinement(true),
@@ -69,10 +69,10 @@ NestedIterationSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolve
 template <typename TDomain, typename TAlgebra>
 NestedIterationSolver<TDomain,TAlgebra>::
 NestedIterationSolver() :
-	m_spLinearSolver(NULL),
-	m_N(NULL),
-	m_J(NULL),
-	m_spAss(NULL),
+	m_spLinearSolver(nullptr),
+	m_N(nullptr),
+	m_J(nullptr),
+	m_spAss(nullptr),
 	m_dgbCall(0),
 	m_lastNumSteps(0),
 	m_bUseAdaptiveRefinement(true),
@@ -82,10 +82,10 @@ NestedIterationSolver() :
 template <typename TDomain, typename TAlgebra>
 NestedIterationSolver<TDomain,TAlgebra>::
 NestedIterationSolver(SmartPtr<IOperator<vector_type> > N) :
-	m_spLinearSolver(NULL),
-	m_N(NULL),
-	m_J(NULL),
-	m_spAss(NULL),
+	m_spLinearSolver(nullptr),
+	m_N(nullptr),
+	m_J(nullptr),
+	m_spAss(nullptr),
 	m_dgbCall(0),
 	m_lastNumSteps(0),
 	m_bUseAdaptiveRefinement(true),
@@ -97,9 +97,9 @@ NestedIterationSolver(SmartPtr<IOperator<vector_type> > N) :
 template <typename TDomain, typename TAlgebra>
 NestedIterationSolver<TDomain,TAlgebra>::
 NestedIterationSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
-	m_spLinearSolver(NULL),
-	m_N(NULL),
-	m_J(NULL),
+	m_spLinearSolver(nullptr),
+	m_N(nullptr),
+	m_J(nullptr),
 	m_spAss(spAss),
 	m_spDomErr(spAss),
 	m_dgbCall(0),
@@ -115,9 +115,9 @@ NestedIterationSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
 template <typename TDomain, typename TAlgebra>
 NestedIterationSolver<TDomain,TAlgebra>::
 NestedIterationSolver(SmartPtr<IAssemble<TAlgebra> > spAss, SmartPtr<IAssemble<TAlgebra> > spDomErr) :
-	m_spLinearSolver(NULL),
-	m_N(NULL),
-	m_J(NULL),
+	m_spLinearSolver(nullptr),
+	m_N(nullptr),
+	m_J(nullptr),
 	m_spAss(spAss),
 	m_spDomErr(spDomErr),
 	m_dgbCall(0),
@@ -158,8 +158,8 @@ void NestedIterationSolver<TDomain,TAlgebra>::estimate_and_mark_domain(const gri
 {
 	  UG_LOG("Computing error... "<< std::endl);
 
-	  typedef DomainDiscretization<TDomain, TAlgebra> domain_disc_type;
-	 //  typedef IDomainErrorIndicator<TAlgebra> domain_indicator_type;
+	  using domain_disc_type = DomainDiscretization<TDomain, TAlgebra>;
+	  //using domain_indicator_type = IDomainErrorIndicator<TAlgebra>;
 
 	  SmartPtr<domain_disc_type> spDomainEstimator = m_spDomErr.template cast_dynamic<domain_disc_type>();
 
@@ -191,7 +191,7 @@ void NestedIterationSolver<TDomain,TAlgebra>::estimate_and_mark_domain(const gri
 template <typename TDomain, typename TAlgebra>
 number NestedIterationSolver<TDomain,TAlgebra>::coarsen_domain(const grid_function_type& u)
 {
-	/*typedef typename domain_traits<TDomain::dim>::element_type TElem;
+	/*using TElem = typename domain_traits<TDomain::dim>::element_type;
 	SmartPtr<DoFDistribution> spDD=u.dof_distribution();
 	m_spRefiner->mark(spDD->begin<TElem>(), spDD->end<TElem>(), RM_COARSEN);
 	m_spRefiner->coarsen();*/

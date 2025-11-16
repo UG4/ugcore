@@ -41,7 +41,8 @@ namespace ug {
 template <int N>
 struct Int2Type {
 	enum{ value = N};
-	typedef int value_type;
+
+	using value_type = int;
 };
 
 template <class T>
@@ -49,7 +50,7 @@ struct Pointer2Value{};
 
 template <class T>
 struct Pointer2Value<T*>{
-	typedef T type;
+	using type = T;
 };
 
 //////////////////////////////
@@ -94,9 +95,9 @@ template
 >
 struct TypeList
 {
-  typedef T1 head;
-  typedef TypeList< T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12 > tail;
-  enum{length = tail::length+1};
+	using head = T1;
+	using tail = TypeList< T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12 >;
+	enum{length = tail::length+1};
 };
 
 // empty typelist specialization
@@ -115,8 +116,8 @@ struct TypeList< EmptyType, EmptyType, EmptyType, EmptyType,
 // TypeList
 template <typename TTypeList> struct TypeValueList
 {
-	typedef typename TTypeList::head head;
-	typedef typename TTypeList::tail tail;
+	using head = typename TTypeList::head;
+	using tail = typename TTypeList::tail;
 
 	head hd;
 	TypeValueList<tail> tl;

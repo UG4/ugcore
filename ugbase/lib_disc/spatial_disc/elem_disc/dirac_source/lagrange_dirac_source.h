@@ -74,22 +74,22 @@ class DiracSourceDisc
 
 	public:
 	///	Base class type
-		typedef IElemDisc<TDomain> base_type;
+		using base_type = IElemDisc<TDomain>;
 
 	///	Domain type
-		typedef typename base_type::domain_type domain_type;
+		using domain_type = typename base_type::domain_type;
 
 	///	World dimension
-		static const int dim = base_type::dim;
+		static constexpr int dim = base_type::dim;
 
-		static const int _C_ = 0;
+		static constexpr int _C_ = 0;
 
 	///	Position type
-		typedef typename base_type::position_type position_type;
+		using position_type = typename base_type::position_type;
 
 	private:
 	///	own type
-		typedef DiracSourceDisc<TDomain> this_type;
+		using this_type = DiracSourceDisc<TDomain>;
 
 
 	public:
@@ -218,7 +218,7 @@ class DiracSourceDisc
 		template <typename TElem, typename TFVGeom>
 		void register_func();
 	public:
-		typedef SmartPtr<CplUserData<number, dim> > NumberExport;
+		using NumberExport = SmartPtr<CplUserData<number, dim> >;
 
 	protected:
 		///	Export for the concentration

@@ -45,10 +45,10 @@ class DimReferenceMappingWrapper
 {
 	public:
 	///	world dimension (range space dimension)
-		static const int worldDim = TRefMapping::worldDim;
+		static constexpr int worldDim = TRefMapping::worldDim;
 
 	///	reference dimension (domain space dimension)
-		static const int dim = TRefMapping::dim;
+		static constexpr int dim = TRefMapping::dim;
 
 	public:
 	///	returns if mapping is affine
@@ -225,7 +225,7 @@ ReferenceMappingProvider()
 	for(int d = 0; d < 4; ++d)
 		for(int rd = 0; rd < 4; ++rd)
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
-				m_vvvMapping[d][rd][roid] = NULL;
+				m_vvvMapping[d][rd][roid] = nullptr;
 
 //	set mappings
 

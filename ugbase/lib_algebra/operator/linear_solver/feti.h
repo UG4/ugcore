@@ -93,13 +93,13 @@ class FetiLayouts
 {
 	public:
 	// 	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	// 	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	// 	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	public:
 		FetiLayouts() {}
@@ -541,13 +541,13 @@ class LocalSchurComplement
 {
 	public:
 	// 	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	// 	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	// 	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	protected:
 		using DebugWritingObject<TAlgebra>::write_debug;
@@ -688,16 +688,16 @@ class PrimalSubassembledMatrixInverse
 {
 	public:
 	// 	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	// 	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	// 	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Base type
-		typedef ILinearOperatorInverse<vector_type> base_type;
+		using base_type = ILinearOperatorInverse<vector_type>;
 
 	protected:
 		using base_type::convergence_check;
@@ -846,16 +846,16 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 {
 	public:
 	// 	Algebra type
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	// 	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	// 	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Base type
-		typedef ILinearOperatorInverse<vector_type> base_type;
+	using base_type = ILinearOperatorInverse<vector_type>;
 
 	protected:
 		using base_type::convergence_check;
@@ -1040,7 +1040,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 			name.append(ext);
 
 		//	if no debug writer set, we're done
-			if(debug_writer() == SPNULL) return;
+			if(debug_writer() == nullptr) return;
 
 		//	write
 			debug_writer()->write_vector(vec, name.c_str());

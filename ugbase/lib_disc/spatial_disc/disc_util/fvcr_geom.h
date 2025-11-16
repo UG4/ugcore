@@ -66,8 +66,8 @@ namespace ug{
 
 template <int TWorldDim,int nrfaceco> struct crfv_traits
 {
-    typedef void scv_type;
-    typedef void face_type;
+	using scv_type = void;
+    using face_type = void;
 	static const size_t maxNumSCVF;
 	static const size_t maxNumSCV;
 	static const size_t maxNSH;
@@ -76,62 +76,62 @@ template <int TWorldDim,int nrfaceco> struct crfv_traits
 
 template <> struct crfv_traits<1, 1>
 {
-    typedef ReferenceEdge scv_type;
-    typedef ReferenceVertex face_type;
-	static const size_t maxNumSCVF = 1;
-	static const size_t maxNumSCV = 2;
-	static const size_t maxNSH = maxNumSCV;
-	static const size_t maxNumCo = 2;
+	using scv_type = ReferenceEdge;
+	using face_type = ReferenceVertex;
+	static constexpr size_t maxNumSCVF = 1;
+	static constexpr size_t maxNumSCV = 2;
+	static constexpr size_t maxNSH = maxNumSCV;
+	static constexpr size_t maxNumCo = 2;
 };
 
 template <> struct crfv_traits<1, 2>
 {
-	typedef ReferenceEdge scv_type;
-    typedef ReferenceVertex face_type;
-	static const size_t maxNumSCVF = 1;
-	static const size_t maxNumSCV = 2;
-	static const size_t maxNSH = maxNumSCV;
-	static const size_t maxNumCo = 2;
+	using scv_type = ReferenceEdge;
+	using face_type = ReferenceVertex;
+	static constexpr size_t maxNumSCVF = 1;
+	static constexpr size_t maxNumSCV = 2;
+	static constexpr size_t maxNSH = maxNumSCV;
+	static constexpr size_t maxNumCo = 2;
 };
 
 template <> struct crfv_traits<2, 2>
 {
-    typedef ReferenceTriangle scv_type;
-    typedef ReferenceEdge face_type;
-	static const size_t maxNumSCVF = 4;
-	static const size_t maxNumSCV = 4;
-	static const size_t maxNSH = maxNumSCV;
-	static const size_t maxNumCo = 4;
+	using scv_type = ReferenceTriangle;
+    using face_type = ReferenceEdge;
+	static constexpr size_t maxNumSCVF = 4;
+	static constexpr size_t maxNumSCV = 4;
+	static constexpr size_t maxNSH = maxNumSCV;
+	static constexpr size_t maxNumCo = 4;
 };
 
 template <> struct crfv_traits<2, 3>
 {
-    typedef ReferenceTriangle scv_type;
-    typedef ReferenceEdge face_type;
-	static const size_t maxNumSCVF = 4;
-	static const size_t maxNumSCV = 4;
-	static const size_t maxNSH = maxNumSCV;
-	static const size_t maxNumCo = 4;
+	using scv_type = ReferenceTriangle;
+	using face_type = ReferenceEdge;
+	static constexpr size_t maxNumSCVF = 4;
+	static constexpr size_t maxNumSCV = 4;
+	static constexpr size_t maxNSH = maxNumSCV;
+	static constexpr size_t maxNumCo = 4;
 };
 
 template <> struct crfv_traits<3, 3>
 {
-	typedef ReferenceTetrahedron scv_type;
-    typedef ReferenceTriangle face_type;
-	static const size_t maxNumSCVF = 10;
-	static const size_t maxNumSCV = 6;
-	static const size_t maxNSH = maxNumSCV;
-	static const size_t maxNumCo = 8;
+	using scv_type = ReferenceTetrahedron;
+	using face_type = ReferenceTriangle;
+	static constexpr size_t maxNumSCVF = 10;
+	static constexpr size_t maxNumSCV = 6;
+	static constexpr size_t maxNSH = maxNumSCV;
+	static constexpr size_t maxNumCo = 8;
 };
 
 template <> struct crfv_traits<3, 4>
 {
-    typedef ReferencePyramid scv_type;
-    typedef ReferenceQuadrilateral face_type;
-	static const size_t maxNumSCVF = 10;
-	static const size_t maxNumSCV = 6;
-	static const size_t maxNSH = maxNumSCV;
-	static const size_t maxNumCo = 8;
+	using scv_type = ReferencePyramid;
+	using face_type = ReferenceQuadrilateral;
+	static constexpr size_t maxNumSCVF = 10;
+	static constexpr size_t maxNumSCV = 6;
+	static constexpr size_t maxNSH = maxNumSCV;
+	static constexpr size_t maxNumCo = 8;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -166,45 +166,45 @@ class DimCRFVGeometry : public FVGeometryBase
 {
 	public:
 	///	used traits
-		typedef crfv_traits<TDim, TDim> traits;
-		typedef hcrfv_traits<TDim, TDim> htraits;
+	using traits = crfv_traits<TDim, TDim>;
+	using htraits = hcrfv_traits<TDim, TDim>;
 
 	public:
 	///	dimension of reference element
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	///	dimension of world
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	Hanging node flag: this Geometry does not support hanging nodes
-		static const bool usesHangingNodes = false;
+		static constexpr bool usesHangingNodes = false;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = false;
+		static constexpr bool staticLocalData = false;
 
 	public:
 	///	order
-		static const int order = 1;
+		static constexpr int order = 1;
 
 	///	number of SubControlVolumes
-		static const size_t maxNumSCV = htraits::maxNumSCV;
+		static constexpr size_t maxNumSCV = htraits::maxNumSCV;
 
 	///	traits
-		typedef typename crfv_traits<TWorldDim,TWorldDim>::scv_type scv_type0;
-	    typedef typename crfv_traits<TWorldDim,TWorldDim>::face_type face_type0;
-	    typedef typename crfv_traits<TWorldDim,TWorldDim+1>::scv_type scv_type1;
-	    typedef typename crfv_traits<TWorldDim,TWorldDim+1>::face_type face_type1;
+		using scv_type0 = typename crfv_traits<TWorldDim,TWorldDim>::scv_type;
+		using face_type0 = typename crfv_traits<TWorldDim,TWorldDim>::face_type;
+		using scv_type1 = typename crfv_traits<TWorldDim,TWorldDim+1>::scv_type;
+		using face_type1 = typename crfv_traits<TWorldDim,TWorldDim+1>::face_type;
 
 	///	max number of SubControlVolumeFaces
-		static const size_t maxNumSCVF = htraits::maxNumSCVF;
+		static constexpr size_t maxNumSCVF = htraits::maxNumSCVF;
 
 	/// max number of shape functions
-		static const size_t maxNSH = htraits::maxNSH;
+		static constexpr size_t maxNSH = htraits::maxNSH;
 
-		static const size_t maxNumCo = traits::maxNumCo;
+		static constexpr size_t maxNumCo = traits::maxNumCo;
 
 	/// number of integration points
-		static const size_t nip = 1;
+		static constexpr size_t nip = 1;
 
 	// local/global element barycenter
 		MathVector<dim> localBary;
@@ -225,7 +225,7 @@ class DimCRFVGeometry : public FVGeometryBase
 		{
 			public:
 			///	Number of corners of scvf
-				static const size_t numCo = dim;
+				static constexpr size_t numCo = dim;
 
 			public:
 				SCVF() {}
@@ -342,7 +342,7 @@ class DimCRFVGeometry : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of scv
-				static const size_t maxNumCo = 5;
+				static constexpr size_t maxNumCo = 5;
 
 			public:
 				SCV() : numCorners(maxNumCo) {};
@@ -441,7 +441,7 @@ class DimCRFVGeometry : public FVGeometryBase
 		{
 			public:
 			/// max number of corners of bf
-				static const size_t maxNumCo=4;
+				static constexpr size_t maxNumCo=4;
 
 			public:
 				BF() {}
@@ -535,7 +535,7 @@ class DimCRFVGeometry : public FVGeometryBase
 		class CONSTRAINED_DOF
 		{
 			public:
-				static const size_t maxNumConstrainingDofs = 4;
+				static constexpr size_t maxNumConstrainingDofs = 4;
 				inline size_t constraining_dofs_index(size_t i) const{
 					return cDofInd[i];
 				}
@@ -574,27 +574,27 @@ class DimCRFVGeometry : public FVGeometryBase
 
 	public:
 	/// construct object and initialize local values and sizes
-		DimCRFVGeometry() : m_pElem(NULL), m_roid(ROID_UNKNOWN) {};
+		DimCRFVGeometry() : m_pElem(nullptr), m_roid(ROID_UNKNOWN) {};
 
 	///	update local data
 		void update_local_data();
 
 	/// update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL);
+		            const ISubsetHandler* ish = nullptr);
 					
 	/// update data for given element
 		void update_hanging(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL,bool keepSCV=false,bool keepSCVF=false);
+		            const ISubsetHandler* ish = nullptr,bool keepSCV=false,bool keepSCVF=false);
 					
 	/// update data for given element
 		void update_geometric_data(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL);
+		            const ISubsetHandler* ish = nullptr);
 
 	/// update boundary data for given element
 		void update_boundary_faces(GridObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
-		                           const ISubsetHandler* ish = NULL);
+		                           const ISubsetHandler* ish = nullptr);
 
 	/// number of SubControlVolumeFaces
 		inline size_t num_scvf() const {return m_numSCVF;};
@@ -753,7 +753,7 @@ class DimCRFVGeometry : public FVGeometryBase
 	
 		size_t m_numConstrainedSCVF;
 
-		static const size_t deleted = 117;
+		static constexpr size_t deleted = 117;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -762,54 +762,54 @@ class DimCRFVGeometry : public FVGeometryBase
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-template <	typename TElem, int TWorldDim>
+template <typename TElem, int TWorldDim>
 class CRFVGeometry : public FVGeometryBase
 {
 	public:
 	///	type of element
-		typedef TElem elem_type;
+		using elem_type = TElem;
 
 	///	type of reference element
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+		using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	///	dimension of reference element
-		static const int dim = ref_elem_type::dim;
+		static constexpr int dim = ref_elem_type::dim;
 
 	///	dimension of world
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	Hanging node flag: this Geometry does not support hanging nodes
-		static const bool usesHangingNodes = false;
+		static constexpr bool usesHangingNodes = false;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = true;
+		static constexpr bool staticLocalData = true;
 
 	///	type of Shape function used
-		typedef CrouzeixRaviartLSFS<ref_elem_type> local_shape_fct_set_type;
+		using local_shape_fct_set_type = CrouzeixRaviartLSFS<ref_elem_type>;
 
 	///	number of shape functions
-		static const size_t nsh = local_shape_fct_set_type::nsh;
+		static constexpr size_t nsh = local_shape_fct_set_type::nsh;
 
 	///	number of SubControlVolumes
-		static const size_t numSCV = nsh;
+		static constexpr size_t numSCV = nsh;
 
 	///	number of SubControlVolumeFaces
-		static const size_t numSCVF = ref_elem_type::numEdges;
+		static constexpr size_t numSCVF = ref_elem_type::numEdges;
 		
-		static const size_t maxNumSCVF = ref_elem_type::numEdges;
+		static constexpr size_t maxNumSCVF = ref_elem_type::numEdges;
 
 	public:
 	///	order
-		static const int order = 1;
+		static constexpr int order = 1;
 
 	///	traits
-		typedef typename crfv_traits<TWorldDim,TWorldDim>::scv_type scv_type0;
-	    typedef typename crfv_traits<TWorldDim,TWorldDim>::face_type face_type0;
-	    typedef typename crfv_traits<TWorldDim,TWorldDim+1>::scv_type scv_type1;
-	    typedef typename crfv_traits<TWorldDim,TWorldDim+1>::face_type face_type1;
+		using scv_type0 = typename crfv_traits<TWorldDim,TWorldDim>::scv_type;
+		using face_type0 = typename crfv_traits<TWorldDim,TWorldDim>::face_type;
+		using scv_type1 = typename crfv_traits<TWorldDim,TWorldDim+1>::scv_type;
+		using face_type1 = typename crfv_traits<TWorldDim,TWorldDim+1>::face_type;
 
 	/// number of integration points
-		static const size_t nip = 1;
+		static constexpr size_t nip = 1;
 
 	// local/global element barycenter
 		MathVector<dim> localBary;
@@ -830,10 +830,10 @@ class CRFVGeometry : public FVGeometryBase
 		{
 			public:
 			///	Number of corners of scvf
-				static const size_t numCo = dim;
+				static constexpr size_t numCo = dim;
 
 			public:
-				SCVF() {}
+				SCVF() = default;
 
 			/// index of SubControlVolume on one side of the scvf
 				inline size_t from() const {return From;}
@@ -924,7 +924,7 @@ class CRFVGeometry : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of scv
-				static const size_t maxNumCo = 5;
+				static constexpr size_t maxNumCo = 5;
 
 			public:
 				SCV() : numCorners(maxNumCo) {};
@@ -1023,10 +1023,10 @@ class CRFVGeometry : public FVGeometryBase
 		{
 			public:
 			/// max number of corners of bf
-				static const size_t maxNumCo=4;
+				static constexpr size_t maxNumCo=4;
 
 			public:
-				BF() {}
+				BF() = default;
 
 			/// index of SubControlVolume of the bf
 				inline size_t node_id() const {return nodeID;}
@@ -1122,12 +1122,12 @@ class CRFVGeometry : public FVGeometryBase
 
 	/// update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL);
+		            const ISubsetHandler* ish = nullptr);
 
 	/// update boundary data for given element
 		void update_boundary_faces(GridObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
-		                           const ISubsetHandler* ish = NULL);
+		                           const ISubsetHandler* ish = nullptr);
 								   
 		const MathVector<worldDim>* corners() const {return m_vCo;}							
 
@@ -1181,7 +1181,7 @@ class CRFVGeometry : public FVGeometryBase
 		MathVector<worldDim> m_vGlobUnkCoords[numSCV];
 		MathVector<dim> m_vLocUnkCoords[numSCV];
 		
-		static const size_t numMaxCo = 8;
+		static constexpr size_t numMaxCo = 8;
 	 // corner coordinates
 		MathVector<worldDim> m_vCo[numMaxCo];
 

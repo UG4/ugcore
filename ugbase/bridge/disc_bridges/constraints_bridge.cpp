@@ -77,7 +77,7 @@ struct Functionality
  * available Domain and Algebra types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TDomain, typename TAlgebra>
 static void DomainAlgebra(Registry& reg, string grp)
@@ -85,13 +85,12 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-//	typedef
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 
 //	IDomainConstraint
 	{
-		typedef IConstraint<TAlgebra> TBase;
-		typedef IDomainConstraint<TDomain, TAlgebra> T;
+		using TBase = IConstraint<TAlgebra>;
+		using T = IDomainConstraint<TDomain, TAlgebra>;
 		string name = string("IDomainConstraint").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("set_error_estimator", &T::set_error_estimator, "", "error estimator data object");
@@ -100,8 +99,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	OneSideP1Constraints
 	{
-		typedef OneSideP1Constraints<TDomain, TAlgebra> T;
-		typedef IDomainConstraint<TDomain, TAlgebra> baseT;
+		using T = OneSideP1Constraints<TDomain, TAlgebra>;
+		using baseT = IDomainConstraint<TDomain, TAlgebra>;
 		string name = string("OneSideP1Constraints").append(suffix);
 		reg.add_class_<T, baseT>(name, grp)
 			.add_constructor()
@@ -111,8 +110,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	SymP1Constraints
 	{
-		typedef SymP1Constraints<TDomain, TAlgebra> T;
-		typedef IDomainConstraint<TDomain, TAlgebra> baseT;
+		using T = SymP1Constraints<TDomain, TAlgebra>;
+		using baseT = IDomainConstraint<TDomain, TAlgebra>;
 		string name = string("SymP1Constraints").append(suffix);
 		reg.add_class_<T, baseT>(name, grp)
 			.add_constructor()
@@ -122,8 +121,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	DirichletBoundary
 	{
-		typedef DirichletBoundary<TDomain, TAlgebra> T;
-		typedef IDomainConstraint<TDomain, TAlgebra> TBase;
+		using T = DirichletBoundary<TDomain, TAlgebra>;
+		using TBase = IDomainConstraint<TDomain, TAlgebra>;
 		string name = string("DirichletBoundary").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)()>()
@@ -182,7 +181,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 void RegisterBridge_Constraints(Registry& reg, string grp)
 {
 	grp.append("/Discretization/SpatialDisc");
-	typedef Constraints::Functionality Functionality;
+	using Functionality = Constraints::Functionality;
 
 	try{
 		RegisterDomainAlgebraDependent<Functionality>(reg,grp);

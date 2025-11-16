@@ -51,7 +51,7 @@ void MarkForAnisotropicRefinement (
 			TAAPos aaPos)
 {
 	using namespace std;
-	typedef typename TIter::value_type	elem_ptr_t;
+	using elem_ptr_t = typename TIter::value_type;
 
 	number minEdgeRatioSq = sq(minEdgeRatio);
 	Grid::edge_traits::secure_container	assEdges;
@@ -106,7 +106,7 @@ void MarkForRefinementByDirection (
 {
 	UG_COND_THROW(!ref.grid(), "The given refiner has to operate on a grid");
 
-	typedef typename TAAPos::ValueType	vector_t;
+	using vector_t = typename TAAPos::ValueType;
 
 	Grid& g = *ref.grid();
 

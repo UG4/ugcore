@@ -110,8 +110,8 @@ class ExportedMethod : public ExportedFunctionBase
 {
 	public:
 	// all c++ functions are wrapped by a proxy function of the following type
-		typedef void (*ProxyFunc)(const MethodPtrWrapper& func, void* obj,
-								  const ParameterStack& in, ParameterStack& out);
+		using ProxyFunc = void(*)(const MethodPtrWrapper& func, void* obj,
+	                          const ParameterStack& in, ParameterStack& out);
 
 	public:
 		ExportedMethod(	const MethodPtrWrapper& m, ProxyFunc pf,
@@ -178,7 +178,7 @@ class ExportedMethod : public ExportedFunctionBase
 ///	Groups of methods - useful to realize overloaded methods
 class ExportedMethodGroup
 {
-	typedef ExportedMethod::ProxyFunc ProxyFunc;
+	using ProxyFunc = ExportedMethod::ProxyFunc;
 
 	public:
 		ExportedMethodGroup(const std::string& name) : m_name(name)
@@ -208,12 +208,12 @@ class ExportedMethodGroup
 				return false;
 
 		//	create a new overload
-			ExportedMethod* func = new ExportedMethod(MethodPtrWrapper(m),
+			auto* func = new ExportedMethod(MethodPtrWrapper(m),
 												pf, m_name, className,
 												methodOptions, retValInfos,
 												paramInfos, tooltip, help);
 
-			m_overloads.push_back(Overload(func, typeID));
+			m_overloads.emplace_back(func, typeID);
 
 
 		//  create parameter in list
@@ -248,7 +248,7 @@ class ExportedMethodGroup
 				if(m_overloads[i].m_typeID == typeID)
 					return m_overloads[i].m_func;
 			}
-			return NULL;
+			return nullptr;
 		}
 
 		const ExportedMethod* get_overload_by_type_id(size_t typeID) const
@@ -257,14 +257,14 @@ class ExportedMethodGroup
 				if(m_overloads[i].m_typeID == typeID)
 					return m_overloads[i].m_func;
 			}
-			return NULL;
+			return nullptr;
 		}
 
 		size_t get_overload_type_id(size_t index) const {return m_overloads.at(index).m_typeID;}
 
 	private:
 		struct Overload{
-			Overload()	{}
+			Overload()	= default;
 			Overload(ExportedMethod* func, size_t typeID)
 				: m_func(func), m_typeID(typeID)
 			{}
@@ -287,10 +287,10 @@ struct MethodProxy
 		TMethod mptr = *(TMethod*) method.get_raw_ptr();
 
 	//  cast object to type
-		TClass* objPtr = (TClass*) (obj);
+		auto* objPtr = (TClass*) (obj);
 
 	//  get parameter
-		typedef typename func_traits<TMethod>::params_type params_type;
+		using params_type = typename func_traits<TMethod>::params_type;
 		ParameterStackToTypeValueList<params_type> args(in);
 
 	//  apply method
@@ -311,10 +311,10 @@ struct MethodProxy<TClass, TMethod, void>
 		TMethod mptr = *(TMethod*) method.get_raw_ptr();
 
 	//  cast object to type
-		TClass* objPtr = (TClass*) (obj);
+		auto* objPtr = (TClass*) (obj);
 
 	//  get parameter
-		typedef typename func_traits<TMethod>::params_type params_type;
+		using params_type = typename func_traits<TMethod>::params_type;
 		ParameterStackToTypeValueList<params_type> args(in);
 
 	//  apply method
@@ -332,10 +332,10 @@ struct MethodProxy<TClass, TMethod, CustomReturn>
 		TMethod mptr = *(TMethod*) method.get_raw_ptr();
 
 	//  cast object to type
-		TClass* objPtr = (TClass*) (obj);
+		auto* objPtr = (TClass*) (obj);
 
 	//  get parameter
-		typedef typename func_traits<TMethod>::params_type params_type;
+		using params_type = typename func_traits<TMethod>::params_type;
 		ParameterStackToTypeValueList<params_type> args(in);
 
 	//  apply method
@@ -353,7 +353,7 @@ class UG_API ExportedConstructor
 {
 	public:
 	// all c++ functions are wrapped by a proxy function of the following type
-		typedef void* (*ProxyFunc)(const ParameterStack& in);
+		using ProxyFunc = void* (*)(const ParameterStack& in);
 
 	public:
 		ExportedConstructor(ProxyFunc pf,
@@ -415,12 +415,12 @@ class UG_API ExportedConstructor
 		template <typename TFunc>
 		void create_parameter_stack()
 		{
-			typedef typename func_traits<TFunc>::params_type params_type;
+			using params_type = typename func_traits<TFunc>::params_type;
 			CreateParameterInfo<params_type>::create(m_paramsIn);
 
 		//	arbitrary choosen minimum number of infos exported
 		//	(If values non given we set them to an empty string)
-			const size_t MinNumInfos = 3; // for "name | style | options"
+			constexpr size_t MinNumInfos = 3; // for "name | style | options"
 
 		//	Fill missing Parameter
 			m_vvParamInfo.resize(m_paramsIn.size());
@@ -428,7 +428,7 @@ class UG_API ExportedConstructor
 		//	resize missing infos for each parameter
 			for(int i = 0; i < (int)m_vvParamInfo.size(); ++i)
 				for(size_t j = m_vvParamInfo.at(i).size(); j < MinNumInfos; ++j)
-					m_vvParamInfo.at(i).push_back(std::string(""));
+					m_vvParamInfo.at(i).emplace_back("");
 		}
 
 	protected:
@@ -469,7 +469,7 @@ struct ConstructorProxy
 	static void* create(const ParameterStack& in)
 	{
 	//  get parameter
-		typedef typename func_traits<TMethod>::params_type params_type;
+		using params_type = typename func_traits<TMethod>::params_type;
 		ParameterStackToTypeValueList<params_type> args(in);
 
 	//  apply method
@@ -483,7 +483,7 @@ struct ConstructorProxy
 template <typename TClass>
 void DestructorProxy(void* obj)
 {
-	TClass* pObj = (TClass*)obj;
+	auto* pObj = (TClass*)obj;
 	delete pObj;
 }
 
@@ -498,7 +498,7 @@ class JSONConstructible {};
 class IExportedClass
 {
 	public:
-		typedef void (*DeleteFunction)(const void*);
+		using DeleteFunction = void(*)(const void*);
 
 	public:
 	///  name of class
@@ -579,7 +579,7 @@ class IExportedClass
 		virtual bool check_consistency() const;
 
 	///  virtual destructor
-		virtual ~IExportedClass() {};
+		virtual ~IExportedClass() = default;
 };
 
 ///	A base implementation with non-template methods.
@@ -588,7 +588,7 @@ class ExportedClassBaseImpl : public IExportedClass
 {
 	private:
 	//  disallow
-		ExportedClassBaseImpl();
+		ExportedClassBaseImpl() = default;
 		ExportedClassBaseImpl(const ExportedClassBaseImpl& other);
 
 	public:
@@ -672,7 +672,7 @@ class ExportedClassBaseImpl : public IExportedClass
 
 	protected:
 		struct ConstructorOverload{
-			ConstructorOverload()	{}
+			ConstructorOverload() = default;
 			ConstructorOverload(ExportedConstructor* func, size_t typeID)
 				: m_constructor(func), m_typeID(typeID)
 			{}
@@ -682,7 +682,7 @@ class ExportedClassBaseImpl : public IExportedClass
 
 		std::vector<ConstructorOverload> m_vConstructor;
 
-		typedef void (*DestructorFunc)(void*);
+		using DestructorFunc = void(*)(void*);
 		DestructorFunc m_destructor;
 
 		std::vector<ExportedMethodGroup*> m_vMethod;
@@ -699,7 +699,7 @@ class ExportedClass : public ExportedClassBaseImpl
 {
 	private:
 	//  disallow
-		ExportedClass () {};
+		ExportedClass () = default;
 		ExportedClass (const ExportedClass& other);
 
 	public:
@@ -713,7 +713,7 @@ class ExportedClass : public ExportedClassBaseImpl
 		}
 
 	/// destructor
-		virtual ~ExportedClass(){}
+		virtual ~ExportedClass()= default;
 
 	/// name of class
 		virtual const std::string& name() const {return ClassNameProvider<TClass>::name();}
@@ -743,7 +743,7 @@ class ExportedClass : public ExportedClassBaseImpl
 	 * @param retValInfos string documenting what the function returns (optional)
 	 * @param paramInfos string documenting the parameters of the function
 	 * seperate parameters with an # e.g. "x#y#z" (don't specify the type of the values)  (optional)
-	 * @param toolTip small documentation for the function (optional)
+	 * @param tooltip small documentation for the function (optional)
 	 * @param help help string for the function
 	 * @sa \ref pageUG4Registry
 	 * @sa \ref secSTHowToSpecifyParameterInformation
@@ -758,7 +758,7 @@ class ExportedClass : public ExportedClassBaseImpl
 
 			std::string strippedMethodName = methodName;
 			std::string methodOptions;
-			std::string::size_type pos = strippedMethodName.find("|");
+			std::string::size_type pos = strippedMethodName.find('|');
 			if(pos != std::string::npos){
 				methodOptions = strippedMethodName.substr(pos + 1, strippedMethodName.length() - pos);
 				strippedMethodName = strippedMethodName.substr(0, pos);
@@ -785,7 +785,7 @@ class ExportedClass : public ExportedClassBaseImpl
 
 		//	if the method is already in use, we have to add an overload.
 		//	If not, we have to create a new method group
-			ExportedMethodGroup* methodGrp = NULL;
+			ExportedMethodGroup* methodGrp = nullptr;
 			if(func_traits<TMethod>::const_method)
 				methodGrp = get_const_exported_method_group(strippedMethodName);
 			else
@@ -831,13 +831,13 @@ class ExportedClass : public ExportedClassBaseImpl
 	/**
 	 * @param paramInfos string documenting the parameters of the function
 	 * seperate parameters with an # e.g. "x#y#z" (don't specify the type of the values)  (optional)
-	 * @param toolTip small documentation for the function (optional)
+	 * @param tooltip small documentation for the function (optional)
 	 * @param help help string for the function
 	 * @param options style option of the constructor itself (for visualisation)
 	 * @sa \ref pageUG4Registry
 	 */
 		template <typename TFunc>
-		ExportedClass<TClass>& add_constructor(std::string paramInfos = "",
+		ExportedClass& add_constructor(std::string paramInfos = "",
 		                                       std::string tooltip = "", std::string help = "",
 		                                       std::string options = "")
 		{
@@ -861,13 +861,12 @@ class ExportedClass : public ExportedClassBaseImpl
 			}
 
 		//	create new exported constructor
-			ExportedConstructor* expConstr
-				= new ExportedConstructor(	&ConstructorProxy<TClass, TFunc>::create,
+			auto* expConstr = new ExportedConstructor(	&ConstructorProxy<TClass, TFunc>::create,
 				                          	ClassNameProvider<TClass>::name(),
 											options, paramInfos, tooltip, help);
 
 		//	create parameter stack
-			expConstr->create_parameter_stack<TFunc>();
+			expConstr->template create_parameter_stack<TFunc>();
 
 		//	rememeber it
 			m_vConstructor.push_back(ConstructorOverload(expConstr, typeID));

@@ -131,7 +131,7 @@ UG_API
 int NumAssociatedFaces(Grid& grid, Edge* e);
 
 ////////////////////////////////////////////////////////////////////////		
-///	returns the first edge found which is shared by both faces or NULL if no such edge exists.
+///	returns the first edge found which is shared by both faces or nullptr if no such edge exists.
 UG_API
 Edge* GetConnectingEdge(Grid& grid, Face* f1, Face* f2);
 
@@ -183,7 +183,7 @@ inline number EdgeLength(const EdgeVertices* e, TAAPosVRT& aaPos);
 UG_API 
 int CalculateNormal(vector3& vNormOut, Grid& grid, Edge* e,
 					Grid::AttachmentAccessor<Vertex, APosition>& aaPos,
-					Grid::AttachmentAccessor<Face, ANormal>* paaNormFACE = NULL);
+					Grid::AttachmentAccessor<Face, ANormal>* paaNormFACE = nullptr);
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
@@ -207,7 +207,7 @@ int CalculateNormal(vector3& vNormOut, Grid& grid, Edge* e,
 UG_API 
 int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, Edge* e,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
-					Grid::FaceAttachmentAccessor<ANormal>* paaNormFACE = NULL);
+					Grid::FaceAttachmentAccessor<ANormal>* paaNormFACE = nullptr);
 										
 ////////////////////////////////////////////////////////////////////////
 //	CollapseEdge
@@ -239,7 +239,7 @@ bool EdgeCollapseIsValid(Grid& grid, Edge* e);
 //	SplitEdge
 ///	inserts new triangles and one new vertex by splitting the specified edge.
 /**
- * returns the newly created vertex if everything went right, NULL if not.
+ * returns the newly created vertex if everything went right, nullptr if not.
  * The vertex that will be created will be of type TVertex.
  * If bConservative == false then SplitEdge will replace e and its adjacent
  * geometry by the newly generated geometry.
@@ -260,13 +260,13 @@ TVertex* SplitEdge(Grid& grid, Edge* e, bool bConservative = false);
  * paAssociatedVertices has to be specified if destGrid and srcGrid do not match.
  * If destGrid and srcGrid do match, paAssociatedVertices may be specified optionally.
  * paAssociatedVertices has to be a vertex-attachment of srcGrid, that stores for each
- * vertex in srcGrid the associated vertex of destGrid. NULL indicates that
+ * vertex in srcGrid the associated vertex of destGrid. nullptr indicates that
  * no associated vertex exists in destGrid. New ones will be automatically
  * constructed in this case.
  */
 template<class TVertex>
 TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
-						AVertex* paAssociatedVertices = NULL,
+						AVertex* paAssociatedVertices = nullptr,
 						bool bConservative = false);
 
 ////////////////////////////////////////////////////////////////////////
@@ -292,14 +292,14 @@ Edge* SwapEdge(Grid& grid, Edge* e);
  * paAssociatedVertices has to be specified if destGrid and srcGrid do not match.
  * If destGrid and srcGrid do match, paAssociatedVertices may be specified optionally.
  * paAssociatedVertices has to be a vertex-attachment of srcGrid, that stores for each
- * vertex in srcGrid the associated vertex of destGrid. NULL indicates that
+ * vertex in srcGrid the associated vertex of destGrid. nullptr indicates that
  * no associated vertex exists in destGrid. New ones will be automatically
  * constructed in this case by cloning the associated ones in srcGrid.
  */
 UG_API 
 bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 							 Vertex* newVertex,
-							 AVertex* paAssociatedVertices = NULL);
+							 AVertex* paAssociatedVertices = nullptr);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -392,7 +392,7 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
  * stl-iterator compatible iterator. TAAPosVRT has to be an attachment accessor
  * which provides a position value (vector1, vector2, vector3, ...) for the
  * vertices of the edge.
- * If the specified list is empty, NULL is returned.
+ * If the specified list is empty, nullptr is returned.
  * If multiple shortest edges exist, the first one is returned.
  */
 template <class TEdgeIterator, class TAAPosVRT>

@@ -48,7 +48,7 @@ bool PluginLoaded(const string &name)
 {
 	string searchStr;
 	searchStr.append(" ").append(name).append(" ");
-	return (strstr(ListOfEmbeddedPlugins(), searchStr.c_str()) != NULL);
+	return (strstr(ListOfEmbeddedPlugins(), searchStr.c_str()) != nullptr);
 }
 
 bool LoadPlugins(const char*, string parentGroup, bridge::Registry& reg, bool bPrefixGroup)

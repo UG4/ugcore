@@ -32,12 +32,12 @@
 
 /**
  * \file ugmath_types.h
- * \brief typedefs for ugmath
+ * \brief type definitions for ugmath
  *
  * \author Sebastian Reiter
  * \date  y08 m11 d12
  *
- * This file contains typedefs for ug math.
+ * This file contains type definitions for ug math.
  */
 
 #ifndef __H__UGMATH_TYPES__
@@ -55,7 +55,7 @@
 #include "math_vector_matrix/math_tensor.h"
 
 ////////////////////////////////////////////////////////////////////////
-//	useful typedefs
+
 namespace ug
 {
 
@@ -63,25 +63,25 @@ namespace ug
 /// \{
 
 /// a 1d vector
-typedef MathVector<1, number> vector1;
+using vector1 = MathVector<1, number>;
 
 /// a 2d vector
-typedef MathVector<2, number> vector2;
+using vector2 = MathVector<2, number>;
 
 /// a 3d vector
-typedef MathVector<3, number> vector3;
+using vector3 = MathVector<3, number>;
 
 /// a 4d vector
-typedef MathVector<4, number> vector4;
+using vector4 = MathVector<4, number>;
 
 /// a 2x2 matrix
-typedef MathMatrix<2,2, number> matrix22;
+using matrix22 = MathMatrix<2,2, number>;
 
 /// a 3x3 matrix
-typedef MathMatrix<3,3, number> matrix33;
+using matrix33 = MathMatrix<3,3, number>;
 
 /// a 4x4 matrix
-typedef MathMatrix<4,4, number> matrix44;
+using matrix44 = MathMatrix<4,4, number>;
 
 // end group vectors
 /// \}

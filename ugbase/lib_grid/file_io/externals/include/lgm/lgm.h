@@ -118,7 +118,7 @@ void lgm_delete(struct lgm* l);
  *
  * \param filename The file to be read.
  * \param l The lgm object to contain the file data.
- * \param fileinfo (optional) A lgm_info object for status reporting, or NULL.
+ * \param fileinfo (optional) A lgm_info object for status reporting, or nullptr.
  *
  * \returns A non-zero value indicates an error.
  */
@@ -131,7 +131,7 @@ int lgm_read(const char* filename, struct lgm* l, struct lgm_info* fileinfo);
  *
  * \param filename The file to be written to.
  * \param l The lgm to be written to file.
- * \param fileinfo (optional) A lgm_info object for status reporting, or NULL.
+ * \param fileinfo (optional) A lgm_info object for status reporting, or nullptr.
  *
  * \returns A non-zero value indicates an error.
  */

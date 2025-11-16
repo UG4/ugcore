@@ -45,7 +45,7 @@ void SelectKinkVertices(Selector& sel, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 {
 	using std::max;
 	using std::endl;
-	typedef typename TAAPos::ValueType vector_t;
+	using vector_t = typename TAAPos::ValueType;
 
 	if(!sel.grid())
 		return;

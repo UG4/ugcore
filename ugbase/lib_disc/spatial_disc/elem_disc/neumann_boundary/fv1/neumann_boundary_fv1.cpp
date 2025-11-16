@@ -178,8 +178,8 @@ template<typename TElem, typename TFVGeom>
 void NeumannBoundaryFV1<TDomain>::
 add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	const static TFVGeom& geo = GeomProvider<TFVGeom >::get();
-	typedef typename TFVGeom::BF BF;
+	static const TFVGeom& geo = GeomProvider<TFVGeom >::get();
+	using BF = typename TFVGeom::BF;
 
 //	Number Data
 	for(size_t data = 0; data < m_vNumberData.size(); ++data){
@@ -286,7 +286,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 	//	get the error estimator data object and check that it is of the right type
 	//	we check this at this point in order to be able to dispense with this check later on
 	//	(i.e. in prep_err_est_elem and compute_err_est_A_elem())
-	if (this->m_spErrEstData.get() == NULL)
+	if (this->m_spErrEstData.get() == nullptr)
 	{
 		UG_THROW("No ErrEstData object has been given to this ElemDisc!");
 	}
@@ -320,7 +320,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 	}
 
 // get local IPs for imports
-	static const int refDim = TElem::dim;
+	static constexpr int refDim = TElem::dim;
 
 	size_t numSideIPs;
 	const MathVector<refDim>* sideIPs;
@@ -329,7 +329,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 		numSideIPs = err_est_data->num_all_side_ips(roid);
 		sideIPs = err_est_data->template side_local_ips<refDim>(roid);
 
-		if (!sideIPs) return;	// is NULL if TElem is not of the same dim as TDomain
+		if (!sideIPs) return;	// is nullptr if TElem is not of the same dim as TDomain
 	}
 	UG_CATCH_THROW("Integration points for error estimator cannot be set.");
 
@@ -372,11 +372,11 @@ template <typename TElem, typename TFVGeom>
 void NeumannBoundaryFV1<TDomain>::
 compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
-	if (err_est_data->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
+	if (err_est_data->surface_view().get() == nullptr) {UG_THROW("Error estimator has nullptr surface view.");}
 	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
 
 //	get the sides of the element
@@ -510,8 +510,8 @@ lin_def(const LocalVector& u,
             const size_t nip)
 {
 //  get finite volume geometry
-	const static TFVGeom& geo = GeomProvider<TFVGeom>::get();
-	typedef typename TFVGeom::BF BF;
+	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
+	using BF = typename TFVGeom::BF;
 
 	for(size_t s = 0; s < this->BndSSGrp.size(); ++s)
 	{
@@ -529,8 +529,8 @@ template<typename TElem, typename TFVGeom>
 void NeumannBoundaryFV1<TDomain>::NumberData::
 extract_bip(const TFVGeom& geo)
 {
-	typedef typename TFVGeom::BF BF;
-	static const int locDim = TElem::dim;
+	using BF = typename TFVGeom::BF;
+	static constexpr int locDim = TElem::dim;
 
 	std::vector<MathVector<locDim> >* vLocIP = local_ips<locDim>();
 
@@ -553,8 +553,8 @@ extract_bip(const TFVGeom& geo)
 			  "Either vLocIP and vGloIP both have to be empty or both have to be filled!");
 
 	if(vLocIP->empty()){
-		import.template set_local_ips<locDim>(NULL, 0);
-		import.set_global_ips(NULL, 0);
+		import.template set_local_ips<locDim>(nullptr, 0);
+		import.set_global_ips(nullptr, 0);
 	}
 	else{
 		import.template set_local_ips<locDim>(&(*vLocIP)[0], vLocIP->size());
@@ -619,7 +619,7 @@ template<typename TElem, typename TFVGeom>
 void NeumannBoundaryFV1<TDomain>::register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	typedef this_type T;
+	using T = this_type;
 
 	this->clear_add_fct(id);
 

@@ -64,13 +64,13 @@ class IMatrixOperatorInverse
 {
 	public:
 	///	Domain space
-		typedef X domain_function_type;
+	using domain_function_type = X;
 
 	///	Range space
-		typedef Y codomain_function_type;
+	using codomain_function_type = Y;
 
 	///	Matrix type
-		typedef M matrix_type;
+	using matrix_type = M;
 
 	public:
 	///	initializes this inverse operator for a matrix-based operator

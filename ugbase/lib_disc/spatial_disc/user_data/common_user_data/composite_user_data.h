@@ -51,10 +51,10 @@ template <typename TData, int dim, typename TRet = void>
 class CompositeUserData : public UserData<TData, dim, TRet>
 {
 protected:
-	typedef CplUserData<TData, dim, TRet> TCplUserData;
+	using TCplUserData = CplUserData<TData, dim, TRet>;
 public:
-	typedef UserData<TData, dim, TRet> base_type;
-	typedef SmartPtr<base_type> ref_type; ///< the attached UserData objects should have the same type as this class (i.e. they are "remapped")
+	using base_type = UserData<TData, dim, TRet>;
+	using ref_type = SmartPtr<base_type>; ///< the attached UserData objects should have the same type as this class (i.e. they are "remapped")
 
 	CompositeUserData() : m_bContinuous(true), m_bRequiresGridFunction(false) {}
 	
@@ -146,7 +146,7 @@ public:
 									const MathVector<1> vLocIP[],
 									const size_t nip,
 									LocalVector* u,
-									const MathMatrix<1, dim>* vJT = NULL) const
+									const MathMatrix<1, dim>* vJT = nullptr) const
 	{
 		check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 	}
@@ -159,7 +159,7 @@ public:
 									const MathVector<2> vLocIP[],
 									const size_t nip,
 									LocalVector* u,
-									const MathMatrix<2, dim>* vJT = NULL) const
+									const MathMatrix<2, dim>* vJT = nullptr) const
 	{
 		check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 	}
@@ -172,7 +172,7 @@ public:
 							const MathVector<3> vLocIP[],
 							const size_t nip,
 							LocalVector* u,
-							const MathMatrix<3, dim>* vJT = NULL) const
+							const MathMatrix<3, dim>* vJT = nullptr) const
 	{
 		check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 	}

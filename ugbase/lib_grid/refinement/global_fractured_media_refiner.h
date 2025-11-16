@@ -61,9 +61,8 @@ class ISubsetHandler;
 class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 {
 	public:
-		GlobalFracturedMediaRefiner(SPRefinementProjector projector = SPNULL);
-		GlobalFracturedMediaRefiner(MultiGrid& mg,
-							   	     SPRefinementProjector projector = SPNULL);
+		GlobalFracturedMediaRefiner(SPRefinementProjector projector = nullptr);
+		GlobalFracturedMediaRefiner(MultiGrid& mg, SPRefinementProjector projector = nullptr);
 							   
 		virtual ~GlobalFracturedMediaRefiner();
 

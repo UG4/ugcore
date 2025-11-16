@@ -75,7 +75,7 @@ namespace ug
  */
 UG_API
 bool Refine(Grid& grid, Selector& sel, AInt& aInt,
-			RefinementProjector* projector = NULL,
+			RefinementProjector* projector = nullptr,
 			bool useSnapPoints = false);
 
 ///	refines selected faces and edges regularily and builds a closure on adjacent unselected faces.
@@ -92,7 +92,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
  */
 UG_API
 bool Refine(Grid& grid, Selector& sel,
-			RefinementProjector* projector = NULL,
+			RefinementProjector* projector = nullptr,
 			bool useSnapPoints = false);
 
 /// @}

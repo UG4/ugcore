@@ -101,12 +101,12 @@ std::string getExceptionMessageString(JNIEnv* env, jthrowable exception) {
 	jclass cls;
 	jmethodID getMessage;
 	
-	if (exception != NULL) {
+	if (exception != nullptr) {
 		cls = env->FindClass("java/lang/Throwable");
 		getMessage = env->GetMethodID(cls, "getMessage", "()Ljava/lang/String;");
 		jstring msgObj = (jstring)env->CallObjectMethod(exception,getMessage);
 		
-		if (msgObj != NULL) {
+		if (msgObj != nullptr) {
 			result = stringJ2C(env,msgObj);
 		}
 	}
@@ -130,7 +130,7 @@ bool checkException(JNIEnv* env, std::string msg, bool throwCPPException) {
 		}
 	}
 
-	return ex == NULL;
+	return ex == nullptr;
 }
 
 

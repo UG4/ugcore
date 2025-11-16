@@ -58,7 +58,7 @@ namespace ug
  *
  */
 bool LoadGridFromDUMP(Grid& grid, const char* filename,
-					ISubsetHandler* pSH = NULL, AVector3& aPos = aPosition);
+					ISubsetHandler* pSH = nullptr, AVector3& aPos = aPosition);
 
 }
 

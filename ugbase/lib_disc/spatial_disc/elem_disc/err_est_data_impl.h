@@ -52,7 +52,7 @@ void SideFluxErrEstData<TDomain>::alloc_err_est_data
 	m_spSV = spSV;
 	
 //	Prepare the attachment for the jumps of the fluxes over the sides:
-	typedef typename domain_traits<dim>::side_type side_type;
+	using side_type = typename domain_traits<dim>::side_type;
 	MultiGrid * pMG = (MultiGrid *) (spSV->subset_handler()->multi_grid());
 	pMG->template attach_to_dv<side_type,ANumber>(m_aFluxJumpOverSide, 0);
 	m_aaFluxJump.access(*pMG, m_aFluxJumpOverSide);
@@ -62,22 +62,22 @@ void SideFluxErrEstData<TDomain>::alloc_err_est_data
 template <typename TDomain>
 void SideFluxErrEstData<TDomain>::summarize_err_est_data (SmartPtr<TDomain> spDomain)
 {
-	typedef typename domain_traits<dim>::side_type side_type;
+	using side_type = typename domain_traits<dim>::side_type;
 	
 	const MultiGrid * pMG = m_spSV->subset_handler()->multi_grid();
 	
 //	Loop the rim sides and add the jumps
-	typedef typename SurfaceView::traits<side_type>::const_iterator t_iterator;
-	t_iterator end_rim_side_iter = m_spSV->template end<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM);
-	for (t_iterator rim_side_iter = m_spSV->template begin<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM);
+	using t_iterator = typename SurfaceView::traits<side_type>::const_iterator;
+	t_iterator end_rim_side_iter = m_spSV->end<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM);
+	for (t_iterator rim_side_iter = m_spSV->begin<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM);
 		rim_side_iter != end_rim_side_iter; ++rim_side_iter)
 	{
 	//	Get the sides on both the levels
 		side_type * c_rim_side = *rim_side_iter;
-		if (pMG->template num_children<side_type>(c_rim_side) != 1) // we consider _NONCOPY only, no hanging nodes
+		if (pMG->num_children<side_type>(c_rim_side) != 1) // we consider _NONCOPY only, no hanging nodes
 			UG_THROW ("SideFluxErrEstData::summarize_error_estimator:"
 					" The error estimator does not accept hanging nodes");
-		side_type * f_rim_side = pMG->template get_child<side_type> (c_rim_side, 0);
+		side_type * f_rim_side = pMG->get_child<side_type> (c_rim_side, 0);
 		
 	//	Compute the total jump and save it for both the sides:
 		number & c_rim_flux = m_aaFluxJump[c_rim_side];
@@ -92,11 +92,11 @@ template <typename TDomain>
 void SideFluxErrEstData<TDomain>::release_err_est_data ()
 {
 //	Release the attachment
-	typedef typename domain_traits<dim>::side_type side_type;
+	using side_type = typename domain_traits<dim>::side_type;
 	MultiGrid * pMG = (MultiGrid *) (m_spSV->subset_handler()->multi_grid());
 	m_aaFluxJump.invalidate ();
-	pMG->template detach_from<side_type> (m_aFluxJumpOverSide);
-	//m_spSV = ConstSmartPtr<SurfaceView> (NULL);	// this raises a rte
+	pMG->detach_from<side_type> (m_aFluxJumpOverSide);
+	//m_spSV = ConstSmartPtr<SurfaceView> (nullptr);	// this raises a rte
 };
 
 
@@ -143,7 +143,7 @@ SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
 	m_aSide(attachment_type("errEstSide")), m_aElem(attachment_type("errEstElem")),
 	m_aaSide(MultiGrid::AttachmentAccessor<side_type, attachment_type >()),
 	m_aaElem(MultiGrid::AttachmentAccessor<elem_type, attachment_type >()),
-	m_spSV(SPNULL), m_errEstGL(GridLevel()),
+	m_spSV(nullptr), m_errEstGL(GridLevel()),
 	m_type(H1_ERROR_TYPE)
 {
 	m_vSs = TokenizeString(subsets);
@@ -164,7 +164,7 @@ SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
 	m_aSide(attachment_type("errEstSide")), m_aElem(attachment_type("errEstElem")),
 	m_aaSide(MultiGrid::AttachmentAccessor<side_type, attachment_type >()),
 	m_aaElem(MultiGrid::AttachmentAccessor<elem_type, attachment_type >()),
-	m_spSV(SPNULL), m_errEstGL(GridLevel()),
+	m_spSV(nullptr), m_errEstGL(GridLevel()),
 	m_type(H1_ERROR_TYPE)
 {
 	m_vSs = subsets;
@@ -308,15 +308,15 @@ const MathVector<refDim>* SideAndElemErrEstData<TDomain>::side_local_ips(const R
 			 << "or with refDim == TDomain::dim-1 and a (TDomain::dim-1)-dimensional roid"
 			 "for the local side IPs for a side of this roid.");
 
-	return NULL;
+	return nullptr;
 }
 
 template <typename TDomain>
 template <int refDim>
 const MathVector<refDim>* SideAndElemErrEstData<TDomain>::elem_local_ips(const ReferenceObjectID roid)
 {
-//	return NULL if dim is not fitting (not meaningful for the purpose of error estimation)
-	if (TDomain::dim != refDim) return NULL;
+//	return nullptr if dim is not fitting (not meaningful for the purpose of error estimation)
+	if (TDomain::dim != refDim) return nullptr;
 
 //	check that quad rule exists
 	UG_COND_THROW(!quadRuleElem[roid], "Requesting side IPs for roid " << roid << ", but no quadrature rule has been created for it.");
@@ -518,9 +518,9 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 	// iterate over elems and associated sides and resize the IP value vectors
 	for (size_t si = 0; si < m_ssg.size(); si++)
 	{
-		typedef typename SurfaceView::traits<elem_type>::const_iterator elem_iterator_type;
-		elem_iterator_type elem_iter_end = m_spSV->template end<elem_type>(m_ssg[si], m_errEstGL, SurfaceView::ALL);
-		for (elem_iterator_type elem_iter = m_spSV->template begin<elem_type>(m_ssg[si], m_errEstGL, SurfaceView::ALL);
+		using elem_iterator_type = typename SurfaceView::traits<elem_type>::const_iterator;
+		elem_iterator_type elem_iter_end = m_spSV->end<elem_type>(m_ssg[si], m_errEstGL, SurfaceView::ALL);
+		for (elem_iterator_type elem_iter = m_spSV->begin<elem_type>(m_ssg[si], m_errEstGL, SurfaceView::ALL);
 			 elem_iter != elem_iter_end; ++elem_iter)
 		{
 			elem_type* elem = *elem_iter;
@@ -560,7 +560,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 	// to the same size as the bigger one (cf. std_number_vector_attachment_reduce_traits)
 	// the actual summing does not hurt, since it performs 0 = 0 + 0;
 #ifdef UG_PARALLEL
-	typedef typename GridLayoutMap::Types<side_type>::Layout layout_type;
+	using layout_type = typename GridLayoutMap::Types<side_type>::Layout;
 	DistributedGridManager& dgm = *pMG->distributed_grid_manager();
 	GridLayoutMap& glm = dgm.grid_layout_map();
 	pcl::InterfaceCommunicator<layout_type> icom;
@@ -578,9 +578,9 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 
 	// for the case where subset border goes through SHADOW_RIM:
 	// resize SHADOW_RIM children if parent is resized and vice-versa
-	typedef typename Grid::traits<side_type>::const_iterator side_iter_type;
-	side_iter_type end_side = pMG->template end<side_type>();
-	for (side_iter_type side_iter = pMG->template begin<side_type>(); side_iter != end_side; ++side_iter)
+	using side_iter_type = typename Grid::traits<side_type>::const_iterator;
+	side_iter_type end_side = pMG->end<side_type>();
+	for (side_iter_type side_iter = pMG->begin<side_type>(); side_iter != end_side; ++side_iter)
 	{
 		// get the sides on both the levels (coarse and fine)
 		side_type* c_rim_side = *side_iter;
@@ -642,7 +642,7 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 	// is SHADOW_RIM, then it only has values from one side of the interface. This will be checked
 	// by calling size() of the IP value vector.
 #ifdef UG_PARALLEL
-	typedef typename GridLayoutMap::Types<side_type>::Layout layout_type;
+	using layout_type = typename GridLayoutMap::Types<side_type>::Layout;
 	DistributedGridManager& dgm = *pMG->distributed_grid_manager();
 	GridLayoutMap& glm = dgm.grid_layout_map();
 	pcl::InterfaceCommunicator<layout_type> icom;
@@ -672,11 +672,11 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 	// TODO: not sure whether we cannot simply loop with
 	//       m_spSV->template end<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM)
 
-	//typedef typename SurfaceView::traits<side_type>::const_iterator t_iterator;
-	//t_iterator end_rim_side_iter = m_spSV->template end<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM);
+	// using t_iterator = typename SurfaceView::traits<side_type>::const_iterator;
+	// t_iterator end_rim_side_iter = m_spSV->template end<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM);
 	//for (t_iterator rim_side_iter = m_spSV->template begin<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM);
 	//	rim_side_iter != end_rim_side_iter; ++rim_side_iter)
-	typedef typename Grid::traits<side_type>::const_iterator side_iter_type;
+	using side_iter_type = typename Grid::traits<side_type>::const_iterator;
 	side_iter_type end_side = pMG->template end<side_type>();
 	for (side_iter_type side_iter = pMG->template begin<side_type>(); side_iter != end_side; ++side_iter)
 	{
@@ -919,7 +919,7 @@ void SideAndElemErrEstData<TDomain>::release_err_est_data ()
 
 	m_aaElem.invalidate();
 	pMG->template detach_from<elem_type>(m_aElem);
-	//m_spSV = ConstSmartPtr<SurfaceView> (NULL);	// this raises a rte
+	//m_spSV = ConstSmartPtr<SurfaceView> (nullptr);	// this raises a rte
 };
 
 

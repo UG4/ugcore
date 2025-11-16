@@ -65,13 +65,13 @@ class LocalToGlobalMapper
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+	using matrix_type = typename algebra_type::matrix_type;
 
 	///	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+	using vector_type = typename algebra_type::vector_type;
 
 	public:
 
@@ -90,20 +90,20 @@ class AssemblingTuner
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	///	Type of algebra value
-		typedef typename vector_type::value_type value_type;
+		using value_type = typename vector_type::value_type;
 
 	public:
 	/// constructor
-		AssemblingTuner(): m_pMapper(nullptr), m_pBoolMarker(NULL), m_pSelector(NULL),
+		AssemblingTuner(): m_pMapper(nullptr), m_pBoolMarker(nullptr), m_pSelector(nullptr),
 		m_bSingleAssIndex(false), m_SingleAssIndex(0),
 		m_bForceRegGrid(false), m_bModifySolutionImplemented(false),
 		m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL),
@@ -113,7 +113,7 @@ class AssemblingTuner
 		virtual ~AssemblingTuner() {}
 
 	/// set local to global mapping
-		void set_mapping(ILocalToGlobalMapper<TAlgebra>* pMapper = NULL)
+		void set_mapping(ILocalToGlobalMapper<TAlgebra>* pMapper = nullptr)
 		{
 			m_pMapper = pMapper;
 		}
@@ -151,7 +151,7 @@ class AssemblingTuner
 	 *
 	 * \param[in]	mark	BoolMarker
 	 */
-		void set_marker(BoolMarker* mark = NULL){ m_pBoolMarker = mark; }
+		void set_marker(BoolMarker* mark = nullptr){ m_pBoolMarker = mark; }
 
 	///	sets a selector of elements for assembling
 	/**
@@ -163,7 +163,7 @@ class AssemblingTuner
 	 *
 	 * \param[in]	sel		Selector
 	 */
-		void set_selector(Selector* sel = NULL){ m_pSelector = sel; }
+		void set_selector(Selector* sel = nullptr){ m_pSelector = sel; }
 
 	///	sets an index for which the assembling should be carried out
 	/**
@@ -226,7 +226,7 @@ class AssemblingTuner
 		void collect_selected_elements(std::vector<TElem*>& vElem, ConstSmartPtr<DoFDistribution> dd, int si) const;
 
 	///	returns if only selected elements used for assembling
-		bool selected_elements_used() const {return (m_pSelector != NULL);}
+		bool selected_elements_used() const {return (m_pSelector != nullptr);}
 
 	///	returns if element is to be used in assembling
 		template <typename TElem>

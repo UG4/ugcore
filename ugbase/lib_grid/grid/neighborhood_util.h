@@ -42,7 +42,7 @@ namespace ug {
  * \param[in] g
  * \param[in] face
  * \param[in] elem
- * If such a neighbor does not exist, NULL is returned.
+ * If such a neighbor does not exist, nullptr is returned.
  */
 template <typename TBaseElem>
 TBaseElem* GetConnectedNeighbor(Grid& g, typename TBaseElem::side* face, TBaseElem* elem);

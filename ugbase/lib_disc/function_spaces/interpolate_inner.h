@@ -74,8 +74,8 @@ void InterpolateOnElementsInner(
 		return;
 
 	//	domain type and position_type
-	typedef typename TGridFunction::domain_type domain_type;
-	typedef typename domain_type::position_type position_type;
+	using domain_type = typename TGridFunction::domain_type;
+	using position_type = typename domain_type::position_type;
 
 	//	get iterators
 	typename TGridFunction::template traits<TElem>::const_iterator iterEnd, iter;
@@ -146,9 +146,9 @@ void InterpolateOnElementsInner(
 		return;
 
 	//	domain type and position_type
-	typedef typename TGridFunction::domain_type domain_type;
-	typedef typename domain_type::position_type position_type;
-	typedef typename position_type::value_type value_type;
+	using domain_type = typename TGridFunction::domain_type;
+	using position_type = typename domain_type::position_type;
+	using value_type = typename position_type::value_type;
 
 		//	dimension of reference element
 			const int dim = TGridFunction::dim;
@@ -332,7 +332,7 @@ void InterpolateOnElementsInner
  * @param[in] spInterpolFunction	data providing interpolation values
  * @param[out] spGridFct			interpolated grid function
  * @param[in] cmp					symbolic name of function component
- * @param[in] subsets				subsets, where to interpolate (NULL = everywhere)
+ * @param[in] subsets				subsets, where to interpolate (nullptr = everywhere)
  * @param[in] time					time point
  */
 template <typename TGridFunction>
@@ -364,7 +364,7 @@ void InterpolateInnerDiff(SmartPtr<UserData<number, TGridFunction::dim> > spInte
 
 	// create subset group
 	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
-	if (subsets != NULL)
+	if (subsets != nullptr)
 		ssGrp.add(TokenizeString(subsets));
 	else
 		ssGrp.add_all();
@@ -397,7 +397,7 @@ void InterpolateInnerDiff(SmartPtr<UserData<number, TGridFunction::dim> > spInte
  * @param[in] spInterpolFunction	data providing interpolation values
  * @param[out] spGridFct			interpolated grid function
  * @param[in] cmp					symbolic name of function component
- * @param[in] subsets				subsets, where to interpolate (NULL = everywhere)
+ * @param[in] subsets				subsets, where to interpolate (nullptr = everywhere)
  * @param[in] time					time point
  */
 template <typename TGridFunction>
@@ -429,7 +429,7 @@ void InterpolateInner(SmartPtr<UserData<number, TGridFunction::dim> > spInterpol
 
 	// create subset group
 	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
-	if (subsets != NULL)
+	if (subsets != nullptr)
 		ssGrp.add(TokenizeString(subsets));
 	else
 		ssGrp.add_all();
@@ -452,7 +452,7 @@ template <typename TGridFunction>
 void InterpolateInner(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  number time)
-{InterpolateInner(spInterpolFunction, spGridFct, cmp, NULL, time);}
+{InterpolateInner(spInterpolFunction, spGridFct, cmp, nullptr, time);}
 template <typename TGridFunction>
 void InterpolateInner(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
@@ -461,7 +461,7 @@ void InterpolateInner(SmartPtr<UserData<number, TGridFunction::dim> > spInterpol
 template <typename TGridFunction>
 void InterpolateInner(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp)
-{InterpolateInner(spInterpolFunction, spGridFct, cmp, NULL, 0.0);}
+{InterpolateInner(spInterpolFunction, spGridFct, cmp, nullptr, 0.0);}
 
 ///////////////
 // const data
@@ -472,7 +472,7 @@ void InterpolateInner(number val,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  const char* subsets, number time)
 {
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 	SmartPtr<UserData<number, dim> > sp =
 			make_sp(new ConstUserNumber<dim>(val));
 	InterpolateInner(sp, spGridFct, cmp, subsets, time);
@@ -481,7 +481,7 @@ template <typename TGridFunction>
 void InterpolateInner(number val,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  number time)
-{InterpolateInner(val, spGridFct, cmp, NULL, time);}
+{InterpolateInner(val, spGridFct, cmp, nullptr, time);}
 template <typename TGridFunction>
 void InterpolateInner(number val,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
@@ -490,7 +490,7 @@ void InterpolateInner(number val,
 template <typename TGridFunction>
 void InterpolateInner(number val,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp)
-{InterpolateInner(val, spGridFct, cmp, NULL, 0.0);}
+{InterpolateInner(val, spGridFct, cmp, nullptr, 0.0);}
 
 ///////////////
 // lua data
@@ -502,7 +502,7 @@ void InterpolateInner(const char* LuaFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  const char* subsets, number time)
 {
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 	SmartPtr<UserData<number, dim> > sp =
 			LuaUserDataFactory<number, dim>::create(LuaFunction);
 	InterpolateInner(sp, spGridFct, cmp, subsets, time);
@@ -511,7 +511,7 @@ template <typename TGridFunction>
 void InterpolateInner(const char* LuaFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  number time)
-{InterpolateInner(LuaFunction, spGridFct, cmp, NULL, time);}
+{InterpolateInner(LuaFunction, spGridFct, cmp, nullptr, time);}
 template <typename TGridFunction>
 void InterpolateInner(const char* LuaFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
@@ -520,7 +520,7 @@ void InterpolateInner(const char* LuaFunction,
 template <typename TGridFunction>
 void InterpolateInner(const char* LuaFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp)
-{InterpolateInner(LuaFunction, spGridFct, cmp, NULL, 0.0);}
+{InterpolateInner(LuaFunction, spGridFct, cmp, nullptr, 0.0);}
 #endif
 
 

@@ -41,27 +41,27 @@
 namespace ug
 {
 
-bool LoadGridFromELE(Grid& grid, const char* filename, ISubsetHandler* pSH = NULL,
+bool LoadGridFromELE(Grid& grid, const char* filename, ISubsetHandler* pSH = nullptr,
 					APosition& aPos = aPosition);
 					
-bool SaveGridToELE(Grid& grid, const char* filename, ISubsetHandler* pSH = NULL,
+bool SaveGridToELE(Grid& grid, const char* filename, ISubsetHandler* pSH = nullptr,
 					APosition& aPos = aPosition,
-					ANumber* paVolumeConstraint = NULL);
+					ANumber* paVolumeConstraint = nullptr);
 					
 					
 bool ImportGridFromTETGEN(Grid& grid,
 						const char* nodesFilename, const char* facesFilename,
 						const char* elemsFilename, AVector3& aPos,
-						std::vector<AFloat>* pvNodeAttributes = NULL,
-						AInt* paNodeBoundaryMarker = NULL,
-						AInt* paFaceBoundaryMarker = NULL,
-						AInt* paElementAttribute = NULL);
+						std::vector<AFloat>* pvNodeAttributes = nullptr,
+						AInt* paNodeBoundaryMarker = nullptr,
+						AInt* paFaceBoundaryMarker = nullptr,
+						AInt* paElementAttribute = nullptr);
 
 bool ImportGridFromTETGEN(Grid& grid,
 						const char* nodesFilename, const char* facesFilename,
 						const char* elemsFilename, AVector3& aPos,
-						ISubsetHandler* psh = NULL,
-						std::vector<AFloat>* pvNodeAttributes = NULL);
+						ISubsetHandler* psh = nullptr,
+						std::vector<AFloat>* pvNodeAttributes = nullptr);
 					
 ////////////////////////////////////////////////////////////////////////
 //	ExportGridToSMESH
@@ -70,7 +70,7 @@ bool ImportGridFromTETGEN(Grid& grid,
  * Be sure that grid consists of closed, 2-dimensional surfaces.
  * except of grid, filename and aPos, all parameters are optional.
  * Be sure that all attachments that you pass to the method have been properly attached.
- * If you don't want to specify a parameter simply pass NULL.
+ * If you don't want to specify a parameter simply pass nullptr.
  * meaning of optional parameters:
  * pvNodeAttributes: a vector that holds attachments of type AFloat,
 					 which store vertex-attributes.
@@ -86,13 +86,13 @@ bool ImportGridFromTETGEN(Grid& grid,
 							 Will only be used if pvRegionAttributes has been specified.
  */
 bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
-						std::vector<AFloat>* pvNodeAttributes = NULL,
-						AInt* paNodeBoundaryMarker = NULL,
-						AInt* paFaceBoundaryMarker = NULL,
-						std::vector<vector3>* pvHoles = NULL,
-						std::vector<vector3>* pvRegionPositions = NULL,
-						std::vector<int>* pvRegionAttributes = NULL,
-						std::vector<float>* pvRegionVolumeConstraints = NULL);
+						std::vector<AFloat>* pvNodeAttributes = nullptr,
+						AInt* paNodeBoundaryMarker = nullptr,
+						AInt* paFaceBoundaryMarker = nullptr,
+						std::vector<vector3>* pvHoles = nullptr,
+						std::vector<vector3>* pvRegionPositions = nullptr,
+						std::vector<int>* pvRegionAttributes = nullptr,
+						std::vector<float>* pvRegionVolumeConstraints = nullptr);
 
 ////////////////////////////////////////////////////////////////////////
 //	ExportGridToSMESH
@@ -101,7 +101,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
  * Be sure that grid consists of closed, 2-dimensional surfaces.
  * except of grid, filename and aPos, all parameters are optional.
  * Be sure that all attachments that you pass to the method have been properly attached.
- * If you don't want to specify a parameter simply pass NULL.
+ * If you don't want to specify a parameter simply pass nullptr.
  * meaning of optional parameters:
  * pvNodeAttributes: a vector that holds attachments of type AFloat,
 					 which store vertex-attributes.
@@ -116,22 +116,22 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 							 Will only be used if pvRegionAttributes has been specified.
  */
 bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
-						ISubsetHandler* psh = NULL,
-						std::vector<AFloat>* pvNodeAttributes = NULL,
-						std::vector<vector3>* pvHoles = NULL,
-						std::vector<vector3>* pvRegionPositions = NULL,
-						std::vector<int>* pvRegionAttributes = NULL,
-						std::vector<float>* pvRegionVolumeConstraints = NULL);
+						ISubsetHandler* psh = nullptr,
+						std::vector<AFloat>* pvNodeAttributes = nullptr,
+						std::vector<vector3>* pvHoles = nullptr,
+						std::vector<vector3>* pvRegionPositions = nullptr,
+						std::vector<int>* pvRegionAttributes = nullptr,
+						std::vector<float>* pvRegionVolumeConstraints = nullptr);
 
 bool LoadGridFromSMESH(Grid& grid, const char* filename, AVector3& aPos,
-						ISubsetHandler* psh = NULL);
+						ISubsetHandler* psh = nullptr);
 
 bool ExportGridToTETGEN(Grid& grid, const char* filename,
-						AVector3& aPos, std::vector<AFloat>* pvNodeAttributes = NULL,
-						AInt* paNodeBoundaryMarker = NULL,
-						AInt* paFaceBoundaryMarker = NULL,
-						AInt* paElementAttribute = NULL,
-						ANumber* paVolumeConstraint = NULL);
+						AVector3& aPos, std::vector<AFloat>* pvNodeAttributes = nullptr,
+						AInt* paNodeBoundaryMarker = nullptr,
+						AInt* paFaceBoundaryMarker = nullptr,
+						AInt* paElementAttribute = nullptr,
+						ANumber* paVolumeConstraint = nullptr);
 
 }//	end of namespace
 

@@ -68,27 +68,27 @@ class LagrangeLSFS<ReferenceVertex, TOrder>
 {
 	private:
 	///	abbreviation for order
-		static const size_t p = TOrder;
+		static constexpr size_t p = TOrder;
 
 	///	base class
-		typedef BaseLSFS<LagrangeLSFS<ReferenceVertex, TOrder>, 0> base_type;
+		using base_type = BaseLSFS<LagrangeLSFS<ReferenceVertex, TOrder>, 0>;
 
 	public:
 	///	Shape type
-		typedef typename base_type::shape_type shape_type;
+		using shape_type = typename base_type::shape_type;
 
 	///	Gradient type
-		typedef typename base_type::grad_type grad_type;
+		using grad_type = typename base_type::grad_type;
 
 	public:
 	///	Order of Shape functions
-		static const size_t order = TOrder;
+		static constexpr size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceVertex::dim;
+		static constexpr int dim = ReferenceVertex::dim;
 
 	/// Number of shape functions
-		static const size_t nsh = 1;
+		static constexpr size_t nsh = 1;
 
 	public:
 	///	Constructor
@@ -129,11 +129,11 @@ class FlexLagrangeLSFS<ReferenceVertex>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceVertex::dim;
+		static constexpr int dim = ReferenceVertex::dim;
 
 	public:
 	///	default Constructor
-		FlexLagrangeLSFS() {}
+		FlexLagrangeLSFS() = default;
 
 	///	Constructor
 		FlexLagrangeLSFS(size_t order) {p = order;}
@@ -166,7 +166,7 @@ class FlexLagrangeLSFS<ReferenceVertex>
 		size_t p;
 
 	/// Number of shape functions
-		static const size_t nsh = 1;
+		static constexpr size_t nsh = 1;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -185,27 +185,27 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 {
 	private:
 	///	abbreviation for order
-		static const size_t p = TOrder;
+		static constexpr size_t p = TOrder;
 
 	///	base class
-		typedef BaseLSFS<LagrangeLSFS<ReferenceEdge, TOrder>, 1> base_type;
+		using base_type = BaseLSFS<LagrangeLSFS<ReferenceEdge, TOrder>, 1>;
 
 	public:
 	///	Shape type
-		typedef typename base_type::shape_type shape_type;
+		using shape_type = typename base_type::shape_type;
 
 	///	Gradient type
-		typedef typename base_type::grad_type grad_type;
+		using grad_type = typename base_type::grad_type;
 
 	public:
 	///	Order of Shape functions
-		static const size_t order = TOrder;
+		static constexpr size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceEdge::dim;
+		static constexpr int dim = ReferenceEdge::dim;
 
 	/// Number of shape functions
-		static const size_t nsh = p+1;
+		static constexpr size_t nsh = p+1;
 
 	public:
 	///	Constructor
@@ -296,7 +296,7 @@ class FlexLagrangeLSFS<ReferenceEdge>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceEdge::dim;
+		static constexpr int dim = ReferenceEdge::dim;
 
 	public:
 	///	default Constructor
@@ -399,27 +399,27 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 {
 	private:
 	///	abbreviation for order
-		static const size_t p = TOrder;
+		static constexpr size_t p = TOrder;
 
 	///	base class
-		typedef BaseLSFS<LagrangeLSFS<ReferenceTriangle, TOrder>, 2> base_type;
+		using base_type = BaseLSFS<LagrangeLSFS<ReferenceTriangle, TOrder>, 2>;
 
 	public:
 	///	Shape type
-		typedef typename base_type::shape_type shape_type;
+		using shape_type = typename base_type::shape_type;
 
 	///	Gradient type
-		typedef typename base_type::grad_type grad_type;
+		using grad_type = typename base_type::grad_type;
 
 	public:
 	///	Order of Shape functions
-		static const size_t order = TOrder;
+		static constexpr size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceTriangle::dim;
+		static constexpr int dim = ReferenceTriangle::dim;
 
 	/// Number of shape functions
-		static const size_t nsh = BinomialCoefficient<dim + p, p>::value;
+		static constexpr size_t nsh = BinomialCoefficient<dim + p, p>::value;
 
 	public:
 	///	Constructor
@@ -582,7 +582,7 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceTriangle::dim;
+		static constexpr int dim = ReferenceTriangle::dim;
 
 	public:
 	///	default Constructor
@@ -760,27 +760,27 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 {
 	private:
 	///	abbreviation for order
-		static const size_t p = TOrder;
+		static constexpr size_t p = TOrder;
 
 	///	base class
-		typedef BaseLSFS<LagrangeLSFS<ReferenceQuadrilateral, TOrder>, 2> base_type;
+		using base_type = BaseLSFS<LagrangeLSFS<ReferenceQuadrilateral, TOrder>, 2>;
 
 	public:
 	///	Shape type
-		typedef typename base_type::shape_type shape_type;
+		using shape_type = typename base_type::shape_type;
 
 	///	Gradient type
-		typedef typename base_type::grad_type grad_type;
+		using grad_type = typename base_type::grad_type;
 
 	public:
 	///	Order of Shape functions
-		static const size_t order = TOrder;
+		static constexpr size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceQuadrilateral::dim;
+		static constexpr int dim = ReferenceQuadrilateral::dim;
 
 	/// Number of shape functions
-		static const size_t nsh = (p+1)*(p+1);
+		static constexpr size_t nsh = (p+1)*(p+1);
 
 	public:
 	///	Constructor
@@ -911,7 +911,7 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceQuadrilateral::dim;
+		static constexpr int dim = ReferenceQuadrilateral::dim;
 
 	public:
 	///	default Constructor
@@ -1057,27 +1057,27 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 {
 	private:
 	///	abbreviation for order
-		static const size_t p = TOrder;
+		static constexpr size_t p = TOrder;
 
 	///	base class
-		typedef BaseLSFS<LagrangeLSFS<ReferenceTetrahedron, TOrder>, 3> base_type;
+		using base_type = BaseLSFS<LagrangeLSFS<ReferenceTetrahedron, TOrder>, 3>;
 
 	public:
 	///	Shape type
-		typedef typename base_type::shape_type shape_type;
+		using shape_type = typename base_type::shape_type;
 
 	///	Gradient type
-		typedef typename base_type::grad_type grad_type;
+		using grad_type = typename base_type::grad_type;
 
 	public:
 	///	Order of Shape functions
-		static const size_t order = TOrder;
+		static constexpr size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceTetrahedron::dim;
+		static constexpr int dim = ReferenceTetrahedron::dim;
 
 	/// Number of shape functions
-		static const size_t nsh = BinomialCoefficient<dim + p, p>::value;
+		static constexpr size_t nsh = BinomialCoefficient<dim + p, p>::value;
 
 	public:
 	///	Constructor
@@ -1268,7 +1268,7 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceTetrahedron::dim;
+		static constexpr int dim = ReferenceTetrahedron::dim;
 
 	public:
 	///	default Constructor
@@ -1474,30 +1474,30 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 {
 	private:
 	///	abbreviation for order
-		static const size_t p = TOrder;
+		static constexpr size_t p = TOrder;
 
 	/// dofs per layer
-		static const size_t dofPerLayer = BinomialCoefficient<2 + p, p>::value;
+		static constexpr size_t dofPerLayer = BinomialCoefficient<2 + p, p>::value;
 
 	///	base class
-		typedef BaseLSFS<LagrangeLSFS<ReferencePrism, TOrder>, 3> base_type;
+		using base_type = BaseLSFS<LagrangeLSFS<ReferencePrism, TOrder>, 3>;
 
 	public:
 	///	Shape type
-		typedef typename base_type::shape_type shape_type;
+		using shape_type = typename base_type::shape_type;
 
 	///	Gradient type
-		typedef typename base_type::grad_type grad_type;
+		using grad_type = typename base_type::grad_type;
 
 	public:
 	///	Order of Shape functions
-		static const size_t order = TOrder;
+		static constexpr size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferencePrism::dim;
+		static constexpr int dim = ReferencePrism::dim;
 
 	/// Number of shape functions
-		static const size_t nsh = dofPerLayer*(p+1);
+		static constexpr size_t nsh = dofPerLayer*(p+1);
 
 	public:
 	///	Constructor
@@ -1679,7 +1679,7 @@ class FlexLagrangeLSFS<ReferencePrism>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferencePrism::dim;
+		static constexpr int dim = ReferencePrism::dim;
 
 	public:
 	///	default Constructor
@@ -1896,27 +1896,27 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 {
 	private:
 	///	abbreviation for order
-		static const size_t p = TOrder;
+		static constexpr size_t p = TOrder;
 
 	///	base class
-		typedef BaseLSFS<LagrangeLSFS<ReferencePyramid, TOrder>, 3> base_type;
+		using base_type = BaseLSFS<LagrangeLSFS<ReferencePyramid, TOrder>, 3>;
 
 	public:
 	///	Shape type
-		typedef typename base_type::shape_type shape_type;
+		using shape_type = typename base_type::shape_type;
 
 	///	Gradient type
-		typedef typename base_type::grad_type grad_type;
+		using grad_type = typename base_type::grad_type;
 
 	public:
 	///	Order of Shape functions
-		static const size_t order = TOrder;
+		static constexpr size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = 3;	//reference_element_type::dim; (compile error on OSX 10.5)
+		static constexpr int dim = 3;	//reference_element_type::dim; (compile error on OSX 10.5)
 
 	/// Number of shape functions
-		static const size_t nsh = NumberOfDoFsOfPyramid<p>::value;
+		static constexpr size_t nsh = NumberOfDoFsOfPyramid<p>::value;
 
 	public:
 	///	Constructor
@@ -2109,27 +2109,27 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 {
 	private:
 	///	abbreviation for order
-		static const size_t p = TOrder;
+		static constexpr size_t p = TOrder;
 
 	///	base class
-		typedef BaseLSFS<LagrangeLSFS<ReferenceHexahedron, TOrder>, 3> base_type;
+		using base_type = BaseLSFS<LagrangeLSFS<ReferenceHexahedron, TOrder>, 3>;
 
 	public:
 	///	Shape type
-		typedef typename base_type::shape_type shape_type;
+		using shape_type = typename base_type::shape_type;
 
 	///	Gradient type
-		typedef typename base_type::grad_type grad_type;
+		using grad_type = typename base_type::grad_type;
 
 	public:
 	///	Order of Shape functions
-		static const size_t order = TOrder;
+		static constexpr size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceHexahedron::dim;
+		static constexpr int dim = ReferenceHexahedron::dim;
 
 	/// Number of shape functions
-		static const size_t nsh = (p+1)*(p+1)*(p+1);
+		static constexpr size_t nsh = (p+1)*(p+1)*(p+1);
 
 	public:
 	///	Constructor
@@ -2261,7 +2261,7 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceHexahedron::dim;
+		static constexpr int dim = ReferenceHexahedron::dim;
 
 	public:
 	///	default Constructor
@@ -2413,27 +2413,27 @@ class LagrangeLSFS<ReferenceOctahedron, TOrder>
 {
 	private:
 	///	abbreviation for order
-		static const size_t p = TOrder;
+		static constexpr size_t p = TOrder;
 
 	///	base class
-		typedef BaseLSFS<LagrangeLSFS<ReferenceOctahedron, TOrder>, 3> base_type;
+		using base_type = BaseLSFS<LagrangeLSFS<ReferenceOctahedron, TOrder>, 3>;
 
 	public:
 	///	Shape type
-		typedef typename base_type::shape_type shape_type;
+	using shape_type = typename base_type::shape_type;
 
 	///	Gradient type
-		typedef typename base_type::grad_type grad_type;
+	using grad_type = typename base_type::grad_type;
 
 	public:
 	///	Order of Shape functions
-		static const size_t order = TOrder;
+		static constexpr size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = 3;	//reference_element_type::dim; (compile error on OSX 10.5)
+		static constexpr int dim = 3;	//reference_element_type::dim; (compile error on OSX 10.5)
 
 	/// Number of shape functions
-		static const size_t nsh = 6;
+		static constexpr size_t nsh = 6;
 
 	public:
 	///	Constructor

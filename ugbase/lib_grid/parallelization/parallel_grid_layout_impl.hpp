@@ -127,7 +127,7 @@ template <class TType>
 inline typename GridLayoutMap::Types<TType>::Map& GridLayoutMap::
 get_layout_map()
 {
-	TType* dummy = NULL;//	set to NULL to avoid warnings
+	TType* dummy = nullptr;//	set to nullptr to avoid warnings
 	return get_layout_map(dummy);
 }
 
@@ -135,7 +135,7 @@ template <class TType>
 inline const typename GridLayoutMap::Types<TType>::Map& GridLayoutMap::
 get_layout_map() const
 {
-	TType* dummy = NULL;//	set to NULL to avoid warnings
+	TType* dummy = nullptr;//	set to nullptr to avoid warnings
 	return get_layout_map(dummy);
 }
 

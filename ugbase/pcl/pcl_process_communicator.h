@@ -33,14 +33,19 @@
 #ifndef __H__PCL__PCL_PROCESS_COMMUNICATOR__
 #define __H__PCL__PCL_PROCESS_COMMUNICATOR__
 
+
 #include <iostream>
 #include <map>
 #include <vector>
-#include "pcl_methods.h"
+#include <mpi.h>
+
 #include "common/util/smart_pointer.h"
 #include "common/util/binary_stream.h"
 #include "common/util/binary_buffer.h"
 #include "common/error.h"
+
+
+#include "pcl_methods.h"
 
 namespace pcl
 {
@@ -74,10 +79,10 @@ class ProcessCommunicator
 		ProcessCommunicator(ProcessCommunicatorDefaults pcd = PCD_WORLD);
 		
 	///	returns true if the communicator is empty, false if not.
-		inline bool empty() const		{return !is_local() && m_comm->m_mpiComm == MPI_COMM_NULL;}
+		inline bool empty() const {return !is_local() && m_comm->m_mpiComm == MPI_COMM_NULL;}
 
 	/// return true if the communicator is PCD_WORLD
-		inline bool is_world() const	{ return !is_local() && m_comm->m_mpiComm == PCL_COMM_WORLD; }
+		inline bool is_world() const { return !is_local() && m_comm->m_mpiComm == PCL_COMM_WORLD; }
 		
 	/// return true if the communicator is local, simulating current proc is the only proc
 		inline bool is_local() const {return m_comm.valid() == false;}
@@ -96,7 +101,7 @@ class ProcessCommunicator
 
 	///	returns the proc-id relative to this communicator
 	/**	This method has a worst time complexity of O(n)*/
-		int get_local_proc_id(int globalProcID = pcl::ProcRank()) const;
+		int get_local_proc_id(int globalProcID = ProcRank()) const;
 
 	///	returns the mpi-communicator, in case someone needs it
 		MPI_Comm get_mpi_communicator() const	{return m_comm->m_mpiComm;}
@@ -182,11 +187,11 @@ class ProcessCommunicator
 	 * Note that recBufOut, pSizesOut and pOffsetsOut will be resized as required.
 	 *
 	 * Please note that this method communicates twice.*/
-		template<class TValue>
+		template<typename TValue>
 		void gatherv(std::vector<TValue>& recBufOut,
 					 std::vector<TValue>& sendBuf, int root,
-					 std::vector<int>* pSizesOut = NULL,
-					 std::vector<int>* pOffsetsOut = NULL) const;
+					 std::vector<int>* pSizesOut = nullptr,
+					 std::vector<int>* pOffsetsOut = nullptr) const;
 
 	///	performs MPI_Allgather on the processes of the communicator.
 	/**	This method synchronises involved processes.
@@ -213,8 +218,7 @@ class ProcessCommunicator
 						DataType recType) const;
 
 	/** allgather of BinaryBuffers
-	 * @param buf	Binary buffer in/out
-	 * @param root	root processor*/
+	 * @param buf	Binary buffer in/out*/
 		void allgather(ug::BinaryBuffer &buf) const;
 
 	///	performs MPI_Alltoall on the processes of the communicator.
@@ -243,11 +247,11 @@ class ProcessCommunicator
 	 * Note that recBufOut, pSizesOut and pOffsetsOut will be resized as required.
 	 *
 	 * Please note that this method communicates twice.*/
-		template<class TValue>
+		template<typename TValue>
 		void allgatherv(std::vector<TValue>& recBufOut,
 						std::vector<TValue>& sendBuf,
-						std::vector<int>* pSizesOut = NULL,
-						std::vector<int>* pOffsetsOut = NULL) const;
+						std::vector<int>* pSizesOut = nullptr,
+						std::vector<int>* pOffsetsOut = nullptr) const;
 
 		
 	///	performs MPI_Reduce on the processes of the communicator.
@@ -262,7 +266,7 @@ class ProcessCommunicator
 	 * \param rootProc	the process onto which the result will be reduced.
 	 * \return the reduced result*/
 		template<typename T>
-		T reduce(const T &t, pcl::ReduceOperation op, int rootProc) const;
+		T reduce(const T &t, ReduceOperation op, int rootProc) const;
 
 	/** simplified reduce for buffers.
 	 * \param pSendBuff the input buffer
@@ -272,16 +276,16 @@ class ProcessCommunicator
 	 * \param rootProc	the process onto which the result will be reduced.*/
 		template<typename T>
 		void reduce(const T *pSendBuff, T *pReceiveBuff, size_t count,
-					pcl::ReduceOperation op, int rootProc) const;
+					ReduceOperation op, int rootProc) const;
 
 	/** simplified reduce for std::vector. The receive-buffer is automatically
 	 * resized as required.*/
 		template<typename T>
 		void reduce(const std::vector<T> &send, std::vector<T> &receive,
-					   pcl::ReduceOperation op, int rootProc) const;
+					   ReduceOperation op, int rootProc) const;
 
 	///	overload for size_t
-		size_t reduce(const size_t &t, pcl::ReduceOperation op, int rootProc) const;
+		size_t reduce(const size_t &t, ReduceOperation op, int rootProc) const;
 
 	///	performs MPI_Allreduce on the processes of the communicator.
 	/**	This method synchronises involved processes.*/
@@ -294,10 +298,10 @@ class ProcessCommunicator
 	 * \param op the Reduce Operation
 	 * \return the reduced result*/
 		template<typename T>
-		T allreduce(const T &t, pcl::ReduceOperation op) const;
+		T allreduce(const T &t, ReduceOperation op) const;
 
 	///	overload for size_t
-		size_t allreduce(const size_t &t, pcl::ReduceOperation op) const;
+		size_t allreduce(const size_t &t, ReduceOperation op) const;
 
 	/** simplified allreduce for buffers.
 	 * \param pSendBuff the input buffer
@@ -306,13 +310,13 @@ class ProcessCommunicator
 	 * \param op the Reduce Operation*/
 		template<typename T>
 		void allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count,
-					   pcl::ReduceOperation op) const;
+					   ReduceOperation op) const;
 
 	/** simplified allreduce for std::vector. The receive-buffer is automatically
 	 * resized as required.*/
 		template<typename T>
 		void allreduce(const std::vector<T> &send, std::vector<T> &receive,
-					   pcl::ReduceOperation op) const;
+					   ReduceOperation op) const;
 
 
 	/** performs a MPI_Bcast
@@ -332,7 +336,7 @@ class ProcessCommunicator
 		inline void broadcast(T *p, size_t size=1, int root=0) const;
 
 	/** Bcast for objects
-	 * @param v		object to be broadcasted (uses Serialize/Deserialize)
+	 * @param t		object to be broadcasted (uses Serialize/Deserialize)
 	 * @param root	process that distributes data (default 0)
 	 * @sa Serialize, Deserialize*/
 		template<typename T>
@@ -429,7 +433,9 @@ class ProcessCommunicator
 	 * 						sendToRanks. Has to have size numSendTos.
 	 * \param sendToRanks	An array of process ids, which defines to where
 	 * 						data shall be sent. Has to have size numSendTos.
-	 * \param numSendTos	Specifies to how many processes data will be sent.*/
+	 * \param numSendTos	Specifies to how many processes data will be sent.
+	 * \param tag: This tag will be used to identify send and received messages.
+	 *			   Default: 1*/
 		void distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 							int* recvFromRanks, int numRecvFroms,
 							void* sendBuf, int* sendSegSizes,
@@ -450,7 +456,9 @@ class ProcessCommunicator
 	 * 						processes. Has to be of size numSends
 	 * \param sendToRanks	An array of process ids, which defines to where
 	 * 						data shall be sent. Has to have size numSends.
-	 * \param numSendTos	Specifies to how many processes data will be sent.*/
+	 * \param numSendTos	Specifies to how many processes data will be sent.
+	 * \param tag: This tag will be used to identify send and received messages.
+	 *			   Default: 1*/
 		void distribute_data(ug::BinaryBuffer* recvBufs, int* recvFromRanks, int numRecvs,
 							 ug::BinaryBuffer* sendBufs, int* sendToRanks, int numSendTos,
 							 int tag = 1) const;
@@ -461,8 +469,7 @@ class ProcessCommunicator
 		struct CommWrapper{
 		///	initializes the commWrapper with PCL_COMM_WORLD
 			CommWrapper();
-			CommWrapper(const MPI_Comm& comm,
-						bool bReleaseComm);
+			CommWrapper(const MPI_Comm& comm, bool bReleaseComm);
 			~CommWrapper();
 			
 			MPI_Comm			m_mpiComm;
@@ -473,7 +480,7 @@ class ProcessCommunicator
 		};
 		
 	///	Smart-pointer that encapsulates a CommWrapper.
-		typedef SmartPtr<CommWrapper> SPCommWrapper;
+		using SPCommWrapper = SmartPtr<CommWrapper>;
 		
 	private:
 	///	smart-pointer to an instance of a CommWrapper.

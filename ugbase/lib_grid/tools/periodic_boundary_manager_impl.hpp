@@ -77,8 +77,7 @@ bool ParallelShiftIdentifier<TAAPos>::match_impl(TElem* e1, TElem* e2) const {
 template <class TElem>
 void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2,
 		IIdentifier& ident) {
-	typedef typename
-			Grid::traits<typename TElem::side>::secure_container container;
+	using container = typename Grid::traits<typename TElem::side>::secure_container;
 
 	// determine masters
 	TElem* m1 = master(e1);
@@ -137,7 +136,7 @@ TElem* PeriodicBoundaryManager::master(TElem* e) const {
 	if (group(e)) {
 		return group(e)->m_master;
 	}
-	return NULL;
+	return nullptr;
 }
 
 // gets slaves of e
@@ -147,13 +146,13 @@ PeriodicBoundaryManager::slaves(TElem* e) const {
 	if (group(e)) {
 		return &group(e)->get_slaves();
 	}
-	return NULL;
+	return nullptr;
 }
 
 template <class TElem>
 void PeriodicBoundaryManager::print_identification() const {
-	typedef typename ElementStorage<TElem>::SectionContainer::iterator Iterator;
-	typedef typename Group<TElem>::SlaveIterator SlaveIter;
+	using Iterator = typename ElementStorage<TElem>::SectionContainer::iterator;
+	using SlaveIter = typename Group<TElem>::SlaveIterator;
 
 	for (Iterator elem = m_pGrid->begin<TElem>(); elem != m_pGrid->end<TElem>();
 			++elem) {
@@ -206,8 +205,7 @@ void PeriodicBoundaryManager::replace_parent(TElem* e, TElem* pParent) {
 
 template <class TElem, class TParent>
 void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent) {
-
-	typedef typename Group<TParent>::SlaveContainer ParentSlaveContainer;
+	using ParentSlaveContainer = typename Group<TParent>::SlaveContainer;
 
 	if (!pParent)
 		return;
@@ -235,7 +233,7 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent) {
 	if (is_master<TParent>(pParent)) {
 		// create new group for e, with e as master
 		Group<TElem>* newGroup = new Group<TElem>(e);
-		UG_ASSERT(group(e) == NULL, "element already has a group.")
+		UG_ASSERT(group(e) == nullptr, "element already has a group.")
 		set_group(newGroup, e);
 
 		// iterate over slaves of parent
@@ -290,7 +288,7 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent) {
 		// attention: parentGroup may be null
 		Group<TParent>* parentGroup = group<TParent>(pParent);
 
-		if (parentGroup == NULL) {
+		if (parentGroup == nullptr) {
 			get_periodic_status_accessor<TElem>()[e] = P_SLAVE_MASTER_UNKNOWN;
 			return;
 		}
@@ -417,7 +415,7 @@ template <class TElem>
 void PeriodicBoundaryManager::make_master(Group<TElem>* g, TElem* new_master) {
 	// group has a master, reset its group
 	if(g->m_master) {
-		set_group<TElem>(NULL, g->m_master);
+		set_group<TElem>(nullptr, g->m_master);
 	}
 	g->m_master = new_master;
 }
@@ -429,7 +427,7 @@ bool PeriodicBoundaryManager::remove_slave(TElem* e) {
 		typename Group<TElem>::SlaveIterator pos = std::find(s.begin(), s.end(), e);
 		if (pos != s.end()) {
 //			s.erase(pos);
-//			set_group<TElem>(NULL, e);
+//			set_group<TElem>(nullptr, e);
 
 			// todo this is the only slave left, remove whole group?!
 			if(s.size() == 1) {
@@ -450,12 +448,12 @@ template <class TElem>
 void PeriodicBoundaryManager::remove_group(Group<TElem>* g) {
 	UG_ASSERT(g, "should remove invalid group")
 
-	// reset group pointers of all group members to NULL
-	set_group<TElem>(NULL, g->m_master);
+	// reset group pointers of all group members to nullptr
+	set_group<TElem>(nullptr, g->m_master);
 	typename Group<TElem>::SlaveContainer& s = g->get_slaves();
 	typename Group<TElem>::SlaveIterator iter;
 	for (iter = s.begin(); iter != s.end(); ++iter) {
-		set_group<TElem>(NULL, *iter);
+		set_group<TElem>(nullptr, *iter);
 	}
 
 	delete g;
@@ -469,8 +467,8 @@ void PeriodicBoundaryManager::merge_groups(Group<TElem>* g0, Group<TElem>* g1) {
 	UG_ASSERT(g0 && g1, "groups not valid")
 	UG_ASSERT(g0 != g1, "groups are equal")
 
-	typedef typename Group<TElem>::SlaveContainer SlaveContainer;
-	typedef typename Group<TElem>::SlaveIterator SlaveIterator;
+	using SlaveContainer = typename Group<TElem>::SlaveContainer;
+	using SlaveIterator = typename Group<TElem>::SlaveIterator;
 
 	SlaveContainer& slaves_g1 = g1->get_slaves();
 
@@ -519,7 +517,7 @@ void PeriodicBoundaryManager::set_group(Group<TElem>* g, TElem* e) {
 	get_group_accessor<TElem>()[e] = g;
 
 	// set periodic status
-	if (g == NULL) {
+	if (g == nullptr) {
 		get_periodic_status_accessor<TElem>()[e] = P_NOT_PERIODIC;
 	} else {
 		if (g->m_master == e)
@@ -535,10 +533,9 @@ void PeriodicBoundaryManager::check_elements_periodicity(
 		TIterator end,
 		typename Group<TElem>::unique_pairs& s,
 		ISubsetHandler* sh) {
-
-	typedef typename Group<TElem>::SlaveContainer Container;
-	typedef typename Group<TElem>::SlaveIterator SlaveIter;
-	typedef typename ElementStorage<TElem>::SectionContainer::const_iterator SecContainerIter;
+	using Container = typename Group<TElem>::SlaveContainer;
+	using SlaveIter = typename Group<TElem>::SlaveIterator;
+	using SecContainerIter = typename ElementStorage<TElem>::SectionContainer::const_iterator;
 
 	for (SecContainerIter iter = begin; iter != end; ++iter) {
 		TElem* e = *iter;
@@ -579,7 +576,7 @@ void PeriodicBoundaryManager::check_elements_periodicity(
 template <class TDomain>
 void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2) {
 	// get subset handler from domain
-	typedef typename TDomain::subset_handler_type subset_handler_type;
+	using subset_handler_type = typename TDomain::subset_handler_type;
 
 	subset_handler_type& sh = *dom.subset_handler();
 
@@ -623,11 +620,11 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 
 	PeriodicBoundaryManager& pbm = *dom.grid()->periodic_boundary_manager();
 
-	typedef typename TDomain::position_type position_type;
-	typedef typename TDomain::position_accessor_type position_accessor_type;
+	using position_type = typename TDomain::position_type;
+	using position_accessor_type = typename TDomain::position_accessor_type;
 
 	// get subset handler from domain
-	typedef typename TDomain::subset_handler_type subset_handler_type;
+	using subset_handler_type = typename TDomain::subset_handler_type;
 
 	subset_handler_type& sh = *dom.subset_handler();
 
@@ -665,13 +662,13 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	// map start type of recursion dependent to TDomain
 	// in 3d start with faces, in 2d with edges, in 1d with vertices
 	// namespace mpl = boost::mpl;
-	// typedef		mpl::map<mpl::pair<Domain1d, Vertex>,
-	// 					 mpl::pair<Domain2d, Edge>,
-	// 					 mpl::pair<Domain3d, Face> > m;
+	/*using m = mpl::map<mpl::pair<Domain1d, Vertex>,
+		mpl::pair<Domain2d, Edge>,
+		mpl::pair<Domain3d, Face> >;*/
 
-	// typedef typename mpl::at<m, TDomain>::type TElem;
-	typedef typename grid_dim_traits<TDomain::dim>::side_type	TElem;
-	typedef typename ElementStorage<TElem>::SectionContainer::iterator gocIter;
+	//using TElem = typename mpl::at<m, TDomain>::type;
+	using TElem = typename grid_dim_traits<TDomain::dim>::side_type;
+	using gocIter = typename ElementStorage<TElem>::SectionContainer::iterator;
 
 	// calculate shift vector for top level
 	position_type c1 = CalculateCenter(goc1.begin<TElem>(0), goc1.end<TElem>(0),

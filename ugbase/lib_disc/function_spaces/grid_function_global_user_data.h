@@ -58,8 +58,8 @@ class GlobalGridFunctionNumberData
 {
 	public:
 	///	world dimension of grid function
-		static const int dim = TGridFunction::dim;
-		typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object element_t;
+		static constexpr int dim = TGridFunction::dim;
+		using element_t = typename TGridFunction::template dim_traits<elemDim>::grid_base_object;
 
 		private:
 	/// grid function
@@ -71,7 +71,7 @@ class GlobalGridFunctionNumberData
 	///	local finite element id
 		LFEID m_lfeID;
 
-		typedef lg_ntree<dim, dim, element_t>	tree_t;
+		using tree_t = lg_ntree<dim, dim, element_t>;
 		tree_t	m_tree;
 
 	public:
@@ -155,7 +155,7 @@ class GlobalGridFunctionNumberData
 		///	evaluates the data at a given point, returns false if point not found
 		inline bool evaluate(number& value, const MathVector<dim>& x) const
 		{
-			element_t* elem = NULL;
+			element_t* elem = nullptr;
 			//try{
 
 				if(!FindContainingElement(elem, m_tree, x)){
@@ -264,8 +264,8 @@ class GlobalGridFunctionGradientData
 {
 	public:
 	///	world dimension of grid function
-		static const int dim = TGridFunction::dim;
-		typedef typename TGridFunction::element_type  element_t;
+		static constexpr int dim = TGridFunction::dim;
+		using element_t = typename TGridFunction::element_type;
 
 		private:
 	/// grid function
@@ -277,7 +277,7 @@ class GlobalGridFunctionGradientData
 	///	local finite element id
 		LFEID m_lfeID;
 
-		typedef lg_ntree<dim, dim, element_t>	tree_t;
+		using tree_t = lg_ntree<dim, dim, element_t>;
 		tree_t	m_tree;
 
 	public:
@@ -353,9 +353,9 @@ class GlobalGridFunctionGradientData
 		///	evaluates the data at a given point, returns false if point not found
 		inline bool evaluate(MathVector<dim>& value, const MathVector<dim>& x) const
 		{
-			static const int refDim = dim;
+			static constexpr int refDim = dim;
 
-			element_t* elem = NULL;
+			element_t* elem = nullptr;
 			try{
 
 				if(!FindContainingElement(elem, m_tree, x)){

@@ -77,14 +77,13 @@ static void Algebra(Registry& reg, string grp)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
-//	typedefs for this algebra
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using vector_type = typename TAlgebra::vector_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 //	GPUJacobi
 	{
-		typedef Jacobi<TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
+		using T = Jacobi<TAlgebra>;
+		using TBase = IPreconditioner<TAlgebra>;
 		string name = string("GPUJacobi").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "GPU Jacobi Preconditioner")
 			.add_constructor()
@@ -106,7 +105,7 @@ static void Algebra(Registry& reg, string grp)
 void RegisterBridge_GPU(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Preconditioner");
-	typedef Preconditioner::Functionality Functionality;
+	using Functionality = Preconditioner::Functionality;
 
 	try{
 		RegisterAlgebraDependent<Functionality>(reg,grp);

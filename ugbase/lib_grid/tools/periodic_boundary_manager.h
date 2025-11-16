@@ -68,7 +68,7 @@ public:
 	virtual bool match(Face* f1, Face* f2) {return match_impl(f1, f2);}
 
 	virtual ~ParallelShiftIdentifier() {}
-	typedef typename TPosAA::ValueType AttachmentType;
+	using AttachmentType = typename TPosAA::ValueType;
 	ParallelShiftIdentifier(TPosAA& aa) : m_aaPos(aa) {}
 	void set_shift(AttachmentType& shift) {m_shift = shift; VecScale(m_shift_opposite, m_shift, -1);}
 protected:
@@ -106,13 +106,13 @@ public:
 	class Group
 	{
 		public:
-			typedef Container SlaveContainer;
-			typedef typename Container::iterator SlaveIterator;
-			// the set typedefs are used to check for periodicity after identification
-			typedef typename std::pair<TElem*, TElem*> master_slave_pair;
-			typedef typename std::set<master_slave_pair> unique_pairs;
+			using SlaveContainer = Container;
+			using SlaveIterator = typename Container::iterator;
+			// the set type definitions are used to check for periodicity after identification
+			using master_slave_pair = std::pair<TElem*, TElem*>;
+			using unique_pairs = std::set<master_slave_pair>;
 
-			Group(TElem* m = NULL) : m_master(m) {}
+			Group(TElem* m = nullptr) : m_master(m) {}
 
 			void add_slave(TElem* e) {
 				UG_ASSERT(e, "add_slave: slave not valid");
@@ -163,30 +163,30 @@ public:
 	/// grid observation methods
 	virtual void grid_to_be_destroyed(Grid* grid);
 	virtual void vertex_created(Grid* grid, Vertex* vrt,
-										GridObject* pParent = NULL,
+										GridObject* pParent = nullptr,
 										bool replacesParent = false);
 
 	virtual void edge_created(Grid* grid, Edge* e,
-								GridObject* pParent = NULL,
+								GridObject* pParent = nullptr,
 								bool replacesParent = false);
 
 	virtual void face_created(Grid* grid, Face* f,
-								GridObject* pParent = NULL,
+								GridObject* pParent = nullptr,
 								bool replacesParent = false);
 
 	virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
-									 Vertex* replacedBy = NULL);
+									 Vertex* replacedBy = nullptr);
 
 	virtual void edge_to_be_erased(Grid* grid, Edge* e,
-									 Edge* replacedBy = NULL);
+									 Edge* replacedBy = nullptr);
 
 	virtual void face_to_be_erased(Grid* grid, Face* f,
-									 Face* replacedBy = NULL);
+									 Face* replacedBy = nullptr);
 
 	/// checks that all elements of given gocs are periodic (called after identification)
 	bool check_periodicity(const GridObjectCollection& goc1,
 							  const GridObjectCollection& goc2,
-							  ISubsetHandler* sh = NULL);
+							  ISubsetHandler* sh = nullptr);
 
 	/**	makes sure that all master/slave identifications are correct and that
 	 * no unconnected masters or slaves exist.
@@ -297,13 +297,13 @@ template <class TElem,class TAttachment>
 class PeriodicAttachmentAccessor
 {
 	public:
-		typedef typename TAttachment::ValueType	ValueType;
-		typedef typename attachment_value_traits<ValueType>::reference RefType;
-		typedef typename attachment_value_traits<ValueType>::const_reference ConstRefType;
+		using ValueType = typename TAttachment::ValueType;
+		using RefType = typename attachment_value_traits<ValueType>::reference;
+		using ConstRefType = typename attachment_value_traits<ValueType>::const_reference;
 
-		PeriodicAttachmentAccessor() : m_pbm(NULL)	{}
+		PeriodicAttachmentAccessor() : m_pbm(nullptr)	{}
 
-		PeriodicAttachmentAccessor(Grid& g, TAttachment& a) : m_pbm(NULL)
+		PeriodicAttachmentAccessor(Grid& g, TAttachment& a) : m_pbm(nullptr)
 		{
 			access(g, a);
 		}

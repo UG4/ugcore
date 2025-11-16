@@ -45,7 +45,7 @@ AttachmentPipe() :
 	m_numElements(0),
 	m_numDataEntries(0),
 	m_containerSize(0),
-	m_pHandler(NULL)
+	m_pHandler(nullptr)
 {
 }
 
@@ -232,9 +232,9 @@ detach(IAttachment& attachment)
 	{
 		AttachmentEntryIterator iter = m_attachmentEntryIteratorHash.get_entry(attachment.id());
 		delete ((*iter).m_pAttachment);
-		((*iter).m_pAttachment) = NULL;
+		((*iter).m_pAttachment) = nullptr;
 		delete((*iter).m_pContainer);
-		((*iter).m_pContainer) = NULL;
+		((*iter).m_pContainer) = nullptr;
 		m_attachmentEntryContainer.erase(iter);
 		m_attachmentEntryIteratorHash.erase(attachment.id());
 	}
@@ -258,7 +258,7 @@ get_data_array(TAttachment& attachment)
 	if(has_attachment(attachment))
 		return get_data_container(attachment)->get_ptr();
 
-	return NULL;
+	return nullptr;
 }
 
 template <class TElem, class TElemHandler>
@@ -269,7 +269,7 @@ get_data_container(IAttachment& attachment) const
 	AttachmentEntryIterator iter;
 	if(m_attachmentEntryIteratorHash.get_entry(iter, attachment.id()))
 		return iter->m_pContainer;
-	return NULL;
+	return nullptr;
 }
 
 template <class TElem, class TElemHandler>
@@ -281,7 +281,7 @@ get_data_container(TAttachment& attachment)
 	AttachmentEntryIterator iter;
 	if(m_attachmentEntryIteratorHash.get_entry(iter, attachment.id()))
 		return static_cast<typename TAttachment::ContainerType*>(iter->m_pContainer);
-	return NULL;
+	return nullptr;
 }
 
 template <class TElem, class TElemHandler>
@@ -445,7 +445,7 @@ get_container_size()
 //	AttachmentAccessor
 template <class TElem, class TAttachment, class TElemHandler>
 AttachmentAccessor<TElem, TAttachment, TElemHandler>::
-AttachmentAccessor() : m_pContainer(NULL), m_pHandler(NULL)
+AttachmentAccessor() : m_pContainer(nullptr), m_pHandler(nullptr)
 {
 }
 

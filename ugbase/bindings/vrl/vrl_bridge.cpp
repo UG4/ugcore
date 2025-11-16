@@ -171,9 +171,9 @@ struct Functionality {
 	 */
 	template<typename TAlgebra>
 	static void Algebra(ug::bridge::Registry& reg, std::string parentGroup) {
-//	typedefs for Vector and Matrix
-		typedef typename TAlgebra::vector_type vector_type;
-		typedef typename TAlgebra::matrix_type matrix_type;
+
+		using vector_type = typename TAlgebra::vector_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 //	suffix and tag
 		std::string suffix = ug::bridge::GetAlgebraSuffix<TAlgebra>();
@@ -192,7 +192,7 @@ void RegisterVRLFunctionality(ug::bridge::Registry& reg, std::string grp) {
 //		and discretization related code.
 //		This makes it possible to compile e.g. for target vrlgrid
 	#ifdef UG_ALGEBRA
-		typedef ug::vrl::Functionality Functionality;
+		using Functionality = ug::vrl::Functionality ;
 		ug::bridge::RegisterAlgebraDependent<Functionality>(reg, grp);
 		ug::vrl::RegisterUserData(reg, "UG4/VRL");
 	#endif

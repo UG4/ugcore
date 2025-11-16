@@ -120,7 +120,7 @@ class UGError
 		              const unsigned long line = 0)
 		{
 			m_vMsg.push_back(msg);
-			m_vFile.push_back(file);
+			m_vFile.emplace_back(file);
 			m_vLine.push_back(line);
 		}
 
@@ -128,8 +128,8 @@ class UGError
 		void push_msg(const char* msg, const char* file = " -- no file -- ",
 		              const unsigned long line = 0)
 		{
-			m_vMsg.push_back(msg);
-			m_vFile.push_back(file);
+			m_vMsg.emplace_back(msg);
+			m_vFile.emplace_back(file);
 			m_vLine.push_back(line);
 		}
 

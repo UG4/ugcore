@@ -36,10 +36,10 @@
 #include "common/debug_print.h"
 #include "lib_algebra/common/operations_vec.h"
 
-typedef int lapack_int;
-typedef float lapack_float;
-typedef double lapack_double;
-typedef int lapack_ftnlen;
+using lapack_int = int;
+using lapack_float = float;
+using lapack_double = double;
+using lapack_ftnlen = int;
 
 
 inline double dabs(double a) { return a > 0 ? a : -a; }

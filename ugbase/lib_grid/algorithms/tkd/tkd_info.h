@@ -49,13 +49,13 @@ public:
 	 */
 	TKDInfo (number a, number w, number h, number d);
 
-	static const int NUM_COORDS			= 52;
-	static const int NUM_INNER_COORDS	= 26;
-	static const int NUM_OUTER_COORDS	= 26;
+	static constexpr int NUM_COORDS	= 52;
+	static constexpr int NUM_INNER_COORDS = 26;
+	static constexpr int NUM_OUTER_COORDS = 26;
 
-	static const int NUM_ELEMENTS		= 54;
-	static const int NUM_INNER_ELEMENTS	= 18;
-	static const int NUM_OUTER_ELEMENTS	= 36;
+	static constexpr int NUM_ELEMENTS = 54;
+	static constexpr int NUM_INNER_ELEMENTS	= 18;
+	static constexpr int NUM_OUTER_ELEMENTS	= 36;
 
 	size_t num_coords () const				{return (size_t)NUM_COORDS;}
 	size_t num_inner_coords () const		{return (size_t)NUM_INNER_COORDS;}

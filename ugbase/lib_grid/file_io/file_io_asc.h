@@ -51,7 +51,7 @@ class FileReaderASC{
 	 * e.g. to avoid memory duplication and copying, you may use this method.
 	 * In this case you should make sure that the provided field instance outlives
 	 * the FileReaders instance.
-	 * Call this method with NULL to indicate that the internal field shall be used again.
+	 * Call this method with nullptr to indicate that the internal field shall be used again.
 	 * \note When an external field-pointer is set or unset, no data will be copied
 	 * 		 between the internal and external fields. Unless a new load_file
 	 *		 has been executed, the provided data may not be of any use.*/

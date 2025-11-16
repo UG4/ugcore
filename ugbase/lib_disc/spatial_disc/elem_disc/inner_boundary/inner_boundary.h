@@ -66,7 +66,7 @@ struct InnerBoundaryConstants
 {
 	public:
 		/// index value for which a flux is ignored
-		static const size_t _IGNORE_ = -1;
+		static constexpr size_t _IGNORE_ = -1;
 };
 
 
@@ -97,29 +97,29 @@ class FV1InnerBoundaryElemDisc
 : public IElemDisc<TDomain>
 {
 	public:
-		typedef InnerBoundaryFluxCond FluxCond;
-		typedef InnerBoundaryFluxDerivCond FluxDerivCond;
+	using FluxCond = InnerBoundaryFluxCond;
+	using FluxDerivCond = InnerBoundaryFluxDerivCond;
 
 	public:
 	///	Domain type
-		typedef TDomain domain_type;
+	using domain_type = TDomain;
 
 	private:
 	///	Base class type
-		typedef IElemDisc<domain_type> base_type;
+	using base_type = IElemDisc<domain_type>;
 
 	///	own type
-		typedef FV1InnerBoundaryElemDisc<TImpl, TDomain> this_type;
+	using this_type = FV1InnerBoundaryElemDisc<TImpl, TDomain>;
 
 	public:
 	///	World dimension
-		static const int dim = base_type::dim;
+		static constexpr int dim = base_type::dim;
 
 	///	Position type
-		typedef typename base_type::position_type position_type;
+	using position_type = typename base_type::position_type;
 
 	/// error estimator type
-		typedef MultipleSideAndElemErrEstData<domain_type> err_est_type;
+	using err_est_type = MultipleSideAndElemErrEstData<domain_type>;
 
 
 	public:
@@ -250,7 +250,7 @@ class FV1InnerBoundaryElemDisc
 		{
 			RegisterPrepTimestep(this_type* p)
 			{
-				static const bool isEmpty = boost::mpl::empty<List>::value;
+				static constexpr bool isEmpty = boost::mpl::empty<List>::value;
 				(typename boost::mpl::if_c<isEmpty, RegEnd, RegNext>::type(p));
 			}
 			struct RegEnd
@@ -261,8 +261,8 @@ class FV1InnerBoundaryElemDisc
 			{
 				RegNext(this_type* p)
 				{
-					typedef typename boost::mpl::front<List>::type AlgebraType;
-					typedef typename boost::mpl::pop_front<List>::type NextList;
+					using AlgebraType = typename boost::mpl::front<List>::type;
+					using NextList = typename boost::mpl::pop_front<List>::type;
 
 					size_t aid = bridge::AlgebraTypeIDProvider::instance().id<AlgebraType>();
 					p->set_prep_timestep_fct(aid, &this_type::template prep_timestep<AlgebraType>);

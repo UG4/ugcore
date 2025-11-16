@@ -44,7 +44,7 @@ Face* GetOpposingSide(Grid& g, Volume* elem, Face* side)
 	elem->get_opposing_side(side, fd);
 
 	// compare descriptor to actual sides of the elem
-	typedef Grid::traits<Face>::secure_container side_list_type;
+	using side_list_type = Grid::traits<Face>::secure_container;
 	side_list_type sl;
 	g.associated_elements(sl, elem);
 	size_t sl_sz = sl.size();
@@ -54,7 +54,7 @@ Face* GetOpposingSide(Grid& g, Volume* elem, Face* side)
 			return sl[s];
 	}
 
-	return (Face*) NULL;
+	return (Face*) nullptr;
 }
 
 
@@ -64,7 +64,7 @@ Edge* GetOpposingSide(Grid& g, Face* elem, Edge* side)
 	elem->get_opposing_side(side, ed);
 
 	// compare descriptor to actual sides of the elem
-	typedef Grid::traits<Edge>::secure_container side_list_type;
+	using side_list_type = Grid::traits<Edge>::secure_container;
 	side_list_type sl;
 	g.associated_elements(sl, elem);
 	size_t sl_sz = sl.size();
@@ -74,13 +74,13 @@ Edge* GetOpposingSide(Grid& g, Face* elem, Edge* side)
 			return sl[s];
 	}
 
-	return (Edge*) NULL;
+	return nullptr;
 }
 
 
 Vertex* GetOpposingSide(Grid& g, Edge* elem, Vertex* side)
 {
-	Vertex* out = NULL;
+	Vertex* out = nullptr;
 	elem->get_opposing_side(side, &out);
 	return out;
 }

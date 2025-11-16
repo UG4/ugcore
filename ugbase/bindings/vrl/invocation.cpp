@@ -75,7 +75,7 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 	//		return methods[signature.c_str()];
 	//	}
 
-	const ug::bridge::ExportedMethod* method = NULL;
+	const ug::bridge::ExportedMethod* method = nullptr;
 
 	// we allow invocation of methods defined in parent classes
 	std::vector<const ug::bridge::IExportedClass*> classList =
@@ -87,7 +87,7 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 		const ug::bridge::IExportedClass* cls = classList[i];
 
 		// check whether to search const or non-const methods
-		const ug::bridge::ExportedMethodGroup* methodGroup = NULL;
+		const ug::bridge::ExportedMethodGroup* methodGroup = nullptr;
 
 		if (readOnly) {
 			methodGroup = cls->get_const_exported_method_group(methodName);
@@ -95,7 +95,7 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 			methodGroup = cls->get_exported_method_group(methodName);
 		}
 
-		if(methodGroup == NULL) continue;
+		if(methodGroup == nullptr) continue;
 
 		size_t numOverloads = methodGroup->num_overloads();
 
@@ -119,7 +119,7 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 
 	} // end for i
 
-	return NULL;
+	return nullptr;
 }
 
 const ug::bridge::ExportedFunction* getFunctionBySignature(
@@ -138,10 +138,10 @@ const ug::bridge::ExportedFunction* getFunctionBySignature(
 	//		return functions[signature.c_str()];
 	//	}
 
-	const ug::bridge::ExportedFunction* func = NULL;
+	const ug::bridge::ExportedFunction* func = nullptr;
 
 	const ug::bridge::ExportedFunctionGroup *funcGroup = reg->get_exported_function_group(functionName);
-	if(funcGroup == NULL) return NULL;
+	if(funcGroup == nullptr) return nullptr;
 	size_t numOverloads = funcGroup->num_overloads();
 
 	// search without smart->raw conversion
@@ -163,7 +163,7 @@ const ug::bridge::ExportedFunction* getFunctionBySignature(
 	}
 	// we did not find the correct overload
 	// there is no other group having the same name
-	return NULL;
+	return nullptr;
 }
 
 const ug::bridge::ExportedConstructor* getConstructorBySignature(
@@ -204,7 +204,7 @@ const ug::bridge::ExportedConstructor* getConstructorBySignature(
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 const ug::bridge::IExportedClass* getExportedClassPtrByName(
@@ -219,7 +219,7 @@ const ug::bridge::ClassNameNode* getClassNodePtrByName(
 		std::string className) {
 
 	if (className == "") {
-		return NULL;
+		return nullptr;
 	}
 
 	return &classes.get_entry(className)->class_name_node();
@@ -281,7 +281,7 @@ const ug::bridge::ClassNameNode* getClassNodePtrByName(
 //		}
 //
 //		for (unsigned int j = 0; j < numMethods; j++) {
-//			const ug::bridge::ExportedMethod* method = NULL;
+//			const ug::bridge::ExportedMethod* method = nullptr;
 //
 //			unsigned int numOverloads = 1;
 //
@@ -316,7 +316,7 @@ const ug::bridge::ClassNameNode* getClassNodePtrByName(
 //		} // for j
 //	} // for i
 //
-//	return NULL;
+//	return nullptr;
 //}
 
 //const ug::bridge::ExportedFunction* getFunctionBySignature(
@@ -340,7 +340,7 @@ const ug::bridge::ClassNameNode* getClassNodePtrByName(
 //	numFunctions = reg->num_functions();
 //
 //	for (unsigned int i = 0; i < numFunctions; i++) {
-//		const ug::bridge::ExportedFunction* func = NULL;
+//		const ug::bridge::ExportedFunction* func = nullptr;
 //
 //		unsigned int numOverloads = 1;
 //
@@ -364,7 +364,7 @@ const ug::bridge::ClassNameNode* getClassNodePtrByName(
 //	}// end for i
 //
 //	// no matching function found
-//	return NULL;
+//	return nullptr;
 //}
 
 

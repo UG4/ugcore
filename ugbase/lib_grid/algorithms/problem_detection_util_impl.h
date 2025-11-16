@@ -43,7 +43,7 @@ size_t FindSlivers(std::vector<typename TIter::value_type>& sliversOut,
 				 TIter elemsBegin, TIter elemsEnd, number thresholdRatio,
 				 TAAPos aaPos, bool clearContainer)
 {
-	typedef typename TIter::value_type elem_ptr_t;
+	using elem_ptr_t = typename TIter::value_type;
 
 	if(clearContainer)
 		sliversOut.clear();

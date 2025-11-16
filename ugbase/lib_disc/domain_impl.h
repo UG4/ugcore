@@ -247,7 +247,7 @@ update_domain_info()
 	#endif
 
 //	the number of levels of the multi-grid is now equal on all processes
-	typedef DomainInfo::int_t int_t;
+	using int_t = DomainInfo::int_t;
 
 	std::vector<int_t>	subsetDims;
 	subsetDims.reserve(sh.num_subsets());
@@ -346,7 +346,7 @@ template <typename TGrid, typename TSubsetHandler>
 std::vector<std::string> IDomain<TGrid,TSubsetHandler>::
 additional_subset_handler_names() const
 {
-	typedef typename std::map<std::string, SmartPtr<TSubsetHandler> >::const_iterator iterator_t;
+	using iterator_t = typename std::map<std::string, SmartPtr<TSubsetHandler> >::const_iterator;
 	std::vector<std::string> names;
 	for(iterator_t iter = m_additionalSH.begin(); iter != m_additionalSH.end(); ++iter){
 		if(iter->second.valid())
@@ -467,7 +467,7 @@ broadcast_refinement_projector (
 	if(isRoot){
 	//	if the specified projector is a projection handler, we'll perform a
 	//	special operation.
-		ProjectionHandler* ph = NULL;
+		ProjectionHandler* ph = nullptr;
 		int projectorType = -1;// -1: none, 0: normal projector, 1: projection handler
 		if(projector.valid()){
 			ph = dynamic_cast<ProjectionHandler*>(projector.get());
@@ -483,7 +483,7 @@ broadcast_refinement_projector (
 				Serialize(buf, std::string(""));
 			else
 			{
-				typedef typename std::map<std::string, SmartPtr<TSubsetHandler> >::const_iterator map_it_t;
+				using map_it_t = typename std::map<std::string, SmartPtr<TSubsetHandler> >::const_iterator;
 				map_it_t it = m_additionalSH.begin();
 				map_it_t it_end = m_additionalSH.end();
 				for (; it != it_end; ++it)
@@ -529,7 +529,7 @@ broadcast_refinement_projector (
 				ph = new ProjectionHandler(geometry, subset_handler());
 			else
 			{
-				typedef typename std::map<std::string, SmartPtr<TSubsetHandler> >::const_iterator map_it_t;
+				using map_it_t = typename std::map<std::string, SmartPtr<TSubsetHandler> >::const_iterator;
 				map_it_t it = m_additionalSH.begin();
 				map_it_t it_end = m_additionalSH.end();
 				for (; it != it_end; ++it)
@@ -560,7 +560,7 @@ broadcast_refinement_projector (
 			projector = deserialize_projector(buf);
 		}
 		else if(projectorType == -1){
-			projector = SPNULL;
+			projector = nullptr;
 		}
 		else{
 			UG_THROW("Invalid projector type in 'BroadcastRefinementProjector': "
@@ -594,16 +594,15 @@ count_ghosts(std::vector<DomainInfo::int_t>& numGhostsOnLvlOut)
 	numGhostsOnLvlOut.resize(mg.num_levels(), 0);
 
 	if(glm.has_layout<TElem>(INT_V_MASTER)){
-		typedef typename GridLayoutMap::Types<TElem>::Layout Layout;
-		typedef typename GridLayoutMap::Types<TElem>::Interface Interface;
+		using Layout = typename GridLayoutMap::Types<TElem>::Layout;
+		using Interface = typename GridLayoutMap::Types<TElem>::Interface;
 		Layout& layout = glm.get_layout<TElem>(INT_V_MASTER);
 		for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
 			if(lvl >= mg.num_levels())
 				break;
 
 			typename Layout::LevelLayout& lvlLayout = layout.layout_on_level(lvl);
-			for(typename Layout::LevelLayout::iterator iiter = lvlLayout.begin();
-				iiter != lvlLayout.end(); ++iiter)
+			for(auto iiter = lvlLayout.begin(); iiter != lvlLayout.end(); ++iiter)
 			{
 				Interface& intfc = lvlLayout.interface(iiter);
 				for(typename Interface::iterator eiter = intfc.begin();
@@ -631,7 +630,7 @@ count_local_unique_surface_elements()
 
 	size_t numLoc = 0;
 
-	typedef typename TGrid::template traits<TElem>::iterator	iter_t;
+	using iter_t = typename TGrid::template traits<TElem>::iterator;
 	for(iter_t ielem = mg.template begin<TElem>(); ielem != mg.template end<TElem>(); ++ielem)
 	{
 		TElem* e = *ielem;

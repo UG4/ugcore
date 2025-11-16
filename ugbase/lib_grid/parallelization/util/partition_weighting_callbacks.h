@@ -49,7 +49,7 @@ namespace ug
 class PartitionWeighting
 {
 	public:
-		PartitionWeighting() : m_sh(NULL), m_hWeight(1), m_vWeight(1) {};
+		PartitionWeighting() : m_sh(nullptr), m_hWeight(1), m_vWeight(1) {};
 		virtual ~PartitionWeighting() {};
 
 		virtual int operator() (Edge* e1, Edge* e2) {return weigh(e1,e2);};
@@ -153,7 +153,7 @@ class InterSubsetPartitionWeighting : public PartitionWeighting
 class ProtectSubsetPartitionWeighting : public PartitionWeighting
 {
 	public:
-		typedef MultiGrid::traits<Vertex>::secure_container vertex_list;
+		using vertex_list = MultiGrid::traits<Vertex>::secure_container;
 
 
 	public:

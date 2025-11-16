@@ -39,8 +39,9 @@ int linenoiseHistoryAdd(const char *line);
 int linenoiseHistorySetMaxLen(int len);
 int linenoiseHistorySave(char *filename);
 int linenoiseHistoryLoad(char *filename);
-void linenoiseAtExit(void);
-typedef int (*CompletionFunctionPtr)(char *buf, int len, int buflen, int iPrintCompletionList);
+void linenoiseAtExit();
+
+using CompletionFunctionPtr = int(*)(char *buf, int len, int buflen, int iPrintCompletionList);
 
 int linenoiseSetCompletionFunction(CompletionFunctionPtr complete);
 

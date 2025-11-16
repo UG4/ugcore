@@ -45,13 +45,13 @@ namespace ug
 /**	Note that this pointer may be invalidated once new elements are added
  * to the vector or old ones are removed.
  *
- * The method returns NULL if the vector is empty.
+ * The method returns nullptr if the vector is empty.
  * \{ */
 template <class T>
 T* GetDataPtr(std::vector<T>& v)
 {
 	if(v.empty())
-		return NULL;
+		return nullptr;
 	return &v.front();
 }
 
@@ -59,7 +59,7 @@ template <class T>
 const T* GetDataPtr(const std::vector<T>& v)
 {
 	if(v.empty())
-		return NULL;
+		return nullptr;
 	return &v.front();
 }
 /**	\} */

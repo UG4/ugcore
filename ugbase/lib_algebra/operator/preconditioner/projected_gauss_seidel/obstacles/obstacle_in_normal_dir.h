@@ -62,31 +62,31 @@ class ObstacleInNormalDir:
 {
 	public:
 	///	Base class type
-		typedef IObstacleConstraint<TDomain,TAlgebra> base_type;
+		using base_type = IObstacleConstraint<TDomain,TAlgebra>;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Matrix type
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	///	Value type
-		typedef typename vector_type::value_type value_type;
+		using value_type = typename vector_type::value_type;
 
 	///	Type of grid function
-		typedef GridFunction<TDomain, TAlgebra> function_type;
+		using function_type = GridFunction<TDomain, TAlgebra>;
 
 	///	Domain type
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	///	World dimension
-		static const int dim = domain_type::dim;
+		static constexpr int dim = domain_type::dim;
 
 	///	Type of position coordinates (e.g. position_type)
-		typedef typename domain_type::position_type position_type;
+		using position_type = typename domain_type::position_type;
 
 	public:
 	/// constructor for an obstacle in normal direction

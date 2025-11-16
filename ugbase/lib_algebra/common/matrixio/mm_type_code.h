@@ -94,7 +94,7 @@ class MMTypeCode
     };
 
     /// Maximum line length in characters as defined by the MatrixMarket specifications
-    static const int MM_LINE_LENGTH = 1025;
+    static constexpr int MM_LINE_LENGTH = 1025;
 #define MM_BANNER_STR      "%%MatrixMarket"
 #define MM_MTX_STR         "matrix"
 #define MM_COORDINATE_STR  "coordinate"

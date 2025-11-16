@@ -110,18 +110,20 @@ namespace ugtypes
 
 using std::size_t;
 
-typedef unsigned char byte;
-typedef unsigned int uint;
+using byte_t = unsigned char;
+using uint = unsigned int;
 
-typedef ugtypes::uint32_t uint32;
-typedef ugtypes::uint64_t uint64;
-typedef ugtypes::int32_t int32;
-typedef ugtypes::int64_t int64;
+using uint32 = ugtypes::uint32_t;
+using uint64 = ugtypes::uint64_t;
+using int32 = ugtypes::int32_t;
+using int64 = ugtypes::int64_t;
+
+
 
 #ifdef UG_SINGLE_PRECISION
-	typedef float number;
+	using number = float;
 #else
-	typedef double number;
+	using number = double;
 #endif
 
 // end group ugbase_common

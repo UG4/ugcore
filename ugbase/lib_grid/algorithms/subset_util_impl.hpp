@@ -119,7 +119,7 @@ void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
 	using namespace std;
 
 //	the element type of separating elements
-	typedef typename TElem::lower_dim_base_object	TSide;
+	using TSide = typename TElem::lower_dim_base_object;
 
 //	assign all elements to subset -1
 	sh.assign_subset(grid.begin<TElem>(), grid.end<TElem>(), -1);
@@ -191,8 +191,8 @@ template <class TIterator>
 void CopySubsetIndicesToSides(ISubsetHandler& sh, TIterator elemsBegin,
 							TIterator elemsEnd, bool toUnassignedOnly)
 {
-	typedef typename PtrToValueType<typename TIterator::value_type>::base_type TElem;
-	typedef typename TElem::side TSide;
+	using TElem = typename PtrToValueType<typename TIterator::value_type>::base_type;
+	using TSide = typename TElem::side;
 
 	if(!TElem::HAS_SIDES)
 		return;
@@ -225,7 +225,7 @@ void CopySubsetIndicesToSides(ISubsetHandler& sh, TIterator elemsBegin,
 template <class TElem, class TSubsetHandler>
 void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si)
 {
-	typedef typename geometry_traits<TElem>::iterator 	ElemIter;
+	using ElemIter = typename geometry_traits<TElem>::iterator;
 
 //	access the grid on which sh operates.
 	if(!sh.grid())
@@ -334,7 +334,7 @@ number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos)
 	if (goc.num<Face>(lvl) == 0) {
 		UG_WARNING("WARNING: Given subset doesn't contain any faces on given level.");
 	} else {
-		typedef geometry_traits<Face>::const_iterator CIT;
+		using CIT = geometry_traits<Face>::const_iterator;
 		for (CIT cit = goc.faces_begin(lvl); cit != goc.faces_end(lvl); cit++)
 			sum += FaceArea(*cit, aaPos);
 	}
@@ -365,7 +365,7 @@ template <class TElem, class TSubsetHandler>
 void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler)
 {
-	typedef typename geometry_traits<TElem>::const_iterator iterator;
+	using iterator = typename geometry_traits<TElem>::const_iterator;
 	for(size_t l  = 0; l < sh.num_levels(); ++l){
 		for(int si = 0; si < sh.num_subsets(); ++si){
 			for(iterator iter = sh.template begin<TElem>(si, l);
@@ -387,7 +387,7 @@ template <class TElem, class TSubsetHandler>
 void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler)
 {
-	typedef typename geometry_traits<TElem>::const_iterator iterator;
+	using iterator = typename geometry_traits<TElem>::const_iterator;
 	std::vector<Edge*> vEdges;
 
 	for(size_t l  = 0; l < sh.num_levels(); ++l){
@@ -413,7 +413,7 @@ template <class TElem, class TSubsetHandler>
 void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler)
 {
-	typedef typename geometry_traits<TElem>::const_iterator iterator;
+	using iterator = typename geometry_traits<TElem>::const_iterator;
 	std::vector<Face*> vFaces;
 
 	for(size_t l  = 0; l < sh.num_levels(); ++l){
@@ -438,8 +438,8 @@ template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
 void AssignAssociatedSidesToSubsets(TSubsetHandlerDest& sh,
 									const TSubsetHandlerSrc& srcIndHandler)
 {
-	typedef typename geometry_traits<TElem>::const_iterator iterator;
-	typedef typename TElem::lower_dim_base_object Side;
+	using iterator = typename geometry_traits<TElem>::const_iterator;
+	using Side = typename TElem::lower_dim_base_object;
 	std::vector<Side*> vSides;
 	Grid& grid = *sh.grid();
 
@@ -519,7 +519,7 @@ void FindSubsetGroups
 	const NeighborhoodType nbhType
 )
 {
-	typedef typename geometry_traits<TBaseObj>::const_iterator elem_iterator;
+	using elem_iterator = typename geometry_traits<TBaseObj>::const_iterator;
 	
 	UG_ASSERT (((int) isMarked.size ()) == sh.num_subsets (), "FindSubsetGroups: array size mismatch");
 	

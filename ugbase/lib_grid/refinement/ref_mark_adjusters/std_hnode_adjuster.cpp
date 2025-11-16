@@ -53,8 +53,8 @@ static void mark_if_periodic(IRefiner& ref, TElem* e) {
 	RefinementMark refMark = ref.get_mark(e);
 	if(pbm.is_master(e))
 	{
-		typedef typename PeriodicBoundaryManager::Group<TElem>::SlaveContainer SlaveContainer;
-		typedef typename PeriodicBoundaryManager::Group<TElem>::SlaveIterator SlaveIterator;
+		using SlaveContainer = typename PeriodicBoundaryManager::Group<TElem>::SlaveContainer;
+		using SlaveIterator = typename PeriodicBoundaryManager::Group<TElem>::SlaveIterator;
 		SlaveContainer& slaves = *pbm.slaves(e);
 		for (SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter)
 			ref.mark(*iter, refMark);

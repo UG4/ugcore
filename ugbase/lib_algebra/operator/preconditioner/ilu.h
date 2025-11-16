@@ -63,8 +63,8 @@ template<typename Matrix_type>
 bool FactorizeILU(Matrix_type &A)
 {
 	PROFILE_FUNC_GROUP("algebra ILU");
-	typedef typename Matrix_type::row_iterator row_iterator;
-	typedef typename Matrix_type::value_type block_type;
+	using row_iterator = typename Matrix_type::row_iterator;
+	using block_type = typename Matrix_type::value_type;
 
 	// for all rows
 	for(size_t i=1; i < A.num_rows(); i++)
@@ -110,8 +110,8 @@ template<typename Matrix_type>
 bool FactorizeILUBeta(Matrix_type &A, number beta)
 {
 	PROFILE_FUNC_GROUP("algebra ILUBeta");
-	typedef typename Matrix_type::row_iterator row_iterator;
-	typedef typename Matrix_type::value_type block_type;
+	using row_iterator = typename Matrix_type::row_iterator;
+	using block_type = typename Matrix_type::value_type;
 
 	// for all rows i=1:n do
 	for(size_t i=1; i < A.num_rows(); i++)
@@ -174,8 +174,8 @@ template<typename Matrix_type>
 bool FactorizeILUSorted(Matrix_type &A, const number eps = 1e-50)
 {
 	PROFILE_FUNC_GROUP("algebra ILU");
-	typedef typename Matrix_type::row_iterator row_iterator;
-	typedef typename Matrix_type::value_type block_type;
+	using row_iterator = typename Matrix_type::row_iterator;
+	using block_type = typename Matrix_type::value_type;
 
 	// for all rows
 	for(size_t i=1; i < A.num_rows(); i++)
@@ -233,7 +233,7 @@ template<typename Matrix_type, typename Vector_type>
 bool invert_L(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 {
 	PROFILE_FUNC_GROUP("algebra ILU");
-	typedef typename Matrix_type::const_row_iterator const_row_iterator;
+	using const_row_iterator = typename Matrix_type::const_row_iterator;
 
 	typename Vector_type::value_type s;
 	for(size_t i=0; i < x.size(); i++)
@@ -258,7 +258,7 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 			  const number eps = 1e-8)
 {
 	PROFILE_FUNC_GROUP("algebra ILU");
-	typedef typename Matrix_type::const_row_iterator const_row_iterator;
+	using const_row_iterator = typename Matrix_type::const_row_iterator;
 
 	typename Vector_type::value_type s;
 
@@ -324,23 +324,23 @@ class ILU : public IPreconditioner<TAlgebra>
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+		using base_type = IPreconditioner<TAlgebra>;
 
 	///	Ordering type
-		typedef std::vector<size_t> ordering_container_type;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> ordering_algo_type;
+		using ordering_container_type = std::vector<size_t>;
+		using ordering_algo_type = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 
 	protected:
 		using base_type::set_debug;
@@ -357,7 +357,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			m_bDisablePreprocessing(false),
 			m_useConsistentInterfaces(false),
 			m_useOverlap(false),
-			m_spOrderingAlgo(SPNULL),
+			m_spOrderingAlgo(nullptr),
 			m_bSortIsIdentity(false),
 			m_u(nullptr)
 		{};
@@ -403,7 +403,7 @@ class ILU : public IPreconditioner<TAlgebra>
 				m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<TAlgebra, ordering_container_type>());
 			}
 			else{
-				m_spOrderingAlgo = SPNULL;
+				m_spOrderingAlgo = nullptr;
 			}
 
 			UG_LOG("\nILU: please use 'set_ordering_algorithm(..)' in the future\n");
@@ -494,7 +494,7 @@ class ILU : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
-			m_u = NULL;
+			m_u = nullptr;
 
 		//	forward request to matrix based implementation
 			return base_type::init(pOp);
@@ -502,7 +502,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
-			m_u = NULL;
+			m_u = nullptr;
 
 			return base_type::init(Op);
 		}

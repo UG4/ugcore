@@ -62,16 +62,16 @@
 */
 namespace ug {
 
-/*#ifdef __CLPK_integer
-typedef __CLPK_integer lapack_int;
-typedef __CLPK_real lapack_float;
-typedef __CLPK_doublereal lapack_double;
-typedef __CLPK_ftnlen lapack_ftnlen;
+/*#ifndef __CLPK_integer
+using lapack_int = __CLPK_integer;
+using lapack_float = __CLPK_real;
+using lapack_double = __CLPK_doublereal;
+using lapack_ftnlen = __CLPK_ftnlen;
 #else */
-typedef int lapack_int;
-typedef float lapack_float;
-typedef double lapack_double;
-typedef int lapack_ftnlen;
+using lapack_int = int;
+using lapack_float = float;
+using lapack_double = double;
+using lapack_ftnlen = int;
 
 //#endif
 

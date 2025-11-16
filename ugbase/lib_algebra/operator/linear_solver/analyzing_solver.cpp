@@ -49,8 +49,8 @@ void checksub(const CPUAlgebra::matrix_type &A)
 	for(size_t r=0; r<A.num_rows(); r++)
 		if(A.is_isolated(r)) iIsolated++;
 
-	typedef CPUAlgebra::matrix_type::const_row_iterator row_it;
-	// typedef CPUAlgebra::matrix_type::value_type value_type;
+	using row_it = CPUAlgebra::matrix_type::const_row_iterator;
+	// using value_type = CPUAlgebra::matrix_type::value_type;
 
 	UG_LOG("Nr of dirichlet nodes: " << iIsolated << " (" << iIsolated*100.0/N << "% )\n");
 

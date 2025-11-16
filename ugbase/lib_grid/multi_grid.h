@@ -58,7 +58,7 @@ namespace ug
  * The hierarchy is managed by a SubsetHandler.
  * If elements are created and hierarchical insertion is activated, then
  * new elements are added one layer higher than their parents.
- * (NULL indicates base-level).
+ * (nullptr indicates base-level).
  *
  * Whenever a a level is added or removed, a message is posted at the
  * associated MessageHub (MultiGrid::message_hub()). The message has the type
@@ -76,10 +76,10 @@ class MultiGrid : public Grid, public GridObserver
 	friend struct MGVolumeInfo;
 
 	protected:
-		typedef MGVertexInfo VertexInfo;
-		typedef MGEdgeInfo EdgeInfo;
-		typedef MGFaceInfo FaceInfo;
-		typedef MGVolumeInfo VolumeInfo;
+		using VertexInfo = MGVertexInfo;
+		using EdgeInfo = MGEdgeInfo;
+		using FaceInfo = MGFaceInfo;
+		using VolumeInfo = MGVolumeInfo;
 
 	public:
 		//	methods from Grid, that would be hidden if not explicitly
@@ -271,30 +271,30 @@ class MultiGrid : public Grid, public GridObserver
 		TChild* get_child(GridObject* elem, size_t ind) const;
 	/** \} */
 
-	///	Returns the child vertex of the given element or NULL if there is none
+	///	Returns the child vertex of the given element or nullptr if there is none
 		template <class TElem>
 		inline Vertex* get_child_vertex(TElem* elem) const	{return get_info(elem).child_vertex();}
 
-	///	Returns the child edges of the given element or NULL if there is none
+	///	Returns the child edges of the given element or nullptr if there is none
 	/**	\{	*/
 		template <class TElem>
 		inline Edge* get_child_edge(TElem* elem, size_t ind) const	{return get_info(elem).child_edge(ind);}
-		inline Edge* get_child_edge(Vertex*, size_t) const		{return NULL;}
+		inline Edge* get_child_edge(Vertex*, size_t) const		{return nullptr;}
 	/**	\}	*/
 
-	///	Returns the child faces of the given element or NULL if there is none
+	///	Returns the child faces of the given element or nullptr if there is none
 	/**	\{	*/
 		template <class TElem>
 		inline Face* get_child_face(TElem* elem, size_t ind) const	{return get_info(elem).child_face(ind);}
-		inline Face* get_child_face(Vertex*, size_t) const		{return NULL;}
-		inline Face* get_child_face(Edge*, size_t) const			{return NULL;}
+		inline Face* get_child_face(Vertex*, size_t) const		{return nullptr;}
+		inline Face* get_child_face(Edge*, size_t) const			{return nullptr;}
 	/**	\}	*/
 
-	///	Returns the child volumes of the given element or NULL if there is none
+	///	Returns the child volumes of the given element or nullptr if there is none
 	/**	\{	*/
 		inline Volume* get_child_volume(Volume* elem, size_t ind) const	{return get_info(elem).child_volume(ind);}
 		template <class TElem>
-		inline Volume* get_child_volume(TElem*, size_t) const	{return NULL;}
+		inline Volume* get_child_volume(TElem*, size_t) const	{return nullptr;}
 	/**	\}	*/
 
 	///	clears the relation between a parent and its children
@@ -309,7 +309,7 @@ class MultiGrid : public Grid, public GridObserver
 	 * automatic association is not sufficient.
 	 * Note that only elements of equal or higher dimension can be parent to a
 	 * given element.
-	 * Note that while parent may be NULL, elem has to be supplied.
+	 * Note that while parent may be nullptr, elem has to be supplied.
 	 * The method also sets the parent type if a parent is supplied and leaves the
 	 * parent type as it is if none is supplied.*/
 		template <class TElem>
@@ -350,7 +350,7 @@ class MultiGrid : public Grid, public GridObserver
 	 *  iterates over the list of children of pParents parent in its
 	 *  vertex_created method, it won't find pParent.*/
 		virtual void vertex_created(Grid* grid, Vertex* vrt,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 	 /**  In order to correctly register e in the hierarchy, we have to
@@ -359,7 +359,7 @@ class MultiGrid : public Grid, public GridObserver
 	 *  iterates over the list of children of pParents parent in its
 	 *  edge_created method, it won't find pParent.*/
 		virtual void edge_created(Grid* grid, Edge* e,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 	 /**  In order to correctly register f in the hierarchy, we have to
@@ -368,7 +368,7 @@ class MultiGrid : public Grid, public GridObserver
 	 *  iterates over the list of children of pParents parent in its
 	 *  face_created method, it won't find pParent.*/
 		virtual void face_created(Grid* grid, Face* f,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 	 /**  In order to correctly register vol in the hierarchy, we have to
@@ -377,31 +377,31 @@ class MultiGrid : public Grid, public GridObserver
 	 *  iterates over the list of children of pParents parent in its
 	 *  volume_created method, it won't find pParent.*/
 		virtual void volume_created(Grid* grid, Volume* vol,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
-										 Vertex* replacedBy = NULL);
+										 Vertex* replacedBy = nullptr);
 
 		virtual void edge_to_be_erased(Grid* grid, Edge* e,
-										 Edge* replacedBy = NULL);
+										 Edge* replacedBy = nullptr);
 
 		virtual void face_to_be_erased(Grid* grid, Face* f,
-										 Face* replacedBy = NULL);
+										 Face* replacedBy = nullptr);
 
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
-										 Volume* replacedBy = NULL);
+										 Volume* replacedBy = nullptr);
 
 	protected:
 
 	//	Note: VertexInfo and EdgeInfo are stored directly, FaceInfo and
 	//	VolumeInfo are stored dynamically.
-		typedef Attachment<GridObject*>	AParent;
-		typedef Attachment<VertexInfo>			AVertexInfo;
-		typedef Attachment<EdgeInfo>			AEdgeInfo;
-		typedef Attachment<FaceInfo*>			AFaceInfo;
-		typedef Attachment<VolumeInfo*>			AVolumeInfo;
-		typedef Attachment<char>				AParentType;
+		using AParent = Attachment<GridObject*>;
+		using AVertexInfo = Attachment<VertexInfo>;
+		using AEdgeInfo = Attachment<EdgeInfo>;
+		using AFaceInfo = Attachment<FaceInfo*>;
+		using AVolumeInfo = Attachment<VolumeInfo*>;
+		using AParentType = Attachment<char>;
 
 
 	//	initialization
@@ -424,7 +424,7 @@ class MultiGrid : public Grid, public GridObserver
 
 	//	elem creation
 		template <class TElem>
-		inline void element_created(TElem* elem)	{element_created<TElem, TElem>(elem, NULL);}
+		inline void element_created(TElem* elem)	{element_created<TElem, TElem>(elem, nullptr);}
 
 		template <class TElem, class TParent>
 		void element_created(TElem* elem, TParent* pParent);
@@ -521,8 +521,8 @@ class MultiGrid : public Grid, public GridObserver
 	/**	\{ */
 		inline void release_child_info(Vertex* o)	{}
 		inline void release_child_info(Edge* o)		{}
-		inline void release_child_info(Face* o)			{if(m_aaFaceInf[o]) delete m_aaFaceInf[o]; m_aaFaceInf[o] = NULL;}
-		inline void release_child_info(Volume* o)		{if(m_aaVolInf[o]) delete m_aaVolInf[o]; m_aaVolInf[o] = NULL;}
+		inline void release_child_info(Face* o)			{if(m_aaFaceInf[o]) delete m_aaFaceInf[o]; m_aaFaceInf[o] = nullptr;}
+		inline void release_child_info(Volume* o)		{if(m_aaVolInf[o]) delete m_aaVolInf[o]; m_aaVolInf[o] = nullptr;}
 	/**	\} */
 
 

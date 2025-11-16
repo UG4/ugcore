@@ -180,7 +180,7 @@ const MathVector<ldim>* ICplUserData<dim>::local_ips(size_t s) const
 
 	UG_ASSERT(s < num_series(), "Wrong series id");
 
-//	NOTE: local ips may be NULL, if no ip position given, i.e. num_ip(s) == 0
+//	NOTE: local ips may be nullptr, if no ip position given, i.e. num_ip(s) == 0
 	return get_local_ips(Int2Type<ldim>())[s];
 }
 
@@ -261,7 +261,7 @@ inline void ICplUserData<dim>::check_s_ip(size_t s, size_t ip) const
 {
 	check_s(s);
 	UG_ASSERT(ip < num_ip(s), "Invalid index.");
-	UG_ASSERT(m_vvGlobPos[s] != NULL, "Global IP not set.");
+	UG_ASSERT(m_vvGlobPos[s] != nullptr, "Global IP not set.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -272,7 +272,7 @@ template <typename TData, int dim, typename TRet>
 void CplUserData<TData,dim,TRet>::
 register_storage_callback(DataImport<TData,dim>* obj, void (DataImport<TData,dim>::*func)())
 {
-	typedef std::pair<DataImport<TData,dim>*, CallbackFct> Pair;
+	using Pair = std::pair<DataImport<TData,dim>*, CallbackFct>;
 	//	m_vCallback.push_back(Pair(obj,func));
 	m_vCallback.push_back(Pair(obj, boost::bind(func, obj)));
 }
@@ -281,8 +281,8 @@ template <typename TData, int dim, typename TRet>
 void CplUserData<TData,dim,TRet>::
 unregister_storage_callback(DataImport<TData,dim>* obj)
 {
-	typedef typename std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > VecType;
-	typedef typename VecType::iterator iterator;
+	using VecType = typename std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> >;
+	using iterator = typename VecType::iterator;
 	iterator iter = m_vCallback.begin();
 	while(iter != m_vCallback.end())
 	{
@@ -295,8 +295,8 @@ template <typename TData, int dim, typename TRet>
 void CplUserData<TData,dim,TRet>::
 call_storage_callback() const
 {
-	typedef typename std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > VecType;
-	typedef typename VecType::const_iterator iterator;
+	using VecType = typename std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> >;
+	using iterator = typename VecType::const_iterator;
 	for(iterator iter = m_vCallback.begin(); iter != m_vCallback.end(); ++iter)
 	{
 		//		(((*iter).first)->*((*iter).second))();

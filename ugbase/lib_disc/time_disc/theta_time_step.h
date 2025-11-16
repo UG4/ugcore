@@ -57,25 +57,25 @@ class MultiStepTimeDiscretization
 {
 	public:
 	/// Type of algebra
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	/// Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+	using matrix_type = typename algebra_type::matrix_type;
 
 	/// Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+	using vector_type = typename algebra_type::vector_type;
 
 	/// Type of algebra vector
-		typedef typename CPUAlgebra::vector_type error_vector_type;
+	using error_vector_type = CPUAlgebra::vector_type;
 
 	/// Domain Discretization type
-		typedef IDomainDiscretization<algebra_type>	domain_discretization_type;
+	using domain_discretization_type = IDomainDiscretization<algebra_type>;
 
 	public:
 	/// constructor
 		MultiStepTimeDiscretization(SmartPtr<IDomainDiscretization<algebra_type> > spDD)
 			: ITimeDiscretization<TAlgebra>(spDD),
-			  m_pPrevSol(NULL)
+			  m_pPrevSol(nullptr)
 		{}
 
 		virtual ~MultiStepTimeDiscretization(){};
@@ -118,7 +118,7 @@ class MultiStepTimeDiscretization
 
 	/// calculates error indicators for elements from error estimators
 		void calc_error(const vector_type& u, error_vector_type* u_vtk);
-		void calc_error(const vector_type& u) {calc_error(u, NULL);};
+		void calc_error(const vector_type& u) {calc_error(u, nullptr);};
 		void calc_error(const vector_type& u, error_vector_type& u_vtk){calc_error(u, &u_vtk);};
 
 	/// marks error indicators as invalid; in order to revalidate them,
@@ -167,16 +167,16 @@ class ThetaTimeStep
 {
 	public:
 	///	Domain Discretization type
-		typedef IDomainDiscretization<TAlgebra> domain_discretization_type;
+	using domain_discretization_type = IDomainDiscretization<TAlgebra>;
 
 	/// Type of algebra
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	/// Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+	using matrix_type = typename algebra_type::matrix_type;
 
 	/// Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+	using vector_type = typename algebra_type::vector_type;
 
 	public:
 	/// default constructor (implicit Euler)
@@ -302,16 +302,16 @@ class BDF
 {
 	public:
 	///	Domain Discretization type
-		typedef IDomainDiscretization<TAlgebra>	domain_discretization_type;
+	using domain_discretization_type = IDomainDiscretization<TAlgebra>;
 
 	/// Type of algebra
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	/// Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+	using matrix_type = typename algebra_type::matrix_type;
 
 	/// Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+	using vector_type = typename algebra_type::vector_type;
 
 	public:
 	/// constructor
@@ -411,16 +411,16 @@ class SDIRK
 {
 	public:
 	///	Domain Discretization type
-		typedef IDomainDiscretization<TAlgebra> domain_discretization_type;
+	using domain_discretization_type = IDomainDiscretization<TAlgebra>;
 
 	/// Type of algebra
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	/// Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+	using matrix_type = typename algebra_type::matrix_type;
 
 	/// Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+	using vector_type = typename algebra_type::vector_type;
 
 	public:
 	/// default constructor (implicit Euler)

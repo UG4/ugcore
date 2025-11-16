@@ -67,17 +67,17 @@ class LocalShapeFunctionSetWrapper
 	  public TImpl
 {
 	/// Implementation
-		typedef TImpl ImplType;
+		using ImplType = TImpl;
 
 	public:
 	///	reference element dimension
-		static const int dim = TImpl::dim;
+		static constexpr int dim = TImpl::dim;
 
 	///	Shape type
-		typedef typename ImplType::shape_type shape_type;
+		using shape_type = typename ImplType::shape_type;
 
 	///	Gradient type
-		typedef typename ImplType::grad_type grad_type;
+		using grad_type = typename ImplType::grad_type;
 
 	public:
 	///	constructor
@@ -118,9 +118,9 @@ class LocalShapeFunctionSetWrapper
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		virtual void shape(shape_type& s, size_t i, const MathVector<dim>& x) const
 		{
-			typedef BaseLSFS<TImpl, TImpl::dim,
-				  	  	  	  	  	  	  	   typename TImpl::shape_type,
-				  	  	  	  	  	  	  	   typename TImpl::grad_type> baseType;
+			using baseType = BaseLSFS<TImpl, TImpl::dim,
+				typename TImpl::shape_type,
+				typename TImpl::grad_type>;
 
 				  	  	  	  	  	  	  	   baseType::shape(s, i, x);
 		}
@@ -180,7 +180,7 @@ class LocalShapeFunctionSetWrapper
 template <int TDim>
 class SubLocalDoFSet : public DimLocalDoFSet<TDim>
 {
-	static const int dim = TDim;
+	static constexpr int dim = TDim;
 
 	public:
 		template <int setDim>
@@ -236,7 +236,7 @@ class SubLocalDoFSet : public DimLocalDoFSet<TDim>
 					//	loop sub DoFs in correct order
 						for(size_t offset = 0; offset < vLocalDoFID.size(); ++offset){
 
-							const LocalDoF* pLocalDoF = NULL;
+							const LocalDoF* pLocalDoF = nullptr;
 							size_t localDoFID = (size_t)-1;
 							for(size_t dof = 0; dof < vLocalDoFID.size(); ++dof){
 								if(set.local_dof(vLocalDoFID[dof]).offset() == offset){
@@ -245,7 +245,7 @@ class SubLocalDoFSet : public DimLocalDoFSet<TDim>
 								}
 							}
 
-							if(pLocalDoF == NULL)
+							if(pLocalDoF == nullptr)
 								UG_THROW("SubLocalDoFSet: Cannot find local dof "
 										"with offset "<<offset<<", but must "
 										"exist. Check Implementation of LocalDoFSet ");
@@ -332,8 +332,8 @@ template <typename TRefElem>
 void LocalFiniteElementProvider::create_lagrange_set(const LFEID& id)
 {
 //	reference object id
-	static const ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
-	static const int dim = TRefElem::dim;
+	static constexpr ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+	static constexpr int dim = TRefElem::dim;
 
 //	only order >= 1 available
 	if(id.order() < 1) return;
@@ -424,8 +424,8 @@ template <typename TRefElem>
 void LocalFiniteElementProvider::create_mini_bubble_set(const LFEID& id)
 {
 //	reference object id
-	static const ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
-	static const int dim = TRefElem::dim;
+	static constexpr ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+	static constexpr int dim = TRefElem::dim;
 
 //	if refdim == dim create the space
 	if(dim == id.dim()){
@@ -479,11 +479,10 @@ create_mini_bubble_set(ReferenceObjectID roid, const LFEID& id)
 template <typename TRefElem>
 void LocalFiniteElementProvider::create_nedelec_set(const LFEID& id)
 {
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 	if(id == LFEID(LFEID::NEDELEC, dim, 1))
 		register_set(id, ConstSmartPtr<LocalShapeFunctionSet<dim, MathVector<dim>, MathMatrix<dim,dim> > >(
 					 new LocalShapeFunctionSetWrapper<NedelecLSFS<TRefElem> >));
-	return;
 }
 
 void LocalFiniteElementProvider::
@@ -499,11 +498,10 @@ create_nedelec_set(ReferenceObjectID roid, const LFEID& id)
 template <typename TRefElem>
 void LocalFiniteElementProvider::create_piecewise_constant_set(const LFEID& id)
 {
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 	if(id == LFEID(LFEID::PIECEWISE_CONSTANT, dim, 0))
 		register_set(id, ConstSmartPtr<LocalShapeFunctionSet<dim> >(
 					 new LocalShapeFunctionSetWrapper<PiecewiseConstantLSFS<TRefElem> >));
-	return;
 }
 
 void LocalFiniteElementProvider::
@@ -526,7 +524,7 @@ create_piecewise_constant_set(ReferenceObjectID roid, const LFEID& id)
 template <typename TRefElem>
 void LocalFiniteElementProvider::create_crouxeiz_raviart_set(const LFEID& id)
 {
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 	if(id == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
 		register_set(id, ConstSmartPtr<LocalShapeFunctionSet<dim> >(
 					 new LocalShapeFunctionSetWrapper<CrouzeixRaviartLSFS<TRefElem> >));
@@ -709,7 +707,7 @@ const LocalDoFSet& LocalFiniteElementProvider::
 get_dofs(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 {
 //	init provider and search for identifier
-	typedef std::map<LFEID, LocalDoFSets> Map;
+	using Map = std::map<LFEID, LocalDoFSets>;
 	Map::const_iterator iter = inst().m_mLocalDoFSets.find(id);
 
 //	if not found
@@ -730,7 +728,7 @@ const CommonLocalDoFSet& LocalFiniteElementProvider::
 get_dofs(const LFEID& id, bool bCreate)
 {
 //	init provider and search for identifier
-	typedef std::map<LFEID, CommonLocalDoFSet> Map;
+	using Map = std::map<LFEID, CommonLocalDoFSet>;
 	Map::const_iterator iter = inst().m_mCommonDoFSet.find(id);
 
 //	if not found

@@ -103,14 +103,14 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 	string grp = parentGroup;
 //	refinement projectors
 	{
-		typedef RefinementProjector T;
+		using T = RefinementProjector;
 		reg.add_class_<T>("RefinementProjector", grp)
 			.add_method("set_geometry", &T::set_geometry, "", "geometry")
 			.add_method("geometry", &T::geometry, "geometry", "");
 	}
 
 	{
-		typedef CylinderCutProjector T;
+		using T = CylinderCutProjector;
 		reg.add_class_<T, RefinementProjector>("CylinderCutProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
@@ -125,7 +125,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 	}
 
 	{
-		typedef CylinderProjector T;
+		using T = CylinderProjector;
 		reg.add_class_<T, RefinementProjector>("CylinderProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
@@ -146,7 +146,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 	}
 
 	{
-		typedef PlaneCutProjector T;
+		using T = PlaneCutProjector;
 		reg.add_class_<T, RefinementProjector>("PlaneCutProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
@@ -160,7 +160,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 	}
 
 	{
-		typedef ProjectionHandler T;
+		using T = ProjectionHandler;
 		reg.add_class_<T, RefinementProjector>("ProjectionHandler", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(ISubsetHandler*)>()
@@ -182,7 +182,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 	}
 
 	{
-		typedef SmoothProjector T;
+		using T = SmoothProjector;
 		reg.add_class_<T, RefinementProjector>("SmoothProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(int, number)>()
@@ -195,7 +195,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 	}
 
 	{
-		typedef SphereProjector T;
+		using T = SphereProjector;
 		reg.add_class_<T, RefinementProjector>("SphereProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(const vector3&)>()
@@ -213,7 +213,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 	}
 
 	{
-		typedef SubdivisionProjector T;
+		using T = SubdivisionProjector;
 		reg.add_class_<T, RefinementProjector>("SubdivisionProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(SPIGeometry3d)>()
@@ -267,9 +267,9 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 		.set_construct_as_smart_pointer(true);
 
 	{
-		typedef GlobalSubdivisionMultiGridRefiner<APosition1> T1D;
-		typedef GlobalSubdivisionMultiGridRefiner<APosition2> T2D;
-		typedef GlobalSubdivisionMultiGridRefiner<APosition> T3D;
+		using T1D = GlobalSubdivisionMultiGridRefiner<APosition1>;
+		using T2D = GlobalSubdivisionMultiGridRefiner<APosition2>;
+		using T3D = GlobalSubdivisionMultiGridRefiner<APosition>;
 		std::string name = "GlobalSubdivisionMultiGridRefiner";
 		reg.add_class_<T3D, GlobalMultiGridRefiner>(name + GetDimensionSuffix<3>(), grp)
 //			.template add_constructor<void (*)(MultiGrid&, APosition&, MGSubsetHandler&, MGSubsetHandler&, SmartPtr<RefinementProjector>)>()
@@ -300,15 +300,15 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 	}
 
 //	FracturedMediaRefiner
-	/*typedef FracturedMediaRefiner<typename TDomain::grid_type,
-						  	  	  typename TDomain::position_attachment_type>	FracDomRef;
+	/*using FracDomRef = FracturedMediaRefiner<typename TDomain::grid_type,
+		typename TDomain::position_attachment_type>;
 	reg.add_class_<FracDomRef, IRefiner>("FracturedMediumRefiner", grp)
 		.add_constructor()
 		.add_method("set_aspect_ratio_threshold", &FracDomRef::set_aspect_ratio_threshold);*/
 
 //	GlobalFracturedDomainRefiner
 	{
-		typedef GlobalFracturedMediaRefiner cls;
+		using cls = GlobalFracturedMediaRefiner;
 		reg.add_class_<cls, IRefiner>("GlobalFracturedMediumRefiner", grp)
 			.add_constructor()
 			.add_method("assign_grid", static_cast<void (cls::*)(MultiGrid*)>(&cls::assign_grid), "", "g")

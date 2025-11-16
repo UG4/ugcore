@@ -65,7 +65,7 @@ GetNextSectionOfPolyChain(Grid& grid, std::pair<Vertex*, Edge*> lastSection,
 		}
 	}
 //	we couldn't find another section. Return an empty one
-	return std::make_pair<Vertex*, Edge*>(NULL, NULL);	
+	return std::make_pair<Vertex*, Edge*>(nullptr, nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////

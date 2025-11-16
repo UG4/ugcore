@@ -61,7 +61,7 @@ class ScaleAddLinker
 {
 	public:
 	//	type of base class
-		typedef StdDataLinker<ScaleAddLinker<TData, dim, TDataScale, TRet>, TRet, dim> base_type;
+		using base_type = StdDataLinker<ScaleAddLinker<TData, dim, TDataScale, TRet>, TRet, dim>;
 
 	public:
 	///	constructor
@@ -95,7 +95,7 @@ class ScaleAddLinker
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
 		                     LocalVector* u,
-		                     const MathMatrix<refDim, dim>* vJT = NULL) const;
+		                     const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
 		template <int refDim>
 		void eval_and_deriv(TRet vValue[],
@@ -109,7 +109,7 @@ class ScaleAddLinker
 		                    bool bDeriv,
 		                    int s,
 		                    std::vector<std::vector<TRet> > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
+		                    const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
 	protected:
 	///	data at ip of input

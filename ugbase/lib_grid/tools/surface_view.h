@@ -102,8 +102,9 @@ class SurfaceView
 			ALL = MG_ALL               | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE
 			// combo-states with flags as in level-view (end)
 		};
-		typedef Flag<SurfaceConstants, byte, SS_NONE>	SurfaceState;
-		typedef Attachment<SurfaceState>				ASurfaceState;
+
+		using SurfaceState = Flag<SurfaceConstants, byte_t, SS_NONE>;
+		using ASurfaceState = Attachment<SurfaceState>;
 
 	public:
 		SurfaceView(SmartPtr<MGSubsetHandler> spMGSH,
@@ -180,8 +181,8 @@ class SurfaceView
 				SurfaceViewElementIterator();
 
 			private:
-				typedef SurfaceViewElementIterator<TElem> this_type;
-				typedef TElem* TValue;
+				using this_type = SurfaceViewElementIterator<TElem>;
+				using TValue = TElem*;
 
 				friend class SurfaceView;
 				friend class ConstSurfaceViewElementIterator<TElem>;
@@ -241,10 +242,10 @@ class SurfaceView
 				ConstSurfaceViewElementIterator(const SurfaceViewElementIterator<TElem>& iter);
 
 			private:
-				typedef ConstSurfaceViewElementIterator<TElem> this_type;
+				using this_type = ConstSurfaceViewElementIterator<TElem>;
 				// \todo: should return const TElem*
-				typedef TElem* TValue;
-				//typedef const TElem* TValue;
+				using TValue = TElem*;
+				//using TValue = const TElem*;
 
 				friend class SurfaceView;
 
@@ -296,8 +297,8 @@ class SurfaceView
 	public:
 		template <class TElem>
 		struct traits{
-			typedef SurfaceViewElementIterator<TElem>		iterator;
-			typedef ConstSurfaceViewElementIterator<TElem>	const_iterator;
+			using iterator = SurfaceViewElementIterator<TElem>;
+			using const_iterator = ConstSurfaceViewElementIterator<TElem>;
 		};
 
 	///	iterators of grid level
@@ -353,8 +354,7 @@ class SurfaceView
 	 * states to sides of surface elements.
 	 * Make sure that all elements in lower levels have already been processed!*/
 		template <class TElem, class TSide>
-		void mark_sides_as_surface_or_shadow(TElem* elem,
-											 byte surfaceState = MG_SURFACE_PURE);
+		void mark_sides_as_surface_or_shadow(TElem* elem, byte_t surfaceState = MG_SURFACE_PURE);
 
 		template <class TElem>
 		void mark_shadowing(bool markSides = false);

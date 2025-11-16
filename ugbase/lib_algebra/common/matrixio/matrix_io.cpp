@@ -38,7 +38,7 @@ namespace ug
 // /////////////////////////////////////////////////////////////////////////////
 // Constructors / Destructor
 MatrixIO::MatrixIO() :
-  m_pMatFileName( NULL ), m_matFileStream(), m_matFileType( 0 )
+  m_pMatFileName( nullptr ), m_matFileStream(), m_matFileType( 0 )
 //  ,m_rows(0), m_cols(0), m_lines(0)
 {
 }

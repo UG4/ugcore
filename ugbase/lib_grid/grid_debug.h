@@ -57,12 +57,12 @@ namespace ug
  * 
  * This class provides a global pointer (which is static in the class)
  * referencing its single object (only if it is created - otherwise the
- * pointer is NULL).
+ * pointer is nullptr).
  */
 class grid_global_debug_info_provider
 {
-	typedef grid_global_debug_info_provider this_type;
-	typedef Grid grid_type;
+	using this_type = grid_global_debug_info_provider;
+	using grid_type = Grid;
 	
 public:
 
@@ -142,8 +142,8 @@ public:
 			return false;
 		if (si_ar.size () == 0)
 			return in_all; // dummy value ("sum or product over the empty set")
-		
-		typedef unsigned long flags_t;
+
+		using flags_t = unsigned long;
 		
 		flags_t flags = 0, all_flags = 1;
 		if (in_all)

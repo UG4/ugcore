@@ -51,16 +51,16 @@ template<class TDomain, class TAlgebra>
 class TimeIntegratorSubject
 {
 public:
-	typedef GridFunction<TDomain, TAlgebra> grid_function_type;
-	typedef ITimeIntegratorObserver<TDomain, TAlgebra> process_observer_type;
-	typedef ITimeIntegratorStageObserver_init<TDomain, TAlgebra> init_observer_type;
-	typedef ITimeIntegratorStageObserver_rewind<TDomain, TAlgebra> rewind_observer_type;
-	typedef ITimeIntegratorStageObserver_finalize<TDomain, TAlgebra> finalize_observer_type;
-	typedef ITimeIntegratorStageObserver_preprocess<TDomain, TAlgebra> preprocess_observer_type;
-	typedef ITimeIntegratorStageObserver_postprocess<TDomain, TAlgebra> postprocess_observer_type;
-	typedef ITimeIntegratorStageObserver_start<TDomain, TAlgebra> start_observer_type;
-	typedef ITimeIntegratorStageObserver_end<TDomain, TAlgebra> end_observer_type;
-	typedef typename std::vector<SmartPtr<process_observer_type> > process_observer_container_type;
+	using grid_function_type = GridFunction<TDomain, TAlgebra>;
+	using process_observer_type = ITimeIntegratorObserver<TDomain, TAlgebra>;
+	using init_observer_type = ITimeIntegratorStageObserver_init<TDomain, TAlgebra>;
+	using rewind_observer_type = ITimeIntegratorStageObserver_rewind<TDomain, TAlgebra>;
+	using finalize_observer_type = ITimeIntegratorStageObserver_finalize<TDomain, TAlgebra>;
+	using preprocess_observer_type = ITimeIntegratorStageObserver_preprocess<TDomain, TAlgebra>;
+	using postprocess_observer_type = ITimeIntegratorStageObserver_postprocess<TDomain, TAlgebra>;
+	using start_observer_type = ITimeIntegratorStageObserver_start<TDomain, TAlgebra>;
+	using end_observer_type = ITimeIntegratorStageObserver_end<TDomain, TAlgebra>;
+	using process_observer_container_type = std::vector<SmartPtr<process_observer_type> >;
 
 	enum observer_group_type {
 		TIO_GROUP_INIT_STEP=0, 

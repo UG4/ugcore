@@ -43,10 +43,9 @@ template <class TElem>
 class ElementStorage
 {
 	public:
-		typedef ug::AttachmentPipe<TElem*, ElementStorage<TElem> >	AttachmentPipe;
-		typedef ug::AttachedElementList<AttachmentPipe>	AttachedElementList;
-		typedef ug::SectionContainer<TElem*, AttachedElementList >
-			SectionContainer;
+		using AttachmentPipe = AttachmentPipe<TElem*, ElementStorage<TElem> >;
+		using AttachedElementList = AttachedElementList<AttachmentPipe>;
+		using SectionContainer = SectionContainer<TElem*, AttachedElementList >;
 
 		ElementStorage() : m_attachmentPipe(this)
 		{
@@ -56,7 +55,7 @@ class ElementStorage
 	//	and since the AttachedElementList in SectionContainer tries to
 	//	unregister itself fomt the assigned pipe.
 		~ElementStorage(){
-			m_sectionContainer.get_container().set_pipe(NULL);
+			m_sectionContainer.get_container().set_pipe(nullptr);
 		}
 
 		SectionContainer	m_sectionContainer;///	holds elements
@@ -69,12 +68,12 @@ template<>
 class attachment_traits<Vertex*, ElementStorage<Vertex> >
 {
 	public:
-		typedef Vertex*&		ElemRef;
-		typedef Vertex*			ElemPtr;
-		typedef const Vertex*	ConstElemPtr;
-		typedef ElementStorage<Vertex>*			ElemHandlerPtr;
-		typedef const ElementStorage<Vertex>*	ConstElemHandlerPtr;
-		typedef ElementStorage<Vertex>::SectionContainer::iterator	element_iterator;
+		using ElemRef = Vertex*&;
+		using ElemPtr = Vertex*;
+		using ConstElemPtr = const Vertex*;
+		using ElemHandlerPtr = ElementStorage<Vertex>*;
+		using ConstElemHandlerPtr = const ElementStorage<Vertex>*;
+		using element_iterator = ElementStorage<Vertex>::SectionContainer::iterator;
 
 		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.begin();}
 		static inline element_iterator elements_end(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.end();}
@@ -86,12 +85,12 @@ template<>
 class attachment_traits<Edge*, ElementStorage<Edge> >
 {
 	public:
-		typedef Edge*&			ElemRef;
-		typedef Edge*			ElemPtr;
-		typedef const Edge*		ConstElemPtr;
-		typedef ElementStorage<Edge>*		ElemHandlerPtr;
-		typedef const ElementStorage<Edge>*	ConstElemHandlerPtr;
-		typedef ElementStorage<Edge>::SectionContainer::iterator	element_iterator;
+		using ElemRef = Edge*&;
+		using ElemPtr = Edge*;
+		using ConstElemPtr = const Edge*;
+		using ElemHandlerPtr = ElementStorage<Edge>*;
+		using ConstElemHandlerPtr = const ElementStorage<Edge>*;
+		using element_iterator = ElementStorage<Edge>::SectionContainer::iterator;
 
 		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.begin();}
 		static inline element_iterator elements_end(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.end();}
@@ -103,12 +102,12 @@ template<>
 class attachment_traits<Face*, ElementStorage<Face> >
 {
 	public:
-		typedef Face*&			ElemRef;
-		typedef Face*			ElemPtr;
-		typedef const Face*		ConstElemPtr;
-		typedef ElementStorage<Face>*			ElemHandlerPtr;
-		typedef const ElementStorage<Face>*		ConstElemHandlerPtr;
-		typedef ElementStorage<Face>::SectionContainer::iterator	element_iterator;
+		using ElemRef = Face*&;
+		using ElemPtr = Face*;
+		using ConstElemPtr = const Face*;
+		using ElemHandlerPtr = ElementStorage<Face>*;
+		using ConstElemHandlerPtr = const ElementStorage<Face>*;
+		using element_iterator = ElementStorage<Face>::SectionContainer::iterator;
 
 		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.begin();}
 		static inline element_iterator elements_end(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.end();}
@@ -120,12 +119,12 @@ template<>
 class attachment_traits<Volume*, ElementStorage<Volume> >
 {
 	public:
-		typedef Volume*&			ElemRef;
-		typedef Volume*				ElemPtr;
-		typedef const Volume*		ConstElemPtr;
-		typedef ElementStorage<Volume>*			ElemHandlerPtr;
-		typedef const ElementStorage<Volume>*	ConstElemHandlerPtr;
-		typedef ElementStorage<Volume>::SectionContainer::iterator	element_iterator;
+		using ElemRef = Volume*&;
+		using ElemPtr = Volume*;
+		using ConstElemPtr = const Volume*;
+		using ElemHandlerPtr = ElementStorage<Volume>*;
+		using ConstElemHandlerPtr = const ElementStorage<Volume>*;
+		using element_iterator = ElementStorage<Volume>::SectionContainer::iterator;
 
 		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.begin();}
 		static inline element_iterator elements_end(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.end();}
@@ -134,11 +133,10 @@ class attachment_traits<Volume*, ElementStorage<Volume> >
 };
 
 
-
-typedef ElementStorage<Vertex>	VertexElementStorage;
-typedef ElementStorage<Edge>	EdgeElementStorage;
-typedef ElementStorage<Face>		FaceElementStorage;
-typedef ElementStorage<Volume>		VolumeElementStorage;
+using VertexElementStorage = ElementStorage<Vertex>;
+using EdgeElementStorage = ElementStorage<Edge>;
+using FaceElementStorage = ElementStorage<Face>;
+using VolumeElementStorage = ElementStorage<Volume>;
 
 
 

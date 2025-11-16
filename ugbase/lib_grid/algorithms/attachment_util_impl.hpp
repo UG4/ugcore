@@ -59,8 +59,8 @@ bool ConvertMathVectorAttachmentValues(Grid& grid,
 							TSrcAttachment& srcAttachment,
 							TDestAttachment& destAttachment)
 {
-	typedef TSrcAttachment ASrc;
-	typedef TDestAttachment ADest;
+	using ASrc = TSrcAttachment;
+	using ADest = TDestAttachment;
 
 //	make sure that the attachments are attached correctly
 	if(!grid.has_attachment<TElem>(srcAttachment))
@@ -147,8 +147,8 @@ template <class TElemIter, class TAttachment>
 bool CopyAttachments(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd,
 					 TAttachment& aSrc, TAttachment& aDest)
 {
-	typedef typename PtrToValueType<
-			typename TElemIter::value_type>::base_type TElem;
+	using TElem = typename PtrToValueType<
+		typename TElemIter::value_type>::base_type;
 
 //	make sure the attachments are properly attached.
 	if(!grid.has_attachment<TElem>(aSrc))

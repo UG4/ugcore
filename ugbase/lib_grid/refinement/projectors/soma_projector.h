@@ -70,7 +70,7 @@ public:
 			m_soma (0, 0, 0),
 			m_somaRad(0)
 		{
-			typedef Attachment<NeuriteProjector::SurfaceParams> NPSurfParam;
+			using NPSurfParam = Attachment<NeuriteProjector::SurfaceParams>;
 				if (!GlobalAttachments::is_declared("npSurfParams"))
 					GlobalAttachments::declare_attachment<NPSurfParam>("npSurfParams", true);
 
@@ -86,9 +86,9 @@ public:
 		m_soma (soma),
 		m_somaRad(rad)
 	{
-			typedef Attachment<NeuriteProjector::SurfaceParams> NPSurfParam;
-				if (!GlobalAttachments::is_declared("npSurfParams"))
-					GlobalAttachments::declare_attachment<NPSurfParam>("npSurfParams", true);
+		using NPSurfParam = Attachment<NeuriteProjector::SurfaceParams>;
+			if (!GlobalAttachments::is_declared("npSurfParams"))
+				GlobalAttachments::declare_attachment<NPSurfParam>("npSurfParams", true);
 	}
 
 public:
@@ -132,7 +132,7 @@ public:
 private:
 /// check if global attachment was declared
 	void check_attachment() {
-		typedef Attachment<NeuriteProjector::SurfaceParams> NPSurfParam;
+		using NPSurfParam = Attachment<NeuriteProjector::SurfaceParams>;
 		if (!GlobalAttachments::is_declared("npSurfParams"))
 			GlobalAttachments::declare_attachment<NPSurfParam>("npSurfParams", true);
 	}

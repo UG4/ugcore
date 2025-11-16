@@ -62,10 +62,10 @@ template <std::size_t N, typename T = number>
 class MathSymmetricMatrix
 {
 	public:
-		typedef T value_type;
-		typedef std::size_t size_type;
-		static const std::size_t RowSize = N;
-		static const std::size_t ColSize = N;
+		using value_type = T;
+		using size_type = std::size_t;
+		static constexpr std::size_t RowSize = N;
+		static constexpr std::size_t ColSize = N;
 
 	public:
 		MathSymmetricMatrix() {}
@@ -261,7 +261,7 @@ class MathSymmetricMatrix
 		}
 		
 	protected:
-		static const size_t m_size = (size_t)((N*N+N)/2);
+		static constexpr size_t m_size = (N*N+N)/2;
 		
 		value_type m_data[m_size];
 

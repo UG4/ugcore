@@ -90,7 +90,7 @@ bool SaveGridToELE(Grid& grid, const char* filename, ISubsetHandler* pSH,
 		for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter)
 			aaIntFace[*iter] = pSH->get_subset_index(*iter);	
 
-		bool retVal = ExportGridToTETGEN(grid, filename, aPos, NULL, NULL, &aInt, &aInt,
+		bool retVal = ExportGridToTETGEN(grid, filename, aPos, nullptr, nullptr, &aInt, &aInt,
 										 paVolumeConstraint);
 								
 		grid.detach_from_faces(aInt);
@@ -100,7 +100,7 @@ bool SaveGridToELE(Grid& grid, const char* filename, ISubsetHandler* pSH,
 	}
 	
 	return ExportGridToTETGEN(grid, filename, aPos,
-	                          NULL, NULL, NULL, NULL, paVolumeConstraint);
+	                          nullptr, nullptr, nullptr, nullptr, paVolumeConstraint);
 	
 }
 					
@@ -139,11 +139,11 @@ bool ImportGridFromTETGEN(Grid& grid,
 		Grid::VertexAttachmentAccessor<AVector3> aaPosVRT(grid, aPos);
 
 		Grid::VertexAttachmentAccessor<AInt> aaBMVRT;
-		if(paNodeBoundaryMarker != NULL)
+		if(paNodeBoundaryMarker != nullptr)
 			aaBMVRT.access(grid, *paNodeBoundaryMarker);
 
 		vector<Grid::VertexAttachmentAccessor<AFloat> > vaaAttributesVRT;
-		if(pvNodeAttributes != NULL)
+		if(pvNodeAttributes != nullptr)
 		{
 			vaaAttributesVRT.resize(pvNodeAttributes->size());
 			for(uint i = 0; i < pvNodeAttributes->size(); ++i)
@@ -160,7 +160,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 		//	read index and coords
 			in >> index;
 			if(index > (int) vVertices.size())
-				vVertices.resize(index, NULL);
+				vVertices.resize(index, nullptr);
 			in >> aaPosVRT[v].x();
 			in >> aaPosVRT[v].y();
 			in >> aaPosVRT[v].z();
@@ -182,7 +182,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 			{
 				int bm;
 				in >> bm;
-				if(paNodeBoundaryMarker != NULL)
+				if(paNodeBoundaryMarker != nullptr)
 					aaBMVRT[v] = bm;
 			}
 		}
@@ -191,7 +191,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 	}
 
 //	read faces
-	if(facesFilename != NULL)
+	if(facesFilename != nullptr)
 	{
 		ifstream in(facesFilename);
 		if(in)
@@ -201,7 +201,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 			in >> numBoundaryMarkers;
 
 			Grid::FaceAttachmentAccessor<AInt> aaBMFACE;
-			if(paFaceBoundaryMarker != NULL)
+			if(paFaceBoundaryMarker != nullptr)
 				aaBMFACE.access(grid, *paFaceBoundaryMarker);
 
 			for(int i = 0; i < numFaces; ++i)
@@ -237,7 +237,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 	}
 
 //	read volumes
-	if(elemsFilename != NULL)
+	if(elemsFilename != nullptr)
 	{
 		ifstream in(elemsFilename);
 		if(in)
@@ -268,7 +268,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 				{
 					int a;
 					in >> a;
-					if(paElementAttribute != NULL)
+					if(paElementAttribute != nullptr)
 						aaAttributeVOL[t] = a;
 				}
 			}
@@ -317,7 +317,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 		Grid::VertexAttachmentAccessor<AVector3> aaPosVRT(grid, aPos);
 
 		vector<Grid::VertexAttachmentAccessor<AFloat> > vaaAttributesVRT;
-		if(pvNodeAttributes != NULL)
+		if(pvNodeAttributes != nullptr)
 		{
 			vaaAttributesVRT.resize(pvNodeAttributes->size());
 			for(uint i = 0; i < pvNodeAttributes->size(); ++i)
@@ -333,7 +333,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 		//	read index and coords
 			in >> index;
 			if(index > (int) vVertices.size())
-				vVertices.resize(index, NULL);
+				vVertices.resize(index, nullptr);
 			vVertices.push_back(v);
 			in >> aaPosVRT[v].x();
 			in >> aaPosVRT[v].y();
@@ -356,7 +356,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 			{
 				int bm;
 				in >> bm;
-				if(psh != NULL)
+				if(psh != nullptr)
 					psh->assign_subset(v, abs(bm));
 			}
 		}
@@ -365,7 +365,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 	}
 
 //	read faces
-	if(facesFilename != NULL)
+	if(facesFilename != nullptr)
 	{
 		PROFILE_BEGIN(read_faces);
 		ifstream in(facesFilename);
@@ -390,11 +390,11 @@ bool ImportGridFromTETGEN(Grid& grid,
 				if(numBoundaryMarkers > 0){
 					int bm;
 					in >> bm;
-					if(psh != NULL){
+					if(psh != nullptr){
 						psh->assign_subset(t, abs(bm));
 					}
 				}
-				else if(psh != NULL){
+				else if(psh != nullptr){
 					psh->assign_subset(t, 0);
 				}
 			}
@@ -406,7 +406,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 	}
 
 //	read volumes
-	if(elemsFilename != NULL)
+	if(elemsFilename != nullptr)
 	{
 		PROFILE_BEGIN(read_volumes);
 		ifstream in(elemsFilename);
@@ -435,7 +435,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 				int a = 0;
 				if(numAttribs > 0)
 					in >> a;
-				if(psh != NULL)
+				if(psh != nullptr)
 					psh->assign_subset(t, a);
 			}
 		}
@@ -469,19 +469,19 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 		return false;
 
 //	check if regions are specified in the correct way.
-	if(pvRegionPositions != NULL)
+	if(pvRegionPositions != nullptr)
 	{
-		if(pvRegionAttributes != NULL)
+		if(pvRegionAttributes != nullptr)
 			if(pvRegionAttributes->size() != pvRegionPositions->size())
 				return false;
 
-		if(pvRegionVolumeConstraints != NULL)
+		if(pvRegionVolumeConstraints != nullptr)
 			if(pvRegionVolumeConstraints->size() != pvRegionPositions->size())
 				return false;
 	}
 
 	vector<int> vTmpRegionAttributes;
-	if((pvRegionAttributes == NULL) && (pvRegionPositions != NULL) && (pvRegionVolumeConstraints != NULL))
+	if((pvRegionAttributes == nullptr) && (pvRegionPositions != nullptr) && (pvRegionVolumeConstraints != nullptr))
 	{
 	//	attributes have to be supplied if constraints are given.
 	//	since no attributes were passed, generate your own.
@@ -502,7 +502,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 
 	//	attachment-accessors for the nodes attributes
 		vector<Grid::VertexAttachmentAccessor<AFloat> > vaaFloatVRT;
-		if(pvNodeAttributes != NULL)
+		if(pvNodeAttributes != nullptr)
 		{
 			numAttribs = pvNodeAttributes->size();
 			vaaFloatVRT.resize(pvNodeAttributes->size());
@@ -512,7 +512,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 
 	//	attachment-accessor for the nodes boundary-marker
 		Grid::VertexAttachmentAccessor<AInt> aaBMVRT;
-		if(paNodeBoundaryMarker != NULL)
+		if(paNodeBoundaryMarker != nullptr)
 		{
 			numBoundaryMarkers = 1;
 			aaBMVRT.access(grid, *paNodeBoundaryMarker);
@@ -536,7 +536,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 			}
 
 		//	write boundary markers:
-			if(paNodeBoundaryMarker != NULL)
+			if(paNodeBoundaryMarker != nullptr)
 				out << " " << aaBMVRT[*iter];
 
 			out << endl;
@@ -549,7 +549,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 //	write facets
 	{
 		Grid::FaceAttachmentAccessor<AInt> aaBMFACE;
-		if(paFaceBoundaryMarker != NULL)
+		if(paFaceBoundaryMarker != nullptr)
 		{
 			out << grid.num_faces() << " 1" << endl;
 			aaBMFACE.access(grid, *paFaceBoundaryMarker);
@@ -565,7 +565,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 			for(uint i = 0; i < f->num_vertices(); ++i)
 				out << " " << aaIntVRT[f->vertex(i)];
 
-			if(paFaceBoundaryMarker != NULL)
+			if(paFaceBoundaryMarker != nullptr)
 				out << " " << aaBMFACE[f];
 
 			out << endl;
@@ -575,7 +575,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 	out << endl;
 
 //	write holes
-	if(pvHoles != NULL)
+	if(pvHoles != nullptr)
 	{
 		vector<vector3>& vHoles = *pvHoles;
 		out << vHoles.size() << endl;
@@ -594,7 +594,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 	out << endl;
 
 //	write regions (optional)
-	if(pvRegionPositions != NULL)
+	if(pvRegionPositions != nullptr)
 	{
 		vector<vector3>& vRegionPositions = *pvRegionPositions;
 		out << vRegionPositions.size() << endl;
@@ -604,10 +604,10 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 								vRegionPositions[i].y() << " " <<
 								vRegionPositions[i].z();
 
-			if(pvRegionAttributes != NULL)
+			if(pvRegionAttributes != nullptr)
 				out << " " << (*pvRegionAttributes)[i];
 
-			if(pvRegionVolumeConstraints != NULL)
+			if(pvRegionVolumeConstraints != nullptr)
 				out << " " << (*pvRegionVolumeConstraints)[i];
 
 			out << endl;
@@ -642,19 +642,19 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 		return false;
 
 //	check if regions are specified in the correct way.
-	if(pvRegionPositions != NULL)
+	if(pvRegionPositions != nullptr)
 	{
-		if(pvRegionAttributes != NULL)
+		if(pvRegionAttributes != nullptr)
 			if(pvRegionAttributes->size() != pvRegionPositions->size())
 				return false;
 
-		if(pvRegionVolumeConstraints != NULL)
+		if(pvRegionVolumeConstraints != nullptr)
 			if(pvRegionVolumeConstraints->size() != pvRegionPositions->size())
 				return false;
 	}
 
 	vector<int> vTmpRegionAttributes;
-	if((pvRegionAttributes == NULL) && (pvRegionPositions != NULL) && (pvRegionVolumeConstraints != NULL))
+	if((pvRegionAttributes == nullptr) && (pvRegionPositions != nullptr) && (pvRegionVolumeConstraints != nullptr))
 	{
 	//	attributes have to be supplied if constraints are given.
 	//	since no attributes were passed, generate your own.
@@ -675,7 +675,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 
 	//	attachment-accessors for the nodes attributes
 		vector<Grid::VertexAttachmentAccessor<AFloat> > vaaFloatVRT;
-		if(pvNodeAttributes != NULL)
+		if(pvNodeAttributes != nullptr)
 		{
 			numAttribs = pvNodeAttributes->size();
 			vaaFloatVRT.resize(pvNodeAttributes->size());
@@ -684,7 +684,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 		}
 
 	//	attachment-accessor for the nodes boundary-marker
-		if(psh != NULL)
+		if(psh != nullptr)
 			numBoundaryMarkers = 1;
 
 	//	write number of nodes, dimension, number of attributes, boundary markers (0 or 1)
@@ -703,7 +703,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 				out << " " << (vaaFloatVRT[i])[*iter];
 
 		//	write boundary markers:
-			if(psh != NULL)
+			if(psh != nullptr)
 				out << " " << psh->get_subset_index(*iter);
 
 			out << endl;
@@ -715,7 +715,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 
 //	write facets
 	{
-		if(psh != NULL)
+		if(psh != nullptr)
 			out << grid.num_faces() << " 1" << endl;
 		else
 			out << grid.num_faces() << " 0" << endl;
@@ -728,7 +728,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 			for(uint i = 0; i < f->num_vertices(); ++i)
 				out << " " << aaIntVRT[f->vertex(i)];
 
-			if(psh != NULL)
+			if(psh != nullptr)
 				out << " " << psh->get_subset_index(f);
 
 			out << endl;
@@ -738,7 +738,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 	out << endl;
 
 //	write holes
-	if(pvHoles != NULL)
+	if(pvHoles != nullptr)
 	{
 		vector<vector3>& vHoles = *pvHoles;
 		out << vHoles.size() << endl;
@@ -757,7 +757,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 	out << endl;
 
 //	write regions (optional)
-	if(pvRegionPositions != NULL)
+	if(pvRegionPositions != nullptr)
 	{
 		vector<vector3>& vRegionPositions = *pvRegionPositions;
 		out << vRegionPositions.size() << endl;
@@ -767,10 +767,10 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 								vRegionPositions[i].y() << " " <<
 								vRegionPositions[i].z();
 
-			if(pvRegionAttributes != NULL)
+			if(pvRegionAttributes != nullptr)
 				out << " " << (*pvRegionAttributes)[i];
 
-			if(pvRegionVolumeConstraints != NULL)
+			if(pvRegionVolumeConstraints != nullptr)
 				out << " " << (*pvRegionVolumeConstraints)[i];
 
 			out << endl;
@@ -879,7 +879,7 @@ bool LoadGridFromSMESH(Grid& grid, const char* filename, AVector3& aPos,
 					for(size_t i = 0; i < numCorners; ++i)
 						in >> inds[i];
 
-					Face* f = NULL;
+					Face* f = nullptr;
 					switch(numCorners){
 						case 3:{
 							f = *grid.create<Triangle>(
@@ -962,7 +962,7 @@ bool ExportGridToTETGEN(Grid& grid, const char* filename,
 
 	//	attachment-accessors for the nodes attributes
 		vector<Grid::VertexAttachmentAccessor<AFloat> > vaaFloatVRT;
-		if(pvNodeAttributes != NULL)
+		if(pvNodeAttributes != nullptr)
 		{
 			numAttribs = pvNodeAttributes->size();
 			vaaFloatVRT.resize(pvNodeAttributes->size());
@@ -972,7 +972,7 @@ bool ExportGridToTETGEN(Grid& grid, const char* filename,
 
 	//	attachment-accessor for the nodes boundary-marker
 		Grid::VertexAttachmentAccessor<AInt> aaBMVRT;
-		if(paNodeBoundaryMarker != NULL)
+		if(paNodeBoundaryMarker != nullptr)
 		{
 			numBoundaryMarkers = 1;
 			aaBMVRT.access(grid, *paNodeBoundaryMarker);
@@ -996,7 +996,7 @@ bool ExportGridToTETGEN(Grid& grid, const char* filename,
 			}
 
 		//	write boundary markers:
-			if(paNodeBoundaryMarker != NULL)
+			if(paNodeBoundaryMarker != nullptr)
 				out << " " << aaBMVRT[*iter];
 
 			out << endl;
@@ -1011,7 +1011,7 @@ bool ExportGridToTETGEN(Grid& grid, const char* filename,
 		if(out)
 		{
 			Grid::FaceAttachmentAccessor<AInt> aaBMFACE;
-			if(paFaceBoundaryMarker != NULL)
+			if(paFaceBoundaryMarker != nullptr)
 			{
 				out << grid.num_faces() << " 1" << endl;
 				aaBMFACE.access(grid, *paFaceBoundaryMarker);
@@ -1027,7 +1027,7 @@ bool ExportGridToTETGEN(Grid& grid, const char* filename,
 				for(uint i = 0; i < f->num_vertices(); ++i)
 					out << " " << aaIntVRT[f->vertex(i)];
 
-				if(paFaceBoundaryMarker != NULL)
+				if(paFaceBoundaryMarker != nullptr)
 					out << " " << aaBMFACE[f];
 
 				out << endl;
@@ -1042,7 +1042,7 @@ bool ExportGridToTETGEN(Grid& grid, const char* filename,
 		if(out)
 		{
 			Grid::VolumeAttachmentAccessor<AInt> aaElementAttributeVOL;
-			if(paElementAttribute != NULL)
+			if(paElementAttribute != nullptr)
 			{
 				aaElementAttributeVOL.access(grid, *paElementAttribute);
 				out << grid.num<Tetrahedron>() << " 4 1" << endl;
@@ -1060,7 +1060,7 @@ bool ExportGridToTETGEN(Grid& grid, const char* filename,
 											aaIntVRT[tet->vertex(2)] << " " <<
 											aaIntVRT[tet->vertex(3)];
 
-				if(paElementAttribute != NULL)
+				if(paElementAttribute != nullptr)
 					out << " " << aaElementAttributeVOL[tet];
 
 				out << endl;

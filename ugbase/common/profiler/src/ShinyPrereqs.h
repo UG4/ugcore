@@ -51,8 +51,8 @@ namespace Shiny {
 	struct ProfileNode;
 	struct ProfileZone;
 
-	typedef ProfileNode* ProfileNodeCache;
-	typedef ProfileNode* ProfileNodeTable;
+	using ProfileNodeCache = ProfileNode*;
+	using ProfileNodeTable = ProfileNode*;
 #endif
 
 
@@ -76,23 +76,23 @@ namespace Shiny {
 //-----------------------------------------------------------------------------
 /*//sreiter
 #if SHINY_COMPILER == SHINY_COMPILER_MSVC
-	typedef int					int32_t;
-	typedef unsigned int		uint32_t;
+	using  int32_t = int;
+	using uint32_t = unsigned int;
 
-	typedef __int64				int64_t;
-	typedef unsigned __int64	uint64_t;
+	using int64_t = __int64;
+	using uint64_t = unsigned __int64;
 
 #elif defined(__CYGWIN__)
-	typedef u_int32_t			uint32_t;
-	typedef u_int64_t			uint64_t;
+	using uint32_t = u_int32_t;
+	using uint64_t = u_int64_t;
 #endif
 *///sreiter
-	typedef int32	int32_t;	//sreiter
-	typedef uint32	uint32_t;	//sreiter
-	typedef int64	int64_t;	//sreiter
-	typedef uint64	uint64_t;	//sreiter
+	using int32_t = int32;
+	using uint32_t = uint32;
+	using int64_t = int64;
+	using uint64_t = uint64;
 
-	typedef uint64_t			tick_t;
+	using tick_t = uint64_t;
 
 } // namespace Shiny
 

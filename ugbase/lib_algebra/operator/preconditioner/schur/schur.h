@@ -62,8 +62,8 @@ extern DebugID SchurDebug;
 namespace ug{
 enum schur_slice_desc_type {SD_INNER=0, SD_SKELETON, SLICE_DESC_SIZE};
 
-typedef std::vector<schur_slice_desc_type> SchurSliceDescVector;
-typedef SlicingData<SchurSliceDescVector, 2> SchurSlicingData;
+using SchurSliceDescVector = std::vector<schur_slice_desc_type>;
+using SchurSlicingData = SlicingData<SchurSliceDescVector, 2>;
 
 }
 

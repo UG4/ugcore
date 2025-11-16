@@ -66,7 +66,7 @@ void InitBridge()
 {
 	PROFILE_FUNC();
 	//	initialize ug-interfaces
-	RegisterStandardBridges(bridge::GetUGRegistry());
+	RegisterStandardBridges(GetUGRegistry());
 }
 
 

@@ -44,9 +44,9 @@ template<typename T, class Allocator = std::allocator<T> >
 class stdvector : public std::vector<T, Allocator>
 {
 private:
-	typedef std::vector<T, Allocator> super;
+	using super = std::vector<T, Allocator>;
 public:
-	typedef typename super::size_type size_type;
+	using size_type = typename super::size_type;
 
 private:
 

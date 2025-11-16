@@ -43,8 +43,7 @@
 
 namespace ug
 {
-
-typedef std::map<int, std::vector<AlgebraID> > GlobalLayout;
+	using GlobalLayout = std::map<int, std::vector<AlgebraID> >;
 
 void ReceiveGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, const std::vector<int> &srcprocs,
 		GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout);
@@ -108,7 +107,7 @@ void CreateGlobalLayout(GlobalLayout &globalLayout,
 	}
 }
 
-void PrintGlobalLayout(const GlobalLayout &globalLayout, const char *name=NULL);
+void PrintGlobalLayout(const GlobalLayout &globalLayout, const char *name=nullptr);
 } // namespace ug
 
 #endif

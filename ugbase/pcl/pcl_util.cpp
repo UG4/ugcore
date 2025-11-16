@@ -30,14 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <vector>
-#include "pcl_util.h"
-#include "pcl_profiling.h"
-#include "common/log.h"
 #include <string>
+#include <vector>
+
+#include "common/log.h"
 #include "common/util/file_util.h"
 #include "common/util/binary_buffer.h"
 #include "common/serialization.h"
+
+#include "pcl_util.h"
+#include "pcl_profiling.h"
 
 using namespace std;
 using namespace ug;
@@ -276,8 +278,8 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 
 //	if a mismatch occurred on one, then we'll gather all procs which failed.
 	if(!AllProcsTrue(bSuccess, involvedProcs)){
-		int mismatch = (int)(!bSuccess);
-		vector<int> buffer(involvedProcs.size(), 0);
+		int mismatch = !bSuccess;
+		vector buffer(involvedProcs.size(), 0);
 		int root = GetLogAssistant().get_output_process();
 		if(root < 0) root = 0;
 		involvedProcs.gather(&mismatch, 1, PCL_DT_INT, &buffer.front(), 1,

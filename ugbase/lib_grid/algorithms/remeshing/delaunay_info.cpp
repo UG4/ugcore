@@ -89,14 +89,14 @@ set_mark(Face* f, typename DelaunayInfo<TAAPos>::Mark mark)
 		}
 		else if(fi){
 			if(fi->classified){
-			//	we can't delete the face-info now. instead we'll only set fi->f to NULL
+			//	we can't delete the face-info now. instead we'll only set fi->f to nullptr
 			//	so that it can be identified as invalid in m_faceQueue. Clean-up is performed later.
-				fi->f = NULL;
+				fi->f = nullptr;
 			}
 			else{
 			//	delete the associated face-info
 				delete fi;
-				m_aaFaceInfo[f] = NULL;
+				m_aaFaceInfo[f] = nullptr;
 			}
 		}
 	}
@@ -201,7 +201,7 @@ enable_face_classification(number minAngle)
 			}
 		}
 		else{
-			m_grid.attach_to_faces_dv(m_aFaceInfo, NULL);
+			m_grid.attach_to_faces_dv(m_aFaceInfo, nullptr);
 			m_aaFaceInfo.access(m_grid, m_aFaceInfo);
 		//	we have to create face-infos before classification
 			for(FaceIterator iter = m_grid.begin<Face>();
@@ -238,7 +238,7 @@ classified_faces_left()
 //	pop illegal entries
 	while(!m_faceQueue.empty()){
 		FaceInfo* fi = m_faceQueue.top();
-		if(fi->f == NULL){
+		if(fi->f == nullptr){
 			m_faceQueue.pop();
 			delete fi;
 		}
@@ -256,7 +256,7 @@ pop_classified_face()
 //	pop illegal entries
 	while(!m_faceQueue.empty()){
 		FaceInfo* fi = m_faceQueue.top();
-		if(fi->f == NULL){
+		if(fi->f == nullptr){
 			m_faceQueue.pop();
 			delete fi;
 		}
@@ -265,7 +265,7 @@ pop_classified_face()
 	}
 
 	if(m_faceQueue.empty())
-		return NULL;
+		return nullptr;
 	FaceInfo* fi = m_faceQueue.top();
 	m_faceQueue.pop();
 	fi->classified = false;

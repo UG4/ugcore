@@ -169,7 +169,7 @@ template <typename TBase, typename TDerived>
 void* StaticVoidCast(void* DerivVoidPtr);
 
 
-struct UGError_ClassCastFailed : public UGError{
+struct UGError_ClassCastFailed : UGError{
 	UGError_ClassCastFailed(const std::string& from, const std::string& to) :
 		UGError("Class cast failed"), m_from(from), m_to(to)	{}
 
@@ -230,7 +230,7 @@ class ClassCastProvider
 
 	protected:
 	//	type of cast pointer
-		typedef void* (*CastFunc)(void*);
+		using CastFunc = void* (*)(void*);
 
 	//	cast map
 		static std::map<std::pair<const ClassNameNode*, const ClassNameNode*>, CastFunc> m_mmCast;

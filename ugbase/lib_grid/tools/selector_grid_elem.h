@@ -66,7 +66,7 @@ namespace ug
  *
  * This is a specialization of ISelector for the class Grid that only
  * works on one element type (either Vertex, Edge, Face or
- * Volume). Normally you will use the typedefs VertexSelector,
+ * Volume). Normally you will use the type definitions VertexSelector,
  * EdgeSelector, FaceSelector or VolumeSelector instead of this class.
  *
  * The following methods are the most used:
@@ -97,8 +97,8 @@ template <class TBaseElem>
 class UG_API TElemSelector : public Selector
 {
 	public:
-		typedef typename geometry_traits<TBaseElem>::iterator iterator;
-		typedef typename geometry_traits<TBaseElem>::const_iterator const_iterator;
+		using iterator = typename geometry_traits<TBaseElem>::iterator;
+		using const_iterator = typename geometry_traits<TBaseElem>::const_iterator;
 
 
 	public:
@@ -137,12 +137,12 @@ class UG_API TElemSelector : public Selector
 };
 
 ////////////////////////////////////////////////////////////////////////
-//	typedefs of the four element-selectors
+//	type definitions of the four element-selectors
 
-typedef TElemSelector<Vertex>	VertexSelector;
-typedef TElemSelector<Edge>		EdgeSelector;
-typedef TElemSelector<Face>			FaceSelector;
-typedef TElemSelector<Volume>		VolumeSelector;
+using VertexSelector = TElemSelector<Vertex>;
+using EdgeSelector = TElemSelector<Edge>;
+using FaceSelector = TElemSelector<Face>;
+using VolumeSelector = TElemSelector<Volume>;
 
 /** \} */
 }//	end of namespace

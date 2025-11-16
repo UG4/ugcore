@@ -7,7 +7,7 @@ struct lgm_info* lgm_info_new(void)
     struct lgm_info* linfo = malloc(sizeof(struct lgm_info));
     
     linfo->error = 0;
-    linfo->err_msg = NULL;
+    linfo->err_msg = nullptr;
     
     return linfo;
 }

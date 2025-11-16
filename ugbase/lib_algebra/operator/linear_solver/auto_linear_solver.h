@@ -65,10 +65,10 @@ class AutoLinearSolver
 {
 	public:
 	///	Vector type
-		typedef TVector vector_type;
+		using vector_type = TVector;
 
 	///	Base type
-		typedef IPreconditionedLinearOperatorInverse<vector_type> base_type;
+		using base_type = IPreconditionedLinearOperatorInverse<vector_type>;
 
 	protected:
 		using base_type::convergence_check;

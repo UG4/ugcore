@@ -106,8 +106,8 @@ void PrintGridElementNumbers(GridSubsetHandler& sh)
 template <class TGeomObj>
 void PrintAttachmentInfo(Grid& grid)
 {
-	typedef typename Grid::traits<TGeomObj>::AttachmentPipe	AttachmentPipe;
-	typedef typename AttachmentPipe::ConstAttachmentEntryIterator AttIter;
+	using AttachmentPipe = typename Grid::traits<TGeomObj>::AttachmentPipe;
+	using AttIter = typename AttachmentPipe::ConstAttachmentEntryIterator;
 
 //	iterate over all attachments of the grid
 	AttachmentPipe& pipe = grid.get_attachment_pipe<TGeomObj>();
@@ -568,7 +568,7 @@ enum ConstraintTypes{
 template <class TElem>
 static bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
 {
-	typedef typename Grid::traits<TElem>::iterator ElemIter;
+	using ElemIter = typename Grid::traits<TElem>::iterator;
 	bool retVal = true;
 
 	AInt aState;
@@ -587,7 +587,7 @@ static bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
 
 //	communicate states
 	#ifdef UG_PARALLEL
-		typedef typename GridLayoutMap::Types<TElem>::Layout Layout;
+		using Layout = typename GridLayoutMap::Types<TElem>::Layout;
 		pcl::InterfaceCommunicator<Layout> com;
 		DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 		GridLayoutMap& glm = distGridMgr.grid_layout_map();
@@ -656,11 +656,11 @@ template <class TLayout>
 class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
 		ComPol_CheckDistributedParentStates(MultiGrid& mg) :
 			m_mg(mg),
@@ -759,7 +759,7 @@ template <class TElem>
 bool CheckLocalParentTypes(MultiGrid& mg)
 {
 	bool success = true;
-	typedef typename MultiGrid::traits<TElem>::iterator iter_t;
+	using iter_t = typename MultiGrid::traits<TElem>::iterator;
 	for(iter_t iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
 		TElem* e = *iter;
 		GridObject* parent = mg.get_parent(e);
@@ -959,7 +959,7 @@ std::string ElementDebugInfo_IMPL(const Grid& grid, TElem* e)
 	}
 
 	if(grid.periodic_boundary_manager()){
-		typedef typename TElem::grid_base_object	base_t;
+		using base_t = typename TElem::grid_base_object;
 		base_t* b = e;
 		const PeriodicBoundaryManager* pdm = grid.periodic_boundary_manager();
 		if(pdm->is_slave(b)){
@@ -971,14 +971,12 @@ std::string ElementDebugInfo_IMPL(const Grid& grid, TElem* e)
 			}
 		}
 		else if(pdm->is_master(b)){
-			typedef typename PeriodicBoundaryManager::Group<base_t>::SlaveContainer
-				slave_container_t;
+			using slave_container_t = typename PeriodicBoundaryManager::Group<base_t>::SlaveContainer;
 			ss << "-- periodic master ";
 			slave_container_t* slaves = pdm->slaves(b);
 			if(!slaves->empty()){
 				ss << "with slaves at ";
-				for(typename slave_container_t::iterator i = slaves->begin();
-					i != slaves->end(); ++i)
+				for(auto i = slaves->begin(); i != slaves->end(); ++i)
 				{
 					ss << GetGridObjectCenter(*const_cast<Grid*>(&grid), *i) << " ";
 				}

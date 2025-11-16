@@ -40,8 +40,7 @@
 
 namespace ug
 {
-
-typedef std::list<KDVertexDistance> KDVertexDistanceList;
+	using KDVertexDistanceList = std::list<KDVertexDistance>;
 
 template<class TPositionAttachment, int numDimensions, class TVector>
 void
@@ -53,10 +52,10 @@ KDTreeStatic<TPositionAttachment, numDimensions, TVector>
 		delete m_pChild[0];
 	if(m_pChild[1])
 		delete m_pChild[1];
-	m_pChild[0] = m_pChild[1] = NULL;
+	m_pChild[0] = m_pChild[1] = nullptr;
 	if(m_pvVertices)
 		delete m_pvVertices;
-	m_pvVertices = NULL;
+	m_pvVertices = nullptr;
 }
 
 template<class TPositionAttachment, int numDimensions, class TVector>
@@ -64,7 +63,7 @@ void
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 clear()
 {
-	m_pGrid = NULL;
+	m_pGrid = nullptr;
 	m_parentNode.clear();
 }
 
@@ -242,7 +241,7 @@ neighbourhood(KDVertexDistanceList& vrtsOut, Node* pNode, TVector& pos, int numC
 		}
 	}
 //	if the node has children visit them
-	if(pNode->m_pChild[0] || pNode->m_pChild[1])	//either both or none are NULL
+	if(pNode->m_pChild[0] || pNode->m_pChild[1])	//either both or none are nullptr
 	{
 	//	check in wich subnode the specified point lies.
 		int bestNodeIndex;
@@ -413,7 +412,7 @@ get_leafs_recursive(std::vector<Node*>& vLeafsOut, Node* pNode)
 	{
 		for(int i = 0; i < 2; ++i)
 		{
-			if(pNode->m_pChild[i] != NULL)
+			if(pNode->m_pChild[i] != nullptr)
 				get_leafs_recursive(vLeafsOut, pNode->m_pChild[i]);
 		}
 	}

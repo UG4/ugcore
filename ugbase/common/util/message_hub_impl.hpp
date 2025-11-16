@@ -42,7 +42,7 @@ MessageHub::SPCallbackId MessageHub::
 register_function_callback(void (*callback)(const TMsg&),
 						   bool autoFree)
 {
-	typedef void (*FuncCallback)(const IMessage&);
+	using FuncCallback = void(*)(const IMessage&);
 
 	return register_callback_impl<TMsg>((FuncCallback)callback, autoFree);
 }
@@ -54,7 +54,7 @@ register_class_callback(TClass* cls,
 						void (TClass::*callback)(const TMsg&),
 						bool autoFree)
 {
-	typedef void (TClass::*ClassCallback)(const IMessage&);
+	using ClassCallback = void(TClass::*)(const IMessage&);
 
 	return register_callback_impl<TMsg>(
 					boost::bind((ClassCallback)callback, cls, _1),
@@ -86,7 +86,7 @@ register_callback_impl(boost::function<void (const IMessage&)> callback,
 	size_t id = GetUniqueTypeID<TMsg>();
 	CallbackEntryList& callbacks = m_callbackMap[id];
 	CallbackEntryIterator cbIter = callbacks.insert(callbacks.end(),
-													CallbackEntry(callback, NULL));
+													CallbackEntry(callback, nullptr));
 
 	CallbackId* cbId = new CallbackId(this, id, cbIter, autoFree);
 

@@ -50,6 +50,6 @@ set(srcPcl	parallel_archive.cpp
 
 if(BUILD_ONE_LIB)
 	EXPORTSOURCES(ugbase/pcl ${srcPcl})
-else(BUILD_ONE_LIB)
+else()
 	add_library(pcl ${srcPcl})
-endif(BUILD_ONE_LIB)
+endif()

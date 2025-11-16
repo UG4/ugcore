@@ -1607,12 +1607,12 @@ adjust_error
 )
 {
 	//	get the error estimator data object and check that it is of the right type
-	if (this->m_spErrEstData.get() == NULL)
+	if (this->m_spErrEstData.get() == nullptr)
 	{
 		UG_THROW("No ErrEstData object has been given to this constraint!");
 	}
 
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+	auto* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
 	if (!err_est_data)
 	{
@@ -1646,7 +1646,7 @@ adjust_error
 	// cast error estimator data object to the right type
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
-	typedef typename err_est_type::side_type side_type;
+	using side_type = typename err_est_type::side_type;
 
 	// loop boundary subsets
 	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;

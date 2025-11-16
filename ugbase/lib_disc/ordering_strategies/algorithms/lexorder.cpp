@@ -178,7 +178,7 @@ void OrderLexForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> dom
 	}
 
 //	get position attachment
-	typedef typename std::pair<MathVector<TDomain::dim>, size_t> pos_type;
+	using pos_type = std::pair<MathVector<TDomain::dim>, size_t>;
 
 //	get positions of indices
 	std::vector<pos_type> vPositions;

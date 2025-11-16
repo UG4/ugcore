@@ -43,7 +43,7 @@ Field() :
 	m_width(0),
 	m_height(0),
 	m_capacity(0),
-	m_data(NULL)
+	m_data(nullptr)
 {
 }
 
@@ -87,7 +87,7 @@ operator=(const Field& f){
 	m_height = f.m_height;
 	if(m_data && (m_capacity != m_width * m_height)){
 		delete[] m_data;
-		m_data = NULL;
+		m_data = nullptr;
 	}
 	m_capacity = m_width * m_height;
 	if(!m_data)

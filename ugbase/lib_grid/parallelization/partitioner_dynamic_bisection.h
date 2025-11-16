@@ -56,13 +56,13 @@ namespace ug{
 template <class TElem, int dim>
 class Partitioner_DynamicBisection : public IPartitioner{
 	public:
-		typedef IPartitioner	 						base_class;
-		typedef TElem									elem_t;
-		typedef typename TElem::side					side_t;
-		typedef MathVector<dim>							vector_t;
-		typedef Attachment<vector_t>					apos_t;
-		typedef Grid::VertexAttachmentAccessor<apos_t>	aapos_t;
-		typedef typename GridLayoutMap::Types<elem_t>::Layout::LevelLayout	layout_t;
+		using base_class = IPartitioner;
+		using elem_t = TElem;
+		using side_t = typename TElem::side;
+		using vector_t = MathVector<dim>;
+		using apos_t = Attachment<vector_t>;
+		using aapos_t = Grid::VertexAttachmentAccessor<apos_t>;
+		using layout_t = typename GridLayoutMap::Types<elem_t>::Layout::LevelLayout;
 
 		Partitioner_DynamicBisection();
 		virtual ~Partitioner_DynamicBisection();
@@ -131,7 +131,7 @@ class Partitioner_DynamicBisection : public IPartitioner{
 			NUM_CONSTANTS
 		};
 
-		static const size_t s_invalidIndex = -1;
+		static constexpr size_t s_invalidIndex = -1;
 
 		struct Entry{
 			elem_t* elem;
@@ -141,7 +141,7 @@ class Partitioner_DynamicBisection : public IPartitioner{
 
 		struct ElemList{
 			ElemList() :
-				m_entries(NULL), m_first(s_invalidIndex), m_last(s_invalidIndex), m_num(0)		{}
+				m_entries(nullptr), m_first(s_invalidIndex), m_last(s_invalidIndex), m_num(0)		{}
 			ElemList(std::vector<Entry>* entries) :
 				m_entries(entries), m_first(s_invalidIndex), m_last(s_invalidIndex), m_num(0)	{}
 

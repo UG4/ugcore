@@ -100,29 +100,29 @@ class ActiveSet
 {
 	public:
 	///	Type of algebra
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	///	Type of algebra value
-		typedef typename vector_type::value_type value_type;
+		using value_type = typename vector_type::value_type;
 
 	///	Type of grid function
-		typedef GridFunction<TDomain, TAlgebra> function_type;
+		using function_type = GridFunction<TDomain, TAlgebra>;
 
 	///	base element type of associated domain
-		typedef typename domain_traits<TDomain::dim>::grid_base_object TBaseElem;
+		using TBaseElem = typename domain_traits<TDomain::dim>::grid_base_object;
 
 	///	domain dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 
 	public:
 	///	constructor
-		ActiveSet() : m_bObs(false), m_spLagMultDisc(NULL) {
+		ActiveSet() : m_bObs(false), m_spLagMultDisc(nullptr) {
 			//	specifies the number of fcts
 			//value_type u_val;
 			//m_nrFcts = GetSize(u_val);  //ToDo: This field is only used in check_dist_to_obs which is commented out. Remove it completely?

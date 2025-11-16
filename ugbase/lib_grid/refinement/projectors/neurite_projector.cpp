@@ -60,7 +60,7 @@ static number VecNorm(const vector3& a)
 
 NeuriteProjector::NeuriteProjector() // : m_quadOrder(80)
 {
-	typedef Attachment<NeuriteProjector::SurfaceParams> NPSurfParam;
+	using NPSurfParam = Attachment<NeuriteProjector::SurfaceParams>;
 	if (!GlobalAttachments::is_declared("npSurfParams"))
 		GlobalAttachments::declare_attachment<NPSurfParam>("npSurfParams", true);
 
@@ -75,7 +75,7 @@ NeuriteProjector::NeuriteProjector() // : m_quadOrder(80)
 NeuriteProjector::NeuriteProjector(SPIGeometry3d geometry)
 : RefinementProjector(geometry) // ,m_quadOrder(80)
 {
-	typedef Attachment<NeuriteProjector::SurfaceParams> NPSurfParam;
+	using NPSurfParam = Attachment<NeuriteProjector::SurfaceParams>;
 	if (!GlobalAttachments::is_declared("npSurfParams"))
 		GlobalAttachments::declare_attachment<NPSurfParam>("npSurfParams", true);
 
@@ -127,7 +127,7 @@ number NeuriteProjector::new_vertex(Vertex* vrt, Volume* parent)
 
 void NeuriteProjector::project(Vertex* vrt)
 {
-	push_into_place(vrt, (IVertexGroup*) NULL);
+	push_into_place(vrt, (IVertexGroup*) nullptr);
 }
 
 

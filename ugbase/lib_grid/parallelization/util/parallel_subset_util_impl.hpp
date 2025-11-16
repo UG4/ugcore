@@ -52,8 +52,8 @@ void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
 		throw(UGError("  Can't create surface-view. A Multigrid is required.\n"));
 	}
 
-//	some typedefs
-	typedef typename geometry_traits<TElem>::iterator ElemIter;
+//	some type definitions
+	using ElemIter = typename geometry_traits<TElem>::iterator;
 
 //	clear the target surfaceView
 	if(clearContainer)

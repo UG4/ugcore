@@ -52,9 +52,9 @@ unsigned long MarkOutOfRangeElems
 	number upperBnd
 )
 {
-	typedef typename TGridFunction::template traits<TBaseElem>::const_iterator elem_it;
-	typedef typename domain_traits<TGridFunction::domain_type::dim>::element_type elem_type;
-	typedef typename Grid::traits<elem_type>::secure_container elem_list;
+	using elem_it = typename TGridFunction::template traits<TBaseElem>::const_iterator;
+	using elem_type = typename domain_traits<TGridFunction::domain_type::dim>::element_type;
+	using elem_list = typename Grid::traits<elem_type>::secure_container;
 
 	Grid& grid = *refiner->grid();
 

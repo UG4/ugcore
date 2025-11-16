@@ -33,9 +33,16 @@
 #ifndef __H__PCL_TEST_LAYOUTS__
 #define __H__PCL_TEST_LAYOUTS__
 
+#include <map>
 #include <vector>
 #include <iomanip> // for 'std::setw()' etc.
-#include <map>
+#include <boost/function.hpp>
+
+#include "common/log.h"
+#include "common/assert.h"
+#include "common/serialization.h"
+#include "common/profiler/profiler.h"
+#include "common/util/binary_buffer.h"
 
 #include "pcl_base.h"
 #include "pcl_methods.h"
@@ -43,13 +50,6 @@
 #include "pcl_interface_communicator.h"
 #include "pcl_process_communicator.h"
 
-#include "common/util/binary_buffer.h"
-#include "common/log.h"
-#include "common/assert.h"
-#include "common/serialization.h"
-#include "common/profiler/profiler.h"
-
-#include <boost/function.hpp>
 
 namespace pcl
 {
@@ -59,12 +59,12 @@ namespace pcl
 
 ///	Trivial implementation of a to-value callback.
 /**	TValue has to be constructable from TElem.*/
-template <class TElem>
+template <typename TElem>
 TElem TrivialToValue(TElem e)
 {
 	return e;
 }
-inline void PrintPC(const pcl::ProcessCommunicator &processCommunicator)
+inline void PrintPC(const ProcessCommunicator &processCommunicator)
 {
 	UG_LOG(processCommunicator.size() << " involved procs: ");
 	for(size_t i=0; i<processCommunicator.size(); i++)
@@ -81,8 +81,8 @@ inline void PrintPC(const pcl::ProcessCommunicator &processCommunicator)
  * that is, iff processor P1 has processor P2 in his masterLayout, then processor P2 needs to have P1 in his slaveLayout
  */
 template<typename TLayout>
-bool TestLayoutIsDoubleEnded(const pcl::ProcessCommunicator processCommunicator,
-		pcl::InterfaceCommunicator<TLayout> &com,
+bool TestLayoutIsDoubleEnded(const ProcessCommunicator processCommunicator,
+		InterfaceCommunicator<TLayout> &com,
 		const TLayout &masterLayout, const TLayout &slaveLayout)
 {
 	PROFILE_FUNC_GROUP("debug");
@@ -157,7 +157,7 @@ bool TestLayoutIsDoubleEnded(const pcl::ProcessCommunicator processCommunicator,
  * return a value of type TValue (TValue = TLayout::Element by default).
  */
 template<typename TLayout, typename TValue>
-bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com,
+bool TestSizeOfInterfacesInLayoutsMatch(InterfaceCommunicator<TLayout> &com,
                                         const TLayout &masterLayout,
                                         const TLayout &slaveLayout, bool bPrint=false,
 					boost::function<TValue (typename TLayout::Element)> cbToValue
@@ -165,8 +165,8 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 					bool compareValues = false)
 {
 	PROFILE_FUNC_GROUP("debug");
-	typedef std::map<int, ug::BinaryBuffer>	BufferMap;
-	typedef typename TLayout::Interface Interface;
+	using BufferMap = std::map<int, ug::BinaryBuffer>;
+	using Interface = typename TLayout::Interface;
 
 	BufferMap sendMap, receiveMap;
 
@@ -297,8 +297,8 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
  * values are consistent among all processes.
  */
 template<typename TLayout, typename TValue>
-bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
-                pcl::InterfaceCommunicator<TLayout> &com,
+bool TestLayout(const ProcessCommunicator &processCommunicator,
+                InterfaceCommunicator<TLayout> &com,
                 const TLayout &masterLayout,
                 const TLayout &slaveLayout, bool bPrint=false,
 				boost::function<TValue (typename TLayout::Element)> cbToValue
@@ -321,17 +321,17 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
 	}
 	bool bDoubleEnded = TestLayoutIsDoubleEnded(processCommunicator,
 			com, masterLayout, slaveLayout);
-	if(!pcl::AllProcsTrue(bDoubleEnded, processCommunicator))
+	if(!AllProcsTrue(bDoubleEnded, processCommunicator))
 		return false;
 
 	bool bSuccess = TestSizeOfInterfacesInLayoutsMatch<TLayout, TValue>(com, masterLayout,
 											slaveLayout, bPrint, cbToValue, compareValues);
-	return pcl::AllProcsTrue(bSuccess, processCommunicator);
+	return AllProcsTrue(bSuccess, processCommunicator);
 }
 
 template<typename TLayout>
-bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
-				pcl::InterfaceCommunicator<TLayout> &com, const TLayout &masterLayout,
+bool TestLayout(const ProcessCommunicator &processCommunicator,
+				InterfaceCommunicator<TLayout> &com, const TLayout &masterLayout,
 				const TLayout &slaveLayout, bool bPrint=false,
 				bool compareValues = false)
 {
@@ -341,8 +341,8 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
 }
 
 template<typename TLayout, typename TValue>
-bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
-                 pcl::InterfaceCommunicator<TLayout> &com, const TLayout &masterLayout,
+bool PrintLayout(const ProcessCommunicator &processCommunicator,
+                 InterfaceCommunicator<TLayout> &com, const TLayout &masterLayout,
                  const TLayout &slaveLayout,
                  boost::function<TValue (typename TLayout::Element)> cbToValue
 					= TrivialToValue<typename TLayout::Element>)
@@ -352,8 +352,8 @@ bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
 
 
 template<typename TLayout>
-inline bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
-                 pcl::InterfaceCommunicator<TLayout> &com,
+inline bool PrintLayout(const ProcessCommunicator &processCommunicator,
+                 InterfaceCommunicator<TLayout> &com,
                  const TLayout &masterLayout,
                  const TLayout &slaveLayout)
 {

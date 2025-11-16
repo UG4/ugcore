@@ -46,7 +46,7 @@ template <int dim, typename TShape, typename TGrad>
 std::map<LFEID, LocalFiniteElementProvider::LocalShapeFunctionSets<dim, TShape, TGrad> >&
 LocalFiniteElementProvider::lsfs_map()
 {
-	typedef std::map<LFEID, LocalShapeFunctionSets<dim, TShape, TGrad> > Map;
+	using Map = std::map<LFEID, LocalShapeFunctionSets<dim, TShape, TGrad> >;
 	static Map map;
 	return map;
 };
@@ -55,7 +55,7 @@ template <int dim>
 std::map<LFEID, LocalFiniteElementProvider::DimLocalDoFSets<dim> >&
 LocalFiniteElementProvider::lds_map()
 {
-	typedef std::map<LFEID, DimLocalDoFSets<dim> > Map;
+	using Map = std::map<LFEID, DimLocalDoFSets<dim> >;
 	static Map map;
 	return map;
 }
@@ -66,7 +66,7 @@ register_set(const LFEID& id,
              ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > set)
 {
 //	get type of map
-	typedef std::map<LFEID, LocalShapeFunctionSets<dim, TShape, TGrad> > Map;
+	using Map = std::map<LFEID, LocalShapeFunctionSets<dim, TShape, TGrad> >;
 	Map& map = inst().lsfs_map<dim, TShape, TGrad>();
 	LocalShapeFunctionSets<dim, TShape, TGrad>& vLSFS = map[id];
 	const ReferenceObjectID roid = set->roid();
@@ -98,7 +98,7 @@ register_set(const LFEID& id,
              ConstSmartPtr<DimLocalDoFSet<dim> > set)
 {
 //	get type of map
-	typedef std::map<LFEID, DimLocalDoFSets<dim> > Map;
+	using Map = std::map<LFEID, DimLocalDoFSets<dim> >;
 	Map& map = inst().lds_map<dim>();
 	DimLocalDoFSets<dim>& vLDS = map[id];
 
@@ -123,7 +123,7 @@ LocalFiniteElementProvider::
 getptr(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 {
 //	init provider and get map
-	typedef std::map<LFEID, LocalShapeFunctionSets<dim, TShape, TGrad> > Map;
+	using Map = std::map<LFEID, LocalShapeFunctionSets<dim, TShape, TGrad> >;
 	Map& map = inst().lsfs_map<dim, TShape, TGrad>();
 
 //	search for identifier
@@ -135,7 +135,7 @@ getptr(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 			create_set(roid, id);
 			return getptr<dim, TShape, TGrad>(roid, id, false);
 		}
-		return SPNULL;
+		return nullptr;
 	}
 
 //	return shape function set
@@ -167,7 +167,7 @@ LocalFiniteElementProvider::
 get_dof_ptr(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 {
 //	init provider and get map
-	typedef std::map<LFEID, DimLocalDoFSets<dim> > Map;
+	using Map = std::map<LFEID, DimLocalDoFSets<dim> >;
 	Map& map = inst().lds_map<dim>();
 
 //	search for identifier
@@ -179,7 +179,7 @@ get_dof_ptr(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 			create_dof_set(roid, id);
 			return get_dof_ptr<dim>(roid, id, false);
 		}
-		return SPNULL;
+		return nullptr;
 	}
 
 //	return shape function set

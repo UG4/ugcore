@@ -67,13 +67,13 @@ inline int local(bglp_vertex_descriptor p)
 template<class T>
 class BGLParallelMatrix {
 public: // types
-	typedef detail::bglp_vertex_descriptor vertex_descriptor;
-	typedef typename T::const_row_iterator const_row_iterator;
+	using vertex_descriptor = detail::bglp_vertex_descriptor;
+	using const_row_iterator = typename T::const_row_iterator;
 private:
-	typedef std::vector<int> owners;
-	typedef std::vector<int> ghosts;
-	typedef typename boost::graph_traits<T>::vertex_iterator base_vertex_iterator;
-	typedef typename boost::graph_traits<T>::out_edge_iterator base_edge_iterator;
+	using owners = std::vector<int>;
+	using ghosts = std::vector<int>;
+	using base_vertex_iterator = typename boost::graph_traits<T>::vertex_iterator;
+	using base_edge_iterator = typename boost::graph_traits<T>::out_edge_iterator;
 	class vertex_iterator_ // facade?
 		: public std::iterator<std::input_iterator_tag, vertex_descriptor,
 		                       ptrdiff_t, vertex_descriptor, vertex_descriptor> { //
@@ -119,11 +119,11 @@ private:
 	};
 
 public:
-	typedef boost::filter_iterator<filter_local, vertex_iterator_> vertex_iterator;
+	using vertex_iterator = boost::filter_iterator<filter_local, vertex_iterator_>;
 	class adjacency_iterator // facade?
 		:public std::iterator<std::input_iterator_tag, vertex_descriptor, ptrdiff_t, vertex_descriptor, vertex_descriptor> { //
 	public:
-		typedef typename boost::graph_traits<T>::adjacency_iterator base;
+		using base = typename boost::graph_traits<T>::adjacency_iterator;
 	public:
 		adjacency_iterator()
 		    : _owners(nullptr), _ghosts(nullptr) {
@@ -348,7 +348,7 @@ typename BGLParallelMatrix<T>::edge BGLParallelMatrix<T>::out_edge_iterator::ope
 	assert(_matrix);
 	auto s = boost::source(e, _matrix);
 	auto t = boost::target(e, _matrix);
-	typedef typename BGLParallelMatrix<T>::edge E;
+	using E = edge;
 	vertex_descriptor v((*_owners)[s], (*_ghosts)[s]);
 	vertex_descriptor w((*_owners)[t], (*_ghosts)[t]);
 

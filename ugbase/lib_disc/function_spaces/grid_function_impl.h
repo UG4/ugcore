@@ -92,7 +92,7 @@ init(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
 	m_bManaged = bManage;
 	m_bRedistribute = true;
 	this->set_dof_distribution_info(m_spApproxSpace->dof_distribution_info());
-	m_spAdaptGridFct = SPNULL;
+	m_spAdaptGridFct = nullptr;
 
 //	check correct passings
 	if(m_spDD.invalid()) UG_THROW("GridFunction: DoF Distribution is null.");
@@ -275,7 +275,7 @@ copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,bool bDisju
 			this->operator[](vIndexMap[i].second)
 				= this->operator[](vIndexMap[i].first);
 	else {
-		typedef typename vector_type::value_type value_type;
+		using value_type = typename vector_type::value_type;
 		std::vector<value_type> values;
 		values.resize(vIndexMap[vIndexMap.size()-1].first);
 		for(size_t i = 0; i < vIndexMap.size(); ++i){ 
@@ -329,7 +329,7 @@ grid_changed_callback(const GridMessage_Adaption& msg)
 		//	may be removed during coarsening, we have to make sure, that the correct
 		//	values are stored in those ghosts before restriction is performed.
 			Grid& grid = *domain()->grid();
-			typedef typename AdaptionSurfaceGridFunction<TDomain>::AValues AValues;
+			using AValues = typename AdaptionSurfaceGridFunction<TDomain>::AValues;
 			if(m_spDDI->max_dofs(VERTEX)){
 				ComPol_CopyAttachment<VertexLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
 				pcl::InterfaceCommunicator<VertexLayout> com;
@@ -380,7 +380,7 @@ grid_changed_callback(const GridMessage_Adaption& msg)
 
 
 		m_spAdaptGridFct->copy_to_surface(*this);
-		m_spAdaptGridFct = SPNULL;
+		m_spAdaptGridFct = nullptr;
 	}
 }
 
@@ -407,7 +407,7 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 				m_spAdaptGridFct->copy_from_surface(*this);
 				Grid& grid = *domain()->grid();
 
-				typedef typename AdaptionSurfaceGridFunction<TDomain>::AValues AValues;
+				using AValues = typename AdaptionSurfaceGridFunction<TDomain>::AValues;
 
 				if(m_spDDI->max_dofs(VERTEX)){
 					ComPol_CopyAttachment<VertexLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
@@ -458,7 +458,7 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 
 				if(redistribution_enabled()){
 					m_spAdaptGridFct->copy_to_surface(*this);
-					m_spAdaptGridFct = SPNULL;
+					m_spAdaptGridFct = nullptr;
 
 					if(m_preDistStorageType != this->get_storage_mask()){
 						if((m_preDistStorageType & PST_ADDITIVE) == PST_ADDITIVE)

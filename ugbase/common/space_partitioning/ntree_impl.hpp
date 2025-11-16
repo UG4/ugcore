@@ -398,7 +398,7 @@ elems_begin(size_t nodeId) const
 {
 	assert(nodeId < m_nodes.size());
 	if(m_entries.empty())
-		return elem_iterator_t(NULL, s_invalidIndex);
+		return elem_iterator_t(nullptr, s_invalidIndex);
 	return elem_iterator_t(&m_entries.front(), m_nodes[nodeId].firstEntryInd);
 }
 
@@ -408,7 +408,7 @@ typename ntree<tree_dim, world_dim, elem_t, common_data_t>::elem_iterator_t
 ntree<tree_dim, world_dim, elem_t, common_data_t>::
 elems_end(size_t nodeId) const
 {
-	return elem_iterator_t(NULL, s_invalidIndex);
+	return elem_iterator_t(nullptr, s_invalidIndex);
 }
 
 

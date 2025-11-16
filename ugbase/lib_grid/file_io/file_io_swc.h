@@ -66,11 +66,11 @@ namespace swc_types
 class FileReaderSWC
 {
 	public:
-		typedef swc_types::SWCPoint SWCPoint;
+	using SWCPoint = swc_types::SWCPoint;
 
 	public:
-		FileReaderSWC() {};
-		~FileReaderSWC() {};
+		FileReaderSWC() = default;
+		~FileReaderSWC() = default;
 
 		bool load_file(const char* fileName);
 		bool create_grid(Grid& g, ISubsetHandler* pSH, number scale_length = 1.0);

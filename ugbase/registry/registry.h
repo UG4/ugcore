@@ -68,20 +68,20 @@ class Registry;
  * pass a normal function or a member function of a class
  * (Have a look at boost::bind in the second case).
  */
-typedef boost::function<void (Registry* pReg)> FuncRegistryChanged;
+using FuncRegistryChanged = boost::function<void (Registry* pReg)>;
 
 
 ///	groups classes. One of the members is the default member.
 class UG_API ClassGroupDesc
 {
 	public:
-		ClassGroupDesc() : m_defaultClass(NULL)	{}
+		ClassGroupDesc() : m_defaultClass(nullptr)	{}
 
 	///	sets name of group
 		void set_name(const std::string& name) 	{m_name = name;}
 
 	///	returns name of group
-		const std::string& name() const			{return m_name;}
+		const std::string& name() const {return m_name;}
 
 	///	adds a class to group
 		void add_class(IExportedClass* c, const std::string& tag)
@@ -105,7 +105,7 @@ class UG_API ClassGroupDesc
 	///	sets the i'th class as default
 		void set_default_class(size_t i)	{m_defaultClass = m_classes[i];}
 
-	///	if no default class is set, this method returns NULL.
+	///	if no default class is set, this method returns nullptr.
 		IExportedClass* get_default_class()	const {return m_defaultClass;}
 
 	private:
@@ -168,7 +168,7 @@ class UG_API Registry {
 	 * @param retValInfos string documenting what the function returns (optional)
 	 * @param paramInfos string documenting the parameters of the function
 	 * seperate parameters with an # e.g. "x#y#z" (don't specify the type of the values)  (optional)
-	 * @param toolTip small documentation for the function (optional)
+	 * @param tooltip small documentation for the function (optional)
 	 * @param help help string for the function
 	 * @sa \ref pageUG4Registry
 	 * @sa \ref secSTHowToSpecifyParameterInformation
@@ -215,7 +215,7 @@ class UG_API Registry {
 	 * @brief Register a class at this registry
 	 * @param className name of the class to appear in the registry
 	 * @param group registry group. use / for subgroups e.g. ug4/mygroup/mysubgroup (optional)
-	 * @param toolTip describing text for the class (optional)
+	 * @param tooltip describing text for the class (optional)
 	 */
 		template <typename TClass>
 		ExportedClass<TClass>& add_class_(std::string className,
@@ -226,7 +226,7 @@ class UG_API Registry {
 	 * @brief Register a class at this registry together with its base class
 	 * @param className name of the class to appear in the registry
 	 * @param group registry group. use / for subgroups e.g. ug4/mygroup/mysubgroup (optional)
-	 * @param toolTip describing text for the class (optional)
+	 * @param tooltip describing text for the class (optional)
 	 */
 		template <typename TClass, typename TBaseClass>
 		ExportedClass<TClass>& add_class_(std::string className,
@@ -237,7 +237,7 @@ class UG_API Registry {
 	 * @brief Register a class at this registry together with two base classes
 	 * @param className name of the class to appear in the registry
 	 * @param group registry group. use / for subgroups e.g. ug4/mygroup/mysubgroup (optional)
-	 * @param toolTip describing text for the class (optional)
+	 * @param tooltip describing text for the class (optional)
 	 */
 		template <typename TClass, typename TBaseClass1, typename TBaseClass2>
 		ExportedClass<TClass>& add_class_(std::string className,
@@ -282,7 +282,7 @@ class UG_API Registry {
 		ClassGroupDesc* get_class_group(const std::string& name);
 
 	///	Returns the class-group with the given name.
-	/**	If no such group exists at the time of calling, NULL is returned.*/
+	/**	If no such group exists at the time of calling, nullptr is returned.*/
 		const ClassGroupDesc* get_class_group(const std::string& name) const;
 
 	///	adds the given class to the given group.

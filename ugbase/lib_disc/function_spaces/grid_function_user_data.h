@@ -68,7 +68,7 @@ class GridFunctionNumberData
 {
 	public:
 		//	world dimension of grid function
-		static const int dim = TGridFunction::dim;
+		static constexpr int dim = TGridFunction::dim;
 
 		private:
 		// grid function
@@ -123,7 +123,7 @@ class GridFunctionNumberData
 		                    bool bDeriv,
 		                    int s,
 		                    std::vector<std::vector<number> > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL) const
+		                    const MathMatrix<refDim, dim>* vJT = nullptr) const
 		{
 			//	reference object id
 			const ReferenceObjectID roid = elem->reference_object_id();
@@ -205,7 +205,7 @@ class GridFunctionVectorData
 {
 	public:
 	//	world dimension of grid function
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 
 	private:
 	// grid function
@@ -293,7 +293,7 @@ class GridFunctionVectorData
 	                    bool bDeriv,
 	                    int s,
 	                    std::vector<std::vector<MathVector<dim> > > vvvDeriv[],
-	                    const MathMatrix<refDim, dim>* vJT = NULL) const
+	                    const MathMatrix<refDim, dim>* vJT = nullptr) const
 	{
 		//	reference object id
 		const ReferenceObjectID roid = elem->reference_object_id();
@@ -386,7 +386,7 @@ class GridFunctionGradientData
 {
 	public:
 	//	world dimension of grid function
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 
 	private:
 	// grid function
@@ -434,14 +434,14 @@ class GridFunctionGradientData
 	                    bool bDeriv,
 	                    int s,
 	                    std::vector<std::vector<MathVector<dim> > > vvvDeriv[],
-	                    const MathMatrix<refDim, dim>* vJT = NULL) const
+	                    const MathMatrix<refDim, dim>* vJT = nullptr) const
 	{
 		//	reference object id
 		const ReferenceObjectID roid = elem->reference_object_id();
 
 		//	get reference element mapping by reference object id
 		std::vector<MathMatrix<refDim, dim> > vJTTmp(nip);
-		if(vJT == NULL){
+		if(vJT == nullptr){
 			try{
 				DimReferenceMapping<refDim, dim>& mapping
 				= ReferenceMappingProvider::get<refDim, dim>(roid, vCornerCoords);
@@ -514,7 +514,7 @@ class GridFunctionGradientComponentData
 {
 	public:
 	///	World dimension of GridFunction m_spGridFct
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 
 	private:
 	///	GridFunction to loop over
@@ -583,14 +583,14 @@ class GridFunctionGradientComponentData
 	                    bool bDeriv,
 	                    int s,
 	                    std::vector<std::vector<number> > vvvDeriv[],
-	                    const MathMatrix<refDim, dim>* vJT = NULL) const
+	                    const MathMatrix<refDim, dim>* vJT = nullptr) const
 	{
 		//	reference object id
 		const ReferenceObjectID roid = elem->reference_object_id();
 
 		//	get reference element mapping by reference object id
 		std::vector<MathMatrix<refDim, dim> > vJTTmp( nip );
-		if( vJT == NULL ) {
+		if( vJT == nullptr ) {
 			try{
 				DimReferenceMapping<refDim, dim>& mapping
 				= ReferenceMappingProvider::get< refDim, dim >( roid, vCornerCoords );

@@ -50,10 +50,10 @@ class LocalIndices
 {
 	public:
 	///	Index type used by algebra
-		typedef size_t index_type;
+		using index_type = size_t;
 
 	///	Component type used by algebra
-		typedef index_type comp_type;
+		using comp_type = index_type;
 
 	public:
 	///	Default Constructor
@@ -198,14 +198,14 @@ class LocalVector
 {
 	public:
 	///	own type
-		typedef LocalVector this_type;
+		using this_type = LocalVector;
 
 	///	Type to store DoF values
-		typedef number value_type;
+		using value_type = number;
 
 	public:
 	///	default Constructor
-		LocalVector() : m_pIndex(NULL) {m_vvValue.clear();}
+		LocalVector() : m_pIndex(nullptr) {m_vvValue.clear();}
 
 	///	Constructor
 		LocalVector(const LocalIndices& ind) {resize(ind);}
@@ -316,9 +316,9 @@ class LocalVector
 	///	access all functions
 		void access_all()
 		{
-			m_pFuncMap = NULL;
+			m_pFuncMap = nullptr;
 
-			if(m_pIndex==NULL) {m_vvValueAcc.clear(); return;}
+			if(m_pIndex==nullptr) {m_vvValueAcc.clear(); return;}
 
 			for(size_t i = 0; i < m_pIndex->num_fct(); ++i)
 				m_vvValueAcc[i] = &(m_vvValue[i][0]);
@@ -327,16 +327,16 @@ class LocalVector
 	///	returns the number of currently accessible functions
 		size_t num_fct() const
 		{
-			if(m_pFuncMap == NULL) return m_vvValue.size();
+			if(m_pFuncMap == nullptr) return m_vvValue.size();
 			return m_pFuncMap->num_fct();
 		}
 
 	///	returns the local finite element id of a function
 		const LFEID& local_finite_element_id(size_t fct) const
 		{
-			UG_ASSERT(m_pIndex != NULL, "No indices present");
+			UG_ASSERT(m_pIndex != nullptr, "No indices present");
 			check_fct(fct);
-			if(m_pFuncMap == NULL) return m_pIndex->local_finite_element_id(fct);
+			if(m_pFuncMap == nullptr) return m_pIndex->local_finite_element_id(fct);
 			else return m_pIndex->local_finite_element_id((*m_pFuncMap)[fct]);
 		}
 
@@ -344,7 +344,7 @@ class LocalVector
 		size_t num_dof(size_t fct) const
 		{
 			check_fct(fct);
-			if(m_pFuncMap == NULL) return m_vvValue[fct].size();
+			if(m_pFuncMap == nullptr) return m_vvValue[fct].size();
 			else return m_vvValue[ (*m_pFuncMap)[fct] ].size();
 		}
 
@@ -422,21 +422,21 @@ class LocalMatrix
 {
 	public:
 	///	own type
-		typedef LocalMatrix this_type;
+	using this_type = LocalMatrix;
 
 	///	Entry type used by algebra
-		typedef number value_type;
+	using value_type = number;
 
 	public:
 	///	Constructor
 		LocalMatrix() :
-			m_pRowIndex(NULL), m_pColIndex(NULL) ,
-			m_pRowFuncMap(NULL), m_pColFuncMap(NULL)
+			m_pRowIndex(nullptr), m_pColIndex(nullptr) ,
+			m_pRowFuncMap(nullptr), m_pColFuncMap(nullptr)
 		{}
 
 	///	Constructor
 		LocalMatrix(const LocalIndices& rowInd, const LocalIndices& colInd)
-			: m_pRowFuncMap(NULL), m_pColFuncMap(NULL)
+			: m_pRowFuncMap(nullptr), m_pColFuncMap(nullptr)
 		{
 			resize(rowInd, colInd);
 		}
@@ -560,10 +560,10 @@ class LocalMatrix
 	///	access all functions
 		void access_all()
 		{
-			m_pRowFuncMap = NULL;
-			m_pColFuncMap = NULL;
+			m_pRowFuncMap = nullptr;
+			m_pColFuncMap = nullptr;
 
-			if(m_pRowIndex==NULL) {m_CplMatAcc.resize(0,0); return;}
+			if(m_pRowIndex==nullptr) {m_CplMatAcc.resize(0,0); return;}
 
 			for(size_t i = 0; i < m_pRowIndex->num_fct(); ++i)
 				for(size_t j = 0; j < m_pColIndex->num_fct(); ++j)
@@ -573,14 +573,14 @@ class LocalMatrix
 	///	returns the number of currently accessible (restricted) functions
 		size_t num_row_fct() const
 		{
-			if(m_pRowFuncMap != NULL) return m_pRowFuncMap->num_fct();
+			if(m_pRowFuncMap != nullptr) return m_pRowFuncMap->num_fct();
 			return m_CplMatAcc.num_rows();
 		}
 
 	///	returns the number of currently accessible (restricted) functions
 		size_t num_col_fct() const
 		{
-			if(m_pColFuncMap != NULL) return m_pColFuncMap->num_fct();
+			if(m_pColFuncMap != nullptr) return m_pColFuncMap->num_fct();
 			return m_CplMatAcc.num_cols();
 		}
 
@@ -588,7 +588,7 @@ class LocalMatrix
 		size_t num_row_dof(size_t fct) const
 		{
 			if(m_CplMat.num_rows()==0) return 0;
-			if(m_pRowFuncMap == NULL) return m_CplMat(fct, 0).num_rows();
+			if(m_pRowFuncMap == nullptr) return m_CplMat(fct, 0).num_rows();
 			else return m_CplMat( (*m_pRowFuncMap)[fct], 0).num_rows();
 		}
 
@@ -596,7 +596,7 @@ class LocalMatrix
 		size_t num_col_dof(size_t fct) const
 		{
 			if(m_CplMat.num_cols()==0) return 0;
-			if(m_pRowFuncMap == NULL) return m_CplMat(0, fct).num_cols();
+			if(m_pRowFuncMap == nullptr) return m_CplMat(0, fct).num_cols();
 			else return m_CplMat( 0, (*m_pColFuncMap)[fct]).num_cols();
 		}
 
@@ -694,13 +694,13 @@ class LocalMatrix
 	//	\todo: Think of a better (faster) storage (one plain array?)
 
 	//	type of cpl matrices between two functions
-		typedef DenseMatrix<VariableArray2<value_type> > LocalCplMatrix;
+		using LocalCplMatrix = DenseMatrix<VariableArray2<value_type> >;
 
 	//	type of Func-Coupling matrices
-		typedef DenseMatrix<VariableArray2<LocalCplMatrix> > FctCplMatrix;
+		using FctCplMatrix = DenseMatrix<VariableArray2<LocalCplMatrix> >;
 
 	//	type of Func-Coupling pointer matrices
-		typedef DenseMatrix<VariableArray2<LocalCplMatrix*> > FctCplAccMatrix;
+		using FctCplAccMatrix = DenseMatrix<VariableArray2<LocalCplMatrix*> >;
 
 	// 	Entries (fct1, fct2, dof1, dof2)
 		FctCplMatrix m_CplMat;

@@ -38,7 +38,7 @@ namespace ug{
 template <typename TElem, int TWorldDim>
 HFV1Geometry<TElem, TWorldDim>::
 HFV1Geometry()
-	: m_pElem(NULL), m_numSh(0), m_rRefElem(Provider<ref_elem_type>::get())
+	: m_pElem(nullptr), m_numSh(0), m_rRefElem(Provider<ref_elem_type>::get())
 {
 	// local corners
 	m_vSCV.resize(m_numNaturalSCV);
@@ -1246,7 +1246,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 
 template <typename TElem, int TWorldDim>
 HFV1ManifoldGeometry<TElem, TWorldDim>::
-HFV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get())
+HFV1ManifoldGeometry() : m_pElem(nullptr), m_rRefElem(Provider<ref_elem_type>::get())
 {
 	// set corners of element as local centers of nodes
 	m_vBF.resize(m_numNaturalBF);

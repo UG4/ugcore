@@ -49,12 +49,12 @@ DistributedGridManager() :
 	m_aElemInfoEdge("DistributedGridManager_ElemInfoEdge", false),
 	m_aElemInfoFace("DistributedGridManager_ElemInfoFace", false),
 	m_aElemInfoVol("DistributedGridManager_ElemInfoVol", false),
-	m_spDistroAdjuster(SPNULL)
+	m_spDistroAdjuster(nullptr)
 {
 	m_interfaceManagementEnabled = true;
 	m_bOrderedInsertionMode = false;
 	m_bElementDeletionMode = false;
-	m_pGrid = NULL;
+	m_pGrid = nullptr;
 }
 
 DistributedGridManager::
@@ -63,12 +63,12 @@ DistributedGridManager(MultiGrid& grid) :
 	m_aElemInfoEdge("DistributedGridManager_ElemInfoEdge", false),
 	m_aElemInfoFace("DistributedGridManager_ElemInfoFace", false),
 	m_aElemInfoVol("DistributedGridManager_ElemInfoVol", false),
-	m_spDistroAdjuster(SPNULL)
+	m_spDistroAdjuster(nullptr)
 {
 	m_interfaceManagementEnabled = true;
 	m_bOrderedInsertionMode = false;
 	m_bElementDeletionMode = false;
-	m_pGrid = NULL;
+	m_pGrid = nullptr;
 	assign(grid);
 }
 
@@ -134,7 +134,7 @@ void DistributedGridManager::free_grid_data()
 		m_pGrid->detach_from_edges(m_aElemInfoEdge);
 		m_pGrid->detach_from_faces(m_aElemInfoFace);
 		m_pGrid->detach_from_volumes(m_aElemInfoVol);
-		m_pGrid = NULL;
+		m_pGrid = nullptr;
 	}
 
 //	clear the layout-map
@@ -153,7 +153,7 @@ void DistributedGridManager::set_preliminary_ghost_states()
 {//	Works but is currently unused and would only be required, if
 //	horizontal interfaces between vertical-masters would exist.
 
-	typedef typename geometry_traits<TElem>::iterator iterator;
+	using iterator = typename geometry_traits<TElem>::iterator;
 
 	for(iterator iter = m_pGrid->begin<TElem>(); iter != m_pGrid->end<TElem>(); ++iter)
 	{
@@ -174,7 +174,7 @@ void DistributedGridManager::set_preliminary_ghost_states()
 			//	to the same proc.
 				const ElementInfo<TElem>& inf = elem_info(elem);
 
-				typedef typename ElementInfo<TElem>::ConstEntryIterator EntryIter;
+				using EntryIter = typename ElementInfo<TElem>::ConstEntryIterator;
 
 				for(EntryIter iter_v = inf.entries_begin();
 					iter_v != inf.entries_end(); ++iter_v)
@@ -334,9 +334,9 @@ void DistributedGridManager::reset_elem_infos()
 ////////////////////////////////////////////////////////////////////////
 template <class TGeomObj, class TLayoutMap>
 void DistributedGridManager::
-update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus, bool addStatus)
-{	
-	typedef typename TLayoutMap::template Types<TGeomObj>::Layout Layout;
+update_elem_info(TLayoutMap& layoutMap, int nodeType, byte_t newStatus, bool addStatus)
+{
+	using Layout = typename TLayoutMap::template Types<TGeomObj>::Layout;
 	if(layoutMap.template has_layout<TGeomObj>(nodeType)){
 	//	get the layout
 		 Layout& layout = layoutMap.template get_layout<TGeomObj>(nodeType);
@@ -344,15 +344,13 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus, bool addSt
 	//	iterate through the levels of the layout
 		for(size_t l = 0; l < layout.num_levels(); ++l){
 		//	iterate through the interfaces of the layout
-			for(typename Layout::iterator iiter = layout.begin(l);
-				iiter != layout.end(l); ++iiter)
+			for(typename Layout::iterator iiter = layout.begin(l); iiter != layout.end(l); ++iiter)
 			{
 				typename Layout::Interface& interface = layout.interface(iiter);
 				//int procID = layout.proc_id(iiter);
 				
 			///	iterate through the elements of the interface
-				for(typename Layout::Interface::iterator iter = interface.begin();
-					iter != interface.end(); ++iter)
+				for(typename Layout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
 				{
 				//	set the new status
 					//set_status(*iter, newStatus);
@@ -375,7 +373,7 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus, bool addSt
 	}
 }
 
-byte DistributedGridManager::
+byte_t DistributedGridManager::
 get_status(GridObject* go) const
 {
 	int baseType = go->base_object_id();
@@ -437,12 +435,12 @@ template <class TElem>
 void DistributedGridManager::
 add_element_to_interface(TElem* pElem, int procID)
 {
-	byte status = get_status(pElem);
+	byte_t status = get_status(pElem);
 	
 	typename GridLayoutMap::Types<TElem>::Interface::iterator iter;
 	typename GridLayoutMap::Types<TElem>::Interface* interface;
 	int intfcType = ES_NONE;
-	byte s = get_status(pElem);
+	byte_t s = get_status(pElem);
 	
 	if(status & ES_H_MASTER){
 		interface = &m_gridLayoutMap.get_layout<TElem>(INT_H_MASTER)
@@ -538,7 +536,7 @@ schedule_element_for_insertion(TScheduledElemMap& elemMap,
 										TElem* elem,
 										TParent* pParent)
 {
-	typedef typename ElementInfo<TParent>::EntryIterator entry_iter;
+	using entry_iter = typename ElementInfo<TParent>::EntryIterator;
 	ElementInfo<TParent>& parentInfo = elem_info(pParent);
 
 //	schedule one element for each horizontal parent-interface
@@ -716,11 +714,11 @@ template <class TLayout>
 class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
 	/**	Note that a reference to newConstrained is passed to the constructor
 	 * and that its content may be changed by some methods in this class.*/
@@ -1054,7 +1052,7 @@ create_missing_constrained_h_interfaces(vector<TElem*>& newConstrainedElems)
 //	exists.
 
 	MultiGrid& mg = *m_pGrid;
-	typedef typename GridLayoutMap::Types<TElem>::Layout	layout_t;
+	using layout_t = typename GridLayoutMap::Types<TElem>::Layout;
 
 	ComPol_NewConstrainedVerticals<layout_t> compolHMasters(mg.distributed_grid_manager(),
 															newConstrainedElems);

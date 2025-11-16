@@ -42,7 +42,7 @@ namespace ug{
 HangingNodeRefiner_Grid::
 HangingNodeRefiner_Grid(SPRefinementProjector projector) :
 	BaseClass(projector),
-	m_pGrid(NULL),
+	m_pGrid(nullptr),
 	m_aVertex(false)
 {
 
@@ -52,7 +52,7 @@ HangingNodeRefiner_Grid::
 HangingNodeRefiner_Grid(Grid& grid,
 						SPRefinementProjector projector) :
 	BaseClass(projector),
-	m_pGrid(NULL),
+	m_pGrid(nullptr),
 	m_aVertex(false)
 {
 	set_grid(&grid);
@@ -61,13 +61,13 @@ HangingNodeRefiner_Grid(Grid& grid,
 HangingNodeRefiner_Grid::
 ~HangingNodeRefiner_Grid()
 {
-	set_grid(NULL);
+	set_grid(nullptr);
 }
 
 void HangingNodeRefiner_Grid::
 grid_to_be_destroyed(Grid* grid)
 {
-	set_grid(NULL);
+	set_grid(nullptr);
 }
 
 void HangingNodeRefiner_Grid::
@@ -90,13 +90,13 @@ set_grid(Grid* grid)
 		m_pGrid->detach_from_faces(m_aLocalMark);
 		m_pGrid->detach_from_volumes(m_aLocalMark);
 		m_aaLocalMark.invalidate();
-		m_pGrid = NULL;
+		m_pGrid = nullptr;
 	}
 
 //	attach new attachments
 	if(grid){
-		grid->attach_to_edges_dv(m_aVertex, NULL, false);
-		grid->attach_to_faces_dv(m_aVertex, NULL, false);
+		grid->attach_to_edges_dv(m_aVertex, nullptr, false);
+		grid->attach_to_faces_dv(m_aVertex, nullptr, false);
 
 		m_aaVertexEDGE.access(*grid, m_aVertex);
 		m_aaVertexFACE.access(*grid, m_aVertex);

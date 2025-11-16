@@ -57,16 +57,16 @@ class LU
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Base type
-		typedef IMatrixOperatorInverse<matrix_type,vector_type> base_type;
+		using base_type = IMatrixOperatorInverse<matrix_type,vector_type>;
 
 		using base_type::init;
 
@@ -75,7 +75,7 @@ class LU
 
 	public:
 	///	constructor
-		LU() : m_spOperator(NULL), m_mat(), m_bSortSparse(true), m_bInfo(false), m_bShowProgress(true)
+		LU() : m_spOperator(nullptr), m_mat(), m_bSortSparse(true), m_bInfo(false), m_bShowProgress(true)
 		{
 #ifdef LAPACK_AVAILABLE
 			m_iMinimumForSparse = 4000;
@@ -241,7 +241,7 @@ class LU
 			if(m_pMatrix->num_rows() == 0) return true;
 
 		//	check that matrix exist
-			if(m_pMatrix == NULL)
+			if(m_pMatrix == nullptr)
 			{
 				UG_LOG("ERROR in 'LU::init': No Matrix given.\n");
 				return false;

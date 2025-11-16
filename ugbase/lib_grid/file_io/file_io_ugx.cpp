@@ -2020,24 +2020,24 @@ bool UGXFileInfo::parse_file(const char* filename)
 		gInfo.m_extension = box.extension();
 
 		//	fill m_hasVertices, ...
-		gInfo.m_hasVertices = curNode->first_node("vertices") != NULL;
-		gInfo.m_hasVertices |= curNode->first_node("constrained_vertices") != NULL;
+		gInfo.m_hasVertices = curNode->first_node("vertices") != nullptr;
+		gInfo.m_hasVertices |= curNode->first_node("constrained_vertices") != nullptr;
 
-		gInfo.m_hasEdges = curNode->first_node("edges") != NULL;
-		gInfo.m_hasEdges |= curNode->first_node("constraining_edges") != NULL;
-		gInfo.m_hasEdges |= curNode->first_node("constrained_edges") != NULL;
+		gInfo.m_hasEdges = curNode->first_node("edges") != nullptr;
+		gInfo.m_hasEdges |= curNode->first_node("constraining_edges") != nullptr;
+		gInfo.m_hasEdges |= curNode->first_node("constrained_edges") != nullptr;
 
-		gInfo.m_hasFaces = curNode->first_node("triangles") != NULL;
-		gInfo.m_hasFaces |= curNode->first_node("constraining_triangles") != NULL;
-		gInfo.m_hasFaces |= curNode->first_node("constrained_triangles") != NULL;
-		gInfo.m_hasFaces |= curNode->first_node("quadrilaterals") != NULL;
-		gInfo.m_hasFaces |= curNode->first_node("constraining_quadrilaterals") != NULL;
-		gInfo.m_hasFaces |= curNode->first_node("constrained_quadrilaterals") != NULL;
+		gInfo.m_hasFaces = curNode->first_node("triangles") != nullptr;
+		gInfo.m_hasFaces |= curNode->first_node("constraining_triangles") != nullptr;
+		gInfo.m_hasFaces |= curNode->first_node("constrained_triangles") != nullptr;
+		gInfo.m_hasFaces |= curNode->first_node("quadrilaterals") != nullptr;
+		gInfo.m_hasFaces |= curNode->first_node("constraining_quadrilaterals") != nullptr;
+		gInfo.m_hasFaces |= curNode->first_node("constrained_quadrilaterals") != nullptr;
 
-		gInfo.m_hasVolumes = curNode->first_node("tetrahedrons") != NULL;
-		gInfo.m_hasVolumes |= curNode->first_node("hexahedrons") != NULL;
-		gInfo.m_hasVolumes |= curNode->first_node("prisms") != NULL;
-		gInfo.m_hasVolumes |= curNode->first_node("pyramids") != NULL;
+		gInfo.m_hasVolumes = curNode->first_node("tetrahedrons") != nullptr;
+		gInfo.m_hasVolumes |= curNode->first_node("hexahedrons") != nullptr;
+		gInfo.m_hasVolumes |= curNode->first_node("prisms") != nullptr;
+		gInfo.m_hasVolumes |= curNode->first_node("pyramids") != nullptr;
 
 		curNode = curNode->next_sibling("grid");
 	}
@@ -2190,7 +2190,7 @@ UGXFileInfo::calculate_vertex_node_bbox(rapidxml::xml_node<>* vrtNode, AABox<vec
 	rapidxml::xml_attribute<>* attrib = vrtNode->first_attribute("coords");
 	if (!attrib) return false;
 
-	numSrcCoords = std::strtoul(attrib->value(), NULL, 10);
+	numSrcCoords = std::strtoul(attrib->value(), nullptr, 10);
 	UG_ASSERT(errno != ERANGE, "Coordinate dimension in .ugx file is out of range.");
 	UG_ASSERT(numSrcCoords <= 3,
 			  "Coordinate dimension in .ugx file needs to be in {0,1,2,3}, but is "

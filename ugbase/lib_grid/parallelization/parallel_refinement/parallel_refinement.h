@@ -48,8 +48,7 @@ namespace ug
 /// @{
 
 ///	Parallel global refinement for multi-grids
-typedef TParallelGlobalRefiner<GlobalMultiGridRefiner>
-		ParallelGlobalRefiner_MultiGrid;
+using ParallelGlobalRefiner_MultiGrid = TParallelGlobalRefiner<GlobalMultiGridRefiner>;
 
 ///	@}
 

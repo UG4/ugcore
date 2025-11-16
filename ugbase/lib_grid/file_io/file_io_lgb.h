@@ -51,12 +51,12 @@ class ProjectionHandler;
 bool SaveGridToLGB(Grid& grid, const char* filename,
 				   ISubsetHandler** ppSH, int numSHs,
 				   ISelector** ppSel, int numSels,
-				   ProjectionHandler* pPH = NULL,
+				   ProjectionHandler* pPH = nullptr,
 				   APosition aPos = aPosition);
 
 bool SaveGridToLGB(Grid& grid, const char* filename,
 				   ISubsetHandler** ppSH, int numSHs,
-				   ProjectionHandler* pPH = NULL,
+				   ProjectionHandler* pPH = nullptr,
 				   APosition aPos = aPosition);
 
 
@@ -70,13 +70,13 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 bool LoadGridFromLGB(Grid& grid, const char* filename,
 				   ISubsetHandler** ppSH, int numSHs,
 				   ISelector** ppSel, int numSels,
-				   ProjectionHandler* pPH = NULL,
+				   ProjectionHandler* pPH = nullptr,
 				   APosition aPos = aPosition);
 
 
 bool LoadGridFromLGB(Grid& grid, const char* filename,
 				   ISubsetHandler** ppSH, int numSHs,
-				   ProjectionHandler* pPH = NULL,
+				   ProjectionHandler* pPH = nullptr,
 				   APosition aPos = aPosition);
 
 }//	end of namespace

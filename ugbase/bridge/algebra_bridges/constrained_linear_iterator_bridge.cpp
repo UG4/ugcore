@@ -82,8 +82,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		
 	// constrained Jacobi
 	{
-		typedef ConstrainedLinearIterator<TDomain, TAlgebra, Jacobi<TAlgebra> > T;
-		typedef Jacobi<TAlgebra> TBase;
+		using T = ConstrainedLinearIterator<TDomain, TAlgebra, Jacobi<TAlgebra> >;
+		using TBase = Jacobi<TAlgebra>;
 		string name = string("Jacobi_c").append(suffix);
 		reg.add_class_<T,TBase>(name, precondGrp, "Jacobi preconditioner respecting constraints")
 		.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("domain discretization")
@@ -94,8 +94,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	// constrained ILU
 	{
-		typedef ConstrainedLinearIterator<TDomain, TAlgebra, ILU<TAlgebra> > T;
-		typedef ILU<TAlgebra> TBase;
+		using T = ConstrainedLinearIterator<TDomain, TAlgebra, ILU<TAlgebra> >;
+		using TBase = ILU<TAlgebra>;
 		string name = string("ILU_c").append(suffix);
 		reg.add_class_<T,TBase>(name, precondGrp, "ILU preconditioner respecting constraints")
 		.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("domain discretization")
@@ -106,8 +106,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	// constrained ILU-T
 	{
-		typedef ConstrainedLinearIterator<TDomain, TAlgebra, ILUTPreconditioner<TAlgebra> > T;
-		typedef ILUTPreconditioner<TAlgebra> TBase;
+		using T = ConstrainedLinearIterator<TDomain, TAlgebra, ILUTPreconditioner<TAlgebra> >;
+		using TBase = ILUTPreconditioner<TAlgebra>;
 		string name = string("ILUT_c").append(suffix);
 		reg.add_class_<T,TBase>(name, precondGrp, "ILUT preconditioner respecting constraints")
 		.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("domain discretization")
@@ -118,8 +118,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	// constrained GMG
 	{
-		typedef ConstrainedLinearIterator<TDomain, TAlgebra, AssembledMultiGridCycle<TDomain, TAlgebra> > T;
-		typedef AssembledMultiGridCycle<TDomain, TAlgebra> TBase;
+		using T = ConstrainedLinearIterator<TDomain, TAlgebra, AssembledMultiGridCycle<TDomain, TAlgebra> >;
+		using TBase = AssembledMultiGridCycle<TDomain, TAlgebra>;
 		string name = string("GMG_c").append(suffix);
 		reg.add_class_<T,TBase>(name, precondGrp, "GMG preconditioner respecting constraints")
 		.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("domain discretization")
@@ -130,8 +130,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	// constrained LU
 	{
-		typedef ConstrainedLinearIterator<TDomain, TAlgebra, LU<TAlgebra> > T;
-		typedef LU<TAlgebra> TBase;
+		using T = ConstrainedLinearIterator<TDomain, TAlgebra, LU<TAlgebra> >;
+		using TBase = LU<TAlgebra>;
 		string name = string("LU_c").append(suffix);
 		reg.add_class_<T,TBase>(name, solverGrp, "LU solver respecting constraints")
 		.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("domain discretization")

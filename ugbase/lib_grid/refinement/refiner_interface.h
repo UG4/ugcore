@@ -66,11 +66,11 @@ enum RefinementMark{
 class IRefiner
 {
 	public:
-		IRefiner(SPRefinementProjector projector = SPNULL) :
+		IRefiner(SPRefinementProjector projector = nullptr) :
 			m_msgIdAdaption(-1), m_projector(projector),
 			m_adaptionIsActive(false), m_debuggingEnabled(false)	{}
 
-		virtual ~IRefiner()	{}
+		virtual ~IRefiner()	= default;
 
 		void set_projector(SPRefinementProjector projector)
 			{m_projector = projector;}
@@ -270,7 +270,7 @@ class IRefiner
 
 	///	sets a filename to which adjusted marks are saved during refinement / coarsening
 	/**	If no filename is set, then no marks are being saved during refinement / coarsening.
-	 * If you want to unset the file, either pass a NULL pointer or an empty string.*/
+	 * If you want to unset the file, either pass a nullptr pointer or an empty string.*/
 		void set_adjusted_marks_debug_filename(const char* filename);
 
 		void enable_debugging(bool enable)	{m_debuggingEnabled = enable;}

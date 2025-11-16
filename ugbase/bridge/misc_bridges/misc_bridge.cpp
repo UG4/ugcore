@@ -413,11 +413,6 @@ void SetDebugLevel(const char* strTag, int level)
 	GetLogAssistant().set_debug_level(strTag, level);
 }
 
-string GetSVNRevision()
-{
-	return string(UGSvnRevision());
-}
-
 string GetGITRevision()
 {
 	return string(UGGitRevision());
@@ -544,9 +539,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		reg.add_function("PrintBuildConfiguration", &PrintBuildConfiguration, grp, "");
 		reg.add_function("PrintBuildConfigurationExtended", &PrintBuildConfigurationExtended, grp, "");
 		
-		
 
-		reg.add_function("GetSVNRevision", &GetSVNRevision, grp);
 		reg.add_function("GetGITRevision", &GetGITRevision, grp);
 		reg.add_function("GetCompileDate", &GetCompileDate, grp);
 		reg.add_function("GetBuildHostname", &GetBuildHostname, grp);
@@ -569,7 +562,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 	{
 		stringstream ss; ss << parentGroup << "/Util/Lua";
 		string grp = ss.str();
-		typedef LuaTableHandle T;
+		using T = LuaTableHandle;
 		reg.add_class_<T /*, TBase*/>("LuaTableHandle", grp)
 			.add_method("size", &T::size)
 			.set_construct_as_smart_pointer(true) // really?

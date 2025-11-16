@@ -99,19 +99,19 @@ class DegeneratedLayerManager
 {
 public:
 	/// type of the attachment for the marks
-		typedef Attachment<signed char> mark_attachment_type;
+		using mark_attachment_type = Attachment<signed char>;
 		
 	///	base grid element object type
-		typedef typename grid_dim_traits<dim>::grid_base_object element_type;
+		using element_type = typename grid_dim_traits<dim>::grid_base_object;
 		
 	///	grid element's side base object type
-		typedef typename grid_dim_traits<dim>::side_type side_type;
+		using side_type = typename grid_dim_traits<dim>::side_type;
 		
 	///	max. number of corners of the elements
-		static const size_t maxElemCorners = grid_dim_traits<dim>::MaxNumVerticesOfElem;
+		static constexpr size_t maxElemCorners = grid_dim_traits<dim>::MaxNumVerticesOfElem;
 		
 	///	max. number of corners of non-degenerated sides
-		static const size_t maxLayerSideCorners = maxElemCorners / 2;
+		static constexpr size_t maxLayerSideCorners = maxElemCorners / 2;
 	
 	/// Marks for the grid vertices
 		enum t_grid_object_mark
@@ -190,7 +190,7 @@ public:
 			side_type * & outer_side, ///< [out] its fracture outer side
 			size_t & outer_side_idx, ///< [out] index of the outer side in the reference element
 			size_t outer_side_corners [], ///< [out] outer side corner idx -> elem. corner idx (maxLayerSideCorners elements)
-			size_t ass_co [] = NULL ///< [out] correspondence of the corners of the sides (2 * maxLayerSideCorners elements or NULL)
+			size_t ass_co [] = nullptr ///< [out] correspondence of the corners of the sides (2 * maxLayerSideCorners elements or nullptr)
 		);
 		
 	///	Assigns a different subset index to the inner sides of a layer

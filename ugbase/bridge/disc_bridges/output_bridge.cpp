@@ -101,15 +101,14 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-//	typedef
-	static const int dim = TDomain::dim;
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
-	typedef GridFunction<TDomain, TAlgebra> function_type;
+	static constexpr int dim = TDomain::dim;
+	using vector_type = typename TAlgebra::vector_type;
+	using matrix_type = typename TAlgebra::matrix_type;
+	using function_type = GridFunction<TDomain, TAlgebra>;
 
 //	VTK Output
 	{
-		typedef VTKOutput<dim> T;
+		using T = VTKOutput<dim>;
 		reg.get_class_<T>()
 			.add_method("write_time_pvd", static_cast<void (T::*)(const char*, function_type&)>(&T::write_time_pvd))
 			.add_method("write_time_processwise_pvd", static_cast<void (T::*)(const char*, function_type&)>(&T::write_time_processwise_pvd))
@@ -146,8 +145,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	GridFunctionDebugWriter
 	{
-		typedef GridFunctionDebugWriter<TDomain, TAlgebra> T;
-		typedef IDebugWriter<TAlgebra> TBase;
+		using T = GridFunctionDebugWriter<TDomain, TAlgebra>;
+		using TBase = IDebugWriter<TAlgebra>;
 		string name = string("GridFunctionDebugWriter").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("")
@@ -163,8 +162,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	GridFunctionPositionProvider
 	{
-		typedef GridFunctionPositionProvider<function_type> T;
-		typedef IPositionProvider<dim> TBase;
+		using T = GridFunctionPositionProvider<function_type>;
+		using TBase = IPositionProvider<dim>;
 		string name = string("GridFunctionPositionProvider").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -177,8 +176,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	GridFunctionVectorWriter
 	{
-		typedef GridFunctionVectorWriter<function_type, vector_type> T;
-		typedef IVectorWriter<vector_type> TBase;
+		using T = GridFunctionVectorWriter<function_type, vector_type>;
+		using TBase = IVectorWriter<vector_type>;
 		string name = string("GridFunctionVectorWriter").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -190,8 +189,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	// GridFunctionVectorWriterDirichlet0
 	{
-		typedef GridFunctionVectorWriterDirichlet0<function_type> T;
-		typedef IVectorWriter<vector_type> TBase;
+		using T = GridFunctionVectorWriterDirichlet0<function_type>;
+		using TBase = IVectorWriter<vector_type>;
 		string name = string("GridFunctionVectorWriterDirichlet0").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -217,7 +216,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	SaveVectorForConnectionViewer
 	{
-		typedef MatrixOperator<matrix_type,	vector_type> matOp;
+		using matOp = MatrixOperator<matrix_type,	vector_type>;
 
 		reg.add_function("SaveVectorForConnectionViewer",OVERLOADED_FUNCTION_PTR
 				(void, SaveVectorForConnectionViewer<function_type>, (function_type& ,const char*) ) ,
@@ -262,7 +261,7 @@ static void Dimension(Registry& reg, string grp)
 
 //	VTK Output
 	{
-		typedef VTKOutput<dim> T;
+		using T = VTKOutput<dim>;
 		string name = string("VTKOutput").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
@@ -308,7 +307,7 @@ static void Common(Registry& reg, string grp)
 #ifdef UG_CPU_1
 // SaveMatrixToMTX
 	{
-		typedef MatrixOperator<CPUAlgebra::matrix_type, CPUAlgebra::vector_type> matOp;
+		using matOp = MatrixOperator<CPUAlgebra::matrix_type, CPUAlgebra::vector_type>;
 // 		reg.add_function( "SaveMatrixToMTX", static_cast<void (*)(const char*, matOp&)>(&SaveMatrixToMTX), grp );
 		reg.add_function( "SaveMatrixToMTX", static_cast<void (*)(const char*, matOp&, std::string)>(&SaveMatrixToMTX), grp,
 				"", "filename.mtx|save-dialog|endings=[\"mtx\"];description=\"MatrixMarket Files\"#mat#comment", "Save the assembled matrix of a matrix operator to MatrixMarket format");
@@ -327,7 +326,7 @@ static void Common(Registry& reg, string grp)
 void RegisterBridge_Output(Registry& reg, string grp)
 {
 	grp.append("/Discretization/Output");
-	typedef Output::Functionality Functionality;
+	using Functionality = Output::Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);

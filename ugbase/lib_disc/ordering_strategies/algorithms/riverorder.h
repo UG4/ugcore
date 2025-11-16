@@ -57,16 +57,16 @@ template <typename TAlgebra, typename TDomain, typename O_t>
 class RiverOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
-	typedef typename TAlgebra::matrix_type M_t;
-	typedef typename TAlgebra::vector_type V_t;
-	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> G_t;
-	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
+	using M_t = typename TAlgebra::matrix_type;
+	using V_t = typename TAlgebra::vector_type;
+	using G_t = boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS>;
+	using baseclass = IOrderingAlgorithm<TAlgebra, O_t>;
 
 	/// Grid function type for the solution
-	typedef GridFunction<TDomain, TAlgebra> GridFunc_t;
+	using GridFunc_t = GridFunction<TDomain, TAlgebra>;
 
-	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
-	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
+	using vd = boost::graph_traits<G_t>::vertex_descriptor;
+	using adj_iter = boost::graph_traits<G_t>::adjacency_iterator;
 
 	RiverOrdering() : m_ssIdx(-1){}
 
@@ -180,7 +180,7 @@ public:
 		m_sources = std::vector<BOOL>(n, false);
 
 		//select source vertices according to m_ssIdx
-		typedef typename GridFunc_t::template traits<ug::Vertex>::const_iterator ugVertIt_t;
+		using ugVertIt_t = typename GridFunc_t::template traits<ug::Vertex>::const_iterator;
 
 		ugVertIt_t ugVertIt = pGridF->template begin<ug::Vertex>();
 		ugVertIt_t ugVertEnd = pGridF->template end<ug::Vertex>();

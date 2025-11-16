@@ -43,30 +43,30 @@ namespace ug {
 
 template <int dim> struct face_type_traits
 {
-    typedef void face_type0;
-	typedef void face_type1;
-	typedef void DimFEGeo;
+	using face_type0 = void;
+	using face_type1 = void;
+	using DimFEGeo = void;
 };
 
 template <> struct face_type_traits<1>
 {
-    typedef ReferenceVertex face_type0;
-	typedef ReferenceVertex face_type1;
-	typedef DimFEGeometry<1, 1> DimFEGeo;
+	using face_type0 = ReferenceVertex;
+	using face_type1 = ReferenceVertex;
+	using DimFEGeo = DimFEGeometry<1, 1>;
 };
 
 template <> struct face_type_traits<2>
 {
-    typedef ReferenceEdge face_type0;
-	typedef ReferenceEdge face_type1;
-	typedef DimFEGeometry<2, 1> DimFEGeo;
+	using face_type0 = ReferenceEdge;
+	using face_type1 = ReferenceEdge;
+	using DimFEGeo = DimFEGeometry<2, 1>;
 };
 
 template <> struct face_type_traits<3>
 {
-    typedef ReferenceTriangle face_type0;
-	typedef ReferenceQuadrilateral face_type1;
-	typedef DimFEGeometry<3, 2> DimFEGeo;
+	using face_type0 = ReferenceTriangle;
+	using face_type1 = ReferenceQuadrilateral;
+	using DimFEGeo = DimFEGeometry<3, 2>;
 };
 
 template <typename TDomain, typename TAlgebra>
@@ -123,10 +123,10 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 
 	int elemCounter = 0;
 
-	static const int dim = function_type::dim;
-	typedef typename function_type::domain_type domain_type;
-	typedef typename face_type_traits<dim>::face_type0 face_type0;
-	typedef typename face_type_traits<dim>::face_type1 face_type1;
+	static constexpr int dim = function_type::dim;
+	using domain_type = typename function_type::domain_type;
+	using face_type0 = typename face_type_traits<dim>::face_type0;
+	using face_type1 = typename face_type_traits<dim>::face_type1;
 
 	//	get position accessor
 	typename domain_type::position_accessor_type& aaPos
@@ -359,9 +359,9 @@ template <typename TElem, typename TIterator>
 void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv_elem(TIterator iterBegin,
 		TIterator iterEnd, matrix_type& lagrangeMatInv)
 {
-	typedef typename face_type_traits<dim>::face_type0 face_type0;
-	typedef typename face_type_traits<dim>::face_type1 face_type1;
-	typedef typename face_type_traits<dim>::DimFEGeo sideGeo;
+	using face_type0 = typename face_type_traits<dim>::face_type0;
+	using face_type1 = typename face_type_traits<dim>::face_type1;
+	using sideGeo = typename face_type_traits<dim>::DimFEGeo;
 	typename TDomain::position_accessor_type& aaPos = m_spDom->position_accessor();
 
 	//	some storage
@@ -518,10 +518,10 @@ template <typename TElem, typename TIterator>
 bool ActiveSet<TDomain, TAlgebra>::check_conv_elem(TIterator iterBegin,
 		TIterator iterEnd, function_type& u, const function_type& lambda)
 {
-	static const int dim = function_type::dim;
-	typedef typename function_type::domain_type domain_type;
-	typedef typename face_type_traits<dim>::face_type0 face_type0;
-	typedef typename face_type_traits<dim>::face_type1 face_type1;
+	static constexpr int dim = function_type::dim;
+	using domain_type = typename function_type::domain_type;
+	using face_type0 = typename face_type_traits<dim>::face_type0;
+	using face_type1 = typename face_type_traits<dim>::face_type1;
 
 	//	get position accessor
 	typename domain_type::position_accessor_type& aaPos

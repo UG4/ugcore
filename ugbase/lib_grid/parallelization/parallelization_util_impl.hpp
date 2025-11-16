@@ -54,7 +54,7 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 //	set up local ids
 	int rank = pcl::ProcRank();
 
-	typedef typename geometry_traits<TGeomObj>::iterator GeomObjIter;
+	using GeomObjIter = typename geometry_traits<TGeomObj>::iterator;
 
 	size_t count = 0;
 	for(GeomObjIter iter = g.begin<TGeomObj>();
@@ -64,7 +64,7 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 	}
 
 //	distribute the ids master->slave
-	typedef typename GridLayoutMap::Types<TGeomObj>::Layout Layout;
+	using Layout = typename GridLayoutMap::Types<TGeomObj>::Layout;
 	pcl::InterfaceCommunicator<Layout> com;
 	ComPol_CopyAttachment<Layout, AGeomObjID> compolCopy(g, aID);
 

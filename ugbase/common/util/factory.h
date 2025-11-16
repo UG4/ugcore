@@ -129,12 +129,12 @@ public:
 		class_name_map_t::const_iterator i = m_classNameMap.find(typeName);
 		if(i != m_classNameMap.end())
 			return i->second;
-		static const std::string defaultName ("");
+		static const std::string defaultName;
 		return defaultName;
 	}
 
 private:
-	typedef TBase* (*factory_sig)();
+	using factory_sig = TBase* (*)();
 
 	struct ClassInfo {
 		ClassInfo ()	{}
@@ -148,8 +148,8 @@ private:
 		factory_sig			factory;
 	};
 
-	typedef std::map<std::string, ClassInfo>	class_map_t;
-	typedef std::map<std::string, std::string>	class_name_map_t;
+	using class_map_t = std::map<std::string, ClassInfo>;
+	using class_name_map_t = std::map<std::string, std::string>;
 	class_map_t					m_classMap;///< contains ClassInfo objects accessible by class-name.
 	class_name_map_t			m_classNameMap;///< key: type-name, value: class-names
 	std::vector<std::string>	m_classNames;

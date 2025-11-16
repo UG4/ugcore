@@ -54,10 +54,10 @@ class ScalarSubMatrixAdapter{
 
 
 public:
-	typedef typename AT::matrix_type encapsulated_matrix_type;
-	typedef typename ST::matrix_type::value_type value_type;
+	using encapsulated_matrix_type = typename AT::matrix_type;
+	using value_type = typename ST::matrix_type::value_type;
 
-	//typedef typename ST::matrix_type::const_row_iterator const_row_iterator;
+	using const_row_iterator = typename ST::matrix_type::const_row_iterator;
 
 	ScalarSubMatrixAdapter(encapsulated_matrix_type& mat)
 	: m_src(mat), m_const(mat) {}; //, m_subr(subr), m_subc(subc) {};
@@ -173,8 +173,8 @@ public:
 protected:
 	encapsulated_matrix_type &m_src;
 	const encapsulated_matrix_type &m_const;
-	const static int m_subr=R;
-	const static int m_subc=C;
+	static constexpr int m_subr=R;
+	static constexpr int m_subc=C;
 };
 
 

@@ -46,10 +46,10 @@ class CrouzeixRaviartBase
 {
 	public:
 	///	dimension of reference element
-		static const int dim = TRefElem::dim;
+		static constexpr int dim = TRefElem::dim;
 
 	/// Number of shape functions
-		static const size_t nsh = TRefElem::numSides;
+		static constexpr size_t nsh = TRefElem::numSides;
 
 	public:
 	///	constructor
@@ -105,7 +105,7 @@ class CrouzeixRaviartLSFS<ReferenceTriangle>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = 2;
+		static constexpr int dim = 2;
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::position()
@@ -169,7 +169,7 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = 2;
+		static constexpr int dim = 2;
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::position()
@@ -238,7 +238,7 @@ class CrouzeixRaviartLSFS<ReferenceTetrahedron>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceTetrahedron::dim;
+		static constexpr int dim = ReferenceTetrahedron::dim;
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::position()
@@ -316,7 +316,7 @@ class CrouzeixRaviartLSFS<ReferenceHexahedron>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = ReferenceHexahedron::dim;
+		static constexpr int dim = ReferenceHexahedron::dim;
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::position()
@@ -407,7 +407,7 @@ class CrouzeixRaviartLSFS<ReferencePrism>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = 3;
+		static constexpr int dim = 3;
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::position()
@@ -491,7 +491,7 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = 3;
+		static constexpr int dim = 3;
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::position()

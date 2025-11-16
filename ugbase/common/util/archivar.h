@@ -92,9 +92,9 @@ public:
 	}
 
 private:
-	typedef void (*archive_sig)(TArchive&, TBase&, const char* name);
+	using archive_sig = void(*)(TArchive&, TBase&, const char* name);
 
-	typedef std::map<std::string, archive_sig>	callback_map_t;
+	using callback_map_t = std::map<std::string, archive_sig>;
 	callback_map_t	m_callbackMap;
 };
 

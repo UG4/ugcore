@@ -253,7 +253,7 @@ static bool CollectLines(Grid& grid, const SubsetHandler& shFace, EdgeSelector& 
 		//if(vFaces.size() > 1)
 		{
 			size_t i = 0;
-			Face* f1 = NULL;
+			Face* f1 = nullptr;
 		//	find the first face that is assigned to a subset
 			for(; i < vFaces.size(); ++i)
 			{
@@ -997,7 +997,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 													psh->end<Edge>(i),
 													cbIsInSubset);
 
-					if(curSec.first == NULL)
+					if(curSec.first == nullptr)
 						continue;
 
 				//	find left and right unit

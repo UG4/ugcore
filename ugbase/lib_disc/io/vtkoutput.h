@@ -49,7 +49,7 @@
 
 namespace ug{
 // todo this should avoid refactoring all the signatures of VTKOutput, remove it later
-typedef Base64FileWriter VTKFileWriter;
+using VTKFileWriter = Base64FileWriter;
 
 template <typename T>
 struct IteratorProvider
@@ -57,8 +57,8 @@ struct IteratorProvider
 	template <typename TElem>
 	struct traits
 	{
-		typedef typename T::template traits<TElem>::iterator iterator;
-		typedef typename T::template traits<TElem>::const_iterator const_iterator;
+		using iterator = typename T::template traits<TElem>::iterator;
+		using const_iterator = typename T::template traits<TElem>::const_iterator;
 	};
 
 	template <typename TElem>
@@ -80,30 +80,30 @@ template <>
 struct IteratorProvider<MGSubsetHandler>
 {
 	private:
-	typedef MGSubsetHandler T;
+		using T = MGSubsetHandler;
 
 	public:
 	template <typename TElem>
 	struct traits
 	{
-		typedef typename T::template traits<TElem>::iterator iterator;
-		typedef typename T::template traits<TElem>::const_iterator const_iterator;
+		using iterator = typename T::traits<TElem>::iterator;
+		using const_iterator = typename T::traits<TElem>::const_iterator;
 	};
 
 	template <typename TElem>
 	static typename traits<TElem>::const_iterator begin(const T& provider, int si)
 	{
 		const int lev = provider.num_levels() - 1;
-		if(si < 0) return provider.multi_grid()->template begin<TElem>(lev);
-		else return provider.template begin<TElem>(si, lev);
+		if(si < 0) return provider.multi_grid()->begin<TElem>(lev);
+		else return provider.begin<TElem>(si, lev);
 	}
 
 	template <typename TElem>
 	static typename traits<TElem>::const_iterator end(const T& provider, int si)
 	{
 		const int lev = provider.num_levels() - 1;
-		if(si < 0) return provider.multi_grid()->template end<TElem>(lev);
-		else return provider.template end<TElem>(si, lev);
+		if(si < 0) return provider.multi_grid()->end<TElem>(lev);
+		else return provider.end<TElem>(si, lev);
 	}
 };
 
@@ -921,26 +921,25 @@ protected:
 		std::map<std::string, std::vector<std::string> > m_vSymbFct;
 		std::map<std::string, std::vector<std::string> > m_vSymbFctNodal;
 		std::map<std::string, std::vector<std::string> > m_vSymbFctElem;
-		typedef typename std::map<std::string,
-				std::vector<std::string> >::iterator ComponentsIterator;
+		using ComponentsIterator = std::map<std::string, std::vector<std::string> >::iterator;
 
 	///	scheduled scalar data to be printed
 		std::map<std::string, SmartPtr<UserData<number, TDim> > > m_vScalarNodalData;
 		std::map<std::string, SmartPtr<UserData<number, TDim> > > m_vScalarElemData;
-		typedef typename std::map<std::string,
-				SmartPtr<UserData<number, TDim> > >::iterator ScalarDataIterator;
+		using ScalarDataIterator = typename std::map<std::string,
+			SmartPtr<UserData<number, TDim> > >::iterator;
 
 	///	scheduled vector data to be printed
 		std::map<std::string, SmartPtr<UserData<MathVector<TDim>, TDim> > > m_vVectorNodalData;
 		std::map<std::string, SmartPtr<UserData<MathVector<TDim>, TDim> > > m_vVectorElemData;
-		typedef typename std::map<std::string,
-				SmartPtr<UserData<MathVector<TDim>, TDim> > >::iterator VectorDataIterator;
+		using VectorDataIterator = typename std::map<std::string,
+			SmartPtr<UserData<MathVector<TDim>, TDim> > >::iterator;
 
 	///	scheduled vector data to be printed
 		std::map<std::string, SmartPtr<UserData<MathMatrix<TDim,TDim>, TDim> > > m_vMatrixNodalData;
 		std::map<std::string, SmartPtr<UserData<MathMatrix<TDim,TDim>, TDim> > > m_vMatrixElemData;
-		typedef typename std::map<std::string,
-				SmartPtr<UserData<MathMatrix<TDim,TDim>, TDim> > >::iterator MatrixDataIterator;
+		using MatrixDataIterator = typename std::map<std::string,
+			SmartPtr<UserData<MathMatrix<TDim,TDim>, TDim> > >::iterator;
 
 	///	map storing the time points
 		std::map<std::string, std::vector<number> > m_mTimestep;

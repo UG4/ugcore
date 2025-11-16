@@ -45,14 +45,14 @@ class MatrixDiagonal :	public virtual ILinearOperator<X,Y>,
 {
 	public:
 	// 	Domain space
-		typedef X domain_function_type;
+		using domain_function_type = X;
 
 	// 	Range space
-		typedef Y codomain_function_type;
+		using codomain_function_type = Y;
 
 	// 	Matrix type
-		typedef M matrix_type;
-		typedef MatrixOperator<M, X, Y> mo_type;
+		using matrix_type = M;
+		using mo_type = MatrixOperator<M, X, Y>;
 
 		SmartPtr<mo_type> m_mo;
 
@@ -97,14 +97,14 @@ class MatrixDiagonalInverse :	public virtual ILinearOperator<X,Y>,
 {
 	public:
 	// 	Domain space
-		typedef X domain_function_type;
+		using domain_function_type = X;
 
 	// 	Range space
-		typedef Y codomain_function_type;
+		using codomain_function_type = Y;
 
 	// 	Matrix type
-		typedef M matrix_type;
-		typedef MatrixOperator<M, X, Y> mo_type;
+		using matrix_type = M;
+		using mo_type = MatrixOperator<M, X, Y>;
 
 		SmartPtr<mo_type> m_mo;
 

@@ -78,7 +78,7 @@ GridSubsetHandler::GridSubsetHandler(const GridSubsetHandler& sh) :
 
 GridSubsetHandler::~GridSubsetHandler()
 {
-	if(m_pGrid != NULL){
+	if(m_pGrid != nullptr){
 		erase_subset_lists_impl();
 		detach_data();
 	}
@@ -95,7 +95,7 @@ void GridSubsetHandler::cleanup()
 {
 	erase_subset_lists_impl();
 	detach_data();
-	//ISubsetHandler::set_grid(NULL);
+	//ISubsetHandler::set_grid(nullptr);
 }
 
 void GridSubsetHandler::assign_grid(Grid* grid)
@@ -179,7 +179,7 @@ void
 GridSubsetHandler::
 assign_subset_impl(TElem* elem, int subsetIndex)
 {
-	assert((m_pGrid != NULL) && "ERROR in SubsetHandler::assign_subset(): No grid assigned to SubsetHandler.");
+	assert((m_pGrid != nullptr) && "ERROR in SubsetHandler::assign_subset(): No grid assigned to SubsetHandler.");
 
 //	check if we have to remove elem from a subset.
 	int oldIndex = get_subset_index(elem);
@@ -414,8 +414,8 @@ template <class TElem>
 size_t GridSubsetHandler::
 collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const
 {
-	typedef typename geometry_traits<TElem>::iterator ElemIter;
-	typedef typename geometry_traits<TElem>::const_iterator ConstElemIter;
+	using ElemIter = typename geometry_traits<TElem>::iterator;
+	using ConstElemIter = typename geometry_traits<TElem>::const_iterator;
 
 	elemsOut.clear();
 	

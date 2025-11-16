@@ -33,11 +33,12 @@
 #ifndef __H__PCL__PCL_COMMUNICATION_STRUCTS__
 #define __H__PCL__PCL_COMMUNICATION_STRUCTS__
 
-#include <iterator>
-#include <vector>
-#include <list>
 #include <map>
+#include <list>
+#include <vector>
+#include <iterator>
 #include <algorithm>
+
 #include "common/util/smart_pointer.h"
 #include "common/util/binary_buffer.h"
 #include "common/error.h"
@@ -59,10 +60,10 @@ namespace pcl
  * specialization. Be sure to specialize them before you use any
  * pcl-classes with your type.
  */
-template <class TType>
+template <typename TType>
 struct type_traits
 {
-	typedef TType Elem;	///	Type of interface elements
+	using Elem = TType;	///	Type of interface elements
 };
 
 
@@ -81,7 +82,7 @@ namespace interface_tags
  *	The src-id is ignored during parallel communication. Instead pcl::ProcRank
  *	is used.
  *
- *	typedefs that have to be featured in such interfaces:
+ *	type definitions that have to be featured in such interfaces:
  *		- category_tag
  *		- iterator
  *		- const_iterator
@@ -135,42 +136,43 @@ class ordered_interface_tag : public basic_interface_tag	{};
  * than std::list if you want to erase elements often.
  * For dynamic interfaces std::list may be the better option.
  */
-template <class TType,
-		  template <class T, class Alloc> class TContainer = std::vector,
-		  template <class T> class TAlloc = std::allocator>
+template <typename TType,
+		  template <typename T, typename Alloc> typename TContainer = std::vector,
+		  template <typename T> typename TAlloc = std::allocator>
 class BasicInterface
 {
 	protected:
-		typedef typename type_traits<TType>::Elem		TElem;
-		typedef TContainer<TElem, TAlloc<TElem> >		ElemContainer;
+		using TElem = typename type_traits<TType>::Elem;
+		using ElemContainer = TContainer<TElem, TAlloc<TElem> >;
 
 	public:
-		typedef interface_tags::basic_interface_tag		category_tag;
+		using category_tag = interface_tags::basic_interface_tag;
 
-		typedef TType									Type;
-		typedef typename type_traits<TType>::Elem		Element;
-		typedef typename ElemContainer::iterator		iterator;
-		typedef typename ElemContainer::const_iterator	const_iterator;
+		using Type = TType;
+		using Element = typename type_traits<TType>::Elem;
+		using iterator = typename ElemContainer::iterator;
+		using const_iterator = typename ElemContainer::const_iterator;
 
 	public:
 		BasicInterface(int targetProc = -1)	: m_size(0), m_targetProc(targetProc)	{};
 
-		inline iterator push_back(const Element& elem)	{++m_size; return m_elements.insert(m_elements.end(), elem);}
-		inline iterator erase(iterator iter)				{--m_size; return m_elements.erase(iter);}
+		inline iterator push_back(const Element& elem) {++m_size; return m_elements.insert(m_elements.end(), elem);}
+		inline iterator erase(iterator iter) {--m_size; return m_elements.erase(iter);}
 
-		inline iterator begin()		{return m_elements.begin();}
-		inline iterator end()		{return m_elements.end();}
-		inline const_iterator begin() const		{return m_elements.begin();}
-		inline const_iterator end() const		{return m_elements.end();}
+		inline iterator begin() {return m_elements.begin();}
+		inline iterator end() {return m_elements.end();}
+
+		inline const_iterator begin() const {return m_elements.begin();}
+		inline const_iterator end() const {return m_elements.end();}
 
 		inline Element& get_element(iterator iter)						{return *iter;}
 		inline const Element& get_element(const_iterator iter) const	{return *iter;}
 
 	///	returns the number of elements that are stored in the interface.
-		inline size_t size() const					{return m_size;}
-		inline bool empty() const					{return size() == 0;}
+		inline size_t size() const {return m_size;}
+		inline bool empty() const {return size() == 0;}
 
-		int get_target_proc() const					{return m_targetProc;}
+		int get_target_proc() const {return m_targetProc;}
 
 	///	swaps the content of two interfaces.
 	/** m_elements, m_size and m_targetProc are swapped.*/
@@ -183,7 +185,7 @@ class BasicInterface
 		}
 
 	///	sort the entries in this interface.
-		template <class TCompare>
+		template <typename TCompare>
 		void sort(TCompare cmp)
 		{
 			using std::sort;
@@ -191,56 +193,55 @@ class BasicInterface
 		}
 
 	protected:
-		ElemContainer	m_elements;
-		size_t			m_size;
-		int				m_targetProc;
+		ElemContainer m_elements;
+		size_t m_size;
+		int m_targetProc;
 };
 
 ////////////////////////////////////////////////////////////////////////
 //	OrderedInterface
 ///	You may add elements to this interface and iterate over them
 /**	You may retrieve a localID for each element in the interface*/
-template <class TType,
-		  template <class T, class Alloc> class TContainer = std::vector,
-		  template <class T> class TAlloc = std::allocator>
+template <typename TType,
+		  template <typename T, typename Alloc> typename TContainer = std::vector,
+		  template <typename T> typename TAlloc = std::allocator>
 class OrderedInterface
 {
 	protected:
-		typedef typename type_traits<TType>::Elem	TElem;
+		using TElem = typename type_traits<TType>::Elem;
 
 		struct InterfaceEntry
 		{
 			InterfaceEntry(TElem e, size_t locID) : elem(e), localID(locID)	{}
 
-			TElem	elem;
-			size_t	localID;
+			TElem elem;
+			size_t localID;
 		};
 
-		template <class TElemCmp>
+		template <typename TElemCmp>
 		struct InterfaceEntryCmp{
 			InterfaceEntryCmp(TElemCmp elemCmp) : m_elemCmp(elemCmp) {}
 			bool operator()(InterfaceEntry const& e1, InterfaceEntry const& e2)
 			{return m_elemCmp(e1.elem, e2.elem);}
-			TElemCmp	m_elemCmp;
+			TElemCmp m_elemCmp;
 		};
 
-		typedef TContainer<InterfaceEntry, TAlloc<InterfaceEntry> >
-														ElemContainer;
+		using ElemContainer = TContainer<InterfaceEntry, TAlloc<InterfaceEntry> >;
 
 	public:
-		typedef TType									Type;
-		typedef typename type_traits<TType>::Elem		Element;
+		using Type = TType;
+		using Element = typename type_traits<TType>::Elem;
 
-		typedef interface_tags::ordered_interface_tag	category_tag;
+		using category_tag = interface_tags::ordered_interface_tag;
 
-		typedef typename ElemContainer::iterator		iterator;
-		typedef typename ElemContainer::const_iterator	const_iterator;
+		using iterator = typename ElemContainer::iterator;
+		using const_iterator = typename ElemContainer::const_iterator;
 
 	public:
 		OrderedInterface(int targetProc = -1) :
 			m_size(0),
 			m_targetProc(targetProc),
-			m_idCounter(1)	{}
+			m_idCounter(1) {}
 
 		inline iterator push_back(const Element& elem)
 		{
@@ -289,24 +290,24 @@ class OrderedInterface
 			return m_elements.erase(iter);
 		}
 
-		inline iterator begin()		{return m_elements.begin();}
-		inline iterator end()		{return m_elements.end();}
+		inline iterator begin() {return m_elements.begin();}
+		inline iterator end() {return m_elements.end();}
 
 		inline const_iterator begin() const {return m_elements.begin();}
 		inline const_iterator end() const {return m_elements.end();}
 
-		inline Element& get_element(iterator iter)	{return (*iter).elem;}
-		inline size_t get_local_id(iterator iter)	{return (*iter).localID;}
+		inline Element& get_element(iterator iter) {return (*iter).elem;}
+		inline size_t get_local_id(iterator iter) {return (*iter).localID;}
 
 		inline const Element& get_element(const_iterator iter) const	{return (*iter).elem;}
 		inline size_t get_local_id(const_iterator iter)	const 			{return (*iter).localID;}
 
 
 	///	returns the number of elements that are stored in the interface.
-		inline size_t size() const					{return m_size;}
-		inline bool empty()	const					{return size() == 0;}
+		inline size_t size() const {return m_size;}
+		inline bool empty()	const {return size() == 0;}
 
-		int get_target_proc() const					{return m_targetProc;}
+		int get_target_proc() const {return m_targetProc;}
 
 	///	returns true if iter1 < iter2.
 		static inline bool cmp(iterator iter1, iterator iter2,
@@ -317,8 +318,7 @@ class OrderedInterface
 
 	///	swaps the content of two interfaces.
 	/** m_elements, m_size, m_targetProc and m_idCounter are swapped.*/
-		void swap(OrderedInterface& interface)
-		{
+		void swap(OrderedInterface& interface) noexcept {
 			using std::swap;
 			m_elements.swap(interface.m_elements);
 			swap(m_size, interface.m_size);
@@ -327,7 +327,7 @@ class OrderedInterface
 		}
 		
 	///	sort the entries in this interface.
-		template <class TCompare>
+		template <typename TCompare>
 		void sort(TCompare cmp)
 		{
 			using std::sort;
@@ -347,7 +347,7 @@ class OrderedInterface
 	 *          w.r.t. the passed compare object. If it is not, the position
 	 *          might not be correct.
 	 */
-		template <class TCompare>
+		template <typename TCompare>
 		iterator find_insert_pos_sorted(const Element e, TCompare cmp)
 		{
 			InterfaceEntryCmp<TCompare> ieCmp(cmp);
@@ -375,7 +375,7 @@ class OrderedInterface
 		}
 
 	protected:
-		ElemContainer	m_elements;
+		ElemContainer m_elements;
 		size_t m_size;
 		int m_targetProc;
 		size_t m_idCounter;
@@ -447,34 +447,34 @@ class multi_level_layout_tag	{};
  * has been added to some methods. Those parameters are ignored throughout
  * the whole implementation.
  */
-template <class TInterface>
+template <typename TInterface>
 class SingleLevelLayout
 {
 	public:
-		SingleLevelLayout()		{}
+		SingleLevelLayout() = default;
 
 	////////////////////////////////////////////////
-	//	typedefs required by implementation
+	//	type definitions required by implementation
 	///	an interface-map is a list of interfaces, each associated with a process id.
-		typedef std::map<int, TInterface>	InterfaceMap;
+		using InterfaceMap = std::map<int, TInterface>;
 
 	////////////////////////////////////////////////
-	//	typedefs required by layout-tag
+	//	type definitions required by layout-tag
 	///	Layout category
-		typedef layout_tags::single_level_layout_tag	category_tag;
+		using category_tag = layout_tags::single_level_layout_tag;
 
 	///	Interface type
-		typedef TInterface						Interface;
+		using Interface = TInterface;
 
 	///	Type
-		typedef typename Interface::Type		Type;
+		using Type = typename Interface::Type;
 
 	///	Element type
-		typedef typename Interface::Element		Element;
+		using Element = typename Interface::Element;
 
 	///	An iterator that allows to iterate over the interfaces stored in the layout.
-		typedef typename InterfaceMap::iterator			iterator;
-		typedef typename InterfaceMap::const_iterator	const_iterator;
+		using iterator = typename InterfaceMap::iterator;
+		using const_iterator = typename InterfaceMap::const_iterator;
 
 	public:
 	////////////////////////////////////////////////
@@ -483,31 +483,31 @@ class SingleLevelLayout
 	///	returns the iterator to the first interface of the layout.
 	/**	You should access the values of this iterator using the methods
 		Layout::interface and Layout::proc_id.*/
-		inline iterator begin(size_t level = 0)					{return m_interfaceMap.begin();}
-		inline const_iterator begin(size_t level = 0) const		{return m_interfaceMap.begin();}
+		inline iterator begin(size_t level = 0) {return m_interfaceMap.begin();}
+		inline const_iterator begin(size_t level = 0) const {return m_interfaceMap.begin();}
 
 	///	returns the iterator to the last interface of the layout.
 	/**	You should access the values of this iterator using the methods
 		Layout::interface and Layout::proc_id.*/
-		inline iterator end(size_t level = 0)					{return m_interfaceMap.end();}
-		inline const_iterator end(size_t level = 0)	const		{return m_interfaceMap.end();}
+		inline iterator end(size_t level = 0) {return m_interfaceMap.end();}
+		inline const_iterator end(size_t level = 0)	const {return m_interfaceMap.end();}
 
 	///	returns true if the layout has no interfaces.
 	/**	Note that this method only tells whether there are interfaces or not.
 	 * To check whether there are any elements use has_interface_elements.
 	 */
-		inline bool empty(size_t level = 0)	const 				{return begin() == end();}
+		inline bool empty(size_t level = 0)	const {return begin() == end();}
 		
 	///	returns 1
-		inline size_t num_levels() const						{return 1;}
+		inline size_t num_levels() const {return 1;}
 		
 	///	returns the interface to the given iterator.
-		inline Interface& interface(iterator iter)						{return iter->second;}
-		inline const Interface& interface(const_iterator iter) const	{return iter->second;}
+		inline Interface& interface(iterator iter) {return iter->second;}
+		inline const Interface& interface(const_iterator iter) const {return iter->second;}
 
 	///	returns the target process of the interface given in iterator
-		inline int proc_id(iterator iter) const 				{return iter->first;}
-		inline int proc_id(const_iterator iter) const			{return iter->first;}
+		inline int proc_id(iterator iter) const {return iter->first;}
+		inline int proc_id(const_iterator iter) const {return iter->first;}
 
 	///	erases the interface at the given iterator.
 	/**	returns an iterator to the next interface.*/
@@ -570,7 +570,7 @@ class SingleLevelLayout
 		}
 
 	///	sort the entries in all interfaces of this layout
-		template <class TCompare>
+		template <typename TCompare>
 		void sort_interface_entries(TCompare cmp)
 		{
 			for(iterator iter = begin(); iter != end(); ++iter)
@@ -610,38 +610,38 @@ class SingleLevelLayout
  *
  * Additionally it features methods that allow to add new interfaces.
  */
-template <class TInterface>
+template <typename TInterface>
 class MultiLevelLayout
 {
 	public:
 	////////////////////////////////////////////////
-	//	typedefs required by implementation
+	//	type definitions required by implementation
 	///	on each level a single-level-layout is used
-		typedef SingleLevelLayout<TInterface>		LevelLayout;
+		using LevelLayout = SingleLevelLayout<TInterface>;
 
 	////////////////////////////////////////////////
-	//	typedefs required by layout-tag
+	//	type definitions required by layout-tag
 	///	Layout category
-		typedef layout_tags::multi_level_layout_tag	category_tag;
+		using category_tag = layout_tags::multi_level_layout_tag;
 
 	///	Interface type
-		typedef TInterface							Interface;
+		using Interface = TInterface;
 
 	///	Type
-		typedef typename Interface::Type			Type;
+		using Type = typename Interface::Type;
 
 	///	Element type
-		typedef typename Interface::Element			Element;
+		using Element = typename Interface::Element;
 
 	///	An iterator that allows to iterate over the interfaces stored in the layout.
-		typedef typename LevelLayout::iterator			iterator;
-		typedef typename LevelLayout::const_iterator	const_iterator;
+		using iterator = typename LevelLayout::iterator;
+		using const_iterator = typename LevelLayout::const_iterator;
 
 	public:
-		MultiLevelLayout()								{}
-		MultiLevelLayout(const MultiLevelLayout& mll)	{assign_layout(mll);}
+		MultiLevelLayout() = default;
+		MultiLevelLayout(const MultiLevelLayout& mll) {assign_layout(mll);}
 
-		~MultiLevelLayout()								{clear();}
+		~MultiLevelLayout() {clear();}
 
 		MultiLevelLayout& operator = (const MultiLevelLayout& mll)
 		{
@@ -656,7 +656,7 @@ class MultiLevelLayout
 	/**	You should access the values of this iterator using the methods
 	 *	Layout::interface and Layout::proc_id.
 	 *	Make sure that the level matches the level in the associated end() call.*/
-		inline iterator begin(size_t level)				{require_level(level); return m_vLayouts[level]->begin();}
+		inline iterator begin(size_t level) {require_level(level); return m_vLayouts[level]->begin();}
 		inline const_iterator begin(size_t level) const	{require_level(level); return m_vLayouts[level]->begin();}
 
 	///	returns the iterator to the last interface of the layout in the given level.
@@ -752,7 +752,7 @@ class MultiLevelLayout
 		}
 
 	///	sort the entries in all interfaces of this layout
-		template <class TCompare>
+		template <typename TCompare>
 		void sort_interface_entries(TCompare cmp)
 		{
 			for(size_t lvl = 0; lvl < num_levels(); ++lvl)
@@ -785,14 +785,14 @@ class MultiLevelLayout
 /**	Make sure that you use the same communication-policy for send and receive operations.
  *	Otherwise problems regarding buffer-sizes may occur.
  */
-template <class TLayout>
+template <typename TLayout>
 class ICommunicationPolicy
 {
 	public:
-		typedef TLayout						Layout;
-		typedef typename Layout::Interface 	Interface;
+		using Layout = TLayout;
+		using Interface = typename Layout::Interface;
 
-		virtual ~ICommunicationPolicy()	{}
+		virtual ~ICommunicationPolicy()	= default;
 
 	////////////////////////////////
 	//	COLLECT AND EXTRACT
@@ -818,13 +818,13 @@ class ICommunicationPolicy
 	/**	the default implementation returns true and does nothing else.
 	 * This method is only called on processes which collect data.*/
 		virtual bool
-		begin_layout_collection(const Layout* pLayout)			{return true;}
+		begin_layout_collection(const Layout* pLayout) {return true;}
 
 	///	signals the end of a layout collection
 	/**	the default implementation returns true and does nothing else.
 	 * This method is only called on processes which collect data.*/
 		virtual bool
-		end_layout_collection(const Layout* pLayout)			{return true;}
+		end_layout_collection(const Layout* pLayout) {return true;}
 
 	///	should write data which is associated with the interface elements to the buffer.
 		virtual bool

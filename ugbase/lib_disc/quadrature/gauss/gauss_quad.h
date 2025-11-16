@@ -49,19 +49,19 @@ class GaussQuadBase
 {
 	public:
 	/// Dimension of integration domain
-		static const size_t dim = TDim;
+		static constexpr size_t dim = TDim;
 
 	/// Position Type in Reference Element Space
-		typedef MathVector<dim> position_type;
+	using position_type = MathVector<dim>;
 
 	///	Type of weights
-		typedef number weight_type;
+	using weight_type = number;
 
 	/// Order of quadrature rule
-		static const size_t p = TOrder;
+		static constexpr size_t p = TOrder;
 
 	/// Number of integration points
-		static const size_t nip = TNip;
+		static constexpr size_t nip = TNip;
 
 	public:
 	/// number of integration points

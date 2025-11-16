@@ -46,21 +46,21 @@ DimFEGeometry<TWorldDim,TRefDim>::
 DimFEGeometry() :
 	m_roid(ROID_UNKNOWN), m_quadOrder(0),
 	m_lfeID(),
-	m_vIPLocal(NULL), m_vQuadWeight(NULL)
+	m_vIPLocal(nullptr), m_vQuadWeight(nullptr)
 {}
 
 template <int TWorldDim, int TRefDim>
 DimFEGeometry<TWorldDim,TRefDim>::
 DimFEGeometry(size_t order, LFEID lfeid) :
 	m_roid(ROID_UNKNOWN), m_quadOrder(order), m_lfeID(lfeid),
-	m_vIPLocal(NULL), m_vQuadWeight(NULL)
+	m_vIPLocal(nullptr), m_vQuadWeight(nullptr)
 {}
 
 template <int TWorldDim, int TRefDim>
 DimFEGeometry<TWorldDim,TRefDim>::
 DimFEGeometry(ReferenceObjectID roid, size_t order, LFEID lfeid) :
 	m_roid(roid), m_quadOrder(order), m_lfeID(lfeid),
-	m_vIPLocal(NULL), m_vQuadWeight(NULL)
+	m_vIPLocal(nullptr), m_vQuadWeight(nullptr)
 {}
 
 template <int TWorldDim, int TRefDim>
@@ -166,7 +166,7 @@ update_boundary_faces(GridObject* pElem,
                       size_t quadOrder,
                       const ISubsetHandler* ish)
 {
-	typedef typename domain_traits<dim>::side_type Side;
+	using Side = typename domain_traits<dim>::side_type;
 
 	//	get reference element type
 	const ReferenceObjectID roid = pElem->reference_object_id();

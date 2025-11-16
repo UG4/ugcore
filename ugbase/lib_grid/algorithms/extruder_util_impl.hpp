@@ -50,7 +50,7 @@ bool RepeatedVertexExtrusion(Grid& grid,
 	vElems.assign(iterBegin, iterEnd);
 
 	for(int i = 0; i < numSteps; ++i)
-		Extrude(grid, &vElems, NULL, NULL, stepDir);
+		Extrude(grid, &vElems, nullptr, nullptr, stepDir);
 
 	return true;
 }
@@ -65,7 +65,7 @@ bool RepeatedEdgeExtrusion(Grid& grid,
 	vElems.assign(iterBegin, iterEnd);
 
 	for(int i = 0; i < numSteps; ++i)
-		Extrude(grid, NULL, &vElems, NULL, stepDir);
+		Extrude(grid, nullptr, &vElems, nullptr, stepDir);
 
 	return true;
 }
@@ -80,7 +80,7 @@ bool RepeatedFaceExtrusion(Grid& grid,
 	vElems.assign(iterBegin, iterEnd);
 
 	for(int i = 0; i < numSteps; ++i)
-		Extrude(grid, NULL, NULL, &vElems, stepDir);
+		Extrude(grid, nullptr, nullptr, &vElems, stepDir);
 
 	return true;
 }

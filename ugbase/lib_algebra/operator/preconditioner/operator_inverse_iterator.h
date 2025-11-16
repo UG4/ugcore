@@ -65,19 +65,19 @@ class OperatorInverseIterator : public ILinearIterator<typename TAlgebra::vector
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+		using base_type = IPreconditioner<TAlgebra>;
 
 	protected:
 		SmartPtr<ILinearOperatorInverse<vector_type>  >  m_opInv;
@@ -86,7 +86,7 @@ class OperatorInverseIterator : public ILinearIterator<typename TAlgebra::vector
 		virtual SmartPtr<ILinearIterator<vector_type, vector_type> > clone()
 		{
 			UG_ASSERT(0, "not implemented since ILinearOperatorInverse::clone not implemented");
-			return SPNULL;
+			return nullptr;
 		}
 	///	default constructor
 		OperatorInverseIterator(SmartPtr<ILinearOperatorInverse<vector_type>  > opInv) : m_opInv(opInv)

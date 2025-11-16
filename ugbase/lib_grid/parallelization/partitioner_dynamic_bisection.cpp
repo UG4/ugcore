@@ -48,7 +48,7 @@ namespace ug{
 template <class TElem, int dim>
 Partitioner_DynamicBisection<TElem, dim>::
 Partitioner_DynamicBisection() :
-	m_mg(NULL),
+	m_mg(nullptr),
 	m_staticPartitioning(false),
 	m_tolerance(0.99),
 	m_splitImproveIterations(10),
@@ -201,7 +201,7 @@ get_process_map() const
 	if(static_partitioning_enabled())
 		return &m_procMap;
 	else
-		return NULL;
+		return nullptr;
 }
 
 
@@ -230,7 +230,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 {
 	GDIST_PROFILE_FUNC();
 
-	UG_COND_THROW(m_mg == NULL,
+	UG_COND_THROW(m_mg == nullptr,
 			"No grid was specified for Partitioner_DynamicBisection. "
 			"partitioning can't be executed without a specified grid.");
 
@@ -375,7 +375,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 	if(m_nextProcessHierarchy.valid()){
 		*m_processHierarchy = *m_nextProcessHierarchy;
-		m_nextProcessHierarchy = SPProcessHierarchy(NULL);
+		m_nextProcessHierarchy = SPProcessHierarchy(nullptr);
 	}
 
 	mg.detach_from<elem_t>(aWeight);
@@ -423,7 +423,7 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 {
 	GDIST_PROFILE_FUNC();
 
-	typedef typename MultiGrid::traits<elem_t>::iterator iter_t;
+	using iter_t = typename MultiGrid::traits<elem_t>::iterator;
 	
 	// UG_LOG("Performing bisection for " << numTargetProcs << " procs on level "
 	// 		<< partitionLvl << " for levels " << minLvl << " to " << maxLvl << "\n");
@@ -905,7 +905,7 @@ void Partitioner_DynamicBisection<TElem, dim>::
 copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl)
 {
 	GDIST_PROFILE_FUNC();
-	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+	using ElemIter = typename Grid::traits<elem_t>::iterator;
 	MultiGrid& mg = *m_mg;
 
 //	assign partitions to all children in this hierarchy level
@@ -942,7 +942,7 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 {
 	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_DynamicBisection-start gather_weights_from_level\n");
-	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+	using ElemIter = typename Grid::traits<elem_t>::iterator;
 
 	assert(m_mg);
 	assert(m_mg->is_parallel());

@@ -128,7 +128,7 @@ template <typename TRefElem>
 static void ComputeSCVFMidID(const TRefElem& rRefElem,
                                    MidID vMidID[], int i)
 {
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 	if (rRefElem.roid() != ROID_PYRAMID)
 	{
@@ -240,7 +240,7 @@ template <typename TRefElem>
 static void ComputeSCVMidID(const TRefElem& rRefElem,
                             MidID vMidID[], int i)
 {
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 	if (rRefElem.roid() != ROID_PYRAMID)
 	{
@@ -367,7 +367,7 @@ template <typename TRefElem>
 static void ComputeBFMidID(const TRefElem& rRefElem, int side,
                             MidID vMidID[], int co)
 {
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 	if (rRefElem.roid() != ROID_PYRAMID || side != 0)
 	{
@@ -955,7 +955,7 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMult
 template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
 FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
 FVGeometry()
-	: m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()),
+	: m_pElem(nullptr), m_rRefElem(Provider<ref_elem_type>::get()),
 	  m_rTrialSpace(Provider<local_shape_fct_set_type>::get()),
 	  m_rSCVFQuadRule(Provider<scvf_quad_rule_type>::get()),
 	  m_rSCVQuadRule(Provider<scv_quad_rule_type>::get())
@@ -1133,7 +1133,7 @@ template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
 void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != nullptr, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
 
 // 	If already update for this element, do nothing
@@ -1242,7 +1242,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 			m_vGlobSCV_IP[allIP++] = scv(i).global_ip(ip);
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	if(num_boundary_subsets() == 0 || ish == nullptr) return;
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
@@ -1250,7 +1250,7 @@ template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
 void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
 update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != nullptr, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
 
 //	get grid
@@ -1393,7 +1393,7 @@ update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoord
 
 template <int TWorldDim, int TDim>
 DimFVGeometry<TWorldDim, TDim>::
-DimFVGeometry()	: m_pElem(NULL) {}
+DimFVGeometry()	: m_pElem(nullptr) {}
 
 
 
@@ -1528,7 +1528,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 
 
 //	request for quadrature rule
-	static const ReferenceObjectID scvRoid = scv_type::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID scvRoid = scv_type::REFERENCE_OBJECT_ID;
 	const QuadratureRule<dim>& rSCVQuadRule
 			= QuadratureRuleProvider<dim>::get(scvRoid, m_quadOrderSCV);
 
@@ -1660,7 +1660,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		traits::NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, vCornerCoords);
 		VecNormalize(m_vSCVF[i].Normal, m_vSCVF[i].Normal);
 
-		static const ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
 		const QuadratureRule<dim-1>& rSCVFQuadRule
 				= QuadratureRuleProvider<dim-1>::get(scvfRoid, m_quadOrderSCVF);
 		ReferenceMapping<scvf_type, worldDim> map(m_vSCVF[i].vGloPos);
@@ -1685,7 +1685,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		rMapping.sqrt_gram_det(&m_vSCV[i].vDetJ[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
 
 
-		static const ReferenceObjectID scvRoid = scv_type::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID scvRoid = scv_type::REFERENCE_OBJECT_ID;
 		const QuadratureRule<dim>& rSCVQuadRule
 				= QuadratureRuleProvider<dim>::get(scvRoid, m_quadOrderSCV);
 
@@ -1722,7 +1722,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
 			m_vGlobSCV_IP[allIP++] = scv(i).global_ip(ip);
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	if(num_boundary_subsets() == 0 || ish == nullptr) return;
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 

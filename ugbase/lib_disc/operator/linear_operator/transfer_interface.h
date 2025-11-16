@@ -50,13 +50,13 @@ class ITransferOperator
 {
 	public:
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Domain type
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	public:
 	///	constructor
@@ -110,7 +110,7 @@ class ITransferOperator
 		virtual SmartPtr<ITransferOperator<TDomain, TAlgebra> > clone() = 0;
 
 	///	virtual destructor
-		virtual ~ITransferOperator() {}
+		virtual ~ITransferOperator() = default;
 
 	protected:
 	///	list of post processes
@@ -128,20 +128,20 @@ class ITransferPostProcess
 {
 	public:
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Domain type
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	///	GridFunction type
-		typedef GridFunction<TDomain, TAlgebra> GF;
+		using GF = GridFunction<TDomain, TAlgebra>;
 
 	public:
 	/// apply post process
 		virtual void post_process(SmartPtr<GF> spGF) = 0;
 
 	///	virtual destructor
-		virtual ~ITransferPostProcess() {}
+		virtual ~ITransferPostProcess() = default;
 };
 
 } // end namespace ug

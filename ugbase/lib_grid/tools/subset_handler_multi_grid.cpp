@@ -48,7 +48,7 @@ MultiGridSubsetHandler(uint supportedElements) :
 	m_aSharedEntryVOL("MGSubsetHandler_SharedListEntryVOL", false)
 {
 	m_numSubsets = 0;
-	m_pMG = NULL;
+	m_pMG = nullptr;
 }
 
 MultiGridSubsetHandler::
@@ -60,7 +60,7 @@ MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements) :
 	m_aSharedEntryVOL("MGSubsetHandler_SharedListEntryVOL", false)
 {
 	m_numSubsets = 0;
-	m_pMG = NULL;
+	m_pMG = nullptr;
 	assign_grid(mg);
 }
 
@@ -83,7 +83,7 @@ MultiGridSubsetHandler(const MultiGridSubsetHandler& sh) :
 
 MultiGridSubsetHandler::~MultiGridSubsetHandler()
 {
-	if(m_pGrid != NULL){
+	if(m_pGrid != nullptr){
 		erase_subset_lists_impl();
 		detach_data();
 	}
@@ -105,12 +105,12 @@ void MultiGridSubsetHandler::cleanup()
 		detach_data();
 
 	//	unregister the previously registered callback
-		m_callbackId = MessageHub::SPCallbackId(NULL);
+		m_callbackId = MessageHub::SPCallbackId(nullptr);
 
-		m_pMG = NULL;
+		m_pMG = nullptr;
 	}
 
-	//ISubsetHandler::set_grid(NULL);
+	//ISubsetHandler::set_grid(nullptr);
 }
 
 void MultiGridSubsetHandler::assign_grid(MultiGrid& mg)
@@ -190,7 +190,7 @@ void
 MultiGridSubsetHandler::
 assign_subset_impl(TElem* elem, int subsetIndex)
 {
-	assert((m_pGrid != NULL) && "ERROR in SubsetHandler::assign_subset(): No grid assigned to SubsetHandler.");
+	assert((m_pGrid != nullptr) && "ERROR in SubsetHandler::assign_subset(): No grid assigned to SubsetHandler.");
 
 	int level = m_pMG->get_level(elem);
 
@@ -497,8 +497,8 @@ template <class TElem>
 size_t MultiGridSubsetHandler::
 collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const
 {
-	typedef typename geometry_traits<TElem>::iterator ElemIter;
-	typedef typename geometry_traits<TElem>::const_iterator ConstElemIter;
+	using ElemIter = typename geometry_traits<TElem>::iterator;
+	using ConstElemIter = typename geometry_traits<TElem>::const_iterator;
 	
 	elemsOut.clear();
 	if(!m_pGrid)

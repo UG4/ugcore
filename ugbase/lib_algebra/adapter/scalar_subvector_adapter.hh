@@ -52,16 +52,16 @@ namespace ug{
 template<class InVT, class ST>
 class ConstScalarSubVectorAdapter{
 public:
-	typedef InVT encapsulated_vector_type;
-	typedef typename ST::vector_type::value_type value_type;
-	static const int blockSize = block_traits<typename InVT::value_type>::static_size;
+	using encapsulated_vector_type = InVT;
+	using value_type = typename ST::vector_type::value_type;
+	static constexpr int blockSize = block_traits<typename InVT::value_type>::static_size;
 
 	ConstScalarSubVectorAdapter(const encapsulated_vector_type& vec, size_t alpha) : m_src(vec), m_alpha(alpha) {};
 
 	inline const value_type &operator [] (size_t i) const
 	{ return BlockRef(m_src[i], m_alpha); }
 
-	void print(const char * const text = NULL) const
+	void print(const char * const text = nullptr) const
 	{ m_src.print(text);}
 
 	size_t size() const
@@ -76,10 +76,10 @@ template<class InVT, class ST=CPUAlgebra::vector_type>
 class ScalarSubVectorAdapter{
 
 public:
-	typedef InVT encapsulated_vector_type;
-	typedef typename ST::vector_type::value_type value_type;
-	static const int blockSize = block_traits<typename InVT::value_type>::static_size;
-	//typedef typename ST::vector_type::const_row_iterator const_row_iterator
+	using encapsulated_vector_type = InVT ;
+	using value_type = typename ST::vector_type::value_type;
+	static constexpr int blockSize = block_traits<typename InVT::value_type>::static_size;
+	// using const_row_iterator= typename ST::vector_type::const_row_iterator
 
 	ScalarSubVectorAdapter(encapsulated_vector_type& vec, size_t alpha) : m_src(vec), m_alpha(alpha) {};
 
@@ -97,7 +97,7 @@ public:
 	{
 		m_src.reserve_exactly(newCapacity, bCopyValues);
 	}
-	void print(const char * const text = NULL) const
+	void print(const char * const text = nullptr) const
 	{
 		m_src.print(text);
 	}

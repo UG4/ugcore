@@ -82,7 +82,7 @@ inline vector3 GetGridObjectCenter(Grid& g, GridObject* elem)
 template <class TElem>
 int GetGridObjectIndex(Grid& g, TElem* elem)
 {
-	typedef typename Grid::traits<TElem>::base_object TBase;
+	using TBase = typename Grid::traits<TElem>::base_object;
 
 	int counter = 0;
 	for(typename Grid::traits<TBase>::iterator iter = g.begin<TBase>();
@@ -98,7 +98,7 @@ template <class TElem, class TAValue>
 void WriteDebugValuesToFile(const char* filename, Grid& grid,
 							TAValue& aVal, bool levelWise)
 {
-	typedef typename Grid::traits<TElem>::base_object TBase;
+	using TBase = typename Grid::traits<TElem>::base_object;
 
 	std::ofstream out(filename);
 	if(!out)

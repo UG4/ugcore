@@ -68,7 +68,7 @@ namespace node_tree
  *
  * \param elemIDs: Array of size numElemInds / numIndsPerElem, that allows
  *				to specify an identifier associated with each element in the oct-tree.
- *				This parameter may be NULL.
+ *				This parameter may be nullptr.
  *
  * \param maxDepth: Maximal depth of the generated trees.
  *
@@ -116,7 +116,7 @@ CreateOctree(vector3* points, size_t numPoints,
  *
  * \param elemIDs: Array of size numElemInds / numIndsPerElem, that allows
  *				to specify an identifier associated with each element in the oct-tree.
- *				This parameter may be NULL.
+ *				This parameter may be nullptr.
  *
  * \param maxDepth: Maximal depth of the generated trees.
  *

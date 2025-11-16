@@ -102,7 +102,7 @@ std::tuple<unvisited_iterator, unvisited_iterator> make_unvisited_iterator(std::
 template <typename TAlgebra>
 class dirichlet_iterator{
 public:
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	dirichlet_iterator(matrix_type &mat, unsigned i, unsigned num) : A(mat), cur(i), n(num){
 		operator++();
@@ -137,7 +137,7 @@ protected:
 template <typename TAlgebra>
 class non_dirichlet_iterator{
 public:
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	non_dirichlet_iterator(matrix_type &mat, unsigned i, unsigned num) : A(mat), cur(i), n(num){
 		operator++();

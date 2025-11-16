@@ -42,13 +42,13 @@ Quadrilateral* CreateQuadrilateral_NoRegistration(Grid& g, Face* tri1, Face* tri
 				  "but non-triangle specifed.");
 
 	Edge* e = GetConnectingEdge(g, tri1, tri2);
-	UG_COND_THROW(e == NULL, "Only triangles sharing one edge may be converted "
+	UG_COND_THROW(e == nullptr, "Only triangles sharing one edge may be converted "
 				  "to a quadrilateral. This is not the case here.");
 
 	Vertex* v1 = GetConnectedVertex(e, tri1);
 	Vertex* v3 = GetConnectedVertex(e, tri2);
 
-	UG_COND_THROW(v1 == NULL || v3 == NULL || v1 == v3,
+	UG_COND_THROW(v1 == nullptr || v3 == nullptr || v1 == v3,
 				  "Invalid triangles specified. Only two triangles sharing "
 				  "exactly 2 vertices can be converted to a triangle.");
 

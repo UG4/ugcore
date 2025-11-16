@@ -73,7 +73,7 @@ class ParallelMatrix : public TMatrix
 
 	public:
 	///	own type
-		typedef ParallelMatrix<TMatrix> this_type;
+		using this_type = ParallelMatrix<TMatrix>;
 
 	public:
 	///	Default Constructor

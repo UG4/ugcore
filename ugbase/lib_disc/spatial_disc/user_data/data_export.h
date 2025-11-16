@@ -69,7 +69,7 @@ class ValueDataExport
 		                    bool bDeriv,
 		                    int s,
 		                    std::vector<std::vector<number> > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
+		                    const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
 		virtual void check_setup() const;
 
@@ -99,7 +99,7 @@ class GradientDataExport
 		                    bool bDeriv,
 		                    int s,
 		                    std::vector<std::vector<MathVector<dim> > > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
+		                    const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
 		virtual void check_setup() const;
 
@@ -129,7 +129,7 @@ class VectorDataExport
 							bool bDeriv,
 							int s,
 							std::vector<std::vector<MathVector<dim> > > vvvDeriv[],
-							const MathMatrix<refDim, dim>* vJT = NULL) const;
+							const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
 		virtual void check_setup() const;
 
@@ -164,7 +164,7 @@ class DataExport :
 		                    bool bDeriv,
 		                    int s,
 		                    std::vector<std::vector<TData> > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
+		                    const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
 	///	register evaluation of export function
 		template <typename TClass, int refDim>
@@ -245,16 +245,16 @@ class DataExport :
 		// free function functor
 		template <int refDim>
 		class FreeFunctionFunctor : public FunctorBase<refDim>{
-			typedef void (*FreeFunc)(TData vValue[],
-								const MathVector<dim> vGlobIP[],
-								number time, int si,
-								const LocalVector& u,
-								GridObject* elem,
-								const MathVector<dim> vCornerCoords[],
-								const MathVector<refDim> vLocIP[],
-								const size_t nip,
-								bool bDeriv,
-								std::vector<std::vector<TData> > vvvDeriv[]);
+			using FreeFunc = void(*)(TData vValue[],
+			                         const MathVector<dim> vGlobIP[],
+			                         number time, int si,
+			                         const LocalVector& u,
+			                         GridObject* elem,
+			                         const MathVector<dim> vCornerCoords[],
+			                         const MathVector<refDim> vLocIP[],
+			                         const size_t nip,
+			                         bool bDeriv,
+			                         std::vector<std::vector<TData> > vvvDeriv[]);
 
 			public:
 				FreeFunctionFunctor(FreeFunc f) : m_f(f) {}
@@ -280,16 +280,16 @@ class DataExport :
 		// member function functor
 		template <typename TClass, int refDim>
 		class MemberFunctionFunctor : public FunctorBase<refDim>{
-			typedef void (TClass::*MemFunc)(TData vValue[],
-								const MathVector<dim> vGlobIP[],
-								number time, int si,
-								const LocalVector& u,
-								GridObject* elem,
-								const MathVector<dim> vCornerCoords[],
-								const MathVector<refDim> vLocIP[],
-								const size_t nip,
-								bool bDeriv,
-								std::vector<std::vector<TData> > vvvDeriv[]);
+			using MemFunc = void(TClass::*)(TData vValue[],
+			                                const MathVector<dim> vGlobIP[],
+			                                number time, int si,
+			                                const LocalVector& u,
+			                                GridObject* elem,
+			                                const MathVector<dim> vCornerCoords[],
+			                                const MathVector<refDim> vLocIP[],
+			                                const size_t nip,
+			                                bool bDeriv,
+			                                std::vector<std::vector<TData> > vvvDeriv[]);
 
 			public:
 				MemberFunctionFunctor(TClass* obj, MemFunc f) : m_pObj(obj), m_mf(f) {}
@@ -317,7 +317,7 @@ class DataExport :
 		template <int refDim>
 		class Functor{
 			public:
-				Functor() : m_spImpl(NULL) {}
+				Functor() : m_spImpl(nullptr) {}
 
 				template <typename FreeFunc>
 				Functor(FreeFunc f) : m_spImpl(new FreeFunctionFunctor<refDim>(f)) {}

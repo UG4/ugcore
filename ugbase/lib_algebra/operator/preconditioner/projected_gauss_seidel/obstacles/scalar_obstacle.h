@@ -62,22 +62,22 @@ class ScalarLowerObstacle:
 {
 	public:
 	///	Base class type
-		typedef IObstacleConstraint<TDomain,TAlgebra> base_type;
+		using base_type = IObstacleConstraint<TDomain,TAlgebra>;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Matrix type
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	///	Value type
-		typedef typename vector_type::value_type value_type;
+		using value_type = typename vector_type::value_type;
 
 	///	Type of grid function
-		typedef GridFunction<TDomain, TAlgebra> function_type;
+		using function_type = GridFunction<TDomain, TAlgebra>;
 
 	public:
 	/// constructor for a scalar obstacle
@@ -113,22 +113,22 @@ class ScalarUpperObstacle:
 {
 	public:
 	///	Base class type
-		typedef IObstacleConstraint<TDomain,TAlgebra> base_type;
+		using base_type = IObstacleConstraint<TDomain,TAlgebra>;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Matrix type
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	///	Value type
-		typedef typename vector_type::value_type value_type;
+		using value_type = typename vector_type::value_type;
 
 	///	Type of grid function
-		typedef GridFunction<TDomain, TAlgebra> function_type;
+		using function_type = GridFunction<TDomain, TAlgebra>;
 
 	public:
 	/// constructor for a scalar obstacle

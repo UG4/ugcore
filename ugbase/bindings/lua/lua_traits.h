@@ -81,13 +81,13 @@ struct lua_traits;
 template <>
 struct lua_traits<void>
 {
-	static const int size = 0;
+	static constexpr int size = 0;
 
 	static void push(lua_State*	L, const bool&){}
 
 	static void read(lua_State* L, bool&, int index = -1){}
 
-	static void do_return(const bool&) {return;}
+	static void do_return(const bool&) {}
 
 	static bool check(lua_State* L, int index = -1){return true;}
 
@@ -105,7 +105,7 @@ struct lua_traits<void>
 template <>
 struct lua_traits<bool>
 {
-	static const int size = 1;
+	static constexpr int size = 1;
 
 	static void push(lua_State*	L, const bool& b)
 	{
@@ -138,7 +138,7 @@ struct lua_traits<bool>
 template <>
 struct lua_traits<int>
 {
-	static const int size = 1;
+	static constexpr int size = 1;
 
 	static void push(lua_State*	L, const int& c)
 	{
@@ -169,7 +169,7 @@ struct lua_traits<int>
 template <>
 struct lua_traits<number>
 {
-	static const int size = 1;
+	static constexpr int size = 1;
 
 	static void push(lua_State*	L, const number& c)
 	{
@@ -207,9 +207,9 @@ struct lua_traits<number>
 };
 
 template <std::size_t dim>
-struct lua_traits< ug::MathVector<dim> >
+struct lua_traits< MathVector<dim> >
 {
-	static const int size = dim;
+	static constexpr int size = dim;
 
 	static void push(lua_State*	L, const MathVector<dim>& x)
 	{
@@ -267,7 +267,7 @@ struct lua_traits< ug::MathVector<dim> >
 template <std::size_t dim>
 struct lua_traits< MathMatrix<dim, dim> >
 {
-	static const int size = dim*dim;
+	static constexpr int size = dim*dim;
 
 	static void push(lua_State*	L, const MathMatrix<dim, dim>& D)
 	{

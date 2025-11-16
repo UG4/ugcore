@@ -183,8 +183,8 @@ void DegeneratedLayerManager<dim>::init_refiner
 template <int dim>
 void DegeneratedLayerManager<dim>::mark_vertices ()
 {
-	typedef typename geometry_traits<element_type>::const_iterator t_elem_iter;
-	
+	using t_elem_iter = typename geometry_traits<element_type>::const_iterator;
+
 	MultiGrid * pMG = (MultiGrid *) (m_spSH->multi_grid ());
 	
 //	Mark all vertices of the fracture elements:
@@ -272,7 +272,7 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 	side_type * & outer_side, ///< [out] its fracture outer side
 	size_t & outer_side_idx, ///< [out] index of the outer side in the reference element
 	size_t outer_side_corners [], ///< [out] outer side corner idx -> elem. corner idx (maxLayerSideCorners elements)
-	size_t ass_co [] ///< [out] correspondence of the corners of the sides (2 * maxLayerSideCorners elements or NULL)
+	size_t ass_co [] ///< [out] correspondence of the corners of the sides (2 * maxLayerSideCorners elements or nullptr)
 )
 {
 	size_t n_inner, n_outer;
@@ -282,8 +282,8 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 	
 //	First, we check, whether the inner and outer sides are well defined.
 //	Loop over the sides: We look for sides with only inner or only outer corners
-	inner_side = NULL; n_inner = 0;
-	outer_side = NULL; n_outer = 0;
+	inner_side = nullptr; n_inner = 0;
+	outer_side = nullptr; n_outer = 0;
 	for (size_t i = 0; i < elem->num_sides (); i++)
 	{
 		side_type * side = pMG->get_side (elem, i);
@@ -304,7 +304,7 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 		
 		if (has_inner)
 		{	// this is the inner side
-			if (inner_side != NULL)
+			if (inner_side != nullptr)
 				UG_THROW ("DegeneratedLayerManager: Two inner sides of a degenerated layer element found!");
 			inner_side = side;
 			inner_side_idx = i;
@@ -312,7 +312,7 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 		}
 		else
 		{	// this is the outer side
-			if (outer_side != NULL)
+			if (outer_side != nullptr)
 				UG_THROW ("DegeneratedLayerManager: Two outer sides of a degenerated layer element found!");
 			outer_side = side;
 			outer_side_idx = i;
@@ -365,7 +365,7 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 	}
 	
 //	Loop over the edges: Find out the associated corners
-	if (ass_co != NULL)
+	if (ass_co != nullptr)
 	{
 		pMG->associated_elements (edge_list, elem);
 		for (size_t i = 0; i < edge_list.size (); i++)
@@ -413,7 +413,7 @@ int DegeneratedLayerManager<dim>::assign_middle_subset
 	int middle_si ///< the subset index to assign (or -1 to create a new subset)
 )
 {
-	typedef typename geometry_traits<element_type>::const_iterator t_elem_iter;
+	using t_elem_iter = typename geometry_traits<element_type>::const_iterator;
 	
 	MultiGrid * pMG = (MultiGrid *) (m_spSH->multi_grid ());
 	

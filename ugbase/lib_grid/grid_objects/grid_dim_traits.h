@@ -55,68 +55,68 @@ template <int dim> struct grid_dim_traits;
 // 0d
 template <> struct grid_dim_traits<0>
 {
-	typedef boost::mpl::list<RegularVertex> DimElemList;
-	typedef boost::mpl::list<RegularVertex> AllElemList;
+	using DimElemList = boost::mpl::list<RegularVertex>;
+	using AllElemList = boost::mpl::list<RegularVertex>;
 
-	typedef geometry_traits<Vertex>::const_iterator const_iterator;
-	typedef geometry_traits<Vertex>::iterator iterator;
+	using const_iterator = geometry_traits<Vertex>::const_iterator;
+	using iterator = geometry_traits<Vertex>::iterator;
 
-	typedef geometry_traits<Vertex>::grid_base_object grid_base_object;
-	typedef geometry_traits<Vertex>::grid_base_object element_type;
+	using grid_base_object = geometry_traits<Vertex>::grid_base_object;
+	using element_type = geometry_traits<Vertex>::grid_base_object;
 
-	const static size_t MaxNumVerticesOfElem = 1;
+	static constexpr size_t MaxNumVerticesOfElem = 1;
 };
 
 // 1d
 template <> struct grid_dim_traits<1>
 {
-	typedef boost::mpl::list<RegularEdge> DimElemList;
-	typedef boost::mpl::list<RegularEdge> AllElemList;
-	typedef boost::mpl::list<> ManifoldElemList;
+	using DimElemList = boost::mpl::list<RegularEdge>;
+	using AllElemList = boost::mpl::list<RegularEdge>;
+	using ManifoldElemList = boost::mpl::list<>;
 
-	typedef geometry_traits<Edge>::const_iterator const_iterator;
-	typedef geometry_traits<Edge>::iterator iterator;
+	using const_iterator = geometry_traits<Edge>::const_iterator;
+	using iterator = geometry_traits<Edge>::iterator;
 
-	typedef geometry_traits<Edge>::grid_base_object grid_base_object;
-	typedef geometry_traits<Edge>::grid_base_object element_type;
-	typedef geometry_traits<Vertex>::grid_base_object side_type;
+	using grid_base_object = geometry_traits<Edge>::grid_base_object;
+	using element_type = geometry_traits<Edge>::grid_base_object;
+	using side_type = geometry_traits<Vertex>::grid_base_object;
 
-	const static size_t MaxNumVerticesOfElem = 2;
+	static constexpr size_t MaxNumVerticesOfElem = 2;
 };
 
 // 2d
 template <> struct grid_dim_traits<2>
 {
-	typedef boost::mpl::list<Triangle, Quadrilateral> DimElemList;
-	typedef boost::mpl::list<RegularEdge, Triangle, Quadrilateral> AllElemList;
-	typedef boost::mpl::list<RegularEdge> ManifoldElemList;
+	using DimElemList = boost::mpl::list<Triangle, Quadrilateral>;
+	using AllElemList = boost::mpl::list<RegularEdge, Triangle, Quadrilateral>;
+	using ManifoldElemList = boost::mpl::list<RegularEdge>;
 
-	typedef geometry_traits<Face>::const_iterator const_iterator;
-	typedef geometry_traits<Face>::iterator iterator;
+	using const_iterator = geometry_traits<Face>::const_iterator;
+	using iterator = geometry_traits<Face>::iterator;
 
-	typedef geometry_traits<Face>::grid_base_object grid_base_object;
-	typedef geometry_traits<Face>::grid_base_object element_type;
-	typedef geometry_traits<Edge>::grid_base_object side_type;
+	using grid_base_object = geometry_traits<Face>::grid_base_object;
+	using element_type = geometry_traits<Face>::grid_base_object;
+	using side_type = geometry_traits<Edge>::grid_base_object;
 
-	const static size_t MaxNumVerticesOfElem = 4;
+	static constexpr size_t MaxNumVerticesOfElem = 4;
 };
 
 // 3d
 template <> struct grid_dim_traits<3>
 {
-	typedef boost::mpl::list<Tetrahedron, Prism, Pyramid, Hexahedron, Octahedron> DimElemList;
-	typedef boost::mpl::list<RegularEdge, Triangle, Quadrilateral,
-								Tetrahedron, Prism, Pyramid, Hexahedron, Octahedron> AllElemList;
-	typedef boost::mpl::list<Triangle, Quadrilateral> ManifoldElemList;
+	using DimElemList = boost::mpl::list<Tetrahedron, Prism, Pyramid, Hexahedron, Octahedron>;
+	using AllElemList = boost::mpl::list<RegularEdge, Triangle, Quadrilateral,
+		Tetrahedron, Prism, Pyramid, Hexahedron, Octahedron>;
+	using ManifoldElemList = boost::mpl::list<Triangle, Quadrilateral>;
 
-	typedef geometry_traits<Volume>::const_iterator const_iterator;
-	typedef geometry_traits<Volume>::iterator iterator;
+	using const_iterator = geometry_traits<Volume>::const_iterator;
+	using iterator = geometry_traits<Volume>::iterator;
 
-	typedef geometry_traits<Volume>::grid_base_object grid_base_object;
-	typedef geometry_traits<Volume>::grid_base_object element_type;
-	typedef geometry_traits<Face>::grid_base_object side_type;
+	using grid_base_object = geometry_traits<Volume>::grid_base_object;
+	using element_type = geometry_traits<Volume>::grid_base_object;
+	using side_type = geometry_traits<Face>::grid_base_object;
 
-	const static size_t MaxNumVerticesOfElem = 8;
+	static constexpr size_t MaxNumVerticesOfElem = 8;
 };
 
 } // end namespace ug

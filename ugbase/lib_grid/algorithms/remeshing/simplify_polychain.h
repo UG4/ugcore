@@ -55,7 +55,7 @@ void SimplifyPolylines(Grid& grid, TEdgeIter edgesBegin, TEdgeIter edgesEnd,
 					   number curvatureThreshold, TAAPos aaPos)
 {
 	using namespace std;
-	typedef typename TAAPos::ValueType	vector_t;
+	using vector_t = typename TAAPos::ValueType;
 
 	grid.begin_marking();
 
@@ -139,8 +139,8 @@ void SimplifyPolylines(Grid& grid, TEdgeIter edgesBegin, TEdgeIter edgesEnd,
 
 		//	the vertex has to be removed. Create a new edge between
 		//	the two connected vertices and mark it. Unmark connected vertices.
-			Edge* cedge[2] = {NULL, NULL};
-			Vertex* cvrt[2] = {NULL, NULL};
+			Edge* cedge[2] = {nullptr, nullptr};
+			Vertex* cvrt[2] = {nullptr, nullptr};
 			for(assIter.reinit(grid, vrt); assIter.valid(); ++assIter){
 				if(!cvrt[0]){
 					cedge[0] = *assIter;

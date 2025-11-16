@@ -65,19 +65,19 @@ class IInterfaceExtrapolation
 public:
 
 ///	domain type
-	typedef TDomain domain_type;
+using domain_type = TDomain;
 	
 ///	algebra type for the functions to extrapolate
-	typedef TAlgebra algebra_type;
+using algebra_type = TAlgebra;
 	
 ///	vector type (for the functions to extrapolate)
-	typedef typename algebra_type::vector_type vector_type;
+using vector_type = typename algebra_type::vector_type;
 	
 ///	matrix type
-	typedef typename algebra_type::matrix_type matrix_type;
+using matrix_type = typename algebra_type::matrix_type;
 	
 ///	dimensionality (the World dimension)
-	static const int dim = domain_type::dim;
+	static constexpr int dim = domain_type::dim;
 	
 ///	Constructor
 	IInterfaceExtrapolation () {}
@@ -160,28 +160,28 @@ class LSGFGlobAssembler
 public:
 
 ///	Domain type
-	typedef TDomain domain_type;
+using domain_type = TDomain;
 	
 ///	Algebra type
-	typedef TAlgebra algebra_type;
+using algebra_type = TAlgebra;
 	
 ///	type of approximation space
-	typedef ApproximationSpace<domain_type> approx_space_type;
+using approx_space_type = ApproximationSpace<domain_type>;
 	
 ///	Vector type in the algebra
-	typedef typename algebra_type::vector_type vector_type;
+using vector_type = typename algebra_type::vector_type;
 	
 ///	Matrix type in the algebra
-	typedef typename algebra_type::matrix_type matrix_type;
+using matrix_type = typename algebra_type::matrix_type;
 	
 ///	Extrapolation type
-	typedef TExtrapolation extrapolation_type;
+using extrapolation_type = TExtrapolation;
 	
 ///	Grid function type for the LSF
-	typedef typename extrapolation_type::ls_grid_func_type ls_grid_func_type;
+using ls_grid_func_type = typename extrapolation_type::ls_grid_func_type;
 	
 ///	world dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 	
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor/destructor
@@ -668,19 +668,19 @@ class LSGFConstraint
 public:
 
 ///	Domain type
-	typedef TDomain domain_type;
+using domain_type = TDomain;
 	
 ///	Algebra type
-	typedef TAlgebra algebra_type;
+using algebra_type = TAlgebra;
 	
 ///	Vector type in the algebra
-	typedef typename algebra_type::vector_type vector_type;
+using vector_type = typename algebra_type::vector_type;
 	
 ///	Matrix type in the algebra
-	typedef typename algebra_type::matrix_type matrix_type;
+using matrix_type = typename algebra_type::matrix_type;
 	
 ///	Extrapolation type
-	typedef TExtrapolation extrapolation_type;
+	using extrapolation_type = TExtrapolation;
 	
 ///	class constructor
 	LSGFConstraint
@@ -701,7 +701,7 @@ public:
 		ConstSmartPtr<DoFDistribution> dd,
 		int type,
 		number time = 0.0,
-		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
+		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
 		const number s_a0 = 1.0
 	)
 	{
@@ -716,9 +716,9 @@ public:
 		ConstSmartPtr<DoFDistribution> dd,
 		int type,
 		number time = 0.0,
-		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
-		const std::vector<number> * vScaleMass = NULL,
-		const std::vector<number> * vScaleStiff = NULL
+		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
+		const std::vector<number> * vScaleMass = nullptr,
+		const std::vector<number> * vScaleStiff = nullptr
 	)
 	{
 		m_rExtrapolation.clear_outer_values (d, dd.get ());
@@ -786,38 +786,38 @@ class LSGFDomainDiscretization
 	public IInterfaceExtrapolation<TDomain, TAlgebra>
 {
 /// Type of the global assembler
-	typedef LSGFGlobAssembler<TDomain, TAlgebra, TExtrapolation> gass_type;
+	using gass_type = LSGFGlobAssembler<TDomain, TAlgebra, TExtrapolation>;
 	
 ///	Type of the base class
-	typedef DomainDiscretizationBase<TDomain, TAlgebra, gass_type> base_type;
+	using base_type = DomainDiscretizationBase<TDomain, TAlgebra, gass_type>;
 
 /// Type of the constraint
-	typedef LSGFConstraint<TDomain, TAlgebra, TExtrapolation> ls_constraint_type;
+	using ls_constraint_type = LSGFConstraint<TDomain, TAlgebra, TExtrapolation>;
 	
 public:
 ///	Type of Domain
-	typedef TDomain domain_type;
+	using domain_type = TDomain;
 
 ///	Type of algebra
-	typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 ///	Type of the grid
-	typedef typename TDomain::grid_type grid_type;
+	using grid_type = typename TDomain::grid_type;
 
 ///	Type of algebra matrix
-	typedef typename algebra_type::matrix_type matrix_type;
+	using matrix_type = typename algebra_type::matrix_type;
 
 ///	Type of algebra vector
-	typedef typename algebra_type::vector_type vector_type;
+	using vector_type = typename algebra_type::vector_type;
 
 ///	Type of approximation space
-	typedef ApproximationSpace<TDomain>	approx_space_type;
+	using approx_space_type = ApproximationSpace<TDomain>;
 	
 ///	Type of the LSF grid functions
-	typedef typename gass_type::ls_grid_func_type ls_grid_func_type;
+	using ls_grid_func_type = typename gass_type::ls_grid_func_type;
 	
 ///	world dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 	
 public:
 ///	default Constructor

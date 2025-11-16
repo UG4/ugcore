@@ -86,8 +86,9 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 
 	typename block_multiply_traits<typename A_type::value_type, typename B_type::value_type>::ReturnType ab;
 
-	typedef UnsortedSparseVector<typename ABC_type::value_type> RowType;
-	typedef typename RowType::iterator RowIterator;
+	using RowType = UnsortedSparseVector<typename ABC_type::value_type>;
+	using RowIterator = typename RowType::iterator;
+
 	RowType row(C.num_cols());;
 
 	std::vector<typename ABC_type::connection> con2;
@@ -95,9 +96,9 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 
 	typename ABC_type::connection c;
 
-	typedef typename A_type::const_row_iterator cAiterator;
-	typedef typename B_type::const_row_iterator cBiterator;
-	typedef typename C_type::const_row_iterator cCiterator;
+	using cAiterator = typename A_type::const_row_iterator;
+	using cBiterator = typename B_type::const_row_iterator;
+	using cCiterator = typename C_type::const_row_iterator;
 
 	// do
 	// M_{ij} = \sum_kl A_{ik} * B_{kl} * C_{lj}
@@ -180,8 +181,9 @@ void AddMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &
 
 	typename block_multiply_traits<typename A_type::value_type, typename B_type::value_type>::ReturnType ab;
 
-	typedef UnsortedSparseVector<typename ABC_type::value_type> RowType;
-	typedef typename RowType::iterator RowIterator;
+	using RowType = UnsortedSparseVector<typename ABC_type::value_type>;
+	using RowIterator = typename RowType::iterator;
+
 	RowType row(C.num_cols());;
 
 	std::vector<typename ABC_type::connection> con2;
@@ -189,9 +191,9 @@ void AddMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &
 
 	typename ABC_type::connection c;
 
-	typedef typename A_type::const_row_iterator cAiterator;
-	typedef typename B_type::const_row_iterator cBiterator;
-	typedef typename C_type::const_row_iterator cCiterator;
+	using cAiterator = typename A_type::const_row_iterator;
+	using cBiterator = typename B_type::const_row_iterator;
+	using cCiterator = typename C_type::const_row_iterator;
 
 	// do
 	// M_{ij} = \sum_kl A_{ik} * B_{kl} * C_{lj}
@@ -264,9 +266,9 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 	M.resize_and_clear(A.num_rows(), B.num_cols());
 
 	// types
-	typedef typename A_type::const_row_iterator cAiterator;
-	typedef typename B_type::const_row_iterator cBiterator;
-	typedef UnsortedSparseVector<typename AB_type::value_type> RowType;
+	using cAiterator = typename A_type::const_row_iterator;
+	using cBiterator = typename B_type::const_row_iterator;
+	using RowType = UnsortedSparseVector<typename AB_type::value_type>;
 
 	RowType row(B.num_cols());
 
@@ -310,7 +312,7 @@ void MatAdd(matrix_type &M, number alpha1, const matrix_type &A, number alpha2, 
 {
 	PROFILE_FUNC_GROUP("algebra");
 	UG_ASSERT(A.num_rows() == B.num_rows() && A.num_cols() == B.num_cols(), "sizes must match");
-	typedef typename matrix_type::const_row_iterator criterator;
+	using criterator = typename matrix_type::const_row_iterator;
 
 	// create output matrix M
 	if(&M != &A)
@@ -384,7 +386,7 @@ void MatAddNonDirichlet(matrix_type &M, number alpha1, const matrix_type &A, num
 {
 	PROFILE_FUNC_GROUP("algebra");
 	UG_ASSERT(A.num_rows() == B.num_rows() && A.num_cols() == B.num_cols(), "sizes must match");
-	typedef typename matrix_type::const_row_iterator criterator;
+	using criterator = typename matrix_type::const_row_iterator;
 
 	// create output matrix M
 	if(&M != &A)
@@ -403,7 +405,8 @@ void MatAddNonDirichlet(matrix_type &M, number alpha1, const matrix_type &A, num
 
 		// copy only A for dirichlet rows
 		// -> create a pattern Pii
-		typedef typename matrix_type::value_type value_type;
+		using value_type = typename matrix_type::value_type;
+
 		const value_type &Aii = A(i,i);
 		value_type Pii = 1.0;
 
@@ -609,12 +612,12 @@ void GetNeighborhoodHierachy(const TSparseMatrix &A, size_t node, size_t depth, 
  * \param node (in) the node where to start
  * \param depth (in) the depth of neighborhood. 0 = empty.
  * \param indices (out) the indices of the neighbors
- * \param posInConnections array to speed up computation. Has to be posInConnections[i] = 0 for all i=0..A.num_rows(). Can be NULL.
+ * \param posInConnections array to speed up computation. Has to be posInConnections[i] = 0 for all i=0..A.num_rows(). Can be nullptr.
  * \note the node itself is only included if there is a connection from node to node.
   */
 #if 0
 template<typename T>
-void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, std::vector<size_t> &indices, int *posInConnections=NULL)
+void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, std::vector<size_t> &indices, int *posInConnections=nullptr)
 {
 	// perhaps this is better with recursion
 	indices.clear();
@@ -639,7 +642,7 @@ void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, std::vector<
 			else
 			{
 				size_t pos;
-				if(posInConnections == NULL)
+				if(posInConnections == nullptr)
 				{
 					for(pos=0; pos<indices.size(); pos++)
 						if(indices[pos] == index)
@@ -688,7 +691,8 @@ void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, std::vector<
 template<typename TSparseMatrix>
 bool IsCloseToBoundary(const TSparseMatrix &A, size_t node, size_t distance)
 {
-	typedef typename TSparseMatrix::const_row_iterator iterator;
+	using iterator = typename TSparseMatrix::const_row_iterator;
+
 	if(distance == 0) return A.is_isolated(node);
 	bool bFound = false;
 	iterator itEnd = A.end_row(node);
@@ -709,8 +713,8 @@ bool IsCloseToBoundary(const TSparseMatrix &A, size_t node, size_t distance)
 template <typename TSparseMatrix>
 void SetRow(TSparseMatrix &A, size_t i, size_t alpha, number val = 0.0)
 {
-	typedef typename TSparseMatrix::row_iterator iterator;
-	typedef typename TSparseMatrix::value_type value_type;
+	using iterator = typename TSparseMatrix::row_iterator;
+	using value_type = typename TSparseMatrix::value_type;
 	iterator itEnd = A.end_row(i);
 	for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 	{
@@ -734,7 +738,7 @@ void SetRow(TSparseMatrix &A, size_t i, size_t alpha, number val = 0.0)
 template <typename TSparseMatrix>
 void SetCol(TSparseMatrix &A, size_t i, size_t alpha, number val = 0.0)
 {
-	typedef typename TSparseMatrix::value_type value_type;
+	using value_type = typename TSparseMatrix::value_type;
 	for(size_t row = 0; row != A.num_rows(); ++row)
 	{
 		value_type& block = A(row, i);
@@ -758,7 +762,7 @@ void SetCol(TSparseMatrix &A, size_t i, size_t alpha, number val = 0.0)
 template <typename TSparseMatrix>
 void SetRow(TSparseMatrix& A, size_t i, number val = 0.0)
 {
-	typedef typename TSparseMatrix::row_iterator iterator;
+	using iterator = typename TSparseMatrix::row_iterator;
 	iterator itEnd = A.end_row(i);
 	for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 		conn.value() = val;
@@ -776,7 +780,7 @@ void SetRow(TSparseMatrix& A, size_t i, number val = 0.0)
 template <typename TSparseMatrix>
 void ScaleRow(TSparseMatrix& A, size_t i, number fac)
 {
-	typedef typename TSparseMatrix::row_iterator iterator;
+	using iterator = typename TSparseMatrix::row_iterator;
 	iterator itEnd = A.end_row(i);
 	for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 		conn.value() *= fac;
@@ -795,8 +799,9 @@ void ScaleRow(TSparseMatrix& A, size_t i, number fac)
 template <typename TSparseMatrix>
 void SetDirichletRow(TSparseMatrix &A, size_t i, size_t alpha)
 {
-	typedef typename TSparseMatrix::row_iterator iterator;
-	typedef typename TSparseMatrix::value_type value_type;
+	using iterator = typename TSparseMatrix::row_iterator;
+	using value_type = typename TSparseMatrix::value_type;
+
 	BlockRef(A(i,i), alpha, alpha) = 1.0;
 
 	iterator itEnd = A.end_row(i);
@@ -816,8 +821,8 @@ void SetDirichletRow(TSparseMatrix &A, size_t i, size_t alpha)
 template <typename TSparseMatrix>
 bool IsDirichletRow(const TSparseMatrix &A, size_t i, size_t alpha)
 {
-	typedef typename TSparseMatrix::const_row_iterator iterator;
-	typedef typename TSparseMatrix::value_type value_type;
+	using iterator = typename TSparseMatrix::const_row_iterator;
+	using value_type = typename TSparseMatrix::value_type;
 
 	// no Dirichlet row,
 	if (BlockRef(A(i,i), alpha, alpha) != 1.0) return false;
@@ -849,8 +854,9 @@ bool IsDirichletRow(const TSparseMatrix &A, size_t i, size_t alpha)
 template <typename TSparseMatrix>
 void SetDirichletRow(TSparseMatrix& A, size_t i)
 {
-	typedef typename TSparseMatrix::row_iterator iterator;
-	typedef typename TSparseMatrix::value_type value_type;
+	using iterator = typename TSparseMatrix::row_iterator;
+	using value_type = typename TSparseMatrix::value_type;
+
 	iterator itEnd = A.end_row(i);
 	for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 	{
@@ -871,10 +877,11 @@ void SetDirichletRow(TSparseMatrix& A, size_t i)
 template <typename TSparseMatrix>
 void SetDirichletRow(TSparseMatrix& A, const std::vector<size_t> vIndex)
 {
-	typedef typename TSparseMatrix::row_iterator iterator;
-	typedef typename TSparseMatrix::value_type value_type;
-	std::vector<size_t>::const_iterator iter = vIndex.begin();
-	std::vector<size_t>::const_iterator iterEnd = vIndex.end();
+	using iterator = typename TSparseMatrix::row_iterator;
+	using value_type = typename TSparseMatrix::value_type;
+
+	auto iter = vIndex.begin();
+	auto iterEnd = vIndex.end();
 
 	for(; iter < iterEnd; ++iter)
 	{
@@ -894,7 +901,7 @@ void SetDirichletRow(TSparseMatrix& A, const std::vector<size_t> vIndex)
 template<typename TSparseMatrix, class TOStream>
 void SerializeMatrix(TOStream &buf, const TSparseMatrix &A)
 {
-	typedef typename TSparseMatrix::const_row_iterator iterator;
+	using iterator = typename TSparseMatrix::const_row_iterator;
 	Serialize(buf, A.num_rows());
 	Serialize(buf, A.num_cols());
 
@@ -945,7 +952,8 @@ void DeserializeMatrix(TIStream& buf, TSparseMatrix &A)
 template<typename TSparseMatrix>
 void ScaleSparseMatrixCommon(TSparseMatrix &A, double d)
 {
-	typedef typename TSparseMatrix::row_iterator iterator;
+	using iterator = typename TSparseMatrix::row_iterator;
+
 	for(size_t r=0; r < A.num_rows(); r++)
 	{
 		iterator itEnd = A.end_row(r);
@@ -960,7 +968,7 @@ bool AxpyCommonSparseMatrix(const TSparseMatrix &A, vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1)
 {
-	typedef typename TSparseMatrix::const_row_iterator iterator;
+	using iterator = typename TSparseMatrix::const_row_iterator;
 //	UG_ASSERT(cols == x.size(), "x: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 //	UG_ASSERT(rows == res.size(), "res: " << x << " has wrong length (should be " << rows << "). A: " << *this);
 
@@ -1008,7 +1016,7 @@ bool Axpy_transposedCommonSparseMatrix(const TSparseMatrix &A, vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1)
 {
-	typedef typename TSparseMatrix::const_row_iterator iterator;
+	using iterator = typename TSparseMatrix::const_row_iterator;
 //	UG_ASSERT(rows == x.size(), "x: " << x << " has wrong length (should be " << rows << "). A: " << *this);
 //	UG_ASSERT(cols == res.size(), "res: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 
@@ -1041,7 +1049,7 @@ bool Axpy_transposedCommonSparseMatrix(const TSparseMatrix &A, vector_t &dest,
 template<typename TSparseMatrix>
 size_t GetNNZs(const TSparseMatrix &A)
 {
-	typedef typename TSparseMatrix::const_row_iterator iterator;
+	using iterator = typename TSparseMatrix::const_row_iterator;
 	size_t m=0;
 	for(size_t i=0; i<A.num_rows(); i++)
 	{
@@ -1056,7 +1064,8 @@ size_t GetNNZs(const TSparseMatrix &A)
 template<typename TSparseMatrix>
 size_t GetMaxConnections(const TSparseMatrix &A)
 {
-	typedef typename TSparseMatrix::const_row_iterator iterator;
+	using iterator = typename TSparseMatrix::const_row_iterator;
+
 	size_t m=0;
 	for(size_t i=0; i<A.num_rows(); i++)
 	{
@@ -1094,7 +1103,8 @@ template<typename TSparseMatrix>
 bool CheckDiagonalInvertible(const TSparseMatrix &A)
 {
 #ifndef NDEBUG
-	typedef typename block_traits<typename TSparseMatrix::value_type>::inverse_type inverse_type;
+	using inverse_type = typename block_traits<typename TSparseMatrix::value_type>::inverse_type;
+
 	bool bsucc=true;
 	inverse_type inv;
 	for(size_t i=0; i<A.num_rows(); i++)
@@ -1116,7 +1126,7 @@ template<typename TVector>
 bool CheckVectorInvertible(const TVector &v)
 {
 #ifndef NDEBUG
-	typedef typename block_traits<typename TVector::value_type>::inverse_type inverse_type;
+	using inverse_type = typename block_traits<typename TVector::value_type>::inverse_type;
 	bool bsucc=true;
 	inverse_type inv;
 
@@ -1153,15 +1163,14 @@ bool CheckVectorInvertible(const ParallelVector<TVector> &v)
 template<typename TSparseMatrix>
 struct DenseMatrixFromSparseMatrix
 {
-	typedef DenseMatrix<VariableArray2<typename TSparseMatrix::value_type> > type;
+	using type = DenseMatrix<VariableArray2<typename TSparseMatrix::value_type> >;
 };
 
 template<typename TSparseMatrix>
 typename DenseMatrixFromSparseMatrix<TSparseMatrix>::type &
 GetDenseFromSparse(typename DenseMatrixFromSparseMatrix<TSparseMatrix>::type &A, const TSparseMatrix &S)
 {
-
-	typedef typename TSparseMatrix::const_row_iterator sparse_row_iterator;
+	using sparse_row_iterator = typename TSparseMatrix::const_row_iterator;
 	size_t numRows = S.num_rows();
 	size_t numCols = S.num_cols();
 //	PROGRESS_START(prog, n, "GetDenseFromSparse " << n);

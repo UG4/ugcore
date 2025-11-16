@@ -102,7 +102,7 @@ GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 							Grid::edge_traits::callback cbEdgeIsInPolyChain)
 {
 	if(edgesBegin == edgesEnd)
-		return std::make_pair<Vertex*, Edge*>(NULL, NULL);
+		return std::make_pair<Vertex*, Edge*>(nullptr, nullptr);
 	
 //	since we want to prefer vertices with local edge index 0, we'll first iterate
 //	over the local indices of the edges

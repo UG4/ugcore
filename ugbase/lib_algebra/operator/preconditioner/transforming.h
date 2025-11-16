@@ -74,13 +74,13 @@ private:
 public:
 
 	///	Algebra type
-	typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	Vector type
-	typedef typename algebra_type::vector_type vector_type;
+	using vector_type = typename algebra_type::vector_type;
 
 	///	Matrix type
-	typedef typename algebra_type::matrix_type matrix_type;
+	using matrix_type = typename algebra_type::matrix_type;
 
 
 	ITransformingIteration() : DebugWritingObject<TAlgebra>() {}
@@ -178,16 +178,16 @@ class AssembledTransformingSmoother :
 {
 	public:
 	///	Domain
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	///	Matrix type
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 		using DebugWritingObject<TAlgebra>::write_debug;
 		using ILinearIterator<typename TAlgebra::vector_type>::damping;
@@ -197,7 +197,7 @@ class AssembledTransformingSmoother :
 		AssembledTransformingSmoother(SmartPtr<IAssemble<TAlgebra> > spAuxSystemAss,
 		                              SmartPtr<ILinearIterator<vector_type> > spAuxSmoother,
 		                              SmartPtr<IAssemble<TAlgebra> > spRightTrafoAss,
-		                              SmartPtr<ILinearIterator<vector_type> > spRightTrafoSmoother=SPNULL)
+		                              SmartPtr<ILinearIterator<vector_type> > spRightTrafoSmoother=nullptr)
 			: m_spAuxSystemAss(spAuxSystemAss),
 			  m_spAuxMatrixOperator(new MatrixOperator<matrix_type, vector_type>),
 			  m_spAuxSmoother(spAuxSmoother),
@@ -367,7 +367,7 @@ untransform_correction(vector_type& c, const vector_type& d)
 
 
 	// release auy correction vecto
-	m_spAuxCorrection = SPNULL;
+	m_spAuxCorrection = nullptr;
 
 	#ifdef UG_PARALLEL
 		c.change_storage_type(PST_CONSISTENT);

@@ -56,7 +56,7 @@ template<typename T>
 class TE_VecScale : public TE_AlphaVec<TE_VecScale<T>  >
 {
 public:
-	typedef T vector_type;
+	using vector_type = T ;
 	double a;
 	const T& v;
 
@@ -72,7 +72,7 @@ template<class T>
 class TE_Vector : public TE_AlphaVec<TE_Vector<T>  >
 {
 public:
-	typedef T vector_type;
+	using vector_type = T ;
 	double scaling() const { return 1.0;}
 	const T& vec() const {return static_cast<const T&>(*this); }
 };

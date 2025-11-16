@@ -169,8 +169,8 @@ class SmartTestDerived : public SmartTest
 		virtual void say_hello()	{UG_LOG("Hello, I'm SmartTestDerived\n");}
 };
 
-typedef SmartPtr<SmartTest> SPSmartTest;
-typedef SmartPtr<SmartTestDerived> SPSmartTestDerived;
+using SPSmartTest = SmartPtr<SmartTest>;
+using SPSmartTestDerived = SmartPtr<SmartTestDerived>;
 
 void SmartTestArrived(SPSmartTest test)
 {
@@ -385,12 +385,12 @@ void PrintStringTest(const std::string& str)
 	UG_LOG("PrintStringTest recieved: " << str << endl);
 }
 
-
+/*
 void TestPageContainer()
 {
 	UG_LOG("Testing page container whith default maxPageSize.\n");
 
-	typedef PageContainer<double> PageCon;
+	using PageCon = PageContainer<double>;
 	PageCon* ppc = new PageCon;
 	PageCon& pc = *ppc;
 
@@ -412,7 +412,7 @@ void TestPageContainer()
 	UG_LOG("Releasing PageContainer...\n");
 	delete ppc;
 	UG_LOG("done.\n");
-}
+}*/
 
 void PostRegisteredFunction()
 {
@@ -722,8 +722,8 @@ void RegisterBridge_Test(Registry& reg, string parentGroup)
 			.add_function("ToConst", ToConst, grp)
 			.add_function("StringTest", StringTest, grp)
 			.add_function("StdStringTest", StdStringTest, grp)
-			.add_function("PrintStringTest", PrintStringTest, grp)
-			.add_function("TestPageContainer", TestPageContainer, grp);
+			.add_function("PrintStringTest", PrintStringTest, grp);
+			//ø .add_function("TestPageContainer", TestPageContainer, grp);
 
 		reg.add_class_<SmartTest>("SmartTest", grp)
 			.add_constructor()

@@ -50,13 +50,13 @@ using namespace std;
  * note that final padding to triplet boundary has to be performed manually!
  * see: http://www.boost.org/doc/libs/1_48_0/libs/serialization/doc/dataflow.html
  */
-typedef boost::archive::iterators::base64_from_binary<
-		// convert binary values to base64 characters
-			boost::archive::iterators::transform_width<
+using base64_text = boost::archive::iterators::base64_from_binary<
+	// convert binary values to base64 characters
+	boost::archive::iterators::transform_width<
 		// retrieve 6 bit integers from a sequence of 8 bit bytes
-			const char *, 6, 8>
-		// compose all the above operations in to a new iterator
-		> base64_text;
+		const char *, 6, 8>
+	// compose all the above operations in to a new iterator
+>;
 
 namespace ug {
 

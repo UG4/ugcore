@@ -59,7 +59,7 @@ void CollectConstraining(std::vector<Vertex*>& vConstrainingVrt,
 					dynamic_cast<ConstrainingEdge*>(constrainingObject);
 
 		//	check that edge is correct
-			if(constrainingEdge == NULL)
+			if(constrainingEdge == nullptr)
 				UG_THROW("Parent element should be "
 							"constraining edge, but is not.");
 
@@ -71,7 +71,7 @@ void CollectConstraining(std::vector<Vertex*>& vConstrainingVrt,
 													constrainingEdge->constrained_edge(i_cde));
 
 			//	check
-				if(constrainedEdge == NULL)
+				if(constrainedEdge == nullptr)
 					UG_THROW("Child element should be "
 								"constrained edge, but is not.");
 
@@ -111,7 +111,7 @@ void CollectConstraining(std::vector<Vertex*>& vConstrainingVrt,
 					dynamic_cast<ConstrainingQuadrilateral*>(constrainingObject);
 
 		//	check that quad is correct
-			if(bigQuad == NULL)
+			if(bigQuad == nullptr)
 				UG_THROW("Parent element should be "
 								"constraining quad, but is not.");
 
@@ -121,7 +121,7 @@ void CollectConstraining(std::vector<Vertex*>& vConstrainingVrt,
 			{
 				Face* face = bigQuad->constrained_face(i_cf);
 
-				Vertex* vrt = NULL;
+				Vertex* vrt = nullptr;
 				size_t i_vrt = 0;
 				for(i_vrt = 0; i_vrt < face->num_vertices(); ++i_vrt)
 				{
@@ -145,7 +145,7 @@ void CollectConstraining(std::vector<Vertex*>& vConstrainingVrt,
 			for(size_t i_face = 0; i_face < faces.size(); ++i_face){
 				Face* f = faces[i_face];
 				if(f->is_constrained()){
-					Vertex* vrt = NULL;
+					Vertex* vrt = nullptr;
 					size_t i_vrt = 0;
 					for(i_vrt = 0; i_vrt < f->num_vertices(); ++i_vrt){
 						vrt = f->vertex(i_vrt);

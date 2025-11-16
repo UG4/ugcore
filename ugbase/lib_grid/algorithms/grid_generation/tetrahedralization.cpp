@@ -183,7 +183,7 @@ static bool PerformTetrahedralization(Grid& grid,
 				tf->numberofpolygons = 1;
 				tf->polygonlist = new tetgenio::polygon[tf->numberofpolygons];
 				tf->numberofholes = 0;
-				tf->holelist = NULL;
+				tf->holelist = nullptr;
 				tetgenio::polygon* p = &tf->polygonlist[0];
 				p->numberofvertices = f->num_vertices();
 				p->vertexlist = new int[p->numberofvertices];
@@ -517,7 +517,7 @@ static bool PerformRetetrahedralization(Grid& grid,
 bool Tetrahedralize(Grid& grid, number quality, bool preserveBnds,
 					bool preserveAll, APosition& aPos, int verbosity)
 {
-	return PerformTetrahedralization(grid, NULL, quality, preserveBnds,
+	return PerformTetrahedralization(grid, nullptr, quality, preserveBnds,
 									preserveAll, aPos, verbosity);
 }
 

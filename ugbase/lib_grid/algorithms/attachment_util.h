@@ -55,9 +55,9 @@ template <class TAttachment>
 class MultiElementAttachmentAccessor
 {
 	public:
-		typedef typename TAttachment::ValueType	ValueType;
-		typedef typename attachment_value_traits<ValueType>::reference RefType;
-		typedef typename attachment_value_traits<ValueType>::const_reference ConstRefType;
+		using ValueType = typename TAttachment::ValueType;
+		using RefType = typename attachment_value_traits<ValueType>::reference;
+		using ConstRefType = typename attachment_value_traits<ValueType>::const_reference;
 
 		MultiElementAttachmentAccessor()	{}
 		MultiElementAttachmentAccessor(Grid& g, TAttachment& a, bool vrts = true,

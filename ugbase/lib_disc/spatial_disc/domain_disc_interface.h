@@ -51,13 +51,13 @@ class IDomainErrorIndicator
 {
 public:
 	/// Type of algebra vector
-	typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	/// Type of error vector
-	typedef typename CPUAlgebra::vector_type error_vector_type;
+	using error_vector_type = CPUAlgebra::vector_type;
 
 	// (virtual) destructor
-	virtual ~IDomainErrorIndicator() {};
+	virtual ~IDomainErrorIndicator() = default;
 
 		/**
 		 * Computes the error estimator.
@@ -68,12 +68,12 @@ public:
 			virtual	void calc_error
 			(	const vector_type& u,
 				const GridLevel& gl,
-				error_vector_type* u_vtk = NULL
+				error_vector_type* u_vtk = nullptr
 			) = 0;
 			virtual void calc_error
 			(	const vector_type& u,
 				ConstSmartPtr<DoFDistribution> dd,
-				error_vector_type* u_vtk = NULL
+				error_vector_type* u_vtk = nullptr
 			) = 0;
 
 			//! Transient version
@@ -107,10 +107,10 @@ class IDomainMarker
 {
 public:
 	/// Type of algebra vector
-	typedef IElementMarkingStrategy<TDomain> element_marking_strategy_type;
+	using element_marking_strategy_type = IElementMarkingStrategy<TDomain>;
 
 	// (virtual) destructor
-	virtual ~IDomainMarker() {};
+	virtual ~IDomainMarker() = default;
 
 	virtual void mark_with_strategy
 	(	IRefiner& refiner,
@@ -138,14 +138,14 @@ class IDomainDiscretization : public IAssemble<TAlgebra>, public IDomainErrorInd
 	
 	public:
 	/// Algebra type
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	/// Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+	using matrix_type = typename algebra_type::matrix_type;
 
 	/// Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
-		virtual ~IDomainDiscretization() {};
+	using vector_type = typename algebra_type::vector_type;
+	virtual ~IDomainDiscretization() = default;
 
 	public:
 		/// assembles Jacobian (or Approximation of Jacobian)

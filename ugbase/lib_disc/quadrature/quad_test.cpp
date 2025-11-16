@@ -55,7 +55,7 @@ void PrintQuadRule(const QuadratureRule<2>& q)
 
 void TestQuadRule()
 {
-	typedef GaussQuadrature<ReferenceTriangle, 1> Q;
+	using Q = GaussQuadrature<ReferenceTriangle, 1>;
 	cout << "Order: " << Q::order() << "\n";
 	cout << "Size:  " << Q::size() << "\n";
 	for(size_t i = 0; i < Q::size(); ++i)

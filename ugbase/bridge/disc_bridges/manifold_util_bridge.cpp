@@ -90,7 +90,7 @@ struct Functionality
 //	Register
 void RegisterBridge_ManifoldUtil(Registry& reg, string grp)
 {
-	typedef Functionality Functionality;
+	using Functionality = Functionality;
 
 	#if defined(UG_DIM_3)
 		try{

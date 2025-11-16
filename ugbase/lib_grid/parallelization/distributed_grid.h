@@ -121,18 +121,18 @@ class DistributedGridManager : public GridObserver
 	 * in InterfaceNodeTypes and ElementStatusTypes.
 	 * \sa contains_status
 	 * \{ */
-		byte get_status(GridObject* go) const;
-		inline byte get_status(Vertex* vrt)	const	{return elem_info(vrt).get_status();}
-		inline byte get_status(Edge* edge) const	{return elem_info(edge).get_status();}
-		inline byte get_status(Face* face) const		{return elem_info(face).get_status();}
-		inline byte get_status(Volume* vol) const		{return elem_info(vol).get_status();}
+		byte_t get_status(GridObject* go) const;
+		inline byte_t get_status(Vertex* vrt) const {return elem_info(vrt).get_status();}
+		inline byte_t get_status(Edge* edge) const {return elem_info(edge).get_status();}
+		inline byte_t get_status(Face* face) const {return elem_info(face).get_status();}
+		inline byte_t get_status(Volume* vol) const {return elem_info(vol).get_status();}
 	/**	\} */
 
 	///	returns true if the status of the given object contains the given status.
 	/**	status can be an or-combination of constants enumerated in InterfaceNodeTypes
 	 * and ElementStatusTypes.*/
 		template <class TGeomObj>
-		bool contains_status(TGeomObj* o, byte status) const	{return (get_status(o) & status) == status;}
+		bool contains_status(TGeomObj* o, byte_t status) const {return (get_status(o) & status) == status;}
 
 	///	returns true if the element is a ghost
 	/**	ghost elements are vertical masters that are in no other interfaces.
@@ -176,7 +176,7 @@ class DistributedGridManager : public GridObserver
 	 	template <class TElem>
 	 	void collect_interface_entries(
 						std::vector<std::pair<int, size_t> >& vEntriesOut,
-						TElem* elem, byte statusType, bool clearContainer = true);
+						TElem* elem, byte_t statusType, bool clearContainer = true);
 
 
 	///	Enables or disables interface managment. Use with care!
@@ -210,36 +210,36 @@ class DistributedGridManager : public GridObserver
 		
 	//	vertex callbacks
 		virtual void vertex_created(Grid* grid, Vertex* vrt,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void edge_created(Grid* grid, Edge* e,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 		
 		virtual void face_created(Grid* grid, Face* f,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void volume_created(Grid* grid, Volume* v,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
-										 Vertex* replacedBy = NULL);
+										 Vertex* replacedBy = nullptr);
 
 		virtual void edge_to_be_erased(Grid* grid, Edge* e,
-										 Edge* replacedBy = NULL);
+										 Edge* replacedBy = nullptr);
 
 		virtual void face_to_be_erased(Grid* grid, Face* f,
-										 Face* replacedBy = NULL);
+										 Face* replacedBy = nullptr);
 
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
-										 Volume* replacedBy = NULL);
+										 Volume* replacedBy = nullptr);
 
 	protected:
 	///	performs registration and deregistration at a grid.
-	/**	call set_grid(NULL) to unregister the observer from a grid.*/
+	/**	call set_grid(nullptr) to unregister the observer from a grid.*/
 		void set_grid(Grid* grid);
 		
 	///	free's all grid related data
@@ -257,7 +257,7 @@ class DistributedGridManager : public GridObserver
 
 		template <class TGeomObj, class TLayoutMap>
 		void update_elem_info(TLayoutMap& layoutMap, int nodeType,
-							  byte newStatus, bool addStatus = false);
+							  byte_t newStatus, bool addStatus = false);
 
 		template <class TGeomObj>
 		void update_all_elem_infos();
@@ -290,7 +290,7 @@ class DistributedGridManager : public GridObserver
 	protected:
 	///	Be careful when creating copies of ElementInfo.
 	/**	Ownership of the internal data-object is transfered to the new copy.
-	 * The old instance will thus point to a NULL pointer instead of the data
+	 * The old instance will thus point to a nullptr pointer instead of the data
 	 * object after the copy operation.
 	 */
 		template <class TGeomObj>
@@ -298,13 +298,12 @@ class DistributedGridManager : public GridObserver
 		{
 			public:
 			//	types
-				typedef typename GridLayoutMap::template Types<TGeomObj>
-						::Interface		Interface;
-				typedef typename Interface::iterator InterfaceElemIter;
-				//typedef std::pair<Interface*, InterfaceElemIter> Entry;
+				using Interface = typename GridLayoutMap::Types<TGeomObj> ::Interface;
+				using InterfaceElemIter = typename Interface::iterator;
+				// using Entry = std::pair<Interface*, InterfaceElemIter>;
 
 				struct Entry{
-					Entry()	{}
+					Entry()	= default;
 					Entry(Interface* intfc, InterfaceElemIter intfcElemIter, int intfcType) :
 						m_interface(intfc), m_interfaceElemIter(intfcElemIter),
 						m_interfaceType(intfcType)	{}
@@ -314,12 +313,12 @@ class DistributedGridManager : public GridObserver
 					int					m_interfaceType;
 				};
 
-				typedef std::list<Entry>				EntryList;
-				typedef typename EntryList::iterator	EntryIterator;
-				typedef typename EntryList::const_iterator	ConstEntryIterator;
-				
+				using EntryList = std::list<Entry>;
+				using EntryIterator = typename EntryList::iterator;
+				using ConstEntryIterator = typename EntryList::const_iterator;
+
 			//	methods
-				ElementInfo()	{}
+				ElementInfo() = default;
 
 				~ElementInfo()	{if(has_data()) m_data.reset();}
 
@@ -364,13 +363,13 @@ class DistributedGridManager : public GridObserver
 						return entries_end();
 					}
 				
-				void set_status(byte status)
+				void set_status(byte_t status)
 				{
 					if(!has_data() && (status == ES_NONE))
 						return;
 					data().m_status = status;
 				}
-				byte get_status() const
+				byte_t get_status() const
 				{
 					if(!has_data()) return ES_NONE;
 					return m_data->m_status;
@@ -385,8 +384,8 @@ class DistributedGridManager : public GridObserver
 			protected:
 				struct Data{
 					Data() : m_status(ES_NONE) {}
-					EntryList	m_entries;
-					byte		m_status;
+					EntryList m_entries;
+					byte_t m_status;
 				};
 
 			///	returns the data object. Creates it if necessary.
@@ -397,7 +396,7 @@ class DistributedGridManager : public GridObserver
 					return *m_data;
 				}
 
-				inline bool has_data() const	{return m_data.get() != NULL;}
+				inline bool has_data() const	{return m_data.get() != nullptr;}
 
 			///	OwnedPtr is required to transfer ownership of the data-ptr during copy-operations.
 			/**	Since ElementInfo objects are stored in attachments, they will be copied
@@ -405,16 +404,16 @@ class DistributedGridManager : public GridObserver
 			 */
 				OwnedPtr<Data>	m_data;
 		};
-		
-		typedef ElementInfo<Vertex>	ElemInfoVrt;
-		typedef ElementInfo<Edge>	ElemInfoEdge;
-		typedef ElementInfo<Face>		ElemInfoFace;
-		typedef ElementInfo<Volume>		ElemInfoVol;
-		
-		typedef Attachment<ElemInfoVrt>		AElemInfoVrt;
-		typedef Attachment<ElemInfoEdge>	AElemInfoEdge;
-		typedef Attachment<ElemInfoFace>	AElemInfoFace;
-		typedef Attachment<ElemInfoVol>		AElemInfoVol;
+
+		using ElemInfoVrt = ElementInfo<Vertex>;
+		using ElemInfoEdge = ElementInfo<Edge>;
+		using ElemInfoFace = ElementInfo<Face>;
+		using ElemInfoVol = ElementInfo<Volume>;
+
+		using AElemInfoVrt = Attachment<ElemInfoVrt>;
+		using AElemInfoEdge = Attachment<ElemInfoEdge>;
+		using AElemInfoFace = Attachment<ElemInfoFace>;
+		using AElemInfoVol = Attachment<ElemInfoVol>;
 		
 	///	Used to schedule an element for insertion during ordered-insertion-mode.
 	/**	For each interface in which the parent lies, an instance of
@@ -430,8 +429,8 @@ class DistributedGridManager : public GridObserver
 			GridObject*	geomObj;
 			int					connectedProcID;
 		};
-		
-		typedef std::multimap<size_t, ScheduledElement>	ScheduledElemMap;
+
+		using ScheduledElemMap = std::multimap<size_t, ScheduledElement>;
 
 	protected:
 		inline ElemInfoVrt& elem_info(Vertex* ele)	{return m_aaElemInfoVRT[ele];}

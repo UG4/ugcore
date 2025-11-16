@@ -87,7 +87,7 @@ class PartitionMap{
 		std::vector<int>		m_targetProcs;
 };
 
-typedef SmartPtr<PartitionMap>	SPPartitionMap;
+using SPPartitionMap = SmartPtr<PartitionMap>;
 
 
 

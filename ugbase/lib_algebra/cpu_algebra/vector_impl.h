@@ -124,13 +124,13 @@ inline void Vector<value_type>::operator -= (const vector_type &v)
 
 
 template<typename value_type>
-Vector<value_type>::Vector () : m_size(0), m_capacity(0), values(NULL)
+Vector<value_type>::Vector () : m_size(0), m_capacity(0), values(nullptr)
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
 }
 
 template<typename value_type>
-Vector<value_type>::Vector(size_t size) : m_size(0), m_capacity(0), values(NULL)
+Vector<value_type>::Vector(size_t size) : m_size(0), m_capacity(0), values(nullptr)
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
 	create(size);
@@ -148,7 +148,7 @@ void Vector<value_type>::destroy()
 	if(values)
 	{
 		delete [] values;
-		values = NULL;
+		values = nullptr;
 	}
 	m_size = 0;
 }
@@ -195,7 +195,7 @@ void Vector<value_type>::reserve_exactly(size_t newCapacity, bool bCopyValues)
 	UG_ASSERT(newCapacity >= m_size, "use resize, then reserve_exactly");
 	value_type *new_values = new value_type[newCapacity];	
 	// we cannot use memcpy here bcs of variable blocks.
-	if(values != NULL && bCopyValues)
+	if(values != nullptr && bCopyValues)
 	{
 		for(size_t i=0; i<m_size; i++)
 			std::swap(new_values[i], values[i]);

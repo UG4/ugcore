@@ -57,23 +57,23 @@ namespace bridge{
 // 	Default Domain List
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef boost::mpl::list<
+using CompileDomainList = boost::mpl::list<
 #ifdef UG_DIM_1
-		Domain1d
+	Domain1d
 #endif
 #if defined UG_DIM_1 && (defined UG_DIM_2 || defined UG_DIM_3)
-		,
+	,
 #endif
 #ifdef UG_DIM_2
-		Domain2d
+	Domain2d
 #endif
 #if defined UG_DIM_2 && defined UG_DIM_3
-		,
+	,
 #endif
 #ifdef UG_DIM_3
-		Domain3d
+	Domain3d
 #endif
-> CompileDomainList;
+>;
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Register invokers
@@ -84,7 +84,7 @@ struct RegisterDomainDependent
 {
 	RegisterDomainDependent(Registry& reg, std::string grp)
 	{
-		static const bool isEmpty = boost::mpl::empty<List>::value;
+		static constexpr bool isEmpty = boost::mpl::empty<List>::value;
 		typename boost::mpl::if_c<isEmpty, RegEnd, RegNext>::type (reg,grp);
 	}
 	struct RegEnd{ RegEnd(Registry& reg, std::string grp){} };
@@ -92,8 +92,8 @@ struct RegisterDomainDependent
 	{
 		RegNext(Registry& reg, std::string grp)
 		{
-			typedef typename boost::mpl::front<List>::type DomainType;
-			typedef typename boost::mpl::pop_front<List>::type NextList;
+			using DomainType = typename boost::mpl::front<List>::type;
+			using NextList = typename boost::mpl::pop_front<List>::type;
 			Functionality::template Domain<DomainType>(reg,grp);
 			RegisterDomainDependent<Functionality, NextList>(reg,grp);
 		}

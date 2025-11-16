@@ -180,7 +180,7 @@ bool FileReaderSWC::create_grid(Grid& g, ISubsetHandler* pSH, number scale_lengt
 
 	// create grid
 	const size_t nP = m_vPts.size();
-	std::vector<Vertex*> vrts(nP, NULL);
+	std::vector<Vertex*> vrts(nP, nullptr);
 	for (size_t i = 0; i < nP; ++i)
 	{
 		const SWCPoint& pt = m_vPts[i];

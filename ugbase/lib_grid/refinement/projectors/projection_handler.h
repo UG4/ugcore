@@ -173,7 +173,7 @@ private:
 	SmartPtr<RefinementProjector>				m_defaultProjector;
 };
 
-typedef SmartPtr<ProjectionHandler>	SPProjectionHandler;
+using SPProjectionHandler = SmartPtr<ProjectionHandler>;
 
 }//	end of namespace
 

@@ -57,7 +57,7 @@ namespace ug
 GlobalMultiGridRefiner::
 GlobalMultiGridRefiner(SPRefinementProjector projector) :
 	IRefiner(projector),
-	m_pMG(NULL)
+	m_pMG(nullptr)
 {
 }
 
@@ -65,7 +65,7 @@ GlobalMultiGridRefiner::
 GlobalMultiGridRefiner(MultiGrid& mg, SPRefinementProjector projector) :
 	IRefiner(projector)
 {
-	m_pMG = NULL;
+	m_pMG = nullptr;
 	assign_grid(mg);
 }
 
@@ -77,7 +77,7 @@ GlobalMultiGridRefiner::~GlobalMultiGridRefiner()
 
 void GlobalMultiGridRefiner::grid_to_be_destroyed(Grid* grid)
 {
-	m_pMG = NULL;
+	m_pMG = nullptr;
 }
 
 void GlobalMultiGridRefiner::assign_grid(MultiGrid& mg)
@@ -89,7 +89,7 @@ void GlobalMultiGridRefiner::assign_grid(MultiGrid* mg)
 {
 	if(m_pMG){
 		m_pMG->unregister_observer(this);
-		m_pMG = NULL;
+		m_pMG = nullptr;
 	}
 	
 	if(mg){
@@ -177,7 +177,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 		projector()->refinement_begins(&sg);
 	}
 	else
-		projector()->refinement_begins(NULL);
+		projector()->refinement_begins(nullptr);
 
 	UG_DLOG(LIB_GRID, 1, "REFINER: reserving memory...");
 
@@ -350,7 +350,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 		//GMGR_PROFILE(GMGR_Refine_CreatingFaces);
 		Vertex* newVrt;
-		if(f->refine(vFaces, &newVrt, &vEdgeVrts.front(), NULL, &vVrts.front())){
+		if(f->refine(vFaces, &newVrt, &vEdgeVrts.front(), nullptr, &vVrts.front())){
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				//GMGR_PROFILE(GMGR_Refine_CreatingVertices);
@@ -412,7 +412,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 	//	if we're performing tetrahedral or octahedral refinement, we have to collect
 	//	the corner coordinates, so that the refinement algorithm may choose
 	//	the best interior diagonal.
-		vector3* pCorners = NULL;
+		vector3* pCorners = nullptr;
 		if((v->num_vertices() == 4) && m_projector.valid()){
 			for(size_t i = 0; i < 4; ++i){
 				corners[i] = m_projector->geometry()->pos(v->vertex(i));
@@ -428,7 +428,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 		Vertex* newVrt;
 		if(v->refine(vVols, &newVrt, &vEdgeVrts.front(), &vFaceVrts.front(),
-					NULL, RegularVertex(), &vVrts.front(), pCorners)){
+					nullptr, RegularVertex(), &vVrts.front(), pCorners)){
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				mg.register_element(newVrt, v);

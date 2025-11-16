@@ -53,7 +53,7 @@ void
 IProjGaussSeidel<TDomain,TAlgebra>::
 truncateVec(vector_type& vec, vector<DoFIndex>& vInd)
 {
-	typedef typename vector<DoFIndex>::iterator iter_type;
+	using iter_type = vector<DoFIndex>::iterator;
 	iter_type dofIter = vInd.begin();
 	iter_type dofIterEnd = vInd.end();
 	for( ; dofIter != dofIterEnd; dofIter++)
@@ -72,7 +72,7 @@ void
 IProjGaussSeidel<TDomain,TAlgebra>::
 truncateMat(matrix_type& mat, vector<DoFIndex>& vInd)
 {
-	typedef typename vector<DoFIndex>::iterator iter_type;
+	using iter_type = vector<DoFIndex>::iterator;
 	iter_type dofIter = vInd.begin();
 	iter_type dofIterEnd = vInd.end();
 	for( ; dofIter != dofIterEnd; dofIter++)
@@ -107,7 +107,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	UG_LOG("In IProjGaussSeidel::init u hat "<<(*m_spSol).size()<<"Eintraege \n");
 	UG_LOG("\n");
 
-	typedef typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator iter_type;
+	using iter_type = typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator;
 	iter_type iter = m_spvObsConstraint.begin();
 	iter_type iterEnd = m_spvObsConstraint.end();
 	for( ; iter != iterEnd; iter++)
@@ -132,7 +132,7 @@ project_correction(value_type& c_i, const size_t i)
 	if(!m_bObsCons)
 		return;
 
-	typedef typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator iter_type;
+	using iter_type = typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator;
 	iter_type iterEnd = m_spvObsConstraint.end();
 
 	for(size_t comp = 0; comp < GetSize(c_i); comp++)
@@ -184,7 +184,7 @@ apply(vector_type &c, const vector_type& d)
 	//	loop all obstacle constraints, which are set & reset its active dofs
 	if(m_bObsCons)
 	{
-		typedef typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator iter_type;
+		using iter_type = typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator;
 		iter_type iter = m_spvObsConstraint.begin();
 		iter_type iterEnd = m_spvObsConstraint.end();
 
@@ -218,7 +218,7 @@ apply(vector_type &c, const vector_type& d)
 				//TODO: for all obstacle constraints:
 				if(m_bObsCons)
 				{
-					typedef typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator iter_type;
+					using iter_type = typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator;
 					iter_type iter = m_spvObsConstraint.begin();
 					iter_type iterEnd = m_spvObsConstraint.end();
 
@@ -229,7 +229,7 @@ apply(vector_type &c, const vector_type& d)
 						(*iter)->active_dofs(vActiveDoFs);
 						UG_LOG("vActiveDoFs.size() : " <<vActiveDoFs.size()<< "\n");
 
-						typedef typename vector<DoFIndex>::iterator dof_iter_type;
+						using dof_iter_type = vector<DoFIndex>::iterator;
 						dof_iter_type dofIter = vActiveDoFs.begin();
 						dof_iter_type dofIterEnd = vActiveDoFs.end();
 						for( ; dofIter != dofIterEnd; dofIter++)
@@ -308,7 +308,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	//	adjust defect for the active dofs
 	if(m_bObsCons)
 	{
-		typedef typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator iter_type;
+		using iter_type = typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator;
 		iter_type iter = m_spvObsConstraint.begin();
 		iter_type iterEnd = m_spvObsConstraint.end();
 

@@ -50,7 +50,7 @@ print(const char* filename, Domain<TDim>& domain)
 	MGSubsetHandler& sh = *domain.subset_handler();
 
 // 	attach help indices
-	typedef ug::Attachment<int> AVrtIndex;
+	using AVrtIndex = Attachment<int>;
 	AVrtIndex aVrtIndex;
 	Grid::VertexAttachmentAccessor<AVrtIndex> aaVrtIndex;
 	grid.attach_to_vertices(aVrtIndex);
@@ -323,7 +323,7 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 #endif
 
 //	change locale to ensure decimal . is really a .
-	char* oldLocale = setlocale (LC_ALL, NULL);
+	char* oldLocale = setlocale (LC_ALL, nullptr);
 	setlocale(LC_NUMERIC, "C");
 
 //	only output proc writes this file
@@ -335,7 +335,7 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 
 	//	open file
 		file = fopen(name.c_str(), "w");
-		if (file == NULL)
+		if (file == nullptr)
 			UG_THROW("VTKOutput: Cannot print to file.");
 
 	// 	Write beginning of file
@@ -371,7 +371,7 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 
 	//	open File
 		file = fopen(name.c_str(), "w");
-		if (file == NULL)
+		if (file == nullptr)
 			UG_THROW("VTKOutput: Cannot print to file.");
 
 	// 	Write to file

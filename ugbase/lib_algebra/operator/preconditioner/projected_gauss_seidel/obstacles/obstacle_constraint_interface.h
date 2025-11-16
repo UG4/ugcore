@@ -73,28 +73,28 @@ class IObstacleConstraint:
 {
 	public:
 	///	Base Type
-		typedef IDomainConstraint<TDomain, TAlgebra> base_type;
+		using base_type = IDomainConstraint<TDomain, TAlgebra>;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Matrix type
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	///	Value type
-		typedef typename vector_type::value_type value_type;
+		using value_type = typename vector_type::value_type;
 
 	///	Type of domain
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	///	world Dimension
-		static const int dim = domain_type::dim;
+		static constexpr int dim = domain_type::dim;
 
 	///	Type of position coordinates (e.g. position_type)
-		typedef typename domain_type::position_type position_type;
+		using position_type = typename domain_type::position_type;
 
 	public:
 	/// constructor for an obstacle defined on some subset(s)
@@ -179,7 +179,7 @@ class IObstacleConstraint:
 	/// sets a unity row for all dirichlet indices
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
-                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
+                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
 							 const number s_a0 = 1.0){
 			UG_LOG("IObstacleConstraint::adjust_jacobian() \n");
 		};
@@ -187,9 +187,9 @@ class IObstacleConstraint:
 	/// sets a zero value in the defect for all dirichlet indices
 		void adjust_defect(vector_type& d, const vector_type& u,
 		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
-                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
-						   const std::vector<number>* vScaleMass = NULL,
-						   const std::vector<number>* vScaleStiff = NULL){
+                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
+						   const std::vector<number>* vScaleMass = nullptr,
+						   const std::vector<number>* vScaleStiff = nullptr){
 			UG_LOG("IObstacleConstraint::adjust_defect() \n");
 		};
 
@@ -274,9 +274,9 @@ class IObstacleConstraint:
 	///	grouping for subset and non-conditional data
 		struct NumberData
 		{
-			const static bool isConditional = false;
-			const static size_t numFct = 1;
-			typedef MathVector<1> value_type;
+			static constexpr bool isConditional = false;
+			static constexpr size_t numFct = 1;
+			using value_type = MathVector<1>;
 			NumberData(SmartPtr<UserData<number, dim> > functor_,
 					   std::string fctName_)
 				: spFunctor(functor_), fctName(fctName_), bWholeDomain(true)
@@ -303,9 +303,9 @@ class IObstacleConstraint:
 	///	grouping for subset and conditional data
 		struct CondNumberData
 		{
-			const static bool isConditional = true;
-			const static size_t numFct = 1;
-			typedef MathVector<1> value_type;
+			static constexpr bool isConditional = true;
+			static constexpr size_t numFct = 1;
+			using value_type = MathVector<1>;
 			CondNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
 						  std::string fctName_)
 				: spFunctor(functor_), fctName(fctName_), bWholeDomain(true)
@@ -332,9 +332,9 @@ class IObstacleConstraint:
 	///	grouping for subset and conditional data
 		struct ConstNumberData
 		{
-			const static bool isConditional = false;
-			const static size_t numFct = 1;
-			typedef MathVector<1> value_type;
+			static constexpr bool isConditional = false;
+			static constexpr size_t numFct = 1;
+			using value_type = MathVector<1>;
 			ConstNumberData(number value_,
 						  std::string fctName_)
 				: functor(value_), fctName(fctName_), bWholeDomain(true)
@@ -361,9 +361,9 @@ class IObstacleConstraint:
 	///	grouping for subset and non-conditional data
 		struct VectorData
 		{
-			const static bool isConditional = false;
-			const static size_t numFct = dim;
-			typedef MathVector<dim> value_type;
+			static constexpr bool isConditional = false;
+			static constexpr size_t numFct = dim;
+			using value_type = MathVector<dim>;
 			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > value_,
 					   std::string fctName_)
 				: spFunctor(value_), fctName(fctName_), bWholeDomain(true)

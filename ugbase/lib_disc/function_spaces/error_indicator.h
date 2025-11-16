@@ -61,9 +61,9 @@ void ComputeGradientLagrange1(TFunction& u, size_t fct,
                      typename TFunction::element_type,
                      ug::Attachment<number> >& aaError)
 {
-	static const int dim = TFunction::dim;
-	typedef typename TFunction::const_element_iterator const_iterator;
-	typedef typename TFunction::element_type element_type;
+	static constexpr int dim = TFunction::dim;
+	using const_iterator = typename TFunction::const_element_iterator;
+	using element_type = typename TFunction::element_type;
 
 //	get position accessor
 	typename TFunction::domain_type::position_accessor_type& aaPos
@@ -151,12 +151,12 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
                      typename TFunction::element_type,
                      ug::Attachment<number> >& aaError)
 {
-	static const int dim = TFunction::dim;
-	typedef typename TFunction::const_element_iterator const_iterator;
-	typedef typename TFunction::domain_type domain_type;
-	typedef typename domain_type::grid_type grid_type;
-	typedef typename TFunction::element_type element_type;
-	typedef typename element_type::side side_type;
+	static constexpr int dim = TFunction::dim;
+	using const_iterator = typename TFunction::const_element_iterator;
+	using domain_type = typename TFunction::domain_type;
+	using grid_type = typename domain_type::grid_type;
+	using element_type = typename TFunction::element_type;
+	using side_type = typename element_type::side;
 	
 	typename grid_type::template traits<side_type>::secure_container sides;
 
@@ -244,26 +244,26 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
 
 template <int dim> struct face_type_traits
 {
-    typedef void face_type0;
-	typedef void face_type1;
+	using face_type0 = void;
+	using face_type1 = void;
 };
 
 template <> struct face_type_traits<1>
 {
-    typedef ReferenceVertex face_type0;
-	typedef ReferenceVertex face_type1;
+	using face_type0 = ReferenceVertex;
+    using face_type1 = ReferenceVertex;
 };
 
 template <> struct face_type_traits<2>
 {
-    typedef ReferenceEdge face_type0;
-	typedef ReferenceEdge face_type1;
+	using face_type0 = ReferenceEdge;
+	using face_type1 = ReferenceEdge;
 };
 
 template <> struct face_type_traits<3>
 {
-    typedef ReferenceTriangle face_type0;
-	typedef ReferenceQuadrilateral face_type1;
+	using face_type0 = ReferenceTriangle;
+	using face_type1 = ReferenceQuadrilateral;
 };
 
 template <typename TFunction>
@@ -272,17 +272,17 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
                      typename TFunction::element_type,
                      ug::Attachment<number> >& aaError)
 {
-	static const int dim = TFunction::dim;
-	typedef typename TFunction::const_element_iterator const_iterator;
-	typedef typename TFunction::domain_type domain_type;
-	typedef typename domain_type::grid_type grid_type;
-	typedef typename TFunction::element_type element_type;
-	typedef typename element_type::side side_type;
+	static constexpr int dim = TFunction::dim;
+	using const_iterator = typename TFunction::const_element_iterator;
+	using domain_type = typename TFunction::domain_type;
+	using grid_type = typename domain_type::grid_type;
+	using element_type = typename TFunction::element_type;
+	using side_type = typename element_type::side;
 	
 	typename grid_type::template traits<side_type>::secure_container sides;
-	
-	typedef typename face_type_traits<dim>::face_type0 face_type0;
-	typedef typename face_type_traits<dim>::face_type1 face_type1;
+
+	using face_type0 = typename face_type_traits<dim>::face_type0;
+	using face_type1 = typename face_type_traits<dim>::face_type1;
 
 //	get position accessor
 	typename TFunction::domain_type::position_accessor_type& aaPos
@@ -373,9 +373,9 @@ void MarkForAdaption_GradientIndicator(IRefiner& refiner,
 {
 	PROFILE_FUNC();
 //	types
-	typedef GridFunction<TDomain, TAlgebra> TFunction;
-	typedef typename TFunction::domain_type::grid_type grid_type;
-	typedef typename TFunction::element_type element_type;
+	using TFunction = GridFunction<TDomain, TAlgebra>;
+	using grid_type = typename TFunction::domain_type::grid_type;
+	using element_type = typename TFunction::element_type;
 	const int dim = TFunction::dim;
 
 //	function id
@@ -385,7 +385,7 @@ void MarkForAdaption_GradientIndicator(IRefiner& refiner,
 	SmartPtr<grid_type> pMG = u.domain()->grid();
 
 // 	attach error field
-	typedef Attachment<number> ANumber;
+	using ANumber = Attachment<number>;
 	ANumber aError;
 	pMG->template attach_to<element_type>(aError);
 	MultiGrid::AttachmentAccessor<element_type, ANumber> aaError(*pMG, aError);
@@ -420,9 +420,9 @@ void MarkForAdaption_AbsoluteGradientIndicator(IRefiner& refiner,
 {
 	PROFILE_FUNC();
 //	types
-	typedef GridFunction<TDomain, TAlgebra> TFunction;
-	typedef typename TFunction::domain_type::grid_type grid_type;
-	typedef typename TFunction::element_type element_type;
+	using TFunction = GridFunction<TDomain, TAlgebra>;
+	using grid_type = typename TFunction::domain_type::grid_type;
+	using element_type = typename TFunction::element_type;
 	const int dim = TFunction::dim;
 
 //	function id
@@ -432,7 +432,7 @@ void MarkForAdaption_AbsoluteGradientIndicator(IRefiner& refiner,
 	SmartPtr<grid_type> pMG = u.domain()->grid();
 
 // 	attach error field
-	typedef Attachment<number> ANumber;
+	using ANumber = Attachment<number>;
 	ANumber aError;
 	pMG->template attach_to<element_type>(aError);
 	MultiGrid::AttachmentAccessor<element_type, ANumber> aaError(*pMG, aError);
@@ -465,11 +465,11 @@ void computeGradientJump(TFunction& u,
                      typename TFunction::element_type,
                      ug::Attachment<number> >& aaError)
 {
-	typedef typename TFunction::domain_type domain_type;
-	typedef typename domain_type::grid_type grid_type;
-	typedef typename TFunction::element_type element_type;
-	typedef typename element_type::side side_type;
-	typedef typename TFunction::template traits<side_type>::const_iterator side_iterator;
+	using domain_type = typename TFunction::domain_type;
+	using grid_type = typename domain_type::grid_type;
+	using element_type = typename TFunction::element_type;
+	using side_type = typename element_type::side;
+	using side_iterator = typename TFunction::template traits<side_type>::const_iterator;
 	
 	grid_type& grid = *u.domain()->grid();
 
@@ -503,9 +503,9 @@ void MarkForAdaption_GradientJumpIndicator(IRefiner& refiner,
 {
 	PROFILE_FUNC();
 //	types
-	typedef GridFunction<TDomain, TAlgebra> TFunction;
-	typedef typename TFunction::domain_type::grid_type grid_type;
-	typedef typename TFunction::element_type element_type;
+	using TFunction = GridFunction<TDomain, TAlgebra>;
+	using grid_type = typename TFunction::domain_type::grid_type;
+	using element_type = typename TFunction::element_type;
 	const int dim = TFunction::dim;
 
 //	function id
@@ -515,7 +515,7 @@ void MarkForAdaption_GradientJumpIndicator(IRefiner& refiner,
 	SmartPtr<grid_type> pMG = u.domain()->grid();
 
 // 	attach error field
-	typedef Attachment<number> ANumber;
+	using ANumber = Attachment<number>;
 	ANumber aGrad;
 	pMG->template attach_to<element_type>(aGrad);
 	MultiGrid::AttachmentAccessor<element_type, ANumber> aaGrad(*pMG, aGrad);
@@ -554,9 +554,9 @@ void MarkForAdaption_AbsoluteGradientJumpIndicator(IRefiner& refiner,
 {
 	PROFILE_FUNC();
 //	types
-	typedef GridFunction<TDomain, TAlgebra> TFunction;
-	typedef typename TFunction::domain_type::grid_type grid_type;
-	typedef typename TFunction::element_type element_type;
+	using TFunction = GridFunction<TDomain, TAlgebra>;
+	using grid_type = typename TFunction::domain_type::grid_type;
+	using element_type = typename TFunction::element_type;
 	const int dim = TFunction::dim;
 
 //	function id
@@ -566,7 +566,7 @@ void MarkForAdaption_AbsoluteGradientJumpIndicator(IRefiner& refiner,
 	SmartPtr<grid_type> pMG = u.domain()->grid();
 
 // 	attach error field
-	typedef Attachment<number> ANumber;
+	using ANumber = Attachment<number>;
 	ANumber aGrad;
 	pMG->template attach_to<element_type>(aGrad);
 	MultiGrid::AttachmentAccessor<element_type, ANumber> aaGrad(*pMG, aGrad);
@@ -611,9 +611,9 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 	PROFILE_FUNC();
 	using namespace std;
 //	types
-	typedef GridFunction<TDomain, TAlgebra> TFunction;
-	typedef typename TFunction::domain_type::grid_type grid_t;
-	typedef typename TFunction::element_type elem_t;
+	using TFunction = GridFunction<TDomain, TAlgebra>;
+	using grid_t = typename TFunction::domain_type::grid_type;
+	using elem_t = typename TFunction::element_type;
 	const int dim = TFunction::dim;
 
 //	function id
@@ -628,7 +628,7 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 		aaPos = u->domain()->position_accessor();
 
 // 	attach error field
-	typedef Attachment<number> ANumber;
+	using ANumber = Attachment<number>;
 	ANumber aError;
 	mg.template attach_to<elem_t>(aError);
 	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(mg, aError);
@@ -651,7 +651,7 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 	UG_LOG("maxError " << maxL2Error << ", l2Error " << l2Error << std::endl);
 
 	if(l2Error > maxL2Error){
-		typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
+		using ElemIter = typename TFunction::template traits<elem_t>::const_iterator;
 		size_t numElemsActive = 0;	// number of elements which may be refined
 		size_t numElemsTotal = 0;	// total number of elements
 		number maxElemError = 0;	// error in elements which may be refined
@@ -713,8 +713,8 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 template <class side_t, class TFunction>
 void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumElems)
 {
-	//typedef typename TFunction::template traits<side_t>::const_iterator side_iter_t;
-	typedef typename TFunction::domain_type::grid_type	grid_t;
+	//using side_iter_t = typename TFunction::template traits<side_t>::const_iterator;
+	using grid_t = typename TFunction::domain_type::grid_type;
 
 	grid_t& g = *u.domain()->grid();
 	Grid::AttachmentAccessor<side_t, ANumber> aaSideError(g, aSideError);
@@ -725,7 +725,7 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 //	since there may be constrained sides which locally do not have a constraining
 //	side we do this before adding the constrained values to their constraining objects.
 	#ifdef UG_PARALLEL
-		typedef typename GridLayoutMap::Types<side_t>::Layout layout_t;
+	using layout_t = typename GridLayoutMap::Types<side_t>::Layout;
 		DistributedGridManager& dgm = *g.distributed_grid_manager();
 		GridLayoutMap& glm = dgm.grid_layout_map();
 		pcl::InterfaceCommunicator<layout_t > icom;
@@ -764,7 +764,7 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 
 		// for(side_iter_t iter = u.template begin<side_t>(SurfaceView::SHADOW_RIM);
 		// 	iter != u.template end<side_t>(SurfaceView::SHADOW_RIM); ++iter)
-		typedef typename Grid::traits<side_t>::iterator grid_side_iter_t;
+		using grid_side_iter_t = typename Grid::traits<side_t>::iterator;
 		for(grid_side_iter_t iter = g.template begin<side_t>();
 			iter != g.template end<side_t>(); ++iter)
 		{
@@ -832,12 +832,12 @@ void EvaluateGradientJump_SideIntegral(TFunction& u, size_t fct,
 {
 	using std::max;
 
-	static const int dim = TFunction::dim;
-	typedef typename TFunction::domain_type::grid_type	grid_t;
-	typedef typename TFunction::const_element_iterator const_iterator;
-	typedef typename TFunction::element_type elem_t;
-	typedef typename elem_t::side side_t;
-	typedef MathVector<dim>	vector_t;
+	static constexpr int dim = TFunction::dim;
+	using grid_t = typename TFunction::domain_type::grid_type;
+	using const_iterator = typename TFunction::const_element_iterator;
+	using elem_t = typename TFunction::element_type;
+	using side_t = typename elem_t::side;
+	using vector_t = MathVector<dim>;
 
 //	get position accessor
 	typename TFunction::domain_type::position_accessor_type& aaPos
@@ -918,12 +918,12 @@ void EvaluateGradientJump_Norm(TFunction& u, size_t fct,
 {
 	using std::max;
 
-	static const int dim = TFunction::dim;
-	typedef typename TFunction::domain_type::grid_type	grid_t;
-	typedef typename TFunction::const_element_iterator const_iterator;
-	typedef typename TFunction::element_type elem_t;
-	typedef typename elem_t::side side_t;
-	typedef MathVector<dim>	vector_t;
+	static constexpr int dim = TFunction::dim;
+	using grid_t = typename TFunction::domain_type::grid_type;
+	using const_iterator = typename TFunction::const_element_iterator;
+	using elem_t = typename TFunction::element_type;
+	using side_t = typename elem_t::side;
+	using vector_t = MathVector<dim>;
 
 //	get position accessor
 	typename TFunction::domain_type::position_accessor_type& aaPos
@@ -1013,10 +1013,10 @@ void MarkForAdaption_GradientJump(IRefiner& refiner,
 	PROFILE_FUNC();
 	using namespace std;
 //	types
-	typedef GridFunction<TDomain, TAlgebra> TFunction;
-	typedef typename TFunction::domain_type::grid_type grid_t;
-	typedef typename TFunction::element_type elem_t;
-	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
+	using TFunction = GridFunction<TDomain, TAlgebra>;
+	using grid_t = typename TFunction::domain_type::grid_type;
+	using elem_t = typename TFunction::element_type;
+	using ElemIter = typename TFunction::template traits<elem_t>::const_iterator;
 
 //	function id
 	const size_t fct = u->fct_id_by_name(cmp);
@@ -1027,13 +1027,13 @@ void MarkForAdaption_GradientJump(IRefiner& refiner,
 	grid_t& mg = *u->domain()->grid();
 
 // 	attach error field
-	typedef Attachment<number> ANumber;
+	using ANumber = Attachment<number>;
 	ANumber aError;
 	mg.template attach_to<elem_t>(aError);
 	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(mg, aError);
 	
 //todo:	the type of the used gradient evaluator should depend on the used grid function.
-	typedef GradientEvaluator_LagrangeP1<TFunction>	LagrangeP1Evaluator;
+	using LagrangeP1Evaluator = GradientEvaluator_LagrangeP1<TFunction>;
 	if(jumpType == std::string("norm"))
 		EvaluateGradientJump_Norm<LagrangeP1Evaluator>(*u, fct, aaError);
 	else if(jumpType == std::string("sideInt"))
@@ -1082,9 +1082,9 @@ void EvaluateResidualErrorP1(SmartPtr<TFunction> u,
 {
 	using namespace std;
 //	types
-	typedef typename TFunction::domain_type::grid_type grid_t;
-	typedef typename TFunction::element_type elem_t;
-	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
+	using grid_t = typename TFunction::domain_type::grid_type;
+	using elem_t = typename TFunction::element_type;
+	using ElemIter = typename TFunction::template traits<elem_t>::const_iterator;
 	const int dim = TFunction::dim;
 
 //	function id
@@ -1115,7 +1115,7 @@ void EvaluateResidualErrorP1(SmartPtr<TFunction> u,
 
 //	now evaluate contributions of the integral over gradient jumps on the element sides
 //	their squares will be added to aaError.
-	typedef GradientEvaluator_LagrangeP1<TFunction>	LagrangeP1Evaluator;
+	using LagrangeP1Evaluator = GradientEvaluator_LagrangeP1<TFunction>;
 	EvaluateGradientJump_SideIntegral<LagrangeP1Evaluator>(*u, fct, aaError, true);
 
 //	finally take the square root of aaError
@@ -1155,14 +1155,14 @@ number MarkForAdaption_ResidualErrorP1Absolute(IRefiner& refiner,
 	PROFILE_FUNC();
 	using namespace std;
 //	types
-	typedef GridFunction<TDomain, TAlgebra>	TFunction;
-	typedef typename TFunction::domain_type::grid_type grid_t;
-	typedef typename TFunction::element_type elem_t;
-	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
+	using TFunction = GridFunction<TDomain, TAlgebra>;
+	using grid_t = typename TFunction::domain_type::grid_type;
+	using elem_t = typename TFunction::element_type;
+	using ElemIter = typename TFunction::template traits<elem_t>::const_iterator;
 
 // 	attach error field
 	grid_t& mg = *u->domain()->grid();
-	typedef Attachment<number> ANumber;
+	using ANumber = Attachment<number>;
 	ANumber aError;
 	mg.template attach_to<elem_t>(aError);
 	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(mg, aError);
@@ -1229,14 +1229,14 @@ void MarkForAdaption_ResidualErrorP1Relative(IRefiner& refiner,
 	PROFILE_FUNC();
 	using namespace std;
 //	types
-	typedef GridFunction<TDomain, TAlgebra> TFunction;
-	typedef typename TFunction::domain_type::grid_type grid_t;
-	typedef typename TFunction::element_type elem_t;
-	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
+	using TFunction = GridFunction<TDomain, TAlgebra>;
+	using grid_t = typename TFunction::domain_type::grid_type;
+	using elem_t = typename TFunction::element_type;
+	using ElemIter = typename TFunction::template traits<elem_t>::const_iterator;
 
 // 	attach error field
 	grid_t& mg = *u->domain()->grid();
-	typedef Attachment<number> ANumber;
+	using ANumber = Attachment<number>;
 	ANumber aError;
 	mg.template attach_to<elem_t>(aError);
 	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(mg, aError);
@@ -1247,8 +1247,7 @@ void MarkForAdaption_ResidualErrorP1Relative(IRefiner& refiner,
 //	find min- and max-values
 	number maxElemError = 0;	// error in elements which may be refined
 	number minElemError = numeric_limits<number>::max();
-	for(ElemIter iter = u->template begin<elem_t>();
-		iter != u->template end<elem_t>(); ++iter)
+	for(ElemIter iter = u->template begin<elem_t>(); iter != u->template end<elem_t>(); ++iter)
 	{
 		if(mg.get_level(*iter) < maxLvl){
 			 number err = aaError[*iter] = sqrt(aaError[*iter]);
@@ -1282,12 +1281,12 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 	PROFILE_FUNC();
 	using namespace std;
 //	types
-	typedef GridFunction<TDomain, TAlgebra> TFunction;
-	static const int dim = TFunction::dim;
-	typedef typename TFunction::domain_type::grid_type grid_t;
-	typedef typename TFunction::element_type elem_t;
-	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
-	typedef MathVector<dim>	vector_t;
+	using TFunction = GridFunction<TDomain, TAlgebra>;
+	static constexpr int dim = TFunction::dim;
+	using grid_t = typename TFunction::domain_type::grid_type;
+	using elem_t = typename TFunction::element_type;
+	using ElemIter = typename TFunction::template traits<elem_t>::const_iterator;
+	using vector_t = MathVector<dim>;
 
 //	get position accessor
 	typename TFunction::domain_type::position_accessor_type& aaPos
@@ -1302,13 +1301,13 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 	grid_t& mg = *u->domain()->grid();
 
 // 	attach error field
-	typedef Attachment<number> ANumber;
+	using ANumber = Attachment<number>;
 	ANumber aError;
 	mg.template attach_to<elem_t>(aError);
 	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaErrorElem(mg, aError);
 	
 //	attach gradient to vertices and initialize it with zero
-	typedef Attachment<vector_t> AGrad;
+	using AGrad = Attachment<vector_t>;
 	AGrad aGrad;
 	mg.attach_to_vertices(aGrad);
 	MultiGrid::AttachmentAccessor<Vertex, AGrad> aaGradVrt(mg, aGrad);
@@ -1326,7 +1325,7 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 
 //	average the gradients in the grids vertices
 //todo:	the type of the used gradient evaluator should depend on the used grid function.
-	typedef GradientEvaluator_LagrangeP1<TFunction>	LagrangeP1Evaluator;
+	using LagrangeP1Evaluator = GradientEvaluator_LagrangeP1<TFunction>;
 
 //	loop elements and evaluate gradient
 	LagrangeP1Evaluator gradEvaluator(u.get(), fct);
@@ -1351,7 +1350,7 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 //	in a parallel environment we now have to sum the gradients over parallel
 //	interfaces
 	#ifdef UG_PARALLEL
-		typedef typename GridLayoutMap::Types<Vertex>::Layout layout_t;
+		using layout_t = GridLayoutMap::Types<Vertex>::Layout;
 		DistributedGridManager& dgm = *mg.distributed_grid_manager();
 		GridLayoutMap& glm = dgm.grid_layout_map();
 		pcl::InterfaceCommunicator<layout_t> icom;
@@ -1388,7 +1387,7 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 
 		// for(side_iter_t iter = u.template begin<side_t>(SurfaceView::SHADOW_RIM);
 		// 	iter != u.template end<side_t>(SurfaceView::SHADOW_RIM); ++iter)
-		typedef Grid::traits<Vertex>::iterator grid_side_iter_t;
+		using grid_side_iter_t = Grid::traits<Vertex>::iterator;
 		for(grid_side_iter_t iter = mg.template begin<Vertex>();
 			iter != mg.template end<Vertex>(); ++iter)
 		{
@@ -1427,7 +1426,7 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 	//	we'll also average values in h-nodes now. If a parent is locally available,
 	//	it's associated values are correct at this point. Communication from vmaster
 	//	to vslaves is performed afterwards.
-		typedef MultiGrid::traits<ConstrainedVertex>::iterator constr_vrt_iter;
+		using constr_vrt_iter = MultiGrid::traits<ConstrainedVertex>::iterator;
 		for(constr_vrt_iter iter = mg.template begin<ConstrainedVertex>();
 			iter != mg.template end<ConstrainedVertex>(); ++iter)
 		{

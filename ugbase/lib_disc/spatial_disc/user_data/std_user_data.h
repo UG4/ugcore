@@ -55,7 +55,7 @@ namespace ug{
 		                const MathVector\<refDim\> vLocIP[],
 		                const size_t nip,
 		                LocalVector* u,
-		                const MathMatrix\<refDim, dim\>* vJT = NULL) const
+		                const MathMatrix\<refDim, dim\>* vJT = nullptr) const
  *
  */
 template <typename TImpl, typename TData, int dim, typename TRet = void, typename TBase = CplUserData<TData, dim, TRet> >
@@ -82,7 +82,7 @@ class StdUserData : public TBase
 		                        const MathVector<1> vLocIP[],
 		                        const size_t nip,
 		                        LocalVector* u,
-		                        const MathMatrix<1, dim>* vJT = NULL) const
+		                        const MathMatrix<1, dim>* vJT = nullptr) const
 		{
 			getImpl().template evaluate<1>(vValue,vGlobIP,time,si,elem,
 										   vCornerCoords,vLocIP,nip,u,vJT);
@@ -96,7 +96,7 @@ class StdUserData : public TBase
 		                        const MathVector<2> vLocIP[],
 		                        const size_t nip,
 		                        LocalVector* u,
-		                        const MathMatrix<2, dim>* vJT = NULL) const
+		                        const MathMatrix<2, dim>* vJT = nullptr) const
 		{
 			getImpl().template evaluate<2>(vValue,vGlobIP,time,si,elem,
 										   vCornerCoords,vLocIP,nip,u,vJT);
@@ -110,7 +110,7 @@ class StdUserData : public TBase
 		                        const MathVector<3> vLocIP[],
 		                        const size_t nip,
 		                        LocalVector* u,
-		                        const MathMatrix<3, dim>* vJT = NULL) const
+		                        const MathMatrix<3, dim>* vJT = nullptr) const
 		{
 			getImpl().template evaluate<3>(vValue,vGlobIP,time,si,elem,
 										   vCornerCoords,vLocIP,nip,u,vJT);
@@ -132,7 +132,7 @@ class StdDependentUserData
 	  	  	  	  	  	  DependentUserData<TData, dim> >
 {
 	public:
-		StdDependentUserData(){}
+		StdDependentUserData() = default;
 
 		StdDependentUserData(const char* symbFct) {this->set_functions(symbFct);}
 		StdDependentUserData(const std::string& symbFct) {this->set_functions(symbFct);}
@@ -164,12 +164,12 @@ class StdDependentUserData
 							 const MathVector<refDim> vLocIP[],
 							 const size_t nip,
 							 LocalVector* u,
-							 const MathMatrix<refDim, dim>* vJT = NULL) const
+							 const MathMatrix<refDim, dim>* vJT = nullptr) const
 		{
 			const_cast<TImpl*>(static_cast<const TImpl*>(this))->
 					template eval_and_deriv<refDim>(vValue,vGlobIP,time,si,elem,
 					                                vCornerCoords,vLocIP,nip,u,
-					                                false,0,NULL,vJT);
+					                                false,0,nullptr,vJT);
 		}
 
 		template <int refDim>
@@ -178,14 +178,14 @@ class StdDependentUserData
 
 			const int si = this->subset();
 
-			std::vector<std::vector<TData> >* vvvDeriv = NULL;
+			std::vector<std::vector<TData> >* vvvDeriv = nullptr;
 
 			for(size_t s = 0; s < this->num_series(); ++s){
 				
 				if(bDeriv && this->m_vvvvDeriv[s].size() > 0)
 					vvvDeriv = &this->m_vvvvDeriv[s][0];
 				else
-					vvvDeriv = NULL;
+					vvvDeriv = nullptr;
 
 				getImpl().template eval_and_deriv<refDim>(this->values(s), this->ips(s), this->time(s), si,
 				                                 elem, vCornerCoords,
@@ -200,7 +200,7 @@ class StdDependentUserData
 
 			const int si = this->subset();
 
-			std::vector<std::vector<TData> >* vvvDeriv = NULL;
+			std::vector<std::vector<TData> >* vvvDeriv = nullptr;
 
 			for(size_t s = 0; s < this->num_series(); ++s){
 				
@@ -209,7 +209,7 @@ class StdDependentUserData
 				if(bDoDeriv && this->m_vvvvDeriv[s].size() > 0)
 					vvvDeriv = &this->m_vvvvDeriv[s][0];
 				else
-					vvvDeriv = NULL;
+					vvvDeriv = nullptr;
 
 				getImpl().template eval_and_deriv<refDim>(this->values(s), this->ips(s), this->time(s), si,
 				                                 elem, vCornerCoords,
@@ -259,4 +259,4 @@ class StdDependentUserData
 
 } // namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__STD_USER_DATA__ */
+#endif

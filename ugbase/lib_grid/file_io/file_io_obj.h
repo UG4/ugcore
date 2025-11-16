@@ -73,17 +73,17 @@ struct OBJMaterial
  * \param pvMaterials: Holds material data.
  */
 bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos = aPosition,
-		AVector2* paTexCoord = NULL,
-		ISubsetHandler* pSubsetHandler = NULL,
-		std::vector<OBJMaterial>* pvMaterials = NULL);
+		AVector2* paTexCoord = nullptr,
+		ISubsetHandler* pSubsetHandler = nullptr,
+		std::vector<OBJMaterial>* pvMaterials = nullptr);
 
 ////////////////////////////////////////////////////////////////////////
 //	saves a file to obj
 ///	Saves a file from a wavefront '.obj' file. Writes optional subset-infos.
 bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos = aPosition,
-		AVector2* paTexCoord = NULL,
-		ISubsetHandler* pSubsetHandler = NULL,
-		std::vector<OBJMaterial>* pvMaterials = NULL);
+		AVector2* paTexCoord = nullptr,
+		ISubsetHandler* pSubsetHandler = nullptr,
+		std::vector<OBJMaterial>* pvMaterials = nullptr);
 };
 
 #endif

@@ -37,7 +37,7 @@ template<typename T> class SparseMatrix
 {
 public:
 	// export value_type
-	typedef T value_type;
+	using value_type = T;
 
 public:
 	SparseMatrix();

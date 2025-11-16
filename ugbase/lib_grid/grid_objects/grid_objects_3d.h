@@ -90,12 +90,12 @@ class UG_API TetrahedronDescriptor
 class UG_API Tetrahedron : public Volume
 {
 	public:
-		typedef Volume BaseClass;
+		using BaseClass = Volume;
 
-		static const size_t NUM_VERTICES = 4;
+		static constexpr size_t NUM_VERTICES = 4;
 
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Tetrahedron*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Tetrahedron*>(pObj) != nullptr;}
 
 		Tetrahedron()	{}
 		Tetrahedron(const TetrahedronDescriptor& td);
@@ -142,15 +142,15 @@ class UG_API Tetrahedron : public Volume
 							Vertex** newFaceVertices,
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
-							Vertex** pSubstituteVertices = NULL,
-							vector3* corners = NULL,
-							bool* isSnapPoint = NULL);
+							Vertex** pSubstituteVertices = nullptr,
+							vector3* corners = nullptr,
+							bool* isSnapPoint = nullptr);
 
 		virtual bool is_regular_ref_rule(int edgeMarks) const;
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, Vertex* newVertex,
-								std::vector<Vertex*>* pvSubstituteVertices = NULL);
+								std::vector<Vertex*>* pvSubstituteVertices = nullptr);
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
@@ -171,23 +171,23 @@ template <>
 class geometry_traits<Tetrahedron>
 {
 	public:
-		typedef GenericGridObjectIterator<Tetrahedron*, VolumeIterator>		iterator;
-		typedef ConstGenericGridObjectIterator<Tetrahedron*, VolumeIterator,
-															ConstVolumeIterator>	const_iterator;
+		using iterator = GenericGridObjectIterator<Tetrahedron*, VolumeIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<Tetrahedron*, VolumeIterator,
+			ConstVolumeIterator>;
 
-		typedef TetrahedronDescriptor Descriptor;
-		typedef Volume 		grid_base_object;
+		using Descriptor = TetrahedronDescriptor;
+		using grid_base_object = Volume;
 
 		enum
 		{
 			CONTAINER_SECTION = CSVOL_TETRAHEDRON,
 			BASE_OBJECT_ID = VOLUME
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TETRAHEDRON;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TETRAHEDRON;
 };
 
-typedef geometry_traits<Tetrahedron>::iterator			TetrahedronIterator;
-typedef geometry_traits<Tetrahedron>::const_iterator	ConstTetrahedronIterator;
+using TetrahedronIterator = geometry_traits<Tetrahedron>::iterator;
+using ConstTetrahedronIterator = geometry_traits<Tetrahedron>::const_iterator;
 
 
 
@@ -226,12 +226,12 @@ class UG_API HexahedronDescriptor
 class UG_API Hexahedron : public Volume
 {
 	public:
-		typedef Volume BaseClass;
+		using BaseClass = Volume;
 
-		static const size_t NUM_VERTICES = 8;
+		static constexpr size_t NUM_VERTICES = 8;
 
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Hexahedron*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Hexahedron*>(pObj) != nullptr;}
 
 		Hexahedron()	{}
 		Hexahedron(const HexahedronDescriptor& td);
@@ -279,15 +279,15 @@ class UG_API Hexahedron : public Volume
 							Vertex** newFaceVertices,
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
-							Vertex** pSubstituteVertices = NULL,
-							vector3* corners = NULL,
-							bool* isSnapPoint = NULL);
+							Vertex** pSubstituteVertices = nullptr,
+							vector3* corners = nullptr,
+							bool* isSnapPoint = nullptr);
 
 		virtual bool is_regular_ref_rule(int edgeMarks) const;
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, Vertex* newVertex,
-								std::vector<Vertex*>* pvSubstituteVertices = NULL);
+								std::vector<Vertex*>* pvSubstituteVertices = nullptr);
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
@@ -305,23 +305,23 @@ template <>
 class geometry_traits<Hexahedron>
 {
 	public:
-		typedef GenericGridObjectIterator<Hexahedron*, VolumeIterator>			iterator;
-		typedef ConstGenericGridObjectIterator<Hexahedron*, VolumeIterator,
-															 ConstVolumeIterator>	const_iterator;
+		using iterator = GenericGridObjectIterator<Hexahedron*, VolumeIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<Hexahedron*, VolumeIterator,
+			ConstVolumeIterator>;
 
-		typedef HexahedronDescriptor Descriptor;
-		typedef Volume 		grid_base_object;
+		using Descriptor = HexahedronDescriptor;
+		using grid_base_object = Volume;
 
 		enum
 		{
 			CONTAINER_SECTION = CSVOL_HEXAHEDRON,
 			BASE_OBJECT_ID = VOLUME
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_HEXAHEDRON;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_HEXAHEDRON;
 };
 
-typedef geometry_traits<Hexahedron>::iterator	HexahedronIterator;
-typedef geometry_traits<Hexahedron>::const_iterator	ConstHexahedronIterator;
+using HexahedronIterator = geometry_traits<Hexahedron>::iterator;
+using ConstHexahedronIterator = geometry_traits<Hexahedron>::const_iterator;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -359,12 +359,12 @@ class UG_API PrismDescriptor
 class UG_API Prism : public Volume
 {
 	public:
-		typedef Volume BaseClass;
+		using BaseClass = Volume;
 
-		static const size_t NUM_VERTICES = 6;
+		static constexpr size_t NUM_VERTICES = 6;
 
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Prism*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Prism*>(pObj) != nullptr;}
 
 		Prism()	{}
 		Prism(const PrismDescriptor& td);
@@ -412,15 +412,15 @@ class UG_API Prism : public Volume
 							Vertex** newFaceVertices,
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
-							Vertex** pSubstituteVertices = NULL,
-							vector3* corners = NULL,
-							bool* isSnapPoint = NULL);
+							Vertex** pSubstituteVertices = nullptr,
+							vector3* corners = nullptr,
+							bool* isSnapPoint = nullptr);
 
 		virtual bool is_regular_ref_rule(int edgeMarks) const;
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, Vertex* newVertex,
-								std::vector<Vertex*>* pvSubstituteVertices = NULL);
+								std::vector<Vertex*>* pvSubstituteVertices = nullptr);
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
@@ -438,23 +438,23 @@ template <>
 class geometry_traits<Prism>
 {
 	public:
-		typedef GenericGridObjectIterator<Prism*, VolumeIterator>				iterator;
-		typedef ConstGenericGridObjectIterator<Prism*, VolumeIterator,
-															 ConstVolumeIterator>	const_iterator;
+		using iterator = GenericGridObjectIterator<Prism*, VolumeIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<Prism*, VolumeIterator,
+			ConstVolumeIterator>;
 
-		typedef PrismDescriptor Descriptor;
-		typedef Volume 		grid_base_object;
+		using Descriptor = PrismDescriptor;
+		using grid_base_object = Volume;
 
 		enum
 		{
 			CONTAINER_SECTION = CSVOL_PRISM,
 			BASE_OBJECT_ID = VOLUME
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PRISM;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PRISM;
 };
 
-typedef geometry_traits<Prism>::iterator		PrismIterator;
-typedef geometry_traits<Prism>::const_iterator	ConstPrismIterator;
+using PrismIterator = geometry_traits<Prism>::iterator;
+using ConstPrismIterator = geometry_traits<Prism>::const_iterator;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -492,12 +492,12 @@ class UG_API PyramidDescriptor
 class UG_API Pyramid : public Volume
 {
 	public:
-		typedef Volume BaseClass;
+		using BaseClass = Volume;
 
-		static const size_t NUM_VERTICES = 5;
+		static constexpr size_t NUM_VERTICES = 5;
 
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Pyramid*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Pyramid*>(pObj) != nullptr;}
 
 		Pyramid()	{}
 		Pyramid(const PyramidDescriptor& td);
@@ -543,15 +543,15 @@ class UG_API Pyramid : public Volume
 							Vertex** newFaceVertices,
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
-							Vertex** pSubstituteVertices = NULL,
-							vector3* corners = NULL,
-							bool* isSnapPoint = NULL);
+							Vertex** pSubstituteVertices = nullptr,
+							vector3* corners = nullptr,
+							bool* isSnapPoint = nullptr);
 
 		virtual bool is_regular_ref_rule(int edgeMarks) const;
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, Vertex* newVertex,
-								std::vector<Vertex*>* pvSubstituteVertices = NULL);
+								std::vector<Vertex*>* pvSubstituteVertices = nullptr);
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
@@ -569,23 +569,23 @@ template <>
 class geometry_traits<Pyramid>
 {
 	public:
-		typedef GenericGridObjectIterator<Pyramid*, VolumeIterator>			iterator;
-		typedef ConstGenericGridObjectIterator<Pyramid*, VolumeIterator,
-															 ConstVolumeIterator>	const_iterator;
+		using iterator = GenericGridObjectIterator<Pyramid*, VolumeIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<Pyramid*, VolumeIterator,
+			ConstVolumeIterator>;
 
-		typedef PyramidDescriptor Descriptor;
-		typedef Volume 		grid_base_object;
+		using Descriptor = PyramidDescriptor;
+		using grid_base_object = Volume;
 
 		enum
 		{
 			CONTAINER_SECTION = CSVOL_PYRAMID,
 			BASE_OBJECT_ID = VOLUME
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PYRAMID;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PYRAMID;
 };
 
-typedef geometry_traits<Pyramid>::iterator			PyramidIterator;
-typedef geometry_traits<Pyramid>::const_iterator	ConstPyramidIterator;
+using PyramidIterator = geometry_traits<Pyramid>::iterator;
+using ConstPyramidIterator = geometry_traits<Pyramid>::const_iterator;
 
 
 
@@ -625,14 +625,14 @@ class UG_API OctahedronDescriptor
 class UG_API Octahedron : public Volume
 {
 	public:
-		typedef Volume BaseClass;
+		using BaseClass = Volume;
 
-		static const size_t NUM_VERTICES = 6;
+		static constexpr size_t NUM_VERTICES = 6;
 
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Octahedron*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Octahedron*>(pObj) != nullptr;}
 
-		Octahedron()	{}
+		Octahedron()	= default;
 		Octahedron(const OctahedronDescriptor& td);
 		Octahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6);
 
@@ -677,15 +677,15 @@ class UG_API Octahedron : public Volume
 							Vertex** newFaceVertices,
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
-							Vertex** pSubstituteVertices = NULL,
-							vector3* corners = NULL,
-							bool* isSnapPoint = NULL);
+							Vertex** pSubstituteVertices = nullptr,
+							vector3* corners = nullptr,
+							bool* isSnapPoint = nullptr);
 
 		virtual bool is_regular_ref_rule(int edgeMarks) const;
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, Vertex* newVertex,
-								std::vector<Vertex*>* pvSubstituteVertices = NULL);
+								std::vector<Vertex*>* pvSubstituteVertices = nullptr);
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
@@ -703,23 +703,23 @@ template <>
 class geometry_traits<Octahedron>
 {
 	public:
-		typedef GenericGridObjectIterator<Octahedron*, VolumeIterator>		iterator;
-		typedef ConstGenericGridObjectIterator<Octahedron*, VolumeIterator,
-															ConstVolumeIterator>	const_iterator;
+		using iterator = GenericGridObjectIterator<Octahedron*, VolumeIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<Octahedron*, VolumeIterator,
+			ConstVolumeIterator>;
 
-		typedef OctahedronDescriptor Descriptor;
-		typedef Volume 		grid_base_object;
+		using Descriptor = OctahedronDescriptor;
+		using grid_base_object = Volume;
 
 		enum
 		{
 			CONTAINER_SECTION = CSVOL_OCTAHEDRON,
 			BASE_OBJECT_ID = VOLUME
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_OCTAHEDRON;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_OCTAHEDRON;
 };
 
-typedef geometry_traits<Octahedron>::iterator			OctahedronIterator;
-typedef geometry_traits<Octahedron>::const_iterator	ConstOctahedronIterator;
+using OctahedronIterator = geometry_traits<Octahedron>::iterator;
+using ConstOctahedronIterator = geometry_traits<Octahedron>::const_iterator;
 
 }//	end of namespace
 

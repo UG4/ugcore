@@ -47,9 +47,9 @@ namespace ug{
 template <class TFunction>
 class GradientEvaluator_LagrangeP1{
 	public:
-		static const int dim = TFunction::dim;
-		typedef MathVector<dim>						vector_t;
-		typedef typename TFunction::element_type 	elem_t;
+		static constexpr int dim = TFunction::dim;
+		using vector_t = MathVector<dim>;
+		using elem_t = typename TFunction::element_type;
 
 		GradientEvaluator_LagrangeP1(TFunction* u, size_t fct)	:
 			m_pu(u),

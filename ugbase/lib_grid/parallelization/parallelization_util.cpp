@@ -58,7 +58,7 @@ template <class TElem, class TAVrtPos>
 class ToElementPosition
 {
 	public:
-		typedef typename TAVrtPos::ValueType	TValue;
+		using TValue = typename TAVrtPos::ValueType;
 
 		ToElementPosition(Grid& g, TAVrtPos& aPos)
 		{
@@ -79,10 +79,10 @@ class ToElementPosition
 template <class TAPos>
 bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos, bool verbose = true)
 {
-	typedef typename TAPos::ValueType	TValue;
-	typedef VertexLayout::LevelLayout	VrtLevelLayout;
-	typedef EdgeLayout::LevelLayout		EdgeLevelLayout;
-	typedef FaceLayout::LevelLayout		FaceLevelLayout;
+	using TValue = typename TAPos::ValueType;
+	using VrtLevelLayout = VertexLayout::LevelLayout;
+	using EdgeLevelLayout = EdgeLayout::LevelLayout;
+	using FaceLevelLayout = FaceLayout::LevelLayout;
 
 	bool bSuccess = true;
 

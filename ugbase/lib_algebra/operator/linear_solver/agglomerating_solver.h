@@ -76,14 +76,9 @@ template <typename TBase, typename TAlgebra>
 class AgglomeratingBase : public TBase
 {
 	public:
-	// 	Algebra type
-		typedef TAlgebra algebra_type;
-
-	// 	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
-
-	// 	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using algebra_type = TAlgebra;
+		using vector_type = typename TAlgebra::vector_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	public:
 	// 	Destructor
@@ -153,7 +148,7 @@ class AgglomeratingBase : public TBase
 
 		bool is_serial()
 		{
-			UG_COND_THROW(m_pMatrix == NULL, "ERROR: No Matrix given.");
+			UG_COND_THROW(m_pMatrix == nullptr, "ERROR: No Matrix given.");
 #ifdef UG_PARALLEL
 			return m_pMatrix->layouts()->proc_comm().is_local() || m_pMatrix->layouts()->proc_comm().empty();
 
@@ -308,23 +303,16 @@ class AgglomeratingSolver : public
 	AgglomeratingBase<IMatrixOperatorInverse<	typename TAlgebra::matrix_type, typename TAlgebra::vector_type>, TAlgebra >
 {
 	public:
-	// 	Algebra type
-		typedef TAlgebra algebra_type;
-
-	// 	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
-
-	// 	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
-
-	///	Base type
-		typedef AgglomeratingBase<IMatrixOperatorInverse<matrix_type,vector_type>, algebra_type > base_type;
+		using algebra_type = TAlgebra;
+		using vector_type = typename TAlgebra::vector_type;
+		using matrix_type = typename TAlgebra::matrix_type;
+		using base_type = AgglomeratingBase<IMatrixOperatorInverse<matrix_type,vector_type>, algebra_type >;
 
 
 	public:
 		AgglomeratingSolver(SmartPtr<ILinearOperatorInverse<vector_type, vector_type> > linOpInverse)
 		{
-			UG_COND_THROW(linOpInverse.valid()==false, "linOpInverse has to be != NULL");
+			UG_COND_THROW(linOpInverse.valid()==false, "linOpInverse has to be != nullptr");
 			m_pLinOpInverse = linOpInverse;
 			m_name = std::string("AgglomeratingSolver(") + linOpInverse->name() + ")";
 		};
@@ -385,21 +373,21 @@ class AgglomeratingIterator : public
 {
 	public:
 	// 	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	// 	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	// 	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Base type
-		typedef AgglomeratingBase<ILinearIterator<vector_type>, algebra_type > base_type;
+		using base_type = AgglomeratingBase<ILinearIterator<vector_type>, algebra_type >;
 
 	public:
 		AgglomeratingIterator(SmartPtr<ILinearIterator<vector_type> > splinIt)
 		{
-			UG_COND_THROW(splinIt.valid()==false, "linOpInverse has to be != NULL");
+			UG_COND_THROW(splinIt.valid()==false, "linOpInverse has to be != nullptr");
 			m_splinIt = splinIt;
 			m_name = std::string("AgglomeratingIterator(") + splinIt->name() + std::string(")");
 		}
@@ -462,21 +450,21 @@ class AgglomeratingPreconditioner: public
 {
 	public:
 	// 	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	// 	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	// 	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Base type
-		typedef AgglomeratingBase<IPreconditioner<TAlgebra>, TAlgebra > base_type;
+		using base_type = AgglomeratingBase<IPreconditioner<TAlgebra>, TAlgebra >;
 
 	public:
 		AgglomeratingPreconditioner(SmartPtr<ILinearIterator<vector_type> > splinIt)
 		{
-			UG_COND_THROW(splinIt.valid()==false, "linOpInverse has to be != NULL");
+			UG_COND_THROW(splinIt.valid()==false, "linOpInverse has to be != nullptr");
 			m_splinIt = splinIt;
 			m_name = std::string("AgglomeratingPreconditioner(") + splinIt->name() + std::string(")");
 		}

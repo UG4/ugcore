@@ -38,7 +38,7 @@ template<typename T>
 class TE_TRANSPOSED
 {
 public:
-	typedef typename T::value_type value_type;
+	using value_type = typename T::value_type;
 	TE_TRANSPOSED(const T&_t) : t(_t) {}
 	inline size_t num_rows() const
 	{

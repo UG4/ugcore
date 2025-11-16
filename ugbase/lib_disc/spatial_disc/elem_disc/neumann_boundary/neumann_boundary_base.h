@@ -47,14 +47,14 @@ class NeumannBoundaryBase
 {
 	private:
 	///	Base class type
-		typedef IElemDisc<TDomain> base_type;
+		using base_type = IElemDisc<TDomain>;
 
 	///	Base class type
-		typedef NeumannBoundaryBase<TDomain> this_type;
+		using this_type = NeumannBoundaryBase;
 
 	public:
 	///	World dimension
-		static const int dim = base_type::dim;
+		static constexpr int dim = base_type::dim;
 
 	public:
 	///	default constructor

@@ -50,28 +50,28 @@ class FEGeometry
 {
 	public:
 	///	type of reference element
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+		using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	/// reference element dimension
-		static const int dim = ref_elem_type::dim;
+		static constexpr int dim = ref_elem_type::dim;
 
 	/// world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	type of trial space
-		typedef TTrialSpace trial_space_type;
+		using trial_space_type = TTrialSpace;
 
 	///	type of quadrature rule
-		typedef TQuadratureRule quad_rule_type;
+		using quad_rule_type = TQuadratureRule;
 
 	///	number of shape functions
-		static const size_t nsh = trial_space_type::nsh;
+		static constexpr size_t nsh = trial_space_type::nsh;
 
 	///	number of integration points
-		static const size_t nip = quad_rule_type::nip;
+		static constexpr size_t nip = quad_rule_type::nip;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = true;
+		static constexpr bool staticLocalData = true;
 
 	public:
 	///	Constructor
@@ -183,13 +183,13 @@ class DimFEGeometry
 {
 	public:
 	/// reference element dimension
-		static const int dim = TRefDim;
+		static constexpr int dim = TRefDim;
 
 	/// world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = false;
+		static constexpr bool staticLocalData = false;
 
 	public:
 	///	default Constructor

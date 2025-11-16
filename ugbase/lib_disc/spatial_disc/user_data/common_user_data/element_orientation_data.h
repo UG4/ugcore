@@ -52,14 +52,14 @@ class EdgeOrientation
 {
 public:
 ///	World dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 
 /// Return type
-	typedef MathVector<dim> return_type;
+	using return_type = MathVector<dim>;
 
 ///	Type of domain
-	typedef StdUserData<EdgeOrientation<TDomain>, MathVector<TDomain::dim>, TDomain::dim, void> base_type;
-	typedef CplUserData<MathVector<TDomain::dim>, TDomain::dim> cpl_user_data;
+	using base_type = StdUserData<EdgeOrientation<TDomain>, MathVector<TDomain::dim>, TDomain::dim, void>;
+	using cpl_user_data = CplUserData<MathVector<TDomain::dim>, TDomain::dim>;
 
 
 	
@@ -88,7 +88,7 @@ public:
 	{
 		auto& aaPos = m_spDomain->position_accessor();
 		EdgeVertices *e = dynamic_cast<EdgeVertices*> (elem);
-		UG_ASSERT(e != NULL, "ERROR: No edge! ");
+		UG_ASSERT(e != nullptr, "ERROR: No edge! ");
 
 		VecSubtract(delta, aaPos[e->vertex(1)], aaPos[e->vertex(0)]); 	// v = e_1 - e_0
 		delta /= VecLength(delta);										// normalize
@@ -109,7 +109,7 @@ public:
 		const MathVector<refDim> vLocIP [],
 		const size_t nip,
 		LocalVector * u,
-		const MathMatrix<refDim, dim> * vJT = NULL
+		const MathMatrix<refDim, dim> * vJT = nullptr
 	) const
 	{
 

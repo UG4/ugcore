@@ -62,7 +62,7 @@ int LUAParserClass::createC(nodeType *p, ostream &out, int indent)
 					out << repeat('\t', indent); 			out << "}\n";
 
                     nodeType *a = p->opr.op[2];
-                    while(a != NULL && a->opr.oper == LUAPARSER_ELSEIF)
+                    while(a != nullptr && a->opr.oper == LUAPARSER_ELSEIF)
                     {
                         out << repeat('\t', indent); 			out << "else if(";
                         createC(a->opr.op[0], out, 0);
@@ -72,7 +72,7 @@ int LUAParserClass::createC(nodeType *p, ostream &out, int indent)
                         out << repeat('\t', indent); 			out << "}\n";
                         a = a->opr.op[2];
                     }
-                    if(a != NULL)
+                    if(a != nullptr)
                     {
                         UG_ASSERT(a->opr.oper == LUAPARSER_ELSE, a->opr.oper);
                         out << repeat('\t', indent); 			out << "else\n";

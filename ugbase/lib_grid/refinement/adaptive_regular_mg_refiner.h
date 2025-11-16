@@ -58,13 +58,12 @@ namespace ug
 class AdaptiveRegularRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 {
 	public:
-		typedef HangingNodeRefiner_MultiGrid BaseClass;
+		using BaseClass = HangingNodeRefiner_MultiGrid;
 		using HangingNodeRefiner_MultiGrid::mark;
 
 	public:
-		AdaptiveRegularRefiner_MultiGrid(SPRefinementProjector projector = SPNULL);
-		AdaptiveRegularRefiner_MultiGrid(MultiGrid& mg,
-										 SPRefinementProjector projector = SPNULL);
+		AdaptiveRegularRefiner_MultiGrid(SPRefinementProjector projector = nullptr);
+		AdaptiveRegularRefiner_MultiGrid(MultiGrid& mg, SPRefinementProjector projector = nullptr);
 
 		virtual ~AdaptiveRegularRefiner_MultiGrid();
 
@@ -73,7 +72,7 @@ class AdaptiveRegularRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 	protected:
 	///	performs registration and deregistration at a grid.
 	/**	Initializes all grid related variables.
-	 *  call set_grid(NULL) to unregister the observer from a grid.
+	 *  call set_grid(nullptr) to unregister the observer from a grid.
 	 *
 	 * 	Please note that though the base grid features a set_grid method,
 	 *  it is not declared virtual. This is because we want to call it

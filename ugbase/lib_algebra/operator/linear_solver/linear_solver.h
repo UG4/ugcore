@@ -57,10 +57,10 @@ class LinearSolver
 {
 	public:
 	///	Vector type
-		typedef TVector vector_type;
+		using vector_type = TVector;
 
 	///	Base type
-		typedef IPreconditionedLinearOperatorInverse<vector_type> base_type;
+		using base_type = IPreconditionedLinearOperatorInverse<vector_type>;
 
 	///	constructors
 		LinearSolver() : base_type() {}

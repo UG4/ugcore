@@ -120,7 +120,7 @@ typename TAAPosVRT::ValueType
 CalculateCenter(const VolumeVertices* vol, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
 {
 	typename TAAPosVRT::ValueType v;
-	typedef typename TAAWeightVRT::ValueType weight_t;
+	using weight_t = typename TAAWeightVRT::ValueType;
 
 //	init v with 0.
 	VecSet(v, 0);
@@ -226,7 +226,7 @@ void ConvertToTetrahedra (
 					 	(pyra_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT <
 							hex_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT),
 					 HEX_RULES_MAX_NUM_CONVERT_TO_TETS_INDS_OUT__considered_to_be_highest_among_prism_pyra_and_hex);
-	static const int arrayLen = hex_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT;
+	static constexpr int arrayLen = hex_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT;
 	int inds[arrayLen];
 	
 	vector<Volume*> volsToErase;

@@ -136,7 +136,7 @@ clear_subset_elements(int subsetIndex, int level)
 			"ERROR in SubsetHandler::clear_subsets_elements(): bad subset index.");
 
 //	iterate through the elements of type TElem and erase them from the subsets list.
-	if(m_pGrid != NULL)
+	if(m_pGrid != nullptr)
 	{
 		typename Grid::traits<TElem>::SectionContainer& secCon =
 									section_container<TElem>(subsetIndex, level);
@@ -212,7 +212,7 @@ template<class TElem>
 void MultiGridSubsetHandler::
 change_elem_subset_indices(int indOld, int indNew)
 {
-	typedef typename geometry_traits<TElem>::iterator iterator;
+	using iterator = typename geometry_traits<TElem>::iterator;
 
 	for(size_t i = 0; i < m_levels.size(); ++i)
 	{

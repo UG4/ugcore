@@ -53,7 +53,7 @@ namespace ug
 /// \{
 
 class MessageHub;
-typedef SmartPtr<MessageHub> SPMessageHub;
+using SPMessageHub = SmartPtr<MessageHub>;
 
 ///	Allows to register callbacks and post messages to those callbacks.
 /**
@@ -86,7 +86,7 @@ class MessageHub
 
 	private:
 	//	private type definitions
-		typedef boost::function<void (const IMessage&)> Callback;
+		using Callback = boost::function<void (const IMessage&)>;
 
 	///	The CallbackEntry holds the actual callback and the associated callback-id.
 	/**	If a MessageHub is destroyed before all callbacks are unregistered, this
@@ -99,9 +99,9 @@ class MessageHub
 			CallbackId*	m_callbackId;
 		};
 
-		typedef std::list<CallbackEntry>	CallbackEntryList;
-		typedef CallbackEntryList::iterator	CallbackEntryIterator;
-		typedef std::map<size_t, CallbackEntryList>	CallbackMap;
+		using CallbackEntryList = std::list<CallbackEntry>;
+		using CallbackEntryIterator = CallbackEntryList::iterator;
+		using CallbackMap = std::map<size_t, CallbackEntryList>;
 
 	public:
 	///	Error codes which give information on the error-reason
@@ -157,13 +157,13 @@ class MessageHub
 						   CallbackEntryIterator callbackEntryIter, bool autoFree);
 
 				MessageHub*				m_hub;
-			///	Make sure to only access the iterator while m_hub != NULL.
+			///	Make sure to only access the iterator while m_hub != nullptr.
 				size_t					m_msgTypeId;
 				CallbackEntryIterator	m_callbackEntryIter;
 				bool					m_autoFree;
 		};
 
-		typedef SmartPtr<CallbackId>	SPCallbackId;
+		using SPCallbackId = SmartPtr<CallbackId>;
 
 	public:
 		MessageHub();

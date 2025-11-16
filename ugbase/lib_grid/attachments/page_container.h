@@ -32,7 +32,7 @@
 
 #ifndef __H__UG__page_container__
 #define __H__UG__page_container__
-
+/*
 #include <vector>
 #include <memory>
 #include "common/types.h"
@@ -45,11 +45,11 @@ template <class T, int MAX_PAGE_SIZE = 4096,
 class PageContainer
 {
 	public:
-		typedef Allocator allocator_type;
-		typedef typename Allocator::size_type size_type;
-		typedef typename Allocator::difference_type difference_type;
-		typedef typename Allocator::reference reference;
-		typedef typename Allocator::const_reference const_reference;
+		using allocator_type = Allocator;
+		using size_type = typename Allocator::size_type;
+		using difference_type = typename Allocator::difference_type;
+		using reference = typename Allocator::reference;
+		using const_reference = typename Allocator::const_reference;
 
 	public:
 		PageContainer();
@@ -72,7 +72,7 @@ class PageContainer
 		inline T& operator[](size_t ind);
 		inline const T& operator[](size_t ind) const;
 
-		void swap(PageContainer& pc);
+		void swap(PageContainer& pc) noexcept;
 
 	private:
 		void assign_container(const PageContainer& pc);
@@ -98,5 +98,5 @@ class PageContainer
 ////////////////////////////////
 //	include implementation
 #include "page_container_impl.h"
-
+*/
 #endif

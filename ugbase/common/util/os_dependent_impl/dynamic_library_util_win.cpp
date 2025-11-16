@@ -41,12 +41,12 @@ namespace ug{
 	DWORD errCode = GetLastError();
 	char *err;
 	if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-					   NULL,
+					   nullptr,
 					   errCode,
 					   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // default language
 					   (LPTSTR) &err,
 					   0,
-					   NULL))
+					   nullptr))
 		return "?";
 
 	std::string s = err;
@@ -58,7 +58,7 @@ namespace ug{
 DynLibHandle OpenLibrary(const char* fileName)
 {
 	DynLibHandle dlh = LoadLibrary(fileName);
-	if(dlh == NULL)
+	if(dlh == nullptr)
 		throw std::string("LoadLibrary failed."); //GetLastErrorString();
 	return dlh;
 }

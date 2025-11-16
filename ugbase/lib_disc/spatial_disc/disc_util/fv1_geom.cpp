@@ -86,7 +86,7 @@ static void ComputeMidPoints(const TRefElem& rRefElem,
  */
 	if(rRefElem.roid() == ROID_OCTAHEDRON)
 	{
-		typedef fv1_traits_ReferenceOctahedron traits;
+		using traits = fv1_traits_ReferenceOctahedron;
 
 		for(int d = 1; d <= dim; ++d)
 		{
@@ -118,7 +118,7 @@ template <typename TRefElem>
 static void ComputeSCVFMidID(const TRefElem& rRefElem,
                                    MidID vMidID[], int i)
 {
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 	if (rRefElem.roid() != ROID_PYRAMID && rRefElem.roid() != ROID_OCTAHEDRON)
 	{
@@ -156,7 +156,7 @@ template <typename TRefElem>
 static void ComputeSCVMidID(const TRefElem& rRefElem,
                             MidID vMidID[], int i)
 {
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 	if (rRefElem.roid() != ROID_PYRAMID && rRefElem.roid() != ROID_OCTAHEDRON)
 	{
@@ -204,7 +204,7 @@ template <typename TRefElem>
 static void ComputeBFMidID(const TRefElem& rRefElem, int side,
                             MidID vMidID[], int co)
 {
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 	//	number of corners of side
 	const int coOfSide = rRefElem.num(dim-1, side, 0);
@@ -249,7 +249,7 @@ static void CopyCornerByMidID(MathVector<dim> vCorner[],
 template <typename TElem, int TWorldDim, bool TCondensed>
 FV1Geometry_gen<TElem, TWorldDim, TCondensed>::
 FV1Geometry_gen()
-	: m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()),
+	: m_pElem(nullptr), m_rRefElem(Provider<ref_elem_type>::get()),
 	  m_rTrialSpace(Provider<local_shape_fct_set_type>::get())
 {
 	update_local_data();
@@ -330,8 +330,8 @@ template <typename TElem, int TWorldDim, bool TCondensed>
 void FV1Geometry_gen<TElem, TWorldDim, TCondensed>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
-	TElem* pElem = static_cast<TElem*>(elem);
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != nullptr, "Wrong element type.");
+	auto* pElem = static_cast<TElem*>(elem);
 
 // 	if already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;
@@ -459,7 +459,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 			m_vGlobSCV_IP[i] = scv(i).global_ip();
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	if(num_boundary_subsets() == 0 || ish == nullptr) return;
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
@@ -467,8 +467,8 @@ template <typename TElem, int TWorldDim, bool TCondensed>
 void FV1Geometry_gen<TElem, TWorldDim, TCondensed>::
 update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
-	TElem* pElem = static_cast<TElem*>(elem);
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != nullptr, "Wrong element type.");
+	auto* pElem = static_cast<TElem*>(elem);
 
 //	get grid
 	Grid& grid = *(ish->grid());
@@ -770,7 +770,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 	UG_CATCH_THROW("DimFV1Geometry: update failed.");
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	if(num_boundary_subsets() == 0 || ish == nullptr) return;
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
@@ -900,7 +900,7 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 
 template <typename TElem, int TWorldDim>
 FV1ManifoldGeometry<TElem, TWorldDim>::
-FV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get())
+FV1ManifoldGeometry() : m_pElem(nullptr), m_rRefElem(Provider<ref_elem_type>::get())
 {
 	// set corners of element as local centers of nodes
 	for (size_t i = 0; i < m_rRefElem.num(0); ++i)

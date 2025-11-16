@@ -46,7 +46,7 @@ struct ProfileCall
 {
 	ProfileCall()
 	{
-		p = NULL;
+		p = nullptr;
 		c = 0;
 	}
 	ProfileCall(const ProfileCall &other)

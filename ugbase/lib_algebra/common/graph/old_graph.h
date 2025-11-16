@@ -61,8 +61,8 @@ namespace ug{
 class cgraph
 {
 public:
-	typedef stdvector<size_t>::const_iterator const_row_iterator;
-	typedef stdvector<size_t>::iterator row_iterator;
+	using const_row_iterator = stdvector<size_t>::const_iterator;
+	using row_iterator = stdvector<size_t>::iterator;
 public:
 	/** constructor
 	 */

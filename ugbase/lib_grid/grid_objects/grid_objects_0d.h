@@ -62,7 +62,7 @@ class UG_API RegularVertex : public Vertex
 {
 	friend class Grid;
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<RegularVertex*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<RegularVertex*>(pObj) != nullptr;}
 
 		virtual ~RegularVertex()	{}
 
@@ -76,11 +76,11 @@ template <>
 class geometry_traits<RegularVertex>
 {
 	public:
-		typedef GenericGridObjectIterator<RegularVertex*, VertexIterator>			iterator;
-		typedef ConstGenericGridObjectIterator<RegularVertex*, VertexIterator,
-														ConstVertexIterator>	const_iterator;
+		using iterator = GenericGridObjectIterator<RegularVertex*, VertexIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<RegularVertex*, VertexIterator,
+			ConstVertexIterator>;
 
-		typedef Vertex	grid_base_object;
+		using grid_base_object = Vertex;
 
 		enum
 		{
@@ -88,11 +88,11 @@ class geometry_traits<RegularVertex>
 			BASE_OBJECT_ID = VERTEX
 		};
 
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
 };
 
-typedef geometry_traits<RegularVertex>::iterator 		RegularVertexIterator;
-typedef geometry_traits<RegularVertex>::const_iterator	ConstRegularVertexIterator;
+using RegularVertexIterator = geometry_traits<RegularVertex>::iterator;
+using ConstRegularVertexIterator = geometry_traits<RegularVertex>::const_iterator;
 
 
 
@@ -110,9 +110,9 @@ class UG_API ConstrainedVertex : public Vertex
 {
 	friend class Grid;
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedVertex*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedVertex*>(pObj) != nullptr;}
 
-		ConstrainedVertex()	: m_constrainingObj(NULL), m_parentBaseObjectId(-1)	{}
+		ConstrainedVertex()	: m_constrainingObj(nullptr), m_parentBaseObjectId(-1)	{}
 		virtual ~ConstrainedVertex()
 		{
 			if(m_constrainingObj)
@@ -129,14 +129,14 @@ class UG_API ConstrainedVertex : public Vertex
 		virtual void remove_constraint_link(const Edge* e)
 		{
 			if(m_constrainingObj == static_cast<const GridObject*>(e)){
-				m_constrainingObj = NULL;
+				m_constrainingObj = nullptr;
 			}
 		}
 
 		virtual void remove_constraint_link(const Face* f)
 		{
 			if(m_constrainingObj == static_cast<const GridObject*>(f)){
-				m_constrainingObj = NULL;
+				m_constrainingObj = nullptr;
 			}
 		}
 
@@ -179,22 +179,22 @@ template <>
 class geometry_traits<ConstrainedVertex>
 {
 	public:
-		typedef GenericGridObjectIterator<ConstrainedVertex*, VertexIterator>			iterator;
-		typedef ConstGenericGridObjectIterator<ConstrainedVertex*, VertexIterator,
-																ConstVertexIterator>	const_iterator;
+		using iterator = GenericGridObjectIterator<ConstrainedVertex*, VertexIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<ConstrainedVertex*, VertexIterator,
+			ConstVertexIterator>;
 
-		typedef Vertex	grid_base_object;
+		using grid_base_object = Vertex;
 
 		enum
 		{
 			CONTAINER_SECTION = CSVRT_CONSTRAINED_VERTEX,
 			BASE_OBJECT_ID = VERTEX
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
 };
 
-typedef geometry_traits<ConstrainedVertex>::iterator 		ConstrainedVertexIterator;
-typedef geometry_traits<ConstrainedVertex>::const_iterator	ConstConstrainedVertexIterator;
+using ConstrainedVertexIterator = geometry_traits<ConstrainedVertex>::iterator;
+using ConstConstrainedVertexIterator = geometry_traits<ConstrainedVertex>::const_iterator;
 
 
 }//	end of namespace

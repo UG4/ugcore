@@ -45,11 +45,11 @@ MGSelector::MGSelector(uint supportedElements) :
 	m_aSharedEntryFACE("MGSelector_SharedListEntryFACE"),
 	m_aSharedEntryVOL("MGSelector_SharedListEntryVOL")
 {
-	m_pMultiGrid = NULL;
+	m_pMultiGrid = nullptr;
 }
 
 MGSelector::MGSelector(MultiGrid& grid, uint supportedElements) :
-	ISelector(supportedElements), m_pMultiGrid(NULL),
+	ISelector(supportedElements), m_pMultiGrid(nullptr),
 	m_aSharedEntryVRT("MGSelector_SharedListEntryVRT"),
 	m_aSharedEntryEDGE("MGSelector_SharedListEntryEDGE"),
 	m_aSharedEntryFACE("MGSelector_SharedListEntryFACE"),
@@ -75,12 +75,12 @@ void MGSelector::cleanup()
 	if(m_pMultiGrid){
 		disable_element_support(m_supportedElements);
 	//	unregister the previously registered callback
-		m_callbackId = MessageHub::SPCallbackId(NULL);
+		m_callbackId = MessageHub::SPCallbackId(nullptr);
 
-		m_pMultiGrid = NULL;
+		m_pMultiGrid = nullptr;
 	}
 
-	BaseClass::set_grid(NULL);
+	BaseClass::set_grid(nullptr);
 }
 
 void MGSelector::assign_grid(MultiGrid& grid)
@@ -167,16 +167,16 @@ void MGSelector::disable_element_support(uint shElements)
 	for(size_t i = 0; i < m_levels.size(); ++i){
 		Level& lvl = *m_levels[i];
 		if((shElements & SE_VERTEX) && elements_are_supported(SE_VERTEX))
-			lvl.m_vertices.get_container().set_pipe(NULL);
+			lvl.m_vertices.get_container().set_pipe(nullptr);
 
 		if((shElements & SE_EDGE) && elements_are_supported(SE_EDGE))
-			lvl.m_edges.get_container().set_pipe(NULL);
+			lvl.m_edges.get_container().set_pipe(nullptr);
 
 		if((shElements & SE_FACE) && elements_are_supported(SE_FACE))
-			lvl.m_faces.get_container().set_pipe(NULL);
+			lvl.m_faces.get_container().set_pipe(nullptr);
 
 		if((shElements & SE_VOLUME) && elements_are_supported(SE_VOLUME))
-			lvl.m_volumes.get_container().set_pipe(NULL);
+			lvl.m_volumes.get_container().set_pipe(nullptr);
 	}
 
 	if((shElements & SE_VERTEX) && elements_are_supported(SE_VERTEX))
@@ -325,7 +325,7 @@ void MGSelector::unregistered_from_grid(Grid* grid)
 void MGSelector::grid_to_be_destroyed(Grid* grid)
 {
 	ISelector::grid_to_be_destroyed(grid);
-	m_pMultiGrid = NULL;
+	m_pMultiGrid = nullptr;
 	clear_lists();
 }
 

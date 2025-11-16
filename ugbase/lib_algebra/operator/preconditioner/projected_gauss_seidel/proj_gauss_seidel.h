@@ -79,16 +79,16 @@ class ProjGaussSeidel:
 {
 	public:
 	///	Base class type
-		typedef IProjGaussSeidel<TDomain,TAlgebra> base_type;
+		using base_type = IProjGaussSeidel<TDomain,TAlgebra>;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Matrix type
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	protected:
 	///	name
@@ -117,16 +117,16 @@ class ProjBackwardGaussSeidel:
 {
 	public:
 	///	Base class type
-		typedef IProjGaussSeidel<TDomain,TAlgebra> base_type;
+		using base_type = IProjGaussSeidel<TDomain,TAlgebra>;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Matrix type
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	protected:
 	///	name
@@ -157,16 +157,16 @@ class ProjSymmetricGaussSeidel:
 {
 	public:
 	///	Base class type
-		typedef IProjGaussSeidel<TDomain,TAlgebra> base_type;
+		using base_type = IProjGaussSeidel<TDomain,TAlgebra>;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Matrix type
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	protected:
 	///	name

@@ -46,11 +46,11 @@ namespace boost {
             class ValueIndexMap>
   class bucket_sorter {
   public:
-    typedef BucketType bucket_type;
-    typedef ValueType value_type;
-    typedef Bucket Bucket_type;
-    typedef ValueIndexMap value_index_map;
-    typedef typename std::vector<value_type>::size_type size_type;
+    using bucket_type = BucketType;
+    using value_type = ValueType;
+    using Bucket_type = Bucket;
+    using value_index_map = ValueIndexMap;
+    using size_type = typename std::vector<value_type>::size_type;
     
     bucket_sorter(size_type _length, bucket_type _max_bucket, 
                   const Bucket& _bucket = Bucket(), 
@@ -134,18 +134,18 @@ namespace boost {
       return (std::numeric_limits<size_type>::max)();
     }
     
-    typedef typename std::vector<size_type>::iterator Iter;
-    typedef typename std::vector<size_type>::const_iterator ConstIter;
-    typedef typename std::vector<value_type>::iterator IndexValueMap;
-    typedef typename std::vector<value_type>::const_iterator ConstIndexValueMap;
+    using Iter = typename std::vector<size_type>::iterator;
+    using ConstIter = typename std::vector<size_type>::const_iterator;
+    using IndexValueMap = typename std::vector<value_type>::iterator;
+    using ConstIndexValueMap = typename std::vector<value_type>::const_iterator;
     
   public:
 
     template<class Iter_, class IndexValueMap_>
     class stack_ {
     public:
-      typedef bucket_sorter base;
-      typedef bucket_sorter::value_type value_type;
+      using base = bucket_sorter;
+      using value_type = bucket_sorter::value_type;
     public:
       class const_iterator{
         // bug? feature?
@@ -324,8 +324,8 @@ namespace boost {
       ValueIndexMap id;
     }; // stack
 
-    typedef stack_<Iter, IndexValueMap> stack;
-    typedef stack_<ConstIter, ConstIndexValueMap> const_stack;
+    using stack = stack_<Iter, IndexValueMap>;
+    using const_stack = stack_<ConstIter, ConstIndexValueMap>;
     
     const_stack operator[](const bucket_type& i) const{
       assert(i < next.size());

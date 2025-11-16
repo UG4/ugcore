@@ -61,7 +61,7 @@ void CreateVolumesFromElementIndexList (
 			const int* elemIndexList,
 			int numElements,
 			Vertex* const* vrts,
-			Volume** volsOut = NULL)
+			Volume** volsOut = nullptr)
 {
 	VolumeDescriptor vd;
 
@@ -75,7 +75,7 @@ void CreateVolumesFromElementIndexList (
 			vd.set_vertex(j, vrts[*inds++]);
 		}
 
-		Volume* vol = NULL;
+		Volume* vol = nullptr;
 		switch(elemId){
 			case 4:	vol = *g.create<Tetrahedron>(vd);	break;
 			case 5:	vol = *g.create<Pyramid>(vd);		break;

@@ -55,17 +55,17 @@ struct reference_element_traits;
 template <>
 struct reference_element_traits<Vertex>
 {
-	typedef ReferenceVertex reference_element_type;
-	static const int dim = reference_element_type::dim;
+	using reference_element_type = ReferenceVertex;
+	static constexpr int dim = reference_element_type::dim;
 };
 
 template <>
 struct reference_element_traits<RegularVertex>
-	: public reference_element_traits<Vertex> {};
+	: reference_element_traits<Vertex> {};
 
 template <>
 struct reference_element_traits<ConstrainedVertex>
-	: public reference_element_traits<Vertex> {};
+	: reference_element_traits<Vertex> {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Edge
@@ -74,24 +74,24 @@ struct reference_element_traits<ConstrainedVertex>
 template <>
 struct reference_element_traits<RegularEdge>
 {
-	typedef ReferenceEdge reference_element_type;
-	static const int dim = reference_element_type::dim;
+	using reference_element_type = ReferenceEdge;
+	static constexpr int dim = reference_element_type::dim;
 };
 
 template <>
 struct reference_element_traits<Edge>
 {
-	typedef ReferenceEdge reference_element_type;
-	static const int dim = reference_element_type::dim;
+	using reference_element_type = ReferenceEdge;
+	static constexpr int dim = reference_element_type::dim;
 };
 
 template <>
 struct reference_element_traits<ConstrainedEdge>
-	: public reference_element_traits<RegularEdge>{};
+	: reference_element_traits<RegularEdge>{};
 
 template <>
 struct reference_element_traits<ConstrainingEdge>
-	: public reference_element_traits<RegularEdge>{};
+	: reference_element_traits<RegularEdge>{};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Triangle
@@ -100,17 +100,17 @@ struct reference_element_traits<ConstrainingEdge>
 template <>
 struct reference_element_traits<Triangle>
 {
-	typedef ReferenceTriangle reference_element_type;
-	static const int dim = reference_element_type::dim;
+	using reference_element_type = ReferenceTriangle;
+	static constexpr int dim = reference_element_type::dim;
 };
 
 template <>
 struct reference_element_traits<ConstrainedTriangle>
-	: public reference_element_traits<Triangle> {};
+	: reference_element_traits<Triangle> {};
 
 template <>
 struct reference_element_traits<ConstrainingTriangle>
-	: public reference_element_traits<Triangle> {};
+	: reference_element_traits<Triangle> {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Quadrilateral
@@ -119,8 +119,8 @@ struct reference_element_traits<ConstrainingTriangle>
 template <>
 struct reference_element_traits<Quadrilateral>
 {
-	typedef ReferenceQuadrilateral reference_element_type;
-	static const int dim = reference_element_type::dim;
+	using reference_element_type = ReferenceQuadrilateral;
+	static constexpr int dim = reference_element_type::dim;
 };
 
 template <>
@@ -138,8 +138,8 @@ struct reference_element_traits<ConstrainingQuadrilateral>
 template <>
 struct reference_element_traits<Tetrahedron>
 {
-	typedef ReferenceTetrahedron reference_element_type;
-	static const int dim = reference_element_type::dim;
+	using reference_element_type = ReferenceTetrahedron;
+	static constexpr int dim = reference_element_type::dim;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -149,8 +149,8 @@ struct reference_element_traits<Tetrahedron>
 template <>
 struct reference_element_traits<Pyramid>
 {
-	typedef ReferencePyramid reference_element_type;
-	static const int dim = reference_element_type::dim;
+	using reference_element_type = ReferencePyramid;
+	static constexpr int dim = reference_element_type::dim;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -160,8 +160,8 @@ struct reference_element_traits<Pyramid>
 template <>
 struct reference_element_traits<Prism>
 {
-	typedef ReferencePrism reference_element_type;
-	static const int dim = reference_element_type::dim;
+	using reference_element_type = ReferencePrism;
+	static constexpr int dim = reference_element_type::dim;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -171,8 +171,8 @@ struct reference_element_traits<Prism>
 template <>
 struct reference_element_traits<Hexahedron>
 {
-	typedef ReferenceHexahedron reference_element_type;
-	static const int dim = reference_element_type::dim;
+	using reference_element_type = ReferenceHexahedron;
+	static constexpr int dim = reference_element_type::dim;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -182,8 +182,8 @@ struct reference_element_traits<Hexahedron>
 template <>
 struct reference_element_traits<Octahedron>
 {
-	typedef ReferenceOctahedron reference_element_type;
-	static const int dim = reference_element_type::dim;
+	using reference_element_type = ReferenceOctahedron;
+	static constexpr int dim = reference_element_type::dim;
 };
 
 }

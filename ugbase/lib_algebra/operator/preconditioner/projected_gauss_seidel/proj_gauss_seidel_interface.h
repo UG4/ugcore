@@ -74,22 +74,22 @@ class IProjGaussSeidel:
 {
 	public:
 	///	Base class type
-		typedef GaussSeidelBase<TAlgebra> base_type;
+		using base_type = GaussSeidelBase<TAlgebra>;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Matrix type
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	///	Value type
-		typedef typename vector_type::value_type value_type;
+		using value_type = typename vector_type::value_type;
 
 	///	Grid Function type
-		typedef GridFunction<TDomain, TAlgebra> GF;
+		using GF = GridFunction<TDomain, TAlgebra>;
 
 	public:
 	/// constructor

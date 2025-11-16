@@ -50,7 +50,7 @@ class TParallelGlobalRefiner : public TRefiner
 {
 	public:
 		TParallelGlobalRefiner(DistributedGridManager& distGridMgr,
-							   SPRefinementProjector projector = SPNULL);
+							   SPRefinementProjector projector = nullptr);
 		virtual ~TParallelGlobalRefiner();
 
 	protected:

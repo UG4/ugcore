@@ -67,16 +67,16 @@ template <typename TAlgebra, typename TDomain, typename O_t>
 class DirectionalOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
-	typedef typename TAlgebra::matrix_type M_t;
-	typedef typename TAlgebra::vector_type V_t;
-	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
+	using M_t = typename TAlgebra::matrix_type;
+	using V_t = typename TAlgebra::vector_type;
+	using baseclass = IOrderingAlgorithm<TAlgebra, O_t>;
 
-	typedef typename std::pair<MathVector<TDomain::dim>, size_t> Position_t;
-	typedef typename std::pair<number, size_t> Scalar_t;
-	typedef MathVector<TDomain::dim> small_vec_t;
-	typedef GridFunction<TDomain, TAlgebra> GridFunc_t;
+	using Position_t = std::pair<MathVector<TDomain::dim>, size_t>;
+	using Scalar_t = std::pair<number, size_t>;
+	using small_vec_t = MathVector<TDomain::dim>;
+	using GridFunc_t = GridFunction<TDomain, TAlgebra>;
 
-	typedef SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> > TSpUserData;
+	using TSpUserData = SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> >;
 
 	DirectionalOrdering(){}
 

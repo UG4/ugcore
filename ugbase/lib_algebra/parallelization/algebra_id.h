@@ -60,8 +60,8 @@ struct AlgebraID : public std::pair<int, size_t>
 template<>
 size_t hash_key<AlgebraID>(const AlgebraID& key);
 
-typedef std::vector<AlgebraID>	AlgebraIDVec;
-typedef Hash<AlgebraID, size_t>	AlgebraIDHashList;
+using AlgebraIDVec = std::vector<AlgebraID>;
+using AlgebraIDHashList = Hash<AlgebraID, size_t>;
 
 std::ostream& operator<<(std::ostream &out, const AlgebraID &ID);
 

@@ -54,13 +54,12 @@ namespace ug
 class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 {
 	public:
-		typedef HangingNodeRefinerBase<Selector> BaseClass;
+		using BaseClass = HangingNodeRefinerBase<Selector>;
 		using HangingNodeRefinerBase<Selector>::mark;
 
 	public:
-		HangingNodeRefiner_Grid(SPRefinementProjector projector = SPNULL);
-		HangingNodeRefiner_Grid(Grid& grid,
-								SPRefinementProjector projector = SPNULL);
+		HangingNodeRefiner_Grid(SPRefinementProjector projector = nullptr);
+		HangingNodeRefiner_Grid(Grid& grid, SPRefinementProjector projector = nullptr);
 
 		virtual ~HangingNodeRefiner_Grid();
 
@@ -109,7 +108,7 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 
 	///	performs registration and deregistration at a grid.
 	/**	Initializes all grid related variables.
-	 *  call set_grid(NULL) to unregister the observer from a grid.
+	 *  call set_grid(nullptr) to unregister the observer from a grid.
 	 *
 	 * 	Please note that though the base grid features a set_grid method,
 	 *  it is not declared virtual. This is because we want to call it
@@ -123,14 +122,14 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 
 		virtual void process_constraining_edge(ConstrainingEdge* cge);
 		virtual void refine_edge_with_normal_vertex(Edge* e,
-											Vertex** newCornerVrts = NULL);
+											Vertex** newCornerVrts = nullptr);
 
 		virtual void refine_face_with_normal_vertex(Face* f,
-											Vertex** newCornerVrts = NULL);
+											Vertex** newCornerVrts = nullptr);
 		virtual void process_constraining_face(ConstrainingFace* cgf);
 
 		virtual void refine_volume_with_normal_vertex(Volume* v,
-											Vertex** newVolumeVrts = NULL);
+											Vertex** newVolumeVrts = nullptr);
 
 	///	Returns the vertex associated with the edge
 		virtual Vertex* get_center_vertex(Edge* e);

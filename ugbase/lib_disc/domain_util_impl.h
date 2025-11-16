@@ -149,10 +149,10 @@ number ElementSize(const TElem& elem, const Grid::VertexAttachmentAccessor<Attac
 	CollectCornerCoordinates(vCornerCoords, elem, aaPos);
 
 	// get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type TRefElem;
+	using TRefElem = typename reference_element_traits<TElem>::reference_element_type;
 
 	// dimension of Positions
-	static const int dim = TPosition::Size;
+	static constexpr int dim = TPosition::Size;
 
 	// return Element Size
 	return ElementSize<TRefElem, dim>(&vCornerCoords[0]);

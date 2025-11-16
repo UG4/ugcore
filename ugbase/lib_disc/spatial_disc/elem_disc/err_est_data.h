@@ -71,7 +71,7 @@ class IErrEstData
 {
 	public:
 	/// world dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 	
 	///	class constructor
 		IErrEstData () : m_consider(true), m_scale(1.0) {};
@@ -138,13 +138,13 @@ class SideFluxErrEstData : public IErrEstData<TDomain>
 {
 public:
 	///	domain type
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 		
 	/// world dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 		
 	///	type of the sides (face, edge) and the elems (volume, face)
-		typedef typename domain_traits<dim>::side_type side_type;
+		using side_type = typename domain_traits<dim>::side_type;
 	
 public:
 	/// constructor
@@ -221,23 +221,23 @@ class SideAndElemErrEstData : public IErrEstData<TDomain>
 {
 public:
 	///	domain type
-		typedef TDomain domain_type;
+	using domain_type = TDomain;
 
 	/// world dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 
 	///	type of the sides (face, edge) and the elems (volume, face)
-		typedef typename domain_traits<dim>::side_type side_type;
-		typedef typename domain_traits<dim>::element_type elem_type;
+	using side_type = typename domain_traits<dim>::side_type;
+	using elem_type = typename domain_traits<dim>::element_type;
 
 	/// attachment type
-		typedef Attachment<std::vector<number> > attachment_type;
+	using attachment_type = Attachment<std::vector<number> >;
 
 	/// this class
-		typedef SideAndElemErrEstData<TDomain> this_type;
+	using this_type = SideAndElemErrEstData<TDomain>;
 
 	/// maximal number of sides of any element
-		static const int MAX_NUM_SIDES = 8;
+		static constexpr int MAX_NUM_SIDES = 8;
 
 public:
 	/// constructors
@@ -423,7 +423,7 @@ class MultipleErrEstData : public IErrEstData<TDomain>
 {
 	public:
 	/// world dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 
 	///	class constructor
 		MultipleErrEstData(ConstSmartPtr<ApproximationSpace<TDomain> > approx)
@@ -506,11 +506,11 @@ class MultipleSideAndElemErrEstData
 {
 	public:
 	/// world dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 
 	///	type of the sides (face, edge) and the elems (volume, face)
-		typedef typename SideAndElemErrEstData<TDomain>::side_type side_type;
-		typedef typename SideAndElemErrEstData<TDomain>::elem_type elem_type;
+	using side_type = typename SideAndElemErrEstData<TDomain>::side_type;
+	using elem_type = typename SideAndElemErrEstData<TDomain>::elem_type;
 
 	/// constructor
 		MultipleSideAndElemErrEstData(ConstSmartPtr<ApproximationSpace<TDomain> > approx)

@@ -348,7 +348,7 @@ get_layer_indices(const vector3& c) const
 number RasterLayers::
 relative_to_global_height(const vector2& c, number relHeight) const
 {
-	static const int order = 1;
+	static constexpr int order = 1;
 
 	if(m_relativeToGlobalHeights.empty())
 		return relative_to_global_height_simple(c, relHeight);

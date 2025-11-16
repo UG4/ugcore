@@ -50,7 +50,7 @@ inline void CopySelectedElements(Selector& srcSel, Grid& destGrid, AVertex aNewV
 	Grid::VertexAttachmentAccessor<AVertex> aaNewVrt(srcGrid, aNewVrt);
 
 	CustomVertexGroup vrts;
-	typedef typename Grid::traits<TElem>::iterator iter_t;
+	using iter_t = typename Grid::traits<TElem>::iterator;
 
 	for(iter_t eiter = srcSel.begin<TElem>();
 		eiter != srcSel.end<TElem>(); ++eiter)

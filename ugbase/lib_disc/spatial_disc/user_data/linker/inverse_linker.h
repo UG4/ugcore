@@ -60,7 +60,7 @@ class InverseLinker
 {
 	public:
 	//	type of base class
-		typedef StdDataLinker<InverseLinker<dim>, number, dim> base_type;
+		using base_type = StdDataLinker<InverseLinker<dim>, number, dim>;
 
 	public:
 	///	constructor
@@ -91,7 +91,7 @@ class InverseLinker
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
 		                     LocalVector* u,
-		                     const MathMatrix<refDim, dim>* vJT = NULL) const;
+		                     const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
 		template <int refDim>
 		void eval_and_deriv(number vValue[],
@@ -105,7 +105,7 @@ class InverseLinker
 		                    bool bDeriv,
 		                    int s,
 		                    std::vector<std::vector<number> > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
+		                    const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
 	protected:
 	///	divisor at ip of input

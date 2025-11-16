@@ -65,13 +65,13 @@ class ReferenceMapping
 {
 	public:
 	///	world dimension (range space dimension)
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	reference dimension (domain space dimension)
-		static const int dim = TRefElem::dim;
+		static constexpr int dim = TRefElem::dim;
 
 	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
-		static const bool isLinear = false;
+		static constexpr bool isLinear = false;
 
 	public:
 	///	Default Constructor
@@ -516,17 +516,17 @@ class ReferenceMapping<ReferenceVertex, TWorldDim>
 {
 	public:
 	///	world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	reference dimension
-		static const int dim = ReferenceVertex::dim;
+		static constexpr int dim = ReferenceVertex::dim;
 
 	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
-		static const bool isLinear = true;
+		static constexpr bool isLinear = true;
 
 	public:
-		typedef BaseReferenceMapping<ReferenceVertex::dim, TWorldDim, true,
-	  	  	  	  	  ReferenceMapping<ReferenceVertex, TWorldDim> > base_type;
+		using base_type = BaseReferenceMapping<ReferenceVertex::dim, TWorldDim, true,
+			ReferenceMapping<ReferenceVertex, TWorldDim> >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -585,17 +585,17 @@ class ReferenceMapping<ReferenceEdge, TWorldDim>
 {
 	public:
 	///	world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	reference dimension
-		static const int dim = ReferenceEdge::dim;
+		static constexpr int dim = ReferenceEdge::dim;
 
 	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
-		static const bool isLinear = true;
+		static constexpr bool isLinear = true;
 
 	public:
-		typedef BaseReferenceMapping<ReferenceEdge::dim, TWorldDim, true,
-	  	  	  	  	  ReferenceMapping<ReferenceEdge, TWorldDim> > base_type;
+		using base_type = BaseReferenceMapping<ReferenceEdge::dim, TWorldDim, true,
+			ReferenceMapping<ReferenceEdge, TWorldDim> >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -655,17 +655,17 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 {
 	public:
 	///	world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	reference dimension
-		static const int dim = ReferenceTriangle::dim;
+		static constexpr int dim = ReferenceTriangle::dim;
 
 	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
-		static const bool isLinear = true;
+		static constexpr bool isLinear = true;
 
 	public:
-		typedef BaseReferenceMapping<ReferenceTriangle::dim, TWorldDim, true,
-	  	  	  	  ReferenceMapping<ReferenceTriangle, TWorldDim> > base_type;
+		using base_type = BaseReferenceMapping<ReferenceTriangle::dim, TWorldDim, true,
+			ReferenceMapping<ReferenceTriangle, TWorldDim> >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -729,17 +729,17 @@ class ReferenceMapping<ReferenceQuadrilateral, TWorldDim>
 {
 	public:
 	///	world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	reference dimension
-		static const int dim = ReferenceQuadrilateral::dim;
+		static constexpr int dim = ReferenceQuadrilateral::dim;
 
 	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
-		static const bool isLinear = false;
+		static constexpr bool isLinear = false;
 
 	public:
-		typedef BaseReferenceMapping<ReferenceQuadrilateral::dim, TWorldDim, false,
-				  ReferenceMapping<ReferenceQuadrilateral, TWorldDim> > base_type;
+		using base_type = BaseReferenceMapping<ReferenceQuadrilateral::dim, TWorldDim, false,
+			ReferenceMapping<ReferenceQuadrilateral, TWorldDim> >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -813,17 +813,17 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 {
 	public:
 	///	world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	reference dimension
-		static const int dim = ReferenceTetrahedron::dim;
+		static constexpr int dim = ReferenceTetrahedron::dim;
 
 	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
-		static const bool isLinear = true;
+		static constexpr bool isLinear = true;
 
 	public:
-		typedef BaseReferenceMapping<ReferenceTetrahedron::dim, TWorldDim, true,
-				  ReferenceMapping<ReferenceTetrahedron, TWorldDim> > base_type;
+		using base_type = BaseReferenceMapping<ReferenceTetrahedron::dim, TWorldDim, true,
+			ReferenceMapping<ReferenceTetrahedron, TWorldDim> >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -890,17 +890,17 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 {
 	public:
 	///	world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	reference dimension
-		static const int dim = ReferencePyramid::dim;
+		static constexpr int dim = ReferencePyramid::dim;
 
 	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
-		static const bool isLinear = false;
+		static constexpr bool isLinear = false;
 
 	public:
-		typedef BaseReferenceMapping<ReferencePyramid::dim, TWorldDim, false,
-				  ReferenceMapping<ReferencePyramid, TWorldDim> > base_type;
+		using base_type = BaseReferenceMapping<ReferencePyramid::dim, TWorldDim, false,
+			ReferenceMapping<ReferencePyramid, TWorldDim> >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -1008,17 +1008,17 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 {
 	public:
 	///	world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	reference dimension
-		static const int dim = ReferencePrism::dim;
+		static constexpr int dim = ReferencePrism::dim;
 
 	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
-		static const bool isLinear = false;
+		static constexpr bool isLinear = false;
 
 	public:
-		typedef BaseReferenceMapping<ReferencePrism::dim, TWorldDim, false,
-				  ReferenceMapping<ReferencePrism, TWorldDim> > base_type;
+		using base_type = BaseReferenceMapping<ReferencePrism::dim, TWorldDim, false,
+			ReferenceMapping<ReferencePrism, TWorldDim> >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -1102,17 +1102,17 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 {
 	public:
 	///	world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	reference dimension
-		static const int dim = ReferenceHexahedron::dim;
+		static constexpr int dim = ReferenceHexahedron::dim;
 
 	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
-		static const bool isLinear = false;
+		static constexpr bool isLinear = false;
 
 	public:
-		typedef BaseReferenceMapping<ReferenceHexahedron::dim, TWorldDim, false,
-				  ReferenceMapping<ReferenceHexahedron, TWorldDim> > base_type;
+		using base_type = BaseReferenceMapping<ReferenceHexahedron::dim, TWorldDim, false,
+			ReferenceMapping<ReferenceHexahedron, TWorldDim> >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -1213,17 +1213,17 @@ class ReferenceMapping<ReferenceOctahedron, TWorldDim>
 {
 	public:
 	///	world dimension
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	reference dimension
-		static const int dim = ReferenceOctahedron::dim;
+		static constexpr int dim = ReferenceOctahedron::dim;
 
 	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
-		static const bool isLinear = false;
+		static constexpr bool isLinear = false;
 
 	public:
-		typedef BaseReferenceMapping<ReferenceOctahedron::dim, TWorldDim, false,
-				  ReferenceMapping<ReferenceOctahedron, TWorldDim> > base_type;
+		using base_type = BaseReferenceMapping<ReferenceOctahedron::dim, TWorldDim, false,
+			ReferenceMapping<ReferenceOctahedron, TWorldDim> >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;

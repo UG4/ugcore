@@ -62,13 +62,13 @@ template <std::size_t N, std::size_t M, typename T>
 class MathMatrix
 {
 	public:
-		typedef T value_type;
-		typedef std::size_t size_type;
-		static const std::size_t RowSize = N;
-		static const std::size_t ColSize = M;
+		using value_type = T;
+		using size_type = std::size_t;
+		static constexpr std::size_t RowSize = N;
+		static constexpr std::size_t ColSize = M;
 
 	public:
-		MathMatrix() {}
+		MathMatrix() = default;
 		MathMatrix(const MathMatrix& v)	{assign(v);}
 
 		/**
@@ -260,18 +260,18 @@ class MathMatrix
 // {
 template <typename T> class MathMatrix<0,0,T>{
 	public:
-		typedef T value_type;
-		typedef std::size_t size_type;
+		using value_type = T;
+		using size_type = std::size_t;
 };
 template <std::size_t N, typename T> class MathMatrix<N,0,T>{
 	public:
-		typedef T value_type;
-		typedef std::size_t size_type;
+		using value_type = T;
+		using size_type = std::size_t;
 };
 template <std::size_t N, typename T> class MathMatrix<0,N,T>{
 	public:
-		typedef T value_type;
-		typedef std::size_t size_type;
+		using value_type = T;
+		using size_type = std::size_t;
 };
 // }
 

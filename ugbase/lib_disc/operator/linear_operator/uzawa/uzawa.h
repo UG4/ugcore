@@ -45,10 +45,7 @@
 
 namespace ug{
 
-
-
-
-typedef std::vector<bool> binary_grouping_vector;
+	using binary_grouping_vector = std::vector<bool>;
 
 
 template<typename TGroupObj, typename TGridFunction>
@@ -58,12 +55,12 @@ void ExtractByObject(std::vector<DoFIndex>& vIndex,
 	                 const std::vector<size_t>& vRemainCmp)
 {
 	// 	memory for local algebra
-	typedef typename TGridFunction::element_type Element;
+	using Element = typename TGridFunction::element_type;
 	std::vector<Element*> vElem;
 
 
 	// loop all grouping objects
-	typedef typename TGridFunction::template traits<TGroupObj>::const_iterator GroupObjIter;
+	using GroupObjIter = typename TGridFunction::template traits<TGroupObj>::const_iterator;
 	for(GroupObjIter iter = c.template begin<TGroupObj>();
 			iter != c.template end<TGroupObj>(); ++iter)
 	{
@@ -80,8 +77,7 @@ void ExtractByObject(std::vector<DoFIndex>& vIndex,
 template <typename TGridFunction>
 class UzawaSlicing : public SlicingData<binary_grouping_vector, 2>  {
 public:
-
-	typedef SlicingData<binary_grouping_vector, 2> base_type;
+	using base_type = SlicingData<binary_grouping_vector, 2>;
 
 	// build an object with
 	UzawaSlicing(const std::vector<std::string>& vSchurCmps)
@@ -174,28 +170,28 @@ template <typename TDomain, typename TAlgebra>
 class UzawaBase : public IPreconditioner<TAlgebra>
 {
 
-	static const bool UZAWA_CMP_SCHUR= true;
-	static const bool UZAWA_CMP_DEFAULT = false;
+	static constexpr bool UZAWA_CMP_SCHUR = true;
+	static constexpr bool UZAWA_CMP_DEFAULT = false;
 
 	public:
 	/// World dimension
-		static const int dim = TDomain::dim;
-		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-		typedef typename TGridFunction::element_type TElement;
-		typedef typename TGridFunction::side_type TSide;
+		static constexpr int dim = TDomain::dim;
+		using TGridFunction = GridFunction<TDomain, TAlgebra>;
+		using TElement = typename TGridFunction::element_type;
+		using TSide = typename TGridFunction::side_type;
 
 
 	///	Algebra types
 	/// \{
-		typedef TAlgebra algebra_type;
-		typedef typename TAlgebra::vector_type vector_type;
-		typedef typename TAlgebra::matrix_type matrix_type;
-		typedef MatrixOperator<matrix_type, vector_type> matrix_operator_type;
+		using algebra_type = TAlgebra;
+		using vector_type = typename TAlgebra::vector_type;
+		using matrix_type = typename TAlgebra::matrix_type;
+		using matrix_operator_type = MatrixOperator<matrix_type, vector_type>;
 
 	/// \}
 
 	protected:
-		typedef IPreconditioner<TAlgebra> base_type;
+		using base_type = IPreconditioner<TAlgebra>;
 
 
 	public:
@@ -230,7 +226,7 @@ class UzawaBase : public IPreconditioner<TAlgebra>
 			const TGridFunction* pVecU = dynamic_cast<const TGridFunction* >(&u);
 
 			UG_ASSERT(pOp.valid(),  "Need a matrix based operator here!");
-			UG_ASSERT(pVecU!=NULL,  "Need a GridFunction here!");
+			UG_ASSERT(pVecU!=nullptr,  "Need a GridFunction here!");
 			base_type::init(J,u);   // calls preprocess
 
 			// Extract sub-matrices afterwards.
@@ -537,7 +533,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 {
 	// Check that grid function was passed.
 	GridFunction<TDomain, TAlgebra>* pC = dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
-	if(pC == NULL) UG_THROW("UzawaBase: expects correction to be a GridFunction.");
+	if(pC == nullptr) UG_THROW("UzawaBase: expects correction to be a GridFunction.");
 
 	const vector_type* pD = &d;
 	const matrix_type* pMat = pOp.get();
@@ -689,9 +685,9 @@ UzawaBase<TDomain, TAlgebra>::clone()
 	newInst->set_debug(debug_writer());
 
 	// clone approximate inverses
-	newInst->m_spForwardInverse = (m_spForwardInverse.valid()) ? m_spForwardInverse->clone().template cast_dynamic<base_type>() : SPNULL;
-	newInst->m_SpSchurComplementInverse = (m_SpSchurComplementInverse.valid()) ? m_SpSchurComplementInverse->clone().template cast_dynamic<base_type>() : SPNULL;
-	newInst->m_spBackwardInverse = (m_spBackwardInverse.valid()) ? m_spBackwardInverse->clone().template cast_dynamic<base_type>() : SPNULL;
+	newInst->m_spForwardInverse = (m_spForwardInverse.valid()) ? m_spForwardInverse->clone().template cast_dynamic<base_type>() : nullptr;
+	newInst->m_SpSchurComplementInverse = (m_SpSchurComplementInverse.valid()) ? m_SpSchurComplementInverse->clone().template cast_dynamic<base_type>() : nullptr;
+	newInst->m_spBackwardInverse = (m_spBackwardInverse.valid()) ? m_spBackwardInverse->clone().template cast_dynamic<base_type>() : nullptr;
 
 	// todo: need to clone here?
 	newInst->m_spSchurUpdateOp = m_spSchurUpdateOp;

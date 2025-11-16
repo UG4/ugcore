@@ -54,27 +54,27 @@ class LagrangeP1
 	  public BaseLSFS<LagrangeP1<TRefElem>, TRefElem::dim>
 {
 	///	base class
-		typedef BaseLSFS<LagrangeP1<TRefElem>, TRefElem::dim> base_type;
+		using base_type = BaseLSFS<LagrangeP1<TRefElem>, TRefElem::dim>;
 
 	public:
 	///	Shape type
-		typedef typename base_type::shape_type shape_type;
+		using shape_type = typename base_type::shape_type;
 
 	///	Gradient type
-		typedef typename base_type::grad_type grad_type;
+		using grad_type = typename base_type::grad_type;
 
 	public:
 	///	Reference Element type
-		typedef TRefElem reference_element_type;
+		using reference_element_type = TRefElem;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = TRefElem::dim;
+		static constexpr int dim = TRefElem::dim;
 
 	///	Order of Shape functions
-		static const size_t order = 1;
+		static constexpr size_t order = 1;
 
 	/// Number of shape functions
-		static const size_t nsh = TRefElem::numCorners;
+		static constexpr size_t nsh = TRefElem::numCorners;
 
 	public:
 	///	constructor

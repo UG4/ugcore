@@ -43,7 +43,7 @@ namespace node_tree
 class CollisionTreeRootNode;
 ////////////////////////////////////////////////////////////////////////
 ///	the smartpointer which will be used to encapsulate the node
-typedef SmartPtr<CollisionTreeRootNode> SPCollisionTreeRootNode;
+using SPCollisionTreeRootNode = SmartPtr<CollisionTreeRootNode>;
 
 ////////////////////////////////////////////////////////////////////////
 //	CollisionTreeRootNode
@@ -68,7 +68,7 @@ class CollisionTreeRootNode : public BoxedGroupNode
 		CollisionTreeRootNode();
 
 	protected:
-		typedef std::vector<vector3> PointVec;
+		using PointVec = std::vector<vector3>;
 		PointVec	m_vPoints;
 };
 

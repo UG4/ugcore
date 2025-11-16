@@ -13,19 +13,19 @@ namespace ug {
 	template <typename TDomain>
 	class OverlyingSubsetFinder
 	{
-		static const int dim = TDomain::dim;
-		typedef TDomain domain_type;
+		static constexpr int dim = TDomain::dim;
+		using domain_type = TDomain;
 
-		typedef typename grid_dim_traits<dim-1>::element_type side_t;
+		using side_t = typename grid_dim_traits<dim-1>::element_type;
 
-		typedef lg_ntree<dim-1, dim, side_t> top_tracer_tree_t;
+		using top_tracer_tree_t = lg_ntree<dim-1, dim, side_t>;
 
-		typedef RayElemIntersectionRecord<side_t*> top_intersection_record_t;
+		using top_intersection_record_t = RayElemIntersectionRecord<side_t*>;
 
-		typedef typename domain_type::position_attachment_type position_attachment_type;
-		typedef typename domain_type::position_accessor_type position_accessor_type;
+		using position_attachment_type = typename domain_type::position_attachment_type;
+		using position_accessor_type = typename domain_type::position_accessor_type;
 
-        typedef typename Grid::traits<side_t>::iterator SideIterator;
+		using SideIterator = typename Grid::traits<side_t>::iterator;
 
 		public:
 

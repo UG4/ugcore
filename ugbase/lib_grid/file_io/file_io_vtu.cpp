@@ -123,22 +123,22 @@ bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh,
 ////////////////////////////////////////////////////////////////////////////////
 GridWriterVTU::
 GridWriterVTU() :
-	m_pout(NULL),
+	m_pout(nullptr),
 	m_pieceMode(NONE),
 	m_pointDataMode(NONE),
 	m_cellDataMode(NONE),
-	m_curGrid(NULL)
+	m_curGrid(nullptr)
 {
 
 }
 
 GridWriterVTU::
 GridWriterVTU(std::ostream* pout) :
-	m_pout(NULL),
+	m_pout(nullptr),
 	m_pieceMode(NONE),
 	m_pointDataMode(NONE),
 	m_cellDataMode(NONE),
-	m_curGrid(NULL)
+	m_curGrid(nullptr)
 {
 	set_stream(pout);
 }
@@ -396,7 +396,7 @@ finish()
 	out_stream() << "</VTKFile>" << endl;
 
 //	invalidate out-stream
-	m_pout = NULL;
+	m_pout = nullptr;
 }
 
 
@@ -474,7 +474,7 @@ parse_file(const char* filename)
 	std::string fiCo2Str(fileContentOriginal);
 
 	delete [] fileContentOriginal;
-	fileContentOriginal = NULL;
+	fileContentOriginal = nullptr;
 
 	std::string regInf("RegionInfo");
 
@@ -635,13 +635,13 @@ subset_handler(ISubsetHandler& shOut,
 
 //	read subset-index for each cell
 	xml_node<>* cellDataNode = gridEntry.node->first_node("CellData");
-	UG_COND_THROW(cellDataNode == NULL, "CellData has to be available if regions are defined!");
+	UG_COND_THROW(cellDataNode == nullptr, "CellData has to be available if regions are defined!");
 
 	xml_node<>* regionDataNode = find_child_node_by_argument_value(cellDataNode,
 																   "DataArray",
 																   "Name",
 																   shName.c_str());
-	UG_COND_THROW(regionDataNode == NULL, "No Cell-Data-Array with name " << shName
+	UG_COND_THROW(regionDataNode == nullptr, "No Cell-Data-Array with name " << shName
 				  << " has been defined!");
 
 	vector<GridObject*>& cells = gridEntry.cells;
@@ -886,7 +886,7 @@ find_child_node_by_argument_value(rapidxml::xml_node<>* parent,
 		}
 		curNode = curNode->next_sibling(nodeName);
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string GridReaderVTU::m_regionOfInterest = "regions";

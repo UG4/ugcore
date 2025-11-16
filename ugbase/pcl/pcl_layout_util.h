@@ -34,7 +34,9 @@
 #define __H__PCL__pcl_layout_util__
 
 #include <vector>
+
 #include "common/util/hash.h"
+
 #include "pcl_communication_structs.h"
 
 
@@ -44,11 +46,11 @@ namespace pcl{
 /// \{
 
 ///	removes all empty interfaces from the given layout.
-template <class TLayout>
+template <typename TLayout>
 void RemoveEmptyInterfaces(TLayout& layout)
 {
-	typedef typename TLayout::iterator TInterfaceIter;
-	typedef typename TLayout::Interface TInterface;
+	using TInterfaceIter = typename TLayout::iterator;
+	using TInterface = typename TLayout::Interface;
 
 	for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
 		for(TInterfaceIter iter = layout.begin(lvl); iter != layout.end(lvl);)
@@ -72,7 +74,7 @@ void RemoveEmptyInterfaces(TLayout& layout)
  *
  * \returns the number of associated processes.
  */
-template <class TLayout>
+template <typename TLayout>
 size_t CollectAssociatedProcesses(std::vector<int>& procIDsOut,
 								  TLayout& layout)
 {
@@ -81,8 +83,7 @@ size_t CollectAssociatedProcesses(std::vector<int>& procIDsOut,
 //	iterate through the levels of the layout
 	for(size_t i = 0; i < layout.num_levels(); ++i){
 	//	iterate through the interfaces on that level
-		for(typename TLayout::iterator iIter = layout.begin(i);
-			iIter != layout.end(i); ++iIter)
+		for(typename TLayout::iterator iIter = layout.begin(i); iIter != layout.end(i); ++iIter)
 		{
 			int procID = layout.proc_id(iIter);
 		//	check whether the process is already contained in procIDsOut
@@ -110,25 +111,23 @@ size_t CollectAssociatedProcesses(std::vector<int>& procIDsOut,
  * a std::vector. Doubles may occur and are not removed. The container is
  * clear as default, before extracting.
  */
-template <class TLayout>
+template <typename TLayout>
 void CollectElements(std::vector<typename TLayout::Element>& elemsOut,
 					TLayout& layout,
 					bool clearContainer = true)
 {
-	typedef typename TLayout::Interface Interface;
+	using Interface = typename TLayout::Interface;
 
 //	clear the return value
 	if(clearContainer) elemsOut.clear();
 
 //	iterate over all interfaces
 	for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
-		for(typename TLayout::const_iterator interfaceIter = layout.begin(lvl);
-			interfaceIter != layout.end(lvl); ++interfaceIter)
+		for(typename TLayout::const_iterator interfaceIter = layout.begin(lvl); interfaceIter != layout.end(lvl); ++interfaceIter)
 		{
 		//	iterate over the entries of the interface
 			const Interface& interface = layout.interface(interfaceIter);
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(typename Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	add elem to vector
 				elemsOut.push_back(interface.get_element(iter));
@@ -138,12 +137,12 @@ void CollectElements(std::vector<typename TLayout::Element>& elemsOut,
 }
 
 ///	writes all elements in the interfaces into the resulting vector. avoids doubles.
-template <class TLayout>
+template <typename TLayout>
 void CollectUniqueElements(std::vector<typename TLayout::Element>& elemsOut,
 						   const TLayout& layout)
 {
-	typedef typename TLayout::Interface Interface;
-	typedef typename TLayout::Element TElem;
+	using Interface = typename TLayout::Interface;
+	using TElem = typename TLayout::Element;
 
 //	clear the return value
 	elemsOut.clear();
@@ -154,13 +153,11 @@ void CollectUniqueElements(std::vector<typename TLayout::Element>& elemsOut,
 
 //	iterate over all interfaces
 	for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
-		for(typename TLayout::const_iterator interfaceIter = layout.begin(lvl);
-			interfaceIter != layout.end(lvl); ++interfaceIter)
+		for(typename TLayout::const_iterator interfaceIter = layout.begin(lvl); interfaceIter != layout.end(lvl); ++interfaceIter)
 		{
 		//	iterate over the entries of the interface
 			const Interface& interface = layout.interface(interfaceIter);
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(typename Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	check whether the entry already exists in the hash
 				if(!hash.has_entry(interface.get_element(iter))){

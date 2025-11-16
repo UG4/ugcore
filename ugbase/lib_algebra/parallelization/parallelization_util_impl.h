@@ -44,7 +44,7 @@ template <class TIndVec>
 void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,
 									  const AlgebraLayouts& layouts)
 {
-	typedef typename TIndVec::value_type index_t;
+	using index_t = typename TIndVec::value_type;
 
 	PU_PROFILE_FUNC();
 	indsOut.clear();

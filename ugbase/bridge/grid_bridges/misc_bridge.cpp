@@ -58,7 +58,7 @@ bool TestNTree(const char* filename)
 	PROFILE_END();
 
 
-	typedef lg_ntree<3, 3, Volume>	tree_t;
+	using tree_t = lg_ntree<3, 3, Volume>;
 	tree_t	tree(g, aPos);
 
 	PROFILE_BEGIN(ntree_creating_tree);
@@ -77,7 +77,7 @@ bool TestNTree(const char* filename)
 	const size_t numPicks = 1000000;
 
 	UG_LOG("Picking elements for " << numPicks << " random points:\n");
-	Volume* e = NULL;
+	Volume* e = nullptr;
 	size_t numSuccesses = 0;
 
 	PROFILE_BEGIN(ntree_picking_elements);

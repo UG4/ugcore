@@ -41,8 +41,8 @@ namespace ug{
 
 class RasterLayersProjector : public RefinementProjector {
 public:
-	typedef ANumber					rel_z_attachment_t;
-	typedef Grid::VertexAttachmentAccessor<ANumber>	rel_z_attachment_accessor_t;
+	using rel_z_attachment_t = ANumber;
+	using rel_z_attachment_accessor_t = Grid::VertexAttachmentAccessor<ANumber>;
 
 	RasterLayersProjector ()	{}
 
@@ -170,7 +170,7 @@ private:
 	rel_z_attachment_accessor_t	m_aaRelZ;
 };
 
-typedef SmartPtr<RasterLayersProjector>	SPRasterLayersProjector;
+using SPRasterLayersProjector = SmartPtr<RasterLayersProjector>;
 
 }//	end of namespace
 

@@ -298,8 +298,8 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 			VolumeSectionContainer	m_volumes;
 		};
 
-		typedef std::vector<Subset*>	SubsetVec;
-		typedef std::vector<SubsetVec>	LevelVec;
+		using SubsetVec = std::vector<Subset*>;
+		using LevelVec = std::vector<SubsetVec>;
 
 	///	returns the subset with index si on the given level
 		inline Subset* subset(int si, int level)	{return m_levels[level][si];}
@@ -374,7 +374,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		AttachedVolumeList::AEntry	m_aSharedEntryVOL;
 };
 
-typedef MultiGridSubsetHandler MGSubsetHandler;
+using MGSubsetHandler = MultiGridSubsetHandler;
 
 /** \} */
 }//	end of namespace

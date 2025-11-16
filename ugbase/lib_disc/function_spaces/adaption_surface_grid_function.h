@@ -42,8 +42,8 @@ template <typename TDomain>
 class AdaptionSurfaceGridFunction : public GridObserver
 {
 	public:
-		typedef std::vector<std::vector<number> > Values;
-		typedef Attachment<Values>	AValues;
+		using Values = std::vector<std::vector<number> >;
+		using AValues = Attachment<Values>;
 
 	public:
 		AdaptionSurfaceGridFunction(SmartPtr<TDomain> spDomain,
@@ -115,10 +115,10 @@ class AdaptionSurfaceGridFunction : public GridObserver
 
 		/// grid observer callbacks
 		/// \{
-		virtual void vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent = NULL, bool replacesParent = false){obj_created(vrt);}
-		virtual void edge_created(Grid* grid, Edge* e, GridObject* pParent = NULL, bool replacesParent = false){obj_created(e);}
-		virtual void face_created(Grid* grid, Face* f, GridObject* pParent = NULL, bool replacesParent = false){obj_created(f);}
-		virtual void volume_created(Grid* grid, Volume* vol, GridObject* pParent = NULL, bool replacesParent = false){obj_created(vol);}
+		virtual void vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent = nullptr, bool replacesParent = false){obj_created(vrt);}
+		virtual void edge_created(Grid* grid, Edge* e, GridObject* pParent = nullptr, bool replacesParent = false){obj_created(e);}
+		virtual void face_created(Grid* grid, Face* f, GridObject* pParent = nullptr, bool replacesParent = false){obj_created(f);}
+		virtual void volume_created(Grid* grid, Volume* vol, GridObject* pParent = nullptr, bool replacesParent = false){obj_created(vol);}
 		/// \}
 
 	protected:

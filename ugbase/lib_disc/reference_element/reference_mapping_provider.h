@@ -53,10 +53,10 @@ class DimReferenceMapping
 {
 	public:
 	///	world dimension (range space dimension)
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	reference dimension (domain space dimension)
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	public:
 	///	returns if mapping is affine

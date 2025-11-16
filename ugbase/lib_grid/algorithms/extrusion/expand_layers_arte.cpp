@@ -38,7 +38,7 @@
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/callbacks/callbacks.h"
 #include "lib_grid/grid/grid_util.h"
-
+#include "common/math/misc/math_constants.h"
 #include <stack>
 #include <utility>
 #include <vector>
@@ -458,7 +458,7 @@ void createShiftVertexPassingClefts( vector3 const & nOne, vector3 const nTwo, V
 
 	number cosinus = VecDot(nOne,nTwo);
 
-	number pi = 3.1415926535897932385;
+	number pi = M_PI;
 
 	number cosinusLim = std::cos( pi/8. );
 
@@ -1429,7 +1429,7 @@ void createNewFacesForExtXCrossFracs( ExpandCrossFracInfo const & ecf,  std::vec
 //				std::vector<Vertex*> vrtcsNewFaceDiam = vrtcsFace;
 
 	//	all new vertices have been assigned to newVrts.
-	//	Note that if newVrts[i] == NULL, then we have to take the
+	//	Note that if newVrts[i] == nullptr, then we have to take the
 	//	old vertex sf->vertex(i).
 	//	now expand the fracture edges of sf to faces.
 	for(size_t iVrt = 0; iVrt < facSeg->num_vertices(); iVrt++ )
@@ -1816,7 +1816,7 @@ bool determineOrderOfFaces( //CrossVertInf & crossVrtInf,
 
 	vector3 startNormal = fracNorm;
 
-	Face* nextFace = NULL;
+	Face* nextFace = nullptr;
 
 	UG_LOG("Gesamtanzahl faces um Knoten vor while " <<  aF.size() << std::endl );
 
@@ -1835,7 +1835,7 @@ bool determineOrderOfFaces( //CrossVertInf & crossVrtInf,
 		IndexType fndCommEdg = 0;
 //		vector3 nuVe(0,0,0);
 
-		Edge* nextEdge = NULL;
+		Edge* nextEdge = nullptr;
 
 		std::pair<Edge*, Edge *> edge2Append( startEdg2Append, nextEdge );
 		std::pair<vector3, vector3 > normal2Append( startNormal, nuVe );
@@ -1899,12 +1899,12 @@ bool determineOrderOfFaces( //CrossVertInf & crossVrtInf,
 			UG_THROW("komische Anzahl gemeinsamer Ecke " << fndCommEdg << std::endl);
 		}
 
-		if( nextEdge == NULL )
+		if( nextEdge == nullptr )
 		{
 			UG_THROW("wieso keine zweite Ecke gefunden???? " << std::endl);
 		}
 
-			if( edge2Append.first == NULL || edge2Append.second == NULL )
+			if( edge2Append.first == nullptr || edge2Append.second == nullptr )
 		{
 			UG_THROW("null immer noch?" << std::endl);
 		}
@@ -2765,7 +2765,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 	//	we  associate a vector of vertices for each face adjacent to the frac.
 	//	it will store a set of vertices. An entry contains the new vertex, if the
-	//	corresponding vertex is an inner fracture vertex, and NULL if not.
+	//	corresponding vertex is an inner fracture vertex, and nullptr if not.
 	grid.attach_to_faces(attVrtVec);
 	Grid::FaceAttachmentAccessor<AttVrtVec> aaVrtVecFace(grid, attVrtVec);
 
@@ -4179,7 +4179,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 				vector3 startNormal = fracNorm;
 
-				Face* nextFace = NULL;
+				Face* nextFace = nullptr;
 
 				UG_LOG("Gesamtanzahl faces um Knoten vor while " <<  aF.size() << std::endl );
 
@@ -4196,7 +4196,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 					IndexType fndCommEdg = 0;
 					vector3 nuVe(0,0,0);
 
-					Edge* nextEdge = NULL;
+					Edge* nextEdge = nullptr;
 
 					std::pair<Edge*, Edge *> edge2Append( startEdg2Append, nextEdge );
 					std::pair<vector3, vector3 > normal2Append( startNormal, nuVe );
@@ -4260,12 +4260,12 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 						UG_THROW("komische Anzahl gemeinsamer Ecke " << fndCommEdg << std::endl);
 					}
 
-					if( nextEdge == NULL )
+					if( nextEdge == nullptr )
 					{
 						UG_THROW("wieso keine zweite Ecke gefunden???? " << std::endl);
 					}
 
-						if( edge2Append.first == NULL || edge2Append.second == NULL )
+						if( edge2Append.first == nullptr || edge2Append.second == nullptr )
 					{
 						UG_THROW("null immer noch?" << std::endl);
 					}
@@ -5189,7 +5189,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 							vector3 norm2Frac = attVFTCop.getNormal();
 
 							Edge * secondEdge;
-							secondEdge = NULL;
+							secondEdge = nullptr;
 
 							for( auto const & iE : allAssoEdges ) // werden nicht gelöscht, deswegen Zugriff auf attachment direkt
 							{
@@ -5207,7 +5207,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 									UG_THROW("komische Anzahl gemeinsamer Ecke " << fndCommEdg << std::endl);
 								}
 
-								if( secondEdge == NULL )
+								if( secondEdge == nullptr )
 								{
 									UG_THROW("wieso keine zweite Ecke gefunden???? " << std::endl);
 								}
@@ -5412,7 +5412,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 					IndexType fndIV = 0;
 
 					Vertex * vrtOtherEdg;
-					vrtOtherEdg = NULL;
+					vrtOtherEdg = nullptr;
 
 					for( size_t i = 0; i < 2; ++i )
 					{
@@ -5992,7 +5992,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 		std::vector<Vertex*> newVrts = aaVrtVecFace[sf];
 
 		//	all new vertices have been assigned to newVrts.
-		//	Note that if newVrts[i] == NULL, then we have to take the
+		//	Note that if newVrts[i] == nullptr, then we have to take the
 		//	old vertex sf->vertex(i).
 		//	now expand the fracture edges of sf to faces.
 		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt)
@@ -6006,7 +6006,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 			{
 				if( aaMarkEdgeB[tEdge] )
 				{
-					Face* expFace = NULL;
+					Face* expFace = nullptr;
 					if(newVrts[iv1] && newVrts[iv2])
 					{
 						//	create a new quadrilateral
@@ -7741,7 +7741,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 //				std::vector<Vertex*> vrtcsNewFaceDiam = vrtcsFace;
 
 				//	all new vertices have been assigned to newVrts.
-				//	Note that if newVrts[i] == NULL, then we have to take the
+				//	Note that if newVrts[i] == nullptr, then we have to take the
 				//	old vertex sf->vertex(i).
 				//	now expand the fracture edges of sf to faces.
 				for(size_t iVrt = 0; iVrt < facSeg->num_vertices(); iVrt++ )

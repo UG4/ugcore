@@ -88,7 +88,7 @@ inline number EdgeLength(const EdgeVertices* e, TAAPosVRT& aaPos)
 template<class TVertex>
 TVertex* SplitEdge(Grid& grid, Edge* e, bool bConservative)
 {
-	return SplitEdge<TVertex>(grid, grid, e, NULL, bConservative);
+	return SplitEdge<TVertex>(grid, grid, e, nullptr, bConservative);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -149,9 +149,9 @@ TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
 	}
 
 //	something went wrong in CreateEdgeSplitGeometry.
-//	erase the new vertex and return NULL
+//	erase the new vertex and return nullptr
 	destGrid.erase(newVertex);
-	return NULL;
+	return nullptr;
 }
 
 template<class TVertexPositionAttachmentAccessor>
@@ -178,7 +178,7 @@ typename TAAPosVRT::ValueType
 CalculateCenter(const EdgeVertices* e, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
 {
 	typename TAAPosVRT::ValueType v;
-	typedef typename TAAWeightVRT::ValueType weight_t;
+	using weight_t = typename TAAWeightVRT::ValueType;
 
 //	init v with 0.
 	VecSet(v, 0);
@@ -285,7 +285,7 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
 		grid.associated_elements(faces, e);
 
 		size_t numConsidered = 0;
-		Face* nbr = NULL;
+		Face* nbr = nullptr;
 		for(size_t i = 0; i < faces.size(); ++i){
 			if(considerFace(faces[i])){
 				++numConsidered;
@@ -305,9 +305,9 @@ Edge* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 							TAAPosVRT& aaPos)
 {
 //	if edgesBegin equals edgesEnd, then the list is empty and we can
-//	immediately return NULL
+//	immediately return nullptr
 	if(edgesBegin == edgesEnd)
-		return NULL;
+		return nullptr;
 
 //	the first edge is the first candidate for the shortest edge.
 //	We compare squares to avoid computation of the square root.
@@ -333,9 +333,9 @@ Edge* FindLongestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 							TAAPosVRT& aaPos)
 {
 //	if edgesBegin equals edgesEnd, then the list is empty and we can
-//	immediately return NULL
+//	immediately return nullptr
 	if(edgesBegin == edgesEnd)
-		return NULL;
+		return nullptr;
 
 //	the first edge is the first candidate for the shortest edge.
 //	We compare squares to avoid computation of the square root.

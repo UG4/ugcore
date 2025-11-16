@@ -43,7 +43,7 @@ template <class TLayout>
 void GetLayoutTargetProcs(std::vector<int>& procsOut, const TLayout& layout)
 {	
 	procsOut.clear();
-	typedef typename TLayout::const_iterator const_iter_t;
+	using const_iter_t = typename TLayout::const_iterator;
 	for(const_iter_t iter = layout.begin(); iter != layout.end(); ++iter)
 	{
 		procsOut.push_back(layout.interface(iter).get_target_proc());
@@ -113,7 +113,7 @@ class ComPol_MatCreateOverlap
 	: public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
-		typedef typename TMatrix::value_type block_t;
+		using block_t = typename TMatrix::value_type;
 	///	Constructor setting the vector
 	/**
 	 * vGlobalID must have size >= mat.num_rows()
@@ -127,14 +127,13 @@ class ComPol_MatCreateOverlap
 		}
 
 	///	writes the interface values into a buffer that will be sent
-		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
+		virtual bool collect(BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_collect, "algebra parallelization");
-			typedef typename TMatrix::row_iterator row_iterator;
+			using row_iterator = typename TMatrix::row_iterator;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -267,7 +266,7 @@ class ComPol_MatCreateOverlap
 
 		//	create new master-overlap and add connections to matrix
 			{
-				IndexLayout::Interface* itfc = NULL;
+				IndexLayout::Interface* itfc = nullptr;
 				vector<bool> added;// keeps track of whether an index was already added.
 
 				for (typename map<ExtCon, block_t>::iterator iter = m_recvNewCons.begin();
@@ -453,7 +452,7 @@ void CreateOverlap (TMatrix& mat)
 
 //	todo: 	Remove this once Overlap creation is stable. Check for redistributed grids
 //			which have h-masters and h-slaves on one process!
-	// TestHorizontalAlgebraLayouts(mat, NULL, false);
+	// TestHorizontalAlgebraLayouts(mat, nullptr, false);
 }
 	
 }//	end of namespace

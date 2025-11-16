@@ -46,7 +46,7 @@ namespace ug{
 template<class T>
 class BidirectionalMatrix{
 public: // types
-	typedef typename T::const_row_iterator const_row_iterator;
+	using const_row_iterator = typename T::const_row_iterator;
 public:
 	explicit BidirectionalMatrix(T const* m=nullptr)
 	    : _matrix(m) {

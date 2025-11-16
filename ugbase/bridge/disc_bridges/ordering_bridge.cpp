@@ -86,19 +86,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
+	using TFct = GridFunction<TDomain, TAlgebra>;
 
-	typedef std::vector<size_t> ordering_container_type;
+	using ordering_container_type = std::vector<size_t>;
 
-	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
+	using TFct = GridFunction<TDomain, TAlgebra>;
 
-	typedef SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> > TSpUserData;
-	typedef MathVector<TDomain::dim> small_vec_t;
+	using TSpUserData = SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> >;
+	using small_vec_t = MathVector<TDomain::dim>;
 
 //	Lexicographic ordering
 	{
-		typedef LexOrdering<TAlgebra, TDomain, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		using T = LexOrdering<TAlgebra, TDomain, ordering_container_type>;
+		using TBase = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 		string name = string("LexOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "LexOrdering")
 			.add_constructor()
@@ -109,8 +109,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	River ordering (topological ordering beginning at selected sources)
 	{
-		typedef RiverOrdering<TAlgebra, TDomain, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		using T = RiverOrdering<TAlgebra, TDomain, ordering_container_type>;
+		using TBase = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 		string name = string("RiverOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "RiverOrdering")
 			.add_constructor()
@@ -121,8 +121,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	Directional ordering
 	{
-		typedef DirectionalOrdering<TAlgebra, TDomain, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		using T = DirectionalOrdering<TAlgebra, TDomain, ordering_container_type>;
+		using TBase = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 		string name = string("DirectionalOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "DirectionalOrdering")
 			.add_constructor()
@@ -137,7 +137,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	GridPointsOrdering
 	{
-		typedef GridPointsOrdering<TDomain, TAlgebra> T;
+		using T = GridPointsOrdering<TDomain, TAlgebra>;
 		string name = string("GridPointsOrdering").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridPointsOrdering")
@@ -148,7 +148,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	GridFunctionOrdering
 	{
-		typedef GridFunctionOrdering<TDomain, TAlgebra> T;
+		using T = GridFunctionOrdering<TDomain, TAlgebra>;
 		string name = string("GridFunctionOrdering").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunctionOrdering")
@@ -159,8 +159,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	SortedGridFunctionOrdering
 	{
-		typedef SortedGridFunctionOrdering<TDomain, TAlgebra> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TOrdAlgo;
+		using T = SortedGridFunctionOrdering<TDomain, TAlgebra>;
+		using TOrdAlgo = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 		string name = string("SortedGridFunctionOrdering").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, SmartPtr<TOrdAlgo>, const char*)>("SortedGridFunctionOrdering")
@@ -184,7 +184,7 @@ static void Domain(Registry& reg, string grp)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
-	typedef ApproximationSpace<TDomain> approximation_space_type;
+	using approximation_space_type = ApproximationSpace<TDomain>;
 
 //	group string
 	grp.append("/ApproximationSpace");
@@ -270,7 +270,7 @@ static void Common(Registry& reg, string grp)
 void RegisterBridge_Ordering(Registry& reg, string grp)
 {
 	grp.append("/Discretization");
-	typedef Ordering::Functionality Functionality;
+	using Functionality = Ordering::Functionality;
 
 	try{
 		//RegisterCommon<Functionality>(reg,grp);

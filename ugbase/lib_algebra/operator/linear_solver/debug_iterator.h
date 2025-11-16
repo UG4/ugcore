@@ -64,20 +64,20 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 {
 	public:
 	//	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	//	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	//	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	// 	Base type
-		typedef ILinearIterator<typename TAlgebra::vector_type> base_type;
+		using base_type = ILinearIterator<typename TAlgebra::vector_type>;
 
-		typedef IPreconditionedLinearOperatorInverse<vector_type> solver_type;
+		using solver_type = IPreconditionedLinearOperatorInverse<vector_type>;
 	private:
-		typedef VectorDebugWritingObject <typename TAlgebra::vector_type> vdwo_type;
+		using vdwo_type = VectorDebugWritingObject <typename TAlgebra::vector_type>;
 
 	public:
 	///	Constructor

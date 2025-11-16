@@ -57,7 +57,7 @@ number ComputeAvg
 	number& minLocal, number& maxLocal, number& sumLocal, size_t& numElemLocal
 )
 {
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 //	reset maximum of error
 	max = 0.0, min = std::numeric_limits<number>::max();
@@ -138,7 +138,7 @@ void ComputeMinMax
 	number& minLocal, number& maxLocal, number& totalErrLocal, size_t& numElemLocal
 )
 {
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 //	reset maximum of error
 	max = 0.0, min = std::numeric_limits<number>::max();
@@ -226,7 +226,7 @@ void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >&
 		number refineFrac, number coarseFrac,
 		int maxLevel)
 {
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 // compute minimal/maximal/ total error and number of elements
 	number min, max, totalErr;
@@ -317,7 +317,7 @@ void MarkElementsForRefinement
 	int maxLevel
 )
 {
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 // compute minimal/maximal/ total error and number of elements
 	number min, max, totalErr;
@@ -401,7 +401,7 @@ void MarkElementsForCoarsening
 		int minLevel = 0
 )
 {
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 // compute minimal/maximal/ total error and number of elements
 	number min, max, totalErr;
@@ -503,11 +503,11 @@ void MarkElementsAbsolute(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<nu
 						  int maxLevel,
 						  bool refTopLvlOnly = false)
 {
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 	int numMarkedRefine = 0, numMarkedCoarse = 0;
-	const_iterator iter = dd->template begin<TElem>();
-	const_iterator iterEnd = dd->template end<TElem>();
+	const_iterator iter = dd->begin<TElem>();
+	const_iterator iterEnd = dd->end<TElem>();
 	const MultiGrid* mg = dd->multi_grid().get();
 	int topLvl = 0;
 	if(mg)

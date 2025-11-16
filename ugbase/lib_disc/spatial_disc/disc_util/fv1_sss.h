@@ -163,7 +163,7 @@ template<typename TData>
 class FVLineSourceOrSink<1, TData> : public TData
 {
 private:
-	static const int dim = 1;
+	static constexpr int dim = 1;
     MathVector<dim> point1; ///< beginning of the line segment
     MathVector<dim> point2; ///< end of the line segment
 
@@ -225,8 +225,8 @@ template <int dim, typename TPointData, typename TLineData = TPointData>
 class FVSingularSourcesAndSinks
 {
 public:
-	typedef FVPointSourceOrSink<dim, TPointData> point_sss_type;
-	typedef FVLineSourceOrSink<dim, TLineData> line_sss_type;
+	using point_sss_type = FVPointSourceOrSink<dim, TPointData>;
+	using line_sss_type = FVLineSourceOrSink<dim, TLineData>;
 
 private:
 	typename std::vector<SmartPtr<point_sss_type> > ListP;
@@ -272,8 +272,8 @@ public:
 	template <typename TElem, typename TAAPos, typename TFVGeom>
 	class point_iterator
 	{
-		typedef point_iterator<TElem, TAAPos, TFVGeom> this_type;
-		typedef FVSingularSourcesAndSinks<dim, TPointData, TLineData> master_type;
+		using this_type = point_iterator<TElem, TAAPos, TFVGeom>;
+		using master_type = FVSingularSourcesAndSinks<dim, TPointData, TLineData>;
 		
 		master_type * m_sss;
 		TElem * m_elem;
@@ -346,8 +346,8 @@ public:
 	template <typename TElem, typename TAAPos, typename TFVGeom>
 	class line_iterator
 	{
-		typedef line_iterator<TElem, TAAPos, TFVGeom> this_type;
-		typedef FVSingularSourcesAndSinks<dim, TPointData, TLineData> master_type;
+		using this_type = line_iterator<TElem, TAAPos, TFVGeom>;
+		using master_type = FVSingularSourcesAndSinks<dim, TPointData, TLineData>;
 		
 		master_type * m_sss;
 		TElem * m_elem;

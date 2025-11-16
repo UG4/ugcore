@@ -274,7 +274,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	vector<Face*> newFaces;
 	newFaces.reserve(4);
 //	we need a container that stores the vertex for each edge of a face
-//	entries will be set to NULL if the associated edge will not be refined
+//	entries will be set to nullptr if the associated edge will not be refined
 	vector<Vertex*> faceEdgeVrts;
 	faceEdgeVrts.reserve(4);
 	
@@ -289,7 +289,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			if(sel.is_selected(e))
 				faceEdgeVrts.push_back(edgeVrts[aaIntEDGE[e]]);
 			else
-				faceEdgeVrts.push_back(NULL);
+				faceEdgeVrts.push_back(nullptr);
 		}
 
 		int snapPointIndex = -1;
@@ -309,7 +309,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			}
 		}
 
-		if(f->refine(newFaces, &newVrt, &faceEdgeVrts.front(), NULL, NULL, snapPointIndex)){
+		if(f->refine(newFaces, &newVrt, &faceEdgeVrts.front(), nullptr, nullptr, snapPointIndex)){
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				grid.register_element(newVrt, f);
@@ -348,11 +348,11 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	vector<Volume*> newVols;
 	newVols.reserve(8);
 //	we need a container that stores the vertex for each edge of a volume
-//	entries will be set to NULL if the associated edge will not be refined
+//	entries will be set to nullptr if the associated edge will not be refined
 	vector<Vertex*> volEdgeVrts;
 	volEdgeVrts.reserve(12);
 //	we need a container that stores the vertex for each face of a volume
-//	entries will be set to NULL if the associated face will not be refined
+//	entries will be set to nullptr if the associated face will not be refined
 	vector<Vertex*> volFaceVrts;
 	volFaceVrts.reserve(6);
 	
@@ -379,7 +379,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			if(sel.is_selected(e))
 				volEdgeVrts.push_back(edgeVrts[aaIntEDGE[e]]);
 			else
-				volEdgeVrts.push_back(NULL);
+				volEdgeVrts.push_back(nullptr);
 		}
 
 	//	collect vertices of associated faces
@@ -389,13 +389,13 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			if(sel.is_selected(f))
 				volFaceVrts.push_back(faceVrts[aaIntFACE[f]]);
 			else
-				volFaceVrts.push_back(NULL);
+				volFaceVrts.push_back(nullptr);
 		}
 		
 	//	if we're performing tetrahedral refinement, we have to collect
 	//	the corner coordinates, so that the refinement algorithm may choose
 	//	the best interior diagonal.
-		vector3* pCorners = NULL;
+		vector3* pCorners = nullptr;
 		if((v->num_vertices() == 4)){
 			for(size_t i = 0; i < 4; ++i){
 				corners[i] = geom.pos(v->vertex(i));
@@ -403,7 +403,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			pCorners = &corners.front();
 		}
 
-		bool* pIsSnapPoint = NULL;
+		bool* pIsSnapPoint = nullptr;
 		if(useSnapPoints){
 			Volume::ConstVertexArray vrts = v->vertices();
 			const size_t numVrts = v->num_vertices();
@@ -421,7 +421,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 		}
 
 		if(v->refine(newVols, &newVrt, &volEdgeVrts.front(),
-					&volFaceVrts.front(), NULL, RegularVertex(), NULL,
+					&volFaceVrts.front(), nullptr, RegularVertex(), nullptr,
 					pCorners, pIsSnapPoint))
 		{
 		//	if a new vertex was generated, we have to register it

@@ -48,9 +48,9 @@ class GlobalAttachments {
 										bool passOnBehaviour = false)
 		{
 			const char* typeName = attachment_info_traits<TAttachment>::type_name();
-			if(attachments()[name].attachment != NULL) {
+			if(attachments()[name].attachment != nullptr) {
 				UG_COND_THROW(
-					dynamic_cast<TAttachment*> (attachments()[name].attachment) == NULL,
+					dynamic_cast<TAttachment*> (attachments()[name].attachment) == nullptr,
 						  "Attachment with name '" << name
 						  << "' was already declared in GlobalAttachments with a different type. "
 						  << "Old type: " << attachments()[name].type <<
@@ -141,11 +141,11 @@ class GlobalAttachments {
 				UG_THROW("There are more than one proc loading the grid"<<
 						"please make sure all processes broadcast their GlobalAttachments");
 						
-			std::vector<byte> locDeclared(possible_attachment_names.size(), 0);
-			std::vector<byte> globDeclared(possible_attachment_names.size(), 0);
+			std::vector<byte_t> locDeclared(possible_attachment_names.size(), 0);
+			std::vector<byte_t> globDeclared(possible_attachment_names.size(), 0);
 			// record local info
 			for(size_t i = 0; i < possible_attachment_names.size(); ++i){
-				byte& b = locDeclared[i];
+				byte_t& b = locDeclared[i];
 				if(GlobalAttachments::is_declared(possible_attachment_names[i])){
 					b |= 1;
 					if(GlobalAttachments::is_attached<Vertex>(grid, possible_attachment_names[i]))
@@ -162,7 +162,7 @@ class GlobalAttachments {
 			procComm.allreduce(locDeclared, globDeclared, PCL_RO_BOR);
 			// update the local with the global
 			for(size_t i = 0; i < possible_attachment_names.size(); ++i){
-				byte& b = globDeclared[i];
+				byte_t& b = globDeclared[i];
 				if(b & 1){
 					if(!GlobalAttachments::is_declared(possible_attachment_names[i]))
 						GlobalAttachments::declare_attachment(possible_attachment_names[i], "double", true);
@@ -254,7 +254,7 @@ class GlobalAttachments {
 	////////////////////////////////////////
 	//	TYPES
 		struct AttachmentEntry {
-			AttachmentEntry () : attachment(NULL), type(""), functionIndex(-1) {}
+			AttachmentEntry () : attachment(nullptr), type(""), functionIndex(-1) {}
 			AttachmentEntry (IAttachment* a, const char* t, int fi) :
 				attachment(a), type(t), functionIndex(fi) {}
 			IAttachment* 	attachment;
@@ -263,7 +263,7 @@ class GlobalAttachments {
 		};
 
 		struct IFunctionEntry {
-			IFunctionEntry() : readFunc(0), writeFunc(0), addSerializer(0), attach(0) {}
+			IFunctionEntry() : readFunc(nullptr), writeFunc(nullptr), addSerializer(nullptr), attach(nullptr) {}
 			void (*readFunc	)		(std::istream&, Grid&, IAttachment&);
 			void (*writeFunc)		(std::ostream&, Grid&, IAttachment&);
 			void (*addSerializer)	(GridDataSerializationHandler&, Grid&, IAttachment&);
@@ -293,9 +293,9 @@ class GlobalAttachments {
 		};
 
 
-		typedef std::map<std::string, AttachmentEntry>	AttachmentMap;
-		typedef std::map<std::string, IAttachmentType>	AttachmentTypeMap;
-		typedef std::vector<IFunctionEntry>				FunctionVec;
+		using AttachmentMap = std::map<std::string, AttachmentEntry>;
+		using AttachmentTypeMap = std::map<std::string, IAttachmentType>;
+		using FunctionVec = std::vector<IFunctionEntry>;
 
 
 	////////////////////////////////////////
@@ -454,7 +454,7 @@ class GlobalAttachments {
 		//		(e.g. requires inclusion of 'ugmath_types.h').
 			register_attachment_type<Attachment<bool> >();
 			register_attachment_type<Attachment<char> >();
-			register_attachment_type<Attachment<byte> >();
+			register_attachment_type<Attachment<byte_t> >();
 			register_attachment_type<Attachment<int> >();
 			register_attachment_type<Attachment<uint> >();
 			register_attachment_type<Attachment<float> >();

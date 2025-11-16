@@ -121,48 +121,48 @@ class GridFunction
 {
 	public:
 	///	This type
-		typedef GridFunction<TDomain, TAlgebra> this_type;
+		using this_type = GridFunction<TDomain, TAlgebra>;
 
 	///	Type of Approximation space
-		typedef ApproximationSpace<TDomain> approximation_space_type;
+		using approximation_space_type = ApproximationSpace<TDomain>;
 
 	///	Domain
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	///	World Dimension
-		static const int dim = domain_type::dim;
+		static constexpr int dim = domain_type::dim;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type used to store dof values
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	public:
 	///	iterator traits
 		template <typename TElem>
 		struct traits
 		{
-			typedef typename DoFDistribution::traits<TElem>::grid_object grid_object;
-			typedef typename DoFDistribution::traits<TElem>::iterator iterator;
-			typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+			using grid_object = typename DoFDistribution::traits<TElem>::grid_object;
+			using iterator = typename DoFDistribution::traits<TElem>::iterator;
+			using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 		};
 
 		template <int dim>
 		struct dim_traits
 		{
-			typedef typename DoFDistribution::dim_traits<dim>::grid_base_object grid_base_object;
-			typedef typename DoFDistribution::dim_traits<dim>::iterator iterator;
-			typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
+			using grid_base_object = typename DoFDistribution::dim_traits<dim>::grid_base_object;
+			using iterator = typename DoFDistribution::dim_traits<dim>::iterator;
+			using const_iterator = typename DoFDistribution::dim_traits<dim>::const_iterator;
 		};
 
-		typedef typename dim_traits<dim>::grid_base_object element_type;
-		typedef typename dim_traits<dim>::iterator element_iterator;
-		typedef typename dim_traits<dim>::const_iterator const_element_iterator;
+		using element_type = typename dim_traits<dim>::grid_base_object;
+		using element_iterator = typename dim_traits<dim>::iterator;
+		using const_element_iterator = typename dim_traits<dim>::const_iterator;
 
-		typedef typename dim_traits<dim-1>::grid_base_object side_type;
-		typedef typename dim_traits<dim-1>::iterator side_iterator;
-		typedef typename dim_traits<dim-1>::const_iterator const_side_iterator;
+		using side_type = typename dim_traits<dim-1>::grid_base_object;
+		using side_iterator = typename dim_traits<dim-1>::iterator;
+		using const_side_iterator = typename dim_traits<dim-1>::const_iterator;
 
 	protected:
 	/// virtual clone using covariant return type

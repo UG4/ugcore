@@ -107,8 +107,8 @@ void gs_step_LL(const Matrix_type &A, Vector_type &c, const Vector_type &d, cons
 {
 	// gs LL has preconditioning matrix N = (D-L)^{-1}
 
-	typedef typename Matrix_type::value_type matrix_block;
-	typedef typename Matrix_type::const_row_iterator const_row_it;
+	using matrix_block = typename Matrix_type::value_type;
+	using const_row_it = typename Matrix_type::const_row_iterator;
 	typename Vector_type::value_type s;
 
 	const size_t sz = c.size();

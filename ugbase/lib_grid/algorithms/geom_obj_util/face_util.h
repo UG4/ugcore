@@ -223,7 +223,7 @@ UG_API number TriangleQuality(vector3& v1, vector3& v2, vector3& v3);
 //	Triangulate
 ///	removes the quadrilateral and replaces it by two triangles.
 /**
- * if paaPos is set to NULL, the quadrilateral will be splitted
+ * if paaPos is set to nullptr, the quadrilateral will be splitted
  * along the edge between the first and the third vertex.
  * If paaPos points to a position-attachment-accessor,
  * then the new edge will be chosen so that the worst triangle-quality
@@ -231,13 +231,13 @@ UG_API number TriangleQuality(vector3& v1, vector3& v2, vector3& v3);
  */
 UG_API 
 void Triangulate(Grid& grid, Quadrilateral* q,
-				Grid::VertexAttachmentAccessor<APosition>* paaPos = NULL);
+				Grid::VertexAttachmentAccessor<APosition>* paaPos = nullptr);
 
 ////////////////////////////////////////////////////////////////////////
 //	Triangulate
 ///	replaces all specified quadrilaterals by triangles.
 /**
- * if paaPos is set to NULL, the quadrilaterals will be splitted
+ * if paaPos is set to nullptr, the quadrilaterals will be splitted
  * along the edge between their first and their third vertex.
  * If paaPos points to a position-attachment-accessor,
  * then the new edge will be chosen so that the worst triangle-quality
@@ -247,11 +247,11 @@ UG_API
 void Triangulate(Grid& grid,
 				QuadrilateralIterator iterBegin,
 				QuadrilateralIterator iterEnd,
-				Grid::VertexAttachmentAccessor<APosition>* paaPos = NULL);
+				Grid::VertexAttachmentAccessor<APosition>* paaPos = nullptr);
 
 UG_API 
 inline void Triangulate(Grid& grid,
-						Grid::VertexAttachmentAccessor<APosition>* paaPos = NULL);
+						Grid::VertexAttachmentAccessor<APosition>* paaPos = nullptr);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetNeighbours

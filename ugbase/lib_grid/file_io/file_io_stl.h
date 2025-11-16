@@ -48,24 +48,24 @@ namespace ug
  * it will be ignored.
  */
 bool LoadGridFromSTL(Grid& grid, const char* filename,
-					ISubsetHandler* pSH = NULL,
+					ISubsetHandler* pSH = nullptr,
 					AVector3& aPos = aPosition,
 					AVector3& aNormFACE = aNormal);
 
 bool STLFileHasASCIIFormat(const char* filename);
 
 bool LoadGridFromSTL_ASCII(Grid& grid, const char* filename,
-						   ISubsetHandler* pSH = NULL,
+						   ISubsetHandler* pSH = nullptr,
 						   AVector3& aPos = aPosition,
 						   AVector3& aNormFACE = aNormal);
 
 bool LoadGridFromSTL_BINARY(Grid& grid, const char* filename,
-							ISubsetHandler* pSH = NULL,
+							ISubsetHandler* pSH = nullptr,
 							AVector3& aPos = aPosition,
 							AVector3& aNormFACE = aNormal);
 
 bool SaveGridToSTL(Grid& grid, const char* filename,
-					ISubsetHandler* pSH = NULL,
+					ISubsetHandler* pSH = nullptr,
 					AVector3& aPos = aPosition);
 
 }

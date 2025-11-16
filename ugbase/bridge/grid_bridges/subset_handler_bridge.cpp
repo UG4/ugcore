@@ -47,7 +47,7 @@ static void AssignSubsetsByLevel(SubsetHandler& sh, MultiGrid& mg)
 		ss << "Level " << lvl;
 		sh.subset_info(lvl).name = ss.str().c_str();
 
-		typedef typename Grid::traits<TElem>::iterator TIter;
+		using TIter = typename Grid::traits<TElem>::iterator;
 		for(TIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter){
 			sh.assign_subset(*iter, lvl);
 		}

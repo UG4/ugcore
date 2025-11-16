@@ -38,7 +38,7 @@
 namespace ug{
 
 class StdHNodeAdjuster;
-typedef SmartPtr<StdHNodeAdjuster> SPStdHNodeAdjuster;
+using SPStdHNodeAdjuster = SmartPtr<StdHNodeAdjuster>;
 
 ///	Makes sure that elements are marked correctly so that hnode-refinement produces a valid grid.
 /**	This adjuster regards the grid as a serial grid. If the grid represents a part

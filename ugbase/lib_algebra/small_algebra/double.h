@@ -167,8 +167,8 @@ inline bool InverseMatMult(number &dest, const double &beta, const number &mat, 
 template<>
 struct block_traits<number>
 {
-	typedef number vec_type;
-	typedef number inverse_type;
+	using vec_type = number;
+	using inverse_type = number;
 
 	enum { is_static = true};
 	enum { static_num_rows = 1};
@@ -179,19 +179,19 @@ struct block_traits<number>
 
 template<> struct block_multiply_traits<number, number>
 {
-	typedef number ReturnType;
+	using ReturnType = number;
 };
 
 template<typename T>
 struct block_multiply_traits<number, T>
 {
-	typedef T ReturnType;
+	using ReturnType = T;
 };
 
 template<typename T>
 struct block_multiply_traits<T, number>
 {
-	typedef T ReturnType;
+	using ReturnType = T;
 };
 
 inline bool GetInverse(number &inv, const number &m)

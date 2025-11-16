@@ -49,7 +49,7 @@ template <class TAVrtPos> void
 ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 {
 //	position type
-	typedef typename TAVrtPos::ValueType	pos_type;
+using pos_type = typename TAVrtPos::ValueType;
 	
 //	access the subdivision weights
 	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
@@ -72,7 +72,7 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 	Grid::VertexAttachmentAccessor<TAVrtPos> aaProjPos(grid, aProjPos);
 	
 //	vectors to hold temporary results
-	typedef SubdivRules_PLoop::NeighborInfo NbrInfo;
+	using NbrInfo = SubdivRules_PLoop::NeighborInfo;
 	std::vector<NbrInfo> nbrInfos;
 	std::vector<Vertex*> vrts;
 	std::vector<number> nbrWgts;
@@ -222,7 +222,7 @@ template <class TAVrtPos> void
 ProjectToLimitSubdivBoundary(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 {
 //	position type
-	typedef typename TAVrtPos::ValueType	pos_type;
+	using pos_type = typename TAVrtPos::ValueType;
 	
 //	access the subdivision weights
 	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();

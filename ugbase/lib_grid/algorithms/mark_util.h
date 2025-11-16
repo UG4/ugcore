@@ -48,7 +48,7 @@ void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 					TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 					int subsetIndex, number angle,
 					APosition& aPos = aPosition,
-					ANormal* paFaceNormal = NULL);
+					ANormal* paFaceNormal = nullptr);
 
 ////////////////////////////////////////////////////////////////////////
 /**	Assigns vertices between vrtsBegin and vrtsEnd to the specified subsetIndex

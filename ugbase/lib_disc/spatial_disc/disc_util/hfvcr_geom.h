@@ -65,8 +65,8 @@ namespace ug{
 
 template <int TWorldDim,int nrfaceco> struct hcrfv_traits
 {
-    typedef void scv_type;
-    typedef void face_type;
+	using scv_type = void;
+    using face_type = void;
 	static const size_t maxNumSCVF;
 	static const size_t maxNumSCV;
 	static const size_t maxNSH;
@@ -75,42 +75,42 @@ template <int TWorldDim,int nrfaceco> struct hcrfv_traits
 
 template <> struct hcrfv_traits<2, 2>
 {
-    typedef ReferenceTriangle scv_type;
-    typedef ReferenceEdge face_type;
-	static const size_t maxNumSCVF = 8;
-	static const size_t maxNumSCV = 8;
-	static const size_t maxNSH = maxNumSCV;
-	static const size_t maxNumCo = 4;
+	using scv_type = ReferenceTriangle;
+    using face_type = ReferenceEdge;
+	static constexpr size_t maxNumSCVF = 8;
+	static constexpr size_t maxNumSCV = 8;
+	static constexpr size_t maxNSH = maxNumSCV;
+	static constexpr size_t maxNumCo = 4;
 };
 
 template <> struct hcrfv_traits<2, 3>
 {
-    typedef ReferenceTriangle scv_type;
-    typedef ReferenceEdge face_type;
-	static const size_t maxNumSCVF = 8;
-	static const size_t maxNumSCV = 8;
-	static const size_t maxNSH = maxNumSCV;
-	static const size_t maxNumCo = 4;
+	using scv_type = ReferenceTriangle;
+	using face_type = ReferenceEdge;
+	static constexpr size_t maxNumSCVF = 8;
+	static constexpr size_t maxNumSCV = 8;
+	static constexpr size_t maxNSH = maxNumSCV;
+	static constexpr size_t maxNumCo = 4;
 };
 
 template <> struct hcrfv_traits<3, 3>
 {
-	typedef ReferenceTetrahedron scv_type;
-    typedef ReferenceTriangle face_type;
-	static const size_t maxNumSCVF = 40;
-	static const size_t maxNumSCV = 24;
-	static const size_t maxNSH = maxNumSCV;
-	static const size_t maxNumCo = 8;
+	using scv_type = ReferenceTetrahedron;
+	using face_type = ReferenceTriangle;
+	static constexpr size_t maxNumSCVF = 40;
+	static constexpr size_t maxNumSCV = 24;
+	static constexpr size_t maxNSH = maxNumSCV;
+	static constexpr size_t maxNumCo = 8;
 };
 
 template <> struct hcrfv_traits<3, 4>
 {
-    typedef ReferencePyramid scv_type;
-    typedef ReferenceQuadrilateral face_type;
-	static const size_t maxNumSCVF = 40;
-	static const size_t maxNumSCV = 24;
-	static const size_t maxNSH = maxNumSCV;
-	static const size_t maxNumCo = 8;
+	using scv_type = ReferencePyramid;
+	using face_type = ReferenceQuadrilateral;
+	static constexpr size_t maxNumSCVF = 40;
+	static constexpr size_t maxNumSCV = 24;
+	static constexpr size_t maxNSH = maxNumSCV;
+	static constexpr size_t maxNumCo = 8;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -124,54 +124,54 @@ class HCRFVGeometry : public FVGeometryBase
 {
 	public:
 	///	type of element
-		typedef TElem elem_type;
+	using elem_type = TElem;
 		
 	///	type of reference element
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	///	dimension of reference element
-		static const int dim = ref_elem_type::dim;
+		static constexpr int dim = ref_elem_type::dim;
 
 	///	dimension of world
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	Hanging node flag: this geometry supports hanging nodes
-		static const bool usesHangingNodes = true;
+		static constexpr bool usesHangingNodes = true;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = true;
+		static constexpr bool staticLocalData = true;
 
 	///	type of Shape function used
-		typedef CrouzeixRaviartLSFS<ref_elem_type> local_shape_fct_set_type;
+	using local_shape_fct_set_type = CrouzeixRaviartLSFS<ref_elem_type>;
 
 	///	number of shape functions
-		static const size_t nsh = local_shape_fct_set_type::nsh;
+		static constexpr size_t nsh = local_shape_fct_set_type::nsh;
 
 	///	number of SubControlVolumes
-		static const size_t numNaturalSCV = nsh;
+		static constexpr size_t numNaturalSCV = nsh;
 
 	///	number of SubControlVolumeFaces
-		static const size_t numNaturalSCVF = ref_elem_type::numEdges;
+		static constexpr size_t numNaturalSCVF = ref_elem_type::numEdges;
 		
 	///	used traits
-		typedef hcrfv_traits<dim,worldDim> traits;
+		using traits = hcrfv_traits<dim,worldDim>;
 
-		static const size_t maxNumSCV = traits::maxNumSCV;
+		static constexpr size_t maxNumSCV = traits::maxNumSCV;
 		
-		static const size_t maxNumSCVF = traits::maxNumSCVF;
+		static constexpr size_t maxNumSCVF = traits::maxNumSCVF;
 
 	public:
 	///	order
-		static const int order = 1;
+		static constexpr int order = 1;
 
 	///	traits
-		typedef typename hcrfv_traits<TWorldDim,TWorldDim>::scv_type scv_type0;
-	    typedef typename hcrfv_traits<TWorldDim,TWorldDim>::face_type face_type0;
-	    typedef typename hcrfv_traits<TWorldDim,TWorldDim+1>::scv_type scv_type1;
-	    typedef typename hcrfv_traits<TWorldDim,TWorldDim+1>::face_type face_type1;
+		using scv_type0 = typename hcrfv_traits<TWorldDim,TWorldDim>::scv_type;
+		using face_type0 = typename hcrfv_traits<TWorldDim,TWorldDim>::face_type;
+		using scv_type1 = typename hcrfv_traits<TWorldDim,TWorldDim+1>::scv_type;
+		using face_type1 = typename hcrfv_traits<TWorldDim,TWorldDim+1>::face_type;
 
 	/// number of integration points
-		static const size_t nip = 1;
+		static constexpr size_t nip = 1;
 
 	// local/global element barycenter
 		MathVector<dim> localBary;
@@ -192,10 +192,10 @@ class HCRFVGeometry : public FVGeometryBase
 		{
 			public:
 			///	Number of corners of scvf
-				static const size_t numCo = dim;
+				static constexpr size_t numCo = dim;
 
 			public:
-				SCVF() {}
+				SCVF() = default;
 
 			/// index of SubControlVolume on one side of the scvf
 				inline size_t from() const {return From;}
@@ -286,7 +286,7 @@ class HCRFVGeometry : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of scv
-				static const size_t maxNumCo = 5;
+				static constexpr size_t maxNumCo = 5;
 
 			public:
 				SCV() : numCorners(maxNumCo) {};
@@ -383,7 +383,7 @@ class HCRFVGeometry : public FVGeometryBase
 		class CONSTRAINED_DOF
 		{
 			public:
-				static const size_t maxNumConstrainingDofs = 4;
+				static constexpr size_t maxNumConstrainingDofs = 4;
 				inline size_t constraining_dofs_index(size_t i) const{
 					return cDofInd[i];
 				}
@@ -429,7 +429,7 @@ class HCRFVGeometry : public FVGeometryBase
 
 	/// update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL);
+		            const ISubsetHandler* ish = nullptr);
 
 	///	debug output
 		void print();
@@ -493,7 +493,7 @@ class HCRFVGeometry : public FVGeometryBase
 		MathVector<worldDim> m_vGlobUnkCoords[maxNumSCV];
 		MathVector<dim> m_vLocUnkCoords[maxNumSCV];
 		
-		static const size_t numMaxCo = 8;
+		static constexpr size_t numMaxCo = 8;
 	 // corner coordinates
 		MathVector<worldDim> m_vCo[numMaxCo];
 
@@ -531,7 +531,7 @@ class HCRFVGeometry : public FVGeometryBase
 
 		bool localUpdateNecessary;
 	
-		static const size_t deleted = 117;
+		static constexpr size_t deleted = 117;
 
 };
 

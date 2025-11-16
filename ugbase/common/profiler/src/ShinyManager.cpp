@@ -51,22 +51,22 @@ namespace Shiny {
 		/* nodeCount = */ 1,
 		/* zoneCount = */ 1,
 		/* _lastZone = */ &instance.rootZone,
-		/* _lastNodePool = */ NULL,
-		/* _firstNodePool = */ NULL,
+		/* _lastNodePool = */ nullptr,
+		/* _firstNodePool = */ nullptr,
 		/* rootNode = */ {
 			/* _last = */ { 0, 0 },
 			/* zone = */ &instance.rootZone,
 			/* parent = */ &instance.rootNode,
-			/* nextSibling = */ NULL,
-			/* firstChild = */ NULL,
-			/* lastChild = */ NULL,
+			/* nextSibling = */ nullptr,
+			/* firstChild = */ nullptr,
+			/* lastChild = */ nullptr,
 			/* childCount = */ 0,
 			/* entryLevel = */ 0,
-			/* _cache = */ NULL,
+			/* _cache = */ nullptr,
 			/* data = */ { { 0, 0 }, { 0, 0 }, { 0, 0 } }
 		},
 		/* rootZone = */ {
-			/* next = */ NULL,
+			/* next = */ nullptr,
 			/* _state = */ ProfileZone::STATE_HIDDEN,
 			/* name = */ "<root>",
 // changes -[
@@ -80,7 +80,7 @@ namespace Shiny {
 		/* _firstUpdate = */ true
 	};
 
-	ProfileNode* ProfileManager::_dummyNodeTable[] = { NULL };
+	ProfileNode* ProfileManager::_dummyNodeTable[] = { nullptr };
 
 
 //-----------------------------------------------------------------------------
@@ -337,7 +337,7 @@ namespace Shiny {
 			pZone->uninit();
 
 			pNextZone = pZone->next;
-			pZone->next = NULL;
+			pZone->next = nullptr;
 			
 			if (!pNextZone) break;
 			pZone = pNextZone;
@@ -353,7 +353,7 @@ namespace Shiny {
 	void ProfileManager::_destroyNodes(void) {
 		if (_firstNodePool) {
 			_firstNodePool->destroy();
-			_firstNodePool = NULL;
+			_firstNodePool = nullptr;
 		}
 
 		if (_nodeTable != instance._dummyNodeTable) {

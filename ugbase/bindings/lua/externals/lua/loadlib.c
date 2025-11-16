@@ -444,7 +444,7 @@ static int loader_preload (lua_State *L) {
 }
 
 
-static const int sentinel_ = 0;
+static constexpr int sentinel_ = 0;
 #define sentinel	((void *)&sentinel_)
 
 

@@ -80,8 +80,8 @@ template<typename matrix_type>
 class GenerateOverlapClass
 {
 private:
-	typedef IndexLayout::Interface Interface;
-	typedef std::map<int, BinaryBuffer>	BufferMap;
+	using Interface = IndexLayout::Interface;
+	using BufferMap = std::map<int, BinaryBuffer>;
 
 	pcl::InterfaceCommunicator<IndexLayout> &m_com; ///< communicator
 

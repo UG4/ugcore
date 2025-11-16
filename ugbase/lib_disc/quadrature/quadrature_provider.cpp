@@ -54,13 +54,13 @@ const QuadratureRule<0>*
 QuadratureRuleProvider<0>::create_gauss_rule(ReferenceObjectID roid,
                                                 size_t order)
 {
-	QuadratureRule<0>* q = NULL;
+	QuadratureRule<0>* q = nullptr;
 	try{
 	switch(roid){
 		case ROID_VERTEX: q = new GaussQuadratureVertex(); break;
 		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}
-	}catch(...){return NULL;}
+	}catch(...){return nullptr;}
 	return q;
 }
 
@@ -69,13 +69,13 @@ const QuadratureRule<1>*
 QuadratureRuleProvider<1>::create_gauss_rule(ReferenceObjectID roid,
                                                 size_t order)
 {
-	QuadratureRule<1>* q = NULL;
+	QuadratureRule<1>* q = nullptr;
 	try{
 	switch(roid){
 		case ROID_EDGE: q = new FlexGaussQuadrature<ReferenceEdge>(order); break;
 		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}
-	}catch(...){return NULL;}
+	}catch(...){return nullptr;}
 	return q;
 }
 
@@ -84,14 +84,14 @@ const QuadratureRule<2>*
 QuadratureRuleProvider<2>::create_gauss_rule(ReferenceObjectID roid,
                                                 size_t order)
 {
-	QuadratureRule<2>* q = NULL;
+	QuadratureRule<2>* q = nullptr;
 	try{
 	switch(roid){
 		case ROID_TRIANGLE: q = new FlexGaussQuadrature<ReferenceTriangle>(order); break;
 		case ROID_QUADRILATERAL: q = new FlexGaussQuadrature<ReferenceQuadrilateral>(order); break;
 		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}
-	}catch(...){return NULL;}
+	}catch(...){return nullptr;}
 	return q;
 }
 
@@ -100,7 +100,7 @@ const QuadratureRule<3>*
 QuadratureRuleProvider<3>::create_gauss_rule(ReferenceObjectID roid,
                                                 size_t order)
 {
-	QuadratureRule<3>* q = NULL;
+	QuadratureRule<3>* q = nullptr;
 	try{
 	switch(roid){
 		case ROID_TETRAHEDRON: q = new FlexGaussQuadrature<ReferenceTetrahedron>(order); break;
@@ -110,7 +110,7 @@ QuadratureRuleProvider<3>::create_gauss_rule(ReferenceObjectID roid,
 		case ROID_OCTAHEDRON: q = new FlexGaussQuadrature<ReferenceOctahedron>(order); break;
 		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}
-	}catch(...){return NULL;}
+	}catch(...){return nullptr;}
 	return q;
 }
 
@@ -122,17 +122,17 @@ template <>
 const QuadratureRule<0>*
 QuadratureRuleProvider<0>::create_gauss_legendre_rule(ReferenceObjectID roid, size_t order)
 {
-	return NULL;
+	return nullptr;
 }
 
 template <>
 const QuadratureRule<1>*
 QuadratureRuleProvider<1>::create_gauss_legendre_rule(ReferenceObjectID roid, size_t order)
 {
-	QuadratureRule<1>* q = NULL;
+	QuadratureRule<1>* q = nullptr;
 	try{
 		q = new GaussLegendre(order);
-	}catch(...){return NULL;}
+	}catch(...){return nullptr;}
 	return q;
 }
 
@@ -141,14 +141,14 @@ const QuadratureRule<2>*
 QuadratureRuleProvider<2>::create_gauss_legendre_rule(ReferenceObjectID roid,
                                                 size_t order)
 {
-	QuadratureRule<2>* q = NULL;
+	QuadratureRule<2>* q = nullptr;
 	try{
 	switch(roid){
 		case ROID_QUADRILATERAL: q = new GaussQuadratureQuadrilateral(order); break;
 		case ROID_TRIANGLE: q = new GaussQuadratureTriangle(order); break;
 		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}
-	}catch(...){return NULL;}
+	}catch(...){return nullptr;}
 	return q;
 }
 
@@ -157,7 +157,7 @@ const QuadratureRule<3>*
 QuadratureRuleProvider<3>::create_gauss_legendre_rule(ReferenceObjectID roid,
                                                 size_t order)
 {
-	QuadratureRule<3>* q = NULL;
+	QuadratureRule<3>* q = nullptr;
 	try{
 	switch(roid){
 		case ROID_TETRAHEDRON: q = new GaussQuadratureTetrahedron(order); break;
@@ -167,7 +167,7 @@ QuadratureRuleProvider<3>::create_gauss_legendre_rule(ReferenceObjectID roid,
 		case ROID_OCTAHEDRON: q = new GaussQuadratureOctahedron(order); break;
 		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}
-	}catch(...){return NULL;}
+	}catch(...){return nullptr;}
 	return q;
 }
 
@@ -179,10 +179,10 @@ template <>
 const QuadratureRule<1>*
 QuadratureRuleProvider<1>::create_newton_cotes_rule(ReferenceObjectID roid, size_t order)
 {
-	QuadratureRule<1>* q = NULL;
+	QuadratureRule<1>* q = nullptr;
 	try{
 		q = new NewtonCotes(order);
-	}catch(...){return NULL;}
+	}catch(...){return nullptr;}
 	return q;
 }
 
@@ -190,7 +190,7 @@ template <int TDim>
 const QuadratureRule<TDim>*
 QuadratureRuleProvider<TDim>::create_newton_cotes_rule(ReferenceObjectID roid, size_t order)
 {
-	return NULL;
+	return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -211,7 +211,7 @@ QuadratureRuleProvider<TDim>::~QuadratureRuleProvider()
 	for(int type = 0; type < NUM_QUADRATURE_TYPES; ++type)
 		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
 			for(size_t order = 0; order < m_vRule[type][roid].size(); ++order)
-				if(m_vRule[type][roid][order] != NULL)
+				if(m_vRule[type][roid][order] != nullptr)
 					delete m_vRule[type][roid][order];
 }
 
@@ -223,7 +223,7 @@ QuadratureRuleProvider<TDim>::get_quad_rule(ReferenceObjectID roid,
 {
 	//	check if order present, else resize and create
 	if(order >= m_vRule[type][roid].size() ||
-			m_vRule[type][roid][order] == NULL)
+			m_vRule[type][roid][order] == nullptr)
 		create_rule(roid, order, type);
 
 	//	return correct order
@@ -237,24 +237,24 @@ QuadratureRuleProvider<TDim>::create_rule(ReferenceObjectID roid,
                                           QuadType type)
 {
 //	resize vector if needed
-	if(m_vRule[type][roid].size() <= order) m_vRule[type][roid].resize(order+1, NULL);
-	if(m_vRule[type][roid][order] != NULL)
+	if(m_vRule[type][roid].size() <= order) m_vRule[type][roid].resize(order+1, nullptr);
+	if(m_vRule[type][roid][order] != nullptr)
 		delete m_vRule[type][roid][order];
-	m_vRule[type][roid][order] = NULL;
+	m_vRule[type][roid][order] = nullptr;
 
 	switch(type){
 		case BEST: {
 			// 1. Try GaussQuad
 			m_vRule[type][roid][order] = create_gauss_rule(roid, order);
-			if(m_vRule[type][roid][order] != NULL) break;
+			if(m_vRule[type][roid][order] != nullptr) break;
 
 			// 2. Try Newton-Cotes
 				m_vRule[type][roid][order] = create_newton_cotes_rule(roid, order);
-			if(m_vRule[type][roid][order] != NULL) break;
+			if(m_vRule[type][roid][order] != nullptr) break;
 
 			// 3. Try Gauss-Legendre
 				m_vRule[type][roid][order] = create_gauss_legendre_rule(roid, order);
-			if(m_vRule[type][roid][order] != NULL) break;
+			if(m_vRule[type][roid][order] != nullptr) break;
 		}break;
 		case GAUSS: {
 			m_vRule[type][roid][order] = create_gauss_rule(roid, order);
@@ -269,7 +269,7 @@ QuadratureRuleProvider<TDim>::create_rule(ReferenceObjectID roid,
 		                  <<roid<<", order "<<order<<" and type "<<type);
 	}
 
-	if(m_vRule[type][roid][order] == NULL)
+	if(m_vRule[type][roid][order] == nullptr)
 		UG_THROW("QuadratureRuleProvider<"<<dim<<">: Cannot create rule for "
 				                  <<roid<<", order "<<order<<" and type "<<type);
 }

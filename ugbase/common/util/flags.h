@@ -49,7 +49,7 @@ namespace ug{
  * One can use the Flag class as follows:
  *
  * \code
- * typedef Flag<SomeEnum> SomeFlag;
+ * using SomeFlag = Flag<SomeEnum> ;
  * ...
  * SomeFlag f1(E2), f2(E4);
  * SomeFlag f3(f1 | f2);

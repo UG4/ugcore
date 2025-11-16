@@ -194,8 +194,7 @@ static void Algebra(Registry& reg, string grp)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
-//	typedefs for this algebra
-	typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	reg.add_function("SaveToFile", OVERLOADED_FUNCTION_PTR(void, SaveToFile<vector_type>, (const vector_type &, std::string)), grp);
 	reg.add_function("ReadFromFile", OVERLOADED_FUNCTION_PTR(void, ReadFromFile<vector_type>, (vector_type &, std::string)), grp);
@@ -209,7 +208,7 @@ static void Algebra(Registry& reg, string grp)
 void RegisterBridge_Restart(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Restart");
-	typedef Restart::Functionality Functionality;
+	using Functionality = Restart::Functionality;
 
 	try{
 		RegisterAlgebraDependent<Functionality>(reg,grp);

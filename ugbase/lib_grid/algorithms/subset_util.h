@@ -211,7 +211,7 @@ bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
  * \param grid 	Grid
  * \param sh	Subset Handler
  * \param aPos	Position Attachment
- * \param paNorm pointer to the normal attachment. NULL indicates
+ * \param paNorm pointer to the normal attachment. nullptr indicates
  * 				that normals shall be calculated on the fly (default).
  * \param applyToSubset		Allows to specify which subset shall be separated.
  * 							-2: All subsets,
@@ -220,7 +220,7 @@ bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
 UG_API
 void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 								APosition aPos = aPosition,
-								ANormal* paNorm = NULL,
+								ANormal* paNorm = nullptr,
 								int applyToSubset = -2);
 
 ////////////////////////////////////////////////////////////////////////
@@ -236,7 +236,7 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
  * \param sh		Subset Handler
  * \param vNormals 	normals
  * \param aPos		Position Attachment
- * \param paNorm pointer to the normal attachment. NULL indicates
+ * \param paNorm pointer to the normal attachment. nullptr indicates
  * 				that normals shall be calculated on the fly (default).
  * \param applyToSubset		Allows to specify which subset shall be separated.
  * 							-2: All subsets,
@@ -246,7 +246,7 @@ UG_API
 void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 								std::vector<vector3> vNormals,
 								APosition aPos = aPosition,
-								ANormal* paNorm = NULL,
+								ANormal* paNorm = nullptr,
 								int applyToSubset = -2);
 
 ////////////////////////////////////////////////////////////////////////
@@ -371,7 +371,7 @@ void AssignSubsetColors(ISubsetHandler& sh);
  * is only used, if a selected side is encountered.
  */
 template <class TElem>
-void AssignSidesToSubsets(ISubsetHandler& sh, ISelector* psel = NULL);
+void AssignSidesToSubsets(ISubsetHandler& sh, ISelector* psel = nullptr);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Assigns all elements of type TElem with subset index -1 to subset at index si

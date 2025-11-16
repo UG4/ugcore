@@ -30,6 +30,7 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "common/math/misc/math_util.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "subdivision_loop.h"
 
@@ -47,12 +48,12 @@ bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos)
 	Grid::VertexAttachmentAccessor<APosition> aaProjPos(grid, aProjPos);
 
 //	needed variables
-	double const pi = 3.14159265;
+
 	double x = 0;
 	double y = 0;
 	double z = 0;
 	int valence = 0;
-	const int numPrecalculated = 10;
+	constexpr int numPrecalculated = 10;
 	double beta[numPrecalculated];
 	double b = 0;
 	double chi = 0;
@@ -60,7 +61,7 @@ bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos)
 //	calculate weights for subdivision mask
 	for(int i = 1; i < numPrecalculated; ++i)
 	{
-		double tmp = 0.375 + 0.25 * cos( (2.0 * pi) / (float)i );
+		double tmp = 0.375 + 0.25 * cos( (2.0 * M_PI) / (float)i );
 		beta[i] = ( 0.625 - tmp * tmp ) / (float)i ;
 	}
 
@@ -76,14 +77,14 @@ bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos)
 		y = 0;
 		z = 0;
 
-		for(Grid::AssociatedEdgeIterator eIter = grid.associated_edges_begin(v); eIter != grid.associated_edges_end(v); ++eIter)
+		for(auto eIter = grid.associated_edges_begin(v); eIter != grid.associated_edges_end(v); ++eIter)
 		{
 			Edge* e = *eIter;
 			valence++;
 
 			if(valence >= numPrecalculated)
 			{
-				double tmp = 0.375 + 0.25 * cos( (2.0*pi) / (float)valence );
+				double tmp = 0.375 + 0.25 * cos( (2.0*M_PI) / (float)valence );
 				b = (0.625 - tmp*tmp) / (float)valence;
 			}
 

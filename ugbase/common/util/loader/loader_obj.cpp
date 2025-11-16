@@ -44,7 +44,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	some string functions
 //TODO: IMPROVE THIS FUNCTION!!! MOVE IT TO A COMMON UTIL-FILE
-typedef vector<string>		ParameterList;
+using ParameterList = vector<string>;
 static void split_parameters(ParameterList* pParamList, const char* pParamString)
 {
 	string param(pParamString);
@@ -155,7 +155,7 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 	bool bGotTexture = false;
 	bool bGotNormal = false;
 
-	Object* pActiveObject = NULL;
+	Object* pActiveObject = nullptr;
 
 	string strCommand;
 	char BUFFER[256];
@@ -215,7 +215,7 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 			if(!mtlIn)
 				continue;
 
-			Material* pActMaterial = NULL;
+			Material* pActMaterial = nullptr;
 			while(!mtlIn.eof())
 			{
 				mtlIn.getline(BUFFER, 256);

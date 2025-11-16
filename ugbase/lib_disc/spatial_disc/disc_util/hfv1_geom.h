@@ -61,26 +61,26 @@ template <	typename TElem, int TWorldDim>
 class HFV1Geometry : public FVGeometryBase{
 	private:
 	/// type of reference element
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+		using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	/// number of SubControlVolumes
-		static const size_t m_numNaturalSCV = ref_elem_type::numCorners;
+		static constexpr size_t m_numNaturalSCV = ref_elem_type::numCorners;
 
 	/// number of SubControlVolumeFaces
-		static const size_t m_numNaturalSCVF = ref_elem_type::numEdges;
+		static constexpr size_t m_numNaturalSCVF = ref_elem_type::numEdges;
 
 	public:
 	/// dimension of reference element
-		static const int dim = ref_elem_type::dim;
+		static constexpr int dim = ref_elem_type::dim;
 
 	/// dimension of world
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	/// Hanging node flag: this Geometry does support hanging nodes
-		static const bool usesHangingNodes = true;
+		static constexpr bool usesHangingNodes = true;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = true;
+		static constexpr bool staticLocalData = true;
 
 	protected:
 		struct MidID
@@ -96,20 +96,20 @@ class HFV1Geometry : public FVGeometryBase{
 		{
 			public:
 			/// dimension of reference element
-				static const int dim = ref_elem_type::dim;
+				static constexpr int dim = ref_elem_type::dim;
 
 			/// dimension of world
-				static const int worldDim = TWorldDim;
+				static constexpr int worldDim = TWorldDim;
 
 			private:
 			/// let outer class access private members
 				friend class HFV1Geometry<TElem, TWorldDim>;
 
 			/// number of integration points
-				static const size_t m_numIP = 1;
+				static constexpr size_t m_numIP = 1;
 
 			/// Number of corners of scvf
-				static const size_t m_numCorners = hfv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
+				static constexpr size_t m_numCorners = hfv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
 
 			public:
 				SCVF() {};
@@ -204,13 +204,13 @@ class HFV1Geometry : public FVGeometryBase{
 				friend class HFV1Geometry<TElem, TWorldDim>;
 
 			/// number of integration points
-				static const size_t m_numIP = 1;
+				static constexpr size_t m_numIP = 1;
 
 			/// Number of corners of scvf
-				static const size_t m_maxNumCorners = hfv1_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
+				static constexpr size_t m_maxNumCorners = hfv1_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
 
 			/// type of element the subcontrol volume represents
-				typedef typename hfv1_traits<ref_elem_type, TWorldDim>::scv_type scv_type;
+				using scv_type = typename hfv1_traits<ref_elem_type, TWorldDim>::scv_type;
 
 			public:
 				SCV() : m_numCorners(m_maxNumCorners) {};
@@ -259,7 +259,7 @@ class HFV1Geometry : public FVGeometryBase{
 
 	///	update values for an element
 		void update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
-		            			 const ISubsetHandler* ish = NULL);
+		            			 const ISubsetHandler* ish = nullptr);
 
 	// 	debug output
 		void print();
@@ -494,7 +494,7 @@ class HFV1Geometry : public FVGeometryBase{
 		const ref_elem_type& m_rRefElem;
 };
 
-template <	int TDim, int TWorldDim = TDim>
+template <int TDim, int TWorldDim = TDim>
 class DimHFV1Geometry : public FVGeometryBase{
 	private:
 	/// number of SubControlVolumes
@@ -504,30 +504,30 @@ class DimHFV1Geometry : public FVGeometryBase{
 		size_t m_numNaturalSCVF;
 		
 	/// max number of shapes
-		static const size_t m_maxNSH = fv1_dim_traits<TDim, TWorldDim>::maxNSH;
+		static constexpr size_t m_maxNSH = fv1_dim_traits<TDim, TWorldDim>::maxNSH;
 
 	public:
 	/// dimension of reference element
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	/// dimension of world
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	/// Hanging node flag: this Geometry does support hanging nodes
-		static const bool usesHangingNodes = true;
+		static constexpr bool usesHangingNodes = true;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = true;
+		static constexpr bool staticLocalData = true;
 		
 	/// traits	
-		typedef hdimfv1_traits<TDim> traits;
+	using traits = hdimfv1_traits<TDim>;
 		
 	/// element type names
-		typedef typename traits::elem_type_0 elem_type_0;
-		typedef typename traits::elem_type_1 elem_type_1;
-		typedef typename traits::elem_type_2 elem_type_2;
-		typedef typename traits::elem_type_3 elem_type_3;
-		typedef typename traits::elem_type_4 elem_type_4;
+	using elem_type_0 = typename traits::elem_type_0;
+	using elem_type_1 = typename traits::elem_type_1;
+	using elem_type_2 = typename traits::elem_type_2;
+	using elem_type_3 = typename traits::elem_type_3;
+	using elem_type_4 = typename traits::elem_type_4;
 
 	protected:
 		struct MidID
@@ -543,23 +543,23 @@ class DimHFV1Geometry : public FVGeometryBase{
 		{
 			public:
 			/// dimension of reference element
-				static const int dim = TDim;
+				static constexpr int dim = TDim;
 
 			/// dimension of world
-				static const int worldDim = TWorldDim;
+				static constexpr int worldDim = TWorldDim;
 
 			private:
 			/// let outer class access private members
 				friend class DimHFV1Geometry<TDim, TWorldDim>;
 
 			/// number of integration points
-				static const size_t m_numIP = 1;
+				static constexpr size_t m_numIP = 1;
 
 			/// Number of corners of scvf
-				static const size_t m_numCorners = traits::NumCornersOfSCVF;
+				static constexpr size_t m_numCorners = traits::NumCornersOfSCVF;
 
 			public:
-				SCVF() {};
+				SCVF() = default;
 
 			/// index of SubControlVolume on one side of the scvf
 				inline size_t from() const {return m_from;}
@@ -649,13 +649,13 @@ class DimHFV1Geometry : public FVGeometryBase{
 				friend class DimHFV1Geometry<TDim, TWorldDim>;
 
 			/// number of integration points
-				static const size_t m_numIP = 1;
+				static constexpr size_t m_numIP = 1;
 
 			/// Number of corners of scvf
-				static const size_t m_maxNumCorners = traits::MaxNumCornersOfSCV;
+				static constexpr size_t m_maxNumCorners = traits::MaxNumCornersOfSCV;
 
 			/// type of element the subcontrol volume represents
-				typedef typename traits::scv_type scv_type;
+				using scv_type = typename traits::scv_type;
 
 			public:
 				SCV() : m_numCorners(m_maxNumCorners) {};
@@ -737,14 +737,14 @@ class DimHFV1Geometry : public FVGeometryBase{
 
 	public:
 	///	constructor
-		DimHFV1Geometry() : m_pElem(NULL), m_roid(ROID_UNKNOWN) {};
+		DimHFV1Geometry() : m_pElem(nullptr), m_roid(ROID_UNKNOWN) {};
 		
 	/// update local data for an element
 		void update_local_data();
 
 	///	update values for an element
 		void update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
-		            			 const ISubsetHandler* ish = NULL);
+		            			 const ISubsetHandler* ish = nullptr);
 
 	// 	debug output
 	//	void print();
@@ -976,35 +976,35 @@ class HFV1ManifoldGeometry
 {
 	public:
 	// 	type of element
-		typedef TElem elem_type;
+		using elem_type = TElem;
 
 	// 	type of reference element
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+		using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	public:
 	// 	order
-		static const int order = 1;
+		static constexpr int order = 1;
 
 	// number of natural bfs (eq. of SCV)
-		static const size_t m_numNaturalBF = ref_elem_type::numCorners;
+		static constexpr size_t m_numNaturalBF = ref_elem_type::numCorners;
 
 	// number of natural boundary face sides (eq. of SCVF)
-		static const size_t m_numNaturalBFS = ref_elem_type::numEdges;
+		static constexpr size_t m_numNaturalBFS = ref_elem_type::numEdges;
 
 	// 	dimension of reference element
-		static const int dim = ref_elem_type::dim;
+		static constexpr int dim = ref_elem_type::dim;
 
 	// 	dimension of world
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	// 	type of BoundaryFaces
-		typedef typename hfv1_traits<ref_elem_type, dim>::scv_type bf_type;
+		using bf_type = typename hfv1_traits<ref_elem_type, dim>::scv_type;
 
 	// 	Hanging node flag: this geometry supports hanging nodes
-		static const bool usesHangingNodes = true;
+		static constexpr bool usesHangingNodes = true;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = true;
+		static constexpr bool staticLocalData = true;
 
 	protected:
 		struct MidID
@@ -1023,13 +1023,13 @@ class HFV1ManifoldGeometry
 				friend class HFV1ManifoldGeometry<TElem, TWorldDim>;
 
 			// 	number of integration points
-				static const size_t m_numIP = 1;
+				static constexpr size_t m_numIP = 1;
 
 			// 	max number of corners of bf
-				static const size_t numCorners = hfv1_traits<ref_elem_type, dim>::MaxNumCornersOfSCV;
+				static constexpr size_t numCorners = hfv1_traits<ref_elem_type, dim>::MaxNumCornersOfSCV;
 
 			public:
-				BF() {};
+				BF() = default;
 
 			/// node id that this bf is associated to
 				inline size_t node_id() const {return nodeId;}
@@ -1093,7 +1093,7 @@ class HFV1ManifoldGeometry
 
 	///	update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL);
+		            const ISubsetHandler* ish = nullptr);
 
 	/// print information about hfvg to log
 		void print();

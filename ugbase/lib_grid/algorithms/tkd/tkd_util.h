@@ -45,7 +45,7 @@ namespace ug {
 void CreateTKDVertices (const TKDInfo& tkdInfo,
                         Grid& g,
                         APosition3& aPos,
-                        Vertex** vrtsOut = NULL);
+                        Vertex** vrtsOut = nullptr);
 
 ///	Creates a tkd mesh based on the given tkdInfo object
 /** \param volsOut	(optional) Array of size TKDInfo::NUM_INNER_ELEMENTS
@@ -53,7 +53,7 @@ void CreateTKDVertices (const TKDInfo& tkdInfo,
 void CreateTKD (const TKDInfo& tkdInfo,
                 Grid& g,
 				APosition3& aPos,
-				Volume** volsOut = NULL);
+				Volume** volsOut = nullptr);
 
 ///	Creates a tkd mesh with a surrounding layer based on the given tkdInfo object
 /** \param volsOut	(optional) Array of size TKDInfo::NUM_ELEMENTS.
@@ -63,7 +63,7 @@ void CreateTKD (const TKDInfo& tkdInfo,
 void CreateTKDWithOuterLayer (const TKDInfo& tkdInfo,
 	                          Grid& g,
 	                          APosition3& aPos,
-							  Volume** volsOut = NULL);
+							  Volume** volsOut = nullptr);
 
 }//	end of namespace
 

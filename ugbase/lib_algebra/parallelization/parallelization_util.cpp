@@ -74,10 +74,10 @@ void CommunicateConnections(vector<vector<int> >& connectionsToProcsOut,
 							int highestReferencedIndex, pcl::IDomainDecompositionInfo& ddinfo)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
-	typedef IndexLayout::Interface 	Interface;
-	typedef IndexLayout::const_iterator 	InterfaceIter;
-	typedef Interface::const_iterator		ElemIter;
-	typedef Interface::Element		Element;
+	using Interface = IndexLayout::Interface;
+	using InterfaceIter = IndexLayout::const_iterator;
+	using ElemIter = Interface::const_iterator;
+	using Element = Interface::Element;
 
 	int connectionVecSize = highestReferencedIndex + 1;
 	if(connectionVecSize < 0) connectionVecSize = 0;
@@ -390,13 +390,13 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 		IDomainDecompositionInfo& ddinfo)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
-	typedef IndexLayout::Interface	Interface;
-	typedef IndexLayout::const_iterator	ConstInterfaceIter;
-	typedef Interface::Element		Element;
-	typedef Interface::const_iterator		ConstElemIter;
+	using Interface = IndexLayout::Interface;
+	using ConstInterfaceIter = IndexLayout::const_iterator;
+	using Element = Interface::Element;
+	using ConstElemIter = Interface::const_iterator;
 
 //	the local process and subdomain id
-	int localProcID = pcl::ProcRank();
+	int localProcID = ProcRank();
 	int localSubdomID = ddinfo.map_proc_id_to_subdomain_id(localProcID);
 
 	for(ConstInterfaceIter iiter = standardLayout.begin();
@@ -503,13 +503,13 @@ void BuildDomainDecompositionLayouts(
 		int highestReferencedIndex, IDomainDecompositionInfo& ddinfo)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
-//	some typedefs
-	typedef IndexLayout::Interface	Interface;
-	typedef IndexLayout::const_iterator	ConstInterfaceIter;
-	typedef Interface::const_iterator	ConstElemIter;
+
+	using Interface = IndexLayout::Interface;
+	using ConstInterfaceIter = IndexLayout::const_iterator;
+	using ConstElemIter = Interface::const_iterator;
 
 //	the local process and subdomain id
-	int localProcID = pcl::ProcRank();
+	int localProcID = ProcRank();
 	int localSubdomID = ddinfo.map_proc_id_to_subdomain_id(localProcID);
 
 
@@ -656,10 +656,9 @@ void BuildDomainDecompositionLayouts(
 		IndexLayout& standardMasters, IndexLayout& standardSlaves,
 		int highestReferencedIndex, IDomainDecompositionInfo& ddinfo)
 {
-//	some typedefs
-	typedef IndexLayout::Interface	Interface;
-	typedef IndexLayout::iterator	InterfaceIter;
-	typedef Interface::iterator		ElemIter;
+	using Interface = IndexLayout::Interface;
+	using InterfaceIter = IndexLayout::iterator;
+	using ElemIter = Interface::iterator;
 
 //	the local process and subdomain id
 	int localProcID = pcl::ProcRank();
@@ -777,7 +776,7 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 		}
 	}
 
-	typedef std::map<int, BinaryBuffer> BufferMap;
+	using BufferMap = std::map<int, BinaryBuffer>;
 	BufferMap sendpack;
 	//UG_LOG("\n\n");
 	for(std::map<size_t, std::vector<int> >::iterator it = slaveOnProc.begin(); it != slaveOnProc.end(); ++it)

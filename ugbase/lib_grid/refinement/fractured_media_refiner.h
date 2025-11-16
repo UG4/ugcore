@@ -51,15 +51,14 @@ namespace ug
 template <class TGrid, class TAPosition>
 class FracturedMediaRefiner : public THangingNodeRefiner<TGrid>
 {
-	typedef THangingNodeRefiner<TGrid>	BaseClass;
+	using BaseClass = THangingNodeRefiner<TGrid>;
 
 	public:
 		using BaseClass::mark;
 
 	public:
-		FracturedMediaRefiner(SPRefinementProjector projector = SPNULL);
-		FracturedMediaRefiner(TGrid& g,
-							  SPRefinementProjector projector = SPNULL);
+		FracturedMediaRefiner(SPRefinementProjector projector = nullptr);
+		FracturedMediaRefiner(TGrid& g, SPRefinementProjector projector = nullptr);
 
 		virtual ~FracturedMediaRefiner();
 

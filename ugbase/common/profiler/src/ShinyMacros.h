@@ -174,7 +174,7 @@ PROFILER_UPDATE for SHINY_PROFILER == FALSE.
 #define _PROFILE_ZONE_DEFINE( id, string )									\
 																			\
 	Shiny::ProfileZone id = {												\
-		NULL, Shiny::ProfileZone::STATE_HIDDEN, string,						\
+		nullptr, Shiny::ProfileZone::STATE_HIDDEN, string,						\
 		{ { 0, 0 }, { 0, 0 }, { 0, 0 } }									\
 	};
 
@@ -218,7 +218,7 @@ namespace Shiny {
 	}
 	
 	SHINY_INLINE void DummyUpdate(float a = 0.0f) { /* meditate */ }
-	SHINY_INLINE bool DummyOutput(const char *a = NULL) { return false; }
+	SHINY_INLINE bool DummyOutput(const char *a = nullptr) { return false; }
 	SHINY_INLINE bool DummyOutput(std::ostream &a) { return false; }
 	
 }

@@ -72,9 +72,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-//	typedef
-	static const int dim = TDomain::dim;
-	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
+
+	static constexpr int dim = TDomain::dim;
+	using TFct = GridFunction<TDomain, TAlgebra>;
 
 //	Maximum error
 	{
@@ -166,7 +166,7 @@ static void Common(Registry& reg, string grp)
 void RegisterBridge_MaxError(Registry& reg, string grp)
 {
 	grp.append("/Discretization");
-	typedef MaxError::Functionality Functionality;
+	using Functionality = MaxError::Functionality;
 
 	try{
 //		RegisterCommon<Functionality>(reg,grp);

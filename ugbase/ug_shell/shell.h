@@ -41,7 +41,7 @@ namespace bridge
 {
 
 void InitShell();
-int RunShell(const char *prompt=NULL);
+int RunShell(const char *prompt=nullptr);
 script::debug_return DebugShell();
 
 }

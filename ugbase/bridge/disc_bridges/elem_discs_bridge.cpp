@@ -86,14 +86,14 @@ static void Domain(Registry& reg, string grp)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 
 	string approxGrp = grp; approxGrp.append("/ApproximationSpace");
 	string elemGrp = grp; elemGrp.append("/SpatialDisc/ElemDisc");
 
 //	ElemDiscModifier base class
 	{
-		typedef IElemDiscModifier<TDomain> T;
+		using T = IElemDiscModifier<TDomain>;
 		string name = string("IElemDiscModifier").append(suffix);
 		reg.add_class_<T>(name, elemGrp);
 		reg.add_class_to_group(name, "IElemDiscModifier", tag);
@@ -101,7 +101,7 @@ static void Domain(Registry& reg, string grp)
 
 	//	IElemError base class
 	{
-			typedef IElemError<TDomain> T;
+			using T = IElemError<TDomain>;
 			string name = string("IElemError").append(suffix);
 			reg.add_class_<T>(name, elemGrp)
 	 			.add_method("set_stationary", static_cast<void (T::*)()>(&T::set_stationary))
@@ -113,8 +113,8 @@ static void Domain(Registry& reg, string grp)
 
 //	IElemDisc base class
 	{
-		typedef IElemDisc<TDomain> T;
-		typedef IElemError<TDomain> TBase;
+		using T = IElemDisc<TDomain>;
+		using TBase = IElemError<TDomain>;
 		string name = string("IElemDisc").append(suffix);
 		reg.add_class_<T, TBase>(name, elemGrp)
  		//	.add_method("set_stationary", static_cast<void (T::*)()>(&T::set_stationary))
@@ -125,8 +125,8 @@ static void Domain(Registry& reg, string grp)
 
 //	Neumann Boundary Base
 	{
-		typedef NeumannBoundaryBase<TDomain> T;
-		typedef IElemDisc<TDomain> TBase;
+		using T = NeumannBoundaryBase<TDomain>;
+		using TBase = IElemDisc<TDomain>;
 		string name = string("NeumannBoundaryBase").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >, const char*, const char*)>(&T::add))
@@ -150,8 +150,8 @@ static void Domain(Registry& reg, string grp)
 
 //	Neumann Boundary FV1
 	{
-		typedef NeumannBoundaryFV1<TDomain> T;
-		typedef NeumannBoundaryBase<TDomain> TBase;
+		using T = NeumannBoundaryFV1<TDomain>;
+		using TBase = NeumannBoundaryBase<TDomain>;
 		string name = string("NeumannBoundaryFV1").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*)>("Function")
@@ -161,8 +161,8 @@ static void Domain(Registry& reg, string grp)
 
 //	Neumann Boundary FV
 	{
-		typedef NeumannBoundaryFV<TDomain> T;
-		typedef NeumannBoundaryBase<TDomain> TBase;
+		using T = NeumannBoundaryFV<TDomain>;
+		using TBase = NeumannBoundaryBase<TDomain>;
 		string name = string("NeumannBoundaryFV").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*)>("Function")
@@ -172,8 +172,8 @@ static void Domain(Registry& reg, string grp)
 
 //	Neumann Boundary FE
 	{
-		typedef NeumannBoundaryFE<TDomain> T;
-		typedef NeumannBoundaryBase<TDomain> TBase;
+		using T = NeumannBoundaryFE<TDomain>;
+		using TBase = NeumannBoundaryBase<TDomain>;
 		string name = string("NeumannBoundaryFE").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*)>("Function")
@@ -184,8 +184,8 @@ static void Domain(Registry& reg, string grp)
 #if 0
 //	Inner Boundaries
 	{
-		typedef FV1InnerBoundaryElemDisc<TDomain> T;
-		typedef IElemDisc<TDomain> TBase;
+		using T = FV1InnerBoundaryElemDisc<TDomain>;
+		using TBase = IElemDisc<TDomain>;
 		string name = string("FV1InnerBoundary").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.add_method("set_flux_scale", static_cast<void (T::*)(number)>(&T::set_flux_scale),
@@ -203,8 +203,8 @@ static void Domain(Registry& reg, string grp)
 
 	//	DiracSourceDisc
 		{
-			typedef DiracSourceDisc<TDomain> T;
-			typedef IElemDisc<TDomain> TBase;
+			using T = DiracSourceDisc<TDomain>;
+			using TBase = IElemDisc<TDomain>;
 			string name = string("DiracSourceDisc").append(suffix);
 			reg.add_class_<T, TBase >(name, elemGrp)
 				.template add_constructor<void (*)(const char*, const char*)>("Function")
@@ -239,7 +239,7 @@ static void Domain(Registry& reg, string grp)
 
 //	IConvectionShapes
 	{
-		typedef IConvectionShapes<dim> T;
+		using T = IConvectionShapes<dim>;
 		string name = string("IConvectionShapes").append(suffix);
 		reg.add_class_<T>(name, upGrp);
 		reg.add_class_to_group(name, "IConvectionShapes", tag);
@@ -247,8 +247,8 @@ static void Domain(Registry& reg, string grp)
 
 //	ConvectionShapesNoUpwind
 	{
-		typedef ConvectionShapesNoUpwind<dim> T;
-		typedef IConvectionShapes<dim> TBase;
+		using T = ConvectionShapesNoUpwind<dim>;
+		using TBase = IConvectionShapes<dim>;
 		string name = string("NoUpwind").append(suffix);
 		reg.add_class_<T, TBase>(name, upGrp)
 			.add_constructor()
@@ -258,8 +258,8 @@ static void Domain(Registry& reg, string grp)
 
 //	ConvectionShapesFullUpwind
 	{
-		typedef ConvectionShapesFullUpwind<dim> T;
-		typedef IConvectionShapes<dim> TBase;
+		using T = ConvectionShapesFullUpwind<dim>;
+		using TBase = IConvectionShapes<dim>;
 		string name = string("FullUpwind").append(suffix);
 		reg.add_class_<T, TBase>(name, upGrp)
 			.add_constructor()
@@ -269,8 +269,8 @@ static void Domain(Registry& reg, string grp)
 
 //	ConvectionShapesWeightedUpwind
 	{
-		typedef ConvectionShapesWeightedUpwind<dim> T;
-		typedef IConvectionShapes<dim> TBase;
+		using T = ConvectionShapesWeightedUpwind<dim>;
+		using TBase = IConvectionShapes<dim>;
 		string name = string("WeightedUpwind").append(suffix);
 		reg.add_class_<T, TBase>(name, upGrp)
 			.add_method("set_weight", &T::set_weight)
@@ -282,8 +282,8 @@ static void Domain(Registry& reg, string grp)
 
 //	ConvectionShapesPartialUpwind
 	{
-		typedef ConvectionShapesPartialUpwind<dim> T;
-		typedef IConvectionShapes<dim> TBase;
+		using T = ConvectionShapesPartialUpwind<dim>;
+		using TBase = IConvectionShapes<dim>;
 		string name = string("PartialUpwind").append(suffix);
 		reg.add_class_<T, TBase>(name, upGrp)
 			.add_constructor()
@@ -293,8 +293,8 @@ static void Domain(Registry& reg, string grp)
 
 //	ConvectionShapesSkewedUpwind
 	{
-		typedef ConvectionShapesSkewedUpwind<dim> T;
-		typedef IConvectionShapes<dim> TBase;
+		using T = ConvectionShapesSkewedUpwind<dim>;
+		using TBase = IConvectionShapes<dim>;
 		string name = string("SkewedUpwind").append(suffix);
 		reg.add_class_<T, TBase>(name, upGrp)
 			.add_constructor()
@@ -304,8 +304,8 @@ static void Domain(Registry& reg, string grp)
 
 //	ConvectionShapesLinearProfileSkewedUpwind
 	{
-		typedef ConvectionShapesLinearProfileSkewedUpwind<dim> T;
-		typedef IConvectionShapes<dim> TBase;
+		using T = ConvectionShapesLinearProfileSkewedUpwind<dim>;
+		using TBase = IConvectionShapes<dim>;
 		string name = string("LinearProfileSkewedUpwind").append(suffix);
 		reg.add_class_<T, TBase>(name, upGrp)
 			.add_constructor()
@@ -337,7 +337,7 @@ static void Common(Registry& reg, string grp)
 /// \addtogroup elemdisc_bridge
 void RegisterBridge_ElemDiscs(Registry& reg, string grp)
 {
-	typedef ElemDiscs::Functionality Functionality;
+	using Functionality = ElemDiscs::Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);

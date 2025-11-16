@@ -57,7 +57,7 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 	using namespace ug;
 	using namespace std;
 
-	typedef typename TAAPos::ValueType vector_t;
+	using vector_t = typename TAAPos::ValueType;
 
 //	make sure that the dimension is right
 	UG_STATIC_ASSERT(TAAPos::ValueType::Size >= 2,
@@ -203,8 +203,8 @@ bool PartitionElementsByRepeatedIntersectionKD(ug::SubsetHandler& shOut,
 	using namespace ug;
 	using namespace std;
 
-	typedef KDTreeStatic<APosition, IDimension> KDTree;
-	typedef typename geometry_traits<TElem>::iterator ElemIterator;
+	using KDTree = KDTreeStatic<APosition, IDimension>;
+	using ElemIterator = typename geometry_traits<TElem>::iterator;
 
 //	get the max-size from the number of subsets that shall be constructed
 	int treeDepth = 0;

@@ -50,7 +50,7 @@ struct RegisterDomainAlgebraDependent
 {
 	RegisterDomainAlgebraDependent(Registry& reg, std::string grp)
 	{
-		static const bool domainIsEmpty = boost::mpl::empty<DomainList>::value;
+		static constexpr bool domainIsEmpty = boost::mpl::empty<DomainList>::value;
 		typename boost::mpl::if_c<domainIsEmpty, RegEnd, RegNextDomain>::type (reg,grp);
 	}
 	struct RegEnd{ RegEnd(Registry& reg, std::string grp){} };
@@ -60,9 +60,9 @@ struct RegisterDomainAlgebraDependent
 	{
 		RegNextDomainAlgebra(Registry& reg, std::string grp)
 		{
-			typedef typename boost::mpl::front<DomainList>::type DomainType;
-			typedef typename boost::mpl::front<CurrAlgebraList>::type AlgebraType;
-			typedef typename boost::mpl::pop_front<CurrAlgebraList>::type NextAlgebraList;
+			using DomainType = typename boost::mpl::front<DomainList>::type;
+			using AlgebraType = typename boost::mpl::front<CurrAlgebraList>::type;
+			using NextAlgebraList = typename boost::mpl::pop_front<CurrAlgebraList>::type;
 
 			Functionality::template DomainAlgebra<DomainType, AlgebraType>(reg,grp);
 			RegAlgebra<NextAlgebraList>(reg,grp);
@@ -74,7 +74,7 @@ struct RegisterDomainAlgebraDependent
 	{
 		RegAlgebra(Registry& reg, std::string grp)
 		{
-			static const bool algebraIsEmpty = boost::mpl::empty<CurrAlgebraList>::value;
+			static constexpr bool algebraIsEmpty = boost::mpl::empty<CurrAlgebraList>::value;
 			typename boost::mpl::if_c<algebraIsEmpty, RegEnd, RegNextDomainAlgebra<CurrAlgebraList> >::type (reg,grp);
 		}
 	};
@@ -83,7 +83,7 @@ struct RegisterDomainAlgebraDependent
 	{
 		RegNextDomain(Registry& reg, std::string grp)
 		{
-			typedef typename boost::mpl::pop_front<DomainList>::type NextDomainList;
+			using NextDomainList = typename boost::mpl::pop_front<DomainList>::type;
 
 			RegAlgebra<AlgebraList>(reg,grp);
 			RegisterDomainAlgebraDependent<Functionality, NextDomainList, AlgebraList>(reg,grp);

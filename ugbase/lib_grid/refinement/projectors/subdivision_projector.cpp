@@ -53,7 +53,7 @@ refinement_begins(const ISubGrid* psg)
 	Grid& g = geom().grid();
 	Grid::edge_traits::secure_container edges;
 
-	lg_for_each_const (Vertex, vrt, sg.goc())
+	for(Grid::traits<Vertex>::const_iterator _feI = sg.goc().begin<Vertex>(); _feI != sg.goc().end<Vertex>(); ++_feI){ Vertex* vrt = *_feI;
 	{
 		g.associated_elements (edges, vrt);
 
@@ -95,7 +95,7 @@ refinement_begins(const ISubGrid* psg)
 			VecScaleAdd(np, centerWgt, pos(vrt), nbrWgt, p);
 			m_newPositions.push_back(make_pair(vrt, np));
 		}
-	} lg_end_for;
+	} };
 }
 
 void SubdivisionProjector::
@@ -143,7 +143,7 @@ new_vertex(Vertex* vrt, Edge* parent)
 	size_t numConcernedFaces = 0;
 
 	if(!parentIsCrease)
-		numConcernedFaces = concerned_nbr_faces (parent, NULL, concernedNbrs);
+		numConcernedFaces = concerned_nbr_faces (parent, nullptr, concernedNbrs);
 
 	if(parentIsCrease || numConcernedFaces != 2){
 		vector2 wghts = subdiv.ref_odd_crease_weights();

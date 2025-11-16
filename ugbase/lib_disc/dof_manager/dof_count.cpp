@@ -49,7 +49,7 @@ DoFCount::DoFCount(const GridLevel& gl, ConstSmartPtr<DoFDistributionInfo> spDDI
 		vvCmpSubset[fct].resize(num_subsets());
 }
 
-void DoFCount::add(int fct, int si, SurfaceView::SurfaceState ss, byte is, uint64 numDoF)
+void DoFCount::add(int fct, int si, SurfaceView::SurfaceState ss, byte_t is, uint64 numDoF)
 {
 	if(!(fct < (int)vvCmpSubset.size()))
 		UG_THROW("DoFCount: fct index "<<fct<<" invalid. NumFct: "<<vvCmpSubset.size());
@@ -103,7 +103,7 @@ void DoFCount::set_values(const std::vector<uint64>& vNum)
 			vvCmpSubset[fct][si].set_values(vNum, cnt);
 }
 
-uint64 DoFCount::num(int fct, int si, SurfaceView::SurfaceState ss, byte is) const
+uint64 DoFCount::num(int fct, int si, SurfaceView::SurfaceState ss, byte_t is) const
 {
 	if(fct == ALL_FCT){
 		uint64 cnt = 0;
@@ -122,7 +122,7 @@ uint64 DoFCount::num(int fct, int si, SurfaceView::SurfaceState ss, byte is) con
 	return vvCmpSubset[fct][si].num(ss, is);
 }
 
-uint64 DoFCount::num_contains(int fct, int si, SurfaceView::SurfaceState ss, byte is) const
+uint64 DoFCount::num_contains(int fct, int si, SurfaceView::SurfaceState ss, byte_t is) const
 {
 	if(fct == ALL_FCT){
 		uint64 cnt = 0;
@@ -172,7 +172,7 @@ void DoFCount::Cnt::set_values(const std::vector<uint64>& vNum, size_t& cnt)
 }
 
 
-void DoFCount::Cnt::add(uint64 num, SurfaceView::SurfaceState ss, byte is)
+void DoFCount::Cnt::add(uint64 num, SurfaceView::SurfaceState ss, byte_t is)
 {
 	// restrict to only considered flags:
 	size_t ss_index = (size_t)(ss & SS_MAX)();
@@ -190,11 +190,11 @@ void DoFCount::Cnt::add(uint64 num, SurfaceView::SurfaceState ss, byte is)
 }
 
 
-uint64 DoFCount::Cnt::num(SurfaceView::SurfaceState ss, byte is) const
+uint64 DoFCount::Cnt::num(SurfaceView::SurfaceState ss, byte_t is) const
 {
 	if(ss == ALL_SS){
 		uint64 cnt = 0;
-		for(byte l = 0; l <= SS_MAX; ++l)
+		for(byte_t l = 0; l <= SS_MAX; ++l)
 			cnt += num(l, is);
 		return cnt;
 	}
@@ -210,11 +210,11 @@ uint64 DoFCount::Cnt::num(SurfaceView::SurfaceState ss, byte is) const
 	return vNumSS[ss()].num(is);
 }
 
-uint64 DoFCount::Cnt::num_contains(SurfaceView::SurfaceState ss, byte is) const
+uint64 DoFCount::Cnt::num_contains(SurfaceView::SurfaceState ss, byte_t is) const
 {
 	if(ss == ALL_SS){
 		uint64 cnt = 0;
-		for(byte l = 0; l <= SS_MAX; ++l)
+		for(byte_t l = 0; l <= SS_MAX; ++l)
 			cnt += vNumSS[l].num_contains(is);
 		return cnt;
 	}
@@ -228,7 +228,7 @@ uint64 DoFCount::Cnt::num_contains(SurfaceView::SurfaceState ss, byte is) const
 	}
 
 	uint64 cnt = 0;
-	for(byte l = 0; l <= SS_MAX; ++l){
+	for(byte_t l = 0; l <= SS_MAX; ++l){
 		if(l & is)
 			cnt += vNumSS[l].num_contains(is);
 	}
@@ -239,11 +239,11 @@ uint64 DoFCount::Cnt::num_contains(SurfaceView::SurfaceState ss, byte is) const
 // DoFCount::Cnt::PCnt
 ////////////////////////////////////////////////////////////////////////////////
 
-uint64 DoFCount::Cnt::PCnt::num(byte is) const
+uint64 DoFCount::Cnt::PCnt::num(byte_t is) const
 {
 	if(is == ALL_ES){
 		uint64 cnt = 0;
-		for(byte l = 0; l <= ES_MAX; ++l)
+		for(byte_t l = 0; l <= ES_MAX; ++l)
 			cnt += num(l);
 		return cnt;
 	}
@@ -258,11 +258,11 @@ uint64 DoFCount::Cnt::PCnt::num(byte is) const
 	return vNumIS[is];
 }
 
-uint64 DoFCount::Cnt::PCnt::num_contains(byte is) const
+uint64 DoFCount::Cnt::PCnt::num_contains(byte_t is) const
 {
 	if(is == ALL_ES){
 		uint64 cnt = 0;
-		for(byte l = 0; l <= ES_MAX; ++l)
+		for(byte_t l = 0; l <= ES_MAX; ++l)
 			cnt += vNumIS[l];
 		return cnt;
 	}
@@ -275,7 +275,7 @@ uint64 DoFCount::Cnt::PCnt::num_contains(byte is) const
 	}
 
 	uint64 cnt = 0;
-	for(byte l = 0; l <= ES_MAX; ++l){
+	for(byte_t l = 0; l <= ES_MAX; ++l){
 		if(l & is)
 			cnt += vNumIS[l];
 	}
@@ -290,7 +290,7 @@ DoFCount::Cnt::PCnt::PCnt()
 void DoFCount::Cnt::PCnt::collect_values(std::vector<uint64>& vNum) const
 {
 	PROFILE_FUNC();
-	for(byte l = 0; l <= ES_MAX; ++l){
+	for(byte_t l = 0; l <= ES_MAX; ++l){
 	//	I think one shouldn't continue for (ES_V_MASTER | ES_V_SLAVE) here, since those
 	//	guys may actually exist in a distributed grid. That's why I commented the line.
 	//	It should be completely removed somewhen soon...(sreiter)
@@ -304,7 +304,7 @@ void DoFCount::Cnt::PCnt::collect_values(std::vector<uint64>& vNum) const
 void DoFCount::Cnt::PCnt::set_values(const std::vector<uint64>& vNum, size_t& cnt)
 {
 	PROFILE_FUNC();
-	for(byte l = 0; l <= ES_MAX; ++l){
+	for(byte_t l = 0; l <= ES_MAX; ++l){
 	//	I think one shouldn't continue for (ES_V_MASTER | ES_V_SLAVE) here, since those
 	//	guys may actually exist in a distributed grid. That's why I commented the line.
 	//	It should be completely removed somewhen soon...(sreiter)

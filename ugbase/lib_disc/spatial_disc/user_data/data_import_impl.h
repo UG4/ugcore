@@ -67,7 +67,7 @@ void DataImport<TData,dim>::check_setup()
 				"type has not been set for evaluation.");
 
 //	Check for evaluation function and choose it if present
-	if(m_vLinDefectFunc[m_id] != NULL)
+	if(m_vLinDefectFunc[m_id] != nullptr)
 		return;
 
 //	fails
@@ -122,7 +122,7 @@ void DataImport<TData,dim>::set_data(SmartPtr<CplUserData<TData, dim> > spData)
 //	remember iexport
 	this->m_spICplUserData = spData;
 
-//	remember dependent data (i.e. is NULL iff no dependent data given)
+//	remember dependent data (i.e. is nullptr iff no dependent data given)
 	m_spDependentUserData = m_spUserData.template cast_dynamic<DependentUserData<TData, dim> >();
 }
 
@@ -329,7 +329,7 @@ inline void DataImport<TData,dim>::check_ip(size_t ip) const
 template <typename TData, int dim>
 inline void DataImport<TData,dim>::check_values() const
 {
-	UG_ASSERT(m_vValue != NULL, "Data Value field not set.");
+	UG_ASSERT(m_vValue != nullptr, "Data Value field not set.");
 }
 
 } // end namespace ug

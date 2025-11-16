@@ -32,7 +32,7 @@
 
 #ifndef __H__UG__page_container_impl__
 #define __H__UG__page_container_impl__
-
+/*
 #include <algorithm>
 #include "page_container.h"
 
@@ -231,5 +231,5 @@ get_page_offset(size_t ind) const
 }
 
 }//	end of namespace
-
+*/
 #endif

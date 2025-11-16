@@ -87,4 +87,4 @@
 
 #define lg_end_for	}
 
-#endif	//__H__UG_lg_for_each
+#endif

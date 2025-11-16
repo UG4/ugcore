@@ -51,7 +51,7 @@ namespace ug
  * \{ */
 //#define SMOOTH_REMESHING__GPLOT_ENABLED
 #ifdef SMOOTH_REMESHING__GPLOT_ENABLED
-	typedef vector<pair<number, number> > GnuplotData;
+	using GnuplotData = vector<pair<number, number> >;
 	static GnuplotData gplotLengthFac;
 	static GnuplotData gplotMinCurvature;
 	static GnuplotData gplotAverageCurvature;

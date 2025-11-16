@@ -69,10 +69,10 @@ void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain
 		SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> > spVelocity,
 		number time, int si, number threshold)
 {
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 	const size_t num_ind = dd->num_indices();
-	typedef typename std::pair<MathVector<dim>, size_t> pos_type;
-	typedef typename std::vector<std::vector<size_t> > adjacency_type;
+	using pos_type = std::pair<MathVector<dim>, size_t>;
+	using adjacency_type = std::vector<std::vector<size_t> >;
 
 	//	get positions of indices
 	typename std::vector<pos_type> vPositions;
@@ -208,7 +208,7 @@ template <typename TDomain>
 void OrderDownwind(ApproximationSpace<TDomain>& approxSpace,
 					const std::vector<number>& vVel)
 {
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 	if(vVel.size() != dim){
 		UG_THROW("OrderDownstream: Velocity field of dimension " << dim << " expected, got "<< vVel.size());
 	}
@@ -221,7 +221,7 @@ template <typename TDomain>
 void OrderDownwind(ApproximationSpace<TDomain>& approxSpace,
 					const std::vector<number>& vVel, number threshold)
 {
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 	if(vVel.size() != dim){
 		UG_THROW("OrderDownstream: Velocity field of dimension " << dim << " expected, got "<< vVel.size());
 	}
@@ -236,7 +236,7 @@ void OrderDownwind(ApproximationSpace<TDomain>& approxSpace,
 template <typename TDomain>
 void OrderDownwind(ApproximationSpace<TDomain>& approxSpace, const char* strVelocity)
 {
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 
 	SmartPtr<UserData<MathVector<dim>, dim> > spVelocity
 	 = make_sp(new LuaUserData<MathVector<dim>, dim>(strVelocity));
@@ -248,7 +248,7 @@ void OrderDownwind(ApproximationSpace<TDomain>& approxSpace, const char* strVelo
 template <typename TDomain>
 void OrderDownwind(ApproximationSpace<TDomain>& approxSpace, const char* strVelocity, number threshold)
 {
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 
 	SmartPtr<UserData<MathVector<dim>, dim> > spVelocity
 	 = make_sp(new LuaUserData<MathVector<dim>, dim>(strVelocity));

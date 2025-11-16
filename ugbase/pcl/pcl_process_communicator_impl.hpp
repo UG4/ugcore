@@ -38,7 +38,7 @@
 namespace pcl
 {
 
-template<class TValue>
+template<typename TValue>
 void ProcessCommunicator::
 gatherv(std::vector<TValue>& recBufOut,
 		 std::vector<TValue>& sendBuf, int root,
@@ -94,7 +94,7 @@ gatherv(std::vector<TValue>& recBufOut,
 	}
 }
 
-template<class TValue>
+template<typename TValue>
 void ProcessCommunicator::
 allgatherv(std::vector<TValue>& recBufOut,
 			std::vector<TValue>& sendBuf,
@@ -172,7 +172,7 @@ allgatherv(std::vector<TValue>& recBufOut,
 
 template<typename T>
 T ProcessCommunicator::
-reduce(const T &t, pcl::ReduceOperation op, int rootProc) const
+reduce(const T &t, ReduceOperation op, int rootProc) const
 {
 	T ret;
 	reduce(&t, &ret, 1, DataTypeTraits<T>::get_data_type(), op, rootProc);
@@ -182,7 +182,7 @@ reduce(const T &t, pcl::ReduceOperation op, int rootProc) const
 template<typename T>
 void ProcessCommunicator::
 reduce(const T *pSendBuff, T *pReceiveBuff, size_t count,
-		  pcl::ReduceOperation op, int rootProc) const
+		  ReduceOperation op, int rootProc) const
 {
 	reduce(pSendBuff, pReceiveBuff, count, DataTypeTraits<T>::get_data_type(),
 		   op, rootProc);
@@ -191,9 +191,9 @@ reduce(const T *pSendBuff, T *pReceiveBuff, size_t count,
 template<typename T>
 void ProcessCommunicator::
 reduce(const std::vector<T> &send, std::vector<T> &receive,
-	   pcl::ReduceOperation op, int rootProc) const
+	   ReduceOperation op, int rootProc) const
 {
-	if(send.size() > 0){
+	if(!send.empty()){
 		receive.resize(send.size());
 		reduce(&send[0], &receive[0], send.size(), op, rootProc);
 	}
@@ -202,7 +202,7 @@ reduce(const std::vector<T> &send, std::vector<T> &receive,
 
 template<typename T>
 T ProcessCommunicator::
-allreduce(const T &t, pcl::ReduceOperation op) const
+allreduce(const T &t, ReduceOperation op) const
 {
 	T ret;
 	allreduce(&t, &ret, 1, DataTypeTraits<T>::get_data_type(), op);
@@ -212,7 +212,7 @@ allreduce(const T &t, pcl::ReduceOperation op) const
 
 template<typename T>
 void ProcessCommunicator::
-allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, pcl::ReduceOperation op) const
+allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, ReduceOperation op) const
 {
 	allreduce(pSendBuff, pReceiveBuff, count, DataTypeTraits<T>::get_data_type(), op);
 }
@@ -220,9 +220,9 @@ allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, pcl::ReduceOperatio
 template<typename T>
 void ProcessCommunicator::
 allreduce(const std::vector<T> &send, std::vector<T> &receive,
-		  pcl::ReduceOperation op) const
+		  ReduceOperation op) const
 {
-	if(send.size() > 0){
+	if(!send.empty()){
 		receive.resize(send.size());
 		allreduce(&send[0], &receive[0], send.size(), op);
 	}
@@ -250,7 +250,7 @@ void ProcessCommunicator::
 broadcast(T &t, int root, DataTypeIndirectlySupported d) const
 {
 	ug::BinaryBuffer buf;
-	if(pcl::ProcRank() == root)
+	if(ProcRank() == root)
 	{
 		Serialize(buf, t);
 		broadcast(buf, root);

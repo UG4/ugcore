@@ -47,7 +47,7 @@ namespace ug {
 		typename geometry_traits<TElem>::const_iterator& end
 	) {
 		Selector sel(grid);
-		typedef typename geometry_traits<TElem>::const_iterator Iter;
+		using Iter = typename geometry_traits<TElem>::const_iterator;
 		sel.template select<TElem>(elem);
 		grid.begin_marking();
 		for (size_t extIters = 0; extIters < extSize; ++extIters)

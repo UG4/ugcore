@@ -82,7 +82,7 @@ void ReceiveGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, const st
 		GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
-	typedef std::map<int, BinaryBuffer> BufferMap;
+	using BufferMap = std::map<int, BinaryBuffer>;
 	BufferMap streams;
 
 	for(size_t i=0; i<srcprocs.size(); i++)

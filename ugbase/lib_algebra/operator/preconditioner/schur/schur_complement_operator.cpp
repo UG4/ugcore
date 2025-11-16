@@ -294,8 +294,8 @@ void SchurComplementOperator<TAlgebra>::
 debug_compute_matrix()
 {
 	SCHUR_PROFILE_BEGIN(SCHUR_Op_debug_compute_matrix);
-	typedef typename TAlgebra::matrix_type sparse_matrix_type;
-	typedef typename DenseMatrixFromSparseMatrix<sparse_matrix_type>::type dense_matrix_type;
+	using sparse_matrix_type = typename TAlgebra::matrix_type;
+	using dense_matrix_type = typename DenseMatrixFromSparseMatrix<sparse_matrix_type>::type;
 
 	//sparse_matrix_type schur_matrix1(n_skeleton, n_skeleton);
 

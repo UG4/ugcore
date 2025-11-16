@@ -6,7 +6,7 @@
 // Revision $DateTime: 2009/05/13 01:46:17 $
 //! \file rapidxml.hpp This file contains rapidxml parser and DOM implementation
 
-// If standard library is disabled, user must provide implementations of required functions and typedefs
+// If standard library is disabled, user must provide implementations of required functions and type definitions
 #if !defined(RAPIDXML_NO_STDLIB)
     #include <cstdlib>      // For std::size_t
     #include <cassert>      // For assert
@@ -382,14 +382,14 @@ namespace rapidxml
     public:
 
         //! \cond internal
-        typedef void *(alloc_func)(std::size_t);       // Type of user-defined function used to allocate memory
-        typedef void (free_func)(void *);              // Type of user-defined function used to free memory
+        using alloc_func = void*(std::size_t);       // Type of user-defined function used to allocate memory
+        using free_func = void(void *);              // Type of user-defined function used to free memory
         //! \endcond
         
         //! Constructs empty pool with default allocator functions.
         memory_pool()
-            : m_alloc_func(0)
-            , m_free_func(0)
+            : m_alloc_func(nullptr)
+            , m_free_func(nullptr)
         {
             init();
         }
@@ -411,7 +411,7 @@ namespace rapidxml
         //! \param value Value to assign to the node, or 0 to assign no value.
         //! \param name_size Size of name to assign, or 0 to automatically calculate size from name string.
         //! \param value_size Size of value to assign, or 0 to automatically calculate size from value string.
-        //! \return Pointer to allocated node. This pointer will never be NULL.
+        //! \return Pointer to allocated node. This pointer will never be nullptr.
         xml_node<Ch> *allocate_node(node_type type, 
                                     const Ch *name = 0, const Ch *value = 0, 
                                     std::size_t name_size = 0, std::size_t value_size = 0)
@@ -443,7 +443,7 @@ namespace rapidxml
         //! \param value Value to assign to the attribute, or 0 to assign no value.
         //! \param name_size Size of name to assign, or 0 to automatically calculate size from name string.
         //! \param value_size Size of value to assign, or 0 to automatically calculate size from value string.
-        //! \return Pointer to allocated attribute. This pointer will never be NULL.
+        //! \return Pointer to allocated attribute. This pointer will never be nullptr.
         xml_attribute<Ch> *allocate_attribute(const Ch *name = 0, const Ch *value = 0, 
                                               std::size_t name_size = 0, std::size_t value_size = 0)
         {
@@ -472,7 +472,7 @@ namespace rapidxml
         //! will call rapidxml::parse_error_handler() function.
         //! \param source String to initialize the allocated memory with, or 0 to not initialize it.
         //! \param size Number of characters to allocate, or zero to calculate it automatically from source string length; if size is 0, source string must be specified and null terminated.
-        //! \return Pointer to allocated char array. This pointer will never be NULL.
+        //! \return Pointer to allocated char array. This pointer will never be nullptr.
         Ch *allocate_string(const Ch *source = 0, std::size_t size = 0)
         {
             assert(source || size);     // Either source or size (or both) must be specified
@@ -493,7 +493,7 @@ namespace rapidxml
         //! This is useful when you want to clone entire document.
         //! \param source Node to clone.
         //! \param result Node to put results in, or 0 to automatically allocate result node
-        //! \return Pointer to cloned node. This pointer will never be NULL.
+        //! \return Pointer to cloned node. This pointer will never be nullptr.
         xml_node<Ch> *clone_node(const xml_node<Ch> *source, xml_node<Ch> *result = 0)
         {
             // Prepare result node

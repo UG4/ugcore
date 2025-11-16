@@ -43,7 +43,7 @@ namespace ug
 bool ImportGridFromLGM(Grid& grid,
                        const char* filename,
                        APosition& aPos = aPosition,
-                       ISubsetHandler* pSurfaceHandler = NULL);
+                       ISubsetHandler* pSurfaceHandler = nullptr);
 
 }//	end of namespace
 

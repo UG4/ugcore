@@ -50,7 +50,7 @@ template<class TElem>
 inline bool DistributedGridManager::
 is_in_horizontal_interface(TElem* elem) const
 {
-	byte status = get_status(elem);
+	byte_t status = get_status(elem);
 	return 	(status & (ES_H_MASTER | ES_H_SLAVE)) != 0;
 }
 
@@ -58,7 +58,7 @@ template<class TElem>
 inline bool DistributedGridManager::
 is_in_vertical_interface(TElem* elem) const
 {
-	byte status = get_status(elem);
+	byte_t status = get_status(elem);
 	return 	(status & (ES_V_MASTER | ES_V_SLAVE)) != 0;
 }
 
@@ -66,9 +66,8 @@ template<class TElem>
 inline bool DistributedGridManager::
 is_ghost(TElem* elem) const
 {
-	byte status = get_status(elem);
-	return 	(status & (ES_V_MASTER | ES_H_MASTER | ES_H_SLAVE))
-			== ES_V_MASTER;
+	byte_t status = get_status(elem);
+	return 	(status & (ES_V_MASTER | ES_H_MASTER | ES_H_SLAVE)) == ES_V_MASTER;
 
 	//would require update_ghost_states
 	//return contains_status(elem, ES_GHOST);
@@ -78,18 +77,17 @@ template <class TElem>
 void DistributedGridManager::
 collect_interface_entries(
 				std::vector<std::pair<int, size_t> >& vEntriesOut,
-				TElem* elem, byte statusType, bool clearContainer)
+				TElem* elem, byte_t statusType, bool clearContainer)
 {
 //TODO: make sure that the localIDs match the position at which
 //		an element is stored in the interface
-	typedef ElementInfo<TElem> ElemInfo;
+	using ElemInfo = ElementInfo<TElem>;
 	ElemInfo& info = elem_info(elem);
 
 	if(clearContainer)
 		vEntriesOut.clear();
 
-	for(typename ElemInfo::EntryIterator iter = info.entries_begin();
-		iter != info.entries_end(); ++iter)
+	for(auto iter = info.entries_begin(); iter != info.entries_end(); ++iter)
 	{
 		if((info.get_interface_type(iter) & statusType) == statusType){
 			vEntriesOut.push_back(std::make_pair(info.get_target_proc(iter),

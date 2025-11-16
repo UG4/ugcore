@@ -42,9 +42,9 @@ template<class TDomain, class TAlgebra>
 class ITimeIntegratorObserver
 {
 public:
-	typedef GridFunction<TDomain, TAlgebra> grid_function_type;
+	using grid_function_type = GridFunction<TDomain, TAlgebra>;
 
-	virtual ~ITimeIntegratorObserver() {}
+	virtual ~ITimeIntegratorObserver() = default;
 	virtual bool step_process(SmartPtr<grid_function_type> u, int step, number time, number dt)  = 0 ;
 };
 
@@ -57,7 +57,7 @@ public:
 	class ITimeIntegratorStageObserver_ ## name\
 	{\
 	public:\
-		typedef GridFunction<TDomain, TAlgebra> grid_function_type;\
+		using grid_function_type = GridFunction<TDomain, TAlgebra> ;\
 		\
 		virtual ~ITimeIntegratorStageObserver_ ## name() {}\
 		virtual bool name ## _action(SmartPtr<grid_function_type> u, int step, number time, number dt) = 0;\

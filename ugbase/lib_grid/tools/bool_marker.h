@@ -69,7 +69,7 @@ class BoolMarker : public GridObserver
 		virtual ~BoolMarker();
 
 	///	Assign the grid on which the marker shall operate.
-	/**	NULL is a valid argument and sets the marker into an unassigned state.
+	/**	nullptr is a valid argument and sets the marker into an unassigned state.
 	 * The marker may only be used, if it is associated with a grid instance.*/
 		void assign_grid(Grid* g);
 	///	Assign the grid on which the marker shall operate.
@@ -133,19 +133,19 @@ class BoolMarker : public GridObserver
 
 	//	element callbacks
 		virtual void vertex_created(Grid* grid, Vertex* vrt,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void edge_created(Grid* grid, Edge* e,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void face_created(Grid* grid, Face* f,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void volume_created(Grid* grid, Volume* vol,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void vertices_to_be_merged(Grid* grid, Vertex* target,

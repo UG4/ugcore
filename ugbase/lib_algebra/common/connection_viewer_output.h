@@ -213,7 +213,7 @@ void WriteMatrixPar(std::string name, const Matrix_type &A, const postype *posit
 //#endif
 //
 //	/*const char * p = strstr(filename, ".mat");
-//	if(p == NULL)
+//	if(p == nullptr)
 //	{
 //		UG_LOG("Currently only '.mat' format supported for domains.\n");
 //		return false;
@@ -400,7 +400,7 @@ bool WriteMatrixPar(std::string filename, const Matrix_type &A,
  * \param dimensions	Dimensions of Positions
  */
 template<typename Vector_type, typename postype>
-void WriteVector(std::string filename, const Vector_type &b, const postype *positions, int dimensions, const Vector_type *compareVec=NULL)
+void WriteVector(std::string filename, const Vector_type &b, const postype *positions, int dimensions, const Vector_type *compareVec=nullptr)
 {
 	PROFILE_FUNC_GROUP("debug");
 
@@ -409,7 +409,7 @@ void WriteVector(std::string filename, const Vector_type &b, const postype *posi
 	WriteGridHeader(file, positions, rows, dimensions);
 
 	// write connections
-	if(compareVec == NULL)
+	if(compareVec == nullptr)
 		for(size_t i=0; i < rows; i++)
 			file << i << " " << i << " "
 				 << std::setprecision(std::numeric_limits<number>::digits10 + 1)
@@ -422,14 +422,14 @@ void WriteVector(std::string filename, const Vector_type &b, const postype *posi
 }
 
 template<typename Vector_type, typename postype>
-void WriteVectorPar(std::string filename, const Vector_type &b, const postype *positions, int dimensions, const Vector_type *compareVec=NULL)
+void WriteVectorPar(std::string filename, const Vector_type &b, const postype *positions, int dimensions, const Vector_type *compareVec=nullptr)
 {
 	WriteVector(GetParallelName(b, filename), b, positions, dimensions, compareVec);
 }
 
 template<typename Matrix_type, typename Vector_type, typename postype>
 void WriteVector(std::string filename, const Matrix_type &A, const Vector_type &v,
-		postype *positions, int dimensions, const Vector_type *compareVec=NULL)
+		postype *positions, int dimensions, const Vector_type *compareVec=nullptr)
 {
 	PROFILE_FUNC_GROUP("debug");
 	if(dimensions != 2)
@@ -464,7 +464,7 @@ void WriteVector(std::string filename, const Matrix_type &A, const Vector_type &
 	file << "v " << nameValues << "\n";
 
 	std::fstream fileValues(nameValues.c_str(), std::ios::out);
-	if(compareVec == NULL)
+	if(compareVec == nullptr)
 	{
 		for(size_t i=0; i < rows; i++)
 			fileValues << i << " " << v[i] <<	"\n";
@@ -484,7 +484,7 @@ void WriteVector(std::string filename, const Matrix_type &A, const Vector_type &
 
 template<typename Matrix_type, typename Vector_type, typename postype>
 void WriteVectorPar(std::string filename, const Matrix_type &A, const Vector_type &v,
-		postype *positions, int dimensions, const Vector_type *compareVec=NULL)
+		postype *positions, int dimensions, const Vector_type *compareVec=nullptr)
 {
 	WriteVector(GetParallelName(A, filename), A, v, positions, dimensions, compareVec);
 }

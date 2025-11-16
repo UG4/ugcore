@@ -64,8 +64,8 @@
 // save pointer (de-)allocation
 ////////////////////////////////////////////////////////////////////////////////
 
-#define SAFE_DELETE(a)		{if(a){ delete a; a = NULL;}}
-#define SAFE_RELEASE(p)		{if(p) { (p)->Release(); (p)=NULL;}}
+#define SAFE_DELETE(a)		{if(a){ delete a; a = nullptr;}}
+#define SAFE_RELEASE(p)		{if(p) { (p)->Release(); (p)=nullptr;}}
 
 // end group ugbase_common
 /// \}

@@ -58,7 +58,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 /*  Define different algebra types.
- *  An Algebra should export the following typedef:
+ *  An Algebra should export the following type definitions:
  *  - matrix_type
  *  - vector_type
  */
@@ -76,14 +76,14 @@ namespace ug{
 struct CPUAlgebra
 {
 #ifdef UG_PARALLEL
-		typedef ParallelMatrix<SparseMatrix<double> > matrix_type;
-		typedef ParallelVector<Vector<double> > vector_type;
+	using matrix_type = ParallelMatrix<SparseMatrix<double> >;
+	using vector_type = ParallelVector<Vector<double> >;
 #else
-		typedef SparseMatrix<double> matrix_type;
-		typedef Vector<double> vector_type;
+	using matrix_type = SparseMatrix<double> ;
+	using vector_type = Vector<double> ;
 #endif
 
-	static const int blockSize = 1;
+	static constexpr int blockSize = 1;
 	static AlgebraType get_type()
 	{
 		return AlgebraType(AlgebraType::CPU, 1);
@@ -102,14 +102,14 @@ struct CPUAlgebra
 struct GPUAlgebra
 {
 #ifdef UG_PARALLEL
-		typedef ParallelMatrix<GPUSparseMatrix<double> > matrix_type;
-		typedef ParallelVector<GPUVector<double> > vector_type;
+		using matrix_type = ParallelMatrix<GPUSparseMatrix<double> >;
+		using vector_type = ParallelVector<GPUVector<double> >;
 #else
-		typedef GPUSparseMatrix<double> matrix_type;
-		typedef GPUVector<double> vector_type;
+		using matrix_type = GPUSparseMatrix<double>;
+		using vector_type = GPUVector<double>;
 #endif
 
-	static const int blockSize = 1;
+	static constexpr int blockSize = 1;
 	static AlgebraType get_type()
 	{
 		return AlgebraType(AlgebraType::GPU, 1);
@@ -127,14 +127,14 @@ template<int TBlockSize>
 struct CPUBlockAlgebra
 {
 #ifdef UG_PARALLEL
-	typedef ParallelMatrix<SparseMatrix<DenseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > > matrix_type;
-	typedef ParallelVector<Vector<DenseVector<FixedArray1<double, TBlockSize> > > > vector_type;
+	using matrix_type = ParallelMatrix<SparseMatrix<DenseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > >;
+	using vector_type = ParallelVector<Vector<DenseVector<FixedArray1<double, TBlockSize> > > >;
 #else
-	typedef  SparseMatrix<DenseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > matrix_type;
-	typedef Vector<DenseVector<FixedArray1<double, TBlockSize> > > vector_type;
+	using matrix_type = SparseMatrix<DenseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > >;
+	using vector_type = Vector<DenseVector<FixedArray1<double, TBlockSize> > >;
 #endif
 
-	static const int blockSize = TBlockSize;
+	static constexpr int blockSize = TBlockSize;
 	static AlgebraType get_type()
 	{
 		return AlgebraType(AlgebraType::CPU, TBlockSize);
@@ -149,14 +149,14 @@ struct CPUBlockAlgebra
 struct CPUVariableBlockAlgebra
 {
 #ifdef UG_PARALLEL
-	typedef ParallelMatrix<SparseMatrix<DenseMatrix<VariableArray2<double> > > > matrix_type;
-	typedef ParallelVector<Vector<DenseVector<VariableArray1<double> > > > vector_type;
+	using matrix_type = ParallelMatrix<SparseMatrix<DenseMatrix<VariableArray2<double> > > >;
+	using vector_type = ParallelVector<Vector<DenseVector<VariableArray1<double> > > >;
 #else
-	typedef  SparseMatrix<DenseMatrix<VariableArray2<double> > > matrix_type;
-	typedef Vector<DenseVector<VariableArray1<double> > > vector_type;
+	using matrix_type = SparseMatrix<DenseMatrix<VariableArray2<double> > >;
+	using vector_type = Vector<DenseVector<VariableArray1<double> > >;
 #endif
 
-	static const int blockSize = AlgebraType::VariableBlockSize;
+	static constexpr int blockSize = AlgebraType::VariableBlockSize;
 	static AlgebraType get_type()
 	{
 		return AlgebraType(AlgebraType::CPU, AlgebraType::VariableBlockSize);

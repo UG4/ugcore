@@ -51,12 +51,12 @@ template <class TLayout, class TAttachment>
 class ComPol_GatherVecAttachment : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout							Layout;
-		typedef typename Layout::Type			GeomObj;
-		typedef typename Layout::Element		Element;
-		typedef typename Layout::Interface		Interface;
-		typedef typename TAttachment::ValueType Vector;
-		typedef typename Vector::value_type		Value;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using Vector = typename TAttachment::ValueType;
+		using Value = typename Vector::value_type;
 		
 	///	Initialises the collector with an invalid grid.
 	/**	be sure to call set_source before passing it to a communicator.*/

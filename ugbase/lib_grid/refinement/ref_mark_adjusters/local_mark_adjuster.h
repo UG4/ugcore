@@ -38,7 +38,7 @@
 namespace ug{
 
 class LocalMarkAdjuster;
-typedef SmartPtr<LocalMarkAdjuster> SPLocalMarkAdjuster;
+using SPLocalMarkAdjuster = SmartPtr<LocalMarkAdjuster>;
 
 ///	Use this adjuster on top of StdHNodeAdjuster if local-marks are present.
 /**	If an element with a local-mark is connected to a constraining edge/face which

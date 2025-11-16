@@ -107,7 +107,7 @@ static bool VertexLiesOnSurface(Grid& grid, Vertex* vrt,
 		Edge* e = stk.top();
 
 	//	find an unmarked associated face
-		Face* f = NULL;
+		Face* f = nullptr;
 		for(size_t i = 0; i < faces.size(); ++i){
 			if(!grid.is_marked(faces[i])){
 				if(FaceContains(faces[i], e)){
@@ -175,7 +175,7 @@ CalculateCreaseNormal(Grid& grid, Face* f, Vertex* vrt,
 		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 	}
 
-	typedef typename TAAPosVRT::ValueType vector_t;
+	using vector_t = typename TAAPosVRT::ValueType;
 	vector_t n;
 	VecSet(n, 0);
 
@@ -265,7 +265,7 @@ CalculateCreaseNormal(Grid& grid, Volume* vol, Vertex* vrt,
 		grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
 	}
 
-	typedef typename TAAPosVRT::ValueType vector_t;
+	using vector_t = typename TAAPosVRT::ValueType;
 	vector_t n;
 	VecSet(n, 0);
 
@@ -453,14 +453,14 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 //	we have to associate a vector of vertices with each node in the fracture.
 //	since an empty vector is quite small, we can associate one with each vertex in
 //	the whole grid. This could be optimized if required, by using subset attachments.
-	typedef Attachment<vector<Vertex*> > AVrtVec;
+	using AVrtVec = Attachment<vector<Vertex*> >;
 	AVrtVec aVrtVec;
 	grid.attach_to_vertices(aVrtVec);
 	Grid::VertexAttachmentAccessor<AVrtVec> aaVrtVecVRT(grid, aVrtVec);
 
 //	we also have to associate a vector of vertices for each face adjacent to the frac.
 //	it will store the a second set of vertices. An entry contains the new vertex, if the
-//	corresponding vertex is an inner fracture vertex, and NULL if not.
+//	corresponding vertex is an inner fracture vertex, and nullptr if not.
 	grid.attach_to_faces(aVrtVec);
 	Grid::FaceAttachmentAccessor<AVrtVec> aaVrtVecFACE(grid, aVrtVec);
 
@@ -481,7 +481,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	//	associated with the crease normal on the side of sf.
 		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt)
 		{
-			newVrts[i_vrt] = NULL;
+			newVrts[i_vrt] = nullptr;
 			Vertex* vrt = sf->vertex(i_vrt);
 			if(aaMarkVRT[vrt] > 1){
 			//	calculate the normal on this side of the frac
@@ -627,7 +627,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 		vector<Vertex*> newVrts = aaVrtVecFACE[sf];
 
 	//	all new vertices have been assigned to newVrts.
-	//	Note that if newVrts[i] == NULL, then we have to take the
+	//	Note that if newVrts[i] == nullptr, then we have to take the
 	//	old vertex sf->vertex(i).
 	//	now expand the fracture edges of sf to faces.
 		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt){
@@ -636,7 +636,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 			Edge* tEdge = grid.get_edge(sf->vertex(iv1), sf->vertex(iv2));
 			if(tEdge){
 				if(aaMarkEDGE[tEdge]){
-					Face* expFace = NULL;
+					Face* expFace = nullptr;
 					if(newVrts[iv1] && newVrts[iv2]){
 					//	create a new quadrilateral
 						expFace = *grid.create<Quadrilateral>(
@@ -999,14 +999,14 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 //	we have to associate a vector of vertices with each node in the fracture.
 //	since an empty vector is quite small, we can associate one with each vertex in
 //	the whole grid. This could be optimized if required, by using subset attachments.
-	typedef Attachment<vector<Vertex*> > AVrtVec;
+	using AVrtVec = Attachment<vector<Vertex*> >;
 	AVrtVec aVrtVec;
 	grid.attach_to_vertices(aVrtVec);
 	Grid::VertexAttachmentAccessor<AVrtVec> aaVrtVecVRT(grid, aVrtVec);
 
 //	we also have to associate a vector of vertices for each volume adjacent to the frac.
 //	it will store a second set of vertices. An entry contains the new vertex, if the
-//	corresponding vertex is an inner fracture vertex, and NULL if not.
+//	corresponding vertex is an inner fracture vertex, and nullptr if not.
 	grid.attach_to_volumes(aVrtVec);
 	Grid::VolumeAttachmentAccessor<AVrtVec> aaVrtVecVOL(grid, aVrtVec);
 
@@ -1027,7 +1027,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	//	associated with the crease normal on the side of sf.
 		for(size_t i_vrt = 0; i_vrt < sv->num_vertices(); ++i_vrt)
 		{
-			newVrts[i_vrt] = NULL;
+			newVrts[i_vrt] = nullptr;
 			Vertex* vrt = sv->vertex(i_vrt);
 			if(aaMarkVRT[vrt] > 1){
 			//	calculate the normal on this side of the frac
@@ -1119,7 +1119,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 //	holds local side vertex indices
 	vector<size_t>	locVrtInds;
 //	all new vertices have been assigned to newVrts.
-//	Note that if newVrts[i] == NULL, then we have to take the
+//	Note that if newVrts[i] == nullptr, then we have to take the
 //	old vertex sf->vertex(i).
 
 //	first we create new edges from selected ones which are connected to
@@ -1207,7 +1207,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 			if(tFace){
 				if(aaMarkFACE[tFace]){
-					Volume* expVol = NULL;
+					Volume* expVol = nullptr;
 					if(locVrtInds.size() == 3){
 						size_t iv0 = locVrtInds[0];
 						size_t iv1 = locVrtInds[1];

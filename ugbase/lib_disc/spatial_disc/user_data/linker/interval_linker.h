@@ -52,7 +52,7 @@ class IntervalNumberLinker
 	: public StdDataLinker<IntervalNumberLinker<dim>, number, dim>
 {
 ///	Base class type
-	typedef StdDataLinker<IntervalNumberLinker<dim>, number, dim> base_type;
+	using base_type = StdDataLinker<IntervalNumberLinker<dim>, number, dim>;
 	
 public:
 
@@ -120,7 +120,7 @@ public:
 		const MathVector<refDim> vLocIP[],
 		const size_t nip,
 		LocalVector* u,
-		const MathMatrix<refDim, dim>* vJT = NULL
+		const MathMatrix<refDim, dim>* vJT = nullptr
 	) const
 	{
 	//	Compute all, then replace:
@@ -148,7 +148,7 @@ public:
 		bool bDeriv,
 		int s,
 		std::vector<std::vector<number> > vvvDeriv[],
-		const MathMatrix<refDim, dim>* vJT = NULL
+		const MathMatrix<refDim, dim>* vJT = nullptr
 	) const
 	{
 		if (this->zero_derivative ())

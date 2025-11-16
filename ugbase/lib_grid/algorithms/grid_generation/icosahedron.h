@@ -55,7 +55,7 @@ void GenerateIcosahedron(Grid& grid, const vector3& center,
  * more elaborate implementation.
  */
 void GenerateIcosphere(Grid& grid, const vector3& center, number radius,
-						int numRefinements, AVector3& aPos, Selector* psel = NULL);
+						int numRefinements, AVector3& aPos, Selector* psel = nullptr);
 
 ///	Generates a list of triangle-corners for the given Ico-Sphere
 /**

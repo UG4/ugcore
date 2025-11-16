@@ -44,7 +44,7 @@ class SchurComplementOperator;
 template<typename TAlgebra>
 class ISchurComplementInverse
 {
-	typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 public:
 	virtual ~ISchurComplementInverse() {}
 	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op) = 0;

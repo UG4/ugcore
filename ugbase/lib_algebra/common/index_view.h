@@ -55,7 +55,7 @@ public:
 		init();
 	}
 
-	typedef std::vector<index_type> iterator;
+	using iterator = std::vector<index_type> ;
 
 	iterator begin()
 	{
@@ -133,7 +133,7 @@ class VectorView
 	VectorView(vector_t &vector, view_t &view) : m_vector(vector), m_view(view)
 	{	}
 
-	typedef view_t::iterator index_iterator;
+	using index_iterator = view_t::iterator;
 	index_iterator begin() { return m_view.begin(); }
 	index_iterator end() { return m_view.end(); }
 
@@ -224,7 +224,7 @@ class BlockVectorView
 	BlockVectorView(vector_t &vector, view_t &view) : m_vector(vector), m_view(view)
 	{	}
 
-	typedef view_t::iterator index_iterator;
+	using index_iterator = view_t::iterator ;
 	index_iterator begin() { return m_view.begin(); }
 	index_iterator end() { return m_view.end(); }
 

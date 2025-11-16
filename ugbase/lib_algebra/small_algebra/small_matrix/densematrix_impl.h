@@ -372,7 +372,7 @@ template<typename TStorage>
 std::ostream &operator << (std::ostream &out, const DenseMatrix<TStorage> &mat)
 {
 	out << "[ ";
-	typedef size_t size_type;
+	using size_type = size_t;
 	for(size_type r=0; r<mat.num_rows(); ++r)
 	{
 		for(size_type c=0; c<mat.num_cols(); ++c)

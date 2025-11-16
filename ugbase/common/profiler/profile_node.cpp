@@ -70,10 +70,10 @@ void ProfilerUpdate()
 }
 
 
-static const int PROFILER_BRIDGE_OUTPUT_WIDTH_NAME = 70; // Shiny::OUTPUT_WIDTH_NAME
-static const int PROFILER_BRIDGE_OUTPUT_WIDTH_HIT  = 13; // Shiny::OUTPUT_WIDTH_HIT
-static const int PROFILER_BRIDGE_OUTPUT_WIDTH_TIME =  7; // Shiny::OUTPUT_WIDTH_TIME
-static const int PROFILER_BRIDGE_OUTPUT_WIDTH_PERC =  4; // Shiny::OUTPUT_WIDTH_PERC
+static constexpr int PROFILER_BRIDGE_OUTPUT_WIDTH_NAME = 70; // Shiny::OUTPUT_WIDTH_NAME
+static constexpr int PROFILER_BRIDGE_OUTPUT_WIDTH_HIT  = 13; // Shiny::OUTPUT_WIDTH_HIT
+static constexpr int PROFILER_BRIDGE_OUTPUT_WIDTH_TIME =  7; // Shiny::OUTPUT_WIDTH_TIME
+static constexpr int PROFILER_BRIDGE_OUTPUT_WIDTH_PERC =  4; // Shiny::OUTPUT_WIDTH_PERC
 
 
 /*static string cut(string &s, size_t L)
@@ -225,7 +225,7 @@ void UGProfileNode::PDXML_rec_write(ostream &s) const
 	if(zone->groups)
 		s << "<groups>" << XMLStringEscape(zone->groups) << "</groups>\n";
 	
-	if(zone->file != NULL)
+	if(zone->file != nullptr)
 	{
 		s << "<file>" << SimplifyUG4Path(zone->file) << "</file>\n";
 		s << "<line>" << zone->line << "</line>\n";
@@ -245,7 +245,7 @@ void UGProfileNode::PDXML_rec_write(ostream &s) const
 		s << "<selfMemory>" << get_self_mem() << "</selfMemory>\n";
 	}
 			
-	for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
+	for(const UGProfileNode *p=get_first_child(); p != nullptr; p=p->get_next_sibling())
 	{
 		p->PDXML_rec_write(s);
 		if(p==get_last_child())
@@ -258,12 +258,12 @@ void UGProfileNode::PDXML_rec_write(ostream &s) const
 string GetProfilingFileLine(const char *name)
 {
 	const char *p = strchr(name, ':'); // search for line number
-	if(!(p == NULL || p[0] == 0x00 || p[1] == 0x00))
+	if(!(p == nullptr || p[0] == 0x00 || p[1] == 0x00))
 	{
 		// if we find the corresponding code in the LUA file, print the code as "name"
 		// and the filename above
 
-		int line = strtol(p+1, NULL, 10);
+		int line = strtol(p+1, nullptr, 10);
 		char file[255];
 		strncpy(file, name, p-name);
 		file[p-name]=0x00;
@@ -322,7 +322,7 @@ string UGProfileNode::print_node(double fullMs, double fullMem, size_t offset) c
 			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(get_avg_total_time_ms() / fullMs * 100) << "%  ";
 	if(fullMem >= 0.0)
 		s << get_mem_info(fullMem);
-	if(zone->groups != NULL)
+	if(zone->groups != nullptr)
 		s << zone->groups;
 	return s.str();
 }
@@ -355,7 +355,7 @@ void UGProfileNode::rec_print(double fullMs, double fullMem, stringstream &s, si
 			)
 	{
 		s << print_node(fullMs, fullMem, offset) << "\n";
-		for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
+		for(const UGProfileNode *p=get_first_child(); p != nullptr; p=p->get_next_sibling())
 		{
 			p->rec_print(fullMs, fullMem, s, offset+1, dSkipMarginal);
 			if(p==get_last_child())
@@ -374,7 +374,7 @@ string UGProfileNode::groups() const
 	map<string, double> mapGroups;
 	for(size_t i=0; i<nodes.size(); i++)
 	{
-		if(nodes[i]->zone->groups == NULL) continue;
+		if(nodes[i]->zone->groups == nullptr) continue;
 		vector<string> g;
 		TokenizeString(nodes[i]->zone->groups, g, ' ');
 		for(size_t j=0; j<g.size(); j++)
@@ -430,7 +430,7 @@ string UGProfileNode::groups() const
 void UGProfileNode::rec_add_nodes(vector<const UGProfileNode*> &nodes) const
 {
 	nodes.push_back(this);
-	for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
+	for(const UGProfileNode *p=get_first_child(); p != nullptr; p=p->get_next_sibling())
 	{
 		p->rec_add_nodes(nodes);
 		if(p==get_last_child())
@@ -532,7 +532,7 @@ void UGProfileNode::check_for_too_small_nodes(double fullMs, map<string, const U
 {
 	// also don't check nodes which require less time than 0.01% of the whole problem
 	if(get_avg_total_time_ms() < 0.01*0.01*fullMs) return;
-	for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
+	for(const UGProfileNode *p=get_first_child(); p != nullptr; p=p->get_next_sibling())
 	{
 		double t_ms = p->get_avg_total_time_ms();
 		size_t entry = (size_t)p->get_avg_entry_count();
@@ -542,11 +542,11 @@ void UGProfileNode::check_for_too_small_nodes(double fullMs, map<string, const U
 			if(entry > PROFILE_NODE_MIN_HITS && t_ms/entry < PROFILE_NODE_MAX_TIME_PER_CALL_MS)
 			{
 				string desc = p->zone->name;
-				if(p->zone->file != NULL)
+				if(p->zone->file != nullptr)
 					desc.append(string(p->zone->file) + string(":") + ToString(p->zone->line));
 				const UGProfileNode *p2 = list[desc];
 
-				if(p2 == NULL)
+				if(p2 == nullptr)
 					list[desc] = p;
 				else
 				{
@@ -622,7 +622,7 @@ void UGProfileNode::CheckForTooSmallNodes()
 					it != list.end(); ++it)
 			{
 				const UGProfileNode *p = it->second;
-				if(p->zone->file != NULL)
+				if(p->zone->file != nullptr)
 					s << SimplifyUG4Path(p->zone->file) << ":" << p->zone->line << " : \n";
 
 				s << left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME) << p->zone->name << " ";
@@ -691,7 +691,7 @@ void WriteCallLog(const char *filename, int procId)
 	for(size_t i=0; i<profileCalls.size(); i++)
 	{
 		f << profileCalls[i].c << " ";
-		if(profileCalls[i].p == NULL)
+		if(profileCalls[i].p == nullptr)
 		{
 			depth--;
 			f << repeat(' ', depth) << "}\n";
@@ -711,7 +711,7 @@ void WriteCallLog(const char *filename, int procId)
 			else
 				f << profileCalls[i].p->zone->name << " (" << SimplifyUG4Path(profileCalls[i].p->zone->file) << ":" << profileCalls[i].p->zone->line << ")\n";
 
-			if(i+1 < profileCalls.size() && profileCalls[i+1].p == NULL)
+			if(i+1 < profileCalls.size() && profileCalls[i+1].p == nullptr)
 				i++;
 			else
 			{
@@ -761,8 +761,7 @@ void WriteProfileDataXML(const char *filename, int procId)
 	}
 
 #ifdef UG_PARALLEL
-	typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, vector> >
-		IndexLayout;
+	using IndexLayout = pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, vector> > ;
 
 	pcl::InterfaceCommunicator<IndexLayout> ic;
 	if(pcl::ProcRank() == procId)
@@ -773,7 +772,6 @@ void WriteProfileDataXML(const char *filename, int procId)
 		f << "<!-- ug4 created profile data -->\n";
 		f << "<ProfileData>\n";
 		f << "<AdditionalInfo>\n";
-		f << "<SVNRevision>" << UGSvnRevision() << "</SVNRevision>\n";
 		f << "<BuildHostname>" << UGBuildHost() << "</BuildHostname>\n";
 		f << "<CompileDate>" << UGCompileDate() << "</CompileDate>\n";
 		f << "</AdditionalInfo>\n";
@@ -790,7 +788,7 @@ void WriteProfileDataXML(const char *filename, int procId)
 		int depth=0;
 		for(size_t i=0; i<profileCalls.size(); i++)
 		{
-			if(profileCalls[i].p == NULL)
+			if(profileCalls[i].p == nullptr)
 			{
 				f << "<stop>" << profileCalls[i].c << "</stop>\n";
 				f << "</call>\n";
@@ -852,8 +850,8 @@ void WriteProfileDataXML(const char *filename, int procId)
 const UGProfileNode *GetProfileNode(const char *name, const UGProfileNode *node)
 {
 	ProfilerUpdate();
-	if(node == NULL) node = UGProfileNode::get_root();
-	if(name == NULL)
+	if(node == nullptr) node = UGProfileNode::get_root();
+	if(name == nullptr)
 		return node;
 	do
 	{
@@ -868,7 +866,7 @@ const UGProfileNode *GetProfileNode(const char *name, const UGProfileNode *node)
 
 const UGProfileNode *GetProfileNode(const char *name)
 {
-	return GetProfileNode(name, NULL);
+	return GetProfileNode(name, nullptr);
 }
 
 bool GetProfilerAvailable()
@@ -878,7 +876,7 @@ bool GetProfilerAvailable()
 
 void PrintLUA()
 {
-	const UGProfileNode *rootNode = GetProfileNode(NULL);
+	const UGProfileNode *rootNode = GetProfileNode(nullptr);
 	vector<const UGProfileNode*> nodes;
 	rootNode->rec_add_nodes(nodes);
 	double full = rootNode->get_avg_total_time_ms();
@@ -886,7 +884,7 @@ void PrintLUA()
 	map<string, vector<double> > files;
 	for(size_t i=0; i<nodes.size(); i++)
 	{
-		if(nodes[i]->zone->groups == NULL ||
+		if(nodes[i]->zone->groups == nullptr ||
 				strcmp(nodes[i]->zone->groups, "lua") != 0)
 			continue;
 		const char *name = nodes[i]->zone->name;
@@ -894,8 +892,8 @@ void PrintLUA()
 		if(name[0]==0x00 || name[1]==0x00) continue;
 		name++; // skip @
 		const char *p = strchr(name, ':'); // search for line number
-		if(p == NULL || p[0] == 0x00 || p[1] == 0x00) continue;
-		int line = strtol(p+1, NULL, 10);
+		if(p == nullptr || p[0] == 0x00 || p[1] == 0x00) continue;
+		int line = strtol(p+1, nullptr, 10);
 		if(line > 10000 || line < 0) continue;
 		char file[255];
 		strncpy(file, name, p-name);
@@ -1042,12 +1040,10 @@ const UGProfileNode *GetProfileNode(const char *name, const UGProfileNode *node)
 
 void WriteProfileDataXML(const char *filename)
 {
-	return;
 }
 
 void WriteProfileDataXML(const char *filename, int procId)
 {
-	return;
 }
 
 bool GetProfilerAvailable()

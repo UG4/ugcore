@@ -44,12 +44,12 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	SPOctree
-/**	This typedef is only intended to increase comfort for callers.
+/**	This type definition is only intended to increase comfort for callers.
  *	The Octree can be passed to all traversers to which the original
  *	CollisionTreeRootNode could be passed too.
  *	\sa node_tree::SPCollisionTreeRootNode
  */
-typedef node_tree::SPCollisionTreeRootNode SPOctree;
+using SPOctree = node_tree::SPCollisionTreeRootNode;
 
 ////////////////////////////////////////////////////////////////////////
 ///	Creates an Octree from a list of edges or triangles.

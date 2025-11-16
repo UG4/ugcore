@@ -83,7 +83,7 @@ class UG_API ClassHierarchy
 		/**
 		 * searches the hierarchy for the classname name.
 		 * \param	name	class name to be searched
-		 * \return NULL if class name not found,
+		 * \return nullptr if class name not found,
 		 * 				otherwise ClassHierarchy with the class as base
 		 * 				(find_class(name)->name() == name)
 		 */
@@ -107,14 +107,14 @@ UG_API void GetClassHierarchy(ClassHierarchy &hierarchy, const Registry &reg);
 
 /**
  * Finds the class classname in the default ug registry and returns
- * IExportedClass pointer if found, otherwise NULL
+ * IExportedClass pointer if found, otherwise nullptr
  */
 UG_API std::string FunctionInfo(const Registry &reg, const char *functionname);
 
 UG_API std::string FunctionInfo(const ExportedFunctionBase &thefunc, bool isConst=false,
-                       const char *classname=NULL, const char *highlightclassname=NULL, bool bPrintHelp=false);
+                       const char *classname=nullptr, const char *highlightclassname=nullptr, bool bPrintHelp=false);
 UG_API std::string ConstructorInfo(const ExportedConstructor &constr, const char *classname,
-		const char *highlightclassname=NULL);
+		const char *highlightclassname=nullptr);
 
 UG_API std::string ClassHierarchyString(const Registry &reg, const char *classname);
 UG_API std::string ClassInfo(const IExportedClass &c);

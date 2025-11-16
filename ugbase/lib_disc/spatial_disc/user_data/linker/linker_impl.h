@@ -84,14 +84,14 @@ void StdDataLinker<TImpl,TData,dim>::eval_deriv(LocalVector* u, GridObject* elem
 
 	const int si = this->subset();
 
-	std::vector<std::vector<TData> >* vvvDeriv = NULL;
+	std::vector<std::vector<TData> >* vvvDeriv = nullptr;
 
 	for(size_t s = 0; s < this->num_series(); ++s){
 
 		if(bDeriv && this->m_vvvvDeriv[s].size() > 0)
 			vvvDeriv = &this->m_vvvvDeriv[s][0];
 		else
-			vvvDeriv = NULL;
+			vvvDeriv = nullptr;
 
 		getImpl().template eval_and_deriv<refDim>(this->values(s), this->ips(s), this->time(s), si,
 		                                 elem, vCornerCoords,
@@ -107,7 +107,7 @@ void StdDataLinker<TImpl,TData,dim>::eval_deriv(LocalVectorTimeSeries* u, GridOb
 
 	const int si = this->subset();
 
-	std::vector<std::vector<TData> >* vvvDeriv = NULL;
+	std::vector<std::vector<TData> >* vvvDeriv = nullptr;
 
 	for(size_t s = 0; s < this->num_series(); ++s){
 
@@ -116,7 +116,7 @@ void StdDataLinker<TImpl,TData,dim>::eval_deriv(LocalVectorTimeSeries* u, GridOb
 		if(bDoDeriv && this->m_vvvvDeriv[s].size() > 0)
 			vvvDeriv = &this->m_vvvvDeriv[s][0];
 		else
-			vvvDeriv = NULL;
+			vvvDeriv = nullptr;
 
 		getImpl().template eval_and_deriv<refDim>(this->values(s), this->ips(s), this->time(s), si,
 		                                 elem, vCornerCoords,
@@ -198,7 +198,7 @@ void StdDataLinker<TImpl,TData,dim>::
 set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt)
 {
 //	set function pattern in dependent data and collect all function groups
-	std::vector<const FunctionGroup*> vFctGrp(num_input(), NULL);
+	std::vector<const FunctionGroup*> vFctGrp(num_input(), nullptr);
 	for(size_t i = 0; i < m_vspICplUserData.size(); ++i){
 		if(m_vspICplUserData[i].valid()){
 			m_vspUserDataInfo[i]->set_function_pattern(fctPatt);
@@ -227,7 +227,7 @@ set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt)
 	m_vMap.resize(vFctGrp.size());
 	for(size_t i = 0; i < vFctGrp.size(); ++i)
 	{
-		if(vFctGrp[i] != NULL)
+		if(vFctGrp[i] != nullptr)
 		{
 			try{
 				CreateFunctionIndexMapping(m_vMap[i], *vFctGrp[i], this->m_fctGrp);

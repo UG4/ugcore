@@ -112,7 +112,7 @@ void FV1InnerBoundaryElemDisc<TImpl, TDomain>::prep_timestep
 
 	// the proxy provided here will not survive, but the vector it wraps will,
 	// so we re-wrap it in a new proxy for ourselves
-	typedef VectorProxy<typename TAlgebra::vector_type> tProxy;
+	using tProxy = VectorProxy<typename TAlgebra::vector_type> ;
 	tProxy* proxy = static_cast<tProxy*>(upb);
 	m_spOldSolutionProxy = make_sp(new tProxy(proxy->m_v));
 }
@@ -128,7 +128,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 	//	set local positions
 	if (!TFVGeom::usesHangingNodes)
 	{
-		static const int refDim = TElem::dim;
+		static constexpr int refDim = TElem::dim;
 		static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 		const MathVector<refDim>* vBFip = geo.bf_local_ips();
 		const size_t numBFip = geo.num_bf_local_ips();
@@ -208,7 +208,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	if (m_bCurrElemIsHSlave) return;
 
 	// get finite volume geometry
-	const static TFVGeom& fvgeom = GeomProvider<TFVGeom>::get();
+	static const TFVGeom& fvgeom = GeomProvider<TFVGeom>::get();
 
 	FluxDerivCond fdc;
 	size_t nFct = u.num_fct();
@@ -371,7 +371,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 	//	get the error estimator data object and check that it is of the right type
 	//	we check this at this point in order to be able to dispense with this check later on
 	//	(i.e. in prep_err_est_elem and compute_err_est_A_elem())
-	if (this->m_spErrEstData.get() == NULL)
+	if (this->m_spErrEstData.get() == nullptr)
 	{
 		UG_THROW("No ErrEstData object has been given to this ElemDisc!");
 	}
@@ -399,7 +399,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 	//	set local positions
 	if (!TFVGeom::usesHangingNodes)
 	{
-		static const int refDim = TElem::dim;
+		static constexpr int refDim = TElem::dim;
 
 		// get local IPs
 		size_t numSideIPs;
@@ -446,7 +446,7 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 	// set local positions
 	if (TFVGeom::usesHangingNodes)
 	{
-		static const int refDim = TElem::dim;
+		static constexpr int refDim = TElem::dim;
 
 		size_t numSideIPs;
 		const MathVector<refDim>* sideIPs;
@@ -584,7 +584,7 @@ register_all_fv1_funcs()
 	RegisterPrepTimestep<bridge::CompileAlgebraList>(this);
 
 //	register assembling functions for all element types
-	typedef typename domain_traits<dim>::ManifoldElemList ElemList;
+	using ElemList = typename domain_traits<dim>::ManifoldElemList;
 	boost::mpl::for_each<ElemList>(RegisterAssemblingFuncs(this));
 }
 
@@ -594,7 +594,7 @@ void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	typedef this_type T;
+	using T = this_type;
 
 	this->clear_add_fct(id);
 	this->set_prep_elem_loop_fct(	id, &T::template prep_elem_loop<TElem, TFVGeom>);

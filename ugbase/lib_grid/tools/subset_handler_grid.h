@@ -361,7 +361,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 			VolumeSectionContainer	m_volumes;
 		};
 
-		typedef std::vector<Subset*>	SubsetVec;
+		using SubsetVec = std::vector<Subset*>;
 
 	protected:
 		SubsetVec			m_subsets;
@@ -373,7 +373,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 };
 
 
-typedef GridSubsetHandler SubsetHandler;
+using SubsetHandler = GridSubsetHandler;
 
 /** \} */
 

@@ -83,7 +83,7 @@ SurfaceViewElementIterator(bool start,
 template <class TElem>
 SurfaceView::SurfaceViewElementIterator<TElem>::
 SurfaceViewElementIterator() :
-	m_pSurfView(NULL),
+	m_pSurfView(nullptr),
 	m_gl(),
 	m_validStates(0),
 	m_fromSI(0),
@@ -554,7 +554,7 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 	//	get parent if copy
 		GridObject* pParent = m_pMG->get_parent(elem);
 		TElem* parent = dynamic_cast<TElem*>(pParent);
-		if(parent == NULL) return;
+		if(parent == nullptr) return;
 		if(m_pMG->num_children<TBaseElem>(parent) != 1) return;
 
 	//	Get connected elements

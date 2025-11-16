@@ -403,7 +403,7 @@ static bool ReadGridHeader(GridHeader& gridHeader, BinaryBuffer& in)
 ////////////////////////////////////////////////////////////////////////
 //	PARENT INFO
 ///	Stores a tuple (type, index), identifying a parent.
-typedef std::pair<byte, int> ParentInfo;
+using ParentInfo = std::pair<byte, int>;
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -1420,7 +1420,7 @@ GetParent(BinaryBuffer& in, const vector<Vertex*>& vVrts,
 		}
 	}
 	
-	return pair<GridObject*, char>(NULL, type);
+	return pair<GridObject*, char>(nullptr, type);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -2655,8 +2655,8 @@ void ReadSelectionStatesFromStream(TElemIter iterBegin, TElemIter iterEnd,
 {
 	for(;iterBegin != iterEnd; ++iterBegin)
 	{
-		byte s;
-		in.read((char*)&s, sizeof(byte));
+		byte_t s;
+		in.read((char*)&s, sizeof(byte_t));
 		sel.select(*iterBegin, s);
 	}
 }

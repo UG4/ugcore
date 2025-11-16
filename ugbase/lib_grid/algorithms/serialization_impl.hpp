@@ -164,7 +164,7 @@ bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 
 //	copy data
 	Grid::AttachmentAccessor<TElem, TAttachment> aa(grid, attachment);
-	typedef typename TAttachment::ValueType ValueType;
+	using ValueType = typename TAttachment::ValueType;
 	
 //	write a magic number at the beginning and at the end.
 	int magicNumber = 8304548;
@@ -210,7 +210,7 @@ bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 
 //	copy data
 	Grid::AttachmentAccessor<TElem, TAttachment> aa(grid, attachment);
-	typedef typename TAttachment::ValueType ValueType;
+	using ValueType = typename TAttachment::ValueType;
 	
 //	compare with the magic number
 

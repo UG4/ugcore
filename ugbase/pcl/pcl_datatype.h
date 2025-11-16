@@ -30,11 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <mpi.h>
-#include "common/types.h"
-#include "common/error.h"
+
 #ifndef __H__PCL__pcl_datatype__
 #define __H__PCL__pcl_datatype__
+
+#include <mpi.h>
+
+#include "common/types.h"
+#include "common/error.h"
 
 namespace pcl
 {
@@ -58,7 +61,7 @@ namespace pcl
 #define PCL_DT_LONG_DOUBLE 			MPI_LONG_DOUBLE
 #define PCL_DT_UNSIGNED_CHAR 		MPI_UNSIGNED_CHAR
 
-typedef MPI_Datatype DataType;
+	using DataType = MPI_Datatype;
 
 class DataTypeDirectlySupported {};
 class DataTypeIndirectlySupported {};
@@ -68,7 +71,7 @@ class DataTypeTraits
 {
 public:
 	static DataType get_data_type() {return T::PCL_DATATYPE_NOT_SUPPORTED(); }
-	typedef DataTypeIndirectlySupported supported;
+	using supported = DataTypeIndirectlySupported;
 	enum { directlySupported = false };
 };
 
@@ -77,7 +80,7 @@ class DataTypeTraits<unsigned long>
 {
 public:
 	static DataType get_data_type() {return PCL_DT_UNSIGNED_LONG; }
-	typedef DataTypeDirectlySupported supported;
+	using supported = DataTypeDirectlySupported;
 	enum { directlySupported = true };
 };
 
@@ -86,7 +89,7 @@ class DataTypeTraits<unsigned long long>
 {
 public:
 	static DataType get_data_type() {return PCL_DT_UNSIGNED_LONG_LONG; }
-	typedef DataTypeDirectlySupported supported;
+	using supported = DataTypeDirectlySupported;
 	enum { directlySupported = true };
 };
 
@@ -95,7 +98,7 @@ class DataTypeTraits<long>
 {
 public:
 	static DataType get_data_type() {return PCL_DT_LONG; }
-	typedef DataTypeDirectlySupported supported;
+	using supported = DataTypeDirectlySupported;
 	enum { directlySupported = true };
 };
 template<>
@@ -103,7 +106,7 @@ class DataTypeTraits<int>
 {
 public:
 	static DataType get_data_type() {return PCL_DT_INT; }
-	typedef DataTypeDirectlySupported supported;
+	using supported = DataTypeDirectlySupported;
 	enum { directlySupported = true };
 };
 template<>
@@ -111,7 +114,7 @@ class DataTypeTraits<float>
 {
 public:
 	static DataType get_data_type() {return PCL_DT_FLOAT; }
-	typedef DataTypeDirectlySupported supported;
+	using supported = DataTypeDirectlySupported;
 	enum { directlySupported = true };
 };
 template<>
@@ -119,7 +122,7 @@ class DataTypeTraits<double>
 {
 public:
 	static DataType get_data_type() {return PCL_DT_DOUBLE; }
-	typedef DataTypeDirectlySupported supported;
+	using supported = DataTypeDirectlySupported;
 	enum { directlySupported = true };
 };
 
@@ -128,7 +131,7 @@ class DataTypeTraits<char>
 {
 public:
 	static DataType get_data_type() {return PCL_DT_CHAR; }
-	typedef DataTypeDirectlySupported supported;
+	using supported = DataTypeDirectlySupported;
 	enum { directlySupported = true };
 };
 
@@ -137,7 +140,7 @@ class DataTypeTraits<unsigned char>
 {
 public:
 	static DataType get_data_type() {return PCL_DT_UNSIGNED_CHAR; }
-	typedef DataTypeDirectlySupported supported;
+	using supported = DataTypeDirectlySupported;
 	enum { directlySupported = true };
 };
 

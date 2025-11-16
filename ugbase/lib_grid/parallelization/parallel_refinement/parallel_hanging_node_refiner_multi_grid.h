@@ -51,16 +51,16 @@ namespace ug
 class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 {
 	public:
-		typedef HangingNodeRefiner_MultiGrid BaseClass;
+		using BaseClass = HangingNodeRefiner_MultiGrid;
 		using BaseClass::mark;
 		using BaseClass::copy_marks_to_vmasters;
 		using BaseClass::copy_marks_to_vslaves;
 
-		ParallelHangingNodeRefiner_MultiGrid(SPRefinementProjector projector = SPNULL);
+		ParallelHangingNodeRefiner_MultiGrid(SPRefinementProjector projector = nullptr);
 
 		ParallelHangingNodeRefiner_MultiGrid(
 				DistributedGridManager& distGridMgr,
-				SPRefinementProjector projector = SPNULL);
+				SPRefinementProjector projector = nullptr);
 
 		virtual ~ParallelHangingNodeRefiner_MultiGrid();
 

@@ -363,8 +363,8 @@ template <class TGeomObj>
 void SelectionFill(Selector& sel,
 				   typename Grid::traits<typename TGeomObj::side>::callback cbRegionBoundary)
 {
-	typedef typename geometry_traits<TGeomObj>::iterator GeomObjIter;
-	typedef typename TGeomObj::lower_dim_base_object Side;
+	using GeomObjIter = typename geometry_traits<TGeomObj>::iterator;
+	using Side = typename TGeomObj::lower_dim_base_object;
 
 	if(sel.grid() == 0){
 		UG_LOG("WARNING in SelectionFill: A grid has to be assigned! Aborting.\n");
@@ -505,7 +505,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree, number normalWe
 		m_candidates.pop();
 
 	//	search for associated selected edges (there has to be at last one!)
-		Edge* lastEdge = NULL;
+		Edge* lastEdge = nullptr;
 		int counter = 0;
 		
 		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(srcVrt);
@@ -539,7 +539,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree, number normalWe
 		while(srcVrt)
 		{
 		//	check smoothness for each connected unselected edge
-			Edge* bestEdge = NULL;
+			Edge* bestEdge = nullptr;
 			number bestDot = -1.1;
 			number bestNormalDot = -1.1;
 			vector3 bestDir(0, 0, 0);
@@ -615,13 +615,13 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree, number normalWe
 
 			}
 			
-			if((bestEdge != NULL) && (counter < 2)){
+			if((bestEdge != nullptr) && (counter < 2)){
 				sel.select(bestEdge);
 			//	the next vertex has to be checked
 				srcVrt = GetConnectedVertex(bestEdge, srcVrt);
 			//	make sure that we stop at selected vertices - if desired
 				if(stopAtSelVrts && sel.is_selected(srcVrt))
-					srcVrt = NULL;
+					srcVrt = nullptr;
 					
 				// lastEdge = bestEdge;  // never used
 				lastDir = bestDir;
@@ -629,7 +629,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree, number normalWe
 				lastNormal = bestNormal;
 			}
 			else{
-				srcVrt = NULL;
+				srcVrt = nullptr;
 			}
 		}
 	}
@@ -1225,7 +1225,7 @@ void GetSelectedElementIndices (const ISelector& sel, std::vector<size_t>& indsO
 	AssignIndices (g.begin<elem_t>(), g.end<elem_t>(), aaIndex);
 
 	GridObjectCollection goc = sel.get_grid_objects ();
-	typedef typename GridObjectCollection::traits<elem_t>::iterator iter_t;
+	using iter_t = typename GridObjectCollection::traits<elem_t>::iterator;
 	for(size_t ilvl = 0; ilvl < goc.num_levels(); ++ilvl){
 		for(iter_t ielem = goc.begin<elem_t>(ilvl); ielem != goc.end<elem_t>(ilvl); ++ielem)
 		{
@@ -1261,7 +1261,7 @@ void SelectElementsByIndex (ISelector& sel, const std::vector<size_t>& inds)
 	
 	Grid& g = *sel.grid();
 
-	typedef typename Grid::traits<elem_t>::iterator iter_t;
+	using iter_t = typename Grid::traits<elem_t>::iterator;
 
 	const size_t numElems = g.num<elem_t>();
 	if(numElems == 0)

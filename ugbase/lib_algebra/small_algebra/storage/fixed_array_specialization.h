@@ -40,8 +40,8 @@ template<typename T>
 class FixedArray1<T, 1>
 {
 public:
-	typedef T value_type;
-	typedef size_t size_type;
+	using value_type = T ;
+	using size_type = size_t ;
 	enum {Size = 1 };
 
 public:
@@ -92,8 +92,8 @@ template<typename T>
 class FixedArray1<T, 2>
 {
 public:
-	typedef T value_type;
-	typedef size_t size_type;
+	using value_type = T;
+	using size_type =  size_t ;
 	enum {Size = 2 };
 
 public:
@@ -143,8 +143,8 @@ template<typename T>
 class FixedArray1<T, 3>
 {
 public:
-	typedef T value_type;
-	typedef size_t size_type;
+	using value_type = T ;
+	using size_type =size_t ;
 	enum {Size = 3 };
 
 public:
@@ -195,8 +195,8 @@ template<typename T>
 class FixedArray1<T, 4>
 {
 public:
-	typedef T value_type;
-	typedef size_t size_type;
+	using value_type = T ;
+	using size_type = size_t;
 	enum {Size = 4 };
 
 public:

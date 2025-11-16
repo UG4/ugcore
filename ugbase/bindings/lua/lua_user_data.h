@@ -241,8 +241,7 @@ class LuaUserFunction
 	: public StdDataLinker<LuaUserFunction<TData, dim, TDataIn>, TData, dim>
 {
 	public:
-	//	type of base class
-		typedef StdDataLinker<LuaUserFunction<TData, dim, TDataIn>, TData, dim> base_type;
+		using base_type = StdDataLinker<LuaUserFunction<TData, dim, TDataIn>, TData, dim>;
 		using base_type::set_input;
 
 	public:

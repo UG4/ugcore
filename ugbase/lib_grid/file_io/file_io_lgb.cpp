@@ -82,12 +82,12 @@ void SerializeProjectionHandler(BinaryBuffer& out, ProjectionHandler& ph)
 	out.write((char*)&magicNumber, sizeof(int));
 
 	if(ph.default_projector().valid()){
-		byte b = 1;
+		byte_t b = 1;
 		out.write((char*)&b, sizeof(b));
 		SerializeProjector(out, *ph.default_projector());
 	}
 	else{
-		byte b = 0;
+		byte_t b = 0;
 		out.write((char*)&b, sizeof(b));
 	}
 
@@ -146,7 +146,7 @@ void DeserializeProjectionHandler(BinaryBuffer& in, ProjectionHandler& ph)
 
 	ph.clear();
 	
-	byte b;
+	byte_t b;
 	in.read((char*)&b, sizeof(b));
 	if(b){
 		ph.set_default_projector(DeserializeProjector(in));
@@ -180,7 +180,7 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 				   ProjectionHandler* pPH,
 				   APosition aPos)
 {
-	return SaveGridToLGB (grid, filename,ppSH, numSHs, NULL, 0, pPH, aPos);
+	return SaveGridToLGB (grid, filename,ppSH, numSHs, nullptr, 0, pPH, aPos);
 }
 
 
@@ -197,14 +197,14 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 	BinaryBuffer tbuf;
 
 //	write the header
-	byte endianess = 1;
-	byte intSize = (byte)sizeof(int);
-	byte numberSize = (byte)sizeof(number);
+	byte_t endianess = 1;
+	byte_t intSize = (byte_t)sizeof(int);
+	byte_t numberSize = (byte_t)sizeof(number);
 	int versionNumber = 4;
 	
-	tbuf.write((char*)&endianess, sizeof(byte));
-	tbuf.write((char*)&intSize, sizeof(byte));
-	tbuf.write((char*)&numberSize, sizeof(byte));
+	tbuf.write((char*)&endianess, sizeof(byte_t));
+	tbuf.write((char*)&intSize, sizeof(byte_t));
+	tbuf.write((char*)&numberSize, sizeof(byte_t));
 	tbuf.write((char*)&versionNumber, sizeof(int));
 
 //	the options
@@ -287,7 +287,7 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 				   ProjectionHandler* pPH,
 				   APosition aPos)
 {
-	return LoadGridFromLGB (grid, filename, ppSH, numSHs, NULL, 0, pPH, aPos);
+	return LoadGridFromLGB (grid, filename, ppSH, numSHs, nullptr, 0, pPH, aPos);
 }
 
 
@@ -323,14 +323,14 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 	in.close();
 
 //	read the header
-	byte endianess;
-	byte intSize;
-	byte numberSize;
+	byte_t endianess;
+	byte_t intSize;
+	byte_t numberSize;
 	int versionNumber;
 
-	tbuf.read((char*)&endianess, sizeof(byte));
-	tbuf.read((char*)&intSize, sizeof(byte));
-	tbuf.read((char*)&numberSize, sizeof(byte));
+	tbuf.read((char*)&endianess, sizeof(byte_t));
+	tbuf.read((char*)&intSize, sizeof(byte_t));
+	tbuf.read((char*)&numberSize, sizeof(byte_t));
 	tbuf.read((char*)&versionNumber, sizeof(int));
 
 //	check whether the values are ok

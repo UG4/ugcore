@@ -70,7 +70,7 @@ template <class TIterator>
 bool TriangleFill_SweepLine(Grid& grid, TIterator edgesBegin,
 							TIterator edgesEnd, APosition& aPosVRT,
 							AInt& aIntVRT,
-							SubsetHandler* pSH = NULL,
+							SubsetHandler* pSH = nullptr,
 							int newSubsetIndex = -1);
 
 }//	namespace ug

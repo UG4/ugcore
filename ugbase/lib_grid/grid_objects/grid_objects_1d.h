@@ -66,7 +66,7 @@ class UG_API RegularEdge : public Edge
 {
 	friend class Grid;
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<RegularEdge*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<RegularEdge*>(pObj) != nullptr;}
 
 		RegularEdge()	{}
 		RegularEdge(Vertex* v1, Vertex* v2)
@@ -95,7 +95,7 @@ class UG_API RegularEdge : public Edge
 	 */
 		virtual bool refine(std::vector<Edge*>& vNewEdgesOut,
 							Vertex* newVertex,
-							Vertex** pSubstituteVrts = NULL);
+							Vertex** pSubstituteVrts = nullptr);
 
 //TODO:	Think about this method. It is not safe!
 	///	non virtual refine. Returns pointers to RegularEdge.
@@ -105,30 +105,30 @@ class UG_API RegularEdge : public Edge
 	 */
 		bool refine(std::vector<RegularEdge*>& vNewEdgesOut,
 					Vertex* newVertex,
-					Vertex** pSubstituteVrts = NULL);
+					Vertex** pSubstituteVrts = nullptr);
 };
 
 template <>
 class geometry_traits<RegularEdge>
 {
 	public:
-		typedef GenericGridObjectIterator<RegularEdge*, EdgeIterator>			iterator;
-		typedef ConstGenericGridObjectIterator<RegularEdge*, EdgeIterator,
-														ConstEdgeIterator>	const_iterator;
+		using iterator = GenericGridObjectIterator<RegularEdge*, EdgeIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<RegularEdge*, EdgeIterator,
+			ConstEdgeIterator>;
 
-		typedef EdgeDescriptor	Descriptor;
-		typedef Edge		grid_base_object;
+		using Descriptor = EdgeDescriptor;
+		using grid_base_object = Edge;
 
 		enum
 		{
 			CONTAINER_SECTION = CSEDGE_REGULAR_EDGE,
 			BASE_OBJECT_ID = EDGE
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
 
-typedef geometry_traits<RegularEdge>::iterator 		RegularEdgeIterator;
-typedef geometry_traits<RegularEdge>::const_iterator 	ConstRegularEdgeIterator;
+using RegularEdgeIterator = geometry_traits<RegularEdge>::iterator;
+using ConstRegularEdgeIterator = geometry_traits<RegularEdge>::const_iterator;
 
 
 
@@ -146,11 +146,11 @@ class UG_API ConstrainedEdge : public Edge
 {
 	friend class Grid;
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedEdge*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedEdge*>(pObj) != nullptr;}
 
-		ConstrainedEdge() : m_pConstrainingObject(NULL), m_parentBaseObjectId(-1)	{}
+		ConstrainedEdge() : m_pConstrainingObject(nullptr), m_parentBaseObjectId(-1)	{}
 		ConstrainedEdge(Vertex* v1, Vertex* v2) :
-			m_pConstrainingObject(NULL),
+			m_pConstrainingObject(nullptr),
 			m_parentBaseObjectId(-1)
 			{
 				m_vertices[0] = v1;
@@ -158,7 +158,7 @@ class UG_API ConstrainedEdge : public Edge
 			}
 
 		ConstrainedEdge(const EdgeDescriptor& descriptor) :
-			m_pConstrainingObject(NULL),
+			m_pConstrainingObject(nullptr),
 			m_parentBaseObjectId(-1)
 			{
 				m_vertices[0] = descriptor.vertex(0);
@@ -181,14 +181,14 @@ class UG_API ConstrainedEdge : public Edge
 		virtual void remove_constraint_link(const Edge* e)
 		{
 			if(m_pConstrainingObject == static_cast<const GridObject*>(e)){
-				m_pConstrainingObject = NULL;
+				m_pConstrainingObject = nullptr;
 			}
 		}
 
 		virtual void remove_constraint_link(const Face* f)
 		{
 			if(m_pConstrainingObject == static_cast<const GridObject*>(f)){
-				m_pConstrainingObject = NULL;
+				m_pConstrainingObject = nullptr;
 			}
 		}
 
@@ -201,7 +201,7 @@ class UG_API ConstrainedEdge : public Edge
 	 */
 		virtual bool refine(std::vector<Edge*>& vNewEdgesOut,
 							Vertex* newVertex,
-							Vertex** pSubstituteVrts = NULL);
+							Vertex** pSubstituteVrts = nullptr);
 
 //TODO:	Think about this method. It is not safe!
 	///	non virtual refine. Returns pointers to ConstrainedEdge.
@@ -213,7 +213,7 @@ class UG_API ConstrainedEdge : public Edge
 	 */
 		bool refine(std::vector<ConstrainedEdge*>& vNewEdgesOut,
 					Vertex* newVertex,
-					Vertex** pSubstituteVrts = NULL);
+					Vertex** pSubstituteVrts = nullptr);
 
 		inline void set_constraining_object(GridObject* pObj)
 		{
@@ -246,23 +246,23 @@ template <>
 class geometry_traits<ConstrainedEdge>
 {
 	public:
-		typedef GenericGridObjectIterator<ConstrainedEdge*, EdgeIterator>		iterator;
-		typedef ConstGenericGridObjectIterator<ConstrainedEdge*, EdgeIterator,
-																ConstEdgeIterator>	const_iterator;
+	using iterator = GenericGridObjectIterator<ConstrainedEdge*, EdgeIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<ConstrainedEdge*, EdgeIterator,
+			ConstEdgeIterator>;
 
-		typedef EdgeDescriptor	Descriptor;
-		typedef Edge		grid_base_object;
+		using Descriptor = EdgeDescriptor;
+		using grid_base_object = Edge;
 
 		enum
 		{
 			CONTAINER_SECTION = CSEDGE_CONSTRAINED_EDGE,
 			BASE_OBJECT_ID = EDGE
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
 
-typedef geometry_traits<ConstrainedEdge>::iterator 			ConstrainedEdgeIterator;
-typedef geometry_traits<ConstrainedEdge>::const_iterator 	ConstConstrainedEdgeIterator;
+using ConstrainedEdgeIterator = geometry_traits<ConstrainedEdge>::iterator;
+using ConstConstrainedEdgeIterator = geometry_traits<ConstrainedEdge>::const_iterator;
 
 
 
@@ -279,7 +279,7 @@ class UG_API ConstrainingEdge : public Edge
 {
 	friend class Grid;
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainingEdge*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainingEdge*>(pObj) != nullptr;}
 
 		ConstrainingEdge()	{}
 		ConstrainingEdge(Vertex* v1, Vertex* v2)
@@ -336,7 +336,7 @@ class UG_API ConstrainingEdge : public Edge
 	 */
 		virtual bool refine(std::vector<Edge*>& vNewEdgesOut,
 							Vertex* newVertex,
-							Vertex** pSubstituteVrts = NULL);
+							Vertex** pSubstituteVrts = nullptr);
 
 //TODO:	Think about this method. It is not safe!
 	///	non virtual refine. Returns pointers to ConstrainingEdge.
@@ -347,7 +347,7 @@ class UG_API ConstrainingEdge : public Edge
 	 */
 		bool refine(std::vector<ConstrainingEdge*>& vNewEdgesOut,
 						Vertex* newVertex,
-						Vertex** pSubstituteVrts = NULL);
+						Vertex** pSubstituteVrts = nullptr);
 
 
 		inline void add_constrained_object(Vertex* pObj)
@@ -431,23 +431,23 @@ template <>
 class geometry_traits<ConstrainingEdge>
 {
 	public:
-		typedef GenericGridObjectIterator<ConstrainingEdge*, EdgeIterator>			iterator;
-		typedef ConstGenericGridObjectIterator<ConstrainingEdge*, EdgeIterator,
-																	ConstEdgeIterator>	const_iterator;
+	using iterator = GenericGridObjectIterator<ConstrainingEdge*, EdgeIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<ConstrainingEdge*, EdgeIterator,
+			ConstEdgeIterator>;
 
-		typedef EdgeDescriptor	Descriptor;
-		typedef Edge		grid_base_object;
+		using Descriptor = EdgeDescriptor;
+		using grid_base_object = Edge;
 
 		enum
 		{
 			CONTAINER_SECTION = CSEDGE_CONSTRAINING_EDGE,
 			BASE_OBJECT_ID = EDGE
 		};
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
 
-typedef geometry_traits<ConstrainingEdge>::iterator 		ConstrainingEdgeIterator;
-typedef geometry_traits<ConstrainingEdge>::const_iterator 	ConstConstrainingEdgeIterator;
+using ConstrainingEdgeIterator = geometry_traits<ConstrainingEdge>::iterator;
+using ConstConstrainingEdgeIterator = geometry_traits<ConstrainingEdge>::const_iterator;
 
 }//	end of namespace
 

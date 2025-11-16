@@ -38,10 +38,12 @@
 #include <algorithm>
 #include <string>
 #include <functional>  // for std::less
+
+#include "common/util/binary_buffer.h"
+
 #include "pcl_layout_util.h"
 #include "pcl_base.h"
 #include "pcl_communication_structs.h"
-#include "common/util/binary_buffer.h"
 #include "pcl_process_communicator.h"
 
 #ifdef PCL_DEBUG_BARRIER_ENABLED
@@ -113,69 +115,10 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
  *
  * \returns:	true, if the layout has changed, false if not.
  */
-template <class TLayout, class TSelector>
-bool RemoveUnselectedInterfaceEntries(TLayout& layout, TSelector& sel)
-{
-//	iterate over all interfaces of the layout.
-//	for each we'll create a new one, into which elements selected
-//	elements will be inserted.
-//	Finally we'll swap the content of the those interfaces.
-//	if the interface is empty at the end of the operation, it will be
-//	removed from the layout.
-	bool retVal = false;
-	
-//	some typedefs first
-	typedef typename TLayout::Interface Interface;
-	typedef typename TLayout::iterator InterfaceIter;
-	typedef typename Interface::Element	Elem;
-	typedef typename Interface::iterator ElemIter;
-	
-//	iterate over all levels
-	for(size_t level = 0; level < layout.num_levels(); ++level)
-	{
-	//	iterate over all interfaces
-		for(InterfaceIter iiter = layout.begin(level);
-			iiter != layout.end(level);)
-		{
-			bool interfaceChanged = false;
-			Interface& interface = layout.interface(iiter);
-		
-		//	create a temporary interface and fill it with the selected entries
-			Interface tInterface;
-			
-			for(ElemIter iter = interface.begin();
-				iter != interface.end(); ++iter)
-			{
-				Elem& e = interface.get_element(iter);
-				if(sel.is_selected(e))
-					tInterface.push_back(e);
-				else
-					interfaceChanged = true;
-			}
-			
-		//	now swap the interface contents.
-			if(interfaceChanged){
-				interface.swap(tInterface);
-			
-			//	if the interface is empty, erase it.
-			//	if not, simply increase the iterator
-				if(interface.size() == 0){
-					iiter = layout.erase(iiter, level);
-				}
-				else{
-					++iiter;
-				}
-				
-				retVal = true;
-			}
-			else{
-				++iiter;
-			}
-		}
-	}
-	
-	return retVal;
-}
+template <typename TLayout, typename TSelector>
+bool RemoveUnselectedInterfaceEntries(TLayout& layout, TSelector& sel);
+
+
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -191,31 +134,10 @@ bool RemoveUnselectedInterfaceEntries(TLayout& layout, TSelector& sel)
  *
  * \returns:	true, if the layout-map has changed, false if not.
  */
-template <class TType, class TLayoutMap, class TSelector>
-bool RemoveUnselectedInterfaceEntries(TLayoutMap& lm, TSelector& sel)
-{
-	typedef typename TLayoutMap::template Types<TType>::Map::iterator iterator;
-	typedef typename TLayoutMap::template Types<TType>::Layout		Layout;
+template <typename TType, typename TLayoutMap, typename TSelector>
+bool RemoveUnselectedInterfaceEntries(TLayoutMap& lm,
+										TSelector& sel);
 
-	bool retVal = false;
-	for(iterator iter = lm.template layouts_begin<TType>();
-		iter != lm.template layouts_end<TType>();)
-	{
-	//	get the layout
-		Layout& layout = iter->second;
-	//	remove unnecessary interface entries and interfaces
-		retVal |= RemoveUnselectedInterfaceEntries(layout, sel);
-	//	if the layout is empty, it can be removed from the map
-	//	if not we'll simply increase the iterator
-		if(layout.empty()){
-			iter = lm.template erase_layout<TType>(iter);
-		}
-		else{
-			++iter;
-		}
-	}
-	return retVal;
-}
 
 ////////////////////////////////////////////////////////////////////////
 ///	communicates selection-status of interface elements
@@ -233,56 +155,25 @@ bool RemoveUnselectedInterfaceEntries(TLayoutMap& lm, TSelector& sel)
  *	void TSelectorOut::deselect(TLayout::Element e);
  *	\endcode
  */
-template <class TLayout, class TSelectorIn, class TSelectorOut>
+template <typename TLayout, typename TSelectorIn, typename TSelectorOut>
 class SelectionCommPol : public ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef typename ICommunicationPolicy<TLayout>::Interface Interface;
+		using Interface = typename ICommunicationPolicy<TLayout>::Interface;
 		
 	public:
 		SelectionCommPol(TSelectorIn& selIn, TSelectorOut& selOut) :
 			m_selIn(selIn), m_selOut(selOut)	{}
 			
 	///	iterates over the interface entries. Writes 1 for selected, 0 for unselected.
-		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
-		{
-			char zero = 0;
-			char one = 1;
-			
-			for(typename Interface::iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
-			{
-				if(m_selIn.is_selected(interface.get_element(iter)))
-					buff.write(&one, sizeof(char));
-				else
-					buff.write(&zero, sizeof(char));
-			}
-			
-			return true;
-		}
-		
-	///	iterates over the interface entries. selects for 1, deselects for 0.
-		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
-		{
-			char tmp;
-			for(typename Interface::iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
-			{
-				buff.read(&tmp, sizeof(char));
-				if(tmp == 0)
-					m_selOut.deselect(interface.get_element(iter));
-				else
-					m_selOut.select(interface.get_element(iter));
-			}
-			
-			return true;
-		}
-		
+		bool collect(ug::BinaryBuffer& buff, Interface& interface) override;
+
+		///	iterates over the interface entries. selects for 1, deselects for 0.
+		bool extract(ug::BinaryBuffer& buff, Interface& interface) override;
+
 	protected:
-		TSelectorIn&	m_selIn;
-		TSelectorOut&	m_selOut;
+		TSelectorIn& m_selIn;
+		TSelectorOut& m_selOut;
 };
 
 
@@ -295,6 +186,7 @@ bool SendRecvListsMatch(const std::vector<int>& recvFrom,
 						const ProcessCommunicator& involvedProcs = ProcessCommunicator());
 
 ///	checks whether matching buffers in send- and recv-lists have the same size
+
 /**	Note that this method does not check whether matching buffers exist. This is assumed.
  * Checks are only performed on the sizes of associated buffers.
  *
@@ -303,36 +195,46 @@ bool SendRecvListsMatch(const std::vector<int>& recvFrom,
  *
  * The return value is the same for all participating processes.
  * \sa pcl::SendRecvMapsMatch
+ *
+ * @param recvFrom
+ * @param recvBufSizes
+ * @param sendTo
+ * @param sendBufSizes
+ * @param involvedProcs
+ * @return
  */
-bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<int>& recvBufSizes,
-						  const std::vector<int>& sendTo, const std::vector<int>& sendBufSizes,
-						  const ProcessCommunicator& involvedProcs = ProcessCommunicator());
+bool SendRecvBuffersMatch(const std::vector<int>& recvFrom,
+							const std::vector<int>& recvBufSizes,
+							const std::vector<int>& sendTo,
+							const std::vector<int>& sendBufSizes,
+							const ProcessCommunicator& involvedProcs = ProcessCommunicator());
 
 
-
+/**
+ *
+ * @tparam TLayout
+ * @param destLayout
+ * @param sourceLayout
+ */
 template<typename TLayout>
-void AddLayout(TLayout &destLayout, const TLayout &sourceLayout)
-{
-	for(typename TLayout::const_iterator iter = sourceLayout.begin(); iter != sourceLayout.end(); ++iter)
-	{
-		const typename TLayout::Interface &source_interface = sourceLayout.interface(iter);
-		typename TLayout::Interface &dest_interface = destLayout.interface(sourceLayout.proc_id(iter));
-		for(typename TLayout::Interface::const_iterator iter2 = source_interface.begin(); iter2 != source_interface.end(); ++iter2)
-			dest_interface.push_back(source_interface.get_element(iter2));
-	}
-}
+void AddLayout(TLayout &destLayout, const TLayout &sourceLayout);
+
 
 /// util function to read a file in parallel.
 /** \sa ReadFile in serial
  * \param filename filename (in/out!)
  * \param file the file
- * \param if true, use r instead of rb for file functions
+ * \param bText if true, use r instead of rb for file functions
  * \param bDistributedLoad if false, just use ReadFile.
- * \param rank which should open files.
+ * \param pc for rank which should open files.
  * core with rank pc.get_proc_id(0) reads this filename. status, filename, and file are transmitted to other cores
  * \return false on all cores if
  */
-bool ParallelReadFile(std::string &filename, std::vector<char> &file, bool bText, bool bDistributedLoad, const ProcessCommunicator& pc = ProcessCommunicator());
+bool ParallelReadFile(std::string &filename,
+						std::vector<char> &file,
+						bool bText,
+						bool bDistributedLoad,
+						const ProcessCommunicator& pc = ProcessCommunicator());
 
 
 /**
@@ -352,7 +254,9 @@ bool ParallelReadFile(std::string &filename, std::vector<char> &file, bool bText
  * @param cmp       object to use for key comparison (typically std::less<Key>)
  */
 template <typename TKey, typename TValue, typename Compare>
-void MinimalKeyValuePairAcrossAllProcs(TKey& keyInOut, TValue& valInOut, const Compare& cmp = Compare());
+void MinimalKeyValuePairAcrossAllProcs(TKey& keyInOut,
+										TValue& valInOut,
+										const Compare& cmp = Compare());
 
 
 // end group pcl

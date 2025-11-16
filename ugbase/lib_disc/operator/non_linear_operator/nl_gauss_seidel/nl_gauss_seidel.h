@@ -52,13 +52,13 @@ class LocalToGlobalMapperNLGS : public ILocalToGlobalMapper<TAlgebra>
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	public:
 	///	default constructor
@@ -120,33 +120,33 @@ class NLGaussSeidelSolver
 	  public DebugWritingObject<TAlgebra>
 {
 	private:
-	///	own type
-		typedef NLGaussSeidelSolver<TDomain, TAlgebra> this_type;
+		///	own type
+		using this_type = NLGaussSeidelSolver<TDomain, TAlgebra>;
 
 	public:
-	///	Algebra type
-		typedef TAlgebra algebra_type;
+		///	Algebra type
+		using algebra_type = TAlgebra;
 
-	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		///	Matrix type
+		using matrix_type = typename TAlgebra::matrix_type;
 
-	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		///	Vector type
+		using vector_type = typename TAlgebra::vector_type;
 
-	///	Value type
-		typedef typename vector_type::value_type value_type;
+		///	Value type
+		using value_type = typename vector_type::value_type;
 
-	///	Domain type
-		typedef TDomain domain_type;
+		///	Domain type
+		using domain_type = TDomain;
 
-	///	Type of approximation space
-		typedef ApproximationSpace<domain_type>	approx_space_type;
+		///	Type of approximation space
+		using approx_space_type = ApproximationSpace<domain_type>;
 
-	///	Type of geometric base object
-		typedef typename domain_traits<TDomain::dim>::grid_base_object grid_base_object;
+		///	Type of geometric base object
+		using grid_base_object = typename domain_traits<TDomain::dim>::grid_base_object;
 
 	protected:
-		typedef DebugWritingObject<TAlgebra> base_writer_type;
+		using base_writer_type = DebugWritingObject<TAlgebra>;
 
 	public:
 	///	constructor
@@ -224,10 +224,10 @@ class NLGaussSeidelSolver
 		///	call counter
 		int m_dgbCall;
 
-		/* TODO: hier alle typen von grid_base_object zulassen?
-		typedef Attachment<vector<grid_base_object*> > AElemList; 	//attachment type: attachment of ElemDatas
+		/*TODO: hier alle typen von grid_base_object zulassen?
+		using AElemList = Attachment<vector<grid_base_object*> >; 	//attachment type: attachment of ElemDatas
 		AElemList m_aElemList;						//the instance of the attachment type
-		typedef Grid::VertexAttachmentAccessor<AElemList>	ElemListAccessor;
+		using ElemListAccessor = Grid::VertexAttachmentAccessor<AElemList>;
 		ElemListAccessor m_aaElemList;
 		///	use this method to make sure that all required attachments are attached
 		void attach_attachments()
@@ -238,7 +238,7 @@ class NLGaussSeidelSolver
 		}*/
 
 		// TODO: hier alle typen von grid_base_object zulassen?
-		typedef std::vector<grid_base_object*> elemList;
+		using elemList = std::vector<grid_base_object*>;
 		std::vector<elemList> m_vElemList;
 
 		///	selector of elements with contributions to a specific DoF

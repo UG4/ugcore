@@ -47,8 +47,8 @@ namespace ug {
 template <typename TDomain>
 void MarkGlobal(SmartPtr<IRefiner> refiner, SmartPtr<TDomain> domain)
 {
-	typedef typename domain_traits<TDomain::dim>::element_type elem_type;
-	typedef typename SurfaceView::traits<elem_type>::const_iterator const_iterator;
+	using elem_type = typename domain_traits<TDomain::dim>::element_type;
+	using const_iterator = typename SurfaceView::traits<elem_type>::const_iterator;
 
 	// get surface view
 	SurfaceView sv(domain->subset_handler());
@@ -69,8 +69,8 @@ void MarkSubsets
 	const std::vector<std::string>& vSubset
 )
 {
-	typedef typename domain_traits<TDomain::dim>::element_type elem_type;
-	typedef typename SurfaceView::traits<elem_type>::const_iterator const_iterator;
+	using elem_type = typename domain_traits<TDomain::dim>::element_type;
+	using const_iterator = typename SurfaceView::traits<elem_type>::const_iterator;
 
 	// get subset handler
 	SmartPtr<MGSubsetHandler> sh = domain->subset_handler();
@@ -108,9 +108,9 @@ void MarkAlongSurface
 	const std::vector<std::string>& volumeSubsets
 )
 {
-	typedef typename domain_traits<TDomain::dim>::element_type elem_type;
-	typedef typename MultiGrid::traits<elem_type>::secure_container elem_list_type;
-	typedef typename SurfaceView::traits<Vertex>::const_iterator iter_type;
+	using elem_type = typename domain_traits<TDomain::dim>::element_type;
+	using elem_list_type = typename MultiGrid::traits<elem_type>::secure_container;
+	using iter_type = SurfaceView::traits<Vertex>::const_iterator;
 
 	const size_t nSurf = surfaceSubsets.size();
 	UG_COND_THROW(volumeSubsets.size() != nSurf, "Same number of surface and volume subsets required.");
@@ -162,9 +162,9 @@ void MarkAnisotropic
 	number thresholdRatio
 )
 {
-	typedef typename domain_traits<TDomain::dim>::element_type elem_type;
-	typedef typename domain_traits<TDomain::dim>::side_type side_type;
-	typedef typename SurfaceView::traits<elem_type>::const_iterator const_iterator;
+	using elem_type = typename domain_traits<TDomain::dim>::element_type;
+	using side_type = typename domain_traits<TDomain::dim>::side_type;
+	using const_iterator = typename SurfaceView::traits<elem_type>::const_iterator;
 
 	Grid& grid = *refiner->grid();
 	typename TDomain::position_accessor_type aaPos = domain->position_accessor();
@@ -210,9 +210,9 @@ void MarkAnisotropicOnlyX
 	number thresholdRatio
 )
 {
-	typedef typename domain_traits<TDomain::dim>::element_type elem_type;
-	typedef typename domain_traits<TDomain::dim>::side_type side_type;
-	typedef typename SurfaceView::traits<elem_type>::const_iterator const_iterator;
+	using elem_type = typename domain_traits<TDomain::dim>::element_type;
+	using side_type = typename domain_traits<TDomain::dim>::side_type;
+	using const_iterator = typename SurfaceView::traits<elem_type>::const_iterator;
 
 	Grid& grid = *refiner->grid();
 	typename TDomain::position_accessor_type aaPos = domain->position_accessor();

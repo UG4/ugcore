@@ -61,19 +61,19 @@ class StdInjection :
 {
 	public:
 	///	Type of base class
-		typedef ITransferOperator<TDomain, TAlgebra> base_type;
+		using base_type = ITransferOperator<TDomain, TAlgebra>;
 
 	///	Type of algebra
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Type of Vector
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Type of Vector
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Type of Domain
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	public:
 	///	Constructor

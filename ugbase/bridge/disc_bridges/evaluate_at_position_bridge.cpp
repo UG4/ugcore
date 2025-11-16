@@ -76,11 +76,11 @@ namespace Evaluate{
 template <typename TDomain, typename TAlgebra>
 class NumberValuedUserDataEvaluator
 {
-	static const int dim = TDomain::dim;
-	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-	typedef typename TGridFunction::template dim_traits<dim>::grid_base_object TElem;	
+	static constexpr int dim = TDomain::dim;
+	using TGridFunction = GridFunction<TDomain, TAlgebra>;
+	using TElem = typename TGridFunction::template dim_traits<dim>::grid_base_object;
 
-	typedef lg_ntree<dim, dim, TElem>	tree_t;
+	using tree_t = lg_ntree<dim, dim, TElem>;
 
 	public:
 
@@ -143,7 +143,7 @@ class NumberValuedUserDataEvaluator
 									SmartPtr<TGridFunction> u,
 									number time)
 		{
-			TElem* elem = NULL;
+			TElem* elem = nullptr;
 
 			MathVector<dim> globalPosition;
 
@@ -197,7 +197,7 @@ class NumberValuedUserDataEvaluator
 				try
 				{
 					(*m_userData)(&value, &globalPosition, time, si, elem,
-							&vCornerCoords[0], &locPos, 1, &localU, NULL);
+							&vCornerCoords[0], &locPos, 1, &localU, nullptr);
 				}
 				UG_CATCH_THROW("NumberValuedUserDataEvaluator: Cannot evaluate data.");
 			}
@@ -206,7 +206,7 @@ class NumberValuedUserDataEvaluator
 				try
 				{
 					(*m_userData)(&value, &globalPosition, time, si, elem,
-							&vCornerCoords[0], &locPos, 1, NULL, NULL);
+							&vCornerCoords[0], &locPos, 1, nullptr, nullptr);
 				}
 				UG_CATCH_THROW("NumberValuedUserDataEvaluator: Cannot evaluate data.");
 			}
@@ -233,11 +233,11 @@ class NumberValuedUserDataEvaluator
 template <typename TDomain, typename TAlgebra>
 class VectorValuedUserDataEvaluator
 {
-	static const int dim = TDomain::dim;
-	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-	typedef typename TGridFunction::template dim_traits<dim>::grid_base_object TElem;	
+	static constexpr int dim = TDomain::dim;
+	using TGridFunction = GridFunction<TDomain, TAlgebra>;
+	using TElem = typename TGridFunction::template dim_traits<dim>::grid_base_object;
 
-	typedef lg_ntree<dim, dim, TElem>	tree_t;
+	using tree_t = lg_ntree<dim, dim, TElem>;
 
 	public:
 
@@ -313,12 +313,12 @@ class VectorValuedUserDataEvaluator
 									SmartPtr<TGridFunction> u,
 									number time)
 		{
-			typedef typename TDomain::grid_type TGrid;
-			typedef typename Grid::traits<TElem>::secure_container TElemContainer;
+			using TGrid = typename TDomain::grid_type;
+			using TElemContainer = typename Grid::traits<TElem>::secure_container;
 
 			result.resize(TDomain::dim);
 
-			TElem* elem = NULL;
+			TElem* elem = nullptr;
 
 			MathVector<dim> globalPosition;
 
@@ -415,7 +415,7 @@ class VectorValuedUserDataEvaluator
 					try
 					{
 						(*m_userData)(&value, &centerGlobal, time, si, element,
-								&vCornerCoords[0], &centerLocal, 1, &localU, NULL);
+								&vCornerCoords[0], &centerLocal, 1, &localU, nullptr);
 					}
 					UG_CATCH_THROW("VectorValuedUserDataEvaluator: Cannot evaluate data.");
 				}
@@ -424,7 +424,7 @@ class VectorValuedUserDataEvaluator
 					try
 					{
 						(*m_userData)(&value, &centerGlobal, time, si, element,
-								&vCornerCoords[0], &centerLocal, 1, NULL, NULL);
+								&vCornerCoords[0], &centerLocal, 1, nullptr, nullptr);
 					}
 					UG_CATCH_THROW("VectorValuedUserDataEvaluator: Cannot evaluate data.");
 				}
@@ -452,7 +452,7 @@ class VectorValuedUserDataEvaluator
 		{
 			result.resize(TDomain::dim);
 
-			TElem* elem = NULL;
+			TElem* elem = nullptr;
 
 			MathVector<dim> globalPosition;
 
@@ -505,7 +505,7 @@ class VectorValuedUserDataEvaluator
 				try
 				{
 					(*m_userData)(&value, &globalPosition, time, si, elem,
-							&vCornerCoords[0], &locPos, 1, &localU, NULL);
+							&vCornerCoords[0], &locPos, 1, &localU, nullptr);
 				}
 				UG_CATCH_THROW("VectorValuedUserDataEvaluator: Cannot evaluate data.");
 			}
@@ -514,7 +514,7 @@ class VectorValuedUserDataEvaluator
 				try
 				{
 					(*m_userData)(&value, &globalPosition, time, si, elem,
-							&vCornerCoords[0], &locPos, 1, NULL, NULL);
+							&vCornerCoords[0], &locPos, 1, nullptr, nullptr);
 				}
 				UG_CATCH_THROW("VectorValuedUserDataEvaluator: Cannot evaluate data.");
 			}
@@ -544,9 +544,9 @@ class VectorValuedUserDataEvaluator
 template <typename TDomain, typename TAlgebra>
 class PointEvaluatorBase : public ITimeIntegratorObserver<TDomain, TAlgebra>
 {
-	typedef std::vector<number> TPoint;	
-	static const int dim = TDomain::dim;
-	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+	using TPoint = std::vector<number>;
+	static constexpr int dim = TDomain::dim;
+	using TGridFunction = GridFunction<TDomain, TAlgebra>;
 
 	public:
 		void add_evaluation_point(TPoint point)
@@ -646,8 +646,8 @@ class PointEvaluatorBase : public ITimeIntegratorObserver<TDomain, TAlgebra>
 template <typename TDomain, typename TAlgebra>
 class VectorValuedUserDataPointEvaluator : public PointEvaluatorBase<TDomain, TAlgebra>
 {
-	static const int dim = TDomain::dim;
-	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+	static constexpr int dim = TDomain::dim;
+	using TGridFunction = GridFunction<TDomain, TAlgebra>;
 
 	public:
 		VectorValuedUserDataPointEvaluator(SmartPtr<UserData<MathVector<dim>, dim> > userData) 
@@ -716,8 +716,8 @@ class VectorValuedUserDataPointEvaluator : public PointEvaluatorBase<TDomain, TA
 template <typename TDomain, typename TAlgebra>
 class NumberValuedUserDataPointEvaluator : public PointEvaluatorBase<TDomain, TAlgebra>
 {
-	static const int dim = TDomain::dim;
-	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+	static constexpr int dim = TDomain::dim;
+	using TGridFunction = GridFunction<TDomain, TAlgebra>;
 
 	public:
 		NumberValuedUserDataPointEvaluator(SmartPtr<UserData<number, dim> > userData) : m_evaluator(userData)
@@ -770,9 +770,9 @@ struct PointEvaluatorFactory
 
 	PointEvaluatorFactory(){}
 
-	typedef PointEvaluatorBase<TDomain,TAlgebra> return_type;
-	typedef UserData<MathVector<TDomain::dim>, TDomain::dim> input_vector_data;
-	typedef UserData<number, TDomain::dim> input_number_data;
+	using return_type = PointEvaluatorBase<TDomain,TAlgebra>;
+	using input_vector_data = UserData<MathVector<TDomain::dim>, TDomain::dim>;
+	using input_number_data = UserData<number, TDomain::dim>;
 
 	SmartPtr<return_type> create(SmartPtr<input_vector_data> userData) const
 	{ return make_sp(new VectorValuedUserDataPointEvaluator<TDomain, TAlgebra>(userData)); }
@@ -790,9 +790,9 @@ bool CloseVertexExists(const MathVector<TDomain::dim>& globPos,
 					   number maxDist)
 {
 //	domain type
-	typedef TDomain domain_type;
-	typedef typename domain_type::grid_type grid_type;
-	typedef typename domain_type::subset_handler_type subset_handler_type;
+	using domain_type = TDomain;
+	using grid_type = typename domain_type::grid_type;
+	using subset_handler_type = typename domain_type::subset_handler_type;
 // get position accessor
 	grid_type* grid = dom->grid().get();
 
@@ -807,7 +807,7 @@ bool CloseVertexExists(const MathVector<TDomain::dim>& globPos,
 	#endif
 
 	SubsetGroup ssGrp(sh);
-	if(subsets != NULL)
+	if(subsets != nullptr)
 		ssGrp.add(TokenizeString(subsets));
 	else
 		ssGrp.add_all();
@@ -860,9 +860,10 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 {
 
 //	domain type
-	typedef typename TGridFunction::domain_type domain_type;
-	typedef typename domain_type::grid_type grid_type;
-	typedef typename domain_type::subset_handler_type subset_handler_type;
+	using domain_type = typename TGridFunction::domain_type;
+	using grid_type = typename domain_type::grid_type;
+	using subset_handler_type = typename domain_type::subset_handler_type;
+
 // get position accessor
 	domain_type* dom = spGridFct->domain().get();
 	grid_type* grid = dom->grid().get();
@@ -873,7 +874,7 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 										= dom->position_accessor();
 
 	std::vector<DoFIndex> ind;
-	Vertex* chosen = NULL;
+	Vertex* chosen = nullptr;
 
 	typename subset_handler_type::template traits<Vertex>::const_iterator iterEnd, iter;
 	number minDistanceSq = std::numeric_limits<double>::max();
@@ -964,7 +965,7 @@ number EvaluateAtClosestVertex(const MathVector<TGridFunction::dim>& pos,
 
 //	create subset group
 	SubsetGroup ssGrp(sh);
-	if(subsets != NULL)
+	if(subsets != nullptr)
 	{
 		ssGrp.add(TokenizeString(subsets));
 	}
@@ -998,7 +999,7 @@ number EvaluateAtClosestVertexAllProcs
 
 	// create subset group
 	SubsetGroup ssGrp(sh);
-	if (subsets != NULL)
+	if (subsets != nullptr)
 		ssGrp.add(TokenizeString(subsets));
 	else
 	{
@@ -1032,8 +1033,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-//	typedef
-	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
+	using TFct = GridFunction<TDomain, TAlgebra>;
 
 	{
 		reg.add_function("EvaluateAtClosestVertex",
@@ -1047,8 +1047,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 
 	{
-		typedef PointEvaluatorBase<TDomain, TAlgebra> T;
-		typedef ITimeIntegratorObserver<TDomain, TAlgebra> TBase;
+		using T = PointEvaluatorBase<TDomain, TAlgebra>;
+		using TBase = ITimeIntegratorObserver<TDomain, TAlgebra>;
 		
 		string name = string("PointEvaluatorBase").append(suffix);
 
@@ -1061,8 +1061,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 	}
 
 	{
-		typedef VectorValuedUserDataPointEvaluator<TDomain, TAlgebra> T;
-		typedef PointEvaluatorBase<TDomain, TAlgebra> TBase;
+		using T = VectorValuedUserDataPointEvaluator<TDomain, TAlgebra>;
+		using TBase = PointEvaluatorBase<TDomain, TAlgebra>;
 
 		string name = string("VectorValuedUserDataPointEvaluator").append(suffix);
 
@@ -1073,7 +1073,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	}
 
 	{
-		typedef VectorValuedUserDataEvaluator<TDomain, TAlgebra> T;
+		using T = VectorValuedUserDataEvaluator<TDomain, TAlgebra>;
 		string name = string("VectorValuedUserDataEvaluator").append(suffix);
 
 		reg.add_class_<T>(name, grp)
@@ -1084,8 +1084,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 	}
 
 	{
-		typedef NumberValuedUserDataPointEvaluator<TDomain, TAlgebra> T;
-		typedef PointEvaluatorBase<TDomain, TAlgebra> TBase;
+		using T = NumberValuedUserDataPointEvaluator<TDomain, TAlgebra>;
+		using TBase = PointEvaluatorBase<TDomain, TAlgebra>;
 
 		string name = string("NumberValuedUserDataPointEvaluator").append(suffix);
 
@@ -1096,7 +1096,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	}
 
 	{
-		typedef NumberValuedUserDataEvaluator<TDomain, TAlgebra> T;
+		using T = NumberValuedUserDataEvaluator<TDomain, TAlgebra>;
 		string name = string("NumberValuedUserDataEvaluator").append(suffix);
 
 		reg.add_class_<T>(name, grp)
@@ -1106,7 +1106,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "NumberValuedUserDataEvaluator", tag);
 	}
 	{
-		typedef PointEvaluatorFactory<TDomain, TAlgebra> T;
+		using T = PointEvaluatorFactory<TDomain, TAlgebra>;
 		string name = string("PointEvaluatorFactory").append(suffix);
 
 		reg.add_class_<T>(name, grp)
@@ -1208,7 +1208,7 @@ static void Common(Registry& reg, string grp)
 void RegisterBridge_Evaluate(Registry& reg, string grp)
 {
 	grp.append("/Evaluate");
-	typedef Evaluate::Functionality Functionality;
+	using Functionality = Evaluate::Functionality;
 
 	try{
 //		RegisterCommon<Functionality>(reg,grp);

@@ -198,7 +198,7 @@ bool LoadUGScript_Single(const char* filename)
 	return LoadUGScript(filename, false, true);
 }
 
-static ug::bridge::Registry* g_pRegistry = NULL;
+static ug::bridge::Registry* g_pRegistry = nullptr;
 
 static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 {
@@ -238,7 +238,7 @@ void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp)
 	#endif
 }
 
-static lua_State* theLuaState = NULL;
+static lua_State* theLuaState = nullptr;
 lua_State* GetDefaultLuaState()
 {
 //	if the state has not already been opened then do it now.
@@ -254,7 +254,7 @@ lua_State* GetDefaultLuaState()
 	//	open a lua state
 		theLuaState = lua_open();
 #ifdef USE_LUAJIT
-		UG_ASSERT(theLuaState!=NULL, "FATAL ERROR: Not enough memory for lua?")
+		UG_ASSERT(theLuaState!=nullptr, "FATAL ERROR: Not enough memory for lua?")
 #endif
 
 	//	open standard libs
@@ -286,10 +286,10 @@ lua_State* GetDefaultLuaState()
 /// calls lua_close, which calls delete for all lua objects
 void ReleaseDefaultLuaState()
 {
-	if(theLuaState != NULL)
+	if(theLuaState != nullptr)
 	{
 		lua_close(theLuaState);
-		theLuaState = NULL;
+		theLuaState = nullptr;
 	}
 	FinalizeLUADebug();
 	return;

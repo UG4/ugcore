@@ -52,8 +52,8 @@ ParallelHangingNodeRefiner_MultiGrid::
 ParallelHangingNodeRefiner_MultiGrid(
 		SPRefinementProjector projector) :
 	BaseClass(projector),
-	m_pDistGridMgr(NULL),
-	m_pMG(NULL)
+	m_pDistGridMgr(nullptr),
+	m_pMG(nullptr)
 {
 	add_ref_mark_adjuster(ParallelHNodeAdjuster::create());
 }
@@ -171,11 +171,11 @@ template <class TLayout>
 class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
 		enum ConversionTypes{
 			CT_IGNORE = 0,
@@ -195,11 +195,11 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 
 	///	writes the selection states of the interface entries
 		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		collect(BinaryBuffer& buff, const Interface& interface)
 		{
-			const int TO_NORMAL = HangingNodeRefiner_MultiGrid::HNRM_TO_NORMAL;
-			const int TO_CONSTRAINED = HangingNodeRefiner_MultiGrid::HNRM_TO_CONSTRAINED;
-			const int TO_CONSTRAINING = HangingNodeRefiner_MultiGrid::HNRM_TO_CONSTRAINING;
+			constexpr int TO_NORMAL = HangingNodeRefiner_MultiGrid::HNRM_TO_NORMAL;
+			constexpr int TO_CONSTRAINED = HangingNodeRefiner_MultiGrid::HNRM_TO_CONSTRAINED;
+			constexpr int TO_CONSTRAINING = HangingNodeRefiner_MultiGrid::HNRM_TO_CONSTRAINING;
 
 		//	search for entries which changed their constrained/constraining status
 			UG_ASSERT(m_distGridMgr.get_assigned_grid(),
@@ -210,7 +210,7 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter, ++counter)
 			{
-				byte mark = CT_IGNORE;
+				byte_t mark = CT_IGNORE;
 				Element elem = interface.get_element(iter);
 				if(m_sel.is_selected(elem)){
 					int refMark = m_sel.get_selection_status(elem);
@@ -224,7 +224,7 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 
 				if(mark != CT_IGNORE){
 					buff.write((char*)&counter, sizeof(int));
-					buff.write((char*)&mark, sizeof(byte));
+					buff.write((char*)&mark, sizeof(byte_t));
 				}
 			}
 
@@ -250,8 +250,8 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 				if(index == -1)
 					break;
 
-				byte mark;
-				buff.read((char*)&mark, sizeof(byte));
+				byte_t mark;
+				buff.read((char*)&mark, sizeof(byte_t));
 
 				while((counter < index) && (iter != interface.end())){
 					++iter;
@@ -503,7 +503,7 @@ template <class TElem, class TIntfcCom>
 void ParallelHangingNodeRefiner_MultiGrid::
 copy_marks_to_vmasters(TIntfcCom& com)
 {
-	typedef typename GridLayoutMap::Types<TElem>::Layout	TLayout;
+	using TLayout = typename GridLayoutMap::Types<TElem>::Layout;
 	ComPol_Selection<TLayout> comPol(get_refmark_selector());
 
 	com.exchange_data(m_pDistGridMgr->grid_layout_map(),
@@ -528,7 +528,7 @@ template <class TElem, class TIntfcCom>
 void ParallelHangingNodeRefiner_MultiGrid::
 copy_marks_to_vslaves(TIntfcCom& com)
 {
-	typedef typename GridLayoutMap::Types<TElem>::Layout	TLayout;
+	using TLayout = typename GridLayoutMap::Types<TElem>::Layout;
 	ComPol_Selection<TLayout> comPol(get_refmark_selector());
 
 	com.exchange_data(m_pDistGridMgr->grid_layout_map(),
@@ -541,11 +541,11 @@ template <class TLayout>
 class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+	using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
 		ComPol_BroadcastCoarsenMarks(ISelector& sel, bool allowDeselection = false)
 			 :	m_sel(sel), m_allowDeselection(allowDeselection)
@@ -553,19 +553,19 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 
 		virtual int
 		get_required_buffer_size(const Interface& interface)
-		{return interface.size() * sizeof(byte);}
+		{return interface.size() * sizeof(byte_t);}
 
 	///	writes writes the selection states of the interface entries
 		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		collect(BinaryBuffer& buff, const Interface& interface)
 		{
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				byte refMark = m_sel.get_selection_status(elem);
-				buff.write((char*)&refMark, sizeof(byte));
+				byte_t refMark = m_sel.get_selection_status(elem);
+				buff.write((char*)&refMark, sizeof(byte_t));
 			}
 
 			return true;
@@ -573,23 +573,23 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 
 	///	reads marks from the given stream
 		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
+		extract(BinaryBuffer& buff, const Interface& interface)
 		{
-			byte val;
+			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				buff.read((char*)&val, sizeof(byte));
+				buff.read((char*)&val, sizeof(byte_t));
 
 			//	check the current status and adjust the mark accordingly
-				byte curVal = m_sel.get_selection_status(elem);
+				byte_t curVal = m_sel.get_selection_status(elem);
 
 				if(curVal == val)
 					continue;
 
-				byte maxVal = max(curVal, val);
-				byte minVal = min(curVal, val);
+				byte_t maxVal = max(curVal, val);
+				byte_t minVal = min(curVal, val);
 
 				if(m_allowDeselection && (minVal == SE_NONE)){
 					m_sel.deselect(elem);

@@ -53,7 +53,7 @@ struct RasterLayerDesc{
 		number		m_minHeight;
 };
 
-typedef SmartPtr<RasterLayerDesc>	SPRasterLayerDesc;
+using SPRasterLayerDesc = SmartPtr<RasterLayerDesc>;
 
 
 class RasterLayers{
@@ -75,8 +75,8 @@ class RasterLayers{
 		};
 
 
-		typedef RasterLayerDesc		LayerDesc;
-		typedef SPRasterLayerDesc	SPLayerDesc;
+		using LayerDesc = RasterLayerDesc;
+		using SPLayerDesc = SPRasterLayerDesc;
 
 
 	///	loads raster data from a list of .asc files.
@@ -263,7 +263,7 @@ class RasterLayers{
 		std::vector<SmartPtr<Heightfield> >	m_relativeToGlobalHeights;
 };
 
-typedef SmartPtr<RasterLayers>	SPRasterLayers;
+using SPRasterLayers = SmartPtr<RasterLayers>;
 
 }//	end of namespace
 

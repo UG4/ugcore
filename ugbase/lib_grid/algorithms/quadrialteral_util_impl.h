@@ -64,10 +64,10 @@ void ReplaceByQuadrilaterals_FaceBased(
 namespace detail{
 	namespace quadUtil{
 		struct EdgeToQuadInfo {
-			EdgeToQuadInfo () : e(NULL), quality(-1) {};
+			EdgeToQuadInfo () : e(nullptr), quality(-1) {};
 			EdgeToQuadInfo (Edge* _e, number _q) : e(_e), quality(_q) {};
 
-			typedef Edge* result_type;
+			using result_type = Edge*;
 
 			Edge* e;
 			number quality;
@@ -113,10 +113,9 @@ void ReplaceByQuadrilaterals_EdgeBased(
 		}
 	}
 
-	typedef boost::transform_iterator<
-						EdgeToQuadInfo,
-						std::multiset<EdgeToQuadInfo>::iterator>
-			trans_iter_t;
+	using trans_iter_t = boost::transform_iterator<
+		EdgeToQuadInfo,
+		std::multiset<EdgeToQuadInfo>::iterator>;
 
 	ReplaceByQuadrilaterals_EdgeBasedNoSort(
 			g,

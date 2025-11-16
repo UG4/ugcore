@@ -103,7 +103,7 @@ class GridWriterVTU
 
 	/**	TPositionAttachments value type has to be compatible with MathVector.
 	 * Make sure that aPos is attached to the vertices of the grid.
-	 * If a SubsetHandler is specified through 'psh' (NULL is valid too), it will
+	 * If a SubsetHandler is specified through 'psh' (nullptr is valid too), it will
 	 * automatically be passed to 'add_subset_handler' with the name "regions".
 	 * If you pass a subset handler to this method, furthermore only those elements
 	 * which are assigned to subsets will be written to the file as cells.
@@ -127,10 +127,10 @@ class GridWriterVTU
 		void end_cell_data();
 
 	protected:
-		typedef Grid::VertexAttachmentAccessor<AInt> AAVrtIndex;
-		typedef Grid::EdgeAttachmentAccessor<AInt> AAEdgeIndex;
-		typedef Grid::FaceAttachmentAccessor<AInt> AAFaceIndex;
-		typedef Grid::VolumeAttachmentAccessor<AInt> AAVolIndex;
+		using AAVrtIndex = Grid::VertexAttachmentAccessor<AInt>;
+		using AAEdgeIndex = Grid::EdgeAttachmentAccessor<AInt>;
+		using AAFaceIndex = Grid::FaceAttachmentAccessor<AInt>;
+		using AAVolIndex = Grid::VolumeAttachmentAccessor<AInt>;
 
 		inline std::ostream& out_stream();
 
@@ -229,7 +229,7 @@ class GridReaderVTU
 	protected:
 		struct SubsetHandlerEntry
 		{
-			SubsetHandlerEntry(rapidxml::xml_node<>* n) : node(n), sh(NULL) {}
+			SubsetHandlerEntry(rapidxml::xml_node<>* n) : node(n), sh(nullptr) {}
 
 			rapidxml::xml_node<>* 	node;
 			ISubsetHandler*			sh;
@@ -237,7 +237,7 @@ class GridReaderVTU
 
 		struct GridEntry
 		{
-			GridEntry(rapidxml::xml_node<>* n) : node(n), grid(NULL), mg(NULL)	{}
+			GridEntry(rapidxml::xml_node<>* n) : node(n), grid(nullptr), mg(nullptr)	{}
 
 			rapidxml::xml_node<>* 	node;
 			Grid* 					grid;

@@ -105,12 +105,12 @@ public:
 
 protected:
 	size_t nbr_crease_edges (Vertex* vrt,
-							 Grid::edge_traits::secure_container* assEdges = NULL,
-							 Edge* creaseEdgesOut[2] = NULL);
+							 Grid::edge_traits::secure_container* assEdges = nullptr,
+							 Edge* creaseEdgesOut[2] = nullptr);
 
 	size_t concerned_nbr_faces (Edge* edge,
-								Grid::face_traits::secure_container* assFaces = NULL,
-								Face* facesOut[2] = NULL);
+								Grid::face_traits::secure_container* assFaces = nullptr,
+								Face* facesOut[2] = nullptr);
 
 private:
 	friend class boost::serialization::access;
@@ -122,7 +122,7 @@ private:
 	}
 
 
-	typedef std::vector<std::pair<Vertex*, vector3> >	new_pos_vec_t;
+	using new_pos_vec_t = std::vector<std::pair<Vertex*, vector3> >;
 
 	Grid::edge_traits::callback	m_cbIsCrease;
 	new_pos_vec_t				m_newPositions;

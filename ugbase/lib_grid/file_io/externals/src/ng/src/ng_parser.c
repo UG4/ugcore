@@ -17,15 +17,15 @@
  * default sizes for array allocations
  * always counts per entry
  */
-static const int init_num_bnodes = 128;
-static const int init_num_inodes = 128;
-static const int init_num_elements = 64;
+static constexpr int init_num_bnodes = 128;
+static constexpr int init_num_inodes = 128;
+static constexpr int init_num_elements = 64;
 
-static const int init_num_spos = 4;
-static const int init_num_lpos = 4;
+static constexpr int init_num_spos = 4;
+static constexpr int init_num_lpos = 4;
 
-static const int init_num_nodes = 16;
-static const int init_num_faces = 8;
+static constexpr int init_num_nodes = 16;
+static constexpr int init_num_faces = 8;
 
 /*
  * error messages
@@ -64,8 +64,8 @@ static const char* err_msg_nof = "Not a face nor a side [internal error], line %
 /* try-like construct, if cmd returns 1 (error), return 1 too */
 #define $(cmd) do { if(cmd) return 1; } while (0)
 
-/* short for str != NULL && strcmp == 0 */
-#define is_token(str, tok) (str != NULL && strcmp(str, tok) == 0)
+/* short for str != nullptr && strcmp == 0 */
+#define is_token(str, tok) (str != nullptr && strcmp(str, tok) == 0)
 
 
 /*

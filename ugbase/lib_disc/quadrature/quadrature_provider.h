@@ -60,7 +60,7 @@ class QuadratureRuleProvider
 {
 	public:
 	///	dimension of reference element
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	private:
 	///	private constructor performing standard registering
@@ -92,7 +92,7 @@ class QuadratureRuleProvider
 	///	creates rule at this provider
 		static void create_rule(ReferenceObjectID roid, size_t order, QuadType type);
 
-	///	rule creation, returns NULL if unavailable
+	///	rule creation, returns nullptr if unavailable
 	/// \{
 		static const QuadratureRule<TDim>* create_gauss_rule(ReferenceObjectID roid, size_t order);
 		static const QuadratureRule<TDim>* create_newton_cotes_rule(ReferenceObjectID roid, size_t order);

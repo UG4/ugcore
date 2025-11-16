@@ -54,11 +54,11 @@ template <class TLayout>
 class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
 	public:
 	/**
@@ -66,14 +66,14 @@ class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 	 * 					the constants enumerated in InterfaceNodeTypes.
 	 * \{*/
 		ComPol_InterfaceStatus(uint status = INT_NONE) :
-			m_pLayout(NULL),
-			m_distGridMgr(NULL),
+			m_pLayout(nullptr),
+			m_distGridMgr(nullptr),
 			m_status(status),
 			m_curLevel(0)	{}
 
 		ComPol_InterfaceStatus(DistributedGridManager* distGridMgr,
 								uint status = INT_NONE) :
-			m_pLayout(NULL),
+			m_pLayout(nullptr),
 			m_distGridMgr(distGridMgr),
 			m_status(status),
 			m_curLevel(0)	{}
@@ -196,7 +196,7 @@ class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 	private:
-		typedef std::map<int, std::vector<bool> > VecMap;
+		using VecMap = std::map<int, std::vector<bool> >;
 
 		std::vector<VecMap>		m_vecMaps;
 		const TLayout*			m_pLayout;

@@ -59,11 +59,11 @@ template<typename TValue>
 class UnsortedSparseVector
 {
 public:
-	typedef TValue value_type;
-	typedef AlgebraicConnection<TValue> connection;
+	using value_type = TValue;
+	using connection = AlgebraicConnection<TValue>;
 
-	typedef typename std::vector<connection>::iterator iterator;
-	typedef typename std::vector<connection>::const_iterator const_iterator;
+	using iterator = typename std::vector<connection>::iterator;
+	using const_iterator = typename std::vector<connection>::const_iterator;
 
 private:
 	std::vector<int> posInConnections;

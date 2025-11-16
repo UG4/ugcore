@@ -47,8 +47,8 @@ namespace ug{
 template <class TAAPos>
 class UG_API DelaunayInfo : public GridObserver
 {
-	typedef TAAPos	AAPos;
-	typedef typename TAAPos::ValueType	vector_t;
+	using AAPos = TAAPos;
+	using vector_t = typename TAAPos::ValueType;
 
 	public:
 		enum Mark{
@@ -174,7 +174,7 @@ class UG_API DelaunayInfo : public GridObserver
 
 	private:
 		struct FaceInfo{
-			FaceInfo() : f(NULL), priority(0), classified(false)	{}
+			FaceInfo() : f(nullptr), priority(0), classified(false)	{}
 			Face* f;
 			number priority;
 			bool classified;
@@ -187,11 +187,8 @@ class UG_API DelaunayInfo : public GridObserver
 			}
 		};
 
-		typedef Attachment<FaceInfo*> AFaceInfo;
-
-		typedef std::priority_queue<FaceInfo*, std::vector<FaceInfo*>,
-									CompareFaceInfo>
-			FacePriorityQueue;
+		using AFaceInfo = Attachment<FaceInfo*>;
+		using FacePriorityQueue = std::priority_queue<FaceInfo*, std::vector<FaceInfo*>, CompareFaceInfo>;
 
 
 		bool is_classified(Face* f);

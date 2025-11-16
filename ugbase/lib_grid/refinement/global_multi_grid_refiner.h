@@ -47,9 +47,9 @@ namespace ug
 class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 {
 	public:
-		GlobalMultiGridRefiner(SPRefinementProjector projector = SPNULL);
+		GlobalMultiGridRefiner(SPRefinementProjector projector = nullptr);
 		GlobalMultiGridRefiner(MultiGrid& mg,
-							   SPRefinementProjector projector = SPNULL);
+							   SPRefinementProjector projector = nullptr);
 							   
 		virtual ~GlobalMultiGridRefiner();
 

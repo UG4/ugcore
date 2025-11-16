@@ -106,7 +106,7 @@ class NeuriteProjector
 		struct BranchingPoint;
 		struct BranchingRegion
 		{
-			BranchingRegion() : t(0.0), bp(SPNULL) {} // constructor for serialization
+			BranchingRegion() : t(0.0), bp(nullptr) {} // constructor for serialization
 			BranchingRegion(number _t)       // constructor for search with CompareBranchingPointEnds
 			: t(_t) {}
 

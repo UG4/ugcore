@@ -81,28 +81,25 @@
 
 #include <termios.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cerrno>
+#include <cstring>
 #include <sys/ioctl.h>
-#include <unistd.h>
 #include "linenoise.h"
 
 #define LINENOISE_DEFAULT_HISTORY_MAX_LEN 100
 #define LINENOISE_MAX_LINE 4096
-static const char *unsupported_term[] = {"dumb","cons25",NULL};
+static const char *unsupported_term[] = {"dumb","cons25",nullptr};
 
-static struct termios orig_termios; /* in order to restore at exit */
+static termios orig_termios; /* in order to restore at exit */
 static int rawmode = 0; /* for atexit() function to check if restore is needed*/
 static int atexit_registered = 0; /* register atexit just 1 time */
 static int history_max_len = LINENOISE_DEFAULT_HISTORY_MAX_LEN;
 static int history_len = 0;
-char **history = NULL;
+char **history = nullptr;
 
-static CompletionFunctionPtr complete = NULL;
+static CompletionFunctionPtr complete = nullptr;
 
 // linenoiseSetCompletionFunction
 /**
@@ -122,14 +119,14 @@ int linenoiseSetCompletionFunction(CompletionFunctionPtr new_complete)
 	return 0;
 }
 
-void linenoiseAtExit(void);
+void linenoiseAtExit();
 int linenoiseHistoryAdd(const char *line);
 
-static int isUnsupportedTerm(void) {
+static int isUnsupportedTerm() {
     char *term = getenv("TERM");
     int j;
 
-    if (term == NULL) return 0;
+    if (term == nullptr) return 0;
     for (j = 0; unsupported_term[j]; j++)
         if (!strcasecmp(term,unsupported_term[j])) return 1;
     return 0;
@@ -137,7 +134,7 @@ static int isUnsupportedTerm(void) {
 
 
 
-static void freeHistory(void) {
+static void freeHistory() {
     if (history) {
         int j;
 
@@ -148,7 +145,7 @@ static void freeHistory(void) {
 }
 
 static int enableRawMode(int fd) {
-    struct termios raw;
+    termios raw;
 
     if (!isatty(STDIN_FILENO)) goto fatal;
     if (!atexit_registered) {
@@ -189,13 +186,13 @@ static void disableRawMode(int fd) {
 }
 
 /* At exit we'll try to fix the terminal to the initial conditions. */
-void linenoiseAtExit(void) {
+void linenoiseAtExit() {
     disableRawMode(STDIN_FILENO);
     freeHistory();
 }
 
-static int getColumns(void) {
-    struct winsize ws;
+static int getColumns() {
+    winsize ws;
 
     if (ioctl(1, TIOCGWINSZ, &ws) == -1) return 80;
     return ws.ws_col;
@@ -253,7 +250,7 @@ static int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt)
         if (nread <= 0) return len;
 
         static int tabhitcount = 0;
-        if(c == '\t' && pos == len && complete != NULL)
+        if(c == '\t' && pos == len && complete != nullptr)
         {
         	tabhitcount++;
         	disableRawMode(fd);
@@ -413,7 +410,7 @@ static int linenoiseRaw(char *buf, size_t buflen, const char *prompt) {
         return -1;
     }
     if (!isatty(STDIN_FILENO)) {
-        if (fgets(buf, buflen, stdin) == NULL) return -1;
+        if (fgets(buf, buflen, stdin) == nullptr) return -1;
         count = strlen(buf);
         if (count && buf[count-1] == '\n') {
             count--;
@@ -437,7 +434,7 @@ char *linenoise(const char *prompt) {
 
         printf("%s",prompt);
         fflush(stdout);
-        if (fgets(buf,LINENOISE_MAX_LINE,stdin) == NULL) return NULL;
+        if (fgets(buf,LINENOISE_MAX_LINE,stdin) == nullptr) return nullptr;
         len = strlen(buf);
         while(len && (buf[len-1] == '\n' || buf[len-1] == '\r')) {
             len--;
@@ -446,7 +443,7 @@ char *linenoise(const char *prompt) {
         return strdup(buf);
     } else {
         count = linenoiseRaw(buf,LINENOISE_MAX_LINE,prompt);
-        if (count == -1) return NULL;
+        if (count == -1) return nullptr;
         return strdup(buf);
     }
 }
@@ -456,9 +453,9 @@ int linenoiseHistoryAdd(const char *line) {
     char *linecopy;
 
     if (history_max_len == 0) return 0;
-    if (history == NULL) {
+    if (history == nullptr) {
         history = (char**)malloc(sizeof(char*)*history_max_len);
-        if (history == NULL) return 0;
+        if (history == nullptr) return 0;
         memset(history,0,(sizeof(char*)*history_max_len));
     }
     linecopy = strdup(line);
@@ -481,7 +478,7 @@ int linenoiseHistorySetMaxLen(int len) {
         int tocopy = history_len;
 
         newChar = (char**)malloc(sizeof(char*)*len);
-        if (newChar == NULL) return 0;
+        if (newChar == nullptr) return 0;
         if (len < tocopy) tocopy = len;
         memcpy(newChar,history+(history_max_len-tocopy), sizeof(char*)*tocopy);
         free(history);
@@ -499,7 +496,7 @@ int linenoiseHistorySave(char *filename) {
     FILE *fp = fopen(filename,"w");
     int j;
     
-    if (fp == NULL) return -1;
+    if (fp == nullptr) return -1;
     for (j = 0; j < history_len; j++)
         fprintf(fp,"%s\n",history[j]);
     fclose(fp);
@@ -515,9 +512,9 @@ int linenoiseHistoryLoad(char *filename) {
     FILE *fp = fopen(filename,"r");
     char buf[LINENOISE_MAX_LINE];
     
-    if (fp == NULL) return -1;
+    if (fp == nullptr) return -1;
 
-    while (fgets(buf,LINENOISE_MAX_LINE,fp) != NULL) {
+    while (fgets(buf,LINENOISE_MAX_LINE,fp) != nullptr) {
         char *p;
         
         p = strchr(buf,'\r');

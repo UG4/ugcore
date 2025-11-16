@@ -43,7 +43,7 @@ namespace ug
 ///	loads a grid from the GMSH ascii .msh format
 /**	Please check the GMSH manual for syntax information. */
 bool LoadGridFromMSH(Grid&grid, const char* filename,
-					 ISubsetHandler* psh = NULL,
+					 ISubsetHandler* psh = nullptr,
 					 AVector3& aPos = aPosition);
 
 };

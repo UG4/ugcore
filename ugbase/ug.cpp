@@ -262,7 +262,7 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 int UGFinalizeNoPCLFinalize()
 {
 	EnableMemTracker(false);
-	ug::GetLogAssistant().flush_error_log();
+	GetLogAssistant().flush_error_log();
 	
 	if (outputProfileStats) {
 		UG_LOG(std::endl);
@@ -272,7 +272,7 @@ int UGFinalizeNoPCLFinalize()
 		if(GetLogAssistant().is_output_process()) {
 			UG_LOG("\n");
 #ifdef UG_PROFILER
-			UG_LOG(ug::GetProfileNode(NULL)->call_tree());
+			UG_LOG(ug::GetProfileNode(nullptr)->call_tree());
 #else
 			PROFILER_OUTPUT();
 #endif

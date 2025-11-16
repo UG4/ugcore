@@ -86,7 +86,7 @@ class UserDataInfo {
 		 */
 		void set_obj_name(const char * name)
 		{
-			if (name == NULL) {m_objName = SPNULL; return;}
+			if (name == nullptr) {m_objName = nullptr; return;}
 			if (m_objName.valid ()) // we assume that the name is assigned once; otherwise we warn
 				UG_LOG ("Warning: Replacing existing UserData object name '" << m_objName.get() << "' with '" << name << "'.\n");
 			const size_t name_len = strnlen (name, 128);
@@ -142,8 +142,8 @@ template <typename TData, int dim, typename TRet = void>
 class UserData : virtual public UserDataInfo
 {
 	public:
-		typedef TData data_type;
-		typedef TRet return_type;
+		using data_type = TData;
+		using return_type = TRet;
 
 	///	returns dimension
 		int get_dim() const {return dim;}
@@ -221,7 +221,7 @@ class UserData : virtual public UserDataInfo
 		                        const MathVector<1> vLocIP[],
 		                        const size_t nip,
 		                        LocalVector* u,
-		                        const MathMatrix<1, dim>* vJT = NULL) const = 0;
+		                        const MathMatrix<1, dim>* vJT = nullptr) const = 0;
 
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
@@ -231,7 +231,7 @@ class UserData : virtual public UserDataInfo
 		                        const MathVector<2> vLocIP[],
 		                        const size_t nip,
 		                        LocalVector* u,
-		                        const MathMatrix<2, dim>* vJT = NULL) const = 0;
+		                        const MathMatrix<2, dim>* vJT = nullptr) const = 0;
 
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
@@ -241,7 +241,7 @@ class UserData : virtual public UserDataInfo
 		                        const MathVector<3> vLocIP[],
 		                        const size_t nip,
 		                        LocalVector* u,
-		                        const MathMatrix<3, dim>* vJT = NULL) const = 0;
+		                        const MathMatrix<3, dim>* vJT = nullptr) const = 0;
 	///	\}
 };
 ////////////////////////////////////////////////////////////////////////////////
@@ -292,7 +292,7 @@ class ICplUserData : virtual public UserDataInfo
 		virtual size_t num_needed_data() const {return 0;}
 
 	///	return needed data
-		virtual SmartPtr<ICplUserData> needed_data(size_t i) {return SPNULL;}
+		virtual SmartPtr<ICplUserData> needed_data(size_t i) {return nullptr;}
 
 	/// compute values (and derivatives iff compDeriv == true)
 		virtual void compute(LocalVector* u,
@@ -501,7 +501,7 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 {
 	public:
 	///	type of base class
-		typedef ICplUserData<dim> base_type;
+		using base_type = ICplUserData<dim>;
 
 	///	explicitly forward some functions
 		using base_type::num_series;
@@ -517,7 +517,7 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 			{
 				check_series(s);
 				if(m_vvValue[s].empty())
-					return NULL;
+					return nullptr;
 				return &(m_vvValue[s][0]);
 			}
 
@@ -530,7 +530,7 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 			{
 				check_series(s);
 				if(m_vvValue[s].empty())
-					return NULL;
+					return nullptr;
 				return &(m_vvValue[s][0]);
 			}
 
@@ -577,8 +577,8 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 		std::vector<std::vector<bool> > m_vvBoolFlag;
 
 	///	registered callbacks
-//		typedef void (DataImport<TData,dim>::*CallbackFct)();
-		typedef boost::function<void ()> CallbackFct;
+//		using CallbackFct = void(DataImport<TData,dim>::*)();
+		using CallbackFct = boost::function<void ()>;
 		std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > m_vCallback;
 
 };
@@ -597,7 +597,7 @@ class DependentUserData : public CplUserData<TData, dim>
 {
 	public:
 	///	Base class type
-		typedef CplUserData<TData, dim> base_type;
+		using base_type = CplUserData<TData, dim>;
 
 	//	explicitly forward methods of ICplUserData
 		using base_type::num_series;
@@ -606,7 +606,7 @@ class DependentUserData : public CplUserData<TData, dim>
 
 	public:
 	///	default constructor
-		DependentUserData() {}
+		DependentUserData() = default;
 
 	///	sets the associated symbolic functions
 	/// \{

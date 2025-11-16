@@ -2252,7 +2252,7 @@ void CollectIErrEstData(std::vector<IErrEstData<TDomain>*> &vErrEstData, const T
 	{
 		SmartPtr<IErrEstData<TDomain> > sp_err_est_data = vElemDisc[i]->err_est_data();
 		IErrEstData<TDomain>* err_est_data = sp_err_est_data.get();
-			if (err_est_data == NULL) continue; // no data specified
+			if (err_est_data == nullptr) continue; // no data specified
 			if (std::find (vErrEstData.begin(), vErrEstData.end(), err_est_data) != vErrEstData.end())
 				continue; // this one is already in the array
 			if (err_est_data->consider_me()) vErrEstData.push_back(err_est_data);
@@ -2306,7 +2306,7 @@ calc_error
 	{
 		SmartPtr<IErrEstData<TDomain> > sp_err_est_data = m_vElemDisc[i]->err_est_data();
 		IErrEstData<TDomain>* err_est_data = sp_err_est_data.get();
-		if (err_est_data == NULL) continue; // no data specified
+		if (err_est_data == nullptr) continue; // no data specified
 		if (std::find (vErrEstData.begin(), vErrEstData.end(), err_est_data) != vErrEstData.end())
 			continue; // this one is already in the array
 		if (err_est_data->consider_me()) vErrEstData.push_back(err_est_data);
@@ -2335,7 +2335,7 @@ calc_error
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	Elem Disc on the subset
-		typedef typename std::vector<IElemError<TDomain>*> error_vector_type;
+		using error_vector_type = typename std::vector<IElemError<TDomain>*>;
 		error_vector_type vSubsetElemError;
 
 	//	get all element discretizations that work on the subset
@@ -2437,16 +2437,16 @@ calc_error
 	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot summarize the error estimator");
 
 // perform integrations for error estimators and mark elements
-	typedef typename domain_traits<dim>::element_type elem_type;
-	typedef typename SurfaceView::traits<elem_type>::const_iterator elem_iter_type;
+	using elem_type = typename domain_traits<dim>::element_type;
+	using elem_iter_type = typename SurfaceView::traits<elem_type>::const_iterator;
 
 	m_mgElemErrors.attach_indicators(pMG);
 
 	// loop surface elements
 	ConstSmartPtr<SurfaceView> sv = dd->surface_view();
 	const GridLevel& gl = dd->grid_level();
-	elem_iter_type elem_iter_end = sv->template end<elem_type> (gl, SurfaceView::ALL);
-	for (elem_iter_type elem = sv->template begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
+	elem_iter_type elem_iter_end = sv->end<elem_type> (gl, SurfaceView::ALL);
+	for (elem_iter_type elem = sv->begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
 	{
 		// clear attachment (to be on the safe side)
 		m_mgElemErrors.error(*elem) = 0.0;
@@ -2468,7 +2468,7 @@ calc_error
 		LocalIndices ind; LocalVector locU;
 
 		// cast u_vtk to grid_function
-		GridFunction<TDomain, CPUAlgebra>* uVTK = dynamic_cast<GridFunction<TDomain, CPUAlgebra>*>(u_vtk);
+		auto* uVTK = dynamic_cast<GridFunction<TDomain, CPUAlgebra>*>(u_vtk);
 		if (!uVTK)
 		{
 			UG_THROW("Argument passed as output for error function is not a GridFunction of suitable type.");
@@ -2607,7 +2607,7 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	collect all element discretizations that work on the subset
-		typedef std::vector<IElemError<TDomain>*> error_vector_type;
+	using error_vector_type = std::vector<IElemError<TDomain>*>;
 		error_vector_type vSubsetElemError;
 
 		if (useErrorData) {
@@ -2700,8 +2700,8 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot summarize the error estimator.");
 
 	// perform integrations for error estimators and mark elements
-	typedef typename domain_traits<dim>::element_type elem_type;
-	typedef typename SurfaceView::traits<elem_type>::const_iterator elem_iter_type;
+	using elem_type = typename domain_traits<dim>::element_type;
+	using elem_iter_type = typename SurfaceView::traits<elem_type>::const_iterator;
 
 	m_mgElemErrors.attach_indicators(pMG);
 
@@ -2825,7 +2825,7 @@ template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 invalidate_error()
 {
-	typedef typename domain_traits<dim>::element_type elem_type;
+	using elem_type = typename domain_traits<dim>::element_type;
 
 	// check that error indicators have been calculated
 	if (m_bErrorCalculated)

@@ -41,7 +41,7 @@ namespace ug{
 template <typename TVector>
 class EnergyConvCheck : public StdConvCheck<TVector>
 {
-	typedef StdConvCheck<TVector> base_type;
+	using base_type = StdConvCheck<TVector>;
 	public:
 	EnergyConvCheck() : base_type() {}
 	EnergyConvCheck(int maxSteps, number minDefect, number relReduction) : base_type(maxSteps, minDefect, relReduction) {}

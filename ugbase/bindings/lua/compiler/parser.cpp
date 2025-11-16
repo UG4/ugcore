@@ -1631,7 +1631,7 @@ yyreduce:
 
   case 7:
 #line 78 "parser.y"
-    { (yyval.nPtr) = NULL; globalP->set_local((yyvsp[(2) - (2)].sIndex)); }
+    { (yyval.nPtr) = nullptr; globalP->set_local((yyvsp[(2) - (2)].sIndex)); }
     break;
 
   case 8:
@@ -1676,7 +1676,7 @@ yyreduce:
 
   case 16:
 #line 96 "parser.y"
-    { (yyval.nPtr) = NULL; }
+    { (yyval.nPtr) = nullptr; }
     break;
 
   case 17:
@@ -2102,7 +2102,7 @@ void yyerror(const char *s)
 void yaccparse(const char*command, ug::LUAParserClass *p)
 {	
 	globalP = p;
-	if(command!=NULL)
+	if(command!=nullptr)
 		yy_scan_string(command);
     yyparse();
 }

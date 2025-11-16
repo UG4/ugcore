@@ -35,12 +35,12 @@
 namespace ug {
 
 PeriodicBoundaryManager::PeriodicBoundaryManager() :
-				m_pGrid(NULL)/*, m_pSH(NULL)*/ {}
+				m_pGrid(nullptr)/*, m_pSH(nullptr)*/ {}
 
 PeriodicBoundaryManager::~PeriodicBoundaryManager()
 {
-	// set grid to NULL to detach groups from grid
-	set_grid(NULL);
+	// set grid to nullptr to detach groups from grid
+	set_grid(nullptr);
 }
 
 void PeriodicBoundaryManager::set_grid(Grid* g)
@@ -69,10 +69,10 @@ void PeriodicBoundaryManager::set_grid(Grid* g)
 	m_pGrid = dynamic_cast<MultiGrid*>(g);
 
 	// attach groups and register observer
-	if(m_pGrid != NULL) {
-		m_pGrid->attach_to_vertices_dv(aGroupVRT, NULL);
-		m_pGrid->attach_to_edges_dv(aGroupEDG, NULL);
-		m_pGrid->attach_to_faces_dv(aGroupFCE, NULL);
+	if(m_pGrid != nullptr) {
+		m_pGrid->attach_to_vertices_dv(aGroupVRT, nullptr);
+		m_pGrid->attach_to_edges_dv(aGroupEDG, nullptr);
+		m_pGrid->attach_to_faces_dv(aGroupFCE, nullptr);
 
 		m_pGrid->attach_to_vertices_dv(aPeriodicStatus, P_NOT_PERIODIC);
 		m_pGrid->attach_to_edges_dv(aPeriodicStatus, P_NOT_PERIODIC);
@@ -214,7 +214,7 @@ void PeriodicBoundaryManager::grid_to_be_destroyed(Grid* grid) {
 		if(is_master(*iter)) delete m_aaGroupFCE[*iter];
 	}
 
-	set_grid(NULL);
+	set_grid(nullptr);
 }
 
 void PeriodicBoundaryManager::vertex_created(Grid* grid, Vertex* vrt,
@@ -292,9 +292,9 @@ bool PeriodicBoundaryManager::check_periodicity(
 template <class elem_t>
 void PeriodicBoundaryManager::validity_check()
 {
-	typedef typename Grid::traits<elem_t>::iterator	iter_t;
-	typedef typename Group<elem_t>::SlaveContainer	slave_container_t;
-	typedef typename slave_container_t::iterator	slave_iter_t;
+	using iter_t = typename Grid::traits<elem_t>::iterator;
+	using slave_container_t = typename Group<elem_t>::SlaveContainer;
+	using slave_iter_t = typename slave_container_t::iterator;
 
 	Grid::AttachmentAccessor<elem_t, Attachment<PeriodicStatus> >
 		aaPS = get_periodic_status_accessor<elem_t>();
@@ -319,7 +319,7 @@ void PeriodicBoundaryManager::validity_check()
 					++elemSlaveCount;
 			}
 
-			if(aaGroup[e]->m_master == NULL){
+			if(aaGroup[e]->m_master == nullptr){
 				UG_THROW("Group doesn't contain a master!\n"
 						 << "  elem-info: " << ElementDebugInfo(g, e));
 			}

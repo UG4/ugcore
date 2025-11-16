@@ -517,7 +517,7 @@ void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
 //	resize positions
 	vPosPair.resize(dd->num_indices());
 
-	typedef DoFDistribution::traits<Vertex>::const_iterator const_iterator;
+	using const_iterator = DoFDistribution::traits<Vertex>::const_iterator;
 
 //	loop all vertices
 	const_iterator iter = dd->begin<Vertex>(SurfaceView::ALL);

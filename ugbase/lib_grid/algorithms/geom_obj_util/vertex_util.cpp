@@ -81,7 +81,7 @@ Vertex* GetConnectedVertex(Edge* e, Vertex* v)
 		return e->vertex(1);
 	else if(e->vertex(1) == v)
 		return e->vertex(0);
-	return NULL;
+	return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -94,7 +94,7 @@ Vertex* GetConnectedVertex(EdgeVertices* e, Face* f)
 			(f->vertex(i) != e->vertex(1)))
 			return f->vertex(i);
 	}
-	return NULL;
+	return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -127,7 +127,7 @@ Edge* GetConnectedEdge(Grid& g, Vertex* vrt, Face* tri)
 		if(!EdgeContains(&ed, vrt))
 			return g.get_edge(ed);
 	}
-	return NULL;
+	return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -247,7 +247,7 @@ bool CollectSurfaceNeighborsSorted(std::vector<Vertex*>& vNeighborsOut,
 			if(GetAssociatedFaces(f, grid, curEdge, 2) != 2)
 				return false;
 			
-			curEdge = NULL;
+			curEdge = nullptr;
 			for(int i = 0; i < 2; ++i){
 				if(!grid.is_marked(f[i])){
 					CollectEdges(edges, grid, f[i]);
@@ -288,7 +288,7 @@ bool CollectSurfaceNeighborsSorted(std::vector<Vertex*>& vNeighborsOut,
 
 		//	iterate through the faces associated with v and find an unmarked one that
 		//	contains two marked vertices
-			f = NULL;
+			f = nullptr;
 			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v);
 			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
 				iter != iterEnd; ++iter)
@@ -303,7 +303,7 @@ bool CollectSurfaceNeighborsSorted(std::vector<Vertex*>& vNeighborsOut,
 					if(numMarked == 2)
 						break;
 					else
-						f = NULL;
+						f = nullptr;
 				}
 			}
 		}
@@ -318,7 +318,7 @@ Vertex* FindVertexByCoordiante(vector3& coord, VertexIterator iterBegin, VertexI
 									Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
 	if(iterBegin == iterEnd)
-		return NULL;
+		return nullptr;
 
 	Vertex* bestVrt = *iterBegin;
 	number bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]);

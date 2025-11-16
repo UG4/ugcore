@@ -48,8 +48,8 @@ size_t CollectUnconnectedSides (
 			TSideIterator begin,
 			TSideIterator end)
 {
-	typedef typename PtrToValueType<typename TSideIterator::value_type>::base_type side_t;
-	typedef typename side_t::sideof	sideof_t;
+	using side_t = typename PtrToValueType<typename TSideIterator::value_type>::base_type;
+	using sideof_t = typename side_t::sideof;
 
 	elemsOut.clear();
 

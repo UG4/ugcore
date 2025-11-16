@@ -52,7 +52,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_prep_timestep_fct(size_t algebra_id
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_prep_timestep_fct(size_t algebra_id)
 {
-	m_vPrepareTimestepFct[algebra_id] = NULL;
+	m_vPrepareTimestepFct[algebra_id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -64,7 +64,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_prep_timestep_elem_fct(ReferenceObj
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_prep_timestep_elem_fct(ReferenceObjectID id)
 {
-	m_vPrepareTimestepElemFct[id] = NULL;
+	m_vPrepareTimestepElemFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -76,7 +76,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_prep_elem_fct(ReferenceObjectID id,
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_prep_elem_fct(ReferenceObjectID id)
 {
-	m_vPrepareElemFct[id] = NULL;
+	m_vPrepareElemFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -88,7 +88,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_prep_elem_loop_fct(ReferenceObjectI
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_prep_elem_loop_fct(ReferenceObjectID id)
 {
-	m_vPrepareElemLoopFct[id] = NULL;
+	m_vPrepareElemLoopFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -100,7 +100,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_fsh_elem_loop_fct(ReferenceObjectID
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_fsh_elem_loop_fct(ReferenceObjectID id)
 {
-	m_vFinishElemLoopFct[id] = NULL;
+	m_vFinishElemLoopFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -112,7 +112,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_add_jac_A_elem_fct(ReferenceObjectI
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_jac_A_elem_fct(ReferenceObjectID id)
 {
-	m_vElemJAFct[id] = NULL;
+	m_vElemJAFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -124,7 +124,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_add_jac_M_elem_fct(ReferenceObjectI
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_jac_M_elem_fct(ReferenceObjectID id)
 {
-	m_vElemJMFct[id] = NULL;
+	m_vElemJMFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -136,7 +136,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_add_def_A_elem_fct(ReferenceObjectI
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_def_A_elem_fct(ReferenceObjectID id)
 {
-	m_vElemdAFct[id] = NULL;
+	m_vElemdAFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -148,7 +148,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_add_def_A_expl_elem_fct(ReferenceOb
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_def_A_expl_elem_fct(ReferenceObjectID id)
 {
-	m_vElemdAExplFct[id] = NULL;
+	m_vElemdAExplFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -160,7 +160,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_add_def_M_elem_fct(ReferenceObjectI
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_def_M_elem_fct(ReferenceObjectID id)
 {
-	m_vElemdMFct[id] = NULL;
+	m_vElemdMFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -172,7 +172,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_add_rhs_elem_fct(ReferenceObjectID 
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_rhs_elem_fct(ReferenceObjectID id)
 {
-	m_vElemRHSFct[id] = NULL;
+	m_vElemRHSFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -184,7 +184,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_fsh_timestep_fct(size_t algebra_id,
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_fsh_timestep_fct(size_t algebra_id)
 {
-	m_vFinishTimestepFct[algebra_id] = NULL;
+	m_vFinishTimestepFct[algebra_id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -196,7 +196,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::set_fsh_timestep_elem_fct(ReferenceObje
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::remove_fsh_timestep_elem_fct(ReferenceObjectID id)
 {
-	m_vFinishTimestepElemFct[id] = NULL;
+	m_vFinishTimestepElemFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -208,7 +208,7 @@ void IElemEstimatorFuncs<TLeaf, TDomain>::set_prep_err_est_elem_loop(ReferenceOb
 template <typename TLeaf, typename TDomain>
 void IElemEstimatorFuncs<TLeaf, TDomain>::remove_prep_err_est_elem_loop(ReferenceObjectID id)
 {
-	m_vPrepareErrEstElemLoopFct[id] = NULL;
+	m_vPrepareErrEstElemLoopFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -220,7 +220,7 @@ void IElemEstimatorFuncs<TLeaf, TDomain>::set_prep_err_est_elem(ReferenceObjectI
 template <typename TLeaf, typename TDomain>
 void IElemEstimatorFuncs<TLeaf, TDomain>::remove_prep_err_est_elem(ReferenceObjectID id)
 {
-	m_vPrepareErrEstElemFct[id] = NULL;
+	m_vPrepareErrEstElemFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -232,7 +232,7 @@ void IElemEstimatorFuncs<TLeaf, TDomain>::set_compute_err_est_A_elem(ReferenceOb
 template <typename TLeaf, typename TDomain>
 void IElemEstimatorFuncs<TLeaf, TDomain>::remove_compute_err_est_A_elem(ReferenceObjectID id)
 {
-	m_vElemComputeErrEstAFct[id] = NULL;
+	m_vElemComputeErrEstAFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -244,7 +244,7 @@ void IElemEstimatorFuncs<TLeaf, TDomain>::set_compute_err_est_M_elem(ReferenceOb
 template <typename TLeaf, typename TDomain>
 void IElemEstimatorFuncs<TLeaf, TDomain>::remove_compute_err_est_M_elem(ReferenceObjectID id)
 {
-	m_vElemComputeErrEstMFct[id] = NULL;
+	m_vElemComputeErrEstMFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -256,7 +256,7 @@ void IElemEstimatorFuncs<TLeaf, TDomain>::set_compute_err_est_rhs_elem(Reference
 template <typename TLeaf, typename TDomain>
 void IElemEstimatorFuncs<TLeaf, TDomain>::remove_compute_err_est_rhs_elem(ReferenceObjectID id)
 {
-	m_vElemComputeErrEstRhsFct[id] = NULL;
+	m_vElemComputeErrEstRhsFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
@@ -268,7 +268,7 @@ void IElemEstimatorFuncs<TLeaf, TDomain>::set_fsh_err_est_elem_loop(ReferenceObj
 template <typename TLeaf, typename TDomain>
 void IElemEstimatorFuncs<TLeaf, TDomain>::remove_fsh_err_est_elem_loop(ReferenceObjectID id)
 {
-	m_vFinishErrEstElemLoopFct[id] = NULL;
+	m_vFinishErrEstElemLoopFct[id] = nullptr;
 };
 
 }

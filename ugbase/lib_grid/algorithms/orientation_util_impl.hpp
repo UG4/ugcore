@@ -154,8 +154,8 @@ template<class TAAPosVRT>
 bool
 CheckOrientation(Volume* vol, TAAPosVRT& aaPosVRT)
 {
-//	some typedefs
-	typedef typename TAAPosVRT::ValueType vector_t;
+//	some type definitions
+	using vector_t = typename TAAPosVRT::ValueType;
 	
 //	First calculate the center of the volume
 	vector_t volCenter = CalculateCenter(vol, aaPosVRT);

@@ -50,9 +50,9 @@ void MatAdd(	IMatrixOperator<M, X, Y>& opOut,
 				IMatrixOperator<M, X, Y>& op1,
 				IMatrixOperator<M, X, Y>& op2)
 {
-	typedef IMatrixOperator<M, X, Y> MatrixOperator;
+	using MatrixOperator = IMatrixOperator<M, X, Y> ;
 
-	typedef typename MatrixOperator::matrix_type Matrix;
+	using Matrix = typename MatrixOperator::matrix_type ;
 
 	Matrix& matOut = opOut.get_matrix();
 	Matrix& mat1 = op1.get_matrix();
@@ -67,9 +67,9 @@ template <typename X, typename Y, typename M>
 void MatIdentity(	MatrixOperator<M, X, Y>& opOut)
 {
 	PROFILE_FUNC_GROUP("algebra");
-	typedef MatrixOperator<M, X, Y> MatrixOperator;
+	using MatrixOperator = MatrixOperator<M, X, Y>;
 
-	typedef typename MatrixOperator::matrix_type Matrix;
+	using Matrix = typename MatrixOperator::matrix_type;
 
 	Matrix& matOut = opOut.get_matrix();
 	size_t numRows = matOut.num_rows();
@@ -86,9 +86,9 @@ template <typename X, typename Y, typename M>
 void MatAdd( MatrixOperator<M, X, Y>& res, number alpha1, MatrixOperator<M, X, Y>& A1, number alpha2, MatrixOperator<M, X, Y>& A2)
 {
 	PROFILE_FUNC_GROUP("algebra");
-	typedef MatrixOperator<M, X, Y> MatrixOperator;
+	using MatrixOperator = MatrixOperator<M, X, Y>;
 
-	typedef typename MatrixOperator::matrix_type Matrix;
+	using Matrix = typename MatrixOperator::matrix_type;
 
 	Matrix& matRes = res.get_matrix();
 	Matrix& matA1 = A1.get_matrix();
@@ -100,8 +100,8 @@ template <typename X, typename Y, typename M>
 void MatScale( MatrixOperator<M, X, Y>& A, number alpha)
 {
 	PROFILE_FUNC_GROUP("algebra");
-	typedef MatrixOperator<M, X, Y> MatrixOperator;
-	typedef typename MatrixOperator::matrix_type Matrix;
+	using MatrixOperator = MatrixOperator<M, X, Y>;
+	using Matrix = typename MatrixOperator::matrix_type;
 	Matrix& matA = A.get_matrix();
 
 	matA.scale(alpha);
@@ -111,8 +111,8 @@ template <typename X, typename Y, typename M>
 void MatTranspose( MatrixOperator<M, X, Y>& AT,  MatrixOperator<M, X, Y>& A)
 {
 	PROFILE_FUNC_GROUP("algebra");
-	typedef MatrixOperator<M, X, Y> MatrixOperator;
-	typedef typename MatrixOperator::matrix_type Matrix;
+	using MatrixOperator = MatrixOperator<M, X, Y>;
+	using Matrix = typename MatrixOperator::matrix_type;
 
 	Matrix& matA = A.get_matrix();
 	Matrix& matAT = AT.get_matrix();

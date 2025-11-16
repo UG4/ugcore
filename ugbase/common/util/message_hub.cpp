@@ -61,9 +61,9 @@ MessageHub::CallbackId::~CallbackId()
 			m_hub->unregister_callback_impl(this);
 		else{
 		//	we have to set the callback-id of the associated callback-entry to
-		//	NULL, to avoid memory access errors when the associated MessageHub
+		//	nullptr, to avoid memory access errors when the associated MessageHub
 		//	is destroyed.
-			m_callbackEntryIter->m_callbackId = NULL;
+			m_callbackEntryIter->m_callbackId = nullptr;
 		}
 	}
 }
@@ -86,9 +86,9 @@ MessageHub::~MessageHub()
 		for(CallbackEntryList::iterator i_entry = entryList.begin();
 			i_entry != entryList.end(); ++i_entry)
 		{
-		//	if the associated callback-id is valid, then set its hub to NULL
-			if(i_entry->m_callbackId != NULL)
-				i_entry->m_callbackId->m_hub = NULL;
+		//	if the associated callback-id is valid, then set its hub to nullptr
+			if(i_entry->m_callbackId != nullptr)
+				i_entry->m_callbackId->m_hub = nullptr;
 		}
 	}
 }
@@ -102,7 +102,7 @@ unregister_callback(MessageHub::SPCallbackId cbId)
 void MessageHub::
 unregister_callback_impl(MessageHub::CallbackId* cbId)
 {
-	if(cbId->m_hub == NULL){
+	if(cbId->m_hub == nullptr){
 		throw(Error("MessageHub::unregister_callback: Invalid callback-id. "
 						"The callback was probably already unregistered.",
 						MSG_HUB_BAD_CALLBACK_ID));
@@ -115,8 +115,8 @@ unregister_callback_impl(MessageHub::CallbackId* cbId)
 //	clear the entry
 	callbacks.erase(cbId->m_callbackEntryIter);
 
-//	set the associated hub to NULL, since it was just unregistered
-	cbId->m_hub = NULL;
+//	set the associated hub to nullptr, since it was just unregistered
+	cbId->m_hub = nullptr;
 }
 
 }// end of namespace

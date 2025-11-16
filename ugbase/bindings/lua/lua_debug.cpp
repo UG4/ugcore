@@ -79,7 +79,7 @@ static bool bDebugging = false;
 static int debugMode  = DEBUG_CONTINUE;
 static bool bProfiling = false;
 static std::map<std::string, std::map<int, bool> > breakpoints;
-static debug_return (*pDebugShell)() = NULL;
+static debug_return (*pDebugShell)() = nullptr;
 static std::string lastsource;
 static int lastline = -1;
 static int currentDepth = -1;
@@ -126,7 +126,7 @@ void CheckHook()
 	{
 		if(curHookMask)
 		{
-			lua_sethook (GetDefaultLuaState(), NULL, 0, 0);
+			lua_sethook (GetDefaultLuaState(), nullptr, 0, 0);
 			curHookMask=0;
 		}
 	}
@@ -152,12 +152,12 @@ void CheckHook()
 
 void AddBreakpoint(const char*source, int line)
 {
-	if(pDebugShell==NULL)
+	if(pDebugShell==nullptr)
 	{
 		UG_LOG("No Debug Shell set!\n");
 		return;
 	}
-	const char *s=NULL;
+	const char *s=nullptr;
 
 	string relativeFilename=source;
 	string absoluteFilename;
@@ -202,7 +202,7 @@ void DebugHold()
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void breakpoint()
 {
-	if(pDebugShell==NULL)
+	if(pDebugShell==nullptr)
 	{
 		UG_LOG("Breakpoint reached, no Debug Shell set.\n");
 		return;
@@ -263,7 +263,7 @@ void breakpoint_in_script()
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void luaDebug(lua_State *L, const char *source, int line)
 {
-	if(source == NULL || line < 0 || pDebugShell==NULL) return;
+	if(source == nullptr || line < 0 || pDebugShell==nullptr) return;
 	if(source[0]=='@') source++;
 
 	bool bfound=false;
@@ -385,7 +385,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 		}
 	}
 #if UG_PROFILER	
-	const static bool bDebugLuaProfiler = false;
+	static constexpr bool bDebugLuaProfiler = false;
 
 	// Lua profiling is done the following way:
 	// We only want to profile those lines, that actually do something and not
@@ -488,7 +488,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			 pRuntimeProfileInfo &pi = pis[source][line];
 
 			 // if not yet initialized, create new node
-			 if(pi == NULL){
+			 if(pi == nullptr){
 				 char buf[1024];
 				 if(source[0]=='@') source++;
 				 if(strncmp(source, "./../scripts/", 13)==0)
@@ -509,7 +509,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			 // profileDepthInCcall > 1. The only exception is the call to
 			 // 'ug_load_script', that is a c-call but should be profiled
 			 //	also internally since it just loads other lua-scripts
-			 if(ar->name != NULL && strcmp(ar->name, "ug_load_script") == 0)
+			 if(ar->name != nullptr && strcmp(ar->name, "ug_load_script") == 0)
 				 return;
 			 if(ar->what[0] == 'C')
 				 	 profileDepthInCcall = 1;

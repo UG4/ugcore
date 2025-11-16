@@ -72,15 +72,15 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-	typedef GridFunction<TDomain, TAlgebra> function_type;
-	static const int dim = TDomain::dim;
+	using function_type = GridFunction<TDomain, TAlgebra>;
+	static constexpr int dim = TDomain::dim;
 
 //	Obstacle Classes
 
 	//	IObstacleConstraint
 	{
-		typedef IObstacleConstraint<TDomain,TAlgebra> T;
-		typedef IDomainConstraint<TDomain, TAlgebra> TBase;
+		using T = IObstacleConstraint<TDomain,TAlgebra>;
+		using TBase = IDomainConstraint<TDomain, TAlgebra>;
 		string name = string("IObstacleConstraint").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*)>(&T::add),
@@ -111,8 +111,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	ScalarLowerObstacle
 	{
-		typedef ScalarLowerObstacle<TDomain,TAlgebra> T;
-		typedef IObstacleConstraint<TDomain,TAlgebra> TBase;
+		using T = ScalarLowerObstacle<TDomain,TAlgebra>;
+		using TBase = IObstacleConstraint<TDomain,TAlgebra>;
 		string name = string("ScalarLowerObstacle").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.template add_constructor<void (*)(const function_type&)>()
@@ -123,8 +123,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	ScalarUpperObstacle
 	{
-		typedef ScalarUpperObstacle<TDomain,TAlgebra> T;
-		typedef IObstacleConstraint<TDomain,TAlgebra> TBase;
+		using T = ScalarUpperObstacle<TDomain,TAlgebra>;
+		using TBase = IObstacleConstraint<TDomain,TAlgebra>;
 		string name = string("ScalarUpperObstacle").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.template add_constructor<void (*)(const function_type&)>()
@@ -135,8 +135,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	ObstacleInNormalDir
 	{
-		typedef ObstacleInNormalDir<TDomain,TAlgebra> T;
-		typedef IObstacleConstraint<TDomain,TAlgebra> TBase;
+		using T = ObstacleInNormalDir<TDomain,TAlgebra>;
+		using TBase = IObstacleConstraint<TDomain,TAlgebra>;
 		string name = string("ObstacleInNormalDir").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.template add_constructor<void (*)(const function_type&)>()
@@ -150,8 +150,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	IProjGaussSeidel
 	{
-		typedef IProjGaussSeidel<TDomain, TAlgebra> T;
-		typedef GaussSeidelBase<TAlgebra> TBase;
+		using T = IProjGaussSeidel<TDomain, TAlgebra>;
+		using TBase = GaussSeidelBase<TAlgebra>;
 		string name = string("IProjGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_method("add_obstacle_constraint", &T::add_obstacle_constraint,
@@ -162,8 +162,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	ProjGaussSeidel
 	{
-		typedef ProjGaussSeidel<TDomain,TAlgebra> T;
-		typedef IProjGaussSeidel<TDomain,TAlgebra> TBase;
+		using T = ProjGaussSeidel<TDomain,TAlgebra>;
+		using TBase = IProjGaussSeidel<TDomain,TAlgebra>;
 		string name = string("ProjGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_constructor()
@@ -173,8 +173,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	ProjBackwardGaussSeidel
 	{
-		typedef ProjBackwardGaussSeidel<TDomain,TAlgebra> T;
-		typedef IProjGaussSeidel<TDomain,TAlgebra> TBase;
+		using T = ProjBackwardGaussSeidel<TDomain,TAlgebra>;
+		using TBase = IProjGaussSeidel<TDomain,TAlgebra>;
 		string name = string("ProjBackwardGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_constructor()
@@ -184,8 +184,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	ProjSymmetricGaussSeidel
 	{
-		typedef ProjSymmetricGaussSeidel<TDomain,TAlgebra> T;
-		typedef IProjGaussSeidel<TDomain,TAlgebra> TBase;
+		using T = ProjSymmetricGaussSeidel<TDomain,TAlgebra>;
+		using TBase = IProjGaussSeidel<TDomain,TAlgebra>;
 		string name = string("ProjSymmetricGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_constructor()
@@ -196,8 +196,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	transfer operators for truncated monotone multigrid
 	{
-		typedef TruncatedMonotoneTransfer<TDomain,TAlgebra> T;
-		typedef StdTransfer<TDomain,TAlgebra> TBase;
+		using T = TruncatedMonotoneTransfer<TDomain,TAlgebra>;
+		using TBase = StdTransfer<TDomain,TAlgebra>;
 		string name = string("TruncatedMonotoneTransfer").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_constructor()
@@ -217,7 +217,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 void RegisterBridge_Obstacle(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Obstacle");
-	typedef Obstacle::Functionality Functionality;
+	using Functionality = Obstacle::Functionality;
 
 	try{
 		RegisterDomainAlgebraDependent<Functionality>(reg,grp);

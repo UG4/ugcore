@@ -111,7 +111,7 @@ IApproximationSpace::
 ~IApproximationSpace()
 {
 	if(m_spSurfaceView.valid())
-		m_spSurfaceView = SmartPtr<SurfaceView>(NULL);
+		m_spSurfaceView = SmartPtr<SurfaceView>(nullptr);
 }
 
 template <typename TElem>
@@ -121,11 +121,11 @@ bool MightContainGhosts(const GridLayoutMap& layoutMap, int lvl)
 	if(lvl >= (int)layoutMap.get_layout<TElem>(INT_V_MASTER).num_levels()) return false;
 	if(layoutMap.get_layout<TElem>(INT_V_MASTER).empty(lvl)) return false;
 
-	typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout TLayout;
-	typedef typename TLayout::const_iterator InterfaceIterator;
+	using TLayout = typename GridLayoutMap::Types<TElem>::Layout::LevelLayout;
+	// using InterfaceIterator = typename TLayout::const_iterator;
 
 	const TLayout& elemLayout = layoutMap.get_layout<TElem>(INT_V_MASTER).layout_on_level(lvl);
-	for(InterfaceIterator iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter){
+	for(auto iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter){
 		if(!elemLayout.interface(iIter).empty())
 			return true;
 	}
@@ -530,22 +530,22 @@ void PrintDoFCount(const vector<DoFCount>& vDC,
 		UG_THROW("Expected something to print.")
 
 //	constants for size of output
-	static const int LEVEL = 14;
-	static const int COMPONENT = 7;
-	static const int INTERFACE = 8;
-	static const int SURFACE = 12;
-	static const int NUMBER = 12;
+	static constexpr int LEVEL = 14;
+	static constexpr int COMPONENT = 7;
+	static constexpr int INTERFACE = 8;
+	static constexpr int SURFACE = 12;
+	static constexpr int NUMBER = 12;
 	static const char* sSep = " | ";
 	static const char* sLeft = "| ";
 	static const char* sRight = " |";
 
 //	constants for selection
-	static const int ALL_FCT = DoFCount::ALL_FCT;
-	static const int ALL_SUBSET = DoFCount::ALL_SUBSET;
-	static const byte ALL_ES = DoFCount::ALL_ES;
-	static const byte ALL_SS = DoFCount::ALL_SS;
-	static const byte UNIQUE_ES = DoFCount::UNIQUE_ES;
-	static const byte UNIQUE_SS = DoFCount::UNIQUE_SS;
+	static constexpr int ALL_FCT = DoFCount::ALL_FCT;
+	static constexpr int ALL_SUBSET = DoFCount::ALL_SUBSET;
+	static constexpr byte_t ALL_ES = DoFCount::ALL_ES;
+	static constexpr byte_t ALL_SS = DoFCount::ALL_SS;
+	static constexpr byte_t UNIQUE_ES = DoFCount::UNIQUE_ES;
+	static constexpr byte_t UNIQUE_SS = DoFCount::UNIQUE_SS;
 
 //	Table Header
 	stringstream ssHead;
@@ -603,46 +603,46 @@ void PrintDoFCount(const vector<DoFCount>& vDC,
 		stringstream ssGL; ssGL << gl;
 
 	//	always print unique (w.r.t interface) number
-		vector<pair<string, byte> > vInIS;
-		vInIS.push_back(pair<string,byte>("unique",UNIQUE_ES));
-		vector<pair<string, byte> > vContainsIS;
+		vector<pair<string, byte_t> > vInIS;
+		vInIS.push_back(pair<string,byte_t>("unique",UNIQUE_ES));
+		vector<pair<string, byte_t> > vContainsIS;
 
 	//	if PrintInterface: add more output
 		if(bPrintInterface){
-			vContainsIS.push_back(pair<string,byte>("m (&)",ES_H_MASTER));
-			vContainsIS.push_back(pair<string,byte>("s (&)",ES_H_SLAVE));
-			vInIS.push_back(pair<string,byte>("all",ALL_ES));
+			vContainsIS.emplace_back("m (&)",ES_H_MASTER);
+			vContainsIS.emplace_back("s (&)",ES_H_SLAVE);
+			vInIS.emplace_back("all",ALL_ES);
 
 		//	if grid level with ghost: add more output
 			if(gl.is_level() && gl.ghosts()){
-				vContainsIS.push_back(pair<string,byte>("vm (&)",ES_V_MASTER));
-				vContainsIS.push_back(pair<string,byte>("vs (&)",ES_V_SLAVE));
-				vInIS.push_back(pair<string,byte>("no (x)",ES_NONE));
-				vInIS.push_back(pair<string,byte>("m (x)",ES_H_MASTER));
-				vInIS.push_back(pair<string,byte>("s (x)",ES_H_SLAVE));
-				vInIS.push_back(pair<string,byte>("vm (x)",ES_V_MASTER));
-				vInIS.push_back(pair<string,byte>("vs (x)", ES_V_SLAVE));
-				vInIS.push_back(pair<string,byte>("m+vm (x)", ES_H_MASTER | ES_V_MASTER));
-				vInIS.push_back(pair<string,byte>("m+vs (x)", ES_H_MASTER | ES_V_SLAVE));
-				vInIS.push_back(pair<string,byte>("s+vm (x)", ES_H_SLAVE | ES_V_MASTER));
-				vInIS.push_back(pair<string,byte>("s+vs (x)", ES_H_SLAVE | ES_V_SLAVE));
+				vContainsIS.emplace_back("vm (&)",ES_V_MASTER);
+				vContainsIS.emplace_back("vs (&)",ES_V_SLAVE);
+				vInIS.emplace_back("no (x)",ES_NONE);
+				vInIS.emplace_back("m (x)",ES_H_MASTER);
+				vInIS.emplace_back("s (x)",ES_H_SLAVE);
+				vInIS.emplace_back("vm (x)",ES_V_MASTER);
+				vInIS.emplace_back("vs (x)", ES_V_SLAVE);
+				vInIS.emplace_back("m+vm (x)", ES_H_MASTER | ES_V_MASTER);
+				vInIS.emplace_back("m+vs (x)", ES_H_MASTER | ES_V_SLAVE);
+				vInIS.emplace_back("s+vm (x)", ES_H_SLAVE | ES_V_MASTER);
+				vInIS.emplace_back("s+vs (x)", ES_H_SLAVE | ES_V_SLAVE);
 			}
 		}
 
 	//	always print unique (w.r.t. surface) number
-		vector<pair<string, byte> > vInSS;
+		vector<pair<string, byte_t> > vInSS;
 		if(gl.is_surface())
-			vInSS.push_back(pair<string,byte>("unique",UNIQUE_SS));
+			vInSS.emplace_back("unique",UNIQUE_SS);
 		else
-			vInSS.push_back(pair<string,byte>("---",UNIQUE_SS));
+			vInSS.emplace_back("---",UNIQUE_SS);
 
 	//	if PrintSurface and a surface level: add more output
 		if(bPrintSurface && gl.is_surface()){
-			vInSS.push_back(pair<string,byte>("all",ALL_SS));
-			vInSS.push_back(pair<string,byte>("pure",SurfaceView::MG_SURFACE_PURE));
-			vInSS.push_back(pair<string,byte>("shadowing",SurfaceView::MG_SURFACE_RIM));
-			vInSS.push_back(pair<string,byte>("shadow-cpy",SurfaceView::MG_SHADOW_RIM_COPY));
-			vInSS.push_back(pair<string,byte>("shadow-nocpy",SurfaceView::MG_SHADOW_RIM_NONCOPY));
+			vInSS.emplace_back("all",ALL_SS);
+			vInSS.emplace_back("pure",SurfaceView::MG_SURFACE_PURE);
+			vInSS.emplace_back("shadowing",SurfaceView::MG_SURFACE_RIM);
+			vInSS.emplace_back("shadow-cpy",SurfaceView::MG_SHADOW_RIM_COPY);
+			vInSS.emplace_back("shadow-nocpy",SurfaceView::MG_SHADOW_RIM_NONCOPY);
 		}
 
 		UG_LOG(sLeft<<setw(LEVEL) << left << ssGL.str() << right);
@@ -827,8 +827,7 @@ void IApproximationSpace::print_statistic(std::string flags) const
 static size_t NumIndices(const IndexLayout& Layout)
 {
 	size_t sum = 0;
-	for(IndexLayout::const_iterator iter = Layout.begin();
-			iter != Layout.end(); ++iter)
+	for(IndexLayout::const_iterator iter = Layout.begin(); iter != Layout.end(); ++iter)
 		sum += Layout.interface(iter).size();
 	return sum;
 }
@@ -837,10 +836,10 @@ static size_t NumIndices(const IndexLayout& Layout)
 void IApproximationSpace::print_layout_statistic() const
 {
 #ifdef UG_PARALLEL
-	static const int LEVEL = 14;
-	static const int NUMBER = 12;
-	static const int SEP = 3;
-	static const int LINE = LEVEL + 4*NUMBER + 4*SEP;
+	static constexpr int LEVEL = 14;
+	static constexpr int NUMBER = 12;
+	static constexpr int SEP = 3;
+	static constexpr int LINE = LEVEL + 4*NUMBER + 4*SEP;
 	static const char* sSep = " | ";
 
 //	Write header line

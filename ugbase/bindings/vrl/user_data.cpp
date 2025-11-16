@@ -56,7 +56,7 @@ template <std::size_t dim>
 inline jdoubleArray ConvertParametersToJava(JNIEnv *env, const MathVector<dim>& x,
                                             const number time)
 {
-	jdoubleArray array = NULL;
+	jdoubleArray array = nullptr;
 	array = env->NewDoubleArray(dim+1);
 
 	jdouble vTmp[dim + 1];
@@ -75,9 +75,9 @@ struct vrl_traits;
 template <>
 struct vrl_traits<number>
 {
-	typedef jdouble jType;
+	using jType = jdouble ;
 	static const unsigned int retArrayDim = 0;
-	static const int size = 1;
+	static constexpr int size = 1;
 	static std::string name() {return "Number";}
 	static std::string errMsg()
 	{
@@ -115,9 +115,9 @@ struct vrl_traits<number>
 template <std::size_t dim>
 struct vrl_traits<ug::MathVector<dim> >
 {
-	typedef jdoubleArray jType;
+	using jType = jdoubleArray;
 	static const unsigned int retArrayDim = 1;
-	static const int size = dim;
+	static constexpr int size = dim;
 	static std::string name() {return "Vector";}
 	static std::string errMsg()
 	{
@@ -172,9 +172,9 @@ struct vrl_traits<ug::MathVector<dim> >
 template <std::size_t dim>
 struct vrl_traits<ug::MathMatrix<dim,dim> >
 {
-	typedef jobjectArray jType;
+	using jType = jobjectArray;
 	static const unsigned int retArrayDim = 2;
-	static const int size = dim*dim;
+	static constexpr int size = dim*dim;
 	static std::string name() {return "Matrix";}
 	static std::string errMsg()
 	{
@@ -256,7 +256,7 @@ class VRLUserLinker
 {
 	public:
 	///	type of base class
-		typedef StdDataLinker<VRLUserLinker<TData, dim, TDataIn>, TData, dim> base_type;
+		using base_type = StdDataLinker<VRLUserLinker<TData, dim, TDataIn>, TData, dim>;
 
 	protected:
 		static jobject compileUserDataString(JNIEnv *env, const char* s)
@@ -394,7 +394,7 @@ class VRLUserLinker
 		                    bool bDeriv,
 		                    int s,
 		                    std::vector<std::vector<TData> > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL)
+		                    const MathMatrix<refDim, dim>* vJT = nullptr)
 		{
 		//	vector of data for all inputs
 			std::vector<TDataIn> vDataIn(this->num_input());
@@ -477,7 +477,7 @@ class VRLUserLinker
 							 const MathVector<refDim> vLocIP[],
 							 const size_t nip,
 							 LocalVector* u,
-							 const MathMatrix<refDim, dim>* vJT = NULL) const
+							 const MathMatrix<refDim, dim>* vJT = nullptr) const
 		{
 		//	vector of data for all inputs
 			std::vector<TDataIn> vDataIn(this->num_input());
@@ -526,7 +526,7 @@ class VRLUserLinker
 
 			jint jsi = si;
 
-			if (runMethod != NULL)
+			if (runMethod != nullptr)
 				vrl_traits<TData>::call(env, value, userDataValue, runMethod,
 				                        params, jsi);
 		}
@@ -563,7 +563,7 @@ class VRLUserLinker
 
 			jint jsi = si;
 
-			if (runMethod != NULL)
+			if (runMethod != nullptr)
 				vrl_traits<TData>::call(env, value, vUserDataDeriv[arg], runMethod,
 				                        params, jsi);
 		}
@@ -722,7 +722,7 @@ class VRLUserData
 			jdoubleArray params = ConvertParametersToJava(env, x, time);
 			jint jsi = si;
 
-			if (runMethod != NULL)
+			if (runMethod != nullptr)
 				vrl_traits<TData>::call(env, value, userDataObject, runMethod,
 				                        params, jsi);
 		}
@@ -881,7 +881,7 @@ public:
 		jint jsi = si;
 
 		bool result = false;
-		if (runMethod != NULL)
+		if (runMethod != nullptr)
 		{
 			jobject bndResult = (jdoubleArray) env->CallObjectMethod(
 					userDataObject,
@@ -1027,8 +1027,8 @@ void RegisterUserDataType(ug::bridge::Registry& reg, const std::string& grp)
 
 	//	VRLUserType
 	{
-		typedef VRLUserData<TData, dim> T;
-		typedef CplUserData<TData, dim> TBase;
+		using T = VRLUserData<TData, dim>;
+		using TBase = CplUserData<TData, dim>;
 		std::stringstream options;
 		options << "Input:|user-data|dim=" << T::retArrayDim << ";"
 				<< "params=["<<T::params()<<"];";
@@ -1041,8 +1041,8 @@ void RegisterUserDataType(ug::bridge::Registry& reg, const std::string& grp)
 
 	//	VRLUserLinkerTypeNumber
 	{
-		typedef VRLUserLinker<TData, dim, number> T;
-		typedef CplUserData<TData, dim> TBase;
+		using T = VRLUserLinker<TData, dim, number>;
+		using TBase = CplUserData<TData, dim>;
 		std::stringstream options;
 		reg.add_class_<T, TBase>(T::name(), grp)
 			.add_constructor()
@@ -1059,7 +1059,7 @@ void RegisterUserDataType(ug::bridge::Registry& reg, const std::string& grp)
 	// PrintUserType2d
 	if(dim == 2)
 	{
-		typedef PrintUserData2d<TData> T;
+		using T = PrintUserData2d<TData>;
 		reg.add_class_<T > (T::name(), grp)
 				.add_constructor()
 				.add_method("set", &T::set, "", T::dataname())
@@ -1080,8 +1080,8 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup)
 
 	//	VRLCondUserNumber
 	{
-		typedef VRLCondUserNumber<dim> T;
-		typedef CplUserData<number, dim, bool> TBase;
+		using T = VRLCondUserNumber<dim>;
+		using TBase = CplUserData<number, dim, bool>;
 		std::stringstream options;
 		options << "Input:|cond-user-data|params=["<<T::params()<<"];";
 		reg.add_class_<T, TBase>(T::name(), grp)
@@ -1093,7 +1093,7 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup)
 
 	if(dim == 2)
 	{
-		typedef PrintCondUserData2d<number> T3;
+		using T3 = PrintCondUserData2d<number>;
 		reg.add_class_<T3 > (T3::name(), grp)
 				.add_constructor()
 				.add_method("set", &T3::set, "", T3::dataname())

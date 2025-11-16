@@ -34,6 +34,7 @@
 #define __H__pcl_multi_group_communicator
 
 #include <vector>
+
 #include "pcl_process_communicator.h"
 
 
@@ -70,9 +71,9 @@ public:
 
 private:
 	ProcessCommunicator	m_com;
-	std::vector<bool>	m_participates; ///< size: #groups
+	std::vector<bool> m_participates; ///< size: #groups
 	std::vector<size_t>	m_memberships; ///< size: #memberships. Holds indices to groups in which the process participates
-	std::vector<int>	m_groupMembers; ///< size: m_groupOffsets.back(). Consecutively holds proc-indices of each group in which the process participates.
+	std::vector<int> m_groupMembers; ///< size: m_groupOffsets.back(). Consecutively holds proc-indices of each group in which the process participates.
 	std::vector<size_t>	m_groupOffsets;	///< size: #memberships+1. Offset of each group in m_groupMembers. The last entry always holds m_groupMembers.size().
 	std::map<int, ug::BinaryBuffer>	m_binBufs; ///< used for sending/receiving data from/to processes
 

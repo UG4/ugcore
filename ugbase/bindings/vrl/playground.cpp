@@ -47,10 +47,6 @@ TestClass::TestClass(std::string name) {
 	UG_LOG("Constructor TestClass(std::string name) called." << std::endl);
 }
 
-std::string TestClass::getRev() {
-	return ug::vrl::svnRevision();
-}
-
 int TestClass::add(int a, int b) {
 	return a + b;
 }
@@ -115,13 +111,13 @@ void TestSmartPtr2ConstPtr(const TestClass* t) {
 SmartPtrCls::SmartPtrCls() {
 	UG_LOG("Constructor SmartPtrCls() called." << std::endl);
 	_name = "noname";
-	_data = NULL;
+	_data = nullptr;
 }
 
 SmartPtrCls::SmartPtrCls(std::string name) {
 	_name = name;
 	UG_LOG("Constructor SmartPtrCls(std::string name) called." << std::endl);
-	_data = NULL;
+	_data = nullptr;
 }
 
 void SmartPtrCls::print_name() {
@@ -129,7 +125,7 @@ void SmartPtrCls::print_name() {
 }
 
 void SmartPtrCls::create_data(int size) {
-	if (_data ==NULL) {
+	if (_data ==nullptr) {
 		_data = new byte[size];
 	} else {
 		UG_LOG(_name << ": Data already created! " << std::endl);
@@ -139,9 +135,9 @@ void SmartPtrCls::create_data(int size) {
 SmartPtrCls::~SmartPtrCls() {
 	UG_LOG("~SmartPtrCls:" << _name << std::endl);
 
-	if (_data !=NULL ){
+	if (_data !=nullptr ){
 		delete[] _data;
-		_data = NULL;
+		_data = nullptr;
 	}
 }
 
@@ -344,7 +340,6 @@ void registerPlayground(ug::bridge::Registry& reg) {
 	reg.add_class_<TestClass > ("TestClass", "ug4/testing")
 			.add_constructor()
 			.add_constructor<void(*)(std::string)>()
-			.add_method("svnRevision|hide=true,interactive=true", &TestClass::getRev)
 			.add_method("add", &TestClass::add, "result",
 			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
 			.add_method("getString", &TestClass::getString)

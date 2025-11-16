@@ -78,11 +78,10 @@ void induced_subgraph(G_t& ind_g, M_t* A, const std::vector<size_t>& inv_map){
 #ifndef MCKEE_GRAPH_T
 #define MCKEE_GRAPH_T
 /* boost graph type for Cuthill-McKee */
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
+using Graph_t = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
 	boost::property<boost::vertex_color_t,
-			 boost::default_color_type,
-			 boost::property<boost::vertex_degree_t, int> > >
-				Graph_t;
+		boost::default_color_type,
+		boost::property<boost::vertex_degree_t, int> > >;
 #endif
 
 
@@ -90,11 +89,11 @@ template <typename TAlgebra, typename O_t=std::vector<size_t> >
 class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
-	typedef typename TAlgebra::matrix_type M_t;
-	typedef typename TAlgebra::vector_type V_t;
-	typedef Graph_t G_t;
-	typedef boost::graph_traits<G_t>::vertex_descriptor Vertex_t;
-	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
+	using M_t = typename TAlgebra::matrix_type;
+	using V_t = typename TAlgebra::vector_type;
+	using G_t = Graph_t;
+	using Vertex_t = boost::graph_traits<G_t>::vertex_descriptor;
+	using baseclass = IOrderingAlgorithm<TAlgebra, O_t>;
 
 	BoostCuthillMcKeeOrdering() : m_bReverse(false){}
 

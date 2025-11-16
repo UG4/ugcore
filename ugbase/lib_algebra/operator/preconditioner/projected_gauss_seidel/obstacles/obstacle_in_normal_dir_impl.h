@@ -93,30 +93,30 @@ ObstacleInNormalDir<TDomain,TAlgebra>::transform_eulerian_coord_sys(MathVector<d
 
 template <int dim> struct face_type_traits
 {
-    typedef void face_type0;
-	typedef void face_type1;
-	typedef void DimFEGeo;
+	using face_type0 = void;
+    using face_type1 = void;
+    using DimFEGeo = void;
 };
 
 template <> struct face_type_traits<1>
 {
-    typedef ReferenceVertex face_type0;
-	typedef ReferenceVertex face_type1;
-	typedef DimFEGeometry<1, 1> DimFEGeo;
+	using face_type0 = ReferenceVertex;
+    using face_type1 = ReferenceVertex;
+    using DimFEGeo = DimFEGeometry<1, 1>;
 };
 
 template <> struct face_type_traits<2>
 {
-    typedef ReferenceEdge face_type0;
-	typedef ReferenceEdge face_type1;
-	typedef DimFEGeometry<2, 1> DimFEGeo;
+	using face_type0 = ReferenceEdge;
+    using face_type1 = ReferenceEdge;
+    using DimFEGeo = DimFEGeometry<2, 1>;
 };
 
 template <> struct face_type_traits<3>
 {
-    typedef ReferenceTriangle face_type0;
-	typedef ReferenceQuadrilateral face_type1;
-	typedef DimFEGeometry<3, 2> DimFEGeo;
+	using face_type0 = ReferenceTriangle;
+    using face_type1 = ReferenceQuadrilateral;
+    using DimFEGeo = DimFEGeometry<3, 2>;
 };
 
 template <typename TDomain, typename TAlgebra>
@@ -127,8 +127,8 @@ adjust_sol_and_cor_elem(TIterator iterBegin,
 		TIterator iterEnd, value_type& sol_i, value_type& c_i, bool& dofIsActive,
 		const DoFIndex& dof)
 {
-	typedef typename face_type_traits<dim>::face_type0 face_type0;
-	typedef typename face_type_traits<dim>::face_type1 face_type1;
+	using face_type0 = typename face_type_traits<dim>::face_type0;
+	using face_type1 = typename face_type_traits<dim>::face_type1;
 
 	//	storage for corner coordinates
 	vector<MathVector<dim> > vCorner;

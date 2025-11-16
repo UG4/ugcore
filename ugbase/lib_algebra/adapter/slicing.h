@@ -68,9 +68,9 @@ template <class TVec, size_t N>
 class SlicingData{
 
 public:
-	typedef std::vector<int> slice_desc_set;
-	typedef TVec slice_desc_type_vector;
-	typedef typename TVec::value_type slice_desc_type;
+	using slice_desc_set = std::vector<int>;
+	using slice_desc_type_vector = TVec;
+	using slice_desc_type = typename TVec::value_type;
 
 protected:
 	bool m_valid;

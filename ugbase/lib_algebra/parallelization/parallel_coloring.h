@@ -56,7 +56,7 @@ extern DebugID DBG_COLORING;
 class ParallelColoring
 {
 public:
-	ParallelColoring() : p_colors(NULL), p_processesWithLowerColor(NULL), p_processesWithHigherColor(NULL)
+	ParallelColoring() : p_colors(nullptr), p_processesWithLowerColor(nullptr), p_processesWithHigherColor(nullptr)
 	{
 
 	}

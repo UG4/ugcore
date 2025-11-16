@@ -47,17 +47,17 @@ class NeumannBoundaryFV1
 {
 	private:
 	///	Base class type
-		typedef NeumannBoundaryBase<TDomain> base_type;
+		using base_type = NeumannBoundaryBase<TDomain>;
 
 	///	Base class type
-		typedef NeumannBoundaryFV1<TDomain> this_type;
+		using this_type = NeumannBoundaryFV1<TDomain>;
 
 	/// error estimator type
-		typedef SideAndElemErrEstData<TDomain> err_est_type;
+		using err_est_type = SideAndElemErrEstData<TDomain>;
 
 	public:
 	///	World dimension
-		static const int dim = base_type::dim;
+		static constexpr int dim = base_type::dim;
 
 	public:
 	///	default constructor
@@ -173,7 +173,7 @@ class NeumannBoundaryFV1
 
 	/// \}
 
-		static const int _C_ = 0;
+		static constexpr int _C_ = 0;
 
 	private:
 		void register_all_funcs(bool bHang);

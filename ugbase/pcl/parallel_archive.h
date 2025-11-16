@@ -33,29 +33,35 @@
 #ifndef PARALLEL_ARCHIVE_H_
 #define PARALLEL_ARCHIVE_H_
 
-#include "pcl_process_communicator.h"
-#include "common/util/binary_stream.h"
-#include "common/log.h"
+
 #include <map>
 #include <string>
+#include <utility>
 #include <mpi.h>
+
+#include "common/log.h"
 #include "common/util/string_util.h"
 #include "common/util/smart_pointer.h"
+#include "common/util/binary_stream.h"
+
+#include "pcl_process_communicator.h"
+
+
 
 namespace pcl{
 
 struct FileBufferDescriptor
 {
 	FileBufferDescriptor(std::string _name, const char *_buf, size_t _size) :
-		name(_name), buf(_buf), size(_size)
+		name(std::move(_name)), buf(_buf), size(_size)
 	{	}
 
 	FileBufferDescriptor(std::string _name, ug::BinaryBuffer& _buf) :
-			name(_name), buf(_buf.buffer()), size(_buf.write_pos())
+			name(std::move(_name)), buf(_buf.buffer()), size(_buf.write_pos())
 	{	}
 
 	FileBufferDescriptor(std::string _name, ug::BinaryStream& _buf) :
-				name(_name), buf((char*)_buf.buffer()), size(_buf.size())
+				name(std::move(_name)), buf((char*)_buf.buffer()), size(_buf.size())
 	{	}
 
 	// Initializing buf with buf.str().c_str() is unsafe, as _buf.str() is only temporary.
@@ -70,15 +76,15 @@ struct FileBufferDescriptor
 
 };
 
-void WriteParallelArchive(pcl::ProcessCommunicator &pc, std::string strFilename, const std::vector<FileBufferDescriptor> &files);
+void WriteParallelArchive(ProcessCommunicator &pc, std::string strFilename, const std::vector<FileBufferDescriptor> &files);
 
 template<typename TBuffer>
-void WriteParallelArchive(pcl::ProcessCommunicator &pc, std::string strFilename, const std::map<std::string, TBuffer> &files)
+void WriteParallelArchive(ProcessCommunicator &pc, std::string strFilename, const std::map<std::string, TBuffer> &files)
 {
 	std::vector<FileBufferDescriptor> fdesc;
 	for(typename std::map<std::string, TBuffer>::const_iterator it = files.begin(); it != files.end(); ++it)
 		 files.push_back(FileBufferDescriptor(ug::FilenameWithoutPath(it->first), it->second));
-	WriteParallelArchive(pc, strFilename, fdesc);
+	WriteParallelArchive(pc, std::move(strFilename), fdesc);
 }
 
 /**
@@ -104,43 +110,40 @@ private:
 	/// internal virtual buffer interface to support different buffers
 	struct BufferInterface
 	{
-		virtual ~BufferInterface() {}
+		virtual ~BufferInterface() = default;
 		virtual const char *buffer()=0;
 		virtual size_t size()=0;
 		virtual void update() {}
 	};
 
-	struct BufferBinaryBuffer : public BufferInterface
+	struct BufferBinaryBuffer : BufferInterface
 	{
 		ug::BinaryBuffer internal_buffer;
-		virtual const char *buffer() { return internal_buffer.buffer(); };
-		virtual size_t size() { return internal_buffer.write_pos(); }
+		const char *buffer() override { return internal_buffer.buffer(); };
+		size_t size() override { return internal_buffer.write_pos(); }
 	};
 
-	struct BufferBinaryStream : public BufferInterface
+	struct BufferBinaryStream : BufferInterface
 	{
 		ug::BinaryStream internal_buffer;
-		virtual const char *buffer() { return (const char*)internal_buffer.buffer(); };
-		virtual size_t size() { return internal_buffer.size(); }
+		const char *buffer() override { return (const char*)internal_buffer.buffer(); };
+		size_t size() override { return internal_buffer.size(); }
 	};
 
-	struct Buffer_stringstream : public BufferInterface
+	struct Buffer_stringstream : BufferInterface
 	{
 		std::stringstream internal_buffer;
 		std::string m_s;
-		virtual void update()
-		{
-			m_s = internal_buffer.str();
-		}
-		virtual const char *buffer() { return m_s.c_str(); }
-		virtual size_t size() { return m_s.length(); }
+		void update() override { m_s = internal_buffer.str(); }
+		const char *buffer() override { return m_s.c_str(); }
+		size_t size() override { return m_s.length(); }
 	};
 
-	struct ConstCharBuffer : public BufferInterface
+	struct ConstCharBuffer : BufferInterface
 	{
 		ConstCharBuffer(const char *p, size_t s) : m_p(p), m_size(s) {}
-		virtual const char *buffer() { return m_p; };
-		virtual size_t size() { return m_size; }
+		const char *buffer() override { return m_p; };
+		size_t size() override { return m_size; }
 		const char *m_p;
 		size_t m_size;
 	};
@@ -153,8 +156,8 @@ public:
 	 * @param filename  the name of the archive. add .a for clearness
 	 * @param pc		the process communicator used for MPI purposes. default WORLD
 	 */
-	ParallelArchive(std::string filename, pcl::ProcessCommunicator pc = pcl::ProcessCommunicator(pcl::PCD_WORLD))
-		: m_filename(filename), m_pc(pc)
+	ParallelArchive(std::string filename, ProcessCommunicator pc = ProcessCommunicator(PCD_WORLD))
+		: m_filename(std::move(filename)), m_pc(pc)
 	{
 		m_bWritten = false;
 		m_bUnsafe = false;
@@ -237,12 +240,11 @@ public:
 	void write()
 	{
 		std::vector<FileBufferDescriptor> fdesc;
-		for(map_iterator it = files.begin(); it != files.end(); ++it)
+		for(auto it = files.begin(); it != files.end(); ++it)
 		{
 			(it->second)->update();
-			fdesc.push_back(
-					FileBufferDescriptor(ug::FilenameWithoutPath(it->first),
-							(it->second)->buffer() , (it->second)->size() ) );
+			fdesc.emplace_back(ug::FilenameWithoutPath(it->first),
+							(it->second)->buffer() , (it->second)->size() );
 		}
 		WriteParallelArchive(m_pc, m_filename, fdesc);
 		files.clear();
@@ -253,19 +255,18 @@ public:
 	{
 		if(m_bWritten == false)
 			write();
-		m_filename = filename;
+		m_filename = std::move(filename);
 	}
 
 private:
-
-	typedef std::map<std::string, SmartPtr<BufferInterface> >::iterator map_iterator;
+	using map_iterator = std::map<std::string, SmartPtr<BufferInterface> >::iterator;
 
 	std::map<std::string, SmartPtr<BufferInterface> > files;
 	std::string m_filename;
-	pcl::ProcessCommunicator m_pc;
+	ProcessCommunicator m_pc;
 	bool m_bWritten;
 	bool m_bUnsafe;
 };
 
 }
-#endif /* PARALLEL_ARCHIVE_H_ */
+#endif

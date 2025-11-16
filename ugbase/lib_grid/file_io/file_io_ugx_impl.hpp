@@ -286,7 +286,7 @@ create_vertex_node(RegularVertexIterator vrtsBegin,
 	}
 
 //	create the node
-	xml_node<>* node = NULL;
+	xml_node<>* node = nullptr;
 
 	if(ss.str().size() > 0){
 	//	allocate a string and erase last character(' ')
@@ -300,7 +300,7 @@ create_vertex_node(RegularVertexIterator vrtsBegin,
 		node = m_doc.allocate_node(node_element, "vertices");
 	}
 
-	char* buff = m_doc.allocate_string(NULL, 10);
+	char* buff = m_doc.allocate_string(nullptr, 10);
 	snprintf(buff, 10, "%d", numCoords);
 	node->append_attribute(m_doc.allocate_attribute("coords", buff));
 
@@ -348,7 +348,7 @@ create_constrained_vertex_node(ConstrainedVertexIterator vrtsBegin,
 	}
 
 //	create the node
-	xml_node<>* node = NULL;
+	xml_node<>* node = nullptr;
 
 	if(ss.str().size() > 0){
 	//	allocate a string and erase last character(' ')
@@ -362,7 +362,7 @@ create_constrained_vertex_node(ConstrainedVertexIterator vrtsBegin,
 		node = m_doc.allocate_node(node_element, "constrained_vertices");
 	}
 
-	char* buff = m_doc.allocate_string(NULL, 10);
+	char* buff = m_doc.allocate_string(nullptr, 10);
 	snprintf(buff, 10, "%d", numCoords);
 	node->append_attribute(m_doc.allocate_attribute("coords", buff));
 

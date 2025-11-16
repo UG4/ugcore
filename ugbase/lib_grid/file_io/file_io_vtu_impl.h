@@ -170,8 +170,8 @@ write_vector_data(Grid& grid,
 	using namespace std;
 	ostream& out = out_stream();
 
-	typedef typename TAttachment::ValueType			vector_t;
-	typedef typename Grid::traits<TElem>::iterator	iter_t;
+	using vector_t = typename TAttachment::ValueType;
+	using iter_t = typename Grid::traits<TElem>::iterator;
 
 	Grid::AttachmentAccessor<TElem, TAttachment> aaData(grid, aData);
 
@@ -193,7 +193,7 @@ void GridWriterVTU::
 collect_cells(std::vector<GridObject*>& cellsOut, Grid& grid,
 			  typename Grid::traits<TElem>::callback consider_elem)
 {
-	typedef typename Grid::traits<TElem>::iterator iter_t;
+	using iter_t = typename Grid::traits<TElem>::iterator;
 	for(iter_t i = grid.begin<TElem>(); i != grid.end<TElem>(); ++i){
 		if(consider_elem(*i))
 			cellsOut.push_back(*i);
@@ -247,13 +247,13 @@ grid(Grid& gridOut, size_t index, TPositionAttachment& aPos)
 	xml_node<>* pieceNode = gridNode;
 //	first we'll create all points and cells, then we'll parse point- and cell-data
 	xml_node<>* pointsNode = pieceNode->first_node("Points");
-	UG_COND_THROW(pointsNode == NULL, "Missing Points node in UnstructuredGrid node!")
+	UG_COND_THROW(pointsNode == nullptr, "Missing Points node in UnstructuredGrid node!")
 
 	size_t vrtOffset = vertices.size();
 	create_vertices(vertices, grid, pointsNode, aaPos);
 
 	xml_node<>* cellsNode = pieceNode->first_node("Cells");
-	UG_COND_THROW(cellsNode == NULL, "Missing Cells node in UnstructuredGrid node!")		
+	UG_COND_THROW(cellsNode == nullptr, "Missing Cells node in UnstructuredGrid node!")
 	create_cells(cells, grid, cellsNode, vertices, vrtOffset);
 
 //	reenable the grids options.

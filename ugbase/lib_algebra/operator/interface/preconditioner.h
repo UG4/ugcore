@@ -103,16 +103,16 @@ class IPreconditioner :
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef MatrixOperator<matrix_type, vector_type> matrix_operator_type;
+	using matrix_operator_type = MatrixOperator<matrix_type, vector_type>;
 		using DebugWritingObject<TAlgebra>::set_debug;
 	protected:
 		using ILinearIterator<vector_type>::damping;
@@ -123,20 +123,20 @@ class IPreconditioner :
 	public:
 	///	default constructor
 		IPreconditioner() :
-			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false), m_bOtherApproxOperator(false)
+			m_spDefectOperator(nullptr), m_spApproxOperator(nullptr), m_bInit(false), m_bOtherApproxOperator(false)
 		{};
 
 	///	constructor setting debug writer
 		IPreconditioner(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter) :
 			DebugWritingObject<TAlgebra>(spDebugWriter),
-			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false), m_bOtherApproxOperator(false)
+			m_spDefectOperator(nullptr), m_spApproxOperator(nullptr), m_bInit(false), m_bOtherApproxOperator(false)
 		{};
 
 	/// clone constructor
 		IPreconditioner( const IPreconditioner<TAlgebra> &parent ) :
 			ILinearIterator<vector_type>(parent),
 			DebugWritingObject<TAlgebra>(parent),
-			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false), m_bOtherApproxOperator(false)
+			m_spDefectOperator(nullptr), m_spApproxOperator(nullptr), m_bInit(false), m_bOtherApproxOperator(false)
 		{
 		}
 	protected:

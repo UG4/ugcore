@@ -385,7 +385,7 @@ init_obstacle_dofs_with_values(const std::vector<TUserData*>& vUserData, int si,
 	std::vector<position_type> vPos;
 
 //	iterators
-	typedef typename DoFDistribution::traits<TBaseElem>::const_iterator iter_type;
+	using iter_type = typename DoFDistribution::traits<TBaseElem>::const_iterator;
 	iter_type iter = m_spDD->begin<TBaseElem>(si);
 	iter_type iterEnd = m_spDD->end<TBaseElem>(si);
 
@@ -449,7 +449,7 @@ adjust_restriction(matrix_type& R, ConstSmartPtr<DoFDistribution> ddCoarse,
 
 	R.print();
 
-	typedef typename vector<DoFIndex>::iterator iter_type;
+	using iter_type = vector<DoFIndex>::iterator;
 	iter_type dofIter = m_vActiveDofs.begin();
 	iter_type dofIterEnd = m_vActiveDofs.end();
 	for( ; dofIter != dofIterEnd; dofIter++)

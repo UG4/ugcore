@@ -82,11 +82,11 @@ class IGridFunctionSpace  :
 {
 
 public:
-	typedef typename TGridFunction::vector_type vector_type;
-	typedef TGridFunction grid_function_type;
+	using vector_type = typename TGridFunction::vector_type;
+	using grid_function_type = TGridFunction;
 
 	/// DTOR
-	virtual ~IGridFunctionSpace() {}
+	virtual ~IGridFunctionSpace() = default;
 
 	/// norm (for grid functions)
 	virtual double norm(TGridFunction& x) = 0;
@@ -107,7 +107,7 @@ public:
 	virtual double norm(vector_type &x)
 	{
 		TGridFunction* gfX=dynamic_cast< TGridFunction*>(&x);
-		UG_ASSERT(gfX!=NULL, "Huhh: GridFunction required!");
+		UG_ASSERT(gfX!=nullptr, "Huhh: GridFunction required!");
 		return norm(*gfX);
 	}
 
@@ -125,7 +125,7 @@ public:
 template<typename TGridFunction>
 class AlgebraicSpace : public IGridFunctionSpace<TGridFunction>
 {
-	typedef typename TGridFunction::vector_type vector_type;
+	using vector_type = typename TGridFunction::vector_type;
 	virtual ~AlgebraicSpace() {}
 
 	virtual double norm(TGridFunction& x)
@@ -148,10 +148,10 @@ template <typename W>
 class IObjectWithWeights
 {
 public:
-	typedef W weight_type;
+	using weight_type = W;
 
 	IObjectWithWeights()
-	: m_spWeight(SPNULL) {}
+	: m_spWeight(nullptr) {}
 
 	IObjectWithWeights(ConstSmartPtr<weight_type> spW)
 	: m_spWeight(spW) {}
@@ -199,14 +199,14 @@ protected:
 	//std::string m_type; 
 
 public:
-	typedef IGridFunctionSpace<TGridFunction> base_type;
-	static const int dim=TGridFunction::dim;
+	using base_type = IGridFunctionSpace<TGridFunction>;
+	static constexpr int dim=TGridFunction::dim;
 
 	IComponentSpace(const char *fctNames)
-	: m_fctNames(fctNames), m_ssNames(NULL), m_quadorder(3){}
+	: m_fctNames(fctNames), m_ssNames(nullptr), m_quadorder(3){}
 
 	IComponentSpace(const char *fctNames, int order)
-	: m_fctNames(fctNames), m_ssNames(NULL), m_quadorder(order) {}
+	: m_fctNames(fctNames), m_ssNames(nullptr), m_quadorder(order) {}
 
 	IComponentSpace(const char *fctNames, const char* ssNames, int order)
 	: m_fctNames(fctNames), m_ssNames(ssNames), m_quadorder(order){}
@@ -458,15 +458,15 @@ class TimeDependentSpace :
 		public IGridFunctionSpace<TGridFunction>
 {
 public:
-	typedef IGridFunctionSpace<TGridFunction> base_type;
-	typedef IComponentSpace<TGridFunction> comp_space_type;
+	using base_type = IGridFunctionSpace<TGridFunction>;
+	using comp_space_type = IComponentSpace<TGridFunction>;
 
 	/// time dependent CTOR
 	TimeDependentSpace(SmartPtr<comp_space_type> spSpace, number tScale)
 	: m_spSpatialSpace(spSpace), m_tScale(tScale) {};
 
 	/// DTOR
-	virtual ~TimeDependentSpace() {};
+	virtual ~TimeDependentSpace() = default;
 
 	using base_type::norm;
 	using base_type::distance;
@@ -502,9 +502,9 @@ class L2ComponentSpace :
 		public IObjectWithWeights<typename L2DistIntegrand<TGridFunction>::weight_type >
 {
 public:
-	typedef IComponentSpace<TGridFunction> base_type;
-	typedef typename L2DistIntegrand<TGridFunction>::weight_type weight_type;
-	typedef IObjectWithWeights<weight_type> weighted_obj_type;
+	using base_type = IComponentSpace<TGridFunction>;
+	using weight_type = typename L2DistIntegrand<TGridFunction>::weight_type;
+	using weighted_obj_type = IObjectWithWeights<weight_type>;
 
 	/// CTOR
 	L2ComponentSpace(const char *fctNames)
@@ -550,9 +550,9 @@ class L2QuotientSpace :
 		public IObjectWithWeights<typename L2DistIntegrand<TGridFunction>::weight_type >
 {
 public:
-	typedef IComponentSpace<TGridFunction> base_type;
-	typedef typename L2DistIntegrand<TGridFunction>::weight_type weight_type;
-	typedef IObjectWithWeights<weight_type> weighted_obj_type;
+	using base_type = IComponentSpace<TGridFunction>;
+	using weight_type = typename L2DistIntegrand<TGridFunction>::weight_type;
+	using weighted_obj_type = IObjectWithWeights<weight_type>;
 
 	/// CTOR
 	L2QuotientSpace(const char *fctNames)
@@ -581,8 +581,8 @@ public:
 	/// \copydoc IComponentSpace<TGridFunction>::norm
 	double norm2(TGridFunction& u)
 	{
-		typedef ConstUserNumber<TGridFunction::dim> MyConstUserData;
-		typedef SmartPtr<UserData<number, TGridFunction::dim> > SPUserData;
+		using MyConstUserData = ConstUserNumber<TGridFunction::dim>;
+		using SPUserData = SmartPtr<UserData<number, TGridFunction::dim> >;
 
 		SPUserData spConst= make_sp(new MyConstUserData(1.0));
 		number Meas = Integral(spConst, u, base_type::m_ssNames, 0.0, 1, "best");
@@ -598,8 +598,8 @@ public:
 	/// \copydoc IComponentSpace<TGridFunction>::distance
 	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
 	{
-		typedef ConstUserNumber<TGridFunction::dim> MyConstUserData;
-		typedef SmartPtr<UserData<number, TGridFunction::dim> > SPUserData;
+		using MyConstUserData = ConstUserNumber<TGridFunction::dim>;
+		using SPUserData = SmartPtr<UserData<number, TGridFunction::dim> >;
 
 		SPUserData spConst= make_sp(new MyConstUserData(1.0));
 		number Meas = Integral(spConst, uFine, base_type::m_ssNames, 0.0, 1, "best");
@@ -625,9 +625,9 @@ class H1SemiComponentSpace
   public IObjectWithWeights<typename H1SemiDistIntegrand<TGridFunction>::weight_type >
 {
 public:
-	typedef IComponentSpace<TGridFunction> base_type;
-	typedef typename H1SemiDistIntegrand<TGridFunction>::weight_type weight_type;
-	typedef IObjectWithWeights<weight_type> weighted_obj_type;
+	using base_type = IComponentSpace<TGridFunction>;
+	using weight_type = typename H1SemiDistIntegrand<TGridFunction>::weight_type;
+	using weighted_obj_type = IObjectWithWeights<weight_type>;
 
 
 	H1SemiComponentSpace(const char *fctNames)
@@ -656,7 +656,7 @@ public:
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm2
 	double norm2(TGridFunction& uFine)
-	{ return H1SemiNorm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, NULL, weighted_obj_type::m_spWeight); }
+	{ return H1SemiNorm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, nullptr, weighted_obj_type::m_spWeight); }
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance2
 	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
@@ -679,10 +679,10 @@ class KineticEnergyComponentSpace
   public IObjectWithWeights<typename L2Integrand<TGridFunction>::weight_type >
 {
 public:
-	typedef IComponentSpace<TGridFunction> base_type;
-	typedef typename L2Integrand<TGridFunction>::weight_type weight_type;
-	typedef IObjectWithWeights<weight_type> weighted_obj_type;
-	typedef DarcyVelocityLinker<TGridFunction::dim> velocity_type;
+	using base_type = IComponentSpace<TGridFunction>;
+	using weight_type = typename L2Integrand<TGridFunction>::weight_type;
+	using weighted_obj_type = IObjectWithWeights<weight_type>;
+	using velocity_type = DarcyVelocityLinker<TGridFunction::dim>;
 
 
 	KineticEnergyComponentSpace(SmartPtr<velocity_type> spVelocity, const char *fctNames)
@@ -711,7 +711,7 @@ public:
 	/// \copydoc IComponentSpace<TGridFunction>::norm2
 	double norm2(TGridFunction& u)
 	{
-		const char* subsets = NULL;
+		const char* subsets = nullptr;
 		UserDataIntegrandSq<MathVector<TGridFunction::dim>, TGridFunction> integrand2(m_spVelocity, &u, 0.0);
 		return IntegrateSubsets(integrand2, u, subsets, m_quadorder);
 	}
@@ -720,7 +720,7 @@ public:
 	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
 	{
 		// UG_THROW("Not implemented!");
-		const char* subsets = NULL;
+		const char* subsets = nullptr;
 		UserDataDistIntegrandSq<MathVector<TGridFunction::dim>, TGridFunction> integrand2(m_spVelocity, uFine, 0, uCoarse, 0);
 		return IntegrateSubsets(integrand2, uFine, subsets, m_quadorder);
 	}
@@ -747,27 +747,27 @@ class H1EnergyComponentSpace
   public IObjectWithWeights<typename H1EnergyDistIntegrand<TGridFunction>::weight_type >
 {
 public:
-	typedef IComponentSpace<TGridFunction> base_type;
-	typedef typename H1SemiDistIntegrand<TGridFunction>::weight_type weight_type;
-	typedef IObjectWithWeights<weight_type> weighted_obj_type;
-	// typedef DarcyVelocityLinker<TGridFunction::dim> velocity_type;
-	static const int dim = TGridFunction::dim;
-	typedef UserData<MathVector<dim>, dim> velocity_type;
+	using base_type = IComponentSpace<TGridFunction>;
+	using weight_type = typename H1SemiDistIntegrand<TGridFunction>::weight_type;
+	using weighted_obj_type = IObjectWithWeights<weight_type>;
+	//using velocity_type = DarcyVelocityLinker<TGridFunction::dim>;
+	static constexpr int dim = TGridFunction::dim;
+	using velocity_type = UserData<MathVector<dim>, dim>;
 
 	H1EnergyComponentSpace(const char *fctNames)
-	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))), m_spVelocity(SPNULL) {};
+	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))), m_spVelocity(nullptr) {};
 
 	H1EnergyComponentSpace(const char *fctNames, int order)
-	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))), m_spVelocity(SPNULL) {};
+	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))), m_spVelocity(nullptr) {};
 
 	H1EnergyComponentSpace(const char *fctNames, int order, number weight, const char* ssNames=0)
-	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(weight))), m_spVelocity(SPNULL)  {};
+	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(weight))), m_spVelocity(nullptr)  {};
 
 	H1EnergyComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
-	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(SPNULL) {};
+	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(nullptr) {};
 
 	/*H1EnergyComponentSpace(const char *fctNames, int order, const char* ssNames, ConstSmartPtr<weight_type> spWeight)
-	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(SPNULL) {};*/
+	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(nullptr) {};*/
 
 	/// DTOR
 	~H1EnergyComponentSpace() {};
@@ -782,7 +782,7 @@ public:
 	double norm2(TGridFunction& uFine)
 	{
 		if (m_spVelocity.valid()) {
-			//const char* subsets = NULL; // [q^2]
+			//const char* subsets = nullptr; // [q^2]
 			UserDataIntegrandSq<MathVector<TGridFunction::dim>, TGridFunction> integrand2(m_spVelocity, &uFine, 0.0);
 			return IntegrateSubsets(integrand2, uFine, base_type::m_ssNames, base_type::m_quadorder);
 		} else {
@@ -812,7 +812,7 @@ class H1ComponentSpace :
 		public IComponentSpace<TGridFunction>
 {
 public:
-	typedef IComponentSpace<TGridFunction> base_type;
+	using base_type = IComponentSpace<TGridFunction>;
 
 	H1ComponentSpace(const char *fctNames) : base_type(fctNames) {};
 	H1ComponentSpace(const char *fctNames, int order) : base_type(fctNames, order) {};
@@ -842,10 +842,10 @@ template <typename TGridFunction>
 class CompositeSpace : public IGridFunctionSpace<TGridFunction>
 {
 public:
-	typedef IGridFunctionSpace<TGridFunction> base_type;
-	typedef IComponentSpace<TGridFunction> obj_type;
-	typedef TimeDependentSpace<TGridFunction> time_dependent_obj_type;
-	typedef std::pair<SmartPtr<obj_type>, number> weighted_obj_type;
+	using base_type = IGridFunctionSpace<TGridFunction>;
+	using obj_type = IComponentSpace<TGridFunction>;
+	using time_dependent_obj_type = TimeDependentSpace<TGridFunction>;
+	using weighted_obj_type = std::pair<SmartPtr<obj_type>, number>;
 
 	CompositeSpace() {};
 	// virtual ~CompositeSpace() {};
@@ -955,7 +955,7 @@ protected:
 	using CompositeSpace<TGridFunction>::m_spSubspaces;
 
 public:
-	typedef typename IComponentSpace<TGridFunction> obj_type;
+	using obj_type = typename IComponentSpace<TGridFunction>;
 
 
 	/// add spaces to composite

@@ -69,7 +69,7 @@ class StdExplicitGridFunctionData
 {
 public:
 	///	world dimension of grid function
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 
 protected:
 	SmartPtr<TGridFunction> m_spGridFct; ///< grid function
@@ -187,7 +187,7 @@ public:
 						 const MathVector<refDim> vLocIP[],
 						 const size_t nip,
 						 LocalVector* u,
-						 const MathMatrix<refDim, dim>* vJT = NULL) const
+						 const MathMatrix<refDim, dim>* vJT = nullptr) const
 	{
 		// forward
 		getImpl().template evaluate<refDim> (vValue, vGlobIP, time, si,
@@ -210,7 +210,7 @@ template<typename TGridFunction>
 class ExplicitGridFunctionValue
 : public StdExplicitGridFunctionData<ExplicitGridFunctionValue<TGridFunction>, number, TGridFunction>
 {
-	typedef StdExplicitGridFunctionData<ExplicitGridFunctionValue<TGridFunction>, number, TGridFunction> base_type;
+	using base_type = StdExplicitGridFunctionData<ExplicitGridFunctionValue<TGridFunction>, number, TGridFunction>;
 
 	using base_type::m_spGridFct;
 	
@@ -219,7 +219,7 @@ class ExplicitGridFunctionValue
 
 public:
 	//	world dimension of grid function
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 	
 	// constructor
 	ExplicitGridFunctionValue
@@ -250,7 +250,7 @@ public:
 					     const MathVector<refDim> vLocIP[],
 					     const size_t nip,
 					     LocalVector* u,
-					     const MathMatrix<refDim, dim>* vJT = NULL) const
+					     const MathMatrix<refDim, dim>* vJT = nullptr) const
 	{
 		//	reference object id
 		const ReferenceObjectID roid = elem->reference_object_id();
@@ -311,10 +311,10 @@ class ExplicitGridFunctionVector
 {
 public:
 	//	world dimension of grid function
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 	
 private:
-	typedef StdExplicitGridFunctionData<ExplicitGridFunctionVector<TGridFunction>, MathVector<TGridFunction::dim>, TGridFunction> base_type;
+	using base_type = StdExplicitGridFunctionData<ExplicitGridFunctionVector<TGridFunction>, MathVector<TGridFunction::dim>, TGridFunction>;
 
 	using base_type::m_spGridFct;
 	
@@ -367,7 +367,7 @@ public:
 					     const MathVector<refDim> vLocIP[],
 					     const size_t nip,
 					     LocalVector* u,
-					     const MathMatrix<refDim, dim>* vJT = NULL) const
+					     const MathMatrix<refDim, dim>* vJT = nullptr) const
 	{
 		//	reference object id
 		const ReferenceObjectID roid = elem->reference_object_id();
@@ -434,7 +434,7 @@ template <typename TGridFunction>
 class ExplicitGridFunctionGradient
 : public StdExplicitGridFunctionData<ExplicitGridFunctionGradient<TGridFunction>, MathVector<TGridFunction::dim>, TGridFunction >
 {
-	typedef StdExplicitGridFunctionData<ExplicitGridFunctionGradient<TGridFunction>, MathVector<TGridFunction::dim>, TGridFunction > base_type;
+	using base_type = StdExplicitGridFunctionData<ExplicitGridFunctionGradient<TGridFunction>, MathVector<TGridFunction::dim>, TGridFunction >;
 
 	using base_type::m_spGridFct;
 	
@@ -444,7 +444,7 @@ class ExplicitGridFunctionGradient
 
 public:
 	//	world dimension of grid function
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 	
 	/// constructor
 	ExplicitGridFunctionGradient
@@ -476,14 +476,14 @@ public:
 		                    const MathVector<refDim> vLocIP[],
 		                    const size_t nip,
 		                    LocalVector* u,
-		                    const MathMatrix<refDim, dim>* vJT = NULL) const
+		                    const MathMatrix<refDim, dim>* vJT = nullptr) const
 	{
 		//	reference object id
 		const ReferenceObjectID roid = elem->reference_object_id();
 
 		//	get reference element mapping by reference object id
 		std::vector<MathMatrix<refDim, dim> > vJTTmp(nip);
-		if(vJT == NULL){
+		if(vJT == nullptr){
 			try{
 				DimReferenceMapping<refDim, dim>& mapping
 				= ReferenceMappingProvider::get<refDim, dim>(roid, vCornerCoords);

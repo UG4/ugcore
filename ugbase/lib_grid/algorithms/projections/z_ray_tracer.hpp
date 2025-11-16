@@ -16,20 +16,20 @@ class ZRayTracer
 {
 
     ///	grid function type
-	typedef TDomain domain_type;
+    using domain_type = TDomain;
 			
 ///	world dimension
-	static const int dim = domain_type::dim;
+	static constexpr int dim = domain_type::dim;
 	
 /// type of the position accessor
-	typedef typename domain_type::position_attachment_type position_attachment_type;
+    using position_attachment_type = typename domain_type::position_attachment_type;
 	
 ///	side type
-	typedef typename grid_dim_traits<dim-1>::element_type side_t;
+    using side_t = typename grid_dim_traits<dim-1>::element_type;
 
-    typedef lg_ntree<dim-1, dim, side_t> top_tracer_tree_t;
+    using top_tracer_tree_t = lg_ntree<dim-1, dim, side_t>;
 
-    typedef RayElemIntersectionRecord<side_t*> top_intersection_record_t;
+    using top_intersection_record_t = RayElemIntersectionRecord<side_t*>;
     
 public:
 
@@ -48,7 +48,7 @@ public:
             useLocalTopFacesOnly = true;
         #endif
 
-        typedef typename Grid::traits<side_t>::iterator SideIterator;
+        using SideIterator = typename Grid::traits<side_t>::iterator;
 
         MultiGrid & mg = * m_sp_domain->grid ();
         MGSubsetHandler & sh = * m_sp_domain->subset_handler ();

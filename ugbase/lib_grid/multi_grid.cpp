@@ -90,8 +90,8 @@ void MultiGrid::init()
 //	attach elem-infos
 	attach_to_vertices(m_aVertexInfo);
 	attach_to_edges(m_aEdgeInfo);
-	attach_to_faces_dv(m_aFaceInfo, NULL);
-	attach_to_volumes_dv(m_aVolumeInfo, NULL);
+	attach_to_faces_dv(m_aFaceInfo, nullptr);
+	attach_to_volumes_dv(m_aVolumeInfo, nullptr);
 
 	attach_to_all(m_aParentType);
 
@@ -187,7 +187,7 @@ GridObject* MultiGrid::get_parent(GridObject* parent) const
 		case FACE:		return get_parent((Face*)parent);
 		case VOLUME:	return get_parent((Volume*)parent);
 	}
-	return NULL;
+	return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -229,7 +229,7 @@ void MultiGrid::vertex_created(Grid* grid, Vertex* vrt,
 			}
 		}
 		else
-			element_created<Vertex, Vertex>(vrt, NULL, pReplaceMe);
+			element_created<Vertex, Vertex>(vrt, nullptr, pReplaceMe);
 
 	//	copy pReplaceMe's children and replace parent of children
 		MGVertexInfo& myInfo = get_info(vrt);
@@ -264,7 +264,7 @@ void MultiGrid::vertex_created(Grid* grid, Vertex* vrt,
 void MultiGrid::vertex_to_be_erased(Grid* grid, Vertex* vrt,
 									 Vertex* replacedBy)
 {
-//	if replacedBy != NULL, then vertex_created already handled the
+//	if replacedBy != nullptr, then vertex_created already handled the
 //	deregistration at the parent.
 	if(replacedBy)
 		return;
@@ -309,7 +309,7 @@ void MultiGrid::edge_created(Grid* grid, Edge* edge,
 			}
 		}
 		else
-			element_created<Edge, Edge>(edge, NULL, pReplaceMe);
+			element_created<Edge, Edge>(edge, nullptr, pReplaceMe);
 
 	//	copy pReplaceMes children and replace parent of children
 		MGEdgeInfo& myInfo = get_info(edge);
@@ -391,7 +391,7 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 			}
 		}
 		else
-			element_created<Face, Face>(face, NULL, pReplaceMe);
+			element_created<Face, Face>(face, nullptr, pReplaceMe);
 
 	//	copy pReplaceMes children and replace parent of children
 		if(has_children(pReplaceMe)){
@@ -594,40 +594,40 @@ void MultiGrid::check_volume_elem_infos(int level) const
 void MGVertexInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
-		mg.set_parent(m_pVrtChild, NULL);
+		mg.set_parent(m_pVrtChild, nullptr);
 	clear_children();
 }
 
 void MGEdgeInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
-		mg.set_parent(m_pVrtChild, NULL);
+		mg.set_parent(m_pVrtChild, nullptr);
 	for(int i = 0; i < m_numEdgeChildren; ++i)
-		mg.set_parent(m_pEdgeChild[i], NULL);
+		mg.set_parent(m_pEdgeChild[i], nullptr);
 	clear_children();
 }
 
 void MGFaceInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
-		mg.set_parent(m_pVrtChild, NULL);
+		mg.set_parent(m_pVrtChild, nullptr);
 	for(int i = 0; i < m_numEdgeChildren; ++i)
-		mg.set_parent(m_pEdgeChild[i], NULL);
+		mg.set_parent(m_pEdgeChild[i], nullptr);
 	for(int i = 0; i < m_numFaceChildren; ++i)
-		mg.set_parent(m_pFaceChild[i], NULL);
+		mg.set_parent(m_pFaceChild[i], nullptr);
 	clear_children();
 }
 
 void MGVolumeInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
-		mg.set_parent(m_pVrtChild, NULL);
+		mg.set_parent(m_pVrtChild, nullptr);
 	for(size_t i = 0; i < m_edgeChildren.size(); ++i)
-		mg.set_parent(m_edgeChildren[i], NULL);
+		mg.set_parent(m_edgeChildren[i], nullptr);
 	for(size_t i = 0; i < m_faceChildren.size(); ++i)
-		mg.set_parent(m_faceChildren[i], NULL);
+		mg.set_parent(m_faceChildren[i], nullptr);
 	for(size_t i = 0; i < m_volumeChildren.size(); ++i)
-		mg.set_parent(m_volumeChildren[i], NULL);
+		mg.set_parent(m_volumeChildren[i], nullptr);
 	clear_children();
 }
 

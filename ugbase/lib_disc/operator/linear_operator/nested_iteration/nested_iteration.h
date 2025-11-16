@@ -64,19 +64,19 @@ class NestedIterationSolver
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	GridFunction type
-		typedef GridFunction<TDomain, TAlgebra> grid_function_type;
+		using grid_function_type = GridFunction<TDomain, TAlgebra>;
 
 	/// Error function type
-		typedef GridFunction<TDomain, CPUAlgebra> error_function_type;
+		using error_function_type = GridFunction<TDomain, CPUAlgebra>;
 
 	public:
 	///	default constructor

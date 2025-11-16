@@ -60,7 +60,7 @@ bool PluginLoaded(const string &name)
 bool LoadPlugins(const char* pluginPath, string parentGroup, bridge::Registry& reg, bool bPrefixGroup)
 {
 	PROFILE_FUNC();
-	typedef void (*FctInitPlugin)(ug::bridge::Registry*, string);
+	using FctInitPlugin = void(*)(ug::bridge::Registry*, string);
 
 	bool bSuccess = true;
 
@@ -183,7 +183,7 @@ bool LoadPlugins(const char* pluginPath, string parentGroup, bridge::Registry& r
 
 bool UnloadPlugins()
 {
-	typedef void (*FctFinalizePlugin)();
+	using FctFinalizePlugin = void(*)();
 	for(size_t i=0; i<loadedPlugins.size(); ++i)
 	{
 		string fctName("FinalizeUGPlugin");

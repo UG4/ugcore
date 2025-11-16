@@ -60,20 +60,17 @@ template<typename TAlgebra>
 class PowerMethod
 {
 	public:
-	// 	Algebra type
-		typedef TAlgebra algebra_type;
-
-	// 	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
-		typedef typename TAlgebra::matrix_type matrix_type;
-		typedef typename vector_type::value_type vector_value_type;
+		using algebra_type = TAlgebra;
+		using vector_type = typename TAlgebra::vector_type;
+		using matrix_type = typename TAlgebra::matrix_type;
+		using vector_value_type = typename vector_type::value_type;
 
 	private:
 	//	Stiffness matrix
 		SmartPtr<ILinearOperator<vector_type> > m_spLinOpA;
 
 	//	Mass matrix
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 		SmartPtr<ILinearOperator<vector_type> > m_spLinOpB;
 		SmartPtr<matrix_operator_type> m_spMatOpA;
 		SmartPtr<matrix_operator_type> m_spMatOpB;
@@ -106,10 +103,10 @@ class PowerMethod
 		PowerMethod()
 		{
 			UG_LOG("Initializing PowerMethod." << std::endl);
-			m_spLinOpA = SPNULL;
-			m_spLinOpB = SPNULL;
-			m_spMatOpA = SPNULL;
-			m_spMatOpB = SPNULL;
+			m_spLinOpA = nullptr;
+			m_spLinOpB = nullptr;
+			m_spMatOpA = nullptr;
+			m_spMatOpB = nullptr;
 			m_maxIterations = 1000;
 			m_dPrecision = 1e-8;
 			m_iteration = 0;
@@ -166,8 +163,8 @@ class PowerMethod
 		{
 			PROFILE_FUNC_GROUP("PowerMethod");
 
-			UG_COND_THROW(m_spSolver == SPNULL && m_spLinOpB != SPNULL, "PowerMethod::calculate_max_eigenvalue(): Solver not set, please specify.");
-			if(m_spLinOpB != SPNULL)
+			UG_COND_THROW(m_spSolver == nullptr && m_spLinOpB != nullptr, "PowerMethod::calculate_max_eigenvalue(): Solver not set, please specify.");
+			if(m_spLinOpB != nullptr)
 				m_spSolver->init(m_spLinOpB);
 
 			m_spResidual = create_approximation_vector();
@@ -177,11 +174,11 @@ class PowerMethod
 				m_spEigenvectorOld = m_spEigenvector->clone();
 
 			//	residual = A v
-				UG_COND_THROW(m_spLinOpA == SPNULL, "PowerMethod::calculate_max_eigenvalue(): Linear operator A not set, please specify.");
+				UG_COND_THROW(m_spLinOpA == nullptr, "PowerMethod::calculate_max_eigenvalue(): Linear operator A not set, please specify.");
 				m_spLinOpA->apply(*m_spResidual, *m_spEigenvector);
 
 			//	v = B^-1 A v
-				if(m_spLinOpB != SPNULL)
+				if(m_spLinOpB != nullptr)
 					m_spSolver->apply(*m_spEigenvector, *m_spResidual);
 			//	in case B is not set: v = A v
 				else
@@ -201,7 +198,7 @@ class PowerMethod
 
 			//	in case B is not set, restore storage type of m_spEigenvector to PST_CONSISTENT
 			//	changed by norm calculation in normalize_approximations()
-				if(m_spLinOpB == SPNULL)
+				if(m_spLinOpB == nullptr)
 				{
 					#ifdef UG_PARALLEL
 							m_spEigenvector->change_storage_type(PST_CONSISTENT);
@@ -232,8 +229,8 @@ class PowerMethod
 		{
 			PROFILE_FUNC_GROUP("PowerMethod");
 
-			UG_COND_THROW(m_spLinOpA == SPNULL, "PowerMethod::calculate_min_eigenvalue(): Linear operator A not set, please specify.");
-			UG_COND_THROW(m_spSolver == SPNULL, "PowerMethod::calculate_min_eigenvalue(): Solver not set, please specify.");
+			UG_COND_THROW(m_spLinOpA == nullptr, "PowerMethod::calculate_min_eigenvalue(): Linear operator A not set, please specify.");
+			UG_COND_THROW(m_spSolver == nullptr, "PowerMethod::calculate_min_eigenvalue(): Solver not set, please specify.");
 
 			m_spResidual = create_approximation_vector();
 
@@ -244,7 +241,7 @@ class PowerMethod
 				m_spEigenvectorOld = m_spEigenvector->clone();
 
 			//	residual = B v
-				if(m_spLinOpB != SPNULL)
+				if(m_spLinOpB != nullptr)
 					m_spLinOpB->apply(*m_spResidual, *m_spEigenvector);
 			//	in case B is not set
 				else
@@ -273,7 +270,7 @@ class PowerMethod
 
 			//	in case B is not set, restore storage type of m_spEigenvector to PST_CONSISTENT
 			//	changed by norm calculation in normalize_approximations()
-				if(m_spLinOpB == SPNULL)
+				if(m_spLinOpB == nullptr)
 				{
 					#ifdef UG_PARALLEL
 							m_spEigenvector->change_storage_type(PST_CONSISTENT);
@@ -341,7 +338,7 @@ class PowerMethod
 
 		double B_norm(vector_type &x)
 		{
-			if(m_spMatOpB != SPNULL)
+			if(m_spMatOpB != nullptr)
 				return EnergyNorm(x, *m_spMatOpB);
 			else
 				return x.norm();

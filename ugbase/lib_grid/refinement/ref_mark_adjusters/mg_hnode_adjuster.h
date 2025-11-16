@@ -38,7 +38,7 @@
 namespace ug{
 
 class MGHNodeAdjuster;
-typedef SmartPtr<MGHNodeAdjuster> SPMGHNodeAdjuster;
+using SPMGHNodeAdjuster = SmartPtr<MGHNodeAdjuster>;
 
 ///	Makes sure that that hierarchical dependencies are considered during hnode refinement.
 /**	This adjuster regards the grid as a serial grid. If the grid represents a part

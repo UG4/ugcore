@@ -111,8 +111,8 @@ namespace ug
 class ParallelNodes
 {
 private:
-	typedef std::map<AlgebraID,size_t>::iterator iterator;
-	typedef std::map<AlgebraID,size_t>::const_iterator const_iterator;
+	using iterator = std::map<AlgebraID,size_t>::iterator;
+	using const_iterator = std::map<AlgebraID,size_t>::const_iterator;
 
 public:
 	struct OverlapType
@@ -229,7 +229,7 @@ private:
 	size_t m_originalSize;
 	std::vector<OverlapType> m_OLtype;
 
-	typedef std::map<int, BinaryBuffer>	BufferMap;
+	using BufferMap = std::map<int, BinaryBuffer>;
 
 	std::set<int> masterPIDs;
 	std::set<int> slavePIDs;

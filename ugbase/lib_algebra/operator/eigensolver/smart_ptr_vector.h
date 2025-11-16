@@ -39,7 +39,7 @@ namespace ug{
 template<typename T>
 class SmartPtrVector : public std::vector<SmartPtr<T> >
 {
-	typedef std::vector<SmartPtr<T> > super;
+	using super = std::vector<SmartPtr<T> >;
 private:
 	SmartPtrVector(SmartPtrVector &);
 public:

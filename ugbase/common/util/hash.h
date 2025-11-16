@@ -50,10 +50,10 @@ class Hash
 		struct Entry;
 
 	public:
-		typedef TKey	key_t;
-		typedef TValue	value_t;
-		typedef hash_iterator<key_t, value_t, Entry>		iterator;
-//		typedef const_hash_iterator<key_t, value_t, Entry>	const_iterator;
+		using key_t = TKey;
+		using value_t = TValue;
+		using iterator = hash_iterator<key_t, value_t, Entry>;
+		// using const_iterator = const_hash_iterator<key_t, value_t, Entry>;
 
 		Hash();
 		Hash(size_t hashSize);

@@ -184,28 +184,28 @@ bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* ps
 
 //	create a vector which contains all objects that shall be rendered and sort it
 	vector<TIKZElem>	elems;
-	lg_for_each(Vertex, v, grid){
+	for(Grid::traits<Vertex>::iterator _feI = grid.begin<Vertex>(); _feI != grid.end<Vertex>(); ++_feI){ Vertex* v = *_feI;{
 		if(psh->get_subset_index(v) != -1)
 			elems.push_back(TIKZElem(v, psh->get_subset_index(v),
 									 CalculateBoundingBox(v, aaPos)));
-	}lg_end_for;
+	}};
 
-	lg_for_each(Edge, e, grid){
+	for(Grid::traits<Edge>::iterator _feI = grid.begin<Edge>(); _feI != grid.end<Edge>(); ++_feI){ Edge* e = *_feI;{
 		if(psh->get_subset_index(e) != -1)
 			elems.push_back(TIKZElem(e, psh->get_subset_index(e),
 									 CalculateBoundingBox(e, aaPos)));
-	}lg_end_for;
+	}};
 
-	lg_for_each(Face, f, grid){
+	for(Grid::traits<Face>::iterator _feI = grid.begin<Face>(); _feI != grid.end<Face>(); ++_feI){ Face* f = *_feI;{
 		if(psh->get_subset_index(f) != -1)
 			elems.push_back(TIKZElem(f, psh->get_subset_index(f),
 									 CalculateBoundingBox(f, aaPos)));
-	}lg_end_for;
+	}};
 
 	sort(elems.begin(), elems.end());
 
 	out << "\\begin{scope}" << endl;
-	for_each_in_vec(TIKZElem& tikzElem, elems){
+	for(size_t _vfeI = 0; _vfeI < elems.size(); ++_vfeI){ TIKZElem& tikzElem = elems[_vfeI];{
 		const std::string& subsetName = subsetIdentifyer[tikzElem.subsetId];
 		switch(tikzElem.elemId){
 			case VERTEX:{
@@ -240,7 +240,7 @@ bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* ps
 
 		}
 
-	}end_for;
+	}};
 	
 
 	// for(int si = 0; si < psh->num_subsets(); ++si){

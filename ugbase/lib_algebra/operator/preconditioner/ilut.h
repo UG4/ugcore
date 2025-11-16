@@ -24,36 +24,33 @@ template <typename TAlgebra>
 class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 {
 	public:
-	//	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
-	//	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
-		typedef typename vector_type::value_type vector_value;
+		using vector_type = typename TAlgebra::vector_type;
+		using vector_value = typename vector_type::value_type;
 
-	//	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
-		typedef typename matrix_type::row_iterator matrix_row_iterator;
-		typedef typename matrix_type::const_row_iterator const_matrix_row_iterator;
-		typedef typename matrix_type::connection matrix_connection;
+		using matrix_row_iterator = typename matrix_type::row_iterator;
+		using const_matrix_row_iterator = typename matrix_type::const_row_iterator;
+		using matrix_connection = typename matrix_type::connection;
 
 	///	Ordering type
-		typedef std::vector<size_t> ordering_container_type;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> ordering_algo_type;
+		using ordering_container_type = std::vector<size_t>;
+		using ordering_algo_type = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 		using IPreconditioner<TAlgebra>::set_debug;
 
 	protected:
-		typedef typename matrix_type::value_type block_type;
+		using block_type = typename matrix_type::value_type;
 
 		using IPreconditioner<TAlgebra>::debug_writer;
 		using IPreconditioner<TAlgebra>::write_debug;
 
 	private:
-		typedef IPreconditioner<TAlgebra> base_type;
+		using base_type = IPreconditioner<TAlgebra>;
 
 	public:
 	///	Constructor
@@ -125,7 +122,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<TAlgebra, ordering_container_type>());
 			}
 			else{
-				m_spOrderingAlgo = SPNULL;
+				m_spOrderingAlgo = nullptr;
 			}
 
 			UG_LOG("\nILUT: please use 'set_ordering_algorithm(..)' in the future\n");
@@ -168,7 +165,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
-			m_u = NULL;
+			m_u = nullptr;
 
 		//	forward request to matrix based implementation
 			return base_type::init(pOp);
@@ -176,7 +173,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
-			m_u = NULL;
+			m_u = nullptr;
 
 			return base_type::init(Op);
 		}

@@ -49,8 +49,7 @@ namespace ug
  *	interfaces are required this may however be slower than a
  *	std::list container.
  */
-typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, std::vector> >
-		IndexLayout;
+using IndexLayout = pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, std::vector> >;
 
 ///	Logs the internals of an index layout.
 /**

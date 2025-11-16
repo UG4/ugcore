@@ -73,7 +73,7 @@ struct Functionality
  * available Algebra types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TAlgebra>
 static void Algebra(Registry& reg, string grp)
@@ -84,8 +84,8 @@ static void Algebra(Registry& reg, string grp)
 #ifdef LAPACK_AVAILABLE
 	{
 		string name = string("EigenSolver").append(suffix);
-		typedef PINVIT<TAlgebra> T;
-		typedef DebugWritingObject<TAlgebra> TBase;
+		using T = PINVIT<TAlgebra>;
+		using TBase = DebugWritingObject<TAlgebra>;
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("add_vector", &T::add_vector, "", "vector")
@@ -126,9 +126,9 @@ static void Algebra(Registry& reg, string grp)
 #endif
 	{
 		string name = string("OperatorInverseIterator").append(suffix);
-		typedef typename TAlgebra::vector_type vector_type;
-		typedef ILinearIterator<vector_type> TBase;
-		typedef OperatorInverseIterator<TAlgebra> T;
+		using vector_type = typename TAlgebra::vector_type;
+		using TBase = ILinearIterator<vector_type>;
+		using T = OperatorInverseIterator<TAlgebra>;
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ILinearOperatorInverse<vector_type>  >)>( "opInv")
 			.set_construct_as_smart_pointer(true);
@@ -137,7 +137,7 @@ static void Algebra(Registry& reg, string grp)
 
 	{
 		string name = string("PowerMethod").append(suffix);
-		typedef PowerMethod<TAlgebra> T;
+		using T = PowerMethod<TAlgebra>;
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("set_solver", &T::set_solver, "", "Solver")
@@ -169,7 +169,7 @@ static void Algebra(Registry& reg, string grp)
 void RegisterBridge_Eigensolver(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Solver");
-	typedef Eigensolver::Functionality Functionality;
+	using Functionality = Eigensolver::Functionality;
 
 	try{
 		RegisterAlgebraDependent<Functionality>(reg,grp);

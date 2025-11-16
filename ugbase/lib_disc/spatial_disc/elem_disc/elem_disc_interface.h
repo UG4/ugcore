@@ -98,10 +98,10 @@ class IElemDiscBaseData
 {
 public:
 	///	Domain type
-	typedef TDomain domain_type;
+	using domain_type = TDomain;
 
 	///	World dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 };
 */
 /// This class encapsulates all functions related to error estimation
@@ -113,19 +113,19 @@ public:
 	IElemAssembleFuncs() { set_default_add_fct(); }
 
 	/// Virtual destructor
-	virtual ~IElemAssembleFuncs(){}
+	virtual ~IElemAssembleFuncs()= default;
 
 	/// Barton Nackman trick (TODO: needed?)
-	typedef TLeaf leaf_type;
+	using leaf_type = TLeaf;
 
 	TLeaf& asLeaf()
 	{ return static_cast<TLeaf&>(*this); }
 
 	///	Domain type
-	typedef TDomain domain_type;
+	using domain_type = TDomain;
 
 	///	World dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 
 	////////////////////////////
 	// assembling functions
@@ -237,37 +237,44 @@ protected:
 	///	sets all assemble functions to the corresponding virtual ones
 	void set_default_add_fct();
 
-	///	sets all assemble functions to NULL for a given ReferenceObjectID
+	///	sets all assemble functions to nullptr for a given ReferenceObjectID
 	void clear_add_fct(ReferenceObjectID id);
 
-	///	sets all assemble functions to NULL (for all ReferenceObjectID's)
+	///	sets all assemble functions to nullptr (for all ReferenceObjectID's)
 	void clear_add_fct();
 
 private:
 //	abbreviation for own type
-	typedef IElemAssembleFuncs<TLeaf, TDomain> T;
+	using T = IElemAssembleFuncs<TLeaf, TDomain>;
 
 // 	types of timestep function pointers
-	typedef void (T::*PrepareTimestepFct)(number, number, VectorProxyBase*);
-	typedef void (T::*PrepareTimestepElemFct)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-	typedef void (T::*FinishTimestepFct)(number, VectorProxyBase*);
-	typedef void (T::*FinishTimestepElemFct)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	using PrepareTimestepFct = void(T::*)(number, number, VectorProxyBase*);
+
+	using PrepareTimestepElemFct = void(T::*)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	using FinishTimestepFct = void(T::*)(number, VectorProxyBase*);
+
+	using FinishTimestepElemFct = void(T::*)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 // 	types of loop function pointers
-	typedef void (T::*PrepareElemLoopFct)(ReferenceObjectID roid, int si);
-	typedef void (T::*PrepareElemFct)(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
-	typedef void (T::*FinishElemLoopFct)();
+	using PrepareElemLoopFct = void(T::*)(ReferenceObjectID roid, int si);
+
+	using PrepareElemFct = void(T::*)(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+
+	using FinishElemLoopFct = void(T::*)();
 
 // 	types of Jacobian assemble functions
-	typedef void (T::*ElemJAFct)(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-	typedef void (T::*ElemJMFct)(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	using ElemJAFct = void(T::*)(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	using ElemJMFct = void(T::*)(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 // 	types of Defect assemble functions
-	typedef void (T::*ElemdAFct)(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-	typedef void (T::*ElemdMFct)(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	using ElemdAFct = void(T::*)(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	using ElemdMFct = void(T::*)(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 // 	types of right hand side assemble functions
-	typedef void (T::*ElemRHSFct)(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	using ElemRHSFct = void(T::*)(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 
 private:
@@ -321,23 +328,23 @@ class IElemEstimatorFuncs
 {
 public:
 	/// constructor
-	IElemEstimatorFuncs() : m_bDoErrEst(false), m_spErrEstData(SPNULL)
+	IElemEstimatorFuncs() : m_bDoErrEst(false), m_spErrEstData(nullptr)
 	{ set_default_add_fct(); }
 
 	/// Virtual destructor
-	virtual ~IElemEstimatorFuncs(){}
+	virtual ~IElemEstimatorFuncs()= default;
 
 	/// Barton Nackman trick (TODO: needed?)
-	typedef TLeaf leaf_type;
+	using leaf_type = TLeaf;
 
 	TLeaf& asLeaf()
 	{ return static_cast<TLeaf&>(*this); }
 
 	///	Domain type
-	typedef TDomain domain_type;
+	using domain_type = TDomain;
 
 	///	World dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 
 	void do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
 	void do_prep_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -380,10 +387,10 @@ protected:
 		void remove_compute_err_est_rhs_elem(ReferenceObjectID id);
 		void remove_fsh_err_est_elem_loop(ReferenceObjectID id);
 
-		///	sets all assemble functions to NULL for a given ReferenceObjectID
+		///	sets all assemble functions to nullptr for a given ReferenceObjectID
 		void clear_add_fct(ReferenceObjectID id);
 
-		///	sets all assemble functions to NULL (for all ReferenceObjectID's)
+		///	sets all assemble functions to nullptr (for all ReferenceObjectID's)
 		void clear_add_fct();
 
 		///	sets all assemble functions to the corresponding virtual ones
@@ -393,15 +400,20 @@ protected:
 
 private:
 	//	abbreviation for own type
-	typedef IElemEstimatorFuncs<TLeaf, TDomain> T;
+	using T = IElemEstimatorFuncs<TLeaf, TDomain>;
 
 	//	types of the error estimator assembler
-	typedef void (T::*PrepareErrEstElemLoopFct)(ReferenceObjectID roid, int si);
-	typedef void (T::*PrepareErrEstElemFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-	typedef void (T::*ElemComputeErrEstAFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
-	typedef void (T::*ElemComputeErrEstMFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
-	typedef void (T::*ElemComputeErrEstRhsFct)(GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
-	typedef void (T::*FinishErrEstElemLoopFct)();
+	using PrepareErrEstElemLoopFct = void(T::*)(ReferenceObjectID roid, int si);
+
+	using PrepareErrEstElemFct = void(T::*)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	using ElemComputeErrEstAFct = void(T::*)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
+
+	using ElemComputeErrEstMFct = void(T::*)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
+
+	using ElemComputeErrEstRhsFct = void(T::*)(GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
+
+	using FinishErrEstElemLoopFct = void(T::*)();
 
 	//	Error estimator functions
 	PrepareErrEstElemLoopFct	m_vPrepareErrEstElemLoopFct[NUM_REFERENCE_OBJECTS];
@@ -416,7 +428,7 @@ private:
 	// Error estimator
 	// //////////////////////////
 public:
-	///	sets the pointer to an error estimator data object (or NULL)
+	///	sets the pointer to an error estimator data object (or nullptr)
 	/**
 	 * This function sets the pointer to an error estimator data object
 	 * that should be used for this discretization. Note that the ElemDisc
@@ -430,7 +442,7 @@ public:
 	/// find out whether or not a posteriori error estimation is to be performed for this disc
 	bool err_est_enabled() const {return m_bDoErrEst;}
 
-	///	returns the pointer to the error estimator data object (or NULL)
+	///	returns the pointer to the error estimator data object (or nullptr)
 	virtual SmartPtr<IErrEstData<TDomain> > err_est_data() {return m_spErrEstData;}
 
 private:
@@ -473,13 +485,13 @@ class IElemDiscBase
 {
 	public:
 	///	Domain type
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	///	Position type
-		typedef typename TDomain::position_type position_type;
+		using position_type = typename TDomain::position_type;
 
 	///	World dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 		
 	public:
 	///	Constructor
@@ -489,7 +501,7 @@ class IElemDiscBase
 		IElemDiscBase(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset);
 
 	/// Virtual destructor
-		virtual ~IElemDiscBase(){}
+		virtual ~IElemDiscBase()= default;
 
 	public:
 	///	sets the approximation space
@@ -634,7 +646,7 @@ class IElemDiscBase
 	public:
 	///	sets if assembling should be time-dependent and the local time series
 	/**
-	 * This function specifies if the assembling is time-dependent. If NULL is
+	 * This function specifies if the assembling is time-dependent. If nullptr is
 	 * passed, the assembling is assumed to be time-independent. If a local
 	 * time series is passed, this series is used as previous solution.
 	 *
@@ -648,7 +660,7 @@ class IElemDiscBase
 		void set_time_independent();
 
 	///	returns if assembling is time-dependent
-		bool is_time_dependent() const {return (m_pLocalVectorTimeSeries != NULL) && !m_bStationaryForced;}
+		bool is_time_dependent() const {return (m_pLocalVectorTimeSeries != nullptr) && !m_bStationaryForced;}
 
 	///	sets that the assembling is always stationary (even in instationary case)
 		void set_stationary(bool bStationaryForced = true) {m_bStationaryForced = bStationaryForced;}
@@ -759,11 +771,11 @@ class IElemError :
 	public IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>
 {
 public:
-	typedef TDomain domain_type;
-	static const int dim = TDomain::dim;
+	using domain_type = TDomain;
+	static constexpr int dim = TDomain::dim;
 
 	friend class IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>;
-	typedef IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain> estimator_base_type;
+	using estimator_base_type = IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>;
 
 	IElemError(const char* functions, const char* subsets)
 	: IElemDiscBase<TDomain>(functions, subsets), estimator_base_type()  {}
@@ -774,11 +786,11 @@ public:
 
 protected:
 
-	///	sets all assemble functions to NULL for a given ReferenceObjectID
+	///	sets all assemble functions to nullptr for a given ReferenceObjectID
 	void clear_add_fct(ReferenceObjectID id)
 	{ estimator_base_type::clear_add_fct(id); }
 
-	///	sets all assemble functions to NULL (for all ReferenceObjectID's)
+	///	sets all assemble functions to nullptr (for all ReferenceObjectID's)
 	void clear_add_fct()
 	{ estimator_base_type::clear_add_fct(); }
 
@@ -799,13 +811,13 @@ class IElemDisc :
 		public IElemError<TDomain>
 {
 public:
-	typedef TDomain domain_type;
-	static const int dim = TDomain::dim;
+	using domain_type = TDomain;
+	static constexpr int dim = TDomain::dim;
 
 	/// real base class
-	typedef IElemError<TDomain> base_type;
-	typedef IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain> estimator_base_type;
-	typedef IElemAssembleFuncs<IElemDisc<TDomain>, TDomain> assemble_base_type;
+	using base_type = IElemError<TDomain>;
+	using estimator_base_type = IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>;
+	using assemble_base_type = IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>;
 
 	friend class IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>;
 	friend class IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>;
@@ -819,14 +831,14 @@ public:
 
 protected:
 
-	///	sets all assemble functions to NULL for a given ReferenceObjectID
+	///	sets all assemble functions to nullptr for a given ReferenceObjectID
 		void clear_add_fct(ReferenceObjectID id)
 		{
 			base_type::clear_add_fct(id);
 			assemble_base_type::clear_add_fct(id);
 		}
 
-	///	sets all assemble functions to NULL (for all ReferenceObjectID's)
+	///	sets all assemble functions to nullptr (for all ReferenceObjectID's)
 		void clear_add_fct()
 		{
 			base_type::clear_add_fct();

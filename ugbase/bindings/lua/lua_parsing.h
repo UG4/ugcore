@@ -274,7 +274,7 @@ struct LuaParsing<const void*>{
 	static void push(lua_State* L, const void* data, const char* className){
 	//	we're removing const with a cast. However, it was made sure that
 	//	obj is treated as a const value.
-		CreateNewUserData(L, (void*)data, className, NULL, true);
+		CreateNewUserData(L, (void*)data, className, nullptr, true);
 	}
 };
 

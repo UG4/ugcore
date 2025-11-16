@@ -55,10 +55,10 @@ template <typename TAlgebra, typename O_t>
 class BoostMinimumDegreeOrdering final : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
-	typedef typename TAlgebra::matrix_type M_t;
-	typedef typename TAlgebra::vector_type V_t;
-	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> G_t;
-	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
+	using M_t = typename TAlgebra::matrix_type;
+	using V_t = typename TAlgebra::vector_type;
+	using G_t = boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS>;
+	using baseclass = IOrderingAlgorithm<TAlgebra, O_t>;
 
 	BoostMinimumDegreeOrdering(){}
 

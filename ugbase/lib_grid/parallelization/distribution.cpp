@@ -57,15 +57,15 @@ static DebugID LG_DIST("LG_DIST");
 
 struct TargetProcInfo
 {
-	TargetProcInfo() {}
-	TargetProcInfo(int pID, byte intfcState) :
+	TargetProcInfo() = default;
+	TargetProcInfo(int pID, byte_t intfcState) :
 		procID(pID), interfaceState(intfcState) {}
 
 	int procID;
-	byte interfaceState; // or-combinations of constants from InterfaceStates
+	byte_t interfaceState; // or-combinations of constants from InterfaceStates
 };
 
-typedef Attachment<vector<TargetProcInfo> >	ADistInfo;
+using ADistInfo = Attachment<vector<TargetProcInfo> >;
 
 ///	Automatically attaches ADistInfo to all elements of a grid.
 /**	On destruction, the attached dist info attachments are removed again.
@@ -168,11 +168,11 @@ template <class TLayout>
 class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
 		ComPol_SynchronizeDistInfos(DistInfoSupplier& distInfos, bool merge) :
 			m_distInfos(distInfos), m_mergeEnabled(merge)	{}
@@ -255,7 +255,7 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 template <class TElem>
 static void SynchronizeDistInfos(MultiGrid& mg, DistInfoSupplier& distInfos)
 {
-	typedef typename GridLayoutMap::Types<TElem>::Layout	ElemLayout;
+	using ElemLayout = typename GridLayoutMap::Types<TElem>::Layout;
 	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
 	pcl::InterfaceCommunicator<ElemLayout>	com;
 	ComPol_SynchronizeDistInfos<ElemLayout>	compolSync(distInfos, true);
@@ -410,7 +410,7 @@ template <class TElem>
 static void WriteDistInfosToTextFile(MultiGrid& mg, DistInfoSupplier& infoSupplier,
 									 const char* filename)
 {
-	typedef typename MultiGrid::traits<TElem>::iterator TElemIter;
+	using TElemIter = typename MultiGrid::traits<TElem>::iterator;
 
 	Table<std::stringstream> table(mg.num<TElem>() + 1, 3);
 	table(0, 0) << "lvl";	table(0, 1) << "center";	table(0, 2) << "interface states";
@@ -460,7 +460,7 @@ static string LocateElement(MultiGrid& mg, TElem* e)
 template <class TElem>
 static bool PerformValidityCheck(DistributedGridManager& dgm)
 {
-	typedef typename Grid::traits<TElem>::iterator	TElemIter;
+	using TElemIter = typename Grid::traits<TElem>::iterator;
 
 	bool isValid = true;
 
@@ -529,10 +529,10 @@ static bool PerformValidityCheck(DistributedGridManager& dgm)
 //	if(!glm.has_layout<TElem>(INT_V_MASTER))
 //		return;
 //
-//	typedef typename GridLayoutMap::Types<TElem>::Layout	Layout;
-//	typedef typename Layout::iterator						LIter;
-//	typedef typename Layout::Interface						Interface;
-//	typedef typename Interface::iterator					IIter;
+// using Layout = typename GridLayoutMap::Types<TElem>::Layout;
+// using LIter = typename Layout::iterator;
+// using Interface = typename Layout::Interface;
+// using IIter = typename Interface::iterator;
 //
 //	Layout& layout = glm.get_layout<TElem>(INT_V_MASTER);
 //	for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
@@ -576,7 +576,7 @@ static void SelectAssociatedSides(MGSelector& msel, TElem* e,
 	UG_ASSERT(msel.multi_grid(), "");
 	MultiGrid& mg = *msel.multi_grid();
 
-	typedef typename TElem::side TSide;
+	using TSide = typename TElem::side;
 	typename MultiGrid::traits<TSide>::secure_container sides;
 
 	mg.associated_elements(sides, e);
@@ -609,8 +609,8 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 
 //	constraining triangles
 	{
-		typedef ConstrainingTriangle TElem;
-		typedef MGSelector::traits<TElem>::level_iterator TIter;
+		using TElem = ConstrainingTriangle;
+		using TIter = MGSelector::traits<TElem>::level_iterator;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
@@ -649,8 +649,8 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 
 //	constraining quadrilaterals
 	{
-		typedef ConstrainingQuadrilateral TElem;
-		typedef MGSelector::traits<TElem>::level_iterator TIter;
+		using TElem = ConstrainingQuadrilateral;
+		using TIter = MGSelector::traits<TElem>::level_iterator;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
@@ -689,8 +689,8 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 
 //	constraining edges
 	{
-		typedef ConstrainingEdge TElem;
-		typedef MGSelector::traits<TElem>::level_iterator TIter;
+		using TElem = ConstrainingEdge;
+		using TIter = MGSelector::traits<TElem>::level_iterator;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
@@ -734,8 +734,8 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //
 ////	constrained triangles
 //	{
-//		typedef ConstrainedTriangle TElem;
-//		typedef MGSelector::traits<TElem>::level_iterator TIter;
+// using TElem = ConstrainedTriangle;
+// using TIter = MGSelector::traits<TElem>::level_iterator;
 //		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 //			for(TIter iter = msel.begin<TElem>(lvl);
 //				iter != msel.end<TElem>(lvl); ++iter)
@@ -761,8 +761,8 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //
 ////	constrained quadrilaterals
 //	{
-//		typedef ConstrainedQuadrilateral TElem;
-//		typedef MGSelector::traits<TElem>::level_iterator TIter;
+// using TElem = ConstrainedQuadrilateral;
+// using TIter = MGSelector::traits<TElem>::level_iterator;
 //		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 //			for(TIter iter = msel.begin<TElem>(lvl);
 //				iter != msel.end<TElem>(lvl); ++iter)
@@ -788,8 +788,8 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //
 ////	constrained edges
 //	{
-//		typedef ConstrainedEdge TElem;
-//		typedef MGSelector::traits<TElem>::level_iterator TIter;
+//		using TElem = ConstrainedEdge;
+//		using TIter = MGSelector::traits<TElem>::level_iterator;
 //		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 //			for(TIter iter = msel.begin<TElem>(lvl);
 //				iter != msel.end<TElem>(lvl); ++iter)
@@ -819,8 +819,8 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //
 ////	constrained vertices
 //	{
-//		typedef ConstrainedVertex TElem;
-//		typedef MGSelector::traits<TElem>::level_iterator TIter;
+// using TElem = ConstrainedVertex;
+// using TIter = MGSelector::traits<TElem>::level_iterator;
 //		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 //			for(TIter iter = msel.begin<TElem>(lvl);
 //				iter != msel.end<TElem>(lvl); ++iter)
@@ -1020,7 +1020,7 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel, bool partitionF
 
 //	we start on the highest level and go downwards to avoid side
 //	effects from repeated selection adjustment.
-	typedef typename MGSelector::traits<TElem>::level_iterator TIter;
+	using TIter = typename MGSelector::traits<TElem>::level_iterator;
 	for(int lvl = (int)msel.num_levels() - 1; lvl >= 0 ; --lvl){
 		for(TIter iter = msel.begin<TElem>(lvl);
 			iter != msel.end<TElem>(lvl);)
@@ -1086,7 +1086,7 @@ static void SelectUnselectedRootElementsAsVMasters(MGSelector& msel)
 	UG_DLOG(LG_DIST, 3, "dist-start: SelectUnselectedRootElementsAsVMasters\n");
 	GDIST_PROFILE_FUNC();
 
-	typedef typename Grid::traits<TElem>::iterator TIter;
+	using TIter = typename Grid::traits<TElem>::iterator;
 
 	UG_ASSERT(msel.multi_grid(), "Selector has to operate on a MultiGrid");
 	MultiGrid& mg = *msel.multi_grid();
@@ -1109,7 +1109,7 @@ static void SelectSelectedRootElementsAsVSlaves(MGSelector& msel)
 	UG_DLOG(LG_DIST, 3, "dist-start: SelectSelectedRootElementsAsVSlaves\n");
 	GDIST_PROFILE_FUNC();
 
-	typedef typename Grid::traits<TElem>::iterator TIter;
+	using TIter = typename Grid::traits<TElem>::iterator;
 
 	UG_ASSERT(msel.multi_grid(), "Selector has to operate on a MultiGrid");
 	MultiGrid& mg = *msel.multi_grid();
@@ -1229,7 +1229,7 @@ static void AddTargetProcToDistInfos(MGSelector& msel,
 	UG_DLOG(LG_DIST, 3, "dist-start: AddTargetProcToDistInfos\n");
 	GDIST_PROFILE_FUNC();
 
-	typedef typename Grid::traits<TElem>::iterator	TElemIter;
+	using TElemIter = typename Grid::traits<TElem>::iterator;
 
 
 	for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
@@ -1237,7 +1237,7 @@ static void AddTargetProcToDistInfos(MGSelector& msel,
 			iter != msel.end<TElem>(lvl); ++iter)
 		{
 			TElem* e = *iter;
-			byte selState = msel.get_selection_status(e);
+			byte_t selState = msel.get_selection_status(e);
 
 			distInfos.get(e).push_back(
 					TargetProcInfo(targetProc, selState));
@@ -1430,7 +1430,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 	UG_DLOG(LG_DIST, 3, "dist-start: CreateLayoutsFromDistInfos\n");
 	GDIST_PROFILE_FUNC();
 
-	typedef typename MultiGrid::traits<TElem>::iterator	TIter;
+	using TIter = typename MultiGrid::traits<TElem>::iterator;
 
 
 	int localProcID = pcl::ProcRank();
@@ -1448,7 +1448,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 		//	element lies (ignore pure vertical masters)
 		//	this lowest rank is required to decide, which process a horizontal
 		//	master should reside on
-			byte localInterfaceState = 0;
+			byte_t localInterfaceState = 0;
 			int minProc = pcl::NumProcs();
 			int minVMasterProc = pcl::NumProcs();
 			int minVMasterNoVSlave = pcl::NumProcs();
@@ -1764,9 +1764,9 @@ static void SynchronizeAttachedGlobalAttachments (
 
 	vector<string>	attachedNamesAndTypes;
 
-	vector<byte> locAttached(names.size(), 0);
+	vector<byte_t> locAttached(names.size(), 0);
 	for(size_t i = 0; i < names.size(); ++i){
-		byte& b = locAttached[i];
+		byte_t& b = locAttached[i];
 		if(GlobalAttachments::is_attached<Vertex>(g, names[i]))
 			b |= 1;
 		if(GlobalAttachments::is_attached<Edge>(g, names[i]))
@@ -1777,11 +1777,11 @@ static void SynchronizeAttachedGlobalAttachments (
 			b |= 1<<3;
 	}
 
-	vector<byte> globAttached(names.size());
+	vector<byte_t> globAttached(names.size());
 	procComm.allreduce(locAttached, globAttached, PCL_RO_BOR);
 
 	for(size_t i = 0; i < names.size(); ++i){
-		byte& b = globAttached[i];
+		byte_t& b = globAttached[i];
 		if((b & 1) && !GlobalAttachments::is_attached<Vertex>(g, names[i]))
 			GlobalAttachments::attach<Vertex>(g, names[i]);
 
@@ -2104,13 +2104,13 @@ bool DistributeGrid(MultiGrid& mg,
 		// 		for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
 		// 			ConstrainedVertex* cv = dynamic_cast<ConstrainedVertex*>(e->constrained_vertex(i));
 		// 			UG_ASSERT(cv, "Constrained vertices have to be of the type ConstrainedVertex");
-		// 			cv->set_constraining_object(NULL);
+		// 			cv->set_constraining_object(nullptr);
 		// 		}
 
 		// 		for(size_t i = 0; i < e->num_constrained_edges(); ++i){
 		// 			ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e->constrained_edge(i));
 		// 			UG_ASSERT(cde, "Constrained edges have to be of the type ConstrainedEdge");
-		// 			cde->set_constraining_object(NULL);
+		// 			cde->set_constraining_object(nullptr);
 		// 		}
 		// 	}
 
@@ -2142,19 +2142,19 @@ bool DistributeGrid(MultiGrid& mg,
 		// 		for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
 		// 			ConstrainedVertex* cv = dynamic_cast<ConstrainedVertex*>(e->constrained_vertex(i));
 		// 			UG_ASSERT(cv, "Constrained vertices have to be of the type ConstrainedVertex");
-		// 			cv->set_constraining_object(NULL);
+		// 			cv->set_constraining_object(nullptr);
 		// 		}
 
 		// 		for(size_t i = 0; i < e->num_constrained_edges(); ++i){
 		// 			ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e->constrained_edge(i));
 		// 			UG_ASSERT(cde, "Constrained edges have to be of the type ConstrainedEdge");
-		// 			cde->set_constraining_object(NULL);
+		// 			cde->set_constraining_object(nullptr);
 		// 		}
 
 		// 		for(size_t i = 0; i < e->num_constrained_faces(); ++i){
 		// 			ConstrainedFace* cdf = dynamic_cast<ConstrainedFace*>(e->constrained_face(i));
 		// 			UG_ASSERT(cdf, "Constrained faces have to be of the type ConstrainedFace");
-		// 			cdf->set_constraining_object(NULL);
+		// 			cdf->set_constraining_object(nullptr);
 		// 		}
 		// 	}
 
@@ -2165,19 +2165,19 @@ bool DistributeGrid(MultiGrid& mg,
 		// 		for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
 		// 			ConstrainedVertex* cv = dynamic_cast<ConstrainedVertex*>(e->constrained_vertex(i));
 		// 			UG_ASSERT(cv, "Constrained vertices have to be of the type ConstrainedVertex");
-		// 			cv->set_constraining_object(NULL);
+		// 			cv->set_constraining_object(nullptr);
 		// 		}
 
 		// 		for(size_t i = 0; i < e->num_constrained_edges(); ++i){
 		// 			ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e->constrained_edge(i));
 		// 			UG_ASSERT(cde, "Constrained edges have to be of the type ConstrainedEdge");
-		// 			cde->set_constraining_object(NULL);
+		// 			cde->set_constraining_object(nullptr);
 		// 		}
 
 		// 		for(size_t i = 0; i < e->num_constrained_faces(); ++i){
 		// 			ConstrainedFace* cdf = dynamic_cast<ConstrainedFace*>(e->constrained_face(i));
 		// 			UG_ASSERT(cdf, "Constrained faces have to be of the type ConstrainedFace");
-		// 			cdf->set_constraining_object(NULL);
+		// 			cdf->set_constraining_object(nullptr);
 		// 		}
 		// 	}
 		// }

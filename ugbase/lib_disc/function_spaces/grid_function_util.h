@@ -170,8 +170,8 @@ void ScaleGF
 template<typename TGridFunction, typename TBaseElem>
 void SubtractValueFromComponent(SmartPtr<TGridFunction> spGF, size_t fct, number sub)
 {
-	typedef TGridFunction GF;
-	typedef typename GF::template traits<TBaseElem>::const_iterator iter_type;
+	using GF = TGridFunction;
+	using iter_type = typename GF::template traits<TBaseElem>::const_iterator;
 
 	iter_type iter = spGF->template begin<TBaseElem>();
 	iter_type iterEnd = spGF->template end<TBaseElem>();
@@ -217,7 +217,7 @@ void AdjustMeanValue
 	number mean ///< the desired mean value
 )
 {
-	typedef TGridFunction GF;
+	using GF = TGridFunction;
 	PROFILE_FUNC_GROUP("gmg");
 
 	if(vCmp.empty())
@@ -234,7 +234,7 @@ void AdjustMeanValue
 	std::vector<number> vIntegral(vCmp.size(), 0.0);
 	for(size_t f = 0; f < vCmp.size(); f++){
 		const size_t fct = spGF->fct_id_by_name(vCmp[f].c_str());
-		vIntegral[f] = Integral(spGF, vCmp[f].c_str(), NULL, ddinfo->lfeid(fct).order());
+		vIntegral[f] = Integral(spGF, vCmp[f].c_str(), nullptr, ddinfo->lfeid(fct).order());
 	}
 
 //	subtract value
@@ -309,7 +309,7 @@ number SumGFValuesAt
 	size_t fct ///< index of the function
 )
 {
-	typedef typename TGridFunction::template traits<TBaseElem>::const_iterator t_elem_iter;
+	using t_elem_iter = typename TGridFunction::template traits<TBaseElem>::const_iterator;
 	
 	std::vector<DoFIndex> ind;
 	number sum (1);
@@ -380,7 +380,7 @@ number SumGFValuesAt
 	SubsetGroup & ssGroup ///< the subsets
 )
 {
-	typedef typename TGridFunction::template traits<TBaseElem>::const_iterator t_elem_iter;
+	using t_elem_iter = typename TGridFunction::template traits<TBaseElem>::const_iterator;
 	
 	std::vector<DoFIndex> ind;
 	number sum (1);
@@ -467,7 +467,7 @@ bool CheckGFforNaN
 	size_t fct ///< index of the function
 )
 {
-	typedef typename TGridFunction::template traits<TBaseElem>::const_iterator t_elem_iter;
+	using t_elem_iter = typename TGridFunction::template traits<TBaseElem>::const_iterator;
 	
 	std::vector<DoFIndex> ind;
 	
@@ -583,7 +583,7 @@ bool CheckGFValuesWithinBounds
 	number upperBnd
 )
 {
-	typedef typename TGridFunction::template traits<TBaseElem>::const_iterator elem_it;
+	using elem_it = typename TGridFunction::template traits<TBaseElem>::const_iterator;
 
 	bool ret = true;
 
@@ -724,13 +724,13 @@ void WriteMatrixToConnectionViewer(const char *filename,
 	}
 
 //	position array
-	const static int dim = TFunction::domain_type::dim;
+	static constexpr int dim = TFunction::domain_type::dim;
 	std::vector<MathVector<dim> > vPos;
 	ExtractPositions(u, vPos);
 
 // 	write matrix
 	if(vPos.empty())
-		ConnectionViewer::WriteMatrixPar( filename, A, (MathVector<dim>*)NULL, dim );
+		ConnectionViewer::WriteMatrixPar( filename, A, (MathVector<dim>*)nullptr, dim );
 	else
 		ConnectionViewer::WriteMatrixPar( filename, A, &vPos[0], dim );
 
@@ -782,7 +782,7 @@ template<class TFunction>
 void WriteVectorToConnectionViewer(const char *filename,
 		const typename TFunction::algebra_type::vector_type &b,
 		const TFunction &u,
-		const typename TFunction::algebra_type::vector_type *pCompareVec = NULL) {
+		const typename TFunction::algebra_type::vector_type *pCompareVec = nullptr) {
 	PROFILE_FUNC_GROUP("debug");
 //	check name
 	if ( !FileTypeIs( filename, ".vec") ) {
@@ -791,7 +791,7 @@ void WriteVectorToConnectionViewer(const char *filename,
 	}
 
 // 	get positions of vertices
-	const static int dim = TFunction::domain_type::dim;
+	static constexpr int dim = TFunction::domain_type::dim;
 	std::vector<MathVector<dim> > vPos;
 	ExtractPositions(u, vPos);
 
@@ -806,10 +806,10 @@ void WriteVectorToConnectionViewer(
 		const typename TFunction::algebra_type::matrix_type &A,
 		const typename TFunction::algebra_type::vector_type &b,
 		const TFunction &u,
-		const typename TFunction::algebra_type::vector_type *pCompareVec = NULL) {
+		const typename TFunction::algebra_type::vector_type *pCompareVec = nullptr) {
 	PROFILE_FUNC_GROUP("debug");
 //	get dimension
-	const static int dim = TFunction::domain_type::dim;
+	static constexpr int dim = TFunction::domain_type::dim;
 
 //	check name
 	if ( !FileTypeIs( filename, ".vec") ) {
@@ -930,7 +930,7 @@ void WriteVectorCSV(const char *filename,
 		const TFunction &u) {
 	PROFILE_FUNC_GROUP("debug");
 //	get dimension
-	const static int dim = TFunction::domain_type::dim;
+	static constexpr int dim = TFunction::domain_type::dim;
 
 //	check name
 	if ( !FileTypeIs( filename, ".csv") ) {
@@ -994,7 +994,7 @@ number AverageFunctionDifference(
 	size_t numElements = 0;
 
 	// loop over all vertices in given subset and compare values of fct1 and fct2
-	typedef typename GridFunction<TDomain, TAlgebra>::template traits<Vertex>::const_iterator gridFctIterator;
+	using gridFctIterator = typename GridFunction<TDomain, TAlgebra>::template traits<Vertex>::const_iterator;
 	for( gridFctIterator iter = spGridFct->template begin<Vertex>((int)subSetID); 
 	       iter != spGridFct->template end<Vertex>((int)subSetID); ++iter ) {
 		// get dof_indices for the two functions on given subset
@@ -1020,36 +1020,36 @@ template<typename TDomain, typename TAlgebra>
 class GridFunctionDebugWriter: public IDebugWriter<TAlgebra>
 {
 	///	dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 
 public:
 	///	type of matrix
-	typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	type of vector
-	typedef typename algebra_type::vector_type vector_type;
+	using vector_type = typename algebra_type::vector_type;
 
 	///	type of matrix
-	typedef typename algebra_type::matrix_type matrix_type;
+	using matrix_type = typename algebra_type::matrix_type;
 
 	///	type of approximation space
-	typedef ApproximationSpace<TDomain> approximation_space_type;
+	using approximation_space_type = ApproximationSpace<TDomain>;
 
-	typedef IDebugWriter<TAlgebra> super;
+	using super = IDebugWriter<TAlgebra>;
 	using super::get_base_dir;
 
 public:
 	///	Constructor
 	GridFunctionDebugWriter(
 			SmartPtr<ApproximationSpace<TDomain> > spApproxSpace) :
-			m_spApproxSpace(spApproxSpace), bConnViewerOut(
-					true), bConnViewerIndices(false), bVTKOut(true), m_printConsistent(true)
+			m_spApproxSpace(spApproxSpace), bConnViewerOut(true),
+			bConnViewerIndices(false), bVTKOut(true), m_printConsistent(true)
 	{
 		IVectorDebugWriter<vector_type>::m_currentDim = dim;
 		reset();
 	}
 
-	virtual ~GridFunctionDebugWriter() {};
+	~GridFunctionDebugWriter() override {};
 
 	///	sets the grid level
 	void set_grid_level(const GridLevel& gridLevel) {
@@ -1124,7 +1124,7 @@ public:
 
 			const std::vector<MathVector<dim> >& vPos = this->template get_positions<dim>();
 			if(vPos.empty())
-				ConnectionViewer::WriteMatrixPar(name.c_str(), mat,(MathVector<dim>*)NULL, dim);
+				ConnectionViewer::WriteMatrixPar(name.c_str(), mat,(MathVector<dim>*)nullptr, dim);
 			else
 				ConnectionViewer::WriteMatrixPar(name.c_str(), mat, &vPos[0], dim);
 		}
@@ -1192,7 +1192,7 @@ protected:
 		const std::vector<MathVector<dim> >& vPos =
 				this->template get_positions<dim>();
 		if(vPos.empty())
-			ConnectionViewer::WriteVectorPar(name.c_str(), vec, (MathVector<dim>*)NULL, dim);
+			ConnectionViewer::WriteVectorPar(name.c_str(), vec, (MathVector<dim>*)nullptr, dim);
 		else
 			ConnectionViewer::WriteVectorPar(name.c_str(), vec, &vPos[0], dim);
 	}
@@ -1205,7 +1205,7 @@ protected:
 		this->compose_file_path (name);
 		name += filename;
 
-		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+		using TGridFunction = GridFunction<TDomain, TAlgebra>;
 		TGridFunction vtkFunc(
 				m_spApproxSpace,
 				m_spApproxSpace->dof_distribution(m_glFrom));
@@ -1243,7 +1243,7 @@ class GridFunctionPositionProvider: public IPositionProvider<
 public:
 	///	Constructor
 	GridFunctionPositionProvider() :
-			m_pGridFunc(NULL) {
+			m_pGridFunc(nullptr) {
 	}
 	GridFunctionPositionProvider(const TGridFunction& u) :
 			m_pGridFunc(&u) {
@@ -1254,7 +1254,7 @@ public:
 
 	virtual bool get_positions(
 			std::vector<MathVector<TGridFunction::domain_type::dim> >&vec) {
-		UG_ASSERT(m_pGridFunc != NULL,
+		UG_ASSERT(m_pGridFunc != nullptr,
 				"provide a grid function with set_reference_grid_function");
 		ExtractPositions(*m_pGridFunc, vec);
 		return true;
@@ -1271,14 +1271,14 @@ protected:
 template<typename TGridFunction, typename TVector>
 class GridFunctionVectorWriter: public IVectorWriter<TVector> {
 public:
-	typedef typename TVector::value_type value_type;
-	typedef typename TGridFunction::domain_type domain_type;
-	typedef TVector vector_type;
+	using value_type = typename TVector::value_type;
+	using domain_type = typename TGridFunction::domain_type;
+	using vector_type = TVector;
 
 public:
 	///	Constructor
 	GridFunctionVectorWriter() :
-			m_pGridFunc(NULL) {
+			m_pGridFunc(nullptr) {
 	}
 
 	void set_user_data(SmartPtr<UserData<number, domain_type::dim> > userData) {
@@ -1295,7 +1295,7 @@ public:
 
 	virtual bool update(vector_type &vec) {
 		PROFILE_FUNC_GROUP("debug");
-		UG_ASSERT(m_pGridFunc != NULL,
+		UG_ASSERT(m_pGridFunc != nullptr,
 				"provide a grid function with set_reference_grid_function");
 		UG_ASSERT(m_userData.valid(), "provide user data with set_user_data");
 
@@ -1312,7 +1312,7 @@ public:
 		//	resize positions
 		vec.resize(nr);
 
-		typedef typename TGridFunction::template traits<Vertex>::const_iterator const_iterator;
+		using const_iterator = typename TGridFunction::template traits<Vertex>::const_iterator;
 
 		//	loop all subsets
 		for (int si = 0; si < u.num_subsets(); ++si) {
@@ -1359,18 +1359,18 @@ template<typename TGridFunction>
 class GridFunctionVectorWriterDirichlet0: public IVectorWriter<
 		typename TGridFunction::algebra_type::vector_type> {
 public:
-	typedef typename TGridFunction::domain_type domain_type;
+	using domain_type = typename TGridFunction::domain_type;
 
-	typedef typename TGridFunction::approximation_space_type approximation_space_type;
+	using approximation_space_type = typename TGridFunction::approximation_space_type;
 
-	typedef typename TGridFunction::algebra_type algebra_type;
-	typedef typename algebra_type::vector_type vector_type;
-	typedef typename vector_type::value_type value_type;
+	using algebra_type = typename TGridFunction::algebra_type;
+	using vector_type = typename algebra_type::vector_type;
+	using value_type = typename vector_type::value_type;
 
 public:
 	///	Constructor
 	GridFunctionVectorWriterDirichlet0() :
-			m_pApproxSpace(NULL), m_spPostProcess(NULL), m_level(-1) {
+			m_pApproxSpace(nullptr), m_spPostProcess(nullptr), m_level(-1) {
 	}
 
 	void set_level(size_t level) {
@@ -1390,7 +1390,7 @@ public:
 	virtual bool update(vector_type &vec) {
 		PROFILE_FUNC_GROUP("debug");
 		UG_ASSERT(m_spPostProcess.valid(), "provide a post process with init");
-		UG_ASSERT(m_pApproxSpace != NULL, "provide approximation space init");
+		UG_ASSERT(m_pApproxSpace != nullptr, "provide approximation space init");
 
 		size_t numDoFs = 0;
 		GridLevel gl;

@@ -72,81 +72,78 @@ class FVGeometry : public FVGeometryBase
 {
 	private:
 	///	small abbreviation for order
-		static const int p = TOrder;
+		static constexpr int p = TOrder;
 
 	public:
 	///	type of element
-		typedef TElem elem_type;
+		using elem_type = TElem;
 
 	///	type of reference element
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+		using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	///	dimension of reference element
-		static const int dim = ref_elem_type::dim;
+		static constexpr int dim = ref_elem_type::dim;
 
 	///	dimension of world
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	public:
 	///	order
-		static const int order = TOrder;
+		static constexpr int order = TOrder;
 
 	///	number of subelements
-		static const size_t numSubElem = Pow<p, dim>::value;
-
+		static constexpr size_t numSubElem = Pow<p, dim>::value;
 
 	///	traits used
-		typedef fv1_traits<ref_elem_type, worldDim> traits;
+		using traits = fv1_traits<ref_elem_type, worldDim>;
 
 	///	type of SubControlVolumeFace
-		typedef typename traits::scvf_type scvf_type;
+		using scvf_type = typename traits::scvf_type;
 
 	///	number of SCVF per SubElement
-		static const size_t numSCVFPerSubElem = ref_elem_type::numEdges;
+		static constexpr size_t numSCVFPerSubElem = ref_elem_type::numEdges;
 
 	///	number of SubControlVolumeFaces
-		static const size_t numSCVF = numSubElem * numSCVFPerSubElem;
+		static constexpr size_t numSCVF = numSubElem * numSCVFPerSubElem;
 
 	///	quadrature order
-		static const int quadOrderSCVF = TQuadOrder;
+		static constexpr int quadOrderSCVF = TQuadOrder;
 
 	///	type of quadrature rule
-		typedef GaussQuadrature<scvf_type, quadOrderSCVF> scvf_quad_rule_type;
+		using scvf_quad_rule_type = GaussQuadrature<scvf_type, quadOrderSCVF>;
 
 	///	number of scvf ip
-		static const size_t numSCVFIP = scvf_quad_rule_type::nip * numSCVF;
-
+		static constexpr size_t numSCVFIP = scvf_quad_rule_type::nip * numSCVF;
 
 	///	type of SubControlVolume
-		typedef typename traits::scv_type scv_type;
+		using scv_type = typename traits::scv_type;
 
 	///	number of SCV per SubElement
-		static const size_t numSCVPerSubElem = ref_elem_type::numCorners;
+		static constexpr size_t numSCVPerSubElem = ref_elem_type::numCorners;
 
 	///	number of SubControlVolumes
-		static const size_t numSCV = numSubElem * numSCVPerSubElem;
+		static constexpr size_t numSCV = numSubElem * numSCVPerSubElem;
 
 	///	quadrature order
-		static const int quadOrderSCV = TQuadOrder;
+		static constexpr int quadOrderSCV = TQuadOrder;
 
 	///	type of quadrature rule
-		typedef GaussQuadrature<scv_type, quadOrderSCV> scv_quad_rule_type;
+	using scv_quad_rule_type = GaussQuadrature<scv_type, quadOrderSCV>;
 
 	///	number of scv ip
-		static const size_t numSCVIP = scv_quad_rule_type::nip * numSCV;
-
+		static constexpr size_t numSCVIP = scv_quad_rule_type::nip * numSCV;
 
 	/// type of Shape function used
-		typedef LagrangeLSFS<ref_elem_type, p> local_shape_fct_set_type;
+		using local_shape_fct_set_type = LagrangeLSFS<ref_elem_type, p>;
 
 	///	number of shape functions
-		static const size_t nsh = local_shape_fct_set_type::nsh;
+		static constexpr size_t nsh = local_shape_fct_set_type::nsh;
 
 	///	Hanging node flag: this Geometry does not support hanging nodes
-		static const bool usesHangingNodes = false;
+		static constexpr bool usesHangingNodes = false;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = true;
+		static constexpr bool staticLocalData = true;
 
 	public:
 	///	Sub-Control Volume Face structure
@@ -154,13 +151,13 @@ class FVGeometry : public FVGeometryBase
 		{
 			public:
 			///	Number of integration points
-				static const size_t nip = scvf_quad_rule_type::nip;
+				static constexpr size_t nip = scvf_quad_rule_type::nip;
 
 			///	Number of corners of scvf
-				static const size_t numCo = traits::NumCornersOfSCVF;
+				static constexpr size_t numCo = traits::NumCornersOfSCVF;
 
 			public:
-				SCVF() {}
+				SCVF() = default;
 
 			/// index of SubControlVolume on one side of the scvf
 				inline size_t from() const {return From;}
@@ -272,13 +269,13 @@ class FVGeometry : public FVGeometryBase
 		{
 			public:
 			///	Number of integration points
-				static const size_t nip = scv_quad_rule_type::nip;
+				static constexpr size_t nip = scv_quad_rule_type::nip;
 
 			/// Number of corners of scvf
-				static const size_t numCo =	traits::NumCornersOfSCV;
+				static constexpr size_t numCo =	traits::NumCornersOfSCV;
 
 			public:
-				SCV() {};
+				SCV() = default;
 
 			/// number of corners, that bound the scvf
 				inline size_t num_corners() const {return numCo;}
@@ -377,13 +374,13 @@ class FVGeometry : public FVGeometryBase
 		{
 			public:
 			/// number of integration points
-				static const size_t nip = scvf_quad_rule_type::nip;
+				static constexpr size_t nip = scvf_quad_rule_type::nip;
 
 			/// Number of corners of bf
-				static const size_t numCo = traits::NumCornersOfSCVF;
+				static constexpr size_t numCo = traits::NumCornersOfSCVF;
 
 			public:
-				BF() {}
+				BF() = default;
 
 			/// index of SubControlVolume of the bf
 				inline size_t node_id() const {return nodeId;}
@@ -502,12 +499,12 @@ class FVGeometry : public FVGeometryBase
 
 	/// update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL);
+		            const ISubsetHandler* ish = nullptr);
 
 	/// update boundary data for given element
 		void update_boundary_faces(GridObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
-		                           const ISubsetHandler* ish = NULL);
+		                           const ISubsetHandler* ish = nullptr);
 
 	/// number of SubControlVolumeFaces
 		inline size_t num_scvf() const {return numSCVF;};
@@ -557,7 +554,7 @@ class FVGeometry : public FVGeometryBase
 
 	protected:
 	//	maximum number of geom objects in a dimension
-		static const int maxMid = numSCVF + 1;
+		static constexpr int maxMid = numSCVF + 1;
 
 	//	subelement
 		struct SubElement
@@ -630,7 +627,7 @@ class FVGeometry : public FVGeometryBase
 			return (*it).second;
 		}
 
-		void reset_curr_elem() {m_pElem = NULL;}
+		void reset_curr_elem() {m_pElem = nullptr;}
 
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;
@@ -679,26 +676,26 @@ class DimFVGeometry : public FVGeometryBase
 {
 	public:
 	///	traits used
-		typedef fv1_dim_traits<TDim, TWorldDim> traits;
+	using traits = fv1_dim_traits<TDim, TWorldDim>;
 
 	///	dimension of reference element
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	///	dimension of world
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	public:
 	///	type of SubControlVolumeFace
-		typedef typename traits::scvf_type scvf_type;
+	using scvf_type = typename traits::scvf_type;
 
 	///	type of SubControlVolume
-		typedef typename traits::scv_type scv_type;
+	using scv_type = typename traits::scv_type;
 
 	///	Hanging node flag: this Geometry does not support hanging nodes
-		static const bool usesHangingNodes = false;
+		static constexpr bool usesHangingNodes = false;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = false;
+		static constexpr bool staticLocalData = false;
 
 	public:
 	///	Sub-Control Volume Face structure
@@ -706,10 +703,10 @@ class DimFVGeometry : public FVGeometryBase
 		{
 			public:
 			///	Number of corners of scvf
-				static const size_t numCo = traits::NumCornersOfSCVF;
+				static constexpr size_t numCo = traits::NumCornersOfSCVF;
 
 			public:
-				SCVF() {}
+				SCVF() = default;
 
 			/// index of SubControlVolume on one side of the scvf
 				inline size_t from() const {return From;}
@@ -823,10 +820,10 @@ class DimFVGeometry : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of scvf
-				static const size_t numCo =	traits::NumCornersOfSCV;
+				static constexpr size_t numCo =	traits::NumCornersOfSCV;
 
 			public:
-				SCV() {};
+				SCV() = default;
 
 			/// number of corners, that bound the scvf
 				inline size_t num_corners() const {return numCo;}
@@ -927,10 +924,10 @@ class DimFVGeometry : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of bf
-				static const size_t numCo = traits::NumCornersOfSCVF;
+				static constexpr size_t numCo = traits::NumCornersOfSCVF;
 
 			public:
-				BF() {}
+				BF() = default;
 
 			/// index of SubControlVolume of the bf
 				inline size_t node_id() const {return nodeId;}
@@ -1050,7 +1047,7 @@ class DimFVGeometry : public FVGeometryBase
 
 	/// update data for given element
 		void update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL)
+		            const ISubsetHandler* ish = nullptr)
 		{
 			update(pElem, vCornerCoords, m_lfeID, m_quadOrderSCV, ish);
 		}
@@ -1058,12 +1055,12 @@ class DimFVGeometry : public FVGeometryBase
 	/// update data for given element
 		void update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		            const LFEID& lfeID, size_t orderQuad,
-		            const ISubsetHandler* ish = NULL);
+		            const ISubsetHandler* ish = nullptr);
 
 	/// update boundary data for given element
 		void update_boundary_faces(GridObject* pElem,
 		                           const MathVector<worldDim>* vCornerCoords,
-		                           const ISubsetHandler* ish = NULL);
+		                           const ISubsetHandler* ish = nullptr);
 
 	/// number of SubControlVolumeFaces
 		inline size_t num_scvf() const {return m_numSCVF;};
@@ -1113,7 +1110,7 @@ class DimFVGeometry : public FVGeometryBase
 
 	protected:
 	//	miximum number of geom objects in a dimension
-		static const int maxMid = traits::maxNumSCVF +1;
+		static constexpr int maxMid = traits::maxNumSCVF +1;
 
 	//	subelement
 		struct SubElement
@@ -1187,7 +1184,7 @@ class DimFVGeometry : public FVGeometryBase
 			return (*it).second;
 		}
 
-		void reset_curr_elem() {m_pElem = NULL;}
+		void reset_curr_elem() {m_pElem = nullptr;}
 
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;

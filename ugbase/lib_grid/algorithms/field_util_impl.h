@@ -83,7 +83,7 @@ template <class T>
 bool EliminateInvalidCells(Field<T>& field, const T& noDataValue)
 {
 	using namespace std;
-	typedef fieldutil::Cell<T>	Cell;
+	using Cell = fieldutil::Cell<T>;
 
 	deque<Cell>	cells;
 	number inProgressValue = -noDataValue;

@@ -55,9 +55,9 @@ template<typename T, size_t n>
 class FixedArray1
 {
 public:
-	typedef T value_type;
-	typedef size_t size_type;
-	typedef static_type storage_type;
+	using value_type = T;
+	using size_type = size_t;
+	using storage_type = static_type;
 
 public:
 	FixedArray1();
@@ -134,13 +134,14 @@ template<typename T, size_t rowsT, size_t colsT, eMatrixOrdering T_ordering=ColM
 class FixedArray2
 {
 public:
-	typedef T value_type;
-	typedef size_t size_type;
-	static const eMatrixOrdering ordering = T_ordering;
+	using value_type = T;
+	using size_type = size_t;
+	static constexpr eMatrixOrdering ordering = T_ordering;
 	enum { is_static=true};
 	enum { static_num_rows=rowsT};
 	enum { static_num_cols=colsT};
-	typedef static_type storage_type;
+
+	using storage_type = static_type;
 
 public:
 	FixedArray2();

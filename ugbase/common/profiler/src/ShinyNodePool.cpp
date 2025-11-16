@@ -45,7 +45,7 @@ namespace Shiny {
 		ProfileNodePool* pPool = static_cast<ProfileNodePool*>(
 			malloc(sizeof(ProfileNodePool) + sizeof(T) * (a_items - 1)));
 
-		pPool->nextPool = NULL;
+		pPool->nextPool = nullptr;
 		pPool->_nextItem = &pPool->_items[0];
 		pPool->endOfItems = &pPool->_items[a_items];
 

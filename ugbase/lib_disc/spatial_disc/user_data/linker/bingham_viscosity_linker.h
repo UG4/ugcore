@@ -61,15 +61,15 @@ class BinghamViscosityLinker
 	: public StdDataLinker< BinghamViscosityLinker<dim>, number, dim>
 {
 	//	Base class type
-	typedef StdDataLinker< BinghamViscosityLinker<dim>, number, dim> base_type;
+	using base_type = StdDataLinker< BinghamViscosityLinker<dim>, number, dim>;
 
 	//  Constructor
 	public:
 		BinghamViscosityLinker() :
-			m_spDensity(NULL), m_spDDensity(NULL),
-			m_spViscosity(NULL), m_spDViscosity(NULL),
-			m_spYieldStress(NULL), m_spDYieldStress(NULL),
-			m_spVelocityGrad(NULL), m_spDVelocityGrad(NULL)
+			m_spDensity(nullptr), m_spDDensity(nullptr),
+			m_spViscosity(nullptr), m_spDViscosity(nullptr),
+			m_spYieldStress(nullptr), m_spDYieldStress(nullptr),
+			m_spVelocityGrad(nullptr), m_spDVelocityGrad(nullptr)
 		{
 		//	this linker needs exactly four input
 			this->set_num_input(4);
@@ -117,7 +117,7 @@ class BinghamViscosityLinker
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
 		                     LocalVector* u,
-		                     const MathMatrix<refDim, dim>* vJT = NULL) const
+		                     const MathMatrix<refDim, dim>* vJT = nullptr) const
 		{
 			UG_LOG("BinghamViscosityLinker::evaluate called");
 			std::vector<number> vDensity(nip);
@@ -165,7 +165,7 @@ class BinghamViscosityLinker
 				             bool bDeriv,
 				             int s,
 				             std::vector<std::vector<number> > vvvDeriv[],
-				             const MathMatrix<refDim, dim>* vJT = NULL) const
+				             const MathMatrix<refDim, dim>* vJT = nullptr) const
 		{
 		
 		UG_LOG("BinghamViscosityLinker::eval_and_deriv called");
@@ -356,19 +356,19 @@ class BinghamViscosityLinker
 	protected:
 		//  variables for storing imports
 		///	import for density
-			static const size_t _RHO_ = 0;
+			static constexpr size_t _RHO_ = 0;
 			SmartPtr<CplUserData<number, dim> > m_spDensity;
 			SmartPtr<DependentUserData<number, dim> > m_spDDensity;
 		///	import for viscosity
-			static const size_t _ETA_ = 1;
+			static constexpr size_t _ETA_ = 1;
 			SmartPtr<CplUserData<number, dim> > m_spViscosity;
 			SmartPtr<DependentUserData<number, dim> > m_spDViscosity;
 		///	import for yield stress
-			static const size_t _TAU_ = 2;
+			static constexpr size_t _TAU_ = 2;
 			SmartPtr<CplUserData<number, dim> > m_spYieldStress;
 			SmartPtr<DependentUserData<number, dim> > m_spDYieldStress;
 		///	import for velocity gradient
-			static const size_t _DV_ = 3;
+			static constexpr size_t _DV_ = 3;
 			SmartPtr<CplUserData<MathMatrix<dim,dim>, dim> > m_spVelocityGrad;
 			SmartPtr<DependentUserData<MathMatrix<dim,dim>, dim> > m_spDVelocityGrad;
 };

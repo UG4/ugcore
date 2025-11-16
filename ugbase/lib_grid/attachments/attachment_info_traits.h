@@ -47,18 +47,18 @@ struct attachment_info_traits {
 	static const char* type_name ();
 };
 
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<bool>, "bool");
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<char>, "char");
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<byte>, "byte");
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<int>, "int");
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<uint>, "uint");
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<float>, "float");
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<double>, "double");
+template <> struct attachment_info_traits<Attachment<bool>> { static const char* type_name () {return "bool";}};;
+template <> struct attachment_info_traits<Attachment<char>> { static const char* type_name () {return "char";}};;
+template <> struct attachment_info_traits<Attachment<byte_t>> { static const char* type_name () {return "byte";}};;
+template <> struct attachment_info_traits<Attachment<int>> { static const char* type_name () {return "int";}};;
+template <> struct attachment_info_traits<Attachment<uint>> { static const char* type_name () {return "uint";}};;
+template <> struct attachment_info_traits<Attachment<float>> { static const char* type_name () {return "float";}};;
+template <> struct attachment_info_traits<Attachment<double>> { static const char* type_name () {return "double";}};;
 
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<vector1>, "vector1");
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<vector2>, "vector2");
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<vector3>, "vector3");
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<vector4>, "vector4");
+template <> struct attachment_info_traits<Attachment<vector1>> { static const char* type_name () {return "vector1";}};;
+template <> struct attachment_info_traits<Attachment<vector2>> { static const char* type_name () {return "vector2";}};;
+template <> struct attachment_info_traits<Attachment<vector3>> { static const char* type_name () {return "vector3";}};;
+template <> struct attachment_info_traits<Attachment<vector4>> { static const char* type_name () {return "vector4";}};;
 
 
 }//	end of namespace

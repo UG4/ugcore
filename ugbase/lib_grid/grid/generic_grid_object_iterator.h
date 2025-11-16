@@ -46,7 +46,7 @@ class GenericGridObjectIterator : public TBaseIterator
 	template <class TIterDest, class TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
 
 	public:
-		typedef TValue	value_type;
+		using value_type = TValue;
 
 	public:
 		GenericGridObjectIterator()	{}
@@ -72,7 +72,7 @@ class ConstGenericGridObjectIterator : public TConstBaseIterator
 	template <class TIterDest, class TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
 
 	public:
-		typedef TValue	value_type;
+		using value_type = TValue;
 
 	public:
 		ConstGenericGridObjectIterator()	{}

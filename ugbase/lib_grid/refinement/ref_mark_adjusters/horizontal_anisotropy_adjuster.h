@@ -48,8 +48,8 @@ template <class TAPos>
 class HorizontalAnisotropyAdjuster : public IRefMarkAdjuster
 {
 	public:
-		typedef TAPos									position_attachment_t;
-		typedef Grid::VertexAttachmentAccessor<TAPos>	position_accessor_t;
+		using position_attachment_t = TAPos;
+		using position_accessor_t = Grid::VertexAttachmentAccessor<TAPos>;
 
 		HorizontalAnisotropyAdjuster(TAPos aPos) : m_aPos(aPos) {}
 

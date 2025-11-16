@@ -65,13 +65,13 @@ class NewtonSolver
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	public:
 	///	constructor setting operator
@@ -96,7 +96,7 @@ class NewtonSolver
 
 	///	sets the line search
 		void set_line_search(SmartPtr<ILineSearch<vector_type> > spLineSearch) {m_spLineSearch = spLineSearch;}
-		void disable_line_search() {m_spLineSearch = SPNULL;}
+		void disable_line_search() {m_spLineSearch = nullptr;}
 		SmartPtr<ILineSearch<vector_type> > line_search()	{return m_spLineSearch;}
 
 	/// This operator inverts the Operator N: Y -> X
@@ -165,7 +165,7 @@ class NewtonSolver
 
 		bool createNewtonUpdater()
 		{
-			if( m_newtonUpdater != SPNULL )
+			if( m_newtonUpdater != nullptr )
 			{
 				m_newtonUpdater = SmartPtr<NewtonUpdaterGeneric<vector_type> >
 										  (new NewtonUpdaterGeneric<vector_type>{});

@@ -70,14 +70,14 @@ namespace ug{
 //	SchurSolver implementation
 template <typename TAlgebra>
 SchurPrecond<TAlgebra>::SchurPrecond() :
-	m_spDirichletSolver(SPNULL),
-	m_spSkeletonSolver(SPNULL),
-	m_spSchurComplementOp(SPNULL)
+	m_spDirichletSolver(nullptr),
+	m_spSkeletonSolver(nullptr),
+	m_spSchurComplementOp(nullptr)
 {
 	// clear aux vector smart ptrs
 	// (will be initialized in first step)
-	m_aux_rhs[0] = m_aux_rhs[1] = SPNULL;
-	m_aux_sol[0] = m_aux_sol[1] = SPNULL;
+	m_aux_rhs[0] = m_aux_rhs[1] = nullptr;
+	m_aux_sol[0] = m_aux_sol[1] = nullptr;
 }
 
 
@@ -87,8 +87,8 @@ postprocess()
 {
 	// clear aux vector smart ptrs
 	// (were initialized in first step)
-	m_aux_rhs[0] = m_aux_rhs[1] = SPNULL;
-	m_aux_sol[0] = m_aux_sol[1] = SPNULL;
+	m_aux_rhs[0] = m_aux_rhs[1] = nullptr;
+	m_aux_sol[0] = m_aux_sol[1] = nullptr;
 	return true;
 }
 

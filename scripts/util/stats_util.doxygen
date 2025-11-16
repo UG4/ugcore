@@ -45,7 +45,7 @@ and results should be saved in a file "stats.txt", so that you can use in a spre
 The stats format is as follows: it is an array, consisting of entries {description, content}
 So we need to add to our laplace.lua file the following lines:
 \code
-stats = { {"procs", GetNumProcesses()}, {"numRefs", numRefs}, {"steps", convCheck:step()}, {"SVN Revision", GetSVNRevision()} }
+stats = { {"procs", GetNumProcesses()}, {"numRefs", numRefs}, {"steps", convCheck:step()}}
      util.writeFileStats(stats, "stats.txt")
 \endcode
 after 2 runs, the file stats.txt looks as follows

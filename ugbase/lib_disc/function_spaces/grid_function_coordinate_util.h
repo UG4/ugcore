@@ -60,7 +60,7 @@ void AddFunctionValuesToGridCoordinatesP1(
 		"Fast P1 interpolation may only be used for Lagrange P1 functions.");
 
 //	domain type and position_type
-	typedef typename TGridFunction::domain_type domain_type;
+	using domain_type = typename TGridFunction::domain_type;
 
 // get position accessor
 	typename domain_type::position_accessor_type& aaPos

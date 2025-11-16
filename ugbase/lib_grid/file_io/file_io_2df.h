@@ -39,10 +39,10 @@
 
 namespace ug {
 
-///	Reads .2df files. 'psh' is optional and may be NULL
+///	Reads .2df files. 'psh' is optional and may be nullptr
 bool LoadGridFrom2DF(Grid& grid, const char* filename, ISubsetHandler* psh, AVector3& aPos);
 
-///	Writes .2df files. 'psh' is optional and may be NULL
+///	Writes .2df files. 'psh' is optional and may be nullptr
 bool SaveGridTo2DF(Grid& grid, const char* filename, ISubsetHandler* psh, AVector3& aPos);
 
 }//	end of namespace

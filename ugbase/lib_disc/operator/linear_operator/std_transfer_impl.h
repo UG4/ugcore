@@ -61,7 +61,7 @@ assemble_prolongation_p1(matrix_type& P,
 
 //  iterators
 	const MultiGrid& mg = *coarseDD.multi_grid();
-	typedef DoFDistribution::traits<Vertex>::const_iterator const_iterator;
+	using const_iterator = DoFDistribution::traits<Vertex>::const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on fine level
@@ -69,8 +69,8 @@ assemble_prolongation_p1(matrix_type& P,
 	std::vector<DoFIndex> vParentDoF, vChildDoF;
 	for(int si = 0; si < fineDD.num_subsets(); ++si)
 	{
-		iterBegin = fineDD.template begin<Vertex>(si);
-		iterEnd = fineDD.template end<Vertex>(si);
+		iterBegin = fineDD.begin<Vertex>(si);
+		iterEnd = fineDD.end<Vertex>(si);
 
 	//  loop vertices for fine level subset
 		for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -223,7 +223,7 @@ assemble_prolongation(matrix_type& P,
 
 //  iterators
 	MultiGrid& mg = *const_cast<MultiGrid*>(coarseDD.multi_grid().get());
-	typedef typename DoFDistribution::traits<TChild>::const_iterator const_iterator;
+	using const_iterator = typename DoFDistribution::traits<TChild>::const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on coarse level
@@ -231,8 +231,8 @@ assemble_prolongation(matrix_type& P,
 	std::vector<size_t> vParentIndex, vChildIndex;
 	for(int si = 0; si < fineDD.num_subsets(); ++si)
 	{
-		iterBegin = fineDD.template begin<TChild>(si);
-		iterEnd = fineDD.template end<TChild>(si);
+		iterBegin = fineDD.begin<TChild>(si);
+		iterEnd = fineDD.end<TChild>(si);
 
 	//	check, which cmps to consider on this subset
 		std::vector<LFEID> vLFEID;
@@ -318,7 +318,7 @@ assemble_prolongation(matrix_type& P,
 							vParent.push_back(parent);
 						} else if(parentDim == lfeID.dim() - 1){
 							// case: parent is Side. --> Get neighbor elems
-							typedef typename TChild::sideof TElem;
+							using TElem = typename TChild::sideof;
 							std::vector<TElem*> vElem;
 							coarseDD.collect_associated(vElem, parent);
 							for(size_t p = 0; p < vElem.size(); ++p)
@@ -416,7 +416,7 @@ assemble_restriction(matrix_type& R,
 
 //  iterators
 	MultiGrid& mg = *const_cast<MultiGrid*>(coarseDD.multi_grid().get());
-	typedef typename DoFDistribution::traits<TChild>::const_iterator const_iterator;
+	using const_iterator = typename DoFDistribution::traits<TChild>::const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on coarse level
@@ -424,8 +424,8 @@ assemble_restriction(matrix_type& R,
 	std::vector<size_t> vParentIndex, vChildIndex;
 	for(int si = 0; si < fineDD.num_subsets(); ++si)
 	{
-		iterBegin = fineDD.template begin<TChild>(si);
-		iterEnd = fineDD.template end<TChild>(si);
+		iterBegin = fineDD.begin<TChild>(si);
+		iterEnd = fineDD.end<TChild>(si);
 
 	//	check, which cmps to consider on this subset
 		std::vector<LFEID> vLFEID;
@@ -511,7 +511,7 @@ assemble_restriction(matrix_type& R,
 							vParent.push_back(parent);
 						} else if(parentDim == lfeID.dim() - 1){
 							// case: parent is Side. --> Get neighbor elems
-							typedef typename TChild::sideof TElem;
+							using TElem = typename TChild::sideof;
 							std::vector<TElem*> vElem;
 							coarseDD.collect_associated(vElem, parent);
 							for(size_t p = 0; p < vElem.size(); ++p){

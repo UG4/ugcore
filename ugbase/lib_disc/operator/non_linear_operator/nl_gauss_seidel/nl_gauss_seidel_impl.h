@@ -123,7 +123,7 @@ NLGaussSeidelSolver(SmartPtr<approx_space_type> spApproxSpace,
 template <typename TDomain, typename TAlgebra>
 NLGaussSeidelSolver<TDomain, TAlgebra>::
 NLGaussSeidelSolver() :
-	m_spApproxSpace(NULL),
+	m_spApproxSpace(nullptr),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
 	m_damp(1.0),
 	m_bProjectedGS(false),
@@ -199,14 +199,13 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 	TDomain& dom = *m_spApproxSpace->domain();
 	typename TDomain::grid_type& grid = *dom.grid();
 
-	typedef typename domain_traits<TDomain::dim>::grid_base_object grid_base_object;
-	typedef typename TDomain::grid_type::template traits<grid_base_object>::iterator
-			ElemIter;
+	using grid_base_object = typename domain_traits<TDomain::dim>::grid_base_object;
+	using ElemIter = typename TDomain::grid_type::template traits<grid_base_object>::iterator;
 
 	ElemIter iterBegin = grid.template begin<grid_base_object>(grid.top_level());
 	ElemIter iterEnd = grid.template end<grid_base_object>(grid.top_level());
 
-	typedef typename elemList::iterator ListIter;
+	using ListIter = typename elemList::iterator;
 
 	/* VERSION �BER ATTACHMENT:
 	typename Grid::traits<grid_base_object>::secure_container elems;
@@ -427,7 +426,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		//if (!activeSet_changed)
 		//	break;
 
-		//	set mapping, selector and ass_index to NULL
+		//	set mapping, selector and ass_index to nullptr
 		m_spAss->ass_tuner()->set_mapping();
 		m_spAss->ass_tuner()->set_selector();
 		m_spAss->ass_tuner()->disable_single_index_assembling();

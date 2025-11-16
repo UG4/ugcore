@@ -41,7 +41,7 @@ when your matrix class is rowwise multiplicable, and you want to do so, set
 template<>
 class matrix_algebra_type_traits<yourclass>
 {
-	static const matrix_algebra_type type = MATRIX_USE_ROW_FUNCTIONS;
+	static constexpr matrix_algebra_type type = MATRIX_USE_ROW_FUNCTIONS;
 };
 and add a function
 inline void yourmatrix::mat_mult_add_row(size_t row, yourvector::value_type &dest, double beta1, const yourvector &v) const;
@@ -51,7 +51,7 @@ If you cannot or dont want to use rowwise multiplication, set
 template<>
 class matrix_algebra_type_traits<yourclass>
 {
-	static const matrix_algebra_type type = MATRIX_USE_GLOBAL_FUNCTIONS;
+	static constexpr matrix_algebra_type type = MATRIX_USE_GLOBAL_FUNCTIONS;
 };
 
 and implement (at least)
@@ -77,7 +77,7 @@ struct mat_operations_class;
 template<typename T>
 struct matrix_algebra_type_traits
 {
-	static const int type = MATRIX_USE_OPERATORS;
+	static constexpr int type = MATRIX_USE_OPERATORS;
 };
 
 

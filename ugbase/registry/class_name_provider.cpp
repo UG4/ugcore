@@ -54,8 +54,7 @@ void ClassNameNode::set_name(const std::string& name)
 
 void ClassNameNode::add_base_class(const ClassNameNode& node)
 {
-	std::vector<const ClassNameNode*>::iterator it
-		= std::find(m_vBaseClass.begin(), m_vBaseClass.end(), &node);
+	auto it = std::find(m_vBaseClass.begin(), m_vBaseClass.end(), &node);
 	if(it == m_vBaseClass.end())
 		m_vBaseClass.push_back(&node);
 }
@@ -146,7 +145,7 @@ cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const std::stri
 				" to cast from derived class '"<< node->name()<<"' to "
 				" base class '"<<baseName<<"', but no such base class in"
 				" registered class hierarchy.");
-		throw new UGError_ClassCastFailed(node->name(), baseName);
+		throw UGError_ClassCastFailed(node->name(), baseName);
 	}
 
 	void* currPtr = pDerivVoid;
@@ -172,7 +171,7 @@ cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const std::stri
 					pCurrNode->name() <<"' to direct base class '"
 					<<pBaseClassNode->name()<<"', but no such cast "
 					" function registered.");
-			throw new UGError_ClassCastFailed(node->name(), baseName);
+			throw UGError_ClassCastFailed(node->name(), baseName);
 		}
 
 	//	get cast function

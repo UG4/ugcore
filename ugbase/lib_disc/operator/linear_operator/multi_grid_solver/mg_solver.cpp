@@ -57,7 +57,7 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 	MultiGrid* mg = dynamic_cast<MultiGrid*>(&grid);
 
 //	check multigrid
-	if(mg == NULL)
+	if(mg == nullptr)
 		UG_THROW("SelectNonShadowsAdjacentToShadowsOnLevel: No "
 					"Multigrid given, selection on level not possible.");
 

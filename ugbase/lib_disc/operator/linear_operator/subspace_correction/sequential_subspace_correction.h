@@ -59,21 +59,21 @@ class ILocalSubspace
 {
 public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	/// Grid function type
-		typedef GridFunction<TDomain, TAlgebra> grid_function_type;
-		typedef DenseVector< VariableArray1<number> > vector_type_local;
-		typedef DenseMatrix< VariableArray2<number> > matrix_type_local;
+		using grid_function_type = GridFunction<TDomain, TAlgebra>;
+		using vector_type_local = DenseVector< VariableArray1<number> >;
+		using matrix_type_local = DenseMatrix< VariableArray2<number> >;
 
 		/// virtual DTOR
-		virtual ~ILocalSubspace<TDomain, TAlgebra, TObject>(){}
+		virtual ~ILocalSubspace() = default;
 
 		/// Called once.
 		virtual bool preprocess(const vector_type &c)
@@ -106,21 +106,21 @@ class LocalIndexSubspace : public ILocalSubspace<TDomain, TAlgebra, TObject>
 {
 public:
 	///	Algebra type
-	typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	Vector type
-	typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	/// Local data
-	typedef std::vector<size_t> index_vector;
-	typedef DenseVector< VariableArray1<number> > vector_type_local;
-	typedef DenseMatrix< VariableArray2<number> > matrix_type_local;
+	using index_vector = std::vector<size_t>;
+	using vector_type_local = DenseVector< VariableArray1<number> >;
+	using matrix_type_local = DenseMatrix< VariableArray2<number> >;
 
 	/// virtual DTOR
-	virtual ~LocalIndexSubspace<TDomain, TAlgebra, TObject>(){}
+	virtual ~LocalIndexSubspace() = default;
 
 	/// Called once.
 	/*virtual bool preprocess(const vector_type &c, obj_iterator_type &objBegin, obj_iterator_type &objEnd)
@@ -136,8 +136,8 @@ public:
 	/// Extract matrix (on local index set)
 	virtual void extract_matrix(const matrix_type &A)
 	{
-		typedef typename TAlgebra::matrix_type::const_row_iterator const_row_iterator;
-		const static int blockSize = TAlgebra::blockSize;
+		using const_row_iterator = typename TAlgebra::matrix_type::const_row_iterator;
+		static constexpr int blockSize = TAlgebra::blockSize;
 		const size_t numIndex  = this->size();
 
 		// fill local block matrix
@@ -161,7 +161,7 @@ public:
 	virtual void extract_rhs(const vector_type &d)
 	{
 		const size_t numIndex  = this->size();
-		const static int blockSize = TAlgebra::blockSize;
+		static constexpr int blockSize = TAlgebra::blockSize;
 
 		// compute s[j] := d[j] - sum_k A(j,k)*c[k]
 		// note: the loop over k is the whole matrix row (not only selected indices)
@@ -176,8 +176,8 @@ public:
 	/// Extract rhs (on local index set) for sequential subspace correction
 	virtual void extract_rhs(const vector_type &d, const matrix_type &A, const vector_type &c)
 	{
-		typedef typename TAlgebra::matrix_type::const_row_iterator const_row_iterator;
-		const static int blockSize = TAlgebra::blockSize;
+		using const_row_iterator = typename TAlgebra::matrix_type::const_row_iterator;
+		static constexpr int blockSize = TAlgebra::blockSize;
 		const size_t numIndex  = this->size();
 
 		// compute s[j] := d[j] - sum_k A(j,k)*c[k]
@@ -233,24 +233,24 @@ class LocalDoFSubspace : public ILocalSubspace<TDomain, TAlgebra, TObject>
 {
 public:
 	///	Algebra type
-	typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	Vector type
-	typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	/// Local data
-	typedef std::vector<DoFIndex> index_vector;
-	typedef DenseVector< VariableArray1<number> > vector_type_local;
-	typedef DenseMatrix< VariableArray2<number> > matrix_type_local;
+	using index_vector = std::vector<DoFIndex>;
+	using vector_type_local = DenseVector< VariableArray1<number> >;
+	using matrix_type_local = DenseMatrix< VariableArray2<number> >;
 
 	/// virtual DTOR
-	virtual ~LocalDoFSubspace<TDomain, TAlgebra, TObject>(){}
+	virtual ~LocalDoFSubspace() = default;
 
 	bool check(void *obj) const
-	{ return (dynamic_cast<TObject*> (obj) != NULL); }
+	{ return (dynamic_cast<TObject*> (obj) != nullptr); }
 
 	/// Extract local data (based on group obj)
 	virtual void init(TObject*, const vector_type &) = 0;
@@ -258,8 +258,8 @@ public:
 	/// Extract matrix (on local index set)
 	virtual void extract_matrix(const matrix_type &A)
 	{
-		//typedef typename TAlgebra::matrix_type::const_row_iterator const_row_iterator;
-		// const static int blockSize = TAlgebra::blockSize;
+		// using const_row_iterator = typename TAlgebra::matrix_type::const_row_iterator;
+		// static constexpr int blockSize = TAlgebra::blockSize;
 		const size_t numIndex  = this->size();
 
 		// fill local block matrix
@@ -291,8 +291,8 @@ public:
 	/// Extract rhs (on local index set) for sequential subspace correction
 	virtual void extract_rhs(const vector_type &d, const matrix_type &A, const vector_type &c)
 	{
-		typedef typename TAlgebra::matrix_type::const_row_iterator const_row_iterator;
-		const static int blockSize = TAlgebra::blockSize;
+		using const_row_iterator = typename TAlgebra::matrix_type::const_row_iterator;
+		static constexpr int blockSize = TAlgebra::blockSize;
 		const size_t numIndex  = this->size();
 
 		// compute s[j] := d[j] - sum_k A(j,k)*c[k]
@@ -348,29 +348,29 @@ template <typename TDomain, typename TAlgebra>
 class VertexBasedSubspace : public LocalIndexSubspace<TDomain, TAlgebra,Vertex>
 {
 protected:
-	typedef Vertex TObject;
+	using TObject = Vertex;
 
 public:
 	///	Algebra type
-	typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	Vector type
-	typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	/// Base type
-	typedef LocalIndexSubspace<TDomain, TAlgebra, Vertex> base_type;
+	using base_type = LocalIndexSubspace<TDomain, TAlgebra, Vertex>;
 
 	/// CTOR
-	VertexBasedSubspace<TDomain, TAlgebra>() {}
+	VertexBasedSubspace() = default;
 
 	/// virtual DTOR
-	virtual ~VertexBasedSubspace<TDomain, TAlgebra>(){}
+	virtual ~VertexBasedSubspace() = default;
 
 	bool check(void *obj) const
-	{ return true; /*return (dynamic_cast<TObject*> (obj) != NULL);*/ }
+	{ return true; /*return (dynamic_cast<TObject*> (obj) != nullptr);*/ }
 
 	/// Extract indices for local DoFs.
 	void init(void *obj, const vector_type &cvec)
@@ -383,8 +383,8 @@ public:
 		vInd.clear();
 
 		// Union of elements (associated with grouping object).
-		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-		typedef typename GridFunction<TDomain, TAlgebra>::element_type TElement;
+		using TGridFunction = GridFunction<TDomain, TAlgebra>;
+		using TElement = typename GridFunction<TDomain, TAlgebra>::element_type;
 		const TGridFunction *c = dynamic_cast<const TGridFunction *> (&cvec);  // Need a grid function here!
 		std::vector<TElement*> vElem;
 		c->collect_associated(vElem, groupObj);
@@ -412,25 +412,25 @@ class VertexCenteredVankaSubspace : public LocalDoFSubspace<TDomain, TAlgebra, V
 {
 public:
 	///	Algebra type
-	typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	Vector type
-	typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
-	typedef GridFunction<TDomain, TAlgebra> grid_function_type;
+	using grid_function_type = GridFunction<TDomain, TAlgebra>;
 
 	/// Base type
-	typedef LocalDoFSubspace<TDomain, TAlgebra, Vertex> base_type;
+	using base_type = LocalDoFSubspace<TDomain, TAlgebra, Vertex>;
 
 	/// CTOR
-	VertexCenteredVankaSubspace<TDomain, TAlgebra>(const std::vector<std::string> &vVtxCmp, const std::vector<std::string> &vElemCmp) 
+	VertexCenteredVankaSubspace(const std::vector<std::string> &vVtxCmp, const std::vector<std::string> &vElemCmp)
 		: m_vVtxCmp(vVtxCmp), m_vElemCmp(vElemCmp) {}
 
 	/// virtual DTOR
-	virtual ~VertexCenteredVankaSubspace<TDomain, TAlgebra>(){}
+	virtual ~VertexCenteredVankaSubspace() = default;
 
 	/// Extracts function IDs.
 protected:
@@ -456,10 +456,10 @@ public:
 	/// OVERRIDE
 	bool preprocess(const vector_type &cvec)
 	{
-		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+		using TGridFunction = GridFunction<TDomain, TAlgebra>;
 		const TGridFunction *c = dynamic_cast<const TGridFunction *> (&cvec);  // Need a grid function here!
 
-		UG_COND_THROW(c==NULL, "Requiring a grid function here!");
+		UG_COND_THROW(c==nullptr, "Requiring a grid function here!");
 		extract_ids(c);
 
 		return true;
@@ -473,8 +473,8 @@ public:
 		vInd.clear();
 
 		// Union of elements (associated with grouping object).
-		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-		typedef typename GridFunction<TDomain, TAlgebra>::element_type TElement;
+		using TGridFunction = GridFunction<TDomain, TAlgebra>;
+		using TElement = typename GridFunction<TDomain, TAlgebra>::element_type;
 		const TGridFunction *c = dynamic_cast<const TGridFunction *> (&cvec);  // Need a grid function here!
 		std::vector<TElement*> vElem;
 		c->collect_associated(vElem, groupObj);
@@ -527,16 +527,16 @@ class LocalSubspaceCorrection :
 {
 public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 
-	typedef MatrixOperator<matrix_type, vector_type> TLinearOperator;
+	using TLinearOperator = MatrixOperator<matrix_type, vector_type>;
 
 	virtual ~LocalSubspaceCorrection<TDomain, TAlgebra>() {}
 
@@ -584,7 +584,7 @@ void ParallelSubspaceCorrectionLoop(const typename TAlgebra::matrix_type& A,
 )
 {
 	// Loop over all grouping objects.
-	typedef typename GridFunction<TDomain, TAlgebra>::template traits<TGroupObj>::const_iterator GroupObjIter;
+	using GroupObjIter = typename GridFunction<TDomain, TAlgebra>::template traits<TGroupObj>::const_iterator;
 	for(GroupObjIter iter = objIterBegin; iter != objIterEnd; ++iter)
 	{
 		// Apply subspace correction (w.r.t. obj.)
@@ -611,7 +611,7 @@ void SequentialSubspaceCorrectionLoop(const typename TAlgebra::matrix_type& A,
 	{
 		// Apply subspace correction (w.r.t. obj.)
 		TGroupObj* groupObj = *iter;
-		if (groupObj == NULL)
+		if (groupObj == nullptr)
 		{
 			UG_LOG("WARNING: Found empty object!: "<< count);
 		}
@@ -638,7 +638,7 @@ void SequentialSubspaceCorrectionLoopBackward(const typename TAlgebra::matrix_ty
 )
 {
 	// Loop over all grouping objects.
-	typedef typename GridFunction<TDomain, TAlgebra>::template traits<TGroupObj>::const_iterator GroupObjIter;
+	using GroupObjIter = typename GridFunction<TDomain, TAlgebra>::template traits<TGroupObj>::const_iterator;
 
 	int ncount = 0;
 	for(GroupObjIter iter = objIterBegin; iter != objIterEnd; ++iter)
@@ -659,7 +659,7 @@ void SequentialSubspaceCorrectionLoopBackward(const typename TAlgebra::matrix_ty
 	{
 		// Apply subspace correction (w.r.t. obj.)
 		TGroupObj* groupObj = *riter;
-		if (groupObj == NULL) continue;
+		if (groupObj == nullptr) continue;
 
 		//std::cerr << "Found2 " <<  groupObj << std::endl;
 
@@ -673,7 +673,7 @@ void SequentialSubspaceCorrectionLoopBackward(const typename TAlgebra::matrix_ty
 template <class TDomain>
 class customLexLess{
 		public:
-			customLexLess<TDomain>(const typename TDomain::position_accessor_type& aaPos): _aaPos(aaPos){}
+			customLexLess(const typename TDomain::position_accessor_type& aaPos): _aaPos(aaPos){}
 			bool operator()(Vertex* a, Vertex *b) const
 			{ return _aaPos[a] < _aaPos[b]; }
 		protected:
@@ -687,25 +687,25 @@ class ISpaceDecomposition {
 
 public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	/// Grid function type
-		typedef GridFunction<TDomain, TAlgebra> grid_function_type;
+		using grid_function_type = GridFunction<TDomain, TAlgebra>;
 
 
-		virtual ~ISpaceDecomposition<TDomain, TAlgebra>(){}
+		virtual ~ISpaceDecomposition()= default;
 
 	/// Initialize decomposition
 		virtual void init(const vector_type &x) = 0;
 
 		///	World Dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 
 };
 
@@ -714,24 +714,23 @@ template <typename TDomain, typename TAlgebra>
 class FullVertexCover: public ISpaceDecomposition<TDomain, TAlgebra>
 {
 public:
+	using base_type = ISpaceDecomposition<TDomain, TAlgebra>;
 
-	typedef ISpaceDecomposition<TDomain, TAlgebra> base_type;
+	using TGridFunction = GridFunction<TDomain, TAlgebra>;
 
-	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+	static constexpr int dim = TDomain::dim;
 
-	static const int dim = TDomain::dim;
+	using TElement = typename TGridFunction::element_type;
 
-	typedef typename TGridFunction::element_type TElement;
-
-	FullVertexCover<TDomain, TAlgebra>() : m_pSol(NULL) {}
+	FullVertexCover() : m_pSol(nullptr) {}
 
 		/// virtual DTOR
-	virtual ~FullVertexCover<TDomain, TAlgebra>(){}
+	virtual ~FullVertexCover()= default;
 
 	virtual void init(const typename base_type::vector_type &x)
 	{
-		TGridFunction* m_pSol = dynamic_cast<TGridFunction*>(&x);
-		UG_ASSERT(m_pSol !=NULL, "Error: Cast failed!");
+		auto* m_pSol = dynamic_cast<TGridFunction*>(&x);
+		UG_ASSERT(m_pSol !=nullptr, "Error: Cast failed!");
 	}
 
 	template <typename TElem>
@@ -755,29 +754,29 @@ class SequentialSubspaceCorrection : public IPreconditioner<TAlgebra>
 {
 public:
 	///	Algebra type
-	typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	Vector type
-	typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-	typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+	using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	/// Subspace for vertices
-	typedef ILocalSubspace <TDomain, TAlgebra, Vertex> TVertexSubspace;
+	using TVertexSubspace = ILocalSubspace <TDomain, TAlgebra, Vertex>;
 
 	///	Base type
-	typedef IPreconditioner<TAlgebra> base_type;
+	using base_type = IPreconditioner<TAlgebra>;
 
 protected:
 	using base_type::set_debug;
 	using base_type::debug_writer;
 	using base_type::write_debug;
 
-	typedef GridFunction<TDomain, TAlgebra> grid_function_type;
+	using grid_function_type = GridFunction<TDomain, TAlgebra>;
 
 public:
 	///	default constructor
@@ -801,8 +800,7 @@ public:
 	}
 
 	///	Destructor
-	virtual ~SequentialSubspaceCorrection()
-	{};
+	virtual ~SequentialSubspaceCorrection() = default;
 
 	///	returns if parallel solving is supported
 	virtual bool supports_parallel() const {return true;}
@@ -829,7 +827,7 @@ protected:
 		PROFILE_BEGIN_GROUP(SSC_preprocess, "algebra ssc");
 
 		// Creating overlap 1 matrix and vectors.
-		matrix_type *pA=NULL;
+		matrix_type *pA=nullptr;
 #ifdef UG_PARALLEL
 		if(pcl::NumProcs() > 1)
 		{
@@ -860,13 +858,13 @@ protected:
 	{
 		PROFILE_BEGIN_GROUP(SSC_step, "algebra ssc");
 
-		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-		TGridFunction* pC = dynamic_cast<TGridFunction*>(&c);
+		using TGridFunction = GridFunction<TDomain, TAlgebra>;
+		auto* pC = dynamic_cast<TGridFunction*>(&c);
 
-		UG_COND_THROW(pC == NULL, "SequentialSubspaceCorrection expects correction to be a GridFunction.");
+		UG_COND_THROW(pC == nullptr, "SequentialSubspaceCorrection expects correction to be a GridFunction.");
 
-		//typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
-		//typedef typename GridFunction<TDomain, TAlgebra>::side_type Side;
+		//using Element = typename GridFunction<TDomain, TAlgebra>::element_type;
+		//using Side = typename GridFunction<TDomain, TAlgebra>::side_type;
 
 
 		// Set all vector entries to zero.
@@ -885,7 +883,7 @@ protected:
 			if	(m_type == "vertex")
 			{
 				// Prepare
-				typedef typename GridFunction<TDomain, TAlgebra>::template traits<Vertex>::const_iterator TVertexIter;
+				using TVertexIter = typename GridFunction<TDomain, TAlgebra>::template traits<Vertex>::const_iterator;
 				TVertexIter objIterBegin = pC->template begin<Vertex>();
 				TVertexIter objIterEnd = pC->template end<Vertex>();
 			
@@ -900,7 +898,7 @@ protected:
 					// std::cerr << "Found " << ncount << "objects!" << std::endl;
 
 					// Create bidirectional container.
-					typedef std::vector<Vertex*> TObjVector;
+					using TObjVector = std::vector<Vertex*>;
 					TObjVector objects(ncount);
 					objects.clear();
 					for(TVertexIter iter = objIterBegin; iter != objIterEnd; ++iter)
@@ -921,8 +919,7 @@ protected:
 
 
 			} else if(m_type == "element") {
-
-			/*	typedef typename GridFunction<TDomain, TAlgebra>::template traits<Element>::const_iterator TElemIter;
+/*				using TElemIter = typename GridFunction<TDomain, TAlgebra>::template traits<Element>::const_iterator;
 				SequentialSubspaceCorrectionLoop<Element,TElemIter,TDomain,TAlgebra>
 						(A, *pC, d, m_relax, *m_spElemSubspace, pC->template begin<Element>(), pC->template end<Element>());
 */
@@ -943,7 +940,7 @@ protected:
 
 
 public:
-	typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
+	using Element = typename GridFunction<TDomain, TAlgebra>::element_type;
 protected:
 	number m_relax;
 	std::string m_type;

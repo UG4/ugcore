@@ -60,8 +60,8 @@ class EmptyStreamBuffer : public std::streambuf
 		}
 
 	protected:
-		static const int	BUF_SIZE = 128;
-		char_type	m_buf[BUF_SIZE];
+		static constexpr int BUF_SIZE = 128;
+		char_type m_buf[BUF_SIZE];
 };
 
 

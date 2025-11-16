@@ -58,7 +58,7 @@ namespace ug{
 class DomainInfo
 {
 	public:
-		typedef unsigned long long int_t;
+		using int_t = unsigned long long;
 
 		inline int element_type() const									{return m_elementType;}
 		inline size_t num_levels() const								{return m_numElems.size();}
@@ -139,10 +139,10 @@ class IDomain
 {
 	public:
 	///	Grid type
-		typedef TGrid grid_type;
+		using grid_type = TGrid;
 
 	///	Subset Handler type
-		typedef TSubsetHandler subset_handler_type;
+		using subset_handler_type = TSubsetHandler;
 
 	public:
 	///	Default constructor
@@ -232,7 +232,7 @@ class IDomain
 					int rootProc,
 					pcl::ProcessCommunicator& procCom,
 					SPIGeometry3d geometry,
-					SPRefinementProjector projector = SPNULL);
+					SPRefinementProjector projector = nullptr);
 
 			void serialize_projector (
 					BinaryBuffer& bufOut,
@@ -287,38 +287,37 @@ class Domain : public IDomain<TGrid, TSubsetHandler>
 {
 	private:
 	/// base type
-		typedef IDomain<TGrid, TSubsetHandler> base_type;
+	using base_type = IDomain<TGrid, TSubsetHandler>;
 
 	public:
 	///	World dimension
-		static const int dim = d;
+		static constexpr int dim = d;
 
-	///	Type of position coordinates
-		typedef MathVector<dim> position_type;
+		///	Type of position coordinates
+		using position_type = MathVector<dim>;
 
-	///	Type of Position Attachment
-		typedef Attachment<position_type> position_attachment_type;
+		///	Type of Position Attachment
+		using position_attachment_type = Attachment<position_type>;
 
-	///	Type of Accessor to the Position Data Attachment
-		typedef Grid::VertexAttachmentAccessor<position_attachment_type>
-					position_accessor_type;
+		///	Type of Accessor to the Position Data Attachment
+		using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
 
 	public:
-	///	Grid type
-		typedef typename base_type::grid_type grid_type;
+		///	Grid type
+		using grid_type = typename base_type::grid_type;
 
-	///	Subset Handler type
-		typedef typename base_type::subset_handler_type subset_handler_type;
+		///	Subset Handler type
+		using subset_handler_type = typename base_type::subset_handler_type;
 
 	public:
 	///	Default constructor
 	/**
 	 * creates an empty domain. Grid and Subset Handler are set up. The
 	 * Distributed Grid Manager is set in the parallel case.
-	 * \param[in]	options		Grid Options (optional)
+	 * \param[in]	isAdaptive		Grid Options (optional)
 	 */
 		Domain(bool isAdaptive = true);
-		virtual ~Domain() {};
+		virtual ~Domain() = default;
 
 	///	World Dimension
 		virtual int get_dim() const {return dim;}
@@ -343,9 +342,9 @@ class Domain : public IDomain<TGrid, TSubsetHandler>
 		SPIGeometry3d			m_geometry3d;
 };
 
-typedef Domain<1, MultiGrid, MGSubsetHandler> Domain1d;
-typedef Domain<2, MultiGrid, MGSubsetHandler> Domain2d;
-typedef Domain<3, MultiGrid, MGSubsetHandler> Domain3d;
+using Domain1d = Domain<1, MultiGrid, MGSubsetHandler>;
+using Domain2d = Domain<2, MultiGrid, MGSubsetHandler>;
+using Domain3d = Domain<3, MultiGrid, MGSubsetHandler>;
 
 } // end namespace ug
 

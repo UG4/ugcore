@@ -114,7 +114,7 @@ void Extrude(Grid& grid,
 		return;
 
 //	the hash:
-	typedef Hash<uint, Vertex*> VertexHash;
+	using VertexHash = Hash<uint, Vertex*>;
 	VertexHash vrtHash(hashSize);
 	vrtHash.reserve(hashSize);
 
@@ -122,7 +122,7 @@ void Extrude(Grid& grid,
 //	orientation later on (only if pvEdgesInOut has been specified).
 	vector<Face*> vNewFaces;
 	bool bRecordNewFaces = false;
-	if((pvEdgesInOut != NULL) && (extrusionOptions & EO_CREATE_FACES))
+	if((pvEdgesInOut != nullptr) && (extrusionOptions & EO_CREATE_FACES))
 	{
 		if(!pvEdgesInOut->empty()){
 			bRecordNewFaces = true;
@@ -240,8 +240,8 @@ void Extrude(Grid& grid,
 
 		//	all new vertices exist now.
 		//	create the new face
-			Face* fNew = NULL;
-			Volume* vol = NULL;
+			Face* fNew = nullptr;
+			Volume* vol = nullptr;
 			if(numVrts == 3)
 			{
 				UG_DLOG(LIB_GRID, 2, "    " << i << ": creating tri...\n");

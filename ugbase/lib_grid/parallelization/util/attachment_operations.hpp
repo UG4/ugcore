@@ -59,7 +59,7 @@ void AttachmentAllReduce
 	pcl::ReduceOperation op
 )
 {
-	typedef typename GridLayoutMap::Types<TElem>::Layout layout_t;
+	using layout_t = typename GridLayoutMap::Types<TElem>::Layout;
 	
 	GridLayoutMap& glm = grid.distributed_grid_manager()->grid_layout_map();
 	pcl::InterfaceCommunicator<layout_t> icom;

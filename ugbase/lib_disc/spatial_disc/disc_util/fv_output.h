@@ -52,7 +52,7 @@ void CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandle
 				Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut)
 {
 	// extract dimensions
-	static const int refDim = TFVGeom<TElem, TWorldDim>::dim;
+	static constexpr int refDim = TFVGeom<TElem, TWorldDim>::dim;
 
 	// extract grid
 	Grid& grid = *shOut.grid();
@@ -228,7 +228,7 @@ void CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandler
 				Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut)
 {
 	// extract dimensions
-	static const int refDim = TFVGeom<TElem, TWorldDim>::dim;
+	static constexpr int refDim = TFVGeom<TElem, TWorldDim>::dim;
 
 	// extract grid
 	Grid& grid = *shOut.grid();
@@ -485,7 +485,7 @@ void ColorControlVolume(ISubsetHandler& shOut)
 template <template <class, int> class TFVGeom, typename TAAPosition>
 void CreateGridOfSubControlVolumes(ISubsetHandler& shOut, TAAPosition& aaPosOut, const ISubsetHandler& sh, const TAAPosition& aaPos, const SurfaceView& surfView, int si = -1)
 {
-	static const int dim = TAAPosition::ValueType::Size;
+	static constexpr int dim = TAAPosition::ValueType::Size;
 
 	// Construct dual domain for scv and given subset
 	if(si >= 0)
@@ -518,7 +518,7 @@ void CreateGridOfSubControlVolumes(ISubsetHandler& shOut, TAAPosition& aaPosOut,
 template <template <class, int> class TFVGeom, typename TAAPosition, typename TAPosition>
 void CreateGridOfControlVolumes(ISubsetHandler& shOut, TAAPosition& aaPosOut, TAPosition& aPosOut, const ISubsetHandler& sh, const TAAPosition& aaPos, const SurfaceView& surfView, int si = -1)
 {
-	static const int dim = TAAPosition::ValueType::Size;
+	static constexpr int dim = TAAPosition::ValueType::Size;
 
 	// Construct dual domain for scv and given subset
 	if(si >= 0)
@@ -556,7 +556,7 @@ void CreateGridOfControlVolumes(ISubsetHandler& shOut, TAAPosition& aaPosOut, TA
 template <template <class, int> class TFVGeom, typename TAAPosition>
 void CreateGridOfSubControlVolumeFaces(ISubsetHandler& shOut, TAAPosition& aaPosOut, const ISubsetHandler& sh, const TAAPosition& aaPos, const SurfaceView& surfView, int si = -1)
 {
-	static const int dim = TAAPosition::ValueType::Size;
+	static constexpr int dim = TAAPosition::ValueType::Size;
 
 	// Construct dual domain for scv and given subset
 	if(si >= 0)

@@ -76,8 +76,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		
 //	Line Gauss-Seidel
 	{
-		typedef LineGaussSeidel<TDomain,TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
+		using T = LineGaussSeidel<TDomain,TAlgebra>;
+		using TBase = IPreconditioner<TAlgebra>;
 		string name = string("LineGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Line Gauss-Seidel Preconditioner")
 		.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
@@ -91,8 +91,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 	
 //	Line Vanka
 	{
-		typedef LineVanka<TDomain,TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
+		using T = LineVanka<TDomain,TAlgebra>;
+		using TBase = IPreconditioner<TAlgebra>;
 		string name = string("LineVanka").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "LineVanka Preconditioner")
 		.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
@@ -108,9 +108,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	AssembledTransformingSmoother
 		{
-			typedef AssembledTransformingSmoother<TDomain, TAlgebra> T;
-			typedef ILinearIterator<typename TAlgebra::vector_type> TBase;
-			typedef DebugWritingObject<TAlgebra> TBase2;
+			using T = AssembledTransformingSmoother<TDomain, TAlgebra>;
+			using TBase = ILinearIterator<typename TAlgebra::vector_type>;
+			using TBase2 = DebugWritingObject<TAlgebra>;
 			string name = string("AssembledTransformingSmoother").append(suffix);
 			reg.add_class_<T, TBase, TBase2>(name, grp)
 	            .ADD_CONSTRUCTOR((SmartPtr<IAssemble<TAlgebra> >,
@@ -138,7 +138,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 void RegisterBridge_DomainDependentPreconditioner(Registry& reg, string grp)
 {
 	grp.append("/Disc/Preconditioner");
-	typedef Preconditioner::Functionality Functionality;
+	using Functionality = Preconditioner::Functionality;
 
 	try{		
 		RegisterDomainAlgebraDependent<Functionality>(reg,grp);

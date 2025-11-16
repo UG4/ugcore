@@ -146,7 +146,7 @@ std::ostream &operator << (std::ostream &out, const DenseMatrixInverse<T> &mat)
 template<typename T>
 struct matrix_algebra_type_traits<DenseMatrixInverse<T> >
 {
-	static const int type = MATRIX_USE_GLOBAL_FUNCTIONS;
+	static constexpr int type = MATRIX_USE_GLOBAL_FUNCTIONS;
 };
 
 }

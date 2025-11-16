@@ -46,7 +46,7 @@ template<typename T>
 class TE_TRANSPOSED
 {
 public:
-	typedef typename T::value_type value_type;
+	using value_type = typename T::value_type;
 	TE_TRANSPOSED(const T&_t) : t(_t) {}
 	inline size_t num_rows() const
 	{
@@ -100,17 +100,17 @@ template<typename TStorage>
 class DenseVector : public TStorage
 {
 public:
-	typedef typename TStorage::value_type value_type;
-	typedef typename TStorage::size_type size_type;
+	using value_type = typename TStorage::value_type;
+	using size_type = typename TStorage::size_type;
 
 	// use traits so we are able to use std::vector
 	enum { is_static = storage_traits1<TStorage>::is_static};
 	enum { static_size = storage_traits1<TStorage>::static_size};
 
-	typedef DenseVector<TStorage> this_type;
+	using this_type = DenseVector<TStorage>;
 
 	// use the interface of TStorage
-	typedef TStorage base;
+	using base = TStorage;
 	using base::operator [];
 	using base::at;
 	using base::size;

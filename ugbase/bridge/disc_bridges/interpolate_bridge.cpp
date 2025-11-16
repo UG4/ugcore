@@ -79,9 +79,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-//	typedef
-	static const int dim = TDomain::dim;
-	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
+	static constexpr int dim = TDomain::dim;
+	using TFct = GridFunction<TDomain, TAlgebra>;
 
 //	Interpolate
 	{
@@ -213,7 +212,7 @@ static void Common(Registry& reg, string grp)
 void RegisterBridge_Interpolate(Registry& reg, string grp)
 {
 	grp.append("/Discretization");
-	typedef Interpolate::Functionality Functionality;
+	using Functionality = Interpolate::Functionality;
 
 	try{
 //		RegisterCommon<Functionality>(reg,grp);

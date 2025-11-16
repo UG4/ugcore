@@ -47,14 +47,14 @@ class NeumannBoundaryFV
 {
 	private:
 	///	Base class type
-		typedef NeumannBoundaryBase<TDomain> base_type;
+		using base_type = NeumannBoundaryBase<TDomain>;
 
 	///	Base class type
-		typedef NeumannBoundaryFV<TDomain> this_type;
+		using this_type = NeumannBoundaryFV<TDomain>;
 
 	public:
 	///	World dimension
-		static const int dim = base_type::dim;
+		static constexpr int dim = base_type::dim;
 
 	public:
 	///	default constructor
@@ -154,7 +154,7 @@ class NeumannBoundaryFV
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 	/// \}
 
-		static const int _C_ = 0;
+		static constexpr int _C_ = 0;
 
 	protected:
 		void register_all_funcs(int order);

@@ -84,7 +84,7 @@ ISubsetHandler(uint supportedElements) :
 	m_aSubsetIndex("ISubsetHandler_SubsetIndex", false)
 //	m_aDataIndex("ISubsetHandler_DataIndex", false)
 {
-	m_pGrid = NULL;
+	m_pGrid = nullptr;
 	m_supportedElements = supportedElements;
 	m_defaultSubsetIndex = -1;
 	m_bSubsetInheritanceEnabled = true;
@@ -246,7 +246,7 @@ void
 ISubsetHandler::
 set_grid(Grid* grid)
 {
-	if(m_pGrid != NULL){
+	if(m_pGrid != nullptr){
 		clear();
 
 	//	disable all currently supported elements (this will remove any attachments)
@@ -265,7 +265,7 @@ set_grid(Grid* grid)
 		}*/
 
 		m_pGrid->unregister_observer(this);
-		m_pGrid = NULL;
+		m_pGrid = nullptr;
 	}
 
 	if(grid){
@@ -533,7 +533,7 @@ template <class TElem, class TAAInd>
 static void
 ResetSubsetIndices(Grid* pGrid, TAAInd& aaInd)
 {
-	typedef typename geometry_traits<TElem>::iterator iterator;
+	using iterator = typename geometry_traits<TElem>::iterator;
 //	in the given subset to newInd.
 	for(iterator iter = pGrid->begin<TElem>();
 		iter != pGrid->end<TElem>(); iter++)
@@ -713,10 +713,10 @@ move_subset(int indexFrom, int indexTo)
 			SubsetInfo siFrom = m_subsetInfos[indexFrom];
 
 		//	store from-attachment-pipes
-			/*VertexAttachmentPipe* apFromVrt = NULL;
-			EdgeAttachmentPipe* apFromEdge = NULL;
-			FaceAttachmentPipe* apFromFace = NULL;
-			VolumeAttachmentPipe* apFromVol = NULL;
+			/*VertexAttachmentPipe* apFromVrt = nullptr;
+			EdgeAttachmentPipe* apFromEdge = nullptr;
+			FaceAttachmentPipe* apFromFace = nullptr;
+			VolumeAttachmentPipe* apFromVol = nullptr;
 			if(subset_attachments_are_enabled())
 			{
 				apFromVrt = m_vertexAttachmentPipes[indexFrom];
@@ -896,11 +896,11 @@ enable_subset_attachments(bool bEnable)
 void ISubsetHandler::
 registered_at_grid(Grid* grid)
 {
-	if(m_pGrid != NULL)
+	if(m_pGrid != nullptr)
 		m_pGrid->unregister_observer(this);
 
 	m_pGrid = grid;
-	if(m_pGrid != NULL)
+	if(m_pGrid != nullptr)
 	{
 	//	initialise attachments and accessors.
 	//	do this whith a little trick:
@@ -951,7 +951,7 @@ unregistered_from_grid(Grid* grid)
 
 	//DEBUG: log m_supportedElements
 		//LOG("supported elements after deregistration: " << m_supportedElements << "\n");
-		m_pGrid = NULL;
+		m_pGrid = nullptr;
 	}
 }
 */
@@ -960,7 +960,7 @@ grid_to_be_destroyed(Grid* grid)
 {
 	assert((m_pGrid == grid) && "ERROR in ISubsetHandler::grid_to_be_destroyed(...): Grids do not match.");
 	if(m_pGrid == grid)
-		set_grid(NULL);
+		set_grid(nullptr);
 }
 
 void ISubsetHandler::
@@ -984,7 +984,7 @@ vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent,
 	//LOG("new vertex...\n");
 		m_aaSubsetIndexVRT[vrt] = -1;
 	//LOG("si_before assignement: " << get_subset_index(vrt) << endl);
-		if((pParent != NULL) && m_bSubsetInheritanceEnabled){
+		if((pParent != nullptr) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == VERTEX){
 					assign_subset(vrt, get_subset_index(
@@ -1025,7 +1025,7 @@ edge_created(Grid* grid, Edge* edge, GridObject* pParent,
 	if(elements_are_supported(SHE_EDGE)){
 		m_aaSubsetIndexEDGE[edge] = -1;
 
-		if((pParent != NULL) && m_bSubsetInheritanceEnabled){
+		if((pParent != nullptr) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == EDGE){
 					assign_subset(edge, get_subset_index(
@@ -1066,7 +1066,7 @@ face_created(Grid* grid, Face* face, GridObject* pParent,
 	if(elements_are_supported(SHE_FACE)){
 		m_aaSubsetIndexFACE[face] = -1;
 
-		if((pParent != NULL) && m_bSubsetInheritanceEnabled){
+		if((pParent != nullptr) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == FACE){
 					assign_subset(face, get_subset_index(
@@ -1106,7 +1106,7 @@ volume_created(Grid* grid, Volume* vol, GridObject* pParent,
 	if(elements_are_supported(SHE_VOLUME)){
 		m_aaSubsetIndexVOL[vol] = -1;
 
-		if((pParent != NULL) && m_bSubsetInheritanceEnabled){
+		if((pParent != nullptr) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == VOLUME){
 					assign_subset(vol, get_subset_index(

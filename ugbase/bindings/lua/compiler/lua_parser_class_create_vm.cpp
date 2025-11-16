@@ -80,7 +80,7 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
                 	jmpExitPos.push_back( vm.jmp() );
 
                     nodeType *a = p->opr.op[2];
-                    while(a != NULL && a->opr.oper == LUAPARSER_ELSEIF)
+                    while(a != nullptr && a->opr.oper == LUAPARSER_ELSEIF)
                     {
                     	vm.adjust_jmp_pos(jmpElsePos, vm.get_pos());
 
@@ -95,7 +95,7 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
 
                     	a = a->opr.op[2];
                     }
-                    if(a != NULL)
+                    if(a != nullptr)
                     {
                     	UG_COND_THROW(a->opr.oper != LUAPARSER_ELSE, a->opr.oper);
                         vm.adjust_jmp_pos(jmpElsePos, vm.get_pos());

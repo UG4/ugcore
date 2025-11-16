@@ -280,7 +280,7 @@ struct block_traits< DenseMatrix<T> >
 	enum { static_num_cols = DenseMatrix<T>::static_num_cols};
 
 	// todo: to be implemented
-	//typedef DenseMatrixInverse inverse_type;
+	// using inverse_type = DenseMatrixInverse;
 };
 
 template<typename T>
@@ -296,7 +296,7 @@ struct block_multiply_traits;
 template<typename T1, typename T2>
 struct block_multiply_traits<DenseMatrix<T1>, DenseVector<T2> >
 {
-	typedef DenseVector<T2> ReturnType;
+	using ReturnType = DenseVector<T2>;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,7 +315,7 @@ struct block_traits< DenseMatrix< VariableArray2<number, TOrdering> > >
 	enum { static_num_cols = 0};
 	enum { depth = 1 };
 
-	typedef DenseMatrixInverse< VariableArray2<number, TOrdering> > inverse_type;
+	using inverse_type = DenseMatrixInverse< VariableArray2<number, TOrdering> >;
 };
 //////////////////////////////////////////////////////////////////////////////////////////////
 // fixed matrix
@@ -328,7 +328,7 @@ struct block_traits< DenseMatrix< FixedArray2<number, TBlockSize, TBlockSize, TO
 	enum { static_num_cols = TBlockSize};
 	enum { depth = 1 };
 
-	typedef DenseMatrixInverse< FixedArray2<number, TBlockSize, TBlockSize, TOrdering>  > inverse_type;
+	using inverse_type = DenseMatrixInverse< FixedArray2<number, TBlockSize, TBlockSize, TOrdering>  >;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -342,7 +342,7 @@ struct block_traits< DenseMatrix< VariableArray2<TValue, TOrdering> > >
 	enum { static_num_cols = 0};
 	enum { depth = block_traits<TValue>::depth+1 };
 
-	typedef DenseMatrixInverse< VariableArray2<number, TOrdering> > inverse_type;
+	using inverse_type = DenseMatrixInverse< VariableArray2<number, TOrdering> >;
 };
 
 template<typename TValue, size_t TBlockSize, eMatrixOrdering TOrdering>
@@ -354,7 +354,7 @@ struct block_traits< DenseMatrix< FixedArray2<TValue, TBlockSize, TBlockSize, TO
 	enum { static_num_cols = 0};
 	enum { depth = block_traits<TValue>::depth+1 };
 
-	typedef DenseMatrixInverse< VariableArray2<number, TOrdering> > inverse_type;
+	using inverse_type = DenseMatrixInverse< VariableArray2<number, TOrdering> >;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -367,7 +367,7 @@ struct block_traits< DenseMatrix< FixedArray2<number, 1, 1, TOrdering> > >
 	enum { static_num_rows = 1};
 	enum { static_num_cols = 1};
 
-	typedef DenseMatrix< FixedArray2<number, 1, 1, TOrdering> > inverse_type;
+	using inverse_type = DenseMatrix< FixedArray2<number, 1, 1, TOrdering> >;
 };
 
 template<eMatrixOrdering TOrdering>
@@ -378,7 +378,7 @@ struct block_traits< DenseMatrix< FixedArray2<number, 2, 2, TOrdering> > >
 	enum { static_num_rows = 2};
 	enum { static_num_cols = 2};
 
-	typedef DenseMatrix< FixedArray2<number, 2, 2, TOrdering> > inverse_type;
+	using inverse_type = DenseMatrix< FixedArray2<number, 2, 2, TOrdering> >;
 };
 
 template<eMatrixOrdering TOrdering>
@@ -389,13 +389,13 @@ struct block_traits< DenseMatrix< FixedArray2<number, 3, 3, TOrdering> > >
 	enum { static_num_rows = 3};
 	enum { static_num_cols = 3};
 
-	typedef DenseMatrix< FixedArray2<number, 3, 3, TOrdering> > inverse_type;
+	using inverse_type = DenseMatrix< FixedArray2<number, 3, 3, TOrdering> >;
 };
 
 
 template<typename T> struct block_multiply_traits<DenseMatrix<T>, DenseMatrix<T> >
 {
-	typedef DenseMatrix<T> ReturnType;
+	using ReturnType = DenseMatrix<T>;
 };
 
 

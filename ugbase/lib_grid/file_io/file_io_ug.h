@@ -60,7 +60,7 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace,
  */
 bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 					   const char* problemName, int convex,
-					   SubsetHandler* psh = NULL);
+					   SubsetHandler* psh = nullptr);
 }//	end of namespace
 
 #endif

@@ -56,20 +56,20 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 {
 	public:
 	/// World dimension
-		typedef GridFunction<TDomain, TAlgebra> GF;
-		typedef typename GF::element_type Element;
-		typedef typename GF::side_type Side;
-		static const int dim = TDomain::dim;
+		using GF = GridFunction<TDomain, TAlgebra>;
+		using Element = typename GF::element_type;
+		using Side = typename GF::side_type;
+		static constexpr int dim = TDomain::dim;
 
 	///	Algebra types
 	/// \{
-		typedef TAlgebra algebra_type;
-		typedef typename TAlgebra::vector_type vector_type;
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using algebra_type = TAlgebra;
+		using vector_type = typename TAlgebra::vector_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 	/// \}
 
 	protected:
-		typedef IPreconditioner<TAlgebra> base_type;
+		using base_type = IPreconditioner<TAlgebra>;
 		using base_type::set_debug;
 		using base_type::debug_writer;
 		using base_type::write_debug;
@@ -209,8 +209,8 @@ apply_blocks(const matrix_type& A, GF& c,
 
 	// 	compute s[j] := d[j] - sum_k A(j,k)*c[k]
 	// 	note: the loop over k is the whole matrix row (not only selected indices)
-		typedef typename matrix_type::const_row_iterator const_row_iterator;
-		const static int blockSize = TAlgebra::blockSize;
+		using const_row_iterator = typename matrix_type::const_row_iterator;
+		static constexpr int blockSize = TAlgebra::blockSize;
 		s.resize(numIndex);
 		for (size_t j = 0; j<numIndex; j++){
 			typename vector_type::value_type sj = d[vDoFIndex[j][0]];
@@ -259,8 +259,8 @@ apply_blocks_weighted(const matrix_type& A, GF& c,
 
 	// 	compute s[i] := d[i] - sum_k A(i,k)*c[k]
 	// 	note: the loop over k is the whole matrix row (not only selected indices)
-		typedef typename matrix_type::const_row_iterator const_row_iterator;
-		const static int blockSize = TAlgebra::blockSize;
+		using const_row_iterator = typename matrix_type::const_row_iterator;
+		static constexpr int blockSize = TAlgebra::blockSize;
 		s.resize(numIndex);
 		for (size_t i = 0; i<numIndex; i++)
 		{
@@ -301,8 +301,7 @@ void extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
                     const std::vector<size_t>& vFullRowCmp,
                     const std::vector<size_t>& vRemainCmp)
 {
-
-	typedef typename GF::element_type Element;
+	using Element = typename GF::element_type;
 
 // 	memory for local algebra
 	std::vector<DoFIndex> vFullRowDoFIndex;
@@ -313,7 +312,7 @@ void extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
 	vvDoFIndex.clear();
 
 // loop all grouping objects
-	typedef typename GF::template traits<TGroupObj>::const_iterator GroupObjIter;
+	using GroupObjIter = typename GF::template traits<TGroupObj>::const_iterator;
 	for(GroupObjIter iter = c.template begin<TGroupObj>();
 					 iter != c.template end<TGroupObj>(); ++iter)
 	{
@@ -553,7 +552,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 //	check that grid funtion passed
 	GridFunction<TDomain, TAlgebra>* pC
 					= dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
-	if(pC == NULL)
+	if(pC == nullptr)
 		UG_THROW("ComponentGaussSeidel: expects correction to be a GridFunction.");
 
 	const vector_type* pD = &d;

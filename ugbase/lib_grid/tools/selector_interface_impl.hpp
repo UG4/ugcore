@@ -42,7 +42,7 @@ ISelector::elements_are_supported(uint shElements) const
 }
 
 template <class TElem>
-inline void ISelector::select(TElem* elem, byte status){
+inline void ISelector::select(TElem* elem, byte_t status){
 	if(status != 0){
 		if(!is_selected(elem)){
 			add_to_list(elem);
@@ -53,7 +53,7 @@ inline void ISelector::select(TElem* elem, byte status){
 		deselect(elem);
 }
 
-inline void ISelector::select(GridObject* elem, byte status){
+inline void ISelector::select(GridObject* elem, byte_t status){
 	int elemID = elem->base_object_id();
 	switch(elemID){
 		case VERTEX:
@@ -76,7 +76,7 @@ inline void ISelector::select(GridObject* elem, byte status){
 }
 
 template <class TIterator>
-inline void ISelector::select(TIterator iterBegin, TIterator iterEnd, byte status)
+inline void ISelector::select(TIterator iterBegin, TIterator iterEnd, byte_t status)
 {
 	while(iterBegin != iterEnd){
 		select(*iterBegin, status);
@@ -122,7 +122,7 @@ inline void ISelector::deselect(TIterator iterBegin, TIterator iterEnd)
 }
 
 
-byte ISelector::get_selection_status(GridObject* elem) const{
+byte_t ISelector::get_selection_status(GridObject* elem) const{
 	int elemID = elem->base_object_id();
 	switch(elemID){
 		case VERTEX:

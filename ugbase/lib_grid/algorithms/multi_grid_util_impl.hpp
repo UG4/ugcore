@@ -44,8 +44,7 @@ void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
 								MultiGridSubsetHandler& mgsh,
 								bool clearContainer)
 {
-//	some typedefs
-	typedef typename geometry_traits<TElem>::iterator ElemIter;
+	using ElemIter = typename geometry_traits<TElem>::iterator;
 
 //	clear the target surfaceView
 	if(clearContainer)
@@ -110,7 +109,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 template <class TElem>
 bool IsSubSurfaceElement(MultiGrid& mg, TElem* e, bool checkSides)
 {
-	typedef typename TElem::grid_base_object TBaseElem;
+	using TBaseElem = typename TElem::grid_base_object;
 
 	size_t numChildren = mg.num_children<TBaseElem>(e);
 	for(size_t i = 0; i < numChildren; ++i){

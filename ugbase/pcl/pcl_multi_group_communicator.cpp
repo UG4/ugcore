@@ -31,7 +31,10 @@
  */
 
 #include "common/log.h"
+
 #include "pcl_multi_group_communicator.h"
+
+#include <utility>
 
 using namespace std;
 
@@ -39,7 +42,7 @@ namespace pcl {
 
 MultiGroupCommunicator::
 MultiGroupCommunicator (ProcessCommunicator com) :
-	m_com (com)
+	m_com (std::move(com))
 {
 
 }
@@ -47,7 +50,7 @@ MultiGroupCommunicator (ProcessCommunicator com) :
 MultiGroupCommunicator::
 MultiGroupCommunicator (const std::vector<bool>& participates,
                         ProcessCommunicator com) :
-	m_com (com)
+	m_com (std::move(com))
 {
 	reinit (participates);
 }

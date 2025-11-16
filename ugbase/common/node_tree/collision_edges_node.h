@@ -44,7 +44,7 @@ class CollisionEdgesNode;
 
 ////////////////////////////////////////////////////////////////////////
 ///	the smartpointer used to encapsulate the node
-typedef SmartPtr<CollisionEdgesNode> SPCollisionEdgesNode;
+using SPCollisionEdgesNode = SmartPtr<CollisionEdgesNode>;
 
 ////////////////////////////////////////////////////////////////////////
 //	CollisionEdgesNode
@@ -88,8 +88,8 @@ class CollisionEdgesNode : public Node
 		CollisionEdgesNode();
 
 	protected:
-		typedef std::vector<int>				IndexVec;
-		typedef std::vector<CollisionElementID>	IDVec;
+		using IndexVec = std::vector<int>;
+		using IDVec = std::vector<CollisionElementID>;
 
 		IndexVec	m_vEdges;
 		IDVec		m_vEdgeIDs;

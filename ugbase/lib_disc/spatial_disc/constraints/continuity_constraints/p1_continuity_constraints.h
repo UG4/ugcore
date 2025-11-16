@@ -52,30 +52,30 @@ class SymP1Constraints
 {
 	public:
 	// 	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	// 	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	// 	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	public:
 		SymP1Constraints() : IDomainConstraint<TDomain, TAlgebra>(), m_bAssembleLinearProblem(false) {}
-		virtual ~SymP1Constraints() {}
+		virtual ~SymP1Constraints() = default;
 
 		virtual int type() const {return CT_HANGING;}
 
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
-                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
+                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
    							 const number s_a0 = 1.0);
 
 		void adjust_defect(vector_type& d, const vector_type& u,
 		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
-                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
-						   const std::vector<number>* vScaleMass = NULL,
-                           const std::vector<number>* vScaleStiff = NULL);
+                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
+						   const std::vector<number>* vScaleMass = nullptr,
+                           const std::vector<number>* vScaleStiff = nullptr);
 
 		void adjust_rhs(vector_type& rhs, const vector_type& u,
 		                ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0);
@@ -117,33 +117,33 @@ class OneSideP1Constraints
 {
 	public:
 	// 	Algebra type
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	// 	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+	using matrix_type = typename algebra_type::matrix_type;
 
 	// 	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+	using vector_type = typename algebra_type::vector_type;
 
 	protected:
-		typedef IDomainConstraint<TDomain, TAlgebra> base_type;
+	using base_type = IDomainConstraint<TDomain, TAlgebra>;
 
 	public:
 		OneSideP1Constraints() : IDomainConstraint<TDomain, TAlgebra>(), m_bAssembleLinearProblem(false) {}
-		virtual ~OneSideP1Constraints() {}
+		virtual ~OneSideP1Constraints() = default;
 
 		virtual int type() const {return CT_HANGING;}
 
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
-                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
+                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
 							 const number s_a0 = 1.0);
 
 		void adjust_defect(vector_type& d, const vector_type& u,
 		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
-                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
-						   const std::vector<number>* vScaleMass = NULL,
-                           const std::vector<number>* vScaleStiff = NULL);
+                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
+						   const std::vector<number>* vScaleMass = nullptr,
+                           const std::vector<number>* vScaleStiff = nullptr);
 
 		void adjust_rhs(vector_type& rhs, const vector_type& u,
 		                ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0);

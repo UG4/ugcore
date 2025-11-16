@@ -64,7 +64,7 @@ enum KDSplitDimension
 	KDSD_LARGEST
 };
 
-typedef std::list<KDVertexDistance> KDVertexDistanceList;
+using KDVertexDistanceList = std::list<KDVertexDistance>;
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -84,12 +84,12 @@ template <class TPositionAttachment, int numDimensions = 3, class TVector = vect
 class KDTreeStatic
 {
 	public:
-		typedef std::vector<Vertex*> VertexVec;
+		using VertexVec = std::vector<Vertex*>;
 
 		class Node
 		{
 			public:
-				Node() : m_pvVertices(NULL)	{m_pChild[0] = m_pChild[1] = NULL;}
+				Node() : m_pvVertices(nullptr)	{m_pChild[0] = m_pChild[1] = nullptr;}
 				~Node()	{clear();}
 
 				void clear();
@@ -101,7 +101,7 @@ class KDTreeStatic
 		};
 
 	//	the functions
-		KDTreeStatic() : m_pGrid(NULL)	{};
+		KDTreeStatic() : m_pGrid(nullptr)	{};
 
 		void clear();
 

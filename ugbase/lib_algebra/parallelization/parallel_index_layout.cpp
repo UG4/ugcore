@@ -43,8 +43,8 @@ void LogIndexLayout(IndexLayout& layout, int depth)
 {
 	using namespace std;
 
-	typedef IndexLayout::Interface Interface;
-	typedef IndexLayout::iterator  InterfaceIter;
+	using Interface = IndexLayout::Interface;
+	using InterfaceIter = IndexLayout::iterator;
 
 	UG_LOG("-- IndexLayout Informations: Proc "<< GetLogAssistant().get_output_process() << " --\n");
 
@@ -53,8 +53,7 @@ void LogIndexLayout(IndexLayout& layout, int depth)
 	UG_LOG("\n");
 
 	int i = 0;
-	for(InterfaceIter iiter = layout.begin();
-		iiter != layout.end(); ++iiter, ++i)
+	for(InterfaceIter iiter = layout.begin(); iiter != layout.end(); ++iiter, ++i)
 	{
 		Interface& interface = layout.interface(iiter);
 		UG_LOG(" " << std::setw(9) << i << " | " << std::setw(14) <<
@@ -62,8 +61,7 @@ void LogIndexLayout(IndexLayout& layout, int depth)
 		if(depth >= 1)
 		{
 			UG_LOG(" | (");
-			for(Interface::iterator indexIter = interface.begin();
-					indexIter != interface.end(); ++indexIter)
+			for(Interface::iterator indexIter = interface.begin(); indexIter != interface.end(); ++indexIter)
 			{
 			//  get index
 				const size_t index = interface.get_element(indexIter);

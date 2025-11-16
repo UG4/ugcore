@@ -71,7 +71,7 @@ namespace ug
  *
  * Make sure to completely read all data written by the associated write calls.
  *
- * Note that the following typedefs exist: VertexDataSerializer,
+ * Note that the following type definition exist: VertexDataSerializer,
  * EdgeDataSerializer, FaceDataSerializer, VolumeDataSerializer.
  *
  * If one wants to serialize data of all objects in a grid, he should
@@ -106,15 +106,15 @@ class GeomObjDataSerializer
 		virtual void deserialization_done()						{}
 };
 
-typedef GeomObjDataSerializer<Vertex>	VertexDataSerializer;
-typedef GeomObjDataSerializer<Edge>		EdgeDataSerializer;
-typedef GeomObjDataSerializer<Face>			FaceDataSerializer;
-typedef GeomObjDataSerializer<Volume>		VolumeDataSerializer;
+using VertexDataSerializer = GeomObjDataSerializer<Vertex>;
+using EdgeDataSerializer = GeomObjDataSerializer<Edge>;
+using FaceDataSerializer = GeomObjDataSerializer<Face>;
+using VolumeDataSerializer = GeomObjDataSerializer<Volume>;
 
-typedef SmartPtr<VertexDataSerializer>	SPVertexDataSerializer;
-typedef SmartPtr<EdgeDataSerializer>	SPEdgeDataSerializer;
-typedef SmartPtr<FaceDataSerializer>	SPFaceDataSerializer;
-typedef SmartPtr<VolumeDataSerializer>	SPVolumeDataSerializer;
+using SPVertexDataSerializer = SmartPtr<VertexDataSerializer>;
+using SPEdgeDataSerializer = SmartPtr<EdgeDataSerializer>;
+using SPFaceDataSerializer = SmartPtr<FaceDataSerializer>;
+using SPVolumeDataSerializer = SmartPtr<VolumeDataSerializer>;
 
 /**	\brief	Interface for handling serialization and deserialization of
  * 			data associated with all geometric objects in a grid.
@@ -137,7 +137,7 @@ typedef SmartPtr<VolumeDataSerializer>	SPVolumeDataSerializer;
 class GridDataSerializer
 {
 	public:
-		virtual ~GridDataSerializer()	{}
+		virtual ~GridDataSerializer() = default;
 
 	///	can be used to write arbitrary info to the file.
 	/**	Make sure to read everything you've written during read_data.
@@ -164,7 +164,7 @@ class GridDataSerializer
 		virtual void deserialization_done()						{}
 };
 
-typedef SmartPtr<GridDataSerializer>	SPGridDataSerializer;
+using SPGridDataSerializer = SmartPtr<GridDataSerializer>;
 
 
 ///	Serialization of data associated with grid elements.
@@ -442,7 +442,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 								GridObjectCollection goc,
 								MultiElementAttachmentAccessor<AInt>&	aaInt,
 								BinaryBuffer& out,
-								MultiElementAttachmentAccessor<AGeomObjID>* paaID = NULL);
+								MultiElementAttachmentAccessor<AGeomObjID>* paaID = nullptr);
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeMultiGridElements
@@ -486,11 +486,11 @@ bool SerializeMultiGridElements(MultiGrid& mg,
  * \todo	add support for constrained/constraining faces
  */
 bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
-									std::vector<Vertex*>* pvVrts = NULL,
-									std::vector<Edge*>* pvEdges = NULL,
-									std::vector<Face*>* pvFaces = NULL,
-									std::vector<Volume*>* pvVols = NULL,
-									MultiElementAttachmentAccessor<AGeomObjID>* paaID = NULL);
+									std::vector<Vertex*>* pvVrts = nullptr,
+									std::vector<Edge*>* pvEdges = nullptr,
+									std::vector<Face*>* pvFaces = nullptr,
+									std::vector<Volume*>* pvVols = nullptr,
+									MultiElementAttachmentAccessor<AGeomObjID>* paaID = nullptr);
 
 
 

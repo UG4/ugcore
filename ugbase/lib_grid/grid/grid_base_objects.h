@@ -166,7 +166,7 @@ class UG_API GridObject/* : public SmallObject<>*/
 
 	///	create an instance of the derived type
 	/**	Make sure to overload this method in derivates of this class!*/
-		virtual GridObject* create_empty_instance() const {return NULL;}
+		virtual GridObject* create_empty_instance() const {return nullptr;}
 
 		virtual int container_section() const = 0;
 		virtual int base_object_id() const = 0;
@@ -231,31 +231,31 @@ class UG_API Vertex : public GridObject
 {
 	friend class Grid;
 	public:
-		typedef Vertex grid_base_object;
+		using grid_base_object = Vertex;
 
 	//	lower dimensional Base Object
-		typedef void lower_dim_base_object;
+		using lower_dim_base_object = void;
 
 	//	higher dimensional Base Object
-		typedef Edge higher_dim_base_object;
+		using higher_dim_base_object = Edge;
 
 	/**	The side type is obviously wrong. It should be void.
 	 * However, void would cause problems with template instantiations.*/
-		typedef Vertex side;
-		typedef Edge sideof;
+		using side = Vertex;
+		using sideof = Edge;
 
-		static const bool HAS_SIDES = false;
-		static const bool CAN_BE_SIDE = true;
+		static constexpr bool HAS_SIDES = false;
+		static constexpr bool CAN_BE_SIDE = true;
 
 	/// reference dimension
-		static const int dim = 0;
+		static constexpr int dim = 0;
 
-		static const int BASE_OBJECT_ID = VERTEX;
+		static constexpr int BASE_OBJECT_ID = VERTEX;
 
-		static const size_t NUM_VERTICES = 1;
+		static constexpr size_t NUM_VERTICES = 1;
 
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Vertex*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Vertex*>(pObj) != nullptr;}
 
 		virtual ~Vertex()	{}
 
@@ -284,7 +284,7 @@ class UG_API Vertex : public GridObject
  */
 class UG_API VertexDescriptor {
 public:
-	typedef Vertex* const* ConstVertexArray;
+	using ConstVertexArray = Vertex* const*;
 
 	VertexDescriptor()	{}
 	VertexDescriptor(Vertex* v) : m_v(v)	{}
@@ -316,7 +316,7 @@ private:
 class UG_API IVertexGroup
 {
 	public:
-		typedef Vertex* const* ConstVertexArray;
+		using ConstVertexArray = Vertex* const*;
 
 		virtual ~IVertexGroup()	{};
 		virtual Vertex* vertex(size_t index) const = 0;
@@ -397,28 +397,28 @@ class UG_API Edge : public GridObject, public EdgeVertices
 {
 	friend class Grid;
 	public:
-		typedef Edge grid_base_object;
+		using grid_base_object = Edge;
 
 	//	lower dimensional Base Object
-		typedef Vertex lower_dim_base_object;
+		using lower_dim_base_object = Vertex;
 	//	higher dimensional Base Object
-		typedef Face higher_dim_base_object;
+		using higher_dim_base_object = Face;
 
-		typedef Vertex side;
-		typedef Face sideof;
+		using side = Vertex;
+		using sideof = Face;
 
-		static const bool HAS_SIDES = true;
-		static const bool CAN_BE_SIDE = true;
+		static constexpr bool HAS_SIDES = true;
+		static constexpr bool CAN_BE_SIDE = true;
 
 	/// reference dimension
-		static const int dim = 1;
+		static constexpr int dim = 1;
 
-		static const int BASE_OBJECT_ID = EDGE;
+		static constexpr int BASE_OBJECT_ID = EDGE;
 
-		static const size_t NUM_VERTICES = 2;
+		static constexpr size_t NUM_VERTICES = 2;
 
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Edge*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Edge*>(pObj) != nullptr;}
 
 		virtual ~Edge()	{}
 
@@ -450,7 +450,7 @@ class UG_API Edge : public GridObject, public EdgeVertices
 	 */
 		virtual bool refine(std::vector<Edge*>& vNewEdgesOut,
 											Vertex* newVertex,
-											Vertex** pSubstituteVrts = NULL)	{return false;}
+											Vertex** pSubstituteVrts = nullptr)	{return false;}
 
 	protected:
 		inline void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
@@ -483,8 +483,8 @@ class UG_API FaceVertices : public IVertexGroup
 {
 	public:
 		virtual ~FaceVertices()							{}
-		virtual Vertex* vertex(size_t index) const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
-		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
+		virtual Vertex* vertex(size_t index) const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return nullptr;}
+		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return nullptr;}
 		virtual size_t num_vertices() const				{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
 
 	//	compatibility with std::vector for some template routines
@@ -510,25 +510,25 @@ class UG_API Face : public GridObject, public FaceVertices
 {
 	friend class Grid;
 	public:
-		typedef Face grid_base_object;
+		using grid_base_object = Face;
 
 	//	lower dimensional Base Object
-		typedef Edge lower_dim_base_object;
+		using lower_dim_base_object = Edge;
 	//	higher dimensional Base Object
-		typedef Volume higher_dim_base_object;
+		using higher_dim_base_object = Volume;
 
-		typedef Edge side;
-		typedef Volume sideof;
+		using side = Edge;
+		using sideof = Volume;
 
-		static const bool HAS_SIDES = true;
-		static const bool CAN_BE_SIDE = true;
+		static constexpr bool HAS_SIDES = true;
+		static constexpr bool CAN_BE_SIDE = true;
 
 	/// reference dimension
-		static const int dim = 2;
-		static const int BASE_OBJECT_ID = FACE;
+		static constexpr int dim = 2;
+		static constexpr int BASE_OBJECT_ID = FACE;
 
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Face*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Face*>(pObj) != nullptr;}
 
 		virtual ~Face()	{}
 
@@ -553,7 +553,7 @@ class UG_API Face : public GridObject, public FaceVertices
 	 *	this class. This is required to allow the use of this class
 	 *	for compile-time method selection by dummy-parameters.
 	 *	It is cruical that derived classes overload this method.*/
-		virtual Edge* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
+		virtual Edge* create_edge(int index)	{return nullptr;}	///< create the edge with index i and return it.
 
 
 	///	retrieves the edge-descriptor for the opposing side to the specified one.
@@ -579,7 +579,7 @@ class UG_API Face : public GridObject, public FaceVertices
 	 * faces with a grid (the grid from which the vertices are), or to take responsibility
 	 * for deletion of the acquired memory (delete each element in vNewFacesOut).
 	 * - Specify vertices that shall be inserted on edges with newEdgeVertices. Vertices
-	 * are inserted on the edge that corresponds to their index. Use NULL to indicate
+	 * are inserted on the edge that corresponds to their index. Use nullptr to indicate
 	 * that no vertex shall be inserted on the associated edge. newEdgeVertices has to point
 	 * to an array that holds as many vertices as there are edges in the face.
 	 * - If the method has to create a new inner vertex, it will be returned in newFaceVertexOut.
@@ -594,8 +594,8 @@ class UG_API Face : public GridObject, public FaceVertices
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
 							Vertex** newFaceVertexOut,
 							Vertex** newEdgeVertices,
-							Vertex* newFaceVertex = NULL,
-							Vertex** pSubstituteVertices = NULL,
+							Vertex* newFaceVertex = nullptr,
+							Vertex** pSubstituteVertices = nullptr,
 							int snapPointIndex = -1)	{return false;}
 
 
@@ -628,7 +628,7 @@ class UG_API Face : public GridObject, public FaceVertices
 	 */
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
 								int edgeIndex, Vertex* newVertex,
-								Vertex** pSubstituteVertices = NULL)	{return false;}
+								Vertex** pSubstituteVertices = nullptr)	{return false;}
 
 	/**
 	 * The collapse_edgea method creates new geometric objects by collapsing the specified edges
@@ -636,7 +636,7 @@ class UG_API Face : public GridObject, public FaceVertices
 	 * The user that calls this function is responsible to either register the new
 	 * faces with a grid (the grid from which the vertices are), or to take responsibility
 	 * for deletion of the acquired memory (delete each element in vNewFacesOut).
-	 * - for each entry in vNewEdgeVertices which is not NULL, the edge with the same index will
+	 * - for each entry in vNewEdgeVertices which is not nullptr, the edge with the same index will
 	 *    be collapsed and replaced by the specified vertex.
 	 *    The size of vNewEdgeVertices has thus to be between 0 and this->num_edges().
 	 * - If you specify pvSubstituteVertices, the created faces will reference the vertices in
@@ -645,7 +645,7 @@ class UG_API Face : public GridObject, public FaceVertices
 	 */
 		virtual bool collapse_edges(std::vector<Face*>& vNewFacesOut,
 								std::vector<Vertex*>& vNewEdgeVertices,
-								Vertex** pSubstituteVertices = NULL)	{return false;}
+								Vertex** pSubstituteVertices = nullptr)	{return false;}
 
 // BEGIN Depreciated
 	/**	creates the faces that result from the splitting of the edge with index 'splitEdgeIndex'.
@@ -659,7 +659,7 @@ class UG_API Face : public GridObject, public FaceVertices
 		virtual void create_faces_by_edge_split(int splitEdgeIndex,
 							Vertex* newVertex,
 							std::vector<Face*>& vNewFacesOut,
-							Vertex** pSubstituteVertices = NULL)	{};
+							Vertex** pSubstituteVertices = nullptr)	{};
 // END Depreciated
 
 	/**	creates the faces that result from the collapsing of the edge with index 'splitEdgeIndex'.*/
@@ -724,8 +724,8 @@ class UG_API VolumeVertices : public IVertexGroup
 	public:
 		virtual ~VolumeVertices()						{}
 
-		virtual Vertex* vertex(size_t index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
-		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
+		virtual Vertex* vertex(size_t index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return nullptr;}
+		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return nullptr;}
 		virtual size_t num_vertices() const				{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
 
 	//	compatibility with std::vector for some template routines
@@ -754,31 +754,31 @@ class UG_API Volume : public GridObject, public VolumeVertices
 {
 	friend class Grid;
 	public:
-		typedef Volume grid_base_object;
+		using grid_base_object = Volume;
 
 	//	lower dimensional Base Object
-		typedef Face lower_dim_base_object;
+		using lower_dim_base_object = Face;
 	//	higher dimensional Base Object
-		typedef void higher_dim_base_object;
+		using higher_dim_base_object = void;
 
-		typedef Face side;
+		using side = Face;
 	//	this is just by convention. Use can_be_side() to stop recursions.
-		typedef Volume sideof;
+		using sideof = Volume;
 
-		static const bool HAS_SIDES = true;
-		static const bool CAN_BE_SIDE = false;
+		static constexpr bool HAS_SIDES = true;
+		static constexpr bool CAN_BE_SIDE = false;
 
 	/// reference dimension
-		static const int dim = 3;
-		static const int BASE_OBJECT_ID = VOLUME;
+		static constexpr int dim = 3;
+		static constexpr int BASE_OBJECT_ID = VOLUME;
 
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Volume*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Volume*>(pObj) != nullptr;}
 
 		virtual ~Volume()	{}
 
-		virtual EdgeDescriptor edge_desc(int index) const				{return EdgeDescriptor(NULL, NULL);}
-		virtual void edge_desc(int index, EdgeDescriptor& edOut) const	{edOut = EdgeDescriptor(NULL, NULL);}
+		virtual EdgeDescriptor edge_desc(int index) const				{return EdgeDescriptor(nullptr, nullptr);}
+		virtual void edge_desc(int index, EdgeDescriptor& edOut) const	{edOut = EdgeDescriptor(nullptr, nullptr);}
 		virtual uint num_edges() const									{return 0;}
 
 		virtual FaceDescriptor face_desc(int index) const				{return FaceDescriptor(0);}
@@ -786,8 +786,8 @@ class UG_API Volume : public GridObject, public VolumeVertices
 		virtual uint num_faces() const									{return 0;}
 		inline uint num_sides() const									{return num_faces();}
 
-		virtual Edge* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
-		virtual Face* create_face(int index)		{return NULL;}	///< create the face with index i and return it.
+		virtual Edge* create_edge(int index)	{return nullptr;}	///< create the edge with index i and return it.
+		virtual Face* create_face(int index)		{return nullptr;}	///< create the face with index i and return it.
 		
 	///	returns the local indices of an edge of the volume.
 	/**	Default implementation throws a UGError*/
@@ -837,20 +837,20 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 * New volumes will be returned in vNewFacesOut.
 	 * If a new vertex has to be created from the prototypeVertex (this happens in
 	 * more complicated situations) the pointer to the new vertex is returned in
-	 * ppNewVertexOut. ppNewVertexOut contains NULL if no new vertex has been created.
+	 * ppNewVertexOut. ppNewVertexOut contains nullptr if no new vertex has been created.
 	 *
 	 * The user that calls this function is responsible to either register the new
 	 * volumes and the new vertex with a grid (the grid from which the referenced
 	 * vertices are), or to take responsibility for deletion of the acquired memory
-	 * (delete each element in vNewVolumesOut and ppNewVertexOut - if it is not NULL).
+	 * (delete each element in vNewVolumesOut and ppNewVertexOut - if it is not nullptr).
 	 *
 	 * - Specify vertices that shall be inserted on edges with vNewEdgeVertices. Vertices
-	 *   are inserted on the edge that corresponds to its index. Use NULL to indicate
+	 *   are inserted on the edge that corresponds to its index. Use nullptr to indicate
 	 *   that no vertex shall be inserted on the associated edge.
 	 * - Specify vertices that shall be inserted on faces with vNewFaceVertices. Vertices
-	 *   are inserted on the face that corresponds to its index. Use NULL to indicate
+	 *   are inserted on the face that corresponds to its index. Use nullptr to indicate
 	 *   that no vertex shall be inserted on the associated face.
-	 * - If newVolumeVertex is not NULL, newVolumeVertex will be inserted in the center of
+	 * - If newVolumeVertex is not nullptr, newVolumeVertex will be inserted in the center of
 	 *   the volume.
 	 * - via the prototypeVertex you can specify the vertex-type of the vertex that is
 	 *   auto-inserted if the refine operation is too complex. In most cases this will be
@@ -876,9 +876,9 @@ class UG_API Volume : public GridObject, public VolumeVertices
 							Vertex** newFaceVertices,
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
-							Vertex** pSubstituteVertices = NULL,
-							vector3* corners = NULL,
-							bool* isSnapPoint = NULL)	{return false;}
+							Vertex** pSubstituteVertices = nullptr,
+							vector3* corners = nullptr,
+							bool* isSnapPoint = nullptr)	{return false;}
 
 		
 	///	returns true if the specified edgeMarks would lead to a regular refinement
@@ -910,7 +910,7 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 */
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, Vertex* newVertex,
-								std::vector<Vertex*>* pvSubstituteVertices = NULL)	{return false;}
+								std::vector<Vertex*>* pvSubstituteVertices = nullptr)	{return false;}
 
 	/**
 	 * Writes vertices to the volume-descriptor so that it defines a volume with
@@ -980,19 +980,19 @@ class UG_API VolumeDescriptor : public VolumeVertices
 template <int dim> struct GeomObjBaseTypeByDim;
 
 template <> struct GeomObjBaseTypeByDim<0>{
-	typedef Vertex base_obj_type;
+	using base_obj_type = Vertex;
 };
 
 template <> struct GeomObjBaseTypeByDim<1>{
-	typedef Edge base_obj_type;
+	using base_obj_type = Edge;
 };
 
 template <> struct GeomObjBaseTypeByDim<2>{
-	typedef Face base_obj_type;
+	using base_obj_type = Face;
 };
 
 template <> struct GeomObjBaseTypeByDim<3>{
-	typedef Volume base_obj_type;
+	using base_obj_type = Volume;
 };
 
 /** \} */
@@ -1008,23 +1008,23 @@ template <> struct GeomObjBaseTypeByDim<3>{
  */
 template <class TGeomObjPtrType>
 struct PtrToValueType
-{typedef void base_type;};
+{using base_type = void;};
 
 template <>
 struct PtrToValueType<Vertex*>
-{typedef Vertex base_type;};
+{using base_type = Vertex;};
 
 template <>
 struct PtrToValueType<Edge*>
-{typedef Edge base_type;};
+{using base_type = Edge;};
 
 template <>
 struct PtrToValueType<Face*>
-{typedef Face base_type;};
+{using base_type = Face;};
 
 template <>
 struct PtrToValueType<Volume*>
-{typedef Volume base_type;};
+{using base_type = Volume;};
 /** \} */
 
 

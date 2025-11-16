@@ -91,7 +91,7 @@ public:
 				delete *from;
 			}else{
 			}
-			*from = NULL;
+			*from = nullptr;
 		}else{
 		}
 	}

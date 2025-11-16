@@ -194,7 +194,7 @@ void NeumannBoundaryFE<TDomain>::
 add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
-	typedef typename TFEGeom::BF BF;
+	using BF = typename TFEGeom::BF;
 
 //	Number Data
 	for(size_t data = 0; data < m_vNumberData.size(); ++data){
@@ -303,7 +303,7 @@ lin_def(const LocalVector& u,
 {
 //  get finite volume geometry
 	const TFEGeom& geo = GeomProvider<TFEGeom>::get(This->m_lfeID,This->m_quadOrder);
-	typedef typename TFEGeom::BF BF;
+	using BF = typename TFEGeom::BF;
 
 	for(size_t s = 0; s < this->BndSSGrp.size(); ++s)
 	{
@@ -323,7 +323,7 @@ template<typename TElem, typename TFEGeom>
 void NeumannBoundaryFE<TDomain>::NumberData::
 extract_bip(const TFEGeom& geo)
 {
-	typedef typename TFEGeom::BF BF;
+	using BF = typename TFEGeom::BF;
 	vLocIP.clear();
 	vGloIP.clear();
 	for(size_t s = 0; s < this->BndSSGrp.size(); s++)
@@ -381,7 +381,7 @@ template<typename TElem, typename TFEGeom>
 void NeumannBoundaryFE<TDomain>::register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	typedef this_type T;
+	using T = this_type;
 
 	this->clear_add_fct(id);
 

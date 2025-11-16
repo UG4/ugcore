@@ -40,7 +40,7 @@ namespace ug{
  * Make sure that TLayout holds elements of type Vertex*, Edge*,
  * Face* or Volume*.
  *
- * \param pIgnoreMap	If specified (defaul: NULL), this map will be used to
+ * \param pIgnoreMap	If specified (defaul: nullptr), this map will be used to
  * 						check whether an element shall not be added to the new
  * 						interface. For each interface in the given layout, the
  * 						map has to hold a vector<bool> of the size of the interface.
@@ -52,23 +52,22 @@ namespace ug{
 template <class TLayout>
 bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
                                   DoFDistribution& dofDistr, TLayout& elemLayout,
-					  const std::map<int, std::vector<bool> >* pIgnoreMap = NULL)
+					  const std::map<int, std::vector<bool> >* pIgnoreMap = nullptr)
 {
 //	iterator for grid element interfaces
-	typedef typename TLayout::iterator InterfaceIterator;
+	using InterfaceIterator = typename TLayout::iterator;
 
 //	type of grid element interfaces
-	typedef typename TLayout::Interface ElemInterface;
+	using ElemInterface = typename TLayout::Interface;
 
 //	iterator for grid elements
-	typedef typename ElemInterface::iterator ElemIterator;
+	using ElemIterator = typename ElemInterface::iterator;
 
 //	type of index interfaces
-	typedef IndexLayout::Interface IndexInterface;
+	using IndexInterface = IndexLayout::Interface;
 
 //	iterate over all grid element interfaces
-	for(InterfaceIterator iIter = elemLayout.begin();
-		iIter != elemLayout.end(); ++iIter)
+	for(InterfaceIterator iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter)
 	{
 	//	get a grid element interface
 		ElemInterface& elemInterface = elemLayout.interface(iIter);
@@ -197,20 +196,19 @@ bool AddEntriesToSurfaceIndexLayout(IndexLayout& indexLayoutOut,
                                     DistributedGridManager& dGrMgr)
 {
 //	iterator for grid element interfaces
-	typedef typename TLayout::iterator InterfaceIterator;
+	using InterfaceIterator = typename TLayout::iterator;
 
 //	type of grid element interfaces
-	typedef typename TLayout::Interface ElemInterface;
+	using ElemInterface = typename TLayout::Interface;
 
 //	iterator for grid elements
-	typedef typename ElemInterface::iterator ElemIterator;
+	using ElemIterator = typename ElemInterface::iterator;
 
 //	type of index interfaces
-	typedef IndexLayout::Interface IndexInterface;
+	using IndexInterface = IndexLayout::Interface;
 
 //	iterate over all grid element interfaces
-	for(InterfaceIterator iIter = elemLayout.begin();
-		iIter != elemLayout.end(); ++iIter)
+	for(InterfaceIterator iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter)
 	{
 	//	get a grid element interface
 		ElemInterface& elemInterface = elemLayout.interface(iIter);
@@ -431,14 +429,13 @@ bool AddExtraProcessEntriesToSubdomainLayout(
 void PermuteIndicesInIndexLayout(	IndexLayout& layout,
 									const std::vector<size_t>& vIndNew)
 {
-	typedef IndexLayout::Interface 	Interface;
-	typedef IndexLayout::iterator 	InterfaceIter;
-	typedef Interface::iterator		IndexIter;
-	typedef Interface::Element		Index;
+	using Interface = IndexLayout::Interface;
+	using InterfaceIter = IndexLayout::iterator;
+	using IndexIter = Interface::iterator;
+	using Index = Interface::Element;
 
 //	iterate over all interfaces
-	for(InterfaceIter iiter = layout.begin();
-		iiter != layout.end(); ++iiter)
+	for(InterfaceIter iiter = layout.begin(); iiter != layout.end(); ++iiter)
 	{
 	//	get interface
 		Interface& interface = layout.interface(iiter);
@@ -472,18 +469,17 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 							TLayout& elemLayout,
 							pcl::IDomainDecompositionInfo* ddInfoIn)
 {
-	typedef typename TLayout::iterator InterfaceIterator;
-	typedef typename TLayout::Interface ElemInterface;
-	typedef typename ElemInterface::iterator ElemIterator;
+	using InterfaceIterator = typename TLayout::iterator;
+	using ElemInterface = typename TLayout::Interface;
+	using ElemIterator = typename ElemInterface::iterator;
 
-	typedef IndexLayout::Interface IndexInterface;
+	using IndexInterface = IndexLayout::Interface;
 
 	int localProc = pcl::ProcRank();
 	int localSubdom = ddInfoIn->map_proc_id_to_subdomain_id(localProc);
 
 //	iterate over all interfaces
-	for(InterfaceIterator iIter = elemLayout.begin();
-		iIter != elemLayout.end(); ++iIter)
+	for(InterfaceIterator iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter)
 	{
 		ElemInterface& elemInterface = elemLayout.interface(iIter);
 		int targetProc = elemLayout.proc_id(iIter);

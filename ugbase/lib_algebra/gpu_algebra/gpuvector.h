@@ -51,10 +51,10 @@ class GPUVector : public Vector<TValueType>
 {
 public:
 
-	typedef TValueType value_type;
-	typedef GPUVector<TValueType> vector_type;
+	using value_type = TValueType ;
+	using vector_type = GPUVector<TValueType> ;
 
-	typedef Vector<TValueType> super;
+	using super = Vector<TValueType>;
 	using super::size;
 	using super::resize;
 	using super::reserve;

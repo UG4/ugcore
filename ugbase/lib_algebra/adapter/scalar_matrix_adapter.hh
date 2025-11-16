@@ -56,7 +56,7 @@ inline void TruncateOffDiag(MT &A, size_t ncmp)
 template<>
 inline void TruncateOffDiag(CPUAlgebra::matrix_type &A, size_t ncmp)
 {
-	typedef CPUAlgebra::matrix_type matrix_type;
+	using matrix_type = CPUAlgebra::matrix_type;
 
 	// for each row
 	for (size_t i=0; i<A.num_rows(); ++i)
@@ -80,11 +80,11 @@ template<class AT, class ST=CPUAlgebra>
 class ScalarMatrixAdapter{
 
 public:
-	typedef typename AT::matrix_type encapsulated_matrix_type;
-	typedef typename ST::matrix_type::value_type value_type;
-	static const int blockSize = AT::blockSize;
+	using encapsulated_matrix_type = typename AT::matrix_type;
+	using value_type = typename ST::matrix_type::value_type;
+	static constexpr int blockSize = AT::blockSize;
 
-	//typedef typename ST::matrix_type::const_row_iterator const_row_iterator;
+	// using const_row_iterator = typename ST::matrix_type::const_row_iterator ;
 
 	ScalarMatrixAdapter(encapsulated_matrix_type& mat) : m_src(mat), m_const(mat) {};
 

@@ -56,7 +56,7 @@ namespace raster_kernels {
 template <class T, int TDIM>
 class Count {
 public:
-	typedef size_t result_t;
+	using result_t = size_t;
 
 	Count () :
 		m_count (0)
@@ -95,7 +95,7 @@ private:
 template <class T, int TDIM>
 class Sum {
 public:
-	typedef T result_t;
+	using result_t = T;
 
 	Sum () :
 		m_sum (0)

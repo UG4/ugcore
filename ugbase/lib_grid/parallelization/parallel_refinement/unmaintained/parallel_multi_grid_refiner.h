@@ -93,7 +93,7 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 		void
 		exchange_data(TDistributor& distributor,
 						TCommunicator& communicator,
-						std::vector<typename TDistributor::Element>* pvReceivedElemsOut = NULL);
+						std::vector<typename TDistributor::Element>* pvReceivedElemsOut = nullptr);
 					
 		template <class TMarkDistributor>
 		void mark_received_elements(TMarkDistributor& distributor);

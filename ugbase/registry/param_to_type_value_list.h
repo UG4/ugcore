@@ -69,8 +69,8 @@ template <typename TTypeList, int index>
 struct ParameterStackToTypeValueList :
 	public TypeValueList<TTypeList>
 {
-	typedef	 typename TTypeList::head	head;
-	typedef	 typename TTypeList::tail	tail;
+	using head = typename TTypeList::head;
+	using tail = typename TTypeList::tail;
 
 	ParameterStackToTypeValueList(const ParameterStack& in) :
 		TypeValueList<TTypeList>(	in.to<head>(index),
@@ -86,8 +86,8 @@ struct ParameterStackToTypeValueList :
 template <typename TTypeList>
 struct CreateParameterInfo
 {
-	typedef	typename TTypeList::head	head;
-	typedef	typename TTypeList::tail	tail;
+	using head = typename TTypeList::head;
+	using tail = typename TTypeList::tail;
 
 	static void create(ParameterInfo& in)
 	{

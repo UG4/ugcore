@@ -96,13 +96,13 @@ class IDWInterpolation
 public:
 
 ///	dimensionality of the space (i.e. of the coordinate vectors)
-	static const int dim = WDim;
+	static constexpr int dim = WDim;
 	
 ///	type of the interpolation point iterator
-	typedef TPntIterator t_pnt_iter;
+	using t_pnt_iter = TPntIterator;
 	
 ///	type of the data to extrapolate
-	typedef TData data_type;
+	using data_type = TData;
 	
 public:
 
@@ -149,10 +149,10 @@ class IDWUserData
 public:
 
 ///	dimensionality of the space (i.e. of the coordinate vectors)
-	static const int dim = WDim;
+	static constexpr int dim = WDim;
 	
 ///	type of the data to extrapolate
-	typedef TData data_type;
+	using data_type = TData;
 	
 private:
 	
@@ -206,7 +206,7 @@ public:
 ///	evaluates the data at a given point
 	inline void evaluate (data_type & value, const MathVector<dim> & x, number time, int si) const
 	{
-		typedef typename std::vector<data_item>::const_iterator pnt_iter_type;
+		using pnt_iter_type = typename std::vector<data_item>::const_iterator;
 		IDWInterpolation<dim, pnt_iter_type, data_type>::compute (value, x, m_R,
 										m_data.begin (), m_data.end (), m_order);
 	}

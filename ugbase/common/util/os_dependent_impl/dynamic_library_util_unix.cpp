@@ -39,7 +39,7 @@ namespace ug{
 DynLibHandle OpenLibrary(const char* fileName)
 {
 	DynLibHandle dlh = dlopen(fileName, RTLD_LAZY| RTLD_GLOBAL);
-	if(dlh == NULL)
+	if(dlh == nullptr)
 		throw std::string(dlerror());
 	return dlh;
 }

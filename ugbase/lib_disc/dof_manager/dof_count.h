@@ -42,21 +42,21 @@ namespace ug{
 class DoFCount : public DoFDistributionInfoProvider
 {
 	public:
-		static const byte ES_MAX = (ES_V_MASTER | ES_H_MASTER | ES_H_SLAVE | ES_V_SLAVE);
-		static const byte SS_MAX = SurfaceView::ALL;
+		static constexpr byte_t ES_MAX = (ES_V_MASTER | ES_H_MASTER | ES_H_SLAVE | ES_V_SLAVE);
+		static constexpr byte_t SS_MAX = SurfaceView::ALL;
 
-		static const int ALL_FCT = -1;
-		static const int ALL_SUBSET = -1;
-		static const byte ALL_ES = ES_MAX + 1;
-		static const byte ALL_SS = SS_MAX + 1;
-		static const byte UNIQUE_ES = ES_MAX + 2;
-		static const byte UNIQUE_SS = SS_MAX + 2;
+		static constexpr int ALL_FCT = -1;
+		static constexpr int ALL_SUBSET = -1;
+		static constexpr byte_t ALL_ES = ES_MAX + 1;
+		static constexpr byte_t ALL_SS = SS_MAX + 1;
+		static constexpr byte_t UNIQUE_ES = ES_MAX + 2;
+		static constexpr byte_t UNIQUE_SS = SS_MAX + 2;
 
 	protected:
 		struct Cnt{
 
 			Cnt();
-			void add(uint64 num, SurfaceView::SurfaceState ss, byte is);
+			void add(uint64 num, SurfaceView::SurfaceState ss, byte_t is);
 			void collect_values(std::vector<uint64>& vNum) const;
 			void set_values(const std::vector<uint64>& vNum, size_t& cnt);
 
@@ -65,10 +65,10 @@ class DoFCount : public DoFDistributionInfoProvider
 				PCnt();
 
 				// dofs exactly matching this state
-				uint64 num(byte is) const;
+				uint64 num(byte_t is) const;
 
 				// dofs that contain this state
-				uint64 num_contains(byte is) const;
+				uint64 num_contains(byte_t is) const;
 
 				void collect_values(std::vector<uint64>& vNum) const;
 				void set_values(const std::vector<uint64>& vNum, size_t& cnt);
@@ -76,14 +76,14 @@ class DoFCount : public DoFDistributionInfoProvider
 				std::vector<uint64> vNumIS;
 			};
 
-			uint64 num(SurfaceView::SurfaceState ss, byte is) const;
-			uint64 num_contains(SurfaceView::SurfaceState ss, byte is) const;
+			uint64 num(SurfaceView::SurfaceState ss, byte_t is) const;
+			uint64 num_contains(SurfaceView::SurfaceState ss, byte_t is) const;
 
 			std::vector<PCnt> vNumSS;
 		};
 
 	public:
-		DoFCount() {};
+		DoFCount() = default;
 		DoFCount(const GridLevel& gl, ConstSmartPtr<DoFDistributionInfo> spDDInfo);
 
 		/// sums values over all procs (reduced to 'proc', allreduce for -1)
@@ -91,12 +91,12 @@ class DoFCount : public DoFDistributionInfoProvider
 		void collect_values(std::vector<uint64>& vNum) const;
 		void set_values(const std::vector<uint64>& vNum);
 
-		void add(int fct, int si, SurfaceView::SurfaceState ss, byte is, uint64 numDoF);
+		void add(int fct, int si, SurfaceView::SurfaceState ss, byte_t is, uint64 numDoF);
 
 		const GridLevel& grid_level() const {return m_gridLevel;}
 
-		uint64 num(int fct, int si, SurfaceView::SurfaceState ss, byte is) const;
-		uint64 num_contains(int fct, int si, SurfaceView::SurfaceState ss, byte is) const;
+		uint64 num(int fct, int si, SurfaceView::SurfaceState ss, byte_t is) const;
+		uint64 num_contains(int fct, int si, SurfaceView::SurfaceState ss, byte_t is) const;
 
 	protected:
 		GridLevel m_gridLevel;

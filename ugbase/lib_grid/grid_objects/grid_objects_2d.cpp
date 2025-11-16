@@ -141,7 +141,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 	uint numNewVrts = 0;
 	for(uint i = 0; i < 3; ++i)
 	{
-		if(newEdgeVertices[i] != NULL)
+		if(newEdgeVertices[i] != nullptr)
 			++numNewVrts;
 	}
 
@@ -281,7 +281,7 @@ collapse_edges(std::vector<Face*>& vNewFacesOut,
 	bool bGotOne = false;
 	for(uint i = 0; i < vNewEdgeVertices.size(); ++i)
 	{
-		if(vNewEdgeVertices[i] != NULL)
+		if(vNewEdgeVertices[i] != nullptr)
 		{
 			bGotOne = true;
 			break;
@@ -475,7 +475,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 	uint numNewVrts = 0;
 	for(uint i = 0; i < 4; ++i)
 	{
-		if(edgeVrts[i] != NULL)
+		if(edgeVrts[i] != nullptr)
 			++numNewVrts;
 	}
 
@@ -672,9 +672,9 @@ bool
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 is_regular_ref_rule(int edgeMarks) const
 {
-	static const int allEdges = 15;	// 1111
-	static const int hEdges = 5;	// 0101
-	static const int vEdges = 10;	// 1010
+	static constexpr int allEdges = 15;	// 1111
+	static constexpr int hEdges = 5;	// 0101
+	static constexpr int vEdges = 10;	// 1010
 
 	return 		(edgeMarks == allEdges)
 			||	(edgeMarks == hEdges)
@@ -733,7 +733,7 @@ collapse_edges(std::vector<Face*>& vNewFacesOut,
 	{
 		if(i < vNewEdgeVertices.size())
 		{
-			if(vNewEdgeVertices[i] != NULL)
+			if(vNewEdgeVertices[i] != nullptr)
 			{
 				++numCollapses;
 				collapseIndex = i;

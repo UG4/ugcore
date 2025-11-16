@@ -78,9 +78,8 @@ struct Functionality
 template <typename TDomain, typename TAlgebra>
 static void DomainAlgebra(Registry& reg, string grp)
 {
-//	typedef
-	static const int dim = TDomain::dim;
-	typedef GridFunction<TDomain, TAlgebra> TFct;
+	static constexpr int dim = TDomain::dim;
+	using TFct = GridFunction<TDomain, TAlgebra>;
 
 //	Integral
 	{
@@ -191,8 +190,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 void RegisterBridge_Integrate(Registry& reg, string grp)
 {
 	grp.append("/Discretization");
-	typedef Integrate::Functionality Functionality;
-
+	using Functionality = Integrate::Functionality;
 
 	{
 		reg.add_function("TestQuadRule", &ug::TestQuadRule);

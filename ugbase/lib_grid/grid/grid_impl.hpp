@@ -46,7 +46,7 @@ namespace ug
 bool Grid::
 is_parallel() const
 {
-	return m_distGridMgr != NULL;
+	return m_distGridMgr != nullptr;
 }
 
 DistributedGridManager* Grid::
@@ -418,7 +418,7 @@ template <class TGeomObj>
 uint
 Grid::get_attachment_data_index(TGeomObj* pObj) const
 {
-	typedef typename geometry_traits<TGeomObj>::grid_base_object BaseObj;
+	using BaseObj = typename geometry_traits<TGeomObj>::grid_base_object;
 	return attachment_traits<BaseObj*, ElementStorage<BaseObj> >::
 			get_data_index(&element_storage<TGeomObj>(), pObj);
 }
@@ -553,7 +553,7 @@ Edge* Grid::find_edge_in_associated_edges(TGeomObj* obj, const EdgeVertices& ev)
 		if(CompareVertices(e, &ev))
 			return e;
 	}
-	return NULL;
+	return nullptr;
 }
 
 										
@@ -575,7 +575,7 @@ Face* Grid::find_face_in_associated_faces(TGeomObj* obj, const FaceVertices& fv)
 		}
 	}
 	
-	return NULL;
+	return nullptr;
 }
 										
 template <class TGeomObj>
@@ -597,7 +597,7 @@ Volume* Grid::find_volume_in_associated_volumes(TGeomObj* obj,
 		}
 	}
 	
-	return NULL;
+	return nullptr;
 }
 
 

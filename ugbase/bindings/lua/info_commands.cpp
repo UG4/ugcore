@@ -215,20 +215,20 @@ string GetFileLinesLUA(const char *filename, size_t fromline, size_t toline)
 	char buf[512];
 	fstream file(filename, ios::in);
 	if(file.is_open() == false) return string("");
-	stringstream *pss = NULL;
+	stringstream *pss = nullptr;
 	for(size_t i=0; i<fromline-1 && !file.eof(); i++)
 	{
 		file.getline(buf, 512);
 		if(strncmp(buf+strspn(buf, "\t "), "--", 2)==0)
 		{
-			if(pss == NULL) pss = new stringstream;
+			if(pss == nullptr) pss = new stringstream;
 			*pss << "   \t" << buf+strspn(buf, "-\t ") << '\n';
 		}
-		else if(pss) { delete pss; pss = NULL; }
+		else if(pss) { delete pss; pss = nullptr; }
 
 	}
 	stringstream ss;
-	if(pss != NULL) ss << "\n" << pss->str() << "\n";
+	if(pss != nullptr) ss << "\n" << pss->str() << "\n";
 	for(; fromline <= toline && !file.eof(); fromline++)
 	{
 		file.getline(buf, 512);
@@ -320,7 +320,7 @@ bool GetLuaNamespace(lua_State* L, string name)
 const ClassNameNode* GetClassNameNode(lua_State *L, int index)
 {
 	LUA_STACK_CHECK(L, 0);
-	const ClassNameNode* classNameNode = NULL;
+	const ClassNameNode* classNameNode = nullptr;
 	if(lua_getmetatable(L, index) != 0)
 	{
 		// get names
@@ -337,7 +337,7 @@ const ClassNameNode* GetClassNameNode(lua_State *L, int index)
 const std::vector<const char*> *GetClassNames(lua_State *L, int index)
 {
 	LUA_STACK_CHECK(L, 0);
-	const std::vector<const char*> *p = NULL;
+	const std::vector<const char*> *p = nullptr;
 	if(lua_getmetatable(L, index) != 0)
 	{
 		// get names
@@ -357,7 +357,7 @@ const std::vector<const char*> *GetClassNames(lua_State* L, const char *name)
 	if(lua_isnil(L, -1))
 	{
 		lua_pop(L, 1);	// remove global from stack
-		return NULL; 	// global name not found
+		return nullptr; 	// global name not found
 	}
 
 	const std::vector<const char*> *p = GetClassNames(L, -1);
@@ -426,7 +426,7 @@ string LuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thefunc
 {
 	const std::vector<const char*> *names = GetClassNames(L, index);
 	const char *classname = "(unknown class)";
-	if(names != NULL)
+	if(names != nullptr)
 		classname = names->at(0);
 	return FunctionInfo(thefunc, false, classname);
 }
@@ -447,8 +447,8 @@ int UGTypeInfo(const char *p)
 
 	// check if it is a class
 	const ClassGroupDesc *cg = reg.get_class_group(p);
-	const IExportedClass *c=NULL;
-	if(cg != NULL)
+	const IExportedClass *c=nullptr;
+	if(cg != nullptr)
 	{
 		UG_LOG("ClassGroup " << p << " consisting of classes\n");
 		for(size_t i=0; i<cg->num_classes(); i++)
@@ -564,7 +564,7 @@ bool ClassInstantiations(const char *classname)
 	bridge::Registry &reg = GetUGRegistry();
 	// search for the class
 	const IExportedClass *c = reg.get_class(classname);
-	if(c == NULL)
+	if(c == nullptr)
 	{
 		UG_LOG("Class " << classname << " not found\n");
 		return false;
@@ -582,17 +582,17 @@ bool ClassInstantiations(const char *classname)
 	for(int i=0; i<G(L)->strt.size; i++)
 	{
 		GCObject *obj;
-		for (obj = G(L)->strt.hash[i]; obj != NULL; obj = obj->gch.next)
+		for (obj = G(L)->strt.hash[i]; obj != nullptr; obj = obj->gch.next)
 		{
 			// get the string
 			TString *ts = rawgco2ts(obj);
-			if(ts == NULL) continue;
+			if(ts == nullptr) continue;
 
 			const char *luastr = getstr(ts);
 			// check is of a global variable
 
 			const std::vector<const char*> *names = GetClassNames(L, luastr);
-			if(names == NULL)
+			if(names == nullptr)
 				continue;
 
 			if(ClassNameVecContains(*names, classname))
@@ -650,7 +650,7 @@ string ClassUsage(const char *classname)
 
 	// find class
 	const IExportedClass *c = reg.get_class(classname);
-	if(c == NULL)
+	if(c == nullptr)
 	{
 		ss << "Class name " << classname << " not found\n";
 		return ss.str();
@@ -662,7 +662,7 @@ string ClassUsage(const char *classname)
 	ss << ClassUsageExact(reg, classname, true);
 
 	const std::vector<const char*> *names = c->class_names();
-	if(names != NULL && !names->empty())
+	if(names != nullptr && !names->empty())
 	{
 		for(size_t i = 0; i<names->size(); i++)
 		{
@@ -829,27 +829,27 @@ void GetLuaGlobals(std::vector<std::string>  *functions,
 
 void GetLuaGlobal_functions(std::vector<std::string> &functions)
 {
-	GetLuaGlobals(&functions, NULL, NULL, NULL, NULL);
+	GetLuaGlobals(&functions, nullptr, nullptr, nullptr, nullptr);
 }
 
 void GetLuaGlobal_internalFunctions(std::vector<std::string> &internalFunctions)
 {
-	GetLuaGlobals(NULL, &internalFunctions, NULL, NULL, NULL);
+	GetLuaGlobals(nullptr, &internalFunctions, nullptr, nullptr, nullptr);
 }
 
 void GetLuaGlobal_scriptFunctions(std::vector<std::string> &scriptFunctions)
 {
-	GetLuaGlobals(NULL, NULL, &scriptFunctions, NULL, NULL);
+	GetLuaGlobals(nullptr, nullptr, &scriptFunctions, nullptr, nullptr);
 }
 
 void GetLuaGlobal_luaObjects(std::vector<std::string> &luaObjects)
 {
-	GetLuaGlobals(NULL, NULL, NULL, &luaObjects, NULL);
+	GetLuaGlobals(nullptr, nullptr, nullptr, &luaObjects, nullptr);
 }
 
 void GetLuaGlobal_classInstantiations(std::vector<std::string> &classInstantiations)
 {
-	GetLuaGlobals(NULL, NULL, NULL, NULL, &classInstantiations);
+	GetLuaGlobals(nullptr, nullptr, nullptr, nullptr, &classInstantiations);
 }
 
 void LuaList_classes()
@@ -1037,7 +1037,7 @@ string GetLuaTypeString(lua_State* L, int index)
 			str.append("const ");
 		}
 		const ClassNameNode* classNameNode = GetClassNameNode(L, index);
-		if(classNameNode == NULL || classNameNode->empty()) str.append("userdata/");
+		if(classNameNode == nullptr || classNameNode->empty()) str.append("userdata/");
 		else str.append(classNameNode->name());
 		str.append("*/");
 	}
@@ -1190,13 +1190,13 @@ void ScriptPrintClassHierarchy(const char *classname)
 bool ScriptHasClass(const char *classname)
 {
 	const Registry &reg = GetUGRegistry();
-	return reg.get_class(classname) != NULL;
+	return reg.get_class(classname) != nullptr;
 }
 
 bool ScriptHasClassGroup(const char *classname)
 {
 	const Registry &reg = GetUGRegistry();
-	return reg.get_class_group(classname) != NULL;
+	return reg.get_class_group(classname) != nullptr;
 }
 
 void ScriptPrintClassUsage(const char *classname)

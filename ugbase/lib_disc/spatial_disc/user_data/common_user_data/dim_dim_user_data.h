@@ -67,16 +67,16 @@ class OutNormCmp
 	: public StdUserData<OutNormCmp<TDomain>, MathVector<TDomain::dim>, TDomain::dim, void, UserData<MathVector<TDomain::dim>, TDomain::dim, void> >
 {
 ///	the world dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 	
 ///	the domain type
-	typedef TDomain domain_type;
+	using domain_type = TDomain;
 	
 ///	the grid type
-	typedef typename TDomain::grid_type grid_type;
+	using grid_type = typename TDomain::grid_type;
 	
 ///	the original data type
-	typedef MathVector<dim> vec_type;
+	using vec_type = MathVector<dim>;
 	
 ///	the original data
 	SmartPtr<UserData<vec_type, dim, void> > m_spData;
@@ -139,7 +139,7 @@ public:
 		const MathVector<refDim> vLocIP [],
 		const size_t nip,
 		LocalVector * u,
-		const MathMatrix<refDim, dim> * vJT = NULL
+		const MathMatrix<refDim, dim> * vJT = nullptr
 	) const
 	{
 		if (refDim == dim)
@@ -153,11 +153,11 @@ public:
 		}
 		
 	//	Get the full-dim. element associated with the given side
-		typedef typename grid_dim_traits<dim>::grid_base_object fd_elem_type;
-		fd_elem_type * fd_elem = NULL;
+		using fd_elem_type = typename grid_dim_traits<dim>::grid_base_object;
+		fd_elem_type * fd_elem = nullptr;
 		int fd_si = -1;
-		
-		typedef typename Grid::traits<fd_elem_type>::secure_container fd_elem_secure_container_type;
+
+		using fd_elem_secure_container_type = typename Grid::traits<fd_elem_type>::secure_container;
 		fd_elem_secure_container_type fd_elem_list;
 		grid_type& grid = * (grid_type*) (m_spDomain->grid().get ());
 		grid.associated_elements (fd_elem_list, elem);
@@ -179,9 +179,9 @@ public:
 				int e_si = m_ssGrp.subset_handler()->get_subset_index (e);
 				if (m_ssGrp.contains (e_si))
 				{
-					if (fd_elem != NULL) // i.e. e is already the second one
+					if (fd_elem != nullptr) // i.e. e is already the second one
 					{ // this is no boundary of the subset; return 0
-						fd_elem = NULL;
+						fd_elem = nullptr;
 						break;
 					}
 					fd_elem = e;
@@ -189,7 +189,7 @@ public:
 				}
 			}
 		}
-		if (fd_elem == NULL)
+		if (fd_elem == nullptr)
 		{ // this is no bondary, return 0
 			for (size_t ip = 0; ip < nip; ip++) vValue[ip] = 0;
 			return;
@@ -272,16 +272,16 @@ class ScaledOutNormCmp
 	: public StdUserData<ScaledOutNormCmp<TDomain>, MathVector<TDomain::dim>, TDomain::dim, void, UserData<MathVector<TDomain::dim>, TDomain::dim, void> >
 {
 ///	the world dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 	
 ///	the domain type
-	typedef TDomain domain_type;
+	using domain_type = TDomain;
 	
 ///	the grid type
-	typedef typename TDomain::grid_type grid_type;
+	using grid_type = typename TDomain::grid_type;
 	
 ///	the original data type
-	typedef MathVector<dim> vec_type;
+	using vec_type = MathVector<dim>;
 	
 ///	the original vector field data
 	SmartPtr<UserData<vec_type, dim, void> > m_spVecData;
@@ -349,7 +349,7 @@ public:
 		const MathVector<refDim> vLocIP [],
 		const size_t nip,
 		LocalVector * u,
-		const MathMatrix<refDim, dim> * vJT = NULL
+		const MathMatrix<refDim, dim> * vJT = nullptr
 	) const
 	{
 		if (refDim == dim)
@@ -367,11 +367,11 @@ public:
 		}
 		
 	//	Get the full-dim. element associated with the given side
-		typedef typename grid_dim_traits<dim>::grid_base_object fd_elem_type;
-		fd_elem_type * fd_elem = NULL;
+		using fd_elem_type = typename grid_dim_traits<dim>::grid_base_object;
+		fd_elem_type * fd_elem = nullptr;
 		int fd_si = -1;
-		
-		typedef typename Grid::traits<fd_elem_type>::secure_container fd_elem_secure_container_type;
+
+		using fd_elem_secure_container_type = typename Grid::traits<fd_elem_type>::secure_container;
 		fd_elem_secure_container_type fd_elem_list;
 		grid_type& grid = * (grid_type*) (m_spDomain->grid().get ());
 		grid.associated_elements (fd_elem_list, elem);
@@ -393,9 +393,9 @@ public:
 				int e_si = m_ssGrp.subset_handler()->get_subset_index (e);
 				if (m_ssGrp.contains (e_si))
 				{
-					if (fd_elem != NULL) // i.e. e is already the second one
+					if (fd_elem != nullptr) // i.e. e is already the second one
 					{ // this is no boundary of the subset; return 0
-						fd_elem = NULL;
+						fd_elem = nullptr;
 						break;
 					}
 					fd_elem = e;
@@ -403,7 +403,7 @@ public:
 				}
 			}
 		}
-		if (fd_elem == NULL)
+		if (fd_elem == nullptr)
 		{ // this is no bondary, return 0
 			for (size_t ip = 0; ip < nip; ip++) vValue[ip] = 0;
 			return;
@@ -491,16 +491,16 @@ class ScaledFluxData
 	: public StdUserData<ScaledFluxData<TDomain>, number, TDomain::dim, void, UserData<number, TDomain::dim, void> >
 {
 ///	the world dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 	
 ///	the domain type
-	typedef TDomain domain_type;
+	using domain_type = TDomain;
 	
 ///	the grid type
-	typedef typename TDomain::grid_type grid_type;
+	using grid_type = typename TDomain::grid_type;
 	
 ///	the original data type
-	typedef MathVector<dim> vec_type;
+	using vec_type = MathVector<dim>;
 	
 ///	the original vector field data
 	SmartPtr<UserData<vec_type, dim, void> > m_spVecData;
@@ -568,7 +568,7 @@ public:
 		const MathVector<refDim> vLocIP [],
 		const size_t nip,
 		LocalVector * u,
-		const MathMatrix<refDim, dim> * vJT = NULL
+		const MathMatrix<refDim, dim> * vJT = nullptr
 	) const
 	{
 		if (refDim != dim - 1)
@@ -577,11 +577,11 @@ public:
 		}
 		
 	//	Get the full-dim. element associated with the given side
-		typedef typename grid_dim_traits<dim>::grid_base_object fd_elem_type;
-		fd_elem_type * fd_elem = NULL;
+		using fd_elem_type = typename grid_dim_traits<dim>::grid_base_object;
+		fd_elem_type * fd_elem = nullptr;
 		int fd_si = -1;
-		
-		typedef typename Grid::traits<fd_elem_type>::secure_container fd_elem_secure_container_type;
+
+		using fd_elem_secure_container_type = typename Grid::traits<fd_elem_type>::secure_container;
 		fd_elem_secure_container_type fd_elem_list;
 		grid_type& grid = * (grid_type*) (m_spDomain->grid().get ());
 		grid.associated_elements (fd_elem_list, elem);
@@ -603,9 +603,9 @@ public:
 				int e_si = m_ssGrp.subset_handler()->get_subset_index (e);
 				if (m_ssGrp.contains (e_si))
 				{
-					if (fd_elem != NULL) // i.e. e is already the second one
+					if (fd_elem != nullptr) // i.e. e is already the second one
 					{ // this is no boundary of the subset; return 0
-						fd_elem = NULL;
+						fd_elem = nullptr;
 						break;
 					}
 					fd_elem = e;
@@ -613,7 +613,7 @@ public:
 				}
 			}
 		}
-		if (fd_elem == NULL)
+		if (fd_elem == nullptr)
 		{ // this is no bondary, return 0
 			for (size_t ip = 0; ip < nip; ip++) vValue[ip] = 0;
 			return;

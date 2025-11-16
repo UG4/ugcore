@@ -76,13 +76,13 @@ void AveragePositions(TPosition& vOut, const TPosition* vCornerCoords, size_t nu
 template <typename TRefElem> struct fv1_traits_most_common
 {
 ///	type of reference element
-	typedef TRefElem ref_elem_type;
+	using ref_elem_type = TRefElem;
 
 ///	number of SubControlVolumes (for most of the elements - overridden for e.g. ROID_PYRAMID and ROID_OCTAHEDRON)
-	static const size_t numSCV = ref_elem_type::numCorners;
+	static constexpr size_t numSCV = ref_elem_type::numCorners;
 	
 ///	number of SubControlVolumeFaces (for most of the elements - overridden for e.g. ROID_PYRAMID and ROID_OCTAHEDRON)
-	static const size_t numSCVF = ref_elem_type::numEdges;
+	static constexpr size_t numSCVF = ref_elem_type::numEdges;
 
 /// returns the 'from' and 'to' corner indices for a scvf
 	static size_t scvf_from_to
@@ -113,7 +113,7 @@ template <typename TRefElem> struct fv1_traits_most_common
 		size_t i  ///< index of the scvf
 	)
 	{
-		static const int dim = TRefElem::dim;
+		static constexpr int dim = TRefElem::dim;
 
 	//	set mid ids:
 
@@ -141,7 +141,7 @@ template <typename TRefElem> struct fv1_traits_most_common
 		size_t i  ///< index of the scvf
 	)
 	{
-		static const int dim = TRefElem::dim;
+		static constexpr int dim = TRefElem::dim;
 
 	//	set mid ids:
 
@@ -182,13 +182,13 @@ template <typename TRefElem, int TWorldDim> struct fv1_traits
 	static const size_t maxNSH;
 
 //	number of corners of scvf
-	const static size_t NumCornersOfSCVF;
+	static const size_t NumCornersOfSCVF;
 
 //	maximum of corners of scv
-	const static size_t NumCornersOfSCV;
+	static const size_t NumCornersOfSCV;
 	
 //	maximum of corners of bf
-	const static size_t NumCornersOfBF;
+	static const size_t NumCornersOfBF;
 
 //	computes the normal to a scvf
 	static void NormalOnSCVF(MathVector<TWorldDim>& outNormal,
@@ -201,9 +201,9 @@ template <typename TRefElem, int TWorldDim> struct fv1_traits
 							 const MathVector<TWorldDim>* vElemCorner);
 
 //	types of scv and scvf and bf
-	typedef void scv_type;
-	typedef void scvf_type;
-	typedef void bf_type;
+	using scv_type = void;
+	using scvf_type = void;
+	using bf_type = void;
 };
 
 /////////////////////////
@@ -212,17 +212,17 @@ template <typename TRefElem, int TWorldDim> struct fv1_traits
 
 struct fv1_traits_ReferenceEdge
 {
-	static const size_t maxNumSCVF = 1;
-	static const size_t maxNumSCV = 2;
-	static const size_t maxNSH = maxNumSCV;
+	static constexpr size_t maxNumSCVF = 1;
+	static constexpr size_t maxNumSCV = 2;
+	static constexpr size_t maxNSH = maxNumSCV;
 
-	const static size_t NumCornersOfSCVF = 1;
-	const static size_t NumCornersOfSCV = 2;
-	const static size_t NumCornersOfBF = 1;
+	static constexpr size_t NumCornersOfSCVF = 1;
+	static constexpr size_t NumCornersOfSCV = 2;
+	static constexpr size_t NumCornersOfBF = 1;
 
-	typedef ReferenceEdge scv_type;
-	typedef ReferenceVertex scvf_type;
-	typedef ReferenceVertex bf_type;
+	using scv_type = ReferenceEdge;
+	using scvf_type = ReferenceVertex;
+	using bf_type = ReferenceVertex;
 };
 
 template <> struct fv1_traits<ReferenceEdge, 1>
@@ -288,17 +288,17 @@ template <> struct fv1_traits<ReferenceEdge, 3>
 
 struct fv1_traits_ReferenceFace
 {
-	static const size_t maxNumSCVF = 4;
-	static const size_t maxNumSCV = 4;
-	static const size_t maxNSH = maxNumSCV;
+	static constexpr size_t maxNumSCVF = 4;
+	static constexpr size_t maxNumSCV = 4;
+	static constexpr size_t maxNSH = maxNumSCV;
 
-	const static size_t NumCornersOfSCVF = 2;
-	const static size_t NumCornersOfSCV = 4;
-	const static size_t NumCornersOfBF = 2;
-	
-	typedef ReferenceQuadrilateral scv_type;
-	typedef ReferenceEdge scvf_type;
-	typedef ReferenceEdge bf_type;
+	static constexpr size_t NumCornersOfSCVF = 2;
+	static constexpr size_t NumCornersOfSCV = 4;
+	static constexpr size_t NumCornersOfBF = 2;
+
+	using scv_type = ReferenceQuadrilateral;
+	using scvf_type = ReferenceEdge;
+	using bf_type = ReferenceEdge;
 };
 
 struct fv1_traits_ReferenceFace2d : public fv1_traits_ReferenceFace
@@ -407,17 +407,17 @@ template <> struct fv1_traits<ReferenceQuadrilateral, 3>
 
 struct fv1_traits_ReferenceVolume
 {
-	static const size_t maxNumSCVF = 24;
-	static const size_t maxNumSCV = 32;
-	static const size_t maxNSH = 8;
+	static constexpr size_t maxNumSCVF = 24;
+	static constexpr size_t maxNumSCV = 32;
+	static constexpr size_t maxNSH = 8;
 
-	const static size_t NumCornersOfSCVF = 4;
-	const static size_t NumCornersOfSCV = 8;
-	const static size_t NumCornersOfBF = 4;
+	static constexpr size_t NumCornersOfSCVF = 4;
+	static constexpr size_t NumCornersOfSCV = 8;
+	static constexpr size_t NumCornersOfBF = 4;
 
-	typedef ReferenceHexahedron scv_type;
-	typedef ReferenceQuadrilateral scvf_type;
-	typedef ReferenceQuadrilateral bf_type;
+	using scv_type = ReferenceHexahedron;
+	using scvf_type = ReferenceQuadrilateral;
+	using bf_type = ReferenceQuadrilateral;
 
 	static void NormalOnSCVF(MathVector<3>& outNormal,
 	                         const MathVector<3>* vSCVFCorner,
@@ -453,17 +453,17 @@ struct fv1_traits_ReferencePyramid
 :	public fv1_traits_ReferenceVolume
 	// Remark: Pyramid is a special case, fv1_traits_most_common<ReferencePyramid> is not inherited here!
 {
-	static const size_t numSCV = 4 * ReferencePyramid::numEdges; ///< overridden field from fv1_traits_most_common
+	static constexpr size_t numSCV = 4 * ReferencePyramid::numEdges; ///< overridden field from fv1_traits_most_common
 	
-	static const size_t numSCVF = 2 * ReferencePyramid::numEdges; ///< overridden field from fv1_traits_most_common
+	static constexpr size_t numSCVF = 2 * ReferencePyramid::numEdges; ///< overridden field from fv1_traits_most_common
 
-	const static size_t NumCornersOfSCVF = 3; // triangles
-	const static size_t NumCornersOfSCV = 4;  // tetrahedrons
-	const static size_t NumCornersOfBF = 4;   // quadrilaterals
+	static constexpr size_t NumCornersOfSCVF = 3; // triangles
+	static constexpr size_t NumCornersOfSCV = 4;  // tetrahedrons
+	static constexpr size_t NumCornersOfBF = 4;   // quadrilaterals
 
-	typedef ReferenceTetrahedron scv_type;
-	typedef ReferenceTriangle scvf_type;
-	typedef ReferenceQuadrilateral bf_type;
+	using scv_type = ReferenceTetrahedron;
+	using scvf_type = ReferenceTriangle;
+	using bf_type = ReferenceQuadrilateral;
 
 /// returns the 'from' and 'to' corner indices for a scvf (overridden function from fv1_traits_most_common)
 	static size_t scvf_from_to
@@ -498,7 +498,7 @@ struct fv1_traits_ReferencePyramid
 		size_t i  ///< index of the scvf
 	)
 	{
-		static const int dim = 3;
+		static constexpr int dim = 3;
 
 	// 	set mid ids:
 
@@ -523,7 +523,7 @@ struct fv1_traits_ReferencePyramid
 		size_t i  ///< index of the scvf
 	)
 	{
-		static const int dim = 3;
+		static constexpr int dim = 3;
 
 	// 	set mid ids:
 
@@ -579,9 +579,9 @@ struct fv1_traits_ReferenceOctahedron
  * The dual fv1 geometry consists of the original hexahedral SCVs in each of the
  * 4 subtetrahedra.
  */
-	static const size_t numSCV = 16; ///< overridden field from fv1_traits_most_common
+	static constexpr size_t numSCV = 16; ///< overridden field from fv1_traits_most_common
 	
-	static const size_t numSCVF = 24; ///< overridden field from fv1_traits_most_common
+	static constexpr size_t numSCVF = 24; ///< overridden field from fv1_traits_most_common
 	//	Remark: Special case for octahedron, scvf not mappable by edges.
 	
 //	maximum dimension of substructure objects
@@ -1226,10 +1226,10 @@ template <> struct fv1_traits<ReferenceOctahedron, 3> : public fv1_traits_Refere
 template <int TDim, int TWorldDim> struct fv1_dim_traits_base
 {
 ///	dimension of reference element
-	static const int dim = TDim;
+	static constexpr int dim = TDim;
 
 ///	generic reference element type
-	typedef DimReferenceElement<dim> ref_elem_type;
+	using ref_elem_type = DimReferenceElement<dim>;
 	
 ///	returns the number of the SCV
 	static void dim_get_num_SCV_and_SCVF
@@ -1354,12 +1354,12 @@ template <> struct fv1_dim_traits<3, 3>	: public fv1_traits_ReferenceVolume, pub
 ///	Traits for hanging finite volume (dummy implementation)
 template <typename TRefElem, int TWorldDim> struct hfv1_traits
 {
-	const static size_t NumCornersOfSCVF;
-	const static size_t MaxNumCornersOfSCV;
+	static const size_t NumCornersOfSCVF;
+	static const size_t MaxNumCornersOfSCV;
 
 	static void NormalOnSCVF(MathVector<TWorldDim>& outNormal, const MathVector<TWorldDim>* vCornerCoords);
 
-	typedef void scv_type;
+	using scv_type = void;
 };
 
 /////////////////////////
@@ -1368,9 +1368,9 @@ template <typename TRefElem, int TWorldDim> struct hfv1_traits
 
 struct hfv1_traits_ReferenceEdge
 {
-	const static size_t NumCornersOfSCVF = 1;
-	const static size_t MaxNumCornersOfSCV = 2;
-	typedef ReferenceEdge scv_type;
+	static constexpr size_t NumCornersOfSCVF = 1;
+	static constexpr size_t MaxNumCornersOfSCV = 2;
+	using scv_type = ReferenceEdge;
 };
 
 template <> struct hfv1_traits<ReferenceEdge, 1> : public hfv1_traits_ReferenceEdge
@@ -1397,9 +1397,9 @@ template <> struct hfv1_traits<ReferenceEdge, 3> : public hfv1_traits_ReferenceE
 
 struct hfv1_traits_ReferenceFace
 {
-	const static size_t NumCornersOfSCVF = 2;
-	const static size_t MaxNumCornersOfSCV = 4;
-	typedef ReferenceQuadrilateral scv_type;
+	static constexpr size_t NumCornersOfSCVF = 2;
+	static constexpr size_t MaxNumCornersOfSCV = 4;
+	using scv_type = ReferenceQuadrilateral;
 };
 
 template <> struct hfv1_traits<ReferenceTriangle, 2> : public hfv1_traits_ReferenceFace
@@ -1435,85 +1435,85 @@ struct hfv1_traits_ReferenceVolume
 	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
 	{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
 
-	typedef ReferenceTetrahedron scv_type;
+	using scv_type = ReferenceTetrahedron;
 };
 
 template <> struct hfv1_traits<ReferenceTetrahedron, 3> : public hfv1_traits_ReferenceVolume
 {
-	const static size_t NumCornersOfSCVF = 3;
-	const static size_t MaxNumCornersOfSCV = 8;
+	static constexpr size_t NumCornersOfSCVF = 3;
+	static constexpr size_t MaxNumCornersOfSCV = 8;
 };
 
 template <> struct hfv1_traits<ReferencePrism, 3> : public hfv1_traits_ReferenceVolume
 {
-	const static size_t NumCornersOfSCVF = 3;
-	const static size_t MaxNumCornersOfSCV = 8;
+	static constexpr size_t NumCornersOfSCVF = 3;
+	static constexpr size_t MaxNumCornersOfSCV = 8;
 };
 
 template <> struct hfv1_traits<ReferencePyramid, 3> : public hfv1_traits_ReferenceVolume
 {
-	const static size_t NumCornersOfSCVF = 3;
-	const static size_t MaxNumCornersOfSCV = 10;
+	static constexpr size_t NumCornersOfSCVF = 3;
+	static constexpr size_t MaxNumCornersOfSCV = 10;
 };
 
 template <> struct hfv1_traits<ReferenceHexahedron, 3> : public hfv1_traits_ReferenceVolume
 {
-	const static size_t NumCornersOfSCVF = 3;
-	const static size_t MaxNumCornersOfSCV = 8;
+	static constexpr size_t NumCornersOfSCVF = 3;
+	static constexpr size_t MaxNumCornersOfSCV = 8;
 };
 
 template <> struct hfv1_traits<ReferenceOctahedron, 3> : public hfv1_traits_ReferenceVolume
 {
-	const static size_t NumCornersOfSCVF = 3;
-	const static size_t MaxNumCornersOfSCV = 8;
+	static constexpr size_t NumCornersOfSCVF = 3;
+	static constexpr size_t MaxNumCornersOfSCV = 8;
 };
 
 template <int TDim> struct hdimfv1_traits
 {
-	typedef void scv_type;
-	typedef void elem_type_0;
-	typedef void elem_type_1;
-	typedef void elem_type_2;
-	typedef void elem_type_3;
-	typedef void elem_type_4;
-	const static size_t NumCornersOfSCVF;
-	const static size_t MaxNumCornersOfSCV;
+	using scv_type = void;
+	using elem_type_0 = void;
+	using elem_type_1 = void;
+	using elem_type_2 = void;
+	using elem_type_3 = void;
+	using elem_type_4 = void;
+	static const size_t NumCornersOfSCVF;
+	static const size_t MaxNumCornersOfSCV;
 };
 
 template <> struct hdimfv1_traits<1>
 {
-	typedef ReferenceEdge scv_type;
-	typedef ReferenceEdge elem_type_0;
-	typedef ReferenceEdge elem_type_1;
-	typedef ReferenceEdge elem_type_2;
-	typedef ReferenceEdge elem_type_3;
-	typedef ReferenceEdge elem_type_4;
-	const static size_t NumCornersOfSCVF = 1;
-	const static size_t MaxNumCornersOfSCV = 2;
+	using scv_type = ReferenceEdge;
+	using elem_type_0 = ReferenceEdge;
+	using elem_type_1 = ReferenceEdge;
+	using elem_type_2 = ReferenceEdge;
+	using elem_type_3 = ReferenceEdge;
+	using elem_type_4 = ReferenceEdge;
+	static constexpr size_t NumCornersOfSCVF = 1;
+	static constexpr size_t MaxNumCornersOfSCV = 2;
 };
 
 template <> struct hdimfv1_traits<2>
 {
-	typedef ReferenceQuadrilateral scv_type;
-	typedef ReferenceTriangle elem_type_0;
-	typedef ReferenceQuadrilateral elem_type_1;
-	typedef ReferenceTriangle elem_type_2;
-	typedef ReferenceQuadrilateral elem_type_3;
-	typedef ReferenceQuadrilateral elem_type_4;
-	const static size_t NumCornersOfSCVF = 2;
-	const static size_t MaxNumCornersOfSCV = 4;
+	using scv_type = ReferenceQuadrilateral;
+	using elem_type_0 = ReferenceTriangle;
+	using elem_type_1 = ReferenceQuadrilateral;
+	using elem_type_2 = ReferenceTriangle;
+	using elem_type_3 = ReferenceQuadrilateral;
+	using elem_type_4 = ReferenceQuadrilateral;
+	static constexpr size_t NumCornersOfSCVF = 2;
+	static constexpr size_t MaxNumCornersOfSCV = 4;
 };
 
 template <> struct hdimfv1_traits<3>
 {
-	typedef ReferenceTetrahedron scv_type;
-	typedef ReferenceTetrahedron elem_type_0;
-	typedef ReferencePyramid elem_type_1;
-	typedef ReferencePrism elem_type_2;
-	typedef ReferenceHexahedron elem_type_3;
-	typedef ReferenceOctahedron elem_type_4;
-	const static size_t NumCornersOfSCVF = 3;
-	const static size_t MaxNumCornersOfSCV = 10;
+	using scv_type = ReferenceTetrahedron;
+	using elem_type_0 = ReferenceTetrahedron;
+	using elem_type_1 = ReferencePyramid;
+	using elem_type_2 = ReferencePrism;
+	using elem_type_3 = ReferenceHexahedron;
+	using elem_type_4 = ReferenceOctahedron;
+	static constexpr size_t NumCornersOfSCVF = 3;
+	static constexpr size_t MaxNumCornersOfSCV = 10;
 };
 
 
@@ -1535,13 +1535,13 @@ void HangingNormalOnSCVF(MathVector<TWorldDim>& outNormal, const MathVector<TWor
 template <int TOrder, typename TRefElem, int TWorldDim> struct fvho_traits
 {
 //	can be inherited from fv1_traits (since the same)
-	const static size_t NumCornersOfSCVF;
-	const static size_t MaxNumCornersOfSCV;
+	static const size_t NumCornersOfSCVF;
+	static const size_t MaxNumCornersOfSCV;
 	static void NormalOnSCVF(MathVector<TWorldDim>& outNormal, const MathVector<TWorldDim>* vCornerCoords);
-	typedef void scv_type;
+	using scv_type = void;
 
 //	own data
-	const static size_t NumSubElem;
+	static const size_t NumSubElem;
 };
 
 } // end namespace ug

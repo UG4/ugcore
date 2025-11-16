@@ -95,11 +95,11 @@ template<typename T> inline size_t GetCols(const T &t);
 template<typename T>
 struct block_traits<T>
 {
-	typedef T vec_type;
+	using vec_type = T;
 
 	// inverse_type: specify this type so we know what type to use
 	// INSTEAD of inverting the matrix (e.g. can be LU decomposition or Jacobi)
-	typedef T inverse_type;
+	using inverse_type = T;
 
 	// is_static is used in several functions. if so,
 	// the type has static number of rows/cols and can be copied via memcpy
@@ -117,7 +117,7 @@ struct block_traits<T>
 template<typename T>
 struct block_multiply_traits<T1, T2>
 {
-	typedef T1 ReturnType;
+	using ReturnType = T1 ;
 };
 
 /*

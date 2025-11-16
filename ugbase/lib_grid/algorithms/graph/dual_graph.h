@@ -71,7 +71,7 @@ namespace ug
  * TGeomBaseObj can be either Vertex, Edge, Face or Volume
  *
  * Through pgoc you can specify a subset of the grid which shall be put into
- * the graph. If pgoc == NULL (by default), the whole grid is used.
+ * the graph. If pgoc == nullptr (by default), the whole grid is used.
  *
  * If you pass a multi-grid to this method, elements will be indexed for level 0
  * first, then for level 1 and so on.
@@ -79,17 +79,17 @@ namespace ug
 template <class TGeomBaseObj, class TIndexType>
 void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 						std::vector<TIndexType>& adjacencyMapOut,
-						Grid& grid, Attachment<TIndexType>* paIndex = NULL,
-						TGeomBaseObj** pGeomObjsOut = NULL,
+						Grid& grid, Attachment<TIndexType>* paIndex = nullptr,
+						TGeomBaseObj** pGeomObjsOut = nullptr,
 						NeighborhoodType nbhType = NHT_DEFAULT,
-						const GridObjectCollection* pgoc = NULL)
+						const GridObjectCollection* pgoc = nullptr)
 {
 	using namespace std;
-	typedef TGeomBaseObj Elem;
-	typedef typename geometry_traits<Elem>::iterator ElemIterator;
+	using Elem = TGeomBaseObj;
+	using ElemIterator = typename geometry_traits<Elem>::iterator;
 	
 //	set up index attachment and attachment accessor
-	typedef Attachment<TIndexType> AIndex;
+	using AIndex = Attachment<TIndexType>;
 	AIndex aIndex;
 	if(paIndex)
 		aIndex = *paIndex;
@@ -195,7 +195,7 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
  * If you are interested in the indices assigned to each element, then
  * pass a pointer to an TIndexType attachment to paIndex.
  *
- * pEdgeWgtsOut may be specified with NULL. If it is given, then
+ * pEdgeWgtsOut may be specified with nullptr. If it is given, then
  * the weight for each entry in adacencyMapOut will be written to
  * pEdgeWgtsOut. vWeight for each vertical connection (parents / children)
  * and hWeigth for each horizontal connection (neighbors).
@@ -210,16 +210,16 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 						std::vector<TIndexType>* pEdgeWeightsOut,
 						MultiGrid& mg, size_t baseLevel = 0,
 						int hWeight = 1, int vWeight = 1,
-						Attachment<TIndexType>* paIndex = NULL,
-						TGeomBaseObj** pGeomObjsOut = NULL,
+						Attachment<TIndexType>* paIndex = nullptr,
+						TGeomBaseObj** pGeomObjsOut = nullptr,
 						NeighborhoodType nbhType = NHT_DEFAULT)
 {
 	using namespace std;
-	typedef TGeomBaseObj Elem;
-	typedef typename geometry_traits<Elem>::iterator ElemIterator;
+	using Elem = TGeomBaseObj;
+	using ElemIterator = typename geometry_traits<Elem>::iterator;
 
 //	set up index attachment and attachment accessor
-	typedef Attachment<TIndexType> AIndex;
+	using AIndex = Attachment<TIndexType>;
 	AIndex aIndex;
 	if(paIndex)
 		aIndex = *paIndex;
@@ -371,17 +371,17 @@ void ConstructDualGraphMGLevel(
 		std::vector<TIndexType>& adjacencyMapStructureOut,
 		std::vector<TIndexType>& adjacencyMapOut,
 		MultiGrid& mg, size_t level,
-		Attachment<TIndexType>* paIndex = NULL,
-		TGeomBaseObj** pGeomObjsOut = NULL,
+		Attachment<TIndexType>* paIndex = nullptr,
+		TGeomBaseObj** pGeomObjsOut = nullptr,
 		NeighborhoodType nbhType = NHT_DEFAULT,
-		DualGraphNeighborCollector<TGeomBaseObj>* neighborCollector = NULL)
+		DualGraphNeighborCollector<TGeomBaseObj>* neighborCollector = nullptr)
 {
 	using namespace std;
-	typedef TGeomBaseObj Elem;
-	typedef typename geometry_traits<Elem>::iterator ElemIterator;
+	using Elem = TGeomBaseObj;
+	using ElemIterator = typename geometry_traits<Elem>::iterator;
 
 //	set up index attachment and attachment accessor
-	typedef Attachment<TIndexType> AIndex;
+	using AIndex = Attachment<TIndexType>;
 	AIndex aIndex;
 	if(paIndex)
 		aIndex = *paIndex;

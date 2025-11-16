@@ -52,9 +52,9 @@ typename TElem::side*
 GetSharedSide(Grid& grid, TElem* e1, TElem* e2)
 {
 	if(!TElem::HAS_SIDES)
-		return NULL;
+		return nullptr;
 
-	typedef typename TElem::side	side_t;
+	using side_t = typename TElem::side;
 	typename Grid::traits<side_t>::secure_container	sides1;
 	typename Grid::traits<side_t>::secure_container	sides2;
 
@@ -68,7 +68,7 @@ GetSharedSide(Grid& grid, TElem* e1, TElem* e2)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 
@@ -139,7 +139,7 @@ TElem* FindClosestByCoordinate(const typename TVertexPositionAttachmentAccessor:
 						TVertexPositionAttachmentAccessor& aaPosVRT)
 {
 	if(iterBegin == iterEnd)
-		return NULL;
+		return nullptr;
 
 	typename geometry_traits<TElem>::iterator iter = iterBegin;
 	TElem* bestElem = *iter;
@@ -325,7 +325,7 @@ template <class TElem1, class TElem2, class TAAPos>
 typename TAAPos::ValueType
 GetDirection (TElem1* e1, TElem2* e2, const TAAPos& aaPos)
 {
-	typedef typename TAAPos::ValueType vector_t;
+	using vector_t = typename TAAPos::ValueType;
 
 	vector_t c1 = CalculateCenter (e1, aaPos);
 	vector_t c2 = CalculateCenter (e2, aaPos);
@@ -342,7 +342,7 @@ bool CheckDirection (TElem1* e1,
                      number minAngle,
                      number maxAngle)
 {
-	typedef typename TAAPos::ValueType vector_t;
+	using vector_t = typename TAAPos::ValueType;
 
 	const vector_t v = GetDirection (e1, e2, aaPos);
 	const number angle = rad_to_deg(VecAngle(v, dir));

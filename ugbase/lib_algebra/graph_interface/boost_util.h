@@ -58,7 +58,7 @@ std::pair<boost::filter_iterator<noloop<G>, T>,
           boost::filter_iterator<noloop<G>, T>> omit_loops(std::pair<T, T> const& p, G const& g)
 {
 	noloop<G> P(g);
-	typedef boost::filter_iterator<noloop<G>, T> f;
+	using f = boost::filter_iterator<noloop<G>, T>;
 	return std::make_pair(f(P, p.first, p.second), f(P, p.second, p.second));
 }
 

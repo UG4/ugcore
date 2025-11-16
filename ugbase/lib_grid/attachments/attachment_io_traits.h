@@ -38,9 +38,9 @@ namespace ug{
 
 template <class TAttachment>
 struct attachment_io_traits{
-	typedef typename TAttachment::ValueType									value_type;
-	typedef typename attachment_value_traits<value_type>::reference			reference_type;
-	typedef typename attachment_value_traits<value_type>::const_reference 	const_reference_type;
+	using value_type = typename TAttachment::ValueType;
+	using reference_type = typename attachment_value_traits<value_type>::reference;
+	using const_reference_type = typename attachment_value_traits<value_type>::const_reference;
 
 	static void write_value (std::ostream& out, const_reference_type v)	{out << v;}
 	static void read_value(std::istream& in, reference_type v)			{in >> v;}
@@ -48,9 +48,9 @@ struct attachment_io_traits{
 
 template <>
 struct attachment_io_traits<Attachment<bool> > {
-	typedef bool													value_type;
-	typedef attachment_value_traits<value_type>::reference			reference_type;
-	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
+	using value_type = bool;
+	using reference_type = attachment_value_traits<value_type>::reference;
+	using const_reference_type = attachment_value_traits<value_type>::const_reference;
 
 	static void write_value (std::ostream& out, const_reference_type v)	{out << v;}
 	static void read_value(std::istream& in, reference_type v)			{value_type tmp; in >> tmp; v = tmp;}
@@ -58,9 +58,9 @@ struct attachment_io_traits<Attachment<bool> > {
 
 template <>
 struct attachment_io_traits<Attachment<vector1> > {
-	typedef vector1													value_type;
-	typedef attachment_value_traits<value_type>::reference			reference_type;
-	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
+	using value_type = vector1;
+	using reference_type = attachment_value_traits<value_type>::reference;
+	using const_reference_type = attachment_value_traits<value_type>::const_reference;
 
 	static void write_value (std::ostream& out, const_reference_type v)
 	{
@@ -75,9 +75,9 @@ struct attachment_io_traits<Attachment<vector1> > {
 
 template <>
 struct attachment_io_traits<Attachment<vector2> > {
-	typedef vector2													value_type;
-	typedef attachment_value_traits<value_type>::reference			reference_type;
-	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
+	using value_type = vector2;
+	using reference_type = attachment_value_traits<value_type>::reference;
+	using const_reference_type = attachment_value_traits<value_type>::const_reference;
 
 	static void write_value (std::ostream& out, const_reference_type v)
 	{
@@ -92,9 +92,9 @@ struct attachment_io_traits<Attachment<vector2> > {
 
 template <>
 struct attachment_io_traits<Attachment<vector3> > {
-	typedef vector3													value_type;
-	typedef attachment_value_traits<value_type>::reference			reference_type;
-	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
+	using value_type = vector3;
+	using reference_type = attachment_value_traits<value_type>::reference;
+	using const_reference_type = attachment_value_traits<value_type>::const_reference;
 
 	static void write_value (std::ostream& out, const_reference_type v)
 	{
@@ -109,9 +109,9 @@ struct attachment_io_traits<Attachment<vector3> > {
 
 template <>
 struct attachment_io_traits<Attachment<vector4> > {
-	typedef vector4													value_type;
-	typedef attachment_value_traits<value_type>::reference			reference_type;
-	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
+	using value_type = vector4;
+	using reference_type = attachment_value_traits<value_type>::reference;
+	using const_reference_type = attachment_value_traits<value_type>::const_reference;
 
 	static void write_value (std::ostream& out, const_reference_type v)
 	{
@@ -135,9 +135,9 @@ struct attachment_io_traits<Attachment<std::vector<T> > >
  *        can be serialized/deserialized (cf. above)
  */
 {
-	typedef typename std::vector<T>											value_type;
-	typedef typename attachment_value_traits<value_type>::reference			reference_type;
-	typedef typename attachment_value_traits<value_type>::const_reference 	const_reference_type;
+	using value_type = std::vector<T>;
+	using reference_type = typename attachment_value_traits<value_type>::reference;
+	using const_reference_type = typename attachment_value_traits<value_type>::const_reference;
 
 	static void write_value (std::ostream& out, const_reference_type v)
 	{

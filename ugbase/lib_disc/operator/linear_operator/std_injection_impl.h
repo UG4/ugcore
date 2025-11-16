@@ -72,11 +72,11 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	std::vector<size_t> coarseInd, fineInd;
 
 // 	RegularVertex iterators
-	typedef DoFDistribution::traits<RegularVertex>::const_iterator const_iterator;
+	using const_iterator = DoFDistribution::traits<RegularVertex>::const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
-	iterBegin = fineDD.template begin<RegularVertex>();
-	iterEnd = fineDD.template end<RegularVertex>();
+	iterBegin = fineDD.begin<RegularVertex>();
+	iterEnd = fineDD.end<RegularVertex>();
 
 // 	loop nodes of fine subset
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -86,7 +86,7 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 		Vertex* vert = dynamic_cast<Vertex*>(geomObj);
 
 	//	Check if father is RegularVertex
-		if(vert != NULL)
+		if(vert != nullptr)
 		{
 			// get global indices
 			coarseDD.inner_algebra_indices(vert, coarseInd);
@@ -113,12 +113,12 @@ void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
 	std::vector<size_t> coarseInd, fineInd;
 
 // 	RegularVertex iterators
-	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
-	typedef typename DoFDistribution::dim_traits<dim>::grid_base_object Element;
+	using const_iterator = typename DoFDistribution::dim_traits<dim>::const_iterator;
+	using Element = typename DoFDistribution::dim_traits<dim>::grid_base_object;
 	const_iterator iter, iterBegin, iterEnd;
 
-	iterBegin = coarseDD.template begin<Element>();
-	iterEnd = coarseDD.template end<Element>();
+	iterBegin = coarseDD.begin<Element>();
+	iterEnd = coarseDD.end<Element>();
 
 // 	loop elements of coarse subset
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -175,14 +175,14 @@ set_identity_on_pure_surface(matrix_type& mat,
 	const MultiGrid& mg = *coarseDD.multi_grid();
 
 //  iterators
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on fine level
 	for(int si = 0; si < coarseDD.num_subsets(); ++si)
 	{
-		iterBegin = coarseDD.template begin<TElem>(si);
-		iterEnd = coarseDD.template end<TElem>(si);
+		iterBegin = coarseDD.begin<TElem>(si);
+		iterEnd = coarseDD.end<TElem>(si);
 
 	//  loop vertices for fine level subset
 		for(iter = iterBegin; iter != iterEnd; ++iter)

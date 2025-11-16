@@ -36,7 +36,9 @@
 #include <map>
 #include <set>
 #include <cassert>
+
 #include "common/util/binary_buffer.h"
+
 #include "pcl_communication_structs.h"
 #include "pcl_process_communicator.h"
 
@@ -63,17 +65,16 @@ namespace pcl
 ////////////////////////////////////////////////////////////////////////
 //	InterfaceCommunicator
 ///	Performs communication between interfaces on different processes.
-template <class TLayout>
+template <typename TLayout>
 class InterfaceCommunicator
 {
 	public:
-	//	typedefs
-		typedef TLayout 					Layout;
-		typedef typename Layout::Interface	Interface;
-		typedef typename Layout::Type		Type;
+		using Layout = TLayout;
+		using Interface = typename Layout::Interface;
+		using Type = typename Layout::Type;
 
 	protected:
-		typedef ICommunicationPolicy<Layout>	CommPol;
+		using CommPol = ICommunicationPolicy<Layout>;
 		
 	public:
 		InterfaceCommunicator();
@@ -180,11 +181,11 @@ class InterfaceCommunicator
 	 *	Key
 	 *
 	 *	// returns true, if the layout exists.
-	 *	template <class TType>
+	 *	template <typename TType>
 	 *	bool has_layout(const TLayoutMap::Key& key);
 	 *	
 	 *	// returns the layout that is associated with the given key.
-	 *	template <class TType>
+	 *	template <typename TType>
 	 *	TLayout& get_layout(const TLayoutMap::Key& key);
 	 *	\endcode
 	 *
@@ -194,7 +195,7 @@ class InterfaceCommunicator
 	 *	process. If you separate your layouts into master and slave layouts,
 	 *	you could use this method e.g. to copy data from all master-layouts
 	 *	to all slave-layouts of a type with a single call.*/
-		template <class TLayoutMap>
+		template <typename TLayoutMap>
 		void exchange_data(const TLayoutMap& layoutMap,
 						   const typename TLayoutMap::Key& keyFrom,
 						   const typename TLayoutMap::Key& keyTo,
@@ -269,7 +270,7 @@ class InterfaceCommunicator
 		bool communication_debugging_enabled();
 	 
 	protected:
-		typedef std::map<int, ug::BinaryBuffer>	BufferMap;
+		using BufferMap = std::map<int, ug::BinaryBuffer>;
 
 	protected:
 	///	helper to collect data from single-level-layouts
@@ -300,7 +301,7 @@ class InterfaceCommunicator
 	///	collects buffer sizes for a given layout and stores them in a map
 	/**	The given map holds pairs of procID, bufferSize
 	 *	If buffer-sizes can't be determined, false is returned.
-	 *	if pMmapBuffSizesOut == NULL, the method will simply determine
+	 *	if pMmapBuffSizesOut == nullptr, the method will simply determine
 	 *	whether all buffersizes can be calculated.*/
 	 	bool collect_layout_buffer_sizes(const TLayout& layout,
 										 ICommunicationPolicy<TLayout>& commPol,
@@ -310,7 +311,7 @@ class InterfaceCommunicator
 	///	collects buffer sizes for a given layout and stores them in a map
 	/**	The given map holds pairs of procID, bufferSize
 	 *	If buffer-sizes can't be determined, false is returned.
-	 *	if pMmapBuffSizesOut == NULL, the method will simply determine
+	 *	if pMmapBuffSizesOut == nullptr, the method will simply determine
 	 *	whether all buffersizes can be calculated.*/
 	 	bool collect_layout_buffer_sizes(const TLayout& layout,
 										 ICommunicationPolicy<TLayout>& commPol,
@@ -334,11 +335,11 @@ class InterfaceCommunicator
 	/**	if srcProc == -1, the layout will be used for extraction.
 	 *	if srcProc >= 0, either the buffer, the binaryStream or the
 	 *	interace will be used for extraction, depending on which is
-	 *	not NULL.
+	 *	not nullptr.
 	 */
 		struct ExtractorInfo
 		{
-			ExtractorInfo()			{}
+			ExtractorInfo() = default;
 			ExtractorInfo(int srcProc, CommPol* pExtractor,
 						const Interface* pInterface, const Layout* pLayout,
 						void* buffer, ug::BinaryBuffer* binBuffer, int rawSize) :
@@ -359,7 +360,7 @@ class InterfaceCommunicator
 		};
 
 	///	A list that holds information about extractors.
-		typedef std::list<ExtractorInfo> ExtractorInfoList;
+		using ExtractorInfoList = std::list<ExtractorInfo>;
 
 	protected:
 	///	holds the buffers that are used to send data

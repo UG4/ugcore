@@ -33,8 +33,10 @@
 #ifndef PARALLEL_FILE_H_
 #define PARALLEL_FILE_H_
 
-#include "pcl_process_communicator.h"
+
 #include "common/util/binary_buffer.h"
+
+#include "pcl_process_communicator.h"
 
 namespace pcl{
 
@@ -71,7 +73,9 @@ namespace pcl{
  * @param strFilename	the filename
  * @param pc			a processes communicator (default pcl::World)
  */
-void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc = pcl::ProcessCommunicator(pcl::PCD_WORLD));
+void WriteCombinedParallelFile(ug::BinaryBuffer &buffer,
+                               std::string strFilename,
+                               ProcessCommunicator pc = ProcessCommunicator(PCD_WORLD));
 
 
 /**
@@ -87,7 +91,9 @@ void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename
  * @param strFilename	the filename
  * @param pc			a processes communicator (default pcl::World)
  */
-void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc = pcl::ProcessCommunicator(pcl::PCD_WORLD));
+void ReadCombinedParallelFile(ug::BinaryBuffer &buffer,
+                              std::string strFilename,
+                              ProcessCommunicator pc = ProcessCommunicator(PCD_WORLD));
 
 }
-#endif /* PARALLEL_ARCHIVE_H_ */
+#endif

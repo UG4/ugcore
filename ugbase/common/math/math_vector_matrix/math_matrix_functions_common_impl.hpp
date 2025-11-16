@@ -51,7 +51,7 @@ template <typename matrix_t>
 inline void
 MatAdd(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 {
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
 		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
@@ -67,7 +67,7 @@ template <typename matrix_t>
 inline void
 MatSubtract(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 {
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
 		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
@@ -275,7 +275,7 @@ inline typename matrix_t::value_type
 MatContraction(const matrix_t& m1, const matrix_t& m2)
 {
 	typename matrix_t::value_type norm = 0;
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < m1.num_rows(); ++i)
 		for(size_type j = 0; j < m1.num_cols(); ++j)
 		{
@@ -296,7 +296,7 @@ MatDeviatorTrace(const matrix_t& m, matrix_t& dev)
 {
 	typename matrix_t::value_type trace = Trace(m);
 
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < m.num_rows(); ++i)
 	{
 		for(size_type j = 0; j < m.num_cols(); ++j)
@@ -316,7 +316,7 @@ template <typename matrix_t>
 inline void
 MatScale(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& m)
 {
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
 		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
@@ -328,7 +328,7 @@ template <typename matrix_t>
 inline void
 MatScaleAppend(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& m)
 {
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
 		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
@@ -344,7 +344,7 @@ template <size_t N, size_t M, typename T>
 inline void
 Transpose(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m)
 {
-	typedef typename MathMatrix<N,M,T>::size_type size_type;
+	using size_type = typename MathMatrix<N,M,T>::size_type;
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
 		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
@@ -358,7 +358,7 @@ Transpose(matrix_t& m)
 {
 	UG_ASSERT(m.num_rows()==m.num_cols(), "Transpose: Square Matrix needed");
 
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	matrix_t _temp;
 	for(size_type i = 1; i < m.num_rows(); ++i)
 		for(size_type j = 0; j < i; ++j)
@@ -793,7 +793,7 @@ template <typename matrix_t>
 inline void
 MatSet(matrix_t& mInOut, typename matrix_t::value_type s)
 {
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < mInOut.num_rows(); ++i)
 		for(size_type j = 0; j < mInOut.num_cols(); ++j)
 		{
@@ -805,7 +805,7 @@ template <typename matrix_t>
 inline void
 MatDiagSet(matrix_t& mInOut, typename matrix_t::value_type s)
 {
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < mInOut.num_rows(); ++i)
 	{
 		mInOut(i, i) = s;
@@ -816,7 +816,7 @@ template <typename matrix_t>
 inline void
 MatAdd(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
 		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
@@ -828,7 +828,7 @@ template <typename matrix_t>
 inline void
 MatSubtract(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
 		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
@@ -840,7 +840,7 @@ template <typename matrix_t>
 inline void
 MatDivide(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
 		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
@@ -852,7 +852,7 @@ template <typename matrix_t>
 inline void
 MatMultiply(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
 		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
@@ -946,7 +946,7 @@ MatHouseholder(matrix_t& mOut, const vector_t& orthoVec)
 
 	typename vector_t::value_type scalarProd = VecDot(orthoVec, orthoVec);
 
-	typedef typename matrix_t::size_type size_type_mat;
+	using size_type_mat = typename matrix_t::size_type;
 	for(size_type_mat i = 0; i < mOut.num_rows(); ++i)
 	{
 		for(size_type_mat j = 0; j < mOut.num_cols(); ++j){
@@ -966,7 +966,7 @@ inline typename matrix_t::value_type
 MatFrobeniusNormSq(matrix_t& m)
 {
 	typename matrix_t::value_type norm = 0;
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < m.num_rows(); ++i)
 		for(size_type j = 0; j < m.num_cols(); ++j)
 		{
@@ -988,7 +988,7 @@ inline typename matrix_t::value_type
 MatOneNorm(matrix_t& m)
 {
 	typename matrix_t::value_type sum, max = 0;
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type j = 0; j < m.num_cols(); ++j)
 	{
 		sum = 0;
@@ -1006,7 +1006,7 @@ inline typename matrix_t::value_type
 MatInftyNorm(matrix_t& m)
 {
 	typename matrix_t::value_type sum, max = 0;
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < m.num_rows(); ++i)
 	{
 		sum = 0;
@@ -1024,7 +1024,7 @@ inline typename matrix_t::value_type
 MatMaxNorm(matrix_t& m)
 {
 	typename matrix_t::value_type max = 0;
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < m.num_rows(); ++i)
 		for(size_type j = 0; j < m.num_cols(); ++j)
 		{

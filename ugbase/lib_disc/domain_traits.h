@@ -57,29 +57,25 @@ template <> struct domain_traits<0> : public grid_dim_traits<0> {};
 
 // 1d
 template <> struct domain_traits<1> : public grid_dim_traits<1> {
-
-typedef MathVector<1> position_type;
-typedef Attachment<position_type> position_attachment_type;
-typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
+ using position_type = MathVector<1>;
+using position_attachment_type = Attachment<position_type>;
+using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
 
 };
 
 // 2d
 template <> struct domain_traits<2> : public grid_dim_traits<2> {
-
-typedef MathVector<2> position_type;
-typedef Attachment<position_type> position_attachment_type;
-typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
+ using position_type = MathVector<2>;
+ using position_attachment_type = Attachment<position_type>;
+ using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
 
 };
 
 // 3d
 template <> struct domain_traits<3> : public grid_dim_traits<3> {
-
-typedef MathVector<3> position_type;
-typedef Attachment<position_type> position_attachment_type;
-typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
-
+  using position_type = MathVector<3>;
+  using position_attachment_type = Attachment<position_type>;
+  using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
 };
 
 

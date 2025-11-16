@@ -65,13 +65,13 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	///	Domain Discretization type
-		typedef IDomainDiscretization<TAlgebra>	domain_discretization_type;
+		using domain_discretization_type = IDomainDiscretization<TAlgebra>;
 
 	public:
 	/// create and set domain discretization

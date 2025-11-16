@@ -79,8 +79,8 @@ void MaxErrorOnVertices(number& globalMaxError,SmartPtr<UserData<number, TGridFu
                            const SubsetGroup& ssGrp)
 {
 //	domain type and position_type
-	typedef typename TGridFunction::domain_type domain_type;
-	typedef typename domain_type::position_type position_type;
+	using domain_type = typename TGridFunction::domain_type;
+	using position_type = typename domain_type::position_type;
 
 // get position accessor
 	const typename domain_type::position_accessor_type& aaPos
@@ -147,16 +147,15 @@ void MaxErrorOnElements(
 		SmartPtr<TGridFunction> spGridFct, size_t fct, int si, number time)
 {
 //	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 	const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	dimension of reference element
 	const int dim = ref_elem_type::dim;
 
 //	domain type and position_type
-	typedef typename TGridFunction::domain_type domain_type;
-	typedef typename domain_type::position_type position_type;
+	using domain_type = typename TGridFunction::domain_type;
+	using position_type = typename domain_type::position_type;
 
 //	get iterators
 	typename TGridFunction::template traits<TElem>::const_iterator iterEnd, iter;
@@ -303,7 +302,7 @@ void MaxErrorOnElements(
  * @param[in] spInterpolFunction	data providing exact solution
  * @param[out] spGridFct			interpolated grid function
  * @param[in] cmp					symbolic name of function component
- * @param[in] subsets				subsets (NULL = everywhere)
+ * @param[in] subsets				subsets (nullptr = everywhere)
  * @param[in] time					time point
  * @returns	  globalMaxError        maximum norm of difference
  */
@@ -338,7 +337,7 @@ number MaxError(
 
 //	create subset group
 	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
-	if(subsets != NULL)
+	if(subsets != nullptr)
 	{
 		ssGrp.add(TokenizeString(subsets));
 		if(!bAllowManyfoldInterpolation)
@@ -372,7 +371,7 @@ number MaxError(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFuncti
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  number time)
 {
-	return MaxError(spInterpolFunction, spGridFct, cmp, NULL, time);
+	return MaxError(spInterpolFunction, spGridFct, cmp, nullptr, time);
 }
 template <typename TGridFunction>
 number MaxError(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
@@ -385,7 +384,7 @@ template <typename TGridFunction>
 number MaxError(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp)
 {
-	return MaxError(spInterpolFunction, spGridFct, cmp, NULL, 0.0);
+	return MaxError(spInterpolFunction, spGridFct, cmp, nullptr, 0.0);
 }
 
 ///////////////
@@ -397,7 +396,7 @@ number MaxError(number val,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  const char* subsets, number time)
 {
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 	SmartPtr<UserData<number, dim> > sp =
 			make_sp(new ConstUserNumber<dim>(val));
 	return MaxError(sp, spGridFct, cmp, subsets, time);
@@ -407,7 +406,7 @@ number MaxError(number val,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  number time)
 {
-	return MaxError(val, spGridFct, cmp, NULL, time);
+	return MaxError(val, spGridFct, cmp, nullptr, time);
 }
 template <typename TGridFunction>
 number MaxError(number val,
@@ -420,7 +419,7 @@ template <typename TGridFunction>
 number MaxError(number val,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp)
 {
-	return MaxError(val, spGridFct, cmp, NULL, 0.0);
+	return MaxError(val, spGridFct, cmp, nullptr, 0.0);
 }
 
 ///////////////
@@ -433,7 +432,7 @@ number MaxError(const char* LuaFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  const char* subsets, number time)
 {
-	static const int dim = TGridFunction::dim;
+	static constexpr int dim = TGridFunction::dim;
 	SmartPtr<UserData<number, dim> > sp =
 			LuaUserDataFactory<number, dim>::create(LuaFunction);
 	return MaxError(sp, spGridFct, cmp, subsets, time);
@@ -443,7 +442,7 @@ number MaxError(const char* LuaFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  number time)
 {	
-	return MaxError(LuaFunction, spGridFct, cmp, NULL, time);
+	return MaxError(LuaFunction, spGridFct, cmp, nullptr, time);
 }
 
 template <typename TGridFunction>
@@ -457,7 +456,7 @@ template <typename TGridFunction>
 number MaxError(const char* LuaFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp)
 {	
-	return MaxError(LuaFunction, spGridFct, cmp, NULL, 0.0);
+	return MaxError(LuaFunction, spGridFct, cmp, nullptr, 0.0);
 }
 #endif
 

@@ -48,7 +48,7 @@ namespace ug{
 template<typename T, eMatrixOrdering T_ordering>
 ReservableArray2<T, T_ordering>::ReservableArray2()
 {
-	values = NULL;
+	values = nullptr;
 	rows = 0;
 	cols = 0;
 	arraySize = 0;
@@ -58,7 +58,7 @@ ReservableArray2<T, T_ordering>::ReservableArray2()
 template<typename T, eMatrixOrdering T_ordering>
 ReservableArray2<T, T_ordering>::ReservableArray2(size_t rows, size_t cols)
 {
-	values = NULL;
+	values = nullptr;
 	rows = 0;
 	cols = 0;
 	arraySize = 0;
@@ -69,7 +69,7 @@ template<typename T, eMatrixOrdering T_ordering>
 ReservableArray2<T, T_ordering>::ReservableArray2(const ReservableArray2<T, T_ordering> &other)
 {
 	if(this == &other) return;
-	if(values) { delete[] values; values = NULL; }
+	if(values) { delete[] values; values = nullptr; }
 	rows = 0;
 	cols = 0;
 	arraySize = 0;
@@ -81,7 +81,7 @@ ReservableArray2<T, T_ordering>::ReservableArray2(const ReservableArray2<T, T_or
 template<typename T, eMatrixOrdering T_ordering>
 ReservableArray2<T, T_ordering>::~ReservableArray2()
 {
-	if(values) { delete[] values; values = NULL; }
+	if(values) { delete[] values; values = nullptr; }
 	rows = cols = 0;
 }
 
@@ -113,7 +113,7 @@ ReservableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols, bool bCo
 	{
 		rows = cols = 0;
 		if(values) delete[] values;
-		values = NULL;
+		values = nullptr;
 		return true;
 	}
 
@@ -126,8 +126,8 @@ ReservableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols, bool bCo
 			value_type *new_values = new T[newRows*newCols];
 			arraySize = newRows*newCols;
 			memset(new_values, 0, sizeof(T)*newRows*newCols); // todo: think about that
-			UG_ASSERT(new_values != NULL, "out of memory");
-			if(new_values==NULL) return false;
+			UG_ASSERT(new_values != nullptr, "out of memory");
+			if(new_values==nullptr) return false;
 			/*
 			if(storage_traits<value_type>::is_static)
 			{
@@ -238,7 +238,7 @@ std::ostream &operator << (std::ostream &out, const ReservableArray2<T, T_orderi
 {
 	out << "[ ";
 	//out << "ReservableArray2 (" << arr.num_rows() << "x" << arr.num_cols() << "), " << ((T_ordering == ColMajor) ? "ColMajor" : "RowMajor") << endl;
-	typedef size_t size_type;
+	using size_type  = size_t;
 	for(size_type r=0; r<arr.num_rows(); r++)
 	{
 		for(size_type c=0; c<arr.num_cols(); c++)

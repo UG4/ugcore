@@ -92,14 +92,14 @@ struct Functionality
  * available Algebra types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TAlgebra>
 static void Algebra(Registry& reg, string grp)
 {
-//	typedefs for this algebra
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
+
+	using vector_type = typename TAlgebra::vector_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 //	suffix and tag
 	string suffix = GetAlgebraSuffix<TAlgebra>();
@@ -107,8 +107,8 @@ static void Algebra(Registry& reg, string grp)
 
 // MatrixDiagonal
 	{
-		typedef MatrixOperator<matrix_type, vector_type> T2;
-		typedef MatrixDiagonal<matrix_type, vector_type> T;
+		using T2 = MatrixOperator<matrix_type, vector_type>;
+		using T = MatrixDiagonal<matrix_type, vector_type>;
 		string name = string("MatrixDiagonal").append(suffix);
 		reg.add_class_<T, ILinearOperator<vector_type> >(name, grp)
 				.ADD_CONSTRUCTOR( (SmartPtr<T2> mo) )()
@@ -119,8 +119,8 @@ static void Algebra(Registry& reg, string grp)
 
 // MatrixDiagonalInverse
 	{
-		typedef MatrixOperator<matrix_type, vector_type> T2;
-		typedef MatrixDiagonalInverse<matrix_type, vector_type> T;
+		using T2 = MatrixOperator<matrix_type, vector_type>;
+		using T = MatrixDiagonalInverse<matrix_type, vector_type>;
 		string name = string("MatrixDiagonalInverse").append(suffix);
 		reg.add_class_<T, ILinearOperator<vector_type> >(name, grp)
 				.ADD_CONSTRUCTOR( (SmartPtr<T2> mo) )()
@@ -175,7 +175,7 @@ static void Algebra(Registry& reg, string grp)
 //	VecScaleAddClass
 	{
 		string name = string("VecScaleAddClass").append(suffix);
-		typedef VecScaleAddClass<TAlgebra> T;
+		using T = VecScaleAddClass<TAlgebra>;
 		reg.add_class_<T>(name, grp)
 		.add_constructor()
 		.ADD_CONSTRUCTOR( (double scale1, SmartPtr<vector_type> v1) ) ()
@@ -209,7 +209,7 @@ static void Algebra(Registry& reg, string grp)
 
 //  Vector Debug Writer (abstract base class)
 	{
-		typedef IVectorDebugWriter<vector_type> T;
+		using T = IVectorDebugWriter<vector_type>;
 		string name = string("IVectorDebugWriter").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_method("get_context", static_cast<SmartPtr<DebugWriterContext> (T::*) ()>(&T::get_context), "Gets the debugger writer context", "")
@@ -223,8 +223,8 @@ static void Algebra(Registry& reg, string grp)
 
 // Debug Writer (abstract base class)
 	{
-		typedef IDebugWriter<TAlgebra> T;
-		typedef IVectorDebugWriter<vector_type> TBase;
+		using T = IDebugWriter<TAlgebra>;
+		using TBase = IVectorDebugWriter<vector_type>;
 		string name = string("IDebugWriter").append(suffix);
 		reg.add_class_<T, TBase>(name, grp);
 		reg.add_class_to_group(name, "IDebugWriter", tag);
@@ -232,7 +232,7 @@ static void Algebra(Registry& reg, string grp)
 
 //  VectorDebugWritingObject
 	{
-		typedef VectorDebugWritingObject<vector_type> T;
+		using T = VectorDebugWritingObject<vector_type>;
 		string name = string("VectorDebugWritingObject").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.template add_constructor<void (*) (SmartPtr<IVectorDebugWriter<vector_type> >)> ("VectorDebugWriter")
@@ -246,8 +246,8 @@ static void Algebra(Registry& reg, string grp)
 
 //  DebugWritingObject
 	{
-		typedef DebugWritingObject<TAlgebra> T;
-		typedef VectorDebugWritingObject<vector_type> TBase;
+		using T = DebugWritingObject<TAlgebra>;
+		using TBase = VectorDebugWritingObject<vector_type>;
 		string name = string("DebugWritingObject").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("set_debug", static_cast<void (T::*)(SmartPtr<IDebugWriter<TAlgebra> >)>(&T::set_debug), "", "dbgWriter", "sets a debug writer")
@@ -258,7 +258,7 @@ static void Algebra(Registry& reg, string grp)
 
 // IVectorWriter (abstract base class)
 	{
-		typedef IVectorWriter<vector_type> T;
+		using T = IVectorWriter<vector_type>;
 		string name = string("IVectorWriter").append(suffix);
 		reg.add_class_<T>(name, grp)
 				.add_method("update", &T::update, "", "v", "updates the vector v");
@@ -271,8 +271,8 @@ static void Algebra(Registry& reg, string grp)
 
 //	ILinearOperator
 	{
-		typedef ILinearOperator<vector_type> T;
-		typedef IOperator<vector_type> TBase;
+		using T = ILinearOperator<vector_type>;
+		using TBase = IOperator<vector_type>;
 		string name = string("ILinearOperator").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("init", static_cast<void (T::*)()>(&T::init))
@@ -283,8 +283,8 @@ static void Algebra(Registry& reg, string grp)
 
 // 	MatrixOperator
 	{
-		typedef ILinearOperator<vector_type> TBase;
-		typedef MatrixOperator<matrix_type, vector_type> T;
+		using TBase = ILinearOperator<vector_type>;
+		using T = MatrixOperator<matrix_type, vector_type>;
 		string name = string("MatrixOperator").append(suffix);
 		reg.add_class_<T, TBase, matrix_type>(name, grp)
 			.add_constructor()
@@ -294,7 +294,7 @@ static void Algebra(Registry& reg, string grp)
 
 //	ILinearIterator
 	{
-		typedef ILinearIterator<vector_type> T;
+		using T = ILinearIterator<vector_type>;
 		string name = string("ILinearIterator").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_method("set_damp", static_cast<void (T::*)(number)>(&T::set_damp), "", "damp", "set the damping to a number")
@@ -311,9 +311,9 @@ static void Algebra(Registry& reg, string grp)
 
 //	IPreconditioner
 	{
-		typedef IPreconditioner<TAlgebra> T;
-		typedef ILinearIterator<vector_type>  TBase;
-		typedef DebugWritingObject<TAlgebra> TBase2;
+		using T = IPreconditioner<TAlgebra>;
+		using TBase = ILinearIterator<vector_type>;
+		using TBase2 = DebugWritingObject<TAlgebra>;
 		string name = string("IPreconditioner").append(suffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp);
 		reg.add_class_to_group(name, "IPreconditioner", tag);
@@ -321,8 +321,8 @@ static void Algebra(Registry& reg, string grp)
 
 //	ILinearOperatorInverse
 	{
-		typedef ILinearOperatorInverse<vector_type> T;
-		typedef ILinearIterator<vector_type> TBase;
+		using T = ILinearOperatorInverse<vector_type>;
+		using TBase = ILinearIterator<vector_type>;
 		string name = string("ILinearOperatorInverse").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("init", static_cast<bool (T::*)(SmartPtr<ILinearOperator<vector_type> >)>(&T::init))
@@ -341,9 +341,9 @@ static void Algebra(Registry& reg, string grp)
 
 //	IPreconditionedLinearOperatorInverse
 	{
-		typedef IPreconditionedLinearOperatorInverse<vector_type> T;
-		typedef ILinearOperatorInverse<vector_type> TBase;
-		typedef VectorDebugWritingObject<vector_type> TBase2;
+		using T = IPreconditionedLinearOperatorInverse<vector_type>;
+		using TBase = ILinearOperatorInverse<vector_type>;
+		using TBase2 = VectorDebugWritingObject<vector_type>;
 		string name = string("IPreconditionedLinearOperatorInverse").append(suffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_method("set_preconditioner", &T::set_preconditioner,
@@ -354,8 +354,8 @@ static void Algebra(Registry& reg, string grp)
 
 //	IMatrixOperatorInverse
 	{
-		typedef ILinearOperatorInverse<vector_type>  TBase;
-		typedef IMatrixOperatorInverse<matrix_type, vector_type> T;
+		using TBase = ILinearOperatorInverse<vector_type>;
+		using T = IMatrixOperatorInverse<matrix_type, vector_type>;
 		string name = string("IMatrixOperatorInverse").append(suffix);
 		reg.add_class_<T, TBase>(name, grp);
 		reg.add_class_to_group(name, "IMatrixOperatorInverse", tag);
@@ -363,7 +363,7 @@ static void Algebra(Registry& reg, string grp)
 
 //	IOperator
 	{
-		typedef IOperator<vector_type> T;
+		using T = IOperator<vector_type>;
 		string name = string("IOperator").append(suffix);
 		reg.add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "IOperator", tag);
@@ -371,7 +371,7 @@ static void Algebra(Registry& reg, string grp)
 
 //	IOperatorInverse
 	{
-		typedef IOperatorInverse<vector_type> T;
+		using T = IOperatorInverse<vector_type>;
 		string name = string("IOperatorInverse").append(suffix);
 		reg.add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "IOperatorInverse", tag);
@@ -380,7 +380,7 @@ static void Algebra(Registry& reg, string grp)
 
 // 	IConvergenceCheck
 	{
-		typedef IConvergenceCheck<vector_type> T;
+		using T = IConvergenceCheck<vector_type>;
 		string name = string("IConvergenceCheck").append(suffix);
 		reg.add_class_<T>(name, grp)
 				.add_method("config_string", &T::config_string)
@@ -395,8 +395,8 @@ static void Algebra(Registry& reg, string grp)
 
 // 	StandardConvCheck
 	{
-		typedef StdConvCheck<vector_type> T;
-		typedef IConvergenceCheck<vector_type> TBase;
+		using T = StdConvCheck<vector_type>;
+		using TBase = IConvergenceCheck<vector_type>;
 		string name = string("ConvCheck").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "Convergence Check")
 			.add_constructor()
@@ -429,8 +429,8 @@ static void Algebra(Registry& reg, string grp)
 
 
 	{
-		typedef EnergyConvCheck<vector_type> T;
-		typedef IConvergenceCheck<vector_type> TBase;
+		using T = EnergyConvCheck<vector_type>;
+		using TBase = IConvergenceCheck<vector_type>;
 		string name = string("EnergyConvCheck").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "Energy Convergence Check")
 				.add_method("set_linear_operator", &T::set_linear_operator)
@@ -455,8 +455,8 @@ static void Algebra(Registry& reg, string grp)
 
 // 	FixedConvCheck
 	{
-		typedef FixedConvergenceCheck<vector_type> T;
-		typedef IConvergenceCheck<vector_type> TBase;
+		using T = FixedConvergenceCheck<vector_type>;
+		using TBase = IConvergenceCheck<vector_type>;
 		string name = string("FixedConvergenceCheck").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "Convergence Check")
 	//		.add_constructor()
@@ -474,7 +474,7 @@ static void Algebra(Registry& reg, string grp)
  * are to be placed here when registering.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 static void Common(Registry& reg, string grp)
 {
@@ -491,7 +491,7 @@ static void Common(Registry& reg, string grp)
 	
 // Debug Writer Context
 	{
-		typedef DebugWriterContext T;
+		using T = DebugWriterContext;
 		reg.add_class_<T>("DebugWriterContext", grp)
 			.add_constructor()
 			.add_method("set_base_dir", &T::set_base_dir)
@@ -515,7 +515,7 @@ static void Common(Registry& reg, string grp)
 void RegisterBridge_AlgebraCommon(Registry& reg, string grp)
 {
 	grp.append("/Algebra");
-	typedef AlgebraCommon::Functionality Functionality;
+	using Functionality = AlgebraCommon::Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);

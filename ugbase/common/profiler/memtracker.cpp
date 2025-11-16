@@ -68,7 +68,7 @@ public:
 		selfmem[pn]+=size;
 	}
 };
-typedef map<void *, MemTrackerStruct> MemTrackerMap;
+using MemTrackerMap = map<void *, MemTrackerStruct>;
 
 
 bool bMemTracker=false;
@@ -88,7 +88,7 @@ void *get_mem(size_t size)
 		allocated+=size;
 		bMemTracker = true;
 	}
-	if(p == NULL) throw std::bad_alloc();
+	if(p == nullptr) throw std::bad_alloc();
 	return p;
 }
 
@@ -143,7 +143,7 @@ void DisplayVacantMemory()
 void CalcTotalMem(const Shiny::ProfileNode *p)
 {
 	size_t total = selfmem[p];
-	for(const Shiny::ProfileNode *c=p->firstChild; c != NULL; c=c->nextSibling)
+	for(const Shiny::ProfileNode *c=p->firstChild; c != nullptr; c=c->nextSibling)
 	{
 		if(totalmem.find(c) == totalmem.end())
 			CalcTotalMem(c);

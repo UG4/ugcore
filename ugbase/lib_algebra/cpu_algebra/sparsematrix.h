@@ -98,15 +98,15 @@ namespace ug{
 template<typename TValueType> class SparseMatrix
 {
 public:
-	typedef TValueType value_type;
+	using value_type = TValueType;
 	enum {rows_sorted=true};
 
-	typedef SparseMatrix<value_type> this_type;
+	using this_type = SparseMatrix<value_type>;
 
 public:
-	typedef AlgebraicConnection<TValueType> connection;
-	typedef MatrixRow<this_type> row_type;
-	typedef ConstMatrixRow<this_type> const_row_type;
+	using connection = AlgebraicConnection<TValueType>;
+	using row_type = MatrixRow<this_type>;
+	using const_row_type = ConstMatrixRow<this_type>;
 
 public:
 	// construction etc
@@ -655,7 +655,7 @@ public:
 	// output functions
 	//----------------------
 
-	void print(const char * const name = NULL) const;
+	void print(const char * const name = nullptr) const;
 	void printtype() const;
 
 	void print_to_file(const char *filename) const;

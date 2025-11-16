@@ -89,7 +89,7 @@ prolongate(const GridMessage_Adaption& msg, const size_t lvl)
 
 //	iterators
 	const GridObjectCollection& goc = msg.affected_elements();
-	typedef typename GridObjectCollection::traits<TBaseElem>::const_iterator const_iterator;
+	using const_iterator = typename GridObjectCollection::traits<TBaseElem>::const_iterator;
 
 
 	const_iterator iter = goc.begin<TBaseElem>(lvl);
@@ -150,7 +150,7 @@ select_parents(MGSelector& sel, const GridMessage_Adaption& msg)
 {
 //	iterators
 	const GridObjectCollection& goc = msg.affected_elements();
-	typedef typename GridObjectCollection::traits<TBaseElem>::const_iterator const_iterator;
+	using const_iterator = typename GridObjectCollection::traits<TBaseElem>::const_iterator;
 
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
 	{
@@ -235,7 +235,7 @@ do_restrict(const MGSelector& sel, const GridMessage_Adaption& msg)
 	if(m_spDDInfo->max_dofs(gbo) == 0) return;
 
 //	iterators
-	typedef typename Selector::traits<TBaseElem>::const_level_iterator const_iterator;
+	using const_iterator = typename Selector::traits<TBaseElem>::const_level_iterator;
 
 	for(int lvl = sel.num_levels() - 1; lvl >= 0; --lvl)
 	{

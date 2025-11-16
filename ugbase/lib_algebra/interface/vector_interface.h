@@ -37,10 +37,10 @@ template <typename TValueType>
 class Vector
 {
 public:
-	typedef TValueType value_type;
-	//typedef subvector<value_type> subvector_type;
-	typedef Vector<TValueType> vector_type;
-	typedef size_t size_type;
+	using value_type = TValueType ;
+	// using subvector_type = subvector<value_type> ;
+	using vector_type = Vector<TValueType>;
+	using size_type = size_t ;
 
 public:
 	//! constructor

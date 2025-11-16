@@ -61,10 +61,10 @@ DataEvaluatorBase(int discPart,
 		TElemDisc* disc = m_vElemDisc[PT_ALL][i];
 
 	// 	handle time dependency
-		if(pLocTimeSeries != NULL && pvScaleMass != NULL && pvScaleStiff != NULL){
+		if(pLocTimeSeries != nullptr && pvScaleMass != nullptr && pvScaleStiff != nullptr){
 			disc->set_time_dependent(*pLocTimeSeries, *pvScaleMass, *pvScaleStiff);
 		}
-		else if(pLocTimeSeries != NULL){
+		else if(pLocTimeSeries != nullptr){
 			disc->set_time_dependent(*pLocTimeSeries, std::vector<number>(), std::vector<number>());
 		}
 		else{
@@ -263,7 +263,7 @@ void DataEvaluatorBase<TDomain, TElemDisc>::extract_imports_and_userdata(int sub
 
 // 	Handle time dependency
 // 	NOTE: constant data is not processed.
-	if(m_pLocTimeSeries != NULL){
+	if(m_pLocTimeSeries != nullptr){
 		for(size_t i = 0; i < m_vPosData.size(); ++i)
 			m_vPosData[i]->set_times(m_pLocTimeSeries->times());
 		for(size_t i = 0; i < m_vDependentData.size(); ++i)
@@ -367,7 +367,7 @@ prepare_err_est_elem_loop(const ReferenceObjectID id, int si)
 
 //	evaluate constant data
 	for(size_t i = 0; i < m_vConstData.size(); ++i)
-		m_vConstData[i]->compute((LocalVector*)NULL, NULL, NULL, false);
+		m_vConstData[i]->compute((LocalVector*)nullptr, nullptr, nullptr, false);
 }
 
 template <typename TDomain, typename TElemDisc>

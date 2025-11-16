@@ -54,7 +54,7 @@ private:
 public:
 	maxheap()
 	{
-		m_arr = NULL;
+		m_arr = nullptr;
 		m_height = 0;
 		m_size = 0;
 	}
@@ -67,16 +67,16 @@ public:
 	maxheap(size_t n, const T *arr_)
 	{
 		m_size = 0;
-		m_heap = NULL;
-		m_posinheap = NULL;
+		m_heap = nullptr;
+		m_posinheap = nullptr;
 		create(n, arr_);
 	}
 
 	maxheap(const std::vector<T> &v)
 	{
 		m_size = 0;
-		m_heap = NULL;
-		m_posinheap = NULL;
+		m_heap = nullptr;
+		m_posinheap = nullptr;
 		create(v.size(), &v[0]);
 	}
 	//! deconstructor

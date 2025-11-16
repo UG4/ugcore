@@ -59,11 +59,11 @@ template <typename TVector>
 class ParallelVector : public TVector
 {
 	public:
-		typedef typename TVector::value_type value_type;
-		typedef size_t size_type;
-		typedef typename TVector::vector_type vector_type;
+		using value_type = typename TVector::value_type;
+		using size_type = size_t;
+		using vector_type = typename TVector::vector_type;
 		///	own type
-		typedef ParallelVector<TVector> this_type;
+		using this_type = ParallelVector<TVector>;
 
 	private:
 	// 	disallow copy constructor

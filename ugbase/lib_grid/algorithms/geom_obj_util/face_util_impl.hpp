@@ -105,7 +105,7 @@ CalculateCenter(const FaceVertices* f, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
 {
 	uint numVrts = f->num_vertices();
 	typename TAAPosVRT::ValueType v;
-	typedef typename TAAWeightVRT::ValueType weight_t;
+	using weight_t = typename TAAWeightVRT::ValueType;
 //	init v with 0.
 	VecSet(v, 0);
 
@@ -260,9 +260,9 @@ template <class TIterator, class TAAPosVRT>
 Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos)
 {
 	//	if facesBegin equals facesEnd, then the list is empty and we can
-	//	immediately return NULL
+	//	immediately return nullptr
 		if(facesBegin == facesEnd)
-			return NULL;
+			return nullptr;
 
 	//	the first face is the first candidate for the smallest face.
 		Face* smallestFace = *facesBegin;

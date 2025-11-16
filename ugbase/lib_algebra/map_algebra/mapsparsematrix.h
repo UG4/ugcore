@@ -53,10 +53,10 @@ namespace ug{
 template<typename TValueType> class MapSparseMatrix
 {
 public:
-	typedef TValueType value_type;
+	using value_type = TValueType;
 	enum {rows_sorted=true};
 
-	typedef SparseMatrix<value_type> this_type;
+	using this_type = SparseMatrix<value_type>;
 
 	
 public:
@@ -306,8 +306,8 @@ public:
 	// const_row_iterator
 
 
-	//typedef const connection * const_row_iterator;
-	//typedef connection * const_row_iterator;
+	//using const_row_iterator =  const connection * ;
+	//using const_row_iterator = connection * ;
 	/** const_row_iterator
 	 * const iterator over a row
 	 */
@@ -324,7 +324,7 @@ public:
 	
 	class row_iterator : public std::map<size_t, TValueType>::iterator
     {
-		typedef typename std::map<size_t, TValueType>::iterator super;		
+		using super = typename std::map<size_t, TValueType>::iterator;
     public:        
 		row_iterator(super it) : super(it) {}        
         value_type &value() { return super::operator*().second;   }
@@ -332,7 +332,7 @@ public:
     };
     class const_row_iterator : public std::map<size_t, TValueType>::const_iterator
     {
-		typedef typename std::map<size_t, TValueType>::const_iterator super;
+		using super = typename std::map<size_t, TValueType>::const_iterator;
 	public:        
         const_row_iterator(super it) : super(it) {}        
 		const value_type &value() { return super::operator*().second;   }
@@ -403,7 +403,7 @@ public:
 	// output functions
 	//----------------------
 
-	void print(const char * const name = NULL) const;
+	void print(const char * const name = nullptr) const;
 	void printtype() const;
 
 	void print_to_file(const char *filename) const;
@@ -435,7 +435,7 @@ protected:
 template<typename T>
 struct matrix_algebra_type_traits<MapSparseMatrix<T> >
 {
-	static const int type = MATRIX_USE_ROW_FUNCTIONS;
+	static constexpr int type = MATRIX_USE_ROW_FUNCTIONS;
 };
 
 //! calculates dest = alpha1*v1 + beta1 * A1^T *w1;

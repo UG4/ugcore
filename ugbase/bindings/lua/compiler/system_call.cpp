@@ -65,8 +65,8 @@ SystemCall::SystemCall(const std::string &command)
 	cmd[cmdLen] = 0;
 
 	//creating new process
-	BOOL bResult = CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NO_WINDOW,
-			NULL, NULL, &si, &pi);
+	BOOL bResult = CreateProcess(nullptr, cmd, nullptr, nullptr, FALSE, CREATE_NO_WINDOW,
+			nullptr, nullptr, &si, &pi);
 
 	delete[] cmd;
 
@@ -99,10 +99,10 @@ SystemCall::SystemCall(const std::string &command)
 
 	stringstream ss;
 	FILE *fp = popen(command.c_str(), "r");
-	if(fp == NULL) return;
+	if(fp == nullptr) return;
 	m_bCalled = true;
 	char buf[255];
-	while (fgets(buf, sizeof(buf)-1, fp) != NULL)
+	while (fgets(buf, sizeof(buf)-1, fp) != nullptr)
 	ss << buf;
 
 	m_output = ss.str();

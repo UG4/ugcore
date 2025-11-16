@@ -69,50 +69,50 @@ class FV1IBGeometry : public FVGeometryBase
 {
 public:
 ///	type of element
-	typedef TElem elem_type;
+	using elem_type = TElem;
 
 ///	type of reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type ;
 
 ///	used traits
-	typedef fv1_traits<ref_elem_type, TWorldDim> traits;
+	using traits = fv1_traits<ref_elem_type, TWorldDim> ;
 
 public:
 ///	dimension of reference element
-	static const int dim = ref_elem_type::dim;
+	static constexpr int dim = ref_elem_type::dim;
 
 ///	dimension of world
-	static const int worldDim = TWorldDim;
+	static constexpr int worldDim = TWorldDim;
 
 ///	Hanging node flag: this Geometry does not support hanging nodes
-	static const bool usesHangingNodes = false;
+	static constexpr bool usesHangingNodes = false;
 
 /// flag indicating if local data may change
-	static const bool staticLocalData = true;
+	static constexpr bool staticLocalData = true;
 
 public:
 ///	order
-	static const int order = 1;
+	static constexpr int order = 1;
 
 ///	number of SubControlVolumes
-	static const size_t numSCV = (ref_elem_type::REFERENCE_OBJECT_ID != ROID_PYRAMID)
+	static constexpr size_t numSCV = (ref_elem_type::REFERENCE_OBJECT_ID != ROID_PYRAMID)
 								? ref_elem_type::numCorners : 8;
 
 ///	type of SubControlVolume
-	typedef typename traits::scv_type scv_type;
+	using scv_type = typename traits::scv_type ;
 
 ///	number of SubControlVolumeFaces
-	static const size_t numSCVF = (ref_elem_type::REFERENCE_OBJECT_ID != ROID_PYRAMID)
+	static constexpr size_t numSCVF = (ref_elem_type::REFERENCE_OBJECT_ID != ROID_PYRAMID)
 								? ref_elem_type::numEdges : 12;
 
 ///	type of Shape function used
-	typedef LagrangeP1<ref_elem_type> local_shape_fct_set_type;
+	using local_shape_fct_set_type = LagrangeP1<ref_elem_type> ;
 
 ///	number of shape functions
-	static const size_t nsh = local_shape_fct_set_type::nsh;
+	static constexpr size_t nsh = local_shape_fct_set_type::nsh;
 
 /// number of integration points
-	static const size_t nip = 1;
+	static constexpr size_t nip = 1;
 
 public:
 ///	Sub-Control Volume Face structure
@@ -129,7 +129,7 @@ public:
 	{
 		public:
 		///	Number of corners of scvf
-			static const size_t numCo =	traits::NumCornersOfSCVF;
+			static constexpr size_t numCo =	traits::NumCornersOfSCVF;
 
 		public:
 			SCVF() {}
@@ -228,7 +228,7 @@ public:
 	{
 		public:
 		/// Number of corners of scvf
-			static const size_t numCo = traits::NumCornersOfSCV;
+			static constexpr size_t numCo = traits::NumCornersOfSCV;
 
 		public:
 			SCV() {};
@@ -324,7 +324,7 @@ public:
 	{
 		public:
 		/// Number of corners of bf
-			static const size_t numCo =	traits::NumCornersOfSCVF;
+			static constexpr size_t numCo =	traits::NumCornersOfSCVF;
 
 		public:
 			BF() {}
@@ -424,27 +424,27 @@ public:
 
 	/// adapt integration points for elements cut by the inner boundary
 		void adapt(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
-					const ISubsetHandler* ish = NULL);
+					const ISubsetHandler* ish = nullptr);
 
 	/// adapt normals for elements cut by the inner boundary
 		void adapt_normals(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
-					const ISubsetHandler* ish = NULL);
+					const ISubsetHandler* ish = nullptr);
 
 	/// adapt integration points for elements cut by the inner boundary
 		void adapt_integration_points(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
-					const ISubsetHandler* ish = NULL);
+					const ISubsetHandler* ish = nullptr);
 
 	///	update local data
 		void update_local_data();
 
 	/// update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
-					const ISubsetHandler* ish = NULL);
+					const ISubsetHandler* ish = nullptr);
 
 	/// update boundary data for given element
 		void update_boundary_faces(GridObject* elem,
 								   const MathVector<worldDim>* vCornerCoords,
-								   const ISubsetHandler* ish = NULL);
+								   const ISubsetHandler* ish = nullptr);
 
 	/// get vector of the global coordinates of corners for current element
 		const MathVector<worldDim>* corners() const {return m_vvGloMid[0];}
@@ -554,7 +554,7 @@ public:
 
 	///	max number of geom objects in all dimensions
 	// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
-		static const int maxMid = numSCVF + 1;
+		static constexpr int maxMid = numSCVF + 1;
 
 	///	local and global geom object midpoints for each dimension
 		MathVector<dim> m_vvLocMid[dim+1][maxMid];
@@ -598,39 +598,39 @@ class DimFV1IBGeometry : public FVGeometryBase
 {
 	public:
 	///	used traits
-		typedef fv1_dim_traits<TDim, TWorldDim> traits;
+		using traits = fv1_dim_traits<TDim, TWorldDim> ;
 
 	public:
 	///	dimension of reference element
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	///	dimension of world
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	Hanging node flag: this Geometry does not support hanging nodes
-		static const bool usesHangingNodes = false;
+		static constexpr bool usesHangingNodes = false;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = false;
+		static constexpr bool staticLocalData = false;
 
 	public:
 	///	order
-		static const int order = 1;
+		static constexpr int order = 1;
 
 	///	number of SubControlVolumes
-		static const size_t maxNumSCV = traits::maxNumSCV;
+		static constexpr size_t maxNumSCV = traits::maxNumSCV;
 
 	///	type of SubControlVolume
-		typedef typename traits::scv_type scv_type;
+		using scv_type = typename traits::scv_type;
 
 	///	max number of SubControlVolumeFaces
-		static const size_t maxNumSCVF = traits::maxNumSCVF;
+		static constexpr size_t maxNumSCVF = traits::maxNumSCVF;
 
 	/// max number of shape functions
-		static const size_t maxNSH = traits::maxNSH;
+		static constexpr size_t maxNSH = traits::maxNSH;
 
 	/// number of integration points
-		static const size_t nip = 1;
+		static constexpr size_t nip = 1;
 
 	public:
 	///	Sub-Control Volume Face structure
@@ -647,7 +647,7 @@ class DimFV1IBGeometry : public FVGeometryBase
 		{
 			public:
 			///	Number of corners of scvf
-				static const size_t numCo = traits::NumCornersOfSCVF;
+				static constexpr size_t numCo = traits::NumCornersOfSCVF;
 
 			public:
 				SCVF() {}
@@ -747,7 +747,7 @@ class DimFV1IBGeometry : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of scv
-				static const size_t numCo = traits::NumCornersOfSCV;
+				static constexpr size_t numCo = traits::NumCornersOfSCV;
 
 			public:
 				SCV() {};
@@ -836,7 +836,7 @@ class DimFV1IBGeometry : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of bf
-				static const size_t numCo = traits::NumCornersOfSCVF;
+				static constexpr size_t numCo = traits::NumCornersOfSCVF;
 
 			public:
 				BF() {}
@@ -932,31 +932,31 @@ class DimFV1IBGeometry : public FVGeometryBase
 
 	public:
 	/// construct object and initialize local values and sizes
-		DimFV1IBGeometry() : m_pElem(NULL), m_roid(ROID_UNKNOWN) {};
+		DimFV1IBGeometry() : m_pElem(nullptr), m_roid(ROID_UNKNOWN) {};
 
 	/// adapt integration points for elements cut by the inner boundary
 		void adapt(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
-					const ISubsetHandler* ish = NULL);
+					const ISubsetHandler* ish = nullptr);
 
 	/// adapt normals for elements cut by the inner boundary
 		void adapt_normals(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
-					const ISubsetHandler* ish = NULL);
+					const ISubsetHandler* ish = nullptr);
 
 	/// adapt integration points for elements cut by the inner boundary
 		void adapt_integration_points(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
-					const ISubsetHandler* ish = NULL);
+					const ISubsetHandler* ish = nullptr);
 
 	///	update local data
 		void update_local_data();
 
 	/// update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL);
+		            const ISubsetHandler* ish = nullptr);
 
 	/// update boundary data for given element
 		void update_boundary_faces(GridObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
-		                           const ISubsetHandler* ish = NULL);
+		                           const ISubsetHandler* ish = nullptr);
 
 	/// get vector of corners for current element
 		const MathVector<worldDim>* corners() const {return m_vvGloMid[0];}
@@ -1077,7 +1077,7 @@ class DimFV1IBGeometry : public FVGeometryBase
 
 	///	max number of geometric objects in a dimension
 	// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
-		static const int maxMid = maxNumSCVF + 1;
+		static constexpr int maxMid = maxNumSCVF + 1;
 
 	///	local and global geom object midpoints for each dimension
 		MathVector<dim> m_vvLocMid[dim+1][maxMid];

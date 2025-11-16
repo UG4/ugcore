@@ -44,8 +44,8 @@
 namespace ug{
 
 class ProcessHierarchy;
-typedef SmartPtr<ProcessHierarchy> SPProcessHierarchy;
-typedef ConstSmartPtr<ProcessHierarchy> ConstSPProcessHierarchy;
+using SPProcessHierarchy = SmartPtr<ProcessHierarchy>;
+using ConstSPProcessHierarchy = ConstSmartPtr<ProcessHierarchy>;
 
 /// \addtogroup lib_grid_parallelization_distribution
 ///	\{
@@ -94,7 +94,7 @@ class ProcessHierarchy{
 		bool partition_hint(Variant& valOut, int hlvl, const std::string& name) const;
 
 	protected:
-		typedef std::map<std::string, Variant>	PartitionHintMap;
+		using PartitionHintMap = std::map<std::string, Variant>;
 
 		struct HLevelInfo{
 			pcl::ProcessCommunicator globalCom;

@@ -62,7 +62,7 @@ namespace ug{
 template <int dim>
 class IGeometry {
 public:
-	typedef MathVector<dim>	vector_t;
+	using vector_t = MathVector<dim>;
 
 	IGeometry (Grid& g) :
 		m_grid(g)
@@ -88,13 +88,13 @@ private:
 };
 
 
-typedef IGeometry<1> IGeometry1d;
-typedef IGeometry<2> IGeometry2d;
-typedef IGeometry<3> IGeometry3d;
+using IGeometry1d = IGeometry<1>;
+using IGeometry2d = IGeometry<2>;
+using IGeometry3d = IGeometry<3>;
 
-typedef SmartPtr<IGeometry1d>	SPIGeometry1d;
-typedef SmartPtr<IGeometry2d>	SPIGeometry2d;
-typedef SmartPtr<IGeometry3d>	SPIGeometry3d;
+using SPIGeometry1d = SmartPtr<IGeometry1d>;
+using SPIGeometry2d = SmartPtr<IGeometry2d>;
+using SPIGeometry3d = SmartPtr<IGeometry3d>;
 
 
 ///	provides a grid and access to the coordinates of the vertices
@@ -104,10 +104,10 @@ typedef SmartPtr<IGeometry3d>	SPIGeometry3d;
 template <int dim, int attachmentDim>
 class Geometry : public IGeometry<dim> {
 public:
-	typedef IGeometry<dim>					base_t;
-	typedef typename base_t::vector_t		vector_t;
-	typedef MathVector<attachmentDim>		attached_vector_t;
-	typedef Attachment<attached_vector_t>	position_attachment_t;
+	using base_t = IGeometry<dim>;
+	using vector_t = typename base_t::vector_t;
+	using attached_vector_t = MathVector<attachmentDim>;
+	using position_attachment_t = Attachment<attached_vector_t>;
 
 	Geometry (Grid& g, position_attachment_t a) :
 		base_t (g),

@@ -95,9 +95,9 @@ template <typename TAlgebra, typename O_t>
 class NativeCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
-	typedef typename TAlgebra::matrix_type M_t;
-	typedef typename TAlgebra::vector_type V_t;
-	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
+	using M_t = typename TAlgebra::matrix_type;
+	using V_t = typename TAlgebra::vector_type;
+	using baseclass = IOrderingAlgorithm<TAlgebra, O_t>;
 
 	NativeCuthillMcKeeOrdering() : m_bReverse(false) {}
 
@@ -123,7 +123,7 @@ public:
 
 		ComputeCuthillMcKeeOrder(o, neighbors, m_bReverse, true);
 
-		m = NULL;
+		m = nullptr;
 
 		#ifdef UG_DEBUG
 		check();

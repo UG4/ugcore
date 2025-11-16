@@ -60,7 +60,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 // forward declaration
-template <	typename TElem, int TWorldDim, bool TCondensed> class FV1Geometry_gen;
+template <typename TElem, int TWorldDim, bool TCondensed> class FV1Geometry_gen;
 
 /// Geometry and shape functions for 1st order Vertex-Centered Finite Volume
 /**
@@ -114,51 +114,51 @@ class FV1Geometry_gen : public FVGeometryBase
 {
 	public:
 	///	type of element
-		typedef TElem elem_type;
+	using elem_type = TElem;
 
 	///	type of reference element
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	///	used traits
-		typedef fv1_traits<ref_elem_type, TWorldDim> traits;
+	using traits = fv1_traits<ref_elem_type, TWorldDim>;
 
 	public:
 	///	dimension of reference element
-		static const int dim = ref_elem_type::dim;
+		static constexpr int dim = ref_elem_type::dim;
 
 	///	dimension of world
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	Hanging node flag: this Geometry does not support hanging nodes
-		static const bool usesHangingNodes = false;
+		static constexpr bool usesHangingNodes = false;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = true;
+		static constexpr bool staticLocalData = true;
 		
 	///	whether the scheme shifts the scvf ip's to midpoints of the edges
-		static const bool condensed_scvf_ips = TCondensed;
+		static constexpr bool condensed_scvf_ips = TCondensed;
 
 	public:
 	///	order
-		static const int order = 1;
+		static constexpr int order = 1;
 
 	///	number of SubControlVolumes
-		static const size_t numSCV = traits::numSCV;
+		static constexpr size_t numSCV = traits::numSCV;
 
 	///	type of SubControlVolume
-		typedef typename traits::scv_type scv_type;
+		using scv_type = typename traits::scv_type;
 
 	///	number of SubControlVolumeFaces
-		static const size_t numSCVF = traits::numSCVF;
+		static constexpr size_t numSCVF = traits::numSCVF;
 
 	///	type of Shape function used
-		typedef LagrangeP1<ref_elem_type> local_shape_fct_set_type;
+		using local_shape_fct_set_type = LagrangeP1<ref_elem_type>;
 
 	///	number of shape functions
-		static const size_t nsh = local_shape_fct_set_type::nsh;
+		static constexpr size_t nsh = local_shape_fct_set_type::nsh;
 
 	/// number of integration points
-		static const size_t nip = 1;
+		static constexpr size_t nip = 1;
 
 	public:
 	///	Sub-Control Volume Face structure
@@ -175,10 +175,10 @@ class FV1Geometry_gen : public FVGeometryBase
 		{
 			public:
 			///	Number of corners of scvf
-				static const size_t numCo =	traits::NumCornersOfSCVF;
+				static constexpr size_t numCo =	traits::NumCornersOfSCVF;
 
 			public:
-				SCVF() {}
+				SCVF() = default;
 
 			/// index of SubControlVolume on one side of the scvf
 				inline size_t from() const {return From;}
@@ -274,7 +274,7 @@ class FV1Geometry_gen : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of scvf
-				static const size_t numCo = traits::NumCornersOfSCV;
+				static constexpr size_t numCo = traits::NumCornersOfSCV;
 
 			public:
 				SCV() {};
@@ -370,10 +370,10 @@ class FV1Geometry_gen : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of bf
-				static const size_t numCo =	traits::NumCornersOfBF;
+				static constexpr size_t numCo =	traits::NumCornersOfBF;
 
 			public:
-				BF() {}
+				BF() = default;
 
 			/// index of SubControlVolume of the bf
 				inline size_t node_id() const {return nodeId;}
@@ -472,12 +472,12 @@ class FV1Geometry_gen : public FVGeometryBase
 
 	/// update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL);
+		            const ISubsetHandler* ish = nullptr);
 
 	/// update boundary data for given element
 		void update_boundary_faces(GridObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
-		                           const ISubsetHandler* ish = NULL);
+		                           const ISubsetHandler* ish = nullptr);
 
 	///	get the element
 		TElem* elem() const {return m_pElem;}
@@ -617,7 +617,7 @@ class FV1Geometry_gen : public FVGeometryBase
 			return (*it).second;
 		}
 
-		void reset_curr_elem() {m_pElem = NULL;}
+		void reset_curr_elem() {m_pElem = nullptr;}
 
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;
@@ -629,7 +629,7 @@ class FV1Geometry_gen : public FVGeometryBase
 
 	///	max number of geom objects in all dimensions
 	// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
-		static const int maxMid = numSCVF + 1;
+		static constexpr int maxMid = numSCVF + 1;
 
 	///	local and global geom object midpoints for each dimension
 		MathVector<dim> m_vvLocMid[dim+1][maxMid];
@@ -665,39 +665,39 @@ class DimFV1Geometry : public FVGeometryBase
 {
 	public:
 	///	used traits
-		typedef fv1_dim_traits<TDim, TWorldDim> traits;
+		using traits = fv1_dim_traits<TDim, TWorldDim>;
 
 	public:
 	///	dimension of reference element
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	///	dimension of world
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	///	Hanging node flag: this Geometry does not support hanging nodes
-		static const bool usesHangingNodes = false;
+		static constexpr bool usesHangingNodes = false;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = false;
+		static constexpr bool staticLocalData = false;
 
 	public:
 	///	order
-		static const int order = 1;
+		static constexpr int order = 1;
 
 	///	number of SubControlVolumes
-		static const size_t maxNumSCV = traits::maxNumSCV;
+		static constexpr size_t maxNumSCV = traits::maxNumSCV;
 
 	///	type of SubControlVolume
-		typedef typename traits::scv_type scv_type;
+		using scv_type = typename traits::scv_type;
 
 	///	max number of SubControlVolumeFaces
-		static const size_t maxNumSCVF = traits::maxNumSCVF;
+		static constexpr size_t maxNumSCVF = traits::maxNumSCVF;
 
 	/// max number of shape functions
-		static const size_t maxNSH = traits::maxNSH;
+		static constexpr size_t maxNSH = traits::maxNSH;
 
 	/// number of integration points
-		static const size_t nip = 1;
+		static constexpr size_t nip = 1;
 
 	public:
 	///	Sub-Control Volume Face structure
@@ -714,7 +714,7 @@ class DimFV1Geometry : public FVGeometryBase
 		{
 			public:
 			///	Number of corners of scvf
-				static const size_t numCo = traits::NumCornersOfSCVF;
+				static constexpr size_t numCo = traits::NumCornersOfSCVF;
 
 			public:
 				SCVF() {}
@@ -814,10 +814,10 @@ class DimFV1Geometry : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of scv
-				static const size_t numCo = traits::NumCornersOfSCV;
+				static constexpr size_t numCo = traits::NumCornersOfSCV;
 
 			public:
-				SCV() {};
+				SCV() = default;
 
 			/// volume of scv
 				inline number volume() const {return Vol;}
@@ -903,10 +903,10 @@ class DimFV1Geometry : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of bf
-				static const size_t numCo = traits::NumCornersOfSCVF;
+				static constexpr size_t numCo = traits::NumCornersOfSCVF;
 
 			public:
-				BF() {}
+				BF() = default;
 
 			/// index of SubControlVolume of the bf
 				inline size_t node_id() const {return nodeId;}
@@ -999,16 +999,16 @@ class DimFV1Geometry : public FVGeometryBase
 
 	public:
 	/// construct object and initialize local values and sizes
-		DimFV1Geometry() : m_pElem(NULL), m_roid(ROID_UNKNOWN) {};
+		DimFV1Geometry() : m_pElem(nullptr), m_roid(ROID_UNKNOWN) {};
 
 	/// update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL);
+		            const ISubsetHandler* ish = nullptr);
 
 	/// update boundary data for given element
 		void update_boundary_faces(GridObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
-		                           const ISubsetHandler* ish = NULL);
+		                           const ISubsetHandler* ish = nullptr);
 
 	///	get the element
 		GridObject* elem() const {return m_pElem;}
@@ -1171,7 +1171,7 @@ class DimFV1Geometry : public FVGeometryBase
 
 	///	max number of geometric objects in a dimension
 	// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
-		static const int maxMid = maxNumSCVF + 1;
+		static constexpr int maxMid = maxNumSCVF + 1;
 
 	///	local and global geom object midpoints for each dimension
 		MathVector<dim> m_vvLocMid[dim+1][maxMid];
@@ -1194,32 +1194,32 @@ class FV1ManifoldGeometry
 {
 	public:
 	// 	type of element
-		typedef TElem elem_type;
+	using elem_type = TElem;
 
 	// 	type of reference element
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	public:
 	// 	order
-		static const int order = 1;
+		static constexpr int order = 1;
 
 	// 	number of BoundaryFaces
-		static const size_t m_numBF = ref_elem_type::numCorners;
+		static constexpr size_t m_numBF = ref_elem_type::numCorners;
 		
 	// 	dimension of reference element
-		static const int dim = ref_elem_type::dim;
+		static constexpr int dim = ref_elem_type::dim;
 		
 	// 	dimension of world
-		static const int worldDim = TWorldDim;
+		static constexpr int worldDim = TWorldDim;
 
 	// 	type of BoundaryFaces
-		typedef typename fv1_traits<ref_elem_type, dim>::scv_type bf_type;
+		using bf_type = typename fv1_traits<ref_elem_type, dim>::scv_type ;
 
 	// 	Hanging node flag: this Geometry does not support hanging nodes
-		static const bool usesHangingNodes = false;
+		static constexpr bool usesHangingNodes = false;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = true;
+		static constexpr bool staticLocalData = true;
 
 	protected:
 		struct MidID
@@ -1238,13 +1238,13 @@ class FV1ManifoldGeometry
 				friend class FV1ManifoldGeometry<TElem, TWorldDim>;
 
 			// 	number of integration points
-				static const size_t m_numIP = 1;
+				static constexpr size_t m_numIP = 1;
 				
 			// 	max number of corners of bf
-				static const size_t numCorners = fv1_traits<ref_elem_type, dim>::NumCornersOfSCV;
+				static constexpr size_t numCorners = fv1_traits<ref_elem_type, dim>::NumCornersOfSCV;
 
 			public:
-				BF() {};
+				BF() = default;
 
 			/// node id that this bf is associated to
 				inline size_t node_id() const {return nodeId;}
@@ -1328,7 +1328,7 @@ class FV1ManifoldGeometry
 		
 	///	update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL);
+		            const ISubsetHandler* ish = nullptr);
 			
 	///	get the element
 		GridObject* elem() const {return m_pElem;}

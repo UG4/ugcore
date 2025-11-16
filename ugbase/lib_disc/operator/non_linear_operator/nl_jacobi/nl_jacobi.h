@@ -80,16 +80,16 @@ class NLJacobiSolver
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	protected:
-		typedef DebugWritingObject<TAlgebra> base_writer_type;
+		using base_writer_type = DebugWritingObject<TAlgebra>;
 
 	public:
 	///	default constructor

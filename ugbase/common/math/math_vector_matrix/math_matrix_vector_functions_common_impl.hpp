@@ -51,7 +51,7 @@ MatVecMult(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v)
 	assert(vector_t_out::Size == matrix_t::RowSize);
 	assert(vector_t_in::Size == matrix_t::ColSize);
 
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = 0.0;
@@ -72,7 +72,7 @@ MatVecMultAppend(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v)
 	assert(vector_t_out::Size == matrix_t::RowSize);
 	assert(vector_t_in::Size == matrix_t::ColSize);
 
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		for(size_type j = 0; j < v.size(); ++j)
@@ -92,7 +92,7 @@ MatVecScaleMultAppend(vector_t_out& vOut, typename vector_t_out::value_type s, c
 	assert(vector_t_out::Size == matrix_t::RowSize);
 	assert(vector_t_in::Size == matrix_t::ColSize);
 
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		for(size_type j = 0; j < v.size(); ++j)
@@ -113,7 +113,7 @@ TransposedMatVecMult(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v
 	assert(vector_t_out::Size == matrix_t::ColSize);
 	assert(vector_t_in::Size == matrix_t::RowSize);
 
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = 0.0;
@@ -134,7 +134,7 @@ TransposedMatVecMultAdd(vector_t_out& vOut, const matrix_t& m, const vector_t_in
 	assert(vector_t_out::Size == matrix_t::ColSize);
 	assert(vector_t_in::Size == matrix_t::RowSize);
 
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		for(size_type j = 0; j < v.size(); ++j)
@@ -157,8 +157,8 @@ inline
 void
 GivensMatVecMult (matrix_t& A, vector_t& v)
 {
-	typedef typename matrix_t::size_type size_type;
-	typedef typename matrix_t::value_type value_type;
+	using size_type = typename matrix_t::size_type;
+	using value_type = typename matrix_t::value_type;
 	
 	assert (vector_t::Size == matrix_t::RowSize);
 	assert (matrix_t::RowSize >= matrix_t::ColSize);
@@ -222,7 +222,7 @@ inline
 void
 InvMatVecMult_byGivens (matrix_t& A, vector_t& v)
 {
-	typedef typename matrix_t::size_type size_type;
+	using size_type = typename matrix_t::size_type;
 	
 // I. Multiply 'this' by the Givens rotation:
 	GivensMatVecMult (A, v);
@@ -250,8 +250,8 @@ inline
 void
 OrthogProjectVec (vector_t& v, const matrix_t& A)
 {
-	typedef typename matrix_t::size_type size_type;
-	typedef typename matrix_t::value_type value_type;
+	using size_type = typename matrix_t::size_type;
+	using value_type = typename matrix_t::value_type;
 	
 //	I. Solve the least square problem:
 	matrix_t M = A; // we do not work with the original matrix; otherwise it would be destroyed

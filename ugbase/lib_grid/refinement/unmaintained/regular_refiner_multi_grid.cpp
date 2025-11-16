@@ -39,7 +39,7 @@ namespace ug{
 
 RegularRefiner_MultiGrid::
 RegularRefiner_MultiGrid () :
-	m_pMG(NULL)
+	m_pMG(nullptr)
 {}
 
 RegularRefiner_MultiGrid::
@@ -175,7 +175,7 @@ adjust_side_states (
 	RefinementMark newSideMark,
 	bool closure)
 {
-	typedef typename TElem::side side_t;
+	using side_t = typename TElem::side;
 
 	MultiGrid& mg = *m_pMG;
 	MGSelector& sel = m_marks;
@@ -209,7 +209,7 @@ copy_state_to_sides (
 	uint considerElemMarks,
 	bool closure)
 {
-	typedef typename TElem::side side_t;
+	using side_t = typename TElem::side;
 
 	MultiGrid& mg = *m_pMG;
 	MGSelector& sel = m_marks;
@@ -242,7 +242,7 @@ adjust_side_of_states (
 	RefinementMark newElemMark,
 	bool closure)
 {
-	typedef typename TSide::sideof elem_t;
+	using elem_t = typename TSide::sideof ;
 
 	MultiGrid& mg = *m_pMG;
 	MGSelector& sel = m_marks;

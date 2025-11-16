@@ -33,7 +33,12 @@
 #ifndef __H__TAR_H_
 #define __H__TAR_H_
 
-#include <stdio.h>
+
+#include <cstdio>
+#include <cstring>
+#include <ctime>
+#include <string>
+
 namespace ug{
 struct TarHeader
 {
@@ -72,7 +77,7 @@ struct TarHeader
 		strcpy(ustarDeviceMajorNumber, "000000 ");
 		strcpy(ustarDeviceMinorNumber, "000000 ");
 
-		sprintf(octalModificationTimeStamp, "%o", ((unsigned int)time(NULL)));
+		sprintf(octalModificationTimeStamp, "%o", ((unsigned int)time(nullptr)));
 //		strncpy(octalModificationTimeStamp, "12253557334 ", 12);
 		linkIndicator = '0';
 	}

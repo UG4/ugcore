@@ -93,7 +93,7 @@ AutoFreqAdaptNode::AutoFreqAdaptNode(unsigned long freq) : m_bActive(true) {
 		m_prevFreq = FreqAdaptValues::newFreq;
 
 		// for testing purposes only, can be removed
-		//if ( gettimeofday(&tv, NULL) != 0 ) {
+		//if ( gettimeofday(&tv, nullptr) != 0 ) {
 		//	printf("error while getting time\n");
 		//}
 		//cout << "CPU_FREQ: time = " << tv.tv_sec*1000000+tv.tv_usec << " , Changing frequency to " << freq << " ...\n";
@@ -102,7 +102,7 @@ AutoFreqAdaptNode::AutoFreqAdaptNode(unsigned long freq) : m_bActive(true) {
 		FreqAdaptValues::adjust_freq(freq);
 
 		// for testing purposes only, can be removed
-		//if ( gettimeofday(&tv, NULL) != 0 ) {
+		//if ( gettimeofday(&tv, nullptr) != 0 ) {
 		//	printf("error while getting time\n");
 		//}
 		//cout << "CPU_FREQ: time = " << tv.tv_sec*1000000+tv.tv_usec << " , Changing frequency to " << freq << " ... done\n";
@@ -129,7 +129,7 @@ void AutoFreqAdaptNode::release(){
 		if(m_prevFreq){
 
 			// for testing purposes only, can be removed
-			//if ( gettimeofday(&tv, NULL) != 0 ) {
+			//if ( gettimeofday(&tv, nullptr) != 0 ) {
 			//	printf("error while getting time\n");
 			//}
 			//cout << "CPU_FREQ: time = " << tv.tv_sec*1000000+tv.tv_usec << " , Resetting frequency to " << m_prevFreq << " ...\n";
@@ -138,7 +138,7 @@ void AutoFreqAdaptNode::release(){
 			FreqAdaptValues::adjust_freq(m_prevFreq);
 
 			// for testing purposes only, can be removed
-			//if ( gettimeofday(&tv, NULL) != 0 ) {
+			//if ( gettimeofday(&tv, nullptr) != 0 ) {
 			//	printf("error while getting time\n");
 			//}
 			//cout << "CPU_FREQ: time = " << tv.tv_sec*1000000+tv.tv_usec << " , Resetting frequency to " << m_prevFreq << " ... done\n";
@@ -204,7 +204,7 @@ void* FreqAdaptValues::freqAdaptWorker(void* This) {
 			UG_THROW("Error while unlocking freqAdapt_mutex");
 
 		// for testing purposes only, can be removed
-		//if ( gettimeofday(&tv, NULL) != 0 ) {
+		//if ( gettimeofday(&tv, nullptr) != 0 ) {
 		//	printf("error while getting time\n");
 		//}
 		//cout << "CPU_FREQ: time = " << tv.tv_sec*1000000+tv.tv_usec << " , calling cpufreq_set_frequency() with " << freq << " ...\n";
@@ -215,7 +215,7 @@ void* FreqAdaptValues::freqAdaptWorker(void* This) {
 		}
 
 		// for testing purposes only, can be removed
-		//if ( gettimeofday(&tv, NULL) != 0 ) {
+		//if ( gettimeofday(&tv, nullptr) != 0 ) {
 		//	printf("error while getting time\n");
 		//}
 		//cout << "CPU_FREQ: time = " << tv.tv_sec*1000000+tv.tv_usec << " , calling cpufreq_set_frequency() with " << freq << " ... done\n";
@@ -283,9 +283,9 @@ void FreqAdaptValues::set_freqs(std::string csvFile){
 
 	newFreq = 0;
 
-	if ( pthread_mutex_init(&freqAdapt_mutex, NULL) != 0 )
+	if ( pthread_mutex_init(&freqAdapt_mutex, nullptr) != 0 )
 	        UG_THROW("Error while initializing freqAdapt_mutex");
-	if ( pthread_cond_init(&freqAdapt_condVar, NULL) != 0 )
+	if ( pthread_cond_init(&freqAdapt_condVar, nullptr) != 0 )
 	        UG_THROW("Error while initializing freqAdapt_condVar");
 	if ( pthread_attr_init(&freqAdaptWorkerThreadAttr) != 0 )
 	        UG_THROW("Error while initializing freqAdaptWorkerThreadAttr");
@@ -298,7 +298,7 @@ void FreqAdaptValues::set_freqs(std::string csvFile){
 	if ( pthread_attr_setaffinity_np(&freqAdaptWorkerThreadAttr, sizeof(cpu_set_t), &processor_mask) != 0 )
 	        UG_THROW("Error while setting affinity of freqAdaptWorkerThreadAttr");
 
-	if ( pthread_create(&freqAdaptWorkerThread, &freqAdaptWorkerThreadAttr, freqAdaptWorker, NULL) != 0 )
+	if ( pthread_create(&freqAdaptWorkerThread, &freqAdaptWorkerThreadAttr, freqAdaptWorker, nullptr) != 0 )
 	        UG_THROW("Error while creating thread freqAdaptWorkerThread");
 
 

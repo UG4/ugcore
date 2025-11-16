@@ -40,7 +40,7 @@ RuntimeProfileInfo::RuntimeProfileInfo(
 		const char* file, bool bCopyFile,
 		int line)
 : bNameCopied(false), bGroupCopied(false), bFileCopied(false),
-  pName(NULL), pGroup(NULL), pFile(NULL)
+  pName(nullptr), pGroup(nullptr), pFile(nullptr)
 {
 	if(bCopyName) {
 		char* p = new char[strlen(name)+1];
@@ -73,7 +73,7 @@ RuntimeProfileInfo::RuntimeProfileInfo(
 	iLine = line;
 
 #ifdef UG_PROFILER_SHINY
-	Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, NULL, NULL, NULL, 0,
+	Shiny::ProfileZone pi = {nullptr, Shiny::ProfileZone::STATE_HIDDEN, nullptr, nullptr, nullptr, 0,
 	                         { { 0, 0 }, { 0, 0 }, { 0, 0 } }};
 	profileInformation = pi;
 	profileInformation.name = pName;

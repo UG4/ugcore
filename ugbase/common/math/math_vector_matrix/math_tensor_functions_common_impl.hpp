@@ -53,8 +53,8 @@ void
 Tens2ToVec(DenseVector<FixedArray1<number, TDimSQ> > &vec,
 		const MathMatrix<TDim, TDim>& tens2)
 {
-	static const size_t dim = TDim;
-	static const size_t dimSQ = TDimSQ;
+	static constexpr size_t dim = TDim;
+	static constexpr size_t dimSQ = TDimSQ;
 	if (dimSQ != dim * dim)
 		UG_THROW("Tens2ToVec::Invalid dimensions: " << dimSQ << " is not the square of " << dim << "! \n");
 
@@ -70,8 +70,8 @@ void
 VecToTens2(MathMatrix<TDim, TDim>& tens2,
 		const DenseVector<FixedArray1<number, TDimSQ> > &vec)
 {
-	static const size_t dim = TDim;
-	static const size_t dimSQ = TDimSQ;
+	static constexpr size_t dim = TDim;
+	static constexpr size_t dimSQ = TDimSQ;
 	if (dimSQ != dim * dim)
 		UG_THROW("VecToTens2::Invalid dimensions: " << dimSQ << " is not the square of " << dim << "! \n");
 
@@ -88,8 +88,8 @@ void
 Tens4ToMat(DenseMatrix<FixedArray2<number, TDimSQ, TDimSQ> > &mat,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4)
 {
-	static const size_t dim = TDim;
-	static const size_t dimSQ = TDimSQ;
+	static constexpr size_t dim = TDim;
+	static constexpr size_t dimSQ = TDimSQ;
 	if (dimSQ != dim * dim)
 		UG_THROW("Tens4ToMat::Invalid dimensions: " << dimSQ << " is not the square of " << dim << "! \n");
 
@@ -109,8 +109,8 @@ void
 MatToTens4(MathTensor4<TDim, TDim, TDim, TDim>& tens4,
 		const DenseMatrixInverse<FixedArray2<number, TDimSQ, TDimSQ> > &mat)
 {
-	static const size_t dim = TDim;
-	static const size_t dimSQ = TDimSQ;
+	static constexpr size_t dim = TDim;
+	static constexpr size_t dimSQ = TDimSQ;
 	if (dimSQ != dim * dim)
 		UG_THROW("MatToTens4::Invalid dimensions: " << dimSQ << " is not the square of " << dim << "! \n");
 
@@ -135,7 +135,7 @@ Tens4Add(MathTensor4<TDim, TDim, TDim, TDim>& tens4_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4a,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4b)
 {
-	static const size_t dim = TDim;
+	static constexpr size_t dim = TDim;
 
 	for (size_t i = 0; i < dim; ++i)
 		for (size_t j = 0; j < dim; ++j)
@@ -159,7 +159,7 @@ Tens4Subtract(MathTensor4<TDim, TDim, TDim, TDim>& tens4_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4a,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4b)
 {
-	static const size_t dim = TDim;
+	static constexpr size_t dim = TDim;
 
 	for (size_t i = 0; i < dim; ++i)
 		for (size_t j = 0; j < dim; ++j)
@@ -183,7 +183,7 @@ void
 TransTens4(MathTensor4<TDim, TDim, TDim, TDim>& tens4_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4)
 {
-	static const size_t dim = TDim;
+	static constexpr size_t dim = TDim;
 
 	for (size_t i = 0; i < dim; ++i)
 		for (size_t j = 0; j < dim; ++j)
@@ -205,8 +205,8 @@ void
 InvertTensor4(MathTensor4<TDim, TDim, TDim, TDim>& tens4_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4)
 {
-	static const size_t dim = TDim;
-	static const size_t dimSQ = dim * dim;
+	static constexpr size_t dim = TDim;
+	static constexpr size_t dimSQ = dim * dim;
 
 	DenseMatrix< FixedArray2<number, dimSQ, dimSQ> > mat;
 
@@ -244,8 +244,8 @@ SolveTensorMatrixEquation(MathMatrix<TDim, TDim>& X,
 		const MathTensor4<TDim, TDim, TDim, TDim>& A,
 		const MathMatrix<TDim, TDim>& rhs)
 {
-	static const size_t dim = TDim;
-	static const size_t dimSQ = dim * dim;
+	static constexpr size_t dim = TDim;
+	static constexpr size_t dimSQ = dim * dim;
 
 	DenseMatrix< FixedArray2<number, dimSQ, dimSQ> > A_mat;
 	DenseVector< FixedArray1<number, dimSQ> > rhs_vec, x_vec;
@@ -279,7 +279,7 @@ Tens4Contract(MathMatrix<TDim, TDim>& tens2_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4,
 		const MathMatrix<TDim, TDim>& tens2)
 {
-	static const size_t dim = TDim;
+	static constexpr size_t dim = TDim;
 
 	for(size_t i = 0; i < dim; ++i)
 		for(size_t j = 0; j < dim; ++j)
@@ -302,7 +302,7 @@ Tens4Contract(MathTensor4<TDim, TDim, TDim, TDim>& tens4_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4a,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4b)
 {
-	static const size_t dim = TDim;
+	static constexpr size_t dim = TDim;
 
 	for(size_t i = 0; i < dim; ++i)
 		for(size_t j = 0; j < dim; ++j)
@@ -328,7 +328,7 @@ Tens4Contract(MathTensor4<TDim, TDim, TDim, TDim>& tens4_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4b,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4c)
 {
-	static const size_t dim = TDim;
+	static constexpr size_t dim = TDim;
 
 	MathTensor4<dim, dim, dim, dim> help;
 
@@ -363,7 +363,7 @@ template <std::size_t TDim>
 void
 Tens4Zero(MathTensor4<TDim, TDim, TDim, TDim>& tensOut)
 {
-	static const size_t dim = TDim;
+	static constexpr size_t dim = TDim;
 
 	for(size_t i = 0; i < dim; ++i)
 		for(size_t j = 0; j < dim; ++j)
@@ -378,7 +378,7 @@ template <std::size_t TDim>
 void
 Tens4Identity(MathTensor4<TDim, TDim, TDim, TDim>& Ident)
 {
-	static const size_t dim = TDim;
+	static constexpr size_t dim = TDim;
 
 	for(size_t i = 0; i < dim; ++i)
 		for(size_t j = 0; j < dim; ++j)
@@ -395,7 +395,7 @@ template <std::size_t TDim>
 void
 Tens4IdentitySym(MathTensor4<TDim, TDim, TDim, TDim>& Ident)
 {
-	static const size_t dim = TDim;
+	static constexpr size_t dim = TDim;
 
 	for(size_t i = 0; i < dim; ++i)
 		for(size_t j = 0; j < dim; ++j)

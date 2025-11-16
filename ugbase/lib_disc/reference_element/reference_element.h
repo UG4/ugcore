@@ -183,7 +183,7 @@ class DimReferenceElement : public ReferenceElement
 {
 	public:
 	///	dimension, where the reference element is defined
-		static const int dim = d;
+		static constexpr int dim = d;
 
 	/// coordinates of reference corner in a vector
 		const MathVector<dim>* corners() const {return &m_vCorner[0];}
@@ -262,7 +262,7 @@ class ReferenceElementProvider
 			UG_ASSERT(roid >= 0, "roid ="<<roid<<" wrong")
 			UG_ASSERT(roid < NUM_REFERENCE_OBJECTS, "roid ="<<roid<<" wrong")
 			static const DimReferenceElement<dim>** vDimElem = get_vector<dim>();
-			UG_ASSERT(vDimElem[roid] != NULL, "Null pointer for roid ="<<roid);
+			UG_ASSERT(vDimElem[roid] != nullptr, "Null pointer for roid ="<<roid);
 			return *vDimElem[roid];
 		}
 
@@ -303,25 +303,25 @@ class ReferenceVertex : public DimReferenceElement<0>
 {
 	public:
 	///	type of reference element
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
 
 	///	dimension of reference element
-		static const int dim = 0;
+		static constexpr int dim = 0;
 
 	///	number of corners
-		static const int numCorners = 1;
+		static constexpr int numCorners = 1;
 
 	///	number of eges
-		static const int numEdges = 0;
+		static constexpr int numEdges = 0;
 
 	///	number of faces
-		static const int numFaces = 0;
+		static constexpr int numFaces = 0;
 
 	///	number of volumes
-		static const int numVolumes = 0;
+		static constexpr int numVolumes = 0;
 
 	///	number of sides
-		static const int numSides = 0;
+		static constexpr int numSides = 0;
 
 	public:
 	///	Constructor filling the arrays
@@ -345,25 +345,25 @@ class ReferenceEdge : public DimReferenceElement<1>
 {
 	public:
 	///	type of reference element
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 
 	///	dimension of reference element
-		static const int dim = 1;
+		static constexpr int dim = 1;
 
 	///	number of corners
-		static const int numCorners = 2;
+		static constexpr int numCorners = 2;
 
 	///	number of eges
-		static const int numEdges = 1;
+		static constexpr int numEdges = 1;
 
 	///	number of faces
-		static const int numFaces = 0;
+		static constexpr int numFaces = 0;
 
 	///	number of volumes
-		static const int numVolumes = 0;
+		static constexpr int numVolumes = 0;
 
 	///	number of sides
-		static const int numSides = numCorners;
+		static constexpr int numSides = numCorners;
 
 	public:
 	///	Constructor
@@ -394,25 +394,25 @@ class ReferenceTriangle : public DimReferenceElement<2>
 {
 	public:
 	///	type of reference element
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
 
 	///	dimension of reference element
-		static const int dim = 2;
+		static constexpr int dim = 2;
 
 	///	number of corners
-		static const int numCorners = 3;
+		static constexpr int numCorners = 3;
 
 	///	number of eges
-		static const int numEdges = 3;
+		static constexpr int numEdges = 3;
 
 	///	number of faces
-		static const int numFaces = 1;
+		static constexpr int numFaces = 1;
 
 	///	number of volumes
-		static const int numVolumes = 0;
+		static constexpr int numVolumes = 0;
 
 	///	number of sides
-		static const int numSides = numEdges;
+		static constexpr int numSides = numEdges;
 
 	public:
 	///	Constructor filling the arrays
@@ -445,25 +445,25 @@ class ReferenceQuadrilateral : public DimReferenceElement<2>
 {
 	public:
 	///	type of reference element
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
 
 	///	dimension of reference element
-		static const int dim = 2;
+		static constexpr int dim = 2;
 
 	///	number of corners
-		static const int numCorners = 4;
+		static constexpr int numCorners = 4;
 
 	///	number of eges
-		static const int numEdges = 4;
+		static constexpr int numEdges = 4;
 
 	///	number of faces
-		static const int numFaces = 1;
+		static constexpr int numFaces = 1;
 
 	///	number of volumes
-		static const int numVolumes = 0;
+		static constexpr int numVolumes = 0;
 
 	///	number of sides
-		static const int numSides = numEdges;
+		static constexpr int numSides = numEdges;
 
 	public:
 		ReferenceQuadrilateral();
@@ -494,25 +494,25 @@ class ReferenceTetrahedron : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TETRAHEDRON;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TETRAHEDRON;
 
 	///	dimension of reference element
-		static const int dim = 3;
+		static constexpr int dim = 3;
 
 	///	number of corners
-		static const int numCorners = 4;
+		static constexpr int numCorners = 4;
 
 	///	number of eges
-		static const int numEdges = 6;
+		static constexpr int numEdges = 6;
 
 	///	number of faces
-		static const int numFaces = 4;
+		static constexpr int numFaces = 4;
 
 	///	number of volumes
-		static const int numVolumes = 1;
+		static constexpr int numVolumes = 1;
 
 	///	number of sides
-		static const int numSides = numFaces;
+		static constexpr int numSides = numFaces;
 
 	public:
 	///	Constructor
@@ -546,25 +546,25 @@ class ReferencePyramid : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PYRAMID;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PYRAMID;
 
 	///	dimension of reference element
-		static const int dim = 3;
+		static constexpr int dim = 3;
 
 	///	number of corners
-		static const int numCorners = 5;
+		static constexpr int numCorners = 5;
 
 	///	number of eges
-		static const int numEdges = 8;
+		static constexpr int numEdges = 8;
 
 	///	number of faces
-		static const int numFaces = 5;
+		static constexpr int numFaces = 5;
 
 	///	number of volumes
-		static const int numVolumes = 1;
+		static constexpr int numVolumes = 1;
 
 	///	number of sides
-		static const int numSides = numFaces;
+		static constexpr int numSides = numFaces;
 
 	public:
 	///	Constructor
@@ -595,25 +595,25 @@ class ReferencePrism : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PRISM;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PRISM;
 
 	///	dimension of reference element
-		static const int dim = 3;
+		static constexpr int dim = 3;
 
 	///	number of corners
-		static const int numCorners = 6;
+		static constexpr int numCorners = 6;
 
 	///	number of eges
-		static const int numEdges = 9;
+		static constexpr int numEdges = 9;
 
 	///	number of faces
-		static const int numFaces = 5;
+		static constexpr int numFaces = 5;
 
 	///	number of volumes
-		static const int numVolumes = 1;
+		static constexpr int numVolumes = 1;
 
 	///	number of sides
-		static const int numSides = numFaces;
+		static constexpr int numSides = numFaces;
 
 	public:
 	///	Constructor
@@ -648,25 +648,25 @@ class ReferenceHexahedron : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_HEXAHEDRON;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_HEXAHEDRON;
 
 	///	dimension of reference element
-		static const int dim = 3;
+		static constexpr int dim = 3;
 
 	///	number of corners
-		static const int numCorners = 8;
+		static constexpr int numCorners = 8;
 
 	///	number of eges
-		static const int numEdges = 12;
+		static constexpr int numEdges = 12;
 
 	///	number of faces
-		static const int numFaces = 6;
+		static constexpr int numFaces = 6;
 
 	///	number of volumes
-		static const int numVolumes = 1;
+		static constexpr int numVolumes = 1;
 
 	///	number of sides
-		static const int numSides = numFaces;
+		static constexpr int numSides = numFaces;
 
 	public:
 	///	Constructor filling the arrays
@@ -699,25 +699,25 @@ class ReferenceOctahedron : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_OCTAHEDRON;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_OCTAHEDRON;
 
 	///	dimension of reference element
-		static const int dim = 3;
+		static constexpr int dim = 3;
 
 	///	number of corners
-		static const int numCorners = 6;
+		static constexpr int numCorners = 6;
 
 	///	number of edges
-		static const int numEdges = 12;
+		static constexpr int numEdges = 12;
 
 	///	number of faces
-		static const int numFaces = 8;
+		static constexpr int numFaces = 8;
 
 	///	number of volumes
-		static const int numVolumes = 1;
+		static constexpr int numVolumes = 1;
 
 	///	number of sides
-		static const int numSides = numFaces;
+		static constexpr int numSides = numFaces;
 
 	public:
 	///	Constructor

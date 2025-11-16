@@ -245,7 +245,7 @@ static void CopySubsetFromHigherDimNbr(
 				TIterator elemsEnd,
 				AChar aDimension)
 {
-	typedef typename PtrToValueType<typename TIterator::value_type>::base_type TElem;
+	using TElem = typename PtrToValueType<typename TIterator::value_type>::base_type;
 
 	UG_COND_THROW(!sh.grid(), "The subset-handler has to operate on a grid!");
 	Grid& grid = *sh.grid();
@@ -644,7 +644,7 @@ bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
 		//	in the same subset other than curFace.
 		//	(Do not check marks here, since we otherwise may find
 		//	unwanted neighbors).
-			Face* nbr = NULL;
+			Face* nbr = nullptr;
 			size_t numFound = 0;
 			for(size_t i_face = 0; i_face < faces.size(); ++i_face){
 				Face* f = faces[i_face];
@@ -758,7 +758,7 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
 
 //	the normal accessor
-	vector3 tmpNorm;//	this is only required if paNorm == NULL.
+	vector3 tmpNorm;//	this is only required if paNorm == nullptr.
 	Grid::FaceAttachmentAccessor<ANormal> aaNorm;
 	if(paNorm)
 	{
@@ -1098,9 +1098,9 @@ void AssignSubsetColors(ISubsetHandler& sh)
 template <class TElem>
 void AssignSidesToSubsets(ISubsetHandler& sh, ISelector* psel)
 {
-	typedef typename TElem::lower_dim_base_object 		Side;
-	typedef typename geometry_traits<Side>::iterator 	SideIter;
-	typedef std::vector<int> IntString;
+	using Side = typename TElem::lower_dim_base_object;
+	using SideIter = typename geometry_traits<Side>::iterator;
+	using IntString = std::vector<int>;
 
 //	access the grid on which sh operates.
 	if(!sh.grid())

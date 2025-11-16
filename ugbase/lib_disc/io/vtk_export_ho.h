@@ -81,7 +81,7 @@ inline void CopySelectedElements
 	AVertex& aNewVrt
 )
 {
-	typedef typename TDomain::subset_handler_type SH_type;
+	using SH_type = typename TDomain::subset_handler_type;
 
 	MultiGrid& srcGrid = *srcDom->grid();
 	MultiGrid& destGrid = *destDom->grid();
@@ -92,7 +92,7 @@ inline void CopySelectedElements
 	Grid::VertexAttachmentAccessor<AVertex> aaNewVrt(srcGrid, aNewVrt);
 
 	CustomVertexGroup vrts;
-	typedef typename Grid::traits<TElem>::iterator iter_t;
+	using iter_t = typename Grid::traits<TElem>::iterator;
 
 	for (iter_t eiter = sel.begin<TElem>();	eiter != sel.end<TElem>(); ++eiter)
 	{
@@ -116,8 +116,8 @@ inline void CopySelected
 	Selector& sel
 )
 {
-	typedef typename TDomain::position_attachment_type APos_type;
-	typedef typename TDomain::subset_handler_type SH_type;
+	using APos_type = typename TDomain::position_attachment_type;
+	using SH_type = typename TDomain::subset_handler_type;
 
 	MultiGrid& srcGrid = *srcDom->grid();
 	MultiGrid& destGrid = *destDom->grid();
@@ -170,9 +170,9 @@ inline void interpolate_from_original_fct
 	const LFEID& lfeid
 )
 {
-	typedef typename TGridFunction::domain_type dom_type;
-	static const int dim = dom_type::dim;
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iter_type;
+	using dom_type = typename TGridFunction::domain_type;
+	static constexpr int dim = dom_type::dim;
+	using const_iter_type = typename DoFDistribution::traits<TElem>::const_iterator;
 
 	// interpolate subset-wise
 	size_t numSubsets = u_new->num_subsets();
@@ -241,11 +241,11 @@ void vtk_export_ho
 		return;
 	}
 
-	typedef typename TGridFunction::domain_type dom_type;
-	typedef typename TGridFunction::algebra_type algebra_type;
-	typedef typename dom_type::position_attachment_type position_attachment_type;
-	typedef typename TGridFunction::approximation_space_type approx_space_type;
-	typedef typename TGridFunction::template dim_traits<trueDim>::grid_base_object elem_type;
+	using dom_type = typename TGridFunction::domain_type;
+	using algebra_type = typename TGridFunction::algebra_type;
+	using position_attachment_type = typename dom_type::position_attachment_type;
+	using approx_space_type = typename TGridFunction::approximation_space_type;
+	using elem_type = typename TGridFunction::template dim_traits<trueDim>::grid_base_object;
 
 	SmartPtr<approx_space_type> srcApproxSpace = u->approx_space();
 	SmartPtr<dom_type> srcDom = srcApproxSpace->domain();

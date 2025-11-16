@@ -51,11 +51,11 @@ template <class TLayout>
 class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout							Layout;
-		typedef typename Layout::Type			GeomObj;
-		typedef typename Layout::Element		Element;
-		typedef typename Layout::Interface		Interface;
-		typedef typename Interface::iterator	InterfaceIter;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::iterator;
 		
 		RefinementMarkDistributor(Grid& grid,
 								ParallelMultiGridRefiner& refiner,
@@ -173,7 +173,7 @@ class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 };
 /*
 ParallelMultiGridRefiner::
-ParallelMultiGridRefiner() : m_pLayoutMap(NULL)
+ParallelMultiGridRefiner() : m_pLayoutMap(nullptr)
 {
 }
 */

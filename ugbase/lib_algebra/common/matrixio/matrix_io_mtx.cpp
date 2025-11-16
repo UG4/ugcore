@@ -38,7 +38,7 @@ namespace ug
 // /////////////////////////////////////////////////////////////////////////////
 // Constructor / Destructor
 MatrixIOMtx::MatrixIOMtx() :
-  m_pMatFileName( NULL ), m_matFileStream(), m_firstDataLine(0),
+  m_pMatFileName( nullptr ), m_matFileStream(), m_firstDataLine(0),
   m_matFileType( MatrixFileType::MATRIX_MARKET ),
   m_mmTypeCode( MMTypeCode() ),
   m_rows( 0 ), m_cols( 0 ), m_lines( 0 )

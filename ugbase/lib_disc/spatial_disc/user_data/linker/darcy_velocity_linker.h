@@ -64,15 +64,15 @@ class DarcyVelocityLinker
 	: public StdDataLinker< DarcyVelocityLinker<dim>, MathVector<dim>, dim>
 {
 	///	Base class type
-		typedef StdDataLinker< DarcyVelocityLinker<dim>, MathVector<dim>, dim> base_type;
+		using base_type = StdDataLinker< DarcyVelocityLinker<dim>, MathVector<dim>, dim>;
 
 	public:
 		DarcyVelocityLinker() :
-			m_spPermeability(NULL), m_spDPermeability(NULL),
-			m_spViscosity(NULL), m_spDViscosity(NULL),
-			m_spDensity(NULL), m_spDDensity(NULL),
-			m_spGravity(NULL), m_spDGravity(NULL),
-			m_spPressureGrad(NULL), m_spDPressureGrad(NULL), m_partialDerivMask(0)
+			m_spPermeability(nullptr), m_spDPermeability(nullptr),
+			m_spViscosity(nullptr), m_spDViscosity(nullptr),
+			m_spDensity(nullptr), m_spDDensity(nullptr),
+			m_spGravity(nullptr), m_spDGravity(nullptr),
+			m_spPressureGrad(nullptr), m_spDPressureGrad(nullptr), m_partialDerivMask(0)
 		{
 		//	this linker needs exactly five input
 			this->set_num_input(5);
@@ -118,7 +118,7 @@ class DarcyVelocityLinker
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
 		                     LocalVector* u,
-		                     const MathMatrix<refDim, dim>* vJT = NULL) const
+		                     const MathMatrix<refDim, dim>* vJT = nullptr) const
 		{
 			std::vector<number> vDensity(nip);
 			std::vector<number> vViscosity(nip);
@@ -166,7 +166,7 @@ class DarcyVelocityLinker
 		                    bool bDeriv,
 		                    int s,
 		                    std::vector<std::vector<MathVector<dim> > > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL) const
+		                    const MathMatrix<refDim, dim>* vJT = nullptr) const
 		{
 		//	get the data of the ip series
 			const number* vDensity = m_spDensity->values(s);
@@ -408,27 +408,27 @@ class DarcyVelocityLinker
 
 	protected:
 	///	import for permeability
-		static const size_t _K_ = 0;
+		static constexpr size_t _K_ = 0;
 		SmartPtr<CplUserData<MathMatrix<dim,dim>, dim> > m_spPermeability;
 		SmartPtr<DependentUserData<MathMatrix<dim,dim>, dim> > m_spDPermeability;
 
 	///	import for viscosity
-		static const size_t _MU_ = 1;
+		static constexpr size_t _MU_ = 1;
 		SmartPtr<CplUserData<number, dim> > m_spViscosity;
 		SmartPtr<DependentUserData<number, dim> > m_spDViscosity;
 
 	///	import for density
-		static const size_t _RHO_ = 2;
+		static constexpr size_t _RHO_ = 2;
 		SmartPtr<CplUserData<number, dim> > m_spDensity;
 		SmartPtr<DependentUserData<number, dim> > m_spDDensity;
 
 	///	import for gravity
-		static const size_t _G_ = 3;
+		static constexpr size_t _G_ = 3;
 		SmartPtr<CplUserData<MathVector<dim>, dim> > m_spGravity;
 		SmartPtr<DependentUserData<MathVector<dim>, dim> > m_spDGravity;
 
 	///	import for pressure gradient
-		static const size_t _DP_ = 4;
+		static constexpr size_t _DP_ = 4;
 		SmartPtr<CplUserData<MathVector<dim>, dim> > m_spPressureGrad;
 		SmartPtr<DependentUserData<MathVector<dim>, dim> > m_spDPressureGrad;
 

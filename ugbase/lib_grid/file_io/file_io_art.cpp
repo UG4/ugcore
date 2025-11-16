@@ -58,12 +58,12 @@ static void ReadIndices(vector<int>& vIndsOut, char* buffer,
 	if(newTokBuff)
 		tok = strtok(buffer, delim);
 	else
-		tok = strtok(NULL, delim);
+		tok = strtok(nullptr, delim);
 		
 	while(tok)
 	{
 		vIndsOut.push_back(atoi(tok));
-		tok = strtok(NULL, delim);
+		tok = strtok(nullptr, delim);
 	}
 }
 
@@ -116,7 +116,7 @@ CreateTetrahedron(Grid& grid, vector<Triangle*>& vTris,
 	
 	if(vTris.size() != 4){
 		UG_LOG(errorMsg << "Bad number of triangles: " << vTris.size() << endl);
-		return NULL;
+		return nullptr;
 	}
 	
 	Vertex* vrts[4];
@@ -133,7 +133,7 @@ CreateTetrahedron(Grid& grid, vector<Triangle*>& vTris,
 			//	make sure that we won't collect too many vertices.
 				if(vrtCount == 4){
 					UG_LOG(errorMsg << "Triangles do not build a tetrahedron.\n");
-					return NULL;
+					return nullptr;
 				}
 				
 				grid.mark(vrt);
@@ -146,7 +146,7 @@ CreateTetrahedron(Grid& grid, vector<Triangle*>& vTris,
 
 	if(vrtCount < 4){
 		UG_LOG(errorMsg << "Triangles have less than 4 distinct vertices.\n");
-		return NULL;
+		return nullptr;
 	}
 	
 //	we have to check the orientation of the tetrahedron
@@ -173,12 +173,12 @@ CreatePyramid(Grid& grid, vector<Triangle*>& vTris,
 	
 	if(vTris.size() != 4){
 		UG_LOG(errorMsg << "Bad number of triangles: " << vTris.size() << endl);
-		return NULL;
+		return nullptr;
 	}
 
 	if(vQuads.size() != 1){
 		UG_LOG(errorMsg << "Bad number of quadrilaterals: " << vQuads.size() << endl);
-		return NULL;
+		return nullptr;
 	}
 		
 	Vertex* vrts[5];
@@ -211,7 +211,7 @@ CreatePyramid(Grid& grid, vector<Triangle*>& vTris,
 //	make sure that all vertices have been found
 	if(vrtCount != 5){
 		UG_LOG(errorMsg << "Faces do not build a pyramid.\n");
-		return NULL;
+		return nullptr;
 	}
 	
 //	we have to check the orientation of the prism
@@ -240,12 +240,12 @@ CreatePrism(Grid& grid, vector<Triangle*>& vTris,
 	
 	if(vTris.size() != 2){
 		UG_LOG(errorMsg << "Bad number of triangles: " << vTris.size() << endl);
-		return NULL;
+		return nullptr;
 	}
 
 	if(vQuads.size() != 3){
 		UG_LOG(errorMsg << "Bad number of quadrilaterals: " << vQuads.size() << endl);
-		return NULL;
+		return nullptr;
 	}
 		
 	Vertex* vrts[6];
@@ -286,7 +286,7 @@ CreatePrism(Grid& grid, vector<Triangle*>& vTris,
 	}
 	
 	if(index == 3)
-		return NULL;
+		return nullptr;
 
 //	create the tetrahedron
 	return *grid.create<Prism>(
@@ -352,9 +352,9 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 	//	read the coordinates
 //TODO:	make sure that everything is ok.
 		aaPos[v].x() = atof(tok);
-		tok = strtok(NULL, delim);
+		tok = strtok(nullptr, delim);
 		aaPos[v].y() = atof(tok);
-		tok = strtok(NULL, delim);
+		tok = strtok(nullptr, delim);
 		aaPos[v].z() = atof(tok);
 
 	//	store the vertex in an array
@@ -382,9 +382,9 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 //TODO:	make sure that everything is ok.
 		int i1, i2;
 		//int si = atoi(tok);
-		tok = strtok(NULL, delim);
+		tok = strtok(nullptr, delim);
 		i1 = atoi(tok);
-		tok = strtok(NULL, delim);
+		tok = strtok(nullptr, delim);
 		i2 = atoi(tok);
 
 	//	create a new edge
@@ -443,7 +443,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 		
 //TODO: check orientation
 	//	create the faces
-		Face* f = NULL;
+		Face* f = nullptr;
 		size_t numVrts = vLocalVrts.size();
 		switch(numVrts)
 		{
@@ -539,7 +539,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 
 
 	//	create the volume
-		Volume* v = NULL;
+		Volume* v = nullptr;
 
 		switch(volType)
 		{

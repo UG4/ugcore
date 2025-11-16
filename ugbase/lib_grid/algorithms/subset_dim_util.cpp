@@ -72,12 +72,12 @@ bool SubsetIsRegularGrid(const ISubsetHandler& ish, int si)
 {
 //	test SubsetHandler
 	const SubsetHandler* sh = dynamic_cast<const SubsetHandler*>(&ish);
-	if(sh != NULL)
+	if(sh != nullptr)
 		return SubsetIsRegularGrid(*sh, si);
 
 //	test MGSubsetHandler
 	const MGSubsetHandler* mgsh = dynamic_cast<const MGSubsetHandler*>(&ish);
-	if(mgsh != NULL)
+	if(mgsh != nullptr)
 		return SubsetIsRegularGrid(*mgsh, si);
 
 //	unknown type of subset handler

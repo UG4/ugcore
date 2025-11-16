@@ -56,7 +56,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		                ConstSmartPtr<DoFDistributionInfo> spDDInfo,
 		                SmartPtr<SurfaceView> spSurfView,
 		                const GridLevel& level, bool bGrouped,
-		                SmartPtr<DoFIndexStorage> spDoFIndexStorage = SPNULL);
+		                SmartPtr<DoFIndexStorage> spDoFIndexStorage = nullptr);
 
 		/// destructor
 		~DoFDistribution();
@@ -77,17 +77,17 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		template <typename TElem>
 		struct traits
 		{
-			typedef TElem grid_object;
-			typedef typename SurfaceView::traits<TElem>::iterator iterator;
-			typedef typename SurfaceView::traits<TElem>::const_iterator const_iterator;
+			using grid_object = TElem;
+			using iterator = typename SurfaceView::traits<TElem>::iterator;
+			using const_iterator = typename SurfaceView::traits<TElem>::const_iterator;
 		};
 
 		template <int dim>
 		struct dim_traits
 		{
-			typedef typename domain_traits<dim>::grid_base_object grid_base_object;
-			typedef typename SurfaceView::traits<grid_base_object>::iterator iterator;
-			typedef typename SurfaceView::traits<grid_base_object>::const_iterator const_iterator;
+			using grid_base_object = typename domain_traits<dim>::grid_base_object;
+			using iterator = typename SurfaceView::traits<grid_base_object>::iterator;
+			using const_iterator = typename SurfaceView::traits<grid_base_object>::const_iterator;
 		};
 
 		/// iterator for elements where dofs are defined

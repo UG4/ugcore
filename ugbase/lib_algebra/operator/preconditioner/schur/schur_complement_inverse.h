@@ -52,9 +52,9 @@ template<typename TAlgebra>
 class SchurInverseWithOperator : public ISchurComplementInverse<TAlgebra>
 {
 public:
-	typedef TAlgebra algebra_type;
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using algebra_type = TAlgebra;
+	using vector_type = typename TAlgebra::vector_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	SchurInverseWithOperator(SmartPtr<ILinearOperatorInverse<vector_type> > linOpInv )
 	{
@@ -98,9 +98,9 @@ template<typename TAlgebra>
 class SchurInverseWithFullMatrix : public ISchurComplementInverse<TAlgebra>
 {
 public:
-	typedef TAlgebra algebra_type;
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using algebra_type = TAlgebra;
+	using vector_type = typename TAlgebra::vector_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	SchurInverseWithFullMatrix(SmartPtr<ILinearOperatorInverse<vector_type> > linOpInv )
 	{
@@ -157,9 +157,9 @@ template<typename TAlgebra>
 class SchurInverseWithAGammaGamma : public ISchurComplementInverse<TAlgebra>
 {
 public:
-	typedef TAlgebra algebra_type;
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using algebra_type = TAlgebra;
+	using vector_type = typename TAlgebra::vector_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	SchurInverseWithAGammaGamma(SmartPtr<IPreconditionedLinearOperatorInverse<vector_type> > linSolver)
 	{
@@ -211,7 +211,7 @@ protected:
 template <typename TAlgebra, typename M, typename X, typename Y = X>
 class SchurComplementMatrixOperator : public MatrixOperator<M, X, Y>, public UpdateableMatrixOperator
 {
-	typedef M matrix_type;
+	using matrix_type = M;
 
 	SmartPtr<SchurComplementOperator<TAlgebra> > m_op;
 public:
@@ -260,9 +260,9 @@ template<typename TAlgebra>
 class SchurInverseWithAutoFullMatrix : public ISchurComplementInverse<TAlgebra>
 {
 public:
-	typedef TAlgebra algebra_type;
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using algebra_type = TAlgebra;
+	using vector_type = typename TAlgebra::vector_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	SchurInverseWithAutoFullMatrix(SmartPtr<ILinearOperatorInverse<vector_type> > linOpInv )
 	{

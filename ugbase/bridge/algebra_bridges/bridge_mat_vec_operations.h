@@ -47,7 +47,7 @@ namespace AlgebraCommon{
 template<typename TAlgebra>
 class VecScaleAddClass
 {
-	typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 public:
 	VecScaleAddClass(double scale1, SmartPtr<vector_type> v1)
 	{

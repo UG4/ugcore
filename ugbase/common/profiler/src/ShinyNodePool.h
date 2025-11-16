@@ -34,7 +34,7 @@ namespace Shiny {
 
 	struct ProfileNodePool {
 
-		typedef ProfileNode T;
+		using T = ProfileNode;
 
 		ProfileNodePool* nextPool;
 

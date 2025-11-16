@@ -81,7 +81,7 @@ bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, Vertex* vrt,
 					number rimSnapThreshold,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
 					int bottomSubInd = -1, int cylSubInd = -1,
-					Selector* pSel = NULL);
+					Selector* pSel = nullptr);
 
 ///	adapts the grid around the given vertex to a cylinder and extrudes it.
 /**
@@ -116,7 +116,7 @@ bool ExtrudeCylinder(Grid& grid, Vertex* vrt,
 					const vector3& direction, number height, number radius,
 					number rimSnapThreshold,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
-					Selector* pSel = NULL);
+					Selector* pSel = nullptr);
 					
 /// @}
 

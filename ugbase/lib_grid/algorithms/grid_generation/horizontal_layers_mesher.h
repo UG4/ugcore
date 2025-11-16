@@ -42,13 +42,13 @@ void MeshLayerBoundaries(
 		Grid& grid,
 		const RasterLayers& layers,
 		Grid::VertexAttachmentAccessor<AVector3> aaPos,
-		ISubsetHandler* pSH = NULL);
+		ISubsetHandler* pSH = nullptr);
 
 void MeshLayers(
 		Grid& grid,
 		const RasterLayers& layers,
 		Grid::VertexAttachmentAccessor<AVector3> aaPos,
-		ISubsetHandler* pSH = NULL);
+		ISubsetHandler* pSH = nullptr);
 
 /**	grid has to contain a triangluation of the surface grid of raster-layers.
  * Only x- and y- coordinates of the vertices of the reference triangulation are
@@ -80,7 +80,7 @@ void ExtrudeLayers(
 		Grid::VertexAttachmentAccessor<AVector3> aaPos,
 		ISubsetHandler& sh,
 		bool allowForTetsAndPyras,
-		const ANumber* aRelZOut = NULL);
+		const ANumber* aRelZOut = nullptr);
 
 
 /**	grid has to contain a triangluation of the surface grid of raster-layers.

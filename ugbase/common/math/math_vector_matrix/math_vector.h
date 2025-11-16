@@ -34,7 +34,7 @@
 ////////////////////////////////////////////////////////////////////////
 //	This header defines common vector-types.
 //	It is possible to completely avoid these vectors and to use your own.
-//	Have a look at lgmath.h to see which typedefs have to be replaced.
+//	Have a look at lgmath.h to see which type definitions have to be replaced.
 //	You have to make sure that your vector-types specialize the
 //	template methods defined in lgmath_vector_descriptor.
 
@@ -72,8 +72,8 @@ template <std::size_t fromN, std::size_t toN, typename T>
 MathVector<toN, T> MathVectorFrom (const MathVector<fromN, T>& v)
 {
 	MathVector<toN, T> r;
-	static const size_t minN = std::min(toN, fromN);
-	static const size_t maxN = std::max(toN, fromN);
+	static constexpr size_t minN = std::min(toN, fromN);
+	static constexpr size_t maxN = std::max(toN, fromN);
 	for(size_t i = 0; i < minN; ++i)
 		r[i] = v[i];
 	for(size_t i = minN; i < maxN; ++i)
@@ -96,9 +96,9 @@ template <std::size_t N, typename T>
 class MathVector
 {
 	public:
-		typedef T value_type;
-		typedef std::size_t size_type;
-		static const std::size_t Size = N;
+		using value_type = T;
+		using size_type = std::size_t;
+		static constexpr std::size_t Size = N;
 
 	public:
 		MathVector() {for(std::size_t i = 0; i < N; ++i) m_data[i] = 0.0;}
@@ -162,9 +162,9 @@ template <typename T>
 class MathVector<0, T>
 {
 	public:
-		typedef std::size_t size_type;
-		typedef T value_type;
-		static const std::size_t Size = 1;
+		using size_type = std::size_t;
+		using value_type = T;
+		static constexpr std::size_t Size = 1;
 
 	public:
 		MathVector()	{}
@@ -229,9 +229,9 @@ template <typename T>
 class MathVector<1, T>
 {
 	public:
-		typedef std::size_t size_type;
-		typedef T value_type;
-		static const std::size_t Size = 1;
+		using size_type = std::size_t;
+		using value_type = T;
+		static constexpr std::size_t Size = 1;
 
 	public:
 		MathVector() 	{m_data[0] = 0.0;}
@@ -293,9 +293,9 @@ template <typename T>
 class MathVector<2, T>
 {
 	public:
-		typedef std::size_t size_type;
-		typedef T value_type;
-		static const std::size_t Size = 2;
+		using size_type = std::size_t;
+		using value_type = T;
+		static constexpr std::size_t Size = 2;
 
 	public:
 		MathVector()	{m_data[0] = m_data[1] = 0.0;}
@@ -365,9 +365,9 @@ template <typename T>
 class MathVector<3, T>
 {
 	public:
-		typedef std::size_t size_type;
-		typedef T value_type;
-		static const std::size_t Size = 3;
+		using size_type = std::size_t;
+		using value_type = T;
+		static constexpr std::size_t Size = 3;
 
 	public:
 		MathVector()	{m_data[0] = m_data[1] = m_data[2] = 0.0;}
@@ -443,9 +443,9 @@ template <typename T>
 class MathVector<4, T>
 {
 	public:
-		typedef std::size_t size_type;
-		typedef T value_type;
-		static const std::size_t Size = 4;
+		using size_type = std::size_t;
+		using value_type = T;
+		static constexpr std::size_t Size = 4;
 
 	public:
 		MathVector()	{m_data[0] = m_data[1] = m_data[2] = m_data[3] = 0.0;}

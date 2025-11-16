@@ -68,7 +68,7 @@ void CreateFunctionIndexMapping(FunctionIndexMapping& map,
  * This function create the union of function groups. Container is clear at beginning.
  *
  * \param[out]		fctGrp		Union of Functions
- * \param[in]		vFctGrp		Vector of function group (may contain NULL)
+ * \param[in]		vFctGrp		Vector of function group (may contain nullptr)
  * \param[in]		sortFct		flag if group should be sorted after adding
  */
 void CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,

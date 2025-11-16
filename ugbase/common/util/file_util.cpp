@@ -155,7 +155,7 @@ bool ReadFile(const char* filename, vector<char> &file, bool bText)
   size_t fileSize = FileSize(filename);
 
   FILE *f = fopen(filename, "rb");
-  if(f==NULL) return false;
+  if(f==nullptr) return false;
 
 
   if(bText)

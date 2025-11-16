@@ -260,7 +260,7 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 	ssg.add (si);
 
 // 	attach help indices
-	typedef ug::Attachment<int> AVrtIndex;
+	using AVrtIndex = Attachment<int>;
 	AVrtIndex aVrtIndex;
 	Grid::VertexAttachmentAccessor<AVrtIndex> aaVrtIndex;
 	grid.attach_to_vertices(aVrtIndex);
@@ -393,7 +393,7 @@ print_subsets(const char* filename, TFunction& u, const SubsetGroup& ssGrp, int 
 	Grid& grid = *u.domain()->grid();
 	
 // 	attach help indices
-	typedef ug::Attachment<int> AVrtIndex;
+	using AVrtIndex = Attachment<int>;
 	AVrtIndex aVrtIndex;
 	Grid::VertexAttachmentAccessor<AVrtIndex> aaVrtIndex;
 	grid.attach_to_vertices(aVrtIndex);
@@ -656,14 +656,13 @@ count_sizes(Grid& grid, const T& iterContainer, const int si,
             int& numVert, int& numElem, int& numConn)
 {
 //	get reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-																ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	number of corners of element
-	static const int numCo = ref_elem_type::numCorners;
+	static constexpr int numCo = ref_elem_type::numCorners;
 
 //	get iterators
-	typedef typename IteratorProvider<T>::template traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename IteratorProvider<T>::template traits<TElem>::const_iterator;
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 
@@ -763,10 +762,10 @@ write_points_elementwise(VTKFileWriter& File,
                          Grid& grid, const T& iterContainer, const int si, int& n)
 {
 //	get reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-																ref_elem_type;
-//	get iterators
-	typedef typename IteratorProvider<T>::template traits<TElem>::const_iterator const_iterator;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
+
+	//	get iterators
+	using const_iterator = typename IteratorProvider<T>::template traits<TElem>::const_iterator;
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 	if(m_bBinary)
@@ -922,14 +921,13 @@ write_cell_connectivity(VTKFileWriter& File,
                         Grid& grid, const T& iterContainer, const int si)
 {
 //	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-																ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	get reference element id
-	static const ReferenceObjectID refID = ref_elem_type::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID refID = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	get iterators
-	typedef typename IteratorProvider<T>::template traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename IteratorProvider<T>::template traits<TElem>::const_iterator;
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 
@@ -1059,11 +1057,10 @@ void VTKOutput<TDim>::
 write_cell_offsets(VTKFileWriter& File, const T& iterContainer, const int si, int& n)
 {
 //	get reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-																ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	get iterators
-	typedef typename IteratorProvider<T>::template traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename IteratorProvider<T>::template traits<TElem>::const_iterator;
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 
@@ -1163,10 +1160,10 @@ void VTKOutput<TDim>::
 write_cell_types(VTKFileWriter& File, const T& iterContainer, const int si)
 {
 //	get reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-																ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
+
 //	get object type
-	static const ReferenceObjectID refID = ref_elem_type::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID refID = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	type
 	char type;
@@ -1186,7 +1183,7 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, const int si)
 	}
 
 //	get iterators
-	typedef typename IteratorProvider<T>::template traits<TElem>::const_iterator const_iterator;
+using const_iterator = typename IteratorProvider<T>::template traits<TElem>::const_iterator;
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 
@@ -1280,7 +1277,7 @@ write_cell_subsets(VTKFileWriter& File, const T& iterContainer, const int si, MG
 	int subset;
 
 //	get iterators
-	typedef typename IteratorProvider<T>::template traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename IteratorProvider<T>::template traits<TElem>::const_iterator;
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 
@@ -1366,7 +1363,7 @@ write_cell_proc_ranks(VTKFileWriter& File, const T& iterContainer, const int si,
 #endif
 
 //	get iterators
-	typedef typename IteratorProvider<T>::template traits<TElem>::const_iterator const_iterator;
+using const_iterator = typename IteratorProvider<T>::template traits<TElem>::const_iterator;
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 
@@ -1443,10 +1440,9 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
                              Grid& grid, const int si)
 {
 //	get reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-																ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
-	static const size_t numCo = ref_elem_type::numCorners;
+	static constexpr size_t numCo = ref_elem_type::numCorners;
 
 	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
@@ -1454,7 +1450,7 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 		File << VTKFileWriter::normal;
 
 //	get iterators
-	typedef typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator;
 	const_iterator iterBegin = IteratorProvider<TFunction>::template begin<TElem>(u, si);
 	const_iterator iterEnd = IteratorProvider<TFunction>::template end<TElem>(u, si);
 
@@ -1495,7 +1491,7 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 		//	compute data
 			try{
 				(*spData)(vValue, &vCorner[0], time, theSI, elem,
-							&vCorner[0], refElem.corners(), numCo, &locU, NULL);
+							&vCorner[0], refElem.corners(), numCo, &locU, nullptr);
 			}
 			UG_CATCH_THROW("VTK::write_nodal_data_elementwise: Cannot evaluate data.");
 		}
@@ -1595,8 +1591,7 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
                                Grid& grid, const int si)
 {
 //	get reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-																ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
 	else
@@ -1606,7 +1601,7 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 	std::vector<DoFIndex> vMultInd;
 
 //	get iterators
-	typedef typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator;
 	const_iterator iterBegin = IteratorProvider<TFunction>::template begin<TElem>(u, si);
 	const_iterator iterEnd = IteratorProvider<TFunction>::template end<TElem>(u, si);
 
@@ -1833,11 +1828,10 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
                              Grid& grid, const int si)
 {
 //	get reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-																ref_elem_type;
-	static const int refDim = reference_element_traits<TElem>::dim;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
+	static constexpr int refDim = reference_element_traits<TElem>::dim;
 	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
-	static const size_t numCo = ref_elem_type::numCorners;
+	static constexpr size_t numCo = ref_elem_type::numCorners;
 
 	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
@@ -1845,7 +1839,7 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 		File << VTKFileWriter::normal;
 
 //	get iterators
-	typedef typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator;
 	const_iterator iterBegin = IteratorProvider<TFunction>::template begin<TElem>(u, si);
 	const_iterator iterEnd = IteratorProvider<TFunction>::template end<TElem>(u, si);
 
@@ -1975,19 +1969,18 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
                                Grid& grid, const int si)
 {
 //	get reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-																ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
-	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
-	static const int dim = ref_elem_type::dim;
-	static const size_t numCo = ref_elem_type::numCorners;
+	static constexpr ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
+	static constexpr int dim = ref_elem_type::dim;
+	static constexpr size_t numCo = ref_elem_type::numCorners;
 
 //	index vector
 	std::vector<DoFIndex> vMultInd;
 
 //	get iterators
-	typedef typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator const_iterator;
+	using const_iterator = typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator;
 	const_iterator iterBegin = IteratorProvider<TFunction>::template begin<TElem>(u, si);
 	const_iterator iterEnd = IteratorProvider<TFunction>::template end<TElem>(u, si);
 
@@ -2255,7 +2248,7 @@ write_pvtu(TFunction& u, const std::string& filename,
 
 	//	open file
 		file = fopen(name.c_str(), "w");
-		if (file == NULL)
+		if (file == nullptr)
 			UG_THROW("VTKOutput: Cannot print to file.");
 
 	//	Write to file
@@ -2457,7 +2450,7 @@ write_time_pvd(const char* filename, TFunction& u)
 	std::vector<number>& vTimestep = m_mTimestep[filename];
 
 //	change locale to ensure decimal . is really a .
-	char* oldLocale = setlocale (LC_ALL, NULL);
+	char* oldLocale = setlocale (LC_ALL, nullptr);
 	setlocale(LC_NUMERIC, "C");
 
 	if (isOutputProc)
@@ -2467,7 +2460,7 @@ write_time_pvd(const char* filename, TFunction& u)
 
 	//	open file
 		file = fopen(name.c_str(), "w");
-		if (file == NULL)
+		if (file == nullptr)
 			UG_THROW("Cannot print to file.");
 
 	// 	Write to file
@@ -2552,7 +2545,7 @@ write_time_processwise_pvd(const char* filename, TFunction& u)
 	std::vector<number>& vTimestep = m_mTimestep[filename];
 
 //	change locale to ensure decimal . is really a .
-	char* oldLocale = setlocale (LC_ALL, NULL);
+	char* oldLocale = setlocale (LC_ALL, nullptr);
 	setlocale(LC_NUMERIC, "C");
 
 	if (isOutputProc && numProcs > 1)
@@ -2564,7 +2557,7 @@ write_time_processwise_pvd(const char* filename, TFunction& u)
 
 	//	open file
 		file = fopen(name.c_str(), "w");
-		if (file == NULL)
+		if (file == nullptr)
 			UG_THROW("Cannot print to file.");
 
 	// 	Write to file
@@ -2627,7 +2620,7 @@ write_time_pvd_subset(const char* filename, TFunction& u, int si)
 	std::vector<number>& vTimestep = m_mTimestep[filename];
 
 //	change locale to ensure decimal . is really a .
-	char* oldLocale = setlocale (LC_ALL, NULL);
+	char* oldLocale = setlocale (LC_ALL, nullptr);
 	setlocale(LC_NUMERIC, "C");
 
 	if (isOutputProc)
@@ -2637,7 +2630,7 @@ write_time_pvd_subset(const char* filename, TFunction& u, int si)
 
 	//	open file
 		file = fopen(name.c_str(), "w");
-		if (file == NULL)
+		if (file == nullptr)
 			UG_THROW("Cannot print to file.");
 
 	// 	Write to file

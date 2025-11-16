@@ -49,7 +49,7 @@ namespace ug{
  * However, methods exist, which can assign global ids based on the
  * current layouts.
  */
-typedef std::pair<int, size_t>	GeomObjID;
+using GeomObjID = std::pair<int, size_t>;
 
 UG_API std::ostream& operator<<(std::ostream& out, const GeomObjID& goId);
 
@@ -64,7 +64,7 @@ inline GeomObjID MakeGeomObjID(int procRank, size_t localGeomObjID)
 
 ////////////////////////////////////////////////////////////////////////
 ///	An attachment which can store GeomObjIDs
-typedef Attachment<GeomObjID>	AGeomObjID;
+using AGeomObjID = Attachment<GeomObjID>;
 
 ///	This attachment instance should be used to store global ids
 extern AGeomObjID aGeomObjID;

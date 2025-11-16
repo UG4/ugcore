@@ -131,7 +131,7 @@ class UG_API ExportedFunctionBase
 		////////////////////////////////////////////////
 		//	Create parameter stack for PARAMETERS
 		////////////////////////////////////////////////
-			typedef typename func_traits<TFunc>::params_type params_type;
+			using params_type = typename func_traits<TFunc>::params_type;
 			CreateParameterInfo<params_type>::create(m_paramsIn);
 
 		//	arbitrary choosen minimum number of infos exported
@@ -143,17 +143,17 @@ class UG_API ExportedFunctionBase
 		//	resize missing infos for each parameter
 			for(int i = 0; i < (int)m_vvParamInfo.size(); ++i)
 				for(size_t j = m_vvParamInfo.at(i).size(); j < MinNumInfos; ++j)
-					m_vvParamInfo.at(i).push_back(std::string(""));
+					m_vvParamInfo.at(i).emplace_back("");
 
 		////////////////////////////////////////////////
 		//	Create parameter stack for RETURN VALUES
 		////////////////////////////////////////////////
-			typedef typename func_traits<TFunc>::return_type return_type;
+			using return_type = typename func_traits<TFunc>::return_type;
 			CreateParameterInfoOut<return_type>::create(m_paramsOut);
 
 		//	resize missing infos for return value
 			for(size_t j = m_vRetValInfo.size(); j < MinNumInfos; ++j)
-				m_vRetValInfo.push_back(std::string(""));
+				m_vRetValInfo.emplace_back("");
 		}
 
 	// 	help function to tokenize the parameter string
@@ -186,7 +186,7 @@ class UG_API ExportedFunction : public ExportedFunctionBase
 {
 	public:
 	//	all c++ functions are wrapped by a proxy function of the following type
-		typedef void (*ProxyFunc)(void* func, const ParameterStack& in, ParameterStack& out);
+		using ProxyFunc = void(*)(void* func, const ParameterStack& in, ParameterStack& out);
 
 		template <typename TFunc>
 		ExportedFunction(	TFunc f, ProxyFunc pf,
@@ -266,10 +266,10 @@ class UG_API ExportedFunctionGroup
 			size_t typeID = GetUniqueTypeID<TFunc>();
 
 		//	make sure that the overload didn't exist
-			if(get_overload_by_type_id(typeID))return NULL;
+			if(get_overload_by_type_id(typeID))return nullptr;
 
 		//	create a new overload
-			ExportedFunction* func = new ExportedFunction(f, pf, m_name,
+			auto* func = new ExportedFunction(f, pf, m_name,
 												funcOptions, group, retValInfos,
 												paramInfos, tooltip, help);
 
@@ -305,7 +305,7 @@ class UG_API ExportedFunctionGroup
 				if(m_overloads[i].m_typeID == typeID)
 					return m_overloads[i].m_func;
 			}
-			return NULL;
+			return nullptr;
 		}
 
 		const ExportedFunction* get_overload_by_type_id(size_t typeID) const
@@ -314,7 +314,7 @@ class UG_API ExportedFunctionGroup
 				if(m_overloads[i].m_typeID == typeID)
 					return m_overloads[i].m_func;
 			}
-			return NULL;
+			return nullptr;
 		}
 
 		size_t get_overload_type_id(size_t index) const
@@ -322,7 +322,7 @@ class UG_API ExportedFunctionGroup
 
 	private:
 		struct Overload{
-			Overload()	{}
+			Overload()	= default;
 			Overload(ExportedFunction* func, size_t typeID) :
 				m_func(func), m_typeID(typeID) {}
 			ExportedFunction* 	m_func;
@@ -341,7 +341,7 @@ struct FunctionProxy
 {
 	static void apply(void* func, const ParameterStack& in, ParameterStack& out)
 	{
-		typedef typename func_traits<TFunc>::params_type params_type;
+		using params_type = typename func_traits<TFunc>::params_type;
 		TFunc fp = (TFunc) func;
 
 	//  convert parameter stack
@@ -361,7 +361,7 @@ struct FunctionProxy<TFunc, void>
 {
 	static void apply(void* func, const ParameterStack& in, ParameterStack& out)
 	{
-		typedef typename func_traits<TFunc>::params_type params_type;
+		using params_type = typename func_traits<TFunc>::params_type;
 		TFunc fp = (TFunc) func;
 
 	//  convert parameter stack

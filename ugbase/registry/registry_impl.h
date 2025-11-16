@@ -199,7 +199,7 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	}
 
 //	new class pointer
-	ExportedClass<TClass>* newClass = NULL;
+	ExportedClass<TClass>* newClass = nullptr;
 
 	// AddTypeName<TClass>::add(tooltip);
 	newClass = new ExportedClass<TClass>(className, group, tooltip);
@@ -246,7 +246,7 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	check_base_class<TClass, TBaseClass>(className);
 
 //	new class pointer
-	ExportedClass<TClass>* newClass = NULL;
+	ExportedClass<TClass>* newClass = nullptr;
 
 	// AddTypeName<TClass>::add(tooltip);
 
@@ -301,7 +301,7 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	check_base_class<TClass, TBaseClass2>(className);
 
 //	new class pointer
-	ExportedClass<TClass>* newClass = NULL;
+	ExportedClass<TClass>* newClass = nullptr;
 
 	// AddTypeName<TClass>::add(tooltip);
 

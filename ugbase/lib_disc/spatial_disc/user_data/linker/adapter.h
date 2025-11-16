@@ -48,17 +48,17 @@ class UserVectorEntryAdapter
 {
 public:
 	///	Base class type
-		typedef StdDataLinker< UserVectorEntryAdapter<dim>, number, dim> base_type;
+		using base_type = StdDataLinker< UserVectorEntryAdapter<dim>, number, dim>;
 
-		typedef number data_type;
-		typedef CplUserData<data_type, dim> user_data_base_type;
+		using data_type = number;
+		using user_data_base_type = CplUserData<data_type, dim>;
 
-		typedef MathVector<dim> encapsulated_type;
-		typedef CplUserData<encapsulated_type, dim> input_type;
+		using encapsulated_type = MathVector<dim>;
+		using input_type = CplUserData<encapsulated_type, dim>;
 
 	public:
 
-		UserVectorEntryAdapter() :  m_index(0), m_spEncaps(NULL)
+		UserVectorEntryAdapter() :  m_index(0), m_spEncaps(nullptr)
 		{
 			this->set_num_input(_INPUT_+1); //	this linker has one inoput
 		}
@@ -82,7 +82,7 @@ public:
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
 		                     LocalVector* u,
-		                     const MathMatrix<refDim, dim>* vJT = NULL) const
+		                     const MathMatrix<refDim, dim>* vJT = nullptr) const
 		{
 		    std::vector<encapsulated_type> dummy(nip);
 
@@ -107,7 +107,7 @@ public:
 		                    bool bDeriv,
 		                    int s,
 		                    std::vector<std::vector<data_type > > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL) const
+		                    const MathMatrix<refDim, dim>* vJT = nullptr) const
 		{
 			//	get the data of the ip series
 			const encapsulated_type* vDummy = m_spEncaps->values(s);
@@ -163,7 +163,7 @@ public:
 	protected:
 		size_t m_index;
 
-		const static int _INPUT_= 0;
+		static constexpr int _INPUT_= 0;
 
 	///	import for concentration
 		SmartPtr<input_type> m_spEncaps;

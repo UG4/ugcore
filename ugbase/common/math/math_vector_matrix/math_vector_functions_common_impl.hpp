@@ -71,7 +71,7 @@ inline
 void
 VecAppend(vector_t& vOut, const vector_t& v1)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] += v1[i];
@@ -84,7 +84,7 @@ inline
 void
 VecAppend(vector_t& vOut, const vector_t& v1, const vector_t& v2)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] += v1[i] + v2[i];
@@ -98,7 +98,7 @@ void
 VecAppend(vector_t& vOut, const vector_t& v1, const vector_t& v2,
 							const vector_t& v3)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] += v1[i] + v2[i] + v3[i];
@@ -112,7 +112,7 @@ void
 VecAppend(vector_t& vOut, const vector_t& v1, const vector_t& v2,
 			const vector_t& v3, const vector_t& v4)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] += v1[i] + v2[i] + v3[i] + v4[i];
@@ -125,7 +125,7 @@ inline
 void
 VecScaleAppend(vector_t& vOut, typename vector_t::value_type s1, const vector_t& v1)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] += s1 * v1[i];
@@ -139,7 +139,7 @@ void
 VecScaleAppend(vector_t& vOut, typename vector_t::value_type s1, const vector_t& v1,
 								 typename vector_t::value_type s2, const vector_t& v2)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] += s1 * v1[i] + s2 * v2[i];
@@ -154,7 +154,7 @@ VecScaleAppend(vector_t& vOut, typename vector_t::value_type s1, const vector_t&
 								 typename vector_t::value_type s2, const vector_t& v2,
 								 typename vector_t::value_type s3, const vector_t& v3)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] += s1 * v1[i] + s2 * v2[i] + s3 * v3[i];
@@ -170,7 +170,7 @@ VecScaleAppend(vector_t& vOut, typename vector_t::value_type s1, const vector_t&
 								 typename vector_t::value_type s3, const vector_t& v3,
 								 typename vector_t::value_type s4, const vector_t& v4)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] += s1 * v1[i] + s2 * v2[i] + s3 * v3[i] + s4 * v4[i];
@@ -184,7 +184,7 @@ inline
 void
 VecAdd(vector_t& vOut, const vector_t& v1, const vector_t& v2)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = v1[i] + v2[i];
@@ -198,7 +198,7 @@ void
 VecAdd(vector_t& vOut, const vector_t& v1, const vector_t& v2,
 							const vector_t& v3)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = v1[i] + v2[i] + v3[i];
@@ -212,7 +212,7 @@ void
 VecAdd(vector_t& vOut, const vector_t& v1, const vector_t& v2,
 			const vector_t& v3, const vector_t& v4)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = v1[i] + v2[i] + v3[i] + v4[i];
@@ -225,7 +225,7 @@ inline
 void
 VecSubtract(vector_t& vOut, const vector_t& v1, const vector_t& v2)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = v1[i] - v2[i];
@@ -238,7 +238,7 @@ inline
 void
 VecPow(vector_t& vOut, const vector_t& v1, typename vector_t::value_type s)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = std::pow(v1[i], s);
@@ -251,7 +251,7 @@ inline
 void
 VecScale(vector_t& vOut, const vector_t& v, typename vector_t::value_type s)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = s * v[i];
@@ -265,7 +265,7 @@ void
 VecScaleAdd(vector_t& vOut, typename vector_t::value_type s1, const vector_t& v1,
 								 typename vector_t::value_type s2, const vector_t& v2)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = s1 * v1[i] + s2 * v2[i];
@@ -280,7 +280,7 @@ VecScaleAdd(vector_t& vOut, typename vector_t::value_type s1, const vector_t& v1
 								 typename vector_t::value_type s2, const vector_t& v2,
 								 typename vector_t::value_type s3, const vector_t& v3)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = s1 * v1[i] + s2 * v2[i] + s3 * v3[i];
@@ -296,7 +296,7 @@ VecScaleAdd(vector_t& vOut, typename vector_t::value_type s1, const vector_t& v1
 								 typename vector_t::value_type s3, const vector_t& v3,
 								 typename vector_t::value_type s4, const vector_t& v4)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = s1 * v1[i] + s2 * v2[i] + s3 * v3[i] + s4 * v4[i];
@@ -310,7 +310,7 @@ void
 VecInterpolateLinear(vector_t& vOut, const vector_t& v1, const vector_t& v2,
 						typename vector_t::value_type interpAmount)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = (1. - interpAmount) * v1[i] + interpAmount * v2[i];
@@ -324,7 +324,7 @@ typename vector_t::value_type
 VecLengthSq(const vector_t& v)
 {
 	typename vector_t::value_type len = 0;
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 
 	for(size_type i = 0; i < v.size(); ++i)
 	{
@@ -385,7 +385,7 @@ typename vector_t::value_type
 VecDot(const vector_t& v1, const vector_t& v2)
 {
 	typename vector_t::value_type dp = 0;
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 
 	for(size_type i = 0; i < v1.size(); ++i)
 	{
@@ -400,7 +400,7 @@ inline
 typename vector_t::value_type
 VecAngle(const vector_t& v1, const vector_t& v2)
 {
-	typedef typename vector_t::value_type value_t;
+	using value_t = typename vector_t::value_type;
 
 	value_t l = sqrt(VecLengthSq(v1) * VecLengthSq(v2));
 	if(l > 0){
@@ -538,7 +538,7 @@ inline
 void
 VecSet(vector_t& vInOut, typename vector_t::value_type s)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vInOut.size(); ++i)
 	{
 		vInOut[i] = s;
@@ -551,7 +551,7 @@ inline
 void
 VecAdd(vector_t& vOut, const vector_t& v, typename vector_t::value_type s)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = v[i] + s;
@@ -564,7 +564,7 @@ inline
 void
 VecSubtract(vector_t& vOut, const vector_t& v, typename vector_t::value_type s)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = v[i] - s;
@@ -593,7 +593,7 @@ typename vector_t::value_type
 VecOneNorm(const vector_t& v)
 {
 	typename vector_t::value_type len = 0;
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 
 	for(size_type i = 0; i < v.size(); ++i)
 	{
@@ -609,7 +609,7 @@ typename vector_t::value_type
 VecPNorm(const vector_t& v, unsigned int p)
 {
 	typename vector_t::value_type len = 0;
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 
 	for(size_type i = 0; i < v.size(); ++i)
 	{
@@ -625,7 +625,7 @@ typename vector_t::value_type
 VecMaxNorm(const vector_t& v)
 {
 	typename vector_t::value_type m = 0;
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 
 	for(size_type i = 0; i < v.size(); ++i)
 	{
@@ -650,7 +650,7 @@ inline
 void
 VecElemProd(vector_t& vOut, const vector_t& v1, const vector_t& v2)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = v1[i] * v2[i];
@@ -663,7 +663,7 @@ inline
 void
 VecElemSqrt(vector_t& vOut, const vector_t& v1)
 {
-	typedef typename vector_t::size_type size_type;
+	using size_type = typename vector_t::size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
 		vOut[i] = sqrt(v1[i]);

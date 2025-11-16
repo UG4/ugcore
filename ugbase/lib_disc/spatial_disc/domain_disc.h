@@ -80,29 +80,29 @@ class DomainDiscretizationBase
     protected TGlobAssembler
 {
     /// Type of the global assembler
-        typedef TGlobAssembler gass_type;
+    using gass_type = TGlobAssembler;
         
 	public:
 	///	Type of Domain
-		typedef TDomain domain_type;
+    using domain_type = TDomain;
 
 	///	Type of algebra
-		typedef TAlgebra algebra_type;
+    using algebra_type = TAlgebra;
 
 	///	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+    using matrix_type = typename algebra_type::matrix_type;
 
 	///	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+    using vector_type = typename algebra_type::vector_type;
 
 	/// Type of error vector
-		typedef typename CPUAlgebra::vector_type error_vector_type;
+    using error_vector_type = CPUAlgebra::vector_type;
 
 	///	Type of approximation space
-		typedef ApproximationSpace<TDomain>	approx_space_type;
+    using approx_space_type = ApproximationSpace<TDomain>;
 		
 	///	world dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 		
 	public:
 	///	default Constructor
@@ -281,12 +281,12 @@ class DomainDiscretizationBase
 public:
 	/// \copydoc IDomainDiscretization::mark_error()
 	// stationary
-		virtual void calc_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, error_vector_type* u_vtk = NULL);
-		virtual	void calc_error(const vector_type& u, const GridLevel& gl, error_vector_type* u_vtk = NULL)
+		virtual void calc_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, error_vector_type* u_vtk = nullptr);
+		virtual	void calc_error(const vector_type& u, const GridLevel& gl, error_vector_type* u_vtk = nullptr)
 		{calc_error(u, dd(gl));}
 
 		virtual	void calc_error(const GridFunction<TDomain,TAlgebra>& u)
-		{calc_error(u, u.dd(), NULL);}
+		{calc_error(u, u.dd(), nullptr);}
 		virtual	void calc_error(const GridFunction<TDomain,TAlgebra>& u, error_vector_type* u_vtk)
 		{calc_error(u, u.dd(), u_vtk);}
 
@@ -650,26 +650,26 @@ class DomainDiscretization
 :	public DomainDiscretizationBase<TDomain, TAlgebra, StdGlobAssembler<TDomain, TAlgebra> >
 {
     /// Type of the global assembler
-        typedef StdGlobAssembler<TDomain, TAlgebra> gass_type;
+    using gass_type = StdGlobAssembler<TDomain, TAlgebra>;
         
 	public:
 	///	Type of Domain
-		typedef TDomain domain_type;
+    using domain_type = TDomain;
 
 	///	Type of algebra
-		typedef TAlgebra algebra_type;
+    using algebra_type = TAlgebra;
 
 	///	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+    using matrix_type = typename algebra_type::matrix_type;
 
 	///	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+    using vector_type = typename algebra_type::vector_type;
 
 	///	Type of approximation space
-		typedef ApproximationSpace<TDomain>	approx_space_type;
+    using approx_space_type = ApproximationSpace<TDomain>;
 		
 	///	world dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 		
 	public:
 	///	default Constructor

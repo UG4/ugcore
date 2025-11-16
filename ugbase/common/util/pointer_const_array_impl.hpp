@@ -42,7 +42,7 @@ namespace ug
 template <class TPtr>
 PointerConstArray<TPtr>::
 PointerConstArray() :
-	m_array(NULL), m_data(NULL), m_size(0), m_capacity(0)
+	m_array(nullptr), m_data(nullptr), m_size(0), m_capacity(0)
 {
 }
 
@@ -86,7 +86,7 @@ assign_pointer_const_array(const PointerConstArray& pa)
 	if(pa.m_array != pa.m_data){
 	//	we'll point to the same external array
 		m_array = pa.m_array;
-		m_data = NULL;
+		m_data = nullptr;
 		m_capacity = 0;
 	}
 	else{
@@ -95,7 +95,7 @@ assign_pointer_const_array(const PointerConstArray& pa)
 			m_data = new TPtr[m_size];
 			memcpy(m_data, pa.m_data, sizeof(TPtr) * m_size);
 		}else
-			m_data = NULL;
+			m_data = nullptr;
 		m_capacity = m_size;
 		m_array = m_data;
 	}

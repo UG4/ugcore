@@ -49,32 +49,32 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	attachment-types
-typedef Attachment<bool>		ABool;
-typedef Attachment<char>		AChar;
-typedef Attachment<byte>		AByte;
-typedef Attachment<int>			AInt;
-typedef Attachment<uint>		AUInt;
-typedef Attachment<number>		ANumber;
-typedef	 Attachment<float>		AFloat;
-typedef Attachment<double>		ADouble;
-typedef Attachment<vector1>		AVector1;
-typedef Attachment<vector2>		AVector2;
-typedef Attachment<vector3>		AVector3;
-typedef Attachment<vector4>		AVector4;
-typedef Attachment<Vertex*>		AVertex;
-typedef Attachment<Edge*>		AEdge;
-typedef Attachment<Face*>		AFace;
-typedef Attachment<Volume*>		AVolume;
+using ABool = Attachment<bool>;
+using AChar = Attachment<char>;
+using AByte = Attachment<byte_t>;
+using AInt = Attachment<int>;
+using AUInt = Attachment<uint>;
+using ANumber = Attachment<number>;
+using AFloat = Attachment<float>;
+using ADouble = Attachment<double>;
+using AVector1 = Attachment<vector1>;
+using AVector2 = Attachment<vector2>;
+using AVector3 = Attachment<vector3>;
+using AVector4 = Attachment<vector4>;
+using AVertex = Attachment<Vertex*>;
+using AEdge = Attachment<Edge*>;
+using AFace = Attachment<Face*>;
+using AVolume = Attachment<Volume*>;
 
-typedef AVector1	APosition1;
-typedef AVector2	APosition2;
-typedef AVector3	ANormal2;
-typedef AVector3	APosition3;
-typedef AVector3	ANormal3;
-typedef AVector2	ATexCoord;
+using APosition1 = AVector1;
+using APosition2 = AVector2;
+using ANormal2 = AVector3;
+using APosition3 = AVector3;
+using ANormal3 = AVector3;
+using ATexCoord = AVector2;
 
-typedef APosition3	APosition;
-typedef ANormal3	ANormal;
+using APosition = APosition3;
+using ANormal = ANormal3;
 
 
 ////////////////////////////////////////////////////////////////////////

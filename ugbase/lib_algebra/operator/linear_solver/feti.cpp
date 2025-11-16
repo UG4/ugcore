@@ -96,11 +96,11 @@ struct PosAndIndex{
 template <typename TAlgebra>
 LocalSchurComplement<TAlgebra>::
 LocalSchurComplement() :
-	m_pMatrix(NULL),
-	m_pFetiLayouts(NULL),
+	m_pMatrix(nullptr),
+	m_pFetiLayouts(nullptr),
 	m_spDirichletOperator(new MatrixOperator<matrix_type, vector_type>),
-	m_pDirichletMatrix(NULL),
-	m_spDirichletSolver(NULL)
+	m_pDirichletMatrix(nullptr),
+	m_spDirichletSolver(nullptr)
 {
 }
 
@@ -113,7 +113,7 @@ init()
 		UG_THROW("LocalSchurComplement::init: No Operator A set.");
 
 //	check Feti layouts have been set
-	if(m_pFetiLayouts == NULL)
+	if(m_pFetiLayouts == nullptr)
 		UG_THROW("LocalSchurComplement::init: FETI layouts not set.");
 
 //	save matrix from which we build the Schur complement
@@ -193,7 +193,7 @@ apply(vector_type& f, const vector_type& u)
 	m_pFetiLayouts->vec_set_on_dual(f, 0.0);
 
 //	Debug output of vector
-	if(debug_writer() != SPNULL)
+	if(debug_writer() != nullptr)
 	{
 	//	add iter count to name
 		std::string name("FetiDirichletRhs");
@@ -365,16 +365,16 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 template <typename TAlgebra>
 PrimalSubassembledMatrixInverse<TAlgebra>::
 PrimalSubassembledMatrixInverse() :
-	m_spOperator(NULL),
-	m_pMatrix(NULL),
-	m_pFetiLayouts(NULL),
+	m_spOperator(nullptr),
+	m_pMatrix(nullptr),
+	m_pFetiLayouts(nullptr),
 	m_spNeumannOperator(new MatrixOperator<matrix_type, vector_type>),
-	m_pNeumannMatrix(NULL),
-	m_spNeumannSolver(NULL),
-	m_spCoarseProblemSolver(NULL),
+	m_pNeumannMatrix(nullptr),
+	m_spNeumannSolver(nullptr),
+	m_spCoarseProblemSolver(nullptr),
 	m_primalRootProc(-1),
 	m_spRootSchurComplementOp(new MatrixOperator<matrix_type, vector_type>),
-	m_pRootSchurComplementMatrix(NULL),
+	m_pRootSchurComplementMatrix(nullptr),
 	m_statType(""),
 	m_bTestOneToManyLayouts(false)
 {
@@ -403,7 +403,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	}
 
 //	check that Pi layouts have been set
-	if(m_pFetiLayouts == NULL)
+	if(m_pFetiLayouts == nullptr)
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
 				" Feti Layouts not set "
@@ -580,7 +580,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	}
 
 //	processes will collect their local primal connections here.
-	typedef PrimalConnection<typename vector_type::value_type> PrimalConnection;
+	using PrimalConnection = PrimalConnection<typename vector_type::value_type>;
 	std::vector<PrimalConnection> vLocalPrimalConnections;
 
 //	create help vectors
@@ -782,7 +782,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 		m_pRootSchurComplementMatrix = &m_spRootSchurComplementOp->get_matrix();
 
 	//	check matrix
-		if(m_pRootSchurComplementMatrix == NULL)
+		if(m_pRootSchurComplementMatrix == nullptr)
 		{
 			UG_LOG("ERROR in 'PrimalSubassembledMatrixInverse::init': No matrix in"
 					"Root Schur Complement Operator.\n");
@@ -848,7 +848,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 
 //	Debug output of matrix
 //	this is 2d only debug output. \todo: generalize (i.e. copy+paste)
-	if(debug_writer() != SPNULL && debug_writer()->current_dimension() == 2)
+	if(debug_writer() != nullptr && debug_writer()->current_dimension() == 2)
 	{
 	//	vector of root index + pos
 		std::vector<PosAndIndex<2> > vProcLocPos;
@@ -906,7 +906,7 @@ bool PrimalSubassembledMatrixInverse<TAlgebra>::
 apply_return_defect(vector_type& u, vector_type& f)
 {
 //	check that matrix has been set
-	if(m_pNeumannMatrix == NULL)
+	if(m_pNeumannMatrix == nullptr)
 	{
 		UG_LOG("ERROR: In 'PrimalSubassembledMatrixInverse::apply': "
 						"Matrix A not set.\n");
@@ -1361,10 +1361,10 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 template <typename TAlgebra>
 FETISolver<TAlgebra>::
 FETISolver() :
-	m_spOperator(NULL),
-	m_pMatrix(NULL),
-	m_spDirichletSolver(NULL),
-	m_spNeumannSolver(NULL)
+	m_spOperator(nullptr),
+	m_pMatrix(nullptr),
+	m_spDirichletSolver(nullptr),
+	m_spNeumannSolver(nullptr)
 {
 
 }
@@ -1386,13 +1386,13 @@ init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 	m_pMatrix = &m_spOperator->get_matrix();
 
 //	check that DDInfo has been set
-	if(m_pDDInfo == NULL)
+	if(m_pDDInfo == nullptr)
 	{
 		UG_LOG("ERROR in FETISolver::init: DDInfo not set.\n");
 		return false;
 	}
 
-	bool debugLayouts = (debug_writer()==SPNULL) ? false : true;
+	bool debugLayouts = (debug_writer()==nullptr) ? false : true;
 
 //	1. create FETI Layouts
 	UG_LOG("\n%   - Create FETI layouts ... ");

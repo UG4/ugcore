@@ -65,7 +65,7 @@ template <class TSelector>
 HangingNodeRefinerBase<TSelector>::
 HangingNodeRefinerBase(SPRefinementProjector projector) :
 	IRefiner(projector),
-	m_pGrid(NULL),
+	m_pGrid(nullptr),
 	m_nodeDependencyOrder1(true),
 	m_adjustingRefMarks(false)
 	//,m_automarkHigherDimensionalObjects(false)
@@ -97,8 +97,8 @@ set_grid(typename TSelector::grid_type* grid)
 	if(m_pGrid)
 	{
 		m_pGrid->unregister_observer(this);
-		m_selMarkedElements.assign_grid(NULL);
-		m_pGrid = NULL;
+		m_selMarkedElements.assign_grid(nullptr);
+		m_pGrid = nullptr;
 	}
 
 	if(grid){
@@ -114,7 +114,7 @@ set_grid(typename TSelector::grid_type* grid)
 template <class TSelector> void
 HangingNodeRefinerBase<TSelector>::grid_to_be_destroyed(Grid* grid)
 {
-	m_pGrid = NULL;
+	m_pGrid = nullptr;
 }
 
 template <class TSelector> void
@@ -198,10 +198,10 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 	if(!m_pGrid)
 		return;
 
-	typedef typename TSelector::template traits<Vertex>::iterator	SelVrtIter;
-	typedef typename TSelector::template traits<Edge>::iterator		SelEdgeIter;
-	typedef typename TSelector::template traits<Face>::iterator			SelFaceIter;
-	typedef typename TSelector::template traits<Volume>::iterator		SelVolIter;
+	using SelVrtIter = typename TSelector::template traits<Vertex>::iterator;
+	using SelEdgeIter = typename TSelector::template traits<Edge>::iterator;
+	using SelFaceIter = typename TSelector::template traits<Face>::iterator;
+	using SelVolIter = typename TSelector::template traits<Volume>::iterator;
 
 	Grid::edge_traits::secure_container		edges;
 	Grid::face_traits::secure_container		faces;
@@ -240,10 +240,10 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 				Volume* vol = *iter;
 				RefinementMark s = get_mark(vol);
 				g.associated_elements(faces, vol);
-				for_each_in_vec(Face* f, faces){
+				for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){ Face* f = faces[_vfeI];{
 					if(!sel.is_selected(f) && this->refinement_is_allowed(f))
 						this->mark(f, s);
-				}end_for;
+				}};
 			}
 
 			for(SelFaceIter iter = sel.template begin<Face>();
@@ -252,10 +252,10 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 				Face* f = *iter;
 				RefinementMark s = get_mark(f);
 				g.associated_elements(edges, f);
-				for_each_in_vec(Edge* e, edges){
+				for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){ Edge* e = edges[_vfeI];{
 					if(!sel.is_selected(e) && this->refinement_is_allowed(e))
 						this->mark(e, s);
-				}end_for;
+				}};
 			}
 
 			for(SelEdgeIter iter = sel.template begin<Edge>();
@@ -308,13 +308,13 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 		//	mark those elements which have a marked side
 			if(hasVolumes){
 				vector<Edge*> markedDummyEdges;
-				lg_for_each(Volume, vol, g){
+				for(Grid::traits<Volume>::iterator _feI = g.begin<Volume>(); _feI != g.end<Volume>(); ++_feI){ Volume* vol = *_feI;{
 					if(this->refinement_is_allowed(vol)){
 						RefinementMark s = get_mark(vol);
 						if(s < refMark){
 							g.associated_elements(faces, vol);
 							RefinementMark rm = RM_NONE;
-							for_each_in_vec(Face* f, faces){
+							for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){ Face* f = faces[_vfeI];{
 								RefinementMark sSide = get_mark(f);
 								if(sSide){
 									rm = refMark;
@@ -330,16 +330,16 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 									mark(vol, rm);
 									break;
 								}
-							}end_for;
+							}};
 
 							if(rm == RM_ANISOTROPIC){
 							//	we'll also copy edge-marks to guarantee an anisotropic refinement
 								bool copying = true;
 								while(copying){
 									copying = false;
-									for_each_in_vec(Face* f, faces){
+									for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){ Face* f = faces[_vfeI];{
 										g.associated_elements(edges, f);
-										for_each_in_vec(Edge* e, edges){
+										for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){ Edge* e = edges[_vfeI];{
 											RefinementMark erm = get_mark(e);
 											if(erm == RM_REFINE){
 												if(f->get_opposing_side(e, edesc)){
@@ -351,26 +351,26 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 													}
 												}
 											}	
-										}end_for;
-									}end_for;
+										}};
+									}};
 								}
 							}
 						}
 					}
-				}lg_end_for;
+				}};
 
-				for_each_in_vec(Edge* e, markedDummyEdges){
+				for(size_t _vfeI = 0; _vfeI < markedDummyEdges.size(); ++_vfeI){ Edge* e = markedDummyEdges[_vfeI];{
 					mark(e, RM_REFINE);	
-				}end_for;
+				}};
 			}
 			else if(hasFaces){
-				lg_for_each(Face, f, g){
+				for(Grid::traits<Face>::iterator _feI = g.begin<Face>(); _feI != g.end<Face>(); ++_feI){ Face* f = *_feI;{
 					if(this->refinement_is_allowed(f)){
 						RefinementMark s = get_mark(f);
 						if(s < refMark){
 							g.associated_elements(edges, f);
 							RefinementMark rm = RM_NONE;
-							for_each_in_vec(Edge* e, edges){
+							for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){ Edge* e = edges[_vfeI];{
 								RefinementMark sSide = get_mark(e);
 								if(sSide){
 									rm = refMark;
@@ -386,15 +386,15 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 									mark(f, rm);
 									break;
 								}
-							}end_for;
+							}};
 
 						//	todo: if rm == RM_ANISOTROPIC: mark opposite edges (cf hasVolumes)
 						}
 					}
-				}lg_end_for;
+				}};
 			}
 			else if(hasEdges){
-				lg_for_each(Edge, e, g){
+				for(Grid::traits<Edge>::iterator _feI = g.begin<Edge>(); _feI != g.end<Edge>(); ++_feI){ Edge* e = *_feI;{
 					if(this->refinement_is_allowed(e)){
 						RefinementMark s = get_mark(e);
 						if(s < refMark){
@@ -417,7 +417,7 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 							}
 						}
 					}
-				}lg_end_for;
+				}};
 			}
 		}
 		else{
@@ -535,10 +535,10 @@ save_marks_to_file(const char* filename)
 	}
 
 	sh.subset_info(0).name = "_NONE_";
-	for (byte si = 1; si > 0; ++si)
+	for (byte_t si = 1; si > 0; ++si)
 	{
 		sh.subset_info(si).name = "_";
-		for (byte b = 1; b != 0; b = b << 1)
+		for (byte_t b = 1; b != 0; b = b << 1)
 			if (si & b)
 				switch (b)
 				{
@@ -623,7 +623,7 @@ save_marks_to_file(const char* filename)
 	AssignSubsetColors(sh);
 	EraseEmptySubsets(sh);
 
-	if(MultiGrid* pmg = dynamic_cast<MultiGrid*>(&g))
+	if(auto* pmg = dynamic_cast<MultiGrid*>(&g))
 		return SaveGridHierarchyTransformed(*pmg, sh, filename, 0.1);
 	else
 		return SaveGridToFile(g, sh, filename);
@@ -694,7 +694,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 		projector()->refinement_begins(&sg);
 	}
 	else
-		projector()->refinement_begins(NULL);
+		projector()->refinement_begins(nullptr);
 
 //	call pre_refine to allow derived classes to perform some actions
 	HNODE_PROFILE_BEGIN(href_PreRefine);
@@ -992,7 +992,7 @@ template <class TSelector>
 template <class TElem>
 bool HangingNodeRefinerBase<TSelector>::remove_coarsen_marks()
 {
-	typedef typename selector_t::template traits<TElem>::iterator	ElemIter;
+	using ElemIter = typename selector_t::template traits<TElem>::iterator;
 	bool removedCoarsenMark = false;
 	for(ElemIter iter = m_selMarkedElements.template begin<TElem>();
 		iter != m_selMarkedElements.template end<TElem>();)
@@ -1333,15 +1333,14 @@ add_hmark(TElem* elem, HNodeRefMarks mark)
 {
 //	we have to consider periodic boundaries
 	PeriodicBoundaryManager* pbm = m_pGrid->periodic_boundary_manager();
-	typedef typename TElem::grid_base_object	base_elem_t;
+	using base_elem_t = typename TElem::grid_base_object;
 	base_elem_t* e = elem;
 	if(pbm && pbm->is_periodic(e)){
 		base_elem_t* master = pbm->master(e);
 		m_selMarkedElements.select(master,
 					m_selMarkedElements.get_selection_status(master) | mark);
 
-		typedef typename PeriodicBoundaryManager::Group<base_elem_t>::SlaveContainer
-						 slave_container_t;
+		using slave_container_t = typename PeriodicBoundaryManager::Group<base_elem_t>::SlaveContainer;
 		slave_container_t* slaves = pbm->slaves(master);
 		for(typename slave_container_t::iterator i = slaves->begin();
 			i != slaves->end(); ++i)
@@ -1363,18 +1362,16 @@ remove_hmark(TElem* elem, uint mark)
 {
 	//	we have to consider periodic boundaries
 	PeriodicBoundaryManager* pbm = m_pGrid->periodic_boundary_manager();
-	typedef typename TElem::grid_base_object	base_elem_t;
+	using base_elem_t = typename TElem::grid_base_object;
 	base_elem_t* e = elem;
 	if(pbm && pbm->is_periodic(e)){
 		base_elem_t* master = pbm->master(e);
 		m_selMarkedElements.select(master,
 					m_selMarkedElements.get_selection_status(master) & (~mark));
 
-		typedef typename PeriodicBoundaryManager::Group<base_elem_t>::SlaveContainer
-						 slave_container_t;
+		using slave_container_t = typename PeriodicBoundaryManager::Group<base_elem_t>::SlaveContainer;
 		slave_container_t* slaves = pbm->slaves(master);
-		for(typename slave_container_t::iterator i = slaves->begin();
-			i != slaves->end(); ++i)
+		for(auto i = slaves->begin(); i != slaves->end(); ++i)
 		{
 			m_selMarkedElements.select(*i,
 					m_selMarkedElements.get_selection_status(*i) & (~mark));
@@ -1394,8 +1391,8 @@ process_constrained_vertex(ConstrainedVertex* cdv)
 {
 
 	if(marked_to_normal(cdv)){
-		Edge* parentEdge = NULL;
-		Face* parentFace = NULL;
+		Edge* parentEdge = nullptr;
+		Face* parentFace = nullptr;
 		GridObject* constrObj = cdv->get_constraining_object();
 
 		if(constrObj){
@@ -1417,7 +1414,7 @@ process_constrained_vertex(ConstrainedVertex* cdv)
 								  "Constraining edge has to be converted to a normal edge!");
 						cgf->clear_constrained_vertices();
 						parentFace = cgf;
-						UG_ASSERT((get_center_vertex(cgf) == NULL) || (get_center_vertex(cgf) == cdv),
+						UG_ASSERT((get_center_vertex(cgf) == nullptr) || (get_center_vertex(cgf) == cdv),
 								  "Center vertex and constrained vertex do not match!");
 					}break;
 				default:
@@ -1483,7 +1480,7 @@ process_constraining_edge(ConstrainingEdge* cge)
 	Grid& grid = *m_pGrid;
 
 //	the central hanging vertex has to be transformed into a normal vertex
-	ConstrainedVertex* centralHV = NULL;
+	ConstrainedVertex* centralHV = nullptr;
 	if(cge->num_constrained_vertices() > 0)
 		centralHV = dynamic_cast<ConstrainedVertex*>(cge->constrained_vertex(0));
 
@@ -1615,7 +1612,7 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 					noEdgeVrts = false;
 			}
 			else
-				vNewEdgeVertices[i] = NULL;
+				vNewEdgeVertices[i] = nullptr;
 		}
 	}
 	else{
@@ -1625,7 +1622,7 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 		//	if the face is refined with a regular rule, then every edge has to have
 		//	an associated center vertex
 			UG_ASSERT(marked_adaptive(f) ||
-				   (get_mark(f) == RM_REFINE && get_center_vertex(e) != NULL),
+				   (get_mark(f) == RM_REFINE && get_center_vertex(e) != nullptr),
 				   "violated for " << ElementDebugInfo(grid, f));
 
 		//	assign the center vertex
@@ -1646,10 +1643,10 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 	}
 
 //	we'll perform a regular refine
-	Vertex* nVrt = NULL;
-	/*f->refine_regular(vFaces, &nVrt, vNewEdgeVertices, NULL,
+	Vertex* nVrt = nullptr;
+	/*f->refine_regular(vFaces, &nVrt, vNewEdgeVertices, nullptr,
 					  RegularVertex(), newCornerVrts);*/
-	f->refine(vFaces, &nVrt, vNewEdgeVertices, NULL, newCornerVrts);
+	f->refine(vFaces, &nVrt, vNewEdgeVertices, nullptr, newCornerVrts);
 
 //	if a new vertex has been created during refine, then register it at the grid.
 	if(nVrt)
@@ -1698,7 +1695,7 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 		int edgeIndex = GetEdgeIndex(f, e);
 
 		assert((edgeIndex >= 0) && (edgeIndex < (int)vEdges.size()) && "ERROR in RefineFaceWithNormalVertex(...): unknown problem in CollectEdges / GetEdgeIndex.");
-		//assert((get_center_vertex(e) != NULL) && "ERROR in RefineFaceWithNormalVertex(...): no new vertex on refined edge.");
+		//assert((get_center_vertex(e) != nullptr) && "ERROR in RefineFaceWithNormalVertex(...): no new vertex on refined edge.");
 		vNewEdgeVertices[edgeIndex] = get_center_vertex(e);
 	}
 */
@@ -1717,7 +1714,7 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 					++numMarkedEdges;
 			}
 			else
-				vNewEdgeVertices[i] = NULL;
+				vNewEdgeVertices[i] = nullptr;
 		}
 	}
 	else{
@@ -1736,8 +1733,8 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 		}
 	}
 
-	ConstrainingFace* cgf = NULL;
-	ConstrainedVertex* hv = NULL;
+	ConstrainingFace* cgf = nullptr;
+	ConstrainedVertex* hv = nullptr;
 
 //	the face has to be replaced by a constraining face.
 //	we'll perform a switch here depending on the number of vertices
@@ -1757,7 +1754,7 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 			//	refine the constrained tri
 				Vertex* tmpVrt;
 				constrainedTri.refine(vFaces, &tmpVrt, vNewEdgeVertices,
-									  NULL, newCornerVrts);
+									  nullptr, newCornerVrts);
 			}
 			break;
 		case 4:
@@ -1898,7 +1895,7 @@ process_constrained_face(ConstrainedFace* cdf)
 					cgf->clear_constrained_faces();
 				}break;
 			default:
-				UG_ASSERT(cdf->get_constraining_object() == NULL,
+				UG_ASSERT(cdf->get_constraining_object() == nullptr,
 						  "Invalid constraining object encountered!");
 				break;
 		}
@@ -1933,12 +1930,12 @@ process_constraining_face(ConstrainingFace* cgf)
 			  "bad number of constrained faces. There have to be exactly 4. "
 			  << "At face with center " << GetGridObjectCenter(grid, cgf));
 
-	ConstrainedVertex* centralHV = NULL;
-	RegularVertex* centerVrt = NULL;
+	ConstrainedVertex* centralHV = nullptr;
+	RegularVertex* centerVrt = nullptr;
 
 	if(numVrts == 4){
 	//	the central hanging vertex has to be transformed into a normal vertex
-		centralHV = NULL;
+		centralHV = nullptr;
 		if(cgf->num_constrained_vertices() > 0)
 			centralHV = dynamic_cast<ConstrainedVertex*>(cgf->constrained_vertex(0));
 
@@ -2027,7 +2024,7 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 					noEdgeVrts = false;
 			}
 			else
-				vNewEdgeVertices[i] = NULL;
+				vNewEdgeVertices[i] = nullptr;
 		}
 	}
 	else{
@@ -2075,7 +2072,7 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 		}*/
 
 		if(f->num_vertices() == 3)
-			vNewFaceVertices[i] = NULL;
+			vNewFaceVertices[i] = nullptr;
 		else{
 			vNewFaceVertices[i] = get_center_vertex(f);
 			UG_COND_THROW(!(marked_adaptive(v) || vNewFaceVertices[i]),
@@ -2100,7 +2097,7 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 //	the corner coordinates, so that the refinement algorithm may choose
 //	the best interior diagonal.
 	vector3 corners[4];
-	vector3* pCorners = NULL;
+	vector3* pCorners = nullptr;
 	if((v->num_vertices() == 4) && m_projector.valid()){
 		for(size_t i = 0; i < 4; ++i){
 			corners[i] = m_projector->geometry()->pos(v->vertex(i));
@@ -2109,9 +2106,9 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 	}
 
 //	refine the volume and register new volumes at the grid.
-	Vertex* createdVrt = NULL;
+	Vertex* createdVrt = nullptr;
 	v->refine(vVolumes, &createdVrt, &vNewEdgeVertices.front(),
-			  &vNewFaceVertices.front(), NULL, RegularVertex(), newCornerVrts, pCorners);
+			  &vNewFaceVertices.front(), nullptr, RegularVertex(), newCornerVrts, pCorners);
 
 	if(createdVrt){
 	//	register the new vertex

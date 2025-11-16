@@ -60,15 +60,15 @@
 namespace ug {
 namespace vrl {
 
-static ug::bridge::Registry* vrlRegistry = NULL;
-static JavaVM* javaVM = NULL;
+static ug::bridge::Registry* vrlRegistry = nullptr;
+static JavaVM* javaVM = nullptr;
 
 void SetVRLRegistry(ug::bridge::Registry* pReg) {
 	vrlRegistry = pReg;
 }
 
 void initJavaVM(JNIEnv* env) {
-	if (javaVM == NULL) {
+	if (javaVM == nullptr) {
 		env->GetJavaVM(&javaVM);
 	} else {
 		UG_LOG("UG-VRL: JavaVM already initialized!"
@@ -148,9 +148,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
 //	}
 
 	std::string className;
-	const ug::bridge::IExportedClass* clazz = NULL;
+	const ug::bridge::IExportedClass* clazz = nullptr;
 	std::string name;
-	jobject result = NULL;
+	jobject result = nullptr;
 
 	try {
 
@@ -170,13 +170,13 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
 						ug::vrl::vrlRegistry, clazz, ug::vrl::boolJ2C(readOnly),
 						name, params);
 
-		if (exMethod == NULL && readOnly == false) {
+		if (exMethod == nullptr && readOnly == false) {
 			exMethod = ug::vrl::invocation::getMethodBySignature(env,
 					ug::vrl::vrlRegistry, clazz, ug::vrl::boolJ2C(true), name,
 					params);
 		}
 
-		if (exMethod == NULL) {
+		if (exMethod == nullptr) {
 
 			std::stringstream ss;
 
@@ -186,7 +186,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
 					<< EMPHASIZE_END << ".";
 
 			ug::vrl::throwUgErrorAsJavaException(env, ss.str());
-			return NULL;
+			return nullptr;
 		}
 
 		ug::vrl::jobjectArray2ParamStack(env, ug::vrl::vrlRegistry, paramsIn,
@@ -235,7 +235,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 		jobject obj, jlong exportedClassPointer, jobjectArray params) {
 
 
-	ug::bridge::IExportedClass* clazz = NULL;
+	ug::bridge::IExportedClass* clazz = nullptr;
 	std::string name = "constructor";
 
 	try {
@@ -247,7 +247,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 				ug::vrl::invocation::getConstructorBySignature(env,
 						ug::vrl::vrlRegistry, clazz, params);
 
-		if (constructor == NULL) {
+		if (constructor == nullptr) {
 
 			std::stringstream ss;
 
@@ -257,7 +257,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 					<< EMPHASIZE_END << ".";
 
 			ug::vrl::throwUgErrorAsJavaException(env, ss.str());
-			return NULL;
+			return nullptr;
 		}
 
 		ug::vrl::jobjectArray2ParamStack(env, ug::vrl::vrlRegistry, paramsIn,
@@ -295,15 +295,15 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
 		jobject obj, jstring fName, jboolean readOnly, jobjectArray params) {
 
 	std::string name;
-	const ug::bridge::ExportedFunction* func = NULL;
-	jobject result = NULL;
+	const ug::bridge::ExportedFunction* func = nullptr;
+	jobject result = nullptr;
 
 	try {
 
@@ -317,7 +317,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
 		ug::bridge::ParameterStack paramsOut;
 
 
-		if (func == NULL) {
+		if (func == nullptr) {
 			std::stringstream ss;
 
 			ss << "No function found that matches the given signature: "
@@ -327,7 +327,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
 
 			ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 
-			return NULL;
+			return nullptr;
 		}
 
 		//zum debuggen christian poliwoda ?? HIER passiert der Fehler
@@ -392,8 +392,8 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG__1getExportedClassPtrByName(
 					ug::vrl::vrlRegistry->get_class_group(
 							ug::vrl::stringJ2C(env, name).c_str());
 
-			if (grpDesc == NULL || grpDesc->get_default_class() == NULL) {
-				return (jlong) NULL;
+			if (grpDesc == nullptr || grpDesc->get_default_class() == nullptr) {
+				return (jlong) nullptr;
 			}
 
 			return (jlong) grpDesc->get_default_class();
@@ -413,7 +413,7 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG__1getExportedClassPtrByName(
 		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 	}
 
-	return (jlong) NULL;
+	return (jlong) nullptr;
 }
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDefaultClassNameFromGroup(
@@ -423,11 +423,11 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDefaultClassNameFromGroup
                 ug::vrl::vrlRegistry->get_class_group(
                         ug::vrl::stringJ2C(env, grpName).c_str());
 
-        if (grpDesc == NULL) {
+        if (grpDesc == nullptr) {
             return ug::vrl::stringC2J(env, "");
         }
 
-        if (grpDesc->get_default_class() == NULL) {
+        if (grpDesc->get_default_class() == nullptr) {
             return ug::vrl::stringC2J(env, "");
         }
 
@@ -444,14 +444,9 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDefaultClassNameFromGroup
 		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 	}
 
-	return (jstring) NULL;
+	return (jstring) nullptr;
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getSvnRevision(JNIEnv *env,
-		jobject obj) {
-	std::string revision = ug::vrl::svnRevision();
-	return ug::vrl::stringC2J(env, revision.c_str());
-}
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getCompileDate(JNIEnv *env,
 		jobject obj) {
@@ -466,7 +461,7 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getUGVersion(JNIEnv *env,
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG__1delete(JNIEnv * env,
 		jclass cls, jlong objPtr, jlong exportedClsPtr) {
 
-	if (((void*) objPtr) != NULL && ((void*) exportedClsPtr) != NULL) {
+	if (((void*) objPtr) != nullptr && ((void*) exportedClsPtr) != nullptr) {
 		ug::bridge::IExportedClass* clazz =
 				(ug::bridge::IExportedClass*) exportedClsPtr;
 		clazz->destroy((void*) objPtr);
@@ -574,7 +569,7 @@ jobject bool_array(JNIEnv *env, jobject obj, jstring jName,
 	//std::cout << "arrayLenght = " << arrayLenght << std::endl;
 
 	jboolean *arrayBoolElements = env->GetBooleanArrayElements(jBoolArray,
-			NULL);
+			nullptr);
 
 	// getVALUEs from jBooleanArray
 
@@ -602,7 +597,7 @@ jobject bool_array(JNIEnv *env, jobject obj, jstring jName,
 //after debugging is finished this method should be commented out
 jobject array_of_bool_arrays(JNIEnv *env, jobject obj, jstring jName,
 		jobjectArray params) {
- jobject result = NULL;
+ jobject result = nullptr;
 
 	std::cout	<< "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : array_of_bool_arrays() " << std::endl;
 
@@ -655,7 +650,7 @@ jobject array_of_bool_arrays(JNIEnv *env, jobject obj, jstring jName,
 		//cout << "jBoolArrayLenght = " << jBoolArrayLenght << endl;
 
 		jboolean *jBoolArrayElements = env->GetBooleanArrayElements(jBoolArray,
-				NULL);
+				nullptr);
 
 		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : array_of_bool_arrays() ."
 				<< " getVALUEs from jBooleanArray" << std::endl;

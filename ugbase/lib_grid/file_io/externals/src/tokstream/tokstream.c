@@ -279,7 +279,7 @@ int ts_normalize(tokstream* ts);
  *
  * \param file The filename to be opened.
  *
- * \returns Returns a pointer to the opened tokstream, or NULL on error.
+ * \returns Returns a pointer to the opened tokstream, or nullptr on error.
  */
 tokstream* ts_open(const char* file)
 {
@@ -289,7 +289,7 @@ tokstream* ts_open(const char* file)
     /* open file and keep it open */
     fp = fopen(file, "rb");
     if(!fp)
-        return NULL;
+        return nullptr;
 
     /* allocate new tokstream */
     ts = malloc(sizeof(tokstream));
@@ -380,7 +380,7 @@ void ts_close(tokstream* ts)
 int ts_push(tokstream* ts)
 {
     /* no current state */
-    ts->state = NULL;
+    ts->state = nullptr;
 
     /* resize stack */
     ts->stack = realloc(ts->stack, (ts->stack_size + 1) * sizeof(struct ts_state));
@@ -451,8 +451,8 @@ int ts_pop(tokstream* ts)
     if(ts->buf_rev > ts->state->buf_rev)
     {
         /* invalidate cursor and token */
-        ts->state->cur = NULL;
-        ts->state->tok = NULL;
+        ts->state->cur = nullptr;
+        ts->state->tok = nullptr;
     }
 
     /* success */
@@ -553,7 +553,7 @@ int ts_char(const tokstream* ts)
  *
  * This function returns the exact same token that was fetched and returned
  * by the last call to ts_get(). If no such call was ever made, it will return
- * NULL.
+ * nullptr.
  *
  * The string returned belongs to the tokstream object. It will be invalid
  * on the next call to ts_get().
@@ -562,14 +562,14 @@ int ts_char(const tokstream* ts)
  *
  * \param ts The stream to get the current token of.
  *
- * \returns A string containing the current token, or NULL if no such token
+ * \returns A string containing the current token, or nullptr if no such token
  *          exists.
  */
 const char* ts_tok(const tokstream* ts)
 {
     /* check if token is valid */
     if(!ts->state->tok)
-        return NULL;
+        return nullptr;
 
     /* return buffered token */
     return ts->state->tok_buf;
@@ -606,13 +606,13 @@ const char* ts_tok(const tokstream* ts)
  * \param ts The stream to get the token from.
  *
  * \returns A zero-terminated string containing the next token is returned, or
- *          NULL in case of an error (ie. EOF occurred while getting token).
+ *          nullptr in case of an error (ie. EOF occurred while getting token).
  */
 const char* ts_get(tokstream* ts)
 {
     /* check if buffer is good */
     if(ts_bad_buf(ts))
-        return NULL;
+        return nullptr;
 
     /* seek beginning of token */
     while(ts_issep(ts))
@@ -622,7 +622,7 @@ const char* ts_get(tokstream* ts)
 
         /* check if buffer is still good */
         if(ts_bad_buf(ts))
-            return NULL;
+            return nullptr;
     }
 
     /* tokenize string beginning from cursor */
@@ -693,8 +693,8 @@ int ts_unget(tokstream* ts)
 
     /* no current token */
     free(ts->state->tok_buf);
-    ts->state->tok_buf = NULL;
-    ts->stack->tok = NULL;
+    ts->state->tok_buf = nullptr;
+    ts->stack->tok = nullptr;
 
     /* success */
     return 0;
@@ -720,13 +720,13 @@ int ts_unget(tokstream* ts)
  *
  * \param ts The stream to get the line from.
  *
- * \returns Returns a string containing the line, or NULL if an error occurred.
+ * \returns Returns a string containing the line, or nullptr if an error occurred.
  */
 const char* ts_getline(tokstream* ts)
 {
     /* tokenize until newline */
     if(!ts_seekc(ts, '\n'))
-        return NULL;
+        return nullptr;
 
     /* advance cursor past newline */
     ts_adv_cur(ts);
@@ -817,7 +817,7 @@ int ts_skip(tokstream* ts)
 int ts_skipline(tokstream* ts)
 {
     /* invalidate token */
-    ts->state->tok = NULL;
+    ts->state->tok = nullptr;
 
     /* check if buffer is good */
     if(ts_bad_buf(ts))
@@ -872,7 +872,7 @@ int ts_seek(tokstream* ts, const char* tok)
 		if(strcmp(ts->state->tok, tok) == 0)
 			return 0;
 	}
-	while(ts_get(ts) != NULL);
+	while(ts_get(ts) != nullptr);
 
 	/* token was not found */
 	return 1;
@@ -898,13 +898,13 @@ int ts_seek(tokstream* ts, const char* tok)
  * \param ts The stream to get the token from.
  * \param c The character that ends the token.
  *
- * \returns Returns a string containing the token, or NULL if an error occurred.
+ * \returns Returns a string containing the token, or nullptr if an error occurred.
  */
 const char* ts_seekc(tokstream* ts, char c)
 {
     /* check if buffer is good */
     if(ts_bad_buf(ts))
-        return NULL;
+        return nullptr;
 
     /* seek beginning of token */
     while(ts_issep(ts) && *ts->state->cur != c)
@@ -914,7 +914,7 @@ const char* ts_seekc(tokstream* ts, char c)
 
         /* check if buffer is still good */
         if(ts_bad_buf(ts))
-            return NULL;
+            return nullptr;
     }
 
     /* tokenize string beginning from cursor */
@@ -967,13 +967,13 @@ const char* ts_seekc(tokstream* ts, char c)
  * \param ts The stream to get the token from.
  * \param ca The characters that end the token.
  *
- * \returns Returns a string containing the token, or NULL if an error occurred.
+ * \returns Returns a string containing the token, or nullptr if an error occurred.
  */
 const char* ts_seekca(tokstream* ts, const char* ca)
 {
     /* check if buffer is good */
     if(ts_bad_buf(ts))
-        return NULL;
+        return nullptr;
 
     /* seek beginning of token */
     while(ts_issep(ts) && !strchr(ca, *ts->state->cur))
@@ -983,7 +983,7 @@ const char* ts_seekca(tokstream* ts, const char* ca)
 
         /* check if buffer is still good */
         if(ts_bad_buf(ts))
-            return NULL;
+            return nullptr;
     }
 
     /* tokenize string beginning from cursor */
@@ -1154,8 +1154,8 @@ void ts_delim_off(tokstream* ts, char c)
 int ts_bufsiz(tokstream* ts, int size)
 {
     /* invalidate buffer for all states */
-    ts->state->cur = NULL;
-    ts->state->tok = NULL;
+    ts->state->cur = nullptr;
+    ts->state->tok = nullptr;
     ++ts->buf_rev;
 
     /* reallocate buffer */
@@ -1194,8 +1194,8 @@ void ts_state_init(struct ts_state* state)
 
     state->buf_rev = 0;
 
-    state->cur = NULL;
-    state->tok = NULL;
+    state->cur = nullptr;
+    state->tok = nullptr;
 
     state->pos = 0;
     state->line_no = 1;
@@ -1206,7 +1206,7 @@ void ts_state_init(struct ts_state* state)
     state->tok_line_no = 1;
     state->tok_char_no = 1;
 
-    state->tok_buf = NULL;
+    state->tok_buf = nullptr;
 }
 
 void ts_state_copy(struct ts_state* dst, const struct ts_state* src)
@@ -1232,7 +1232,7 @@ void ts_state_copy(struct ts_state* dst, const struct ts_state* src)
     dst->tok_line_no = src->tok_line_no;
     dst->tok_char_no = src->tok_char_no;
 
-    dst->tok_buf = src->tok_buf ? ts_strdup(src->tok_buf) : NULL;
+    dst->tok_buf = src->tok_buf ? ts_strdup(src->tok_buf) : nullptr;
 }
 
 void ts_state_clean(struct ts_state* state)
@@ -1260,8 +1260,8 @@ int ts_read(tokstream* ts)
         return 1;
 
     /* invalidate cursor and token */
-    ts->state->cur = NULL;
-    ts->state->tok = NULL;
+    ts->state->cur = nullptr;
+    ts->state->tok = nullptr;
 
     /* increase buffer revision */
     ++ts->buf_rev;

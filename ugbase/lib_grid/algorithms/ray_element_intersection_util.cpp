@@ -52,7 +52,7 @@ RayElementIntersectionImpl(
 		Grid::VertexAttachmentAccessor<Attachment<vector_t> > aaPos,
 		number sml)
 {
-	typedef typename TElem::side	side_t;
+	using side_t = typename TElem::side;
 
 	int numIntersections = 0;
 	number smin = 0, smax = 0;

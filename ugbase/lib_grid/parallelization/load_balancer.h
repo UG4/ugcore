@@ -120,7 +120,7 @@ class LoadBalancer{
 	 * of highest dimension and is the same on all processes.
 	 * You may optionally specify a pointer to a std::vector which will be filled
 	 * with the distribution-qualities for each level. By default the pointer is
-	 * set to NULL and no level-qualities are thus returned.
+	 * set to nullptr and no level-qualities are thus returned.
 	 * If a process doesn't participate on a given level, it will write -1
 	 * to the corresponding entry in pLvlQualitiesOut.
 	 * \{ */

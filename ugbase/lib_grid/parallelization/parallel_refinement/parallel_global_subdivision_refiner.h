@@ -49,7 +49,7 @@ class ParallelGlobalSubdivisionRefiner : public TParallelGlobalRefiner<GlobalSub
 {
 	public:
 		ParallelGlobalSubdivisionRefiner(DistributedGridManager& distGridMgr,
-											SPRefinementProjector projector = SPNULL);
+											SPRefinementProjector projector = nullptr);
 		virtual ~ParallelGlobalSubdivisionRefiner();
 
 	protected:

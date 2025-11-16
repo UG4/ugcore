@@ -47,19 +47,19 @@ class PILUTPreconditioner : public IPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	//	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	//	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	private:
-		typedef typename matrix_type::value_type block_type;
+		using block_type = typename matrix_type::value_type;
 		using IPreconditioner<TAlgebra>::debug_writer;
 		using IPreconditioner<TAlgebra>::set_debug;
 
@@ -116,7 +116,7 @@ class PILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 		//	Prepare Inverse Matrix
 			matrix_type* A = &mat;
-			typedef typename matrix_type::connection connection;
+			using connection = typename matrix_type::connection;
 			m_L.resize_and_clear(A->num_rows(), A->num_cols());
 			m_U.resize_and_clear(A->num_rows(), A->num_cols());
 

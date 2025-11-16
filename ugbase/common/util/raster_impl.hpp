@@ -174,7 +174,7 @@ operator*= (number s)
 template <class T, int TDIM>
 Raster<T, TDIM>::
 Raster () :
-	m_data(NULL),
+	m_data(nullptr),
 	m_numNodes(0),
 	m_selNode(0),
 	m_minCorner(0),
@@ -192,7 +192,7 @@ Raster () :
 template <class T, int TDIM>
 Raster<T, TDIM>::
 Raster (const Raster<T, TDIM>& raster) :
-	m_data(NULL),
+	m_data(nullptr),
 	m_numNodes(raster.m_numNodes),
 	m_selNode(raster.m_selNode),
 	m_minCorner(raster.m_minCorner),
@@ -213,7 +213,7 @@ Raster (const Raster<T, TDIM>& raster) :
 template <class T, int TDIM>
 Raster<T, TDIM>::
 Raster (const MultiIndex& numNodes) :
-	m_data(NULL),
+	m_data(nullptr),
 	m_numNodes(numNodes),
 	m_selNode(0),
 	m_minCorner(0),
@@ -238,7 +238,7 @@ Raster<T, TDIM>::
 Raster (const MultiIndex& numNodes,
 		const Coordinate& extension,
 		const Coordinate& minCorner) :
-	m_data(NULL),
+	m_data(nullptr),
 	m_numNodes(numNodes),
 	m_selNode(0),
 	m_minCorner(minCorner),
@@ -336,7 +336,7 @@ create ()
 {
 	if(m_data){
 		delete[] m_data;
-		m_data = NULL;
+		m_data = nullptr;
 	}
 
 	update_num_nodes_total(); // this isn't strictly necessary if everything works right.

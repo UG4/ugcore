@@ -48,8 +48,8 @@ template <typename TDomain, typename TAlgebra>
 void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
                   const GridFunction<TDomain, TAlgebra>& uCoarse)
 {
-	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-	typedef typename TGridFunction::template traits<Vertex>::const_iterator const_iterator;
+	using TGridFunction = GridFunction<TDomain, TAlgebra>;
+	using const_iterator = typename TGridFunction::template traits<Vertex>::const_iterator;
 
 //  get subsethandler and grid
 	SmartPtr<MultiGrid> mg = uFine.domain()->grid();
@@ -243,15 +243,15 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 	}
 
 //  iterators
-	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
-	typedef typename DoFDistribution::dim_traits<dim>::grid_base_object Element;
+	using const_iterator = typename DoFDistribution::dim_traits<dim>::const_iterator;
+	using Element = typename DoFDistribution::dim_traits<dim>::grid_base_object;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on coarse level
 	for(int si = 0; si < coarseDD->num_subsets(); ++si)
 	{
-		iterBegin = coarseDD->template begin<Element>(si);
-		iterEnd = coarseDD->template end<Element>(si);
+		iterBegin = coarseDD->begin<Element>(si);
+		iterEnd = coarseDD->end<Element>(si);
 
 	//  loop elem for coarse level subset
 		for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -390,8 +390,8 @@ template <typename TDomain, typename TAlgebra>
 void RestrictP1(GridFunction<TDomain, TAlgebra>& uCoarse,
                 const GridFunction<TDomain,  TAlgebra>& uFine)
 {
-	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-	typedef typename TGridFunction::template traits<Vertex>::const_iterator const_iterator;
+	using TGridFunction = GridFunction<TDomain, TAlgebra>;
+	using const_iterator = typename TGridFunction::template traits<Vertex>::const_iterator;
 
 //  get subsethandler and grid
 	SmartPtr<MultiGrid> mg = uCoarse.domain()->grid();
@@ -485,15 +485,15 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 	}
 
 //  iterators
-	typedef typename DoFDistribution::dim_traits<locDim>::const_iterator const_iterator;
-	typedef typename DoFDistribution::dim_traits<locDim>::grid_base_object Element;
+	using const_iterator = typename DoFDistribution::dim_traits<locDim>::const_iterator;
+	using Element = typename DoFDistribution::dim_traits<locDim>::grid_base_object;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on coarse level
 	for(int si = 0; si < coarseDD->num_subsets(); ++si)
 	{
-		iterBegin = coarseDD->template begin<Element>(si);
-		iterEnd = coarseDD->template end<Element>(si);
+		iterBegin = coarseDD->begin<Element>(si);
+		iterEnd = coarseDD->end<Element>(si);
 
 	//  loop elem for coarse level subset
 		for(iter = iterBegin; iter != iterEnd; ++iter)

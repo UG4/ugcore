@@ -641,8 +641,8 @@ inline void ElementNormal<3>(ReferenceObjectID roid, MathVector<3>& normalOut, c
 template <typename TRefElem, int TWorldDim>
 inline void SideNormal(MathVector<TWorldDim>& normalOut, int side, const MathVector<TWorldDim>* vCornerCoords)
 {
-	static const int dim = (int) TRefElem::dim;
-	static const int maxSideCorners = element_list_traits<typename domain_traits<dim-1>::DimElemList>::maxCorners;
+	static constexpr int dim = TRefElem::dim;
+	static constexpr int maxSideCorners = element_list_traits<typename domain_traits<dim-1>::DimElemList>::maxCorners;
 	
 //	Get own reference element and the side roid:
 	TRefElem & rRefElem = (TRefElem&) ReferenceElementProvider::get(TRefElem::REFERENCE_OBJECT_ID);
@@ -914,7 +914,7 @@ struct SCVFofSCVRayIntersectionWrapper<2, 2>
 		static const ReferenceQuadrilateral& rRefElem = Provider<ReferenceQuadrilateral>::get();
 
 		// reference dimension
-		static const int dim = 2;
+		static constexpr int dim = 2;
 
 		// parameters
 		bc = 0.;

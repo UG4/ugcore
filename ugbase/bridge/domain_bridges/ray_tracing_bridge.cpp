@@ -47,7 +47,7 @@ namespace ug{
 /// TEMPORARY QUICK HACK! DON'T USE! WILL BE REPLACED SOON!
 class DomainRayTracer {
 	public:
-		typedef vector3 vector_t;
+		using vector_t = vector3;
 
 		DomainRayTracer(Domain3d& dom) :
 			m_tree(*dom.grid(), dom.position_attachment()),
@@ -127,8 +127,8 @@ class DomainRayTracer {
 		// int trace_point_subset_index(size_t i) const;
 
 	private:
-		typedef lg_ntree<3, 3, Triangle>	tree_t;
-		typedef RayElemIntersectionRecord<Triangle*>	intersection_record_t;
+		using tree_t = lg_ntree<3, 3, Triangle>;
+		using intersection_record_t = RayElemIntersectionRecord<Triangle*>;
 
 		std::vector<vector_t>	m_tracePoints;
 		std::vector<intersection_record_t>	m_intersectionRecords;
@@ -146,7 +146,7 @@ struct Functionality {
 
 	static void Common(Registry& reg, string grp)
 	{
-		typedef DomainRayTracer T;
+		using T = DomainRayTracer;
 		
 		reg.add_class_<DomainRayTracer>("DomainRayTracer", grp)
 				.add_constructor<void (*)(Domain3d&)> ()
@@ -175,9 +175,9 @@ struct Functionality {
 	template <typename TDomain>
 	static void Domain(Registry& reg, string grp)
 	{
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
-		typedef OverlyingSubsetFinder<TDomain> T;
+		using T = OverlyingSubsetFinder<TDomain>;
 
 		string suffix = GetDomainSuffix<TDomain>();
 		string tag = GetDomainTag<TDomain>();

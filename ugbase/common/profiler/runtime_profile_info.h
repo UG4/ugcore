@@ -55,9 +55,9 @@
 class RuntimeProfileInfo
 {
 public:
-	RuntimeProfileInfo(const char* name = NULL, bool bCopyName = false,
-					   const char* groups = NULL, bool bCopyGroup = false,
-					   const char* file = NULL, bool bCopyFile = false,
+	RuntimeProfileInfo(const char* name = nullptr, bool bCopyName = false,
+					   const char* groups = nullptr, bool bCopyGroup = false,
+					   const char* file = nullptr, bool bCopyFile = false,
 					   int line = 0);
 
 	~RuntimeProfileInfo();
@@ -142,7 +142,7 @@ static inline std::ostream& operator << (std::ostream& os, const RuntimeProfileI
 	return os;
 }
 
-typedef RuntimeProfileInfo* pRuntimeProfileInfo;
+using pRuntimeProfileInfo = RuntimeProfileInfo*;
 #endif
 
 

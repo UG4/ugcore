@@ -80,15 +80,15 @@ class DoFIndexStorage : public DoFDistributionInfoProvider
 		SmartPtr<MultiGrid> m_spMG;
 
 		///	Attachment type
-		typedef ug::Attachment<size_t> ADoF;
+		using ADoF = Attachment<size_t>;
 		ADoF m_aIndex;
 
 		///	Attachment Accessors
 		///	\{
-		typedef Grid::AttachmentAccessor<Vertex, ADoF> vertex_attachment_accessor_type;
-		typedef Grid::AttachmentAccessor<Edge, ADoF> edge_attachment_accessor_type;
-		typedef Grid::AttachmentAccessor<Face, ADoF> face_attachment_accessor_type;
-		typedef Grid::AttachmentAccessor<Volume, ADoF> volume_attachment_accessor_type;
+		using vertex_attachment_accessor_type = Grid::AttachmentAccessor<Vertex, ADoF>;
+		using edge_attachment_accessor_type = Grid::AttachmentAccessor<Edge, ADoF>;
+		using face_attachment_accessor_type = Grid::AttachmentAccessor<Face, ADoF>;
+		using volume_attachment_accessor_type = Grid::AttachmentAccessor<Volume, ADoF>;
 		/// \}
 
 		///	Attachments

@@ -44,8 +44,8 @@ class SmoothPartitionBounds : public IPartitionPostProcessor
 {
 	public:
 		SmoothPartitionBounds() :
-			m_mg(NULL),
-			m_partitions(NULL)
+			m_mg(nullptr),
+			m_partitions(nullptr)
 			// m_consideringVerticalSidesOnly(false)
 		{}
 
@@ -99,30 +99,30 @@ class SmoothPartitionBounds : public IPartitionPostProcessor
 									mg.end<side_t>(partitionLvl), pair<int, int>(-1, -1));
 
 			//	regularization step 1: assign element-subset-indices to sides
-				lg_for_each_in_lvl_template(elem_t, e, mg, partitionLvl){
+				for(typename Grid::traits<elem_t>::iterator _feI = mg.begin<elem_t>(partitionLvl); _feI != mg.end<elem_t>(partitionLvl); ++_feI){ elem_t* e = *_feI;{
 					int si = sh.get_subset_index(e);
 					if(si >= 0){
 						mg.associated_elements(sides, e);
-						for_each_in_vec(side_t* s, sides){
+						for(size_t _vfeI = 0; _vfeI < sides.size(); ++_vfeI){ side_t* s = sides[_vfeI];{
 							if(aaSubsetNbrs[s].first == -1)
 								aaSubsetNbrs[s].first = si;
 							else
 								aaSubsetNbrs[s].second = si;
-						}end_for;
+						}};
 					}
-				}end_for;
+				}};
 
 			//todo:	regularization step 1.5: communicate subsetNbrs
 			//	...
 			
 			//	regularization step 2: check for elements whose neighbors belong to other partitions
-				lg_for_each_in_lvl_template(elem_t, e, mg, partitionLvl){
+				for(typename Grid::traits<elem_t>::iterator _feI = mg.begin<elem_t>(partitionLvl); _feI != mg.end<elem_t>(partitionLvl); ++_feI){ elem_t* e = *_feI;{
 					int si = sh.get_subset_index(e);
 					if(si >= 0){
 						nbrSubs.clear();
 						mg.associated_elements(sides, e);
 						int numOwnSubsetNbrs = 0;
-						for_each_in_vec(side_t* s, sides){
+						for(size_t _vfeI = 0; _vfeI < sides.size(); ++_vfeI){ side_t* s = sides[_vfeI];{
 							if(s->reference_object_id() == ROID_QUADRILATERAL){
 								const subset_pair_t& nbrs = aaSubsetNbrs[s];
 								if(nbrs.first == si && nbrs.second == si)
@@ -132,7 +132,7 @@ class SmoothPartitionBounds : public IPartitionPostProcessor
 								else if(nbrs.second != -1 && nbrs.second != si)
 									nbrSubs.push_back(nbrs.second);
 							}
-						}end_for;
+						}};
 
 					//	we'll now search for the subset which shares the most sides.
 						int newSubsetNbrs = numOwnSubsetNbrs;
@@ -165,7 +165,7 @@ class SmoothPartitionBounds : public IPartitionPostProcessor
 							sh.assign_subset(e, newSub);
 						}
 					}
-				}end_for;
+				}};
 
 			//	in the second iteration we'll assign to all neighbors
 				assignToSmallerSubsetsOnly = false;
@@ -178,9 +178,9 @@ class SmoothPartitionBounds : public IPartitionPostProcessor
 		}
 
 	private:
-		typedef typename elem_t::side		side_t;
-		typedef std::pair<int, int>			subset_pair_t;
-		typedef Attachment<subset_pair_t>	a_subset_pair_t;
+		using side_t = typename elem_t::side;
+		using subset_pair_t = std::pair<int, int>;
+		using a_subset_pair_t = Attachment<subset_pair_t>;
 		
 		MultiGrid*		m_mg;
 		SubsetHandler*	m_partitions;

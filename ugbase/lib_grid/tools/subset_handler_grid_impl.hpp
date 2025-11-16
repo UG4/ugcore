@@ -126,7 +126,7 @@ clear_subset_elements(int subsetIndex)
 		return;
 
 //	iterate through the elements of type TElem and erase them from the subsets list.
-	if(m_pGrid != NULL)
+	if(m_pGrid != nullptr)
 	{
 		typename Grid::traits<TElem>::SectionContainer& secCon =
 											section_container<TElem>(subsetIndex);
@@ -217,7 +217,7 @@ template<class TElem>
 void GridSubsetHandler::
 change_elem_subset_indices(int indOld, int indNew)
 {
-	typedef typename geometry_traits<TElem>::iterator iterator;
+	using iterator = typename geometry_traits<TElem>::iterator;
 	for(iterator iter = begin<TElem>(indOld);
 		iter != end<TElem>(indOld); iter++){
 		ISubsetHandler::alter_subset_index(*iter, indNew);
@@ -227,7 +227,7 @@ change_elem_subset_indices(int indOld, int indNew)
 template <class TElem>
 bool GridSubsetHandler::perform_self_tests()
 {
-	typedef typename geometry_traits<TElem>::iterator iterator;
+	using iterator = typename geometry_traits<TElem>::iterator;
 	
 	bool bSuccess = true;
 	

@@ -95,16 +95,16 @@ namespace ug
 class UG_API Selector : public ISelector
 {
 	public:
-		typedef ISelector	BaseClass;
-		typedef Grid		grid_type;
+		using BaseClass = ISelector;
+		using grid_type = Grid;
 
 	///	The traits class holds some important types for each element-type
 		template <class TElem>
 		struct traits{
-			typedef typename geometry_traits<TElem>::iterator		iterator;
-			typedef typename geometry_traits<TElem>::const_iterator	const_iterator;
-			typedef typename geometry_traits<TElem>::iterator		level_iterator;
-			typedef typename geometry_traits<TElem>::const_iterator	const_level_iterator;
+			using iterator = typename geometry_traits<TElem>::iterator;
+			using const_iterator = typename geometry_traits<TElem>::const_iterator;
+			using level_iterator = typename geometry_traits<TElem>::iterator;
+			using const_level_iterator = typename geometry_traits<TElem>::const_iterator;
 		};
 
 	public:

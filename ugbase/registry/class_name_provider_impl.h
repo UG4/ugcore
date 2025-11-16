@@ -206,10 +206,10 @@ void* StaticVoidCast(void* DerivVoidPtr)
 {
 //	cast to derived class; this assumes, that the void pointer points to the
 //	beginning of the data field of the Derived object
-	TDerived* pDeriv = reinterpret_cast<TDerived*>(DerivVoidPtr);
+	auto* pDeriv = reinterpret_cast<TDerived*>(DerivVoidPtr);
 
 //	static case to the Derid class
-	TBase* pBase = static_cast<TBase*>(pDeriv);
+	auto* pBase = static_cast<TBase*>(pDeriv);
 
 //	return cast to void
 	return reinterpret_cast<void*>(pBase);
@@ -237,7 +237,7 @@ cast_to(void* ptr, const ClassNameNode*& node)
 	const std::string& baseName = ClassNameProvider<T>::name();
 
 //	cast the plain pointer
-	ptr = ClassCastProvider::cast_to_base_class(ptr, node, baseName);
+	ptr = cast_to_base_class(ptr, node, baseName);
 
 //	return it
 	return reinterpret_cast<T*>(ptr);
@@ -251,7 +251,7 @@ cast_to(const void* ptr, const ClassNameNode*& node)
 	const std::string& baseName = ClassNameProvider<T>::name();
 
 //	cast the plain pointer
-	ptr = ClassCastProvider::cast_to_base_class(ptr, node, baseName);
+	ptr = cast_to_base_class(ptr, node, baseName);
 
 //	return it
 	return reinterpret_cast<const T*>(ptr);
@@ -268,7 +268,7 @@ cast_to(SmartPtr<void> spDerivVoid, const ClassNameNode*& node)
 	void* rawPtr = spDerivVoid.get();
 
 //	cast the plain pointer
-	rawPtr = ClassCastProvider::cast_to_base_class(rawPtr, node, baseName);
+	rawPtr = cast_to_base_class(rawPtr, node, baseName);
 
 //	sets as pointer to the smart ptr
 	spDerivVoid.set_impl<T, FreeDelete>(rawPtr);
@@ -288,7 +288,7 @@ cast_to(ConstSmartPtr<void> spDerivVoid, const ClassNameNode*& node)
 	const void* rawPtr = spDerivVoid.get();
 
 //	cast the plain pointer
-	rawPtr = ClassCastProvider::cast_to_base_class(rawPtr, node, baseName);
+	rawPtr = cast_to_base_class(rawPtr, node, baseName);
 
 //	sets as pointer to the smart ptr
 	spDerivVoid.set_impl<T, FreeDelete>(rawPtr);

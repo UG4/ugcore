@@ -107,8 +107,8 @@ class MultiGrid;
 class UG_API MGSelector : public ISelector
 {
 	public:
-		typedef ISelector	BaseClass;
-		typedef MultiGrid	grid_type;
+		using BaseClass = ISelector;
+		using grid_type = MultiGrid;
 		
 	/** This iterator is used by MGSelector to provide iteration across all levels.
 	 * The TMGSelector and TLevelIterator template argument allows to use this
@@ -117,14 +117,14 @@ class UG_API MGSelector : public ISelector
 		class MGSelectionIterator
 		{
 			public:
-				typedef MGSelectionIterator										this_type;
-				typedef std::forward_iterator_tag	iterator_category;
-				typedef size_t						difference_type;
-				typedef TElem**						pointer;
-				typedef TElem*						value_type;
-				typedef value_type&					reference;
+				using this_type = MGSelectionIterator;
+				using iterator_category = std::forward_iterator_tag;
+				using difference_type = size_t;
+				using pointer = TElem**;
+				using value_type = TElem*;
+				using reference = value_type&;
 
-				MGSelectionIterator() : m_sel(NULL), m_lvl(0)	{}
+				MGSelectionIterator() : m_sel(nullptr), m_lvl(0)	{}
 
 			///	copy constructor that allows creation of const-iterators from non-const iterators
 				MGSelectionIterator(const MGSelectionIterator<TElem, MGSelector,
@@ -148,7 +148,7 @@ class UG_API MGSelector : public ISelector
 				friend class MGSelector;
 		//		friend class MGSelectionIterator<TElem, const MGSelector,
 		//										 typename MGSelector::traits<TElem>::const_level_iterator>;
-				typedef TLevelIterator level_iterator;
+				using level_iterator = TLevelIterator;
 
 				MGSelectionIterator(TMGSelector* sel, int lvl,
 									level_iterator iter)
@@ -190,13 +190,11 @@ class UG_API MGSelector : public ISelector
 	///	The traits class holds some important types for each element-type
 		template <class TElem>
 		struct traits{
-			typedef TElem*											value_t;
-			typedef typename geometry_traits<TElem>::iterator		level_iterator;
-			typedef typename geometry_traits<TElem>::const_iterator	const_level_iterator;
-			typedef MGSelectionIterator<TElem, MGSelector,
-										level_iterator>				iterator;
-			typedef MGSelectionIterator<TElem, const MGSelector,
-										const_level_iterator>		const_iterator;
+			using value_t = TElem*;
+			using level_iterator = typename geometry_traits<TElem>::iterator;
+			using const_level_iterator = typename geometry_traits<TElem>::const_iterator;
+			using iterator = MGSelectionIterator<TElem, MGSelector, level_iterator>;
+			using const_iterator = MGSelectionIterator<TElem, const MGSelector, const_level_iterator>;
 		};
 
 
@@ -375,7 +373,8 @@ class UG_API MGSelector : public ISelector
 			FaceSectionContainer	m_faces;
 			VolumeSectionContainer	m_volumes;
 		};
-		typedef std::vector<Level*>	LevelVec;
+
+		using LevelVec = std::vector<Level*>;
 
 	protected:
 	///	returns the section container for the given type, subset and level

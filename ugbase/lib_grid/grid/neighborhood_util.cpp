@@ -39,7 +39,7 @@ namespace ug {
 template <typename TBaseElem>
 TBaseElem* GetConnectedNeighbor(Grid& g, typename TBaseElem::side* face, TBaseElem* elem)
 {
-	typedef typename Grid::traits<TBaseElem>::secure_container elem_list_type;
+	using elem_list_type = typename Grid::traits<TBaseElem>::secure_container;
 	elem_list_type el;
 	g.associated_elements(el, face);
 	size_t el_sz = el.size();
@@ -51,7 +51,7 @@ TBaseElem* GetConnectedNeighbor(Grid& g, typename TBaseElem::side* face, TBaseEl
 			return el[e];
 	}
 
-	return (TBaseElem*) NULL;
+	return (TBaseElem*) nullptr;
 }
 
 template Volume* GetConnectedNeighbor<Volume>(Grid&, Face*, Volume*);

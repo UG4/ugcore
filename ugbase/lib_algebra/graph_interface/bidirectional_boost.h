@@ -42,18 +42,18 @@ struct BS_traversal_tag
 
 template <class T>
 struct graph_traits<ug::BidirectionalMatrix<T>>{
-	typedef typename T::value_type value_type;
-	typedef int vertex_descriptor;
-	typedef SM_edge<value_type> edge_descriptor;
-	typedef bidirectional_tag directed_category;
-	typedef BS_traversal_tag traversal_category;
-	typedef disallow_parallel_edge_tag edge_parallel_category;
-	typedef counting_iterator<size_t> vertex_iterator;
-	typedef SM_out_edge_iterator<value_type, true> out_edge_iterator;
-	typedef SM_out_edge_iterator<value_type, false> in_edge_iterator;
-	typedef SM_adjacency_iterator<value_type> adjacency_iterator;
-	typedef int degree_size_type;
-	typedef int vertices_size_type;
+	using value_type = typename T::value_type;
+	using vertex_descriptor = int;
+	using edge_descriptor = SM_edge<value_type>;
+	using directed_category = bidirectional_tag;
+	using traversal_category = BS_traversal_tag;
+	using edge_parallel_category = disallow_parallel_edge_tag;
+	using vertex_iterator = counting_iterator<size_t>;
+	using out_edge_iterator = SM_out_edge_iterator<value_type, true>;
+	using in_edge_iterator = SM_out_edge_iterator<value_type, false>;
+	using adjacency_iterator = SM_adjacency_iterator<value_type>;
+	using degree_size_type = int;
+	using vertices_size_type = int;
 };
 
 template<class T>
@@ -107,7 +107,7 @@ std::pair<typename graph_traits<T>::adjacency_iterator,
           typename graph_traits<T>::adjacency_iterator>
 adjacent_vertices(size_t v, ug::BidirectionalMatrix<T> const& M)
 {
-	typedef typename graph_traits<T>::adjacency_iterator a;
+	using a = typename graph_traits<T>::adjacency_iterator;
 
 	typename T::const_row_iterator b = M.begin_row(v);
 	typename T::const_row_iterator e = M.end_row(v);
@@ -120,8 +120,8 @@ std::pair<typename graph_traits<T>::adjacency_iterator,
           typename graph_traits<T>::adjacency_iterator>
 coadjacent_vertices(size_t v, ug::BidirectionalMatrix<T> const& M)
 {
-	typedef typename T::value_type value_type;
-	typedef typename graph_traits<ug::SparseMatrix<value_type>>::adjacency_iterator a;
+	using value_type = typename T::value_type;
+	using a = typename graph_traits<ug::SparseMatrix<value_type>>::adjacency_iterator;
 
 	typename T::const_row_iterator b = M.begin_col(v);
 	typename T::const_row_iterator e = M.end_col(v);
@@ -135,8 +135,8 @@ inline std::pair<SM_out_edge_iterator<typename T::value_type>,
                  SM_out_edge_iterator<typename T::value_type>>
 					out_edges(size_t v, ug::BidirectionalMatrix<T> const& g)
 {
-	typedef typename T::value_type value_type;
-	typedef SM_out_edge_iterator<value_type> Iter;
+	using value_type = typename T::value_type;
+	using Iter = SM_out_edge_iterator<value_type>;
    auto a = adjacent_vertices(v, g);
 	return std::make_pair(Iter(a.first, v), Iter(a.second, v));
 }
@@ -146,8 +146,8 @@ inline std::pair<SM_out_edge_iterator<typename T::value_type, false>,
                  SM_out_edge_iterator<typename T::value_type, false>>
 					in_edges(size_t v, ug::BidirectionalMatrix<T> const& g)
 {
-	typedef typename T::value_type value_type;
-	typedef SM_out_edge_iterator<value_type, false> Iter;
+	using value_type = typename T::value_type;
+	using Iter = SM_out_edge_iterator<value_type, false>;
    auto a = coadjacent_vertices(v, g);
 	return std::make_pair(Iter(a.first, v), Iter(a.second, v));
 }
@@ -155,14 +155,14 @@ inline std::pair<SM_out_edge_iterator<typename T::value_type, false>,
 template<class T>
 inline SM_edge_weight_map<typename T::value_type, ug::BidirectionalMatrix<T>>
 get(edge_weight_t, ug::BidirectionalMatrix<T> const & g) {
-	typedef typename T::value_type value_type;
+	using value_type = typename T::value_type;
 	return SM_edge_weight_map<value_type, ug::BidirectionalMatrix<T>>(g);
 }
 
 template<class T>
 struct property_map<ug::BidirectionalMatrix<ug::SparseMatrix<T>>, vertex_index_t>{
-	typedef sparse_matrix_index_map<T> type;
-	typedef type const_type;
+	using type = sparse_matrix_index_map<T>;
+	using const_type = type;
 };
 
 template<class T>

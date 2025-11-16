@@ -73,7 +73,7 @@ class IDataImport
 	public:
 	/// Constructor
 		IDataImport(bool compLinDefect = true)
-			: m_spICplUserData(NULL), m_part(STIFF),
+			: m_spICplUserData(nullptr), m_part(STIFF),
 			 m_bCompLinDefect(compLinDefect)
 		{}
 
@@ -182,8 +182,8 @@ class DataImport : public IDataImport<dim>
 	/// Constructor
 		DataImport(bool bLinDefect = true) : IDataImport<dim>(bLinDefect),
 			m_id(ROID_UNKNOWN),
-			m_seriesID(-1),	m_spUserData(NULL), m_vValue(NULL),
-			m_numIP(0), m_spDependentUserData(NULL)
+			m_seriesID(-1),	m_spUserData(nullptr), m_vValue(nullptr),
+			m_numIP(0), m_spDependentUserData(nullptr)
 		{clear_fct();
 		}
 
@@ -313,9 +313,9 @@ class DataImport : public IDataImport<dim>
 
 	public:
 	///	type of evaluation function
-		typedef boost::function<void (const LocalVector& u,
-		                              std::vector<std::vector<TData> > vvvLinDefect[],
-		                              const size_t nip)> LinDefectFunc;
+		using LinDefectFunc = boost::function<void (const LocalVector& u,
+	                                            std::vector<std::vector<TData> > vvvLinDefect[],
+	                                            const size_t nip)>;
 
 	///	sets the geometric object type
 		virtual void set_roid(ReferenceObjectID id);
@@ -348,7 +348,7 @@ class DataImport : public IDataImport<dim>
 			if (! m_spUserData->at_current_time (m_seriesID))
 				return;
 		///	compute the linearization
-			UG_ASSERT(m_vLinDefectFunc[m_id] != NULL, "No evaluation function.");
+			UG_ASSERT(m_vLinDefectFunc[m_id] != nullptr, "No evaluation function.");
 			UG_ASSERT(num_ip() == 0 || m_vvvLinDefect.size() >= num_ip(),
 			          "DataImport: Num ip "<<num_ip()<<", but memory: "<<m_vvvLinDefect.size());
 			u.access_by_map(this->map());

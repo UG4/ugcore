@@ -91,19 +91,19 @@ class Jacobi : public IPreconditioner<TAlgebra>
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+		using base_type = IPreconditioner<TAlgebra>;
 
 	protected:
 		using base_type::set_debug;
@@ -301,7 +301,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 
 	protected:
 	///	type of block-inverse
-		typedef typename block_traits<typename matrix_type::value_type>::inverse_type inverse_type;
+		using inverse_type = typename block_traits<typename matrix_type::value_type>::inverse_type;
 
 	///	storage of the inverse diagonal in parallel
 		std::vector<inverse_type> m_diagInv;

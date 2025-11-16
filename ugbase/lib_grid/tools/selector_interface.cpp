@@ -44,7 +44,7 @@ namespace ug
 ISelector::ISelector(uint supportedElements) :
 	m_aSelected("ISelector_IsSelected")
 {
-	m_pGrid = NULL;
+	m_pGrid = nullptr;
 	m_supportedElements = supportedElements;// Since no grid is available, we can't yet activate them.
 	m_bAutoselectionEnabled = false;
 	m_bSelectionInheritanceEnabled = true;
@@ -78,7 +78,7 @@ ISelector::~ISelector()
 	//	disable all currently supported elements (this will remove any attachments)
 		disable_element_support(m_supportedElements);
 		m_pGrid->unregister_observer(this);
-		m_pGrid = NULL;
+		m_pGrid = nullptr;
 	}
 }
 
@@ -215,7 +215,7 @@ void ISelector::set_grid(Grid* grid)
 		clear();
 		disable_element_support(m_supportedElements);
 		m_pGrid->unregister_observer(this);
-		m_pGrid = NULL;
+		m_pGrid = nullptr;
 	}
 
 //	if the new grid is not empty, we'll initialise and register
@@ -343,7 +343,7 @@ void ISelector::unregistered_from_grid(Grid* grid)
 	if(m_pGrid == grid){
 	//	disable all currently supported elements (this will remove any attachments)
 		disable_element_support(m_supportedElements);
-		m_pGrid = NULL;
+		m_pGrid = nullptr;
 	}
 }
 */
@@ -352,7 +352,7 @@ void ISelector::grid_to_be_destroyed(Grid* grid)
 	assert(m_pGrid == grid && "grids do not match!");
 
 	if(m_pGrid == grid){
-		set_grid(NULL);
+		set_grid(nullptr);
 	}
 }
 
@@ -376,7 +376,7 @@ void ISelector::vertex_created(Grid* grid, Vertex* vrt,
 		mark_deselected(vrt);
 		if(autoselection_enabled())
 			select(vrt);
-		else if((pParent != NULL) && selection_inheritance_enabled()){
+		else if((pParent != nullptr) && selection_inheritance_enabled()){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == VERTEX){
 					select(vrt, get_selection_status(static_cast<Vertex*>(pParent)));
@@ -421,7 +421,7 @@ void ISelector::edge_created(Grid* grid, Edge* edge,
 		mark_deselected(edge);
 		if(autoselection_enabled())
 			select(edge);
-		else if((pParent != NULL) && selection_inheritance_enabled()){
+		else if((pParent != nullptr) && selection_inheritance_enabled()){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == EDGE){
 					select(edge, get_selection_status(static_cast<Edge*>(pParent)));
@@ -466,7 +466,7 @@ void ISelector::face_created(Grid* grid, Face* face,
 		mark_deselected(face);
 		if(autoselection_enabled())
 			select(face);
-		else if((pParent != NULL) && selection_inheritance_enabled()){
+		else if((pParent != nullptr) && selection_inheritance_enabled()){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == FACE){
 					select(face, get_selection_status(static_cast<Face*>(pParent)));
@@ -511,7 +511,7 @@ void ISelector::volume_created(Grid* grid, Volume* vol,
 		mark_deselected(vol);
 		if(autoselection_enabled())
 			select(vol);
-		else if((pParent != NULL) && selection_inheritance_enabled()){
+		else if((pParent != nullptr) && selection_inheritance_enabled()){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == VOLUME){
 					select(vol, get_selection_status(static_cast<Volume*>(pParent)));

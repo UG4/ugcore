@@ -67,17 +67,17 @@ template <typename TAlgebra, typename TDomain, typename O_t>
 class LexOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
-	typedef typename TAlgebra::matrix_type M_t;
-	typedef typename TAlgebra::vector_type V_t;
-	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
+	using M_t = typename TAlgebra::matrix_type;
+	using V_t = typename TAlgebra::vector_type;
+	using baseclass = IOrderingAlgorithm<TAlgebra, O_t>;
 
 	/// Grid function type for the solution
-	typedef GridFunction<TDomain, TAlgebra> GridFunc_t;
+	using GridFunc_t = GridFunction<TDomain, TAlgebra>;
 
 	/// Position attachment type
-	typedef typename std::pair<MathVector<TDomain::dim>, size_t> Position_t;
+	using Position_t = std::pair<MathVector<TDomain::dim>, size_t>;
 
-	LexOrdering(){}
+	LexOrdering()= default;
 
 	/// clone constructor
 	LexOrdering( const LexOrdering<TAlgebra, TDomain, O_t> &parent )
@@ -149,7 +149,7 @@ public:
 			}
 		}
 
-		mat = NULL;
+		mat = nullptr;
 	}
 
 	void check(){

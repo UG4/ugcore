@@ -48,7 +48,7 @@ class Provider
 {
 	public:
 		///	type of provided object
-		typedef TClass Type;
+		using Type = TClass;
 
 		///	returns a singleton based on the identifier
 		static inline TClass& get(){

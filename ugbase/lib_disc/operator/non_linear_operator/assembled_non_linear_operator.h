@@ -43,18 +43,18 @@ class AssembledOperator : public IOperator<typename TAlgebra::vector_type>
 {
 public:
 	/// Type of algebra
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Type of Vector
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Type of Vector
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	public:
 	///	default constructor
 		AssembledOperator()
-			: m_spAss(NULL), m_gridLevel() {};
+			: m_spAss(nullptr), m_gridLevel() {};
 
 	///	constructor
 		AssembledOperator(SmartPtr<IAssemble<TAlgebra> > ass)

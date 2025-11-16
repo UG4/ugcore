@@ -147,8 +147,8 @@ template <class tree_t>
 class Traverser_FindContainingElement
 {
 	public:
-		typedef typename tree_t::elem_t		elem_t;
-		typedef typename tree_t::vector_t	vector_t;
+		using elem_t = typename tree_t::elem_t;
+		using vector_t = typename tree_t::vector_t;
 
 		Traverser_FindContainingElement(const vector_t& point) :
 			m_point(point),
@@ -226,9 +226,9 @@ template <class tree_t>
 class Traverser_FindElementsInIntersectingNodes
 {
 	public:
-		typedef typename tree_t::elem_t		elem_t;
-		typedef typename tree_t::vector_t	vector_t;
-		typedef typename tree_t::box_t		box_t;
+		using elem_t = typename tree_t::elem_t;
+		using vector_t = typename tree_t::vector_t;
+		using box_t = typename tree_t::box_t;
 
 		Traverser_FindElementsInIntersectingNodes(const box_t& bbox) :
 			m_bbox(bbox)
@@ -287,8 +287,8 @@ bool FindElementsInIntersectingNodes(std::vector<typename tree_t::elem_t>& elems
 // template <class TVector, class TData>
 // class TraceRecorder {
 // 	public:
-// 		typedef TVector		vector_t;
-// 		typedef TData		data_t;
+// 		using vector_t = TVector;
+// 		using data_t =  TData;
 
 // 		void clear		();
 // 		void set_ray	(const vector_t& from, const vector_t& dir);
@@ -321,10 +321,10 @@ template <class tree_t>
 class Traverser_RayElementIntersection
 {
 	public:
-		typedef typename tree_t::elem_t				elem_t;
-		typedef typename tree_t::vector_t			vector_t;
-		typedef typename tree_t::box_t				box_t;
-		typedef RayElemIntersectionRecord<elem_t>	intersection_record_t;
+		using elem_t = typename tree_t::elem_t;
+		using vector_t = typename tree_t::vector_t;
+		using box_t = typename tree_t::box_t;
+		using intersection_record_t = RayElemIntersectionRecord<elem_t>;
 
 		Traverser_RayElementIntersection(const vector_t& rayFrom,
 										 const vector_t rayDir,

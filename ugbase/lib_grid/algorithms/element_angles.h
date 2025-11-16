@@ -68,8 +68,8 @@ UG_API
 inline void CollectAssociatedSides(Edge* sidesOut[2], Grid& grid, Face* f, Vertex* vrt)
 {
 	//PROFILE_BEGIN(CollectAssociatedSides_VERTEX);
-	sidesOut[0] = NULL;
-	sidesOut[1] = NULL;
+	sidesOut[0] = nullptr;
+	sidesOut[1] = nullptr;
 
 	grid.begin_marking();
 	for(size_t i = 0; i < f->num_vertices(); ++i){
@@ -86,10 +86,10 @@ inline void CollectAssociatedSides(Edge* sidesOut[2], Grid& grid, Face* f, Verte
 	{
 		Edge* e = *iter;
 		if(grid.is_marked(e->vertex(0)) && grid.is_marked(e->vertex(1))){
-			UG_ASSERT(	sidesOut[1] == NULL,
+			UG_ASSERT(	sidesOut[1] == nullptr,
 						"Only two edges may be adjacent to a vertex in a face element.");
 
-			if(sidesOut[0] == NULL)
+			if(sidesOut[0] == nullptr)
 				sidesOut[0] = e;
 			else
 				sidesOut[1] = e;
@@ -97,7 +97,7 @@ inline void CollectAssociatedSides(Edge* sidesOut[2], Grid& grid, Face* f, Verte
 	}
 
 	grid.end_marking();
-	UG_ASSERT(	sidesOut[1] != NULL,
+	UG_ASSERT(	sidesOut[1] != nullptr,
 				"Exactly two edges should be adjacent to a vertex in a face element.")
 }
 
@@ -107,8 +107,8 @@ UG_API
 inline void CollectAssociatedSides(Face* sidesOut[2], Grid& grid, Volume* v, Edge* e)
 {
 	//PROFILE_BEGIN(CollectAssociatedSides_EDGE);
-	sidesOut[0] = NULL;
-	sidesOut[1] = NULL;
+	sidesOut[0] = nullptr;
+	sidesOut[1] = nullptr;
 
 	grid.begin_marking();
 
@@ -136,10 +136,10 @@ inline void CollectAssociatedSides(Face* sidesOut[2], Grid& grid, Volume* v, Edg
 
 		if(allMarked){
 			if(FaceContains(f, e)){
-				UG_ASSERT(	sidesOut[1] == NULL,
+				UG_ASSERT(	sidesOut[1] == nullptr,
 							"Only two faces may be adjacent to an edge in a volume element.")
 
-				if(sidesOut[0] == NULL)
+				if(sidesOut[0] == nullptr)
 					sidesOut[0] = f;
 				else
 					sidesOut[1] = f;
@@ -149,7 +149,7 @@ inline void CollectAssociatedSides(Face* sidesOut[2], Grid& grid, Volume* v, Edg
 
 	grid.end_marking();
 
-	UG_ASSERT(	sidesOut[1] != NULL,
+	UG_ASSERT(	sidesOut[1] != nullptr,
 				"Exactly two faces should be adjacent to an edge in a volume element.")
 }
 
@@ -181,7 +181,7 @@ number CalculateMinAngle(Grid& grid, Face* f, TAAPosVRT& aaPos)
 	}
 
 //	Get type of vertex attachment in aaPos and define it as ValueType
-	typedef typename TAAPosVRT::ValueType ValueType;
+	using ValueType = typename TAAPosVRT::ValueType ;
 
 //	Initialization
 	uint numFaceVrts = f->num_vertices();
@@ -419,7 +419,7 @@ number CalculateMaxAngle(Grid& grid, Face* f, TAAPosVRT& aaPos)
 	}
 
 //	Get type of vertex attachment in aaPos and define it as ValueType
-	typedef typename TAAPosVRT::ValueType ValueType;
+	using ValueType = typename TAAPosVRT::ValueType;
 
 //	Initialization
 	uint numFaceVrts = f->num_vertices();
@@ -642,7 +642,7 @@ void CalculateAngles(vector<number>& vAnglesOut, Grid& grid, Face* f, TAAPosVRT&
 	}
 
 //	Get type of vertex attachment in aaPos and define it as ValueType
-	typedef typename TAAPosVRT::ValueType ValueType;
+	using ValueType = typename TAAPosVRT::ValueType;
 
 //	Initialization
 	uint numFaceVrts = f->num_vertices();
@@ -770,9 +770,9 @@ FindElementWithSmallestMinAngle(Grid& grid, TIterator elementsBegin, TIterator e
 {
 	//PROFILE_FUNC();
 //	if volumesBegin equals volumesBegin, then the list is empty and we can
-//	immediately return NULL
+//	immediately return nullptr
 	if(elementsBegin == elementsEnd)
-		return NULL;
+		return nullptr;
 
 //	Initializations
 	typename TIterator::value_type elementWithSmallestMinAngle = *elementsBegin;
@@ -804,9 +804,9 @@ FindElementWithLargestMaxAngle(Grid& grid, TIterator elementsBegin, TIterator el
 {
 	//PROFILE_FUNC();
 //	if volumesBegin equals volumesBegin, then the list is empty and we can
-//	immediately return NULL
+//	immediately return nullptr
 	if(elementsBegin == elementsEnd)
-		return NULL;
+		return nullptr;
 
 //	Initializations
 	typename TIterator::value_type elementWithLargestMaxAngle = *elementsBegin;

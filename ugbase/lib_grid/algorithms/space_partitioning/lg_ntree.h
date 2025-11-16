@@ -46,11 +46,11 @@ template <int world_dim>
 class NTreeGridData
 {
 	public:
-		typedef MathVector<world_dim >									position_t;
-		typedef Attachment<position_t>									position_attachment_t;
-		typedef Grid::VertexAttachmentAccessor<position_attachment_t> 	position_accessor_t;
+		using position_t = MathVector<world_dim >;
+		using position_attachment_t = Attachment<position_t>;
+		using position_accessor_t = Grid::VertexAttachmentAccessor<position_attachment_t>;
 
-		NTreeGridData() : m_pGrid(NULL)	{}
+		NTreeGridData() : m_pGrid(nullptr)	{}
 
 		NTreeGridData(Grid& grid, position_attachment_t aPos)
 		{
@@ -81,11 +81,11 @@ class NTreeGridData
 template <int tree_dim, int world_dim, class elem_t_, class common_data_t_>
 struct lg_ntree_traits_base
 {
-	typedef number					real_t;
-	typedef MathVector<world_dim>	vector_t;
-	typedef AABox<vector_t>			box_t;
-	typedef common_data_t_			common_data_t;
-	typedef elem_t_					elem_t;
+	using real_t = number;
+	using vector_t = MathVector<world_dim>;
+	using box_t = AABox<vector_t>;
+	using common_data_t = common_data_t_;
+	using elem_t = elem_t_;
 
 	static void calculate_center(vector_t& centerOut, const elem_t& e,
 								 const common_data_t& commonData)
@@ -232,8 +232,8 @@ template <class elem_t>
 struct ntree_traits<1, 1, elem_t, NTreeGridData<1> > :
 	public lg_ntree_traits_base<1, 1, elem_t, NTreeGridData<1> >
 {
-	typedef MathVector<1>			vector_t;
-	typedef AABox<vector_t>			box_t;
+	using vector_t = MathVector<1>;
+	using box_t = AABox<vector_t>;
 
 	static void split_box(box_t* boxesOut, const box_t& box, const vector_t& splitPoint)
 	{
@@ -247,8 +247,8 @@ template <class elem_t>
 struct ntree_traits<1, 2, elem_t, NTreeGridData<2> > :
 	public lg_ntree_traits_base<1, 2, elem_t, NTreeGridData<2> >
 {
-	typedef MathVector<2>			vector_t;
-	typedef AABox<vector_t>			box_t;
+	using vector_t = MathVector<2>;
+	using box_t = AABox<vector_t>;
 
 	static void split_box(box_t* boxesOut, const box_t& box, const vector_t& splitPoint)
 	{
@@ -266,8 +266,8 @@ template <class elem_t>
 struct ntree_traits<2, 2, elem_t, NTreeGridData<2> > :
 	public lg_ntree_traits_base<2, 2, elem_t, NTreeGridData<2> >
 {
-	typedef MathVector<2>			vector_t;
-	typedef AABox<vector_t>			box_t;
+	using vector_t = MathVector<2>;
+	using box_t = AABox<vector_t>;
 
 	static void split_box(box_t* boxesOut, const box_t& box, const vector_t& splitPoint)
 	{
@@ -285,8 +285,8 @@ template <class elem_t>
 struct ntree_traits<2, 3, elem_t, NTreeGridData<3> > :
 	public lg_ntree_traits_base<2, 3, elem_t, NTreeGridData<3> >
 {
-	typedef MathVector<3>			vector_t;
-	typedef AABox<vector_t>			box_t;
+	using vector_t = MathVector<3>;
+	using box_t = AABox<vector_t>;
 
 	static void split_box(box_t* boxesOut, const box_t& box, const vector_t& splitPoint)
 	{
@@ -308,8 +308,8 @@ template <class elem_t>
 struct ntree_traits<3, 3, elem_t, NTreeGridData<3> > :
 	public lg_ntree_traits_base<3, 3, elem_t, NTreeGridData<3> >
 {
-	typedef MathVector<3>			vector_t;
-	typedef AABox<vector_t>			box_t;
+	using vector_t = MathVector<3>;
+	using box_t = AABox<vector_t>;
 
 	static void split_box(box_t* boxesOut, const box_t& box, const vector_t& splitPoint)
 	{
@@ -337,8 +337,8 @@ template <int tree_dim, int world_dim, class grid_elem_t>
 class lg_ntree : public ntree<tree_dim, world_dim, grid_elem_t*, NTreeGridData<world_dim> >
 {
 	public:
-		typedef ntree<tree_dim, world_dim, grid_elem_t*, NTreeGridData<world_dim> >	base_t;
-		typedef typename NTreeGridData<world_dim>::position_attachment_t	position_attachment_t;
+		using base_t = ntree<tree_dim, world_dim, grid_elem_t*, NTreeGridData<world_dim> >;
+		using position_attachment_t = typename NTreeGridData<world_dim>::position_attachment_t;
 
 		lg_ntree()
 		{}

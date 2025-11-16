@@ -222,7 +222,7 @@ template <typename TRefElem>
 static void ComputeSCVFMidID(const TRefElem& rRefElem,
                                    MidID vMidID[], int i)
 {
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 	if (rRefElem.roid() != ROID_PYRAMID)
 	{
@@ -334,7 +334,7 @@ template <typename TRefElem>
 static void ComputeSCVMidID(const TRefElem& rRefElem,
                             MidID vMidID[], int i)
 {
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 	if (rRefElem.roid() != ROID_PYRAMID)
 	{
@@ -461,7 +461,7 @@ template <typename TRefElem>
 static void ComputeBFMidID(const TRefElem& rRefElem, int side,
                             MidID vMidID[], int co)
 {
-	static const int dim = TRefElem::dim;
+	static constexpr int dim = TRefElem::dim;
 
 	if (rRefElem.roid() != ROID_PYRAMID || side != 0)
 	{
@@ -550,7 +550,7 @@ static void CopyCornerByMidID(MathVector<dim> vCorner[],
 template <typename TElem, int TWorldDim>
 FV1IBGeometry<TElem, TWorldDim>::
 FV1IBGeometry()
-	: m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()),
+	: m_pElem(nullptr), m_rRefElem(Provider<ref_elem_type>::get()),
 	  m_rTrialSpace(Provider<local_shape_fct_set_type>::get())
 {
 	update_local_data();
@@ -643,7 +643,7 @@ void FV1IBGeometry<TElem, TWorldDim>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 
- 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+ 	UG_ASSERT(dynamic_cast<TElem*>(elem) != nullptr, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
 
 // 	if already update for this element, do nothing
@@ -730,7 +730,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	if(num_boundary_subsets() == 0 || ish == nullptr) return;
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 
 
@@ -740,7 +740,7 @@ template <typename TElem, int TWorldDim>
 void FV1IBGeometry<TElem, TWorldDim>::
 update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != nullptr, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
 
 //	get grid
@@ -1160,7 +1160,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 	UG_CATCH_THROW("DimFV1IBGeometry: update failed.");
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	if(num_boundary_subsets() == 0 || ish == nullptr) return;
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 

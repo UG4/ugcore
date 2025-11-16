@@ -55,7 +55,7 @@ class DataEvaluatorBase
 {
 	public:
 	///	world dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 		
 	public:
 	///	sets the elem discs to evaluate
@@ -63,9 +63,9 @@ class DataEvaluatorBase
 		              const std::vector<TElemDisc*>& vElemDisc,
 		              ConstSmartPtr<FunctionPattern> fctPat,
 		              const bool bNonRegularGrid,
-		              LocalVectorTimeSeries* locTimeSeries = NULL,
-		              const std::vector<number>* vScaleMass = NULL,
-		              const std::vector<number>* vScaleStiff = NULL);
+		              LocalVectorTimeSeries* locTimeSeries = nullptr,
+		              const std::vector<number>* vScaleMass = nullptr,
+		              const std::vector<number>* vScaleStiff = nullptr);
 
 	///	sets the time point for data evaluation
 		void set_time_point(const size_t timePoint);
@@ -155,9 +155,9 @@ public:
 		              const std::vector<IElemError<TDomain> *>& vElemDisc,
 		              ConstSmartPtr<FunctionPattern> fctPat,
 		              const bool bNonRegularGrid,
-		              LocalVectorTimeSeries* locTimeSeries = NULL,
-		              const std::vector<number>* vScaleMass = NULL,
-		              const std::vector<number>* vScaleStiff = NULL)
+		              LocalVectorTimeSeries* locTimeSeries = nullptr,
+		              const std::vector<number>* vScaleMass = nullptr,
+		              const std::vector<number>* vScaleStiff = nullptr)
 	: DataEvaluatorBase<TDomain, IElemError<TDomain> > (discPart, vElemDisc, fctPat, bNonRegularGrid, locTimeSeries, vScaleMass, vScaleStiff) {}
 };
 
@@ -169,7 +169,7 @@ class DataEvaluator : public DataEvaluatorBase<TDomain, IElemDisc<TDomain> >
 {
 
 public:
-	typedef DataEvaluatorBase<TDomain, IElemDisc<TDomain> > base_type;
+	using base_type = DataEvaluatorBase<TDomain, IElemDisc<TDomain> >;
 	using base_type::dim;
 
 	///	sets the elem discs to evaluate
@@ -177,9 +177,9 @@ public:
 		              const std::vector<IElemDisc<TDomain> *>& vElemDisc,
 		              ConstSmartPtr<FunctionPattern> fctPat,
 		              const bool bNonRegularGrid,
-		              LocalVectorTimeSeries* locTimeSeries = NULL,
-		              const std::vector<number>* vScaleMass = NULL,
-		              const std::vector<number>* vScaleStiff = NULL)
+		              LocalVectorTimeSeries* locTimeSeries = nullptr,
+		              const std::vector<number>* vScaleMass = nullptr,
+		              const std::vector<number>* vScaleStiff = nullptr)
 	: DataEvaluatorBase<TDomain, IElemDisc<TDomain> > (discPart, vElemDisc, fctPat, bNonRegularGrid, locTimeSeries, vScaleMass, vScaleStiff) {}
 
 

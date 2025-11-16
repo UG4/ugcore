@@ -128,8 +128,8 @@ void RegisterLuaUserDataType(Registry& reg, string type, string grp)
 
 //	LuaUser"Type"
 	{
-		typedef ug::LuaUserData<TData, dim> T;
-		typedef CplUserData<TData, dim> TBase;
+		using T = ug::LuaUserData<TData, dim>;
+		using TBase = CplUserData<TData, dim>;
 		string name = string("LuaUser").append(type).append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*)>("Callback")
@@ -140,8 +140,8 @@ void RegisterLuaUserDataType(Registry& reg, string type, string grp)
 
 //	LuaCondUser"Type"
 	{
-		typedef ug::LuaUserData<TData, dim, bool> T;
-		typedef CplUserData<TData, dim, bool> TBase;
+		using T = ug::LuaUserData<TData, dim, bool>;
+		using TBase = CplUserData<TData, dim, bool>;
 		string name = string("LuaCondUser").append(type).append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*)>("Callback")
@@ -179,8 +179,8 @@ static void Dimension(Registry& reg, string grp)
 
 //	LuaUserFunctionNumber
 	{
-		typedef LuaUserFunction<number, dim, number> T;
-		typedef DependentUserData<number, dim> TBase;
+		using T = LuaUserFunction<number, dim, number>;
+		using TBase = DependentUserData<number, dim>;
 		string name = string("LuaUserFunctionNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName#NumberOfArguments")
@@ -198,8 +198,8 @@ static void Dimension(Registry& reg, string grp)
 
 //	LuaUserFunctionMatrixNumber
 	{
-		typedef LuaUserFunction<MathMatrix<dim,dim>, dim, number> T;
-		typedef DependentUserData<MathMatrix<dim,dim>, dim> TBase;
+		using T = LuaUserFunction<MathMatrix<dim,dim>, dim, number>;
+		using TBase = DependentUserData<MathMatrix<dim,dim>, dim>;
 		string name = string("LuaUserFunctionMatrixNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName#NumberOfArguments")
@@ -215,8 +215,8 @@ static void Dimension(Registry& reg, string grp)
 
 //	LuaUserFunctionVectorNumber
 	{
-		typedef LuaUserFunction<MathVector<dim>, dim, number > T;
-		typedef DependentUserData<MathVector<dim>, dim> TBase;
+		using T = LuaUserFunction<MathVector<dim>, dim, number >;
+		using TBase = DependentUserData<MathVector<dim>, dim>;
 		string name = string("LuaUserFunctionVectorNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName#NumberOfArguments")
@@ -232,8 +232,8 @@ static void Dimension(Registry& reg, string grp)
 /*
 //	LuaUserFunctionNumberVector
 	{
-		typedef LuaUserFunction<number, dim, MathVector<dim> > T;
-		typedef DependentUserData<number, dim> TBase;
+		using T = LuaUserFunction<number, dim, MathVector<dim> >;
+		using TBase = DependentUserData<number, dim>;
 		string name = string("LuaUserFunctionNumberVector").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
@@ -253,14 +253,14 @@ static void Dimension(Registry& reg, string grp)
  * are to be placed here when registering.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 static void Common(Registry& reg, string grp)
 {
 
 //	LuaUserNumberNumberFunction
 	{
-		typedef LuaUserNumberNumberFunction T;
+		using T = LuaUserNumberNumberFunction;
 		reg.add_class_<T>("LuaUserNumberNumberFunction", grp)
 			.add_constructor()
 			.add_method("set_lua_callback", &T::set_lua_callback)
@@ -269,8 +269,8 @@ static void Common(Registry& reg, string grp)
 
 //	LuaFunctionNumber
 	{
-		typedef LuaFunction<number, number> T;
-		typedef IFunction<number, number> TBase;
+		using T = LuaFunction<number, number>;
+		using TBase = IFunction<number, number>;
 		reg.add_class_<T, TBase>("LuaFunctionNumber", grp)
 			.add_constructor()
 			.add_method("set_lua_callback", &T::set_lua_callback)
@@ -283,7 +283,7 @@ static void Common(Registry& reg, string grp)
 
 void RegisterLuaUserData(Registry& reg, string grp)
 {
-	typedef LuaUserData::Functionality Functionality;
+	using Functionality = LuaUserData::Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);

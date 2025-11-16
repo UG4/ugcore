@@ -93,14 +93,13 @@ static void Algebra(Registry& reg, string grp)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
-//	typedefs for this algebra
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using vector_type = typename TAlgebra::vector_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 
 // 	IDamping
 	{
-		typedef IDamping<vector_type> T;
+		using T = IDamping<vector_type>;
 		string name = string("IDamping").append(suffix);
 		reg.add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "IDamping", tag);
@@ -108,8 +107,8 @@ static void Algebra(Registry& reg, string grp)
 
 // 	MinimalResiduumDamping
 	{
-		typedef MinimalResiduumDamping<vector_type> T;
-		typedef IDamping<vector_type> TBase;
+		using T = MinimalResiduumDamping<vector_type>;
+		using TBase = IDamping<vector_type>;
 		string name = string("MinimalResiduumDamping").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Minimal Residdum Damping (damping computed based on the minimal residuum)")
 			.add_constructor()
@@ -119,8 +118,8 @@ static void Algebra(Registry& reg, string grp)
 	
 // 	MinimalEngergyDamping
 	{
-		typedef MinimalEnergyDamping<vector_type> T;
-		typedef IDamping<vector_type> TBase;
+		using T = MinimalEnergyDamping<vector_type>;
+		using TBase = IDamping<vector_type>;
 		string name = string("MinimalEnergyDamping").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Minimal Energy Damping (damping computed based on the minimal energy)")
 			.add_constructor()
@@ -130,7 +129,7 @@ static void Algebra(Registry& reg, string grp)
 	
 //	Pre- and postprocess operations
 	{
-		typedef IPProcessVector<vector_type> T;
+		using T = IPProcessVector<vector_type>;
 		string name = string("IPProcessVector").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_method("apply", &T::apply, "applies the operation", "vector");
@@ -139,8 +138,8 @@ static void Algebra(Registry& reg, string grp)
 
 // 	LinearSolver
 	{
-		typedef LinearSolver<vector_type> T;
-		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
+		using T = LinearSolver<vector_type>;
+		using TBase = IPreconditionedLinearOperatorInverse<vector_type>;
 		string name = string("LinearSolver").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Linear Solver")
 			.add_constructor()
@@ -155,8 +154,8 @@ static void Algebra(Registry& reg, string grp)
 
 // 	AutoLinearSolver
 	{
-		typedef AutoLinearSolver<vector_type> T;
-		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
+		using T = AutoLinearSolver<vector_type>;
+		using TBase = IPreconditionedLinearOperatorInverse<vector_type>;
 		string name = string("AutoLinearSolver").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Auto Linear Solver")
 			.add_constructor()
@@ -171,8 +170,8 @@ static void Algebra(Registry& reg, string grp)
 
 // 	AnalyzingSolver
 	{
-		typedef AnalyzingSolver<matrix_type, vector_type> T;
-		typedef  ILinearOperatorInverse<vector_type> TBase;
+		using T = AnalyzingSolver<matrix_type, vector_type>;
+		using TBase = ILinearOperatorInverse<vector_type>;
 		string name = string("AnalyzingSolver").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "AnalyzingSolver")
 			.ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type> >) )("solver")
@@ -182,11 +181,11 @@ static void Algebra(Registry& reg, string grp)
 
 	//	Debug iteration
 	{
-		typedef DebugIterator<TAlgebra> T;
-		typedef ILinearIterator<typename TAlgebra::vector_type> TBase;
+		using T = DebugIterator<TAlgebra>;
+		using TBase = ILinearIterator<typename TAlgebra::vector_type>;
 
-		typedef ILinearIterator<typename TAlgebra::vector_type> base_type;
-		typedef IPreconditionedLinearOperatorInverse<vector_type> solver_type;
+		using base_type = ILinearIterator<typename TAlgebra::vector_type>;
+		using solver_type = IPreconditionedLinearOperatorInverse<vector_type>;
 
 		string name = string("DebugIterator").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "DebugIterator")
@@ -204,8 +203,8 @@ static void Algebra(Registry& reg, string grp)
 
 	// 	CG Solver
 	{
-		typedef CG<vector_type> T;
-		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
+		using T = CG<vector_type>;
+		using TBase = IPreconditionedLinearOperatorInverse<vector_type>;
 		string name = string("CG").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Conjugate Gradient Solver")
 			.add_constructor()
@@ -219,8 +218,8 @@ static void Algebra(Registry& reg, string grp)
 
 // 	BiCGStab Solver
 	{
-		typedef BiCGStab<vector_type> T;
-		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
+		using T = BiCGStab<vector_type>;
+		using TBase = IPreconditionedLinearOperatorInverse<vector_type>;
 		string name = string("BiCGStab").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "BiCGStab Solver")
 			.add_constructor()
@@ -236,8 +235,8 @@ static void Algebra(Registry& reg, string grp)
 
 // 	GMRES Solver
 	{
-		typedef GMRES<vector_type> T;
-		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
+		using T = GMRES<vector_type>;
+		using TBase = IPreconditionedLinearOperatorInverse<vector_type>;
 		string name = string("GMRES").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "GMRES Solver")
 			.ADD_CONSTRUCTOR( (size_t restar) )("restart")
@@ -249,8 +248,8 @@ static void Algebra(Registry& reg, string grp)
 
 // 	LU Solver
 	{
-		typedef LU<TAlgebra> T;
-		typedef ILinearOperatorInverse<vector_type> TBase;
+		using T = LU<TAlgebra>;
+		using TBase = ILinearOperatorInverse<vector_type>;
 		string name = string("LU").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "LU-Decomposition exact solver")
 			.add_constructor()
@@ -264,8 +263,8 @@ static void Algebra(Registry& reg, string grp)
 
 // 	AgglomeratingSolver
 	{
-		typedef AgglomeratingSolver<TAlgebra> T;
-		typedef ILinearOperatorInverse<vector_type> TBase;
+		using T = AgglomeratingSolver<TAlgebra>;
+		using TBase = ILinearOperatorInverse<vector_type>;
 		string name = string("AgglomeratingSolver").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "AgglomeratingSolver")
 			.ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type, vector_type> > ) )("pLinOp")
@@ -277,9 +276,9 @@ static void Algebra(Registry& reg, string grp)
 #ifdef UG_PARALLEL
 // 	LocalSchurComplement
 	{
-		typedef LocalSchurComplement<TAlgebra> T;
-		typedef ILinearOperator<vector_type> TBase;
-		typedef DebugWritingObject<TAlgebra> TBase2;
+		using T = LocalSchurComplement<TAlgebra>;
+		using TBase = ILinearOperator<vector_type>;
+		using TBase2 = DebugWritingObject<TAlgebra>;
 		string name = string("LocalSchurComplement").append(suffix);
 		reg.add_class_<	T, TBase, TBase2>(name, grp)
 		.add_constructor()
@@ -297,9 +296,9 @@ static void Algebra(Registry& reg, string grp)
 
 // 	FETISolver
 	{
-		typedef FETISolver<TAlgebra> T;
-		typedef IMatrixOperatorInverse<matrix_type, vector_type> BaseT;
-		typedef DebugWritingObject<TAlgebra> TBase2;
+		using T = FETISolver<TAlgebra>;
+		using BaseT = IMatrixOperatorInverse<matrix_type, vector_type>;
+		using TBase2 = DebugWritingObject<TAlgebra>;
 		string name = string("FETI").append(suffix);
 		reg.add_class_<	T, BaseT,TBase2>(name, grp, "FETI Domain Decomposition Solver")
 		.add_constructor()
@@ -321,7 +320,7 @@ static void Algebra(Registry& reg, string grp)
 
 	// ExternalSolver
 	{
-		typedef IExternalSolver<TAlgebra> T;
+		using T = IExternalSolver<TAlgebra>;
 		string name = string("ExternalSolver").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_method("set_disable_preprocessing", &T::set_disable_preprocessing, "", "", "")
@@ -343,7 +342,7 @@ static void Algebra(Registry& reg, string grp)
 void RegisterBridge_Solver(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Solver");
-	typedef Solver::Functionality Functionality;
+	using Functionality = Solver::Functionality;
 
 	try{
 		RegisterAlgebraDependent<Functionality>(reg,grp);

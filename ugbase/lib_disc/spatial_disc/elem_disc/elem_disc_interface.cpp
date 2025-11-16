@@ -37,12 +37,12 @@ namespace ug{
 
 template <typename TDomain>
 IElemDiscBase<TDomain>::IElemDiscBase(const char* functions, const char* subsets)
-	:	m_spApproxSpace(NULL), m_spFctPattern(0),
-	  	m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false)
+	:	m_spApproxSpace(nullptr), m_spFctPattern(nullptr),
+	  	m_timePoint(0), m_pLocalVectorTimeSeries(nullptr), m_bStationaryForced(false)
 		//,m_id(ROID_UNKNOWN)
 {
-	if(functions == NULL) functions = "";
-	if(subsets == NULL) subsets = "";
+	if(functions == nullptr) functions = "";
+	if(subsets == nullptr) subsets = "";
 	set_functions(functions);
 	set_subsets(subsets);
 // 	set_default_add_fct();  // OBSOLETE: now part of base-type constructor
@@ -53,8 +53,8 @@ template <typename TDomain>
 IElemDiscBase<TDomain>::
 IElemDiscBase(const std::vector<std::string>& vFct,
                               const std::vector<std::string>& vSubset)
-	: 	m_spApproxSpace(NULL), m_spFctPattern(0),
-		m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false)
+	: 	m_spApproxSpace(nullptr), m_spFctPattern(nullptr),
+		m_timePoint(0), m_pLocalVectorTimeSeries(nullptr), m_bStationaryForced(false)
 		//,m_id(ROID_UNKNOWN)
 {
 	set_functions(vFct);
@@ -84,61 +84,61 @@ set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::clear_add_fct(ReferenceObjectID id)
 {
-	m_vPrepareTimestepElemFct[id] = NULL;
-	m_vFinishTimestepElemFct[id] = NULL;
+	m_vPrepareTimestepElemFct[id] = nullptr;
+	m_vFinishTimestepElemFct[id] = nullptr;
 
-	m_vPrepareElemLoopFct[id] = NULL;
-	m_vPrepareElemFct[id] = NULL;
-	m_vFinishElemLoopFct[id] = NULL;
+	m_vPrepareElemLoopFct[id] = nullptr;
+	m_vPrepareElemFct[id] = nullptr;
+	m_vFinishElemLoopFct[id] = nullptr;
 
-	m_vElemJAFct[id] = NULL;
-	m_vElemJMFct[id] = NULL;
+	m_vElemJAFct[id] = nullptr;
+	m_vElemJMFct[id] = nullptr;
 
-	m_vElemdAFct[id] = NULL;
-	m_vElemdAExplFct[id] = NULL;
-	m_vElemdMFct[id] = NULL;
+	m_vElemdAFct[id] = nullptr;
+	m_vElemdAExplFct[id] = nullptr;
+	m_vElemdMFct[id] = nullptr;
 
-	m_vElemRHSFct[id] = NULL;
+	m_vElemRHSFct[id] = nullptr;
 }
 
 
 template <typename TLeaf, typename TDomain>
 void IElemEstimatorFuncs<TLeaf, TDomain>::clear_add_fct(ReferenceObjectID id)
 {
-	m_vPrepareErrEstElemLoopFct[id] = NULL;
-	m_vPrepareErrEstElemFct[id] = NULL;
-	m_vElemComputeErrEstAFct[id] = NULL;
-	m_vElemComputeErrEstMFct[id] = NULL;
-	m_vElemComputeErrEstRhsFct[id] = NULL;
-	m_vFinishErrEstElemLoopFct[id] = NULL;
+	m_vPrepareErrEstElemLoopFct[id] = nullptr;
+	m_vPrepareErrEstElemFct[id] = nullptr;
+	m_vElemComputeErrEstAFct[id] = nullptr;
+	m_vElemComputeErrEstMFct[id] = nullptr;
+	m_vElemComputeErrEstRhsFct[id] = nullptr;
+	m_vFinishErrEstElemLoopFct[id] = nullptr;
 }
 
 
 //template <typename TDomain>
 //void IElemDisc<TDomain>::clear_add_fct(ReferenceObjectID id)
 //{
-	/*m_vPrepareTimestepElemFct[id] = NULL;
-	m_vFinishTimestepElemFct[id] = NULL;
+	/*m_vPrepareTimestepElemFct[id] = nullptr;
+	m_vFinishTimestepElemFct[id] = nullptr;
 
-	m_vPrepareElemLoopFct[id] = NULL;
-	m_vPrepareElemFct[id] = NULL;
-	m_vFinishElemLoopFct[id] = NULL;
+	m_vPrepareElemLoopFct[id] = nullptr;
+	m_vPrepareElemFct[id] = nullptr;
+	m_vFinishElemLoopFct[id] = nullptr;
 
-	m_vElemJAFct[id] = NULL;
-	m_vElemJMFct[id] = NULL;
+	m_vElemJAFct[id] = nullptr;
+	m_vElemJMFct[id] = nullptr;
 
-	m_vElemdAFct[id] = NULL;
-	m_vElemdAExplFct[id] = NULL;
-	m_vElemdMFct[id] = NULL;
+	m_vElemdAFct[id] = nullptr;
+	m_vElemdAExplFct[id] = nullptr;
+	m_vElemdMFct[id] = nullptr;
 
-	m_vElemRHSFct[id] = NULL;
+	m_vElemRHSFct[id] = nullptr;
 
-	m_vPrepareErrEstElemLoopFct[id] = NULL;
-	m_vPrepareErrEstElemFct[id] = NULL;
-	m_vElemComputeErrEstAFct[id] = NULL;
-	m_vElemComputeErrEstMFct[id] = NULL;
-	m_vElemComputeErrEstRhsFct[id] = NULL;
-	m_vFinishErrEstElemLoopFct[id] = NULL;
+	m_vPrepareErrEstElemLoopFct[id] = nullptr;
+	m_vPrepareErrEstElemFct[id] = nullptr;
+	m_vElemComputeErrEstAFct[id] = nullptr;
+	m_vElemComputeErrEstMFct[id] = nullptr;
+	m_vElemComputeErrEstRhsFct[id] = nullptr;
+	m_vFinishErrEstElemLoopFct[id] = nullptr;
 */
 //	IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>::clear_add_fct(id);
 //	IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>::clear_add_fct(id);
@@ -154,8 +154,8 @@ clear_add_fct()
 
 	for (size_t i = 0; i < bridge::NUM_ALGEBRA_TYPES; ++i)
 	{
-			m_vPrepareTimestepFct[i] = NULL;
-			m_vFinishTimestepFct[i] = NULL;
+			m_vPrepareTimestepFct[i] = nullptr;
+			m_vFinishTimestepFct[i] = nullptr;
 	}
 }
 
@@ -390,27 +390,27 @@ template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::
 check_roid(ReferenceObjectID roid, int discType)
 {
-	if(m_vPrepareElemLoopFct[roid]==NULL)
+	if(m_vPrepareElemLoopFct[roid]==nullptr)
 		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem_loop' for "<<roid<<" (world dim: "<<dim<<")");
-	if(m_vPrepareElemFct[roid]==NULL)
+	if(m_vPrepareElemFct[roid]==nullptr)
 		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem' for "<<roid<<" (world dim: "<<dim<<")");
-	if(m_vFinishElemLoopFct[roid]==NULL)
+	if(m_vFinishElemLoopFct[roid]==nullptr)
 		UG_THROW("ElemDisc: Missing evaluation method 'finish_elem_loop' for "<<roid<<" (world dim: "<<dim<<")");
 
 	if(discType & MASS){
-		if(m_vElemJMFct[roid]==NULL)
+		if(m_vElemJMFct[roid]==nullptr)
 			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_M_elem' for "<<roid<<" (world dim: "<<dim<<")");
-		if(m_vElemdMFct[roid]==NULL)
+		if(m_vElemdMFct[roid]==nullptr)
 			UG_THROW("ElemDisc: Missing evaluation method 'add_def_M_elem' for "<<roid<<" (world dim: "<<dim<<")");
 	}
 	if(discType & STIFF){
-		if(m_vElemJAFct[roid]==NULL)
+		if(m_vElemJAFct[roid]==nullptr)
 			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_A_elem' for "<<roid<<" (world dim: "<<dim<<")");
-		if(m_vElemdAFct[roid]==NULL)
+		if(m_vElemdAFct[roid]==nullptr)
 			UG_THROW("ElemDisc: Missing evaluation method 'add_def_A_elem for' "<<roid<<" (world dim: "<<dim<<")");
 	}
 	if(discType & RHS){
-		if(m_vElemRHSFct[roid]==NULL)
+		if(m_vElemRHSFct[roid]==nullptr)
 			UG_THROW("ElemDisc: Missing evaluation method 'add_rhs_elem' for "<<roid<<" (world dim: "<<dim<<")");
 	}
 }
@@ -446,7 +446,7 @@ set_time_dependent(LocalVectorTimeSeries& locTimeSeries,
 template <typename TDomain>
 void IElemDiscBase<TDomain>::set_time_independent()
 {
-	m_pLocalVectorTimeSeries = NULL;
+	m_pLocalVectorTimeSeries = nullptr;
 	m_vScaleMass.clear();
 	m_vScaleStiff.clear();
 }
@@ -473,7 +473,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::
 do_prep_timestep(number future_time, const number time, VectorProxyBase* u, size_t algebra_id)
 {
 	//	call assembling routine
-	if (this->m_vPrepareTimestepFct[algebra_id] != NULL)
+	if (this->m_vPrepareTimestepFct[algebra_id] != nullptr)
 		(this->*(m_vPrepareTimestepFct[algebra_id]))(future_time, time, u);
 }
 
@@ -487,7 +487,7 @@ do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	if (this->m_vPrepareTimestepElemFct[m_roid] != NULL)
+	if (this->m_vPrepareTimestepElemFct[m_roid] != nullptr)
 		(this->*(m_vPrepareTimestepElemFct[m_roid]))(time, u, elem, vCornerCoords);
 }
 
@@ -501,7 +501,7 @@ do_prep_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, con
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	UG_ASSERT(m_vPrepareElemFct[m_roid]!=NULL, "ElemDisc method prepare_elem missing.");
+	UG_ASSERT(m_vPrepareElemFct[m_roid]!=nullptr, "ElemDisc method prepare_elem missing.");
 	(this->*(m_vPrepareElemFct[m_roid]))(u, elem, roid, vCornerCoords);
 }
 
@@ -510,7 +510,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::
 do_fsh_timestep(const number time, VectorProxyBase* u, size_t algebra_id)
 {
 	//	call assembling routine
-	if (this->m_vFinishTimestepFct[algebra_id] != NULL)
+	if (this->m_vFinishTimestepFct[algebra_id] != nullptr)
 		(this->*(m_vFinishTimestepFct[algebra_id]))(time, u);
 }
 
@@ -524,7 +524,7 @@ do_fsh_timestep_elem(const number time, LocalVector& u, GridObject* elem, const 
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	if (this->m_vFinishTimestepElemFct[m_roid] != NULL)
+	if (this->m_vFinishTimestepElemFct[m_roid] != nullptr)
 		(this->*(m_vFinishTimestepElemFct[m_roid]))(time, u, elem, vCornerCoords);
 }
 
@@ -541,7 +541,7 @@ do_prep_elem_loop(const ReferenceObjectID roid, const int si)
 
 //	call prep_elem_loop (this may set ip-series to imports)
 	//	call assembling routine
-	UG_ASSERT(m_vPrepareElemLoopFct[m_roid]!=NULL, "ElemDisc method prepare_elem_loop missing.");
+	UG_ASSERT(m_vPrepareElemLoopFct[m_roid]!=nullptr, "ElemDisc method prepare_elem_loop missing.");
 	(this->*m_vPrepareElemLoopFct[m_roid])(roid, si);
 
 //	set roid in imports (for evaluation function)
@@ -554,7 +554,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::
 do_fsh_elem_loop()
 {
 //	call finish
-	UG_ASSERT(m_vFinishElemLoopFct[m_roid]!=NULL, "ElemDisc method finish_elem_loop missing.");
+	UG_ASSERT(m_vFinishElemLoopFct[m_roid]!=nullptr, "ElemDisc method finish_elem_loop missing.");
 	(this->*m_vFinishElemLoopFct[m_roid])();
 
 //	remove positions in currently registered imports
@@ -573,7 +573,7 @@ do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVe
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	UG_ASSERT(m_vElemJAFct[m_roid]!=NULL, "ElemDisc method add_jac_A missing.");
+	UG_ASSERT(m_vElemJAFct[m_roid]!=nullptr, "ElemDisc method add_jac_A missing.");
 	(this->*m_vElemJAFct[m_roid])(J, u, elem, vCornerCoords);
 }
 
@@ -591,7 +591,7 @@ do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVe
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	UG_ASSERT(m_vElemJMFct[m_roid]!=NULL, "ElemDisc method add_jac_M missing.");
+	UG_ASSERT(m_vElemJMFct[m_roid]!=nullptr, "ElemDisc method add_jac_M missing.");
 	(this->*m_vElemJMFct[m_roid])(J, u, elem, vCornerCoords);
 }
 
@@ -606,7 +606,7 @@ do_add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVe
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	UG_ASSERT(m_vElemdAFct[m_roid]!=NULL, "ElemDisc method add_def_A missing.");
+	UG_ASSERT(m_vElemdAFct[m_roid]!=nullptr, "ElemDisc method add_def_A missing.");
 	(this->*m_vElemdAFct[m_roid])(d, u, elem, vCornerCoords);
 }
 
@@ -621,7 +621,7 @@ do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const M
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	if(this->m_vElemdAExplFct[m_roid] != NULL)
+	if(this->m_vElemdAExplFct[m_roid] != nullptr)
 		(this->*m_vElemdAExplFct[m_roid])(d, u, elem, vCornerCoords);
 }
 
@@ -639,7 +639,7 @@ do_add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVe
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	UG_ASSERT(m_vElemdMFct[m_roid]!=NULL, "ElemDisc method add_def_M missing.");
+	UG_ASSERT(m_vElemdMFct[m_roid]!=nullptr, "ElemDisc method add_def_M missing.");
 	(this->*m_vElemdMFct[m_roid])(d, u, elem, vCornerCoords);
 }
 
@@ -653,7 +653,7 @@ do_add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCorne
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	UG_ASSERT(m_vElemRHSFct[m_roid]!=NULL, "ElemDisc method add_rhs missing.");
+	UG_ASSERT(m_vElemRHSFct[m_roid]!=nullptr, "ElemDisc method add_rhs missing.");
 	(this->*m_vElemRHSFct[m_roid])(rhs, elem, vCornerCoords);
 }
 
@@ -669,7 +669,7 @@ do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 		asLeaf().get_import(i).clear_ips();
 
 //	call prep_elem_loop (this may set ip-series to imports)
-	UG_ASSERT(m_vPrepareErrEstElemLoopFct[m_roid]!=NULL, "ElemDisc method prep_err_est_elem_loop missing.");
+	UG_ASSERT(m_vPrepareErrEstElemLoopFct[m_roid]!=nullptr, "ElemDisc method prep_err_est_elem_loop missing.");
 	(this->*m_vPrepareErrEstElemLoopFct[m_roid])(roid, si);
 
 //	set roid in imports (for evaluation function)
@@ -687,7 +687,7 @@ do_prep_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCo
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	UG_ASSERT(m_vPrepareErrEstElemFct[m_roid]!=NULL, "ElemDisc method prepare_err_est_elem missing.");
+	UG_ASSERT(m_vPrepareErrEstElemFct[m_roid]!=nullptr, "ElemDisc method prepare_err_est_elem missing.");
 	(this->*(m_vPrepareErrEstElemFct[m_roid]))(u, elem, vCornerCoords);
 }
 
@@ -701,7 +701,7 @@ do_compute_err_est_A_elem(LocalVector& u, GridObject* elem, const MathVector<dim
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	if (this->m_vElemComputeErrEstAFct[m_roid] != NULL)
+	if (this->m_vElemComputeErrEstAFct[m_roid] != nullptr)
 		(this->*(m_vElemComputeErrEstAFct[m_roid]))(u, elem, vCornerCoords, scale);
 }
 
@@ -715,7 +715,7 @@ do_compute_err_est_M_elem(LocalVector& u, GridObject* elem, const MathVector<dim
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	if(this->m_vElemComputeErrEstMFct[m_roid] != NULL)
+	if(this->m_vElemComputeErrEstMFct[m_roid] != nullptr)
 		(this->*(m_vElemComputeErrEstMFct[m_roid]))(u, elem, vCornerCoords, scale);
 }
 
@@ -727,7 +727,7 @@ do_compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoord
 		asLeaf().m_pLocalVectorTimeSeries->access_by_map(asLeaf().map());
 
 	//	call assembling routine
-	if(this->m_vElemComputeErrEstRhsFct[m_roid] != NULL)
+	if(this->m_vElemComputeErrEstRhsFct[m_roid] != nullptr)
 		(this->*(m_vElemComputeErrEstRhsFct[m_roid]))(elem, vCornerCoords, scale);
 }
 
@@ -736,7 +736,7 @@ void IElemEstimatorFuncs<TLeaf, TDomain>::
 do_fsh_err_est_elem_loop()
 {
 //	call finish
-	if (this->m_vFinishErrEstElemLoopFct[m_roid] != NULL)
+	if (this->m_vFinishErrEstElemLoopFct[m_roid] != nullptr)
 		(this->*m_vFinishErrEstElemLoopFct[m_roid])();
 
 //	remove positions in currently registered imports

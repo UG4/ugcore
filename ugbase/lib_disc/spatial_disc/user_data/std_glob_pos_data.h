@@ -78,7 +78,7 @@ class StdGlobPosData
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
 		                     LocalVector* u,
-		                     const MathMatrix<refDim, dim>* vJT = NULL) const
+		                     const MathMatrix<refDim, dim>* vJT = nullptr) const
 		{
 			for(size_t ip = 0; ip < nip; ++ip)
 				this->getImpl().evaluate(vValue[ip],vGlobIP[ip],time,si);

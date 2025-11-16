@@ -163,7 +163,7 @@ TChild* MultiGrid::get_child(GridObject* elem, size_t ind) const
 	case FACE:		return get_child<TChild>(static_cast<Face*>(elem), ind);
 	case VOLUME:	return get_child<TChild>(static_cast<Volume*>(elem), ind);
 	}
-	return NULL;
+	return nullptr;
 }
 
 template <class TElem>

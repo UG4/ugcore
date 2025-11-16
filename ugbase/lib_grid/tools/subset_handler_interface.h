@@ -101,7 +101,7 @@ struct SubsetInfo
 	vector4		color;
 	uint		subsetState;///< an or-combination of SubsetState flags.
 
-	typedef std::map<std::string, Variant>	PropertyMap;
+	using PropertyMap = std::map<std::string, Variant>;
 ///	custom properties can be stored in this map.
 /**	One should access it through set_property and get_property.*/
 	PropertyMap	m_propertyMap;
@@ -128,14 +128,14 @@ template<>
 class attachment_traits<Vertex*, ISubsetHandler>
 {
 	public:
-		typedef Vertex*&			ElemRef;
-		typedef Vertex*				ElemPtr;
-		typedef const Vertex*		ConstElemPtr;
-		typedef ISubsetHandler*			ElemHandlerPtr;
-		typedef const ISubsetHandler*	ConstElemHandlerPtr;
+		using ElemRef = Vertex*&;
+		using ElemPtr = Vertex*;
+		using ConstElemPtr = const Vertex*;
+		using ElemHandlerPtr = ISubsetHandler*;
+		using ConstElemHandlerPtr = const ISubsetHandler*;
 
-		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = NULL;}
-		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != NULL;}
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = nullptr;}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != nullptr;}
 		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem);
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index);
 };
@@ -145,14 +145,14 @@ template<>
 class attachment_traits<Edge*, ISubsetHandler>
 {
 	public:
-		typedef Edge*&				ElemRef;
-		typedef Edge*				ElemPtr;
-		typedef const Edge*			ConstElemPtr;
-		typedef ISubsetHandler*			ElemHandlerPtr;
-		typedef const ISubsetHandler*	ConstElemHandlerPtr;
+		using ElemRef = Edge*&;
+		using ElemPtr = Edge*;
+		using ConstElemPtr = const Edge*;
+		using ElemHandlerPtr = ISubsetHandler*;
+		using ConstElemHandlerPtr = const ISubsetHandler*;
 
-		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = NULL;}
-		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != NULL;}
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = nullptr;}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != nullptr;}
 		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem);
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index);
 };
@@ -162,14 +162,14 @@ template<>
 class attachment_traits<Face*, ISubsetHandler>
 {
 	public:
-		typedef Face*&					ElemRef;
-		typedef Face*					ElemPtr;
-		typedef const Face*				ConstElemPtr;
-		typedef ISubsetHandler*			ElemHandlerPtr;
-		typedef const ISubsetHandler*	ConstElemHandlerPtr;
+		using ElemRef = Face*&;
+		using ElemPtr = Face*;
+		using ConstElemPtr = const Face*;
+		using ElemHandlerPtr = ISubsetHandler*;
+		using ConstElemHandlerPtr = const ISubsetHandler*;
 
-		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = NULL;}
-		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != NULL;}
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = nullptr;}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != nullptr;}
 		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem);
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index);
 };
@@ -179,14 +179,14 @@ template<>
 class attachment_traits<Volume*, ISubsetHandler>
 {
 	public:
-		typedef Volume*&				ElemRef;
-		typedef Volume*					ElemPtr;
-		typedef const Volume*			ConstElemPtr;
-		typedef ISubsetHandler*			ElemHandlerPtr;
-		typedef const ISubsetHandler*	ConstElemHandlerPtr;
+		using ElemRef = Volume*&;
+		using ElemPtr = Volume*;
+		using ConstElemPtr = const Volume*;
+		using ElemHandlerPtr = ISubsetHandler*;
+		using ConstElemHandlerPtr = const ISubsetHandler*;
 
-		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = NULL;}
-		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != NULL;}
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = nullptr;}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != nullptr;}
 		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem);
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index);
 };
@@ -227,16 +227,16 @@ class UG_API ISubsetHandler : public GridObserver
 	friend class attachment_traits<Volume*, ISubsetHandler>;*/
 
 	public:/*
-		typedef AttachmentPipe<Vertex*, ISubsetHandler>	VertexAttachmentPipe;
-		typedef AttachmentPipe<Edge*, ISubsetHandler>	EdgeAttachmentPipe;
-		typedef AttachmentPipe<Face*, ISubsetHandler>		FaceAttachmentPipe;
-		typedef AttachmentPipe<Volume*, ISubsetHandler>		VolumeAttachmentPipe;*/
+		using VertexAttachmentPipe = AttachmentPipe<Vertex*, ISubsetHandler>;
+		using EdgeAttachmentPipe = AttachmentPipe<Edge*, ISubsetHandler>;
+		using FaceAttachmentPipe = AttachmentPipe<Face*, ISubsetHandler>;
+		using VolumeAttachmentPipe = AttachmentPipe<Volume*, ISubsetHandler>;*/
 
 	///	The traits class holds some important types for each element-type
 		template <class TElem>
 		struct traits{
-			typedef typename geometry_traits<TElem>::iterator		iterator;
-			typedef typename geometry_traits<TElem>::const_iterator	const_iterator;
+			using iterator = typename geometry_traits<TElem>::iterator;
+			using const_iterator = typename geometry_traits<TElem>::const_iterator;
 		};
 
 	public:
@@ -265,7 +265,7 @@ class UG_API ISubsetHandler : public GridObserver
 		ISubsetHandler& operator = (const ISubsetHandler& sh);
 
 	///	returns a pointer to the grid on which the subset-handler works.
-	/**	returns NULL if no grid is assigned.*/
+	/**	returns nullptr if no grid is assigned.*/
 		Grid* grid() const;
 
 	///	returns true if the given element-types are supported.
@@ -376,32 +376,32 @@ class UG_API ISubsetHandler : public GridObserver
 
 	//	element callbacks
 		virtual void vertex_created(Grid* grid, Vertex* vrt,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void edge_created(Grid* grid, Edge* e,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void face_created(Grid* grid, Face* f,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void volume_created(Grid* grid, Volume* vol,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
-										 Vertex* replacedBy = NULL);
+										 Vertex* replacedBy = nullptr);
 
 		virtual void edge_to_be_erased(Grid* grid, Edge* e,
-										 Edge* replacedBy = NULL);
+										 Edge* replacedBy = nullptr);
 
 		virtual void face_to_be_erased(Grid* grid, Face* f,
-										 Face* replacedBy = NULL);
+										 Face* replacedBy = nullptr);
 
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
-										 Volume* replacedBy = NULL);
+										 Volume* replacedBy = nullptr);
 
 		virtual void vertices_to_be_merged(Grid* grid, Vertex* target,
 										 Vertex* elem1, Vertex* elem2);
@@ -553,15 +553,15 @@ class UG_API ISubsetHandler : public GridObserver
 		get_attachment_data_container(TAttachment& attachment, int subsetIndex);
 */
 	protected:
-		typedef Grid::traits<Vertex>::AttachedElementList	AttachedVertexList;
-		typedef Grid::traits<Edge>::AttachedElementList		AttachedEdgeList;
-		typedef Grid::traits<Face>::AttachedElementList			AttachedFaceList;
-		typedef Grid::traits<Volume>::AttachedElementList		AttachedVolumeList;
+		using AttachedVertexList = Grid::traits<Vertex>::AttachedElementList;
+		using AttachedEdgeList = Grid::traits<Edge>::AttachedElementList;
+		using AttachedFaceList = Grid::traits<Face>::AttachedElementList;
+		using AttachedVolumeList = Grid::traits<Volume>::AttachedElementList;
 
-		typedef Grid::traits<Vertex>::SectionContainer		VertexSectionContainer;
-		typedef Grid::traits<Edge>::SectionContainer		EdgeSectionContainer;
-		typedef Grid::traits<Face>::SectionContainer			FaceSectionContainer;
-		typedef Grid::traits<Volume>::SectionContainer			VolumeSectionContainer;
+		using VertexSectionContainer = Grid::traits<Vertex>::SectionContainer;
+		using EdgeSectionContainer = Grid::traits<Edge>::SectionContainer;
+		using FaceSectionContainer = Grid::traits<Face>::SectionContainer;
+		using VolumeSectionContainer = Grid::traits<Volume>::SectionContainer;
 
 	protected:
 	///	selects elements based on the selection in the srcHandler
@@ -696,7 +696,7 @@ class UG_API ISubsetHandler : public GridObserver
 		class AttachmentAccessor : public ug::AttachmentAccessor<TGeomObj*, TAttachment, ISubsetHandler>
 		{
 			protected:
-				typedef ug::AttachmentAccessor<TGeomObj*, TAttachment, ISubsetHandler>	BaseClass;
+				using BaseClass = ug::AttachmentAccessor<TGeomObj*, TAttachment, ISubsetHandler>;
 
 			public:
 				AttachmentAccessor()	{}
@@ -724,13 +724,13 @@ class UG_API ISubsetHandler : public GridObserver
 		ISubsetHandler(const ISubsetHandler& sh)	{};
 
 	protected:
-		typedef AInt					ASubsetIndex;
-		//typedef Attachment<uint>		ADataIndex;
-		typedef std::vector<SubsetInfo>	SubsetInfoVec;
-		/*typedef std::vector<VertexAttachmentPipe*>	VertexAttachmentPipeVec;
-		typedef std::vector<EdgeAttachmentPipe*>	EdgeAttachmentPipeVec;
-		typedef std::vector<FaceAttachmentPipe*>	FaceAttachmentPipeVec;
-		typedef std::vector<VolumeAttachmentPipe*>	VolumeAttachmentPipeVec;*/
+		using ASubsetIndex = AInt;
+		//using ADataIndex = Attachment<uint>;
+		using SubsetInfoVec = std::vector<SubsetInfo>;
+		/*using VertexAttachmentPipeVec = std::vector<VertexAttachmentPipe*>;
+		using EdgeAttachmentPipeVec = std::vector<EdgeAttachmentPipe*>;
+		using FaceAttachmentPipeVec = std::vector<FaceAttachmentPipe*>;
+		using VolumeAttachmentPipeVec = std::vector<VolumeAttachmentPipe*>;*/
 
 	protected:
 		Grid*				m_pGrid;

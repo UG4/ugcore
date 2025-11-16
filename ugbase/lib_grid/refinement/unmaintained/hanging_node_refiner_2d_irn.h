@@ -110,20 +110,20 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 		virtual void refine();
 
 	protected:
-		typedef Attachment<int> ARefinementMark;
-		//typedef Attachment<RefinementInfo> ARefinementInfo;
+		using ARefinementMark = Attachment<int>;
+		//using ARefinementInfo = Attachment<RefinementInfo> ;
 
-		typedef std::vector<Edge*>	EdgeVec;
-		typedef std::vector<Face*>		FaceVec;
-		typedef std::vector<Volume*>	VolumeVec;
+		using EdgeVec = std::vector<Edge*>;
+		using FaceVec = std::vector<Face*>;
+		using VolumeVec = std::vector<Volume*>;
 
-		typedef std::queue<Edge*> EdgeQueue;
-		typedef std::queue<Face*> FaceQueue;
-		typedef std::queue<Volume*> VolumeQueue;
+		using EdgeQueue = std::queue<Edge*>;
+		using FaceQueue = std::queue<Face*>;
+		using VolumeQueue = std::queue<Volume*>;
 
 	protected:
 	///	performs registration and deregistration at a grid.
-	/**	call set_grid(NULL) to unregister the observer from a grid.*/
+	/**	call set_grid(nullptr) to unregister the observer from a grid.*/
 		void set_grid(Grid* grid);
 		
 	///	marks unmarked elements that have to be refined due to marked neighbors.
@@ -222,7 +222,7 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 			public:
 				RefinementInfo()	{reset();}
 
-				inline void reset()			{m_mark = RM_NONE; m_vertex = NULL;}
+				inline void reset()			{m_mark = RM_NONE; m_vertex = nullptr;}
 
 				inline void set_vertex(Vertex* v)		{m_vertex = v;}
 				inline void set_mark(RefinementMark mark)	{m_mark = mark;}

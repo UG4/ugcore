@@ -190,7 +190,7 @@ class StdLagrangeElemTransfer
 {
 	public:
 	///	world dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 
 	public:
 		StdLagrangeElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
@@ -211,7 +211,7 @@ class StdLagrangeElemTransfer
 		                const ReferenceObjectID parentRoid)
 		{
 			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
-			static const int pdim = TParent::dim;
+			static constexpr int pdim = TParent::dim;
 
 		//	 number of children of the base type
 			const int numChild = mg->num_children<TChild>(parent);
@@ -256,7 +256,7 @@ class StdLagrangeElemTransfer
 		                TransferValueAccessor& vValueChild,
 		                TransferValueAccessor& vValueParent)
 		{
-			static const int pdim = TElem::dim;
+			static constexpr int pdim = TElem::dim;
 
 		//	get reference object ids
 			const ReferenceObjectID parentRoid = parent->reference_object_id();
@@ -399,7 +399,7 @@ class CrouzeixRaviartElemTransfer
 {
 	public:
 	///	world dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 
 	public:
 		CrouzeixRaviartElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
@@ -427,7 +427,7 @@ class CrouzeixRaviartElemTransfer
 						TransferValueAccessor& vValueParent)
 		{
 		// 	get associated macro elements, this elem is a side of
-			typedef typename TSide::sideof TElem;
+			using TElem = typename TSide::sideof;
 			if(vParentElem.size() > 2)
 				UG_THROW("More than 2 Elements share a side.")
 
@@ -445,7 +445,7 @@ class CrouzeixRaviartElemTransfer
 				TElem* parentElem = vParentElem[p];
 
 			//	get reference object ids
-				static const int pdim = TElem::dim;
+				static constexpr int pdim = TElem::dim;
 				const ReferenceObjectID parentRoid = parentElem->reference_object_id();
 
 			//	access the values
@@ -502,8 +502,8 @@ class CrouzeixRaviartElemTransfer
 			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
 		//	a) prolongation from a side
 			if(TParent::dim == m_lfeid.dim()-1){
-				typedef typename TParent::sideof TElem;
-				typedef TParent TSide;
+				using TElem = typename TParent::sideof;
+				using TSide = TParent;
 
 			//	get child sides
 				const int numChild = mg->num_children<TParent>(parent);
@@ -527,8 +527,8 @@ class CrouzeixRaviartElemTransfer
 
 		//	b) prolongation from a element
 			if(TParent::dim == m_lfeid.dim()){
-				typedef TParent TElem;
-				typedef typename TParent::side TSide;
+				using TElem = TParent;
+				using TSide = typename TParent::side;
 
 			//	get child sides
 				const int numChild = mg->num_children<TSide>(parent);

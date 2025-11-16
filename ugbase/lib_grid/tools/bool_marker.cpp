@@ -35,7 +35,7 @@
 namespace ug{
 
 BoolMarker::BoolMarker() :
-	m_pGrid(NULL),
+	m_pGrid(nullptr),
 	m_defaultMark(false),
 	m_markInheritanceEnabled(true),
 	m_strictInheritanceEnabled(false)
@@ -43,7 +43,7 @@ BoolMarker::BoolMarker() :
 }
 
 BoolMarker::BoolMarker(Grid& g) :
-	m_pGrid(NULL),
+	m_pGrid(nullptr),
 	m_defaultMark(false),
 	m_markInheritanceEnabled(true),
 	m_strictInheritanceEnabled(false)
@@ -53,7 +53,7 @@ BoolMarker::BoolMarker(Grid& g) :
 
 BoolMarker::~BoolMarker()
 {
-	assign_grid(NULL);
+	assign_grid(nullptr);
 }
 
 void BoolMarker::assign_grid(Grid* g)
@@ -99,7 +99,7 @@ bool BoolMarker::is_marked(GridObject* e) const
 
 void BoolMarker::grid_to_be_destroyed(Grid* grid)
 {
-	assign_grid(NULL);
+	assign_grid(nullptr);
 }
 
 void BoolMarker::clear()

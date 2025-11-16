@@ -53,7 +53,7 @@ class AverageComponent :
 {
 	public:
 	///	GridFunction type
-		typedef GridFunction<TDomain, TAlgebra> GF;
+		using GF = GridFunction<TDomain, TAlgebra>;
 
 	public:
 	///	Constructor setting approximation space

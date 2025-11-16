@@ -43,10 +43,10 @@ class IDiscretizationItem
 {
 	public:
 	///	Type of Domain
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	///	Type of algebra
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	public:
 	///	returns the number of element discs

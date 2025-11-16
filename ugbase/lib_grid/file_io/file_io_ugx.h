@@ -139,10 +139,10 @@ class GridWriterUGX
 		bool write_to_file(const char* filename);
 
 	protected:
-		typedef Grid::VertexAttachmentAccessor<AInt> AAVrtIndex;
-		typedef Grid::EdgeAttachmentAccessor<AInt> AAEdgeIndex;
-		typedef Grid::FaceAttachmentAccessor<AInt> AAFaceIndex;
-		typedef Grid::VolumeAttachmentAccessor<AInt> AAVolIndex;
+		using AAVrtIndex = Grid::VertexAttachmentAccessor<AInt>;
+		using AAEdgeIndex = Grid::EdgeAttachmentAccessor<AInt>;
+		using AAFaceIndex = Grid::FaceAttachmentAccessor<AInt>;
+		using AAVolIndex = Grid::VolumeAttachmentAccessor<AInt>;
 
 	protected:
 		void init_grid_attachments(Grid& grid);
@@ -355,7 +355,7 @@ class GridReaderUGX
 	protected:
 		struct SubsetHandlerEntry
 		{
-			SubsetHandlerEntry(rapidxml::xml_node<>* n) : node(n), sh(NULL) {}
+			SubsetHandlerEntry(rapidxml::xml_node<>* n) : node(n), sh(nullptr) {}
 
 			rapidxml::xml_node<>* 	node;
 			ISubsetHandler*			sh;
@@ -363,7 +363,7 @@ class GridReaderUGX
 
 		struct SelectorEntry
 		{
-			SelectorEntry(rapidxml::xml_node<>* n) : node(n), sel(NULL) {}
+			SelectorEntry(rapidxml::xml_node<>* n) : node(n), sel(nullptr) {}
 
 			rapidxml::xml_node<>* 	node;
 			ISelector*				sel;
@@ -371,7 +371,7 @@ class GridReaderUGX
 
 		struct GridEntry
 		{
-			GridEntry(rapidxml::xml_node<>* n) : node(n), grid(NULL), mg(NULL)	{}
+			GridEntry(rapidxml::xml_node<>* n) : node(n), grid(nullptr), mg(nullptr)	{}
 
 			rapidxml::xml_node<>* node;
 			Grid* 		grid;

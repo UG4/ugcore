@@ -45,10 +45,10 @@ namespace ug{
 
 #ifdef UG_WIN32
 ///	Defines a reference to a dynamically loaded library
-	typedef HMODULE DynLibHandle;
+	using DynLibHandle = HMODULE;
 #else
 ///	Defines a reference to a dynamically loaded library
-	typedef void*	DynLibHandle;
+	using DynLibHandle = void*;
 #endif
 
 ///	Loads a library and returns a handle
@@ -63,7 +63,7 @@ DynLibHandle OpenLibrary(const char* fileName);
 bool CloseLibrary(DynLibHandle h);
 
 ///	Returns the address of the specified procedure in the given library
-/**	If no procedure with the given name was found, NULL is returned.
+/**	If no procedure with the given name was found, nullptr is returned.
  * \sa OpenLibrary, CloseLibrary*/
 void* GetLibraryProcedure(DynLibHandle h, const char* procName);
 

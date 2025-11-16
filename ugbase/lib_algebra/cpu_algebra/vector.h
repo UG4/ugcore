@@ -54,9 +54,9 @@ template <typename TValueType>
 class Vector //: public IVector
 {
 public:
-	typedef TValueType value_type;
-	//typedef subvector<value_type> subvector_type;
-	typedef Vector<TValueType> vector_type;
+	using value_type = TValueType;
+	// using subvector_type = subvector<value_type>;
+	using vector_type = Vector<TValueType>;
 
 //	IVECTOR_TO_VEC_FUNCTIONS(vector_type)
 
@@ -72,7 +72,7 @@ public:
 	Vector(const vector_type & v)
 	{
 		m_capacity = 0;
-		m_size = 0; values = NULL;
+		m_size = 0; values = nullptr;
 		create(v.m_size);
 		operator =(v);
 	}
@@ -183,7 +183,7 @@ public:
 
 public: // output functions
 	//! print vector to console
-	void print(const char * const text = NULL) const;
+	void print(const char * const text = nullptr) const;
 	void p() {print(); } ///< gdb shortcut for print
 
 	//! ostream << operator

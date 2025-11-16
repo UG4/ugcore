@@ -71,7 +71,7 @@ copy_from_surface(const GridFunction<TDomain,TAlgebra>& rSurfaceFct)
 {
 	ConstSmartPtr<SurfaceView> spSurfView = rSurfaceFct.approx_space()->surface_view();
 	ConstSmartPtr<MultiGrid> spGrid = m_spDomain->grid();
-	typedef typename GridFunction<TDomain,TAlgebra>::template traits<TElem>::const_iterator iter_type;
+	using iter_type = typename GridFunction<TDomain,TAlgebra>::template traits<TElem>::const_iterator;
 	iter_type iter = rSurfaceFct.template begin<TElem>(SurfaceView::ALL);
 	iter_type iterEnd = rSurfaceFct.template end<TElem>(SurfaceView::ALL);
 
@@ -145,7 +145,7 @@ copy_to_surface(GridFunction<TDomain,TAlgebra>& rSurfaceFct)
 	ConstSmartPtr<SurfaceView> spSurfView = rSurfaceFct.approx_space()->surface_view();
 	ConstSmartPtr<MultiGrid> spGrid = m_spDomain->grid();
 
-	typedef typename GridFunction<TDomain,TAlgebra>::template traits<TElem>::const_iterator iter_type;
+	using iter_type = typename GridFunction<TDomain,TAlgebra>::template traits<TElem>::const_iterator;
 	iter_type iter = rSurfaceFct.template begin<TElem>(SurfaceView::ALL);
 	iter_type iterEnd = rSurfaceFct.template end<TElem>(SurfaceView::ALL);
 

@@ -243,7 +243,7 @@ void CollectEdgesSorted(vector<Edge*>& vEdgesOut, Grid& grid, Face* f, bool clea
 		for(uint i = 0; i < numEdges; ++i)
 		{
 			Edge* e = grid.get_edge(f, i);
-			if(e != NULL)
+			if(e != nullptr)
 				vEdgesOut.push_back(e);
 		}
 	}
@@ -280,7 +280,7 @@ void CollectEdgesSorted(vector<Edge*>& vEdgesOut, Grid& grid, Volume* v, bool cl
 		for(uint i = 0; i < numEdges; ++i)
 		{
 			Edge* e = grid.get_edge(v, i);
-			if(e != NULL)
+			if(e != nullptr)
 				vEdgesOut.push_back(e);
 		}
 	}
@@ -352,7 +352,7 @@ void CollectEdges(vector<Edge*>& vEdgesOut, Grid& grid, Face* f, bool clearConta
 	for(uint i = 0; i < numEdges; ++i)
 	{
 		Edge* e = grid.get_edge(f, i);
-		if(e != NULL)
+		if(e != nullptr)
 			vEdgesOut.push_back(e);
 	}
 }
@@ -387,7 +387,7 @@ void CollectEdges(vector<Edge*>& vEdgesOut, Grid& grid, Volume* v, bool clearCon
 	for(uint i = 0; i < numEdges; ++i)
 	{
 		Edge* e = grid.get_edge(v, i);
-		if(e != NULL)
+		if(e != nullptr)
 			vEdgesOut.push_back(e);
 	}
 
@@ -415,7 +415,7 @@ void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Face* f, bool clea
 	if(clearContainer)
 		vFacesOut.clear();
 
-	if(f != NULL)
+	if(f != nullptr)
 		vFacesOut.push_back(f);
 }
 
@@ -446,7 +446,7 @@ void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool cl
 		for(uint i = 0; i < numFaces; ++i)
 		{
 			Face* f = grid.get_face(v, i);
-			if(f != NULL)
+			if(f != nullptr)
 				vFacesOut.push_back(f);
 		}
 	}
@@ -550,7 +550,7 @@ void CollectFaces(vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool clearCon
 	for(uint i = 0; i < numFaces; ++i)
 	{
 		Face* f = grid.get_face(v, i);
-		if(f != NULL)
+		if(f != nullptr)
 			vFacesOut.push_back(f);
 	}
 }

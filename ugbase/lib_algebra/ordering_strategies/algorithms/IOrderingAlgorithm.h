@@ -51,11 +51,11 @@ namespace ug{
 template <typename TAlgebra, typename O_t=std::vector<size_t> >
 class IOrderingAlgorithm{
 public:
-	typedef typename TAlgebra::matrix_type M_t;
-	typedef typename TAlgebra::vector_type V_t;
+	using M_t = typename TAlgebra::matrix_type;
+	using V_t = typename TAlgebra::vector_type;
 
-	IOrderingAlgorithm(){}
-	virtual ~IOrderingAlgorithm(){}
+	IOrderingAlgorithm()= default;
+	virtual ~IOrderingAlgorithm()= default;
 
 	virtual void compute() = 0;
 	virtual void check() = 0;

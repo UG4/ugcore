@@ -100,14 +100,14 @@ class IConvectionShapes
 {
 	public:
 	/// Abbreviation for own type
-		typedef IConvectionShapes<dim> this_type;
+	using this_type = IConvectionShapes<dim>;
 
 	///	type of update function
-		typedef bool (this_type::*UpdateFunc)
-				(const FVGeometryBase* geo,
-				 const MathVector<dim>* Velocity,
-				 const MathMatrix<dim, dim>* Diffusion,
-				 bool computeDeriv);
+	using UpdateFunc = bool(this_type::*)
+		(const FVGeometryBase* geo,
+		 const MathVector<dim>* Velocity,
+		 const MathMatrix<dim, dim>* Diffusion,
+		 bool computeDeriv);
 
 	public:
 	///	constructor
@@ -253,7 +253,7 @@ register_update_func(TAssFunc func)
 
 //	make sure that there is enough space
 	if((size_t)id >= m_vUpdateFunc.size())
-		m_vUpdateFunc.resize(id+1, NULL);
+		m_vUpdateFunc.resize(id+1, nullptr);
 
 //	set pointer
 	m_vUpdateFunc[id] = (UpdateFunc)func;
@@ -270,7 +270,7 @@ set_geometry_type(const TFVGeom& geo)
 	size_t id = GetUniqueFVGeomID<TFVGeom>();
 
 //	check that function exists
-	if(id >= m_vUpdateFunc.size() || m_vUpdateFunc[id] == NULL)
+	if(id >= m_vUpdateFunc.size() || m_vUpdateFunc[id] == nullptr)
 	{
 		UG_LOG("ERROR in 'IConvectionShapes::set_geometry_type':"
 				" No update function registered for this Geometry.\n");

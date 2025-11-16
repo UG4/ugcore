@@ -29,12 +29,140 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
-
+#ifndef PCL_UTIL_IMPL_H
+#define PCL_UTIL_IMPL_H
 
 #include "common/util/binary_buffer.h"
 #include "common/serialization.h"
 
+#include "pcl_util.h"
+
 namespace pcl {
+	template<typename TLayout, typename TSelector>
+	bool RemoveUnselectedInterfaceEntries(TLayout &layout, TSelector &sel) {
+		//	iterate over all interfaces of the layout.
+		//	for each we'll create a new one, into which elements selected
+		//	elements will be inserted.
+		//	Finally we'll swap the content of the those interfaces.
+		//	if the interface is empty at the end of the operation, it will be
+		//	removed from the layout.
+		bool retVal = false;
+
+		using Interface = typename TLayout::Interface;
+		//ø using InterfaceIter = typename TLayout::iterator;
+		using Elem = typename Interface::Element;
+		//ø using ElemIter = typename Interface::iterator;
+
+		//	iterate over all levels
+		for(size_t level = 0; level < layout.num_levels(); ++level)
+		{
+			//	iterate over all interfaces
+			for(auto iiter = layout.begin(level); iiter != layout.end(level);)
+			{
+				bool interfaceChanged = false;
+				Interface& interface = layout.interface(iiter);
+
+				//	create a temporary interface and fill it with the selected entries
+				Interface tInterface;
+
+				for(auto iter = interface.begin(); iter != interface.end(); ++iter)
+				{
+					Elem& e = interface.get_element(iter);
+					if(sel.is_selected(e))
+						tInterface.push_back(e);
+					else
+						interfaceChanged = true;
+				}
+
+				//	now swap the interface contents.
+				if(interfaceChanged){
+					interface.swap(tInterface);
+
+					//	if the interface is empty, erase it.
+					//	if not, simply increase the iterator
+					if(interface.size() == 0){
+						iiter = layout.erase(iiter, level);
+					}
+					else{
+						++iiter;
+					}
+
+					retVal = true;
+				}
+				else{
+					++iiter;
+				}
+			}
+		}
+
+		return retVal;
+	}
+
+	template<typename TType, typename TLayoutMap, typename TSelector>
+	bool RemoveUnselectedInterfaceEntries(TLayoutMap &lm, TSelector &sel) {
+		//ø using iterator = typename TLayoutMap::template Types<TType>::Map::iterator;
+		using Layout = typename TLayoutMap::template Types<TType>::Layout;
+
+		bool retVal = false;
+		for(auto iter = lm.template layouts_begin<TType>(); iter != lm.template layouts_end<TType>();)
+		{
+			//	get the layout
+			Layout& layout = iter->second;
+			//	remove unnecessary interface entries and interfaces
+			retVal |= RemoveUnselectedInterfaceEntries(layout, sel);
+			//	if the layout is empty, it can be removed from the map
+			//	if not we'll simply increase the iterator
+			if(layout.empty()){
+				iter = lm.template erase_layout<TType>(iter);
+			}
+			else{
+				++iter;
+			}
+		}
+		return retVal;
+	}
+
+	template<typename TLayout, typename TSelectorIn, typename TSelectorOut>
+	bool SelectionCommPol<TLayout, TSelectorIn, TSelectorOut>::collect(ug::BinaryBuffer &buff, Interface &interface) {
+		char zero = 0;
+		char one = 1;
+
+		for(auto iter = interface.begin(); iter != interface.end(); ++iter)
+		{
+			if(m_selIn.is_selected(interface.get_element(iter)))
+				buff.write(&one, sizeof(char));
+			else
+				buff.write(&zero, sizeof(char));
+		}
+
+		return true;
+	}
+
+	template<typename TLayout, typename TSelectorIn, typename TSelectorOut>
+	bool SelectionCommPol<TLayout, TSelectorIn, TSelectorOut>::extract(ug::BinaryBuffer &buff, Interface &interface) {
+		char tmp;
+		for(auto iter = interface.begin(); iter != interface.end(); ++iter)
+		{
+			buff.read(&tmp, sizeof(char));
+			if(tmp == 0)
+				m_selOut.deselect(interface.get_element(iter));
+			else
+				m_selOut.select(interface.get_element(iter));
+		}
+
+		return true;
+	}
+
+template<typename TLayout>
+void AddLayout(TLayout &destLayout, const TLayout &sourceLayout) {
+	for(typename TLayout::const_iterator iter = sourceLayout.begin(); iter != sourceLayout.end(); ++iter)
+	{
+		const typename TLayout::Interface &source_interface = sourceLayout.interface(iter);
+		typename TLayout::Interface &dest_interface = destLayout.interface(sourceLayout.proc_id(iter));
+		for(auto iter2 = source_interface.begin(); iter2 != source_interface.end(); ++iter2)
+			dest_interface.push_back(source_interface.get_element(iter2));
+	}
+}
 
 template <typename TKey, typename TValue, typename Compare>
 void MinimalKeyValuePairAcrossAllProcs(TKey& keyInOut, TValue& valInOut, const Compare& cmp)
@@ -89,4 +217,5 @@ void MinimalKeyValuePairAcrossAllProcs(TKey& keyInOut, TValue& valInOut, const C
 }
 
 
-} // end of namespace pcl
+}
+#endif

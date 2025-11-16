@@ -37,6 +37,7 @@
 #include <queue>
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "common/util/metaprogramming_util.h"
+#include "common/math/misc/math_constants.h"
 
 namespace ug
 {
@@ -293,8 +294,8 @@ void SelectAssociatedVolumes(TSelector& sel, TElemIterator elemsBegin,
 template <class TElem, class TSelector>
 void AssignSelectionStateToSides(TSelector& sel, bool recursive)
 {
-	typedef typename TSelector::template traits<TElem>::level_iterator TIter;
-	typedef typename TElem::side TSide;
+	using TIter = typename TSelector::template traits<TElem>::level_iterator;
+	using TSide = typename TElem::side;
 
 	UG_ASSERT(sel.grid(), "A selector has to operate on a grid");
 
@@ -398,21 +399,21 @@ void ExtendSelectionInDirection(
 					grid.mark(vrt);
 
 				//	select associated volumes, faces and edges.
-					for(Grid::AssociatedEdgeIterator asIter = grid.associated_edges_begin(vrt);
+					for(auto asIter = grid.associated_edges_begin(vrt);
 						asIter != grid.associated_edges_end(vrt); ++asIter)
 					{
 						if(CheckDirection(vrt, *asIter, aaPos, dir, minAngle, maxAngle))
 							sel.select(*asIter, status);
 					}
 
-					for(Grid::AssociatedFaceIterator asIter = grid.associated_faces_begin(vrt);
+					for(auto asIter = grid.associated_faces_begin(vrt);
 						asIter != grid.associated_faces_end(vrt); ++asIter)
 					{
 						if(CheckDirection(vrt, *asIter, aaPos, dir, minAngle, maxAngle))
 							sel.select(*asIter, status);
 					}
 
-					for(Grid::AssociatedVolumeIterator asIter = grid.associated_volumes_begin(vrt);
+					for(auto asIter = grid.associated_volumes_begin(vrt);
 						asIter != grid.associated_volumes_end(vrt); ++asIter)
 					{
 						if(CheckDirection(vrt, *asIter, aaPos, dir, minAngle, maxAngle))
@@ -446,7 +447,7 @@ void SelectEdgesByDirection(
 	number maxDot = cos(deg_to_rad(minDeviationAngle));
 	number minDot = cos(deg_to_rad(maxDeviationAngle));
 
-	lg_for_each(Edge, e, g){
+	for(Grid::traits<Edge>::iterator _feI = g.begin<Edge>(); _feI != g.end<Edge>(); ++_feI){ Edge* e = *_feI;{
 		vector3 dir;
 		VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
 		VecNormalize(dir, dir);
@@ -456,7 +457,7 @@ void SelectEdgesByDirection(
 		{
 			sel.select(e);
 		}
-	}lg_end_for;
+	}};
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -480,7 +481,7 @@ void SelectSubsetEdgesByDirection(
 	number maxDot = cos(deg_to_rad(minDeviationAngle));
 	number minDot = cos(deg_to_rad(maxDeviationAngle));
 
-	lg_for_each_in_subset(Edge, e, sh, subsetIndex){
+	for(Grid::traits<Edge>::iterator _feI = sh.begin<Edge>(subsetIndex); _feI != sh.end<Edge>(subsetIndex); ++_feI){ Edge* e = *_feI;{
 		vector3 dir;
 		VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
 		VecNormalize(dir, dir);
@@ -490,7 +491,7 @@ void SelectSubsetEdgesByDirection(
 		{
 			sel.select(e);
 		}
-	}lg_end_for;
+	}};
 }
 
 
@@ -518,7 +519,7 @@ void SelectCreaseEdges(ISelector& sel, TEdgeIterator edgesBegin, TEdgeIterator e
 	Face* f[2];
 
 //	all dot-products between normals lower than minDot mark a crease.
-	number minDot = cos(minAngle * 3.14159265 / 180.f);
+	number minDot = cos(minAngle * M_PI / 180.f);
 
 //	iterate through the edges
 	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
@@ -548,8 +549,8 @@ void SelectCreaseEdges(ISelector& sel, TEdgeIterator edgesBegin, TEdgeIterator e
 template <class TIter>
 void SelectAreaBoundary(ISelector& sel, const TIter begin, const TIter end)
 {
-	typedef typename Pointer2Value<typename TIter::value_type>::type	TElem;
-	typedef typename TElem::side										TSide;
+	using TElem = typename Pointer2Value<typename TIter::value_type>::type;
+	using TSide = typename TElem::side;
 
 	if(!sel.grid())
 		return;
@@ -589,8 +590,8 @@ void SelectInterfaceElements(ISelector& sel, ISubsetHandler& sh,
 							 const TIter begin, const TIter end,
 							 bool regardSelectedNbrsOnly)
 {
-	typedef typename Pointer2Value<typename TIter::value_type>::type	TElem;
-	typedef typename TElem::sideof										TNbr;
+	using TElem = typename Pointer2Value<typename TIter::value_type>::type;
+	using TNbr = typename TElem::sideof;
 
 	if(!TElem::CAN_BE_SIDE)
 		return;
@@ -629,7 +630,7 @@ template <class TElem>
 void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
 						  ISelector::status_t status)
 {
-	typedef typename GridObjectCollection::traits<TElem>::iterator	TIter;
+	using TIter = typename GridObjectCollection::traits<TElem>::iterator;
 	GridObjectCollection goc = sh.get_grid_objects_in_subset(subsetIndex);
 
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
@@ -643,7 +644,7 @@ template <class TGeomObj, class TAAPos>
 bool SelectRegion(Selector& sel, const typename TAAPos::ValueType& p, TAAPos& aaPos,
 			   	  typename Grid::traits<typename TGeomObj::side>::callback cbRegionBoundary)
 {
-	typedef typename Grid::traits<TGeomObj>::iterator	TIter;
+	using TIter = typename Grid::traits<TGeomObj>::iterator;
 
 	if(!sel.grid())
 		return false;
@@ -651,7 +652,7 @@ bool SelectRegion(Selector& sel, const typename TAAPos::ValueType& p, TAAPos& aa
 	Grid& g = *sel.grid();
 
 //	first try to find the element which contains p
-	TGeomObj* startElem = NULL;
+	TGeomObj* startElem = nullptr;
 	for(TIter iter = g.begin<TGeomObj>(); iter != g.end<TGeomObj>(); ++iter){
 		if(ContainsPoint(*iter, p, aaPos)){
 			startElem = *iter;
@@ -764,8 +765,8 @@ void SelectLinkedElements(ISelector& sel,
 		  typename Grid::traits<typename TElem::side>::callback cbIsTraversable)
 {
 	using namespace std;
-	typedef typename Grid::traits<TElem>::iterator	ElemIter;
-	typedef typename TElem::side Side;
+	using ElemIter = typename Grid::traits<TElem>::iterator;
+	using Side = typename TElem::side;
 
 	if(!sel.grid())
 		return;
@@ -827,7 +828,7 @@ number FaceArea(ISelector& sel, TAAPosVRT& aaPos)
 		return sum;
 	}
 
-	typedef Grid::traits<Face>::const_iterator FaceIter;
+	using FaceIter = Grid::traits<Face>::const_iterator;
 	GridObjectCollection goc = sel.get_grid_objects();
 
 	for(size_t i = 0; i < goc.num_levels(); ++i)

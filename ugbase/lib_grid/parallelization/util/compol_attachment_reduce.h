@@ -44,7 +44,7 @@ namespace ug{
 template <class TValue>
 struct attachment_reduce_traits
 {
-	typedef TValue value_t;
+	using value_t = TValue;
 	static inline value_t min(value_t v1, value_t v2)	{return std::min(v1, v2);}
 	static inline value_t max(value_t v1, value_t v2)	{return std::max(v1, v2);}
 	static inline value_t sum(value_t v1, value_t v2)	{return v1 + v2;}
@@ -59,7 +59,7 @@ struct attachment_reduce_traits
 template <>
 struct attachment_reduce_traits<float>
 {
-	typedef float value_t;
+	using value_t = float;
 	static inline value_t min(value_t v1, value_t v2)	{return std::min(v1, v2);}
 	static inline value_t max(value_t v1, value_t v2)	{return std::max(v1, v2);}
 	static inline value_t sum(value_t v1, value_t v2)	{return v1 + v2;}
@@ -74,7 +74,7 @@ struct attachment_reduce_traits<float>
 template <>
 struct attachment_reduce_traits<double>
 {
-	typedef double value_t;
+	using value_t = double;
 	static inline value_t min(value_t v1, value_t v2)	{return std::min(v1, v2);}
 	static inline value_t max(value_t v1, value_t v2)	{return std::max(v1, v2);}
 	static inline value_t sum(value_t v1, value_t v2)	{return v1 + v2;}
@@ -88,7 +88,7 @@ struct attachment_reduce_traits<double>
 template <int dim>
 struct vector_attachment_reduce_traits
 {
-	typedef MathVector<dim> value_t;
+	using value_t = MathVector<dim>;
 	static inline value_t min(value_t v1, value_t v2)
 	{
 		value_t v;
@@ -154,7 +154,7 @@ struct attachment_reduce_traits<MathVector<4> > :
 // implementation for a std::vector<number> of arbitrary size
 struct std_number_vector_attachment_reduce_traits
 {
-	typedef std::vector<number> value_t;
+	using value_t = std::vector<number>;
 
 	// we have to make sure the two vectors are of the same length
 	// if they are not, the smaller one will be resized to fit the larger one's size
@@ -273,13 +273,13 @@ template <class TLayout, class TAttachment>
 class ComPol_AttachmentReduce : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout							Layout;
-		typedef typename Layout::Type			GeomObj;
-		typedef typename Layout::Element		Element;
-		typedef typename Layout::Interface		Interface;
-		typedef typename TAttachment::ValueType Value;
-		typedef typename Interface::const_iterator	iiter_t;
-		typedef attachment_reduce_traits<Value>	art;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using Value = typename TAttachment::ValueType;
+		using iiter_t = typename Interface::const_iterator;
+		using art = attachment_reduce_traits<Value>;
 
 		enum ReduceOperation{
 			NONE,

@@ -110,13 +110,13 @@ class IAssemble
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+	using algebra_type = TAlgebra;
 
 	///	Type of algebra matrix
-		typedef typename TAlgebra::matrix_type matrix_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Type of algebra vector
-		typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	public:
 		/// assembles Jacobian (or Approximation of Jacobian)

@@ -70,16 +70,16 @@ class LocalShapeFunctionSet : public DimLocalDoFSet<TDim>
 {
 	public:
 	///	Dimension, where shape functions are defined
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	///	Domain position type
-		typedef MathVector<dim> position_type;
+	using position_type = MathVector<dim>;
 
 	///	Shape type
-		typedef TShape shape_type;
+	using shape_type = TShape;
 
 	///	Gradient type
-		typedef TGrad grad_type;
+	using grad_type = TGrad;
 
 	public:
 	///	returns if space constructs continuous functions
@@ -176,16 +176,16 @@ class BaseLSFS
 {
 	public:
 	///	type of implementation
-		typedef TImpl ImplType;
+		using ImplType = TImpl;
 
 	///	dimension of reference element
-		static const int dim = TDim;
+		static constexpr int dim = TDim;
 
 	///	Shape type
-		typedef TShape shape_type;
+		using shape_type = TShape;
 
 	///	Gradient type
-		typedef TGrad grad_type;
+		using grad_type = TGrad;
 
 	//////////////////////////////////////////
 	//	methods implemented by derived class

@@ -150,7 +150,7 @@ bool ImportGridFromNG(Grid& grid,
 		{
 			ng_element* elem = &n->elements[i];
 
-			Face* face = NULL;
+			Face* face = nullptr;
 
 			// create face
 			switch(elem->num_nodes)
@@ -175,7 +175,7 @@ bool ImportGridFromNG(Grid& grid,
 			}
 
 			// add face to subset
-			if(face != NULL && pSubdomainHandler != NULL)
+			if(face != nullptr && pSubdomainHandler != nullptr)
 				pSubdomainHandler->assign_subset(face, elem->subdomain - 1);
 		}
 	}
@@ -185,7 +185,7 @@ bool ImportGridFromNG(Grid& grid,
 		{
 			ng_element* elem = &n->elements[i];
 
-			Volume* vol = NULL;
+			Volume* vol = nullptr;
 
 			// create volume
 			switch(elem->num_nodes)
@@ -233,7 +233,7 @@ bool ImportGridFromNG(Grid& grid,
 			}
 
 			// add volume to subset
-			if(vol != NULL && pSubdomainHandler != NULL)
+			if(vol != nullptr && pSubdomainHandler != nullptr)
 				pSubdomainHandler->assign_subset(vol, elem->subdomain - 1);
 		}
 	}

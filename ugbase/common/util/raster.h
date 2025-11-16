@@ -219,7 +219,7 @@ class Raster{
 
 
 	/// Creates and runs the specified kernel on all nodes and returns its result
-	/** The class TKernel has to feature a default constructor, a typedef 'result_t',
+	/** The class TKernel has to feature a default constructor, a type definition 'result_t',
 	 * and a method 'result_t result() const'.
 	 *
 	 * Like all kernels, it furthermore has to specify a method
@@ -250,7 +250,7 @@ class Raster{
 
 
 	/// Creates and runs the specified kernel on all direct neighbors of a node and returns its result
-	/** The class TKernel has to feature a default constructor, a typedef 'result_t',
+	/** The class TKernel has to feature a default constructor, a type definition 'result_t',
 	 * and a method 'result_t result() const'.
 	 *
 	 * Like all kernels, it furthermore has to specify a method

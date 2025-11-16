@@ -59,22 +59,22 @@ class StdTransfer :
 {
 	public:
 	///	Type of base class
-		typedef ITransferOperator<TDomain, TAlgebra> base_type;
+		using base_type = ITransferOperator<TDomain, TAlgebra>;
 
 	///	Type of Algebra
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Type of Vector
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Type of Matrix
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Type of Domain
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	///	Type of GridFunction
-		typedef GridFunction<TDomain, TAlgebra> GF;
+		using GF = GridFunction<TDomain, TAlgebra>;
 
 	public:
 	/// Default constructor
@@ -82,11 +82,11 @@ class StdTransfer :
 						m_p1LagrangeOptimizationEnabled(true),
 						m_dampRes(1.0), m_dampProl(1.0),
 						bCached(true), m_bUseTransposed(true),
-						m_spDebugWriter(NULL)
+						m_spDebugWriter(nullptr)
 		{};
 
 	/// virtual destructor
-		virtual ~StdTransfer(){};
+		virtual ~StdTransfer() = default;
 
 	///	set restriction damping (only applied on vector operation, not (!!) in assembled matrices)
 		void set_restriction_damping(number damp) {m_dampRes = damp;}
@@ -206,12 +206,12 @@ class StdTransfer :
 			}
 		};
 
-		typedef std::map<TransferKey, SmartPtr<matrix_type> > TransferMap;
+		using TransferMap = std::map<TransferKey, SmartPtr<matrix_type> >;
 		TransferMap m_mRestriction;
 		TransferMap m_mProlongation;
 
 		void remove_outdated(TransferMap& map, const RevisionCounter& revCnt) {
-			typedef typename TransferMap::iterator iterator;
+			using iterator = typename TransferMap::iterator;
 			for(iterator iter = map.begin(); iter != map.end();)
 			{
 				const RevisionCounter& cnt = iter->first.revCnt;

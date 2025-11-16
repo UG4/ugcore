@@ -46,14 +46,14 @@ class ILagrangeMultiplierDisc
 {
 	private:
 	///	own type
-		typedef ILagrangeMultiplierDisc<TDomain, TGridFunction> this_type;
+		using this_type = ILagrangeMultiplierDisc<TDomain, TGridFunction>;
 
 	public:
 	///	Domain type
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	///	World dimension
-		static const int dim = TDomain::dim;
+		static constexpr int dim = TDomain::dim;
 
 	public:
 		ILagrangeMultiplierDisc(){};

@@ -88,7 +88,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Default constructor
-		ComPol_VecCopy() : m_pVecDest(NULL), m_pVecSrc(NULL) {}
+		ComPol_VecCopy() : m_pVecDest(nullptr), m_pVecSrc(nullptr) {}
 
 	///	Constructor setting the vector
 		ComPol_VecCopy(TVector* pVec): m_pVecDest(pVec), m_pVecSrc(pVec)	{}
@@ -136,7 +136,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecCopy_collect, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVecSrc == NULL) return false;
+			if(m_pVecSrc == nullptr) return false;
 
 		//	rename for convenience
 			const TVector& v = *m_pVecSrc;
@@ -166,7 +166,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecCopy_extract, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVecDest == NULL) return false;
+			if(m_pVecDest == nullptr) return false;
 
 		//	rename for convenience
 			TVector& v = *m_pVecDest;
@@ -204,7 +204,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Default Constructor
-		ComPol_VecScaleCopy() : m_pVec(NULL), m_scale(1.0)	{}
+		ComPol_VecScaleCopy() : m_pVec(nullptr), m_scale(1.0)	{}
 
 	///	Constructor setting vector and scaling factor
 		ComPol_VecScaleCopy(TVector* pVec, number scale)
@@ -248,7 +248,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleCopy_collect, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVec == nullptr) return false;
 
 		//	rename for convenience
 			TVector& v = *m_pVec;
@@ -278,7 +278,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleCopy_extract, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVec == nullptr) return false;
 
 		//	rename for convenience
 			TVector& v = *m_pVec;
@@ -319,7 +319,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Default constructor
-		ComPol_VecAdd() : m_pVecDest(NULL), m_pVecSrc(NULL)	{}
+		ComPol_VecAdd() : m_pVecDest(nullptr), m_pVecSrc(nullptr)	{}
 
 	///	Constructor setting the values
 		ComPol_VecAdd(TVector* pVec) : m_pVecDest(pVec),  m_pVecSrc(pVec)	{}
@@ -367,7 +367,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecAdd_collect, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVecSrc == NULL) return false;
+			if(m_pVecSrc == nullptr) return false;
 
 		//	rename for convenience
 			const TVector& v = *m_pVecSrc;
@@ -397,7 +397,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecAdd_extract, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVecDest == NULL) return false;
+			if(m_pVecDest == nullptr) return false;
 
 		//	rename for convenience
 			TVector& v = *m_pVecDest;
@@ -440,7 +440,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Default constructor
-		ComPol_VecScaleAdd() : m_pVec(NULL), m_scale(1.0) {}
+		ComPol_VecScaleAdd() : m_pVec(nullptr), m_scale(1.0) {}
 
 	///	Constructor setting the values
 		ComPol_VecScaleAdd(TVector* pVec) : m_pVec(pVec)	{}
@@ -483,7 +483,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleAdd_collect, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVec == nullptr) return false;
 
 		//	rename for convenience
 			TVector& v = *m_pVec;
@@ -513,7 +513,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleAdd_extract, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVec == nullptr) return false;
 
 		//	rename for convenience
 			TVector& v = *m_pVec;
@@ -606,7 +606,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecAddSetZero_collect, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVec == nullptr) return false;
 
 		//	rename for convenience
 			TVector& v = *m_pVec;
@@ -637,7 +637,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecAddSetZero_extract, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVec == nullptr) return false;
 
 		//	rename for convenience
 			TVector& v = *m_pVec;
@@ -679,7 +679,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Default constructor
-		ComPol_VecSubtract() : m_pVec(NULL)	{}
+		ComPol_VecSubtract() : m_pVec(nullptr)	{}
 
 	///	Constructor setting the values
 		ComPol_VecSubtract(TVector* pVec) : m_pVec(pVec)	{}
@@ -719,7 +719,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecSubtract_collect, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVec == nullptr) return false;
 
 		//	rename for convenience
 			TVector& v = *m_pVec;
@@ -749,7 +749,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecSubtract_extract, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVec == nullptr) return false;
 
 		//	rename for convenience
 			TVector& v = *m_pVec;
@@ -783,7 +783,7 @@ class ComPol_CheckConsistency : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Default constructor
-		ComPol_CheckConsistency() : m_pVec(NULL)	{}
+		ComPol_CheckConsistency() : m_pVec(nullptr)	{}
 
 	///	Constructor setting the values
 		ComPol_CheckConsistency(const TVector* pVec) : m_pVec(pVec)	{}
@@ -807,7 +807,7 @@ class ComPol_CheckConsistency : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_CheckConsistency_collect, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVec == nullptr) return false;
 
 		//	rename for convenience
 			const TVector& v = *m_pVec;
@@ -831,7 +831,7 @@ class ComPol_CheckConsistency : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			PROFILE_BEGIN_GROUP(ComPol_CheckConsistency_extract, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVec == nullptr) return false;
 
 		//	rename for convenience
 			const TVector& v = *m_pVec;
@@ -881,7 +881,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 {
 	public:
 	///	Default constructor
-		ComPol_VecSubtractOnlyOneSlave() : m_pVec(NULL)	{}
+		ComPol_VecSubtractOnlyOneSlave() : m_pVec(nullptr)	{}
 
 	///	Constructor setting the values
 		ComPol_VecSubtractOnlyOneSlave(TVector* pVec) 
@@ -936,7 +936,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 
 			PROFILE_BEGIN_GROUP(ComPol_VecSubtractOnlyOneSlave_collect, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVec == nullptr) return false;
 
 		//	rename for convenience
 			TVector& v = *m_pVec;
@@ -966,7 +966,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecSubtractOnlyOneSlave_extract, "algebra parallelization");
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVec == nullptr) return false;
 
 		//	rename for convenience
 			TVector& v = *m_pVec;
@@ -1017,9 +1017,8 @@ class ComPol_MatDistributeDiag
 	: public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
-
-	typedef typename TAlgebra::matrix_type TMatrix;
-	typedef typename TAlgebra::vector_type TVector;
+	using TMatrix = typename TAlgebra::matrix_type;
+	using TVector = typename TAlgebra::vector_type;
 
 	///	Constructor setting the vector
 	/**
@@ -1052,14 +1051,13 @@ class ComPol_MatDistributeDiag
 
 
 	///	writes the interface values into a buffer that will be sent
-		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
+		virtual bool collect(BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(CMatDistributeDiag_collect, "algebra parallelization");
-			typedef typename TMatrix::value_type block_type;
+			using block_type = typename TMatrix::value_type;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -1090,17 +1088,16 @@ class ComPol_MatDistributeDiag
 		{ return true; }
 
 	///	writes values from a buffer into the interface
-		virtual bool extract(ug::BinaryBuffer& buff, const Interface& interface)
+		virtual bool extract(BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(MatDistributeDiag_extract, "algebra parallelization");
 		//	block type of associated matrix
-			typedef typename TMatrix::value_type block_type;
+			using block_type = typename TMatrix::value_type;
 
 			block_type in_ii;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 				//	get index
 				const size_t index = interface.get_element(iter);
@@ -1156,12 +1153,11 @@ class ComPol_MatAddRowsOverlap0
 		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_collect, "algebra parallelization");
-			typedef typename TMatrix::row_iterator row_iterator;
-			typedef typename TMatrix::value_type block_type;
+			using row_iterator = typename TMatrix::row_iterator;
+			using block_type = typename TMatrix::value_type;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -1202,11 +1198,11 @@ class ComPol_MatAddRowsOverlap0
 		}
 
 	///	writes values from a buffer into the interface
-		virtual bool extract(ug::BinaryBuffer& buff, const Interface& interface)
+		virtual bool extract(BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_extract, "algebra parallelization");
 		//	block type of associated matrix
-			typedef typename TMatrix::value_type block_type;
+			using block_type = typename TMatrix::value_type;
 
 		//	we'll read global ids into this variable
 			AlgebraID gID;
@@ -1215,8 +1211,7 @@ class ComPol_MatAddRowsOverlap0
 			block_type block;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -1283,15 +1278,14 @@ class ComPol_MatCopyRowsOverlap0
 		}
 
 	///	writes the interface values into a buffer that will be sent
-		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
+		virtual bool collect(BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_collect, "algebra parallelization");
-			typedef typename TMatrix::row_iterator row_iterator;
-			typedef typename TMatrix::value_type block_type;
+			using row_iterator = typename TMatrix::row_iterator;
+			using block_type = typename TMatrix::value_type;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -1332,11 +1326,11 @@ class ComPol_MatCopyRowsOverlap0
 		}
 
 	///	writes values from a buffer into the interface
-		virtual bool extract(ug::BinaryBuffer& buff, const Interface& interface)
+		virtual bool extract(BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_extract, "algebra parallelization");
 		//	block type of associated matrix
-			typedef typename TMatrix::value_type block_type;
+			using block_type = typename TMatrix::value_type;
 
 		//	we'll read global ids into this variable
 			AlgebraID gID;
@@ -1345,8 +1339,7 @@ class ComPol_MatCopyRowsOverlap0
 			block_type block;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -1401,18 +1394,17 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 		{}
 
 	///	writes the interface values into a buffer that will be sent
-		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
+		virtual bool collect(BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatAddInnerInterfaceCouplings_collect, "algebra parallelization");
-			typedef typename TMatrix::row_iterator row_iterator;
-			typedef typename TMatrix::value_type block_type;
+			using row_iterator = typename TMatrix::row_iterator;
+			using block_type = typename TMatrix::value_type;
 
 		//	build map
 			Hash<size_t, size_t> hash((size_t)(interface.size() * 1.1));
 			size_t interfaceIndex = 0;
 
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter, ++interfaceIndex){
+			for(Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter, ++interfaceIndex){
 				hash.insert(interface.get_element(iter), interfaceIndex);
 			}
 
@@ -1456,17 +1448,16 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 		}
 
 	///	writes values from a buffer into the interface
-		virtual bool extract(ug::BinaryBuffer& buff, const Interface& interface)
+		virtual bool extract(BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_extract, "algebra parallelization");
 		//	block type of associated matrix
-			typedef typename TMatrix::value_type block_type;
+			using block_type = typename TMatrix::value_type;
 
 		//	build map
 			std::vector<size_t> vMapInterfaceToGlob(interface.size());
 			int k = 0;
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter, ++k){
+			for(Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter, ++k){
 				vMapInterfaceToGlob[k] = interface.get_element(iter);
 			}
 

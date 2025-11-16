@@ -30,11 +30,17 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include<mpi.h>
-#include "pcl_comm_world.h"
+
+
+
+#include <mpi.h>
+
+#include "common/log.h"
+
 #include "pcl_base.h"
 #include "pcl_profiling.h"
-#include "common/log.h"
+#include "pcl_comm_world.h"
+
 
 namespace pcl
 {
@@ -116,14 +122,8 @@ void MPIErrorHandler( MPI_Comm *comm, int *err, ... )
 void SetErrHandler()
 {
 	MPI_Errhandler newerr;
-#if MPI_VERSION > 1
 	MPI_Comm_create_errhandler( MPIErrorHandler, &newerr );
 	MPI_Comm_set_errhandler( PCL_COMM_WORLD, newerr );
-#else
-	MPI_Errhandler_create( MPIErrorHandler, &newerr );
-	MPI_Errhandler_set( PCL_COMM_WORLD, newerr );
-#endif
-
 }
 
 }//	end of namespace

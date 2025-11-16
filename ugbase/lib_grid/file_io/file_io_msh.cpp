@@ -133,7 +133,7 @@ bool LoadGridFromMSH(Grid& grid, const char* filename,
 					return false;
 				}
 				
-				Face* f = NULL;
+				Face* f = nullptr;
 				switch(type){
 					case 2://triangles
 					{

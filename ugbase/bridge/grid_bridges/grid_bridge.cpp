@@ -44,13 +44,13 @@ namespace bridge{
 template <class T>
 static
 bool IsValidPtr(T* o){
-	return o != NULL;
+	return o != nullptr;
 }
 
 template <int dim>
 void RegisterGeometry(Registry& reg, string grp)
 {
-	typedef IGeometry<dim>	T;
+	using T = IGeometry<dim>;
 	string suffix = GetDimensionSuffix<dim>();
 	string tag = GetDimensionTag<dim>();
 

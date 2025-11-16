@@ -60,20 +60,20 @@ class AssembledLinearOperator :
 {
 	public:
 	///	Type of Algebra
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Type of Vector
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Type of Matrix
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Type of base class
-		typedef MatrixOperator<matrix_type,vector_type> base_type;
+		using base_type = MatrixOperator<matrix_type,vector_type>;
 
 	public:
 	///	Default Constructor
-		AssembledLinearOperator() :	m_spAss(NULL) {};
+		AssembledLinearOperator() :	m_spAss(nullptr) {};
 
 	///	Constructor
 		AssembledLinearOperator(SmartPtr<IAssemble<TAlgebra> > ass) : m_spAss(ass) {};
@@ -113,7 +113,7 @@ class AssembledLinearOperator :
 		void set_dirichlet_values(vector_type& u);
 
 	///	Destructor
-		virtual ~AssembledLinearOperator() {};
+		virtual ~AssembledLinearOperator() = default;
 
 	protected:
 	// 	assembling procedure

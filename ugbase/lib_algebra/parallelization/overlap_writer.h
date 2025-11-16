@@ -51,8 +51,8 @@ namespace ug{
 template <class TAlgebra>
 class OverlapWriter {
 public:
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
+	using vector_type = typename TAlgebra::vector_type;
+	using matrix_type = typename TAlgebra::matrix_type;
 
 	OverlapWriter () : m_dim (-1)	{}
 

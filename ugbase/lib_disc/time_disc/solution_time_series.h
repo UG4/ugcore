@@ -59,16 +59,15 @@ class VectorTimeSeries
 {
 	public:
 	///	vector type of solutions
-		typedef TVector vector_type;
+	using vector_type = TVector;
 
 	public:
-		virtual ~VectorTimeSeries() {}
+		virtual ~VectorTimeSeries() = default;
 
 	//! clones the object (deep-copy) including values
-		SmartPtr<VectorTimeSeries<vector_type> > clone() const
+		SmartPtr<VectorTimeSeries > clone() const
 		{
-			SmartPtr<VectorTimeSeries<TVector> > cloneTimeSol
-				= SmartPtr<VectorTimeSeries<TVector> >(new VectorTimeSeries<TVector>);
+			SmartPtr<VectorTimeSeries > cloneTimeSol = SmartPtr<VectorTimeSeries >(new VectorTimeSeries);
 
 			for(int i = m_vTimeSol.size()-1; i >= 0 ; --i)
 				cloneTimeSol->push(solution(i)->clone(), time(i));
@@ -131,7 +130,7 @@ class VectorTimeSeries
 		class TimeSol
 		{
 			public:
-				TimeSol() : vec(NULL), t(0.0) {}
+				TimeSol() : vec(nullptr), t(0.0) {}
 
 				TimeSol(SmartPtr<vector_type> vec_, number t_)
 					: vec(vec_), t(t_) {}

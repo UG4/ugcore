@@ -35,7 +35,7 @@
 
 template<typename Vector_type, typename postype>
 void WriteVectorGnuplot(std::string filename, const Vector_type &v,
-		postype *positions, int dimensions, const Vector_type *compareVec=NULL)
+		postype *positions, int dimensions, const Vector_type *compareVec=nullptr)
 {
 	size_t N = A.num_rows();
 	std::fstream f((filename+".sh").c_str(), std::ios::out);

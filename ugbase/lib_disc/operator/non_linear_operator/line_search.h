@@ -70,7 +70,7 @@ template <typename TVector>
 class ILineSearch
 {
 	public:
-		typedef TVector vector_type;
+	using vector_type = TVector;
 
 	public:
 	/// set string to be printed before each output of line search
@@ -118,14 +118,14 @@ class StandardLineSearch : public ILineSearch<TVector>
 {
 	public:
 	//	type of
-		typedef TVector vector_type;
+		using vector_type = TVector;
 
 	public:
 	///	default constructor (setting default values)
 		StandardLineSearch()
 		 :	 m_maxSteps(10), m_lambdaStart(1.0), m_lambdaReduce(0.5), m_alpha(0.25),
 		  	 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(false), m_bCheckAll(false), m_offset(""),
-			 m_newtonUpdater(SPNULL)
+			 m_newtonUpdater(nullptr)
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 //			 ,
 //			m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
@@ -136,7 +136,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 		StandardLineSearch(int maxSteps, number lambdaStart, number lambdaReduce, bool bAcceptBest)
 		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce), m_alpha(0.25),
 			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_bCheckAll(false), m_offset(""),
-			 m_newtonUpdater(SPNULL)
+			 m_newtonUpdater(nullptr)
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 //			 ,
 //			 m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
@@ -147,7 +147,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 		StandardLineSearch(int maxSteps, number lambdaStart, number lambdaReduce, bool bAcceptBest, bool bCheckAll)
 		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce), m_alpha(0.25),
 			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_bCheckAll(bCheckAll), m_offset(""),
-			 m_newtonUpdater(SPNULL)
+			 m_newtonUpdater(nullptr)
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 //			 ,
 //			 m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
@@ -221,7 +221,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 			for(int k = 1; k <= m_maxSteps; ++k)
 			{
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-				if( m_newtonUpdater != SPNULL )
+				if( m_newtonUpdater != nullptr )
 				{
 					// 	try on line u := u - lambda*p
 
@@ -317,7 +317,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 							best+1 << ", Rate = "<< vRho[best] <<".\n");
 
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-					if( m_newtonUpdater != SPNULL )
+					if( m_newtonUpdater != nullptr )
 					{
 						// 	try on line u := u - lambda*p
 
@@ -366,7 +366,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 
-				if( m_newtonUpdater != SPNULL )
+				if( m_newtonUpdater != nullptr )
 				{
 					// 	reset u and eventual local variables
 					m_newtonUpdater->resetSolution(u,s);
@@ -391,7 +391,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
-			if( m_newtonUpdater != SPNULL )
+			if( m_newtonUpdater != nullptr )
 			{
 				if( ! m_newtonUpdater->tellAndFixUpdateEvents(u) )
 				{
@@ -414,7 +414,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 		virtual bool createNewtonUpdater()
 		{
-			if( m_newtonUpdater != SPNULL )
+			if( m_newtonUpdater != nullptr )
 			{
 				m_newtonUpdater = SmartPtr<NewtonUpdaterGeneric<TVector> >
 										  (new NewtonUpdaterGeneric<TVector>{});

@@ -81,7 +81,7 @@ private:
 	BoxPriorityQueue(const BoxPriorityQueue<T> &other);
 
 public:
-	BoxPriorityQueue() : arr(NULL), m_box(), m_posInBox(), m_values(), m_size(0), m_height(0)
+	BoxPriorityQueue() : arr(nullptr), m_box(), m_posInBox(), m_values(), m_size(0), m_height(0)
 	{
 
 	}

@@ -39,8 +39,8 @@ namespace ug{
 
 class ElementCallback {
 public:
-	ElementCallback ()				{}
-	virtual ~ElementCallback ()	{}
+	ElementCallback () = default;
+	virtual ~ElementCallback ()	= default;
 
 	virtual bool operator() (Vertex* v) const = 0;
 	virtual bool operator() (Edge* e) const = 0;
@@ -48,7 +48,7 @@ public:
 	virtual bool operator() (Volume* v) const = 0;
 };
 
-typedef SmartPtr<ElementCallback> SPElementCallback;
+using SPElementCallback = SmartPtr<ElementCallback>;
 
 }//	end of namespace
 

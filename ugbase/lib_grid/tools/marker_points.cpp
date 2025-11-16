@@ -42,7 +42,7 @@ namespace ug
 
 MarkerPoint::MarkerPoint() :
 	localCoord(0, 0, 0),
-	associatedObj(NULL)
+	associatedObj(nullptr)
 {
 }
 
@@ -52,7 +52,7 @@ MarkerPoint::MarkerPoint(const char* strName, const vector3& position,
 	pos(position),
 	norm(normal),
 	localCoord(0, 0, 0),
-	associatedObj(NULL)
+	associatedObj(nullptr)
 {
 }
 

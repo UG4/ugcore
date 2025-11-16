@@ -103,16 +103,11 @@ class PINVIT
 		: public DebugWritingObject<TAlgebra>
 {
 public:
-// 	Algebra type
-	typedef TAlgebra algebra_type;
-
-// 	Vector type
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
-	typedef typename vector_type::value_type vector_value_type;
-
-///	Base type
-	typedef DebugWritingObject<TAlgebra> base_type;
+	using algebra_type = TAlgebra;
+	using vector_type = typename TAlgebra::vector_type;
+	using matrix_type = typename TAlgebra::matrix_type;
+	using vector_value_type = typename vector_type::value_type;
+	using base_type = DebugWritingObject<TAlgebra>;
 
 
 private:
@@ -124,7 +119,7 @@ private:
 	//ILinearOperator<vector_type,vector_type>* m_pB;
 	SmartPtr<ILinearOperator<vector_type> > m_pA;
 
-	typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+	using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 	matrix_operator_type *m_pB;
 
 	double m_dMinimumDefectToCalcCorrection;
@@ -199,8 +194,8 @@ public:
 
 	PINVIT()
 	{
-		m_pA = SPNULL;
-		m_pB = NULL;
+		m_pA = nullptr;
+		m_pB = nullptr;
 		m_iPINVIT = 3;
 		m_dMinimumDefectToCalcCorrection = 1e-8;
 		m_dPrecision = 1e-8;
@@ -695,7 +690,7 @@ public:
 	{
 		PROFILE_FUNC_GROUP("debug");
 		try{
-			if(debug_writer() == SPNULL) return;
+			if(debug_writer() == nullptr) return;
 
 			vector_type t, defect;
 			init_nonprecond_vector(t);
@@ -892,7 +887,7 @@ private:
 	double B_norm(vector_type &x)
 	{
 		PINVIT_PROFILE_FUNC();
-		if(m_pB != NULL)
+		if(m_pB != nullptr)
 			return EnergyNorm(x, *m_pB);
 		else
 			return x.norm();

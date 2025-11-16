@@ -42,10 +42,10 @@ namespace ug{
 template <typename TDomain, typename TAlgebra>
 class GridPointsOrdering
 {
-	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-	typedef GridFunctionNumberData<GridFunction<TDomain, TAlgebra> > TGridFunctionNumberData;
+	using TGridFunction = GridFunction<TDomain, TAlgebra>;
+	using TGridFunctionNumberData = GridFunctionNumberData<GridFunction<TDomain, TAlgebra> >;
 
-	typedef ug::Attachment<int> AVrtIndex;
+	using AVrtIndex = Attachment<int>;
 
 public:
 	GridPointsOrdering(SmartPtr<TGridFunction> spGridFct, const char* name)
@@ -64,7 +64,7 @@ public:
 
 		size_t k = 0;
 
-		typedef typename IteratorProvider<TGridFunction>::template traits<ug::Vertex>::const_iterator const_iterator;
+		using const_iterator = typename IteratorProvider<TGridFunction>::template traits<ug::Vertex>::const_iterator;
 		const_iterator iterBegin = IteratorProvider<TGridFunction>::template begin<ug::Vertex>(*m_u, -1);
 		const_iterator iterEnd = IteratorProvider<TGridFunction>::template end<ug::Vertex>(*m_u, -1);
 		for( ; iterBegin != iterEnd; ++iterBegin, ++k)
@@ -96,13 +96,13 @@ public:
 		Grid& grid = *m_u->domain()->grid();
 
 	//	get reference element
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+		using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	//	number of corners of element
-		static const int numCo = ref_elem_type::numCorners;
+		static constexpr int numCo = ref_elem_type::numCorners;
 
 	//	get iterators
-		typedef typename IteratorProvider<TGridFunction>::template traits<TElem>::const_iterator const_iterator;
+		using const_iterator = typename IteratorProvider<TGridFunction>::template traits<TElem>::const_iterator;
 		const_iterator iterBegin = IteratorProvider<TGridFunction>::template begin<TElem>(*m_u, -1);
 		const_iterator iterEnd = IteratorProvider<TGridFunction>::template end<TElem>(*m_u, -1);
 
@@ -150,9 +150,9 @@ public:
 		Grid& grid = *m_u->domain()->grid();
 
 	//	get reference element
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+		using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 	//	get iterators
-		typedef typename IteratorProvider<TGridFunction>::template traits<TElem>::const_iterator const_iterator;
+		using const_iterator = typename IteratorProvider<TGridFunction>::template traits<TElem>::const_iterator;
 		const_iterator iterBegin = IteratorProvider<TGridFunction>::template begin<TElem>(*m_u, -1);
 		const_iterator iterEnd = IteratorProvider<TGridFunction>::template end<TElem>(*m_u, -1);
 

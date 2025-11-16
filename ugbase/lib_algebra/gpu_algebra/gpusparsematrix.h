@@ -101,15 +101,15 @@ template<typename TValueType>
 class GPUSparseMatrix
 {
 public:
-	typedef TValueType value_type;
+	using value_type = TValueType;
 	enum {rows_sorted=true};
 
-	typedef GPUSparseMatrix<value_type> this_type;
+	using this_type = GPUSparseMatrix<value_type>;
 
 public:
-	typedef AlgebraicConnection<TValueType> connection;
-	typedef MatrixRow<this_type> row_type;
-	typedef ConstMatrixRow<this_type> const_row_type;
+	using connection = AlgebraicConnection<TValueType>;
+	using row_type = MatrixRow<this_type>;
+	using const_row_type = ConstMatrixRow<this_type>;
 
 public:
 	// construction etc
@@ -350,8 +350,8 @@ public:
 	// const_row_iterator
 
 
-	//typedef const connection * const_row_iterator;
-	//typedef connection * const_row_iterator;
+	//using const_row_iterator = const connection * ;
+	//using const_row_iterator = connection * ;
 	/** const_row_iterator
 	 * const iterator over a row
 	 */
@@ -531,7 +531,7 @@ public:
 	// output functions
 	//----------------------
 
-	void print(const char * const name = NULL) const;
+	void print(const char * const name = nullptr) const;
 	void printtype() const;
 
 	void print_to_file(const char *filename) const;
@@ -594,8 +594,8 @@ protected:
 public:
    void initGPU()
    {
-	   d_cols = d_rowStart = NULL;
-	   d_values = NULL;
+	   d_cols = d_rowStart = nullptr;
+	   d_values = nullptr;
 	   descr = 0;
 	   bOnDevice = false;
    }

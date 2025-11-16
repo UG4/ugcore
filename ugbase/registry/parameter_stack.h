@@ -73,7 +73,7 @@ class ParameterInfo
 {
 	protected:
 	///	maximal number of parameter in a parameter list
-		static const int PARAMETER_STACK_MAX_SIZE = UG_REGISTRY_MAX_NUM_ARGS;
+		static constexpr int PARAMETER_STACK_MAX_SIZE = UG_REGISTRY_MAX_NUM_ARGS;
 
 	///	help function to compute correct parameter index
 		static inline int ARRAY_INDEX_TO_STACK_INDEX(int index, int stackSize)
@@ -114,7 +114,7 @@ class ParameterInfo
 	///	returns the class name node for an element in the param stack
 		const ClassNameNode* class_name_node(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			if(m_vEntryType[index].pClassNameNode == NULL)
+			if(m_vEntryType[index].pClassNameNode == nullptr)
 				UG_THROW("ClassNameNode missing in Parameter stack.");
 			return m_vEntryType[index].pClassNameNode;
 		}
@@ -171,7 +171,7 @@ class ParameterInfo
 	///	structure to store a data entry with additional information
 		struct EntryType{
 			EntryType() :
-				type(Variant::VT_INVALID), pClassNameNode(NULL), bVector(false)
+				type(Variant::VT_INVALID), pClassNameNode(nullptr), bVector(false)
 			{}
 			Variant::Type type;						//<	enum ParameterTypes indicating stored type
 			const ClassNameNode* pClassNameNode; 	//< class name for user defined data
@@ -298,7 +298,7 @@ class ParameterStack : public ParameterInfo
 		 *
 		 * @param val		the value to push
 		 * @param classNameNode		the values classNameNode
-		 * \tparam void-ptr-type (one of void*, const void*, SmartPtr<void>, ConstSmartPtr<void>)
+		 * \tparam T void-ptr-type (one of void*, const void*, SmartPtr<void>, ConstSmartPtr<void>)
 		 */
 		template <typename T>
 		inline void _push_void_pointer(T val, const ClassNameNode* classNameNode){
@@ -329,11 +329,11 @@ class ParameterStack : public ParameterInfo
 		 * stored.
 		 *
 		 * @param spVec a smart-ptr to the std::vector
-		 * \tparam void-ptr-type (one of void*, const void*, SmartPtr<void>, ConstSmartPtr<void>)
+		 * \tparam TVoid void-ptr-type (one of void*, const void*, SmartPtr<void>, ConstSmartPtr<void>)
 		 */
 		template <typename TVoid>
 		inline void _push_void_pointer_vector(SmartPtr<std::vector<std::pair<TVoid, const ClassNameNode*> > > spVec,
-		                                      const ClassNameNode* baseNameNode = NULL){
+		                                      const ClassNameNode* baseNameNode = nullptr){
 			SmartPtr<void> sp = spVec;
 			m_vEntry[m_numEntries] = Variant(sp);
 			m_vEntryType[m_numEntries].type = Variant::type<TVoid>();
@@ -348,7 +348,7 @@ class ParameterStack : public ParameterInfo
 		 * to get the concrete type (for casting back), the ClassNameNode is
 		 * stored.
 		 *
-		 * @param spVec a smart-ptr to the std::vector
+		 * @param vec a smart-ptr to the std::vector
 		 */
 		template <typename TVoid, typename TPtr, typename TNode>
 		inline void _push_pointer_vector(const std::vector<TPtr>& vec){

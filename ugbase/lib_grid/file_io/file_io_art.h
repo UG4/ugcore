@@ -42,13 +42,13 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 ///	loads a grid from art
 bool LoadGridFromART(Grid&grid, const char* filename,
-					 ISubsetHandler* pSH = NULL,
+					 ISubsetHandler* pSH = nullptr,
 					 AVector3& aPos = aPosition);
 
 ////////////////////////////////////////////////////////////////////////
 ///	saves a grid to art
 bool SaveGridToART(Grid& grid, const char* filename,
-				   ISubsetHandler* pSH = NULL,
+				   ISubsetHandler* pSH = nullptr,
 				   AVector3& aPos = aPosition);
 
 };

@@ -79,7 +79,7 @@ bool ObtainSimpleGrid(SimpleGrid& sgOut, Grid& grid,
 	for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt1);
 		iter != iterEnd; ++iter)
 	{
-		Vertex* vUnmarked = NULL;
+		Vertex* vUnmarked = nullptr;
 		Face* f = *iter;
 		int counter = 0;
 		

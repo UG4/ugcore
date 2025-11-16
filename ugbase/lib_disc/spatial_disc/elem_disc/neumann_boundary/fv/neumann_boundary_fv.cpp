@@ -197,7 +197,7 @@ void NeumannBoundaryFV<TDomain>::
 add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID,m_order);
-	typedef typename TFVGeom::BF BF;
+	using BF = typename TFVGeom::BF;
 
 //	Number Data
 	for(size_t data = 0; data < m_vNumberData.size(); ++data){
@@ -312,7 +312,7 @@ lin_def(const LocalVector& u,
 {
 //  get finite volume geometry
 	const TFVGeom& geo = GeomProvider<TFVGeom>::get(This->m_lfeID,This->m_order);
-	typedef typename TFVGeom::BF BF;
+	using BF = typename TFVGeom::BF;
 
 	size_t ip = 0;
 	for(size_t s = 0; s < this->BndSSGrp.size(); ++s)
@@ -331,8 +331,8 @@ template<typename TElem, typename TFVGeom>
 void NeumannBoundaryFV<TDomain>::NumberData::
 extract_bip(const TFVGeom& geo)
 {
-	typedef typename TFVGeom::BF BF;
-	static const int locDim = TElem::dim;
+	using BF = typename TFVGeom::BF;
+	static constexpr int locDim = TElem::dim;
 
 	std::vector<MathVector<locDim> >* vLocIP = local_ips<locDim>();
 
@@ -391,25 +391,25 @@ void NeumannBoundaryFV<Domain2d>::register_all_funcs(int order)
 //	Triangle
 	switch(order)
 	{
-		case 1:	{typedef FVGeometry<1, Triangle, dim> FVGeom;
+		case 1:	{ using FVGeom = FVGeometry<1, Triangle, dim>;
 				 register_func<Triangle, FVGeom >(); break;}
-		case 2:	{typedef FVGeometry<2, Triangle, dim> FVGeom;
+		case 2:	{ using FVGeom = FVGeometry<2, Triangle, dim>;
 				 register_func<Triangle, FVGeom >(); break;}
-		case 3:	{typedef FVGeometry<3, Triangle, dim> FVGeom;
+		case 3:	{ using FVGeom = FVGeometry<3, Triangle, dim>;
 				 register_func<Triangle, FVGeom >(); break;}
-		default: {typedef DimFVGeometry<dim, 2> FVGeom;
+		default: { using FVGeom = DimFVGeometry<dim, 2>;
 				 register_func<Triangle, FVGeom >(); break;}
 	}
 
 //	Quadrilateral
 	switch(order) {
-		case 1:	{typedef FVGeometry<1, Quadrilateral, dim> FVGeom;
+		case 1:	{ using FVGeom = FVGeometry<1, Quadrilateral, dim>;
 				 register_func<Quadrilateral, FVGeom >(); break;}
-		case 2:	{typedef FVGeometry<2, Quadrilateral, dim> FVGeom;
+		case 2:	{ using FVGeom = FVGeometry<2, Quadrilateral, dim>;
 				 register_func<Quadrilateral, FVGeom >(); break;}
-		case 3:	{typedef FVGeometry<3, Quadrilateral, dim> FVGeom;
+		case 3:	{ using FVGeom = FVGeometry<3, Quadrilateral, dim>;
 				 register_func<Quadrilateral, FVGeom >(); break;}
-		default: {typedef DimFVGeometry<dim, 2> FVGeom;
+		default: { using FVGeom = DimFVGeometry<dim, 2>;
 				  register_func<Quadrilateral, FVGeom >(); break;}
 	}
 }
@@ -425,34 +425,34 @@ void NeumannBoundaryFV<Domain3d>::register_all_funcs(int order)
 //	Tetrahedron
 	switch(order)
 	{
-		case 1:	{typedef FVGeometry<1, Tetrahedron, dim> FVGeom;
+		case 1:	{ using FVGeom = FVGeometry<1, Tetrahedron, dim>;
 				 register_func<Tetrahedron, FVGeom >(); break;}
-		case 2:	{typedef FVGeometry<2, Tetrahedron, dim> FVGeom;
+		case 2:	{ using FVGeom = FVGeometry<2, Tetrahedron, dim>;
 				 register_func<Tetrahedron, FVGeom >(); break;}
-		case 3:	{typedef FVGeometry<3, Tetrahedron, dim> FVGeom;
+		case 3:	{ using FVGeom = FVGeometry<3, Tetrahedron, dim>;
 				 register_func<Tetrahedron, FVGeom >(); break;}
-		default: {typedef DimFVGeometry<dim, 3> FVGeom;
+		default: { using FVGeom = DimFVGeometry<dim, 3>;
 				  register_func<Tetrahedron, FVGeom >(); break;}
 	}
 
 //	Prism
 	switch(order) {
-		case 1:	{typedef FVGeometry<1, Prism, dim> FVGeom;
+		case 1:	{ using FVGeom = FVGeometry<1, Prism, dim>;
 				 register_func<Prism, FVGeom >(); break;}
-		default: {typedef DimFVGeometry<dim, 3> FVGeom;
+		default: { using FVGeom = DimFVGeometry<dim, 3>;
 				  register_func<Prism, FVGeom >(); break;}
 	}
 
 //	Hexahedron
 	switch(order)
 	{
-		case 1:	{typedef FVGeometry<1, Hexahedron, dim> FVGeom;
+		case 1:	{ using FVGeom = FVGeometry<1, Hexahedron, dim>;
 				 register_func<Hexahedron, FVGeom >(); break;}
-		case 2:	{typedef FVGeometry<2, Hexahedron, dim> FVGeom;
+		case 2:	{ using FVGeom = FVGeometry<2, Hexahedron, dim>;
 				 register_func<Hexahedron, FVGeom >(); break;}
-		case 3:	{typedef FVGeometry<3, Hexahedron, dim> FVGeom;
+		case 3:	{ using FVGeom = FVGeometry<3, Hexahedron, dim>;
 				 register_func<Hexahedron, FVGeom >(); break;}
-		default: {typedef DimFVGeometry<dim, 3> FVGeom;
+		default: { using FVGeom = DimFVGeometry<dim, 3>;
 				  register_func<Hexahedron, FVGeom >(); break;}
 	}
 }
@@ -463,7 +463,7 @@ template<typename TElem, typename TFVGeom>
 void NeumannBoundaryFV<TDomain>::register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	typedef this_type T;
+	using T = this_type;
 
 	this->clear_add_fct(id);
 

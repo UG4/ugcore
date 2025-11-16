@@ -95,11 +95,11 @@ template <typename X, typename Y>
 class LinearIteratorProduct : public CombinedLinearIterator<X,Y>
 {
 	protected:
-		typedef CombinedLinearIterator<X,Y> base_type;
+		using base_type = CombinedLinearIterator<X,Y>;
 		using base_type::m_vIterator;
 
 	public:
-		LinearIteratorProduct() {};
+		LinearIteratorProduct() = default;
 
 		LinearIteratorProduct(const std::vector<SmartPtr<ILinearIterator<X,Y> > >& vIterator)
 			: CombinedLinearIterator<X,Y>(vIterator)
@@ -163,11 +163,11 @@ template <typename X, typename Y>
 class LinearIteratorSum : public CombinedLinearIterator<X,Y>
 {
 	protected:
-		typedef CombinedLinearIterator<X,Y> base_type;
+		using base_type = CombinedLinearIterator<X,Y>;
 		using base_type::m_vIterator;
 
 	public:
-		LinearIteratorSum() {};
+		LinearIteratorSum() = default;
 
 		LinearIteratorSum(const std::vector<SmartPtr<ILinearIterator<X,Y> > >& vIterator)
 			: CombinedLinearIterator<X,Y>(vIterator)

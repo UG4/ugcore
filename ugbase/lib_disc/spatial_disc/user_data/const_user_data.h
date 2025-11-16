@@ -82,7 +82,7 @@ class StdConstData
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
 		                     LocalVector* u,
-		                     const MathMatrix<refDim, dim>* vJT = NULL) const
+		                     const MathMatrix<refDim, dim>* vJT = nullptr) const
 		{
 			for(size_t ip = 0; ip < nip; ++ip)
 				getImpl().evaluate(vValue[ip]);

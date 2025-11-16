@@ -98,9 +98,9 @@ class StdLinConsistentGravity
 {
 private:
 //	static constants
-	static const size_t _X_ = 0;
-	static const size_t _Y_ = 1;
-	static const size_t _Z_ = 2;
+	static constexpr size_t _X_ = 0;
+	static constexpr size_t _Y_ = 1;
+	static constexpr size_t _Z_ = 2;
 	
 public:
 
@@ -515,7 +515,7 @@ void StdLinConsistentGravity<3>::prepare
 template <int refDim>
 class StdLinConsistentGravityX : public StdLinConsistentGravity<refDim>
 {
-	typedef StdLinConsistentGravity<refDim> base_type;
+	using base_type = StdLinConsistentGravity<refDim>;
 	
 public:
 

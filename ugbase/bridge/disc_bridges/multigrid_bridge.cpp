@@ -88,16 +88,15 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-//	typedef
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef ApproximationSpace<TDomain> approximation_space_type;
+	using vector_type = typename TAlgebra::vector_type;
+	using approximation_space_type = ApproximationSpace<TDomain>;
 
 	grp.append("/MultiGrid");
 
 
 //	ITransferOperator
 	{
-		typedef ITransferOperator<TDomain, TAlgebra> T;
+		using T = ITransferOperator<TDomain, TAlgebra>;
 		string name = string("ITransferOperator").append(suffix);
 		reg.add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "ITransferOperator", tag);
@@ -105,7 +104,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	ITransferPostProcess
 	{
-		typedef ITransferPostProcess<TDomain, TAlgebra> T;
+		using T = ITransferPostProcess<TDomain, TAlgebra>;
 		string name = string("ITransferPostProcess").append(suffix);
 		reg.add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "ITransferPostProcess", tag);
@@ -113,9 +112,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	Standard Transfer
 	{
-		typedef StdTransfer<TDomain, TAlgebra> T;
-		typedef ITransferOperator<TDomain, TAlgebra> TBase;
-		typedef typename T::GF GF;
+		using T = StdTransfer<TDomain, TAlgebra>;
+		using TBase = ITransferOperator<TDomain, TAlgebra>;
+		using GF = typename T::GF;
 		string name = string("StdTransfer").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -134,8 +133,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	Standard Injection
 	{
-		typedef StdInjection<TDomain, TAlgebra> T;
-		typedef ITransferOperator<TDomain, TAlgebra> TBase;
+		using T = StdInjection<TDomain, TAlgebra>;
+		using TBase = ITransferOperator<TDomain, TAlgebra>;
 		string name = string("StdInjection").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -148,8 +147,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	Average Transfer Post Process
 	{
-		typedef AverageComponent<TDomain, TAlgebra> T;
-		typedef ITransferPostProcess<TDomain, TAlgebra> TBase;
+		using T = AverageComponent<TDomain, TAlgebra>;
+		using TBase = ITransferPostProcess<TDomain, TAlgebra>;
 		string name = string("AverageComponent").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const std::string&)>("Components")
@@ -160,7 +159,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	MGStats
 	{
-		typedef MGStats<TDomain, TAlgebra> T;
+		using T = MGStats<TDomain, TAlgebra>;
 		string name = string("MGStats").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
@@ -182,8 +181,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	AssembledMultiGridCycle
 	{
-		typedef AssembledMultiGridCycle<TDomain, TAlgebra> T;
-		typedef ILinearIterator<vector_type> TBase;
+		using T = AssembledMultiGridCycle<TDomain, TAlgebra>;
+		using TBase = ILinearIterator<vector_type>;
 		string name = string("GeometricMultiGrid").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 					.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
@@ -224,8 +223,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	ElementGaussSeidel
 	{
-		typedef ElementGaussSeidel<TDomain, TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
+		using T = ElementGaussSeidel<TDomain, TAlgebra>;
+		using TBase = IPreconditioner<TAlgebra>;
 		string name = string("ElementGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
 		.add_constructor()
@@ -241,8 +240,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	ComponentGaussSeidel
 	{
-		typedef ComponentGaussSeidel<TDomain, TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
+		using T = ComponentGaussSeidel<TDomain, TAlgebra>;
+		using TBase = IPreconditioner<TAlgebra>;
 		string name = string("ComponentGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
 		.template add_constructor<void (*)(const std::vector<std::string>&)>("Cmps")
@@ -257,8 +256,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	SequentialSubspaceCorrection
 	{
-		typedef SequentialSubspaceCorrection<TDomain, TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
+		using T = SequentialSubspaceCorrection<TDomain, TAlgebra>;
+		using TBase = IPreconditioner<TAlgebra>;
 		string name = string("SequentialSubspaceCorrection").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Sequential subspace correction")
 					.template add_constructor<void (*)(number)>("omega")
@@ -270,15 +269,14 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	ILocalSubspace (i.e. base class for any 'subspace' in subspace correction methods)
 	{
-		typedef ILocalSubspace<TDomain, TAlgebra,Vertex> TVertexSubspace;
+		using TVertexSubspace = ILocalSubspace<TDomain, TAlgebra,Vertex>;
 		string name = string("ILocalSubspace").append(suffix);
 		reg.add_class_<TVertexSubspace>(name, grp, "ILocalSubspace base");
 		reg.add_class_to_group(name, "ILocalSubspace", tag);
 
 		//	VertexCenteredVankaSubspace
 		{
-			typedef VertexCenteredVankaSubspace<TDomain, TAlgebra> T;
-			// typedef IPreconditioner<TAlgebra> TBase;
+			using T = VertexCenteredVankaSubspace<TDomain, TAlgebra>;
 			string name = string("VertexCenteredVankaSubspace").append(suffix);
 			reg.add_class_<T,TVertexSubspace>(name, grp, "Vertex centered Vanka")
 					.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("primary functions, secondary functions")
@@ -289,9 +287,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	// Uzawa (smoother/iteration)
 	{
-		typedef UzawaBase<TDomain, TAlgebra> T;
-		typedef ILinearIterator<typename TAlgebra::vector_type> TBase;
-		typedef DebugWritingObject<TAlgebra> TBase2;
+		using T = UzawaBase<TDomain, TAlgebra>;
+		using TBase = ILinearIterator<typename TAlgebra::vector_type>;
+		using TBase2 = DebugWritingObject<TAlgebra>;
 		string name = string("UzawaBase").append(suffix);
 
 		reg.add_class_<T, TBase, TBase2>(name, grp)
@@ -320,7 +318,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 void RegisterBridge_MultiGrid(Registry& reg, string grp)
 {
 	grp.append("/Discretization");
-	typedef MultiGrid::Functionality Functionality;
+	using Functionality = MultiGrid::Functionality;
 
 	try{
 		RegisterDomainAlgebraDependent<Functionality>(reg,grp);

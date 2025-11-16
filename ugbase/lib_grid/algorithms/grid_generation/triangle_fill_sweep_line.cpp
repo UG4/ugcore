@@ -82,7 +82,7 @@ struct SweepLineVertex
 struct SweepLineEdge
 {
 	SweepLineEdge(SweepLineVertex* v1, SweepLineVertex* v2) :
-		m_status(SLES_UNKNOWN), m_v1(v1), m_v2(v2), m_helper(NULL), m_numConnectedPolygons(0)
+		m_status(SLES_UNKNOWN), m_v1(v1), m_v2(v2), m_helper(nullptr), m_numConnectedPolygons(0)
 	{}
 
 	SweepLineVertex* get_connected(const SweepLineVertex* v) const
@@ -91,7 +91,7 @@ struct SweepLineEdge
 			return m_v2;
 		else if(m_v2 == v)
 			return m_v1;
-		return NULL;
+		return nullptr;
 	}
 
 	vector2 direction() const
@@ -113,9 +113,9 @@ struct SweepLineEdge
 };
 
 
-typedef list<SweepLineEdge>	SweepLineEdgeList;
-typedef SweepLineEdgeList::iterator	SweepLineEdgeIter;
-typedef multimap<number, SweepLineEdge*> MapEdgeCuts;
+using SweepLineEdgeList = list<SweepLineEdge>;
+using SweepLineEdgeIter = SweepLineEdgeList::iterator;
+using MapEdgeCuts = multimap<number, SweepLineEdge*>;
 
 
 inline bool cmp_slv(const SweepLineVertex& v1, const SweepLineVertex& v2)
@@ -216,7 +216,7 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 //	for each vertex follow the edge, that makes the sharpest turn to the right.
 //	relative to the last checked edge. the initial direction is left. This is fine,
 //	since we start at the top.
-	SweepLineVertex* comingFromVrt = NULL;
+	SweepLineVertex* comingFromVrt = nullptr;
 	vector2 lastDir(-1, 0);
 	SweepLineVertex* lastVrt = &vrtsOut[0];
 	lastVrt->m_status = SLVS_START;
@@ -242,7 +242,7 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 
 		number bestVal = -2;
 		vector2 nextDir(0, 0);
-		SweepLineEdge* nextEdge = NULL;
+		SweepLineEdge* nextEdge = nullptr;
 		number bestNormDot = 0;
 		for(size_t i = 0; i < lastVrt->connections.size(); ++i){
 			SweepLineEdge* tmpEdge= lastVrt->connections[i];
@@ -261,7 +261,7 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 			}
 		}
 
-		assert((nextEdge != NULL) && "a new direction should have been found!");
+		assert((nextEdge != nullptr) && "a new direction should have been found!");
 
 	//	make sure that nextIter points into the right direction
 		if(nextEdge->m_v1 != lastVrt)
@@ -507,7 +507,7 @@ bool SweepLineEdgeIntersectsSweepLine(number& xOut,
 SweepLineEdge* GetEdgeOnTheLeft(MapEdgeCuts& edgeCuts, SweepLineVertex& v)
 {
 //	find the edge in edgeCuts which is directly left of v
-	SweepLineEdge* leftEdge = NULL;
+	SweepLineEdge* leftEdge = nullptr;
 	number leftEdgeVal = 0;
 
 	for(MapEdgeCuts::iterator iter = edgeCuts.begin();
@@ -575,7 +575,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 		for(MapEdgeCuts::iterator iter = edgeCuts.begin();
 			iter != edgeCuts.end(); ++iter)
 		{
-		//	if the helper was set to NULL, we'll ignore the edge
+		//	if the helper was set to nullptr, we'll ignore the edge
 			if(iter->second->m_helper){
 			//	make sure that the edge still intersects the sweepLine.
 				number x;
@@ -620,7 +620,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 			case SLVS_END:
 				{
 				//	get the incoming edge
-					SweepLineEdge* incoming = NULL;
+					SweepLineEdge* incoming = nullptr;
 					for(size_t i = 0; i < v.connections.size(); ++i){
 						if((v.connections[i]->m_status == SLES_RIM)
 						   && (v.connections[i]->m_v2 == &v))
@@ -630,13 +630,13 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 						}
 					}
 
-					//assert((incoming != NULL) && "An incoming edge has to exist!");
+					//assert((incoming != nullptr) && "An incoming edge has to exist!");
 					if(!incoming){
 						UG_LOG("ERROR in SweepLine_CreateMonotones: couldn't find incoming-edge.\n");
 						return false;
 					}
 
-					if(incoming->m_helper != NULL){
+					if(incoming->m_helper != nullptr){
 						if(incoming->m_helper->m_status == SLVS_MERGE){
 						//	insert a diagonal between helper and v
 							edges.push_back(SweepLineEdge(incoming->m_helper, &v));
@@ -646,15 +646,15 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 					}
 
 				//	remove incoming from the set of edge-cuts.
-				//	This can be done by setting its helper to NULL.
+				//	This can be done by setting its helper to nullptr.
 				//	The rest will be handled later on
-					incoming->m_helper = NULL;
+					incoming->m_helper = nullptr;
 				}break;
 			case SLVS_REGULAR:
 				{
 				//	get the direction of the incoming edge
 					if(v.isRimVertex && (v.connections.size() == 2)){
-						SweepLineEdge* incoming = NULL;
+						SweepLineEdge* incoming = nullptr;
 						for(size_t i = 0; i < v.connections.size(); ++i){
 							if((v.connections[i]->m_status == SLES_RIM)
 							   && (v.connections[i]->m_v2 == &v))
@@ -664,7 +664,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 							}
 						}
 
-						//assert((incoming != NULL) && "An incoming edge has to exist!");
+						//assert((incoming != nullptr) && "An incoming edge has to exist!");
 
 						if(!incoming){
 							UG_LOG("ERROR in SweepLine_CreateMonotones: couldn't find incoming-edge.\n");
@@ -692,11 +692,11 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 								v.connections.push_back(&edges.back());
 
 							//	delete incoming from edgeCuts
-								incoming->m_helper = NULL;
+								incoming->m_helper = nullptr;
 							}
 
 						//	add the outgoing edge to edgeCuts
-							SweepLineEdge* outgoing = NULL;
+							SweepLineEdge* outgoing = nullptr;
 							for(size_t i = 0; i < v.connections.size(); ++i){
 								if((v.connections[i]->m_status == SLES_RIM)
 								   && (v.connections[i]->m_v1 == &v))
@@ -706,7 +706,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 								}
 							}
 
-							//assert((outgoing != NULL) && "An outgoing edge has to exist!");
+							//assert((outgoing != nullptr) && "An outgoing edge has to exist!");
 							if(!outgoing){
 								UG_LOG("ERROR in SweepLine_CreateMonotones: couldn't find outgoing-edge.\n");
 								return false;
@@ -763,7 +763,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 							}
 
 						//	ok. it is.
-							//assert((incoming.m_helper != NULL) && "a helper has to exist");
+							//assert((incoming.m_helper != nullptr) && "a helper has to exist");
 							if(incoming.m_helper)
 							{
 								if(incoming.m_helper->m_status == SLVS_MERGE){
@@ -773,7 +773,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 									v.connections.push_back(&edges.back());
 
 								//	delete incoming from edgeCuts
-									incoming.m_helper = NULL;
+									incoming.m_helper = nullptr;
 								}
 							}
 						}
@@ -819,7 +819,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 				//	find the edge in edgeCuts which is directly left of v
 					SweepLineEdge* leftEdge = GetEdgeOnTheLeft(edgeCuts, v);
 
-					//assert((leftEdge != NULL) && "a edge on the left has to exist.");
+					//assert((leftEdge != nullptr) && "a edge on the left has to exist.");
 
 					if(!leftEdge){
 						UG_LOG("ERROR in SweepLine_CreateMonotones: couldn't find left-edge.\n");
@@ -853,7 +853,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 				//	we differentiate between rim vertices and inner vertices, since this gives a speedup.
 					if(v.isRimVertex){
 					//	get the incoming edge
-						SweepLineEdge* incoming = NULL;
+						SweepLineEdge* incoming = nullptr;
 						for(size_t i = 0; i < v.connections.size(); ++i){
 							if((v.connections[i]->m_status == SLES_RIM)
 							   && (v.connections[i]->m_v2 == &v))
@@ -862,8 +862,8 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 								break;
 							}
 						}
-						//assert((incoming != NULL) && "An incoming edge has to exist!");
-						//assert((incoming->m_helper != NULL) && "The edge has to have a helper!");
+						//assert((incoming != nullptr) && "An incoming edge has to exist!");
+						//assert((incoming->m_helper != nullptr) && "The edge has to have a helper!");
 
 						if(!incoming){
 							UG_LOG("ERROR in SweepLine_CreateMonotones: couldn't find incoming-edge.\n");
@@ -883,9 +883,9 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 						}
 
 					//	remove incoming from the set of edge-cuts.
-					//	This can be done by setting its helper to NULL.
+					//	This can be done by setting its helper to nullptr.
 					//	The rest will be handled later on
-						incoming->m_helper = NULL;
+						incoming->m_helper = nullptr;
 					}
 					else{
 					//	check all incoming edges
@@ -898,9 +898,9 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 									v.connections.push_back(&edges.back());
 								}
 							//	remove incoming from the set of edge-cuts.
-							//	This can be done by setting its helper to NULL.
+							//	This can be done by setting its helper to nullptr.
 							//	The rest will be handled later on
-								incoming->m_helper = NULL;
+								incoming->m_helper = nullptr;
 							}
 						}
 					}
@@ -908,7 +908,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 				//	find the edge in edgeCuts which is directly left of v
 					SweepLineEdge* leftEdge = GetEdgeOnTheLeft(edgeCuts, v);
 
-					//assert((leftEdge != NULL) && "an edge on the left has to exist.");
+					//assert((leftEdge != nullptr) && "an edge on the left has to exist.");
 					//assert(leftEdge->m_helper && "edge has no helper");
 
 					if(!leftEdge){
@@ -1016,7 +1016,7 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 		SweepLineVertex& monotoneTop = vrts[i_main];
 	//	find its two rightmost edges which have not yet been processed
 		number bestVal[2] = {-2, -2};
-		SweepLineEdge* branch[2] = {NULL, NULL};
+		SweepLineEdge* branch[2] = {nullptr, nullptr};
 		vector2 downDir(0, -1);//compare to straight down ray.
 		for(size_t i = 0; i < monotoneTop.connections.size(); ++i){
 			SweepLineEdge& e = *monotoneTop.connections[i];
@@ -1068,8 +1068,8 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 		while(1){
 		//	check whether we walk on the left or on the right branch
 		//	first get the lower vertex of each branch
-			SweepLineVertex* vLeft = NULL;
-			SweepLineVertex* vRight = NULL;
+			SweepLineVertex* vLeft = nullptr;
+			SweepLineVertex* vRight = nullptr;
 
 			if(cmp_slv(*branch[0]->m_v1, *branch[0]->m_v2))
 				vLeft = branch[0]->m_v2;
@@ -1219,7 +1219,7 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 			VecSubtract(lastDir, *cur->vrtPtr, *conn->vrtPtr);
 			VecNormalize(lastDir, lastDir);
 			number bestVal = -2;
-			SweepLineEdge* nextEdge = NULL;
+			SweepLineEdge* nextEdge = nullptr;
 			vector2 newDir(0, 1);
 			for(size_t i = 0; i < cur->connections.size(); ++i){
 				SweepLineEdge& e = *cur->connections[i];

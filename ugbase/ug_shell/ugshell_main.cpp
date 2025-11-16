@@ -135,8 +135,8 @@ void ugshell_print_header()
 	LOG("*   -outproc id:         Sets the output-proc to id. Default is 0.             *\n");
 	LOG("*   -ex scriptname:      Executes the specified script.                        *\n");
 	LOG("*   -noquit:             Runs the interactive shell after specified script.    *\n");
-  LOG("*   -quiet:              Disables printing of header and trailer.              *\n");
-  LOG("*   -help:               Print this help message and exit.                     *\n");
+    LOG("*   -quiet:              Disables printing of header and trailer.              *\n");
+    LOG("*   -help:               Print this help message and exit.                     *\n");
 	LOG("*   -noterm:             Terminal logging will be disabled.                    *\n");
 	LOG("*   -logtofile filename: Output will be written to the specified file.         *\n");
 #ifdef UG_PROFILER
@@ -266,7 +266,7 @@ void ug_init_luashell(int argc, char* argv[])
 	// replace LUAs print function with our own, to use UG_LOG
 	RegisterStdLUAFunctions(L);
 
-	ug::bridge::InitShell();
+	bridge::InitShell();
 };
 
 void ug_check_registry(bool &errorOccurred)
@@ -351,7 +351,7 @@ int ugshell_main(int argc, char* argv[])
 	ParamToInt(outputProc, "-outproc", argc, argv);
 	GetLogAssistant().set_output_process(outputProc);
 	
-	const char* logFileName = NULL;
+	const char* logFileName = nullptr;
 	if(ParamToString(&logFileName, "-logtofile", argc, argv))
 		GetLogAssistant().enable_file_output(true, logFileName);
 
@@ -368,19 +368,19 @@ int ugshell_main(int argc, char* argv[])
 	const bool interactiveShellRequested	= FindParam("-noquit", argc, argv);
 	bool defaultInteractiveShell			= true;	// may be changed later
 	
-	const char* rootPath = NULL;
+	const char* rootPath = nullptr;
 	if(ParamToString(&rootPath, "-rootpath", argc, argv))
 		SetRootPath(rootPath);
 
-	const char* scriptPath = NULL;
+	const char* scriptPath = nullptr;
 	if(ParamToString(&scriptPath, "-scriptpath", argc, argv))
 		SetScriptPath(scriptPath);
 
-	const char* appsPath = NULL;
+	const char* appsPath = nullptr;
 	if(ParamToString(&appsPath, "-appspath", argc, argv))
 		SetAppsPath(appsPath);
 
-	const char* pluginPath = NULL;
+	const char* pluginPath = nullptr;
 	if(ParamToString(&pluginPath, "-pluginpath", argc, argv))
 		SetPluginPath(pluginPath);
 
@@ -445,7 +445,7 @@ int ugshell_main(int argc, char* argv[])
 	// replace LUAs print function with our own, to use UG_LOG
 	RegisterStdLUAFunctions(L);
 
-	ug::bridge::InitShell();*/
+	bridge::InitShell();*/
 	ug_init_luashell(argc, argv);
 
 	PROFILE_END(); // ugshellInit
@@ -545,7 +545,7 @@ int ugshell_main(int argc, char* argv[])
 	if(!parallelEnvironment && (interactiveShellRequested || (!errorOccurred && defaultInteractiveShell)))
 	{
 		try{
-			ret = ug::bridge::RunShell();
+			ret = bridge::RunShell();
 		}
 		catch(SoftAbort& err){
 			UG_LOG("Execution of interactive shell aborted with the following message:\n");
@@ -565,7 +565,7 @@ int ugshell_main(int argc, char* argv[])
 	PROFILE_END();
 	UGFinalize();
 
-	ug::UGProfileNode::CheckForTooSmallNodes();
+	UGProfileNode::CheckForTooSmallNodes();
 	UG_LOG(endl);
 
   ////////////////////////////////

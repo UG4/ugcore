@@ -397,8 +397,7 @@ template<>
 bool LagrangeP1<ReferencePyramid>::
 position(size_t i, MathVector<dim>& value) const
 {
-	static const DimReferenceElement<3>& refElem
-		= ReferenceElementProvider::get<3>(ROID_PYRAMID);
+	static const DimReferenceElement<3>& refElem = ReferenceElementProvider::get<3>(ROID_PYRAMID);
 
 	value = refElem.corner(i);
 	return true;
@@ -470,8 +469,7 @@ template<>
 bool LagrangeP1<ReferencePrism>::
 position(size_t i, MathVector<dim>& value) const
 {
-	static const DimReferenceElement<3>& refElem
-		= ReferenceElementProvider::get<3>(ROID_PRISM);
+	static const DimReferenceElement<3>& refElem = ReferenceElementProvider::get<3>(ROID_PRISM);
 
 	value = refElem.corner(i);
 	return true;
@@ -555,8 +553,7 @@ template<>
 bool LagrangeP1<ReferenceHexahedron>::
 position(size_t i, MathVector<dim>& value) const
 {
-	static const DimReferenceElement<3>& refElem
-		= ReferenceElementProvider::get<3>(ROID_HEXAHEDRON);
+	static const DimReferenceElement<3>& refElem = ReferenceElementProvider::get<3>(ROID_HEXAHEDRON);
 
 	value = refElem.corner(i);
 	return true;
@@ -722,8 +719,7 @@ template<>
 bool LagrangeP1<ReferenceOctahedron>::
 position(size_t i, MathVector<dim>& value) const
 {
-	static const DimReferenceElement<3>& refElem
-		= ReferenceElementProvider::get<3>(ROID_OCTAHEDRON);
+	static const DimReferenceElement<3>& refElem = ReferenceElementProvider::get<3>(ROID_OCTAHEDRON);
 
 	value = refElem.corner(i);
 	return true;

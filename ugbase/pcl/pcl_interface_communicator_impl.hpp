@@ -33,19 +33,25 @@
 #ifndef __H__PCL__PCL_INTERFACE_COMMUNICATOR_IMPL__
 #define __H__PCL__PCL_INTERFACE_COMMUNICATOR_IMPL__
 
+
 #include <cassert>
-#include "mpi.h"
+#include <mpi.h>
+
+#include "common/log.h"
+
 #include "pcl_methods.h"
 #include "pcl_communication_structs.h"
 #include "pcl_interface_communicator.h"
-#include "pcl_profiling.h"
 #include "pcl_util.h"
-#include "common/log.h"
+#include "pcl_comm_world.h"
+#include "pcl_methods.h"
+#include "pcl_process_communicator.h"
+#include "pcl_profiling.h"
 
 namespace pcl
 {
 
-template <class TLayout>
+template <typename TLayout>
 InterfaceCommunicator<TLayout>::
 InterfaceCommunicator() :
 	m_bDebugCommunication(false),
@@ -56,7 +62,7 @@ InterfaceCommunicator() :
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 send_raw(int targetProc, const void* pBuff, int bufferSize,
 	     bool bSizeKnownAtTarget)
@@ -75,7 +81,7 @@ send_raw(int targetProc, const void* pBuff, int bufferSize,
 }
 			   
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 send_data(int targetProc, const Interface& interface,
 		  ICommunicationPolicy<TLayout>& commPol)
@@ -93,7 +99,7 @@ send_data(int targetProc, const Interface& interface,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 send_data(const Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
@@ -105,7 +111,7 @@ send_data(const Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 send_data(const Layout& layout,
 		  ICommunicationPolicy<TLayout>& commPol,
@@ -132,7 +138,7 @@ send_data(const Layout& layout,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 send_data(const Layout& layout,
 		  ICommunicationPolicy<TLayout>& commPol,
@@ -161,54 +167,54 @@ send_data(const Layout& layout,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 receive_raw(int srcProc, ug::BinaryBuffer& bufOut, int bufSize)
 {
-	m_extractorInfos.push_back(ExtractorInfo(srcProc, NULL,
-											 NULL, NULL,
-											 NULL, &bufOut,
+	m_extractorInfos.push_back(ExtractorInfo(srcProc, nullptr,
+											 nullptr, nullptr,
+											 nullptr, &bufOut,
 											 bufSize));
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 receive_raw(int srcProc, void* bufOut, int bufSize)
 {
-	m_extractorInfos.push_back(ExtractorInfo(srcProc, NULL,
-											 NULL, NULL,
-											 bufOut, NULL,
+	m_extractorInfos.push_back(ExtractorInfo(srcProc, nullptr,
+											 nullptr, nullptr,
+											 bufOut, nullptr,
 											 bufSize));
 }
 			
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 receive_data(int srcProc, const Interface& interface,
 			 ICommunicationPolicy<TLayout>& commPol)
 {
 	if(!interface.empty()){
 		m_extractorInfos.push_back(ExtractorInfo(srcProc, &commPol
-												 &interface, NULL,
-												 NULL, NULL, 0));
+												 &interface, nullptr,
+												 nullptr, nullptr, 0));
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 receive_data(const Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
 	if(!layout.empty()){
 		m_extractorInfos.push_back(ExtractorInfo(-1, &commPol,
-												 NULL, &layout,
-												 NULL, NULL, 0));
+												 nullptr, &layout,
+												 nullptr, nullptr, 0));
 	}
 }
 
-template <class TLayout>
-template <class TLayoutMap>
+template <typename TLayout>
+template <typename TLayoutMap>
 void InterfaceCommunicator<TLayout>::
 exchange_data(const TLayoutMap& layoutMap,
 			  const typename TLayoutMap::Key& keyFrom,
@@ -225,7 +231,7 @@ exchange_data(const TLayoutMap& layoutMap,
 }
 							
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 prepare_receiver_buffer_map(BufferMap& bufMap,
 							std::set<int>& curProcs,
@@ -236,7 +242,7 @@ prepare_receiver_buffer_map(BufferMap& bufMap,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 prepare_receiver_buffer_map(BufferMap& bufMap,
 							std::set<int>& curProcs,
@@ -244,8 +250,7 @@ prepare_receiver_buffer_map(BufferMap& bufMap,
 							const layout_tags::single_level_layout_tag&)
 {
 //	simply 'touch' the buffer to make sure it's in the map.
-	for(typename TLayout::const_iterator li = layout.begin();
-		li != layout.end(); ++li)
+	for(typename TLayout::const_iterator li = layout.begin(); li != layout.end(); ++li)
 	{
 		if(!layout.interface(li).empty()){
 			bufMap[layout.proc_id(li)];
@@ -255,7 +260,7 @@ prepare_receiver_buffer_map(BufferMap& bufMap,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 prepare_receiver_buffer_map(BufferMap& bufMap,
 							std::set<int>& curProcs,
@@ -265,8 +270,7 @@ prepare_receiver_buffer_map(BufferMap& bufMap,
 //	simply 'touch' the buffer to make sure it's in the map.
 	for(size_t i = 0; i < layout.num_levels(); ++i)
 	{
-		for(typename TLayout::const_iterator li = layout.begin(i);
-			li != layout.end(i); ++li)
+		for(typename TLayout::const_iterator li = layout.begin(i); li != layout.end(i); ++li)
 		{
 			if(!layout.interface(li).empty()){
 				bufMap[layout.proc_id(li)];
@@ -277,15 +281,14 @@ prepare_receiver_buffer_map(BufferMap& bufMap,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 bool InterfaceCommunicator<TLayout>::
 collect_layout_buffer_sizes(const TLayout& layout,
 							ICommunicationPolicy<TLayout>& commPol,
 							std::map<int, int>* pMapBuffSizesOut,
 							const layout_tags::single_level_layout_tag&)
 {
-	for(typename TLayout::const_iterator li = layout.begin();
-		li != layout.end(); ++li)
+	for(typename TLayout::const_iterator li = layout.begin(); li != layout.end(); ++li)
 	{
 		if(!layout.interface(li).empty()){
 		//	get the buffer size
@@ -297,7 +300,7 @@ collect_layout_buffer_sizes(const TLayout& layout,
 			}
 			else if(pMapBuffSizesOut){
 			//	find the entry in the map
-				std::map<int, int>::iterator iter = pMapBuffSizesOut->find(layout.proc_id(li));
+				auto iter = pMapBuffSizesOut->find(layout.proc_id(li));
 				if(iter != pMapBuffSizesOut->end())
 					iter->second += buffSize;
 				else
@@ -309,7 +312,7 @@ collect_layout_buffer_sizes(const TLayout& layout,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 bool InterfaceCommunicator<TLayout>::
 collect_layout_buffer_sizes(const TLayout& layout,
 							ICommunicationPolicy<TLayout>& commPol,
@@ -319,8 +322,7 @@ collect_layout_buffer_sizes(const TLayout& layout,
 PCL_PROFILE_FUNC();
 //	iterate through all interfaces
 	for(size_t i = 0; i < layout.num_levels(); ++i){
-		for(typename TLayout::const_iterator li = layout.begin(i);
-			li != layout.end(i); ++li)
+		for(typename TLayout::const_iterator li = layout.begin(i); li != layout.end(i); ++li)
 		{
 			if(!layout.interface(li).empty()){
 			//	get the buffer size
@@ -345,7 +347,7 @@ PCL_PROFILE_FUNC();
 }
 										
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor)
 {
@@ -356,7 +358,7 @@ PCL_PROFILE_FUNC();
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 			 const layout_tags::single_level_layout_tag&)
@@ -365,8 +367,7 @@ extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 	extractor.begin_level_extraction(0);
 
 //	extract data for the layouts interfaces
-	for(typename Layout::const_iterator li = layout.begin();
-		li != layout.end(); ++li)
+	for(typename Layout::const_iterator li = layout.begin(); li != layout.end(); ++li)
 	{
 		if(!layout.interface(li).empty()){
 			extractor.extract(bufMap[layout.proc_id(li)],
@@ -378,7 +379,7 @@ extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 			 const layout_tags::multi_level_layout_tag&)
@@ -389,8 +390,7 @@ extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 	for(size_t i = 0; i < layout.num_levels(); ++i)
 	{
 		extractor.begin_level_extraction(i);
-		for(typename Layout::const_iterator li = layout.begin(i);
-			li != layout.end(i); ++li)
+		for(typename Layout::const_iterator li = layout.begin(i); li != layout.end(i); ++li)
 		{
 			if(!layout.interface(li).empty()){
 				extractor.extract(bufMap[layout.proc_id(li)],
@@ -404,7 +404,7 @@ extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 bool InterfaceCommunicator<TLayout>::
 communicate(int tag)
 {
@@ -415,7 +415,7 @@ communicate(int tag)
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout>
+template <typename TLayout>
 bool InterfaceCommunicator<TLayout>::
 communicate_and_resume(int tag)
 {
@@ -432,8 +432,7 @@ communicate_and_resume(int tag)
 
 //	note that we won't free the memory in the stream-packs.
 //	we will only reset their write and read pointers.
-	for(BufferMap::iterator iter = m_bufMapIn.begin();
-		iter != m_bufMapIn.end(); ++iter)
+	for(auto iter = m_bufMapIn.begin(); iter != m_bufMapIn.end(); ++iter)
 	{
 		iter->second.clear();
 	}
@@ -441,8 +440,7 @@ communicate_and_resume(int tag)
 
 //	iterate through all registered extractors and create entries for
 //	the source-processes in the map (by simply 'touching' the entry).
-	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin();
-		iter != m_extractorInfos.end(); ++iter)
+	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin(); iter != m_extractorInfos.end(); ++iter)
 	{
 		ExtractorInfo& info = *iter;
 		if(info.m_srcProc > -1){
@@ -462,13 +460,11 @@ communicate_and_resume(int tag)
 
 	if(communication_debugging_enabled()){
 	//	fill receive and send vectors
-		for(std::set<int>::iterator iter = m_curInProcs.begin();
-			iter != m_curInProcs.end(); ++iter){
+		for(std::set<int>::iterator iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter){
 			dbgRecvFrom.push_back(*iter);
 		}
 
-		for(std::set<int>::iterator iter = m_curOutProcs.begin();
-			iter != m_curOutProcs.end(); ++iter)
+		for(std::set<int>::iterator iter = m_curOutProcs.begin(); iter != m_curOutProcs.end(); ++iter)
 			dbgSendTo.push_back(*iter);
 
 		if(!SendRecvListsMatch(dbgRecvFrom, dbgSendTo, m_debugProcComm)){
@@ -495,15 +491,13 @@ communicate_and_resume(int tag)
 	//	a map with <procId, Size>. Will be used to collect stream-sizes
 		std::map<int, int> mapBuffSizes;
 	//	initialise all sizes with 0
-		for(std::set<int>::iterator iter = m_curInProcs.begin();
-			iter != m_curInProcs.end(); ++iter)
+		for(std::set<int>::iterator iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter)
 		{
 			mapBuffSizes[*iter] = 0;
 		}
 		
 	//	iterate over all extractors and collect the buffer sizes
-		for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin();
-			iter != m_extractorInfos.end(); ++iter)
+		for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin(); iter != m_extractorInfos.end(); ++iter)
 		{
 			ExtractorInfo& info = *iter;
 			if(info.m_srcProc > -1){
@@ -538,8 +532,7 @@ communicate_and_resume(int tag)
 	//	m_streamPackIn...
 		if(allBufferSizesFixed){
 			int counter = 0;
-			for(std::set<int>::iterator iter = m_curInProcs.begin();
-				iter != m_curInProcs.end(); ++iter, ++counter)
+			for(std::set<int>::iterator iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
 			{
 				vBufferSizesIn[counter] = mapBuffSizes[*iter];
 			}
@@ -559,8 +552,7 @@ communicate_and_resume(int tag)
 
 	//	shedule receives first
 		counter = 0;
-		for(std::set<int>::iterator iter = m_curInProcs.begin();
-			iter != m_curInProcs.end(); ++iter, ++counter)
+		for(std::set<int>::iterator iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
 		{
 			MPI_Irecv(&vBufferSizesIn[counter], sizeof(int), MPI_UNSIGNED_CHAR,	
 					*iter, sizeTag, PCL_COMM_WORLD, &m_vReceiveRequests[counter]);
@@ -569,8 +561,7 @@ communicate_and_resume(int tag)
 	//	send buffer sizes
 		counter = 0;
 		streamSizes.resize(m_curOutProcs.size());
-		for(std::set<int>::iterator iter = m_curOutProcs.begin();
-			iter != m_curOutProcs.end(); ++iter, ++counter)
+		for(std::set<int>::iterator iter = m_curOutProcs.begin(); iter != m_curOutProcs.end(); ++iter, ++counter)
 		{
 			streamSizes[counter] = (int)m_bufMapOut[*iter].write_pos();
 
@@ -589,8 +580,7 @@ communicate_and_resume(int tag)
 	{
 		PCL_PROFILE(pcl_IntCom_communicate_resizeRecvBufs);
 		size_t counter = 0;
-		for(std::set<int>::iterator iter = m_curInProcs.begin();
-			iter != m_curInProcs.end(); ++iter, ++counter)
+		for(std::set<int>::iterator iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
 		{
 			ug::BinaryBuffer& buf = m_bufMapIn[*iter];
 			buf.reserve(vBufferSizesIn[counter]);
@@ -605,12 +595,10 @@ communicate_and_resume(int tag)
 //	send / receive buffers have the same size.
 	if(communication_debugging_enabled()){
 		std::vector<int> recvBufSizes, sendBufSizes;
-		for(std::set<int>::iterator iter = m_curInProcs.begin();
-			iter != m_curInProcs.end(); ++iter)
+		for(auto iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter)
 			recvBufSizes.push_back((int)m_bufMapIn[*iter].write_pos());
 
-		for(std::set<int>::iterator iter = m_curOutProcs.begin();
-			iter != m_curOutProcs.end(); ++iter)
+		for(auto iter = m_curOutProcs.begin(); iter != m_curOutProcs.end(); ++iter)
 			sendBufSizes.push_back((int)m_bufMapOut[*iter].write_pos());
 						
 		if(!SendRecvBuffersMatch(dbgRecvFrom, recvBufSizes,
@@ -632,8 +620,7 @@ communicate_and_resume(int tag)
 
 //	first schedule receives
 	int counter = 0;
-	for(std::set<int>::iterator iter = m_curInProcs.begin();
-		iter != m_curInProcs.end(); ++iter, ++counter)
+	for(std::set<int>::iterator iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
 	{
 		UG_DLOG(ug::LIB_PCL, 1, " " << *iter
 				<< "(" << vBufferSizesIn[counter] << ")");
@@ -648,8 +635,7 @@ communicate_and_resume(int tag)
 
 //	now send data
 	counter = 0;
-	for(std::set<int>::iterator iter = m_curOutProcs.begin();
-		iter != m_curOutProcs.end(); ++iter, ++counter)
+	for(std::set<int>::iterator iter = m_curOutProcs.begin(); iter != m_curOutProcs.end(); ++iter, ++counter)
 	{
 		ug::BinaryBuffer& binBuf = m_bufMapOut[*iter];
 
@@ -669,7 +655,7 @@ communicate_and_resume(int tag)
 }
 
 
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 wait()
 {
@@ -684,8 +670,7 @@ wait()
 	
 
 //	call the extractors with the received data
-	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin();
-		iter != m_extractorInfos.end(); ++iter)
+	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin(); iter != m_extractorInfos.end(); ++iter)
 	{
 		ExtractorInfo& info = *iter;
 		if(info.m_srcProc > -1)
@@ -725,8 +710,7 @@ wait()
 	}
 
 //	clean up
-	for(BufferMap::iterator iter = m_bufMapOut.begin();
-		iter != m_bufMapOut.end(); ++iter)
+	for(auto iter = m_bufMapOut.begin(); iter != m_bufMapOut.end(); ++iter)
 	{
 	//	clear does not free memory. Only resets read and write pointers.
 		iter->second.clear();
@@ -740,7 +724,7 @@ wait()
 
 
 
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 enable_communication_debugging(const ProcessCommunicator& involvedProcs)
 {
@@ -755,14 +739,14 @@ enable_communication_debugging(const ProcessCommunicator& involvedProcs)
 	m_debugProcComm = involvedProcs;
 }
 	 
-template <class TLayout>
+template <typename TLayout>
 void InterfaceCommunicator<TLayout>::
 disable_communication_debugging()
 {
 	m_bDebugCommunication = false;
 }
 
-template <class TLayout>
+template <typename TLayout>
 bool InterfaceCommunicator<TLayout>::
 communication_debugging_enabled()
 {

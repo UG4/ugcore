@@ -72,7 +72,7 @@ class BinaryStreamBuffer : public std::streambuf
 	/// set read- and write-positions to the start of the buffer.
 		void reset();
 
-	/// returns a pointer to the front of the buffer or NULL if the buffer is empty.
+	/// returns a pointer to the front of the buffer or nullptr if the buffer is empty.
 		inline char_type* buffer()				{return reinterpret_cast<char_type*>(GetDataPtr(m_dataBuf));}
 
 		inline const char_type* buffer() const	{return reinterpret_cast<const char_type*>(GetDataPtr(m_dataBuf));}

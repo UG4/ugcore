@@ -15,15 +15,15 @@ class LuaCallbackObserver
 : public ITimeIntegratorObserver<TDomain, TAlgebra>
 {
 public:
-	typedef ITimeIntegratorObserver<TDomain, TAlgebra> base_type;
-	typedef GridFunction<TDomain, TAlgebra> grid_function_type;
-	typedef LuaFunction<number, number> lua_function_type;
+	using base_type = ITimeIntegratorObserver<TDomain, TAlgebra>;
+	using grid_function_type = GridFunction<TDomain, TAlgebra>;
+	using lua_function_type = LuaFunction<number, number>;
 
 	LuaCallbackObserver()
-	: m_lua_callback(SPNULL), m_lua_id(0) {}
+	: m_lua_callback(nullptr), m_lua_id(0) {}
 
 	LuaCallbackObserver(int lua_id)
-	: m_lua_callback(SPNULL), m_lua_id(lua_id) {}
+	: m_lua_callback(nullptr), m_lua_id(lua_id) {}
 
 	virtual ~LuaCallbackObserver()
 	{}

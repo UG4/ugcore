@@ -56,17 +56,17 @@ enum ExtrusionOptions
 ///	extrudes geometry and creates new edges, faces and volumes.
 /**
  * For each vertex in pvVerticesInOut a new edge will be created.
- * NULL is a valid parameter for pvVerticesInOut.
+ * nullptr is a valid parameter for pvVerticesInOut.
  *
  * For each edge in pvEdgesInOut a new edge.
  * if EO_CREATE_FACES is enabled, a new face that connects the two
  * edges will be created too.
- * NULL is a valid parameter for pvEdgesInOut.
+ * nullptr is a valid parameter for pvEdgesInOut.
  *
  * For each face in pvFacesInOut a new face will be created.
  * if EO_CREATE_VOLUMES is enabled a new volume that connects the
  * two faces will be created too.
- * NULL is a valid parameter for pvFacesInOut.
+ * nullptr is a valid parameter for pvFacesInOut.
  *
  * The element from which new elements are extruded is passed to
  * each new element as the parent element.
@@ -78,7 +78,7 @@ enum ExtrusionOptions
  * The in-out-vectors thus can be directly used in a new call to Extrude.
  *
  * All newly created volume-elements will be pushed to pvVolsOut if that vector
- * was specified (NULL by default). Volume elements are created in the order in
+ * was specified (nullptr by default). Volume elements are created in the order in
  * which faces are specified in pvFacesInOut.
  *
  * If you need to have access to all newly created elements you could use
@@ -92,7 +92,7 @@ void Extrude(Grid& grid,
 			const vector_t& direction,
 			uint extrusionOptions = EO_DEFAULT,
 			Attachment<vector_t>& aPos = aPosition,
-			std::vector<Volume*>* pvVolsOut = NULL);
+			std::vector<Volume*>* pvVolsOut = nullptr);
 
 template <class TAAPos>
 void Extrude(Grid& grid,
@@ -102,7 +102,7 @@ void Extrude(Grid& grid,
 			const typename TAAPos::ValueType& direction,
 			TAAPos aaPos,
 			uint extrusionOptions = EO_DEFAULT,
-			std::vector<Volume*>* pvVolsOut = NULL);
+			std::vector<Volume*>* pvVolsOut = nullptr);
 /** \} */
 
 /*

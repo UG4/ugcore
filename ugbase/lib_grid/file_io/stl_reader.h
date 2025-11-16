@@ -343,41 +343,41 @@ public:
 
 	/// returns a pointer to the coordinate array, containing `num_vrts()*3` entries.
 	/** Storage layout: `x0,y0,z0,x1,y1,z1,...`
-	 * \returns	pointer to a contiguous array of numbers, or `NULL` if no coords exist.*/
+	 * \returns	pointer to a contiguous array of numbers, or `nullptr` if no coords exist.*/
 	const TNumber* raw_coords () const
 	{
 		if(coords.empty())
-			return NULL;
+			return nullptr;
 		return &coords[0];
 	}
 
 	/// returns a pointer to the normal array, containing `num_tris()*3` entries.
 	/** Storage layout: `nx0,ny0,nz0,nx1,ny1,nz1,...`
-	 * \returns	pointer to a contiguous array of numbers, or `NULL` if no normals exist.*/
+	 * \returns	pointer to a contiguous array of numbers, or `nullptr` if no normals exist.*/
 	const TNumber* raw_normals () const
 	{
 		if(normals.empty())
-			return NULL;
+			return nullptr;
 		return &normals[0];
 	}
 
 	/// returns a pointer to the triangle array, containing `num_tris()*3` entries.
 	/** Storage layout: `t0c0,t0c1,t0c2,t1c0,t1c1,t1c2,...`
-	 * \returns	pointer to a contiguous array of indices, or `NULL` if no tris exist.*/
+	 * \returns	pointer to a contiguous array of indices, or `nullptr` if no tris exist.*/
 	const TIndex* raw_tris () const
 	{
 		if(tris.empty())
-			return NULL;
+			return nullptr;
 		return &tris[0];
 	}
 
 	/// returns a pointer to the solids array, containing `num_solids()+1` entries.
 	/** Storage layout: `s0begin, s0end/s1begin, s1end/s2begin, ..., sNend`
-	 * \returns	pointer to a contiguous array of indices, or `NULL` if no solids exist.*/
+	 * \returns	pointer to a contiguous array of indices, or `nullptr` if no solids exist.*/
 	const TIndex* raw_solids () const
 	{
 		if(solids.empty())
-			return NULL;
+			return nullptr;
 		return &solids[0];
 	}
 
@@ -436,8 +436,8 @@ namespace stl_reader_impl {
 	{
 		using namespace std;
 
-		typedef typename TNumberContainer::value_type	number_t;
-		typedef typename TIndexContainer::value_type	index_t;
+		using number_t = typename TNumberContainer::value_type;
+		using index_t = typename TIndexContainer::value_type;
 
 		sort (coordsWithIndexInOut.begin(), coordsWithIndexInOut.end());
 	
@@ -514,8 +514,8 @@ bool ReadStlFile_ASCII(const char* filename,
 	using namespace std;
 	using namespace stl_reader_impl;
 
-	typedef typename TNumberContainer::value_type	number_t;
-	typedef typename TIndexContainer::value_type	index_t;
+	using number_t = typename TNumberContainer::value_type;
+	using index_t = typename TIndexContainer::value_type;
 
 	coordsOut.clear();
 	normalsOut.clear();
@@ -623,8 +623,8 @@ bool ReadStlFile_BINARY(const char* filename,
 	using namespace std;
 	using namespace stl_reader_impl;
 
-	typedef typename TNumberContainer::value_type	number_t;
-	typedef typename TIndexContainer::value_type	index_t;
+	using number_t = typename TNumberContainer::value_type;
+	using index_t = typename TIndexContainer::value_type;
 
 	coordsOut.clear();
 	normalsOut.clear();

@@ -47,7 +47,7 @@ static void RegisterRaster(Registry& reg, string name, string grp)
 	string suffix = GetDimensionSuffix<TDIM>();
 	string tag = GetDimensionTag<TDIM>();
 
-	typedef Raster<TValue, TDIM> T;
+	using T = Raster<TValue, TDIM>;
 	string fullName = name + suffix;
 
 	reg.add_class_<T>(fullName, grp)

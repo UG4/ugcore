@@ -75,7 +75,7 @@ private:
 	};
 
 private:
-	typedef std::map<int, BinaryBuffer>	BufferMap;
+	using BufferMap = std::map<int, BinaryBuffer>;
 
 	ParallelNodes &PN;
 	std::set<int> masterPIDs;

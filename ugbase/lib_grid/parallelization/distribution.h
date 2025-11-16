@@ -72,7 +72,7 @@ enum InterfaceStates{
  * 			All siblings (all children of a parent) have to be in a common subset
  * 			(not necessarily the subset of their parent). ???
  *
- * \param	procMap is by default NULL and thus ignored. If you specify it
+ * \param	procMap is by default nullptr and thus ignored. If you specify it
  * 			make sure to specify a pointer to an array with size
  * 			shPartition.num_subsets(). All values in the array have to be
  * 			in the range [0, pcl:NumProcs()[.
@@ -82,7 +82,7 @@ bool DistributeGrid(MultiGrid& mg,
 					SubsetHandler& shPartition,
 					GridDataSerializationHandler& serializer,
 					bool createVerticalInterfaces,
-					const std::vector<int>* processMap = NULL,
+					const std::vector<int>* processMap = nullptr,
 					const pcl::ProcessCommunicator& procComm =
 												pcl::ProcessCommunicator());
 

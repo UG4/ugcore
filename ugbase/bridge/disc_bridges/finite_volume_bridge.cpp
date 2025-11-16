@@ -177,7 +177,7 @@ static void Common(Registry& reg, string grp)
 void RegisterBridge_FiniteVolume(Registry& reg, string grp)
 {
 	grp.append("/Discretization");
-	typedef FiniteVolume::Functionality Functionality;
+	using Functionality = FiniteVolume::Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);

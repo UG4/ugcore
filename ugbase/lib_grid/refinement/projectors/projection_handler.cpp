@@ -36,7 +36,7 @@ namespace ug{
 
 ProjectionHandler::
 ProjectionHandler () :
-	m_sh (NULL)
+	m_sh (nullptr)
 {
 	m_defaultProjector = make_sp(new RefinementProjector);
 }
@@ -190,7 +190,7 @@ refinement_begins (const ISubGrid* psg)
 		proj.set_concerned_elements(make_sp(new IsInSubset(*m_sh, i-1)));
 
 		if(!proj.refinement_begins_requires_subgrid()) {
-			proj.refinement_begins(NULL);
+			proj.refinement_begins(nullptr);
 		}
 		else{
 			const ISubGrid& sg = *psg;
@@ -214,28 +214,28 @@ refinement_begins (const ISubGrid* psg)
 						+ sg.goc().num_faces() + sg.goc().num_volumes())
 				{
 					if(sg.goc().num_vertices() > 0){
-						lg_for_each_const(Vertex, e, subsetGoc){
+						for(Grid::traits<Vertex>::const_iterator _feI = subsetGoc.begin<Vertex>(); _feI != subsetGoc.end<Vertex>(); ++_feI){ Vertex* e = *_feI;{
 							if(sg.is_contained(e))
 								sel.select(e);
-						}lg_end_for;
+						}};
 					}
 					if(sg.goc().num_edges() > 0){
-						lg_for_each_const(Edge, e, subsetGoc){
+						for(Grid::traits<Edge>::const_iterator _feI = subsetGoc.begin<Edge>(); _feI != subsetGoc.end<Edge>(); ++_feI){ Edge* e = *_feI;{
 							if(sg.is_contained(e))
 								sel.select(e);
-						}lg_end_for;
+						}};
 					}
 					if(sg.goc().num_faces() > 0){
-						lg_for_each_const(Face, e, subsetGoc){
+						for(Grid::traits<Face>::const_iterator _feI = subsetGoc.begin<Face>(); _feI != subsetGoc.end<Face>(); ++_feI){ Face* e = *_feI;{
 							if(sg.is_contained(e))
 								sel.select(e);
-						}lg_end_for;
+						}};
 					}
 					if(sg.goc().num_volumes() > 0){
-						lg_for_each_const(Volume, e, subsetGoc){
+						for(Grid::traits<Volume>::const_iterator _feI = subsetGoc.begin<Volume>(); _feI != subsetGoc.end<Volume>(); ++_feI){ Volume* e = *_feI;{
 							if(sg.is_contained(e))
 								sel.select(e);
-						}lg_end_for;
+						}};
 					}
 
 					selectionPerformed = true;
@@ -244,28 +244,28 @@ refinement_begins (const ISubGrid* psg)
 			
 			if(!selectionPerformed){
 				if(i == 0 || subsetGoc.num_vertices() > 0){
-					lg_for_each_const(Vertex, e, sg.goc()){
+					for(Grid::traits<Vertex>::const_iterator _feI = sg.goc().begin<Vertex>(); _feI != sg.goc().end<Vertex>(); ++_feI){ Vertex* e = *_feI;{
 						if(m_sh->get_subset_index(e) + 1 == (int)i)
 							sel.select(e);
-					}lg_end_for;
+					}};
 				}
 				if(i == 0 || subsetGoc.num_edges() > 0){
-					lg_for_each_const(Edge, e, sg.goc()){
+					for(Grid::traits<Edge>::const_iterator _feI = sg.goc().begin<Edge>(); _feI != sg.goc().end<Edge>(); ++_feI){ Edge* e = *_feI;{
 						if(m_sh->get_subset_index(e) + 1 == (int)i)
 							sel.select(e);
-					}lg_end_for;
+					}};
 				}
 				if(i == 0 || subsetGoc.num_faces() > 0){
-					lg_for_each_const(Face, e, sg.goc()){
+					for(Grid::traits<Face>::const_iterator _feI = sg.goc().begin<Face>(); _feI != sg.goc().end<Face>(); ++_feI){ Face* e = *_feI;{
 						if(m_sh->get_subset_index(e) + 1 == (int)i)
 							sel.select(e);
-					}lg_end_for;
+					}};
 				}
 				if(i == 0 || subsetGoc.num_volumes() > 0){
-					lg_for_each_const(Volume, e, sg.goc()){
+					for(Grid::traits<Volume>::const_iterator _feI = sg.goc().begin<Volume>(); _feI != sg.goc().end<Volume>(); ++_feI){ Volume* e = *_feI;{
 						if(m_sh->get_subset_index(e) + 1 == (int)i)
 							sel.select(e);
-					}lg_end_for;
+					}};
 				}
 			}
 			

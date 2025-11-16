@@ -252,7 +252,6 @@ if GetProcessRank() == 0 then
 	{ "gridName", gridName},
 	{ "concentration", integrate_conc( elemDisc_rna_ribo:value(), "rna_ribo_3d" , u, time, false ) },
 	{ "date", os.date("y%Ym%md%d") },
-	{ "SVN Revision", GetSVNRevision()},
 	{"host",GetBuildHostname()},
 	{"commandline", util.GetCommandLine() } } 
 	}

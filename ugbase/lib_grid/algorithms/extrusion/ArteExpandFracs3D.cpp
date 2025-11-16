@@ -556,8 +556,8 @@ void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 		{
 			if( edg == nullptr )
 			{
-				UG_LOG("NULL UNERLAUBT" << std::endl);
-				UG_THROW("NULL UNERLAUBT" << std::endl);
+				UG_LOG("nullptr UNERLAUBT" << std::endl);
+				UG_THROW("nullptr UNERLAUBT" << std::endl);
 			}
 
 			m_sh.assign_subset( edg, suse );
@@ -570,8 +570,8 @@ void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 		{
 			if( edg == nullptr )
 			{
-				UG_LOG("NULL UNERLAUBT" << std::endl);
-				UG_THROW("NULL UNERLAUBT" << std::endl);
+				UG_LOG("nullptr UNERLAUBT" << std::endl);
+				UG_THROW("nullptr UNERLAUBT" << std::endl);
 			}
 
 			m_sh.assign_subset( edg, suse );
@@ -652,8 +652,8 @@ void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 	{
 		if( edg == nullptr )
 		{
-			UG_LOG("NULL UNERLAUBT" << std::endl);
-			UG_THROW("NULL UNERLAUBT" << std::endl);
+			UG_LOG("nullptr UNERLAUBT" << std::endl);
+			UG_THROW("nullptr UNERLAUBT" << std::endl);
 		}
 
 //		m_sh.assign_subset( edg, m_sh.num_subsets());
@@ -673,8 +673,8 @@ void ArteExpandFracs3D::assignDebugSubsets( bool intermediate )
 //	{
 //		if( edg == nullptr )
 //		{
-//			UG_LOG("NULL C UNERLAUBT" << std::endl);
-//			UG_THROW("NULL C UNERLAUBT" << std::endl);
+//			UG_LOG("nullptr C UNERLAUBT" << std::endl);
+//			UG_THROW("nullptr C UNERLAUBT" << std::endl);
 //		}
 //
 //		m_sh.assign_subset( edg, m_sh.num_subsets());
@@ -2172,8 +2172,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 							if( commonEdge == nullptr )
 							{
-								UG_LOG("NULL COMMON" << std::endl);
-								UG_THROW("NULL COMMON" << std::endl);
+								UG_LOG("nullptr COMMON" << std::endl);
+								UG_THROW("nullptr COMMON" << std::endl);
 							}
 
 							//  commented out the debug members:  m_d_cuttingEdges.push_back(commonEdge);
@@ -2231,8 +2231,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 //
 //									if( closedCommonEdge == nullptr )
 //									{
-//										UG_LOG("NULL NOT COMMON" << std::endl);
-//										UG_THROW("NULL NOT COMMON" << std::endl);
+//										UG_LOG("nullptr NOT COMMON" << std::endl);
+//										UG_THROW("nullptr NOT COMMON" << std::endl);
 //									}
 //
 //									if( closedCommonEdge != notCommonEdgeOfNotEndingCleft )
@@ -2587,8 +2587,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 //	{
 //		if( edg == nullptr )
 //		{
-//			UG_LOG("NULL UNERLAUBT" << std::endl);
-//			UG_THROW("NULL UNERLAUBT" << std::endl);
+//			UG_LOG("nullptr UNERLAUBT" << std::endl);
+//			UG_THROW("nullptr UNERLAUBT" << std::endl);
 //		}
 //
 //		m_sh.assign_subset( edg, m_sh.num_subsets());
@@ -2604,8 +2604,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 //	{
 //		if( edg == nullptr )
 //		{
-//			UG_LOG("NULL C UNERLAUBT" << std::endl);
-//			UG_THROW("NULL C UNERLAUBT" << std::endl);
+//			UG_LOG("nullptr C UNERLAUBT" << std::endl);
+//			UG_THROW("nullptr C UNERLAUBT" << std::endl);
 //		}
 //
 //		m_sh.assign_subset( edg, m_sh.num_subsets());
@@ -2913,12 +2913,12 @@ bool ArteExpandFracs3D::fractFacesAreNeighboured( SegLimSidesFractFace const & f
 
 		if( commonEdge == nullptr )
 		{
-			UG_LOG("COMMON NULL " << std::endl);
-			UG_THROW("COMMON NULL " << std::endl);
+			UG_LOG("COMMON nullptr " << std::endl);
+			UG_THROW("COMMON nullptr " << std::endl);
 		}
 		else
 		{
-			UG_LOG("COORDINATES NOT NULL " << CalculateCenter( commonEdge, m_aaPos ) << std::endl );
+			UG_LOG("COORDINATES NOT nullptr " << CalculateCenter( commonEdge, m_aaPos ) << std::endl );
 		}
 	}
 

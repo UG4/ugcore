@@ -125,7 +125,7 @@ enum SelectorElements
 class UG_API ISelector : public GridObserver
 {
 	public:
-		typedef byte	status_t;
+		using status_t = byte_t;
 
 		enum{
 			DESELECTED = 0,
@@ -150,18 +150,18 @@ class UG_API ISelector : public GridObserver
 	 * in the list of selected elements.
 	 * \{
 	 */
-		inline void select(GridObject* elem, byte status);
+		inline void select(GridObject* elem, byte_t status);
 		inline void select(GridObject* elem)
 		{select(elem, 1);}
 
 		template <class TElem>
-		inline void select(TElem* elem, byte status);
+		inline void select(TElem* elem, byte_t status);
 		template <class TElem>
 		inline void select(TElem* elem)
 		{select(elem, 1);}
 
 		template <class TIterator>
-		inline void select(TIterator iterBegin, TIterator iterEnd, byte status = 1);
+		inline void select(TIterator iterBegin, TIterator iterEnd, byte_t status = 1);
 	/**	\} */
 
 	///	selects an element
@@ -173,7 +173,7 @@ class UG_API ISelector : public GridObserver
 		{select(elem);}
 
 		template <class TElem>
-		inline void mark(TElem* elem, byte status)
+		inline void mark(TElem* elem, byte_t status)
 		{select(elem, status);}
 	/** \} */
 
@@ -196,23 +196,23 @@ class UG_API ISelector : public GridObserver
 	//	selection status
 	///	returns the selection state of the specified elelent
 	/** \{ */
-		inline byte get_selection_status(GridObject* elem) const;
-		inline byte get_selection_status(Vertex* vrt) const	{if(!elements_are_supported(SE_VERTEX)) return 0; return m_aaSelVRT[vrt];}
-		inline byte get_selection_status(Edge* edge) const	{if(!elements_are_supported(SE_EDGE)) return 0; return m_aaSelEDGE[edge];}
-		inline byte get_selection_status(Face* face) const		{if(!elements_are_supported(SE_FACE)) return 0; return m_aaSelFACE[face];}
-		inline byte get_selection_status(Volume* vol) const		{if(!elements_are_supported(SE_VOLUME)) return 0; return m_aaSelVOL[vol];}
+		inline byte_t get_selection_status(GridObject* elem) const;
+		inline byte_t get_selection_status(Vertex* vrt) const	{if(!elements_are_supported(SE_VERTEX)) return 0; return m_aaSelVRT[vrt];}
+		inline byte_t get_selection_status(Edge* edge) const	{if(!elements_are_supported(SE_EDGE)) return 0; return m_aaSelEDGE[edge];}
+		inline byte_t get_selection_status(Face* face) const		{if(!elements_are_supported(SE_FACE)) return 0; return m_aaSelFACE[face];}
+		inline byte_t get_selection_status(Volume* vol) const		{if(!elements_are_supported(SE_VOLUME)) return 0; return m_aaSelVOL[vol];}
 	/** \} */
 
 	///	returns the selection state of the specified elelent
 	/** In this context, 'get_mark' is simply a synonym for 'get_selection_status'
 	 * and simply forwards to the corresponding method.*/
 		template <class TElem>
-		inline byte get_mark(TElem* elem) const	
+		inline byte_t get_mark(TElem* elem) const
 		{return get_selection_status(elem);}
 
 	///	returns true if an element is selected
 		template <class TElem>
-		inline bool is_selected(TElem* elem) const		{return get_selection_status(elem) != 0;}
+		inline bool is_selected(TElem* elem) const {return get_selection_status(elem) != 0;}
 
 	//	non-virtual methods.
 		inline Grid* grid() const		{return m_pGrid;}
@@ -249,32 +249,32 @@ class UG_API ISelector : public GridObserver
 
 	//	element callbacks
 		virtual void vertex_created(Grid* grid, Vertex* vrt,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void edge_created(Grid* grid, Edge* e,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void face_created(Grid* grid, Face* f,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void volume_created(Grid* grid, Volume* vol,
-									GridObject* pParent = NULL,
+									GridObject* pParent = nullptr,
 									bool replacesParent = false);
 
 		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
-										 Vertex* replacedBy = NULL);
+										 Vertex* replacedBy = nullptr);
 
 		virtual void edge_to_be_erased(Grid* grid, Edge* e,
-										 Edge* replacedBy = NULL);
+										 Edge* replacedBy = nullptr);
 
 		virtual void face_to_be_erased(Grid* grid, Face* f,
-										 Face* replacedBy = NULL);
+										 Face* replacedBy = nullptr);
 
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
-										 Volume* replacedBy = NULL);
+										 Volume* replacedBy = nullptr);
 
 		virtual void vertices_to_be_merged(Grid* grid, Vertex* target,
 										 Vertex* elem1, Vertex* elem2);
@@ -315,15 +315,15 @@ class UG_API ISelector : public GridObserver
 												bool includeGhosts = false);
 
 	protected:
-		typedef Grid::traits<Vertex>::AttachedElementList	AttachedVertexList;
-		typedef Grid::traits<Edge>::AttachedElementList		AttachedEdgeList;
-		typedef Grid::traits<Face>::AttachedElementList			AttachedFaceList;
-		typedef Grid::traits<Volume>::AttachedElementList		AttachedVolumeList;
+		using AttachedVertexList = Grid::traits<Vertex>::AttachedElementList;
+		using AttachedEdgeList = Grid::traits<Edge>::AttachedElementList;
+		using AttachedFaceList = Grid::traits<Face>::AttachedElementList;
+		using AttachedVolumeList = Grid::traits<Volume>::AttachedElementList;
 
-		typedef Grid::traits<Vertex>::SectionContainer		VertexSectionContainer;
-		typedef Grid::traits<Edge>::SectionContainer		EdgeSectionContainer;
-		typedef Grid::traits<Face>::SectionContainer			FaceSectionContainer;
-		typedef Grid::traits<Volume>::SectionContainer			VolumeSectionContainer;
+		using VertexSectionContainer = Grid::traits<Vertex>::SectionContainer;
+		using EdgeSectionContainer = Grid::traits<Edge>::SectionContainer;
+		using FaceSectionContainer = Grid::traits<Face>::SectionContainer;
+		using VolumeSectionContainer = Grid::traits<Volume>::SectionContainer;
 
 	protected:
 		virtual void add_to_list(Vertex* elem) = 0;
@@ -338,7 +338,7 @@ class UG_API ISelector : public GridObserver
 
 	protected:
 	///	performs grid registration / deregistration and initialisation of the observer.
-	/**	If you call this method with NULL, deregistration and cleanup is performed.
+	/**	If you call this method with nullptr, deregistration and cleanup is performed.
 	 *
 	 *	Please note: sine set_grid calls virtual methods it shouldn't
 	 *	be invoked from any constructors / destructors.*/
@@ -360,15 +360,15 @@ class UG_API ISelector : public GridObserver
 	//	Protected non-virtual to avoid virtual calls during construction
 		void disable_element_support(uint shElements);
 
-		inline void mark_selected(Vertex* elem, byte status)	{assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = status;}
-		inline void mark_selected(Edge* elem, byte status)		{assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = status;}
-		inline void mark_selected(Face* elem, byte status)			{assert(elements_are_supported(SE_FACE)); m_aaSelFACE[elem] = status;}
-		inline void mark_selected(Volume* elem, byte status)		{assert(elements_are_supported(SE_VOLUME)); m_aaSelVOL[elem] = status;}
+		inline void mark_selected(Vertex* elem, byte_t status) {assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = status;}
+		inline void mark_selected(Edge* elem, byte_t status) {assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = status;}
+		inline void mark_selected(Face* elem, byte_t status) {assert(elements_are_supported(SE_FACE)); m_aaSelFACE[elem] = status;}
+		inline void mark_selected(Volume* elem, byte_t status) {assert(elements_are_supported(SE_VOLUME)); m_aaSelVOL[elem] = status;}
 
-		inline void mark_deselected(Vertex* elem)	{assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = 0;}
-		inline void mark_deselected(Edge* elem)		{assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = 0;}
-		inline void mark_deselected(Face* elem)			{assert(elements_are_supported(SE_FACE)); m_aaSelFACE[elem] = 0;}
-		inline void mark_deselected(Volume* elem)		{assert(elements_are_supported(SE_VOLUME)); m_aaSelVOL[elem] = 0;}
+		inline void mark_deselected(Vertex* elem) {assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = 0;}
+		inline void mark_deselected(Edge* elem) {assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = 0;}
+		inline void mark_deselected(Face* elem) {assert(elements_are_supported(SE_FACE)); m_aaSelFACE[elem] = 0;}
+		inline void mark_deselected(Volume* elem) {assert(elements_are_supported(SE_VOLUME)); m_aaSelVOL[elem] = 0;}
 
 	///	helper for GridObserver callbacks.
 		template <class TElem>
@@ -392,7 +392,7 @@ class UG_API ISelector : public GridObserver
 		bool	m_bStrictInheritanceEnabled;
 		
 	//	will use a default constructor
-		typedef Attachment<unsigned char> 	AUChar;
+		using AUChar = Attachment<unsigned char>;
 		AUChar								m_aSelected;
 
 		Grid::AttachmentAccessor<Vertex, AUChar>	m_aaSelVRT;

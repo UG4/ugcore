@@ -131,7 +131,7 @@ static bool PushLuaStackPointerEntryToParamStack(ParameterStack& ps, lua_State* 
                                                  int index, const char* baseClassName,
                                                  bool bIsVector)
 {
-	typedef std::pair<T, const ClassNameNode*> result_type;
+	using result_type = std::pair<T, const ClassNameNode*>;
 
 	result_type res;
 	if(!bIsVector){

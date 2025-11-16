@@ -53,11 +53,11 @@ template <class TLayout>
 class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
 	///	Construct the communication policy with a ug::BoolMarker.
 		ComPol_GatherSurfaceStates(MultiGrid& mg,
@@ -69,7 +69,7 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 
 		virtual int get_required_buffer_size(const Interface& interface)
 		{
-			return interface.size() * sizeof(byte);
+			return interface.size() * sizeof(byte_t);
 		}
 
 	///	write surface state for each entry
@@ -79,8 +79,8 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
 			{
 				Element elem = intfc.get_element(iter);
-				byte val = m_aaESS[elem].get();
-				buff.write((char*)&val, sizeof(byte));
+				byte_t val = m_aaESS[elem].get();
+				buff.write((char*)&val, sizeof(byte_t));
 			}
 			return true;
 		}
@@ -91,8 +91,8 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
 			{
 				Element elem = intfc.get_element(iter);
-				byte nv;
-				buff.read((char*)&nv, sizeof(byte));
+				byte_t nv;
+				buff.read((char*)&nv, sizeof(byte_t));
 				if(nv > m_aaESS[elem].get())
 					m_aaESS[elem] = nv;
 			}
@@ -147,8 +147,7 @@ template <class TElem>
 void SurfaceView::
 refresh_surface_states()
 {
-//	some typedefs
-	typedef typename geometry_traits<TElem>::iterator ElemIter;
+	using ElemIter = typename geometry_traits<TElem>::iterator;
 
 	MultiGrid& mg = *m_pMG;
 
@@ -197,11 +196,10 @@ refresh_surface_states()
 
 template <class TElem, class TSide>
 void SurfaceView::
-mark_sides_as_surface_or_shadow(TElem* elem, byte surfaceState)
+mark_sides_as_surface_or_shadow(TElem* elem, byte_t surfaceState)
 {
-	typedef typename PeriodicBoundaryManager::Group<TSide>::SlaveContainer
-		periodic_slave_container_t;
-	typedef typename periodic_slave_container_t::iterator periodic_slave_iterator_t;
+	using periodic_slave_container_t = typename PeriodicBoundaryManager::Group<TSide>::SlaveContainer;
+	using periodic_slave_iterator_t = typename periodic_slave_container_t::iterator;
 
 	if(!TElem::HAS_SIDES)
 		return;
@@ -244,7 +242,7 @@ template <class TElem>
 void SurfaceView::
 mark_shadowing(bool markSides)
 {
-	typedef typename Grid::traits<TElem>::iterator TIter;
+	using TIter = typename Grid::traits<TElem>::iterator;
 
 	MultiGrid& mg = *m_pMG;
 
@@ -289,7 +287,7 @@ void SurfaceView::
 adjust_parallel_surface_states()
 {
 	#ifdef UG_PARALLEL
-		typedef typename GridLayoutMap::Types<TElem>::Layout	Layout;
+		using Layout = typename GridLayoutMap::Types<TElem>::Layout;
 
 		GridLayoutMap& glm = m_distGridMgr->grid_layout_map();
 		ComPol_GatherSurfaceStates<Layout>	cpAdjust(*m_pMG, m_aaSurfState);

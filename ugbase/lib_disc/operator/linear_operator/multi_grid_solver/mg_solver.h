@@ -84,22 +84,22 @@ class AssembledMultiGridCycle :
 {
 	public:
 	///	Domain
-		typedef TDomain domain_type;
+		using domain_type = TDomain;
 
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	///	Matrix type
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Grid Function type
-		typedef GridFunction<TDomain, TAlgebra> GF;
+		using GF = GridFunction<TDomain, TAlgebra>;
 
 	///	MGStats type
-		typedef MGStats<TDomain, TAlgebra> mg_stats_type;
+		using mg_stats_type = MGStats<TDomain, TAlgebra>;
 
 	///////////////////////////////////////////////////////////////////////////
 	//	Setup
@@ -336,9 +336,9 @@ class AssembledMultiGridCycle :
 
 	///	cylce type (1 = V-cycle, 2 = W-cylcle, ...)
 		int m_cycleType;
-		static const int _V_ = 1;
-		static const int _W_ = 2;
-		static const int _F_ = -1;
+		static constexpr int _V_ = 1;
+		static constexpr int _W_ = 2;
+		static constexpr int _F_ = -1;
 
 	///	number of Presmooth steps
 		int m_numPreSmooth;

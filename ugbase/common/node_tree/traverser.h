@@ -71,7 +71,7 @@ class Traverser
 		bool handler_function_registered(unsigned int oc);
 
 	private:
-		typedef void (Traverser::*HandlerFunc)(Object* obj);
+		using HandlerFunc = void(Traverser::*)(Object* obj);
 		std::vector<HandlerFunc>	m_vHandlerFuncs;
 };
 

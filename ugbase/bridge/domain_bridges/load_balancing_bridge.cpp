@@ -69,15 +69,15 @@ namespace ug{
 	class PartPreProc_RasterProjectorCoordinates : public IPartitionPreProcessor
 	{
 	private:
-		typedef PPP_ReplaceCoordinate <dim> 	PPP_RC;
+		using PPP_RC = PPP_ReplaceCoordinate <dim>;
 		SmartPtr<PPP_RC>						m_ppp;
 
 	public:
-		typedef MathVector<dim>	vector_t;
+		using vector_t = MathVector<dim>;
 
 		PartPreProc_RasterProjectorCoordinates (const Attachment<vector_t> aPos)
 		{
-			typedef RasterLayersProjector::rel_z_attachment_t attachment_t;
+			using attachment_t = RasterLayersProjector::rel_z_attachment_t;
 
 			static const std::string attName("RasterLayersProjector_ARelZ");
 			if(!GlobalAttachments::is_declared(attName)){
@@ -86,7 +86,7 @@ namespace ug{
 
 			attachment_t aRelZ = GlobalAttachments::attachment<attachment_t>(attName);
 
-			typedef PPP_ReplaceCoordinate <dim> 	PPP_RC;
+			using PPP_RC = PPP_ReplaceCoordinate <dim>;
 
 			m_ppp = make_sp(new PPP_RC (aPos, aRelZ, dim - 1));
 		}
@@ -133,11 +133,11 @@ namespace ug{
 			virtual number get_weight(Volume* e)	{return	get_weight_impl(e);}
 
 		private:
-			typedef typename TDomain::grid_type grid_t;
-			typedef typename TDomain::position_type pos_t;
-			typedef typename TDomain::position_accessor_type aapos_t;
+			using grid_t = typename TDomain::grid_type;
+			using pos_t = typename TDomain::position_type;
+			using aapos_t = typename TDomain::position_accessor_type;
 
-			template <class TElem>
+			template <typename TElem>
 			number get_weight_impl(TElem* e)
 			{
 				pos_t c = CalculateCenter(e, m_aaPos);
@@ -204,22 +204,22 @@ static void RegisterSmoothPartitionBounds(
 	string grpName,
 	string clsGrpName)
 {
-	typedef SmoothPartitionBounds<elem_t>	T;
+	using T = SmoothPartitionBounds<elem_t>;
 	reg.add_class_<T, IPartitionPostProcessor>(name, grpName)
 		.add_constructor()
 		.set_construct_as_smart_pointer(true);
 	reg.add_class_to_group(name, clsGrpName, GetDomainTag<TDomain>());
 }
 
-template <class TDomain, class elem_t, class vector_t>
+template <typename TDomain, typename elem_t, typename vector_t>
 static void RegisterClusterElementStacks(
 	Registry& reg,
 	string name,
 	string grpName,
 	string clsGrpName)
 {
-	typedef Attachment<vector_t> apos_t;
-	typedef ClusterElementStacks<elem_t, vector_t>	T;
+	using apos_t = Attachment<vector_t>;
+	using T = ClusterElementStacks<elem_t, vector_t>;
 	reg.add_class_<T, IPartitionPostProcessor>(name, grpName)
 		.add_constructor()
 		.template add_constructor<void (*)(const apos_t&, const vector_t&)>()
@@ -242,7 +242,7 @@ struct Functionality
 static void Common(Registry& reg, string grp) {
 	#ifdef UG_PARALLEL
 	{
-		typedef ProcessHierarchy T;
+		using T = ProcessHierarchy;
 		reg.add_class_<T>("ProcessHierarchy", grp)
 			.add_constructor()
 			.add_method("empty", &T::empty)
@@ -269,24 +269,24 @@ static void Common(Registry& reg, string grp) {
 
 	{
 		string name("BalanceWeightsRefMarks");
-		typedef BalanceWeightsRefMarks	T;
+		using T = BalanceWeightsRefMarks;
 		reg.add_class_<T, IBalanceWeights>(name, grp)
 			.add_constructor<void (*)(IRefiner*)>()
 			.set_construct_as_smart_pointer(true);
 	}
 
 	{
-		typedef IPartitionPreProcessor T;
+		using T = IPartitionPreProcessor;
 		reg.add_class_<T>("IPartitionPreProcessor", grp);
 	}
 
 	{
-		typedef IPartitionPostProcessor T;
+		using T = IPartitionPostProcessor;
 		reg.add_class_<T>("IPartitionPostProcessor", grp);
 	}
 
 	{
-		typedef IPartitioner T;
+		using T = IPartitioner;
 		reg.add_class_<T>("IPartitioner", grp)
 			.add_method("set_verbose", &T::set_verbose)
 			.add_method("partition", &T::partition)
@@ -304,7 +304,7 @@ static void Common(Registry& reg, string grp) {
 	{
 	//	Note that this class does not feature a constructor.
 	//	One normally uses the derived class DomainLoadBalancer
-		typedef LoadBalancer T;
+	using T = LoadBalancer;
 		reg.add_class_<T>("LoadBalancer", grp)
 				//.add_method("add_distribution_level", &T::add_distribution_level)
 				.add_method("enable_vertical_interface_creation", &T::enable_vertical_interface_creation)
@@ -323,7 +323,7 @@ static void Common(Registry& reg, string grp) {
 
 	#ifdef UG_DIM_1
 	{
-		typedef ug::Domain<1>	TDomain;
+		using TDomain = ug::Domain<1>;
 		RegisterDynamicBisectionPartitioner<
 				TDomain,
 				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 1> > >(
@@ -348,7 +348,7 @@ static void Common(Registry& reg, string grp) {
 	#endif
 	#ifdef UG_DIM_2
 	{
-		typedef ug::Domain<2>	TDomain;
+		using TDomain = ug::Domain<2>;
 
 		RegisterDynamicBisectionPartitioner<
 				TDomain,
@@ -381,7 +381,7 @@ static void Common(Registry& reg, string grp) {
 	#endif
 	#ifdef UG_DIM_3
 	{
-		typedef ug::Domain<3>	TDomain;
+		using TDomain = ug::Domain<3>;
 
 		RegisterDynamicBisectionPartitioner<
 				TDomain,
@@ -425,9 +425,9 @@ static void Common(Registry& reg, string grp) {
 
 	// #ifdef UG_DIM_1
 	// {
-	// 	typedef ug::Domain<1>	TDomain;
+	// using TDomain = ug::Domain<1>;
 	// 	string tag = GetDomainTag<TDomain>();
-	// 	typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 1> > T;
+	// using T = DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 1> >;
 	// 	string name = string("EdgePartitioner_DynamicBisection1d");
 	// 	reg.add_class_<T, IPartitioner>(name, grp)
 	// 		.add_constructor<void (*)(TDomain&)>()
@@ -442,10 +442,10 @@ static void Common(Registry& reg, string grp) {
 	// #endif
 	// #ifdef UG_DIM_2
 	// {
-	// 	typedef ug::Domain<2>	TDomain;
+	// using TDomain = ug::Domain<2>;
 	// 	string tag = GetDomainTag<TDomain>();
 	// 	{
-	// 		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 2> >T;
+	//  using T = DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 2> >;
 	// 		string name = string("EdgePartitioner_DynamicBisection2d");
 	// 		reg.add_class_<T, IPartitioner>(name, grp)
 	// 			.add_constructor<void (*)(TDomain&)>()
@@ -458,7 +458,7 @@ static void Common(Registry& reg, string grp) {
 	// 		reg.add_class_to_group(name, "ManifoldPartitioner_DynamicBisection", tag);
 	// 	}
 	// 	{
-	// 		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 2> > T;
+	//  using T = DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 2> >;
 	// 		string name = string("FacePartitioner_DynamicBisection2d");
 	// 		reg.add_class_<T, IPartitioner>(name, grp)
 	// 			.add_constructor<void (*)(TDomain&)>()
@@ -474,10 +474,10 @@ static void Common(Registry& reg, string grp) {
 	// #endif
 	// #ifdef UG_DIM_3
 	// {
-	// 	typedef ug::Domain<3>	TDomain;
+	// using TDomain = ug::Domain<3>;
 	// 	string tag = GetDomainTag<TDomain>();
 	// 	{
-	// 		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 3> > T;
+	// using T = DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 3> >;
 	// 		string name = string("EdgePartitioner_DynamicBisection3d");
 	// 		reg.add_class_<T, IPartitioner>(name, grp)
 	// 			.add_constructor<void (*)(TDomain&)>()
@@ -490,7 +490,7 @@ static void Common(Registry& reg, string grp) {
 	// 		reg.add_class_to_group(name, "HyperManifoldPartitioner_DynamicBisection", tag);
 	// 	}
 	// 	{
-	// 		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 3> > T;
+	// using T = DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 3> >;
 	// 		string name = string("FacePartitioner_DynamicBisection3d");
 	// 		reg.add_class_<T, IPartitioner>(name, grp)
 	// 			.add_constructor<void (*)(TDomain&)>()
@@ -503,7 +503,7 @@ static void Common(Registry& reg, string grp) {
 	// 		reg.add_class_to_group(name, "ManifoldPartitioner_DynamicBisection", tag);
 	// 	}
 	// 	{
-	// 		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Volume, 3> > T;
+	// using T = DomainPartitioner<TDomain, Partitioner_DynamicBisection<Volume, 3> >;
 	// 		string name = string("VolumePartitioner_DynamicBisection3d");
 	// 		reg.add_class_<T, IPartitioner>(name, grp)
 	// 			.add_constructor<void (*)(TDomain&)>()
@@ -538,7 +538,7 @@ static void Domain(Registry& reg, string grp)
 	#ifdef UG_PARALLEL
 
 		{
-			typedef PartPreProc_RasterProjectorCoordinates<TDomain::dim> T;
+			using T = PartPreProc_RasterProjectorCoordinates<TDomain::dim>;
 			string name = string("PartPreProc_RasterProjectorCoordinates").append(suffix);
 			reg.add_class_<T, IPartitionPreProcessor>(name, grp)
 				.template add_constructor<void (*)(const Attachment<MathVector<TDomain::dim> >&)>()
@@ -547,7 +547,7 @@ static void Domain(Registry& reg, string grp)
 		}
 
 		{
-			typedef DomainBalanceWeights<TDomain, AnisotropicBalanceWeights<TDomain::dim> > T;
+			using T = DomainBalanceWeights<TDomain, AnisotropicBalanceWeights<TDomain::dim> >;
 			string name = string("AnisotropicBalanceWeights").append(suffix);
 			reg.add_class_<T, IBalanceWeights>(name, grp)
 				.template add_constructor<void (*)(TDomain&)>()
@@ -558,7 +558,7 @@ static void Domain(Registry& reg, string grp)
 		}
 
 		{
-			typedef BalanceWeightsLuaCallback<TDomain> T;
+			using T = BalanceWeightsLuaCallback<TDomain>;
 			string name = string("BalanceWeightsLuaCallback").append(suffix);
 			reg.add_class_<T, IBalanceWeights>(name, grp)
 				.template add_constructor<void (*)(SmartPtr<TDomain> spDom,
@@ -571,8 +571,8 @@ static void Domain(Registry& reg, string grp)
 
 		{
 			string name = string("DomainLoadBalancer").append(suffix);
-			typedef DomainLoadBalancer<TDomain> T;
-			typedef LoadBalancer TBase;
+			using T = DomainLoadBalancer<TDomain>;
+			using TBase = LoadBalancer;
 			reg.add_class_<T, TBase>(name, grp)
 				.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
 				.set_construct_as_smart_pointer(true);
@@ -611,7 +611,7 @@ void RegisterBridge_LoadBalancing(Registry& reg, string grp)
 {
 	grp.append("/LoadBalancing");
 
-	typedef LoadBalancing::Functionality Functionality;
+	using Functionality = LoadBalancing::Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg, grp);

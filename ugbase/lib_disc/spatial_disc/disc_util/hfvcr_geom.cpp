@@ -52,7 +52,7 @@ namespace ug{
 template <	typename TElem, int TWorldDim>
 HCRFVGeometry<TElem, TWorldDim>::
 HCRFVGeometry()
-	: m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()),
+	: m_pElem(nullptr), m_rRefElem(Provider<ref_elem_type>::get()),
 	  m_rTrialSpace(Provider<local_shape_fct_set_type>::get())
 {
 	update_local_data();
@@ -137,7 +137,7 @@ template <	typename TElem, int TWorldDim>
 void HCRFVGeometry<TElem, TWorldDim>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != nullptr, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
 
 // 	if already update for this element, do nothing
@@ -199,7 +199,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		CollectEdgesSorted(vEdges, grid, pElem);
 		for(size_t side = 0; side < vEdges.size(); ++side){
 			ConstrainingEdge* constrainingObj = dynamic_cast<ConstrainingEdge*>(vEdges[side]);
-			if(constrainingObj == NULL) continue;
+			if(constrainingObj == nullptr) continue;
 			
 			// found constraining edge
 			MathVector<worldDim> globalMidpoint = m_vSCV[side].vGlobIP;
@@ -271,7 +271,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		handledEdges.clear();
 		for(size_t face = 0; face < vFaces.size(); ++face){
 			ConstrainingFace* constrainingObj = dynamic_cast<ConstrainingFace*>(vFaces[face]);
-			if(constrainingObj == NULL) continue;
+			if(constrainingObj == nullptr) continue;
 			// found constraining face
 			MathVector<worldDim> globalMidpoint = m_vSCV[face].vGlobIP;
 			MathVector<dim> localMidpoint = m_vSCV[face].vLocIP;

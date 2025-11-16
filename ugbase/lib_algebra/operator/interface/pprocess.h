@@ -58,13 +58,13 @@ template <typename TVector>
 class IPProcessVector
 {
 public:
-	typedef TVector vector_type; ///< the vector type
+	using vector_type = TVector; ///< the vector type
 	
 ///	user-defined pre- or post-process function
 	virtual void apply (vector_type& v) = 0;
 	
 ///	virtual destructor
-	virtual ~IPProcessVector () {}
+	virtual ~IPProcessVector () = default;
 };
 
 ///	a chain of pre- or postprocess operations
@@ -77,8 +77,8 @@ template <typename TVector>
 class PProcessChain
 {
 public:
-	typedef IPProcessVector<TVector> p_process_type;
-	typedef TVector vector_type; ///< the vector type
+	using p_process_type = IPProcessVector<TVector>;
+	using vector_type = TVector; ///< the vector type
 	
 public:
 

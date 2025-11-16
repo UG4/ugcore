@@ -171,12 +171,12 @@ static void Common(Registry& reg, string grp)
  * available Domain types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TDomain>
 static void Domain(Registry& reg, string grp)
 {
-	typedef TDomain 							domain_type;
+	using domain_type = TDomain;
 
 	reg.add_function("SelectDomainSubset",
 					 &SelectDomainSubset<domain_type>, grp,
@@ -194,7 +194,7 @@ static void Domain(Registry& reg, string grp)
 void RegisterBridge_Selection(Registry& reg, string grp)
 {
 	grp.append("/Selection");
-	typedef Selection::Functionality Functionality;
+	using Functionality = Selection::Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg, grp);

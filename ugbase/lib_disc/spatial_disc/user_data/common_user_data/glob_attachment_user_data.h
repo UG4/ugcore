@@ -47,10 +47,10 @@ class GlobAttachmentElementUserData
 : public StdUserData<GlobAttachmentElementUserData<WDim, TData>, TData, WDim>
 
 {
-		static const int dim = WDim;
-		typedef TData data_type;
-		typedef typename grid_dim_traits<dim>::grid_base_object elem_type;
-		typedef Attachment<data_type> attachment_type;
+		static constexpr int dim = WDim;
+		using data_type = TData;
+		using elem_type = typename grid_dim_traits<dim>::grid_base_object;
+		using attachment_type = Attachment<data_type>;
 
 	private:
 		std::string m_attachment_name;
@@ -106,7 +106,7 @@ class GlobAttachmentElementUserData
 			const MathVector<refDim> vLocIP[],
 			const size_t nip,
 			LocalVector* u,
-			const MathMatrix<refDim, dim>* vJT = NULL
+			const MathMatrix<refDim, dim>* vJT = nullptr
 		) const
 		{
 			UG_ASSERT (refDim == dim, "GlobAttachmentElementUserData: Dimensionality of the element should be equal to the world dimensionality.");

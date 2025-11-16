@@ -34,11 +34,11 @@ namespace Shiny {
 
 	ProfileNode ProfileNode::_dummy = {
 		/* _last = */ { 0, 0 },
-		/* zone = */ NULL,
-		/* parent = */ NULL,
-		/* nextSibling = */ NULL,
-		/* firstChild = */ NULL,
-		/* lastChild = */ NULL
+		/* zone = */ nullptr,
+		/* parent = */ nullptr,
+		/* nextSibling = */ nullptr,
+		/* firstChild = */ nullptr,
+		/* lastChild = */ nullptr
 	};
 
 
@@ -92,7 +92,7 @@ namespace Shiny {
 				else pParent = pParent->parent;
 			}
 
-			return NULL;
+			return nullptr;
 		}
 	}
 

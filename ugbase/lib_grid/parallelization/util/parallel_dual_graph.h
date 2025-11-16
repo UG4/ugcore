@@ -52,9 +52,9 @@ template <class TGeomBaseObj, class TIndexType,
 		  class TConnectingObj = typename TGeomBaseObj::side>
 class ParallelDualGraph{
 	public:
-		typedef typename std::vector<TGeomBaseObj*>::iterator	element_iterator_t;
+		using element_iterator_t = typename std::vector<TGeomBaseObj*>::iterator;
 
-		ParallelDualGraph(MultiGrid* pmg = NULL);
+		ParallelDualGraph(MultiGrid* pmg = nullptr);
 		~ParallelDualGraph();
 
 		void set_grid(MultiGrid* pmg);
@@ -113,8 +113,8 @@ class ParallelDualGraph{
 
 	////////////////////
 	//	Members
-		typedef Attachment<int>					AElemIndex;
-		typedef Attachment<std::vector<int> >	AElemIndices;
+		using AElemIndex = Attachment<int>;
+		using AElemIndices = Attachment<std::vector<int> >;
 
 		pcl::ProcessCommunicator	m_procCom;
 		MultiGrid*				m_pMG;
@@ -182,17 +182,17 @@ void ConstructParallelDualGraphMGLevel(
 		std::vector<TIndexType>& nodeOffsetMapOut,
 		MultiGrid& mg, size_t level,
 		pcl::ProcessCommunicator procCom,
-		Attachment<TIndexType>* paIndex = NULL,
-		TGeomBaseObj** pGeomObjsOut = NULL,
+		Attachment<TIndexType>* paIndex = nullptr,
+		TGeomBaseObj** pGeomObjsOut = nullptr,
 		NeighborhoodType nbhType = NHT_DEFAULT)
 {
 	GDIST_PROFILE_FUNC();
 	using namespace std;
-	typedef TGeomBaseObj Elem;
-	typedef typename geometry_traits<Elem>::iterator ElemIterator;
+	using Elem = TGeomBaseObj;
+	using ElemIterator = typename geometry_traits<Elem>::iterator;
 
 //	set up index attachment and attachment accessor
-	typedef Attachment<TIndexType> AIndex;
+	using AIndex = Attachment<TIndexType>;
 	AIndex aIndex;
 	if(paIndex)
 		aIndex = *paIndex;

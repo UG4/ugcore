@@ -56,8 +56,7 @@ class ClusterElementStacks : public IPartitionPostProcessor
 			m_stackingDir(stackingDir)
 		{}
 
-		virtual ~ClusterElementStacks()
-		{}
+		virtual ~ClusterElementStacks() = default;
 
 		void set_position_attachment(const Attachment<vector_t>& aPos)
 		{
@@ -114,7 +113,7 @@ class ClusterElementStacks : public IPartitionPostProcessor
 			typename Grid::traits<elem_t>::secure_container	elems;
 			typename Grid::traits<side_t>::secure_container sides;
 
-			lg_for_each_in_lvl_template(elem_t, rootElem, mg, partitionLvl){
+			for(typename Grid::traits<elem_t>::iterator _feI = mg.begin<elem_t>(partitionLvl); _feI != mg.end<elem_t>(partitionLvl); ++_feI){ elem_t* rootElem = *_feI;{
 				if(aaProcessed[rootElem])
 					continue;
 
@@ -128,22 +127,22 @@ class ClusterElementStacks : public IPartitionPostProcessor
 					stack.pop();
 
 					mg.associated_elements(sides, elem);
-					for_each_in_vec(side_t* s, sides){
+					for(size_t _vfeI = 0; _vfeI < sides.size(); ++_vfeI){ side_t* s = sides[_vfeI];{
 						vector_t n = CalculateNormal(s, aaPos);
 						if(fabs(VecDot(n, stackingDir)) > SMALL){
 						//	cluster neighbors of that side
 							mg.associated_elements(elems, s);
-							for_each_in_vec(elem_t* nbr, elems){
+							for(size_t _vfeI = 0; _vfeI < elems.size(); ++_vfeI){ elem_t* nbr = elems[_vfeI];{
 								if(!aaProcessed[nbr]){
 									stack.push(nbr);
 									aaProcessed[nbr] = true;
 									sh.assign_subset(nbr, newSi);
 								}	
-							}end_for;
+							}};
 						}
-					}end_for;
+					}};
 				}
-			}lg_end_for;
+			}};
 		}
 
 		void partitioning_done()
@@ -152,8 +151,8 @@ class ClusterElementStacks : public IPartitionPostProcessor
 		}
 
 	private:
-		typedef typename elem_t::side		side_t;
-		typedef Attachment<vector_t>		a_position_t;
+		using side_t = typename elem_t::side;
+		using a_position_t = Attachment<vector_t>;
 
 		MultiGrid*		m_mg;
 		SubsetHandler*	m_partitions;

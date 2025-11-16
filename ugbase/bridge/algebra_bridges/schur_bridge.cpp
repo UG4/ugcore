@@ -88,10 +88,10 @@ static void Algebra(Registry& reg, string grp)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
-//	typedefs for this algebra
+
 
 #ifdef UG_PARALLEL
-typedef typename TAlgebra::vector_type vector_type;
+	using vector_type = typename TAlgebra::vector_type;
 
 	{
 		string name = string("ISchurComplementInverse").append(suffix);
@@ -101,8 +101,8 @@ typedef typename TAlgebra::vector_type vector_type;
 
 	// 	Schur complement preconditioner
 	{
-		typedef SchurPrecond<TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
+		using T = SchurPrecond<TAlgebra>;
+		using TBase = IPreconditioner<TAlgebra>;
 		string name = string("SchurComplement").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Schur complement preconditioner")
 			.add_constructor()
@@ -117,8 +117,8 @@ typedef typename TAlgebra::vector_type vector_type;
 
 
 	{
-		typedef SchurInverseWithOperator<TAlgebra> T;
-		typedef ISchurComplementInverse<TAlgebra> TBase;
+		using T = SchurInverseWithOperator<TAlgebra>;
+		using TBase = ISchurComplementInverse<TAlgebra>;
 		string name = string("SchurInverseWithOperator").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "SchurInverseWithOperator")
 			.ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type> > ) )("linOpInverse")
@@ -127,8 +127,8 @@ typedef typename TAlgebra::vector_type vector_type;
 	}
 
 	{
-		typedef SchurInverseWithFullMatrix<TAlgebra> T;
-		typedef ISchurComplementInverse<TAlgebra> TBase;
+		using T = SchurInverseWithFullMatrix<TAlgebra>;
+		using TBase = ISchurComplementInverse<TAlgebra>;
 		string name = string("SchurInverseWithFullMatrix").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "SchurInverseWithFullMatrix")
 			.ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type> > ) )("linOpInverse")
@@ -138,8 +138,8 @@ typedef typename TAlgebra::vector_type vector_type;
 
 
 	{
-		typedef SchurInverseWithAGammaGamma<TAlgebra> T;
-		typedef ISchurComplementInverse<TAlgebra> TBase;
+		using T = SchurInverseWithAGammaGamma<TAlgebra>;
+		using TBase = ISchurComplementInverse<TAlgebra>;
 		string name = string("SchurInverseWithAGammaGamma").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "SchurInverseWithAGammaGamma")
 			.ADD_CONSTRUCTOR( (SmartPtr<IPreconditionedLinearOperatorInverse<vector_type> > ) )("precLinOpInv")
@@ -149,8 +149,8 @@ typedef typename TAlgebra::vector_type vector_type;
 
 
 	{
-		typedef SchurInverseWithAutoFullMatrix<TAlgebra> T;
-		typedef ISchurComplementInverse<TAlgebra> TBase;
+		using T = SchurInverseWithAutoFullMatrix<TAlgebra>;
+		using TBase = ISchurComplementInverse<TAlgebra>;
 		string name = string("SchurInverseWithAutoFullMatrix").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "SchurInverseWithAutoFullMatrix")
 			.ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type> > ) )("linOpInverse")
@@ -175,7 +175,7 @@ typedef typename TAlgebra::vector_type vector_type;
 void RegisterBridge_Schur(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Preconditioner");
-	typedef Schur::Functionality Functionality;
+	using Functionality = Schur::Functionality;
 
 	try{
 		RegisterAlgebraDependent<Functionality>(reg,grp);

@@ -61,21 +61,21 @@ namespace bridge{
 // 	Default Algebra List
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef boost::mpl::list<
+using CompileAlgebraList = boost::mpl::list<
 #ifdef UG_GPU
 		GPUAlgebra,
 #endif
 
 #ifdef UG_CPU_1
-		CPUAlgebra,
+	CPUAlgebra,
 #endif
 		
 #ifdef UG_CPU_2
-		CPUBlockAlgebra<2>,
+	CPUBlockAlgebra<2>,
 #endif
 		
 #ifdef UG_CPU_3
-		CPUBlockAlgebra<3>,
+	CPUBlockAlgebra<3>,
 #endif
 		
 #ifdef UG_CPU_4
@@ -95,10 +95,10 @@ typedef boost::mpl::list<
 #endif
 
 	end_boost_list // see common/util/end_boost_list.h
-> CompileAlgebraList;
+>;
 
 
-static const size_t NUM_ALGEBRA_TYPES = boost::mpl::size<CompileAlgebraList>::type::value - 1;
+static constexpr size_t NUM_ALGEBRA_TYPES = boost::mpl::size<CompileAlgebraList>::type::value - 1;
 
 
 struct AlgebraTypeIDProvider
@@ -148,7 +148,7 @@ struct AlgebraTypeIDProvider
 		{
 			RegisterAlgebraIndices(AlgebraTypeIDProvider& atidp)
 			{
-				static const bool isEmpty = boost::mpl::empty<List>::value;
+				static constexpr bool isEmpty = boost::mpl::empty<List>::value;
 				(typename boost::mpl::if_c<isEmpty, RegEnd, RegNext>::type (atidp));
 			}
 
@@ -161,8 +161,8 @@ struct AlgebraTypeIDProvider
 			{
 				RegNext(AlgebraTypeIDProvider& atidp)
 				{
-					typedef typename boost::mpl::front<List>::type AlgebraType;
-					typedef typename boost::mpl::pop_front<List>::type NextList;
+					using AlgebraType = typename boost::mpl::front<List>::type;
+					using NextList = typename boost::mpl::pop_front<List>::type;
 					atidp.reg<AlgebraType>();
 					(RegisterAlgebraIndices<NextList> (atidp));
 				}
@@ -192,7 +192,7 @@ struct RegisterAlgebraDependent
 {
 	RegisterAlgebraDependent(Registry& reg, std::string grp)
 	{
-		static const bool isEmpty = boost::mpl::empty<List>::value;
+		static constexpr bool isEmpty = boost::mpl::empty<List>::value;
 		typename boost::mpl::if_c<isEmpty, RegEnd, RegNext>::type (reg,grp);
 	}
 
@@ -205,8 +205,8 @@ struct RegisterAlgebraDependent
 	{
 		RegNext(Registry& reg, std::string grp)
 		{
-			typedef typename boost::mpl::front<List>::type AlgebraType;
-			typedef typename boost::mpl::pop_front<List>::type NextList;
+			using AlgebraType = typename boost::mpl::front<List>::type;
+			using NextList = typename boost::mpl::pop_front<List>::type;
 			Functionality::template Algebra<AlgebraType>(reg,grp);
 			RegisterAlgebraDependent<Functionality, NextList>(reg,grp);
 		}

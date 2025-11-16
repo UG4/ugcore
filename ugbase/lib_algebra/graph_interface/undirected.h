@@ -48,12 +48,12 @@ namespace ug{
 // Symmetrify matrix stencil
 template<class T>
 class UndirectedMatrix {
-	typedef typename T::const_row_iterator const_row_iterator;
+	using const_row_iterator = typename T::const_row_iterator;
 public: // types
-	typedef typename T::value_type value_type;
-	typedef boost::adjacency_list<boost::vecS, boost::vecS> G;
-	typedef typename boost::graph_traits<T>::adjacency_iterator T_adj_it;
-	typedef typename boost::graph_traits<G>::adjacency_iterator G_adj_it;
+	using value_type = typename T::value_type;
+	using G = boost::adjacency_list<boost::vecS, boost::vecS>;
+	using T_adj_it = typename boost::graph_traits<T>::adjacency_iterator;
+	using G_adj_it = typename boost::graph_traits<G>::adjacency_iterator;
 	class edge : public std::pair<int, int>{
 	public:
 		explicit edge() : std::pair<int, int>(){ untested();
@@ -67,10 +67,9 @@ public: // types
 			incomplete();
 		}
 	};
-	typedef boost::geometry::concatenate_iterator<
+	using adjacency_iterator =  boost::geometry::concatenate_iterator<
 	                             boost::SM_adjacency_iterator<value_type>,
-	                             G_adj_it,
-										  int, int> adjacency_iterator;
+	                             G_adj_it, int, int> ;
 
 public:
 	explicit UndirectedMatrix(T const* m=nullptr)
@@ -173,8 +172,7 @@ void UndirectedMatrix<T>::refresh()
 
 	_extra_fill = G(N);
 
-	typedef boost::bucket_sorter<unsigned, unsigned,
-			  map_type, boost::identity_property_map > container_type;
+	using container_type = boost::bucket_sorter<unsigned, unsigned, map_type, boost::identity_property_map > ;
 
 	std::vector<T_adj_it> c(N);
 	std::vector<T_adj_it> e(N);

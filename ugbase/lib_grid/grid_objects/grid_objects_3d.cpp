@@ -167,11 +167,11 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 					const Vertex& prototypeVertex,
 					Vertex** vrts,
 					int (*funcRefine)(int*, int*, bool&, vector3*, bool*),
-					vector3* corners = NULL,
-					bool* isSnapPoint = NULL)
+					vector3* corners = nullptr,
+					bool* isSnapPoint = nullptr)
 {
 	vNewVolumesOut.clear();
-	*ppNewVertexOut = NULL;
+	*ppNewVertexOut = nullptr;
 
 //	allVrts is an array holding both, the vertices and the new edge-vertices.
 //	we will index it with the results later on to create the new elements.

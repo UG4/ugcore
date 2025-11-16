@@ -83,7 +83,7 @@ static string GetCurrentPath()
 static int ExecuteSystemCommand(const char* cmd)
 {
 //	check that some shell exists
-	if(!system(NULL)) return 1;
+	if(!system(nullptr)) return 1;
 
 //	run the command
 	return system(cmd);
@@ -171,7 +171,7 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("FindFileInStandardPaths", FindFileInStandardPaths);
 
 	{
-		typedef Variant T;
+		using T = Variant;
 		reg.add_class_<T>("Variant", grp)
 		.add_constructor()
 		.add_constructor<void (*)(bool)>()
@@ -188,11 +188,11 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 		.add_method("to_double", &T::to_double)
 		.add_method("to_number", &T::to_number)
 		.add_method("to_string", &T::to_c_string)
-		.construct_as_smart_pointer();
+		.set_construct_as_smart_pointer(true);
 	}
 
 	{
-		typedef StringTable T;
+		using T = StringTable;
 		reg.add_class_<T>("StringTable", grp)
 		.add_constructor()
 		.add_constructor< void (*) ( size_t numRows, size_t numCols) > ()
@@ -220,12 +220,12 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 
 		.add_method("transpose", &T::transpose)
 		
-		.construct_as_smart_pointer();
+		.set_construct_as_smart_pointer(true);
 	}
 
 	{
 		// Matlab like stop watch
-		 typedef CuckooClock T;
+		using T = CuckooClock;
 		 reg.add_class_<T>("CuckooClock", grp)
 			.add_constructor()
 		    .add_method("tic", &T::tic)
@@ -236,7 +236,7 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 #if defined (__APPLE__) || defined (__linux__)
 	// MemInfo provides information about memory usage
 	{
-		typedef MemInfo T;
+		using T = MemInfo;
 		string name = string("MemInfo");
 		reg.add_class_<T>(name, grp)
 			.add_constructor()

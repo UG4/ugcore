@@ -52,7 +52,7 @@ Hexahedron* CreateHexahedronFromPrisms(Grid& grid, Prism* p0, Prism* p1)
 	}
 
 	if(iq[0] == -1)
-		return NULL;
+		return nullptr;
 
 //	we mark for both prisms which vertices are shared
 	bool isShared[2][6]	= {	{false, false, false, false, false, false},
@@ -99,7 +99,7 @@ Hexahedron* CreateHexahedronFromPrisms(Grid& grid, Prism* p0, Prism* p1)
 	grid.end_marking();
 
 	if(ubv[0] == -1 || ubv[1] == -1)
-		return NULL;
+		return nullptr;
 
 	const int base[4] = {ubv[0], (ubv[0] + 1) % 3, ubv[1], (ubv[0] + 2) % 3};
 

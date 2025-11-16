@@ -43,7 +43,7 @@ namespace ug{
 /**
  * This method uses Grid::mark
  *
- * \returns The created hexahedron or NULL if no such hexahedron could be
+ * \returns The created hexahedron or nullptr if no such hexahedron could be
  *			build from the specified prisms.
  */
 Hexahedron* CreateHexahedronFromPrisms(Grid& grid, Prism* p0, Prism* p1);

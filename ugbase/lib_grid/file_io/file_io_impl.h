@@ -48,7 +48,7 @@ namespace ug {
 		GridObjectCollection goc = srcGrid.get_grid_objects();
 		CustomVertexGroup vrts;
 
-		typedef typename Grid::traits<TElem>::iterator iter_t;
+		using iter_t = typename Grid::traits<TElem>::iterator;
 
 		for (iter_t eIter = goc.begin<TElem>(); eIter != goc.end<TElem>(); ++eIter)
 		{

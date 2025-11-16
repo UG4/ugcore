@@ -61,18 +61,6 @@ void initJavaVM(JNIEnv* env);
 
 JavaVM* getJavaVM();
 
-/**
- * Returns the global SVN revision of this build.
- * @return global SVN revision of this build
- */
-inline std::string svnRevision()
-{
-	std::vector<std::string> v = split(UGSvnRevision(), ':');
-	if(v.size() > 0)
-		return v[0]; //
-	else
-		return UGSvnRevision();
-}
 } // end vrl::
 }// end ug::
 

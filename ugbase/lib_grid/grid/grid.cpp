@@ -60,8 +60,8 @@ Grid::Grid() :
 	m_aVolumeContainer("Grid_VolumeContainer", false),
 	m_bMarking(false),
 	m_aMark("Grid_Mark", false),
-	m_distGridMgr(NULL),
-	m_periodicBndMgr(NULL)
+	m_distGridMgr(nullptr),
+	m_periodicBndMgr(nullptr)
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
@@ -78,8 +78,8 @@ Grid::Grid(uint options) :
 	m_aVolumeContainer("Grid_VolumeContainer", false),
 	m_bMarking(false),
 	m_aMark("Grid_Mark", false),
-	m_distGridMgr(NULL),
-	m_periodicBndMgr(NULL)
+	m_distGridMgr(nullptr),
+	m_periodicBndMgr(nullptr)
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
@@ -96,8 +96,8 @@ Grid::Grid(const Grid& grid) :
 	m_aVolumeContainer("Grid_VolumeContainer", false),
 	m_bMarking(false),
 	m_aMark("Grid_Mark", false),
-	m_distGridMgr(NULL),
-	m_periodicBndMgr(NULL)
+	m_distGridMgr(nullptr),
+	m_periodicBndMgr(nullptr)
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
@@ -182,7 +182,7 @@ set_parallel(bool parallel)
 	else if(is_parallel()){
 		#ifdef UG_PARALLEL
 			if(m_distGridMgr) delete m_distGridMgr;
-			m_distGridMgr = NULL;
+			m_distGridMgr = nullptr;
 		#endif
 	}
 }
@@ -197,13 +197,13 @@ void Grid::set_periodic_boundaries(bool is_periodic)
 	}
 	else if(m_periodicBndMgr){
 		delete m_periodicBndMgr;
-		m_periodicBndMgr = NULL;
+		m_periodicBndMgr = nullptr;
 	}
 }
 
 bool Grid::has_periodic_boundaries() const
 {
-	return m_periodicBndMgr != NULL;
+	return m_periodicBndMgr != nullptr;
 }
 
 PeriodicBoundaryManager* Grid::periodic_boundary_manager()
@@ -241,7 +241,7 @@ void Grid::clear_geometry()
 template <class TElem>
 void Grid::clear_attachments()
 {
-	typedef typename traits<TElem>::AttachmentPipe	AttachmentPipe;
+	using AttachmentPipe = typename traits<TElem>::AttachmentPipe;
 
 	vector<AttachmentEntry>	vEntries;
 
@@ -315,7 +315,7 @@ void Grid::assign_grid(const Grid& grid)
 
 //	we need a vertex-map that allows us to find a vertex in the new grid
 //	given a vertex in the old one.
-	vector<Vertex*>	vrtMap(grid.attachment_container_size<Vertex>(), NULL);
+	vector<Vertex*>	vrtMap(grid.attachment_container_size<Vertex>(), nullptr);
 
 //	we need index-lists that allow us to copy attachments later on
 	vector<int> vSrcDataIndex[NUM_GEOMETRIC_BASE_OBJECTS];
@@ -481,7 +481,7 @@ void Grid::erase(GridObject* geomObj)
 
 void Grid::erase(Vertex* vrt)
 {
-	assert((vrt != NULL) && "ERROR in Grid::erase(Vertex*): invalid pointer)");
+	assert((vrt != nullptr) && "ERROR in Grid::erase(Vertex*): invalid pointer)");
 	assert(vrt->container_section() != -1
 			&& "ERROR in Grid::erase(Vertex*). Invalid pipe section!");
 
@@ -492,7 +492,7 @@ void Grid::erase(Vertex* vrt)
 
 void Grid::erase(Edge* edge)
 {
-	assert((edge != NULL) && "ERROR in Grid::erase(Edge*): invalid pointer)");
+	assert((edge != nullptr) && "ERROR in Grid::erase(Edge*): invalid pointer)");
 	assert(edge->container_section() != -1
 			&& "ERROR in Grid::erase(Edge*). Invalid pipe section!");
 
@@ -503,7 +503,7 @@ void Grid::erase(Edge* edge)
 
 void Grid::erase(Face* face)
 {
-	assert((face != NULL) && "ERROR in Grid::erase(Face*): invalid pointer)");
+	assert((face != nullptr) && "ERROR in Grid::erase(Face*): invalid pointer)");
 	assert(face->container_section() != -1
 			&& "ERROR in Grid::erase(Face*). Invalid pipe section!");
 
@@ -514,7 +514,7 @@ void Grid::erase(Face* face)
 
 void Grid::erase(Volume* vol)
 {
-	assert((vol != NULL) && "ERROR in Grid::erase(Volume*): invalid pointer)");
+	assert((vol != nullptr) && "ERROR in Grid::erase(Volume*): invalid pointer)");
 	assert(vol->container_section() != -1
 			&& "ERROR in Grid::erase(Volume*). Invalid pipe section!");
 
@@ -1099,7 +1099,7 @@ Edge* Grid::get_edge(Face* f, int ind)
 		return find_edge_in_associated_edges(ed.vertex(0), ed);
 	}
 	
-	return NULL;
+	return nullptr;
 }
 
 Edge* Grid::get_edge(Volume* v, int ind)
@@ -1129,7 +1129,7 @@ Edge* Grid::get_edge(Volume* v, int ind)
 		return find_edge_in_associated_edges(ed.vertex(0), ed);
 	}
 	
-	return NULL;
+	return nullptr;
 }
 
 Face* Grid::get_face(const FaceVertices& fv)
@@ -1157,7 +1157,7 @@ Face* Grid::get_face(Volume* v, int ind)
 	//	it does not. check associated faces of the first vertex of fd.
 		return find_face_in_associated_faces(fd.vertex(0), fd);
 	}
-	return NULL;
+	return nullptr;
 }
 
 Volume* Grid::get_volume(const VolumeVertices& vv)
@@ -1171,7 +1171,7 @@ Vertex::side* Grid::get_side(Vertex* obj, size_t side)
 {
 	GRID_PROFILE_FUNC();
 	assert(!"ERROR in Grid::get_side(Vertex*, ...): A vertex doesn't have sides!");
-	return NULL;
+	return nullptr;
 }
 
 Edge::side* Grid::get_side(Edge* obj, size_t side)

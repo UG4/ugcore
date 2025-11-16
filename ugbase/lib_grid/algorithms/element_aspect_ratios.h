@@ -70,7 +70,7 @@ number CalculateMinTriangleHeight(Face* face, TAAPosVRT& aaPos)
 	if(face->num_vertices() == 3)
 	{
 	//	Get type of vertex attachment in aaPos and define it as ValueType
-		typedef typename TAAPosVRT::ValueType ValueType;
+		using ValueType = typename TAAPosVRT::ValueType;
 
 		number minHeight, tmpMinHeight;
 		ValueType v = aaPos[face->vertex(2)];
@@ -112,7 +112,7 @@ number CalculateAspectRatio(Grid& grid, TElem* elem, TAAPosVRT& aaPos);
 /// Quadrilaterals
 template <class TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, Quadrilateral* quad, TAAPosVRT& aaPos) {
-	typedef AABox<typename TAAPosVRT::ValueType> box_t;
+	using box_t = AABox<typename TAAPosVRT::ValueType>;
 	Vertex* const* vrts = quad->vertices();
 	box_t box(aaPos[vrts[0]], aaPos[vrts[0]]);
 	for (size_t i = 1; i < quad->num_vertices(); ++i){
@@ -323,9 +323,9 @@ Face* FindLargestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos
 {
 	//PROFILE_FUNC();
 	//	if facesBegin equals facesEnd, then the list is empty and we can
-	//	immediately return NULL
+	//	immediately return nullptr
 	if(facesBegin == facesEnd)
-		return NULL;
+		return nullptr;
 
 	//	the first face is the first candidate for the smallest face.
 		Face* largestFace = *facesBegin;
@@ -353,9 +353,9 @@ FindSmallestVolume(TIterator volumesBegin, TIterator volumesEnd, TAAPosVRT& aaPo
 {
 	//PROFILE_FUNC();
 //	if volumesBegin equals volumesBegin, then the list is empty and we can
-//	immediately return NULL
+//	immediately return nullptr
 	if(volumesBegin == volumesEnd)
-		return NULL;
+		return nullptr;
 
 //	Initializations
 	typename TIterator::value_type smallestVolume = *volumesBegin;
@@ -387,9 +387,9 @@ FindLargestVolume(TIterator volumesBegin, TIterator volumesEnd, TAAPosVRT& aaPos
 {
 	//PROFILE_FUNC();
 //	if volumesBegin equals volumesBegin, then the list is empty and we can
-//	immediately return NULL
+//	immediately return nullptr
 	if(volumesBegin == volumesEnd)
-		return NULL;
+		return nullptr;
 
 //	Initializations
 	typename TIterator::value_type largestVolume = *volumesBegin;
@@ -422,9 +422,9 @@ FindElementWithSmallestAspectRatio(Grid& grid, 	TIterator elemsBegin,
 {
 	//PROFILE_FUNC();
 //	if volumesBegin equals volumesBegin, then the list is empty and we can
-//	immediately return NULL
+//	immediately return nullptr
 	if(elemsBegin == elemsEnd)
-		return NULL;
+		return nullptr;
 
 //	Initializations
 	typename TIterator::value_type elementWithSmallestAspectRatio = *elemsBegin;
@@ -458,9 +458,9 @@ FindElementWithLargestAspectRatio(Grid& grid,  	TIterator elemsBegin,
 {
 	//PROFILE_FUNC();
 //	if volumesBegin equals volumesBegin, then the list is empty and we can
-//	immediately return NULL
+//	immediately return nullptr
 	if(elemsBegin == elemsEnd)
-		return NULL;
+		return nullptr;
 
 //	Initializations
 	typename TIterator::value_type elementWithLargestAspectRatio = *elemsBegin;
@@ -494,9 +494,9 @@ FindElementWithSmallestVolToRMSFaceAreaRatio(Grid& grid, TIterator elemsBegin,
 {
 	//PROFILE_FUNC();
 //	if volumesBegin equals volumesBegin, then the list is empty and we can
-//	immediately return NULL
+//	immediately return nullptr
 	if(elemsBegin == elemsEnd)
-		return NULL;
+		return nullptr;
 
 //	Initializations
 	typename TIterator::value_type elementWithSmallestRatio = *elemsBegin;
@@ -530,9 +530,9 @@ FindElementWithLargestVolToRMSFaceAreaRatio(Grid& grid, TIterator elemsBegin,
 {
 	//PROFILE_FUNC();
 //	if volumesBegin equals volumesBegin, then the list is empty and we can
-//	immediately return NULL
+//	immediately return nullptr
 	if(elemsBegin == elemsEnd)
-		return NULL;
+		return nullptr;
 
 //	Initializations
 	typename TIterator::value_type elementWithLargestRatio = *elemsBegin;

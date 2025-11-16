@@ -50,9 +50,9 @@ class CompositeTimeDiscretization
 	: public IAssemble<TAlgebra>
 {
 	public:
-		typedef TAlgebra algebra_type;
-		typedef typename algebra_type::vector_type vector_type;
-		typedef typename algebra_type::matrix_type matrix_type;
+		using algebra_type = TAlgebra;
+		using vector_type = typename algebra_type::vector_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	public:
 		void add_time_disc(SmartPtr<ITimeDiscretization<TAlgebra> > tDisc)

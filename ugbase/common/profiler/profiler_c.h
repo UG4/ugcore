@@ -52,7 +52,7 @@
 	#define C_PROFILE_BEGIN_PARAMS(id, name, group, file, line)			\
 															\
 		static Shiny::ProfileZone __ShinyZone_##id = {		\
-			NULL, Shiny::ProfileZone::STATE_HIDDEN, name, \
+			nullptr, Shiny::ProfileZone::STATE_HIDDEN, name, \
 			group, file, line,	\
 			{ { 0, 0 }, { 0, 0 }, { 0, 0 } }				\
 		};													\
@@ -68,7 +68,7 @@
 		C_PROFILE_BEGIN_PARAMS(apn_##name, #name, group, __FILE__, __LINE__)
 
 	#define C_PROFILE_BEGIN(name)						\
-		C_PROFILE_BEGIN_GROUP(name, NULL)
+		C_PROFILE_BEGIN_GROUP(name, nullptr)
 
 	#define C_PROFILE_END()														\
 		Shiny::ProfileManager::instance._endCurNode()

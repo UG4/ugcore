@@ -56,15 +56,15 @@ template<typename TStorage>
 class DenseMatrix : public TStorage
 {
 public:
-	typedef typename TStorage::value_type value_type;
-	typedef typename TStorage::size_type size_type;
-	static const eMatrixOrdering ordering = TStorage::ordering;
+	using value_type = typename TStorage::value_type;
+	using size_type = typename TStorage::size_type;
+	static constexpr eMatrixOrdering ordering = TStorage::ordering;
 	enum { is_static = TStorage::is_static};
 	enum { static_num_rows = TStorage::static_num_rows};
 	enum { static_num_cols = TStorage::static_num_cols};
 
-	typedef DenseMatrix<TStorage> this_type;
-	typedef TStorage base;
+	using this_type = DenseMatrix<TStorage>;
+	using base = TStorage;
 	using base::operator ();
 	using base::at;
 	using base::num_rows;

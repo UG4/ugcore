@@ -65,7 +65,7 @@ static const int INNER_TKD_ELEMENT_INDICES[] = {
 /** Each line corresponds to one element. First entry of each line corresponds
  * to the number of vertices, the other entries to the vertex index according
  * to TKDInfo.*/
-static const int OUTER_TKD_ELEMENT_INDICES[] = {
+static constexpr int OUTER_TKD_ELEMENT_INDICES[] = {
 					//top
 					6, 24, 1, 0, 26 + 24, 26 + 1, 26 + 0,
 					6, 24, 2, 1, 26 + 24, 26 + 2, 26 + 1,

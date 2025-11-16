@@ -437,8 +437,8 @@ string XMLStringEscape(string s)
 	return s;
 }
 
-static const char shiftCharacters[] = "|#[+";
-static const size_t shiftCharactersLength = sizeof(shiftCharacters)/sizeof(shiftCharacters[0]);
+static constexpr char shiftCharacters[] = "|#[+";
+static constexpr size_t shiftCharactersLength = sizeof(shiftCharacters)/sizeof(shiftCharacters[0]);
 
 bool IsShiftChar(char c)
 {

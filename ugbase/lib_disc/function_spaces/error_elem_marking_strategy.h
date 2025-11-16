@@ -54,11 +54,11 @@ class IMultigridElementIndicators
 {
 public:
 	///	world dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 
-	typedef typename domain_traits<dim>::element_type elem_type;
-	typedef Attachment<number> error_attachment_type;
-	typedef MultiGrid::AttachmentAccessor<elem_type, error_attachment_type > attachment_accessor_type;
+	using elem_type = typename domain_traits<dim>::element_type;
+	using error_attachment_type = Attachment<number>;
+	using attachment_accessor_type = MultiGrid::AttachmentAccessor<elem_type, error_attachment_type >;
 
 	/// CTOR
 	IMultigridElementIndicators() {}
@@ -72,7 +72,7 @@ public:
 	/// Attach error indicator to multigrid
 	void attach_indicators(SmartPtr<MultiGrid> pMG)
 	{
-		typedef typename domain_traits<dim>::element_type elem_type;
+		using elem_type = typename domain_traits<dim>::element_type;
 
 		// default value negative in order to distinguish between newly added elements (e.g. after refinement)
 		// and elements which an error indicator is known for
@@ -125,11 +125,11 @@ class IElementMarkingStrategy
 {
 public:
 	///	world dimension
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 
 	/// element type to be marked
-	typedef typename domain_traits<dim>::element_type elem_type;
-	typedef typename Grid::AttachmentAccessor<elem_type, ug::Attachment<number> > elem_accessor_type;
+	using elem_type = typename domain_traits<dim>::element_type;
+	using elem_accessor_type = Grid::AttachmentAccessor<elem_type, Attachment<number> >;
 
 	IElementMarkingStrategy()
 	: m_latest_error(-1), m_latest_error_per_elem_max(-1), m_latest_error_per_elem_min(-1)
@@ -168,7 +168,7 @@ class StdRefinementMarkingStrategy : public IElementMarkingStrategy<TDomain>
 {
 
 public:
-	typedef IElementMarkingStrategy<TDomain> base_type;
+	using base_type = IElementMarkingStrategy<TDomain>;
 
 	StdRefinementMarkingStrategy(number tol, int max_level)
 	: m_tol(tol), m_max_level(max_level) {};
@@ -201,7 +201,7 @@ class GlobalMarking : public IElementMarkingStrategy<TDomain>
 {
 
 public:
-	typedef IElementMarkingStrategy<TDomain> base_type;
+	using base_type = IElementMarkingStrategy<TDomain>;
 
 	GlobalMarking(number tol, size_t max_level)
 	: m_tol(tol), m_max_level(max_level) {};
@@ -234,10 +234,10 @@ void GlobalMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErro
 	if (errTotal <= m_tol || dd->multi_grid()->num_levels() > m_max_level)
 		return;
 
-	typedef typename DoFDistribution::traits<typename base_type::elem_type>::const_iterator const_iterator;
+	using const_iterator = typename DoFDistribution::traits<typename base_type::elem_type>::const_iterator;
 
-	const_iterator iter = dd->template begin<typename base_type::elem_type>();
-	const_iterator iterEnd = dd->template end<typename base_type::elem_type>();
+	const_iterator iter = dd->begin<typename base_type::elem_type>();
+	const_iterator iterEnd = dd->end<typename base_type::elem_type>();
 
 //	loop elements for marking
 	for (; iter != iterEnd; ++iter)
@@ -252,7 +252,7 @@ class StdCoarseningMarkingStrategy : public IElementMarkingStrategy<TDomain>
 {
 
 public:
-	typedef IElementMarkingStrategy<TDomain> base_type;
+	using base_type = IElementMarkingStrategy<TDomain>;
 
 	StdCoarseningMarkingStrategy(number tol)
 		: m_tol(tol), m_safety(8.0), m_minLvl(0) {}
@@ -324,8 +324,7 @@ number CreateSortedListOfElems(
 		const typename DoFDistribution::traits<TElem>::const_iterator iterEnd,
 		std::vector< std::pair<double, TElem*> > &etaSqList)
 {
-
-	//typedef typename std::pair<double, TElem*> TPair;
+	//using TPair = typename std::pair<double, TElem*>;
 	typename DoFDistribution::traits<TElem>::const_iterator iter;
 
 	number localErrSq=0;
@@ -356,7 +355,7 @@ class ExpectedErrorMarkingStrategy : public IElementMarkingStrategy<TDomain>
 {
 
 public:
-	typedef IElementMarkingStrategy<TDomain> base_type;
+	using base_type = IElementMarkingStrategy<TDomain>;
 
 	ExpectedErrorMarkingStrategy(number tol, int max_level, number safetyFactor, number expectedReductionFactor)
 	: m_tol(tol), m_max_level(max_level), m_safety(safetyFactor), m_expRedFac(expectedReductionFactor) {};
@@ -389,8 +388,8 @@ protected:
 template <typename TDomain>
 struct ElemErrorSortDesc
 {
-	typedef typename domain_traits<TDomain::dim>::element_type elem_type;
-	typedef typename Grid::AttachmentAccessor<elem_type, ug::Attachment<number> > error_accessor_type;
+	using elem_type = typename domain_traits<TDomain::dim>::element_type;
+	using error_accessor_type = typename Grid::AttachmentAccessor<elem_type, ug::Attachment<number> >;
 	ElemErrorSortDesc(const error_accessor_type& aaErr)
 	: m_aaErr(aaErr) {}
 
@@ -451,8 +450,8 @@ void ExpectedErrorMarkingStrategy<TDomain>::mark
 	ConstSmartPtr<DoFDistribution> dd
 )
 {
-	typedef typename base_type::elem_type TElem;
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using TElem = typename base_type::elem_type;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 	// create vector of local element (squared) errors
 	const_iterator iter = dd->template begin<TElem>();
@@ -626,7 +625,7 @@ template <typename TDomain>
 class MaximumMarking : public IElementMarkingStrategy<TDomain>{
 
 public:
-	typedef IElementMarkingStrategy<TDomain> base_type;
+	using base_type = IElementMarkingStrategy<TDomain>;
 	MaximumMarking(number theta=1.0)
 	: m_theta(theta), m_theta_min(0.0), m_eps(0.01), m_max_level(100), m_min_level(0) {};
 	MaximumMarking(number theta, number eps)
@@ -655,8 +654,8 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
-	typedef typename base_type::elem_type TElem;
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using TElem = typename base_type::elem_type;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 	// compute minimal/maximal/ total error and number of elements
 
@@ -764,7 +763,7 @@ template <typename TDomain>
 class APosterioriCoarsening : public IElementMarkingStrategy<TDomain>{
 
 public:
-	typedef IElementMarkingStrategy<TDomain> base_type;
+	using base_type = IElementMarkingStrategy<TDomain>;
 	APosterioriCoarsening(number theta=0.1)
 	: m_theta(theta), m_max_level(100), m_min_level(0) {};
 protected:
@@ -786,10 +785,10 @@ void APosterioriCoarsening<TDomain>::mark(typename base_type::elem_accessor_type
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
-	typedef typename base_type::elem_type TElem;
-	//typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
-	typedef typename std::pair<double, TElem*> TPair;
-	typedef typename std::vector<TPair> TPairVector;
+	using TElem = typename base_type::elem_type;
+	//using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
+	using TPair = std::pair<double, TElem*>;
+	using TPairVector = std::vector<TPair>;
 
 	// Compute minimal/maximal/ total error and number of elements.
 	number minElemErrSq, minElemErrSqLocal;
@@ -868,7 +867,7 @@ template <typename TDomain>
 class EquilibrationMarkingStrategy : public IElementMarkingStrategy<TDomain>{
 
 public:
-	typedef IElementMarkingStrategy<TDomain> base_type;
+	using base_type = IElementMarkingStrategy<TDomain>;
 	EquilibrationMarkingStrategy(number theta_top=0.9)
 	: m_theta_top(theta_top), m_theta_bot(0.0) {} //, m_max_level(100) {};
 	EquilibrationMarkingStrategy(number theta_top, number theta_bot)
@@ -894,8 +893,8 @@ void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
-	typedef typename base_type::elem_type TElem;
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using TElem = typename base_type::elem_type;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 	// compute minimal/maximal/total error and number of elements
 	number minElemErr, minElemErrLocal;
@@ -976,7 +975,7 @@ template <typename TDomain>
 class VarianceMarking : public IElementMarkingStrategy<TDomain>{
 
 public:
-	typedef IElementMarkingStrategy<TDomain> base_type;
+	using base_type = IElementMarkingStrategy<TDomain>;
 	VarianceMarking(number theta) : m_theta(theta), m_width(3.0), m_max_level(100) {};
 	VarianceMarking(number theta, number width) : m_theta(theta), m_width (width), m_max_level(100) {};
 
@@ -996,8 +995,8 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
-	typedef typename base_type::elem_type TElem;
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using TElem = typename base_type::elem_type;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 	// compute minimal/maximal/ total error and number of elements
 
@@ -1110,7 +1109,7 @@ template <typename TDomain>
 class VarianceMarkingEta : public IElementMarkingStrategy<TDomain>{
 
 public:
-	typedef IElementMarkingStrategy<TDomain> base_type;
+	using base_type = IElementMarkingStrategy<TDomain>;
 	VarianceMarkingEta(number theta) :
 		m_theta(theta), m_width(3.0), m_max_level(100), m_theta_coarse(0.0), m_min_level(0)
 	{};
@@ -1146,8 +1145,8 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
-	typedef typename base_type::elem_type TElem;
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using TElem = typename base_type::elem_type;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 	// compute minimal/maximal/ total error and number of elements
 
@@ -1271,7 +1270,7 @@ template <typename TDomain>
 class MeanValueMarking : public IElementMarkingStrategy<TDomain>{
 
 public:
-	typedef IElementMarkingStrategy<TDomain> base_type;
+	using base_type = IElementMarkingStrategy<TDomain>;
 	MeanValueMarking(number theta, number factor) : m_theta(theta), m_factor (factor) {};
 
 protected:
@@ -1289,8 +1288,8 @@ void MeanValueMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaE
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
-	typedef typename base_type::elem_type TElem;
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	using TElem = typename base_type::elem_type;
+	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 	// compute minimal/maximal/ total error and number of elements
 
@@ -1366,7 +1365,7 @@ template <typename TDomain>
 class AbsoluteMarking : public IElementMarkingStrategy<TDomain>{
 
 public:
-	typedef IElementMarkingStrategy<TDomain> base_type;
+	using base_type = IElementMarkingStrategy<TDomain>;
 	AbsoluteMarking(number eta) : m_eta(eta), m_max_level(100) {};
 
 protected:
@@ -1384,8 +1383,8 @@ void AbsoluteMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
-		typedef typename base_type::elem_type TElem;
-		typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+		using TElem = typename base_type::elem_type;
+		using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 		//	loop elements for marking
 		const const_iterator iterEnd = dd->template end<TElem>();
@@ -1437,7 +1436,7 @@ void AbsoluteMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 /// Mark surface layer for coarsening.
 template <typename TDomain, typename TAlgebra>
 void MarkForCoarsenening_SurfaceLayer(const GridFunction<TDomain, TAlgebra> &u, IRefiner& refiner){
-		typedef typename domain_traits<TDomain::dim>::element_type TElem;
+		using TElem = typename domain_traits<TDomain::dim>::element_type;
 		ConstSmartPtr<DoFDistribution> spDD=u.dof_distribution();
 		refiner.mark(spDD->begin<TElem>(), spDD->end<TElem>(), RM_COARSEN);
 		refiner.coarsen();

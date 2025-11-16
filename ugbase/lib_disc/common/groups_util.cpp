@@ -87,7 +87,7 @@ void CreateFunctionIndexMapping(FunctionIndexMapping& map,
  * This function create the union of function groups. Container is clear at beginning.
  *
  * \param[out]		fctGrp		Union of Functions
- * \param[in]		vFctGrp		Vector of function group (may contain NULL)
+ * \param[in]		vFctGrp		Vector of function group (may contain nullptr)
  * \param[in]		sortFct		flag if group should be sorted after adding
  */
 void CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
@@ -104,12 +104,12 @@ void CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 	size_t grp = 0;
 	for(; grp < vFctGrp.size(); ++grp)
 	{
-		if(vFctGrp[grp] == NULL) continue;
+		if(vFctGrp[grp] == nullptr) continue;
 
 		ConstSmartPtr<FunctionPattern> pFctPat = vFctGrp[grp]->function_pattern();
 		if(pFctPat.invalid())
 			UG_THROW("CreateUnionOfFunctionGroups: Function group "
-					<<grp<<" has NULL as underlying FunctionPattern.");
+					<<grp<<" has nullptr as underlying FunctionPattern.");
 
 		fctGrp.set_function_pattern(pFctPat);
 		break;
@@ -122,7 +122,7 @@ void CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 	for(size_t i = 0; i < vFctGrp.size(); ++i)
 	{
 	//	add subset group of elem disc
-		if(vFctGrp[i] != NULL)
+		if(vFctGrp[i] != nullptr)
 		{
 			try{
 				fctGrp.add(*vFctGrp[i]);

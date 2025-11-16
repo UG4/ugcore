@@ -44,11 +44,11 @@ template <class TLayout>
 class ComPol_BoolMarker_AddMarks : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
 	///	Construct the communication policy with a ug::BoolMarker.
 		ComPol_BoolMarker_AddMarks(BoolMarker& marker)
@@ -56,11 +56,11 @@ class ComPol_BoolMarker_AddMarks : public pcl::ICommunicationPolicy<TLayout>
 		{}
 
 		virtual int
-		get_required_buffer_size(const Interface& interface)		{return interface.size() * sizeof(byte);}
+		get_required_buffer_size(const Interface& interface)		{return interface.size() * sizeof(byte_t);}
 
 	///	writes 1 for marked and 0 for unmarked interface entries
 		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		collect(BinaryBuffer& buff, const Interface& interface)
 		{
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
@@ -68,8 +68,8 @@ class ComPol_BoolMarker_AddMarks : public pcl::ICommunicationPolicy<TLayout>
 			{
 				Element elem = interface.get_element(iter);
 				bool isMarked = m_rMarker.is_marked(elem);
-				byte refMark = (isMarked ? 1 : 0);
-				buff.write((char*)&refMark, sizeof(byte));
+				byte_t refMark = (isMarked ? 1 : 0);
+				buff.write((char*)&refMark, sizeof(byte_t));
 			}
 
 			return true;
@@ -77,14 +77,14 @@ class ComPol_BoolMarker_AddMarks : public pcl::ICommunicationPolicy<TLayout>
 
 	///	reads marks from the given stream
 		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
+		extract(BinaryBuffer& buff, const Interface& interface)
 		{
-			byte val;
+			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				buff.read((char*)&val, sizeof(byte));
+				buff.read((char*)&val, sizeof(byte_t));
 				if(val)	m_rMarker.mark(elem);
 			}
 			return true;
@@ -99,11 +99,11 @@ template <class TLayout>
 class ComPol_BoolMarker_RemoveMarks : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
 	///	Construct the communication policy with a ug::BoolMarker.
 		ComPol_BoolMarker_RemoveMarks(BoolMarker& marker)
@@ -111,11 +111,11 @@ class ComPol_BoolMarker_RemoveMarks : public pcl::ICommunicationPolicy<TLayout>
 		{}
 
 		virtual int
-		get_required_buffer_size(const Interface& interface)		{return interface.size() * sizeof(byte);}
+		get_required_buffer_size(const Interface& interface) {return interface.size() * sizeof(byte_t);}
 
 	///	writes 1 for marked and 0 for unmarked interface entries
 		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		collect(BinaryBuffer& buff, const Interface& interface)
 		{
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
@@ -123,8 +123,8 @@ class ComPol_BoolMarker_RemoveMarks : public pcl::ICommunicationPolicy<TLayout>
 			{
 				Element elem = interface.get_element(iter);
 				bool isMarked = m_rMarker.is_marked(elem);
-				byte refMark = (isMarked ? 1 : 0);
-				buff.write((char*)&refMark, sizeof(byte));
+				byte_t refMark = (isMarked ? 1 : 0);
+				buff.write((char*)&refMark, sizeof(byte_t));
 			}
 
 			return true;
@@ -132,14 +132,14 @@ class ComPol_BoolMarker_RemoveMarks : public pcl::ICommunicationPolicy<TLayout>
 
 	///	reads marks from the given stream
 		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
+		extract(BinaryBuffer& buff, const Interface& interface)
 		{
-			byte val;
+			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				buff.read((char*)&val, sizeof(byte));
+				buff.read((char*)&val, sizeof(byte_t));
 				if(!val)	m_rMarker.unmark(elem);
 			}
 			return true;

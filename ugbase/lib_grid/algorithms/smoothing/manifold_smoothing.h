@@ -346,7 +346,7 @@ void WeightedEdgeSmooth(Grid& grid, TIterator vrtsBegin,
 					number alpha, int numIterations,
 					Grid::vertex_traits::callback cbSmoothVertex)
 {
-	typedef typename AAPosVRT::ValueType vector_t;
+	using vector_t = typename AAPosVRT::ValueType;
 
 	Grid::edge_traits::secure_container edges;
 
@@ -406,7 +406,7 @@ void WeightedFaceSmooth(Grid& grid, TIterator vrtsBegin,
 					number alpha, int numIterations,
 					Grid::vertex_traits::callback cbSmoothVertex)
 {
-	typedef typename AAPosVRT::ValueType vector_t;
+	using vector_t = typename AAPosVRT::ValueType;
 
 	Grid::face_traits::secure_container faces;
 
@@ -476,7 +476,7 @@ void WeightedNormalSmooth(Grid& grid, TIterator vrtsBegin,
 	using std::min;
 	using std::max;
 
-	typedef typename AAPosVRT::ValueType vector_t;
+	using vector_t = typename AAPosVRT::ValueType ;
 
 	Grid::edge_traits::secure_container edges;
 
@@ -528,7 +528,7 @@ void SlopeSmooth(Grid& grid, TIterator vrtsBegin,
 	using std::min;
 	using std::max;
 
-	typedef typename AAPosVRT::ValueType vector_t;
+	using vector_t = typename AAPosVRT::ValueType ;
 
 	vector3 upN;
 	VecNormalize(upN, up);

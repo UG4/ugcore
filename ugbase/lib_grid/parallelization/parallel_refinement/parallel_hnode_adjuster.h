@@ -41,7 +41,7 @@
 namespace ug{
 
 class ParallelHNodeAdjuster;
-typedef SmartPtr<ParallelHNodeAdjuster> SPParallelHNodeAdjuster;
+using SPParallelHNodeAdjuster = SmartPtr<ParallelHNodeAdjuster>;
 
 ///	Makes sure that that marks are propagated over process interfaces
 class ParallelHNodeAdjuster : public IRefMarkAdjuster

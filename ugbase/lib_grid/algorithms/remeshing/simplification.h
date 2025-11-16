@@ -350,15 +350,15 @@ void ReplaceLowValenceVertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 // template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
 // Vertex* TryFlatRegionEdgeCollapse(Grid& grid, Edge* e,
 // 							  TAAPosVRT& aaPos, TAANormVRT& aaNorm, 
-// 							  TAAIntVRT& aaInt, SubsetHandler* pshMarks = NULL,
-// 							  EdgeSelector* pCandidates = NULL)
+// 							  TAAIntVRT& aaInt, SubsetHandler* pshMarks = nullptr,
+// 							  EdgeSelector* pCandidates = nullptr)
 // {
 // 	if(pshMarks)
 // 	{
 // 		SubsetHandler& shMarks = *pshMarks;
 // 	//	collapses are not allowed for fixed edges
 // 		if(shMarks.get_subset_index(e) == REM_FIXED)
-// 			return NULL;
+// 			return nullptr;
 			
 // 	//	if both endpoints of are fixed vertices then
 // 	//	we may not collapse
@@ -367,18 +367,18 @@ void ReplaceLowValenceVertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 // 		vrtSI[1] = shMarks.get_subset_index(e->vertex(1));
 
 // 		if((vrtSI[0] == REM_FIXED) && (vrtSI[1] == REM_FIXED))
-// 			return NULL;
+// 			return nullptr;
 
 // 	//	if both endpoints are somehow marked, e has to be a
 // 	//	crease edge
 // 		if((vrtSI[0] != REM_NONE) && (vrtSI[1] != REM_NONE)
 // 			&&	(shMarks.get_subset_index(e) != REM_CREASE))
-// 			return NULL;
+// 			return nullptr;
 // 	}
 
 // //	check whether the edge can be collapsed
 // 	if(!EdgeCollapseIsValid(grid, e))
-// 		return NULL;
+// 		return nullptr;
 
 
 // 	vector3 edgeNormal;
@@ -387,7 +387,7 @@ void ReplaceLowValenceVertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 // 	//UG_COND_THROW(numNbrFaces > 2, "DEBUG-THROW: CREASES ARE TEMPORARILY NOT SUPPORTED IN COLLAPSE EDGE");
 // 	if(numNbrFaces > 2){
 // 		UG_LOG("DEBUG: IGNORING NON-MANIFOLD EDGE!\n");
-// 		return NULL;
+// 		return nullptr;
 // 	}
 
 // //	compare the normal of the edge that shall be collapsed with the normals
@@ -402,7 +402,7 @@ void ReplaceLowValenceVertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 // 		maxCornerDotInd = 1;
 
 // 	if(cornerDots[maxCornerDotInd] < cornerDotThreshold)
-// 		return NULL;
+// 		return nullptr;
 
 	
 // //	collapse the edge

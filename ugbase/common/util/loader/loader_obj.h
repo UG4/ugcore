@@ -70,9 +70,9 @@ class LoaderObj
 				float			m_fAlpha;
 		};
 
-		typedef std::vector<Object*>	ObjectVector;
-		typedef ObjectVector::iterator	ObjectIterator;
-		typedef std::vector<Material>	MaterialVector;
+		using ObjectVector = std::vector<Object*>;
+		using ObjectIterator = ObjectVector::iterator;
+		using MaterialVector = std::vector<Material>;
 
 		~LoaderObj();
 		bool load_file(const char* strFilename, bool convertQuadsToTris = true);

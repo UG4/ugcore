@@ -175,8 +175,8 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si)
 
 // 	if obj is a master, assign all its slaves
 	if(master) {
-		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveContainer SlaveContainer;
-		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveIterator SlaveIterator;
+		using SlaveContainer = typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveContainer;
+		using SlaveIterator = typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveIterator;
 		SlaveContainer& slaves = *m_spMG->periodic_boundary_manager()->slaves(obj);
 		size_t master_index = obj_index(obj);
 		for(SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter){
@@ -305,7 +305,7 @@ size_t DoFDistribution::_algebra_indices(TBaseElem* elem,
 	if(bClear) ind.clear();
 
 //	reference dimension
-	static const int dim = TBaseElem::dim;
+	static constexpr int dim = TBaseElem::dim;
 
 //	get all sub-elements and add indices on those
 	if(max_dofs(VERTEX) > 0)
@@ -462,7 +462,7 @@ constrained_vertex_dof_indices(size_t fct,std::vector<DoFIndex>& ind,
 	{
 	//	only constraining objects are of interest
 		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
-		if(constrainingObj == NULL) continue;
+		if(constrainingObj == nullptr) continue;
 
 		//	get subset index
 		const int si = m_spMGSH->get_subset_index(vSubElem[i]);
@@ -523,7 +523,7 @@ constrained_edge_dof_indices(TBaseElem* elem,size_t fct,std::vector<DoFIndex>& i
 	{
 	//	only constraining objects are of interest
 		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
-		if(constrainingObj == NULL) continue;
+		if(constrainingObj == nullptr) continue;
 
 		std::vector<size_t> sortedInd;
 		sort_constrained_edges<TBaseElem,TConstraining,TConstrained>(sortedInd,elem,constrainingObj,i);
@@ -598,7 +598,7 @@ constrained_face_dof_indices(TBaseElem* elem,size_t fct,std::vector<DoFIndex>& i
 	{
 	//	only constraining objects are of interest
 		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
-		if(constrainingObj == NULL) continue;
+		if(constrainingObj == nullptr) continue;
 
 		std::vector<size_t> sortedInd;
 		sort_constrained_faces<TBaseElem,TConstraining,TConstrained>(sortedInd,elem,constrainingObj,i);
@@ -670,7 +670,7 @@ size_t DoFDistribution::_dof_indices(TBaseElem* elem, size_t fct,
 	if(bClear) ind.clear();
 
 //	reference dimension
-	static const int dim = TBaseElem::dim;
+	static constexpr int dim = TBaseElem::dim;
 
 //	reference object id
 	const ReferenceObjectID roid = elem->reference_object_id();
@@ -731,7 +731,7 @@ void DoFDistribution::indices_on_vertex(TBaseElem* elem, const ReferenceObjectID
                                           const Grid::SecureVertexContainer& vElem) const
 {
 //	get reference object id for subelement
-	static const ReferenceObjectID subRoid = ROID_VERTEX;
+	static constexpr ReferenceObjectID subRoid = ROID_VERTEX;
 
 //	add normal dofs
 	for(size_t i = 0; i < vElem.size(); ++i)
@@ -858,7 +858,7 @@ constrained_vertex_indices(LocalIndices& ind,
 	{
 	//	only constraining objects are of interest
 		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
-		if(constrainingObj == NULL) continue;
+		if(constrainingObj == nullptr) continue;
 
 	//	loop constraining vertices
 		for(size_t j = 0; j != constrainingObj->num_constrained_vertices(); ++j)
@@ -905,14 +905,14 @@ template <typename TBaseElem,typename TConstraining, typename TConstrained>
 void DoFDistribution::
 sort_constrained_edges(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstraining* constrainingObj,size_t objIndex) const
 {
-	static const int dim = TBaseElem::dim;
+	static constexpr int dim = TBaseElem::dim;
 	ReferenceObjectID roid = elem->reference_object_id();
 	const DimReferenceElement<dim>& refElem
 		= ReferenceElementProvider::get<dim>(roid);
 	// get edge belonging to reference id vertex 0 on edge
 	const size_t vertexIndex = refElem.id(1,objIndex,0,0);
 	sortedInd.resize(2);
-	Vertex* vertex0 = NULL;
+	Vertex* vertex0 = nullptr;
 	// get child of vertex
 	if (dim==2){
 		Face* baseElem = dynamic_cast<Face*>(elem);
@@ -956,13 +956,13 @@ template <typename TBaseElem,typename TConstraining, typename TConstrained>
 void DoFDistribution::
 sort_constrained_faces(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstraining* constrainingObj,size_t objIndex) const
 {
-	static const int dim = TBaseElem::dim;
+	static constexpr int dim = TBaseElem::dim;
 	ReferenceObjectID roid = elem->reference_object_id();
 	const DimReferenceElement<dim>& refElem
 			= ReferenceElementProvider::get<dim>(roid);
 	const size_t numVrt = constrainingObj->num_vertices();
 	sortedInd.resize(4);
-	Vertex* vrt = NULL;
+	Vertex* vrt = nullptr;
 	Volume* baseElem = dynamic_cast<Volume*>(elem);
 	for (size_t i=0;i<numVrt;i++){
 		const size_t vertexIndex = refElem.id(2,objIndex,0,i);
@@ -1013,7 +1013,7 @@ constrained_edge_indices(TBaseElem* elem,LocalIndices& ind,
 	{
 	//	only constraining objects are of interest
 		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
-		if(constrainingObj == NULL) continue;
+		if(constrainingObj == nullptr) continue;
 
 		std::vector<size_t> sortedInd;
 		sort_constrained_edges<TBaseElem,TConstraining,TConstrained>(sortedInd,elem,constrainingObj,i);
@@ -1069,7 +1069,7 @@ constrained_face_indices(TBaseElem* elem,LocalIndices& ind,
 	//	only constraining objects are of interest
 		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
 
-		if(constrainingObj == NULL) continue;
+		if(constrainingObj == nullptr) continue;
 
 		std::vector<size_t> sortedInd;
 		sort_constrained_faces<TBaseElem,TConstraining,TConstrained>(sortedInd,elem,constrainingObj,i);
@@ -1118,7 +1118,7 @@ template<typename TBaseElem>
 void DoFDistribution::_indices(TBaseElem* elem, LocalIndices& ind, bool bHang) const
 {
 //	reference dimension
-	static const int dim = TBaseElem::dim;
+	static constexpr int dim = TBaseElem::dim;
 
 //	resize the number of functions
 	ind.resize_fct(num_fct());
@@ -1338,8 +1338,8 @@ void DoFDistribution::resize_values(size_t newSize)
 template <typename TBaseElem>
 void DoFDistribution::reinit()
 {
-	typedef typename traits<TBaseElem>::iterator iterator;
-	static const int dim = TBaseElem::dim;
+	using iterator = typename traits<TBaseElem>::iterator;
+	static constexpr int dim = TBaseElem::dim;
 
 //	check if indices in the dimension
 	if(max_dofs(dim) == 0) return;
@@ -1507,11 +1507,11 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 	if(!layoutMap.has_layout<TBaseElem>(keyType)) return;
 
 //	types
-	typedef typename GridLayoutMap::Types<TBaseElem>::Layout::LevelLayout TLayout;
-	typedef typename TLayout::iterator InterfaceIterator;
-	typedef typename TLayout::Interface ElemInterface;
-	typedef typename ElemInterface::iterator ElemIterator;
-	typedef IndexLayout::Interface IndexInterface;
+	using TLayout = typename GridLayoutMap::Types<TBaseElem>::Layout::LevelLayout;
+	using InterfaceIterator = typename TLayout::iterator;
+	using ElemInterface = typename TLayout::Interface;
+	using ElemIterator = typename ElemInterface::iterator;
+	using IndexInterface = IndexLayout::Interface;
 
 //	vector for algebra indices
 	std::vector<size_t> vIndex;
@@ -1570,7 +1570,7 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 template <typename TBaseElem>
 void DoFDistribution::sum_dof_count(DoFCount& cnt) const
 {
-	typedef typename traits<TBaseElem>::const_iterator iterator;
+	using iterator = typename traits<TBaseElem>::const_iterator;
 
 	const SurfaceView& sv = *m_spSurfView;
 	DistributedGridManager* spDstGrdMgr = sv.subset_handler()->grid()->distributed_grid_manager();
@@ -1593,7 +1593,7 @@ void DoFDistribution::sum_dof_count(DoFCount& cnt) const
 			continue;
 
 		// Interface State
-		byte InterfaceState = ES_NONE;
+		byte_t InterfaceState = ES_NONE;
 		if(spDstGrdMgr) InterfaceState = spDstGrdMgr->get_status(elem);
 
 		// loop all functions
@@ -1629,7 +1629,7 @@ void DoFDistribution::
 get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 {
 //	dimension of Base Elem
-	static const int dim = TBaseElem::dim;
+	static constexpr int dim = TBaseElem::dim;
 
 //	Adjacent geometric objects
 	std::vector<Vertex*> vVrts;
@@ -1638,7 +1638,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 	std::vector<Volume*> vVols;
 
 // 	Iterators
-	typedef typename traits<TBaseElem>::const_iterator const_iterator;
+	using const_iterator = typename traits<TBaseElem>::const_iterator;
 	const_iterator iterEnd = end<TBaseElem>();
 	const_iterator iter = begin<TBaseElem>();
 
@@ -1734,7 +1734,7 @@ template <typename TBaseElem>
 void DoFDistribution::permute_indices(const std::vector<size_t>& vNewInd)
 {
 // 	loop Vertices
-	typedef typename traits<TBaseElem>::const_iterator const_iterator;
+	using const_iterator = typename traits<TBaseElem>::const_iterator;
 
 	const_iterator iterEnd = end<TBaseElem>(SurfaceView::ALL);
 	const_iterator iter = begin<TBaseElem>(SurfaceView::ALL);

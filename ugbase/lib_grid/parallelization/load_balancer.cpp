@@ -251,7 +251,7 @@ partition_hint(Variant& valOut, int hlvl, const std::string& name) const
 ////////////////////////////////////////////////////////////////////////////////
 LoadBalancer::
 LoadBalancer() :
-	m_mg(NULL),
+	m_mg(nullptr),
 	m_balanceThreshold(0.9),
 	m_elementThreshold(1),
 	m_createVerticalInterfaces(true)
@@ -364,8 +364,8 @@ number LoadBalancer::
 estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut)
 {
 //todo	Consider connection weights in the final quality!
-	typedef TElem elem_t;
-	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+	using elem_t = TElem;
+	using ElemIter = typename Grid::traits<elem_t>::iterator;
 	using std::min;
 
 	if(m_balanceWeights.invalid())

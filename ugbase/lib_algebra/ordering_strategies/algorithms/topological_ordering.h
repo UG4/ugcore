@@ -57,10 +57,10 @@ namespace ug{
 
 template <typename O_t, typename G_t>
 void topological_ordering_core_bidirectional(O_t& o, G_t& g, bool inverse){
-	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd_t;
-	typedef typename boost::graph_traits<G_t>::edge_descriptor ed_t;
-	typedef typename boost::graph_traits<G_t>::vertex_iterator vIt_t;
-	typedef typename boost::graph_traits<G_t>::in_edge_iterator in_edge_iterator;
+	using vd_t = typename boost::graph_traits<G_t>::vertex_descriptor;
+	using ed_t = typename boost::graph_traits<G_t>::edge_descriptor;
+	using vIt_t = typename boost::graph_traits<G_t>::vertex_iterator;
+	using in_edge_iterator = typename boost::graph_traits<G_t>::in_edge_iterator;
 
 	size_t n = boost::num_vertices(g);
 
@@ -140,9 +140,9 @@ void topological_ordering_core_bidirectional(O_t& o, G_t& g, bool inverse){
 
 template <typename O_t, typename G_t>
 void topological_ordering_core_directed(O_t& o, G_t& g, bool inverse){
-	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd_t;
-	typedef typename boost::graph_traits<G_t>::vertex_iterator vIt_t;
-	typedef typename boost::graph_traits<G_t>::adjacency_iterator nIt_t;
+	using vd_t = typename boost::graph_traits<G_t>::vertex_descriptor;
+	using vIt_t = typename boost::graph_traits<G_t>::vertex_iterator;
+	using nIt_t = typename boost::graph_traits<G_t>::adjacency_iterator;
 
 	size_t n = boost::num_vertices(g);
 
@@ -228,10 +228,10 @@ template <typename TAlgebra, typename O_t>
 class TopologicalOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
-	typedef typename TAlgebra::matrix_type M_t;
-	typedef typename TAlgebra::vector_type V_t;
-	typedef typename boost::graph_traits<M_t>::vertex_descriptor vd_t;
-	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
+	using M_t = typename TAlgebra::matrix_type;
+	using V_t = typename TAlgebra::vector_type;
+	using vd_t = typename boost::graph_traits<M_t>::vertex_descriptor;
+	using baseclass = IOrderingAlgorithm<TAlgebra, O_t>;
 
 	TopologicalOrdering(){}
 

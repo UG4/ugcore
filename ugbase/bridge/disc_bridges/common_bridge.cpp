@@ -64,7 +64,7 @@ void RegisterBridge_DiscCommon(Registry& reg, string parentGroup)
 	{
 		//  MultiIndex2
 		{
-			typedef MultiIndex<2, size_t> T;
+			using T = MultiIndex<2, size_t>;
 			string name = string("MultiIndex2");
 			reg.add_class_<T>(name, grp);
 		}
@@ -72,9 +72,10 @@ void RegisterBridge_DiscCommon(Registry& reg, string parentGroup)
 #ifdef UG_PARALLEL
 	//	IDomainDecompositionInfo, StandardDomainDecompositionInfo
 		{
-		typedef pcl::IDomainDecompositionInfo Tbase;
+		using Tbase = pcl::IDomainDecompositionInfo;
+		using T = pcl::StandardDomainDecompositionInfo;
+
 		reg.add_class_<Tbase>("IDomainDecompositionInfo", grp);
-		typedef pcl::StandardDomainDecompositionInfo T;
 		reg.add_class_<T, Tbase>("StandardDomainDecompositionInfo", grp)
 			.add_constructor()
 			.add_method("map_proc_id_to_subdomain_id", &T::map_proc_id_to_subdomain_id)

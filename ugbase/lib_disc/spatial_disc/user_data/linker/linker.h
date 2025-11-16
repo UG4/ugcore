@@ -70,7 +70,7 @@ class StdDataLinker
 							 const MathVector<refDim> vLocIP[],
 							 const size_t nip,
 							 LocalVector* u,
-							 const MathMatrix<refDim, dim>* vJT = NULL) const;
+							 const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
 		virtual void compute(LocalVector* u, GridObject* elem,
 							 const MathVector<dim> vCornerCoords[], bool bDeriv = false);

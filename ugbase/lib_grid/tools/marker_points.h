@@ -115,7 +115,7 @@ bool LoadMarkerPointsFromFile(MarkerPointManager& manager,
 void SnapMarkerPointToGridVertex(MarkerPoint& markerInOut, Grid& grid,
 								 number normalOffset,
 								 Grid::VertexAttachmentAccessor<APosition>& aaPos,
-								 Grid::VertexAttachmentAccessor<ANormal>* paaNorm = NULL);
+								 Grid::VertexAttachmentAccessor<ANormal>* paaNorm = nullptr);
 
 }//	end of namespace
 

@@ -44,7 +44,7 @@
 
 namespace ug{
 
-static const size_t MAXBLOCKSIZE = 53;
+static constexpr size_t MAXBLOCKSIZE = 53;
 
 template<typename Matrix_type, typename Vector_type>
 bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b, number relax)
@@ -123,12 +123,12 @@ bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b, numb
 template<typename Matrix_type, typename Vector_type>
 bool Diag_Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b, number relax)
 {
-	typedef typename Vector_type::value_type vector_block_type;
+	using vector_block_type = typename Vector_type::value_type;
 	DenseVector< VariableArray1<vector_block_type> > s;
 	DenseVector< VariableArray1<vector_block_type> > localx;
 	DenseMatrix< VariableArray2<number> > mat;
 	s.resize(MAXBLOCKSIZE);
-	typedef typename Matrix_type::value_type block_type;
+	using block_type = typename Matrix_type::value_type;
 
 	size_t blockind[MAXBLOCKSIZE];
 
@@ -198,19 +198,19 @@ class Vanka : public IPreconditioner<TAlgebra>
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+		using base_type = IPreconditioner<TAlgebra>;
 
 	protected:
 		using base_type::set_debug;
@@ -308,19 +308,19 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using matrix_operator_type = typename IPreconditioner<TAlgebra>::matrix_operator_type;
 
 	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+		using base_type = IPreconditioner<TAlgebra>;
 
 	protected:
 		using base_type::set_debug;

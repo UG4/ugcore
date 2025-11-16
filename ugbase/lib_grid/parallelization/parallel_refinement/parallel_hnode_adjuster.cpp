@@ -41,32 +41,32 @@ template <class TLayout>
 class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout								Layout;
-		typedef typename Layout::Type				GeomObj;
-		typedef typename Layout::Element			Element;
-		typedef typename Layout::Interface			Interface;
-		typedef typename Interface::const_iterator	InterfaceIter;
+		using Layout = TLayout;
+		using GeomObj = typename Layout::Type;
+		using Element = typename Layout::Element;
+		using Interface = typename Layout::Interface;
+		using InterfaceIter = typename Interface::const_iterator;
 
-		ComPol_BroadcastRefineMarks(IRefiner& ref, byte consideredMarks)
+		ComPol_BroadcastRefineMarks(IRefiner& ref, byte_t consideredMarks)
 			 :	m_ref(ref), m_consideredMarks(consideredMarks)
 		{}
 
 		virtual ~ComPol_BroadcastRefineMarks()	{}
 		virtual int
 		get_required_buffer_size(const Interface& interface)
-		{return interface.size() * sizeof(byte);}
+		{return interface.size() * sizeof(byte_t);}
 
 	///	writes writes the selection states of the interface entries
 		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		collect(BinaryBuffer& buff, const Interface& interface)
 		{
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				byte refMark = m_ref.get_mark(elem);
-				buff.write((char*)&refMark, sizeof(byte));
+				byte_t refMark = m_ref.get_mark(elem);
+				buff.write((char*)&refMark, sizeof(byte_t));
 			}
 
 			return true;
@@ -74,19 +74,19 @@ class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 
 	///	reads marks from the given stream
 		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
+		extract(BinaryBuffer& buff, const Interface& interface)
 		{
-			byte val;
+			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				buff.read((char*)&val, sizeof(byte));
+				buff.read((char*)&val, sizeof(byte_t));
 
 				val &= m_consideredMarks;
 
 			//	check the current status and adjust the mark accordingly
-				byte curVal = m_ref.get_mark(elem);
+				byte_t curVal = m_ref.get_mark(elem);
 
 				if(val > curVal){
 					if(val & RM_COARSEN)
@@ -103,7 +103,7 @@ class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 		IRefiner& m_ref;
-		byte m_consideredMarks;
+		byte_t m_consideredMarks;
 };
 
 
@@ -157,7 +157,7 @@ ref_marks_changed(IRefiner& ref,
 	bool exchangeFlag = pcl::OneProcTrue(newlyMarkedElems);
 
 	if(exchangeFlag){
-		const byte consideredMarks = RM_REFINE | RM_ANISOTROPIC;
+		const byte_t consideredMarks = RM_REFINE | RM_ANISOTROPIC;
 		ComPol_BroadcastRefineMarks<VertexLayout> compolRefVRT(ref, consideredMarks);
 		ComPol_BroadcastRefineMarks<EdgeLayout> compolRefEDGE(ref, consideredMarks);
 		ComPol_BroadcastRefineMarks<FaceLayout> compolRefFACE(ref, consideredMarks);

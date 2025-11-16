@@ -44,7 +44,7 @@ void GatherGrid(	Grid& gridOut,
 {
 	const int magicNumber = 68753267;
 
-	UG_COND_THROW(sel.grid() == NULL, "A grid has to be assigned to the given selector.");
+	UG_COND_THROW(sel.grid() == nullptr, "A grid has to be assigned to the given selector.");
 	Grid& gFrom = *sel.grid();
 	SelectAssociatedGridObjects(sel);
 //	serialize
@@ -88,7 +88,7 @@ void AllGatherGrid(	Grid& gridOut,
 {
 	const int magicNumber = 68753267;
 
-	UG_COND_THROW(sel.grid() == NULL, "A grid has to be assigned to the given selector.");
+	UG_COND_THROW(sel.grid() == nullptr, "A grid has to be assigned to the given selector.");
 	Grid& gFrom = *sel.grid();
 	SelectAssociatedGridObjects(sel);
 //	serialize

@@ -134,44 +134,44 @@ class UG_API Grid
 	///	The traits class holds some important types for each element-type
 		template <class TElem>
 		struct traits{
-			typedef typename TElem::grid_base_object			base_object;
-			typedef ug::ElementStorage<base_object>					ElementStorage;
-			typedef typename ElementStorage::AttachmentPipe			AttachmentPipe;
-			typedef typename ElementStorage::AttachedElementList	AttachedElementList;
-			typedef typename ElementStorage::SectionContainer		SectionContainer;
+			using base_object = typename TElem::grid_base_object;
+			using ElementStorage = ElementStorage<base_object>; // ø using A = A<T>
+			using AttachmentPipe = typename ElementStorage::AttachmentPipe;
+			using AttachedElementList = typename ElementStorage::AttachedElementList;
+			using SectionContainer = typename ElementStorage::SectionContainer;
 
-			typedef typename geometry_traits<TElem>::iterator		iterator;
-			typedef typename geometry_traits<TElem>::const_iterator	const_iterator;
+			using iterator = typename geometry_traits<TElem>::iterator;
+			using const_iterator = typename geometry_traits<TElem>::const_iterator;
 
-			typedef PointerConstArray<TElem*>						secure_container;
+			using secure_container = PointerConstArray<TElem*>;
 
 		//	CALLBACKS
 		///	callback type for the elements base type.
-			typedef boost::function<bool (base_object*)>			callback;
+			using callback = boost::function<bool (base_object*)>;
 		};
 
 	///	Convenience access to grid elements
 	/** \{ */
-		typedef traits<Vertex>	vertex_traits;
-		typedef traits<Edge>	edge_traits;
-		typedef traits<Face>		face_traits;
-		typedef traits<Volume>		volume_traits;
+		using vertex_traits = traits<Vertex>;
+		using edge_traits = traits<Edge>;
+		using face_traits = traits<Face>;
+		using volume_traits = traits<Volume>;
 	/** \} */
 
 	///	Container to store associated vertices.
-		typedef traits<Vertex>::secure_container	SecureVertexContainer;
+		using SecureVertexContainer = traits<Vertex>::secure_container;
 	///	Container to store associated edges.
-		typedef traits<Edge>::secure_container		SecureEdgeContainer;
+		using SecureEdgeContainer = traits<Edge>::secure_container;
 	///	Container to store associated faces.
-		typedef traits<Face>::secure_container			SecureFaceContainer;
+		using SecureFaceContainer = traits<Face>::secure_container;
 	///	Container to store associated volumes.
-		typedef traits<Volume>::secure_container		SecureVolumeContainer;
+		using SecureVolumeContainer = traits<Volume>::secure_container;
 
 	///	the attachment-pipe used by Grid
-		typedef ug::AttachmentPipe<Vertex*, VertexElementStorage>	VertexAttachmentPipe;
-		typedef ug::AttachmentPipe<Edge*, EdgeElementStorage>		EdgeAttachmentPipe;
-		typedef ug::AttachmentPipe<Face*, FaceElementStorage>			FaceAttachmentPipe;
-		typedef ug::AttachmentPipe<Volume*, VolumeElementStorage>		VolumeAttachmentPipe;
+		using VertexAttachmentPipe = AttachmentPipe<Vertex*, VertexElementStorage>;
+		using EdgeAttachmentPipe = AttachmentPipe<Edge*, EdgeElementStorage>;
+		using FaceAttachmentPipe = AttachmentPipe<Face*, FaceElementStorage>;
+		using VolumeAttachmentPipe = AttachmentPipe<Volume*, VolumeElementStorage>;
 
 
 	///	the generic attachment-accessor for access to grids attachment pipes.
@@ -237,20 +237,20 @@ class UG_API Grid
 		};
 
 	///	Container used to store associated vertices
-		typedef std::vector<Vertex*>	VertexContainer;
+		using VertexContainer = std::vector<Vertex*>;
 	///	Container used to store associated edges
-		typedef std::vector<Edge*>		EdgeContainer;
+		using EdgeContainer = std::vector<Edge*>;
 	///	Container used to store associated faces
-		typedef std::vector<Face*>			FaceContainer;
+		using FaceContainer = std::vector<Face*>;
 	///	Container used to store associated volumes
-		typedef std::vector<Volume*>		VolumeContainer;
+		using VolumeContainer = std::vector<Volume*>;
 
 	///	used to iterate over associated edges of vertices, faces and volumes
-		typedef EdgeContainer::iterator 	AssociatedEdgeIterator;
+		using AssociatedEdgeIterator = EdgeContainer::iterator;
 	///	used to iterate over associated faces of vertices, edges and volumes
-		typedef FaceContainer::iterator 	AssociatedFaceIterator;
+		using AssociatedFaceIterator = FaceContainer::iterator;
 	///	used to iterate over associated volumes of vertices, edges and faces
-		typedef VolumeContainer::iterator 	AssociatedVolumeIterator;
+		using AssociatedVolumeIterator = VolumeContainer::iterator;
 
 	public:
 	////////////////////////////////////////////////
@@ -314,7 +314,7 @@ class UG_API Grid
 		inline bool is_parallel() const;
 
 	///	returns a pointer to the associated distributed grid manager.
-	/**	The method returns NULL, if no distributed grid manager for the given
+	/**	The method returns nullptr, if no distributed grid manager for the given
 	 * grid exists. This should be the case for serial environments or for
 	 * serial grids in parallel environments.
 	 * Use ug::Grid::set_parallel() to enable or disable parallelism in a grid.
@@ -335,7 +335,7 @@ class UG_API Grid
 		bool has_periodic_boundaries() const;
 
 	///	returns a pointer to the associated periodic boundary manager.
-	/**	The method returns NULL, if no periodic boundary get_attachment_accessor for the given
+	/**	The method returns nullptr, if no periodic boundary get_attachment_accessor for the given
 	 * grid exists.
 	 * Use ug::Grid::set_periodic_boundaries() to enable or disable periodic boundaries in a grid.
 	 * You have to include "lib_grid/tools/periodic_boundary_manager.h" to access
@@ -365,7 +365,7 @@ class UG_API Grid
 	 */
 		template<class TGeomObj>
 		typename geometry_traits<TGeomObj>::iterator
-		create(GridObject* pParent = NULL);
+		create(GridObject* pParent = nullptr);
 
 	///	create a custom element from a descriptor.
 	/**
@@ -376,7 +376,7 @@ class UG_API Grid
 		template <class TGeomObj>
 		typename geometry_traits<TGeomObj>::iterator
 		create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
-				GridObject* pParent = NULL);
+				GridObject* pParent = nullptr);
 
 	///	create a custom element and replaces an old one.
 	/**
@@ -398,16 +398,16 @@ class UG_API Grid
 		create_and_replace(typename geometry_traits<TGeomObj>::grid_base_object* pReplaceMe);
 
 	///	this method creates a new vertex, which has the same type as pCloneMe.
-		VertexIterator create_by_cloning(Vertex* pCloneMe, GridObject* pParent = NULL);
+		VertexIterator create_by_cloning(Vertex* pCloneMe, GridObject* pParent = nullptr);
 
 	///	this method creates a new edge, which has the same type as pCloneMe.
-		EdgeIterator create_by_cloning(Edge* pCloneMe, const IVertexGroup& ev, GridObject* pParent = NULL);
+		EdgeIterator create_by_cloning(Edge* pCloneMe, const IVertexGroup& ev, GridObject* pParent = nullptr);
 
 	///	this method creates a new face, which has the same type as pCloneMe.
-		FaceIterator create_by_cloning(Face* pCloneMe, const IVertexGroup& fv, GridObject* pParent = NULL);
+		FaceIterator create_by_cloning(Face* pCloneMe, const IVertexGroup& fv, GridObject* pParent = nullptr);
 
 	///	this method creates a new volume, which has the same type as pCloneMe.
-		VolumeIterator create_by_cloning(Volume* pCloneMe, const IVertexGroup& vv, GridObject* pParent = NULL);
+		VolumeIterator create_by_cloning(Volume* pCloneMe, const IVertexGroup& vv, GridObject* pParent = nullptr);
 
 	///	Reserves memory for the creation of the given object type
 	/**	Calls to this method are optional, but can improve runtime.
@@ -565,12 +565,12 @@ class UG_API Grid
 
 	////////////////////////////////////////////////
 	//	connectivity-information
-	///	returns the edge between v1 and v2, if it exists. Returns NULL if not.
+	///	returns the edge between v1 and v2, if it exists. Returns nullptr if not.
 		Edge* get_edge(Vertex* v1, Vertex* v2);
 	///	returns the edge that is described by ev.
 	/**	Note that you may pass an EdgeDescriptor to this method.*/
 		Edge* get_edge(const EdgeVertices& ev);
-	///	If it exists, this method returns the i-th edge of the given Face. If not NULL is returned.
+	///	If it exists, this method returns the i-th edge of the given Face. If not nullptr is returned.
 	/**	To make sure that associated edges always exist, enable the grid-option
 	 *	FACEOPT_AUTOGENERATE_EDGES.
 	 *	For maximal performance, the option FACEOPT_STORE_ASSOCIATED_EDGES
@@ -579,7 +579,7 @@ class UG_API Grid
 	 *			to get all edges in one single call.
 	 *			This can be done using Grid::associated_elements.*/
 		Edge* get_edge(Face* f, int ind);
-	///	If it exists, this method returns the i-th edge of the given Volume. If not NULL is returned.
+	///	If it exists, this method returns the i-th edge of the given Volume. If not nullptr is returned.
 	/**	To make sure that associated edges always exist, enable the grid-option
 	 *	VOLOPT_AUTOGENERATE_EDGES.
 	 *	For maximal performance, the option VOLOPT_STORE_ASSOCIATED_EDGES
@@ -591,7 +591,7 @@ class UG_API Grid
 	///	returns the face that is described by fv.
 	/**	Note that you may pass a FaceDescriptor to this method.*/
 		Face* get_face(const FaceVertices& fv);
-	///	If it exists, this method returns the i-th face of the given Volume. If not NULL is returned.
+	///	If it exists, this method returns the i-th face of the given Volume. If not nullptr is returned.
 	/**	To make sure that associated faces always exist, enable the grid-option
 	 *	VOLOPT_AUTOGENERATE_FACES.
 	 *	For maximal performance, the option VOLOPT_STORE_ASSOCIATED_FACES
@@ -607,7 +607,7 @@ class UG_API Grid
 	///	returns the element for the given vertices.
 	/**	Note that you can either pass an element type (Edge, Face, Volume)
 	 * or a descriptor (EdgeDescriptor, FaceDescriptor, VolumeDescriptor).
-	 * The method returns NULL, if the specified element does not exist.
+	 * The method returns nullptr, if the specified element does not exist.
 	 * A special overload exists for Vertex*, which simply returns the
 	 * specified vertex. Useful for template programming...
 	 * \{ */
@@ -631,7 +631,7 @@ class UG_API Grid
 	 *	It is not in all cases guaranteed that an object has sides.
 	 *	If i.e. the FACEOPT_AUTOGENERATE_EDGES is not enabled in the grids options,
 	 *	then it is not guaranteed that all side-edges of each face exist (in most
-	 *	cases they wont exist). The method returns NULL in this case.
+	 *	cases they wont exist). The method returns nullptr in this case.
 	 *	If however FACEOPT_AUTOGENERATE_EDGES is enabled then this method always
 	 *	will return an edge if queried for the side of a face.
 	 *	For volumes the appropriate option is called VOLOPT_AUTOGENERATE_FACES.
@@ -664,10 +664,10 @@ class UG_API Grid
 	 * \note	The returned container is only valid until changes to the queried
 	 * 			grid are performed.
 	 *
-	 * \note	The following typedefs might ease your work with associated elements:
+	 * \note	The following type definitions might ease your work with associated elements:
 	 * 			AssociatedVertices, AssociatedEdges, AssociatedFaces and
 	 * 			AssociatedVolumes.
-	 * 			Those are typedefs for Grid::traits<Vertex>::container, ...
+	 * 			Those are type definitions for Grid::traits<Vertex>::container, ...
 	 *
 	 * \note	Depending on the current grid options, this method may use Grid::mark.
 	 * Valid arguments for TElem are Vertex, Edge, Face, Volume.
@@ -701,10 +701,10 @@ class UG_API Grid
 	 * \note	The returned container is only valid until changes to the queried
 	 * 			grid are performed.
 	 *
-	 * \note	The following typedefs might ease your work with associated elements:
+	 * \note	The following type definitoins might ease your work with associated elements:
 	 * 			AssociatedVertices, AssociatedEdges, AssociatedFaces and
 	 * 			AssociatedVolumes.
-	 * 			Those are typedefs for traits<Vertex>::container, ...
+	 * 			Those are type definitoins for traits<Vertex>::container, ...
 	 *
 	 * \note	Depending on the current grid options, this method may use Grid::mark.
 	 * \sa Grid::associated_elements*/
@@ -867,13 +867,13 @@ class UG_API Grid
 
 	////////////////////////////////////////////////
 	//	advanced element manipulation
-		inline void register_element(Vertex* v, GridObject* pParent = NULL)	{register_vertex(v, pParent);}
+		inline void register_element(Vertex* v, GridObject* pParent = nullptr)	{register_vertex(v, pParent);}
 		inline void unregister_element(Vertex* v)									{unregister_vertex(v);}
-		inline void register_element(Edge* e, GridObject* pParent = NULL)		{register_edge(e, pParent);}
+		inline void register_element(Edge* e, GridObject* pParent = nullptr)		{register_edge(e, pParent);}
 		inline void unregister_element(Edge* e)										{unregister_edge(e);}
-		inline void register_element(Face* f, GridObject* pParent = NULL)			{register_face(f, pParent);}
+		inline void register_element(Face* f, GridObject* pParent = nullptr)			{register_face(f, pParent);}
 		inline void unregister_element(Face* f)											{unregister_face(f);}
-		inline void register_element(Volume* v, GridObject* pParent = NULL)		{register_volume(v, pParent);}
+		inline void register_element(Volume* v, GridObject* pParent = nullptr)		{register_volume(v, pParent);}
 		inline void unregister_element(Volume* v)										{unregister_volume(v);}
 
 	///	registers the given element and replaces the old one. Calls pass_on_values.
@@ -948,14 +948,14 @@ class UG_API Grid
 		void test_attached_linked_lists();
 
 	protected:
-		typedef std::vector<GridObserver*>	ObserverContainer;
+		using ObserverContainer = std::vector<GridObserver*>;
 
-		typedef Attachment<VertexContainer>	AVertexContainer;
-		typedef Attachment<EdgeContainer>	AEdgeContainer;
-		typedef Attachment<FaceContainer>	AFaceContainer;
-		typedef Attachment<VolumeContainer>	AVolumeContainer;
+		using AVertexContainer = Attachment<VertexContainer>;
+		using AEdgeContainer = Attachment<EdgeContainer>;
+		using AFaceContainer = Attachment<FaceContainer>;
+		using AVolumeContainer = Attachment<VolumeContainer>;
 
-		typedef Attachment<int>	AMark;
+		using AMark = Attachment<int>;
 
 	protected:
 	///	unregisters all observers. Call this method in destructors of derived classes.
@@ -965,7 +965,7 @@ class UG_API Grid
 	 * the initiator parameter to this function.
 	 * \param initiator:	The initiator won't be notified about grid destruction
 	 */
-		void notify_and_clear_observers_on_grid_destruction(GridObserver* initiator = NULL);
+		void notify_and_clear_observers_on_grid_destruction(GridObserver* initiator = nullptr);
 
 	///	returns the element storage for a given element type
 		template <class TElem> inline
@@ -995,15 +995,15 @@ class UG_API Grid
 	 *	If sombody creates 2^32 elements, the uniquness can no longer be guaranteed.*/
 		inline void assign_hash_value(Vertex* vrt)	{vrt->m_hashValue = m_hashCounter++;}
 
-		void register_vertex(Vertex* v, GridObject* pParent = NULL);///< pDF specifies the element from which v derives its values
+		void register_vertex(Vertex* v, GridObject* pParent = nullptr);///< pDF specifies the element from which v derives its values
 		void unregister_vertex(Vertex* v);
-		void register_edge(Edge* e, GridObject* pParent = NULL,
-						Face* createdByFace = NULL, Volume* createdByVol = NULL);///< pDF specifies the element from which v derives its values
+		void register_edge(Edge* e, GridObject* pParent = nullptr,
+						Face* createdByFace = nullptr, Volume* createdByVol = nullptr);///< pDF specifies the element from which v derives its values
 		void unregister_edge(Edge* e);
-		void register_face(Face* f, GridObject* pParent = NULL,
-						   Volume* createdByVol = NULL);///< pDF specifies the element from which v derives its values
+		void register_face(Face* f, GridObject* pParent = nullptr,
+						   Volume* createdByVol = nullptr);///< pDF specifies the element from which v derives its values
 		void unregister_face(Face* f);
-		void register_volume(Volume* v, GridObject* pParent = NULL);///< pDF specifies the element from which v derives its values
+		void register_volume(Volume* v, GridObject* pParent = nullptr);///< pDF specifies the element from which v derives its values
 		void unregister_volume(Volume* v);
 
 		void change_options(uint optsNew);

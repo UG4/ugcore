@@ -53,16 +53,16 @@ Selector::~Selector()
 	if(m_pGrid){
 	//	release the attachments in the current grid
 		if(elements_are_supported(SE_VERTEX))
-			section_container<Vertex>().get_container().set_pipe(NULL);
+			section_container<Vertex>().get_container().set_pipe(nullptr);
 
 		if(elements_are_supported(SE_EDGE))
-			section_container<Edge>().get_container().set_pipe(NULL);
+			section_container<Edge>().get_container().set_pipe(nullptr);
 
 		if(elements_are_supported(SE_FACE))
-			section_container<Face>().get_container().set_pipe(NULL);
+			section_container<Face>().get_container().set_pipe(nullptr);
 
 		if(elements_are_supported(SE_VOLUME))
-			section_container<Volume>().get_container().set_pipe(NULL);
+			section_container<Volume>().get_container().set_pipe(nullptr);
 	}
 }
 
@@ -130,16 +130,16 @@ void Selector::disable_element_support(uint shElements)
 {
 	//	release the attachments in the current grid
 	if((shElements & SE_VERTEX) && elements_are_supported(SE_VERTEX))
-		section_container<Vertex>().get_container().set_pipe(NULL);
+		section_container<Vertex>().get_container().set_pipe(nullptr);
 
 	if((shElements & SE_EDGE) && elements_are_supported(SE_EDGE))
-		section_container<Edge>().get_container().set_pipe(NULL);
+		section_container<Edge>().get_container().set_pipe(nullptr);
 
 	if((shElements & SE_FACE) && elements_are_supported(SE_FACE))
-		section_container<Face>().get_container().set_pipe(NULL);
+		section_container<Face>().get_container().set_pipe(nullptr);
 
 	if((shElements & SE_VOLUME) && elements_are_supported(SE_VOLUME))
-		section_container<Volume>().get_container().set_pipe(NULL);
+		section_container<Volume>().get_container().set_pipe(nullptr);
 
 	ISelector::disable_element_support(shElements);
 }

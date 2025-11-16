@@ -213,7 +213,7 @@ template <typename TDomain>
 static void ProjectVerticesToSphere(TDomain& dom, std::vector<number> center,
                                     number radius, number eps)
 {
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 	typename TDomain::grid_type& g = *dom.grid();
 
@@ -421,8 +421,8 @@ static void Domain(Registry& reg, string grp)
 
 //	Domain
 	{
-		typedef typename TDomain::position_attachment_type apos_t;
-		typedef IDomain<> TBase;
+		using apos_t = typename TDomain::position_attachment_type;
+		using TBase = IDomain<>;
 		string name = string("Domain").append(suffix);
 		reg.add_class_<TDomain, TBase>(name, grp)
 			.add_constructor()
@@ -546,7 +546,7 @@ static void Common(Registry& reg, string grp)
 
 //	IDomain
 	{
-		typedef IDomain<> T;
+		using T = IDomain<>;
 		reg.add_class_<T>("IDomain", grp)
 			.add_method("domain_info", &T::domain_info, "DomainInfo")
 			.add_method("get_dim", static_cast<int (T::*)() const>(&T::get_dim))
@@ -590,18 +590,18 @@ void RegisterBridge_Domain(Registry& reg, string grp)
 {
 	grp.append("/Domain");
 
-	typedef Domain::Functionality Functionality;
-	typedef boost::mpl::list<
-	#ifdef UG_DIM_2
-			Domain2d
-	#endif
-	#if defined UG_DIM_2 && defined UG_DIM_3
-			,
-	#endif
-	#ifdef UG_DIM_3
-			Domain3d
-	#endif
-	> CompileDomain2d3dList;
+	using Functionality = Domain::Functionality;
+	using CompileDomain2d3dList = boost::mpl::list<
+#ifdef UG_DIM_2
+		Domain2d
+#endif
+#if defined UG_DIM_2 && defined UG_DIM_3
+		,
+#endif
+#ifdef UG_DIM_3
+		Domain3d
+#endif
+	>;
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);

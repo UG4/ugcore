@@ -88,8 +88,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	DomainDiscretization
 	{
-		typedef IDomainDiscretization<TAlgebra> TBase;
-		typedef DomainDiscretization<TDomain, TAlgebra> T;
+		using TBase = IDomainDiscretization<TAlgebra>;
+		using T = DomainDiscretization<TDomain, TAlgebra>;
 		string name = string("DomainDiscretization").append(suffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")
@@ -121,7 +121,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	IDiscretizationItem
 	{
-		typedef IDiscretizationItem<TDomain, TAlgebra> T;
+		using T = IDiscretizationItem<TDomain, TAlgebra>;
 		string name = string("IDiscretizationItem").append(suffix);
 		reg.add_class_<T>(name, domDiscGrp);
 		reg.add_class_to_group(name, "IDiscretizationItem", tag);
@@ -129,7 +129,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	IInterfaceExtrapolation
 	{
-		typedef IInterfaceExtrapolation<TDomain, TAlgebra> T;
+		using T = IInterfaceExtrapolation<TDomain, TAlgebra>;
 		string name = string("IInterfaceExtrapolation").append(suffix);
 		reg.add_class_<T>(name,grp);
 		reg.add_class_to_group(name, "IInterfaceExtrapolation", tag);
@@ -157,7 +157,7 @@ static void Domain(Registry& reg, string grp)
 
 //	IErrEstData
 	{
-		typedef IErrEstData<TDomain> T;
+		using T = IErrEstData<TDomain>;
 		string name = string("IErrEstData").append(suffix);
 		reg.add_class_<T>(name, domDiscGrp)
 			.add_method("set_consider_me", &T::set_consider_me, "", "", "", "")
@@ -167,8 +167,8 @@ static void Domain(Registry& reg, string grp)
 
 //	SideFluxErrEstData
 	{
-		typedef SideFluxErrEstData<TDomain> T;
-		typedef IErrEstData<TDomain> TBase;
+		using T = SideFluxErrEstData<TDomain>;
+		using TBase = IErrEstData<TDomain>;
 		string name = string("SideFluxErrEstData").append(suffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*) ()>()
@@ -178,8 +178,8 @@ static void Domain(Registry& reg, string grp)
 
 //	SideAndElemErrEstData
 	{
-		typedef SideAndElemErrEstData<TDomain> T;
-		typedef IErrEstData<TDomain> TBase;
+		using T = SideAndElemErrEstData<TDomain>;
+		using TBase = IErrEstData<TDomain>;
 		string name = string("SideAndElemErrEstData").append(suffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*) (std::size_t, std::size_t)>
@@ -195,8 +195,8 @@ static void Domain(Registry& reg, string grp)
 
 //	MultipleSideAndElemErrEstData
 	{
-		typedef MultipleSideAndElemErrEstData<TDomain> T;
-		typedef IErrEstData<TDomain> TBase;
+		using T = MultipleSideAndElemErrEstData<TDomain>;
+		using TBase = IErrEstData<TDomain>;
 		string name = string("MultipleSideAndElemErrEstData").append(suffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*) (ConstSmartPtr<ApproximationSpace<TDomain> >)> ()
@@ -244,7 +244,7 @@ static void Algebra(Registry& reg, string grp)
 
 	// AssemblingTuner
 	{
-		typedef AssemblingTuner<TAlgebra> T;
+		using T = AssemblingTuner<TAlgebra>;
 		std::string name = string("AssTuner");
 		reg.add_class_<T>(name+suffix, grp)
 			.add_method("set_matrix_is_const", &T::set_matrix_is_const, "",
@@ -281,7 +281,7 @@ static void Common(Registry& reg, string grp)
 void RegisterBridge_DomainDisc(Registry& reg, string grp)
 {
 	grp.append("/Discretization");
-	typedef DomainDisc::Functionality Functionality;
+	using Functionality = DomainDisc::Functionality;
 
 	try{
 //		RegisterCommon<Functionality>(reg,grp);

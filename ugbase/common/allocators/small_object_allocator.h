@@ -80,7 +80,7 @@ class FixedAllocator
 		}
 		
 	private:
-		typedef std::vector<Chunk> Chunks;
+		using Chunks = std::vector<Chunk>;
 		
 	private:
 		std::size_t m_blockSize;

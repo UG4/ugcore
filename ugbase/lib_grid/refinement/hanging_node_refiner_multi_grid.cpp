@@ -67,7 +67,7 @@ namespace ug{
 HangingNodeRefiner_MultiGrid::
 HangingNodeRefiner_MultiGrid(SPRefinementProjector projector) :
 	BaseClass(projector),
-	m_pMG(NULL)
+	m_pMG(nullptr)
 {
 	add_ref_mark_adjuster(MGHNodeAdjuster::create());
 }
@@ -76,7 +76,7 @@ HangingNodeRefiner_MultiGrid::
 HangingNodeRefiner_MultiGrid(MultiGrid& mg,
 						SPRefinementProjector projector) :
 	BaseClass(projector),
-	m_pMG(NULL)
+	m_pMG(nullptr)
 {
 	add_ref_mark_adjuster(MGHNodeAdjuster::create());
 	set_grid(&mg);
@@ -85,13 +85,13 @@ HangingNodeRefiner_MultiGrid(MultiGrid& mg,
 HangingNodeRefiner_MultiGrid::
 ~HangingNodeRefiner_MultiGrid()
 {
-	set_grid(NULL);
+	set_grid(nullptr);
 }
 
 void HangingNodeRefiner_MultiGrid::
 grid_to_be_destroyed(Grid* grid)
 {
-	set_grid(NULL);
+	set_grid(nullptr);
 }
 
 void HangingNodeRefiner_MultiGrid::
@@ -436,7 +436,7 @@ template <class TElem>
 void HangingNodeRefiner_MultiGrid::
 restrict_selection_to_coarsen_families()
 {
-	typedef typename TElem::grid_base_object	TBaseElem;
+	using TBaseElem = typename TElem::grid_base_object;
 	MultiGrid& mg = *m_pMG;
 	selector_t& sel = get_refmark_selector();
 
@@ -763,7 +763,7 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //
 //debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 //
-//	typedef vector<Edge*> EdgeVec;
+//  using EdgeVec = vector<Edge*>;
 //	EdgeVec vedges;
 //	vedges.assign(sel.begin<Edge>(), sel.end<Edge>());
 //
@@ -1088,7 +1088,7 @@ debug_save(sel, "coarsen_marks_01_start");
 
 debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 
-	typedef vector<Vertex*> VrtVec;
+	using VrtVec = vector<Vertex*>;
 	VrtVec vvrts;
 	vvrts.assign(sel.begin<Vertex>(), sel.end<Vertex>());
 
@@ -1516,7 +1516,7 @@ We have to handle elements as follows:
 						  "partial coarsening!");
 
 			//	replace elem by a constrained face
-				ConstrainedFace* cdf = NULL;
+				ConstrainedFace* cdf = nullptr;
 				switch(elem->reference_object_id()){
 					case ROID_TRIANGLE:
 						cdf = *mg.create_and_replace<ConstrainedTriangle>(elem);
@@ -1592,7 +1592,7 @@ We have to handle elements as follows:
 				}
 				else{
 				//	transform the face to a constraining face
-					ConstrainingFace* cf = NULL;
+					ConstrainingFace* cf = nullptr;
 					switch(elem->reference_object_id()){
 						case ROID_TRIANGLE:
 							cf = *mg.create_and_replace<ConstrainingTriangle>(elem);
@@ -1771,7 +1771,7 @@ We have to handle elements as follows:
 				}
 
 			//	a constrained vertex is only created if the parent is an edge or a face
-				ConstrainedVertex* hv = NULL;
+				ConstrainedVertex* hv = nullptr;
 				char parentType = mg.parent_type(elem);
 				if((parentType == EDGE) || (parentType == FACE)){
 					hv = *mg.create_and_replace<ConstrainedVertex>(elem);

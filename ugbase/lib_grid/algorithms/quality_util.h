@@ -229,7 +229,7 @@ GetAspectRatioHistogram (
 		Grid::AttachmentAccessor<
 			typename PtrToValueType <typename TElemIter::value_type>::base_type,
 			Attachment<int> >
-			*paaHistoSec = NULL)
+			*paaHistoSec = nullptr)
 {
 	using std::min;
 	using std::max;

@@ -53,8 +53,8 @@ void IntegrateDiscFlux(std::vector<number>& vValue,
                        int si)
 {
 //	get iterators for all elems on subset
-	typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
-	typedef typename TGridFunction::template dim_traits<dim>::grid_base_object element_type;
+	using const_iterator = typename TGridFunction::template dim_traits<dim>::const_iterator;
+	using element_type = typename TGridFunction::template dim_traits<dim>::grid_base_object;
 	const_iterator iter = rDefect.template begin<element_type>(si);
 	const_iterator iterEnd = rDefect.template end<element_type>(si);
 
@@ -94,7 +94,7 @@ number IntegrateDiscFlux(SmartPtr<IAssemble<typename TGridFunction::algebra_type
 {
 //	read subsets
 	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
-	if(subsets != NULL)
+	if(subsets != nullptr)
 	{
 		ssGrp.add(TokenizeString(subsets));
 		if(!SameDimensionsInAllSubsets(ssGrp))

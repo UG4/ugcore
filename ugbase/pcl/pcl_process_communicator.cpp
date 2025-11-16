@@ -31,12 +31,14 @@
  */
 
 #include <vector>
-#include "pcl_methods.h"
+
 #include "common/util/smart_pointer.h"
-#include "pcl_process_communicator.h"
+#include "common/util/vector_util.h"
 #include "common/log.h"
 #include "common/assert.h"
-#include "common/util/vector_util.h"
+
+#include "pcl_process_communicator.h"
+#include "pcl_methods.h"
 #include "pcl_profiling.h"
 #include "pcl_datatype.h"
 #include "pcl_util.h"
@@ -85,7 +87,7 @@ size() const
 int ProcessCommunicator::
 get_proc_id(size_t groupIndex) const
 {
-	if(is_local()) return pcl::ProcRank();
+	if(is_local()) return ProcRank();
 	if(m_comm->m_mpiComm == PCL_COMM_WORLD)
 		return (int)groupIndex;
 	return m_comm->m_procs[groupIndex];
@@ -99,7 +101,7 @@ get_local_proc_id(int globalProcID) const
 		return globalProcID;
 
 	const vector<int>& procs = m_comm->m_procs;
-	if(globalProcID == pcl::ProcRank())
+	if(globalProcID == ProcRank())
 	{
 		int rank;
 		MPI_Comm_rank(m_comm->m_mpiComm, &rank);
@@ -300,17 +302,17 @@ reduce(const void* sendBuf, void* recBuf, int count,
 	if(is_local()) {memcpy(recBuf, sendBuf, count*GetSize(type)); return;}
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::reduce: empty communicator.");
 
-	MPI_Reduce(const_cast<void*>(sendBuf), recBuf, count, type, op, rootProc, m_comm->m_mpiComm);
+	MPI_Reduce(sendBuf, recBuf, count, type, op, rootProc, m_comm->m_mpiComm);
 }
 
 
 size_t ProcessCommunicator::
-reduce(const size_t &t, pcl::ReduceOperation op, int rootProc) const
+reduce(const size_t &t, ReduceOperation op, int rootProc) const
 {
 	if(is_local()) return t;
-	uint64 ret, tt = (uint64)t;
+	uint64 ret, tt = t;
 	reduce(&tt, &ret, 1, PCL_DT_UNSIGNED_LONG_LONG, op, rootProc);
-	return (size_t)ret;
+	return ret;
 }
 
 void
@@ -326,12 +328,12 @@ allreduce(const void* sendBuf, void* recBuf, int count,
 }
 
 size_t ProcessCommunicator::
-allreduce(const size_t &t, pcl::ReduceOperation op) const
+allreduce(const size_t &t, ReduceOperation op) const
 {
 	if(is_local()) return t;
-	uint64 ret, tt = (uint64)t;
+	uint64 ret, tt = t;
 	allreduce(&tt, &ret, 1, PCL_DT_UNSIGNED_LONG_LONG, op);
-	return (size_t)ret;
+	return ret;
 }
 
 void
@@ -344,20 +346,20 @@ gather(const void* sendBuf, int sendCount, DataType sendType,
 
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::gather: empty communicator.");
 	
-	MPI_Gather(const_cast<void*>(sendBuf), sendCount, sendType, recBuf,
+	MPI_Gather(sendBuf, sendCount, sendType, recBuf,
 			   recCount, recType, root, m_comm->m_mpiComm);
 }
 
 
 void ProcessCommunicator::
-gather(ug::BinaryBuffer &buf, int root) const
+gather(BinaryBuffer &buf, int root) const
 {
 	if(is_local()) return;
 
 	int localSize;
 	localSize = (int)buf.write_pos();
 	
-	if(pcl::ProcRank() == root) {
+	if(ProcRank() == root) {
 		std::vector<int> recvSizes(size());
 
 		gather(&localSize, 1, PCL_DT_INT,
@@ -379,10 +381,10 @@ gather(ug::BinaryBuffer &buf, int root) const
 	}
 	else{
 		gather(&localSize, 1, PCL_DT_INT,
-		       NULL, 1, PCL_DT_INT, root);
+		       nullptr, 1, PCL_DT_INT, root);
 
 		gatherv(buf.buffer(), localSize, PCL_DT_CHAR,
-		        NULL, NULL, NULL,
+		        nullptr, nullptr, nullptr,
 		        PCL_DT_CHAR, root);
 	}
 }
@@ -690,10 +692,10 @@ void ProcessCommunicator::broadcast(void *v, size_t size, DataType type, int roo
 	MPI_Bcast(v, size, type, root, m_comm->m_mpiComm);
 }
 
-void ProcessCommunicator::broadcast(ug::BinaryBuffer &buf, int root) const
+void ProcessCommunicator::broadcast(BinaryBuffer &buf, int root) const
 {
 	if(is_local()) return;
-	if(pcl::ProcRank() == root)
+	if(ProcRank() == root)
 	{
 		long size;
 		size = buf.write_pos();

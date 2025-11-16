@@ -77,7 +77,7 @@ namespace ug{
 template <typename TDomain, typename TAlgebra>
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 AssembledMultiGridCycle() :
-	m_spSurfaceMat(NULL), m_pSurfaceSol(nullptr), m_spAss(NULL), m_spApproxSpace(SPNULL),
+	m_spSurfaceMat(nullptr), m_pSurfaceSol(nullptr), m_spAss(nullptr), m_spApproxSpace(nullptr),
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_cycleType(_V_),
 	m_numPreSmooth(2), m_numPostSmooth(2),
@@ -86,7 +86,7 @@ AssembledMultiGridCycle() :
 	m_bCommCompOverlap(false),
 	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
 	m_spPostSmootherPrototype(m_spPreSmootherPrototype),
-	m_spProjectionPrototype(SPNULL),
+	m_spProjectionPrototype(nullptr),
 	m_spProlongationPrototype(new StdTransfer<TDomain,TAlgebra>()),
 	m_spRestrictionPrototype(m_spProlongationPrototype),
 	m_spBaseSolver(new LU<TAlgebra>()),
@@ -95,14 +95,14 @@ AssembledMultiGridCycle() :
 	m_ignoreInitForBaseSolver(false),
 	m_bMatrixStructureIsConst(false),
 	m_pC(nullptr),
-	m_spDebugWriter(NULL), m_dbgIterCnt(0)
+	m_spDebugWriter(nullptr), m_dbgIterCnt(0)
 {};
 
 
 template <typename TDomain, typename TAlgebra>
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
-	m_spSurfaceMat(NULL), m_pSurfaceSol(nullptr), m_spAss(NULL), m_spApproxSpace(approxSpace),
+	m_spSurfaceMat(nullptr), m_pSurfaceSol(nullptr), m_spAss(nullptr), m_spApproxSpace(approxSpace),
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_cycleType(_V_),
 	m_numPreSmooth(2), m_numPostSmooth(2),
@@ -120,7 +120,7 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_ignoreInitForBaseSolver(false),
 	m_bMatrixStructureIsConst(false),
 	m_pC(nullptr),
-	m_spDebugWriter(NULL), m_dbgIterCnt(0)
+	m_spDebugWriter(nullptr), m_dbgIterCnt(0)
 {};
 
 template <typename TDomain, typename TAlgebra>
@@ -364,7 +364,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	m_spSurfaceMat = L.template cast_dynamic<matrix_type>();
 
 	// Store Surface Solution
-	m_pSurfaceSol = NULL;
+	m_pSurfaceSol = nullptr;
 
 	// call init
 	init();
@@ -543,9 +543,10 @@ assemble_level_operator()
 			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start assemble_level_operator: project sol\n");
 			GMG_PROFILE_BEGIN(GMG_ProjectSolution_CopyFromSurface);
 			#ifdef UG_PARALLEL
-			if(!m_pSurfaceSol->has_storage_type(PST_CONSISTENT))
-				UG_THROW("GMG::init: Can only project "
-						"a consistent solution. Make sure to pass a consistent on.");
+			if(!m_pSurfaceSol->has_storage_type(PST_CONSISTENT)){
+				std::cout << "Storagemask is " << m_pSurfaceSol->get_storage_mask() << std::endl;
+				UG_THROW("GMG::init: Can only project a consistent solution. Make sure to pass a consistent on.");
+			}
 			#endif
 
 			init_projection();
@@ -641,7 +642,7 @@ assemble_level_operator()
 
 			//	loop all connections of the surface dof to other surface dofs
 			//	and copy the matrix coupling into the level matrix
-				typedef typename matrix_type::const_row_iterator const_row_iterator;
+				using const_row_iterator = typename matrix_type::const_row_iterator;
 				const_row_iterator conn = m_spSurfaceMat->begin_row(srfRow);
 				const_row_iterator connEnd = m_spSurfaceMat->end_row(srfRow);
 				for( ;conn != connEnd; ++conn){
@@ -782,7 +783,7 @@ assemble_rim_cpl(const vector_type* u)
 
 			SetRow((*lf.A), lvlRow, 0.0);
 
-			typedef typename matrix_type::const_row_iterator row_iterator;
+			using row_iterator = typename matrix_type::const_row_iterator;
 			row_iterator conn = m_spSurfaceMat->begin_row(srfRow);
 			row_iterator connEnd = m_spSurfaceMat->end_row(srfRow);
 			for( ;conn != connEnd; ++conn)
@@ -853,7 +854,7 @@ init_rap_operator()
 	{
 	//	loop all connections of the surface dof to other surface dofs
 	//	and copy the matrix coupling into the level matrix
-		typedef typename matrix_type::const_row_iterator const_row_iterator;
+		using const_row_iterator = typename matrix_type::const_row_iterator;
 		const_row_iterator conn = m_spSurfaceMat->begin_row(srfRow);
 		const_row_iterator connEnd = m_spSurfaceMat->end_row(srfRow);
 		for( ;conn != connEnd; ++conn)
@@ -998,7 +999,7 @@ init_rap_operator()
 		GMG_PROFILE_END();
 
 		if(!gathered_base_master()){
-			spGatheredBaseMat = SPNULL;
+			spGatheredBaseMat = nullptr;
 		}
 #endif
 	}
@@ -1041,7 +1042,7 @@ init_rap_rim_cpl()
 			const size_t lvlRow = lf.vShadowing[i];
 			const size_t srfRow = lf.vSurfShadowing[i];
 
-			typedef typename matrix_type::const_row_iterator const_row_iterator;
+			using const_row_iterator = typename matrix_type::const_row_iterator;
 			const_row_iterator conn = m_spSurfaceMat->begin_row(srfRow);
 			const_row_iterator connEnd = m_spSurfaceMat->end_row(srfRow);
 			for( ;conn != connEnd; ++conn)
@@ -1273,7 +1274,7 @@ init_index_mappings()
 	//		 the shadow-copy may exist without its shadowing. In such a case
 	//		 the mapping is invalid. To fix this, the loop is extended temporarily
 	//		 below and doubling of appearance is checked.
-	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
+	using iter_type = typename DoFDistribution::traits<TElem>::const_iterator;
 	iter_type iter = surfDD->begin<TElem>(SurfaceView::ALL);
 	iter_type iterEnd = surfDD->end<TElem>(SurfaceView::ALL);
 
@@ -1375,7 +1376,7 @@ init_noghost_to_ghost_mapping(	std::vector<size_t>& vNoGhostToGhostMap,
 								ConstSmartPtr<DoFDistribution> spNoGhostDD,
 								ConstSmartPtr<DoFDistribution> spGhostDD)
 {
-	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
+	using iter_type = typename DoFDistribution::traits<TElem>::const_iterator;
 	iter_type iter = spNoGhostDD->begin<TElem>();
 	iter_type iterEnd = spNoGhostDD->end<TElem>();
 
@@ -1501,7 +1502,7 @@ copy_noghost_to_ghost(SmartPtr<matrix_type> spMatTo,
 
 	for(size_t noghostFrom = 0; noghostFrom < vMapPatchToGlobal.size(); ++noghostFrom)
 	{
-		typedef typename matrix_type::const_row_iterator row_iter;
+		using row_iter = typename matrix_type::const_row_iterator;
 		row_iter conn = spMatFrom->begin_row(noghostFrom);
 		row_iter connEnd = spMatFrom->end_row(noghostFrom);
 		for(; conn != connEnd; ++conn)
@@ -1657,8 +1658,8 @@ init_level_memory(int baseLev, int topLev)
 		spGatheredBaseMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >(
 								new MatrixOperator<matrix_type, vector_type>);
 	} else {
-		spGatheredBaseCorr = SPNULL;
-		spGatheredBaseMat = SPNULL;
+		spGatheredBaseCorr = nullptr;
+		spGatheredBaseMat = nullptr;
 	}
 }
 

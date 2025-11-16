@@ -118,7 +118,7 @@ class IVectorDebugWriter
 {
 	public:
 	///	type of vector
-		typedef TVector vector_type;
+		using vector_type = TVector;
 
 	public:
 	///	Constructor
@@ -243,14 +243,9 @@ template <typename TAlgebra>
 class IDebugWriter : public IVectorDebugWriter<typename TAlgebra::vector_type>
 {
 	public:
-	///	type of algebra
-		typedef TAlgebra algebra_type;
-
-	///	type of vector
-		typedef typename TAlgebra::vector_type vector_type;
-
-	///	type of matrix
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using algebra_type = TAlgebra;
+		using vector_type = typename TAlgebra::vector_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	public:
 	///	write vector
@@ -266,10 +261,10 @@ class VectorDebugWritingObject
 {
 	public:
 	///	type of vector
-		typedef TVector vector_type;
+		using vector_type = TVector;
 
 	public:
-		VectorDebugWritingObject() : m_spVectorDebugWriter(NULL) {}
+		VectorDebugWritingObject() : m_spVectorDebugWriter(nullptr) {}
 		VectorDebugWritingObject(SmartPtr<IVectorDebugWriter<vector_type> > spDebugWriter)
 			: m_spVectorDebugWriter(spDebugWriter) {}
 
@@ -354,20 +349,20 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 {
 	public:
 	///	type of algebra
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	type of vector
-		typedef typename TAlgebra::vector_type vector_type;
+		using vector_type = typename TAlgebra::vector_type;
 
 	///	type of matrix
-		typedef typename TAlgebra::matrix_type matrix_type;
+		using matrix_type = typename TAlgebra::matrix_type;
 
 	protected:
 		using VectorDebugWritingObject<vector_type>::write_debug;
 		using VectorDebugWritingObject<vector_type>::set_debug;
 
 	public:
-		DebugWritingObject() : m_spDebugWriter(NULL) {}
+		DebugWritingObject() : m_spDebugWriter(nullptr) {}
 		DebugWritingObject(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
 			: 	VectorDebugWritingObject<vector_type>(spDebugWriter),
 				m_spDebugWriter(spDebugWriter) {}

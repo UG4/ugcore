@@ -81,7 +81,7 @@ GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
  *	The given callback cbConsiderEdge has to return true for all edges between
  *	edgesBegin and edgesEnd and false for all other edges.
  *
- *	If there are no edges between the given iterators, std::pair(NULL, NULL) is returned.
+ *	If there are no edges between the given iterators, std::pair(nullptr, nullptr) is returned.
  */
 template <class TEdgeIterator>
 std::pair<Vertex*, Edge*>
@@ -95,7 +95,7 @@ GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
  *	part of the polygonal chain. You can retrieve such a section by a call
  *	to ug::GetFirstVertexOfPolyChain or to ug::GetNextSectionInPolyChain.
  *
- *	If no more sections can be found, std::pair(NULL, NULL) is returned.
+ *	If no more sections can be found, std::pair(nullptr, nullptr) is returned.
  *
  *	Be careful with closed polychains! The algorithm will always find a
  *	next section in this case.

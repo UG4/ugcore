@@ -50,17 +50,17 @@ class ILocalToGlobalMapper
 {
 	public:
 	///	Algebra type
-		typedef TAlgebra algebra_type;
+		using algebra_type = TAlgebra;
 
 	///	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
+		using matrix_type = typename algebra_type::matrix_type;
 
 	///	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
+		using vector_type = typename algebra_type::vector_type;
 
 	public:
 	///	default Constructor
-		ILocalToGlobalMapper() {};
+		ILocalToGlobalMapper() = default;
 
 	///	send local entries to global matrix
 		virtual void add_local_vec_to_global(vector_type& vec, const LocalVector& lvec,
@@ -74,7 +74,7 @@ class ILocalToGlobalMapper
 		virtual void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 	///	virtual destructor
-		virtual ~ILocalToGlobalMapper() {};
+		virtual ~ILocalToGlobalMapper() = default;
 
 };
 

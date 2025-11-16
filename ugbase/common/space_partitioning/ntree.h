@@ -47,9 +47,9 @@ namespace ug{
 template <int tree_dim, int world_dim, class elem_t, class common_data_t>
 struct ntree_traits
 {
-	typedef int	real_t;
-	typedef int	vector_t;
-	typedef int	box_t;
+	using real_t = int;
+	using vector_t = int;
+	using box_t = int;
 
 	static void calculate_center(vector_t& centerOut, const elem_t& e,
 						  	  	 const common_data_t& commonData);
@@ -165,13 +165,13 @@ class ntree
 		struct Entry;
 
 	public:
-		typedef TElem										elem_t;
-		typedef TCommonData									common_data_t;
-		typedef ntree_traits<tree_dim, world_dim, elem_t, common_data_t> traits;
-		typedef typename traits::real_t						real_t;
-		typedef typename traits::vector_t					vector_t;
-		typedef typename traits::box_t						box_t;
-		typedef const_ntree_element_iterator<elem_t, Entry>	elem_iterator_t;
+		using elem_t = TElem;
+		using common_data_t = TCommonData;
+		using traits = ntree_traits<tree_dim, world_dim, elem_t, common_data_t>;
+		using real_t = typename traits::real_t;
+		using vector_t = typename traits::vector_t;
+		using box_t = typename traits::box_t;
+		using elem_iterator_t = const_ntree_element_iterator<elem_t, Entry>;
 
 		ntree();
 
@@ -254,16 +254,16 @@ class ntree
 		struct pow;
 
 		template <size_t n>
-		struct pow<n, 0>	{static const size_t val = 1;};
+		struct pow<n, 0>	{static constexpr size_t val = 1;};
 
 		template <size_t n, size_t exponent>
-		struct pow	{static const size_t val = n * pow<n, exponent - 1>::val;};
+		struct pow	{static constexpr size_t val = n * pow<n, exponent - 1>::val;};
 
 	///	the number of children each non-leaf node has
-		static const size_t s_numChildren = pow<2, tree_dim>::val;
+		static constexpr size_t s_numChildren = pow<2, tree_dim>::val;
 
 	///	marks an index as invalid
-		static const size_t s_invalidIndex = -1;
+		static constexpr size_t s_invalidIndex = -1;
 
 
 	///	An Entry combines an element with the index to the next entry in a leaf-node's entry list.
