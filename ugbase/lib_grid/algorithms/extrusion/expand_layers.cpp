@@ -363,7 +363,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	vector<Face*> faces; // used for temporary results.
 
 //	vectors that allow to access fracture properties by subset index
-	vector<FractureInfo> fracInfosBySubset(sh.num_subsets(), FractureInfo(-1, -1, 0));
+	vector fracInfosBySubset(sh.num_subsets(), FractureInfo(-1, -1, 0));
 	for(size_t i = 0; i < fracInfos.size(); ++i){
 		if(fracInfos[i].subsetIndex >= sh.num_subsets()){
 			throw(UGError("Bad subsetIndex in given fracInfos."));
@@ -456,13 +456,13 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	using AVrtVec = Attachment<vector<Vertex*> >;
 	AVrtVec aVrtVec;
 	grid.attach_to_vertices(aVrtVec);
-	Grid::VertexAttachmentAccessor<AVrtVec> aaVrtVecVRT(grid, aVrtVec);
+	Grid::VertexAttachmentAccessor aaVrtVecVRT(grid, aVrtVec);
 
 //	we also have to associate a vector of vertices for each face adjacent to the frac.
 //	it will store the a second set of vertices. An entry contains the new vertex, if the
 //	corresponding vertex is an inner fracture vertex, and nullptr if not.
 	grid.attach_to_faces(aVrtVec);
-	Grid::FaceAttachmentAccessor<AVrtVec> aaVrtVecFACE(grid, aVrtVec);
+	Grid::FaceAttachmentAccessor aaVrtVecFACE(grid, aVrtVec);
 
 //	a callback that returns true if the edge is a fracture edge
 	AttachmentUnequal<Edge, Grid::EdgeAttachmentAccessor<AInt> > isFracEdge(aaMarkEDGE, 0);
@@ -920,7 +920,7 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
  *	This algorithm requires the option VOLOPT_AUTOGENERATE_FACES.
  *	The option is automatically enabled if required.
  */
-bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>& fracInfos,
+bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const std::vector<FractureInfo>& fracInfos,
 						bool expandInnerFracBnds, bool expandOuterFracBnds)
 {
 //	access position attachment
@@ -928,7 +928,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 		UG_LOG("Error in ExpandFractures: Missing position attachment");
 		return false;
 	}
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
+	Grid::VertexAttachmentAccessor aaPos(grid, aPosition);
 
 //	make sure that the required options are enabled.
 	if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
@@ -960,11 +960,11 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	AInt aAdjMarker;	// used to mark where in a fracture an edge or a vertex lies.
 						// 0: no frac, 1: frac-boundary, >1: inner frac
 	grid.attach_to_vertices_dv(aAdjMarker, 0);
-	Grid::VertexAttachmentAccessor<AInt> aaMarkVRT(grid, aAdjMarker);
+	Grid::VertexAttachmentAccessor aaMarkVRT(grid, aAdjMarker);
 	grid.attach_to_edges_dv(aAdjMarker, 0);
-	Grid::EdgeAttachmentAccessor<AInt> aaMarkEDGE(grid, aAdjMarker);
+	Grid::EdgeAttachmentAccessor aaMarkEDGE(grid, aAdjMarker);
 	grid.attach_to_faces_dv(aAdjMarker, 0);
-	Grid::FaceAttachmentAccessor<AInt> aaMarkFACE(grid, aAdjMarker);
+	Grid::FaceAttachmentAccessor aaMarkFACE(grid, aAdjMarker);
 
 //	Distribute marks and select elements.
 
@@ -980,7 +980,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	}
 
 //	vectors that allow to access fracture properties by subset index
-	vector<FractureInfo> fracInfosBySubset(sh.num_subsets(), FractureInfo(-1, -1, 0));
+	vector fracInfosBySubset(sh.num_subsets(), FractureInfo(-1, -1, 0));
 	for(size_t i = 0; i < fracInfos.size(); ++i){
 		if(fracInfos[i].subsetIndex >= sh.num_subsets()){
 			throw(UGError("Bad subsetIndex in given fracInfos."));
@@ -1018,7 +1018,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	{
 		Volume* sv = *iter_sv;
 
-		vector<Vertex*>& newVrts = aaVrtVecVOL[sv];
+		std::vector<Vertex*>& newVrts = aaVrtVecVOL[sv];
 		newVrts.resize(sv->num_vertices());
 
 	//	check for each vertex whether it lies in the fracture
@@ -1036,7 +1036,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 			//	check whether aaVrtVecs already contains a vertex associated with n.
 			//	the normal of new vrts is stored in their position attachment
-				vector<Vertex*>& vrtVec = aaVrtVecVRT[vrt];
+				std::vector<Vertex*>& vrtVec = aaVrtVecVRT[vrt];
 				for(size_t i = 0; i < vrtVec.size(); ++i){
 					//UG_LOG("comparing to: " << aaPos[vrtVec[i]] << endl);
 					if(VecDistanceSq(aaPos[vrtVec[i]], n) < SMALL){

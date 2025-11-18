@@ -261,4 +261,4 @@ bool ClassNameTreeWay(std::vector<size_t>& vWay, const ClassNameNode& node, cons
 // include implementation
 #include "class_name_provider_impl.h"
 
-#endif /* __H__UG_BRIDGE__CLASS_NAME_PROVIDER__ */
+#endif

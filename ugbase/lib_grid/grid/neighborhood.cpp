@@ -57,9 +57,8 @@ void CollectNeighbors(std::vector<Vertex*>& vNeighborsOut,
 	
 //	iterate through associated edges
 	if(nbhType & NHT_EDGE_NEIGHBORS){
-		Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(vrt);
-		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(vrt);
-			iter != iterEnd; ++iter)
+		auto iterEnd = grid.associated_edges_end(vrt);
+		for(auto iter = grid.associated_edges_begin(vrt); iter != iterEnd; ++iter)
 		{
 			if(considerEdge(*iter)){
 				Vertex* neighbour = GetConnectedVertex(*iter, vrt);
@@ -73,9 +72,8 @@ void CollectNeighbors(std::vector<Vertex*>& vNeighborsOut,
 
 //	iterate through associated faces
 	if(nbhType & NHT_FACE_NEIGHBORS){
-		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrt);
-		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt);
-			iter != iterEnd; ++iter)
+		auto iterEnd = grid.associated_faces_end(vrt);
+		for(auto iter = grid.associated_faces_begin(vrt); iter != iterEnd; ++iter)
 		{
 			if(considerFace(*iter)){
 				Face* f = *iter;
@@ -94,9 +92,8 @@ void CollectNeighbors(std::vector<Vertex*>& vNeighborsOut,
 
 //	iterate through associated volumes
 	if(nbhType & NHT_VOLUME_NEIGHBORS){
-		Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrt);
-		for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrt);
-			iter != iterEnd; ++iter)
+		auto iterEnd = grid.associated_volumes_end(vrt);
+		for(auto iter = grid.associated_volumes_begin(vrt); iter != iterEnd; ++iter)
 		{
 			if(considerVol(*iter)){
 				Volume* v = *iter;
@@ -147,9 +144,8 @@ void CollectNeighbors(std::vector<Edge*>& vNeighborsOut, Edge* e,
 //	if the edge is not yet marked, we have to push it to vNeighboursOut.
 	for(uint i = 0; i < 2; ++i)
 	{
-		Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(e->vertex(i));
-		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(e->vertex(i));
-			iter != iterEnd; ++iter)
+		auto iterEnd = grid.associated_edges_end(e->vertex(i));
+		for(auto iter = grid.associated_edges_begin(e->vertex(i)); iter != iterEnd; ++iter)
 		{
 			if(!grid.is_marked(*iter))
 			{
@@ -200,14 +196,12 @@ void CollectNeighbors(std::vector<Face*>& vNeighborsOut, Face* f,
 								  | FACEOPT_AUTOGENERATE_EDGES))
 	{
 	//	iterate through associated edges
-		Grid::AssociatedEdgeIterator eEnd = grid.associated_edges_end(f);
-		for(Grid::AssociatedEdgeIterator eIter = grid.associated_edges_begin(f);
-			eIter != eEnd; ++eIter)
+	auto eEnd = grid.associated_edges_end(f);
+		for(auto eIter = grid.associated_edges_begin(f); eIter != eEnd; ++eIter)
 		{
 		//	iterate through associated folumes of the eace
-			Grid::AssociatedFaceIterator fEnd = grid.associated_faces_end(*eIter);
-			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(*eIter);
-				iter != fEnd; ++iter)
+			auto fEnd = grid.associated_faces_end(*eIter);
+			for(auto iter = grid.associated_faces_begin(*eIter); iter != fEnd; ++iter)
 			{
 			//	if the face is not yet marked, then add it to the neighbours
 				if(!grid.is_marked(*iter))
@@ -234,8 +228,8 @@ void CollectNeighbors(std::vector<Face*>& vNeighborsOut, Face* f,
 	case NHT_VERTEX_NEIGHBORS:
 		for(uint i = 0; i < numVrts; ++i)
 		{
-			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrts[i]);
-			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrts[i]);
+			auto iterEnd = grid.associated_faces_end(vrts[i]);
+			for(auto iter = grid.associated_faces_begin(vrts[i]);
 				iter != iterEnd; ++iter)
 			{
 				if(!grid.is_marked(*iter))
@@ -250,8 +244,8 @@ void CollectNeighbors(std::vector<Face*>& vNeighborsOut, Face* f,
 	case NHT_EDGE_NEIGHBORS:
 		for(uint i = 0; i < numVrts; ++i)
 		{
-			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrts[i]);
-			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrts[i]);
+			auto iterEnd = grid.associated_faces_end(vrts[i]);
+			for(auto iter = grid.associated_faces_begin(vrts[i]);
 				iter != iterEnd; ++iter)
 			{
 				Face* nf = *iter;
@@ -322,13 +316,13 @@ void CollectNeighbors(std::vector<Volume*>& vNeighborsOut, Volume* v,
 								  | VOLOPT_AUTOGENERATE_FACES))
 	{
 	//	iterate through associated faces
-		Grid::AssociatedFaceIterator fEnd = grid.associated_faces_end(v);
-		for(Grid::AssociatedFaceIterator fIter = grid.associated_faces_begin(v);
+		auto fEnd = grid.associated_faces_end(v);
+		for(auto fIter = grid.associated_faces_begin(v);
 			fIter != fEnd; ++fIter)
 		{
 		//	iterate through associated volumes of the face
-			Grid::AssociatedVolumeIterator vEnd = grid.associated_volumes_end(*fIter);
-			for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(*fIter);
+			auto vEnd = grid.associated_volumes_end(*fIter);
+			for(auto iter = grid.associated_volumes_begin(*fIter);
 				iter != vEnd; ++iter)
 			{
 			//	if the volume is not yet marked, then add it to the neighbours
@@ -352,8 +346,8 @@ void CollectNeighbors(std::vector<Volume*>& vNeighborsOut, Volume* v,
 	if(nbhType & NHT_VERTEX_NEIGHBORS)
 		for(uint i = 0; i < numVrts; ++i)
 		{
-			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrts[i]);
-			for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrts[i]);
+			auto iterEnd = grid.associated_volumes_end(vrts[i]);
+			for(auto iter = grid.associated_volumes_begin(vrts[i]);
 				iter != iterEnd; ++iter)
 			{
 				if(!grid.is_marked(*iter))
@@ -376,8 +370,8 @@ void CollectNeighbors(std::vector<Volume*>& vNeighborsOut, Volume* v,
 		if(minNumSharedVrts > 0){
 			for(uint i = 0; i < numVrts; ++i)
 			{
-				Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrts[i]);
-				for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrts[i]);
+				auto iterEnd = grid.associated_volumes_end(vrts[i]);
+				for(auto iter = grid.associated_volumes_begin(vrts[i]);
 					iter != iterEnd; ++iter)
 				{
 					Volume* nv = *iter;
@@ -437,7 +431,7 @@ void CollectNeighborhood(std::vector<Face*>& facesOut, Grid& grid,
 		{
 			Vertex* v = candidates[i_vrt];
 		//	iterate over associated faces
-			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
+			for(auto iter = grid.associated_faces_begin(v);
 				iter != grid.associated_faces_end(v); ++iter)
 			{
 				Face* f = *iter;

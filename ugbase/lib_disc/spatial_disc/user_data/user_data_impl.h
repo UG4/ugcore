@@ -273,15 +273,14 @@ void CplUserData<TData,dim,TRet>::
 register_storage_callback(DataImport<TData,dim>* obj, void (DataImport<TData,dim>::*func)())
 {
 	using Pair = std::pair<DataImport<TData,dim>*, CallbackFct>;
-	//	m_vCallback.push_back(Pair(obj,func));
-	m_vCallback.push_back(Pair(obj, boost::bind(func, obj)));
+	m_vCallback.push_back(Pair(obj, std::bind(func, obj)));
 }
 
 template <typename TData, int dim, typename TRet>
 void CplUserData<TData,dim,TRet>::
 unregister_storage_callback(DataImport<TData,dim>* obj)
 {
-	using VecType = typename std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> >;
+	using VecType = std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> >;
 	using iterator = typename VecType::iterator;
 	iterator iter = m_vCallback.begin();
 	while(iter != m_vCallback.end())
@@ -295,7 +294,7 @@ template <typename TData, int dim, typename TRet>
 void CplUserData<TData,dim,TRet>::
 call_storage_callback() const
 {
-	using VecType = typename std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> >;
+	using VecType = std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> >;
 	using iterator = typename VecType::const_iterator;
 	for(iterator iter = m_vCallback.begin(); iter != m_vCallback.end(); ++iter)
 	{

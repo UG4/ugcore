@@ -46,10 +46,6 @@ using namespace std;
 
 namespace ug{
 
-ProcessHierarchy::~ProcessHierarchy()
-{
-}
-
 void ProcessHierarchy::
 add_hierarchy_level(size_t gridLvl, size_t numProcsPerProc)
 {

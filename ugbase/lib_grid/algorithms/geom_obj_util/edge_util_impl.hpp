@@ -61,7 +61,7 @@ void GetInnerEdgesOfFaceSoup(
 			++m[edges[i]];
 	}
 
-	for(map<Edge*, int>::iterator iter = m.begin(); iter != m.end(); ++iter)
+	for(auto iter = m.begin(); iter != m.end(); ++iter)
 	{
 		if(iter->second > 1)
 			edgesOut.push_back(iter->first);

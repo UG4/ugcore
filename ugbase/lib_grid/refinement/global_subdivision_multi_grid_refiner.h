@@ -60,8 +60,8 @@ class GlobalSubdivisionMultiGridRefiner : public GlobalMultiGridRefiner
 
 		GlobalSubdivisionMultiGridRefiner(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
 								MGSubsetHandler& markSH, SPRefinementProjector projector = nullptr);
-							   
-		virtual ~GlobalSubdivisionMultiGridRefiner();
+
+		~GlobalSubdivisionMultiGridRefiner() override;
 
 	///	sets the manifold subsets which shall be linearly refined
 		void set_linear_manifold_subsets(MGSubsetHandler& linearManifoldSH, const char* linearManifoldSubsets);

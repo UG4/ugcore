@@ -84,4 +84,4 @@ struct UGRegistryError : UGError
 	                                                    __FILE__,__LINE__));}
 
 
-#endif /* __H__UG_BRIDGE__ERROR__ */
+#endif

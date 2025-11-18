@@ -48,30 +48,30 @@ namespace ug {
 	) {
 		Selector sel(grid);
 		using Iter = typename geometry_traits<TElem>::const_iterator;
-		sel.template select<TElem>(elem);
+		sel.select<TElem>(elem);
 		grid.begin_marking();
 		for (size_t extIters = 0; extIters < extSize; ++extIters)
 		{
 			SelectAssociatedGridObjects(sel, 1);
 			for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl){
-				for(Iter iter = sel.template begin<TElem>(lvl);
-						iter != sel.template end<TElem>(lvl); ++iter)
+				for(Iter iter = sel.begin<TElem>(lvl);
+						iter != sel.end<TElem>(lvl); ++iter)
 				{
 					TElem* el = *iter;
 					if(!grid.is_marked(el)){
 						grid.mark(el);
 						typename Grid::traits<TElem>::secure_container elemsOut;
-						grid.template associated_elements<TElem>(elemsOut, el);
+						grid.associated_elements<TElem>(elemsOut, el);
 						size_t size = elemsOut.size();
 						for (size_t i = 0; i < size; i++) {
-							sel.template select<TElem>(elemsOut[i], 1);
+							sel.select<TElem>(elemsOut[i], 1);
 						}
 					}
 				}
 			}
 		}
 		grid.end_marking();
-		begin = sel.template begin<TElem>();
-		end = sel.template end<TElem>();
+		begin = sel.begin<TElem>();
+		end = sel.end<TElem>();
 	}
 } // namespace ug

@@ -63,9 +63,9 @@ namespace ug{
  * \param T		The template parameter 'T' specifies the underlying data-type.
  *				It has to support the following operations, if 'interpolate'
  *				shall be used:
- *					- T& operator += (const T&)
- *					- T& operator -= (const T&)
- *					- T& operator *= (number)
+ *					- T& operator+= (const T&)
+ *					- T& operator-= (const T&)
+ *					- T& operator*= (number)
  *				It furthermore has to support std::numeric_limits<T>::max()
  */
 

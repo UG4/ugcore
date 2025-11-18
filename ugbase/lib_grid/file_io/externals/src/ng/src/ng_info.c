@@ -7,7 +7,7 @@ struct ng_info* ng_info_new(void)
     struct ng_info* ninfo = malloc(sizeof(struct ng_info));
     
     ninfo->error = 0;
-    ninfo->err_msg = nullptr;
+    ninfo->err_msg = NULL;
     
     return ninfo;
 }

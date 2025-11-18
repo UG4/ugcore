@@ -112,11 +112,11 @@ public:
 			row_iterator(typename encapsulated_matrix_type::row_iterator _iter)
 			: iter(_iter) {}
 			~row_iterator() {}
-			row_iterator *operator ->() { return iter.operator->(); }
-			bool operator != (const row_iterator &o) const { return *iter != o->iter;  }
-			void operator ++ () { ++iter; }
-			void operator += (int nr) { iter+=nr; }
-			bool operator == (const row_iterator &other) const { return other->iter == *iter;}
+			row_iterator *operator->() { return iter.operator->(); }
+			bool operator!=(const row_iterator &o) const { return *iter != o->iter;  }
+			void operator++() { ++iter; }
+			void operator+=(int nr) { iter+=nr; }
+			bool operator==(const row_iterator &other) const { return other->iter == *iter;}
 			size_t index() const { return iter.index(); }
 			value_type &value() { return BlockRef(iter.value(), m_subr, m_subc); }
 		};

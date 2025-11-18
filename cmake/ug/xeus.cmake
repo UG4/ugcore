@@ -29,55 +29,55 @@
 # GNU Lesser General Public License for more details.
 
 
-if(USE_XEUS) # included from ug_includes.cmake
-    if(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: XEUS requested, but static build. XEUS disabled?")
-    	SET(USE_XEUS OFF)
+if (USE_XEUS) # included from ug_includes.cmake
+    if (STATIC_BUILD)
+		message (STATUS "Info: XEUS requested, but static build. XEUS disabled?")
+    	set (USE_XEUS OFF)
     else(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: Using XEUS")
+		message (STATUS "Info: Using XEUS")
     	
     	
 		# Various Xeus libs
-		find_package(xwidgets REQUIRED) 
-		find_package(xeus REQUIRED)
-		find_package(xtl REQUIRED)
+		find_package (xwidgets REQUIRED)
+		find_package (xeus REQUIRED)
+		find_package (xtl REQUIRED)
 
-		message(STATUS "Jupyter-Plugin: xwidgets_FOUND=${xwidgets_FOUND} ${xwidgets_INCLUDE_DIRS}")
-		message(STATUS "Jupyter-Plugin: xeus_FOUND=${xeus_FOUND} ${xeus_INCLUDE_DIRS} ")
-		message(STATUS "Jupyter-Plugin: xtl_FOUND=${xtl_FOUND} ${xtl_INCLUDE_DIRS}")
+		message (STATUS "Jupyter-Plugin: xwidgets_FOUND=${xwidgets_FOUND} ${xwidgets_INCLUDE_DIRS}")
+		message (STATUS "Jupyter-Plugin: xeus_FOUND=${xeus_FOUND} ${xeus_INCLUDE_DIRS} ")
+		message (STATUS "Jupyter-Plugin: xtl_FOUND=${xtl_FOUND} ${xtl_INCLUDE_DIRS}")
 
 
 		# Find libraries
-		if(NOT DEFINED ${xeus_LIBRARY})
-			find_library(xeus_LIBRARY NAMES xeus PATHS "${xtl_INCLUDE_DIRS}/../lib")
-		endif() 
+		if (NOT DEFINED ${xeus_LIBRARY})
+			find_library (xeus_LIBRARY NAMES xeus PATHS "${xtl_INCLUDE_DIRS}/../lib")
+		endif ()
 
-		if(NOT DEFINED ${xwidgets_LIBRARY})
-			find_library(xwidgets_LIBRARY NAMES xtl PATHS "${xtl_INCLUDE_DIRS}/../lib")
-		endif() 
+		if (NOT DEFINED ${xwidgets_LIBRARY})
+			find_library (xwidgets_LIBRARY NAMES xtl PATHS "${xtl_INCLUDE_DIRS}/../lib")
+		endif ()
 
-		message(STATUS "Jupyter-Plugin: using  ${xeus_LIBRARY} ${xwidgets_LIBRARY}")   
+		message (STATUS "Jupyter-Plugin: using  ${xeus_LIBRARY} ${xwidgets_LIBRARY}")
 
 
 
 
 		# We also need  'zeromq' and 'sodium'
 		## load in pkg-config support
-		set(ENV{PKG_CONFIG_PATH} "$ENV{CONDA_PREFIX}/lib/pkgconfig")
-		message(STATUS "Jupyter-Plugin: Checking pkg-config $ENV{PKG_CONFIG_PATH}")
+		set (ENV{PKG_CONFIG_PATH} "$ENV{CONDA_PREFIX}/lib/pkgconfig")
+		message (STATUS "Jupyter-Plugin: Checking pkg-config $ENV{PKG_CONFIG_PATH}")
 		
-		find_package(PkgConfig REQUIRED)
-		pkg_search_module(ZEROMQ REQUIRED libzmq cppzmq zmq) ## use pkg-config to get hints for 0mq locations
-		pkg_search_module(SODIUM REQUIRED libsodium sodium)  ## use pkg-config to get hints for sodium locations
+		find_package (PkgConfig REQUIRED)
+		pkg_search_module (ZEROMQ REQUIRED libzmq cppzmq zmq) ## use pkg-config to get hints for 0mq locations
+		pkg_search_module (SODIUM REQUIRED libsodium sodium)  ## use pkg-config to get hints for sodium locations
 
-		message(STATUS "Jupyter-Plugin:${ZEROMQ_FOUND} ${ZEROMQ_LINK_LIBRARIES} ${ZEROMQ_LIBRARIES} ")
-		message(STATUS "Jupyter-Plugin:${SODIUM_FOUND} ${SODIUM_LINK_LIBRARIES} ${SODIUM_LIBRARIES}")
+		message (STATUS "Jupyter-Plugin:${ZEROMQ_FOUND} ${ZEROMQ_LINK_LIBRARIES} ${ZEROMQ_LIBRARIES} ")
+		message (STATUS "Jupyter-Plugin:${SODIUM_FOUND} ${SODIUM_LINK_LIBRARIES} ${SODIUM_LIBRARIES}")
 		
 		## use the hint from about to find the location of libzmq, sodium
-		if(NOT DEFINED ${ZEROMQ_LIBRARY_DIRS})
-			message(WARNING "Jupyter-Plugin: $ZEROMQ_LIBRARY_DIRS not defined.")
+		if (NOT DEFINED ${ZEROMQ_LIBRARY_DIRS})
+			message (WARNING "Jupyter-Plugin: $ZEROMQ_LIBRARY_DIRS not defined.")
 			set (PC_ZeroMQ_LIBRARY_DIRS "${xtl_INCLUDE_DIRS}/../lib")
-		endif()	
+		endif ()
 
 		# find_library(ZeroMQ_LIBRARY NAMES zmq PATHS ${PC_ZeroMQ_LIBRARY_DIRS})
 		# find_library(sodium_LIBRARY NAMES sodium PATHS ${PC_ZeroMQ_LIBRARY_DIRS})
@@ -85,11 +85,12 @@ if(USE_XEUS) # included from ug_includes.cmake
     	
     	# Automatic
     	# FIND_PACKAGE(nlohmann_json QUIET)
-    	# MESSAGE("-- Adding JSON from ${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx")	
+    	# message ("-- Adding JSON from ${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx")
     	# include_directories(${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx)
-    	# MESSAGE("-- Dir: ${NLOHMANN_JSON_INCLUDE_INSTALL_DIR}") 
-    	add_definitions(-DUG_XEUS)
-    endif(STATIC_BUILD)
-else(USE_XEUS)
-	set(USE_XEUS OFF)
-endif(USE_XEUS)
+    	# message ("-- Dir: ${NLOHMANN_JSON_INCLUDE_INSTALL_DIR}")
+    	add_definitions (-DUG_XEUS)
+	endif ()
+
+else ()
+	set (USE_XEUS OFF)
+endif ()

@@ -136,19 +136,19 @@ struct vector_attachment_reduce_traits
 
 template <>
 struct attachment_reduce_traits<MathVector<1> > :
-	public vector_attachment_reduce_traits<1>	{};
+		vector_attachment_reduce_traits<1>	{};
 
 template <>
 struct attachment_reduce_traits<MathVector<2> > :
-	public vector_attachment_reduce_traits<2>	{};
+		vector_attachment_reduce_traits<2>	{};
 
 template <>
 struct attachment_reduce_traits<MathVector<3> > :
-	public vector_attachment_reduce_traits<3>	{};
+		vector_attachment_reduce_traits<3>	{};
 
 template <>
 struct attachment_reduce_traits<MathVector<4> > :
-	public vector_attachment_reduce_traits<4>	{};
+		vector_attachment_reduce_traits<4>	{};
 
 
 // implementation for a std::vector<number> of arbitrary size

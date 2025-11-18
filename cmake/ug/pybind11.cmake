@@ -31,26 +31,28 @@
 # included from ug_includes.cmake
 
 
-if(USE_PYBIND11)
-    if(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: Pybind11 requested, but static build. Pybind11 disabled?")
-    	SET(USE_PYBIND11 OFF)
-    else(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: Using Pybind11")
+if (USE_PYBIND11)
+    if (STATIC_BUILD)
+		message (STATUS "Info: Pybind11 requested, but static build. Pybind11 disabled?")
+		set (USE_PYBIND11 OFF)
+
+    else()
+		message (STATUS "Info: Using Pybind11")
     	
     	# Automatic
-    	SET(pybind11_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/pybind11/include)
+		set (pybind11_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/pybind11/include)
     	
-    	IF (EXTERNAL_PYBIND11)
+    	if (EXTERNAL_PYBIND11)
     		# Automatic
-    		FIND_PACKAGE(pybind11 CONFIG REQUIRED)
-   	   	ENDIF(EXTERNAL_PYBIND11)
-   	   	
-   	   	MESSAGE(STATUS "Info: Using JSON from ${my_nlohmann_json_incl}")
-    	include_directories(${my_nlohmann_json_incl})
+    		FIND_PACKAGE (pybind11 CONFIG REQUIRED)
+   	   	endif ()
 
-    	add_definitions(-DUG_USE_PYBIND11)
-    endif(STATIC_BUILD)
-else(USE_PYBIND11)
-	set(USE_PYBIND11 OFF)
-endif(USE_PYBIND11)
+		message (STATUS "Info: Using JSON from ${my_nlohmann_json_incl}")
+    	include_directories (${my_nlohmann_json_incl})
+
+    	add_definitions (-DUG_USE_PYBIND11)
+	endif ()
+
+else ()
+	set (USE_PYBIND11 OFF)
+endif ()

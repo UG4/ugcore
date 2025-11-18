@@ -402,7 +402,7 @@ bool WildcardMatch(const char *str, const char *pattern)
 			{
 				char nextSign = pattern[i+1];
 				UG_ASSERT(nextSign != '*', "** is not a valid pattern");
-				while(1)
+				while(true)
 				{
 					for(;j<strLen; j++)
 						if(str[j] == nextSign)

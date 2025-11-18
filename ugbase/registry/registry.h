@@ -338,4 +338,4 @@ class UG_API Registry {
 //	include implementation
 #include "registry_impl.h"
 
-#endif /* __H__UG_BRIDGE__REGISTRY__ */
+#endif

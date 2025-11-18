@@ -71,7 +71,7 @@ class MultiGridRefiner : public GridObserver
 	public:
 		MultiGridRefiner();
 		MultiGridRefiner(MultiGrid& mg);
-		~MultiGridRefiner();
+		~MultiGridRefiner() override;
 		
 		virtual void grid_to_be_destroyed(Grid* grid);
 
@@ -115,13 +115,13 @@ class MultiGridRefiner : public GridObserver
 	////////////////////////////////
 	//	element-status
 	///	returns a constant enumerated in MultiGridRefiner::StatusMark.
-		inline int get_status(Vertex* e)	{return m_aaIntVRT[e] & MR_STATUS;}
+		inline int get_status(Vertex* e) {return m_aaIntVRT[e] & MR_STATUS;}
 	///	returns a constant enumerated in MultiGridRefiner::StatusMark.	
-		inline int get_status(Edge* e)		{return m_aaIntEDGE[e] & MR_STATUS;}
+		inline int get_status(Edge* e) {return m_aaIntEDGE[e] & MR_STATUS;}
 	///	returns a constant enumerated in MultiGridRefiner::StatusMark.
-		inline int get_status(Face* e)			{return m_aaIntFACE[e] & MR_STATUS;}
+		inline int get_status(Face* e) {return m_aaIntFACE[e] & MR_STATUS;}
 	///	returns a constant enumerated in MultiGridRefiner::StatusMark.	
-		inline int get_status(Volume* e)		{return m_aaIntVOL[e] & MR_STATUS;}
+		inline int get_status(Volume* e) {return m_aaIntVOL[e] & MR_STATUS;}
 
 	protected:
 	/**	Those marks are used to mark the refinement rule that will be
@@ -155,7 +155,7 @@ class MultiGridRefiner : public GridObserver
 	/**	Called from the refine() method in each refinement-iteration after
 	 *	collect_objects_for_refine().
 	 *	Default implementation is empty.*/
-		virtual void refinement_step_begins()	{};
+		virtual void refinement_step_begins() {};
 
 	///	this method helps derived classes to perform operations directly after actual element refinment took place.
 	/**	Called from the refine() method in each refinement-iteration after
@@ -163,27 +163,27 @@ class MultiGridRefiner : public GridObserver
 	 *	The refine process will either terminate after this method or will
 	 *	start a new iteration, if new elements had been marked during refine.
 	 *	Default implementation is empty.*/
-		virtual void refinement_step_ends()		{};
+		virtual void refinement_step_ends() {};
 		
 		void adjust_initial_selection();
 		void select_closure(std::vector<Vertex*>& vVrts);
 		void select_copy_elements(std::vector<Vertex*>& vVrts,
 								  int iFirst = 0, int copyRange = -1);
 		
-		inline void set_status(Vertex* e, StatusMark mark)	{m_aaIntVRT[e] = (m_aaIntVRT[e] & ~MR_STATUS) | mark;}
-		inline void set_status(Edge* e, StatusMark mark)	{m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_STATUS) | mark;}
-		inline void set_status(Face* e, StatusMark mark)		{m_aaIntFACE[e] = (m_aaIntFACE[e] & ~MR_STATUS) | mark;}
-		inline void set_status(Volume* e, StatusMark mark)		{m_aaIntVOL[e] = (m_aaIntVOL[e] & ~MR_STATUS) | mark;}
+		inline void set_status(Vertex* e, StatusMark mark) {m_aaIntVRT[e] = (m_aaIntVRT[e] & ~MR_STATUS) | mark;}
+		inline void set_status(Edge* e, StatusMark mark) {m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_STATUS) | mark;}
+		inline void set_status(Face* e, StatusMark mark) {m_aaIntFACE[e] = (m_aaIntFACE[e] & ~MR_STATUS) | mark;}
+		inline void set_status(Volume* e, StatusMark mark) {m_aaIntVOL[e] = (m_aaIntVOL[e] & ~MR_STATUS) | mark;}
 
-		virtual void set_rule(Vertex* e, RefinementMark mark)	{m_aaIntVRT[e] = (m_aaIntVRT[e] & ~MR_REFINEMENT) | mark;}
-		virtual void set_rule(Edge* e, RefinementMark mark)		{m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_REFINEMENT) | mark;}
-		virtual void set_rule(Face* e, RefinementMark mark)			{m_aaIntFACE[e] = (m_aaIntFACE[e] & ~MR_REFINEMENT) | mark;}
-		virtual void set_rule(Volume* e, RefinementMark mark)		{m_aaIntVOL[e] = (m_aaIntVOL[e] & ~MR_REFINEMENT) | mark;}
+		virtual void set_rule(Vertex* e, RefinementMark mark) {m_aaIntVRT[e] = (m_aaIntVRT[e] & ~MR_REFINEMENT) | mark;}
+		virtual void set_rule(Edge* e, RefinementMark mark) {m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_REFINEMENT) | mark;}
+		virtual void set_rule(Face* e, RefinementMark mark) {m_aaIntFACE[e] = (m_aaIntFACE[e] & ~MR_REFINEMENT) | mark;}
+		virtual void set_rule(Volume* e, RefinementMark mark) {m_aaIntVOL[e] = (m_aaIntVOL[e] & ~MR_REFINEMENT) | mark;}
 
-		inline int get_rule(Vertex* e)	{return m_aaIntVRT[e] & MR_REFINEMENT;}
-		inline int get_rule(Edge* e)	{return m_aaIntEDGE[e] & MR_REFINEMENT;}
-		inline int get_rule(Face* e)		{return m_aaIntFACE[e] & MR_REFINEMENT;}
-		inline int get_rule(Volume* e)		{return m_aaIntVOL[e] & MR_REFINEMENT;}
+		inline int get_rule(Vertex* e) {return m_aaIntVRT[e] & MR_REFINEMENT;}
+		inline int get_rule(Edge* e) {return m_aaIntEDGE[e] & MR_REFINEMENT;}
+		inline int get_rule(Face* e) {return m_aaIntFACE[e] & MR_REFINEMENT;}
+		inline int get_rule(Volume* e) {return m_aaIntVOL[e] & MR_REFINEMENT;}
 /*
 		template <class TIterator>
 		void mark_fixed_elements(TIterator iterBegin, TIterator iterEnd);

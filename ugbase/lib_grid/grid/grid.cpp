@@ -119,10 +119,10 @@ Grid::~Grid()
 
 //	erase any internal managers and handlers
 	#ifdef UG_PARALLEL
-		if(m_distGridMgr)			delete m_distGridMgr;
+		if(m_distGridMgr) delete m_distGridMgr;
 	#endif
 
-	if(m_periodicBndMgr)		delete m_periodicBndMgr;
+	if(m_periodicBndMgr) delete m_periodicBndMgr;
 }
 
 void Grid::notify_and_clear_observers_on_grid_destruction(GridObserver* initiator)
@@ -130,8 +130,8 @@ void Grid::notify_and_clear_observers_on_grid_destruction(GridObserver* initiato
 //	tell registered grid-observers that the grid is to be destroyed.
 //	do this in reverse order, so that the danger of accessing invalid observers
 //	is minimized.
-	for(ObserverContainer::reverse_iterator iter = m_gridObservers.rbegin();
-		iter != m_gridObservers.rend(); ++iter)
+	for(auto iter = m_gridObservers.rbegin();
+	    iter != m_gridObservers.rend(); ++iter)
 	{
 		if(*iter != initiator)
 			(*iter)->grid_to_be_destroyed(this);
@@ -161,7 +161,7 @@ set_parallel(bool parallel)
 		#ifdef UG_PARALLEL
 			if(!is_parallel()){
 			//	we currently only support parallel mutli-grids, sadly...
-				MultiGrid* mg = dynamic_cast<MultiGrid*>(this);
+				auto mg = dynamic_cast<MultiGrid*>(this);
 				if(mg){
 					if(m_distGridMgr) delete m_distGridMgr;
 					m_distGridMgr = new DistributedGridManager;
@@ -418,14 +418,14 @@ void Grid::assign_grid(const Grid& grid)
 
 VertexIterator Grid::create_by_cloning(Vertex* pCloneMe, GridObject* pParent)
 {
-	Vertex* pNew = reinterpret_cast<Vertex*>(pCloneMe->create_empty_instance());
+	auto pNew = reinterpret_cast<Vertex*>(pCloneMe->create_empty_instance());
 	register_vertex(pNew, pParent);
 	return iterator_cast<VertexIterator>(get_iterator(pNew));
 }
 
 EdgeIterator Grid::create_by_cloning(Edge* pCloneMe, const IVertexGroup& ev, GridObject* pParent)
 {
-	Edge* pNew = reinterpret_cast<Edge*>(pCloneMe->create_empty_instance());
+	auto pNew = reinterpret_cast<Edge*>(pCloneMe->create_empty_instance());
 	pNew->set_vertex(0, ev.vertex(0));
 	pNew->set_vertex(1, ev.vertex(1));
 	register_edge(pNew, pParent);
@@ -434,7 +434,7 @@ EdgeIterator Grid::create_by_cloning(Edge* pCloneMe, const IVertexGroup& ev, Gri
 
 FaceIterator Grid::create_by_cloning(Face* pCloneMe, const IVertexGroup& fv, GridObject* pParent)
 {
-	Face* pNew = reinterpret_cast<Face*>(pCloneMe->create_empty_instance());
+	auto pNew = reinterpret_cast<Face*>(pCloneMe->create_empty_instance());
 	uint numVrts = fv.num_vertices();
 	Face::ConstVertexArray vrts = fv.vertices();
 	for(uint i = 0; i < numVrts; ++i)
@@ -445,7 +445,7 @@ FaceIterator Grid::create_by_cloning(Face* pCloneMe, const IVertexGroup& fv, Gri
 
 VolumeIterator Grid::create_by_cloning(Volume* pCloneMe, const IVertexGroup& vv, GridObject* pParent)
 {
-	Volume* pNew = reinterpret_cast<Volume*>(pCloneMe->create_empty_instance());
+	auto pNew = reinterpret_cast<Volume*>(pCloneMe->create_empty_instance());
 	uint numVrts = vv.num_vertices();
 	Volume::ConstVertexArray vrts = vv.vertices();
 	for(uint i = 0; i < numVrts; ++i)
@@ -608,22 +608,26 @@ void Grid::flip_orientation(Volume* vol)
 
 size_t Grid::vertex_fragmentation()
 {
-	return m_vertexElementStorage.m_attachmentPipe.num_data_entries() - m_vertexElementStorage.m_attachmentPipe.num_elements();
+	return m_vertexElementStorage.m_attachmentPipe.num_data_entries()
+			- m_vertexElementStorage.m_attachmentPipe.num_elements();
 }
 
 size_t Grid::edge_fragmentation()
 {
-	return m_edgeElementStorage.m_attachmentPipe.num_data_entries() - m_edgeElementStorage.m_attachmentPipe.num_elements();
+	return m_edgeElementStorage.m_attachmentPipe.num_data_entries()
+			- m_edgeElementStorage.m_attachmentPipe.num_elements();
 }
 
 size_t Grid::face_fragmentation()
 {
-	return m_faceElementStorage.m_attachmentPipe.num_data_entries() - m_faceElementStorage.m_attachmentPipe.num_elements();
+	return m_faceElementStorage.m_attachmentPipe.num_data_entries()
+			- m_faceElementStorage.m_attachmentPipe.num_elements();
 }
 
 size_t Grid::volume_fragmentation()
 {
-	return m_volumeElementStorage.m_attachmentPipe.num_data_entries() - m_volumeElementStorage.m_attachmentPipe.num_elements();
+	return m_volumeElementStorage.m_attachmentPipe.num_data_entries()
+			- m_volumeElementStorage.m_attachmentPipe.num_elements();
 }
 
 
@@ -666,9 +670,7 @@ template <class TAttachmentPipe, class TElem>
 void Grid::pass_on_values(TAttachmentPipe& attachmentPipe,
 							TElem* pSrc, TElem* pDest)
 {
-	for(typename TAttachmentPipe::ConstAttachmentEntryIterator
-			iter = attachmentPipe.attachments_begin();
-		iter != attachmentPipe.attachments_end(); iter++)
+	for(auto iter = attachmentPipe.attachments_begin(); iter != attachmentPipe.attachments_end(); iter++)
 	{
 		if((*iter).m_userData == 1)
 			(*iter).m_pContainer->copy_data(get_attachment_data_index(pSrc),
@@ -784,23 +786,23 @@ void Grid::register_observer(GridObserver* observer, uint observerType)
 //	avoid double-registration!
 	if((observerType & OT_GRID_OBSERVER) == OT_GRID_OBSERVER)
 	{
-		ObserverContainer::iterator iter = find(m_gridObservers.begin(),
-												m_gridObservers.end(), observer);
+		auto iter = find(m_gridObservers.begin(),
+		                 m_gridObservers.end(), observer);
 		if(iter == m_gridObservers.end())
 			m_gridObservers.push_back(observer);
 	}
 
 	if((observerType & OT_VERTEX_OBSERVER) == OT_VERTEX_OBSERVER)
 	{
-		ObserverContainer::iterator iter = find(m_vertexObservers.begin(),
-												m_vertexObservers.end(), observer);
+		auto iter = find(m_vertexObservers.begin(),
+		                 m_vertexObservers.end(), observer);
 		if(iter == m_vertexObservers.end())
 			m_vertexObservers.push_back(observer);
 	}
 
 	if((observerType & OT_EDGE_OBSERVER) == OT_EDGE_OBSERVER)
 	{
-		ObserverContainer::iterator iter = find(m_edgeObservers.begin(),
+		auto iter = find(m_edgeObservers.begin(),
 												m_edgeObservers.end(), observer);
 		if(iter == m_edgeObservers.end())
 			m_edgeObservers.push_back(observer);
@@ -808,7 +810,7 @@ void Grid::register_observer(GridObserver* observer, uint observerType)
 
 	if((observerType & OT_FACE_OBSERVER) == OT_FACE_OBSERVER)
 	{
-		ObserverContainer::iterator iter = find(m_faceObservers.begin(),
+		auto iter = find(m_faceObservers.begin(),
 												m_faceObservers.end(), observer);
 		if(iter == m_faceObservers.end())
 			m_faceObservers.push_back(observer);
@@ -816,7 +818,7 @@ void Grid::register_observer(GridObserver* observer, uint observerType)
 
 	if((observerType & OT_VOLUME_OBSERVER) == OT_VOLUME_OBSERVER)
 	{
-		ObserverContainer::iterator iter = find(m_volumeObservers.begin(),
+		auto iter = find(m_volumeObservers.begin(),
 												m_volumeObservers.end(), observer);
 		if(iter == m_volumeObservers.end())
 			m_volumeObservers.push_back(observer);
@@ -833,8 +835,7 @@ void Grid::unregister_observer(GridObserver* observer)
 	//bool unregisterdFromGridObservers = false;
 
 	{
-		ObserverContainer::iterator iter = find(m_gridObservers.begin(),
-												m_gridObservers.end(), observer);
+		auto iter = find(m_gridObservers.begin(), m_gridObservers.end(), observer);
 		if(iter != m_gridObservers.end()){
 			m_gridObservers.erase(iter);
 		}
@@ -843,29 +844,25 @@ void Grid::unregister_observer(GridObserver* observer)
 	}
 
 	{
-		ObserverContainer::iterator iter = find(m_vertexObservers.begin(),
-												m_vertexObservers.end(), observer);
+		auto iter = find(m_vertexObservers.begin(), m_vertexObservers.end(), observer);
 		if(iter != m_vertexObservers.end())
 			m_vertexObservers.erase(iter);
 	}
 
 	{
-		ObserverContainer::iterator iter = find(m_edgeObservers.begin(),
-												m_edgeObservers.end(), observer);
+		auto iter = find(m_edgeObservers.begin(), m_edgeObservers.end(), observer);
 		if(iter != m_edgeObservers.end())
 			m_edgeObservers.erase(iter);
 	}
 
 	{
-		ObserverContainer::iterator iter = find(m_faceObservers.begin(),
-												m_faceObservers.end(), observer);
+		auto iter = find(m_faceObservers.begin(), m_faceObservers.end(), observer);
 		if(iter != m_faceObservers.end())
 			m_faceObservers.erase(iter);
 	}
 
 	{
-		ObserverContainer::iterator iter = find(m_volumeObservers.begin(),
-												m_volumeObservers.end(), observer);
+		auto iter = find(m_volumeObservers.begin(), m_volumeObservers.end(), observer);
 		if(iter != m_volumeObservers.end())
 			m_volumeObservers.erase(iter);
 	}
@@ -1224,10 +1221,9 @@ void Grid::reset_marks()
 {
 //	set all marks to 0 and m_currentMark to 1
 	m_currentMark = 1;
-	AMark::ContainerType* pContainer;
 
 //	reset vertex marks
-	pContainer = get_attachment_data_container<Vertex>(m_aMark);
+	AMark::ContainerType *pContainer = get_attachment_data_container<Vertex>(m_aMark);
 	for(uint i = 0; i < pContainer->size(); ++i)
 		pContainer->get_elem(i) = 0;
 

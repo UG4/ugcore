@@ -87,7 +87,7 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 		HangingNodeRefiner2D_IRN(SPRefinementProjector projector);
 		HangingNodeRefiner2D_IRN(Grid& grid, SPRefinementProjector projector);
 	//todo: make copy-constructor public
-		virtual ~HangingNodeRefiner2D_IRN();
+		~HangingNodeRefiner2D_IRN() override;
 
 		virtual void grid_to_be_destroyed(Grid* grid);
 

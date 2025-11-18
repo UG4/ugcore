@@ -43,7 +43,7 @@ namespace ug{
  */
 class ISubGrid {
 public:
-	virtual ~ISubGrid() {}
+	virtual ~ISubGrid() = default;
 
 	virtual const GridObjectCollection& goc () const = 0;
 	virtual bool is_contained(Vertex*) const = 0;
@@ -70,15 +70,15 @@ public:
 	{
 	}
 
-	virtual const GridObjectCollection& goc () const	{return m_goc;}
-	virtual bool is_contained (Vertex* e) const			{return m_callbacks(e);}
-	virtual bool is_contained (Edge* e) const			{return m_callbacks(e);}
-	virtual bool is_contained (Face* e) const			{return m_callbacks(e);}
-	virtual bool is_contained (Volume* e) const			{return m_callbacks(e);}
+	const GridObjectCollection& goc () const override {return m_goc;}
+	bool is_contained (Vertex* e) const override {return m_callbacks(e);}
+	bool is_contained (Edge* e) const override {return m_callbacks(e);}
+	bool is_contained (Face* e) const override {return m_callbacks(e);}
+	bool is_contained (Volume* e) const override {return m_callbacks(e);}
 
 private:
-	GridObjectCollection	m_goc;
-	TCallbackCls			m_callbacks;
+	GridObjectCollection m_goc;
+	TCallbackCls m_callbacks;
 };
 
 
@@ -129,4 +129,4 @@ class IsNotInSubGrid
 
 }//	end of namespace
 
-#endif	//__H__UG_sub_grid
+#endif

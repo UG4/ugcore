@@ -196,11 +196,11 @@ private:
 	//				return false;
 	//			}
 public:
-	UM_out_edge_iterator& operator++() {
+	UM_out_edge_iterator& operator ++ () {
 		++_base;
 		return *this;
 	}
-	UM_out_edge_iterator operator++(int) { untested();
+	UM_out_edge_iterator operator ++ (int) { untested();
 		UM_out_edge_iterator copy(*this);
 		++*this;
 		return copy;

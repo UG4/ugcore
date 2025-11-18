@@ -43,26 +43,26 @@ namespace pyra_rules
 ////////////////////////////////////////////////////////////////////////////////
 //	LOOKUP TABLES
 
-const int NUM_VERTICES	= 5;
-const int NUM_EDGES		= 8;
-const int NUM_FACES		= 5;
-const int NUM_TRIS		= 4;
-const int NUM_QUADS		= 1;
-const int MAX_NUM_INDS_OUT = 128;//todo: this is just an estimate!
-const int MAX_NUM_CONVERT_TO_TETS_INDS_OUT = 10;
-const int MAX_NUM_COLLAPSE_INDS_OUT = 5;
+constexpr int NUM_VERTICES = 5;
+constexpr int NUM_EDGES = 8;
+constexpr int NUM_FACES = 5;
+constexpr int NUM_TRIS = 4;
+constexpr int NUM_QUADS = 1;
+constexpr int MAX_NUM_INDS_OUT = 128;//todo: this is just an estimate!
+constexpr int MAX_NUM_CONVERT_TO_TETS_INDS_OUT = 10;
+constexpr int MAX_NUM_COLLAPSE_INDS_OUT = 5;
 
 ///	the local vertex indices of the given edge
-const int EDGE_VRT_INDS[][2] = {	{0, 1}, {1, 2}, {2, 3}, {3, 0},
+const int EDGE_VRT_INDS[][2] = { {0, 1}, {1, 2}, {2, 3}, {3, 0},
 									{4, 0}, {4, 1}, {4, 2}, {4, 3}};
 
 ///	the local vertex indices of the given face
-const int FACE_VRT_INDS[][4] = {	{0, 1, 2, 3},	{0, 4, 1, -1},
-									{1, 4, 2, -1},	{2, 4, 3, -1},
+const int FACE_VRT_INDS[][4] = { {0, 1, 2, 3},	{0, 4, 1, -1},
+									{1, 4, 2, -1}, {2, 4, 3, -1},
 									{0, 3, 4, -1}};
 
 ///	the pyramids top
-const int TOP_VERTEX = 4;
+constexpr int TOP_VERTEX = 4;
 
 
 /** for each vertex, a pair containing the object type (0: vrt, 1: edge, 2: face)
@@ -70,11 +70,11 @@ const int TOP_VERTEX = 4;
  * on the opposite side of the pyramid, to a given vertex.*/
 const int OPPOSED_OBJECT[][NUM_VERTICES] = {{1, 6}, {1, 7}, {1, 4}, {1, 5}, {2, 0}};
 
-const int NUM_BOTTOM_EDGES = 4;
-const int BOTTOM_EDGE_INDS[NUM_BOTTOM_EDGES] = {0, 1, 2, 3};
+constexpr int NUM_BOTTOM_EDGES = 4;
+constexpr int BOTTOM_EDGE_INDS[NUM_BOTTOM_EDGES] = {0, 1, 2, 3};
 
-const int NUM_TOP_EDGES = 4;
-const int TOP_EDGE_INDS[NUM_BOTTOM_EDGES] = {4, 5, 6, 7};
+constexpr int NUM_TOP_EDGES = 4;
+constexpr int TOP_EDGE_INDS[NUM_BOTTOM_EDGES] = {4, 5, 6, 7};
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

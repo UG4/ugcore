@@ -172,19 +172,18 @@ class UG_API CustomTriangle : public BaseClass
 class UG_API Triangle :
 	public CustomTriangle<Triangle, Face, Triangle, Quadrilateral>
 {
-	using BaseClass = CustomTriangle<Triangle, Face, Triangle, Quadrilateral>;
+	using BaseClass = CustomTriangle;
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Triangle*>(pObj) != nullptr;}
 
-		Triangle() : BaseClass()	{}
+		Triangle() = default;
 		Triangle(const TriangleDescriptor& td) : BaseClass(td)	{}
 		Triangle(Vertex* v1, Vertex* v2, Vertex* v3) : BaseClass(v1, v2, v3)	{}
 
-		virtual int container_section() const	{return CSFACE_TRIANGLE;}
+		int container_section() const override	{return CSFACE_TRIANGLE;}
 
 	protected:
-		virtual Edge* create_edge(int index)
-			{
+		Edge* create_edge(int index) override {
 				return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 3]);
 			}
 };
@@ -219,13 +218,13 @@ using ConstTriangleIterator = geometry_traits<Triangle>::const_iterator;
 class UG_API QuadrilateralDescriptor
 {
 	public:
-		QuadrilateralDescriptor()	{}
+		QuadrilateralDescriptor() = default;
 		QuadrilateralDescriptor(const QuadrilateralDescriptor& qd);
 		QuadrilateralDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4);
 
-		inline uint num_vertices() const					{return 4;}
-		inline void set_vertex(uint index, Vertex* v)	{m_vertex[index] = v;}
-		inline Vertex* vertex(size_t index) const			{return m_vertex[index];}
+		inline uint num_vertices() const {return 4;}
+		inline void set_vertex(uint index, Vertex* v) {m_vertex[index] = v;}
+		inline Vertex* vertex(size_t index) const {return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[4];
@@ -259,52 +258,52 @@ class UG_API CustomQuadrilateral : public BaseClass
 		CustomQuadrilateral(Vertex* v1, Vertex* v2,
 							Vertex* v3, Vertex* v4);
 
-		virtual GridObject* create_empty_instance() const	{return new ConcreteQuadrilateralType;}
-		virtual ReferenceObjectID reference_object_id() const {return ROID_QUADRILATERAL;}
+		GridObject* create_empty_instance() const override	{return new ConcreteQuadrilateralType;}
+		ReferenceObjectID reference_object_id() const override {return ROID_QUADRILATERAL;}
 
-		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
-		virtual Face::ConstVertexArray vertices() const		{return m_vertices;}
-		virtual size_t num_vertices() const	{return 4;}
+		[[nodiscard]] Vertex* vertex(size_t index) const override	{return m_vertices[index];}
+		[[nodiscard]] Face::ConstVertexArray vertices() const override		{return m_vertices;}
+		[[nodiscard]] size_t num_vertices() const override	{return 4;}
 
-		virtual EdgeDescriptor edge_desc(int index) const
+		[[nodiscard]] EdgeDescriptor edge_desc(int index) const override
 			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % 4]);}
 
-		virtual void edge_desc(int index, EdgeDescriptor& edOut) const
+		void edge_desc(int index, EdgeDescriptor& edOut) const override
 			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % 4]);}
 
 
 	///	fills the edge-descriptor with the edge that lies opposed to the specified one
 	/**	If the specified edge is not part of the face, false is returned.*/
-		virtual bool get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const;
+		bool get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const override;
 
-		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
+		std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const override;
 
 	///	Refines a Quadrilateral by inserting new vertices. \sa Face::refine.
-		virtual bool refine(std::vector<Face*>& vNewFacesOut,
+		bool refine(std::vector<Face*>& vNewFacesOut,
 							Vertex** newFaceVertexOut,
 							Vertex** newEdgeVertices,
 							Vertex* newFaceVertex = nullptr,
 							Vertex** pSubstituteVertices = nullptr,
-							int snapPointIndex = -1);
+							int snapPointIndex = -1) override;
 
-		virtual bool is_regular_ref_rule(int edgeMarks) const;
+		[[nodiscard]] bool is_regular_ref_rule(int edgeMarks) const override;
 		
-		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
+		bool collapse_edge(std::vector<Face*>& vNewFacesOut,
 								int edgeIndex, Vertex* newVertex,
-								Vertex** pSubstituteVertices = nullptr);
+								Vertex** pSubstituteVertices = nullptr) override;
 
-		virtual bool collapse_edges(std::vector<Face*>& vNewFacesOut,
+		bool collapse_edges(std::vector<Face*>& vNewFacesOut,
 								std::vector<Vertex*>& vNewEdgeVertices,
-								Vertex** pSubstituteVertices = nullptr);
+								Vertex** pSubstituteVertices = nullptr) override;
 
 //	BEGIN Depreciated
-		virtual void create_faces_by_edge_split(int splitEdgeIndex,
+		void create_faces_by_edge_split(int splitEdgeIndex,
 							Vertex* newVertex,
 							std::vector<Face*>& vNewFacesOut,
-							Vertex** pSubstituteVertices = nullptr);
+							Vertex** pSubstituteVertices = nullptr) override;
 
 	protected:
-		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
+		void set_vertex(uint index, Vertex* pVrt) override	{m_vertices[index] = pVrt;}
 
 	protected:
 		Vertex* m_vertices[4];
@@ -327,16 +326,15 @@ class UG_API Quadrilateral :
 		inline static bool type_match(GridObject* pObj)
 		{return dynamic_cast<Quadrilateral*>(pObj) != nullptr;}
 
-		Quadrilateral()	{}
+		Quadrilateral()	= default;
 		Quadrilateral(const QuadrilateralDescriptor& td) : BaseClass(td)	{}
 		Quadrilateral(Vertex* v1, Vertex* v2,
 					  Vertex* v3, Vertex* v4) : BaseClass(v1, v2, v3, v4)	{}
 
-		virtual int container_section() const	{return CSFACE_QUADRILATERAL;}
+		int container_section() const override {return CSFACE_QUADRILATERAL;}
 
 	protected:
-		virtual Edge* create_edge(int index)
-		{
+		Edge* create_edge(int index) override {
 			return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 4]);
 		}
 };
@@ -382,8 +380,8 @@ class UG_API ConstrainedFace : public Face
 		{return dynamic_cast<ConstrainedFace*>(pObj) != nullptr;}
 
 		ConstrainedFace() : m_pConstrainingObject(nullptr), m_parentBaseObjectId(-1)	{}
-		virtual ~ConstrainedFace()
-		{
+
+		~ConstrainedFace() override {
 			if(m_pConstrainingObject)
 				m_pConstrainingObject->remove_constraint_link(this);
 		}
@@ -395,9 +393,9 @@ class UG_API ConstrainedFace : public Face
 				m_parentBaseObjectId = pObj->base_object_id();
 		}
 
-		inline GridObject* get_constraining_object()	{return m_pConstrainingObject;}
+		inline GridObject* get_constraining_object() const {return m_pConstrainingObject;}
 
-		inline int get_parent_base_object_id()			{return m_parentBaseObjectId;}
+		inline int get_parent_base_object_id() const {return m_parentBaseObjectId;}
 		inline void set_parent_base_object_id(int id)
 		{
 			if((m_parentBaseObjectId != -1) && (m_parentBaseObjectId != id)){
@@ -409,10 +407,9 @@ class UG_API ConstrainedFace : public Face
 			m_parentBaseObjectId = id;
 		}
 
-		virtual bool is_constrained() const	{return true;}
+		bool is_constrained() const override {return true;}
 
-		virtual void remove_constraint_link(const Face* f)
-		{
+		void remove_constraint_link(const Face* f) override {
 			if(m_pConstrainingObject == static_cast<const GridObject*>(f))
 				m_pConstrainingObject = nullptr;
 		}
@@ -434,8 +431,7 @@ class UG_API ConstrainedTriangle :
 	public CustomTriangle	<ConstrainedTriangle, ConstrainedFace,
 							 ConstrainedTriangle, ConstrainedQuadrilateral>
 {
-	using BaseTriangle = CustomTriangle<ConstrainedTriangle, ConstrainedFace,
-		ConstrainedTriangle, ConstrainedQuadrilateral>;
+	using BaseTriangle = CustomTriangle;
 
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedTriangle*>(pObj) != nullptr;}
@@ -449,11 +445,10 @@ class UG_API ConstrainedTriangle :
 		ConstrainedTriangle(Vertex* v1, Vertex* v2, Vertex* v3) :
 			BaseTriangle(v1, v2, v3)	{}
 
-		virtual int container_section() const	{return CSFACE_CONSTRAINED_TRIANGLE;}
+		int container_section() const override {return CSFACE_CONSTRAINED_TRIANGLE;}
 
 	protected:
-		virtual Edge* create_edge(int index)
-			{
+		Edge* create_edge(int index) override {
 				return new ConstrainedEdge(m_vertices[index], m_vertices[(index+1) % 3]);
 			}
 };
@@ -492,22 +487,20 @@ class UG_API ConstrainedQuadrilateral :
 	public CustomQuadrilateral	<ConstrainedQuadrilateral, ConstrainedFace,
 							 	 ConstrainedTriangle, ConstrainedQuadrilateral>
 {
-	using BaseClass = CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace,
-		ConstrainedTriangle, ConstrainedQuadrilateral>;
+	using BaseClass = CustomQuadrilateral;
 
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedQuadrilateral*>(pObj) != nullptr;}
 
-		ConstrainedQuadrilateral() : BaseClass()	{}
+		ConstrainedQuadrilateral() = default;
 		ConstrainedQuadrilateral(const QuadrilateralDescriptor& qd) : BaseClass(qd)	{}
 		ConstrainedQuadrilateral(Vertex* v1, Vertex* v2,
 								 Vertex* v3, Vertex* v4) : BaseClass(v1, v2, v3, v4)	{}
 
-		virtual int container_section() const	{return CSFACE_CONSTRAINED_QUADRILATERAL;}
+		int container_section() const override {return CSFACE_CONSTRAINED_QUADRILATERAL;}
 
 	protected:
-		virtual Edge* create_edge(int index)
-			{
+		Edge* create_edge(int index) override {
 				return new ConstrainedEdge(m_vertices[index], m_vertices[(index+1) % 4]);
 			}
 };
@@ -554,8 +547,7 @@ class UG_API ConstrainingFace : public Face
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainingFace*>(pObj) != nullptr;}
 
-		virtual ~ConstrainingFace()
-		{
+		~ConstrainingFace() override {
 			for(size_t i = 0; i < m_constrainedVertices.size(); ++i){
 				m_constrainedVertices[i]->remove_constraint_link(this);
 			}
@@ -569,7 +561,7 @@ class UG_API ConstrainingFace : public Face
 			}
 		}
 
-		virtual bool is_constraining() const					{return true;}
+		bool is_constraining() const override {return true;}
 
 		inline void add_constrained_object(Vertex* pObj)
 			{
@@ -594,43 +586,40 @@ class UG_API ConstrainingFace : public Face
 
 		inline bool is_constrained_object(Vertex* vrt)
 			{
-				std::vector<Vertex*>::iterator iter = find(m_constrainedVertices.begin(),
+				auto iter = find(m_constrainedVertices.begin(),
 															m_constrainedVertices.end(), vrt);
 				return iter != m_constrainedVertices.end();
 			}
 
 		inline bool is_constrained_object(Edge* edge)
 			{
-				std::vector<Edge*>::iterator iter = find(m_constrainedEdges.begin(),
+				auto iter = find(m_constrainedEdges.begin(),
 															m_constrainedEdges.end(), edge);
 				return iter != m_constrainedEdges.end();
 			}
 
 		inline bool is_constrained_object(Face* face)
 			{
-				std::vector<Face*>::iterator iter = find(m_constrainedFaces.begin(),
+				auto iter = find(m_constrainedFaces.begin(),
 														m_constrainedFaces.end(), face);
 				return iter != m_constrainedFaces.end();
 			}
 
-		virtual void remove_constraint_link(const Vertex* vrt)
-		{
+		void remove_constraint_link(const Vertex* vrt) override {
 			unconstrain_object(vrt);
 		}
 
-		virtual void remove_constraint_link(const Edge* e)
-		{
+		void remove_constraint_link(const Edge* e) override {
 			unconstrain_object(e);
 		}
 
-		virtual void remove_constraint_link(const Face* f)
-		{
+		void remove_constraint_link(const Face* f) override {
 			unconstrain_object(f);
 		}
 
 		inline void unconstrain_object(const Vertex* vrt)
 			{
-				std::vector<Vertex*>::iterator iter = find(m_constrainedVertices.begin(),
+				auto iter = find(m_constrainedVertices.begin(),
 															 m_constrainedVertices.end(), vrt);
 				if(iter != m_constrainedVertices.end())
 					m_constrainedVertices.erase(iter);
@@ -638,8 +627,7 @@ class UG_API ConstrainingFace : public Face
 
 		inline void unconstrain_object(const Edge* edge)
 			{
-				std::vector<Edge*>::iterator iter
-					= find(m_constrainedEdges.begin(),
+				auto iter = find(m_constrainedEdges.begin(),
 						   m_constrainedEdges.end(), edge);
 
 				if(iter != m_constrainedEdges.end())
@@ -715,8 +703,7 @@ class UG_API ConstrainingTriangle :
 	public CustomTriangle	<ConstrainingTriangle, ConstrainingFace,
 							 ConstrainingTriangle, ConstrainingQuadrilateral>
 {
-	using BaseTriangle = CustomTriangle<ConstrainingTriangle, ConstrainingFace,
-		ConstrainingTriangle, ConstrainingQuadrilateral>;
+	using BaseTriangle = CustomTriangle;
 
 	public:
 		inline static bool type_match(GridObject* pObj)
@@ -729,7 +716,7 @@ class UG_API ConstrainingTriangle :
 		ConstrainingTriangle(Vertex* v1, Vertex* v2, Vertex* v3) :
 			BaseTriangle(v1, v2, v3)	{reserve_memory();}
 
-		virtual int container_section() const	{return CSFACE_CONSTRAINING_TRIANGLE;}
+		int container_section() const override {return CSFACE_CONSTRAINING_TRIANGLE;}
 
 	protected:
 		void reserve_memory()
@@ -738,8 +725,7 @@ class UG_API ConstrainingTriangle :
 				m_constrainedFaces.reserve(4);
 			}
 
-		virtual Edge* create_edge(int index)
-			{
+	Edge* create_edge(int index) override {
 				return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 3]);
 			}
 };
@@ -778,21 +764,19 @@ class UG_API ConstrainingQuadrilateral :
 	public CustomQuadrilateral	<ConstrainingQuadrilateral, ConstrainingFace,
 							 	 ConstrainingTriangle, ConstrainingQuadrilateral>
 {
-	using BaseClass = CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace,
-		ConstrainingTriangle, ConstrainingQuadrilateral>;
+	using BaseClass = CustomQuadrilateral;
 
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainingQuadrilateral*>(pObj) != nullptr;}
 
-		ConstrainingQuadrilateral() :
-			BaseClass()	{reserve_memory();}
+		ConstrainingQuadrilateral() {reserve_memory();}
 		ConstrainingQuadrilateral(const QuadrilateralDescriptor& qd) :
 			BaseClass(qd)	{reserve_memory();}
 		ConstrainingQuadrilateral(Vertex* v1, Vertex* v2,
 								  Vertex* v3, Vertex* v4) :
 			BaseClass(v1, v2, v3, v4)	{reserve_memory();}
 
-		virtual int container_section() const	{return CSFACE_CONSTRAINING_QUADRILATERAL;}
+		int container_section() const override {return CSFACE_CONSTRAINING_QUADRILATERAL;}
 
 	protected:
 		void reserve_memory()
@@ -802,8 +786,7 @@ class UG_API ConstrainingQuadrilateral :
 				m_constrainedFaces.reserve(4);
 			}
 
-		virtual Edge* create_edge(int index)
-			{
+		Edge* create_edge(int index) override {
 				return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 4]);
 			}
 };

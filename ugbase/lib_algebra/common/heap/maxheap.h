@@ -222,7 +222,7 @@ private:
 	void downheap(int i)
 	{
 		if(m_posinheap[i] == -1) return;
-		while(1)
+		while(true)
 		{		
 			const T &l = m_arr[leftchild(i)];
 			const T &r = m_arr[rightchild(i)];

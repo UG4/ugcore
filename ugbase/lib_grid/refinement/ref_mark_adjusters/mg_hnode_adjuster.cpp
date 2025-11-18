@@ -111,8 +111,7 @@ ref_marks_changed(IRefiner& ref,
 		else if(ref.get_mark(vrt) != RM_DUMMY){
 		//	we don't have to select parents of dummy vertices, since we assume
 		//	that the maximum level-distance is 1
-			Vertex* parent = dynamic_cast<Vertex*>(mg.get_parent(vrt));
-			if(parent)
+		if(auto parent = dynamic_cast<Vertex*>(mg.get_parent(vrt)))
 				ref.mark(parent, RM_DUMMY);
 		}
 	}

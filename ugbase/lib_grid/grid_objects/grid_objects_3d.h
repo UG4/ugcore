@@ -35,7 +35,7 @@
 
 #include "../grid/grid.h"
 #include "common/math/ugmath.h"
-#include "common/assert.h"
+
 #include "grid_objects_0d.h"
 #include "grid_objects_1d.h"
 #include "grid_objects_2d.h"
@@ -46,7 +46,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 ///	These numbers define where in the volume-section-container a volume will be stored.
 /**	The order of the constants must not be changed! Algorithms may exist that rely on it.*/
-enum VolumeContainerSections
+enum VolumeContainerSectionsw
 {
 	CSVOL_NONE = -1,
 	CSVOL_TETRAHEDRON = 0,
@@ -67,9 +67,9 @@ enum VolumeContainerSections
 class UG_API TetrahedronDescriptor
 {
 	public:
-		TetrahedronDescriptor()	{}
+		TetrahedronDescriptor()	= default;
 		TetrahedronDescriptor(const TetrahedronDescriptor& td);
-		TetrahedronDescriptor(const VolumeVertices& vv);
+		explicit TetrahedronDescriptor(const VolumeVertices& vv);
 		TetrahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4);
 
 		inline uint num_vertices() const	{return 4;}
@@ -97,71 +97,73 @@ class UG_API Tetrahedron : public Volume
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Tetrahedron*>(pObj) != nullptr;}
 
-		Tetrahedron()	{}
-		Tetrahedron(const TetrahedronDescriptor& td);
+		Tetrahedron() = default;
+		explicit Tetrahedron(const TetrahedronDescriptor& td);
 		Tetrahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4);
 
-		virtual GridObject* create_empty_instance() const	{return new Tetrahedron;}
+		[[nodiscard]] GridObject* create_empty_instance() const override {return new Tetrahedron;}
 
-		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
-		virtual ConstVertexArray vertices() const		{return m_vertices;}
-		virtual size_t num_vertices() const				{return 4;}
+		[[nodiscard]] Vertex* vertex(size_t index) const override {return m_vertices[index];}
+		[[nodiscard]] ConstVertexArray vertices() const override {return m_vertices;}
+		[[nodiscard]] size_t num_vertices() const override {return 4;}
 
-		virtual EdgeDescriptor edge_desc(int index) const;
-		virtual void edge_desc(int index, EdgeDescriptor& edOut) const;
-		virtual uint num_edges() const;
+		[[nodiscard]] EdgeDescriptor edge_desc(int index) const override;
 
-		virtual FaceDescriptor face_desc(int index) const;
-		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
-		virtual uint num_faces() const;
+		void edge_desc(int index, EdgeDescriptor& edOut) const override;
 
-		virtual Edge* create_edge(int index);	///< create the edge with index i and return it.
-		virtual Face* create_face(int index);		///< create the face with index i and return it.
+		[[nodiscard]] uint num_edges() const override;
 
-		virtual void get_vertex_indices_of_edge(size_t& ind1Out,
-												size_t& ind2Out,
-												size_t edgeInd) const;
+		[[nodiscard]] FaceDescriptor face_desc(int index) const override;
 
-		virtual void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
-												size_t side) const;
+		void face_desc(int index, FaceDescriptor& fdOut) const override;
 
-		virtual int get_edge_index_from_vertices(	const size_t vi0,
-													const size_t vi1) const;
+		[[nodiscard]] uint num_faces() const override;
 
-		virtual int get_face_edge_index (	const size_t faceInd,
-											const size_t faceEdgeInd) const;
+		Edge* create_edge(int index) override;	///< create the edge with index i and return it.
+		Face* create_face(int index) override;		///< create the face with index i and return it.
 
-		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
+		void get_vertex_indices_of_edge(size_t& ind1Out,
+		                                size_t& ind2Out,
+		                                size_t edgeInd) const override;
+
+		void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
+		                                size_t side) const override;
+
+		[[nodiscard]] int get_edge_index_from_vertices(	const size_t vi0,
+			                                 const size_t vi1) const override;
+
+		[[nodiscard]] int get_face_edge_index (	const size_t faceInd,
+			                         const size_t faceEdgeInd) const override;
+
+		std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const override;
 
 	///	Creates new volume elements through refinement.
 	/**	Make sure that newEdgeVertices contains 6 vertex pointers.
 	 *	newFaceVertices is ignored for Tetrahedrons.*/
-		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
-							Vertex** ppNewVertexOut,
-							Vertex** newEdgeVertices,
-							Vertex** newFaceVertices,
-							Vertex* newVolumeVertex,
-							const Vertex& prototypeVertex,
-							Vertex** pSubstituteVertices = nullptr,
-							vector3* corners = nullptr,
-							bool* isSnapPoint = nullptr);
+		bool refine(std::vector<Volume*>& vNewVolumesOut,
+		            Vertex** ppNewVertexOut,
+		            Vertex** newEdgeVertices,
+		            Vertex** newFaceVertices,
+		            Vertex* newVolumeVertex,
+		            const Vertex& prototypeVertex,
+		            Vertex** pSubstituteVertices = nullptr,
+		            vector3* corners = nullptr,
+		            bool* isSnapPoint = nullptr) override;
 
-		virtual bool is_regular_ref_rule(int edgeMarks) const;
+		[[nodiscard]] bool is_regular_ref_rule(int edgeMarks) const override;
 
-		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-								int edgeIndex, Vertex* newVertex,
-								std::vector<Vertex*>* pvSubstituteVertices = nullptr);
+		bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
+		                   int edgeIndex, Vertex* newVertex,
+		                   std::vector<Vertex*>* pvSubstituteVertices = nullptr) override;
 
-		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
+		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
-		virtual int container_section() const
-		{return CSVOL_TETRAHEDRON;}
+		[[nodiscard]] int container_section() const override {return CSVOL_TETRAHEDRON;}
 
-		virtual ReferenceObjectID reference_object_id() const
-		{return ROID_TETRAHEDRON;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ROID_TETRAHEDRON;}
 
 	protected:
-		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
+		void set_vertex(uint index, Vertex* pVrt) override {m_vertices[index] = pVrt;}
 
 	protected:
 		Vertex*	m_vertices[4];
@@ -202,9 +204,9 @@ using ConstTetrahedronIterator = geometry_traits<Tetrahedron>::const_iterator;
 class UG_API HexahedronDescriptor
 {
 	public:
-		HexahedronDescriptor()	{}
+		HexahedronDescriptor() = default;
 		HexahedronDescriptor(const HexahedronDescriptor& td);
-		HexahedronDescriptor(const VolumeVertices& vv);
+		explicit HexahedronDescriptor(const VolumeVertices& vv);
 		HexahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4,
 							Vertex* v5, Vertex* v6, Vertex* v7, Vertex* v8);
 
@@ -233,69 +235,73 @@ class UG_API Hexahedron : public Volume
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Hexahedron*>(pObj) != nullptr;}
 
-		Hexahedron()	{}
-		Hexahedron(const HexahedronDescriptor& td);
+		Hexahedron() = default;
+		explicit Hexahedron(const HexahedronDescriptor& td);
 		Hexahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4,
 					Vertex* v5, Vertex* v6, Vertex* v7, Vertex* v8);
 
-		virtual GridObject* create_empty_instance() const	{return new Hexahedron;}
+		[[nodiscard]] GridObject* create_empty_instance() const override {return new Hexahedron;}
 
-		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
-		virtual ConstVertexArray vertices() const		{return m_vertices;}
-		virtual size_t num_vertices() const				{return 8;}
+		[[nodiscard]] Vertex* vertex(size_t index) const override {return m_vertices[index];}
+		[[nodiscard]] ConstVertexArray vertices() const override {return m_vertices;}
+		[[nodiscard]] size_t num_vertices() const override {return 8;}
 
-		virtual EdgeDescriptor edge_desc(int index) const;
-		virtual void edge_desc(int index, EdgeDescriptor& edOut) const;
-		virtual uint num_edges() const;
+		[[nodiscard]] EdgeDescriptor edge_desc(int index) const override;
 
-		virtual FaceDescriptor face_desc(int index) const;
-		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
-		virtual uint num_faces() const;
+		void edge_desc(int index, EdgeDescriptor& edOut) const override;
 
-		virtual Edge* create_edge(int index);	///< create the edge with index i and return it.
-		virtual Face* create_face(int index);		///< create the face with index i and return it.
+		[[nodiscard]] uint num_edges() const override;
 
-		virtual void get_vertex_indices_of_edge(size_t& ind1Out,
-												size_t& ind2Out,
-												size_t edgeInd) const;
-		
-		virtual void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
-												size_t side) const;
+		[[nodiscard]] FaceDescriptor face_desc(int index) const override;
 
-		virtual int get_edge_index_from_vertices(	const size_t vi0,
-													const size_t vi1) const;
+		void face_desc(int index, FaceDescriptor& fdOut) const override;
 
-		virtual int get_face_edge_index (	const size_t faceInd,
-											const size_t faceEdgeInd) const;
+		[[nodiscard]] uint num_faces() const override;
 
-		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const;
+		Edge* create_edge(int index) override;	///< create the edge with index i and return it.
+		Face* create_face(int index) override;		///< create the face with index i and return it.
 
-		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
+		void get_vertex_indices_of_edge(size_t& ind1Out,
+		                                size_t& ind2Out,
+		                                size_t edgeInd) const override;
+
+		void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
+		                                size_t side) const override;
+
+		[[nodiscard]] int get_edge_index_from_vertices(	const size_t vi0,
+			                                 const size_t vi1) const override;
+
+		[[nodiscard]] int get_face_edge_index (	const size_t faceInd,
+			                         const size_t faceEdgeInd) const override;
+
+		bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const override;
+
+		std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const override;
 
 	///	see Volume::refine for a detailed description.
-		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
-							Vertex** ppNewVertexOut,
-							Vertex** newEdgeVertices,
-							Vertex** newFaceVertices,
-							Vertex* newVolumeVertex,
-							const Vertex& prototypeVertex,
-							Vertex** pSubstituteVertices = nullptr,
-							vector3* corners = nullptr,
-							bool* isSnapPoint = nullptr);
+		bool refine(std::vector<Volume*>& vNewVolumesOut,
+		            Vertex** ppNewVertexOut,
+		            Vertex** newEdgeVertices,
+		            Vertex** newFaceVertices,
+		            Vertex* newVolumeVertex,
+		            const Vertex& prototypeVertex,
+		            Vertex** pSubstituteVertices = nullptr,
+		            vector3* corners = nullptr,
+		            bool* isSnapPoint = nullptr) override;
 
-		virtual bool is_regular_ref_rule(int edgeMarks) const;
+		[[nodiscard]] bool is_regular_ref_rule(int edgeMarks) const override;
 
-		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-								int edgeIndex, Vertex* newVertex,
-								std::vector<Vertex*>* pvSubstituteVertices = nullptr);
+		bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
+		                   int edgeIndex, Vertex* newVertex,
+		                   std::vector<Vertex*>* pvSubstituteVertices = nullptr) override;
 
-		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
+		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
-		virtual int container_section() const	{return CSVOL_HEXAHEDRON;}
-		virtual ReferenceObjectID reference_object_id() const {return ROID_HEXAHEDRON;}
+		[[nodiscard]] int container_section() const override {return CSVOL_HEXAHEDRON;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ROID_HEXAHEDRON;}
 
 	protected:
-		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
+		void set_vertex(uint index, Vertex* pVrt) override {m_vertices[index] = pVrt;}
 
 	protected:
 		Vertex*	m_vertices[8];
@@ -335,14 +341,14 @@ using ConstHexahedronIterator = geometry_traits<Hexahedron>::const_iterator;
 class UG_API PrismDescriptor
 {
 	public:
-		PrismDescriptor()	{}
+		PrismDescriptor() = default;
 		PrismDescriptor(const PrismDescriptor& td);
-		PrismDescriptor(const VolumeVertices& vv);
+		explicit PrismDescriptor(const VolumeVertices& vv);
 		PrismDescriptor(Vertex* v1, Vertex* v2, Vertex* v3,
 						Vertex* v4, Vertex* v5, Vertex* v6);
 
-		inline uint num_vertices() const	{return 6;}
-		inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
+		inline uint num_vertices() const {return 6;}
+		inline Vertex* vertex(size_t index) const {return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[6];
@@ -366,69 +372,73 @@ class UG_API Prism : public Volume
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Prism*>(pObj) != nullptr;}
 
-		Prism()	{}
-		Prism(const PrismDescriptor& td);
+		Prism()	= default;
+		explicit Prism(const PrismDescriptor& td);
 		Prism(Vertex* v1, Vertex* v2, Vertex* v3,
 				Vertex* v4, Vertex* v5, Vertex* v6);
 
-		virtual GridObject* create_empty_instance() const	{return new Prism;}
+		[[nodiscard]] GridObject* create_empty_instance() const override {return new Prism;}
 
-		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
-		virtual ConstVertexArray vertices() const		{return m_vertices;}
-		virtual size_t num_vertices() const				{return 6;}
+		[[nodiscard]] Vertex* vertex(size_t index) const override {return m_vertices[index];}
+		[[nodiscard]] ConstVertexArray vertices() const override {return m_vertices;}
+		[[nodiscard]] size_t num_vertices() const override {return 6;}
 
-		virtual EdgeDescriptor edge_desc(int index) const;
-		virtual void edge_desc(int index, EdgeDescriptor& edOut) const;
-		virtual uint num_edges() const;
+		[[nodiscard]] EdgeDescriptor edge_desc(int index) const override;
 
-		virtual FaceDescriptor face_desc(int index) const;
-		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
-		virtual uint num_faces() const;
+		void edge_desc(int index, EdgeDescriptor& edOut) const override;
 
-		virtual Edge* create_edge(int index);	///< create the edge with index i and return it.
-		virtual Face* create_face(int index);		///< create the face with index i and return it.
+		[[nodiscard]] uint num_edges() const override;
 
-		virtual void get_vertex_indices_of_edge(size_t& ind1Out,
-												size_t& ind2Out,
-												size_t edgeInd) const;
+		[[nodiscard]] FaceDescriptor face_desc(int index) const override;
 
-		virtual void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
-												size_t side) const;
+		void face_desc(int index, FaceDescriptor& fdOut) const override;
 
-		virtual int get_edge_index_from_vertices(	const size_t vi0,
-													const size_t vi1) const;
+		[[nodiscard]] uint num_faces() const override;
 
-		virtual int get_face_edge_index (	const size_t faceInd,
-											const size_t faceEdgeInd) const;
+		Edge* create_edge(int index) override;	///< create the edge with index i and return it.
+		Face* create_face(int index) override;		///< create the face with index i and return it.
 
-		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const;
+		void get_vertex_indices_of_edge(size_t& ind1Out,
+		                                size_t& ind2Out,
+		                                size_t edgeInd) const override;
 
-		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
+		void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
+		                                size_t side) const override;
+
+		[[nodiscard]] int get_edge_index_from_vertices(	const size_t vi0,
+			                                 const size_t vi1) const override;
+
+		[[nodiscard]] int get_face_edge_index (	const size_t faceInd,
+			                         const size_t faceEdgeInd) const override;
+
+		bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const override;
+
+		std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const override;
 
 	///	see Volume::refine for a detailed description.
-		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
-							Vertex** ppNewVertexOut,
-							Vertex** newEdgeVertices,
-							Vertex** newFaceVertices,
-							Vertex* newVolumeVertex,
-							const Vertex& prototypeVertex,
-							Vertex** pSubstituteVertices = nullptr,
-							vector3* corners = nullptr,
-							bool* isSnapPoint = nullptr);
+		bool refine(std::vector<Volume*>& vNewVolumesOut,
+		            Vertex** ppNewVertexOut,
+		            Vertex** newEdgeVertices,
+		            Vertex** newFaceVertices,
+		            Vertex* newVolumeVertex,
+		            const Vertex& prototypeVertex,
+		            Vertex** pSubstituteVertices = nullptr,
+		            vector3* corners = nullptr,
+		            bool* isSnapPoint = nullptr) override;
 
-		virtual bool is_regular_ref_rule(int edgeMarks) const;
+		[[nodiscard]] bool is_regular_ref_rule(int edgeMarks) const override;
 
-		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-								int edgeIndex, Vertex* newVertex,
-								std::vector<Vertex*>* pvSubstituteVertices = nullptr);
+		bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
+		                   int edgeIndex, Vertex* newVertex,
+		                   std::vector<Vertex*>* pvSubstituteVertices = nullptr) override;
 
-		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
+		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
-		virtual int container_section() const	{return CSVOL_PRISM;}
-		virtual ReferenceObjectID reference_object_id() const {return ROID_PRISM;}
+		[[nodiscard]] int container_section() const override {return CSVOL_PRISM;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ROID_PRISM;}
 
 	protected:
-		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
+		void set_vertex(uint index, Vertex* pVrt) override {m_vertices[index] = pVrt;}
 
 	protected:
 		Vertex*	m_vertices[6];
@@ -468,9 +478,9 @@ using ConstPrismIterator = geometry_traits<Prism>::const_iterator;
 class UG_API PyramidDescriptor
 {
 	public:
-		PyramidDescriptor()	{}
+		PyramidDescriptor()	= default;
 		PyramidDescriptor(const PyramidDescriptor& td);
-		PyramidDescriptor(const VolumeVertices& vv);
+		explicit PyramidDescriptor(const VolumeVertices& vv);
 		PyramidDescriptor(Vertex* v1, Vertex* v2, Vertex* v3,
 						Vertex* v4, Vertex* v5);
 
@@ -499,67 +509,71 @@ class UG_API Pyramid : public Volume
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Pyramid*>(pObj) != nullptr;}
 
-		Pyramid()	{}
-		Pyramid(const PyramidDescriptor& td);
+		Pyramid() = default;
+		explicit Pyramid(const PyramidDescriptor& td);
 		Pyramid(Vertex* v1, Vertex* v2, Vertex* v3,
 				Vertex* v4, Vertex* v5);
 
-		virtual GridObject* create_empty_instance() const	{return new Pyramid;}
+		[[nodiscard]] GridObject* create_empty_instance() const override {return new Pyramid;}
 
-		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
-		virtual ConstVertexArray vertices() const		{return m_vertices;}
-		virtual size_t num_vertices() const				{return 5;}
+		[[nodiscard]] Vertex* vertex(size_t index) const override {return m_vertices[index];}
+		[[nodiscard]] ConstVertexArray vertices() const override {return m_vertices;}
+		[[nodiscard]] size_t num_vertices() const override {return 5;}
 
-		virtual EdgeDescriptor edge_desc(int index) const;
-		virtual void edge_desc(int index, EdgeDescriptor& edOut) const;
-		virtual uint num_edges() const;
+		[[nodiscard]] EdgeDescriptor edge_desc(int index) const override;
 
-		virtual FaceDescriptor face_desc(int index) const;
-		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
-		virtual uint num_faces() const;
+		void edge_desc(int index, EdgeDescriptor& edOut) const override;
 
-		virtual Edge* create_edge(int index);	///< create the edge with index i and return it.
-		virtual Face* create_face(int index);		///< create the face with index i and return it.
+		[[nodiscard]] uint num_edges() const override;
 
-		virtual void get_vertex_indices_of_edge(size_t& ind1Out,
-												size_t& ind2Out,
-												size_t edgeInd) const;
+		[[nodiscard]] FaceDescriptor face_desc(int index) const override;
 
-		virtual void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
-												size_t side) const;
+		void face_desc(int index, FaceDescriptor& fdOut) const override;
 
-		virtual int get_edge_index_from_vertices(	const size_t vi0,
-													const size_t vi1) const;
+		[[nodiscard]] uint num_faces() const override;
 
-		virtual int get_face_edge_index (	const size_t faceInd,
-											const size_t faceEdgeInd) const;
+		Edge* create_edge(int index) override;	///< create the edge with index i and return it.
+		Face* create_face(int index) override;		///< create the face with index i and return it.
 
-		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
+		void get_vertex_indices_of_edge(size_t& ind1Out,
+		                                size_t& ind2Out,
+		                                size_t edgeInd) const override;
+
+		void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
+		                                size_t side) const override;
+
+		[[nodiscard]] int get_edge_index_from_vertices(	const size_t vi0,
+			                                 const size_t vi1) const override;
+
+		[[nodiscard]] int get_face_edge_index (	const size_t faceInd,
+			                         const size_t faceEdgeInd) const override;
+
+		std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const override;
 
 	///	see Volume::refine for a detailed description.
-		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
-							Vertex** ppNewVertexOut,
-							Vertex** newEdgeVertices,
-							Vertex** newFaceVertices,
-							Vertex* newVolumeVertex,
-							const Vertex& prototypeVertex,
-							Vertex** pSubstituteVertices = nullptr,
-							vector3* corners = nullptr,
-							bool* isSnapPoint = nullptr);
+		bool refine(std::vector<Volume*>& vNewVolumesOut,
+		            Vertex** ppNewVertexOut,
+		            Vertex** newEdgeVertices,
+		            Vertex** newFaceVertices,
+		            Vertex* newVolumeVertex,
+		            const Vertex& prototypeVertex,
+		            Vertex** pSubstituteVertices = nullptr,
+		            vector3* corners = nullptr,
+		            bool* isSnapPoint = nullptr) override;
 
-		virtual bool is_regular_ref_rule(int edgeMarks) const;
+		[[nodiscard]] bool is_regular_ref_rule(int edgeMarks) const override;
 
-		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-								int edgeIndex, Vertex* newVertex,
-								std::vector<Vertex*>* pvSubstituteVertices = nullptr);
+		bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
+		                   int edgeIndex, Vertex* newVertex,
+		                   std::vector<Vertex*>* pvSubstituteVertices = nullptr) override;
 
-		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
+		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
-		virtual int container_section() const	{return CSVOL_PYRAMID;}
-		virtual ReferenceObjectID reference_object_id() const {return ROID_PYRAMID;}
+		[[nodiscard]] int container_section() const override {return CSVOL_PYRAMID;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ROID_PYRAMID;}
 
 	protected:
-		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
+		void set_vertex(uint index, Vertex* pVrt) override {m_vertices[index] = pVrt;}
 
 	protected:
 		Vertex*	m_vertices[5];
@@ -601,9 +615,9 @@ using ConstPyramidIterator = geometry_traits<Pyramid>::const_iterator;
 class UG_API OctahedronDescriptor
 {
 	public:
-		OctahedronDescriptor()	{}
+		OctahedronDescriptor() = default;
 		OctahedronDescriptor(const OctahedronDescriptor& td);
-		OctahedronDescriptor(const VolumeVertices& vv);
+		explicit OctahedronDescriptor(const VolumeVertices& vv);
 		OctahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6);
 
 		inline uint num_vertices() const	{return 6;}
@@ -632,68 +646,73 @@ class UG_API Octahedron : public Volume
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Octahedron*>(pObj) != nullptr;}
 
-		Octahedron()	= default;
-		Octahedron(const OctahedronDescriptor& td);
+		Octahedron() = default;
+
+		explicit Octahedron(const OctahedronDescriptor& td);
 		Octahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6);
 
-		virtual GridObject* create_empty_instance() const	{return new Octahedron;}
+		[[nodiscard]] GridObject* create_empty_instance() const override {return new Octahedron;}
 
-		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
-		virtual ConstVertexArray vertices() const		{return m_vertices;}
-		virtual size_t num_vertices() const				{return 6;}
+		[[nodiscard]] Vertex* vertex(size_t index) const override {return m_vertices[index];}
+		[[nodiscard]] ConstVertexArray vertices() const override {return m_vertices;}
+		[[nodiscard]] size_t num_vertices() const override {return 6;}
 
-		virtual EdgeDescriptor edge_desc(int index) const;
-		virtual void edge_desc(int index, EdgeDescriptor& edOut) const;
-		virtual uint num_edges() const;
+		[[nodiscard]] EdgeDescriptor edge_desc(int index) const override;
 
-		virtual FaceDescriptor face_desc(int index) const;
-		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
-		virtual uint num_faces() const;
+		void edge_desc(int index, EdgeDescriptor& edOut) const override;
 
-		virtual Edge* create_edge(int index);	///< create the edge with index i and return it.
-		virtual Face* create_face(int index);		///< create the face with index i and return it.
+		[[nodiscard]] uint num_edges() const override;
 
-		virtual void get_vertex_indices_of_edge(size_t& ind1Out,
-												size_t& ind2Out,
-												size_t edgeInd) const;
+		[[nodiscard]] FaceDescriptor face_desc(int index) const override;
 
-		virtual void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
-												size_t side) const;
+		void face_desc(int index, FaceDescriptor& fdOut) const override;
 
-		virtual int get_edge_index_from_vertices(	const size_t vi0,
-													const size_t vi1) const;
+		[[nodiscard]] uint num_faces() const override;
 
-		virtual int get_face_edge_index (	const size_t faceInd,
-											const size_t faceEdgeInd) const;
+		Edge* create_edge(int index) override;	///< create the edge with index i and return it.
+		Face* create_face(int index) override;		///< create the face with index i and return it.
 
-		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
+		void get_vertex_indices_of_edge(size_t& ind1Out,
+		                                size_t& ind2Out,
+		                                size_t edgeInd) const override;
+
+		void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
+		                                size_t side) const override;
+
+		[[nodiscard]] int get_edge_index_from_vertices(	const size_t vi0,
+			                                 const size_t vi1) const override;
+
+		[[nodiscard]] int get_face_edge_index (	const size_t faceInd,
+			                         const size_t faceEdgeInd) const override;
+
+		std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const override;
 
 	///	Creates new volume elements through refinement.
 	/**	Make sure that newEdgeVertices contains 6 vertex pointers.
 	 *	newFaceVertices is ignored for Octahedrons.*/
-		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
-							Vertex** ppNewVertexOut,
-							Vertex** newEdgeVertices,
-							Vertex** newFaceVertices,
-							Vertex* newVolumeVertex,
-							const Vertex& prototypeVertex,
-							Vertex** pSubstituteVertices = nullptr,
-							vector3* corners = nullptr,
-							bool* isSnapPoint = nullptr);
+		bool refine(std::vector<Volume*>& vNewVolumesOut,
+		            Vertex** ppNewVertexOut,
+		            Vertex** newEdgeVertices,
+		            Vertex** newFaceVertices,
+		            Vertex* newVolumeVertex,
+		            const Vertex& prototypeVertex,
+		            Vertex** pSubstituteVertices = nullptr,
+		            vector3* corners = nullptr,
+		            bool* isSnapPoint = nullptr) override;
 
-		virtual bool is_regular_ref_rule(int edgeMarks) const;
+		[[nodiscard]] bool is_regular_ref_rule(int edgeMarks) const override;
 
-		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-								int edgeIndex, Vertex* newVertex,
-								std::vector<Vertex*>* pvSubstituteVertices = nullptr);
+		bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
+		                   int edgeIndex, Vertex* newVertex,
+		                   std::vector<Vertex*>* pvSubstituteVertices = nullptr) override;
 
-		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
+		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
-		virtual int container_section() const	{return CSVOL_OCTAHEDRON;}
-		virtual ReferenceObjectID reference_object_id() const {return ROID_OCTAHEDRON;}
+		[[nodiscard]] int container_section() const override {return CSVOL_OCTAHEDRON;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ROID_OCTAHEDRON;}
 
 	protected:
-		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
+		void set_vertex(uint index, Vertex* pVrt) override {m_vertices[index] = pVrt;}
 
 	protected:
 		Vertex*	m_vertices[6];

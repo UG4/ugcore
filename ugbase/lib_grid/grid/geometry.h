@@ -64,19 +64,19 @@ class IGeometry {
 public:
 	using vector_t = MathVector<dim>;
 
-	IGeometry (Grid& g) :
+	explicit IGeometry (Grid& g) :
 		m_grid(g)
 	{}
 
-	virtual ~IGeometry ()	{}
+	virtual ~IGeometry () = default;
 
 	virtual vector_t pos (Vertex* vrt) const = 0;
 	virtual void set_pos (Vertex* vrt, const vector_t& p) = 0;
 
-	Grid& grid() const	{return m_grid;}
+	[[nodiscard]] Grid& grid() const {return m_grid;}
 
-	virtual int position_attachment_dim() const = 0;
-	virtual const IAttachment& position_attachment() const = 0;
+	[[nodiscard]] virtual int position_attachment_dim() const = 0;
+	[[nodiscard]] virtual const IAttachment& position_attachment() const = 0;
 
 	virtual vector_t element_center(Vertex* e) const	= 0;
 	virtual vector_t element_center(Edge* e) const		= 0;
@@ -119,40 +119,40 @@ public:
 		m_aaPos.access(g, a);
 	}
 
-	virtual vector_t pos (Vertex* vrt) const
-	{
+	~Geometry () override = default;
+
+	vector_t pos (Vertex* vrt) const override {
 		return vector_t::from(m_aaPos[vrt]);
 	}
 
-	virtual void set_pos (Vertex* vrt, const vector_t& p)
-	{
+	void set_pos (Vertex* vrt, const vector_t& p) override {
 		m_aaPos[vrt] = attached_vector_t::from(p);
 	}
 
-	virtual int position_attachment_dim () const 	{return attachmentDim;}
-	const IAttachment& position_attachment () const	{return m_aPos;}
+	[[nodiscard]] int position_attachment_dim () const override {return attachmentDim;}
+	[[nodiscard]] const IAttachment& position_attachment () const override {return m_aPos;}
 
 
-	virtual vector_t element_center (Vertex* e) const {
+	vector_t element_center (Vertex* e) const override {
 		return vector_t::from(m_aaPos[e]);
 	}
 
-	virtual vector_t element_center (Edge* e) const {
+	vector_t element_center (Edge* e) const override {
 		return vector_t::from(CalculateCenter(e, m_aaPos));
 	}
 
-	virtual vector_t element_center (Face* e) const {
+	vector_t element_center (Face* e) const override {
 		return vector_t::from(CalculateCenter(e, m_aaPos));
 	}
 
-	virtual vector_t element_center (Volume* e) const {
+	vector_t element_center (Volume* e) const override {
 		return vector_t::from(CalculateCenter(e, m_aaPos));
 	}
 
 
 private:
-	Grid::VertexAttachmentAccessor<position_attachment_t>	m_aaPos;
-	position_attachment_t									m_aPos;
+	Grid::VertexAttachmentAccessor<position_attachment_t> m_aaPos;
+	position_attachment_t m_aPos;
 };
 
 
@@ -166,4 +166,4 @@ MakeGeometry3d (Grid& grid, TAPos aPos)
 }
 }//	end of namespace
 
-#endif	//__H__UG_geometry
+#endif

@@ -135,14 +135,14 @@ class UG_API MGSelector : public ISelector
 					m_iter = iter.m_iter;
 				}
 
-				this_type operator ++()	{increment(); return *this;}
-				this_type operator ++(int unused)	{this_type i = *this; increment(); return i;}
+				this_type operator ++ ()	{increment(); return *this;}
+				this_type operator ++ (int unused)	{this_type i = *this; increment(); return i;}
 
-				bool operator ==(const this_type& iter) const {return equal(iter);}
-				bool operator !=(const this_type& iter) const {return !equal(iter);}
+				bool operator == (const this_type& iter) const {return equal(iter);}
+				bool operator != (const this_type& iter) const {return !equal(iter);}
 
-				value_type operator *()			{return dereference();}
-				value_type operator *() const	{return dereference();}
+				value_type operator * () {return dereference();}
+				value_type operator * () const {return dereference();}
 
 			private:
 				friend class MGSelector;
@@ -200,7 +200,8 @@ class UG_API MGSelector : public ISelector
 
 		MGSelector(uint supportedElements = SE_ALL);
 		MGSelector(MultiGrid& grid, uint supportedElements = SE_ALL);
-		virtual ~MGSelector();
+
+		~MGSelector() override;
 
 		void assign_grid(MultiGrid& grid);
 		void assign_grid(MultiGrid* grid);
@@ -235,7 +236,7 @@ class UG_API MGSelector : public ISelector
 				return l - 1;
 		}
 
-		virtual void clear();
+		void clear() override;
 
 		template <class TElem>
 		inline void clear();
@@ -301,14 +302,14 @@ class UG_API MGSelector : public ISelector
 		end(int level) const;
 
 	//	convenience begin and end
-		inline traits<Vertex>::level_iterator	vertices_begin(int level)	{return begin<Vertex>(level);}
-		inline traits<Vertex>::level_iterator	vertices_end(int level)		{return end<Vertex>(level);}
-		inline traits<Edge>::level_iterator		edges_begin(int level)		{return begin<Edge>(level);}
-		inline traits<Edge>::level_iterator		edges_end(int level)		{return end<Edge>(level);}
-		inline traits<Face>::level_iterator			faces_begin(int level)		{return begin<Face>(level);}
-		inline traits<Face>::level_iterator			faces_end(int level)		{return end<Face>(level);}
-		inline traits<Volume>::level_iterator		volumes_begin(int level)	{return begin<Volume>(level);}
-		inline traits<Volume>::level_iterator		volumes_end(int level)		{return end<Volume>(level);}
+		inline traits<Vertex>::level_iterator vertices_begin(int level) {return begin<Vertex>(level);}
+		inline traits<Vertex>::level_iterator vertices_end(int level)	{return end<Vertex>(level);}
+		inline traits<Edge>::level_iterator edges_begin(int level)		{return begin<Edge>(level);}
+		inline traits<Edge>::level_iterator edges_end(int level)		{return end<Edge>(level);}
+		inline traits<Face>::level_iterator faces_begin(int level)		{return begin<Face>(level);}
+		inline traits<Face>::level_iterator faces_end(int level)		{return end<Face>(level);}
+		inline traits<Volume>::level_iterator volumes_begin(int level)	{return begin<Volume>(level);}
+		inline traits<Volume>::level_iterator volumes_end(int level)	{return end<Volume>(level);}
 
 	///	returns the first selected element of the given type on the specified level.
 	/**	Make sure that elements of the given type exist!
@@ -321,7 +322,7 @@ class UG_API MGSelector : public ISelector
 		template <class TElem> TElem* back(int level);
 		
 	//	geometric-object-collection
-		virtual GridObjectCollection get_grid_objects() const;
+		GridObjectCollection get_grid_objects() const override;
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver
@@ -329,32 +330,32 @@ class UG_API MGSelector : public ISelector
 		virtual void registered_at_grid(Grid* grid);
 		virtual void unregistered_from_grid(Grid* grid);
 	*/
-		virtual void grid_to_be_destroyed(Grid* grid);
+		void grid_to_be_destroyed(Grid* grid) override;
 		
 	///	returns true if the selector contains vertices
-		virtual bool contains_vertices() const	{return num<Vertex>() > 0;}
+		bool contains_vertices() const override {return num<Vertex>() > 0;}
 
 	///	returns true if the selector contains edges
-		virtual bool contains_edges() const		{return num<Edge>() > 0;}
+		bool contains_edges() const override {return num<Edge>() > 0;}
 
 	///	returns true if the selector contains faces
-		virtual bool contains_faces() const		{return num<Face>() > 0;}
+		bool contains_faces() const override {return num<Face>() > 0;}
 
 	///	returns true if the selector contains volumes
-		virtual bool contains_volumes() const	{return num<Volume>() > 0;}
+		bool contains_volumes() const override {return num<Volume>() > 0;}
 
 	protected:
 		void clear_lists();
 
-		virtual void add_to_list(Vertex* elem);
-		virtual void add_to_list(Edge* elem);
-		virtual void add_to_list(Face* elem);
-		virtual void add_to_list(Volume* elem);
+		void add_to_list(Vertex* elem) override;
+		void add_to_list(Edge* elem) override;
+		void add_to_list(Face* elem) override;
+		void add_to_list(Volume* elem) override;
 
-		virtual void erase_from_list(Vertex* elem);
-		virtual void erase_from_list(Edge* elem);
-		virtual void erase_from_list(Face* elem);
-		virtual void erase_from_list(Volume* elem);
+		void erase_from_list(Vertex* elem) override;
+		void erase_from_list(Edge* elem) override;
+		void erase_from_list(Face* elem) override;
+		void erase_from_list(Volume* elem) override;
 
 	protected:
 		using ISelector::AttachedVertexList;

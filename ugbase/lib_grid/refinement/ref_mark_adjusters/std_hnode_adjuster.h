@@ -48,13 +48,13 @@ class StdHNodeAdjuster : public IRefMarkAdjuster
 	public:
 		static SPStdHNodeAdjuster create()	{return SPStdHNodeAdjuster(new StdHNodeAdjuster);}
 
-		virtual ~StdHNodeAdjuster()	{}
+		~StdHNodeAdjuster() override = default;
 
-		virtual void ref_marks_changed(IRefiner& ref,
-										const std::vector<Vertex*>& vrts,
-										const std::vector<Edge*>& edges,
-										const std::vector<Face*>& faces,
-										const std::vector<Volume*>& vols);
+		void ref_marks_changed(IRefiner& ref,
+		                       const std::vector<Vertex*>& vrts,
+		                       const std::vector<Edge*>& edges,
+		                       const std::vector<Face*>& faces,
+		                       const std::vector<Volume*>& vols) override;
 };
 
 }// end of namespace

@@ -86,19 +86,19 @@ ref_marks_changed(IRefiner& ref,
 	Grid::face_traits::secure_container		assFaces;
 	Grid::volume_traits::secure_container	assVols;
 
-	for_each_in_vec(Volume* vol, vols){
+	for(size_t _vfeI = 0; _vfeI < vols.size(); ++_vfeI){ Volume* vol = vols[_vfeI];{
 		if(!(ref.get_mark(vol) & RM_ANISOTROPIC))
 			continue;	// only process anisotropic volumes
 
 		grid.associated_elements(assFaces, vol);
-		for_each_in_vec(Face* f, assFaces){
+		for(size_t _vfeI = 0; _vfeI < assFaces.size(); ++_vfeI){ Face* f = assFaces[_vfeI];{
 			if(!(ref.get_mark(f) & RM_ANISOTROPIC))
 				ref.mark(f, RM_ANISOTROPIC);
-		}end_for;
-	}end_for;
+		}};
+	}};
 
 
-	for_each_in_vec(Face* f, faces){
+	for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){ Face* f = faces[_vfeI];{
 		if(!(ref.get_mark(f) & RM_ANISOTROPIC))
 			continue;
 
@@ -106,7 +106,7 @@ ref_marks_changed(IRefiner& ref,
 		bool horizontalMarked = false;
 		bool verticalMarked = false;
 		bool hasVerticalEdge = false;
-		for_each_in_vec(Edge* e, assEdges){
+		for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){ Edge* e = assEdges[_vfeI];{
 			const bool isVertical = IsVertical(aaPos[e->vertex(0)], aaPos[e->vertex(1)]);
 			hasVerticalEdge |= isVertical;
 
@@ -116,40 +116,40 @@ ref_marks_changed(IRefiner& ref,
 				else
 					horizontalMarked = true;
 			}
-		}end_for;
+		}};
 
 	//	if the face contains a vertical edge and has a marked
 	//	horizontal edge, we'll make sure that all horizontal
 	//	edges are marked.
 	//	If however a vertical edge is also marked, there's nothing we can do
 		if(hasVerticalEdge && horizontalMarked && !verticalMarked){
-			for_each_in_vec(Edge* e, assEdges){
+			for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){ Edge* e = assEdges[_vfeI];{
 				if(NotVertical(aaPos[e->vertex(0)], aaPos[e->vertex(1)]))
 					ref.mark(e);
-			}end_for;
+			}};
 		}
-	}end_for;
+	}};
 
 
 //	mark all associated unmarked faces and volumes of marked edges as closure elements
 	if(grid.num_volumes() > 0){
-		for_each_in_vec(Edge*e, edges){
+		for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){ Edge*e = edges[_vfeI];{
 			grid.associated_elements(assVols, e);
-			for_each_in_vec(Volume* vol, assVols){
+			for(size_t _vfeI = 0; _vfeI < assVols.size(); ++_vfeI){ Volume* vol = assVols[_vfeI];{
 				if(!(ref.get_mark(vol) & (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE)))	
 					ref.mark(vol, RM_CLOSURE);
-			}end_for;
-		}end_for;
+			}};
+		}};
 	}
 
 	if(grid.num_faces() > 0){
-		for_each_in_vec(Edge*e, edges){
+		for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){ Edge*e = edges[_vfeI];{
 			grid.associated_elements(assFaces, e);
-			for_each_in_vec(Face* f, assFaces){
+			for(size_t _vfeI = 0; _vfeI < assFaces.size(); ++_vfeI){ Face* f = assFaces[_vfeI];{
 				if(!(ref.get_mark(f) & (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE)))	
 					ref.mark(f, RM_CLOSURE);
-			}end_for;
-		}end_for;
+			}};
+		}};
 	}
 }
 

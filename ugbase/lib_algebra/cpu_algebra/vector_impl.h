@@ -34,7 +34,6 @@
 #ifndef __H__UG__CPU_ALGEBRA__VECTOR_IMPL__
 #define __H__UG__CPU_ALGEBRA__VECTOR_IMPL__
 
-#include <fstream>
 #include <algorithm>
 #include "algebra_misc.h"
 #include "common/math/ugmath.h"
@@ -74,7 +73,10 @@ inline double Vector<value_type>::dotprod(const Vector &w) //const
 	UG_ASSERT(m_size == w.m_size,  *this << " has not same size as " << w);
 
 	double sum=0;
-	for(size_t i=0; i<m_size; i++)	sum += VecProd(values[i], w[i]);
+	const size_t ssize = m_size;
+	for(size_t i=0; i<ssize; ++i) {
+		sum += VecProd(values[i], w[i]);
+	}
 	return sum;
 }
 
@@ -82,7 +84,8 @@ inline double Vector<value_type>::dotprod(const Vector &w) //const
 template<typename value_type>
 inline double Vector<value_type>::operator = (double d)
 {
-	for(size_t i=0; i<m_size; i++)
+	const size_t ssize = m_size;
+	for(size_t i=0; i<ssize; ++i)
 		values[i] = d;
 	return d;
 }
@@ -90,7 +93,8 @@ inline double Vector<value_type>::operator = (double d)
 template<typename value_type>
 inline void Vector<value_type>::set_random(double from, double to)
 {
-	for(size_t i=0; i<size(); i++)
+	const size_t ssize = size();
+	for(size_t i=0; i<ssize; i++)
 		for(size_t j=0; j<GetSize(values[i]); j++)
 			BlockRef(values[i], j) = urand(from, to);
 }
@@ -100,7 +104,8 @@ template<typename value_type>
 inline void Vector<value_type>::operator = (const vector_type &v)
 {
 	resize(v.size());
-	for(size_t i=0; i<m_size; i++)
+	const size_t ssize = m_size;
+	for(size_t i=0; i<ssize; i++)
 		values[i] = v[i];
 }
 
@@ -108,7 +113,8 @@ template<typename value_type>
 inline void Vector<value_type>::operator += (const vector_type &v)
 {
 	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
-	for(size_t i=0; i<m_size; i++)
+	const size_t ssize = m_size;
+	for(size_t i=0; i<ssize; i++)
 		values[i] += v[i];
 }
 
@@ -116,7 +122,8 @@ template<typename value_type>
 inline void Vector<value_type>::operator -= (const vector_type &v)
 {
 	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
-	for(size_t i=0; i<m_size; i++)
+	const size_t ssize = m_size;
+	for(size_t i=0; i<ssize; i++)
 		values[i] -= v[i];
 }
 
@@ -168,25 +175,25 @@ void Vector<value_type>::create(size_t size)
 template<typename value_type>
 Vector<value_type>* Vector<value_type>::virtual_clone() const
 {
-	return new Vector<value_type>(*this);
+	return new Vector(*this);
 }
 
 template<typename value_type>
 SmartPtr<Vector<value_type> > Vector<value_type>::clone() const
 {
-	return SmartPtr<Vector<value_type> >(this->virtual_clone());
+	return SmartPtr<Vector >(this->virtual_clone());
 }
 
 template<typename value_type>
 Vector<value_type>* Vector<value_type>::virtual_clone_without_values() const
 {
-	return new Vector<value_type>(this->m_size);
+	return new Vector(this->m_size);
 }
 
 template<typename value_type>
 SmartPtr<Vector<value_type> > Vector<value_type>::clone_without_values() const
 {
-	return SmartPtr<Vector<value_type> >(this->virtual_clone_without_values());
+	return SmartPtr<Vector >(this->virtual_clone_without_values());
 }
 
 template<typename value_type>
@@ -197,9 +204,10 @@ void Vector<value_type>::reserve_exactly(size_t newCapacity, bool bCopyValues)
 	// we cannot use memcpy here bcs of variable blocks.
 	if(values != nullptr && bCopyValues)
 	{
-		for(size_t i=0; i<m_size; i++)
+		const size_t ssize = m_size;
+		for(size_t i=0; i<ssize; i++)
 			std::swap(new_values[i], values[i]);
-		for(size_t i=m_size; i<newCapacity; i++)
+		for(size_t i=ssize; i<newCapacity; i++)
 			new_values[i] = 0.0;
 	}
 	if(values) delete [] values;
@@ -245,7 +253,8 @@ void Vector<value_type>::create(const Vector &v)
 	m_capacity = m_size;
 
 	// we cannot use memcpy here bcs of variable blocks.
-	for(size_t i=0; i<m_size; i++)
+	const size_t ssize = m_size;
+	for(size_t i=0; i<ssize; i++)
 		values[i] = v.values[i];
 }
 
@@ -257,7 +266,8 @@ void Vector<value_type>::print(const char * const text) const
 
 	if(text) std::cout << " == " << text;
 	std::cout << " size: " << m_size << " =================" << std::endl;
-	for(size_t i=0; i<m_size; i++)
+	const size_t ssize = m_size;
+	for(size_t i=0; i<ssize; i++)
 		//cout << values[i] << " ";
 		std::cout << i << ": " << values[i] << std::endl;
 	std::cout << std::endl;
@@ -268,7 +278,8 @@ template<typename value_type>
 template<typename V>
 void Vector<value_type>::add(const V& u)
 {
-	for(size_t i=0; i < u.size(); i++)
+	const size_t ssize = u.size();
+	for(size_t i=0; i < ssize; i++)
 		values[u.index(i)] += u[i];
 }
 
@@ -276,7 +287,8 @@ template<typename value_type>
 template<typename V>
 void Vector<value_type>::set(const V& u)
 {
-	for(size_t i=0; i < u.size(); i++)
+	const size_t ssize = u.size();
+	for(size_t i=0; i < ssize; i++)
 		values[u.index(i)] = u[i];
 }
 
@@ -284,7 +296,8 @@ template<typename value_type>
 template<typename V>
 void Vector<value_type>::get(V& u) const
 {
-	for(size_t i=0; i < u.size(); i++)
+	const size_t ssize = u.size();
+	for(size_t i=0; i < ssize; i++)
 		u[i] = values[u.index(i)];
 }
 
@@ -292,21 +305,21 @@ void Vector<value_type>::get(V& u) const
 
 
 template<typename value_type>
-void Vector<value_type>::add(const value_type *u, const size_t *indices, size_t nr)
+void Vector<value_type>::add(const value_type *u, const size_t *indices, const size_t nr)
 {
 	for(size_t i=0; i < nr; i++)
 		values[indices[i]] += u[i];
 }
 
 template<typename value_type>
-void Vector<value_type>::set(const value_type *u, const size_t *indices, size_t nr)
+void Vector<value_type>::set(const value_type *u, const size_t *indices, const size_t nr)
 {
 	for(size_t i=0; i < nr; i++)
 		values[indices[i]] = u[i];
 }
 
 template<typename value_type>
-void Vector<value_type>::get(value_type *u, const size_t *indices, size_t nr) const
+void Vector<value_type>::get(value_type *u, const size_t *indices, const size_t nr) const
 {
 	for(size_t i=0; i < nr; i++)
 		u[i] = values[indices[i]] ;
@@ -323,7 +336,8 @@ template<typename value_type>
 inline double Vector<value_type>::norm() const
 {
 	double d=0;
-	for(size_t i=0; i<size(); ++i)
+	const size_t ssize = size();
+	for(size_t i=0; i<ssize; ++i)
 		d+=BlockNorm2(values[i]);
 	return sqrt(d);
 }
@@ -332,7 +346,8 @@ template<typename value_type>
 inline double Vector<value_type>::maxnorm() const
 {
 	double d=0;
-	for(size_t i=0; i<size(); ++i)
+	const size_t ssize = size();
+	for(size_t i=0; i<ssize; ++i)
 		d = std::max(d, BlockMaxNorm(values[i]));
 	return d;
 }
@@ -347,16 +362,17 @@ template<typename TValueType, class TOStream>
 void Serialize(TOStream &buf, const Vector<TValueType> &v)
 {
 	Serialize(buf, v.size());
-	for(size_t i=0; i < v.size(); i++)
+	const size_t ssize = v.size();
+	for(size_t i=0; i < ssize; i++)
 		Serialize(buf, v[i]);
 }
 
 template<typename TValueType, class TIStream>
 void Deserialize(TIStream &buf, Vector<TValueType> &v)
 {
-	size_t s = Deserialize<size_t>(buf);
-	v.resize(s);
-	for(size_t i=0; i < s; i++)
+	const size_t ssize = Deserialize<size_t>(buf);
+	v.resize(ssize);
+	for(size_t i=0; i < ssize; i++)
 		Deserialize(buf, v[i]);
 }
 

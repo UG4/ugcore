@@ -1,7 +1,7 @@
 # Configuration for RPMs
 
 
-set(CPACK_GENERATOR "Bundle") # For MacOS
+set (CPACK_GENERATOR "Bundle") # For MacOS
 
 #  The name of the generated bundle. This appears in the macOS Finder as the bundle name. Required.
 #CPACK_BUNDLE_NAME

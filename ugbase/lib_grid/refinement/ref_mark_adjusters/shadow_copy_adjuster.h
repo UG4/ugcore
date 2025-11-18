@@ -51,16 +51,16 @@ namespace ug {
 class ShadowCopyAdjuster : public IRefMarkAdjuster
 {
 	public:
-		virtual ~ShadowCopyAdjuster();
+	~ShadowCopyAdjuster() override;
 
-		virtual void ref_marks_changed
+	void ref_marks_changed
 		(
 			IRefiner& ref,
 			const std::vector<Vertex*>& vrts,
 			const std::vector<Edge*>& edges,
 			const std::vector<Face*>& faces,
 			const std::vector<Volume*>& vols
-		);
+		) override;
 };
 
 }  // namespace ug

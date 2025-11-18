@@ -95,7 +95,7 @@ LuaUserData<TData,dim,TRet>::LuaUserData(const char* luaCallback)
 	: m_callbackName(luaCallback), m_bFromFactory(false)
 {
 //	get lua state
-	m_L = ug::script::GetDefaultLuaState();
+	m_L = script::GetDefaultLuaState();
 
 //	obtain a reference
 	lua_getglobal(m_L, m_callbackName.c_str());
@@ -122,7 +122,7 @@ LuaUserData<TData,dim,TRet>::LuaUserData(LuaFunctionHandle handle)
 	: m_callbackName("__anonymous__lua__function__"), m_bFromFactory(false)
 {
 //	get lua state
-	m_L = ug::script::GetDefaultLuaState();
+	m_L = script::GetDefaultLuaState();
 
 //	store reference to lua function
 	m_callbackRef = handle.ref;
@@ -235,7 +235,7 @@ check_callback_returns(LuaFunctionHandle handle, const bool bThrow)
 {
     PROFILE_CALLBACK()
 //	get lua state
-	lua_State* L = ug::script::GetDefaultLuaState();
+	lua_State* L = script::GetDefaultLuaState();
 
 //	forward call
 	bool bRet = check_callback_returns(L, handle.ref, "__lua_function_handle__", bThrow);
@@ -250,7 +250,7 @@ check_callback_returns(const char* callName, const bool bThrow)
 {
     PROFILE_CALLBACK()
 //	get lua state
-	lua_State* L = ug::script::GetDefaultLuaState();
+	lua_State* L = script::GetDefaultLuaState();
 
 //	obtain a reference
 	lua_getglobal(L, callName);
@@ -445,7 +445,7 @@ LuaUserFunction<TData,dim,TDataIn>::
 LuaUserFunction(const char* luaCallback, size_t numArgs)
 	: m_numArgs(numArgs), m_bPosTimeNeed(false)
 {
-	m_L = ug::script::GetDefaultLuaState();
+	m_L = script::GetDefaultLuaState();
 	m_cbValueRef = LUA_NOREF;
 	m_cbDerivRef.clear();
 	m_cbDerivName.clear();
@@ -460,7 +460,7 @@ LuaUserFunction<TData,dim,TDataIn>::
 LuaUserFunction(const char* luaCallback, size_t numArgs, bool bPosTimeNeed)
 	: m_numArgs(numArgs), m_bPosTimeNeed(bPosTimeNeed)
 {
-	m_L = ug::script::GetDefaultLuaState();
+	m_L = script::GetDefaultLuaState();
 	m_cbValueRef = LUA_NOREF;
 	m_cbDerivRef.clear();
 	m_cbDerivName.clear();
@@ -476,7 +476,7 @@ LuaUserFunction<TData,dim,TDataIn>::
 LuaUserFunction(LuaFunctionHandle handle, size_t numArgs)
 	: m_numArgs(numArgs), m_bPosTimeNeed(false)
 {
-	m_L = ug::script::GetDefaultLuaState();
+	m_L = script::GetDefaultLuaState();
 	m_cbValueRef = LUA_NOREF;
 	m_cbDerivRef.clear();
 	m_cbDerivName.clear();
@@ -494,7 +494,7 @@ LuaUserFunction<TData,dim,TDataIn>::
 LuaUserFunction(LuaFunctionHandle handle, size_t numArgs, bool bPosTimeNeed)
 	: m_numArgs(numArgs), m_bPosTimeNeed(bPosTimeNeed)
 {
-	m_L = ug::script::GetDefaultLuaState();
+	m_L = script::GetDefaultLuaState();
 	m_cbValueRef = LUA_NOREF;
 	m_cbDerivRef.clear();
 	m_cbDerivName.clear();
@@ -1081,7 +1081,7 @@ void LuaUserFunction<TData,dim,TDataIn>::set_input(size_t i, number val)
 template <typename TData, typename TDataIn>
 LuaFunction<TData,TDataIn>::LuaFunction() : m_numArgs(0)
 {
-	m_L = ug::script::GetDefaultLuaState();
+	m_L = script::GetDefaultLuaState();
 	m_cbValueRef = LUA_NOREF;
 }
 

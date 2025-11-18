@@ -77,10 +77,10 @@ void CreateVolumesFromElementIndexList (
 
 		Volume* vol = nullptr;
 		switch(elemId){
-			case 4:	vol = *g.create<Tetrahedron>(vd);	break;
-			case 5:	vol = *g.create<Pyramid>(vd);		break;
-			case 6:	vol = *g.create<Prism>(vd); 		break;
-			case 8:	vol = *g.create<Hexahedron>(vd);	break;
+			case 4:	vol = *g.create<Tetrahedron>(TetrahedronDescriptor(vd)); break;
+			case 5:	vol = *g.create<Pyramid>(PyramidDescriptor(vd)); break;
+			case 6:	vol = *g.create<Prism>(PrismDescriptor(vd)); break;
+			case 8:	vol = *g.create<Hexahedron>(HexahedronDescriptor(vd));	break;
 			default: UG_THROW("Unsupported element index: " << elemId);
 		}
 

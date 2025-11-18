@@ -51,4 +51,4 @@ enum GridObjectID{
 
 }//	end of namespace
 
-#endif	//__H__UG_grid_object_ids
+#endif

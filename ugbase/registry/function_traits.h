@@ -624,4 +624,4 @@ struct constructor_traits <T, TypeList<T1, T2, T3, T4, T5, T6, T7, T8> >
 } // end namespace bridge
 } // end namespace ug
 
-#endif /* __H__UG_BRIDGE__FUNCTION_TRAITS__ */
+#endif

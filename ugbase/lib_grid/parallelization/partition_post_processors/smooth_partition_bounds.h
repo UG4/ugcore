@@ -49,14 +49,12 @@ class SmoothPartitionBounds : public IPartitionPostProcessor
 			// m_consideringVerticalSidesOnly(false)
 		{}
 
-		virtual ~SmoothPartitionBounds()
-		{
+		~SmoothPartitionBounds() override {
 			if(m_mg && m_mg->has_attachment<side_t>(m_aSubsetNbrs))
 				m_mg->detach_from<side_t>(m_aSubsetNbrs);
 		}
 
-		void init_post_processing(MultiGrid* mg, SubsetHandler* partitions)
-		{
+		void init_post_processing(MultiGrid* mg, SubsetHandler* partitions) override {
 			m_mg = mg;
 			m_partitions = partitions;
 			mg->attach_to<side_t>(m_aSubsetNbrs);
@@ -78,8 +76,7 @@ class SmoothPartitionBounds : public IPartitionPostProcessor
 		
 		// bool considering_vertical_sides_only() const	{return m_consideringVerticalSidesOnly;}
 
-		void post_process(int partitionLvl)
-		{
+		void post_process(int partitionLvl) override {
 			using namespace std;
 		//	we'll regularize the partition to reduce h-interface sizes
 		//	(also important to improve gmg-smoother efficiency).
@@ -172,8 +169,7 @@ class SmoothPartitionBounds : public IPartitionPostProcessor
 			}
 		}
 
-		void partitioning_done()
-		{
+		void partitioning_done() override {
 			m_mg->detach_from<side_t>(m_aSubsetNbrs);
 		}
 
@@ -190,4 +186,4 @@ class SmoothPartitionBounds : public IPartitionPostProcessor
 
 }//	end of namespace
 
-#endif	//__H__UG_smooth_partition_bounds
+#endif

@@ -36,7 +36,7 @@
 #include <vector>
 #include <string>
 #include <cmath>  // for isinf, isnan
-#include <boost/function.hpp>
+//#include <boost/function.hpp>
 
 
 #include "common/util/file_util.h"
@@ -66,14 +66,6 @@
 #endif
 
 namespace ug {
-
-#ifndef isnan
-using boost::math::isnan;
-#endif
-
-#ifndef isinf
-using boost::math::isinf;
-#endif
 
 
 template <typename TBaseElem, typename TGridFunction>

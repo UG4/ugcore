@@ -34,6 +34,7 @@
 #include <algorithm>
 #include "grid_objects.h"
 #include "common/common.h"
+#include "common/assert.h"
 #include "tetrahedron_rules.h"
 #include "octahedron_rules.h"
 #include "pyramid_rules.h"
@@ -145,11 +146,11 @@ void CreateVolumesFromElementIndexList (
 		}
 
 		switch(gridObjectID){
-			case GOID_TETRAHEDRON:	volsOut.push_back(new Tetrahedron(vd));	break;
-			case GOID_PYRAMID:		volsOut.push_back(new Pyramid(vd));		break;
-			case GOID_PRISM:		volsOut.push_back(new Prism(vd)); 		break;
-			case GOID_HEXAHEDRON:	volsOut.push_back(new Hexahedron(vd));	break;
-			case GOID_OCTAHEDRON:	volsOut.push_back(new Octahedron(vd));	break;
+			case GOID_TETRAHEDRON: volsOut.push_back(new Tetrahedron(TetrahedronDescriptor(vd)));	break;
+			case GOID_PYRAMID: volsOut.push_back(new Pyramid(PyramidDescriptor(vd)));		break;
+			case GOID_PRISM: volsOut.push_back(new Prism(PrismDescriptor(vd))); 		break;
+			case GOID_HEXAHEDRON: volsOut.push_back(new Hexahedron(HexahedronDescriptor(vd)));	break;
+			case GOID_OCTAHEDRON: volsOut.push_back(new Octahedron(OctahedronDescriptor(vd)));	break;
 		}
 	}
 }

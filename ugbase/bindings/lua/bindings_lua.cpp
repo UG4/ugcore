@@ -175,8 +175,7 @@ SmartUserDataWrapper* CreateNewUserData(lua_State* L, const SmartPtr<void>& ptr,
 											  const char* metatableName)
 {
 //	create the userdata
-	SmartUserDataWrapper* udata = (SmartUserDataWrapper*)lua_newuserdata(L,
-											sizeof(SmartUserDataWrapper));
+	auto udata = (SmartUserDataWrapper*)lua_newuserdata(L, sizeof(SmartUserDataWrapper));
 	new(udata) SmartUserDataWrapper;
 
 //	associate the object with the userdata.
@@ -194,8 +193,7 @@ ConstSmartUserDataWrapper* CreateNewUserData(lua_State* L, const ConstSmartPtr<v
 											  const char* metatableName)
 {
 //	create the userdata
-	ConstSmartUserDataWrapper* udata = (ConstSmartUserDataWrapper*)lua_newuserdata(L,
-											sizeof(ConstSmartUserDataWrapper));
+	auto* udata = (ConstSmartUserDataWrapper*)lua_newuserdata(L, sizeof(ConstSmartUserDataWrapper));
 
 	new(udata) ConstSmartUserDataWrapper;
 
@@ -216,8 +214,7 @@ RawUserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
 										  bool is_const)
 {
 //	create the userdata
-	RawUserDataWrapper* udata = (RawUserDataWrapper*)lua_newuserdata(L,
-											sizeof(RawUserDataWrapper));
+	auto* udata = (RawUserDataWrapper*)lua_newuserdata(L, sizeof(RawUserDataWrapper));
 
 	new(udata) RawUserDataWrapper;
 
@@ -271,7 +268,7 @@ string GetNilWarning(lua_State* L, int offsetToFirstParam)
 		if(lua_isnil(L, index))
 			indices.push_back(index-offsetToFirstParam);
 
-	if(indices.size() > 0)
+	if(!indices.empty())
 	{
 		std::stringstream ss;
 
@@ -313,7 +310,7 @@ std::string GetColonWarning(std::string name)
 /**
  *
  * \returns	String describing the reason why LuaStackToParams failed.
- * \param paramsTempalte
+ * \param paramsTemplate
  * \param L
  * \param offsetToFirstParam
  * \param badParamOneBased : return value as in LuaStackParams
@@ -364,7 +361,7 @@ string UGErrorTraceback(UGError &err)
 
 	//	add paddings
 		std::string::size_type pos = 0;
-		while (1) {
+		while (true) {
 		    pos = msg.find('\n', pos);
 		    if (pos == std::string::npos) break;
 		    pos++;
@@ -804,8 +801,7 @@ static int LuaToStringDefault(lua_State *L)
  */
 static int LuaProxyMethod(lua_State* L)
 {
-	const ExportedMethodGroup* methodGrp = (const ExportedMethodGroup*)
-											lua_touserdata(L, lua_upvalueindex(1));
+	const auto* methodGrp = (const ExportedMethodGroup*) lua_touserdata(L, lua_upvalueindex(1));
 
 	if(!lua_isuserdata(L, 1))
 	{
@@ -817,14 +813,13 @@ static int LuaProxyMethod(lua_State* L)
 		return 0;
 	}
 
-	UserDataWrapper* self = (UserDataWrapper*)lua_touserdata(L, 1);
+	auto* self = (UserDataWrapper*)lua_touserdata(L, 1);
 
 //	get metatable of object and extract the class name node
 	lua_getmetatable(L, 1);
 	lua_pushstring(L, "class_name_node");
 	lua_rawget(L, -2);
-	const ClassNameNode* classNameNode
-		= (const ClassNameNode*) lua_touserdata(L, -1);
+	const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
 	lua_pop(L, 2);
 
 	int retVal = ExecuteMethod(L, methodGrp, self, classNameNode, false);
@@ -895,7 +890,7 @@ void GetBestMatchingMember(const IExportedClass *c, const char *name, std::strin
 	const vector<const char *> *pNames = c->class_names();
 	if(pNames)
 	{
-		bridge::Registry &reg = ug::bridge::GetUGRegistry();
+		Registry &reg = GetUGRegistry();
 		for(size_t i=1; i<pNames->size(); i++) // skip the class itself
 			GetBestMatchingMember(reg.get_class(pNames->at(i)), name, minname, mind);
 	}
@@ -906,7 +901,7 @@ void GetBestMatchingMember(const IExportedClass *c, const char *name, std::strin
  */
 void GetBestMatchingMember(const char *classname, const char *name, std::string &minname, int &mind)
 {
-	bridge::Registry &reg = ug::bridge::GetUGRegistry();
+	Registry &reg = GetUGRegistry();
 	const IExportedClass *c = reg.get_class(classname);
 	minname = "";
 	mind = 10;
@@ -930,7 +925,7 @@ static int MetatableIndexer(lua_State*L)
 	std::queue<const ClassNameNode*> qClassNameNodes;
 
 //	now we have to traverse the class hierarchy
-	while(1)
+	while(true)
 	{
 	//	if the object is not const, check whether the key is in the current metatable
 		if(!is_const){
@@ -967,7 +962,7 @@ static int MetatableIndexer(lua_State*L)
 
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const ClassNameNode* pClassNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+		const auto* pClassNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
 		lua_pop(L, 2);
 
 	//	push all base classes to queue
@@ -982,7 +977,7 @@ static int MetatableIndexer(lua_State*L)
 			lua_getmetatable(L, 1);
 			lua_pushstring(L, "class_name_node");
 			lua_rawget(L, -2);
-			const ClassNameNode* pClassNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+			const auto* pClassNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
 			lua_pop(L, 2);
 			const char *classname = pClassNameNode->name().c_str();
 			const char *funcname = lua_tostring(L, -1);
@@ -1026,7 +1021,7 @@ static int LuaProxyDelete(lua_State* L)
 	void* ptr = lua_touserdata(L, 1);
 //	we perform delete if the user-data is a raw pointer
 	if(((UserDataWrapper*)ptr)->is_raw_ptr()){
-		RawUserDataWrapper* udata = (RawUserDataWrapper*)ptr;
+		auto* udata = (RawUserDataWrapper*)ptr;
 		if(udata->deleteFunc){
 			udata->deleteFunc(udata->obj);
 			((RawUserDataWrapper*)ptr)->obj = nullptr;
@@ -1156,7 +1151,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 			lua_pushlightuserdata(L, (void*)&m);
 			lua_pushcclosure(L, LuaProxyMethod, 1);
 			lua_settable(L, -3);
-			if(m.name().compare("__tostring") == 0) bToStringFound = true;
+			if(m.name() == "__tostring") bToStringFound = true;
 		}
 
 		if(bToStringFound==false)
@@ -1172,7 +1167,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 			for(size_t j = 0; j < c->num_const_methods(); ++j)
 			{
 				const ExportedMethodGroup& m = c->get_const_method_group(j);
-				if(m.name().compare("__tostring") == 0)
+				if(m.name() == "__tostring")
 				{
 					lua_pushstring(L, m.name().c_str());
 					lua_pushlightuserdata(L, (void*)&m);

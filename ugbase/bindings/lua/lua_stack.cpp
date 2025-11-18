@@ -142,7 +142,7 @@ int LuaStackToParams(ParameterStack& ps,
 					badParam = (int)i + 1;
 			}break;
 			case Variant::VT_LUA_TABLE_HANDLE:{
-				if(!PushLuaStackEntryToParamStack<ug::LuaTableHandle>(ps, L, index, bIsVector))
+				if(!PushLuaStackEntryToParamStack<LuaTableHandle>(ps, L, index, bIsVector))
 					badParam = (int)i + 1;
 			}break;
 #endif

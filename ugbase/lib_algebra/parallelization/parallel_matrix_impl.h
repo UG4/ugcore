@@ -198,9 +198,9 @@ matmul_minus(TPVector &res, const TPVector &x) const
 
 
 template<typename matrix_type, typename vector_type>
-ug::ParallelStorageType GetMultType(const ParallelMatrix<matrix_type> &A1, const ParallelVector<vector_type> &x)
+ParallelStorageType GetMultType(const ParallelMatrix<matrix_type> &A1, const ParallelVector<vector_type> &x)
 {
-	ug::ParallelStorageType type = PST_UNDEFINED;
+	ParallelStorageType type = PST_UNDEFINED;
 	if(A1.has_storage_type(PST_ADDITIVE)
 			&& x.has_storage_type(PST_CONSISTENT)) type = PST_ADDITIVE; // 0
 	if(A1.has_storage_type(PST_CONSISTENT)
@@ -226,7 +226,7 @@ inline bool MatMultDirect(ParallelVector<vector_type> &dest,
 {
 	PROFILE_FUNC_GROUP("algebra");
 	//	check types combinations
-	ug::ParallelStorageType type = GetMultType(A1, w1);
+	ParallelStorageType type = GetMultType(A1, w1);
 	if(type == PST_UNDEFINED) return false;
 
 	MatMult(dynamic_cast<vector_type&>(dest), beta1, dynamic_cast<const matrix_type&>(A1), dynamic_cast<const vector_type&>(w1));
@@ -245,7 +245,7 @@ inline bool MatMultAddDirect(ParallelVector<vector_type> &dest,
 {
 	PROFILE_FUNC_GROUP("algebra");
 	//	check types combinations
-	ug::ParallelStorageType type = GetMultType(A1, w1);
+	ParallelStorageType type = GetMultType(A1, w1);
 	if(type == PST_UNDEFINED) return false;
 
 	if(!v1.has_storage_type(type))
@@ -271,7 +271,7 @@ inline bool MatMultAddDirect(ParallelVector<vector_type> &dest,
 {
 	PROFILE_FUNC_GROUP("algebra");
 	//	check types combinations
-	ug::ParallelStorageType type = GetMultType(A1, w1);
+	ParallelStorageType type = GetMultType(A1, w1);
 	if(type == PST_UNDEFINED) return false;
 
 	if(!v1.has_storage_type(type) || !v2.has_storage_type(type))
@@ -297,7 +297,7 @@ inline void MatMultTransposedDirect(ParallelVector<vector_type> &dest,
 {
 	PROFILE_FUNC_GROUP("algebra");
 	//	check types combinations
-	ug::ParallelStorageType type = GetMultType(A1, w1);
+	ParallelStorageType type = GetMultType(A1, w1);
 	if(type == PST_UNDEFINED) UG_THROW("Wrong storage type");
 
 	MatMultTransposed(dynamic_cast<vector_type&>(dest), beta1, dynamic_cast<const matrix_type&>(A1), dynamic_cast<const vector_type&>(w1));

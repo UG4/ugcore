@@ -66,7 +66,7 @@ class RevisionCounter
 		RevisionCounter(const T* pObj) : m_pObj(static_cast<const void*>(pObj)), m_cnt(1) {}
 
 	///	increase state (prefix)
-		RevisionCounter& operator++() {
+		RevisionCounter& operator ++ () {
 			if(invalid())
 				UG_THROW("AdaptState: increasing invalid state not admissible.")
 
@@ -78,7 +78,7 @@ class RevisionCounter
 		}
 
 	///	increase state (postfix)
-		RevisionCounter operator++(int) {
+		RevisionCounter operator ++ (int) {
 			RevisionCounter tmp(*this);
 			++(*this);
 			return tmp;

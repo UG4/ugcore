@@ -91,7 +91,7 @@ extern APosition1	aPosition1;
 
 ///	The standard 3d normal type
 UG_API
-extern ANormal		aNormal;
+extern ANormal aNormal;
 
 ////////////////////////////////////////////////////////////////////////
 //	default position attachments for different types

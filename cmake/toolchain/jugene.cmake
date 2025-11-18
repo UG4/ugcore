@@ -31,17 +31,17 @@
 # Based on the scripts from Ingo Heppner.
 
 # This option tells cmake/ug_includes.cmake to add the -dynamic option to the compiler flags.
-SET(enableDynamicOption ON)
+set (enableDynamicOption ON)
 
-SET(CMAKE_C_COMPILER       /bgsys/drivers/ppcfloor/gnu-linux/bin/powerpc-bgp-linux-gcc)
-SET(CMAKE_CXX_COMPILER     /bgsys/drivers/ppcfloor/gnu-linux/bin/powerpc-bgp-linux-g++)
-SET(CMAKE_Fortran_COMPILER /bgsys/drivers/ppcfloor/gnu-linux/bin/powerpc-bgp-linux-gfortran)
+set (CMAKE_C_COMPILER       /bgsys/drivers/ppcfloor/gnu-linux/bin/powerpc-bgp-linux-gcc)
+set (CMAKE_CXX_COMPILER     /bgsys/drivers/ppcfloor/gnu-linux/bin/powerpc-bgp-linux-g++)
+set (CMAKE_Fortran_COMPILER /bgsys/drivers/ppcfloor/gnu-linux/bin/powerpc-bgp-linux-gfortran)
 
-include(Platform/BlueGeneP-base)
+include (Platform/BlueGeneP-base)
 
-__BlueGeneP_set_dynamic_flags(GNU CXX)
+__BlueGeneP_set_dynamic_flags (GNU CXX)
 
-set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
-set(CMAKE_FIND_LIBRARY_PREFIXES "lib")
-set(CMAKE_FIND_LIBRARY_SUFFIXES ".so" ".a")
+set_property (GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
+set (CMAKE_FIND_LIBRARY_PREFIXES "lib")
+set (CMAKE_FIND_LIBRARY_SUFFIXES ".so" ".a")
 

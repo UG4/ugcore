@@ -107,8 +107,7 @@ class CopyAttachmentHandler : public GridObserver
 		: m_bEnableVertComm(true) {}
 
 		/// destructor
-		virtual ~CopyAttachmentHandler()
-		{
+		~CopyAttachmentHandler() override {
 			if (m_spMG.valid())
 				m_spMG->unregister_observer(this);
 
@@ -164,47 +163,43 @@ class CopyAttachmentHandler : public GridObserver
 
 
 		// GridObserver implementations
-		virtual void vertex_created
+		void vertex_created
 		(
 			Grid* grid,
 			Vertex* vrt,
 			GridObject* pParent = nullptr,
 			bool replacesParent = false
-		)
-		{
+		) override {
 			propagate<Vertex, void>(vrt, pParent, this);
 		}
 
-		virtual void edge_created
+		void edge_created
 		(
 			Grid* grid,
 			Edge* e,
 			GridObject* pParent = nullptr,
 			bool replacesParent = false
-		)
-		{
+		) override {
 			propagate<Edge, void>(e, pParent, this);
 		}
 
-		virtual void face_created
+		void face_created
 		(
 			Grid* grid,
 			Face* f,
 			GridObject* pParent = nullptr,
 			bool replacesParent = false
-		)
-		{
+		) override {
 			propagate<Face, void>(f, pParent, this);
 		}
 
-		virtual void volume_created
+		void volume_created
 		(
 			Grid* grid,
 			Volume* vol,
 			GridObject* pParent = nullptr,
 			bool replacesParent = false
-		)
-		{
+		) override {
 			propagate<Volume, void>(vol, pParent, this);
 		}
 
@@ -341,4 +336,4 @@ class CopyAttachmentHandler : public GridObserver
 
 } // end namespace ug
 
-#endif // LIB_GRID__COPY_ATTACHMENT_HANDLER_H__
+#endif

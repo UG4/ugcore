@@ -43,7 +43,7 @@ namespace ug {
 class DistroAdjuster
 {
 	public:
-		virtual ~DistroAdjuster() {}
+		virtual ~DistroAdjuster() = default;
 
 		// The selector given here has selected all elements
 		// that are to be part of the partition currently being treated.

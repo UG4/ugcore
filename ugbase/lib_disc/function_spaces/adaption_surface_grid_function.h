@@ -49,6 +49,7 @@ class AdaptionSurfaceGridFunction : public GridObserver
 		AdaptionSurfaceGridFunction(SmartPtr<TDomain> spDomain,
 				 bool bObserveStorage = true);
 
+		~AdaptionSurfaceGridFunction() override = default;
 	public:
 		template <typename TAlgebra>
 		void copy_from_surface(const GridFunction<TDomain,TAlgebra>& rSurfaceFct);
@@ -87,12 +88,12 @@ class AdaptionSurfaceGridFunction : public GridObserver
 		class ValueAccessor : public TransferValueAccessor
 		{
 			public:
-				ValueAccessor(AdaptionSurfaceGridFunction<TDomain>& rASGF,
+				ValueAccessor(AdaptionSurfaceGridFunction& rASGF,
 				              size_t fct);
 
-				void access_inner(GridObject* elem);
+				void access_inner(GridObject* elem) override;
 
-				void access_closure(GridObject* elem);
+				void access_closure(GridObject* elem) override;
 
 			protected:
 				template <typename TBaseElem, typename TSubBaseElem>
@@ -102,7 +103,7 @@ class AdaptionSurfaceGridFunction : public GridObserver
 				void access_closure(TBaseElem* elem);
 
 			protected:
-				AdaptionSurfaceGridFunction<TDomain>& m_rASGF;
+				AdaptionSurfaceGridFunction& m_rASGF;
 				const size_t m_fct;
 				bool m_HasDoFs[NUM_GEOMETRIC_BASE_OBJECTS];
 		};
@@ -115,10 +116,10 @@ class AdaptionSurfaceGridFunction : public GridObserver
 
 		/// grid observer callbacks
 		/// \{
-		virtual void vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent = nullptr, bool replacesParent = false){obj_created(vrt);}
-		virtual void edge_created(Grid* grid, Edge* e, GridObject* pParent = nullptr, bool replacesParent = false){obj_created(e);}
-		virtual void face_created(Grid* grid, Face* f, GridObject* pParent = nullptr, bool replacesParent = false){obj_created(f);}
-		virtual void volume_created(Grid* grid, Volume* vol, GridObject* pParent = nullptr, bool replacesParent = false){obj_created(vol);}
+		void vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent = nullptr, bool replacesParent = false) override {obj_created(vrt);}
+		void edge_created(Grid* grid, Edge* e, GridObject* pParent = nullptr, bool replacesParent = false) override {obj_created(e);}
+		void face_created(Grid* grid, Face* f, GridObject* pParent = nullptr, bool replacesParent = false) override {obj_created(f);}
+		void volume_created(Grid* grid, Volume* vol, GridObject* pParent = nullptr, bool replacesParent = false) override {obj_created(vol);}
 		/// \}
 
 	protected:
@@ -133,8 +134,8 @@ class AdaptionSurfaceGridFunction : public GridObserver
 		template <typename TElem> void detach_entries();
 		void detach_entries();
 
-		AValues									m_aValue;
-		MultiElementAttachmentAccessor<AValues>	m_aaValue;
+		AValues m_aValue;
+		MultiElementAttachmentAccessor<AValues> m_aaValue;
 
 		std::vector<SmartPtr<IElemProlongation<TDomain> > > m_vpProlong;
 		std::vector<SmartPtr<IElemRestriction<TDomain> > > m_vpRestrict;
@@ -145,4 +146,4 @@ class AdaptionSurfaceGridFunction : public GridObserver
 
 #include "adaption_surface_grid_function_impl.h"
 
-#endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__ADAPTION_SURFACE_GRID_FUNCTION__ */
+#endif

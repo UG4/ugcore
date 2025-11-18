@@ -79,11 +79,11 @@ enum ObserverType
 class UG_API GridObserver
 {
 	public:
-		virtual ~GridObserver()	{}
+		virtual ~GridObserver()	= default;
 
 	//	grid callbacks
-		virtual void grid_to_be_destroyed(Grid* grid)		{}
-		virtual void elements_to_be_cleared(Grid* grid)		{}
+		virtual void grid_to_be_destroyed(Grid* grid) {}
+		virtual void elements_to_be_cleared(Grid* grid) {}
 
 	//	creation callbacks
 	/**
@@ -106,19 +106,19 @@ class UG_API GridObserver
 	/// \{
 		virtual void vertex_created(Grid* grid, Vertex* vrt,
 									GridObject* pParent = nullptr,
-									bool replacesParent = false)			{}
+									bool replacesParent = false) {}
 
 		virtual void edge_created(Grid* grid, Edge* e,
 									GridObject* pParent = nullptr,
-									bool replacesParent = false)			{}
+									bool replacesParent = false) {}
 
 		virtual void face_created(Grid* grid, Face* f,
 									GridObject* pParent = nullptr,
-									bool replacesParent = false)			{}
+									bool replacesParent = false) {}
 
 		virtual void volume_created(Grid* grid, Volume* vol,
 									GridObject* pParent = nullptr,
-									bool replacesParent = false)			{}
+									bool replacesParent = false) {}
 	///	\}
 
 
@@ -135,16 +135,16 @@ class UG_API GridObserver
 	 *
 	 * \{ */
 		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
-										 Vertex* replacedBy = nullptr)	{}
+										 Vertex* replacedBy = nullptr) {}
 
 		virtual void edge_to_be_erased(Grid* grid, Edge* e,
-										 Edge* replacedBy = nullptr)	{}
+										 Edge* replacedBy = nullptr) {}
 
 		virtual void face_to_be_erased(Grid* grid, Face* f,
-										 Face* replacedBy = nullptr)	{}
+										 Face* replacedBy = nullptr) {}
 
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
-										 Volume* replacedBy = nullptr)	{}
+										 Volume* replacedBy = nullptr) {}
 
 	/**	\}	*/
 
@@ -163,16 +163,16 @@ class UG_API GridObserver
 	 *
 	 * \{ */
 		virtual void vertices_to_be_merged(Grid* grid, Vertex* target,
-										 Vertex* elem1, Vertex* elem2)	{}
+										 Vertex* elem1, Vertex* elem2) {}
 
 		virtual void edges_to_be_merged(Grid* grid, Edge* target,
-										 Edge* elem1, Edge* elem2)	{}
+										 Edge* elem1, Edge* elem2) {}
 
 		virtual void faces_to_be_merged(Grid* grid, Face* target,
-										 Face* elem1, Face* elem2)	{}
+										 Face* elem1, Face* elem2) {}
 
 		virtual void volumes_to_be_merged(Grid* grid, Volume* target,
-										 Volume* elem1, Volume* elem2)	{}
+										 Volume* elem1, Volume* elem2) {}
 
 	/**	\}	*/
 };

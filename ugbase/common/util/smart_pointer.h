@@ -35,7 +35,7 @@
 
 #include <functional>
 #include <cstring>
-#include <boost/pointee.hpp>
+// #include <boost/pointee.hpp>
 
 /// \addtogroup ugbase_common_util
 /// \{
@@ -438,7 +438,7 @@ class ConstSmartPtr
 	///	performs a static cast
 		template <class TDest>
 		ConstSmartPtr<TDest, FreePolicy> cast_reinterpret() const{
-			const TDest* p = reinterpret_cast<const TDest*>(m_ptr);
+			const auto* p = reinterpret_cast<const TDest*>(m_ptr);
 			if(p) return ConstSmartPtr<TDest, FreePolicy>(p, m_refCount);
 			else return ConstSmartPtr<TDest, FreePolicy>(nullptr);
 		}
@@ -845,6 +845,7 @@ SmartPtr<T> make_sp(T* inst)
 	return SmartPtr<T>(inst);
 }
 
+/*
 namespace boost
 {
   template <class T>
@@ -859,7 +860,7 @@ namespace boost
 	  using type = T;
   };
 }
-
+*/
 // end group ugbase_common_util
 /// \}
 

@@ -61,7 +61,7 @@ set_property(const std::string& name, Variant prop)
 Variant SubsetInfo::
 get_property(const char* name, Variant defaultValue) const
 {
-	PropertyMap::const_iterator iter = m_propertyMap.find(name);
+	auto iter = m_propertyMap.find(name);
 	if(iter == m_propertyMap.end())
 		return defaultValue;
 	return iter->second;
@@ -70,7 +70,7 @@ get_property(const char* name, Variant defaultValue) const
 Variant SubsetInfo::
 get_property(const std::string& name, Variant defaultValue) const
 {
-	PropertyMap::const_iterator iter = m_propertyMap.find(name);
+	auto iter = m_propertyMap.find(name);
 	if(iter == m_propertyMap.end())
 		return defaultValue;
 	return iter->second;

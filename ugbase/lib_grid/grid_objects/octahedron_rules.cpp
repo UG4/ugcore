@@ -89,8 +89,8 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corne
 
 
 //	convenience - indices where new edge-vrts, new face-vrts and new vol-vrts begin.
-	const int E = NUM_VERTICES;
-	const int V = NUM_VERTICES + NUM_EDGES + NUM_FACES;
+	constexpr int E = NUM_VERTICES;
+	constexpr int V = NUM_VERTICES + NUM_EDGES + NUM_FACES;
 
 //	depending on the number of new vertices, we will now apply different
 //	refinement rules. Further distinction may have to be done.

@@ -49,19 +49,19 @@ namespace ug{
 ///	callback that always returns true
 class ConsiderAll : public ElementCallback {
 	public:
-		bool operator() (Vertex* v) const	{return true;}
-		bool operator() (Edge* e) const		{return true;}
-		bool operator() (Face* f) const		{return true;}
-		bool operator() (Volume* v) const	{return true;}
+		bool operator () (Vertex* v) const {return true;}
+		bool operator () (Edge* e) const {return true;}
+		bool operator () (Face* f) const {return true;}
+		bool operator () (Volume* v) const {return true;}
 };
 
 ///	callback that always returns false
 class ConsiderNone : public ElementCallback {
 	public:
-		bool operator() (Vertex* v) const	{return false;}
-		bool operator() (Edge* e) const		{return false;}
-		bool operator() (Face* f) const		{return false;}
-		bool operator() (Volume* v) const	{return false;}
+		bool operator () (Vertex* v) const {return false;}
+		bool operator () (Edge* e) const {return false;}
+		bool operator () (Face* f) const {return false;}
+		bool operator () (Volume* v) const {return false;}
 };
 
 
@@ -73,14 +73,14 @@ class IsMarked : public ElementCallback
 		IsMarked(const Grid& grid) :
 			m_grid(grid)	{}
 
-		bool operator() (Vertex* v) const	{return callback(v);}
-		bool operator() (Edge* e) const		{return callback(e);}
-		bool operator() (Face* f) const		{return callback(f);}
-		bool operator() (Volume* v) const	{return callback(v);}
+		bool operator () (Vertex* v) const {return callback(v);}
+		bool operator () (Edge* e) const {return callback(e);}
+		bool operator () (Face* f) const {return callback(f);}
+		bool operator () (Volume* v) const {return callback(v);}
 
 	private:
 		template <class TElem>
-		bool callback(TElem* e) const		{return m_grid.is_marked(e);}
+		bool callback(TElem* e) const {return m_grid.is_marked(e);}
 
 	private:
 		const Grid&	m_grid;
@@ -93,14 +93,14 @@ class IsNotMarked : public ElementCallback
 		IsNotMarked(const Grid& grid) :
 			m_grid(grid)	{}
 
-		bool operator() (Vertex* v) const	{return callback(v);}
-		bool operator() (Edge* e) const		{return callback(e);}
-		bool operator() (Face* f) const		{return callback(f);}
-		bool operator() (Volume* v) const	{return callback(v);}
+		bool operator () (Vertex* v) const {return callback(v);}
+		bool operator () (Edge* e) const {return callback(e);}
+		bool operator () (Face* f) const {return callback(f);}
+		bool operator () (Volume* v) const {return callback(v);}
 
 	private:
 		template <class TElem>
-		bool callback(TElem* e)	const		{return !m_grid.is_marked(e);}
+		bool callback(TElem* e)	const {return !m_grid.is_marked(e);}
 
 	private:
 		const Grid&	m_grid;
@@ -110,4 +110,4 @@ class IsNotMarked : public ElementCallback
 
 }//	end of namespace
 
-#endif	//__H__UG_basic_callbacks
+#endif

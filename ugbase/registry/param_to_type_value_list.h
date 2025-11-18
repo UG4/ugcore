@@ -134,4 +134,4 @@ struct CreateParameterInfoOut<void>{
 
 } // end namespace ug
 
-#endif /* __H__UG_BRIDGE__PARAM_TO_TYPE_VALUE_LIST__ */
+#endif

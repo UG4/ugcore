@@ -630,7 +630,7 @@ class AttachedBoundryElem
 public:
 	using PairLowEl = std::pair<LOWDIMELM,LOWDIMELM>;
 
-	using AttBndryElm = AttachedBoundryElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
+	using AttBndryElm = AttachedBoundryElem;
 
 	using AttFractElm = AttachedFractElem<MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
 

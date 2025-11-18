@@ -4845,9 +4845,9 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 
 						vector3 moveVrt;
 
-						number pi = 3.1415926535897932385;
+						// number pi = M_PI;
 
-						number cosinusLim = std::cos( pi/8. );
+						number cosinusLim = std::cos( M_PI/8. );
 
 						vector3 posNewVrt;
 

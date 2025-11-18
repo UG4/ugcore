@@ -43,23 +43,21 @@ class BalanceWeightsRefMarks : public IBalanceWeights
 	public:
 		BalanceWeightsRefMarks(IRefiner* refiner) : m_refiner(refiner)	{};
 
-		virtual number get_refined_weight(Vertex* e){
+		number get_refined_weight(Vertex* e) override {
 			RefinementMark m = m_refiner->get_mark(e);
 			if(m == RM_REFINE || m == RM_ANISOTROPIC)
 				return get_weight(e);
 			return 0;
 		}
 
-		virtual number get_refined_weight(Edge* e)
-		{
+		number get_refined_weight(Edge* e) override {
 			RefinementMark m = m_refiner->get_mark(e);
 			if(m == RM_REFINE || m == RM_ANISOTROPIC)
 				return 2. * get_weight(e);
 			return 0;
 		}
 
-		virtual number get_refined_weight(Face* e)
-		{
+		number get_refined_weight(Face* e) override {
 			RefinementMark m = m_refiner->get_mark(e);
 			if(m == RM_REFINE)
 				return 4. * get_weight(e);
@@ -68,8 +66,7 @@ class BalanceWeightsRefMarks : public IBalanceWeights
 			return 0;
 		}
 
-		virtual number get_refined_weight(Volume* e)
-		{
+		number get_refined_weight(Volume* e) override {
 			RefinementMark m = m_refiner->get_mark(e);
 			if(m == RM_REFINE)
 				return 8. * get_weight(e);	// ok - that isn't always true...
@@ -78,15 +75,15 @@ class BalanceWeightsRefMarks : public IBalanceWeights
 			return 0;
 		}
 
-		virtual bool has_level_offsets()		{return true;}
+		bool has_level_offsets() override {return true;}
 
 	///	Indicator in which level the specifed elements should be partitioned.
 	/** This will only have effect if the given element does not have any children
 	 * \{ */
-		virtual bool consider_in_level_above(Vertex* e)	{return consider_in_level_above_impl(e);}
-		virtual bool consider_in_level_above(Edge* e) 	{return consider_in_level_above_impl(e);}
-		virtual bool consider_in_level_above(Face* e) 	{return consider_in_level_above_impl(e);}
-		virtual bool consider_in_level_above(Volume* e)	{return consider_in_level_above_impl(e);}	
+		bool consider_in_level_above(Vertex* e) override {return consider_in_level_above_impl(e);}
+		bool consider_in_level_above(Edge* e) override {return consider_in_level_above_impl(e);}
+		bool consider_in_level_above(Face* e) override {return consider_in_level_above_impl(e);}
+		bool consider_in_level_above(Volume* e) override {return consider_in_level_above_impl(e);}
 	/** \} */
 
 	private:

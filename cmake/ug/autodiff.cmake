@@ -33,47 +33,47 @@
 
 
 # Set Autodiff include path
-if(USE_AUTODIFF)
+if (USE_AUTODIFF)
   	# This sections adds autodiff to the include path.
 	# Note: Autodiff requires C++17-compliant compilers
 
-	IF (EXTERNAL_AUTODIFF) # Automatic
+	if (EXTERNAL_AUTODIFF) # Automatic
     	FIND_PACKAGE(autodiff CONFIG REQUIRED)
 	else (EXTERNAL_AUTODIFF)# Builtin
-		SET(autodiff_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/AutodiffForUG4/autodiff)
-   	ENDIF(EXTERNAL_AUTODIFF)
-   	   	
-   	MESSAGE(STATUS "Info: Using Autodiff from ${autodiff_DIR}")
-	MESSAGE(STATUS "Info: ... compiling plugins will require at least C++17.")
+		set (autodiff_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/AutodiffForUG4/autodiff)
+   	endif ()
+
+	message (STATUS "Info: Using Autodiff from ${autodiff_DIR}")
+	message (STATUS "Info: ... compiling plugins will require at least C++17.")
      
 	# These are the important lines...
-	include_directories(${autodiff_DIR})
-    add_definitions(-DUG_USE_AUTODIFF)
+	include_directories (${autodiff_DIR})
+    add_definitions (-DUG_USE_AUTODIFF)
 
 
 	# As a next step, update the submodule.
-	find_package(Git QUIET)
-	if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+	find_package (Git QUIET)
+	if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 		# Update submodules as needed
-		option(GIT_SUBMODULE "Check submodules during build" ON)
-		if(GIT_SUBMODULE)
-			message(STATUS "Submodule update:${GIT_EXECUTABLE}  ${autodiff_DIR}/..")
-			execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+		option (GIT_SUBMODULE "Check submodules during build" ON)
+		if (GIT_SUBMODULE)
+			message (STATUS "Submodule update:${GIT_EXECUTABLE}  ${autodiff_DIR}/..")
+			execute_process (COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
 							WORKING_DIRECTORY "${autodiff_DIR}/.."
 							RESULT_VARIABLE GIT_SUBMOD_RESULT)
-			if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-				message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-			endif()
-		endif()
-	endif()
+			if (NOT GIT_SUBMOD_RESULT EQUAL "0")
+				message (FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+			endif ()
+		endif ()
+	endif ()
 	
-	if(NOT EXISTS "${autodiff_DIR}/CMakeLists.txt")
-		message(ERROR "The submodules in ${autodiff_DIR} were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
-	endif()
+	if (NOT EXISTS "${autodiff_DIR}/CMakeLists.txt")
+		message (ERROR "The submodules in ${autodiff_DIR} were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
+	endif ()
 
 
-else(USE_AUTODIFF)
-	set(USE_AUTODIFF OFF)
-endif(USE_AUTODIFF)
+else (USE_AUTODIFF)
+	set (USE_AUTODIFF OFF)
+endif ()
 
 

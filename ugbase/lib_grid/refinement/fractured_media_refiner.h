@@ -60,7 +60,7 @@ class FracturedMediaRefiner : public THangingNodeRefiner<TGrid>
 		FracturedMediaRefiner(SPRefinementProjector projector = nullptr);
 		FracturedMediaRefiner(TGrid& g, SPRefinementProjector projector = nullptr);
 
-		virtual ~FracturedMediaRefiner();
+		~FracturedMediaRefiner() override = default;
 
 	///	if the aspect ratio is smaller then the given threshold, the element is considered a fracture element.
 		void set_aspect_ratio_threshold(number threshold);
@@ -72,11 +72,12 @@ class FracturedMediaRefiner : public THangingNodeRefiner<TGrid>
 	/**	Uses the degenerated-edge-threshold to determine, whether the face
 	 * is a fracture-face or not.
 	 * Make sure to specify a position attachment before marking any elements.*/
-		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE);
+	bool mark(Face* f, RefinementMark refMark = RM_REFINE) override;
 
 	protected:
 		number aspect_ratio(Face* f);
-		virtual void collect_objects_for_refine();
+
+	void collect_objects_for_refine() override;
 
 	private:
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;

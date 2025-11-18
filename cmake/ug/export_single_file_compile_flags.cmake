@@ -47,14 +47,14 @@
 #
 # @param file the file definitions are to be exported for
 # @param definitions a list of definitions to be exported
-function(exportSingleFileCompileFlags file flags)
-	list(LENGTH flags len)
+function (exportSingleFileCompileFlags file flags)
+	list (LENGTH flags len)
 	if (${len} GREATER 0)
-		math(EXPR len "${len} - 1")
+		math (EXPR len "${len} - 1")
 		foreach (idx RANGE ${len})
-			list(GET flags ${idx} flag)
-			set_property(GLOBAL APPEND PROPERTY ugSingleFileCompileFlagsFiles ${file})
-			set_property(GLOBAL APPEND PROPERTY ugSingleFileCompileFlagsDefs "${flag}")
-		endforeach()
-	endif()
-endfunction(exportSingleFileCompileFlags)
+			list (GET flags ${idx} flag)
+			set_property (GLOBAL APPEND PROPERTY ugSingleFileCompileFlagsFiles ${file})
+			set_property (GLOBAL APPEND PROPERTY ugSingleFileCompileFlagsDefs "${flag}")
+		endforeach ()
+	endif ()
+endfunction ()

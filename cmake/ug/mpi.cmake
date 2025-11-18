@@ -31,34 +31,37 @@
 
 # Note that you may use -DMPI_DIR=... to set a custom MPI path.
 
-if(PARALLEL)
-	add_definitions(-DUG_PARALLEL)
+if (PARALLEL)
+	add_definitions (-DUG_PARALLEL)
 
 	# search mpi
-	if(NOT BUILTIN_MPI)
-		find_package(MPI)
+	if (NOT BUILTIN_MPI)
+		find_package (MPI)
 		
-		if(MPI_FOUND)
-			include_directories(${MPI_INCLUDE_PATH})
+		if (MPI_FOUND)
+			include_directories (${MPI_INCLUDE_PATH})
 			# Add mpi libraries:
 			# Standard case: add cxx libraries
-			if(MPI_CXX_LIBRARIES)
-				set(linkLibraries ${linkLibraries} ${MPI_CXX_LIBRARIES})
+			if (MPI_CXX_LIBRARIES)
+				set (linkLibraries ${linkLibraries} ${MPI_CXX_LIBRARIES})
 			# Depreciated case: In order to support cmake versions < 2.8.6, 
 			#                   where MPI_CXX_LIBRARIES cannot be used
-			else(MPI_CXX_LIBRARIES)				
-				if(MPI_LIBRARY)
-					set(linkLibraries ${linkLibraries} ${MPI_LIBRARY})
-				endif(MPI_LIBRARY)
-				if(MPI_EXTRA_LIBRARY)
-					set(linkLibraries ${linkLibraries} ${MPI_EXTRA_LIBRARY})
-				endif(MPI_EXTRA_LIBRARY)
-			endif(MPI_CXX_LIBRARIES)				
-		else(MPI_FOUND)
-			message(FATAL_ERROR "MPI not found. Please specify a path to your MPI installation "
+
+			else ()
+				if (MPI_LIBRARY)
+					set (linkLibraries ${linkLibraries} ${MPI_LIBRARY})
+				endif ()
+
+				if (MPI_EXTRA_LIBRARY)
+					set (linkLibraries ${linkLibraries} ${MPI_EXTRA_LIBRARY})
+				endif ()
+			endif ()
+
+		else ()
+			message (FATAL_ERROR "MPI not found. Please specify a path to your MPI installation "
 								"through -DMPI_PATH=... or set PARALLEL to OFF (run cmake -DPARALLEL=OFF .)")
-		endif(MPI_FOUND)
-	endif(NOT BUILTIN_MPI)
+		endif ()
+	endif ()
 
 	# MPI is required for parallel builds
-endif(PARALLEL)
+endif ()

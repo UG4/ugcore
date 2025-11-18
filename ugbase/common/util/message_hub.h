@@ -37,9 +37,7 @@
 #include <list>
 #include <string>
 #include <map>
-#include <boost/function.hpp>
-#include <boost/function_equal.hpp>
-#include <boost/bind.hpp>
+
 #include "common/assert.h"
 #include "common/util/smart_pointer.h"
 #include "common/util/metaprogramming_util.h"
@@ -86,7 +84,7 @@ class MessageHub
 
 	private:
 	//	private type definitions
-		using Callback = boost::function<void (const IMessage&)>;
+		using Callback = std::function<void (const IMessage&)>;
 
 	///	The CallbackEntry holds the actual callback and the associated callback-id.
 	/**	If a MessageHub is destroyed before all callbacks are unregistered, this
@@ -236,7 +234,7 @@ class MessageHub
 	 */
 		template <class TMsg>
 		SPCallbackId register_callback_impl(
-							   boost::function<void (const IMessage&)> callback,
+							   std::function<void (const IMessage&)> callback,
 							   bool autoFree);
 
 	///	performs unregistration of the given callback

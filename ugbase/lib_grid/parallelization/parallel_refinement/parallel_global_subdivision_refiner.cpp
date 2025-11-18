@@ -44,12 +44,6 @@ ParallelGlobalSubdivisionRefiner(DistributedGridManager& distGridMgr, SPRefineme
 }
 
 template <class TAPosition>
-ParallelGlobalSubdivisionRefiner<TAPosition>::
-~ParallelGlobalSubdivisionRefiner()
-{
-}
-
-template <class TAPosition>
 void ParallelGlobalSubdivisionRefiner<TAPosition>::
 refinement_step_ends()
 {

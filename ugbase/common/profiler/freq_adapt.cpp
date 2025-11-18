@@ -180,7 +180,7 @@ void* FreqAdaptValues::freqAdaptWorker(void* This) {
 
 	//timeval tv; // for testing purposes only, can be removed
 
-	while (1) {
+	while (true) {
 
 		// wait on frequency transition request
 		if ( pthread_mutex_lock(&freqAdapt_mutex) != 0 )

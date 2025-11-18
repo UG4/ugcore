@@ -37,17 +37,17 @@
 #include "common/types.h"
 
 #ifndef M_PI
-#define M_PI    3.14159265358979323846264338327950288   /* pi */
+#define M_PI    3.14159265358979323846264338327950288419716939937510582097494459230781640628620899   /* pi */
 #endif
 
 
 namespace ug
 {
-	const number SMALL = 1.0e-12;
-	const number SMALL_SQ = SMALL * SMALL;
+	constexpr number SMALL = 1.0e-12;
+	constexpr number SMALL_SQ = SMALL * SMALL;
 
 //	80 digits of PI...
-	const number PI = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899;
+	constexpr number PI = M_PI;
 
 }//	end of namespace
 

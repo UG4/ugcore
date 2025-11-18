@@ -56,14 +56,14 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 			 :	m_sel(sel), m_bSelectAllowed(select), m_bDeselectAllowed(deselect)
 		{}
 
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{return interface.size() * sizeof(byte_t);}
+		~ComPol_Selection() override = default;
+
+		int
+		get_required_buffer_size(const Interface& interface) override {return interface.size() * sizeof(byte_t);}
 
 	///	writes 1 for selected and 0 for unselected interface entries
-		virtual bool
-		collect(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		collect(BinaryBuffer& buff, const Interface& interface) override {
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
@@ -77,9 +77,8 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 	///	reads marks from the given stream
-		virtual bool
-		extract(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		extract(BinaryBuffer& buff, const Interface& interface) override {
 			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
@@ -123,14 +122,13 @@ class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout
 			 :	m_sel(sel), m_stateBits(stateBits)
 		{}
 
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{return interface.size() * sizeof(byte_t);}
+		~ComPol_EnableSelectionStateBits() override = default;
+	int
+		get_required_buffer_size(const Interface& interface) override {return interface.size() * sizeof(byte_t);}
 
 	///	writes writes the selection states of the interface entries
-		virtual bool
-		collect(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		collect(BinaryBuffer& buff, const Interface& interface) override {
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
@@ -144,9 +142,8 @@ class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout
 		}
 
 	///	reads marks from the given stream
-		virtual bool
-		extract(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		extract(BinaryBuffer& buff, const Interface& interface) override {
 			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)

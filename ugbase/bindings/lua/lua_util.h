@@ -98,7 +98,7 @@ UG_API bool LoadUGScript_Parallel(const char* filename);
 UG_API bool LoadUGScript_Single(const char* filename);
 
 /// registers lua only functionality at the registry
-UG_API void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp = "/ug4");
+UG_API void RegisterDefaultLuaBridge(bridge::Registry* reg, std::string grp = "/ug4");
 
 ///	returns the default lua state
 /**	When called for the first time, or after ReleaseDefaultLuaState,

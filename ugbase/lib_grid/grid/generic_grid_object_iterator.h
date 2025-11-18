@@ -49,7 +49,7 @@ class GenericGridObjectIterator : public TBaseIterator
 		using value_type = TValue;
 
 	public:
-		GenericGridObjectIterator()	{}
+		GenericGridObjectIterator()	= default;
 
 		GenericGridObjectIterator(const GenericGridObjectIterator& iter) :
 			TBaseIterator(iter)	{}
@@ -58,7 +58,7 @@ class GenericGridObjectIterator : public TBaseIterator
 		inline TValue operator* () const	{return static_cast<TValue>(TBaseIterator::operator*());}
 
 	protected:
-		GenericGridObjectIterator(const TBaseIterator& iter) :
+		explicit GenericGridObjectIterator(const TBaseIterator& iter) :
 			TBaseIterator(iter)	{}
 };
 
@@ -75,23 +75,23 @@ class ConstGenericGridObjectIterator : public TConstBaseIterator
 		using value_type = TValue;
 
 	public:
-		ConstGenericGridObjectIterator()	{}
+		ConstGenericGridObjectIterator() = default;
 
 		ConstGenericGridObjectIterator(const ConstGenericGridObjectIterator& iter) :
 			TConstBaseIterator(iter)	{}
 
 		ConstGenericGridObjectIterator(const GenericGridObjectIterator<TValue, TBaseIterator>& iter) :
-			TConstBaseIterator(iter)	{}
+			TConstBaseIterator(iter) {}
 
 	///	note that the * operator is read only.
-		inline TValue operator* () const	{return static_cast<TValue>(TConstBaseIterator::operator*());}
+		inline TValue operator* () const {return static_cast<TValue>(TConstBaseIterator::operator*());}
 
 	protected:
-		ConstGenericGridObjectIterator(const TBaseIterator& iter) :
-			TConstBaseIterator(iter)	{}
+		explicit ConstGenericGridObjectIterator(const TBaseIterator& iter) :
+			TConstBaseIterator(iter) {}
 
-		ConstGenericGridObjectIterator(const TConstBaseIterator& iter) :
-			TConstBaseIterator(iter)	{}
+		explicit ConstGenericGridObjectIterator(const TConstBaseIterator& iter) :
+			TConstBaseIterator(iter) {}
 };
 
 ////////////////////////////////////////////////////////////////////////

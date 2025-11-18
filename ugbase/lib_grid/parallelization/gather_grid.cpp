@@ -42,7 +42,7 @@ void GatherGrid(	Grid& gridOut,
 					int root,
 					const pcl::ProcessCommunicator& procCom)
 {
-	const int magicNumber = 68753267;
+	constexpr int magicNumber = 68753267;
 
 	UG_COND_THROW(sel.grid() == nullptr, "A grid has to be assigned to the given selector.");
 	Grid& gFrom = *sel.grid();
@@ -86,7 +86,7 @@ void AllGatherGrid(	Grid& gridOut,
 					GridDataSerializationHandler& deserializer,
 					const pcl::ProcessCommunicator& procCom)
 {
-	const int magicNumber = 68753267;
+	constexpr int magicNumber = 68753267;
 
 	UG_COND_THROW(sel.grid() == nullptr, "A grid has to be assigned to the given selector.");
 	Grid& gFrom = *sel.grid();

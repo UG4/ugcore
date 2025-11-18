@@ -54,11 +54,10 @@ public:
 		m_aNewCoord (aNewCoord),
 		m_newCoordIndex (newCoordIndex)
 	{}
+	~PPP_ReplaceCoordinate() override = default;
 
-	
-	virtual void partitioning_starts (	MultiGrid* mg,
-	                                 	IPartitioner* partitioner)
-	{
+	void partitioning_starts (	MultiGrid* mg,
+		                          IPartitioner* partitioner) override {
 		if (!mg->has_vertex_attachment(m_aPos)){
 			UG_LOG("WARNING: Target attachment not found in PartitionPreProcessor "
 			       "PPP_ReplaceCoordinate");
@@ -80,14 +79,9 @@ public:
 	//	store the current original coordinate of m_aPos in m_aOrigCoord
 	//	and replace with new coordinate
 
-		typename aapos_t::ContainerType& positions
-			= *mg->get_attachment_data_container<Vertex> (m_aPos);
-
-		typename ANumber::ContainerType& origCoords
-			= *mg->get_attachment_data_container<Vertex> (m_aOrigCoord);
-
-		typename ANumber::ContainerType& newCoords
-			= *mg->get_attachment_data_container<Vertex> (m_aNewCoord);
+		typename aapos_t::ContainerType& positions = *mg->get_attachment_data_container<Vertex> (m_aPos);
+		ANumber::ContainerType& origCoords = *mg->get_attachment_data_container<Vertex> (m_aOrigCoord);
+		ANumber::ContainerType& newCoords = *mg->get_attachment_data_container<Vertex> (m_aNewCoord);
 
 		UG_COND_THROW (	(positions.size() != origCoords.size())
 		                || (positions.size() != newCoords.size()),
@@ -99,10 +93,9 @@ public:
 		}
 	}
 
-	
-	virtual void partitioning_done (	MultiGrid* mg,
-	                                	IPartitioner* partitioner)
-	{
+
+	void partitioning_done (	MultiGrid* mg,
+		                        IPartitioner* partitioner) override {
 		if (!mg->has_vertex_attachment(m_aPos)){
 			UG_LOG("WARNING: Target attachment not found in PartitionPreProcessor "
 			       "PPP_ReplaceCoordinate");
@@ -140,4 +133,4 @@ private:
 
 }//	end of namespace
 
-#endif	//__H__UG_replace_coordinate
+#endif

@@ -46,4 +46,4 @@ script::debug_return DebugShell();
 
 }
 }
-#endif /* __UG__UG_SHELL_H_ */
+#endif

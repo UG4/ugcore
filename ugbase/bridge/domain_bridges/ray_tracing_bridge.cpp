@@ -90,9 +90,9 @@ class DomainRayTracer {
 		{
 			m_tracePoints.clear();
 			RayElementIntersections(m_intersectionRecords, m_tree, from, dir, m_small);
-			for_each_in_vec(intersection_record_t& r, m_intersectionRecords){
+			for(size_t _vfeI = 0; _vfeI < m_intersectionRecords.size(); ++_vfeI){ intersection_record_t& r = m_intersectionRecords[_vfeI];{
 				m_tracePoints.push_back(PointOnRay(from, dir, r.smin));
-			}end_for;
+			}};
 			return m_tracePoints.size();
 		}
 

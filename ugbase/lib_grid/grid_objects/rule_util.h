@@ -35,8 +35,7 @@
 
 namespace ug{
 namespace shared_rules{
-
-const int MAX_NUM_INDS_OUT = 256;
+    constexpr int MAX_NUM_INDS_OUT = 256;
 
 /**
  * \todo	add support for snap-vertices.*/

@@ -79,6 +79,4 @@ void AttachmentAllReduce
 
 } // end of namespace ug
 
-#endif // __H__UG_PCL_ATTACHMENT_OPERATIONS__
-
-/* End of File */
+#endif

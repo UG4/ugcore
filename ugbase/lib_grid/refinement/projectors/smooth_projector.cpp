@@ -91,11 +91,11 @@ refinement_ends ()
 			if(numNbrs > 0){
 				number wgt = m_changeRate / (number)numNbrs;
 				vector3 weigtedCenter(0, 0, 0);
-				for_each_in_vec(Vertex* nbr, localNbrs){
+				for(size_t _vfeI = 0; _vfeI < localNbrs.size(); ++_vfeI){ Vertex* nbr = localNbrs[_vfeI];{
 					vector3 nbrPos = pos(nbr);
 					nbrPos *= wgt;
 					weigtedCenter += nbrPos;
-				}end_for;
+				}};
 
 				vector3 newPos = pos(vrt);
 				newPos *= (1. - m_changeRate);

@@ -889,4 +889,4 @@ class ExportedClass : public ExportedClassBaseImpl
 } // end namespace ug
 
 
-#endif /* __H__UG_BRIDGE__CLASS__ */
+#endif

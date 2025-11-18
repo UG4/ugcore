@@ -51,10 +51,6 @@ AdaptiveRegularRefiner_MultiGrid(MultiGrid& mg,
 	set_grid(&mg);
 }
 
-AdaptiveRegularRefiner_MultiGrid::
-~AdaptiveRegularRefiner_MultiGrid()
-{
-}
 
 void AdaptiveRegularRefiner_MultiGrid::
 assign_grid(MultiGrid& mg)

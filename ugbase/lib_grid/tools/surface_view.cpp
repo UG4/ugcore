@@ -65,7 +65,7 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 			 :	m_mg(mg), m_aaESS(aaElemSurfState)
 		{}
 
-		virtual ~ComPol_GatherSurfaceStates()	{}
+		virtual ~ComPol_GatherSurfaceStates() = default;
 
 		virtual int get_required_buffer_size(const Interface& interface)
 		{
@@ -73,7 +73,7 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 	///	write surface state for each entry
-		virtual bool collect(ug::BinaryBuffer& buff, const Interface& intfc)
+		virtual bool collect(BinaryBuffer& buff, const Interface& intfc)
 		{
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
@@ -86,7 +86,7 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 	///	reads marks from the given stream
-		virtual bool extract(ug::BinaryBuffer& buff, const Interface& intfc)
+		virtual bool extract(BinaryBuffer& buff, const Interface& intfc)
 		{
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
 			{
@@ -100,8 +100,8 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 	protected:
-		MultiGrid&													m_mg;
-		MultiElementAttachmentAccessor<SurfaceView::ASurfaceState>	m_aaESS;
+		MultiGrid& m_mg;
+		MultiElementAttachmentAccessor<SurfaceView::ASurfaceState> m_aaESS;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

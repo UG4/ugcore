@@ -82,4 +82,4 @@ void MarkForRefinementByDirection (
 //	include implementation
 #include "refinement_mark_util_impl.h"
 
-#endif	//__H__UG_refinement_mark_util
+#endif

@@ -83,10 +83,10 @@ add_level(ElementStorage<Vertex>::SectionContainer* vrtCon,
 			ElementStorage<Face>::SectionContainer* faceCon,
 			ElementStorage<Volume>::SectionContainer* volCon)
 {
-	m_levels.push_back(ContainerCollection(	vrtCon,
+	m_levels.emplace_back(	vrtCon,
 											edgeCon,
 											faceCon,
-											volCon));
+											volCon);
 }
 
 

@@ -90,7 +90,7 @@ void CalculatePolychainEdgeNormals(vector2* edgeNormalsOut, vector2* polyChain,
 
 ////////////////////////////////////////////////////////////////////////
 struct ChainInfo{
-	ChainInfo()	{}
+	ChainInfo()	= default;
 	ChainInfo(int vrtInd, int vrtIndIn, int vrtIndOut) :
 		myVrt(vrtInd), inVrt(vrtIndIn), outVrt(vrtIndOut),
 		isCandidate(false), associatedDistanceSq(0)	{}

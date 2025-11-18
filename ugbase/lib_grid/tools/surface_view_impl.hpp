@@ -97,7 +97,7 @@ SurfaceViewElementIterator() :
 
 template <class TElem>
 bool SurfaceView::SurfaceViewElementIterator<TElem>::
-equal(SurfaceView::SurfaceViewElementIterator<TElem> const& other) const
+equal(SurfaceViewElementIterator<TElem> const& other) const
 {
 	return (m_elemIter == other.m_elemIter);
 }
@@ -193,7 +193,7 @@ is_contained(TGeomObj* obj) const
 
 template <class TElem>
 SurfaceView::ConstSurfaceViewElementIterator<TElem>::
-ConstSurfaceViewElementIterator(const SurfaceView::SurfaceViewElementIterator<TElem>& iter)
+ConstSurfaceViewElementIterator(const SurfaceViewElementIterator<TElem>& iter)
 {
 	m_pSurfView = iter.m_pSurfView;
 	m_gl = iter.m_gl;
@@ -210,7 +210,7 @@ ConstSurfaceViewElementIterator(const SurfaceView::SurfaceViewElementIterator<TE
 template <class TElem>
 SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 ConstSurfaceViewElementIterator() :
-	m_pSurfView(0),
+	m_pSurfView(nullptr),
 	m_gl(),
 	m_validStates(0),
 	m_fromSI(0),
@@ -265,7 +265,7 @@ ConstSurfaceViewElementIterator(bool start,
 
 template <class TElem>
 bool SurfaceView::ConstSurfaceViewElementIterator<TElem>::
-equal(SurfaceView::ConstSurfaceViewElementIterator<TElem> const& other) const
+equal(ConstSurfaceViewElementIterator<TElem> const& other) const
 {
 	return (m_elemIter == other.m_elemIter);
 }

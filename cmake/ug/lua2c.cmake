@@ -29,12 +29,13 @@
 # GNU Lesser General Public License for more details.
 
 # included from ug_includes.cmake
-if(USE_LUA2C)
-    if(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: LUA2C requested, but static build. LUA2C disabled.")
-    	set(USE_LUA2C OFF)
-    else(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: Using LUA2C")
-    	add_definitions(-DUSE_LUA2C)
-    endif(STATIC_BUILD)
-endif(USE_LUA2C)
+if (USE_LUA2C)
+    if (STATIC_BUILD)
+		message (STATUS "Info: LUA2C requested, but static build. LUA2C disabled.")
+    	set (USE_LUA2C OFF)
+
+	else ()
+		message (STATUS "Info: Using LUA2C")
+    	add_definitions (-DUSE_LUA2C)
+    endif ()
+endif ()

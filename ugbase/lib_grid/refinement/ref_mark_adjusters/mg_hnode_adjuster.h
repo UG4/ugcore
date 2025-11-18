@@ -46,15 +46,15 @@ using SPMGHNodeAdjuster = SmartPtr<MGHNodeAdjuster>;
 class MGHNodeAdjuster : public IRefMarkAdjuster
 {
 	public:
-		static SPMGHNodeAdjuster create()		{return SPMGHNodeAdjuster(new MGHNodeAdjuster);}
+		static SPMGHNodeAdjuster create() {return SPMGHNodeAdjuster(new MGHNodeAdjuster);}
 
-		virtual ~MGHNodeAdjuster()	{}
+		~MGHNodeAdjuster() override = default;
 
-		virtual void ref_marks_changed(IRefiner& ref,
-										const std::vector<Vertex*>& vrts,
-										const std::vector<Edge*>& edges,
-										const std::vector<Face*>& faces,
-										const std::vector<Volume*>& vols);
+		void ref_marks_changed(IRefiner& ref,
+		                       const std::vector<Vertex*>& vrts,
+		                       const std::vector<Edge*>& edges,
+		                       const std::vector<Face*>& faces,
+		                       const std::vector<Volume*>& vols) override;
 };
 
 }// end of namespace

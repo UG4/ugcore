@@ -118,4 +118,4 @@ private:
 
 }//	end of namespace
 
-#endif	//__H__PCL_reduce_traits
+#endif

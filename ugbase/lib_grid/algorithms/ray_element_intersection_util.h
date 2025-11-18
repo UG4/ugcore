@@ -149,4 +149,4 @@ bool RayElementIntersection(
 
 }//	end of namespace
 
-#endif	//__H__UG_ray_element_intersection_util
+#endif

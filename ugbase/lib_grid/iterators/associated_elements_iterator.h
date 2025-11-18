@@ -65,6 +65,8 @@ class AssocElemIter : public std::iterator<std::input_iterator_tag, TAssocElem*>
 				init(grid, elem);
 			}
 
+			~AssocElemIter() = default;
+
 			void set_callback(typename Grid::traits<TAssocElem>::callback cbConsiderElem)
 			{
 				m_cbConsiderElem(cbConsiderElem);
@@ -95,8 +97,8 @@ class AssocElemIter : public std::iterator<std::input_iterator_tag, TAssocElem*>
 			bool invalid() const	{return m_i >= m_assElems.size();}
 
 
-			AssocElemIter& operator ++()			{increment(); return *this;}
-			AssocElemIter operator ++(int unused)	{AssocElemIter i = *this; increment(); return i;}
+			AssocElemIter& operator++()			{increment(); return *this;}
+			AssocElemIter operator++(int unused)	{AssocElemIter i = *this; increment(); return i;}
 
 		///	returns true if both iterators are invalid or if both point to the same elemnt.
 			bool operator ==(const AssocElemIter& iter) const {return equal(iter);}
@@ -133,7 +135,7 @@ class AssocElemIter : public std::iterator<std::input_iterator_tag, TAssocElem*>
 
 		///	returns next iterator
 			void increment(){
-				while(1){
+				while(true){
 					++m_i;
 					if(valid()){
 						if(m_cbConsiderElem(dereference()))
@@ -157,4 +159,4 @@ class AssocElemIter : public std::iterator<std::input_iterator_tag, TAssocElem*>
 
 }//	end of namespace
 
-#endif	//__H__UG_associated_elements_iterator
+#endif

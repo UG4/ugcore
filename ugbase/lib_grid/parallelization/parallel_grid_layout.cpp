@@ -64,12 +64,9 @@ template <class TGeomObj>
 static void RemoveEmptyInterfaces(
 		typename GridLayoutMap::Types<TGeomObj>::Map& map)
 {
-	using TMap = typename GridLayoutMap::Types<TGeomObj>::Map;
-	using TIterator = typename TMap::iterator;
-
 	using TLayout = typename GridLayoutMap::Types<TGeomObj>::Layout;
 
-	for(TIterator layoutIter = map.begin(); layoutIter != map.end(); ++layoutIter)
+	for(auto layoutIter = map.begin(); layoutIter != map.end(); ++layoutIter)
 	{
 		TLayout& layout = layoutIter->second;
 		RemoveEmptyInterfaces(layout);

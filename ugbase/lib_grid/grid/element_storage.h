@@ -43,9 +43,9 @@ template <class TElem>
 class ElementStorage
 {
 	public:
-		using AttachmentPipe = AttachmentPipe<TElem*, ElementStorage<TElem> >;
-		using AttachedElementList = AttachedElementList<AttachmentPipe>;
-		using SectionContainer = SectionContainer<TElem*, AttachedElementList >;
+		typedef AttachmentPipe<TElem*, ElementStorage> AttachmentPipe; // ø using A = A<T>
+		typedef AttachedElementList<AttachmentPipe> AttachedElementList; // ø using A = A<T>
+		typedef SectionContainer<TElem*, AttachedElementList > SectionContainer; // ø using A = A<T>
 
 		ElementStorage() : m_attachmentPipe(this)
 		{
@@ -58,8 +58,8 @@ class ElementStorage
 			m_sectionContainer.get_container().set_pipe(nullptr);
 		}
 
-		SectionContainer	m_sectionContainer;///	holds elements
-		AttachmentPipe		m_attachmentPipe;///	holds the data of the stored elements.
+		SectionContainer m_sectionContainer;///	holds elements
+		AttachmentPipe m_attachmentPipe;///	holds the data of the stored elements.
 };
 
 

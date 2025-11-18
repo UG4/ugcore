@@ -228,13 +228,13 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 		return false;
 	}
 
-	while(1){
+	while(true){
 	//	find the edge that makes the sharpest turn to the right (even if it is a left turn)
 	//	normally a vertex has to have two connections. However, we make an exception for the first one.
 		if((lastVrt != &vrtsOut[0]) && (lastVrt->connections.size() < 2)){
 		//	we're at the end of the road - this means the outer rim is open.
 		//	close it and break
-			edgesOut.push_back(SweepLineEdge(lastVrt, &vrtsOut[0]));
+			edgesOut.emplace_back(lastVrt, &vrtsOut[0]);
 			lastVrt->connections.push_back(&edgesOut.back());
 			vrtsOut[0].connections.push_back(&edgesOut.back());
 			break;
@@ -1065,7 +1065,7 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 		stk.push(&monotoneTop);
 
 		int lastBranchInd = -1; //0: left, 1:right
-		while(1){
+		while(true){
 		//	check whether we walk on the left or on the right branch
 		//	first get the lower vertex of each branch
 			SweepLineVertex* vLeft = nullptr;

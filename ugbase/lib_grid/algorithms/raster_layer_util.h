@@ -45,12 +45,12 @@ struct RasterLayerDesc{
 	RasterLayerDesc(const std::string& filename, number minHeight) : 
 		m_filename(filename), m_minHeight(minHeight) 	{}
 
-	const std::string& filename() const 	{return m_filename;}
-	number min_height() const				{return m_minHeight;}
+	const std::string& filename() const {return m_filename;}
+	number min_height() const {return m_minHeight;}
 
 	private:
 		std::string m_filename;
-		number		m_minHeight;
+		number m_minHeight;
 };
 
 using SPRasterLayerDesc = SmartPtr<RasterLayerDesc>;
@@ -106,23 +106,23 @@ class RasterLayers{
 
 		void resize(size_t newSize);
 		
-		size_t size() const			{return m_layers.size();}
-		size_t num_layers() const	{return m_layers.size();}
-		bool empty() const			{return m_layers.empty();}
+		size_t size() const {return m_layers.size();}
+		size_t num_layers() const {return m_layers.size();}
+		bool empty() const {return m_layers.empty();}
 
-		layer_t& operator[] (size_t i)				{return *m_layers[i];}
-		const layer_t& operator[] (size_t i) const	{return *m_layers[i];}
+		layer_t& operator[] (size_t i) {return *m_layers[i];}
+		const layer_t& operator[] (size_t i) const {return *m_layers[i];}
 
-		layer_t& 		layer (size_t i)			{return *m_layers[i];}
-		const layer_t&	layer (size_t i) const		{return *m_layers[i];}
+		layer_t& layer (size_t i) {return *m_layers[i];}
+		const layer_t& layer (size_t i) const {return *m_layers[i];}
 
-		const layer_t&	top () const				{return *m_layers.back();}
+		const layer_t& top () const {return *m_layers.back();}
 
-		Heightfield&		heightfield (size_t i)			{return layer(i).heightfield;}
-		const Heightfield&	heightfield (size_t i) const	{return layer(i).heightfield;}
+		Heightfield& heightfield (size_t i) {return layer(i).heightfield;}
+		const Heightfield& heightfield (size_t i) const {return layer(i).heightfield;}
 
-		void	set_min_height (size_t i, number h)		{layer(i).minHeight = h;}
-		number	min_height (size_t i) const				{return layer(i).minHeight;}
+		void set_min_height (size_t i, number h) {layer(i).minHeight = h;}
+		number min_height (size_t i) const {return layer(i).minHeight;}
 
 
 	///	invalidates cells in lower levels which are too close to valid cells in higher levels
@@ -267,4 +267,4 @@ using SPRasterLayers = SmartPtr<RasterLayers>;
 
 }//	end of namespace
 
-#endif	//__H__UG_raster_layer_util
+#endif

@@ -57,7 +57,7 @@ public:
 
 	unvisited_iterator(std::vector<BOOL> &vec_bool) : n(vec_bool.size()), cur(0), visited(vec_bool){
 		if(visited[cur]){
-			operator++();
+			operator ++ ();
 		}
 	}
 
@@ -69,7 +69,7 @@ public:
 		return !operator==(o);
 	}
 
-	void operator++(){
+	void operator ++ (){
 		do{
 			++cur;
 		}
@@ -105,25 +105,25 @@ public:
 	using matrix_type = typename TAlgebra::matrix_type;
 
 	dirichlet_iterator(matrix_type &mat, unsigned i, unsigned num) : A(mat), cur(i), n(num){
-		operator++();
+		operator ++ ();
 	}
 
-	bool operator==(const dirichlet_iterator& o) const{
+	bool operator == (const dirichlet_iterator& o) const{
 		return cur==o.cur;
 	}
 
-	bool operator!=(const dirichlet_iterator& o) const{
-		return !operator==(o);
+	bool operator != (const dirichlet_iterator& o) const{
+		return !operator == (o);
 	}
 
-	void operator++(){
+	void operator ++ (){
 		do{
 			++cur;
 		}
 		while(cur < n && !A.is_isolated(cur));
 	}
 
-	unsigned operator*() const{
+	unsigned operator * () const{
 		return cur;
         }
 
@@ -140,7 +140,7 @@ public:
 	using matrix_type = typename TAlgebra::matrix_type;
 
 	non_dirichlet_iterator(matrix_type &mat, unsigned i, unsigned num) : A(mat), cur(i), n(num){
-		operator++();
+		operator ++ ();
 	}
 
 	bool operator==(const non_dirichlet_iterator& o) const{
@@ -151,7 +151,7 @@ public:
 		return !operator==(o);
 	}
 
-	void operator++(){
+	void operator ++ (){
 		do{
 			++cur;
 		}

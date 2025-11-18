@@ -36,14 +36,14 @@
 # PURPOSE: use this function to add local project linker flags to global
 #          ug4LibLinkerFlags property which is used to build libug4 project
 # @param flags   list of linker flags to be exported
-function(ExportLinkerFlags flags)
+function (ExportLinkerFlags flags)
     # iterate over all arguments and insert given prefix
-    foreach(flag ${ARGV})
+    foreach (flag ${ARGV})
             # retrieve the global property ugLinkerFlags and store its values
             # in a temp variable
             # NOTE: properties must be assigned to variables before being used
-            get_property(temp GLOBAL PROPERTY ugLinkerFlags)
+            get_property (temp GLOBAL PROPERTY ugLinkerFlags)
             # append tmp to the global ugDependencies property using the correct prefix
-            set_property(GLOBAL PROPERTY ugLinkerFlags "${temp} ${flag}")
-    endforeach(flag)
-endfunction(ExportLinkerFlags)
+            set_property (GLOBAL PROPERTY ugLinkerFlags "${temp} ${flag}")
+    endforeach()
+endfunction()

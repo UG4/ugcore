@@ -135,8 +135,8 @@ void CalculateFaceNormals(Grid& grid, const FaceIterator& facesBegin,
 	if(!grid.has_face_attachment(aNorm))
 		grid.attach_to_faces(aNorm);
 
-	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
-	Grid::FaceAttachmentAccessor<AVector3> aaNorm(grid, aNorm);
+	Grid::VertexAttachmentAccessor aaPos(grid, aPos);
+	Grid::FaceAttachmentAccessor aaNorm(grid, aNorm);
 
 //	iterate through the specified faces and calculate normals.
 	for(FaceIterator iter = facesBegin; iter != facesEnd; ++iter)
@@ -151,8 +151,8 @@ int NumAssociatedVolumes(Grid& grid, Face* f)
 	int counter = 0;
 	if(grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
-		for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(f);
-			iter != grid.associated_volumes_end(f); iter++)
+		for(auto iter = grid.associated_volumes_begin(f);
+		    iter != grid.associated_volumes_end(f); iter++)
 		{
 			++counter;
 		}
@@ -161,9 +161,9 @@ int NumAssociatedVolumes(Grid& grid, Face* f)
 	{
 	//	iterate over all volumes which are connected to the first vertex
 	//	and check if they contain the face...
-		Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(f->vertex(0));
-		for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(f->vertex(0));
-			iter != iterEnd; iter++)
+	auto iterEnd = grid.associated_volumes_end(f->vertex(0));
+		for(auto iter = grid.associated_volumes_begin(f->vertex(0));
+		    iter != iterEnd; iter++)
 		{
 			if(VolumeContains(*iter, f))
 				++counter;

@@ -115,8 +115,7 @@ bool InitPaths(const char* argv0)
 	if(!PathProvider::has_path(SCRIPT_PATH))
 		PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "ugcore" + pathSep + "scripts");
 	if(!PathProvider::has_path(PLUGIN_PATH))
-		PathProvider::set_path(PLUGIN_PATH, strRoot + pathSep
-										+ "bin" + pathSep + "plugins");
+		PathProvider::set_path(PLUGIN_PATH, strRoot + pathSep + "bin" + pathSep + "plugins");
 	if(!PathProvider::has_path(APPS_PATH))
 		PathProvider::set_path(APPS_PATH, strRoot + pathSep + "apps");
 
@@ -330,7 +329,8 @@ void UGOutputProfileStatsOnExit(bool bEnable)
 #ifdef UG_PLUGINS
 bool UGInitPlugins()
 {
-	return LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/", bridge::GetUGRegistry());
+	return LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(),
+		"ug4/", bridge::GetUGRegistry());
 }
 #else
 bool UGInitPlugins()

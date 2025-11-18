@@ -45,4 +45,4 @@ using CompletionFunctionPtr = int(*)(char *buf, int len, int buflen, int iPrintC
 
 int linenoiseSetCompletionFunction(CompletionFunctionPtr complete);
 
-#endif /* __LINENOISE_H */
+#endif

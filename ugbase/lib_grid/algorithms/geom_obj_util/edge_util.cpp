@@ -467,12 +467,12 @@ bool CollapseEdge(Grid& grid, Edge* e, Vertex* newVrt)
 			//	find the opposing edge of e
 				Edge* oppEdge = nullptr;
 				grid.associated_elements(assEdges, v);
-				for_each_in_vec(Edge* te, assEdges){
+				for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){ Edge* te = assEdges[_vfeI];{
 					if(!GetSharedVertex(e, te)){
 						oppEdge = te;
 						break;
 					}
-				}end_for;
+				}};
 
 				if(oppEdge){
 					Face* f0 = grid.get_face(FaceDescriptor(
@@ -503,13 +503,13 @@ bool CollapseEdge(Grid& grid, Edge* e, Vertex* newVrt)
 	grid.objects_will_be_merged(newVrt, v[0], v[1]);
 
 //	erase e, associated faces and associated volumes
-	for_each_in_vec(Volume* v, assVols){
+	for(size_t _vfeI = 0; _vfeI < assVols.size(); ++_vfeI){ Volume* v = assVols[_vfeI];{
 		grid.erase(v);
-	}end_for;
+	}};
 	
-	for_each_in_vec(Face* f, assFaces){
+	for(size_t _vfeI = 0; _vfeI < assFaces.size(); ++_vfeI){ Face* f = assFaces[_vfeI];{
 		grid.erase(f);
-	}end_for;
+	}};
 
 	grid.erase(e);
 

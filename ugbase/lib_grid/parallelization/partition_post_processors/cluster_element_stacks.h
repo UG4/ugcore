@@ -56,7 +56,7 @@ class ClusterElementStacks : public IPartitionPostProcessor
 			m_stackingDir(stackingDir)
 		{}
 
-		virtual ~ClusterElementStacks() = default;
+		~ClusterElementStacks() override = default;
 
 		void set_position_attachment(const Attachment<vector_t>& aPos)
 		{
@@ -68,15 +68,13 @@ class ClusterElementStacks : public IPartitionPostProcessor
 			m_stackingDir = stackingDir;
 		}
 
-		void init_post_processing(MultiGrid* mg, SubsetHandler* partitions)
-		{
+		void init_post_processing(MultiGrid* mg, SubsetHandler* partitions) override {
 			m_mg = mg;
 			m_partitions = partitions;
 			mg->attach_to<elem_t>(m_aProcessed);
 		}
 
-		void post_process(int partitionLvl)
-		{
+		void post_process(int partitionLvl) override {
 			using namespace std;
 
 			UG_COND_THROW(VecLengthSq(m_stackingDir) == 0,
@@ -145,8 +143,7 @@ class ClusterElementStacks : public IPartitionPostProcessor
 			}};
 		}
 
-		void partitioning_done()
-		{
+		void partitioning_done() override {
 			m_mg->detach_from<elem_t>(m_aProcessed);
 		}
 
@@ -164,4 +161,4 @@ class ClusterElementStacks : public IPartitionPostProcessor
 
 }//	end of namespace
 
-#endif	//__H__UG_cluster_element_stacks
+#endif

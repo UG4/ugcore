@@ -65,9 +65,9 @@ class AdaptiveRegularRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 		AdaptiveRegularRefiner_MultiGrid(SPRefinementProjector projector = nullptr);
 		AdaptiveRegularRefiner_MultiGrid(MultiGrid& mg, SPRefinementProjector projector = nullptr);
 
-		virtual ~AdaptiveRegularRefiner_MultiGrid();
+		virtual ~AdaptiveRegularRefiner_MultiGrid() = default;
 
-		virtual void assign_grid(MultiGrid& mg);
+		void assign_grid(MultiGrid& mg) override;
 
 	protected:
 	///	performs registration and deregistration at a grid.
@@ -102,10 +102,10 @@ class AdaptiveRegularRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 									   	   	   	    Selector::status_t mark);
 
 	///	removes all closure elements, calls the base implementation and creates a new closure
-		virtual void perform_refinement();
+		void perform_refinement() override;
 
 	///	removes all closure elements, calls the base implementation and creates a new closure
-		virtual bool perform_coarsening();
+		bool perform_coarsening() override;
 
 	protected:
 		Selector	m_closureElems;

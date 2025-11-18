@@ -64,7 +64,7 @@ class UG_API RegularVertex : public Vertex
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<RegularVertex*>(pObj) != nullptr;}
 
-		virtual ~RegularVertex()	{}
+		virtual ~RegularVertex() = default;
 
 		virtual GridObject* create_empty_instance() const	{return new RegularVertex;}
 

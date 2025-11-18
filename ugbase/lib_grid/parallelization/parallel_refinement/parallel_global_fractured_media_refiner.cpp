@@ -45,13 +45,6 @@ ParallelGlobalFracturedMediaRefiner(DistributedGridManager& distGridMgr,
 {
 }
 
-
-ParallelGlobalFracturedMediaRefiner::
-~ParallelGlobalFracturedMediaRefiner()
-{
-}
-
-
 bool
 ParallelGlobalFracturedMediaRefiner::
 refinement_is_allowed(Vertex* elem)

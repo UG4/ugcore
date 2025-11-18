@@ -87,4 +87,4 @@ private:
 #include "pcl_multi_group_communicator_impl.hpp"
 
 
-#endif	//__H__pcl_multi_group_communicator
+#endif

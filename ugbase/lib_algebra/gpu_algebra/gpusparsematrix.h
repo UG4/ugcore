@@ -408,10 +408,10 @@ public:
         const_row_iterator *operator ->() { return this; }
         const value_type &value() const { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i];     }
-        bool operator != (const const_row_iterator &o) const { return i != o.i; }
-        void operator ++ () { ++i; }
-        void operator += (int nr) { i+=nr; }
-		bool operator == (const const_row_iterator &other) const { return other.i == i; }
+        bool operator!=(const const_row_iterator &o) const { return i != o.i; }
+        void operator++() { ++i; }
+        void operator+=(int nr) { i+=nr; }
+		bool operator== (const const_row_iterator &other) const { return other.i == i; }
     };
 
 

@@ -51,15 +51,14 @@ class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 			 :	m_ref(ref), m_consideredMarks(consideredMarks)
 		{}
 
-		virtual ~ComPol_BroadcastRefineMarks()	{}
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{return interface.size() * sizeof(byte_t);}
+		~ComPol_BroadcastRefineMarks() override = default;
+
+		int
+		get_required_buffer_size(const Interface& interface) override {return interface.size() * sizeof(byte_t);}
 
 	///	writes writes the selection states of the interface entries
-		virtual bool
-		collect(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		collect(BinaryBuffer& buff, const Interface& interface) override {
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
@@ -73,9 +72,8 @@ class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 	///	reads marks from the given stream
-		virtual bool
-		extract(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		extract(BinaryBuffer& buff, const Interface& interface) override {
 			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)

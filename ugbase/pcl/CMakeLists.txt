@@ -32,14 +32,14 @@
 # Parallel Communication Layer
 ################################################
 
-cmake_minimum_required(VERSION 2.8.12...3.27.1)
+cmake_minimum_required (VERSION 2.8.12...3.27.1)
 
-project(P_PCL)
+project (P_PCL)
 
-include_directories(${P_UGBASE_SOURCE_DIR})
-include_directories("externals/metis")
+include_directories (${P_UGBASE_SOURCE_DIR})
+include_directories ("externals/metis")
 
-set(srcPcl	parallel_archive.cpp
+set (srcPcl	parallel_archive.cpp
 			parallel_file.cpp
     		pcl_base.cpp
     		pcl_comm_world.cpp
@@ -48,8 +48,8 @@ set(srcPcl	parallel_archive.cpp
 			pcl_process_communicator.cpp
 			pcl_util.cpp)
 
-if(BUILD_ONE_LIB)
-	EXPORTSOURCES(ugbase/pcl ${srcPcl})
-else()
-	add_library(pcl ${srcPcl})
-endif()
+if (BUILD_ONE_LIB)
+	EXPORTSOURCES (ugbase/pcl ${srcPcl})
+else ()
+	add_library (pcl ${srcPcl})
+endif ()

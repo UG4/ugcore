@@ -60,7 +60,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 	/**	WARNING: Don't call the copy-constructor from derived classes,
 	  *	Since it calls virtual methods.*/
 		GridSubsetHandler(const GridSubsetHandler& sh);
-		~GridSubsetHandler();
+		~GridSubsetHandler() override;
 		
 		GridSubsetHandler& operator = (const GridSubsetHandler& sh);
 		GridSubsetHandler& operator = (const ISubsetHandler& sh);
@@ -142,8 +142,8 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		void clear_subset_elements(int subsetIndex);
 
 	//	geometric-object-collection
-		virtual GridObjectCollection
-		get_grid_objects_in_subset(int subsetIndex) const;
+		GridObjectCollection
+		get_grid_objects_in_subset(int subsetIndex) const override;
 		
 	//	multi-level-geometric-object-collection
 		GridObjectCollection

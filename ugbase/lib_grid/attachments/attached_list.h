@@ -52,7 +52,7 @@ class AttachedElementListIterator : public std::iterator<
 {
 	public:
 		using element = typename TAAEntry::element;
-		using iterator = AttachedElementListIterator<TAAEntry>;
+		using iterator = AttachedElementListIterator;
 
 		AttachedElementListIterator() : m_curElem(nullptr)	{}
 		AttachedElementListIterator(element curElem, const TAAEntry& aaEntry) :
@@ -68,19 +68,19 @@ class AttachedElementListIterator : public std::iterator<
 		}
 
 	///	note that the * operator is read only.
-		element operator*() const	{return m_curElem;}
-		element* operator->() const	{return &m_curElem;}
+		element operator * () const	{return m_curElem;}
+		element* operator -> () const	{return &m_curElem;}
 
-		iterator operator++()		{m_curElem = m_aaEntry[m_curElem].next; return *this;}
-		iterator operator++(int)
+		iterator operator ++ ()		{m_curElem = m_aaEntry[m_curElem].next; return *this;}
+		iterator operator ++ (int)
 		{//	post-increment
 			iterator iter = *this;
 			m_curElem = m_aaEntry[m_curElem].next;
 			return iter;
 		}
 
-		iterator operator--()		{m_curElem = m_aaEntry[m_curElem].prev; return *this;}
-		iterator operator--(int)
+		iterator operator -- ()		{m_curElem = m_aaEntry[m_curElem].prev; return *this;}
+		iterator operator -- (int)
 		{
 			iterator iter = *this;
 			m_curElem = m_aaEntry[m_curElem].prev;
@@ -88,8 +88,8 @@ class AttachedElementListIterator : public std::iterator<
 		}
 
 	//	note that each element may only be in the list once.
-		bool operator==(const iterator& iter) const	{return m_curElem == iter.m_curElem;}
-		bool operator!=(const iterator& iter) const	{return m_curElem != iter.m_curElem;}
+		bool operator == (const iterator& iter) const	{return m_curElem == iter.m_curElem;}
+		bool operator != (const iterator& iter) const	{return m_curElem != iter.m_curElem;}
 
 	private:
 		TAAEntry	m_aaEntry;
@@ -104,10 +104,10 @@ template <class TAAEntry>
 class ConstAttachedElementListIterator : public std::iterator<
 											std::bidirectional_iterator_tag,
 											const typename TAAEntry::element>
-{
+{ // ø todo iterator
 	public:
 		using element = typename TAAEntry::element;
-		using iterator = ConstAttachedElementListIterator<TAAEntry>;
+		using iterator = ConstAttachedElementListIterator;
 
 		ConstAttachedElementListIterator() : m_curElem(nullptr)	{}
 		ConstAttachedElementListIterator(element curElem, const TAAEntry& aaEntry) :
@@ -125,18 +125,18 @@ class ConstAttachedElementListIterator : public std::iterator<
 		}
 
 	///	note that the * operator is read only.
-		element operator*() const			{return m_curElem;}
-		const element* operator->() const	{return &m_curElem;}
+		element operator*() const {return m_curElem;}
+		const element* operator->() const {return &m_curElem;}
 
-		iterator operator++()		{m_curElem = m_aaEntry[m_curElem].next; return *this;}
-		iterator operator++(int)
+		iterator operator ++ () {m_curElem = m_aaEntry[m_curElem].next; return *this;}
+		iterator operator ++ (int)
 		{//	post-increment
 			iterator iter = *this;
 			m_curElem = m_aaEntry[m_curElem].next;
 			return iter;
 		}
 
-		iterator operator--()		{m_curElem = m_aaEntry[m_curElem].prev; return *this;}
+		iterator operator--() {m_curElem = m_aaEntry[m_curElem].prev; return *this;}
 		iterator operator--(int)
 		{
 			iterator iter = *this;

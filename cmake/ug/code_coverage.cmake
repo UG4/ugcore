@@ -33,14 +33,14 @@
 # CODE_COVERAGE
 
 
-if(NOT "${CODE_COVERAGE}" STREQUAL "NONE")
-    if("${CODE_COVERAGE}" STREQUAL "GCOV")
-        add_compile_options("--coverage")
-        add_link_options("--coverage")  
+if (NOT "${CODE_COVERAGE}" STREQUAL "NONE")
+    if ("${CODE_COVERAGE}" STREQUAL "GCOV")
+        add_compile_options ("--coverage")
+        add_link_options ("--coverage")
     #elseif("${CODE_COVERAGE}" STREQUAL "llvm-cov")
     else ()
-        message(FATAL_ERROR "Unsupported COVERAGE: ${CODE_COVERAGE}. Options are: ${coverageOptions}")
-    endif("${CODE_COVERAGE}" STREQUAL "GCOV")
+        message (FATAL_ERROR "Unsupported COVERAGE: ${CODE_COVERAGE}. Options are: ${coverageOptions}")
+    endif ()
     
-endif(NOT "${CODE_COVERAGE}" STREQUAL "NONE")
+endif ()
 

@@ -56,4 +56,4 @@
 #define end_for	}
 /** \} */
 
-#endif	//__H__UG_for_each_in_vec
+#endif

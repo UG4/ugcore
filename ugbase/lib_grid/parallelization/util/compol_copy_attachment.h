@@ -66,7 +66,7 @@ class ComPol_CopyAttachment : public pcl::ICommunicationPolicy<TLayout>
 	///	Calls set_target internally.
 		ComPol_CopyAttachment(Grid& grid, TAttachment attachment);
 
-		virtual ~ComPol_CopyAttachment()	{}
+		~ComPol_CopyAttachment() override = default;
 		
 	///	The grid and the attachment from where the data shall be copied.
 	/**	Make sure that attachment is attached to the correct
@@ -77,15 +77,15 @@ class ComPol_CopyAttachment : public pcl::ICommunicationPolicy<TLayout>
 	/**	Derived from ICollector
 	 *	Make sure that all members of the interface are members of the
 	 *	grid too.*/
-		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface);
+		bool
+		collect(BinaryBuffer& buff, const Interface& interface) override;
 		
 	///	reads the data from the buffer to the given interface .
 	/**	Derived from IExtractor
 	 *	Make sure that all members of the interface are members of the
 	 *	grid too.*/
-		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface);
+		bool
+		extract(BinaryBuffer& buff, const Interface& interface) override;
 		
 		void extract_on_constrained_elems_only(bool enable);
 
@@ -128,7 +128,7 @@ set_attachment(Grid& grid, TAttachment& attachment)
 ////////////////////////////////////////////////////////////////////////
 template <class TNodeLayout, class TAttachment>
 bool ComPol_CopyAttachment<TNodeLayout, TAttachment>::
-collect(ug::BinaryBuffer& buff, const Interface& interface)
+collect(BinaryBuffer& buff, const Interface& interface)
 {
 	for(typename Interface::const_iterator iter = interface.begin();
 		iter != interface.end(); ++iter)
@@ -141,7 +141,7 @@ collect(ug::BinaryBuffer& buff, const Interface& interface)
 ////////////////////////////////////////////////////////////////////////
 template <class TNodeLayout, class TAttachment>
 bool ComPol_CopyAttachment<TNodeLayout, TAttachment>::
-extract(ug::BinaryBuffer& buff, const Interface& interface)
+extract(BinaryBuffer& buff, const Interface& interface)
 {
 	if(m_extractOnConstrainedElemsOnly){
 		for(typename Interface::const_iterator iter = interface.begin();

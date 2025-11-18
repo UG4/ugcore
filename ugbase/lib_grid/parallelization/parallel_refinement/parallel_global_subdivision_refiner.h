@@ -50,10 +50,11 @@ class ParallelGlobalSubdivisionRefiner : public TParallelGlobalRefiner<GlobalSub
 	public:
 		ParallelGlobalSubdivisionRefiner(DistributedGridManager& distGridMgr,
 											SPRefinementProjector projector = nullptr);
-		virtual ~ParallelGlobalSubdivisionRefiner();
+
+		~ParallelGlobalSubdivisionRefiner() override = default;
 
 	protected:
-		virtual void refinement_step_ends();
+		void refinement_step_ends() override;
 };
 
 /// @}

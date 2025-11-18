@@ -48,15 +48,15 @@ class LocalMarkAdjuster : public IRefMarkAdjuster
 	public:
 		static SPLocalMarkAdjuster create()	{return SPLocalMarkAdjuster(new LocalMarkAdjuster);}
 
-		virtual ~LocalMarkAdjuster()	{}
+		~LocalMarkAdjuster() override = default;
 
-		virtual void ref_marks_changed(IRefiner& ref,
-										const std::vector<Vertex*>& vrts,
-										const std::vector<Edge*>& edges,
-										const std::vector<Face*>& faces,
-										const std::vector<Volume*>& vols);
+		void ref_marks_changed(IRefiner& ref,
+		                       const std::vector<Vertex*>& vrts,
+		                       const std::vector<Edge*>& edges,
+		                       const std::vector<Face*>& faces,
+		                       const std::vector<Volume*>& vols) override;
 };
 
 }//	end of namespace
 
-#endif	//__H__UG_local_mark_adjuster
+#endif

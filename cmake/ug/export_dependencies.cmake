@@ -36,17 +36,17 @@
 # PURPOSE: use this function to add local package lib dependencies to global
 #          ugLibDependencies property which is used to build libug4
 # @param sources sources list to export
-function(ExportDependencies deps)
+function (ExportDependencies deps)
     # iterate over all arguments and insert given prefix
-    foreach(l ${ARGV})
+    foreach (l ${ARGV})
             # retrieve the global property ugDependencies and store it
             # in tmp variable
             # NOTE: properties must be assigned to variables before being used
-            get_property(tmp GLOBAL PROPERTY ugDependencies)
+            get_property (tmp GLOBAL PROPERTY ugDependencies)
             # append tmp to the global ugDependencies property using the correct prefix
-            set_property(GLOBAL PROPERTY ugDependencies ${tmp} "${l}")
-    endforeach(l)
-endfunction(ExportDependencies)
+            set_property (GLOBAL PROPERTY ugDependencies ${tmp} "${l}")
+    endforeach ()
+endfunction ()
 
 
 ################################################################################
@@ -57,17 +57,17 @@ endfunction(ExportDependencies)
 # PURPOSE: use this function to add local package lib dependencies to global
 #          ugShellDependencies property which is used to build ugshell
 # @param sources sources list to export
-function(ExportShellDependencies deps)
+function (ExportShellDependencies deps)
     # iterate over all arguments and insert given prefix
-    foreach(l ${ARGV})
+    foreach (l ${ARGV})
             # retrieve the global property ugShellDependencies and store it
             # in tmp variable
             # NOTE: properties must be assigned to variables before being used
-            get_property(tmp GLOBAL PROPERTY ugShellDependencies)
+            get_property (tmp GLOBAL PROPERTY ugShellDependencies)
             # append tmp to the global ugShellDependencies property using the correct prefix
-            set_property(GLOBAL PROPERTY ugShellDependencies ${tmp} "${l}")
-    endforeach(l)
-endfunction(ExportShellDependencies)
+            set_property (GLOBAL PROPERTY ugShellDependencies ${tmp} "${l}")
+    endforeach ()
+endfunction ()
 
 ################################################################################
 # Declare a method that allows all sub-cmake-files to add their link paths
@@ -77,14 +77,14 @@ endfunction(ExportShellDependencies)
 # PURPOSE: use this function to add local package link directories to global
 #          ug4LinkPaths property which is used to build libug4
 # @param includes list of link directories to be exported
-function(ExportLinkPaths linkPaths)
+function (ExportLinkPaths linkPaths)
     # iterate over all arguments and insert given prefix
-    foreach(linkPath ${ARGV})
+    foreach (linkPath ${ARGV})
             # retrieve the global property ugLinkPaths and store its values
             # in a temp variable
             # NOTE: properties must be assigned to variables before being used
-            get_property(temp GLOBAL PROPERTY ugLinkPaths)
+            get_property (temp GLOBAL PROPERTY ugLinkPaths)
             # append tmp to the global ugLinkPaths property using the correct prefix
-            set_property(GLOBAL PROPERTY ugLinkPaths ${temp} "${linkPath}")
-    endforeach(linkPath)
-endfunction(ExportLinkPaths)
+            set_property (GLOBAL PROPERTY ugLinkPaths ${temp} "${linkPath}")
+    endforeach ()
+endfunction ()

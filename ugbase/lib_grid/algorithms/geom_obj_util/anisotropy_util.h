@@ -160,4 +160,4 @@ AnisotropyState long_edges_of_anisotropic_elem
 
 #include "anisotropy_util_impl.h"
 
-#endif // LIB_GRID__ALGORITHMS__GEOM_OBJ_UTIL__ANISOTROPY_UTIL_H
+#endif

@@ -67,7 +67,7 @@ namespace ug
 class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 {
 	public:
-		using BaseClass = HangingNodeRefinerBase<MGSelector>;
+		using BaseClass = HangingNodeRefinerBase;
 		using BaseClass::mark;
 
 		enum HNodeCoarsenMarks{

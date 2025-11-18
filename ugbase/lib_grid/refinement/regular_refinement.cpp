@@ -160,10 +160,9 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>(), ISelector::SELECTED);
 	
 //	select snap-vertices with a special mark
-	const ISelector::status_t snapSelVal = ISelector::SELECTED + 1;
+constexpr ISelector::status_t snapSelVal = ISelector::SELECTED + 1;
 	if(useSnapPoints){
-		for(vector<Vertex*>::iterator iter = snapPoints.begin();
-			iter != snapPoints.end(); ++iter)
+		for(auto iter = snapPoints.begin(); iter != snapPoints.end(); ++iter)
 		{
 			sel.select(*iter, snapSelVal);
 		}

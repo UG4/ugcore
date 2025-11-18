@@ -59,7 +59,7 @@ class MultiElementAttachmentAccessor
 		using RefType = typename attachment_value_traits<ValueType>::reference;
 		using ConstRefType = typename attachment_value_traits<ValueType>::const_reference;
 
-		MultiElementAttachmentAccessor()	{}
+		MultiElementAttachmentAccessor() = default;
 		MultiElementAttachmentAccessor(Grid& g, TAttachment& a, bool vrts = true,
 							bool edges = true, bool faces = true, bool vols = true)
 		{

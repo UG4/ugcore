@@ -175,7 +175,7 @@ namespace boost {
           assert(b<s.size());
           return s.value[b];
         }
-        const_iterator& operator++(){
+        const_iterator& operator ++ (){
           assert(b!=invalid_value());
           assert(b!=s.next[b]);
           b = s.next[b];

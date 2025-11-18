@@ -33,6 +33,8 @@
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION__
 
+#include <lib_algebra/cpu_algebra_types.h>
+
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 #include "lib_disc/dof_manager/function_pattern.h"
 #include "lib_disc/common/local_algebra.h"
@@ -55,7 +57,7 @@ namespace ug{
 class IGridFunction
 {
 	public:
-		virtual ~IGridFunction()	{}
+		virtual ~IGridFunction() = default;
 
 	///	permutes all values
 	/**
@@ -113,7 +115,7 @@ template <typename TDomain> class AdaptionSurfaceGridFunction;
  * \tparam 	TDomain				domain type
  * \tparam	TAlgebra			algebra type
  */
-template <typename TDomain, typename TAlgebra>
+template <typename TDomain, typename TAlgebra = CPUAlgebra>
 class GridFunction
 	: 	public TAlgebra::vector_type,
 	  	public IGridFunction,
@@ -121,7 +123,7 @@ class GridFunction
 {
 	public:
 	///	This type
-		using this_type = GridFunction<TDomain, TAlgebra>;
+		using this_type = GridFunction;
 
 	///	Type of Approximation space
 		using approximation_space_type = ApproximationSpace<TDomain>;
@@ -166,10 +168,10 @@ class GridFunction
 
 	protected:
 	/// virtual clone using covariant return type
-		virtual this_type* virtual_clone() const {return new this_type(*this);}
+		this_type* virtual_clone() const override {return new this_type(*this);}
 
 	/// virtual clone using covariant return type excluding values
-		virtual this_type* virtual_clone_without_values() const;
+		this_type* virtual_clone_without_values() const override;
 
 	public:
 	/// Initializing Constructor
@@ -177,7 +179,7 @@ class GridFunction
 		             SmartPtr<DoFDistribution> spDoFDistr, bool bManage = true);
 
 	/// Initializing Constructor using surface dof distribution
-		GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace, bool bManage = true);
+		explicit GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace, bool bManage = true);
 
 	/// Initializing Constructor using surface dof distribution on a level
 		GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace, int level, bool bManage = true);
@@ -228,7 +230,7 @@ class GridFunction
 		void assign(const vector_type& v);
 
 	/// Destructor
-		virtual ~GridFunction() {m_spDD->unmanage_grid_function(*this);}
+		~GridFunction() override {m_spDD->unmanage_grid_function(*this);}
 
 	public:
 	///	returns dof distribution
@@ -250,39 +252,39 @@ class GridFunction
 	/// \{
 		template <typename TElem>
 		typename traits<TElem>::const_iterator begin() const
-			{return m_spDD->template begin<TElem>();}
+			{return m_spDD->begin<TElem>();}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
 		begin(SurfaceView::SurfaceConstants validStates) const
-			{return m_spDD->template begin<TElem>(validStates);}
+			{return m_spDD->begin<TElem>(validStates);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator end() const
-			{return m_spDD->template end<TElem>();}
+			{return m_spDD->end<TElem>();}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
 		end(SurfaceView::SurfaceConstants validStates) const
-			{return m_spDD->template end<TElem>(validStates);}
+			{return m_spDD->end<TElem>(validStates);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator begin(int si) const
-			{return m_spDD->template begin<TElem>(si);}
+			{return m_spDD->begin<TElem>(si);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
 		begin(int si, SurfaceView::SurfaceConstants validStates) const
-			{return m_spDD->template begin<TElem>(si, validStates);}
+			{return m_spDD->begin<TElem>(si, validStates);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator end(int si) const
-			{return m_spDD->template end<TElem>(si);}
+			{return m_spDD->end<TElem>(si);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
 		end(int si, SurfaceView::SurfaceConstants validStates) const
-			{return m_spDD->template end<TElem>(si, validStates);}
+			{return m_spDD->end<TElem>(si, validStates);}
 	/// \}
 
 	///	returns the adjacend elements
@@ -375,14 +377,14 @@ class GridFunction
 		}
 
 	///	\copydoc IGridFunction::resize_values
-		virtual void resize_values(size_t s, number defaultValue = 0.0);
+		void resize_values(size_t s, number defaultValue = 0.0) override;
 
 	///	\copydoc IGridFunction::permute_values
-		virtual	void permute_values(const std::vector<size_t>& vIndNew);
+		void permute_values(const std::vector<size_t>& vIndNew) override;
 
 	///	\copydoc IGridFunction::copy_values
-		virtual void copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
-		                         bool bDisjunct = false);
+		void copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
+	                 bool bDisjunct = false) override;
 
 
 	protected:
@@ -425,14 +427,14 @@ class GridFunction
 template <typename TDomain, typename TAlgebra>
 const typename TAlgebra::vector_type &getVector(const GridFunction<TDomain, TAlgebra> &t)
 {
-	return *dynamic_cast<const GridFunction<TDomain, TAlgebra>*>(&t);
+	return *static_cast<const GridFunction<TDomain, TAlgebra>*>(&t);
 }
 
 
 template <typename TDomain, typename TAlgebra>
 inline std::ostream& operator<< (std::ostream& outStream, const GridFunction<TDomain, TAlgebra>& v)
 {
-	outStream << *dynamic_cast<const GridFunction<TDomain, TAlgebra>*>(&v);
+	outStream << *static_cast<const GridFunction<TDomain, TAlgebra>*>(&v);
 	return outStream;
 }
 
@@ -441,4 +443,4 @@ inline std::ostream& operator<< (std::ostream& outStream, const GridFunction<TDo
 // include implementation
 #include "grid_function_impl.h"
 
-#endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION__ */
+#endif

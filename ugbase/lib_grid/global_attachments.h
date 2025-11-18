@@ -60,8 +60,7 @@ class GlobalAttachments {
 
 			int fi = static_cast<int> (attachment_names().size());
 			attachment_names().push_back(name);
-			attachments()[name] =
-				AttachmentEntry(new TAttachment(passOnBehaviour), typeName, fi);
+			attachments()[name] = AttachmentEntry(new TAttachment(passOnBehaviour), typeName, fi);
 			functions<Vertex>().push_back(FunctionEntry<Vertex, TAttachment>());
 			functions<Edge>().push_back(FunctionEntry<Edge, TAttachment>());
 			functions<Face>().push_back(FunctionEntry<Face, TAttachment>());
@@ -76,7 +75,9 @@ class GlobalAttachments {
 			remove_function_entry<Face>(ae);
 			remove_function_entry<Edge>(ae);
 			remove_function_entry<Vertex>(ae);
-			attachment_names().erase(std::remove(attachment_names().begin(), attachment_names().end(), name), attachment_names().end());
+			attachment_names().erase(
+				std::remove(attachment_names().begin(), attachment_names().end(), name),
+				attachment_names().end());
 			attachments().erase(name);
 			const char* typeName = attachment_info_traits<TAttachment>::type_name();
 			attachment_types().erase(typeName);
@@ -133,7 +134,7 @@ class GlobalAttachments {
 			
 			//declare global attachments on all processors
 			pcl::ProcessCommunicator procComm;
-			std::vector<std::string> possible_attachment_names = GlobalAttachments::declared_attachment_names();
+			std::vector<std::string> possible_attachment_names = declared_attachment_names();
 			// only master proc loaded the grid
 			if (procId == 0)
 				procComm.broadcast<std::vector<std::string> >(possible_attachment_names, procId);
@@ -146,15 +147,15 @@ class GlobalAttachments {
 			// record local info
 			for(size_t i = 0; i < possible_attachment_names.size(); ++i){
 				byte_t& b = locDeclared[i];
-				if(GlobalAttachments::is_declared(possible_attachment_names[i])){
+				if(is_declared(possible_attachment_names[i])){
 					b |= 1;
-					if(GlobalAttachments::is_attached<Vertex>(grid, possible_attachment_names[i]))
+					if(is_attached<Vertex>(grid, possible_attachment_names[i]))
 						b |= 1<<1;
-					if(GlobalAttachments::is_attached<Edge>(grid, possible_attachment_names[i]))
+					if(is_attached<Edge>(grid, possible_attachment_names[i]))
 						b |= 1<<2;
-					if(GlobalAttachments::is_attached<Face>(grid, possible_attachment_names[i]))
+					if(is_attached<Face>(grid, possible_attachment_names[i]))
 						b |= 1<<3;
-					if(GlobalAttachments::is_attached<Volume>(grid, possible_attachment_names[i]))
+					if(is_attached<Volume>(grid, possible_attachment_names[i]))
 						b |= 1<<4;
 				}
 			}
@@ -164,16 +165,16 @@ class GlobalAttachments {
 			for(size_t i = 0; i < possible_attachment_names.size(); ++i){
 				byte_t& b = globDeclared[i];
 				if(b & 1){
-					if(!GlobalAttachments::is_declared(possible_attachment_names[i]))
-						GlobalAttachments::declare_attachment(possible_attachment_names[i], "double", true);
+					if(!is_declared(possible_attachment_names[i]))
+						declare_attachment(possible_attachment_names[i], "double", true);
 					if(b & 1<<1)
-						GlobalAttachments::attach<Vertex>(grid, possible_attachment_names[i]);
+						attach<Vertex>(grid, possible_attachment_names[i]);
 					if(b & 1<<2)
-						GlobalAttachments::attach<Edge>(grid, possible_attachment_names[i]);	
+						attach<Edge>(grid, possible_attachment_names[i]);
 					if(b & 1<<3)
-						GlobalAttachments::attach<Face>(grid, possible_attachment_names[i]);	
+						attach<Face>(grid, possible_attachment_names[i]);
 					if(b & 1<<4)
-						GlobalAttachments::attach<Volume>(grid, possible_attachment_names[i]);	
+						attach<Volume>(grid, possible_attachment_names[i]);
 				}
 			}
 
@@ -202,7 +203,7 @@ class GlobalAttachments {
 		TAttachment attachment (const std::string& name)
 		{
 			AttachmentEntry& e = attachment_entry(name);
-			TAttachment* a = dynamic_cast<TAttachment*>(e.attachment);
+			auto* a = dynamic_cast<TAttachment*>(e.attachment);
 			UG_COND_THROW(!a, "Attachment with invalid type queried. Given type "
 						  "is " << e.type << ", queried type is " <<
 						  attachment_info_traits<TAttachment>::type_name());
@@ -281,7 +282,7 @@ class GlobalAttachments {
 		};
 
 		struct IAttachmentType {
-			IAttachmentType() : declareFunc(0)	{}
+			IAttachmentType() : declareFunc(nullptr)	{}
 			void (*declareFunc)	(const std::string&, bool);
 		};
 
@@ -307,12 +308,12 @@ class GlobalAttachments {
 			return h;
 		}
 
-		GlobalAttachments ()	{}
+		GlobalAttachments () = default;
 
 		~GlobalAttachments ()
 		{
 			AttachmentMap& m = attachments();
-			for(AttachmentMap::iterator i = m.begin(); i != m.end(); ++i) {
+			for(auto i = m.begin(); i != m.end(); ++i) {
 				if(i->second.attachment)
 					delete i->second.attachment;
 			}
@@ -379,7 +380,7 @@ class GlobalAttachments {
 				Grid& grid,
 				IAttachment& attachment)
 		{
-			TAttachment& a = dynamic_cast<TAttachment&>(attachment);
+			auto& a = dynamic_cast<TAttachment&>(attachment);
 			
 			if(!grid.has_attachment<TElem>(a))
 				grid.attach_to<TElem>(a);
@@ -402,7 +403,7 @@ class GlobalAttachments {
 				Grid& grid,
 				IAttachment& attachment)
 		{
-			TAttachment& a = dynamic_cast<TAttachment&>(attachment);
+			auto& a = dynamic_cast<TAttachment&>(attachment);
 			
 			if(!grid.has_attachment<TElem>(a))
 				return;
@@ -429,7 +430,7 @@ class GlobalAttachments {
 			Grid& g,
 			IAttachment& attachment)
 		{
-			TAttachment& a = dynamic_cast<TAttachment&>(attachment);
+			auto& a = dynamic_cast<TAttachment&>(attachment);
 			handler.add(GeomObjAttachmentSerializer<TElem, TAttachment>::
 									create(g, a));
 		}
@@ -440,7 +441,7 @@ class GlobalAttachments {
 				Grid& grid,
 				IAttachment& attachment)
 		{
-			TAttachment& a = dynamic_cast<TAttachment&>(attachment);
+			auto& a = dynamic_cast<TAttachment&>(attachment);
 			
 			if(!grid.has_attachment<TElem>(a))
 				grid.attach_to<TElem>(a);

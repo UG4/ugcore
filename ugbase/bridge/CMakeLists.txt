@@ -37,7 +37,7 @@ project(P_UGBRIDGE)
 include("../../cmake/ug_includes.cmake")
 
 set(srcUGBridge    	bridge.cpp
-					misc_bridges/test_bridge.cpp
+					# misc_bridges/test_bridge.cpp
 					misc_bridges/profiler_bridge.cpp
 					misc_bridges/util_bridge.cpp
 					misc_bridges/misc_bridge.cpp

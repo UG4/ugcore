@@ -62,9 +62,9 @@ load_from_files(const std::vector<SPLayerDesc>& layerDescs)
 {
 	vector<LayerDesc>	descs;
 	descs.reserve(layerDescs.size());
-	for_each_in_vec(const SPLayerDesc& d, layerDescs){
+	for(size_t _vfeI = 0; _vfeI < layerDescs.size(); ++_vfeI){ const SPLayerDesc& d = layerDescs[_vfeI];{
 		descs.push_back(*d);	
-	}end_for;
+	}};
 	load_from_files(descs);
 }
 
@@ -73,9 +73,9 @@ load_from_files(const std::vector<std::string>& filenames, number minHeight)
 {
 	vector<LayerDesc>	descs;
 	descs.reserve(filenames.size());
-	for_each_in_vec(const std::string& fname, filenames){
+	for(size_t _vfeI = 0; _vfeI < filenames.size(); ++_vfeI){ const std::string& fname = filenames[_vfeI];{
 		descs.push_back(LayerDesc(fname, minHeight));	
-	}end_for;
+	}};
 	load_from_files(descs);
 }
 
@@ -330,7 +330,7 @@ get_layer_indices(const vector3& c) const
 	
 	int upperLayer = -1;
 	int lowerLayer = -1;
-	while(1){
+	while(true){
 		std::pair<int, number> cut = trace_line_down(xy, upperLayer + 1);
 		if(cut.first == -1)
 			break;

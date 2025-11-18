@@ -283,11 +283,11 @@ private:
 	//				return false;
 	//			}
 public:
-	SM_out_edge_iterator& operator++() {
+	SM_out_edge_iterator& operator ++ () {
 		++_base;
 		return *this;
 	}
-	SM_out_edge_iterator operator++(int) { untested();
+	SM_out_edge_iterator operator ++ (int) { untested();
 		SM_out_edge_iterator copy(*this);
 		++*this;
 		return copy;

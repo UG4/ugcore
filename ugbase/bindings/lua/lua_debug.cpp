@@ -215,14 +215,12 @@ void breakpoint()
 		debugMode = DEBUG_CONTINUE;
 		bDebugging = breakpoints.size() > 0;
 		CheckHook();
-		return;
 	}
 	else if(r == DEBUG_NEXT || r == DEBUG_STEP || r == DEBUG_FINISH)
 	{
 		debugMode=r;
 		bDebugging=true;
 		CheckHook();
-		return;
 	}
 }
 
@@ -272,7 +270,7 @@ void luaDebug(lua_State *L, const char *source, int line)
 		int d = getDepth();
 		if( ((debugMode == DEBUG_NEXT && d <= currentDepth)
 				|| (debugMode == DEBUG_FINISH && d < currentDepth))
-				&& (lastsource.compare(source)==0 && lastline == line) == false)
+				&& (lastsource==source && lastline == line) == false)
 		{
 			lastsource = source;
 			lastline = line;
@@ -282,7 +280,7 @@ void luaDebug(lua_State *L, const char *source, int line)
 	}
 	else if(debugMode == DEBUG_STEP)
 	{
-		if((lastsource.compare(source)==0 && lastline == line) == false)
+		if((lastsource==source && lastline == line) == false)
 		{
 			lastsource = source;
 			lastline = line;
@@ -292,7 +290,7 @@ void luaDebug(lua_State *L, const char *source, int line)
 	}
 
 
-	if(!bfound && breakpoints.size() > 0)
+	if(!bfound && !breakpoints.empty())
 	{
 		lua_Debug entry;
 		for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
@@ -303,8 +301,8 @@ void luaDebug(lua_State *L, const char *source, int line)
 				std::map<int, bool> &m = breakpoints[entry.source+1];
 				std::map<int, bool>::iterator it = m.find(entry.currentline);
 				//UG_LOG(entry.source+1 << ":" << entry.currentline << "\n");
-				if(it != m.end() && (*it).second == true &&
-						(lastline != entry.currentline || lastsource.compare(entry.source+1)!=0))
+				if(it != m.end() && it->second == true &&
+						(lastline != entry.currentline || lastsource!=entry.source+1))
 				{
 					lastsource = entry.source+1;
 					lastline = entry.currentline;
@@ -612,7 +610,7 @@ void DebugList()
 }
 void DebugBacktrace(int fromLevel)
 {
-	ug::bridge::LuaStackTrace(fromLevel);
+	bridge::LuaStackTrace(fromLevel);
 }
 
 
@@ -659,7 +657,7 @@ void DebugDown()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-bool RegisterLuaDebug(ug::bridge::Registry &reg)
+bool RegisterLuaDebug(bridge::Registry &reg)
 {
 	reg.add_function("breakpoint", &AddBreakpoint, "/ug4/lua");
 	reg.add_function("breakpoint", &breakpoint_in_script, "/ug4/lua");
@@ -678,7 +676,7 @@ void SetLuaDebug(lua_State* L, string id)
 	string rest = name;
 	string pre = "";
 
-	while(1)
+	while(true)
 	{
 		int dotPos = rest.find(".");
 		if(dotPos == -1) break;

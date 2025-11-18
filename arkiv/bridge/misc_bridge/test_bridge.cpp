@@ -32,7 +32,7 @@
 
 #include <iostream>
 #include <sstream>
-#include <boost/bind.hpp>
+
 #include "registry/registry.h"
 #include "bridge/bridge.h"
 #include "bridge/util.h"
@@ -43,8 +43,8 @@
 #endif
 
 //	temporary include
-#include "lib_grid/attachments/page_container.h"
-
+//#include "lib_grid/attachments/page_container.h"
+/*
 using namespace std;
 
 namespace ug
@@ -412,7 +412,7 @@ void TestPageContainer()
 	UG_LOG("Releasing PageContainer...\n");
 	delete ppc;
 	UG_LOG("done.\n");
-}*/
+}* /
 
 void PostRegisteredFunction()
 {
@@ -815,6 +815,8 @@ void RegisterBridge_Test(Registry& reg, string parentGroup)
 
 // end group test_bridge
 /// \}
+///
 
 }//	end of namespace
 }//	end of namespace
+*/

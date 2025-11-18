@@ -103,7 +103,7 @@ class SurfaceView
 			// combo-states with flags as in level-view (end)
 		};
 
-		using SurfaceState = Flag<SurfaceConstants, byte_t, SS_NONE>;
+		using SurfaceState = Flag<SurfaceConstants, byte_t>;
 		using ASurfaceState = Attachment<SurfaceState>;
 
 	public:
@@ -181,7 +181,7 @@ class SurfaceView
 				SurfaceViewElementIterator();
 
 			private:
-				using this_type = SurfaceViewElementIterator<TElem>;
+				using this_type = SurfaceViewElementIterator;
 				using TValue = TElem*;
 
 				friend class SurfaceView;
@@ -194,13 +194,13 @@ class SurfaceView
 				                           int si = -1);
 
 			public:
-				this_type operator ++()	{increment(); return *this;}
-				this_type operator ++(int unused)	{this_type i = *this; increment(); return i;}
+				this_type operator ++ ()	{increment(); return *this;}
+				this_type operator ++ (int unused)	{this_type i = *this; increment(); return i;}
 
-				bool operator ==(const this_type& iter) const {return equal(iter);}
-				bool operator !=(const this_type& iter) const {return !equal(iter);}
+				bool operator == (const this_type& iter) const {return equal(iter);}
+				bool operator != (const this_type& iter) const {return !equal(iter);}
 
-				TValue operator *()	{return dereference();}
+				TValue operator * ()	{return dereference();}
 
 			private:
 			///	returns if this iterator equals another
@@ -242,7 +242,7 @@ class SurfaceView
 				ConstSurfaceViewElementIterator(const SurfaceViewElementIterator<TElem>& iter);
 
 			private:
-				using this_type = ConstSurfaceViewElementIterator<TElem>;
+				using this_type = ConstSurfaceViewElementIterator;
 				// \todo: should return const TElem*
 				using TValue = TElem*;
 				//using TValue = const TElem*;
@@ -256,17 +256,17 @@ class SurfaceView
 						                        int si = -1);
 
 			public:
-				this_type operator ++()	{increment(); return *this;}
-				this_type operator ++(int unused)	{this_type i = *this; increment(); return i;}
+				this_type operator ++ () {increment(); return *this;}
+				this_type operator ++ (int unused)	{this_type i = *this; increment(); return i;}
 
-				bool operator ==(const this_type& iter) const {return equal(iter);}
-				bool operator !=(const this_type& iter) const {return !equal(iter);}
+				bool operator == (const this_type& iter) const {return equal(iter);}
+				bool operator != (const this_type& iter) const {return !equal(iter);}
 
-				TValue operator *()	{return dereference();}
+				TValue operator * () {return dereference();}
 
 			private:
 			///	returns if this iterator equals another
-				inline bool equal(ConstSurfaceViewElementIterator<TElem> const& other) const;
+				inline bool equal(ConstSurfaceViewElementIterator const& other) const;
 
 			///	returns if valid element, i.e. contained in iterator loop
 				template <class TGeomObj>
@@ -364,18 +364,18 @@ class SurfaceView
 		void adjust_parallel_surface_states();
 
 		template <class TElem>
-		SurfaceState& surface_state(TElem* elem)		{return m_aaSurfState[elem];}
+		SurfaceState& surface_state(TElem* elem) {return m_aaSurfState[elem];}
 
 		template <class TElem>
 		bool is_vmaster(TElem* elem) const;
 
 	private:
-		SmartPtr<MGSubsetHandler> 		m_spMGSH;
-		bool							m_adaptiveMG;
-		MultiGrid*						m_pMG;
-		DistributedGridManager*			m_distGridMgr;
-		ASurfaceState									m_aSurfState;
-		MultiElementAttachmentAccessor<ASurfaceState>	m_aaSurfState;
+		SmartPtr<MGSubsetHandler> m_spMGSH;
+		bool m_adaptiveMG;
+		MultiGrid* m_pMG;
+		DistributedGridManager* m_distGridMgr;
+		ASurfaceState m_aSurfState;
+		MultiElementAttachmentAccessor<ASurfaceState> m_aaSurfState;
 };
 
 /** \} */

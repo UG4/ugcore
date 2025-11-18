@@ -299,4 +299,4 @@ cast_to(ConstSmartPtr<void> spDerivVoid, const ClassNameNode*& node)
 } // end namespace ug
 } // end namespace bridge
 
-#endif /* __H__UG_BRIDGE__CLASS_NAME_PROVIDER_IMPL__ */
+#endif

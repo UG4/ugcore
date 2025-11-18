@@ -65,7 +65,7 @@ DenseVector<TStorage>::operator = (const DenseVector<TStorage> &rhs)
 
 template<typename TStorage>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator += (const DenseVector<TStorage> &rhs)
+DenseVector<TStorage>::operator+=(const DenseVector &rhs)
 {
 	for(size_type i=0; i<size(); i++)
 		entry(i) += rhs[i];
@@ -75,7 +75,7 @@ DenseVector<TStorage>::operator += (const DenseVector<TStorage> &rhs)
 
 template<typename TStorage>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator -= (const DenseVector<TStorage> &rhs)
+DenseVector<TStorage>::operator-=(const DenseVector &rhs)
 {
 	for(size_type i=0; i<size(); i++)
 		entry(i) -= rhs[i];

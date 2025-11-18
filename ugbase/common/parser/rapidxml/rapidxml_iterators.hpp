@@ -46,28 +46,28 @@ namespace rapidxml
             return m_node;
         }
 
-        node_iterator& operator++()
+        node_iterator& operator ++()
         {
             assert(m_node);
             m_node = m_node->next_sibling();
             return *this;
         }
 
-        node_iterator operator++(int)
+        node_iterator operator ++(int)
         {
             node_iterator tmp = *this;
             ++this;
             return tmp;
         }
 
-        node_iterator& operator--()
+        node_iterator& operator --()
         {
             assert(m_node && m_node->previous_sibling());
             m_node = m_node->previous_sibling();
             return *this;
         }
 
-        node_iterator operator--(int)
+        node_iterator operator --(int)
         {
             node_iterator tmp = *this;
             ++this;
@@ -125,14 +125,14 @@ namespace rapidxml
             return m_attribute;
         }
 
-        attribute_iterator& operator++()
+        attribute_iterator& operator ++ ()
         {
             assert(m_attribute);
             m_attribute = m_attribute->next_attribute();
             return *this;
         }
 
-        attribute_iterator operator++(int)
+        attribute_iterator operator ++ (int)
         {
             attribute_iterator tmp = *this;
             ++this;

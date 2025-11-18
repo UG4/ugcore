@@ -54,7 +54,7 @@ namespace ug{
  */
 class RefinementProjector {
 public:
-	RefinementProjector ()			{}
+	RefinementProjector () = default;
 
 	RefinementProjector (SPIGeometry3d geometry) :
 		m_geometry (geometry),
@@ -71,14 +71,14 @@ public:
 		m_concernedElementsCallback (concernedElems)
 	{}
 
-	virtual ~RefinementProjector ()	{}
+	virtual ~RefinementProjector ()	= default;
 
 	virtual void set_geometry (SPIGeometry3d geometry)
 	{
 		m_geometry = geometry;
 	}
 
-	virtual SPIGeometry3d geometry () const				{return m_geometry;}
+	virtual SPIGeometry3d geometry () const {return m_geometry;}
 
 
 	virtual void set_concerned_elements (SPElementCallback cb)
@@ -162,8 +162,8 @@ protected:
 		m_geometry->set_pos(v, p);
 	}
 
-	IGeometry3d& geom ()				{return *m_geometry;}
-	const IGeometry3d& geom () const	{return *m_geometry;}
+	IGeometry3d& geom () {return *m_geometry;}
+	const IGeometry3d& geom () const {return *m_geometry;}
 
 	template <class TElem>
 	bool is_concerned (TElem* e) {
@@ -178,8 +178,8 @@ private:
 	{
 	}
 
-	SPIGeometry3d		m_geometry;
-	SPElementCallback	m_concernedElementsCallback;
+	SPIGeometry3d m_geometry;
+	SPElementCallback m_concernedElementsCallback;
 };
 
 using SPRefinementProjector = SmartPtr<RefinementProjector>;

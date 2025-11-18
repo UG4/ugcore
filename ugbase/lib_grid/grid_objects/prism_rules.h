@@ -42,28 +42,28 @@ namespace prism_rules{
 ////////////////////////////////////////////////////////////////////////////////
 //	LOOKUP TABLES
 
-const int NUM_VERTICES	= 6;
-const int NUM_EDGES		= 9;
-const int NUM_FACES		= 5;
-const int NUM_TRIS		= 2;
-const int NUM_QUADS		= 3;
-const int MAX_NUM_INDS_OUT = 128;//todo: this is just an estimate!
-const int MAX_NUM_CONVERT_TO_TETS_INDS_OUT = 15;
-const int MAX_NUM_COLLAPSE_INDS_OUT = 6;
+constexpr int NUM_VERTICES = 6;
+constexpr int NUM_EDGES = 9;
+constexpr int NUM_FACES = 5;
+constexpr int NUM_TRIS = 2;
+constexpr int NUM_QUADS = 3;
+constexpr int MAX_NUM_INDS_OUT = 128;//todo: this is just an estimate!
+constexpr int MAX_NUM_CONVERT_TO_TETS_INDS_OUT = 15;
+constexpr int MAX_NUM_COLLAPSE_INDS_OUT = 6;
 
 ///	the local vertex indices of the given edge
-const int EDGE_VRT_INDS[][2] = {	{0, 1}, {1, 2}, {2, 0},
+const int EDGE_VRT_INDS[][2] = {{0, 1}, {1, 2}, {2, 0},
 									{0, 3}, {1, 4}, {2, 5},
 									{3, 4}, {4, 5}, {5, 3}};
 
 ///	the local vertex indices of the given face
-const int FACE_VRT_INDS[][4] = {	{0, 1, 2, -1},	{0, 3, 4, 1},
+const int FACE_VRT_INDS[][4] = {{0, 1, 2, -1},	{0, 3, 4, 1},
 //									{1, 4, 5, 2},	{0, 2, 5, 3},
 									{1, 4, 5, 2},	{2, 5, 3, 0},
 									{3, 5, 4, -1}};
 
 ///	the index of the face opposed to the given one. -1 if no face is opposed
-const int OPPOSED_FACE[NUM_FACES] = {4, -1, -1, -1, 0};
+constexpr int OPPOSED_FACE[NUM_FACES] = {4, -1, -1, -1, 0};
 
 
 /** for each vertex, a pair containing the object type (0: vrt, 1: edge, 2: face)
@@ -74,15 +74,15 @@ const int OPPOSED_OBJECT[][NUM_VERTICES] = {{1, 7}, {1, 8}, {1, 6}, {1, 1}, {1, 
 
 ////////////////////////////////////////////////////////////////////////////////
 //	SOME HELPER TABLES
-const int TOP_FACE =	4;
-const int BOTTOM_FACE =	0;
+constexpr int TOP_FACE = 4;
+constexpr int BOTTOM_FACE =	0;
 
-const int IS_BOTTOM_EDGE[9] =	{1, 1, 1, 0, 0, 0, 0, 0, 0};
-const int IS_SIDE_EDGE[9] =		{0, 0, 0, 1, 1, 1, 0, 0, 0};
-const int IS_TOP_EDGE[9] =		{0, 0, 0, 0, 0, 0, 1, 1, 1};
+const int IS_BOTTOM_EDGE[9] = {1, 1, 1, 0, 0, 0, 0, 0, 0};
+const int IS_SIDE_EDGE[9] = {0, 0, 0, 1, 1, 1, 0, 0, 0};
+const int IS_TOP_EDGE[9] = {0, 0, 0, 0, 0, 0, 1, 1, 1};
 
-const int TRIS[2] =		{0, 4};
-const int QUADS[3] =	{1, 2, 3};
+constexpr int TRIS[2] = {0, 4};
+constexpr int QUADS[3] = {1, 2, 3};
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

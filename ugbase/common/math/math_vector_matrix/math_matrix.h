@@ -89,7 +89,7 @@ class MathMatrix
 		 * \param B The matrix to be added.
 		 * \return A reference to this matrix.
 		 */
-		MathMatrix& operator+= (const MathMatrix& B)
+		MathMatrix& operator += (const MathMatrix& B)
 		{
 			for(std::size_t i = 0; i < N; ++i){
 				for(std::size_t j = 0; j < M; ++j){
@@ -137,7 +137,7 @@ class MathMatrix
 		 * \param val The value to be added.
 		 * \return A reference to this matrix.
 		 */
-		MathMatrix& operator+= (const value_type& val)
+		MathMatrix& operator += (const value_type& val)
 		{
 			for(std::size_t i = 0; i < N; ++i){
 				for(std::size_t j = 0; j < M; ++j){

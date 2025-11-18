@@ -188,15 +188,14 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 			 :	m_sel(sel), m_distGridMgr(distGridMgr)
 		{}
 
-		virtual ~ComPol_AdjustType()		{}
+		~ComPol_AdjustType() override = default;
 
-		virtual int
-		get_required_buffer_size(const Interface& interface)		{return -1;}
+		int
+		get_required_buffer_size(const Interface& interface) override {return -1;}
 
 	///	writes the selection states of the interface entries
-		virtual bool
-		collect(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		collect(BinaryBuffer& buff, const Interface& interface) override {
 			constexpr int TO_NORMAL = HangingNodeRefiner_MultiGrid::HNRM_TO_NORMAL;
 			constexpr int TO_CONSTRAINED = HangingNodeRefiner_MultiGrid::HNRM_TO_CONSTRAINED;
 			constexpr int TO_CONSTRAINING = HangingNodeRefiner_MultiGrid::HNRM_TO_CONSTRAINING;
@@ -234,9 +233,8 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 	///	reads marks from the given stream
-		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		extract(BinaryBuffer& buff, const Interface& interface) override {
 		//	search for entries which changed their constrained/constraining status
 			UG_ASSERT(m_distGridMgr.get_assigned_grid(),
 					"The distributed grid manager has to operate on a valid grid!");
@@ -244,7 +242,7 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 
 			int counter = 0;
 			InterfaceIter iter = interface.begin();
-			while(1){
+			while(true){
 				int index;
 				buff.read((char*)&index, sizeof(int));
 				if(index == -1)
@@ -550,15 +548,14 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 		ComPol_BroadcastCoarsenMarks(ISelector& sel, bool allowDeselection = false)
 			 :	m_sel(sel), m_allowDeselection(allowDeselection)
 		{}
+		~ComPol_BroadcastCoarsenMarks() override = default;
 
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{return interface.size() * sizeof(byte_t);}
+	int
+		get_required_buffer_size(const Interface& interface) override {return interface.size() * sizeof(byte_t);}
 
 	///	writes writes the selection states of the interface entries
-		virtual bool
-		collect(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		collect(BinaryBuffer& buff, const Interface& interface) override {
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
@@ -572,9 +569,8 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 	///	reads marks from the given stream
-		virtual bool
-		extract(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		extract(BinaryBuffer& buff, const Interface& interface) override {
 			byte_t val;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)

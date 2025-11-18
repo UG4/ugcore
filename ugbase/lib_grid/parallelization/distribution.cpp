@@ -177,7 +177,7 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 		ComPol_SynchronizeDistInfos(DistInfoSupplier& distInfos, bool merge) :
 			m_distInfos(distInfos), m_mergeEnabled(merge)	{}
 
-		virtual ~ComPol_SynchronizeDistInfos()	{}
+		~ComPol_SynchronizeDistInfos() override = default;
 
 		void enable_merge(bool enable)	{m_mergeEnabled = enable;}
 		bool merge_enabled()			{return m_mergeEnabled;}
@@ -187,7 +187,7 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 
 	///	write target processes and move-flag
 		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& intfc)
+		collect(BinaryBuffer& buff, const Interface& intfc)
 		{
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter){
 				Element elem = intfc.get_element(iter);
@@ -198,7 +198,7 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 
 	///	read target processes and move-flag
 		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& intfc)
+		extract(BinaryBuffer& buff, const Interface& intfc)
 		{
 			if(m_mergeEnabled){
 				vector<TargetProcInfo> tpInfo;
@@ -1047,7 +1047,7 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel, bool partitionF
 
 			if(numChildren){
 				for(size_t i = 0; i < numChildren; ++i){
-					TElem* c = mg.get_child<TElem>(e, i);
+					auto* c = mg.get_child<TElem>(e, i);
 					if(!msel.is_selected(c))
 						msel.select(c, IS_VMASTER);
 				}

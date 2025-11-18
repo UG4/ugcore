@@ -42,7 +42,7 @@
 #include "common/util/uid.h"
 #include "common/util/hash.h"
 #include "common/ug_config.h"
-#include "page_container.h"
+
 
 namespace ug
 {
@@ -135,7 +135,6 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 {
 	private:
 		using ClassType = AttachmentDataContainer<T>;
-		// using DataContainer = PageContainer<T>;
 		using DataContainer = std::vector<T>;
 		using TRef = typename attachment_value_traits<T>::reference;
 		using TConstRef = typename attachment_value_traits<T>::const_reference;
@@ -145,27 +144,24 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 
 		AttachmentDataContainer(const T& defaultValue = T())	: m_defaultValue(defaultValue)	{}
 
-		virtual ~AttachmentDataContainer()			{m_vData.clear();}
+		~AttachmentDataContainer() override {m_vData.clear();}
 
-		virtual void resize(size_t iSize)
-			{
+		void resize(size_t iSize) override {
 				if(iSize > 0)
 					m_vData.resize(iSize, m_defaultValue);
 				else
 					m_vData.clear();
 			}
 
-		virtual size_t size()	{return m_vData.size();}
+		size_t size() override {return m_vData.size();}
 
-		virtual void copy_data(size_t indFrom, size_t indTo)    {m_vData[indTo] = m_vData[indFrom];}
+		void copy_data(size_t indFrom, size_t indTo) override {m_vData[indTo] = m_vData[indFrom];}
 
-		virtual void reset_entry(size_t index)
-			{
+		void reset_entry(size_t index) override {
 				m_vData[index] = m_defaultValue;
 			}
 
-		virtual void defragment(size_t* pNewIndices, size_t numValidElements)
-			{
+		void defragment(size_t* pNewIndices, size_t numValidElements) override {
 				size_t numOldElems = size();
 				DataContainer vDataOld = m_vData;
 				m_vData.resize(numValidElements);
@@ -186,9 +182,8 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 	 *
 	 *	pDestCon has to have the same or a derived dynamic type as the container
 	 *	on which this method is called.*/
-		virtual void copy_to_container(IAttachmentDataContainer* pDestCon,
-										int* indexMap, int num) const
-			{
+		void copy_to_container(IAttachmentDataContainer* pDestCon,
+		                       int* indexMap, int num) const override {
 				ClassType* destConT = dynamic_cast<ClassType*>(pDestCon);
 				assert(destConT && "Type of pDestBuf has to be the same as the"
 						"type of this buffer");
@@ -203,8 +198,7 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 
 
 	///	returns the memory occupied by the container
-		virtual size_t occupied_memory()
-		{
+		size_t occupied_memory() override {
 			return m_vData.capacity() * sizeof(T);
 		}
 
@@ -214,7 +208,7 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 		inline TRef operator[] (size_t index)				{return m_vData[index];}
 
 	///	swaps the buffer content of associated data
-		void swap(AttachmentDataContainer<T>& container)	{m_vData.swap(container.m_vData);}
+		void swap(AttachmentDataContainer<T>& container) noexcept {m_vData.swap(container.m_vData);}
 
 	protected:
 		DataContainer& get_data_container()			{return m_vData;}
@@ -242,7 +236,7 @@ class UG_API IAttachment : public UID
 		IAttachment(const char* name) : m_name(name)
 			{assert(m_name);}
 
-		virtual ~IAttachment() = default;
+		~IAttachment() override = default;
 		virtual IAttachment* clone() = 0;
 		virtual IAttachmentDataContainer*	create_container() = 0;
 		virtual bool default_pass_on_behaviour() const = 0;
@@ -265,15 +259,16 @@ template <class T> class UG_API Attachment : public IAttachment
 		using ContainerType = AttachmentDataContainer<T>;
 		using ValueType = T;
 
-		Attachment() : IAttachment(), m_passOnBehaviour(false)    {}
-		Attachment(bool passOnBehaviour) : IAttachment(), m_passOnBehaviour(passOnBehaviour)    {}
+		Attachment() : m_passOnBehaviour(false)    {}
+		Attachment(bool passOnBehaviour) : m_passOnBehaviour(passOnBehaviour)    {}
 		Attachment(const char* name) : IAttachment(name), m_passOnBehaviour(false)   		{}
 		Attachment(const char* name, bool passOnBehaviour) : IAttachment(name), m_passOnBehaviour(passOnBehaviour)	{}
 
-		virtual ~Attachment() = default;
-		virtual IAttachment* clone()							{IAttachment* pA = new Attachment<T>; *pA = *this; return pA;}
-		virtual IAttachmentDataContainer* create_container()	{return new ContainerType;}
-		virtual bool default_pass_on_behaviour() const			{return m_passOnBehaviour;}
+		~Attachment() override = default;
+
+		IAttachment* clone() override {IAttachment* pA = new Attachment<T>; *pA = *this; return pA;}
+		IAttachmentDataContainer* create_container() override {return new ContainerType;}
+		bool default_pass_on_behaviour() const override {return m_passOnBehaviour;}
 		IAttachmentDataContainer* create_container(const T& defaultValue)	{return new ContainerType(defaultValue);}
 
 	protected:
@@ -557,8 +552,7 @@ class UG_API AttachmentAccessor
 			{m_pContainer = nullptr;}
 			
 	///	calls swap on associated containers
-		void swap(AttachmentAccessor<TElem, TAttachment, TElemHandler>& acc)
-		{
+		void swap(AttachmentAccessor<TElem, TAttachment, TElemHandler>& acc) noexcept {
 			m_pContainer->swap(*acc.m_pContainer);
 		}
 

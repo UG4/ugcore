@@ -42,7 +42,7 @@
 #include "pcl/pcl_base.h"
 
 #include <boost/mpl/map.hpp>
-#include <boost/mpl/at.hpp>
+// #include <boost/mpl/at.hpp>
 
 #include <algorithm>
 
@@ -661,12 +661,7 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 
 	// map start type of recursion dependent to TDomain
 	// in 3d start with faces, in 2d with edges, in 1d with vertices
-	// namespace mpl = boost::mpl;
-	/*using m = mpl::map<mpl::pair<Domain1d, Vertex>,
-		mpl::pair<Domain2d, Edge>,
-		mpl::pair<Domain3d, Face> >;*/
 
-	//using TElem = typename mpl::at<m, TDomain>::type;
 	using TElem = typename grid_dim_traits<TDomain::dim>::side_type;
 	using gocIter = typename ElementStorage<TElem>::SectionContainer::iterator;
 
@@ -700,4 +695,4 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 
 } // end namespace ug
 
-#endif /* PERIODIC_IDENTIFIER_IMPL_HPP_ */
+#endif

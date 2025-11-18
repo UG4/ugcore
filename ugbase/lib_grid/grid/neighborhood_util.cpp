@@ -51,7 +51,7 @@ TBaseElem* GetConnectedNeighbor(Grid& g, typename TBaseElem::side* face, TBaseEl
 			return el[e];
 	}
 
-	return (TBaseElem*) nullptr;
+	return nullptr;
 }
 
 template Volume* GetConnectedNeighbor<Volume>(Grid&, Face*, Volume*);

@@ -344,13 +344,13 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte_t newStatus, bool add
 	//	iterate through the levels of the layout
 		for(size_t l = 0; l < layout.num_levels(); ++l){
 		//	iterate through the interfaces of the layout
-			for(typename Layout::iterator iiter = layout.begin(l); iiter != layout.end(l); ++iiter)
+			for(auto iiter = layout.begin(l); iiter != layout.end(l); ++iiter)
 			{
 				typename Layout::Interface& interface = layout.interface(iiter);
 				//int procID = layout.proc_id(iiter);
 				
 			///	iterate through the elements of the interface
-				for(typename Layout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+				for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 				{
 				//	set the new status
 					//set_status(*iter, newStatus);
@@ -471,8 +471,7 @@ template <class TScheduledElemMap>
 void DistributedGridManager::
 perform_ordered_element_insertion(TScheduledElemMap& elemMap)
 {		
-	for(typename TScheduledElemMap::iterator iter = elemMap.begin();
-		iter != elemMap.end(); ++iter)
+	for(auto iter = elemMap.begin(); iter != elemMap.end(); ++iter)
 	{
 		ScheduledElement& schedElem = iter->second;
 		int objType = schedElem.geomObj->base_object_id();
@@ -767,14 +766,14 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 				m_hash.insert(e, Entry(-1, -1));
 		}
 
-		virtual ~ComPol_NewConstrainedVerticals()	{}
+		~ComPol_NewConstrainedVerticals() override = default;
 
 		virtual int
 		get_required_buffer_size(const Interface& interface)
 		{return -1;}
 
 		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		collect(BinaryBuffer& buff, const Interface& interface)
 		{
 			vector<pair<int, size_t> > vInterfaces;
 
@@ -818,7 +817,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
+		extract(BinaryBuffer& buff, const Interface& interface)
 		{
 			int index;
 			Deserialize(buff, index);
@@ -1232,8 +1231,7 @@ element_to_be_erased(TElem* elem)
 	if(elemInfo.is_interface_element()){
 		UG_ASSERT(m_bElementDeletionMode, "Call begin_element_deletion() before deleting elements.");
 	//	erase the element from all associated interfaces
-		for(typename ElementInfo<TElem>::EntryIterator iter = elemInfo.entries_begin();
-			iter != elemInfo.entries_end(); ++iter)
+		for(auto iter = elemInfo.entries_begin(); iter != elemInfo.entries_end(); ++iter)
 		{
 			typename ElementInfo<TElem>::Entry& entry = *iter;
 			entry.m_interface->erase(entry.m_interfaceElemIter);

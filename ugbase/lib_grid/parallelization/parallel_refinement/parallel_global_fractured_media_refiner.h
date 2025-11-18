@@ -48,18 +48,23 @@ class ParallelGlobalFracturedMediaRefiner : public GlobalFracturedMediaRefiner
 {
 	public:
 		ParallelGlobalFracturedMediaRefiner(DistributedGridManager& distGridMgr, SPRefinementProjector projector = nullptr);
-		virtual ~ParallelGlobalFracturedMediaRefiner();
+
+		~ParallelGlobalFracturedMediaRefiner() override = default;
 
 	protected:
-		virtual bool refinement_is_allowed(Vertex* elem);
-		virtual bool refinement_is_allowed(Edge* elem);
-		virtual bool refinement_is_allowed(Face* elem);
-		virtual bool refinement_is_allowed(Volume* elem);
-		
-		virtual void refinement_step_begins();
-		virtual void refinement_step_ends();
+		bool refinement_is_allowed(Vertex* elem) override;
 
-		virtual void communicate_marks(BoolMarker& marker);
+		bool refinement_is_allowed(Edge* elem) override;
+
+		bool refinement_is_allowed(Face* elem) override;
+
+		bool refinement_is_allowed(Volume* elem) override;
+
+		void refinement_step_begins() override;
+
+		void refinement_step_ends() override;
+
+		void communicate_marks(BoolMarker& marker) override;
 
 	protected:
 		DistributedGridManager& m_distGridMgr;

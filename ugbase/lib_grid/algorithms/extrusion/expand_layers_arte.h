@@ -52,5 +52,4 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, std::vector<FractureI
 
 }
 
-#endif /* UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_H_ */
-
+#endif

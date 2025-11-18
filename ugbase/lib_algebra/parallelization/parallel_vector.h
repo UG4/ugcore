@@ -33,12 +33,15 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_VECTOR__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_VECTOR__
 
+
+
 #include "pcl/pcl.h"
 #include "parallel_index_layout.h"
 #include "parallelization_util.h"
 #include "parallel_storage_type.h"
 #include "algebra_layouts.h"
 #include "common/assert.h"
+#include "lib_algebra/cpu_algebra/vector.h"
 
 namespace ug
 {
@@ -55,7 +58,7 @@ namespace ug
  *
  * \tparam 	TVector		Sequential Vector type
  */
-template <typename TVector>
+template <typename TVector = Vector<double>>
 class ParallelVector : public TVector
 {
 	public:
@@ -63,7 +66,7 @@ class ParallelVector : public TVector
 		using size_type = size_t;
 		using vector_type = typename TVector::vector_type;
 		///	own type
-		using this_type = ParallelVector<TVector>;
+		using this_type = ParallelVector;
 
 	private:
 	// 	disallow copy constructor
@@ -88,6 +91,8 @@ class ParallelVector : public TVector
 		ParallelVector(ConstSmartPtr<AlgebraLayouts> layouts)
 			: TVector(), m_type(PST_UNDEFINED), m_spAlgebraLayouts(layouts)
 		{}
+
+		~ParallelVector() override = default;
 
 		/////////////////////////
 		// Storage type handling
@@ -183,10 +188,10 @@ class ParallelVector : public TVector
 
 	protected:
 		/// virtual clone using covariant return type
-		virtual this_type* virtual_clone() const;
+		this_type* virtual_clone() const override;
 
 		/// virtual clone using covariant return type excluding values
-		virtual this_type* virtual_clone_without_values() const;
+		this_type* virtual_clone_without_values() const override;
 
 	private:
 	// 	type of storage  (i.e. consistent, additive, additive unique)

@@ -19,16 +19,16 @@
  * default sizes for array allocations
  * always counts per entry
  */
-static constexpr int init_num_subdomains = 64;
-static constexpr int init_num_lines = 128;
-static constexpr int init_num_surfaces = 256;
-static constexpr int init_num_coords = 512;
+static const int init_num_subdomains = 64;
+static const int init_num_lines = 128;
+static const int init_num_surfaces = 256;
+static const int init_num_coords = 512;
 
-static constexpr int init_num_line_points = 32;
+static const int init_num_line_points = 32;
 
-static constexpr int init_num_surface_points = 32;
-static constexpr int init_num_surface_lines = 32;
-static constexpr int init_num_surface_triangles = 32;
+static const int init_num_surface_points = 32;
+static const int init_num_surface_lines = 32;
+static const int init_num_surface_triangles = 32;
 
 
 /*
@@ -77,8 +77,8 @@ static const char* err_msg_tri = "Could not read triangle index at line %d, char
 /* try-like construct, if cmd returns 1 (error), return 1 too */
 #define $(cmd) do { if(cmd) return 1; } while (0)
 
-/* short for str != nullptr && strcmp == 0 */
-#define is_token(str, tok) (str != nullptr && strcmp(str, tok) == 0)
+/* short for str != NULL && strcmp == 0 */
+#define is_token(str, tok) (str != NULL && strcmp(str, tok) == 0)
 
 
 /*
@@ -160,8 +160,8 @@ int lgm_parse_domain_info(tokstream* ts, struct lgm* l, struct lgm_info* fileinf
         return lgm_error_parse(fileinfo, err_msg_dom, ts);
 
     /* initialize domain properties */
-    l->name = nullptr;
-    l->problemname = nullptr;
+    l->name = NULL;
+    l->problemname = NULL;
     l->convex = 0;
 
     /* read domain properties */
@@ -315,7 +315,7 @@ int lgm_parse_subdomain(tokstream* ts, struct lgm* l, int* alloc_subdomains, str
             }
 
             /* store no name, so far */
-            l->subdomains[l->num_subdomains] = nullptr;
+            l->subdomains[l->num_subdomains] = NULL;
             ++l->num_subdomains;
 
             continue;
@@ -950,7 +950,7 @@ int lgm_parse_point_info(tokstream* ts, struct lgm* l, struct lgm_info* fileinfo
 
     /* initialize points */
     l->num_points = 0;
-    l->points = nullptr;
+    l->points = NULL;
 
     /* initialize coordinate array */
     coords = malloc(sizeof(double) * alloc_coords);

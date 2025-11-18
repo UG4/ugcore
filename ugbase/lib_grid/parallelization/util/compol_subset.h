@@ -55,6 +55,8 @@ class ComPol_Subset : public pcl::ICommunicationPolicy<TLayout>
 			 :	m_sh(sel), m_overwriteEnabled(overwrite)
 		{}
 
+		~ComPol_Subset() override = default;
+
 		virtual int
 		get_required_buffer_size(const Interface& interface)
 		{

@@ -92,7 +92,7 @@ macro(__BlueGeneQ_set_dynamic_flags compiler_id lang)
     set(CMAKE_SHARED_LIBRARY_${lang}_FLAGS           "-fPIC")
     set(CMAKE_SHARED_LIBRARY_CREATE_${lang}_FLAGS    "-shared")
     set(BG/Q_${lang}_DYNAMIC_EXE_FLAGS                "-dynamic")
-  endif()
+  endif ()
 
   # Both toolchains use the GNU linker on BG/Q, so these options are shared.
   set(CMAKE_SHARED_LIBRARY_RUNTIME_${lang}_FLAG      "-Wl,-rpath,")

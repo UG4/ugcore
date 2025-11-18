@@ -51,45 +51,45 @@ class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 		GlobalMultiGridRefiner(MultiGrid& mg,
 							   SPRefinementProjector projector = nullptr);
 							   
-		virtual ~GlobalMultiGridRefiner();
+		~GlobalMultiGridRefiner() override;
 
-		virtual void grid_to_be_destroyed(Grid* grid);
+		void grid_to_be_destroyed(Grid* grid) override;
 		
 		void assign_grid(MultiGrid& mg);
 		void assign_grid(MultiGrid* mg);
 
-		virtual Grid* get_associated_grid()		{return m_pMG;}
-		virtual Grid* grid()					{return m_pMG;}
-		virtual MultiGrid* multi_grid()			{return m_pMG;}
+		Grid* get_associated_grid() override {return m_pMG;}
+		Grid* grid() override {return m_pMG;}
+		virtual MultiGrid* multi_grid() {return m_pMG;}
 
-		virtual bool adaptivity_supported() const	{return false;}
-		virtual bool coarsening_supported() const	{return false;}
+		bool adaptivity_supported() const override {return false;}
+		bool coarsening_supported() const override {return false;}
 
-		virtual bool save_marks_to_file(const char* filename);
+		bool save_marks_to_file(const char* filename) override;
 
 	protected:
 	///	returns the number of (globally) marked edges on this level of the hierarchy
-		virtual void num_marked_edges_local(std::vector<int>& numMarkedEdgesOut);
+		void num_marked_edges_local(std::vector<int>& numMarkedEdgesOut) override;
 	///	returns the number of (globally) marked faces on this level of the hierarchy
-		virtual void num_marked_faces_local(std::vector<int>& numMarkedFacesOut);
+		void num_marked_faces_local(std::vector<int>& numMarkedFacesOut) override;
 	///	returns the number of (globally) marked volumes on this level of the hierarchy
-		virtual void num_marked_volumes_local(std::vector<int>& numMarkedVolsOut);
+		void num_marked_volumes_local(std::vector<int>& numMarkedVolsOut) override;
 
 		template <class TElem>
 		void num_marked_elems(std::vector<int>& numMarkedElemsOut);
 
 	////////////////////////////////
 	///	performs refinement on the marked elements.
-		virtual void perform_refinement();
+		void perform_refinement() override;
 
 	///	a callback that allows to deny refinement of special vertices
-		virtual bool refinement_is_allowed(Vertex* elem)	{return true;}
+		virtual bool refinement_is_allowed(Vertex* elem) {return true;}
 	///	a callback that allows to deny refinement of special edges
-		virtual bool refinement_is_allowed(Edge* elem)		{return true;}
+		virtual bool refinement_is_allowed(Edge* elem) {return true;}
 	///	a callback that allows to deny refinement of special faces
-		virtual bool refinement_is_allowed(Face* elem)			{return true;}
+		virtual bool refinement_is_allowed(Face* elem) {return true;}
 	///	a callback that allows to deny refinement of special volumes
-		virtual bool refinement_is_allowed(Volume* elem)		{return true;}
+		virtual bool refinement_is_allowed(Volume* elem) {return true;}
 		
 	///	this method helps derived classes to perform operations directly before actual element refinement is performed.
 	/**	Called from the refine() method in each refinement-iteration after

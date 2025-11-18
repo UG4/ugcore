@@ -18,23 +18,23 @@ extern "C" {
 namespace ug {
 namespace impl {
 
-static ug::Variant pop2var(lua_State* _L)
+static Variant pop2var(lua_State* _L)
 {
 	int t = lua_type(_L, -1);
-	ug::Variant ret;
+	Variant ret;
 
 	if(t == LUA_TTABLE){
 		LuaTableHandle h(_L, -1);
-		ret = ug::Variant(h);
+		ret = Variant(h);
 	}else if(t == LUA_TNUMBER){
 		number n = lua_tonumber(_L, -1);
-		ret = ug::Variant(n);
+		ret = Variant(n);
 	}else if(t == LUA_TBOOLEAN){
 		bool b = lua_toboolean(_L, -1);
-		ret = ug::Variant(b);
+		ret = Variant(b);
 	}else if(lua_isstring(_L, -1)){
 		std::string s(lua_tostring(_L, -1));
-		ret = ug::Variant(s);
+		ret = Variant(s);
 	}else if(t == LUA_TNIL){
 	}else{
 		std::cerr << "type not handled " << t << "\n";
@@ -110,24 +110,24 @@ public:
 		return n;
 	}
 
-	ug::Variant get(int const& key) const{
+	Variant get(int const& key) const{
 		lua_rawgeti(_L, LUA_REGISTRYINDEX, _ref);
 		lua_rawgeti(_L, _index, key+1); // lua starts at 1.
 
-		ug::Variant ret = pop2var(_L);
+		Variant ret = pop2var(_L);
 
 		lua_pop(_L, 1); // pop value
 		lua_pop(_L, 1); // pop ref
 
 		return ret;
 	}
-	ug::Variant get(std::string const& key) const{
+	Variant get(std::string const& key) const{
 		lua_rawgeti(_L, LUA_REGISTRYINDEX, _ref);
 		lua_getfield(_L, _index, key.c_str());
 
 		// std::cerr << "getfield " << key << " type " << lua_type(_L, -1) << "\n";
 
-		ug::Variant ret = pop2var(_L);
+		Variant ret = pop2var(_L);
 
 		lua_pop(_L, 1); // pop value
 		lua_pop(_L, 1); // pop ref
@@ -209,13 +209,13 @@ size_t LuaTableHandle::size() const
 	return _data->size();
 }
 
-ug::Variant LuaTableHandle::get(std::string const& key) const
+Variant LuaTableHandle::get(std::string const& key) const
 {
 	assert(_data);
 	return _data->get(key);
 }
 
-ug::Variant LuaTableHandle::get(int const& key) const
+Variant LuaTableHandle::get(int const& key) const
 {
 	assert(_data);
 	return _data->get(key);

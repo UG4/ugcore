@@ -166,7 +166,7 @@ MGSelector::begin()
 	while(empty<TElem>(lvl) && (lvl < top_level()))
 		++lvl;
 
-	return typename MGSelector::traits<TElem>::iterator(this, lvl, begin<TElem>(lvl));
+	return typename traits<TElem>::iterator(this, lvl, begin<TElem>(lvl));
 }
 
 template <class TElem>
@@ -180,7 +180,7 @@ MGSelector::begin() const
 	while(empty<TElem>(lvl) && (lvl < top_level()))
 		++lvl;
 
-	return typename MGSelector::traits<TElem>::const_iterator(this, lvl, begin<TElem>(lvl));
+	return typename traits<TElem>::const_iterator(this, lvl, begin<TElem>(lvl));
 }
 
 template <class TElem>
@@ -217,7 +217,7 @@ inline typename MGSelector::traits<TElem>::iterator
 MGSelector::end()
 {
 	size_t l = top_level();
-	return typename MGSelector::traits<TElem>::iterator(this, l, end<TElem>(l));
+	return typename traits<TElem>::iterator(this, l, end<TElem>(l));
 }
 
 template <class TElem>
@@ -225,7 +225,7 @@ inline typename MGSelector::traits<TElem>::const_iterator
 MGSelector::end() const
 {
 	size_t l = top_level();
-	return typename MGSelector::traits<TElem>::const_iterator(this, l, end<TElem>(l));
+	return typename traits<TElem>::const_iterator(this, l, end<TElem>(l));
 }
 
 template <class TElem>

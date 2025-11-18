@@ -100,4 +100,4 @@ int ConvertToTetrahedra(int* newIndsOut, TCmp cmp)
 }//	end of namespace	
 }//	end of namespace
 
-#endif	//__H__UG_prism_rules_impl
+#endif

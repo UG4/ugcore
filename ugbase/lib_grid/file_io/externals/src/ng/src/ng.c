@@ -13,13 +13,13 @@ struct ng* ng_new(void)
     
     /* initialize */
     n->num_bnodes = 0;
-    n->bnodes = nullptr;
+    n->bnodes = NULL;
     
     n->num_inodes = 0;
-    n->inodes = nullptr;
+    n->inodes = NULL;
     
     n->num_elements = 0;
-    n->elements = 0;
+    n->elements = NULL;
     
 	n->dim = 3;
 	
@@ -66,7 +66,7 @@ int ng_read(const char* filename, struct ng* n, struct ng_info* fileinfo)
     if(fileinfo)
     {
         fileinfo->error = 0;
-        fileinfo->err_msg = nullptr;
+        fileinfo->err_msg = NULL;
     }
     
     /* parse ng file */

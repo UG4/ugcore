@@ -214,7 +214,7 @@ void MultiGrid::vertex_created(Grid* grid, Vertex* vrt,
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
 		UG_ASSERT(pParent->base_object_id() == VERTEX,
 				  "only objects of the same base type can be replaced.");
-		Vertex* pReplaceMe = static_cast<Vertex*>(pParent);
+		auto pReplaceMe = static_cast<Vertex*>(pParent);
 		GridObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replace
@@ -448,8 +448,8 @@ void MultiGrid::face_to_be_erased(Grid* grid, Face* face,
 		int baseType = pParent->base_object_id();
 		switch(baseType)
 		{
-		case FACE:		element_to_be_erased(face, (Face*)pParent); break;
-		case VOLUME:	element_to_be_erased(face, (Volume*)pParent); break;
+		case FACE: element_to_be_erased(face, (Face*)pParent); break;
+		case VOLUME: element_to_be_erased(face, (Volume*)pParent); break;
 		}
 	}
 	else
@@ -467,7 +467,7 @@ void MultiGrid::volume_created(Grid* grid, Volume* vol,
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
 		UG_ASSERT(pParent->base_object_id() == VOLUME,
 				  "only objects of the same base type can be replaced.");
-		Volume* pReplaceMe = static_cast<Volume*>(pParent);
+		auto* pReplaceMe = static_cast<Volume*>(pParent);
 		GridObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replace
@@ -573,8 +573,7 @@ void MultiGrid::check_volume_elem_infos(int level) const
 	size_t maxChildFaces = 0;
 	size_t maxChildVolumes = 0;
 
-	for(ConstVolumeIterator iter = begin<Volume>(level);
-		iter != end<Volume>(level); ++iter)
+	for(ConstVolumeIterator iter = begin<Volume>(level); iter != end<Volume>(level); ++iter)
 	{
 		maxChildEdges = max(get_info(*iter).num_child_edges(), maxChildEdges);
 		maxChildFaces = max(get_info(*iter).num_child_faces(), maxChildFaces);

@@ -648,7 +648,6 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 	{
 		std::string grp = parentGroup; grp.append("/Discretization");
 		using T = TimeIntegratorSubject<TDomain, TAlgebra>;
-		using TGF = GridFunction<TDomain, TAlgebra>;
 
 		string name = string("TimeIntegratorSubject").append(suffix);
 		reg.add_class_<T>(name, grp)

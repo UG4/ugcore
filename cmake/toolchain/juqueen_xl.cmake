@@ -65,32 +65,32 @@
 
 # Important: Setting the "cmake system name" will lead to automatic inclusion of
 # the corresponding platform files:
-set(CMAKE_SYSTEM_NAME BlueGeneQ-static)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+set (CMAKE_SYSTEM_NAME BlueGeneQ-static)
+list (APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 # This option tells cmake/ug_includes.cmake to add the -dynamic option to the compiler flags.
-SET(enableDynamicOption OFF)
+set (enableDynamicOption OFF)
 
 # This option tells cmake/ug_includes.cmake to add the -fno-strict-aliasing option to the compiler flags.
-SET(enableNoStrictAliasingOption ON)
+set (enableNoStrictAliasingOption ON)
 
 # The serial GNU compilers
-set(CMAKE_C_COMPILER       bgxlc)
-set(CMAKE_CXX_COMPILER     bgxlc++)
-set(CMAKE_Fortran_COMPILER bgxlf90)
+set (CMAKE_C_COMPILER       bgxlc)
+set (CMAKE_CXX_COMPILER     bgxlc++)
+set (CMAKE_Fortran_COMPILER bgxlf90)
 
 # The MPI wrappers for the GNU compilers
-set(MPI_C_COMPILER       mpixlc)
-set(MPI_CXX_COMPILER     mpixlcxx)
-set(MPI_Fortran_COMPILER mpixlf90)
+set (MPI_C_COMPILER       mpixlc)
+set (MPI_CXX_COMPILER     mpixlcxx)
+set (MPI_Fortran_COMPILER mpixlf90)
 
-message(STATUS "TMP INFO: Value of '\${CMAKE_C_COMPILER}'       is: ${CMAKE_C_COMPILER}")       # TMP
-message(STATUS "TMP INFO: Value of '\${CMAKE_CXX_COMPILER}'     is: ${CMAKE_CXX_COMPILER}")     # TMP
-message(STATUS "TMP INFO: Value of '\${CMAKE_Fortran_COMPILER}' is: ${CMAKE_Fortran_COMPILER}") # TMP
+message (STATUS "TMP INFO: Value of '\${CMAKE_C_COMPILER}'       is: ${CMAKE_C_COMPILER}")       # TMP
+message (STATUS "TMP INFO: Value of '\${CMAKE_CXX_COMPILER}'     is: ${CMAKE_CXX_COMPILER}")     # TMP
+message (STATUS "TMP INFO: Value of '\${CMAKE_Fortran_COMPILER}' is: ${CMAKE_Fortran_COMPILER}") # TMP
 
-message(STATUS "TMP INFO: Value of '\${MPI_C_COMPILER}'         is: ${MPI_C_COMPILER}")         # TMP
-message(STATUS "TMP INFO: Value of '\${MPI_CXX_COMPILER}'       is: ${MPI_CXX_COMPILER}")       # TMP
-message(STATUS "TMP INFO: Value of '\${MPI_Fortran_COMPILER}'   is: ${MPI_Fortran_COMPILER}")   # TMP
+message (STATUS "TMP INFO: Value of '\${MPI_C_COMPILER}'         is: ${MPI_C_COMPILER}")         # TMP
+message (STATUS "TMP INFO: Value of '\${MPI_CXX_COMPILER}'       is: ${MPI_CXX_COMPILER}")       # TMP
+message (STATUS "TMP INFO: Value of '\${MPI_Fortran_COMPILER}'   is: ${MPI_Fortran_COMPILER}")   # TMP
 
 # For debugging purposes
 #include(CMakePrintSystemInformation)

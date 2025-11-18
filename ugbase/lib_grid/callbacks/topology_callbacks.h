@@ -45,7 +45,7 @@ namespace ug{
 class IsOnBoundary : public ElementCallback
 {
 	public:
-		IsOnBoundary(Grid& g) :
+		explicit IsOnBoundary(Grid& g) :
 			m_grid(g)	{}
 
 		bool operator() (Vertex* v) const	{return callback(v);}
@@ -65,7 +65,7 @@ class IsOnBoundary : public ElementCallback
 class IsNotOnBoundary : public ElementCallback
 {
 	public:
-		IsNotOnBoundary(Grid& g) :
+		explicit IsNotOnBoundary(Grid& g) :
 			m_grid(g)	{}
 
 		bool operator() (Vertex* v) const	{return callback(v);}
@@ -84,7 +84,7 @@ class IsNotOnBoundary : public ElementCallback
 class IsBoundaryOrManifodFace : public ElementCallback
 {
 	public:
-		IsBoundaryOrManifodFace(Grid& g) :
+		explicit IsBoundaryOrManifodFace(Grid& g) :
 			m_grid(g)	{}
 
 		bool operator() (Vertex* v) const	{return false;}
@@ -111,7 +111,7 @@ class IsBoundaryOrManifodFace : public ElementCallback
 class IsNotBoundaryOrManifodFace : public ElementCallback
 {
 	public:
-		IsNotBoundaryOrManifodFace(Grid& g) :
+		explicit IsNotBoundaryOrManifodFace(Grid& g) :
 			m_callback(g)	{}
 
 		bool operator() (Vertex* v) const	{return !m_callback(v);}
@@ -126,4 +126,4 @@ class IsNotBoundaryOrManifodFace : public ElementCallback
 
 }//	end of namespace
 
-#endif	//__H__UG_topology_callbacks
+#endif

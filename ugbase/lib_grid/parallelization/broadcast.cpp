@@ -42,7 +42,7 @@ void BroadcastGrid(	Grid& gridOut,
 					int root,
 					const pcl::ProcessCommunicator& procCom)
 {
-	const int magicNumber = 8798547;
+	constexpr int magicNumber = 8798547;
 
 	UG_COND_THROW(sel.grid() == nullptr, "A grid has to be assigned to the given selector.");
 	Grid& gFrom = *sel.grid();

@@ -112,8 +112,8 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool
 	int fillCount = 0;
 
 //	convenience - indices where new edge-vrts, new face-vrts and new vol-vrts begin.
-	const int E = NUM_VERTICES;
-	const int F = NUM_VERTICES + NUM_EDGES;
+	constexpr int E = NUM_VERTICES;
+	constexpr int F = NUM_VERTICES + NUM_EDGES;
 //	const int V = NUM_VERTICES + NUM_EDGES + NUM_FACES;
 
 //	depending on the number of new vertices, we will now apply different
@@ -365,9 +365,9 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool
 			if(IS_SIDE_EDGE[refEdgeInds[0]] && IS_SIDE_EDGE[refEdgeInds[1]]
 			   && IS_SIDE_EDGE[refEdgeInds[2]])
 			{
-				const int e3 = E + 3;
-				const int e4 = E + 4;
-				const int e5 = E + 5;
+				constexpr int e3 = E + 3;
+				constexpr int e4 = E + 4;
+				constexpr int e5 = E + 5;
 
 			//	we have to create two new prisms
 				int& fi = fillCount;
@@ -461,12 +461,12 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool
 
 			if(!sideRefined){
 			//	create 4 new prisms. First however store the new edge vertices.
-				const int e0 = E;
-				const int e1 = E + 1;
-				const int e2 = E + 2;
-				const int e6 = E + 6;
-				const int e7 = E + 7;
-				const int e8 = E + 8;
+			constexpr int e0 = E;
+			constexpr int e1 = E + 1;
+			constexpr int e2 = E + 2;
+			constexpr int e6 = E + 6;
+			constexpr int e7 = E + 7;
+			constexpr int e8 = E + 8;
 
 				int& fi = fillCount;
 				int* inds = newIndsOut;

@@ -110,7 +110,8 @@ class UG_API Selector : public ISelector
 	public:
 		Selector(uint supportedElements = SE_ALL);
 		Selector(Grid& grid, uint supportedElements = SE_ALL);
-		virtual ~Selector();
+
+		~Selector() override;
 
 		void assign_grid(Grid& grid);
 		void assign_grid(Grid* grid);
@@ -134,7 +135,7 @@ class UG_API Selector : public ISelector
 	//	is required to avoid virtual method calls during construction.
 		void disable_element_support(uint shElements);
 
-		virtual void clear();
+		void clear() override;
 
 		template <class TElem>
 		inline void clear();
@@ -226,16 +227,16 @@ class UG_API Selector : public ISelector
 		end(size_t);
 
 	///	returns true if the selector contains vertices
-		virtual bool contains_vertices() const	{return num<Vertex>() > 0;}
+		bool contains_vertices() const override {return num<Vertex>() > 0;}
 
 	///	returns true if the selector contains edges
-		virtual bool contains_edges() const		{return num<Edge>() > 0;}
+		bool contains_edges() const override {return num<Edge>() > 0;}
 
 	///	returns true if the selector contains faces
-		virtual bool contains_faces() const		{return num<Face>() > 0;}
+		bool contains_faces() const override {return num<Face>() > 0;}
 
 	///	returns true if the selector contains volumes
-		virtual bool contains_volumes() const	{return num<Volume>() > 0;}
+		bool contains_volumes() const override {return num<Volume>() > 0;}
 
 	protected:
 		using ISelector::AttachedVertexList;
@@ -251,15 +252,15 @@ class UG_API Selector : public ISelector
 	protected:
 		void clear_lists();
 
-		virtual void add_to_list(Vertex* elem);
-		virtual void add_to_list(Edge* elem);
-		virtual void add_to_list(Face* elem);
-		virtual void add_to_list(Volume* elem);
+		void add_to_list(Vertex* elem) override;
+		void add_to_list(Edge* elem) override;
+		void add_to_list(Face* elem) override;
+		void add_to_list(Volume* elem) override;
 
-		virtual void erase_from_list(Vertex* elem);
-		virtual void erase_from_list(Edge* elem);
-		virtual void erase_from_list(Face* elem);
-		virtual void erase_from_list(Volume* elem);
+		void erase_from_list(Vertex* elem) override;
+		void erase_from_list(Edge* elem) override;
+		void erase_from_list(Face* elem) override;
+		void erase_from_list(Volume* elem) override;
 
 	///	returns the iterator at which the given element lies in the section container
 	/**	This method may only be called if the element is indeed selected

@@ -197,7 +197,7 @@ void MGSelector::disable_element_support(uint shElements)
 void MGSelector::add_level()
 {
 //	adds a level and and initializes associated section containers.
-	Level* pLvl = new Level;
+	auto pLvl = new Level;
 	if(elements_are_supported(SE_VERTEX))
 		pLvl->m_vertices.get_container().set_pipe(
 				&m_pGrid->get_attachment_pipe<Vertex>(), m_aSharedEntryVRT);

@@ -388,8 +388,7 @@ static void Algebra(Registry& reg, string grp)
 					.add_method("step", &T::step, "step", "", "returns the current number of steps")
 					.add_method("reduction", &T::reduction, "reduction", "", "returns the current relative reduction")
 					.add_method("iteration_ended", &T::iteration_ended)
-					.add_method("avg_rate", &T::avg_rate, "", "returns the average convergence rate")
-					;
+					.add_method("avg_rate", &T::avg_rate, "", "returns the average convergence rate");
 		reg.add_class_to_group(name, "IConvergenceCheck", tag);
 	}
 

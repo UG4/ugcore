@@ -33,7 +33,7 @@
 #ifndef __H__UG__CPU_ALGEBRA__VECTOR__
 #define __H__UG__CPU_ALGEBRA__VECTOR__
 
-#include "sparsematrix.h"
+// #include "sparsematrix.h"
 
 #include "../common/template_expressions.h"
 #include "../common/operations.h"
@@ -50,32 +50,30 @@ namespace ug{
 /// \{
 
 //!
-template <typename TValueType>
-class Vector //: public IVector
+template <typename TValueType = double>
+class Vector
 {
 public:
 	using value_type = TValueType;
 	// using subvector_type = subvector<value_type>;
-	using vector_type = Vector<TValueType>;
-
-//	IVECTOR_TO_VEC_FUNCTIONS(vector_type)
+	using vector_type = Vector;
 
 	//! constructor
 	Vector();
 
 	//! constructor with size
-	Vector(size_t size);
+	explicit Vector(size_t size);
 
 	//! virtual destructor
 	virtual ~Vector();
 
-	Vector(const vector_type & v)
-	{
+	Vector(const vector_type & v) {
 		m_capacity = 0;
 		m_size = 0; values = nullptr;
 		create(v.m_size);
-		operator =(v);
+		operator=(v);
 	}
+
 
 public:
 	//! create a vector with specific size
@@ -183,11 +181,11 @@ public:
 
 public: // output functions
 	//! print vector to console
-	void print(const char * const text = nullptr) const;
+	void print(const char *text = nullptr) const;
 	void p() {print(); } ///< gdb shortcut for print
 
 	//! ostream << operator
-	friend std::ostream &operator<<(std::ostream &output, const Vector &v)
+	friend std::ostream &operator <<(std::ostream &output, const Vector &v)
 	{
 		output << "Vector " <<  "[" << v.m_size << "]";
 		return output;

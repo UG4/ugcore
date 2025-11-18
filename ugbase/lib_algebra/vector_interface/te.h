@@ -136,12 +136,12 @@ public:
 
 //! create AlphaMatVec_X_Expression<L, operation_add, R> by conjunction of TE_AMV_X<L> + TE_AMV_X<R>
 template<typename L, typename R>
-TE_VecAdd2<typename L::vector_type> operator + (const TE_AlphaVec<L> &l, const TE_AlphaVec<R> &r)
+TE_VecAdd2<typename L::vector_type> operator+(const TE_AlphaVec<L> &l, const TE_AlphaVec<R> &r)
 {
 	return TE_VecAdd2<typename L::vector_type> (l.scaling(), l.cast().vec(), r.scaling(), r.cast().vec());
 }
 template<typename L, typename R>
-TE_VecAdd2<typename L::vector_type> operator - (const TE_AlphaVec<L> &l, const TE_AlphaVec<R> &r)
+TE_VecAdd2<typename L::vector_type> operator-(const TE_AlphaVec<L> &l, const TE_AlphaVec<R> &r)
 {
 	return TE_VecAdd2<typename L::vector_type> (l.scaling(), l.cast().vec(), -r.scaling(), r.cast().vec());
 }
@@ -150,23 +150,23 @@ TE_VecAdd2<typename L::vector_type> operator - (const TE_AlphaVec<L> &l, const T
 // (v1+v2)+v3
 //! create AlphaMatVec_X_Expression<L, operation_add, R> by conjunction of TE_AMV_X<L> + TE_AMV_X<R>
 template<typename L, typename R>
-TE_VecAdd3<typename L::vector_type> operator + (const TE_VecAdd2<L> &l, const TE_AlphaVec<R> &r)
+TE_VecAdd3<typename L::vector_type> operator+ (const TE_VecAdd2<L> &l, const TE_AlphaVec<R> &r)
 {
 	return TE_VecAdd3<typename L::vector_type> (l.a1, l.v1, l.a2, l.v2, r.scaling(), r.cast().vec());
 }
 template<typename L, typename R>
-TE_VecAdd3<typename L::vector_type> operator + (const TE_AlphaVec<R> &r, const TE_VecAdd2<L> &l)
+TE_VecAdd3<typename L::vector_type> operator+ (const TE_AlphaVec<R> &r, const TE_VecAdd2<L> &l)
 {
 	return TE_VecAdd3<typename L::vector_type> (r.scaling(), r.cast().vec(), l.a1, l.v1, l.a2, l.v2);
 }
 
 template<typename L, typename R>
-TE_VecAdd3<typename L::vector_type> operator - (const TE_VecAdd2<L> &l, const TE_AlphaVec<R> &r)
+TE_VecAdd3<typename L::vector_type> operator-(const TE_VecAdd2<L> &l, const TE_AlphaVec<R> &r)
 {
 	return TE_VecAdd3<typename L::vector_type> (l.a1, l.v1, l.a2, l.v2, -r.scaling(), r.cast().vec());
 }
 template<typename L, typename R>
-TE_VecAdd3<typename L::vector_type> operator - (const TE_AlphaVec<R> &r, const TE_VecAdd2<L> &l)
+TE_VecAdd3<typename L::vector_type> operator-(const TE_AlphaVec<R> &r, const TE_VecAdd2<L> &l)
 {
 	return TE_VecAdd3<typename L::vector_type> (r.scaling(), r.cast().vec(), -l.a1, l.v1, -l.a2, l.v2);
 }

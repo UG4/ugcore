@@ -42,4 +42,4 @@ BOOST_CLASS_EXPORT(ug::CylinderProjector);
 
 
 // Provider<std::map<std::string, boost::function< SmartPtr<IRefinementCallback*> () > >::get()["None3d"] = RefinementCallbackLinear
-#endif	//__H__UG_boost_class_serialization_exports
+#endif

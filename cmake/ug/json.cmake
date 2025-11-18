@@ -29,20 +29,22 @@
 # GNU Lesser General Public License for more details.
 
 # included from ug_includes.cmake
-if(USE_JSON)
-    if(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: JSON requested, but static build. JSON disabled?")
-    	SET(USE_JSON OFF)
-    else(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: Using JSON")
+if (USE_JSON)
+    if (STATIC_BUILD)
+		message (STATUS "Info: JSON requested, but static build. JSON disabled?")
+		set (USE_JSON OFF)
+
+	else ()
+		message (STATUS "Info: Using JSON")
     	
     	# Automatic
-    	FIND_PACKAGE(nlohmann_json QUIET)
-    	MESSAGE("-- Adding JSON from ${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx/include")
-    	include_directories(${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx/include)
-    	MESSAGE("-- Dir: ${NLOHMANN_JSON_INCLUDE_INSTALL_DIR}") 
-    	add_definitions(-DUG_JSON)
-    endif(STATIC_BUILD)
-else(USE_JSON)
-	set(USE_JSON OFF)
-endif(USE_JSON)
+    	FIND_PACKAGE (nlohmann_json QUIET)
+		message ("-- Adding JSON from ${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx/include")
+    	include_directories (${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx/include)
+		message ("-- Dir: ${NLOHMANN_JSON_INCLUDE_INSTALL_DIR}")
+    	add_definitions (-DUG_JSON)
+    endif ()
+
+else ()
+	set (USE_JSON OFF)
+endif ()

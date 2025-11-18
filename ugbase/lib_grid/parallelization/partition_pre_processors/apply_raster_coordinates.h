@@ -40,4 +40,4 @@ namespace ug{
 
 }//	end of namespace
 
-#endif	//__H__UG_apply_raster_coordinates
+#endif

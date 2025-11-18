@@ -5,7 +5,6 @@
 
 # git commit info
 GIT_REVISION="unknown"
-echo "${1}/.git"
 if [[ -d "${1}/.git" ]]; then
 	GIT_REVISION=$(git -C "${1}" rev-parse --short HEAD)
 fi

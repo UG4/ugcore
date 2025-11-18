@@ -147,4 +147,5 @@ int FunctionPattern::subset_id_by_name(const char* name) const
 	UG_THROW("Subset name "<<name<<" not found in Subset Handler.");
 }
 
+
 } // end namespace ug

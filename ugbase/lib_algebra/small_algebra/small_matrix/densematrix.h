@@ -111,11 +111,11 @@ public:
 	template<typename T>
 	inline	
 	this_type &
-	operator -= (const T &t);
+	operator-=(const T &t);
 	
 	inline
 	this_type &
-	operator -= (double alpha);
+	operator-=(double alpha);
 
 	
 ////// *=
@@ -125,7 +125,7 @@ public:
 	
 	inline
 	this_type&
-	operator *= (const this_type &mat);
+	operator*=(const this_type &mat);
 
 ////// /=
 	inline
@@ -140,12 +140,12 @@ public:
 ////// +
 	inline
 	this_type
-	operator + (const this_type &other ) const;
+	operator+(const this_type &other ) const;
 	
 ////// -
 	inline
 	this_type
-	operator - (const this_type &other ) const;
+	operator-(const this_type &other ) const;
 	
 	inline
 	this_type
@@ -154,7 +154,7 @@ public:
 ////// unary -
 	inline
 	this_type
-	operator - () const;
+	operator-() const;
 
 ////// *
 

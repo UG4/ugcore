@@ -90,7 +90,7 @@ using SPBalanceWeights = SmartPtr<IBalanceWeights>;
 class ICommunicationWeights
 {
 	public:
-		virtual ~ICommunicationWeights() {};
+		virtual ~ICommunicationWeights() = default;
 
 		/**
 		 * Get the weight of a specific connection.
@@ -145,7 +145,7 @@ using SPPartitionPreProcessor = SmartPtr<IPartitionPreProcessor>;
  * to detach any attachments that were attached during 'init_post_processing'*/
 class IPartitionPostProcessor{
 	public:
-		virtual ~IPartitionPostProcessor()	{}
+		virtual ~IPartitionPostProcessor()	= default;
 		
 		virtual void init_post_processing(	MultiGrid* mg,
 		                                  	SubsetHandler* partitions) = 0;
@@ -166,7 +166,7 @@ class IPartitioner{
 			m_verbose(true),
 			m_clusteredSiblings(true)	{}
 
-		virtual ~IPartitioner()	{}
+		virtual ~IPartitioner()	= default;
 
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy) = 0;
 
@@ -234,10 +234,10 @@ class IPartitioner{
 	///	indicates whether problems occurred during the last partitioning
 	/**	\note	if partition(...) returns true, the partition map is valid,
 	 *			even if problems occured. It may however not be optimal.*/
-		virtual bool problems_occurred()	{return m_problemsOccurred;}
+		virtual bool problems_occurred() {return m_problemsOccurred;}
 
-		void set_verbose(bool verbose)	{m_verbose = verbose;}
-		bool verbose() const			{return m_verbose;}
+		void set_verbose(bool verbose) {m_verbose = verbose;}
+		bool verbose() const {return m_verbose;}
 
 	protected:
 		bool m_problemsOccurred;
@@ -253,4 +253,4 @@ using SPPartitioner = SmartPtr<IPartitioner>;
 
 }//	end of namespace
 
-#endif	//__H__UG_partitioner
+#endif

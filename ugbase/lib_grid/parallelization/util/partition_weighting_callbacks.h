@@ -50,11 +50,11 @@ class PartitionWeighting
 {
 	public:
 		PartitionWeighting() : m_sh(nullptr), m_hWeight(1), m_vWeight(1) {};
-		virtual ~PartitionWeighting() {};
+		virtual ~PartitionWeighting() = default;
 
-		virtual int operator() (Edge* e1, Edge* e2) {return weigh(e1,e2);};
-		virtual int operator() (Face* f1, Face* f2) {return weigh(f1,f2);};
-		virtual int operator() (Volume* v1, Volume* v2) {return weigh(v1,v2);};
+		virtual int operator () (Edge* e1, Edge* e2) {return weigh(e1,e2);};
+		virtual int operator () (Face* f1, Face* f2) {return weigh(f1,f2);};
+		virtual int operator () (Volume* v1, Volume* v2) {return weigh(v1,v2);};
 
 		void set_subset_handler(MGSubsetHandler* sh)
 		{
@@ -97,7 +97,7 @@ class InterSubsetPartitionWeighting : public PartitionWeighting
 {
 	public:
 		InterSubsetPartitionWeighting() : PartitionWeighting(), m_vsi1(0), m_vsi2(0), m_vweights(0) {};
-		virtual ~InterSubsetPartitionWeighting() {};
+		virtual ~InterSubsetPartitionWeighting() = default;
 
 	public:
 		void set_inter_subset_weight(int si1, int si2, int weight)
@@ -107,9 +107,9 @@ class InterSubsetPartitionWeighting : public PartitionWeighting
 			m_vweights.push_back(weight);
 		}
 
-		virtual int operator() (Edge* e1, Edge* e2) {return weigh(e1,e2);};
-		virtual int operator() (Face* f1, Face* f2) {return weigh(f1,f2);};
-		virtual int operator() (Volume* v1, Volume* v2) {return weigh(v1,v2);};
+		int operator () (Edge* e1, Edge* e2) override {return weigh(e1,e2);};
+		int operator () (Face* f1, Face* f2) override {return weigh(f1,f2);};
+		int operator () (Volume* v1, Volume* v2) override {return weigh(v1,v2);};
 
 	private:
 		template <class TElem>
@@ -157,8 +157,8 @@ class ProtectSubsetPartitionWeighting : public PartitionWeighting
 
 
 	public:
-		ProtectSubsetPartitionWeighting() : PartitionWeighting(), m_vSi(0), m_vWeights(0) {};
-		virtual ~ProtectSubsetPartitionWeighting() {};
+		ProtectSubsetPartitionWeighting() : m_vSi(0), m_vWeights(0) {};
+		~ProtectSubsetPartitionWeighting() override = default;
 
 	public:
 		void set_weight(int si, int weight)
@@ -167,9 +167,9 @@ class ProtectSubsetPartitionWeighting : public PartitionWeighting
 			m_vWeights.push_back(weight);
 		}
 
-		virtual int operator() (Edge* e1, Edge* e2) {return weigh(e1,e2);};
-		virtual int operator() (Face* f1, Face* f2) {return weigh(f1,f2);};
-		virtual int operator() (Volume* v1, Volume* v2) {return weigh(v1,v2);};
+		int operator () (Edge* e1, Edge* e2) override {return weigh(e1,e2);};
+		int operator () (Face* f1, Face* f2) override {return weigh(f1,f2);};
+		int operator () (Volume* v1, Volume* v2) override {return weigh(v1,v2);};
 
 	private:
 		template <class TElem>
@@ -215,4 +215,4 @@ class ProtectSubsetPartitionWeighting : public PartitionWeighting
 } //	end of namespace
 
 
-#endif /* __H__UG__LIB_GRID__PARALLELIZATION__UTIL__PARTITION_WEIGHTING_CALLBACKS__ */
+#endif

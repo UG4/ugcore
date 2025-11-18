@@ -65,7 +65,7 @@ bool LoadMarkerPointsFromFile(MarkerPointManager& manager,
 	Grid grid;
 	if(LoadGridFromFile(grid, filename)){
 	//	copy the points to the marker-file
-		Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
+		Grid::VertexAttachmentAccessor aaPos(grid, aPosition);
 		Grid::VertexAttachmentAccessor<ANormal> aaNorm;
 		if(grid.has_vertex_attachment(aNormal))
 			aaNorm.access(grid, aNormal);

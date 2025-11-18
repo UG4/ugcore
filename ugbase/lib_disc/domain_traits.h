@@ -53,10 +53,10 @@ namespace ug{
 template <int dim> struct domain_traits;
 
 // 0d
-template <> struct domain_traits<0> : public grid_dim_traits<0> {};
+template <> struct domain_traits<0> : grid_dim_traits<0> {};
 
 // 1d
-template <> struct domain_traits<1> : public grid_dim_traits<1> {
+template <> struct domain_traits<1> : grid_dim_traits<1> {
  using position_type = MathVector<1>;
 using position_attachment_type = Attachment<position_type>;
 using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
@@ -64,7 +64,7 @@ using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachmen
 };
 
 // 2d
-template <> struct domain_traits<2> : public grid_dim_traits<2> {
+template <> struct domain_traits<2> : grid_dim_traits<2> {
  using position_type = MathVector<2>;
  using position_attachment_type = Attachment<position_type>;
  using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
@@ -72,7 +72,7 @@ template <> struct domain_traits<2> : public grid_dim_traits<2> {
 };
 
 // 3d
-template <> struct domain_traits<3> : public grid_dim_traits<3> {
+template <> struct domain_traits<3> : grid_dim_traits<3> {
   using position_type = MathVector<3>;
   using position_attachment_type = Attachment<position_type>;
   using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
@@ -81,4 +81,4 @@ template <> struct domain_traits<3> : public grid_dim_traits<3> {
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__DOMAIN_TRAITS__ */
+#endif

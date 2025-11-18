@@ -93,8 +93,7 @@ send_data(int targetProc, const Interface& interface,
 		m_curOutProcs.insert(targetProc);
 
 		commPol.collect(buffer, interface);
-		m_bSendBuffersFixed = m_bSendBuffersFixed
-							&& (commPol.get_required_buffer_size(interface) >= 0);
+		m_bSendBuffersFixed = m_bSendBuffersFixed && (commPol.get_required_buffer_size(interface) >= 0);
 	}
 }
 
@@ -460,11 +459,11 @@ communicate_and_resume(int tag)
 
 	if(communication_debugging_enabled()){
 	//	fill receive and send vectors
-		for(std::set<int>::iterator iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter){
+		for(auto iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter){
 			dbgRecvFrom.push_back(*iter);
 		}
 
-		for(std::set<int>::iterator iter = m_curOutProcs.begin(); iter != m_curOutProcs.end(); ++iter)
+		for(auto iter = m_curOutProcs.begin(); iter != m_curOutProcs.end(); ++iter)
 			dbgSendTo.push_back(*iter);
 
 		if(!SendRecvListsMatch(dbgRecvFrom, dbgSendTo, m_debugProcComm)){
@@ -491,13 +490,13 @@ communicate_and_resume(int tag)
 	//	a map with <procId, Size>. Will be used to collect stream-sizes
 		std::map<int, int> mapBuffSizes;
 	//	initialise all sizes with 0
-		for(std::set<int>::iterator iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter)
+		for(auto iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter)
 		{
 			mapBuffSizes[*iter] = 0;
 		}
 		
 	//	iterate over all extractors and collect the buffer sizes
-		for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin(); iter != m_extractorInfos.end(); ++iter)
+		for(auto iter = m_extractorInfos.begin(); iter != m_extractorInfos.end(); ++iter)
 		{
 			ExtractorInfo& info = *iter;
 			if(info.m_srcProc > -1){
@@ -532,7 +531,7 @@ communicate_and_resume(int tag)
 	//	m_streamPackIn...
 		if(allBufferSizesFixed){
 			int counter = 0;
-			for(std::set<int>::iterator iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
+			for(auto iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
 			{
 				vBufferSizesIn[counter] = mapBuffSizes[*iter];
 			}
@@ -552,7 +551,7 @@ communicate_and_resume(int tag)
 
 	//	shedule receives first
 		counter = 0;
-		for(std::set<int>::iterator iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
+		for(auto iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
 		{
 			MPI_Irecv(&vBufferSizesIn[counter], sizeof(int), MPI_UNSIGNED_CHAR,	
 					*iter, sizeTag, PCL_COMM_WORLD, &m_vReceiveRequests[counter]);
@@ -561,7 +560,7 @@ communicate_and_resume(int tag)
 	//	send buffer sizes
 		counter = 0;
 		streamSizes.resize(m_curOutProcs.size());
-		for(std::set<int>::iterator iter = m_curOutProcs.begin(); iter != m_curOutProcs.end(); ++iter, ++counter)
+		for(auto iter = m_curOutProcs.begin(); iter != m_curOutProcs.end(); ++iter, ++counter)
 		{
 			streamSizes[counter] = (int)m_bufMapOut[*iter].write_pos();
 
@@ -580,7 +579,7 @@ communicate_and_resume(int tag)
 	{
 		PCL_PROFILE(pcl_IntCom_communicate_resizeRecvBufs);
 		size_t counter = 0;
-		for(std::set<int>::iterator iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
+		for(auto iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
 		{
 			ug::BinaryBuffer& buf = m_bufMapIn[*iter];
 			buf.reserve(vBufferSizesIn[counter]);
@@ -620,7 +619,7 @@ communicate_and_resume(int tag)
 
 //	first schedule receives
 	int counter = 0;
-	for(std::set<int>::iterator iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
+	for(auto iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
 	{
 		UG_DLOG(ug::LIB_PCL, 1, " " << *iter
 				<< "(" << vBufferSizesIn[counter] << ")");
@@ -635,7 +634,7 @@ communicate_and_resume(int tag)
 
 //	now send data
 	counter = 0;
-	for(std::set<int>::iterator iter = m_curOutProcs.begin(); iter != m_curOutProcs.end(); ++iter, ++counter)
+	for(auto iter = m_curOutProcs.begin(); iter != m_curOutProcs.end(); ++iter, ++counter)
 	{
 		ug::BinaryBuffer& binBuf = m_bufMapOut[*iter];
 
@@ -661,7 +660,7 @@ wait()
 {
 //	TODO: this can be improved:
 //		instead of waiting for all, one could wait until one has finished and directly
-//		start copying the data to the local receive buffer. Afterwards on could continue
+//		start copying the data to the local receive buffer. Afterwards one could continue
 //		by waiting for the next one etc...
 	{
 		PCL_PROFILE(pcl_IntCom_MPIWait);
@@ -670,7 +669,7 @@ wait()
 	
 
 //	call the extractors with the received data
-	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin(); iter != m_extractorInfos.end(); ++iter)
+	for(auto iter = m_extractorInfos.begin(); iter != m_extractorInfos.end(); ++iter)
 	{
 		ExtractorInfo& info = *iter;
 		if(info.m_srcProc > -1)

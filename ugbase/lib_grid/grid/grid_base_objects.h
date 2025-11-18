@@ -43,7 +43,6 @@
 #include "lib_grid/attachments/attachment_pipe.h"
 #include "lib_grid/attachments/attached_list.h"
 #include "common/util/hash_function.h"
-#include "common/allocators/small_object_allocator.h"
 #include "common/math/ugmath_types.h"
 #include "common/util/pointer_const_array.h"
 
@@ -153,7 +152,7 @@ template<> class attachment_traits<Volume*, ElementStorage<Volume> >;
  *
  * \ingroup lib_grid_grid_objects
  */
-class UG_API GridObject/* : public SmallObject<>*/
+class UG_API GridObject
 {
 	friend class Grid;
 	friend class attachment_traits<Vertex*, ElementStorage<Vertex> >;
@@ -162,7 +161,7 @@ class UG_API GridObject/* : public SmallObject<>*/
 	friend class attachment_traits<Volume*, ElementStorage<Volume> >;
 
 	public:
-		virtual ~GridObject()	{}
+		virtual ~GridObject() = default;
 
 	///	create an instance of the derived type
 	/**	Make sure to overload this method in derivates of this class!*/
@@ -212,7 +211,7 @@ class UG_API GridObject/* : public SmallObject<>*/
 		inline void set_grid_data_index(uint index)		{m_gridDataIndex = index;}
 
 	protected:
-		uint						m_gridDataIndex;//	index to grid-attached data.
+		uint m_gridDataIndex;//	index to grid-attached data.
 };
 
 
@@ -257,13 +256,13 @@ class UG_API Vertex : public GridObject
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Vertex*>(pObj) != nullptr;}
 
-		virtual ~Vertex()	{}
+		~Vertex() override = default;
 
 		inline uint num_sides() const	{return 0;}
 
-		virtual int container_section() const	{return -1;}
-		virtual int base_object_id() const		{return VERTEX;}
-		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
+		int container_section() const override {return -1;}
+		int base_object_id() const override {return VERTEX;}
+		ReferenceObjectID reference_object_id() const override {return ROID_UNKNOWN;}
 
 	///	returns a value that can be used for hashing.
 	/**	this value is unique per grid.
@@ -286,9 +285,10 @@ class UG_API VertexDescriptor {
 public:
 	using ConstVertexArray = Vertex* const*;
 
-	VertexDescriptor()	{}
-	VertexDescriptor(Vertex* v) : m_v(v)	{}
+	VertexDescriptor() = default;
+	explicit VertexDescriptor(Vertex* v) : m_v(v)	{}
 	VertexDescriptor(const VertexDescriptor& d) : m_v (d.m_v)	{}
+	~VertexDescriptor() = default;
 
 	VertexDescriptor& operator = (const VertexDescriptor& d)
 	{m_v = d.m_v; return *this;}
@@ -318,7 +318,7 @@ class UG_API IVertexGroup
 	public:
 		using ConstVertexArray = Vertex* const*;
 
-		virtual ~IVertexGroup()	{};
+		virtual ~IVertexGroup()	= default;
 		virtual Vertex* vertex(size_t index) const = 0;
 		virtual ConstVertexArray vertices() const = 0;
 		virtual size_t num_vertices() const = 0;
@@ -335,19 +335,19 @@ class UG_API IVertexGroup
 class UG_API CustomVertexGroup : public IVertexGroup
 {
 	public:
-		CustomVertexGroup()							{}
-		CustomVertexGroup(size_t numVrts)			{m_vrts.resize(numVrts);}
-		virtual ~CustomVertexGroup()				{}
+		CustomVertexGroup() = default;
+		explicit CustomVertexGroup(size_t numVrts)			{m_vrts.resize(numVrts);}
+		~CustomVertexGroup() override = default;
 
-		virtual Vertex* vertex(size_t index) const	{return m_vrts[index];}
-		virtual ConstVertexArray vertices() const	{return &m_vrts.front();}
-		virtual size_t num_vertices() const			{return m_vrts.size();}
+		Vertex* vertex(size_t index) const override {return m_vrts[index];}
+		ConstVertexArray vertices() const override {return &m_vrts.front();}
+		size_t num_vertices() const override {return m_vrts.size();}
 
-		void set_num_vertices(size_t newSize)		{m_vrts.resize(newSize);}
-		void resize(size_t newSize)					{m_vrts.resize(newSize);}
-		void clear()								{m_vrts.clear();}
-		void push_back(Vertex* vrt)					{m_vrts.push_back(vrt);}
-		void set_vertex(size_t index, Vertex* vrt)	{m_vrts[index] = vrt;}
+		void set_num_vertices(size_t newSize) {m_vrts.resize(newSize);}
+		void resize(size_t newSize) {m_vrts.resize(newSize);}
+		void clear() {m_vrts.clear();}
+		void push_back(Vertex* vrt) {m_vrts.push_back(vrt);}
+		void set_vertex(size_t index, Vertex* vrt) {m_vrts[index] = vrt;}
 
 	private:
 		std::vector<Vertex*>	m_vrts;
@@ -362,16 +362,16 @@ class UG_API EdgeVertices : public IVertexGroup
 {
 	friend class Grid;
 	public:
-		virtual ~EdgeVertices()						{}
-		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
-		virtual ConstVertexArray vertices() const	{return m_vertices;}
-		virtual size_t num_vertices() const			{return 2;}
+		~EdgeVertices() override = default;
+		Vertex* vertex(size_t index) const override {return m_vertices[index];}
+		ConstVertexArray vertices() const override {return m_vertices;}
+		size_t num_vertices() const override {return 2;}
 
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
-		inline size_t size() const					{return 2;}
+		inline size_t size() const {return 2;}
 	///	returns the i-th vertex.
-		Vertex* operator[](size_t index) const 		{return m_vertices[index];}
+		Vertex* operator[](size_t index) const {return m_vertices[index];}
 
 	protected:
 		inline void assign_edge_vertices(const EdgeVertices& ev)
@@ -420,13 +420,13 @@ class UG_API Edge : public GridObject, public EdgeVertices
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Edge*>(pObj) != nullptr;}
 
-		virtual ~Edge()	{}
+		~Edge() override = default;
 
-		virtual int container_section() const	{return -1;}
-		virtual int base_object_id() const		{return EDGE;}
-		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
+		int container_section() const override {return -1;}
+		int base_object_id() const override {return EDGE;}
+		ReferenceObjectID reference_object_id() const override {return ROID_UNKNOWN;}
 
-		inline uint num_sides() const	{return 2;}
+		inline uint num_sides() const {return 2;}
 
 	///	retrieves the vertex on the opposing side to the specified one.
 	/**	If the specified vertex is not part of the edge, false is returned.
@@ -453,7 +453,7 @@ class UG_API Edge : public GridObject, public EdgeVertices
 											Vertex** pSubstituteVrts = nullptr)	{return false;}
 
 	protected:
-		inline void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
+		inline void set_vertex(uint index, Vertex* pVrt) {m_vertices[index] = pVrt;}
 };
 
 
@@ -463,9 +463,10 @@ class UG_API Edge : public GridObject, public EdgeVertices
 class UG_API EdgeDescriptor : public EdgeVertices
 {
 	public:
-		EdgeDescriptor();
+		EdgeDescriptor() = default;
 		EdgeDescriptor(const EdgeDescriptor& ed);
 		EdgeDescriptor(Vertex* vrt1, Vertex* vrt2);
+		~EdgeDescriptor() override = default;
 
 		EdgeDescriptor& operator = (const EdgeDescriptor& ed);
 
@@ -482,10 +483,10 @@ class UG_API EdgeDescriptor : public EdgeVertices
 class UG_API FaceVertices : public IVertexGroup
 {
 	public:
-		virtual ~FaceVertices()							{}
-		virtual Vertex* vertex(size_t index) const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return nullptr;}
-		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return nullptr;}
-		virtual size_t num_vertices() const				{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
+		~FaceVertices() override = default;
+		[[nodiscard]] Vertex* vertex(size_t index) const override {UG_ASSERT(0, "SHOULDN'T BE CALLED"); return nullptr;}
+		[[nodiscard]] ConstVertexArray vertices() const override {UG_ASSERT(0, "SHOULDN'T BE CALLED"); return nullptr;}
+		[[nodiscard]] size_t num_vertices() const override {UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
 
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
@@ -530,11 +531,11 @@ class UG_API Face : public GridObject, public FaceVertices
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Face*>(pObj) != nullptr;}
 
-		virtual ~Face()	{}
+		~Face() override = default;
 
 	///	returns the i-th edge of the face.
 	/**	This default implementation is reimplemented by derived classes for optimal speed.*/
-		virtual EdgeDescriptor edge_desc(int index) const
+		[[nodiscard]] virtual EdgeDescriptor edge_desc(int index) const
 			{return EdgeDescriptor(vertex(index), vertex((index+1) % size()));}
 
 	///	returns the i-th edge of the face.
@@ -542,12 +543,12 @@ class UG_API Face : public GridObject, public FaceVertices
 		virtual void edge_desc(int index, EdgeDescriptor& edOut) const
 			{edOut.set_vertices(vertex(index), vertex((index+1) % size()));}
 
-		inline uint num_edges() const	{return (uint)num_vertices();}
-		inline uint num_sides() const	{return num_edges();}
+		[[nodiscard]] inline uint num_edges() const	{return (uint)num_vertices();}
+		[[nodiscard]] inline uint num_sides() const	{return num_edges();}
 
-		virtual int container_section() const	{return -1;}
-		virtual int base_object_id() const		{return FACE;}
-		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
+		[[nodiscard]] int container_section() const override {return -1;}
+		[[nodiscard]] int base_object_id() const override {return FACE;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ROID_UNKNOWN;}
 
 	/**	A default implementation is featured to allow empty instances of
 	 *	this class. This is required to allow the use of this class
@@ -694,13 +695,13 @@ class UG_API FaceDescriptor : public FaceVertices
 			m_numVertices(4)
 			{m_vertices[0] = v0; m_vertices[1] = v1; m_vertices[2] = v2; m_vertices[3] = v3;}
 
-		virtual ~FaceDescriptor()					{}
+		~FaceDescriptor() override = default;
 
 		FaceDescriptor& operator = (const FaceDescriptor& fd);
 
-		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
-		virtual ConstVertexArray vertices() const		{return m_vertices;}
-		virtual size_t num_vertices() const				{return m_numVertices;}
+		[[nodiscard]] Vertex* vertex(size_t index) const override {return m_vertices[index];}
+		[[nodiscard]] ConstVertexArray vertices() const override {return m_vertices;}
+		[[nodiscard]] size_t num_vertices() const override {return m_numVertices;}
 
 		inline void set_num_vertices(uint numVertices)	{m_numVertices = numVertices;}
 		inline void set_vertex(uint index, Vertex* vrt)
@@ -722,11 +723,11 @@ class UG_API FaceDescriptor : public FaceVertices
 class UG_API VolumeVertices : public IVertexGroup
 {
 	public:
-		virtual ~VolumeVertices()						{}
+		~VolumeVertices() override = default;
 
-		virtual Vertex* vertex(size_t index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return nullptr;}
-		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return nullptr;}
-		virtual size_t num_vertices() const				{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
+		[[nodiscard]] Vertex* vertex(size_t index) const override {UG_ASSERT(0, "SHOULDN'T BE CALLED"); return nullptr;}
+		[[nodiscard]] ConstVertexArray vertices() const override {UG_ASSERT(0, "SHOULDN'T BE CALLED"); return nullptr;}
+		[[nodiscard]] size_t num_vertices() const override {UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
 
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
@@ -775,7 +776,7 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Volume*>(pObj) != nullptr;}
 
-		virtual ~Volume()	{}
+		~Volume() override = default;
 
 		virtual EdgeDescriptor edge_desc(int index) const				{return EdgeDescriptor(nullptr, nullptr);}
 		virtual void edge_desc(int index, EdgeDescriptor& edOut) const	{edOut = EdgeDescriptor(nullptr, nullptr);}
@@ -921,10 +922,10 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 * to be reimplemented by derived classes.
 	 */
 	 	virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
-		
-		virtual int container_section() const	{return -1;}
-		virtual int base_object_id() const		{return VOLUME;}
-		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
+
+		int container_section() const override {return -1;}
+		int base_object_id() const override {return VOLUME;}
+		ReferenceObjectID reference_object_id() const override {return ROID_UNKNOWN;}
 
 	/**	creates the volumes that result from the splitting of the edge with index 'splitEdgeIndex'.*/
 		//virtual void create_volumes_by_edge_split(int splitEdgeIndex,
@@ -942,7 +943,7 @@ class UG_API Volume : public GridObject, public VolumeVertices
 
 ///	constant that defines the maximal number of vertices per volume element.
 /**	This constant is mainly used by VolumeDescriptor.*/
-const int MAX_VOLUME_VERTICES = 8;
+constexpr int MAX_VOLUME_VERTICES = 8;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	VolumeDescriptor
@@ -954,14 +955,14 @@ class UG_API VolumeDescriptor : public VolumeVertices
 		VolumeDescriptor(uint numVertices);
 		VolumeDescriptor(const VolumeDescriptor& vd);
 
-		virtual ~VolumeDescriptor()										{}
+		~VolumeDescriptor() override = default;
 
 		VolumeDescriptor& operator = (const VolumeDescriptor& vv);
 		VolumeDescriptor& operator = (const VolumeVertices& vv);
 
-		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
-		virtual ConstVertexArray vertices() const		{return m_vertices;}
-		virtual size_t num_vertices() const				{return m_numVertices;}
+		Vertex* vertex(size_t index) const override {return m_vertices[index];}
+		ConstVertexArray vertices() const override {return m_vertices;}
+		size_t num_vertices() const override {return m_numVertices;}
 
 		inline void set_num_vertices(uint numVertices)		{m_numVertices = numVertices;}
 		inline void set_vertex(uint index, Vertex* vrt)	{m_vertices[index] = vrt;}

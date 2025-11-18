@@ -74,4 +74,4 @@ static SmartPtr<IRefiner> GlobalDomainRefiner(TDomain& dom)
 
 
 } // namespace ug
-#endif //__H__UG__DOMAIN_REFINEMENT_BRIDGE_HPP__
+#endif

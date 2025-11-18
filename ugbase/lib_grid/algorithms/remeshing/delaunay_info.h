@@ -64,7 +64,7 @@ class UG_API DelaunayInfo : public GridObserver
 		DelaunayInfo(Grid& g, TAAPos& aaPos,
 					 Grid::edge_traits::callback cbConstrainedEdge);
 
-		~DelaunayInfo();
+		~DelaunayInfo() override;
 
 		Grid& grid()				{return m_grid;}
 		AAPos& position_accessor()	{return m_aaPos;}

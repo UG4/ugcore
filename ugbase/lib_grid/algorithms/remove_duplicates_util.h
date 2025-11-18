@@ -105,4 +105,4 @@ void RemoveDuplicates(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd)
 
 }//	end of namespace
 
-#endif	//__H__UG_remove_duplicates_util
+#endif

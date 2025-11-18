@@ -87,11 +87,11 @@ private:
 		bool operator!=(vertex_iterator_ const& p) const{
 			return !operator==(p);
 		}
-		vertex_iterator_& operator++(int) {
+		vertex_iterator_& operator ++ (int) {
 			incomplete();
 			return *this;
 		}
-		vertex_iterator_& operator++() {
+		vertex_iterator_& operator ++ () {
 			++_base;
 			return *this;
 		}
@@ -138,7 +138,7 @@ public:
 		bool operator!=(adjacency_iterator const& p) const{
 			return !operator==(p);
 		}
-		adjacency_iterator& operator++(int) {
+		adjacency_iterator& operator ++ (int) {
 			incomplete();
 			return *this;
 		}

@@ -29,33 +29,33 @@
 # GNU Lesser General Public License for more details.
 
 # included from ug_includes.cmake
-if(USE_LUAJIT)
+if (USE_LUAJIT)
 
  	#
 	# TODO: Adjust paths here!
 	# (or write automatic adjustment)
 	# 
-	SET(LUAJIT_INCLUDE_PATH "/opt/local/include/include/luajit-2.0")
-	SET(LUAJIT_LIBRARY_PATH "/opt/local/lib/")
-	SET(LUAJIT_LIBRARIES "luajit-5.1")
+	set (LUAJIT_INCLUDE_PATH "/opt/local/include/include/luajit-2.0")
+	set (LUAJIT_LIBRARY_PATH "/opt/local/lib/")
+	set (LUAJIT_LIBRARIES "luajit-5.1")
 	
-    if(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: LUAJIT requested, but static build. LUAJIT disabled.")
-    	set(USE_LUAJIT OFF)
-    else(STATIC_BUILD)
-    
-    	MESSAGE(STATUS "Info: Using LUAJIT, (include: ${LUAJIT_INCLUDE_PATH}, lib: ${LUAJIT_LIBRARY_PATH})")
+    if (STATIC_BUILD)
+		message (STATUS "Info: LUAJIT requested, but static build. LUAJIT disabled.")
+    	set (USE_LUAJIT OFF)
+    else ()
+
+		message (STATUS "Info: Using LUAJIT, (include: ${LUAJIT_INCLUDE_PATH}, lib: ${LUAJIT_LIBRARY_PATH})")
     	
-    	add_definitions(-DUSE_LUAJIT)
-    	include_directories(${LUAJIT_INCLUDE_PATH})
-    	link_directories(${LUAJIT_LIBRARY_PATH})
-    	set(linkLibraries ${linkLibraries} ${LUAJIT_LIBRARIES})
+    	add_definitions (-DUSE_LUAJIT)
+    	include_directories (${LUAJIT_INCLUDE_PATH})
+    	link_directories (${LUAJIT_LIBRARY_PATH})
+    	set (linkLibraries ${linkLibraries} ${LUAJIT_LIBRARIES})
 		
 		 # Make sure to use correct address space for luajit on Mac OS X
 		 # (cf. 'Embedding LuaJIT' in luajit-2.0/doc/install.html)
-		IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    		set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -pagezero_size 10000 -image_base 100000000")
-		ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    		set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -pagezero_size 10000 -image_base 100000000")
+		endif ()
 		
-    endif(STATIC_BUILD)
-endif(USE_LUAJIT)
+    endif ()
+endif ()

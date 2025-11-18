@@ -135,7 +135,8 @@ class UG_API ISelector : public GridObserver
 	public:
 		ISelector(uint supportedElements = SE_ALL);
 		ISelector(Grid& grid, uint supportedElements = SE_ALL);
-		virtual ~ISelector();
+
+		~ISelector() override;
 
 	//	virtual methods
 		virtual void clear() = 0;
@@ -197,10 +198,10 @@ class UG_API ISelector : public GridObserver
 	///	returns the selection state of the specified elelent
 	/** \{ */
 		inline byte_t get_selection_status(GridObject* elem) const;
-		inline byte_t get_selection_status(Vertex* vrt) const	{if(!elements_are_supported(SE_VERTEX)) return 0; return m_aaSelVRT[vrt];}
-		inline byte_t get_selection_status(Edge* edge) const	{if(!elements_are_supported(SE_EDGE)) return 0; return m_aaSelEDGE[edge];}
-		inline byte_t get_selection_status(Face* face) const		{if(!elements_are_supported(SE_FACE)) return 0; return m_aaSelFACE[face];}
-		inline byte_t get_selection_status(Volume* vol) const		{if(!elements_are_supported(SE_VOLUME)) return 0; return m_aaSelVOL[vol];}
+		inline byte_t get_selection_status(Vertex* vrt) const {if(!elements_are_supported(SE_VERTEX)) return 0; return m_aaSelVRT[vrt];}
+		inline byte_t get_selection_status(Edge* edge) const {if(!elements_are_supported(SE_EDGE)) return 0; return m_aaSelEDGE[edge];}
+		inline byte_t get_selection_status(Face* face) const {if(!elements_are_supported(SE_FACE)) return 0; return m_aaSelFACE[face];}
+		inline byte_t get_selection_status(Volume* vol) const {if(!elements_are_supported(SE_VOLUME)) return 0; return m_aaSelVOL[vol];}
 	/** \} */
 
 	///	returns the selection state of the specified elelent
@@ -226,11 +227,11 @@ class UG_API ISelector : public GridObserver
 
 	//	if enabled, all new elements will be automatically enabled. Disabled by default.
 		void enable_autoselection(bool bEnable);
-		inline bool autoselection_enabled()		{return m_bAutoselectionEnabled;}
+		inline bool autoselection_enabled() {return m_bAutoselectionEnabled;}
 
 	//	if enabled, newly created elements derive their selection status from their parents. Enabled by default.
 		void enable_selection_inheritance(bool bEnable);
-		inline bool selection_inheritance_enabled()		{return m_bSelectionInheritanceEnabled;}
+		inline bool selection_inheritance_enabled()	 {return m_bSelectionInheritanceEnabled;}
 
 	/**	restricts subset inheritance so that new elements derive their
 	 * 	selection status only from parents with the same base-type.
@@ -238,55 +239,56 @@ class UG_API ISelector : public GridObserver
 	 * 	NOTE: strict inheritance only has an effect if
 	 * 	selection inheritance is enabled.*/
 		void enable_strict_inheritance(bool bEnable);
-		inline bool strict_inheritance_enabled()	{return m_bStrictInheritanceEnabled;}
+		inline bool strict_inheritance_enabled() {return m_bStrictInheritanceEnabled;}
 	//	grid callbacks
 	/*
 		virtual void registered_at_grid(Grid* grid);
 		virtual void unregistered_from_grid(Grid* grid);
 	*/
-		virtual void grid_to_be_destroyed(Grid* grid);
-		virtual void elements_to_be_cleared(Grid* grid);
+		void grid_to_be_destroyed(Grid* grid) override;
+
+		void elements_to_be_cleared(Grid* grid) override;
 
 	//	element callbacks
-		virtual void vertex_created(Grid* grid, Vertex* vrt,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void vertex_created(Grid* grid, Vertex* vrt,
+		                    GridObject* pParent = nullptr,
+		                    bool replacesParent = false) override;
 
-		virtual void edge_created(Grid* grid, Edge* e,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void edge_created(Grid* grid, Edge* e,
+		                  GridObject* pParent = nullptr,
+		                  bool replacesParent = false) override;
 
-		virtual void face_created(Grid* grid, Face* f,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void face_created(Grid* grid, Face* f,
+		                  GridObject* pParent = nullptr,
+		                  bool replacesParent = false) override;
 
-		virtual void volume_created(Grid* grid, Volume* vol,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void volume_created(Grid* grid, Volume* vol,
+		                    GridObject* pParent = nullptr,
+		                    bool replacesParent = false) override;
 
-		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
-										 Vertex* replacedBy = nullptr);
+		void vertex_to_be_erased(Grid* grid, Vertex* vrt,
+		                         Vertex* replacedBy = nullptr) override;
 
-		virtual void edge_to_be_erased(Grid* grid, Edge* e,
-										 Edge* replacedBy = nullptr);
+		void edge_to_be_erased(Grid* grid, Edge* e,
+		                       Edge* replacedBy = nullptr) override;
 
-		virtual void face_to_be_erased(Grid* grid, Face* f,
-										 Face* replacedBy = nullptr);
+		void face_to_be_erased(Grid* grid, Face* f,
+		                       Face* replacedBy = nullptr) override;
 
-		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
-										 Volume* replacedBy = nullptr);
+		void volume_to_be_erased(Grid* grid, Volume* vol,
+		                         Volume* replacedBy = nullptr) override;
 
-		virtual void vertices_to_be_merged(Grid* grid, Vertex* target,
-										 Vertex* elem1, Vertex* elem2);
+		void vertices_to_be_merged(Grid* grid, Vertex* target,
+		                           Vertex* elem1, Vertex* elem2) override;
 
-		virtual void edges_to_be_merged(Grid* grid, Edge* target,
-										 Edge* elem1, Edge* elem2);
+		void edges_to_be_merged(Grid* grid, Edge* target,
+		                        Edge* elem1, Edge* elem2) override;
 
-		virtual void faces_to_be_merged(Grid* grid, Face* target,
-										 Face* elem1, Face* elem2);
+		void faces_to_be_merged(Grid* grid, Face* target,
+		                        Face* elem1, Face* elem2) override;
 
-		virtual void volumes_to_be_merged(Grid* grid, Volume* target,
-										 Volume* elem1, Volume* elem2);
+		void volumes_to_be_merged(Grid* grid, Volume* target,
+		                          Volume* elem1, Volume* elem2) override;
 
 	///	returns true if the selector contains vertices
 		virtual bool contains_vertices() const = 0;
@@ -385,26 +387,26 @@ class UG_API ISelector : public GridObserver
 		#endif
 
 	protected:
-		Grid*	m_pGrid;
-		uint	m_supportedElements;
-		bool	m_bAutoselectionEnabled;
-		bool	m_bSelectionInheritanceEnabled;
-		bool	m_bStrictInheritanceEnabled;
+		Grid* m_pGrid;
+		uint m_supportedElements;
+		bool m_bAutoselectionEnabled;
+		bool m_bSelectionInheritanceEnabled;
+		bool m_bStrictInheritanceEnabled;
 		
 	//	will use a default constructor
 		using AUChar = Attachment<unsigned char>;
 		AUChar								m_aSelected;
 
-		Grid::AttachmentAccessor<Vertex, AUChar>	m_aaSelVRT;
-		Grid::AttachmentAccessor<Edge, AUChar>		m_aaSelEDGE;
-		Grid::AttachmentAccessor<Face, AUChar>			m_aaSelFACE;
-		Grid::AttachmentAccessor<Volume, AUChar>		m_aaSelVOL;
+		Grid::AttachmentAccessor<Vertex, AUChar> m_aaSelVRT;
+		Grid::AttachmentAccessor<Edge, AUChar> m_aaSelEDGE;
+		Grid::AttachmentAccessor<Face, AUChar> m_aaSelFACE;
+		Grid::AttachmentAccessor<Volume, AUChar> m_aaSelVOL;
 
 		#ifdef UG_PARALLEL
-			pcl::InterfaceCommunicator<VertexLayout>	m_icomVRT;
-			pcl::InterfaceCommunicator<EdgeLayout>		m_icomEDGE;
-			pcl::InterfaceCommunicator<FaceLayout>		m_icomFACE;
-			pcl::InterfaceCommunicator<VolumeLayout>	m_icomVOL;
+			pcl::InterfaceCommunicator<VertexLayout> m_icomVRT;
+			pcl::InterfaceCommunicator<EdgeLayout> m_icomEDGE;
+			pcl::InterfaceCommunicator<FaceLayout> m_icomFACE;
+			pcl::InterfaceCommunicator<VolumeLayout> m_icomVOL;
 		#endif
 };
 

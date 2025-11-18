@@ -80,15 +80,15 @@ class StdBalanceWeights : public IBalanceWeights{
 		StdBalanceWeights() :
 			m_wgt(1.0)				{}
 
-		virtual ~StdBalanceWeights()						{}
+		~StdBalanceWeights() override = default;
 
 		virtual void set_weight(number wgt)					{m_wgt = wgt;}
-		virtual void refresh_weights(int)					{}
+		void refresh_weights(int) override {}
 
-		virtual number get_weight(Vertex* e)	{return m_wgt;}
-		virtual number get_weight(Edge* e)		{return m_wgt;}
-		virtual number get_weight(Face* e)		{return m_wgt;}
-		virtual number get_weight(Volume* e)	{return m_wgt;}
+		number get_weight(Vertex* e) override {return m_wgt;}
+		number get_weight(Edge* e) override {return m_wgt;}
+		number get_weight(Face* e) override {return m_wgt;}
+		number get_weight(Volume* e) override {return m_wgt;}
 
 	private:
 		number		m_wgt;
@@ -102,7 +102,7 @@ class AnisotropicBalanceWeights : public IBalanceWeights{
 		using position_attachment_t = Attachment<MathVector<dim> >;
 		using elem_t = typename GeomObjBaseTypeByDim<dim>::base_obj_type;
 		AnisotropicBalanceWeights() : m_weightFactor(1)	{}
-		virtual ~AnisotropicBalanceWeights()	{}
+		~AnisotropicBalanceWeights() override = default;
 
 		virtual void set_weight_factor(number weightFactor)
 		{
@@ -116,12 +116,12 @@ class AnisotropicBalanceWeights : public IBalanceWeights{
 			m_aaPos.access(*mg, aPos);
 		}
 
-		virtual void refresh_weights(int baseLevel)	{}
+		void refresh_weights(int baseLevel) override {}
 
-		virtual number get_weight(Vertex* e)	{return 1;}
-		virtual number get_weight(Edge* e)		{return get_weight_impl(e);}
-		virtual number get_weight(Face* e)		{return get_weight_impl(e);}
-		virtual number get_weight(Volume* e)	{return get_weight_impl(e);}
+		number get_weight(Vertex* e) override {return 1;}
+		number get_weight(Edge* e) override {return get_weight_impl(e);}
+		number get_weight(Face* e) override {return get_weight_impl(e);}
+		number get_weight(Volume* e) override {return get_weight_impl(e);}
 
 	private:
 		number get_weight_impl(elem_t* e){

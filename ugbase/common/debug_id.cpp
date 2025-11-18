@@ -35,7 +35,7 @@
 #include "common/error.h"
 #include "common/assert.h"
 #include <iostream>
-#include <string.h>
+#include <cstring>
 #include "util/string_util.h"
 
 namespace ug{
@@ -63,7 +63,7 @@ DebugIDManager& DebugIDManager::instance()
 bool DebugIDManager::
 set_debug_levels(int lev)
 {
-	for(std::map<uint32, int>::iterator it=m_dbgLevels.begin(); it != m_dbgLevels.end(); ++it)
+	for(auto it=m_dbgLevels.begin(); it != m_dbgLevels.end(); ++it)
 		(*it).second = lev;
 	return true;
 }
@@ -104,7 +104,7 @@ register_debug_id(const char *debugID)
 {
 	if(debug_id_registered(debugID) == false)
 	{
-		m_dbgLevelIdentifiers.push_back(std::string(debugID));
+		m_dbgLevelIdentifiers.emplace_back(debugID);
 		m_dbgLevels[crc32(debugID)] = -1;
 		return true;
 	}

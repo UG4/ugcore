@@ -102,7 +102,7 @@ namespace ug
 // 		return m_numberCountedFracsInVertex / multipeInnerHits;
 //  }
 
- 	VertexFractureProperties & operator++( int a )
+ 	VertexFractureProperties & operator ++ ( int a )
  	{
  		m_numberCountedFracsInVertex++;
  		return *this;

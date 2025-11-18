@@ -50,7 +50,7 @@ namespace ug
 bool CheckLuaCallbackName(const char* name)
 {
 //	get lua state
-	lua_State* L = ug::script::GetDefaultLuaState();
+	lua_State* L = script::GetDefaultLuaState();
 
 //	obtain a reference
 	lua_getglobal(L, name);
@@ -63,7 +63,7 @@ bool CheckLuaCallbackName(const char* name)
 
 LuaUserNumberNumberFunction::LuaUserNumberNumberFunction()
 {
-	m_L = ug::script::GetDefaultLuaState();
+	m_L = script::GetDefaultLuaState();
 	m_callbackRef = LUA_NOREF;
 }
 

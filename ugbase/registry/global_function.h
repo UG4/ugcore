@@ -379,4 +379,4 @@ struct FunctionProxy<TFunc, void>
 } // end namespace ug
 
 
-#endif /* __H__UG_BRIDGE__GLOBAL_FUNCTION__ */
+#endif

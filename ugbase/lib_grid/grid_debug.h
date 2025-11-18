@@ -193,5 +193,3 @@ private:
 } // namespace ug
 
 #endif // __H__LIBGRID__GRID_DEBUG__
-
-/* End of File */

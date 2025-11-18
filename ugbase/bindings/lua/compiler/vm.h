@@ -410,7 +410,7 @@ public:
 		int varI;
 		size_t i=0;
 		VMInstruction instr;
-		while(1)
+		while(true)
 		{
 //			UG_LOG("IP =  " << i << ", SP = " << SP);
 			deserializeVMInstr(i, instr);

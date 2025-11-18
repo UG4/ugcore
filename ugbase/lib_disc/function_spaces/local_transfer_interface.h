@@ -49,7 +49,7 @@ class TransferValueAccessor
 
 		virtual void access_closure(GridObject* elem) = 0;
 
-		virtual ~TransferValueAccessor() {}
+		virtual ~TransferValueAccessor() = default;
 
 		const number& operator[](size_t i) const {
 			UG_ASSERT(i < m_Val.size(), "Wrong index "<<i<<" (size: "<<m_Val.size()<<")");
@@ -92,7 +92,8 @@ class IElemProlongation
 		virtual void prolongate(Face* parent) = 0;
 		virtual void prolongate(Volume* parent) = 0;
 
-		virtual ~IElemProlongation() {}
+		IElemProlongation() = default;
+		virtual ~IElemProlongation() = default;
 
 	protected:
 		ConstSmartPtr<TDomain> m_spDomain;
@@ -107,16 +108,22 @@ template <typename TDomain, typename TImpl>
 class ElemProlongationBase : public IElemProlongation<TDomain>
 {
 	public:
-		virtual void prolongate(Vertex* parent){
+		ElemProlongationBase() = default;
+		~ElemProlongationBase() override = default;
+
+		void prolongate(Vertex* parent) override {
 			this->getImpl().prolongate(parent, *this->m_vValueChild, *this->m_vValueParent);
 		}
-		virtual void prolongate(Edge* parent){
+
+		void prolongate(Edge* parent) override {
 			this->getImpl().prolongate(parent, *this->m_vValueChild, *this->m_vValueParent);
 		}
-		virtual void prolongate(Face* parent){
+
+		void prolongate(Face* parent) override {
 			this->getImpl().prolongate(parent, *this->m_vValueChild, *this->m_vValueParent);
 		}
-		virtual void prolongate(Volume* parent){
+
+		void prolongate(Volume* parent) override {
 			this->getImpl().prolongate(parent, *this->m_vValueChild, *this->m_vValueParent);
 		}
 
@@ -174,16 +181,19 @@ template <typename TDomain, typename TImpl>
 class ElemRestrictionBase : public IElemRestriction<TDomain>
 {
 	public:
-		virtual void do_restrict(Vertex* parent){
+		void do_restrict(Vertex* parent) override {
 			this->getImpl().do_restrict(parent, *this->m_vValueChild, *this->m_vValueParent);
 		}
-		virtual void do_restrict(Edge* parent){
+
+		void do_restrict(Edge* parent) override {
 			this->getImpl().do_restrict(parent, *this->m_vValueChild, *this->m_vValueParent);
 		}
-		virtual void do_restrict(Face* parent){
+
+		void do_restrict(Face* parent) override {
 			this->getImpl().do_restrict(parent, *this->m_vValueChild, *this->m_vValueParent);
 		}
-		virtual void do_restrict(Volume* parent){
+
+		void do_restrict(Volume* parent) override {
 			this->getImpl().do_restrict(parent, *this->m_vValueChild, *this->m_vValueParent);
 		}
 
@@ -203,4 +213,4 @@ GetStandardElementRestriction(const LFEID& lfeid);
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__FUNCTION_SPACS__LOCAL_TRANSFER_INTERFACE__ */
+#endif

@@ -139,8 +139,8 @@ class IRefiner
 	 *			Elements marked with mark_local, however, will only be refined
 	 *			according to their local mark.
 	 * \{ */
-		virtual void mark_local(Face* e, int mark)		{UG_THROW("mark_local not supported by this refiner!");}
-		virtual void mark_local(Volume* e, int mark)	{UG_THROW("mark_local not supported by this refiner!");}
+		virtual void mark_local(Face* e, int mark) {UG_THROW("mark_local not supported by this refiner!");}
+		virtual void mark_local(Volume* e, int mark) {UG_THROW("mark_local not supported by this refiner!");}
 	/** \} */
 
 	///	returns the local mark of the specified face or volume.
@@ -255,13 +255,13 @@ class IRefiner
 		size_t num_marked_elements(std::vector<int>& numMarkedElemsOut);
 
 	///	returns the number of (globally) marked edges on all levels of the hierarchy
-		size_t num_marked_edges()		{std::vector<int> t; return num_marked_edges(t);}
+		size_t num_marked_edges() {std::vector<int> t; return num_marked_edges(t);}
 	///	returns the number of (globally) marked faces on all levels of the hierarchy
-		size_t num_marked_faces()		{std::vector<int> t; return num_marked_faces(t);}
+		size_t num_marked_faces() {std::vector<int> t; return num_marked_faces(t);}
 	///	returns the number of (globally) marked volumes on all levels of the hierarchy
-		size_t num_marked_volumes()		{std::vector<int> t; return num_marked_volumes(t);}
+		size_t num_marked_volumes() {std::vector<int> t; return num_marked_volumes(t);}
 	///	returns the number of (globally) marked grid-objects of highest dimension
-		size_t num_marked_elements()	{std::vector<int> t; return num_marked_elements(t);}
+		size_t num_marked_elements() {std::vector<int> t; return num_marked_elements(t);}
 
 	///	Writes the associated grid and marks to a file. Pure virtual.
 	/**	Elements should be assigned to subsets depending on their current
@@ -287,7 +287,7 @@ class IRefiner
 
 	///	Called by coarsen(). Derived classes sould implement their coarsen algorithm here.
 	/** Since the default implementation does not perform coarsening, it returns false.*/
-		virtual bool perform_coarsening()		{return false;}
+		virtual bool perform_coarsening() {return false;}
 
 	///	returns the number of locally marked edges on all levels of the hierarchy
 		virtual void num_marked_edges_local(std::vector<int>& numMarkedEdgesOut) = 0;

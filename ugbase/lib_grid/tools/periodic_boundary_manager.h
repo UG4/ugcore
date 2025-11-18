@@ -47,7 +47,7 @@ namespace ug {
  */
 class IIdentifier {
 public:
-	virtual ~IIdentifier() {}
+	virtual ~IIdentifier() = default;
 	virtual bool match(Vertex*, Vertex*) = 0;
 	virtual bool match(Edge*, Edge*) = 0;
 	virtual bool match(Face*, Face*) = 0;
@@ -58,16 +58,17 @@ public:
 /**
  * Usage: class needs to be instantiated with the position attachment used on the Domain.
  * Before using any match methods, the translation vector needs to be set with set_shift()
- * \tparam <TPosAA>{class needs to be instantiated with the
+ * \tparam TPosAA {class needs to be instantiated with the
  * position attachment used on the Domain.}
  */
 template<class TPosAA> class ParallelShiftIdentifier: public IIdentifier {
 public:
-	virtual bool match(Vertex* v1, Vertex* v2) {return match_impl(v1, v2);}
-	virtual bool match(Edge* e1, Edge* e2) {return match_impl(e1, e2);}
-	virtual bool match(Face* f1, Face* f2) {return match_impl(f1, f2);}
+	bool match(Vertex* v1, Vertex* v2) override {return match_impl(v1, v2);}
+	bool match(Edge* e1, Edge* e2) override {return match_impl(e1, e2);}
+	bool match(Face* f1, Face* f2) override {return match_impl(f1, f2);}
 
-	virtual ~ParallelShiftIdentifier() {}
+	~ParallelShiftIdentifier() override = default;
+
 	using AttachmentType = typename TPosAA::ValueType;
 	ParallelShiftIdentifier(TPosAA& aa) : m_aaPos(aa) {}
 	void set_shift(AttachmentType& shift) {m_shift = shift; VecScale(m_shift_opposite, m_shift, -1);}
@@ -131,7 +132,7 @@ public:
 	};
 
 	PeriodicBoundaryManager();
-	~PeriodicBoundaryManager();
+	~PeriodicBoundaryManager() override;
 
 	// sets grid and inits group info attachment accessors
 	void set_grid(Grid* g);
@@ -161,27 +162,28 @@ public:
 
 
 	/// grid observation methods
-	virtual void grid_to_be_destroyed(Grid* grid);
-	virtual void vertex_created(Grid* grid, Vertex* vrt,
-										GridObject* pParent = nullptr,
-										bool replacesParent = false);
+	void grid_to_be_destroyed(Grid* grid) override;
 
-	virtual void edge_created(Grid* grid, Edge* e,
-								GridObject* pParent = nullptr,
-								bool replacesParent = false);
+	void vertex_created(Grid* grid, Vertex* vrt,
+	                    GridObject* pParent = nullptr,
+	                    bool replacesParent = false) override;
 
-	virtual void face_created(Grid* grid, Face* f,
-								GridObject* pParent = nullptr,
-								bool replacesParent = false);
+	void edge_created(Grid* grid, Edge* e,
+	                  GridObject* pParent = nullptr,
+	                  bool replacesParent = false) override;
 
-	virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
-									 Vertex* replacedBy = nullptr);
+	void face_created(Grid* grid, Face* f,
+	                  GridObject* pParent = nullptr,
+	                  bool replacesParent = false) override;
 
-	virtual void edge_to_be_erased(Grid* grid, Edge* e,
-									 Edge* replacedBy = nullptr);
+	void vertex_to_be_erased(Grid* grid, Vertex* vrt,
+	                         Vertex* replacedBy = nullptr) override;
 
-	virtual void face_to_be_erased(Grid* grid, Face* f,
-									 Face* replacedBy = nullptr);
+	void edge_to_be_erased(Grid* grid, Edge* e,
+	                       Edge* replacedBy = nullptr) override;
+
+	void face_to_be_erased(Grid* grid, Face* f,
+	                       Face* replacedBy = nullptr) override;
 
 	/// checks that all elements of given gocs are periodic (called after identification)
 	bool check_periodicity(const GridObjectCollection& goc1,
@@ -202,7 +204,7 @@ public:
 
 protected:
 	// no copy construction allowed
-	PeriodicBoundaryManager(const PeriodicBoundaryManager&)	{}
+	PeriodicBoundaryManager(const PeriodicBoundaryManager&)	= delete;
 
 	/// grid instance we operate on
 	MultiGrid* m_pGrid;

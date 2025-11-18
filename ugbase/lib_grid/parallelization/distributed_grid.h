@@ -89,7 +89,8 @@ class DistributedGridManager : public GridObserver
 	public:
 		DistributedGridManager();
 		DistributedGridManager(MultiGrid& grid);
-		virtual ~DistributedGridManager();
+
+		~DistributedGridManager() override;
 		
 	//	assignment
 		void assign(MultiGrid& grid);

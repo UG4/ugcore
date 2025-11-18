@@ -135,7 +135,7 @@ class UG_API Grid
 		template <class TElem>
 		struct traits{
 			using base_object = typename TElem::grid_base_object;
-			using ElementStorage = ElementStorage<base_object>; // ø using A = A<T>
+			typedef ElementStorage<base_object> ElementStorage; // ø using A = A<T>
 			using AttachmentPipe = typename ElementStorage::AttachmentPipe;
 			using AttachedElementList = typename ElementStorage::AttachedElementList;
 			using SectionContainer = typename ElementStorage::SectionContainer;
@@ -490,15 +490,15 @@ class UG_API Grid
 
 	////////////////////////////////////////////////
 	///	flips the orientation of an edge.
-		void flip_orientation(Edge* e);
+		void flip_orientation(Edge* e); // ø why is this not a responsibility of the edge self?
 		
 	////////////////////////////////////////////////
 	///	flips the orientation of a face.
-		void flip_orientation(Face* f);
+		void flip_orientation(Face* f); // ø why is this not a responsibility of the face self?
 
 	////////////////////////////////////////////////
 	///	flips the orientation of a volume.
-		void flip_orientation(Volume* vol);
+		void flip_orientation(Volume* vol); // ø why is this not a responsibility of the volume self?
 		
 	////////////////////////////////////////////////
 	//	Iterators
@@ -510,14 +510,14 @@ class UG_API Grid
 		typename geometry_traits<TGeomObj>::iterator
 		end();
 
-		inline VertexIterator	vertices_begin()	{return begin<Vertex>();}
-		inline VertexIterator	vertices_end()		{return end<Vertex>();}
-		inline EdgeIterator		edges_begin()		{return begin<Edge>();}
-		inline EdgeIterator		edges_end()			{return end<Edge>();}
-		inline FaceIterator			faces_begin()		{return begin<Face>();}
-		inline FaceIterator			faces_end()			{return end<Face>();}
-		inline VolumeIterator		volumes_begin()		{return begin<Volume>();}
-		inline VolumeIterator		volumes_end()		{return end<Volume>();}
+		inline VertexIterator vertices_begin() {return begin<Vertex>();}
+		inline VertexIterator vertices_end() {return end<Vertex>();}
+		inline EdgeIterator edges_begin() {return begin<Edge>();}
+		inline EdgeIterator edges_end() {return end<Edge>();}
+		inline FaceIterator faces_begin() {return begin<Face>();}
+		inline FaceIterator faces_end() {return end<Face>();}
+		inline VolumeIterator volumes_begin() {return begin<Volume>();}
+		inline VolumeIterator volumes_end() {return end<Volume>();}
 	
 		template <class TGeomObj>
 		typename geometry_traits<TGeomObj>::const_iterator
@@ -1149,55 +1149,55 @@ class UG_API Grid
 		void clear_attachments();
 
 	protected:
-		VertexElementStorage	m_vertexElementStorage;
-		EdgeElementStorage		m_edgeElementStorage;
-		FaceElementStorage		m_faceElementStorage;
-		VolumeElementStorage	m_volumeElementStorage;
+		VertexElementStorage m_vertexElementStorage;
+		EdgeElementStorage m_edgeElementStorage;
+		FaceElementStorage m_faceElementStorage;
+		VolumeElementStorage m_volumeElementStorage;
 
-		uint			m_options;
-		uint32			m_hashCounter;
+		uint m_options;
+		uint32 m_hashCounter;
 
 	//	observer handling
-		ObserverContainer	m_gridObservers;
-		ObserverContainer	m_vertexObservers;
-		ObserverContainer	m_edgeObservers;
-		ObserverContainer	m_faceObservers;
-		ObserverContainer	m_volumeObservers;
+		ObserverContainer m_gridObservers;
+		ObserverContainer m_vertexObservers;
+		ObserverContainer m_edgeObservers;
+		ObserverContainer m_faceObservers;
+		ObserverContainer m_volumeObservers;
 
 	//	interconnection management
-		AVertexContainer	m_aVertexContainer;
-		AEdgeContainer		m_aEdgeContainer;
-		AFaceContainer		m_aFaceContainer;
-		AVolumeContainer	m_aVolumeContainer;
+		AVertexContainer m_aVertexContainer;
+		AEdgeContainer m_aEdgeContainer;
+		AFaceContainer m_aFaceContainer;
+		AVolumeContainer m_aVolumeContainer;
 
-		AttachmentAccessor<Vertex, AEdgeContainer>		m_aaEdgeContainerVERTEX;
-		AttachmentAccessor<Vertex, AFaceContainer>		m_aaFaceContainerVERTEX;
-		AttachmentAccessor<Vertex, AVolumeContainer>	m_aaVolumeContainerVERTEX;
+		AttachmentAccessor<Vertex, AEdgeContainer> m_aaEdgeContainerVERTEX;
+		AttachmentAccessor<Vertex, AFaceContainer> m_aaFaceContainerVERTEX;
+		AttachmentAccessor<Vertex, AVolumeContainer> m_aaVolumeContainerVERTEX;
 
-		AttachmentAccessor<Edge, AEdgeContainer>		m_aaEdgeContainerEDGE;
-		AttachmentAccessor<Edge, AFaceContainer>		m_aaFaceContainerEDGE;
-		AttachmentAccessor<Edge, AVolumeContainer>		m_aaVolumeContainerEDGE;
+		AttachmentAccessor<Edge, AEdgeContainer> m_aaEdgeContainerEDGE;
+		AttachmentAccessor<Edge, AFaceContainer> m_aaFaceContainerEDGE;
+		AttachmentAccessor<Edge, AVolumeContainer> m_aaVolumeContainerEDGE;
 
-		AttachmentAccessor<Face, AEdgeContainer>		m_aaEdgeContainerFACE;
-		AttachmentAccessor<Face, AFaceContainer>		m_aaFaceContainerFACE;
-		AttachmentAccessor<Face, AVolumeContainer>		m_aaVolumeContainerFACE;
+		AttachmentAccessor<Face, AEdgeContainer> m_aaEdgeContainerFACE;
+		AttachmentAccessor<Face, AFaceContainer> m_aaFaceContainerFACE;
+		AttachmentAccessor<Face, AVolumeContainer> m_aaVolumeContainerFACE;
 
-		AttachmentAccessor<Volume, AEdgeContainer>		m_aaEdgeContainerVOLUME;
-		AttachmentAccessor<Volume, AFaceContainer>		m_aaFaceContainerVOLUME;
-		AttachmentAccessor<Volume, AVolumeContainer>	m_aaVolumeContainerVOLUME;
+		AttachmentAccessor<Volume, AEdgeContainer> m_aaEdgeContainerVOLUME;
+		AttachmentAccessor<Volume, AFaceContainer> m_aaFaceContainerVOLUME;
+		AttachmentAccessor<Volume, AVolumeContainer> m_aaVolumeContainerVOLUME;
 		
 	//	marks
 		int m_currentMark;	// 0: marks inactive. -1: reset-marks (sets currentMark to 1)
 		bool m_bMarking;
-		AMark	m_aMark;
+		AMark m_aMark;
 		VertexAttachmentAccessor<AMark>	m_aaMarkVRT;
-		EdgeAttachmentAccessor<AMark>	m_aaMarkEDGE;
-		FaceAttachmentAccessor<AMark>	m_aaMarkFACE;
+		EdgeAttachmentAccessor<AMark> m_aaMarkEDGE;
+		FaceAttachmentAccessor<AMark> m_aaMarkFACE;
 		VolumeAttachmentAccessor<AMark>	m_aaMarkVOL;
 
-		SPMessageHub 							m_messageHub;
-		DistributedGridManager*		m_distGridMgr;
-		PeriodicBoundaryManager*	m_periodicBndMgr;
+		SPMessageHub m_messageHub;
+		DistributedGridManager* m_distGridMgr;
+		PeriodicBoundaryManager* m_periodicBndMgr;
 };
 
 /** \} */

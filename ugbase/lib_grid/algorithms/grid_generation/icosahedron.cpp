@@ -124,7 +124,7 @@ void GenerateIcosphere(	std::vector<vector3>& trisOut,
 	Grid g;
 	APosition aPos = aPosition;
 	g.attach_to_vertices(aPos);
-	Grid::VertexAttachmentAccessor<APosition> aaPos(g, aPos);
+	Grid::VertexAttachmentAccessor aaPos(g, aPos);
 
 	GenerateIcosphere(g, center, radius, refinements, aPos);
 

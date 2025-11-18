@@ -280,7 +280,7 @@ apply_sub(vector_type& fskeleton, const vector_type& uskeleton)
 	UG_DLOG(SchurDebug, 5, "\n% 'SchurComplementOperator::apply_sub()':");
 
 //	create new rhs
-	vector_type dskeleton(fskeleton);
+	vector_type dskeleton(fskeleton); //ø obs! vector is copied
 
 //	solve
 	apply(dskeleton, uskeleton);

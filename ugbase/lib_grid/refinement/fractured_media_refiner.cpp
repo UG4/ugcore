@@ -56,12 +56,6 @@ FracturedMediaRefiner(TGrid& g, SPRefinementProjector projector) :
 }
 
 template <class TGrid, class TAPosition>
-FracturedMediaRefiner<TGrid, TAPosition>::
-~FracturedMediaRefiner()
-{
-}
-
-template <class TGrid, class TAPosition>
 void
 FracturedMediaRefiner<TGrid, TAPosition>::
 set_aspect_ratio_threshold(number threshold)

@@ -66,7 +66,7 @@ class BoolMarker : public GridObserver
 		BoolMarker();
 		BoolMarker(Grid& g);
 
-		virtual ~BoolMarker();
+		~BoolMarker() override;
 
 	///	Assign the grid on which the marker shall operate.
 	/**	nullptr is a valid argument and sets the marker into an unassigned state.
@@ -101,15 +101,15 @@ class BoolMarker : public GridObserver
 
 
 		bool is_marked(GridObject* e) const;
-		bool is_marked(Vertex* e) const			{assert(m_pGrid); return m_aaMarkVRT[e];}
-		bool is_marked(Edge* e)	const			{assert(m_pGrid); return m_aaMarkEDGE[e];}
-		bool is_marked(Face* e)	const				{assert(m_pGrid); return m_aaMarkFACE[e];}
-		bool is_marked(Volume* e) const				{assert(m_pGrid); return m_aaMarkVOL[e];}
+		bool is_marked(Vertex* e) const {assert(m_pGrid); return m_aaMarkVRT[e];}
+		bool is_marked(Edge* e)	const {assert(m_pGrid); return m_aaMarkEDGE[e];}
+		bool is_marked(Face* e)	const {assert(m_pGrid); return m_aaMarkFACE[e];}
+		bool is_marked(Volume* e) const {assert(m_pGrid); return m_aaMarkVOL[e];}
 
-		void mark(Vertex* e, bool mark = true)	{assert(m_pGrid); m_aaMarkVRT[e] = mark;}
-		void mark(Edge* e, bool mark = true)	{assert(m_pGrid); m_aaMarkEDGE[e] = mark;}
-		void mark(Face* e, bool mark = true)		{assert(m_pGrid); m_aaMarkFACE[e] = mark;}
-		void mark(Volume* e, bool mark = true)		{assert(m_pGrid); m_aaMarkVOL[e] = mark;}
+		void mark(Vertex* e, bool mark = true) {assert(m_pGrid); m_aaMarkVRT[e] = mark;}
+		void mark(Edge* e, bool mark = true) {assert(m_pGrid); m_aaMarkEDGE[e] = mark;}
+		void mark(Face* e, bool mark = true) {assert(m_pGrid); m_aaMarkFACE[e] = mark;}
+		void mark(Volume* e, bool mark = true) {assert(m_pGrid); m_aaMarkVOL[e] = mark;}
 
 		template <class TIter>
 		void mark(TIter begin, TIter end, bool mark = true)
@@ -117,10 +117,10 @@ class BoolMarker : public GridObserver
 			for(TIter iter = begin; iter != end; ++iter) BoolMarker::mark(*iter, mark);
 		}
 
-		void unmark(Vertex* e)	{mark(e, false);}
-		void unmark(Edge* e)	{mark(e, false);}
-		void unmark(Face* e)		{mark(e, false);}
-		void unmark(Volume* e)		{mark(e, false);}
+		void unmark(Vertex* e) {mark(e, false);}
+		void unmark(Edge* e) {mark(e, false);}
+		void unmark(Face* e) {mark(e, false);}
+		void unmark(Volume* e) {mark(e, false);}
 
 		template <class TIter>
 		void unmark(TIter begin, TIter end)			{mark(begin, end, false);}
@@ -129,47 +129,47 @@ class BoolMarker : public GridObserver
 		void clear();
 
 	///	derived from GridObserver
-		virtual void grid_to_be_destroyed(Grid* grid);
+		void grid_to_be_destroyed(Grid* grid) override;
 
 	//	element callbacks
-		virtual void vertex_created(Grid* grid, Vertex* vrt,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void vertex_created(Grid* grid, Vertex* vrt,
+		                    GridObject* pParent = nullptr,
+		                    bool replacesParent = false) override;
 
-		virtual void edge_created(Grid* grid, Edge* e,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void edge_created(Grid* grid, Edge* e,
+		                  GridObject* pParent = nullptr,
+		                  bool replacesParent = false) override;
 
-		virtual void face_created(Grid* grid, Face* f,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void face_created(Grid* grid, Face* f,
+		                  GridObject* pParent = nullptr,
+		                  bool replacesParent = false) override;
 
-		virtual void volume_created(Grid* grid, Volume* vol,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void volume_created(Grid* grid, Volume* vol,
+		                    GridObject* pParent = nullptr,
+		                    bool replacesParent = false) override;
 
-		virtual void vertices_to_be_merged(Grid* grid, Vertex* target,
-										 Vertex* elem1, Vertex* elem2);
+		void vertices_to_be_merged(Grid* grid, Vertex* target,
+		                           Vertex* elem1, Vertex* elem2) override;
 
-		virtual void edges_to_be_merged(Grid* grid, Edge* target,
-										 Edge* elem1, Edge* elem2);
+		void edges_to_be_merged(Grid* grid, Edge* target,
+		                        Edge* elem1, Edge* elem2) override;
 
-		virtual void faces_to_be_merged(Grid* grid, Face* target,
-										 Face* elem1, Face* elem2);
+		void faces_to_be_merged(Grid* grid, Face* target,
+		                        Face* elem1, Face* elem2) override;
 
-		virtual void volumes_to_be_merged(Grid* grid, Volume* target,
-										 Volume* elem1, Volume* elem2);
+		void volumes_to_be_merged(Grid* grid, Volume* target,
+		                          Volume* elem1, Volume* elem2) override;
 
 	protected:
-		Grid*	m_pGrid;
-		ABool	m_aBool;
-		bool	m_defaultMark;
-		bool	m_markInheritanceEnabled;
-		bool	m_strictInheritanceEnabled;
-		Grid::AttachmentAccessor<Vertex, ABool>	m_aaMarkVRT;
-		Grid::AttachmentAccessor<Edge, ABool>	m_aaMarkEDGE;
-		Grid::AttachmentAccessor<Face, ABool>		m_aaMarkFACE;
-		Grid::AttachmentAccessor<Volume, ABool>		m_aaMarkVOL;
+		Grid* m_pGrid;
+		ABool m_aBool;
+		bool m_defaultMark;
+		bool m_markInheritanceEnabled;
+		bool m_strictInheritanceEnabled;
+		Grid::AttachmentAccessor<Vertex, ABool> m_aaMarkVRT;
+		Grid::AttachmentAccessor<Edge, ABool> m_aaMarkEDGE;
+		Grid::AttachmentAccessor<Face, ABool> m_aaMarkFACE;
+		Grid::AttachmentAccessor<Volume, ABool> m_aaMarkVOL;
 };
 
 /** \} */

@@ -97,8 +97,8 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool
 	int fillCount = 0;
 
 //	convenience - indices where new edge-vrts, new face-vrts and new vol-vrts begin.
-	const int E = NUM_VERTICES;
-	const int F = NUM_VERTICES + NUM_EDGES;
+	constexpr int E = NUM_VERTICES;
+	constexpr int F = NUM_VERTICES + NUM_EDGES;
 //	const int V = NUM_VERTICES + NUM_EDGES + NUM_FACES;
 
 //	depending on the number of new vertices, we will now apply different

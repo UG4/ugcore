@@ -47,10 +47,10 @@ class IsSelected : public ElementCallback
 		IsSelected(const ISelector& sel) :
 			m_sel(sel)	{}
 
-		bool operator() (Vertex* v) const	{return callback(v);}
-		bool operator() (Edge* e) const		{return callback(e);}
-		bool operator() (Face* f) const		{return callback(f);}
-		bool operator() (Volume* v) const	{return callback(v);}
+		bool operator () (Vertex* v) const	{return callback(v);}
+		bool operator () (Edge* e) const		{return callback(e);}
+		bool operator () (Face* f) const		{return callback(f);}
+		bool operator () (Volume* v) const	{return callback(v);}
 
 	private:
 		template <class TElem>
@@ -83,4 +83,4 @@ class IsNotSelected : public ElementCallback
 /** \} */ //lib_grid_element_callbacks
 }//	end of namespace
 
-#endif	//__H__UG_selection_callbacks
+#endif

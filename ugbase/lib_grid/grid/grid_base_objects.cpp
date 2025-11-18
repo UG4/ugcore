@@ -54,9 +54,6 @@ bool Edge::get_opposing_side(Vertex* v, Vertex** vrtOut)
 
 ////////////////////////////////////////////////////////////////////////
 //	implementation of edge-descriptor
-EdgeDescriptor::EdgeDescriptor()
-{
-}
 
 EdgeDescriptor::EdgeDescriptor(const EdgeDescriptor& ed)
 {

@@ -47,15 +47,15 @@ using SPParallelHNodeAdjuster = SmartPtr<ParallelHNodeAdjuster>;
 class ParallelHNodeAdjuster : public IRefMarkAdjuster
 {
 	public:
-		static SPParallelHNodeAdjuster create()		{return SPParallelHNodeAdjuster(new ParallelHNodeAdjuster);}
+		static SPParallelHNodeAdjuster create() {return SPParallelHNodeAdjuster(new ParallelHNodeAdjuster);}
 
-		virtual ~ParallelHNodeAdjuster()	{}
+		~ParallelHNodeAdjuster() override = default;
 
-		virtual void ref_marks_changed(IRefiner& ref,
-										const std::vector<Vertex*>& vrts,
-										const std::vector<Edge*>& edges,
-										const std::vector<Face*>& faces,
-										const std::vector<Volume*>& vols);
+		void ref_marks_changed(IRefiner& ref,
+		                       const std::vector<Vertex*>& vrts,
+		                       const std::vector<Edge*>& edges,
+		                       const std::vector<Face*>& faces,
+		                       const std::vector<Volume*>& vols) override;
 
 	private:
 		pcl::ProcessCommunicator m_procCom;

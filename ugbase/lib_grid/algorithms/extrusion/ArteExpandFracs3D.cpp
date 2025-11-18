@@ -145,10 +145,6 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 }
 
 
-ArteExpandFracs3D::~ArteExpandFracs3D()
-{
-	//  Auto-generated destructor stub
-}
 
 bool ArteExpandFracs3D::run( bool & needToRestart )
 {

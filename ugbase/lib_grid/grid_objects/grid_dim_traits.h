@@ -121,6 +121,4 @@ template <> struct grid_dim_traits<3>
 
 } // end namespace ug
 
-#endif // __H__LIB_GRID__GRID_DIM_TRAITS__
-
-/* End of File */
+#endif

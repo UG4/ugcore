@@ -55,29 +55,29 @@ using ConstSPProcessHierarchy = ConstSmartPtr<ProcessHierarchy>;
 class ProcessHierarchy{
 	public:
 		static SPProcessHierarchy create()	{return SPProcessHierarchy(new ProcessHierarchy);}
-		~ProcessHierarchy();
+		~ProcessHierarchy() = default;
 
 	//todo:	add a proc list for more sophisticated hierarchy levels
 		void add_hierarchy_level(size_t gridLvl, size_t numProcsPerProc);
 
-		bool empty() const;
-		size_t num_hierarchy_levels() const;
-		size_t num_global_procs_involved(size_t hierarchyLevel) const;
-		size_t grid_base_level(size_t hierarchyLevel) const;
-		size_t hierarchy_level_from_grid_level(size_t gridLevel) const;
+		[[nodiscard]] bool empty() const;
+		[[nodiscard]] size_t num_hierarchy_levels() const;
+		[[nodiscard]] size_t num_global_procs_involved(size_t hierarchyLevel) const;
+		[[nodiscard]] size_t grid_base_level(size_t hierarchyLevel) const;
+		[[nodiscard]] size_t hierarchy_level_from_grid_level(size_t gridLevel) const;
 
 	/**	Contains all processes which participate on the given hierarchy level,
 	 * but only if the local process participates itself. If it doesn't, the
 	 * returned communicator is empty.*/
-		pcl::ProcessCommunicator global_proc_com(size_t hierarchyLevel) const;
+		[[nodiscard]] pcl::ProcessCommunicator global_proc_com(size_t hierarchyLevel) const;
 
 	/**	Contains only processes which are contained in the cluster of the given
 	 * hierarchyLevel in which the local process is included.*/
 		//pcl::ProcessCommunicator cluster_proc_com(size_t hierarchyLevel);
-		const std::vector<int>& cluster_procs(size_t hierarchyLevel) const;
+		[[nodiscard]] const std::vector<int>& cluster_procs(size_t hierarchyLevel) const;
 
 	///	Returns a string which describes the hierarchy layout.
-		std::string to_string() const;
+		[[nodiscard]] std::string to_string() const;
 
 	///	allows specification of partitioning hints per hierarchy level.
 	/**	\note	A hint is valid for all subsequent hierarchy levels until it is 
@@ -98,27 +98,25 @@ class ProcessHierarchy{
 
 		struct HLevelInfo{
 			pcl::ProcessCommunicator globalCom;
-			//pcl::ProcessCommunicator clusterCom;
 			std::vector<int> clusterProcs;
 			size_t gridLvl;
 			size_t numGlobalProcsInUse;
-			PartitionHintMap	m_partitionHints;
+			PartitionHintMap m_partitionHints;
 		};
 
-		HLevelInfo& get_hlevel_info(size_t lvl)				{return m_levels.at(lvl);}
-		const HLevelInfo& get_hlevel_info(size_t lvl) const	{return m_levels.at(lvl);}
+		HLevelInfo& get_hlevel_info(size_t lvl) {return m_levels.at(lvl);}
+		const HLevelInfo& get_hlevel_info(size_t lvl) const {return m_levels.at(lvl);}
 
-//		virtual pcl::ProcessCommunicator
-//			create_cluster_communicator(size_t hlvl, size_t gridLvl, size_t numProcsPerProc);
-		void init_cluster_procs(std::vector<int>& clusterProcs, size_t hlvl,
+		void init_cluster_procs(std::vector<int>& clusterProcs,
+								size_t hlvl,
 								size_t numProcsPerProc);
 
 	private:
-		std::vector<HLevelInfo>	m_levels;
+		std::vector<HLevelInfo> m_levels;
 };
 
 ///	\}
 	
 }//	end of namespace
 
-#endif	//__H__UG_process_hierarchy
+#endif

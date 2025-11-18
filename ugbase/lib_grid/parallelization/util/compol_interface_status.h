@@ -78,6 +78,8 @@ class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 			m_status(status),
 			m_curLevel(0)	{}
 
+		~ComPol_InterfaceStatus() override = default;
+
 		void set_status(uint status)	{m_status = status;}
 	/**	\} */
 
@@ -127,15 +129,13 @@ class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 
 	////////////////////////
 	//	COMMUNICATION STUFF
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{
+		int
+		get_required_buffer_size(const Interface& interface) override {
 			return interface.size() * sizeof(char);
 		}
 
-		virtual bool
-		begin_layout_extraction(const Layout* pLayout)
-		{
+		bool
+		begin_layout_extraction(const Layout* pLayout) override {
 		//	clear and prepare the maps and set the layout
 			m_pLayout = pLayout;
 
@@ -145,9 +145,8 @@ class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 			return true;
 		}
 
-		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		collect(BinaryBuffer& buff, const Interface& interface) override {
 		//	iterate over all elements in the interface and write
 		//	whether they contain the status or not.
 			UG_ASSERT(m_distGridMgr, "Please set the distributed grid manager"
@@ -164,15 +163,13 @@ class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 			return true;
 		}
 
-		virtual void begin_level_extraction(int level)
-		{
+		void begin_level_extraction(int level) override {
 			UG_ASSERT(level < (int)m_vecMaps.size(), "Internal pcl error.");
 			m_curLevel = level;
 		}
 
-		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		extract(BinaryBuffer& buff, const Interface& interface) override {
 		//	read the info from the buff and push bools to the
 		//	vector associated with the interface.
 

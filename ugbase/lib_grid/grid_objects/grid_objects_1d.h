@@ -68,7 +68,7 @@ class UG_API RegularEdge : public Edge
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<RegularEdge*>(pObj) != nullptr;}
 
-		RegularEdge()	{}
+		RegularEdge() = default;
 		RegularEdge(Vertex* v1, Vertex* v2)
 			{
 				m_vertices[0] = v1;
@@ -81,7 +81,7 @@ class UG_API RegularEdge : public Edge
 				m_vertices[1] = descriptor.vertex(1);
 			}
 
-		virtual ~RegularEdge()	{}
+		virtual ~RegularEdge() = default;
 
 		virtual GridObject* create_empty_instance() const	{return new RegularEdge;}
 

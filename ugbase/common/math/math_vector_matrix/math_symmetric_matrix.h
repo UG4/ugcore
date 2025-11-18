@@ -89,7 +89,7 @@ class MathSymmetricMatrix
 		 * \param B The matrix to be added.
 		 * \return A reference to this matrix.
 		 */
-		MathSymmetricMatrix& operator+= (const MathSymmetricMatrix& B)
+		MathSymmetricMatrix& operator += (const MathSymmetricMatrix& B)
 		{
 			for(std::size_t i = 0; i < m_size; ++i)
 			{
@@ -134,7 +134,7 @@ class MathSymmetricMatrix
 		 * \param val The value to be added.
 		 * \return A reference to this matrix.
 		 */
-		MathSymmetricMatrix& operator+= (const value_type& val)
+		MathSymmetricMatrix& operator += (const value_type& val)
 		{
 			for(std::size_t i = 0; i < m_size; ++i)
 			{

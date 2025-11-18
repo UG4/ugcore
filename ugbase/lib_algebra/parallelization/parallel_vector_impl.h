@@ -55,10 +55,10 @@ namespace ug
 
 template <typename TVector>
 typename ParallelVector<TVector>::this_type&
-ParallelVector<TVector>::operator =(const typename ParallelVector<TVector>::this_type &v)
+ParallelVector<TVector>::operator =(const this_type &v)
 {
 	//	forward to sequential vectors
-	TVector::operator=(*dynamic_cast<const TVector*>(&v));
+	TVector::operator=(*static_cast<const TVector*>(&v));
 
 	//	copy storage type and layouts
 	this->set_storage_type(v.get_storage_mask());
@@ -70,7 +70,7 @@ ParallelVector<TVector>::operator =(const typename ParallelVector<TVector>::this
 
 template <typename TVector>
 typename ParallelVector<TVector>::this_type&
-ParallelVector<TVector>::operator -=(const typename ParallelVector<TVector>::this_type &v)
+ParallelVector<TVector>::operator -=(const this_type &v)
 {
 	//	compute storage mask
 	uint mask = get_storage_mask() & v.get_storage_mask();
@@ -84,7 +84,7 @@ ParallelVector<TVector>::operator -=(const typename ParallelVector<TVector>::thi
 	m_type = mask;
 
 	//	forward
-	TVector::operator-=(*dynamic_cast<const TVector*>(&v));
+	TVector::operator-=(*static_cast<const TVector*>(&v));
 
 	//	we're done
 	return *this;
@@ -92,7 +92,7 @@ ParallelVector<TVector>::operator -=(const typename ParallelVector<TVector>::thi
 
 template <typename TVector>
 typename ParallelVector<TVector>::this_type&
-ParallelVector<TVector>::operator +=(const typename ParallelVector<TVector>::this_type &v)
+ParallelVector<TVector>::operator +=(const this_type &v)
 {
 	//	compute parallel storage mask
 	uint mask = get_storage_mask() & v.get_storage_mask();
@@ -106,7 +106,7 @@ ParallelVector<TVector>::operator +=(const typename ParallelVector<TVector>::thi
 	m_type = mask;
 
 	// 	forward to sequential vector
-	TVector::operator+=(*dynamic_cast<const TVector*>(&v));
+	TVector::operator+=(*static_cast<const TVector*>(&v));
 
 	//	we're done
 	return *this;
@@ -120,7 +120,7 @@ change_storage_type(ParallelStorageType type)
 	PROFILE_FUNC_GROUP("algebra parallelization");
 
 	// can only change if current state is defined
-	if(has_storage_type(PST_UNDEFINED))
+	if(has_storage_type(PST_UNDEFINED)) [[unlikely]]
 		UG_THROW("ParallelVector::change_storage_type: Trying to change"
 				" storage type of a vector that has type PST_UNDEFINED.");
 
@@ -300,7 +300,7 @@ number ParallelVector<TVector>::maxnorm() const
 	PROFILE_FUNC_GROUP("algebra parallelization");
 
 	if(this->has_storage_type(PST_ADDITIVE))
-		if(!const_cast<ParallelVector<TVector>*>(this)->change_storage_type(PST_UNIQUE))
+		if(!const_cast<ParallelVector*>(this)->change_storage_type(PST_UNIQUE))
 			UG_THROW("ParallelVector::norm(): Cannot change"
 					" ParallelStorageType to unique.");
 
@@ -384,22 +384,21 @@ void ParallelVector<TVector>::check_storage_type() const
 
 //	a) for unique: all slaves must be zero
 	if(this->has_storage_type(PST_UNIQUE)){
-	//	get slave layout
+		//	get slave layout
 		const IndexLayout& layout = layouts()->slave();
 
-	//	interface iterators
-		typename IndexLayout::const_iterator iter = layout.begin();
-		typename IndexLayout::const_iterator end = layout.end();
+		//	interface iterators
+
+		auto end = layout.end();
 
 	//	iterate over interfaces
-		for(; iter != end; ++iter)
+		for(auto layout_iter = layout.begin(); layout_iter != end; ++layout_iter)
 		{
 		//	get interface
-			const typename IndexLayout::Interface& interface = layout.interface(iter);
+			const IndexLayout::Interface& interface = layout.interface(layout_iter);
 
 		//	loop over indices
-			for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
-					iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//  get index
 				const size_t index = interface.get_element(iter);
@@ -452,11 +451,13 @@ void ParallelVector<TVector>::enforce_consistent_type()
 // d = alpha*v1
 template<typename T>
 inline void VecScaleAssign(ParallelVector<T> &dest,
-                           double alpha1, const ParallelVector<T> &v1)
+                           double alpha1,
+                           const ParallelVector<T> &v1)
 {
 	PROFILE_FUNC_GROUP("algebra");
 	dest.set_storage_type(v1.get_storage_mask());
-	VecScaleAssign(*dynamic_cast<T*>(&dest), alpha1, *dynamic_cast<const T*>(&v1));
+	VecScaleAssign(*static_cast<T*>(&dest),
+						alpha1, *static_cast<const T*>(&v1));
 }
 
 // for template expressions
@@ -467,7 +468,8 @@ inline void VecAssign(ParallelVector<T> &dest,
 {
 	PROFILE_FUNC_GROUP("algebra");
 	dest.set_storage_type(v1.get_storage_mask());
-	VecAssign(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v1));
+	VecAssign(*static_cast<T*>(&dest),
+					*static_cast<const T*>(&v1));
 }
 
 
@@ -482,8 +484,9 @@ inline void VecScaleAdd(ParallelVector<T>  &dest,
 	UG_COND_THROW(mask == 0, "VecScaleAdd: cannot add vectors v1 and v2 because their storage masks are incompatible");
 	dest.set_storage_type(mask);
 
-	VecScaleAdd(*dynamic_cast<T*>(&dest), 	alpha1, *dynamic_cast<const T*>(&v1),
-	            alpha2, *dynamic_cast<const T*>(&v2));
+	VecScaleAdd(*static_cast<T*>(&dest),
+				alpha1, *static_cast<const T*>(&v1),
+	            alpha2, *static_cast<const T*>(&v2));
 }
 
 // dest = alpha1*v1 + alpha2*v2 + alpha3*v3
@@ -500,7 +503,10 @@ inline void VecScaleAdd(ParallelVector<T> &dest,
 	UG_COND_THROW(mask == 0, "VecScaleAdd: cannot add vectors v1 and v2 because their storage masks are incompatible");
 	dest.set_storage_type(mask);
 
-	VecScaleAdd((T&)dest, alpha1, (const T&)v1, alpha2, (const T&)v2, alpha3, (const T&)v3);
+	VecScaleAdd((T&)dest,
+				alpha1, (const T&)v1,
+				alpha2, (const T&)v2,
+				alpha3, (const T&)v3);
 }
 
 // returns scal<a, b>
@@ -518,21 +524,25 @@ inline void VecHadamardProd(ParallelVector<T> &dest, const ParallelVector<T> &v1
 	UG_COND_THROW(mask == 0, "VecHadamardProd: cannot multiply vectors v1 and v2 because their storage masks are incompatible");
 	dest.set_storage_type(mask);
 
-	VecHadamardProd(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v1), *dynamic_cast<const T*>(&v2));
+	VecHadamardProd(*static_cast<T*>(&dest),
+						*static_cast<const T*>(&v1),
+						*static_cast<const T*>(&v2));
 }
 
 // Elementwise exp of a vector
 template<typename T>
 inline void VecExp(ParallelVector<T> &dest, const ParallelVector<T> &v)
 {
-	VecExp(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v));
+	VecExp(*static_cast<T*>(&dest),
+				 *static_cast<const T*>(&v));
 }
 
 // Elementwise log (natural logarithm) of a vector
 template<typename T>
 inline void VecLog(ParallelVector<T> &dest, const ParallelVector<T> &v)
 {
-	VecLog(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v));
+	VecLog(*static_cast<T*>(&dest),
+				*static_cast<const T*>(&v));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -549,7 +559,7 @@ bool CloneVector(ParallelVector<TVector> &dest, const ParallelVector<TVector>& s
 template<typename TVector>
 ParallelVector<TVector>* ParallelVector<TVector>::virtual_clone() const
 {
-	ParallelVector<TVector>* pVec = new ParallelVector<TVector>();
+	auto* pVec = new ParallelVector();
 	*pVec = *this;
 	return pVec;
 }
@@ -557,13 +567,13 @@ ParallelVector<TVector>* ParallelVector<TVector>::virtual_clone() const
 template<typename TVector>
 SmartPtr<ParallelVector<TVector> > ParallelVector<TVector>::clone() const
 {
-	return SmartPtr<ParallelVector<TVector> >(this->virtual_clone());
+	return SmartPtr<ParallelVector >(this->virtual_clone());
 }
 
 template<typename TVector>
 ParallelVector<TVector>* ParallelVector<TVector>::virtual_clone_without_values() const
 {
-	ParallelVector<TVector>* pVec = new ParallelVector<TVector>(this->size());
+	auto* pVec = new ParallelVector(this->size());
 //	pVec->set_storage_type(this->get_storage_mask()); --> undefined is correct
 	pVec->set_layouts(this->layouts());
 	return pVec;
@@ -572,11 +582,11 @@ ParallelVector<TVector>* ParallelVector<TVector>::virtual_clone_without_values()
 template<typename TVector>
 SmartPtr<ParallelVector<TVector> > ParallelVector<TVector>::clone_without_values() const
 {
-	return SmartPtr<ParallelVector<TVector> >(this->virtual_clone_without_values());
+	return SmartPtr<ParallelVector >(this->virtual_clone_without_values());
 }
 
 
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_VECTOR_IMPL__ */
+#endif

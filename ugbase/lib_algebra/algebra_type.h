@@ -102,4 +102,4 @@ class DefaultAlgebra
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_ALGEBRA__ALGEBRA_TYPE__ */
+#endif

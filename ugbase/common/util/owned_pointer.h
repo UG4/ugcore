@@ -88,8 +88,8 @@ class OwnedPtr
 
 		void reset(TPtr p = 0)				{if(m_p) delete m_p; m_p = p;}
 
-		TPtr operator ->() const			{return m_p;}
-		TRef operator *() const				{return *m_p;}
+		TPtr operator->() const			{return m_p;}
+		TRef operator*() const				{return *m_p;}
 
 		TPtr& get() const					{return m_p;}
 

@@ -60,7 +60,7 @@ class FunctionPattern
 {
 	public:
 	///	Default Constructor
-		FunctionPattern(ConstSmartPtr<ISubsetHandler> spSH) :
+		explicit FunctionPattern(ConstSmartPtr<ISubsetHandler> spSH) :
 			m_bLocked(false), m_spSH(spSH)
 		{clear();}
 
@@ -72,31 +72,32 @@ class FunctionPattern
 
 	/// add single solutions of LocalShapeFunctionSetID to the entire domain
 	/**
-	 * \param[in] 	name		name(s) of single solution (comma separated)
+	 * \param[in] 	vName		name(s) of single solution
 	 * \param[in] 	id			Shape Function set id
-	 * \param[in]	dim			Dimension (optional)
 	 */
-		void add(const std::vector<std::string>& vName, LFEID id);
+		void add(const std::vector<std::string>& vName,
+				 LFEID id);
 
 	/// add single solutions of LocalShapeFunctionSetID to selected subsets
 	/**
-	 * \param[in] name			name(s) of single solution (comma separated)
+	 * \param[in] vName			name(s) of single solution (comma separated)
 	 * \param[in] id			Shape Function set id
-	 * \param[in] subsets		Subsets separated by ','
-	 * \param[in] dim			Dimension
+	 * \param[in] vSubset		Subsetnames as a std::vector of strings
 	 */
-		void add(const std::vector<std::string>& vName, LFEID id,
+		void add(const std::vector<std::string>& vName,
+		         LFEID id,
 				 const std::vector<std::string>& vSubset);
 
 	private:
 	/// add single solutions of LocalShapeFunctionSetID to selected subsets
 	/**
-	 * \param[in] name			name(s) of single solution (comma separated)
+	 * \param[in] vName			name(s) of single solution
 	 * \param[in] id			Shape Function set id
-	 * \param[in] SubsetIndices	SubsetGroup, where solution lives
-	 * \param[in] dim			Dimension
+	 * \param[in] ssGrp			SubsetGroup, where solution lives
 	 */
-		void add(const std::vector<std::string>& vName, LFEID id, const SubsetGroup& ssGrp);
+		void add(const std::vector<std::string>& vName,
+				 LFEID id,
+				 const SubsetGroup& ssGrp);
 
 	public:
 	///	lock pattern (i.e. can not be changed then)
@@ -171,7 +172,7 @@ class FunctionPattern
 		}
 
 	/// returns the names of a discrete function
-		std::vector<std::string> names() const
+		[[nodiscard]] std::vector<std::string> names() const
 		{
 			std::vector<std::string> vName(num_fct());
 			for(size_t fct = 0; fct < vName.size(); ++fct)
@@ -215,7 +216,8 @@ class FunctionPattern
 		}
 
 	/// virtual destructor
-		virtual ~FunctionPattern() {}
+		virtual ~FunctionPattern() = default;
+
 
 	protected:
 	///	internal structure to hold all functions
@@ -254,4 +256,4 @@ class FunctionPattern
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__DOF_MANAGER__FUNCTION_PATTERN__ */
+#endif

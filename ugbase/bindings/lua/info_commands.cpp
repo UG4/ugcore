@@ -921,7 +921,7 @@ void LuaList_luaObjects()
 	for(size_t i=0; i<luaObjects.size(); i++)
 	{
 		if(luaObjects[i].compare("_G") == 0) continue;
-		if(luaObjects[i].compare("package") == 0) continue;
+		if(luaObjects[i] == "package") continue;
 		lua_getglobal(L, luaObjects[i].c_str());
 		UG_LOG(left << setw(maxLength) << luaObjects[i]);
 		UG_LOG(" (" << GetLuaTypeString(L, -1) << ")");

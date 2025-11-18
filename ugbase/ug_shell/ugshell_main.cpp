@@ -119,7 +119,7 @@ void ugshell_print_header()
 
 	aux_str = "";
 	aux_str.append("*                    compiled '").append(UGCompileDate()).append("'");
-	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
+	LOG(AppendSpacesToString(aux_str,80-0).append("*\n"));
 
 	aux_str = "";
 	aux_str.append("*                    on '").append(UGBuildHost()).append("'");

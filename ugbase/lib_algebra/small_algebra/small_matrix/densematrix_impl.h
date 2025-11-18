@@ -231,7 +231,7 @@ DenseMatrix<TStorage>::operator - (const this_type &other ) const
 ////// unary -
 template<typename TStorage>
 DenseMatrix<TStorage> 
-DenseMatrix<TStorage>::operator - () const
+DenseMatrix<TStorage>::operator-() const
 {
 	this_type erg;
 	erg.resize(num_rows(), num_cols());
@@ -445,4 +445,4 @@ inline bool IsFiniteAndNotTooBig(const DenseMatrix<T> &m)
 }
 } // namespace ug
 
-#endif // __H__UG__COMMON__DENSEMATRIX_IMPL_H__
+#endif

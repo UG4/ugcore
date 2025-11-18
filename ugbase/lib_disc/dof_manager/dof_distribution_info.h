@@ -55,7 +55,7 @@ class DoFDistributionInfo : public FunctionPattern
 
 	public:
 		/// constructor
-		DoFDistributionInfo(ConstSmartPtr<ISubsetHandler> spSH);
+		explicit DoFDistributionInfo(ConstSmartPtr<ISubsetHandler> spSH);
 
 		///	initializes the DoFs
 		void init();
@@ -152,7 +152,7 @@ class DoFDistributionInfo : public FunctionPattern
 class DoFDistributionInfoProvider{
 	public:
 		/// constructor
-		DoFDistributionInfoProvider(ConstSmartPtr<DoFDistributionInfo> spDDI)
+		explicit DoFDistributionInfoProvider(ConstSmartPtr<DoFDistributionInfo> spDDI)
 			: m_spDDI(spDDI)
 		{}
 
@@ -283,4 +283,4 @@ class DoFDistributionInfoProvider{
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__DOF_MANAGER__DOF_DISTRIBUTION_INFO__ */
+#endif

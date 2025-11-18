@@ -212,17 +212,17 @@ class UG_API GridObjectCollection
 								ElementStorage<Face>::SectionContainer* faceCon,
 								ElementStorage<Volume>::SectionContainer* volCon);
 
-			ElementStorage<Vertex>::SectionContainer*	vrtContainer;
-			ElementStorage<Edge>::SectionContainer*		edgeContainer;
-			ElementStorage<Face>::SectionContainer*			faceContainer;
-			ElementStorage<Volume>::SectionContainer*		volContainer;
+			ElementStorage<Vertex>::SectionContainer* vrtContainer;
+			ElementStorage<Edge>::SectionContainer* edgeContainer;
+			ElementStorage<Face>::SectionContainer* faceContainer;
+			ElementStorage<Volume>::SectionContainer* volContainer;
 		};
 
 		using ContainerVec = std::vector<ContainerCollection>;
 		//using GOCVec = std::vector<GridObjectCollection>;
 
 	protected:
-		ContainerVec	m_levels;
+		ContainerVec m_levels;
 };
 
 /// @}

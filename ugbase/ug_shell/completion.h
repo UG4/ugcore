@@ -40,4 +40,4 @@ void SetOtherCompletions(const char **otherCompletions, int nr);
 }
 
 
-#endif /* COMPLETION_H_ */
+#endif

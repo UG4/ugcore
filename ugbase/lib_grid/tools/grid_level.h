@@ -147,4 +147,4 @@ std::string GridLevelAppendix(const GridLevel& gl, int minfill = 2);
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_GRID__TOOLS__GRID_LEVEL__ */
+#endif

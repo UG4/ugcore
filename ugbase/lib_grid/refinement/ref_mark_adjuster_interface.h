@@ -65,7 +65,7 @@ class IRefMarkAdjuster
 			m_nodeDependencyOrder1(true)
 		{}
 
-		virtual ~IRefMarkAdjuster()	{}
+		virtual ~IRefMarkAdjuster()	= default;
 
 		virtual void ref_marks_changed(IRefiner& ref,
 										const std::vector<Vertex*>& vrts,
@@ -79,7 +79,7 @@ class IRefMarkAdjuster
 										const std::vector<Edge*>& edges,
 										const std::vector<Face*>& faces,
 										const std::vector<Volume*>& vols)
-		{return;}
+		{}
 
 		virtual void enable(bool enable)	{m_enabled = enable;}
 		virtual bool enabled() const		{return m_enabled;}
@@ -96,8 +96,8 @@ class IRefMarkAdjuster
 	/**	\} */
 
 	private:
-		bool	m_enabled;
-		bool	m_nodeDependencyOrder1;
+		bool m_enabled;
+		bool m_nodeDependencyOrder1;
 };
 
 using SPIRefMarkAdjuster = SmartPtr<IRefMarkAdjuster>;

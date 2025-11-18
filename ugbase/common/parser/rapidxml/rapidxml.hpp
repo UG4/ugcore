@@ -1386,7 +1386,7 @@ namespace rapidxml
             parse_bom<Flags>(text);
             
             // Parse children
-            while (1)
+            while (true)
             {
                 // Skip whitespace before node
                 skip<whitespace_pred, Flags>(text);
@@ -1648,7 +1648,7 @@ namespace rapidxml
                             {
                                 unsigned long code = 0;
                                 src += 3;   // Skip &#x
-                                while (1)
+                                while (true)
                                 {
                                     unsigned char digit = internal::lookup_tables<0>::lookup_digits[static_cast<unsigned char>(*src)];
                                     if (digit == 0xFF)
@@ -1662,7 +1662,7 @@ namespace rapidxml
                             {
                                 unsigned long code = 0;
                                 src += 2;   // Skip &#
-                                while (1)
+                                while (true)
                                 {
                                     unsigned char digit = internal::lookup_tables<0>::lookup_digits[static_cast<unsigned char>(*src)];
                                     if (digit == 0xFF)
@@ -2163,7 +2163,7 @@ namespace rapidxml
         void parse_node_contents(Ch *&text, xml_node<Ch> *node)
         {
             // For all children and text
-            while (1)
+            while (true)
             {
                 // Skip whitespace between > and node contents
                 Ch *contents_start = text;      // Store start of node contents before whitespace is skipped

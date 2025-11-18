@@ -121,4 +121,4 @@ void SnapToHorizontalRaster(
 
 }//	end of namespace
 
-#endif	//__H__UG_horizontal_layers_mesher
+#endif

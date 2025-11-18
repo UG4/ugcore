@@ -42,13 +42,13 @@ namespace hex_rules{
 ////////////////////////////////////////////////////////////////////////////////
 //	LOOKUP TABLES
 
-const int NUM_VERTICES	= 8;
-const int NUM_EDGES		= 12;
-const int NUM_FACES		= 6;
-const int NUM_TRIS		= 0;
-const int NUM_QUADS		= 6;
-const int MAX_NUM_INDS_OUT = 256;//todo: this is just an estimate!
-const int MAX_NUM_CONVERT_TO_TETS_INDS_OUT = 30;
+constexpr int NUM_VERTICES = 8;
+constexpr int NUM_EDGES = 12;
+constexpr int NUM_FACES = 6;
+constexpr int NUM_TRIS = 0;
+constexpr int NUM_QUADS = 6;
+constexpr int MAX_NUM_INDS_OUT = 256;//todo: this is just an estimate!
+constexpr int MAX_NUM_CONVERT_TO_TETS_INDS_OUT = 30;
 
 ///	the local vertex indices of the given edge
 const int EDGE_VRT_INDS[][2] = {	{0, 1}, {1, 2}, {2, 3}, {3, 0},

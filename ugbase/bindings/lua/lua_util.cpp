@@ -198,20 +198,20 @@ bool LoadUGScript_Single(const char* filename)
 	return LoadUGScript(filename, false, true);
 }
 
-static ug::bridge::Registry* g_pRegistry = nullptr;
+static bridge::Registry* g_pRegistry = nullptr;
 
-static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
+static void UpdateScriptAfterRegistryChange(bridge::Registry* pReg)
 {
 	PROFILE_FUNC();
 	UG_ASSERT(pReg == g_pRegistry, "static g_pRegistry does not match parameter pReg, someone messed up the registries!");
 	
 //	this can be called since CreateBindings automatically avoids
 //	double registration
-	ug::bridge::lua::CreateBindings_LUA(GetDefaultLuaState(),
+	bridge::lua::CreateBindings_LUA(GetDefaultLuaState(),
 										*pReg);
 }
 
-void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp)
+void RegisterDefaultLuaBridge(bridge::Registry* reg, std::string grp)
 {
 	if(reg->functionname_registered("ug_load_script"))
 		return;
@@ -247,7 +247,7 @@ lua_State* GetDefaultLuaState()
 		PROFILE_BEGIN(CreateLUARegistry);
 		if(!g_pRegistry){
 		//	store a pointer to the registry and avoid multiple callback registration
-			g_pRegistry = &ug::bridge::GetUGRegistry();
+			g_pRegistry = &bridge::GetUGRegistry();
 			g_pRegistry->add_callback(UpdateScriptAfterRegistryChange);
 		}
 		
@@ -277,7 +277,7 @@ lua_State* GetDefaultLuaState()
 		lua_register(theLuaState, "ug_class_group", UGGetClassGroup);
 
 	//	create lua bindings for registered functions and objects
-		ug::bridge::lua::CreateBindings_LUA(theLuaState, *g_pRegistry);
+		bridge::lua::CreateBindings_LUA(theLuaState, *g_pRegistry);
 	}
 	
 	return theLuaState;
@@ -292,7 +292,6 @@ void ReleaseDefaultLuaState()
 		theLuaState = nullptr;
 	}
 	FinalizeLUADebug();
-	return;
 }
 
 
@@ -300,7 +299,7 @@ void ReleaseDefaultLuaState()
 int luaCallStackError( lua_State *L )
 {
 	UG_LOG("LUA-ERROR! Call stack:\n");
-    ug::bridge::LuaStackTrace(0);
+    bridge::LuaStackTrace(0);
     return 1;
 }
 
@@ -328,8 +327,7 @@ bool ParseAndExecuteBuffer(const char* buffer, const char *bufferName)
 		lua_pop(L, 1);
 		if(msg.find("__UG__LUA__EMPTY__MSG__") == string::npos)
 			throw(LuaError(msg.c_str()));
-		else
-			throw(LuaError());
+		throw(LuaError());
 	}
 
 	return true;
@@ -447,7 +445,7 @@ int UGGetClassName(lua_State *L)
 	{
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const ug::bridge::ClassNameNode* classNameNode = (const ug::bridge::ClassNameNode*) lua_touserdata(L, -1);
+		const bridge::ClassNameNode* classNameNode = static_cast<const bridge::ClassNameNode *>(lua_touserdata(L, -1));
 		lua_pop(L, 2);
 
 		if(classNameNode)
@@ -468,7 +466,7 @@ int UGGetClassGroup(lua_State *L)
 	{
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const ug::bridge::ClassNameNode* classNameNode = (const ug::bridge::ClassNameNode*) lua_touserdata(L, -1);
+		const bridge::ClassNameNode* classNameNode = (const bridge::ClassNameNode*) lua_touserdata(L, -1);
 		lua_pop(L, 2);
 
 		if(classNameNode)
@@ -500,7 +498,7 @@ int UGIsBaseClass(lua_State *L)
 	{
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const ug::bridge::ClassNameNode* classNameNode = (const ug::bridge::ClassNameNode*) lua_touserdata(L, -1);
+		const bridge::ClassNameNode* classNameNode = (const bridge::ClassNameNode*) lua_touserdata(L, -1);
 		lua_pop(L, 2);
 
 		if(classNameNode)

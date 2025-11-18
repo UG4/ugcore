@@ -58,67 +58,67 @@
 # to use cmake 2.8.7:
 # module load tools/cmake/2.8.7
 
-SET(STATIC_BUILD ON CACHE FORCE "")
+set (STATIC_BUILD ON CACHE FORCE "")
 
-SET(HERMIT_CMAKE OFF)
-IF(CMAKE_VERSION)
- SET(HERMIT_CMAKE ON)
- IF(${CMAKE_VERSION} STRLESS "2.8.7")
-  SET(HERMIT_CMAKE OFF)
-  ENDIF()
-ENDIF()
+set (HERMIT_CMAKE OFF)
+if (CMAKE_VERSION)
+    set (HERMIT_CMAKE ON)
+ if (${CMAKE_VERSION} STRLESS "2.8.7")
+     set (HERMIT_CMAKE OFF)
+  endif ()
+endif ()
 
-IF(HERMIT_CMAKE)
+if (HERMIT_CMAKE)
     # cmake >= 2.8.7 has Hermit.cmake
-    SET(CMAKE_SYSTEM_NAME Hermit)
-ELSE()
+    set (CMAKE_SYSTEM_NAME Hermit)
+else ()
     # emulating Hermit.cmake
     # this is needed to get rid of -rdynamic flag...
-    SET(CMAKE_SYSTEM_NAME Catamount)
-    
-    SET(MPI_Fortran_NO_INTERROGATE CMAKE_Fortran_COMPILER)
-    SET(MPI_LIBRARY -L$(MPICH_DIR)/lib)
-    SET(MPI_EXTRA_LIBRARY -L$(MPICH_DIR)/lib)
-    SET(BLA_STATIC ON)
-    SET(BLA_VENDOR All)
-    SET(BLAS_FIND_QUIETLY ON)
-    SET(LAPACK_FIND_QUIETLY ON)
-    SET(LAPACK_LIBRARIES "/opt/xt-libsci/11.0.05/cray/74/interlagos/lib/libsci_cray.a")
+    set (CMAKE_SYSTEM_NAME Catamount)
+
+    set (MPI_Fortran_NO_INTERROGATE CMAKE_Fortran_COMPILER)
+    set (MPI_LIBRARY -L$(MPICH_DIR)/lib)
+    set (MPI_EXTRA_LIBRARY -L$(MPICH_DIR)/lib)
+    set (BLA_STATIC ON)
+    set (BLA_VENDOR All)
+    set (BLAS_FIND_QUIETLY ON)
+    set (LAPACK_FIND_QUIETLY ON)
+    set (LAPACK_LIBRARIES "/opt/xt-libsci/11.0.05/cray/74/interlagos/lib/libsci_cray.a")
     
     # Cray is not recognized by Cmake < 2.8.7
-    EXECUTE_PROCESS(
+    EXECUTE_PROCESS (
 	        COMMAND "CC" "-V"
 	        OUTPUT_VARIABLE cxx_compiler_string
 	        ERROR_VARIABLE cxx_compiler_string
      )
-	IF(${cxx_compiler_string} MATCHES ".*\nCray.*")
-		SET(CMAKE_CXX_COMPILER_ID "Cray")
-		SET(CMAKE_CXX_COMPILER_ID_RUN 1)
-	ENDIF()
+	if (${cxx_compiler_string} MATCHES ".*\nCray.*")
+        set (CMAKE_CXX_COMPILER_ID "Cray")
+        set (CMAKE_CXX_COMPILER_ID_RUN 1)
+	endif ()
 	
-	EXECUTE_PROCESS(
+	EXECUTE_PROCESS (
 	        COMMAND "cc" "-V"
 	        OUTPUT_VARIABLE c_compiler_string
 	        ERROR_VARIABLE c_compiler_string
      )
-	IF(${c_compiler_string} MATCHES ".*\nCray.*")
-		SET(CMAKE_C_COMPILER_ID "Cray")
-		SET(CMAKE_C_COMPILER_ID_RUN 1)
-	ENDIF()
+	if (${c_compiler_string} MATCHES ".*\nCray.*")
+        set (CMAKE_C_COMPILER_ID "Cray")
+        set (CMAKE_C_COMPILER_ID_RUN 1)
+	endif ()
     
-ENDIF()
+endif ()
 
 
-SET(CMAKE_Fortran_COMPILER ftn)
+set (CMAKE_Fortran_COMPILER ftn)
 
-SET(CMAKE_C_COMPILER cc CACHE FORCE "")
-SET(CMAKE_CXX_COMPILER CC CACHE FORCE "")
+set (CMAKE_C_COMPILER cc CACHE FORCE "")
+set (CMAKE_CXX_COMPILER CC CACHE FORCE "")
 
 # be sure that module xt-libsci is loaded
-SET(BUILTIN_LAPACK YES CACHE FORCE "")
-SET(BUILTIN_BLAS YES CACHE FORCE "")
-SET(BUILTIN_MPI YES CACHE FORCE "")
+set (BUILTIN_LAPACK YES CACHE FORCE "")
+set (BUILTIN_BLAS YES CACHE FORCE "")
+set (BUILTIN_MPI YES CACHE FORCE "")
 
 # add the CLOCK_FIX, see ugbase/ug_shell/clock_fix.cpp
-SET(CLOCK_FIX ON CACHE FORCE "")
+set (CLOCK_FIX ON CACHE FORCE "")
 

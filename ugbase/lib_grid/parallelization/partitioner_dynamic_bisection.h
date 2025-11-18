@@ -54,7 +54,7 @@ namespace ug{
  *	- 'enableZCuts' (bool)
  */
 template <class TElem, int dim>
-class Partitioner_DynamicBisection : public IPartitioner{
+class Partitioner_DynamicBisection : public IPartitioner {
 	public:
 		using base_class = IPartitioner;
 		using elem_t = TElem;
@@ -65,12 +65,13 @@ class Partitioner_DynamicBisection : public IPartitioner{
 		using layout_t = typename GridLayoutMap::Types<elem_t>::Layout::LevelLayout;
 
 		Partitioner_DynamicBisection();
-		virtual ~Partitioner_DynamicBisection();
+
+		~Partitioner_DynamicBisection() override;
 
 		void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos);
 
 	///	allows to optionally specify a subset-handler on which the balancer shall operate
-		void set_subset_handler(SmartPtr<SubsetHandler> sh);
+		void set_subset_handler(SmartPtr<SubsetHandler> sh) override;
 
 	///	sets the tolerance threshold. 1: no tolerance, 0: full tolerance.
 	/**	the tolerance is defaulted to 0.99*/
@@ -90,33 +91,38 @@ class Partitioner_DynamicBisection : public IPartitioner{
 		void set_start_split_axis(int axis)			{m_startSplitAxis = axis;}
 
 	///	the maximum number of iterations performed to find a good split plane
-		int num_split_improvement_iterations() const	{return m_splitImproveIterations;}
+		[[nodiscard]] int num_split_improvement_iterations() const {return m_splitImproveIterations;}
 		void set_num_split_improvement_iterations(int num)	{m_splitImproveIterations = num;}
-		
-		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
-		virtual void set_balance_weights(SPBalanceWeights balanceWeights);
+
+		void set_next_process_hierarchy(SPProcessHierarchy procHierarchy) override;
+
+		void set_balance_weights(SPBalanceWeights balanceWeights) override;
 //		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> >);
 
-		virtual void set_partition_pre_processor(SPPartitionPreProcessor ppp);
-		virtual void set_partition_post_processor(SPPartitionPostProcessor ppp);
+		void set_partition_pre_processor(SPPartitionPreProcessor ppp) override;
 
-		virtual ConstSPProcessHierarchy current_process_hierarchy() const;
-		virtual ConstSPProcessHierarchy next_process_hierarchy() const;
+		void set_partition_post_processor(SPPartitionPostProcessor ppp) override;
 
-		virtual bool supports_balance_weights() const;
-		virtual bool supports_connection_weights() const;
-		virtual bool supports_repartitioning() const			{return false;}
+		[[nodiscard]] ConstSPProcessHierarchy current_process_hierarchy() const override;
 
-		virtual bool partition(size_t baseLvl, size_t elementThreshold);
+		[[nodiscard]] ConstSPProcessHierarchy next_process_hierarchy() const override;
 
-		virtual SubsetHandler& get_partitions();
-		virtual const std::vector<int>* get_process_map() const;
+		[[nodiscard]] bool supports_balance_weights() const override;
+		[[nodiscard]] virtual bool supports_connection_weights() const;
+
+		bool supports_repartitioning() const override {return false;}
+
+		bool partition(size_t baseLvl, size_t elementThreshold) override;
+
+		SubsetHandler& get_partitions() override;
+
+		[[nodiscard]] const std::vector<int>* get_process_map() const override;
 
 	/**	static partitioning should be used if a globally refined multigrid is
 	 * is used throughout a simulation. Static partitioning drastically reduces
 	 * global communication. The drawback is, that static partitioning e.g.
 	 * can't be used to properly rebalance a distributed adaptive grid.*/
-		void enable_static_partitioning(bool enable);
+		void enable_static_partitioning(bool enable) override;
 		bool static_partitioning_enabled() const;
 
 	private:

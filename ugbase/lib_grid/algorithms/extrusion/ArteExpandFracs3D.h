@@ -74,7 +74,7 @@ public:
 		    std::vector<FractureInfo> const & fracInfos,
 			bool useTrianglesInDiamonds, bool establishDiamonds );
 
-	virtual ~ArteExpandFracs3D();
+	virtual ~ArteExpandFracs3D() = default;
 
 
 public:

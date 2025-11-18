@@ -25,7 +25,7 @@
 # - added BLAS_INCLUDE_DIR, BLAS_DEFINITIONS and BLAS_LIBRARIES_DIR
 # - removed BLAS95_LIBRARIES
 
-include(CheckFunctionExists)
+include (CheckFunctionExists)
 
 
 # This macro checks for the existence of the combination of fortran libraries
@@ -38,96 +38,97 @@ include(CheckFunctionExists)
 # Otherwise, LIBRARIES is set to FALSE.
 # N.B. _prefix is the prefix applied to the names of all cached variables that
 # are generated internally and marked advanced by this macro.
-macro(check_fortran_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _path _andpaths)
+macro (check_fortran_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _path _andpaths)
  #message("DEBUG: check_fortran_libraries(${_list} in ${_path} and ${_andpaths})")
 
   # Check for the existence of the libraries given by _list
-  set(_libraries_found TRUE)
-  set(_libraries_work FALSE)
-  set(${DEFINITIONS} "")
-  set(${LIBRARIES} "")
-  set(_combined_name)
-  foreach(_library ${_list})
-    set(_combined_name ${_combined_name}_${_library})
-    if(_libraries_found)
+  set (_libraries_found TRUE)
+  set (_libraries_work FALSE)
+  set (${DEFINITIONS} "")
+  set (${LIBRARIES} "")
+  set (_combined_name)
+  foreach (_library ${_list})
+    set (_combined_name ${_combined_name}_${_library})
+    if (_libraries_found)
       # search first in ${_path}
-      find_library(${_prefix}_${_library}_LIBRARY
+      find_library (${_prefix}_${_library}_LIBRARY
                   NAMES ${_library}
                   PATHS ${_path} NO_DEFAULT_PATH
                   )
       # if not found, search in environment variables and system
       if ( WIN32 )
-        find_library(${_prefix}_${_library}_LIBRARY
+        find_library (${_prefix}_${_library}_LIBRARY
                     NAMES ${_library}
                     PATHS ENV LIB
                     )
       elseif ( APPLE )
-        find_library(${_prefix}_${_library}_LIBRARY
+        find_library (${_prefix}_${_library}_LIBRARY
                     NAMES ${_library}
                     PATHS ${_andpaths} ENV DYLD_LIBRARY_PATH
                     )
       else ()
-        find_library(${_prefix}_${_library}_LIBRARY
+        find_library (${_prefix}_${_library}_LIBRARY
                     NAMES ${_library}
                     PATHS ${_andpaths} ENV LD_LIBRARY_PATH
                     )
-      endif()
-      mark_as_advanced(${_prefix}_${_library}_LIBRARY)
-      set(${LIBRARIES} ${${LIBRARIES}} ${${_prefix}_${_library}_LIBRARY})
-      set(_libraries_found ${${_prefix}_${_library}_LIBRARY})
-    endif(_libraries_found)
+      endif ()
+      mark_as_advanced (${_prefix}_${_library}_LIBRARY)
+      set (${LIBRARIES} ${${LIBRARIES}} ${${_prefix}_${_library}_LIBRARY})
+      set (_libraries_found ${${_prefix}_${_library}_LIBRARY})
+    endif ()
+  endforeach ()
 
-  endforeach(_library ${_list})
-  if(_libraries_found)
-    set(_libraries_found ${${LIBRARIES}})
-  endif()
+  if (_libraries_found)
+    set (_libraries_found ${${LIBRARIES}})
+  endif ()
 
   # Test this combination of libraries with the Fortran/f2c interface.
   # We test the Fortran interface first as it is well standardized.
-  if(_libraries_found AND NOT _libraries_work)
-    set(${DEFINITIONS}  "-D${_prefix}_USE_F2C")
-    set(${LIBRARIES}    ${_libraries_found})
+  if (_libraries_found AND NOT _libraries_work)
+    set (${DEFINITIONS}  "-D${_prefix}_USE_F2C")
+    set (${LIBRARIES}    ${_libraries_found})
     # Some C++ linkers require the f2c library to link with Fortran libraries.
     # I do not know which ones, thus I just add the f2c library if it is available.
-    find_package( F2C QUIET )
+    find_package ( F2C QUIET )
     if ( F2C_FOUND )
-      set(${DEFINITIONS}  ${${DEFINITIONS}} ${F2C_DEFINITIONS})
-      set(${LIBRARIES}    ${${LIBRARIES}} ${F2C_LIBRARIES})
-    endif()
-    set(CMAKE_REQUIRED_DEFINITIONS  ${${DEFINITIONS}})
-    set(CMAKE_REQUIRED_LIBRARIES    ${_flags} ${${LIBRARIES}})
-    #message("DEBUG: CMAKE_REQUIRED_DEFINITIONS = ${CMAKE_REQUIRED_DEFINITIONS}")
+      set (${DEFINITIONS}  ${${DEFINITIONS}} ${F2C_DEFINITIONS})
+      set (${LIBRARIES}    ${${LIBRARIES}} ${F2C_LIBRARIES})
+    endif ()
+
+    set (CMAKE_REQUIRED_DEFINITIONS  ${${DEFINITIONS}})
+    set (CMAKE_REQUIRED_LIBRARIES    ${_flags} ${${LIBRARIES}})
+    #message ("DEBUG: CMAKE_REQUIRED_DEFINITIONS = ${CMAKE_REQUIRED_DEFINITIONS}")
     #message("DEBUG: CMAKE_REQUIRED_LIBRARIES = ${CMAKE_REQUIRED_LIBRARIES}")
     # Check if function exists with f2c calling convention (ie a trailing underscore)
-    check_function_exists(${_name}_ ${_prefix}_${_name}_${_combined_name}_f2c_WORKS)
-    set(CMAKE_REQUIRED_DEFINITIONS} "")
-    set(CMAKE_REQUIRED_LIBRARIES    "")
-    mark_as_advanced(${_prefix}_${_name}_${_combined_name}_f2c_WORKS)
-    set(_libraries_work ${${_prefix}_${_name}_${_combined_name}_f2c_WORKS})
-  endif(_libraries_found AND NOT _libraries_work)
+    check_function_exists (${_name}_ ${_prefix}_${_name}_${_combined_name}_f2c_WORKS)
+    set (CMAKE_REQUIRED_DEFINITIONS} "")
+    set (CMAKE_REQUIRED_LIBRARIES    "")
+    mark_as_advanced (${_prefix}_${_name}_${_combined_name}_f2c_WORKS)
+    set (_libraries_work ${${_prefix}_${_name}_${_combined_name}_f2c_WORKS})
+  endif ()
 
   # If not found, test this combination of libraries with a C interface.
   # A few implementations (ie ACML) provide a C interface. Unfortunately, there is no standard.
-  if(_libraries_found AND NOT _libraries_work)
-    set(${DEFINITIONS} "")
-    set(${LIBRARIES}   ${_libraries_found})
-    set(CMAKE_REQUIRED_DEFINITIONS "")
-    set(CMAKE_REQUIRED_LIBRARIES   ${_flags} ${${LIBRARIES}})
+  if (_libraries_found AND NOT _libraries_work)
+    set (${DEFINITIONS} "")
+    set (${LIBRARIES}   ${_libraries_found})
+    set (CMAKE_REQUIRED_DEFINITIONS "")
+    set (CMAKE_REQUIRED_LIBRARIES   ${_flags} ${${LIBRARIES}})
     #message("DEBUG: CMAKE_REQUIRED_LIBRARIES = ${CMAKE_REQUIRED_LIBRARIES}")
-    check_function_exists(${_name} ${_prefix}_${_name}${_combined_name}_WORKS)
-    set(CMAKE_REQUIRED_LIBRARIES "")
-    mark_as_advanced(${_prefix}_${_name}${_combined_name}_WORKS)
-    set(_libraries_work ${${_prefix}_${_name}${_combined_name}_WORKS})
-  endif(_libraries_found AND NOT _libraries_work)
+    check_function_exists (${_name} ${_prefix}_${_name}${_combined_name}_WORKS)
+    set (CMAKE_REQUIRED_LIBRARIES "")
+    mark_as_advanced (${_prefix}_${_name}${_combined_name}_WORKS)
+    set (_libraries_work ${${_prefix}_${_name}${_combined_name}_WORKS})
+  endif ()
 
   # on failure
-  if(NOT _libraries_work)
-    set(${DEFINITIONS} "")
-    set(${LIBRARIES}   FALSE)
-  endif()
+  if (NOT _libraries_work)
+    set (${DEFINITIONS} "")
+    set (${LIBRARIES}   FALSE)
+  endif ()
   #message("DEBUG: ${DEFINITIONS} = ${${DEFINITIONS}}")
   #message("DEBUG: ${LIBRARIES} = ${${LIBRARIES}}")
-endmacro(check_fortran_libraries)
+endmacro ()
 
 
 #
@@ -136,22 +137,19 @@ endmacro(check_fortran_libraries)
 
 # Is it already configured?
 if (BLAS_LIBRARIES_DIR OR BLAS_LIBRARIES)
-
-  set(BLAS_FOUND TRUE)
+  set (BLAS_FOUND TRUE)
 
 else()
 
   # reset variables
-  set( BLAS_INCLUDE_DIR "" )
-  set( BLAS_DEFINITIONS "" )
-  set( BLAS_LINKER_FLAGS "" )
-  set( BLAS_LIBRARIES "" )
-  set( BLAS_LIBRARIES_DIR "" )
-  
-  set(BLAS_SEARCH_PATHS 
-      "${CGAL_TAUCS_LIBRARIES_DIR} $ENV{BLAS_LIB_DIR}")
-  
-  set(BLAS_UNIX_SEARCH_PATHS
+  set ( BLAS_INCLUDE_DIR "" )
+  set ( BLAS_DEFINITIONS "" )
+  set ( BLAS_LINKER_FLAGS "" )
+  set ( BLAS_LIBRARIES "" )
+  set ( BLAS_LIBRARIES_DIR "" )
+  set (BLAS_SEARCH_PATHS "${CGAL_TAUCS_LIBRARIES_DIR} $ENV{BLAS_LIB_DIR}")
+
+  set (BLAS_UNIX_SEARCH_PATHS
       "/usr/local/lib;/usr/lib/atlas;/usr/lib;/usr/local/lib64;/usr/lib64/atlas;/usr/lib64")
 
     #
@@ -159,7 +157,7 @@ else()
     #
     
     # BLAS in ESSL library on JuQueen?
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -169,11 +167,11 @@ else()
       "esslbg;xlf90_r;xlfmath;xl;m;rt;dl;pthread"  #leaving out xlopt; not needed?
       "/opt/ibmmath/lib64;/opt/ibmcmp/xlf/14.1/lib64" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
 
     # BLAS in ATLAS library? (http://math-atlas.sourceforge.net/)
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -183,10 +181,10 @@ else()
       "cblas;f77blas;atlas;gfortran;m"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     # BLAS in ATLAS 3.x library?
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -196,10 +194,10 @@ else()
       "satlas"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     # BLAS in PhiPACK libraries? (requires generic BLAS lib, too)
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -209,10 +207,10 @@ else()
       "sgemm;dgemm;blas"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     # BLAS in Alpha CXML library?
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -222,10 +220,10 @@ else()
       "cxml"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     # BLAS in Alpha DXML library? (now called CXML, see above)
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -235,10 +233,10 @@ else()
       "dxml"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     # BLAS in Sun Performance library?
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -248,14 +246,14 @@ else()
       "sunperf;sunmath"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-      if(BLAS_LIBRARIES)
+      if (BLAS_LIBRARIES)
         # Extra linker flag
-        set(BLAS_LINKER_FLAGS "-xlic_lib=sunperf")
-      endif()
-    endif()
+        set (BLAS_LINKER_FLAGS "-xlic_lib=sunperf")
+      endif ()
+    endif ()
 
     # BLAS in SCSL library?  (SGI/Cray Scientific Library)
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -265,10 +263,10 @@ else()
       "scsl"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     # BLAS in SGIMATH library?
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -278,10 +276,10 @@ else()
       "complib.sgimath"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     # BLAS in IBM ESSL library? (requires generic BLAS lib, too)
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -291,10 +289,10 @@ else()
       "essl;blas"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     #BLAS in intel mkl 10 library? (em64t 64bit)
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -304,10 +302,10 @@ else()
       "mkl_intel_lp64;mkl_intel_thread;mkl_core;guide;pthread"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     #JURECA: BLAS in intel mkl library? (em64t 64bit)
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -317,10 +315,10 @@ else()
       "mkl_intel_lp64;mkl_intel_thread;mkl_core;mkl_intel_thread;iomp5;pthread"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     ### windows version of intel mkl 10?
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -330,12 +328,12 @@ else()
       "mkl_c_dll;mkl_intel_thread_dll;mkl_core_dll;libguide40"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     #older versions of intel mkl libs
 
     # BLAS in intel mkl library? (shared)
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -345,10 +343,10 @@ else()
       "mkl;guide;pthread"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     #BLAS in intel mkl library? (static, 32bit)
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -358,10 +356,10 @@ else()
       "mkl_ia32;guide;pthread"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     #BLAS in intel mkl library? (static, em64t 64bit)
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -371,10 +369,10 @@ else()
       "mkl_em64t;guide;pthread"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     #BLAS in acml library?
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -384,10 +382,10 @@ else()
       "acml"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     # Apple BLAS library?
-    if(NOT BLAS_LIBRARIES)
+    if (NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_DEFINITIONS
       BLAS_LIBRARIES
@@ -397,7 +395,7 @@ else()
       "Accelerate"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
     if ( NOT BLAS_LIBRARIES )
       check_fortran_libraries(
@@ -409,7 +407,7 @@ else()
       "vecLib"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif ( NOT BLAS_LIBRARIES )
+    endif ()
 
     # Generic BLAS library?
     # This configuration *must* be the last try as this library is notably slow.
@@ -423,43 +421,43 @@ else()
       "blas"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
-    endif()
+    endif ()
 
-  if(BLAS_LIBRARIES_DIR OR BLAS_LIBRARIES)
-    set(BLAS_FOUND TRUE)
-  else()
-    set(BLAS_FOUND FALSE)
-  endif()
+  if (BLAS_LIBRARIES_DIR OR BLAS_LIBRARIES)
+    set (BLAS_FOUND TRUE)
+  else ()
+    set (BLAS_FOUND FALSE)
+  endif ()
 
-  if(NOT BLAS_FIND_QUIETLY)
-    if(BLAS_FOUND)
-      message(STATUS "A library with BLAS API found.")
-    else(BLAS_FOUND)
-      if(BLAS_FIND_REQUIRED)
-        message(FATAL_ERROR "A required library with BLAS API not found. Please specify library location.")
-      else()
-        message(STATUS "A library with BLAS API not found. Please specify library location.")
-      endif()
-    endif(BLAS_FOUND)
-  endif(NOT BLAS_FIND_QUIETLY)
+  if (NOT BLAS_FIND_QUIETLY)
+    if (BLAS_FOUND)
+      message (STATUS "A library with BLAS API found.")
+    else (BLAS_FOUND)
+      if (BLAS_FIND_REQUIRED)
+        message (FATAL_ERROR "A required library with BLAS API not found. Please specify library location.")
+      else ()
+        message (STATUS "A library with BLAS API not found. Please specify library location.")
+      endif ()
+    endif ()
+  endif ()
 
   # Add variables to cache
-  set( BLAS_INCLUDE_DIR   "${BLAS_INCLUDE_DIR}"
+  set ( BLAS_INCLUDE_DIR   "${BLAS_INCLUDE_DIR}"
                           CACHE PATH "Directories containing the BLAS header files" FORCE )
-  set( BLAS_DEFINITIONS   "${BLAS_DEFINITIONS}"
+  set ( BLAS_DEFINITIONS   "${BLAS_DEFINITIONS}"
                           CACHE STRING "Compilation options to use BLAS" FORCE )
-  set( BLAS_LINKER_FLAGS  "${BLAS_LINKER_FLAGS}"
+  set ( BLAS_LINKER_FLAGS  "${BLAS_LINKER_FLAGS}"
                           CACHE STRING "Linker flags to use BLAS" FORCE )
-  set( BLAS_LIBRARIES     "${BLAS_LIBRARIES}"
+  set ( BLAS_LIBRARIES     "${BLAS_LIBRARIES}"
                           CACHE FILEPATH "BLAS libraries name" FORCE )
-  set( BLAS_LIBRARIES_DIR "${BLAS_LIBRARIES_DIR}"
+  set ( BLAS_LIBRARIES_DIR "${BLAS_LIBRARIES_DIR}"
                           CACHE PATH "Directories containing the BLAS libraries" FORCE )
 
-  #message("DEBUG: BLAS_INCLUDE_DIR = ${BLAS_INCLUDE_DIR}")
-  #message("DEBUG: BLAS_DEFINITIONS = ${BLAS_DEFINITIONS}")
-  #message("DEBUG: BLAS_LINKER_FLAGS = ${BLAS_LINKER_FLAGS}")
-  #message("DEBUG: BLAS_LIBRARIES = ${BLAS_LIBRARIES}")
-  #message("DEBUG: BLAS_LIBRARIES_DIR = ${BLAS_LIBRARIES_DIR}")
-  #message("DEBUG: BLAS_FOUND = ${BLAS_FOUND}")
+  #message ("DEBUG: BLAS_INCLUDE_DIR = ${BLAS_INCLUDE_DIR}")
+  #message ("DEBUG: BLAS_DEFINITIONS = ${BLAS_DEFINITIONS}")
+  #message ("DEBUG: BLAS_LINKER_FLAGS = ${BLAS_LINKER_FLAGS}")
+  #message ("DEBUG: BLAS_LIBRARIES = ${BLAS_LIBRARIES}")
+  #message ("DEBUG: BLAS_LIBRARIES_DIR = ${BLAS_LIBRARIES_DIR}")
+  #message ("DEBUG: BLAS_FOUND = ${BLAS_FOUND}")
 
-endif(BLAS_LIBRARIES_DIR OR BLAS_LIBRARIES)
+endif ()

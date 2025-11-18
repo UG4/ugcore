@@ -234,7 +234,7 @@ class UG_API ISubsetHandler : public GridObserver
 
 	///	The traits class holds some important types for each element-type
 		template <class TElem>
-		struct traits{
+		struct traits {
 			using iterator = typename geometry_traits<TElem>::iterator;
 			using const_iterator = typename geometry_traits<TElem>::const_iterator;
 		};
@@ -252,7 +252,7 @@ class UG_API ISubsetHandler : public GridObserver
 
 	/**	The destructor automatically unregisters the subset-handler from the grid.
 	 *	on deregistration erase_subset_lists of the derived class will be called.*/
-		virtual ~ISubsetHandler();
+		~ISubsetHandler() override;
 
 	///	assigns subsets based on the subsets in the given subset-handler
 	/**	Elements of this handler will be assigned to subsets based on their
@@ -371,49 +371,50 @@ class UG_API ISubsetHandler : public GridObserver
 	//	grid callbacks
 		//virtual void registered_at_grid(Grid* grid);
 		//virtual void unregistered_from_grid(Grid* grid);
-		virtual void grid_to_be_destroyed(Grid* grid);
-		virtual void elements_to_be_cleared(Grid* grid);
+		void grid_to_be_destroyed(Grid* grid) override;
+
+		void elements_to_be_cleared(Grid* grid) override;
 
 	//	element callbacks
-		virtual void vertex_created(Grid* grid, Vertex* vrt,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void vertex_created(Grid* grid, Vertex* vrt,
+	                    GridObject* pParent = nullptr,
+	                    bool replacesParent = false) override;
 
-		virtual void edge_created(Grid* grid, Edge* e,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void edge_created(Grid* grid, Edge* e,
+	                  GridObject* pParent = nullptr,
+	                  bool replacesParent = false) override;
 
-		virtual void face_created(Grid* grid, Face* f,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void face_created(Grid* grid, Face* f,
+	                  GridObject* pParent = nullptr,
+	                  bool replacesParent = false) override;
 
-		virtual void volume_created(Grid* grid, Volume* vol,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void volume_created(Grid* grid, Volume* vol,
+	                    GridObject* pParent = nullptr,
+	                    bool replacesParent = false) override;
 
-		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
-										 Vertex* replacedBy = nullptr);
+		void vertex_to_be_erased(Grid* grid, Vertex* vrt,
+	                         Vertex* replacedBy = nullptr) override;
 
-		virtual void edge_to_be_erased(Grid* grid, Edge* e,
-										 Edge* replacedBy = nullptr);
+		void edge_to_be_erased(Grid* grid, Edge* e,
+	                       Edge* replacedBy = nullptr) override;
 
-		virtual void face_to_be_erased(Grid* grid, Face* f,
-										 Face* replacedBy = nullptr);
+		void face_to_be_erased(Grid* grid, Face* f,
+	                       Face* replacedBy = nullptr) override;
 
-		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
-										 Volume* replacedBy = nullptr);
+		void volume_to_be_erased(Grid* grid, Volume* vol,
+	                         Volume* replacedBy = nullptr) override;
 
-		virtual void vertices_to_be_merged(Grid* grid, Vertex* target,
-										 Vertex* elem1, Vertex* elem2);
+		void vertices_to_be_merged(Grid* grid, Vertex* target,
+	                           Vertex* elem1, Vertex* elem2) override;
 
-		virtual void edges_to_be_merged(Grid* grid, Edge* target,
-										 Edge* elem1, Edge* elem2);
+		void edges_to_be_merged(Grid* grid, Edge* target,
+	                        Edge* elem1, Edge* elem2) override;
 
-		virtual void faces_to_be_merged(Grid* grid, Face* target,
-										 Face* elem1, Face* elem2);
+		void faces_to_be_merged(Grid* grid, Face* target,
+	                        Face* elem1, Face* elem2) override;
 
-		virtual void volumes_to_be_merged(Grid* grid, Volume* target,
-										 Volume* elem1, Volume* elem2);
+		void volumes_to_be_merged(Grid* grid, Volume* target,
+	                          Volume* elem1, Volume* elem2) override;
 
 	//	Virtual methods for derived classes
 	/**	The implementation in a derived class should store the element in a list

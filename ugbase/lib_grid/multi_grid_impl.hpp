@@ -123,8 +123,7 @@ typename geometry_traits<TGeomObj>::iterator
 MultiGrid::create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
 				size_t level)
 {
-	typename geometry_traits<TGeomObj>::iterator iter =
-										Grid::create<TGeomObj>(descriptor);
+	typename geometry_traits<TGeomObj>::iterator iter = Grid::create<TGeomObj>(descriptor);
 //	put the element into the hierarchy
 //	(by default it already was assigned to level 0)
 	if(level > 0){

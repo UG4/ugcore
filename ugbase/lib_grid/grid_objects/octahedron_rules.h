@@ -42,18 +42,18 @@ namespace oct_rules
 ////////////////////////////////////////////////////////////////////////////////
 //	LOOKUP TABLES
 
-const int NUM_VERTICES	= 6;
-const int NUM_EDGES		= 12;
-const int NUM_FACES		= 8;
-const int NUM_TRIS		= 8;
-const int NUM_QUADS		= 0;
+constexpr int NUM_VERTICES = 6;
+constexpr int NUM_EDGES = 12;
+constexpr int NUM_FACES = 8;
+constexpr int NUM_TRIS = 8;
+constexpr int NUM_QUADS = 0;
 
 /* in case of regular refinement an octahedron is subdivided into 14 elements,
  * 6 octahedrons and 8 tetrahedrons, resulting in 14 type-info plus
  * 6*6 octahedral vertex plus 4*8 tetrahedral vertex indices,
  * thus 82 MAX_NUM_INDS_OUT
  */
-const int MAX_NUM_INDS_OUT = 82;//todo: this is just an estimate!
+constexpr int MAX_NUM_INDS_OUT = 82;//todo: this is just an estimate!
 
 ///	the local vertex indices of the given edge
 const int EDGE_VRT_INDS[][2] = {	{0, 1}, {0, 2}, {0, 3}, {0, 4},
@@ -65,10 +65,10 @@ const int FACE_VRT_INDS[][4] = {	{0, 1, 2, -1}, {0, 2, 3, -1}, {0, 3, 4, -1}, {0
 									{1, 5, 2, -1}, {2, 5, 3, -1}, {3, 5, 4, -1}, {4, 5, 1, -1}};
 
 ///	the octhedrons bottom
-const int BOTTOM_VERTEX = 0;
+constexpr int BOTTOM_VERTEX = 0;
 
 ///	the octhedrons top
-const int TOP_VERTEX = 5;
+constexpr int TOP_VERTEX = 5;
 
 /** for each vertex, a pair containing the object type (0: vrt, 1: edge, 2: face)
  * and an index into the associated array, which describe the object which lies

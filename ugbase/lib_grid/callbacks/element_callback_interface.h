@@ -42,14 +42,14 @@ public:
 	ElementCallback () = default;
 	virtual ~ElementCallback ()	= default;
 
-	virtual bool operator() (Vertex* v) const = 0;
-	virtual bool operator() (Edge* e) const = 0;
-	virtual bool operator() (Face* f) const = 0;
-	virtual bool operator() (Volume* v) const = 0;
+	virtual bool operator () (Vertex* v) const = 0;
+	virtual bool operator () (Edge* e) const = 0;
+	virtual bool operator () (Face* f) const = 0;
+	virtual bool operator () (Volume* v) const = 0;
 };
 
 using SPElementCallback = SmartPtr<ElementCallback>;
 
 }//	end of namespace
 
-#endif	//__H__UG_element_callback_interface
+#endif

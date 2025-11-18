@@ -95,10 +95,10 @@ ref_marks_changed(IRefiner& ref,
 		//	make sure that all parents are marked
 			GridObject* co = hv->get_constraining_object();
 			if(co){
-				if(Edge* e = dynamic_cast<Edge*>(co)){
+				if(auto e = dynamic_cast<Edge*>(co)){
 					ref.mark(e);
 				}
-				else if(Face* f = dynamic_cast<Face*>(co)){
+				else if(auto f = dynamic_cast<Face*>(co)){
 					ref.mark(f);
 				}
 			}
@@ -125,17 +125,15 @@ ref_marks_changed(IRefiner& ref,
 		}
 
 	//	depending on the type of the edge, we have to perform different operations
-		if(ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e))
+		if(auto cde = dynamic_cast<ConstrainedEdge*>(e))
 		{
 		//	the edge is a constrained edge. Make sure that its constraining edge
 		//	or face will be refined.
-			if(ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(
-										cde->get_constraining_object()))
+			if(auto cge = dynamic_cast<ConstrainingEdge*>( cde->get_constraining_object()))
 			{
 				ref.mark(cge);
 			}
-			else if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(
-										cde->get_constraining_object()))
+			else if(auto cgf = dynamic_cast<ConstrainingFace*>( cde->get_constraining_object()))
 			{
 				ref.mark(cgf);
 			}
@@ -146,7 +144,7 @@ ref_marks_changed(IRefiner& ref,
 						  << " At: " << GetGridObjectCenter(grid, e));
 			}
 		}
-		else if(ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(e))
+		else if(auto cge = dynamic_cast<ConstrainingEdge*>(e))
 		{
 		//	associated faces and volumes have to be marked
 			if(grid.num_faces() > 0){
@@ -227,10 +225,9 @@ ref_marks_changed(IRefiner& ref,
 		}
 
 	//	constrained and constraining faces require special treatment
-		if(ConstrainedFace* cdf = dynamic_cast<ConstrainedFace*>(f)){
+		if(auto cdf = dynamic_cast<ConstrainedFace*>(f)){
 		//	make sure that its constraining face will be refined
-			if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(
-										cdf->get_constraining_object()))
+			if(auto cgf = dynamic_cast<ConstrainingFace*>( cdf->get_constraining_object()))
 			{
 				ref.mark(cgf);
 			}

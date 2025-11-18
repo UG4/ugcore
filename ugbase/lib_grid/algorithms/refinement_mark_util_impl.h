@@ -69,11 +69,11 @@ void MarkForAnisotropicRefinement (
 		number shortestLenSq = numeric_limits<number>::max();
 		number longestLenSq = 0;
 
-		for_each_in_vec(Edge* e, assEdges){
+		for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){ Edge* e = assEdges[_vfeI];{
 			number lenSq = EdgeLengthSq(e, aaPos);
 			shortestLenSq = min(shortestLenSq, lenSq);
 			longestLenSq = max(longestLenSq, lenSq);
-		}end_for;
+		}};
 
 		if(longestLenSq < SMALL_SQ)
 			continue;
@@ -85,11 +85,11 @@ void MarkForAnisotropicRefinement (
 		ref.mark(elem, RM_ANISOTROPIC);
 	//	refine all edges that are at least half as long as the longest one
 		number thresholdLenSq = shortestLenSq / minEdgeRatioSq;
-		for_each_in_vec(Edge* e, assEdges){
+		for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){ Edge* e = assEdges[_vfeI];{
 			if(EdgeLengthSq(e, aaPos) > thresholdLenSq){
 				ref.mark(e, RM_REFINE);
 			}
-		}end_for;
+		}};
 	}
 }
 

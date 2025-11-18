@@ -106,7 +106,8 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	public:
 		HangingNodeRefinerBase(SPRefinementProjector projector = nullptr);
-		virtual ~HangingNodeRefinerBase();
+
+		~HangingNodeRefinerBase() override;
 
 		virtual void grid_to_be_destroyed(Grid* grid);
 

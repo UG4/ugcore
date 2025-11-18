@@ -58,7 +58,7 @@ enum debug_return
  * @return true
  * @sa debug_return
  */
-UG_API bool RegisterLuaDebug(ug::bridge::Registry &reg);
+UG_API bool RegisterLuaDebug(bridge::Registry &reg);
 
 /**
  * function called when a breakpoint is reached

@@ -74,19 +74,20 @@ enum NeighborhoodType
  * edge/face/volume shall be considered, when collecting neighbors of a vertex.
  * By default, all geometric objects are considered.
  *
- * \param vNeighboursOut 	neighbor vertices
+ * \param vNeighborsOut 	neighbor vertices
  * \param grid 				Grid
- * \param sh				Subset Handler
  * \param vrt				vertex
- * \param subsetIndex		subset index
  * \param nbhType: Accepts or-combinations of any NeighborhoodType
  *					enumerated constants.
+ * \param considerEdge todo
+ * \param considerFace todo
+ * \param considerVol todo
  */
 void CollectNeighbors(std::vector<Vertex*>& vNeighborsOut,
 						Grid& grid, Vertex* vrt, uint nbhType = NHT_EDGE_NEIGHBORS,
-						Grid::edge_traits::callback considerEdge	= ConsiderAll(),
-						Grid::face_traits::callback considerFace	= ConsiderAll(),
-						Grid::volume_traits::callback considerVol	= ConsiderAll());
+						Grid::edge_traits::callback considerEdge = ConsiderAll(),
+						Grid::face_traits::callback considerFace = ConsiderAll(),
+						Grid::volume_traits::callback considerVol = ConsiderAll());
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectNeighbors

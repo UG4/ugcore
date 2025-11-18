@@ -49,12 +49,6 @@ TParallelGlobalRefiner(DistributedGridManager& distGridMgr,
 }
 
 template <class TRefiner>
-TParallelGlobalRefiner<TRefiner>::
-~TParallelGlobalRefiner()
-{
-}
-
-template <class TRefiner>
 bool
 TParallelGlobalRefiner<TRefiner>::
 refinement_is_allowed(Vertex* elem)

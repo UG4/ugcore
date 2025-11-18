@@ -1,6 +1,0 @@
-Tests for UG4
-
-A test is a program compiled against UG4. A test passes if
-- it compiles
-- it runs without error and
-- the output matches the expected output.

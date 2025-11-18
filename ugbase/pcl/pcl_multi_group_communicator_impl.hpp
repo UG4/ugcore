@@ -218,4 +218,4 @@ allreduce (const T *sendBuf, T *recvBuf,
 
 }//	end of namespace
 
-#endif	//__H__PCL_multi_group_communicator_impl
+#endif

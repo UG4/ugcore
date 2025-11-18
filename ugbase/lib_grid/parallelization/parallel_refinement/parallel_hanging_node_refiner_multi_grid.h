@@ -62,7 +62,7 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 				DistributedGridManager& distGridMgr,
 				SPRefinementProjector projector = nullptr);
 
-		virtual ~ParallelHangingNodeRefiner_MultiGrid();
+		~ParallelHangingNodeRefiner_MultiGrid() override;
 
 		void set_distributed_grid_manager(DistributedGridManager& distGridMgr);
 
@@ -73,35 +73,35 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 
 	protected:
 	///	a callback that allows to deny refinement of special vertices
-		virtual bool refinement_is_allowed(Vertex* elem);
+		bool refinement_is_allowed(Vertex* elem) override;
 	///	a callback that allows to deny refinement of special edges
-		virtual bool refinement_is_allowed(Edge* elem);
+		bool refinement_is_allowed(Edge* elem) override;
 	///	a callback that allows to deny refinement of special faces
-		virtual bool refinement_is_allowed(Face* elem);
+		bool refinement_is_allowed(Face* elem) override;
 	///	a callback that allows to deny refinement of special volumes
-		virtual bool refinement_is_allowed(Volume* elem);
+		bool refinement_is_allowed(Volume* elem) override;
 
-		virtual bool continue_collect_objects_for_refine(bool continueRequired);
+		bool continue_collect_objects_for_refine(bool continueRequired) override;
 
 	///	distributes hnode marks
 	/**	Calls the base implementation to assign hnode marks and afterwards
 	 * distributes them amongst neighbor processes.*/
-		virtual void assign_hnode_marks();
+		void assign_hnode_marks() override;
 
 	///	creates required vertices in higher levels.
 	/**	Notifies the associated distGridMgr that new elements
 	 * may now be created.*/
-		virtual void pre_refine();
+		void pre_refine() override;
 
 	/**	Notifies the associated distGridMgr that new elements
 	 * have been created.*/
-		virtual void post_refine();
+		void post_refine() override;
 
 	/**	Notifies the associated distGridMgr that elements will be erased*/
-		virtual void pre_coarsen();
+		void pre_coarsen() override;
 
 	/**	Notifies the associated distGridMgr that elements have been erased.*/
-		virtual void post_coarsen();
+		void post_coarsen() override;
 
 	///	copies the current marks in the ref-mark-selector from v-slaves to v-masters
 	/**	\{ */
@@ -117,28 +117,28 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 
 
 	///	allows to check whether a distributed grid contains edges
-		virtual bool contains_edges();
+		bool contains_edges() override;
 
 	///	allows to check whether a distributed grid contains faces
-		virtual bool contains_faces();
+		bool contains_faces() override;
 
 	///	allows to check whether a distributed grid contains volumes
-		virtual bool contains_volumes();
+		bool contains_volumes() override;
 
-		virtual void broadcast_marks_horizontally(bool vertices, bool edges, bool faces,
-												  bool allowDeselection = false);
+		void broadcast_marks_horizontally(bool vertices, bool edges, bool faces,
+		                                  bool allowDeselection = false) override;
 
-		virtual void broadcast_marks_vertically(bool vertices, bool edges,
-												bool faces, bool volumes,
-												bool allowDeselection = false);
+		void broadcast_marks_vertically(bool vertices, bool edges,
+		                                bool faces, bool volumes,
+		                                bool allowDeselection = false) override;
 
-		virtual void copy_marks_to_vmasters(bool vertices, bool edges,
-											bool faces, bool volumes);
+		void copy_marks_to_vmasters(bool vertices, bool edges,
+		                            bool faces, bool volumes) override;
 
-		virtual void copy_marks_to_vslaves(bool vertices, bool edges,
-										   bool faces, bool volumes);
+		void copy_marks_to_vslaves(bool vertices, bool edges,
+		                           bool faces, bool volumes) override;
 
-		virtual bool one_proc_true(bool localProcTrue);
+		bool one_proc_true(bool localProcTrue) override;
 
 	private:
 		DistributedGridManager* m_pDistGridMgr;

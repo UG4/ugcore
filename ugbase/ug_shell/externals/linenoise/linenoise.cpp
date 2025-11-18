@@ -240,7 +240,7 @@ static int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt)
     linenoiseHistoryAdd("");
     
     if (write(fd,prompt,plen) == -1) return -1;
-    while(1)
+    while(true)
     {
         char c;
         int nread;

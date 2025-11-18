@@ -28,172 +28,176 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-cmake_minimum_required(VERSION 2.8.12...3.27.1)
+cmake_minimum_required (VERSION 2.8.12...3.27.1)
 
 ################################################
 # ug4
 ################################################
-project(UG4_CORE)
+project (UG4_CORE)
 
 # set global output paths for UG4
 # They are relative to the source dir for which cmake was executed.
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/bin)
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/bin)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/bin)
 
-include("cmake/ug_includes.cmake")
-include("cmake/ug_cpack_config.cmake")
+include ("cmake/ug_includes.cmake")
+include ("cmake/ug_cpack_config.cmake")
 ########################
 # compile plugins
-if(buildPlugins)
-	include("cmake/plugin_registration_routines.cmake")
-	set(pluginDir ${UG_ROOT_PATH}/plugins)
-	FILE(GLOB children RELATIVE ${pluginDir} ${pluginDir}/*)
-	FOREACH(child ${children})
-		IF(IS_DIRECTORY ${pluginDir}/${child})
+if (buildPlugins)
+	include ("cmake/plugin_registration_routines.cmake")
+	set (pluginDir ${UG_ROOT_PATH}/plugins)
+	file (GLOB children RELATIVE ${pluginDir} ${pluginDir}/*)
+	foreach (child ${children})
+		if (IS_DIRECTORY ${pluginDir}/${child})
 			RegisterPlugin(${child} ${pluginDir}/${child})
-		ENDIF()
-	ENDFOREACH()
+		endif ()
+	endforeach ()
 
-	option(ENABLE_ALL_PLUGINS "If set to ON, all plugins will be enabled" OFF)
-	option(DISABLE_ALL_PLUGINS "If set to ON, all plugins will be disabled" OFF)
+	option (ENABLE_ALL_PLUGINS "If set to ON, all plugins will be enabled" OFF)
+	option (DISABLE_ALL_PLUGINS "If set to ON, all plugins will be disabled" OFF)
 	
-	if(ENABLE_ALL_PLUGINS)
-		EnableAllPlugins()
-	endif()
-	if(DISABLE_ALL_PLUGINS)
-		DisableAllPlugins()
-	endif()
+	if (ENABLE_ALL_PLUGINS)
+		EnableAllPlugins ()
+	endif ()
 
-	set(ENABLE_ALL_PLUGINS OFF CACHE BOOL "..." FORCE)
-	set(DISABLE_ALL_PLUGINS OFF CACHE BOOL "..." FORCE)
+	if (DISABLE_ALL_PLUGINS)
+		DisableAllPlugins ()
+	endif ()
 
-	ListPlugins()
-	AddActivePluginSubdirectories()
+	set (ENABLE_ALL_PLUGINS OFF CACHE BOOL "..." FORCE)
+	set (DISABLE_ALL_PLUGINS OFF CACHE BOOL "..." FORCE)
 
-	if(buildEmbeddedPlugins)
-		WriteStaticPluginsHeader()
-	else(buildEmbeddedPlugins)	
-		EraseUnusedPlugins()
-	endif(buildEmbeddedPlugins)
-endif(buildPlugins)
+	ListPlugins ()
+	AddActivePluginSubdirectories ()
+
+	if (buildEmbeddedPlugins)
+		WriteStaticPluginsHeader ()
+	else (buildEmbeddedPlugins)
+		EraseUnusedPlugins ()
+	endif ()
+endif ()
 
 
-if(buildTools)
-	set(toolDir ${UG_ROOT_PATH}/tools)
-	set(FOUND_TOOLS 0)
-	FILE(GLOB children RELATIVE ${toolDir} ${toolDir}/*)
-	FOREACH(child ${children})
-		IF(IS_DIRECTORY ${toolDir}/${child})
+if (buildTools)
+	set (toolDir ${UG_ROOT_PATH}/tools)
+	set (FOUND_TOOLS 0)
+	file (GLOB children RELATIVE ${toolDir} ${toolDir}/*)
+	foreach (child ${children})
+		if (IS_DIRECTORY ${toolDir}/${child})
 
-			if(NOT ${FOUND_TOOLS})
+			if (NOT ${FOUND_TOOLS})
 				message(STATUS "")
 				message(STATUS "Tools:")
-				set(FOUND_TOOLS 1)
-			endif()
+				set (FOUND_TOOLS 1)
+			endif ()
 
 			option(${child} "  -${child}" OFF)
 			
-			if(${child})
-				message(STATUS "  - " ${child} " (ON)" )
-				add_subdirectory(${toolDir}/${child} tools/${child})
+			if (${child})
+				message (STATUS "  - " ${child} " (ON)" )
+				add_subdirectory (${toolDir}/${child} tools/${child})
 			else()
-				message(STATUS "  - " ${child} " (OFF)" )
-			endif()
-		ENDIF()
-	ENDFOREACH()
-endif(buildTools)
+				message (STATUS "  - " ${child} " (OFF)" )
+			endif ()
+		endif ()
+	endforeach ()
+endif ()
 
 
 ########################
 # ugbase
-add_subdirectory(ugbase)
+add_subdirectory (ugbase)
 
 ########################
 
-IF(BUILD_DOXYDOCU)
-   ADD_SUBDIRECTORY(docs)
-ENDIF(BUILD_DOXYDOCU)
+if (BUILD_DOXYDOCU)
+   ADD_SUBDIRECTORY (docs)
+endif (BUILD_DOXYDOCU)
 
 ########################
-if(BUILD_ONE_LIB)
-	get_property(ug4libSources GLOBAL PROPERTY ugSources)
-	get_property(ug4libDependencies GLOBAL PROPERTY ugDependencies)
-	get_property(ug4LinkPaths GLOBAL PROPERTY ugLinkPaths)
-	get_property(ug4libIncludes GLOBAL PROPERTY ugIncludes)
-	get_property(ug4libDefinitions GLOBAL PROPERTY ugDefinitions)
-	get_property(ug4libLinkerFlags GLOBAL PROPERTY ugLinkerFlags)
-	get_property(ug4libSingleFileCompileFlagsFiles GLOBAL PROPERTY ugSingleFileCompileFlagsFiles)
-	get_property(ug4libSingleFileCompileFlagsDefs GLOBAL PROPERTY ugSingleFileCompileFlagsDefs)
+if (BUILD_ONE_LIB)
+	get_property (ug4libSources GLOBAL PROPERTY ugSources)
+	get_property (ug4libDependencies GLOBAL PROPERTY ugDependencies)
+	get_property (ug4LinkPaths GLOBAL PROPERTY ugLinkPaths)
+	get_property (ug4libIncludes GLOBAL PROPERTY ugIncludes)
+	get_property (ug4libDefinitions GLOBAL PROPERTY ugDefinitions)
+	get_property (ug4libLinkerFlags GLOBAL PROPERTY ugLinkerFlags)
+	get_property (ug4libSingleFileCompileFlagsFiles GLOBAL PROPERTY ugSingleFileCompileFlagsFiles)
+	get_property (ug4libSingleFileCompileFlagsDefs GLOBAL PROPERTY ugSingleFileCompileFlagsDefs)
 	
-	if(buildEmbeddedPlugins)
-		add_definitions(${ug4libDefinitions})
-		link_directories(${ug4LinkPaths})
-		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${ug4libLinkerFlags}")
-		set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} ${ug4libLinkerFlags}")
-	endif(buildEmbeddedPlugins)
+	if (buildEmbeddedPlugins)
+		add_definitions (${ug4libDefinitions})
+		link_directories (${ug4LinkPaths})
+		set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${ug4libLinkerFlags}")
+		set (CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} ${ug4libLinkerFlags}")
+	endif ()
 	
-	if(buildDynamicLib)
-		add_definitions(-DBUILDING_DYNAMIC_LIBRARY)
-		if(WIN32)
-			add_definitions(-DLUA_BUILD_AS_DLL -DLUA_LIB -DLUA_CORE)
-		endif(WIN32)
-		if(CUDA_FOUND)
+	if (buildDynamicLib)
+		add_definitions (-DBUILDING_DYNAMIC_LIBRARY)
+		if (WIN32)
+			add_definitions (-DLUA_BUILD_AS_DLL -DLUA_LIB -DLUA_CORE)
+		endif ()
+
+		if (CUDA_FOUND)
 			# dynamic; w/ cuda
-		   CUDA_add_library(${targetLibraryName} SHARED ${ug4libSources})
-		else(CUDA_FOUND)
+		   CUDA_add_library (${targetLibraryName} SHARED ${ug4libSources})
+		else()
 		   # dynamic; w/o cuda
-		   add_library(${targetLibraryName} SHARED ${ug4libSources})
-		   install(TARGETS ${targetLibraryName} 
+		   add_library (${targetLibraryName} SHARED ${ug4libSources})
+		   install (TARGETS ${targetLibraryName}
 		   			LIBRARY DESTINATION lib
 		   			COMPONENT libraries)
-		endif(CUDA_FOUND)
-		#ug_add_library(${targetLibraryName} SHARED ${ug4libSources})
+		endif ()
+		#ug_add_library (${targetLibraryName} SHARED ${ug4libSources})
 		
-		if(buildCompileInfo AND NOT buildEmbeddedPlugins)
-			add_dependencies(${targetLibraryName} CompileInfo)
-			target_link_libraries(${targetLibraryName} CompileInfo)
-		endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
+		if (buildCompileInfo AND NOT buildEmbeddedPlugins)
+			add_dependencies (${targetLibraryName} CompileInfo)
+			target_link_libraries (${targetLibraryName} CompileInfo)
+		endif ()
 
-	else(buildDynamicLib)
-		if(CUDA_FOUND)
+	else()
+		if (CUDA_FOUND)
 			CUDA_add_library(${targetLibraryName} ${ug4libSources})
-		else(CUDA_FOUND)
+		else()
 			add_library(${targetLibraryName} ${ug4libSources})
-		endif(CUDA_FOUND)
+		endif ()
 
-		if(buildCompileInfo AND NOT buildEmbeddedPlugins)
+		if (buildCompileInfo AND NOT buildEmbeddedPlugins)
 			add_dependencies(${targetLibraryName} CompileInfo_s)
 			target_link_libraries(${targetLibraryName} CompileInfo_s)
-		endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
-	endif(buildDynamicLib)
-  
-  target_include_directories(${targetLibraryName} PUBLIC ${ug4libIncludes})
-  target_link_libraries(${targetLibraryName} ${ug4libDependencies} ${linkLibraries})
-  
-  target_enable_sanitizers(${targetLibraryName} ${USE_SANITIZER})
 
-	if(buildEmbeddedPlugins)
+		endif ()
+
+	endif ()
+  
+  target_include_directories (${targetLibraryName} PUBLIC ${ug4libIncludes})
+  target_link_libraries (${targetLibraryName} ${ug4libDependencies} ${linkLibraries})
+  
+  target_enable_sanitizers (${targetLibraryName} ${USE_SANITIZER})
+
+	if (buildEmbeddedPlugins)
 		# if we build with embedded plugins, the compile-info is also embedded
 		# into the single big target lib. We thus have to add a dependency to
 		# the custom updateCompileInfo target declared in compile_info/CMakeLists.txt.
-    if(UNIX AND buildCompileInfo)
+    if (UNIX AND buildCompileInfo)
 		  add_dependencies(${targetLibraryName} updateCompileInfo)
-    endif()
+    endif ()
 		
 		# apply single file definitions
-		list(LENGTH ug4libSingleFileCompileFlagsFiles len)
+		list (LENGTH ug4libSingleFileCompileFlagsFiles len)
 		if (${len} GREATER 0)
-			math(EXPR len "${len} - 1")
+			math (EXPR len "${len} - 1")
 			foreach (idx RANGE ${len})
-				list(GET ug4libSingleFileCompileFlagsFiles ${idx} file)
-				list(GET ug4libSingleFileCompileFlagsDefs ${idx} flags)
-				set_property(SOURCE ${file} APPEND PROPERTY COMPILE_FLAGS "${flags}")
-				#message("${file}: ${flags}")
-			endforeach()
-		endif()
-	endif(buildEmbeddedPlugins)
+				list (GET ug4libSingleFileCompileFlagsFiles ${idx} file)
+				list (GET ug4libSingleFileCompileFlagsDefs ${idx} flags)
+				set_property (SOURCE ${file} APPEND PROPERTY COMPILE_FLAGS "${flags}")
+				#message ("${file}: ${flags}")
+			endforeach ()
+		endif ()
+	endif ()
    
-endif(BUILD_ONE_LIB)
+endif ()

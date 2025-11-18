@@ -81,18 +81,21 @@ GetStandardElementRestriction(const LFEID& lfeid)
 #ifdef UG_DIM_1
 template SmartPtr<IElemProlongation<Domain1d> >
 GetStandardElementProlongation<Domain1d>(const LFEID& lfeid);
+
 template SmartPtr<IElemRestriction<Domain1d> >
 GetStandardElementRestriction<Domain1d>(const LFEID& lfeid);
 #endif
 #ifdef UG_DIM_2
 template SmartPtr<IElemProlongation<Domain2d> >
 GetStandardElementProlongation<Domain2d>(const LFEID& lfeid);
+
 template SmartPtr<IElemRestriction<Domain2d> >
 GetStandardElementRestriction<Domain2d>(const LFEID& lfeid);
 #endif
 #ifdef UG_DIM_3
 template SmartPtr<IElemProlongation<Domain3d> >
 GetStandardElementProlongation<Domain3d>(const LFEID& lfeid);
+
 template SmartPtr<IElemRestriction<Domain3d> >
 GetStandardElementRestriction<Domain3d>(const LFEID& lfeid);
 #endif

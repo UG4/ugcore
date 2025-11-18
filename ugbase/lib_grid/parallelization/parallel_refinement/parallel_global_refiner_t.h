@@ -51,7 +51,7 @@ class TParallelGlobalRefiner : public TRefiner
 	public:
 		TParallelGlobalRefiner(DistributedGridManager& distGridMgr,
 							   SPRefinementProjector projector = nullptr);
-		virtual ~TParallelGlobalRefiner();
+		virtual ~TParallelGlobalRefiner() = default;
 
 	protected:
 		virtual bool refinement_is_allowed(Vertex* elem);

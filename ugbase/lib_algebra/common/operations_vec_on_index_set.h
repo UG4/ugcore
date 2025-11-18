@@ -33,8 +33,9 @@
 #ifndef __H__UG__LIB_ALGEBRA__OPERATIONS_VEC_ON_INDEX_SET__
 #define __H__UG__LIB_ALGEBRA__OPERATIONS_VEC_ON_INDEX_SET__
 
-#include "operations_vec.h"
 #include <vector>
+#include "operations_vec.h"
+#include "common/types.h"
 
 namespace ug
 {
@@ -146,6 +147,7 @@ inline number VecProd(const vector_t &a, const vector_t &b,
 	return sum;
 }
 
+/* unused variable "const vector_t &b" maybe unused functions
 
 /// calculates s += norm_2^2(a) on a given index set
 template<typename vector_t>
@@ -173,8 +175,8 @@ inline number VecNormSquared(const vector_t &a, const vector_t &b,
 	return sum;
 }
 
-
+*/
 
 }
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATIONS_VEC_ON_INDEX_SET__ */
+#endif

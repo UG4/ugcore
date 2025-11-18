@@ -40,7 +40,7 @@ namespace ug {
 /*!
  * \brief Finds the neighbor connected through a side.
  * \param[in] g
- * \param[in] face
+ * \param[in] face
  * \param[in] elem
  * If such a neighbor does not exist, nullptr is returned.
  */
@@ -70,4 +70,4 @@ void GetNeighborhood
 
 #include "neighborhood_util_impl.hpp"
 
-#endif // __H__LIB_GRID__NEIGHBORHOOD_UTIL__
+#endif

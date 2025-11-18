@@ -108,9 +108,6 @@ bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, Vertex* vrt,
  *				this method repeatedly, since a repeated allocation and
  *				deallocation can be avoided.
  *
- * \param minDot:	Faces whose normal has a dot-product lower that minDot
- *					whith the given direction are not regarded as cylinder-
- *					bottom faces and are thus not extruded.
  */					
 bool ExtrudeCylinder(Grid& grid, Vertex* vrt,
 					const vector3& direction, number height, number radius,

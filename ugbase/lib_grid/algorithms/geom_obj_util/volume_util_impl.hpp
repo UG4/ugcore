@@ -173,10 +173,10 @@ void ConvertToTetrahedra (
 
 	for(TVolIter iv = volsBegin; iv != volsEnd; ++iv){
 		grid.associated_elements(faces, *iv);
-		for_each_in_vec(Face* f, faces){
+		for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){ Face* f = faces[_vfeI];{
 			if(f->num_vertices() == 4)
 				quads.push_back(f);
-		}end_for;
+		}};
 	}
 
 //	remove double entries
@@ -201,7 +201,7 @@ void ConvertToTetrahedra (
 
 	grid.end_marking();
 
-	for_each_in_vec(Face* f, quads){
+	for(size_t _vfeI = 0; _vfeI < quads.size(); ++_vfeI){ Face* f = quads[_vfeI];{
 //todo	in a parallel environment, global id's should be compared here
 		CmpVrtsByHash<Face> cmp(f);
 	//	get the smallest vertex of the face
@@ -217,7 +217,7 @@ void ConvertToTetrahedra (
 		int i3 = (smallest + 3) % 4;
 		grid.create<Triangle>(TriangleDescriptor(f->vertex(i0), f->vertex(i1), f->vertex(i2)), f);
 		grid.create<Triangle>(TriangleDescriptor(f->vertex(i2), f->vertex(i3), f->vertex(i0)), f);
-	}end_for;
+	}};
 
 
 //	now convert the given volume-elements
@@ -272,16 +272,16 @@ void ConvertToTetrahedra (
 	}
 
 //	finally erase all unused volumes and quadrilaterals
-	for_each_in_vec(Volume* v, volsToErase){
+	for(size_t _vfeI = 0; _vfeI < volsToErase.size(); ++_vfeI){ Volume* v = volsToErase[_vfeI];{
 		grid.erase(v);
-	}end_for;
+	}};
 
 	Grid::volume_traits::secure_container	assVols;
-	for_each_in_vec(Face* f, quads){
+	for(size_t _vfeI = 0; _vfeI < quads.size(); ++_vfeI){ Face* f = quads[_vfeI];{
 		grid.associated_elements(assVols, f);
 		if(assVols.empty())
 			grid.erase(f);
-	}end_for;
+	}};
 }
 
 }//	end of namespace

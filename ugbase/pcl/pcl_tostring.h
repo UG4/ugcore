@@ -65,4 +65,4 @@ inline std::string ToString(const ProcessCommunicator &pc)
 
 } // namespace ug
 
-#endif /* __UG__PCL_TOSTRING_H__ */
+#endif

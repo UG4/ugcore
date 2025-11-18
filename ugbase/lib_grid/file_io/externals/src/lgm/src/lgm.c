@@ -12,23 +12,23 @@ struct lgm* lgm_new(void)
     struct lgm* l = malloc(sizeof(struct lgm));
 
     /* initialize */
-    l->name = nullptr;
-    l->problemname = nullptr;
+    l->name = NULL;
+    l->problemname = NULL;
     l->convex = 0;
 
     l->dim = 3;
 
     l->num_subdomains = 0;
-    l->subdomains = nullptr;
+    l->subdomains = NULL;
 
     l->num_lines = 0;
-    l->lines = nullptr;
+    l->lines = NULL;
 
     l->num_surfaces = 0;
-    l->surfaces = nullptr;
+    l->surfaces = NULL;
 
     l->num_points = 0;
-    l->points = nullptr;
+    l->points = NULL;
 
     /* return */
     return l;
@@ -84,7 +84,7 @@ int lgm_read(const char* filename, struct lgm* l, struct lgm_info* fileinfo)
     if(fileinfo)
     {
         fileinfo->error = 0;
-        fileinfo->err_msg = nullptr;
+        fileinfo->err_msg = NULL;
     }
 
     /* parse lgm file */

@@ -72,7 +72,7 @@ Grid::create(GridObject* pParent)
 		&&	geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 		invalid_geometry_type);
 
-	TGeomObj* geomObj = new TGeomObj;
+	auto* geomObj = new TGeomObj;
 //	int baseObjectType = geometry_traits<GeomObjType>::base_object_type();
 //	geomObj->m_elemHandle = m_elementStorage[baseObjectType].m_sectionContainer.insert_element(geomObj, geometry_traits<GeomObjType>::container_section());
 //	m_elementStorage[baseObjectType].m_attachmentPipe.register_element(geomObj);
@@ -91,7 +91,7 @@ Grid::create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
 			&&	geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 			invalid_geometry_type);
 
-	TGeomObj* geomObj = new TGeomObj(descriptor);
+	auto* geomObj = new TGeomObj(descriptor);
 
 //	int baseObjectType = geometry_traits<TGeomObj>::base_object_type();
 //	geomObj->m_elemHandle = m_elementStorage[baseObjectType].m_sectionContainer.insert_element(geomObj, geometry_traits<GeomObjType>::container_section());
@@ -110,7 +110,7 @@ Grid::create_and_replace(typename geometry_traits<TGeomObj>::grid_base_object* p
 		&&	geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 		invalid_geometry_type);
 
-	TGeomObj* geomObj = new TGeomObj;
+	auto* geomObj = new TGeomObj;
 
 	if(geomObj->reference_object_id() == pReplaceMe->reference_object_id())
 	{
@@ -244,8 +244,7 @@ inline void Grid::
 objects_will_be_merged(Vertex* target, Vertex* elem1,
 						Vertex* elem2)
 {
-	for(Grid::ObserverContainer::iterator iter = m_vertexObservers.begin();
-		iter != m_vertexObservers.end(); iter++)
+	for(auto iter = m_vertexObservers.begin(); iter != m_vertexObservers.end(); iter++)
 	{
 		(*iter)->vertices_to_be_merged(this, target, elem1, elem2);
 	}
@@ -255,8 +254,7 @@ inline void Grid::
 objects_will_be_merged(Edge* target, Edge* elem1,
 						Edge* elem2)
 {
-	for(Grid::ObserverContainer::iterator iter = m_edgeObservers.begin();
-		iter != m_edgeObservers.end(); iter++)
+	for(auto iter = m_edgeObservers.begin(); iter != m_edgeObservers.end(); iter++)
 	{
 		(*iter)->edges_to_be_merged(this, target, elem1, elem2);
 	}
@@ -266,8 +264,7 @@ inline void Grid::
 objects_will_be_merged(Face* target, Face* elem1,
 						Face* elem2)
 {
-	for(Grid::ObserverContainer::iterator iter = m_faceObservers.begin();
-		iter != m_faceObservers.end(); iter++)
+	for(auto iter = m_faceObservers.begin(); iter != m_faceObservers.end(); iter++)
 	{
 		(*iter)->faces_to_be_merged(this, target, elem1, elem2);
 	}
@@ -277,8 +274,7 @@ inline void Grid::
 objects_will_be_merged(Volume* target, Volume* elem1,
 						Volume* elem2)
 {
-	for(Grid::ObserverContainer::iterator iter = m_volumeObservers.begin();
-		iter != m_volumeObservers.end(); iter++)
+	for(auto iter = m_volumeObservers.begin(); iter != m_volumeObservers.end(); iter++)
 	{
 		(*iter)->volumes_to_be_merged(this, target, elem1, elem2);
 	}
@@ -545,9 +541,8 @@ Edge* Grid::find_edge_in_associated_edges(TGeomObj* obj, const EdgeVertices& ev)
 {
 	GRID_PROFILE_FUNC();
 
-	AssociatedEdgeIterator iterEnd = associated_edges_end(obj);
-	for(AssociatedEdgeIterator iter = associated_edges_begin(obj);
-		iter != iterEnd; ++iter)
+	auto iterEnd = associated_edges_end(obj);
+	for(auto iter = associated_edges_begin(obj); iter != iterEnd; ++iter)
 	{
 		Edge* e = *iter;
 		if(CompareVertices(e, &ev))
@@ -563,9 +558,8 @@ Face* Grid::find_face_in_associated_faces(TGeomObj* obj, const FaceVertices& fv)
 	GRID_PROFILE_FUNC();
 
 	unsigned long key = hash_key(&fv);
-	AssociatedFaceIterator iterEnd = associated_faces_end(obj);
-	for(AssociatedFaceIterator iter = associated_faces_begin(obj);
-		iter != iterEnd; ++iter)
+	auto iterEnd = associated_faces_end(obj);
+	for(auto iter = associated_faces_begin(obj); iter != iterEnd; ++iter)
 	{
 		Face* f = *iter;
 		if(key == hash_key(f))
@@ -585,9 +579,8 @@ Volume* Grid::find_volume_in_associated_volumes(TGeomObj* obj,
 	GRID_PROFILE_FUNC();
 
 	unsigned long key = hash_key(&vv);
-	AssociatedVolumeIterator iterEnd = associated_volumes_end(obj);
-	for(AssociatedVolumeIterator iter = associated_volumes_begin(obj);
-		iter != iterEnd; ++iter)
+	auto iterEnd = associated_volumes_end(obj);
+	for(auto iter = associated_volumes_begin(obj); iter != iterEnd; ++iter)
 	{
 		Volume* v = *iter;
 		if(key == hash_key(v))
@@ -756,14 +749,14 @@ VolumeAttachmentAccessor(const VolumeAttachmentAccessor& aa) :
 template <class TAttachment>
 Grid::VolumeAttachmentAccessor<TAttachment>::
 VolumeAttachmentAccessor(Grid& grid, TAttachment& a) :
-	Grid::AttachmentAccessor<Volume, TAttachment>(grid, a)
+	AttachmentAccessor<Volume, TAttachment>(grid, a)
 {
 }
 
 template <class TAttachment>
 Grid::VolumeAttachmentAccessor<TAttachment>::
 VolumeAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
-	Grid::AttachmentAccessor<Volume, TAttachment>(grid, a, autoAttach)
+	AttachmentAccessor<Volume, TAttachment>(grid, a, autoAttach)
 {
 }
 
