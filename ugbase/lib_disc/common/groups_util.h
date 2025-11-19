@@ -34,7 +34,6 @@
 #define __H__UG__LIB_DISC__COMMON__GROUPS_UTIL__
 
 #include <vector>
-#include <string>
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/dof_manager/function_pattern.h"
 
@@ -77,4 +76,4 @@ void CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__COMMON__GROUPS_UTIL__ */
+#endif

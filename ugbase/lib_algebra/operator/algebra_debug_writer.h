@@ -135,4 +135,4 @@ class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__OPERATOR__ALGEBRA_DEBUG_WRITER__ */
+#endif

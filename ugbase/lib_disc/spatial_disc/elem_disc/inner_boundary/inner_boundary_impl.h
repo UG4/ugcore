@@ -616,4 +616,4 @@ register_fv1_func()
 } // namespace ug
 
 
-#endif /*__H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY_IMPL__*/
+#endif

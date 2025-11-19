@@ -108,7 +108,7 @@ class FlexGaussQuadrature
 		FlexGaussQuadrature(int order);
 
 	///	Destructor
-		~FlexGaussQuadrature() {}
+		~FlexGaussQuadrature() = default;
 };
 
 } // namespace ug
@@ -125,4 +125,4 @@ class FlexGaussQuadrature
 #include "gauss_quad_octahedron.h"
 
 
-#endif /* __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUAD__GAUSS_QUAD__ */
+#endif

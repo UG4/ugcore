@@ -199,5 +199,4 @@ class ILinearIterator
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR_ITERATOR__ */
-
+#endif

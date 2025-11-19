@@ -89,4 +89,4 @@ ScalarVectorAdapter<CPUAlgebra, CPUAlgebra>::operator [] (size_t i)
 
 
 
-#endif /* SPARSEMATRIXPROXY_HH_ */
+#endif

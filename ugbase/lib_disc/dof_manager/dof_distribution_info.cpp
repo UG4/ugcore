@@ -49,7 +49,7 @@ DoFDistributionInfo::DoFDistributionInfo(ConstSmartPtr<ISubsetHandler> spSH)
 void DoFDistributionInfo::init()
 {
 	PROFILE_FUNC();
-	FunctionPattern::lock();
+	lock();
 	create_offsets();
 }
 

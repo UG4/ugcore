@@ -130,4 +130,4 @@ ScalarSubVectorAdapter<ParallelVector<CPUAlgebra::vector_type> , CPUAlgebra>::op
 
 } // namespace ug
 
-#endif /* SPARSEMATRIXPROXY_HH_ */
+#endif

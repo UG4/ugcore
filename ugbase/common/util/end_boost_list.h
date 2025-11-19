@@ -93,4 +93,4 @@ struct empty<list<ug::end_boost_list> >
 }
 }
 
-#endif /* __H__UG__END_BOOST_LIST_H_ */
+#endif

@@ -790,4 +790,4 @@ void AddLocalMatrixToGlobal(TMatrix& mat, const LocalMatrix& lmat)
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__COMMON__LOCAL_ALGEBRA__ */
+#endif

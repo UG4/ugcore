@@ -170,4 +170,4 @@ class InverseLinker
 
 #include "inverse_linker_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__INVERSE_LINKER__ */
+#endif

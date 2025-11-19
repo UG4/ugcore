@@ -66,4 +66,4 @@ class IEigensolver
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__OPERATOR__EIGENSOLVER_INTERFACE__ */
+#endif

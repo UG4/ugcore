@@ -235,4 +235,4 @@ void CreatePlane(Grid& grid,
 
 }
 
-#endif /* __H__UG__LIB_GRID__TOOLS__CREATOR_GRID_UTIL__*/
+#endif

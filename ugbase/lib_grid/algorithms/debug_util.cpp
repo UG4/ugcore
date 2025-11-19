@@ -254,7 +254,13 @@ void CheckHangingNodeConstrainingFace(bool isConsistent, Grid &g, T iter, T end)
 		g.associated_elements(edges, cf);
 		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 			if(!edges[i_edge]->is_constraining()){
-				FAILED_CHECK(edges[i_edge], "Non constraining side of constraining face detected!");
+				UG_ERR_LOG("CheckHangingNodeConsistency: " << "Non constraining side of constraining face detected!" << endl);
+				UG_ERR_LOG("  at: " << GetGridObjectCenter(g, edges[i_edge]));
+				if(MultiGrid* mg = dynamic_cast<MultiGrid*>(&g)) {
+					UG_ERR_LOG(" on level " << mg->get_level(edges[i_edge]));
+				}
+				UG_ERR_LOG(endl);
+				isConsistent = false;
 			}
 		}
 	}
@@ -267,8 +273,8 @@ bool CheckHangingNodeConsistency(Grid& g)
 
 //	iterate over all hanging nodes and check whether the associated parent
 //	contains the node in its list of constraiend objects
-	for(Grid::traits<ConstrainedVertex>::iterator iter = g.begin<ConstrainedVertex>();
-		iter != g.end<ConstrainedVertex>(); ++iter)
+	for(auto iter = g.begin<ConstrainedVertex>();
+	    iter != g.end<ConstrainedVertex>(); ++iter)
 	{
 		ConstrainedVertex* hnode = *iter;
 		GridObject* constrObj = hnode->get_constraining_object();
@@ -276,13 +282,13 @@ bool CheckHangingNodeConsistency(Grid& g)
 			FAILED_CHECK(hnode, "Hanging Vertex has no constraining object!");
 		}
 
-		if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(constrObj)){
+		if(auto ce = dynamic_cast<ConstrainingEdge*>(constrObj)){
 		//	check whether hnode is a constrained object of ce
 			if(!ce->is_constrained_object(hnode)){
 				FAILED_CHECK(hnode, "Hanging Vertex is not constrained by parent edge!");
 			}
 		}
-		else if(ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(constrObj)){
+		else if(auto* cf = dynamic_cast<ConstrainingFace*>(constrObj)){
 		//	check whether hnode is a constraiend object of cf
 			if(!cf->is_constrained_object(hnode)){
 				FAILED_CHECK(hnode, "Hanging Vertex is not constrained by parent face!");
@@ -295,8 +301,8 @@ bool CheckHangingNodeConsistency(Grid& g)
 
 //	iterate over all constrained edges and check whether the associated constraining
 //	object contains the edge in its list of constraiend objects
-	for(Grid::traits<ConstrainedEdge>::iterator iter = g.begin<ConstrainedEdge>();
-		iter != g.end<ConstrainedEdge>(); ++iter)
+	for(auto iter = g.begin<ConstrainedEdge>();
+	    iter != g.end<ConstrainedEdge>(); ++iter)
 	{
 		ConstrainedEdge* e = *iter;
 		GridObject* parent = e->get_constraining_object();
@@ -309,7 +315,7 @@ bool CheckHangingNodeConsistency(Grid& g)
 			FAILED_CHECK(e, "Parent of Constrained Edge is not a constraining object!");
 		}
 
-		if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(parent)){
+		if(auto* ce = dynamic_cast<ConstrainingEdge*>(parent)){
 		//	check whether e is a constraiend object of ce
 			if(!ce->is_constrained_object(e)){
 				FAILED_CHECK(e, "Constrained Edge is not constrained by parent edge!");
@@ -322,7 +328,7 @@ bool CheckHangingNodeConsistency(Grid& g)
 							 " may not be connected to two constrained vertices!");
 			}
 		}
-		else if(ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(parent)){
+		else if(auto* cf = dynamic_cast<ConstrainingFace*>(parent)){
 		//	check whether hnode is a constraiend object of cf
 			if(!cf->is_constrained_object(e)){
 				FAILED_CHECK(e, "Constrained Edge is not constrained by parent face!");
@@ -355,8 +361,8 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 
 //	iterate over all hanging nodes and check whether the associated parent
 //	matches the constraining object. Other checks have already been performed!
-	for(Grid::traits<ConstrainedVertex>::iterator iter = g.begin<ConstrainedVertex>();
-		iter != g.end<ConstrainedVertex>(); ++iter)
+	for(auto iter = g.begin<ConstrainedVertex>();
+	    iter != g.end<ConstrainedVertex>(); ++iter)
 	{
 		ConstrainedVertex* hnode = *iter;
 		GridObject* co = hnode->get_constraining_object();
@@ -422,7 +428,7 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 				else{*/
 				//	make sure that e has two constrained edge-children and a
 				//	constrained vertex child.
-					ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(e);
+					auto ce = dynamic_cast<ConstrainingEdge*>(e);
 					UG_ASSERT(ce, "Only ConstrainingEdges should return true in Edge::is_constrained()!");
 					if(ce){
 						if(ce->num_constrained_edges() != 2){
@@ -467,7 +473,7 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 		
 		if(f->is_constraining()){
 			// UG_LOG("2.1/n");
-			ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(f);
+			auto cf = dynamic_cast<ConstrainingFace*>(f);
 			UG_ASSERT(cf, "All constraining faces should derive from ConstrainingFace");
 			
 		//	make sure that the face has the right number of children
@@ -522,7 +528,7 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 				}
 			}
 			for(size_t i = 0; i < mg.num_children<Vertex>(f); ++i){
-				Vertex* child = mg.get_child<Vertex>(f, i);
+				auto* child = mg.get_child<Vertex>(f, i);
 				if(!child->is_constrained()){
 					FAILED_CHECK(f, "All child vertices of a constraining face have to be constrained vertices.");
 				}
@@ -536,12 +542,12 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 		
 		else if(f->is_constrained()){
 			// UG_LOG("2.2.0/n");
-			ConstrainedFace* cdf = dynamic_cast<ConstrainedFace*>(f);
+			auto cdf = dynamic_cast<ConstrainedFace*>(f);
 			UG_ASSERT(cdf, "All constrained faces should derive from ConstrainedFace");
 			// UG_LOG("2.2.1/n");
 		//	we don't have to check all interconnections, since we already checked a lot of
 		//	stuff for constraining faces. So just do the rest now.
-			ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(cdf->get_constraining_object());
+			auto cf = dynamic_cast<ConstrainingFace*>(cdf->get_constraining_object());
 			// UG_LOG("2.2.2/n");
 			if(!cf){
 				FAILED_CHECK(cdf, "No constraining face found for given constrained face."); 

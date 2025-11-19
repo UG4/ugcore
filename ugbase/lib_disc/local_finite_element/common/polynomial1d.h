@@ -170,4 +170,4 @@ inline std::ostream& operator<< (std::ostream& outStream, Polynomial1D& v)
 /// @}
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__COMMON__POLYNOMIAL1D__ */
+#endif

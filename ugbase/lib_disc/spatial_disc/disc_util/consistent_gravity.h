@@ -666,4 +666,4 @@ void StdLinConsistentGravityX<3>::prepare
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONSISTENT_GRAVITY__ */
+#endif

@@ -70,4 +70,4 @@ bool ApplyLinearSolver(	SmartPtr<ILinearOperator<vector_type> > A,
 
 
 }
-#endif // __H__LIB_ALGEBRA__OPERATOR__OPERATOR_UTIL__
+#endif

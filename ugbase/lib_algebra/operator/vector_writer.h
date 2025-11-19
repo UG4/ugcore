@@ -58,4 +58,4 @@ class IVectorWriter
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__OPERATOR__VECTOR_WRITER__ */
+#endif

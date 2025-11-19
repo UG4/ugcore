@@ -99,4 +99,4 @@ bool ExportGridToSWC(Grid& grid, ISubsetHandler* pSH, const char* filename, AVec
 
 } // end of namespace ug
 
-#endif // __H__UG_file_io_swc
+#endif

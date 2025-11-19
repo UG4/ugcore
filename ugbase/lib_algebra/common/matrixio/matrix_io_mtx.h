@@ -539,6 +539,4 @@ class MatrixIOMtx : private MatrixIO
 
 } // namespace ug
 
-#endif // __H__UG__LIB_ALGEBRA__MATRIX_IO_MTX_H
-
-// EOF
+#endif

@@ -2332,4 +2332,4 @@ config_string() const
 } // namespace ug
 
 
-#endif /* __H__UG__LIB_DISC__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__ */
+#endif

@@ -105,4 +105,4 @@ void RegisterDimension2d3dDependent(Registry& reg, std::string grp)
 					"Registration failed (using name " << ex.name << ").\n");\
 			throw(ex);}
 
-#endif /* __H__UG_BRIDGE__UTIL__ */
+#endif

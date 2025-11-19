@@ -56,4 +56,4 @@ inline std::string operator << (std::string a, std::string b)
 
 }
 
-#endif /* STRING_CONCAT_H_ */
+#endif

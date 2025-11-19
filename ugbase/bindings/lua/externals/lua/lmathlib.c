@@ -525,7 +525,7 @@ static Rand64 Int2I (lua_Unsigned n) {
   return packI((lu_int32)((n >> 31) >> 1), (lu_int32)n);
 }
 
-#endif  /* } */
+#endif
 
 
 /*

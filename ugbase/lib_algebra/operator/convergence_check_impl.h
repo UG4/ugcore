@@ -258,4 +258,4 @@ bool StdConvCheck<TVector>::is_valid_number(number value)
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__OPERATOR__CONVERGENCE_CHECK_IMPL__ */
+#endif

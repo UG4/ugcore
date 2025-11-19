@@ -52,4 +52,4 @@ extern int g_ShinyCallLoggingMaxFreq;
 
 
 
-#endif /* SHINY_CALL_LOGGING_H_ */
+#endif

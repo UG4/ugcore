@@ -90,4 +90,4 @@ bool Invert(DenseMatrix<FixedArray2<T, TUnknowns, TUnknowns> > &mat)
 }
 
 
-#endif /* NOLAPACK_INVERT_H_ */
+#endif

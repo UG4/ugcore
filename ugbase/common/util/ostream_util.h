@@ -59,4 +59,4 @@ reset_floats(std::ios_base& o)
 /// \}
 
 }
-#endif /* __H__UG_OSTREAM_UTIL_H_ */
+#endif

@@ -633,4 +633,4 @@ void Restrict(GridFunction<TDomain, TAlgebra>& uCoarse,
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__LEVEL_TRANSFER__ */
+#endif

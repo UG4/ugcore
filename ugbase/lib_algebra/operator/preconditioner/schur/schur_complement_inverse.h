@@ -307,5 +307,5 @@ protected:
 
 }
 
-#endif /* UG_PARALLEL */
-#endif /* SCHUR_COMPLEMENT_INVERSE_H_ */
+#endif
+#endif

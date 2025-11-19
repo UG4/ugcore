@@ -251,4 +251,4 @@ bool WriteGraph(std::string filename, const matrix_type &g, const std::vector<Ma
 }
 } // namespace ug
 
-#endif // CONNECTION_VIEWER_IO_H
+#endif

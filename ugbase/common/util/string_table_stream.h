@@ -211,4 +211,4 @@ inline std::ostream& operator << (std::ostream& os, const StringTableStream &sts
 }
 
 }
-#endif /* STRING_TABLE_STREAM_H_ */
+#endif

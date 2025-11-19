@@ -71,4 +71,4 @@ inline bool IsBigEndian()
 
 } // end namespace ug
 
-#endif /* __H__UG__COMMON__UTIL__ENDIAN__ */
+#endif

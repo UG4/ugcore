@@ -311,6 +311,5 @@ struct matrix_algebra_type_traits<DenseMatrixInverse<T> >
 
 }  // namespace ug
 
-#endif // not LAPACK_AVAILABLE
-
-#endif // __H__UG__CPU_ALGEBRA__LU_DECOMP_H__
+#endif
+#endif

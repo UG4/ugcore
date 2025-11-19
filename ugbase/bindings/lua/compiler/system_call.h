@@ -57,4 +57,4 @@ public:
 };
 
 
-#endif /* SYSTEM_CALL_H_ */
+#endif

@@ -26,4 +26,4 @@ std::vector<double> cramerRule(std::vector<std::vector<double>> const & coeffici
 
 
 
-#endif /* UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_SIMPLEMATRIXOPS_H_ */
+#endif

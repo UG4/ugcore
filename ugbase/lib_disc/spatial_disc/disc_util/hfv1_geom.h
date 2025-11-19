@@ -1219,4 +1219,4 @@ class HFV1ManifoldGeometry
 
 }
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__HANGING_FINITE_VOLUME_GEOMETRY__ */
+#endif

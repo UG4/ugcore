@@ -198,4 +198,4 @@ LFEID ConvertStringToLFEID(const char* type, int dim);
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LOCAL_FINITE_ELEMENT_ID__ */
+#endif

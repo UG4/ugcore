@@ -89,4 +89,4 @@ inline bool MatMultAddRow(typename vector_t::value_type &dest,
 			::MatMultAdd(dest, alpha1, v1, beta1, A1, w1);
 }
 
-#endif /* BLAS_MAT_INTERFACE_H_ */
+#endif

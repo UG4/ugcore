@@ -61,4 +61,4 @@ CalculateBoundingBox (TElem* e, TAAPos aaPos)
 
 }//	end of namespace
 
-#endif	//__H__UG_bounding_box_util
+#endif

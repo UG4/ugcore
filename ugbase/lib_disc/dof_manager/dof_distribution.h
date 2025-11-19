@@ -59,7 +59,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		                SmartPtr<DoFIndexStorage> spDoFIndexStorage = nullptr);
 
 		/// destructor
-		~DoFDistribution();
+		~DoFDistribution() = default;
 
 		///	returns the surface view
 		ConstSmartPtr<SurfaceView> surface_view() const {return m_spSurfView;}
@@ -568,4 +568,4 @@ class DoFDistribution : public DoFDistributionInfoProvider
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__DOF_MANAGER__DOF_DISTRIBUTION__ */
+#endif

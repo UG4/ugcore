@@ -303,4 +303,4 @@ class AssemblingTuner
 
 #include "ass_tuner_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__ASS_TUNER__ */
+#endif

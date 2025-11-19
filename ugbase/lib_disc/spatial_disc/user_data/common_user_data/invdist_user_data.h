@@ -222,6 +222,4 @@ private:
 
 #include "invdist_user_data_impl.h"
 
-#endif // __H__UG__LIB_DISC__SPATIAL_DISC__USER_DATA__IDW_USER_DATA__
-
-/* End of File */
+#endif

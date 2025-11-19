@@ -43,4 +43,4 @@
 #include "dim_dim_user_data.h"
 #include "glob_attachment_user_data.h"
 
-#endif // __H__UG__LIB_DISC__SPATIAL_DISC__COMMON_USER_DATA__
+#endif

@@ -246,4 +246,4 @@ void MemSwap(T &a, T &b)
 
 } // namespace ug
 
-#endif /* __UG__ADDITIONAL_MATH_H__ */
+#endif

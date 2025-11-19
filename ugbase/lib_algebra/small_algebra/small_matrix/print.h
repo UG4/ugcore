@@ -92,4 +92,4 @@ CPPString(const DenseMatrix<TStorage> &A, const char *name)
 }
 
 }
-#endif /* SMALL_ALGEBRA_PRINT_H_ */
+#endif

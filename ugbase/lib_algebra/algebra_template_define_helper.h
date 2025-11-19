@@ -113,4 +113,4 @@
 		UG_ALGEBRA_CPP_TEMPLATE_DEFINE_GPU(TheTemplateClassType)
 
 
-#endif /* ALGEBRA_TEMPLATE_DEFINE_HELPER_H_ */
+#endif

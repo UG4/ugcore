@@ -271,4 +271,4 @@ class BaseLSFS
 
 } // namespace ug
 
-#endif /* __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUCNTION_SET__ */
+#endif

@@ -153,4 +153,4 @@ class NLJacobiSolver
 
 #include "nl_jacobi_impl.h"
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_JACOBI__NL_JACOBIL_H_ */
+#endif

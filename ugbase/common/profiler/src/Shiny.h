@@ -30,4 +30,4 @@ restrictions:
 #include "ShinyMacros.h"
 #include "ShinyManager.h"
 
-#endif // ifndef SHINY_*_H
+#endif

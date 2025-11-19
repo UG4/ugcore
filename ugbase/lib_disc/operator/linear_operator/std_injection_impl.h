@@ -348,4 +348,4 @@ StdInjection<TDomain, TAlgebra>::clone()
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_INJECTION_IMPL__ */
+#endif

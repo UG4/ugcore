@@ -508,5 +508,4 @@ std::string NewtonSolver<TAlgebra>::config_string() const
 
 }
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NEWTON_SOLVER__NEWTON_IMPL__ */
-
+#endif

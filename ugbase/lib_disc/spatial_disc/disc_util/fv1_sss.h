@@ -417,6 +417,4 @@ public:
 
 #include "fv1_sss_impl.h"
 
-#endif // __H__UG__LIB_DISC__SPATIAL_DISC__FV_SINGULAR_SOURCES_AND_SINKS__
-
-/* End of File */
+#endif

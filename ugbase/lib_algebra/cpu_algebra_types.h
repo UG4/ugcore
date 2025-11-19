@@ -164,4 +164,4 @@ struct CPUVariableBlockAlgebra
 };
 
 }
-#endif /* __H__UG__LIB_ALGEBRA__CPU_ALGEBRA_TYPES__ */
+#endif

@@ -324,6 +324,6 @@ inline lapack_int getri(lapack_int n, lapack_double *pColMajorMatrix, lapack_int
 
 #include "lapack_interface.h"
 
-#endif // __H__UG__CPU_ALGEBRA__LAPACK_H__
+#endif
 
 

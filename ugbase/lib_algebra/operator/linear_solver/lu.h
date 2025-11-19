@@ -415,4 +415,4 @@ class LU
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__LAPACK_LU_OPERATOR__ */
+#endif

@@ -165,4 +165,4 @@ inline bool ThrowIfIsVectorNanOrTooBig(const T &t, const char *callerName)
 }
 
 
-#endif /* NUMBER_UTIL_H_ */
+#endif

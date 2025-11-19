@@ -1332,4 +1332,4 @@ class ReferenceMapping<ReferenceOctahedron, TWorldDim>
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_MAPPING__ */
+#endif

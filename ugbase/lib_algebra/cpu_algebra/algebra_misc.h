@@ -73,4 +73,4 @@ struct sortStruct
 }
 
 
-#endif // __H__UG__CPU_ALGEBRA__ALGEBRA_MISC__
+#endif

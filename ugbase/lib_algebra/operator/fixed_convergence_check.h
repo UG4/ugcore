@@ -153,4 +153,4 @@ class FixedConvergenceCheck : public IConvergenceCheck<TVector>
 
 
 }
-#endif /* FIXED_CONVERGENCE_CHECK_H_ */
+#endif

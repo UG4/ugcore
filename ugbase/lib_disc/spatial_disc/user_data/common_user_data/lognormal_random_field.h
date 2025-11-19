@@ -97,4 +97,4 @@ private:
 
 #include "lognormal_random_field_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__LOGNORMAL_FIELD__ */
+#endif

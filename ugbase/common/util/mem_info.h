@@ -65,4 +65,4 @@ class MemInfo
 } // namespace ug
 
 
-#endif // __H__UG__MEM_INFO__
+#endif

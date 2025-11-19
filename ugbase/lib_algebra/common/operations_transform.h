@@ -199,4 +199,4 @@ inline void VectorSub(vector_t &dest, const T1 &t1)
 
 } // namespace ug
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATIONS_TRANSFORM__ */
+#endif

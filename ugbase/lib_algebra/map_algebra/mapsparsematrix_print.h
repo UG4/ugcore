@@ -72,4 +72,4 @@ void MapSparseMatrix<T>::printtype() const
 }
 
 }
-#endif // __H__UG__MAP_ALGEBRA__SPARSEMATRIX_PRINT__
+#endif

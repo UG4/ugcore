@@ -127,7 +127,7 @@ namespace ug{
 // include implementation
 #include "./domain_util_impl.h"
 
-#endif /* __H__UG__LIB_DISC__DOMAIN_UTIL__ */
+#endif
     \endcode
   </li>
   <li><tt>domain_util_impl.h</tt>
@@ -144,7 +144,7 @@ namespace ug{
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__DOMAIN_UTIL_IMPL__ */
+#endif
     \endcode
   </li>
   <li><tt>domain_util.cpp</tt>

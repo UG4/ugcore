@@ -707,4 +707,4 @@ bool ActiveSet<TDomain, TAlgebra>::check_inequ(const matrix_type& mat,
 
 }; // namespace ug
 
-#endif /* ACTIVE_SET_IMPL_H_ */
+#endif

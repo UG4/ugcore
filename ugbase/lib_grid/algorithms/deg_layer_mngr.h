@@ -248,6 +248,4 @@ private:
 
 #include "deg_layer_mngr_impl.h"
 
-#endif // __H__UG__PLUGINS__D3F__DEGENERATED_LAYER_MANAGER__
-
-/* End of File */
+#endif

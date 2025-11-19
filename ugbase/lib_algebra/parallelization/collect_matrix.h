@@ -380,4 +380,4 @@ void BroadcastVectorFromOne(IndexLayout &agglomeratedMaster, IndexLayout &agglom
 
 } // namespace ug
 
-#endif /* __H__LIB_ALGEBRA__COLLECT_MATRIX_H_ */
+#endif

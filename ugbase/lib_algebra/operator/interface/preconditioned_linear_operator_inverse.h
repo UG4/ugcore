@@ -237,4 +237,4 @@ class IPreconditionedLinearOperatorInverse
 };
 
 }
-#endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__PRECONDITIONED_LINEAR_OPERATOR_INVERSE__ */
+#endif

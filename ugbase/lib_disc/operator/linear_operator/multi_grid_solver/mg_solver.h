@@ -587,4 +587,4 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 // include implementation
 #include "mg_solver_impl.hpp"
 
-#endif /* __H__UG__LIB_DISC__MULTI_GRID_SOLVER__MG_SOLVER__ */
+#endif

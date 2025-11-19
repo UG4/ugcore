@@ -54,4 +54,4 @@ std::string demangle_block(const char *str);
  * */
 std::string demangle(const char *str);
 }
-#endif /* DEMANGLE_H_ */
+#endif

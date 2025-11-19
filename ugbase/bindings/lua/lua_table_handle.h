@@ -68,4 +68,4 @@ private:
 
 } // ug
 
-#endif // guard
+#endif

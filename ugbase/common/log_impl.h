@@ -181,4 +181,4 @@ ConvertNumberSI (uint64_t size, unsigned int width, unsigned int numDisplayedDig
 
 } // end namespace ug
 
-#endif /* __H__UG__COMMON__LOG_IMPL__ */
+#endif

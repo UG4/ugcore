@@ -156,4 +156,4 @@ class OperatorInverseIterator : public ILinearIterator<typename TAlgebra::vector
 
 } // end namespace ug
 
-#endif // __H__UG__LIB_DISC__OPERATOR__ITERATOR_OPERATOR_INVERSE__
+#endif

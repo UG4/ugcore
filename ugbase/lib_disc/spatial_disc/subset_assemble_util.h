@@ -133,4 +133,4 @@ void GetElemDiscOnSubset(std::vector<IElemDisc<TDomain>*>& vSubsetElemDisc,
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__SUBSET_ASSEMBLE_UTIL__ */
+#endif

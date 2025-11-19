@@ -197,4 +197,4 @@ inline ScalarMatrixAdapter<CPUAlgebra, CPUAlgebra>::value_type&
 ScalarMatrixAdapter<CPUAlgebra, CPUAlgebra>::operator () (size_t r, size_t c)
 { return m_src(r,c); };
 
-#endif /* SPARSEMATRIXPROXY_HH_ */
+#endif

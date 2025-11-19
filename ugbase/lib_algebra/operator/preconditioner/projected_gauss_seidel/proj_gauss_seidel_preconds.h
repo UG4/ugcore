@@ -36,4 +36,4 @@
 #include "lib_algebra/operator/preconditioner/projected_gauss_seidel/proj_gauss_seidel_interface.h"
 #include "lib_algebra/operator/preconditioner/projected_gauss_seidel/proj_gauss_seidel.h"
 
-#endif /* PROJ_GAUSS_SEIDEL_PRECONDS_H_ */
+#endif

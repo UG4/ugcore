@@ -51,4 +51,4 @@ namespace ug
 
 }//	end of namespace
 
-#endif /* __H__UGMATH__MATH_CONSTANTS_H_ */
+#endif

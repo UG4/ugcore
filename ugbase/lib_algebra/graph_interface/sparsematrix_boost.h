@@ -485,4 +485,4 @@ using boost::out_edges;
 
 }// ug
 
-#endif // guard
+#endif

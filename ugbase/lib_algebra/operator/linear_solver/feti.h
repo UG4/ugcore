@@ -1089,6 +1089,6 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 
 } // end namespace ug
 
-#endif /* UG_PARALLEL */
+#endif
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__FETI__ */
+#endif

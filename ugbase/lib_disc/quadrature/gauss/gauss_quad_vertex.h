@@ -147,4 +147,4 @@ class GaussQuadrature<ReferenceVertex, 19>
 }; // namespace ug
 
 
-#endif //__H__UG__LIB_DISC__QUADRATURE__GAUSS_QUAD__GAUSS_QUAD_VERTEX__
+#endif

@@ -108,4 +108,4 @@ bool HasMemTracking();
  */
 void DisplayVacantMemory();
 }
-#endif /* MEMTRACKER_H_ */
+#endif

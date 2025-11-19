@@ -118,4 +118,4 @@ private:
 #define PROGRESS_FINISH(progVarName) progVarName.stop();
 
 
-#endif /* PROCESS_H_ */
+#endif

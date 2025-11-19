@@ -101,4 +101,4 @@ static void MarkAllElemsForAssemblyButHSlaves(SmartPtr<IAssemble<TAlgebra> > ass
 
 } // end namespace ug
 
-#endif /*__H_MANIFOLD_ASSEMBLE_UTIL__*/
+#endif

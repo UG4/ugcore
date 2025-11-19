@@ -372,4 +372,4 @@ public:
 
 } // end namespace ug
 
-#endif // __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GAUSS_SEIDEL__
+#endif

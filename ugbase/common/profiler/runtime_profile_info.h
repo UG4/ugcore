@@ -146,4 +146,4 @@ using pRuntimeProfileInfo = RuntimeProfileInfo*;
 #endif
 
 
-#endif /* __H__UG__COMMON__PROFILER__RUNTIME_PROFILE_INFO__ */
+#endif

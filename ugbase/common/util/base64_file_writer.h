@@ -196,4 +196,4 @@ private:
 
 } // namespace: ug
 
-#endif // __H__UG__COMMON__UTIL__BASE64_FILE_WRITER__
+#endif

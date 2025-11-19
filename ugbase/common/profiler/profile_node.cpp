@@ -1063,7 +1063,7 @@ void UGProfileNode::CheckForTooSmallNodes()
 
 void WriteCallLog(const char *filename) {}
 void WriteCallLog(const char *filename, int procId) {}
-#endif // SHINY
+#endif
 
 } // namespace ug
 

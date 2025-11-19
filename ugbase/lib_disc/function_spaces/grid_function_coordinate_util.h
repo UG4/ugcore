@@ -135,4 +135,4 @@ void AddFunctionValuesToGridCoordinatesP1(
 
 }//	end of namespace
 
-#endif	//__H__UG_grid_function_coordinate_util
+#endif

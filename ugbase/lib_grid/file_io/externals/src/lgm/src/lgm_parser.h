@@ -17,4 +17,4 @@
 int lgm_parse(const char* file, struct lgm* l, struct lgm_info* fileinfo);
 int lgm_parse_2d(const char* file, struct lgm* l, struct lgm_info* fileinfo);
 
-#endif /*LGM_PARSER_H_*/
+#endif

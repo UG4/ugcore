@@ -305,4 +305,4 @@ private:
 	
 } // namespace ug
 
-#endif // __H__UG__LIB_ALGEBRA__AMG_SOLVER__MAXHEAP_H__
+#endif

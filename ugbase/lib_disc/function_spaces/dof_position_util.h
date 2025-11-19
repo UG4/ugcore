@@ -119,7 +119,7 @@ void ExtractPositions(const TFunction &u,
  *
  * @param domain		the underlying domain
  * @param dd			the dof distribution
- * @param vPos			the array of positions (to be filled)
+ * @param vPosPair			the array of positions (to be filled)
  */
 template <typename TDomain>
 void ExtractPositions(ConstSmartPtr<TDomain> domain,
@@ -135,7 +135,7 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
  * @param domain		the underlying domain
  * @param dd			the dof distribution
  * @param fct			the component of the trial space
- * @param vPos			the array of positions (to be filled)
+ * @param vPosPair			the array of positions (to be filled)
  */
 template <typename TDomain>
 void ExtractPositions(ConstSmartPtr<TDomain> domain,
@@ -164,4 +164,4 @@ void ExtractAlgebraIndices(ConstSmartPtr<TDomain> domain,
 /// \}
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__DOF_POSITION_UTIL__ */
+#endif

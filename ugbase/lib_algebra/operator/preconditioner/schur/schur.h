@@ -70,6 +70,6 @@ using SchurSlicingData = SlicingData<SchurSliceDescVector, 2>;
 //#include "schur_complement_operator.h"
 //#include "schur_precond.h"
 
-#endif /* UG_PARALLEL */
+#endif
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__SCHUR__ */
+#endif

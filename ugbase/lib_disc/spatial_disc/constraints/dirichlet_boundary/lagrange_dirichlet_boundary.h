@@ -507,4 +507,4 @@ class DirichletBoundary
 
 #include "lagrange_dirichlet_boundary_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__CONSTRAINTS__LAGRANGE_DIRICHLET_BOUNDARY__ */
+#endif

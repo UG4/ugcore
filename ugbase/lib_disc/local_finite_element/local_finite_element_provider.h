@@ -253,4 +253,4 @@ class LocalFiniteElementProvider {
 
 #include "local_finite_element_provider_impl.h"
 
-#endif /* __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUCNTION_SET__ */
+#endif

@@ -350,4 +350,4 @@ global_ips_changed(const size_t seriesID, const MathVector<dim>* vPos, const siz
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER_IMPL__ */
+#endif

@@ -102,4 +102,4 @@ int ng_read(const char* filename, struct ng* n, struct ng_info* fileinfo);
  */
 int ng_write(const char* filename, const struct ng* n, struct ng_info* fileinfo);
 
-#endif /*NG_H_*/
+#endif

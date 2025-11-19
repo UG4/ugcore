@@ -190,4 +190,4 @@ void AssembleLinearOperatorRhsAndSolution
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR_IMPL__ */
+#endif

@@ -70,4 +70,4 @@ struct variable_type{};
 #include "fixed_array.h"
 #include "variable_array.h"
 
-#endif // __H__UG__COMMON__MATRIX_FLAGS_H__
+#endif

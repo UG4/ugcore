@@ -161,4 +161,4 @@ class CompositeTimeDiscretization
 // include implementation
 #include "composite_time_disc_impl.h"
 
-#endif // __H__UG__LIB_DISC__TIME_DISC__COMBINED_TIME_DISC__
+#endif

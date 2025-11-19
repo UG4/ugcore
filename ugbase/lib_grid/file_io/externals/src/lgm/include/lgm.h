@@ -137,4 +137,4 @@ int lgm_read(const char* filename, struct lgm* l, struct lgm_info* fileinfo);
  */
 int lgm_write(const char* filename, const struct lgm* l, struct lgm_info* fileinfo);
 
-#endif /*LGM_H_*/
+#endif

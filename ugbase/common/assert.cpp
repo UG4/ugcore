@@ -39,8 +39,8 @@
 #include "util/demangle.h"
 #if !defined ANDROID && !defined UG_CYGWIN
 #include <execinfo.h>
-#endif // ANDROID
-#endif // UG_POSIX
+#endif
+#endif
 
 #include <string>
 #include <sstream>

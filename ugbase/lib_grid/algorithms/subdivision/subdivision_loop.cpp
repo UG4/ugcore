@@ -44,8 +44,8 @@ namespace ug
 bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos)
 {
 //	grid management
-	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid,aPosition);
-	Grid::VertexAttachmentAccessor<APosition> aaProjPos(grid, aProjPos);
+	Grid::VertexAttachmentAccessor aaPos(grid,aPosition);
+	Grid::VertexAttachmentAccessor aaProjPos(grid, aProjPos);
 
 //	needed variables
 

@@ -61,4 +61,4 @@ void WriteVectorGnuplot(std::string filename, const Vector_type &v,
 }
 
 
-#endif /* GNUPLOT_OUTPUT_H_ */
+#endif

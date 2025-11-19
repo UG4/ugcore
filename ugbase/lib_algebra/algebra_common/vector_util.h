@@ -105,4 +105,4 @@ bool IsFinite(const ParallelVector<TVector> &v)
 #endif
 
 }
-#endif /* VECTOR_UTIL_H_ */
+#endif

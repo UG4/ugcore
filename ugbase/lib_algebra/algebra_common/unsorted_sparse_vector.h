@@ -146,4 +146,4 @@ public:
 
 
 }
-#endif /* UNSORTED_VECTOR_H_ */
+#endif

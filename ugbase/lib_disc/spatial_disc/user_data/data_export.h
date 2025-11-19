@@ -373,4 +373,4 @@ class DataExport :
 
 #include "data_export_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EXPORT__ */
+#endif

@@ -475,6 +475,5 @@ public:
 /// \}
 
 } // namespace ug
-#endif /* SEND_INTERFACE_H_ */
-
-#endif /* UG_PARALLEL */
+#endif
+#endif

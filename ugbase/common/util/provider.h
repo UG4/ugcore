@@ -62,4 +62,4 @@ class Provider
 
 } // end namespace ug
 
-#endif /* __H__COMMON__UTIL__PROVIDER__ */
+#endif

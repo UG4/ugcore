@@ -243,4 +243,4 @@ public:
 	};
 };
 }
-#endif // __H__UG__COMMON__FIXED_ARRAY_SPECIALIZATION_H__
+#endif

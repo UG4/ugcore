@@ -91,4 +91,4 @@ UG_API void DebugHold();
 }
 }
 
-#endif /* LUA_DEBUG_H_ */
+#endif

@@ -216,4 +216,4 @@ inline void VecScaleAdd3(vector_t &dest, double alpha1, const vector_t &v1, doub
 }
 }
 }
-#endif /* BRIDGE_MAT_VEC_OPERATIONS_H_ */
+#endif

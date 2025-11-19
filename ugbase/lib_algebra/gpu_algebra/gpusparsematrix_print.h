@@ -78,4 +78,4 @@ void GPUSparseMatrix<T>::printtype() const
 /// \}
 
 }
-#endif // __H__UG__CPU_ALGEBRA__GPUSparseMatrix_PRINT__
+#endif

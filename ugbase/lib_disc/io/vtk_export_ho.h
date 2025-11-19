@@ -470,4 +470,4 @@ void vtk_export_ho
 } // end namespace ug
 
 
-#endif // __H__UG__LIB_DISC__IO__VTK_EXPORT_HO__
+#endif

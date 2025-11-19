@@ -154,5 +154,5 @@ void ConsistencyCheck(const TVec &vec, const HorizontalAlgebraLayouts &layout, s
 /// \}
 
 }
-#endif // CONSISTENCY_CHECK_H
-#endif // UG_PARALLEL
+#endif
+#endif

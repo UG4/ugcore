@@ -192,4 +192,4 @@ class SoftAbort : public UGError
 
 } // end namespace ug
 
-#endif /* __H__UG__COMMON__ERROR__ */
+#endif

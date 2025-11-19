@@ -1230,7 +1230,7 @@ number L2Error(const char* ExactSol,
 {
 	return L2Error(ExactSol, spGridFct, cmp, time, quadOrder, nullptr);
 }
-#endif //UG_FOR_LUA
+#endif
 
 
 
@@ -1368,7 +1368,7 @@ class H1ErrorIntegrand
 				
 #ifdef UG_DEBUG
 				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], JTInv);
-#endif //UG_DEBUG
+#endif
 
 				MatVecMult(approxGradIP, JTInv, locTmp);
 
@@ -2093,7 +2093,7 @@ class H1SemiIntegrand
 
 #ifdef UG_DEBUG
 				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], JTInv);
-#endif //UG_DEBUG
+#endif
 
 				MatVecMult(approxGradIP, JTInv, tmpVec);
 
@@ -2357,7 +2357,7 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 
 #ifdef UG_DEBUG
 				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], fineJTInv);
-#endif //UG_DEBUG
+#endif
 
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
 
@@ -2580,7 +2580,7 @@ class H1EnergyIntegrand
 
 #ifdef UG_DEBUG
 				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], JTInv);
-#endif //UG_DEBUG
+#endif
 
 
 				MatVecMult(approxGradIP, JTInv, tmpVec);
@@ -2846,8 +2846,7 @@ class H1EnergyDistIntegrand
 
 #ifdef UG_DEBUG
 				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], fineJTInv);
-#endif //UG_DEBUG
-
+#endif
 
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
 				MathVector<worldDim> fineWorldLocTmp(0.0);
@@ -3002,7 +3001,7 @@ class H1NormIntegrand
 
 #ifdef UG_DEBUG
 				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], JTInv);
-#endif //UG_DEBUG
+#endif
 
 				MatVecMult(approxGradIP, JTInv, locTmp);
 
@@ -3198,7 +3197,7 @@ class H1DistIntegrand
 
 #ifdef UG_DEBUG
 				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], fineJTInv);
-#endif //UG_DEBUG
+#endif
 
 
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
@@ -4213,4 +4212,4 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 
 } // namespace ug
 
-#endif /*__H__UG__LIB_DISC__FUNCTION_SPACES__INTEGRATE__*/
+#endif

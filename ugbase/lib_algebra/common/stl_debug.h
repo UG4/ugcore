@@ -82,4 +82,4 @@ public:
 #endif
 
 
-#endif // __H__LIB_ALGEBRA__LIB_ALGEBRA__
+#endif

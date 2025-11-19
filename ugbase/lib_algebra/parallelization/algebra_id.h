@@ -84,4 +84,4 @@ inline void GenerateAlgebraIDHashList(AlgebraIDHashList &hash, AlgebraIDVec& alg
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__PARALLELIZATION__ALGEBRA_ID__ */
+#endif

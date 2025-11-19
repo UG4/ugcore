@@ -45,4 +45,4 @@
 	#define LS_PROFILE_END(name)
 #endif
 
-#endif /* LINEAR_SOLVER_PROFILING_H_ */
+#endif

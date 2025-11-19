@@ -87,4 +87,4 @@ inline std::ostream& operator<< (std::ostream& outStream, const ParallelStorageT
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_STORAGE_TYPE__ */
+#endif

@@ -106,4 +106,4 @@ private:
 
 }
 
-#endif /* __H__LIB_ALGEBRA__OPERATOR__ENERGY_CONVERGENCE_CHECK__ */
+#endif

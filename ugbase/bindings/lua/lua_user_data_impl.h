@@ -1163,4 +1163,4 @@ void LuaFunction<TData,TDataIn>::operator() (TData& out, int numArgs, ...)
 
 } // end namespace ug
 
-#endif /* LUA_USER_DATA_IMPL_H_ */
+#endif

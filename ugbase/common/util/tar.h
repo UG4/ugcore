@@ -105,4 +105,4 @@ struct TarHeader
 };
 
 }
-#endif /* TAR_H_ */
+#endif

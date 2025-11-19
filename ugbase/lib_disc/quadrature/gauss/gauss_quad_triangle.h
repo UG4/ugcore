@@ -100,5 +100,4 @@ class GaussQuadrature<ReferenceTriangle, 0>
 
 }; // namespace ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__TRIANGLE__ */
-
+#endif

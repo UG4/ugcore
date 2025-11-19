@@ -147,4 +147,4 @@ void RegisterBridge_ManifoldUtil(Registry& reg, std::string grp = UG4_GRP);
 }//	end bridge
 }//	end ug
 
-#endif /* __H__UG_BRIDGE__UG_STANDARD_BRIDGES__ */
+#endif

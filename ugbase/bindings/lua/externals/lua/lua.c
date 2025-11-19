@@ -54,7 +54,7 @@ static void setsignal (int sig, void (*handler)(int)) {
 
 #define setsignal            signal
 
-#endif                               /* } */
+#endif
 
 
 /*

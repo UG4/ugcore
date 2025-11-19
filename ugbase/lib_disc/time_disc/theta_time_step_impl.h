@@ -751,4 +751,4 @@ finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
 } // end namespace ug
 
 
-#endif /* __H__UG__LIB_DISC__TIME_DISC__THETA_TIME_STEP_IMPL__ */
+#endif

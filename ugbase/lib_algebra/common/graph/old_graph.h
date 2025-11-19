@@ -237,4 +237,4 @@ protected:
 
 } // namespace ug
 
-#endif // __H__UG__LIB_DISC__AMG_SOLVER__GRAPH_H__
+#endif

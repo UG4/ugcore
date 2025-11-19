@@ -73,10 +73,10 @@ void CheckValences(MultiGrid& mg, MGSubsetHandler& markSH, const char* filename)
 	mg.attach_to_vertices_dv(aVertexValence_hex, 0);
 
 //	Define attachment accessors
-	Grid::EdgeAttachmentAccessor<AInt> aaEdgeValence(mg, aEdgeValence);
-	Grid::VertexAttachmentAccessor<AInt> aaVertexValence_toc(mg, aVertexValence_toc);
-	Grid::VertexAttachmentAccessor<AInt> aaVertexValence_prism(mg, aVertexValence_prism);
-	Grid::VertexAttachmentAccessor<AInt> aaVertexValence_hex(mg, aVertexValence_hex);
+	Grid::EdgeAttachmentAccessor aaEdgeValence(mg, aEdgeValence);
+	Grid::VertexAttachmentAccessor aaVertexValence_toc(mg, aVertexValence_toc);
+	// Grid::VertexAttachmentAccessor aaVertexValence_prism(mg, aVertexValence_prism);
+	// Grid::VertexAttachmentAccessor aaVertexValence_hex(mg, aVertexValence_hex);
 
 //	Calculate edge valence
 	for(VolumeIterator vIter = mg.begin<Volume>(mg.top_level()); vIter != mg.end<Volume>(mg.top_level()); ++vIter)
@@ -564,7 +564,7 @@ void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, TAPosition& aPos)
 		for(VertexIterator vrtIter = mg.begin<Vertex>(lvl); vrtIter != mg.end<Vertex>(lvl); ++vrtIter)
 		{
 			Vertex* v = *vrtIter;
-			Vertex* parent = dynamic_cast<Vertex*>(mg.get_parent(v));
+			auto parent = dynamic_cast<Vertex*>(mg.get_parent(v));
 
 		//	Only, if parent vertex exists
 			if(parent)

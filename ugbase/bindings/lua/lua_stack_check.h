@@ -75,4 +75,4 @@ private:
 
 }
 }
-#endif /* LUA_STACK_CHECK_H_ */
+#endif

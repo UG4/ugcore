@@ -411,4 +411,4 @@ Tens4IdentitySym(MathTensor4<TDim, TDim, TDim, TDim>& Ident)
 
 } // end of namespace
 
-#endif /* __H__UG__COMMON__MATH_TENSOR_FUNCTIONS_COMMON_IMPL__ */
+#endif

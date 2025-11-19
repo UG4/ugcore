@@ -49,11 +49,11 @@ namespace ug
 class KDVertexDistance
 {
 	public:
-		KDVertexDistance()	{}
+		KDVertexDistance() = default;
 		KDVertexDistance(Vertex* vrt, float nDistSQ) : vertex(vrt), distSQ(nDistSQ)	{}
 
-		Vertex*		vertex;
-		number			distSQ;
+		Vertex* vertex;
+		number distSQ;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -146,15 +146,15 @@ class KDTreeStatic
 		void get_leafs_recursive(std::vector<Node*>& vLeafsOut, Node* pNode);
 
 	//	members
-		Grid*	m_pGrid;
+		Grid* m_pGrid;
 		Grid::VertexAttachmentAccessor<TPositionAttachment>	m_aaPos;
-		int		m_iSplitThreshold;
-		Node	m_parentNode;
-		KDSplitDimension	m_splitDimension;	//	how is the next split dimension choosen?
+		int m_iSplitThreshold;
+		Node m_parentNode;
+		KDSplitDimension m_splitDimension;	//	how is the next split dimension choosen?
 
 	//	some helper vars for neighbourhood search
-		int		m_numNeighboursFound;
-		float	m_maxDistSQ;
+		int m_numNeighboursFound;
+		float m_maxDistSQ;
 };
 
 /// @}

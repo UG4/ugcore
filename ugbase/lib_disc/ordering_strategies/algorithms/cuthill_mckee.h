@@ -47,4 +47,4 @@ void OrderCuthillMcKee(ApproximationSpace<TDomain>& approxSpace, bool bReverse);
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__DOF_MANAGER__CUTHILL_MCKEE__ */
+#endif

@@ -365,4 +365,4 @@ void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2);
 // include implementation
 #include "./periodic_boundary_manager_impl.hpp"
 
-#endif /* PERIODIC_IDENTIFIER_H_ */
+#endif

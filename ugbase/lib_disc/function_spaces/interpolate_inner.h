@@ -526,4 +526,4 @@ void InterpolateInner(const char* LuaFunction,
 
 } // namespace ug
 
-#endif // UG__LIB_DISC__FUNCTION_SPACES__INTERPOLATE_INNER_H
+#endif

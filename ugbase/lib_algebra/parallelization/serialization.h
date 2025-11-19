@@ -223,4 +223,4 @@ void Deserialize(TIStream &buf, pcl::ProcessCommunicator &ic)
 }
 
 }
-#endif /* SERIALIZATION_H_ */
+#endif

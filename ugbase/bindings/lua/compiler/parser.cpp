@@ -370,7 +370,7 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 #   endif
 #  endif
 # endif
-#endif /* ! defined yyoverflow || YYERROR_VERBOSE */
+#endif
 
 
 #if (! defined yyoverflow \
@@ -1041,7 +1041,7 @@ int yydebug;
 # define YY_SYMBOL_PRINT(Title, Type, Value, Location)
 # define YY_STACK_PRINT(Bottom, Top)
 # define YY_REDUCE_PRINT(Rule)
-#endif /* !YYDEBUG */
+#endif
 
 
 /* YYINITDEPTH -- initial size of the parser's stacks.  */
@@ -1270,7 +1270,7 @@ yysyntax_error (char *yyresult, int yystate, int yychar)
       return yysize;
     }
 }
-#endif /* YYERROR_VERBOSE */
+#endif
 
 
 /*-----------------------------------------------.
@@ -1319,7 +1319,7 @@ int yyparse (void);
 #else
 int yyparse ();
 #endif
-#endif /* ! YYPARSE_PARAM */
+#endif
 
 
 
@@ -1488,7 +1488,7 @@ yyparse ()
 	  YYSTACK_FREE (yyss1);
       }
 # endif
-#endif /* no yyoverflow */
+#endif
 
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;

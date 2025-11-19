@@ -59,12 +59,12 @@ CreateOctree(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
 		return node_tree::SPCollisionTreeRootNode(nullptr);
 	}
 	
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+	Grid::VertexAttachmentAccessor aaPos(grid, aPos);
 	
 //	we have to attach an int-attachment to the vertices of the grid.
 	AInt aInt;
 	grid.attach_to_vertices(aInt);
-	Grid::VertexAttachmentAccessor<AInt> aaInt(grid, aInt);
+	Grid::VertexAttachmentAccessor aaInt(grid, aInt);
 	
 //	all elements have to have the same amount of vertices
 	const size_t numVertices = (*elemsBegin)->num_vertices();
@@ -78,8 +78,8 @@ CreateOctree(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
 	}
 	
 //	create the vElems and the vPoints arrays.
-	std::vector<vector3> 	vPoints;
-	std::vector<int>		vElems;
+	std::vector<vector3> vPoints;
+	std::vector<int> vElems;
 	std::vector<node_tree::CollisionElementID> vElemIDs;
 
 /* If you want to match the indices that are referenced by the oct-trees

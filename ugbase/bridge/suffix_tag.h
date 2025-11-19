@@ -185,4 +185,4 @@ std::string GetDomainAlgebraTag(){return GetDimensionAlgebraTag<TDomain::dim, TA
 }//	end bridge
 }//	end ug
 
-#endif /* __H__UG_BRIDGE__SUFFIX_TAG__ */
+#endif

@@ -115,4 +115,4 @@ public:
 };
 
 }
-#endif /* SPARSE_VECTOR_H_ */
+#endif

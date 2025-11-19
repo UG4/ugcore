@@ -1084,4 +1084,4 @@ inline void ElementExtensionsSq<3>(ReferenceObjectID roid, MathVector<3>& ext, c
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__COMMON__GEOMETRY_UTIL__ */
+#endif

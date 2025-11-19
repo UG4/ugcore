@@ -181,4 +181,4 @@ class OneSideP1Constraints
 
 #include "p1_continuity_constraints_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__CONSTRAINTS__CONTINUITY_CONSTRAINTS__P1_CONTINUITY_CONSTRAINTS__ */
+#endif

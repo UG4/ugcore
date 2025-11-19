@@ -95,7 +95,7 @@ class MultiIndex<1, size_t>
 
 	public:
 	///	Default constructor
-		MultiIndex(){};
+		MultiIndex() = default;
 
 	///	Constructor with values
 		MultiIndex(single_index_type a)
@@ -143,7 +143,7 @@ class MultiIndex<2, size_t>
 
 	public:
 	///	Default constructor
-		MultiIndex(){};
+		MultiIndex() = default;
 
 	///	Constructor with values
 		MultiIndex(single_index_type a, single_index_type b){
@@ -208,7 +208,7 @@ class MultiIndex<3, size_t>
 
 	public:
 	///	Default constructor
-		MultiIndex(){};
+		MultiIndex() = default;
 
 	///	Constructor with values
 		MultiIndex(single_index_type a, single_index_type b, single_index_type c){
@@ -314,4 +314,4 @@ void SetRow(TMatrix& mat, const DoFIndex& ind, number val = 0.0)
 }
 
 
-#endif /* __H__UG__LIB_DISC__COMMON__MULTI_INDEX__ */
+#endif

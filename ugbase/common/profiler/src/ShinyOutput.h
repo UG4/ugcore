@@ -56,6 +56,6 @@ namespace Shiny {
 	std::string OutputZonesAsString(const ProfileZone *a_root, uint32_t a_count);
 
 } // namespace Shiny
-#endif // if SHINY_PROFILER == TRUE
+#endif
 
-#endif // ifndef SHINY_*_H
+#endif

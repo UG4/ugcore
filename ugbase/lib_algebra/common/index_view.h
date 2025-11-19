@@ -246,4 +246,4 @@ inline void VecScaleAssign(vector_t &dest, double alpha1, const vector_t &v1)
 } // namespace ug
 
 
-#endif // __H__UG__LIB_ALGEBRA__INDEX_VIEW_H__
+#endif

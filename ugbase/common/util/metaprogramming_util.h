@@ -253,4 +253,4 @@ size_t GetUniqueTypeID()
 
 }
 
-#endif /* __H__COMMON__METAPROGRAMMING_UTIL__ */
+#endif

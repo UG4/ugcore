@@ -227,7 +227,7 @@ void DegeneratedLayerManager<dim>::mark_vertices ()
 #ifdef UG_PARALLEL
 //	Make the marking consistent
 	AttachmentAllReduce<Vertex> (*pMG, m_aVertexMarks, PCL_RO_MIN);
-#endif // UG_PARALLEL
+#endif
 }
 
 /**

@@ -262,4 +262,4 @@ std::ostream &operator << (std::ostream &out, const FixedArray2<T, rowsT, colsT,
 }
 
 }
-#endif  // __H__UG__COMMON__FIXED_ARRAY_IMPL_H__
+#endif

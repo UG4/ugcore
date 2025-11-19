@@ -354,4 +354,4 @@ using Domain3d = Domain<3, MultiGrid, MGSubsetHandler>;
 // include implementation
 #include "domain_impl.h"
 
-#endif /* __H__UG__LIB_DISC__DOMAIN__ */
+#endif

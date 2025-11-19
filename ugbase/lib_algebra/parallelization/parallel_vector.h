@@ -206,4 +206,4 @@ class ParallelVector : public TVector
 
 #include "parallel_vector_impl.h"
 
-#endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_VECTOR__ */
+#endif

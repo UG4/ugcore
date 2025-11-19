@@ -164,4 +164,4 @@ class EllipticCylinderProjector
 
 } // namespace ug
 
-#endif  // UG__LIB_GRID__REFINEMENT__PROJECTORS__ELLIPTIC_CYLINDER_PROJECTOR_H
+#endif

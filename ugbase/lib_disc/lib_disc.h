@@ -134,4 +134,4 @@
 #include "time_disc/time_disc_interface.h"
 #include "time_disc/theta_time_step.h"
 
-#endif /* __H__UG__LIB_DISC__LIB__DISC__ */
+#endif

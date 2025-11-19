@@ -89,4 +89,4 @@ UG_API void ug_assert_failed();
 // end group ugbase_common
 /// \}
 
-#endif /* __H__COMMON__ASSERT__ */
+#endif

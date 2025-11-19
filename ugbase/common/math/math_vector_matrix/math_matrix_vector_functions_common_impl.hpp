@@ -265,4 +265,4 @@ OrthogProjectVec (vector_t& v, const matrix_t& A)
 
 } // end of namespace ug
 
-#endif /* __H__LGMATH__LGMATH_MATRIX_VECTOR_FUNCTIONS_COMMON_IMPL__ */
+#endif

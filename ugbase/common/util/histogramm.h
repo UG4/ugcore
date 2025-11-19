@@ -44,4 +44,4 @@ std::string HistogrammString(std::vector<double> values);
 
 std::string DistributionPercentage(std::vector<double> values);
 }
-#endif /* HISTOGRAMM_H_ */
+#endif

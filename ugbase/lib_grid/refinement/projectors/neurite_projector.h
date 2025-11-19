@@ -475,4 +475,4 @@ std::istream& operator>>(std::istream& in, NeuriteProjector::Mapping& mapping);
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<NeuriteProjector::Mapping>, "Mapping");
 } // namespace ug
 
-#endif // UG__LIB_GRID__REFINEMENT__PROJECTORS__NEURITE_PROJECTOR_H
+#endif

@@ -203,4 +203,4 @@ class StdDataLinker
 //	include implementation
 #include "linker_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER__ */
+#endif

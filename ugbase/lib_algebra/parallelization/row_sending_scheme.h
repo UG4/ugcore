@@ -250,4 +250,4 @@ private:
 };
 
 }
-#endif /* __H__LIB_ALGEBRA__PARALLELIZATION__ROW_SENDING_SCHEME_H_ */
+#endif

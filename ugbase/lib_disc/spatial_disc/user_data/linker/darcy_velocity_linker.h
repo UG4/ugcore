@@ -446,4 +446,4 @@ class DarcyVelocityLinker
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DARCY_VELOCITY_LINKER__ */
+#endif

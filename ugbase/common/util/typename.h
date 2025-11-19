@@ -49,4 +49,4 @@ inline std::string TypeName()
 }
 
 }
-#endif /* __H__UTIL__TYPENAME_H_ */
+#endif

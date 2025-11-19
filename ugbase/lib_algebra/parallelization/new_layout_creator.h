@@ -289,4 +289,4 @@ public:
 
 }
 
-#endif /* NEW_LAYOUT_CREATOR_H_ */
+#endif

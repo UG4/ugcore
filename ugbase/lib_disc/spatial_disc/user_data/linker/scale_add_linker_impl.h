@@ -265,4 +265,4 @@ eval_and_deriv(TRet vValue[],
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__SCALE_ADD_LINKER_IMPL__ */
+#endif

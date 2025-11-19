@@ -412,5 +412,4 @@ class IObstacleConstraint:
 // include implementation
 #include "obstacle_constraint_interface_impl.h"
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__OBSTACLE_CONSTRAINT_INTERFACE__ */
-
+#endif

@@ -154,5 +154,5 @@ int GeneralizedEigenvalueProblem(DenseMatrix<A_type> &A, DenseMatrix<A_type> &X,
 
 }
 
-#endif // LAPACK_AVAILABLE
+#endif
 #endif

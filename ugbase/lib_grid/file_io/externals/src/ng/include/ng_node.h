@@ -83,4 +83,4 @@ struct ng_inode
     double coords[3];
 };
 
-#endif /*NG_NODE_H_*/
+#endif

@@ -478,4 +478,4 @@ void NLGaussSeidelSolver<TDomain, TAlgebra>::write_debug(const matrix_type& mat,
 
 }
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_GAUSS_SEIDEL__NL_GAUSS_SEIDEL_IMPL_H_ */
+#endif

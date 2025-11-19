@@ -743,4 +743,4 @@ class ReferenceOctahedron : public DimReferenceElement<3>
 
 #include "reference_element_traits.h"
 
-#endif /* __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT__ */
+#endif

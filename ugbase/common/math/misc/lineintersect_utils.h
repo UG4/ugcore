@@ -68,4 +68,4 @@ void AdjustNearestPoints(number A1x, number A1y, number A1z,
 // end group ugbase_math
 /// \}
 
-#endif // _lineintersect_utils_h
+#endif

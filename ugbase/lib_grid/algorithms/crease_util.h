@@ -48,4 +48,4 @@ void SelectKinkVertices(Grid& grid, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 //	include implementation
 #include "crease_util_impl.h"
 
-#endif	//__H__UG_crease_util
+#endif

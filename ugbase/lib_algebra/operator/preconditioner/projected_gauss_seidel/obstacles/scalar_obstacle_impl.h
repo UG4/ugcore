@@ -150,4 +150,4 @@ restrict_obs_values()
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_OBSTACLE_IMPL__ */
+#endif

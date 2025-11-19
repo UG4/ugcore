@@ -87,9 +87,6 @@ DoFDistribution(SmartPtr<MultiGrid> spMG,
 }
 
 
-DoFDistribution::
-~DoFDistribution() {}
-
 
 void DoFDistribution::check_subsets()
 {
@@ -380,11 +377,11 @@ dof_indices(TBaseElem* elem, const ReferenceObjectID roid,
 
 			if(vOrientOffset.empty()){
 				for(size_t j = 0; j < numDoFsOnSub; ++j)
-					ind.push_back(DoFIndex(index + j,0));
+					ind.emplace_back(index + j,0);
 			}
 			else{
 				for(size_t j = 0; j < numDoFsOnSub; ++j)
-					ind.push_back(DoFIndex(index + vOrientOffset[j],0));
+					ind.emplace_back(index + vOrientOffset[j],0);
 			}
 		}
 		else
@@ -649,11 +646,11 @@ constrained_face_dof_indices(TBaseElem* elem,size_t fct,std::vector<DoFIndex>& i
 
 				if(vOrientOffset.empty()){
 				for(size_t k = 0; k < numDoFsOnSub; ++k)
-					ind.push_back(DoFIndex(index, comp + k));
+					ind.emplace_back(index, comp + k);
 				}
 				else{
 					for(size_t k = 0; k < numDoFsOnSub; ++k)
-						ind.push_back(DoFIndex(index, comp + vOrientOffset[k]));
+						ind.emplace_back(index, comp + vOrientOffset[k]);
 				}
 			}
 		}

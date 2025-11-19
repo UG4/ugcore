@@ -278,4 +278,4 @@ class ReferenceMappingProvider {
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_MAPPING_PROVIDER__ */
+#endif

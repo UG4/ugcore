@@ -39,7 +39,7 @@ namespace ug {
 /** Each line corresponds to one element. First entry of each line corresponds
  * to the number of vertices, the other entries to the vertex index according
  * to TKDInfo.*/
-static const int INNER_TKD_ELEMENT_INDICES[] = {
+static constexpr int INNER_TKD_ELEMENT_INDICES[] = {
 					6, 24, 1, 0, 25, 19, 18,
 					6, 24, 2, 1, 25, 20, 19,
 					6, 24, 3, 2, 25, 21, 20,

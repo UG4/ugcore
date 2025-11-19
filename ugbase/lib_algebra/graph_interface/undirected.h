@@ -287,4 +287,4 @@ void UndirectedMatrix<T>::refresh()
 
 } // ug
 
-#endif // guard
+#endif

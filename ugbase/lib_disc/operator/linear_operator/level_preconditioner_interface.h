@@ -78,4 +78,4 @@ class ILevelPreconditioner : public IPreconditioner<TAlgebra>
 } // end namespace ug
 
 
-#endif // __H__LIB_DISC__OPERATOR__LINEAR_OPERATOR__LEVEL_PRECONDITIONER_INTERFACE_H__
+#endif

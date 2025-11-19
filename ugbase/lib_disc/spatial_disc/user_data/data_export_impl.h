@@ -162,4 +162,4 @@ remove_needed_data(SmartPtr<ICplUserData<dim> > data)
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EXPORT_IMPL__ */
+#endif

@@ -237,4 +237,4 @@ inline void VecLog(vector_t &dest, const vector_t &v)
 
 } // namespace ug
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATIONS_VEC__ */
+#endif

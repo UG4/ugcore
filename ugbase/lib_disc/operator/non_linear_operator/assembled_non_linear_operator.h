@@ -98,4 +98,4 @@ public:
 // include implementation
 #include "assembled_non_linear_operator_impl.h"
 
-#endif /*__H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__ASSEMBLED_NON_LINEAR_OPERATOR__*/
+#endif

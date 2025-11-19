@@ -53,4 +53,4 @@ struct lgm_info* lgm_info_new(void);
  */
 void lgm_info_delete(struct lgm_info* linfo);
 
-#endif /*LGM_INFO_H_*/
+#endif

@@ -54,4 +54,4 @@
 
 
 
-#endif /* __H_COMMON_CATCH_STD_H_ */
+#endif

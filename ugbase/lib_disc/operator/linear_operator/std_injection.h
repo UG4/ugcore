@@ -135,4 +135,4 @@ class StdInjection :
 
 #include "std_injection_impl.h"
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_INJECTION__ */
+#endif

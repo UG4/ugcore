@@ -113,7 +113,7 @@
 	#define PROFILER_OUTPUT									\
 		Shiny::ProfileManager::instance.output
 
-#endif // UG_PROFILER_SHINY
+#endif
 
 
 #ifdef UG_PROFILER_SCALASCA
@@ -154,7 +154,7 @@
 	#define PROFILER_UPDATE	ProfilerDummy::Update
 	#define PROFILER_OUTPUT	ProfilerDummy::Output
 
-#endif // UG_PROFILER_SCALASCA
+#endif
 
 #ifdef UG_PROFILER_VAMPIR
 	#include "vt_user.h"
@@ -193,7 +193,7 @@
 	#define PROFILER_UPDATE	ProfilerDummy::Update
 	#define PROFILER_OUTPUT	ProfilerDummy::Output
 
-#endif // UG_PROFILER_VAMPIR
+#endif
 
 #ifdef UG_PROFILER_SCOREP
 	#include <scorep/SCOREP_User.h>
@@ -234,7 +234,7 @@
 	#define PROFILER_UPDATE	ProfilerDummy::Update
 	#define PROFILER_OUTPUT	ProfilerDummy::Output
 
-#endif // UG_PROFILER_SCOREP
+#endif
 
 #define PROFILE_END_(name) \
 			assert(&(apn_##name) == ProfileNodeManager::inst().m_nodes.top());	\
@@ -261,6 +261,6 @@
 
 	#define PROFILE_END_(name)
 
-#endif // UG_PROFILER
+#endif
 
-#endif	// __H__UG__COMMON__PROFILER__
+#endif

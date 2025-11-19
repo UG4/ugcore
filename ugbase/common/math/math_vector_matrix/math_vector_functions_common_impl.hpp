@@ -708,5 +708,4 @@ VecIsInBB(const vector_t& v, const vector_t& low, const vector_t& high)
 
 }//	end of namespace
 
-#endif /* __H__COMMON__MathVector_FUNCTIONS_COMMON_IMPL__ */
-
+#endif

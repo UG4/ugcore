@@ -44,4 +44,4 @@ class LuaFunctionHandle
 
 } // end namespace ug
 
-#endif /* __H__UG__LUA_FUNCTION_HANDLE__ */
+#endif

@@ -65,4 +65,4 @@ std::pair<boost::filter_iterator<noloop<G>, T>,
 } // util
 } // ug
 
-#endif // guard
+#endif

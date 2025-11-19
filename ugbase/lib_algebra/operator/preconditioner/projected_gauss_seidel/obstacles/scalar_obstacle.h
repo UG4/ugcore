@@ -163,4 +163,4 @@ class ScalarUpperObstacle:
 // include implementation
 #include "scalar_obstacle_impl.h"
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_LOWER_OBSTACLE__ */
+#endif

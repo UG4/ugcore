@@ -55,4 +55,4 @@ void PrintVector(const T &v, std::string desc="")
 #define UG_LINE_LOG() UG_LOG("\n-------LINE " << __FILE__ << ":" << __LINE__ << " (" << __PRETTY_FUNCTION__ << ") -----------\n");
 }
 
-#endif /* __H__UG__DEBUG_PRINT_H_ */
+#endif

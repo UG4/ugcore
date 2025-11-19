@@ -2664,5 +2664,4 @@ class LagrangeLSFS<ReferenceOctahedron, TOrder>
 
 } //namespace ug
 
-#endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LAGRANGE__LAGRANGE__ */
-
+#endif

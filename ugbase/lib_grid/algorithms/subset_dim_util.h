@@ -127,4 +127,4 @@ int DimensionOfSubsets(const ISubsetHandler& sh);
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_GRID__SUBSET_DIM_UTIL__ */
+#endif

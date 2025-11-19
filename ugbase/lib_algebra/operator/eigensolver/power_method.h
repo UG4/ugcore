@@ -353,4 +353,4 @@ class PowerMethod
 } // namespace ug
 
 
-#endif // __H__UG__LIB_ALGEBRA__POWER_METHOD_H__
+#endif

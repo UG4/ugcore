@@ -323,4 +323,4 @@ std::ostream &operator << (std::ostream &out, const VariableArray2<T, T_ordering
 }
 
 }
-#endif // __H__UG__COMMON__VARIABLE_ARRAY_IMPL_H__
+#endif

@@ -67,6 +67,4 @@ number NormalizedChebyshev2Poly (size_t k, number x);
 
 } // namespace ug
 
-#endif // __H__UGMATH__ORTHO_POLY__
-
-/* End of File */
+#endif

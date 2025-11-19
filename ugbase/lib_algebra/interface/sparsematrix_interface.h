@@ -144,4 +144,4 @@ void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2
 // various SetDirichletRow and GetNeighborhood methods (see sparsematrix_util.h)
 
 
-#endif /* SPARSEMATRIX_INTERFACE_H_ */
+#endif

@@ -153,5 +153,4 @@ class ObstacleInNormalDir:
 // include implementation
 #include "obstacle_in_normal_dir_impl.h"
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__OBSTACLE_IN_NORMAL_DIR__ */
-
+#endif

@@ -347,4 +347,4 @@ operator <= (double alpha, const DenseVector<TStorage> &vec)
 }
 #include "densevector_impl.h"
 
-#endif // __H__UG__COMMON__DENSEVECTOR_H__
+#endif

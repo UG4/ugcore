@@ -438,4 +438,4 @@ void RegisterLuaUserData(Registry& reg, std::string grp);
 
 #include "lua_user_data_impl.h"
 
-#endif /* __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA__ */
+#endif

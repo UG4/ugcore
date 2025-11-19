@@ -469,4 +469,4 @@ private:
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__LINE_SEARCH__ */
+#endif

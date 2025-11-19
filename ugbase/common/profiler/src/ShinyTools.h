@@ -79,4 +79,4 @@ namespace Shiny {
 
 } // namespace Shiny
 
-#endif // ifndef SHINY_*_H
+#endif

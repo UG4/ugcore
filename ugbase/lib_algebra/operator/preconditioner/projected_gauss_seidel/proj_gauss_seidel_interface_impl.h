@@ -322,4 +322,4 @@ apply_update_defect(vector_type &c, vector_type& d)
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__PROJ_GAUSS_SEIDEL_INTERFACE_IMPL__ */
+#endif

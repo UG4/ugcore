@@ -355,5 +355,4 @@ struct LuaParsing<ConstSmartPtr<void> >{
 }
 }
 }
-#endif /* LUA_PARSING_H_ */
-
+#endif

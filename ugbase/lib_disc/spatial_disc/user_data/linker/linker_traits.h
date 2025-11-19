@@ -116,4 +116,4 @@ struct linker_traits< MathTensor<4,dim>, number >
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER_TRAITS__ */
+#endif

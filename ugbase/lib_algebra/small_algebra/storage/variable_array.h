@@ -213,4 +213,4 @@ protected:
 
 #include "variable_array_impl.h"
 
-#endif // #define __H__UG__COMMON__VARIABLE_ARRAY_H__
+#endif

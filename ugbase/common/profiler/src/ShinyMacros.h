@@ -243,4 +243,4 @@ namespace Shiny {
 
 #endif
 
-#endif // ifndef SHINY_*_H
+#endif

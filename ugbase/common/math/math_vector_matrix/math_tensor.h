@@ -228,4 +228,4 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathTensorX<TEntry,
 }//	end of namespace
 
 
-#endif /* __H__COMMON__MATH_MathVector__ */
+#endif

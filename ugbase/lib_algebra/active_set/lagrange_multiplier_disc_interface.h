@@ -67,4 +67,4 @@ class ILagrangeMultiplierDisc
 
 } //end namespace ug
 
-#endif /* LAGRANGE_MULTIPLIER_DISC_INTERFACE_H_ */
+#endif

@@ -553,6 +553,4 @@ class MultipleSideAndElemErrEstData
 
 #include "err_est_data_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__ERR_EST_DATA__ */
-
-/* End of File */
+#endif

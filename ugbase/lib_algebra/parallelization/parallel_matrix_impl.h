@@ -309,4 +309,4 @@ inline void MatMultTransposedDirect(ParallelVector<vector_type> &dest,
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_MATRIX_IMPL__ */
+#endif

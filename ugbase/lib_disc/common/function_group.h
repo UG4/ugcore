@@ -235,4 +235,4 @@ std::ostream& operator<< (std::ostream& outStream, const ug::FunctionGroup& grp)
 
 } // end namespace ug
 
-#endif /*__H__UG__LIB_DISC__COMMON__FUNCTION_GROUP__ */
+#endif

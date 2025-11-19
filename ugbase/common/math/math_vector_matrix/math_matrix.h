@@ -300,4 +300,4 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<3,3>& m)
 } //end of namespace: lgmath
 
 
-#endif /* MathMatrix_H_ */
+#endif

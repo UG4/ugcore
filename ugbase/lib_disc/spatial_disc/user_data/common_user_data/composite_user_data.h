@@ -198,4 +198,4 @@ private:
 
 } // namespace ug
 
-#endif /* __LIB_DISC__COMPOSITE_USER_DATA_H_ */
+#endif

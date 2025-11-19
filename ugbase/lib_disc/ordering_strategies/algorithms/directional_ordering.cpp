@@ -178,4 +178,4 @@ private:
 } //namespace
 
 
-#endif //guard
+#endif

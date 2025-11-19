@@ -96,5 +96,4 @@ class GaussQuadrature<ReferenceHexahedron, 0>
 
 }; // namespace ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__HEXAHEDRON__ */
-
+#endif

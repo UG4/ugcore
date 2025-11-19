@@ -417,4 +417,4 @@ VecIsInBB(const vector_t& v, const vector_t& low, const vector_t& high);
 //	include a general, but not very fast implementation of the declared methods above.
 #include "math_vector_functions_common_impl.hpp"
 
-#endif /* __H__COMMON__MATH_MathVector_FUNCTIONS__ */
+#endif

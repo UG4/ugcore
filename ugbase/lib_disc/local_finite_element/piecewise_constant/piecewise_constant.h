@@ -117,5 +117,4 @@ class PiecewiseConstantLSFS
 
 } //namespace ug
 
-#endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__PIECEWISE_CONSTANT__ */
-
+#endif

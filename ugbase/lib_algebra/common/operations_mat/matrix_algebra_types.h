@@ -83,4 +83,4 @@ struct matrix_algebra_type_traits
 
 }
 
-#endif /* MATRIX_ALGEBRA_TYPES_H_ */
+#endif

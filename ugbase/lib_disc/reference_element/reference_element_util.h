@@ -97,4 +97,4 @@ inline MathVector<3> ReferenceElementCenter<3>(ReferenceObjectID roid)
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_UTIL__ */
+#endif

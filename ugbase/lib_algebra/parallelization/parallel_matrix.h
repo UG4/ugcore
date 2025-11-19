@@ -165,4 +165,4 @@ struct matrix_algebra_type_traits<ParallelMatrix<T> >
 
 #include "parallel_matrix_impl.h"
 
-#endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_MATRIX__ */
+#endif

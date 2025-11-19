@@ -281,4 +281,4 @@ class ConstrainedLinearIterator : public TLinIt
 } // end namespace ug
 
 
-#endif // __H__LIB_ALGEBRA__OPERATOR__INTERFACE__CONSTRAINED_LINEAR_ITERATOR__
+#endif

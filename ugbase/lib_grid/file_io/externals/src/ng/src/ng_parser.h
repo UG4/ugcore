@@ -11,4 +11,4 @@
 int ng_parse(const char* file, struct ng* n, struct ng_info* fileinfo);
 
 
-#endif /*NG_PARSER_H_*/
+#endif

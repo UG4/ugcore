@@ -46,4 +46,4 @@ bool Decomp(DenseMatrix< VariableArray2<double> > &A, DenseVector<VariableArray1
 		size_t &iNonNullRows, double deficitTolerance);
 }
 
-#endif /* SOLVE_DEFICIT_H_ */
+#endif

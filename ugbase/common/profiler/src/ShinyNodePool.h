@@ -55,6 +55,6 @@ namespace Shiny {
 	};
 
 } // namespace Shiny
-#endif // if SHINY_PROFILER == TRUE
+#endif
 
-#endif // ifndef SHINY_*_H
+#endif

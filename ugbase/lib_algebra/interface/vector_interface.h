@@ -120,4 +120,4 @@ bool CloneVector(Vector<TValueType> &dest, const Vector<TValueType> src)
 	dest.resize(src.size());
 }
 
-#endif /* VECTOR_INTERFACE_H_ */
+#endif

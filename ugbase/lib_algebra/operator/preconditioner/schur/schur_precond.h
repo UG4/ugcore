@@ -237,5 +237,5 @@ private:
 
 
 }
-#endif /* UG_PARALLEL */
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__SCHUR_PRECOND__ */
+#endif
+#endif

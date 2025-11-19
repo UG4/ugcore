@@ -56,7 +56,7 @@ class RevisionCounter
 {
 	public:
 	///	constructor (with invalid state initialization)
-		RevisionCounter() : m_pObj(0), m_cnt(0) {};
+		RevisionCounter() : m_pObj(nullptr), m_cnt(0) {};
 
 	///	constructor (with valid state initialization)
 		RevisionCounter(const void* pObj) : m_pObj(pObj), m_cnt(1) {}
@@ -111,13 +111,13 @@ class RevisionCounter
 		}
 
 	///	returns if state is valid
-		bool valid() const {return m_pObj != 0 && m_cnt != 0;}
+		bool valid() const {return m_pObj != nullptr && m_cnt != 0;}
 
 	///	returns if state is invalid
 		bool invalid() const {return !valid();}
 
 	///	invalidates state
-		void invalidate() {m_pObj = 0; m_cnt = 0;}
+		void invalidate() {m_pObj = nullptr; m_cnt = 0;}
 
 	///	returns the associated object
 		const void* obj() const {return m_pObj;}
@@ -129,4 +129,4 @@ class RevisionCounter
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__COMMON__REVISION_COUNTER__ */
+#endif

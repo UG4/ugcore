@@ -205,4 +205,4 @@ class MinimalEnergyDamping : public IDamping<X,Y>
 
 }  // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__OPERATOR__DAMPING__ */
+#endif

@@ -81,4 +81,4 @@ restrictions:
 #   define SHINY_COMPILER	SHINY_COMPILER_OTHER
 #endif
 
-#endif // ifndef SHINY_*_H
+#endif

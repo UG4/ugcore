@@ -955,4 +955,4 @@ protected:
 
 #include "vtkoutput_impl.h"
 
-#endif /* __H__UG__LIB_DISC__IO__VTKOUTPUT__ */
+#endif

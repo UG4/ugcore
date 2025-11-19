@@ -1077,4 +1077,4 @@ MinAbsEigenvalue(matrix_t& m)
 
 } // end of namespace
 
-#endif /* __H__UG__COMMON__MATH_MATRIX_FUNCTIONS_COMMON_IMPL__ */
+#endif

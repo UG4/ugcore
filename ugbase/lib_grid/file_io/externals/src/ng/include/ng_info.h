@@ -53,4 +53,4 @@ struct ng_info* ng_info_new(void);
  */
 void ng_info_delete(struct ng_info* ninfo);
 
-#endif /*NG_INFO_H_*/
+#endif

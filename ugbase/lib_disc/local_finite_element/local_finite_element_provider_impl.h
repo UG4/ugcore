@@ -201,4 +201,4 @@ get_dofs(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 }
 
 }
-#endif /* __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_FINITE_ELEMENT_PROVIDER_IMPL__ */
+#endif

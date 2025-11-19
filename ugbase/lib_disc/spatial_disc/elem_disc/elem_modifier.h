@@ -95,4 +95,4 @@ class IElemDiscModifier
 #include "elem_modifier_impl.h"
 
 
-#endif /* ELEM_MODIFIER_H_ */
+#endif

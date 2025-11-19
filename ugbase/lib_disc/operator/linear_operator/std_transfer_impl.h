@@ -850,4 +850,4 @@ write_debug(const matrix_type& mat, std::string name,
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_TRANSFER_IMPL__ */
+#endif

@@ -205,4 +205,4 @@ void BlockMatrixToDoubleMatrix(DenseMatrix<VariableArray2<double> > &Ad, TMatrix
 }
 
 }
-#endif /* ADDITIONAL_MATH_H_ */
+#endif

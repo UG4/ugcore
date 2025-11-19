@@ -1239,4 +1239,4 @@ public:
 } // namespace ug
 
 
-#endif // __H__UG__LIB_ALGEBRA__PINVIT_H__
+#endif

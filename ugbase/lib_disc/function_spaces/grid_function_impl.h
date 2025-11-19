@@ -482,4 +482,4 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_IMPL__ */
+#endif

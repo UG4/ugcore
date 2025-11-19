@@ -375,4 +375,4 @@ class BinghamViscosityLinker
 
 } // end of namespace ug
 
-#endif // __H__UG__LIB_DISC__SPATIAL_DISC__BINGHAM_VISCOSITY_LINKER__
+#endif

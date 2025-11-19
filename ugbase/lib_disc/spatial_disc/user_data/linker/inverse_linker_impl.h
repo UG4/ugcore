@@ -310,4 +310,4 @@ eval_and_deriv(number vValue[],
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__INVERSE_LINKER_IMPL__ */
+#endif

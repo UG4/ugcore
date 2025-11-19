@@ -221,4 +221,4 @@ class AlgebraicConvCheck : public IConvergenceCheck<TVector>
 
 #include "algebra_conv_check_impl.h"
 
-#endif /* __H__LIB_DISC__OPERATOR__COMPOSITE_CONVERGENCE_CHECK__ */
+#endif

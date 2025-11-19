@@ -82,8 +82,8 @@ GlobalBoundaryRefinementRule GetBoundaryRefinementRule();
  * 	for all edges.
  *
  * 	@param mg			reference to MultiGrid
- * 	@param sh			reference to SubsetHandler
- * 	@param sh			filename specification for output
+ * 	@param markSH			reference to SubsetHandler
+ * 	@param filename			filename specification for output
 **/
 void CheckValences(MultiGrid& mg, MGSubsetHandler& markSH, const char* filename);
 
@@ -299,7 +299,8 @@ void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubset
 /** This procedure initializes the referenced linear boundary manifold subsets SubsetHandler
  * 	s.t. user-specified subsets
  *
- * 	@param dom						reference to Domain
+ * 	@param mg						multigrid
+ * 	@param sh                       subset handler
  * 	@param linearManifoldSH			reference to user-specified linearManifoldSubsets SubsetHandler
 **/
 void InitLinearManifoldSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,

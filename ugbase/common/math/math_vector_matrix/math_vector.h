@@ -627,4 +627,4 @@ void Deserialize(TStream& out, MathVector<N, T>& valOut)
 }//	end of namespace
 
 
-#endif /* __H__COMMON__MATH_MathVector__ */
+#endif

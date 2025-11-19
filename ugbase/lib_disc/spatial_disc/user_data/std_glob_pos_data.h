@@ -126,4 +126,4 @@ class StdGlobPosData
 
 } // namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__STD_GLOB_POS_DATA__ */
+#endif

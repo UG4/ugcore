@@ -142,4 +142,4 @@ QuadType GetQuadratureType(const std::string& name);
 
 #include "quadrature_provider_impl.h"
 
-#endif /* __H__UG__LIB_DISC__QUADRATURE_PROVIDER__ */
+#endif

@@ -116,4 +116,4 @@ inline double VecNormSquared(const vector_t &a, const vector_t &b)
 	return sum;
 }
 
-#endif /* BLAS_VEC_INTERFACE_H_ */
+#endif

@@ -152,4 +152,4 @@ class IMatrixOperatorInverse
 };
 
 }
-#endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__MATRIX_OPERATOR_INVERSE__ */
+#endif

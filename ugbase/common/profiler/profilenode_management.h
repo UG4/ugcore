@@ -86,4 +86,4 @@ class AutoProfileNode
 };
 
 
-#endif /* PROFILENODE_MANAGEMENT_H_ */
+#endif

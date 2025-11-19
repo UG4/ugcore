@@ -530,4 +530,4 @@ void WriteVectorNEW(std::string filename, const Vector_type &b, postype *positio
 
 } // namespace ConnectionViewer
 } // namespace ug
-#endif /* CONNECTIONVIEWEROUTPUT_H_ */
+#endif

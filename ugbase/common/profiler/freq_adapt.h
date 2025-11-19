@@ -141,4 +141,4 @@ class FreqAdaptValues {
 };
 
 
-#endif /* __H__UG__COMMON__PROFILER__FREQ_ADAPT__ */
+#endif

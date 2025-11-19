@@ -106,4 +106,4 @@ class TruncatedMonotoneTransfer:
 // include implementation
 #include "truncated_monotone_transfer_impl.h"
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__TRUNCATED_MONOTONE_MG__TRUNCATED_MONOTONE_TRANSFER_H_ */
+#endif

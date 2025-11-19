@@ -515,7 +515,7 @@ static bool PerformValidityCheck(DistributedGridManager& dgm)
 	return isValid;
 }
 
-#endif //LG_DISTRIBUTION_DEBUG
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // ATTENTION - THIS DOESN'T REALLY WORK!

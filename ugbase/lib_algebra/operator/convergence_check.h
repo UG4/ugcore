@@ -290,4 +290,4 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 
 #include "convergence_check_impl.h"
 
-#endif /* __H__LIB_ALGEBRA__OPERATOR__CONVERGENCE_CHECK__ */
+#endif

@@ -123,4 +123,4 @@ clone()
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__TRUNCATED_MONOTONE_MG__TRUNCATED_MONOTONE_TRANSFER_IMPL_H_ */
+#endif

@@ -313,9 +313,9 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 // defines (currently here, should be compiling options)
 #ifndef NDEBUG
 	#define UG_ENABLE_WARNINGS
-#else /* NDEBUG */
+#else
 	#undef UG_ENABLE_WARNINGS
-#endif /* NDEBUG*/
+#endif
 
 // Usage:
 /* The following macro can be used to print warning messages.
@@ -388,4 +388,4 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 // end group ugbase_common
 /// \}
 
-#endif /* __H__UG__COMMON__LOG__ */
+#endif

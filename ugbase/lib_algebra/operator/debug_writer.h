@@ -439,4 +439,4 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__OPERATOR__DEBUG_WRITER__ */
+#endif

@@ -60,4 +60,4 @@ class GaussJacobi20 : public QuadratureRule<1>
 
 } // namespace ug
 
-#endif /* __H__UG__LIB_DISC__QUADRATURE__GAUSS_JACOBI20__ */
+#endif

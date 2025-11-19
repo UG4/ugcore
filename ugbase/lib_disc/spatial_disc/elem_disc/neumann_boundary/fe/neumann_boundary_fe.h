@@ -159,4 +159,4 @@ class NeumannBoundaryFE
 
 } // end namespac ug
 
-#endif /*__H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__NEUMANN_BOUNDARY___NEUMANN_BOUNDARY_FE1__*/
+#endif

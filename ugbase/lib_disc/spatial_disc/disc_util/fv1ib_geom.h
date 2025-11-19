@@ -1102,4 +1102,4 @@ class DimFV1IBGeometry : public FVGeometryBase
 
 } // end ug namespace
 
-#endif /* FV1IB_GEOM_H_ */
+#endif

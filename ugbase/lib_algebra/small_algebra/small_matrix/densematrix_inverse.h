@@ -347,4 +347,4 @@ inline bool InverseMatMult(DenseVector<vector_t> &dest, double beta,
 
 }
 
-#endif // __H__UG__CPU_ALGEBRA__DENSEMATRIX_SMALL_INVERSE_H__
+#endif

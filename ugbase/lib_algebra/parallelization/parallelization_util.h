@@ -808,4 +808,4 @@ void TestHorizontalAlgebraLayouts(
 ///	include implementation
 #include "parallelization_util_impl.h"
 
-#endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION_UTIL__ */
+#endif

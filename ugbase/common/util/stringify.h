@@ -100,4 +100,4 @@ public:
 #define mkstr(s)	(Stringify() << s).str()
 
 
-#endif /* STRINGIFY_H_ */
+#endif

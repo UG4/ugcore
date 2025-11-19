@@ -52,4 +52,4 @@
 #include "small_matrix/densematrix_inverse.h"
 
 
-#endif /* __H__UG__SMALL_ALGEBRA__ */
+#endif

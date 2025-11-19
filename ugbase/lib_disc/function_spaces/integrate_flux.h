@@ -200,4 +200,4 @@ number IntegrateDiscFlux(SmartPtr<IAssemble<typename TGridFunction::algebra_type
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__FUNCTION_SPACES__INTEGRATE_FLUX__ */
+#endif

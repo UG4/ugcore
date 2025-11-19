@@ -262,5 +262,5 @@ using boost::target;
 
 } // ug
 
-#endif // UG_PARALLEL
-#endif // guard
+#endif
+#endif

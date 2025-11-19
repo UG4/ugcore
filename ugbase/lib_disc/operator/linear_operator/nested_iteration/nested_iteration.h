@@ -232,4 +232,4 @@ class NestedIterationSolver
 
 #include "nested_iteration_impl.h"
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NI_SOLVER__NI__ */
+#endif

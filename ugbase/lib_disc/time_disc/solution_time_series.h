@@ -223,4 +223,4 @@ class LocalVectorTimeSeries
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__TIME_DISC__PREVIOUS_SOLUTION__ */
+#endif

@@ -314,4 +314,4 @@ set_sizes(size_t numScvf, size_t numSh)
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONV_SHAPE_INTERFACE__ */
+#endif

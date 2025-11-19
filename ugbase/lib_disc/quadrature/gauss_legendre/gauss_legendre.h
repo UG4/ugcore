@@ -54,4 +54,4 @@ class GaussLegendre : public QuadratureRule<1>
 
 } // namespace ug
 
-#endif /* __H__UG__LIB_DISC__QUADRATURE__GAUSS_LEGENDRE__ */
+#endif

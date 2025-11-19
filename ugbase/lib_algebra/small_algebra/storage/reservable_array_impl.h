@@ -250,4 +250,4 @@ std::ostream &operator << (std::ostream &out, const ReservableArray2<T, T_orderi
 }
 
 }
-#endif // __H__UG__COMMON__VARIABLE_ARRAY_IMPL_H__
+#endif

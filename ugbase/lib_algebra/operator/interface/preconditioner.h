@@ -390,4 +390,4 @@ class IPreconditioner :
 
 
 }  // end namespace ug
-#endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__PRECONDITIONER__ */
+#endif

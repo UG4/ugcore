@@ -347,9 +347,9 @@ typedef unsigned int flex_uint32_t;
 #define SIZE_MAX               (~(size_t)0)
 #endif
 
-#endif /* ! C99 */
+#endif
 
-#endif /* ! FLEXINT_H */
+#endif
 
 /* begin standard C++ headers. */
 
@@ -397,7 +397,7 @@ typedef unsigned int flex_uint32_t;
 #define YY_BUF_SIZE 32768
 #else
 #define YY_BUF_SIZE 16384
-#endif /* __ia64__ */
+#endif
 #endif
 
 /* The state buf must be large enough to hold one state per character in the main buffer.
@@ -503,7 +503,7 @@ struct yy_buffer_state
 #define YY_BUFFER_EOF_PENDING 2
 
 	};
-#endif /* !YY_STRUCT_YY_BUFFER_STATE */
+#endif
 
 /* Stack of input buffers. */
 static size_t yy_buffer_stack_top = 0; /**< index of top of stack. */
@@ -893,7 +893,7 @@ static int input ( void );
 #define YY_READ_BUF_SIZE 16384
 #else
 #define YY_READ_BUF_SIZE 8192
-#endif /* __ia64__ */
+#endif
 #endif
 
 /* Copy whatever the last rule matched to the standard output. */
@@ -969,7 +969,7 @@ static int input ( void );
 extern int yylex (void);
 
 #define YY_DECL int yylex (void)
-#endif /* !YY_DECL */
+#endif
 
 /* Code executed at the beginning of each rule, after yytext and yyleng
  * have been set up.

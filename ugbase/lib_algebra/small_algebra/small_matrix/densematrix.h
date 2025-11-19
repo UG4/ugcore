@@ -258,4 +258,4 @@ inline double MatrixTranspose(const double &b)
 #include "densematrix_impl.h"
 #include "densematrix_operations.h"
 
-#endif // __H__UG__COMMON__DENSEMATRIX_H__
+#endif

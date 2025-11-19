@@ -162,15 +162,14 @@ void IntersectLineSegments(const number A1x, const number A1y, const number A1z,
       number s = (L22 * ra - rb * L12)/DetL;
 #else
       number s = (ra-L12*t)/L11;             // Equation (13)
-#endif // USE_CRAMERS_RULE
+#endif
 
 #ifdef CHECK_ANSWERS
       number check_ra = s*L11 + t*L12;
       number check_rb = s*L12 + t*L22;
       assert(FABS(check_ra-ra) < epsilon);
       assert(FABS(check_rb-rb) < epsilon);
-#endif // CHECK_ANSWERS
-
+#endif
 // if we are dealing with infinite lines or if parameters s and t both
 // lie in the range [0,1] then just compute the points using Equations
 // (1) and (2) from the text.

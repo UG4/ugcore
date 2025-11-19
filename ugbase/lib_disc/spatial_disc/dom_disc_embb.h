@@ -1035,6 +1035,4 @@ protected:
 
 #include "dom_disc_embb_impl.h"
 
-#endif // __H__UG__PLUGINS__D3F__EMBASS__
-
-/* End of File */
+#endif

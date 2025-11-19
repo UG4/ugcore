@@ -159,4 +159,4 @@ void MergeInterfaces(TLayout &layout, const std::map<int, int> merge)
 }
 
 }
-#endif /* SERIALIZE_INTERFACES.H */
+#endif

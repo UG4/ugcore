@@ -416,4 +416,4 @@ void BGLParallelMatrix<T>::refresh()
 
 } // ug
 
-#endif // guard
+#endif

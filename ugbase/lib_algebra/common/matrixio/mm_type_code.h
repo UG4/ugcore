@@ -323,6 +323,4 @@ class MMTypeCode
 
 } // namespace ug
 
-#endif // __H__UG__LIB_ALGEBRA__MM_TYPE_CODE_H
-
-// EOF
+#endif

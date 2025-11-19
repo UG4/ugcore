@@ -54,4 +54,4 @@ TTo &DownCast(const TTo &pfrom, const TFrom &p)
 }
 
 }
-#endif /* UTIL_H_ */
+#endif

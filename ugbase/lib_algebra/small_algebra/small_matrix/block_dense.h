@@ -406,4 +406,4 @@ template<typename T> struct block_multiply_traits<DenseMatrix<T>, DenseMatrix<T>
 
 } // namespace ug
 
-#endif // __H__UG__SMALL_ALGEBRA__BLOCK_DENSE__
+#endif

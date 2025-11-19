@@ -233,7 +233,7 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 	reg.add_function("ParallelSum", &ParallelSumDUMMY<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
 }
 
-#endif //UG_PARALLEL
+#endif
 
 // end group pcl_bridge
 /// \}

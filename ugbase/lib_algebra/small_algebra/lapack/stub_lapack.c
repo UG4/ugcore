@@ -79,6 +79,6 @@ void zgetrs_(char *trans, lapack_int *n, lapack_int *nrhs, const complex<lapack_
 }
 
 
-#endif // LAPACK_AVAILABLE
+#endif
 
-#endif // __H__UG__CPU_ALGEBRA__LAPACK_H__
+#endif

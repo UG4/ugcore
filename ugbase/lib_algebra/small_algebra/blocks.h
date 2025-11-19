@@ -157,4 +157,4 @@ inline size_t GetCols(const T &t);
 #include "small_matrix/block_dense.h"
 #include "storage/storage.h"
 
-#endif /* __H__UG__SMALL_ALGEBRA__BLOCKS__ */
+#endif

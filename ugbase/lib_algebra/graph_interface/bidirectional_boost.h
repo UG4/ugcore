@@ -174,4 +174,4 @@ get(vertex_index_t, ug::BidirectionalMatrix<T> const& m)
 
 } // boost
 
-#endif // guard
+#endif

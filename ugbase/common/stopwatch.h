@@ -221,4 +221,4 @@ class Stopwatch
 } // namespace ug
 
 
-#endif // __H__UG__STOPWATCH_H__
+#endif

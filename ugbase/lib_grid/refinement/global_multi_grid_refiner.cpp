@@ -298,7 +298,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 					UG_LOG(aaPos[e->vertex(0)] << " and " << aaPos[e->vertex(1)] << endl);
 				}
 			}
-		#endif // UG_DEBUG
+		#endif
 */
 
 		assert(refinement_is_allowed(e->vertex(0))

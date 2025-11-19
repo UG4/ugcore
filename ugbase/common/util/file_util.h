@@ -247,6 +247,4 @@ std::string CurrentWorkingDirectory();
 
 } // namespace ug
 
-#endif // __H__UG__FILE_UTIL__
-
-// EOF
+#endif

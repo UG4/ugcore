@@ -42,7 +42,7 @@ void CreateTKDVertices (const TKDInfo& tkdInfo,
                         APosition3& aPos,
                         Vertex** vrtsOut)
 {
-	Grid::VertexAttachmentAccessor<APosition3> aaPos(g, aPos);
+	Grid::VertexAttachmentAccessor aaPos(g, aPos);
 
 	const vector3* coords = tkdInfo.coords();
 	for(size_t i = 0; i < tkdInfo.num_coords(); ++i){

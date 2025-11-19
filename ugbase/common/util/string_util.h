@@ -461,4 +461,4 @@ inline std::string GetStringPrintf( const char* format, Args... args )
 
 } // end namespace ug
 
-#endif /*__H__COMMON_STRING_UTIL__*/
+#endif

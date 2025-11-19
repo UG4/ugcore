@@ -80,7 +80,7 @@
 
 #else
 #error "not defined for C"
-#endif // UG_PROFILER_SHINY
+#endif
 
 #else
 	#define C_PROFILE_BEGIN(name)
@@ -89,6 +89,6 @@
 	#define C_PROFILE_FUNC_BEGIN()
 	#define C_PROFILE_FUNC_GROUP_BEGIN(groups)
 
-#endif // UG_PROFILER
+#endif
 
-#endif	// __H__UG__COMMON__PROFILER__
+#endif

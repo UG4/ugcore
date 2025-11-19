@@ -52,8 +52,8 @@ void CreateTKDVertices (const TKDInfo& tkdInfo,
  *					Created volumes are written to this array, if specified.*/
 void CreateTKD (const TKDInfo& tkdInfo,
                 Grid& g,
-				APosition3& aPos,
-				Volume** volsOut = nullptr);
+				            APosition3& aPos,
+				            Volume** volsOut = nullptr);
 
 ///	Creates a tkd mesh with a surrounding layer based on the given tkdInfo object
 /** \param volsOut	(optional) Array of size TKDInfo::NUM_ELEMENTS.
@@ -63,7 +63,7 @@ void CreateTKD (const TKDInfo& tkdInfo,
 void CreateTKDWithOuterLayer (const TKDInfo& tkdInfo,
 	                          Grid& g,
 	                          APosition3& aPos,
-							  Volume** volsOut = nullptr);
+							                    Volume** volsOut = nullptr);
 
 }//	end of namespace
 

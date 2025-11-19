@@ -676,5 +676,4 @@ class MiniBubbleLSFS<ReferenceHexahedron>
 
 } //namespace ug
 
-#endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__MINI__MINI_BUBBLE__ */
-
+#endif

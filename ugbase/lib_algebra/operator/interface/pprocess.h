@@ -123,6 +123,4 @@ private:
 };
 
 } // end namespace ug
-#endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__PPREPROCESS__ */
-
-/* End of File */
+#endif

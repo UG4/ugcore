@@ -200,4 +200,4 @@ public:
 
 #endif
 #endif
-#endif // USE_CUDA
+#endif

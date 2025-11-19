@@ -56,7 +56,7 @@
 #include "lib_algebra/operator/convergence_check.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 #include "user_data.h"
-#endif // UG_ALGEBRA
+#endif
 
 
 namespace ug{

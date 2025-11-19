@@ -44,4 +44,4 @@ Vertex* GetOpposingSide(Grid& g, Edge* elem, Vertex* side);
 
 } // namespace ug
 
-#endif // UGBASE__LIB_GRID__ALGORITHMS__ELEMENT_SIDE_UTIL_H_
+#endif

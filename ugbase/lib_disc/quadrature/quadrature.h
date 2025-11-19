@@ -125,4 +125,4 @@ class QuadratureRule{
 
 } // namespace ug
 
-#endif /* __H__UG__LIB_DISC__QUADRATURE__ */
+#endif

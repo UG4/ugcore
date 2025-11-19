@@ -182,4 +182,4 @@ protected:
 class ScalarSubMatrixAdapter<CPUAlgebra, CPUAlgebra, 0,0> : public CPUAlgebra{};
 */
 
-#endif /* SPARSEMATRIXPROXY_HH_ */
+#endif

@@ -150,4 +150,4 @@ inline void MatMultAddNorm(vector_t &dest,
 
 
 } // namespace ug
-#endif /* __H__UG__CPU_ALGEBRA__OPERATIONS_MAT__ */
+#endif

@@ -60,5 +60,4 @@ class GaussQuadrature<ReferencePrism, 1>
 
 }; // namespace ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__PRISM__ */
-
+#endif

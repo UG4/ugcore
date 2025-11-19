@@ -93,4 +93,4 @@ double VecNorm(const IVector &v1)
 }
 
 
-#endif /* IVECTOR_VEC_FUNCTIONS_H_ */
+#endif

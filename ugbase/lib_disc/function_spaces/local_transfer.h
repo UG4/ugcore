@@ -599,4 +599,4 @@ class CrouzeixRaviartElemTransfer
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__FUNCTION_SPACS__LOCAL_TRANSFER__ */
+#endif

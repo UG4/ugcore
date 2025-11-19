@@ -111,4 +111,4 @@ private:
 
 #endif
 
-#endif /* PARALLEL_PROGRESS_H_ */
+#endif

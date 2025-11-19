@@ -1503,4 +1503,4 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 }//	end of namespace
 
 
-#endif /* __H__LIB_ALGEBRA__PARALLELIZATION__COMMUNICATION_POLICIES__ */
+#endif

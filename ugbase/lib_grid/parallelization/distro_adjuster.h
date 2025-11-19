@@ -66,4 +66,4 @@ class DistroAdjuster
 
 } // namespace ug
 
-#endif // UGBASE__LIB_GRID__PARALLELIZATION__DISTRO_ADJUSTER_H_
+#endif

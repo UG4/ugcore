@@ -71,4 +71,4 @@ AssembledOperator<TAlgebra>::apply(vector_type& dOut, const vector_type& uIn)
 
 } // end namepace ug
 
-#endif /*__H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__ASSEMBLED_NON_LINEAR_OPERATOR_IMPL__*/
+#endif

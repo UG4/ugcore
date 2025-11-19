@@ -727,5 +727,4 @@ bool CompositeConvCheck<TVector, TDomain>::is_valid_number(number value)
 } // end namespace ug
 
 
-#endif /* __H__LIB_DISC__OPERATOR__COMPOSITE_CONVERGENCE_CHECK_IMPL__ */
-
+#endif

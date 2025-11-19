@@ -148,4 +148,4 @@ void AssembleLinearOperatorRhsAndSolution
 // include implementation
 #include "assembled_linear_operator_impl.h"
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__ */
+#endif

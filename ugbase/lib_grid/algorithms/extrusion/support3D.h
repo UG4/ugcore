@@ -2741,4 +2741,4 @@ private:
 
 }
 
-#endif /* UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_SUPPORT3D_H_ */
+#endif

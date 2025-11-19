@@ -132,5 +132,5 @@ int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_ty
 	return 0;
 }
 }
-#endif // LAPACK_AVAILABLE
-#endif // __H__UG__EIGENVALUE__
+#endif
+#endif

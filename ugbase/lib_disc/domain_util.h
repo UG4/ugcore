@@ -166,4 +166,4 @@ number MinElementDiameter(TDomain& domain, int level);
 //	include implementation
 #include "domain_util_impl.h"
 
-#endif /* __H__UG__LIB_DISC__DOMAIN_UTIL__ */
+#endif

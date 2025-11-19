@@ -70,4 +70,4 @@
 // end group ugbase_common
 /// \}
 
-#endif /* __H__UG__COMMON__COMMON__ */
+#endif

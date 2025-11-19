@@ -163,4 +163,4 @@ static bool PushLuaStackPointerEntryToParamStack(ParameterStack& ps, lua_State* 
 
 }
 }
-#endif /* LUA_STACK_H_ */
+#endif

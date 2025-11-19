@@ -159,4 +159,4 @@ std::map<typename GeomProvider<TGeom>::LFEIDandQuadOrder, TGeom*> GeomProvider<T
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DISC_UTIL__GEOM_PROVIDER__ */
+#endif

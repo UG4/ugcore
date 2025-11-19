@@ -77,4 +77,4 @@ public:
 };
 
 }
-#endif /* CONNECTION_H_ */
+#endif

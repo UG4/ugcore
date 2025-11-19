@@ -80,4 +80,4 @@ UG_API void RegisterStandardBridges(Registry& reg, std::string grp = UG4_GRP);
 
 #include "suffix_tag.h"
 
-#endif /* __H__UG_BRIDGE__UG_BRIDGE__ */
+#endif

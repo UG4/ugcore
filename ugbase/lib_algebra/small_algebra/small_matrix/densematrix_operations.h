@@ -98,4 +98,4 @@ inline void MatMultTransposedAdd(DenseVector<vector_t> &dest,
 
 }
 
-#endif // __H__UG__COMMON__DENSEMATRIX_OPERATIONS_H__
+#endif

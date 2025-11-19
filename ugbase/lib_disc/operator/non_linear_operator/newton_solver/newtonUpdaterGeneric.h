@@ -71,8 +71,7 @@ public:
 }
 
 
-#endif /* UGCORE_UGBASE_LIB_DISC_OPERATOR_NON_LINEAR_OPERATOR_NEWTON_SOLVER_NEWTONUPDATERGENERIC_H_ */
-
+#endif
 
 // muss noch im Newton und line search irgendwie automatisch so initialisiert werden, aber auf User-Wunsch ueberschrieben
 // mit Hilfe von gettern und settern, damit entweder der line search oder der Newton selber sich das vom anderen holen koennen

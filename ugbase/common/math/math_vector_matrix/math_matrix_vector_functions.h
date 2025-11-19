@@ -101,4 +101,4 @@ OrthogProjectVec (vector_t& v, const matrix_t& A);
 
 #include "math_matrix_vector_functions_common_impl.hpp"
 
-#endif /* __H__LGMATH__LGMATH_MATRIX_VECTOR_FUNCTIONS__ */
+#endif

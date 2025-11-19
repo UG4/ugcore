@@ -229,4 +229,4 @@ void diag_step(const Matrix_type& A, Vector_type& c, const Vector_type& d, numbe
 
 /// @}
 }
-#endif // __H__UG__CPU_ALGEBRA__CORE_SMOOTHERS__
+#endif

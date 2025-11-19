@@ -84,4 +84,4 @@ struct matrix_algebra_type_traits<MatrixOperator<M, X, Y> >
 };
 
 } // end namespace ug
-#endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__MATRIX_OPERATOR__ */
+#endif

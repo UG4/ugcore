@@ -153,6 +153,4 @@ public:
 
 } // end namespace ug
 
-#endif // __H__UG__LIB_DISC__REFERENCE_ELEMENT__ELEMENT_LIST_TRAITS__
-
-/* End of File */
+#endif

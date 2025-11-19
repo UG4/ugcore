@@ -140,4 +140,4 @@ std::ostream &operator << (std::ostream &out, const IndexLayout &layout);
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_INDEX_LAYOUT__ */
+#endif

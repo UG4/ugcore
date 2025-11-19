@@ -296,4 +296,4 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathSymmetricMatrix
 } //end of namespace: lgmath
 
 
-#endif /* SYM_Matrix_H_ */
+#endif

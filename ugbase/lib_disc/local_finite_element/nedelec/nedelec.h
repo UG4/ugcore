@@ -289,6 +289,4 @@ class NedelecLSFS<ReferenceTetrahedron>
 
 } // namespace ug
 
-#endif // __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__NEDELEC__NEDELEC__
-
-/* End of File */
+#endif

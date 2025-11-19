@@ -76,4 +76,4 @@ class AverageComponent :
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_POST_PROCESS__ */
+#endif

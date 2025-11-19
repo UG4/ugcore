@@ -112,4 +112,4 @@ void PrintGlobalLayout(const GlobalLayout &globalLayout, const char *name=nullpt
 
 #endif
 
-#endif /* GLOBAL_LAYOUT_H_ */
+#endif

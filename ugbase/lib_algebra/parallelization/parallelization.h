@@ -46,4 +46,4 @@
 #include "parallel_vector.h"
 #include "parallel_matrix.h"
 //#include "parallel_matrix_overlap_impl.h"
-#endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION__ */
+#endif

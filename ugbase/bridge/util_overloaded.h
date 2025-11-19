@@ -64,4 +64,4 @@
  */
 #define ADD_CONSTRUCTOR(__theSignature) template add_constructor<void (*) __theSignature >
 
-#endif /* UTIL_OVERLOADED_H_ */
+#endif

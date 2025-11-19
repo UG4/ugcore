@@ -471,4 +471,4 @@ class DimFEGeometry
 
 #include "fe_geom_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_ELEMENT_GEOMETRY__ */
+#endif

@@ -67,4 +67,4 @@ struct nodeType
     };
 };
 
-#endif /*PARSER_NODE_H*/
+#endif

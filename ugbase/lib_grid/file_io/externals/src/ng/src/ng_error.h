@@ -15,4 +15,4 @@ int ng_error_string(struct ng_info* info, const char* msg, const char* str);
 int ng_error_parse(struct ng_info* info, const char* msg, tokstream* ts);
 
 
-#endif /*NG_ERROR_H_*/
+#endif

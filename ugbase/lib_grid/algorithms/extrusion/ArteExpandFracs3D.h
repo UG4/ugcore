@@ -535,4 +535,4 @@ private:
 
 } /* namespace ug */
 
-#endif /* UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_ARTEEXPANDFRACS3D_H_ */
+#endif

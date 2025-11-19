@@ -396,4 +396,4 @@ clone()
 
 } // end namespace ug
 
-#endif /* __H__UG__PLUGINS__NAVIER_STOKES__INCOMPRESSIBLE__TRANSFORMING_SMOOTHER__ */
+#endif

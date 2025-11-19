@@ -242,4 +242,4 @@ class ILinearOperatorInverse : public ILinearIterator<X,Y>
 };
 
 }
-#endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__LINEAR_OPERATOR_INVERSE__ */
+#endif

@@ -77,4 +77,4 @@ class FVGeometryBase {};
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_VOLUME_BASE__ */
+#endif

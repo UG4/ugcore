@@ -82,4 +82,4 @@ class LagrangeLDS : public LocalDoFSet
 
 } //namespace ug
 
-#endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LAGRANGE__LAGRANGE_LOCAL_DOF__ */
+#endif

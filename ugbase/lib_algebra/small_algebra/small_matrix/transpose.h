@@ -79,4 +79,4 @@ inline double &transpose(double &t)
 	return t;
 }
 
-#endif /* TRANSPOSE_H_ */
+#endif

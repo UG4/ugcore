@@ -198,4 +198,4 @@ inline void AdaptionSurfaceGridFunction<TDomain>::obj_created(TBaseElem* elem){
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__ADAPTION_SURFACE_GRID_FUNCTION_IMPL__ */
+#endif

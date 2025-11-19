@@ -709,4 +709,4 @@ class DependentUserData : public CplUserData<TData, dim>
 //include implementation
 #include "user_data_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__USER_DATA__USER_DATA__ */
+#endif

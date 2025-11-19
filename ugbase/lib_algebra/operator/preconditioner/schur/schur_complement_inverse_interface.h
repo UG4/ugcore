@@ -55,4 +55,4 @@ public:
 };
 
 }
-#endif /* SCHUR_COMPLEMENT_INVERSE_INTERFACE_H_ */
+#endif

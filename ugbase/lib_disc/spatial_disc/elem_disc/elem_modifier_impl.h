@@ -68,4 +68,4 @@ postprocess(const LocalVector& u, LocalMatrix& J, LocalIndices& ind)
 
 } // end name space ug
 
-#endif /* ELEM_MODIFIER_IMPL_ */
+#endif

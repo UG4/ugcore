@@ -183,4 +183,4 @@ std::string GetLUAScriptFunctionDefined(const char *functionName);
 }
 }
 						  
-#endif // __H__UG_SCRIPT__INFO_COMMANDS__
+#endif

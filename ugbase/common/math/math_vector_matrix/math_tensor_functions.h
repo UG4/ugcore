@@ -163,4 +163,4 @@ Tens4IdentitySym(MathTensor4<TDim, TDim, TDim, TDim>& Ident);
 //	include a general, but not very fast implementation of the declared methods above.
 #include "math_tensor_functions_common_impl.hpp"
 
-#endif /* __H__UG__COMMON__MATH_TENSOR_FUNCTIONS__ */
+#endif

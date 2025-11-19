@@ -305,4 +305,4 @@ class CG
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_SOLVER__CG__ */
+#endif

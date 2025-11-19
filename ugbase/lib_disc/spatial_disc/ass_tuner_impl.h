@@ -153,4 +153,4 @@ void AssemblingTuner<TAlgebra>::set_dirichlet_val(vector_type& vec, const DoFInd
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__ASS_TUNER_IMPL__ */
+#endif

@@ -219,4 +219,4 @@ std::ostream& operator<<(std::ostream& out,	const CommonLocalDoFSet& v);
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__ */
+#endif

@@ -80,4 +80,4 @@ inline double VecNorm2(T &v)
 }
 
 
-#endif /* VEC_VEC_FUNCTIONS_H_ */
+#endif

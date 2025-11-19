@@ -76,6 +76,4 @@ void FinishShinyCallLogging();
 #endif
 
 
-#endif /* PROFILE_CALL_H_ */
-
-
+#endif

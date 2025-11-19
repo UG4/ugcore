@@ -216,4 +216,4 @@ inline bool IsFiniteAndNotTooBig(const DenseVector<T> &v)
 
 }
 
-#endif // __H__UG__COMMON__DENSEVECTOR_IMPL_H__
+#endif

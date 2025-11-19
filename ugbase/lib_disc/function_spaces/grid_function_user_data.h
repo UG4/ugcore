@@ -661,4 +661,4 @@ class GridFunctionGradientComponentData
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_USER_DATA__ */
+#endif

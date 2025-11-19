@@ -67,4 +67,4 @@
 #include "lib_algebra/operator/operator_util.h"
 #include "lib_algebra/operator/vector_writer.h"
 
-#endif /* __H__LIB_ALGEBRA__LIB_ALGEBRA_IMPL__ */
+#endif

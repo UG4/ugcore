@@ -77,7 +77,7 @@ public:
 		// default value negative in order to distinguish between newly added elements (e.g. after refinement)
 		// and elements which an error indicator is known for
 		if (!pMG->has_attachment<elem_type>(m_aError))
-			pMG->template attach_to_dv<elem_type>(m_aError, -1.0);  // attach with default value
+			pMG->attach_to_dv<elem_type>(m_aError, -1.0);  // attach with default value
 		m_pMG = pMG;
 		m_aaError = attachment_accessor_type(*m_pMG, m_aError);
 	}
@@ -87,7 +87,7 @@ public:
 	{
 		if (m_pMG.invalid()) return; // no elements attached
 		if (m_pMG->has_attachment<elem_type>(m_aError))
-			m_pMG->template detach_from<elem_type>(m_aError);
+			m_pMG->detach_from<elem_type>(m_aError);
 	}
 
 
@@ -289,7 +289,7 @@ void StdCoarseningMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 /* Generate an ordered list of \eta_k^2 (in descending order, ie. largest first) */
 template<class TElem>
 number CreateListOfElemWeights(
-		Grid::AttachmentAccessor<TElem, ug::Attachment<number> > &aaError,
+		Grid::AttachmentAccessor<TElem, Attachment<number> > &aaError,
 		typename DoFDistribution::traits<TElem>::const_iterator iterBegin,
 		const typename DoFDistribution::traits<TElem>::const_iterator iterEnd,
 		std::vector<double> &etaSq)
@@ -319,7 +319,7 @@ number CreateListOfElemWeights(
 /* Generate an ordered list of \eta_k^2 (in descending order, ie. largest first) */
 template<class TElem>
 number CreateSortedListOfElems(
-		Grid::AttachmentAccessor<TElem, ug::Attachment<number> > &aaError,
+		Grid::AttachmentAccessor<TElem, Attachment<number> > &aaError,
 		typename DoFDistribution::traits<TElem>::const_iterator iterBegin,
 		const typename DoFDistribution::traits<TElem>::const_iterator iterEnd,
 		std::vector< std::pair<double, TElem*> > &etaSqList)
@@ -389,7 +389,7 @@ template <typename TDomain>
 struct ElemErrorSortDesc
 {
 	using elem_type = typename domain_traits<TDomain::dim>::element_type;
-	using error_accessor_type = typename Grid::AttachmentAccessor<elem_type, ug::Attachment<number> >;
+	using error_accessor_type = Grid::AttachmentAccessor<elem_type, Attachment<number> >;
 	ElemErrorSortDesc(const error_accessor_type& aaErr)
 	: m_aaErr(aaErr) {}
 
@@ -454,8 +454,8 @@ void ExpectedErrorMarkingStrategy<TDomain>::mark
 	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 	// create vector of local element (squared) errors
-	const_iterator iter = dd->template begin<TElem>();
-	const const_iterator iterEnd = dd->template end<TElem>();
+	const_iterator iter = dd->begin<TElem>();
+	const const_iterator iterEnd = dd->end<TElem>();
 	std::vector<TElem*> elemVec;
 	number locError = 0.0;
 	for (; iter != iterEnd; ++iter)
@@ -673,7 +673,7 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 
 	// init iterators
 	const_iterator iter;
-	const const_iterator iterEnd = dd->template end<TElem>();
+	const const_iterator iterEnd = dd->end<TElem>();
 
 	// determine (local) number of excess elements
 	const size_t ndiscard = (size_t) (numElemLocal*m_eps); // TODO: on every process?
@@ -684,7 +684,7 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 		// create sorted array of elem weights
 		std::vector<double> etaSq;
 		etaSq.resize(numElemLocal);
-		CreateListOfElemWeights<TElem>(aaErrorSq,dd->template begin<TElem>(), iterEnd, etaSq);
+		CreateListOfElemWeights<TElem>(aaErrorSq,dd->begin<TElem>(), iterEnd, etaSq);
 		UG_ASSERT(numElemLocal==etaSq.size(), "Huhh: number of elements does not match!");
 		UG_ASSERT(numElemLocal > ndiscard, "Huhh: number of elements does not match!");
 		maxElemErr = etaSq[ndiscard];
@@ -716,7 +716,7 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 	std::size_t numMarkedCoarse = 0;
 
 	//	loop elements for marking
-	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
+	for (iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 		//	get element
 		TElem* elem = *iter;
@@ -813,7 +813,7 @@ void APosterioriCoarsening<TDomain>::mark(typename base_type::elem_accessor_type
 		// Create sorted array of elem weights.
 		TPairVector etaSqVec;
 		etaSqVec.resize(numElemLocal);
-		CreateSortedListOfElems<TElem>(aaErrorSq,dd->template begin<TElem>(),  dd->template end<TElem>(), etaSqVec);
+		CreateSortedListOfElems<TElem>(aaErrorSq,dd->begin<TElem>(),  dd->end<TElem>(), etaSqVec);
 
 
 		UG_ASSERT(numElemLocal==etaSqVec.size(), "Huhh: number of elements does not match!");
@@ -907,13 +907,13 @@ void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 					minElemErrLocal, maxElemErrLocal, errLocal, numElemLocal);
 
 	// init iterators
-	const const_iterator iterEnd = dd->template end<TElem>();
+	const const_iterator iterEnd = dd->end<TElem>();
 	const_iterator iter;
 
 	// create and fill sorted array of $\etaSq^2_i$ for all (local) elements
 	std::vector<double> etaSq;
 	etaSq.resize(numElemLocal);
-	CreateListOfElemWeights<TElem>(aaErrorSq,dd->template begin<TElem>(), iterEnd, etaSq);
+	CreateListOfElemWeights<TElem>(aaErrorSq,dd->begin<TElem>(), iterEnd, etaSq);
 	UG_ASSERT(numElemLocal==etaSq.size(), "Huhh: number of elements does not match!");
 
 	// compute thresholds
@@ -943,7 +943,7 @@ void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 	//	mark elements with maximal contribution
 	size_t numMarkedRefine = 0;
 	size_t numMarkedCoarse = 0;
-	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
+	for (iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 
 		const double elemErr = aaErrorSq[*iter];		// get element
@@ -1019,10 +1019,10 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 
 	// init iterators
 	const_iterator iter;
-	const const_iterator iterEnd = dd->template end<TElem>();
+	const const_iterator iterEnd = dd->end<TElem>();
 
 	number elemVar = 0.0;
-	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
+	for (iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 		TElem* elem = *iter;
 		number elemError = aaError2[elem];  // eta_i^2
@@ -1167,10 +1167,10 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 
 	// init iterators
 	const_iterator iter;
-	const const_iterator iterEnd = dd->template end<TElem>();
+	const const_iterator iterEnd = dd->end<TElem>();
 
 	number elemVar = 0.0;
-	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
+	for (iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 		TElem* elem = *iter;
 
@@ -1221,7 +1221,7 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 	std::size_t numMarkedCoarsen = 0;
 
 	//	loop elements for marking
-	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
+	for (iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 		//	get element
 		TElem* elem = *iter;
@@ -1322,8 +1322,8 @@ void MeanValueMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaE
 
 	//	loop elements for marking
 	const_iterator iter;
-	const const_iterator iterEnd = dd->template end<TElem>();
-	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
+	const const_iterator iterEnd = dd->end<TElem>();
+	for (iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 		//	get element
 		TElem* elem = *iter;
@@ -1387,14 +1387,14 @@ void AbsoluteMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 		using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 		//	loop elements for marking
-		const const_iterator iterEnd = dd->template end<TElem>();
+		const const_iterator iterEnd = dd->end<TElem>();
 
 		number lowerBound = m_eta*m_eta;
 
 		number errTotal=0.0;
 
 		size_t numMarkedRefine = 0;
-		for (const_iterator iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
+		for (const_iterator iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 		{
 		//	get element error
 			TElem* elem = *iter;

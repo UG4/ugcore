@@ -215,4 +215,4 @@ class ActiveSet
 
 #include "active_set_impl.h"
 
-#endif /* ACTIVE_SET_H_ */
+#endif

@@ -196,4 +196,4 @@ void RemoveLowerDimSubsets(SubsetGroup& subsetGroup);
 
 } // end namespace ug
 
-#endif /*__H__UG__LIB_GRID__SUBSET_GROUP__ */
+#endif

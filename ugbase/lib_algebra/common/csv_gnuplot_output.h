@@ -81,4 +81,4 @@ void WriteVectorCSV(const char *filename, const Vector_type &b, postype *positio
 
 
 } // namespace ug
-#endif /* CSVOUTPUT_H_ */
+#endif

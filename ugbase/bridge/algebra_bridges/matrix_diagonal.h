@@ -145,4 +145,4 @@ class MatrixDiagonalInverse :	public virtual ILinearOperator<X,Y>,
 };
 
 }
-#endif /* MATRIX_DIAGONAL_H_ */
+#endif

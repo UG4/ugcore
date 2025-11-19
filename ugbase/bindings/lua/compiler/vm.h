@@ -554,4 +554,4 @@ public:
 };
 
 }
-#endif /* VM_H_ */
+#endif

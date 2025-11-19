@@ -127,4 +127,4 @@ step(const matrix_type& A, vector_type& c, const vector_type& d, const number re
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__PROJ_GAUSS_SEIDEL_IMPL__ */
+#endif

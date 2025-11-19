@@ -59,7 +59,7 @@ template <typename TFunction>
 void ComputeGradientLagrange1(TFunction& u, size_t fct,
                      MultiGrid::AttachmentAccessor<
                      typename TFunction::element_type,
-                     ug::Attachment<number> >& aaError)
+                     Attachment<number> >& aaError)
 {
 	static constexpr int dim = TFunction::dim;
 	using const_iterator = typename TFunction::const_element_iterator;
@@ -149,7 +149,7 @@ template <typename TFunction>
 void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
                      MultiGrid::AttachmentAccessor<
                      typename TFunction::element_type,
-                     ug::Attachment<number> >& aaError)
+                     Attachment<number> >& aaError)
 {
 	static constexpr int dim = TFunction::dim;
 	using const_iterator = typename TFunction::const_element_iterator;
@@ -270,7 +270,7 @@ template <typename TFunction>
 void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
                      MultiGrid::AttachmentAccessor<
                      typename TFunction::element_type,
-                     ug::Attachment<number> >& aaError)
+                     Attachment<number> >& aaError)
 {
 	static constexpr int dim = TFunction::dim;
 	using const_iterator = typename TFunction::const_element_iterator;
@@ -460,10 +460,10 @@ template <typename TFunction>
 void computeGradientJump(TFunction& u,
                      MultiGrid::AttachmentAccessor<
                      typename TFunction::element_type,
-                     ug::Attachment<number> >& aaGrad,
+                     Attachment<number> >& aaGrad,
 					 MultiGrid::AttachmentAccessor<
                      typename TFunction::element_type,
-                     ug::Attachment<number> >& aaError)
+                     Attachment<number> >& aaError)
 {
 	using domain_type = typename TFunction::domain_type;
 	using grid_type = typename domain_type::grid_type;
@@ -827,7 +827,7 @@ template <typename TGradientEvaluator, typename TFunction>
 void EvaluateGradientJump_SideIntegral(TFunction& u, size_t fct,
 					                   MultiGrid::AttachmentAccessor<
 					                   		typename TFunction::element_type,
-					                     	ug::Attachment<number> >& aaError,
+					                     	Attachment<number> >& aaError,
 					                   bool addErrSquareToAAError = false)
 {
 	using std::max;
@@ -914,7 +914,7 @@ template <typename TGradientEvaluator, typename TFunction>
 void EvaluateGradientJump_Norm(TFunction& u, size_t fct,
 			                     MultiGrid::AttachmentAccessor<
 				                     typename TFunction::element_type,
-				                     ug::Attachment<number> >& aaError)
+				                     Attachment<number> >& aaError)
 {
 	using std::max;
 
@@ -1078,7 +1078,7 @@ void EvaluateResidualErrorP1(SmartPtr<TFunction> u,
 	                           int quadOrder, std::string quadType,
 	                           MultiGrid::AttachmentAccessor<
 				                     typename TFunction::element_type,
-				                     ug::Attachment<number> >& aaError)
+				                     Attachment<number> >& aaError)
 {
 	using namespace std;
 //	types
@@ -1514,4 +1514,4 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDICATOR__ */
+#endif

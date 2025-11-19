@@ -330,7 +330,7 @@ void AdaptionSurfaceGridFunction<TDomain>::detach_entries()
 
 template <typename TDomain>
 AdaptionSurfaceGridFunction<TDomain>::ValueAccessor::
-ValueAccessor(AdaptionSurfaceGridFunction<TDomain>& rASGF,
+ValueAccessor(AdaptionSurfaceGridFunction& rASGF,
 			  size_t fct)
 	: m_rASGF(rASGF), m_fct(fct)
 {

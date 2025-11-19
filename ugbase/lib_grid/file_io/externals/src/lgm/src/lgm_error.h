@@ -15,4 +15,4 @@ int lgm_error_string(struct lgm_info* info, const char* msg, const char* str);
 int lgm_error_parse(struct lgm_info* info, const char* msg, tokstream* ts);
 
 
-#endif /*LGM_ERROR_H_*/
+#endif

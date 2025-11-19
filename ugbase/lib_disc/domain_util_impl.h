@@ -186,4 +186,4 @@ number ElementDiameter(TElem& elem, TDomain& domain)
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__DOMAIN_UTIL_GENERAL_IMPL__ */
+#endif

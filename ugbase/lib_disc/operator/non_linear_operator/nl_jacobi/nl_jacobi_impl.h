@@ -234,4 +234,4 @@ void NLJacobiSolver<TAlgebra>::write_debug(const matrix_type& mat, const char* f
 
 }
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_JACOBI__NL_JACOBIL_IMPL_H_ */
+#endif

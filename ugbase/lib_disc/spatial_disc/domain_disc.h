@@ -678,7 +678,7 @@ class DomainDiscretization
 		{};
 
 	/// virtual destructor
-		virtual ~DomainDiscretization() {};
+    ~DomainDiscretization() override = default;
 };
 
 /// @}
@@ -688,4 +688,4 @@ class DomainDiscretization
 // include documentation
 #include "domain_disc_impl.h"
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC__ */
+#endif

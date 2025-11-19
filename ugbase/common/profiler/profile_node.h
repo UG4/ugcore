@@ -241,4 +241,4 @@ void WriteCallLog(const char *filename, int procId);
 }
 
 
-#endif /* __H_UG__PROFILE_NODE__ */
+#endif

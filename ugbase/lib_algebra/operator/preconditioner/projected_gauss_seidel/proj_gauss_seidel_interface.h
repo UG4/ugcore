@@ -177,4 +177,4 @@ class IProjGaussSeidel:
 // include implementation
 #include "proj_gauss_seidel_interface_impl.h"
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__PROJ_GAUSS_SEIDEL_INTERFACE__ */
+#endif

@@ -154,4 +154,4 @@ class GaussQuadratureOctahedron : public QuadratureRule<3> {
 
 } // namespace ug
 
-#endif /* __H__UG__LIB_DISC__QUADRATURE__GAUSS_TENSOR_PROD__ */
+#endif

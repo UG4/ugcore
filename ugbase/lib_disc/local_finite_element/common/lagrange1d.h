@@ -301,4 +301,4 @@ class BoundedEquidistantLagrange1D
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__COMMON__LAGRANGE1D__ */
+#endif

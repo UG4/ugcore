@@ -80,4 +80,4 @@ void SelectKinkVertices(Selector& sel, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 
 }//	end of namespace
 
-#endif	//__H__UG_crease_util_impl
+#endif

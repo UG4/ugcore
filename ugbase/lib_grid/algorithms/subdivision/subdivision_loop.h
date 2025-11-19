@@ -117,8 +117,8 @@ using pos_type = typename TAVrtPos::ValueType;
 			//	project the crease vertex
 				Edge* nbrs[2];
 				size_t numNbrs = 0;
-				for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
-					iter != grid.associated_edges_end(v); ++iter)
+				for(auto iter = grid.associated_edges_begin(v);
+				    iter != grid.associated_edges_end(v); ++iter)
 				{
 					if(IsBoundaryEdge2D(grid, *iter)){
 						nbrs[numNbrs] = *iter;
@@ -162,8 +162,8 @@ using pos_type = typename TAVrtPos::ValueType;
 					if(IsBoundaryVertex2D(grid, nbrVrt)){
 						creaseNbr = true;
 						size_t creaseValence = 0;
-						for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(nbrVrt);
-							iter != grid.associated_edges_end(nbrVrt); ++iter)
+						for(auto iter = grid.associated_edges_begin(nbrVrt);
+						    iter != grid.associated_edges_end(nbrVrt); ++iter)
 						{
 							++creaseValence;
 						}
@@ -256,8 +256,8 @@ ProjectToLimitSubdivBoundary(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 		//	project the crease vertex
 			Edge* nbrs[2];
 			size_t numNbrs = 0;
-			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
-				iter != grid.associated_edges_end(v); ++iter)
+			for(auto iter = grid.associated_edges_begin(v);
+			    iter != grid.associated_edges_end(v); ++iter)
 			{
 				if(IsBoundaryEdge2D(grid, *iter)){
 					nbrs[numNbrs] = *iter;

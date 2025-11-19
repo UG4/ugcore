@@ -252,4 +252,4 @@ class NLGaussSeidelSolver
 
 #include "nl_gauss_seidel_impl.h"
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_GAUSS_SEIDEL__NL_GAUSS_SEIDEL_H_ */
+#endif

@@ -214,6 +214,4 @@ class MatrixIO
 // include specializations
 #include "matrix_io_mtx.h"
 
-#endif // __H__UG__LIB_ALGEBRA__MATRIXIO_H
-
-// EOF
+#endif

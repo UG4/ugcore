@@ -566,4 +566,4 @@ MinAbsEigenvalue(const MathMatrix<M,N,T>& m);
 //	include a general, but not very fast implementation of the declared methods above.
 #include "math_matrix_functions_common_impl.hpp"
 
-#endif /* __H__UG__COMMON__MATH_MATRIX_FUNCTIONS__ */
+#endif

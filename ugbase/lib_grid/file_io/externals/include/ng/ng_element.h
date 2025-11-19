@@ -44,4 +44,4 @@ struct ng_element
     struct ng_face* faces;
 };
 
-#endif /*NG_ELEMENT_H_*/
+#endif

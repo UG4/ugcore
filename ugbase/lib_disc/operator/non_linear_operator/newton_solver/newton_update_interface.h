@@ -40,9 +40,9 @@ class INewtonUpdate
 {
 	public:
 		virtual void update() = 0;
-		virtual ~INewtonUpdate() {};
+		virtual ~INewtonUpdate() = default;
 };
 
 }
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NEWTON_SOLVER__NEWTON_UPDATE_INTERFACE__ */
+#endif

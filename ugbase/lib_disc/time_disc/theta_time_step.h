@@ -513,4 +513,4 @@ class SDIRK
 // include implementation
 #include "theta_time_step_impl.h"
 
-#endif /* __H__UG__LIB_DISC__TIME_DISC__THETA_TIME_STEP__ */
+#endif

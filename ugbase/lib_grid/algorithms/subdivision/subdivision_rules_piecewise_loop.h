@@ -48,7 +48,7 @@ class SubdivRules_PLoop
 {
 	public:
 		struct NeighborInfo{
-			NeighborInfo()	{}
+			NeighborInfo() = default;
 			NeighborInfo(Vertex* n, size_t cval) :
 				nbr(n), creaseValence(cval)	{}
 				

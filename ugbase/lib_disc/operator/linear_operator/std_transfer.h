@@ -248,4 +248,4 @@ class StdTransfer :
 
 #include "std_transfer_impl.h"
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_TRANSFER__ */
+#endif
