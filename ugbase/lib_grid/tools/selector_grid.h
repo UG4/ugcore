@@ -99,7 +99,7 @@ class UG_API Selector : public ISelector
 		using grid_type = Grid;
 
 	///	The traits class holds some important types for each element-type
-		template <class TElem>
+		template <typename TElem>
 		struct traits{
 			using iterator = typename geometry_traits<TElem>::iterator;
 			using const_iterator = typename geometry_traits<TElem>::const_iterator;
@@ -137,10 +137,10 @@ class UG_API Selector : public ISelector
 
 		void clear() override;
 
-		template <class TElem>
+		template <typename TElem>
 		inline void clear();
 
-		template <class TElem>
+		template <typename TElem>
 		inline size_t num() const;
 		
 		inline size_t num() const;
@@ -148,24 +148,24 @@ class UG_API Selector : public ISelector
 	//	empty
 		inline bool empty() const;
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool empty() const;
 
 	//	begin
-		template <class TElem>
+		template <typename TElem>
 		inline typename geometry_traits<TElem>::iterator
 		begin();
 
-		template <class TElem>
+		template <typename TElem>
 		inline typename geometry_traits<TElem>::const_iterator
 		begin() const;
 		
 	//	end
-		template <class TElem>
+		template <typename TElem>
 		inline typename geometry_traits<TElem>::iterator
 		end();
 		
-		template <class TElem>
+		template <typename TElem>
 		inline typename geometry_traits<TElem>::const_iterator
 		end() const;
 
@@ -182,12 +182,12 @@ class UG_API Selector : public ISelector
 	///	returns the first selected element of the given type.
 	/**	Make sure that elements of the given type exist!
 	 *	Behaviour is undefined, if not.*/
-		template <class TElem> TElem* front();
+		template <typename TElem> TElem* front();
 		
 	///	returns the last selected element of the given type.
 	/**	Make sure that elements of the given type exist!
 	 *	Behaviour is undefined, if not.*/
-		template <class TElem> TElem* back();
+		template <typename TElem> TElem* back();
 
 	//	geometric-object-collection
 		virtual GridObjectCollection get_grid_objects() const;
@@ -205,24 +205,24 @@ class UG_API Selector : public ISelector
 	///	calls num();
 		inline uint num(size_t) const;
 	///	calls num<TElem>();
-		template <class TElem> inline size_t num(size_t) const;
+		template <typename TElem> inline size_t num(size_t) const;
 		
 	//	empty
 	///	calls empty();
 		inline bool empty(size_t) const;
 	//	calls empty<TElem>();
-		template <class TElem>
+		template <typename TElem>
 		inline bool empty(size_t) const;
 
 	//	begin
 	///	calls begin<TElem>();
-		template <class TElem>
+		template <typename TElem>
 		inline typename geometry_traits<TElem>::iterator
 		begin(size_t);
 
 	//	end
 	///	calls end<TElem>();
-		template <class TElem>
+		template <typename TElem>
 		inline typename geometry_traits<TElem>::iterator
 		end(size_t);
 
@@ -296,16 +296,16 @@ class UG_API Selector : public ISelector
 	/**	\}	*/
 
 	///	returns the section container for the given type, subset and level
-		template <class TElem> inline
+		template <typename TElem> inline
 		typename Grid::traits<TElem>::SectionContainer&
 		section_container();
 
 	///	returns the const section container for the given type, subset and level
-		template <class TElem> inline
+		template <typename TElem> inline
 		const typename Grid::traits<TElem>::SectionContainer&
 		section_container() const;
 
-		template <class TElem>
+		template <typename TElem>
 		inline int get_section_index() const;
 		
 	private:

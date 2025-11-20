@@ -43,7 +43,7 @@ namespace ug{
 // Composite convergence check
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 CompositeConvCheck<TVector, TDomain>::
 CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
  :	m_spApprox(spApproxSpace),
@@ -56,7 +56,7 @@ CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
 	set_level(GridLevel::TOP);
 }
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 CompositeConvCheck<TVector, TDomain>::
 CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
                    int maxSteps, number minDefect, number relReduction)
@@ -70,7 +70,7 @@ CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
 	set_level(GridLevel::TOP);
 }
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::set_level(int level)
 {
 	ConstSmartPtr<DoFDistribution> dd = m_spApprox->dof_distribution(GridLevel(level, GridLevel::SURFACE));
@@ -80,7 +80,7 @@ void CompositeConvCheck<TVector, TDomain>::set_level(int level)
 }
 
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 template <typename TBaseElem>
 void CompositeConvCheck<TVector, TDomain>::
 extract_dof_indices(ConstSmartPtr<DoFDistribution> dd)
@@ -127,7 +127,7 @@ extract_dof_indices(ConstSmartPtr<DoFDistribution> dd)
 	// note: no duplicate indices possible
 }
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::
 extract_dof_indices(ConstSmartPtr<DoFDistribution> dd)
 {
@@ -148,7 +148,7 @@ extract_dof_indices(ConstSmartPtr<DoFDistribution> dd)
 }
 
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 number CompositeConvCheck<TVector, TDomain>::
 norm(const TVector& vec, const std::vector<DoFIndex>& vMultiIndex)
 {
@@ -195,18 +195,17 @@ norm(const TVector& vec, const std::vector<DoFIndex>& vMultiIndex)
 }
 
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 SmartPtr<IConvergenceCheck<TVector> > CompositeConvCheck<TVector, TDomain>::clone()
 {
-	SmartPtr<CompositeConvCheck<TVector, TDomain> > newInst(
-						new CompositeConvCheck<TVector, TDomain>(m_spApprox));
+	SmartPtr<CompositeConvCheck > newInst( new CompositeConvCheck(m_spApprox) );
 
 	// use std assignment (implicit member-wise is fine here)
 	*newInst = *this;
 	return newInst;
 }
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::
 set_component_check(const std::vector<std::string>& vFctName,
                     const std::vector<number>& vMinDefect,
@@ -220,7 +219,7 @@ set_component_check(const std::vector<std::string>& vFctName,
 
 }
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::
 set_component_check(const std::string& vFctName,
                     const std::vector<number>& vMinDefect,
@@ -230,7 +229,7 @@ set_component_check(const std::string& vFctName,
 }
 
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::
 set_component_check(const std::vector<std::string>& vFctName,
 					 const number minDefect,
@@ -240,7 +239,7 @@ set_component_check(const std::vector<std::string>& vFctName,
 		set_component_check(vFctName[cmp], minDefect, relReduction);
 }
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::
 set_all_component_check(const number minDefect,
                         const number relReduction)
@@ -251,7 +250,7 @@ set_all_component_check(const number minDefect,
 	}
 }
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::
 set_component_check(const std::string& fctNames,
                     const number minDefect,
@@ -295,7 +294,7 @@ set_component_check(const std::string& fctNames,
 	update_rest_check();
 }
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::
 set_group_check(const std::vector<std::string>& vFctName,
                 const number minDefect,
@@ -348,7 +347,7 @@ set_group_check(const std::vector<std::string>& vFctName,
 	update_rest_check();
 }
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::
 set_group_check(const std::string& fctNames,
                 const number minDefect,
@@ -357,7 +356,7 @@ set_group_check(const std::string& fctNames,
 	set_group_check(TokenizeTrimString(fctNames), minDefect, relReduction);
 }
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::
 update_rest_check()
 {
@@ -400,7 +399,7 @@ update_rest_check()
 	m_CmpInfo.back().relReduction = m_restRelReduction;
 }
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::start_defect(number initialDefect)
 {
 	UG_THROW(	"This method cannot be used to set defect values,\n"
@@ -424,7 +423,7 @@ struct MyVectorTraits<TVector, typename boost::enable_if_c<TVector::value_type::
 };
 
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 {
 	// if meshing is adaptive, prepare convCheck for possibly new grid
@@ -522,7 +521,7 @@ void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 }
 
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::update_defect(number newDefect)
 {
 	UG_THROW(	"This method cannot be used to update defect values,\n"
@@ -532,7 +531,7 @@ void CompositeConvCheck<TVector, TDomain>::update_defect(number newDefect)
 }
 
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 {
 	// assert correct number of dofs
@@ -593,7 +592,7 @@ void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 }
 
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 bool CompositeConvCheck<TVector, TDomain>::iteration_ended()
 {
 	if (step() >= m_maxSteps) return true;
@@ -618,7 +617,7 @@ bool CompositeConvCheck<TVector, TDomain>::iteration_ended()
 }
 
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 bool CompositeConvCheck<TVector, TDomain>::post()
 {
 	if (m_bTimeMeas) m_stopwatch.stop();
@@ -697,7 +696,7 @@ bool CompositeConvCheck<TVector, TDomain>::post()
 }
 
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::print_offset()
 {
 	// step 1: whitespace
@@ -707,7 +706,7 @@ void CompositeConvCheck<TVector, TDomain>::print_offset()
 	UG_LOG(m_symbol << " ");
 }
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 void CompositeConvCheck<TVector, TDomain>::print_line(std::string line)
 {
 	print_offset();
@@ -715,7 +714,7 @@ void CompositeConvCheck<TVector, TDomain>::print_line(std::string line)
 }
 
 
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 bool CompositeConvCheck<TVector, TDomain>::is_valid_number(number value)
 {
 	if (value == 0.0) return true;

@@ -40,10 +40,10 @@ class IFunction
 {
 	public:
 	///	evaluates the data
-		virtual void operator() (TData& out, int numArgs, ...) = 0;
+		virtual void operator () (TData& out, int numArgs, ...) = 0;
 
 	///	virtual destructor
-		virtual ~IFunction() {}
+		virtual ~IFunction() = default;
 };
 
 } // end namespace ug

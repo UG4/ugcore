@@ -55,7 +55,7 @@ namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Translates (moves) selected elements by the given offset
-template <class TDomain>
+template <typename TDomain>
 void TranslateDomain(TDomain& dom, ISelector& sel, const vector3& offset)
 
 {
@@ -78,7 +78,7 @@ void TranslateDomain(TDomain& dom, ISelector& sel, const vector3& offset)
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Scales selected elements around the given center.
-template <class TDomain>
+template <typename TDomain>
 void ScaleDomain(TDomain& dom, const vector3& center, const vector3& scale)
 
 {
@@ -105,7 +105,7 @@ void ScaleDomain(TDomain& dom, const vector3& center, const vector3& scale)
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Scales selected elements around the given center.
-template <class TDomain>
+template <typename TDomain>
 void ScaleDomain(TDomain& dom, ISelector& sel, const vector3& center,
 				 const vector3& scale)
 
@@ -133,7 +133,7 @@ void ScaleDomain(TDomain& dom, ISelector& sel, const vector3& center,
 	}
 }
 
-template <class TDomain>
+template <typename TDomain>
 void ScaleDomainSquaredWeighting(TDomain& dom, ISelector& sel, const vector3& center,
 				 const vector3& scale)
 
@@ -171,7 +171,7 @@ void ScaleDomainSquaredWeighting(TDomain& dom, ISelector& sel, const vector3& ce
 
 }
 
-template <class TDomain>
+template <typename TDomain>
 void ScaleDomainWeighting(TDomain& dom, ISelector& sel, const vector3& center,
 				 const vector3& scale)
 
@@ -209,7 +209,7 @@ void ScaleDomainWeighting(TDomain& dom, ISelector& sel, const vector3& center,
 }
 
 
-template <class TDomain>
+template <typename TDomain>
 void ScaleDomainSqrtWeighting(TDomain& dom, ISelector& sel, const vector3& center,
 				 const vector3& scale)
 
@@ -272,7 +272,7 @@ struct Functionality
  * available Domain types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TDomain>
 static void Domain(Registry& reg, string grp)

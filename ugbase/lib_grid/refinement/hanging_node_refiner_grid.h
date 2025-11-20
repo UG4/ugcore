@@ -106,7 +106,7 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 	///	returns the number of (globally) marked volumes on this level of the hierarchy
 		void num_marked_volumes_local(std::vector<int>& numMarkedVolsOut) override;
 
-		template <class TElem>
+		template <typename TElem>
 		void num_marked_elems(std::vector<int>& numMarkedElemsOut);
 
 	///	performs registration and deregistration at a grid.

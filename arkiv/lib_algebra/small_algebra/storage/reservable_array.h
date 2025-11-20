@@ -1,3 +1,4 @@
+ø
 /*
  * Copyright (c) 2011-2015:  G-CSC, Goethe University Frankfurt
  * Author: Martin Rupp
@@ -96,21 +97,21 @@ public:
 	at(size_type r, size_type c) const
 	{
 		// todo: if(r >= rows || c >= cols) throw
-		return operator()(r, c);
+		return operator () (r, c);
 	}
 
 	inline T &
 	at(size_type r, size_type c)
 	{
 		// todo: if(r >= rows || c >= cols) throw
-		return operator()(r, c);
+		return operator () (r, c);
 	}
 
 	inline const T &
-	operator()(size_type r, size_type c) const ;
+	operator () (size_type r, size_type c) const ;
 
 	inline T &
-	operator()(size_type r, size_type c) ;
+	operator () (size_type r, size_type c) ;
 
 	// output
 

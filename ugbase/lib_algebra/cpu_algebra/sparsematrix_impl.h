@@ -49,7 +49,7 @@
 namespace ug{
 
 // defined in C99, and sometimes part of <math.h>, <cmath>
-template <class __T> inline bool
+template <typename __T> inline bool
 iszero (__T __val)
 {
   return __val == 0;
@@ -177,7 +177,7 @@ void SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<value_type> &B, dou
 	{
 		const_row_iterator itEnd = B.end_row(r);
 		for(const_row_iterator it = B.begin_row(r); it != itEnd; ++it)
-			operator()(it.index(), r) = MatrixTranspose(scale*it.value());
+			operator () (it.index(), r) = MatrixTranspose(scale*it.value());
 	}
 	// todo: sort rows
 }
@@ -455,7 +455,7 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 	else*/
 	{
 		for(size_t i=0; i<nr; i++)
-			operator()(row, c[i].iIndex) = c[i].dValue;
+			operator () (row, c[i].iIndex) = c[i].dValue;
 	}
 }
 
@@ -464,7 +464,7 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 {
 	//PROFILE_SPMATRIX(SparseMatrix_add_matrix_row);
 	for(size_t i=0; i<nr; i++)
-		operator()(row, c[i].iIndex) += c[i].dValue;
+		operator () (row, c[i].iIndex) += c[i].dValue;
 }
 
 
@@ -477,7 +477,7 @@ void SparseMatrix<T>::set_as_copy_of(const SparseMatrix<T> &B, double scale)
 	{
 		const_row_iterator itEnd = B.end_row(i);
 		for(const_row_iterator it = B.begin_row(i); it != itEnd; ++it)
-			operator()(i, it.index()) = scale*it.value();
+			operator () (i, it.index()) = scale*it.value();
 	}
 }
 

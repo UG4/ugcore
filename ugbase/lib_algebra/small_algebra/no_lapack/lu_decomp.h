@@ -235,11 +235,11 @@ public:
 		densemat = 0.0;
 	}
 
-	double &operator()(int r, int c)
+	double &operator () (int r, int c)
 	{
 		return densemat(r,c);
 	}
-	const double &operator()(int r, int c) const
+	const double &operator () (int r, int c) const
 	{
 		return densemat(r,c);
 	}

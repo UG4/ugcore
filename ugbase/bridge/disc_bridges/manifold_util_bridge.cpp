@@ -66,7 +66,7 @@ struct Functionality
 	 * available Domain types, based on the current build options.
 	 *
 	 * @param reg				registry
-	 * @param parentGroup		group for sorting of functionality
+	 * @param grp				group for sorting of functionality
 	 */
 	template <typename TAlgebra>
 	static void Algebra(Registry& reg, string grp)

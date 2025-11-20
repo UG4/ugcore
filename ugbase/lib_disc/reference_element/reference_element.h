@@ -233,7 +233,7 @@ class ReferenceElementProvider
 
 	//	intentionally left unimplemented
 		ReferenceElementProvider(const ReferenceElementProvider&){};
-		ReferenceElementProvider& operator=(const ReferenceElementProvider&);
+		ReferenceElementProvider& operator = (const ReferenceElementProvider&);
 
 	///	provide instance of singleton
 		static ReferenceElementProvider& instance()

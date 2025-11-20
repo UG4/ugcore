@@ -63,13 +63,13 @@ namespace ug{
  * \param T		The template parameter 'T' specifies the underlying data-type.
  *				It has to support the following operations, if 'interpolate'
  *				shall be used:
- *					- T& operator+= (const T&)
- *					- T& operator-= (const T&)
- *					- T& operator*= (number)
+ *					- T& operator += (const T&)
+ *					- T& operator -= (const T&)
+ *					- T& operator *= (number)
  *				It furthermore has to support std::numeric_limits<T>::max()
  */
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 class Raster{
 	public:
 		class MultiIndex {
@@ -78,8 +78,8 @@ class Raster{
 				MultiIndex(size_t i);
 				int	dim () const;
 				void 		set (size_t i);
-				size_t&		operator[] (int d);
-				size_t		operator[] (int d) const;
+				size_t&		operator [] (int d);
+				size_t		operator [] (int d) const;
 
 				friend std::ostream& operator << (std::ostream& o, const MultiIndex& mi)
 				{
@@ -105,11 +105,11 @@ class Raster{
 
 				int	dim () const;
 				void 		set (number c);
-				number&		operator[] (int d);
-				number		operator[] (int d) const;
-				Coordinate& operator+= (const Coordinate& c);
-				Coordinate& operator-= (const Coordinate& c);
-				Coordinate& operator*= (number s);
+				number&		operator [] (int d);
+				number		operator [] (int d) const;
+				Coordinate& operator += (const Coordinate& c);
+				Coordinate& operator -= (const Coordinate& c);
+				Coordinate& operator *= (number s);
 				
 				friend std::ostream& operator << (std::ostream& o, const Coordinate& coord)
 				{
@@ -152,7 +152,7 @@ class Raster{
 
 		~Raster ();
 
-		Raster& operator= (const Raster& raster);
+		Raster& operator = (const Raster& raster);
 
 		void load_from_asc (const char* filename);
 		void save_to_asc (const char* filename) const;
@@ -228,12 +228,12 @@ class Raster{
 	 *			   		 const typename Raster<T, TDIM>::MultiIndex& cur);
 	 * \endcode
 	 */
-		template <class TKernel>
+		template <typename TKernel>
 		typename TKernel::result_t
 		run_on_all();
 
 	/// Runs the specified kernel on all nodes
-	/** TKernel can either be a function or a class with an 'operator()'.
+	/** TKernel can either be a function or a class with an 'operator ()'.
 	 * The signature should be as follows:
 	 * \code
 	 * void Func (Raster<T, TDIM>& raster,
@@ -245,7 +245,7 @@ class Raster{
 	 *			   		 const typename Raster<T, TDIM>::MultiIndex& cur);
 	 * \endcode
 	 */
-		template <class TKernel>
+		template <typename TKernel>
 		void run_on_all(TKernel& kernel);
 
 
@@ -259,12 +259,12 @@ class Raster{
 	 *			   		 const typename Raster<T, TDIM>::MultiIndex& cur);
 	 * \endcode
 	 */
-		template <class TKernel>
+		template <typename TKernel>
 		typename TKernel::result_t
 		run_on_nbrs(const MultiIndex& center);
 
 	/// Runs the specified kernel on all direct neighbors of a node
-	/** TKernel can either be a function or a class with an 'operator()'.
+	/** TKernel can either be a function or a class with an 'operator ()'.
 	 * The signature should be as follows:
 	 * \code
 	 * void Func (Raster<T, TDIM>& raster,
@@ -276,7 +276,7 @@ class Raster{
 	 *			   		 const typename Raster<T, TDIM>::MultiIndex& cur);
 	 * \endcode
 	 */
-		template <class TKernel>
+		template <typename TKernel>
 		void run_on_nbrs(const MultiIndex& center, TKernel& kernel);
 
 	////////////////////////////////////////////////////////////////////////////
@@ -304,10 +304,10 @@ class Raster{
 		T interpolate_at_cursor (int order) const;
 
 	private:
-		template <class TKernel>
+		template <typename TKernel>
 		void run_on_all(const MultiIndex& start, TKernel& kernel, int curDim);
 
-		template <class TKernel>
+		template <typename TKernel>
 		void run_on_nbrs(const MultiIndex& center, TKernel& kernel, int curDim);
 
 		size_t data_index (
@@ -341,4 +341,4 @@ class Raster{
 // include implementation
 #include "raster_impl.hpp"
 
-#endif	//__H__UG_raster
+#endif

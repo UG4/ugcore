@@ -37,8 +37,8 @@
 
 namespace ug{
 
-template <class TAAPos>	
-template <class TIter>
+template <typename TAAPos>
+template <typename TIter>
 void DelaunayInfo<TAAPos>::
 init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates)
 {
@@ -150,8 +150,8 @@ init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates)
 }
 
 
-template <class TAAPos>	
-template <class TElem>
+template <typename TAAPos>
+template <typename TElem>
 bool DelaunayInfo<TAAPos>::
 is_inner(TElem* e)
 {
@@ -160,8 +160,8 @@ is_inner(TElem* e)
 }
 
 
-template <class TAAPos>	
-template <class TElem>
+template <typename TAAPos>
+template <typename TElem>
 bool DelaunayInfo<TAAPos>::
 is_segment(TElem* e)
 {
@@ -172,4 +172,4 @@ is_segment(TElem* e)
 
 }//	end of namespace
 
-#endif	//__H__UG_delaunay_info_impl
+#endif

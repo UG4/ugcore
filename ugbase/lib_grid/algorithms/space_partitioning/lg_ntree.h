@@ -78,7 +78,7 @@ class NTreeGridData
 };
 
 
-template <int tree_dim, int world_dim, class elem_t_, class common_data_t_>
+template <int tree_dim, int world_dim, typename elem_t_, typename common_data_t_>
 struct lg_ntree_traits_base
 {
 	using real_t = number;
@@ -228,7 +228,7 @@ struct lg_ntree_traits_base
 };
 
 
-template <class elem_t>
+template <typename elem_t>
 struct ntree_traits<1, 1, elem_t, NTreeGridData<1> > :
 	public lg_ntree_traits_base<1, 1, elem_t, NTreeGridData<1> >
 {
@@ -243,7 +243,7 @@ struct ntree_traits<1, 1, elem_t, NTreeGridData<1> > :
 };
 
 
-template <class elem_t>
+template <typename elem_t>
 struct ntree_traits<1, 2, elem_t, NTreeGridData<2> > :
 	public lg_ntree_traits_base<1, 2, elem_t, NTreeGridData<2> >
 {
@@ -262,7 +262,7 @@ struct ntree_traits<1, 2, elem_t, NTreeGridData<2> > :
 };
 
 
-template <class elem_t>
+template <typename elem_t>
 struct ntree_traits<2, 2, elem_t, NTreeGridData<2> > :
 	public lg_ntree_traits_base<2, 2, elem_t, NTreeGridData<2> >
 {
@@ -281,7 +281,7 @@ struct ntree_traits<2, 2, elem_t, NTreeGridData<2> > :
 };
 
 
-template <class elem_t>
+template <typename elem_t>
 struct ntree_traits<2, 3, elem_t, NTreeGridData<3> > :
 	public lg_ntree_traits_base<2, 3, elem_t, NTreeGridData<3> >
 {
@@ -304,7 +304,7 @@ struct ntree_traits<2, 3, elem_t, NTreeGridData<3> > :
 	}
 };
 
-template <class elem_t>
+template <typename elem_t>
 struct ntree_traits<3, 3, elem_t, NTreeGridData<3> > :
 	public lg_ntree_traits_base<3, 3, elem_t, NTreeGridData<3> >
 {
@@ -333,7 +333,7 @@ struct ntree_traits<3, 3, elem_t, NTreeGridData<3> > :
 
 
 
-template <int tree_dim, int world_dim, class grid_elem_t>
+template <int tree_dim, int world_dim, typename grid_elem_t>
 class lg_ntree : public ntree<tree_dim, world_dim, grid_elem_t*, NTreeGridData<world_dim> >
 {
 	public:
@@ -352,7 +352,7 @@ class lg_ntree : public ntree<tree_dim, world_dim, grid_elem_t*, NTreeGridData<w
 			m_gridData = NTreeGridData<world_dim>(grid, aPos);
 		}
 
-		template <class TIterator>
+		template <typename TIterator>
 		void create_tree(TIterator elemsBegin, TIterator elemsEnd)
 		{
 			base_t::set_common_data(m_gridData);

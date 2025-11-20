@@ -90,10 +90,12 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 		  m_vGroupObj(vSmooth), m_vDamp(vDamp) {};
 
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone();
+		SmartPtr<ILinearIterator<vector_type> > clone() override;
+
+		~ComponentGaussSeidel() override = default;
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const {return true;}
+		bool supports_parallel() const override {return true;}
 
 		void set_alpha(number alpha)
 		{m_alpha = alpha;}
@@ -106,10 +108,10 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 
 	protected:
 	///	Name of preconditioner
-		virtual const char* name() const {return "ComponentGaussSeidel";}
+		const char* name() const override {return "ComponentGaussSeidel";}
 
 	///	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp);
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override;
 
 		struct DimCache{
 			std::vector<std::vector<DoFIndex> > vvDoFIndex;
@@ -129,10 +131,10 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 		void extract_blocks(const matrix_type& A, const GF& c);
 
 	///	step method
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d);
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override;
 
 	///	Postprocess routine
-		virtual bool postprocess() {return true;}
+		bool postprocess() override {return true;}
 
 	protected:
 #ifdef UG_PARALLEL

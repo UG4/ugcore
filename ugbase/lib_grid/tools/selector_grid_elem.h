@@ -93,7 +93,7 @@ namespace ug
  * \endcode
  */
 
-template <class TBaseElem>
+template <typename TBaseElem>
 class UG_API TElemSelector : public Selector
 {
 	public:

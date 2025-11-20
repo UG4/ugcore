@@ -87,21 +87,20 @@ class GMRES
 		       SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
 			: base_type(spPrecond, spConvCheck), m_restart(restart)
 		{};
+		~GMRES() override = default;
 
 	///	name of solver
-		virtual const char* name() const {return "GMRES";}
+		const char* name() const override {return "GMRES";}
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const
-		{
+		bool supports_parallel() const override {
 			if(preconditioner().valid())
 				return preconditioner()->supports_parallel();
 			return true;
 		}
 
 	// 	Solve J(u)*x = b, such that x = J(u)^{-1} b
-		virtual bool apply_return_defect(vector_type& x, vector_type& b)
-		{
+		bool apply_return_defect(vector_type& x, vector_type& b) override {
 		//	check correct storage type in parallel
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
@@ -280,8 +279,7 @@ class GMRES
 		}
 
 	public:
-		virtual std::string config_string() const
-		{
+		std::string config_string() const override {
 			std::stringstream ss;
 			ss << "GMRes ( restart = " << m_restart << ")\n";
 			ss << base_type::config_string_preconditioner_convergence_check();
@@ -330,9 +328,9 @@ class GMRES
 		PProcessChain<vector_type> m_corr_post_process;
 
 	///	adds a scaled vector to a second one
-		bool VecScaleAppend(vector_type& a, vector_type& b, number s)
+		static bool VecScaleAppend(vector_type& a, vector_type& b, number s)
 		{
-			#ifdef UG_PARALLEL
+			#ifdef UG_PARALLEL // ø todo check this logical
 			if(a.has_storage_type(PST_UNIQUE) && b.has_storage_type(PST_UNIQUE));
 			else if(a.has_storage_type(PST_CONSISTENT) && b.has_storage_type(PST_CONSISTENT));
 			else if (a.has_storage_type(PST_ADDITIVE) && b.has_storage_type(PST_ADDITIVE));

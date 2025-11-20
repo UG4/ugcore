@@ -207,4 +207,3 @@ number NormalizedChebyshev2Poly
 
 } // namespace ug
 
-/* End of File */

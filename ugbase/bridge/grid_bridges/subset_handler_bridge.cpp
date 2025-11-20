@@ -39,7 +39,7 @@ using namespace std;
 
 namespace ug{
 
-template <class TElem>
+template <typename TElem>
 static void AssignSubsetsByLevel(SubsetHandler& sh, MultiGrid& mg)
 {
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){

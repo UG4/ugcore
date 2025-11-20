@@ -41,7 +41,7 @@
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/domain.h"
 
-#include "lib_disc/ordering_strategies/algorithms/lexorder_comparators.cpp"
+#include "lib_disc/ordering_strategies/algorithms/lexorder_comparators.h"
 #include "lib_disc/ordering_strategies/algorithms/lexorder.h"
 
 namespace ug{

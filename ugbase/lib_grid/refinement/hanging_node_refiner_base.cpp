@@ -61,7 +61,7 @@
 using namespace std;
 
 namespace ug{
-template <class TSelector>
+template <typename TSelector>
 HangingNodeRefinerBase<TSelector>::
 HangingNodeRefinerBase(SPRefinementProjector projector) :
 	IRefiner(projector),
@@ -73,14 +73,14 @@ HangingNodeRefinerBase(SPRefinementProjector projector) :
 	add_ref_mark_adjuster(StdHNodeAdjuster::create());
 }
 
-template <class TSelector>
+template <typename TSelector>
 HangingNodeRefinerBase<TSelector>::
 HangingNodeRefinerBase(const HangingNodeRefinerBase&)
 {
 	throw(UGError("no copy construction allowed."));
 }
 
-template <class TSelector>
+template <typename TSelector>
 HangingNodeRefinerBase<TSelector>::
 ~HangingNodeRefinerBase()
 {
@@ -90,7 +90,7 @@ HangingNodeRefinerBase<TSelector>::
 	}
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 set_grid(typename TSelector::grid_type* grid)
 {
@@ -111,13 +111,13 @@ set_grid(typename TSelector::grid_type* grid)
 	}
 }
 
-template <class TSelector> void
+template <typename TSelector> void
 HangingNodeRefinerBase<TSelector>::grid_to_be_destroyed(Grid* grid)
 {
 	m_pGrid = nullptr;
 }
 
-template <class TSelector> void
+template <typename TSelector> void
 HangingNodeRefinerBase<TSelector>::clear_marks()
 {
 	m_selMarkedElements.clear();
@@ -127,7 +127,7 @@ HangingNodeRefinerBase<TSelector>::clear_marks()
 	m_newlyMarkedRefVols.clear();
 }
 
-template <class TSelector>
+template <typename TSelector>
 bool HangingNodeRefinerBase<TSelector>::
 mark(Vertex* v, RefinementMark refMark)
 {
@@ -145,7 +145,7 @@ mark(Vertex* v, RefinementMark refMark)
 	return false;
 }
 
-template <class TSelector>
+template <typename TSelector>
 bool HangingNodeRefinerBase<TSelector>::mark(Edge* e, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
@@ -160,7 +160,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Edge* e, RefinementMark refMark)
 	return false;
 }
 
-template <class TSelector>
+template <typename TSelector>
 bool HangingNodeRefinerBase<TSelector>::mark(Face* f, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
@@ -176,7 +176,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Face* f, RefinementMark refMark)
 	return false;
 }
 
-template <class TSelector>
+template <typename TSelector>
 bool HangingNodeRefinerBase<TSelector>::mark(Volume* v, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
@@ -191,7 +191,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Volume* v, RefinementMark refMark)
 	return false;
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnly)
 {
@@ -469,7 +469,7 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 	}
 }
 
-template <class TSelector>
+template <typename TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Vertex* v) const
 {
@@ -477,7 +477,7 @@ get_mark(Vertex* v) const
 							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
-template <class TSelector>
+template <typename TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Edge* e) const
 {
@@ -485,7 +485,7 @@ get_mark(Edge* e) const
 							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
-template <class TSelector>
+template <typename TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Face* f) const
 {
@@ -493,7 +493,7 @@ get_mark(Face* f) const
 							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
-template <class TSelector>
+template <typename TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Volume* v) const
 {
@@ -502,7 +502,7 @@ get_mark(Volume* v) const
 }
 
 
-template <class TSelector>
+template <typename TSelector>
 bool HangingNodeRefinerBase<TSelector>::
 save_marks_to_file(const char* filename)
 {
@@ -629,7 +629,7 @@ save_marks_to_file(const char* filename)
 		return SaveGridToFile(g, sh, filename);
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 enable_node_dependency_order_1(bool bEnable)
 {
@@ -639,7 +639,7 @@ enable_node_dependency_order_1(bool bEnable)
 	}
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::perform_refinement()
 {
 	HNODE_PROFILE_BEGIN(perform_hnode_refinement);
@@ -988,8 +988,8 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  done.\n");
 }
 
-template <class TSelector>
-template <class TElem>
+template <typename TSelector>
+template <typename TElem>
 bool HangingNodeRefinerBase<TSelector>::remove_coarsen_marks()
 {
 	using ElemIter = typename selector_t::template traits<TElem>::iterator;
@@ -1008,7 +1008,7 @@ bool HangingNodeRefinerBase<TSelector>::remove_coarsen_marks()
 	return removedCoarsenMark;
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::collect_objects_for_refine()
 {
 	HNODE_PROFILE_FUNC();
@@ -1087,7 +1087,7 @@ void HangingNodeRefinerBase<TSelector>::collect_objects_for_refine()
 	UG_DLOG(LIB_GRID, 1, "hnode_ref-stop: collect_objects_for_refine\n");
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 assign_hnode_marks()
 {
@@ -1326,8 +1326,8 @@ assign_hnode_marks()
 	}
 }
 
-template <class TSelector>
-template <class TElem>
+template <typename TSelector>
+template <typename TElem>
 void HangingNodeRefinerBase<TSelector>::
 add_hmark(TElem* elem, HNodeRefMarks mark)
 {
@@ -1355,8 +1355,8 @@ add_hmark(TElem* elem, HNodeRefMarks mark)
 	}
 }
 
-template <class TSelector>
-template <class TElem>
+template <typename TSelector>
+template <typename TElem>
 void HangingNodeRefinerBase<TSelector>::
 remove_hmark(TElem* elem, uint mark)
 {
@@ -1385,7 +1385,7 @@ remove_hmark(TElem* elem, uint mark)
 
 ////////////////////////////////////////////////////////////////////////
 //	implementation of refine-methods.
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 process_constrained_vertex(ConstrainedVertex* cdv)
 {
@@ -1431,7 +1431,7 @@ process_constrained_vertex(ConstrainedVertex* cdv)
 	}
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 process_constrained_edge(ConstrainedEdge* cde)
 {
@@ -1466,7 +1466,7 @@ process_constrained_edge(ConstrainedEdge* cde)
 	}
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 process_constraining_edge(ConstrainingEdge* cge)
 {
@@ -1512,7 +1512,7 @@ process_constraining_edge(ConstrainingEdge* cge)
 	set_center_vertex(cge, centerVrt);*/
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 refine_edge_with_normal_vertex(Edge* e, Vertex** newCornerVrts)
 {
@@ -1543,7 +1543,7 @@ refine_edge_with_normal_vertex(Edge* e, Vertex** newCornerVrts)
 	grid.register_element(vEdges[1], e);
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 refine_edge_with_hanging_vertex(Edge* e, Vertex** newCornerVrts)
 {
@@ -1587,7 +1587,7 @@ refine_edge_with_hanging_vertex(Edge* e, Vertex** newCornerVrts)
 	}
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 {
@@ -1666,7 +1666,7 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 	set_center_vertex(f, nVrt);
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 {
@@ -1879,7 +1879,7 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 	}
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 process_constrained_face(ConstrainedFace* cdf)
 {
@@ -1913,7 +1913,7 @@ process_constrained_face(ConstrainedFace* cdf)
 	}
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 process_constraining_face(ConstrainingFace* cgf)
 {
@@ -1996,7 +1996,7 @@ process_constraining_face(ConstrainingFace* cgf)
 		set_center_vertex(nFace, centerVrt);
 }
 
-template <class TSelector>
+template <typename TSelector>
 void HangingNodeRefinerBase<TSelector>::
 refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 {

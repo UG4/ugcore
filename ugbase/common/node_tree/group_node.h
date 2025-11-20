@@ -57,7 +57,7 @@ class GroupNode : public Node
 	public:
 		static SPGroupNode create();
 
-		virtual ~GroupNode();
+		~GroupNode() override;
 		
 		virtual void clear();
 		virtual void add_child(SPNode node);

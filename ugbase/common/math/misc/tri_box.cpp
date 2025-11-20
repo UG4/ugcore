@@ -92,9 +92,7 @@ struct TRI
 static
 int FacePlane(const vector3& p)
 {
-	int outcode;
-
-	outcode = 0;
+	int outcode = 0;
 	if (p.x() >  .5) outcode |= 0x01;
 	if (p.x() < -.5) outcode |= 0x02;
 	if (p.y() >  .5) outcode |= 0x04;
@@ -114,9 +112,7 @@ int FacePlane(const vector3& p)
 static
 int Bevel2d(const vector3& p)
 {
-	int outcode;
-
-	outcode = 0;
+	int outcode = 0;
 	if ( p.x() + p.y() > 1.0) outcode |= 0x001;
 	if ( p.x() - p.y() > 1.0) outcode |= 0x002;
 	if (-p.x() + p.y() > 1.0) outcode |= 0x004;
@@ -140,9 +136,7 @@ int Bevel2d(const vector3& p)
 static
 int Bevel3d(const vector3& p)
 {
-	int outcode;
-
-	outcode = 0;
+	int outcode = 0;
 	if (( p.x() + p.y() + p.z()) > 1.5) outcode |= 0x01;
 	if (( p.x() + p.y() - p.z()) > 1.5) outcode |= 0x02;
 	if (( p.x() - p.y() + p.z()) > 1.5) outcode |= 0x04;

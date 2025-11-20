@@ -110,8 +110,8 @@ private:
 	/// communicate
 	/**
 	 * \brief creates one overlap level one-sided
-	 * \param sendingNodesLayout Layout of which nodes send their matrix rows
-	 * \param receivingNodesLayout Layout of which nodes receive matrix rows
+	 * \param sendingLayout Layout of which nodes send their matrix rows
+	 * \param receivingLayout Layout of which nodes receive matrix rows
 	 * \param bCreateNewNodes if true, create new indices/interfaces for globalIndices which are not yet on this or the other processor
 	 * \param newSlavesLayout new slaves are added to this layout
 	 * \param newMastersLayout new masters are added to this layout
@@ -181,11 +181,8 @@ public:
 		//--------------------------------------------------
 		/**
 		 * \brief Generates a new matrix with overlap from another matrix
-		 * \param _mat				matrix to create overlap from
+		 * \param mat				matrix to create overlap from
 		 * \param newMat			matrix to store overlap matrix in
-		 * \param masterOLLayout	Layout
-		 * \param masterOLLayout
-		 * \param overlap_depth
 		 *
 		 */
 	GenerateOverlapClass(matrix_type &mat, matrix_type &newMat,
@@ -269,9 +266,9 @@ public:
 		// TODO: try to remove these pid numbers or reduce them by introducing receivePIDs, sendPIDs
 		// these are necessary because notifications can occur from a processor not in the current layout
 		std::set<int> pids;
-		for(IndexLayout::const_iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
+		for(auto iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
 			pids.insert(iter->first);
-		for(IndexLayout::const_iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
+		for(auto iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 			pids.insert(iter->first);
 
 
@@ -443,7 +440,7 @@ bool MakeConsistent(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matr
 	std::vector<IndexLayout> vSlaveLayouts;
 	// pcl does not use const much
 	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
-	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
+	auto &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
 	ParallelNodes PN(mat.layouts(), mat.num_rows());
 	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(
 			mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts, PN);

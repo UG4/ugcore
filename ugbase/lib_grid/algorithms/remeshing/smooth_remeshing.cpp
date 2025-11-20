@@ -119,7 +119,7 @@ class IPatchRemesher : public ILocalRemesher{
 
 	///	Adds a new patch consisting of the given elements and associated vertices
 	/**	Make sure to specify the source grid before calling this method.*/
-		template <class TElemIterator>
+		template <typename TElemIterator>
 		void add_surface_patch(TElemIterator begin, TElemIterator end);
 
 		virtual void smooth_vertex(Vertex* vrt) = 0;

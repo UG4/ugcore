@@ -35,7 +35,7 @@
 
 namespace ug{
 
-template<class TOStream>
+template<typename TOStream>
 void Serialize(TOStream &buf, const IndexLayout::Interface &interface)
 {
 	Serialize(buf, (size_t)interface.size());
@@ -43,7 +43,7 @@ void Serialize(TOStream &buf, const IndexLayout::Interface &interface)
 		Serialize(buf, interface.get_element(iter));
 }
 
-template<class TIStream>
+template<typename TIStream>
 void Deserialize(TIStream &buf, IndexLayout::Interface &interface)
 {
 	size_t s = Deserialize<size_t> (buf);
@@ -56,7 +56,7 @@ void Deserialize(TIStream &buf, IndexLayout::Interface &interface)
 }
 
 
-template<class TOStream>
+template<typename TOStream>
 void Serialize(TOStream &buf, const IndexLayout &layout)
 {
 	Serialize(buf, (size_t)layout.num_interfaces());
@@ -68,7 +68,7 @@ void Serialize(TOStream &buf, const IndexLayout &layout)
 }
 
 
-template<class TIStream>
+template<typename TIStream>
 void Deserialize(TIStream &buf, IndexLayout &layout)
 {
 	size_t num_interfaces = Deserialize<size_t>(buf);
@@ -92,7 +92,7 @@ void SetParallelData(T &t,
 	t.set_process_communicator(pc);
 }
 
-template<typename T, class TOStream>
+template<typename T, typename TOStream>
 void SerializeParallelData(TOStream &buf, T &t)
 {
 	Serialize(buf, t.layouts()->master());
@@ -103,7 +103,7 @@ void SerializeParallelData(TOStream &buf, T &t)
 	Serialize(buf, t.layouts()->proc_comm());
 }
 
-template<typename T, class TIStream>
+template<typename T, typename TIStream>
 void DeserializeParallelData(TIStream &buf, T &t,
 		IndexLayout &masterLayout, IndexLayout &slaveLayout,
 		pcl::InterfaceCommunicator<IndexLayout> &ic,
@@ -118,69 +118,69 @@ void DeserializeParallelData(TIStream &buf, T &t,
 
 ///////////////////////
 
-template<typename T, class TOStream>
+template<typename T, typename TOStream>
 void SerializeUniquePart(TOStream &buf, const ParallelMatrix<T> &A)
 {
 	Serialize(buf, A.get_storage_mask());
 }
 
-template<typename T, class TIStream>
+template<typename T, typename TIStream>
 void DeserializeUniquePart(TIStream &buf, ParallelMatrix<T> &A)
 {
 	A.set_storage_type( Deserialize<uint>(buf) );
 }
 
-/*template<typename T, class TOStream>
+/*template<typename T, typename TOStream>
 void Serialize(TOStream &buf, const ParallelMatrix<T> &A)
 {
 	UG_ASSERT(0, "use SerializeUniquePart");
 }
 
-template<typename T, class TIStream>
+template<typename T, typename TIStream>
 void Deserialize(TIStream &buf, ParallelMatrix<T> &A)
 {
 	UG_ASSERT(0, "use DeserializeUniquePart");
 }*/
 
 //////////////////
-template<typename TValueType, class TOStream>
+template<typename TValueType, typename TOStream>
 void SerializeUniquePart(TOStream &buf, const ParallelVector<TValueType> &v)
 {
 	Serialize(buf, v.get_storage_mask());
 }
 
-template<typename TValueType, class TIStream>
+template<typename TValueType, typename TIStream>
 void DeserializeUniquePart(TIStream &buf, ParallelVector<TValueType> &v)
 {
 	v.set_storage_type( Deserialize<uint>(buf) );
 }
 
-/*template<typename TValueType, class TOStream>
+/*template<typename TValueType, typename TOStream>
 void Serialize(TOStream &buf, const ParallelVector<TValueType> &v)
 {
 	UG_ASSERT(0, "use SerializeUniquePart and SerializeParallelData");
 }
 
-template<typename TValueType, class TIStream>
+template<typename TValueType, typename TIStream>
 void Deserialize(TIStream &buf, ParallelVector<TValueType> &v)
 {
 	UG_ASSERT(0, "use DeserializeUniquePart and DeserializeParallelData");
 }*/
 /////////////////
 
-template<class TOStream>
+template<typename TOStream>
 void Serialize(TOStream &buf, const pcl::InterfaceCommunicator<IndexLayout> &ic)
 {
 	//Serialize<bool>(buf, ic.communication_debugging_enabled());
 }
 
-template<class TIStream>
+template<typename TIStream>
 void Deserialize(TIStream &buf, pcl::InterfaceCommunicator<IndexLayout> &ic)
 {
 	//
 }
 
-template<class TOStream>
+template<typename TOStream>
 void Serialize(TOStream &buf, const pcl::ProcessCommunicator &ic)
 {
 	int s;
@@ -198,7 +198,7 @@ void Serialize(TOStream &buf, const pcl::ProcessCommunicator &ic)
 }
 
 
-template<class TIStream>
+template<typename TIStream>
 void Deserialize(TIStream &buf, pcl::ProcessCommunicator &ic)
 {
 	int s = Deserialize<int>(buf);

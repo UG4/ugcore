@@ -168,7 +168,7 @@ private:
 	}
 
 
-	template <class TElem>
+	template <typename TElem>
 	number perform_projection(Vertex* vrt, TElem* parent)
 	{
 	//	calculate the new position by linear interpolation and project that point
@@ -211,7 +211,7 @@ private:
 		return 1;
 	}
 
-	template <class TElem>
+	template <typename TElem>
 	bool vertex_at_soma_surf(Vertex* vrt, TElem* parent) {
 		size_t numSomaVerts = 0;
 	    size_t nVrt = parent->num_vertices();
@@ -223,7 +223,7 @@ private:
 	    return numSomaVerts >= 2;
 	}
 
-	template <class TElem>
+	template <typename TElem>
 	void project_to_soma_surface(Vertex* vrt, TElem* parent) {
 		/// old vertex position
 		vector3 v0 = this->pos(vrt);
@@ -247,7 +247,7 @@ private:
 
 	friend class boost::serialization::access;
 
-	template <class Archive>
+	template <typename Archive>
 	void serialize( Archive& ar, const unsigned int version)
 	{
 		ar & make_nvp("center", m_center);
@@ -265,4 +265,4 @@ private:
 
 }//	end of namespace
 
-#endif	//__H__UG_cylinder_soma_projector
+#endif

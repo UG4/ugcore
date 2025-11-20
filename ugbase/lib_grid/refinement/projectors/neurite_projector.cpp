@@ -1799,7 +1799,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 // -------------------------------------------------------- //
 // DO NOT CHANGE below this line! Needed for serialization. //
 
-std::ostream& operator<<(std::ostream& os, const NeuriteProjector::SurfaceParams& surfParams)
+std::ostream& operator << (std::ostream& os, const NeuriteProjector::SurfaceParams& surfParams)
 {
 	using std::ostringstream;
 	ostringstream strs;
@@ -1811,7 +1811,7 @@ std::ostream& operator<<(std::ostream& os, const NeuriteProjector::SurfaceParams
 	return os;
 }
 
-std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surfParams)
+std::istream& operator >> (std::istream& in, NeuriteProjector::SurfaceParams& surfParams)
 {
 	std::string temp;
 	using boost::lexical_cast;
@@ -1835,7 +1835,7 @@ std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surf
 	return in;
 }
 
-std::ostream& operator<<(std::ostream& os, const NeuriteProjector::Mapping& mapping)
+std::ostream& operator << (std::ostream& os, const NeuriteProjector::Mapping& mapping)
 {
 	/// Standard precision for UGX coord export is 18. Is this even correct to use?
 	/// Shouldn't one use std::numeric_limits<number>::digits10+1?
@@ -1852,7 +1852,7 @@ std::ostream& operator<<(std::ostream& os, const NeuriteProjector::Mapping& mapp
 	return os;
 }
 
-std::istream& operator>>(std::istream& in, NeuriteProjector::Mapping& mapping)
+std::istream& operator >> (std::istream& in, NeuriteProjector::Mapping& mapping)
 {
 	std::string temp;
 	using boost::lexical_cast;

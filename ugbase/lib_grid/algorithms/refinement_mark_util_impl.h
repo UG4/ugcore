@@ -41,7 +41,7 @@
 
 namespace ug{
 
-template <class TRef, class TIter, class TAAPos>
+template <typename TRef, typename TIter, typename TAAPos>
 void MarkForAnisotropicRefinement (
 			Grid& grid,
 			TRef& ref,
@@ -93,7 +93,7 @@ void MarkForAnisotropicRefinement (
 	}
 }
 
-template <class TRef, class TEdgeIter, class TAAPos>
+template <typename TRef, typename TEdgeIter, typename TAAPos>
 void MarkForRefinementByDirection (
 			TRef& ref,
 			TAAPos aaPos,
@@ -144,4 +144,4 @@ void MarkForRefinementByDirection (
 
 }//	end of namespace
 
-#endif	//__H__UG_refinement_mark_util_impl
+#endif

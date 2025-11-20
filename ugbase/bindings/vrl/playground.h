@@ -103,5 +103,4 @@ void registerPlayground(ug::bridge::Registry& reg);
 } // end vrl::
 }// end ug::
 //
-#endif	/* PLAYGROUND_H */
-
+#endif

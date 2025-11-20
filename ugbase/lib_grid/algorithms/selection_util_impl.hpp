@@ -48,9 +48,8 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCenter
-template <class TAAPosVRT>
-bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
-					 Selector& sel, TAAPosVRT& aaPos)
+template <typename TAAPosVRT>
+bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut, Selector& sel, TAAPosVRT& aaPos)
 {
 	if(!sel.grid()){
 		throw(UGError("No grid assigned to selector"));
@@ -125,7 +124,7 @@ bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
 	return false;
 }
 
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 void TranslateSelection(Selector& sel, const typename TAAPosVRT::ValueType& offset,
 						TAAPosVRT& aaPos)
 {
@@ -188,7 +187,7 @@ void TranslateSelection(Selector& sel, const typename TAAPosVRT::ValueType& offs
 
 ////////////////////////////////////////////////////////////////////////
 //	InvertSelection
-template <class TSelector, class TIterator>
+template <typename TSelector, typename TIterator>
 void InvertSelection(TSelector& sel, TIterator begin, TIterator end)
 {
 	for(TIterator iter = begin; iter != end;){
@@ -205,7 +204,7 @@ void InvertSelection(TSelector& sel, TIterator begin, TIterator end)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElem, class TIterator>
+template <typename TElem, typename TIterator>
 void
 SelectAssociated(ISelector& sel, TIterator begin, TIterator end,
 				 ISelector::status_t status)
@@ -226,7 +225,7 @@ SelectAssociated(ISelector& sel, TIterator begin, TIterator end,
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedVertices
-template <class TSelector, class TElemIterator>
+template <typename TSelector, typename TElemIterator>
 void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,
 							  TElemIterator elemsEnd, ISelector::status_t status)
 {
@@ -241,7 +240,7 @@ void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedEdges
-template <class TSelector, class TElemIterator>
+template <typename TSelector, typename TElemIterator>
 void SelectAssociatedEdges(TSelector& sel, TElemIterator elemsBegin,
 						   TElemIterator elemsEnd, ISelector::status_t status)
 {
@@ -262,7 +261,7 @@ void SelectAssociatedEdges(TSelector& sel, TElemIterator elemsBegin,
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedFaces
-template <class TSelector, class TElemIterator>
+template <typename TSelector, typename TElemIterator>
 void SelectAssociatedFaces(TSelector& sel, TElemIterator elemsBegin,
 						   TElemIterator elemsEnd, ISelector::status_t status)
 {
@@ -283,7 +282,7 @@ void SelectAssociatedFaces(TSelector& sel, TElemIterator elemsBegin,
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedFaces
-template <class TSelector, class TElemIterator>
+template <typename TSelector, typename TElemIterator>
 void SelectAssociatedVolumes(TSelector& sel, TElemIterator elemsBegin,
 						     TElemIterator elemsEnd, ISelector::status_t status)
 {
@@ -291,7 +290,7 @@ void SelectAssociatedVolumes(TSelector& sel, TElemIterator elemsBegin,
 }
 
 
-template <class TElem, class TSelector>
+template <typename TElem, typename TSelector>
 void AssignSelectionStateToSides(TSelector& sel, bool recursive)
 {
 	using TIter = typename TSelector::template traits<TElem>::level_iterator;
@@ -323,7 +322,7 @@ void AssignSelectionStateToSides(TSelector& sel, bool recursive)
 }
 
 
-template <class TElemIterator>
+template <typename TElemIterator>
 void SelectBoundaryElements(ISelector& sel, TElemIterator elemsBegin,
 						 TElemIterator elemsEnd)
 {
@@ -338,7 +337,7 @@ void SelectBoundaryElements(ISelector& sel, TElemIterator elemsBegin,
 	}
 }
 
-template <class TElemIterator>
+template <typename TElemIterator>
 void SelectInnerElements(ISelector& sel, TElemIterator elemsBegin,
 						 TElemIterator elemsEnd)
 {
@@ -355,7 +354,7 @@ void SelectInnerElements(ISelector& sel, TElemIterator elemsBegin,
 
 
 
-template <class TSelector, class TAAPos>
+template <typename TSelector, typename TAAPos>
 void ExtendSelectionInDirection(
 		TSelector& sel,
         size_t extSize,
@@ -428,7 +427,7 @@ void ExtendSelectionInDirection(
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPos>
+template <typename TAAPos>
 void SelectEdgesByDirection(
 				Selector& sel,
 				TAAPos& aaPos,
@@ -461,7 +460,7 @@ void SelectEdgesByDirection(
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPos>
+template <typename TAAPos>
 void SelectSubsetEdgesByDirection(
 				Selector& sel,
 				SubsetHandler& sh,
@@ -496,7 +495,7 @@ void SelectSubsetEdgesByDirection(
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 void SelectCreaseEdges(ISelector& sel, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 						number minAngle, APosition aPos,
 						bool ignoreBoundaryEdges, ISelector::status_t state)
@@ -546,7 +545,7 @@ void SelectCreaseEdges(ISelector& sel, TEdgeIterator edgesBegin, TEdgeIterator e
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIter>
+template <typename TIter>
 void SelectAreaBoundary(ISelector& sel, const TIter begin, const TIter end)
 {
 	using TElem = typename Pointer2Value<typename TIter::value_type>::type;
@@ -585,7 +584,7 @@ void SelectAreaBoundary(ISelector& sel, const TIter begin, const TIter end)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIter>
+template <typename TIter>
 void SelectInterfaceElements(ISelector& sel, ISubsetHandler& sh,
 							 const TIter begin, const TIter end,
 							 bool regardSelectedNbrsOnly)
@@ -626,7 +625,7 @@ void SelectInterfaceElements(ISelector& sel, ISubsetHandler& sh,
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
 						  ISelector::status_t status)
 {
@@ -640,7 +639,7 @@ void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
 }
 
 
-template <class TGeomObj, class TAAPos>
+template <typename TGeomObj, typename TAAPos>
 bool SelectRegion(Selector& sel, const typename TAAPos::ValueType& p, TAAPos& aaPos,
 			   	  typename Grid::traits<typename TGeomObj::side>::callback cbRegionBoundary)
 {
@@ -670,7 +669,7 @@ bool SelectRegion(Selector& sel, const typename TAAPos::ValueType& p, TAAPos& aa
 	return true;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 void SelectShortPolychains(ISelector& sel, number maxLength, bool closedChainsOnly,
 						   TAAPos aaPos)
 {
@@ -759,7 +758,7 @@ void SelectShortPolychains(ISelector& sel, number maxLength, bool closedChainsOn
 	grid.end_marking();
 }
 
-template <class TElem>
+template <typename TElem>
 void SelectLinkedElements(ISelector& sel,
 		  typename Grid::traits<TElem>::callback cbIsSelectable,
 		  typename Grid::traits<typename TElem::side>::callback cbIsTraversable)
@@ -817,7 +816,7 @@ void SelectLinkedElements(ISelector& sel,
 	}
 }
 
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 UG_API
 number FaceArea(ISelector& sel, TAAPosVRT& aaPos)
 {

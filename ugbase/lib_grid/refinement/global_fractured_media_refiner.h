@@ -57,7 +57,7 @@ class ISubsetHandler;
  * refiner by setting the fracture mark to false using the method
  * mark_as_fracture once again.
  */
-//template <class TAPosition>
+//template <typename TAPosition>
 class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 {
 	public:
@@ -110,7 +110,7 @@ class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 	///	returns the number of (globally) marked volumes on this level of the hierarchy
 		void num_marked_volumes_local(std::vector<int>& numMarkedVolsOut) override;
 
-		template <class TElem>
+		template <typename TElem>
 		void num_marked_elems(std::vector<int>& numMarkedElemsOut);
 		
 	////////////////////////////////
@@ -132,15 +132,15 @@ class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 
 	///	performs the actual marking
 	/**	This class is specialized for Face and Volume.*/
-		template <class TElem>
+		template <typename TElem>
 		void assign_elem_and_side_marks();
 
 	///	recursively marks sides of all marked top level elements of the given type
-		template <class TElem>
+		template <typename TElem>
 		void mark_sides_of_marked_top_level_elements();
 
 	///	returns the number of marked entries
-		template <class TElem>
+		template <typename TElem>
 		size_t num_marked(const std::vector<TElem*>& elems) const;
 
 	///	a callback that allows to deny refinement of special vertices
@@ -169,7 +169,7 @@ class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 	///	returns true if the specified element is a fracture element.
 	/**	Note that this method does not check whether the underlying subset-handler
 	 * is valid. Make sure to check that beforehand.*/
-		template <class TElem>
+		template <typename TElem>
 		bool is_fracture_element(TElem* e)	{return is_fracture(m_pSH->get_subset_index(e));}
 
 	protected:

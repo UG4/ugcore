@@ -236,7 +236,7 @@ void ISelector::set_grid(Grid* grid)
 
 
 #ifdef UG_PARALLEL
-template <class TIntfcCom>
+template <typename TIntfcCom>
 void ISelector::broadcast_selection_states(bool deselect,
 										   bool includeGhosts,
 										   TIntfcCom& icom)
@@ -542,7 +542,7 @@ void ISelector::volume_to_be_erased(Grid* grid, Volume* vol,
 }
 
 
-template <class TElem>
+template <typename TElem>
 void ISelector::
 elems_to_be_merged(Grid* grid, TElem* target,
 					TElem* elem1, TElem* elem2)

@@ -55,13 +55,13 @@ public:
 
 ///	specializes ISubGrid for general callback classes.
 /**
- *\param TCallbackCls	A class that features the following methods
- *						- bool operator() (Vertex* v) const;
- *						- bool operator() (Edge* e) const;
- *						- bool operator() (Face* f) const;
- *						- bool operator() (Volume* v) const;
+ *\tparam TCallbackCls	A class that features the following methods
+ *						- bool operator () (Vertex* v) const;
+ *						- bool operator () (Edge* e) const;
+ *						- bool operator () (Face* f) const;
+ *						- bool operator () (Volume* v) const;
  */
-template <class TCallbackCls>
+template <typename TCallbackCls>
 class SubGrid : public ISubGrid{
 public:
 	SubGrid(GridObjectCollection goc, const TCallbackCls& cb) :
@@ -91,13 +91,13 @@ class IsInSubGrid
 		IsInSubGrid(const ISubGrid& subGrid) :
 			m_subGrid(subGrid)	{}
 
-		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (Edge* e)	{return callback(e);}
-		bool operator() (Face* f)	{return callback(f);}
-		bool operator() (Volume* v)	{return callback(v);}
+		bool operator () (Vertex* v)	{return callback(v);}
+		bool operator () (Edge* e)	{return callback(e);}
+		bool operator () (Face* f)	{return callback(f);}
+		bool operator () (Volume* v)	{return callback(v);}
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		bool callback(TElem* e)		{return m_subGrid.is_contained(e);}
 
 	private:
@@ -114,13 +114,13 @@ class IsNotInSubGrid
 		IsNotInSubGrid(const ISubGrid& subGrid) :
 			m_subGrid(subGrid)	{}
 
-		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (Edge* e)	{return callback(e);}
-		bool operator() (Face* f)	{return callback(f);}
-		bool operator() (Volume* v)	{return callback(v);}
+		bool operator () (Vertex* v)	{return callback(v);}
+		bool operator () (Edge* e)	{return callback(e);}
+		bool operator () (Face* f)	{return callback(f);}
+		bool operator () (Volume* v)	{return callback(v);}
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		bool callback(TElem* e)		{return !m_subGrid.is_contained(e);}
 
 	private:

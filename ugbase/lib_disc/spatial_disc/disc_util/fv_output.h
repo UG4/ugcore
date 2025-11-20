@@ -47,7 +47,7 @@ namespace ug{
 // ConstructGridOfSCVF
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TElem, template <class, int> class TFVGeom, int TWorldDim>
+template <typename TElem, template <typename, int> typename TFVGeom, int TWorldDim>
 void CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandler& shOut,
 				Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut)
 {
@@ -107,7 +107,7 @@ void CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandle
 	}
 }
 
-template <typename TElem, template <class, int> class TFVGeom, int TWorldDim>
+template <typename TElem, template <typename, int> typename TFVGeom, int TWorldDim>
 void ConstructGridOfSCVF(ISubsetHandler& shOut,
                          const SurfaceView& surfView,
                          const Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
@@ -143,10 +143,10 @@ void ConstructGridOfSCVF(ISubsetHandler& shOut,
 }
 
 
-template <template <class, int> class TFVGeom, int TWorldDim>
+template <template <typename, int> typename TFVGeom, int TWorldDim>
 struct ConstructGridOfSCVFWrapper{};
 
-template <template <class, int> class TFVGeom>
+template <template <typename, int> typename TFVGeom>
 struct ConstructGridOfSCVFWrapper<TFVGeom, 1>
 {
 	static void apply(ISubsetHandler& shOut, const SurfaceView& surfView,
@@ -163,7 +163,7 @@ struct ConstructGridOfSCVFWrapper<TFVGeom, 1>
 	}
 };
 
-template <template <class, int> class TFVGeom>
+template <template <typename, int> typename TFVGeom>
 struct ConstructGridOfSCVFWrapper<TFVGeom, 2>
 {
 	static void apply(ISubsetHandler& shOut, const SurfaceView& surfView,
@@ -183,7 +183,7 @@ struct ConstructGridOfSCVFWrapper<TFVGeom, 2>
 	}
 };
 
-template <template <class, int> class TFVGeom>
+template <template <typename, int> typename TFVGeom>
 struct ConstructGridOfSCVFWrapper<TFVGeom, 3>
 {
 	static void apply(ISubsetHandler& shOut, const SurfaceView& surfView,
@@ -209,7 +209,7 @@ struct ConstructGridOfSCVFWrapper<TFVGeom, 3>
 	}
 };
 
-template <template <class, int> class TFVGeom, int TWorldDim>
+template <template <typename, int> typename TFVGeom, int TWorldDim>
 void ConstructGridOfSCVF(ISubsetHandler& shOut, const SurfaceView& surfView,
 						const Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
 						Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
@@ -223,7 +223,7 @@ void ConstructGridOfSCVF(ISubsetHandler& shOut, const SurfaceView& surfView,
 // ConstructGridOfSCV
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TElem, template <class, int> class TFVGeom, int TWorldDim>
+template <typename TElem, template <typename, int> typename TFVGeom, int TWorldDim>
 void CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandler& shOut,
 				Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut)
 {
@@ -295,7 +295,7 @@ void CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandler
 	}
 }
 
-template <typename TElem, template <class, int> class TFVGeom, int TWorldDim>
+template <typename TElem, template <typename, int> typename TFVGeom, int TWorldDim>
 void ConstructGridOfSCV(ISubsetHandler& shOut, const SurfaceView& surfView,
                         const Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
                         Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
@@ -330,10 +330,10 @@ void ConstructGridOfSCV(ISubsetHandler& shOut, const SurfaceView& surfView,
 }
 
 
-template <template <class, int> class TFVGeom, int TWorldDim>
+template <template <typename, int> typename TFVGeom, int TWorldDim>
 struct ConstructGridOfSCVWrapper{};
 
-template <template <class TElem, int TWorldDim> class TFVGeom>
+template <template <typename TElem, int TWorldDim> typename TFVGeom>
 struct ConstructGridOfSCVWrapper<TFVGeom, 1>
 {
 	static void apply(ISubsetHandler& shOut, const SurfaceView& surfView,
@@ -350,7 +350,7 @@ struct ConstructGridOfSCVWrapper<TFVGeom, 1>
 	}
 };
 
-template <template <class, int> class TFVGeom>
+template <template <typename, int> typename TFVGeom>
 struct ConstructGridOfSCVWrapper<TFVGeom, 2>
 {
 	static void apply(ISubsetHandler& shOut, const SurfaceView& surfView,
@@ -370,7 +370,7 @@ struct ConstructGridOfSCVWrapper<TFVGeom, 2>
 	}
 };
 
-template <template <class, int> class TFVGeom>
+template <template <typename, int> typename TFVGeom>
 struct ConstructGridOfSCVWrapper<TFVGeom, 3>
 {
 	static void apply(ISubsetHandler& shOut, const SurfaceView& surfView,
@@ -396,7 +396,7 @@ struct ConstructGridOfSCVWrapper<TFVGeom, 3>
 	}
 };
 
-template <template <class, int> class TFVGeom, int TWorldDim>
+template <template <typename, int> typename TFVGeom, int TWorldDim>
 void ConstructGridOfSCV(ISubsetHandler& shOut, const SurfaceView& surfView,
 						const Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
 						Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
@@ -482,7 +482,7 @@ void ColorControlVolume(ISubsetHandler& shOut)
 }
 
 
-template <template <class, int> class TFVGeom, typename TAAPosition>
+template <template <typename, int> typename TFVGeom, typename TAAPosition>
 void CreateGridOfSubControlVolumes(ISubsetHandler& shOut, TAAPosition& aaPosOut, const ISubsetHandler& sh, const TAAPosition& aaPos, const SurfaceView& surfView, int si = -1)
 {
 	static constexpr int dim = TAAPosition::ValueType::Size;
@@ -515,7 +515,7 @@ void CreateGridOfSubControlVolumes(ISubsetHandler& shOut, TAAPosition& aaPosOut,
 	}
 }
 
-template <template <class, int> class TFVGeom, typename TAAPosition, typename TAPosition>
+template <template <typename, int> typename TFVGeom, typename TAAPosition, typename TAPosition>
 void CreateGridOfControlVolumes(ISubsetHandler& shOut, TAAPosition& aaPosOut, TAPosition& aPosOut, const ISubsetHandler& sh, const TAAPosition& aaPos, const SurfaceView& surfView, int si = -1)
 {
 	static constexpr int dim = TAAPosition::ValueType::Size;
@@ -553,7 +553,7 @@ void CreateGridOfControlVolumes(ISubsetHandler& shOut, TAAPosition& aaPosOut, TA
 	}
 }
 
-template <template <class, int> class TFVGeom, typename TAAPosition>
+template <template <typename, int> typename TFVGeom, typename TAAPosition>
 void CreateGridOfSubControlVolumeFaces(ISubsetHandler& shOut, TAAPosition& aaPosOut, const ISubsetHandler& sh, const TAAPosition& aaPos, const SurfaceView& surfView, int si = -1)
 {
 	static constexpr int dim = TAAPosition::ValueType::Size;
@@ -595,7 +595,7 @@ void CreateGridOfSubControlVolumeFaces(ISubsetHandler& shOut, TAAPosition& aaPos
  * @param domIn		original domain
  * @param si		subset used (-1 for whole domain)
  */
-template <template <class, int> class TFVGeom, typename TDomain>
+template <template <typename, int> typename TFVGeom, typename TDomain>
 void CreateSubControlVolumeFaceDomain(TDomain& domOut, const TDomain& domIn, const SurfaceView& surfView, int si = -1)
 {
 	if(&domOut == &domIn)
@@ -617,7 +617,7 @@ void CreateSubControlVolumeFaceDomain(TDomain& domOut, const TDomain& domIn, con
  * @param domIn		original domain
  * @param si		subset used (-1 for whole domain)
  */
-template <template <class, int> class TFVGeom, typename TDomain>
+template <template <typename, int> typename TFVGeom, typename TDomain>
 void CreateSubControlVolumeDomain(TDomain& domOut, const TDomain& domIn, const SurfaceView& surfView, int si = -1)
 {
 	if(&domOut == &domIn)
@@ -639,7 +639,7 @@ void CreateSubControlVolumeDomain(TDomain& domOut, const TDomain& domIn, const S
  * @param domIn		original domain
  * @param si		subset used (-1 for whole domain)
  */
-template <template <class, int> class TFVGeom, typename TDomain>
+template <template <typename, int> typename TFVGeom, typename TDomain>
 void CreateControlVolumeDomain(TDomain& domOut, const TDomain& domIn, const SurfaceView& surfView, int si = -1)
 {
 	if(&domOut == &domIn)

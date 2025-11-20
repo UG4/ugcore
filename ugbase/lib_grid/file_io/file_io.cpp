@@ -177,7 +177,7 @@ static bool LoadGrid3d(Grid& grid, ISubsetHandler* psh,
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	This method calls specific load routines or delegates loading to LoadGrid3d
-template <class TAPos>
+template <typename TAPos>
 static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 					 const char* filename, TAPos& aPos,
 					 int procId)
@@ -243,7 +243,7 @@ static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 	return retVal;
 }
 
-template <class TAPos>
+template <typename TAPos>
 static bool LoadGrid(Grid& grid, SPProjectionHandler* ph, size_t& num_ph, ISubsetHandler* psh, std::vector<std::string> additionalSHNames,
 						std::vector<SmartPtr<ISubsetHandler>> ash, const char* filename, TAPos& aPos, int procId)
 {
@@ -311,21 +311,21 @@ static bool LoadGrid(Grid& grid, SPProjectionHandler* ph, size_t& num_ph, ISubse
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAPos>
+template <typename TAPos>
 bool LoadGridFromFile(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, vector<string> additionalSHNames,
 						vector<SmartPtr<ISubsetHandler>> ash, const char* filename, TAPos& aPos, int procId)
 {
 	return LoadGrid(grid, &ph, num_ph, &sh, additionalSHNames, ash, filename, aPos, procId);
 }
 
-template <class TAPos>
+template <typename TAPos>
 bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh,
 					  const char* filename, TAPos& aPos, int procId)
 {
 	return LoadGrid(grid, &sh, filename, aPos, procId);
 }
 
-template <class TAPos>
+template <typename TAPos>
 bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos, int procId)
 {
 	return LoadGrid(grid, nullptr, filename, aPos, procId);
@@ -426,7 +426,7 @@ static bool SaveGrid3d(Grid& grid, ISubsetHandler* psh,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAPos>
+template <typename TAPos>
 static bool SaveGrid(Grid& grid, ISubsetHandler* psh,
 					 const char* filename, TAPos& aPos)
 {
@@ -464,14 +464,14 @@ static bool SaveGrid(Grid& grid, ISubsetHandler* psh,
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAPos>
+template <typename TAPos>
 bool SaveGridToFile(Grid& grid, ISubsetHandler& sh,
 					const char* filename, TAPos& aPos)
 {
 	return SaveGrid(grid, &sh, filename, aPos);
 }
 
-template <class TAPos>
+template <typename TAPos>
 bool SaveGridToFile(Grid& grid, const char* filename, TAPos& aPos)
 {
 	return SaveGrid(grid, nullptr, filename, aPos);
@@ -579,14 +579,14 @@ bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename,
 	return writeSuccess;
 }
 
-template <class TElem>
+template <typename TElem>
 static void AssignSubsetsByInterfaceType(SubsetHandler& sh, MultiGrid& mg)
 {
-	const int siNormal = 0;
-	const int siHMaster = 1;
-	const int siHSlave = 1 << 1;
-	const int siVMaster = 1 << 2;
-	const int siVSlave = 1 << 3;
+	constexpr int siNormal = 0;
+	constexpr int siHMaster = 1;
+	constexpr int siHSlave = 1 << 1;
+	constexpr int siVMaster = 1 << 2;
+	constexpr int siVSlave = 1 << 3;
 
 	const char* subsetNames[] = {"normal", "hmaster", "hslave", "hslave+hmaster",
 						  "vmaster", "vmaster+hmaster", "vmaster+hslave",
@@ -669,7 +669,7 @@ bool SaveParallelGridLayout(MultiGrid& mg, const char* filename, number offset)
 	return writeSuccess;
 }
 
-template <class TElem>
+template <typename TElem>
 static void AssignSubsetsBySurfaceViewState(SubsetHandler& sh, const SurfaceView& sv,
 											MultiGrid& mg)
 {
@@ -737,7 +737,7 @@ bool SaveSurfaceViewTransformed(MultiGrid& mg, const SurfaceView& sv,
 	return writeSuccess;
 }
 
-template<class TElem>
+template <typename TElem>
 void CopyGridLevelElements(MultiGrid& srcMG, Grid& destGrid,
 				           ISubsetHandler& srcSH, ISubsetHandler& destSH,
 						   int lvl, AVertex& aNewVrt)
@@ -763,7 +763,7 @@ void CopyGridLevelElements(MultiGrid& srcMG, Grid& destGrid,
 	}
 }
 
-template <class TAPos>
+template <typename TAPos>
 void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
 				   ISubsetHandler& srcSH, ISubsetHandler& destSH,
 				   int lvl, TAPos aPos)
@@ -798,7 +798,7 @@ void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
 	srcMG.detach_from_vertices(aNewVrt);
 }
 
-template <class TAPos>
+template <typename TAPos>
 void CopyGrid(Grid& srcGrid, Grid& destGrid,
 			  ISubsetHandler& srcSH, ISubsetHandler& destSH,
 			  TAPos aPos)
@@ -832,7 +832,7 @@ void CopyGrid(Grid& srcGrid, Grid& destGrid,
 	srcGrid.detach_from_vertices(aNewVrt);
 }
 
-template <class TAPos>
+template <typename TAPos>
 bool SaveGridLevel(MultiGrid& srcMG, ISubsetHandler& srcSH,
 				   int lvl, const char* filename, TAPos aPos)
 {

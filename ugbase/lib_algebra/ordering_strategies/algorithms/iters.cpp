@@ -42,8 +42,8 @@ class BOOL{
 public:
 	BOOL() : value_(bool()){}
 	/* explicit */ BOOL(bool const& t): value_(t) {}
-	// /* explicit */ operator bool&() { return value_; }
-	/* explicit */ operator bool() const { return value_; }
+	// /* explicit */ operator bool &() { return value_; }
+	/* explicit */ operator bool () const { return value_; }
 private:
 	char value_;
 };
@@ -61,12 +61,12 @@ public:
 		}
 	}
 
-	bool operator==(const unvisited_iterator& o) const{
+	bool operator == (const unvisited_iterator& o) const{
 		return cur==o.cur;
 	}
 
-	bool operator!=(const unvisited_iterator& o) const{
-		return !operator==(o);
+	bool operator != (const unvisited_iterator& o) const{
+		return !operator == (o);
 	}
 
 	void operator ++ (){
@@ -76,7 +76,7 @@ public:
 		while(cur < n && visited[cur]);
 	}
 
-	unsigned operator*() const{
+	unsigned operator * () const{
 		return cur;
         }
 
@@ -143,12 +143,12 @@ public:
 		operator ++ ();
 	}
 
-	bool operator==(const non_dirichlet_iterator& o) const{
+	bool operator == (const non_dirichlet_iterator& o) const{
 		return cur==o.cur;
 	}
 
-	bool operator!=(const non_dirichlet_iterator& o) const{
-		return !operator==(o);
+	bool operator != (const non_dirichlet_iterator& o) const{
+		return !operator == (o);
 	}
 
 	void operator ++ (){
@@ -158,7 +158,7 @@ public:
 		while(cur < n && A.is_isolated(cur));
 	}
 
-	unsigned operator*() const{
+	unsigned operator * () const{
 		return cur;
         }
 

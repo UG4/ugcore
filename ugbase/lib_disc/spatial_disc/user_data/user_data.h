@@ -159,61 +159,61 @@ class UserData : virtual public UserDataInfo
 
 	public:
 	///	returns value for a global position
-		virtual TRet operator() (TData& value,
+		virtual TRet operator () (TData& value,
 								 const MathVector<dim>& globIP,
 								 number time, int si) const = 0;
 
 	///	returns values for global positions
-		virtual void operator()(TData vValue[],
+		virtual void operator ()(TData vValue[],
 								const MathVector<dim> vGlobIP[],
 								number time, int si, const size_t nip) const = 0;
 		
 	///	returns a value at a vertex
-		virtual void operator() (TData& value,
+		virtual void operator () (TData& value,
 								 const MathVector<dim>& globIP,
 								 number time, int si,
 								 Vertex* vrt) const
 		{
 		//	The standard version uses only the coordinates. But it can be redefined.
-			operator()(value, globIP, time, si);
+			operator () (value, globIP, time, si);
 		}
 
 	///	returns value for local and global position
 	///	\{
-		TRet operator() (TData& value,
+		TRet operator () (TData& value,
 						 const MathVector<dim>& globIP,
 						 number time, int si,
 						 GridObject* elem,
 						 const MathVector<dim> vCornerCoords[],
 						 const MathVector<1>& locIP,
 						 LocalVector* u) const {
-			operator()(&value, &globIP, time, si, elem, vCornerCoords, &locIP, 1, u);
+			operator () (&value, &globIP, time, si, elem, vCornerCoords, &locIP, 1, u);
 		}
 
-		TRet operator() (TData& value,
+		TRet operator () (TData& value,
 						 const MathVector<dim>& globIP,
 						 number time, int si,
 						 GridObject* elem,
 						 const MathVector<dim> vCornerCoords[],
 						 const MathVector<2>& locIP,
 						 LocalVector* u) const {
-			operator()(&value, &globIP, time, si, elem, vCornerCoords, &locIP, 1, u);
+			operator () (&value, &globIP, time, si, elem, vCornerCoords, &locIP, 1, u);
 		}
 
-		TRet operator() (TData& value,
+		TRet operator () (TData& value,
 						 const MathVector<dim>& globIP,
 						 number time, int si,
 						 GridObject* elem,
 						 const MathVector<dim> vCornerCoords[],
 						 const MathVector<3>& locIP,
 	                     LocalVector* u) const {
-			operator()(&value, &globIP, time, si, elem, vCornerCoords, &locIP, 1, u);
+			operator ()(&value, &globIP, time, si, elem, vCornerCoords, &locIP, 1, u);
 		}
 	///	\}
 
 	///	returns values for local and global positions
 	///	\{
-		virtual void operator()(TData vValue[],
+		virtual void operator () (TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
 		                        GridObject* elem,
@@ -223,7 +223,7 @@ class UserData : virtual public UserDataInfo
 		                        LocalVector* u,
 		                        const MathMatrix<1, dim>* vJT = nullptr) const = 0;
 
-		virtual void operator()(TData vValue[],
+		virtual void operator () (TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
 		                        GridObject* elem,
@@ -233,7 +233,7 @@ class UserData : virtual public UserDataInfo
 		                        LocalVector* u,
 		                        const MathMatrix<2, dim>* vJT = nullptr) const = 0;
 
-		virtual void operator()(TData vValue[],
+		virtual void operator () (TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
 		                        GridObject* elem,

@@ -132,20 +132,20 @@ class LFEID
 		SpaceType type() const {return m_type;}
 
 	///	equality check
-		bool operator==(const LFEID& v) const
+		bool operator == (const LFEID& v) const
 		{
 			return (m_type == v.m_type && m_dim==v.m_dim && m_order==v.m_order);
 		}
 
 	///	inequality check
-		bool operator!=(const LFEID& v) const {return !((*this)==v);}
+		bool operator != (const LFEID& v) const {return !((*this)==v);}
 
 	///	operator <
 	/**	returns comparison which set id is regarded lesser
 	 * The Local Finite Elements are ordered by type first, then by dimension and
 	 * then by increasing order.
 	 */
-		bool operator<(const LFEID& v) const
+		bool operator < (const LFEID& v) const
 		{
 			if(m_type != v.m_type) return m_type < v.m_type;
 			else if(m_dim != v.m_dim) return m_dim < v.m_dim;
@@ -153,7 +153,7 @@ class LFEID
 		}
 
 	///	operator >
-		bool operator>(const LFEID& v) const
+		bool operator > (const LFEID& v) const
 		{
 			if(m_type != v.m_type) return m_type > v.m_type;
 			else if(m_dim != v.m_dim) return m_dim > v.m_dim;
@@ -161,18 +161,18 @@ class LFEID
 		}
 
 	///	operator <=
-		bool operator<=(const LFEID& v) const
+		bool operator <= (const LFEID& v) const
 		{
 			return (*this < v || *this == v);
 		}
 
 	///	operator >=
-		bool operator>=(const LFEID& v) const
+		bool operator >= (const LFEID& v) const
 		{
 			return (*this > v || *this == v);
 		}
 
-		friend std::ostream& operator<<(std::ostream& out,	const LFEID& v);
+		friend std::ostream& operator << (std::ostream& out,	const LFEID& v);
 
 	private:
 	///	Space type
@@ -186,7 +186,7 @@ class LFEID
 };
 
 /// writes the Identifier to the output stream
-std::ostream& operator<<(std::ostream& out,	const LFEID& v);
+std::ostream& operator <<(std::ostream& out,	const LFEID& v);
 
 ///	returns the LFEID for a combination of Space and order
 LFEID ConvertStringToLFEID(const char* type, int dim, int order);

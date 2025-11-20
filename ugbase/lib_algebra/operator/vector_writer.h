@@ -45,11 +45,8 @@ class IVectorWriter
 		virtual bool update(vector_type &vec) = 0;
 
 		/// virtual destructor
-		virtual ~IVectorWriter(){}
+		virtual ~IVectorWriter()= default;
 
-	/*private:
-		std::vector<vector_type> m_vVec;
-		std::vector<number> m_vWeights;*/
 };
 
 

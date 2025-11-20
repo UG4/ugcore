@@ -99,7 +99,7 @@ inline bool QuadDiagonalIsValid(const vector3& c0, const vector3& c1,
 }
 
 
-template <class TVrtIter, class TAAPos>
+template <typename TVrtIter, typename TAAPos>
 void ReplaceValence3Vertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 							 number maxSquaredHeightToBaseAreaRatio, TAAPos aaPos)
 {
@@ -163,7 +163,7 @@ void ReplaceValence3Vertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 }
 
 
-template <class TVrtIter, class TAAPos>
+template <typename TVrtIter, typename TAAPos>
 void ReplaceLowValenceVertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 							   number maxSquaredHeightToBaseAreaRatio, TAAPos aaPos)
 {
@@ -347,7 +347,7 @@ void ReplaceLowValenceVertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 
 
 
-// template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
+// template <typename TAAPosVRT, typename TAANormVRT, typename TAAIntVRT>
 // Vertex* TryFlatRegionEdgeCollapse(Grid& grid, Edge* e,
 // 							  TAAPosVRT& aaPos, TAANormVRT& aaNorm, 
 // 							  TAAIntVRT& aaInt, SubsetHandler* pshMarks = nullptr,
@@ -414,7 +414,7 @@ void ReplaceLowValenceVertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 // }
 
 
-// template <class TVrtIter, class TAAPos>
+// template <typename TVrtIter, typename TAAPos>
 // void CollapseEdgesInFlatRegions(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 // 							    number maxNormalDeviation, TAAPos aaPos)
 // {
@@ -424,4 +424,4 @@ void ReplaceLowValenceVertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 
 }//	end of namespace
 
-#endif	//__H__simplification
+#endif

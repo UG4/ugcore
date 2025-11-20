@@ -162,47 +162,47 @@ class SubdivRules_PLoop
 /*
 	////////////////////////////////
 	//	EVEN MASKS
-		template <class TAAPos>
+		template <typename TAAPos>
 		typename TAAPos::ValueType
 		apply_even_mask(Grid& grid, Vertex* center,
 						TAAPos& aaPos);
 
-		template <class TAAPos>
+		template <typename TAAPos>
 		typename TAAPos::ValueType
 		apply_even_crease_mask(Vertex* center, Vertex* nbr1,
 							   Vertex* nbr2, TAAPos& aaPos);
 
 	////////////////////////////////
 	//	ODD MASKS
-		template <class TAAPos>
+		template <typename TAAPos>
 		typename TAAPos::ValueType
 		apply_odd_mask(Vertex* vrt, Edge* parent,
 					   TAAPos& aaPos);
 
-		template <class TAAPos>
+		template <typename TAAPos>
 		typename TAAPos::ValueType
 		apply_odd_crease_mask(Vertex* vrt, Edge* parent,
 							  TAAPos& aaPos);
 
-		template <class TAAPos>
+		template <typename TAAPos>
 		typename TAAPos::ValueType
 		apply_odd_crease_nbr_mask(Grid& grid, Vertex* vrt,
 								  Edge* parent, TAAPos& aaPos);
 
 	////////////////////////////////
 	//	PROJECTION
-		template <class TAAPos>
+		template <typename TAAPos>
 		typename TAAPos::ValueType
 		project_inner_vertex(Grid& grid, Vertex* vrt,
 							 TAAPos& aaPos);
 
-		template <class TAAPos>
+		template <typename TAAPos>
 		typename TAAPos::ValueType
 		project_inner_vertex(Vertex* vrt, Vertex* nbrs,
 							 int* nbrCreaseValencies, int numNbrs,
 							 TAAPos& aaPos);
 
-		template <class TAAPos>
+		template <typename TAAPos>
 		typename TAAPos::ValueType
 		project_crease_vertex(Vertex* vrt, Vertex* nbr1,
 							  Vertex* nbr2, TAAPos& aaPos);
@@ -219,7 +219,7 @@ class SubdivRules_PLoop
 		SubdivRules_PLoop(const SubdivRules_PLoop& src);
 		
 	///	private assignment operator prohibits assignment.
-		SubdivRules_PLoop& operator=(const SubdivRules_PLoop& src);
+		SubdivRules_PLoop& operator = (const SubdivRules_PLoop& src);
 		
 	///	returns the next index in a cyclic index set
 		inline size_t next_ind(size_t ind, size_t numInds) const	{return (ind + 1) % numInds;}

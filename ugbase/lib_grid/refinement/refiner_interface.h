@@ -112,19 +112,19 @@ class IRefiner
 		virtual bool mark(GridObject* o, RefinementMark refMark = RM_REFINE);
 
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool marked_closure(TElem* elem) const
 		{
 			return (get_mark(elem) == RM_CLOSURE);
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool marked_local(TElem* elem) const
 		{
 			return (get_mark(elem) == RM_LOCAL);
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool marked_full(TElem* elem) const
 		{
 			return (get_mark(elem) == RM_FULL);
@@ -209,7 +209,7 @@ class IRefiner
 	///	marks all elements between iterBegin and iterEnd.
 	/**	the value-type of TIterator has to be a pointer to a type derived
 	 * 	from either Edge, Face or Volume.*/
-		template <class TIterator>
+		template <typename TIterator>
 		void mark(const TIterator& iterBegin, const TIterator& iterEnd,
 				  RefinementMark refMark = RM_REFINE)
 			{

@@ -66,7 +66,7 @@ void PrintGlobalLayout(const GlobalLayout &globalLayout, const char *name)
 	if(name) UG_DLOG(LIB_ALG_AMG, 4, name);
 	UG_LOG("\n");
 
-	for(GlobalLayout::const_iterator iter = globalLayout.begin(); iter != globalLayout.end(); ++iter)
+	for(auto iter = globalLayout.begin(); iter != globalLayout.end(); ++iter)
 	{
 		int pid = iter->first;
 		const std::vector<AlgebraID> &v = iter->second;
@@ -104,7 +104,7 @@ void SerializeGlobalLayout(BinaryBuffer &stream, const GlobalLayout &globalLayou
 	size_t size = globalLayout.size();
 	Serialize(stream, size);
 	UG_DLOG(LIB_ALG_AMG, 4, " size = " << size << "\n");
-	for(GlobalLayout::const_iterator iter = globalLayout.begin(); iter != globalLayout.end(); ++iter)
+	for(auto iter = globalLayout.begin(); iter != globalLayout.end(); ++iter)
 	{
 		int pid = iter->first;
 		const std::vector<AlgebraID> &v = iter->second;
@@ -135,7 +135,7 @@ void SendGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm,
 void MergeGlobalLayout(GlobalLayout &globalLayout, const std::map<int, int> &merge)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
-	for(std::map<int, int>::const_iterator it = merge.begin(); it != merge.end(); ++it)
+	for(auto it = merge.begin(); it != merge.end(); ++it)
 	{
 		std::vector<AlgebraID> &a = globalLayout[it->first];
 

@@ -68,7 +68,7 @@ class QuadratureRuleProvider
 
 	//	disallow copy
 		QuadratureRuleProvider(const QuadratureRuleProvider&);
-		QuadratureRuleProvider& operator=(const QuadratureRuleProvider&);
+		QuadratureRuleProvider& operator = (const QuadratureRuleProvider&);
 
 	///	singleton provider
 		static QuadratureRuleProvider<dim>& instance()
@@ -131,7 +131,7 @@ template <int dim>
 std::vector<const QuadratureRule<dim>*> QuadratureRuleProvider<dim>::m_vRule[NUM_QUADRATURE_TYPES][NUM_REFERENCE_OBJECTS];
 
 /// writes the Identifier to the output stream
-std::ostream& operator<<(std::ostream& out,	const QuadType& v);
+std::ostream& operator << (std::ostream& out,	const QuadType& v);
 
 /// returns Identifier from string
 QuadType GetQuadratureType(const std::string& name);

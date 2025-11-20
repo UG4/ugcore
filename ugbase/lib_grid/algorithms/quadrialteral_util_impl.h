@@ -41,7 +41,7 @@
 
 namespace ug{
 
-template <class face_iter_t, class TAAPos>
+template <typename face_iter_t, typename TAAPos>
 void ReplaceByQuadrilaterals_FaceBased(
 		Grid& g,
 		face_iter_t facesBegin,
@@ -75,13 +75,13 @@ namespace detail{
 			bool operator < (const EdgeToQuadInfo& other) const
 			{return quality > other.quality;}
 
-			inline Edge* operator() (const EdgeToQuadInfo& v) const
+			inline Edge* operator () (const EdgeToQuadInfo& v) const
 			{return v.e;}
 		};
 	}//	end of namespace
 }//	end of namespace detail
 
-template <class edge_iter_t, class TAAPos>
+template <typename edge_iter_t, typename TAAPos>
 void ReplaceByQuadrilaterals_EdgeBased(
 		Grid& g,
 		edge_iter_t edgesBegin,
@@ -124,7 +124,7 @@ void ReplaceByQuadrilaterals_EdgeBased(
 }
 
 
-template <class face_iter_t>
+template <typename face_iter_t>
 void ReplaceByQuadrilaterals_FaceBasedNoSort(
 		Grid& g,
 		face_iter_t facesBegin,
@@ -143,7 +143,7 @@ void ReplaceByQuadrilaterals_FaceBasedNoSort(
 }
 
 
-template <class edge_iter_t>
+template <typename edge_iter_t>
 void ReplaceByQuadrilaterals_EdgeBasedNoSort(
 		Grid& g,
 		edge_iter_t edgesBegin,
@@ -169,4 +169,4 @@ void ReplaceByQuadrilaterals_EdgeBasedNoSort(
 
 }//	end of namespace
 
-#endif	//__H__UG_quadrialteral_util_impl
+#endif

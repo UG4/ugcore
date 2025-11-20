@@ -38,7 +38,7 @@
 namespace ug
 {
 
-template <class TElem>
+template <typename TElem>
 typename geometry_traits<TElem>::iterator
 GridSubsetHandler::
 begin(int subsetIndex)
@@ -57,7 +57,7 @@ begin(int subsetIndex)
 				section_container<TElem>(subsetIndex).section_begin(sectionInd));
 }
 
-template <class TElem>
+template <typename TElem>
 typename geometry_traits<TElem>::iterator
 GridSubsetHandler::
 end(int subsetIndex)
@@ -76,7 +76,7 @@ end(int subsetIndex)
 				section_container<TElem>(subsetIndex).section_end(sectionInd));
 }
 
-template <class TElem>
+template <typename TElem>
 typename geometry_traits<TElem>::const_iterator
 GridSubsetHandler::
 begin(int subsetIndex) const
@@ -95,7 +95,7 @@ begin(int subsetIndex) const
 				section_container<TElem>(subsetIndex).section_begin(sectionInd));
 }
 
-template <class TElem>
+template <typename TElem>
 typename geometry_traits<TElem>::const_iterator
 GridSubsetHandler::
 end(int subsetIndex) const
@@ -115,7 +115,7 @@ end(int subsetIndex) const
 }
 
 
-template <class TElem>
+template <typename TElem>
 void
 GridSubsetHandler::
 clear_subset_elements(int subsetIndex)
@@ -141,7 +141,7 @@ clear_subset_elements(int subsetIndex)
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 uint
 GridSubsetHandler::
 num_elements(int subsetIndex) const
@@ -157,7 +157,7 @@ num_elements(int subsetIndex) const
 		return section_container<TElem>(subsetIndex).num_elements(sectionInd);
 }
 
-template <class TElem>
+template <typename TElem>
 uint
 GridSubsetHandler::
 num(int subsetIndex) const
@@ -173,7 +173,7 @@ num(int subsetIndex) const
 		return section_container<TElem>(subsetIndex).num_elements(sectionInd);
 }
 
-template <class TElem>
+template <typename TElem>
 uint
 GridSubsetHandler::
 num() const
@@ -185,7 +185,7 @@ num() const
 	return n;
 }
 
-template <class TElem> inline
+template <typename TElem> inline
 bool GridSubsetHandler::
 empty() const
 {
@@ -199,7 +199,7 @@ empty() const
 		   && empty<Face>() && empty<Volume>();
 }
 
-template <class TElem> inline
+template <typename TElem> inline
 bool GridSubsetHandler::
 empty(int subsetIndex) const
 {
@@ -213,7 +213,7 @@ empty(int subsetIndex) const
 		   && empty<Face>(subsetIndex) && empty<Volume>(subsetIndex);
 }
 
-template<class TElem>
+template<typename TElem>
 void GridSubsetHandler::
 change_elem_subset_indices(int indOld, int indNew)
 {
@@ -224,7 +224,7 @@ change_elem_subset_indices(int indOld, int indNew)
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 bool GridSubsetHandler::perform_self_tests()
 {
 	using iterator = typename geometry_traits<TElem>::iterator;
@@ -254,7 +254,7 @@ bool GridSubsetHandler::perform_self_tests()
 	return bSuccess;
 }
 
-template <class TElem>
+template <typename TElem>
 typename Grid::traits<TElem>::SectionContainer&
 GridSubsetHandler::
 section_container(int si)
@@ -265,7 +265,7 @@ section_container(int si)
 }
 
 
-template <class TElem>
+template <typename TElem>
 const typename Grid::traits<TElem>::SectionContainer&
 GridSubsetHandler::
 section_container(int si) const

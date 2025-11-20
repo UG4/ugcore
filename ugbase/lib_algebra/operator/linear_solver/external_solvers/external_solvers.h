@@ -55,7 +55,7 @@ public:
 	virtual bool init(const CPUAlgebra::matrix_type &A) = 0;
 	virtual bool apply(CPUAlgebra::vector_type &c, const CPUAlgebra::vector_type &d) = 0;
 	virtual const char* name() const = 0;
-	virtual ~IExternalSolverImplementation() {}
+	virtual ~IExternalSolverImplementation() = default;
 };
 
 template <typename TAlgebra>

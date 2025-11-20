@@ -222,34 +222,29 @@ class Vanka : public IPreconditioner<TAlgebra>
 		Vanka() {m_relax=1;};
 
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			SmartPtr<Vanka<algebra_type> > newInst(new Vanka<algebra_type>());
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			SmartPtr<Vanka > newInst(new Vanka());
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
 			return newInst;
 		}
 
 	///	Destructor
-		virtual ~Vanka()
-		{};
+		~Vanka() override = default;
 
-		virtual bool supports_parallel() const {return true;}
+		bool supports_parallel() const override {return true;}
 
 	/// set relaxation parameter
 	public:
 		void set_relax(number omega){m_relax=omega;};
 
-	protected:
-		number m_relax;
 
 	protected:
 	///	Name of preconditioner
-		virtual const char* name() const {return "Vanka";}
+		const char* name() const override {return "Vanka";}
 
 	///	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
@@ -264,8 +259,7 @@ class Vanka : public IPreconditioner<TAlgebra>
 			return true;
 		}
 
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
-		{
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
@@ -293,9 +287,10 @@ class Vanka : public IPreconditioner<TAlgebra>
 		}
 
 	///	Postprocess routine
-		virtual bool postprocess() {return true;}
+		bool postprocess() override {return true;}
 
-	protected:
+protected:
+	number m_relax;
 #ifdef UG_PARALLEL
 		matrix_type m_A;
 #endif
@@ -332,34 +327,28 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 		DiagVanka() {m_relax=1;};
 
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			SmartPtr<DiagVanka<algebra_type> > newInst(new DiagVanka<algebra_type>());
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			SmartPtr<DiagVanka > newInst(new DiagVanka());
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
 			return newInst;
 		}
 
-		virtual bool supports_parallel() const {return true;}
+		bool supports_parallel() const override {return true;}
 
 	///	Destructor
-		virtual ~DiagVanka()
-		{};
+		~DiagVanka() override = default;
 
 		/// set relaxation parameter
 	public:
 		void set_relax(number omega){m_relax=omega;};
 
 	protected:
-		number m_relax;
-
-	protected:
 	///	Name of preconditioner
-		virtual const char* name() const {return "DiagVanka";}
+		const char* name() const override {return "DiagVanka";}
 
 	///	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
@@ -374,8 +363,7 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 			return true;
 		}
 
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
-		{
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
@@ -404,9 +392,10 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 		}
 
 	///	Postprocess routine
-		virtual bool postprocess() {return true;}
+		bool postprocess() override {return true;}
 
-	protected:
+protected:
+	number m_relax;
 #ifdef UG_PARALLEL
 		matrix_type m_A;
 #endif

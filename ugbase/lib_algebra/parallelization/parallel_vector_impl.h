@@ -55,10 +55,10 @@ namespace ug
 
 template <typename TVector>
 typename ParallelVector<TVector>::this_type&
-ParallelVector<TVector>::operator =(const this_type &v)
+ParallelVector<TVector>::operator = (const this_type &v)
 {
 	//	forward to sequential vectors
-	TVector::operator=(*static_cast<const TVector*>(&v));
+	TVector::operator = (*static_cast<const TVector*>(&v));
 
 	//	copy storage type and layouts
 	this->set_storage_type(v.get_storage_mask());
@@ -70,21 +70,21 @@ ParallelVector<TVector>::operator =(const this_type &v)
 
 template <typename TVector>
 typename ParallelVector<TVector>::this_type&
-ParallelVector<TVector>::operator -=(const this_type &v)
+ParallelVector<TVector>::operator -= (const this_type &v)
 {
 	//	compute storage mask
 	uint mask = get_storage_mask() & v.get_storage_mask();
 
 	//	check mask
 	if(mask == 0)
-		UG_THROW("ParallelVector::operator-=: Incompatible storage type: "<<
+		UG_THROW("ParallelVector::operator -= : Incompatible storage type: "<<
 		         get_storage_mask()<<" and "<<v.get_storage_mask());
 
 	//	set this vector to mask
 	m_type = mask;
 
 	//	forward
-	TVector::operator-=(*static_cast<const TVector*>(&v));
+	TVector::operator -= (*static_cast<const TVector*>(&v));
 
 	//	we're done
 	return *this;
@@ -92,21 +92,21 @@ ParallelVector<TVector>::operator -=(const this_type &v)
 
 template <typename TVector>
 typename ParallelVector<TVector>::this_type&
-ParallelVector<TVector>::operator +=(const this_type &v)
+ParallelVector<TVector>::operator += (const this_type &v)
 {
 	//	compute parallel storage mask
 	uint mask = get_storage_mask() & v.get_storage_mask();
 
 	//	check mask
 	if(mask == 0)
-		UG_THROW("ParallelVector::operator+=: Incompatible storage type: "<<
+		UG_THROW("ParallelVector::operator += : Incompatible storage type: "<<
 		         get_storage_mask()<<" and "<<v.get_storage_mask());
 
 	//	set to new mask
 	m_type = mask;
 
 	// 	forward to sequential vector
-	TVector::operator+=(*static_cast<const TVector*>(&v));
+	TVector::operator += (*static_cast<const TVector*>(&v));
 
 	//	we're done
 	return *this;

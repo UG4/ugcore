@@ -126,7 +126,7 @@ class SubsetGroup
 		}
 
 	/// index of the subset # i in this group
-		inline int operator[](size_t i) const
+		inline int operator [] (size_t i) const
 		{
 			UG_ASSERT(is_init(), "No SubsetHandler set.");
 			UG_ASSERT(i < size(), "requested subset does not exist.");

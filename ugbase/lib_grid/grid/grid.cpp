@@ -238,7 +238,7 @@ void Grid::clear_geometry()
 	set_options(opts);
 }
 
-template <class TElem>
+template <typename TElem>
 void Grid::clear_attachments()
 {
 	using AttachmentPipe = typename traits<TElem>::AttachmentPipe;
@@ -288,7 +288,7 @@ Grid& Grid::operator = (const Grid& grid)
 	return *this;
 }
 
-template <class TAttachmentPipe>
+template <typename TAttachmentPipe>
 void Grid::copy_user_attachments(const TAttachmentPipe& apSrc, TAttachmentPipe& apDest,
 								vector<int>& srcDataIndices)
 {
@@ -666,7 +666,7 @@ get_opposing_object(Vertex* vrt, Volume* elem)
 
 ////////////////////////////////////////////////////////////////////////
 //	pass_on_values
-template <class TAttachmentPipe, class TElem>
+template <typename TAttachmentPipe, typename TElem>
 void Grid::pass_on_values(TAttachmentPipe& attachmentPipe,
 							TElem* pSrc, TElem* pDest)
 {

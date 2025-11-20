@@ -863,7 +863,7 @@ void LuaList_classes()
 	sort(classes.begin(), classes.end());
 
 	UG_LOG(endl << "--- Classes: --------------------" << endl)
-	for(size_t i=0; i<classes.size(); i++)
+	for(size_t i=0; i < classes.size(); i++)
 		UG_LOG(classes[i] << endl);
 }
 

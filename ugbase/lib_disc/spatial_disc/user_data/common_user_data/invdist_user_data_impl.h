@@ -173,4 +173,3 @@ void IDWUserData<WDim, TData>::load_data_from (const char * file_name)
 
 } // end namespace ug
 
-/* End of File */

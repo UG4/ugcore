@@ -40,7 +40,7 @@ namespace ug{
 
 ////////////////////////////////////////////////////////////////////////
 ///	Removes elements which share the same set of vertices with other elements in the given range
-template <class TElemIter>
+template <typename TElemIter>
 void RemoveDuplicates(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd)
 {
 	using TElemPtr = typename TElemIter::value_type;

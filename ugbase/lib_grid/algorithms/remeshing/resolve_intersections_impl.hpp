@@ -76,7 +76,7 @@ namespace grid_intersection_impl {
 
 // 	SaveGridToFile(tgrid, ss2d.str().c_str(), aPos);
 
-	template <class TAPos>
+	template <typename TAPos>
 	void DebugSave(Grid& grid, const char* filePrefix, TAPos aPos)
 	{
 	#ifdef UG_INTERSECTION_DEBUG_PATH
@@ -91,7 +91,7 @@ namespace grid_intersection_impl {
 	#endif
 	}
 
-	template <class TAPos>
+	template <typename TAPos>
 	void DebugSave2d(Grid& grid, const char* filePrefix, TAPos aPos)
 	{
 	#ifdef UG_INTERSECTION_DEBUG_PATH
@@ -133,7 +133,7 @@ namespace grid_intersection_impl {
 	}
 }
 
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
 										   Edge* e, TAAPosVRT& aaPos,
 										   number snapThreshold)
@@ -184,7 +184,7 @@ Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
  * \todo Instead of manually refining the face, an external function SplitFace
  *		 should be used, which can take care of volumes, too.
  */
- template <class TAAPosVRT>
+ template <typename TAAPosVRT>
 bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
 								   Face* f, TAAPosVRT& aaPos,
 								   number snapThreshold,
@@ -326,7 +326,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
 
 	return false;
 }
-// template <class TAAPosVRT>
+// template <typename TAAPosVRT>
 // bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
 // 								   Face* f, TAAPosVRT& aaPos,
 // 								   number snapThreshold,
@@ -413,7 +413,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
  * between degenerate edges. You can treat such cases with
  * ReolveVertexEdgeIntersection.
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 Vertex* ResolveEdgeEdgeIntersection(Grid& grid, Edge* e1, Edge* e2,
 										TAAPosVRT& aaPos, number snapThreshold)
 {
@@ -473,7 +473,7 @@ Vertex* ResolveEdgeEdgeIntersection(Grid& grid, Edge* e1, Edge* e2,
  * \todo Instead of manually refining the face, an external function SplitFace
  *		 should be used, which can take care of volume, too.
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 bool ResolveEdgeFaceIntersection(Grid& grid, Edge* e, Face* f,
 								 TAAPosVRT& aaPos, number snapThreshold)
 {
@@ -559,7 +559,7 @@ bool ResolveEdgeFaceIntersection(Grid& grid, Edge* e, Face* f,
  * their projection on the specified ray.
  * if clearContainer is specified as false (default is true), the vertices will
  * be inserted into the already existing sorted vertex set in vrtsOut.*/
-template <class TVrtIter, class TAAPos>
+template <typename TVrtIter, typename TAAPos>
 void SpacialVertexSort(std::multimap<number, Vertex*>& vrtsOut,
 						const TVrtIter vrtsBegin, const TVrtIter vrtsEnd,
 						const typename TAAPos::ValueType& rayFrom,
@@ -584,7 +584,7 @@ void SpacialVertexSort(std::multimap<number, Vertex*>& vrtsOut,
 /**	The method assumes that the specified vertices do lie on the
  * specified edge. The specified vertices do not have to be sorted
  * in any specific order, since the method will sort them automatically.*/
-template <class TVrtIter, class TAAPos>
+template <typename TVrtIter, typename TAAPos>
 void MultiEdgeSplit(Grid& grid, Edge* edge,
 					TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 					TAAPos aaPos)
@@ -692,7 +692,7 @@ namespace ProjectVerticesToCloseEdges{
 	};
 }}
 
-template <class TAPos>
+template <typename TAPos>
 bool ProjectVerticesToCloseEdges(Grid& grid,
 								 GridObjectCollection elems,
 								 TAPos& aPos,
@@ -822,7 +822,7 @@ bool ProjectVerticesToCloseEdges(Grid& grid,
  * \note:	It is recommended to use a Grid ore a Selector as TObjectCollection,
  *			since a GridObjectCollection is static and it would thus not be
  *			possible to resolve all intersections.*/
-template <class TObjectCollection, class TAPos>
+template <typename TObjectCollection, typename TAPos>
 bool ProjectVerticesToCloseFaces(Grid& grid,
 								 TObjectCollection& elems,
 								 TAPos& aPos,
@@ -928,7 +928,7 @@ bool ProjectVerticesToCloseFaces(Grid& grid,
  * \note:	It is recommended to use a Grid ore a Selector as TObjectCollection,
  *			since a GridObjectCollection is static and it would thus not be
  *			possible to resolve all intersections.*/
-template <class TObjectCollection, class TAAPosVRT>
+template <typename TObjectCollection, typename TAAPosVRT>
 bool IntersectCloseEdges(Grid& grid,
 						 TObjectCollection& elems,
 						 TAAPosVRT& aaPos,
@@ -996,7 +996,7 @@ bool IntersectCloseEdges(Grid& grid,
 
 ///	returns the index of the first vertex closer to p than snapThreshold.
 /**	returns -1 if nothing was found.*/
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 int FindCloseVertexInArray(std::vector<Vertex*>& array,
 							const typename TAAPosVRT::ValueType& p,
 							TAAPosVRT& aaPos, number snapThreshold)
@@ -1014,7 +1014,7 @@ int FindCloseVertexInArray(std::vector<Vertex*>& array,
 
 ///	returns the index of the closest vertex to p smaller than snapThreshold.
 /**	returns -1 if nothing was found.*/
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 int FindClosestVertexInArray(std::vector<Vertex*>& array, const Vertex* p,
 							TAAPosVRT& aaPos, number snapThreshold)
 {
@@ -1035,7 +1035,7 @@ int FindClosestVertexInArray(std::vector<Vertex*>& array, const Vertex* p,
 
 ///	returns the index of the closest vertex to p smaller than snapThreshold.
 /**	returns -1 if nothing was found.*/
-template <class TAAPosVRT, class vector_t>
+template <typename TAAPosVRT, typename vector_t>
 int FindClosestVertexInPointSet(const vector_t* pointSet, const Vertex* p,
 							TAAPosVRT& aaPos, number snapThreshold,
 							size_t numPoints) {
@@ -1307,7 +1307,7 @@ inline bool IntersectCoplanarTriangles(std::vector<vector3>& edgesOut,
 ///	Intersects Coplanar Triangles
 /**	fills a vector with the intersections on tri 1. Each pair of points
  * corresponds to an intersection-edge.*/
-template <class TAAPos>
+template <typename TAAPos>
 bool IntersectCoplanarTriangles(std::vector<typename TAAPos::ValueType>& edgesOut,
 								FaceVertices* tri1, FaceVertices* tri2,
 								TAAPos aaPos)
@@ -1332,7 +1332,7 @@ bool IntersectCoplanarTriangles(std::vector<typename TAAPos::ValueType>& edgesOu
 	return false;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 Sphere<typename TAAPos::ValueType>
 CalculateBoundingSphere(FaceVertices* face, TAAPos aaPos)
 {
@@ -1349,7 +1349,7 @@ CalculateBoundingSphere(FaceVertices* face, TAAPos aaPos)
 ////////////////////////////////////////////////////////////////////////
 /**	This method uses Grid::mark
  */
-template <class TAPos>
+template <typename TAPos>
 bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 							  TriangleIterator trisEnd, number snapThreshold,
 							  TAPos& aPos)

@@ -41,7 +41,7 @@ using namespace std;
 namespace ug{
 namespace bridge{
 
-template <class TValue, int TDIM>
+template <typename TValue, int TDIM>
 static void RegisterRaster(Registry& reg, string name, string grp)
 {
 	string suffix = GetDimensionSuffix<TDIM>();

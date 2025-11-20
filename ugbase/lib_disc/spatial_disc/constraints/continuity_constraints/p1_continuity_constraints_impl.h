@@ -698,15 +698,15 @@ struct SortVertexPos {
 			: m_aaPos(spDomain->position_accessor())
 		{}
 
-		inline bool operator() (Vertex* vrt1, Vertex* vrt2)
+		inline bool operator () (Vertex* vrt1, Vertex* vrt2)
 			{UG_THROW(dim <<" not implemented.");}
 
 	protected:
-  	  typename Domain<dim, MultiGrid, MGSubsetHandler>::position_accessor_type& m_aaPos;
+  	  typename Domain<dim>::position_accessor_type& m_aaPos;
 };
 
 template<>
-inline bool SortVertexPos<1>::operator() (Vertex* vrt1, Vertex* vrt2)
+inline bool SortVertexPos<1>::operator () (Vertex* vrt1, Vertex* vrt2)
 {
 	if(m_aaPos[vrt1][0] < m_aaPos[vrt2][0]) {
 		return true;
@@ -715,7 +715,7 @@ inline bool SortVertexPos<1>::operator() (Vertex* vrt1, Vertex* vrt2)
 }
 
 template<>
-inline bool SortVertexPos<2>::operator() (Vertex* vrt1, Vertex* vrt2)
+inline bool SortVertexPos<2>::operator () (Vertex* vrt1, Vertex* vrt2)
 {
 	if(m_aaPos[vrt1][0] < m_aaPos[vrt2][0]) {
 		return true;
@@ -728,7 +728,7 @@ inline bool SortVertexPos<2>::operator() (Vertex* vrt1, Vertex* vrt2)
 }
 
 template<>
-inline bool SortVertexPos<3>::operator() (Vertex* vrt1, Vertex* vrt2)
+inline bool SortVertexPos<3>::operator () (Vertex* vrt1, Vertex* vrt2)
 {
 	if(m_aaPos[vrt1][0] < m_aaPos[vrt2][0]) {
 		return true;

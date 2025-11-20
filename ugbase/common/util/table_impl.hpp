@@ -41,7 +41,7 @@
 
 namespace ug{
 
-template <class T>
+template <typename T>
 Table<T>::Table() :
 	m_numRows(0),
 	m_numCols(0)
@@ -51,7 +51,7 @@ Table<T>::Table() :
 	m_defaultColAlignment = 'l';
 }
 
-template <class T>
+template <typename T>
 Table<T>::Table(size_t numRows, size_t numCols) :
 	m_numRows(0),
 	m_numCols(0)
@@ -63,13 +63,13 @@ Table<T>::Table(size_t numRows, size_t numCols) :
 	add_cols(numCols);
 }
 
-template <class T>
+template <typename T>
 Table<T>::~Table()
 {
 	clear();
 }
 
-template <class T>
+template <typename T>
 void Table<T>::clear()
 {
 	for(size_t i_row = 0; i_row < m_numRows; ++i_row){
@@ -81,7 +81,7 @@ void Table<T>::clear()
 	m_data.clear();
 }
 
-template <class T>
+template <typename T>
 void Table<T>::add_rows(size_t num)
 {
 	if(num > 0){
@@ -99,7 +99,7 @@ void Table<T>::add_rows(size_t num)
 	}
 }
 
-template <class T>
+template <typename T>
 void Table<T>::add_cols(size_t num)
 {
 	if(num > 0){
@@ -113,8 +113,8 @@ void Table<T>::add_cols(size_t num)
 	}
 }
 
-template <class T>
-T& Table<T>::operator() (size_t rowInd, size_t colInd)
+template <typename T>
+T& Table<T>::operator () (size_t rowInd, size_t colInd)
 {
 	if(rowInd >= num_rows())
 		add_rows((rowInd + 1) - num_rows());
@@ -125,21 +125,21 @@ T& Table<T>::operator() (size_t rowInd, size_t colInd)
 	return *m_data[rowInd][colInd];
 }
 
-template <class T>
-const T& Table<T>::operator() (size_t rowInd, size_t colInd) const
+template <typename T>
+const T& Table<T>::operator () (size_t rowInd, size_t colInd) const
 {
 	UG_COND_THROW(rowInd >= num_rows(), "Bad row index: " << rowInd << "! Only " << num_rows() << " rows exist.");
 	UG_COND_THROW(colInd >= num_cols(), "Bad col index: " << colInd << "! Only " << num_cols() << " cols exist.");
 	return *m_data[rowInd][colInd];
 }
 
-template <class T>
+template <typename T>
 size_t Table<T>::num_rows() const
 {
 	return m_numRows;
 }
 
-template <class T>
+template <typename T>
 size_t Table<T>::num_cols() const
 {
 	return m_numCols;
@@ -149,7 +149,7 @@ size_t Table<T>::num_cols() const
 
 
 
-template <class T>
+template <typename T>
 std::string Table<T>::to_string() const
 {
 	std::stringstream ssOut;
@@ -211,13 +211,13 @@ std::string Table<T>::to_csv(const char *seperator) const
 	return os.str();
 }
 
-template <class T>
+template <typename T>
 std::ostream& operator << (std::ostream& os, const Table<T>& table)
 {
 	return table.stream(os);
 }
 
-template <class T>
+template <typename T>
 std::ostream& Table<T>::stream(std::ostream& os) const
 {
 	const Table<T> &table = *this;
@@ -269,7 +269,7 @@ std::ostream& Table<T>::stream(std::ostream& os) const
 
 
 
-template <class T>
+template <typename T>
 inline
 std::string EntryToString(const Table<T>& table, size_t rowInd, size_t colInd)
 {

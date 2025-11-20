@@ -63,7 +63,7 @@ namespace ug {
 //	CalculateMinTriangleHeight
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinTriangleHeight(Face* face, TAAPosVRT& aaPos)
 {
 	//PROFILE_FUNC();
@@ -106,11 +106,11 @@ number CalculateMinTriangleHeight(Face* face, TAAPosVRT& aaPos)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 ///	An unimplemented version, so that a compile error occurs if no overload exists.
-template <class TElem, class TAAPosVRT>
+template <typename TElem, typename TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, TElem* elem, TAAPosVRT& aaPos);
 
 /// Quadrilaterals
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, Quadrilateral* quad, TAAPosVRT& aaPos) {
 	using box_t = AABox<typename TAAPosVRT::ValueType>;
 	Vertex* const* vrts = quad->vertices();
@@ -124,7 +124,7 @@ number CalculateAspectRatio(Grid& grid, Quadrilateral* quad, TAAPosVRT& aaPos) {
 }
 
 ///	Triangles and Constrained Triangles
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, Triangle* tri, TAAPosVRT& aaPos)
 {
 	number maxEdgeLength;
@@ -151,7 +151,7 @@ number CalculateAspectRatio(Grid& grid, Triangle* tri, TAAPosVRT& aaPos)
 }
 
 /// CalculateAspectRatio for faces
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, Face* face, TAAPosVRT& aaPos)
 {
 	switch (face->reference_object_id())
@@ -177,7 +177,7 @@ number CalculateAspectRatio(Grid& grid, Face* face, TAAPosVRT& aaPos)
 }
 
 ///	Tetrahedron
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, Tetrahedron* tet, TAAPosVRT& aaPos)
 {
 	/*
@@ -191,20 +191,20 @@ number CalculateAspectRatio(Grid& grid, Tetrahedron* tet, TAAPosVRT& aaPos)
 }
 
 /// Hexahedron
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, Hexahedron* hex, TAAPosVRT& aaPos)
 {
 	return CalculateHexahedronAspectRatio(grid, hex, aaPos);
 }
 
 /// Pyramid
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, Pyramid* pyr, TAAPosVRT& aaPos) {
 	return CalculatePyramidAspectRatio(grid, pyr, aaPos);
 }
 
 ///	Volume
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 {
 	switch (vol->reference_object_id())
@@ -241,11 +241,11 @@ number CalculateAspectRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 ///	An unimplemented version, so that a compile error occurs if no overload exists.
-template <class TElem, class TAAPosVRT>
+template <typename TElem, typename TAAPosVRT>
 number CalculateVolToRMSFaceAreaRatio(Grid& grid, TElem* elem, TAAPosVRT& aaPos);
 
 ///	Face (Triangles and Constrained Triangles supported)
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateVolToRMSFaceAreaRatio(Grid& grid, Face* face, TAAPosVRT& aaPos)
 {
 	UG_THROW("CalculateVolToRMSFaceAreaRatio: Currently only volumes of type tetrahedron"
@@ -254,7 +254,7 @@ number CalculateVolToRMSFaceAreaRatio(Grid& grid, Face* face, TAAPosVRT& aaPos)
 }
 
 ///	Tetrahedron
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateVolToRMSFaceAreaRatio(Grid& grid, Tetrahedron* tet, TAAPosVRT& aaPos)
 {
 	//PROFILE_FUNC();
@@ -276,7 +276,7 @@ number CalculateVolToRMSFaceAreaRatio(Grid& grid, Tetrahedron* tet, TAAPosVRT& a
 }
 
 /// Hexahedron
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateVolToRMSFaceAreaRatio(Grid& grid, Hexahedron* hex, TAAPosVRT& aaPos)
 {
 	//PROFILE_FUNC();
@@ -289,7 +289,7 @@ number CalculateVolToRMSFaceAreaRatio(Grid& grid, Hexahedron* hex, TAAPosVRT& aa
 }
 
 ///	Volume
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateVolToRMSFaceAreaRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 {
 	switch (vol->reference_object_id())
@@ -318,7 +318,7 @@ number CalculateVolToRMSFaceAreaRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	FindLargestFace
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 Face* FindLargestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos)
 {
 	//PROFILE_FUNC();
@@ -347,7 +347,7 @@ Face* FindLargestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	FindSmallestVolumeElement
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 typename TIterator::value_type
 FindSmallestVolume(TIterator volumesBegin, TIterator volumesEnd, TAAPosVRT& aaPos)
 {
@@ -381,7 +381,7 @@ FindSmallestVolume(TIterator volumesBegin, TIterator volumesEnd, TAAPosVRT& aaPo
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	FindLargestVolumeElement
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 typename TIterator::value_type
 FindLargestVolume(TIterator volumesBegin, TIterator volumesEnd, TAAPosVRT& aaPos)
 {
@@ -415,7 +415,7 @@ FindLargestVolume(TIterator volumesBegin, TIterator volumesEnd, TAAPosVRT& aaPos
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	FindElementWithSmallestAspectRatio
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 typename TIterator::value_type
 FindElementWithSmallestAspectRatio(Grid& grid, 	TIterator elemsBegin,
 												TIterator elemsEnd, TAAPosVRT& aaPos)
@@ -451,7 +451,7 @@ FindElementWithSmallestAspectRatio(Grid& grid, 	TIterator elemsBegin,
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	FindElementWithLargestAspectRatio
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 typename TIterator::value_type
 FindElementWithLargestAspectRatio(Grid& grid,  	TIterator elemsBegin,
 												TIterator elemsEnd, TAAPosVRT& aaPos)
@@ -487,7 +487,7 @@ FindElementWithLargestAspectRatio(Grid& grid,  	TIterator elemsBegin,
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	FindElementWithSmallestVolToRMSFaceAreaRatio
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 typename TIterator::value_type
 FindElementWithSmallestVolToRMSFaceAreaRatio(Grid& grid, TIterator elemsBegin,
 											 TIterator elemsEnd, TAAPosVRT& aaPos)
@@ -523,7 +523,7 @@ FindElementWithSmallestVolToRMSFaceAreaRatio(Grid& grid, TIterator elemsBegin,
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	FindElementWithLargestVolToRMSFaceAreaRatio
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 typename TIterator::value_type
 FindElementWithLargestVolToRMSFaceAreaRatio(Grid& grid, TIterator elemsBegin,
 											TIterator elemsEnd, TAAPosVRT& aaPos)

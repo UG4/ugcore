@@ -107,5 +107,4 @@ namespace ug {
 
 }
 
-#endif	/* AUTHORS_H */
-
+#endif

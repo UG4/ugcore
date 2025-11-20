@@ -137,9 +137,9 @@ class VectorView
 	index_iterator begin() { return m_view.begin(); }
 	index_iterator end() { return m_view.end(); }
 
-	typename vector_t::value_type operator[] (const index_iterator &it)
+	typename vector_t::value_type operator [] (const index_iterator &it)
 	{
-		return vector_t::operator[] ( (*it) );
+		return vector_t::operator [] ( (*it) );
 	}
 }*/
 
@@ -228,9 +228,9 @@ class BlockVectorView
 	index_iterator begin() { return m_view.begin(); }
 	index_iterator end() { return m_view.end(); }
 
-	typename vector_t::value_type::value_type operator[] (const index_iterator &it)
+	typename vector_t::value_type::value_type operator [] (const index_iterator &it)
 	{
-		return BlockRef(vector_t::operator[] ( it.index() ), it.block());
+		return BlockRef(vector_t::operator [] ( it.index() ), it.block());
 	}
 }*/
 

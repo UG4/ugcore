@@ -256,7 +256,7 @@ class UG_API ExportedFunctionGroup
 		const std::string& name() const {return m_name;}
 
 	///	adds an overload. Returns false if the overload already existed.
-		template <class TFunc>
+		template <typename TFunc>
 		ExportedFunction*
 		add_overload (	TFunc f, ExportedFunction::ProxyFunc pf,
 		                const std::string& funcOptions, const std::string& group,
@@ -285,14 +285,14 @@ class UG_API ExportedFunctionGroup
 		const ExportedFunction* get_overload(size_t index) const
 			{return m_overloads.at(index).m_func;}
 
-		template <class TType>
+		template <typename TType>
 		ExportedFunction* get_overload_by_type()
 		{
 			size_t typeID = GetUniqueTypeID<TType>();
 			return get_overload_by_type_id(typeID);
 		}
 
-		template <class TType>
+		template <typename TType>
 		const ExportedFunction* get_overload_by_type() const
 		{
 			size_t typeID = GetUniqueTypeID<TType>();

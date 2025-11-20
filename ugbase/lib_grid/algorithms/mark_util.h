@@ -42,7 +42,7 @@ namespace ug{
  * That means that the normal of each single face is calculated up to
  * four times. This can be improved!
  */
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 UG_API 
 void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 					TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
@@ -55,7 +55,7 @@ void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
  * if they are adjacent to more than 2 path edges or to exactly 1 path edge or.
  * If a vertex is adjacent to exactly 2 path edges, it will be assigned if the
  * angle between those edges is smaller than the given threshold-angle.*/
-template <class TVertexIterator, class TAPosition>
+template <typename TVertexIterator, typename TAPosition>
 UG_API 
 void MarkCorners(Grid& grid, ISubsetHandler& sh,
 					TVertexIterator vrtsBegin, TVertexIterator vrtsEnd,
@@ -70,4 +70,4 @@ void MarkCorners(Grid& grid, ISubsetHandler& sh,
 //	include implementation
 #include "mark_util_impl.h"
 
-#endif	//__H__mark_util
+#endif

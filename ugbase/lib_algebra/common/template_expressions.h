@@ -72,7 +72,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 //! this helper class is a transposed of class A
-template<class A> class TRANSPOSED
+template<typename A> class TRANSPOSED
 {
 public:
 	TRANSPOSED(const A &a_) : a(a_) {}
@@ -87,7 +87,7 @@ private:
 //! class TE_AMV_X: class for template Expressions.
 //! this is the CRTP base class for all expressions with
 //! alpha Mat Vec + alpha Mat Vec used in this file.
-template<class A> class TE_AMV_X
+template<typename A> class TE_AMV_X
 {
 public:
 	//! cast this class down to original class A.

@@ -44,9 +44,7 @@
 	#include "lib_grid/parallelization/distributed_grid.h"
 #endif
 #include "lib_algebra/operator/interface/linear_iterator.h"
-#include "lib_algebra/operator/interface/operator_inverse.h"
-#include "lib_algebra/operator/interface/operator.h"
-#include "lib_algebra/operator/preconditioner/jacobi.h"
+
 #include "lib_algebra/operator/linear_solver/lu.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_disc/operator/linear_operator/transfer_interface.h"
@@ -75,12 +73,12 @@ namespace ug{
  * that is set from outside. In addition an Assembling routine must be
  * specified that is used to assemble the coarse grid matrices.
  *
- * \tparam		TApproximationSpace		Type of Approximation Space
- * \tparam		TAlgebra				Type of Algebra
+ * \tparam		TDomain 		Type of Domain
+ * \tparam		TAlgebra		Type of Algebra
  */
 template <typename TDomain, typename TAlgebra>
 class AssembledMultiGridCycle :
- public ILinearIterator<	typename TAlgebra::vector_type>
+ public ILinearIterator< typename TAlgebra::vector_type>
 {
 	public:
 	///	Domain
@@ -216,11 +214,10 @@ class AssembledMultiGridCycle :
 	///////////////////////////////////////////////////////////////////////////
 
 	///	name
-		virtual const char* name() const {return "Geometric MultiGrid";}
+		const char* name() const override {return "Geometric MultiGrid";}
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const
-		{
+		bool supports_parallel() const override {
 			if(!m_spPreSmootherPrototype->supports_parallel())
 				return false;
 			if(!m_spPostSmootherPrototype->supports_parallel())
@@ -229,13 +226,13 @@ class AssembledMultiGridCycle :
 		}
 
 	///	returns information about configuration parameters
-		virtual std::string config_string() const;
+		std::string config_string() const override;
 
 	/// Prepare for Operator J(u) and linearization point u (current solution)
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u);
+		bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u) override;
 
 	///	Prepare for Linear Operator L
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > L);
+		bool init(SmartPtr<ILinearOperator<vector_type> > L) override;
 
 	///	does not call init on base-solver during initialization
 	/**	Use this method with care. It can be useful e.g. during repeated
@@ -257,16 +254,16 @@ class AssembledMultiGridCycle :
 		void force_reinit();
 
 	///	Compute new correction c = B*d
-		virtual bool apply(vector_type& c, const vector_type& d);
+		bool apply(vector_type& c, const vector_type& d) override;
 
 	///	Compute new correction c = B*d and return new defect d := d - A*c
-		virtual bool apply_update_defect(vector_type& c, vector_type& d);
+		bool apply_update_defect(vector_type& c, vector_type& d) override;
 
 	///	Clone
-		SmartPtr<ILinearIterator<vector_type> > clone();
+		SmartPtr<ILinearIterator<vector_type> > clone() override;
 
 	///	Destructor
-		~AssembledMultiGridCycle();
+		~AssembledMultiGridCycle() override = default;
 
  	protected:
  	/// compute correction on level and update defect
@@ -517,7 +514,7 @@ class AssembledMultiGridCycle :
 	 * If a DebugWriter is passed by this method, the multi grid cycle writes
 	 * the level/surface vectors and matrices for debug purposes.
 	 *
-	 * \param[in]	debugWriter		Debug Writer to use
+	 * \param[in]	spDebugWriter		Debug Writer to use
 	 */
 		void set_debug(SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > spDebugWriter)
 		{

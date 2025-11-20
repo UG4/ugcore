@@ -66,7 +66,7 @@ int IsSliver(const vector3& v0, const vector3& v1, const vector3& v2,
 }
 
 
-template <class TSide>
+template <typename TSide>
 static bool CheckForUnconnectedSidesIMPL(Grid& grid)
 {
 	bool gotOne = false;

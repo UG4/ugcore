@@ -90,55 +90,55 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 	//	element-access
 	///	returns the begin-iterator for the elements of type TElem in the given subset.
 	/**	e.g. begin<Triangle>(0)*/
-		template <class TElem>
+		template <typename TElem>
 		typename geometry_traits<TElem>::iterator
 		begin(int subsetIndex);
 
 	///	returns the end-iterator for the elements of type TElem in the given subset.
 	/**	e.g. end<Triangle>(0)*/
-		template <class TElem>
+		template <typename TElem>
 		typename geometry_traits<TElem>::iterator
 		end(int subsetIndex);
 
 	///	returns the begin-iterator for the elements of type TElem in the given subset.
 	/**	e.g. begin<Triangle>(0)*/
-		template <class TElem>
+		template <typename TElem>
 		typename geometry_traits<TElem>::const_iterator
 		begin(int subsetIndex) const;
 
 	///	returns the end-iterator for the elements of type TElem in the given subset.
 	/**	e.g. end<Triangle>(0)*/
-		template <class TElem>
+		template <typename TElem>
 		typename geometry_traits<TElem>::const_iterator
 		end(int subsetIndex) const;
 		
 	///	returns the number of elements in the given subset
-		template <class TElem>
+		template <typename TElem>
 		uint num_elements(int subsetIndex) const;
 
 	///	returns the total number of elements
-		template <class TElem>
+		template <typename TElem>
 		uint num() const;
 
 	///	returns the number of elements in the given subset
-		template <class TElem>
+		template <typename TElem>
 		uint num(int subsetIndex) const;
 
 	///	returns true if the subset-handler contains no elements of the given type.
-		template <class TElem> inline
+		template <typename TElem> inline
 		bool empty() const;
 		
 	///	returns true if the subset-handler contains no elements at all.
 		inline bool empty() const;
 
-		template <class TElem> inline
+		template <typename TElem> inline
 		bool empty(int subsetIndex) const;
 		
 	///	returns true if the subset-handler contains no elements at all.
 		inline bool empty(int subsetIndex) const;
 		
 	///	removes all elements of type TElem from the specified subset.
-		template <class TElem>
+		template <typename TElem>
 		void clear_subset_elements(int subsetIndex);
 
 	//	geometric-object-collection
@@ -194,7 +194,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		virtual bool contains_volumes(int subsetIndex) const	{return num<Volume>(subsetIndex) > 0;}
 
 	///	only for debug purposes
-		template <class TElem>
+		template <typename TElem>
 		bool perform_self_tests();
 		
 	////////////////////////////////////////////////
@@ -207,7 +207,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 	/**	only for compatibility reasons with MGSubsetHandler.
 	 *	second argument is ignored.
 	 *	use i.e. as follows: begin<Triangle>(0, 0)*/
-		template <class TElem>
+		template <typename TElem>
 		typename geometry_traits<TElem>::const_iterator
 		begin(int subsetIndex, size_t) const		{return begin<TElem>(subsetIndex);}
 
@@ -215,20 +215,20 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 	/**	only for compatibility reasons with MGSubsetHandler.
 	 *	second argument is ignored.
 	 *	use i.e. as follows: end<Triangle>(0, 0)*/
-		template <class TElem>
+		template <typename TElem>
 		typename geometry_traits<TElem>::const_iterator
 		end(int subsetIndex, size_t) const			{return end<TElem>(subsetIndex);}
 
 	///	returns the number of elements in the given subset
 	/**	only for compatibility reasons with MGSubsetHandler.
 	 *	second argument is ignored.*/
-		template <class TElem>
+		template <typename TElem>
 		uint num_elements(int subsetIndex, size_t) const	{return num_elements<TElem>();}
 
 	///	returns the number of elements in the given subset
 	/**	only for compatibility reasons with MGSubsetHandler.
 	 *	second argument is ignored.*/
-		template <class TElem>
+		template <typename TElem>
 		uint num(int subsetIndex, size_t) const				{return num<TElem>();}
 		
 
@@ -291,15 +291,15 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 	////////////////////////////////////////////////
 	//	protected helper methods
 	///	a helper method for the public assign_subset methods.
-		template<class TElem> inline
+		template <typename TElem> inline
 		void assign_subset_impl(TElem* elem, int subsetIndex);
 							
 	///	helper for change_subset_indices
-		template<class TElem>
+		template <typename TElem>
 		void change_elem_subset_indices(int indOld, int indNew);
 
 	///	helper for collect_subset_elements
-		//template <class TElem>
+		//template <typename TElem>
 		//size_t collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const;
 		
 	///	removes attachments
@@ -343,12 +343,12 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 	/**	\}	*/
 
 	///	returns the section container for the given type, subset and level
-		template <class TElem> inline
+		template <typename TElem> inline
 		typename Grid::traits<TElem>::SectionContainer&
 		section_container(int si);
 
 	///	returns the const section container for the given type, subset and level
-		template <class TElem> inline
+		template <typename TElem> inline
 		const typename Grid::traits<TElem>::SectionContainer&
 		section_container(int si) const;
 

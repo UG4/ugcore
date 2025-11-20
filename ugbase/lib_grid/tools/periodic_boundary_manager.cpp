@@ -289,7 +289,7 @@ bool PeriodicBoundaryManager::check_periodicity(
 }
 
 
-template <class elem_t>
+template <typename elem_t>
 void PeriodicBoundaryManager::validity_check()
 {
 	using iter_t = typename Grid::traits<elem_t>::iterator;

@@ -58,7 +58,7 @@ class CollisionEdgesNode : public Node
 	public:
 		static SPCollisionEdgesNode create();
 
-		virtual ~CollisionEdgesNode();
+		~CollisionEdgesNode() override;
 
 		virtual void add_edge(int ind1, int ind2);
 		virtual void add_edge(int ind1, int ind2,

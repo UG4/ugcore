@@ -146,14 +146,14 @@ bool IsVolumeBoundaryFace(Grid& grid, ConstrainingFace* f);
 
 ////////////////////////////////////////////////////////////////////////
 ///	A wrapper for IsVolumeBoundaryFace
-template <class TFace>
+template <typename TFace>
 UG_API 
 bool IsBoundaryFace3D(Grid& grid, TFace* f)
 {return IsVolumeBoundaryFace(grid, f);}
 
 ////////////////////////////////////////////////////////////////////////
 ///	A wrapper for IsVolumeBoundaryFace
-template <class TFace>
+template <typename TFace>
 UG_API 
 bool LiesOnBoundary(Grid& grid, TFace* f)
 {return IsBoundaryFace3D(grid, f);}
@@ -161,14 +161,14 @@ bool LiesOnBoundary(Grid& grid, TFace* f)
 ////////////////////////////////////////////////////////////////////////
 //	FaceArea
 ///	Returns the area of a convex face
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 UG_API 
 number FaceArea(FaceVertices* f, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //  FaceArea
 ///	Returns the area sum of convex faces
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 UG_API
 number FaceArea(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos);
 
@@ -178,7 +178,7 @@ number FaceArea(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos);
  * Make sure that TIterator::value_type equals Face* and that aaPos operates
  * on the grid from which the faces were taken.
  */
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 UG_API 
 Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos);
 
@@ -202,7 +202,7 @@ number FaceQuality(FaceVertices* f, Grid::VertexAttachmentAccessor<APosition> aa
  * returns the worst FaceQuality of the faces between facesBegin and FacesEnd.
  * TIterator has to be an iterator with a value-type compatible to Face*.
  */
-template <class TIterator>
+template <typename TIterator>
 UG_API 
 number AreaFaceQuality(TIterator facesBegin, TIterator facesEnd,
 					   Grid::VertexAttachmentAccessor<APosition>& aaPos);
@@ -279,7 +279,7 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
  *
  * \{
  */
-template<class TVertexPositionAttachmentAccessor>
+template<typename TVertexPositionAttachmentAccessor>
 UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT);
@@ -291,7 +291,7 @@ CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosV
 /** TAAWeightVRT has to be an attachment to the vertices of the grid in which
  * f is contained, with ValueType number (or compatible).
  */
-template<class TAAPosVRT, class TAAWeightVRT>
+template<typename TAAPosVRT, typename TAAWeightVRT>
 UG_API
 typename TAAPosVRT::ValueType
 CalculateCenter(const FaceVertices* f, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight);
@@ -302,14 +302,14 @@ CalculateCenter(const FaceVertices* f, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
 /**	\note	The method only works properly, if the point and the face are located
  * 			in the same x-y-plane.
  */
-template <class vector_t, class TAAPos>
+template <typename vector_t, typename TAAPos>
 UG_API bool
 ContainsPoint(const FaceVertices* f, const vector_t& p, TAAPos aaPos);
 
 
 ////////////////////////////////////////////////////////////////////////
 //	project points to surface 
-template <class TTriangleIterator, class TAAPosVRT>
+template <typename TTriangleIterator, typename TAAPosVRT>
 UG_API 
 bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
 						   TTriangleIterator trisBegin, TTriangleIterator trisEnd,
@@ -322,14 +322,14 @@ bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
  * TAAPosVRT has to be an AttachmentAccessor compatible type that
  * operates on vector3.
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 UG_API 
 int PointFaceTest(vector3& v, Face* f, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns true if the given face is degenerated.
 /**	Faces are degenerated if at least one edge is shorter than the given threshold.*/
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 UG_API 
 bool IsDegenerated(Face* f, TAAPosVRT& aaPos, number threshold = SMALL);
 

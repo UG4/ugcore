@@ -88,6 +88,8 @@ class NewtonSolver
 		             SmartPtr<IConvergenceCheck<vector_type> > spConvCheck,
 		             SmartPtr<ILineSearch<vector_type> > spLineSearch);
 
+		~NewtonSolver() override = default;
+
 	///	sets the linear solver
 		void set_linear_solver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver) {m_spLinearSolver = LinearSolver;}
 
@@ -97,16 +99,16 @@ class NewtonSolver
 	///	sets the line search
 		void set_line_search(SmartPtr<ILineSearch<vector_type> > spLineSearch) {m_spLineSearch = spLineSearch;}
 		void disable_line_search() {m_spLineSearch = nullptr;}
-		SmartPtr<ILineSearch<vector_type> > line_search()	{return m_spLineSearch;}
+		SmartPtr<ILineSearch<vector_type> > line_search() {return m_spLineSearch;}
 
 	/// This operator inverts the Operator N: Y -> X
-		virtual bool init(SmartPtr<IOperator<vector_type> > N);
+		bool init(SmartPtr<IOperator<vector_type> > N) override;
 
 	/// prepare Operator
-		virtual bool prepare(vector_type& u);
+		bool prepare(vector_type& u) override;
 
 	/// apply Operator, i.e. N^{-1}(0) = u
-		virtual bool apply(vector_type& u);
+		bool apply(vector_type& u) override;
 
 	///	returns information about configuration parameters
 		/**
@@ -116,7 +118,7 @@ class NewtonSolver
 		 * \returns std::string	necessary information about configuration parameters
 		 */
 
-		virtual std::string config_string() const;
+		std::string config_string() const override;
 
 	/// prints average linear solver convergence
 		void print_average_convergence() const;
@@ -172,17 +174,15 @@ class NewtonSolver
 
 				return true;
 			}
-
 			return false;
-
 		}
 
 
 	private:
 	///	help functions for debug output
 	///	\{
-		void write_debug(const vector_type& vec, std::string filename);
-		void write_debug(const matrix_type& mat, std::string filename);
+		void write_debug(const vector_type& vec, std::string filename) override;
+		virtual void write_debug(const matrix_type& mat, std::string filename);
 	/// \}
 
 	private:

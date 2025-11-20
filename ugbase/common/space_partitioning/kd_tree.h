@@ -56,7 +56,7 @@ struct KDTreeDesc{
 
 ///	JUST AN EARLY MOCKUP - no implementation is yet provided...
 ///	A KDTree is a space-partitioning tree which
-template <class point_t, class data_t, class real_t = float>
+template <typename point_t, typename data_t, typename real_t = float>
 class KDTree
 {
 	public:

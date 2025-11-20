@@ -234,7 +234,7 @@ resize_values(size_t s, number defaultValue)
 
 //	set vector to zero-values
 	for(size_t i = oldSize; i < s; ++i)
-		this->operator[](i) = defaultValue;
+		this->operator [] (i) = defaultValue;
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -258,7 +258,7 @@ permute_values(const std::vector<size_t>& vIndNew)
 
 //	loop indices and copy values
 	for(size_t i = 0; i < vIndNew.size(); ++i)
-		vecTmp[vIndNew[i]] = this->operator[](i);
+		vecTmp[vIndNew[i]] = this->operator [] (i);
 
 //	copy tmp vector into this vector
 	this->assign(vecTmp);
@@ -272,8 +272,8 @@ copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,bool bDisju
 //	disjunct case
 	if(bDisjunct)
 		for(size_t i = 0; i < vIndexMap.size(); ++i)
-			this->operator[](vIndexMap[i].second)
-				= this->operator[](vIndexMap[i].first);
+			this->operator [] (vIndexMap[i].second)
+				= this->operator [] (vIndexMap[i].first);
 	else {
 		using value_type = typename vector_type::value_type;
 		std::vector<value_type> values;
@@ -281,10 +281,10 @@ copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,bool bDisju
 		for(size_t i = 0; i < vIndexMap.size(); ++i){ 
 			const size_t index = vIndexMap[i].first;
 			if (index>=values.size()) values.resize(index+1);
-			values[index] = this->operator[](index);
+			values[index] = this->operator [] (index);
 		}
 		for(size_t i = 0; i < vIndexMap.size(); ++i)
-			this->operator[](vIndexMap[i].second)
+			this->operator [] (vIndexMap[i].second)
 				= values[vIndexMap[i].first];
 	}
 }

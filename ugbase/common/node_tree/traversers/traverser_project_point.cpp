@@ -60,9 +60,6 @@ Traverser_ProjectPoint::Traverser_ProjectPoint()
 	m_closestElemType = 0;
 }
 
-Traverser_ProjectPoint::~Traverser_ProjectPoint()
-{
-}
 
 bool Traverser_ProjectPoint::
 project(const vector3& point, SPNode nodeGraph,

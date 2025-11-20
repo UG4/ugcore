@@ -37,7 +37,7 @@
 
 namespace ug{
 
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
 										   Edge* e, TAAPosVRT& aaPos,
 										   number snapThreshold);
@@ -47,7 +47,7 @@ Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
  * \todo Instead of manually refining the face, an external function SplitFace
  *		 should be used, which can take care of volumes, too.
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
 								   Face* f, TAAPosVRT& aaPos,
 								   number snapThreshold,
@@ -58,7 +58,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
  * between degenerate edges. You can treat such cases with
  * ReolveVertexEdgeIntersection.
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 Vertex* ResolveEdgeEdgeIntersection(Grid& grid, Edge* e1, Edge* e2,
 										TAAPosVRT& aaPos, number snapThreshold);
 
@@ -67,7 +67,7 @@ Vertex* ResolveEdgeEdgeIntersection(Grid& grid, Edge* e1, Edge* e2,
  * \todo Instead of manually refining the face, an external function SplitFace
  *		 should be used, which can take care of volume, too.
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 bool ResolveEdgeFaceIntersection(Grid& grid, Edge* e, Face* f,
 								 TAAPosVRT& aaPos, number snapThreshold);
 
@@ -77,7 +77,7 @@ bool ResolveEdgeFaceIntersection(Grid& grid, Edge* e, Face* f,
  *	it is not guaranteed, that no degenerated triangles will remain
  *	(indeed, new degenerated triangles may be introduced).
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 bool ProjectVerticesToCloseEdges(Grid& grid,
 								 GridObjectCollection elems,
 								 TAAPosVRT& aaPos,
@@ -86,7 +86,7 @@ bool ProjectVerticesToCloseEdges(Grid& grid,
 /**
  *	Projects vertices in elems onto close faces in elems.
  */
-template <class TObjectCollection, class TAPos>
+template <typename TObjectCollection, typename TAPos>
 bool ProjectVerticesToCloseFaces(Grid& grid,
 								 TObjectCollection& elems,
 								 TAPos& aPos,
@@ -95,7 +95,7 @@ bool ProjectVerticesToCloseFaces(Grid& grid,
 /**THIS METHOD USES Grid::mark.
  * Intersects all edges in elems which are closer to each other
  * than snapThreshold.*/
-template <class TObjectCollection, class TAAPosVRT>
+template <typename TObjectCollection, typename TAAPosVRT>
 bool IntersectCloseEdges(Grid& grid,
 						 TObjectCollection& elems,
 						 TAAPosVRT& aaPos,
@@ -104,18 +104,18 @@ bool IntersectCloseEdges(Grid& grid,
 
 ///	returns the index of the first vertex closer to p than snapThreshold.
 /**	returns -1 if nothing was found.*/
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 int FindCloseVertexInArray(const std::vector<Vertex*>& array,
 						   const typename TAAPosVRT::ValueType& p,
 							TAAPosVRT& aaPos, number snapThreshold);
 
 /// returns the index of the closest vertex to p if closer than snapThreshold.
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 int FindClosestVertexInArray(const std::vector<Vertex*>& array, const Vertex* p,
 							TAAPosVRT& aaPos, number snapThreshold);
 
 /// returns the index of the closest vertex to p if closer than snapThreshold
-template <class TAAPosVRT, class vector_t>
+template <typename TAAPosVRT, typename vector_t>
 int FindClosestVertexInPointSet(const vector_t* pointSet, const Vertex* p,
 							TAAPosVRT& aaPos, number snapThreshold,
 							size_t numPoints);
@@ -123,7 +123,7 @@ int FindClosestVertexInPointSet(const vector_t* pointSet, const Vertex* p,
 ////////////////////////////////////////////////////////////////////////
 /**	This method uses Grid::mark
  */
-template <class TAPos>
+template <typename TAPos>
 bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 							  TriangleIterator trisEnd, number snapThreshold,
 							  TAPos& aPos);

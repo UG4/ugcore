@@ -73,7 +73,7 @@ public:
 
 	number average_rel_z(Vertex* e) const	{return m_aaRelZ[e];}
 
-	template <class TElem>
+	template <typename TElem>
 	number average_rel_z(TElem* e) const
 	{
 		typename TElem::ConstVertexArray	vrts = e->vertices();
@@ -112,7 +112,7 @@ public:
 	}
 
 private:
-	template <class TParent>
+	template <typename TParent>
 	number new_vertex_impl(Vertex* vrt, TParent* parent)
 	{
 		const number relZ = average_rel_z(parent);
@@ -150,7 +150,7 @@ private:
 
 	friend class boost::serialization::access;
 
-	template <class Archive>
+	template <typename Archive>
 	void serialize( Archive& ar, const unsigned int version)
 	{
 		using namespace ug;
@@ -174,4 +174,4 @@ using SPRasterLayersProjector = SmartPtr<RasterLayersProjector>;
 
 }//	end of namespace
 
-#endif	//__H__UG_raster_layers_projector
+#endif

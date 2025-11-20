@@ -37,7 +37,7 @@
 namespace ug{
 
 ///	this iterator is used by the hash class to provide access to the elements of a given key
-template <class TKey, class TValue, class TEntry>
+template <typename TKey, typename TValue, typename TEntry>
 class hash_iterator
 {
 	public:

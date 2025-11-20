@@ -53,6 +53,7 @@
 #include "lib_disc/operator/linear_operator/element_gauss_seidel/component_gauss_seidel.h"
 #include "lib_disc/operator/linear_operator/subspace_correction/sequential_subspace_correction.h"
 #include "lib_disc/operator/linear_operator/uzawa/uzawa.h"
+#include "bridge/util_overloaded.h"
 
 using namespace std;
 
@@ -80,7 +81,7 @@ struct Functionality
  * available Domain and Algebra types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TDomain, typename TAlgebra>
 static void DomainAlgebra(Registry& reg, string grp)

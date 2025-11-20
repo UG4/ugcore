@@ -82,7 +82,7 @@ void LuaUserNumberNumberFunction::set_lua_callback(const char* luaCallback)
 	m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
 }
 
-number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
+number LuaUserNumberNumberFunction::operator () (int numArgs, ...) const
 {
 //	push the callback function on the stack
 	lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
@@ -102,7 +102,7 @@ number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
 
 	if(lua_pcall(m_L, numArgs, 1, 0) != 0)
 	{
-		UG_THROW("ERROR in 'LuaUserNumberNumberFunction::operator(...)': Error while "
+		UG_THROW("ERROR in 'LuaUserNumberNumberFunction::operator (...)': Error while "
 				 "running callback '" << m_callbackName << "',"
 				 " lua message: "<< lua_tostring(m_L, -1) << "\n");
 	}
@@ -165,7 +165,7 @@ struct Functionality
  * available Dimension types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <int dim>
 static void Dimension(Registry& reg, string grp)

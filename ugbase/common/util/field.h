@@ -38,8 +38,8 @@
 
 namespace ug{
 
-template <class T>
-class Field{
+template <typename T>
+class Field {
 	public:
 		Field();
 		Field(size_t width, size_t height);
@@ -47,7 +47,7 @@ class Field{
 		Field(const Field& f);
 		~Field();
 
-		Field& operator=(const Field& field);
+		Field& operator = (const Field& field);
 
 		void		resize_no_copy(size_t width, size_t height);
 
@@ -72,10 +72,10 @@ class Field{
 	//	BEGIN SERIALIZATION
 		friend class boost::serialization::access;
 
-		template <class Archive>
+		template <typename Archive>
 		void save( Archive& ar, const unsigned int version) const;
 
-		template <class Archive>
+		template <typename Archive>
 		void load( Archive& ar, const unsigned int version);
 		
 		BOOST_SERIALIZATION_SPLIT_MEMBER()
@@ -94,4 +94,4 @@ class Field{
 //	include implementation
 #include "field_impl.hpp"
 
-#endif	//__H__UG_field__
+#endif

@@ -56,7 +56,7 @@ namespace bridge
 // 	}
 // };
 
-template<class TFunc>
+template<typename TFunc>
 Registry& Registry::
 add_function(std::string funcName, TFunc func, std::string group,
 					 std::string retValInfos, std::string paramInfos,
@@ -67,7 +67,7 @@ add_function(std::string funcName, TFunc func, std::string group,
 	return *this;
 }
 
-template<class TFunc>
+template<typename TFunc>
 ExportedFunction* Registry::
 add_and_get_function(std::string funcName, TFunc func, std::string group,
 					 std::string retValInfos, std::string paramInfos,
@@ -139,7 +139,7 @@ check_base_class(const std::string& className)
 	if(classname_registered(className))
 	{
 		UG_THROW_REGISTRY_ERROR(className,
-		"Trying to register class name '"<<className
+		"Trying to register class name '" << className
 		<< "', that is already used by another class in this registry.");
 	}
 // 	check that name is not empty
@@ -161,7 +161,7 @@ check_base_class(const std::string& className)
 	if(boost::is_base_of<TBaseClass, TClass>::value == false)
 	{
 		UG_THROW_REGISTRY_ERROR(className,
-		"Trying to register class "<<className
+		"Trying to register class " << className
 		<< "with base class that is no base class.");
 	}
 }
@@ -174,14 +174,14 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	if(classname_registered(className))
 	{
 		UG_THROW_REGISTRY_ERROR(className,
-		"Trying to register class name '"<<className
+		"Trying to register class name '" << className
 		<< "', that is already used by another class in this registry.");
 	}
 //	check that className is not already used as a group name
 	if(groupname_registered(className))
 	{
 		UG_THROW_REGISTRY_ERROR(className,
-		"Trying to register class name '"<<className
+		"Trying to register class name '" << className
 		<< "', that is already used by another group in this registry.");
 	}
 // 	check that name is not empty
@@ -218,14 +218,14 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	if(classname_registered(className))
 	{
 		UG_THROW_REGISTRY_ERROR(className,
-		"Trying to register class name '"<<className
+		"Trying to register class name '" << className
 		<< "', that is already used by another class in this registry.");
 	}
 //	check that className is not already used as a group name
 	if(groupname_registered(className))
 	{
 		UG_THROW_REGISTRY_ERROR(className,
-		"Trying to register class name '"<<className
+		"Trying to register class name '" << className
 		<< "', that is already used by another group in this registry.");
 	}
 // 	check that name is not empty
@@ -272,14 +272,14 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	if(classname_registered(className))
 	{
 		UG_THROW_REGISTRY_ERROR(className,
-		"Trying to register class name '"<<className
+		"Trying to register class name '" << className
 		<< "', that is already used by another class in this registry.");
 	}
 //	check that className is not already used as a group name
 	if(groupname_registered(className))
 	{
 		UG_THROW_REGISTRY_ERROR(className,
-		"Trying to register class name '"<<className
+		"Trying to register class name '" << className
 		<< "', that is already used by another group in this registry.");
 	}
 // 	check that name is not empty

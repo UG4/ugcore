@@ -42,13 +42,6 @@ namespace ug{
 namespace node_tree
 {
 
-Traverser_IntersectFaces::Traverser_IntersectFaces()
-{
-}
-
-Traverser_IntersectFaces::~Traverser_IntersectFaces()
-{
-}
 
 bool Traverser_IntersectFaces::
 intersect_tri(const vector3& v0, const vector3& v1,

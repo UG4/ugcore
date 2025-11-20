@@ -115,7 +115,7 @@ string get_gcc_backtrace()
 	return ss.str();
 #else
 	return "";
-#endif	// UG_POSIX
+#endif
 }
 
 void gcc_backtrace()
@@ -123,7 +123,7 @@ void gcc_backtrace()
 #if defined UG_POSIX && !defined UG_CYGWIN
 	UG_LOG("--------------- GCC Backtrace: ----------------\n");
 	UG_LOG(get_gcc_backtrace());
-#endif	// UG_POSIX
+#endif
 }
 
 

@@ -92,7 +92,7 @@ public:
 private:
 	friend class boost::serialization::access;
 
-	template <class Archive>
+	template <typename Archive>
 	void serialize( Archive& ar, const unsigned int version)
 	{
 		ar & make_nvp("position", m_p);
@@ -106,4 +106,4 @@ private:
 
 }//	end of namespace
 
-#endif	//__H__UG_plane_cut_projector
+#endif

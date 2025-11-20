@@ -65,8 +65,8 @@ public:
 public:
 	// 'tors
 	VariableArray1();
-	VariableArray1(size_type n_);
-	VariableArray1(const VariableArray1<T> &other);
+	explicit VariableArray1(size_type n_);
+	VariableArray1(const VariableArray1 &other);
 
 //protected:
 	// see Alexandrescu: non-virtual destructors should be protected
@@ -92,21 +92,21 @@ public:
 	at (size_type i) const
 	{
 		// todo: throw if(i >= n)
-		return operator[](i);
+		return operator [] (i);
 	}
 
 	inline T &
 	at (size_type i)
 	{
 		// todo: throw if(i >= n)
-		return operator[](i);
+		return operator [] (i);
 	}
 
 	inline const T &
-	operator[](size_type i) const ;
+	operator [] (size_type i) const ;
 
 	inline T &
-	operator[](size_type i) ;
+	operator [] (size_type i) ;
 
 	// output
 
@@ -174,7 +174,7 @@ public:
 	capacity_num_cols() const { return cols; };
 
 	inline void
-	reserve(size_type nrRows, size_type nrCols) const 	{ return; }
+	reserve(size_type nrRows, size_type nrCols) const 	{}
 
 	// Element Access
 
@@ -182,21 +182,21 @@ public:
 	at(size_type r, size_type c) const
 	{
 		// todo: if(r >= rows || c >= cols) throw
-		return operator()(r, c);
+		return operator () (r, c);
 	}
 
 	inline T &
 	at(size_type r, size_type c)
 	{
 		// todo: if(r >= rows || c >= cols) throw
-		return operator()(r, c);
+		return operator () (r, c);
 	}
 
 	inline const T &
-	operator()(size_type r, size_type c) const ;
+	operator () (size_type r, size_type c) const ;
 
 	inline T &
-	operator()(size_type r, size_type c) ;
+	operator () (size_type r, size_type c) ;
 
 	// output
 

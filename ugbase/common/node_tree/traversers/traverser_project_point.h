@@ -45,7 +45,8 @@ class Traverser_ProjectPoint : protected Traverser_CollisionTree
 {
 	public:
 		Traverser_ProjectPoint();
-		virtual ~Traverser_ProjectPoint();
+
+		~Traverser_ProjectPoint() override = default;
 
 		virtual bool project(const vector3& point, SPNode nodeGraph,
 							vector3* pPointNormal = nullptr);
@@ -60,15 +61,18 @@ class Traverser_ProjectPoint : protected Traverser_CollisionTree
 	 *	3: triangle*/
 	 	int get_closest_element_type();
 		
-		inline number get_distance()			{return m_distance;}
+		inline number get_distance() {return m_distance;}
 		
-		inline vector3 get_closest_point()		{return m_closestPoint;}
+		inline vector3 get_closest_point() {return m_closestPoint;}
 		
 	protected:
-		virtual void handle_group(GroupNode* group);
-		virtual void handle_boxed_group(BoxedGroupNode* boxedGroup);
-		virtual void handle_collision_edges(CollisionEdgesNode* colTrisNode);
-		virtual void handle_collision_triangles(CollisionTrianglesNode* colTrisNode);
+		void handle_group(GroupNode* group) override;
+
+		void handle_boxed_group(BoxedGroupNode* boxedGroup) override;
+
+		void handle_collision_edges(CollisionEdgesNode* colTrisNode) override;
+
+		void handle_collision_triangles(CollisionTrianglesNode* colTrisNode) override;
 		
 	protected:
 		enum SearchState

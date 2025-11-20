@@ -107,7 +107,7 @@ class ITransferOperator
 		}
 
 	///	Clone
-		virtual SmartPtr<ITransferOperator<TDomain, TAlgebra> > clone() = 0;
+		virtual SmartPtr<ITransferOperator > clone() = 0;
 
 	///	virtual destructor
 		virtual ~ITransferOperator() = default;

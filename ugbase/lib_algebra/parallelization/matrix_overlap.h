@@ -62,11 +62,11 @@ namespace ug{
  *
  * \param matInOut	An additive parallel square matrix without overlap.
  */
-template <class TMatrix>
+template <typename TMatrix>
 void CreateOverlap (TMatrix& matInOut);
 
 }//	end of namespace
 
 #include "matrix_overlap_impl.h"
 
-#endif	//__H__UG_matrix_overlap
+#endif

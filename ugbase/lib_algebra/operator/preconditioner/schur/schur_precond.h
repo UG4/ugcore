@@ -76,11 +76,6 @@ extern DebugID SchurDebug;
 /// operator implementation of the DD Schur complement solver
 /**
  * This operator implements a Schur complement solver */
-//template <typename TAlgebra>
-//class SchurSolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type,
-//													typename TAlgebra::vector_type>,
-//	public DebugWritingObject<TAlgebra>
-
 template <typename TAlgebra>
 class SchurPrecond: public IPreconditioner<TAlgebra>
 {
@@ -106,34 +101,33 @@ class SchurPrecond: public IPreconditioner<TAlgebra>
 	///	constructor
 		SchurPrecond();
 
-		SchurPrecond(const SchurPrecond<TAlgebra> &parent) : base_type(parent)
+		SchurPrecond(const SchurPrecond &parent) : base_type(parent)
 		{
 			m_spDirichletSolver = parent.m_spDirichletSolver;
 			m_spSkeletonSolver = parent.m_spSkeletonSolver;
 			m_spSchurComplementOp = parent.m_spSchurComplementOp;
 		}
 
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			return make_sp(new SchurPrecond<algebra_type>(*this));
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			return make_sp(new SchurPrecond(*this));
 		}
+		~SchurPrecond() override = default;
 
 	protected:
 	///	name of solver
-		virtual const char* name() const {return "Schur complement";}
+		const char* name() const override {return "Schur complement";}
 
 		//	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp);
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override;
 
 		//	Stepping routine
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d);
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override;
 
 		//	Postprocess routine
-		virtual bool postprocess();//  {return true;}
+		bool postprocess() override;//  {return true;}
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const
-		{
+		bool supports_parallel() const override {
 			if(m_spDirichletSolver.valid()
 				&& (!m_spDirichletSolver->supports_parallel()))
 					return false;
@@ -160,14 +154,12 @@ public:
 
 
 	//	set debug output
-		void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
-		{
+		void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter) override {
 			base_type::set_debug(spDebugWriter);
 			//m_spSchurComplementOp->set_debug(spDebugWriter);
 		}
 
-		virtual std::string config_string() const
-		{
+		std::string config_string() const override {
 			std::stringstream ss; ss << name() << "\n";
 			ss << " Dirichlet Solver: ";
 			if(m_spDirichletSolver.valid()) ss << ConfigShift(m_spDirichletSolver->config_string()) << "\n";
@@ -191,8 +183,7 @@ public:
 		/// returns the local skeleton size.
 		/// note that the sum over these is bigger than num_global_skeleton,
 		/// since this function includes also slaves
-		size_t num_local_skeleton()
-		{
+		size_t num_local_skeleton() const {
 			return m_myTotalSkeleton;
 		}
 

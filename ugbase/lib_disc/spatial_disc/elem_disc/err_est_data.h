@@ -151,12 +151,12 @@ public:
 		SideFluxErrEstData() : IErrEstData<TDomain>() {};
 
 	///	virtual class destructor
-		virtual ~SideFluxErrEstData() {};
+		virtual ~SideFluxErrEstData() = default;
 
 //	Functions to access data
 
 	///	get the data reference for a given side
-		number& operator()
+		number& operator ()
 		(
 			side_type* pSide ///< pointer to the side
 		)
@@ -257,14 +257,14 @@ public:
 		size_t elem_order() const {return elemOrder;}
 
 	///	get the data reference for a given side and ip
-		number& operator()
+		number& operator ()
 		(
 			side_type* pSide, 	///< pointer to the side
 			size_t ip		///< integration point id on the side
 		);
 
 	///	get the data reference for a given elem and ip
-		number& operator()
+		number& operator ()
 		(
 			elem_type* pElem, 	///< pointer to the elem
 			size_t ip		///< integration point id on the elem
@@ -336,7 +336,7 @@ protected:
 					m_ppQuadRule(ppQuadRule), m_quadOrder(quadOrder) {}
 				QuadratureRule<refDim>** m_ppQuadRule;
 				size_t m_quadOrder;
-				template< typename TElem > void operator()(TElem&)
+				template< typename TElem > void operator () (TElem&)
 				{
 					const ReferenceObjectID roid = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 					m_ppQuadRule[roid] =

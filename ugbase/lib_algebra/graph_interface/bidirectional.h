@@ -43,7 +43,7 @@ namespace ug{
 
 // give access to edges both ways.
 // keep a transpose matrix to cache iterators.
-template<class T>
+template<typename T>
 class BidirectionalMatrix{
 public: // types
 	using const_row_iterator = typename T::const_row_iterator;
@@ -59,7 +59,7 @@ public:
 	    : _matrix(o._matrix) {
 		_matrix_transpose = o._matrix_transpose; // BUG: missing copy constructor.
 	}
-	BidirectionalMatrix& operator=(BidirectionalMatrix const& o) {
+	BidirectionalMatrix& operator = (BidirectionalMatrix const& o) {
 		_matrix = o._matrix;
 		_matrix_transpose = o._matrix_transpose;
 		return *this;

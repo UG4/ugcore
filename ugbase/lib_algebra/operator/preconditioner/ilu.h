@@ -363,7 +363,7 @@ class ILU : public IPreconditioner<TAlgebra>
 		{};
 
 	/// clone constructor
-		ILU (const ILU<TAlgebra> &parent) :
+		ILU (const ILU &parent) :
 			base_type(parent),
 			m_beta(parent.m_beta),
 			m_sortEps(parent.m_sortEps),
@@ -377,16 +377,15 @@ class ILU : public IPreconditioner<TAlgebra>
 		{}
 
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			return make_sp(new ILU<algebra_type>(*this));
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			return make_sp(new ILU(*this));
 		}
 
 	///	Destructor
-		virtual ~ILU(){}
+		~ILU() override = default;
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const {return true;}
+		bool supports_parallel() const override {return true;}
 
 	///	set factor for \f$ ILU_{\beta} \f$
 		void set_beta(double beta) {m_beta = beta;}
@@ -427,7 +426,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 	protected:
 	//	Name of preconditioner
-		virtual const char* name() const {return "ILU";}
+		const char* name() const override {return "ILU";}
 
 		void apply_ordering()
 		{
@@ -463,9 +462,8 @@ class ILU : public IPreconditioner<TAlgebra>
 		}
 
 	protected:
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J,
-		                  const vector_type& u)
-		{
+		bool init(SmartPtr<ILinearOperator<vector_type> > J,
+	          const vector_type& u) override {
 		//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -482,8 +480,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			return base_type::init(pOp);
 		}
 
-		bool init(SmartPtr<ILinearOperator<vector_type> > L)
-		{
+		bool init(SmartPtr<ILinearOperator<vector_type> > L) override {
 		//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -500,8 +497,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			return base_type::init(pOp);
 		}
 
-		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
-		{
+		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op) {
 			m_u = nullptr;
 
 			return base_type::init(Op);
@@ -510,8 +506,7 @@ class ILU : public IPreconditioner<TAlgebra>
 	protected:
 
 	//	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
 			// do not do a thing if preprocessing disabled
 			if (m_bDisablePreprocessing) return true;
 
@@ -613,10 +608,9 @@ class ILU : public IPreconditioner<TAlgebra>
 		}
 
 	//	Stepping routine
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp,
-		                  vector_type& c,
-		                  const vector_type& d)
-		{
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp,
+	          vector_type& c,
+	          const vector_type& d) override {
 			PROFILE_BEGIN_GROUP(ILU_step, "algebra ILU");
 
 			
@@ -683,11 +677,11 @@ class ILU : public IPreconditioner<TAlgebra>
 		}
 
 	///	Postprocess routine
-		virtual bool postprocess() {return true;}
+		bool postprocess() override {return true;}
 
 	private:
 	#ifdef UG_PARALLEL
-		template <class T> void write_overlap_debug(const T& t, std::string name)
+		template <typename T> void write_overlap_debug(const T& t, std::string name)
 		{
 			if(debug_writer().valid()){
 				if(m_useOverlap && m_overlapWriter.valid() && t.layouts()->overlap_enabled())

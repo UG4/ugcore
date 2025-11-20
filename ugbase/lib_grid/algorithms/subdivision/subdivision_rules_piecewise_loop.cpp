@@ -56,7 +56,7 @@ SubdivRules_PLoop(const SubdivRules_PLoop& src)
 }
 
 SubdivRules_PLoop& SubdivRules_PLoop::
-operator=(const SubdivRules_PLoop& src)
+operator = (const SubdivRules_PLoop& src)
 {
 //	since this method won't ever be executed it can stay empty
 	return *this;

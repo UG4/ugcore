@@ -130,8 +130,8 @@ class MessageHub
 	///	This is the base class of all messages, which may be passed to callbacks.
 		class IMessage{
 			public:
-				IMessage()	{}
-				virtual ~IMessage()	{}
+				IMessage() = default;
+				virtual ~IMessage()	= default;
 		};
 
 	///	The callback-id allows to deregister previously registered callbacks.
@@ -178,7 +178,7 @@ class MessageHub
 	 * The auto-free property is disabled for the returned callback-id by default.
 	 * Note that this behavior differs from the similar register_class_callback
 	 * method for class-methods.*/
-		template <class TMsg>
+		template <typename TMsg>
 		SPCallbackId register_function_callback(void (*callback)(const TMsg&),
 											   bool autoFree = false);
 
@@ -197,7 +197,7 @@ class MessageHub
 	 * It's a good idea to store the smart-pointer as a member in the class from
 	 * which you register the callback (if it is registered from a class at all).
 	 * You then won't have to deal with unregistration manually.*/
-		template <class TMsg, class TClass>
+		template <typename TMsg, typename TClass>
 		SPCallbackId register_class_callback(TClass* cls,
 										   void (TClass::*callback)(const TMsg&),
 										   bool autoFree = true);
@@ -213,7 +213,7 @@ class MessageHub
 		void unregister_callback(SPCallbackId cbId);
 
 	///	Posts a message to all callbacks which are registered for the given message tpye
-		template <class TMsg>
+		template <typename TMsg>
 		void post_message(const TMsg& msg);
 
 	private:
@@ -232,7 +232,7 @@ class MessageHub
 	 * different type, then an instance of MessageHub::Error is thrown
 	 * (derives from UGError).
 	 */
-		template <class TMsg>
+		template <typename TMsg>
 		SPCallbackId register_callback_impl(
 							   std::function<void (const IMessage&)> callback,
 							   bool autoFree);

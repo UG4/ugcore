@@ -63,7 +63,7 @@ namespace ug
  * Types:
  * - Descriptor:	a class which can be passed to the constructor of the element.
  */
-template <class TElem>
+template <typename TElem>
 class geometry_traits
 {};
 

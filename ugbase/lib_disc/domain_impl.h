@@ -582,7 +582,7 @@ broadcast_refinement_projector (
 
 #ifdef UG_PARALLEL
 template <typename TGrid, typename TSubsetHandler>
-template <class TElem>
+template <typename TElem>
 void IDomain<TGrid,TSubsetHandler>::
 count_ghosts(std::vector<DomainInfo::int_t>& numGhostsOnLvlOut)
 {
@@ -619,7 +619,7 @@ count_ghosts(std::vector<DomainInfo::int_t>& numGhostsOnLvlOut)
 
 
 template <typename TGrid, typename TSubsetHandler>
-template <class TElem>
+template <typename TElem>
 size_t IDomain<TGrid,TSubsetHandler>::
 count_local_unique_surface_elements()
 {

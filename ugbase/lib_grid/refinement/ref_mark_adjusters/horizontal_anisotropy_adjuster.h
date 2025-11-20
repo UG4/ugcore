@@ -44,7 +44,7 @@ namespace ug{
  * \note	This adjuster regards the grid as a serial grid. If the grid represents a part
  * 			of a distributed grid, then the additional use of a parallel adjuster is required.
  */
-template <class TAPos>
+template <typename TAPos>
 class HorizontalAnisotropyAdjuster : public IRefMarkAdjuster
 {
 	public:
@@ -66,4 +66,4 @@ class HorizontalAnisotropyAdjuster : public IRefMarkAdjuster
 
 }//	end of namespace
 
-#endif	//__H__UG_horizontal_anisotropy_adjuster
+#endif

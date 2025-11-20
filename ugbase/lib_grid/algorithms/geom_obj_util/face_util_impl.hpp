@@ -39,7 +39,7 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIterator>
+template <typename TIterator>
 number AreaFaceQuality(TIterator facesBegin, TIterator facesEnd,
 					   Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
@@ -72,7 +72,7 @@ inline void Triangulate(Grid& grid,
 
 
 ////////////////////////////////////////////////////////////////////////
-template<class TVertexPositionAttachmentAccessor>
+template <typename TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT)
 {
@@ -98,7 +98,7 @@ CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosV
 
 
 ////////////////////////////////////////////////////////////////////////
-template<class TAAPosVRT, class TAAWeightVRT>
+template <typename TAAPosVRT, typename TAAWeightVRT>
 UG_API
 typename TAAPosVRT::ValueType
 CalculateCenter(const FaceVertices* f, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
@@ -128,7 +128,7 @@ CalculateCenter(const FaceVertices* f, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class vector_t, class TAAPos>
+template <typename vector_t, typename TAAPos>
 bool
 ContainsPoint(const FaceVertices* f, const vector_t& p, TAAPos aaPos)
 {
@@ -149,7 +149,7 @@ ContainsPoint(const FaceVertices* f, const vector_t& p, TAAPos aaPos)
 
 ////////////////////////////////////////////////////////////////////////
 //	project points to surface 
-template <class TTriangleIterator, class TAAPosVRT>
+template <typename TTriangleIterator, typename TAAPosVRT>
 bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
 						   TTriangleIterator trisBegin, TTriangleIterator trisEnd,
 						   TAAPosVRT& aaPos, bool compareNormals)
@@ -197,7 +197,7 @@ bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
 	return gotOne;
 }
 
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 int PointFaceTest(vector3& v, Face* f, TAAPosVRT& aaPos)
 {
 	vector3 n;
@@ -214,7 +214,7 @@ int PointFaceTest(vector3& v, Face* f, TAAPosVRT& aaPos)
 	return 0;
 }
 
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 bool IsDegenerated(Face* f, TAAPosVRT& aaPos, number threshold)
 {
 	number threshSQ = threshold * threshold;
@@ -231,7 +231,7 @@ bool IsDegenerated(Face* f, TAAPosVRT& aaPos, number threshold)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number FaceArea(FaceVertices* f, TAAPosVRT& aaPos)
 {
 	number area = 0;
@@ -244,7 +244,7 @@ number FaceArea(FaceVertices* f, TAAPosVRT& aaPos)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 number FaceArea(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos)
 {
 	number sum = 0.;
@@ -256,7 +256,7 @@ number FaceArea(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos)
 {
 	//	if facesBegin equals facesEnd, then the list is empty and we can

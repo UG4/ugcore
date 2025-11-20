@@ -72,7 +72,7 @@ class MathTensor
 		MathTensor(const MathTensor& v)	{assign(v);}
 
 		// operations with other vectors
-		MathTensor& operator=  (const MathTensor& v)
+		MathTensor& operator =  (const MathTensor& v)
 		{
 			if(this != &v){assign(v);}
 			return *this;
@@ -82,11 +82,11 @@ class MathTensor
 		inline size_t rank() const {return TRank;}
 
 	///	sets all values of the tensor to a value
-		MathTensor& operator=(T val) {set(val); return *this;}
+		MathTensor& operator =(T val) {set(val); return *this;}
 		inline void set(T val) {for(size_t i = 0; i < N; ++i) m_data[i].set(val);}
 
-		inline value_type& operator[](size_t i)				{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
-		inline const value_type& operator[](size_t i) const	{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
+		inline value_type& operator [] (size_t i)				{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
+		inline const value_type& operator [] (size_t i) const	{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
 
 	protected:
 		inline void assign(const MathTensor<TRank, N, T>& v){for(size_t i = 0; i < N; ++i) m_data[i] = v[i];}
@@ -117,7 +117,7 @@ class MathTensor<1, N, T>
 		MathTensor(const MathTensor& v)	{assign(v);}
 
 		// operations with other vectors
-		MathTensor& operator=  (const MathTensor& v)
+		MathTensor& operator =  (const MathTensor& v)
 		{
 			if(this != &v){assign(v);}
 			return *this;
@@ -127,21 +127,21 @@ class MathTensor<1, N, T>
 		inline size_t rank() const {return 1;}
 
 	///	sets all values of the tensor to a value
-		MathTensor& operator=(T val) {set(val); return *this;}
+		MathTensor& operator = (T val) {set(val); return *this;}
 		inline void set(T val) {for(size_t i = 0; i < N; ++i) m_data[i] = val;}
 
-		inline value_type& operator[](size_t i)				{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
-		inline const value_type& operator[](size_t i) const	{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
+		inline value_type& operator [] (size_t i)				{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
+		inline const value_type& operator [] (size_t i) const	{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
 
 	protected:
-		inline void assign(const MathTensor<1, N, T>& v) {for(size_t i = 0; i < N; ++i) m_data[i] = v[i];}
+		inline void assign(const MathTensor& v) {for(size_t i = 0; i < N; ++i) m_data[i] = v[i];}
 
 	protected:
 		value_type	m_data[N];
 };
 
 template <size_t TRank, size_t N, typename T>
-std::ostream& operator<< (std::ostream& outStream, const ug::MathTensor<TRank, N, T>& v)
+std::ostream& operator << (std::ostream& outStream, const ug::MathTensor<TRank, N, T>& v)
 {
 	outStream << "[";
 	for(size_t i = 0; i < v.size()-1; ++i)
@@ -173,7 +173,7 @@ public:
 	MathTensorX(const MathTensorX& v)	{assign(v);}
 
 	// operations with other vectors
-	MathTensorX& operator=  (const MathTensorX& v)
+	MathTensorX& operator =  (const MathTensorX& v)
 	{
 		if(this != &v){assign(v);}
 		return *this;
@@ -182,11 +182,11 @@ public:
 	inline size_t size() const {return N;}
 	inline size_t rank() const {return Rank;}
 
-	inline value_type& operator[](size_t i)				{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
-	inline const value_type& operator[](size_t i) const	{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
+	inline value_type& operator [] (size_t i)				{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
+	inline const value_type& operator [] (size_t i) const	{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
 
 protected:
-	inline void assign(const MathTensorX<TEntry, N>& v) {for(size_t i = 0; i < N; ++i) m_data[i] = v[i];}
+	inline void assign(const MathTensorX& v) {for(size_t i = 0; i < N; ++i) m_data[i] = v[i];}
 
 protected:
 	TEntry m_data[N];
@@ -205,7 +205,7 @@ template <size_t N1, size_t N2, size_t N3, size_t N4, typename T = number>
 class MathTensor4 : public MathTensorX< MathTensorX< MathTensorX<MathTensor1<N4, T>, N3>, N2>, N1> { };
 
 template <typename TEntry>
-std::ostream& operator<< (std::ostream& outStream, const ug::MathTensorX<TEntry, 1>& v)
+std::ostream& operator << (std::ostream& outStream, const MathTensorX<TEntry, 1>& v)
 {
 	outStream << "[";
 	outStream << v[0] << "]";
@@ -213,7 +213,7 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathTensorX<TEntry,
 }
 
 template <typename TEntry, size_t N>
-std::ostream& operator<< (std::ostream& outStream, const ug::MathTensorX<TEntry, N>& v)
+std::ostream& operator << (std::ostream& outStream, const MathTensorX<TEntry, N>& v)
 {
 	outStream << "[";
 	for(size_t i = 0; i < N-1; ++i)

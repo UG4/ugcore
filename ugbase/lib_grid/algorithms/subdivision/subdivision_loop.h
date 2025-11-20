@@ -45,7 +45,7 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 ///	projects all vertices in the given grid to their limit-positions using the piecewise loop scheme.
-template <class TAVrtPos> void
+template <typename TAVrtPos> void
 ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 {
 //	position type
@@ -218,7 +218,7 @@ using pos_type = typename TAVrtPos::ValueType;
 
 ////////////////////////////////////////////////////////////////////////
 ///	projects all boundary vertices in the given grid to their limit-positions using the piecewise loop scheme.
-template <class TAVrtPos> void
+template <typename TAVrtPos> void
 ProjectToLimitSubdivBoundary(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 {
 //	position type

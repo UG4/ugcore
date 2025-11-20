@@ -45,7 +45,7 @@ using namespace std;
 
 namespace ug{
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 Partitioner_DynamicBisection<TElem, dim>::
 Partitioner_DynamicBisection() :
 	m_mg(nullptr),
@@ -69,7 +69,7 @@ Partitioner_DynamicBisection() :
 	}
 }
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 Partitioner_DynamicBisection<TElem, dim>::
 ~Partitioner_DynamicBisection()
 {
@@ -78,7 +78,7 @@ Partitioner_DynamicBisection<TElem, dim>::
 ////////////////////////////////
 //	SETTERS AND GETTERS
 ////////////////////////////////
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos)
 {
@@ -89,7 +89,7 @@ set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos)
 	m_aaPos.access(*m_mg, m_aPos);
 }
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 set_subset_handler(SmartPtr<SubsetHandler> sh)
 {
@@ -98,7 +98,7 @@ set_subset_handler(SmartPtr<SubsetHandler> sh)
 		m_sh->assign_grid(m_mg);
 }
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 enable_split_axis(int axis, bool enable)
 {
@@ -117,41 +117,41 @@ enable_split_axis(int axis, bool enable)
 	}
 }
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 set_next_process_hierarchy(SPProcessHierarchy procHierarchy)
 {
 	m_nextProcessHierarchy = procHierarchy;
 }
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 set_balance_weights(SPBalanceWeights balanceWeights)
 {
 	m_balanceWeights = balanceWeights;
 }
 //
-//template <class TElem, int dim>
+//template <typename TElem, int dim>
 //void Partitioner_DynamicBisection<TElem, dim>::
 //set_connection_weights(SmartPtr<ConnectionWeights<dim> >)
 //{
 //}
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 set_partition_pre_processor(SPPartitionPreProcessor ppp)
 {
 	m_partitionPreProcessor = ppp;
 }
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 set_partition_post_processor(SPPartitionPostProcessor ppp)
 {
 	m_partitionPostProcessor = ppp;
 }
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 ConstSPProcessHierarchy Partitioner_DynamicBisection<TElem, dim>::
 current_process_hierarchy() const
 {
@@ -159,7 +159,7 @@ current_process_hierarchy() const
 }
 
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 ConstSPProcessHierarchy Partitioner_DynamicBisection<TElem, dim>::
 next_process_hierarchy() const
 {
@@ -167,21 +167,21 @@ next_process_hierarchy() const
 }
 
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 bool Partitioner_DynamicBisection<TElem, dim>::
 supports_balance_weights() const
 {
 	return false;
 }
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 bool Partitioner_DynamicBisection<TElem, dim>::
 supports_connection_weights() const
 {
 	return false;
 }
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 SubsetHandler& Partitioner_DynamicBisection<TElem, dim>::
 get_partitions()
 {
@@ -194,7 +194,7 @@ get_partitions()
 	return *m_sh;
 }
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 const std::vector<int>* Partitioner_DynamicBisection<TElem, dim>::
 get_process_map() const
 {
@@ -205,7 +205,7 @@ get_process_map() const
 }
 
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 enable_static_partitioning(bool enable)
 {
@@ -213,7 +213,7 @@ enable_static_partitioning(bool enable)
 }
 
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 bool Partitioner_DynamicBisection<TElem, dim>::
 static_partitioning_enabled() const
 {
@@ -224,7 +224,7 @@ static_partitioning_enabled() const
 ////////////////////////////////
 //	PARTITIONING
 ////////////////////////////////
-template <class TElem, int dim>
+template <typename TElem, int dim>
 bool Partitioner_DynamicBisection<TElem, dim>::
 partition(size_t baseLvl, size_t elementThreshold)
 {
@@ -416,7 +416,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 }
 
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 				  ANumber aWeight, pcl::ProcessCommunicator com)
@@ -553,7 +553,7 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 }
 
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 control_bisection(ISubsetHandler& partitionSH, std::vector<TreeNode>& treeNodes,
 				  ANumber aWeight, number maxChildWeight, pcl::ProcessCommunicator& com)
@@ -647,7 +647,7 @@ control_bisection(ISubsetHandler& partitionSH, std::vector<TreeNode>& treeNodes,
 }
 
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 				ANumber aWeight, number maxChildWeight, pcl::ProcessCommunicator& com,
@@ -871,7 +871,7 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 ////////////////////////////////
 //	UTILITY
 ////////////////////////////////
-template <class TElem, int dim>
+template <typename TElem, int dim>
 int Partitioner_DynamicBisection<TElem, dim>::
 get_next_split_axis()
 {
@@ -884,7 +884,7 @@ get_next_split_axis()
 }
 
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 int Partitioner_DynamicBisection<TElem, dim>::
 get_next_split_axis(int lastAxis) const
 {
@@ -900,7 +900,7 @@ get_next_split_axis(int lastAxis) const
 }
 
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl)
 {
@@ -935,7 +935,7 @@ copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl)
 }
 
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 						  bool copyToVMastersOnBaseLvl, bool markedElemsOnly)
@@ -1046,7 +1046,7 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 }
 
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 int Partitioner_DynamicBisection<TElem, dim>::
 classify_elem(elem_t* e, int splitAxis, number splitValue)
 {
@@ -1070,7 +1070,7 @@ classify_elem(elem_t* e, int splitAxis, number splitValue)
 }
 
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 calculate_global_dimensions(vector<TreeNode>& treeNodes,
 							number maxChildWeight, ANumber aWeight,
@@ -1140,7 +1140,7 @@ calculate_global_dimensions(vector<TreeNode>& treeNodes,
 	}
 }
 
-template <class TElem, int dim>
+template <typename TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 improve_split_values(vector<TreeNode>& treeNodes,
 					 size_t maxIterations, ANumber aWeight,
@@ -1265,7 +1265,7 @@ improve_split_values(vector<TreeNode>& treeNodes,
 // Mid term goal: Debug MultiGroupCommunicator and use the code below instead
 // of the code above (date: Nov 17, author: sreiter)
 
-// template <class TElem, int dim>
+// template <typename TElem, int dim>
 // void Partitioner_DynamicBisection<TElem, dim>::
 // improve_split_values(vector<TreeNode>& treeNodes,
 // 					 size_t maxIterations, ANumber aWeight,

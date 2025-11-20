@@ -39,11 +39,11 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	GenericGridObjectIterator
 ///	Use this class as a tool to create iterators to your own geometric objects.
-template <class TValue, class TBaseIterator>
+template <typename TValue, typename TBaseIterator>
 class GenericGridObjectIterator : public TBaseIterator
 {
 	friend class Grid;
-	template <class TIterDest, class TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
+	template <typename TIterDest, typename TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
 
 	public:
 		using value_type = TValue;
@@ -55,7 +55,7 @@ class GenericGridObjectIterator : public TBaseIterator
 			TBaseIterator(iter)	{}
 
 	///	note that the * operator is read only.
-		inline TValue operator* () const	{return static_cast<TValue>(TBaseIterator::operator*());}
+		inline TValue operator * () const	{return static_cast<TValue>(TBaseIterator::operator * ());}
 
 	protected:
 		explicit GenericGridObjectIterator(const TBaseIterator& iter) :
@@ -65,11 +65,11 @@ class GenericGridObjectIterator : public TBaseIterator
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	ConstGenericGridObjectIterator
 ///	Use this class as a tool to create const_iterators to your own geometric objects.
-template <class TValue, class TBaseIterator, class TConstBaseIterator>
+template <typename TValue, typename TBaseIterator, typename TConstBaseIterator>
 class ConstGenericGridObjectIterator : public TConstBaseIterator
 {
 	friend class Grid;
-	template <class TIterDest, class TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
+	template <typename TIterDest, typename TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
 
 	public:
 		using value_type = TValue;
@@ -84,7 +84,7 @@ class ConstGenericGridObjectIterator : public TConstBaseIterator
 			TConstBaseIterator(iter) {}
 
 	///	note that the * operator is read only.
-		inline TValue operator* () const {return static_cast<TValue>(TConstBaseIterator::operator*());}
+		inline TValue operator * () const {return static_cast<TValue>(TConstBaseIterator::operator * ());}
 
 	protected:
 		explicit ConstGenericGridObjectIterator(const TBaseIterator& iter) :
@@ -97,7 +97,7 @@ class ConstGenericGridObjectIterator : public TConstBaseIterator
 ////////////////////////////////////////////////////////////////////////
 //	iterator_cast
 ///	You should avoid casting whenever possible!
-template <class TIterDest, class TIterSrc>
+template <typename TIterDest, typename TIterSrc>
 inline TIterDest
 iterator_cast(const TIterSrc& iter)
 {

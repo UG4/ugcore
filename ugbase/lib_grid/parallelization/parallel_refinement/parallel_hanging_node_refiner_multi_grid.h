@@ -105,13 +105,13 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 
 	///	copies the current marks in the ref-mark-selector from v-slaves to v-masters
 	/**	\{ */
-		template <class TElem, class TIntfcCom>
+		template <typename TElem, typename TIntfcCom>
 		void copy_marks_to_vmasters(TIntfcCom& com);
 	/** \} */
 
 	///	copies the current marks in the ref-mark-selector from v-slaves to v-masters
 	/**	\{ */
-		template <class TElem, class TIntfcCom>
+		template <typename TElem, typename TIntfcCom>
 		void copy_marks_to_vslaves(TIntfcCom& com);
 	/** \} */
 

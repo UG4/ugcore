@@ -97,7 +97,7 @@ class AdaptiveRegularRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 	 * If a parent is a closure element (which shouldn't be the case) it won't be
 	 * added to the container.
 	 * Note that a parent may be added multiple times to the parents container.*/
-		template <class TElem>
+		template <typename TElem>
 		void get_parents_of_marked_closure_elements(std::vector<GridObject*>& parents,
 									   	   	   	    Selector::status_t mark);
 

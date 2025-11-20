@@ -207,7 +207,7 @@ static SmartPtr<IRefiner> CreateAdaptiveRegularDomainRefiner(TDomain* dom)
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Creates a global fractured domain refiner.
-template <class TDomain>
+template <typename TDomain>
 static SmartPtr<GlobalFracturedMediaRefiner>
 CreateGlobalFracturedDomainRefiner(TDomain* dom)
 {
@@ -284,7 +284,7 @@ AddShadowCopyAdjuster(IRefiner* ref)
 //  * below given sizeRatio. These edges are also marked.
 //  * @return true, if face has been marked for anisotropic refinement.
 //  * This is the case, when one of its edges has been marked for refinement.*/
-// template <class TAAPos> bool MarkIfAnisotropic(Face* f, IRefiner* refiner, number sizeRatio, TAAPos& aaPos)
+// template <typename TAAPos> bool MarkIfAnisotropic(Face* f, IRefiner* refiner, number sizeRatio, TAAPos& aaPos)
 // {
 // 	bool marked = false;
 // 	uint num_edges = f->num_edges();
@@ -346,7 +346,7 @@ static void MarkForRefinement_All(SmartPtr<IRefiner> ref)
 	ref->mark(g->volumes_begin(), g->volumes_end());
 }
 
-template <class TElem>
+template <typename TElem>
 static void MarkForRefinement_AllAnisotropic(SmartPtr<IRefiner> ref)
 {
 	PROFILE_FUNC_GROUP("grid");
@@ -411,7 +411,7 @@ void MarkForAdaption_VerticesInSphereMaxLvl(TDomain& dom, SmartPtr<IRefiner> ref
 	}
 }
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
                                         const typename TDomain::position_type& center,
                                         number radius)
@@ -419,7 +419,7 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 	MarkForAdaption_VerticesInSphereMaxLvl(dom, refiner, center, radius, "refine", -1);
 }
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
                                       const typename TDomain::position_type& center,
                                       number radius, std::string markType)
@@ -430,7 +430,7 @@ void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all elements which lie completely in the given d-dimensional sphere.
 /**	Valid parameters for TElem are Edge, Face, Volume.*/
-template <class TDomain, class TElem>
+template <typename TDomain, typename TElem>
 void MarkForRefinement_ElementsInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
 									const typename TDomain::position_type& center,
 									number radius)
@@ -484,7 +484,7 @@ void MarkForRefinement_ElementsInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all elements which have vertices in the given d-dimensional cube.
 /**	Make sure that TAPos is an attachment of vector_t position types.*/
-template <class TDomain>
+template <typename TDomain>
 void MarkForAdaption_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 									const typename TDomain::position_type& min,
 									const typename TDomain::position_type& max,
@@ -539,7 +539,7 @@ void MarkForAdaption_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 	}
 }
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForRefinement_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 									const typename TDomain::position_type& min,
 									const typename TDomain::position_type& max)
@@ -549,7 +549,7 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 
 
 ///	Marks all elements for anisotropic refienment and also marks all edges > minLen.
-template <class TDomain>
+template <typename TDomain>
 void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 {
 	UG_ASSERT(dom.grid().get() == refiner.get_associated_grid(),
@@ -608,7 +608,7 @@ void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 //  *
 //  * \todo	activate and improve volume marks
 //  **/
-// template <class TDomain>
+// template <typename TDomain>
 // void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refiner,
 // 											number sizeRatio)
 // {
@@ -861,7 +861,7 @@ void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 // /**
 //  *
 //  */
-// template <class TDomain>
+// template <typename TDomain>
 // void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> refiner,
 // 												number sizeRatio)
 // {
@@ -921,7 +921,7 @@ void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all elements which have vertices in the given d-dimensional cube.
 /**	Make sure that TAPos is an attachment of vector_t position types.*/
-template <class TDomain>
+template <typename TDomain>
 void AssignSubset_VerticesInCube(TDomain& dom, 
 									const typename TDomain::position_type& min,
 									const typename TDomain::position_type& max, int si)
@@ -959,7 +959,7 @@ void AssignSubset_VerticesInCube(TDomain& dom,
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all elements which have vertices in the given d-dimensional cube.
 /**	Make sure that TAPos is an attachment of vector_t position types.*/
-template <class TDomain>
+template <typename TDomain>
 void AssignSubset_VerticesInSphere(TDomain& dom, 
 									const typename TDomain::position_type& center,
 									const number radius, int si)
@@ -1033,7 +1033,7 @@ static number DistanceToSurfaceDomain(MathVector<3>& tpos, const Face* face,
 }
 #endif
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForRefinement_CloseToSurface(TDomain& dom, SmartPtr<IRefiner> refiner,
 									  double time, size_t maxLvl,
 										const TDomain& surfaceDomain)
@@ -1099,7 +1099,7 @@ void MarkForRefinement_CloseToSurface(TDomain& dom, SmartPtr<IRefiner> refiner,
 }
 
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForRefinement_ContainsSurfaceNode(TDomain& dom, SmartPtr<IRefiner> refiner,
 									  	double time, size_t maxLvl,
 										const TDomain& surfaceDomain)
@@ -1151,7 +1151,7 @@ void MarkForRefinement_ContainsSurfaceNode(TDomain& dom, SmartPtr<IRefiner> refi
 
 
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refiner,
 											 double time, size_t maxLvl,
 											 const char* luaCallbackName)
@@ -1211,7 +1211,7 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 	}
 }
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForCoarsen_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refiner,
 										  double time, const char* luaCallbackName)
 {
@@ -1256,7 +1256,7 @@ void MarkForCoarsen_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refin
 
 
 
-template <class TDomain, class TSubsetHandler, class TElem>
+template <typename TDomain, typename TSubsetHandler, typename TElem>
 void MarkForAdaption_ElementsInSubset_(TDomain& dom, IRefiner& refiner,
 										TSubsetHandler& sh, int subsetIndex, RefinementMark rmMark)
 {
@@ -1274,7 +1274,7 @@ void MarkForAdaption_ElementsInSubset_(TDomain& dom, IRefiner& refiner,
 	}
 }
 
-template <class TDomain, class TSubsetHandler, class TElem>
+template <typename TDomain, typename TSubsetHandler, typename TElem>
 void MarkForAdaption_ElementsInSubset(TDomain& dom, IRefiner& refiner,
 										TSubsetHandler& sh, int subsetIndex, std::string markType)
 {
@@ -1283,7 +1283,7 @@ void MarkForAdaption_ElementsInSubset(TDomain& dom, IRefiner& refiner,
 }
 
 
-template <class TDomain, class TSubsetHandler, class TElem>
+template <typename TDomain, typename TSubsetHandler, typename TElem>
 void MarkForRefinement_ElementsInSubset(TDomain& dom, IRefiner& refiner,
 										TSubsetHandler& sh, int subsetIndex)
 {
@@ -1291,7 +1291,7 @@ void MarkForRefinement_ElementsInSubset(TDomain& dom, IRefiner& refiner,
 }
 
 
-template <class TDomain, class TElem>
+template <typename TDomain, typename TElem>
 void MarkForAdaption_ElementsContainingPoint(TDomain& dom, IRefiner& refiner,
 											   number x, number y, number z,
 											   std::string markType)
@@ -1320,7 +1320,7 @@ void MarkForAdaption_ElementsContainingPoint(TDomain& dom, IRefiner& refiner,
 }
 
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForAdaption_ElementsTouchingSubset(TDomain& dom, IRefiner& refiner,
 											ISubsetHandler& sh, int subsetIndex,
 											std::string markType)
@@ -1382,7 +1382,7 @@ void MarkForAdaption_ElementsTouchingSubset(TDomain& dom, IRefiner& refiner,
 	}
 }
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForAdaption_ElementsTouchingSubsets(TDomain& dom, IRefiner& refiner,
 											 const char* subsets,
 											 std::string markType)
@@ -1399,7 +1399,7 @@ void MarkForAdaption_ElementsTouchingSubsets(TDomain& dom, IRefiner& refiner,
 }
 
 
-template <class elem_t>
+template <typename elem_t>
 void MarkForRefinement_SubsetInterfaceElements(IRefiner& refiner, ISubsetHandler& sh)
 {
 //	ALGORITHM
@@ -1476,14 +1476,14 @@ void MarkForRefinement_SubsetInterfaceElements(IRefiner& refiner, ISubsetHandler
 	grid.detach_from<elem_t> (aSI);
 }
 
-template <class TDomain, class TElem>
+template <typename TDomain, typename TElem>
 void MarkForRefinement_SubsetInterfaceElements(TDomain& dom, IRefiner& refiner)
 {
 	MarkForRefinement_SubsetInterfaceElements<TElem>(refiner, *dom.subset_handler());
 }
 
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 										 number minEdgeRatio)
 {
@@ -1512,7 +1512,7 @@ void MarkNeighborsForLocalRefinement(IRefiner& refiner, bool sideNbrsOnly)
 }
 
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForRefinement_AnisotropicDirection_ (
 		TDomain& dom,
 		IRefiner& refiner,
@@ -1586,7 +1586,7 @@ void MarkForRefinement_AnisotropicDirection_ (
 }
 
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForRefinement_AnisotropicDirection (
 		TDomain& dom,
 		IRefiner& refiner,
@@ -1598,7 +1598,7 @@ void MarkForRefinement_AnisotropicDirection (
 }
 
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForRefinement_AnisotropicDirection2 (
 		TDomain& dom,
 		IRefiner& refiner,
@@ -1612,7 +1612,7 @@ void MarkForRefinement_AnisotropicDirection2 (
 
 
 
-template <class TDomain>
+template <typename TDomain>
 void MarkForRefinement_EdgeDirection (
 		TDomain& dom,
 		IRefiner& refiner,
@@ -1637,14 +1637,14 @@ void MarkForRefinement_EdgeDirection (
 
 ////////////////////////////////////////////////////////////////////////////////
 //	REFINEMENT PROJECTORS
-// template <class TDomain>
+// template <typename TDomain>
 // SmartPtr<ProjectionHandler>
 // DomainProjectionHandler (TDomain& dom)
 // {
 // 	return make_sp(new ProjectionHandler(dom.geometry3d(), dom.subset_handler()));
 // }
 
-// template <class TDomain>
+// template <typename TDomain>
 // SmartPtr<IRefinementCallback>
 // LinearProjectorFactory(TDomain* dom)
 // {
@@ -1653,7 +1653,7 @@ void MarkForRefinement_EdgeDirection (
 // 					*dom->grid(), dom->position_attachment()))));
 // }
 
-// template <class vector_t>
+// template <typename vector_t>
 // static
 // vector_t StdVecToMathVec(const std::vector<number>& v)
 // {
@@ -1667,7 +1667,7 @@ void MarkForRefinement_EdgeDirection (
 // ///	Creates a refinement projector which projects new vertices onto a sphere
 // /** Specify a domain, the center of the sphere (cx, cy, cz), and the sphere's radius.
 //  */
-// template <class TDomain>
+// template <typename TDomain>
 // SmartPtr<IRefinementCallback>
 // SphereProjectorFactory(TDomain* dom, std::vector<number> center)
 // {
@@ -1682,7 +1682,7 @@ void MarkForRefinement_EdgeDirection (
 //  * be projected linear.
 //  * Specify a domain, the center of the sphere (cx, cy, cz), an inner and an outer radius.
 //  */
-// template <class TDomain>
+// template <typename TDomain>
 // SmartPtr<IRefinementCallback>
 // SphericalFalloffProjectorFactory(TDomain* dom, std::vector<number> center,
 // 						  number innerRadius, number outerRadius)
@@ -1698,7 +1698,7 @@ void MarkForRefinement_EdgeDirection (
 // /** Specify a domain, a point on the cylinder's axis c, the direction
 //  * of the axis
 //  */
-// template <class TDomain>
+// template <typename TDomain>
 // SmartPtr<IRefinementCallback>
 // CylinderProjectorFactory(TDomain* dom, std::vector<number> c, std::vector<number> axis)
 // {
@@ -1709,7 +1709,7 @@ void MarkForRefinement_EdgeDirection (
 // 						StdVecToMathVec<typename TDomain::position_type>(axis)));
 // }
 
-// template <class TDomain>
+// template <typename TDomain>
 // SmartPtr<IRefinementCallback>
 // CylindricalFalloffProjectorFactory(TDomain* dom, std::vector<number> c,
 // 				  	  	  	  	   std::vector<number> a,
@@ -1723,7 +1723,7 @@ void MarkForRefinement_EdgeDirection (
 // 						innerRadius, outerRadius));
 // }
 
-// template <class TDomain>
+// template <typename TDomain>
 // SmartPtr<IRefinementCallback>
 // SubdivisionLoopProjectorFactory(TDomain* dom)
 // {
@@ -1785,7 +1785,7 @@ void SetSmoothSubdivisionVolumesBoundaryRefinementRule(std::string bndRefRule)
  * from the given domain needed for hierarchy smoothing
  * using subdivision volumes schemes.
  */
-template <class TDomain>
+template <typename TDomain>
 typename TDomain::position_attachment_type&
 GetDomainPositionAttachment(TDomain& dom)
 {
@@ -1814,7 +1814,7 @@ struct Functionality
  * are to be placed here when registering.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 static void Common(Registry& reg, string grp)
 {
@@ -1862,7 +1862,7 @@ static void Common(Registry& reg, string grp)
  * available Domain types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TDomain>
 static void Domain(Registry& reg, string grp)

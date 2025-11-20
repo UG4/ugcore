@@ -68,7 +68,7 @@ class PartitionWeighting
 		}
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		int weigh(TElem* e1, TElem* e2)
 		{
 			if (!this->m_sh)
@@ -112,7 +112,7 @@ class InterSubsetPartitionWeighting : public PartitionWeighting
 		int operator () (Volume* v1, Volume* v2) override {return weigh(v1,v2);};
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		int weigh(TElem* e1, TElem* e2)
 		{
 			if (!this->m_sh)
@@ -172,7 +172,7 @@ class ProtectSubsetPartitionWeighting : public PartitionWeighting
 		int operator () (Volume* v1, Volume* v2) override {return weigh(v1,v2);};
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		int weigh(TElem* e1, TElem* e2)
 		{
 			if (!this->m_sh)

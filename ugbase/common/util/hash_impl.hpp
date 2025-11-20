@@ -41,7 +41,7 @@
 
 namespace ug{
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 Hash<TKey, TValue>::
 Hash() :
 	m_numEntries(0),
@@ -51,7 +51,7 @@ Hash() :
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 Hash<TKey, TValue>::
 Hash(size_t hashSize) :
 	m_numEntries(0),
@@ -61,7 +61,7 @@ Hash(size_t hashSize) :
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 void Hash<TKey, TValue>::
 resize_hash(size_t size)
 {
@@ -100,7 +100,7 @@ resize_hash(size_t size)
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 size_t Hash<TKey, TValue>::
 hash_size() const
 {
@@ -108,7 +108,7 @@ hash_size() const
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 void Hash<TKey, TValue>::
 reserve(size_t size)
 {
@@ -116,7 +116,7 @@ reserve(size_t size)
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 size_t Hash<TKey, TValue>::
 capacity() const
 {
@@ -124,7 +124,7 @@ capacity() const
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 void Hash<TKey, TValue>::
 clear()
 {
@@ -137,7 +137,7 @@ clear()
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 bool Hash<TKey, TValue>::
 empty() const
 {
@@ -145,7 +145,7 @@ empty() const
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 bool Hash<TKey, TValue>::
 has_entry(const key_t& key) const
 {
@@ -153,7 +153,7 @@ has_entry(const key_t& key) const
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 TValue& Hash<TKey, TValue>::
 get_entry(const key_t& key)
 {
@@ -167,7 +167,7 @@ get_entry(const key_t& key)
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 const TValue& Hash<TKey, TValue>::
 get_entry(const key_t& key) const
 {
@@ -180,7 +180,7 @@ get_entry(const key_t& key) const
 	return m_entries[eind].value;
 }
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 bool Hash<TKey, TValue>::
 get_entry(TValue& valOut, const key_t& key) const
 {
@@ -194,7 +194,7 @@ get_entry(TValue& valOut, const key_t& key) const
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 void Hash<TKey, TValue>::
 insert(const key_t& key, const value_t& val)
 {
@@ -222,7 +222,7 @@ insert(const key_t& key, const value_t& val)
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 void Hash<TKey, TValue>::
 erase(const key_t& key)
 {
@@ -258,7 +258,7 @@ erase(const key_t& key)
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 typename Hash<TKey, TValue>::iterator Hash<TKey, TValue>::
 begin(const key_t& key)
 {
@@ -268,21 +268,21 @@ begin(const key_t& key)
 }
 
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 typename Hash<TKey, TValue>::iterator Hash<TKey, TValue>::
 end(const key_t& key)
 {
 	return iterator(key, nullptr, invalid_index());
 }
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 size_t Hash<TKey, TValue>::
 hash_index(const key_t& key) const
 {
 	return hash_key(key) % m_hashList.size();
 }
 
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 size_t Hash<TKey, TValue>::
 find_entry(const key_t& key) const
 {

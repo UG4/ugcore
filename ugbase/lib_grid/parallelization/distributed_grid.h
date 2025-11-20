@@ -132,21 +132,21 @@ class DistributedGridManager : public GridObserver
 	///	returns true if the status of the given object contains the given status.
 	/**	status can be an or-combination of constants enumerated in InterfaceNodeTypes
 	 * and ElementStatusTypes.*/
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		bool contains_status(TGeomObj* o, byte_t status) const {return (get_status(o) & status) == status;}
 
 	///	returns true if the element is a ghost
 	/**	ghost elements are vertical masters that are in no other interfaces.
 	 *	Those elements shouldn't be refined.*/
-	 	template<class TElem>
+	 	template <typename TElem>
 		inline bool is_ghost(TElem* elem) const;
 
 	///	returns true if the element is contained in a horizontal interface
-	 	template<class TElem>
+	 	template <typename TElem>
 		inline bool is_in_horizontal_interface(TElem* elem) const;
 
 	///	returns true if the element is contained in a vertical interface
-	 	template<class TElem>
+	 	template <typename TElem>
 		inline bool is_in_vertical_interface(TElem* elem) const;
 
 	//	element creation
@@ -168,13 +168,13 @@ class DistributedGridManager : public GridObserver
 		void end_element_deletion();
 
 	///	returns true if an element is in one or more interfaces
-		template <class TElem>
+		template <typename TElem>
 		bool is_interface_element(TElem* elem);
 		
 	/**	returns a list of pairs (procID, index) that tells for each element
 	 *	where in which interfaces it lies.
 	 *	\param	statusType	may be any or-combination of values enumerated in ElementStatusTypes.*/
-	 	template <class TElem>
+	 	template <typename TElem>
 	 	void collect_interface_entries(
 						std::vector<std::pair<int, size_t> >& vEntriesOut,
 						TElem* elem, byte_t statusType, bool clearContainer = true);
@@ -246,46 +246,46 @@ class DistributedGridManager : public GridObserver
 	///	free's all grid related data
 		void free_grid_data();
 
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		void reset_elem_infos();
 		
 	/*	Currently unused. See implementation for more details.
-		template <class TElem>
+		template <typename TElem>
 		void set_preliminary_ghost_states();
 
 		void update_ghost_states();
 	 */
 
-		template <class TGeomObj, class TLayoutMap>
+		template <typename TGeomObj, typename TLayoutMap>
 		void update_elem_info(TLayoutMap& layoutMap, int nodeType,
 							  byte_t newStatus, bool addStatus = false);
 
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		void update_all_elem_infos();
 							  
 	///	vertex_created, edge_created, ... callbacks call this method.
-		template <class TElem>
+		template <typename TElem>
 		void handle_created_element(TElem* pElem, GridObject* pParent,
 									bool replacesParent);
 		
-		template <class TElem, class TScheduledElemMap, class TParent>
+		template <typename TElem, typename TScheduledElemMap, typename TParent>
 		void schedule_element_for_insertion(TScheduledElemMap& elemMap,
 												TElem* elem,
 												TParent* pParent);
 
 		void clear_scheduled_elements();
 		
-		template <class TScheduledElemMap>
+		template <typename TScheduledElemMap>
 		void perform_ordered_element_insertion(TScheduledElemMap& elemMap);
 		
-		template <class TElem>
+		template <typename TElem>
 		void add_element_to_interface(TElem* pElem, int procID);
 
-		template <class TElem>
+		template <typename TElem>
 		void element_to_be_erased(TElem* elem);
 
 	/**	Note that the content of the given vector may be extended during this method.*/
-		template <class TElem>
+		template <typename TElem>
 		void create_missing_constrained_h_interfaces(std::vector<TElem*>& newConstrainedElems);
 
 	protected:
@@ -294,7 +294,7 @@ class DistributedGridManager : public GridObserver
 	 * The old instance will thus point to a nullptr pointer instead of the data
 	 * object after the copy operation.
 	 */
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		class ElementInfo
 		{
 			public:

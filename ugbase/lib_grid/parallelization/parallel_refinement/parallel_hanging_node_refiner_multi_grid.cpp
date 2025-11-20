@@ -167,7 +167,7 @@ static void ReplaceByConstraining(MultiGrid& mg, Face* f)
  *
  * This ComPol may currently only be used for vertices, edges and faces.
  */
-template <class TLayout>
+template <typename TLayout>
 class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
@@ -497,7 +497,7 @@ copy_marks_to_vmasters(bool vertices, bool edges, bool faces, bool volumes)
 		copy_marks_to_vmasters<Volume>(m_intfComVOL);
 }
 
-template <class TElem, class TIntfcCom>
+template <typename TElem, typename TIntfcCom>
 void ParallelHangingNodeRefiner_MultiGrid::
 copy_marks_to_vmasters(TIntfcCom& com)
 {
@@ -522,7 +522,7 @@ copy_marks_to_vslaves(bool vertices, bool edges, bool faces, bool volumes)
 		copy_marks_to_vslaves<Volume>(m_intfComVOL);
 }
 
-template <class TElem, class TIntfcCom>
+template <typename TElem, typename TIntfcCom>
 void ParallelHangingNodeRefiner_MultiGrid::
 copy_marks_to_vslaves(TIntfcCom& com)
 {
@@ -535,7 +535,7 @@ copy_marks_to_vslaves(TIntfcCom& com)
 }
 
 
-template <class TLayout>
+template <typename TLayout>
 class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:

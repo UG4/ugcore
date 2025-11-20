@@ -33,7 +33,7 @@ namespace rapidxml
         // Internal character operations
     
         // Copy characters from given range to given output iterator
-        template<class OutIt, class Ch>
+        template <typename OutIt, typename Ch>
         inline OutIt copy_chars(const Ch *begin, const Ch *end, OutIt out)
         {
             while (begin != end)
@@ -43,7 +43,7 @@ namespace rapidxml
         
         // Copy characters from given range to given output iterator and expand
         // characters into references (&lt; &gt; &apos; &quot; &amp;)
-        template<class OutIt, class Ch>
+        template <typename OutIt, typename Ch>
         inline OutIt copy_and_expand_chars(const Ch *begin, const Ch *end, Ch noexpand, OutIt out)
         {
             while (begin != end)
@@ -81,7 +81,7 @@ namespace rapidxml
         }
 
         // Fill given output iterator with repetitions of the same character
-        template<class OutIt, class Ch>
+        template <typename OutIt, typename Ch>
         inline OutIt fill_chars(OutIt out, int n, Ch ch)
         {
             for (int i = 0; i < n; ++i)
@@ -90,7 +90,7 @@ namespace rapidxml
         }
 
         // Find character
-        template<class Ch, Ch ch>
+        template <typename Ch, Ch ch>
         inline bool find_char(const Ch *begin, const Ch *end)
         {
             while (begin != end)
@@ -103,11 +103,11 @@ namespace rapidxml
         // Internal printing operations
 
         // predeclaration
-        template<class OutIt, class Ch>
+        template<typename OutIt, typename Ch>
         inline OutIt print_node(OutIt out, const xml_node<Ch> *node, int flags, int indent);
         
         // Print children of the node                               
-        template<class OutIt, class Ch>
+        template<typename OutIt, typename Ch>
         inline OutIt print_children(OutIt out, const xml_node<Ch> *node, int flags, int indent)
         {
             for (xml_node<Ch> *child = node->first_node(); child; child = child->next_sibling())
@@ -116,7 +116,7 @@ namespace rapidxml
         }
 
         // Print attributes of the node
-        template<class OutIt, class Ch>
+        template<typename OutIt, typename Ch>
         inline OutIt print_attributes(OutIt out, const xml_node<Ch> *node, int flags)
         {
             for (xml_attribute<Ch> *attribute = node->first_attribute(); attribute; attribute = attribute->next_attribute())
@@ -146,7 +146,7 @@ namespace rapidxml
         }
 
         // Print data node
-        template<class OutIt, class Ch>
+        template <typename OutIt, typename Ch>
         inline OutIt print_data_node(OutIt out, const xml_node<Ch> *node, int flags, int indent)
         {
             assert(node->type() == node_data);
@@ -157,7 +157,7 @@ namespace rapidxml
         }
 
         // Print data node
-        template<class OutIt, class Ch>
+        template <typename OutIt, typename Ch>
         inline OutIt print_cdata_node(OutIt out, const xml_node<Ch> *node, int flags, int indent)
         {
             assert(node->type() == node_cdata);
@@ -180,7 +180,7 @@ namespace rapidxml
         }
 
         // Print element node
-        template<class OutIt, class Ch>
+        template <typename OutIt, typename Ch>
         inline OutIt print_element_node(OutIt out, const xml_node<Ch> *node, int flags, int indent)
         {
             assert(node->type() == node_element);
@@ -236,7 +236,7 @@ namespace rapidxml
         }
 
         // Print declaration node
-        template<class OutIt, class Ch>
+        template <typename OutIt, typename Ch>
         inline OutIt print_declaration_node(OutIt out, const xml_node<Ch> *node, int flags, int indent)
         {
             // Print declaration start
@@ -259,7 +259,7 @@ namespace rapidxml
         }
 
         // Print comment node
-        template<class OutIt, class Ch>
+        template <typename OutIt, typename Ch>
         inline OutIt print_comment_node(OutIt out, const xml_node<Ch> *node, int flags, int indent)
         {
             assert(node->type() == node_comment);
@@ -277,7 +277,7 @@ namespace rapidxml
         }
 
         // Print doctype node
-        template<class OutIt, class Ch>
+        template <typename OutIt, typename Ch>
         inline OutIt print_doctype_node(OutIt out, const xml_node<Ch> *node, int flags, int indent)
         {
             assert(node->type() == node_doctype);
@@ -299,7 +299,7 @@ namespace rapidxml
         }
 
         // Print pi node
-        template<class OutIt, class Ch>
+        template <typename OutIt, typename Ch>
         inline OutIt print_pi_node(OutIt out, const xml_node<Ch> *node, int flags, int indent)
         {
             assert(node->type() == node_pi);
@@ -316,7 +316,7 @@ namespace rapidxml
         }
 
         // Print node
-         template<class OutIt, class Ch>
+         template <typename OutIt, typename Ch>
          inline OutIt print_node(OutIt out, const xml_node<Ch> *node, int flags, int indent)
          {
              // Print proper node type
@@ -387,7 +387,7 @@ namespace rapidxml
     //! \param node Node to be printed. Pass xml_document to print entire document.
     //! \param flags Flags controlling how XML is printed.
     //! \return Output iterator pointing to position immediately after last character of printed text.
-    template<class OutIt, class Ch> 
+    template <typename OutIt, typename Ch>
     inline OutIt print(OutIt out, const xml_node<Ch> &node, int flags = 0)
     {
         return internal::print_node(out, &node, flags, 0);
@@ -400,7 +400,7 @@ namespace rapidxml
     //! \param node Node to be printed. Pass xml_document to print entire document.
     //! \param flags Flags controlling how XML is printed.
     //! \return Output stream.
-    template<class Ch> 
+    template <typename Ch>
     inline std::basic_ostream<Ch> &print(std::basic_ostream<Ch> &out, const xml_node<Ch> &node, int flags = 0)
     {
         print(std::ostream_iterator<Ch>(out), node, flags);
@@ -411,7 +411,7 @@ namespace rapidxml
     //! \param out Output stream to print to.
     //! \param node Node to be printed.
     //! \return Output stream.
-    template<class Ch> 
+    template <typename Ch>
     inline std::basic_ostream<Ch> &operator <<(std::basic_ostream<Ch> &out, const xml_node<Ch> &node)
     {
         return print(out, node);

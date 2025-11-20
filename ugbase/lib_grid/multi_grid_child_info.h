@@ -8,7 +8,7 @@
  * terms of the GNU Lesser General Public License version 3 (as published by the
  * Free Software Foundation) with the following additional attribution
  * requirements (according to LGPL/GPL v3 §7):
- * 
+ * UML_LOOK
  * (1) The following notice must be displayed in the Appropriate Legal Notices
  * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
  * 
@@ -169,11 +169,8 @@ struct MGVolumeInfo
 	inline void add_child(Volume* elem) {m_volumeChildren.push_back(elem);}
 	inline void remove_child(Vertex* elem) {m_pVrtChild = nullptr;}
 	inline void remove_child(Edge* elem) {ArraySwapWithLast(&m_edgeChildren.front(), elem, m_edgeChildren.size()); m_edgeChildren.pop_back();}
-	//{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
 	inline void remove_child(Face* elem) {ArraySwapWithLast(&m_faceChildren.front(), elem, m_faceChildren.size()); m_faceChildren.pop_back();}
-	//{m_numFaceChildren = ArrayEraseEntry(m_pFaceChild, elem, m_numFaceChildren);}
 	inline void remove_child(Volume* elem) {ArraySwapWithLast(&m_volumeChildren.front(), elem, m_volumeChildren.size()); m_volumeChildren.pop_back();}
-	//{m_numVolChildren = ArrayEraseEntry(m_pVolChild, elem, m_numVolChildren);}
 	inline void replace_child(Vertex* elem, Vertex* child) {assert(child == m_pVrtChild); m_pVrtChild = elem;}
 	inline void replace_child(Edge* elem, Edge* child) {ArrayReplaceEntry(&m_edgeChildren.front(), elem, child, m_edgeChildren.size());}
 	inline void replace_child(Face* elem, Face* child) {ArrayReplaceEntry(&m_faceChildren.front(), elem, child, m_faceChildren.size());}
@@ -202,7 +199,7 @@ private:
  * has to contain:
  * 	- type definition info_type
  */
-template <class TElem> class mginfo_traits{};
+template <typename TElem> class mginfo_traits{};
 
 ///	vertex info traits. used internally.
 template <> class mginfo_traits<Vertex>

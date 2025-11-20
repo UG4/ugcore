@@ -34,7 +34,7 @@
 
 namespace ug{
 
-template <class TAAPos>
+template <typename TAAPos>
 DelaunayInfo<TAAPos>::
 DelaunayInfo(Grid& g, TAAPos& aaPos,
 			 Grid::edge_traits::callback cbConstrainedEdge)
@@ -58,7 +58,7 @@ DelaunayInfo(Grid& g, TAAPos& aaPos,
 	g.register_observer(this, OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER | OT_FACE_OBSERVER);
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 DelaunayInfo<TAAPos>::
 ~DelaunayInfo()
 {
@@ -71,7 +71,7 @@ DelaunayInfo<TAAPos>::
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 void DelaunayInfo<TAAPos>::
 set_mark(Face* f, typename DelaunayInfo<TAAPos>::Mark mark)
 {
@@ -103,7 +103,7 @@ set_mark(Face* f, typename DelaunayInfo<TAAPos>::Mark mark)
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 bool DelaunayInfo<TAAPos>::
 is_dart_segment(Edge* e)
 {
@@ -111,7 +111,7 @@ is_dart_segment(Edge* e)
 	return is_segment(e) && (mark(vrts[0]) == DART || mark(vrts[1]) == DART);
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 bool DelaunayInfo<TAAPos>::
 is_new_dart_segment(Edge* e)
 {
@@ -120,7 +120,7 @@ is_new_dart_segment(Edge* e)
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 bool DelaunayInfo<TAAPos>::
 is_dart_shell_segment(Edge* e)
 {
@@ -131,7 +131,7 @@ is_dart_shell_segment(Edge* e)
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 void DelaunayInfo<TAAPos>::
 push_candidate(Edge* e)
 {
@@ -142,7 +142,7 @@ push_candidate(Edge* e)
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 Edge* DelaunayInfo<TAAPos>::
 pop_candidate()
 {
@@ -152,7 +152,7 @@ pop_candidate()
 	return e;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 void DelaunayInfo<TAAPos>::
 start_candidate_recording()
 {
@@ -162,7 +162,7 @@ start_candidate_recording()
 	m_candidateRecordingEnabled = true;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 void DelaunayInfo<TAAPos>::
 stop_candidate_recording()
 {
@@ -178,7 +178,7 @@ stop_candidate_recording()
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 void DelaunayInfo<TAAPos>::
 enable_face_classification(number minAngle)
 {
@@ -231,7 +231,7 @@ enable_face_classification(number minAngle)
 	m_minAngle = minAngle;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 bool DelaunayInfo<TAAPos>::
 classified_faces_left()
 {
@@ -249,7 +249,7 @@ classified_faces_left()
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 Face* DelaunayInfo<TAAPos>::
 pop_classified_face()
 {
@@ -273,7 +273,7 @@ pop_classified_face()
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 bool DelaunayInfo<TAAPos>::
 is_classified(Face* f)
 {
@@ -284,7 +284,7 @@ is_classified(Face* f)
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 bool DelaunayInfo<TAAPos>::
 is_classifiable(Face* f)
 {
@@ -327,7 +327,7 @@ is_classifiable(Face* f)
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 bool DelaunayInfo<TAAPos>::
 classify_face(Face* f)
 {
@@ -444,7 +444,7 @@ classify_face(Face* f)
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 void DelaunayInfo<TAAPos>::
 vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent, bool replacesParent)
 {
@@ -458,7 +458,7 @@ vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent, bool replacesParent
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 void DelaunayInfo<TAAPos>::
 edge_created(Grid* grid, Edge* e, GridObject* pParent, bool replacesParent)
 {
@@ -475,7 +475,7 @@ edge_created(Grid* grid, Edge* e, GridObject* pParent, bool replacesParent)
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 void DelaunayInfo<TAAPos>::
 face_created(Grid* grid, Face* f, GridObject* pParent, bool replacesParent)
 {
@@ -487,7 +487,7 @@ face_created(Grid* grid, Face* f, GridObject* pParent, bool replacesParent)
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 void DelaunayInfo<TAAPos>::
 edge_to_be_erased(Grid* grid, Edge* e, Edge* replacedBy)
 {
@@ -504,7 +504,7 @@ edge_to_be_erased(Grid* grid, Edge* e, Edge* replacedBy)
 	}
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 void DelaunayInfo<TAAPos>::
 face_to_be_erased(Grid* grid, Face* f, Face* replacedBy)
 {

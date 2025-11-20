@@ -43,7 +43,7 @@
 namespace ug
 {
 
-template <class face_iter_t>
+template <typename face_iter_t>
 void GetInnerEdgesOfFaceSoup(
 			std::vector<Edge*>& edgesOut,
 			Grid& g,
@@ -69,14 +69,14 @@ void GetInnerEdgesOfFaceSoup(
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 inline number EdgeLengthSq(const EdgeVertices* e, TAAPosVRT& aaPos)
 {
 	return VecDistanceSq(aaPos[e->vertex(0)], aaPos[e->vertex(1)]);
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 inline number EdgeLength(const EdgeVertices* e, TAAPosVRT& aaPos)
 {
 	return VecDistance(aaPos[e->vertex(0)], aaPos[e->vertex(1)]);
@@ -85,7 +85,7 @@ inline number EdgeLength(const EdgeVertices* e, TAAPosVRT& aaPos)
 ////////////////////////////////////////////////////////////////////////
 //	SplitEdge
 //	see edge_operations.h for detailed description
-template<class TVertex>
+template<typename TVertex>
 TVertex* SplitEdge(Grid& grid, Edge* e, bool bConservative)
 {
 	return SplitEdge<TVertex>(grid, grid, e, nullptr, bConservative);
@@ -94,7 +94,7 @@ TVertex* SplitEdge(Grid& grid, Edge* e, bool bConservative)
 ////////////////////////////////////////////////////////////////////////
 //	SplitEdge
 //	see edge_operations.h for detailed description
-template<class TVertex>
+template<typename TVertex>
 TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
 						AVertex* paAssociatedVertices,
 						bool bConservative)
@@ -154,7 +154,7 @@ TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
 	return nullptr;
 }
 
-template<class TVertexPositionAttachmentAccessor>
+template<typename TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const Edge* e, TVertexPositionAttachmentAccessor& aaPosVRT)
 {
@@ -172,7 +172,7 @@ CalculateCenter(const Edge* e, TVertexPositionAttachmentAccessor& aaPosVRT)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template<class TAAPosVRT, class TAAWeightVRT>
+template<typename TAAPosVRT, typename TAAWeightVRT>
 UG_API
 typename TAAPosVRT::ValueType
 CalculateCenter(const EdgeVertices* e, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
@@ -195,7 +195,7 @@ CalculateCenter(const EdgeVertices* e, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
 	return v;
 }
 
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						TEdgeIterator edgesEnd)
 {
@@ -251,7 +251,7 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 }
 
 
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 UG_API
 void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						   	   	   	   	    TEdgeIterator edgesEnd)
@@ -270,7 +270,7 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
 	}
 }
 
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 UG_API
 void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						   	   	   	   	    TEdgeIterator edgesEnd,
@@ -300,7 +300,7 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
 }
 
 
-template <class TEdgeIterator, class TAAPosVRT>
+template <typename TEdgeIterator, typename TAAPosVRT>
 Edge* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 							TAAPosVRT& aaPos)
 {
@@ -328,7 +328,7 @@ Edge* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 }
 
 
-template <class TEdgeIterator, class TAAPosVRT>
+template <typename TEdgeIterator, typename TAAPosVRT>
 Edge* FindLongestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 							TAAPosVRT& aaPos)
 {
@@ -355,7 +355,7 @@ Edge* FindLongestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 	return longestEdge;
 }
 // ////////////////////////////////////////////////////////////////////////////////
-// template <class TEdgeIterator>
+// template <typename TEdgeIterator>
 // void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd)
 // {
 // //	iterate over all edges and check whether both associated vertices are already
@@ -415,7 +415,7 @@ Edge* FindLongestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 // }
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class EdgeIterator, class TAAPos>
+template <typename EdgeIterator, typename TAAPos>
 void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 								  EdgeIterator edgesEnd, TAAPos& aaPos)
 {
@@ -508,7 +508,7 @@ void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class vector_t, class TAAPos>
+template <typename vector_t, typename TAAPos>
 UG_API bool
 ContainsPoint(const EdgeVertices* e, const vector_t& p, TAAPos aaPos)
 {
@@ -519,7 +519,7 @@ ContainsPoint(const EdgeVertices* e, const vector_t& p, TAAPos aaPos)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateAverageEdgeLength(Grid& grid, TAAPosVRT& aaPos)
 {
 	ConstEdgeIterator eit = grid.begin<Edge>();

@@ -48,7 +48,7 @@
 
 #define NAE_APPEND
 //	serializes data from a vector<bool> into a binary stream
-/*template <class TOStream>
+/*template <typename TOStream>
 void Serialize(TOStream& buf, const std::vector<bool>& vec)
 {
 	size_t size = vec.size();
@@ -74,7 +74,7 @@ void Serialize(TOStream& buf, const std::vector<bool>& vec)
 }
 
 ///	deserializes data from a binary stream into a vector<bool>
-template <class TIStream>
+template <typename TIStream>
 void Deserialize(TIStream& buf, std::vector<bool> &vec)
 {
 	size_t size = 0;
@@ -117,9 +117,9 @@ private:
 public:
 	struct OverlapType
 	{
-#define OT_SLAVE_FLAG 4
-#define OT_MASTER_FLAG 2
-#define OT_INNER_FLAG 1
+		static constexpr int OT_SLAVE_FLAG = 4;
+		static constexpr int OT_MASTER_FLAG = 2;
+		static constexpr int OT_INNER_FLAG = 1;
 
 		enum eOverlapType
 		{
@@ -202,7 +202,7 @@ private:
 	 */
 	struct NewSlaveNotification
 	{
-		NewSlaveNotification() : id() {}
+		NewSlaveNotification() = default;
 		NewSlaveNotification(const AlgebraID &_id, int _newSlaveOnPID)
 		{
 			id = _id;

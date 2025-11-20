@@ -85,26 +85,26 @@ class RevisionCounter
 		}
 
 	///	compare two states
-		bool operator==(const RevisionCounter& rhs) const{
+		bool operator == (const RevisionCounter& rhs) const{
 			if(invalid() || rhs.invalid()) return false;
 			if(m_pObj != rhs.m_pObj) return false;
 			return (m_cnt == rhs.m_cnt);
 		}
 
 	///	compare two states
-		bool operator!=(const RevisionCounter& rhs) const{
+		bool operator != (const RevisionCounter& rhs) const{
 			return !((*this) == rhs);
 		}
 
 	///	compare two states
-		bool operator<(const RevisionCounter& rhs) const{
+		bool operator < (const RevisionCounter& rhs) const{
 			if(m_pObj != rhs.m_pObj) return m_pObj < rhs.m_pObj;
 			if(m_cnt != rhs.m_cnt) return m_cnt < rhs.m_cnt;
 			return false;
 		}
 
 	///	compare two states
-		bool operator>(const RevisionCounter& rhs) const{
+		bool operator > (const RevisionCounter& rhs) const{
 			if(m_pObj != rhs.m_pObj) return m_pObj > rhs.m_pObj;
 			if(m_cnt != rhs.m_cnt) return m_cnt > rhs.m_cnt;
 			return false;

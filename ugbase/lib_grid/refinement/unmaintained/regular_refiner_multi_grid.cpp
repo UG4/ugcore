@@ -166,7 +166,7 @@ perform_refinement () {
 //	clean-up
 }
 
-template <class TElem>
+template <typename TElem>
 void RegularRefiner_MultiGrid::
 adjust_side_states (
 	size_t lvl,
@@ -202,7 +202,7 @@ adjust_side_states (
 	}lg_end_for;
 }
 
-template <class TElem>
+template <typename TElem>
 void RegularRefiner_MultiGrid::
 copy_state_to_sides (
 	size_t lvl,
@@ -233,7 +233,7 @@ copy_state_to_sides (
 	}lg_end_for;
 }
 
-template <class TSide>
+template <typename TSide>
 void RegularRefiner_MultiGrid::
 adjust_side_of_states (
 	size_t lvl,
@@ -266,7 +266,7 @@ adjust_side_of_states (
 	}lg_end_for;
 }
 
-template <class TElem>
+template <typename TElem>
 void RegularRefiner_MultiGrid::
 clear_dummies () {
 	for(size_t lvl = 0; lvl < m_marks.num_levels(); ++lvl){
@@ -277,7 +277,7 @@ clear_dummies () {
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 void RegularRefiner_MultiGrid::
 mark_by_level_discrepancy (int lvl, Grid::VertexAttachmentAccessor<AInt> aaLvl)
 {

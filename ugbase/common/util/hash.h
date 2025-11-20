@@ -43,7 +43,7 @@ namespace ug{
 ///	An associative container for key-value pairs, which provides fast access using hash-keys
 /**	\addtogroup ugbase_common_util
  */
-template <class TKey, class TValue>
+template <typename TKey, typename TValue>
 class Hash
 {
 	private:

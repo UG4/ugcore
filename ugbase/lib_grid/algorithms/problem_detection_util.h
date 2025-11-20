@@ -50,7 +50,7 @@ UG_API int IsSliver(const vector3& v0, const vector3& v1, const vector3& v2,
 
 ///	Searchs for slivers in the given list of elements.
 /**	Slivers are flat tetrahedrons. Only tetrahedral elements will be regarded!*/
-template <class TIter, class TAAPos>
+template <typename TIter, typename TAAPos>
 size_t FindSlivers(std::vector<typename TIter::value_type>& sliversOut,
 				 TIter elemsBegin, TIter elemsEnd, number thresholdRatio,
 				 TAAPos aaPos, bool clearContainer = true);
@@ -64,4 +64,4 @@ bool CheckForUnconnectedSides(Grid& grid);
 //	include implementation
 #include "problem_detection_util_impl.h"
 
-#endif	//__H__problem_detection_util
+#endif

@@ -47,4 +47,4 @@ bool SaveGridTo2DF(Grid& grid, const char* filename, ISubsetHandler* psh, AVecto
 
 }//	end of namespace
 
-#endif	//__H__UG_file_io_2df
+#endif

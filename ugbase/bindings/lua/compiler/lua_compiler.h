@@ -104,5 +104,4 @@ public:
 
 }
 }
-#endif	/* __LUACompiler_H__ */
-
+#endif

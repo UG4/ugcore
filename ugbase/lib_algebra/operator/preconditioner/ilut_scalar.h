@@ -68,7 +68,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 		{};
 
 	/// clone constructor
-		ILUTScalarPreconditioner( const ILUTScalarPreconditioner<TAlgebra> &parent )
+		ILUTScalarPreconditioner( const ILUTScalarPreconditioner &parent )
 			: base_type(parent)
 		{
 			m_eps = parent.m_eps;
@@ -78,18 +78,15 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			return make_sp(new ILUTScalarPreconditioner<algebra_type>(*this));
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			return make_sp(new ILUTScalarPreconditioner(*this));
 		}
 
 	// 	Destructor
-		virtual ~ILUTScalarPreconditioner()
-		{
-		};
+		~ILUTScalarPreconditioner() override = default;
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const {return true;}
+		bool supports_parallel() const override {return true;}
 
 	///	sets threshold for incomplete LU factorisation (added 01122010ih)
 		void set_threshold(number thresh)
@@ -148,7 +145,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 
 			m_size = GetDoubleSparseFromBlockSparse(mat, A);
 
-			SmartPtr<StdConvCheck<CPUAlgebra::vector_type> > convCheck(new StdConvCheck<CPUAlgebra::vector_type>);
+			SmartPtr convCheck(new StdConvCheck<CPUAlgebra::vector_type>);
 			convCheck->set_maximum_steps(100);
 			convCheck->set_minimum_defect(1e-50);
 			convCheck->set_reduction(1e-20);
@@ -160,12 +157,11 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 		}
 	protected:
 	//	Name of preconditioner
-		virtual const char* name() const {return "ILUTScalar";}
+		const char* name() const override {return "ILUTScalar";}
 
 
 	//	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
 			matrix_type &A = *pOp;
 			preprocess(A);
 
@@ -191,8 +187,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 	//	Stepping routine
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
-		{
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
 #ifdef UG_PARALLEL
 			SmartPtr<vector_type> spDtmp = d.clone();
 			spDtmp->change_storage_type(PST_UNIQUE);
@@ -255,8 +250,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 	public:
-		virtual std::string config_string() const
-		{
+		std::string config_string() const override {
 			std::stringstream ss ; ss << "ILUTScalar(threshold = " << m_eps << ", sort = " << (m_bSort?"true":"false") << ")";
 			if(m_eps == 0.0) ss << " = Sparse LU";
 			return ss.str();
@@ -264,7 +258,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 
 	protected:
 	//	Postprocess routine
-		virtual bool postprocess() {return true;}
+		bool postprocess() override {return true;}
 
 protected:
 	SmartPtr<ILUTPreconditioner<CPUAlgebra> > ilut;

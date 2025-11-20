@@ -69,13 +69,13 @@ enum ObjectCode
 class Object
 {
 	public:
-		virtual ~Object()	{}
+		virtual ~Object()  = default;
 
 		inline unsigned int getObjectCode()	{return m_objectCode;}
 
 	protected:
-		Object()	{};
-		Object(const Object& obj)	{};
+		Object() = default;
+		Object(const Object& obj) {};
 
 	protected:
 		unsigned int m_objectCode;

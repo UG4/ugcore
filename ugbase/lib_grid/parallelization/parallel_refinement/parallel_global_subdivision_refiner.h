@@ -44,7 +44,7 @@ namespace ug
 /// @{
 
 ///	Adds parallel support to GlobalSubdivisionMultiGridRefiner
-template <class TAPosition>
+template <typename TAPosition>
 class ParallelGlobalSubdivisionRefiner : public TParallelGlobalRefiner<GlobalSubdivisionMultiGridRefiner<TAPosition> >
 {
 	public:
@@ -60,5 +60,6 @@ class ParallelGlobalSubdivisionRefiner : public TParallelGlobalRefiner<GlobalSub
 /// @}
 }//	end of namespace
 
+#include "parallel_global_subdivision_refiner_impl.h"
 
 #endif

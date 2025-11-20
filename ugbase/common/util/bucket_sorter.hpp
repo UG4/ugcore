@@ -42,8 +42,7 @@
 
 namespace boost {
 
-  template <class BucketType, class ValueType, class Bucket, 
-            class ValueIndexMap>
+  template <typename BucketType, typename ValueType, typename Bucket,  typename ValueIndexMap>
   class bucket_sorter {
   public:
     using bucket_type = BucketType;
@@ -141,7 +140,7 @@ namespace boost {
     
   public:
 
-    template<class Iter_, class IndexValueMap_>
+    template<typename Iter_, typename IndexValueMap_>
     class stack_ {
     public:
       using base = bucket_sorter;
@@ -159,19 +158,19 @@ namespace boost {
            : s(p.s), b(p.b) {untested();}
         ~const_iterator(){}
       public:
-        const_iterator& operator=(const const_iterator& o){
+        const_iterator& operator = (const const_iterator& o){
           assert(&s==&o.s); // how to compile time check?!
                             // or just fallback to pointer?
           b = o.b;
           return *this;
         }
-        const_iterator& operator=(const const_iterator&& o){
+        const_iterator& operator = (const const_iterator&& o){
           assert(&s==&o.s); // how to compile time check?!
                             // or just fallback to pointer?
           b = o.b;
           return *this;
         }
-        value_type operator*() const{
+        value_type operator * () const{
           assert(b<s.size());
           return s.value[b];
         }
@@ -181,10 +180,10 @@ namespace boost {
           b = s.next[b];
           return *this;
         }
-        bool operator!=(const_iterator const& o){
+        bool operator != (const_iterator const& o){
           return o.b!=b;
         }
-        bool operator==(const_iterator const& o)
+        bool operator == (const_iterator const& o)
         { return o.b==b; }
       private:
         stack_ const& s;
@@ -202,7 +201,7 @@ namespace boost {
       {untested();
       }
 
-      stack_& operator=(const stack_& p) {
+      stack_& operator = (const stack_& p) {
         bucket_id = p.bucket_id;
         head = p.head;
         next = p.next;
@@ -327,12 +326,12 @@ namespace boost {
     using stack = stack_<Iter, IndexValueMap>;
     using const_stack = stack_<ConstIter, ConstIndexValueMap>;
     
-    const_stack operator[](const bucket_type& i) const{
+    const_stack operator [] (const bucket_type& i) const{
       assert(i < next.size());
       return const_stack(i, head, next.begin(), prev.begin(), tail,
                    id_to_value.begin(), id);
     }
-    stack operator[](const bucket_type& i) {
+    stack operator [] (const bucket_type& i) {
       assert(i < next.size());
       return stack(i, head, next.begin(), prev.begin(), tail,
                    id_to_value.begin(), id);

@@ -54,7 +54,7 @@ int GetAssociatedInterfaceType(int interfaceType)
 	}
 }
 
-template <class TElem, class TAVrtPos>
+template <typename TElem, typename TAVrtPos>
 class ToElementPosition
 {
 	public:
@@ -66,17 +66,17 @@ class ToElementPosition
 				m_aaPos.access(g, aPos);
 		}
 
-		TValue operator() (Vertex* e)	{return m_aaPos[e];}
-		TValue operator() (Edge* e)		{return CalculateCenter(e, m_aaPos);}
-		TValue operator() (Face* e)			{return CalculateCenter(e, m_aaPos);}
-		TValue operator() (Volume* e)		{return CalculateCenter(e, m_aaPos);}
+		TValue operator () (Vertex* e)	{return m_aaPos[e];}
+		TValue operator () (Edge* e)		{return CalculateCenter(e, m_aaPos);}
+		TValue operator () (Face* e)			{return CalculateCenter(e, m_aaPos);}
+		TValue operator () (Volume* e)		{return CalculateCenter(e, m_aaPos);}
 
 	private:
 		Grid::VertexAttachmentAccessor<TAVrtPos>	m_aaPos;
 };
 
 
-template <class TAPos>
+template <typename TAPos>
 bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos, bool verbose = true)
 {
 	using TValue = typename TAPos::ValueType;

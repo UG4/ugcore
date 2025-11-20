@@ -41,7 +41,7 @@ namespace ug
 {
 
 ///	Visits all elements between begin and end and executes the visitorCallback on them
-template <class TIter>
+template <typename TIter>
 void VisitAll(const TIter begin, const TIter end,
 			  boost::function<void (typename TIter::value_type)> visitorCallback)
 {
@@ -68,7 +68,7 @@ void VisitAll(const TIter begin, const TIter end,
  * 'void (TElem::side*)'. This callback is executed for all sides of the
  * given area.
  */
-template <class TIter>
+template <typename TIter>
 void VisitAreaBoundary(Grid& g, const TIter begin, const TIter end,
 		      boost::function<bool (typename TIter::value_type)> cbBelongsToArea,
 			  boost::function<void (typename Pointer2Value<typename TIter::value_type>::type::side)> cbVisitSide)

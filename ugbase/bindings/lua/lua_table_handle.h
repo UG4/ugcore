@@ -59,8 +59,8 @@ public:
 	Variant get(std::string const& key) const;
 	Variant get(int const& key) const;
 
-	LuaTableHandle& operator=(LuaTableHandle const&);
-	LuaTableHandle& operator=(LuaTableHandle&&);
+	LuaTableHandle& operator = (LuaTableHandle const&);
+	LuaTableHandle& operator = (LuaTableHandle&&);
 
 private:
 	impl::LuaTableHandle_* _data;

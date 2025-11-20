@@ -94,19 +94,21 @@ class NestedIterationSolver
 	///	constructor
 		NestedIterationSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver);
 
+		~NestedIterationSolver() override = default;
+
 	///	sets the linear solver (this should be a fixed number of multi-grid cycles )
 		void set_linear_solver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver) {m_spLinearSolver = LinearSolver;}
 
 	/** @name IOperatorInverse interface*/
 	///@{
 	/// This operator inverts the Operator N: Y -> X
-		virtual bool init(SmartPtr<IOperator<vector_type> > N);
+		bool init(SmartPtr<IOperator<vector_type> > N) override;
 
 	/// prepare Operator
-		virtual bool prepare(vector_type& u);
+		bool prepare(vector_type& u) override;
 
 	/// apply Operator, i.e. N^{-1}(0) = u
-		virtual bool apply(vector_type& u);
+		bool apply(vector_type& u) override;
 	///@}
 
 
@@ -118,7 +120,7 @@ class NestedIterationSolver
 		 * \returns std::string	necessary information about configuration parameters
 		 */
 
-		virtual std::string config_string() const;
+		std::string config_string() const override;
 
 
 
@@ -129,12 +131,12 @@ class NestedIterationSolver
 	///@{
 
 	//! getter/setter for top level
-		int top_level() const			{return m_topLevel;}
-		void set_top_level(int lev) 	{ m_topLevel = lev;}
+		int top_level() const {return m_topLevel;}
+		void set_top_level(int lev) { m_topLevel = lev;}
 
 	//! getter/setter for base level
-		int base_level() const			{return m_baseLevel;}
-		void set_base_level(int lev) 	{ m_baseLevel = lev;}
+		int base_level() const {return m_baseLevel;}
+		void set_base_level(int lev) { m_baseLevel = lev;}
 
 	//! set grid refiner
 		void set_refiner(SmartPtr<IRefiner> r) {m_spRefiner =r; }

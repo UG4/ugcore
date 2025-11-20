@@ -233,7 +233,7 @@ class UG_API ISubsetHandler : public GridObserver
 		using VolumeAttachmentPipe = AttachmentPipe<Volume*, ISubsetHandler>;*/
 
 	///	The traits class holds some important types for each element-type
-		template <class TElem>
+		template <typename TElem>
 		struct traits {
 			using iterator = typename geometry_traits<TElem>::iterator;
 			using const_iterator = typename geometry_traits<TElem>::const_iterator;
@@ -353,7 +353,7 @@ class UG_API ISubsetHandler : public GridObserver
 	///	Joins two subsets into a new one. Optionally erases the old subsets, if they are no longer used.
 		void join_subsets(int targetSub, int sub1, int sub2, bool eraseUnusedSubs);
 
-		template <class TIterator>
+		template <typename TIterator>
 		void assign_subset(TIterator iterBegin, TIterator iterEnd, int subsetIndex);
 
 		int get_subset_index(GridObject* elem) const;
@@ -505,18 +505,18 @@ class UG_API ISubsetHandler : public GridObserver
 */
 	///	attach with unspecified default value.
 	/**	Pass either Vertex, Edge, Face or Volume as TGeomObjClass.*/
-		/*template <class TGeomObjClass>
+		/*template <typename TGeomObjClass>
 		inline void attach_to(IAttachment& attachment, int subsetIndex);
 */
 	///	attach with specified default value
 	/**	Pass either Vertex, Edge, Face or Volume as TGeomObjClass.*/
-		/*template <class TGeomObjClass, class TAttachment>
+		/*template <typename TGeomObjClass, typename TAttachment>
 		void attach_to_dv(TAttachment& attachment, int subsetIndex,
 						const typename TAttachment::ValueType& defaultValue);
 */
 	//	detach
 	/**	Pass either Vertex, Edge, Face or Volume as TGeomObjClass.*/
-		/*template <class TGeomObjClass>
+		/*template <typename TGeomObjClass>
 		void detach_from(IAttachment& attachment, int subsetIndex);
 */
 	////////////////////////////////
@@ -528,13 +528,13 @@ class UG_API ISubsetHandler : public GridObserver
 		inline void attach_to_volumes(IAttachment& attachment, int subsetIndex)		{attach_to<Volume>(attachment, subsetIndex);}
 */
 	//	attach with default value and attachments default pass-on behaviour
-		/*template <class TAttachment>
+		/*template <typename TAttachment>
 		inline void attach_to_vertices_dv(TAttachment& attachment, int subsetIndex, const typename TAttachment::ValueType& defaultValue)	{attach_to_dv<Vertex>(attachment, subsetIndex, defaultValue);}
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_edges_dv(TAttachment& attachment, int subsetIndex, const typename TAttachment::ValueType& defaultValue)		{attach_to_dv<Edge>(attachment, subsetIndex, defaultValue);}
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_faces_dv(TAttachment& attachment, int subsetIndex, const typename TAttachment::ValueType& defaultValue)		{attach_to_dv<Face>(attachment, subsetIndex, defaultValue);}
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_volumes_dv(TAttachment& attachment, int subsetIndex, const typename TAttachment::ValueType& defaultValue)		{attach_to_dv<Volume>(attachment, subsetIndex, defaultValue);}
 */
 	//	detach
@@ -549,7 +549,7 @@ class UG_API ISubsetHandler : public GridObserver
 	 *	Valid types for TGeomObj are Vertex, Edge, Face and Volume.
 	 *	call it like this (let sh be an instance of ISubsetHandler):
 	 *	sh.get_attachment_data_container<Vertex>(aSomeAttachment, someSubsetIndex);*/
-		/*template <class TGeomObj, class TAttachment>
+		/*template <typename TGeomObj, typename TAttachment>
 		inline typename TAttachment::ContainerType*
 		get_attachment_data_container(TAttachment& attachment, int subsetIndex);
 */
@@ -637,7 +637,7 @@ class UG_API ISubsetHandler : public GridObserver
 		virtual void join_subset_lists(int target, int src1, int src2) = 0;
 
 	///	helper for GridObserver callbacks.
-		template <class TElem>
+		template <typename TElem>
 		void elems_to_be_merged(Grid* grid, TElem* target,
 								TElem* elem1, TElem* elem2);
 
@@ -652,7 +652,7 @@ class UG_API ISubsetHandler : public GridObserver
 		void clear_attachment_pipes(int subsetIndex);
 		void clear_attachment_pipes();
 
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		inline AttachmentPipe<TGeomObj*, ISubsetHandler>&
 		get_attachment_pipe(int subsetIndex);
 */
@@ -693,7 +693,7 @@ class UG_API ISubsetHandler : public GridObserver
 	public:
 	///	attachment accessor grants access to data associated with elements of a subset.
 	/**	Valid types for TGeomObj are Vertex, Edge, Face and Volume*/
-		/*template <class TGeomObj, class TAttachment>
+		/*template <typename TGeomObj, typename TAttachment>
 		class AttachmentAccessor : public ug::AttachmentAccessor<TGeomObj*, TAttachment, ISubsetHandler>
 		{
 			protected:
@@ -715,7 +715,7 @@ class UG_API ISubsetHandler : public GridObserver
 	 *	you should not rely on the accessor to still work properly.
 	 *	Call access() in that case to re-validate him.*/
 /*
-		template <class TAttachmet, class TGeomBaseObj>
+		template <typename TAttachmet, typename TGeomBaseObj>
 		class MultiSubsetAttachmentAccessor
 		{
 		//TODO: implement this!

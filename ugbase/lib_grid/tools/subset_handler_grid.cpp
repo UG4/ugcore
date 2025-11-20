@@ -140,13 +140,13 @@ void GridSubsetHandler::detach_data()
 
 GridSubsetHandler& GridSubsetHandler::operator = (const GridSubsetHandler& sh)
 {
-	ISubsetHandler::operator =(sh);
+	ISubsetHandler::operator = (sh);
 	return *this;
 }
 
 GridSubsetHandler& GridSubsetHandler::operator = (const ISubsetHandler& sh)
 {
-	ISubsetHandler::operator =(sh);
+	ISubsetHandler::operator = (sh);
 	return *this;
 }
 
@@ -174,7 +174,7 @@ void GridSubsetHandler::clear_subset_lists(int index)
 	}
 }
 
-template<class TElem>
+template <typename TElem>
 void
 GridSubsetHandler::
 assign_subset_impl(TElem* elem, int subsetIndex)
@@ -410,7 +410,7 @@ collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const
 	return collect_subset_elements_impl(volsOut, subsetIndex);
 }
 
-template <class TElem>
+template <typename TElem>
 size_t GridSubsetHandler::
 collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const
 {

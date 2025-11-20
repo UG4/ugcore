@@ -47,7 +47,7 @@ if (DEBUG)
 		message (WARNING "CMAKE_BUILD_TYPE type set to MinSizeRel, but DEBUG build wanted.")
 	endif ()
 	
-	# This code would enable strict bounds checking for STL objects like in vector::operator[]. 
+	# This code would enable strict bounds checking for STL objects like in vector::operator [] .
 	# however, GLIBCXX_DEBUG and strstream don't work together on mac (bug: http://bit.ly/cH78bC). 
 	# when this bug is fixed, one could set those flags (or similar) depending on the compiler.
 	

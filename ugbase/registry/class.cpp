@@ -77,7 +77,7 @@ bool ExportedConstructor::check_consistency(std::string classname) const
 			{
 				bUndeclaredParameterFound = true;
 				UG_ERR_LOG("#### Registry ERROR: Unregistered Class used in ");
-				UG_ERR_LOG("Constructor of class "<<classname.c_str());
+				UG_ERR_LOG("Constructor of class " << classname.c_str());
 				UG_ERR_LOG("': Parameter " << j+1);
 			}
 			else

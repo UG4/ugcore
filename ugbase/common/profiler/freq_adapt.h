@@ -91,10 +91,10 @@ class FreqAdaptValues {
 
 	private:
 	// disallow constructor, destructor; copy and assignment (intentionally left unimplemented)
-		FreqAdaptValues() {};
+		FreqAdaptValues() = default;
 		FreqAdaptValues(const FreqAdaptValues&);
-		FreqAdaptValues& operator=(const FreqAdaptValues&);
-		~FreqAdaptValues() {};
+		FreqAdaptValues& operator = (const FreqAdaptValues&);
+		~FreqAdaptValues() = default;
 
 	// 	Singleton provider
 		static FreqAdaptValues& inst();

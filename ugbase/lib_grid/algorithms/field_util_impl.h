@@ -39,7 +39,7 @@
 
 namespace ug{
 
-template <class T>
+template <typename T>
 void BlurField(Field<T>& field, number alpha, size_t numIterations, const T& noDataValue)
 {
 	using namespace std;
@@ -70,7 +70,7 @@ void BlurField(Field<T>& field, number alpha, size_t numIterations, const T& noD
 }	
 
 namespace fieldutil{
-template <class T>
+template <typename T>
 struct Cell{
 	Cell(int _x, int _y, T _val) : x(_x), y(_y), value(_val) {}
 	int x;
@@ -79,7 +79,7 @@ struct Cell{
 };
 }
 
-template <class T>
+template <typename T>
 bool EliminateInvalidCells(Field<T>& field, const T& noDataValue)
 {
 	using namespace std;
@@ -218,7 +218,7 @@ bool EliminateInvalidCells(Field<T>& field, const T& noDataValue)
 }
 
 
-template <class T>
+template <typename T>
 void InvalidateSmallLenses(Field<T>& field, size_t thresholdCellCount,
 						   const T& noDataValue)
 {
@@ -281,4 +281,4 @@ void InvalidateSmallLenses(Field<T>& field, size_t thresholdCellCount,
 
 }//	end of namespace
 
-#endif	//__H__UG_field_util_impl
+#endif

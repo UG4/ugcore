@@ -125,5 +125,4 @@ void initClasses(ug::bridge::Registry &reg);
 } // vrl::
 } // ug::
 
-#endif	/* INVOKATION_H */
-
+#endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2012:  G-CSC, Goethe University Frankfurt
  * Author: Martin Rupp
  * 
  * This file is part of UG4.
@@ -30,28 +30,9 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef UTIL_H_
-#define UTIL_H_
-
-#include "common/util/typename.h"
-
-namespace ug{
-
-template<typename TTo, typename TFrom>
-TTo &DownCast(const TTo &pfrom, TFrom &p)
-{
-	TTo *t = dynamic_cast<TTo*>(&p);
-	UG_ASSERT(t, "could not downcast " << TypeName(pfrom) << " to " << TypeName(p));
-	return *t;
-}
-
-template<typename TTo, typename TFrom>
-TTo &DownCast(const TTo &pfrom, const TFrom &p)
-{
-	const TTo *t = dynamic_cast<const TTo*>(&p);
-	UG_ASSERT(t, "could not downcast " << TypeName(pfrom) << " to " << TypeName(p));
-	return *t;
-}
-
-}
+// i'm working on a new graph class, see new_graph.h
+#if 1
+#include "old_graph.h"
+#else
+#include "new_graph.h"
 #endif

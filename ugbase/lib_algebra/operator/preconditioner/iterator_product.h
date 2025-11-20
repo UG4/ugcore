@@ -48,7 +48,7 @@ template <typename X, typename Y>
 class CombinedLinearIterator : public ILinearIterator<X,Y>
 {
 	public:
-		CombinedLinearIterator() {};
+		CombinedLinearIterator() = default;
 
 		CombinedLinearIterator(const std::vector<SmartPtr<ILinearIterator<X,Y> > >& vIterator)
 			: m_vIterator(vIterator)

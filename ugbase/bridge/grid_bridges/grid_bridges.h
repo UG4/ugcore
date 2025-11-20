@@ -52,4 +52,4 @@ void RegisterGridBridge_Misc(Registry& reg, std::string parentGroup);
 }//	end of namespace	
 }//	end of namespace
 
-#endif	//__H__UG_grid_bridges
+#endif

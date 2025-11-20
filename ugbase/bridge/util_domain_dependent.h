@@ -137,5 +137,4 @@ void RegisterDomain2d3dDependent(Registry& reg, std::string grp)
 } // namespace bridge
 } // namespace ug
 
-#endif	/* UTIL_DOMAIN_DEPENDENT_H */
-
+#endif

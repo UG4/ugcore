@@ -37,13 +37,13 @@
 
 namespace ug{
 
-template <class vector_t>
+template <typename vector_t>
 bool Sphere<vector_t>::contains_point(const vector_t& p) const
 {
 	return VecDistanceSq(center, p) <= sq(radius);
 }
 
-template <class vector_t>
+template <typename vector_t>
 bool Sphere<vector_t>::intersects(const Sphere& sphere) const
 {
 	return VecDistanceSq(center, sphere.center)
@@ -52,7 +52,7 @@ bool Sphere<vector_t>::intersects(const Sphere& sphere) const
 
 
 
-template <class vector_t>
+template <typename vector_t>
 AABox<vector_t>::AABox(const vector_t* points, size_t numPoints)
 {
 	if(numPoints < 1){
@@ -72,7 +72,7 @@ AABox<vector_t>::AABox(const vector_t* points, size_t numPoints)
 	}
 }
 
-template <class vector_t>
+template <typename vector_t>
 AABox<vector_t>::AABox(const AABox& b1, const AABox& b2)
 {
 	for(size_t j = 0; j < vector_t::Size; ++j){
@@ -81,7 +81,7 @@ AABox<vector_t>::AABox(const AABox& b1, const AABox& b2)
 	}
 }
 
-template <class vector_t>
+template <typename vector_t>
 AABox<vector_t>::AABox(const Sphere<vector_t>& s)
 {
 	vector_t vrad;
@@ -90,7 +90,7 @@ AABox<vector_t>::AABox(const Sphere<vector_t>& s)
 	VecAdd(max, s.center, vrad);
 }
 
-template <class vector_t>
+template <typename vector_t>
 AABox<vector_t>::AABox(const AABox& b, const vector_t& v)
 {
 	for(size_t j = 0; j < vector_t::Size; ++j){
@@ -99,7 +99,7 @@ AABox<vector_t>::AABox(const AABox& b, const vector_t& v)
 	}
 }
 
-template <class vector_t>
+template <typename vector_t>
 vector_t AABox<vector_t>::center() const
 {
 	vector_t v;
@@ -108,7 +108,7 @@ vector_t AABox<vector_t>::center() const
 	return v;
 }
 
-template <class vector_t>
+template <typename vector_t>
 vector_t AABox<vector_t>::extension() const
 {
 	vector_t v;
@@ -116,13 +116,13 @@ vector_t AABox<vector_t>::extension() const
 	return v;
 }
 
-template <class vector_t>
+template <typename vector_t>
 bool AABox<vector_t>::contains_point(const vector_t& point) const
 {
 	return BoxBoundProbe(point, min, max);
 }
 
-template <class vector_t>
+template <typename vector_t>
 bool AABox<vector_t>::overlaps_line(const vector_t& point1, const vector_t& point2) const
 {
 	vector_t lmin, lmax;

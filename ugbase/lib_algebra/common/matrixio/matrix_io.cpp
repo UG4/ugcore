@@ -103,5 +103,3 @@ void MatrixIO::close_file()
 
 
 } // namespace ug
-
-// EOF

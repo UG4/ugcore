@@ -40,7 +40,7 @@
 
 namespace ug{
 
-template <class TIndVec>
+template <typename TIndVec>
 void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,
 									  const AlgebraLayouts& layouts)
 {
@@ -117,7 +117,7 @@ void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,
 }
 
 
-template <class TMatrix>
+template <typename TMatrix>
 void TestHorizontalAlgebraLayouts(
 			const TMatrix& mat,
 			std::vector<AlgebraID>* algebraIDs,
@@ -136,7 +136,7 @@ void TestHorizontalAlgebraLayouts(
 	}
 
 	struct IDByIndex {
-		IDByIndex (const std::vector<AlgebraID>* algIDs) : m_algIDs(*algIDs) {}
+		explicit IDByIndex (const std::vector<AlgebraID>* algIDs) : m_algIDs(*algIDs) {}
 		const AlgebraID& operator () (size_t idx) const 	{return m_algIDs[idx];}
 		const std::vector<AlgebraID>&	m_algIDs;
 	};
@@ -165,4 +165,4 @@ void TestHorizontalAlgebraLayouts(
 
 }//	end of namespace
 
-#endif	//__H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION_UTIL_IMPL__
+#endif

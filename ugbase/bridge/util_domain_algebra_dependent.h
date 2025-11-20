@@ -141,5 +141,4 @@ struct RegisterDomain2d3dAlgebraDependent
 
 }
 }
-#endif	/* UTIL_DOMAIN_ALGEBRA_DEPENDENT_H */
-
+#endif

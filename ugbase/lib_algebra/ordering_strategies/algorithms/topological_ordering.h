@@ -233,15 +233,15 @@ public:
 	using vd_t = typename boost::graph_traits<M_t>::vertex_descriptor;
 	using baseclass = IOrderingAlgorithm<TAlgebra, O_t>;
 
-	TopologicalOrdering(){}
+	TopologicalOrdering() = default;
 
 	/// clone constructor
-	TopologicalOrdering( const TopologicalOrdering<TAlgebra, O_t> &parent )
+	TopologicalOrdering( const TopologicalOrdering &parent )
 			: baseclass(){}
 
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new TopologicalOrdering<TAlgebra, O_t>(*this));
+		return make_sp(new TopologicalOrdering(*this));
 	}
 
 	void compute(){

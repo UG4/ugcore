@@ -48,8 +48,8 @@ namespace ug{
  * You can use FixedArray1 in DenseVector to get a fixed size mathematical Vector.
  * Use storage_traits<type>::is_static to distinguish between fixed and variable vectors. Functions like
  * resize(newN) assert N == newN. So FixedArray1<T, N>::size is always N.
- * \param T type of object in Array (i.e. double)
- * \param n number of elements in the fixed array (T values[n]; )
+ * \tparam T type of object in Array (i.e. double)
+ * \tparam n number of elements in the fixed array (T values[n]; )
  */
 template<typename T, size_t n>
 class FixedArray1
@@ -60,13 +60,13 @@ public:
 	using storage_type = static_type;
 
 public:
-	FixedArray1();
-	FixedArray1(size_type n_);
-	FixedArray1(const FixedArray1<T, n> &other);
+	FixedArray1() = default;
+	explicit FixedArray1(size_type n_);
+	FixedArray1(const FixedArray1 &other);
 
 //protected:
 	// see Alexandrescu: non-virtual destructors should be protected
-	~FixedArray1();
+	~FixedArray1() = default;
 
 public:
 	// capacity
@@ -86,20 +86,20 @@ public:
 	inline const T &
 	at(size_type i) const
 	{
-		return operator[](i);
+		return operator [] (i);
 	}
 
 	inline T &
 	at(size_type i)
 	{
-		return operator[](i);
+		return operator [] (i);
 	}
 
 	inline const T &
-	operator[](size_type i) const ;
+	operator [] (size_type i) const ;
 
 	inline T &
-	operator[](size_type i) ;
+	operator [] (size_type i) ;
 
 	// output
 	template<typename _T, size_type _n>
@@ -125,10 +125,10 @@ struct storage_traits1<FixedArray1<T, N> >
  * FixedArray2 is a two-dimensional array which supports a similar interface like stl::vector.
  * You can use FixedArray2 in GeMatrix to get a fixed size Matrix.
  * Use is_static to distinguish between fixed and variable arrays.
-  * \param T type of object in Array (i.e. double)
- * \param colsT fixed number of columns
- * \param rowsT fixed number of rows
- * \param T_ordering Ordering of columns/rows. Default is ColMajor. \sa eMatrixOrdering
+ * \tparam T type of object in Array (i.e. double)
+ * \tparam colsT fixed number of columns
+ * \tparam rowsT fixed number of rows
+ * \tparam T_ordering Ordering of columns/rows. Default is ColMajor. \sa eMatrixOrdering
  */
 template<typename T, size_t rowsT, size_t colsT, eMatrixOrdering T_ordering=ColMajor>
 class FixedArray2
@@ -144,13 +144,13 @@ public:
 	using storage_type = static_type;
 
 public:
-	FixedArray2();
+	FixedArray2() = default;
 	FixedArray2(size_type rows, size_type cols);
-	FixedArray2(const FixedArray2<T, rowsT, colsT, T_ordering> &other);
+	FixedArray2(const FixedArray2 &other);
 
 //protected:
 	// see Alexandrescu: non-virtual destructors should be protected
-	~FixedArray2();
+	~FixedArray2() = default;
 
 public:
 	// capacity
@@ -185,21 +185,21 @@ public:
 	at(size_type r, size_type c) const
 	{
 		// todo: if(r >= rowsT || c >= colsT) throw
-		return operator()(r, c);
+		return operator () (r, c);
 	}
 
 	inline T &
 	at(size_type r, size_type c)
 	{
 		// todo: if(r >= rowsT || c >= colsT) throw
-		return operator()(r, c);
+		return operator () (r, c);
 	}
 
 	inline const T &
-	operator()(size_type r, size_type c) const ;
+	operator () (size_type r, size_type c) const ;
 
 	inline T &
-	operator()(size_type r, size_type c) ;
+	operator () (size_type r, size_type c) ;
 
 	// output
 	template<typename a, size_type b, size_type c, eMatrixOrdering d>

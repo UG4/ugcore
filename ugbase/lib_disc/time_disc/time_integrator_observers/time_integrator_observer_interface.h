@@ -38,7 +38,7 @@
 namespace ug {
 
 /// Abstract base class for time integration observer
-template<class TDomain, class TAlgebra>
+template<typename TDomain, typename TAlgebra>
 class ITimeIntegratorObserver
 {
 public:

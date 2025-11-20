@@ -40,7 +40,7 @@
 
 namespace ug{
 
-template <class tree_t>
+template <typename tree_t>
 class Traverser_FindLowestLeafNodeLevel
 {
 	public:
@@ -71,7 +71,7 @@ class Traverser_FindLowestLeafNodeLevel
 		size_t m_lowestLeafNodeLvl;
 };
 
-template <class tree_t>
+template <typename tree_t>
 size_t FindLowestLeafNodeLevel(const tree_t& tree)
 {
 	Traverser_FindLowestLeafNodeLevel<tree_t> trav;
@@ -81,7 +81,7 @@ size_t FindLowestLeafNodeLevel(const tree_t& tree)
 
 
 ///	returns the minimum and maximum number of elements in all subtrees of nodes of the given level
-template <class tree_t>
+template <typename tree_t>
 class Traverser_MinMaxNumElements
 {
 	public:
@@ -134,7 +134,7 @@ class Traverser_MinMaxNumElements
 		bool m_firstEval;
 };
 
-template <class tree_t>
+template <typename tree_t>
 std::pair<size_t, size_t> GetMinMaxNumElements(const tree_t& tree, size_t lvl)
 {
 	Traverser_MinMaxNumElements<tree_t> trav(lvl);
@@ -143,7 +143,7 @@ std::pair<size_t, size_t> GetMinMaxNumElements(const tree_t& tree, size_t lvl)
 }
 
 
-template <class tree_t>
+template <typename tree_t>
 class Traverser_FindContainingElement
 {
 	public:
@@ -206,7 +206,7 @@ class Traverser_FindContainingElement
 		bool		m_foundElem;
 };
 
-template <class tree_t>
+template <typename tree_t>
 bool FindContainingElement(typename tree_t::elem_t& elemOut, const tree_t& tree,
 						   const typename tree_t::vector_t& point)
 {
@@ -222,7 +222,7 @@ bool FindContainingElement(typename tree_t::elem_t& elemOut, const tree_t& tree,
 }
 
 
-template <class tree_t>
+template <typename tree_t>
 class Traverser_FindElementsInIntersectingNodes
 {
 	public:
@@ -270,7 +270,7 @@ class Traverser_FindElementsInIntersectingNodes
 		std::vector<elem_t>		m_foundElems;
 };
 
-template <class tree_t>
+template <typename tree_t>
 bool FindElementsInIntersectingNodes(std::vector<typename tree_t::elem_t>& elemsOut,
 									 const tree_t& tree,
 									 const typename tree_t::box_t& bbox)
@@ -284,7 +284,7 @@ bool FindElementsInIntersectingNodes(std::vector<typename tree_t::elem_t>& elems
 
 
 
-// template <class TVector, class TData>
+// template <typename TVector, typename TData>
 // class TraceRecorder {
 // 	public:
 // 		using vector_t = TVector;
@@ -305,7 +305,7 @@ bool FindElementsInIntersectingNodes(std::vector<typename tree_t::elem_t>& elems
 // 		size_t	closest_negative_point_index	() const;
 // };
 
-template <class TElem>
+template <typename TElem>
 struct RayElemIntersectionRecord
 {
 	RayElemIntersectionRecord()	{}
@@ -317,7 +317,7 @@ struct RayElemIntersectionRecord
 	TElem	elem; ///< the element that was intersected
 };
 
-template <class tree_t>
+template <typename tree_t>
 class Traverser_RayElementIntersection
 {
 	public:
@@ -382,7 +382,7 @@ class Traverser_RayElementIntersection
 		std::vector<intersection_record_t>	m_intersections;
 };
 
-template <class tree_t>
+template <typename tree_t>
 bool RayElementIntersections(
 	std::vector<RayElemIntersectionRecord<typename tree_t::elem_t> >& intersectionsOut,
 	const tree_t& tree,

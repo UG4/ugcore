@@ -83,7 +83,7 @@ TriangleDescriptor::TriangleDescriptor(Vertex* v1, Vertex* v2, Vertex* v3)
 
 ////////////////////////////////////////////////////////////////////////
 //	CustomTriangle
-template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteTriangleType, typename BaseClass, typename RefTriType, typename RefQuadType>
 CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 CustomTriangle(const TriangleDescriptor& td)
 {
@@ -92,7 +92,7 @@ CustomTriangle(const TriangleDescriptor& td)
 	m_vertices[2] = td.vertex(2);
 }
 
-template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteTriangleType, typename BaseClass, typename RefTriType, typename RefQuadType>
 CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 CustomTriangle(Vertex* v1, Vertex* v2, Vertex* v3)
 {
@@ -101,7 +101,7 @@ CustomTriangle(Vertex* v1, Vertex* v2, Vertex* v3)
 	m_vertices[2] = v3;
 }
 
-template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteTriangleType, typename BaseClass, typename RefTriType, typename RefQuadType>
 std::pair<GridBaseObjectId, int>
 CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 get_opposing_object(Vertex* vrt) const
@@ -115,7 +115,7 @@ get_opposing_object(Vertex* vrt) const
 	UG_THROW("The given vertex is not contained in the given face.");
 }
 
-template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteTriangleType, typename BaseClass, typename RefTriType, typename RefQuadType>
 bool
 CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 refine(std::vector<Face*>& vNewFacesOut,
@@ -243,7 +243,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 	return false;
 }
 
-template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteTriangleType, typename BaseClass, typename RefTriType, typename RefQuadType>
 bool
 CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 is_regular_ref_rule(int edgeMarks) const
@@ -251,7 +251,7 @@ is_regular_ref_rule(int edgeMarks) const
 	return edgeMarks == 7;
 }
 
-template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteTriangleType, typename BaseClass, typename RefTriType, typename RefQuadType>
 bool
 CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 collapse_edge(std::vector<Face*>& vNewFacesOut,
@@ -263,7 +263,7 @@ collapse_edge(std::vector<Face*>& vNewFacesOut,
 	return true;
 }
 
-template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteTriangleType, typename BaseClass, typename RefTriType, typename RefQuadType>
 bool
 CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 collapse_edges(std::vector<Face*>& vNewFacesOut,
@@ -301,7 +301,7 @@ collapse_edges(std::vector<Face*>& vNewFacesOut,
 }
 
 //	BEGIN Depreciated
-template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteTriangleType, typename BaseClass, typename RefTriType, typename RefQuadType>
 void
 CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 create_faces_by_edge_split(int splitEdgeIndex,
@@ -360,7 +360,7 @@ QuadrilateralDescriptor::QuadrilateralDescriptor(Vertex* v1, Vertex* v2, Vertex*
 ////////////////////////////////////////////////////////////////////////
 //	Quad
 
-template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteQuadrilateralType, typename BaseClass, typename RefTriType, typename RefQuadType>
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 CustomQuadrilateral(const QuadrilateralDescriptor& qd)
 {
@@ -370,7 +370,7 @@ CustomQuadrilateral(const QuadrilateralDescriptor& qd)
 	m_vertices[3] = qd.vertex(3);
 }
 
-template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteQuadrilateralType, typename BaseClass, typename RefTriType, typename RefQuadType>
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 CustomQuadrilateral(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4)
 {
@@ -380,7 +380,7 @@ CustomQuadrilateral(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4)
 	m_vertices[3] = v4;
 }
 
-template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteQuadrilateralType, typename BaseClass, typename RefTriType, typename RefQuadType>
 bool
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const
@@ -394,7 +394,7 @@ get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const
 	return true;
 }
 
-template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteQuadrilateralType, typename BaseClass, typename RefTriType, typename RefQuadType>
 std::pair<GridBaseObjectId, int>
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 get_opposing_object(Vertex* vrt) const
@@ -408,7 +408,7 @@ get_opposing_object(Vertex* vrt) const
 	UG_THROW("The given vertex is not contained in the given face.");
 }
 
-template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteQuadrilateralType, typename BaseClass, typename RefTriType, typename RefQuadType>
 void
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 create_faces_by_edge_split(int splitEdgeIndex,
@@ -449,7 +449,7 @@ create_faces_by_edge_split(int splitEdgeIndex,
 
 ////////////////////////////////////////////////////////////////////////
 //	Quadrilateral::refine
-template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteQuadrilateralType, typename BaseClass, typename RefTriType, typename RefQuadType>
 bool
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 refine(std::vector<Face*>& vNewFacesOut,
@@ -667,7 +667,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 	return false;
 }
 
-template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteQuadrilateralType, typename BaseClass, typename RefTriType, typename RefQuadType>
 bool
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 is_regular_ref_rule(int edgeMarks) const
@@ -682,7 +682,7 @@ is_regular_ref_rule(int edgeMarks) const
 }
 
 
-template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteQuadrilateralType, typename BaseClass, typename RefTriType, typename RefQuadType>
 bool
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 collapse_edge(std::vector<Face*>& vNewFacesOut,
@@ -710,7 +710,7 @@ collapse_edge(std::vector<Face*>& vNewFacesOut,
 	return true;
 }
 
-template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
+template <typename ConcreteQuadrilateralType, typename BaseClass, typename RefTriType, typename RefQuadType>
 bool
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 collapse_edges(std::vector<Face*>& vNewFacesOut,

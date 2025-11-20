@@ -37,7 +37,7 @@
 #include "lib_grid/algorithms/geom_obj_util/edge_util.h"
 namespace ug{
 
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 					TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 					int subsetIndex, number angle,
@@ -81,7 +81,7 @@ void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 	}
 }
 
-template <class TVertexIterator, class TAPosition>
+template <typename TVertexIterator, typename TAPosition>
 void MarkCorners(Grid& grid, ISubsetHandler& sh,
 				 TVertexIterator vrtsBegin, TVertexIterator vrtsEnd,
 				 Grid::edge_traits::callback cbPathEdge,
@@ -134,4 +134,4 @@ void MarkCorners(Grid& grid, ISubsetHandler& sh,
 
 }//	end of namespace
 
-#endif	//__H__mark_util_impl
+#endif

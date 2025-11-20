@@ -131,8 +131,8 @@ function SetupHLIBSolver(str_problem,
 	-- create and configure HLIB Solver
 	----------------------------------------------------------
 	hlibSolver = HLIBSolver()
-	hlibSolver:set_hlib_accuracy_H(1.e-4)  -- default: 1.e-4
-	hlibSolver:set_hlib_accuracy_LU(1.e-4) -- default: 1.e-4
+	hlibSolver:set_hlib_accuracy_H(1.0e-4)  -- default: 1.e-4
+	hlibSolver:set_hlib_accuracy_LU(1.0e-4) -- default: 1.e-4
 
 	-- define construction of cluster tree
 	--   first  arg: "clustering type" \in [algebraic | geometric (not yet implemented)]; algebraic is default

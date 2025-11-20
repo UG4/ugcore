@@ -87,7 +87,7 @@ namespace ug
  *
  * \sa ug::HangingNodeRefiner_Grid, ug::HangingNodeRefiner_MultiGrid
  */
-template <class TSelector>
+template <typename TSelector>
 class HangingNodeRefinerBase : public IRefiner, public GridObserver
 {
 	public:
@@ -158,27 +158,27 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 				 	& RM_REFINE) != 0;
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool marked_refine(TElem* elem) const
 		{
 			return (m_selMarkedElements.get_selection_status(elem)
 				 	& (RM_CLOSURE | RM_LOCAL | RM_FULL)) != 0;
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool marked_adaptive(TElem* elem) const
 		{
 			return (m_selMarkedElements.get_selection_status(elem)
 					& (RM_CLOSURE | RM_LOCAL));
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool marked_regular(TElem* elem) const
 		{
 			return marked_refine(elem) && (!(marked_adaptive(elem)));
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool marked_coarsen(TElem* elem) const
 		{
 			return (m_selMarkedElements.get_selection_status(elem)
@@ -335,24 +335,24 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		//inline void mark(Volume* v)						{mark(v);}
 
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool marked_to_normal(TElem* elem) const			{return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_NORMAL) == HNRM_TO_NORMAL;}
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool marked_to_constrained(TElem* elem) const	{return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINED) == HNRM_TO_CONSTRAINED;}
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool marked_to_constraining(TElem* elem) const	{return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINING) == HNRM_TO_CONSTRAINING;}
 
-		template <class TElem>
+		template <typename TElem>
 		void add_hmark(TElem* elem, HNodeRefMarks mark);
 
-		template <class TElem>
+		template <typename TElem>
 		void remove_hmark(TElem* elem, uint mark);
 
 	///	removes coarsen marks from the selection
 	/**	Note that derived classes are not informed about those deselections!*/
-		template <class TElem>
+		template <typename TElem>
 		bool remove_coarsen_marks();
 
 	///	returns the selector which is internally used to mark elements.

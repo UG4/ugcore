@@ -39,7 +39,7 @@
 #include "lib_grid/algorithms/subset_util.h"
 
 namespace ug {
-	template<class TElem>
+	template <typename TElem>
 	void CopyGridElements(Grid& srcGrid, Grid& destGrid,
 					      ISubsetHandler& srcSH, ISubsetHandler& destSH,
 						  Attachment<Vertex*>& aNewVrt)

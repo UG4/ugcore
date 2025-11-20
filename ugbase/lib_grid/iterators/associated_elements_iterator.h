@@ -46,7 +46,7 @@ namespace ug{
  * argument. Through VRefOrder one can choose whether the traversed associated
  * elements shall be sorted in the order in which they appear in the reference
  * element of given element (false by default).*/
-template <class TElem, class TAssocElem, bool VSorted = false>
+template <typename TElem, typename TAssocElem, bool VSorted = false>
 class AssocElemIter : public std::iterator<std::input_iterator_tag, TAssocElem*>
 {
 		public:
@@ -97,8 +97,8 @@ class AssocElemIter : public std::iterator<std::input_iterator_tag, TAssocElem*>
 			bool invalid() const	{return m_i >= m_assElems.size();}
 
 
-			AssocElemIter& operator++()			{increment(); return *this;}
-			AssocElemIter operator++(int unused)	{AssocElemIter i = *this; increment(); return i;}
+			AssocElemIter& operator ++ ()			{increment(); return *this;}
+			AssocElemIter operator ++ (int)	{AssocElemIter i = *this; increment(); return i;}
 
 		///	returns true if both iterators are invalid or if both point to the same elemnt.
 			bool operator ==(const AssocElemIter& iter) const {return equal(iter);}

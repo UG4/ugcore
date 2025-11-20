@@ -67,7 +67,7 @@ Base64FileWriter::fmtflag Base64FileWriter::format() const {
 	return m_currFormat;
 }
 
-Base64FileWriter& Base64FileWriter::operator<<(const fmtflag format)
+Base64FileWriter& Base64FileWriter::operator << (const fmtflag format)
 {
 	PROFILE_FUNC();
 
@@ -80,48 +80,48 @@ Base64FileWriter& Base64FileWriter::operator<<(const fmtflag format)
 	return *this;
 }
 
-Base64FileWriter& Base64FileWriter::operator<<(int value)
+Base64FileWriter& Base64FileWriter::operator << (int value)
 {
 	dispatch(value);
 	return *this;
 }
 
-Base64FileWriter& Base64FileWriter::operator<<(char value) {
+Base64FileWriter& Base64FileWriter::operator << (char value) {
 	dispatch(value);
 	return *this;
 }
 
-Base64FileWriter& Base64FileWriter::operator<<(const char* value)
+Base64FileWriter& Base64FileWriter::operator << (const char* value)
 {
 	dispatch(value);
 	return *this;
 }
 
-Base64FileWriter& Base64FileWriter::operator<<(const string& value)
+Base64FileWriter& Base64FileWriter::operator << (const string& value)
 {
 	dispatch(value);
 	return *this;
 }
 
-Base64FileWriter& Base64FileWriter::operator<<(float value)
+Base64FileWriter& Base64FileWriter::operator << (float value)
 {
 	dispatch(value);
 	return *this;
 }
 
-Base64FileWriter& Base64FileWriter::operator<<(double value)
+Base64FileWriter& Base64FileWriter::operator << (double value)
 {
 	dispatch(value);
 	return *this;
 }
 
-Base64FileWriter& Base64FileWriter::operator<<(long value)
+Base64FileWriter& Base64FileWriter::operator << (long value)
 {
 	dispatch(value);
 	return *this;
 }
 
-Base64FileWriter& Base64FileWriter::operator<<(size_t value)
+Base64FileWriter& Base64FileWriter::operator << (size_t value)
 {
 	dispatch(value);
 	return *this;

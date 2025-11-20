@@ -185,7 +185,7 @@ void MultiGridSubsetHandler::clear_subset_lists(int index)
 	}
 }
 
-template<class TElem>
+template<typename TElem>
 void
 MultiGridSubsetHandler::
 assign_subset_impl(TElem* elem, int subsetIndex)
@@ -493,7 +493,7 @@ collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const
 	return collect_subset_elements_impl(volsOut, subsetIndex);
 }
 
-template <class TElem>
+template <typename TElem>
 size_t MultiGridSubsetHandler::
 collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const
 {

@@ -117,7 +117,7 @@ bool VertexGroupsMatch(const Vertex* elem, const IVertexGroup& desc);
  *
  *	TVrtContainer has to feature the following methods (or compatible ones):
  *	int size(): has to return the numbe of vertices in the container.
- *	Vertex* operator[](int index): has to return the i-th vertex.
+ *	Vertex* operator [] (int index): has to return the i-th vertex.
  *
  *	Good types would be:
  *	EdgeVertices, FaceVertices, VolumeVertices,
@@ -126,7 +126,7 @@ bool VertexGroupsMatch(const Vertex* elem, const IVertexGroup& desc);
  *
  *	returns true if con1 and con2 contain the same vertices.
  */
-template <class TVrtContainer1, class TVrtContainer2>
+template <typename TVrtContainer1, typename TVrtContainer2>
 UG_API 
 bool CompareVertexContainer(const TVrtContainer1& con1,
 					const TVrtContainer2& con2);

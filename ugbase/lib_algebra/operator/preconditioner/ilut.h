@@ -62,7 +62,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		};
 
 	/// clone constructor
-		ILUTPreconditioner(const ILUTPreconditioner<TAlgebra> &parent)
+		ILUTPreconditioner(const ILUTPreconditioner &parent)
 			: base_type(parent), m_spOrderingAlgo(parent.m_spOrderingAlgo)
 		{
 			m_eps = parent.m_eps;
@@ -71,18 +71,16 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			return make_sp(new ILUTPreconditioner<algebra_type>(*this));
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			return make_sp(new ILUTPreconditioner(*this));
 		}
 
 
 	///	Destructor
-		virtual ~ILUTPreconditioner()
-		{};
+		~ILUTPreconditioner() override = default;
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const {return true;}
+		bool supports_parallel() const override {return true;}
 
 	///	sets threshold for incomplete LU factorisation (added 01122010ih)
 		void set_threshold(number thresh)
@@ -102,8 +100,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			m_show_progress = s;
 		}
 
-		virtual std::string config_string() const
-		{
+		std::string config_string() const override {
 			std::stringstream ss;
 			ss << "ILUT(threshold = " << m_eps << ", sort = " << (m_spOrderingAlgo.valid()?"true":"false") << ")";
 			if(m_eps == 0.0) ss << " = Sparse LU";
@@ -131,12 +128,11 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 	protected:
 	//	Name of preconditioner
-		virtual const char* name() const {return "ILUT";}
+		const char* name() const override {return "ILUT";}
 
 	protected:
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J,
-		                  const vector_type& u)
-		{
+		bool init(SmartPtr<ILinearOperator<vector_type> > J,
+		          const vector_type& u) override {
 		//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -153,8 +149,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			return base_type::init(pOp);
 		}
 
-		bool init(SmartPtr<ILinearOperator<vector_type> > L)
-		{
+		bool init(SmartPtr<ILinearOperator<vector_type> > L) override {
 		//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -171,16 +166,14 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			return base_type::init(pOp);
 		}
 
-		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
-		{
+		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op) {
 			m_u = nullptr;
 
 			return base_type::init(Op);
 		}
 
 	//	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
 			return preprocess_mat(*pOp);
 		}
 
@@ -418,8 +411,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 	//	Stepping routine
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
-		{
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
 #ifdef UG_PARALLEL
 			SmartPtr<vector_type> spDtmp = d.clone();
 			spDtmp->change_storage_type(PST_UNIQUE);
@@ -606,7 +598,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 	//	Postprocess routine
-		virtual bool postprocess() {return true;}
+		bool postprocess() override {return true;}
 
 	protected:
 		vector_type c2;

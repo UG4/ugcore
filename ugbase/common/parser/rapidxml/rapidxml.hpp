@@ -90,7 +90,7 @@ namespace rapidxml
         //! Gets pointer to character data where error happened.
         //! Ch should be the same as char type of xml_document that produced the error.
         //! \return Pointer to location within the parsed string where error occured.
-        template<class Ch>
+        template<typename Ch>
         Ch *where() const
         {
             return reinterpret_cast<Ch *>(m_where);
@@ -134,9 +134,9 @@ namespace rapidxml
 namespace rapidxml
 {
     // Forward declarations
-    template<class Ch> class xml_node;
-    template<class Ch> class xml_attribute;
-    template<class Ch> class xml_document;
+    template <typename Ch> class xml_node;
+    template <typename Ch> class xml_attribute;
+    template <typename Ch> class xml_document;
     
     //! Enumeration listing all node types produced by the parser.
     //! Use xml_node::type() function to query node type.
@@ -306,7 +306,7 @@ namespace rapidxml
         };
 
         // Find length of the string
-        template<class Ch>
+        template <typename Ch>
         inline std::size_t measure(const Ch *p)
         {
             const Ch *tmp = p;
@@ -316,7 +316,7 @@ namespace rapidxml
         }
 
         // Compare strings for equality
-        template<class Ch>
+        template <typename Ch>
         inline bool compare(const Ch *p1, std::size_t size1, const Ch *p2, std::size_t size2, bool case_sensitive)
         {
             if (size1 != size2)
@@ -375,7 +375,7 @@ namespace rapidxml
     //! to obtain best wasted memory to performance compromise.
     //! To do it, define their values before rapidxml.hpp file is included.
     //! \param Ch Character type of created nodes. 
-    template<class Ch = char>
+    template <typename Ch = char>
     class memory_pool
     {
         
@@ -644,7 +644,7 @@ namespace rapidxml
     //! Base class for xml_node and xml_attribute implementing common functions: 
     //! name(), name_size(), value(), value_size() and parent().
     //! \param Ch Character type to use
-    template<class Ch = char>
+    template <typename Ch = char>
     class xml_base
     {
 
@@ -790,7 +790,7 @@ namespace rapidxml
     //! Note that after parse, both name and value of attribute will point to interior of source text used for parsing. 
     //! Thus, this text must persist in memory for the lifetime of attribute.
     //! \param Ch Character type to use.
-    template<class Ch = char>
+    template <typename Ch = char>
     class xml_attribute: public xml_base<Ch>
     {
 
@@ -882,7 +882,7 @@ namespace rapidxml
     //! Note that after parse, both name and value of node, if any, will point interior of source text used for parsing. 
     //! Thus, this text must persist in the memory for the lifetime of node.
     //! \param Ch Character type to use.
-    template<class Ch = char>
+    template<typename Ch = char>
     class xml_node: public xml_base<Ch>
     {
 
@@ -1316,7 +1316,7 @@ namespace rapidxml
 
         // No copying
         xml_node(const xml_node &);
-        void operator =(const xml_node &);
+        void operator = (const xml_node &);
     
         ///////////////////////////////////////////////////////////////////////////
         // Data members
@@ -1350,7 +1350,7 @@ namespace rapidxml
     //! which are inherited from memory_pool.
     //! To access root node of the document, use the document itself, as if it was an xml_node.
     //! \param Ch Character type to use.
-    template<class Ch = char>
+    template <typename Ch = char>
     class xml_document: public xml_node<Ch>, public memory_pool<Ch>
     {
     
@@ -1550,7 +1550,7 @@ namespace rapidxml
         }
 
         // Skip characters until predicate evaluates to true
-        template<class StopPred, int Flags>
+        template <typename StopPred, int Flags>
         static void skip(Ch *&text)
         {
             Ch *tmp = text;
@@ -1562,7 +1562,7 @@ namespace rapidxml
         // Skip characters until predicate evaluates to true while doing the following:
         // - replacing XML character entity references with proper characters (&apos; &amp; &quot; &lt; &gt; &#...;)
         // - condensing whitespace sequences to single space character
-        template<class StopPred, class StopPredPure, int Flags>
+        template <typename StopPred, typename StopPredPure, int Flags>
         static Ch *skip_and_expand_character_refs(Ch *&text)
         {
             // If entity translation, whitespace condense and whitespace trimming is disabled, use plain skip

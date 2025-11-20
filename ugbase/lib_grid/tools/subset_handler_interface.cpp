@@ -151,7 +151,7 @@ ISubsetHandler& ISubsetHandler::operator = (const ISubsetHandler& sh)
 	return *this;
 }
 
-template <class TIterator> static void
+template <typename TIterator> static void
 CopySubsetIndices(ISubsetHandler& dest, const ISubsetHandler& src,
 					TIterator destIterBegin, TIterator destIterEnd,
 					TIterator srcIterBegin, TIterator srcIterEnd)
@@ -529,7 +529,7 @@ clear_subsets()
 }
 
 
-template <class TElem, class TAAInd>
+template <typename TElem, typename TAAInd>
 static void
 ResetSubsetIndices(Grid* pGrid, TAAInd& aaInd)
 {
@@ -1135,7 +1135,7 @@ volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy)
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 void ISubsetHandler::
 elems_to_be_merged(Grid* grid, TElem* target,
 					TElem* elem1, TElem* elem2)

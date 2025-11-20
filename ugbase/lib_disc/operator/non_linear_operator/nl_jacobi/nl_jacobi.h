@@ -98,13 +98,14 @@ class NLJacobiSolver
 	///	constructor
 		NLJacobiSolver(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
 
+	    ~NLJacobiSolver() override = default;
+
 		void set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
 
 		void set_damp(number damp) {m_damp = damp;}
 
 	///	returns information about configuration parameters
-		virtual std::string config_string() const
-		{
+		std::string config_string() const override {
 			std::stringstream ss;
 			ss << "NonlinearJacobiSolver( damp = " << m_damp << ")\n";
 			ss << " ConvergenceCheck: ";
@@ -120,13 +121,13 @@ class NLJacobiSolver
 	///////////////////////////////////////////////////////////////////////////
 
 	/// This operator inverts the Operator op: Y -> X
-		virtual bool init(SmartPtr<IOperator<vector_type> > op);
+		bool init(SmartPtr<IOperator<vector_type> > op) override;
 
 	/// prepare Operator
-		virtual bool prepare(vector_type& u);
+		bool prepare(vector_type& u) override;
 
 	/// apply Operator, i.e. op^{-1}(0) = u
-		virtual bool apply(vector_type& u);
+		bool apply(vector_type& u) override;
 
 	private:
 	///	help functions for debug output

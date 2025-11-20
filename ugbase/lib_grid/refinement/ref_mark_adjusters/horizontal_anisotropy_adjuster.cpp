@@ -68,7 +68,7 @@ static inline bool NotVertical(const vector3& from, const vector3& to)
 }
 
 
-template <class TAPos>
+template <typename TAPos>
 void HorizontalAnisotropyAdjuster<TAPos>::
 ref_marks_changed(IRefiner& ref,
 				  const std::vector<Vertex*>& vrts,

@@ -48,13 +48,13 @@ class IsOnBoundary : public ElementCallback
 		explicit IsOnBoundary(Grid& g) :
 			m_grid(g)	{}
 
-		bool operator() (Vertex* v) const	{return callback(v);}
-		bool operator() (Edge* e) const		{return callback(e);}
-		bool operator() (Face* f) const		{return callback(f);}
-		bool operator()	(Volume*) const		{return false;}
+		bool operator () (Vertex* v) const	{return callback(v);}
+		bool operator () (Edge* e) const		{return callback(e);}
+		bool operator () (Face* f) const		{return callback(f);}
+		bool operator ()	(Volume*) const		{return false;}
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		bool callback(TElem* e)	 const		{return LiesOnBoundary(m_grid, e);}
 
 	private:
@@ -68,12 +68,12 @@ class IsNotOnBoundary : public ElementCallback
 		explicit IsNotOnBoundary(Grid& g) :
 			m_grid(g)	{}
 
-		bool operator() (Vertex* v) const	{return callback(v);}
-		bool operator() (Edge* e) const		{return callback(e);}
-		bool operator() (Face* f) const		{return callback(f);}
-		bool operator()	(Volume*) const		{return true;}
+		bool operator () (Vertex* v) const {return callback(v);}
+		bool operator () (Edge* e) const {return callback(e);}
+		bool operator () (Face* f) const {return callback(f);}
+		bool operator () (Volume*) const {return true;}
 	private:
-		template <class TElem>
+		template <typename TElem>
 		bool callback(TElem* e) const		{return !LiesOnBoundary(m_grid, e);}
 
 	private:
@@ -87,13 +87,13 @@ class IsBoundaryOrManifodFace : public ElementCallback
 		explicit IsBoundaryOrManifodFace(Grid& g) :
 			m_grid(g)	{}
 
-		bool operator() (Vertex* v) const	{return false;}
-		bool operator() (Edge* e) const		{return false;}
-		bool operator() (Face* f) const		{return callback(f);}
-		bool operator()	(Volume*) const		{return true;}
+		bool operator () (Vertex* v) const	{return false;}
+		bool operator () (Edge* e) const		{return false;}
+		bool operator () (Face* f) const		{return callback(f);}
+		bool operator ()	(Volume*) const		{return true;}
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		bool callback(TElem* e) const	
 		{
 		//todo:	mutex?
@@ -114,10 +114,10 @@ class IsNotBoundaryOrManifodFace : public ElementCallback
 		explicit IsNotBoundaryOrManifodFace(Grid& g) :
 			m_callback(g)	{}
 
-		bool operator() (Vertex* v) const	{return !m_callback(v);}
-		bool operator() (Edge* e) const		{return !m_callback(e);}
-		bool operator() (Face* f) const		{return !m_callback(f);}
-		bool operator()	(Volume* v) const	{return !m_callback(v);}
+		bool operator () (Vertex* v) const	{return !m_callback(v);}
+		bool operator () (Edge* e) const		{return !m_callback(e);}
+		bool operator () (Face* f) const		{return !m_callback(f);}
+		bool operator ()	(Volume* v) const	{return !m_callback(v);}
 
 	private:
 		IsBoundaryOrManifodFace	m_callback;

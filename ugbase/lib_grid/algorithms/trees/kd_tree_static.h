@@ -80,7 +80,7 @@ using KDVertexDistanceList = std::list<KDVertexDistance>;
  * This class should be replaced by a dynamic kd-tree, which is capable of
  * dynamic auto-balancing.
  */
-template <class TPositionAttachment, int numDimensions = 3, class TVector = vector3 >
+template <typename TPositionAttachment, int numDimensions = 3, typename TVector = vector3 >
 class KDTreeStatic
 {
 	public:
@@ -105,12 +105,12 @@ class KDTreeStatic
 
 		void clear();
 
-		template <class TVrtIterator>
+		template <typename TVrtIterator>
 		bool create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
 								TPositionAttachment& aPos, int maxTreeDepth, int splitThreshold,
 								KDSplitDimension splitDimension = KDSD_LARGEST);
 
-		template <class TVrtIterator>
+		template <typename TVrtIterator>
 		bool create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
 								Grid::VertexAttachmentAccessor<TPositionAttachment> aaPos,
 								int maxTreeDepth, int splitThreshold,
@@ -132,14 +132,14 @@ class KDTreeStatic
 
 		void neighbourhood(KDVertexDistanceList& vrtsOut, Node* pNode, TVector& pos, int numClosest);
 
-		template <class TVertexIterator>
+		template <typename TVertexIterator>
 		bool create_barycentric(TVertexIterator vrts_begin, TVertexIterator vrts_end,
 								int numVertices, Node* pNode, int actDimension, int maxTreeDepth);
 
-		template <class TVertexIterator>
+		template <typename TVertexIterator>
 		int get_largest_dimension(TVertexIterator vrts_begin, TVertexIterator vrts_end);
 
-		template <class TVertexIterator>
+		template <typename TVertexIterator>
 		int get_next_split_dimension(int actSplitDimension, TVertexIterator vrts_begin,
 										TVertexIterator vrts_end);
 		

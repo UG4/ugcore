@@ -119,7 +119,7 @@ num_marked_volumes_local(std::vector<int>& numMarkedVolsOut)
 }
 
 
-template <class TElem>
+template <typename TElem>
 void GlobalMultiGridRefiner::
 num_marked_elems(std::vector<int>& numMarkedElemsOut)
 {

@@ -45,7 +45,7 @@ namespace ug
 /**	\todo	This class would benefit from some comfort methods and a better
  * 			documentation.
  */
-template <class TRefiner>
+template <typename TRefiner>
 class TParallelGlobalRefiner : public TRefiner
 {
 	public:

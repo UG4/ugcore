@@ -107,7 +107,7 @@ class UG_API IAttachmentDataContainer
 ///	define reference and const reference types for attachment values.
 /**	The default traits should be fine in all cases. A specialization for bool exists.
  */
-template <class TValue>
+template <typename TValue>
 struct attachment_value_traits{
 	using reference = TValue&;
 	using const_reference = const TValue&;
@@ -131,7 +131,7 @@ struct attachment_value_traits<bool>{
  * it also defines some types, operators and values, which are essential to use an AttachmentDataContainer with libGrid.
  * In particular libGrids AttachmentAccessors require these definitions.
  */
-template <class T> class UG_API AttachmentDataContainer : public IAttachmentDataContainer
+template <typename T> class UG_API AttachmentDataContainer : public IAttachmentDataContainer
 {
 	private:
 		using ClassType = AttachmentDataContainer<T>;
@@ -204,8 +204,8 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 
 		inline TConstRef get_elem(size_t index) const		{return m_vData[index];}
 		inline TRef get_elem(size_t index)					{return m_vData[index];}
-		inline TConstRef operator[] (size_t index) const	{return m_vData[index];}
-		inline TRef operator[] (size_t index)				{return m_vData[index];}
+		inline TConstRef operator [] (size_t index) const	{return m_vData[index];}
+		inline TRef operator [] (size_t index)				{return m_vData[index];}
 
 	///	swaps the buffer content of associated data
 		void swap(AttachmentDataContainer<T>& container) noexcept {m_vData.swap(container.m_vData);}
@@ -253,7 +253,7 @@ class UG_API IAttachment : public UID
 /** This class is intended to simplify the process of Attachment creation.
  * Note that there are type definitions, which are required by libGrids AttachmentAccessors.
  */
-template <class T> class UG_API Attachment : public IAttachment
+template <typename T> class UG_API Attachment : public IAttachment
 {
 	public:
 		using ContainerType = AttachmentDataContainer<T>;
@@ -295,7 +295,7 @@ struct AttachmentEntry
 /** By creating a template specialization for your own element types, you can
  * use arbitrary types as element-types in an AttachmentPipe.
  */
-template<class TElem, class TElemHandler>
+template<typename TElem, typename TElemHandler>
 class attachment_traits
 {
 	public:
@@ -327,7 +327,7 @@ class attachment_traits
  * - copy_values(TElem from, TElem to)
  * - swap_entry_indices()?!?
  */
-template<class TElem, class TElemHandler>
+template<typename TElem, typename TElemHandler>
 class UG_API AttachmentPipe
 {
 	public:
@@ -399,7 +399,7 @@ class UG_API AttachmentPipe
 	 * used by a user to store a constant with each attachment.
 	 * \{
 	 */
-		template <class TAttachment>
+		template <typename TAttachment>
 		void attach(TAttachment& attachment,
 					const typename TAttachment::ValueType& defaultValue,
 					uint options);
@@ -426,7 +426,7 @@ class UG_API AttachmentPipe
 	 * 		- defragment
 	 * 		- clear, clear_elements, clear_attachments
 	 */
-		template <class TAttachment>
+		template <typename TAttachment>
 		typename TAttachment::ValueType*
 		get_data_array(TAttachment& attachment);
 		
@@ -434,7 +434,7 @@ class UG_API AttachmentPipe
 	 * \{ */
 		IAttachmentDataContainer* get_data_container(IAttachment& attachment) const;
 
-		template <class TAttachment>
+		template <typename TAttachment>
 		typename TAttachment::ContainerType*
 		get_data_container(TAttachment& attachment);
 	/**	\} */
@@ -500,7 +500,7 @@ class UG_API AttachmentPipe
  * or frequently called methods. You should thus try to minimize calls to access
  * or to the accessors constructor.
  */
-template <class TElem, class TAttachment, class TElemHandler>
+template <typename TElem, typename TAttachment, typename TElemHandler>
 class UG_API AttachmentAccessor
 {
 	public:
@@ -520,28 +520,28 @@ class UG_API AttachmentAccessor
 		bool access(attachment_pipe& attachmentPipe, TAttachment& attachment);
 
 		inline typename attachment_value_traits<ValueType>::reference
-		operator[](typename atraits::ConstElemPtr elem)
+		operator [] (typename atraits::ConstElemPtr elem)
 			{
 				assert((attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem) != INVALID_ATTACHMENT_INDEX) &&
-						"ERROR in AttachmentAccessor::operator[]: accessing element with invalid attachment index!");
-				assert(m_pContainer && "ERROR in AttachmentAccessor::operator[]: no AttachmentPipe assigned.");
+						"ERROR in AttachmentAccessor::operator [] : accessing element with invalid attachment index!");
+				assert(m_pContainer && "ERROR in AttachmentAccessor::operator [] : no AttachmentPipe assigned.");
 				return m_pContainer->get_elem(attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem));
 			}
 			
 		inline typename attachment_value_traits<ValueType>::const_reference
-		operator[](typename atraits::ConstElemPtr elem) const
+		operator [] (typename atraits::ConstElemPtr elem) const
 			{
 				assert((attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem) != INVALID_ATTACHMENT_INDEX) &&
-						"ERROR in AttachmentAccessor::operator[]: accessing element with invalid attachment index!");
-				assert(m_pContainer && "ERROR in AttachmentAccessor::operator[]: no AttachmentPipe assigned.");
+						"ERROR in AttachmentAccessor::operator [] : accessing element with invalid attachment index!");
+				assert(m_pContainer && "ERROR in AttachmentAccessor::operator []: no AttachmentPipe assigned.");
 				return m_pContainer->get_elem(attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem));
 			}
 			
 /*
 		inline ValueType&
-		operator[](int index)
+		operator [] (int index)
 			{
-				assert(m_pContainer && "ERROR in AttachmentAccessor::operator[]: no AttachmentPipe assigned.");
+				assert(m_pContainer && "ERROR in AttachmentAccessor::operator [] : no AttachmentPipe assigned.");
 				return m_pContainer->get_elem(index);
 			}
 */

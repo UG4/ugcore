@@ -57,13 +57,13 @@ public:
 
 	// Element access
 	inline const T &
-	operator[] (size_type i) const
+	operator [] (size_type i) const
 	{
 		return at(i);
 	}
 
 	inline T &
-	operator[] (size_type i)
+	operator [] (size_type i)
 	{
 		return at(i);
 	}
@@ -109,13 +109,13 @@ public:
 
 	// Element access
 	inline const T &
-	operator[] (size_type i) const
+	operator [] (size_type i) const
 	{
 		return at(i);
 	}
 
 	inline T &
-	operator[] (size_type i)
+	operator [] (size_type i)
 	{
 		return at(i);
 	}
@@ -160,13 +160,13 @@ public:
 
 	// Element access
 	inline const T &
-	operator[] (size_type i) const
+	operator [] (size_type i) const
 	{
 		return at(i);
 	}
 
 	inline T &
-	operator[] (size_type i)
+	operator [] (size_type i)
 	{
 		return at(i);
 	}
@@ -212,13 +212,13 @@ public:
 
 	// Element access
 	inline const T &
-	operator[] (size_type i) const
+	operator [] (size_type i) const
 	{
 		return at(i);
 	}
 
 	inline T &
-	operator[] (size_type i)
+	operator [] (size_type i)
 	{
 		return at(i);
 	}

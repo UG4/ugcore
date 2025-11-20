@@ -132,10 +132,10 @@ class UG_API Grid
 {
 	public:
 	///	The traits class holds some important types for each element-type
-		template <class TElem>
+		template <typename TElem>
 		struct traits{
 			using base_object = typename TElem::grid_base_object;
-			typedef ElementStorage<base_object> ElementStorage; // ø using A = A<T>
+			using ElementStorage = ElementStorage<base_object>; // ø using A = A<T>
 			using AttachmentPipe = typename ElementStorage::AttachmentPipe;
 			using AttachedElementList = typename ElementStorage::AttachedElementList;
 			using SectionContainer = typename ElementStorage::SectionContainer;
@@ -175,7 +175,7 @@ class UG_API Grid
 
 
 	///	the generic attachment-accessor for access to grids attachment pipes.
-		template <class TElem, class TAttachment>
+		template <typename TElem, typename TAttachment>
 		class AttachmentAccessor : public ug::AttachmentAccessor<typename TElem::grid_base_object*,
 																 TAttachment,
 																 typename traits<TElem>::ElementStorage>
@@ -196,7 +196,7 @@ class UG_API Grid
 		};
 
 	//	half-specialized AttachmentAccessors:
-		template <class TAttachment>
+		template <typename TAttachment>
 		class VertexAttachmentAccessor : public AttachmentAccessor<Vertex, TAttachment>
 		{
 			public:
@@ -206,7 +206,7 @@ class UG_API Grid
 				VertexAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach);
 		};
 
-		template <class TAttachment>
+		template <typename TAttachment>
 		class EdgeAttachmentAccessor : public AttachmentAccessor<Edge, TAttachment>
 		{
 			public:
@@ -216,7 +216,7 @@ class UG_API Grid
 				EdgeAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach);
 		};
 
-		template <class TAttachment>
+		template <typename TAttachment>
 		class FaceAttachmentAccessor : public AttachmentAccessor<Face, TAttachment>
 		{
 			public:
@@ -226,7 +226,7 @@ class UG_API Grid
 				FaceAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach);
 		};
 
-		template <class TAttachment>
+		template <typename TAttachment>
 		class VolumeAttachmentAccessor : public AttachmentAccessor<Volume, TAttachment>
 		{
 			public:
@@ -363,7 +363,7 @@ class UG_API Grid
 	 * You may optionally specify a GridObject pParent.
 	 * pParent may be used by observers to initialize the created object in a specific way.
 	 */
-		template<class TGeomObj>
+		template <typename TGeomObj>
 		typename geometry_traits<TGeomObj>::iterator
 		create(GridObject* pParent = nullptr);
 
@@ -373,7 +373,7 @@ class UG_API Grid
 	 * You may optionally specify a GridObject pParent.
 	 * pParent may be used by observers to initialize the created object in a specific way.
 	 */
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		typename geometry_traits<TGeomObj>::iterator
 		create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
 				GridObject* pParent = nullptr);
@@ -393,7 +393,7 @@ class UG_API Grid
 	 * - elem_to_be_replaced(oldElem, newElem)
 	 * - elem_to_be_deleted(oldElem)
 	 */
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		typename geometry_traits<TGeomObj>::iterator
 		create_and_replace(typename geometry_traits<TGeomObj>::grid_base_object* pReplaceMe);
 
@@ -415,7 +415,7 @@ class UG_API Grid
 	 * capable to hold (if more are required, the grid will automatically
 	 * adjust sizes)
 	 */
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		void reserve(size_t num);
 
 	////////////////////////////////////////////////
@@ -427,10 +427,10 @@ class UG_API Grid
 		void erase(Volume* vol);
 
 	/**\todo: This erase method can cause problems if used with multi-grids.*/
-		template <class GeomObjIter>
+		template <typename GeomObjIter>
 		void erase(const GeomObjIter& iterBegin, const GeomObjIter& iterEnd);
 
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		void clear();
 
 	////////////////////////////////////////////////
@@ -479,7 +479,7 @@ class UG_API Grid
 	/**	\} */
 	/*
 	///	VrtPairIterator has to be an iterator with value-type std::pair<Vertex*, Vertex*>
-		template <class VrtPairIter>
+		template <typename VrtPairIter>
 		void replace_vertices(VrtPairIter& iterBegin, VrtPairIter& iterEnd);
 	*/
 
@@ -502,11 +502,11 @@ class UG_API Grid
 		
 	////////////////////////////////////////////////
 	//	Iterators
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		typename geometry_traits<TGeomObj>::iterator
 		begin();
 
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		typename geometry_traits<TGeomObj>::iterator
 		end();
 
@@ -519,23 +519,23 @@ class UG_API Grid
 		inline VolumeIterator volumes_begin() {return begin<Volume>();}
 		inline VolumeIterator volumes_end() {return end<Volume>();}
 	
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		typename geometry_traits<TGeomObj>::const_iterator
 		begin() const;
 
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		typename geometry_traits<TGeomObj>::const_iterator
 		end() const;
 
 	///	returns the first element of the given type.
 	/**	Make sure that elements of the given type exist!
 	 *	Behaviour is undefined, if not.*/
-		template <class TGeomObj> TGeomObj* front();
+		template <typename TGeomObj> TGeomObj* front();
 		
 	///	returns the last element of the given type.
 	/**	Make sure that elements of the given type exist!
 	 *	Behaviour is undefined, if not.*/
-		template <class TGeomObj> TGeomObj* back();
+		template <typename TGeomObj> TGeomObj* back();
 		
 	//	element manipulation
 	/*
@@ -546,7 +546,7 @@ class UG_API Grid
 
 	////////////////////////////////////////////////
 	//	element numbers
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		size_t num() const;
 		inline size_t num_vertices() const	{return num<Vertex>();}
 		inline size_t num_edges() const		{return num<Edge>();}
@@ -560,7 +560,7 @@ class UG_API Grid
 
 	///	returns the size of the associated attachment containers.
 	/**	valid types for TGeomObj are Vertex, Edge, Face, Volume.*/
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		size_t attachment_container_size() const;
 
 	////////////////////////////////////////////////
@@ -673,13 +673,13 @@ class UG_API Grid
 	 * Valid arguments for TElem are Vertex, Edge, Face, Volume.
 	 * \sa Grid::associated_elements_sorted
 	 * \{ */
-		template <class TElem>
+		template <typename TElem>
 		void associated_elements(traits<Vertex>::secure_container& elemsOut, TElem* e);
-		template <class TElem>
+		template <typename TElem>
 		void associated_elements(traits<Edge>::secure_container& elemsOut, TElem* e);
-		template <class TElem>
+		template <typename TElem>
 		void associated_elements(traits<Face>::secure_container& elemsOut, TElem* e);
-		template <class TElem>
+		template <typename TElem>
 		void associated_elements(traits<Volume>::secure_container& elemsOut, TElem* e);
 	/** \} */
 	
@@ -708,13 +708,13 @@ class UG_API Grid
 	 *
 	 * \note	Depending on the current grid options, this method may use Grid::mark.
 	 * \sa Grid::associated_elements*/
-		template <class TElem>
+		template <typename TElem>
 		void associated_elements_sorted(traits<Vertex>::secure_container& elemsOut, TElem* e);
-		template <class TElem>
+		template <typename TElem>
 		void associated_elements_sorted(traits<Edge>::secure_container& elemsOut, TElem* e);
-		template <class TElem>
+		template <typename TElem>
 		void associated_elements_sorted(traits<Face>::secure_container& elemsOut, TElem* e);
-		template <class TElem>
+		template <typename TElem>
 		void associated_elements_sorted(traits<Volume>::secure_container& elemsOut, TElem* e);
 
 
@@ -722,7 +722,7 @@ class UG_API Grid
 	//	attachments
 	////////////////////////////////////////////////////////////////////////
 	///	attach with custom pass-on-behaviour and unspecified default value.
-		template <class TGeomObjClass>
+		template <typename TGeomObjClass>
 		void attach_to(IAttachment& attachment, bool passOnValues);
 
 		inline void attach_to_vertices(IAttachment& attachment, bool passOnValues)	{attach_to<Vertex>(attachment, passOnValues);}
@@ -734,7 +734,7 @@ class UG_API Grid
 
 	////////////////////////////////////////////////////////////////////////
 	///	attach with default pass-on behaviour and unspecified default value.
-		template <class TGeomObjClass>
+		template <typename TGeomObjClass>
 		inline void attach_to(IAttachment& attachment)	{attach_to<TGeomObjClass>(attachment, attachment.default_pass_on_behaviour());}
 
 		inline void attach_to_vertices(IAttachment& attachment)	{attach_to<Vertex>(attachment);}
@@ -747,41 +747,41 @@ class UG_API Grid
 
 	////////////////////////////////////////////////////////////////////////
 	//	attach with specified default value and default pass-on behaviour
-		template <class TGeomObjClass, class TAttachment>
+		template <typename TGeomObjClass, typename TAttachment>
 		void attach_to_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue);
 
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_vertices_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)	{attach_to_dv<Vertex>(attachment, defaultValue);}
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_edges_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)	{attach_to_dv<Edge>(attachment, defaultValue);}
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_faces_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)	{attach_to_dv<Face>(attachment, defaultValue);}
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_volumes_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)	{attach_to_dv<Volume>(attachment, defaultValue);}
 
 	///	attaches to vertices, edges, faces and volumes at once.
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_all_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue);
 
 	////////////////////////////////////////////////////////////////////////
 	//	attach with specified default value and custom pass-on behaviour
-		template <class TGeomObjClass, class TAttachment>
+		template <typename TGeomObjClass, typename TAttachment>
 		void attach_to_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues);
 
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_vertices_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)	{attach_to_dv<Vertex>(attachment, defaultValue, passOnValues);}
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_edges_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)		{attach_to_dv<Edge>(attachment, defaultValue, passOnValues);}
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_faces_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)		{attach_to_dv<Face>(attachment, defaultValue, passOnValues);}
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_volumes_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)	{attach_to_dv<Volume>(attachment, defaultValue, passOnValues);}
 
-		template <class TAttachment>
+		template <typename TAttachment>
 		inline void attach_to_all_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues);
 	////////////////////////////////////////////////////////////////////////
 	//	detach
-		template <class TGeomObjClass>
+		template <typename TGeomObjClass>
 		void detach_from(IAttachment& attachment);
 
 		inline void detach_from_vertices(IAttachment& attachment)	{detach_from<Vertex>(attachment);}
@@ -792,7 +792,7 @@ class UG_API Grid
 		inline void detach_from_all(IAttachment& attachment);
 
 
-		template <class TGeomObjClass>
+		template <typename TGeomObjClass>
 		inline bool has_attachment(IAttachment& attachment)			{return get_attachment_pipe<TGeomObjClass>().has_attachment(attachment);}
 
 		inline bool has_vertex_attachment(IAttachment& attachment)	{return has_attachment<Vertex>(attachment);}
@@ -802,10 +802,10 @@ class UG_API Grid
 
 	////////////////////////////////////////////////////////////////////////
 	//	direct attachment access
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		uint get_attachment_data_index(TGeomObj* pObj) const;
 
-		template <class TGeomObj, class TAttachment>
+		template <typename TGeomObj, typename TAttachment>
 		typename TAttachment::ContainerType*
 		get_attachment_data_container(TAttachment& attachment);
 		
@@ -814,7 +814,7 @@ class UG_API Grid
 	 * If in doubt please use the methods featured by Grid instead of directly
 	 * operating on the attachment pipe.
 	 */
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		typename traits<TGeomObj>::AttachmentPipe&
 		get_attachment_pipe();
 
@@ -827,7 +827,7 @@ class UG_API Grid
 		void unregister_observer(GridObserver* observer);
 
 /*
-		template <class GeomObjClass>
+		template <typename GeomObjClass>
 		util::IAttachmentDataContainer* get_data_container(util::IAttachment& attachment);
 
 		util::IAttachmentDataContainer* get_vertex_data_container(util::IAttachment& attachment)	{return get_data_container<Vertex>(attachment);}
@@ -909,7 +909,7 @@ class UG_API Grid
 	///	marks all objects between begin and end
 	/**	TIterator::value_type has to be either
 	 *	Vertex*, Edge*, Face* or Volume*.*/
-		template <class TIterator>
+		template <typename TIterator>
 		void mark(TIterator begin, TIterator end);
 		
 	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
@@ -925,7 +925,7 @@ class UG_API Grid
 	///	unmarks all objects between begin and end
 	/**	TIterator::value_type has to be either
 	 *	Vertex*, Edge*, Face* or Volume*.*/
-		template <class TIterator>
+		template <typename TIterator>
 		void unmark(TIterator begin, TIterator end);
 		
 	///	returns true if the object is marked, false if not.
@@ -968,7 +968,7 @@ class UG_API Grid
 		void notify_and_clear_observers_on_grid_destruction(GridObserver* initiator = nullptr);
 
 	///	returns the element storage for a given element type
-		template <class TElem> inline
+		template <typename TElem> inline
 		typename traits<TElem>::ElementStorage&
 		element_storage()
 		{return ElementStorageSelector<typename geometry_traits<TElem>::grid_base_object>::
@@ -977,7 +977,7 @@ class UG_API Grid
 		}
 
 	///	returns the const element storage for a given element type
-		template <class TElem> inline
+		template <typename TElem> inline
 		const typename traits<TElem>::ElementStorage&
 		element_storage() const
 		{return ElementStorageSelector<typename geometry_traits<TElem>::grid_base_object>::
@@ -1028,7 +1028,7 @@ class UG_API Grid
 
 		void volume_sort_associated_edge_container();
 
-		template <class TAttachmentPipe, class TElem>
+		template <typename TAttachmentPipe, typename TElem>
 		void pass_on_values(TAttachmentPipe& attachmentPipe,
 							TElem* pSrc, TElem* pDest);
 
@@ -1036,15 +1036,15 @@ class UG_API Grid
 		inline void autoenable_option(uint option, const char* caller, const char* optionName);
 
 	//	neighbourhood access
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		Edge* find_edge_in_associated_edges(TGeomObj* obj,
 											const EdgeVertices& ev);
 												
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		Face* find_face_in_associated_faces(TGeomObj* obj,
 											const FaceVertices& fv);
 												
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		Volume* find_volume_in_associated_volumes(TGeomObj* obj,
 												  const VolumeVertices& vv);
 
@@ -1065,10 +1065,10 @@ class UG_API Grid
 		void get_associated(SecureVolumeContainer& vols, Edge* e);
 		void get_associated(SecureVolumeContainer& vols, Face* f);
 
-		template <class TContainer>
+		template <typename TContainer>
 		void get_associated(TContainer& container, GridObject* o);
 
-		template <class TElem>
+		template <typename TElem>
 		void get_associated(typename traits<typename TElem::grid_base_object>
 							::secure_container& elems, TElem* e);
 		
@@ -1092,7 +1092,7 @@ class UG_API Grid
 		void get_associated_sorted(SecureVolumeContainer& vols, Edge* e);
 		void get_associated_sorted(SecureVolumeContainer& vols, Face* f);
 
-		template <class TElem>
+		template <typename TElem>
 		void get_associated_sorted(typename traits<typename TElem::grid_base_object>
 								   ::secure_container& elems, TElem* e);
 
@@ -1100,7 +1100,7 @@ class UG_API Grid
 	///	helps in copying attachment pipes during assign_grid
 	/**	Note that this method only copies attachments with m_userData==1.
 	 * \todo	Copy behavior should be changed to all user-attachments.*/
-		template <class TAttachmentPipe>
+		template <typename TAttachmentPipe>
 		void copy_user_attachments(const TAttachmentPipe& apSrc, TAttachmentPipe& apDest,
 									std::vector<int>& srcDataIndices);
 
@@ -1145,7 +1145,7 @@ class UG_API Grid
 
 
 	///	helper to clear_attachments
-		template <class TElem>
+		template <typename TElem>
 		void clear_attachments();
 
 	protected:

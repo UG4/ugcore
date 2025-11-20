@@ -709,11 +709,10 @@ class PrimalSubassembledMatrixInverse
 		PrimalSubassembledMatrixInverse();
 
 	///	name of class
-		virtual const char* name() const {return "Schur Complement Inverse";}
+		const char* name() const override {return "Schur Complement Inverse";}
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const
-		{
+		bool supports_parallel() const override {
 			bool bRet = true;
 			if(m_spNeumannSolver.valid() || !m_spNeumannSolver->supports_parallel())
 				bRet = false;
@@ -743,22 +742,21 @@ class PrimalSubassembledMatrixInverse
 		}
 
 	// 	Init for Linear Operator L
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > L);
+		bool init(SmartPtr<ILinearOperator<vector_type> > L) override;
 
 
 	// 	Init for Linear Operator J and Linearization point (current solution)
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
-		{
+		bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u) override {
 			return init(J);
 		}
 
 	// 	Solve A*u = f, such that u = A^{-1} f
-		virtual bool apply(vector_type& u, const vector_type& f);
+		bool apply(vector_type& u, const vector_type& f) override;
 
 	// 	Solve A*u = f, such that u = A^{-1} f
 	// 	This is done by iterating: u := u + B(f - A*u)
 	// 	In f the last defect f := f - A*u is returned
-		virtual bool apply_return_defect(vector_type& u, vector_type& f);
+		bool apply_return_defect(vector_type& u, vector_type& f) override;
 
 	///	sets statistic slot where next iterate should be counted
 		void set_statistic_type(std::string type) {m_statType = type;}
@@ -773,7 +771,7 @@ class PrimalSubassembledMatrixInverse
 		void set_test_one_to_many_layouts(bool bTest) {m_bTestOneToManyLayouts = bTest;}
 
 	//  destructor
-		virtual ~PrimalSubassembledMatrixInverse() {};
+		~PrimalSubassembledMatrixInverse() override = default;
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator ==> from which SC is built (05022011)
@@ -870,8 +868,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		virtual const char* name() const {return "FETI Solver";}
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const
-		{
+		bool supports_parallel() const override {
 			if(m_spDirichletSolver.valid())
 				if(!m_spDirichletSolver->supports_parallel())
 					return false;

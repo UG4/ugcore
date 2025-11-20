@@ -41,18 +41,18 @@ namespace ug{
 template<typename TStorage>
 DenseVector<TStorage>::DenseVector(double alpha)
 {
-	operator=(alpha);
+	operator = (alpha);
 }
 
 template<typename TStorage>
-DenseVector<TStorage>::DenseVector(const DenseVector<TStorage> &rhs) : TStorage(rhs)
+DenseVector<TStorage>::DenseVector(const DenseVector &rhs) : TStorage(rhs)
 {
 }
 
 // operations with vectors
 template<typename TStorage>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator = (const DenseVector<TStorage> &rhs)
+DenseVector<TStorage>::operator = (const DenseVector &rhs)
 {
 	if(this == &rhs) return *this;
 	if(size() != rhs.size()) resize(rhs.size());
@@ -65,7 +65,7 @@ DenseVector<TStorage>::operator = (const DenseVector<TStorage> &rhs)
 
 template<typename TStorage>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator+=(const DenseVector &rhs)
+DenseVector<TStorage>::operator += (const DenseVector &rhs)
 {
 	for(size_type i=0; i<size(); i++)
 		entry(i) += rhs[i];
@@ -75,7 +75,7 @@ DenseVector<TStorage>::operator+=(const DenseVector &rhs)
 
 template<typename TStorage>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator-=(const DenseVector &rhs)
+DenseVector<TStorage>::operator -= (const DenseVector &rhs)
 {
 	for(size_type i=0; i<size(); i++)
 		entry(i) -= rhs[i];
@@ -87,7 +87,7 @@ DenseVector<TStorage>::operator-=(const DenseVector &rhs)
 template<typename TStorage>
 template<typename T>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator=(const T &alpha)
+DenseVector<TStorage>::operator = (const T &alpha)
 {
 	for(size_t i=0; i<size(); i++)
 		entry(i) = alpha;
@@ -96,7 +96,7 @@ DenseVector<TStorage>::operator=(const T &alpha)
 
 template<typename TStorage>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator+=(const typename DenseVector<TStorage>::value_type &alpha)
+DenseVector<TStorage>::operator += (const value_type &alpha)
 {
 	for(size_t i=0; i<size(); i++)
 		entry(i) += alpha;
@@ -105,7 +105,7 @@ DenseVector<TStorage>::operator+=(const typename DenseVector<TStorage>::value_ty
 
 template<typename TStorage>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator-=(const typename DenseVector<TStorage>::value_type &alpha)
+DenseVector<TStorage>::operator -= (const value_type &alpha)
 {
 	for(size_t i=0; i<size(); i++)
 		entry(i) -= alpha;
@@ -115,7 +115,7 @@ DenseVector<TStorage>::operator-=(const typename DenseVector<TStorage>::value_ty
 template<typename TStorage>
 template<typename T>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator*=(const T &alpha)
+DenseVector<TStorage>::operator *= (const T &alpha)
 {
 	for(size_t i=0; i<size(); i++)
 		entry(i) *= alpha;
@@ -125,7 +125,7 @@ DenseVector<TStorage>::operator*=(const T &alpha)
 
 template<typename TStorage>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator/=(const typename DenseVector<TStorage>::value_type &alpha)
+DenseVector<TStorage>::operator /= (const value_type &alpha)
 {
 	for(size_t i=0; i<size(); i++)
 		entry(i) /= alpha;
@@ -192,7 +192,7 @@ template<typename T> inline void Serialize(std::ostream &buff, const DenseVector
 		Serialize(buff, vec[i]);
 }
 
-template<typename T> inline void Deserialize(std::istream &buff, DenseVector<VariableArray1<double> > &vec)
+template<typename T> inline void Deserialize(std::istream &buff, DenseVector<VariableArray1<number>> &vec)
 {
 	size_t s;
 	buff.read((char*)&s, sizeof(s));

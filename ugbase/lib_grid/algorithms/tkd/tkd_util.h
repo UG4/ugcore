@@ -67,4 +67,4 @@ void CreateTKDWithOuterLayer (const TKDInfo& tkdInfo,
 
 }//	end of namespace
 
-#endif	//__H__UG_tkd_util
+#endif

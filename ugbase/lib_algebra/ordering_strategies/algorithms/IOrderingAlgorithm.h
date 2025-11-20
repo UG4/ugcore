@@ -71,7 +71,7 @@ public:
 	//lib_disc, induced matrix
 	virtual void init(M_t*, const V_t&, const std::vector<size_t>&) = 0;
 
-	virtual SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone() = 0;
+	virtual SmartPtr<IOrderingAlgorithm > clone() = 0;
 
 	virtual const char* name() const = 0;
 };

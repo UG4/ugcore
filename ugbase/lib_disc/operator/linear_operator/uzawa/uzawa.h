@@ -41,7 +41,7 @@
 #include "lib_algebra/adapter/slicing.h"
 
 #include "common/util/string_util.h"  // string tokenizer
-#include "bridge/util_overloaded.h"
+
 
 namespace ug{
 
@@ -77,10 +77,10 @@ void ExtractByObject(std::vector<DoFIndex>& vIndex,
 template <typename TGridFunction>
 class UzawaSlicing : public SlicingData<binary_grouping_vector, 2>  {
 public:
-	using base_type = SlicingData<binary_grouping_vector, 2>;
+	using base_type = SlicingData;
 
 	// build an object with
-	UzawaSlicing(const std::vector<std::string>& vSchurCmps)
+	UzawaSlicing(const std::vector<std::string>& vSchurCmps) // ø todo remove unused variable from interface
 	{}
 
 	void init(const TGridFunction &u, const std::vector<std::string>& vSchurCmps);
@@ -193,6 +193,8 @@ class UzawaBase : public IPreconditioner<TAlgebra>
 	protected:
 		using base_type = IPreconditioner<TAlgebra>;
 
+		enum BLOCK { AUX_A11, B12, B21, AUX_C22, AUX_M22, AUX_ARRAY_SIZE};
+
 
 	public:
 	///	default constructor
@@ -212,8 +214,7 @@ class UzawaBase : public IPreconditioner<TAlgebra>
 		}
 
 
-		virtual ~UzawaBase()
-		{}
+		~UzawaBase() override = default;
 
 		/// Overriding base type
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
@@ -238,28 +239,27 @@ class UzawaBase : public IPreconditioner<TAlgebra>
 
 		}
 
-		SmartPtr<ILinearIterator<typename TAlgebra::vector_type> > clone();
+		SmartPtr<ILinearIterator<typename TAlgebra::vector_type> > clone() override;
 protected:
 		// Interface for IPreconditioner
 
 		///	name
-		virtual const char* name() const {return "IUzawaBase";}
+		const char* name() const override {return "IUzawaBase";}
 
 		///	initializes the preconditioner
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp);
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override;
 
 		///	computes a new correction c = B*d
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d);
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override;
 
 
 		///	cleans the operator
-		virtual bool postprocess();
+		bool postprocess() override;
 
 public:
 
 			///	returns if parallel solving is supported
-			virtual bool supports_parallel() const
-			{
+		bool supports_parallel() const override {
 				UG_ASSERT(m_spForwardInverse.valid() && m_SpSchurComplementInverse.valid(), "Need valid iter");
 				return (m_spForwardInverse->supports_parallel() && m_SpSchurComplementInverse->supports_parallel());
 
@@ -411,35 +411,6 @@ protected:
 			}
 protected:
 
-		/// flag indicating, whether operator must be initialized
-		bool m_bInit;
-
-		/// vector of strings identifying components used for Schur complement
-		std::vector<std::string> m_vSchurCmp;
-
-		/// object for slicing routines
-		UzawaSlicing<TGridFunction> m_slicing;
-
-		///	iteration for forward system
-		SmartPtr<ILinearIterator<vector_type> >  m_spForwardInverse;
-
-		///	iteration for forward system
-		SmartPtr<ILinearIterator<vector_type> > m_SpSchurComplementInverse;
-
-		///	iteration for forward system
-		SmartPtr<ILinearIterator<vector_type> > m_spBackwardInverse;
-
-		///	assembly for (additive) Schur complement update
-		SmartPtr<AssembledLinearOperator<TAlgebra> > m_spSchurUpdateOp;
-
-		///	scaling factor for (additive) Schur complement update
-		double m_dSchurUpdateWeight;
-
-
-
-		enum BLOCK{AUX_A11, B12, B21, AUX_C22, AUX_M22, AUX_ARRAY_SIZE};
-		SmartPtr<matrix_operator_type> m_auxMat[AUX_ARRAY_SIZE];			/// auxiliary matrices (not cloned!)
-
 
 		void my_write_debug(const matrix_type& mat, std::string name, const TGridFunction& rTo, const TGridFunction& rFrom)
 		{
@@ -492,6 +463,33 @@ protected:
 
 	void create_slice_debug_writers();
 	template <int d> void reset_slice_debug_writers();
+
+
+	/// flag indicating, whether operator must be initialized
+	bool m_bInit;
+
+	/// vector of strings identifying components used for Schur complement
+	std::vector<std::string> m_vSchurCmp;
+
+	/// object for slicing routines
+	UzawaSlicing<TGridFunction> m_slicing;
+
+	///	iteration for forward system
+	SmartPtr<ILinearIterator<vector_type> >  m_spForwardInverse;
+
+	///	iteration for forward system
+	SmartPtr<ILinearIterator<vector_type> > m_SpSchurComplementInverse;
+
+	///	iteration for forward system
+	SmartPtr<ILinearIterator<vector_type> > m_spBackwardInverse;
+
+	///	assembly for (additive) Schur complement update
+	SmartPtr<AssembledLinearOperator<TAlgebra> > m_spSchurUpdateOp;
+
+	///	scaling factor for (additive) Schur complement update
+	double m_dSchurUpdateWeight;
+	SmartPtr<matrix_operator_type> m_auxMat[AUX_ARRAY_SIZE];			/// auxiliary matrices (not cloned!)
+
 
 	SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> >m_spGridFunctionDebugWriter;
 	SmartPtr<IDebugWriter<algebra_type> > m_spSliceDebugWriter[2];

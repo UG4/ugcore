@@ -658,7 +658,7 @@ void LuaUserFunction<TData,dim,TDataIn>::set_deriv(size_t arg, LuaFunctionHandle
 
 
 template <typename TData, int dim, typename TDataIn>
-void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ...) const
+void LuaUserFunction<TData,dim,TDataIn>::operator () (TData& out, int numArgs, ...) const
 {
     PROFILE_CALLBACK();
     #ifdef USE_LUA2C
@@ -1108,7 +1108,7 @@ void LuaFunction<TData,TDataIn>::set_lua_callback(const char* luaCallback, size_
 }
 
 template <typename TData, typename TDataIn>
-void LuaFunction<TData,TDataIn>::operator() (TData& out, int numArgs, ...)
+void LuaFunction<TData,TDataIn>::operator () (TData& out, int numArgs, ...)
 {
 	PROFILE_CALLBACK_BEGIN(operatorBracket);
 	UG_ASSERT(numArgs == (int)m_numArgs, "Number of arguments mismatched.");

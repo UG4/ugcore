@@ -43,7 +43,7 @@ class TruncatedMonotoneTransfer:
 {
 	public:
 	/// This type
-		using this_type = TruncatedMonotoneTransfer<TDomain, TAlgebra>;
+		using this_type = TruncatedMonotoneTransfer;
 
 	/// base type
 		using base_type = StdTransfer<TDomain, TAlgebra>;
@@ -67,27 +67,24 @@ class TruncatedMonotoneTransfer:
 		{};
 
 	public:
-		//////////////////////////////
-		//	INTERFACE METHODS
-		//////////////////////////////
 
 	///	initialize the operator
-		void init();
+		void init() override;
 
 	/// Set Levels for Prolongation coarse -> fine
-		void set_levels(GridLevel coarseLevel, GridLevel fineLevel);
+		void set_levels(GridLevel coarseLevel, GridLevel fineLevel) override;
 
 	///	returns prolongation as a matrix
 		SmartPtr<matrix_type> prolongation(const GridLevel& fineGL,
 				const GridLevel& coarseGL,
-				ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace);
+				ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace) override;
 
 	///	returns restriction as a matrix
 		SmartPtr<matrix_type> restriction(const GridLevel& coarseGL,
 				const GridLevel& fineGL,
-				ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace);
+				ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace) override;
 	///	Clone
-		SmartPtr<ITransferOperator<TDomain, TAlgebra> > clone();
+		SmartPtr<ITransferOperator<TDomain, TAlgebra> > clone() override;
 
 	private:
 	///	init flag
@@ -97,7 +94,7 @@ class TruncatedMonotoneTransfer:
 		using base_type::m_vConstraint;
 
 	///	coarse and fine Gridlevel
-		GridLevel m_coarseLevel;
+		GridLevel m_coarseLevel; // ø todo these seemed to be set but never used
 		GridLevel m_fineLevel;
 };
 

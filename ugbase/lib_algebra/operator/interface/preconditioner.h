@@ -148,7 +148,7 @@ class IPreconditioner :
 	 *
 	 * \returns 	const char* 	name of inverse operator
 	 */
-		virtual const char* name() const = 0;
+		const char* name() const override = 0;
 
 	///	initializes the preconditioner
 	/**
@@ -157,7 +157,7 @@ class IPreconditioner :
 	 * computed once for an underlying matrix (e.g. LU factorization),  while
 	 * the preconditioner will by applied (using 'step'-method) several times.
 	 *
-	 * \param[in]	mat			underlying matrix (i.e. L in L*u = f)
+	 * \param[in]	pOp			underlying matrix (i.e. L in L*u = f)
 	 * \returns		bool		success flag
 	 */
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) = 0;
@@ -167,7 +167,7 @@ class IPreconditioner :
 	 * This method computes a new correction c = B*d. It can only be called,
 	 * when the preprocess has been done.
 	 *
-	 * \param[in]	mat			underlying matrix (i.e. L in L*u = f)
+	 * \param[in]	pOp			underlying matrix (i.e. L in L*u = f)
 	 * \param[out]	c			correction
 	 * \param[in]	d			defect
 	 * \returns		bool		success flag
@@ -189,9 +189,7 @@ class IPreconditioner :
 	 * \param[in]	u		linearization point
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J,
-		                  const vector_type& u)
-		{
+		bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u) override {
 		//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -216,8 +214,7 @@ class IPreconditioner :
 	 * \param[in]	L		linear operator
 	 * \returns		bool	success flag
 	 */
-		bool init(SmartPtr<ILinearOperator<vector_type> > L)
-		{
+		bool init(SmartPtr<ILinearOperator<vector_type> > L) override {
 		// 	Remember operator
 			m_spDefectOperator = L;
 			if(m_bOtherApproxOperator) return true;
@@ -281,8 +278,7 @@ class IPreconditioner :
 	 * \param[in]	d		defect
 	 * \returns		bool	success flag
 	 */
-		virtual bool apply(vector_type& c, const vector_type& d)
-		{
+		bool apply(vector_type& c, const vector_type& d) override {
 		//	Check that operator is initialized
 			if(!m_bInit)
 			{
@@ -335,8 +331,7 @@ class IPreconditioner :
 	 * \param[in, out]	d		defect on entry, updated defect on exit
 	 * \returns			bool	success flag
 	 */
-		virtual bool apply_update_defect(vector_type& c, vector_type& d)
-		{
+		bool apply_update_defect(vector_type& c, vector_type& d) override {
 		//	compute new correction
 			if(!apply(c, d)) return false;
 
@@ -360,7 +355,7 @@ class IPreconditioner :
 		}
 
 	/// virtual destructor
-		virtual ~IPreconditioner() {};
+		~IPreconditioner() override = default;
 
 		///	underlying matrix based operator for calculation of defect
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > defect_operator()

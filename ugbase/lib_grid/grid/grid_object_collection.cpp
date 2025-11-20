@@ -61,7 +61,7 @@ GridObjectCollection(const GridObjectCollection& mgoc)
 
 GridObjectCollection&
 GridObjectCollection::
-operator =(const GridObjectCollection& mgoc)
+operator = (const GridObjectCollection& mgoc)
 {
 	assign(mgoc);
 	return *this;

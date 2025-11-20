@@ -38,7 +38,7 @@
 
 namespace ug{
 
-std::ostream& operator<<(std::ostream& out,	const GridLevel& v)
+std::ostream& operator << (std::ostream& out,	const GridLevel& v)
 {
 	if(v.is_surface()) out << "(surf, ";
 	else if(v.is_level()) out << "(lev,  ";

@@ -68,7 +68,7 @@ serialize(BinaryBuffer& out, Volume* vol) const
 	serialize(out, vol, m_gridSerializers);
 }
 
-template <class TIterator>
+template <typename TIterator>
 void GridDataSerializationHandler::
 serialize(BinaryBuffer& out, TIterator begin, TIterator end) const
 {
@@ -76,7 +76,7 @@ serialize(BinaryBuffer& out, TIterator begin, TIterator end) const
 		serialize(out, *iter);
 }
 
-template<class TGeomObj, class TSerializers>
+template <typename TGeomObj, typename TSerializers>
 void GridDataSerializationHandler::
 serialize(BinaryBuffer& out, TGeomObj* o,
 		  TSerializers& serializers) const
@@ -117,7 +117,7 @@ deserialize(BinaryBuffer& in, Volume* vol)
 	deserialize(in, vol, m_gridSerializers);
 }
 
-template <class TIterator>
+template <typename TIterator>
 void GridDataSerializationHandler::
 deserialize(BinaryBuffer& in, TIterator begin, TIterator end)
 {
@@ -125,7 +125,7 @@ deserialize(BinaryBuffer& in, TIterator begin, TIterator end)
 		deserialize(in, *iter);
 }
 
-template<class TGeomObj, class TDeserializers>
+template<typename TGeomObj, typename TDeserializers>
 void GridDataSerializationHandler::
 deserialize(BinaryBuffer& in, TGeomObj* o,
 			TDeserializers& deserializers)
@@ -140,7 +140,7 @@ deserialize(BinaryBuffer& in, TGeomObj* o,
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	SerializeAttachment
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 						 BinaryBuffer& out)
 {
@@ -153,7 +153,7 @@ bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeAttachment
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 						 typename geometry_traits<TElem>::iterator iterBegin,
 						 typename geometry_traits<TElem>::iterator iterEnd,
@@ -188,7 +188,7 @@ bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeAttachment
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 						 BinaryBuffer& in)
 {
@@ -199,7 +199,7 @@ bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeAttachment
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 						 typename geometry_traits<TElem>::iterator iterBegin,
 						 typename geometry_traits<TElem>::iterator iterEnd,

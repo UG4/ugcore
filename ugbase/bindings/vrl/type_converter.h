@@ -546,5 +546,5 @@ void throwUgErrorAsJavaException(JNIEnv *env, std::string error);
 }// end vrl::
 }// end ug::
 
-#endif	/* TYPE_CONVERTER_H */
+#endif
 

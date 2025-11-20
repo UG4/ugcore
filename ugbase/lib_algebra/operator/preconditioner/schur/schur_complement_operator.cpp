@@ -65,7 +65,7 @@
 namespace ug{
 
 
-template <class VT>
+template <typename VT>
 void UG_LOG_Vector(const VT &vec)
 {
 	for (size_t i=0; i<vec.size(); ++i)
@@ -75,7 +75,7 @@ void UG_LOG_Vector(const VT &vec)
 		std::cerr << std::endl;*/
 }
 
-template <class MT>
+template <typename MT>
 void UG_LOG_Matrix(const MT &A)
 {
 	UG_DEBUG_BEGIN(SchurDebug, 8)

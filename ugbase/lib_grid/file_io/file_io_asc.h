@@ -81,4 +81,4 @@ bool LoadGridFromASC(Grid& grid, const char* filename, AVector3& aPos = aPositio
 
 }//	end of namespace
 
-#endif	//__H__UG_file_io_asc
+#endif

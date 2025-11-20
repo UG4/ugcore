@@ -186,7 +186,7 @@ namespace stl_reader {
  *
  * \returns		true if the file was successfully read into the provided container.
  */
-template <class TNumberContainer, class TIndexContainer>
+template <typename TNumberContainer, typename TIndexContainer>
 bool ReadStlFile(const char* filename,
                 TNumberContainer& coordsOut,
                 TNumberContainer& normalsOut,
@@ -198,7 +198,7 @@ bool ReadStlFile(const char* filename,
 /** \copydetails ReadStlFile
  * \sa ReadStlFile, ReadStlFile_ASCII
  */
-template <class TNumberContainer, class TIndexContainer>
+template <typename TNumberContainer, typename TIndexContainer>
 bool ReadStlFile_ASCII(const char* filename,
                        TNumberContainer& coordsOut,
                        TNumberContainer& normalsOut,
@@ -210,7 +210,7 @@ bool ReadStlFile_ASCII(const char* filename,
  * \todo	support systems with big endianess
  * \sa 		ReadStlFile, ReadStlFile_BINARY
  */
-template <class TNumberContainer, class TIndexContainer>
+template <typename TNumberContainer, typename TIndexContainer>
 bool ReadStlFile_BINARY(const char* filename,
                         TNumberContainer& coordsOut,
                         TNumberContainer& normalsOut,
@@ -226,7 +226,7 @@ inline bool StlFileHasASCIIFormat(const char* filename);
 
 
 ///	convenience mesh class which makes accessing the stl data more easy
-template <class TNumber = float, class TIndex = unsigned int>
+template <typename TNumber = float, typename TIndex = unsigned int>
 class StlMesh {
 public:
 	/// initializes an empty mesh
@@ -426,7 +426,7 @@ namespace stl_reader_impl {
 
 	// sorts the array coordsWithIndexInOut and copies unique indices to coordsOut.
 	// Triangle-corners are re-indexed on the fly and degenerated triangles are removed.
-	template <class TNumberContainer, class TIndexContainer>
+	template <typename TNumberContainer, typename TIndexContainer>
 	void RemoveDoubles (TNumberContainer& uniqueCoordsOut,
 	                    TIndexContainer& trisInOut,
 	                    std::vector <CoordWithIndex<
@@ -490,7 +490,7 @@ namespace stl_reader_impl {
 }// end of namespace stl_reader_impl
 
 
-template <class TNumberContainer, class TIndexContainer>
+template <typename TNumberContainer, typename TIndexContainer>
 bool ReadStlFile(const char* filename,
                 TNumberContainer& coordsOut,
                 TNumberContainer& normalsOut,
@@ -504,7 +504,7 @@ bool ReadStlFile(const char* filename,
 }
 
 
-template <class TNumberContainer, class TIndexContainer>
+template <typename TNumberContainer, typename TIndexContainer>
 bool ReadStlFile_ASCII(const char* filename,
                        TNumberContainer& coordsOut,
                        TNumberContainer& normalsOut,
@@ -613,7 +613,7 @@ bool ReadStlFile_ASCII(const char* filename,
 }
 
 
-template <class TNumberContainer, class TIndexContainer>
+template <typename TNumberContainer, typename TIndexContainer>
 bool ReadStlFile_BINARY(const char* filename,
                         TNumberContainer& coordsOut,
                         TNumberContainer& normalsOut,
@@ -693,4 +693,4 @@ inline bool StlFileHasASCIIFormat(const char* filename)
 
 } // end of namespace stl_reader
 
-#endif	//__H__STL_READER
+#endif

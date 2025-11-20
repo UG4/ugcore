@@ -48,7 +48,7 @@ namespace ug{
  *
  * \sa CreateOverlap
  */
-template <class TAlgebra>
+template <typename TAlgebra>
 class OverlapWriter {
 public:
 	using vector_type = typename TAlgebra::vector_type;
@@ -63,7 +63,7 @@ public:
 	 *								non-overlapping vector.
 	 * \param overlapVecSize		Size of the overlapping vector.
 	 */
-	template <class vector_t>
+	template <typename vector_t>
 	void init(const AlgebraLayouts& layouts,
 	          size_t nonOverlapVecSize,
 	          vector_t* nonOverlapPositions,
@@ -121,7 +121,7 @@ public:
 
 	/**	Writes a matrix or a vector to a connection viewer file.
 	 * T has to be either of type TAlgebra::vector_type or TAlgebra::matrix_type.*/
-	template <class T>
+	template <typename T>
 	void write(const T& t, std::string name)
 	{
 		UG_COND_THROW (m_dim == -1, "Call 'OverlapWriter::init before calling "
@@ -164,4 +164,4 @@ private:
 
 }//	end of namespace
 
-#endif	//__H__UG_overlap_writer
+#endif

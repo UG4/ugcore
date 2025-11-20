@@ -50,4 +50,4 @@ Hexahedron* CreateHexahedronFromPrisms(Grid& grid, Prism* p0, Prism* p1);
 
 }//	end of namespace
 
-#endif	//__H__UG_hexahedron_util
+#endif

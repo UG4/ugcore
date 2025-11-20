@@ -61,7 +61,7 @@ CreateGridFromFieldBoundary(Grid& grid,
 ////////////////////////////////////////////////////////////////////////////////
 ///	Smoothens the field by adjusting the value of each pixel towards the average of its neighbours
 /** The value type T has to support operators += and *= and = 0*/
-template <class T>
+template <typename T>
 void BlurField(Field<T>& field, number alpha, size_t numIterations, const T& noDataValue);
 
 
@@ -69,7 +69,7 @@ void BlurField(Field<T>& field, number alpha, size_t numIterations, const T& noD
 ///	eliminates invalid cells by repeatedly filling those cells with averages of neighboring cells
 /** The field has to contain at least one valid cell. If it doesn't, false is returned.
  * The value type T has to support operators += and *= and = 0*/
-template <class T>
+template <typename T>
 bool EliminateInvalidCells(Field<T>& field, const T& noDataValue);
 
 
@@ -79,7 +79,7 @@ bool EliminateInvalidCells(Field<T>& field, const T& noDataValue);
  * be reached from that cell by only traversing valid neighbors.
  * Whether a lense is small or not is determined by the number of cells that belong
  * to a lense.*/
-template <class T>
+template <typename T>
 void InvalidateSmallLenses(Field<T>& field, size_t thresholdCellCount,
 						   const T& noDataValue);
 
@@ -89,4 +89,4 @@ void InvalidateSmallLenses(Field<T>& field, size_t thresholdCellCount,
 //	include implementation
 #include "field_util_impl.h"
 
-#endif	//__H__UG_field_util
+#endif

@@ -47,7 +47,7 @@ namespace ug
  * new elements shall be selected. Note that this overrules the settings
  * regarding autoselection and selection-inheritance in the given selector.
  */
-template <class TAPos>
+template <typename TAPos>
 bool Duplicate(Grid& grid, Selector& sel, const typename TAPos::ValueType& offset,
 			   TAPos& aPos, bool deselectOld = true, bool selectNew = true)
 {

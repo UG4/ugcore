@@ -91,7 +91,7 @@ namespace ug{
  *  When doing discretisation, use the add set and get methods
  *  for dealing with submatrices of A.
  *  For other things you can use the row iterators or
- *  operator()-methods.
+ *  operator () -methods.
  *
  * \sa matrixrow, CreateAsMultiplyOf
  * \param T blocktype
@@ -232,7 +232,7 @@ public:
 	 * - num_cols()
 	 * - row_index(size_t i)
 	 * - col_index(size_t j)
-	 * - operator()(size_t i, size_t j)
+	 * - operator () (size_t i, size_t j)
 	 * so that mat(i,j) will go to SparseMat(mat.row_index(i), mat.col_index(j))
 	 * \param mat the whole local matrix type
 	 */
@@ -258,7 +258,7 @@ public:
 	//! set matrix to Id*a
 	bool set(double a);
 
-	/** operator() (size_t r, size_t c) const
+	/** operator () (size_t r, size_t c) const
 	 * access connection (r, c)
 	 * \param r row
 	 * \param c column
@@ -278,15 +278,15 @@ public:
         return values[j];
     }
 
-	/** operator() (size_t r, size_t c) const
+	/** operator () (size_t r, size_t c) const
 	 * access or create connection (r, c)
 	 * \param r row
 	 * \param c column
 	 * \note (r,c) is added to sparsity pattern if not already there
-	 * use operator()(r,c,bConnectionFound) to prevent
+	 * use operator () (r,c,bConnectionFound) to prevent
 	 * \return SparseMat(r, c)=0.0 if connection created, otherwise SparseMat(r, c)
 	 */
-	value_type &operator() (size_t r, size_t c)
+	value_type &operator () (size_t r, size_t c)
 	{
 		check_rc(r, c);
 		int j=get_index(r, c);
@@ -408,10 +408,10 @@ public:
         const_row_iterator *operator ->() { return this; }
         const value_type &value() const { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i];     }
-        bool operator!=(const const_row_iterator &o) const { return i != o.i; }
-        void operator++() { ++i; }
-        void operator+=(int nr) { i+=nr; }
-		bool operator== (const const_row_iterator &other) const { return other.i == i; }
+        bool operator != (const const_row_iterator &o) const { return i != o.i; }
+        void operator ++ () { ++i; }
+        void operator += (int nr) { i+=nr; }
+		bool operator == (const const_row_iterator &other) const { return other.i == i; }
     };
 
 
@@ -537,7 +537,7 @@ public:
 	void print_to_file(const char *filename) const;
 	void printrow(size_t row) const;
 
-	friend std::ostream &operator<<(std::ostream &out, const GPUSparseMatrix &m)
+	friend std::ostream &operator << (std::ostream &out, const GPUSparseMatrix &m)
 	{
 		out << "GPUSparseMatrix " //<< m.name
 		<< " [ " << m.num_rows() << " x " << m.num_cols() << " ]";

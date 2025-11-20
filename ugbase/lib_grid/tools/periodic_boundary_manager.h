@@ -61,7 +61,7 @@ public:
  * \tparam TPosAA {class needs to be instantiated with the
  * position attachment used on the Domain.}
  */
-template<class TPosAA> class ParallelShiftIdentifier: public IIdentifier {
+template <typename TPosAA> class ParallelShiftIdentifier: public IIdentifier {
 public:
 	bool match(Vertex* v1, Vertex* v2) override {return match_impl(v1, v2);}
 	bool match(Edge* e1, Edge* e2) override {return match_impl(e1, e2);}
@@ -76,11 +76,11 @@ protected:
 	AttachmentType m_shift;
 	AttachmentType m_shift_opposite;
 	TPosAA& m_aaPos;
-	template<class TElem> bool match_impl(TElem*, TElem*) const;
+	template<typename TElem> bool match_impl(TElem*, TElem*) const;
 };
 
 
-//template<class TPosAA, int dim> class TransformationBasedIdentifier : public IIdentifier {
+//template<typename TPosAA, int dim> class TransformationBasedIdentifier : public IIdentifier {
 //public:
 //	TransformationBasedIdentifier(TPosAA& aa) : m_aaPos(aa) {}
 //	void setTransformation(MathMatrix<dim,dim>& T) {this->T = T;}
@@ -103,7 +103,7 @@ public:
 	/**
 	 * A Group instance holds a master of type TElem and several children.
 	 */
-	template <class TElem, class Container = std::vector<TElem*> >
+	template <typename TElem, typename Container = std::vector<TElem*> >
 	class Group
 	{
 		public:
@@ -150,15 +150,14 @@ public:
 	 * @param e2
 	 * @param i identifier to use to perform geometrical matching of elements
 	 */
-	template <class TElem> void identify(TElem* e1, TElem* e2, IIdentifier& i);
+	template <typename TElem> void identify(TElem* e1, TElem* e2, IIdentifier& i);
 
-	template <class TElem> bool is_periodic(TElem* e) const;
-	template <class TElem> bool is_slave(TElem*) const;
-	template <class TElem> bool is_master(TElem*) const;
-	template <class TElem> TElem* master(TElem* e) const;
-	template <class TElem> typename Group<TElem>::SlaveContainer* slaves(
-			TElem* e) const;
-	template <class TElem> void print_identification() const;
+	template <typename TElem> bool is_periodic(TElem* e) const;
+	template <typename TElem> bool is_slave(TElem*) const;
+	template <typename TElem> bool is_master(TElem*) const;
+	template <typename TElem> TElem* master(TElem* e) const;
+	template <typename TElem> typename Group<TElem>::SlaveContainer* slaves( TElem* e) const;
+	template <typename TElem> void print_identification() const;
 
 
 	/// grid observation methods
@@ -230,62 +229,62 @@ protected:
 	Grid::AttachmentAccessor<Face, Attachment<PeriodicStatus> > m_aaPeriodicStatusFCE;
 
 	/// make element e slave of group g
-	template <class TElem> void make_slave(Group<TElem>* g, TElem* e);
-	template <class TElem> bool remove_slave(TElem* slave);
+	template <typename TElem> void make_slave(Group<TElem>* g, TElem* e);
+	template <typename TElem> bool remove_slave(TElem* slave);
 
 	// make e a master of g
-	template <class TElem> void make_master(Group<TElem>* g, TElem* e);
+	template <typename TElem> void make_master(Group<TElem>* g, TElem* e);
 
-	template <class TElem> void merge_groups(Group<TElem>* g0, Group<TElem>* g1);
+	template <typename TElem> void merge_groups(Group<TElem>* g0, Group<TElem>* g1);
 
 	// get typed attachment accessor for group attachment
-	template <class TElem>
+	template <typename TElem>
 	const Grid::AttachmentAccessor<TElem, Attachment<Group<TElem>* > >&
 	get_group_accessor() const;
 
-	template <class TElem>
+	template <typename TElem>
 	Grid::AttachmentAccessor<TElem, Attachment<Group<TElem>* > >&
 	get_group_accessor();
 
 	// get typed attachment accessor for periodic status attachment
-	template <class TElem>
+	template <typename TElem>
 	const Grid::AttachmentAccessor<TElem, Attachment<PeriodicStatus> >&
 	get_periodic_status_accessor() const;
 
-	template <class TElem>
+	template <typename TElem>
 	Grid::AttachmentAccessor<TElem, Attachment<PeriodicStatus> >&
 	get_periodic_status_accessor();
 
 	// gets group of given element e
-	template <class TElem> Group<TElem>* group(TElem* e) const;
+	template <typename TElem> Group<TElem>* group(TElem* e) const;
 	// set group attachment to element e
-	template <class TElem> void set_group(Group<TElem>* g, TElem* e);
-	template <class TElem> void remove_group(Group<TElem>* g);
+	template <typename TElem> void set_group(Group<TElem>* g, TElem* e);
+	template <typename TElem> void remove_group(Group<TElem>* g);
 
 	///	replaces all group occurrances of pParent by the specified elem
-	template <class TElem>
+	template <typename TElem>
 	void replace_parent(TElem* e, TElem* pParent);
 
 	/// handles creation of element type
-	template <class TElem, class TParent>
+	template <typename TElem, typename TParent>
 	void handle_creation(TElem* e, TParent* pParent);
 
 	/// handles deletion of element type
-	template <class TElem>
+	template <typename TElem>
 	void handle_deletion(TElem* e, TElem* replacedBy);
 
 	/// casts parent pointer to exact type before calling handle_creation
-	template <class TElem>
+	template <typename TElem>
 	void handle_creation_cast_wrapper(TElem* e, GridObject* parent, bool replacesParent);
 
-	template <class TElem, class TIterator>
+	template <typename TElem, typename TIterator>
 	void check_elements_periodicity(
 			TIterator begin,
 			TIterator end,
 			typename Group<TElem>::unique_pairs& s,
 			ISubsetHandler* sh);
 
-	template <class TElem>
+	template <typename TElem>
 	void validity_check();
 
 };
@@ -295,7 +294,7 @@ protected:
  *  also works in case of no periodic boundary conditions
  *  (but is then probably slower than standard attachment accessor)
  */
-template <class TElem,class TAttachment>
+template <typename TElem, typename TAttachment>
 class PeriodicAttachmentAccessor
 {
 	public:
@@ -318,13 +317,13 @@ class PeriodicAttachmentAccessor
 			return m_aa.access(g, a);
 		}
 
-		RefType operator[](TElem* e)	{
+		RefType operator [] (TElem* e)	{
 			if(m_pbm && m_pbm->is_slave(e))
 				return m_aa[m_pbm->master(e)];
 			return m_aa[e];
 		}
 
-		ConstRefType operator[](TElem* e) const	{
+		ConstRefType operator [] (TElem* e) const	{
 			if(m_pbm && m_pbm->is_slave(e))
 				return m_aa[m_pbm->master(e)];
 			return m_aa[e];
@@ -345,7 +344,7 @@ class PeriodicAttachmentAccessor
  * those of sInd2
  * \param sInd2 \see{sInd1}
  */
-template <class TDomain>
+template <typename TDomain>
 void IdentifySubsets(TDomain& dom, int sInd1, int sInd2);
 
 /**
@@ -357,7 +356,7 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2);
  * those of sName2
  * \param sName2 \see {sName1}
  */
-template <class TDomain>
+template <typename TDomain>
 void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2);
 
 } // end of namespace ug

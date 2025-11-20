@@ -2069,4 +2069,3 @@ InitAllExports(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 
 } // end namespace ug
 
-/* End of File */

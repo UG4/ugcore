@@ -40,10 +40,10 @@ namespace ug
 
 template <typename TMatrix>
 typename ParallelMatrix<TMatrix>::this_type&
-ParallelMatrix<TMatrix>::operator =(const typename ParallelMatrix<TMatrix>::this_type &M)
+ParallelMatrix<TMatrix>::operator = (const this_type &M)
 {
 //	forward to sequential matrices
-	TMatrix::operator= (*dynamic_cast<const TMatrix*>(&M));
+	TMatrix::operator = (*dynamic_cast<const TMatrix*>(&M));
 
 //	copy storage type and layouts
 	this->set_storage_type(M.get_storage_mask());

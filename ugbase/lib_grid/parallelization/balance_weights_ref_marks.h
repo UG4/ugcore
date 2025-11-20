@@ -87,7 +87,7 @@ class BalanceWeightsRefMarks : public IBalanceWeights
 	/** \} */
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		bool consider_in_level_above_impl(TElem* e)
 		{
 			RefinementMark m = m_refiner->get_mark(e);

@@ -211,7 +211,7 @@ ReservableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols, bool bCo
 
 template<typename T, eMatrixOrdering T_ordering>
 T &
-ReservableArray2<T, T_ordering>::operator()(size_t r, size_t c)
+ReservableArray2<T, T_ordering>::operator () (size_t r, size_t c)
 {
 	assert(r>=0 && r<rows);
 	assert(c>=0 && c<cols);
@@ -223,7 +223,7 @@ ReservableArray2<T, T_ordering>::operator()(size_t r, size_t c)
 
 template<typename T, eMatrixOrdering T_ordering>
 const T &
-ReservableArray2<T, T_ordering>::operator()(size_t r, size_t c) const
+ReservableArray2<T, T_ordering>::operator () (size_t r, size_t c) const
 {
 	assert(r>=0 && r<rows);
 	assert(c>=0 && c<cols);

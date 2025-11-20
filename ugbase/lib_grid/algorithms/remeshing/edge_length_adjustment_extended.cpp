@@ -188,7 +188,7 @@ static void AssignCreaseVertices(Grid& grid, SubsetHandler& shMarks)
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TVertexPositionAccessor>
+template <typename TVertexPositionAccessor>
 static number CalculateNormalDot(TriangleDescriptor& td1, TriangleDescriptor& td2,
 						  TVertexPositionAccessor& aaPos)
 {
@@ -204,7 +204,7 @@ static number CalculateNormalDot(TriangleDescriptor& td1, TriangleDescriptor& td
 
 // ////////////////////////////////////////////////////////////////////////
 // //	CalculateCurvature
-// template <class TAAPosVRT>
+// template <typename TAAPosVRT>
 // number CalculateMinCurvature(Grid& grid, SubsetHandler& shMarks,
 // 							Vertex* vrt, TAAPosVRT& aaPos)
 // {
@@ -245,7 +245,7 @@ static number CalculateNormalDot(TriangleDescriptor& td1, TriangleDescriptor& td
 // }							
 
 // ////////////////////////////////////////////////////////////////////////
-// template <class TAAPosVRT>
+// template <typename TAAPosVRT>
 // number CalculateAverageCurvature(Grid& grid, SubsetHandler& shMarks,
 // 								Edge* e, TAAPosVRT& aaPos)
 // {
@@ -256,7 +256,7 @@ static number CalculateNormalDot(TriangleDescriptor& td1, TriangleDescriptor& td
 // }
 
 // ////////////////////////////////////////////////////////////////////////
-// template <class TAAPosVRT>
+// template <typename TAAPosVRT>
 // number CalculateLengthFac(Grid& grid, SubsetHandler& shMarks,
 // 								Edge* e, TAAPosVRT& aaPos)
 // {
@@ -269,7 +269,7 @@ static number CalculateNormalDot(TriangleDescriptor& td1, TriangleDescriptor& td
 
 // ////////////////////////////////////////////////////////////////////////
 // ////////////////////////////////////////////////////////////////////////
-// template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
+// template <typename TAAPosVRT, typename TAANormVRT, typename TAAIntVRT>
 // bool TrySwap(const AdjustEdgeLengthDesc& desc, Grid& grid, Edge* e,
 // 			TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 // 			TAAIntVRT& aaInt, SubsetHandler* pshMarks = nullptr,
@@ -373,7 +373,7 @@ static number CalculateNormalDot(TriangleDescriptor& td1, TriangleDescriptor& td
 // }
 
 // ////////////////////////////////////////////////////////////////////////
-// template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
+// template <typename TAAPosVRT, typename TAANormVRT, typename TAAIntVRT>
 // bool PerformSwaps(const AdjustEdgeLengthDesc& desc, Grid& grid,
 // 				SubsetHandler& shMarks, EdgeSelector& esel,
 // 				TAAPosVRT& aaPos, TAANormVRT& aaNorm, TAAIntVRT& aaInt)
@@ -402,7 +402,7 @@ static number CalculateNormalDot(TriangleDescriptor& td1, TriangleDescriptor& td
 // }
 
 /**	returns the resulting vertex or nullptr, if no collapse was performed.*/
-template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
+template <typename TAAPosVRT, typename TAANormVRT, typename TAAIntVRT>
 static Vertex* TryCollapse(const AdjustEdgeLengthDesc& desc, Grid& grid, Edge* e,
 				TAAPosVRT& aaPos, TAANormVRT& aaNorm, 
 				TAAIntVRT& aaInt, SubsetHandler* pshMarks = nullptr,
@@ -651,7 +651,7 @@ static Vertex* TryCollapse(const AdjustEdgeLengthDesc& desc, Grid& grid, Edge* e
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
+template <typename TAAPosVRT, typename TAANormVRT, typename TAAIntVRT>
 static bool PerformCollapses(const AdjustEdgeLengthDesc& desc, Grid& grid,
 					  SubsetHandler& shMarks, EdgeSelector& esel,
 					  TAAPosVRT& aaPos, TAANormVRT& aaNorm, TAAIntVRT& aaInt)
@@ -693,7 +693,7 @@ static bool PerformCollapses(const AdjustEdgeLengthDesc& desc, Grid& grid,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT, class TAANormVRT>
+template <typename TAAPosVRT, typename TAANormVRT>
 static bool TrySplit(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 			  EdgeSelector* pCandidates = nullptr, SubsetHandler* pshMarks = nullptr)
 {
@@ -745,7 +745,7 @@ static bool TrySplit(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT, class TAANormVRT>
+template <typename TAAPosVRT, typename TAANormVRT>
 static bool PerformSplits(const AdjustEdgeLengthDesc& desc, Grid& grid,
 					SubsetHandler& shMarks, EdgeSelector& esel,
 					TAAPosVRT& aaPos, TAANormVRT& aaNorm)
@@ -810,7 +810,7 @@ static bool PerformSplits(const AdjustEdgeLengthDesc& desc, Grid& grid,
 
 ////////////////////////////////////////////////////////////////////////
 //	FixBadTriangles
-// template <class TAAPosVRT, class TAANormVRT>
+// template <typename TAAPosVRT, typename TAANormVRT>
 // static bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 // 					TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 // 					number qualityThreshold)
@@ -929,7 +929,7 @@ static bool PerformSplits(const AdjustEdgeLengthDesc& desc, Grid& grid,
 
 ////////////////////////////////////////////////////////////////////////
 //	PerformSmoothing
-// template <class TAAPosVRT, class TAANormVRT>
+// template <typename TAAPosVRT, typename TAANormVRT>
 // static void PerformSmoothing(Grid& grid, SubsetHandler& shMarks,
 // 					TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 // 					size_t numIterations, number stepSize)
@@ -1003,7 +1003,7 @@ static bool PerformSplits(const AdjustEdgeLengthDesc& desc, Grid& grid,
 
 /**	Make sure that elements in gridOut directly correspond to
  *	elements in gridIn*/
-template <class TGeomObj>
+template <typename TGeomObj>
 static void CopySelectionStatus(Selector& selOut, Grid& gridOut,
 						 Selector& selIn, Grid& gridIn)
 {
@@ -1179,7 +1179,7 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 //	While it performs a little less splits, overall runtime of
 //	AdjustEdgeLength is not better than with the original
 //	PerformSplits method.
-template <class TAAPosVRT, class TAANormVRT>
+template <typename TAAPosVRT, typename TAANormVRT>
 bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 					  number maxEdgeLen, TAAPosVRT& aaPos, TAANormVRT& aaNorm)
 {

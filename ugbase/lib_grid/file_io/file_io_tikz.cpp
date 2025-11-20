@@ -72,7 +72,7 @@ struct TIKZElem{
 	int elemId;
 	int subsetId;
 
-	template <class vector_t>
+	template <typename vector_t>
 	TIKZElem(GridObject* _e, int _si, const AABox<vector_t>& bbox) :
 		elem(_e),
 		elemId(_e->base_object_id()),

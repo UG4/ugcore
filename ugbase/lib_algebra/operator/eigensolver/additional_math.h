@@ -236,7 +236,7 @@ void PrintMaple(const matrix_type &mat, const char *name)
 }
 
 template<typename T>
-void MemSwap(T &a, T &b)
+void MemSwap(T &a, T &b) // ø todo obsolte std::swap
 {
 	char c[sizeof(T)];
 	memcpy(c, &a, sizeof(T));

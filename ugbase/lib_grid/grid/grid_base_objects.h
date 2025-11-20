@@ -85,7 +85,7 @@ enum ReferenceObjectID
 };
 
 inline
-ReferenceObjectID operator++(ReferenceObjectID& roid, int)
+ReferenceObjectID operator ++ (ReferenceObjectID& roid, int)
 {
 	int tmp = roid;
 	return roid = static_cast<ReferenceObjectID>(++tmp);
@@ -93,7 +93,7 @@ ReferenceObjectID operator++(ReferenceObjectID& roid, int)
 
 ////////////////////////////////////////////////////////////////////////
 inline
-std::ostream& operator<< (std::ostream& outStream, ReferenceObjectID type)
+std::ostream& operator << (std::ostream& outStream, ReferenceObjectID type)
 {
 	switch(type)
 	{
@@ -107,7 +107,7 @@ std::ostream& operator<< (std::ostream& outStream, ReferenceObjectID type)
 		case ROID_HEXAHEDRON: outStream << "Hexahedron"; break;
 		case ROID_PRISM: outStream << "Prism"; break;
 		case ROID_PYRAMID: outStream << "Pyramid"; break;
-		default: throw(UGError("Unknown ReferenceObjectID in operator<<"));
+		default: throw(UGError("Unknown ReferenceObjectID in operator <<"));
 	}
 	return outStream;
 };
@@ -116,7 +116,7 @@ std::ostream& operator<< (std::ostream& outStream, ReferenceObjectID type)
 ////////////////////////////////////////////////////////////////////////
 //	PREDECLARATIONS
 class Grid;
-template<class TElem>	class ElementStorage;
+template <typename TElem>	class ElementStorage;
 
 class GridObject;	//	geometric base object
 class Vertex;		//	base for all 0-dimensional grid objects.
@@ -298,7 +298,7 @@ public:
 
 	inline Vertex* vertex () const 				{return m_v;}
 	virtual Vertex* vertex(size_t) const		{return m_v;}
-	Vertex* operator[](size_t) const	 		{return m_v;}
+	Vertex* operator [] (size_t) const	 		{return m_v;}
 
 	virtual ConstVertexArray vertices() const	{return &m_v;}
 	virtual size_t num_vertices() const			{return 1;}
@@ -327,7 +327,7 @@ class UG_API IVertexGroup
 	///	returns the number of vertices.
 		inline size_t size() const	{return num_vertices();}
 	///	returns the i-th vertex.
-		inline Vertex* operator[](size_t index) const {return vertex(index);}
+		inline Vertex* operator [] (size_t index) const {return vertex(index);}
 };
 
 
@@ -371,7 +371,7 @@ class UG_API EdgeVertices : public IVertexGroup
 	///	returns the number of vertices.
 		inline size_t size() const {return 2;}
 	///	returns the i-th vertex.
-		Vertex* operator[](size_t index) const {return m_vertices[index];}
+		Vertex* operator [] (size_t index) const {return m_vertices[index];}
 
 	protected:
 		inline void assign_edge_vertices(const EdgeVertices& ev)
@@ -492,7 +492,7 @@ class UG_API FaceVertices : public IVertexGroup
 	///	returns the number of vertices.
 		inline size_t size() const	{return num_vertices();}
 	///	returns the i-th vertex.
-		inline Vertex* operator[](size_t index) const {return vertex(index);}
+		inline Vertex* operator [] (size_t index) const {return vertex(index);}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -733,7 +733,7 @@ class UG_API VolumeVertices : public IVertexGroup
 	///	returns the number of vertices.
 		inline size_t size() const	{return num_vertices();}
 	///	returns the i-th vertex.
-		inline Vertex* operator[](size_t index) const {return vertex(index);}
+		inline Vertex* operator [] (size_t index) const {return vertex(index);}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1007,7 +1007,7 @@ template <> struct GeomObjBaseTypeByDim<3>{
  *	e.g. PtrToValueType<RegularVertex*>::base_type = Vertex.
  * \{
  */
-template <class TGeomObjPtrType>
+template <typename TGeomObjPtrType>
 struct PtrToValueType
 {using base_type = void;};
 

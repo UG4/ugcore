@@ -200,16 +200,16 @@ class GridFunction
 		GridFunction(const this_type& v) : IGridFunction(v) {assign(v);}
 
 	///	assigns another grid function
-		this_type& operator=(const this_type& v) 
+		this_type& operator = (const this_type& v)
 		{ 
 		  if (this!= &v) assign(v); 
 		  return *this;
 		}
 
         ///	assigns constant value		
-		this_type& operator=(number d) 
+		this_type& operator = (number d)
 		{
-		  vector_type::operator=(d); 
+		  vector_type::operator = (d);
 		  return *this;
 		}
 
@@ -295,7 +295,7 @@ class GridFunction
 		}
 
 	/// returns if the grid object is part of this grid function
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		bool is_contained(TGeomObj* obj) const{
 			return m_spDD->is_contained(obj);
 		}
@@ -432,7 +432,7 @@ const typename TAlgebra::vector_type &getVector(const GridFunction<TDomain, TAlg
 
 
 template <typename TDomain, typename TAlgebra>
-inline std::ostream& operator<< (std::ostream& outStream, const GridFunction<TDomain, TAlgebra>& v)
+inline std::ostream& operator << (std::ostream& outStream, const GridFunction<TDomain, TAlgebra>& v)
 {
 	outStream << *static_cast<const GridFunction<TDomain, TAlgebra>*>(&v);
 	return outStream;

@@ -51,13 +51,13 @@ similar in the current implementation of back.
 namespace ug
 {
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 SectionContainer<TValue, TContainer>::
 SectionContainer() : m_numElements(0)
 {
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 void
 SectionContainer<TValue, TContainer>::
 clear()
@@ -75,7 +75,7 @@ clear()
 	}
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 void
 SectionContainer<TValue, TContainer>::
 clear_section(int sectionIndex)
@@ -111,7 +111,7 @@ clear_section(int sectionIndex)
 	}
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 typename SectionContainer<TValue, TContainer>::iterator
 SectionContainer<TValue, TContainer>::
 section_begin(int sectionIndex)
@@ -124,7 +124,7 @@ section_begin(int sectionIndex)
 	return m_vSections[sectionIndex].m_elemsBegin;
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 typename SectionContainer<TValue, TContainer>::const_iterator
 SectionContainer<TValue, TContainer>::
 section_begin(int sectionIndex) const
@@ -137,7 +137,7 @@ section_begin(int sectionIndex) const
 	return m_vSections[sectionIndex].m_elemsBegin;
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 typename SectionContainer<TValue, TContainer>::iterator
 SectionContainer<TValue, TContainer>::
 section_end(int sectionIndex)
@@ -148,7 +148,7 @@ section_end(int sectionIndex)
 	return m_vSections[sectionIndex].m_elemsEnd;
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 typename SectionContainer<TValue, TContainer>::const_iterator
 SectionContainer<TValue, TContainer>::
 section_end(int sectionIndex) const
@@ -159,7 +159,7 @@ section_end(int sectionIndex) const
 	return m_vSections[sectionIndex].m_elemsEnd;
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 typename SectionContainer<TValue, TContainer>::value_type&
 SectionContainer<TValue, TContainer>::
 front(int secIndex)
@@ -170,7 +170,7 @@ front(int secIndex)
 	return *m_vSections[secIndex].m_elemsBegin;
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 typename SectionContainer<TValue, TContainer>::value_type&
 SectionContainer<TValue, TContainer>::
 back(int secIndex)
@@ -194,7 +194,7 @@ back(int secIndex)
 	return *titer;
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 void
 SectionContainer<TValue, TContainer>::
 add_sections(int num)
@@ -205,7 +205,7 @@ add_sections(int num)
 									  0));
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 uint
 SectionContainer<TValue, TContainer>::
 num_elements(int sectionIndex) const
@@ -218,7 +218,7 @@ num_elements(int sectionIndex) const
 	return m_vSections[sectionIndex].m_numElements;
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 typename SectionContainer<TValue, TContainer>::iterator
 SectionContainer<TValue, TContainer>::
 insert(const TValue& val, int sectionIndex)
@@ -290,10 +290,10 @@ insert(const TValue& val, int sectionIndex)
 	return nHandle;
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 void
 SectionContainer<TValue, TContainer>::
-erase(const typename ug::SectionContainer<TValue, TContainer>::iterator& elemHandle, int sectionIndex)
+erase(const iterator& elemHandle, int sectionIndex)
 {
 	assert((sectionIndex >= 0) && (sectionIndex < num_sections()) &&
 			"ERROR in SectionContainer::erase(): bad sectionIndex");
@@ -341,7 +341,7 @@ erase(const typename ug::SectionContainer<TValue, TContainer>::iterator& elemHan
 		m_vSections[sectionIndex].m_elemsEnd = m_container.end();
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 void
 SectionContainer<TValue, TContainer>::
 append(const SectionContainer& c)
@@ -355,7 +355,7 @@ append(const SectionContainer& c)
 	}
 }
 
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 void
 SectionContainer<TValue, TContainer>::
 transfer_elements(SectionContainer& c)

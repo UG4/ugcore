@@ -40,12 +40,12 @@ namespace ug{
 namespace util{
 
 namespace{
-template<class G>
+template<typename G>
 class noloop{
 public:
 	explicit noloop(const G& g) : _g(g) {}
-	template<class E>
-	bool operator()(E const&e) const{
+	template<typename E>
+	bool operator () (E const&e) const{
 		return boost::source(e, _g) != boost::target(e, _g);
 	}
 private:
@@ -53,7 +53,7 @@ private:
 };
 }
 
-template<class T, class G>
+template<typename T, typename G>
 std::pair<boost::filter_iterator<noloop<G>, T>,
           boost::filter_iterator<noloop<G>, T>> omit_loops(std::pair<T, T> const& p, G const& g)
 {

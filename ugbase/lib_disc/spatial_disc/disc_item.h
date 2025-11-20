@@ -62,7 +62,7 @@ class IDiscretizationItem
 		virtual SmartPtr<IDomainConstraint<TDomain, TAlgebra> > constraint(size_t i) = 0;
 
 	///	virtual destructor
-		virtual ~IDiscretizationItem() = default
+		virtual ~IDiscretizationItem() = default;
 };
 
 } // end namespace ug

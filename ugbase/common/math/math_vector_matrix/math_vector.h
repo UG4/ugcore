@@ -62,7 +62,8 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	MathMathVector
 ///	a mathematical Vector with N entries.
-template <std::size_t N, typename T = number> class MathVector;
+template <std::size_t N, typename T = number>
+class MathVector;
 
 ///	helper method which creates a vector from another vector of different dimensionality
 /** Typically, the method isn't invoked directly but serves as an implementation
@@ -112,7 +113,7 @@ class MathVector
 		}
 
 		// operations with other vectors
-		MathVector& operator=  (const MathVector& v)
+		MathVector& operator = (const MathVector& v)
 		{
 			if(this != &v)
 			{
@@ -120,29 +121,29 @@ class MathVector
 			}
 			return *this;
 		}
-		MathVector& operator+= (const MathVector& v) {for(std::size_t i = 0; i < N; ++i) m_data[i] += v.coord(i);return *this;}
-		MathVector& operator-= (const MathVector& v) {for(std::size_t i = 0; i < N; ++i) m_data[i] -= v.coord(i);return *this;}
+		MathVector& operator += (const MathVector& v) {for(std::size_t i = 0; i < N; ++i) m_data[i] += v.coord(i);return *this;}
+		MathVector& operator -= (const MathVector& v) {for(std::size_t i = 0; i < N; ++i) m_data[i] -= v.coord(i);return *this;}
 
 		// operations with scalar
-		MathVector& operator=  (const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] =  val;return *this;}
-		MathVector& operator+= (const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] += val;return *this;}
-		MathVector& operator-= (const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] -= val;return *this;}
-		MathVector& operator*= (const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] *= val;return *this;}
-		MathVector& operator/= (const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] /= val;return *this;}
+		MathVector& operator = (const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] =  val;return *this;}
+		MathVector& operator += (const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] += val;return *this;}
+		MathVector& operator -= (const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] -= val;return *this;}
+		MathVector& operator *= (const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] *= val;return *this;}
+		MathVector& operator /= (const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] /= val;return *this;}
 
 		// negation
-		MathVector operator- () const { MathVector<N, T> v; for (std::size_t i = 0; i < N; ++i) v.set_coord(i, -m_data[i]); return v; }
+		MathVector operator - () const { MathVector v; for (std::size_t i = 0; i < N; ++i) v.set_coord(i, -m_data[i]); return v; }
 
 		// scalar product
-		value_type operator* (const MathVector& v) const {value_type res = 0.0; for(std::size_t i = 0; i < N; ++i) res += m_data[i] * v.coord(i);return res;}
+		value_type operator * (const MathVector& v) const {value_type res = 0.0; for(std::size_t i = 0; i < N; ++i) res += m_data[i] * v.coord(i);return res;}
 
 		inline std::size_t size() const {return N;}
 
 		inline value_type& coord(size_t index)				{return m_data[index];}
 		inline value_type coord(size_t index) const			{return m_data[index];}
 		
-		inline value_type& operator[](size_t index)				{return m_data[index];}
-		inline const value_type& operator[](size_t index) const	{return m_data[index];}
+		inline value_type& operator [] (size_t index)				{return m_data[index];}
+		inline const value_type& operator [] (size_t index) const	{return m_data[index];}
 
 		inline void set_coord(std::size_t index, value_type v)	{m_data[index] = v;}
 
@@ -186,19 +187,19 @@ class MathVector<0, T>
 		}
 
 		// operations with other vectors
-		MathVector& operator=(const MathVector& v) {assign(v); return *this;}
-		MathVector& operator+=(const MathVector& v) {m_data[0] += v.x(); return *this;}
-		MathVector& operator-=(const MathVector& v) {m_data[0] -= v.x(); return *this;}
+		MathVector& operator = (const MathVector& v) {assign(v); return *this;}
+		MathVector& operator += (const MathVector& v) {m_data[0] += v.x(); return *this;}
+		MathVector& operator -= (const MathVector& v) {m_data[0] -= v.x(); return *this;}
 
 		// operations with scalar
-		MathVector& operator=(const value_type& val) {m_data[0] =  val;return *this;}
-		MathVector& operator+=(const value_type& val) {m_data[0] += val;return *this;}
-		MathVector& operator-=(const value_type& val) {m_data[0] -= val;return *this;}
-		MathVector& operator*=(const value_type& val) {m_data[0] *= val;return *this;}
-		MathVector& operator/=(const value_type& val) {m_data[0] /= val;return *this;}
+		MathVector& operator = (const value_type& val) {m_data[0] =  val;return *this;}
+		MathVector& operator += (const value_type& val) {m_data[0] += val;return *this;}
+		MathVector& operator -= (const value_type& val) {m_data[0] -= val;return *this;}
+		MathVector& operator *= (const value_type& val) {m_data[0] *= val;return *this;}
+		MathVector& operator /= (const value_type& val) {m_data[0] /= val;return *this;}
 
 		// negation
-		MathVector& operator-() { return MathVector<0, T>(-m_data[0]); }
+		MathVector& operator - () { return MathVector(-m_data[0]); }
 
 		// scalar product
 		value_type operator * (const MathVector& v) const {return m_data[0] * v.x();}
@@ -208,8 +209,8 @@ class MathVector<0, T>
 		inline value_type& coord(std::size_t index)					{return m_data[0];}
 		inline value_type coord(std::size_t index) const			{return m_data[0];}
 
-		inline value_type& operator[](std::size_t index)				{return m_data[0];}
-		inline const value_type& operator[](std::size_t index) const	{return m_data[0];}
+		inline value_type& operator [] (std::size_t index)				{return m_data[0];}
+		inline const value_type& operator [] (std::size_t index) const	{return m_data[0];}
 
 		inline void set_coord(std::size_t index, value_type v)	{m_data[0] = v;}
 
@@ -234,7 +235,7 @@ class MathVector<1, T>
 		static constexpr std::size_t Size = 1;
 
 	public:
-		MathVector() 	{m_data[0] = 0.0;}
+		MathVector() {m_data[0] = 0.0;}
 		MathVector(value_type x) { m_data[0] = x; }
 		MathVector(const MathVector<1, T>& v)	{assign(v);}
 
@@ -250,30 +251,30 @@ class MathVector<1, T>
 		}
 
 		// operations with other vectors
-		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
-		MathVector& operator+= (const MathVector& v) {m_data[0] += v.x(); return *this;}
-		MathVector& operator-= (const MathVector& v) {m_data[0] -= v.x(); return *this;}
+		MathVector& operator = (const MathVector& v) {assign(v); return *this;}
+		MathVector& operator += (const MathVector& v) {m_data[0] += v.x(); return *this;}
+		MathVector& operator -= (const MathVector& v) {m_data[0] -= v.x(); return *this;}
 
 		// operations with scalar
-		MathVector& operator=  (const value_type& val) {m_data[0] =  val;return *this;}
-		MathVector& operator+= (const value_type& val) {m_data[0] += val;return *this;}
-		MathVector& operator-= (const value_type& val) {m_data[0] -= val;return *this;}
-		MathVector& operator*= (const value_type& val) {m_data[0] *= val;return *this;}
-		MathVector& operator/= (const value_type& val) {m_data[0] /= val;return *this;}
+		MathVector& operator = (const value_type& val) {m_data[0] =  val;return *this;}
+		MathVector& operator += (const value_type& val) {m_data[0] += val;return *this;}
+		MathVector& operator -= (const value_type& val) {m_data[0] -= val;return *this;}
+		MathVector& operator *= (const value_type& val) {m_data[0] *= val;return *this;}
+		MathVector& operator /= (const value_type& val) {m_data[0] /= val;return *this;}
 
 		// negation
-		MathVector operator- () const { return MathVector<1, T>(-m_data[0]); }
+		MathVector operator - () const { return MathVector<1, T>(-m_data[0]); }
 
 		// scalar product
-		value_type operator* (const MathVector& v) const {return m_data[0] * v.x();}
+		value_type operator * (const MathVector& v) const {return m_data[0] * v.x();}
 
 		inline std::size_t size() const								{return 1;}
 
 		inline value_type& coord(std::size_t index)					{return m_data[0];}
 		inline value_type coord(std::size_t index) const			{return m_data[0];}
 
-		inline value_type& operator[](std::size_t index)				{return m_data[0];}
-		inline const value_type& operator[](std::size_t index) const	{return m_data[0];}
+		inline value_type& operator [] (std::size_t index)				{return m_data[0];}
+		inline const value_type& operator [] (std::size_t index) const	{return m_data[0];}
 
 		inline void set_coord(std::size_t index, value_type v)	{m_data[0] = v;}
 
@@ -319,12 +320,12 @@ class MathVector<2, T>
 		}
 
 		// operations with other vectors
-		MathVector& operator =  (const MathVector& v) {assign(v); return *this;}
+		MathVector& operator = (const MathVector& v) {assign(v); return *this;}
 		MathVector& operator += (const MathVector& v) {for(std::size_t i = 0; i < 2; ++i) m_data[i] += v.coord(i);return *this;}
 		MathVector& operator -= (const MathVector& v) {for(std::size_t i = 0; i < 2; ++i) m_data[i] -= v.coord(i);return *this;}
 
 		// operations with scalar
-		MathVector& operator =  (const value_type& val) {for(std::size_t i = 0; i < 2; ++i) m_data[i] =  val;return *this;}
+		MathVector& operator = (const value_type& val) {for(std::size_t i = 0; i < 2; ++i) m_data[i] =  val;return *this;}
 		MathVector& operator += (const value_type& val) {for(std::size_t i = 0; i < 2; ++i) m_data[i] += val;return *this;}
 		MathVector& operator -= (const value_type& val) {for(std::size_t i = 0; i < 2; ++i) m_data[i] -= val;return *this;}
 		MathVector& operator *= (const value_type& val) {for(std::size_t i = 0; i < 2; ++i) m_data[i] *= val;return *this;}
@@ -341,8 +342,8 @@ class MathVector<2, T>
 		inline value_type& coord(std::size_t index)					{return m_data[index];}
 		inline value_type coord(std::size_t index) const			{return m_data[index];}
 
-		inline value_type& operator[](std::size_t index)				{return m_data[index];}
-		inline const value_type& operator[](std::size_t index) const	{return m_data[index];}
+		inline value_type& operator [] (std::size_t index)				{return m_data[index];}
+		inline const value_type& operator [] (std::size_t index) const	{return m_data[index];}
 
 		inline void set_coord(std::size_t index, value_type v)	{m_data[index] = v;}
 
@@ -370,7 +371,7 @@ class MathVector<3, T>
 		static constexpr std::size_t Size = 3;
 
 	public:
-		MathVector()	{m_data[0] = m_data[1] = m_data[2] = 0.0;}
+		MathVector() {m_data[0] = m_data[1] = m_data[2] = 0.0;}
 		MathVector(const value_type& val) {m_data[0] = m_data[1] = m_data[2] = val;}
 		MathVector(value_type x, value_type y, value_type z)
 		{
@@ -378,7 +379,7 @@ class MathVector<3, T>
 			m_data[1] = y;
 			m_data[2] = z;
 		}
-		MathVector(const MathVector<3,T>& v)	{assign(v);}
+		MathVector(const MathVector& v)	{assign(v);}
 
 		static inline MathVector from(const MathVector<0, T>& v)	{return MathVector(0, 0, 0);}
 		static inline MathVector from(const MathVector<1, T>& v)	{return MathVector(v[0], 0, 0);}
@@ -392,30 +393,30 @@ class MathVector<3, T>
 		}
 
 		// operations with other vectors
-		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
-		MathVector& operator+= (const MathVector& v) {for(std::size_t i = 0; i < 3; ++i) m_data[i] += v.coord(i);return *this;}
-		MathVector& operator-= (const MathVector& v) {for(std::size_t i = 0; i < 3; ++i) m_data[i] -= v.coord(i);return *this;}
+		MathVector& operator =  (const MathVector& v) {assign(v); return *this;}
+		MathVector& operator += (const MathVector& v) {for(std::size_t i = 0; i < 3; ++i) m_data[i] += v.coord(i);return *this;}
+		MathVector& operator -= (const MathVector& v) {for(std::size_t i = 0; i < 3; ++i) m_data[i] -= v.coord(i);return *this;}
 
 		// operations with scalar
-		MathVector& operator=  (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] =  val;return *this;}
-		MathVector& operator+= (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] += val;return *this;}
-		MathVector& operator-= (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] -= val;return *this;}
-		MathVector& operator*= (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] *= val;return *this;}
-		MathVector& operator/= (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] /= val;return *this;}
+		MathVector& operator =  (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] =  val;return *this;}
+		MathVector& operator += (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] += val;return *this;}
+		MathVector& operator -= (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] -= val;return *this;}
+		MathVector& operator *= (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] *= val;return *this;}
+		MathVector& operator /= (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] /= val;return *this;}
 
 		// negation
-		MathVector operator- () const { return MathVector<3, T>(-m_data[0], -m_data[1], -m_data[2]); }
+		MathVector operator - () const { return MathVector(-m_data[0], -m_data[1], -m_data[2]); }
 
 		// scalar product
-		value_type operator* (const MathVector& v) const {value_type res = 0.0; for(std::size_t i = 0; i < 3; ++i) res += m_data[i] * v.coord(i);return res;}
+		value_type operator * (const MathVector& v) const {value_type res = 0.0; for(std::size_t i = 0; i < 3; ++i) res += m_data[i] * v.coord(i);return res;}
 
 		inline std::size_t size() const										{return 3;}
 
 		inline value_type& coord(std::size_t index)					{return m_data[index];}
 		inline value_type coord(std::size_t index) const			{return m_data[index];}
 
-		inline value_type& operator[](std::size_t index)				{return m_data[index];}
-		inline const value_type& operator[](std::size_t index) const	{return m_data[index];}
+		inline value_type& operator [] (std::size_t index)				{return m_data[index];}
+		inline const value_type& operator [] (std::size_t index) const	{return m_data[index];}
 
 		inline void set_coord(std::size_t index, value_type v)	{m_data[index] = v;}
 
@@ -448,7 +449,7 @@ class MathVector<4, T>
 		static constexpr std::size_t Size = 4;
 
 	public:
-		MathVector()	{m_data[0] = m_data[1] = m_data[2] = m_data[3] = 0.0;}
+		MathVector() {m_data[0] = m_data[1] = m_data[2] = m_data[3] = 0.0;}
 		MathVector(const value_type& val) {m_data[0] = m_data[1] = m_data[2] = m_data[3] =val;}
 		MathVector(value_type x, value_type y, value_type z, value_type w)
 		{
@@ -471,30 +472,30 @@ class MathVector<4, T>
 		}
 
 		// operations with other vectors
-		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
-		MathVector& operator+= (const MathVector& v) {for(std::size_t i = 0; i < 4; ++i) m_data[i] += v.coord(i);return *this;}
-		MathVector& operator-= (const MathVector& v) {for(std::size_t i = 0; i < 4; ++i) m_data[i] -= v.coord(i);return *this;}
+		MathVector& operator = (const MathVector& v) {assign(v); return *this;}
+		MathVector& operator += (const MathVector& v) {for(std::size_t i = 0; i < 4; ++i) m_data[i] += v.coord(i);return *this;}
+		MathVector& operator -= (const MathVector& v) {for(std::size_t i = 0; i < 4; ++i) m_data[i] -= v.coord(i);return *this;}
 
 		// operations with scalar
-		MathVector& operator=  (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] =  val;return *this;}
-		MathVector& operator+= (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] += val;return *this;}
-		MathVector& operator-= (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] -= val;return *this;}
-		MathVector& operator*= (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] *= val;return *this;}
-		MathVector& operator/= (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] /= val;return *this;}
+		MathVector& operator = (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] =  val;return *this;}
+		MathVector& operator += (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] += val;return *this;}
+		MathVector& operator -= (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] -= val;return *this;}
+		MathVector& operator *= (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] *= val;return *this;}
+		MathVector& operator /= (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] /= val;return *this;}
 
 		// negation
-		MathVector operator- () const { return MathVector<4, T>(-m_data[0], -m_data[1], -m_data[2], -m_data[3]); }
+		MathVector operator - () const { return MathVector<4, T>(-m_data[0], -m_data[1], -m_data[2], -m_data[3]); }
 
 		// scalar product
-		value_type operator* (const MathVector& v) const {value_type res = 0.0; for(std::size_t i = 0; i < 4; ++i) res += m_data[i] * v.coord(i);return res;}
+		value_type operator * (const MathVector& v) const {value_type res = 0.0; for(std::size_t i = 0; i < 4; ++i) res += m_data[i] * v.coord(i);return res;}
 
 		inline std::size_t size() const									{return 4;}
 
 		inline value_type& coord(std::size_t index)					{return m_data[index];}
 		inline value_type coord(std::size_t index) const			{return m_data[index];}
 
-		inline value_type& operator[](std::size_t index)				{return m_data[index];}
-		inline const value_type& operator[](std::size_t index) const	{return m_data[index];}
+		inline value_type& operator [] (std::size_t index)				{return m_data[index];}
+		inline const value_type& operator [] (std::size_t index) const	{return m_data[index];}
 
 		inline void set_coord(std::size_t index, value_type v)	{m_data[index] = v;}
 
@@ -520,7 +521,7 @@ class MathVector<4, T>
 };
 
 template <std::size_t N, typename T>
-bool operator== (const MathVector<N,T>& v, const MathVector<N,T>& w)
+bool operator == (const MathVector<N,T>& v, const MathVector<N,T>& w)
 {
 	for(std::size_t i = 0; i < N; ++i)
 	{
@@ -530,7 +531,7 @@ bool operator== (const MathVector<N,T>& v, const MathVector<N,T>& w)
 }
 
 template <typename T>
-bool operator== (const MathVector<0,T>& v, const MathVector<0,T>& w)
+bool operator == (const MathVector<0,T>& v, const MathVector<0,T>& w)
 {
 	return true;
 }
@@ -538,7 +539,7 @@ bool operator== (const MathVector<0,T>& v, const MathVector<0,T>& w)
 //	NOTE: this implementation determines the state of the relation '<'
 //	by considering the FIRST vector-entry, which is not equal
 template <std::size_t N, typename T>
-bool operator< (const MathVector<N,T>& v, const MathVector<N,T>& w)
+bool operator < (const MathVector<N,T>& v, const MathVector<N,T>& w)
 {
 	for(std::size_t i = 0; i < N; ++i)
 	{
@@ -549,13 +550,13 @@ bool operator< (const MathVector<N,T>& v, const MathVector<N,T>& w)
 }
 
 template <std::size_t N, typename T>
-bool operator!= (const MathVector<N,T>& v, const MathVector<N,T>& w)
+bool operator != (const MathVector<N,T>& v, const MathVector<N,T>& w)
 {
 	return !(v == w);
 }
 
 template <std::size_t N, typename T>
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<N,T>& v)
+std::ostream& operator << (std::ostream& outStream, const ug::MathVector<N,T>& v)
 {
 	for(std::size_t i = 0; i < N; ++i)
 		outStream << "[" << i << "]: " << v.coord(i) << std::endl;
@@ -563,59 +564,59 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<N,T>& v)
 }
 
 template <typename T>
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<0,T>& v)
+std::ostream& operator << (std::ostream& outStream, const ug::MathVector<0,T>& v)
 {
 	outStream << "(empty)";
 	return outStream;
 }
 
 template <typename T>
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<1,T>& v)
+std::ostream& operator << (std::ostream& outStream, const ug::MathVector<1,T>& v)
 {
 	outStream << "(" << v[0] << ")";
 	return outStream;
 }
 template <typename T>
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<2,T>& v)
+std::ostream& operator << (std::ostream& outStream, const ug::MathVector<2,T>& v)
 {
 	outStream << "("<<v[0]<<", "<<v[1]<<")";
 	return outStream;
 }
 template <typename T>
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<3,T>& v)
+std::ostream& operator << (std::ostream& outStream, const MathVector<3,T>& v)
 {
 	outStream << "("<<v[0]<<", "<<v[1]<<", "<<v[2]<<")";
 	return outStream;
 }
 template <typename T>
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<4,T>& v)
+std::ostream& operator << (std::ostream& outStream, const MathVector<4,T>& v)
 {
 	outStream << "("<<v[0]<<", "<<v[1]<<", "<<v[2]<<", "<<v[3]<<")";
 	return outStream;
 }
 
-UG_API std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<1>& v);
-UG_API std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<2>& v);
-UG_API std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<3>& v);
-UG_API std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<4>& v);
+UG_API std::ostream& operator << (std::ostream& outStream, const MathVector<1>& v);
+UG_API std::ostream& operator << (std::ostream& outStream, const MathVector<2>& v);
+UG_API std::ostream& operator << (std::ostream& outStream, const MathVector<3>& v);
+UG_API std::ostream& operator << (std::ostream& outStream, const MathVector<4>& v);
 
-UG_API std::ostream& write_plain_txt (std::ostream& outStream, const ug::MathVector<1>& v);
-UG_API std::ostream& write_plain_txt (std::ostream& outStream, const ug::MathVector<2>& v);
-UG_API std::ostream& write_plain_txt (std::ostream& outStream, const ug::MathVector<3>& v);
-UG_API std::ostream& write_plain_txt (std::ostream& outStream, const ug::MathVector<4>& v);
+UG_API std::ostream& write_plain_txt (std::ostream& outStream, const MathVector<1>& v);
+UG_API std::ostream& write_plain_txt (std::ostream& outStream, const MathVector<2>& v);
+UG_API std::ostream& write_plain_txt (std::ostream& outStream, const MathVector<3>& v);
+UG_API std::ostream& write_plain_txt (std::ostream& outStream, const MathVector<4>& v);
 
-UG_API std::istream& read_plain_txt (std::istream& inStream, ug::MathVector<1>& v);
-UG_API std::istream& read_plain_txt (std::istream& inStream, ug::MathVector<2>& v);
-UG_API std::istream& read_plain_txt (std::istream& inStream, ug::MathVector<3>& v);
-UG_API std::istream& read_plain_txt (std::istream& inStream, ug::MathVector<4>& v);
+UG_API std::istream& read_plain_txt (std::istream& inStream, MathVector<1>& v);
+UG_API std::istream& read_plain_txt (std::istream& inStream, MathVector<2>& v);
+UG_API std::istream& read_plain_txt (std::istream& inStream, MathVector<3>& v);
+UG_API std::istream& read_plain_txt (std::istream& inStream, MathVector<4>& v);
 
-template <class TStream, std::size_t N, class T>
+template <typename TStream, std::size_t N, typename T>
 void Serialize(TStream& out, const MathVector<N, T>& val)
 {
 	out.write((char*)val.m_data, sizeof(T) * N);
 }
 
-template <class TStream, std::size_t N, class T>
+template <typename TStream, std::size_t N, typename T>
 void Deserialize(TStream& out, MathVector<N, T>& valOut)
 {
 	out.read((char*)valOut.m_data, sizeof(T) * N);

@@ -67,7 +67,7 @@ enum ArchiveType {
 };
 
 ///	Provides custom information for different archives
-template <class TArchive>
+template <typename TArchive>
 struct ArchiveInfo {
 	static constexpr ArchiveType TYPE = AT_DATA;
 };
@@ -75,4 +75,4 @@ struct ArchiveInfo {
 
 }//	end of namespace
 
-#endif	//__H__UG_boost_serialization
+#endif

@@ -55,7 +55,7 @@ void induced_subgraph(G_t& ind_g, M_t* A, const std::vector<size_t>& inv_map){
 	size_t k = inv_map.size();
 	ind_g = G_t(k);
 
-	std::vector<int> ind_map(n, -1);
+	std::vector ind_map(n, -1);
 	for(unsigned i = 0; i < k; ++i){
 		ind_map[inv_map[i]] = i;
 	}

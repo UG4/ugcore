@@ -61,7 +61,7 @@ struct sortStruct
 	size_t index; // for example "original" position.
 	T sortValue;
 
-	bool operator < (const sortStruct<T> &other) const
+	bool operator < (const sortStruct &other) const
 	{
 		return sortValue < other.sortValue;
 	}

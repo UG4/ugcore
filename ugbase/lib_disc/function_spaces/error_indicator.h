@@ -710,7 +710,7 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
  * \param[in] aNumElems		ANumber attachment on side_t:
  *							The number of elements which have contributed to aSideError.
  */
-template <class side_t, class TFunction>
+template <typename side_t, typename TFunction>
 void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumElems)
 {
 	//using side_iter_t = typename TFunction::template traits<side_t>::const_iterator;

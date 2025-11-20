@@ -58,11 +58,11 @@ class SCCOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 public:
 	using M_t = typename TAlgebra::matrix_type;
 	using V_t = typename TAlgebra::vector_type;
-	using G_t = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS>;
+	using G_t = boost::adjacency_list<>;
 	using baseclass = IOrderingAlgorithm<TAlgebra, O_t>;
 
 	using ordering_container_type = std::vector<size_t>;
-	using ordering_algo_type = IOrderingAlgorithm<TAlgebra, ordering_container_type>;
+	using ordering_algo_type = IOrderingAlgorithm<TAlgebra>;
 
 	using vd_t = boost::graph_traits<G_t>::vertex_descriptor;
 	using vIt_t = boost::graph_traits<G_t>::vertex_iterator;
@@ -70,15 +70,15 @@ public:
 	using adj_iter = boost::graph_traits<G_t>::adjacency_iterator;
 	using inedge_iter = boost::graph_traits<G_t>::in_edge_iterator;
 
-	SCCOrdering(){}
+	SCCOrdering() = default;
 
 	/// clone constructor
-	SCCOrdering( const SCCOrdering<TAlgebra, O_t> &parent )
+	SCCOrdering( const SCCOrdering &parent )
 			: baseclass(), m_spOrderingSubAlgo(parent.m_spOrderingSubAlgo){}
 
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new SCCOrdering<TAlgebra, O_t>(*this));
+		return make_sp(new SCCOrdering(*this));
 	}
 
 	/// sets an ordering algorithm
@@ -87,7 +87,7 @@ public:
 	}
 
 	void compute(){
-		unsigned n = boost::num_vertices(g);
+		unsigned n = num_vertices(g);
 
 		if(n == 0){
 			UG_THROW(name() << "::compute: Graph is empty!");
@@ -97,13 +97,13 @@ public:
 		std::vector<int> component(n), discover_time(n);
 		std::vector<boost::default_color_type> color(n);
 		std::vector<vd_t> root(n);
-		size_t num_components = boost::strong_components(g,
-			boost::make_iterator_property_map(component.begin(), boost::get(boost::vertex_index, g)),
-			boost::root_map(boost::make_iterator_property_map(root.begin(), boost::get(boost::vertex_index, g)))
+		size_t num_components = strong_components(g,
+			make_iterator_property_map(component.begin(), get(boost::vertex_index, g)),
+			root_map(make_iterator_property_map(root.begin(), get(boost::vertex_index, g)))
 			    .color_map(
-				boost::make_iterator_property_map(color.begin(), boost::get(boost::vertex_index, g)))
-			    .discover_time_map(boost::make_iterator_property_map(
-				discover_time.begin(), boost::get(boost::vertex_index, g))));
+				make_iterator_property_map(color.begin(), get(boost::vertex_index, g)))
+			    .discover_time_map(make_iterator_property_map(
+				discover_time.begin(), get(boost::vertex_index, g))));
 
 
 		std::vector<std::vector<vd_t> > comp_members(num_components);
@@ -118,9 +118,9 @@ public:
 		size_t i_comp, n_comp;
 		for(unsigned i = 0; i < n; ++i){
 			i_comp = component[i];
-			for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(i, g); nIt != nEnd; ++nIt){
+			for(boost::tie(nIt, nEnd) = adjacent_vertices(i, g); nIt != nEnd; ++nIt){
 				n_comp = component[*nIt];
-				if(i_comp != n_comp && !boost::edge(i_comp, n_comp, scc_g).second){
+				if(i_comp != n_comp && !edge(i_comp, n_comp, scc_g).second){
 					boost::add_edge(i_comp, n_comp, scc_g);
 				}
 			}

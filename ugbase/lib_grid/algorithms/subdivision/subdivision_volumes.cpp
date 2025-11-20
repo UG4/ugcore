@@ -512,7 +512,7 @@ void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
+template <typename TAPosition>
 void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, TAPosition& aPos)
 {
 	PROFILE_FUNC_GROUP("subdivision_volumes");
@@ -583,7 +583,7 @@ void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, TAPosition& aPos)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
+template <typename TAPosition>
 void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 											 	 	   	   	 MGSubsetHandler& linearManifoldSH,
 															 TAPosition& aSmoothBndPosEvenVrt,
@@ -875,7 +875,7 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
+template <typename TAPosition>
 void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 											 	 	   MGSubsetHandler& linearManifoldSH,
 													   TAPosition& aSmoothBndPosEvenVrt,
@@ -1097,7 +1097,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
+template <typename TAPosition>
 void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 														 MGSubsetHandler& linearManifoldSH,
 														 TAPosition& aSmoothBndPos_tri,
@@ -1212,7 +1212,7 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, TAPositi
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
+template <typename TAPosition>
 void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPosition& aPos,
 															MGSubsetHandler& markSH,
 															MGSubsetHandler& linearManifoldSH,
@@ -2300,7 +2300,7 @@ void InitLinearManifoldSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
+template <typename TAPosition>
 void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 												MGSubsetHandler& linearManifoldSH, bool bCreaseSurf)
 {
@@ -2477,7 +2477,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
+template <typename TAPosition>
 void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 												MGSubsetHandler& linearManifoldSH)
 {
@@ -2621,7 +2621,7 @@ void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
+template <typename TAPosition>
 void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 													 MGSubsetHandler& linearManifoldSH)
 {
@@ -2890,7 +2890,7 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
+template <typename TAPosition>
 void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
 											  MGSubsetHandler& markSH, MGSubsetHandler& linearManifoldSH,
 											  bool bCreaseSurf)
@@ -3014,7 +3014,7 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
 
 //////////////////////////////////////////////////////////////////////////////
 //	Wrapper procedures
-template <class TAPosition>
+template <typename TAPosition>
 void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
 											  MGSubsetHandler& markSH, const char* linearManifoldSubsets,
 											  bool bCreaseSurf)

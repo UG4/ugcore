@@ -38,7 +38,7 @@
 namespace ug{
 
 ///	calculates the smallest axis aligned box that contains the given vertex
-template <class TAAPos>
+template <typename TAAPos>
 AABox<typename TAAPos::ValueType>
 CalculateBoundingBox (Vertex* e, TAAPos aaPos)
 {
@@ -46,7 +46,7 @@ CalculateBoundingBox (Vertex* e, TAAPos aaPos)
 }
 
 ///	calculates the smallest axis aligned box that contains the given element
-template <class TElem, class TAAPos>
+template <typename TElem, typename TAAPos>
 AABox<typename TAAPos::ValueType>
 CalculateBoundingBox (TElem* e, TAAPos aaPos)
 {

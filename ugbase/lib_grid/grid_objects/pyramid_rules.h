@@ -219,7 +219,7 @@ bool IsRegularRefRule(const int edgeMarks);
  *
  * \returns	the number of entries written to newIndsOut or 0, if the refinement
  * 			could not be performed.*/
-template <class TCmp>
+template <typename TCmp>
 int ConvertToTetrahedra(int* newIndsOut, TCmp cmp);
 
 

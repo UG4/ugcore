@@ -79,7 +79,7 @@ class GeomProvider
 				: m_lfeID(lfeID), m_order(order) {}
 
 			///	operator <
-				bool operator<(const LFEIDandQuadOrder& v) const
+				bool operator < (const LFEIDandQuadOrder& v) const
 				{
 					if(m_lfeID != v.m_lfeID) return m_lfeID < v.m_lfeID;
 					else return m_order < v.m_order;

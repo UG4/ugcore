@@ -39,7 +39,7 @@
 
 namespace ug{
 
-template <class TAAPos>
+template <typename TAAPos>
 inline typename TAAPos::ValueType
 CalculateOuterNormal(Vertex* v, int sideIndex, TAAPos aaPos)
 {
@@ -48,7 +48,7 @@ CalculateOuterNormal(Vertex* v, int sideIndex, TAAPos aaPos)
 	return n;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 inline typename TAAPos::ValueType
 CalculateOuterNormal(Edge* e, int sideIndex, TAAPos aaPos)
 {
@@ -59,7 +59,7 @@ CalculateOuterNormal(Edge* e, int sideIndex, TAAPos aaPos)
 	return n;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 inline typename TAAPos::ValueType
 CalculateOuterNormal(Face* f, int sideIndex, TAAPos aaPos)
 {
@@ -74,7 +74,7 @@ CalculateOuterNormal(Face* f, int sideIndex, TAAPos aaPos)
 	return n;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 inline typename TAAPos::ValueType
 CalculateOuterNormal(Volume* v, int sideIndex, TAAPos aaPos)
 {
@@ -85,7 +85,7 @@ CalculateOuterNormal(Volume* v, int sideIndex, TAAPos aaPos)
 	return n;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 inline typename TAAPos::ValueType
 CalculateOuterNormal(GridObject* o, int sideIndex, TAAPos aaPos)
 {

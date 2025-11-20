@@ -60,7 +60,7 @@ namespace ug
  * The center is calculated by averaging the positions of all vertices, which
  * touch the selection.
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
 					 Selector& sel, TAAPosVRT& aaPos);
 
@@ -68,7 +68,7 @@ bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
 ///	moves all vertices touching the selection by the specified offset.
 /**	This algorithm uses Grid::mark
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 void TranslateSelection(Selector& sel, const typename TAAPosVRT::ValueType& offset,
 						TAAPosVRT& aaPos);
 
@@ -89,7 +89,7 @@ size_t CollectVerticesTouchingSelection(std::vector<Vertex*>& vrtsOut,
 /**
  * TSelector has to either be of type Selector or MGSelector.
  */
-template <class TSelector>
+template <typename TSelector>
 void EraseSelectedObjects(TSelector& sel);
 
 
@@ -99,7 +99,7 @@ void EraseSelectedObjects(TSelector& sel);
 /**
  * TSelector has to either be of type Selector or MGSelector.
  */
-template <class TSelector, class TIterator>
+template <typename TSelector, typename TIterator>
 void InvertSelection(TSelector& sel, TIterator begin, TIterator end);
 
 ////////////////////////////////////////////////////////////////////////
@@ -108,7 +108,7 @@ void InvertSelection(TSelector& sel, TIterator begin, TIterator end);
 /**
  * TSelector has to either be of type Selector or MGSelector.
  */
-template <class TSelector>
+template <typename TSelector>
 void InvertSelection(TSelector& sel);
 
 
@@ -119,7 +119,7 @@ void InvertSelection(TSelector& sel);
  * SelectAssociated<Volume>(sel, sel.begin<Face>, sel.end<Face>());
  * \endcode
  */
-template <class TElem, class TIterator>
+template <typename TElem, typename TIterator>
 void
 SelectAssociated(ISelector& sel, TIterator begin, TIterator end,
 				 ISelector::status_t status = ISelector::SELECTED);
@@ -142,7 +142,7 @@ SelectAssociated(ISelector& sel, TIterator begin, TIterator end,
  * Make sure that the elements only reference vertices that belong to the grid
  * at which the selector is registered.
  */
-template <class TSelector, class TElemIterator>
+template <typename TSelector, typename TElemIterator>
 void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,
 							  TElemIterator elemsEnd,
 							  ISelector::status_t status = ISelector::SELECTED);
@@ -162,7 +162,7 @@ void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,
  * Make sure that the elements only reference edges that belong to the grid
  * at which the selector is registered.
  */
-template <class TSelector, class TElemIterator>
+template <typename TSelector, typename TElemIterator>
 void SelectAssociatedEdges(TSelector& sel, TElemIterator elemsBegin,
 						   TElemIterator elemsEnd,
 						   ISelector::status_t status = ISelector::SELECTED);
@@ -182,7 +182,7 @@ void SelectAssociatedEdges(TSelector& sel, TElemIterator elemsBegin,
  * Make sure that the elements only reference faces that belong to the grid
  * at which the selector is registered.
  */
-template <class TSelector, class TElemIterator>
+template <typename TSelector, typename TElemIterator>
 void SelectAssociatedFaces(TSelector& sel, TElemIterator elemsBegin,
 						   TElemIterator elemsEnd,
 						   ISelector::status_t status = ISelector::SELECTED);
@@ -202,7 +202,7 @@ void SelectAssociatedFaces(TSelector& sel, TElemIterator elemsBegin,
  * Make sure that the elements only reference faces that belong to the grid
  * at which the selector is registered.
  */
-template <class TSelector, class TElemIterator>
+template <typename TSelector, typename TElemIterator>
 void SelectAssociatedVolumes(TSelector& sel, TElemIterator elemsBegin,
 						   TElemIterator elemsEnd,
 						   ISelector::status_t status = ISelector::SELECTED);
@@ -216,7 +216,7 @@ void SelectAssociatedVolumes(TSelector& sel, TElemIterator elemsBegin,
 
 ////////////////////////////////////////////////////////////////////////
 ///	selects associated geometric objects of selected ones on each level.
-template <class TSelector>
+template <typename TSelector>
 UG_API
 void SelectAssociatedGridObjects(TSelector& sel,
 							  ISelector::status_t status = ISelector::SELECTED);
@@ -224,7 +224,7 @@ void SelectAssociatedGridObjects(TSelector& sel,
 
 ////////////////////////////////////////////////////////////////////////
 /// Selects all associated elements of lower dimensions
-template <class TSelector>
+template <typename TSelector>
 UG_API
 void CloseSelection (TSelector& sel);
 
@@ -239,24 +239,24 @@ void CloseSelection (TSelector& sel);
  *
  * Valid types for TSelector are Selector and MGSelector.
  */
-template <class TElem, class TSelector>
+template <typename TElem, typename TSelector>
 void AssignSelectionStateToSides(TSelector& sel, bool recursive);
 
 ////////////////////////////////////////////////////////////////////////
 ///	selects elements that lie on the associated grid's boundary
-template <class TElemIterator>
+template <typename TElemIterator>
 void SelectBoundaryElements(ISelector& sel, TElemIterator elemsBegin,
 						 TElemIterator elemsEnd);
 
 ////////////////////////////////////////////////////////////////////////
 ///	selects elements that do not lie on the associated grid's boundary
-template <class TElemIterator>
+template <typename TElemIterator>
 void SelectInnerElements(ISelector& sel, TElemIterator elemsBegin,
 						 TElemIterator elemsEnd);
 
 ////////////////////////////////////////////////////////////////////////
 /// Selects edges which at which triangles meet in a large angle
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 void SelectCreaseEdges(ISelector& sel, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 						number minAngle, APosition aVrtPos,
 						bool ignoreBoundaryEdges = true,
@@ -274,7 +274,7 @@ void SelectCreaseEdges(ISelector& sel, TEdgeIterator edgesBegin, TEdgeIterator e
  *
  * Please note that only existing sides are checked.
  */
-template <class TIter>
+template <typename TIter>
 void SelectAreaBoundary(ISelector& sel, const TIter begin, const TIter end);
 
 ////////////////////////////////////////////////////////////////////////
@@ -282,7 +282,7 @@ void SelectAreaBoundary(ISelector& sel, const TIter begin, const TIter end);
 /**	Please note, that this method does not select boundary segments.
  * If regardSelectedNbrsOnly is set to true (default false), then only selected
  * neighbors are checked for different interfaces.*/
-template <class TIter>
+template <typename TIter>
 void SelectInterfaceElements(ISelector& sel, ISubsetHandler& sh,
 							 const TIter begin, const TIter end,
 							 bool regardSelectedNbrsOnly = false);
@@ -291,7 +291,7 @@ void SelectInterfaceElements(ISelector& sel, ISubsetHandler& sh,
 /// selects all elements of the given type in the given subset
 /**	If you want to deselect elements, pass ISelector::DESELECT to the status
  * argument.*/
-template <class TElem>
+template <typename TElem>
 void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
 						  ISelector::status_t status = ISelector::SELECTED);
 
@@ -304,7 +304,7 @@ void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
  *
  * \todo: Performance can be improved. See implementation.
  */
-template <class TSelector>
+template <typename TSelector>
 UG_API
 void ExtendSelection(TSelector& sel, size_t extSize,
 					 ISelector::status_t status = ISelector::SELECTED);
@@ -328,7 +328,7 @@ void ExtendSelection(TSelector& sel, size_t extSize,
  *
  * \todo: Performance can be improved. See implementation.
  */
-template <class TSelector, class TAAPos>
+template <typename TSelector, typename TAAPos>
 UG_API
 void ExtendSelectionInDirection(
         TSelector& sel,
@@ -354,9 +354,8 @@ void ExtendSelectionInDirection(
  *
  * Valid types for TGeomBaseObj are Edge, Face and Volume.
  */
-template <class TGeomObj>
-void SelectionFill(Selector& sel,
-			   	   typename Grid::traits<typename TGeomObj::side>::callback cbRegionBoundary);
+template <typename TGeomObj>
+void SelectionFill(Selector& sel, typename Grid::traits<typename TGeomObj::side>::callback cbRegionBoundary);
 
 ////////////////////////////////////////////////////////////////////////
 /// Selects the region which contains the given point
@@ -378,7 +377,7 @@ void SelectionFill(Selector& sel,
  *
  * Valid types for TGeomBaseObj are Edge, Face and Volume.
  */
-template <class TGeomObj, class TAAPos>
+template <typename TGeomObj, typename TAAPos>
 bool SelectRegion(Selector& sel, const typename TAAPos::ValueType& p, TAAPos& aaPos,
 			   	  typename Grid::traits<typename TGeomObj::side>::callback cbRegionBoundary);
 
@@ -403,7 +402,7 @@ void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Selects all edges that face a given direction
-template <class TAAPos>
+template <typename TAAPos>
 void SelectEdgesByDirection(
 				Selector& sel,
 				TAAPos& aaPos,
@@ -414,7 +413,7 @@ void SelectEdgesByDirection(
 
 ////////////////////////////////////////////////////////////////////////
 ///	Selects all subset edges that face a given direction
-template <class TAAPos>
+template <typename TAAPos>
 void SelectSubsetEdgesByDirection(
 				Selector& sel,
 				SubsetHandler& sh,
@@ -452,7 +451,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 ////////////////////////////////////////////////////////////////////////
 //	SelectShortPolychains
 ///	Selects regular polygonal chains which are shorter than a given threshold
-template <class TAAPos>
+template <typename TAAPos>
 void SelectShortPolychains(ISelector& sel, number maxLength, bool closedChainsOnly,
 						   TAAPos aaPos);
 
@@ -466,7 +465,7 @@ void SelectShortPolychains(ISelector& sel, number maxLength, bool closedChainsOn
  * TSelector either has to be of type Selector or MGSelector.
  * Only elements of higher dimension are regarded.
  */
-template <class TSelector>
+template <typename TSelector>
 void SelectInnerSelectionVertices(TSelector& sel);
 
 ////////////////////////////////////////////////////////////////////////
@@ -478,7 +477,7 @@ void SelectInnerSelectionVertices(TSelector& sel);
  * TSelector either has to be of type Selector or MGSelector.
  * Only elements of higher dimension are regarded.
  */
-template <class TSelector>
+template <typename TSelector>
 void SelectInnerSelectionEdges(TSelector& sel);
 
 ////////////////////////////////////////////////////////////////////////
@@ -490,7 +489,7 @@ void SelectInnerSelectionEdges(TSelector& sel);
  * TSelector either has to be of type Selector or MGSelector.
  * Only elements of higher dimension are regarded.
  */
-template <class TSelector>
+template <typename TSelector>
 void SelectInnerSelectionFaces(TSelector& sel);
 
 
@@ -502,7 +501,7 @@ void SelectInnerSelectionFaces(TSelector& sel);
  * TSelector either has to be of type Selector or MGSelector.
  * Only elements of higher dimension are regarded.
  */
-template <class TSelector>
+template <typename TSelector>
 void DeselectBoundarySelectionVertices(TSelector& sel);
 
 ////////////////////////////////////////////////////////////////////////
@@ -512,7 +511,7 @@ void DeselectBoundarySelectionVertices(TSelector& sel);
  * TSelector either has to be of type Selector or MGSelector.
  * Only elements of higher dimension are regarded.
  */
-template <class TSelector>
+template <typename TSelector>
 void DeselectBoundarySelectionEdges(TSelector& sel);
 
 ////////////////////////////////////////////////////////////////////////
@@ -522,7 +521,7 @@ void DeselectBoundarySelectionEdges(TSelector& sel);
  * TSelector either has to be of type Selector or MGSelector.
  * Only elements of higher dimension are regarded.
  */
-template <class TSelector>
+template <typename TSelector>
 void DeselectBoundarySelectionFaces(TSelector& sel);
 
 
@@ -537,7 +536,7 @@ void DeselectBoundarySelectionFaces(TSelector& sel);
  * as new starting points for the search. By default all elements and all sides are
  * considered to be selectable / traversable.
  */
-template <class TElem>
+template <typename TElem>
 void SelectLinkedElements(ISelector& sel,
 		  typename Grid::traits<TElem>::callback
 		  	  cbIsSelectable = ConsiderAll(),
@@ -592,7 +591,7 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
  *
  * \return \c area sum of convex faces
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 UG_API
 number FaceArea(ISelector& sel, TAAPosVRT& aaPos);
 
@@ -602,7 +601,7 @@ number FaceArea(ISelector& sel, TAAPosVRT& aaPos);
  *				required to exchange selection states with external programs
  *				or scripts.
  * \{ */
-template <class elem_t>
+template <typename elem_t>
 void GetSelectedElementIndices (const ISelector& sel, std::vector<int>& indsOut);
 
 void GetSelectedElementIndices (const ISelector& sel,
@@ -618,7 +617,7 @@ void GetSelectedElementIndices (const ISelector& sel,
  *				unless required to exchange selection states with external
  *				programs or scripts.
  * \{ */
-template <class elem_t>
+template <typename elem_t>
 void SelectElementsByIndex (ISelector& sel, const std::vector<size_t>& inds);
 
 void SelectElementsByIndex (ISelector& sel,

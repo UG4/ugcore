@@ -49,7 +49,7 @@ namespace ug{
 
 ///	adds marking at extracting side
 //todo:	change to ComPol_AttachmentBinaryOr
-template <class TLayout>
+template <typename TLayout>
 class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
@@ -107,7 +107,7 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 ////////////////////////////////////////////////////////////////////////////////
 //	Create Surface View
 ////////////////////////////////////////////////////////////////////////////////
-template <class TElem>
+template <typename TElem>
 bool SurfaceView::
 is_local_surface_view_element(TElem* elem)
 {
@@ -143,7 +143,7 @@ refresh_surface_states()
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 void SurfaceView::
 refresh_surface_states()
 {
@@ -194,7 +194,7 @@ refresh_surface_states()
 	adjust_parallel_surface_states<Volume>();
 }
 
-template <class TElem, class TSide>
+template <typename TElem, typename TSide>
 void SurfaceView::
 mark_sides_as_surface_or_shadow(TElem* elem, byte_t surfaceState)
 {
@@ -238,7 +238,7 @@ mark_sides_as_surface_or_shadow(TElem* elem, byte_t surfaceState)
 		mark_sides_as_surface_or_shadow<TElem, typename TSide::side>(elem, surfaceState);
 }
 
-template <class TElem>
+template <typename TElem>
 void SurfaceView::
 mark_shadowing(bool markSides)
 {
@@ -282,7 +282,7 @@ mark_shadowing(bool markSides)
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 void SurfaceView::
 adjust_parallel_surface_states()
 {

@@ -51,7 +51,7 @@ namespace ug
 /**	If the same attachment is attached to vertices, edges, faces and volumes of
  * a grid, then this accessor can be used to access them all at once.
  */
-template <class TAttachment>
+template <typename TAttachment>
 class MultiElementAttachmentAccessor
 {
 	public:
@@ -97,11 +97,11 @@ class MultiElementAttachmentAccessor
 		bool is_valid_face_accessor() const			{return m_aaFace.valid();}
 		bool is_valid_volume_accessor() const		{return m_aaVol.valid();}
 
-		RefType operator[](Vertex* e)	{return m_aaVrt[e];}
-		RefType operator[](Edge* e)		{return m_aaEdge[e];}
-		RefType operator[](Face* e)			{return m_aaFace[e];}
-		RefType operator[](Volume* e)		{return m_aaVol[e];}
-		RefType operator[](GridObject* e)
+		RefType operator [] (Vertex* e)	{return m_aaVrt[e];}
+		RefType operator [] (Edge* e)		{return m_aaEdge[e];}
+		RefType operator [] (Face* e)			{return m_aaFace[e];}
+		RefType operator [] (Volume* e)		{return m_aaVol[e];}
+		RefType operator [] (GridObject* e)
 		{
 			switch(e->base_object_id()){
 				case VERTEX: return m_aaVrt[static_cast<Vertex*>(e)];
@@ -112,11 +112,11 @@ class MultiElementAttachmentAccessor
 			}
 		}
 
-		ConstRefType operator[](Vertex* e) const	{return m_aaVrt[e];}
-		ConstRefType operator[](Edge* e) const		{return m_aaEdge[e];}
-		ConstRefType operator[](Face* e) const			{return m_aaFace[e];}
-		ConstRefType operator[](Volume* e) const 		{return m_aaVol[e];}
-		ConstRefType operator[](GridObject* e) const
+		ConstRefType operator [] (Vertex* e) const	{return m_aaVrt[e];}
+		ConstRefType operator [] (Edge* e) const		{return m_aaEdge[e];}
+		ConstRefType operator [] (Face* e) const			{return m_aaFace[e];}
+		ConstRefType operator [] (Volume* e) const 		{return m_aaVol[e];}
+		ConstRefType operator [] (GridObject* e) const
 		{
 			switch(e->base_object_id()){
 				case VERTEX: return m_aaVrt[static_cast<Vertex*>(e)];
@@ -145,7 +145,7 @@ class MultiElementAttachmentAccessor
 /**	Make sure that the specified attachment is attached to the elements of
  * the given grid and that a < operator is defined for the attached values!
  */
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 class CompareByAttachment
 {
 	public:
@@ -156,7 +156,7 @@ class CompareByAttachment
 			m_aaGID.access(g, aGID);
 		}
 
-		bool operator()(TElem* e1, TElem* e2)
+		bool operator () (TElem* e1, TElem* e2)
 		{
 			return m_aaGID[e1] < m_aaGID[e2];
 		}
@@ -168,7 +168,7 @@ class CompareByAttachment
 ////////////////////////////////////////////////////////////////////////
 //	SetAttachmentValues
 ///	sets attachment-values for elements between elemsBegin and elemsEnd.
-template <class TAttachmentAccessor, class TIter, class TVal>
+template <typename TAttachmentAccessor, typename TIter, typename TVal>
 void SetAttachmentValues(TAttachmentAccessor& aaVal,
 						TIter elemsBegin, TIter elemsEnd,
 						const TVal& val);
@@ -190,7 +190,7 @@ void SetAttachmentValues(TAttachmentAccessor& aaVal,
  * dim(src) > dim(dest): Only dim(dest) values are copied per element.
  * dim(src) < dim(dest): Values in dimensions >= dim(src) are set to 0.
  */
-template<class TElem, class TSrcAttachment, class TDestAttachment>
+template<typename TElem, typename TSrcAttachment, typename TDestAttachment>
 bool ConvertMathVectorAttachmentValues(Grid& grid,
 							TSrcAttachment& srcAttachment,
 							TDestAttachment& destAttachment);
@@ -207,7 +207,7 @@ bool ConvertMathVectorAttachmentValues(Grid& grid,
  *
  * Call like this: CopyAttachments<Vertex>(...);
  */
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 bool CopyAttachments(Grid& srcGrid, TAttachment& aSrc,
 					Grid& destGrid, TAttachment& aDest);
 
@@ -217,7 +217,7 @@ bool CopyAttachments(Grid& srcGrid, TAttachment& aSrc,
  * If aSrc is not attached to srcGrid, false is returned.
  * If aDest is not attached to destGrid, it is attached automatically.
  */
-template <class TElemIter, class TAttachment>
+template <typename TElemIter, typename TAttachment>
 bool CopyAttachments(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd,
 					 TAttachment& aSrc, TAttachment& aDest);
 
@@ -227,7 +227,7 @@ bool CopyAttachments(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd,
  *	given attachment-accessor operates on an attachment-pipe at which
  *	those elements are registered.
  */
-template <class TIterator, class TAAInt>
+template <typename TIterator, typename TAAInt>
 void AssignIndices(TIterator begin, TIterator end,
 					TAAInt& aaInt, int baseIndex = 0);
 
@@ -238,7 +238,7 @@ void AssignIndices(TIterator begin, TIterator end,
  * Make sure that the specified attachment accessor operates on the
  * specified elements.
  */
-template <class TIterator, class TAttAcc>
+template <typename TIterator, typename TAttAcc>
 TIterator FindElementByValue(TIterator begin, TIterator end,
 							 const typename TAttAcc::ValueType& val,
 							 TAttAcc& aa);

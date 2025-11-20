@@ -1,3 +1,4 @@
+øunused
 /*
  * Copyright (c) 2012-2015:  G-CSC, Goethe University Frankfurt
  * Author: Martin Rupp
@@ -69,7 +70,7 @@ public:
 		: iIndex(i), dValue(v) {}
 				
 		void print(){std::cout << *this;}
-		friend std::ostream &operator<<(std::ostream &output, const connection &c)
+		friend std::ostream &operator << (std::ostream &output, const connection &c)
 		{
 			output << "(" << c.iIndex << "-> ";
 			output << c.dValue;
@@ -191,7 +192,7 @@ public:
 	 * - num_cols()
 	 * - row_index(size_t i)
 	 * - col_index(size_t j)
-	 * - operator()(size_t i, size_t j)
+	 * - operator () (size_t i, size_t j)
 	 * so that mat(i,j) will go to SparseMat(mat.row_index(i), mat.col_index(j))
 	 * \param mat the whole local matrix type
 	 */
@@ -213,7 +214,7 @@ public:
 	//! set matrix to Id*a
 	bool set(double a);
 
-	/** operator() (size_t r, size_t c) const
+	/** operator () (size_t r, size_t c) const
 	 * access connection (r, c)
 	 * \param r row
 	 * \param c column
@@ -232,15 +233,15 @@ public:
 		
     }
 
-	/** operator() (size_t r, size_t c) const
+	/** operator () (size_t r, size_t c) const
 	 * access or create connection (r, c)
 	 * \param r row
 	 * \param c column
 	 * \note (r,c) is added to sparsity pattern if not already there
-	 * use operator()(r,c,bConnectionFound) to prevent
+	 * use operator () (r,c,bConnectionFound) to prevent
 	 * \return SparseMat(r, c)=0.0 if connection created, otherwise SparseMat(r, c)
 	 */
-	value_type &operator() (size_t r, size_t c)
+	value_type &operator () (size_t r, size_t c)
 	{
 		return data[r][c];
     }
@@ -327,16 +328,16 @@ public:
 		using super = typename std::map<size_t, TValueType>::iterator;
     public:        
 		row_iterator(super it) : super(it) {}        
-        value_type &value() { return super::operator*().second;   }
-        size_t index() const { return super::operator*().first;   }        
+        value_type &value() { return super::operator * ().second;   }
+        size_t index() const { return super::operator * ().first;   }
     };
     class const_row_iterator : public std::map<size_t, TValueType>::const_iterator
     {
 		using super = typename std::map<size_t, TValueType>::const_iterator;
 	public:        
         const_row_iterator(super it) : super(it) {}        
-		const value_type &value() { return super::operator*().second;   }
-        size_t index() const { return super::operator*().first;   }        
+		const value_type &value() { return super::operator * ().second;   }
+        size_t index() const { return super::operator * ().first;   }
     };
 	
 
@@ -409,7 +410,7 @@ public:
 	void print_to_file(const char *filename) const;
 	void printrow(size_t row) const;
 
-	friend std::ostream &operator<<(std::ostream &out, const MapSparseMatrix &m)
+	friend std::ostream &operator << (std::ostream &out, const MapSparseMatrix &m)
 	{
 		out << "MapSparseMatrix " //<< m.name
 		<< " [ " << m.num_rows() << " x " << m.num_cols() << " ]";

@@ -67,7 +67,7 @@ static void ReadIndices(vector<int>& vIndsOut, char* buffer,
 	}
 }
 
-template <class TType>
+template <typename TType>
 
 static void CollectUniqueObjects(vector<TType>& vecOut,
 								const vector<TType>& vecIn)

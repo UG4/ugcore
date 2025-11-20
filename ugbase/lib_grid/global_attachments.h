@@ -43,7 +43,7 @@ namespace ug{
 ///	Global attachments are automatically read/written from/to files and are considered during redistribution
 class GlobalAttachments {
 	public:
-		template <class TAttachment>
+		template <typename TAttachment>
 		static void declare_attachment (const std::string& name,
 										bool passOnBehaviour = false)
 		{
@@ -67,7 +67,7 @@ class GlobalAttachments {
 			functions<Volume>().push_back(FunctionEntry<Volume, TAttachment>());
 		}
 
-		template <class TAttachment>
+		template <typename TAttachment>
 		static void undeclare_attachment(const std::string& name) {
 			UG_COND_THROW(!is_declared(name), "Trying undeclaring a non-declared attachment.");
 			AttachmentEntry& ae = attachment_entry(name);
@@ -95,7 +95,7 @@ class GlobalAttachments {
 			attachment_types()[typeName].declareFunc(name, passOnBehaviour);
 		}
 
-		template <class TAttachment>
+		template <typename TAttachment>
 		static void register_attachment_type ()
 		{
 			std::string typeName = attachment_info_traits<TAttachment>::type_name();
@@ -181,7 +181,7 @@ class GlobalAttachments {
 		}
 		#endif
 		
-		template <class TElem>
+		template <typename TElem>
 		static
 		void attach(Grid& g, const std::string& name)
 		{
@@ -190,7 +190,7 @@ class GlobalAttachments {
 			fe.attach(g, *ae.attachment);
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		static
 		bool is_attached(Grid& g, const std::string& name)
 		{
@@ -198,7 +198,7 @@ class GlobalAttachments {
 			return g.has_attachment<TElem>(*ae.attachment);
 		}
 
-		template <class TAttachment>
+		template <typename TAttachment>
 		static
 		TAttachment attachment (const std::string& name)
 		{
@@ -217,7 +217,7 @@ class GlobalAttachments {
 			return e.type;
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		static
 		void read_attachment_values (std::istream& in,
 									 Grid& grid,
@@ -229,7 +229,7 @@ class GlobalAttachments {
 		}
 
 
-		template <class TElem>
+		template <typename TElem>
 		static
 		void write_attachment_values (std::ostream& out,
 									  Grid& grid,
@@ -239,7 +239,7 @@ class GlobalAttachments {
 			function_entry<TElem>(ae).writeFunc(out, grid, *ae.attachment);
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		static
 		void add_data_serializer(GridDataSerializationHandler& handler,
 								 Grid& grid,
@@ -271,8 +271,8 @@ class GlobalAttachments {
 			void (*attach)			(Grid&, IAttachment&);
 		};
 
-		template <class TElem, class TAttachment>
-		struct FunctionEntry : public IFunctionEntry {
+		template <typename TElem, typename TAttachment>
+		struct FunctionEntry : IFunctionEntry {
 			FunctionEntry() {
 				readFunc = 		&read_attachment_from_stream<TElem, TAttachment>;
 				writeFunc = 	&write_attachment_to_stream<TElem, TAttachment>;
@@ -286,8 +286,8 @@ class GlobalAttachments {
 			void (*declareFunc)	(const std::string&, bool);
 		};
 
-		template <class TAttachment>
-		struct AttachmentType : public IAttachmentType {
+		template <typename TAttachment>
+		struct AttachmentType : IAttachmentType {
 			AttachmentType() {
 				declareFunc =	&declare_attachment<TAttachment>;
 			}
@@ -339,7 +339,7 @@ class GlobalAttachments {
 			return inst().m_attachmentTypeMap;
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		static
 		FunctionVec& functions() {
 			return inst().m_functionVecs[TElem::BASE_OBJECT_ID];
@@ -353,27 +353,27 @@ class GlobalAttachments {
 			return e;
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		static
 		IFunctionEntry& function_entry(const std::string& name)
 		{
 			return function_entry<TElem>(attachment_entry(name));
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		static
 		IFunctionEntry& function_entry(const AttachmentEntry& ae)
 		{
 			return functions<TElem>().at(ae.functionIndex);
 		}
 
-		template <class TElem>
+		template <typename TElem>
 		static
 		void remove_function_entry(const AttachmentEntry& ae) {
 			functions<TElem>().erase(functions<TElem>().begin() + ae.functionIndex);
 		}
 
-		template <class TElem, class TAttachment>
+		template <typename TElem, typename TAttachment>
 		static
 		void read_attachment_from_stream (
 				std::istream& in,
@@ -396,7 +396,7 @@ class GlobalAttachments {
 		}
 
 
-		template <class TElem, class TAttachment>
+		template <typename TElem, typename TAttachment>
 		static
 		void write_attachment_to_stream (
 				std::ostream& out,
@@ -422,7 +422,7 @@ class GlobalAttachments {
 			}
 		}
 
-		template <class TElem, class TAttachment>
+		template <typename TElem, typename TAttachment>
 		static
 		void//SmartPtr<GeomObjDataSerializer<TElem> >
 		add_attachment_serializer (
@@ -435,7 +435,7 @@ class GlobalAttachments {
 									create(g, a));
 		}
 
-		template <class TElem, class TAttachment>
+		template <typename TElem, typename TAttachment>
 		static
 		void cast_and_attach (
 				Grid& grid,
@@ -476,4 +476,4 @@ class GlobalAttachments {
 
 }//	end of namespace
 
-#endif	//__H__UG_global_attachments
+#endif

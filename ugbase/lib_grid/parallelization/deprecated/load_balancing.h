@@ -55,7 +55,7 @@ namespace ug
  * \param bucketSubset	All elements which shall not be considered are assigned
  * 						to this subset (default -1).
  */
-template <class TElem, class TIterator, class TAAPos>
+template <typename TElem, typename TIterator, typename TAAPos>
 bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 								TIterator begin, TIterator end,
 								int numCellsX, int numCellsY, int numCellsZ,
@@ -74,7 +74,7 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
  *
  * Valid template arguments are Edge, Face, Volume and derived types.
  */
-template <class TGeomBaseObj>
+template <typename TGeomBaseObj>
 bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 Grid& grid, int numParts);
 
@@ -97,7 +97,7 @@ bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
  *
  * Valid template arguments are Edge, Face, Volume and derived types.
  */
-template <class TGeomBaseObj>
+template <typename TGeomBaseObj>
 bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& grid, int numParts,
 							 	  size_t baseLevel = 0,
@@ -120,7 +120,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
  *
  * Valid template arguments are Edge, Face, Volume and derived types.
  */
-template <class TGeomBaseObj>
+template <typename TGeomBaseObj>
 bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& grid, int numParts, size_t baseLevel,
 							 	  boost::function<int (TGeomBaseObj*, TGeomBaseObj*)>& weightFct);
@@ -139,7 +139,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
  * their parents have been assigned, starting from level+1.
  * Elements below the specified level will be assigned to the local process id.
  */
-template <class TGeomBaseObj>
+template <typename TGeomBaseObj>
 bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& mg, int numParts, size_t level);
 
@@ -154,7 +154,7 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
  * their parents have been assigned, starting from level+1.
  * Elements below the specified level will be assigned to the local process id.
  */
-template <class TGeomBaseObj>
+template <typename TGeomBaseObj>
 bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 							 	  	  MultiGrid& mg, int numParts, size_t level);
 

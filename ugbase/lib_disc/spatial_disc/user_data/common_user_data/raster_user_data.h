@@ -101,4 +101,4 @@ public:
 
 
 
-#endif	// __UG__LIB_DISC__SPATIAL_DISC__RASTER_USER_DATA_H__
+#endif

@@ -46,7 +46,7 @@ namespace ug
 /// @{
 
 //	predeclarations
-template <class TLayout>
+template <typename TLayout>
 class RefinementMarkDistributor;
 
 ///	DEPRECIATED
@@ -89,13 +89,13 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 	 *	you may optionally pass a vector to which elements will
 	 *	be written that received a mark during communication.
 	 *	Elements will be appended to the existing ones.*/
-		template <class TDistributor, class TCommunicator>
+		template <typename TDistributor, typename TCommunicator>
 		void
 		exchange_data(TDistributor& distributor,
 						TCommunicator& communicator,
 						std::vector<typename TDistributor::Element>* pvReceivedElemsOut = nullptr);
 					
-		template <class TMarkDistributor>
+		template <typename TMarkDistributor>
 		void mark_received_elements(TMarkDistributor& distributor);
 		
 		void clear_newly_marked_element_buffers();

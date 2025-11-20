@@ -43,7 +43,7 @@
 namespace ug
 {
 
-template <class TElem>
+template <typename TElem>
 inline int
 MGSelector::get_section_index() const
 {
@@ -60,7 +60,7 @@ MGSelector::level_required(int level)
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 inline void
 MGSelector::clear(int level)
 {
@@ -79,7 +79,7 @@ MGSelector::clear(int level)
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 inline void
 MGSelector::clear()
 {
@@ -89,7 +89,7 @@ MGSelector::clear()
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 inline size_t
 MGSelector::num(int level) const
 {
@@ -110,7 +110,7 @@ MGSelector::num(int level) const
 			+ num<Face>(level) + num<Volume>(level);
 }
 
-template <class TElem>
+template <typename TElem>
 inline size_t
 MGSelector::num() const
 {
@@ -134,7 +134,7 @@ MGSelector::empty(int level) const
 	return num(level) == 0;
 }
 
-template <class TElem>
+template <typename TElem>
 inline bool 
 MGSelector::empty(int level) const
 {
@@ -147,7 +147,7 @@ MGSelector::empty() const
 	return num() == 0;
 }
 
-template <class TElem>
+template <typename TElem>
 inline bool 
 MGSelector::empty() const
 {
@@ -155,7 +155,7 @@ MGSelector::empty() const
 }
 
 //	begin
-template <class TElem>
+template <typename TElem>
 inline typename MGSelector::traits<TElem>::iterator
 MGSelector::begin()
 {
@@ -169,7 +169,7 @@ MGSelector::begin()
 	return typename traits<TElem>::iterator(this, lvl, begin<TElem>(lvl));
 }
 
-template <class TElem>
+template <typename TElem>
 inline typename MGSelector::traits<TElem>::const_iterator
 MGSelector::begin() const
 {
@@ -183,7 +183,7 @@ MGSelector::begin() const
 	return typename traits<TElem>::const_iterator(this, lvl, begin<TElem>(lvl));
 }
 
-template <class TElem>
+template <typename TElem>
 inline typename MGSelector::traits<TElem>::level_iterator
 MGSelector::begin(int level)
 {
@@ -197,7 +197,7 @@ MGSelector::begin(int level)
 					section_container<TElem>(level).section_begin(sInd));
 }
 
-template <class TElem>
+template <typename TElem>
 inline typename MGSelector::traits<TElem>::const_level_iterator
 MGSelector::begin(int level) const
 {
@@ -212,7 +212,7 @@ MGSelector::begin(int level) const
 }
 
 
-template <class TElem>
+template <typename TElem>
 inline typename MGSelector::traits<TElem>::iterator
 MGSelector::end()
 {
@@ -220,7 +220,7 @@ MGSelector::end()
 	return typename traits<TElem>::iterator(this, l, end<TElem>(l));
 }
 
-template <class TElem>
+template <typename TElem>
 inline typename MGSelector::traits<TElem>::const_iterator
 MGSelector::end() const
 {
@@ -228,7 +228,7 @@ MGSelector::end() const
 	return typename traits<TElem>::const_iterator(this, l, end<TElem>(l));
 }
 
-template <class TElem>
+template <typename TElem>
 inline typename MGSelector::traits<TElem>::level_iterator
 MGSelector::end(int level)
 {
@@ -242,7 +242,7 @@ MGSelector::end(int level)
 					section_container<TElem>(level).section_end(sInd));
 }
 
-template <class TElem>
+template <typename TElem>
 inline typename MGSelector::traits<TElem>::const_level_iterator
 MGSelector::end(int level) const
 {
@@ -256,7 +256,7 @@ MGSelector::end(int level) const
 					section_container<TElem>(level).section_end(sInd));
 }
 
-template <class TElem>
+template <typename TElem>
 TElem*
 MGSelector::front(int level)
 {
@@ -264,7 +264,7 @@ MGSelector::front(int level)
 	return static_cast<TElem*>(section_container<TElem>(level).front(sInd));
 }
 
-template <class TElem>
+template <typename TElem>
 TElem*
 MGSelector::back(int level)
 {
@@ -272,7 +272,7 @@ MGSelector::back(int level)
 	return static_cast<TElem*>(section_container<TElem>(level).back(sInd));
 }
 
-template <class TElem>
+template <typename TElem>
 typename Grid::traits<TElem>::SectionContainer&
 MGSelector::
 section_container(int level)
@@ -285,7 +285,7 @@ section_container(int level)
 }
 
 
-template <class TElem>
+template <typename TElem>
 const typename Grid::traits<TElem>::SectionContainer&
 MGSelector::
 section_container(int level) const

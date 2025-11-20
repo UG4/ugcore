@@ -71,7 +71,7 @@ PageContainer<T, MAX_PAGE_SIZE, Allocator>::
 template <class T, int MAX_PAGE_SIZE, class Allocator>
 PageContainer<T, MAX_PAGE_SIZE, Allocator>&
 PageContainer<T, MAX_PAGE_SIZE, Allocator>::
-operator=(const PageContainer& pc)
+operator = (const PageContainer& pc)
 {
 	assign_container(pc);
 	return *this;
@@ -157,7 +157,7 @@ clear()
 
 template <class T, int MAX_PAGE_SIZE, class Allocator>
 T& PageContainer<T, MAX_PAGE_SIZE, Allocator>::
-operator[](size_t ind)
+operator [] (size_t ind)
 {
 	assert(ind < m_size);
 	return get_page(ind)[get_page_offset(ind)];
@@ -165,7 +165,7 @@ operator[](size_t ind)
 
 template <class T, int MAX_PAGE_SIZE, class Allocator>
 const T& PageContainer<T, MAX_PAGE_SIZE, Allocator>::
-operator[](size_t ind) const
+operator [] (size_t ind) const
 {
 	assert(ind < m_size);
 	return get_page(ind)[get_page_offset(ind)];

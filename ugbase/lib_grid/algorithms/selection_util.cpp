@@ -141,7 +141,7 @@ size_t CollectVerticesTouchingSelection(std::vector<Vertex*>& vrtsOut,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TSelector>
+template <typename TSelector>
 void EraseSelectedObjects(TSelector& sel)
 {
 	if(!sel.grid())
@@ -163,7 +163,7 @@ void EraseSelectedObjects(TSelector& sel)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TSelector>
+template <typename TSelector>
 void InvertSelection(TSelector& sel)
 {
 	if(!sel.grid())
@@ -217,7 +217,7 @@ void InvertSelection(TSelector& sel)
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedGridObjects
-template <class TSelector>
+template <typename TSelector>
 void SelectAssociatedGridObjects(TSelector& sel, ISelector::status_t status)
 {
 	if(!sel.grid()){
@@ -258,7 +258,7 @@ template void SelectAssociatedGridObjects<MGSelector>(MGSelector& sel,
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TSelector>
+template <typename TSelector>
 void CloseSelection (TSelector& sel)
 {
 	SelectAssociatedFaces(sel, sel.template begin<Volume>(), sel.template end<Volume>());
@@ -273,7 +273,7 @@ template void CloseSelection<MGSelector>(MGSelector& sel);
 ////////////////////////////////////////////////////////////////////////
 //	SelectParents
 ///	helper for SelectAssociatedGenealogy.
-template <class TIterator>
+template <typename TIterator>
 static void SelectParents(MultiGrid& mg, MGSelector& msel,
 						  TIterator iterBegin, TIterator iterEnd)
 {
@@ -290,7 +290,7 @@ static void SelectParents(MultiGrid& mg, MGSelector& msel,
 
 ////////////////////////////////////////////////////////////////////////
 //	ExtendSelection
-template <class TSelector>
+template <typename TSelector>
 void ExtendSelection(TSelector& sel, size_t extSize, ISelector::status_t status)
 {
 	if(!sel.grid()){
@@ -359,9 +359,8 @@ template void ExtendSelection<MGSelector>(MGSelector& sel, size_t extSize,
 
 
 
-template <class TGeomObj>
-void SelectionFill(Selector& sel,
-				   typename Grid::traits<typename TGeomObj::side>::callback cbRegionBoundary)
+template <typename TGeomObj>
+void SelectionFill(Selector& sel, typename Grid::traits<typename TGeomObj::side>::callback cbRegionBoundary)
 {
 	using GeomObjIter = typename geometry_traits<TGeomObj>::iterator;
 	using Side = typename TGeomObj::lower_dim_base_object;
@@ -637,7 +636,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree, number normalWe
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectInnerSelectionVertices
-template <class TSelector>
+template <typename TSelector>
 void SelectInnerSelectionVertices(TSelector& sel)
 {
 	if(!sel.grid())
@@ -744,7 +743,7 @@ void SelectInnerSelectionVertices(TSelector& sel)
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectInnerSelectionEdges
-template <class TSelector>
+template <typename TSelector>
 void SelectInnerSelectionEdges(TSelector& sel)
 {
 	if(!sel.grid())
@@ -831,7 +830,7 @@ void SelectInnerSelectionEdges(TSelector& sel)
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectInnerSelectionFaces
-template <class TSelector>
+template <typename TSelector>
 void SelectInnerSelectionFaces(TSelector& sel)
 {
 	if(!sel.grid())
@@ -881,7 +880,7 @@ void SelectInnerSelectionFaces(TSelector& sel)
 
 ////////////////////////////////////////////////////////////////////////
 //	DeselectBoundarySelectionVertices
-template <class TSelector>
+template <typename TSelector>
 void DeselectBoundarySelectionVertices(TSelector& sel)
 {
 	if(!sel.grid())
@@ -944,7 +943,7 @@ void DeselectBoundarySelectionVertices(TSelector& sel)
 
 ////////////////////////////////////////////////////////////////////////
 //	DeselectBoundarySelectionEdges
-template <class TSelector>
+template <typename TSelector>
 void DeselectBoundarySelectionEdges(TSelector& sel)
 {
 	if(!sel.grid())
@@ -999,7 +998,7 @@ void DeselectBoundarySelectionEdges(TSelector& sel)
 
 ////////////////////////////////////////////////////////////////////////
 //	DeselectBoundarySelectionFaces
-template <class TSelector>
+template <typename TSelector>
 void DeselectBoundarySelectionFaces(TSelector& sel)
 {
 	if(!sel.grid())
@@ -1209,7 +1208,7 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 }
 
 
-template <class elem_t>
+template <typename elem_t>
 void GetSelectedElementIndices (const ISelector& sel, std::vector<size_t>& indsOut)
 {
 	UG_COND_THROW(!sel.grid(), "The specified selector has to operate on a grid!");
@@ -1249,7 +1248,7 @@ void GetSelectedElementIndices (const ISelector& sel,
 }
 
 
-template <class elem_t>
+template <typename elem_t>
 void SelectElementsByIndex (ISelector& sel, const std::vector<size_t>& inds)
 {
 //	NOTE: 	If we could hope that 'inds' is always sorted, this could be

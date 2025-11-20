@@ -122,7 +122,7 @@ class FunctionGroup
 		std::string names() const;
 
 	/// returns unique function id of a function
-		size_t operator[](size_t i) const {return unique_id(i);}
+		size_t operator [] (size_t i) const {return unique_id(i);}
 
 	/// returns unique function id of a function
 		size_t unique_id(size_t i) const
@@ -195,7 +195,7 @@ class FunctionIndexMapping
 		size_t num_fct() const {return m_vMapping.size();}
 
 	/// returns the mapped index
-		size_t operator[](size_t i) const
+		size_t operator [] (size_t i) const
 		{
 			UG_ASSERT(i < num_fct(), "Invalid index.\n");
 			return m_vMapping[i];
@@ -208,7 +208,7 @@ class FunctionIndexMapping
 
 
 inline
-std::ostream& operator<< (std::ostream& outStream, const ug::FunctionIndexMapping& map)
+std::ostream& operator << (std::ostream& outStream, const FunctionIndexMapping& map)
 {
 	outStream << '[';
 	for(size_t i = 0; i < map.num_fct(); ++i)
@@ -221,7 +221,7 @@ std::ostream& operator<< (std::ostream& outStream, const ug::FunctionIndexMappin
 }
 
 inline
-std::ostream& operator<< (std::ostream& outStream, const ug::FunctionGroup& grp)
+std::ostream& operator << (std::ostream& outStream, const FunctionGroup& grp)
 {
 	outStream << '[';
 	for(size_t i = 0; i < grp.size(); ++i)

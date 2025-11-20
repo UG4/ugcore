@@ -385,6 +385,6 @@ inline bool compare(MathMatrix<2, 2, double> &A, MathMatrix<2, 2, double> &B)
 }*/
 
 }
-#endif	/* LUA_TRAITS_H */
+#endif
 
 

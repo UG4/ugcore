@@ -89,19 +89,17 @@ class CG
 			: base_type ( spPrecond, spConvCheck)  {}
 
 	///	name of solver
-		virtual const char* name() const {return "CG";}
+		const char* name() const override {return "CG";}
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const
-		{
+		bool supports_parallel() const override {
 			if(preconditioner().valid())
 				return preconditioner()->supports_parallel();
 			return true;
 		}
 
 	///	Solve J(u)*x = b, such that x = J(u)^{-1} b
-		virtual bool apply_return_defect(vector_type& x, vector_type& b)
-		{
+		bool apply_return_defect(vector_type& x, vector_type& b) override {
 			PROFILE_BEGIN_GROUP(CG_apply_return_defect, "CG algebra");
 		//	check parallel storage types
 			#ifdef UG_PARALLEL

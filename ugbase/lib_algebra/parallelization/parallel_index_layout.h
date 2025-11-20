@@ -75,7 +75,7 @@ void ReplaceIndicesInLayout(IndexLayout& layout, const std::vector<int>& vMap);
 
 inline IndexLayout::Interface::iterator find(IndexLayout::Interface &interface, size_t i)
 {
-	for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+	for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 	{
 		if(interface.get_element(iter) == i)
 			return iter;
@@ -101,10 +101,10 @@ inline void AddIfUnique(IndexLayout::Interface &interface, size_t i)
  */
 void MarkAllFromInterface(std::vector<bool> &mark, const IndexLayout::Interface &interface);
 
-template <class T>
+template <typename T>
 void MarkAllFromInterface(std::vector<T> &mark, const IndexLayout::Interface &interface, const T &default_val)
 {
-	for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
+	for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 		mark[ interface.get_element(iter) ] = default_val;
 }
 
@@ -115,10 +115,10 @@ void MarkAllFromInterface(std::vector<T> &mark, const IndexLayout::Interface &in
  */
 void MarkAllFromLayout(std::vector<bool> &mark, const IndexLayout &layout);
 
-template <class T>
+template <typename T>
 void MarkAllFromLayout(std::vector<T> &mark, const IndexLayout &layout, const T &default_val)
 {
-	for(IndexLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	for(auto iter = layout.begin(); iter != layout.end(); ++iter)
 		MarkAllFromInterface<T> (mark, layout.interface(iter), default_val);
 }
 

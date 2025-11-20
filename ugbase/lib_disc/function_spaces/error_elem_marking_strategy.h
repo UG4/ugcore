@@ -287,7 +287,7 @@ void StdCoarseningMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 
 
 /* Generate an ordered list of \eta_k^2 (in descending order, ie. largest first) */
-template<class TElem>
+template <typename TElem>
 number CreateListOfElemWeights(
 		Grid::AttachmentAccessor<TElem, Attachment<number> > &aaError,
 		typename DoFDistribution::traits<TElem>::const_iterator iterBegin,
@@ -317,7 +317,7 @@ number CreateListOfElemWeights(
 
 
 /* Generate an ordered list of \eta_k^2 (in descending order, ie. largest first) */
-template<class TElem>
+template<typename TElem>
 number CreateSortedListOfElems(
 		Grid::AttachmentAccessor<TElem, Attachment<number> > &aaError,
 		typename DoFDistribution::traits<TElem>::const_iterator iterBegin,
@@ -393,7 +393,7 @@ struct ElemErrorSortDesc
 	ElemErrorSortDesc(const error_accessor_type& aaErr)
 	: m_aaErr(aaErr) {}
 
-	bool operator()(const elem_type* elem1, const elem_type* elem2)
+	bool operator () (const elem_type* elem1, const elem_type* elem2)
 	{
 		return m_aaErr[elem1] > m_aaErr[elem2];
 	}

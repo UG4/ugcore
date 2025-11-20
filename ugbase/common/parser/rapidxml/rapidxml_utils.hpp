@@ -17,7 +17,7 @@ namespace rapidxml
 {
 
     //! Represents data loaded from a file
-    template<class Ch = char>
+    template <typename Ch = char>
     class file
     {
         
@@ -89,7 +89,7 @@ namespace rapidxml
 
     //! Counts children of node. Time complexity is O(n).
     //! \return Number of children of node
-    template<class Ch>
+    template <typename Ch>
     inline std::size_t count_children(xml_node<Ch> *node)
     {
         xml_node<Ch> *child = node->first_node();
@@ -104,7 +104,7 @@ namespace rapidxml
 
     //! Counts attributes of node. Time complexity is O(n).
     //! \return Number of attributes of node
-    template<class Ch>
+    template <typename Ch>
     inline std::size_t count_attributes(xml_node<Ch> *node)
     {
         xml_attribute<Ch> *attr = node->first_attribute();

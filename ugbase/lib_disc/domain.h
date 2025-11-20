@@ -272,12 +272,12 @@ class IDomain
 	protected:
 	/**	make sure that elements of the given type are contained in at most one
 	 * vmaster interface. This is always the case for highest dimensional elements.*/
-		template <class TElem>
+		template <typename TElem>
 		void count_ghosts(std::vector<DomainInfo::int_t>& numGhostsOnLvlOut);
 #endif
 
 	///	counts local surface elements which are not ghosts or h-slaves
-		template <class TElem>
+		template <typename TElem>
 		size_t count_local_unique_surface_elements();
 };
 

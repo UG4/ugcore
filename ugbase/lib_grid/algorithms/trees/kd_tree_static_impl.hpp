@@ -42,7 +42,7 @@ namespace ug
 {
 	using KDVertexDistanceList = std::list<KDVertexDistance>;
 
-template<class TPositionAttachment, int numDimensions, class TVector>
+template <typename TPositionAttachment, int numDimensions, typename TVector>
 void
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>
 ::Node
@@ -58,7 +58,7 @@ KDTreeStatic<TPositionAttachment, numDimensions, TVector>
 	m_pvVertices = nullptr;
 }
 
-template<class TPositionAttachment, int numDimensions, class TVector>
+template <typename TPositionAttachment, int numDimensions, typename TVector>
 void
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 clear()
@@ -67,8 +67,8 @@ clear()
 	m_parentNode.clear();
 }
 
-template<class TPositionAttachment, int numDimensions, class TVector>
-template <class TVrtIterator>
+template<typename TPositionAttachment, int numDimensions, typename TVector>
+template <typename TVrtIterator>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
@@ -80,8 +80,8 @@ create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
 							splitThreshold, splitDimension);
 }
 
-template<class TPositionAttachment, int numDimensions, class TVector>
-template <class TVrtIterator>
+template <typename TPositionAttachment, int numDimensions, typename TVector>
+template <typename TVrtIterator>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
@@ -97,7 +97,7 @@ create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
 	return create_barycentric(vrtsBegin, vrtsEnd, grid.num_vertices(), &m_parentNode, 0, maxTreeDepth);
 }
 
-template<class TPositionAttachment, int numDimensions, class TVector>
+template<typename TPositionAttachment, int numDimensions, typename TVector>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 get_neighbourhood(std::vector<Vertex*>& vrtsOut, typename TPositionAttachment::ValueType& pos, int numClosest)
@@ -112,7 +112,7 @@ get_neighbourhood(std::vector<Vertex*>& vrtsOut, typename TPositionAttachment::V
 	return true;
 }
 
-template<class TPositionAttachment, int numDimensions, class TVector>
+template<typename TPositionAttachment, int numDimensions, typename TVector>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 get_points_in_box(std::vector<Vertex*>& vrtsOut, const TVector& boxMin, const TVector& boxMax)
@@ -121,7 +121,7 @@ get_points_in_box(std::vector<Vertex*>& vrtsOut, const TVector& boxMin, const TV
 	return get_vertices_in_box(vrtsOut, &m_parentNode, boxMin, boxMax);
 }
 
-template<class TPositionAttachment, int numDimensions, class TVector>
+template<typename TPositionAttachment, int numDimensions, typename TVector>
 void
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 get_leafs(std::vector<Node*>& vLeafsOut)
@@ -133,7 +133,7 @@ get_leafs(std::vector<Node*>& vLeafsOut)
 
 ////////////////////////////////////////////////////////////////////////
 //	protected
-template<class TPositionAttachment, int numDimensions, class TVector>
+template<typename TPositionAttachment, int numDimensions, typename TVector>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 get_points_in_box(std::vector<Vertex*>& vrtsOut, Node* pNode, const TVector& boxMin, const TVector& boxMax)
@@ -177,7 +177,7 @@ get_points_in_box(std::vector<Vertex*>& vrtsOut, Node* pNode, const TVector& box
 	return false;
 }
 
-template<class TPositionAttachment, int numDimensions, class TVector>
+template<typename TPositionAttachment, int numDimensions, typename TVector>
 void
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 neighbourhood(KDVertexDistanceList& vrtsOut, Node* pNode, TVector& pos, int numClosest)
@@ -270,8 +270,8 @@ neighbourhood(KDVertexDistanceList& vrtsOut, Node* pNode, TVector& pos, int numC
 	}
 }
 
-template<class TPositionAttachment, int numDimensions, class TVector>
-template <class TVertexIterator>
+template<typename TPositionAttachment, int numDimensions, typename TVector>
+template <typename TVertexIterator>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 create_barycentric(TVertexIterator vrts_begin, TVertexIterator vrts_end, int numVertices,
@@ -332,8 +332,8 @@ create_barycentric(TVertexIterator vrts_begin, TVertexIterator vrts_end, int num
 	return bSuccess;
 }
 
-template<class TPositionAttachment, int numDimensions, class TVector>
-template <class TVertexIterator>
+template<typename TPositionAttachment, int numDimensions, typename TVector>
+template <typename TVertexIterator>
 int
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 get_largest_dimension(TVertexIterator vrts_begin, TVertexIterator vrts_end)
@@ -377,8 +377,8 @@ get_largest_dimension(TVertexIterator vrts_begin, TVertexIterator vrts_end)
 	return bCI;
 }
 
-template<class TPositionAttachment, int numDimensions, class TVector>
-template <class TVertexIterator>
+template<typename TPositionAttachment, int numDimensions, typename TVector>
+template <typename TVertexIterator>
 int
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 get_next_split_dimension(int actSplitDimension, TVertexIterator vrts_begin, TVertexIterator vrts_end)
@@ -397,7 +397,7 @@ get_next_split_dimension(int actSplitDimension, TVertexIterator vrts_begin, TVer
 	return (actSplitDimension+1) % numDimensions;
 }
 
-template<class TPositionAttachment, int numDimensions, class TVector>
+template<typename TPositionAttachment, int numDimensions, typename TVector>
 void
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
 get_leafs_recursive(std::vector<Node*>& vLeafsOut, Node* pNode)

@@ -43,7 +43,7 @@ namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
 //	FindFirstFreeSubset
-template <class TElem>
+template <typename TElem>
 int GetMaxSubsetIndex(SubsetHandler& sh)
 {
 //	go from back to front
@@ -62,7 +62,7 @@ int GetMaxSubsetIndex(SubsetHandler& sh)
 
 ////////////////////////////////////////////////////////////////////////
 //	MakeSubsetsConsecutive
-template <class TElem>
+template <typename TElem>
 void MakeSubsetsConsecutive(SubsetHandler& sh)
 {
 //	TODO: this algo could be slightly improved regarding runtime.
@@ -93,7 +93,7 @@ void MakeSubsetsConsecutive(SubsetHandler& sh)
 void EraseEmptySubsets(ISubsetHandler& sh);
 
 
-template <class TElem>
+template <typename TElem>
 void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh,
 									  bool appendAtEnd)
 {
@@ -101,7 +101,7 @@ void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh,
 												IsNotInSubset(sh, -1));
 }
 
-template <class TElem>
+template <typename TElem>
 void SeparateSubsetsByLowerDimSelection(Grid& grid, SubsetHandler& sh,
 										Selector& sel, bool appendAtEnd)
 {
@@ -109,7 +109,7 @@ void SeparateSubsetsByLowerDimSelection(Grid& grid, SubsetHandler& sh,
 												IsSelected(sel));
 }
 
-template <class TElem>
+template <typename TElem>
 void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
 					bool appendAtEnd,
 					boost::function<bool (typename TElem::lower_dim_base_object*)>
@@ -187,7 +187,7 @@ void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIterator>
+template <typename TIterator>
 void CopySubsetIndicesToSides(ISubsetHandler& sh, TIterator elemsBegin,
 							TIterator elemsEnd, bool toUnassignedOnly)
 {
@@ -222,7 +222,7 @@ void CopySubsetIndicesToSides(ISubsetHandler& sh, TIterator elemsBegin,
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElem, class TSubsetHandler>
+template <typename TElem, typename TSubsetHandler>
 void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si)
 {
 	using ElemIter = typename geometry_traits<TElem>::iterator;
@@ -248,7 +248,7 @@ void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TSubsetHandler>
+template <typename TSubsetHandler>
 void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 								bool preserveExistingSubsets)
 {
@@ -325,7 +325,7 @@ void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos)
 {
 	number sum = 0.;
@@ -345,7 +345,7 @@ number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos)
 
 ////////////////////////////////////////////////////////////////////////
 //	AssignAssociatedVerticesToSubset
-template <class TIterator>
+template <typename TIterator>
 void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
 										TIterator elemsEnd, int subsetIndex)
 {
@@ -361,7 +361,7 @@ void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElem, class TSubsetHandler>
+template <typename TElem, typename TSubsetHandler>
 void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler)
 {
@@ -383,7 +383,7 @@ void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElem, class TSubsetHandler>
+template <typename TElem, typename TSubsetHandler>
 void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler)
 {
@@ -409,7 +409,7 @@ void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElem, class TSubsetHandler>
+template <typename TElem, typename TSubsetHandler>
 void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler)
 {
@@ -434,7 +434,7 @@ void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
 	}
 }
 
-template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+template <typename TElem, typename TSubsetHandlerDest, typename TSubsetHandlerSrc>
 void AssignAssociatedSidesToSubsets(TSubsetHandlerDest& sh,
 									const TSubsetHandlerSrc& srcIndHandler)
 {
@@ -462,7 +462,7 @@ void AssignAssociatedSidesToSubsets(TSubsetHandlerDest& sh,
 }
 
 ///	helper with with dummy-param for compile-time function selection.
-template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+template <typename TElem, typename TSubsetHandlerDest, typename TSubsetHandlerSrc>
 void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 									const TSubsetHandlerSrc& srcIndHandler,
 									const Volume&)
@@ -477,7 +477,7 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 }
 
 ///	helper with with dummy-param for compile-time function selection.
-template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+template <typename TElem, typename TSubsetHandlerDest, typename TSubsetHandlerSrc>
 void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 									const TSubsetHandlerSrc& srcIndHandler,
 									const Face&)
@@ -490,7 +490,7 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 }
 
 ///	helper with with dummy-param for compile-time function selection.
-template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+template <typename TElem, typename TSubsetHandlerDest, typename TSubsetHandlerSrc>
 void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 									const TSubsetHandlerSrc& srcIndHandler,
 									const Edge&)
@@ -501,7 +501,7 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+template <typename TElem, typename TSubsetHandlerDest, typename TSubsetHandlerSrc>
 void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 									const TSubsetHandlerSrc& srcIndHandler)
 {

@@ -38,7 +38,7 @@
 namespace ug{
 
 ///	this iterator is used by the ntree class to provide access to the elements of a given node
-template <class elem_t, class entry_t>
+template <typename elem_t, typename entry_t>
 class const_ntree_element_iterator
 {
 	public:

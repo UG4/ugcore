@@ -55,7 +55,7 @@ using namespace std;
 namespace ug
 {
 
-//template <class TAPosition>
+//template <typename TAPosition>
 //GlobalFracturedMediaRefiner<TAPosition>::
 GlobalFracturedMediaRefiner::
 GlobalFracturedMediaRefiner(SPRefinementProjector projector) :
@@ -68,7 +68,7 @@ GlobalFracturedMediaRefiner(SPRefinementProjector projector) :
 }
 
 
-//template <class TAPosition>
+//template <typename TAPosition>
 //GlobalFracturedMediaRefiner<TAPosition>::
 GlobalFracturedMediaRefiner::
 GlobalFracturedMediaRefiner(MultiGrid& mg, SPRefinementProjector projector) :
@@ -82,7 +82,7 @@ GlobalFracturedMediaRefiner(MultiGrid& mg, SPRefinementProjector projector) :
 }
 
 
-//template <class TAPosition>
+//template <typename TAPosition>
 //GlobalFracturedMediaRefiner<TAPosition>::
 GlobalFracturedMediaRefiner::
 ~GlobalFracturedMediaRefiner()
@@ -92,7 +92,7 @@ GlobalFracturedMediaRefiner::
 }
 
 
-//template <class TAPosition>
+//template <typename TAPosition>
 //void GlobalFracturedMediaRefiner<TAPosition>::
 void GlobalFracturedMediaRefiner::
 grid_to_be_destroyed(Grid* grid)
@@ -101,7 +101,7 @@ grid_to_be_destroyed(Grid* grid)
 }
 
 
-//template <class TAPosition>
+//template <typename TAPosition>
 //void GlobalFracturedMediaRefiner<TAPosition>::
 void GlobalFracturedMediaRefiner::
 assign_grid(MultiGrid& mg)
@@ -110,7 +110,7 @@ assign_grid(MultiGrid& mg)
 }
 
 
-//template <class TAPosition>
+//template <typename TAPosition>
 //void GlobalFracturedMediaRefiner<TAPosition>::
 void GlobalFracturedMediaRefiner::
 assign_grid(MultiGrid* mg)
@@ -129,7 +129,7 @@ assign_grid(MultiGrid* mg)
 	}
 }
 
-//template <class TAPosition>
+//template <typename TAPosition>
 //void GlobalFracturedMediaRefiner<TAPosition>::
 void GlobalFracturedMediaRefiner::
 mark_as_fracture(int subInd, bool isFracture)
@@ -145,7 +145,7 @@ mark_as_fracture(int subInd, bool isFracture)
 		m_subsetIsFracture[subInd] = isFracture;
 }
 
-//template <class TAPosition>
+//template <typename TAPosition>
 //bool GlobalFracturedMediaRefiner<TAPosition>::
 bool GlobalFracturedMediaRefiner::
 is_fracture(int subInd)
@@ -174,7 +174,7 @@ num_marked_volumes_local(std::vector<int>& numMarkedVolsOut)
 }
 
 
-template <class TElem>
+template <typename TElem>
 void GlobalFracturedMediaRefiner::
 num_marked_elems(std::vector<int>& numMarkedElemsOut)
 {
@@ -186,7 +186,7 @@ num_marked_elems(std::vector<int>& numMarkedElemsOut)
 		numMarkedElemsOut.back() = m_pMG->num<TElem>(m_pMG->top_level());
 }
 
-//template <class TAPosition>
+//template <typename TAPosition>
 //void GlobalFracturedMediaRefiner<TAPosition>::
 void GlobalFracturedMediaRefiner::
 perform_refinement()
@@ -519,8 +519,8 @@ perform_refinement()
 }
 
 /*
-//template <class TAPosition>
-template <class TElem>
+//template <typename TAPosition>
+template <typename TElem>
 //void GlobalFracturedMediaRefiner<TAPosition>::
 void GlobalFracturedMediaRefiner::
 assign_elem_and_side_marks()
@@ -696,7 +696,7 @@ assign_elem_and_side_marks()
 */
 
 
-template <class TElem>
+template <typename TElem>
 void GlobalFracturedMediaRefiner::
 assign_elem_and_side_marks()
 {
@@ -875,7 +875,7 @@ assign_elem_and_side_marks()
 }
 
 
-template <class TElem>
+template <typename TElem>
 void GlobalFracturedMediaRefiner::
 mark_sides_of_marked_top_level_elements()
 {
@@ -912,7 +912,7 @@ mark_sides_of_marked_top_level_elements()
 }
 
 
-//template <class TAPosition>
+//template <typename TAPosition>
 //void GlobalFracturedMediaRefiner<TAPosition>::
 void GlobalFracturedMediaRefiner::
 adjust_marks()
@@ -933,7 +933,7 @@ adjust_marks()
 	}
 }
 
-//template <class TAPosition>
+//template <typename TAPosition>
 //bool GlobalFracturedMediaRefiner<TAPosition>::
 bool GlobalFracturedMediaRefiner::
 save_marks_to_file(const char* filename)
@@ -990,7 +990,7 @@ save_marks_to_file(const char* filename)
 	return SaveGridToFile(mg, sh, filename);
 }
 
-template <class TElem>
+template <typename TElem>
 size_t GlobalFracturedMediaRefiner::
 num_marked(const std::vector<TElem*>& elems) const
 {

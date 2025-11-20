@@ -69,16 +69,16 @@ class ISubsetHandler;
  * processes.
  * \{
  */
-template <class TAPos>
+template <typename TAPos>
 UG_API
 bool LoadGridFromFile(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, std::vector<std::string> additionalSHNames,
 						std::vector<SmartPtr<ISubsetHandler>> ash, const char* filename, TAPos& aPos, int procId = -1);
 
-template <class TAPos>
+template <typename TAPos>
 UG_API
 bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh, const char* filename, TAPos& aPos, int procId = -1);
 
-template <class TAPos>
+template <typename TAPos>
 UG_API
 bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos, int procId = -1);
 /**	\} */
@@ -115,12 +115,12 @@ bool LoadGridFromFile(Grid& grid, const char* filename, int procId = -1);
  *
  * \{
  */
-template <class TAPos>
+template <typename TAPos>
 UG_API
 bool SaveGridToFile(Grid& grid, ISubsetHandler& sh,
 					const char* filename, TAPos& aPos);
 
-template <class TAPos>
+template <typename TAPos>
 UG_API
 bool SaveGridToFile(Grid& grid, const char* filename, TAPos& aPos);
 /**	\} */
@@ -164,7 +164,7 @@ bool SaveSurfaceViewTransformed(MultiGrid& mg, const SurfaceView& sv,
  * Extracts a specified level from a given MultiGrid with a given SubsetHandler
  * and copies it to a new grid. Position data is read from aPos.
  */
-template <class TAPos>
+template <typename TAPos>
 void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
 				   ISubsetHandler& srcSH, ISubsetHandler& destSH,
 				   int lvl, TAPos aPos);
@@ -182,7 +182,7 @@ void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
  * \param[out] destSh the SubsetHandler for the destGrid
  * \tparam[in] aPos position attachment
  */
-template <class TAPos>
+template <typename TAPos>
 void CopyGrid
 (
 	Grid& srcGrid,
@@ -218,7 +218,7 @@ void MergeGrids
  * Extracts a specified level from a given MultiGrid with a given SubsetHandler
  * and saves it to a file. Position data is read from aPos.
  */
-template <class TAPos>
+template <typename TAPos>
 bool SaveGridLevel(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl,
 				   const char* filename, TAPos aPos);
 
@@ -232,7 +232,7 @@ bool SaveGridLevelToFile(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl,
 		  	  	  	     const char* filename);
 
 /// Copy grid elements of type TElem from srcGrid to destGrid
-template<class TElem>
+template <typename TElem>
 void CopyGridElements(Grid& srcGrid, Grid& destGrid,
 				      ISubsetHandler& srcSH, ISubsetHandler& destSH,
 					  Attachment<Vertex*>& aNewVrt);

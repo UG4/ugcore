@@ -1,3 +1,4 @@
+øunused
 /*
  * Copyright (c) 2013-2015:  G-CSC, Goethe University Frankfurt
  * Author: Martin Rupp
@@ -94,50 +95,50 @@ public:
 // IMPLEMENTATIONS
 	double norm() const { return sqrt(norm2()); }
 
-	void operator=(const IVector &v)
+	void operator = (const IVector &v)
 	{
 		vec_add(0.0, 1.0, v);
 	}
-	void operator+=(const IVector &v)
+	void operator += (const IVector &v)
 	{
 		vec_add(1.0, 1.0, v);
 	}
-	void operator-=(const IVector &v)
+	void operator -= (const IVector &v)
 	{
 		vec_add(1.0, -1.0, v);
 	}
 
-	void operator*=(double alpha)
+	void operator *= (double alpha)
 	{
 		vec_add(0.0, alpha, *this);
 	}
 
 // TEMPLATE EXPRESSIONS IMPLEMENTATIONS
-	void operator=(const TE_VecScale<IVector> &t)
+	void operator = (const TE_VecScale<IVector> &t)
 	{
 		vec_add(0.0, t.scaling(), t.vec());
 	}
-	void operator=(const TE_VecAdd2<IVector> &t)
+	void operator = (const TE_VecAdd2<IVector> &t)
 	{
 		vec_add(0.0, t.a1, t.v1, t.a2, t.v2);
 	}
-	void operator=(const TE_VecAdd3<IVector> &t)
+	void operator = (const TE_VecAdd3<IVector> &t)
 	{
 		vec_add(0.0, t.a1, t.v1, t.a2, t.v2, t.a3, t.v3);
 	}
-	void operator+=(const TE_VecAdd2<IVector> &t)
+	void operator += (const TE_VecAdd2<IVector> &t)
 	{
 		vec_add(1.0, t.a1, t.v1, t.a2, t.v2);
 	}
-	void operator+=(const TE_VecAdd3<IVector> &t)
+	void operator += (const TE_VecAdd3<IVector> &t)
 	{
 		vec_add(1.0, t.a1, t.v1, t.a2, t.v2, t.a3, t.v3);
 	}
-	void operator-=(const TE_VecAdd2<IVector> &t)
+	void operator -= (const TE_VecAdd2<IVector> &t)
 	{
 		vec_add(1.0, -t.a1, t.v1, -t.a2, t.v2);
 	}
-	void operator-=(const TE_VecAdd3<IVector> &t)
+	void operator -= (const TE_VecAdd3<IVector> &t)
 	{
 		vec_add(1.0, -t.a1, t.v1, -t.a2, t.v2, -t.a3, t.v3);
 	}
@@ -200,7 +201,7 @@ public:
 		return ss.str();
 	}
 
-	friend std::ostream &operator<<(std::ostream &output, const this_type &v)
+	friend std::ostream &operator << (std::ostream &output, const this_type &v)
 	{
 		v.print(output);
 		return output;

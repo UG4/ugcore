@@ -905,7 +905,7 @@ public:
 		{
 			for (size_t i = 0; i < this->num_ip(s); ++i)
 			{
-				this->operator()(this->value(s, i), this->ip(s, i),
+				this->operator () (this->value(s, i), this->ip(s, i),
 				                 this->time(), this->subset());
 			}
 		}

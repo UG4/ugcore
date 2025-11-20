@@ -207,12 +207,12 @@ class IAssemble
 		virtual SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) = 0;
 
 	/// Virtual Destructor
-		virtual ~IAssemble(){};
+		virtual ~IAssemble() = default;
 
 };
 
 /// @}
 
-}; // name space ug
+} // name space ug
 
 #endif

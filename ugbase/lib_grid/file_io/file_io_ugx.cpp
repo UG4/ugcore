@@ -192,7 +192,7 @@ add_subset_handler(ISubsetHandler& sh, const char* name,
 	}
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 rapidxml::xml_node<>* GridWriterUGX::
 create_subset_element_node(const char* name, const ISubsetHandler& sh,
 							size_t si)
@@ -232,7 +232,7 @@ create_subset_element_node(const char* name, const ISubsetHandler& sh,
 	}
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 rapidxml::xml_node<>* GridWriterUGX::
 create_selector_element_node(const char* name, const ISelector& sel)
 {
@@ -1042,7 +1042,7 @@ subset_handler(ISubsetHandler& shOut,
 	return true;
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 bool GridReaderUGX::
 read_subset_handler_elements(ISubsetHandler& shOut,
 							 const char* elemNodeName,
@@ -1150,7 +1150,7 @@ selector(ISelector& selOut, size_t selectorIndex, size_t refGridIndex)
 	return true;
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 bool GridReaderUGX::
 read_selector_elements(ISelector& selOut, const char* elemNodeName,
 				   	   rapidxml::xml_node<>* selNode,

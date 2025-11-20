@@ -54,7 +54,7 @@ namespace ug
  * Be sure, that TContainer holds values of type TValue.
  * TContainer has to support the container operations of a std::list.
  */
-template <class TValue, class TContainer>
+template <typename TValue, typename TContainer>
 class SectionContainer
 {
 	public:
@@ -131,7 +131,7 @@ class SectionContainer
 	protected:
 		struct Section
 		{
-			Section()	{}
+			Section() = default;
 			Section(const iterator& elemsBegin, const iterator& elemsEnd,
 					//const reverse_iterator& elemsRBegin,
 					//const reverse_iterator& elemsREnd,
@@ -141,8 +141,8 @@ class SectionContainer
 				m_numElements(numElems)
 				{}
 
-			iterator	m_elemsBegin;
-			iterator	m_elemsEnd;
+			iterator m_elemsBegin;
+			iterator m_elemsEnd;
 			//reverse_iterator 	m_elemsRBegin;
 			//reverse_iterator 	m_elemsREnd;
 			uint		m_numElements;

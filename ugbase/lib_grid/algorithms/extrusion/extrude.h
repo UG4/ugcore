@@ -84,7 +84,7 @@ enum ExtrusionOptions
  * If you need to have access to all newly created elements you could use
  * a ug::Selector with enabled autoselection.
  * \{ */
-template <class vector_t>
+template <typename vector_t>
 void Extrude(Grid& grid,
 			std::vector<Vertex*>* pvVerticesInOut,
 			std::vector<Edge*>* pvEdgesInOut,
@@ -94,7 +94,7 @@ void Extrude(Grid& grid,
 			Attachment<vector_t>& aPos = aPosition,
 			std::vector<Volume*>* pvVolsOut = nullptr);
 
-template <class TAAPos>
+template <typename TAAPos>
 void Extrude(Grid& grid,
 			std::vector<Vertex*>* pvVerticesInOut,
 			std::vector<Edge*>* pvEdgesInOut,

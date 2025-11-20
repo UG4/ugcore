@@ -59,7 +59,7 @@ class IsRegularSurfaceElem
 		bool operator () (Volume* v) {return is_ok(v);}
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		inline bool is_ok(TElem* e)
 		{
 			return !(m_mg->has_children(e) || m_dgm.is_ghost(e));

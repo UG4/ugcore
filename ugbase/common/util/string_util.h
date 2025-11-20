@@ -354,7 +354,7 @@ UG_API bool IsLonger(const std::string &a, const std::string &b);
 
 /**
  * \brief Convert a object supporting '`std::cout << obj`' to a string
- * \tparam T type of the object; must support `std::ostream operator<<()`
+ * \tparam T type of the object; must support `std::ostream operator << ()`
  * \param[in] t object to convert to string
  * \return a string with the object as if you would use operator << (like `std::cout`)
  */

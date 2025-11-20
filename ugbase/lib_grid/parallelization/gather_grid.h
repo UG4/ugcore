@@ -64,4 +64,4 @@ void AllGatherGrid(	Grid& gridOut,
 
 }//	end of namespace
 
-#endif	//__H__UG_gather_grid
+#endif

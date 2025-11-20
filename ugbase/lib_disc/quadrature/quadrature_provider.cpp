@@ -283,7 +283,7 @@ QuadratureRuleProvider<TDim>::get(ReferenceObjectID roid, size_t order,
 	return instance().get_quad_rule(roid, order, type);
 }
 
-std::ostream& operator<<(std::ostream& out,	const QuadType& v)
+std::ostream& operator << (std::ostream& out,	const QuadType& v)
 {
 	switch(v)
 	{

@@ -109,22 +109,24 @@ class MGStats {
 
 	///	returns the name of a given stage as a string
 		const char* stage_name(Stage stage) {
-			const char* stageNames[] = {	"BEFORE_PRE_SMOOTH",
-											"AFTER_PRE_SMOOTH",
-											"BEFORE_POST_SMOOTH",
-											"AFTER_POST_SMOOTH",
-											"INVALID"};
-			return stageNames[stage];
+			switch (stage) {
+				case BEFORE_PRE_SMOOTH:  return "BEFORE_PRE_SMOOTH";
+				case AFTER_PRE_SMOOTH:   return "AFTER_PRE_SMOOTH";
+				case BEFORE_POST_SMOOTH: return "BEFORE_POST_SMOOTH";
+				case AFTER_POST_SMOOTH:  return "AFTER_POST_SMOOTH";
+				default:                 return "INVALID";
+			}
 		}
 
 	///	returns the name of the norm of a given stage as a string
 		const char* stage_norm_name(Stage stage) {
-			const char* stageNames[] = {	"|bef pre smth|",
-											"|aft pre smth|",
-											"|bef post smth|",
-											"|aft post smth|",
-											"|INVALID|"};
-			return stageNames[stage];
+			switch (stage) {
+				case BEFORE_PRE_SMOOTH:  return "|bef pre smth|";
+				case AFTER_PRE_SMOOTH:   return "|aft pre smth|";
+				case BEFORE_POST_SMOOTH: return "|bef post smth|";
+				case AFTER_POST_SMOOTH:  return "|aft post smth|";
+				default:                 return "|INVALID|";
+			}
 		}
 
 	private:
@@ -159,4 +161,4 @@ class MGStats {
 #include "mg_stats_impl.hpp"
 
 
-#endif	//__H__UG_mg_stats
+#endif

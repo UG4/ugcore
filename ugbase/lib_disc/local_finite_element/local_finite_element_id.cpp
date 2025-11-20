@@ -39,7 +39,7 @@
 namespace ug{
 
 /// writes the Identifier to the output stream
-std::ostream& operator<<(std::ostream& out,	const LFEID& v)
+std::ostream& operator << (std::ostream& out, const LFEID& v)
 {
 	std::stringstream ss;
 	if(v.m_order >= 0) ss << v.m_order;

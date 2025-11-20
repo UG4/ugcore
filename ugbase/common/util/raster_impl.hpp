@@ -47,26 +47,26 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 //	Raster::MultiIndex
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 Raster<T, TDIM>::MultiIndex::
 MultiIndex()
 {}
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 Raster<T, TDIM>::MultiIndex::
 MultiIndex(size_t i)
 {
 	set(i);
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 int Raster<T, TDIM>::MultiIndex::
 dim () const				
 {
 	return TDIM;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::MultiIndex::
 set (size_t i)				
 {
@@ -74,16 +74,16 @@ set (size_t i)
 		m_ind[d] = i;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 size_t& Raster<T, TDIM>::MultiIndex::
-operator[] (int d)			
+operator [] (int d)
 {
 	return m_ind[d];
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 size_t Raster<T, TDIM>::MultiIndex::
-operator[] (int d) const	
+operator [] (int d) const
 {
 	return m_ind[d];
 }
@@ -92,19 +92,19 @@ operator[] (int d) const
 ////////////////////////////////////////////////////////////////////////////////
 //	Raster::Coordinate
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 Raster<T, TDIM>::Coordinate::
 Coordinate()
 {}
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 Raster<T, TDIM>::Coordinate::
 Coordinate(number c)
 {
 	set(c);
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 Raster<T, TDIM>::Coordinate::
 Coordinate(const MathVector<TDIM, number>& v)
 {
@@ -112,14 +112,14 @@ Coordinate(const MathVector<TDIM, number>& v)
 		m_coord[d] = v[d];
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 int Raster<T, TDIM>::Coordinate::
 dim () const
 {
 	return TDIM;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::Coordinate::
 set (number c)
 {
@@ -128,39 +128,39 @@ set (number c)
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 number& Raster<T, TDIM>::Coordinate::
-operator[] (int d)
+operator [] (int d)
 {
 	return m_coord[d];
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 number Raster<T, TDIM>::Coordinate::
-operator[] (int d) const
+operator [] (int d) const
 {
 	return m_coord[d];
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 typename Raster<T, TDIM>::Coordinate& Raster<T, TDIM>::Coordinate::
-operator+= (const Coordinate& c)
+operator += (const Coordinate& c)
 {
 	for(int d = 0; d < TDIM; ++d)
 		m_coord[d] += c[d];
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 typename Raster<T, TDIM>::Coordinate& Raster<T, TDIM>::Coordinate::
-operator-= (const Coordinate& c)
+operator -= (const Coordinate& c)
 {
 	for(int d = 0; d < TDIM; ++d)
 		m_coord[d] -= c[d];
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 typename Raster<T, TDIM>::Coordinate& Raster<T, TDIM>::Coordinate::
-operator*= (number s)
+operator *= (number s)
 {
 	for(int d = 0; d < TDIM; ++d)
 		m_coord[d] *= s;
@@ -171,7 +171,7 @@ operator*= (number s)
 ////////////////////////////////////////////////////////////////////////////////
 //	Raster - public
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 Raster<T, TDIM>::
 Raster () :
 	m_data(nullptr),
@@ -189,7 +189,7 @@ Raster () :
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 Raster<T, TDIM>::
 Raster (const Raster<T, TDIM>& raster) :
 	m_data(nullptr),
@@ -210,7 +210,7 @@ Raster (const Raster<T, TDIM>& raster) :
 	memcpy(m_data, raster.m_data, num_nodes_total() * sizeof(T));
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 Raster<T, TDIM>::
 Raster (const MultiIndex& numNodes) :
 	m_data(nullptr),
@@ -233,7 +233,7 @@ Raster (const MultiIndex& numNodes) :
 	create();
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 Raster<T, TDIM>::
 Raster (const MultiIndex& numNodes,
 		const Coordinate& extension,
@@ -254,7 +254,7 @@ Raster (const MultiIndex& numNodes,
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 Raster<T, TDIM>::
 ~Raster ()
 {
@@ -262,9 +262,9 @@ Raster<T, TDIM>::
 		delete[] m_data;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 Raster<T, TDIM>& Raster<T, TDIM>::
-operator= (const Raster& raster)
+operator = (const Raster& raster)
 {
 	m_numNodes		= raster.m_numNodes;
 	m_selNode		= raster.m_selNode;
@@ -283,14 +283,14 @@ operator= (const Raster& raster)
 	return *this;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 int Raster<T, TDIM>::
 dim () const
 {
 	return TDIM;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 set_num_nodes (int dim, size_t num)
 {
@@ -299,7 +299,7 @@ set_num_nodes (int dim, size_t num)
 	update_cell_extension(dim);
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 set_num_nodes (const typename Raster<T, TDIM>::MultiIndex& mi)
 {
@@ -308,21 +308,21 @@ set_num_nodes (const typename Raster<T, TDIM>::MultiIndex& mi)
 	update_cell_extension();
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 size_t Raster<T, TDIM>::
 num_nodes_total () const
 {
 	return m_numNodesTotal;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 size_t Raster<T, TDIM>::
 num_nodes (int dim) const
 {
 	return m_numNodes[dim];
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 const typename Raster<T, TDIM>::MultiIndex& Raster<T, TDIM>::
 num_nodes () const
 {
@@ -330,7 +330,7 @@ num_nodes () const
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 create ()
 {
@@ -348,14 +348,14 @@ create ()
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 T& Raster<T, TDIM>::
 node_value (const MultiIndex& mi)
 {
 	return m_data[data_index(mi)];
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 T Raster<T, TDIM>::
 node_value (const MultiIndex& mi) const
 {
@@ -363,35 +363,35 @@ node_value (const MultiIndex& mi) const
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 set_min_corner (int dim, number coord)
 {
 	m_minCorner[dim] = coord;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 set_min_corner (const Coordinate& coord)
 {
 	m_minCorner = coord;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 const typename Raster<T, TDIM>::Coordinate& Raster<T, TDIM>::
 min_corner () const
 {
 	return m_minCorner;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 number Raster<T, TDIM>::
 min_corner (int dim) const
 {
 	return m_minCorner[dim];
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 set_extension (int dim, number ext)
 {
@@ -399,7 +399,7 @@ set_extension (int dim, number ext)
 	update_cell_extension(dim);
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 set_extension (const Coordinate& ext)
 {
@@ -407,14 +407,14 @@ set_extension (const Coordinate& ext)
 	update_cell_extension();
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 const typename Raster<T, TDIM>::Coordinate& Raster<T, TDIM>::
 extension () const
 {
 	return m_extension;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 number Raster<T, TDIM>::
 extension (int dim) const
 {
@@ -422,7 +422,7 @@ extension (int dim) const
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 T Raster<T, TDIM>::
 interpolate (const Coordinate& coord, int order) const
 {
@@ -470,14 +470,14 @@ interpolate (const Coordinate& coord, int order) const
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 set_no_data_value(T val)
 {
 	m_noDataValue = val;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 T Raster<T, TDIM>::
 no_data_value() const
 {
@@ -485,7 +485,7 @@ no_data_value() const
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 blur(T alpha, size_t iterations)
 {
@@ -497,8 +497,8 @@ blur(T alpha, size_t iterations)
 }
 
 
-template <class T, int TDIM>
-template <class TKernel>
+template <typename T, int TDIM>
+template <typename TKernel>
 typename TKernel::result_t Raster<T, TDIM>::
 run_on_all()
 {
@@ -507,8 +507,8 @@ run_on_all()
 	return kernel.result();
 }
 
-template <class T, int TDIM>
-template <class TKernel>
+template <typename T, int TDIM>
+template <typename TKernel>
 void Raster<T, TDIM>::
 run_on_all(TKernel& kernel)
 {
@@ -516,8 +516,8 @@ run_on_all(TKernel& kernel)
 }
 
 
-template <class T, int TDIM>
-template <class TKernel>
+template <typename T, int TDIM>
+template <typename TKernel>
 void Raster<T, TDIM>::
 run_on_all(const MultiIndex& start, TKernel& kernel, int curDim)
 {
@@ -536,8 +536,8 @@ run_on_all(const MultiIndex& start, TKernel& kernel, int curDim)
 }
 
 
-template <class T, int TDIM>
-template <class TKernel>
+template <typename T, int TDIM>
+template <typename TKernel>
 typename TKernel::result_t Raster<T, TDIM>::
 run_on_nbrs(const MultiIndex& center)
 {
@@ -547,8 +547,8 @@ run_on_nbrs(const MultiIndex& center)
 }
 
 
-template <class T, int TDIM>
-template <class TKernel>
+template <typename T, int TDIM>
+template <typename TKernel>
 void Raster<T, TDIM>::
 run_on_nbrs(const MultiIndex& center, TKernel& kernel)
 {
@@ -556,8 +556,8 @@ run_on_nbrs(const MultiIndex& center, TKernel& kernel)
 }
 
 
-template <class T, int TDIM>
-template <class TKernel>
+template <typename T, int TDIM>
+template <typename TKernel>
 void Raster<T, TDIM>::
 run_on_nbrs(const MultiIndex& center, TKernel& kernel, int curDim)
 {
@@ -578,14 +578,14 @@ run_on_nbrs(const MultiIndex& center, TKernel& kernel, int curDim)
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 select_node (int dim, size_t index)
 {
 	m_selNode[dim] = index;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 select_node (const MultiIndex& mi)
 {
@@ -593,14 +593,14 @@ select_node (const MultiIndex& mi)
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 set_selected_node_value (T val)
 {
 	node_value(m_selNode) = val;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 T Raster<T, TDIM>::
 selected_node_value () const
 {
@@ -608,14 +608,14 @@ selected_node_value () const
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 set_cursor (int dim, number coord)
 {
 	m_cursor[dim] = coord;
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 set_cursor (const Coordinate& coord)
 {
@@ -623,7 +623,7 @@ set_cursor (const Coordinate& coord)
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 T Raster<T, TDIM>::
 interpolate_at_cursor (int order) const
 {
@@ -631,7 +631,7 @@ interpolate_at_cursor (int order) const
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 load_from_asc (const char* filename)
 {
@@ -794,7 +794,7 @@ load_from_asc (const char* filename)
 	}
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 save_to_asc (const char* filename) const
 {
@@ -864,7 +864,7 @@ save_to_asc (const char* filename) const
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Raster - private
-template <class T, int TDIM>
+template <typename T, int TDIM>
 size_t Raster<T, TDIM>::
 data_index (const MultiIndex& mi, int curDim, size_t curVal) const
 {
@@ -875,7 +875,7 @@ data_index (const MultiIndex& mi, int curDim, size_t curVal) const
 	}
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 update_num_nodes_total()
 {
@@ -884,7 +884,7 @@ update_num_nodes_total()
 		m_numNodesTotal *= num_nodes(d);
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 update_cell_extension()
 {
@@ -892,7 +892,7 @@ update_cell_extension()
 		update_cell_extension(d);
 }
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 void Raster<T, TDIM>::
 update_cell_extension(int dim)
 {
@@ -903,7 +903,7 @@ update_cell_extension(int dim)
 }
 
 
-template <class T, int TDIM>
+template <typename T, int TDIM>
 T Raster<T, TDIM>::
 interpolate_linear (
 		const MultiIndex& minNodeInd,
@@ -928,4 +928,4 @@ interpolate_linear (
 
 }//	end of namespace
 
-#endif	//__H__UG_raster_impl
+#endif

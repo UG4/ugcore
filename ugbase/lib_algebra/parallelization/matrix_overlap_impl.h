@@ -39,7 +39,7 @@
 
 namespace ug{
 
-template <class TLayout>
+template <typename TLayout>
 void GetLayoutTargetProcs(std::vector<int>& procsOut, const TLayout& layout)
 {	
 	procsOut.clear();
@@ -51,7 +51,7 @@ void GetLayoutTargetProcs(std::vector<int>& procsOut, const TLayout& layout)
 }
 
 
-template <class TMatrix>
+template <typename TMatrix>
 class ComPol_MatCopyDiag : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
@@ -65,12 +65,11 @@ class ComPol_MatCopyDiag : public pcl::ICommunicationPolicy<IndexLayout>
 				return -1;
 		}
 
-		bool collect (ug::BinaryBuffer& buff, const Interface& interface)
+		bool collect (BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatCopyDiag_collect, "algebra parallelization");
 
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
 				Serialize(buff, m_mat(index, index));
@@ -78,12 +77,11 @@ class ComPol_MatCopyDiag : public pcl::ICommunicationPolicy<IndexLayout>
 			return true;
 		}
 
-		bool extract (ug::BinaryBuffer& buff, const Interface& interface)
+		bool extract (BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatCopyDiag_extract, "algebra parallelization");
 
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
 				Deserialize(buff, m_mat(index, index));
@@ -108,7 +106,7 @@ class ComPol_MatCopyDiag : public pcl::ICommunicationPolicy<IndexLayout>
  * \warning	Please make sure that the matrix and the array of globalIDs passed to
  *			the constructor exist until the instance of this class is destroyed.
  * \sa CreateOverlap*/
-template <class TMatrix>
+template <typename TMatrix>
 class ComPol_MatCreateOverlap
 	: public pcl::ICommunicationPolicy<IndexLayout>
 {
@@ -167,7 +165,7 @@ class ComPol_MatCreateOverlap
 
 
 	///	writes values from a buffer into the interface
-		virtual bool extract(ug::BinaryBuffer& buff, const Interface& interface)
+		virtual bool extract(BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_extract, "algebra parallelization");
 
@@ -180,8 +178,7 @@ class ComPol_MatCreateOverlap
 			const int targetProc = interface.get_target_proc ();
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -236,8 +233,7 @@ class ComPol_MatCreateOverlap
 			{
 				m_globalIDs.reserve(newSize);
 				size_t i = oldSize;
-				for(set<AlgebraID>::iterator iter = m_recvNewIDs.begin();
-				    iter != m_recvNewIDs.end(); ++iter, ++i)
+				for(auto iter = m_recvNewIDs.begin(); iter != m_recvNewIDs.end(); ++iter, ++i)
 				{
 					m_algIDHash.insert(*iter, i);
 					m_globalIDs.push_back(*iter);
@@ -261,7 +257,7 @@ class ComPol_MatCreateOverlap
 		//	were received.
 			BinaryBuffer sendBuf;
 			// size of the message for the i-th process in slaveProcs
-			vector<int> msgSizeForSlaveProcs(slaveProcs.size(), 0);
+			vector msgSizeForSlaveProcs(slaveProcs.size(), 0);
 			int slaveInd = -1;
 
 		//	create new master-overlap and add connections to matrix
@@ -429,7 +425,7 @@ class ComPol_MatCreateOverlap
 
 
 
-template <class TMatrix>
+template <typename TMatrix>
 void CreateOverlap (TMatrix& mat)
 {
 	using namespace std;
@@ -457,4 +453,4 @@ void CreateOverlap (TMatrix& mat)
 	
 }//	end of namespace
 
-#endif	//__H__UG_matrix_overlap_impl
+#endif

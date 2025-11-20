@@ -89,18 +89,18 @@ class GridLevel
 		bool is_surface() const {return type() == SURFACE;}
 
 	///	operator ==
-		bool operator==(const GridLevel& rhs) const {
+		bool operator == (const GridLevel& rhs) const {
 			return (this->level() == rhs.level() && this->type() == rhs.type()
 					&& this->ghosts() == rhs.ghosts());
 		}
 
 	///	operator !=
-		bool operator!=(const GridLevel& rhs) const {
-			return !(this->operator==(rhs));
+		bool operator != (const GridLevel& rhs) const {
+			return !(this->operator == (rhs));
 		}
 
 	///	operator <
-		bool operator<(const GridLevel& rhs) const
+		bool operator < (const GridLevel& rhs) const
 		{
 			if(this->type() != rhs.type()) return this->type() < rhs.type();
 			if(this->ghosts() != rhs.ghosts()) return !this->ghosts();
@@ -111,7 +111,7 @@ class GridLevel
 		}
 
 	///	operator >
-		bool operator>(const GridLevel& rhs) const
+		bool operator > (const GridLevel& rhs) const
 		{
 			if(this->type() != rhs.type()) return this->type() > rhs.type();
 			if(this->ghosts() != rhs.ghosts()) return this->ghosts();
@@ -122,13 +122,13 @@ class GridLevel
 		}
 
 	///	operator <=
-		bool operator<=(const GridLevel& rhs) const
+		bool operator <= (const GridLevel& rhs) const
 		{
 			return (*this < rhs || *this == rhs);
 		}
 
 	///	operator >=
-		bool operator>=(const GridLevel& rhs) const
+		bool operator >= (const GridLevel& rhs) const
 		{
 			return (*this > rhs || *this == rhs);
 		}
@@ -140,7 +140,7 @@ class GridLevel
 };
 
 /// writes to the output stream
-std::ostream& operator<<(std::ostream& out,	const GridLevel& v);
+std::ostream& operator << (std::ostream& out,	const GridLevel& v);
 
 /// returns appendix for a grid level
 std::string GridLevelAppendix(const GridLevel& gl, int minfill = 2);

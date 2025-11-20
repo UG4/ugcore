@@ -39,7 +39,7 @@
 namespace ug
 {
 ///	This struct is used to hold GridObjects and their attachment pipes.
-template <class TElem>
+template <typename TElem>
 class ElementStorage
 {
 	public:
@@ -142,7 +142,7 @@ using VolumeElementStorage = ElementStorage<Volume>;
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Helper class to access the correct element storage from its element type
-template <class TElem>
+template <typename TElem>
 struct ElementStorageSelector{
 		static inline ElementStorage<TElem>& element_storage(VertexElementStorage& vrts,
 									EdgeElementStorage& edges, FaceElementStorage& faces,
@@ -204,7 +204,7 @@ struct ElementStorageSelector<Volume>{
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Helper class to access the correct element storage from its element type
-template <class TElem>
+template <typename TElem>
 struct SectionContainerSelector{
 		static inline typename ElementStorage<TElem>::SectionContainer& section_container(
 				VertexElementStorage::SectionContainer& vrts,

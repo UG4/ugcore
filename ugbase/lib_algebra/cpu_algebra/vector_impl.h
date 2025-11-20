@@ -358,7 +358,7 @@ void CloneVector(Vector<TValueType> &dest, const Vector<TValueType>& src)
 	dest.resize(src.size());
 }
 
-template<typename TValueType, class TOStream>
+template<typename TValueType, typename TOStream>
 void Serialize(TOStream &buf, const Vector<TValueType> &v)
 {
 	Serialize(buf, v.size());
@@ -367,7 +367,7 @@ void Serialize(TOStream &buf, const Vector<TValueType> &v)
 		Serialize(buf, v[i]);
 }
 
-template<typename TValueType, class TIStream>
+template<typename TValueType, typename TIStream>
 void Deserialize(TIStream &buf, Vector<TValueType> &v)
 {
 	const size_t ssize = Deserialize<size_t>(buf);

@@ -43,14 +43,14 @@
 namespace ug
 {
 
-template <class TElem>
+template <typename TElem>
 inline int
 Selector::get_section_index() const
 {
 	return geometry_traits<TElem>::CONTAINER_SECTION;
 }
 
-template <class TElem>
+template <typename TElem>
 inline void
 Selector::clear()
 {
@@ -69,7 +69,7 @@ Selector::clear()
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 inline size_t
 Selector::num() const
 {
@@ -93,7 +93,7 @@ Selector::empty() const
 	return num() == 0;
 }
 
-template <class TElem>
+template <typename TElem>
 inline bool 
 Selector::empty() const
 {
@@ -101,7 +101,7 @@ Selector::empty() const
 }
 
 //	begin
-template <class TElem>
+template <typename TElem>
 inline typename geometry_traits<TElem>::iterator
 Selector::begin()
 {
@@ -115,7 +115,7 @@ Selector::begin()
 }
 
 //	const begin
-template <class TElem>
+template <typename TElem>
 inline typename geometry_traits<TElem>::const_iterator
 Selector::begin() const
 {
@@ -129,7 +129,7 @@ Selector::begin() const
 }
 
 //	end
-template <class TElem>
+template <typename TElem>
 inline typename geometry_traits<TElem>::iterator
 Selector::end()
 {
@@ -143,7 +143,7 @@ Selector::end()
 }
 
 //	const end
-template <class TElem>
+template <typename TElem>
 inline typename geometry_traits<TElem>::const_iterator
 Selector::end() const
 {
@@ -156,7 +156,7 @@ Selector::end() const
 								section_container<TElem>().section_end(sInd));
 }
 
-template <class TElem>
+template <typename TElem>
 TElem*
 Selector::front()
 {
@@ -164,7 +164,7 @@ Selector::front()
 	return static_cast<TElem*>(section_container<TElem>().front(sInd));
 }
 
-template <class TElem>
+template <typename TElem>
 TElem*
 Selector::back()
 {
@@ -188,7 +188,7 @@ num(size_t) const
 	return (uint)num();
 }
 
-template <class TElem>
+template <typename TElem>
 inline size_t Selector::
 num(size_t) const
 {
@@ -201,14 +201,14 @@ empty(size_t) const
 	return empty();
 }
 
-template <class TElem>
+template <typename TElem>
 inline bool Selector::
 empty(size_t) const
 {
 	return empty<TElem>();
 }
 
-template <class TElem>
+template <typename TElem>
 inline typename geometry_traits<TElem>::iterator
 Selector::begin(size_t)
 {
@@ -217,14 +217,14 @@ Selector::begin(size_t)
 
 //	end
 ///	calls end<TElem>();
-template <class TElem>
+template <typename TElem>
 inline typename geometry_traits<TElem>::iterator
 Selector::end(size_t)
 {
 	return end<TElem>();
 }
 
-template <class TElem>
+template <typename TElem>
 typename Grid::traits<TElem>::SectionContainer&
 Selector::
 section_container()
@@ -234,7 +234,7 @@ section_container()
 }
 
 
-template <class TElem>
+template <typename TElem>
 const typename Grid::traits<TElem>::SectionContainer&
 Selector::
 section_container() const

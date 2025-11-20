@@ -43,7 +43,7 @@ namespace ug{
 
 template <typename TImpl, typename TData, int dim>
 void StdDataLinker<TImpl,TData,dim>::
-operator() (TData& value,
+operator () (TData& value,
             const MathVector<dim>& globIP,
             number time, int si) const
 {
@@ -52,7 +52,7 @@ operator() (TData& value,
 
 template <typename TImpl, typename TData, int dim>
 void StdDataLinker<TImpl,TData,dim>::
-operator()(TData vValue[],
+operator () (TData vValue[],
            const MathVector<dim> vGlobIP[],
            number time, int si, const size_t nip) const
 {

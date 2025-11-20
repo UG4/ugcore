@@ -61,30 +61,26 @@ public:
 		m_linOpInv = linOpInv;
 	}
 
-	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
-	{
+	bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op) override {
 		op->set_skeleton_debug(m_linOpInv);
 		return m_linOpInv->init(op);
 	}
 
-	virtual bool apply(vector_type& u, const vector_type& f)
-	{
+	bool apply(vector_type& u, const vector_type& f) override {
 		return m_linOpInv->apply(u, f);
 	}
 
-	virtual bool apply_return_defect(vector_type& u, vector_type& f)
-	{
+	bool apply_return_defect(vector_type& u, vector_type& f) override {
 		return m_linOpInv->apply_return_defect(u, f);
 	}
 
-	virtual std::string config_string() const
-	{
+	std::string config_string() const override {
 		std::stringstream ss; ss << "SchurInverseWithOperator\n";
 		ss << " Solver: " << ConfigShift(m_linOpInv->config_string()) << "\n";
 		return ss.str();
 	}
-	virtual bool supports_parallel() const
-	{
+
+	bool supports_parallel() const override {
 		return m_linOpInv->supports_parallel();
 	}
 
@@ -107,8 +103,7 @@ public:
 		m_linOpInv = linOpInv;
 	}
 
-	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
-	{
+	bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op) override {
 		PROFILE_BEGIN(SchurInverseWithFullMatrix_init)
 
 		m_exactSchurOp = make_sp(new MatrixOperator<matrix_type, vector_type>);
@@ -123,26 +118,23 @@ public:
 		return m_linOpInv->init(m_exactSchurOp);
 	}
 
-	virtual bool apply(vector_type& u, const vector_type& f)
-	{
+	bool apply(vector_type& u, const vector_type& f) override {
 		PROFILE_BEGIN(SchurInverseWithFullMatrix_apply)
 		return m_linOpInv->apply(u, f);
 	}
 
-	virtual bool apply_return_defect(vector_type& u, vector_type& f)
-	{
+	bool apply_return_defect(vector_type& u, vector_type& f) override {
 		PROFILE_BEGIN(SchurInverseWithFullMatrix_apply_return_defect)
 		return m_linOpInv->apply_return_defect(u, f);
 	}
 
-	virtual std::string config_string() const
-	{
+	std::string config_string() const override {
 		std::stringstream ss; ss << "SchurInverseWithFullMatrix\n";
 		ss << " Solver: " << ConfigShift(m_linOpInv->config_string()) << "\n";
 		return ss.str();
 	}
-	virtual bool supports_parallel() const
-	{
+
+	bool supports_parallel() const override {
 		return m_linOpInv->supports_parallel();
 	}
 
@@ -167,8 +159,7 @@ public:
 		m_linSolver = linSolver;
 	}
 
-	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
-	{
+	bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op) override {
 		PROFILE_BEGIN(SchurInverseWithAGammaGamma_init)
 
 		op->set_skeleton_debug(m_linSolver);
@@ -181,25 +172,24 @@ public:
 		return m_linSolver->init(op);
 		// do init of linsolver before or after set approximation?
 	}
-	virtual bool apply(vector_type& u, const vector_type& f)
-	{
+
+	bool apply(vector_type& u, const vector_type& f) override {
 		PROFILE_BEGIN(SchurInverseWithAGammaGamma_apply)
 		return m_linSolver->apply(u, f);
 	}
 
-	virtual bool apply_return_defect(vector_type& u, vector_type& f)
-	{
+	bool apply_return_defect(vector_type& u, vector_type& f) override {
 		PROFILE_BEGIN(SchurInverseWithAGammaGamma_apply_return_defect)
 		return m_linSolver->apply_return_defect(u, f);
 	}
-	virtual std::string config_string() const
-	{
+
+	std::string config_string() const override {
 		std::stringstream ss; ss << "SchurInverseWithAGammaGamma\n";
 		ss << " Solver: " << ConfigShift(m_linSolver->config_string()) << "\n";
 		return ss.str();
 	}
-	virtual bool supports_parallel() const
-	{
+
+	bool supports_parallel() const override {
 		return m_linSolver->supports_parallel();
 	}
 protected:
@@ -228,11 +218,10 @@ public:
 	}
 
 // 	Init Operator J(u)
-	virtual void init(const X& u) { init(); }
+	void init(const X& u) override { init(); }
 
 // 	Init Operator L
-	virtual void init()
-	{
+	void init() override {
 		if(invalid)
 		{
 			m_op->compute_matrix(get_matrix());
@@ -240,19 +229,18 @@ public:
 		}
 	}
 
-	virtual void calculate_matrix()
-	{
+	void calculate_matrix() override {
 		init();
 	}
 
 // 	Apply Operator f = L*u (e.g. d = J(u)*c in iterative scheme)
-	virtual void apply(Y& f, const X& u) {m_op->apply(f,u);}
+	void apply(Y& f, const X& u) override {m_op->apply(f,u);}
 
 // 	Apply Operator, i.e. f = f - L*u;
-	virtual void apply_sub(Y& f, const X& u) {m_op->apply_sub(f,u);}
+	void apply_sub(Y& f, const X& u) override {m_op->apply_sub(f,u);}
 
 // 	Access to matrix
-	virtual M& get_matrix() {return *this;};
+	M& get_matrix() override {return *this;};
 };
 
 // not completely working at the moment
@@ -269,8 +257,7 @@ public:
 		m_linOpInv = linOpInv;
 	}
 
-	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
-	{
+	bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op) override {
 		if(m_exactSchurOp.valid() == false)
 			m_exactSchurOp = make_sp(new SchurComplementMatrixOperator<TAlgebra, matrix_type, vector_type>(op));
 		else
@@ -278,24 +265,21 @@ public:
 		return m_linOpInv->init(m_exactSchurOp);
 	}
 
-	virtual bool apply(vector_type& u, const vector_type& f)
-	{
+	bool apply(vector_type& u, const vector_type& f) override {
 		return m_linOpInv->apply(u, f);
 	}
 
-	virtual bool apply_return_defect(vector_type& u, vector_type& f)
-	{
+	bool apply_return_defect(vector_type& u, vector_type& f) override {
 		return m_linOpInv->apply_return_defect(u, f);
 	}
 
-	virtual std::string config_string() const
-	{
+	std::string config_string() const override {
 		std::stringstream ss; ss << "SchurInverseWithAutoFullMatrix\n";
 		ss << " Solver: " << ConfigShift(m_linOpInv->config_string()) << "\n";
 		return ss.str();
 	}
-	virtual bool supports_parallel() const
-	{
+
+	bool supports_parallel() const override {
 		return m_linOpInv->supports_parallel();
 	}
 

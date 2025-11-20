@@ -89,7 +89,7 @@ void MeshLayers(Grid& grid, const RasterLayers& layers,
 //	EXTRUDE LAYERS
 struct ConnectedToOneMarkedVrt{
 	ConnectedToOneMarkedVrt(Grid& grid) : m_grid(grid) {}
-	bool operator() (Edge* e) const{
+	bool operator () (Edge* e) const{
 		return	(m_grid.is_marked(e->vertex(0)) || m_grid.is_marked(e->vertex(1)))
 			&& !(m_grid.is_marked(e->vertex(0)) && m_grid.is_marked(e->vertex(1)));
 	}

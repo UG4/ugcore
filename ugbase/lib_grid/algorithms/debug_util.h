@@ -77,14 +77,14 @@ void PrintAttachmentInfo(Grid& grid);
  *
  * \{
  */
-template <class TElem>
+template <typename TElem>
 vector3 GetGridObjectCenter(Grid& g, TElem* elem);
 inline vector3 GetGridObjectCenter(Grid& g, GridObject* elem);
 /** \} */
 
 
 /// Writes level and center of each object together with a custom value to a file
-template <class TElem, class TAValue>
+template <typename TElem, typename TAValue>
 void WriteDebugValuesToFile(const char* filename, Grid& grid,
 							TAValue& aVal, bool levelWise);
 
@@ -92,7 +92,7 @@ void WriteDebugValuesToFile(const char* filename, Grid& grid,
 ///	returns the index of the given element in the given grid.
 /**	Runtime O(n). Returns -1 if the element could not be found.
  * \note: The all elements of the same base-type are considered during counting.*/
-template <class TElem>
+template <typename TElem>
 int GetGridObjectIndex(Grid& g, TElem* elem);
 
 

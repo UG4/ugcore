@@ -62,7 +62,8 @@ class Traverser_CollisionTree : public Traverser
 {
 	public:
 		Traverser_CollisionTree();
-		virtual ~Traverser_CollisionTree();
+
+		~Traverser_CollisionTree() override = default;
 
 	protected:
 		virtual void handle_collision_tree_root(CollisionTreeRootNode* colTreeRootNode);

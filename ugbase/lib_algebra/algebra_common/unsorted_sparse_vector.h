@@ -71,7 +71,7 @@ private:
 	size_t m_size;
 public:
 
-	UnsortedSparseVector(size_t s) : posInConnections(s, -1), m_size(s)
+	explicit UnsortedSparseVector(size_t s) : posInConnections(s, -1), m_size(s)
 	{
 		con.reserve(32);
 	}
@@ -115,7 +115,7 @@ public:
 		con.clear();
 	}
 
-	const value_type &operator()(size_t c) const
+	const value_type &operator () (size_t c) const
 	{
 		assert(c < m_size);
 		int p = posInConnections[c];
@@ -124,7 +124,7 @@ public:
 		else
 			assert(0 && "const_and_not_available");
 	}
-	value_type &operator()(size_t c)
+	value_type &operator () (size_t c)
 	{
 		assert(c < m_size);
 		int p = posInConnections[c];

@@ -77,7 +77,7 @@ namespace ug{
  * Make sure that masterLayout and slaveLayout do not reference
  * indices >= numIDs.
  */
-template <class TLayout>
+template <typename TLayout>
 void GenerateGlobalAlgebraIDs(pcl::InterfaceCommunicator<TLayout>& communicator,
 		std::vector<AlgebraID>& idsOut,
 		size_t numIDs,
@@ -282,7 +282,7 @@ void AdditiveToUnique(	TVector* pVec,
 /// sets the values of a vector to a given number only on the interface indices
 /**
  * \param[in,out]		pVec			Vector
- * \param[in]			layout			Layout
+ * \param[in]			interface			Layout
  * \param[in]			val				Value to set on layout indices
  */
 template <typename TVector>
@@ -318,18 +318,18 @@ void SetLayoutValues(	TVector* pVec,
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterators
-	typename IndexLayout::const_iterator iter = layout.begin();
-	typename IndexLayout::const_iterator end = layout.end();
+	IndexLayout::const_iterator iter = layout.begin();
+	auto end = layout.end();
 
 //	iterate over interfaces
 	for(; iter != end; ++iter)
 	{
 	//	get interface
-		const typename IndexLayout::Interface& interface = layout.interface(iter);
+		const IndexLayout::Interface& interface = layout.interface(iter);
 
 	//	loop over indices
-		for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+		for(auto iter = interface.begin();
+		    iter != interface.end(); ++iter)
 		{
 		//  get index
 			const size_t index = interface.get_element(iter);
@@ -353,18 +353,18 @@ void ScaleLayoutValues(	TVector* pVec,
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterators
-	typename IndexLayout::const_iterator iter = layout.begin();
-	typename IndexLayout::const_iterator end = layout.end();
+	IndexLayout::const_iterator iter = layout.begin();
+	auto end = layout.end();
 
 //	iterate over interfaces
 	for(; iter != end; ++iter)
 	{
 	//	get interface
-		const typename IndexLayout::Interface& interface = layout.interface(iter);
+		const IndexLayout::Interface& interface = layout.interface(iter);
 
 	//	loop over indices
-		for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+		for(auto iter = interface.begin();
+		    iter != interface.end(); ++iter)
 		{
 		//  get index
 			const size_t index = interface.get_element(iter);
@@ -591,16 +591,16 @@ void MatExtractDiagOnLayout(	TVector* pDiagVector,
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterator
-	typename IndexLayout::const_iterator iter = Layout.begin();
-	typename IndexLayout::const_iterator end = Layout.end();
+	IndexLayout::const_iterator iter = Layout.begin();
+	auto end = Layout.end();
 
 	for(; iter != end; ++iter)
 	{
 	//	get interface
 		const typename IndexLayout::Interface& interface = Layout.interface(iter);
 
-		for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+		for(auto iter = interface.begin();
+		    iter != interface.end(); ++iter)
 		{
 		// 	get index
 			const size_t index = interface.get_element(iter);
@@ -631,16 +631,16 @@ void MatWriteDiagOnLayout(	TMatrix* pMatrix,
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterator
-	typename IndexLayout::const_iterator iter = Layout.begin();
-	typename IndexLayout::const_iterator end = Layout.end();
+	auto iter = Layout.begin();
+	IndexLayout::const_iterator end = Layout.end();
 
 	for(; iter != end; ++iter)
 	{
 	//	get interface
-		const typename IndexLayout::Interface& interface = Layout.interface(iter);
+		const IndexLayout::Interface& interface = Layout.interface(iter);
 
-		for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+		for(auto iter = interface.begin();
+		    iter != interface.end(); ++iter)
 		{
 		// 	get index
 			const size_t index = interface.get_element(iter);
@@ -786,7 +786,7 @@ SmartPtr<AlgebraLayouts> CreateLocalAlgebraLayouts();
 
 ///	Generates a set of global consecutive indices
 /**	TIndVec has to be an std::vector compatible type, e.g. std::vector<size_t>.*/
-template <class TIndVec>
+template <typename TIndVec>
 void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,
 									  const AlgebraLayouts& layouts);
 
@@ -797,7 +797,7 @@ void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,
  * \param mat			A parallel matrix.
  * \param algebraIDs	may be specified optionally. Make sure that those are global
  *						consistent algebraID's-*/
-template <class TMatrix>
+template <typename TMatrix>
 void TestHorizontalAlgebraLayouts(
 			const TMatrix& mat,
 			std::vector<AlgebraID>* algebraIDs = nullptr,

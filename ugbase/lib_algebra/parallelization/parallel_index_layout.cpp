@@ -53,7 +53,7 @@ void LogIndexLayout(IndexLayout& layout, int depth)
 	UG_LOG("\n");
 
 	int i = 0;
-	for(InterfaceIter iiter = layout.begin(); iiter != layout.end(); ++iiter, ++i)
+	for(auto iiter = layout.begin(); iiter != layout.end(); ++iiter, ++i)
 	{
 		Interface& interface = layout.interface(iiter);
 		UG_LOG(" " << std::setw(9) << i << " | " << std::setw(14) <<
@@ -61,7 +61,7 @@ void LogIndexLayout(IndexLayout& layout, int depth)
 		if(depth >= 1)
 		{
 			UG_LOG(" | (");
-			for(Interface::iterator indexIter = interface.begin(); indexIter != interface.end(); ++indexIter)
+			for(auto indexIter = interface.begin(); indexIter != interface.end(); ++indexIter)
 			{
 			//  get index
 				const size_t index = interface.get_element(indexIter);
@@ -84,7 +84,7 @@ void LogIndexLayout(IndexLayout& layout, int depth)
 std::ostream &operator << (std::ostream &out, const IndexLayout &layout)
 {
 	out << "IndexLayout: ";
-	for(IndexLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	for(auto iter = layout.begin(); iter != layout.end(); ++iter)
 	{
 		size_t pid = layout.proc_id(iter);
 		const IndexLayout::Interface &interface = layout.interface(iter);
@@ -92,7 +92,7 @@ std::ostream &operator << (std::ostream &out, const IndexLayout &layout)
 		std::stringstream ss;
 		size_t k=0;
 		int ndigit= NumberOfDigits(interface.size());
-		for(IndexLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+		for(auto iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
 			if(k % 10 == 0)
 			{
@@ -140,8 +140,8 @@ void ReplaceIndicesInLayout(IndexLayout& layout, const std::vector<int>& vMap)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterators
-	IndexLayout::iterator interfaceIter = layout.begin();
-	IndexLayout::iterator interfaceEnd = layout.end();
+	auto interfaceIter = layout.begin();
+	auto interfaceEnd = layout.end();
 
 //	iterate over interfaces
 	for(; interfaceIter != interfaceEnd; ++interfaceIter)
@@ -150,7 +150,7 @@ void ReplaceIndicesInLayout(IndexLayout& layout, const std::vector<int>& vMap)
 		IndexLayout::Interface& interface = layout.interface(interfaceIter);
 
 	//	loop over indices
-		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end();)
+		for(auto iter = interface.begin(); iter != interface.end();)
 		{
 		//  get index
 			size_t& index = interface.get_element(iter);
@@ -174,26 +174,26 @@ void ReplaceIndicesInLayout(IndexLayout& layout, const std::vector<int>& vMap)
 
 void MarkAllFromInterface(std::vector<bool> &mark, const IndexLayout::Interface &interface)
 {
-	for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
+	for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 		mark[ interface.get_element(iter) ] = true;
 }
 
 void MarkAllFromLayout(std::vector<bool> &mark, const IndexLayout &layout)
 {
-	for(IndexLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	for(auto iter = layout.begin(); iter != layout.end(); ++iter)
 		MarkAllFromInterface(mark, layout.interface(iter));
 }
 
 
 void AddAllFromInterface(std::set<size_t> &s, const IndexLayout::Interface &interface)
 {
-	for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
+	for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 		s.insert(interface.get_element(iter));
 }
 
 void AddAllFromLayout(std::set<size_t> &s, const IndexLayout &layout)
 {
-	for(IndexLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	for(auto iter = layout.begin(); iter != layout.end(); ++iter)
 		AddAllFromInterface(s, layout.interface(iter));
 }
 

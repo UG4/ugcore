@@ -239,5 +239,3 @@ std::string FindDirInStandardPaths(const char* dirname)
 
 
 } // namespace ug
-
-// EOF

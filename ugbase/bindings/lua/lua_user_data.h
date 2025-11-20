@@ -186,12 +186,12 @@ class LuaUserDataFactory
 
 	//	disallow copy
 		LuaUserDataFactory(const LuaUserDataFactory&);
-		LuaUserDataFactory& operator=(const LuaUserDataFactory&);
+		LuaUserDataFactory& operator = (const LuaUserDataFactory&);
 
 	///	singleton provider
-		static LuaUserDataFactory<TData,dim,TRet>& instance()
+		static LuaUserDataFactory& instance()
 		{
-			static LuaUserDataFactory<TData,dim,TRet> inst;
+			static LuaUserDataFactory inst;
 			return inst;
 		}
 
@@ -285,7 +285,7 @@ class LuaUserFunction
 		{ set_input(i, input); set_deriv(i, deriv); }
 
 	///	evaluates the data
-		virtual void operator() (TData& out, int numArgs, ...) const;
+		virtual void operator () (TData& out, int numArgs, ...) const;
 
 		inline void evaluate (TData& value,
 		                      const MathVector<dim>& globIP,
@@ -377,7 +377,7 @@ class LuaUserNumberNumberFunction
 
 		void set_lua_callback(const char* luaCallback);
 
-		number operator() ( int numArgs, ... ) const;
+		number operator () ( int numArgs, ... ) const;
 
 	protected:
 		std::string m_callbackName;
@@ -411,7 +411,7 @@ class LuaFunction : public IFunction<TData, TDataIn>
 		void set_lua_callback(const char* luaCallback, size_t numArgs);
 
 	///	evaluates the data
-		virtual void operator() (TData& out, int numArgs, ...);
+		virtual void operator () (TData& out, int numArgs, ...);
 
 	protected:
 	///	callback name as string

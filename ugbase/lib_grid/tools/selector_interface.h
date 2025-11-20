@@ -155,13 +155,13 @@ class UG_API ISelector : public GridObserver
 		inline void select(GridObject* elem)
 		{select(elem, 1);}
 
-		template <class TElem>
+		template <typename TElem>
 		inline void select(TElem* elem, byte_t status);
-		template <class TElem>
+		template <typename TElem>
 		inline void select(TElem* elem)
 		{select(elem, 1);}
 
-		template <class TIterator>
+		template <typename TIterator>
 		inline void select(TIterator iterBegin, TIterator iterEnd, byte_t status = 1);
 	/**	\} */
 
@@ -169,11 +169,11 @@ class UG_API ISelector : public GridObserver
 	/**	In this context 'mark' is simply a synonym for 'select' and simply forwards
 	 * to the corresponding 'select' method.
 	 * \{ */
-	 	template <class TElem>
+	 	template <typename TElem>
 		inline void mark(TElem* elem)
 		{select(elem);}
 
-		template <class TElem>
+		template <typename TElem>
 		inline void mark(TElem* elem, byte_t status)
 		{select(elem, status);}
 	/** \} */
@@ -182,15 +182,15 @@ class UG_API ISelector : public GridObserver
 	//	deselection
 		inline void deselect(GridObject* elem);
 		
-		template <class TElem>
+		template <typename TElem>
 		inline void deselect(TElem* elem);
 		
-		template <class TIterator>
+		template <typename TIterator>
 		inline void deselect(TIterator iterBegin, TIterator iterEnd);
 
 	///	deselects an element
 	/**	In this context 'unmark' is simply a synonym for 'deselect'.*/
-	 	template <class TElem>
+	 	template <typename TElem>
 		inline void unmark(TElem* elem)
 		{deselect(elem);}
 
@@ -207,12 +207,12 @@ class UG_API ISelector : public GridObserver
 	///	returns the selection state of the specified elelent
 	/** In this context, 'get_mark' is simply a synonym for 'get_selection_status'
 	 * and simply forwards to the corresponding method.*/
-		template <class TElem>
+		template <typename TElem>
 		inline byte_t get_mark(TElem* elem) const
 		{return get_selection_status(elem);}
 
 	///	returns true if an element is selected
-		template <class TElem>
+		template <typename TElem>
 		inline bool is_selected(TElem* elem) const {return get_selection_status(elem) != 0;}
 
 	//	non-virtual methods.
@@ -373,7 +373,7 @@ class UG_API ISelector : public GridObserver
 		inline void mark_deselected(Volume* elem) {assert(elements_are_supported(SE_VOLUME)); m_aaSelVOL[elem] = 0;}
 
 	///	helper for GridObserver callbacks.
-		template <class TElem>
+		template <typename TElem>
 		void elems_to_be_merged(Grid* grid, TElem* target,
 								TElem* elem1, TElem* elem2);
 
@@ -381,7 +381,7 @@ class UG_API ISelector : public GridObserver
 		ISelector(const ISelector& sel){};///<	Copy Constructor not yet implemented!
 
 		#ifdef UG_PARALLEL
-			template <class TIntfcCom>
+			template <typename TIntfcCom>
 			void broadcast_selection_states(bool deselect, bool includeGhosts,
 											TIntfcCom& icom);
 		#endif

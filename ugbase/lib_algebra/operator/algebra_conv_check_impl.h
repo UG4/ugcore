@@ -47,7 +47,7 @@ namespace ug{
 // Algebraic (composite) convergence check
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class TVector>
+template <typename TVector>
 AlgebraicConvCheck<TVector>::AlgebraicConvCheck(size_t ncmp)
 :	
 	m_vCmpInfo(ncmp, CmpInfo(1e-12, 1e-10)),
@@ -57,7 +57,7 @@ AlgebraicConvCheck<TVector>::AlgebraicConvCheck(size_t ncmp)
 {}
 
 
-template <class TVector>
+template <typename TVector>
 AlgebraicConvCheck<TVector>::
 AlgebraicConvCheck(size_t ncmp, int maxSteps, number minDefect, number relReduction)
 :	 m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction), m_verbose(true),
@@ -68,7 +68,7 @@ AlgebraicConvCheck(size_t ncmp, int maxSteps, number minDefect, number relReduct
 
 }
 
-template <class TVector>
+template <typename TVector>
 AlgebraicConvCheck<TVector>::
 AlgebraicConvCheck(size_t ncmp, int maxSteps, number minDefect, number relReduction, bool verbose)
 :	 m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction), m_verbose(verbose),
@@ -83,7 +83,7 @@ AlgebraicConvCheck(size_t ncmp, int maxSteps, number minDefect, number relReduct
 
 
 
-template <class TVector>
+template <typename TVector>
 SmartPtr<IConvergenceCheck<TVector> > AlgebraicConvCheck<TVector>::clone()
 {
 	SmartPtr<AlgebraicConvCheck<TVector> > newInst(new AlgebraicConvCheck<TVector>(this->m_vCmpInfo.size()));
@@ -95,7 +95,7 @@ SmartPtr<IConvergenceCheck<TVector> > AlgebraicConvCheck<TVector>::clone()
 
 
 
-template <class TVector>
+template <typename TVector>
 void AlgebraicConvCheck<TVector>::start_defect(number initialDefect)
 {
 	UG_THROW(	"This method cannot be used to set defect values,\n"
@@ -105,7 +105,7 @@ void AlgebraicConvCheck<TVector>::start_defect(number initialDefect)
 }
 
 
-template <class TVector>
+template <typename TVector>
 void AlgebraicConvCheck<TVector>::start(const TVector& vec)
 {
 	// start time measurement
@@ -179,7 +179,7 @@ void AlgebraicConvCheck<TVector>::start(const TVector& vec)
 }
 
 
-template <class TVector>
+template <typename TVector>
 void AlgebraicConvCheck<TVector>::update_defect(number newDefect)
 {
 	UG_THROW(	"This method cannot be used to update defect values,\n"
@@ -189,7 +189,7 @@ void AlgebraicConvCheck<TVector>::update_defect(number newDefect)
 }
 
 
-template <class TVector>
+template <typename TVector>
 void AlgebraicConvCheck<TVector>::update(const TVector& vec)
 {
 	// update defects
@@ -223,7 +223,7 @@ void AlgebraicConvCheck<TVector>::update(const TVector& vec)
 }
 
 
-template <class TVector>
+template <typename TVector>
 bool AlgebraicConvCheck<TVector>::iteration_ended()
 {
 	if (step() >= m_maxSteps) return true;
@@ -248,7 +248,7 @@ bool AlgebraicConvCheck<TVector>::iteration_ended()
 }
 
 
-template <class TVector>
+template <typename TVector>
 bool AlgebraicConvCheck<TVector>::post()
 {
 	if (m_bTimeMeas) m_stopwatch.stop();
@@ -317,7 +317,7 @@ bool AlgebraicConvCheck<TVector>::post()
 }
 
 
-template <class TVector>
+template <typename TVector>
 void AlgebraicConvCheck<TVector>::print_offset()
 {
 	// step 1: whitespace
@@ -327,7 +327,7 @@ void AlgebraicConvCheck<TVector>::print_offset()
 	UG_LOG(m_symbol << " ");
 }
 
-template <class TVector>
+template <typename TVector>
 void AlgebraicConvCheck<TVector>::print_line(std::string line)
 {
 	print_offset();
@@ -335,7 +335,7 @@ void AlgebraicConvCheck<TVector>::print_line(std::string line)
 }
 
 
-template <class TVector>
+template <typename TVector>
 bool AlgebraicConvCheck<TVector>::is_valid_number(number value)
 {
 	if (value == 0.0) return true;
@@ -348,7 +348,7 @@ bool AlgebraicConvCheck<TVector>::is_valid_number(number value)
 
 
 
-template <class TVector>
+template <typename TVector>
 number AlgebraicConvCheck<TVector>::
 norm(const TVector& vec, size_t cmp)
 {

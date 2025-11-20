@@ -159,11 +159,11 @@ inline void CollectAssociatedSides(Face* sidesOut[2], Grid& grid, Volume* v, Edg
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 ///	An unimplemented version, so that a compile error occurs if no overload exists.
-template <class TElem, class TAAPosVRT>
+template <typename TElem, typename TAAPosVRT>
 number CalculateMinAngle(Grid& grid, TElem* elem, TAAPosVRT& aaPos);
 
 ///	Face (Triangles and Quadrilaterals)
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinAngle(Grid& grid, Face* f, TAAPosVRT& aaPos)
 {
 	//PROFILE_FUNC();
@@ -241,35 +241,35 @@ number CalculateMinAngle(Grid& grid, Face* f, TAAPosVRT& aaPos)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 ///	Tetrahedron
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinAngle(Grid& grid, Tetrahedron* tet, TAAPosVRT& aaPos)
 {
 	return CalculateMinDihedral(grid, static_cast<Volume*>(tet), aaPos);
 }
 
 ///	Prism
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinAngle(Grid& grid, Prism* prism, TAAPosVRT& aaPos)
 {
 	return CalculateMinDihedral(grid, static_cast<Volume*>(prism), aaPos);
 }
 
 ///	Pyramid
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinAngle(Grid& grid, Pyramid* pyr, TAAPosVRT& aaPos)
 {
 	return CalculateMinDihedral(grid, static_cast<Volume*>(pyr), aaPos);
 }
 
 ///	Hexahedron
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinAngle(Grid& grid, Hexahedron* hex, TAAPosVRT& aaPos)
 {
 	return CalculateMinDihedral(grid, static_cast<Volume*>(hex), aaPos);
 }
 
 ///	Volume
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinAngle(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 {
 	return CalculateMinDihedral(grid, vol, aaPos);
@@ -281,39 +281,39 @@ number CalculateMinAngle(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 ///	An unimplemented version, so that a compile error occurs if no overload exists.
-template <class TElem, class TAAPosVRT>
+template <typename TElem, typename TAAPosVRT>
 number CalculateMinDihedral(Grid& grid, TElem* elem, TAAPosVRT& aaPos);
 
 ///	Tetrahedron
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinDihedral(Grid& grid, Tetrahedron* tet, TAAPosVRT& aaPos)
 {
 	return CalculateMinDihedral(grid, static_cast<Volume*>(tet), aaPos);
 }
 
 ///	Prism
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinDihedral(Grid& grid, Prism* prism, TAAPosVRT& aaPos)
 {
 	return CalculateMinDihedral(grid, static_cast<Volume*>(prism), aaPos);
 }
 
 ///	Pyramid
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinDihedral(Grid& grid, Pyramid* pyr, TAAPosVRT& aaPos)
 {
 	return CalculateMinDihedral(grid, static_cast<Volume*>(pyr), aaPos);
 }
 
 ///	Hexahedron
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinDihedral(Grid& grid, Hexahedron* hex, TAAPosVRT& aaPos)
 {
 	return CalculateMinDihedral(grid, static_cast<Volume*>(hex), aaPos);
 }
 
 ///	Volume
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinDihedral(Grid& grid, Volume* v, TAAPosVRT& aaPos)
 {
 	//PROFILE_FUNC();
@@ -397,11 +397,11 @@ number CalculateMinDihedral(Grid& grid, Volume* v, TAAPosVRT& aaPos)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 ///	An unimplemented version, so that a compile error occurs if no overload exists.
-template <class TElem, class TAAPosVRT>
+template <typename TElem, typename TAAPosVRT>
 number CalculateMaxAngle(Grid& grid, TElem* elem, TAAPosVRT& aaPos);
 
 ///	Face (Triangles and Quadrilaterals)
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMaxAngle(Grid& grid, Face* f, TAAPosVRT& aaPos)
 {
 	//PROFILE_FUNC();
@@ -479,28 +479,28 @@ number CalculateMaxAngle(Grid& grid, Face* f, TAAPosVRT& aaPos)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 ///	Tetrahedron
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMaxAngle(Grid& grid, Tetrahedron* tet, TAAPosVRT& aaPos)
 {
 	return CalculateMaxDihedral(grid, static_cast<Volume*>(tet), aaPos);
 }
 
 ///	Prism
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMaxAngle(Grid& grid, Prism* prism, TAAPosVRT& aaPos)
 {
 	return CalculateMaxDihedral(grid, static_cast<Volume*>(prism), aaPos);
 }
 
 ///	Pyramid
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMaxAngle(Grid& grid, Pyramid* pyr, TAAPosVRT& aaPos)
 {
 	return CalculateMaxDihedral(grid, static_cast<Volume*>(pyr), aaPos);
 }
 
 ///	Volume
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMaxAngle(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 {
 	return CalculateMaxDihedral(grid, vol, aaPos);
@@ -512,32 +512,32 @@ number CalculateMaxAngle(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 ///	An unimplemented version, so that a compile error occurs if no overload exists.
-template <class TElem, class TAAPosVRT>
+template <typename TElem, typename TAAPosVRT>
 number CalculateMaxDihedral(Grid& grid, TElem* elem, TAAPosVRT& aaPos);
 
 ///	Tetrahedron
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMaxDihedral(Grid& grid, Tetrahedron* tet, TAAPosVRT& aaPos)
 {
 	return CalculateMaxDihedral(grid, static_cast<Volume*>(tet), aaPos);
 }
 
 ///	Prism
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMaxDihedral(Grid& grid, Prism* prism, TAAPosVRT& aaPos)
 {
 	return CalculateMaxDihedral(grid, static_cast<Volume*>(prism), aaPos);
 }
 
 ///	Pyramid
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMaxDihedral(Grid& grid, Pyramid* pyr, TAAPosVRT& aaPos)
 {
 	return CalculateMaxDihedral(grid, static_cast<Volume*>(pyr), aaPos);
 }
 
 ///	Volume
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMaxDihedral(Grid& grid, Volume* v, TAAPosVRT& aaPos)
 {
 	//PROFILE_FUNC();
@@ -620,11 +620,11 @@ number CalculateMaxDihedral(Grid& grid, Volume* v, TAAPosVRT& aaPos)
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 ///	An unimplemented version, so that a compile error occurs if no overload exists.
-template <class TElem, class TAAPosVRT>
+template <typename TElem, typename TAAPosVRT>
 number CalculateAngles(vector<number>& vAnglesOut, Grid& grid, TElem* elem, TAAPosVRT& aaPos);
 
 /// Face
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 void CalculateAngles(vector<number>& vAnglesOut, Grid& grid, Face* f, TAAPosVRT& aaPos)
 {
 	//PROFILE_FUNC();
@@ -691,7 +691,7 @@ void CalculateAngles(vector<number>& vAnglesOut, Grid& grid, Face* f, TAAPosVRT&
 }
 
 /// Volume
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 void CalculateAngles(vector<number>& vAnglesOut, Grid& grid, Volume* v, TAAPosVRT& aaPos)
 {
 	//PROFILE_FUNC();
@@ -764,7 +764,7 @@ void CalculateAngles(vector<number>& vAnglesOut, Grid& grid, Volume* v, TAAPosVR
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	FindElementWithSmallestMinAngle
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 typename TIterator::value_type
 FindElementWithSmallestMinAngle(Grid& grid, TIterator elementsBegin, TIterator elementsEnd, TAAPosVRT& aaPos)
 {
@@ -798,7 +798,7 @@ FindElementWithSmallestMinAngle(Grid& grid, TIterator elementsBegin, TIterator e
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	FindElementWithLargestMaxAngle
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 typename TIterator::value_type
 FindElementWithLargestMaxAngle(Grid& grid, TIterator elementsBegin, TIterator elementsEnd, TAAPosVRT& aaPos)
 {

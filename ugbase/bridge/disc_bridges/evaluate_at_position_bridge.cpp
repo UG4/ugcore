@@ -1025,7 +1025,7 @@ struct Functionality
  * available Domain and Algebra types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TDomain, typename TAlgebra>
 static void DomainAlgebra(Registry& reg, string grp)
@@ -1141,7 +1141,7 @@ static void DomainAlgebra(Registry& reg, string grp)
  * available Domain types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TDomain>
 static void Domain(Registry& reg, string grp)
@@ -1158,7 +1158,7 @@ static void Domain(Registry& reg, string grp)
  * available Dimension types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <int dim>
 static void Dimension(Registry& reg, string grp)
@@ -1175,7 +1175,7 @@ static void Dimension(Registry& reg, string grp)
  * available Algebra types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TAlgebra>
 static void Algebra(Registry& reg, string grp)
@@ -1191,7 +1191,7 @@ static void Algebra(Registry& reg, string grp)
  * are to be placed here when registering.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 static void Common(Registry& reg, string grp)
 {

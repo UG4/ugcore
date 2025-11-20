@@ -39,21 +39,21 @@
 namespace ug
 {
 
-template <class TPtr>
+template <typename TPtr>
 PointerConstArray<TPtr>::
 PointerConstArray() :
 	m_array(nullptr), m_data(nullptr), m_size(0), m_capacity(0)
 {
 }
 
-template <class TPtr>
+template <typename TPtr>
 PointerConstArray<TPtr>::
 PointerConstArray(const PointerConstArray& pa)
 {
 	assign_pointer_const_array(pa);
 }
 
-template <class TPtr>
+template <typename TPtr>
 PointerConstArray<TPtr>::
 ~PointerConstArray()
 {
@@ -62,9 +62,9 @@ PointerConstArray<TPtr>::
 		delete[] m_data;
 }
 
-template <class TPtr>
+template <typename TPtr>
 PointerConstArray<TPtr>& PointerConstArray<TPtr>::
-operator=(const PointerConstArray& pa)
+operator = (const PointerConstArray& pa)
 {
 //	free memory if necessary
 	if(m_data)
@@ -77,7 +77,7 @@ operator=(const PointerConstArray& pa)
 	return *this;
 }
 
-template <class TPtr>
+template <typename TPtr>
 void PointerConstArray<TPtr>::
 assign_pointer_const_array(const PointerConstArray& pa)
 {
@@ -101,29 +101,29 @@ assign_pointer_const_array(const PointerConstArray& pa)
 	}
 }
 
-template <class TPtr>
+template <typename TPtr>
 inline size_t PointerConstArray<TPtr>::
 size() const
 {
 	return m_size;
 }
 
-template <class TPtr>
+template <typename TPtr>
 inline bool PointerConstArray<TPtr>::
 empty() const
 {
 	return m_size == 0;
 }
 
-template <class TPtr>
+template <typename TPtr>
 inline TPtr const PointerConstArray<TPtr>::
-operator[](size_t i) const
+operator [] (size_t i) const
 {
 	UG_ASSERT(i < m_size, "bad index!");
 	return m_array[i];
 }
 
-template <class TPtr>
+template <typename TPtr>
 void PointerConstArray<TPtr>::
 set_external_array(TPtr const *array, size_t size, bool bCopy)
 {
@@ -147,7 +147,7 @@ set_external_array(TPtr const *array, size_t size, bool bCopy)
 	}
 }
 
-template <class TPtr>
+template <typename TPtr>
 void PointerConstArray<TPtr>::
 reserve(size_t capacity)
 {
@@ -155,7 +155,7 @@ reserve(size_t capacity)
 	reserve(capacity, m_array == m_data);
 }
 
-template <class TPtr>
+template <typename TPtr>
 void PointerConstArray<TPtr>::
 reserve(size_t capacity, bool copyOldData)
 {
@@ -177,14 +177,14 @@ reserve(size_t capacity, bool copyOldData)
 	}
 }
 
-template <class TPtr>
+template <typename TPtr>
 void PointerConstArray<TPtr>::
 clear()
 {
 	m_size = 0;
 }
 
-template <class TPtr>
+template <typename TPtr>
 void PointerConstArray<TPtr>::
 push_back(TPtr p)
 {

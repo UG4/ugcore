@@ -1,3 +1,4 @@
+øunused
 /*
  * Copyright (c) 2012-2015:  G-CSC, Goethe University Frankfurt
  * Author: Martin Rupp
@@ -71,7 +72,7 @@ bool MapSparseMatrix<T>::set_as_transpose_of(const SparseMatrix<value_type> &B, 
 
 	for(size_t r=0; r<B.num_rows(); r++)
 		for(const_row_iterator it = B.begin_row(r); it != B.end_row(r); ++it)
-			operator()(it.index(), r) = scale*it.value();
+			operator () (it.index(), r) = scale*it.value();
 	return true;
 }
 
@@ -195,7 +196,7 @@ void MapSparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 {
 	PROFILE_BEGIN_GROUP(MapSparseMatrix_set_matrix_row, "algebra MapSparseMatrix");
 	for(size_t i=0; i<nr; i++)
-		operator()(row, c[i].iIndex) = c[i].dValue;
+		operator () (row, c[i].iIndex) = c[i].dValue;
 }
 
 template<typename T>
@@ -203,7 +204,7 @@ void MapSparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 {
 	PROFILE_BEGIN_GROUP(MapSparseMatrix_add_matrix_row, "algebra MapSparseMatrix");
 	for(size_t i=0; i<nr; i++)
-		operator()(row, c[i].iIndex) += c[i].dValue;
+		operator () (row, c[i].iIndex) += c[i].dValue;
 }
 
 
@@ -214,7 +215,7 @@ bool MapSparseMatrix<T>::set_as_copy_of(const MapSparseMatrix<T> &B, double scal
 	resize(B.num_rows(), B.num_cols());
 	for(size_t i=0; i < B.num_rows(); i++)
 		for(const_row_iterator it = B.begin_row(i); it != B.end_row(i); ++it)
-			operator()(i, it.index()) = scale*it.value();
+			operator () (i, it.index()) = scale*it.value();
 	return true;
 }
 

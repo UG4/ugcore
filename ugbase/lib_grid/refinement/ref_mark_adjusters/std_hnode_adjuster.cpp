@@ -37,7 +37,7 @@
 namespace ug{
 
 // marks geometric object e for refinement if it is periodic
-template <class TElem>
+template <typename TElem>
 static void mark_if_periodic(IRefiner& ref, TElem* e) {
 	if(!ref.grid())
 		return;

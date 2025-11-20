@@ -165,7 +165,7 @@ subset_assigned(Volume* v, int subsetIndex)
 	m_aaSubsetIndexVOL[v] = subsetIndex;
 }
 
-template <class TIterator>
+template <typename TIterator>
 void ISubsetHandler::
 assign_subset(TIterator iterBegin, TIterator iterEnd, int subsetIndex)
 {
@@ -200,7 +200,7 @@ subset_required(int index) const
 ////////////////////////////////////////////////////////////////////////
 //	attachment handling
 /*
-template <class TGeomObjClass>
+template <typename TGeomObjClass>
 void ISubsetHandler::
 attach_to(IAttachment& attachment, int subsetIndex)
 {
@@ -229,7 +229,7 @@ attach_to(IAttachment& attachment, int subsetIndex)
 }
 */
 /*
-template <class TGeomObjClass, class TAttachment>
+template <typename TGeomObjClass, typename TAttachment>
 void ISubsetHandler::
 attach_to_dv(TAttachment& attachment, int subsetIndex,
 			const typename TAttachment::ValueType& defaultValue)
@@ -259,7 +259,7 @@ attach_to_dv(TAttachment& attachment, int subsetIndex,
 }
 */
 /*
-template <class TGeomObjClass>
+template <typename TGeomObjClass>
 void ISubsetHandler::detach_from(IAttachment& attachment, int subsetIndex)
 {
 	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
@@ -287,7 +287,7 @@ void ISubsetHandler::detach_from(IAttachment& attachment, int subsetIndex)
 }
 */
 /*
-template <class TGeomObj, class TAttachment>
+template <typename TGeomObj, typename TAttachment>
 inline typename TAttachment::ContainerType*
 ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex)
 {

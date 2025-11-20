@@ -186,5 +186,4 @@ namespace ug {
 	} // vrl::
 } // ug::
 
-#endif	/* THREADING_H */
-
+#endif

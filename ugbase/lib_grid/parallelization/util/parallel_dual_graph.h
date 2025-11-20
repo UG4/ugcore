@@ -48,8 +48,8 @@ namespace ug
  * Note that only elements which were considered are associated with a index.
  * \todo	The current implementation has support for MultiGrids only.
  * 			Support for flat grids should be added.*/
-template <class TGeomBaseObj, class TIndexType,
-		  class TConnectingObj = typename TGeomBaseObj::side>
+template <typename TGeomBaseObj, typename TIndexType,
+		  typename TConnectingObj = typename TGeomBaseObj::side>
 class ParallelDualGraph{
 	public:
 		using element_iterator_t = typename std::vector<TGeomBaseObj*>::iterator;
@@ -175,7 +175,7 @@ class ParallelDualGraph{
  * TGeomBaseObj can be either Vertex, Edge, Face or Volume and should
  * represent the elements of highest dimension in a given grid.
  */
-template <class TGeomBaseObj, class TIndexType>
+template <typename TGeomBaseObj, typename TIndexType>
 void ConstructParallelDualGraphMGLevel(
 		std::vector<TIndexType>& adjacencyMapStructureOut,
 		std::vector<TIndexType>& adjacencyMapOut,

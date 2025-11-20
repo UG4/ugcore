@@ -40,7 +40,7 @@
 
 namespace ug{
 
-template<typename T, class Allocator = std::allocator<T> >
+template<typename T, typename Allocator = std::allocator<T> >
 class stdvector : public std::vector<T, Allocator>
 {
 private:
@@ -62,15 +62,15 @@ public:
 	stdvector(const std::vector<T, Allocator> &x) : super(x) { }
 	stdvector(const stdvector<T, Allocator> &x) : super(x) { }
 
-	inline typename super::reference operator[] (size_t i)
+	inline typename super::reference operator [] (size_t i)
 	{
 		size_check(i);
-		return super::operator[](i);
+		return super::operator [] (i);
 	}
-	inline typename super::const_reference operator[] (size_t i) const
+	inline typename super::const_reference operator [] (size_t i) const
 	{
 		size_check(i);
-		return super::operator[](i);
+		return super::operator [] (i);
 	}
 };
 

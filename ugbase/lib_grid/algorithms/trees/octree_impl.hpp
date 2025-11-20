@@ -42,7 +42,7 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	CreateOctree
-template <class TIterator>
+template <typename TIterator>
 SPOctree
 CreateOctree(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
 			int maxDepth, int elemThreshold, bool bLoose,

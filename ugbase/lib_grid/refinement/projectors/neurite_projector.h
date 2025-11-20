@@ -89,7 +89,7 @@ class NeuriteProjector
 			number splineParamsZ[4];
 			number splineParamsR[4];
 
-			template <class Archive>
+			template <typename Archive>
 			void serialize(Archive& ar, const unsigned int version)
 			{
 				ar & endParam;
@@ -116,7 +116,7 @@ class NeuriteProjector
 			/// pointer to whole branching point
 			SmartPtr<BranchingPoint> bp;
 
-			template<class Archive>
+			template <typename Archive>
 			void save(Archive & ar, const unsigned int version) const
 			{
 				ar << t;
@@ -127,7 +127,7 @@ class NeuriteProjector
 					ar << *bp;
 			}
 
-			template<class Archive>
+			template <typename Archive>
 			void load(Archive & ar, const unsigned int version)
 			{
 				// invoke serialization of the base class
@@ -151,7 +151,7 @@ class NeuriteProjector
 			std::vector<uint32_t> vNid;
 			std::vector<BranchingRegion*> vRegions;
 
-			template <class Archive>
+			template <typename Archive>
 			void serialize(Archive& ar, const unsigned int version)
 			{
 				// please note: We could simply use
@@ -178,13 +178,13 @@ class NeuriteProjector
 			number t;
 			vector3 bp;
 
-			template <class Archive>
+			template <typename Archive>
 			void serialize(Archive& ar, const unsigned int version) {
 				ar & radius;
 				ar & t;
 			}
 
-			template<class Archive>
+			template <typename Archive>
 			void load(Archive & ar, const unsigned int version)
 			{
 				ar >> radius;
@@ -226,7 +226,7 @@ class NeuriteProjector
 			std::vector<Section> vSomaSec;
 			std::vector<SomaBranchingRegion> vSBR;
 
-			template <class Archive>
+			template <typename Archive>
 			void serialize(Archive& ar, const unsigned int version)
 			{
 				/// neurite information
@@ -285,12 +285,12 @@ class NeuriteProjector
 	public:
 		struct CompareSections
 		{
-			bool operator()(const Section& a, const Section& b)
+			bool operator () (const Section& a, const Section& b)
 			{return a.endParam < b.endParam;}
 		};
 		struct CompareBranchingRegionEnds
 		{
-			bool operator()(const BranchingRegion& a, const BranchingRegion& b)
+			bool operator () (const BranchingRegion& a, const BranchingRegion& b)
 			{return a.t < b.t;}
 		};
 
@@ -306,7 +306,7 @@ class NeuriteProjector
 		void debug_neurites() const;
 
 		struct CompareSomaBranchingRegionsEnd {
-			bool operator()(const SomaBranchingRegion& a, const SomaBranchingRegion& b) {
+			bool operator () (const SomaBranchingRegion& a, const SomaBranchingRegion& b) {
 				return a.t < b.t;
 			}
 		};
@@ -384,15 +384,15 @@ class NeuriteProjector
 		 * \param[in] radius
 		 * \return \c true if element is inside or on sphere else false
 		 */
-		template <class TElem>
+		template <typename TElem>
 		bool IsElementInsideSphere
 		(
 			const TElem* elem,
-			const ug::vector3& center,
+			const vector3& center,
 			const number radius
 		) const
 		{
-			Grid::VertexAttachmentAccessor<APosition> aaPos(this->geometry()->grid(), aPosition);
+			Grid::VertexAttachmentAccessor aaPos(this->geometry()->grid(), aPosition);
 			vector3 c = CalculateCenter(elem, aaPos);
 			vector3 diff;
 			VecSubtract(diff, c, center);
@@ -402,7 +402,7 @@ class NeuriteProjector
 		}
 
 		friend class boost::serialization::access;
-		template<class Archive>
+		template<typename Archive>
 		void save(Archive & ar, const unsigned int version) const
 		{
 			UG_EMPTY_BASE_CLASS_SERIALIZATION(NeuriteProjector, RefinementProjector);
@@ -423,7 +423,7 @@ class NeuriteProjector
 			{}
 		}
 
-		template<class Archive>
+		template<typename Archive>
 		void load(Archive & ar, const unsigned int version)
 		{
 			UG_EMPTY_BASE_CLASS_SERIALIZATION(NeuriteProjector, RefinementProjector);
@@ -467,11 +467,11 @@ class NeuriteProjector
 };
 
 // DO NOT CHANGE LINES BELOW! Needed for serialization! //
-std::ostream& operator<<(std::ostream& os, const NeuriteProjector::SurfaceParams& surfParams);
-std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surfParams);
+std::ostream& operator << (std::ostream& os, const NeuriteProjector::SurfaceParams& surfParams);
+std::istream& operator >> (std::istream& in, NeuriteProjector::SurfaceParams& surfParams);
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<NeuriteProjector::SurfaceParams>, "NeuriteProjectorSurfaceParams");
-std::ostream& operator<<(std::ostream& os, const NeuriteProjector::Mapping&  mapping);
-std::istream& operator>>(std::istream& in, NeuriteProjector::Mapping& mapping);
+std::ostream& operator << (std::ostream& os, const NeuriteProjector::Mapping&  mapping);
+std::istream& operator >> (std::istream& in, NeuriteProjector::Mapping& mapping);
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<NeuriteProjector::Mapping>, "Mapping");
 } // namespace ug
 

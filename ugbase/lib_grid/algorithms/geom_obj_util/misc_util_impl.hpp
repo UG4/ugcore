@@ -46,7 +46,7 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-template <class TElem>
+template <typename TElem>
 UG_API
 typename TElem::side*
 GetSharedSide(Grid& grid, TElem* e1, TElem* e2)
@@ -74,7 +74,7 @@ GetSharedSide(Grid& grid, TElem* e1, TElem* e2)
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateGridObjectCenter
-template<class TAAPosVRT>
+template <typename TAAPosVRT>
 UG_API
 inline
 typename TAAPosVRT::ValueType
@@ -90,7 +90,7 @@ CalculateGridObjectCenter(const GridObject* o, TAAPosVRT& aaPosVRT)
 	}
 }
 
-template<class TAAPosVRT, class TAAWeightVRT>
+template<typename TAAPosVRT, typename TAAWeightVRT>
 UG_API
 inline
 typename TAAPosVRT::ValueType
@@ -114,7 +114,7 @@ CalculateGridObjectCenter(const GridObject* o, TAAPosVRT& aaPosVRT,
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCenter
-template <class TIterator, class TAAPosVRT>
+template <typename TIterator, typename TAAPosVRT>
 typename TAAPosVRT::ValueType
 CalculateCenter(TIterator begin, TIterator end, TAAPosVRT& aaPos)
 {
@@ -132,7 +132,7 @@ CalculateCenter(TIterator begin, TIterator end, TAAPosVRT& aaPos)
 
 ////////////////////////////////////////////////////////////////////////
 //	FindClosestByCoordinate
-template<class TElem, class TVertexPositionAttachmentAccessor>
+template<typename TElem, typename TVertexPositionAttachmentAccessor>
 TElem* FindClosestByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueType& coord,
 						typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd,
@@ -162,7 +162,7 @@ TElem* FindClosestByCoordinate(const typename TVertexPositionAttachmentAccessor:
 }
 
 ////////////////////////////////////////////////////////////////////////
-template<class vector_t, class TIterator, class TAAPos>
+template<typename vector_t, typename TIterator, typename TAAPos>
 void CalculateBoundingBox(vector_t& vMinOut, vector_t& vMaxOut,
 						  TIterator begin, TIterator end,
 						  TAAPos& aaPos)
@@ -196,7 +196,7 @@ void CalculateBoundingBox(vector_t& vMinOut, vector_t& vMaxOut,
 
 ////////////////////////////////////////////////////////////////////////
 //	NumSharedVertices
-template <class TElemPtr1, class TElemPtr2>
+template <typename TElemPtr1, typename TElemPtr2>
 size_t NumSharedVertices(Grid& grid, TElemPtr1 elem1, TElemPtr2 elem2)
 {
 	grid.begin_marking();
@@ -218,7 +218,7 @@ size_t NumSharedVertices(Grid& grid, TElemPtr1 elem1, TElemPtr2 elem2)
 
 ////////////////////////////////////////////////////////////////////////
 //	EraseElements
-template <class TElem>
+template <typename TElem>
 void EraseElements(Grid& grid, typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd)
 {
@@ -233,7 +233,7 @@ void EraseElements(Grid& grid, typename geometry_traits<TElem>::iterator iterBeg
 
 ////////////////////////////////////////////////////////////////////////
 //	AssignIndices
-template <class TElem>
+template <typename TElem>
 void AssignIndices(typename geometry_traits<TElem>::iterator iterBegin,
 					typename geometry_traits<TElem>::iterator iterEnd,
 					Grid::AttachmentAccessor<TElem, AInt>& aaInt)
@@ -248,7 +248,7 @@ void AssignIndices(typename geometry_traits<TElem>::iterator iterBegin,
 
 ////////////////////////////////////////////////////////////////////////
 //	ElementDiameter
-template <class TElem, class TAAPos>
+template <typename TElem, typename TAAPos>
 number ElementDiameterSq(Grid& grid,
                          TAAPos& aaPos,
 					     TElem* elem)
@@ -264,7 +264,7 @@ number ElementDiameterSq(Grid& grid,
 	return max;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 number ElementDiameterSq(Grid& grid,
 						 TAAPos& aaPos,
 						 GridObject* elem)
@@ -278,7 +278,7 @@ number ElementDiameterSq(Grid& grid,
 	}
 }
 
-template <class TElem, class TAAPos>
+template <typename TElem, typename TAAPos>
 number ElementDiameter(Grid& grid,
                        TAAPos& aaPos,
 					   TElem* elem)
@@ -286,7 +286,7 @@ number ElementDiameter(Grid& grid,
 	return std::sqrt(ElementDiameterSq(grid, aaPos, elem));
 }
 
-template <class TAAPos, class TIterator>
+template <typename TAAPos, typename TIterator>
 number MaxElementDiameter(Grid& grid, TAAPos& aaPos,
                           TIterator iter, TIterator iterEnd)
 {
@@ -303,7 +303,7 @@ number MaxElementDiameter(Grid& grid, TAAPos& aaPos,
 	return std::sqrt(max);
 }
 
-template <class TAAPos, class TIterator>
+template <typename TAAPos, typename TIterator>
 number MinElementDiameter(Grid& grid, TAAPos& aaPos,
                           TIterator iter, TIterator iterEnd)
 {
@@ -321,7 +321,7 @@ number MinElementDiameter(Grid& grid, TAAPos& aaPos,
 }
 
 
-template <class TElem1, class TElem2, class TAAPos>
+template <typename TElem1, typename TElem2, typename TAAPos>
 typename TAAPos::ValueType
 GetDirection (TElem1* e1, TElem2* e2, const TAAPos& aaPos)
 {
@@ -334,7 +334,7 @@ GetDirection (TElem1* e1, TElem2* e2, const TAAPos& aaPos)
 	return c2;
 }
 
-template <class TElem1, class TElem2, class TAAPos>
+template <typename TElem1, typename TElem2, typename TAAPos>
 bool CheckDirection (TElem1* e1,
                      TElem2* e2,
                      const TAAPos& aaPos,

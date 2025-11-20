@@ -158,7 +158,7 @@ private:
 
 
 ///	Utility method to construct an IGeometry3d for a given grid and position attachment
-template <class TAPos>
+template <typename TAPos>
 SPIGeometry3d
 MakeGeometry3d (Grid& grid, TAPos aPos)
 {

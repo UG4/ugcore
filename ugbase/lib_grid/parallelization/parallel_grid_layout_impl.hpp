@@ -39,7 +39,7 @@ namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
 //	GridLayoutMap - implementation
-template <class TType>
+template <typename TType>
 bool GridLayoutMap::
 has_layout(const Key& key) const
 {
@@ -47,7 +47,7 @@ has_layout(const Key& key) const
 	return m.find(key) != m.end();
 }
 
-template <class TType>
+template <typename TType>
 typename GridLayoutMap::Types<TType>::Layout& GridLayoutMap::
 get_layout(const Key& key)
 {
@@ -55,7 +55,7 @@ get_layout(const Key& key)
 	return m[key];
 }
 
-template <class TType>
+template <typename TType>
 const typename GridLayoutMap::Types<TType>::Layout& GridLayoutMap::
 get_layout(const Key& key) const
 {
@@ -67,37 +67,37 @@ get_layout(const Key& key) const
 	return iter->second;
 }
 
-template <class TType>
+template <typename TType>
 typename GridLayoutMap::Types<TType>::Map::iterator GridLayoutMap::
 layouts_begin()
 {
 	return get_layout_map<TType>().begin();
 }
 
-template <class TType>
+template <typename TType>
 typename GridLayoutMap::Types<TType>::Map::const_iterator GridLayoutMap::
 layouts_begin() const
 {
 	return get_layout_map<TType>().begin();
 }
 
-template <class TType>
+template <typename TType>
 typename GridLayoutMap::Types<TType>::Map::iterator GridLayoutMap::
 layouts_end()
 {
 	return get_layout_map<TType>().end();
 }
 
-template <class TType>
+template <typename TType>
 typename GridLayoutMap::Types<TType>::Map::const_iterator GridLayoutMap::
 layouts_end() const
 {
 	return get_layout_map<TType>().end();
 }
 
-template <class TType>
+template <typename TType>
 typename GridLayoutMap::Types<TType>::Map::iterator GridLayoutMap::
-erase_layout(typename GridLayoutMap::Types<TType>::Map::iterator iter)
+erase_layout(typename Types<TType>::Map::iterator iter)
 {
 	typename Types<TType>::Map& m = get_layout_map<TType>();
 	typename Types<TType>::Map::iterator tIter = iter++;
@@ -105,7 +105,7 @@ erase_layout(typename GridLayoutMap::Types<TType>::Map::iterator iter)
 	return iter;
 }
 
-template <class TType>
+template <typename TType>
 void GridLayoutMap::
 erase_layout(const Key& key)
 {
@@ -123,7 +123,7 @@ inline void GridLayoutMap::clear()
 	m_volumeLayoutMap = Types<Volume>::Map();
 }
 
-template <class TType>
+template <typename TType>
 inline typename GridLayoutMap::Types<TType>::Map& GridLayoutMap::
 get_layout_map()
 {
@@ -131,7 +131,7 @@ get_layout_map()
 	return get_layout_map(dummy);
 }
 
-template <class TType>
+template <typename TType>
 inline const typename GridLayoutMap::Types<TType>::Map& GridLayoutMap::
 get_layout_map() const
 {

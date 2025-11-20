@@ -376,7 +376,7 @@ create_closure_elements_3d()
 	m_closureElems.enable_autoselection(false);
 }
 
-template <class TElem>
+template <typename TElem>
 void AdaptiveRegularRefiner_MultiGrid::
 get_parents_of_marked_closure_elements(std::vector<GridObject*>& parents,
 									   Selector::status_t mark)

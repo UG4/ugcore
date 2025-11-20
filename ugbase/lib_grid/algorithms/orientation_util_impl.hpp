@@ -46,7 +46,7 @@ namespace ug{
 
 ////////////////////////////////////////////////////////////////////////
 //	InvertOrientation
-template <class iter_t>
+template <typename iter_t>
 void InvertOrientation(Grid& grid, iter_t elemsBegin,
 					   iter_t elemsEnd)
 {
@@ -57,7 +57,7 @@ void InvertOrientation(Grid& grid, iter_t elemsBegin,
 
 ////////////////////////////////////////////////////////////////////////
 //	FixFaceOrientation
-template <class TFaceIterator>
+template <typename TFaceIterator>
 void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
 						TFaceIterator facesEnd)
 {
@@ -150,7 +150,7 @@ void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
 }
 
 
-template<class TAAPosVRT>
+template <typename TAAPosVRT>
 bool
 CheckOrientation(Volume* vol, TAAPosVRT& aaPosVRT)
 {
@@ -183,7 +183,7 @@ CheckOrientation(Volume* vol, TAAPosVRT& aaPosVRT)
 	return true;
 }
 
-template<class TVolIterator, class TAAPosVRT>
+template <typename TVolIterator, typename TAAPosVRT>
 int
 FixOrientation(Grid& grid, TVolIterator volsBegin, TVolIterator volsEnd,
 			   TAAPosVRT& aaPosVRT)
@@ -204,4 +204,4 @@ FixOrientation(Grid& grid, TVolIterator volsBegin, TVolIterator volsEnd,
 
 }//	end of namespace
 
-#endif	//__H__UG_orientation_util_impl
+#endif

@@ -35,7 +35,7 @@
 
 namespace ug{
 
-std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<2,2>& m)
+std::ostream& operator << (std::ostream& outStream, const MathMatrix<2,2>& m)
 {
 	using namespace std;
 	for(uint i = 0; i < 2; ++i)
@@ -50,7 +50,7 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<2,2>& m)
 	return outStream;
 }
 
-std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<2,3>& m)
+std::ostream& operator << (std::ostream& outStream, const MathMatrix<2,3>& m)
 {
 	using namespace std;
 	for(uint i = 0; i < 2; ++i)
@@ -65,7 +65,7 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<2,3>& m)
 	return outStream;
 }
 
-std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<3,2>& m)
+std::ostream& operator << (std::ostream& outStream, const MathMatrix<3,2>& m)
 {
 	using namespace std;
 	for(uint i = 0; i < 3; ++i)
@@ -81,7 +81,7 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<3,2>& m)
 }
 
 
-std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<3,3>& m)
+std::ostream& operator << (std::ostream& outStream, const MathMatrix<3,3>& m)
 {
 	using namespace std;
 	for(uint i = 0; i < 3; ++i)

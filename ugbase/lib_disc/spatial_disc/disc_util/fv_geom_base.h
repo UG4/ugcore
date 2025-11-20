@@ -61,7 +61,7 @@ class UniqueFVGeomIDProvider{
 };
 
 ///	This method associates a unique unsigned integer value with each type.
-template <class TType>
+template <typename TType>
 size_t GetUniqueFVGeomID()
 {
 	static size_t typeID = UniqueFVGeomIDProvider::inst().new_id();

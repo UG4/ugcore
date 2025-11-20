@@ -50,7 +50,7 @@ namespace ug {
  * q = aMax * (a0 + a1 + a2) / (4*sqrt(3)*A)
  * \endcode
  */
-template <class TAAPos>
+template <typename TAAPos>
 number TriangleAspectRatio (FaceVertices* f, TAAPos& aaPos)
 {
 	// q = aMax * (a0 + a1 + a2) / (4*sqrt(3)*A)
@@ -75,7 +75,7 @@ number TriangleAspectRatio (FaceVertices* f, TAAPos& aaPos)
  * q = aMax * (a0 + a1 + a2 + a3) / (4*A)
  * \endcode
  */
-template <class TAAPos>
+template <typename TAAPos>
 number QuadrilateralAspectRatio (FaceVertices* f, TAAPos& aaPos)
 {
 	// q = aMax * (a0 + a1 + a2 + a3) / (4*A)
@@ -101,7 +101,7 @@ number QuadrilateralAspectRatio (FaceVertices* f, TAAPos& aaPos)
 /**	Depending on the number of nodes, either TriangleAspectRatio or
  * QuadrilateralAspectRatio is called.
  */
-template <class TAAPos>
+template <typename TAAPos>
 number AspectRatio (FaceVertices* f, TAAPos& aaPos)
 {
 	switch(f->num_vertices()){
@@ -112,7 +112,7 @@ number AspectRatio (FaceVertices* f, TAAPos& aaPos)
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 number GetMaxEdgeLength (Volume* vol, TAAPos& aaPos)
 {
 	using std::max;
@@ -129,7 +129,7 @@ number GetMaxEdgeLength (Volume* vol, TAAPos& aaPos)
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 number TetrahedronAspectRatio(Volume* vol, TAAPos& aaPos)
 {
 	/* optimal Aspect Ratio of a regular tetrahedron with edge lengths a:
@@ -139,7 +139,7 @@ number TetrahedronAspectRatio(Volume* vol, TAAPos& aaPos)
 	 * (s. Shewchuk 2002)
 	 */
 
-	Tetrahedron* tet = dynamic_cast<Tetrahedron*>(vol);
+	auto tet = dynamic_cast<Tetrahedron*>(vol);
 
 	UG_COND_THROW(!tet, "Expected volume of type Tetrahedron");
 
@@ -153,7 +153,7 @@ number TetrahedronAspectRatio(Volume* vol, TAAPos& aaPos)
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 number AspectRatio(Volume* vol, TAAPos& aaPos)
 {
 	switch(vol->num_vertices()){
@@ -176,7 +176,7 @@ struct AspectRatioInfo {
 
 
 ///	Computes the AspectRatioInfo for a sample of elements
-template <class TElemIter, class TAAPos>
+template <typename TElemIter, typename TAAPos>
 AspectRatioInfo
 GetAspectRatioInfo (TElemIter elemsBegin, TElemIter elemsEnd, TAAPos& aaPos)
 {
@@ -218,7 +218,7 @@ GetAspectRatioInfo (TElemIter elemsBegin, TElemIter elemsEnd, TAAPos& aaPos)
 }
 
 
-template <class TElemIter, class TAAPos>
+template <typename TElemIter, typename TAAPos>
 void
 GetAspectRatioHistogram (
 		std::vector<int>& histoOut,
@@ -257,4 +257,4 @@ GetAspectRatioHistogram (
 
 }//	end of namespace
 
-#endif	//__H__UG_quality_util
+#endif

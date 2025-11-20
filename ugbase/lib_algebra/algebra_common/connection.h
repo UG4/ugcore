@@ -42,12 +42,12 @@ public:
 	size_t iIndex;		// index to
 	T dValue; // smallmatrix value;
 
-	AlgebraicConnection() {}
+	AlgebraicConnection() = default;
 	AlgebraicConnection(size_t i, const T &v)
 	: iIndex(i), dValue(v) {}
 
 	void print(){std::cout << *this;}
-	friend std::ostream &operator<<(std::ostream &output, const AlgebraicConnection&c)
+	friend std::ostream &operator << (std::ostream &output, const AlgebraicConnection&c)
 	{
 		output << "(" << c.iIndex << "-> ";
 		output << c.dValue;

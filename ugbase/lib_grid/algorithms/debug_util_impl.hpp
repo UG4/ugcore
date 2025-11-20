@@ -43,7 +43,7 @@
 namespace ug
 {
 
-template <class TElem>
+template <typename TElem>
 vector3 GetGridObjectCenter(Grid& g, TElem* elem)
 {
 	if(g.has_vertex_attachment(aPosition)){
@@ -79,7 +79,7 @@ inline vector3 GetGridObjectCenter(Grid& g, GridObject* elem)
 }
 
 
-template <class TElem>
+template <typename TElem>
 int GetGridObjectIndex(Grid& g, TElem* elem)
 {
 	using TBase = typename Grid::traits<TElem>::base_object;
@@ -94,7 +94,7 @@ int GetGridObjectIndex(Grid& g, TElem* elem)
 	return -1;
 }
 
-template <class TElem, class TAValue>
+template <typename TElem, typename TAValue>
 void WriteDebugValuesToFile(const char* filename, Grid& grid,
 							TAValue& aVal, bool levelWise)
 {

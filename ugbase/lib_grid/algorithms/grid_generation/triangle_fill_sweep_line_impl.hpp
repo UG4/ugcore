@@ -35,7 +35,7 @@
 
 namespace ug
 {
-template <class TIterator>
+template <typename TIterator>
 bool TriangleFill_SweepLine(Grid& grid, TIterator edgesBegin,
 							TIterator edgesEnd, APosition& aPosVRT,
 							AInt& aIntVRT,

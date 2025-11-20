@@ -48,19 +48,19 @@ ParallelNodes::ParallelNodes(ConstSmartPtr<AlgebraLayouts> layout, size_t s)
 	}
 
 	m_OLtype.resize(s);
-	for(IndexLayout::const_iterator iter = layout->master().begin(); iter != layout->master().end(); ++iter)
+	for(auto iter = layout->master().begin(); iter != layout->master().end(); ++iter)
 	{
 		const IndexLayout::Interface &interface = layout->master().interface(iter);
-		for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
+		for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 			size_t i = interface.get_element(iter);
 			m_OLtype[i].set_master();
 		}
 	}
-	for(IndexLayout::const_iterator iter = layout->slave().begin(); iter != layout->slave().end(); ++iter)
+	for(auto iter = layout->slave().begin(); iter != layout->slave().end(); ++iter)
 	{
 		const IndexLayout::Interface &interface = layout->slave().interface(iter);
-		for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
+		for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 			size_t i = interface.get_element(iter);
 			UG_ASSERT(m_OLtype[i].is_master() == false, i);
@@ -71,9 +71,9 @@ ParallelNodes::ParallelNodes(ConstSmartPtr<AlgebraLayouts> layout, size_t s)
 	AddLayout(totalMasterLayout, layout->master());
 	AddLayout(totalSlaveLayout, layout->slave());
 
-	for(IndexLayout::const_iterator it = layout->master().begin(); it != layout->master().end(); ++it)
+	for(auto it = layout->master().begin(); it != layout->master().end(); ++it)
 		masterPIDs.insert(layout->master().proc_id(it));
-	for(IndexLayout::const_iterator it = layout->slave().begin(); it != layout->slave().end(); ++it)
+	for(auto it = layout->slave().begin(); it != layout->slave().end(); ++it)
 		slavePIDs.insert(layout->slave().proc_id(it));
 	create_mark_map(layout->master());
 
@@ -89,7 +89,7 @@ size_t ParallelNodes::get_local_index_if_available(const AlgebraID &globalIndex,
 		bHasIndex = true;
 		return globalIndex.second;
 	}
-	const_iterator it = m_globalToLocal.find(globalIndex);
+	auto it = m_globalToLocal.find(globalIndex);
 	if(it == m_globalToLocal.end())
 	{
 		// UG_DLOG(LIB_ALG_MATRIX, 4, "index not found\n");
@@ -120,7 +120,7 @@ size_t ParallelNodes::get_local_index_or_create_new(const AlgebraID &globalIndex
 		{
 			UG_DLOG(LIB_ALG_MATRIX, 4, "created new index " << m_localToGlobal.size() << " (global Index = " << globalIndex << "\n");
 			m_localToGlobal.push_back(globalIndex);
-			m_OLtype.push_back(OverlapType(distanceToMasterOrInner));
+			m_OLtype.emplace_back(distanceToMasterOrInner);
 			bCreated = true;
 		}
 		else
@@ -156,7 +156,7 @@ void ParallelNodes::insert_into_interface_sorted(vector<size_t> &v, IndexLayout:
 
 void ParallelNodes::insert_into_layout_sorted(map<int, set<size_t> > &m, IndexLayout &layout)
 {
-	for(map<int, set<size_t> >::iterator it = m.begin(); it != m.end(); ++it)
+	for(auto it = m.begin(); it != m.end(); ++it)
 	{
 		int pid = it->first;
 		vector<size_t> v;
@@ -169,7 +169,7 @@ void ParallelNodes::insert_into_layout_sorted(map<int, set<size_t> > &m, IndexLa
 
 void ParallelNodes::insert_into_layout_sorted(map<int, vector<size_t> > &m, IndexLayout &layout)
 {
-	for(map<int, vector<size_t> >::iterator it = m.begin(); it != m.end(); ++it)
+	for(auto it = m.begin(); it != m.end(); ++it)
 	{
 		int pid = it->first;
 		vector<size_t> &v = it->second;
@@ -182,7 +182,7 @@ void ParallelNodes::sort_interface(IndexLayout::Interface &interface)
 {
 	vector<size_t> v;
 	v.reserve(interface.size());
-	for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+	for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 		v.push_back(interface.get_element(iter));
 
 	IndexLayout::Interface interface2;
@@ -192,7 +192,7 @@ void ParallelNodes::sort_interface(IndexLayout::Interface &interface)
 
 void ParallelNodes::sort_layout(IndexLayout &layout)
 {
-	for(IndexLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	for(auto iter = layout.begin(); iter != layout.end(); ++iter)
 		sort_interface(layout.interface(iter));
 }
 
@@ -202,13 +202,13 @@ void ParallelNodes::create_mark_map(const IndexLayout &masterLayout)
 	PROFILE_FUNC();
 	UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlapClass::CreateMarks\n");
 	notified.clear();
-	for(IndexLayout::const_iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
+	for(auto iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
 		const IndexLayout::Interface &interface = masterLayout.interface(iter);
 		int pid = masterLayout.proc_id(iter);
 
 		set<size_t> &mark = notified[pid];
-		for(IndexLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+		for(auto iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
 			size_t localIndex = interface.get_element(iter2);
 			mark.insert(localIndex);
@@ -298,7 +298,7 @@ void ParallelNodes::issue(pcl::InterfaceCommunicator<IndexLayout> &communicator)
 {
 	UG_DLOG(LIB_ALG_MATRIX, 4, "NewLayoutCreator::issue\n");
 	// notifications for new Master Nodes
-	for(set<int>::iterator it = slavePIDs.begin(); it != slavePIDs.end(); ++it)
+	for(auto it = slavePIDs.begin(); it != slavePIDs.end(); ++it)
 	{
 		BinaryBuffer buf;
 		int pid = *it;
@@ -309,7 +309,7 @@ void ParallelNodes::issue(pcl::InterfaceCommunicator<IndexLayout> &communicator)
 	}
 	newSlaveNotifications.clear();
 
-	for(set<int>::iterator it = masterPIDs.begin(); it != masterPIDs.end(); ++it)
+	for(auto it = masterPIDs.begin(); it != masterPIDs.end(); ++it)
 	{
 		int pid = *it;
 		UG_DLOG(LIB_ALG_MATRIX, 4, " issue receive from processor " << pid << "\n");
@@ -320,7 +320,7 @@ void ParallelNodes::issue(pcl::InterfaceCommunicator<IndexLayout> &communicator)
 void ParallelNodes::process()
 {
 	UG_DLOG(LIB_ALG_MATRIX, 4, "NewLayoutCreator::process\n");
-	for(set<int>::iterator it = masterPIDs.begin(); it != masterPIDs.end(); ++it)
+	for(auto it = masterPIDs.begin(); it != masterPIDs.end(); ++it)
 	{
 		int pid = *it;
 		BinaryBuffer &buf = notificationBufferMap[pid];
@@ -361,7 +361,7 @@ void ParallelNodes::process()
 
 	insert_into_layout_sorted(newMasters, totalMasterLayout);
 	insert_into_layout_sorted(newSlaves, totalSlaveLayout);
-	for(map<int, set<size_t> >::iterator it = newMasters.begin(); it != newMasters.end(); ++it)
+	for(auto it = newMasters.begin(); it != newMasters.end(); ++it)
 	{
 		/*UG_LOG("new masters on " << it->first << ": ");
 		for(set<size_t>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
@@ -369,7 +369,7 @@ void ParallelNodes::process()
 		UG_LOG("\n");*/
 		masterPIDs.insert(it->first);
 	}
-	for(map<int, set<size_t> >::iterator it = newSlaves.begin(); it != newSlaves.end(); ++it)
+	for(auto it = newSlaves.begin(); it != newSlaves.end(); ++it)
 	{
 		/*UG_LOG("new slaves on " << it->first << ": ");
 		for(set<size_t>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)

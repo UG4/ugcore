@@ -96,7 +96,7 @@ class UG_API GridObjectCollection
 {
 	public:
 	///	The traits class holds some important types for each element-type
-		template <class TElem>
+		template <typename TElem>
 		struct traits{
 			using iterator = typename geometry_traits<TElem>::iterator;
 			using const_iterator = typename geometry_traits<TElem>::const_iterator;
@@ -116,7 +116,7 @@ class UG_API GridObjectCollection
 	//	copy constructor.
 		GridObjectCollection(const GridObjectCollection& mgoc);
 		
-		GridObjectCollection& operator =(const GridObjectCollection& mgoc);
+		GridObjectCollection& operator = (const GridObjectCollection& mgoc);
 		
 	///	only used during creation by the methods that create the collection
 		void add_level(ElementStorage<Vertex>::SectionContainer* vrtCon,
@@ -125,13 +125,13 @@ class UG_API GridObjectCollection
 						ElementStorage<Volume>::SectionContainer* volCon);
 
 	///	returns the number of levels
-		inline size_t num_levels() const		{return m_levels.size();}
+		inline size_t num_levels() const {return m_levels.size();}
 		
 	//	Iterators
 	//	begin
 	/**	returns the begin iterator for the specified level.
 	 *	If no level is given iterators for level 0 are returned.*/
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		inline
 		typename geometry_traits<TGeomObj>::iterator
 		begin(size_t level = 0);
@@ -139,7 +139,7 @@ class UG_API GridObjectCollection
 	//	end
 	/**	returns the end iterator for the specified level.
 	 *	If no level is given iterators for level 0 are returned.*/
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		inline
 		typename geometry_traits<TGeomObj>::iterator
 		end(size_t level = 0);
@@ -155,13 +155,13 @@ class UG_API GridObjectCollection
 
 	//	const iterators
 	//	begin
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		inline
 		typename geometry_traits<TGeomObj>::const_iterator
 		begin(size_t level = 0) const;
 
 	//	end
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		inline
 		typename geometry_traits<TGeomObj>::const_iterator
 		end(size_t level = 0) const;
@@ -176,7 +176,7 @@ class UG_API GridObjectCollection
 		inline ConstVolumeIterator		volumes_end(size_t level = 0) const		{return end<Volume>(level);}
 		
 	//	element numbers
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		size_t num() const;
 		
 		inline size_t num_vertices() const	{return num<Vertex>();}
@@ -184,7 +184,7 @@ class UG_API GridObjectCollection
 		inline size_t num_faces() const		{return num<Face>();}
 		inline size_t num_volumes() const	{return num<Volume>();}
 		
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		inline
 		size_t num(size_t level) const;
 		
@@ -196,17 +196,17 @@ class UG_API GridObjectCollection
 	protected:
 		void assign(const GridObjectCollection& goc);
 
-		template <class TGeomObj> inline
+		template <typename TGeomObj> inline
 		const typename ElementStorage<typename geometry_traits<TGeomObj>::grid_base_object>::
 		SectionContainer* get_container(size_t level) const;
 		
-		template <class TGeomObj> inline
+		template <typename TGeomObj> inline
 		typename ElementStorage<typename geometry_traits<TGeomObj>::grid_base_object>::
 		SectionContainer* get_container(size_t level);
 				
 	protected:
 		struct ContainerCollection{
-			ContainerCollection()	{}
+			ContainerCollection() = default;
 			ContainerCollection(ElementStorage<Vertex>::SectionContainer* vrtCon,
 								ElementStorage<Edge>::SectionContainer* edgeCon,
 								ElementStorage<Face>::SectionContainer* faceCon,

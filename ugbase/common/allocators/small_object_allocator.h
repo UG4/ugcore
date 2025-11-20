@@ -33,7 +33,7 @@
 #ifndef __H__SMALL_OBJECT_ALLOCATOR__
 #define __H__SMALL_OBJECT_ALLOCATOR__
 
-#include <cassert>
+// #include <cassert>
 #include <vector>
 
 /**	Instances of this class can be used to allocate small objects of the same size

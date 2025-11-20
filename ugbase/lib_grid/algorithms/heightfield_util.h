@@ -116,7 +116,7 @@ UG_API class Heightfield{
 	//	BEGIN SERIALIZATION
 		friend class boost::serialization::access;
 
-		template <class Archive>
+		template <typename Archive>
 		void serialize( Archive& ar, const unsigned int version)
 		{
 			ar & m_cellSize;
@@ -152,4 +152,4 @@ CreateGridFromFieldBoundary(Grid& grid,
 
 }//	end of namespace
 
-#endif	//__H__UG_heightfield_util
+#endif

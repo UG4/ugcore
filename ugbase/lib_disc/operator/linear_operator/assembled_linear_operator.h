@@ -95,25 +95,25 @@ class AssembledLinearOperator :
 		const GridLevel& level() const {return m_gridLevel;}
 
 	///	initializes the operator that may depend on the current solution
-		virtual void init(const vector_type& u);
+		void init(const vector_type& u) override;
 
 	///	initialize the operator
-		virtual void init();
+		void init() override;
 
 	///	initializes the operator and assembles the passed rhs vector
 		void init_op_and_rhs(vector_type& b);
 
 	///	compute d = J(u)*c (here, J(u) is a Matrix)
-		virtual void apply(vector_type& d, const vector_type& c);
+		void apply(vector_type& d, const vector_type& c) override;
 
 	///	Compute d := d - J(u)*c
-		virtual void apply_sub(vector_type& d, const vector_type& c);
+		void apply_sub(vector_type& d, const vector_type& c) override;
 
 	///	Set Dirichlet values
 		void set_dirichlet_values(vector_type& u);
 
 	///	Destructor
-		virtual ~AssembledLinearOperator() = default;
+		~AssembledLinearOperator() override = default;
 
 	protected:
 	// 	assembling procedure

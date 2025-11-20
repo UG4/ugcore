@@ -33,8 +33,8 @@
 
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
-
-#include "lib_disc/ordering_strategies/algorithms/ordering_algorithms.cpp"
+#include "lib_disc/function_spaces/grid_function_user_data.h"
+#include "lib_disc/ordering_strategies/algorithms/ordering_algorithms.h"
 
 namespace ug{
 

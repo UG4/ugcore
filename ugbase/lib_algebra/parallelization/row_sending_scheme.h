@@ -117,14 +117,14 @@ public:
 		UG_DLOG(LIB_ALG_MATRIX, 4, "*** RowSendingScheme::process: ***\n");
 		connections.clear();
 
-		for(IndexLayout::const_iterator it = receiveLayout.begin(); it != receiveLayout.end(); ++it)
+		for(auto it = receiveLayout.begin(); it != receiveLayout.end(); ++it)
 		{
 			int pid = receiveLayout.proc_id(it);
 			const IndexLayout::Interface& interface = receiveLayout.interface(it);
 
 			BinaryBuffer &buf = rowsBufferMap[pid];
 			UG_DLOG(LIB_ALG_MATRIX, 4, "rowsBufferMap: received " << buf.write_pos() << " bytes from processor " << pid << "\n");
-			for(IndexLayout::Interface::const_iterator it = interface.begin(); it != interface.end(); ++it)
+			for(auto it = interface.begin(); it != interface.end(); ++it)
 				process(buf, pid, interface.get_element(it));
 		}
 
@@ -139,7 +139,7 @@ public:
 				it != connections.end(); ++it)
 		{
 			std::vector<connection> &cons = it->second;
-			if(cons.size())
+			if(!cons.empty())
 			  mat.set_matrix_row(it->first, &cons[0], cons.size());
 		}
 	}
@@ -151,7 +151,7 @@ public:
 				it != connections.end(); ++it)
 		{
 			std::vector<connection> &cons = it->second;
-			if(cons.size())
+			if(!cons.empty())
 			  mat.add_matrix_row(it->first, &cons[0], cons.size());
 		}
 	}

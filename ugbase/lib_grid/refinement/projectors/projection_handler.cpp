@@ -319,7 +319,7 @@ projector_required(int index) {
 		m_projectors.resize(index + 2);
 }
 
-template <class TParent>
+template <typename TParent>
 number ProjectionHandler::
 handle_new_vertex (Vertex* vrt, TParent* parent)
 {

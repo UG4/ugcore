@@ -64,8 +64,7 @@ class AverageComponent :
 
 	public:
 	/// apply Operator, interpolate function
-		virtual void post_process(SmartPtr<GF> spGF)
-		{
+	void post_process(SmartPtr<GF> spGF) override {
 			AdjustMeanValue(spGF, m_vCmp);
 		}
 

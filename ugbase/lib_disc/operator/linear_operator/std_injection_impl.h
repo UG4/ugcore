@@ -42,9 +42,8 @@ namespace ug{
  * grid levels using only the RegularVertex degrees of freedom.
  *
  * \param[out]	mat 			Assembled interpolation matrix that interpolates u -> v
- * \param[in] 	approxSpace		Approximation Space
- * \param[in]	coarseLevel		Coarse Level index
- * \param[in]	fineLevel		Fine Level index
+ * \param[in]	coarseDD		Coarse Level dof distribution
+ * \param[in]	fineDD			Fine Level dof distribution
  */
 template <typename TAlgebra>
 void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,

@@ -39,7 +39,7 @@
 namespace ug{
 namespace pyra_rules{
 
-template <class TCmp>
+template <typename TCmp>
 int ConvertToTetrahedra(int* newIndsOut, TCmp cmp)
 {
 //	The idea and implementation follows:
@@ -79,4 +79,4 @@ int ConvertToTetrahedra(int* newIndsOut, TCmp cmp)
 }//	end of namespace
 }//	end of namespace
 
-#endif	//__H__UG_pyramid_rules_impl
+#endif

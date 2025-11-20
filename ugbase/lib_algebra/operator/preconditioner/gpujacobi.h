@@ -101,8 +101,7 @@ class GPUJacobi : public IPreconditioner<GPUAlgebra>
 
 
 	///	Destructor
-		virtual ~GPUJacobi()
-		{};
+		~GPUJacobi() override = default
 
 		virtual bool supports_parallel() const { return false; }
 	protected:

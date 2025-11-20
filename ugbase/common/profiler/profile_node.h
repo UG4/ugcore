@@ -216,7 +216,7 @@ class UGProfileNodeNull
    private:
        UGProfileNodeNull() {};
        UGProfileNodeNull(UGProfileNodeNull const&); // do not implement
-       void operator=(UGProfileNodeNull const&); // do not implement
+       void operator = (UGProfileNodeNull const&); // do not implement
 };
 
 #define PROFILER_NULL_NODE UGProfileNodeNull::getInstance()

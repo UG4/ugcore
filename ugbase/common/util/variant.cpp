@@ -127,7 +127,7 @@ Variant::~Variant()
 		delete m_constsmartptr;
 }
 
-const Variant& Variant::operator=(const Variant& v)
+const Variant& Variant::operator = (const Variant& v)
 {
 //	if the variant encapsulates an std::string or a smartptr,
 //	we first have to delete the	old instance
@@ -398,7 +398,7 @@ const char* Variant::type_name() const
 
 }//	end of namespace
 
-std::ostream& operator<< (std::ostream& outStream, const ug::Variant& v)
+std::ostream& operator << (std::ostream& outStream, const ug::Variant& v)
 {
 	using namespace ug;
 	// TODO?: hide enum

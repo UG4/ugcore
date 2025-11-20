@@ -176,7 +176,7 @@ static void AssignCreaseVertices(Grid& grid, SubsetHandler& shMarks)
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TVertexPositionAccessor>
+template <typename TVertexPositionAccessor>
 number CalculateNormalDot(TriangleDescriptor& td1, TriangleDescriptor& td2,
 						  TVertexPositionAccessor& aaPos)
 {
@@ -192,7 +192,7 @@ number CalculateNormalDot(TriangleDescriptor& td1, TriangleDescriptor& td2,
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCurvature
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateMinCurvature(Grid& grid, SubsetHandler& shMarks,
 							Vertex* vrt, TAAPosVRT& aaPos)
 {
@@ -233,7 +233,7 @@ number CalculateMinCurvature(Grid& grid, SubsetHandler& shMarks,
 }							
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateAverageCurvature(Grid& grid, SubsetHandler& shMarks,
 								Edge* e, TAAPosVRT& aaPos)
 {
@@ -244,7 +244,7 @@ number CalculateAverageCurvature(Grid& grid, SubsetHandler& shMarks,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateLengthFac(Grid& grid, SubsetHandler& shMarks,
 								Edge* e, TAAPosVRT& aaPos)
 {
@@ -257,7 +257,7 @@ number CalculateLengthFac(Grid& grid, SubsetHandler& shMarks,
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
+template <typename TAAPosVRT, typename TAANormVRT, typename TAAIntVRT>
 bool TrySwap(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 			TAAIntVRT& aaInt, SubsetHandler* pshMarks = nullptr,
 			EdgeSelector* pCandidates = nullptr)
@@ -357,7 +357,7 @@ bool TrySwap(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
+template <typename TAAPosVRT, typename TAANormVRT, typename TAAIntVRT>
 bool PerformSwaps(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 				TAAPosVRT& aaPos, TAANormVRT& aaNorm, TAAIntVRT& aaInt)
 {	
@@ -385,7 +385,7 @@ bool PerformSwaps(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 }
 
 /**	returns the resulting vertex or nullptr, if no collapse was performed.*/
-template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
+template <typename TAAPosVRT, typename TAANormVRT, typename TAAIntVRT>
 Vertex* TryCollapse(Grid& grid, Edge* e,
 				TAAPosVRT& aaPos, TAANormVRT& aaNorm, 
 				TAAIntVRT& aaInt, SubsetHandler* pshMarks = nullptr,
@@ -617,7 +617,7 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
+template <typename TAAPosVRT, typename TAANormVRT, typename TAAIntVRT>
 bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 					  number minEdgeLen, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 					  TAAIntVRT& aaInt, bool adaptive = true)
@@ -659,7 +659,7 @@ bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT, class TAANormVRT>
+template <typename TAAPosVRT, typename TAANormVRT>
 bool TrySplit(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 			  EdgeSelector* pCandidates = nullptr, SubsetHandler* pshMarks = nullptr)
 {
@@ -708,7 +708,7 @@ bool TrySplit(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT, class TAANormVRT>
+template <typename TAAPosVRT, typename TAANormVRT>
 bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 					  number maxEdgeLen, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 					  bool adaptive = true)
@@ -773,7 +773,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 
 ////////////////////////////////////////////////////////////////////////
 //	FixBadTriangles
-// template <class TAAPosVRT, class TAANormVRT>
+// template <typename TAAPosVRT, typename TAANormVRT>
 // static bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 // 					TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 // 					number qualityThreshold)
@@ -892,7 +892,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 
 // ////////////////////////////////////////////////////////////////////////
 // //	PerformSmoothing
-// template <class TAAPosVRT, class TAANormVRT>
+// template <typename TAAPosVRT, typename TAANormVRT>
 // static void PerformSmoothing(Grid& grid, SubsetHandler& shMarks,
 // 					TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 // 					size_t numIterations, number stepSize)
@@ -966,7 +966,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 
 /**	Make sure that elements in gridOut directly correspond to
  *	elements in gridIn*/
-template <class TGeomObj>
+template <typename TGeomObj>
 void CopySelectionStatus(Selector& selOut, Grid& gridOut,
 						 Selector& selIn, Grid& gridIn)
 {
@@ -1143,7 +1143,7 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 //	While it performs a little less splits, overall runtime of
 //	AdjustEdgeLength is not better than with the original
 //	PerformSplits method.
-template <class TAAPosVRT, class TAANormVRT>
+template <typename TAAPosVRT, typename TAANormVRT>
 bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 					  number maxEdgeLen, TAAPosVRT& aaPos, TAANormVRT& aaNorm)
 {

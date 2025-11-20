@@ -40,7 +40,7 @@ namespace ug
 {
 
 ///	adds marking at extracting side
-template <class TLayout>
+template <typename TLayout>
 class ComPol_BoolMarker_AddMarks : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
@@ -94,7 +94,7 @@ class ComPol_BoolMarker_AddMarks : public pcl::ICommunicationPolicy<TLayout>
 };
 
 ///	removes marks at extracting side, if no mark was received
-template <class TLayout>
+template <typename TLayout>
 class ComPol_BoolMarker_RemoveMarks : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:

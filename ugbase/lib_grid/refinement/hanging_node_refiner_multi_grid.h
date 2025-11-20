@@ -105,7 +105,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	///	returns the number of (globally) marked volumes on this level of the hierarchy
 		virtual void num_marked_volumes_local(std::vector<int>& numMarkedVolsOut);
 		
-		template <class TElem>
+		template <typename TElem>
 		void num_marked_elems(std::vector<int>& numMarkedElemsOut);
 		
 	///	performs coarsening on the elements marked with RM_COARSEN.
@@ -205,7 +205,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	/**	The size of cornersOut is automatically adjusted.
 	 *  The i-th element of corners out will contain the child vertex of the
 	 *  i-th vertex of elem.*/
-		template <class TElem>
+		template <typename TElem>
 		void collect_child_corners(std::vector<Vertex*>& cornersOut, TElem* elem)
 		{
 			cornersOut.resize(elem->num_vertices());
@@ -227,13 +227,13 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 		virtual void restrict_selection_to_coarsen_families();
 
 	///	Deselects all non-surface elements and all elements not marked with RM_COARSEN
-		template <class TElem>
+		template <typename TElem>
 		void restrict_selection_to_surface_coarsen_elements();
 
 	///	Only complete families (all siblings are selected) may be coarsened.
 	/**	When calling this method, make sure that only surface elements are
 	 * marked/selected and that only the mark RM_COARSEN is used.*/
-		template <class TElem>
+		template <typename TElem>
 		void restrict_selection_to_coarsen_families();
 
 	///	adjusts the selection marks to those specified in HNodeCoarsenMarks.
@@ -245,24 +245,24 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	 * dimension are selected.
 	 * Note that this method should only be called for vertices, edges and faces.
 	 * It does not make sense to call it for volumes.*/
-//		template <class TElem>
+//		template <typename TElem>
 //		void classify_selection();
 
 	///	Applies marks like RM_COARSEN_CONSTRAINING or RM_COARSEN_UNCONSTRAIN
 	/**	This method should first be called for Face, then for Edge, then for
 	 * Vertex.*/
-		//template <class TElem>
+		//template <typename TElem>
 		//void adjust_coarsen_marks_on_side_elements();
 
 	///deselect coarsen families, which are adjacent to unselected constraining elements
 	/**	If at least one family was deselected, this method returns true.*/
-//		template <class TElem>
+//		template <typename TElem>
 //		bool deselect_invalid_coarsen_families();
 //
-//		template <class TElem>
+//		template <typename TElem>
 //		void deselect_isolated_sides();
 //
-//		template <class TElem>
+//		template <typename TElem>
 //		void deselect_uncoarsenable_parents();
 
 	///	called by the coarsen method in order to adjust the selection to valid elements.

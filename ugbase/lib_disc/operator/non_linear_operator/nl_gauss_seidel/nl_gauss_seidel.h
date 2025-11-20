@@ -121,7 +121,7 @@ class NLGaussSeidelSolver
 {
 	private:
 		///	own type
-		using this_type = NLGaussSeidelSolver<TDomain, TAlgebra>;
+		using this_type = NLGaussSeidelSolver;
 
 	public:
 		///	Algebra type
@@ -156,6 +156,8 @@ class NLGaussSeidelSolver
 		NLGaussSeidelSolver(SmartPtr<approx_space_type> spApproxSpace,
 					SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
 
+		~NLGaussSeidelSolver() override = default;
+
 		void set_approximation_space(SmartPtr<approx_space_type> spApproxSpace)
 		{m_spApproxSpace = spApproxSpace;}
 
@@ -170,17 +172,16 @@ class NLGaussSeidelSolver
 	///////////////////////////////////////////////////////////////////////////
 
 	/// This operator inverts the Operator op: Y -> X
-		virtual bool init(SmartPtr<IOperator<vector_type> > op);
+		bool init(SmartPtr<IOperator<vector_type> > op) override;
 
 	/// prepare Operator
-		virtual bool prepare(vector_type& u);
+		bool prepare(vector_type& u) override;
 
 	/// apply Operator, i.e. op^{-1}(0) = u
-		virtual bool apply(vector_type& u);
+		bool apply(vector_type& u) override;
 
 	///	returns information about configuration parameters
-		virtual std::string config_string() const
-		{
+		std::string config_string() const override {
 			std::stringstream ss;
 			ss << "NonlinearGaussSeidelSolver( damp = " << m_damp << ")\n";
 			ss << " ConvergenceCheck: ";

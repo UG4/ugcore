@@ -108,7 +108,7 @@ class DistInfoSupplier{
 
 		ADistInfo dist_info_attachment()	{return m_aDistInfo;}
 
-		template <class TElem>
+		template <typename TElem>
 		StringStreamTable get_debug_info(TElem* e)
 		{
 			const vector<TargetProcInfo>& di = get(e);
@@ -164,7 +164,7 @@ class DistInfoSupplier{
  * either merged with existing entries or existing entries are simply overwritten.
  * The merge/overwrite behavior can be chosen through the member method enable_merge.
  */
-template <class TLayout>
+template <typename TLayout>
 class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
@@ -252,7 +252,7 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TElem>
+template <typename TElem>
 static void SynchronizeDistInfos(MultiGrid& mg, DistInfoSupplier& distInfos)
 {
 	using ElemLayout = typename GridLayoutMap::Types<TElem>::Layout;
@@ -406,7 +406,7 @@ static void SaveDistInfosToFile(MultiGrid& mg, DistInfoSupplier& infoSupplier,
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 static void WriteDistInfosToTextFile(MultiGrid& mg, DistInfoSupplier& infoSupplier,
 									 const char* filename)
 {
@@ -448,7 +448,7 @@ static void WriteDistInfosToTextFile(MultiGrid& mg, DistInfoSupplier& infoSuppli
 	out.close();
 }
 
-template <class TElem>
+template <typename TElem>
 static string LocateElement(MultiGrid& mg, TElem* e)
 {
 	stringstream ssLocator;
@@ -457,7 +457,7 @@ static string LocateElement(MultiGrid& mg, TElem* e)
 	return ssLocator.str();
 }
 
-template <class TElem>
+template <typename TElem>
 static bool PerformValidityCheck(DistributedGridManager& dgm)
 {
 	using TElemIter = typename Grid::traits<TElem>::iterator;
@@ -520,7 +520,7 @@ static bool PerformValidityCheck(DistributedGridManager& dgm)
 ////////////////////////////////////////////////////////////////////////////////
 // ATTENTION - THIS DOESN'T REALLY WORK!
 //	mpirun -n 4 ugshell -ex adaptive_mg/moving_front.lua -redistributionSteps 2 -redistributionProcs 2
-//template <class TElem>
+//template <typename TElem>
 //void AdjustGhostSelection(MGSelector& msel, ISelector::status_t status)
 //{
 //	DistributedGridManager& dgm = *msel.grid()->distributed_grid_manager();
@@ -566,7 +566,7 @@ static bool PerformValidityCheck(DistributedGridManager& dgm)
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Recursively selects unselected sides.
-template <class TElem>
+template <typename TElem>
 static void SelectAssociatedSides(MGSelector& msel, TElem* e,
 								  ISelector::status_t status = ISelector::SELECTED)
 {
@@ -1008,7 +1008,7 @@ static void SelectChildrenOfSelectedShadowVertices(MGSelector& msel,
  *
  * This method only works correctly if called for the elements of highest dimension.
  */
-template <class TElem>
+template <typename TElem>
 static void AssignVerticalMasterAndSlaveStates(MGSelector& msel, bool partitionForLocalProc)
 {
 	UG_DLOG(LG_DIST, 3, "dist-start: AssignVerticalMasterAndSlaveStates\n");
@@ -1080,7 +1080,7 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel, bool partitionF
 
 ////////////////////////////////////////////////////////////////////////////////
 /**	VSlaves will be ignored.*/
-template <class TElem>
+template <typename TElem>
 static void SelectUnselectedRootElementsAsVMasters(MGSelector& msel)
 {
 	UG_DLOG(LG_DIST, 3, "dist-start: SelectUnselectedRootElementsAsVMasters\n");
@@ -1103,7 +1103,7 @@ static void SelectUnselectedRootElementsAsVMasters(MGSelector& msel)
 
 ////////////////////////////////////////////////////////////////////////////////
 /**	VMasters will be ignored.*/
-template <class TElem>
+template <typename TElem>
 static void SelectSelectedRootElementsAsVSlaves(MGSelector& msel)
 {
 	UG_DLOG(LG_DIST, 3, "dist-start: SelectSelectedRootElementsAsVSlaves\n");
@@ -1222,7 +1222,7 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TElem>
+template <typename TElem>
 static void AddTargetProcToDistInfos(MGSelector& msel,
 									DistInfoSupplier& distInfos, int targetProc)
 {
@@ -1261,7 +1261,7 @@ static void AddTargetProcToDistInfos(MGSelector& msel,
  * Since it performs the exactly same actions on all processes for synchronized
  * dist-infos, no further communication is required afterwards.
  */
-template <class TElem>
+template <typename TElem>
 static void PostProcessDistInfos(MultiGrid& mg, DistInfoSupplier& distInfos)
 {
 //	iterate over all elements and check for each whether a copy is marked as vmaster.
@@ -1422,7 +1422,7 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
  *
  * \todo	Think about caching interfaces to speed up this method.
  */
-template <class TElem>
+template <typename TElem>
 static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 										DistInfoSupplier& distInfos,
 										AGeomObjID& aGID)
@@ -1728,7 +1728,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 /**	Make sure that the same global attachments are attached to the given grid
  * on all processes before calling this method. Use 'SynchronizeAttachedGlobalAttachments'
  * to achieve this.*/
-template <class TElem>
+template <typename TElem>
 static
 void AddGlobalAttachmentsToSerializer (
 		GridDataSerializationHandler& handler,

@@ -38,7 +38,7 @@ namespace ug
 {
 
 
-template <class TLayout>
+template <typename TLayout>
 class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
@@ -108,7 +108,7 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 /**	Enables only the part of the selection-state for which the specified stateBits
  * hold 1.
  */
-template <class TLayout>
+template <typename TLayout>
 class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:

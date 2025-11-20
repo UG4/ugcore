@@ -76,11 +76,11 @@ public:
 	virtual bool requires_grid_fct () const {return true;}
 
 ///	This function should not be used
-	void operator() (return_type & vValue, const MathVector<dim> & globIP, number time, int si) const
+	void operator () (return_type & vValue, const MathVector<dim> & globIP, number time, int si) const
 	{ UG_THROW("SubsetIndicatorUserData: Element required for evaluation, but not passed. Cannot evaluate."); }
 
 ///	This function should not be used
-	void operator() (return_type vValue [], const MathVector<dim> vGlobIP [], number time, int si, const size_t nip) const
+	void operator () (return_type vValue [], const MathVector<dim> vGlobIP [], number time, int si, const size_t nip) const
 	{ UG_THROW("SubsetIndicatorUserData: Element required for evaluation, but not passed. Cannot evaluate."); }
 
 

@@ -57,7 +57,7 @@ size_t LocalDoFSet::num_dof(int d, size_t id) const
 	return num_dof(rRefElem.roid(d, id));
 }
 
-bool LocalDoFSet::operator==(const LocalDoFSet& v) const
+bool LocalDoFSet::operator == (const LocalDoFSet& v) const
 {
 	if(roid() != v.roid()) return false;
 	if(dim() != v.dim()) return false;
@@ -84,7 +84,7 @@ DimLocalDoFSet<TDim>::DimLocalDoFSet(){
 }
 
 template <int TDim>
-bool DimLocalDoFSet<TDim>::operator==(const DimLocalDoFSet<TDim>& v) const
+bool DimLocalDoFSet<TDim>::operator == (const DimLocalDoFSet& v) const
 {
 	if(*dynamic_cast<const LocalDoFSet*>(this) != *dynamic_cast<const LocalDoFSet*>(&v))
 		return false;
@@ -150,17 +150,17 @@ void CommonLocalDoFSet::add(const LocalDoFSet& set)
 	}
 }
 
-std::ostream& operator<<(std::ostream& out,	const LocalDoF& v)
+std::ostream& operator << (std::ostream& out,	const LocalDoF& v)
 {
 	out <<"("<<v.dim()<<","<<v.id()<<","<<v.offset()<<")";
 	return out;
 }
 
-std::ostream& operator<<(std::ostream& out,	const CommonLocalDoFSet& v)
+std::ostream& operator << (std::ostream& out,	const CommonLocalDoFSet& v)
 {
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
-		ReferenceObjectID roid = (ReferenceObjectID) i;
+		auto roid = (ReferenceObjectID) i;
 
 		out << std::setw(14) << roid << ":   ";
 		if(v.num_dof(roid) == CommonLocalDoFSet::NOT_SPECIFIED)
@@ -172,18 +172,18 @@ std::ostream& operator<<(std::ostream& out,	const CommonLocalDoFSet& v)
 	return out;
 }
 
-std::ostream& operator<<(std::ostream& out,	const LocalDoFSet& v)
+std::ostream& operator << (std::ostream& out,	const LocalDoFSet& v)
 {
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
-		ReferenceObjectID roid = (ReferenceObjectID) i;
+		auto roid = (ReferenceObjectID) i;
 		out << std::setw(14) << roid << ":   " << v.num_dof(roid) << "\n";
 	}
 	return out;
 }
 
 template <int dim>
-std::ostream& operator<<(std::ostream& out,	const DimLocalDoFSet<dim>& v)
+std::ostream& operator << (std::ostream& out,	const DimLocalDoFSet<dim>& v)
 {
 	out << *dynamic_cast<const LocalDoFSet*>(&v);
 
@@ -195,9 +195,9 @@ std::ostream& operator<<(std::ostream& out,	const DimLocalDoFSet<dim>& v)
 	return out;
 }
 
-template std::ostream& operator<<(std::ostream& out, const DimLocalDoFSet<0>& v);
-template std::ostream& operator<<(std::ostream& out, const DimLocalDoFSet<1>& v);
-template std::ostream& operator<<(std::ostream& out, const DimLocalDoFSet<2>& v);
-template std::ostream& operator<<(std::ostream& out, const DimLocalDoFSet<3>& v);
+template std::ostream& operator << (std::ostream& out, const DimLocalDoFSet<0>& v);
+template std::ostream& operator << (std::ostream& out, const DimLocalDoFSet<1>& v);
+template std::ostream& operator << (std::ostream& out, const DimLocalDoFSet<2>& v);
+template std::ostream& operator << (std::ostream& out, const DimLocalDoFSet<3>& v);
 
 } // end namespace ug

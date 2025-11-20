@@ -98,7 +98,7 @@ using SPPartitionMap = SmartPtr<PartitionMap>;
  *
  * \todo	currently only the .ugx format is supported.
  */
-template <class TAPos>
+template <typename TAPos>
 bool SavePartitionMapToFile(PartitionMap& pm, const char* filename,
 							TAPos& aPos)
 {

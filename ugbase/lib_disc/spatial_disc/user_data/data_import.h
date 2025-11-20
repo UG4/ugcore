@@ -49,7 +49,7 @@ enum DiscPart {	NONE = 0,
 				MAX_PART};
 
 inline
-std::ostream& operator<< (std::ostream& outStream, DiscPart part)
+std::ostream& operator << (std::ostream& outStream, DiscPart part)
 {
 	switch(part)
 	{
@@ -58,7 +58,7 @@ std::ostream& operator<< (std::ostream& outStream, DiscPart part)
 		case STIFF: outStream << "stiff"; break;
 		case RHS: outStream << "rhs"; break;
 		case EXPL: outStream << "expl"; break;
-		default: UG_THROW("Unknown DiscPart in operator<<");
+		default: UG_THROW("Unknown DiscPart in operator <<");
 	}
 	return outStream;
 };
@@ -215,7 +215,7 @@ class DataImport : public IDataImport<dim>
 		}
 
 	///	returns the data value at ip
-		const TData& operator[](size_t ip) const{check_ip(ip); return m_vValue[ip];}
+		const TData& operator [] (size_t ip) const{check_ip(ip); return m_vValue[ip];}
 
 	///	returns the data value at ip
 		const TData* values() const {check_values(); return m_vValue;}

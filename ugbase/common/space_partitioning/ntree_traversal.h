@@ -41,7 +41,7 @@ enum TraversalStates{
 	ABORT_TRAVERSAL
 };
 
-template <class tree_t, class traverser_t>
+template <typename tree_t, typename traverser_t>
 void TraverseBreadthFirst(const tree_t& tree, traverser_t& traverser)
 {
 	std::vector<size_t> nodes;
@@ -81,7 +81,7 @@ void TraverseBreadthFirst(const tree_t& tree, traverser_t& traverser)
 	traverser.end_traversal(tree);
 }
 
-template <class tree_t, class traverser_t>
+template <typename tree_t, typename traverser_t>
 int
 TraverseDepthFirstRecursion(const tree_t& tree, traverser_t& traverser, int curNode)
 {
@@ -103,7 +103,7 @@ TraverseDepthFirstRecursion(const tree_t& tree, traverser_t& traverser, int curN
 	return state;
 }
 
-template <class tree_t, class traverser_t>
+template <typename tree_t, typename traverser_t>
 void TraverseDepthFirst(const tree_t& tree, traverser_t& traverser)
 {
 	traverser.begin_traversal(tree);

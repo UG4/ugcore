@@ -71,11 +71,12 @@ AssembledLinearOperator<TAlgebra>::init()
 	if(m_spAss.invalid())
 		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
-//	create vector dummy
-	vector_type dummy;
 
-//	assemble only matrix
-	try{
+
+	//	assemble only matrix
+	try {
+		//	create vector dummy
+		vector_type dummy;
 		m_spAss->assemble_linear(*this, dummy, m_gridLevel);
 	}
 	UG_CATCH_THROW("AssembledLinearOperator::init: Cannot assemble Matrix.");

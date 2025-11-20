@@ -40,4 +40,3 @@ std::unique_ptr<grid_global_debug_info_provider> grid_global_debug_info_provider
 
 } // namespace ug
 
-/* End of File */

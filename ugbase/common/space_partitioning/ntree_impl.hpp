@@ -38,7 +38,7 @@
 
 namespace ug{
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 ntree<tree_dim, world_dim, elem_t, common_data_t>::
 ntree() :
 	m_warningsEnabled (true)
@@ -47,7 +47,7 @@ ntree() :
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 void ntree<tree_dim, world_dim, elem_t, common_data_t>::
 clear_nodes()
 {
@@ -57,7 +57,7 @@ clear_nodes()
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 void ntree<tree_dim, world_dim, elem_t, common_data_t>::
 clear()
 {
@@ -67,35 +67,35 @@ clear()
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 void ntree<tree_dim, world_dim, elem_t, common_data_t>::
 set_desc(const NTreeDesc& desc)
 {
 	m_desc = desc;
 }
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 const NTreeDesc& ntree<tree_dim, world_dim, elem_t, common_data_t>::
 desc() const
 {
 	return m_desc;
 }
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 void ntree<tree_dim, world_dim, elem_t, common_data_t>::
 set_common_data(const common_data_t& commonData)
 {
 	m_commonData = commonData;
 }
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 const common_data_t& ntree<tree_dim, world_dim, elem_t, common_data_t>::
 common_data() const
 {
 	return m_commonData;
 }
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 bool ntree<tree_dim, world_dim, elem_t, common_data_t>::
 empty() const
 {
@@ -103,7 +103,7 @@ empty() const
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 size_t ntree<tree_dim, world_dim, elem_t, common_data_t>::
 size() const
 {
@@ -111,7 +111,7 @@ size() const
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 size_t ntree<tree_dim, world_dim, elem_t, common_data_t>::
 num_delayed_elements() const
 {
@@ -119,7 +119,7 @@ num_delayed_elements() const
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 void ntree<tree_dim, world_dim, elem_t, common_data_t>::
 add_element(const elem_t& elem)
 {
@@ -156,7 +156,7 @@ add_element(const elem_t& elem)
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 void ntree<tree_dim, world_dim, elem_t, common_data_t>::
 rebalance()
 {
@@ -183,7 +183,7 @@ rebalance()
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 void ntree<tree_dim, world_dim, elem_t, common_data_t>::
 split_leaf_node(size_t nodeIndex)
 {
@@ -271,7 +271,7 @@ split_leaf_node(size_t nodeIndex)
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 size_t ntree<tree_dim, world_dim, elem_t, common_data_t>::
 find_leaf_node(const vector_t& point, size_t curNode)
 {
@@ -292,7 +292,7 @@ find_leaf_node(const vector_t& point, size_t curNode)
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 void ntree<tree_dim, world_dim, elem_t, common_data_t>::
 add_entry_to_node(Node& node, size_t entryInd)
 {
@@ -310,7 +310,7 @@ add_entry_to_node(Node& node, size_t entryInd)
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 void ntree<tree_dim, world_dim, elem_t, common_data_t>::
 update_loose_bounding_box(Node& node)
 {
@@ -339,7 +339,7 @@ update_loose_bounding_box(Node& node)
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 typename ntree<tree_dim, world_dim, elem_t, common_data_t>::vector_t
 ntree<tree_dim, world_dim, elem_t, common_data_t>::
 calculate_center_of_mass(Node& node)
@@ -363,7 +363,7 @@ calculate_center_of_mass(Node& node)
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 size_t ntree<tree_dim, world_dim, elem_t, common_data_t>::
 num_nodes() const
 {
@@ -371,7 +371,7 @@ num_nodes() const
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 size_t ntree<tree_dim, world_dim, elem_t, common_data_t>::
 num_child_nodes(size_t nodeId) const
 {
@@ -382,7 +382,7 @@ num_child_nodes(size_t nodeId) const
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 const size_t* ntree<tree_dim, world_dim, elem_t, common_data_t>::
 child_node_ids(size_t nodeId) const
 {
@@ -391,7 +391,7 @@ child_node_ids(size_t nodeId) const
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 typename ntree<tree_dim, world_dim, elem_t, common_data_t>::elem_iterator_t
 ntree<tree_dim, world_dim, elem_t, common_data_t>::
 elems_begin(size_t nodeId) const
@@ -403,7 +403,7 @@ elems_begin(size_t nodeId) const
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 typename ntree<tree_dim, world_dim, elem_t, common_data_t>::elem_iterator_t
 ntree<tree_dim, world_dim, elem_t, common_data_t>::
 elems_end(size_t nodeId) const
@@ -412,7 +412,7 @@ elems_end(size_t nodeId) const
 }
 
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 size_t ntree<tree_dim, world_dim, elem_t, common_data_t>::
 num_elements(size_t nodeId) const
 {
@@ -420,7 +420,7 @@ num_elements(size_t nodeId) const
 	return m_nodes[nodeId].numEntries;
 }
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 size_t ntree<tree_dim, world_dim, elem_t, common_data_t>::
 level(size_t nodeId) const
 {
@@ -428,7 +428,7 @@ level(size_t nodeId) const
 	return m_nodes[nodeId].level;
 }
 
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 const typename ntree<tree_dim, world_dim, elem_t, common_data_t>::box_t&
 ntree<tree_dim, world_dim, elem_t, common_data_t>::
 bounding_box(size_t nodeId) const

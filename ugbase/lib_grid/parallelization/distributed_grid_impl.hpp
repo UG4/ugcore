@@ -39,14 +39,14 @@
 namespace ug
 {
 
-template <class TElem>
+template <typename TElem>
 bool DistributedGridManager::
 is_interface_element(TElem* elem)
 {
 	return elem_info(elem).get_status() & ES_IN_INTERFACE;
 }
 
-template<class TElem>
+template <typename TElem>
 inline bool DistributedGridManager::
 is_in_horizontal_interface(TElem* elem) const
 {
@@ -54,7 +54,7 @@ is_in_horizontal_interface(TElem* elem) const
 	return 	(status & (ES_H_MASTER | ES_H_SLAVE)) != 0;
 }
 
-template<class TElem>
+template <typename TElem>
 inline bool DistributedGridManager::
 is_in_vertical_interface(TElem* elem) const
 {
@@ -62,7 +62,7 @@ is_in_vertical_interface(TElem* elem) const
 	return 	(status & (ES_V_MASTER | ES_V_SLAVE)) != 0;
 }
 
-template<class TElem>
+template <typename TElem>
 inline bool DistributedGridManager::
 is_ghost(TElem* elem) const
 {
@@ -73,7 +73,7 @@ is_ghost(TElem* elem) const
 	//return contains_status(elem, ES_GHOST);
 }
 
-template <class TElem>
+template <typename TElem>
 void DistributedGridManager::
 collect_interface_entries(
 				std::vector<std::pair<int, size_t> >& vEntriesOut,

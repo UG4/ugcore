@@ -139,7 +139,7 @@ bool GPUSparseMatrix<T>::set_as_transpose_of(const GPUSparseMatrix<value_type> &
 
 	for(size_t r=0; r<B.num_rows(); r++)
 		for(const_row_iterator it = B.begin_row(r); it != B.end_row(r); ++it)
-			operator()(it.index(), r) = scale*it.value();
+			operator ()(it.index(), r) = scale*it.value();
 	// todo: sort rows
 	return true;
 }
@@ -256,7 +256,7 @@ void GPUSparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 	else*/
 	{
 		for(size_t i=0; i<nr; i++)
-			operator()(row, c[i].iIndex) = c[i].dValue;
+			operator ()(row, c[i].iIndex) = c[i].dValue;
 	}
 }
 
@@ -265,7 +265,7 @@ void GPUSparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 {
 	//PROFILE_GPUMATRIX(GPUSparseMatrix_add_matrix_row);
 	for(size_t i=0; i<nr; i++)
-		operator()(row, c[i].iIndex) += c[i].dValue;
+		operator () (row, c[i].iIndex) += c[i].dValue;
 }
 
 
@@ -276,7 +276,7 @@ bool GPUSparseMatrix<T>::set_as_copy_of(const GPUSparseMatrix<T> &B, double scal
 	resize_and_clear(B.num_rows(), B.num_cols());
 	for(size_t i=0; i < B.num_rows(); i++)
 		for(const_row_iterator it = B.begin_row(i); it != B.end_row(i); ++it)
-			operator()(i, it.index()) = scale*it.value();
+			operator () (i, it.index()) = scale*it.value();
 	return true;
 }
 

@@ -68,7 +68,7 @@ class UG_API RegularRefiner_MultiGrid : public IRefiner{
 
 		virtual bool save_marks_to_file (const char* filename);
 
-		template <class TElem>
+		template <typename TElem>
 		bool is_closure (TElem* elem);
 
 	protected:
@@ -91,7 +91,7 @@ class UG_API RegularRefiner_MultiGrid : public IRefiner{
 		virtual void num_marked_volumes_local (std::vector<int>& numMarkedVolsOut);
 
 
-		template <class TElem>
+		template <typename TElem>
 		void adjust_side_states (
 				size_t lvl,
 				uint considerElemMarks,
@@ -99,13 +99,13 @@ class UG_API RegularRefiner_MultiGrid : public IRefiner{
 				RefinementMark newSideMark,
 				bool closure);
 
-		template <class TElem>
+		template <typename TElem>
 		void copy_state_to_sides (
 				size_t lvl,
 				uint considerElemMarks,
 				bool closure);
 
-		template <class TSide>
+		template <typename TSide>
 		void adjust_side_of_states (
 				size_t lvl,
 				uint considerSideMarks,
@@ -113,10 +113,10 @@ class UG_API RegularRefiner_MultiGrid : public IRefiner{
 				RefinementMark newElemMark,
 				bool closure);
 
-		template <class TElem>
+		template <typename TElem>
 		void clear_dummies ();
 
-		template <class TElem>
+		template <typename TElem>
 		void mark_by_level_discrepancy (
 				int lvl,
 				Grid::VertexAttachmentAccessor<AInt> aaLvl);
@@ -140,4 +140,4 @@ class UG_API RegularRefiner_MultiGrid : public IRefiner{
 
 }//	end of namespace
 
-#endif	//__H__UG_regular_refiner_multi_grid
+#endif

@@ -658,7 +658,7 @@ static void Common(Registry& reg, string grp)
 }// end UserData
 
 
-template <class TValue, int dim>
+template <typename TValue, int dim>
 static void RegisterRasterUserData(Registry& reg, string name, string grp)
 {
 

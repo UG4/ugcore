@@ -45,7 +45,7 @@
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPos>
+template <typename TAAPos>
 bool
 ContainsPoint(Volume* vol, const vector3& p, TAAPos aaPos)
 {
@@ -89,7 +89,7 @@ PointIsInsideTetrahedron(const vector3& v, Tetrahedron* tet,
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCenter
-template<class TVertexPositionAttachmentAccessor>
+template<typename TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const VolumeVertices* vol, TVertexPositionAttachmentAccessor& aaPosVRT)
 {
@@ -114,7 +114,7 @@ CalculateCenter(const VolumeVertices* vol, TVertexPositionAttachmentAccessor& aa
 }
 
 ////////////////////////////////////////////////////////////////////////
-template<class TAAPosVRT, class TAAWeightVRT>
+template<typename TAAPosVRT, typename TAAWeightVRT>
 UG_API
 typename TAAPosVRT::ValueType
 CalculateCenter(const VolumeVertices* vol, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
@@ -146,7 +146,7 @@ CalculateCenter(const VolumeVertices* vol, TAAPosVRT& aaPos, TAAWeightVRT& aaWei
 
 
 ///	Can be used to compare vertices of their grids through their hash-value.
-template <class TElem>
+template <typename TElem>
 class CmpVrtsByHash{
 	public:
 		CmpVrtsByHash(TElem* e) : m_e(e) {};
@@ -158,7 +158,7 @@ class CmpVrtsByHash{
 };
 
 
-template <class TVolIter>
+template <typename TVolIter>
 void ConvertToTetrahedra (
 		Grid& grid,
 		TVolIter volsBegin,

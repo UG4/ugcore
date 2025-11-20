@@ -39,10 +39,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <set>
+// #include <set>
 
 #ifdef UG_PARALLEL
-#include "lib_algebra/parallelization/parallelization.h"
+#include "lib_algebra/parallelization/algebra_layouts.h"
 #include "pcl/pcl.h"
 #endif
 
@@ -64,7 +64,7 @@ extern DebugID SchurDebug;
  *
  * **/
 
-template <class TVec, size_t N>
+template <typename TVec, size_t N>
 class SlicingData{
 
 public:
@@ -152,14 +152,14 @@ public:
 
 
     /// Copy: slice of vector -> small vector.
-	template<class VT>
+	template<typename VT>
 	void get_vector_slice(const VT &full_src, slice_desc_type desc, VT &small_dst) const
 	{
 		const slice_desc_set &slice_desc = slice(desc);
 
 		// UG_DLOG("get_vector_slice:" << slice_desc.size());
 		small_dst.resize(slice_desc.size());
-		slice_desc_set::const_iterator elem = slice_desc.begin();
+		auto elem = slice_desc.begin();
 		for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
 			{ small_dst[i] = full_src[*elem]; }
 	}
@@ -167,12 +167,12 @@ public:
 
 
 	/// Copy: small vector -> slice of a vector.
-	template<class VT>
+	template<typename VT>
 	void set_vector_slice(const VT &small_src, VT &full_dst, slice_desc_type desc) const
 	{
 		const slice_desc_set &slice_desc = slice(desc);
 		//UG_LOG("get_vector_slice:" << slice_desc.size());
-		slice_desc_set::const_iterator elem = slice_desc.begin();
+		auto elem = slice_desc.begin();
 		for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
 			{
 				// UG_DLOG(SchurDebug, 8, "Copy: "<< i << "->" << *elem << "v=" << small_src[i] << std::endl)
@@ -181,40 +181,40 @@ public:
 	}
 
 	 /// Add: slice of vector -> small vector
-	template<class VT>
+	template<typename VT>
 	void add_vector_slice(const VT &full_src, slice_desc_type desc, VT &small_dst, double sigma=1.0) const
 	{
 		const slice_desc_set &slice_desc = slice(desc);
 		small_dst.resize(slice_desc.size());
-		slice_desc_set::const_iterator elem = slice_desc.begin();
+		auto elem = slice_desc.begin();
 		for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
 			{ small_dst[i] += sigma*full_src[*elem]; }
 	}
 
 	/// Add: small vector -> slice of a vector
-	template<class VT>
+	template<typename VT>
 	void add_vector_slice(const VT &small_src, VT &full_dst, slice_desc_type desc, double sigma=1.0) const
 	{
 		const slice_desc_set &slice_desc = slice(desc);
-		slice_desc_set::const_iterator elem = slice_desc.begin();
+		auto elem = slice_desc.begin();
 		for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
 			{ full_dst[*elem] += sigma*small_src[i]; }
 	}
 
 
 	 /// substract: slice of vector -> small vector
-	template<class VT>
+	template<typename VT>
 	void subtract_vector_slice(const VT &full_src, slice_desc_type desc, VT &small_dst) const
 	{ add_vector_slice(full_src, desc, small_dst, -1.0); }
 
 	/// substract: small vector -> slice of a vector
-	template<class VT>
+	template<typename VT>
 	void subtract_vector_slice(const VT &small_src, VT &full_dst, slice_desc_type desc) const
 	{ add_vector_slice(small_src, full_dst, desc, -1.0); }
 
 
 	// Extracts a slice from a (full) matrix
-	template<class MT>
+	template<typename MT>
 	void get_matrix(const MT &A, slice_desc_type row_type, slice_desc_type col_type, MT &Aslice) const
 	{
 		const slice_desc_set &row_slice = slice(row_type);
@@ -223,8 +223,7 @@ public:
 		Aslice.resize_and_clear(row_slice.size(), col_slice.size());
 
 		int ii=0;
-		for (slice_desc_set::const_iterator elem = row_slice.begin();
-			elem!=row_slice.end(); ++elem, ++ii)
+		for (auto elem = row_slice.begin(); elem!=row_slice.end(); ++elem, ++ii)
 		{
 			const int i = *elem; // global index
 			for(typename MT::const_row_iterator it = A.begin_row(i);
@@ -249,7 +248,7 @@ public:
 
 
 	//! Create a (partial) clone of the vector, without copying values
-	template<class VT>
+	template<typename VT>
 	SmartPtr<VT> slice_clone_without_values(const VT &full_src, slice_desc_type type) const
 	{
 		const slice_desc_set &slice_desc = slice(type);
@@ -269,7 +268,7 @@ public:
 	}
 
 	//! Sets an existing sliced vector up correctly
-	template<class VT>
+	template <typename VT>
 	void setup_slice_like(const VT &full_src, slice_desc_type type, VT & vectorslice) const
 	{
 		const slice_desc_set &slice_desc = slice(type);
@@ -287,7 +286,7 @@ public:
 	}
 
 	//! Create a (partial) clone
-	template<class VT>
+	template<typename VT>
 	SmartPtr<VT> slice_clone(const VT &full_src, slice_desc_type type) const
 	{
 		SmartPtr<VT> clone = slice_clone_without_values(full_src, type);
@@ -321,7 +320,7 @@ protected:
 		index = myset.size();
 
 		//slice_desc_set::const_iterator it = myset.find(gindex);
-		slice_desc_set::const_iterator it = lower_bound(myset.begin(), myset.end(), gindex);
+		auto it = lower_bound(myset.begin(), myset.end(), gindex);
 		if (it != myset.end() && *it == gindex) {
 			//index =// *it;
 			index = std::distance(myset.begin(), it);

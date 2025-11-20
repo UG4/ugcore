@@ -46,14 +46,14 @@ namespace ug{
 
 ///	This class can be used in Element callbacks.
 /**	Returns true, if the attachmed value in the given element matches a predefined value.*/
-template <class TElem, class TAttachmentAccessor>
+template <typename TElem, typename TAttachmentAccessor>
 class AttachmentUnequal{
 	public:
 		AttachmentUnequal(const TAttachmentAccessor& aa,
 						const typename TAttachmentAccessor::ValueType& val) :
 			m_aa(aa), m_val(val) {}
 
-		bool operator() (TElem* e) {return m_aa[e] != m_val;}
+		bool operator () (TElem* e) {return m_aa[e] != m_val;}
 
 	private:
 		TAttachmentAccessor						m_aa;
@@ -164,7 +164,7 @@ static bool VertexLiesOnSurface(Grid& grid, Vertex* vrt,
  *	This algorithm requires the option FACEOPT_AUTOGENERATE_EDGES.
  *	The option is automatically enabled if required.
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 typename TAAPosVRT::ValueType
 CalculateCreaseNormal(Grid& grid, Face* f, Vertex* vrt,
 						Grid::edge_traits::callback funcIsCreaseEdge,
@@ -254,7 +254,7 @@ CalculateCreaseNormal(Grid& grid, Face* f, Vertex* vrt,
  *	This algorithm requires the option VOLOPT_AUTOGENERATE_FACES.
  *	The option is automatically enabled if required.
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 typename TAAPosVRT::ValueType
 CalculateCreaseNormal(Grid& grid, Volume* vol, Vertex* vrt,
 						Grid::face_traits::callback funcIsCreaseFace,

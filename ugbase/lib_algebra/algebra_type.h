@@ -69,7 +69,7 @@ class AlgebraType
 		AlgebraType(const char* type, int blockSize);
 
 	///	constructor for variable block size
-		AlgebraType(const char* type);
+		explicit AlgebraType(const char* type);
 
 	///	returns the type
 		int type() const {return m_type;}
@@ -83,7 +83,7 @@ class AlgebraType
 };
 
 /// writes the Identifier to the output stream
-std::ostream& operator<<(std::ostream& out,	const AlgebraType& v);
+std::ostream& operator << (std::ostream& out, const AlgebraType& v);
 
 
 /// Singleton, providing the current default algebra.

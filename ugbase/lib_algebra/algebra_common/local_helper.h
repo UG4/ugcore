@@ -58,8 +58,8 @@ public:
 	size_t num_cols() const { return m->num_cols(); }
 	size_t row_index(size_t i) const { return rows[i]; }
 	size_t col_index(size_t i) const { return cols[i]; }
-	typename M::value_type &operator()(size_t i, size_t j) { return (*m)(i,j); }
-	const typename M::value_type &operator()(size_t i, size_t j) const { return (*m)(i,j); }
+	typename M::value_type &operator () (size_t i, size_t j) { return (*m)(i,j); }
+	const typename M::value_type &operator () (size_t i, size_t j) const { return (*m)(i,j); }
 
 private:
 	M *m;
@@ -78,7 +78,7 @@ public:
 	size_t num_cols() const { return m.num_cols(); }
 	size_t row_index(size_t i) const { return rows[i]; }
 	size_t col_index(size_t i) const { return cols[i]; }
-	const typename M::value_type &operator()(size_t i, size_t j) const { return m(i,j); }
+	const typename M::value_type &operator () (size_t i, size_t j) const { return m(i,j); }
 
 private:
 	const M &m;
@@ -101,8 +101,8 @@ public:
 	size_t num_cols() const { return numcols; }
 	size_t row_index(size_t i) const { return rows[i]; }
 	size_t col_index(size_t i) const { return cols[i]; }
-	T &operator()(size_t i, size_t j) { return m[i + j*numcols]; }
-	const T &operator()(size_t i, size_t j) const { return m[i + j*numcols]; }
+	T &operator () (size_t i, size_t j) { return m[i + j*numcols]; }
+	const T &operator () (size_t i, size_t j) const { return m[i + j*numcols]; }
 
 private:
 	T *m;
@@ -127,8 +127,8 @@ public:
 	size_t num_cols() const { return numcols; }
 	size_t row_index(size_t i) const { return rows[i]; }
 	size_t col_index(size_t i) const { return cols[i]; }
-	T &operator()(size_t i, size_t j) { return m[i*numrows + j]; }
-	const T &operator()(size_t i, size_t j) const { return m[i*numrows + j]; }
+	T &operator () (size_t i, size_t j) { return m[i*numrows + j]; }
+	const T &operator () (size_t i, size_t j) const { return m[i*numrows + j]; }
 
 private:
 	T *m;
@@ -150,8 +150,8 @@ public:
 	size_t size() const { return N; }
 	size_t index(size_t i) const { return indices[i]; }
 
-	T &operator[](size_t i) { return v[i]; }
-	const T &operator[](size_t i) const { return v[i]; }
+	T &operator [] (size_t i) { return v[i]; }
+	const T &operator [] (size_t i) const { return v[i]; }
 
 private:
 	size_t N;
@@ -171,7 +171,7 @@ private:
  * - num_cols()
  * - row_index(size_t i)
  * - col_index(size_t j)
- * - operator()(size_t i, size_t j)
+ * - operator () (size_t i, size_t j)
  * so that mat(i,j) will go to SparseMat(mat.row_index(i), mat.col_index(j))
  * \param mat the whole local matrix type
  */

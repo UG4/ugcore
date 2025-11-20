@@ -159,7 +159,7 @@ void CreateVolumesFromElementIndexList (
  * The last parameter is the actual refinement procedure as defined in
  * ug::tet_rules, ug::pyra_rules, ug::hex_rules or ug::prism_rules.
  */
-template <class TElemClass>
+template <typename TElemClass>
 static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 					Vertex** ppNewVertexOut,
 					Vertex** newEdgeVertices,

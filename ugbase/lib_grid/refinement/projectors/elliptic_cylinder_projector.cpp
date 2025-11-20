@@ -273,7 +273,7 @@ number EllipticCylinderProjector::scale_point_to_radius(vector3& vIO, number r)
 }
 
 
-template <class TElem>
+template <typename TElem>
 number EllipticCylinderProjector::perform_projection(Vertex* vrt, TElem* parent)
 {
 	// General method:

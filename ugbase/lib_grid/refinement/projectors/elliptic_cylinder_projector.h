@@ -126,12 +126,12 @@ class EllipticCylinderProjector
 		number radial_ellipse_coord(const vector3& v);
 		number scale_point_to_radius(vector3& vIO, number r);
 
-		template <class TElem>
+		template <typename TElem>
 		number perform_projection(Vertex* vrt, TElem* parent);
 
 		friend class boost::serialization::access;
 
-		template <class Archive>
+		template <typename Archive>
 		void serialize(Archive& ar, const unsigned int version)
 		{
 			ar & make_nvp("center", m_center);

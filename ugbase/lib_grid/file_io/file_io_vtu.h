@@ -55,7 +55,7 @@ namespace ug
  * 	of any dimension are supported. Especially ug::aPosition, ug::aPostion2
  *	and ug::aPosition1.
  */
-template <class TAPosition>
+template <typename TAPosition>
 bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh,
 					const char* filename, APosition& aPos);
 
@@ -72,7 +72,7 @@ bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh,
 					
 
 ///	Writes a grid to a vtu (vtk unstructured mesh) file
-template <class TAPosition>
+template <typename TAPosition>
 bool SaveGridToVTU(Grid& grid, ISubsetHandler* psh, const char* filename,
 				   TAPosition& aPos);
 
@@ -109,7 +109,7 @@ class GridWriterVTU
 	 * which are assigned to subsets will be written to the file as cells.
 	 * If you don't pass a subset-handler, only elements of highest dimension are
 	 * written to the file.*/
-		template <class TPositionAttachment>
+		template <typename TPositionAttachment>
 		bool new_piece(Grid& grid, ISubsetHandler* psh,
 					   TPositionAttachment& aPos);
 
@@ -141,14 +141,14 @@ class GridWriterVTU
 
 		void write_data_array_footer();
 
-		template <class TElem, class TAttachment>
+		template <typename TElem, typename TAttachment>
 		void write_vector_data(Grid& grid,
 							   TAttachment aData,
 							   const char* name = "",
 							   typename Grid::traits<TElem>::callback consider_elem =
 							  		ConsiderAll());
 
-		template <class TElem>
+		template <typename TElem>
 		void collect_cells(std::vector<GridObject*>& cellsOut,
 						   Grid& grid,
 						   typename Grid::traits<TElem>::callback consider_elem =
@@ -202,7 +202,7 @@ class GridReaderVTU
 	///	returns the i-th grid.
 	/**	TPositionAttachments value type has to be compatible with MathVector.
 	 *	Make sure that a file has already been loaded.*/
-		template <class TPositionAttachment>
+		template <typename TPositionAttachment>
 		bool grid(Grid& gridOut, size_t index, TPositionAttachment& aPos);
 
 	///	returns the name of the i-th grid
@@ -260,7 +260,7 @@ class GridReaderVTU
 	/**	if aaPos has more coordinates per vertex than the vrtNode,
 	 *	0's will be appended. If it has less, unused coordinates will
 	 *	be ignored.*/
-		template <class TAAPos>
+		template <typename TAAPos>
 		bool create_vertices(std::vector<Vertex*>& vrtsOut, Grid& grid,
 							rapidxml::xml_node<>* vrtNode, TAAPos aaPos);
 
@@ -270,14 +270,14 @@ class GridReaderVTU
 						  std::vector<Vertex*> vertices,
 						  size_t pieceVrtOffset);
 
-		template <class T>
+		template <typename T>
 		void read_scalar_data(std::vector<T>& dataOut,
 							  rapidxml::xml_node<>* dataNode,
 							  bool clearData = true);
 
 		void trafoDblVec2Int( std::vector<double> const & dblVec, std::vector<int> & intVec );
 
-		template <class T>
+		template <typename T>
 		void check_indices(std::vector<T>& inds, size_t first, size_t num, size_t max);
 
 		rapidxml::xml_node<>* find_child_node_by_argument_value(

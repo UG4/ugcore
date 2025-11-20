@@ -51,9 +51,9 @@ namespace ug{
  */
 using GeomObjID = std::pair<int, size_t>;
 
-UG_API std::ostream& operator<<(std::ostream& out, const GeomObjID& goId);
+UG_API std::ostream& operator << (std::ostream& out, const GeomObjID& goId);
 
-UG_API bool operator<(const GeomObjID& gid1, const GeomObjID& gid2);
+UG_API bool operator < (const GeomObjID& gid1, const GeomObjID& gid2);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Can be used to construct a GeomObjID from a proc-rank and a local id.

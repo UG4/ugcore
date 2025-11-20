@@ -55,7 +55,7 @@ namespace ug{
  *
  * \param aaPos			A VertexAttachmentAccessor to an APosition compatible type.
  */
-template <class TRef, class TIter, class TAAPos>
+template <typename TRef, typename TIter, typename TAAPos>
 void MarkForAnisotropicRefinement (
 			Grid& grid,
 			TRef& ref,
@@ -65,7 +65,7 @@ void MarkForAnisotropicRefinement (
 			TAAPos aaPos);
 
 
-template <class TRef, class TEdgeIter, class TAAPos>
+template <typename TRef, typename TEdgeIter, typename TAAPos>
 void MarkForRefinementByDirection (
 			TRef& ref,
 			TAAPos aaPos,

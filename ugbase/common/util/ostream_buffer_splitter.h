@@ -54,7 +54,7 @@ class OStreamBufferSplitter : public std::streambuf
 
 		OStreamBufferSplitter(std::streambuf* buf1, std::streambuf* buf2);
 
-		~OStreamBufferSplitter();
+		~OStreamBufferSplitter() override;
 
 	//	flushes the local buffer into the associated buffers
 		void flush();

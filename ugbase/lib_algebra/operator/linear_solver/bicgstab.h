@@ -92,22 +92,22 @@ class BiCGStab
 		          SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
 			: base_type(spPrecond, spConvCheck),
 			  m_numRestarts(0), m_minOrtho(0.0)
-		{};
+		{}
+
+		~BiCGStab() override = default;
 
 	///	name of solver
-		virtual const char* name() const {return "BiCGStab";}
+		const char* name() const override {return "BiCGStab";}
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const
-		{
+		bool supports_parallel() const override {
 			if(preconditioner().valid())
 				return preconditioner()->supports_parallel();
 			return true;
 		}
 
 	// 	Solve J(u)*x = b, such that x = J(u)^{-1} b
-		virtual bool apply_return_defect(vector_type& x, vector_type& b)
-		{
+		bool apply_return_defect(vector_type& x, vector_type& b) override {
 			LS_PROFILE_BEGIN(LS_ApplyReturnDefect);
 
 		//	check correct storage type in parallel

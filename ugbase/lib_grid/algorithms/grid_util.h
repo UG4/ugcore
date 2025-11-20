@@ -42,7 +42,7 @@ namespace ug{
  * pointer to a valid vertex in destGrid for each selected vertex in srcGrid.
  * Also make sure that all vertices belonging to a selected element have been
  * selected, too.*/
-template <class TElem>
+template <typename TElem>
 inline void CopySelectedElements(Selector& srcSel, Grid& destGrid, AVertex aNewVrt)
 {
 	Grid& srcGrid						= *srcSel.grid();
@@ -64,7 +64,7 @@ inline void CopySelectedElements(Selector& srcSel, Grid& destGrid, AVertex aNewV
 	}
 }
 
-template <class TAAPosSrc, class TAAPosDest>
+template <typename TAAPosSrc, typename TAAPosDest>
 inline void CopySelection(Selector& srcSel, Grid& destGrid,
 						  TAAPosSrc aaPosSrc, TAAPosDest aaPosDest)
 {
@@ -97,4 +97,4 @@ inline void CopySelection(Selector& srcSel, Grid& destGrid,
 
 }//	end of namespace
 
-#endif	//__H__UG_grid_util
+#endif

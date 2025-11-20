@@ -115,7 +115,7 @@ protected:
 private:
 	friend class boost::serialization::access;
 
-	template <class Archive>
+	template <typename Archive>
 	void serialize( Archive& ar, const unsigned int version)
 	{
 		UG_EMPTY_BASE_CLASS_SERIALIZATION(SubdivisionProjector, RefinementProjector);
@@ -131,4 +131,4 @@ private:
 
 }//	end of namespace
 
-#endif	//__H__UG_subdivision_projector
+#endif

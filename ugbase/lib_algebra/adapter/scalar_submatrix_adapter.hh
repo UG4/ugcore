@@ -49,7 +49,7 @@ using namespace ug;
 // allows to access a CPUBlockAlgebra (AT) as a scalar CPUAlgebra (ST)
 
 
-template<class AT, class ST, int R, int C>
+template<typename AT, typename ST, int R, int C>
 class ScalarSubMatrixAdapter{
 
 
@@ -70,7 +70,7 @@ public:
 	{return m_src.resize_and_keep_values(newRows, newCols);}
 
 
-	value_type &operator() (size_t r, size_t c)
+	value_type &operator () (size_t r, size_t c)
 	{
 		return BlockRef(m_src(r, c), m_subr, m_subc);
 	};
@@ -112,11 +112,11 @@ public:
 			row_iterator(typename encapsulated_matrix_type::row_iterator _iter)
 			: iter(_iter) {}
 			~row_iterator() {}
-			row_iterator *operator->() { return iter.operator->(); }
-			bool operator!=(const row_iterator &o) const { return *iter != o->iter;  }
-			void operator++() { ++iter; }
-			void operator+=(int nr) { iter+=nr; }
-			bool operator==(const row_iterator &other) const { return other->iter == *iter;}
+			row_iterator *operator -> () { return iter.operator -> (); }
+			bool operator != (const row_iterator &o) const { return *iter != o->iter;  }
+			void operator ++ () { ++iter; }
+			void operator += (int nr) { iter+=nr; }
+			bool operator == (const row_iterator &other) const { return other->iter == *iter;}
 			size_t index() const { return iter.index(); }
 			value_type &value() { return BlockRef(iter.value(), m_subr, m_subc); }
 		};
@@ -129,7 +129,7 @@ public:
 				const_row_iterator(typename encapsulated_matrix_type::const_row_iterator _iter)
 				: iter(_iter) {}
 				~const_row_iterator() {}
-				const_row_iterator *operator ->() { return iter.operator->(); }
+				const_row_iterator *operator ->() { return iter.operator -> (); }
 				bool operator != (const const_row_iterator &o) const { return iter!= o.iter;  }
 				void operator ++ () { ++iter; }
 				void operator += (int nr) { iter+=nr; }

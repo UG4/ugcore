@@ -48,8 +48,8 @@
 
 namespace ug {
 
-template <class TAAPos>
-template <class TElem>
+template <typename TAAPos>
+template <typename TElem>
 bool ParallelShiftIdentifier<TAAPos>::match_impl(TElem* e1, TElem* e2) const {
 	if (e1 == e2)
 		return false;
@@ -74,7 +74,7 @@ bool ParallelShiftIdentifier<TAAPos>::match_impl(TElem* e1, TElem* e2) const {
 	return result;
 }
 
-template <class TElem>
+template <typename TElem>
 void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2,
 		IIdentifier& ident) {
 	using container = typename Grid::traits<typename TElem::side>::secure_container;
@@ -122,7 +122,7 @@ void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2,
 }
 
 // is considered periodic if it is a master or a slave
-template <class TElem>
+template <typename TElem>
 bool PeriodicBoundaryManager::is_periodic(TElem* e) const {
 	if(e)
 		return get_periodic_status_accessor<TElem>()[e] != P_NOT_PERIODIC;
@@ -131,7 +131,7 @@ bool PeriodicBoundaryManager::is_periodic(TElem* e) const {
 }
 
 // gets master of e, may be null
-template <class TElem>
+template <typename TElem>
 TElem* PeriodicBoundaryManager::master(TElem* e) const {
 	if (group(e)) {
 		return group(e)->m_master;
@@ -140,7 +140,7 @@ TElem* PeriodicBoundaryManager::master(TElem* e) const {
 }
 
 // gets slaves of e
-template <class TElem>
+template <typename TElem>
 typename PeriodicBoundaryManager::Group<TElem>::SlaveContainer*
 PeriodicBoundaryManager::slaves(TElem* e) const {
 	if (group(e)) {
@@ -149,7 +149,7 @@ PeriodicBoundaryManager::slaves(TElem* e) const {
 	return nullptr;
 }
 
-template <class TElem>
+template <typename TElem>
 void PeriodicBoundaryManager::print_identification() const {
 	using Iterator = typename ElementStorage<TElem>::SectionContainer::iterator;
 	using SlaveIter = typename Group<TElem>::SlaveIterator;
@@ -182,7 +182,7 @@ void PeriodicBoundaryManager::print_identification() const {
  *
  * If replacesParent is true, e is meant to replace pParent
  */
-template <class TElem>
+template <typename TElem>
 void PeriodicBoundaryManager::replace_parent(TElem* e, TElem* pParent) {
 
 	if (is_master(pParent)) {
@@ -203,7 +203,7 @@ void PeriodicBoundaryManager::replace_parent(TElem* e, TElem* pParent) {
 	}
 }
 
-template <class TElem, class TParent>
+template <typename TElem, typename TParent>
 void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent) {
 	using ParentSlaveContainer = typename Group<TParent>::SlaveContainer;
 
@@ -338,7 +338,7 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent) {
 	mg.end_marking();
 }
 
-template <class TElem>
+template <typename TElem>
 void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e,
 		GridObject* pParent, bool replacesParent) {
 	// we can only identify periodic elements, which have a periodic parent
@@ -369,7 +369,7 @@ void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e,
 }
 
 /// handles deletion of element type
-template <class TElem>
+template <typename TElem>
 void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
 	if((!is_periodic(e)) || replacedBy)
 		return;
@@ -390,7 +390,7 @@ void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 void PeriodicBoundaryManager::make_slave(Group<TElem>* g, TElem* slave) {
 	UG_ASSERT(g, "invalid group")
 	UG_ASSERT(slave, "invalid slave")
@@ -411,7 +411,7 @@ void PeriodicBoundaryManager::make_slave(Group<TElem>* g, TElem* slave) {
 	set_group(g, slave);
 }
 
-template <class TElem>
+template <typename TElem>
 void PeriodicBoundaryManager::make_master(Group<TElem>* g, TElem* new_master) {
 	// group has a master, reset its group
 	if(g->m_master) {
@@ -420,7 +420,7 @@ void PeriodicBoundaryManager::make_master(Group<TElem>* g, TElem* new_master) {
 	g->m_master = new_master;
 }
 
-template <class TElem>
+template <typename TElem>
 bool PeriodicBoundaryManager::remove_slave(TElem* e) {
 	if (slaves(e)) {
 		typename Group<TElem>::SlaveContainer& s = *slaves(e);
@@ -444,7 +444,7 @@ bool PeriodicBoundaryManager::remove_slave(TElem* e) {
 	return false;
 }
 
-template <class TElem>
+template <typename TElem>
 void PeriodicBoundaryManager::remove_group(Group<TElem>* g) {
 	UG_ASSERT(g, "should remove invalid group")
 
@@ -462,7 +462,7 @@ void PeriodicBoundaryManager::remove_group(Group<TElem>* g) {
 /**
  * merges g1 in g0 and deletes g1 afterwards
  */
-template <class TElem>
+template <typename TElem>
 void PeriodicBoundaryManager::merge_groups(Group<TElem>* g0, Group<TElem>* g1) {
 	UG_ASSERT(g0 && g1, "groups not valid")
 	UG_ASSERT(g0 != g1, "groups are equal")
@@ -492,25 +492,25 @@ void PeriodicBoundaryManager::merge_groups(Group<TElem>* g0, Group<TElem>* g1) {
 	delete g1;
 }
 
-template <class TElem>
+template <typename TElem>
 bool PeriodicBoundaryManager::is_slave(TElem* e) const {
 	PeriodicStatus p = get_periodic_status_accessor<TElem>()[e];
 	return (p == P_SLAVE || p == P_SLAVE_MASTER_UNKNOWN);
 }
 
-template <class TElem>
+template <typename TElem>
 bool PeriodicBoundaryManager::is_master(TElem* e) const {
 	return get_periodic_status_accessor<TElem>()[e] == P_MASTER;
 }
 
-template <class TElem>
+template <typename TElem>
 PeriodicBoundaryManager::Group<TElem>* PeriodicBoundaryManager::group(
 		TElem* e) const {
 	UG_ASSERT(e, "element not valid.")
 	return get_group_accessor<TElem>()[e];
 }
 
-template <class TElem>
+template <typename TElem>
 void PeriodicBoundaryManager::set_group(Group<TElem>* g, TElem* e) {
 	UG_ASSERT(e, "element not valid for attachment access.")
 	// set group pointer of element e
@@ -527,7 +527,7 @@ void PeriodicBoundaryManager::set_group(Group<TElem>* g, TElem* e) {
 	}
 }
 
-template <class TElem, class TIterator>
+template <typename TElem, typename TIterator>
 void PeriodicBoundaryManager::check_elements_periodicity(
 		TIterator begin,
 		TIterator end,
@@ -573,7 +573,7 @@ void PeriodicBoundaryManager::check_elements_periodicity(
 	}
 }
 
-template <class TDomain>
+template <typename TDomain>
 void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2) {
 	// get subset handler from domain
 	using subset_handler_type = typename TDomain::subset_handler_type;
@@ -597,7 +597,7 @@ void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2) {
 }
 
 /// performs geometric ident of periodic elements and master slave
-template <class TDomain>
+template <typename TDomain>
 void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 
 #ifdef UG_PARALLEL

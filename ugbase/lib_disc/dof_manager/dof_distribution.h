@@ -204,7 +204,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		}
 
 		/// returns if the grid object is part of the dof distribution
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		bool is_contained(TGeomObj* obj) const{
 			return m_spSurfView->is_contained(obj, grid_level());
 		}

@@ -45,7 +45,7 @@
 
 namespace ug{
 
-template <class TElemDisc>
+template <typename TElemDisc>
 static void prep_assemble_loop(std::vector<TElemDisc*> vElemDisc)
 {
 	for(size_t i = 0; i < vElemDisc.size(); ++i)
@@ -54,7 +54,7 @@ static void prep_assemble_loop(std::vector<TElemDisc*> vElemDisc)
 	}
 }
 
-template <class TElemDisc>
+template <typename TElemDisc>
 static void post_assemble_loop(std::vector<TElemDisc*> vElemDisc)
 {
 	for(size_t i = 0; i < vElemDisc.size(); ++i)

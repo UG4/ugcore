@@ -150,7 +150,7 @@ class GridLayoutMap
 		using Key = int;
 
 	///	defines the types that are used by a LayoutMap for a given TType.
-		template <class TType>
+		template <typename TType>
 		struct Types
 		{
 			using Interface = pcl::OrderedInterface<TType, std::list>;
@@ -161,16 +161,16 @@ class GridLayoutMap
 
 	public:
 	///	checks whether the layout associated with the given key exists for the given type.
-		template <class TType>
+		template <typename TType>
 		bool
 		has_layout(const Key& key) const;
 
 	///	creates the required layout if it doesn't exist already.
-		template <class TType>
+		template <typename TType>
 		typename Types<TType>::Layout&
 		get_layout(const Key& key);
 
-		template <class TType>
+		template <typename TType>
 		const typename Types<TType>::Layout&
 		get_layout(const Key& key) const;
 
@@ -178,11 +178,11 @@ class GridLayoutMap
 	/**	iter.first will return the key, iter.second the layout
 	 *	(of type LayoutMap::Types<TType>::Layout).
 	 *	\{ */
-		template <class TType>
+		template <typename TType>
 		typename Types<TType>::Map::iterator
 		layouts_begin();
 
-		template <class TType>
+		template <typename TType>
 		typename Types<TType>::Map::const_iterator
 		layouts_begin() const;
 	/** \} */
@@ -191,23 +191,23 @@ class GridLayoutMap
 	/**	iter.first will return the key, iter.second the layout
 	 *	(of type LayoutMap::Types<TType>::Layout).
 	 *	\{ */
-		template <class TType>
+		template <typename TType>
 		typename Types<TType>::Map::iterator
 		layouts_end();
 
-		template <class TType>
+		template <typename TType>
 		typename Types<TType>::Map::const_iterator
 		layouts_end() const;
 	/** \} */
 
 	///	erases the specified layout
 	/**	returns an iterator to the next layout.*/
-		template <class TType>
+		template <typename TType>
 		typename Types<TType>::Map::iterator
 		erase_layout(typename Types<TType>::Map::iterator iter);
 								
 	///	erases the specified layout if it exists
-		template <class TType>
+		template <typename TType>
 		void erase_layout(const Key& key);
 
 		void clear();
@@ -216,11 +216,11 @@ class GridLayoutMap
 		void remove_empty_interfaces();
 
 	private:
-		template <class TType>
+		template <typename TType>
 		inline typename Types<TType>::Map&
 		get_layout_map();
 		
-		template <class TType>
+		template <typename TType>
 		inline const typename Types<TType>::Map&
 		get_layout_map() const;
 

@@ -52,7 +52,7 @@ size_t hash_key<AlgebraID>(const AlgebraID& key)
 	return  factor * (unsigned long)key.master_proc() * ind + ind;
 }
 
-std::ostream& operator<<(std::ostream &out, const AlgebraID &ID)
+std::ostream& operator << (std::ostream &out, const AlgebraID &ID)
 {
   out << "p" << ID.first << "i" << ID.second;
   return out;
@@ -393,13 +393,13 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 	using Interface = IndexLayout::Interface;
 	using ConstInterfaceIter = IndexLayout::const_iterator;
 	using Element = Interface::Element;
-	using ConstElemIter = Interface::const_iterator;
+	// using ConstElemIter = Interface::const_iterator;
 
 //	the local process and subdomain id
 	int localProcID = ProcRank();
 	int localSubdomID = ddinfo.map_proc_id_to_subdomain_id(localProcID);
 
-	for(ConstInterfaceIter iiter = standardLayout.begin();
+	for(auto iiter = standardLayout.begin();
 		iiter != standardLayout.end(); ++iiter)
 	{
 	//	connected proc and subdomain ids
@@ -413,7 +413,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 		int numMult = 0;		// flag: -2
 		int numOne = 0;			// flag: >= 0
 		int numNone = 0;		// flag: -1
-		for(ConstElemIter eiter = stdInterface.begin();
+		for(auto eiter = stdInterface.begin();
 			eiter != stdInterface.end(); ++eiter)
 		{
 			int flag = flags[stdInterface.get_element(eiter)];
@@ -436,7 +436,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 			//	connected to exactly one other subdomain have to be copied
 			//	to subdomLayoutOut.
 				Interface& subdomInterface = subdomLayoutOut.interface(connProc);
-				for(ConstElemIter eiter = stdInterface.begin();
+				for(auto eiter = stdInterface.begin();
 					eiter != stdInterface.end(); ++eiter)
 				{
 					Element elem = stdInterface.get_element(eiter);
@@ -449,7 +449,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 			//	and the deltaNbrInterface
 				Interface& deltaNbrInterface = deltaNbrLayoutOut.interface(connProc);
 				Interface& processInterface = processLayoutOut.interface(connProc);
-				for(ConstElemIter eiter = stdInterface.begin();
+				for(auto eiter = stdInterface.begin();
 					eiter != stdInterface.end(); ++eiter)
 				{
 					Element elem = stdInterface.get_element(eiter);
@@ -468,7 +468,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 			Interface& crossInterface = crossPointLayoutOut.interface(connProc);
 
 		//	iterate over the elements again and assign them to their interfaces.
-			for(ConstElemIter eiter = stdInterface.begin();
+			for(auto eiter = stdInterface.begin();
 				eiter != stdInterface.end(); ++eiter)
 			{
 				Element elem = stdInterface.get_element(eiter);
@@ -483,7 +483,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 			Interface& processInterface = processLayoutOut.interface(connProc);
 
 		//	iterate over the elements again and assign them to their interfaces.
-			for(ConstElemIter eiter = stdInterface.begin();
+			for(auto eiter = stdInterface.begin();
 				eiter != stdInterface.end(); ++eiter)
 			{
 				Element elem = stdInterface.get_element(eiter);
@@ -536,7 +536,7 @@ void BuildDomainDecompositionLayouts(
 
 //	iterate over all standard master interfaces and fill the vector as
 //	described above for master elements
-	for(ConstInterfaceIter iiter = standardMasters.begin();
+	for(auto iiter = standardMasters.begin();
 		iiter != standardMasters.end(); ++iiter)
 	{
 	//	connected proc and subdomain ids
@@ -545,7 +545,7 @@ void BuildDomainDecompositionLayouts(
 		if(localSubdomID != connSubdomID){
 		//	the interface connects two subdomains.
 			const Interface& interface = standardMasters.interface(iiter);
-			for(ConstElemIter eiter = interface.begin();
+			for(auto eiter = interface.begin();
 				eiter != interface.end(); ++eiter)
 			{
 				Interface::Element ind = interface.get_element(eiter);
@@ -569,11 +569,11 @@ void BuildDomainDecompositionLayouts(
 
 //	now fill the flags vector for slave entries.
 //	here we'll use the connectionsToProcs, since we otherwise wouldn't know all connections.
-	for(ConstInterfaceIter iiter = standardSlaves.begin();
+	for(auto iiter = standardSlaves.begin();
 		iiter != standardSlaves.end(); ++iiter)
 	{
 		const Interface& interface = standardSlaves.interface(iiter);
-		for(ConstElemIter eiter = interface.begin();
+		for(auto eiter = interface.begin();
 			eiter != interface.end(); ++eiter)
 		{
 			Interface::Element elem = interface.get_element(eiter);
@@ -761,14 +761,14 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 	std::map<size_t, std::map<size_t, size_t> > localToInterfaceIndex;
 	//slaveOnProc.resize(A_OL2.num_rows());
 
-	for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
+	for(auto iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
 		IndexLayout::Interface &interface = masterLayout.interface(iter);
 		int pid = masterLayout.proc_id(iter);
 
 		std::map<size_t, size_t> &localToInterfaceIndexMap = localToInterfaceIndex[pid];
 		size_t i=0;
-		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2, ++i)
+		for(auto iter2 = interface.begin(); iter2 != interface.end(); ++iter2, ++i)
 		{
 			size_t index = interface.get_element(iter2);
 			slaveOnProc[index].push_back(pid);
@@ -779,7 +779,7 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 	using BufferMap = std::map<int, BinaryBuffer>;
 	BufferMap sendpack;
 	//UG_LOG("\n\n");
-	for(std::map<size_t, std::vector<int> >::iterator it = slaveOnProc.begin(); it != slaveOnProc.end(); ++it)
+	for(auto it = slaveOnProc.begin(); it != slaveOnProc.end(); ++it)
 	{
 		std::vector<int> &procs = it->second;
 		if(procs.size() <= 1) continue;
@@ -801,7 +801,7 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 		//UG_LOG("\n");
 	}
 
-	for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
+	for(auto iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
 		int pid = masterLayout.proc_id(iter);
 		BinaryBuffer &stream = sendpack[pid];
@@ -813,7 +813,7 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 	BufferMap receivepack;
 	std::vector<int> pids;
 
-	for(IndexLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
+	for(auto iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
 	{
 		int pid = slaveLayout.proc_id(iter);
 		pids.push_back(pid);
@@ -839,7 +839,7 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 
 		std::vector<size_t> indices;
 		IndexLayout::Interface &interface = slaveLayout.interface(pid);
-		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+		for(auto iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 			indices.push_back(interface.get_element(iter2));
 
 		while(!stream.eof())
@@ -934,7 +934,7 @@ void CreateAllToAllFromMasterSlave(pcl::InterfaceCommunicator<IndexLayout> &comm
 
 SmartPtr<AlgebraLayouts> CreateLocalAlgebraLayouts()
 {
-	AlgebraLayouts *p = new AlgebraLayouts;
+	auto *p = new AlgebraLayouts;
 	p->clear();
 	p->proc_comm() = pcl::ProcessCommunicator(pcl::PCD_LOCAL);
 	return SmartPtr<AlgebraLayouts>(p);

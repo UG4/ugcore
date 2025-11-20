@@ -52,45 +52,45 @@ namespace ug{
  * 			approximation to the actual volume.
  * \{ */
 //	VOLUMES
-template <class TAAPos>
+template <typename TAAPos>
 inline
 number CalculateVolume(Volume* elem, TAAPos aaPos);
 
-template <class TAAPos>
+template <typename TAAPos>
 inline
 number CalculateVolume(Tetrahedron* elem, TAAPos aaPos);
 
-template <class TAAPos>
+template <typename TAAPos>
 inline
 number CalculateVolume(Pyramid* elem, TAAPos aaPos);
 
-template <class TAAPos>
+template <typename TAAPos>
 inline
 number CalculateVolume(Prism* elem, TAAPos aaPos);
 
-template <class TAAPos>
+template <typename TAAPos>
 inline
 number CalculateVolume(Hexahedron* elem, TAAPos aaPos);
 
-template <class TAAPos>
+template <typename TAAPos>
 inline
 number CalculateVolume(Octahedron* elem, TAAPos aaPos);
 
 //	FACES
-template <class TAAPos>
+template <typename TAAPos>
 inline
 number CalculateVolume(FaceVertices* elem, TAAPos aaPos);
 
 //	EDGES
-template <class TAAPos>
+template <typename TAAPos>
 inline
 number CalculateVolume(EdgeVertices* elem, TAAPos aaPos);
 
-template <class TAAPos>
+template <typename TAAPos>
 inline
 number CalculateVolume(Vertex* elem, TAAPos aaPos);
 
-template <class TIterator, class TAAPos>
+template <typename TIterator, typename TAAPos>
 inline
 number CalculateVolume(TIterator begin, TIterator end, TAAPos aaPos);
 /** \} */

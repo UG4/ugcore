@@ -38,6 +38,7 @@
 #include <string>
 #include "common/profiler/profiler.h"
  #include "common/error.h"
+#include "lib_algebra/operator/preconditioner/jacobi.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/operator/linear_operator/std_transfer.h"
 #include "lib_disc/operator/linear_operator/std_injection.h"
@@ -136,8 +137,7 @@ SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 clone()
 {
-	SmartPtr<AssembledMultiGridCycle<TDomain, TAlgebra> > clone(
-		new AssembledMultiGridCycle<TDomain, TAlgebra>(m_spApproxSpace));
+	SmartPtr<AssembledMultiGridCycle > clone(new AssembledMultiGridCycle(m_spApproxSpace));
 
 	clone->set_base_level(m_baseLev);
 	clone->set_base_solver(m_spBaseSolver);
@@ -161,11 +161,6 @@ clone()
 
 	return clone;
 }
-
-template <typename TDomain, typename TAlgebra>
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-~AssembledMultiGridCycle()
-{};
 
 ////////////////////////////////////////////////////////////////////////////////
 // apply and init

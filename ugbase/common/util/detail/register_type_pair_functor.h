@@ -48,7 +48,7 @@ struct RegisterTypePairFunctor
  * It assumes that the template type 'TPair' is a boost::mpl::pair which
  * contains an arbitrary type as first entry and a boost::mpl::string as
  * second entry.*/
-	template <typename TPair> void operator()(TPair)
+	template <typename TPair> void operator () (TPair)
 	{
 		m_reg->template register_class <typename TPair::first>(
 					boost::mpl::c_str<typename TPair::second>::value);
@@ -61,4 +61,4 @@ struct RegisterTypePairFunctor
 }//	end of namespace
 }//	end of namespace
 
-#endif	//__H__UG_register_type_pair_functor
+#endif

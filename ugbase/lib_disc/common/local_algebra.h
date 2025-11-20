@@ -228,7 +228,7 @@ class LocalVector
 		// vector functions
 		///////////////////////////
 
-	this_type& operator=(const this_type& other)
+	this_type& operator = (const this_type& other)
 	{
 		m_pIndex = other.m_pIndex;
 		const size_t numFcts = m_pIndex->num_fct();
@@ -245,7 +245,7 @@ class LocalVector
 	}
 
 	/// set all components of the vector
-		this_type& operator=(number val)
+		this_type& operator = (number val)
 		{
 			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
 				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
@@ -254,13 +254,13 @@ class LocalVector
 		}
 
 	/// multiply all components of the vector
-		this_type& operator*(number val)
+		this_type& operator * (number val)
 		{
-			return this->operator*=(val);
+			return this->operator *= (val);
 		}
 
 	/// multiply all components of the vector
-		this_type& operator*=(number val)
+		this_type& operator *= (number val)
 		{
 			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
 				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
@@ -269,7 +269,7 @@ class LocalVector
 		}
 
 	/// add a local vector
-		this_type& operator+=(const this_type& rhs)
+		this_type& operator += (const this_type& rhs)
 		{
 			UG_LOCALALGEBRA_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
 			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
@@ -279,7 +279,7 @@ class LocalVector
 		}
 
 	/// subtract a local vector
-		this_type& operator-=(const this_type& rhs)
+		this_type& operator -= (const this_type& rhs)
 		{
 			UG_LOCALALGEBRA_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
 			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
@@ -349,14 +349,14 @@ class LocalVector
 		}
 
 	/// access to dof of currently accessible function fct
-		number& operator()(size_t fct, size_t dof)
+		number& operator () (size_t fct, size_t dof)
 		{
 			check_dof(fct,dof);
 			return m_vvValueAcc[fct][dof];
 		}
 
 	/// const access to dof of currently accessible function fct
-		number operator()(size_t fct, size_t dof) const
+		number operator () (size_t fct, size_t dof) const
 		{
 			check_dof(fct,dof);
 			return m_vvValueAcc[fct][dof];
@@ -474,7 +474,7 @@ class LocalMatrix
 		///////////////////////////
 
 	/// set all entries
-		this_type& operator=(number val)
+		this_type& operator = (number val)
 		{
 			for(size_t fct1=0; fct1 < m_CplMat.num_rows(); ++fct1)
 				for(size_t fct2=0; fct2 < m_CplMat.num_cols(); ++fct2)
@@ -483,13 +483,13 @@ class LocalMatrix
 		}
 
 	/// multiply all entries
-		this_type& operator*(number val)
+		this_type& operator * (number val)
 		{
-			return this->operator*=(val);
+			return this->operator *= (val);
 		}
 
 	/// multiply matrix
-		this_type& operator*=(number val)
+		this_type& operator *= (number val)
 		{
 			for(size_t fct1=0; fct1 < m_CplMat.num_rows(); ++fct1)
 				for(size_t fct2=0; fct2 < m_CplMat.num_cols(); ++fct2)
@@ -498,7 +498,7 @@ class LocalMatrix
 		}
 
 	/// add matrix
-		this_type& operator+=(const this_type& rhs)
+		this_type& operator += (const this_type& rhs)
 		{
 			UG_LOCALALGEBRA_ASSERT(m_pRowIndex==rhs.m_pRowIndex &&
 			          m_pColIndex==rhs.m_pColIndex, "Not same indices.");
@@ -509,7 +509,7 @@ class LocalMatrix
 		}
 
 	/// subtract matrix
-		this_type& operator-=(const this_type& rhs)
+		this_type& operator -= (const this_type& rhs)
 		{
 			UG_LOCALALGEBRA_ASSERT(m_pRowIndex==rhs.m_pRowIndex &&
 			          m_pColIndex==rhs.m_pColIndex, "Not same indices.");
@@ -601,7 +601,7 @@ class LocalMatrix
 		}
 
 	/// access to (restricted) coupling (rowFct, rowDoF) x (colFct, colDoF)
-		number& operator()(size_t rowFct, size_t rowDoF,
+		number& operator () (size_t rowFct, size_t rowDoF,
 		                   size_t colFct, size_t colDoF)
 		{
 			check_dof(rowFct, rowDoF, colFct, colDoF);
@@ -609,7 +609,7 @@ class LocalMatrix
 		}
 
 	/// const access to (restricted) coupling (rowFct, rowDoF) x (colFct, colDoF)
-		number operator()(size_t rowFct, size_t rowDoF,
+		number operator () (size_t rowFct, size_t rowDoF,
 		                        size_t colFct, size_t colDoF) const
 		{
 			check_dof(rowFct, rowDoF, colFct, colDoF);
@@ -710,7 +710,7 @@ class LocalMatrix
 };
 
 inline
-std::ostream& operator<< (std::ostream& outStream, const ug::LocalMatrix& mat)
+std::ostream& operator << (std::ostream& outStream, const LocalMatrix& mat)
 {
 	for(size_t fct1 = 0; fct1 < mat.num_row_fct(); ++fct1)
 		for(size_t fct2 = 0; fct2 < mat.num_col_fct(); ++fct2)
@@ -725,7 +725,7 @@ std::ostream& operator<< (std::ostream& outStream, const ug::LocalMatrix& mat)
 }
 
 inline
-std::ostream& operator<< (std::ostream& outStream, const ug::LocalVector& vec)
+std::ostream& operator << (std::ostream& outStream, const LocalVector& vec)
 {
 	for(size_t fct = 0; fct < vec.num_fct(); ++fct)
 		for(size_t dof = 0; dof < vec.num_dof(fct); ++dof)

@@ -54,15 +54,17 @@ public:
 	public:
 	///	default constructor
 		AssembledOperator()
-			: m_spAss(nullptr), m_gridLevel() {};
+			: m_spAss(nullptr) {};
 
 	///	constructor
 		AssembledOperator(SmartPtr<IAssemble<TAlgebra> > ass)
-			: m_spAss(ass), m_gridLevel(){};
+			: m_spAss(ass){};
 
 	///	constructor
 		AssembledOperator(SmartPtr<IAssemble<TAlgebra> > ass, const GridLevel& gl)
 			: m_spAss(ass), m_gridLevel(gl) {};
+
+		~AssembledOperator() override = default;
 
 	///	sets discretization for assembling
 		void set_discretization(SmartPtr<IAssemble<TAlgebra> > ass) {m_spAss = ass;}
@@ -74,13 +76,13 @@ public:
 		const GridLevel& level() const {return m_gridLevel;}
 
 	///	Init
-		virtual void init() {}
+		void init() override {}
 
 	///	Prepare for apply
-		virtual void prepare(vector_type& u);
+		void prepare(vector_type& u) override;
 
 	/// Compute d = L(u)
-		virtual void apply(vector_type& d, const vector_type& u);
+		void apply(vector_type& d, const vector_type& u) override;
 
 	/// return assembling
 		SmartPtr<IAssemble<TAlgebra> > discretization() {return m_spAss;}

@@ -49,13 +49,13 @@ class IsInSubset : public ElementCallback
 			m_sh(sh),
 			m_si(subsetIndex)	{}
 
-		bool operator() (Vertex* v) const	{return callback(v);}
-		bool operator() (Edge* e) const		{return callback(e);}
-		bool operator() (Face* f) const		{return callback(f);}
-		bool operator() (Volume* v) const	{return callback(v);}
+		bool operator () (Vertex* v) const	{return callback(v);}
+		bool operator () (Edge* e) const		{return callback(e);}
+		bool operator () (Face* f) const		{return callback(f);}
+		bool operator () (Volume* v) const	{return callback(v);}
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		bool callback(TElem* e) const		{return m_sh.get_subset_index(e) == m_si;}
 
 	private:
@@ -71,13 +71,13 @@ class IsNotInSubset : public ElementCallback
 			m_sh(sh),
 			m_si(subsetIndex)	{}
 
-		bool operator() (Vertex* v) const	{return callback(v);}
-		bool operator() (Edge* e) const		{return callback(e);}
-		bool operator() (Face* f) const		{return callback(f);}
-		bool operator() (Volume* v) const	{return callback(v);}
+		bool operator () (Vertex* v) const	{return callback(v);}
+		bool operator () (Edge* e) const		{return callback(e);}
+		bool operator () (Face* f) const		{return callback(f);}
+		bool operator () (Volume* v) const	{return callback(v);}
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		bool callback(TElem* e) const		{return m_sh.get_subset_index(e) != m_si;}
 
 	private:
@@ -89,4 +89,4 @@ class IsNotInSubset : public ElementCallback
 
 }//	end of namespace
 
-#endif	//__H__UG_subset_callbacks
+#endif

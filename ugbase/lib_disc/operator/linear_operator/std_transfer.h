@@ -86,7 +86,7 @@ class StdTransfer :
 		{};
 
 	/// virtual destructor
-		virtual ~StdTransfer() = default;
+		~StdTransfer() override = default;
 
 	///	set restriction damping (only applied on vector operation, not (!!) in assembled matrices)
 		void set_restriction_damping(number damp) {m_dampRes = damp;}
@@ -116,16 +116,16 @@ class StdTransfer :
 
 	public:
 	///	Set levels
-		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel) {}
+		void set_levels(GridLevel coarseLevel, GridLevel fineLevel) override {}
 
 	///	initialize the operator
-		virtual void init() {}
+		void init() override {}
 
 	///	returns new instance with same setting
-		virtual SmartPtr<ITransferOperator<TDomain, TAlgebra> > clone();
+		SmartPtr<ITransferOperator<TDomain, TAlgebra> > clone() override;
 
 	/// apply Operator, interpolate function
-		virtual void prolongate(vector_type& uFine, const vector_type& uCoarse){
+		void prolongate(vector_type& uFine, const vector_type& uCoarse) override {
 			GF* pFine = dynamic_cast<GF*>(&uFine);
 			const GF* pCoarse = dynamic_cast<const GF*>(&uCoarse);
 			if(!pFine || !pCoarse)
@@ -135,7 +135,7 @@ class StdTransfer :
 		}
 
 	/// apply transposed Operator, restrict function
-		virtual void do_restrict(vector_type& uCoarse, const vector_type& uFine){
+		void do_restrict(vector_type& uCoarse, const vector_type& uFine) override {
 			const GF* pFine = dynamic_cast<const GF*>(&uFine);
 			GF* pCoarse = dynamic_cast<GF*>(&uCoarse);
 			if(!pFine || !pCoarse)
@@ -146,20 +146,20 @@ class StdTransfer :
 
 	public:
 	///	returns prolongation as a matrix
-		virtual SmartPtr<matrix_type>
+		SmartPtr<matrix_type>
 		prolongation(const GridLevel& fineGL, const GridLevel& coarseGL,
-		             ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace);
+		             ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace) override;
 
 	///	returns restriction as a matrix
-		virtual SmartPtr<matrix_type>
+		SmartPtr<matrix_type>
 		restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
-		            ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace);
+		            ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace) override;
 
 	///	apply operator to a grid function
-		void prolongate(GF& uFine, const GF& uCoarse);
+		virtual void prolongate(GF& uFine, const GF& uCoarse);
 
 	///	apply operator to a grid function
-		void do_restrict(GF& uCoarse, const GF& uFine);
+		virtual void do_restrict(GF& uCoarse, const GF& uFine);
 
 	protected:
 	///	debug writing of matrix
@@ -199,7 +199,7 @@ class StdTransfer :
 			GridLevel toGL, fromGL;
 			RevisionCounter revCnt;
 
-			bool operator<(const TransferKey& other) const {
+			bool operator < (const TransferKey& other) const {
 				if(revCnt != other.revCnt) return revCnt < other.revCnt;
 				if(toGL != other.toGL) return toGL < other.toGL;
 				return fromGL < other.fromGL;

@@ -41,7 +41,7 @@ namespace ug{
 /**	Writes all elements between 'begin' and 'end' which are not sides of
  * elements in 'grid' to 'elemsOut'. This method only makes sense if called
  * on a sequence of vertices, edges, or faces.*/
-template <class TSideIterator>
+template <typename TSideIterator>
 size_t CollectUnconnectedSides (
 			std::vector<typename TSideIterator::value_type>& elemsOut,
 			Grid& grid,
@@ -66,4 +66,4 @@ size_t CollectUnconnectedSides (
 
 }//	end of namespace
 
-#endif	//__H__UG_isolated_elements
+#endif

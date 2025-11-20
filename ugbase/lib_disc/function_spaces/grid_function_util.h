@@ -703,7 +703,7 @@ void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  Const
 		file << fctIndex[i] << "\n";
 }
 
-template<class TFunction>
+template <typename TFunction>
 void WriteMatrixToConnectionViewer(const char *filename,
 		const typename TFunction::algebra_type::matrix_type &A,
 		const TFunction &u) {
@@ -770,7 +770,7 @@ inline void SaveMatrixToMTX( const char *filename,
 	mtx.write_from( A.get_matrix(), comment );
 }
 
-template<class TFunction>
+template <typename TFunction>
 void WriteVectorToConnectionViewer(const char *filename,
 		const typename TFunction::algebra_type::vector_type &b,
 		const TFunction &u,
@@ -792,7 +792,7 @@ void WriteVectorToConnectionViewer(const char *filename,
 	WriteAlgebraIndices(filename, u.domain(),u.dof_distribution());
 }
 
-template<class TFunction>
+template<typename TFunction>
 void WriteVectorToConnectionViewer(
 		const char *filename,
 		const typename TFunction::algebra_type::matrix_type &A,
@@ -916,7 +916,7 @@ void LoadVector(TGridFunction& u,const char* filename){
 }
 
 // Same as before, but for comma separated value (CSV)
-template<class TFunction>
+template<typename TFunction>
 void WriteVectorCSV(const char *filename,
 		const typename TFunction::algebra_type::vector_type &b,
 		const TFunction &u) {
@@ -1365,6 +1365,8 @@ public:
 			m_pApproxSpace(nullptr), m_spPostProcess(nullptr), m_level(-1) {
 	}
 
+	~GridFunctionVectorWriterDirichlet0() override = default;
+
 	void set_level(size_t level) {
 		m_level = level;
 	}
@@ -1375,11 +1377,8 @@ public:
 		m_pApproxSpace = &approxSpace;
 	}
 
-	/*virtual double calculate(MathVector<3> &v, double time)
-	 {
-	 }*/
 
-	virtual bool update(vector_type &vec) {
+	bool update(vector_type &vec) override {
 		PROFILE_FUNC_GROUP("debug");
 		UG_ASSERT(m_spPostProcess.valid(), "provide a post process with init");
 		UG_ASSERT(m_pApproxSpace != nullptr, "provide approximation space init");

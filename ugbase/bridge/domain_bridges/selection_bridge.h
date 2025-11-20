@@ -66,7 +66,7 @@ void SelectAssociatedElements(ISelector& sel, bool bSelect, bool selectVrts,
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Selects / Deselects elements in the given subset of the given domain
-template <class TDomain>
+template <typename TDomain>
 void SelectDomainSubset(ISelector& sel, TDomain& dom, int subsetIndex,
 						bool bSelect, bool selectVrts, bool selectEdges,
 						bool selectFaces, bool selectVolumes);

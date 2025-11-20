@@ -47,7 +47,7 @@ namespace ug
  *
  * The method returns nullptr if the vector is empty.
  * \{ */
-template <class T>
+template <typename T>
 T* GetDataPtr(std::vector<T>& v)
 {
 	if(v.empty())
@@ -55,7 +55,7 @@ T* GetDataPtr(std::vector<T>& v)
 	return &v.front();
 }
 
-template <class T>
+template <typename T>
 const T* GetDataPtr(const std::vector<T>& v)
 {
 	if(v.empty())

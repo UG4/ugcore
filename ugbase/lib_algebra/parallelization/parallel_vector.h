@@ -73,7 +73,7 @@ class ParallelVector : public TVector
 		//ParallelVector(const ParallelVector&);
 
 	/// catch all other assignments so we don't use copy constructor here
-		template<typename T> this_type &operator =(T t);
+		template<typename T> this_type &operator = (T t);
 
 
 	public:
@@ -83,12 +83,12 @@ class ParallelVector : public TVector
 		{}
 
 	/// Resizing constructor
-		ParallelVector(size_t length)
+		explicit ParallelVector(size_t length)
 			: TVector(length), m_type(PST_UNDEFINED), m_spAlgebraLayouts(new AlgebraLayouts)
 		{}
 
 	///	Constructor setting the Layouts
-		ParallelVector(ConstSmartPtr<AlgebraLayouts> layouts)
+		explicit ParallelVector(ConstSmartPtr<AlgebraLayouts> layouts)
 			: TVector(), m_type(PST_UNDEFINED), m_spAlgebraLayouts(layouts)
 		{}
 
@@ -171,14 +171,14 @@ class ParallelVector : public TVector
 		void set_random(number from, number to){return set_random(from, to, PST_CONSISTENT);}
 
 	///	assignment
-		this_type &operator =(const this_type &v);
+		this_type &operator = (const this_type &v);
 
 
 	///	subtract a vector
-		this_type &operator -=(const this_type &v);
+		this_type &operator -= (const this_type &v);
 
 	///	add a vector
-		this_type &operator +=(const this_type &v);
+		this_type &operator += (const this_type &v);
 
 	/// clones the vector (deep-copy) including values
 		SmartPtr<this_type> clone() const;

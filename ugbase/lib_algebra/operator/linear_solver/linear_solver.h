@@ -49,7 +49,7 @@ namespace ug{
  * This class is a linear iterating scheme, that uses any implementation
  * of the ILinearIterator interface to precondition the iteration.
  *
- * \tparam 		TAlgebra		algebra type
+ * \tparam 		TVector		vector type
  */
 template <typename TVector>
 class LinearSolver
@@ -71,6 +71,8 @@ class LinearSolver
 		LinearSolver(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond, SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
 			: base_type ( spPrecond, spConvCheck)  {}
 
+		~LinearSolver() override = default;
+
 	protected:
 		using base_type::convergence_check;
 		using base_type::linear_operator;
@@ -79,11 +81,10 @@ class LinearSolver
 
 	public:
 	///	returns the name of the solver
-		virtual const char* name() const {return "Iterative Linear Solver";}
+		const char* name() const override {return "Iterative Linear Solver";}
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const
-		{
+		bool supports_parallel() const override {
 			if(preconditioner().valid())
 				return preconditioner()->supports_parallel();
 			else return true;
@@ -111,8 +112,7 @@ class LinearSolver
 		}
 
 	///	solves the system and returns the last defect
-		virtual bool apply_return_defect(vector_type& x, vector_type& b)
-		{
+		bool apply_return_defect(vector_type& x, vector_type& b) override {
 
 			LS_PROFILE_BEGIN(LS_ApplyReturnDefect);
 

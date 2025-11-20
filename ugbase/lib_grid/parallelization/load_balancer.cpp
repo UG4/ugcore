@@ -355,7 +355,7 @@ estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 	return 0;
 }
 
-template <class TElem>
+template <typename TElem>
 number LoadBalancer::
 estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut)
 {

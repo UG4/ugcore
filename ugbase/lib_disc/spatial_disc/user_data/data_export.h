@@ -229,7 +229,7 @@ class DataExport :
 		template <int refDim>
 		class FunctorBase{
 			public:
-				virtual void operator()(TData vValue[],
+				virtual void operator () (TData vValue[],
 				                const MathVector<dim> vGlobIP[],
 								number time, int si,
 				                const LocalVector& u,
@@ -259,7 +259,7 @@ class DataExport :
 			public:
 				FreeFunctionFunctor(FreeFunc f) : m_f(f) {}
 
-				void operator()(TData vValue[],
+				void operator ()(TData vValue[],
 				                const MathVector<dim> vGlobIP[],
 								number time, int si,
 				                const LocalVector& u,
@@ -294,7 +294,7 @@ class DataExport :
 			public:
 				MemberFunctionFunctor(TClass* obj, MemFunc f) : m_pObj(obj), m_mf(f) {}
 
-				void operator()(TData vValue[],
+				void operator () (TData vValue[],
 				                const MathVector<dim> vGlobIP[],
 								number time, int si,
 				                const LocalVector& u,
@@ -325,7 +325,7 @@ class DataExport :
 				template <typename TClass, typename MemFunc>
 				Functor(TClass* obj, MemFunc f) : m_spImpl(new MemberFunctionFunctor<TClass, refDim>(obj, f)) {}
 
-				void operator()(TData vValue[],
+				void operator () (TData vValue[],
 				                const MathVector<dim> vGlobIP[],
 								number time, int si,
 				                const LocalVector& u,

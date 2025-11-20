@@ -65,7 +65,7 @@ class DelaunayDebugSaver
 			}
 		}
 
-		template <class TAAPos>
+		template <typename TAAPos>
 		void save(Grid& g, const char* msg, DelaunayInfo<TAAPos>& dinfo)
 		{
 			if(m_saveEnabled){
@@ -125,7 +125,7 @@ static void EnableDelaunayDebugSave(bool enable = true)
 // 	DelaunayDebugSaver::inst().save(g, msg);
 // }
 
-template <class TAAPos>
+template <typename TAAPos>
 static void DelaunayDebugSave(Grid& g, const char* msg, DelaunayInfo<TAAPos>& dinfo)
 {
 	DelaunayDebugSaver::inst().save(g, msg, dinfo);
@@ -134,7 +134,7 @@ static void DelaunayDebugSave(Grid& g, const char* msg, DelaunayInfo<TAAPos>& di
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAAPos>
+template <typename TAAPos>
 bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 {
 	using namespace std;
@@ -274,7 +274,7 @@ DelaunayLineLineIntersection(vector3& vOut,
 
 
 
-template <class TAAPos>
+template <typename TAAPos>
 bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 						   number minAngle, int maxSteps)
 {

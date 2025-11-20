@@ -172,7 +172,7 @@ class GridFunctionNumberData
 
 		}
 	
-		virtual void operator() (number& value,
+		virtual void operator () (number& value,
 									const MathVector<dim>& globIP,
 									number time, int si,
 									Vertex* vrt) const
@@ -349,7 +349,7 @@ class GridFunctionVectorData
 				<<roid<<", refDim="<<refDim);
 	}
 	
-	virtual void operator() (MathVector<dim>& value,
+	virtual void operator () (MathVector<dim>& value,
 										const MathVector<dim>& globIP,
 										number time, int si,
 										Vertex* vrt) const

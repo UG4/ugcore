@@ -172,10 +172,10 @@ class ReferenceMappingProvider {
 
 	// disallow copy and assignment (intentionally left unimplemented)
 		ReferenceMappingProvider(const ReferenceMappingProvider&);
-		ReferenceMappingProvider& operator=(const ReferenceMappingProvider&);
+		ReferenceMappingProvider& operator = (const ReferenceMappingProvider&);
 
 	// 	private destructor
-		~ReferenceMappingProvider(){};
+		~ReferenceMappingProvider() = default;
 
 	// 	Singleton provider
 		static ReferenceMappingProvider& inst()

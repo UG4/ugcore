@@ -397,5 +397,4 @@ public:
 };
 
 } // namespace ug
-#endif	/* LUAParserClass_H */
-
+#endif

@@ -40,7 +40,7 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIterator, class AAPosVRT>
+template <typename TIterator, typename AAPosVRT>
 void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 					TIterator vrtsEnd, AAPosVRT& aaPos,
 					number alpha, int numIterations)
@@ -113,7 +113,7 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 ///	Smoothes vertices in a 2d-manifold in 3d-space be moving vertices in the
 ///	tangential plane, only.
 /**	USES Grid::mark*/
-template <class TVrtIter, class TAAPos3>
+template <typename TVrtIter, typename TAAPos3>
 void TangentialSmoothSimple(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 					  TAAPos3 aaPos, number alpha, size_t numIterations)
 {
@@ -171,7 +171,7 @@ void TangentialSmoothSimple(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
  * Computes an offset vector for each vertex and smoothes this offset by averaging
  * with offsets of adjacent vertices. The offset is then projected back into the
  * tangential plane and each vertex is relocated using those smoothed offsets.*/
-template <class TVrtIter, class TAAPos3>
+template <typename TVrtIter, typename TAAPos3>
 void TangentialSmooth(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 					  TAAPos3 aaPos, number alpha, size_t numIterations)
 {
@@ -340,7 +340,7 @@ void TangentialSmooth(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
  * Make sure that cbSmoothVertex returns true for exactly all those vertices,
  * which in the range of the specified iterators.
  */
-template <class TIterator, class AAPosVRT>
+template <typename TIterator, typename AAPosVRT>
 void WeightedEdgeSmooth(Grid& grid, TIterator vrtsBegin,
 					TIterator vrtsEnd, AAPosVRT& aaPos,
 					number alpha, int numIterations,
@@ -400,7 +400,7 @@ void WeightedEdgeSmooth(Grid& grid, TIterator vrtsBegin,
  * Make sure that cbSmoothVertex returns true for exactly all those vertices,
  * which in the range of the specified iterators.
  */
-template <class TIterator, class AAPosVRT>
+template <typename TIterator, typename AAPosVRT>
 void WeightedFaceSmooth(Grid& grid, TIterator vrtsBegin,
 					TIterator vrtsEnd, AAPosVRT& aaPos,
 					number alpha, int numIterations,
@@ -467,7 +467,7 @@ void WeightedFaceSmooth(Grid& grid, TIterator vrtsBegin,
 /** The higher the dot-product between an outgoing edge and the vertex normal,
  * the higher the influence of that edge during smoothing of that vertex.
  */
-template <class TIterator, class AAPosVRT>
+template <typename TIterator, typename AAPosVRT>
 void WeightedNormalSmooth(Grid& grid, TIterator vrtsBegin,
 						  TIterator vrtsEnd, AAPosVRT& aaPos,
 						  number alpha, number dotThreshold,
@@ -519,7 +519,7 @@ void WeightedNormalSmooth(Grid& grid, TIterator vrtsBegin,
 
 ////////////////////////////////////////////////////////////////////////
 /** Linearizes the geometry along the gradient (steepest descent) with respect to the given up-vector*/
-template <class TIterator, class AAPosVRT>
+template <typename TIterator, typename AAPosVRT>
 void SlopeSmooth(Grid& grid, TIterator vrtsBegin,
 					TIterator vrtsEnd, AAPosVRT& aaPos,
 					number alpha, const vector3& up,

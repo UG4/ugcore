@@ -39,7 +39,7 @@
 namespace ug
 {
 /*
-template <class TChild, class TElem>
+template <typename TChild, typename TElem>
 int MultiGrid::num_children(TElem* elem)
 {
 
@@ -50,7 +50,7 @@ int MultiGrid::num_children(TElem* elem)
 }
 
 //	child access
-template <class TChild, class TElem>
+template <typename TChild, typename TElem>
 int MultiGrid::get_children(std::vector<TChild*>& vChildrenOut, TElem* elem)
 {
 
@@ -89,7 +89,7 @@ top_level() const
 	return size_t(m_hierarchy.num_subsets() - 1);
 }
 
-template <class TElem>
+template <typename TElem>
 size_t MultiGrid::
 num_children_total(TElem* elem)	const
 {
@@ -103,7 +103,7 @@ num_children_total(TElem* elem)	const
 }
 
 
-template<class TGeomObj>
+template <typename TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 MultiGrid::create(size_t level)
 {
@@ -118,7 +118,7 @@ MultiGrid::create(size_t level)
 	return iter;
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 MultiGrid::create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
 				size_t level)
@@ -141,7 +141,7 @@ inline void MultiGrid::level_required(int lvl)
 }
 
 
-template <class TChild>
+template <typename TChild>
 size_t MultiGrid::num_children(GridObject* elem) const
 {
 	switch(elem->base_object_id()){
@@ -153,7 +153,7 @@ size_t MultiGrid::num_children(GridObject* elem) const
 	return 0;
 }
 
-template <class TChild>
+template <typename TChild>
 TChild* MultiGrid::get_child(GridObject* elem, size_t ind) const
 {
 	switch(elem->base_object_id()){
@@ -165,7 +165,7 @@ TChild* MultiGrid::get_child(GridObject* elem, size_t ind) const
 	return nullptr;
 }
 
-template <class TElem>
+template <typename TElem>
 void MultiGrid::
 clear_child_connections(TElem* parent)
 {
@@ -173,7 +173,7 @@ clear_child_connections(TElem* parent)
 		get_info(parent).unregister_from_children(*this);
 }
 
-template <class TElem>
+template <typename TElem>
 void MultiGrid::
 associate_parent(TElem* elem, GridObject* parent)
 {
@@ -196,14 +196,14 @@ associate_parent(TElem* elem, GridObject* parent)
 	set_parent(elem, parent);
 }
 
-template <class TElem>
+template <typename TElem>
 char MultiGrid::
 parent_type(TElem* elem) const
 {
 	return m_aaParentType[elem];
 }
 
-template <class TElem>
+template <typename TElem>
 void MultiGrid::
 set_parent_type(TElem* elem, char type)
 {
@@ -262,14 +262,14 @@ inline const MultiGrid::VolumeInfo& MultiGrid::get_info(Volume* v) const
 	return emptyInfo;
 }
 
-template <class TParent, class TChild>
+template <typename TParent, typename TChild>
 void MultiGrid::add_child(TParent* p, TChild* c)
 {
 	create_child_info(p);
 	get_info(p).add_child(c);
 }
 
-template <class TChild>
+template <typename TChild>
 void MultiGrid::add_child(GridObject* p, TChild* c)
 {
 	switch(p->base_object_id()){
@@ -280,13 +280,13 @@ void MultiGrid::add_child(GridObject* p, TChild* c)
 	}
 }
 
-template <class TParent, class TChild>
+template <typename TParent, typename TChild>
 void MultiGrid::remove_child(TParent* p, TChild* c)
 {
 	get_info(p).remove_child(c);
 }
 
-template <class TChild>
+template <typename TChild>
 void MultiGrid::remove_child(GridObject* p, TChild* c)
 {
 	switch(p->base_object_id()){
@@ -297,7 +297,7 @@ void MultiGrid::remove_child(GridObject* p, TChild* c)
 	}
 }
 
-template <class TElem, class TParent>
+template <typename TElem, typename TParent>
 void MultiGrid::element_created(TElem* elem, TParent* pParent)
 {
 //	if hierarchical_insertion is enabled, the element will be put
@@ -332,7 +332,7 @@ void MultiGrid::element_created(TElem* elem, TParent* pParent)
 	m_hierarchy.assign_subset(elem, level);
 }
 
-template <class TElem, class TParent>
+template <typename TElem, typename TParent>
 void MultiGrid::element_created(TElem* elem, TParent* pParent,
 								TElem* pReplaceMe)
 {
@@ -360,7 +360,7 @@ void MultiGrid::element_created(TElem* elem, TParent* pParent,
 	set_parent_type(elem, parent_type(pReplaceMe));
 }
 
-template <class TElem>
+template <typename TElem>
 void MultiGrid::element_to_be_erased(TElem* elem)
 {
 //	we have to remove the elements children as well.
@@ -371,7 +371,7 @@ void MultiGrid::element_to_be_erased(TElem* elem)
 	release_child_info(elem);
 }
 
-template <class TElem, class TParent>
+template <typename TElem, typename TParent>
 void MultiGrid::element_to_be_erased(TElem* elem, TParent* pParent)
 {
 //	unregister the element from its parent.
@@ -385,7 +385,7 @@ void MultiGrid::element_to_be_erased(TElem* elem, TParent* pParent)
 }
 
 /*
-template <class TElem>
+template <typename TElem>
 void MultiGrid::element_to_be_replaced(TElem* elemOld, TElem* elemNew)
 {
 }
@@ -408,16 +408,16 @@ class MGWrapper<Grid>
 		inline uint num_levels() const
 		{return 1;}
 
-		template <class TElem> inline
+		template <typename TElem> inline
 		uint num(int level) const
 		{return m_grid.num<TElem>();}
 
-		template <class TElem> inline
+		template <typename TElem> inline
 		typename geometry_traits<TElem>::iterator
 		begin(int level)
 		{return m_grid.begin<TElem>();}
 
-		template <class TElem> inline
+		template <typename TElem> inline
 		typename geometry_traits<TElem>::iterator
 		end(int level)
 		{return m_grid.end<TElem>();}
@@ -437,16 +437,16 @@ class MGWrapper<MultiGrid>
 		inline uint num_levels() const
 		{return (uint)m_grid.num_levels();}
 
-		template <class TElem> inline
+		template <typename TElem> inline
 		uint num(int level) const
 		{return m_grid.num<TElem>(level);}
 
-		template <class TElem> inline
+		template <typename TElem> inline
 		typename geometry_traits<TElem>::iterator
 		begin(int level)
 		{return m_grid.begin<TElem>(level);}
 
-		template <class TElem> inline
+		template <typename TElem> inline
 		typename geometry_traits<TElem>::iterator
 		end(int level)
 		{return m_grid.end<TElem>(level);}

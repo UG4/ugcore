@@ -180,4 +180,4 @@ T CUDA_GetElementFromDevice(T *p, size_t i=0)
 	return t;
 }
 }
-#endif	/* CUDAManager_H */
+#endif

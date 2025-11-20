@@ -68,7 +68,7 @@ bool AssignTetrahedronAttributesByAspectRatio(Grid& grid,
  *					an element goes. Numbers have to be sorted, starting at
  *					0 and ending at 1 (0 and 1 should be contained in intervals).
  */
-template <class TIterator>
+template <typename TIterator>
 bool AssignSubsetsByQuality(Grid& grid, SubsetHandler& sh,
 						   TIterator elemsBegin, TIterator elemsEnd,
 						   std::vector<number> intervals)
@@ -101,7 +101,7 @@ bool AssignSubsetsByQuality(Grid& grid, SubsetHandler& sh,
 }
 
 
-template <class TIterator, class TAAPos>
+template <typename TIterator, typename TAAPos>
 void PrintElementEdgeRatios(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
 							TAAPos aaPos)
 {

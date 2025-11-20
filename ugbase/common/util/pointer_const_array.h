@@ -80,7 +80,7 @@ namespace ug
  * \todo:	Implement analogous PointerArray with additional resize method, which
  * 			allows to change existing entries.
  */
-template <class TPtr>
+template <typename TPtr>
 class PointerConstArray{
 	using ConstPtrArray = TPtr const*;
 	using PtrArray = TPtr*;
@@ -90,7 +90,7 @@ class PointerConstArray{
 		PointerConstArray(const PointerConstArray& pa);
 		~PointerConstArray();
 
-		PointerConstArray& operator=(const PointerConstArray& pa);
+		PointerConstArray& operator = (const PointerConstArray& pa);
 
 	///	returns the size of the associated array.
 		inline size_t size() const;
@@ -101,7 +101,7 @@ class PointerConstArray{
 	///	returns the i-th entry of the array. Make sure that i < size().
 	/**	Note that this is a read only operation and that entries in the associated
 	 * array may not be changed once they were added.*/
-		inline TPtr const operator[](size_t i) const;
+		inline TPtr const operator [] (size_t i) const;
 
 	///	set the array on which the container operates.
 	/**	The container will not take ownership over the array until bCopy is set

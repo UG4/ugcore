@@ -65,4 +65,4 @@ class ShadowCopyAdjuster : public IRefMarkAdjuster
 
 }  // namespace ug
 
-#endif	//__H__UG_shadow_copy_adjuster
+#endif

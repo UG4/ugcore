@@ -138,7 +138,7 @@ Edge* GetConnectingEdge(Grid& grid, Face* f1, Face* f2);
 
 ////////////////////////////////////////////////////////////////////////		
 ///	pushes all edges which are connected to at least 2 faces from the specified sequence to edgesOut
-template <class face_iter_t>
+template <typename face_iter_t>
 void GetInnerEdgesOfFaceSoup(
 			std::vector<Edge*>& edgesOut,
 			Grid& g,
@@ -149,7 +149,7 @@ void GetInnerEdgesOfFaceSoup(
 ///	Calculates the squared length of the given edge
 /**	The specified accessor has to access a MathVector compatible type
  * in the vertices of the underlying grid.*/
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 UG_API 
 inline number EdgeLengthSq(const EdgeVertices* e, TAAPosVRT& aaPos);
 
@@ -157,7 +157,7 @@ inline number EdgeLengthSq(const EdgeVertices* e, TAAPosVRT& aaPos);
 ///	Calculates the length of the given edge
 /**	The specified accessor has to access a MathVector compatible type
  * in the vertices of the underlying grid.*/
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 UG_API 
 inline number EdgeLength(const EdgeVertices* e, TAAPosVRT& aaPos);
 
@@ -244,7 +244,7 @@ bool EdgeCollapseIsValid(Grid& grid, Edge* e);
  * If bConservative == false then SplitEdge will replace e and its adjacent
  * geometry by the newly generated geometry.
  */
-template<class TVertex>
+template <typename TVertex>
 TVertex* SplitEdge(Grid& grid, Edge* e, bool bConservative = false);
 
 ////////////////////////////////////////////////////////////////////////
@@ -264,7 +264,7 @@ TVertex* SplitEdge(Grid& grid, Edge* e, bool bConservative = false);
  * no associated vertex exists in destGrid. New ones will be automatically
  * constructed in this case.
  */
-template<class TVertex>
+template<typename TVertex>
 TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
 						AVertex* paAssociatedVertices = nullptr,
 						bool bConservative = false);
@@ -304,7 +304,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 
 ////////////////////////////////////////////////////////////////////////
 ///	Calculates the center of an edge
-template<class TVertexPositionAttachmentAccessor>
+template<typename TVertexPositionAttachmentAccessor>
 UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const Edge* e, TVertexPositionAttachmentAccessor& aaPosVRT);
@@ -315,7 +315,7 @@ CalculateCenter(const Edge* e, TVertexPositionAttachmentAccessor& aaPosVRT);
 /** TAAWeightVRT has to be an attachment to the vertices of the grid in which
  * e is contained, with ValueType number (or compatible).
  */
-template<class TAAPosVRT, class TAAWeightVRT>
+template<typename TAAPosVRT, typename TAAWeightVRT>
 UG_API
 typename TAAPosVRT::ValueType
 CalculateCenter(const EdgeVertices* e, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight);
@@ -345,7 +345,7 @@ bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
  * The orientation can only be successfully fixed, if vertices between
  * the given edges share at most 2 edges between edgesBegin and edgesEnd.
  */
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 UG_API 
 void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						TEdgeIterator edgesEnd);
@@ -372,12 +372,12 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
  * performed above.
  * \{
  */
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 UG_API
 void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						   	   	   	   	    TEdgeIterator edgesEnd);
 
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 UG_API
 void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						   	   	   	   	    TEdgeIterator edgesEnd,
@@ -395,7 +395,7 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
  * If the specified list is empty, nullptr is returned.
  * If multiple shortest edges exist, the first one is returned.
  */
-template <class TEdgeIterator, class TAAPosVRT>
+template <typename TEdgeIterator, typename TAAPosVRT>
 UG_API 
 Edge* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 							TAAPosVRT& aaPos);
@@ -403,7 +403,7 @@ Edge* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 //////////////////////////////////////////////////////////////////////////////////
 /////	Removes edges that connect the same two vertices as another edge.
 ///**	THIS ALGORITHM USES Grid::mark*/
-//template <class TEdgeIterator>
+//template <typename TEdgeIterator>
 //UG_API 
 //void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd);
 
@@ -413,7 +413,7 @@ Edge* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
  *
  * \todo	add support for 2d position attachments.
  */
-template <class EdgeIterator, class TAAPos>
+template <typename EdgeIterator, typename TAAPos>
 UG_API 
 void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 								  EdgeIterator edgesEnd, TAAPos& aaPos);
@@ -423,7 +423,7 @@ void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 /**	\note	The method only works properly, if the point and the edge are located
  * 			on a line parallel to the x-axis.
  */
-template <class vector_t, class TAAPos>
+template <typename vector_t, typename TAAPos>
 UG_API bool
 ContainsPoint(const EdgeVertices* e, const vector_t& p, TAAPos aaPos);
 
@@ -434,7 +434,7 @@ ContainsPoint(const EdgeVertices* e, const vector_t& p, TAAPos aaPos);
  * \tparam[in] TAAPosVRT
  *
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 number CalculateAverageEdgeLength(Grid& grid, TAAPosVRT& aaPos);
 
 /// @} // end of doxygen defgroup command

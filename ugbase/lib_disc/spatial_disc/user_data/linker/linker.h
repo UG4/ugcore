@@ -53,11 +53,11 @@ class StdDataLinker
 						  DependentUserData<TData, dim> >
 {
 	public:
-		virtual void operator() (TData& value,
+		virtual void operator () (TData& value,
 								 const MathVector<dim>& globIP,
 								 number time, int si) const;
 
-		virtual void operator()(TData vValue[],
+		virtual void operator () (TData vValue[],
 								const MathVector<dim> vGlobIP[],
 								number time, int si, const size_t nip) const;
 

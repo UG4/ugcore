@@ -143,13 +143,13 @@ bool CollectSurfaceNeighborsSorted(std::vector<Vertex*>& vNeighborsOut,
 									
 ////////////////////////////////////////////////////////////////////////
 ///	Returns the squared distance between two vertices
-template <class TAAPos>
+template <typename TAAPos>
 UG_API 
 number VertexDistanceSq(Vertex* v0, Vertex* v1, TAAPos& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Returns the distance between two vertices
-template <class TAAPos>
+template <typename TAAPos>
 UG_API 
 number VertexDistance(Vertex* v0, Vertex* v1, TAAPos& aaPos);
 
@@ -175,7 +175,7 @@ int FindVertexByCoordinate(const MathVector<dim>& coord, size_t ncoords, const M
  * TAAPosVRT has to be an attachment accessor for the vector3 type that
  * works on the vertices in grid.
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 UG_API 
 void CalculateVertexNormal(vector3& nOut, Grid& grid, Vertex* vrt,
 						   TAAPosVRT& aaPos);
@@ -194,7 +194,7 @@ void CalculateVertexNormal(vector3& nOut, Grid& grid, Vertex* vrt,
  *
  * Note that this method assumes, that all faces do lie in the x-y-plane.
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 UG_API 
 void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
 									 Grid& grid, Vertex* vrt,
@@ -212,7 +212,7 @@ void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
  * The returned normal is normalized and will point outwards of the area
  * defined by the associated volumes.
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 UG_API 
 void CalculateBoundaryVertexNormal3D(vector3& nOut, Grid& grid, Vertex* vrt,
 						   	   	     TAAPosVRT& aaPos);
@@ -239,7 +239,7 @@ bool CalculateVertexNormals(Grid& grid,
 //	CalculateBoundingBox
 /// calculates the BoundingBox
 
-template <class TVrtIter, class TAPosition>
+template <typename TVrtIter, typename TAPosition>
 UG_API 
 void
 CalculateBoundingBox(typename TAPosition::ValueType& vMinOut,
@@ -253,7 +253,7 @@ CalculateBoundingBox(typename TAPosition::ValueType& vMinOut,
 /**	The difference to CalculateBarycenter is that this method
  * returns the center of the bounding box which contains the
  * given set of vertices.*/
-template <class TVrtIter, class TAPosition>
+template <typename TVrtIter, typename TAPosition>
 UG_API 
 typename TAPosition::ValueType
 CalculateCenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
@@ -262,7 +262,7 @@ CalculateCenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 ////////////////////////////////////////////////////////////////////////
 //	CalculateBarycenter
 /// calculates the barycenter of a set of vertices
-template <class TVrtIter, class TAPosition>
+template <typename TVrtIter, typename TAPosition>
 UG_API 
 typename TAPosition::ValueType
 CalculateBarycenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
@@ -283,7 +283,7 @@ void MergeVertices(Grid& grid, Vertex* v1, Vertex* v2);
 ///	Merges all vertices between the given iterators into a single vertex.
 /**	Note that connected elements may be removed or replaced during this process.
  * The method returns the remaining vertex in the given list (*vrtsBegin).*/
-template <class TVrtIterator>
+template <typename TVrtIterator>
 UG_API 
 Vertex* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
 						  	  	  TVrtIterator vrtsEnd);
@@ -299,13 +299,13 @@ Vertex* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
  *
  *	\todo	remove container restrictions as described above.
  * \{ */
-template <int dim, class TVrtIterator>
+template <int dim, typename TVrtIterator>
 UG_API 
 void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 					const TVrtIterator& iterEnd, Attachment<MathVector<dim> >& aPos,
 					number threshold);
 
-template <int dim, class TVrtIterator, class TAAPos>
+template <int dim, typename TVrtIterator, typename TAAPos>
 UG_API 
 void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 					const TVrtIterator& iterEnd,
@@ -372,13 +372,13 @@ void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,
 /**	Main purpose is to allow the use of vertices in template-methods
  *	that call CalculateCenter
  *	\{ */
-template<class TVertexPositionAttachmentAccessor>
+template<typename TVertexPositionAttachmentAccessor>
 UG_API 
 inline
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const Vertex* v, TVertexPositionAttachmentAccessor& aaPosVRT);
 
-template<class TAAPosVRT, class TAAWeightVRT>
+template<typename TAAPosVRT, typename TAAWeightVRT>
 UG_API
 typename TAAPosVRT::ValueType
 CalculateCenter(const Vertex* v, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight);
@@ -387,20 +387,20 @@ CalculateCenter(const Vertex* v, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight);
 
 ////////////////////////////////////////////////////////////////////////
 ///	transforms a vertex by a given matrix
-template<class TAAPos> inline
+template<typename TAAPos> inline
 UG_API 
 void TransformVertex(Vertex* vrt, matrix33& m, TAAPos& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 ///	transforms all given vertices by a given matrix
-template<class TIterator, class TAAPos> inline
+template<typename TIterator, typename TAAPos> inline
 UG_API 
 void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
 					   matrix33& m, TAAPos& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 ///	moves vertices by the specified offset
-template<class TIterator, class TAAPos> inline
+template<typename TIterator, typename TAAPos> inline
 void MoveVertices(TIterator vrtsBegin, TIterator vrtsEnd, TAAPos aaPos,
 				  const typename TAAPos::ValueType& offset);
 
@@ -410,7 +410,7 @@ void MoveVertices(TIterator vrtsBegin, TIterator vrtsEnd, TAAPos aaPos,
  * is of no particular use, except for completeness regarding the use
  * of ConatinsPoint in template-programming.
  */
-template <class vector_t, class TAAPos>
+template <typename vector_t, typename TAAPos>
 UG_API bool
 ContainsPoint(const Vertex* v, const vector_t& p, TAAPos aaPos);
 

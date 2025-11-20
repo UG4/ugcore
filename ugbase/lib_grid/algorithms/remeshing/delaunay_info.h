@@ -44,7 +44,7 @@ namespace ug{
 
 /** This class intended for internal use in delaunay related algorithms.
  */
-template <class TAAPos>
+template <typename TAAPos>
 class UG_API DelaunayInfo : public GridObserver
 {
 	using AAPos = TAAPos;
@@ -73,7 +73,7 @@ class UG_API DelaunayInfo : public GridObserver
 	/**	\warning	init_marks may currently only be called once! Undefined behaviour
 	 *				if called multiple times or after marks have already been set.
 	 *	\todo	think about adding a cleanup at the beginning of init_marks (costly)*/
-		template <class TIter>
+		template <typename TIter>
 		void init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates);
 
 	////////////////////////////////////////////////////////////////
@@ -87,18 +87,18 @@ class UG_API DelaunayInfo : public GridObserver
 		void set_mark(Face* f, Mark m);
 		Mark mark(Face* f) const				{return static_cast<Mark>(m_aaMark[f]);}
 
-		template <class TIter>
+		template <typename TIter>
 		void set_mark(TIter begin, TIter end, Mark m)
 		{
 			while(begin != end) {set_mark(*begin, m); ++begin;}
 		}
 
 	///	returns true if the specified element is either marked as INNER or as NEW_INNER
-		template <class TElem>
+		template <typename TElem>
 		bool is_inner(TElem* e);
 
 	///	returns true if the specified element is either marked as SEGMENT, NEW_SEGMENT, DART or SHELL
-		template <class TElem>
+		template <typename TElem>
 		bool is_segment(TElem* e);
 
 	///	returns true if the specified edge is a segment and is connected to a DART vertex
@@ -181,7 +181,7 @@ class UG_API DelaunayInfo : public GridObserver
 		};
 
 		struct CompareFaceInfo{
-			bool operator()(const FaceInfo* fi1, const FaceInfo* fi2) const
+			bool operator () (const FaceInfo* fi1, const FaceInfo* fi2) const
 			{
 				return fi1->priority < fi2->priority;
 			}
@@ -227,4 +227,4 @@ class UG_API DelaunayInfo : public GridObserver
 #include "delaunay_info_impl.h"
 
 
-#endif	//__H__UG_delaunay_info
+#endif

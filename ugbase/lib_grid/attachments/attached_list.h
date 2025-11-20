@@ -41,11 +41,11 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////////////
 //	predeclarations
-template <class TAAEntry> class ConstAttachedElementListIterator;
+template <typename TAAEntry> class ConstAttachedElementListIterator;
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	A special iterator which allows to iterate over elements in a AttachedElementList.
-template <class TAAEntry>
+template <typename TAAEntry>
 class AttachedElementListIterator : public std::iterator<
 											std::bidirectional_iterator_tag,
 											typename TAAEntry::element>
@@ -60,7 +60,7 @@ class AttachedElementListIterator : public std::iterator<
 		AttachedElementListIterator(const AttachedElementListIterator& cpy) :
 			m_aaEntry(cpy.m_aaEntry), m_curElem(cpy.m_curElem)	{}
 
-		const iterator& operator=(const iterator& iter)
+		const iterator& operator = (const iterator& iter)
 		{
 			m_aaEntry = iter.m_aaEntry;
 			m_curElem = iter.m_curElem;
@@ -100,7 +100,7 @@ class AttachedElementListIterator : public std::iterator<
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	A special iterator which allows to iterate over elements in a AttachedElementList.
-template <class TAAEntry>
+template <typename TAAEntry>
 class ConstAttachedElementListIterator : public std::iterator<
 											std::bidirectional_iterator_tag,
 											const typename TAAEntry::element>
@@ -117,7 +117,7 @@ class ConstAttachedElementListIterator : public std::iterator<
 		ConstAttachedElementListIterator(const AttachedElementListIterator<TAAEntry>& it) :
 			m_aaEntry(it.m_aaEntry), m_curElem(it.m_curElem)	{}
 
-		const iterator& operator=(const iterator& iter)
+		const iterator& operator = (const iterator& iter)
 		{
 			m_aaEntry = iter.m_aaEntry;
 			m_curElem = iter.m_curElem;
@@ -125,8 +125,8 @@ class ConstAttachedElementListIterator : public std::iterator<
 		}
 
 	///	note that the * operator is read only.
-		element operator*() const {return m_curElem;}
-		const element* operator->() const {return &m_curElem;}
+		element operator * () const {return m_curElem;}
+		const element* operator -> () const {return &m_curElem;}
 
 		iterator operator ++ () {m_curElem = m_aaEntry[m_curElem].next; return *this;}
 		iterator operator ++ (int)
@@ -136,8 +136,8 @@ class ConstAttachedElementListIterator : public std::iterator<
 			return iter;
 		}
 
-		iterator operator--() {m_curElem = m_aaEntry[m_curElem].prev; return *this;}
-		iterator operator--(int)
+		iterator operator -- () {m_curElem = m_aaEntry[m_curElem].prev; return *this;}
+		iterator operator -- (int)
 		{
 			iterator iter = *this;
 			m_curElem = m_aaEntry[m_curElem].prev;
@@ -145,8 +145,8 @@ class ConstAttachedElementListIterator : public std::iterator<
 		}
 
 	//	note that each element may only be in the list once.
-		bool operator==(const iterator& iter) const	{return m_curElem == iter.m_curElem;}
-		bool operator!=(const iterator& iter) const	{return m_curElem != iter.m_curElem;}
+		bool operator == (const iterator& iter) const {return m_curElem == iter.m_curElem;}
+		bool operator != (const iterator& iter) const {return m_curElem != iter.m_curElem;}
 
 	private:
 		TAAEntry	m_aaEntry;
@@ -177,7 +177,7 @@ class ConstAttachedElementListIterator : public std::iterator<
  * 			possible to insert the same element multiple times into the list.
  * 			Instead upon new insertion, the old entry will be erased.
  */
-template <class TAttachmentPipe>
+template <typename TAttachmentPipe>
 class AttachedElementList
 {
 	public:
@@ -251,7 +251,7 @@ class AttachedElementList
 			set_pipe(nullptr);
 		}
 
-		const AttachedElementList& operator=(const AttachedElementList& ael)
+		const AttachedElementList& operator = (const AttachedElementList& ael)
 		{
 			clear();
 

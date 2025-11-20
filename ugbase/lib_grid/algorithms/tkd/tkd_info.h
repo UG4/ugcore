@@ -99,4 +99,4 @@ private:
 
 }//	end of namespace
 
-#endif	//__H__UG_tkd_info
+#endif

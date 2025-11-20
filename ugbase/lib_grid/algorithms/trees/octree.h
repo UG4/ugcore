@@ -69,7 +69,7 @@ using SPOctree = node_tree::SPCollisionTreeRootNode;
  *
  * This method internally uses the ug::node_tree::CreateOctree method.
  */
-template <class TIterator>
+template <typename TIterator>
 SPOctree
 CreateOctree(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
 			int maxDepth, int elemThreshold, bool bLoose,

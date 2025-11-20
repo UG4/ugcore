@@ -49,7 +49,7 @@ using namespace ug;
 // allows to access a CPUBlockAlgebra (AT) as a scalar CPUAlgebra (ST)
 
 
-template<class MT>
+template<typename MT>
 inline void TruncateOffDiag(MT &A, size_t ncmp)
 { UG_ASSERT(0, "Implement!"); }
 
@@ -76,7 +76,7 @@ inline void TruncateOffDiag(CPUAlgebra::matrix_type &A, size_t ncmp)
 
 }
 
-template<class AT, class ST=CPUAlgebra>
+template<typename AT, typename ST=CPUAlgebra>
 class ScalarMatrixAdapter{
 
 public:
@@ -95,7 +95,7 @@ public:
 	{return m_src.resize_and_keep_values(newRows/blockSize, newCols/blockSize);}
 
 
-	value_type &operator() (size_t r, size_t c)
+	value_type &operator () (size_t r, size_t c)
 	{
 		UG_ASSERT(r < num_rows(), "row index is too large");
 		UG_ASSERT(c < num_cols(), "col index is too large");
@@ -128,7 +128,7 @@ public:
 	void printrow(size_t row) const {m_src.printrow(row/blockSize);}
 
 	//! operator overloading for streams
-	friend std::ostream& operator<<(std::ostream& os, ScalarMatrixAdapter<AT,ST> const &a)
+	friend std::ostream& operator << (std::ostream& os, ScalarMatrixAdapter<AT,ST> const &a)
 	{ a.outputToStream(os); return os; }
 
 	/**
@@ -145,7 +145,7 @@ public:
 		row_iterator(typename encapsulated_matrix_type::row_iterator _iter)
 		: iter(_iter) {}
 		~row_iterator() {}
-		row_iterator *operator ->() { return iter.operator->(); }
+		row_iterator *operator ->() { return iter.operator -> (); }
 		bool operator != (const row_iterator &o) const { return *iter != o->iter;  }
 		void operator ++ () { ++iter; }
 		void operator += (int nr) { iter+=nr; }
@@ -162,7 +162,7 @@ public:
 			const_row_iterator(typename encapsulated_matrix_type::const_row_iterator _iter)
 			: iter(_iter) {}
 			~const_row_iterator() {}
-			const_row_iterator *operator ->() { return iter.operator->(); }
+			const_row_iterator *operator ->() { return iter.operator -> (); }
 			bool operator != (const const_row_iterator &o) const { return iter!= o.iter;  }
 			void operator ++ () { ++iter; }
 			void operator += (int nr) { iter+=nr; }

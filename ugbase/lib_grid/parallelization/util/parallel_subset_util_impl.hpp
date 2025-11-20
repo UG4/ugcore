@@ -40,7 +40,7 @@
 
 namespace ug
 {
-template <class TElem>
+template <typename TElem>
 void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
                                 DistributedGridManager& distGridMgr,
 								MultiGridSubsetHandler& mgsh,
@@ -83,7 +83,7 @@ void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
 
 ////////////////////////////////////////////////////////////////////////
 //	CreateSurfaceView
-template <class TSurfaceView>
+template <typename TSurfaceView>
 void CreateSurfaceView(TSurfaceView& surfaceViewOut,
                        DistributedGridManager& distGridMgr,
 						MultiGridSubsetHandler& mgsh)

@@ -42,7 +42,7 @@
 namespace ug{
 
 ///	this type is used to identify distributed objects.
-struct AlgebraID : public std::pair<int, size_t>
+struct AlgebraID : std::pair<int, size_t>
 {
 	AlgebraID() { first = -1; second = -1; }
 	AlgebraID(int _masterProc, size_t _indexOnMaster)
@@ -63,7 +63,7 @@ size_t hash_key<AlgebraID>(const AlgebraID& key);
 using AlgebraIDVec = std::vector<AlgebraID>;
 using AlgebraIDHashList = Hash<AlgebraID, size_t>;
 
-std::ostream& operator<<(std::ostream &out, const AlgebraID &ID);
+std::ostream& operator << (std::ostream &out, const AlgebraID &ID);
 
 
 ///	Creates a hash which allows a algebraID->localIndex mapping

@@ -76,7 +76,7 @@ inline ParallelStorageType operator & (const ParallelStorageType &a, const Paral
 	return (ParallelStorageType) ((int)a&(int)b);
 }
 
-inline std::ostream& operator<< (std::ostream& outStream, const ParallelStorageType& type)
+inline std::ostream& operator << (std::ostream& outStream, const ParallelStorageType& type)
 {
 	if(!type) outStream << "undefined";
 	if(type & PST_CONSISTENT) outStream << "consistent";

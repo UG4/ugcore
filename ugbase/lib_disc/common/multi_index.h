@@ -56,28 +56,28 @@ class MultiIndex
 		inline size_t size() const {return N;}
 
 		/// access to index component
-		inline single_index_type& operator[] (size_t i)
+		inline single_index_type& operator [] (size_t i)
 		{
 			UG_ASSERT(i < N, "Index invalid");
 			return m_indices[i];
 		}
 
 		/// const access to index component
-		inline const single_index_type& operator[] (size_t i) const
+		inline const single_index_type& operator [] (size_t i) const
 		{
 			UG_ASSERT(i < N, "Index invalid");
 			return m_indices[i];
 		}
 
 		///	comparison operator
-		bool operator==(const MultiIndex& o) const
+		bool operator == (const MultiIndex& o) const
 		{
 			for(size_t i=0; i < N; ++i)
 				if(m_indices[i] != o[i]) return false;
 			return true;
 		}
 
-		bool operator!=(const MultiIndex& o) const
+		bool operator != (const MultiIndex& o) const
 		{
 			return !(*this==o);
 		}
@@ -106,26 +106,26 @@ class MultiIndex<1, size_t>
 		inline size_t size() const {return 1;}
 
 		/// access to index component
-		inline single_index_type& operator[] (size_t i)
+		inline single_index_type& operator [] (size_t i)
 		{
 			UG_ASSERT(i == 0, "Index invalid");
 			return m_indices;
 		}
 
 		/// const access to index component
-		inline const single_index_type& operator[] (size_t i) const
+		inline const single_index_type& operator [] (size_t i) const
 		{
 			UG_ASSERT(i == 0, "Index invalid");
 			return m_indices;
 		}
 
 		///	comparison operator
-		bool operator==(const MultiIndex& o) const
+		bool operator == (const MultiIndex& o) const
 		{
 			return m_indices == o[0];
 		}
 
-		bool operator!=(const MultiIndex& o) const
+		bool operator != (const MultiIndex& o) const
 		{
 			return !(*this==o);
 		}
@@ -155,31 +155,31 @@ class MultiIndex<2, size_t>
 		inline size_t size() const {return 2;}
 
 		/// access to index component
-		inline single_index_type& operator[] (size_t i)
+		inline single_index_type& operator [] (size_t i)
 		{
 			UG_ASSERT(i < 2, "Index invalid");
 			return m_indices[i];
 		}
 
 		/// const access to index component
-		inline const single_index_type& operator[] (size_t i) const
+		inline const single_index_type& operator [] (size_t i) const
 		{
 			UG_ASSERT(i < 2, "Index invalid");
 			return m_indices[i];
 		}
 
 		///	comparison operator
-		bool operator==(const MultiIndex& o) const
+		bool operator == (const MultiIndex& o) const
 		{
 			return (m_indices[0] == o[0]) && (m_indices[1] == o[1]);
 		}
 
-		bool operator!=(const MultiIndex& o) const
+		bool operator != (const MultiIndex& o) const
 		{
 			return (m_indices[0] != o[0]) || (m_indices[1] != o[1]);
 		}
 
-		bool operator<(const MultiIndex& o) const
+		bool operator < (const MultiIndex& o) const
 		{
 			if(m_indices[0] < o[0]) return true;
 			if(m_indices[0] == o[0])
@@ -187,7 +187,7 @@ class MultiIndex<2, size_t>
 			return false;
 		}
 
-		bool operator>(const MultiIndex& o) const
+		bool operator > (const MultiIndex& o) const
 		{
 			if(m_indices[0] > o[0]) return true;
 			if(m_indices[0] == o[0])
@@ -221,28 +221,28 @@ class MultiIndex<3, size_t>
 		inline size_t size() const {return 3;}
 
 		/// access to index component
-		inline single_index_type& operator[] (size_t i)
+		inline single_index_type& operator [] (size_t i)
 		{
 			UG_ASSERT(i < 3, "Index invalid");
 			return m_indices[i];
 		}
 
 		/// const access to index component
-		inline const single_index_type& operator[] (size_t i) const
+		inline const single_index_type& operator [] (size_t i) const
 		{
 			UG_ASSERT(i < 3, "Index invalid");
 			return m_indices[i];
 		}
 
 		///	comparison operator
-		bool operator==(const MultiIndex& o) const
+		bool operator == (const MultiIndex& o) const
 		{
 			return 	(m_indices[0] == o[0]) &&
 					(m_indices[1] == o[1]) &&
 					(m_indices[2] == o[2]);
 		}
 
-		bool operator!=(const MultiIndex& o) const
+		bool operator != (const MultiIndex& o) const
 		{
 			return !(*this==o);
 		}
@@ -252,7 +252,7 @@ class MultiIndex<3, size_t>
 };
 
 template <int N>
-std::ostream& operator<< (std::ostream& outStream, const ug::MultiIndex<N>& v)
+std::ostream& operator << (std::ostream& outStream, const ug::MultiIndex<N>& v)
 {
 	outStream << "[" ;
 	for(size_t i = 0; i < N; ++i)

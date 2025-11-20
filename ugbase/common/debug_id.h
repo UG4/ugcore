@@ -326,5 +326,4 @@ public:
 /// \}
 
 }	// end namespace ug
-#endif	/* __H__UG__COMMON__DEBUG_ID_H */
-
+#endif

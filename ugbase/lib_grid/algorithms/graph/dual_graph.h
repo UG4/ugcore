@@ -76,7 +76,7 @@ namespace ug
  * If you pass a multi-grid to this method, elements will be indexed for level 0
  * first, then for level 1 and so on.
  */
-template <class TGeomBaseObj, class TIndexType>
+template <typename TGeomBaseObj, typename TIndexType>
 void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 						std::vector<TIndexType>& adjacencyMapOut,
 						Grid& grid, Attachment<TIndexType>* paIndex = nullptr,
@@ -204,7 +204,7 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
  *
  * Elements will be indexed for level 0 first, then for level 1 and so on.
  */
-template <class TGeomBaseObj, class TIndexType>
+template <typename TGeomBaseObj, typename TIndexType>
 void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 						std::vector<TIndexType>& adjacencyMapOut,
 						std::vector<TIndexType>* pEdgeWeightsOut,
@@ -366,7 +366,7 @@ class DualGraphNeighborCollector
  *
  * TGeomBaseObj can be either Vertex, Edge, Face or Volume
  */
-template <class TGeomBaseObj, class TIndexType>
+template <typename TGeomBaseObj, typename TIndexType>
 void ConstructDualGraphMGLevel(
 		std::vector<TIndexType>& adjacencyMapStructureOut,
 		std::vector<TIndexType>& adjacencyMapOut,

@@ -92,7 +92,7 @@ class MethodPtrWrapper
 };
 
 ///	Performs a reinterpret cast on the given pointer, then calls delete on it
-template <class TClass> void CastAndDelete(const void* ptr)
+template <typename TClass> void CastAndDelete(const void* ptr)
 {
 	delete reinterpret_cast<const TClass*>(ptr);
 }
@@ -194,7 +194,7 @@ class ExportedMethodGroup
 		const std::string& name() const {return m_name;}
 
 	///	adds an overload. Returns false if the overload already existed.
-		template <class TFunc>
+		template <typename TFunc>
 		bool add_overload(	const TFunc& m, ProxyFunc pf,
 		                  	const std::string& className,
 							const std::string& methodOptions, const std::string& retValInfos,
@@ -228,14 +228,14 @@ class ExportedMethodGroup
 
 		const ExportedMethod* get_overload(size_t index) const {return m_overloads.at(index).m_func;}
 
-		template <class TType>
+		template <typename TType>
 		ExportedMethod* get_overload_by_type()
 		{
 			size_t typeID = GetUniqueTypeID<TType>();
 			return get_overload_by_type_id(typeID);
 		}
 
-		template <class TType>
+		template <typename TType>
 		const ExportedMethod* get_overload_by_type() const
 		{
 			size_t typeID = GetUniqueTypeID<TType>();

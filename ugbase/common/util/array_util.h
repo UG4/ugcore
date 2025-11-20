@@ -45,10 +45,10 @@ namespace ug
 /**
  * Runs in O(size).
  * copies all entries after the specified one to their predecessor.
- * Be sure that TType supports operator= and operator==
+ * Be sure that TType supports operator = and operator ==
  * \return new size
  */
-template <class TType>
+template <typename TType>
 int ArrayEraseEntry(TType* array, const TType& entry, size_t size)
 {
 //	find the entry
@@ -75,9 +75,9 @@ int ArrayEraseEntry(TType* array, const TType& entry, size_t size)
 /**
  * Runs in O(size).
  * Iterates through all entries until the given one is found.
- * Be sure that TType supports operator= and operator==
+ * Be sure that TType supports operator = and operator ==
  */
-template <class TType>
+template <typename TType>
 void ArraySwapWithLast(TType* array, const TType& entry, size_t size)
 {
 	using namespace std;
@@ -99,10 +99,10 @@ void ArraySwapWithLast(TType* array, const TType& entry, size_t size)
 ///	replaces the first occurance of oldEntry with newEntry
 /**
  * Runs in O(size).
- * Be sure that TType supports operator= and operator==
+ * Be sure that TType supports operator = and operator ==
  * \return true if oldEntry was found, false if not.
  */
-template <class TType>
+template <typename TType>
 bool ArrayReplaceEntry(TType* array, const TType& newEntry,
 					   const TType& oldEntry, size_t size)
 {

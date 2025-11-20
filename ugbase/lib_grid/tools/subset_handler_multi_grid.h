@@ -81,7 +81,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		inline uint num_levels() const	{return (uint)m_levels.size();}
 		
 	///	returns the level in which an element is located
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		inline uint get_level(TGeomObj* obj) const	{return m_pMG->get_level(obj);}
 		
 	////////////////////////////////////////////////
@@ -106,48 +106,48 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 	//	element-access
 	///	returns the begin-iterator for the elements of type TElem in the given subset.
 	/**	e.g. begin<Triangle>(0)*/
-		template <class TElem>
+		template <typename TElem>
 		typename geometry_traits<TElem>::iterator
 		begin(int subsetIndex, int level);
 
 	///	returns the end-iterator for the elements of type TElem in the given subset.
 	/**	e.g. end<Triangle>(0)*/
-		template <class TElem>
+		template <typename TElem>
 		typename geometry_traits<TElem>::iterator
 		end(int subsetIndex, int level);
 
 	///	returns the begin-iterator for the elements of type TElem in the given subset.
 	/**	e.g. begin<Triangle>(0)
 	 *	Please note that in the const version level < num_levels() has to hold true.*/
-		template <class TElem>
+		template <typename TElem>
 		typename geometry_traits<TElem>::const_iterator
 		begin(int subsetIndex, int level) const;
 
 	///	returns the end-iterator for the elements of type TElem in the given subset.
 	/**	e.g. end<Triangle>(0)
 	 *	Please note that in the const version level < num_levels() has to hold true.*/
-		template <class TElem>
+		template <typename TElem>
 		typename geometry_traits<TElem>::const_iterator
 		end(int subsetIndex, int level) const;
 		
 	///	returns the total number of elements
-		template <class TElem>
+		template <typename TElem>
 		uint num() const;
 		
 	///	returns the number of elements in the given subset
-		template <class TElem>
+		template <typename TElem>
 		uint num(int subsetIndex) const;
 
 	///	returns the number of elements in the given subset on the given level
-		template <class TElem>
+		template <typename TElem>
 		uint num(int subsetIndex, int level) const;
 
 	///	removes all elements of type TElem from the specified subset.
-		template <class TElem>
+		template <typename TElem>
 		void clear_subset_elements(int subsetIndex);
 
 	///	removes all elements of type TElem from the specified subset on the given level.
-		template <class TElem>
+		template <typename TElem>
 		void clear_subset_elements(int subsetIndex, int level);
 
 	///	returns a GridObjectCollection
@@ -263,11 +263,11 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 	////////////////////////////////////////////////
 	//	protected helper methods
 	///	a helper method for the public assign_subset methods.
-		template<class TElem>
+		template <typename TElem>
 		void assign_subset_impl(TElem* elem, int subsetIndex);
 
 	///	helper for change_subset_indices
-		template<class TElem>
+		template <typename TElem>
 		void change_elem_subset_indices(int indOld, int indNew);
 		
 	///	Throws an error if the required level does not yet exist
@@ -277,7 +277,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		void add_subset_to_all_levels();///< increases m_numSubsets.
 
 	///	helper for collect_subset_elements
-		template <class TElem>
+		template <typename TElem>
 		size_t collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const;
 		
 	protected:
@@ -349,12 +349,12 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 	/**	\}	*/
 
 	///	returns the section container for the given type, subset and level
-		template <class TElem> inline
+		template <typename TElem> inline
 		typename Grid::traits<TElem>::SectionContainer&
 		section_container(int si, int lvl);
 
 	///	returns the const section container for the given type, subset and level
-		template <class TElem> inline
+		template <typename TElem> inline
 		const typename Grid::traits<TElem>::SectionContainer&
 		section_container(int si, int lvl) const;
 

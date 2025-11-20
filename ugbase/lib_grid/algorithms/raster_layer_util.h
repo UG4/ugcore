@@ -66,7 +66,7 @@ class RasterLayers{
 
 			private:
 			friend class boost::serialization::access;
-			template <class Archive>
+			template <typename Archive>
 			void serialize( Archive& ar, const unsigned int version)
 			{
 				ar & minHeight;
@@ -110,8 +110,8 @@ class RasterLayers{
 		size_t num_layers() const {return m_layers.size();}
 		bool empty() const {return m_layers.empty();}
 
-		layer_t& operator[] (size_t i) {return *m_layers[i];}
-		const layer_t& operator[] (size_t i) const {return *m_layers[i];}
+		layer_t& operator [] (size_t i) {return *m_layers[i];}
+		const layer_t& operator [] (size_t i) const {return *m_layers[i];}
 
 		layer_t& layer (size_t i) {return *m_layers[i];}
 		const layer_t& layer (size_t i) const {return *m_layers[i];}
@@ -214,7 +214,7 @@ class RasterLayers{
 	//	BEGIN SERIALIZATION
 		friend class boost::serialization::access;
 
-		template <class Archive>
+		template <typename Archive>
 		void save( Archive& ar, const unsigned int version) const
 		{
 			size_t numLayers = m_layers.size();
@@ -230,7 +230,7 @@ class RasterLayers{
 			}
 		}
 
-		template <class Archive>
+		template <typename Archive>
 		void load( Archive& ar, const unsigned int version)
 		{
 			size_t numLayers = 0;

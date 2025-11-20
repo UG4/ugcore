@@ -38,7 +38,7 @@
 namespace ug
 {
 
-template <class TElem>
+template <typename TElem>
 void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
 								MultiGrid& mg,
 								MultiGridSubsetHandler& mgsh,
@@ -69,7 +69,7 @@ void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
 	}
 }
 
-template <class TSurfaceView>
+template <typename TSurfaceView>
 void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 						MultiGrid& mg,
 						MultiGridSubsetHandler& mgsh)
@@ -106,7 +106,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 bool IsSubSurfaceElement(MultiGrid& mg, TElem* e, bool checkSides)
 {
 	using TBaseElem = typename TElem::grid_base_object;

@@ -64,4 +64,4 @@ JavaVM* getJavaVM();
 } // end vrl::
 }// end ug::
 
-#endif	/*BINDINGS_VRL_H*/
+#endif

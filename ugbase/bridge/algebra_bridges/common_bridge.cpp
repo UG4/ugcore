@@ -203,8 +203,7 @@ static void Algebra(Registry& reg, string grp)
 
 //	ApplyLinearSolver
 	{
-		reg.add_function( "ApplyLinearSolver",
-						  &ApplyLinearSolver<vector_type>, grp);
+		reg.add_function( "ApplyLinearSolver", &ApplyLinearSolver<vector_type>, grp);
 	}
 
 //  Vector Debug Writer (abstract base class)

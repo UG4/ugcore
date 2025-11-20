@@ -39,7 +39,7 @@
 namespace ug{
 
 
-template <class TAAPos>
+template <typename TAAPos>
 number CalculateVolume(Volume* elem, TAAPos aaPos)
 {
 	switch (elem->reference_object_id()) {
@@ -61,7 +61,7 @@ number CalculateVolume(Volume* elem, TAAPos aaPos)
 	return NAN;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 number CalculateVolume(Tetrahedron* elem, TAAPos aaPos)
 {
 	return CalculateTetrahedronVolume(aaPos[elem->vertex(0)],
@@ -70,7 +70,7 @@ number CalculateVolume(Tetrahedron* elem, TAAPos aaPos)
 									aaPos[elem->vertex(3)]);
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 number CalculateVolume(Pyramid* elem, TAAPos aaPos)
 {
 	return CalculatePyramidVolume(aaPos[elem->vertex(0)],
@@ -80,7 +80,7 @@ number CalculateVolume(Pyramid* elem, TAAPos aaPos)
 								aaPos[elem->vertex(4)]);
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 number CalculateVolume(Prism* elem, TAAPos aaPos)
 {
 	return CalculatePrismVolume(aaPos[elem->vertex(0)],
@@ -91,7 +91,7 @@ number CalculateVolume(Prism* elem, TAAPos aaPos)
 								aaPos[elem->vertex(5)]);
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 number CalculateVolume(Hexahedron* elem, TAAPos aaPos)
 {
 	return CalculateHexahedronVolume(aaPos[elem->vertex(0)],
@@ -104,7 +104,7 @@ number CalculateVolume(Hexahedron* elem, TAAPos aaPos)
 									aaPos[elem->vertex(7)]);
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 number CalculateVolume(Octahedron* elem, TAAPos aaPos)
 {
 	return CalculateOctahedronVolume(aaPos[elem->vertex(0)],
@@ -115,26 +115,26 @@ number CalculateVolume(Octahedron* elem, TAAPos aaPos)
 								aaPos[elem->vertex(5)]);
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 number CalculateVolume(FaceVertices* elem, TAAPos aaPos)
 {
 	return FaceArea(elem, aaPos);
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 number CalculateVolume(EdgeVertices* elem, TAAPos aaPos)
 {
 	return EdgeLength(elem, aaPos);
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 number CalculateVolume(Vertex*, TAAPos)
 {
 	return 0;
 }
 
-template <class TIterator, class TAAPos>
+template <typename TIterator, typename TAAPos>
 number CalculateVolume(TIterator begin, TIterator end, TAAPos aaPos)
 {
 	number totalVolume = 0;

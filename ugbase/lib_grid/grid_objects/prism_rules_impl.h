@@ -39,7 +39,7 @@
 namespace ug{
 namespace prism_rules{
 
-template <class TCmp>
+template <typename TCmp>
 int ConvertToTetrahedra(int* newIndsOut, TCmp cmp)
 {
 //	The idea and implementation follows:

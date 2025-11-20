@@ -56,7 +56,7 @@ class CollisionTreeRootNode : public BoxedGroupNode
 	public:
 		static SPCollisionTreeRootNode create();
 
-		virtual ~CollisionTreeRootNode();
+		~CollisionTreeRootNode() override;
 
 		virtual void clear_points();
 		virtual int num_points();

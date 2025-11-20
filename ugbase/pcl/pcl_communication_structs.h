@@ -221,7 +221,7 @@ class OrderedInterface
 		template <typename TElemCmp>
 		struct InterfaceEntryCmp{
 			InterfaceEntryCmp(TElemCmp elemCmp) : m_elemCmp(elemCmp) {}
-			bool operator()(InterfaceEntry const& e1, InterfaceEntry const& e2)
+			bool operator () (InterfaceEntry const& e1, InterfaceEntry const& e2)
 			{return m_elemCmp(e1.elem, e2.elem);}
 			TElemCmp m_elemCmp;
 		};

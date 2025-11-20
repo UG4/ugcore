@@ -38,7 +38,7 @@
 namespace ug
 {
 
-template <class TElem>
+template <typename TElem>
 typename geometry_traits<TElem>::iterator
 MultiGridSubsetHandler::
 begin(int subsetIndex, int level)
@@ -58,7 +58,7 @@ begin(int subsetIndex, int level)
 				section_container<TElem>(subsetIndex, level).section_begin(sectionInd));
 }
 
-template <class TElem>
+template <typename TElem>
 typename geometry_traits<TElem>::iterator
 MultiGridSubsetHandler::
 end(int subsetIndex, int level)
@@ -78,7 +78,7 @@ end(int subsetIndex, int level)
 				section_container<TElem>(subsetIndex, level).section_end(sectionInd));
 }
 
-template <class TElem>
+template <typename TElem>
 typename geometry_traits<TElem>::const_iterator
 MultiGridSubsetHandler::
 begin(int subsetIndex, int level) const
@@ -97,7 +97,7 @@ begin(int subsetIndex, int level) const
 				section_container<TElem>(subsetIndex, level).section_begin(sectionInd));
 }
 
-template <class TElem>
+template <typename TElem>
 typename geometry_traits<TElem>::const_iterator
 MultiGridSubsetHandler::
 end(int subsetIndex, int level) const
@@ -117,7 +117,7 @@ end(int subsetIndex, int level) const
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
 				section_container<TElem>(subsetIndex, level).section_end(sectionInd));
 }
-template <class TElem>
+template <typename TElem>
 void
 MultiGridSubsetHandler::
 clear_subset_elements(int subsetIndex)
@@ -126,7 +126,7 @@ clear_subset_elements(int subsetIndex)
 		clear_subset_elements<TElem>(subsetIndex, i);
 }
 
-template <class TElem>
+template <typename TElem>
 void MultiGridSubsetHandler::
 clear_subset_elements(int subsetIndex, int level)
 {
@@ -151,7 +151,7 @@ clear_subset_elements(int subsetIndex, int level)
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 uint
 MultiGridSubsetHandler::
 num(int subsetIndex, int level) const
@@ -171,7 +171,7 @@ num(int subsetIndex, int level) const
 		return section_container<TElem>(subsetIndex, level).num_elements(sectionInd);
 }
 
-template <class TElem>
+template <typename TElem>
 uint
 MultiGridSubsetHandler::
 num(int subsetIndex) const
@@ -196,7 +196,7 @@ num(int subsetIndex) const
 	return numElems;
 }
 
-template <class TElem>
+template <typename TElem>
 uint
 MultiGridSubsetHandler::
 num() const
@@ -208,7 +208,7 @@ num() const
 	return n;
 }
 
-template<class TElem>
+template <typename TElem>
 void MultiGridSubsetHandler::
 change_elem_subset_indices(int indOld, int indNew)
 {
@@ -238,7 +238,7 @@ level_required(int level) const
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 typename Grid::traits<TElem>::SectionContainer&
 MultiGridSubsetHandler::
 section_container(int si, int lvl)
@@ -249,7 +249,7 @@ section_container(int si, int lvl)
 }
 
 
-template <class TElem>
+template <typename TElem>
 const typename Grid::traits<TElem>::SectionContainer&
 MultiGridSubsetHandler::
 section_container(int si, int lvl) const

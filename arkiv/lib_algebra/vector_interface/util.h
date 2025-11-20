@@ -1,3 +1,4 @@
+øunused
 /*
  * Copyright (c) 2013-2015:  G-CSC, Goethe University Frankfurt
  * Author: Martin Rupp
@@ -30,24 +31,28 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef COMMON_CUDA_H
-#define	COMMON_CUDA_H
+#ifndef UTIL_H_
+#define UTIL_H_
 
-#define FPTYPE double
+#include "common/util/typename.h"
 
-extern "C"
-bool
-CUDA_VecAdd2(const int len, FPTYPE alpha, FPTYPE *x, FPTYPE beta, const FPTYPE *y);
+namespace ug{
 
-extern "C"
-bool 
-CUDA_VecAdd3(const int len, FPTYPE alpha,  FPTYPE *x, FPTYPE beta, const FPTYPE *y, FPTYPE gamma, const FPTYPE *z);
+template<typename TTo, typename TFrom>
+TTo &DownCast(const TTo &pfrom, TFrom &p)
+{
+	TTo *t = dynamic_cast<TTo*>(&p);
+	UG_ASSERT(t, "could not downcast " << TypeName(pfrom) << " to " << TypeName(p));
+	return *t;
+}
 
-extern "C" bool
-CUDA_VecAdd_2(FPTYPE *dest, FPTYPE alpha1, const FPTYPE *v1, FPTYPE alpha2, const FPTYPE *v2, const int N);
+template<typename TTo, typename TFrom>
+TTo &DownCast(const TTo &pfrom, const TFrom &p)
+{
+	const TTo *t = dynamic_cast<const TTo*>(&p);
+	UG_ASSERT(t, "could not downcast " << TypeName(pfrom) << " to " << TypeName(p));
+	return *t;
+}
 
-extern "C" bool
-CUDA_VecAdd_3(FPTYPE *dest, FPTYPE alpha1, const FPTYPE *v1, FPTYPE alpha2, const FPTYPE *v2, FPTYPE alpha3, const FPTYPE *v3, const int N);
-
-#endif	/* COMMON_CUDA_H */
-
+}
+#endif

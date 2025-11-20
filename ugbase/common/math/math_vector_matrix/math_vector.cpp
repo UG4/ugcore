@@ -36,28 +36,28 @@
 namespace ug{
 
 ///	formatted output of MathVector objects: (...,...)
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<1>& v)
+std::ostream& operator << (std::ostream& outStream, const ug::MathVector<1>& v)
 {
 	outStream << "(" << v.coord(0) << ")";
 	return outStream;
 }
 
 ///	formatted output of MathVector objects: (...,...)
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<2>& v)
+std::ostream& operator << (std::ostream& outStream, const ug::MathVector<2>& v)
 {
 	outStream << "(" << v.coord(0) << ", " << v.coord(1) << ")";
 	return outStream;
 }
 
 ///	formatted output of MathVector objects: (...,...)
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<3>& v)
+std::ostream& operator << (std::ostream& outStream, const ug::MathVector<3>& v)
 {
 	outStream << "(" << v.coord(0) << ", " << v.coord(1) << ", " << v.coord(2) << ")";
 	return outStream;
 }
 
 ///	formatted output of MathVector objects: (...,...)
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<4>& v)
+std::ostream& operator << (std::ostream& outStream, const ug::MathVector<4>& v)
 {
 	outStream << "(" << v.coord(0) << ", " << v.coord(1) << ", " << v.coord(2) << ", " << v.coord(3) << ")";
 	return outStream;

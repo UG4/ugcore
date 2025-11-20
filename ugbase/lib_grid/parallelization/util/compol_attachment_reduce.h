@@ -41,7 +41,7 @@ namespace ug{
 
 ///	methods defined in those traits are used by ComPol_AttachmentReduce
 /**	A default implementation is provided which works for integer types*/
-template <class TValue>
+template <typename TValue>
 struct attachment_reduce_traits
 {
 	using value_t = TValue;
@@ -269,7 +269,7 @@ struct attachment_reduce_traits<std::vector<number> > :
  * attached values you have to perform a reduce first, followed by a copy through
  * ComPol_CopyAttachment
  */
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 class ComPol_AttachmentReduce : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
@@ -339,7 +339,7 @@ class ComPol_AttachmentReduce : public pcl::ICommunicationPolicy<TLayout>
 };
 
 
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 bool ComPol_AttachmentReduce<TLayout, TAttachment>::
 collect(BinaryBuffer& buff, const Interface& interface)
 {
@@ -348,7 +348,7 @@ collect(BinaryBuffer& buff, const Interface& interface)
 	return true;
 }
 
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 bool ComPol_AttachmentReduce<TLayout, TAttachment>::
 extract(BinaryBuffer& buff, const Interface& interface)
 {
@@ -369,7 +369,7 @@ extract(BinaryBuffer& buff, const Interface& interface)
 	return false;
 }
 
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 bool ComPol_AttachmentReduce<TLayout, TAttachment>::
 extract_max(BinaryBuffer& buff, const Interface& interface)
 {
@@ -383,7 +383,7 @@ extract_max(BinaryBuffer& buff, const Interface& interface)
 	return true;
 }
 
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 bool ComPol_AttachmentReduce<TLayout, TAttachment>::
 extract_min(BinaryBuffer& buff, const Interface& interface)
 {
@@ -397,7 +397,7 @@ extract_min(BinaryBuffer& buff, const Interface& interface)
 	return true;
 }
 
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 bool ComPol_AttachmentReduce<TLayout, TAttachment>::
 extract_sum(BinaryBuffer& buff, const Interface& interface)
 {
@@ -410,7 +410,7 @@ extract_sum(BinaryBuffer& buff, const Interface& interface)
 	return true;
 }
 
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 bool ComPol_AttachmentReduce<TLayout, TAttachment>::
 extract_prod(BinaryBuffer& buff, const Interface& interface)
 {
@@ -423,7 +423,7 @@ extract_prod(BinaryBuffer& buff, const Interface& interface)
 	return true;
 }
 
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 bool ComPol_AttachmentReduce<TLayout, TAttachment>::
 extract_land(BinaryBuffer& buff, const Interface& interface)
 {
@@ -436,7 +436,7 @@ extract_land(BinaryBuffer& buff, const Interface& interface)
 	return true;
 }
 
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 bool ComPol_AttachmentReduce<TLayout, TAttachment>::
 extract_band(BinaryBuffer& buff, const Interface& interface)
 {
@@ -449,7 +449,7 @@ extract_band(BinaryBuffer& buff, const Interface& interface)
 	return true;
 }
 
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 bool ComPol_AttachmentReduce<TLayout, TAttachment>::
 extract_lor(BinaryBuffer& buff, const Interface& interface)
 {
@@ -462,7 +462,7 @@ extract_lor(BinaryBuffer& buff, const Interface& interface)
 	return true;
 }
 
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 bool ComPol_AttachmentReduce<TLayout, TAttachment>::
 extract_bor(BinaryBuffer& buff, const Interface& interface)
 {

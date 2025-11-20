@@ -126,18 +126,18 @@ public:
 	 * \brief Switch between normal and base64 encoded output
 	 * \param format one of the values defined in Base64FileWriter::fmtflag
 	 */
-	Base64FileWriter& operator<<(const fmtflag format);
+	Base64FileWriter& operator << (const fmtflag format);
 
 	// insert plain standard types to this filewriter
-	Base64FileWriter& operator<<(int i);
-	Base64FileWriter& operator<<(char c);
-	Base64FileWriter& operator<<(const char* cstr);
-	Base64FileWriter& operator<<(const std::string& str);
+	Base64FileWriter& operator << (int i);
+	Base64FileWriter& operator << (char c);
+	Base64FileWriter& operator << (const char* cstr);
+	Base64FileWriter& operator << (const std::string& str);
 
-	Base64FileWriter& operator<<(float f);
-	Base64FileWriter& operator<<(double d);
-	Base64FileWriter& operator<<(long l);
-	Base64FileWriter& operator<<(size_t s);
+	Base64FileWriter& operator << (float f);
+	Base64FileWriter& operator << (double d);
+	Base64FileWriter& operator << (long l);
+	Base64FileWriter& operator << (size_t s);
 
 private:
 	/**

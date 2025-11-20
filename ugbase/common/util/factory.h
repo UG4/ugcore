@@ -45,7 +45,7 @@ namespace ug{
 namespace detail{
 namespace factory{
 	///	used internally to construct derived classes of a given type
-	template <class TBase, class TDerived>
+	template <typename TBase, typename TDerived>
 	TBase* DerivedClassFactory ()
 	{
 		return new TDerived;
@@ -70,7 +70,7 @@ namespace factory{
  *			over registered classes and to perform automatic registration through
  *			a type list.
  */
-template <class TBase, class TPairSeq = boost::mpl::vector<> >
+template <typename TBase, typename TPairSeq = boost::mpl::vector<> >
 class Factory
 {
 public:
@@ -103,7 +103,7 @@ public:
 		return iclass->second.factory();
 	}
 
-	template <class TDerived>
+	template <typename TDerived>
 	void register_class(const char* name)
 	{
 		// UG_LOG("registering derived class: " << className << std::endl);
@@ -157,4 +157,4 @@ private:
 
 }//	end of namespace
 
-#endif	//__H__UG_factory
+#endif

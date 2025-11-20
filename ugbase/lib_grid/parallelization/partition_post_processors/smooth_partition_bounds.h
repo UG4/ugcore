@@ -39,7 +39,7 @@
 namespace ug{
 
 ///	early draft. Currently only useful for prism-geometries in the d3f-wipp setting
-template <class elem_t>/*, int dim>*/
+template <typename elem_t>/*, int dim>*/
 class SmoothPartitionBounds : public IPartitionPostProcessor
 {
 	public:

@@ -64,7 +64,7 @@ inline int local(bglp_vertex_descriptor p)
 // BGL style access to matrix
 // assign vertices to processes,
 // provide access to cross process entries
-template<class T>
+template<typename T>
 class BGLParallelMatrix {
 public: // types
 	using vertex_descriptor = detail::bglp_vertex_descriptor;
@@ -81,11 +81,11 @@ private:
 		explicit vertex_iterator_() : _owners(nullptr) {}
 		explicit vertex_iterator_(base_vertex_iterator b, owners const* o) : _base(b), _owners(o) {
 		}
-		bool operator==(vertex_iterator_ const& o) const{
+		bool operator == (vertex_iterator_ const& o) const{
 			return _base == o._base;
 		}
-		bool operator!=(vertex_iterator_ const& p) const{
-			return !operator==(p);
+		bool operator != (vertex_iterator_ const& p) const{
+			return !operator == (p);
 		}
 		vertex_iterator_& operator ++ (int) {
 			incomplete();
@@ -95,7 +95,7 @@ private:
 			++_base;
 			return *this;
 		}
-		vertex_descriptor operator*() const {
+		vertex_descriptor operator * () const {
 			auto b = *_base;
 			assert(_owners);
 			return vertex_descriptor((*_owners)[b], *_base);
@@ -107,7 +107,7 @@ private:
 	};
 
 	struct filter_local{
-		bool operator()(vertex_descriptor v) const{
+		bool operator () (vertex_descriptor v) const{
 			int rank;
 #ifdef UG_PARALLEL
 			MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -132,21 +132,21 @@ public:
 		    : _base(b), _owners(o), _ghosts(g) {
 		}
 	public:
-		bool operator==(adjacency_iterator const& o) const{
+		bool operator == (adjacency_iterator const& o) const{
 			return _base == o._base;;
 		}
-		bool operator!=(adjacency_iterator const& p) const{
-			return !operator==(p);
+		bool operator != (adjacency_iterator const& p) const{
+			return !operator == (p);
 		}
 		adjacency_iterator& operator ++ (int) {
 			incomplete();
 			return *this;
 		}
-		adjacency_iterator& operator++() {
+		adjacency_iterator& operator ++ () {
 			++_base;
 			return *this;
 		}
-		vertex_descriptor operator*() const {
+		vertex_descriptor operator * () const {
 			int i = *_base;
 			int o = (*_owners)[i];
 			int l = (*_ghosts)[i];
@@ -173,17 +173,17 @@ public:
 		out_edge_iterator(base_edge_iterator b, owners const* o, ghosts const* g, T const* m)
 		    : _base(b), _owners(o), _ghosts(g), _matrix(m) {
 		}
-		bool operator==(out_edge_iterator const& p) const{
+		bool operator == (out_edge_iterator const& p) const{
 			return _base == p._base;
 		}
-		bool operator!=(out_edge_iterator const& p) const{
-			return !operator==(p);
+		bool operator != (out_edge_iterator const& p) const{
+			return !operator == (p);
 		}
-		out_edge_iterator& operator++() {
+		out_edge_iterator& operator ++ () {
 			++_base;
 			return *this;
 		}
-		edge operator*() const;
+		edge operator * () const;
 	private:
 		base_edge_iterator _base;
 		owners const* _owners;
@@ -220,7 +220,7 @@ public:
 //	explicit BGLParallelMatrix(ug::ParallelMatrix<T> const& o)
 //	    : _matrix(o._matrix), _matrix_transpose(o._matrix_transpose) { untested();
 //	}
-	BGLParallelMatrix& operator=(BGLParallelMatrix const& o) { untested();
+	BGLParallelMatrix& operator = (BGLParallelMatrix const& o) { untested();
 		_matrix = o._matrix;
 		_matrix_transpose = o._matrix_transpose;
 		return *this;
@@ -341,8 +341,8 @@ private:
 	T _matrix_transpose;
 }; // BGLParallelMatrix
 
-template<class T>
-typename BGLParallelMatrix<T>::edge BGLParallelMatrix<T>::out_edge_iterator::operator*() const
+template<typename T>
+typename BGLParallelMatrix<T>::edge BGLParallelMatrix<T>::out_edge_iterator::operator * () const
 {
 	auto e = *_base;
 	assert(_matrix);
@@ -355,7 +355,7 @@ typename BGLParallelMatrix<T>::edge BGLParallelMatrix<T>::out_edge_iterator::ope
 	return E(v, w);
 }
 
-template<class T>
+template<typename T>
 void BGLParallelMatrix<T>::refresh()
 {
 	assert(_matrix);

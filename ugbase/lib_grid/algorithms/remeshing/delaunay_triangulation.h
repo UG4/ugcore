@@ -46,7 +46,7 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TAAPos>
+template <typename TAAPos>
 bool MakeDelaunay(DelaunayInfo<TAAPos>& info);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,12 +59,12 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info);
  * If the triangulation is not already delaunay, all interior edges should also
  * be pushed to the candidates pool (can be done automatically in DelaunayInfo::init_marks)
  */
-template <class TAAPos>
+template <typename TAAPos>
 bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 						   number minAngle = 0,
 				  	  	   int maxSteps = -1/*remove this*/);
 
-template <class TriIter, class TAAPos>
+template <typename TriIter, typename TAAPos>
 bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 						   TAAPos& aaPos, number minAngle = 0,
 				  	  	   Grid::edge_traits::callback cbConstrainedEdge = ConsiderNone(),

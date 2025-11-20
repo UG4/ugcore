@@ -63,18 +63,18 @@ class StdUserData : public TBase
 {
 	public:
 	///	returns value for a global position
-		virtual TRet operator() (TData& value,
+		virtual TRet operator () (TData& value,
 								 const MathVector<dim>& globIP,
 								 number time, int si) const = 0;
 
 	///	returns value for global positions
-		virtual void operator()(TData vValue[],
+		virtual void operator () (TData vValue[],
 								const MathVector<dim> vGlobIP[],
 								number time, int si, const size_t nip) const = 0;
 
 	///	returns values for local and global positions
 	///	\{
-		virtual void operator()(TData vValue[],
+		virtual void operator () (TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
 		                        GridObject* elem,
@@ -88,7 +88,7 @@ class StdUserData : public TBase
 										   vCornerCoords,vLocIP,nip,u,vJT);
 		}
 
-		virtual void operator()(TData vValue[],
+		virtual void operator () (TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
 		                        GridObject* elem,
@@ -102,7 +102,7 @@ class StdUserData : public TBase
 										   vCornerCoords,vLocIP,nip,u,vJT);
 		}
 
-		virtual void operator()(TData vValue[],
+		virtual void operator () (TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
 		                        GridObject* elem,
@@ -139,7 +139,7 @@ class StdDependentUserData
 		StdDependentUserData(const std::vector<std::string>& symbFct) {this->set_functions(symbFct);}
 
 	public:
-		virtual void operator() (TData& value,
+		virtual void operator () (TData& value,
 								 const MathVector<dim>& globIP,
 								 number time, int si) const
 		{
@@ -147,7 +147,7 @@ class StdDependentUserData
 					"for evaluation, but not passed. Cannot evaluate.");
 		}
 
-		virtual void operator()(TData vValue[],
+		virtual void operator () (TData vValue[],
 								const MathVector<dim> vGlobIP[],
 								number time, int si, const size_t nip) const
 		{

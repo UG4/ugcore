@@ -743,7 +743,7 @@ public:
 // 		return m_numberCountedFracsInVertex / multipeInnerHits;
 //  }
 
-	VertexFracturePropertiesVol & operator++( int a )
+	VertexFracturePropertiesVol & operator ++ ( int a )
 	{
 		m_numberCountedFracsInVertex++;
 		return *this;

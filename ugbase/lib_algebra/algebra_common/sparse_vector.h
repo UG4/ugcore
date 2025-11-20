@@ -64,7 +64,7 @@ public:
 		size_t index() const { return (operator *()).first; }
 	};
 
-	SparseVector(size_t s) : m_size(s)
+	explicit SparseVector(size_t s) : m_size(s)
 	{
 	}
 	const_iterator begin() const
@@ -77,12 +77,12 @@ public:
 		return const_iterator(data.end());
 	}
 
-	const T &operator()(size_t c) const
+	const T &operator () (size_t c) const
 	{
 		assert(c < m_size);
 		return data[c];
 	}
-	T &operator()(size_t c)
+	T &operator () (size_t c)
 	{
 		assert(c < m_size);
 		return data[c];

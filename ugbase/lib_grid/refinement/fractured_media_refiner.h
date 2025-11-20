@@ -48,7 +48,7 @@ namespace ug
  * \todo	Add support for degenerated volumes
  * \todo	Use a IsDegenerated callback instead of thresholds
  */
-template <class TGrid, class TAPosition>
+template <typename TGrid, typename TAPosition>
 class FracturedMediaRefiner : public THangingNodeRefiner<TGrid>
 {
 	using BaseClass = THangingNodeRefiner<TGrid>;

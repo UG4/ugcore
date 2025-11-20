@@ -58,12 +58,12 @@ public:
 		return t.num_rows();
 	}
 	
-	const value_type &operator() (size_t r, size_t c) const
+	const value_type &operator () (size_t r, size_t c) const
 	{
 		return t(c, r);
 	}
 	
-	value_type &operator() (size_t r, size_t c)
+	value_type &operator () (size_t r, size_t c)
 	{
 		return t(c, r);
 	}	
@@ -93,10 +93,10 @@ inline double &te_transpose(double &t)
  * Use DenseVector with FixedArray1, VariableArray1 or stl::vector. Depending on
  * TStorage, DenseVector is of fixed size or variable size, and inheritates the interface
  * or TStorage.
- * \param TStorage storage policy with interface of VariableArray1.
+ * \tparam TStorage storage policy with interface of VariableArray1.
  * \sa FixedArray1, VariableArray1
  */
-template<typename TStorage>
+template<typename TStorage> // VariableArray1<number>
 class DenseVector : public TStorage
 {
 public:
@@ -119,30 +119,30 @@ public:
 public:
 	// constructors
 	DenseVector(double alpha=0.0);
-	DenseVector(const DenseVector<TStorage> &rhs);
+	DenseVector(const DenseVector &rhs);
 
 	// ~DenseVector(); // dont implement a destructor, since ~base may not be virtual
 
 	// operations with vectors
 	inline this_type &
-	operator= (const this_type &rhs);
+	operator = (const this_type &rhs);
 
 
 	inline this_type &
-	operator+= (const this_type &rhs);
+	operator += (const this_type &rhs);
 
 	inline this_type &
-	operator-= (const this_type &rhs);
+	operator -= (const this_type &rhs);
 
 	
 	// operations with scalars
 	template<typename T>
 	inline this_type&
-	operator=  (const T& alpha);
+	operator = (const T& alpha);
 	
 	template<typename T>
 	inline this_type&
-	operator=  (const double & alpha)
+	operator = (const double & alpha)
 	{
 		for(size_t i=0; i<size(); i++)
 			entry(i) = alpha;
@@ -150,17 +150,17 @@ public:
 	}
 
 	inline this_type&
-	operator+= (const value_type& alpha);
+	operator += (const value_type& alpha);
 
 	inline this_type&
-	operator-= (const value_type& alpha);
+	operator -= (const value_type& alpha);
 
 	template<typename T>
 	inline this_type&
 	operator *= (const T &alpha);
 
 	inline this_type&
-	operator/= (const value_type& alpha);
+	operator /= (const value_type& alpha);
 
 
 	bool operator > (double d) const
@@ -250,11 +250,11 @@ public:
 
 	inline const value_type &entry(size_t i) const
 	{
-		return operator[] (i);
+		return operator [] (i);
 	}
 	inline value_type &entry(size_t i)
 	{
-		return operator[] (i);
+		return operator [] (i);
 	}
 
 	template<typename Type>
@@ -274,13 +274,13 @@ public:
 		return 1;
 	}
 	
-	inline const value_type &operator() (size_t r, size_t c) const
+	inline const value_type &operator () (size_t r, size_t c) const
 	{
 		UG_ASSERT(c==0, "vector only has one column");
 		return entry(r);
 	}
 	
-	inline value_type &operator() (size_t r, size_t c)
+	inline value_type &operator () (size_t r, size_t c)
 	{
 		UG_ASSERT(c==0, "vector only has one column");
 		return entry(r);

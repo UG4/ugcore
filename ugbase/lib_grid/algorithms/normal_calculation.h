@@ -46,23 +46,23 @@ namespace ug{
 
 ///	Calculates the outer normal of the i-th side of the given grid object
 /**	\{ */
-template <class TAAPos>
+template <typename TAAPos>
 inline typename TAAPos::ValueType
 CalculateOuterNormal(Vertex* v, int sideIndex, TAAPos aaPos);
 
-template <class TAAPos>
+template <typename TAAPos>
 inline typename TAAPos::ValueType
 CalculateOuterNormal(Edge* v, int sideIndex, TAAPos aaPos);
 
-template <class TAAPos>
+template <typename TAAPos>
 inline typename TAAPos::ValueType
 CalculateOuterNormal(Face* v, int sideIndex, TAAPos aaPos);
 
-template <class TAAPos>
+template <typename TAAPos>
 inline typename TAAPos::ValueType
 CalculateOuterNormal(Volume* v, int sideIndex, TAAPos aaPos);
 
-template <class TAAPos>
+template <typename TAAPos>
 inline typename TAAPos::ValueType
 CalculateOuterNormal(GridObject* v, int sideIndex, TAAPos aaPos);
 

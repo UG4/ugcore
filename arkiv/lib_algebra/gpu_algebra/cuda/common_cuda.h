@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2013-2015:  G-CSC, Goethe University Frankfurt
  * Author: Martin Rupp
  * 
  * This file is part of UG4.
@@ -30,40 +30,23 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__LIB_ALGEBRA__OPERATOR__EIGENSOLVER_INTERFACE__
-#define __H__LIB_ALGEBRA__OPERATOR__EIGENSOLVER_INTERFACE__
+#ifndef COMMON_CUDA_H
+#define	COMMON_CUDA_H
 
+#define FPTYPE double
 
-namespace ug{
-///////////////////////////////////////////////////////////
-// Operator
-///////////////////////////////////////////////////////////
+extern "C"
+bool
+CUDA_VecAdd2(const int len, FPTYPE alpha, FPTYPE *x, FPTYPE beta, const FPTYPE *y);
 
-// describes a mapping X->Y
-template <typename X, typename Y>
-class IEigensolver
-{
-	public:
-	// 	Domain space
-		using domain_function_type = X;
+extern "C"
+bool 
+CUDA_VecAdd3(const int len, FPTYPE alpha,  FPTYPE *x, FPTYPE beta, const FPTYPE *y, FPTYPE gamma, const FPTYPE *z);
 
-	// 	Range space
-		using codomain_function_type = Y ;
+extern "C" bool
+CUDA_VecAdd_2(FPTYPE *dest, FPTYPE alpha1, const FPTYPE *v1, FPTYPE alpha2, const FPTYPE *v2, const int N);
 
-	public:
-	// 	Init Operator
-		virtual bool init() = 0;
-
-	// 	Prepare out function
-		virtual bool prepare(Y& d, X& u) = 0;
-
-	// 	Apply Operator, i.e. d := N(u);
-		virtual bool apply(Y& d, const X& u) = 0;
-
-	// 	Destructor
-		virtual ~IOperator() {};
-};
-
-} // end namespace ug
+extern "C" bool
+CUDA_VecAdd_3(FPTYPE *dest, FPTYPE alpha1, const FPTYPE *v1, FPTYPE alpha2, const FPTYPE *v2, FPTYPE alpha3, const FPTYPE *v3, const int N);
 
 #endif

@@ -34,7 +34,6 @@
 #ifndef __H__UG__SMALL_ALGEBRA__BLOCKS__
 #define __H__UG__SMALL_ALGEBRA__BLOCKS__
 
-#include <ostream>
 
 namespace ug{
 	

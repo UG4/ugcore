@@ -39,7 +39,7 @@
 #include "../common/operations.h"
 #include "common/util/smart_pointer.h"
 #include <vector>
-//#include "../vector_interface/ivector.h"
+
 
 namespace ug{
 ///////////////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@ public:
 		m_capacity = 0;
 		m_size = 0; values = nullptr;
 		create(v.m_size);
-		operator=(v);
+		operator = (v);
 	}
 
 
@@ -146,7 +146,7 @@ public:
 	 * The local vector type must provide the following members:
 	 * - size()					- length of local vector
 	 * - index(size_t i)		- global index for component i
-	 * - operator[](size_t i)	- access to value of component i
+	 * - operator [] (size_t i)	- access to value of component i
 	 */
 	template <typename V> void add(const V& u);
 	template <typename V> void set(const V& u);

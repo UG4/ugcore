@@ -257,4 +257,3 @@ void FVSingularSourcesAndSinks<dim, TPointData, TLineData>::line_iterator<TElem,
 
 } // end of namespace ug
 
-/* End of File */

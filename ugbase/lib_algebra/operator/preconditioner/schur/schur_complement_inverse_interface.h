@@ -46,7 +46,7 @@ class ISchurComplementInverse
 {
 	using vector_type = typename TAlgebra::vector_type;
 public:
-	virtual ~ISchurComplementInverse() {}
+	virtual ~ISchurComplementInverse() = default;
 	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op) = 0;
 	virtual std::string config_string() const = 0;
 	virtual bool apply(vector_type& u, const vector_type& f) = 0;

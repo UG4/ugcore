@@ -338,5 +338,3 @@ function util.ReadStateCheckpoint(gf_names, id, name)
 	
 	return cp
 end
-
--- End of File

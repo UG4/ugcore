@@ -40,7 +40,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////
 ///	inverts the orientation of all elements between elemsBegin and elemsEnd
 /**	Make sure that iter_t::value_type is of type Edge*, Face*, or Volume*.*/
-template <class iter_t>
+template <typename iter_t>
 void InvertOrientation(Grid& grid, iter_t elemsBegin,
 					   iter_t elemsEnd);
 
@@ -79,7 +79,7 @@ bool OrientationMatches(FaceVertices* fv, Volume* v);
  * Note that all faces between faceBegin and facesEnd have to be members
  * of the specified grid.
  */
-template <class TFaceIterator>
+template <typename TFaceIterator>
 void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
 						TFaceIterator facesEnd);
 
@@ -97,7 +97,7 @@ void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
  * \todo this method could be improved by adding specialised versions for
  *		 the different volume types.
  */
-template<class TAAPosVRT>
+template<typename TAAPosVRT>
 bool
 CheckOrientation(Volume* vol, TAAPosVRT& aaPosVRT);
 
@@ -112,7 +112,7 @@ CheckOrientation(Volume* vol, TAAPosVRT& aaPosVRT);
  *
  * \return number of reoriented volumes.
  */
-template<class TVolIterator, class TAAPosVRT>
+template<typename TVolIterator, typename TAAPosVRT>
 int
 FixOrientation(Grid& grid, TVolIterator volsBegin, TVolIterator volsEnd,
 			   TAAPosVRT& aaPosVRT);
@@ -124,4 +124,4 @@ FixOrientation(Grid& grid, TVolIterator volsBegin, TVolIterator volsEnd,
 // include implementation
 #include "orientation_util_impl.hpp"
 
-#endif	//__H__UG_orientation_util
+#endif

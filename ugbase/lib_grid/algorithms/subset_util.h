@@ -56,7 +56,7 @@ namespace ug
  *
  * call this method like this: GetMaxSubsetIndex<Face>(yourSubsetHandler);
  */
-template <class TElem>
+template <typename TElem>
 int GetMaxSubsetIndex(SubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ int GetFirstFreeSubset(const ISubsetHandler& sh);
  * is possible that after termination subsets are empty regarding
  * other element-types.
  */
-template <class TElem>
+template <typename TElem>
 void MakeSubsetsConsecutive(SubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
@@ -118,7 +118,7 @@ void AssignVolumeInterfaceFacesToSubsets(Grid& grid, SubsetHandler& sh);
  * TIterator should be an stl-compatible iterator. Its value_type should be
  * a pointer to either Edge, Face, Volume or an derived type of the three.
  */
-template <class TIterator>
+template <typename TIterator>
 void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
 										TIterator elemsEnd, int subsetIndex);
 
@@ -126,7 +126,7 @@ void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
 ////////////////////////////////////////////////////////////////////////
 ///	copies subset-indices to side-elements
 /**	Indices can be copied to all sides or to unassigned sides only.*/
-template <class TIterator>
+template <typename TIterator>
 void CopySubsetIndicesToSides(ISubsetHandler& sh, TIterator elemsBegin,
 							TIterator elemsEnd, bool toUnassignedOnly);
 
@@ -298,7 +298,7 @@ bool SeparateRegions(Grid& grid, ISubsetHandler& shVolsOut,
  * a closed set of lower dimensional elements, which are all assigned to
  * a subset.
  */
-template <class TElem>
+template <typename TElem>
 void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh,
 									  bool appendAtEnd = false);
 
@@ -310,7 +310,7 @@ void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh,
  * a closed set of lower dimensional elements, which are all assigned to
  * a subset.
  */
-template <class TElem>
+template <typename TElem>
 void SeparateSubsetsByLowerDimSelection(Grid& grid, SubsetHandler& sh,
 										Selector& sel, bool appendAtEnd = false);
 
@@ -329,7 +329,7 @@ void SeparateSubsetsByLowerDimSelection(Grid& grid, SubsetHandler& sh,
  * than TElem. The callback is compatible with the CB_ConsiderVertex,
  * CB_ConsiderEdge and CB_ConsiderFace callbacks.
  */
-template <class TElem>
+template <typename TElem>
 void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
 					bool appendAtEnd,
 					boost::function<bool (typename TElem::lower_dim_base_object*)>
@@ -370,12 +370,12 @@ void AssignSubsetColors(ISubsetHandler& sh);
  * looking for neighbors in different subsets. Please note, that the selector
  * is only used, if a selected side is encountered.
  */
-template <class TElem>
+template <typename TElem>
 void AssignSidesToSubsets(ISubsetHandler& sh, ISelector* psel = nullptr);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Assigns all elements of type TElem with subset index -1 to subset at index si
-template <class TElem, class TSubsetHandler>
+template <typename TElem, typename TSubsetHandler>
 void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si);
 
 
@@ -393,7 +393,7 @@ void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si);
  * However, you should in this case make sure, that all elements which are
  * not assigned to a subset intentionally, are assigned to subset -1.
  */
-template <class TSubsetHandler>
+template <typename TSubsetHandler>
 void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 								bool preserveExistingSubsets);
 
@@ -419,7 +419,7 @@ void AssignSubsetsByElementType(ISubsetHandler& sh, GridObjectCollection g);
  *
  * \return \c number area sum of convex faces
  */
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 UG_API
 number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos);
 
@@ -439,7 +439,7 @@ number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos);
  *
  * This method is e.g. used for SurfaceView creation.
  */
-template <class TElem, class TSubsetHandler>
+template <typename TElem, typename TSubsetHandler>
 void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler);
 
@@ -458,7 +458,7 @@ void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
  *
  * This method is e.g. used for SurfaceView creation.
  */
-template <class TElem, class TSubsetHandler>
+template <typename TElem, typename TSubsetHandler>
 void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler);
 
@@ -477,7 +477,7 @@ void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
  *
  * This method is e.g. used for SurfaceView creation.
  */
-template <class TElem, class TSubsetHandler>
+template <typename TElem, typename TSubsetHandler>
 void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler);
 
@@ -494,7 +494,7 @@ void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
  *
  * This method is e.g. used for SurfaceView creation.
  */
-template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+template <typename TElem, typename TSubsetHandlerDest, typename TSubsetHandlerSrc>
 void AssignAssociatedSidesToSubsets(TSubsetHandlerDest& sh,
 									const TSubsetHandlerSrc& srcIndHandler);
 
@@ -514,7 +514,7 @@ void AssignAssociatedSidesToSubsets(TSubsetHandlerDest& sh,
  *
  * This method is e.g. used for SurfaceView creation.
  */
-template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+template <typename TElem, typename TSubsetHandlerDest, typename TSubsetHandlerSrc>
 void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 									const TSubsetHandlerSrc& srcIndHandler);
 

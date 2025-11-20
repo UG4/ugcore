@@ -38,7 +38,7 @@ using namespace std;
 namespace ug
 {
 
-template <class TAPosition>
+template <typename TAPosition>
 GlobalSubdivisionMultiGridRefiner<TAPosition>::
 GlobalSubdivisionMultiGridRefiner(SPRefinementProjector projector) :
 	GlobalMultiGridRefiner(projector)
@@ -51,7 +51,7 @@ GlobalSubdivisionMultiGridRefiner(SPRefinementProjector projector) :
 	m_bConstrained = false;
 }
 
-template <class TAPosition>
+template <typename TAPosition>
 GlobalSubdivisionMultiGridRefiner<TAPosition>::
 GlobalSubdivisionMultiGridRefiner(MultiGrid& mg, SPRefinementProjector projector) :
 	GlobalMultiGridRefiner(mg, projector)
@@ -63,7 +63,7 @@ GlobalSubdivisionMultiGridRefiner(MultiGrid& mg, SPRefinementProjector projector
 	m_bConstrained = false;
 }
 
-template <class TAPosition>
+template <typename TAPosition>
 GlobalSubdivisionMultiGridRefiner<TAPosition>::
 GlobalSubdivisionMultiGridRefiner(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
 							MGSubsetHandler& markSH,
@@ -84,14 +84,14 @@ GlobalSubdivisionMultiGridRefiner(MultiGrid& mg, TAPosition& aPos, MGSubsetHandl
 	assign_position_attachment(aPos);
 }
 
-template <class TAPosition>
+template <typename TAPosition>
 GlobalSubdivisionMultiGridRefiner<TAPosition>::~GlobalSubdivisionMultiGridRefiner()
 {
 	if(m_pMG)
 		m_pMG->unregister_observer(this);
 }
 
-template <class TAPosition>
+template <typename TAPosition>
 void GlobalSubdivisionMultiGridRefiner<TAPosition>::set_linear_manifold_subsets(MGSubsetHandler& linearManifoldSH,
 																				const char* linearManifoldSubsets)
 {
@@ -99,7 +99,7 @@ void GlobalSubdivisionMultiGridRefiner<TAPosition>::set_linear_manifold_subsets(
 	InitLinearManifoldSubsetHandler(*m_pMG, *m_pSH, *m_spLinearManifoldSH, linearManifoldSubsets);
 }
 
-template <class TAPosition>
+template <typename TAPosition>
 void GlobalSubdivisionMultiGridRefiner<TAPosition>::assign_position_attachment(TAPosition& aPos)
 {
 	if(TAPosition::ValueType::Size == 1){
@@ -110,7 +110,7 @@ void GlobalSubdivisionMultiGridRefiner<TAPosition>::assign_position_attachment(T
 		m_pAPos = &aPos;
 }
 
-template <class TAPosition>
+template <typename TAPosition>
 void GlobalSubdivisionMultiGridRefiner<TAPosition>::assign_position_attachment(TAPosition* aPos)
 {
 	if(TAPosition::ValueType::Size == 1){
@@ -121,7 +121,7 @@ void GlobalSubdivisionMultiGridRefiner<TAPosition>::assign_position_attachment(T
 		m_pAPos = aPos;
 }
 
-template <class TAPosition>
+template <typename TAPosition>
 void GlobalSubdivisionMultiGridRefiner<TAPosition>::nest_hierarchy()
 {
 	if(TAPosition::ValueType::Size == 1){
@@ -132,13 +132,13 @@ void GlobalSubdivisionMultiGridRefiner<TAPosition>::nest_hierarchy()
 	ProjectHierarchyToSubdivisionLimit(*m_pMG, *m_pAPos);
 }
 
-template <class TAPosition>
+template <typename TAPosition>
 void GlobalSubdivisionMultiGridRefiner<TAPosition>::refinement_step_ends()
 {
 	smooth();
 }
 
-template <class TAPosition>
+template <typename TAPosition>
 void GlobalSubdivisionMultiGridRefiner<TAPosition>::smooth()
 {
 	if(TAPosition::ValueType::Size == 1){

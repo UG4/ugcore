@@ -47,7 +47,7 @@ namespace ug
  * TLayout::Type has to be either Vertex, Edge, Face or Volume.
  * TAttachment has to be of the type std::vector<SomeType> or compatible.
  */
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 class ComPol_GatherVecAttachment : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
@@ -97,14 +97,14 @@ class ComPol_GatherVecAttachment : public pcl::ICommunicationPolicy<TLayout>
 ////////////////////////////////////////////////////////////////////////
 //	implementation of the methods of CollectorCopy
 ////////////////////////////////////////////////////////////////////////
-template <class TNodeLayout, class TAttachment>
+template <typename TNodeLayout, typename TAttachment>
 ComPol_GatherVecAttachment<TNodeLayout, TAttachment>::
 ComPol_GatherVecAttachment()
 {
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TNodeLayout, class TAttachment>
+template <typename TNodeLayout, typename TAttachment>
 ComPol_GatherVecAttachment<TNodeLayout, TAttachment>::
 ComPol_GatherVecAttachment(Grid& grid, TAttachment& attachment)
 {
@@ -112,7 +112,7 @@ ComPol_GatherVecAttachment(Grid& grid, TAttachment& attachment)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TNodeLayout, class TAttachment>
+template <typename TNodeLayout, typename TAttachment>
 void ComPol_GatherVecAttachment<TNodeLayout, TAttachment>::
 set_attachment(Grid& grid, TAttachment& attachment)
 {
@@ -120,7 +120,7 @@ set_attachment(Grid& grid, TAttachment& attachment)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TNodeLayout, class TAttachment>
+template <typename TNodeLayout, typename TAttachment>
 bool ComPol_GatherVecAttachment<TNodeLayout, TAttachment>::
 collect(BinaryBuffer& buff, const Interface& interface)
 {
@@ -133,7 +133,7 @@ collect(BinaryBuffer& buff, const Interface& interface)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TNodeLayout, class TAttachment>
+template <typename TNodeLayout, typename TAttachment>
 bool ComPol_GatherVecAttachment<TNodeLayout, TAttachment>::
 extract(BinaryBuffer& buff, const Interface& interface)
 {

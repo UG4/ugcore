@@ -46,7 +46,7 @@
 namespace ug{
 
 // Symmetrify matrix stencil
-template<class T>
+template<typename T>
 class UndirectedMatrix {
 	using const_row_iterator = typename T::const_row_iterator;
 public: // types
@@ -83,7 +83,7 @@ public:
 	explicit UndirectedMatrix(UndirectedMatrix const& o)
 	    : _matrix(o._matrix), _extra_fill(o._extra_fill) { untested();
 	}
-	UndirectedMatrix& operator=(UndirectedMatrix const& o) { untested();
+	UndirectedMatrix& operator = (UndirectedMatrix const& o) { untested();
 		_matrix = o._matrix;
 		_extra_fill = o._extra_fill;
 		return *this;
@@ -146,7 +146,7 @@ private:
 	public:
 		explicit map_type(T_adj_it const* i, T_adj_it const* e) : _it(i), _end(e){}
 
-		int operator[](int i) const{
+		int operator [] (int i) const{
 			assert(_it[i] != _end[i]);
 			return *_it[i];
 		}
@@ -158,7 +158,7 @@ private:
 }; // UndirectedMatrix
 
 // refresh missing fill. This is O(nonzeroes)
-template<class T>
+template<typename T>
 void UndirectedMatrix<T>::refresh()
 {
 #ifndef NDEBUG

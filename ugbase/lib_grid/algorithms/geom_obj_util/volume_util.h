@@ -173,14 +173,14 @@ size_t IntersectPlaneWithTetrahedron
 /** \note	This method assumes that the given volume element is convex and
  * 			has planar sides.
  */
-template <class TAAPos>
+template <typename TAAPos>
 UG_API bool
 ContainsPoint(Volume* vol, const vector3& p, TAAPos aaPos);
 
 
 ////////////////////////////////////////////////////////////////////////
 ///	calculates the center of a volume by averaging the positions of its corners
-template<class TVertexPositionAttachmentAccessor>
+template<typename TVertexPositionAttachmentAccessor>
 UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const VolumeVertices* vol, TVertexPositionAttachmentAccessor& aaPosVRT);
@@ -190,7 +190,7 @@ CalculateCenter(const VolumeVertices* vol, TVertexPositionAttachmentAccessor& aa
 /** TAAWeightVRT has to be an attachment to the vertices of the grid in which
  * v is contained, with ValueType number (or compatible).
  */
-template<class TAAPosVRT, class TAAWeightVRT>
+template<typename TAAPosVRT, typename TAAWeightVRT>
 UG_API
 typename TAAPosVRT::ValueType
 CalculateCenter(const VolumeVertices* vol, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight);
@@ -208,7 +208,7 @@ void InsertCenterVertex(Grid& g, Volume* vol, Vertex* vrt, bool eraseOldVol);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Converts all volumes in the given range to tetrahedra
-template <class TVolIter>
+template <typename TVolIter>
 void ConvertToTetrahedra (
 		Grid& grid,
 		TVolIter volsBegin,

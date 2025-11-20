@@ -45,10 +45,10 @@ struct Int2Type {
 	using value_type = int;
 };
 
-template <class T>
+template <typename T>
 struct Pointer2Value{};
 
-template <class T>
+template <typename T>
 struct Pointer2Value<T*>{
 	using type = T;
 };
@@ -241,7 +241,7 @@ class UniqueTypeIDProvider{
 };
 
 ///	This method associated a unique unsigned integer value with each type.
-template <class TType>
+template <typename TType>
 size_t GetUniqueTypeID()
 {
 	static size_t typeID = UniqueTypeIDProvider::inst().new_id();

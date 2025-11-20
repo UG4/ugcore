@@ -40,7 +40,7 @@
 
 namespace boost{
 
-template <class T> struct graph_traits<ug::BGLParallelMatrix<ug::ParallelMatrix<T>>>{
+template <typename T> struct graph_traits<ug::BGLParallelMatrix<ug::ParallelMatrix<T>>>{
 	using type = ug::BGLParallelMatrix<ug::ParallelMatrix<T>>;
 	using vertex_descriptor = ug::detail::bglp_vertex_descriptor;
 	using edge_descriptor = typename type::edge;
@@ -55,7 +55,7 @@ template <class T> struct graph_traits<ug::BGLParallelMatrix<ug::ParallelMatrix<
 	// using adjacency_iterator = typename ug::SparseMatrix<T>::const_row_iterator;
 };
 
-template<class T>
+template<typename T>
 std::pair<typename ug::BGLParallelMatrix<T>::vertex_iterator,
           typename ug::BGLParallelMatrix<T>::vertex_iterator> vertices(
       ug::BGLParallelMatrix<T> const& M)
@@ -82,7 +82,7 @@ using ug::detail::owner;
 using ug::detail::local;
 #endif
 
-template<class T>
+template<typename T>
 int out_degree(typename ug::BGLParallelMatrix<T>::vertex_descriptor v, ug::BGLParallelMatrix<T> const& M)
 {
 //	return M.out_degree(v);
@@ -90,28 +90,28 @@ int out_degree(typename ug::BGLParallelMatrix<T>::vertex_descriptor v, ug::BGLPa
 	return 17;
 }
 
-template<class T>
+template <typename T>
 typename ug::BGLParallelMatrix<T>::vertex_descriptor
 source(typename ug::BGLParallelMatrix<T>::edge const& e, ug::BGLParallelMatrix<T> const&)
 {
 	return e.source();
 }
 
-template<class T>
+template <typename T>
 typename ug::BGLParallelMatrix<T>::vertex_descriptor
 target(typename ug::BGLParallelMatrix<T>::edge const& e, ug::BGLParallelMatrix<T> const&)
 {
 	return e.target();
 }
 
-template<class T>
+template<typename T>
 size_t num_vertices(ug::BGLParallelMatrix<T> const&)
 {
 	incomplete();
 	return 0;
 }
 
-template<class T>
+template <typename T>
 inline SM_edge_weight_map<T>
 //inline typename property_map<ug::SparseMatrix<T>, edge_weight_t>::type
 get(edge_weight_t, ug::BGLParallelMatrix<T> const & g) {
@@ -119,7 +119,7 @@ get(edge_weight_t, ug::BGLParallelMatrix<T> const & g) {
 //	return SM_edge_weight_map<T>(g);
 }
 
-template<class T>
+template<typename T>
 inline std::pair<typename ug::BGLParallelMatrix<T>::out_edge_iterator,
                  typename ug::BGLParallelMatrix<T>::out_edge_iterator>
 					out_edges(
@@ -135,7 +135,7 @@ inline std::pair<typename ug::BGLParallelMatrix<T>::out_edge_iterator,
 	return std::make_pair(b, e);
 }
 
-template<class T>
+template<typename T>
 inline std::pair<typename ug::BGLParallelMatrix<T>::adjacency_iterator,
                  typename ug::BGLParallelMatrix<T>::adjacency_iterator>
 					adjacent_vertices(
@@ -149,7 +149,7 @@ inline std::pair<typename ug::BGLParallelMatrix<T>::adjacency_iterator,
 	return std::make_pair(b,e);
 }
 
-template<class T>
+template <typename T>
 class bglp_matrix_index_map
     : public put_get_helper<size_t, bglp_matrix_index_map<T> > { //
 public:
@@ -164,28 +164,28 @@ public:
 	}
 	bglp_matrix_index_map(ug::SparseMatrix<T>const&, boost::vertex_index_t) { untested();
 	}
-	template<class X>
+	template <typename X>
 	bglp_matrix_index_map(X const&) {
 	}
-	template <class T_>
-	value_type operator[](T_ x) const {
+	template <typename T_>
+	value_type operator [] (T_ x) const {
 		return x.local();
 	}
-	value_type operator[](int x) const {
+	value_type operator [] (int x) const {
 		return x;
 	}
-	bglp_matrix_index_map& operator=(const bglp_matrix_index_map& s) { untested();
+	bglp_matrix_index_map& operator = (const bglp_matrix_index_map& s) { untested();
 		return *this;
 	}
 };
 
-template<class T>
+template <typename T>
 struct property_map<ug::BGLParallelMatrix<T>, vertex_index_t>{
 	using type = bglp_matrix_index_map<T>;
 	using const_type = type;
 };
 
-template<class T>
+template<typename T>
 typename property_map<ug::BGLParallelMatrix<T>, vertex_index_t>::const_type
 get(vertex_index_t, ug::BGLParallelMatrix<T> const& m)
 {
@@ -196,7 +196,7 @@ get(vertex_index_t, ug::BGLParallelMatrix<T> const& m)
 ////////////////////////////////////////////////////////////////////////////////
 
 // duplicate, same as graph_traits<ug::SparseMatrix<T>>?
-template <class T> struct graph_traits<ug::ParallelMatrix<ug::SparseMatrix<T>>>{
+template <typename T> struct graph_traits<ug::ParallelMatrix<ug::SparseMatrix<T>>>{
 	using vertex_descriptor = int;
 	using edge_descriptor = SM_edge<T>;
 	using directed_category = directed_tag;
@@ -210,7 +210,7 @@ template <class T> struct graph_traits<ug::ParallelMatrix<ug::SparseMatrix<T>>>{
 	//using adjacency_iterator = typename ug::SparseMatrix<T>::const_row_iterator;
 };
 
-template<class T>
+template <typename T>
 std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
       ug::ParallelMatrix<ug::SparseMatrix<T>> const& M)
 {
@@ -220,7 +220,7 @@ std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
 	return std::make_pair(b,e);
 }
 
-template<class T>
+template<typename T>
 struct property_map<ug::ParallelMatrix<T>, vertex_index_t>{
 	using value_type = typename T::value_type;
 	using type = sparse_matrix_index_map<value_type>;
@@ -234,7 +234,7 @@ namespace ug {
 using boost::counting_iterator;
 
 #if 0
-template<class T>
+template<typename T>
 std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
       ug::ParallelMatrix<ug::SparseMatrix<T>> const& M)
 {
@@ -244,7 +244,7 @@ std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
 	return std::make_pair(b,e);
 }
 
-template<class T>
+template<typename T>
 inline std::pair<boost::SM_out_edge_iterator<T>, boost::SM_out_edge_iterator<T>>
 					out_edges(size_t v, ug::ParallelMatrix<ug::SparseMatrix<T>> const& g)
 {

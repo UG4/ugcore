@@ -39,7 +39,7 @@
 namespace ug
 {
 
-template <class TRefiner>
+template <typename TRefiner>
 TParallelGlobalRefiner<TRefiner>::
 TParallelGlobalRefiner(DistributedGridManager& distGridMgr,
 						SPRefinementProjector projector) :
@@ -48,7 +48,7 @@ TParallelGlobalRefiner(DistributedGridManager& distGridMgr,
 {
 }
 
-template <class TRefiner>
+template <typename TRefiner>
 bool
 TParallelGlobalRefiner<TRefiner>::
 refinement_is_allowed(Vertex* elem)
@@ -56,35 +56,35 @@ refinement_is_allowed(Vertex* elem)
 	return !m_distGridMgr.is_ghost(elem);
 }
 
-template <class TRefiner>
+template <typename TRefiner>
 bool TParallelGlobalRefiner<TRefiner>::
 refinement_is_allowed(Edge* elem)
 {
 	return !m_distGridMgr.is_ghost(elem);
 }
 
-template <class TRefiner>
+template <typename TRefiner>
 bool TParallelGlobalRefiner<TRefiner>::
 refinement_is_allowed(Face* elem)
 {
 	return !m_distGridMgr.is_ghost(elem);
 }
 
-template <class TRefiner>
+template <typename TRefiner>
 bool TParallelGlobalRefiner<TRefiner>::
 refinement_is_allowed(Volume* elem)
 {
 	return !m_distGridMgr.is_ghost(elem);
 }
 
-template <class TRefiner>
+template <typename TRefiner>
 void TParallelGlobalRefiner<TRefiner>::
 refinement_step_begins()
 {
 	m_distGridMgr.begin_ordered_element_insertion();
 }
 
-template <class TRefiner>
+template <typename TRefiner>
 void TParallelGlobalRefiner<TRefiner>::
 refinement_step_ends()
 {

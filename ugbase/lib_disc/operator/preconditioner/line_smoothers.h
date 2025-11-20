@@ -455,7 +455,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 		}
 		
 	//  Destructor
-		~LineGaussSeidel(){
+		~LineGaussSeidel() override {
 			indY.clear();
 			indZ.clear();
 		};
@@ -488,8 +488,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 		};
 
 	// 	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
+	SmartPtr<ILinearIterator<vector_type> > clone() override {
 			SmartPtr<LineGaussSeidel<domain_type,algebra_type> > newInst(new LineGaussSeidel<domain_type,algebra_type>(m_spApproxSpace));
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
@@ -499,7 +498,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 		}
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const {return true;}
+		bool supports_parallel() const override {return true;}
 
 	public:
 		size_t get_num_forwardx(){return m_nr_forwardx;}
@@ -511,11 +510,10 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 
 	protected:
 	//	Name of preconditioner
-		virtual const char* name() const {return "Line Gauss-Seidel";}
+		const char* name() const override {return "Line Gauss-Seidel";}
 
 	//	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
@@ -531,11 +529,10 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 		}
 
 	//	Postprocess routine
-		virtual bool postprocess() {return true;}
+		bool postprocess() override {return true;}
 
 	//	Stepping routine
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
-		{
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
@@ -804,7 +801,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		}
 				
 	//  Destructor
-		~LineVanka(){
+		~LineVanka() override {
 			indY.clear();
 			indZ.clear();
 		};
@@ -837,9 +834,8 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		};
 
 	// 	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			SmartPtr<LineVanka<domain_type,algebra_type> > newInst(new LineVanka<domain_type,algebra_type>(m_spApproxSpace));
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			SmartPtr<LineVanka > newInst(new LineVanka(m_spApproxSpace));
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
 			newInst->set_num_steps(this->get_num_forwardx(),this->get_num_backwardx(),this->get_num_forwardy(),this->get_num_backwardy(),
@@ -849,7 +845,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		}
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const {return true;}
+		bool supports_parallel() const override {return true;}
 
 	public:
 		size_t get_num_forwardx(){return m_nr_forwardx;}
@@ -861,11 +857,10 @@ class LineVanka : public IPreconditioner<TAlgebra>
 
 	protected:
 	//	Name of preconditioner
-		virtual const char* name() const {return "Line Vanka";}
+		const char* name() const override {return "Line Vanka";}
 
 	//	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
@@ -881,11 +876,10 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		}
 
 	//	Postprocess routine
-		virtual bool postprocess() {return true;}
+		bool postprocess() override {return true;}
 
 	//	Stepping routine
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
-		{
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{

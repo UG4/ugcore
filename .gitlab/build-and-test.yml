@@ -37,6 +37,11 @@ build-and-test:
     - mkdir $UG4_OLD_DIR && cd $UG4_OLD_DIR
     - ughub init && ughub install ugcore ConvectionDiffusion
     - git clone https://gitlab.com/ug4-project/apps/unit_tests.git $UG4_OLD_DIR/apps/unit_tests
+    - # Checkout all repos to this branch (if exists).
+    - cd $UG_DIR
+    - find . -type d -name .git -exec sh -c "cd \"{}\"/../ && pwd && git checkout $CI_COMMIT_BRANCH || true" \;
+    - find . -type d -name .git -exec sh -c "cd \"{}\"/../ && pwd && git checkout $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME || true" \;
+
   script:
     - echo "Building and testing ug4"
     # copy ug4 except for ugcore

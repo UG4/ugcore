@@ -37,7 +37,7 @@
 
 namespace ug{
 
-template <class TLayout>
+template <typename TLayout>
 class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
@@ -106,7 +106,7 @@ class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 
 
 
-template <class TStdVector>
+template <typename TStdVector>
 static bool ContainsInterfaceElem(const TStdVector& elems,
 								  DistributedGridManager& distGridMgr)
 {

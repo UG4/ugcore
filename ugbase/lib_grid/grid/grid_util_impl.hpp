@@ -58,7 +58,7 @@ inline bool EdgeContains(EdgeVertices* e, Vertex* vrt1, Vertex* vrt2)
 //	new methods
 
 ////////////////////////////////////////////////////////////////////////
-template <class TVrtContainer1, class TVrtContainer2>
+template <typename TVrtContainer1, typename TVrtContainer2>
 bool CompareVertexContainer(const TVrtContainer1& con1,
 					const TVrtContainer2& con2)
 {

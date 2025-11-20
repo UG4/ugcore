@@ -167,7 +167,7 @@ struct Functionality {
 	 * available Algebra types, based on the current build options.
 	 *
 	 * @param reg				registry
-	 * @param parentGroup		group for sorting of functionality
+	 * @param parentGroup				group for sorting of functionality
 	 */
 	template<typename TAlgebra>
 	static void Algebra(ug::bridge::Registry& reg, std::string parentGroup) {

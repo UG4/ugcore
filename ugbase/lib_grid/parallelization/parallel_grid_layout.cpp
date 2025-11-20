@@ -44,13 +44,13 @@ size_t hash_key<GeomObjID>(const GeomObjID& key)
 	return (unsigned long)(99971 * key.first + key.second * key.second);
 }
 
-std::ostream& operator<<(std::ostream& out, const GeomObjID& goId)
+std::ostream& operator << (std::ostream& out, const GeomObjID& goId)
 {
 	out << "(" << goId.first << ", " << goId.second << ")";
 	return out;
 }
 
-bool operator<(const GeomObjID& gid1, const GeomObjID& gid2)
+bool operator < (const GeomObjID& gid1, const GeomObjID& gid2)
 {
 	if(gid1.first < gid2.first)
 		return true;
@@ -60,7 +60,7 @@ bool operator<(const GeomObjID& gid1, const GeomObjID& gid2)
 }
 
 ///	A helper method for GridLayoutMap::remove_empty_interfaces()
-template <class TGeomObj>
+template <typename TGeomObj>
 static void RemoveEmptyInterfaces(
 		typename GridLayoutMap::Types<TGeomObj>::Map& map)
 {

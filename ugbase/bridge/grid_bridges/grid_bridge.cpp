@@ -41,7 +41,7 @@ using namespace std;
 namespace ug{
 namespace bridge{
 
-template <class T>
+template <typename T>
 static
 bool IsValidPtr(T* o){
 	return o != nullptr;

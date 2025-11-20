@@ -60,7 +60,7 @@ using namespace std;
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TGeomBaseObj>
+template <typename TGeomBaseObj>
 bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 Grid& grid, int numParts)
 {
@@ -133,7 +133,7 @@ template bool PartitionGrid_MetisKway<Volume>(SubsetHandler&, Grid&, int);
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TGeomBaseObj>
+template <typename TGeomBaseObj>
 bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& mg, int numParts,
 							 	  size_t baseLevel,
@@ -211,7 +211,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TGeomBaseObj>
+template <typename TGeomBaseObj>
 bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& mg, int numParts, size_t baseLevel,
 							 	  boost::function<int (TGeomBaseObj*, TGeomBaseObj*)>& weightFct)
@@ -323,7 +323,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TGeomBaseObj>
+template <typename TGeomBaseObj>
 bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& mg, int numParts, size_t level)
 {
@@ -511,7 +511,7 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TGeomBaseObj>
+template <typename TGeomBaseObj>
 bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 							 	  	  MultiGrid& mg, int numParts, size_t level)
 {

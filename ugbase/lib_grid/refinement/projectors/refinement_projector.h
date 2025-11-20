@@ -165,7 +165,7 @@ protected:
 	IGeometry3d& geom () {return *m_geometry;}
 	const IGeometry3d& geom () const {return *m_geometry;}
 
-	template <class TElem>
+	template <typename TElem>
 	bool is_concerned (TElem* e) {
 		return (*m_concernedElementsCallback)(e);
 	}
@@ -173,7 +173,7 @@ protected:
 private:
 	friend class boost::serialization::access;
 
-	template <class Archive>
+	template <typename Archive>
 	void serialize( Archive& ar, const unsigned int version)
 	{
 	}
@@ -186,4 +186,4 @@ using SPRefinementProjector = SmartPtr<RefinementProjector>;
 
 }//	end of namespace
 
-#endif	//__H__UG_refinement_projector
+#endif

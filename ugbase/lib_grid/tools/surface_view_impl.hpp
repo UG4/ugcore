@@ -39,7 +39,7 @@ namespace ug{
 //	implementation of SurfaceViewElementIterator
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class TElem>
+template <typename TElem>
 SurfaceView::SurfaceViewElementIterator<TElem>::
 SurfaceViewElementIterator(bool start,
                            SurfaceView* sv,
@@ -80,11 +80,10 @@ SurfaceViewElementIterator(bool start,
 	if(!is_contained(*m_elemIter)){increment(); return;}
 }
 
-template <class TElem>
+template <typename TElem>
 SurfaceView::SurfaceViewElementIterator<TElem>::
 SurfaceViewElementIterator() :
 	m_pSurfView(nullptr),
-	m_gl(),
 	m_validStates(0),
 	m_fromSI(0),
 	m_toSI(0),
@@ -95,14 +94,14 @@ SurfaceViewElementIterator() :
 	m_iterEndSection()
 {}
 
-template <class TElem>
+template <typename TElem>
 bool SurfaceView::SurfaceViewElementIterator<TElem>::
-equal(SurfaceViewElementIterator<TElem> const& other) const
+equal(SurfaceViewElementIterator const& other) const
 {
 	return (m_elemIter == other.m_elemIter);
 }
 
-template <class TElem>
+template <typename TElem>
 bool SurfaceView::SurfaceViewElementIterator<TElem>::
 increment_section()
 {
@@ -135,7 +134,7 @@ increment_section()
 	return true;
 }
 
-template <class TElem>
+template <typename TElem>
 void SurfaceView::SurfaceViewElementIterator<TElem>::
 increment()
 {
@@ -154,7 +153,7 @@ increment()
 	}while(!is_contained(*m_elemIter));
 }
 
-template <class TElem>
+template <typename TElem>
 typename SurfaceView::SurfaceViewElementIterator<TElem>::TValue
 SurfaceView::SurfaceViewElementIterator<TElem>::
 dereference() const
@@ -162,8 +161,8 @@ dereference() const
 	return *m_elemIter;
 }
 
-template <class TElem>
-template <class TGeomObj>
+template <typename TElem>
+template <typename TGeomObj>
 bool SurfaceView::SurfaceViewElementIterator<TElem>::
 is_contained(TGeomObj* obj) const
 {
@@ -191,7 +190,7 @@ is_contained(TGeomObj* obj) const
 //	implementation of ConstSurfaceViewElementIterator
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class TElem>
+template <typename TElem>
 SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 ConstSurfaceViewElementIterator(const SurfaceViewElementIterator<TElem>& iter)
 {
@@ -207,7 +206,7 @@ ConstSurfaceViewElementIterator(const SurfaceViewElementIterator<TElem>& iter)
 	m_iterEndSection = iter.m_iterEndSection;
 }
 
-template <class TElem>
+template <typename TElem>
 SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 ConstSurfaceViewElementIterator() :
 	m_pSurfView(nullptr),
@@ -222,7 +221,7 @@ ConstSurfaceViewElementIterator() :
 	m_iterEndSection()
 {}
 
-template <class TElem>
+template <typename TElem>
 SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 ConstSurfaceViewElementIterator(bool start,
                                 const SurfaceView* sv,
@@ -263,14 +262,14 @@ ConstSurfaceViewElementIterator(bool start,
 	if(!is_contained(*m_elemIter)){increment(); return;}
 }
 
-template <class TElem>
+template <typename TElem>
 bool SurfaceView::ConstSurfaceViewElementIterator<TElem>::
-equal(ConstSurfaceViewElementIterator<TElem> const& other) const
+equal(ConstSurfaceViewElementIterator const& other) const
 {
 	return (m_elemIter == other.m_elemIter);
 }
 
-template <class TElem>
+template <typename TElem>
 bool SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 increment_section()
 {
@@ -303,7 +302,7 @@ increment_section()
 	return true;
 }
 
-template <class TElem>
+template <typename TElem>
 void SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 increment()
 {
@@ -323,7 +322,7 @@ increment()
 	}while(!is_contained(*m_elemIter));
 }
 
-template <class TElem>
+template <typename TElem>
 typename SurfaceView::ConstSurfaceViewElementIterator<TElem>::TValue
 SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 dereference() const
@@ -331,8 +330,8 @@ dereference() const
 	return *m_elemIter;
 }
 
-template <class TElem>
-template <class TGeomObj>
+template <typename TElem>
+template <typename TGeomObj>
 bool SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 is_contained(TGeomObj* obj) const
 {
@@ -359,7 +358,7 @@ is_contained(TGeomObj* obj) const
 //	grid level iterators
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class TElem>
+template <typename TElem>
 typename SurfaceView::traits<TElem>::iterator SurfaceView::
 begin(int si, const GridLevel& gl, SurfaceState validStates)
 {
@@ -367,7 +366,7 @@ begin(int si, const GridLevel& gl, SurfaceState validStates)
 	return typename traits<TElem>::iterator(true, this, gl, validStates, si);
 }
 
-template <class TElem>
+template <typename TElem>
 typename SurfaceView::traits<TElem>::iterator SurfaceView::
 end(int si, const GridLevel& gl, SurfaceState validStates)
 {
@@ -375,7 +374,7 @@ end(int si, const GridLevel& gl, SurfaceState validStates)
 	return typename traits<TElem>::iterator(false, this, gl, validStates, si);
 }
 
-template <class TElem>
+template <typename TElem>
 typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
 begin(int si, const GridLevel& gl, SurfaceState validStates) const
 {
@@ -383,7 +382,7 @@ begin(int si, const GridLevel& gl, SurfaceState validStates) const
 	return typename traits<TElem>::const_iterator(true, this, gl, validStates, si);
 }
 
-template <class TElem>
+template <typename TElem>
 typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
 end(int si, const GridLevel& gl, SurfaceState validStates) const
 {
@@ -391,28 +390,28 @@ end(int si, const GridLevel& gl, SurfaceState validStates) const
 	return typename traits<TElem>::const_iterator(false, this, gl, validStates, si);
 }
 
-template <class TElem>
+template <typename TElem>
 typename SurfaceView::traits<TElem>::iterator SurfaceView::
 begin(const GridLevel& gl, SurfaceState validStates)
 {
 	return typename traits<TElem>::iterator(true, this, gl, validStates);
 }
 
-template <class TElem>
+template <typename TElem>
 typename SurfaceView::traits<TElem>::iterator SurfaceView::
 end(const GridLevel& gl, SurfaceState validStates)
 {
 	return typename traits<TElem>::iterator(false, this, gl, validStates);
 }
 
-template <class TElem>
+template <typename TElem>
 typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
 begin(const GridLevel& gl, SurfaceState validStates) const
 {
 	return typename traits<TElem>::const_iterator(true, this, gl, validStates);
 }
 
-template <class TElem>
+template <typename TElem>
 typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
 end(const GridLevel& gl, SurfaceState validStates) const
 {
@@ -438,7 +437,7 @@ bool SurfaceView::is_adaptive() const
 	return m_adaptiveMG;
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 bool SurfaceView::is_contained(TGeomObj* obj, const GridLevel& gl,
                                SurfaceState validStates) const
 {
@@ -465,7 +464,7 @@ bool SurfaceView::is_contained(TGeomObj* obj, const GridLevel& gl,
 	return validStates.contains(oss);
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 SurfaceView::SurfaceState SurfaceView::surface_state(TGeomObj* obj, const GridLevel& gl) const
 {
 	const int lvl = m_pMG->get_level(obj);
@@ -495,7 +494,7 @@ SurfaceView::SurfaceState SurfaceView::surface_state(TGeomObj* obj, const GridLe
 	return oss;
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 bool SurfaceView::is_ghost(TGeomObj* obj) const
 {
 #ifdef UG_PARALLEL
@@ -505,19 +504,19 @@ bool SurfaceView::is_ghost(TGeomObj* obj) const
 #endif
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 bool SurfaceView::is_shadowed(TGeomObj* obj) const
 {
 	return surface_state(obj).partially_contains(MG_SHADOW_RIM);
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 bool SurfaceView::is_shadowing(TGeomObj* obj) const
 {
 	return surface_state(obj).contains(MG_SURFACE_RIM);
 }
 
-template <class TElem>
+template <typename TElem>
 bool SurfaceView::is_vmaster(TElem* elem) const
 {
 	#ifdef UG_PARALLEL

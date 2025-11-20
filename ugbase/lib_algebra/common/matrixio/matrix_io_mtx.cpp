@@ -74,10 +74,10 @@ void MatrixIOMtx::set_mat_file_name( std::string mFile, int openMode )
 {
   PROFILE_FUNC();
   if( !mFile.empty() ) {
-    if ( openMode == MatrixIO::EXISTING ) {
+    if ( openMode == EXISTING ) {
       UG_ASSERT( FileExists( mFile.c_str() ),
                 "File " << mFile.c_str() << " could not be found." );
-    } else if( openMode == MatrixIO::NEW ) {
+    } else if( openMode == NEW ) {
       std::ofstream createFile;
       createFile.open( mFile.c_str(), std::ios_base::out );
       UG_ASSERT( createFile.is_open(), "File could not be created." );
@@ -301,5 +301,3 @@ void MatrixIOMtx::write_entry( size_t m, size_t n ,
 }
 
 } // namespace ug
-
-// EOF

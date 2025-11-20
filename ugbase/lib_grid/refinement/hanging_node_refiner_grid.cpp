@@ -212,7 +212,7 @@ num_marked_volumes_local(std::vector<int>& numMarkedVolsOut)
 }
 
 
-template <class TElem>
+template <typename TElem>
 void HangingNodeRefiner_Grid::
 num_marked_elems(std::vector<int>& numMarkedElemsOut)
 {

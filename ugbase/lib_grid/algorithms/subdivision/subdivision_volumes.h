@@ -148,7 +148,7 @@ void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag);
  * 	@param mg			reference to MultiGrid
  * 	@param aPos			reference to position attachment
 **/
-template <class TAPosition>
+template <typename TAPosition>
 void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, TAPosition& aPos);
 
 
@@ -165,7 +165,7 @@ void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, TAPosition& aPos);
  * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
  * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
 **/
-template <class TAPosition>
+template <typename TAPosition>
 void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 											 	 	   	   	 MGSubsetHandler& linearManifoldSH,
 															 TAPosition& aSmoothBndPosEvenVrt,
@@ -185,7 +185,7 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
  * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
  * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
 **/
-template <class TAPosition>
+template <typename TAPosition>
 void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 											 	 	   MGSubsetHandler& linearManifoldSH,
 													   TAPosition& aSmoothBndPosEvenVrt,
@@ -204,7 +204,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition
  * 	@param aSmoothBndPos_tri	reference to aSmoothBndPos_tri
  *	@param aSmoothBndPos_quad	reference to aSmoothBndPos_quad
 **/
-template <class TAPosition>
+template <typename TAPosition>
 void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 														 MGSubsetHandler& linearManifoldSH,
 														 TAPosition& aSmoothBndPos_tri,
@@ -222,7 +222,7 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, TAPositi
  * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
  * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
 **/
-template <class TAPosition>
+template <typename TAPosition>
 void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 											 	 	   MGSubsetHandler& linearManifoldSH,
 													   TAPosition& aSmoothBndPosOddVrt,
@@ -319,7 +319,7 @@ void InitLinearManifoldSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
  * 	@param bCreaseSurf 				bool switch for crease surfaces in case of subdivision
  * 									refinement by C. Loop, 1987 handling the crease polylines separately
 **/
-template <class TAPosition>
+template <typename TAPosition>
 void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 												MGSubsetHandler& linearManifoldSH, bool bCreaseSurf);
 
@@ -333,7 +333,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
  * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param linearManifoldSH			reference to user-specified linearManifoldSubsets SubsetHandler
 **/
-template <class TAPosition>
+template <typename TAPosition>
 void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 												     MGSubsetHandler& linearManifoldSH);
 
@@ -347,7 +347,7 @@ void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& 
  * 	@param markSH				reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param linearManifoldSH		reference to user-specified linearManifoldSubsets SubsetHandler
 **/
-template <class TAPosition>
+template <typename TAPosition>
 void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 													 MGSubsetHandler& linearManifoldSH);
 
@@ -377,7 +377,7 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  * 	@param bCreaseSurf 				bool switch for crease surfaces in case of subdivision
  * 									refinement by C. Loop, 1987 handling the crease polylines separately
 **/
-template <class TAPosition>
+template <typename TAPosition>
 void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
 											  MGSubsetHandler& markSH, MGSubsetHandler& linearManifoldSH,
 											  bool bCreaseSurf);
@@ -405,11 +405,10 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
  * 	@param aPos						reference to position attachment
  * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param linearManifoldSubsets 	user-specified linearManifoldSubsets
- * 	@param bConstrained				bool switch for constrained smooth subdivision volumes scheme
  * 	@param bCreaseSurf 				bool switch for crease surfaces in case of subdivision
  * 									refinement by C. Loop, 1987 handling the boundary polylines separately
 **/
-template <class TAPosition>
+template <typename TAPosition>
 void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
 											  MGSubsetHandler& markSH, const char* linearManifoldSubsets,
 											  bool bCreaseSurf);

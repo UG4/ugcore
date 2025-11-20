@@ -100,10 +100,13 @@ VariableArray1<T>::resize(size_t newN, bool bCopyValues)
 		n = 0;
 		return true;
 	}
-	value_type *new_values = new T[newN];
+	auto *new_values = new T[newN];// ø throws error and does not return nullptr,  new (std::nothrow) value_type[newN](); instead?
 	UG_ASSERT(new_values != nullptr, "out of memory");
-	if(new_values == nullptr) return false;
-	memset(reinterpret_cast<void *> (new_values), 0, sizeof(T)*newN); // todo: think about that
+	if(new_values == nullptr) return false; // ø always true
+	memset(reinterpret_cast<void *> (new_values), 0, sizeof(T)*newN); // todo think about that // ø std::fill(val,val+N,T{}) instead?
+	// ø memset only safe for trivial types
+
+
 
 	if(bCopyValues)
 	{
@@ -148,7 +151,7 @@ VariableArray1<T>::reserve(size_t newCapacity) const
 
 template<typename T>
 T &
-VariableArray1<T>::operator[](size_t i)
+VariableArray1<T>::operator [] (size_t i)
 {
 	assert(values);
 	assert(i<n);
@@ -157,7 +160,7 @@ VariableArray1<T>::operator[](size_t i)
 
 template<typename T>
 const T &
-VariableArray1<T>::operator[](size_t i) const
+VariableArray1<T>::operator [] (size_t i) const
 {
 	assert(values);
 	assert(i<n);
@@ -284,7 +287,7 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols, bool bCopy
 
 template<typename T, eMatrixOrdering T_ordering>
 T &
-VariableArray2<T, T_ordering>::operator()(size_t r, size_t c)
+VariableArray2<T, T_ordering>::operator () (size_t r, size_t c)
 {
 	UG_ASSERT(r<rows, "r = " << r << ", rows = " << rows);
 	UG_ASSERT(c<cols, "c = " << c << ", cols = " << cols);
@@ -296,7 +299,7 @@ VariableArray2<T, T_ordering>::operator()(size_t r, size_t c)
 
 template<typename T, eMatrixOrdering T_ordering>
 const T &
-VariableArray2<T, T_ordering>::operator()(size_t r, size_t c) const
+VariableArray2<T, T_ordering>::operator () (size_t r, size_t c) const
 {
 	UG_ASSERT(r<rows, "r = " << r << ", rows = " << rows);
 	UG_ASSERT(c<cols, "c = " << c << ", cols = " << cols);

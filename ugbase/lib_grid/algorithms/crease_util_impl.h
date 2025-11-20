@@ -38,7 +38,7 @@
 
 namespace ug{
 
-template <class TVrtIter, class TAAPos>
+template <typename TVrtIter, typename TAAPos>
 void SelectKinkVertices(Selector& sel, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 						number thresholdAngle, bool selectDarts, TAAPos aaPos,
 						Grid::edge_traits::callback cbConsiderEdge)

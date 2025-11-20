@@ -898,7 +898,7 @@ void SetDirichletRow(TSparseMatrix& A, const std::vector<size_t> vIndex)
 	}
 }
 
-template<typename TSparseMatrix, class TOStream>
+template<typename TSparseMatrix, typename TOStream>
 void SerializeMatrix(TOStream &buf, const TSparseMatrix &A)
 {
 	using iterator = typename TSparseMatrix::const_row_iterator;
@@ -922,7 +922,7 @@ void SerializeMatrix(TOStream &buf, const TSparseMatrix &A)
 	}
 }
 
-template <typename TSparseMatrix, class TIStream>
+template <typename TSparseMatrix, typename TIStream>
 void DeserializeMatrix(TIStream& buf, TSparseMatrix &A)
 {
 	size_t numRows, numCols, num_connections;

@@ -107,16 +107,27 @@ class UG_API Variant{
 
 	public:
 		Variant();
+
 		Variant(bool val);
+
 		Variant(int val);
+
 		Variant(size_t val);
+
 		Variant(float val);
+
 		Variant(double val);
+
 		Variant(const char* val);
+
 		Variant(const std::string& val);
+
 		Variant(void* val);
+
 		Variant(const void* val);
+
 		Variant(const SmartPtr<void>& val);
+
 		Variant(const ConstSmartPtr<void>& val);
 #ifdef UG_FOR_LUA
 		Variant(LuaFunctionHandle val);
@@ -127,9 +138,9 @@ class UG_API Variant{
 
 		~Variant();
 
-		const Variant& operator=(const Variant& v);
+		const Variant& operator =(const Variant& v);
 
-		inline Type type() const	{return m_type;}
+		inline Type type() const {return m_type;}
 
 		template <typename T>
 		inline static Type type() {return VT_INVALID;}
@@ -224,6 +235,6 @@ template <> inline Variant::Type Variant::type<LuaTableHandle>() 	{return VT_LUA
 
 }//	end of namespace
 
-UG_API std::ostream& operator<< (std::ostream& outStream, const ug::Variant& v);
+UG_API std::ostream& operator << (std::ostream& outStream, const ug::Variant& v);
 
 #endif

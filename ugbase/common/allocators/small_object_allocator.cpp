@@ -31,7 +31,7 @@
  */
 
 #include "small_object_allocator.h"
-
+#include <cassert>
 
 FixedAllocator::
 FixedAllocator(std::size_t blockSize, unsigned char numBlocksPerChunk) :

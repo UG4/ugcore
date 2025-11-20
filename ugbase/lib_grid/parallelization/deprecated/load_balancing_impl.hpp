@@ -46,7 +46,7 @@ namespace ug
 ///	@{
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class TElem, class TIterator, class TAAPos>
+template <typename TElem, typename TIterator, typename TAAPos>
 bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 								TIterator begin, TIterator end,
 								int numCellsX, int numCellsY, int numCellsZ,
@@ -193,7 +193,7 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
  * (no anisotropy), it should work well.
  */
 /*
-template <class TElem, int IDimension>
+template <typename TElem, int IDimension>
 bool PartitionElementsByRepeatedIntersectionKD(ug::SubsetHandler& shOut,
 										ug::Grid& grid,
 										int numSubsets,

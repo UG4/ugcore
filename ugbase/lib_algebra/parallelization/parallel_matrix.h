@@ -74,7 +74,7 @@ class ParallelMatrix : public TMatrix
 
 	public:
 	///	own type
-		using this_type = ParallelMatrix<TMatrix>;
+		using this_type = ParallelMatrix;
 
 	public:
 	///	Default Constructor
@@ -138,7 +138,7 @@ class ParallelMatrix : public TMatrix
 		bool matmul_minus(TPVector &res, const TPVector &x) const;
 
 	///	assignment
-		this_type &operator =(const this_type &M);
+		this_type &operator = (const this_type &M);
 
 	private:
 	/// type of storage  (i.e. consistent, additiv, additiv unique)

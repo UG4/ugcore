@@ -190,7 +190,7 @@ namespace Shiny {
 			if (a_node->nextSibling) enumerateNodes(a_func, a_node->nextSibling);
 		}
 
-		template <class T>
+		template <typename T>
 		static void enumerateNodes(T* a_this, void (T::*a_func)(const ProfileNode*),
 			const ProfileNode* a_node = &instance.rootNode)
 		{
@@ -208,7 +208,7 @@ namespace Shiny {
 			if (a_zone->next) enumerateZones(a_func, a_zone->next);
 		}
 
-		template <class T>
+		template <typename T>
 		static void enumerateZones(T* a_this, void (T::*a_func)(const ProfileZone*),
 			const ProfileZone* a_zone = &instance.rootZone)
 		{

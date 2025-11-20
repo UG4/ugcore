@@ -108,10 +108,10 @@ class ILinearOperator : public IOperator<X,Y>
 	 *
 	 * \returns 	bool	success flag
 	 */
-		virtual void init() = 0;
+		void init() override = 0;
 
 	///	default implementation for IOperator interface
-		virtual void prepare(X& u) {}
+		void prepare(X& u) override {}
 
 	// 	applies the operator
 	/**
@@ -123,7 +123,7 @@ class ILinearOperator : public IOperator<X,Y>
 	 * \param[out]	f		codomain function
 	 * \returns		bool	success flag
 	 */
-		virtual void apply(Y& f, const X& u) = 0;
+		void apply(Y& f, const X& u) override = 0;
 
 	// 	applies the operator and subtracts the result from the input
 	/**
@@ -139,7 +139,7 @@ class ILinearOperator : public IOperator<X,Y>
 		virtual void apply_sub(Y& f, const X& u) = 0;
 
 	/// virtual	destructor
-		virtual ~ILinearOperator() {};
+		~ILinearOperator() override = default;
 };
 
 }

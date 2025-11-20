@@ -39,7 +39,7 @@ namespace ug
 {
 
 /**	iterates over the multi-grid and assigns all surface-elements to surfaceViewOut.*/
-template <class TElem>
+template <typename TElem>
 void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
 								MultiGrid& mg,
 								MGSubsetHandler& mgsh,
@@ -49,7 +49,7 @@ void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
  *	of lower dimension to the surface-view, too.
  *
  *	TSurfaceView has to be a SubsetHandler or MGSubsetHandler compatible type.*/
-template <class TElem, class TSurfaceView>
+template <typename TElem, typename TSurfaceView>
 void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 						MultiGrid& mg,
 						MGSubsetHandler& mgsh);
@@ -61,7 +61,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
  * If all regarded children lie on the surface (i.e. do not have children them selfs),
  * then the element is regarded as a surface element.
  */
-template <class TElem>
+template <typename TElem>
 bool IsSubSurfaceElement(MultiGrid& mg, TElem* e, bool checkSides = false);
 
 

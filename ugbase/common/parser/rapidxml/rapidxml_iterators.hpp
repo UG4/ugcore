@@ -12,7 +12,7 @@ namespace rapidxml
 {
 
     //! Iterator of child nodes of xml_node
-    template<class Ch>
+    template<typename Ch>
     class node_iterator
     {
     
@@ -40,13 +40,13 @@ namespace rapidxml
             return *m_node;
         }
 
-        pointer operator->() const
+        pointer operator -> () const
         {
             assert(m_node);
             return m_node;
         }
 
-        node_iterator& operator ++()
+        node_iterator& operator ++ ()
         {
             assert(m_node);
             m_node = m_node->next_sibling();
@@ -91,7 +91,7 @@ namespace rapidxml
     };
 
     //! Iterator of child attributes of xml_node
-    template<class Ch>
+    template <class Ch>
     class attribute_iterator
     {
     
@@ -119,7 +119,7 @@ namespace rapidxml
             return *m_attribute;
         }
 
-        pointer operator->() const
+        pointer operator -> () const
         {
             assert(m_attribute);
             return m_attribute;
@@ -139,14 +139,14 @@ namespace rapidxml
             return tmp;
         }
 
-        attribute_iterator& operator--()
+        attribute_iterator& operator -- ()
         {
             assert(m_attribute && m_attribute->previous_attribute());
             m_attribute = m_attribute->previous_attribute();
             return *this;
         }
 
-        attribute_iterator operator--(int)
+        attribute_iterator operator -- (int)
         {
             attribute_iterator tmp = *this;
             ++this;

@@ -39,7 +39,7 @@ using namespace std;
 
 namespace ug{
 
-template <class TGrid, class TAPosition>
+template <typename TGrid, typename TAPosition>
 FracturedMediaRefiner<TGrid, TAPosition>::
 FracturedMediaRefiner(SPRefinementProjector projector) :
 	BaseClass(projector),
@@ -47,7 +47,7 @@ FracturedMediaRefiner(SPRefinementProjector projector) :
 {
 }
 
-template <class TGrid, class TAPosition>
+template <typename TGrid, typename TAPosition>
 FracturedMediaRefiner<TGrid, TAPosition>::
 FracturedMediaRefiner(TGrid& g, SPRefinementProjector projector) :
 	BaseClass(g, projector),
@@ -55,7 +55,7 @@ FracturedMediaRefiner(TGrid& g, SPRefinementProjector projector) :
 {
 }
 
-template <class TGrid, class TAPosition>
+template <typename TGrid, typename TAPosition>
 void
 FracturedMediaRefiner<TGrid, TAPosition>::
 set_aspect_ratio_threshold(number threshold)
@@ -63,7 +63,7 @@ set_aspect_ratio_threshold(number threshold)
 	m_aspectRatioThreshold = threshold;
 }
 
-template <class TGrid, class TAPosition>
+template <typename TGrid, typename TAPosition>
 void
 FracturedMediaRefiner<TGrid, TAPosition>::
 set_position_attachment(TAPosition& aPos)
@@ -73,7 +73,7 @@ set_position_attachment(TAPosition& aPos)
 	m_aaPos.access(*BaseClass::get_associated_grid(), aPos);
 }
 
-template <class TGrid, class TAPosition>
+template <typename TGrid, typename TAPosition>
 bool
 FracturedMediaRefiner<TGrid, TAPosition>::
 mark(Face* f, RefinementMark refMark)
@@ -93,7 +93,7 @@ mark(Face* f, RefinementMark refMark)
 	return true;
 }
 
-template <class TGrid, class TAPosition>
+template <typename TGrid, typename TAPosition>
 number FracturedMediaRefiner<TGrid, TAPosition>::
 aspect_ratio(Face* f)
 {
@@ -121,7 +121,7 @@ aspect_ratio(Face* f)
 	return eMin / eMax;
 }
 
-template <class TGrid, class TAPosition>
+template <typename TGrid, typename TAPosition>
 void
 FracturedMediaRefiner<TGrid, TAPosition>::
 collect_objects_for_refine()

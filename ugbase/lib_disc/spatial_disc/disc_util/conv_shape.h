@@ -97,11 +97,11 @@ class ConvectionShapesNoUpwind
 		{
 			this_type* m_pThis;
 			RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
-			template<typename TElem> void operator() (TElem &)
+			template<typename TElem> void operator () (TElem &)
 			{
-				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
-				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
-				m_pThis->template register_func_for_elem_fvgeom< TElem, HFV1Geometry<TElem, dim> >();
+				m_pThis->register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
+				m_pThis->register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
+				m_pThis->register_func_for_elem_fvgeom< TElem, HFV1Geometry<TElem, dim> >();
 			}
 		};
 	
@@ -118,7 +118,7 @@ class ConvectionShapesNoUpwind
 		{
 			this_type* m_pThis;
 			RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
-			template<typename TRefDim> void operator() (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
+			template<typename TRefDim> void operator () (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
 		};
 
 	/// registers the update function for a reference dimension
@@ -238,11 +238,11 @@ class ConvectionShapesFullUpwind
 		{
 			this_type* m_pThis;
 			RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
-			template<typename TElem> void operator() (TElem &)
+			template<typename TElem> void operator () (TElem &)
 			{
-				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
-				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
-				m_pThis->template register_func_for_elem_fvgeom< TElem, HFV1Geometry<TElem, dim> >();
+				m_pThis->register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
+				m_pThis->register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
+				m_pThis->register_func_for_elem_fvgeom< TElem, HFV1Geometry<TElem, dim> >();
 			}
 		};
 	
@@ -259,7 +259,7 @@ class ConvectionShapesFullUpwind
 		{
 			this_type* m_pThis;
 			RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
-			template<typename TRefDim> void operator() (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
+			template<typename TRefDim> void operator () (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
 		};
 
 	/// registers the update function for a reference dimension
@@ -414,11 +414,11 @@ class ConvectionShapesWeightedUpwind
 		{
 			this_type* m_pThis;
 			RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
-			template<typename TElem> void operator() (TElem &)
+			template<typename TElem> void operator () (TElem &)
 			{
-				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
-				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
-				m_pThis->template register_func_for_elem_fvgeom< TElem, HFV1Geometry<TElem, dim> >();
+				m_pThis->register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
+				m_pThis->register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
+				m_pThis->register_func_for_elem_fvgeom< TElem, HFV1Geometry<TElem, dim> >();
 			}
 		};
 	
@@ -435,7 +435,7 @@ class ConvectionShapesWeightedUpwind
 		{
 			this_type* m_pThis;
 			RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
-			template<typename TRefDim> void operator() (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
+			template<typename TRefDim> void operator () (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
 		};
 
 	/// registers the update function for a reference dimension
@@ -576,10 +576,10 @@ class ConvectionShapesPartialUpwind
 		{
 			this_type* m_pThis;
 			RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
-			template<typename TElem> void operator() (TElem &)
+			template<typename TElem> void operator () (TElem &)
 			{
-				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
-				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
+				m_pThis->register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
+				m_pThis->register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
 			}
 		};
 	
@@ -596,7 +596,7 @@ class ConvectionShapesPartialUpwind
 		{
 			this_type* m_pThis;
 			RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
-			template<typename TRefDim> void operator() (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
+			template<typename TRefDim> void operator () (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
 		};
 
 	/// registers the update function for a reference dimension
@@ -815,9 +815,9 @@ private:
 		this_type *m_pThis;
 		RegisterElemFunc(this_type *pThis) : m_pThis(pThis) {}
 		template <typename TElem>
-		void operator()(TElem &)
+		void operator () (TElem &)
 		{
-			m_pThis->template register_func_for_elem_fvgeom<TElem, FV1Geometry<TElem, dim>>();
+			m_pThis->register_func_for_elem_fvgeom<TElem, FV1Geometry<TElem, dim>>();
 			//m_pThis->template register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
 			//m_pThis->template register_func_for_elem_fvgeom< TElem, HFV1Geometry<TElem, dim> >();
 		}
@@ -837,7 +837,7 @@ private:
 		this_type *m_pThis;
 		RegisterRefDimFunc(this_type *pThis) : m_pThis(pThis) {}
 		template <typename TRefDim>
-		void operator()(TRefDim &) { m_pThis->register_func_for_refDim<TRefDim::value>(); }
+		void operator () (TRefDim &) { m_pThis->register_func_for_refDim<TRefDim::value>(); }
 	};
 
 	/// registers the update function for a reference dimension
@@ -1027,7 +1027,7 @@ private:
 		this_type *m_pThis;
 		RegisterElemFunc(this_type *pThis) : m_pThis(pThis) {}
 		template <typename TElem>
-		void operator()(TElem &)
+		void operator () (TElem &)
 		{
 			m_pThis->template register_func_for_elem_fvgeom<TElem, FV1Geometry<TElem, dim>>();
 			//m_pThis->template register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
@@ -1049,7 +1049,7 @@ private:
 		this_type *m_pThis;
 		RegisterRefDimFunc(this_type *pThis) : m_pThis(pThis) {}
 		template <typename TRefDim>
-		void operator()(TRefDim &) { m_pThis->register_func_for_refDim<TRefDim::value>(); }
+		void operator () (TRefDim &) { m_pThis->register_func_for_refDim<TRefDim::value>(); }
 	};
 
 	/// registers the update function for a reference dimension

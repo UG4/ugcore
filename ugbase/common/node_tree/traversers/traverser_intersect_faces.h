@@ -50,8 +50,9 @@ namespace node_tree
 class Traverser_IntersectFaces : protected Traverser_CollisionTree
 {
 	public:
-		Traverser_IntersectFaces();
-		virtual ~Traverser_IntersectFaces();
+		Traverser_IntersectFaces() = default;
+
+		~Traverser_IntersectFaces() override = default;
 
 	///	intersects the given triangle with all faces in the given nodeGraph.
 	/**	returns true if an intersection was found, false if not.
@@ -76,8 +77,9 @@ class Traverser_IntersectFaces : protected Traverser_CollisionTree
 		const std::vector<CollisionElementID>& get_intersected_element_ids() const;
 		
 	protected:
-		virtual void handle_boxed_group(BoxedGroupNode* boxedGroup);
-		virtual void handle_collision_triangles(CollisionTrianglesNode* colTrisNode);
+		void handle_boxed_group(BoxedGroupNode* boxedGroup) override;
+
+		void handle_collision_triangles(CollisionTrianglesNode* colTrisNode) override;
 		
 	private:
 	//	the element which shall be checked

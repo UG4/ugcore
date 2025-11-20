@@ -64,7 +64,7 @@ class LocalFiniteElementProvider {
 
 	// disallow copy and assignment (intentionally left unimplemented)
 		LocalFiniteElementProvider(const LocalFiniteElementProvider&);
-		LocalFiniteElementProvider& operator=(const LocalFiniteElementProvider&);
+		LocalFiniteElementProvider& operator = (const LocalFiniteElementProvider&);
 
 	// 	private destructor
 		~LocalFiniteElementProvider();
@@ -126,8 +126,8 @@ class LocalFiniteElementProvider {
 	private:
 		template <int dim, typename TShape, typename TGrad>
 		struct LocalShapeFunctionSets{
-			ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> >& operator[](size_t i)  {return ptr[i];}
-			const ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> >& operator[](size_t i) const {return ptr[i];}
+			ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> >& operator [] (size_t i)  {return ptr[i];}
+			const ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> >& operator [] (size_t i) const {return ptr[i];}
 			ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > ptr[NUM_REFERENCE_OBJECTS];
 		};
 
@@ -141,15 +141,15 @@ class LocalFiniteElementProvider {
 
 	private:
 		struct LocalDoFSets{
-			ConstSmartPtr<LocalDoFSet>& operator[](size_t i)  {return ptr[i];}
-			const ConstSmartPtr<LocalDoFSet>& operator[](size_t i) const {return ptr[i];}
+			ConstSmartPtr<LocalDoFSet>& operator [] (size_t i)  {return ptr[i];}
+			const ConstSmartPtr<LocalDoFSet>& operator [] (size_t i) const {return ptr[i];}
 			ConstSmartPtr<LocalDoFSet> ptr[NUM_REFERENCE_OBJECTS];
 		};
 
 		template <int dim>
 		struct DimLocalDoFSets{
-			ConstSmartPtr<DimLocalDoFSet<dim> >& operator[](size_t i)  {return ptr[i];}
-			const ConstSmartPtr<DimLocalDoFSet<dim> >& operator[](size_t i) const {return ptr[i];}
+			ConstSmartPtr<DimLocalDoFSet<dim> >& operator [] (size_t i)  {return ptr[i];}
+			const ConstSmartPtr<DimLocalDoFSet<dim> >& operator [] (size_t i) const {return ptr[i];}
 			ConstSmartPtr<DimLocalDoFSet<dim> > ptr[NUM_REFERENCE_OBJECTS];
 		};
 

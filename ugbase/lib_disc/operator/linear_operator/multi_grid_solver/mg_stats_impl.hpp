@@ -267,4 +267,4 @@ write_header(int maxLvl)
 
 }//	end of namespace
 
-#endif	//__H__UG_mg_stats_impl
+#endif

@@ -67,7 +67,7 @@ public:
 	 * The local vector type must provide the following members:
 	 * - size()					- length of local vector
 	 * - index(size_t i)		- global index for component i
-	 * - operator[](size_t i)	- access to value of component i
+	 * - operator [] (size_t i)	- access to value of component i
 	 */
 
 	template <typename V> bool add(const V& u);

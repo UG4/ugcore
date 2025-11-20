@@ -173,12 +173,12 @@ struct AlgebraTypeIDProvider
 		AlgebraTypeIDProvider()
 		{
 			n = 0;
-			RegisterAlgebraIndices<>(*this);
+			RegisterAlgebraIndices(*this);
 		}
 
 		// prevent copy constructor and assignment
 		AlgebraTypeIDProvider(AlgebraTypeIDProvider const&);	// do not implement
-		void operator=(AlgebraTypeIDProvider const&);			// do not implement
+		void operator = (AlgebraTypeIDProvider const&);			// do not implement
 
 	private:
 		// storage for algebra types (index in array corresponds to algebra type index)
@@ -218,5 +218,4 @@ struct RegisterAlgebraDependent
 
 }
 }
-#endif	/* UTIL_ALGEBRA_DEPENDENT_H */
-
+#endif

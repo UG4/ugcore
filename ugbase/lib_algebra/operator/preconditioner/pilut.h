@@ -81,9 +81,7 @@ class PILUTPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 	// 	Destructor
-		virtual ~PILUTPreconditioner()
-		{
-		};
+		~PILUTPreconditioner() override = default;
 
 	///	sets threshold for incomplete LU factorisation (added 01122010ih)
 		void set_threshold(number thresh)

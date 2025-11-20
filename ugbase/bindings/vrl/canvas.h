@@ -63,5 +63,4 @@
 //	} // vrl::
 //} // ug::
 //
-//#endif	/* CANVAS_H */
-//
+//#endif

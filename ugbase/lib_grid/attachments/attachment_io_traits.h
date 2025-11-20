@@ -36,7 +36,7 @@
 namespace ug{
 
 
-template <class TAttachment>
+template <typename TAttachment>
 struct attachment_io_traits{
 	using value_type = typename TAttachment::ValueType;
 	using reference_type = typename attachment_value_traits<value_type>::reference;
@@ -158,4 +158,4 @@ struct attachment_io_traits<Attachment<std::vector<T> > >
 
 }//	end of namespace
 
-#endif	//__H__UG_attachment_io_traits
+#endif

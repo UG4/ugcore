@@ -40,7 +40,7 @@ struct CompareDegree {
 	CompareDegree(const std::vector<std::vector<size_t> >& vInfo) : m_vCon(vInfo) {}
 
 ///	comparison operator
-	bool operator() (size_t i,size_t j)
+	bool operator () (size_t i,size_t j)
 	{
 		UG_ASSERT(i < m_vCon.size(), "Invalid index.");
 		UG_ASSERT(j < m_vCon.size(), "Invalid index.");

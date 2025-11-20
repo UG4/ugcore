@@ -120,26 +120,24 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		Jacobi(number damp) {this->set_damp(damp); m_bBlock = true;};
 
 	/// clone constructor
-		Jacobi( const Jacobi<TAlgebra> &parent )
+		Jacobi( const Jacobi &parent )
 			: base_type(parent)
 		{
 			set_block(parent.m_bBlock);
 		}
 
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			return make_sp(new Jacobi<algebra_type>(*this));
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			return make_sp(new Jacobi(*this));
 		}
 
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const {return true;}
+		bool supports_parallel() const override {return true;}
 
 
 	///	Destructor
-		virtual ~Jacobi()
-		{};
+		~Jacobi() override = default;
 
 	/// sets if blocked jacobi is used (inverting block-diagonal), or plain (scalar) diagonal if false
 		void set_block(bool b)
@@ -149,11 +147,10 @@ class Jacobi : public IPreconditioner<TAlgebra>
 
 	protected:
 	///	Name of preconditioner
-		virtual const char* name() const {return "Jacobi";}
+		const char* name() const override {return "Jacobi";}
 
 	///	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
 
 			PROFILE_BEGIN_GROUP(Jacobi_preprocess, "algebra Jacobi");
 
@@ -219,8 +216,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 			return true;
 		}
 
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
-		{
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
 			PROFILE_BEGIN_GROUP(Jacobi_step, "algebra Jacobi");
 
 		// 	multiply defect with diagonal, c = damp * D^{-1} * d
@@ -249,12 +245,11 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		}
 
 	///	Postprocess routine
-		virtual bool postprocess() {return true;}
+		bool postprocess() override {return true;}
 
 
 	//	overwrite function in order to specially treat constant damping
-		virtual bool apply(vector_type& c, const vector_type& d)
-		{
+		bool apply(vector_type& c, const vector_type& d) override {
 			PROFILE_BEGIN_GROUP(Jacobi_apply, "algebra Jacobi");
 		//	Check that operator is initialized
 			if(!this->m_bInit)
@@ -311,7 +306,4 @@ class Jacobi : public IPreconditioner<TAlgebra>
 };
 
 } // end namespace ug
-
-//#include "gpujacobi.h"
-
 #endif

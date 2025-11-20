@@ -122,24 +122,24 @@ class SurfaceView
 		inline bool is_adaptive() const;
 
 	///	returns if the element is contained in the surface view
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		inline bool is_contained(TGeomObj* obj, const GridLevel& gl,
 		                         SurfaceState validStates = ALL) const;
 
 	///	returns the surface states, when considered as part of grid level
-		template <class TElem>
+		template <typename TElem>
 		SurfaceState surface_state(TElem* elem, const GridLevel& gl) const;
 
 	///	returns if the element is ghost
 	/**	ghost elements are vertical masters that are in no other interfaces.*/
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		inline bool is_ghost(TGeomObj* obj) const;
 
 	///	returns if the element is shadowed and thus not contained in the surface view
 	/**	A shadowed element has a child and at least one adjacent element which is
 	 * a surface element
 	 * \sa SurfaceView::is_surface_element, SurfaceView::is_shadowing*/
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		inline bool is_shadowed(TGeomObj* obj) const;
 
 	///	returns true if the given element is a shadowing element
@@ -147,7 +147,7 @@ class SurfaceView
 	 * shadowed element. Not that in a distributed grid, this can be true even
 	 * if the element has no parent on the local process.
 	 * \sa SurfaceView::is_shadowed, SurfaceView::is_surface_element*/
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		inline bool is_shadowing(TGeomObj* obj) const;
 
 	///	refresh_surface_states must be called after a grid change
@@ -159,7 +159,7 @@ class SurfaceView
 	 * The only reason it is publicly accessible is for debugging reasons.
 	 *
 	 * \note a protected non-const version exists, which returns a reference to the state.*/
-		template <class TElem>
+		template <typename TElem>
 		SurfaceState surface_state(TElem* elem) const {return m_aaSurfState[elem];}
 
 	///	returns the adjacent elements w.r.t. the grid level
@@ -170,11 +170,11 @@ class SurfaceView
 								bool clearContainer = true) const;
 
 	public:
-		template <class TElem> class SurfaceViewElementIterator;
-		template <class TElem> class ConstSurfaceViewElementIterator;
+		template <typename TElem> class SurfaceViewElementIterator;
+		template <typename TElem> class ConstSurfaceViewElementIterator;
 
 	///	Iterator to traverse the surface of a multi-grid hierarchy
-		template <class TElem>
+		template <typename TElem>
 		class SurfaceViewElementIterator
 		{
 			public:
@@ -204,10 +204,10 @@ class SurfaceView
 
 			private:
 			///	returns if this iterator equals another
-				inline bool equal(SurfaceViewElementIterator<TElem> const& other) const;
+				inline bool equal(SurfaceViewElementIterator const& other) const;
 
 			///	returns if valid element, i.e. contained in iterator loop
-				template <class TGeomObj>
+				template <typename TGeomObj>
 				inline bool is_contained(TGeomObj* obj) const;
 
 			///	returns next valid iterator
@@ -233,7 +233,7 @@ class SurfaceView
 		};
 
 	///	Const iterator to traverse the surface of a multi-grid hierarchy
-		template <class TElem>
+		template <typename TElem>
 		class ConstSurfaceViewElementIterator
 		{
 			public:
@@ -269,7 +269,7 @@ class SurfaceView
 				inline bool equal(ConstSurfaceViewElementIterator const& other) const;
 
 			///	returns if valid element, i.e. contained in iterator loop
-				template <class TGeomObj>
+				template <typename TGeomObj>
 				inline bool is_contained(TGeomObj* obj) const;
 
 			///	returns next valid iterator
@@ -295,7 +295,7 @@ class SurfaceView
 			};
 
 	public:
-		template <class TElem>
+		template <typename TElem>
 		struct traits{
 			using iterator = SurfaceViewElementIterator<TElem>;
 			using const_iterator = ConstSurfaceViewElementIterator<TElem>;
@@ -303,35 +303,35 @@ class SurfaceView
 
 	///	iterators of grid level
 	///	\{
-		template <class TElem>
+		template <typename TElem>
 		typename traits<TElem>::iterator
 		begin(int si, const GridLevel& gl, SurfaceState validStates);
 
-		template <class TElem>
+		template <typename TElem>
 		typename traits<TElem>::iterator
 		end(int si, const GridLevel& gl, SurfaceState validStates);
 
-		template <class TElem>
+		template <typename TElem>
 		typename traits<TElem>::const_iterator
 		begin(int si, const GridLevel& gl, SurfaceState validStates) const;
 
-		template <class TElem>
+		template <typename TElem>
 		typename traits<TElem>::const_iterator
 		end(int si, const GridLevel& gl, SurfaceState validStates) const;
 
-		template <class TElem>
+		template <typename TElem>
 		typename traits<TElem>::iterator
 		begin(const GridLevel& gl, SurfaceState validStates);
 
-		template <class TElem>
+		template <typename TElem>
 		typename traits<TElem>::iterator
 		end(const GridLevel& gl, SurfaceState validStates);
 
-		template <class TElem>
+		template <typename TElem>
 		typename traits<TElem>::const_iterator
 		begin(const GridLevel& gl, SurfaceState validStates) const;
 
-		template <class TElem>
+		template <typename TElem>
 		typename traits<TElem>::const_iterator
 		end(const GridLevel& gl, SurfaceState validStates) const;
 	///	\}
@@ -342,31 +342,31 @@ class SurfaceView
 	 * The method is used during surface-state computation in refresh_surface_states.
 	 * The method returns false if the given element has children or if it is
 	 * contained in a vertical master interface.*/
-		template <class TElem>
+		template <typename TElem>
 		bool is_local_surface_view_element(TElem* elem);
 
 	///	only call for elements of highest dimension
-		template <class TElem>
+		template <typename TElem>
 		void refresh_surface_states();
 
 	///	recursively marks sides and sides of sides as surface or shadow
 	/**	This method is used during refresh_surface_states to assign surface
 	 * states to sides of surface elements.
 	 * Make sure that all elements in lower levels have already been processed!*/
-		template <class TElem, class TSide>
+		template <typename TElem, typename TSide>
 		void mark_sides_as_surface_or_shadow(TElem* elem, byte_t surfaceState = MG_SURFACE_PURE);
 
-		template <class TElem>
+		template <typename TElem>
 		void mark_shadowing(bool markSides = false);
 
 	///	adjusts surface states in a parallel environment
-		template <class TElem>
+		template <typename TElem>
 		void adjust_parallel_surface_states();
 
-		template <class TElem>
+		template <typename TElem>
 		SurfaceState& surface_state(TElem* elem) {return m_aaSurfState[elem];}
 
-		template <class TElem>
+		template <typename TElem>
 		bool is_vmaster(TElem* elem) const;
 
 	private:

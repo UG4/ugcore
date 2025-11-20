@@ -95,7 +95,7 @@ public:
 	{}
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
-	template <class TGeomProvider>
+	template <typename TGeomProvider>
 	SphereProjector (const TGeomProvider& geometry,
 						const vector3& center,
 						number radius,
@@ -137,7 +137,7 @@ public:
 
 private:
 
-	template <class TElem>
+	template <typename TElem>
 	number perform_projection(Vertex* vrt, TElem* parent)
 	{
 	//	first calculate the average distance of corners of the parent to the
@@ -197,7 +197,7 @@ private:
 
 	friend class boost::serialization::access;
 
-	template <class Archive>
+	template <typename Archive>
 	void serialize( Archive& ar, const unsigned int version)
 	{
 		ar & make_nvp("center", m_center);
@@ -214,4 +214,4 @@ private:
 
 }//	end of namespace
 
-#endif	//__H__UG_sphere_projector_new
+#endif

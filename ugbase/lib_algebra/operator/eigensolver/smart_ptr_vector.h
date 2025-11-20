@@ -37,9 +37,9 @@
 
 namespace ug{
 template<typename T>
-class SmartPtrVector : public std::vector<SmartPtr<T> >
+class SmartPtrVector : public std::vector< SmartPtr<T> >
 {
-	using super = std::vector<SmartPtr<T> >;
+	using super = std::vector< SmartPtr<T> >;
 private:
 	SmartPtrVector(SmartPtrVector &);
 public:
@@ -51,12 +51,12 @@ public:
 	const T &operator () (size_t i) const
 	{
 		assert(i < super::size());
-		return *super::operator[](i);
+		return *super::operator [] (i);
 	}
 	T &operator () (size_t i)
 	{
 		assert(i < super::size());
-		return *super::operator[](i);
+		return *super::operator [] (i);
 	}
 };
 

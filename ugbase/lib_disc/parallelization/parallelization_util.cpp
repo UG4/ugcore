@@ -49,7 +49,7 @@ namespace ug{
  *
  *  \todo: replace IndexLayout with TDoFManager::IndexLayout.
  */
-template <class TLayout>
+template <typename TLayout>
 bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
                                   DoFDistribution& dofDistr, TLayout& elemLayout,
 					  const std::map<int, std::vector<bool> >* pIgnoreMap = nullptr)
@@ -188,7 +188,7 @@ bool CreateLevelIndexLayout(	IndexLayout& layoutOut,
  *
  * \param[in]		mg				underlying MultiGrid
  */
-template <class TLayout>
+template <typename TLayout>
 bool AddEntriesToSurfaceIndexLayout(IndexLayout& indexLayoutOut,
                                     DoFDistribution& dofDistr,
                                     TLayout& elemLayout,
@@ -461,7 +461,7 @@ void PermuteIndicesInIndexLayout(	IndexLayout& layout,
 /**
  *
  */
-template <class TLayout>
+template <typename TLayout>
 bool AddEntriesToIndexLayout_DomainDecomposition(
 							IndexLayout& processLayoutOut,
 							IndexLayout& subdomainLayoutOut,

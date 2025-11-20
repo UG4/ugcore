@@ -53,7 +53,7 @@ namespace raster_kernels {
  *
  * \note	if the kernel is run on a 'no_data_value', the counter is not increased.
  */
-template <class T, int TDIM>
+template <typename T, int TDIM>
 class Count {
 public:
 	using result_t = size_t;
@@ -92,7 +92,7 @@ private:
  *
  * \note	'no_data_values' are ignored and will not be summed.
  */
-template <class T, int TDIM>
+template <typename T, int TDIM>
 class Sum {
 public:
 	using result_t = T;
@@ -130,7 +130,7 @@ private:
  *
  * \note 'no_data_values' will not be affected by the blur operation
  */
-template <class T, int TDIM>
+template <typename T, int TDIM>
 class Blur {
 public:
 	Blur (T alpha) :
@@ -158,4 +158,4 @@ private:
 }//	end of namespace
 }//	end of namespace
 
-#endif	//__H__UG_raster_kernels
+#endif

@@ -73,7 +73,7 @@ AlgebraType::AlgebraType(const char* type)
 }
 
 
-inline std::ostream& operator<<(std::ostream& out,	const AlgebraType& v)
+inline std::ostream& operator << (std::ostream& out,	const AlgebraType& v)
 {
 	std::stringstream ss;
 	if(v.blocksize() >= 0) ss << v.blocksize();

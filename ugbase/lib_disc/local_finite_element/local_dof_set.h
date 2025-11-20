@@ -91,12 +91,12 @@ class LocalDoF
 		inline size_t offset() const {return m_offset;}
 
 	///	equality check
-		bool operator==(const LocalDoF& v) const{
+		bool operator == (const LocalDoF& v) const{
 			return dim() == v.dim() && id() == v.id() && offset() == v.offset();
 		}
 
 	///	inequality check
-		bool operator!=(const LocalDoF& v) const {return !((*this)==v);}
+		bool operator != (const LocalDoF& v) const {return !((*this)==v);}
 
 	protected:
 	///	dimension of sub-geometric object
@@ -110,7 +110,7 @@ class LocalDoF
 };
 
 /// writes to the output stream
-std::ostream& operator<<(std::ostream& out,	const LocalDoF& v);
+std::ostream& operator << (std::ostream& out,	const LocalDoF& v);
 
 /**
  * This class provides the interface for the storage of degrees of freedom
@@ -141,13 +141,13 @@ class LocalDoFSet
 		size_t num_dof(int d, size_t id) const;
 
 	///	equality check
-		bool operator==(const LocalDoFSet& v) const;
+		bool operator == (const LocalDoFSet& v) const;
 
 	///	inequality check
-		bool operator!=(const LocalDoFSet& v) const {return !((*this)==v);}
+		bool operator != (const LocalDoFSet& v) const {return !((*this)==v);}
 
 	///	virtual destructor
-		virtual ~LocalDoFSet() {};
+		virtual ~LocalDoFSet() = default;
 };
 
 /**
@@ -174,19 +174,19 @@ class DimLocalDoFSet : public LocalDoFSet
 		virtual bool position(size_t i, MathVector<TDim>& pos) const = 0;
 
 	///	equality check
-		bool operator==(const DimLocalDoFSet<TDim>& v) const;
+		bool operator == (const DimLocalDoFSet<TDim>& v) const;
 
 	///	inequality check
-		bool operator!=(const DimLocalDoFSet<TDim>& v) const {return !((*this)==v);}
+		bool operator != (const DimLocalDoFSet<TDim>& v) const {return !((*this)==v);}
 };
 
 /// @}
 
 /// writes to the output stream
-std::ostream& operator<<(std::ostream& out,	const LocalDoFSet& v);
+std::ostream& operator << (std::ostream& out, const LocalDoFSet& v);
 /// writes to the output stream
 template <int dim>
-std::ostream& operator<<(std::ostream& out,	const DimLocalDoFSet<dim>& v);
+std::ostream& operator << (std::ostream& out, const DimLocalDoFSet<dim>& v);
 
 /**
  * Intersection of local dof sets
@@ -214,7 +214,7 @@ class CommonLocalDoFSet
 };
 
 /// writes to the output stream
-std::ostream& operator<<(std::ostream& out,	const CommonLocalDoFSet& v);
+std::ostream& operator << (std::ostream& out, const CommonLocalDoFSet& v);
 
 
 } // end namespace ug

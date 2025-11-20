@@ -26,7 +26,7 @@ class NewtonUpdaterGeneric
 
 public:
 
-	virtual ~NewtonUpdaterGeneric() {};
+	virtual ~NewtonUpdaterGeneric() = default;
 
 
 	using vector_type = TVector;

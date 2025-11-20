@@ -59,7 +59,7 @@ private:
 	}
 	struct NewSlaveNotification
 	{
-		NewSlaveNotification() : id() {}
+		NewSlaveNotification() = default;
 		NewSlaveNotification(const AlgebraID &_id, int _newSlaveOnPID)
 		{
 			id = _id;

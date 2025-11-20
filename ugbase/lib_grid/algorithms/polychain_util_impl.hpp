@@ -39,7 +39,7 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 size_t
 GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
 				  TEdgeIterator edgesEnd,
@@ -95,7 +95,7 @@ GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
 }
 				  
 ////////////////////////////////////////////////////////////////////////
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 std::pair<Vertex*, Edge*>
 GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 							TEdgeIterator edgesEnd,
@@ -123,7 +123,7 @@ GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 	return std::make_pair((*edgesBegin)->vertex(0), *edgesBegin);
 }
 
-template <class TEdgeIter>
+template <typename TEdgeIter>
 bool CreatePolyChain(std::vector<Vertex*>& polyChainOut, Grid& grid,
 					TEdgeIter edgesBegin, TEdgeIter edgesEnd)
 {

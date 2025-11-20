@@ -71,7 +71,7 @@ public:
 					   ISubsetHandler* psh);
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
-	template <class TGeomProvider>
+	template <typename TGeomProvider>
 	ProjectionHandler (const TGeomProvider& geometry,
 					   SmartPtr<ISubsetHandler> psh) :
 		RefinementProjector (geometry),
@@ -164,7 +164,7 @@ private:
 
 	void projector_required(int index);
 
-	template <class TParent>
+	template <typename TParent>
 	number handle_new_vertex (Vertex* vrt, TParent* parent);
 
 	ISubsetHandler*								m_sh;
@@ -177,4 +177,4 @@ using SPProjectionHandler = SmartPtr<ProjectionHandler>;
 
 }//	end of namespace
 
-#endif	//__H__UG_projection_handler_new
+#endif

@@ -44,7 +44,7 @@ namespace ug{
  * void VecScale(vector_t& vOut, const vector_t& v, real_t s); // performs vOut = s * v.
  * \endcode
  */
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 struct ntree_traits
 {
 	using real_t = int;
@@ -139,26 +139,26 @@ struct NTreeDesc{
  *			is printed. Note that a tree of this depth often results from a bad
  *			underlying geometry and may lead to performance issues.		
  *
- * \param tree_dim		Dimension of the tree: binary-trees (tree_dim=1),
+ * \tparam tree_dim		Dimension of the tree: binary-trees (tree_dim=1),
  * 						quad-trees (tree_dim=2), and octrees (tree_dim=3)
  *						are supported.
  *
- * \param world_dim		Dimension of the space in which the tree is embedded.
+ * \tparam world_dim		Dimension of the space in which the tree is embedded.
  *						This primarily affects underlying mathematical structures
  *						(i.e. vectors). Please note that world_dim has to be at
  *						least as large as tree_dim.
  *
- * \param TElem			The element type for which the tree is constructed. It
+ * \tparam TElem			The element type for which the tree is constructed. It
  *						should be lightweight, since it is copied during tree
  *						creation. There are no special concepts that TElem has
  *						to fullfill.
  *
- * \param TCommonData	User provided data that is stored in the tree (one instance only)
+ * \tparam TCommonData	User provided data that is stored in the tree (one instance only)
  *						but not used by the tree. It is passed to functions in
  *						ntree_traits. The concrete type for TCommonData depends on
  *						the concrete ntree_traits that shall be used.
  */
-template <int tree_dim, int world_dim, class TElem, class TCommonData>
+template <int tree_dim, int world_dim, typename TElem, typename TCommonData>
 class ntree
 {
 	private:

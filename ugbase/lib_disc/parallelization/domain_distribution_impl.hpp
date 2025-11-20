@@ -239,7 +239,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
 
 	PartitionWeighting& wFct = *weightFct;
-	wFct.set_subset_handler(domain.subset_handler().operator->());
+	wFct.set_subset_handler(domain.subset_handler().operator -> ());
 //	we need a process to which elements which are not considered will be send.
 //	Those elements should stay on the current process.
 	int localProc = 0;

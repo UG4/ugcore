@@ -116,7 +116,7 @@ class IOperatorInverse
 		virtual bool apply(X& u) = 0;
 
 	/// virtual destructor
-		virtual ~IOperatorInverse() {};
+		virtual ~IOperatorInverse() = default;
 
 	///	returns information about configuration parameters
 	/**

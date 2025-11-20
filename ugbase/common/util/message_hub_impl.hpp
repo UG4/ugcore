@@ -37,7 +37,7 @@ namespace ug
 {
 
 
-template <class TMsg>
+template <typename TMsg>
 MessageHub::SPCallbackId MessageHub::
 register_function_callback(void (*callback)(const TMsg&),
 						   bool autoFree)
@@ -48,7 +48,7 @@ register_function_callback(void (*callback)(const TMsg&),
 }
 
 
-template <class TMsg, class TClass>
+template <typename TMsg, typename TClass>
 MessageHub::SPCallbackId MessageHub::
 register_class_callback(TClass* cls,
 						void (TClass::*callback)(const TMsg&),
@@ -62,7 +62,7 @@ register_class_callback(TClass* cls,
 }
 
 
-template <class TMsg>
+template <typename TMsg>
 void MessageHub::
 post_message(const TMsg& msg)
 {
@@ -78,7 +78,7 @@ post_message(const TMsg& msg)
 }
 
 
-template <class TMsg>
+template <typename TMsg>
 MessageHub::SPCallbackId MessageHub::
 register_callback_impl(std::function<void (const IMessage&)> callback,
 					   bool autoFree)

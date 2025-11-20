@@ -190,5 +190,4 @@ private:
 
 
 
-#endif	/* MESSAGING_H */
-
+#endif

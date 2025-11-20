@@ -89,19 +89,19 @@ namespace ug{
  *  When doing discretisation, use the add set and get methods
  *  for dealing with submatrices of A.
  *  For other things you can use the row iterators or
- *  operator()-methods.
+ *  operator () -methods.
  *
  * \sa matrixrow, CreateAsMultiplyOf
  * \param T blocktype
  * \param T blocktype
  */
-template<typename TValueType> class SparseMatrix
-{
+template<typename TValueType>
+class SparseMatrix {
 public:
 	using value_type = TValueType;
 	enum {rows_sorted=true};
 
-	using this_type = SparseMatrix<value_type>;
+	using this_type = SparseMatrix;
 
 public:
 	using connection = AlgebraicConnection<TValueType>;
@@ -115,7 +115,7 @@ public:
 	/// constructor for empty SparseMatrix
 	SparseMatrix();
 	/// destructor
-	virtual ~SparseMatrix () {}
+	virtual ~SparseMatrix () = default;
 
 	/**
 	 * @brief Clears the matrix vectors and frees their memory
@@ -228,7 +228,7 @@ public:
 	 * - num_cols()
 	 * - row_index(size_t i)
 	 * - col_index(size_t j)
-	 * - operator()(size_t i, size_t j)
+	 * - operator () (size_t i, size_t j)
 	 * so that mat(i,j) will go to SparseMat(mat.row_index(i), mat.col_index(j))
 	 * \param mat the whole local matrix type
 	 */
@@ -262,7 +262,7 @@ public:
 	//! set matrix to Id*a
 	void set(double a);
 
-	/** operator() (size_t r, size_t c) const
+	/** operator () (size_t r, size_t c) const
 	 * access connection (r, c)
 	 * \param r row
 	 * \param c column
@@ -282,15 +282,15 @@ public:
         return values[j];
     }
 
-	/** operator() (size_t r, size_t c) const
+	/** operator () (size_t r, size_t c) const
 	 * access or create connection (r, c)
 	 * \param r row
 	 * \param c column
 	 * \note (r,c) is added to sparsity pattern if not already there
-	 * use operator()(r,c,bConnectionFound) to prevent
+	 * use operator () (r,c,bConnectionFound) to prevent
 	 * \return SparseMat(r, c)=0.0 if connection created, otherwise SparseMat(r, c)
 	 */
-	value_type &operator() (size_t r, size_t c)
+	value_type &operator () (size_t r, size_t c)
 	{
 		check_rc(r, c);
 		int j=get_index(r, c);
@@ -457,8 +457,8 @@ public:
 			  A.add_iterator(-1);
 #endif
 		  }
-		  const_row_iterator& operator=(const_row_iterator const&) = delete;
-		  const_row_iterator& operator=(const_row_iterator&&) = delete;
+		  const_row_iterator& operator = (const_row_iterator const&) = delete;
+		  const_row_iterator& operator = (const_row_iterator&&) = delete;
         ~const_row_iterator() {
 #ifdef CHECK_ROW_ITERATORS
 			  A.remove_iterator(_row);
@@ -469,10 +469,10 @@ public:
         const const_row_iterator *operator ->() const { return this; }
         const value_type &value() const { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i];     }
-        bool operator!=(const const_row_iterator &o) const { return i != o.i; }
-        void operator++() { ++i; }
-        void operator+=(int nr) { i+=nr; }
-		bool operator==(const const_row_iterator &other) const { return other.i == i; }
+        bool operator != (const const_row_iterator &o) const { return i != o.i; }
+        void operator ++ () { ++i; }
+        void operator += (int nr) { i+=nr; }
+		bool operator == (const const_row_iterator &other) const { return other.i == i; }
 		public: // BUG
 		 // int row() const{return _row;}
 		 size_t idx() const{return i;}
@@ -661,7 +661,7 @@ public:
 	void print_to_file(const char *filename) const;
 	void printrow(size_t row) const;
 
-	friend std::ostream &operator<<(std::ostream &out, const SparseMatrix &m)
+	friend std::ostream &operator << (std::ostream &out, const SparseMatrix &m)
 	{
 		out << "SparseMatrix " //<< m.name
 		<< " [ " << m.num_rows() << " x " << m.num_cols() << " ]";

@@ -229,7 +229,7 @@ public:
 	};
 	
 ///	This function should not be used
-	void operator()
+	void operator ()
 	(
 		vec_type & vValue,
 		const MathVector<dim> & globIP,
@@ -242,7 +242,7 @@ public:
 	}
 
 ///	This function should not be used
-	void operator()
+	void operator ()
 	(
 		vec_type vValue [],
 		const MathVector<dim> vGlobIP [],
@@ -448,7 +448,7 @@ public:
 	};
 	
 ///	This function should not be used
-	void operator()
+	void operator ()
 	(
 		vec_type & vValue,
 		const MathVector<dim> & globIP,
@@ -461,7 +461,7 @@ public:
 	}
 
 ///	This function should not be used
-	void operator()
+	void operator ()
 	(
 		vec_type vValue [],
 		const MathVector<dim> vGlobIP [],
@@ -662,7 +662,7 @@ public:
 	};
 	
 ///	This function should not be used
-	void operator()
+	void operator ()
 	(
 		number & vValue,
 		const MathVector<dim> & globIP,
@@ -675,7 +675,7 @@ public:
 	}
 
 ///	This function should not be used
-	void operator()
+	void operator ()
 	(
 		number vValue [],
 		const MathVector<dim> vGlobIP [],

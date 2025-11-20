@@ -38,7 +38,7 @@
 
 namespace ug{
 
-template <class T> Field<T>::
+template <typename T> Field<T>::
 Field() :
 	m_width(0),
 	m_height(0),
@@ -47,7 +47,7 @@ Field() :
 {
 }
 
-template <class T> Field<T>::
+template <typename T> Field<T>::
 Field(size_t width, size_t height) :
 	m_width(width),
 	m_height(height)
@@ -56,7 +56,7 @@ Field(size_t width, size_t height) :
 	m_data = new T[m_capacity];
 }
 
-template <class T> Field<T>::
+template <typename T> Field<T>::
 Field(size_t width, size_t height, const T& value) :
 	m_width(width),
 	m_height(height)
@@ -66,7 +66,7 @@ Field(size_t width, size_t height, const T& value) :
 	fill_all(value);
 }
 
-template <class T> Field<T>::
+template <typename T> Field<T>::
 Field(const Field& f){
 	m_width = f.width();
 	m_height = f.height();
@@ -75,14 +75,14 @@ Field(const Field& f){
 	memcpy(m_data, f.data(), m_capacity * sizeof(T));
 }
 
-template <class T> Field<T>::
+template <typename T> Field<T>::
 ~Field(){
 	if(m_data)
 		delete[] m_data;
 }
 
-template <class T> Field<T>& Field<T>::
-operator=(const Field& f){
+template <typename T> Field<T>& Field<T>::
+operator = (const Field& f){
 	m_width = f.m_width;
 	m_height = f.m_height;
 	if(m_data && (m_capacity != m_width * m_height)){
@@ -96,7 +96,7 @@ operator=(const Field& f){
 	return *this;
 }
 
-template <class T> void Field<T>::
+template <typename T> void Field<T>::
 resize_no_copy(size_t width, size_t height){
 
 	if(width * height > m_capacity){
@@ -109,17 +109,17 @@ resize_no_copy(size_t width, size_t height){
 	m_height = height;
 }
 
-template <class T> T& Field<T>::
+template <typename T> T& Field<T>::
 at(size_t x, size_t y){
 	return m_data[array_index(x, y)];
 }
 
-template <class T> const T& Field<T>::
+template <typename T> const T& Field<T>::
 at(size_t x, size_t y) const{
 	return m_data[array_index(x, y)];
 }
 
-template <class T> void Field<T>::
+template <typename T> void Field<T>::
 fill(size_t x, size_t y, size_t w, size_t h, const T& value)
 {
 	using std::min;
@@ -135,7 +135,7 @@ fill(size_t x, size_t y, size_t w, size_t h, const T& value)
 	}
 }
 
-template <class T> void Field<T>::
+template <typename T> void Field<T>::
 fill_all(const T& value)
 {
 	const size_t dataSize = size();
@@ -143,7 +143,7 @@ fill_all(const T& value)
 		m_data[i] = value;
 }
 
-template <class T> void Field<T>::
+template <typename T> void Field<T>::
 copy(size_t x, size_t y, const Field& f){
 	using std::min;
 	using std::max;
@@ -158,7 +158,7 @@ copy(size_t x, size_t y, const Field& f){
 	}
 }
 
-template <class T> void Field<T>::
+template <typename T> void Field<T>::
 swap(Field& f){
 	using std::swap;
 	swap(m_width, f.m_width);
@@ -168,14 +168,14 @@ swap(Field& f){
 }
 
 
-template <class T> size_t Field<T>::
+template <typename T> size_t Field<T>::
 array_index(size_t x, size_t y) const{
 	return x + y * m_width;
 }
 
 
-template <class T>
-template <class Archive>
+template <typename T>
+template <typename Archive>
 void Field<T>::
 save( Archive& ar, const unsigned int version) const
 {
@@ -187,8 +187,8 @@ save( Archive& ar, const unsigned int version) const
 	}
 }
 
-template <class T>
-template <class Archive>
+template <typename T>
+template <typename Archive>
 void Field<T>::
 load( Archive& ar, const unsigned int version)
 {
@@ -204,4 +204,4 @@ load( Archive& ar, const unsigned int version)
 
 }//	end of namespace
 
-#endif	//__H__UG_field_impl__
+#endif

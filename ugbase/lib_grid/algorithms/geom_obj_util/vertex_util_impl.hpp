@@ -43,21 +43,21 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPos>
+template <typename TAAPos>
 number VertexDistanceSq(Vertex* v0, Vertex* v1, TAAPos& aaPos)
 {
 	return VecDistanceSq(aaPos[v0], aaPos[v1]);
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPos>
+template <typename TAAPos>
 number VertexDistance(Vertex* v0, Vertex* v1, TAAPos& aaPos)
 {
 	return VecDistance(aaPos[v0], aaPos[v1]);
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 void CalculateVertexNormal(vector3& nOut, Grid& grid, Vertex* vrt, TAAPosVRT& aaPos)
 {
 //	set all normal to zero
@@ -77,7 +77,7 @@ void CalculateVertexNormal(vector3& nOut, Grid& grid, Vertex* vrt, TAAPosVRT& aa
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
 									 Grid& grid, Vertex* vrt,
 						   	   	     TAAPosVRT& aaPos)
@@ -116,7 +116,7 @@ void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT>
+template <typename TAAPosVRT>
 void CalculateBoundaryVertexNormal3D(vector3& nOut, Grid& grid, Vertex* vrt,
 						   	   	     TAAPosVRT& aaPos)
 {
@@ -156,7 +156,7 @@ void CalculateBoundaryVertexNormal3D(vector3& nOut, Grid& grid, Vertex* vrt,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TVrtIter, class TAPosition>
+template <typename TVrtIter, typename TAPosition>
 void
 CalculateBoundingBox(typename TAPosition::ValueType& vMinOut,
 					 typename TAPosition::ValueType& vMaxOut,
@@ -181,7 +181,7 @@ CalculateBoundingBox(typename TAPosition::ValueType& vMinOut,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template<class TVertexPositionAttachmentAccessor>
+template<typename TVertexPositionAttachmentAccessor>
 inline
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const Vertex* v, TVertexPositionAttachmentAccessor& aaPosVRT)
@@ -189,7 +189,7 @@ CalculateCenter(const Vertex* v, TVertexPositionAttachmentAccessor& aaPosVRT)
 	return aaPosVRT[v];
 }
 
-template<class TAAPosVRT, class TAAWeightVRT>
+template<typename TAAPosVRT, typename TAAWeightVRT>
 UG_API
 typename TAAPosVRT::ValueType
 CalculateCenter(const Vertex* v, TAAPosVRT& aaPosVRT, TAAWeightVRT&)
@@ -198,7 +198,7 @@ CalculateCenter(const Vertex* v, TAAPosVRT& aaPosVRT, TAAWeightVRT&)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TVrtIter, class TAPosition>
+template <typename TVrtIter, typename TAPosition>
 typename TAPosition::ValueType
 CalculateCenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 				Grid::AttachmentAccessor<Vertex, TAPosition>& aaPos)
@@ -211,7 +211,7 @@ CalculateCenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TVrtIter, class TAPosition>
+template <typename TVrtIter, typename TAPosition>
 typename TAPosition::ValueType
 CalculateBarycenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 					Grid::VertexAttachmentAccessor<TAPosition>& aaPos)
@@ -231,7 +231,7 @@ CalculateBarycenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TVrtIterator>
+template <typename TVrtIterator>
 Vertex* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
 						  	  	  TVrtIterator vrtsEnd)
 {
@@ -251,7 +251,7 @@ Vertex* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
 ////////////////////////////////////////////////////////////////////////
 //TODO:	replace KDTreeStatic by a dynamic kd-tree.
 //TODO: Better support for various iterators.
-template <int dim, class TVrtIterator>
+template <int dim, typename TVrtIterator>
 void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 					const TVrtIterator& iterEnd, Attachment<MathVector<dim> >& aPos,
 					number threshold)
@@ -265,7 +265,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 	RemoveDoubles<dim>(grid, iterBegin, iterEnd, aaPos, threshold);
 }
 
-template <int dim, class TVrtIterator, class TAAPos>
+template <int dim, typename TVrtIterator, typename TAAPos>
 void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 					const TVrtIterator& iterEnd,
 					TAAPos aaPos,
@@ -370,7 +370,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 
 
 ////////////////////////////////////////////////////////////////////////
-template<class TAAPos> inline
+template<typename TAAPos> inline
 void TransformVertex(Vertex* vrt, matrix33& m, TAAPos& aaPos)
 {
 //	todo: avoid unnecessary copy
@@ -379,7 +379,7 @@ void TransformVertex(Vertex* vrt, matrix33& m, TAAPos& aaPos)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template<class TIterator, class TAAPos>
+template<typename TIterator, typename TAAPos>
 void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
 					   matrix33& m, TAAPos& aaPos)
 {
@@ -388,7 +388,7 @@ void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template<class TIterator, class TAAPos> inline
+template<typename TIterator, typename TAAPos> inline
 void MoveVertices(TIterator vrtsBegin, TIterator vrtsEnd, TAAPos aaPos,
 				  const typename TAAPos::ValueType& offset)
 {
@@ -397,7 +397,7 @@ void MoveVertices(TIterator vrtsBegin, TIterator vrtsEnd, TAAPos aaPos,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class vector_t, class TAAPos>
+template <typename vector_t, typename TAAPos>
 UG_API bool
 ContainsPoint(const Vertex* v, const vector_t& p, TAAPos aaPos)
 {

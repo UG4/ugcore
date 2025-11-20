@@ -36,8 +36,8 @@
 #include <cmath>                                                                   // for ceil, log2
 #include <cstddef>                                                                 // for size_t
 #include <limits>                                                                  // for numeric_limits
-#include <ostream>                                                                 // for string, operator<<, basic_ostream, endl
-#include <string>                                                                  // for char_traits, allocator, operator+, basic_string
+#include <ostream>                                                                 // for string, operator <<, basic_ostream, endl
+#include <string>                                                                  // for char_traits, allocator, operator + , basic_string
 #include <vector>                                                                  // for vector
 
 #include "common/assert.h"                                                         // for UG_ASSERT
@@ -72,7 +72,7 @@
 namespace ug {
 
 
-template <typename TDomain, class TElem>
+template <typename TDomain, typename TElem>
 inline void CopySelectedElements
 (
 	SmartPtr<TDomain> destDom,
@@ -89,7 +89,7 @@ inline void CopySelectedElements
 	ConstSmartPtr<SH_type> srcSH = srcDom->subset_handler();
 	SmartPtr<SH_type> destSH = destDom->subset_handler();
 
-	Grid::VertexAttachmentAccessor<AVertex> aaNewVrt(srcGrid, aNewVrt);
+	Grid::VertexAttachmentAccessor aaNewVrt(srcGrid, aNewVrt);
 
 	CustomVertexGroup vrts;
 	using iter_t = typename Grid::traits<TElem>::iterator;
@@ -134,7 +134,7 @@ inline void CopySelected
 
 	AVertex aNewVrt;
 	srcGrid.attach_to_vertices(aNewVrt);
-	Grid::VertexAttachmentAccessor<AVertex> aaNewVrt(srcGrid, aNewVrt);
+	Grid::VertexAttachmentAccessor aaNewVrt(srcGrid, aNewVrt);
 
 	for (int si = destSH->num_subsets(); si < srcSH->num_subsets(); ++si)
 		destSH->subset_info(si) = srcSH->subset_info(si);
@@ -243,7 +243,6 @@ void vtk_export_ho
 
 	using dom_type = typename TGridFunction::domain_type;
 	using algebra_type = typename TGridFunction::algebra_type;
-	using position_attachment_type = typename dom_type::position_attachment_type;
 	using approx_space_type = typename TGridFunction::approximation_space_type;
 	using elem_type = typename TGridFunction::template dim_traits<trueDim>::grid_base_object;
 

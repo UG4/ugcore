@@ -50,25 +50,25 @@ public:
 	// element access functions
 public:
 
-	/** operator() (size_t r, size_t c) const
+	/** operator () (size_t r, size_t c) const
 	 * access connection (r, c)
 	 * \param r row
 	 * \param c column
 	 * \note it is assert'ed that connection (r,c) is there
-	 * use operator()(r,c,bConnectionFound) to check.
+	 * use operator () (r,c,bConnectionFound) to check.
 	 * \return SparseMat(r, c)
 	 */
-	value_type &operator() (size_t r, size_t c);
+	value_type &operator () (size_t r, size_t c);
 
-	/** operator() (size_t r, size_t c) const
+	/** operator () (size_t r, size_t c) const
 	 * access or create connection (r, c)
 	 * \param r row
 	 * \param c column
 	 * \note (r,c) is added to sparsity pattern if not already there
-	 * use operator()(r,c,bConnectionFound) to prevent
+	 * use operator () (r,c,bConnectionFound) to prevent
 	 * \return SparseMat(r, c)=0.0 if connection created, otherwise SparseMat(r, c)
 	 */
-	const value_type &operator() (size_t r, size_t c) const;
+	const value_type &operator () (size_t r, size_t c) const;
 
 	// information functions
 public:

@@ -60,7 +60,7 @@ static bool ExtrusionHelper_CheckOrientation(Volume* v, Grid::VertexAttachmentAc
 
 ////////////////////////////////////////////////////////////////////////
 //	Extrude
-template <class vector_t>
+template <typename vector_t>
 void Extrude(Grid& grid,
 			std::vector<Vertex*>* pvVerticesInOut,
 			std::vector<Edge*>* pvEdgesInOut,
@@ -81,7 +81,7 @@ void Extrude(Grid& grid,
 			direction, aaPos, extrusionOptions, pvVolsOut);
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 void Extrude(Grid& grid,
 			std::vector<Vertex*>* pvVerticesInOut,
 			std::vector<Edge*>* pvEdgesInOut,

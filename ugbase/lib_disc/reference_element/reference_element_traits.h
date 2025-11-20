@@ -44,7 +44,7 @@ namespace ug{
  * reference-element type. It is used to determine the reference element type
  * at compile time.
  */
-template <class TElem>
+template <typename TElem>
 struct reference_element_traits;
 
 

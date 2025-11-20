@@ -40,7 +40,7 @@
 
 namespace ug{
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 ParallelDualGraph(MultiGrid* pmg) :
 	m_procCom(pcl::PCD_EMPTY),
@@ -50,7 +50,7 @@ ParallelDualGraph(MultiGrid* pmg) :
 		set_grid(pmg);
 }
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 ~ParallelDualGraph()
 {
@@ -58,7 +58,7 @@ ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 		detach_data();
 }
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 void ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 set_grid(MultiGrid* pmg)
 {
@@ -73,7 +73,7 @@ set_grid(MultiGrid* pmg)
 		attach_data();
 }
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 TIndexType ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 num_graph_vertices()
 {
@@ -83,14 +83,14 @@ num_graph_vertices()
 	return (TIndexType)m_adjacencyMapStructure.size() - 1;
 }
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 TIndexType ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 num_graph_edges()
 {
 	return (TIndexType)m_adjacencyMap.size();
 }
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 TIndexType* ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 adjacency_map_structure()
 {
@@ -99,7 +99,7 @@ adjacency_map_structure()
 	return &m_adjacencyMapStructure.front();
 }
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 TIndexType* ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 adjacency_map()
 {
@@ -108,7 +108,7 @@ adjacency_map()
 	return &m_adjacencyMap.front();
 }
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 TIndexType* ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 parallel_offset_map()
 {
@@ -118,7 +118,7 @@ parallel_offset_map()
 }
 
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 bool ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 was_considered(TGeomBaseObj* o)
 {
@@ -126,7 +126,7 @@ was_considered(TGeomBaseObj* o)
 	return m_aaElemIndex[o] != -1;
 }
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 void ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 attach_data()
 {
@@ -137,7 +137,7 @@ attach_data()
 	m_aaElemIndices.access(*m_pMG, m_aElemIndices);
 }
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 void ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 detach_data()
 {
@@ -149,7 +149,7 @@ detach_data()
 }
 
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 void ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 generate_graph(int level, pcl::ProcessCommunicator procCom)
 {

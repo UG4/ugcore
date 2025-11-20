@@ -107,7 +107,7 @@ namespace ug{
 	};
 
 
-	template <class TDomain>
+	template <typename TDomain>
 	class BalanceWeightsLuaCallback : public IBalanceWeights
 	{
 		public:
@@ -167,7 +167,7 @@ namespace LoadBalancing{
 
 #ifdef UG_PARALLEL
 
-template <class TDomain, class TPartitioner>
+template <typename TDomain, typename TPartitioner>
 static void RegisterDynamicBisectionPartitioner(
 	Registry& reg,
 	string name,
@@ -197,7 +197,7 @@ static void RegisterDynamicBisectionPartitioner(
 	reg.add_class_to_group(name, clsGrpName, GetDomainTag<TDomain>());
 }
 
-template <class TDomain, class elem_t>
+template <typename TDomain, typename elem_t>
 static void RegisterSmoothPartitionBounds(
 	Registry& reg,
 	string name,
@@ -527,7 +527,7 @@ static void Common(Registry& reg, string grp) {
  * available Domain types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TDomain>
 static void Domain(Registry& reg, string grp)

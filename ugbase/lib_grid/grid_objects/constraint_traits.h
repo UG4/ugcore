@@ -40,7 +40,7 @@
 namespace ug{
 /**	constraint traits provide the associated constrained and constraining grid
  * grid object types to a given grid object type.*/
-template <class TElem>
+template <typename TElem>
 struct constraint_traits{
 	using elem_t = TElem;
 	using constrained_t = void;

@@ -103,7 +103,7 @@ void PrintGridElementNumbers(GridSubsetHandler& sh)
 	PrintElementNumbers(sh.get_grid_objects());
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 void PrintAttachmentInfo(Grid& grid)
 {
 	using AttachmentPipe = typename Grid::traits<TGeomObj>::AttachmentPipe;
@@ -146,7 +146,7 @@ void PrintAttachmentInfo(Grid& grid)
 	PrintAttachmentInfo<Volume>(grid);
 }
 
-template <class TElem>
+template <typename TElem>
 static void CheckMultiGridConsistencyImpl(MultiGrid& mg)
 {
 	#ifdef UG_PARALLEL
@@ -571,7 +571,7 @@ enum ConstraintTypes{
 	CT_CONSTRAINED = 1 << 1
 };
 
-template <class TElem>
+template <typename TElem>
 static bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
 {
 	using ElemIter = typename Grid::traits<TElem>::iterator;
@@ -658,7 +658,7 @@ bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
 }
 
 #ifdef UG_PARALLEL
-template <class TLayout>
+template <typename TLayout>
 class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
@@ -761,7 +761,7 @@ class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLa
 };
 #endif
 
-template <class TElem>
+template <typename TElem>
 bool CheckLocalParentTypes(MultiGrid& mg)
 {
 	bool success = true;
@@ -934,7 +934,7 @@ bool CheckElementConsistency(MultiGrid& mg, Face* f)
 }
 
 
-template <class TElem>
+template <typename TElem>
 static
 std::string ElementDebugInfo_IMPL(const Grid& grid, TElem* e)
 {

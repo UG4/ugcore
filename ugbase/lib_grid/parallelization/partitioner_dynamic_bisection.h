@@ -53,7 +53,7 @@ namespace ug{
  *	- 'enableYCuts' (bool)
  *	- 'enableZCuts' (bool)
  */
-template <class TElem, int dim>
+template <typename TElem, int dim>
 class Partitioner_DynamicBisection : public IPartitioner {
 	public:
 		using base_class = IPartitioner;

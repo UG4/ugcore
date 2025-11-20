@@ -41,7 +41,7 @@
 namespace ug{
 
 
-template <class TAPosition>
+template <typename TAPosition>
 bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh, const char* filename,
 					 TAPosition& aPos)
 {
@@ -63,7 +63,7 @@ bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh, const char* filename,
 	return true;
 }
 
-template <class TAPosition>
+template <typename TAPosition>
 bool SaveGridToVTU(Grid& grid, ISubsetHandler* psh, const char* filename,
 				   TAPosition& aPos)
 {
@@ -92,7 +92,7 @@ out_stream()
 	return *m_pout;
 }
 
-template <class TPositionAttachment>
+template <typename TPositionAttachment>
 bool GridWriterVTU::
 new_piece(Grid& grid, ISubsetHandler* psh, TPositionAttachment& aPos)
 {
@@ -160,7 +160,7 @@ new_piece(Grid& grid, ISubsetHandler* psh, TPositionAttachment& aPos)
 }
 
 
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 void GridWriterVTU::
 write_vector_data(Grid& grid,
 				  TAttachment aData,
@@ -188,7 +188,7 @@ write_vector_data(Grid& grid,
 	write_data_array_footer();
 }
 
-template <class TElem>
+template <typename TElem>
 void GridWriterVTU::
 collect_cells(std::vector<GridObject*>& cellsOut, Grid& grid,
 			  typename Grid::traits<TElem>::callback consider_elem)
@@ -207,7 +207,7 @@ collect_cells(std::vector<GridObject*>& cellsOut, Grid& grid,
 ////////////////////////////////////////////////////////////////////////////////
 //	GridReaderVTU
 ////////////////////////////////////////////////////////////////////////////////
-template <class TPositionAttachment>
+template <typename TPositionAttachment>
 bool GridReaderVTU::
 grid(Grid& gridOut, size_t index, TPositionAttachment& aPos)
 {
@@ -262,7 +262,7 @@ grid(Grid& gridOut, size_t index, TPositionAttachment& aPos)
 	return true;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 bool GridReaderVTU::
 create_vertices(std::vector<Vertex*>& vrtsOut, Grid& grid,
 				rapidxml::xml_node<>* vrtNode, TAAPos aaPos)
@@ -352,7 +352,7 @@ create_vertices(std::vector<Vertex*>& vrtsOut, Grid& grid,
 }
 
 
-template <class T>
+template <typename T>
 void GridReaderVTU::
 read_scalar_data(std::vector<T>& dataOut,
 				 rapidxml::xml_node<>* dataNode,
@@ -380,7 +380,7 @@ read_scalar_data(std::vector<T>& dataOut,
 	}
 }
 
-template <class T>
+template <typename T>
 void GridReaderVTU::
 check_indices(std::vector<T>& inds, size_t first, size_t num, size_t validSize)
 {
@@ -395,4 +395,4 @@ check_indices(std::vector<T>& inds, size_t first, size_t num, size_t validSize)
 
 }//	end of namespace
 
-#endif	//__H__file_io_vtu_impl
+#endif

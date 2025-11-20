@@ -58,7 +58,7 @@ class PageContainer
 
 		~PageContainer();
 
-		PageContainer& operator=(const PageContainer& pc);
+		PageContainer& operator = (const PageContainer& pc);
 
 		inline size_t size() const;
 		inline size_t capacity() const;
@@ -69,8 +69,8 @@ class PageContainer
 
 		void clear();
 
-		inline T& operator[](size_t ind);
-		inline const T& operator[](size_t ind) const;
+		inline T& operator [] (size_t ind);
+		inline const T& operator [] (size_t ind) const;
 
 		void swap(PageContainer& pc) noexcept;
 

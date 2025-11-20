@@ -48,15 +48,17 @@ class ILevelPreconditioner : public IPreconditioner<TAlgebra>
 	public:
 		/// constructor
 		ILevelPreconditioner()
-		: IPreconditioner<TAlgebra>(), m_gl() {}
+		: IPreconditioner<TAlgebra>() {}
 
 		/// constructor with grid level
 		ILevelPreconditioner(const GridLevel& gl)
 		: IPreconditioner<TAlgebra>(), m_gl(gl) {}
 
 		/// clone constructor
-		ILevelPreconditioner(const ILevelPreconditioner<TAlgebra>& parent)
+		ILevelPreconditioner(const ILevelPreconditioner& parent)
 		: IPreconditioner<TAlgebra>(parent), m_gl(parent.m_gl) {}
+
+		~ILevelPreconditioner() override = default;
 
 		/// set the grid level
 		void set_grid_level(const GridLevel& gl)

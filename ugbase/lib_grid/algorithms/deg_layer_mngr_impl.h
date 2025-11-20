@@ -502,4 +502,3 @@ int DegeneratedLayerManager<dim>::assign_middle_subset
 
 } // end namespace ug
 
-/* End of File */

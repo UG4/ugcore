@@ -203,7 +203,7 @@ inline bool GetInverse(number &inv, const number &m)
 inline bool Invert(number &m)
 {
 	bool b = (m != 0.0);
-	m = 1/m;
+	m = 1 / m;
 	return b;
 }
 

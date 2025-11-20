@@ -46,7 +46,7 @@ class ILagrangeMultiplierDisc
 {
 	private:
 	///	own type
-		using this_type = ILagrangeMultiplierDisc<TDomain, TGridFunction>;
+		using this_type = ILagrangeMultiplierDisc;
 
 	public:
 	///	Domain type
@@ -56,10 +56,10 @@ class ILagrangeMultiplierDisc
 		static constexpr int dim = TDomain::dim;
 
 	public:
-		ILagrangeMultiplierDisc(){};
+		ILagrangeMultiplierDisc() = default;
 
 	/// Virtual destructor
-		virtual ~ILagrangeMultiplierDisc() {}
+		virtual ~ILagrangeMultiplierDisc() = default;
 
 		virtual void lagrange_multiplier(TGridFunction& lagMult, const TGridFunction& u,
 				std::vector<DoFIndex> vActiveSet, std::vector<int> vActiveSubsets) = 0;

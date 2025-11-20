@@ -46,7 +46,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	get_container
 
-template <class TGeomObj> inline
+template <typename TGeomObj> inline
 const typename ElementStorage<typename geometry_traits<TGeomObj>::grid_base_object>::
 SectionContainer*
 GridObjectCollection::get_container(size_t level) const
@@ -56,7 +56,7 @@ GridObjectCollection::get_container(size_t level) const
 							  m_levels[level].faceContainer, m_levels[level].volContainer);
 }
 
-template <class TGeomObj> inline
+template <typename TGeomObj> inline
 typename ElementStorage<typename geometry_traits<TGeomObj>::grid_base_object>::
 SectionContainer*
 GridObjectCollection::get_container(size_t level)
@@ -68,7 +68,7 @@ GridObjectCollection::get_container(size_t level)
 
 ////////////////////////////////////////////////////////////////////////
 //	begin
-template <class TGeomObj>
+template <typename TGeomObj>
 typename geometry_traits<TGeomObj>::const_iterator
 GridObjectCollection::begin(size_t level) const
 {
@@ -79,7 +79,7 @@ GridObjectCollection::begin(size_t level) const
 
 ////////////////////////////////////////////////////////////////////////
 //	end
-template <class TGeomObj>
+template <typename TGeomObj>
 typename geometry_traits<TGeomObj>::const_iterator
 GridObjectCollection::end(size_t level) const
 {
@@ -90,7 +90,7 @@ GridObjectCollection::end(size_t level) const
 
 ////////////////////////////////////////////////////////////////////////
 //	begin
-template <class TGeomObj>
+template <typename TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 GridObjectCollection::begin(size_t level)
 {
@@ -101,7 +101,7 @@ GridObjectCollection::begin(size_t level)
 
 ////////////////////////////////////////////////////////////////////////
 //	end
-template <class TGeomObj>
+template <typename TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 GridObjectCollection::end(size_t level)
 {
@@ -112,7 +112,7 @@ GridObjectCollection::end(size_t level)
 
 ////////////////////////////////////////////////////////////////////////
 //	element numbers
-template <class TGeomObj>
+template <typename TGeomObj>
 size_t
 GridObjectCollection::num(size_t level) const
 {
@@ -125,7 +125,7 @@ GridObjectCollection::num(size_t level) const
 }
 
 //	GridObjectCollection
-template <class TGeomObj>
+template <typename TGeomObj>
 size_t
 GridObjectCollection::num() const
 {

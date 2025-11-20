@@ -50,7 +50,7 @@ namespace ug
  * The vectors are organized in a map. The rank of the process, to which the
  * interface connects, is used as the key.
  */
-template <class TLayout>
+template <typename TLayout>
 class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:

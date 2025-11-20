@@ -340,10 +340,9 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 		ElementGaussSeidel(number relax, const std::string& type) : m_relax(relax), m_type(type), m_schur_alpha(1.0), m_elim_off_diag(false) {};
 
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			SmartPtr<ElementGaussSeidel<TDomain, TAlgebra> >
-							newInst(new ElementGaussSeidel<TDomain, TAlgebra>());
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			SmartPtr<ElementGaussSeidel >
+							newInst(new ElementGaussSeidel());
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
 			newInst->set_relax(m_relax);
@@ -355,11 +354,10 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 		}
 
 	///	Destructor
-		virtual ~ElementGaussSeidel()
-		{};
+		~ElementGaussSeidel() override = default;
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const {return true;}
+		bool supports_parallel() const override {return true;}
 
 	/// set relaxation parameter
 		void set_relax(number omega){m_relax=omega;};
@@ -377,11 +375,10 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 
 	protected:
 	///	Name of preconditioner
-		virtual const char* name() const {return "ElementGaussSeidel";}
+		const char* name() const override {return "ElementGaussSeidel";}
 
 	///	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
@@ -396,8 +393,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 			return true;
 		}
 
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
-		{
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
 			GridFunction<TDomain, TAlgebra>* pC
 							= dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
 			if(pC == nullptr)
@@ -444,7 +440,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 		}
 
 	///	Postprocess routine
-		virtual bool postprocess() {return true;}
+		bool postprocess() override {return true;}
 
 	protected:
 #ifdef UG_PARALLEL

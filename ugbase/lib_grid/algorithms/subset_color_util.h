@@ -53,4 +53,4 @@ void AssignSubsetColorsBlueToGreen(ISubsetHandler& sh, int firstSi = 0, int numS
 
 }//	end of namespace
 
-#endif	//__H__UG_subset_color_util
+#endif

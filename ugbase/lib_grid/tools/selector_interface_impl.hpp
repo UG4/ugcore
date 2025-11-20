@@ -41,7 +41,7 @@ ISelector::elements_are_supported(uint shElements) const
 	return (m_supportedElements & shElements) == shElements;
 }
 
-template <class TElem>
+template <typename TElem>
 inline void ISelector::select(TElem* elem, byte_t status){
 	if(status != 0){
 		if(!is_selected(elem)){
@@ -75,7 +75,7 @@ inline void ISelector::select(GridObject* elem, byte_t status){
 	}
 }
 
-template <class TIterator>
+template <typename TIterator>
 inline void ISelector::select(TIterator iterBegin, TIterator iterEnd, byte_t status)
 {
 	while(iterBegin != iterEnd){
@@ -85,7 +85,7 @@ inline void ISelector::select(TIterator iterBegin, TIterator iterEnd, byte_t sta
 }
 
 
-template <class TElem>
+template <typename TElem>
 inline void ISelector::deselect(TElem* elem){
 	if(is_selected(elem)){
 		erase_from_list(elem);
@@ -111,7 +111,7 @@ inline void ISelector::deselect(GridObject* elem){
 	}
 }
 
-template <class TIterator>
+template <typename TIterator>
 inline void ISelector::deselect(TIterator iterBegin, TIterator iterEnd)
 {
 	while(iterBegin != iterEnd){

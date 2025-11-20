@@ -88,10 +88,10 @@ class StdInjection :
 		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
 	///	virtual Destructor
-		virtual ~StdInjection(){};
+	~StdInjection() override = default;
 	public:
 	///	Set approximation level
-		void set_levels(GridLevel coarseLevel, GridLevel fineLevel);
+		void set_levels(GridLevel coarseLevel, GridLevel fineLevel) override;
 
 	protected:
 		template <typename TElem>
@@ -103,16 +103,16 @@ class StdInjection :
 
 	public:
 	///	Init operator
-		virtual void init();
+		void init() override;
 
 	/// Project uFine to uCoarse; uCoarse = P(uFine);
-		virtual void prolongate(vector_type& uFine, const vector_type& uCoarse);
+		void prolongate(vector_type& uFine, const vector_type& uCoarse) override;
 
 	/// Apply Transposed Operator u = L^T*f
-		virtual void do_restrict(vector_type& uCoarse, const vector_type& uFine);
+		void do_restrict(vector_type& uCoarse, const vector_type& uFine) override;
 
 	///	clones the operator
-		virtual SmartPtr<ITransferOperator<TDomain, TAlgebra> > clone();
+		SmartPtr<ITransferOperator<TDomain, TAlgebra> > clone() override;
 
 	protected:
 	/// matrix used for projection

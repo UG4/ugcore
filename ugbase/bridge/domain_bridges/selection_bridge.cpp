@@ -111,7 +111,7 @@ void SelectAssociatedElements(ISelector& sel, bool bSelect, bool selectVrts,
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Selects / Deselects elements in the given subset of the given domain
-template <class TDomain>
+template <typename TDomain>
 void SelectDomainSubset(ISelector& sel, TDomain& dom, int subsetIndex,
 						bool bSelect, bool selectVrts, bool selectEdges,
 						bool selectFaces, bool selectVolumes)
@@ -155,7 +155,7 @@ struct Functionality
  * are to be placed here when registering.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 static void Common(Registry& reg, string grp)
 {

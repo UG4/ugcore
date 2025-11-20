@@ -58,7 +58,7 @@ enum PolyChainTypes
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns an or combination of constants enumerated in PolyChainTypes.
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 size_t
 GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
 				  TEdgeIterator edgesEnd,
@@ -83,7 +83,7 @@ GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
  *
  *	If there are no edges between the given iterators, std::pair(nullptr, nullptr) is returned.
  */
-template <class TEdgeIterator>
+template <typename TEdgeIterator>
 std::pair<Vertex*, Edge*>
 GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 						  TEdgeIterator edgesEnd,
@@ -125,7 +125,7 @@ bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex);
 /**	This method uses Grid::mark.
  * edges between edgesBegin and edgesEnd should build a closed regular polygon.
  * \todo	add support for open chains.*/
-template <class TEdgeIter>
+template <typename TEdgeIter>
 bool CreatePolyChain(std::vector<Vertex*>& polyChainOut, Grid& grid,
 					TEdgeIter edgesBegin, TEdgeIter edgesEnd);
 

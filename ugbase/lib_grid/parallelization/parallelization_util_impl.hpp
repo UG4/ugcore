@@ -40,7 +40,7 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-template <class TGeomObj>
+template <typename TGeomObj>
 void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 								  AGeomObjID& aID)
 {

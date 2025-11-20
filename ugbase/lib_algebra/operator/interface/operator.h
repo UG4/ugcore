@@ -126,7 +126,7 @@ class IOperator
 		virtual void apply(Y& d, const X& u) = 0;
 
 	///	virtual destructor
-		virtual ~IOperator() {};
+		virtual ~IOperator() = default;
 };
 
 } // end namespace ug

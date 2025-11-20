@@ -67,7 +67,7 @@ int GetAssociatedInterfaceType(int interfaceType);
 ///	Creates and distributes global ids for the given element type.
 /**	IDs are written to the given attachment (aGeomObjID by default).
  */
-template <class TGeomObj>
+template <typename TGeomObj>
 void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 								  AGeomObjID& aID = aGeomObjID);
 

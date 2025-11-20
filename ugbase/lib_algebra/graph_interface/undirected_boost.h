@@ -8,7 +8,7 @@
 namespace boost{
 
 #if 0
-template<class T>
+template<typename T>
 class UM_adjacency_iterator : public iterator_facade<
 	UM_adjacency_iterator<T>,
 	typename ug::SparseMatrix<T>::const_row_iterator,
@@ -59,17 +59,17 @@ public:
 		assert(_base);
 		return _base->index(); // row?
 	}
-	bool operator==(const UM_adjacency_iterator& other) const {
+	bool operator == (const UM_adjacency_iterator& other) const {
 		assert(_base);
 		assert(other._base);
 		return *_base == *other._base;
 	}
-	bool operator!=(const UM_adjacency_iterator& other) const {
+	bool operator != (const UM_adjacency_iterator& other) const {
 		assert(_base);
 		assert(other._base);
 		return *_base != *other._base;
 	}
-	UM_adjacency_iterator operator=(const UM_adjacency_iterator& other) {
+	UM_adjacency_iterator operator = (const UM_adjacency_iterator& other) {
 		if(other._base){
 			_base = new iter_t(*other._base);
 		}else{ untested();
@@ -117,7 +117,7 @@ private:
 	friend class iterator_core_access;
 }; // UM_adjacency_iterator
 #else
-template<class T>
+template<typename T>
 class UM_out_edge_iterator : public iterator_facade<
 	UM_out_edge_iterator<T>,
 	typename ug::UndirectedMatrix<T>::adjacency_iterator,
@@ -154,25 +154,25 @@ public: // construct
 	UM_out_edge_iterator(UM_out_edge_iterator&& p) = delete;
 	~UM_out_edge_iterator(){
 	}
-	UM_out_edge_iterator& operator=(UM_out_edge_iterator const& p) {
+	UM_out_edge_iterator& operator = (UM_out_edge_iterator const& p) {
 		_v = p._v;
 		_base = p._base;
 		return *this;
 	}
-	UM_out_edge_iterator& operator=(UM_out_edge_iterator&& p) = delete;
+	UM_out_edge_iterator& operator = (UM_out_edge_iterator&& p) = delete;
 #if 0
 public: // op
-	UM_out_edge_iterator operator+(int a) const{ untested();
+	UM_out_edge_iterator operator + (int a) const{ untested();
 		UM_out_edge_iterator ret(*this);
 		ret.base.first += a;
 		return ret;
 	}
-	UM_out_edge_iterator operator-(int a) const{ untested();
+	UM_out_edge_iterator operator - (int a) const{ untested();
 		UM_out_edge_iterator ret(*this);
 		ret.base.first -= a;
 		return ret;
 	}
-	difference_type operator-(UM_out_edge_iterator const& other) const{ untested();
+	difference_type operator - (UM_out_edge_iterator const& other) const{ untested();
 		UM_out_edge_iterator ret(*this);
 		return ret.base.first - other.base.first;
 	}
@@ -191,7 +191,7 @@ private:
 	void decrement() { untested();
 		--_base;
 	}
-	//			bool operator==(const UM_out_edge_iterator& other) const
+	//			bool operator == (const UM_out_edge_iterator& other) const
 	//			{ incomplete();
 	//				return false;
 	//			}
@@ -205,10 +205,10 @@ public:
 		++*this;
 		return copy;
 	}
-	bool operator==(const UM_out_edge_iterator& other) const {
+	bool operator == (const UM_out_edge_iterator& other) const {
 		return _base == other._base;
 	}
-	bool operator!=(const UM_out_edge_iterator& other) const {
+	bool operator != (const UM_out_edge_iterator& other) const {
 		return _base != other._base;
 	}
 
@@ -219,7 +219,7 @@ private:
 }; // UM_out_edge_iterator
 #endif
 
-template <class T> struct graph_traits<ug::UndirectedMatrix<T>>{
+template <typename T> struct graph_traits<ug::UndirectedMatrix<T>>{
 	using G = ug::UndirectedMatrix<T>;
 	using vertex_descriptor = int;
 	using edge_descriptor = typename G::edge;
@@ -233,7 +233,7 @@ template <class T> struct graph_traits<ug::UndirectedMatrix<T>>{
 	using vertices_size_type = int;
 };
 
-template<class T>
+template<typename T>
 std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
       ug::UndirectedMatrix<T> const& M)
 {
@@ -243,25 +243,25 @@ std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
 	return std::make_pair(b,e);
 }
 
-template<class T>
+template<typename T>
 int degree(int v, ug::UndirectedMatrix<T> const& M)
 {
 	return M.degree(v);
 }
 
-template<class T>
+template<typename T>
 int in_degree(int v, ug::UndirectedMatrix<T> const& M)
 {
 	return degree(v, M);
 }
 
-template<class T>
+template<typename T>
 int out_degree(int v, ug::UndirectedMatrix<T> const& M)
 {
 	return degree(v, M);
 }
 
-template<class T>
+template<typename T>
 std::pair<UM_out_edge_iterator<T>, UM_out_edge_iterator<T> >
 					out_edges(int v, ug::UndirectedMatrix<T> const& M)
 {
@@ -274,7 +274,7 @@ std::pair<UM_out_edge_iterator<T>, UM_out_edge_iterator<T> >
 	return std::make_pair(ei(v, b), ei(v, e));
 }
 
-template<class T>
+template<typename T>
 std::pair<typename ug::UndirectedMatrix<T>::adjacency_iterator,
           typename ug::UndirectedMatrix<T>::adjacency_iterator >
 					adjacent_vertices(size_t v, ug::UndirectedMatrix<T> const& M)
@@ -287,38 +287,38 @@ std::pair<typename ug::UndirectedMatrix<T>::adjacency_iterator,
 	return std::make_pair(b, e);
 }
 
-template<class T>
+template<typename T>
 int source(typename T::edge const& e, T const&)
 {
 	return e.first;
 }
 
-template<class T>
+template<typename T>
 int target(typename T::edge const& e, T const&)
 {
 	return e.second;
 }
 
-template<class T>
+template<typename T>
 struct property_map<ug::UndirectedMatrix<T>, vertex_index_t>{
 	using type = sparse_matrix_index_map<T>;
 	using const_type = type;
 };
 
-template<class T>
+template <typename T>
 inline typename property_map<ug::UndirectedMatrix<T>, vertex_index_t>::const_type
 get(vertex_index_t, ug::UndirectedMatrix<T> const& m)
 {
 	return sparse_matrix_index_map<typename T::value_type>(m);
 }
 
-template<class T>
+template <typename T>
 int num_vertices(ug::UndirectedMatrix<T> const& M)
 {
 	return M.num_rows();
 }
 
-template <class T>
+template <typename T>
 class degree_property_map< ug::UndirectedMatrix<T> >
 : public put_get_helper< typename graph_traits< ug::UndirectedMatrix<T> >::degree_size_type,
       degree_property_map< ug::UndirectedMatrix<T> > >
@@ -330,13 +330,13 @@ public:
 	using reference = value_type;
 	using category = readable_property_map_tag;
 	degree_property_map(const Graph& g) : m_g(g) {}
-	value_type operator[](const key_type& v) const { return degree(v, m_g); }
+	value_type operator [] (const key_type& v) const { return degree(v, m_g); }
 
 private:
 	Graph const& m_g;
 };
 
-template<class T>
+template<typename T>
 degree_property_map< ug::UndirectedMatrix<T> >
 make_degree_map(const ug::UndirectedMatrix<T>& g)
 {

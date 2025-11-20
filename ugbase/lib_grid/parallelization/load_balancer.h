@@ -152,7 +152,7 @@ class LoadBalancer{
 		void print_last_quality_record() const;
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		number estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut);
 
 		MultiGrid*			m_mg;

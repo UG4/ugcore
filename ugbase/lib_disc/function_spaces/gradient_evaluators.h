@@ -44,7 +44,7 @@ namespace ug{
 
 /**	Provides a function to evaluate the gradient of a given grid function efficiently
  * in each element.*/
-template <class TFunction>
+template <typename TFunction>
 class GradientEvaluator_LagrangeP1{
 	public:
 		static constexpr int dim = TFunction::dim;

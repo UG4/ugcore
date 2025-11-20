@@ -670,11 +670,11 @@ void SequentialSubspaceCorrectionLoopBackward(const typename TAlgebra::matrix_ty
 	}
 }
 
-template <class TDomain>
+template <typename TDomain>
 class customLexLess{
 		public:
 			customLexLess(const typename TDomain::position_accessor_type& aaPos): _aaPos(aaPos){}
-			bool operator()(Vertex* a, Vertex *b) const
+			bool operator () (Vertex* a, Vertex *b) const
 			{ return _aaPos[a] < _aaPos[b]; }
 		protected:
 			const typename TDomain::position_accessor_type& _aaPos;
@@ -785,12 +785,9 @@ public:
 	///	constructor setting relaxation
 	SequentialSubspaceCorrection(number relax) : m_relax(relax), m_type("vertex") {};
 
-
 	///	Clone
-	virtual SmartPtr<ILinearIterator<vector_type> > clone()
-	{
-		SmartPtr<SequentialSubspaceCorrection<TDomain, TAlgebra> >
-		newInst(new SequentialSubspaceCorrection<TDomain, TAlgebra>());
+	SmartPtr<ILinearIterator<vector_type> > clone() override {
+		SmartPtr< SequentialSubspaceCorrection > newInst(new SequentialSubspaceCorrection());
 		newInst->set_debug(debug_writer());
 		newInst->set_damp(this->damping());
 		newInst->set_relax(m_relax);
@@ -800,10 +797,10 @@ public:
 	}
 
 	///	Destructor
-	virtual ~SequentialSubspaceCorrection() = default;
+	~SequentialSubspaceCorrection() override = default;
 
 	///	returns if parallel solving is supported
-	virtual bool supports_parallel() const {return true;}
+	bool supports_parallel() const override {return true;}
 
 	/// set relaxation parameter
 	void set_relax(number omega){ m_relax=omega; }
@@ -818,12 +815,10 @@ public:
 
 protected:
 	///	Name of preconditioner
-	virtual const char* name() const
-	{return "SequentialSubspaceCorrection";}
+	const char* name() const override {return "SequentialSubspaceCorrection";}
 
 	///	Preprocess routine
-	virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-	{
+	bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
 		PROFILE_BEGIN_GROUP(SSC_preprocess, "algebra ssc");
 
 		// Creating overlap 1 matrix and vectors.
@@ -854,8 +849,7 @@ protected:
 		return true;
 	}
 
-	virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
-	{
+	bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
 		PROFILE_BEGIN_GROUP(SSC_step, "algebra ssc");
 
 		using TGridFunction = GridFunction<TDomain, TAlgebra>;
@@ -936,7 +930,7 @@ protected:
 	}
 
 	///	Postprocess routine
-	virtual bool postprocess() {return true;}
+	bool postprocess() override { return true;}
 
 
 public:

@@ -40,7 +40,7 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	SetAttachmentValues
-template <class TAttachmentAccessor, class TIter, class TVal>
+template <typename TAttachmentAccessor, typename TIter, typename TVal>
 void SetAttachmentValues(TAttachmentAccessor& aaVal,
 						TIter elemsBegin, TIter elemsEnd,
 						const TVal& val)
@@ -54,7 +54,7 @@ void SetAttachmentValues(TAttachmentAccessor& aaVal,
 
 ////////////////////////////////////////////////////////////////////////
 //	ConvertMathVectorAttachmentValues
-template<class TElem, class TSrcAttachment, class TDestAttachment>
+template<typename TElem, typename TSrcAttachment, typename TDestAttachment>
 bool ConvertMathVectorAttachmentValues(Grid& grid,
 							TSrcAttachment& srcAttachment,
 							TDestAttachment& destAttachment)
@@ -111,7 +111,7 @@ bool ConvertMathVectorAttachmentValues(Grid& grid,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 bool CopyAttachments(Grid& srcGrid, TAttachment& aSrc,
 					Grid& destGrid, TAttachment& aDest)
 {
@@ -143,7 +143,7 @@ bool CopyAttachments(Grid& srcGrid, TAttachment& aSrc,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElemIter, class TAttachment>
+template <typename TElemIter, typename TAttachment>
 bool CopyAttachments(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd,
 					 TAttachment& aSrc, TAttachment& aDest)
 {
@@ -174,7 +174,7 @@ bool CopyAttachments(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIterator, class TAAInt>
+template <typename TIterator, typename TAAInt>
 void AssignIndices(TIterator begin, TIterator end,
 					TAAInt& aaInt, int baseIndex)
 {
@@ -183,7 +183,7 @@ void AssignIndices(TIterator begin, TIterator end,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIterator, class TAttAcc>
+template <typename TIterator, typename TAttAcc>
 TIterator FindElementByValue(TIterator begin, TIterator end,
 							 const typename TAttAcc::ValueType& val,
 							 TAttAcc& aa)

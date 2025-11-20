@@ -48,10 +48,6 @@ Traverser_CollisionTree::Traverser_CollisionTree()
 							&Traverser_CollisionTree::handle_collision_triangles);
 }
 
-Traverser_CollisionTree::~Traverser_CollisionTree()
-{
-}
-
 void Traverser_CollisionTree::
 handle_collision_tree_root(CollisionTreeRootNode* colTreeRootNode)
 {

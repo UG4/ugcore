@@ -45,7 +45,7 @@ using namespace ug;
 // provides an interface for matrix of algebra type B for matrices originally of algebra type A
 // allows to access a CPUBlockAlgebra (AT) as a scalar CPUAlgebra (ST)
 
-template<class AT, class ST>
+template<typename AT, typename ST>
 class ScalarVectorAdapter{
 
 public:

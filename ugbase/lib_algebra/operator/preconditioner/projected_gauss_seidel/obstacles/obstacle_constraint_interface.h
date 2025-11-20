@@ -286,7 +286,7 @@ class IObstacleConstraint:
 				: spFunctor(functor_), fctName(fctName_), ssName(ssName_),
 				  bWholeDomain(false)
 			{}
-			bool operator()(MathVector<1>& val, const MathVector<dim> x,
+			bool operator () (MathVector<1>& val, const MathVector<dim> x,
 							number time, int si) const
 			{
 				(*spFunctor)(val[0], x, time, si); return true;
@@ -315,7 +315,7 @@ class IObstacleConstraint:
 				: spFunctor(functor_), fctName(fctName_), ssName(ssName_),
 				  bWholeDomain(true)
 			{}
-			bool operator()(MathVector<1>& val, const MathVector<dim> x,
+			bool operator () (MathVector<1>& val, const MathVector<dim> x,
 							number time, int si) const
 			{
 				return (*spFunctor)(val[0], x, time, si);
@@ -344,7 +344,7 @@ class IObstacleConstraint:
 				: functor(value_), fctName(fctName_), ssName(ssName_),
 				  bWholeDomain(false)
 			{}
-			inline bool operator()(MathVector<1>& val, const MathVector<dim> x,
+			inline bool operator ()(MathVector<1>& val, const MathVector<dim> x,
 								   number time, int si) const
 			{
 				val[0] = functor; return true;
@@ -373,7 +373,7 @@ class IObstacleConstraint:
 				: spFunctor(value_), fctName(fctName_), ssName(ssName_),
 				  bWholeDomain(false)
 			{}
-			bool operator()(MathVector<dim>& val, const MathVector<dim> x,
+			bool operator () (MathVector<dim>& val, const MathVector<dim> x,
 							number time, int si) const
 			{
 				(*spFunctor)(val, x, time, si); return true;

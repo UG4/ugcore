@@ -158,7 +158,7 @@ inline void VecAssign(vector_t &dest, const vector_t &v1)
 }
 
 //! calculates dest = alpha1*v1 + alpha2*v2
-template<typename vector_t, template <class T> class TE_VEC>
+template<typename vector_t, template <typename T> typename TE_VEC>
 inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vector_t> &v1, double alpha2, const TE_VEC<vector_t> &v2)
 {
 	for(size_t i=0; i<dest.size(); i++)
@@ -166,7 +166,7 @@ inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vect
 }
 
 //! calculates dest = alpha1*v1 + alpha2*v2 + alpha3*v3
-template<typename vector_t, template <class T> class TE_VEC>
+template<typename vector_t, template <typename T> typename TE_VEC>
 inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vector_t> &v1, double alpha2, const TE_VEC<vector_t> &v2, double alpha3, const TE_VEC<vector_t> &v3)
 {
 	for(size_t i=0; i<dest.size(); i++)

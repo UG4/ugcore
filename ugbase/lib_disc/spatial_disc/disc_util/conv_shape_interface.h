@@ -130,7 +130,7 @@ class IConvectionShapes
 		size_t num_scvf() const {return m_numScvf;}
 
 	/// shape value
-		number operator()(size_t scvf, size_t sh) const
+		number operator () (size_t scvf, size_t sh) const
 		{
 			UG_ASSERT(scvf < m_vConvShape.size(), "Invalid index");
 			UG_ASSERT(sh < m_vConvShape[scvf].size(), "Invalid index");

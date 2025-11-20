@@ -56,7 +56,7 @@ UG_API
 Quadrilateral* ReplaceByQuadrilateral(Grid& g, Face* tri1, Face* tri2);
 
 ///	Attempts to replace the given set of triangles by a set of quadrilaterals
-template <class face_iter_t, class TAAPos>
+template <typename face_iter_t, typename TAAPos>
 void ReplaceByQuadrilaterals_FaceBased(
 		Grid& g,
 		face_iter_t facesBegin,
@@ -65,7 +65,7 @@ void ReplaceByQuadrilaterals_FaceBased(
 
 ///	Attempts to replace triangles associated with the given set of edges by a set of quadrilaterals
 /**	Quadrilaterals are generated in the order from good quads to bad quads.*/
-template <class edge_iter_t, class TAAPos>
+template <typename edge_iter_t, typename TAAPos>
 void ReplaceByQuadrilaterals_EdgeBased(
 		Grid& g,
 		edge_iter_t edgesBegin,
@@ -77,7 +77,7 @@ void ReplaceByQuadrilaterals_EdgeBased(
 /** The method finds edges which connect two triangles in the specified sequence
  * and will pass those to 'ReplaceByQuadrilaterals_EdgeBasedNoSort'
  * Quadrilaterals are generated in the order from good quads to bad quads.*/
-template <class face_iter_t>
+template <typename face_iter_t>
 void ReplaceByQuadrilaterals_FaceBasedNoSort(
 		Grid& g,
 		face_iter_t facesBegin,
@@ -90,7 +90,7 @@ void ReplaceByQuadrilaterals_FaceBasedNoSort(
  * is simply ignored.
  *
  * \warning	Each edge may only be contained once in the given sequence.*/
-template <class edge_iter_t>
+template <typename edge_iter_t>
 void ReplaceByQuadrilaterals_EdgeBasedNoSort(
 		Grid& g,
 		edge_iter_t edgesBegin,
@@ -103,4 +103,4 @@ void ReplaceByQuadrilaterals_EdgeBasedNoSort(
 //	include implementation
 #include "quadrialteral_util_impl.h"
 
-#endif	//__H__UG_quadrilateral_util
+#endif

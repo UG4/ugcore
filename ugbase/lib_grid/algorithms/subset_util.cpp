@@ -238,7 +238,7 @@ void AssignVolumeInterfaceFacesToSubsets(Grid& grid, SubsetHandler& sh)
 ////////////////////////////////////////////////////////////////////////
 /**	Helper method that copies subset-indices based on the subset-dimension
  * property of each element. Subsets are only assigned to previously unassigned elements.*/
-template <class TIterator>
+template <typename TIterator>
 static void CopySubsetFromHigherDimNbr(
 				ISubsetHandler& sh,
 				TIterator elemsBegin,
@@ -1095,7 +1095,7 @@ void AssignSubsetColors(ISubsetHandler& sh)
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElem>
+template <typename TElem>
 void AssignSidesToSubsets(ISubsetHandler& sh, ISelector* psel)
 {
 	using Side = typename TElem::lower_dim_base_object;
@@ -1308,7 +1308,7 @@ void AssignSubsetsByElementType(ISubsetHandler& sh, GridObjectCollection g)
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 static char GetSmallestLocalSubsetDimension(
 				typename Grid::traits<TElem>::secure_container& nbrs,
 				MultiElementAttachmentAccessor<AChar>& aaDim)
@@ -1323,7 +1323,7 @@ static char GetSmallestLocalSubsetDimension(
 	return d;
 }
 
-template <class TElem>
+template <typename TElem>
 static bool NbrIsInSubset(
 				ISubsetHandler& sh,
 				typename Grid::traits<TElem>::secure_container& nbrs,

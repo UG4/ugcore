@@ -113,7 +113,7 @@ class UG_API MGSelector : public ISelector
 	/** This iterator is used by MGSelector to provide iteration across all levels.
 	 * The TMGSelector and TLevelIterator template argument allows to use this
 	 * iterator for const and non-const use.*/
-		template <class TElem, class TMGSelector, class TLevelIterator>
+		template <typename TElem, typename TMGSelector, typename TLevelIterator>
 		class MGSelectionIterator
 		{
 			public:
@@ -188,7 +188,7 @@ class UG_API MGSelector : public ISelector
 		};
 
 	///	The traits class holds some important types for each element-type
-		template <class TElem>
+		template <typename TElem>
 		struct traits{
 			using value_t = TElem*;
 			using level_iterator = typename geometry_traits<TElem>::iterator;
@@ -238,20 +238,20 @@ class UG_API MGSelector : public ISelector
 
 		void clear() override;
 
-		template <class TElem>
+		template <typename TElem>
 		inline void clear();
 
 		void clear(int level);
 
-		template <class TElem>
+		template <typename TElem>
 		inline void clear(int level);
 
-		template <class TElem>
+		template <typename TElem>
 		inline size_t num(int level) const;
 		
 		inline size_t num(int level) const;
 
-		template <class TElem>
+		template <typename TElem>
 		inline size_t num() const;
 		
 		inline size_t num() const;
@@ -259,45 +259,45 @@ class UG_API MGSelector : public ISelector
 	//	empty
 		inline bool empty(int level) const;
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool empty(int level) const;
 
 		inline bool empty() const;
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool empty() const;
 
 	//	begin
-		template <class TElem>
+		template <typename TElem>
 		inline typename traits<TElem>::iterator
 		begin();
 
-		template <class TElem>
+		template <typename TElem>
 		inline typename traits<TElem>::const_iterator
 		begin() const;
 
-		template <class TElem>
+		template <typename TElem>
 		inline typename traits<TElem>::level_iterator
 		begin(int level);
 
-		template <class TElem>
+		template <typename TElem>
 		inline typename traits<TElem>::const_level_iterator
 		begin(int level) const;
 		
 	//	end
-		template <class TElem>
+		template <typename TElem>
 		inline typename traits<TElem>::iterator
 		end();
 
-		template <class TElem>
+		template <typename TElem>
 		inline typename traits<TElem>::const_iterator
 		end() const;
 
-		template <class TElem>
+		template <typename TElem>
 		inline typename traits<TElem>::level_iterator
 		end(int level);
 		
-		template <class TElem>
+		template <typename TElem>
 		inline typename traits<TElem>::const_level_iterator
 		end(int level) const;
 
@@ -314,12 +314,12 @@ class UG_API MGSelector : public ISelector
 	///	returns the first selected element of the given type on the specified level.
 	/**	Make sure that elements of the given type exist!
 	 *	Behaviour is undefined, if not.*/
-		template <class TElem> TElem* front(int level);
+		template <typename TElem> TElem* front(int level);
 		
 	///	returns the last selected element of the given type on the specified level.
 	/**	Make sure that elements of the given type exist!
 	 *	Behaviour is undefined, if not.*/
-		template <class TElem> TElem* back(int level);
+		template <typename TElem> TElem* back(int level);
 		
 	//	geometric-object-collection
 		GridObjectCollection get_grid_objects() const override;
@@ -379,16 +379,16 @@ class UG_API MGSelector : public ISelector
 
 	protected:
 	///	returns the section container for the given type, subset and level
-		template <class TElem> inline
+		template <typename TElem> inline
 		typename Grid::traits<TElem>::SectionContainer&
 		section_container(int level);
 
 	///	returns the const section container for the given type, subset and level
-		template <class TElem> inline
+		template <typename TElem> inline
 		const typename Grid::traits<TElem>::SectionContainer&
 		section_container(int level) const;
 		
-		template <class TElem>
+		template <typename TElem>
 		inline int get_section_index() const;
 
 		inline void level_required(int newSize);

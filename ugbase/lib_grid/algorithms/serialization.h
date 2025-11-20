@@ -81,11 +81,11 @@ namespace ug
  * deserialization_done after deserialization has been performed for all
  * geometric objects.
  */
-template <class TGeomObj>
+template <typename TGeomObj>
 class GeomObjDataSerializer
 {
 	public:
-		virtual ~GeomObjDataSerializer()	{}
+		virtual ~GeomObjDataSerializer() = default;
 
 	///	can be used to write arbitrary info to the file.
 	/**	Make sure to read everything you've written during read_data.
@@ -211,7 +211,7 @@ class GridDataSerializationHandler
 	///	Calls serialize on all elements between begin and end.
 	/**	Make sure that TIterator::value_type is compatible with
 	 * either Vertex*, Edge*, Face*, Volume*.*/
-		template <class TIterator>
+		template <typename TIterator>
 		void serialize(BinaryBuffer& out, TIterator begin, TIterator end) const;
 
 	///	Calls serialize on all elements in the given geometric object collection
@@ -231,7 +231,7 @@ class GridDataSerializationHandler
 	///	Calls deserialize on all elements between begin and end.
 	/**	Make sure that TIterator::value_type is compatible with
 	 * either Vertex*, Edge*, Face*, Volume*.*/
-		template <class TIterator>
+		template <typename TIterator>
 		void deserialize(BinaryBuffer& in, TIterator begin, TIterator end);
 
 	///	Calls deserialize on all elements in the given geometric object collection
@@ -247,25 +247,25 @@ class GridDataSerializationHandler
 
 	private:
 	///	performs serialization on all given serializers.
-		template<class TGeomObj, class TSerializers>
+		template<typename TGeomObj, typename TSerializers>
 		void serialize(BinaryBuffer& out, TGeomObj* o,
 					   TSerializers& serializers) const;
 
 	///	performs deserialization on all given deserializers.
-		template<class TGeomObj, class TDeserializers>
+		template<typename TGeomObj, typename TDeserializers>
 		void deserialize(BinaryBuffer& in, TGeomObj* o,
 					   TDeserializers& deserializers);
 
-		template<class TSerializers>
+		template <typename TSerializers>
 		void write_info(BinaryBuffer& out, TSerializers& serializers) const;
 
-		template<class TSerializers>
+		template <typename TSerializers>
 		void read_info(BinaryBuffer& in, TSerializers& serializers);
 
-		template<class TSerializers>
+		template <typename TSerializers>
 		void deserialization_starts(TSerializers& serializers);
 
-		template<class TSerializers>
+		template <typename TSerializers>
 		void deserialization_done(TSerializers& serializers);
 
 	private:
@@ -284,7 +284,7 @@ class GridDataSerializationHandler
  *
  * Note that the attachment is automatically attached, if not yet present.
  */
-template <class TGeomObj, class TAttachment>
+template <typename TGeomObj, typename TAttachment>
 class GeomObjAttachmentSerializer :
 	public GeomObjDataSerializer<TGeomObj>
 {
@@ -506,7 +506,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
  *
  * Make sure that attachment is attached to the specified elements.
  */
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 						 BinaryBuffer& out);
 
@@ -518,7 +518,7 @@ bool SerializeAttachment(Grid& grid, TAttachment& attachment,
  *
  * Make sure that attachment is attached to the specified elements.
  */
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 						 typename geometry_traits<TElem>::iterator iterBegin,
 						 typename geometry_traits<TElem>::iterator iterEnd,
@@ -532,7 +532,7 @@ bool SerializeAttachment(Grid& grid, TAttachment& attachment,
  * If attachment was not attached to the grid, then it will be attached
  * automatically.
  */
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 						 BinaryBuffer& in);
 
@@ -544,7 +544,7 @@ bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
  * If attachment was not attached to the grid, then it will be attached
  * automatically.
  */
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 						 typename geometry_traits<TElem>::iterator iterBegin,
 						 typename geometry_traits<TElem>::iterator iterEnd,

@@ -48,7 +48,7 @@ namespace ug{
 class UpdateableMatrixOperator
 {
 public:
-	virtual ~UpdateableMatrixOperator() {}
+	virtual ~UpdateableMatrixOperator() = default;
 	virtual void calculate_matrix() = 0;
 };
 
@@ -57,7 +57,7 @@ public:
  * This class is a linear iterating scheme, that uses any implementation
  * of the ILinearIterator interface to precondition the iteration.
  *
- * \tparam 		TAlgebra		algebra type
+ * \tparam 		TVector		vector type
  */
 template <typename TVector>
 class AutoLinearSolver
@@ -77,8 +77,18 @@ class AutoLinearSolver
 		using base_type::write_debug;
 
 	public:
-	AutoLinearSolver //(double reductionAlwaysAccept, double worseThenAverage, double desiredDefect)
-	(double desiredDefect, double desiredReduction)
+	AutoLinearSolver()
+	{
+		m_bInited=-1;
+		//		m_N = 0;
+		m_reductionAlwaysAccept = 0.001;
+		m_worseThenAverage = 2.0;
+		m_initCalled = m_initsDone = 0;
+		m_savedTime = 0.0;
+	}
+
+	AutoLinearSolver(double desiredDefect, double desiredReduction)
+	//(double reductionAlwaysAccept, double worseThenAverage, double desiredDefect)
 	{
 		m_bInited=-1;
 //		m_N = 0;
@@ -89,19 +99,11 @@ class AutoLinearSolver
 		m_initCalled = m_initsDone = 0;
 		m_savedTime = 0.0;
 	}
-	AutoLinearSolver()
-	{
-		m_bInited=-1;
-//		m_N = 0;
-		m_reductionAlwaysAccept = 0.001;
-		m_worseThenAverage = 2.0;
-		m_initCalled = m_initsDone = 0;
-		m_savedTime = 0.0;
-	}
+
+	~AutoLinearSolver() override = default;
 
 ///	returns if parallel solving is supported
-	virtual bool supports_parallel() const
-	{
+	bool supports_parallel() const override {
 		if(preconditioner().valid())
 			return preconditioner()->supports_parallel();
 		else return true;
@@ -136,16 +138,15 @@ private:
 	}
 
 	///	returns the name of the solver
-		virtual const char* name() const {return "Auto Iterative Linear Solver";}
+		const char* name() const override {return "Auto Iterative Linear Solver";}
 
 
-		virtual bool init(SmartPtr<ILinearOperator<vector_type,vector_type> > J, const vector_type& u)
-		{
+		bool init(SmartPtr<ILinearOperator<vector_type,vector_type> > J, const vector_type& u) override {
 			m_u = u;
 			return init_op(J);
 		}
-		virtual bool init(SmartPtr<ILinearOperator<vector_type,vector_type> > J)
-		{
+
+		bool init(SmartPtr<ILinearOperator<vector_type,vector_type> > J) override {
 			m_u.resize(0);
 			return init_op(J);
 		}
@@ -216,16 +217,15 @@ private:
 			return true;
 		}
 
-		virtual bool apply(vector_type& x, const vector_type& b)
-		{
+		bool apply(vector_type& x, const vector_type& b) override {
 			//UG_LOG("ALS:apply\n");
 			SmartPtr<vector_type> spB = b.clone_without_values();
 			*spB = b;
 			return apply_return_defect(x, *spB);
 		}
+
 	///	solves the system and returns the last defect
-		virtual bool apply_return_defect(vector_type& x, vector_type& b)
-		{
+		bool apply_return_defect(vector_type& x, vector_type& b) override {
 			//UG_LOG("ALS:return_defect\n");
 			LS_PROFILE_BEGIN(LS_ApplyReturnDefect);
 
@@ -397,8 +397,7 @@ private:
 			return true;
 		}
 
-		void print_information()
-		{
+		void print_information() const {
 			UG_LOG("AutoLinearSolver:\n");
 			UG_LOG(" avg reduction is " << m_avgReduction << "\n");
 			UG_LOG(" Inits called: " << m_initCalled << ", inits done: " << reset_floats << m_initsDone

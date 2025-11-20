@@ -43,7 +43,7 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
+template <typename TAPosition>
 bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh, const char* filename,
 				   TAPosition& aPos)
 {
@@ -55,7 +55,7 @@ bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh, const char* filename,
 };
 
 ////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
+template <typename TAPosition>
 bool LoadGridFromUGX(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, std::vector<std::string> additionalSHNames,
 						std::vector<SmartPtr<ISubsetHandler>> ash, const char* filename, TAPosition& aPos)
 {
@@ -105,7 +105,7 @@ bool LoadGridFromUGX(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubse
 	return true;
 }
 
-template <class TAPosition>
+template <typename TAPosition>
 bool LoadGridFromUGX(Grid& grid, ISubsetHandler& sh, const char* filename,
 					 TAPosition& aPos)
 {
@@ -130,7 +130,7 @@ bool LoadGridFromUGX(Grid& grid, ISubsetHandler& sh, const char* filename,
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TPositionAttachment>
+template <typename TPositionAttachment>
 bool GridWriterUGX::
 add_grid(Grid& grid, const char* name,
 		 TPositionAttachment& aPos)
@@ -185,14 +185,14 @@ add_grid(Grid& grid, const char* name,
 	return true;
 }
 
-//template <class TPositionAttachment>
+//template <typename TPositionAttachment>
 //void GridWriterUGX::
 //add_grid(MultiGrid& mg, const char* name,
 //		 TPositionAttachment& aPos)
 //{
 //}
 
-template <class TElem>
+template <typename TElem>
 const char* GridWriterUGX::
 attachment_node_name()
 {
@@ -204,7 +204,7 @@ attachment_node_name()
 }
 
 
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 void GridWriterUGX::
 add_attachment(TAttachment attachment,
 			   const char* name,
@@ -264,7 +264,7 @@ add_attachment(TAttachment attachment,
 }
 
 
-template <class TAAPos>
+template <typename TAAPos>
 rapidxml::xml_node<>*
 GridWriterUGX::
 create_vertex_node(RegularVertexIterator vrtsBegin,
@@ -308,7 +308,7 @@ create_vertex_node(RegularVertexIterator vrtsBegin,
 	return node;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 rapidxml::xml_node<>*
 GridWriterUGX::
 create_constrained_vertex_node(ConstrainedVertexIterator vrtsBegin,
@@ -371,7 +371,7 @@ create_constrained_vertex_node(ConstrainedVertexIterator vrtsBegin,
 }
 
 
-template <class TElem>
+template <typename TElem>
 void GridWriterUGX::
 process_global_attachments(Grid& grid, rapidxml::xml_node<>* gridNode)
 {
@@ -424,7 +424,7 @@ process_global_attachments(Grid& grid, rapidxml::xml_node<>* gridNode)
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	implementation of GridReaderUGX
-template <class TPositionAttachment>
+template <typename TPositionAttachment>
 bool GridReaderUGX::
 grid(Grid& gridOut, size_t index,
 		  TPositionAttachment& aPos)
@@ -732,7 +732,7 @@ grid(Grid& gridOut, size_t index,
 	return true;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 bool GridReaderUGX::
 create_vertices(std::vector<Vertex*>& vrtsOut, Grid& grid,
 				rapidxml::xml_node<>* vrtNode, TAAPos aaPos)
@@ -816,7 +816,7 @@ create_vertices(std::vector<Vertex*>& vrtsOut, Grid& grid,
 	return true;
 }
 
-template <class TAAPos>
+template <typename TAAPos>
 bool GridReaderUGX::
 create_constrained_vertices(std::vector<Vertex*>& vrtsOut,
 							std::vector<std::pair<int, int> >& constrainingObjsOut,
@@ -907,7 +907,7 @@ create_constrained_vertices(std::vector<Vertex*>& vrtsOut,
 }
 
 
-template <class TElem>
+template <typename TElem>
 bool GridReaderUGX::
 read_attachment(Grid& grid, rapidxml::xml_node<>* node)
 {

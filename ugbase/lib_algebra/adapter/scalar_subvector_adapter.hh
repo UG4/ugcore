@@ -49,7 +49,7 @@ namespace ug{
 // provides an interface for matrix of algebra type B for matrices originally of algebra type A
 // allows to access a CPUBlockAlgebra (AT) as a scalar CPUAlgebra (ST)
 
-template<class InVT, class ST>
+template<typename InVT, typename ST>
 class ConstScalarSubVectorAdapter{
 public:
 	using encapsulated_vector_type = InVT;
@@ -72,7 +72,7 @@ private:
 	const size_t m_alpha;
 };
 
-template<class InVT, class ST=CPUAlgebra::vector_type>
+template<typename InVT, typename ST=CPUAlgebra::vector_type>
 class ScalarSubVectorAdapter{
 
 public:

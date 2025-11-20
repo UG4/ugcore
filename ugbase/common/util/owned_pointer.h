@@ -58,7 +58,7 @@ namespace ug
  * Storing OwnedPtrs in lib_grids attachments may sometimes be useful. Therefore
  * this slightly dangerous class was introduced.
  */
-template <class T>
+template <typename T>
 class OwnedPtr
 {
 	public:
@@ -79,21 +79,21 @@ class OwnedPtr
 	///	Transfers ownership of the associated object from ap to this.
 	/**	Note that ap looses ownership of the associated object.
 	 * ap thus is not const at all, despite beeing declared const.*/
-		OwnedPtr& operator=(const OwnedPtr& op)
+		OwnedPtr& operator = (const OwnedPtr& op)
 		{
 			reset(op.get());
 			op.invalidate();
 			return *this;
 		}
 
-		void reset(TPtr p = 0)				{if(m_p) delete m_p; m_p = p;}
+		void reset(TPtr p = 0) {if(m_p) delete m_p; m_p = p;}
 
-		TPtr operator->() const			{return m_p;}
-		TRef operator*() const				{return *m_p;}
+		TPtr operator -> () const {return m_p;}
+		TRef operator * () const {return *m_p;}
 
-		TPtr& get() const					{return m_p;}
+		TPtr& get() const {return m_p;}
 
-		operator bool()	const				{return m_p != 0;}
+		operator bool ()	const {return m_p != 0;}
 
 	private:
 	///	This method is a hack, to allow that only one instance owns the pointer

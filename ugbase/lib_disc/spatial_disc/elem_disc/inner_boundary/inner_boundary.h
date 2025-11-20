@@ -236,7 +236,7 @@ class FV1InnerBoundaryElemDisc
 				// friend class this_type;
 				RegisterAssemblingFuncs(this_type* pThis) : m_pThis(pThis){}
 				this_type* m_pThis;
-				template< typename TElem > void operator()(TElem&)
+				template< typename TElem > void operator ()(TElem&)
 				{
 					if (m_pThis->m_bNonRegularGrid)
 						m_pThis->register_fv1_func<TElem, HFV1ManifoldGeometry<TElem, dim> >();

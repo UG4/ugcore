@@ -77,7 +77,7 @@ class MathMatrix
 		 * \param v The matrix to be assigned.
 		 * \return A reference to this matrix.
 		 */
-		MathMatrix& operator=  (const MathMatrix& v)
+		MathMatrix& operator = (const MathMatrix& v)
 		{
 			assign(v);
 			return *this;
@@ -105,7 +105,7 @@ class MathMatrix
 		 * \param B The matrix to be subtracted.
 		 * \return A reference to this matrix.
 		 */
-		MathMatrix& operator-= (const MathMatrix& B)
+		MathMatrix& operator -= (const MathMatrix& B)
 		{
 			for(std::size_t i = 0; i < N; ++i){
 				for(std::size_t j = 0; j < M; ++j){
@@ -121,7 +121,7 @@ class MathMatrix
 		 * \param val The value to be assigned to the matrix.
 		 * \return A reference to this matrix.
 		 */
-		MathMatrix& operator= (const value_type& val)
+		MathMatrix& operator = (const value_type& val)
 		{
 			for(std::size_t i = 0; i < N; ++i){
 				for(std::size_t j = 0; j < M; ++j){
@@ -153,7 +153,7 @@ class MathMatrix
 		 * \param val The value to be subtracted.
 		 * \return A reference to this matrix.
 		 */
-		MathMatrix& operator-= (const value_type& val)
+		MathMatrix& operator -= (const value_type& val)
 		{
 			for(std::size_t i = 0; i < N; ++i){
 				for(std::size_t j = 0; j < M; ++j){
@@ -169,7 +169,7 @@ class MathMatrix
 		 * \param val The divisor.
 		 * \return A reference to this matrix.
 		 */
-		MathMatrix& operator/= (const value_type& val)
+		MathMatrix& operator /= (const value_type& val)
 		{
 			for(std::size_t i = 0; i < N; ++i){
 				for(std::size_t j = 0; j < M; ++j){
@@ -185,7 +185,7 @@ class MathMatrix
 		 * \param val The factor.
 		 * \return A reference to this matrix.
 		 */
-		MathMatrix& operator*= (const value_type& val)
+		MathMatrix& operator *= (const value_type& val)
 		{
 			for(std::size_t i = 0; i < N; ++i){
 				for(std::size_t j = 0; j < M; ++j){
@@ -201,7 +201,7 @@ class MathMatrix
 		 * \param v The Matrix.
 		 * \return A scalar value of the element-wise summed up products
 		 */
-		value_type operator* (const MathMatrix& v) const
+		value_type operator * (const MathMatrix& v) const
 		{
 			value_type res = 0.0;
 			for(std::size_t i = 0; i < N; ++i){
@@ -215,20 +215,20 @@ class MathMatrix
 		inline std::size_t num_rows() const {return N;}
 		inline std::size_t num_cols() const {return M;}
 
-		inline value_type* operator[](std::size_t index){
+		inline value_type* operator [] (std::size_t index){
 			UG_ASSERT(index < N, "Invalid index");
 			return m_data[index];
 		}
-		inline const value_type* operator[](std::size_t index) const{
+		inline const value_type* operator [](std::size_t index) const{
 			UG_ASSERT(index < N, "Invalid index");
 			return m_data[index];
 		}
 
-		inline value_type& operator() (std::size_t row, std::size_t col){
+		inline value_type& operator () (std::size_t row, std::size_t col){
 			UG_ASSERT(row < N && col < M, "Accessing "<<N<<"x"<<M<<"Matrix at entry ("<<row<<","<<col<<")");
 			return m_data[row][col];
 		}
-		inline const value_type& operator() (std::size_t row, std::size_t col) const{
+		inline const value_type& operator () (std::size_t row, std::size_t col) const{
 			UG_ASSERT(row < N && col < M, "Accessing "<<N<<"x"<<M<<"Matrix at entry ("<<row<<","<<col<<")");
 			return m_data[row][col];
 		}
@@ -258,17 +258,20 @@ class MathMatrix
 
 // this are explicit instantiations to avoid compiler errors on XL
 // {
-template <typename T> class MathMatrix<0,0,T>{
+template <typename T>
+class MathMatrix<0,0,T>{
 	public:
 		using value_type = T;
 		using size_type = std::size_t;
 };
-template <std::size_t N, typename T> class MathMatrix<N,0,T>{
+template <std::size_t N, typename T>
+class MathMatrix<N,0,T>{
 	public:
 		using value_type = T;
 		using size_type = std::size_t;
 };
-template <std::size_t N, typename T> class MathMatrix<0,N,T>{
+template <std::size_t N, typename T>
+class MathMatrix<0,N,T>{
 	public:
 		using value_type = T;
 		using size_type = std::size_t;
@@ -277,7 +280,7 @@ template <std::size_t N, typename T> class MathMatrix<0,N,T>{
 
 /// Print MathMatrix<N,M> to standard output
 template <std::size_t N, std::size_t M>
-std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<N,M>& m)
+std::ostream& operator << (std::ostream& outStream, const MathMatrix<N,M>& m)
 {
 	for(std::size_t i = 0; i < N; ++i)
 	{
@@ -289,10 +292,10 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<N,M>& m)
 	return outStream;
 }
 
-std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<2,2>& m);
-std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<2,3>& m);
-std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<3,2>& m);
-std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<3,3>& m);
+std::ostream& operator << (std::ostream& outStream, const MathMatrix<2,2>& m);
+std::ostream& operator << (std::ostream& outStream, const MathMatrix<2,3>& m);
+std::ostream& operator << (std::ostream& outStream, const MathMatrix<3,2>& m);
+std::ostream& operator << (std::ostream& outStream, const MathMatrix<3,3>& m);
 
 // end group math_matrix
 /// \}

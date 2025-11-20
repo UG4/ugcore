@@ -79,7 +79,7 @@ class IsMarked : public ElementCallback
 		bool operator () (Volume* v) const {return callback(v);}
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		bool callback(TElem* e) const {return m_grid.is_marked(e);}
 
 	private:
@@ -99,7 +99,7 @@ class IsNotMarked : public ElementCallback
 		bool operator () (Volume* v) const {return callback(v);}
 
 	private:
-		template <class TElem>
+		template <typename TElem>
 		bool callback(TElem* e)	const {return !m_grid.is_marked(e);}
 
 	private:

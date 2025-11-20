@@ -71,5 +71,4 @@ void registerBasicTest(ug::bridge::Registry& reg);
 }// end ug::
 
 
-#endif	/* BASICTEST_H */
-
+#endif

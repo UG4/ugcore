@@ -47,7 +47,7 @@ namespace ug
  *
  * TODO: optimize the distribution process!
  */
-template <class TLayout>
+template <typename TLayout>
 class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
@@ -189,7 +189,7 @@ ParallelMultiGridRefiner::~ParallelMultiGridRefiner()
 {
 }
 
-template <class TDistributor, class TCommunicator>
+template <typename TDistributor, typename TCommunicator>
 void ParallelMultiGridRefiner::
 exchange_data(TDistributor& distributor,
 				TCommunicator& communicator,
@@ -232,7 +232,7 @@ exchange_data(TDistributor& distributor,
 	}
 }
 /*
-template <class TGeomObj, class TIterator>
+template <typename TGeomObj, typename TIterator>
 void ParallelMultiGridRefiner::
 mark_fixed_elements(TIterator iterBegin, TIterator iterEnd)
 {
@@ -387,7 +387,7 @@ set_rule(Volume* e, RefinementMark mark)
 		m_vNewlyMarkedInterfaceVols.push_back(e);
 }
 
-template <class TMarkDistributor>
+template <typename TMarkDistributor>
 void ParallelMultiGridRefiner::
 mark_received_elements(TMarkDistributor& distributor)
 {

@@ -38,10 +38,10 @@
  
 namespace ug{
 
-template <class vector_t>
+template <typename vector_t>
 class Sphere{
 	public:
-		Sphere()	{}
+		Sphere() = default;
 		Sphere(const vector_t& nCenter, number nRadius) :
 			center(nCenter), radius(nRadius)	{}
 
@@ -56,7 +56,7 @@ class Sphere{
 };
 
 
-template <class vector_t>
+template <typename vector_t>
 struct AABox{
 	AABox()	{}
 	AABox(const vector_t& nMin, const vector_t& nMax) : min(nMin), max(nMax)	{}
@@ -90,7 +90,7 @@ struct AABox{
 };
 
 
-template <class vector_t>
+template <typename vector_t>
 std::ostream& operator << (std::ostream& out, const AABox<vector_t>& box) {
 	out << box.min << "-" << box.max;
 	return out;

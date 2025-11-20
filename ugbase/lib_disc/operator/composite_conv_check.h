@@ -62,7 +62,7 @@ namespace ug{
  * that makes it possible to define required defect reductions on
  * the individual functions constituting the overall solution.
  */
-template <class TVector, class TDomain>
+template <typename TVector, typename TDomain>
 class CompositeConvCheck : public IConvergenceCheck<TVector>
 {
 	public:

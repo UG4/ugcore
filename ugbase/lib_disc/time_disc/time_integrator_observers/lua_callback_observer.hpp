@@ -10,7 +10,7 @@
 namespace ug {
 
 
-template<class TDomain, class TAlgebra>
+template<typename TDomain, typename TAlgebra>
 class LuaCallbackObserver
 : public ITimeIntegratorObserver<TDomain, TAlgebra>
 {

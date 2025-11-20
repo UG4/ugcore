@@ -40,7 +40,7 @@ namespace ug
 {
 
 ///	Gives access to a hanging node refiner, depending on the grid-type
-template <class TGrid>
+template <typename TGrid>
 class THangingNodeRefiner;
 
 template <>

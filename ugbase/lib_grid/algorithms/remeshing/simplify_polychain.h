@@ -44,13 +44,13 @@ namespace ug{
 
 struct IndCmp{
 	IndCmp(const std::vector<number>& vals) : m_vals(vals) {}
-	bool operator() (size_t i1, size_t i2){
+	bool operator () (size_t i1, size_t i2){
 		return m_vals[i1] < m_vals[i2];
 	}
 	const std::vector<number>& m_vals;
 };
 
-template <class TEdgeIter, class TAAPos>
+template <typename TEdgeIter, typename TAAPos>
 void SimplifyPolylines(Grid& grid, TEdgeIter edgesBegin, TEdgeIter edgesEnd,
 					   number curvatureThreshold, TAAPos aaPos)
 {
@@ -178,7 +178,7 @@ void SimplifyPolylines(Grid& grid, TEdgeIter edgesBegin, TEdgeIter edgesEnd,
 }
 
 
-template <class TEdgeIter, class TAAPos>
+template <typename TEdgeIter, typename TAAPos>
 void SimplifySmoothedPolylines(Grid& grid, TEdgeIter edgesBegin, TEdgeIter edgesEnd,
 					   		   number curvatureThreshold,
 					   		   TAAPos aaPos,
@@ -202,4 +202,4 @@ void SimplifySmoothedPolylines(Grid& grid, TEdgeIter edgesBegin, TEdgeIter edges
 
 }//	end of namespace
 
-#endif	//__H__UG_simplify_polychain
+#endif

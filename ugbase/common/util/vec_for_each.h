@@ -46,7 +46,7 @@
  * The '{' and '}' brackets are hereby optional, since a new block is automatically
  * defined between 'for_each_in_vec' and 'end_for'.
  *
- * The specified vector has to feature methods 'T& operator[](size_t i)' and
+ * The specified vector has to feature methods 'T& operator [] (size_t i)' and
  * 'size_t size()'.
  * \{ */
 #define for_each_in_vec(_vfeDecl, _vfeVec) \

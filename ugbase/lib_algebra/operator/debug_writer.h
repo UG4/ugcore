@@ -126,7 +126,7 @@ class IVectorDebugWriter
 		: m_spContext (new DebugWriterContext), m_currentDim(-1) {}
 		
 	/// virtual destructor
-		virtual ~IVectorDebugWriter(){}
+		virtual ~IVectorDebugWriter() = default;
 
 	///	write vector
 		virtual void write_vector(const vector_type& vec, const char* name) = 0;
@@ -269,7 +269,7 @@ class VectorDebugWritingObject
 			: m_spVectorDebugWriter(spDebugWriter) {}
 
 	///	virtual destructor
-		virtual ~VectorDebugWritingObject() {}
+		virtual ~VectorDebugWritingObject() = default;
 
 	///	set debug writer
 		virtual void set_debug(SmartPtr<IVectorDebugWriter<vector_type> > spDebugWriter)
@@ -299,7 +299,7 @@ class VectorDebugWritingObject
 			if(m_spVectorDebugWriter.invalid()) return;
 
 		//	check ending
-			size_t iExtPos = name.find_last_of(".");
+			size_t iExtPos = name.find_last_of('.');
 			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".vec") != 0)
 				UG_THROW("Only '.vec' format supported for vectors, but"
 								" filename is '"<<name<<"'.");
@@ -368,16 +368,15 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 				m_spDebugWriter(spDebugWriter) {}
 
 	/// clone constructor
-		DebugWritingObject(const DebugWritingObject<algebra_type> &parent)
+		DebugWritingObject(const DebugWritingObject &parent)
 			: 	VectorDebugWritingObject<vector_type>(parent.m_spDebugWriter),
 				m_spDebugWriter(parent.m_spDebugWriter) {}
 
 	///	virtual destructor
-		virtual ~DebugWritingObject() {}
+		~DebugWritingObject() override = default;
 
 	///	set debug writer
-		virtual void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
-		{
+		virtual void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter) {
 			m_spDebugWriter = spDebugWriter;
 			VectorDebugWritingObject<vector_type>::set_debug(m_spDebugWriter);
 		}
@@ -403,7 +402,7 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 			if(m_spDebugWriter.invalid()) return;
 
 		//	check ending
-			size_t iExtPos = name.find_last_of(".");
+			size_t iExtPos = name.find_last_of('.');
 			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".mat") != 0)
 				UG_THROW("Only '.mat' format supported for matrices, but"
 								" filename is '"<<name<<"'.");

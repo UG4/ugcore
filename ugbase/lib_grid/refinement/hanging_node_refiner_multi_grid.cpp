@@ -119,7 +119,7 @@ num_marked_volumes_local(std::vector<int>& numMarkedVolsOut)
 }
 
 
-template <class TElem>
+template <typename TElem>
 void HangingNodeRefiner_MultiGrid::
 num_marked_elems(std::vector<int>& numMarkedElemsOut)
 {
@@ -396,15 +396,15 @@ restrict_selection_to_surface_coarsen_elements()
 	restrict_selection_to_surface_coarsen_elements<Volume>();
 }
 
-template <class TElem>
+template <typename TElem>
 void HangingNodeRefiner_MultiGrid::
 restrict_selection_to_surface_coarsen_elements()
 {
 	MultiGrid& mg = *m_pMG;
 	selector_t& sel = get_refmark_selector();
 
-	for(typename selector_t::template traits<TElem>::iterator iter = sel.template begin<TElem>();
-		iter != sel.template end<TElem>();)
+	for(typename selector_t::traits<TElem>::iterator iter = sel.begin<TElem>();
+		iter != sel.end<TElem>();)
 	{
 		TElem* e = *iter;
 		++iter;
@@ -432,7 +432,7 @@ restrict_selection_to_coarsen_families()
 }
 
 
-template <class TElem>
+template <typename TElem>
 void HangingNodeRefiner_MultiGrid::
 restrict_selection_to_coarsen_families()
 {

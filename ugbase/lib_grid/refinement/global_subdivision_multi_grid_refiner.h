@@ -50,7 +50,7 @@ namespace ug
  *
  * Currently this only works in 2d and 3d.
  */
-template <class TAPosition>
+template <typename TAPosition>
 class GlobalSubdivisionMultiGridRefiner : public GlobalMultiGridRefiner
 {
 	public:
@@ -89,7 +89,7 @@ class GlobalSubdivisionMultiGridRefiner : public GlobalMultiGridRefiner
 		void smooth();
 
 	///	wrapper for smooth() method in parallel case (see class ParallelGlobalSubdivisionRefiner)
-		virtual void refinement_step_ends();
+		void refinement_step_ends() override;
 
 	protected:
 		MGSubsetHandler* m_pSH;

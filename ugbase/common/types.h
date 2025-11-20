@@ -113,10 +113,10 @@ using std::size_t;
 using byte_t = unsigned char;
 using uint = unsigned int;
 
-using uint32 = ugtypes::uint32_t;
-using uint64 = ugtypes::uint64_t;
-using int32 = ugtypes::int32_t;
-using int64 = ugtypes::int64_t;
+using uint32 = uint32_t;
+using uint64 = uint64_t;
+using int32 = int32_t;
+using int64 = int64_t;
 
 
 

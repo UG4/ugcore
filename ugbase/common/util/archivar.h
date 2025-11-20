@@ -54,7 +54,7 @@ namespace archivar{
 }
 }
 
-template <class TArchive, class TBase, class TPairSeq>
+template <typename TArchive, typename TBase, typename TPairSeq>
 class Archivar
 {
 public:
@@ -64,13 +64,13 @@ public:
 		boost::mpl::for_each<TPairSeq>(func);
 	}
 
-	template <class T>
+	template <typename T>
 	void archive(TArchive& ar, T& t)
 	{
 		archive(ar, t, "");
 	}
 
-	template <class T>
+	template <typename T>
 	void archive(TArchive& ar, T& t, const char* name)
 	{
 		std::string typeName(typeid(t).name());
@@ -82,7 +82,7 @@ public:
 		icallback->second(ar, t, name);
 	}
 
-	template <class TDerived>
+	template <typename TDerived>
 	void register_class(const char* name)
 	{
 		BOOST_STATIC_ASSERT((boost::is_base_of<TBase, TDerived>::value));
@@ -100,4 +100,4 @@ private:
 
 }//	end of namespace
 
-#endif	//__H__UG_archivar
+#endif

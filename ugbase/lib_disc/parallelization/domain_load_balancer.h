@@ -41,7 +41,7 @@
 namespace ug{
 
 ///	Creates a process-hierarchy that fullfills the given conditions.
-template <class TDomain>
+template <typename TDomain>
 SPProcessHierarchy
 CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
 					   size_t maxNumRedistProcs, size_t maxNumProcs,
@@ -52,7 +52,7 @@ CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
 						maxLevelsWithoutRedist, nullptr);
 }
 
-template <class TDomain>
+template <typename TDomain>
 SPProcessHierarchy
 CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
 					   size_t maxNumRedistProcs, size_t maxNumProcs,
@@ -104,7 +104,7 @@ CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
 }
 
 ///	A small wrapper for LoadBalancer which adds comfort methods to balance and distribute domains.
-template <class TDomain>
+template <typename TDomain>
 class DomainLoadBalancer : public LoadBalancer
 {
 	using base_class = LoadBalancer;
@@ -138,7 +138,7 @@ class DomainLoadBalancer : public LoadBalancer
 };
 
 
-template <class TDomain, class TPartitioner>
+template <typename TDomain, typename TPartitioner>
 class DomainPartitioner : public TPartitioner{
 	public:
 		DomainPartitioner(TDomain& dom){
@@ -146,7 +146,7 @@ class DomainPartitioner : public TPartitioner{
 		}
 };
 
-template <class TDomain, class TBalanceWeights>
+template <typename TDomain, typename TBalanceWeights>
 class DomainBalanceWeights : public TBalanceWeights{
 	public:
 		DomainBalanceWeights(TDomain& dom){
@@ -154,7 +154,7 @@ class DomainBalanceWeights : public TBalanceWeights{
 		}
 };
 
-template <class TDomain, class TCommunicationCostWeights>
+template <typename TDomain, typename TCommunicationCostWeights>
 class DomainCommunicationCostWeights : public TCommunicationCostWeights{
 	public:
 		DomainCommunicationCostWeights(TDomain& dom){

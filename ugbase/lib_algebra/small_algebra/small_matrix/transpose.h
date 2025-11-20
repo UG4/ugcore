@@ -50,12 +50,12 @@ public:
 		return t.num_rows();
 	}
 
-	const value_type &operator() (size_t r, size_t c) const
+	const value_type &operator () (size_t r, size_t c) const
 	{
 		return t(c, r);
 	}
 
-	value_type &operator() (size_t r, size_t c)
+	value_type &operator () (size_t r, size_t c)
 	{
 		return t(c, r);
 	}

@@ -74,8 +74,8 @@ class FreeRelease
 
 ////////////////////////////////////////////////////////////////////////
 //	PREDECLARATIONS
-template <class T, template <class TT> class FreePolicy = FreeDelete> class SmartPtr;
-template <class T, template <class TT> class FreePolicy = FreeDelete> class ConstSmartPtr;
+template <typename T, template <typename TT> typename FreePolicy = FreeDelete> class SmartPtr;
+template <typename T, template <typename TT> typename FreePolicy = FreeDelete> class ConstSmartPtr;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -103,7 +103,7 @@ template <class T, template <class TT> class FreePolicy = FreeDelete> class Cons
  *
  * If a const smart pointer is required, use ConstSmartPtr
  */
-template <typename T, template <class TT> class FreePolicy>
+template <typename T, template <typename TT> typename FreePolicy>
 class SmartPtr
 {
 	friend class ConstSmartPtr<T, FreePolicy>;
@@ -122,7 +122,7 @@ class SmartPtr
 	/**	this template method allows to assign smart-pointers that encapsulate
 	 *	derivates of T. Make sure that the pointer-type of TSmartPtr is castable
 	 *	to T*.*/
-		template <class TPtr>
+		template <typename TPtr>
 		SmartPtr(const SmartPtr<TPtr, FreePolicy>& sp) :
 			m_ptr(sp.get_nonconst()),
 			m_refCount(sp.refcount_ptr())
@@ -132,13 +132,13 @@ class SmartPtr
 
 		~SmartPtr() {release();}
 
-		T* operator->() {return m_ptr;}
-		const T* operator->() const	{return m_ptr;}
+		T* operator -> () {return m_ptr;}
+		const T* operator -> () const	{return m_ptr;}
 
-		T& operator*() {return *m_ptr;}
-		const T& operator*() const	{return *m_ptr;}
+		T& operator * () {return *m_ptr;}
+		const T& operator * () const	{return *m_ptr;}
 
-		SmartPtr& operator=(std::nullptr_t) {
+		SmartPtr& operator = (std::nullptr_t) {
 			if(m_ptr)
 				release();
 			m_ptr = 0;
@@ -146,7 +146,7 @@ class SmartPtr
 			return *this;
 		}
 
-		SmartPtr& operator=(const SmartPtr& sp) {
+		SmartPtr& operator = (const SmartPtr& sp) {
 			if(m_ptr)
 				release();
 			m_ptr = sp.m_ptr;
@@ -156,8 +156,8 @@ class SmartPtr
 			return *this;
 		}
 
-		template <class TIn>
-		SmartPtr<T, FreePolicy>& operator=(const SmartPtr<TIn, FreePolicy>& sp) {
+		template <typename TIn>
+		SmartPtr& operator = (const SmartPtr<TIn, FreePolicy>& sp) {
 			if(m_ptr)
 				release();
 			m_ptr = sp.get_nonconst();
@@ -167,30 +167,30 @@ class SmartPtr
 			return *this;
 		}
 
-		bool operator==(const SmartPtr& sp) const {
+		bool operator == (const SmartPtr& sp) const {
 			return (this->get() == sp.get());
 		}
 
-		bool operator!=(const SmartPtr& sp) const {
-			return !(this->operator==(sp));
+		bool operator != (const SmartPtr& sp) const {
+			return !(this->operator == (sp));
 		}
 
-		bool operator==(std::nullptr_t) const {
-			return m_ptr == 0;
+		bool operator == (std::nullptr_t) const {
+			return m_ptr == nullptr;
 		}
 
-		bool operator!=(std::nullptr_t) const {
-			return m_ptr != 0;
+		bool operator != (std::nullptr_t) const {
+			return m_ptr != nullptr;
 		}
 
-		template <class TPtr>
-		bool operator==(const ConstSmartPtr<TPtr, FreePolicy>& sp) const {
+		template <typename TPtr>
+		bool operator == (const ConstSmartPtr<TPtr, FreePolicy>& sp) const {
 			return (this->get() == sp.get());
 		}
 
-		template <class TPtr>
-		bool operator!=(const ConstSmartPtr<TPtr, FreePolicy>& sp) const {
-			return !(this->operator==(sp));
+		template <typename TPtr>
+		bool operator != (const ConstSmartPtr<TPtr, FreePolicy>& sp) const {
+			return !(this->operator == (sp));
 		}
 
 	///	returns encapsulated pointer
@@ -206,13 +206,13 @@ class SmartPtr
 		inline bool valid() const	{return m_ptr != nullptr;}
 
 		// pointer compat -- behave like std::shared_ptr<T>
-		explicit operator bool() const noexcept { return m_ptr != nullptr; }
+		explicit operator bool () const noexcept { return m_ptr != nullptr; }
 
 	///	returns true if the pointer is invalid, false if not.
 		inline bool invalid() const	{return m_ptr == nullptr;}
 
 	///	preforms a dynamic cast
-		template <class TDest>
+		template <typename TDest>
 		SmartPtr<TDest, FreePolicy> cast_dynamic() const{
 			auto* p = dynamic_cast<TDest*>(m_ptr);
 			if(p) return SmartPtr<TDest, FreePolicy>(p, m_refCount);
@@ -220,7 +220,7 @@ class SmartPtr
 		}
 
 	///	performs a static cast
-		template <class TDest>
+		template <typename TDest>
 		SmartPtr<TDest, FreePolicy> cast_static() const{
 			auto* p = static_cast<TDest*>(m_ptr);
 			if(p) return SmartPtr<TDest, FreePolicy>(p, m_refCount);
@@ -228,7 +228,7 @@ class SmartPtr
 		}
 
 	///	performs a reinterpret cast
-		template <class TDest>
+		template <typename TDest>
 		SmartPtr<TDest, FreePolicy> cast_reinterpret() const{
 			auto* p = reinterpret_cast<TDest*>(m_ptr);
 			if(p) return SmartPtr<TDest, FreePolicy>(p, m_refCount);
@@ -236,7 +236,7 @@ class SmartPtr
 		}
 
 	///
-		template <class TDest>
+		template <typename TDest>
 		bool is_of_type() const
 		{
 			return dynamic_cast<TDest*>(m_ptr) != nullptr;
@@ -291,7 +291,7 @@ class SmartPtr
 		int*	m_refCount;
 };
 
-template <typename T, template <class TT> class FreePolicy>
+template <typename T, template <typename TT> typename FreePolicy>
 class ConstSmartPtr
 {
 	friend class ConstSmartPtr<void>;
@@ -308,7 +308,7 @@ class ConstSmartPtr
 	/**	this template method allows to assign smart-pointers that encapsulate
 	 *	derivates of T. Make sure that the pointer-type of TSmartPtr is castable
 	 *	to T*.*/
-		template <class TPtr>
+		template <typename TPtr>
 		ConstSmartPtr(const SmartPtr<TPtr, FreePolicy>& sp) :
 			m_ptr(sp.get()),
 			m_refCount(sp.refcount_ptr())
@@ -316,7 +316,7 @@ class ConstSmartPtr
 			if(m_refCount) (*m_refCount)++;
 		}
 
-		template <class TPtr>
+		template <typename TPtr>
 		ConstSmartPtr(const ConstSmartPtr<TPtr, FreePolicy>& sp) :
 			m_ptr(sp.get()),
 			m_refCount(sp.refcount_ptr())
@@ -326,11 +326,11 @@ class ConstSmartPtr
 
 		~ConstSmartPtr() {release();}
 
-		const T* operator->() const	{return m_ptr;}
+		const T* operator -> () const {return m_ptr;}
 
-		const T& operator*() const	{return *m_ptr;}
+		const T& operator * () const {return *m_ptr;}
 
-		ConstSmartPtr& operator=(const SmartPtr<T, FreePolicy>& sp){
+		ConstSmartPtr& operator = (const SmartPtr<T, FreePolicy>& sp){
 			if(m_ptr)
 				release();
 			m_ptr = sp.m_ptr;
@@ -340,8 +340,8 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		template <class TIn>
-		ConstSmartPtr<T, FreePolicy>& operator=(const SmartPtr<TIn, FreePolicy>& sp){
+		template <typename TIn>
+		ConstSmartPtr& operator = (const SmartPtr<TIn, FreePolicy>& sp){
 			if(m_ptr)
 				release();
 			m_ptr = sp.get();
@@ -351,7 +351,7 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		ConstSmartPtr& operator=(const ConstSmartPtr& sp){
+		ConstSmartPtr& operator = (const ConstSmartPtr& sp){
 			if(m_ptr)
 				release();
 			m_ptr = sp.m_ptr;
@@ -361,8 +361,8 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		template <class TIn>
-		ConstSmartPtr<T, FreePolicy>& operator=(const ConstSmartPtr<TIn, FreePolicy>& sp){
+		template <typename TIn>
+		ConstSmartPtr& operator = (const ConstSmartPtr<TIn, FreePolicy>& sp){
 			if(m_ptr)
 				release();
 			m_ptr = sp.get();
@@ -372,7 +372,7 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		ConstSmartPtr& operator=(std::nullptr_t){
+		ConstSmartPtr& operator = (std::nullptr_t){
 			if(m_ptr)
 				release();
 			m_ptr = 0;
@@ -380,29 +380,29 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		bool operator==(const ConstSmartPtr& sp) const{
+		bool operator == (const ConstSmartPtr& sp) const{
 			return (this->get() == sp.get());
 		}
 
-		template <class TPtr>
-		bool operator==(const SmartPtr<TPtr, FreePolicy>& sp) const{
+		template <typename TPtr>
+		bool operator == (const SmartPtr<TPtr, FreePolicy>& sp) const{
 			return (this->get() == sp.get());
 		}
 
-		bool operator==(std::nullptr_t) const{
+		bool operator == (std::nullptr_t) const{
 			return m_ptr == nullptr;
 		}
 
-		bool operator!=(const ConstSmartPtr& sp) const{
-			return !(this->operator==(sp));
+		bool operator != (const ConstSmartPtr& sp) const{
+			return !(this->operator == (sp));
 		}
 
-		template <class TPtr>
-		bool operator!=(const SmartPtr<TPtr, FreePolicy>& sp) const{
-			return !(this->operator==(sp));
+		template <typename TPtr>
+		bool operator != (const SmartPtr<TPtr, FreePolicy>& sp) const{
+			return !(this->operator == (sp));
 		}
 
-		bool operator!=(std::nullptr_t) const{
+		bool operator != (std::nullptr_t) const{
 			return m_ptr != nullptr;
 		}
 
@@ -414,13 +414,13 @@ class ConstSmartPtr
 		inline bool valid() const	{return m_ptr != nullptr;}
 
 		// pointer compat -- behave like std::shared_ptr<T>
-		explicit operator bool() const noexcept { return m_ptr != nullptr; }
+		explicit operator bool () const noexcept { return m_ptr != nullptr; }
 
 	///	returns true if the pointer is invalid, false if not.
 		inline bool invalid() const	{return m_ptr == nullptr;}
 
 	///	preforms a dynamic cast
-		template <class TDest>
+		template <typename TDest>
 		ConstSmartPtr<TDest, FreePolicy> cast_dynamic() const{
 			const TDest* p = dynamic_cast<const TDest*>(m_ptr);
 			if(p) return ConstSmartPtr<TDest, FreePolicy>(p, m_refCount);
@@ -428,7 +428,7 @@ class ConstSmartPtr
 		}
 
 	///	performs a static cast
-		template <class TDest>
+		template <typename TDest>
 		ConstSmartPtr<TDest, FreePolicy> cast_static() const{
 			const TDest* p = static_cast<const TDest*>(m_ptr);
 			if(p) return ConstSmartPtr<TDest, FreePolicy>(p, m_refCount);
@@ -436,7 +436,7 @@ class ConstSmartPtr
 		}
 
 	///	performs a static cast
-		template <class TDest>
+		template <typename TDest>
 		ConstSmartPtr<TDest, FreePolicy> cast_reinterpret() const{
 			const auto* p = reinterpret_cast<const TDest*>(m_ptr);
 			if(p) return ConstSmartPtr<TDest, FreePolicy>(p, m_refCount);
@@ -449,7 +449,7 @@ class ConstSmartPtr
 		}
 
 	///
-		template <class TDest>
+		template <typename TDest>
 		bool is_of_type() const
 		{
 			return dynamic_cast<TDest*>(m_ptr) != nullptr;
@@ -500,7 +500,7 @@ class ConstSmartPtr
 
 ///	performs a const cast
 
-template <typename T, template <class TT> class FreePolicy>
+template <typename T, template <typename TT> typename FreePolicy>
 inline ConstSmartPtr<T, FreePolicy> SmartPtr<T, FreePolicy>::cast_const() const{
 	return ConstSmartPtr<T, FreePolicy>(*this);
 }
@@ -546,7 +546,7 @@ class SmartPtr<void>
 			if(ptr) m_refCountPtr = new int(1);
 		}
 
-		template <class T>
+		template <typename T>
 		SmartPtr(const SmartPtr<T>& sp) :
 			m_ptr((void*)sp.m_ptr),
 			m_refCountPtr(sp.m_refCount),
@@ -557,7 +557,7 @@ class SmartPtr<void>
 
 		~SmartPtr() {release();}
 
-		SmartPtr<void>& operator=(const SmartPtr<void>& sp)
+		SmartPtr& operator =(const SmartPtr& sp)
 		{
 			if(m_ptr)
 				release();
@@ -569,8 +569,8 @@ class SmartPtr<void>
 			return *this;
 		}
 
-		template <class T>
-		SmartPtr<void>& operator=(const SmartPtr<T>& sp)
+		template <typename T>
+		SmartPtr& operator = (const SmartPtr<T>& sp)
 		{
 			if(m_ptr)
 				release();
@@ -582,20 +582,20 @@ class SmartPtr<void>
 			return *this;
 		}
 
-		template <class T>
-		SmartPtr<void>& operator=(std::nullptr_t)
+		template <typename T>
+		SmartPtr& operator =(std::nullptr_t)
 		{
 			if(m_ptr)
 				release();
-			m_ptr = 0;
-			m_refCountPtr = 0;
-			m_freeFunc = 0;
+			m_ptr = nullptr;
+			m_refCountPtr = nullptr;
+			m_freeFunc = nullptr;
 			return *this;
 		}
 
 	///	Returns a SmartPtr with the specified type and shared reference counting.
 	/**	USE WITH CARE! ONLY COMPATIBLE TYPES SHOULD BE USED*/
-		template <class T,  template <class TPtr> class TFreePolicy>
+		template <typename T,  template <typename TPtr> class TFreePolicy>
 		SmartPtr<T, TFreePolicy> cast_reinterpret() const {
 			return SmartPtr<T, TFreePolicy>(reinterpret_cast<T*>(m_ptr), m_refCountPtr);
 		}
@@ -604,7 +604,7 @@ class SmartPtr<void>
 	/**	!!! WARNING: THIS METHOD IS DANDGEROUS: DO NOT USE IT UNLESS YOU REALLY
 	 *               KNOW WHAT YOU ARE DOING !!!
 	 */
-		template <class T, template <class TPtr> class TFreePolicy>
+		template <typename T, template <typename TPtr> typename TFreePolicy>
 		void set_impl(void* ptr)
 		{
 			m_ptr = ptr;
@@ -615,7 +615,7 @@ class SmartPtr<void>
 		inline bool valid() const {return m_ptr != nullptr;}
 
 		// pointer compat -- behave like std::shared_ptr<T>
-		explicit operator bool() const noexcept { return m_ptr != nullptr; }
+		explicit operator bool () const noexcept { return m_ptr != nullptr; }
 
 	///	returns true if the pointer is invalid, false if not.
 		inline bool invalid() const	{return m_ptr == nullptr;}
@@ -669,7 +669,7 @@ class ConstSmartPtr<void>
 			if(m_refCountPtr) (*m_refCountPtr)++;
 		}
 
-		ConstSmartPtr(const ConstSmartPtr<void>& sp) :
+		ConstSmartPtr(const ConstSmartPtr& sp) :
 			m_ptr(sp.m_ptr),
 			m_refCountPtr(sp.m_refCountPtr),
 			m_freeFunc(sp.m_freeFunc)
@@ -677,7 +677,7 @@ class ConstSmartPtr<void>
 			if(m_refCountPtr) (*m_refCountPtr)++;
 		}
 
-		template <class T, template <class TPtr> class TFreePolicy>
+		template <typename T, template <typename TPtr> typename TFreePolicy>
 		ConstSmartPtr(const SmartPtr<T, TFreePolicy>& sp) :
 			m_ptr((void*)sp.m_ptr),
 			m_refCountPtr(sp.m_refCount),
@@ -686,7 +686,7 @@ class ConstSmartPtr<void>
 			if(m_refCountPtr) (*m_refCountPtr)++;
 		}
 
-		template <class T, template <class TPtr> class TFreePolicy>
+		template <typename T, template <typename TPtr> typename TFreePolicy>
 		ConstSmartPtr(const ConstSmartPtr<T, TFreePolicy>& sp) :
 			m_ptr((void*)sp.m_ptr),
 			m_refCountPtr(sp.m_refCount),
@@ -697,7 +697,7 @@ class ConstSmartPtr<void>
 
 		~ConstSmartPtr() {release();}
 
-		ConstSmartPtr<void>& operator=(const SmartPtr<void>& sp)
+		ConstSmartPtr& operator = (const SmartPtr<void>& sp)
 		{
 			if(m_ptr)
 				release();
@@ -709,7 +709,7 @@ class ConstSmartPtr<void>
 			return *this;
 		}
 
-		ConstSmartPtr<void>& operator=(const ConstSmartPtr<void>& sp)
+		ConstSmartPtr& operator = (const ConstSmartPtr& sp)
 		{
 			if(m_ptr)
 				release();
@@ -721,8 +721,8 @@ class ConstSmartPtr<void>
 			return *this;
 		}
 
-		template <class T, template <class TPtr> class TFreePolicy>
-		ConstSmartPtr<void>& operator=(const SmartPtr<T, TFreePolicy>& sp)
+		template <typename T, template <typename TPtr> typename TFreePolicy>
+		ConstSmartPtr& operator = (const SmartPtr<T, TFreePolicy>& sp)
 		{
 			if(m_ptr)
 				release();
@@ -734,8 +734,8 @@ class ConstSmartPtr<void>
 			return *this;
 		}
 
-		template <class T, template <class TPtr> class TFreePolicy>
-		ConstSmartPtr<void>& operator=(const ConstSmartPtr<T, TFreePolicy>& sp)
+		template <typename T, template <typename TPtr> typename TFreePolicy>
+		ConstSmartPtr& operator = (const ConstSmartPtr<T, TFreePolicy>& sp)
 		{
 			if(m_ptr)
 				release();
@@ -747,19 +747,19 @@ class ConstSmartPtr<void>
 			return *this;
 		}
 
-		ConstSmartPtr<void>& operator=(std::nullptr_t)
+		ConstSmartPtr& operator = (std::nullptr_t)
 		{
 			if(m_ptr)
 				release();
-			m_ptr = 0;
-			m_refCountPtr = 0;
-			m_freeFunc = 0;
+			m_ptr = nullptr;
+			m_refCountPtr = nullptr;
+			m_freeFunc = nullptr;
 			return *this;
 		}
 
 	///	Returns a SmartPtr with the specified type and shared reference counting.
 	/**	USE WITH CARE! ONLY COMPATIBLE TYPES SHOULD BE USED*/
-		template <class T, template <class TPtr> class TFreePolicy>
+		template <typename T, template <typename TPtr> typename TFreePolicy>
 		ConstSmartPtr<T, TFreePolicy> cast_reinterpret() const{
 			return ConstSmartPtr<T, TFreePolicy>(reinterpret_cast<const T*>(m_ptr), m_refCountPtr);
 		}
@@ -768,7 +768,7 @@ class ConstSmartPtr<void>
 	/**	!!! WARNING: THIS METHOD IS DANDGEROUS: DO NOT USE IT UNLESS YOU REALLY
 	 *               KNOW WHAT YOU ARE DOING !!!
 	 */
-		template <class T, template <class TPtr> class TFreePolicy>
+		template <typename T, template <typename TPtr> typename TFreePolicy>
 		void set_impl(const void* ptr)
 		{
 			m_ptr = ptr;
@@ -779,7 +779,7 @@ class ConstSmartPtr<void>
 		inline bool valid() const {return m_ptr != nullptr;}
 
 		// pointer compat -- behave like std::shared_ptr<T>
-		explicit operator bool() const noexcept { return m_ptr != nullptr; }
+		explicit operator bool () const noexcept { return m_ptr != nullptr; }
 
 	///	returns true if the pointer is invalid, false if not.
 		inline bool invalid() const	{return m_ptr == nullptr;}
@@ -812,13 +812,13 @@ class ConstSmartPtr<void>
 
 namespace std
 {
-	template <class T, template <class TPtr> class TFreePolicy>
+	template <typename T, template <typename TPtr> typename TFreePolicy>
 	struct less<SmartPtr<T, TFreePolicy> >
 #if (__cplusplus < 201103L)
 	: public binary_function<SmartPtr<T, TFreePolicy>, SmartPtr<T, TFreePolicy>, bool>
 #endif
 	{
-		bool operator()(const SmartPtr<T, TFreePolicy>& lhs,
+		bool operator () (const SmartPtr<T, TFreePolicy>& lhs,
 						const SmartPtr<T, TFreePolicy>& rhs) const
 		{
 			return less<T*>()(lhs.get(), rhs.get());
@@ -832,7 +832,7 @@ namespace std
 ////////////////////////////////////////////////////////////////////////
 
 /// returns a SmartPtr for the passed raw pointer
-template <typename T, template <class TT> class FreePolicy>
+template <typename T, template <typename TT> typename FreePolicy>
 SmartPtr<T, FreePolicy> make_sp(T* inst)
 {
 	return SmartPtr<T, FreePolicy>(inst);
@@ -848,13 +848,13 @@ SmartPtr<T> make_sp(T* inst)
 /*
 namespace boost
 {
-  template <class T>
+  template <typename T>
   struct pointee<SmartPtr<T> >
   {
 	  using type = T;
   };
 
-  template <class T>
+  template <typename T>
   struct pointee<ConstSmartPtr<T> >
   {
 	  using type = T;

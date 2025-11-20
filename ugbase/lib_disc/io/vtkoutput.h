@@ -143,7 +143,7 @@ struct IteratorProvider<MGSubsetHandler>
  * ATTENTION: This class uses heavily the mark-function of the grid.
  * 			  Do not use any member function while having called begin_mark()
  *
- * \tparam		dim 	world dimension
+ * \tparam		TDim 	world dimension
  */
 template <int TDim>
 class VTKOutput

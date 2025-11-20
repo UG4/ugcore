@@ -91,7 +91,7 @@ void GridDataSerializationHandler::add(SPGridDataSerializer cb)
 	m_gridSerializers.push_back(cb);
 }
 
-template<class TSerializers>
+template <typename TSerializers>
 void GridDataSerializationHandler::
 write_info(BinaryBuffer& out, TSerializers& serializers) const
 {
@@ -99,7 +99,7 @@ write_info(BinaryBuffer& out, TSerializers& serializers) const
 		serializers[i]->write_info(out);
 }
 
-template<class TSerializers>
+template <typename TSerializers>
 void GridDataSerializationHandler::
 read_info(BinaryBuffer& in, TSerializers& serializers)
 {
@@ -151,7 +151,7 @@ deserialize(BinaryBuffer& in, GridObjectCollection goc)
 		deserialize(in, goc.begin<Volume>(lvl), goc.end<Volume>(lvl));
 }
 
-template<class TSerializers>
+template<typename TSerializers>
 void GridDataSerializationHandler::
 deserialization_starts(TSerializers& serializers)
 {
@@ -169,7 +169,7 @@ deserialization_starts()
 	deserialization_starts(m_gridSerializers);
 }
 
-template<class TSerializers>
+template <typename TSerializers>
 void GridDataSerializationHandler::
 deserialization_done(TSerializers& serializers)
 {
@@ -848,7 +848,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 //	This method relies on the fact, that mg is in marking mode and
 //	that all and only parents which have already been written to
 //	the stream are marked.
-template<class TElem>
+template <typename TElem>
 static void WriteParent(MultiGrid& mg, TElem* pElem,
 						MultiElementAttachmentAccessor<AInt>&	aaInt,
 						BinaryBuffer& out)
@@ -2401,7 +2401,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 ////////////////////////////////////////////////////////////////////////
 //	WriteSubsetIndicesToStream
 //	helper method for SerializeSubsetHandler
-template <class TElemIter>
+template <typename TElemIter>
 static
 void WriteSubsetIndicesToStream(TElemIter iterBegin, TElemIter iterEnd,
 								ISubsetHandler& sh, BinaryBuffer& out)
@@ -2486,7 +2486,7 @@ bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 ////////////////////////////////////////////////////////////////////////
 //	ReadSubsetIndicesFromStream
 //	helper method for DeserializeSubsetHandler
-template <class TElemIter>
+template <typename TElemIter>
 static
 void ReadSubsetIndicesFromStream(TElemIter iterBegin, TElemIter iterEnd,
 								ISubsetHandler& sh, BinaryBuffer& in)
@@ -2587,7 +2587,7 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 
 
 
-template <class TElemIter>
+template <typename TElemIter>
 static
 void WriteSelectionStatesToStream(TElemIter iterBegin, TElemIter iterEnd,
 								  ISelector& sel, BinaryBuffer& out)
@@ -2648,7 +2648,7 @@ bool SerializeSelector(Grid& grid, ISelector& sel,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElemIter>
+template <typename TElemIter>
 static
 void ReadSelectionStatesFromStream(TElemIter iterBegin, TElemIter iterEnd,
 								   ISelector& sel, BinaryBuffer& in)

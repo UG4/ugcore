@@ -15,7 +15,7 @@ class BOOL{
 public:
 	BOOL() : value_(bool()){}
 	BOOL(bool const& t): value_(t) {}
-	operator bool() const { return value_; }
+	operator bool () const { return value_; }
 private:
 	char value_;
 };

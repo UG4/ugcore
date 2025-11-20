@@ -61,7 +61,7 @@ class ProjectionHandler;
  * 	of any dimension are supported. Especially ug::aPosition, ug::aPostion2
  *	and ug::aPosition1.
  */
-template <class TAPosition>
+template <typename TAPosition>
 bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh,
 				   const char* filename, TAPosition& aPos);
 
@@ -81,7 +81,7 @@ bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh,
  * 	of any dimension are supported. Especially ug::aPosition, ug::aPostion2
  *	and ug::aPosition1.
  */
-template <class TAPosition>
+template <typename TAPosition>
 bool LoadGridFromUGX(Grid& grid, ISubsetHandler& sh,
 					const char* filename, APosition& aPos);
 
@@ -112,11 +112,11 @@ class GridWriterUGX
 
 	/**	TPositionAttachments value type has to be compatible with MathVector.
 	 *	Make sure that aPos is attached to the vertices of the grid.*/
-		template <class TPositionAttachment>
+		template <typename TPositionAttachment>
 		bool add_grid(Grid& grid, const char* name,
 					  TPositionAttachment& aPos);
 
-//		template <class TPositionAttachment>
+//		template <typename TPositionAttachment>
 //		void add_grid(MultiGrid& mg, const char* name,
 //					  TPositionAttachment& aPos);
 
@@ -129,7 +129,7 @@ class GridWriterUGX
 		void add_projection_handler(ProjectionHandler& ph, const char* name,
 									size_t refGridIndex);
 
-		template <class TElem, class TAttachment>
+		template <typename TElem, typename TAttachment>
 		void add_attachment(TAttachment attachment,
 							const char* name,
 							size_t refGridIndex);
@@ -148,13 +148,13 @@ class GridWriterUGX
 		void init_grid_attachments(Grid& grid);
 		
 	//	VERTICES
-		template <class TAAPos>
+		template <typename TAAPos>
 		rapidxml::xml_node<>*
 		create_vertex_node(RegularVertexIterator vrtsBegin,
 						  RegularVertexIterator vrtsEnd,
 						  TAAPos& aaPos);
 
-		template <class TAAPos>
+		template <typename TAAPos>
 		rapidxml::xml_node<>*
 		create_constrained_vertex_node(ConstrainedVertexIterator vrtsBegin,
 										ConstrainedVertexIterator vrtsEnd,
@@ -246,13 +246,13 @@ class GridWriterUGX
 		void add_subset_attributes(rapidxml::xml_node<>* targetNode,
 								   ISubsetHandler& sh, size_t subsetIndex);
 
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		rapidxml::xml_node<>*
 		create_subset_element_node(const char* name,
 								   const ISubsetHandler& sh,
 								   size_t si);
 
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		rapidxml::xml_node<>*
 		create_selector_element_node(const char* name, const ISelector& sel);
 
@@ -260,17 +260,17 @@ class GridWriterUGX
 		rapidxml::xml_node<>*
 		create_projector_node(RefinementProjector& proj, const char* nodeName);
 
-		template <class TElem>
+		template <typename TElem>
 		void process_global_attachments(Grid& grid, rapidxml::xml_node<>* gridNode);
 
-		template <class TElem>
+		template <typename TElem>
 		const char* attachment_node_name();
 
 	protected:
 	///	entries are stored for each grid.
 	/**	an entry holds a pointer to a grid together with its xml_node.*/
 		struct Entry{
-			Entry()	{}
+			Entry()	= default;
 			Entry(Grid* g, rapidxml::xml_node<>* n) :
 				grid(g), node(n)	{}
 
@@ -312,7 +312,7 @@ class GridReaderUGX
 	///	returns the i-th grid.
 	/**	TPositionAttachments value type has to be compatible with MathVector.
 	 *	Make sure that a file has already been loaded.*/
-		template <class TPositionAttachment>
+		template <typename TPositionAttachment>
 		bool grid(Grid& gridOut, size_t index,
 					  TPositionAttachment& aPos);
 
@@ -398,11 +398,11 @@ class GridReaderUGX
 	/**	if aaPos has more coordinates per vertex than the vrtNode,
 	 *	0's will be appended. If it has less, unused coordinates will
 	 *	be ignored.*/
-		template <class TAAPos>
+		template <typename TAAPos>
 		bool create_vertices(std::vector<Vertex*>& vrtsOut, Grid& grid,
 							rapidxml::xml_node<>* vrtNode, TAAPos aaPos);
 
-		template <class TAAPos>
+		template <typename TAAPos>
 		bool create_constrained_vertices(std::vector<Vertex*>& vrtsOut,
 							std::vector<std::pair<int, int> >& constrainingObjsOut,
 							Grid& grid, rapidxml::xml_node<>* vrtNode, TAAPos aaPos);
@@ -466,20 +466,20 @@ class GridReaderUGX
 								Grid& grid, rapidxml::xml_node<>* node,
 								std::vector<Vertex*>& vrts);
 
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		bool read_subset_handler_elements(ISubsetHandler& shOut,
 										 const char* elemNodeName,
 										 rapidxml::xml_node<>* subsetNode,
 										 int subsetIndex,
 										 std::vector<TGeomObj*>& vElems);
 
-		template <class TGeomObj>
+		template <typename TGeomObj>
 		bool read_selector_elements(ISelector& selOut,
 									 const char* elemNodeName,
 									 rapidxml::xml_node<>* selNode,
 									 std::vector<TGeomObj*>& vElems);
 
-		template <class TElem>
+		template <typename TElem>
 		bool read_attachment(Grid& grid, rapidxml::xml_node<>* node);
 
 		SPRefinementProjector

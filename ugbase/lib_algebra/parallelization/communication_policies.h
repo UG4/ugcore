@@ -83,7 +83,7 @@ template <typename t> struct block_traits
  *
  * \tparam	TVector		Vector type
  */
-template <class TVector>
+template <typename TVector>
 class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
@@ -91,7 +91,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		ComPol_VecCopy() : m_pVecDest(nullptr), m_pVecSrc(nullptr) {}
 
 	///	Constructor setting the vector
-		ComPol_VecCopy(TVector* pVec): m_pVecDest(pVec), m_pVecSrc(pVec)	{}
+		explicit ComPol_VecCopy(TVector* pVec): m_pVecDest(pVec), m_pVecSrc(pVec)	{}
 
 	///	Constructor setting the vector
 		ComPol_VecCopy(TVector* pVecDest, const TVector* pVecSrc)
@@ -114,9 +114,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 *
 	 * \param[in]	interface	Interface that will communicate
 	 */
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{
+		int get_required_buffer_size(const Interface& interface) override {
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
 			else
@@ -131,9 +129,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that will communicate
 	 */
-		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool collect(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecCopy_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVecSrc == nullptr) return false;
@@ -142,8 +138,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 			const TVector& v = *m_pVecSrc;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -161,9 +156,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that communicates
 	 */
-		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool extract(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecCopy_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVecDest == nullptr) return false;
@@ -172,8 +165,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 			TVector& v = *m_pVecDest;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -199,7 +191,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
  *
  * \tparam	TVector		Vector type
  */
-template <class TVector>
+template <typename TVector>
 class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
@@ -226,9 +218,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 *
 	 * \param[in]	interface	Interface that will communicate
 	 */
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{
+		int get_required_buffer_size(const Interface& interface) override {
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
 			else
@@ -243,9 +233,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that will communicate
 	 */
-		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool collect(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleCopy_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == nullptr) return false;
@@ -254,8 +242,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 			TVector& v = *m_pVec;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -273,9 +260,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that communicates
 	 */
-		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool extract(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleCopy_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == nullptr) return false;
@@ -284,8 +269,8 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 			TVector& v = *m_pVec;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin();
+			    iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -314,7 +299,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
  *
  * \tparam	TVector		Vector type
  */
-template <class TVector>
+template <typename TVector>
 class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
@@ -345,9 +330,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 *
 	 * \param[in]	interface	Interface that will communicate
 	 */
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{
+		int get_required_buffer_size(const Interface& interface) override {
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
 			else
@@ -362,9 +345,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that will communicate
 	 */
-		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool collect(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecAdd_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVecSrc == nullptr) return false;
@@ -373,8 +354,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 			const TVector& v = *m_pVecSrc;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -392,9 +372,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that communicates
 	 */
-		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool extract(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecAdd_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVecDest == nullptr) return false;
@@ -406,8 +384,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 			typename TVector::value_type entry;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -435,7 +412,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
  *
  * \tparam	TVector		Vector type
  */
-template <class TVector>
+template <typename TVector>
 class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
@@ -443,7 +420,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		ComPol_VecScaleAdd() : m_pVec(nullptr), m_scale(1.0) {}
 
 	///	Constructor setting the values
-		ComPol_VecScaleAdd(TVector* pVec) : m_pVec(pVec)	{}
+		explicit ComPol_VecScaleAdd(TVector* pVec) : m_pVec(pVec)	{}
 
 	///	sets the vector used in communication
 		void set_vector(TVector* pVec)	{m_pVec = pVec;}
@@ -479,7 +456,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		collect(BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleAdd_collect, "algebra parallelization");
 		//	check that vector has been set
@@ -489,8 +466,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 			TVector& v = *m_pVec;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -508,9 +484,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that communicates
 	 */
-		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool extract(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleAdd_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == nullptr) return false;
@@ -522,8 +496,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 			typename TVector::value_type entry;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -559,15 +532,15 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
  *
  * \tparam	TVector		Vector type
  */
-template <class TVector>
+template <typename TVector>
 class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Default Constructor
-		ComPol_VecAddSetZero() : m_pVec(0)	{}
+		ComPol_VecAddSetZero() : m_pVec(nullptr)	{}
 
 	///	Constructor setting vector
-		ComPol_VecAddSetZero(TVector* pVec) : m_pVec(pVec)	{}
+		explicit ComPol_VecAddSetZero(TVector* pVec) : m_pVec(pVec)	{}
 
 	///	sets the vector that we be used for communication
 		void set_vector(TVector* pVec)	{m_pVec = pVec;}
@@ -582,9 +555,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 	 *
 	 * \param[in]	interface	Interface that will communicate
 	 */
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{
+		int get_required_buffer_size(const Interface& interface) override {
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
 			else
@@ -601,9 +572,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that will communicate
 	 */
-		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool collect(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecAddSetZero_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == nullptr) return false;
@@ -611,8 +580,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		//	rename for convenience
 			TVector& v = *m_pVec;
 
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -632,9 +600,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that communicates
 	 */
-		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool extract(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecAddSetZero_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == nullptr) return false;
@@ -646,8 +612,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 			typename TVector::value_type entry;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -674,7 +639,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
  *
  * \tparam	TVector		Vector type
  */
-template <class TVector>
+template <typename TVector>
 class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
@@ -682,7 +647,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 		ComPol_VecSubtract() : m_pVec(nullptr)	{}
 
 	///	Constructor setting the values
-		ComPol_VecSubtract(TVector* pVec) : m_pVec(pVec)	{}
+		explicit ComPol_VecSubtract(TVector* pVec) : m_pVec(pVec)	{}
 
 	///	sets the vector used in communication
 		void set_vector(TVector* pVec)	{m_pVec = pVec;}
@@ -697,9 +662,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 	 *
 	 * \param[in]	interface	Interface that will communicate
 	 */
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{
+		int get_required_buffer_size(const Interface& interface) override {
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
 			else
@@ -714,9 +677,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that will communicate
 	 */
-		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool collect(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecSubtract_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == nullptr) return false;
@@ -725,8 +686,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 			TVector& v = *m_pVec;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			// get index
 				const size_t index = interface.get_element(iter);
@@ -744,9 +704,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that communicates
 	 */
-		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+	bool extract(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecSubtract_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == nullptr) return false;
@@ -758,8 +716,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 			typename TVector::value_type entry;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -778,7 +735,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 };
 
 /// Communication Policy to check consistency of a vector
-template <class TVector>
+template <typename TVector>
 class ComPol_CheckConsistency : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
@@ -786,15 +743,13 @@ class ComPol_CheckConsistency : public pcl::ICommunicationPolicy<IndexLayout>
 		ComPol_CheckConsistency() : m_pVec(nullptr)	{}
 
 	///	Constructor setting the values
-		ComPol_CheckConsistency(const TVector* pVec) : m_pVec(pVec)	{}
+		explicit ComPol_CheckConsistency(const TVector* pVec) : m_pVec(pVec)	{}
 
 	///	sets the vector used in communication
-		void set_vector(const TVector* pVec)	{m_pVec = pVec;}
+		void set_vector(const TVector* pVec) {m_pVec = pVec;}
 
 	/// returns the buffer size
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{
+		int get_required_buffer_size(const Interface& interface) override {
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
 			else
@@ -802,9 +757,7 @@ class ComPol_CheckConsistency : public pcl::ICommunicationPolicy<IndexLayout>
 		}
 
 	///	writes the interface values into a buffer that will be sent
-		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool collect(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_CheckConsistency_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == nullptr) return false;
@@ -813,8 +766,7 @@ class ComPol_CheckConsistency : public pcl::ICommunicationPolicy<IndexLayout>
 			const TVector& v = *m_pVec;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			// get index
 				const size_t index = interface.get_element(iter);
@@ -826,9 +778,7 @@ class ComPol_CheckConsistency : public pcl::ICommunicationPolicy<IndexLayout>
 		}
 
 	///	checks if recieved values are equal to process local values
-		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool extract(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_CheckConsistency_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == nullptr) return false;
@@ -840,8 +790,7 @@ class ComPol_CheckConsistency : public pcl::ICommunicationPolicy<IndexLayout>
 			typename TVector::value_type entry, diff;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -876,7 +825,7 @@ class ComPol_CheckConsistency : public pcl::ICommunicationPolicy<IndexLayout>
  *
  * \tparam	TVector		Vector type
  */
-template <class TVector>
+template <typename TVector>
 class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
@@ -913,9 +862,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 	 *
 	 * \param[in]	interface	Interface that will communicate
 	 */
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{
+		int get_required_buffer_size(const Interface& interface) override {
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
 			else
@@ -930,9 +877,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that will communicate
 	 */
-		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool collect(BinaryBuffer& buff, const Interface& interface) override {
 
 			PROFILE_BEGIN_GROUP(ComPol_VecSubtractOnlyOneSlave_collect, "algebra parallelization");
 		//	check that vector has been set
@@ -942,8 +887,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 			TVector& v = *m_pVec;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			// get index
 				const size_t index = interface.get_element(iter);
@@ -961,9 +905,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that communicates
 	 */
-		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool extract(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecSubtractOnlyOneSlave_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == nullptr) return false;
@@ -975,8 +917,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 			typename TVector::value_type entry;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -1010,9 +951,9 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
  * that couplings to inner indices or to other slave/master, that have only
  * connections to other processes, are not taken into account.
  *
- * \tparam TMatrix	matrix type
+ * \tparam TAlgebra algebra type
  */
-template <class TAlgebra>
+template <typename TAlgebra>
 class ComPol_MatDistributeDiag
 	: public pcl::ICommunicationPolicy<IndexLayout>
 {
@@ -1040,9 +981,7 @@ class ComPol_MatDistributeDiag
 		 *
 		 * \param[in]	interface	Interface that will communicate
 		 */
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-			{
+		int get_required_buffer_size(const Interface& interface) override {
 				if(block_traits<typename TMatrix::value_type>::is_static)
 					return interface.size() * sizeof(typename TMatrix::value_type);
 				else
@@ -1051,8 +990,7 @@ class ComPol_MatDistributeDiag
 
 
 	///	writes the interface values into a buffer that will be sent
-		virtual bool collect(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool collect(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(CMatDistributeDiag_collect, "algebra parallelization");
 			using block_type = typename TMatrix::value_type;
 
@@ -1083,13 +1021,10 @@ class ComPol_MatDistributeDiag
 			return true;
 		}
 
-		virtual bool
-		begin_layout_extraction(const Layout* pLayout)
-		{ return true; }
+		bool begin_layout_extraction(const Layout* pLayout) override { return true; }
 
 	///	writes values from a buffer into the interface
-		virtual bool extract(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool extract(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(MatDistributeDiag_extract, "algebra parallelization");
 		//	block type of associated matrix
 			using block_type = typename TMatrix::value_type;
@@ -1134,7 +1069,7 @@ class ComPol_MatDistributeDiag
  *
  * \tparam TMatrix	matrix type
  */
-template <class TMatrix>
+template <typename TMatrix>
 class ComPol_MatAddRowsOverlap0
 	: public pcl::ICommunicationPolicy<IndexLayout>
 {
@@ -1150,8 +1085,7 @@ class ComPol_MatAddRowsOverlap0
 		}
 
 	///	writes the interface values into a buffer that will be sent
-		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
-		{
+		bool collect(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_collect, "algebra parallelization");
 			using row_iterator = typename TMatrix::row_iterator;
 			using block_type = typename TMatrix::value_type;
@@ -1189,17 +1123,14 @@ class ComPol_MatAddRowsOverlap0
 			return true;
 		}
 
-		virtual bool
-		begin_layout_extraction(const Layout* pLayout)
-		{
+		bool begin_layout_extraction(const Layout* pLayout) override {
 		//	fill the map global->local
 			GenerateAlgebraIDHashList(m_algIDHash, m_vGlobalID);
 			return true;
 		}
 
 	///	writes values from a buffer into the interface
-		virtual bool extract(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool extract(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_extract, "algebra parallelization");
 		//	block type of associated matrix
 			using block_type = typename TMatrix::value_type;
@@ -1262,7 +1193,7 @@ class ComPol_MatAddRowsOverlap0
  *
  * \tparam TMatrix	matrix type
  */
-template <class TMatrix>
+template <typename TMatrix>
 class ComPol_MatCopyRowsOverlap0
 	: public pcl::ICommunicationPolicy<IndexLayout>
 {
@@ -1278,8 +1209,7 @@ class ComPol_MatCopyRowsOverlap0
 		}
 
 	///	writes the interface values into a buffer that will be sent
-		virtual bool collect(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool collect(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_collect, "algebra parallelization");
 			using row_iterator = typename TMatrix::row_iterator;
 			using block_type = typename TMatrix::value_type;
@@ -1317,17 +1247,14 @@ class ComPol_MatCopyRowsOverlap0
 			return true;
 		}
 
-		virtual bool
-		begin_layout_extraction(const Layout* pLayout)
-		{
+		bool begin_layout_extraction(const Layout* pLayout) override {
 		//	fill the map global->local
 			GenerateAlgebraIDHashList(m_algIDHash, m_vGlobalID);
 			return true;
 		}
 
 	///	writes values from a buffer into the interface
-		virtual bool extract(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool extract(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_extract, "algebra parallelization");
 		//	block type of associated matrix
 			using block_type = typename TMatrix::value_type;
@@ -1383,19 +1310,18 @@ class ComPol_MatCopyRowsOverlap0
 /**
  * \tparam TMatrix	matrix type
  */
-template <class TMatrix>
+template <typename TMatrix>
 class ComPol_MatAddSetZeroInnerInterfaceCouplings
 	: public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Constructor setting the matrix
-		ComPol_MatAddSetZeroInnerInterfaceCouplings(TMatrix& rMat)
+		explicit ComPol_MatAddSetZeroInnerInterfaceCouplings(TMatrix& rMat)
 			: m_rMat(rMat)
 		{}
 
 	///	writes the interface values into a buffer that will be sent
-		virtual bool collect(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool collect(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_MatAddInnerInterfaceCouplings_collect, "algebra parallelization");
 			using row_iterator = typename TMatrix::row_iterator;
 			using block_type = typename TMatrix::value_type;
@@ -1404,13 +1330,12 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 			Hash<size_t, size_t> hash((size_t)(interface.size() * 1.1));
 			size_t interfaceIndex = 0;
 
-			for(Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter, ++interfaceIndex){
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter, ++interfaceIndex){
 				hash.insert(interface.get_element(iter), interfaceIndex);
 			}
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -1448,8 +1373,7 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 		}
 
 	///	writes values from a buffer into the interface
-		virtual bool extract(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool extract(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_extract, "algebra parallelization");
 		//	block type of associated matrix
 			using block_type = typename TMatrix::value_type;
@@ -1457,7 +1381,7 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 		//	build map
 			std::vector<size_t> vMapInterfaceToGlob(interface.size());
 			int k = 0;
-			for(Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter, ++k){
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter, ++k){
 				vMapInterfaceToGlob[k] = interface.get_element(iter);
 			}
 
@@ -1466,8 +1390,7 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 			size_t locID;
 
 		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);

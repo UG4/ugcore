@@ -319,7 +319,7 @@ public:
 		bool is_over () {return m_index >= m_sss->num_points ();}
 		
 	///	moves to the next valid source or sink
-		this_type & operator++ ()
+		this_type & operator ++ ()
 		{
 			next_sss (m_index + 1);
 			return * this;
@@ -402,7 +402,7 @@ public:
 		bool is_over () {return m_index >= m_sss->num_lines ();}
 		
 	///	moves to the next valid source or sink
-		this_type & operator++ ()
+		this_type & operator ++ ()
 		{
 			next_sss (m_index + 1, m_ls, m_le);
 			return * this;

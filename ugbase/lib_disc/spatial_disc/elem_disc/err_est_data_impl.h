@@ -237,7 +237,7 @@ void SideAndElemErrEstData<TDomain>::init_quadrature()
 
 ///	get the data reference for a given side and ip
 template <typename TDomain>
-number& SideAndElemErrEstData<TDomain>::operator() (side_type* pSide, size_t ip)
+number& SideAndElemErrEstData<TDomain>::operator () (side_type* pSide, size_t ip)
 {
 	try
 	{
@@ -257,7 +257,7 @@ number& SideAndElemErrEstData<TDomain>::operator() (side_type* pSide, size_t ip)
 }
 
 template <typename TDomain>
-number& SideAndElemErrEstData<TDomain>::operator() (elem_type* pElem, size_t ip)
+number& SideAndElemErrEstData<TDomain>::operator () (elem_type* pElem, size_t ip)
 {
 	try
 	{
@@ -1025,4 +1025,3 @@ void MultipleSideAndElemErrEstData<TDomain>::check_equal_elem_order()
 
 } // end of namespace ug
 
-/* End of File */

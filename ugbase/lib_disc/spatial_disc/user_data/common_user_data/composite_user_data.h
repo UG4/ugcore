@@ -126,19 +126,19 @@ public:
 	 }
 
 	///	returns value for a global position
-	 virtual TRet operator() (TData& value,
+	 virtual TRet operator () (TData& value,
 									 const MathVector<dim>& globIP,
 									 number time, int si) const
 	{ check (si); return (*m_vData[si]) (value, globIP, time, si); }
 
 	///	returns values for global positions
-	virtual void operator()(TData vValue[],
+	virtual void operator ()(TData vValue[],
 							const MathVector<dim> vGlobIP[],
 							number time, int si, const size_t nip) const
 	{ check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, nip); }
 
 
-	virtual void operator()(TData vValue[],
+	virtual void operator ()(TData vValue[],
 									const MathVector<dim> vGlobIP[],
 									number time, int si,
 									GridObject* elem,
@@ -151,7 +151,7 @@ public:
 		check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 	}
 
-	virtual void operator()(TData vValue[],
+	virtual void operator () (TData vValue[],
 									const MathVector<dim> vGlobIP[],
 									number time, int si,
 									GridObject* elem,
@@ -164,7 +164,7 @@ public:
 		check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 	}
 
-	virtual void operator()(TData vValue[],
+	virtual void operator () (TData vValue[],
 						   const MathVector<dim> vGlobIP[],
 							number time, int si,
 							GridObject* elem,

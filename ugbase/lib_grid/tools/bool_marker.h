@@ -58,7 +58,7 @@ namespace ug
  *
  * \todo	Allow to restrict marking to vertices, edges, faces or volumes
  * \todo	Add is_marked, mark, unmark for GridObject
- * \todo	Refactor to template \<class T\> Marker.
+ * \todo	Refactor to template \<typename T\> Marker.
  */
 class BoolMarker : public GridObserver
 {
@@ -111,7 +111,7 @@ class BoolMarker : public GridObserver
 		void mark(Face* e, bool mark = true) {assert(m_pGrid); m_aaMarkFACE[e] = mark;}
 		void mark(Volume* e, bool mark = true) {assert(m_pGrid); m_aaMarkVOL[e] = mark;}
 
-		template <class TIter>
+		template <typename TIter>
 		void mark(TIter begin, TIter end, bool mark = true)
 		{
 			for(TIter iter = begin; iter != end; ++iter) BoolMarker::mark(*iter, mark);
@@ -122,7 +122,7 @@ class BoolMarker : public GridObserver
 		void unmark(Face* e) {mark(e, false);}
 		void unmark(Volume* e) {mark(e, false);}
 
-		template <class TIter>
+		template <typename TIter>
 		void unmark(TIter begin, TIter end)			{mark(begin, end, false);}
 
 	///	Sets all marks to false. O(n).

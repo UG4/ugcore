@@ -49,7 +49,7 @@ namespace ug
 /**
  * TLayout::Type has to be either Vertex, Edge, Face or Volume.
  */
-template <class TLayout, class TAttachment>
+template <typename TLayout, typename TAttachment>
 class ComPol_CopyAttachment : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
@@ -101,7 +101,7 @@ class ComPol_CopyAttachment : public pcl::ICommunicationPolicy<TLayout>
 ////////////////////////////////////////////////////////////////////////
 //	implementation of the methods of CollectorCopy
 ////////////////////////////////////////////////////////////////////////
-template <class TNodeLayout, class TAttachment>
+template <typename TNodeLayout, typename TAttachment>
 ComPol_CopyAttachment<TNodeLayout, TAttachment>::
 ComPol_CopyAttachment() :
 	m_extractOnConstrainedElemsOnly(false)
@@ -109,7 +109,7 @@ ComPol_CopyAttachment() :
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TNodeLayout, class TAttachment>
+template <typename TNodeLayout, typename TAttachment>
 ComPol_CopyAttachment<TNodeLayout, TAttachment>::
 ComPol_CopyAttachment(Grid& grid, TAttachment attachment) :
 	m_extractOnConstrainedElemsOnly(false)
@@ -118,7 +118,7 @@ ComPol_CopyAttachment(Grid& grid, TAttachment attachment) :
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TNodeLayout, class TAttachment>
+template <typename TNodeLayout, typename TAttachment>
 void ComPol_CopyAttachment<TNodeLayout, TAttachment>::
 set_attachment(Grid& grid, TAttachment& attachment)
 {
@@ -126,7 +126,7 @@ set_attachment(Grid& grid, TAttachment& attachment)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TNodeLayout, class TAttachment>
+template <typename TNodeLayout, typename TAttachment>
 bool ComPol_CopyAttachment<TNodeLayout, TAttachment>::
 collect(BinaryBuffer& buff, const Interface& interface)
 {
@@ -139,7 +139,7 @@ collect(BinaryBuffer& buff, const Interface& interface)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TNodeLayout, class TAttachment>
+template <typename TNodeLayout, typename TAttachment>
 bool ComPol_CopyAttachment<TNodeLayout, TAttachment>::
 extract(BinaryBuffer& buff, const Interface& interface)
 {
@@ -163,7 +163,7 @@ extract(BinaryBuffer& buff, const Interface& interface)
 	return true;
 }
 
-template <class TNodeLayout, class TAttachment>
+template <typename TNodeLayout, typename TAttachment>
 void ComPol_CopyAttachment<TNodeLayout, TAttachment>::
 extract_on_constrained_elems_only(bool enable)
 {

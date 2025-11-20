@@ -102,8 +102,8 @@ class UG_API TriangleDescriptor
  * RefTriType and RefQuadType are used to create new elements during refinement
  * operations.
  */
-template <class ConcreteTriangleType, class BaseClass,
-		  class RefTriType, class RefQuadType>
+template <typename ConcreteTriangleType, typename BaseClass,
+		  typename RefTriType, typename RefQuadType>
 class UG_API CustomTriangle : public BaseClass
 {
 	public:
@@ -243,8 +243,8 @@ class UG_API QuadrilateralDescriptor
  * RefTriType and RefQuadType are used to create new elements during refinement
  * operations.
  */
-template <class ConcreteQuadrilateralType, class BaseClass,
-		  class RefTriType, class RefQuadType>
+template <typename ConcreteQuadrilateralType, typename BaseClass,
+		  typename RefTriType, typename RefQuadType>
 class UG_API CustomQuadrilateral : public BaseClass
 {
 	public:
@@ -662,7 +662,7 @@ class UG_API ConstrainingFace : public Face
 		{return m_constrainedFaces.size();}
 
 
-		template <class TElem> size_t num_constrained() const;
+		template <typename TElem> size_t num_constrained() const;
 
 
 		inline Vertex* constrained_vertex(size_t ind) const
@@ -683,7 +683,7 @@ class UG_API ConstrainingFace : public Face
 				return m_constrainedFaces[ind];
 			}
 
-		template <class TElem> TElem* constrained(size_t ind) const;
+		template <typename TElem> TElem* constrained(size_t ind) const;
 
 	protected:
 		std::vector<Vertex*>	m_constrainedVertices;

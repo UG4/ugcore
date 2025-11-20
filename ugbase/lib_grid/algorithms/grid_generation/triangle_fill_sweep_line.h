@@ -66,7 +66,7 @@ bool TriangleFill_SweepLine(std::vector<int>& facesOut,
  *
  *	The polygon should lie in a 2d hyperplane.
  */
-template <class TIterator>
+template <typename TIterator>
 bool TriangleFill_SweepLine(Grid& grid, TIterator edgesBegin,
 							TIterator edgesEnd, APosition& aPosVRT,
 							AInt& aIntVRT,

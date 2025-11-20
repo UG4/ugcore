@@ -146,7 +146,7 @@ class ILinearIterator
 	 * then computing d := d - A*c.
 	 *
 	 * \param[in,out]	d		defect
-	 * \param[out]		u		correction
+	 * \param[out]		c		correction
 	 * \returns			bool	success flag
 	 */
 		virtual bool apply_update_defect(Y& c, X& d) = 0;
@@ -173,16 +173,16 @@ class ILinearIterator
 		SmartPtr<IDamping<X,Y> > damping() {return m_spDamping;}
 
 	///	clone
-		virtual SmartPtr<ILinearIterator<X,Y> > clone() = 0;
+		virtual SmartPtr<ILinearIterator > clone() = 0;
 
 	/// virtual destructor
-		virtual ~ILinearIterator() {};
+		virtual ~ILinearIterator() = default;
 
 	///	constructor
 		ILinearIterator() {set_damp(1.0);};
 
 	///	copy constructor
-		ILinearIterator(const ILinearIterator<X, Y> &parent)
+		ILinearIterator(const ILinearIterator &parent)
 		{
 			set_damp(parent.m_spDamping);
 		};

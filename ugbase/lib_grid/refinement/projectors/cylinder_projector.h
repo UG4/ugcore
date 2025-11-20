@@ -129,7 +129,7 @@ public:
 
 private:
 
-	template <class TElem>
+	template <typename TElem>
 	number perform_projection(Vertex* vrt, TElem* parent)
 	{
 	//	calculate the new position by linear interpolation and project that point
@@ -188,7 +188,7 @@ private:
 
 	friend class boost::serialization::access;
 
-	template <class Archive>
+	template <typename Archive>
 	void serialize( Archive& ar, const unsigned int version)
 	{
 		ar & make_nvp("center", m_center);
@@ -206,4 +206,4 @@ private:
 
 }//	end of namespace
 
-#endif	//__H__UG_cylinder_projector_new
+#endif

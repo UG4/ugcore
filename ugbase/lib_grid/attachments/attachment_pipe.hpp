@@ -38,7 +38,7 @@
 
 namespace ug
 {
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 AttachmentPipe<TElem, TElemHandler>::
 AttachmentPipe() :
 	m_attachmentEntryIteratorHash(13),
@@ -49,7 +49,7 @@ AttachmentPipe() :
 {
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 AttachmentPipe<TElem, TElemHandler>::
 AttachmentPipe(typename atraits::ElemHandlerPtr pHandler) :
 	m_attachmentEntryIteratorHash(13),
@@ -60,7 +60,7 @@ AttachmentPipe(typename atraits::ElemHandlerPtr pHandler) :
 {
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 AttachmentPipe<TElem, TElemHandler>::
 ~AttachmentPipe()
 {
@@ -73,7 +73,7 @@ AttachmentPipe<TElem, TElemHandler>::
 	}
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 clear()
@@ -82,7 +82,7 @@ clear()
 	clear_attachments();
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 clear_elements()
@@ -93,7 +93,7 @@ clear_elements()
 	m_numDataEntries = 0;
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 clear_attachments()
@@ -102,7 +102,7 @@ clear_attachments()
 	m_attachmentEntryIteratorHash.clear();
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 reset_values(size_t dataIndex)
@@ -116,7 +116,7 @@ reset_values(size_t dataIndex)
 
 
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 reserve(size_t numElems)
@@ -125,7 +125,7 @@ reserve(size_t numElems)
 		resize_attachment_containers(numElems);
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 register_element(TElem elem)
@@ -157,7 +157,7 @@ register_element(TElem elem)
 	m_numElements++;
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 unregister_element(const TElem& elem)
@@ -171,8 +171,8 @@ unregister_element(const TElem& elem)
 }
 
 
-template <class TElem, class TElemHandler>
-template <class TAttachment>
+template <typename TElem, typename TElemHandler>
+template <typename TAttachment>
 void
 AttachmentPipe<TElem, TElemHandler>::
 attach(TAttachment& attachment,
@@ -200,7 +200,7 @@ attach(TAttachment& attachment,
 	}
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 attach(IAttachment& attachment, uint options)
@@ -223,7 +223,7 @@ attach(IAttachment& attachment, uint options)
 	}
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 detach(IAttachment& attachment)
@@ -240,7 +240,7 @@ detach(IAttachment& attachment)
 	}
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 bool
 AttachmentPipe<TElem, TElemHandler>::
 has_attachment(IAttachment& attachment) const
@@ -249,8 +249,8 @@ has_attachment(IAttachment& attachment) const
 }
 
 
-template <class TElem, class TElemHandler>
-template <class TAttachment>
+template <typename TElem, typename TElemHandler>
+template <typename TAttachment>
 typename TAttachment::ValueType*
 AttachmentPipe<TElem, TElemHandler>::
 get_data_array(TAttachment& attachment)
@@ -261,7 +261,7 @@ get_data_array(TAttachment& attachment)
 	return nullptr;
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 IAttachmentDataContainer*
 AttachmentPipe<TElem, TElemHandler>::
 get_data_container(IAttachment& attachment) const
@@ -272,8 +272,8 @@ get_data_container(IAttachment& attachment) const
 	return nullptr;
 }
 
-template <class TElem, class TElemHandler>
-template <class TAttachment>
+template <typename TElem, typename TElemHandler>
+template <typename TAttachment>
 typename TAttachment::ContainerType*
 AttachmentPipe<TElem, TElemHandler>::
 get_data_container(TAttachment& attachment)
@@ -284,7 +284,7 @@ get_data_container(TAttachment& attachment)
 	return nullptr;
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 defragment()
@@ -336,7 +336,7 @@ defragment()
 }
 
 /*
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 defragment()
@@ -393,7 +393,7 @@ defragment()
 	}
 }
 */
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 resize_attachment_containers(size_t newSize)
@@ -410,7 +410,7 @@ resize_attachment_containers(size_t newSize)
 //UG_LOG("done\n");
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 grow_attachment_containers(size_t newMinSize)
@@ -432,7 +432,7 @@ grow_attachment_containers(size_t newMinSize)
 	}
 }
 
-template <class TElem, class TElemHandler>
+template <typename TElem, typename TElemHandler>
 size_t
 AttachmentPipe<TElem, TElemHandler>::
 get_container_size()
@@ -443,13 +443,13 @@ get_container_size()
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	AttachmentAccessor
-template <class TElem, class TAttachment, class TElemHandler>
+template <typename TElem, typename TAttachment, typename TElemHandler>
 AttachmentAccessor<TElem, TAttachment, TElemHandler>::
 AttachmentAccessor() : m_pContainer(nullptr), m_pHandler(nullptr)
 {
 }
 
-template <class TElem, class TAttachment, class TElemHandler>
+template <typename TElem, typename TAttachment, typename TElemHandler>
 AttachmentAccessor<TElem, TAttachment, TElemHandler>::
 AttachmentAccessor(const AttachmentAccessor& aa)
 {
@@ -457,7 +457,7 @@ AttachmentAccessor(const AttachmentAccessor& aa)
 	m_pHandler = aa.m_pHandler;
 }
 
-template <class TElem, class TAttachment, class TElemHandler>
+template <typename TElem, typename TAttachment, typename TElemHandler>
 AttachmentAccessor<TElem, TAttachment, TElemHandler>::
 AttachmentAccessor(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachment& attachment)
 {
@@ -466,7 +466,7 @@ AttachmentAccessor(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachm
 	assert(m_pContainer && "ERROR in AttachmentAccessor::AttachmentAccessor(attachmentPipe, attachment): attachment not attached to attachmentPipe!");
 }
 
-template <class TElem, class TAttachment, class TElemHandler>
+template <typename TElem, typename TAttachment, typename TElemHandler>
 bool
 AttachmentAccessor<TElem, TAttachment, TElemHandler>::
 access(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachment& attachment)

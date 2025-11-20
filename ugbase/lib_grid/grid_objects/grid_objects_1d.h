@@ -404,7 +404,7 @@ class UG_API ConstrainingEdge : public Edge
 		inline size_t num_constrained_vertices() const	{return m_constrainedVertices.size();}
 		inline size_t num_constrained_edges() const		{return m_constrainedEdges.size();}
 
-		template <class TElem> size_t num_constrained() const;
+		template <typename TElem> size_t num_constrained() const;
 
 
 	//	ACCESS TO CONSTRAINED ELEMENTS
@@ -420,7 +420,7 @@ class UG_API ConstrainingEdge : public Edge
 			return m_constrainedEdges[ind];
 		}
 
-		template <class TElem> TElem* constrained(size_t ind) const;
+		template <typename TElem> TElem* constrained(size_t ind) const;
 
 	protected:
 		std::vector<Vertex*>	m_constrainedVertices;

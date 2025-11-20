@@ -55,117 +55,117 @@ namespace ug
 //		implement serialization for common types. A rather big effort for all
 //		the custom types which have to be serialized has to be taken though...
 /*
-template <class TStream>
+template <typename TStream>
 void Serialize(TStream& buf, const bool& val)
 {
 	buf.write((char*)&val, sizeof(bool));
 }
 
-template <class TStream>
+template <typename TStream>
 void Deserialize(TStream& buf, bool& valOut)
 {
 	buf.read((char*)&valOut, sizeof(bool));
 }
 
-template <class TStream>
+template <typename TStream>
 void Serialize(TStream& buf, const char& val)
 {
 	buf.write((char*)&val, sizeof(char));
 }
 
-template <class TStream>
+template <typename TStream>
 void Deserialize(TStream& buf, char& valOut)
 {
 	buf.read((char*)&valOut, sizeof(char));
 }
 
-template <class TStream>
+template <typename TStream>
 void Serialize(TStream& buf, const unsigned char& val)
 {
 	buf.write((char*)&val, sizeof(unsigned char));
 }
 
-template <class TStream>
+template <typename TStream>
 void Deserialize(TStream& buf, unsigned char& valOut)
 {
 	buf.read((char*)&valOut, sizeof(unsigned char));
 }
 
-template <class TStream>
+template <typename TStream>
 void Serialize(TStream& buf, const int& val)
 {
 	buf.write((char*)&val, sizeof(int));
 }
 
-template <class TStream>
+template <typename TStream>
 void Deserialize(TStream& buf, int& valOut)
 {
 	buf.read((char*)&valOut, sizeof(int));
 }
 
-template <class TStream>
+template <typename TStream>
 void Serialize(TStream& buf, const unsigned int& val)
 {
 	buf.write((char*)&val, sizeof(unsigned int));
 }
 
-template <class TStream>
+template <typename TStream>
 void Deserialize(TStream& buf, unsigned int& valOut)
 {
 	buf.read((char*)&valOut, sizeof(unsigned int));
 }
 
-template <class TStream>
+template <typename TStream>
 void Serialize(TStream& buf, const size_t& val)
 {
 	buf.write((char*)&val, sizeof(size_t));
 }
 
-template <class TStream>
+template <typename TStream>
 void Deserialize(TStream& buf, size_t& valOut)
 {
 	buf.read((char*)&valOut, sizeof(size_t));
 }
 
-template <class TStream>
+template <typename TStream>
 void Serialize(TStream& buf, const float& val)
 {
 	buf.write((char*)&val, sizeof(float));
 }
 
-template <class TStream>
+template <typename TStream>
 void Deserialize(TStream& buf, float& valOut)
 {
 	buf.read((char*)&valOut, sizeof(float));
 }
 
-template <class TStream>
+template <typename TStream>
 void Serialize(TStream& buf, const double& val)
 {
 	buf.write((char*)&val, sizeof(int));
 }
 
-template <class TStream>
+template <typename TStream>
 void Deserialize(TStream& buf, double& valOut)
 {
 	buf.read((char*)&valOut, sizeof(double));
 }
 */
 
-template <class TStream, class T>
+template <typename TStream, typename T>
 void Serialize(TStream& buf, const T& val)
 {
 	buf.write((char*)&val, sizeof(T));
 }
 
-template <class TStream, class T>
+template <typename TStream, typename T>
 void Deserialize(TStream& buf, T& valOut)
 {
 	buf.read((char*)&valOut, sizeof(T));
 }
 
 /// method returning value directly
-template<typename T, class TIStream>
+template<typename T, typename TIStream>
 T Deserialize(TIStream &stream)
 {
 	T t;
@@ -175,67 +175,67 @@ T Deserialize(TIStream &stream)
 
 ///	Catch errors with wrong const identifiers in valOut.
 /** This method isn't implemented on purpose!*/
-template <class TStream, class T>
+template <typename TStream, typename T>
 void Deserialize(TStream& buf, const T& valOut);
 
 
 ////////////////////////////////////////////////////////////////////////////////
 //	All specializations should be pre-declared here!
 //	This is important, so that the different methods know of each other.
-template <class T1, class T2, class TOStream>
+template <typename T1, typename T2, typename TOStream>
 void Serialize(TOStream& buf, const std::pair<T1, T2>& v);
 
-template <class T1, class T2, class TIStream>
+template <typename T1, typename T2, typename TIStream>
 void Deserialize(TIStream& buf, std::pair<T1, T2>& v);
 
-template <class T, class TOStream>
+template <typename T, typename TOStream>
 void Serialize(TOStream& buf, const std::set<T>& m);
 
-template <class T, class TIStream>
+template <typename T, typename TIStream>
 void Deserialize(TIStream& buf, std::set<T>& myset);
 
-template <class TOStream>
+template <typename TOStream>
 void Serialize(TOStream& buf, const std::string& str);
 
-template <class TIStream>
+template <typename TIStream>
 void Deserialize(TIStream& buf, std::string& str);
 
-template <class TOStream>
+template <typename TOStream>
 void Serialize(TOStream& buf, const Variant& v);
 
-template <class TIStream>
+template <typename TIStream>
 void Deserialize(TIStream& buf, Variant& v);
 
-template <class T, class TOStream>
+template <typename T, typename TOStream>
 void Serialize(TOStream& buf, const std::vector<T>& vec);
 
-template <class T, class TIStream>
+template <typename T, typename TIStream>
 void Deserialize(TIStream& buf, std::vector<T>& vec);
 
-template <class TOStream>
+template <typename TOStream>
 inline void Serialize(TOStream& buf, const std::vector<bool>::reference& boolRef);
 
-template <class TIStream>
+template <typename TIStream>
 inline void Deserialize(TIStream& buf, std::vector<bool>::reference boolRef);
 
-template <class Key, class T, class TOStream>
+template <typename Key, typename T, typename TOStream>
 void Serialize(TOStream& buf, const std::map<Key, T>& m);
 
-template <class Key, class T, class TIStream>
+template <typename Key, typename T, typename TIStream>
 void Deserialize(TIStream& buf, std::map<Key, T>& m);
 ////////////////////////////////////////////////////////////////////////////////
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template <class T1, class T2, class TOStream>
+template <typename T1, typename T2, typename TOStream>
 void Serialize(TOStream& buf, const std::pair<T1, T2>& v)
 {
 	Serialize(buf, v.first);
 	Serialize(buf, v.second);
 }
 
-template <class T1, class T2, class TIStream>
+template <typename T1, typename T2, typename TIStream>
 void Deserialize(TIStream& buf, std::pair<T1, T2>& v)
 {
 	Deserialize(buf, v.first);
@@ -248,7 +248,7 @@ void Deserialize(TIStream& buf, std::pair<T1, T2>& v)
  * In its default implementation, it first writes the size of the map
  * and then serializes the entries.
  */
-template <class T, class TOStream>
+template <typename T, typename TOStream>
 void Serialize(TOStream& buf, const std::set<T>& m)
 {
 	Serialize<size_t>(buf, m.size());
@@ -257,7 +257,7 @@ void Serialize(TOStream& buf, const std::set<T>& m)
 }
 
 ///	deserializes data from a binary stream into a set
-template <class T, class TIStream>
+template <typename T, typename TIStream>
 void Deserialize(TIStream& buf, std::set<T>& myset)
 {
 	myset.clear();
@@ -273,7 +273,7 @@ void Deserialize(TIStream& buf, std::set<T>& myset)
 
 ///	Writes a string to a binary stream
 /**	First the length of the string is written, then its content.*/
-template <class TOStream>
+template <typename TOStream>
 void Serialize(TOStream& buf, const std::string& str)
 {
 	size_t len = str.length();
@@ -283,7 +283,7 @@ void Serialize(TOStream& buf, const std::string& str)
 }
 
 ///	deserializes data from a binary stream into a string
-template <class TIStream>
+template <typename TIStream>
 void Deserialize(TIStream& buf, std::string& str)
 {
 //	the buffers allow us to read small strings fast.
@@ -321,7 +321,7 @@ void Deserialize(TIStream& buf, std::string& str)
  * Note that c-strings (const char*) are converted to std::strings before
  * serialization. This means that they will be deserialized as std::string
  */
-template <class TOStream>
+template <typename TOStream>
 void Serialize(TOStream& buf, const Variant& v)
 {
 	Serialize(buf, int(v.type()));
@@ -345,7 +345,7 @@ void Serialize(TOStream& buf, const Variant& v)
 /** Note that pointers can't be serialized in a meaningful way. We thus simply
  * do not serialize them. During deserialization pointers will be set to nullptr.
  */
-template <class TIStream>
+template <typename TIStream>
 void Deserialize(TIStream& buf, Variant& v)
 {
 	int type = Deserialize<int>(buf);
@@ -375,7 +375,7 @@ void Deserialize(TIStream& buf, Variant& v)
  * In its default implementation, it first writes the size of the vector
  * and then serializes the entries.
  */
-template <class T, class TOStream>
+template <typename T, typename TOStream>
 void Serialize(TOStream& buf, const std::vector<T>& vec)
 {
 	size_t size = vec.size();
@@ -386,7 +386,7 @@ void Serialize(TOStream& buf, const std::vector<T>& vec)
 }
 
 ///	deserializes data from a binary stream into a vector
-template <class T, class TIStream>
+template <typename T, typename TIStream>
 void Deserialize(TIStream& buf, std::vector<T>& vec)
 {
 	vec.clear();
@@ -398,7 +398,7 @@ void Deserialize(TIStream& buf, std::vector<T>& vec)
 }
 
 
-template<class TIStream>
+template <typename TIStream>
 void Serialize(TIStream &buf, const std::vector<bool> &vec)
 {
 	size_t size=vec.size();
@@ -418,7 +418,7 @@ void Serialize(TIStream &buf, const std::vector<bool> &vec)
 	if(j) Serialize<char>(buf, a);
 }
 
-template<class TIStream>
+template <typename TIStream>
 void Deserialize(TIStream &buf, std::vector<bool> &vec)
 {
 	vec.clear();
@@ -444,7 +444,7 @@ void Deserialize(TIStream &buf, std::vector<bool> &vec)
  * because of vector<bool>::reference.
  * Note: You could also define Serialize(., vector<bool>::reference)
  */
-template <class TOStream>
+template <typename TOStream>
 inline void Serialize(TOStream& buf, const std::vector<bool>::reference& boolRef)
 {
 	char b = ((bool)boolRef) ? 1 : 0;
@@ -454,7 +454,7 @@ inline void Serialize(TOStream& buf, const std::vector<bool>::reference& boolRef
 ///	deserializes data from a binary stream into a vector<bool>
 // * This function is to avoid surprises with vector<bool>
 // note: boolRef is not &boolRef.
-template <class TIStream>
+template <typename TIStream>
 inline void Deserialize(TIStream& buf, std::vector<bool>::reference boolRef)
 {
 	char b;
@@ -469,7 +469,7 @@ inline void Deserialize(TIStream& buf, std::vector<bool>::reference boolRef)
  * In its default implementation, it first writes the size of the map
  * and then serializes the entries.
  */
-template <class Key, class T, class TOStream>
+template <typename Key, typename T, typename TOStream>
 void Serialize(TOStream& buf, const std::map<Key, T>& m)
 {
 	Serialize(buf, m.size());
@@ -482,7 +482,7 @@ void Serialize(TOStream& buf, const std::map<Key, T>& m)
 }
 
 ///	deserializes data from a binary stream into a map
-template <class Key, class T, class TIStream>
+template <typename Key, typename T, typename TIStream>
 void Deserialize(TIStream& buf, std::map<Key, T>& m)
 {
 	m.clear();

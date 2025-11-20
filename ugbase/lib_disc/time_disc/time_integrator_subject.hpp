@@ -47,7 +47,7 @@ namespace ug {
  *  6) START  			  : Called at t=t_0, at the beginning of the time integration process (start of the simulation)
  *  7) END      		  : Called at t=T, at the end of the time integration process (end of the simulation)
  */
-template<class TDomain, class TAlgebra>
+template<typename TDomain, typename TAlgebra>
 class TimeIntegratorSubject
 {
 public:

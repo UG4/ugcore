@@ -74,7 +74,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 			m_useOverlap(false) {};
 
 	/// clone constructor
-		GaussSeidelBase( const GaussSeidelBase<TAlgebra> &parent )
+		GaussSeidelBase( const GaussSeidelBase &parent )
 			: base_type(parent),
 			  m_bConsistentInterfaces(parent.m_bConsistentInterfaces),
 			  m_useOverlap(parent.m_useOverlap),
@@ -96,14 +96,12 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 			m_spOrderingAlgo = ordering_algo;
 		}
 
-		virtual const char* name() const = 0;
+		const char* name() const override = 0;
 	protected:
-
-		virtual bool supports_parallel() const {return true;}
+		bool supports_parallel() const override {return true;}
 
 	//	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
+		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
 			PROFILE_BEGIN_GROUP(GaussSeidel_preprocess, "algebra gaussseidel");
 			matrix_type *pA;
 #ifdef UG_PARALLEL
@@ -146,13 +144,12 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 		}
 
 	//	Postprocess routine
-		virtual bool postprocess() {return true;}
+		bool postprocess() override {return true;}
 
 		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, const number relax) = 0;
 
 	//	Stepping routine
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
-		{
+		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
 			PROFILE_BEGIN_GROUP(GaussSeidel_step, "algebra gaussseidel");
 
 #ifdef UG_PARALLEL
@@ -268,25 +265,25 @@ class GaussSeidel : public GaussSeidelBase<TAlgebra>
 
 public:
 	//	Name of preconditioner
-		virtual const char* name() const {return "Gauss-Seidel";}
+		const char* name() const override {return "Gauss-Seidel";}
 
 	/// constructor
-		GaussSeidel() : base_type() {}
+		GaussSeidel() = default;
 
 	/// clone constructor
-		GaussSeidel( const GaussSeidel<TAlgebra> &parent )
+		GaussSeidel( const GaussSeidel &parent )
 			: base_type(parent)
 		{	}
 
+		~GaussSeidel() override = default;
+
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			return make_sp(new GaussSeidel<algebra_type>(*this));
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			return make_sp(new GaussSeidel(*this));
 		}
 
 	//	Stepping routine
-		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, const number relax)
-		{
+		void step(const matrix_type &A, vector_type &c, const vector_type &d, const number relax) override {
 			gs_step_LL(A, c, d, relax);
 		}
 };
@@ -313,25 +310,25 @@ class BackwardGaussSeidel : public GaussSeidelBase<TAlgebra>
 
 public:
 	//	Name of preconditioner
-		virtual const char* name() const {return "Backward Gauss-Seidel";}
+		const char* name() const override {return "Backward Gauss-Seidel";}
 
 	/// constructor
-		BackwardGaussSeidel() : base_type() {}
+		BackwardGaussSeidel() = default;
 
 	/// clone constructor
-		BackwardGaussSeidel( const BackwardGaussSeidel<TAlgebra> &parent )
+		BackwardGaussSeidel( const BackwardGaussSeidel &parent )
 			: base_type(parent)
 		{	}
 
+		~BackwardGaussSeidel() override = default;
+
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			return make_sp(new BackwardGaussSeidel<algebra_type>(*this));
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			return make_sp(new BackwardGaussSeidel(*this));
 		}
 
 	//	Stepping routine
-		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, const number relax)
-		{
+		void step(const matrix_type &A, vector_type &c, const vector_type &d, const number relax) override {
 			gs_step_UR(A, c, d, relax);
 		}
 };
@@ -347,25 +344,24 @@ class SymmetricGaussSeidel : public GaussSeidelBase<TAlgebra>
 
 public:
 	//	Name of preconditioner
-		virtual const char* name() const {return "Symmetric Gauss-Seidel";}
+		const char* name() const override {return "Symmetric Gauss-Seidel";}
 
 	/// constructor
-		SymmetricGaussSeidel() : base_type() {}
+		SymmetricGaussSeidel() = default;
 
 	/// clone constructor
-		SymmetricGaussSeidel( const SymmetricGaussSeidel<TAlgebra> &parent )
+		SymmetricGaussSeidel( const SymmetricGaussSeidel &parent )
 			: base_type(parent)
 		{	}
 
+		~SymmetricGaussSeidel() override = default;
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			return make_sp(new SymmetricGaussSeidel<algebra_type>(*this));
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			return make_sp(new SymmetricGaussSeidel(*this));
 		}
 
 	//	Stepping routine
-		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, const number relax)
-		{
+		void step(const matrix_type &A, vector_type &c, const vector_type &d, const number relax) override {
 			sgs_step(A, c, d, relax);
 		}
 };

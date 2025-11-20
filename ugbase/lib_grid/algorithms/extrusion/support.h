@@ -136,14 +136,14 @@ public:
  	{ values = std::vector<D>(  (_x_degree_)*(_y_degree_),  defVal  ); }
 
    // asking for a special element, cout << object(i,j) ...
-   D const operator()( I i, I j ) const
+   D const operator () ( I i, I j ) const
    {
  	  assert( x_degree > 0 &&  y_degree > 0 );
       return values[ j*(x_degree) + i ];
    }
 
    // giving a special element a special value , object(i,j) = xx -> values[...] = xx
-   D & operator()( I i, I j )
+   D & operator () ( I i, I j )
    {
  	  assert( x_degree > 0 &&  y_degree > 0 );
       return values[ j*(x_degree) + i ];
@@ -177,7 +177,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////
 
 
-template <class T>
+template <typename T>
 class T_min
 {
  
@@ -187,10 +187,10 @@ public:
   T_min( T val ) : minval( val ) {}; 
 
   // tells the minimal value
-  T const operator()() const  { return minval; };
+  T const operator () () const  { return minval; };
  
   // wants to know values, saves the minimum
-  void operator()(T val) 
+  void operator () (T val)
   { if( minval > val )  minval = val; };
 
 

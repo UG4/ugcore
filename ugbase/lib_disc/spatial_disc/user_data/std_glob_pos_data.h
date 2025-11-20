@@ -54,14 +54,14 @@ class StdGlobPosData
 	: 	public StdUserData<StdGlobPosData<TImpl,TData,dim,TRet>, TData, dim, TRet>
 {
 	public:
-		virtual TRet operator() (TData& value,
+		virtual TRet operator () (TData& value,
 								 const MathVector<dim>& globIP,
 								 number time, int si) const
 		{
 			return this->getImpl().evaluate(value, globIP, time, si);
 		}
 
-		virtual void operator()(TData vValue[],
+		virtual void operator () (TData vValue[],
 								const MathVector<dim> vGlobIP[],
 								number time, int si, const size_t nip) const
 		{

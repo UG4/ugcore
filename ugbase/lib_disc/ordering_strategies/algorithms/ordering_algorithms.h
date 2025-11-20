@@ -1,6 +1,6 @@
 #include "lexorder.h"
 #include "riverorder.h"
-#include "directional_ordering.cpp"
+#include "directional_ordering.h"
 
 //not working?
 #include "downwindorder.h"

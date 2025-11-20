@@ -77,7 +77,7 @@ class MathSymmetricMatrix
 		 * \param v The matrix to be assigned.
 		 * \return A reference to this matrix.
 		 */
-		MathSymmetricMatrix& operator=  (const MathSymmetricMatrix& v)
+		MathSymmetricMatrix& operator = (const MathSymmetricMatrix& v)
 		{
 			assign(v);
 			return *this;
@@ -104,7 +104,7 @@ class MathSymmetricMatrix
 		 * \param B The matrix to be subtracted.
 		 * \return A reference to this matrix.
 		 */
-		MathSymmetricMatrix& operator-= (const MathSymmetricMatrix& B)
+		MathSymmetricMatrix& operator -= (const MathSymmetricMatrix& B)
 		{
 			for(std::size_t i = 0; i < m_size; ++i)
 			{
@@ -119,7 +119,7 @@ class MathSymmetricMatrix
 		 * \param val The value to be assigned to the matrix.
 		 * \return A reference to this matrix.
 		 */
-		MathSymmetricMatrix& operator= (const value_type& val)
+		MathSymmetricMatrix& operator = (const value_type& val)
 		{
 			for(std::size_t i = 0; i < m_size; ++i)
 			{
@@ -149,7 +149,7 @@ class MathSymmetricMatrix
 		 * \param val The value to be subtracted.
 		 * \return A reference to this matrix.
 		 */
-		MathSymmetricMatrix& operator-= (const value_type& val)
+		MathSymmetricMatrix& operator -= (const value_type& val)
 		{
 			for(std::size_t i = 0; i < m_size; ++i)
 			{
@@ -164,7 +164,7 @@ class MathSymmetricMatrix
 		 * \param val The divisor.
 		 * \return A reference to this matrix.
 		 */
-		MathSymmetricMatrix& operator/= (const value_type& val)
+		MathSymmetricMatrix& operator /= (const value_type& val)
 		{
 			for(std::size_t i = 0; i < m_size; ++i)
 			{
@@ -179,7 +179,7 @@ class MathSymmetricMatrix
 		 * \param val The factor.
 		 * \return A reference to this matrix.
 		 */
-		MathSymmetricMatrix& operator*= (const value_type& val)
+		MathSymmetricMatrix& operator *= (const value_type& val)
 		{
 			for(std::size_t i = 0; i < m_size; ++i)
 			{
@@ -194,7 +194,7 @@ class MathSymmetricMatrix
 		 * \param v The Matrix.
 		 * \return A scalar value of the element-wise summed up products
 		 */
-		value_type operator* (const MathSymmetricMatrix& v) const
+		value_type operator * (const MathSymmetricMatrix& v) const
 		{
 			value_type res = 0.0;
 			for(std::size_t i = 0; i < N; ++i)
@@ -224,17 +224,17 @@ class MathSymmetricMatrix
 				else return m_data[col * N - (col - 1) * col / 2 + row - col];
 		}
 
-		inline value_type& operator[](std::size_t index)				{UG_ASSERT(index < m_size, "Invalid index"); return m_data[index];}
-		inline const value_type& operator[](std::size_t index) const	{UG_ASSERT(index < m_size, "Invalid index"); return m_data[index];}
+		inline value_type& operator [] (std::size_t index)				{UG_ASSERT(index < m_size, "Invalid index"); return m_data[index];}
+		inline const value_type& operator [] (std::size_t index) const	{UG_ASSERT(index < m_size, "Invalid index"); return m_data[index];}
 
-		inline value_type& operator() (std::size_t row, std::size_t col)				
+		inline value_type& operator () (std::size_t row, std::size_t col)
 		{
 			UG_ASSERT(row < N && col < N, "Accessing "<<N<<"x"<<N<<"Matrix at entry ("<<row<<","<<col<<")"); 
 			if (row<col) return m_data[row * N - (row - 1) * row / 2 + col - row];
 				else return m_data[col * N - (col - 1) * col / 2 + row - col];
 		}
 		
-		inline const value_type& operator() (std::size_t row, std::size_t col) const
+		inline const value_type& operator () (std::size_t row, std::size_t col) const
 		{
 			UG_ASSERT(row < N && col < N, "Accessing "<<N<<"x"<<N<<"Matrix at entry ("<<row<<","<<col<<")"); 
 			if (row<col) return m_data[row * N - (row - 1) * row / 2 + col - row];
@@ -277,7 +277,7 @@ class MathSymmetricMatrix
 
 /// Print MathSymmetricMatrix<N> to standard output
 template <std::size_t N>
-std::ostream& operator<< (std::ostream& outStream, const ug::MathSymmetricMatrix<N>& m)
+std::ostream& operator << (std::ostream& outStream, const MathSymmetricMatrix<N>& m)
 {
 	for(std::size_t i = 0; i < N; ++i)
 	{
@@ -289,8 +289,8 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathSymmetricMatrix
 	return outStream;
 }
 
-std::ostream& operator<< (std::ostream& outStream, const ug::MathSymmetricMatrix<2>& m);
-std::ostream& operator<< (std::ostream& outStream, const ug::MathSymmetricMatrix<3>& m);
+std::ostream& operator << (std::ostream& outStream, const MathSymmetricMatrix<2>& m);
+std::ostream& operator << (std::ostream& outStream, const MathSymmetricMatrix<3>& m);
 
 
 } //end of namespace: lgmath

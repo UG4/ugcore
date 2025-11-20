@@ -70,7 +70,7 @@ namespace ug{
 
 
 //	used to inform root over primal connections.
-template <class TValue>
+template <typename TValue>
 struct PrimalConnection{
 	PrimalConnection() {}
 	PrimalConnection(int i1, int i2, TValue val) :

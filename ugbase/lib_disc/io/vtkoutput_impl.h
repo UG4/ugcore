@@ -95,7 +95,7 @@ write_item_to_file(VTKFileWriter& File, float data)
 // fill position data up with zeros if dim < 3.
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, const ug::MathVector<1>& data)
+write_item_to_file(VTKFileWriter& File, const MathVector<1>& data)
 {
 	if(m_bBinary)
 		File << (float) data[0] << (float) 0.f << (float) 0.f;
@@ -105,7 +105,7 @@ write_item_to_file(VTKFileWriter& File, const ug::MathVector<1>& data)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, const ug::MathVector<2>& data)
+write_item_to_file(VTKFileWriter& File, const MathVector<2>& data)
 {
 	if(m_bBinary)
 		File << (float) data[0] << (float) data[1] << (float) 0.f;
@@ -118,7 +118,7 @@ write_item_to_file(VTKFileWriter& File, const ug::MathVector<2>& data)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, const ug::MathVector<3>& data)
+write_item_to_file(VTKFileWriter& File, const MathVector<3>& data)
 {
 	if(m_bBinary)
 		File << (float) data[0] << (float) data[1] << (float) data[2];
@@ -132,7 +132,7 @@ write_item_to_file(VTKFileWriter& File, const ug::MathVector<3>& data)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, const ug::MathMatrix<1,1>& data)
+write_item_to_file(VTKFileWriter& File, const MathMatrix<1,1>& data)
 {
 	if(m_bBinary)
 		File << (float) data(0,0) << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f;
@@ -142,7 +142,7 @@ write_item_to_file(VTKFileWriter& File, const ug::MathMatrix<1,1>& data)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, const ug::MathMatrix<2,2>& data)
+write_item_to_file(VTKFileWriter& File, const MathMatrix<2,2>& data)
 {
 	if(m_bBinary)
 	{
@@ -158,7 +158,7 @@ write_item_to_file(VTKFileWriter& File, const ug::MathMatrix<2,2>& data)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, const ug::MathMatrix<3,3>& data)
+write_item_to_file(VTKFileWriter& File, const MathMatrix<3,3>& data)
 {
 	if(m_bBinary)
 	{
@@ -914,7 +914,7 @@ write_cells(VTKFileWriter& File,
 
 
 template <int TDim>
-template <class TElem, typename T>
+template <typename TElem, typename T>
 void VTKOutput<TDim>::
 write_cell_connectivity(VTKFileWriter& File,
                         Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
@@ -1052,7 +1052,7 @@ write_cell_connectivity(VTKFileWriter& File,
 
 
 template <int TDim>
-template <class TElem, typename T>
+template <typename TElem, typename T>
 void VTKOutput<TDim>::
 write_cell_offsets(VTKFileWriter& File, const T& iterContainer, const int si, int& n)
 {
@@ -1155,7 +1155,7 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, const SubsetGrou
 
 
 template <int TDim>
-template <class TElem, typename T>
+template <typename TElem, typename T>
 void VTKOutput<TDim>::
 write_cell_types(VTKFileWriter& File, const T& iterContainer, const int si)
 {
@@ -1269,7 +1269,7 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, const SubsetGroup&
 
 
 template <int TDim>
-template <class TElem, typename T>
+template <typename TElem, typename T>
 void VTKOutput<TDim>::
 write_cell_subsets(VTKFileWriter& File, const T& iterContainer, const int si, MGSubsetHandler& sh)
 {
@@ -1351,7 +1351,7 @@ write_cell_subsets(VTKFileWriter& File, const T& iterContainer, const SubsetGrou
 
 
 template <int TDim>
-template <class TElem, typename T>
+template <typename TElem, typename T>
 void VTKOutput<TDim>::
 write_cell_proc_ranks(VTKFileWriter& File, const T& iterContainer, const int si, MGSubsetHandler& sh)
 {

@@ -85,19 +85,19 @@ class MultiGridRefiner : public GridObserver
 //		element is part of an anisotropic refinement.
 //		If all marked lower-dimensional elements are marked anisotropic (at least two), then
 //		the resulting elements will be marked anisotropic, too.
-		template <class TElem>
+		template <typename TElem>
 		inline void mark_for_refinement(TElem* elem)
 		{
 			m_selMarks.select(elem);
 		}
 
 	///	the value-type of TIterator has to be a pointer to a type derived from either Edge, Face or Volume.
-		template <class TIterator>
+		template <typename TIterator>
 		inline void mark_for_refinement(const TIterator& iterBegin,
 										const TIterator& iterEnd)
 					{m_selMarks.select(iterBegin, iterEnd);}
 
-		template <class TElem>
+		template <typename TElem>
 		inline bool is_marked(TElem* elem)	{return m_selMarks.is_selected(elem);}
 
 	////////////////////////////////
@@ -185,7 +185,7 @@ class MultiGridRefiner : public GridObserver
 		inline int get_rule(Face* e) {return m_aaIntFACE[e] & MR_REFINEMENT;}
 		inline int get_rule(Volume* e) {return m_aaIntVOL[e] & MR_REFINEMENT;}
 /*
-		template <class TIterator>
+		template <typename TIterator>
 		void mark_fixed_elements(TIterator iterBegin, TIterator iterEnd);
 */
 	protected:

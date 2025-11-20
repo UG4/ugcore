@@ -42,7 +42,7 @@ namespace ug{
 		template <> struct attachment_info_traits<attachmentType> {\
 			static const char* type_name ()	{return typeName;}};
 
-template <class TAttachment>
+template <typename TAttachment>
 struct attachment_info_traits {
 	static const char* type_name ();
 };
@@ -63,4 +63,4 @@ template <> struct attachment_info_traits<Attachment<vector4>> { static const ch
 
 }//	end of namespace
 
-#endif	//__H__UG_attachment_info_traits
+#endif

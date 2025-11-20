@@ -99,7 +99,7 @@ namespace ug{
 
 /// Serialize for ParallelVector<T>
 #ifdef UG_PARALLEL
-template<typename T, class TOStream>
+template<typename T, typename TOStream>
 void Serialize(TOStream &buf, const ParallelVector<T> &v)
 {
 	uint t= v.get_storage_mask();
@@ -108,7 +108,7 @@ void Serialize(TOStream &buf, const ParallelVector<T> &v)
 }
 
 /// Deerialize for ParallelVector<T>
-template<typename T, class TIStream>
+template<typename T, typename TIStream>
 void Deserialize(TIStream &buf, ParallelVector<T> &v)
 {
 	uint t = Deserialize<uint>(buf);
@@ -186,7 +186,7 @@ struct Functionality
  * available Algebra types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
 template <typename TAlgebra>
 static void Algebra(Registry& reg, string grp)

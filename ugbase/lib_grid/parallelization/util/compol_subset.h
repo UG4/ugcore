@@ -38,7 +38,7 @@ namespace ug
 {
 
 
-template <class TLayout>
+template <typename TLayout>
 class ComPol_Subset : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:

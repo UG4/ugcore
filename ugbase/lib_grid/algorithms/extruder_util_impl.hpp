@@ -41,7 +41,7 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIterator>
+template <typename TIterator>
 bool RepeatedVertexExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
 							int numSteps, const ug::vector3& stepDir)
@@ -56,7 +56,7 @@ bool RepeatedVertexExtrusion(Grid& grid,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIterator>
+template <typename TIterator>
 bool RepeatedEdgeExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
 							int numSteps, const ug::vector3& stepDir)
@@ -71,7 +71,7 @@ bool RepeatedEdgeExtrusion(Grid& grid,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIterator>
+template <typename TIterator>
 bool RepeatedFaceExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
 							int numSteps, const ug::vector3& stepDir)

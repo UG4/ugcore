@@ -91,12 +91,12 @@ public:
 	{
 		assure_on_cpu();
 		m_GPUState = ON_CPU;
-		return super::operator[](i);
+		return super::operator [] (i);
 	}
 	inline const value_type &operator [] (size_t i) const
 	{
 		assure_on_cpu();
-		return super::operator[](i);
+		return super::operator [] (i);
 	}
 
 

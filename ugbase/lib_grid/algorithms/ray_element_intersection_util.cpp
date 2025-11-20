@@ -40,7 +40,7 @@ using namespace std;
 namespace ug{
 
 ///	utility method for the full-dimensional RayElementIntersection implementation
-template <class TElem, class vector_t>
+template <typename TElem, typename vector_t>
 static bool
 RayElementIntersectionImpl(
 		number& sminOut,

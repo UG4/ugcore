@@ -37,7 +37,7 @@
 #include "lib_grid/callbacks/basic_callbacks.h"
 
 namespace ug{
-template <class TVrtIter, class TAAPos>
+template <typename TVrtIter, typename TAAPos>
 void SelectKinkVertices(Grid& grid, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 						number thresholdAngle, bool selectDarts, TAAPos aaPos,
 						Grid::edge_traits::callback cbConsiderEdge = ConsiderAll());

@@ -41,7 +41,7 @@
 namespace ug {
 
 /** Range strings are comma separated values and ranges, e.g.: "0,1,2-4,8,9-11"*/
-template <class ind_t>
+template <typename ind_t>
 std::string IndexListToRangeString (const std::vector<ind_t>& inds)
 {
 	using namespace std;
@@ -72,7 +72,7 @@ std::string IndexListToRangeString (const std::vector<ind_t>& inds)
 
 
 /** Range strings are comma separated values and ranges, e.g.: "0,1,2-4,8,9-11"*/
-template <class ind_t>
+template <typename ind_t>
 void RangeStringToIndexList (std::vector<ind_t>& indsOut, const char* rangeString)
 {
 	indsOut.clear();
@@ -111,4 +111,4 @@ void RangeStringToIndexList (std::vector<ind_t>& indsOut, const char* rangeStrin
 	
 }//	end of namespace
 
-#endif	//__H__UG_index_list_util
+#endif

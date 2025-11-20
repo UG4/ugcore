@@ -55,7 +55,7 @@ namespace ug{
  * as a stringstream table (<tt>Table\<std::stringstream\></tt>). If you want to use it
  * for your own types, you may specialize the template method
  * \code
- * template <class T> std::string EntryToString(const Table<T>& table, size_t rowInd, size_t colInd);
+ * template <typename T> std::string EntryToString(const Table<T>& table, size_t rowInd, size_t colInd);
  * \endcode
  * The default implementation of EntryToString may already be suited for most cases.
  *
@@ -79,7 +79,7 @@ namespace ug{
  * \todo	different alignments for different columns / rows / fields
  */
 
-template <class T>
+template <typename T>
 class Table
 {
 	public:
@@ -96,21 +96,21 @@ class Table
 	///	Returns a reference to the given entry.
 	/**	If an entry lies outside of the tables bounds, the table will
 	 * automatically be resized accordingly.*/
-		T& operator() (size_t rowInd, size_t colInd);
+		T& operator () (size_t rowInd, size_t colInd);
 
-		/// uses operator() to set an entry to a value
+		/// uses operator () to set an entry to a value
 		void set(size_t rowInd, size_t colInd, T value)
 		{
-			operator()(rowInd, colInd) = value;
+			operator ()(rowInd, colInd) = value;
 		}
 
 	///	Returns a reference to the given entry.
-		const T& operator() (size_t rowInd, size_t colInd) const;
+		const T& operator () (size_t rowInd, size_t colInd) const;
 
-	/// uses operator() to get a value
+	/// uses operator () to get a value
 		const T &get(size_t rowInd, size_t colInd) const
 		{
-			return operator()(rowInd, colInd);
+			return operator () (rowInd, colInd);
 		}
 
 		size_t num_rows() const;
@@ -225,7 +225,7 @@ class Table
  *
  * \todo	Support for line-breaks ('\n' etc) and multi-line rows.
  */
-template <class T>
+template <typename T>
 std::ostream& operator << (std::ostream& os, const Table<T>& table);
 
 
@@ -233,7 +233,7 @@ std::ostream& operator << (std::ostream& os, const Table<T>& table);
 /**	The default implementation prints the entry to a std::stringstream and returns
  * the associated string. Specializations exist for std::string and std::stringstream.
  */
-template <class T>
+template <typename T>
 std::string EntryToString(const Table<T>& table, size_t rowInd, size_t colInd);
 
 inline

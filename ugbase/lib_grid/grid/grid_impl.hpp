@@ -64,7 +64,7 @@ distributed_grid_manager() const
 
 ////////////////////////////////////////////////////////////////////////
 //	create functions
-template<class TGeomObj>
+template<typename TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 Grid::create(GridObject* pParent)
 {
@@ -82,7 +82,7 @@ Grid::create(GridObject* pParent)
 	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>(get_iterator(geomObj));
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 Grid::create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
 			GridObject* pParent)
@@ -102,7 +102,7 @@ Grid::create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
 	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>(get_iterator(geomObj));
 }
 
-template<class TGeomObj>
+template<typename TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 Grid::create_and_replace(typename geometry_traits<TGeomObj>::grid_base_object* pReplaceMe)
 {
@@ -127,7 +127,7 @@ Grid::create_and_replace(typename geometry_traits<TGeomObj>::grid_base_object* p
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TGeomObj>
+template <typename TGeomObj>
 void Grid::reserve(size_t num)
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
@@ -138,7 +138,7 @@ void Grid::reserve(size_t num)
 
 ////////////////////////////////////////////////////////////////////////
 //	erase
-template <class GeomObjIter>
+template <typename GeomObjIter>
 void Grid::erase(const GeomObjIter& iterBegin, const GeomObjIter& iterEnd)
 {
 	GeomObjIter iter = iterBegin;
@@ -150,7 +150,7 @@ void Grid::erase(const GeomObjIter& iterBegin, const GeomObjIter& iterEnd)
 	}
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 void Grid::clear()
 {
 	while(begin<TGeomObj>() != end<TGeomObj>())
@@ -159,7 +159,7 @@ void Grid::clear()
 
 ////////////////////////////////////////////////////////////////////////
 //	Iterators
-template <class TGeomObj>
+template <typename TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 Grid::begin()
 {
@@ -170,7 +170,7 @@ Grid::begin()
 		(element_storage<TGeomObj>().m_sectionContainer.section_begin(geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 Grid::end()
 {
@@ -181,7 +181,7 @@ Grid::end()
 		(element_storage<TGeomObj>().m_sectionContainer.section_end(geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 typename geometry_traits<TGeomObj>::const_iterator
 Grid::begin() const
 {
@@ -192,7 +192,7 @@ Grid::begin() const
 		(element_storage<TGeomObj>().m_sectionContainer.section_begin(geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 typename geometry_traits<TGeomObj>::const_iterator
 Grid::end() const
 {
@@ -203,7 +203,7 @@ Grid::end() const
 		(element_storage<TGeomObj>().m_sectionContainer.section_end(geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 TGeomObj*
 Grid::front()
 {
@@ -214,7 +214,7 @@ Grid::front()
 										front(geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 TGeomObj*
 Grid::back()
 {
@@ -226,7 +226,7 @@ Grid::back()
 }
 ////////////////////////////////////////////////////////////////////////
 //	element numbers
-template <class TGeomObj>
+template <typename TGeomObj>
 size_t Grid::num() const
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
@@ -280,7 +280,7 @@ objects_will_be_merged(Volume* target, Volume* elem1,
 	}
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 size_t Grid::attachment_container_size() const
 {
 	return element_storage<TGeomObj>().m_attachmentPipe.num_data_entries();
@@ -288,7 +288,7 @@ size_t Grid::attachment_container_size() const
 
 ////////////////////////////////////////////////////////////////////////
 //	attachment handling
-template <class TGeomObjClass>
+template <typename TGeomObjClass>
 void Grid::attach_to(IAttachment& attachment, bool passOnValues)
 {
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_ID != -1,
@@ -318,13 +318,13 @@ inline void Grid::attach_to_all(IAttachment& attachment)
 	attach_to<Volume>(attachment);
 }
 
-template <class TGeomObjClass, class TAttachment>
+template <typename TGeomObjClass, typename TAttachment>
 void Grid::attach_to_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)
 {
 	attach_to_dv<TGeomObjClass, TAttachment>(attachment, defaultValue, attachment.default_pass_on_behaviour());
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 inline void Grid::
 attach_to_all_dv(TAttachment& attachment,
 				 const typename TAttachment::ValueType& defaultValue)
@@ -335,7 +335,7 @@ attach_to_all_dv(TAttachment& attachment,
 	attach_to_dv<Volume>(attachment, defaultValue);
 }
 
-template <class TGeomObjClass, class TAttachment>
+template <typename TGeomObjClass, typename TAttachment>
 void Grid::attach_to_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)
 {
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_ID != -1,
@@ -349,7 +349,7 @@ void Grid::attach_to_dv(TAttachment& attachment, const typename TAttachment::Val
 	element_storage<TGeomObjClass>().m_attachmentPipe.attach(attachment, defaultValue, options);
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 inline void Grid::
 attach_to_all_dv(TAttachment& attachment,
 				 const typename TAttachment::ValueType& defaultValue,
@@ -361,7 +361,7 @@ attach_to_all_dv(TAttachment& attachment,
 	attach_to_dv<Volume>(attachment, defaultValue, passOnValues);
 }
 
-template <class TGeomObjClass>
+template <typename TGeomObjClass>
 void Grid::detach_from(IAttachment& attachment)
 {
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_ID != -1,
@@ -379,7 +379,7 @@ inline void Grid::detach_from_all(IAttachment& attachment)
 }
 
 /*
-template <class TGeomObjClass>
+template <typename TGeomObjClass>
 util::IAttachmentDataContainer* Grid::get_data_container(util::IAttachment& attachment)
 {
 	assert(geometry_traits<TGeomObjClass>::base_object_type() != -1
@@ -390,7 +390,7 @@ util::IAttachmentDataContainer* Grid::get_data_container(util::IAttachment& atta
 }
 */
 
-template <class TGeomObj, class TAttachment>
+template <typename TGeomObj, typename TAttachment>
 typename TAttachment::ContainerType*
 Grid::get_attachment_data_container(TAttachment& attachment)
 {
@@ -400,7 +400,7 @@ Grid::get_attachment_data_container(TAttachment& attachment)
 	return element_storage<TGeomObj>().m_attachmentPipe.get_data_container(attachment);
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 typename Grid::traits<TGeomObj>::AttachmentPipe&
 Grid::get_attachment_pipe()
 {
@@ -410,7 +410,7 @@ Grid::get_attachment_pipe()
 	return element_storage<TGeomObj>().m_attachmentPipe;
 }
 
-template <class TGeomObj>
+template <typename TGeomObj>
 uint
 Grid::get_attachment_data_index(TGeomObj* pObj) const
 {
@@ -431,14 +431,14 @@ Grid::autoenable_option(uint option, const char* caller, const char* optionName)
 
 ////////////////////////////////////////////////////////////////////////
 //	marks
-template <class TIterator>
+template <typename TIterator>
 void Grid::mark(TIterator begin, TIterator end)
 {
 	for(TIterator iter = begin; iter != end; ++iter)
 		mark(*iter);
 }
 
-template <class TIterator>
+template <typename TIterator>
 void Grid::unmark(TIterator begin, TIterator end)
 {
 	for(TIterator iter = begin; iter != end; ++iter)
@@ -447,7 +447,7 @@ void Grid::unmark(TIterator begin, TIterator end)
 
 
 ////////////////////////////////////////////////////////////////////////
-template <class TContainer>
+template <typename TContainer>
 void Grid::get_associated(TContainer& container, GridObject* o)
 {
 	switch(o->base_object_id()){
@@ -458,31 +458,31 @@ void Grid::get_associated(TContainer& container, GridObject* o)
 	}
 }
 
-template <class TElem>
+template <typename TElem>
 void Grid::associated_elements(traits<Vertex>::secure_container& elemsOut, TElem* e)
 {
 	get_associated(elemsOut, e);
 }
 
-template <class TElem>
+template <typename TElem>
 void Grid::associated_elements(traits<Edge>::secure_container& elemsOut, TElem* e)
 {
 	get_associated(elemsOut, e);
 }
 
-template <class TElem>
+template <typename TElem>
 void Grid::associated_elements(traits<Face>::secure_container& elemsOut, TElem* e)
 {
 	get_associated(elemsOut, e);
 }
 
-template <class TElem>
+template <typename TElem>
 void Grid::associated_elements(traits<Volume>::secure_container& elemsOut, TElem* e)
 {
 	get_associated(elemsOut, e);
 }
 
-template <class TElem>
+template <typename TElem>
 void Grid::get_associated(typename traits<typename TElem::grid_base_object>
 						  ::secure_container& elems, TElem* e)
 {
@@ -495,32 +495,32 @@ void Grid::get_associated(typename traits<typename TElem::grid_base_object>
 		1);
 }
 
-template <class TElem>
+template <typename TElem>
 void Grid::associated_elements_sorted(traits<Vertex>::secure_container& elemsOut, TElem* e)
 {
 	get_associated_sorted(elemsOut, e);
 }
 
-template <class TElem>
+template <typename TElem>
 void Grid::associated_elements_sorted(traits<Edge>::secure_container& elemsOut, TElem* e)
 {
 	get_associated_sorted(elemsOut, e);
 }
 
-template <class TElem>
+template <typename TElem>
 void Grid::associated_elements_sorted(traits<Face>::secure_container& elemsOut, TElem* e)
 {
 	get_associated_sorted(elemsOut, e);
 }
 
-template <class TElem>
+template <typename TElem>
 void Grid::associated_elements_sorted(traits<Volume>::secure_container& elemsOut, TElem* e)
 {
 	get_associated_sorted(elemsOut, e);
 }
 
 
-template <class TElem>
+template <typename TElem>
 void Grid::get_associated_sorted(typename traits<typename TElem::grid_base_object>
 								 ::secure_container& elems, TElem* e)
 {
@@ -536,7 +536,7 @@ void Grid::get_associated_sorted(typename traits<typename TElem::grid_base_objec
 
 ////////////////////////////////////////////////////////////////////////
 //	neighbourhood access
-template <class TGeomObj>
+template <typename TGeomObj>
 Edge* Grid::find_edge_in_associated_edges(TGeomObj* obj, const EdgeVertices& ev)
 {
 	GRID_PROFILE_FUNC();
@@ -552,7 +552,7 @@ Edge* Grid::find_edge_in_associated_edges(TGeomObj* obj, const EdgeVertices& ev)
 }
 
 										
-template <class TGeomObj>
+template <typename TGeomObj>
 Face* Grid::find_face_in_associated_faces(TGeomObj* obj, const FaceVertices& fv)
 {
 	GRID_PROFILE_FUNC();
@@ -572,7 +572,7 @@ Face* Grid::find_face_in_associated_faces(TGeomObj* obj, const FaceVertices& fv)
 	return nullptr;
 }
 										
-template <class TGeomObj>
+template <typename TGeomObj>
 Volume* Grid::find_volume_in_associated_volumes(TGeomObj* obj,
 												const VolumeVertices& vv)
 {
@@ -600,21 +600,21 @@ Volume* Grid::find_volume_in_associated_volumes(TGeomObj* obj,
 
 ////////////////////////////////////////////////////////////////////////
 //	AttachmentAccessor
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor() :
 ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >()
 {
 }
 
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor(const AttachmentAccessor& aa) :
 ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >(aa)
 {
 }
 
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor(Grid& grid, TAttachment& a) :
 ug::AttachmentAccessor<typename TElem::grid_base_object*, TAttachment,
@@ -623,7 +623,7 @@ ug::AttachmentAccessor<typename TElem::grid_base_object*, TAttachment,
 {
 }
 
-template <class TElem, class TAttachment>
+template <typename TElem, typename TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
 ug::AttachmentAccessor<typename TElem::grid_base_object*, TAttachment,
@@ -639,121 +639,121 @@ ug::AttachmentAccessor<typename TElem::grid_base_object*, TAttachment,
 
 ////////////////////////////////////////////////////////////////////////
 //	VertexAttachmentAccessor
-template <class TAttachment>
+template <typename TAttachment>
 Grid::VertexAttachmentAccessor<TAttachment>::
 VertexAttachmentAccessor() :
 	Grid::AttachmentAccessor<Vertex, TAttachment>()
 {
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 Grid::VertexAttachmentAccessor<TAttachment>::
 VertexAttachmentAccessor(const VertexAttachmentAccessor& aa) :
-	Grid::AttachmentAccessor<Vertex, TAttachment>(aa)
+	AttachmentAccessor<Vertex, TAttachment>(aa)
 {
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 Grid::VertexAttachmentAccessor<TAttachment>::
 VertexAttachmentAccessor(Grid& grid, TAttachment& a) :
-	Grid::AttachmentAccessor<Vertex, TAttachment>(grid, a)
+	AttachmentAccessor<Vertex, TAttachment>(grid, a)
 {
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 Grid::VertexAttachmentAccessor<TAttachment>::
 VertexAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
-	Grid::AttachmentAccessor<Vertex, TAttachment>(grid, a, autoAttach)
+	AttachmentAccessor<Vertex, TAttachment>(grid, a, autoAttach)
 {
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 //	EdgeAttachmentAccessor
-template <class TAttachment>
+template <typename TAttachment>
 Grid::EdgeAttachmentAccessor<TAttachment>::
 EdgeAttachmentAccessor() :
-	Grid::AttachmentAccessor<Edge, TAttachment>()
+	AttachmentAccessor<Edge, TAttachment>()
 {
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 Grid::EdgeAttachmentAccessor<TAttachment>::
 EdgeAttachmentAccessor(const EdgeAttachmentAccessor& aa) :
-	Grid::AttachmentAccessor<Edge, TAttachment>(aa)
+	AttachmentAccessor<Edge, TAttachment>(aa)
 {
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 Grid::EdgeAttachmentAccessor<TAttachment>::
 EdgeAttachmentAccessor(Grid& grid, TAttachment& a) :
-	Grid::AttachmentAccessor<Edge, TAttachment>(grid, a)
+	AttachmentAccessor<Edge, TAttachment>(grid, a)
 {
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 Grid::EdgeAttachmentAccessor<TAttachment>::
 EdgeAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
-	Grid::AttachmentAccessor<Edge, TAttachment>(grid, a, autoAttach)
+	AttachmentAccessor<Edge, TAttachment>(grid, a, autoAttach)
 {
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 //	FaceAttachmentAccessor
-template <class TAttachment>
+template <typename TAttachment>
 Grid::FaceAttachmentAccessor<TAttachment>::
 FaceAttachmentAccessor() :
-	Grid::AttachmentAccessor<Face, TAttachment>()
+	AttachmentAccessor<Face, TAttachment>()
 {
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 Grid::FaceAttachmentAccessor<TAttachment>::
 FaceAttachmentAccessor(const FaceAttachmentAccessor& aa) :
-	Grid::AttachmentAccessor<Face, TAttachment>(aa)
+	AttachmentAccessor<Face, TAttachment>(aa)
 {
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 Grid::FaceAttachmentAccessor<TAttachment>::
 FaceAttachmentAccessor(Grid& grid, TAttachment& a) :
-	Grid::AttachmentAccessor<Face, TAttachment>(grid, a)
+	AttachmentAccessor<Face, TAttachment>(grid, a)
 {
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 Grid::FaceAttachmentAccessor<TAttachment>::
 FaceAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
-	Grid::AttachmentAccessor<Face, TAttachment>(grid, a, autoAttach)
+	AttachmentAccessor<Face, TAttachment>(grid, a, autoAttach)
 {
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 //	FaceAttachmentAccessor
-template <class TAttachment>
+template <typename TAttachment>
 Grid::VolumeAttachmentAccessor<TAttachment>::
 VolumeAttachmentAccessor() :
-	Grid::AttachmentAccessor<Volume, TAttachment>()
+	AttachmentAccessor<Volume, TAttachment>()
 {
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 Grid::VolumeAttachmentAccessor<TAttachment>::
 VolumeAttachmentAccessor(const VolumeAttachmentAccessor& aa) :
-	Grid::AttachmentAccessor<Volume, TAttachment>(aa)
+	AttachmentAccessor<Volume, TAttachment>(aa)
 {
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 Grid::VolumeAttachmentAccessor<TAttachment>::
 VolumeAttachmentAccessor(Grid& grid, TAttachment& a) :
 	AttachmentAccessor<Volume, TAttachment>(grid, a)
 {
 }
 
-template <class TAttachment>
+template <typename TAttachment>
 Grid::VolumeAttachmentAccessor<TAttachment>::
 VolumeAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
 	AttachmentAccessor<Volume, TAttachment>(grid, a, autoAttach)

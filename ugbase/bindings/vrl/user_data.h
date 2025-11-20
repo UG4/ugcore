@@ -42,5 +42,4 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup);
 } // vrl::
 } // ug::
 
-#endif	/* USER_DATA_H */
-
+#endif

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014-2019:  G-CSC, Goethe University Frankfurt
- * Author: Martin Stepniewski
+ * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
+ * Author: Martin Rupp
  * 
  * This file is part of UG4.
  * 
@@ -30,29 +30,40 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <vector>
-#include "parallel_global_subdivision_refiner.h"
+#ifndef __H__LIB_ALGEBRA__OPERATOR__EIGENSOLVER_INTERFACE__
+#define __H__LIB_ALGEBRA__OPERATOR__EIGENSOLVER_INTERFACE__
 
-namespace ug
+
+namespace ug{
+///////////////////////////////////////////////////////////
+// Operator
+///////////////////////////////////////////////////////////
+
+// describes a mapping X->Y
+template <typename X, typename Y>
+class IEigensolver
 {
+	public:
+	// 	Domain space
+		using domain_function_type = X;
 
-template <class TAPosition>
-ParallelGlobalSubdivisionRefiner<TAPosition>::
-ParallelGlobalSubdivisionRefiner(DistributedGridManager& distGridMgr, SPRefinementProjector projector) :
-		TParallelGlobalRefiner<GlobalSubdivisionMultiGridRefiner<TAPosition> >(distGridMgr, projector)
-{
-}
+	// 	Range space
+		using codomain_function_type = Y ;
 
-template <class TAPosition>
-void ParallelGlobalSubdivisionRefiner<TAPosition>::
-refinement_step_ends()
-{
-	TParallelGlobalRefiner<GlobalSubdivisionMultiGridRefiner<TAPosition> >
-		::m_distGridMgr.end_ordered_element_insertion();
+	public:
+	// 	Init Operator
+		virtual bool init() = 0;
 
-	GlobalSubdivisionMultiGridRefiner<TAPosition>
-		::smooth();
-}
+	// 	Prepare out function
+		virtual bool prepare(Y& d, X& u) = 0;
 
+	// 	Apply Operator, i.e. d := N(u);
+		virtual bool apply(Y& d, const X& u) = 0;
 
-}//	end of namespace
+	// 	Destructor
+		virtual ~IEigensolver() = default;
+};
+
+} // end namespace ug
+
+#endif

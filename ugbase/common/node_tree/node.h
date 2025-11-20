@@ -73,10 +73,10 @@ class Node : public Object
 	friend class Traverser;
 	
 	public:
-		virtual ~Node()	{}
+		~Node() override = default;
 		
 	protected:
-		Node()	{}
+		Node() = default;
 };
 
 }//	end of namespace node_tree

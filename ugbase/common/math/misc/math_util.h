@@ -59,33 +59,33 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	deg_to_rad
-template <class TNumber>
+template <typename TNumber>
 inline TNumber
 deg_to_rad(TNumber deg);
 
 ////////////////////////////////////////////////////////////////////////
 //	rad_to_deg
-template <class TNumber>
+template <typename TNumber>
 inline TNumber
 rad_to_deg(TNumber rad);
 
 ////////////////////////////////////////////////////////////////////////
 //	urand
 ///	uniform distributed random numbers in [lowerBound, upperBound[. Use srand to set a seed.
-template <class TNumber>
+template <typename TNumber>
 TNumber
 urand(TNumber lowerBound, TNumber upperBound);
 
 ////////////////////////////////////////////////////////////////////////
 //	clip
 ///	clips a number to the given interval [lowerBound, upperBound].
-template <class TNumber>
+template <typename TNumber>
 TNumber
 clip(TNumber val, TNumber lowerBound, TNumber upperBound);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the square of a value (val*val)
-template <class TNumber>
+template <typename TNumber>
 inline TNumber sq(TNumber val);
 
 ////////////////////////////////////////////////////////////////////////
@@ -114,13 +114,13 @@ bool ConstructOrthonormalSystem(matrix33& matOut, const vector3& v,
 
 ////////////////////////////////////////////////////////////////////////
 ///	calculates the center of a point-set
-template <class vector_t>
+template <typename vector_t>
 void CalculateCenter(vector_t& centerOut, const vector_t* pointSet,
 					 size_t numPoints);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Calculates the barycenter of a triangle (1/3) * (p1+p2+p3)
-template <class vector_t>
+template <typename vector_t>
 vector_t
 TriangleBarycenter(const vector_t& p1, const vector_t& p2, const vector_t& p3);
 
@@ -186,14 +186,14 @@ bool TransformPointSetTo2D(vector2* pointSetOut, const vector3* pointSet,
  *
  * returns s so that vOut = (1.0-s)*v0 + s*v1
  */
-template <class vector_t>
+template <typename vector_t>
 number DropAPerpendicular(vector_t& vOut, const vector_t& v,
 							const vector_t& v0, const vector_t& v1);
 
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the point described by a relative ray coordinate
-template <class vector_t>
+template <typename vector_t>
 vector_t PointOnRay(const vector_t& from, const vector_t& dir, number s);
 
 ////////////////////////////////////////////////////////////////////////
@@ -204,7 +204,7 @@ vector_t PointOnRay(const vector_t& from, const vector_t& dir, number s);
  *
  * returns s so that vOut = from + s*dir
  */
-template <class vector_t>
+template <typename vector_t>
 number ProjectPointToRay(vector_t& vOut, const vector_t& v,
 							const vector_t& from, const vector_t& dir);
 
@@ -215,7 +215,7 @@ number ProjectPointToRay(vector_t& vOut, const vector_t& v,
  * The projected point is returned in vOut.
  *
  * returns s so that vOut = from + s * (to-from)*/
-template <class vector_t>
+template <typename vector_t>
 number ProjectPointToLine(vector_t& vOut, const vector_t& v,
 						  const vector_t& from, const vector_t& to);
 
@@ -228,12 +228,12 @@ number ProjectPointToLine(vector_t& vOut, const vector_t& v,
  *
  * The method returns the distance.
  */
-template <class vector_t>
+template <typename vector_t>
 inline
 number DistancePointToLine(const vector_t& v, const vector_t& v1,
 						  const vector_t& v2);
 
-template <class vector_t>
+template <typename vector_t>
 number DistancePointToLine(number& tOut, const vector_t& v,
 						   const vector_t& v1, const vector_t& v2);
 						  
@@ -246,12 +246,12 @@ number DistancePointToLine(number& tOut, const vector_t& v,
  *
  * The method returns the distance.
  */
-template <class vector_t>
+template <typename vector_t>
 inline
 number DistancePointToRay(const vector_t& v, const vector_t& from,
 						  const vector_t& dir);
 
-template <class vector_t>
+template <typename vector_t>
 inline
 number DistancePointToRay(number& tOut, const vector_t& v,
 						  const vector_t& from, const vector_t& dir);
@@ -270,28 +270,28 @@ number DistancePointToRay(number& tOut, const vector_t& v,
  *
  *	The method returns the minimal distance of the point to the triangle.
  */
-template <class vector_t>
+template <typename vector_t>
 number DistancePointToTriangle(vector_t& vOut, number& bc1Out, number& bc2Out,
 							const vector_t& p, const vector_t& v1, const vector_t& v2,
 							const vector_t& v3, const vector_t& n);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Calculates the distance between the specified point and the plane.
-template <class vector_t>
+template <typename vector_t>
 number DistancePointToPlane(const vector_t& v, const vector_t& p,
 							const vector_t& n);
 
 ////////////////////////////////////////////////////////////////////////
 ///	projects v onto the plane defined by the point p and the planes normal n.
 /**	The result is written to vOut.*/
-template <class vector_t>
+template <typename vector_t>
 void ProjectPointToPlane(vector_t& vOut, const vector_t& v,
 						const vector_t& p, const vector_t& n);
 
 ////////////////////////////////////////////////////////////////////////
 //	RayPlaneIntersection
 ///	calculates the intersection of the ray rayFrom+t*rayDir and the plane (x-p)*n=0.
-template <class vector_t>
+template <typename vector_t>
 bool RayPlaneIntersection(vector_t& vOut, number& tOut,
 						  const vector_t& rayFrom, const vector_t& rayDir,
 						  const vector_t& p, const vector_t& n);
@@ -306,7 +306,7 @@ bool RayPlaneIntersection(vector_t& vOut, number& tOut,
  * You have to specify a point of each ray (p0 and p1) and the directions of
  * each ray (dir0 and dir1).
  */
-template <class vector_t>
+template <typename vector_t>
 bool RayRayIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
 						   const vector_t &p0, const vector_t &dir0,
 						   const vector_t &p1, const vector_t &dir1);
@@ -327,7 +327,7 @@ bool RayRayIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
  * will contain the local coordinate of the intersection
  * regarding the rays parameter form.
  */
-template <class vector_t>
+template <typename vector_t>
 bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
 						   const vector_t &p0, const vector_t &p1,
 						   const vector_t &vFrom, const vector_t &vDir,
@@ -347,7 +347,7 @@ bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
  * t0Out and t1Out will contain the local coordinate of the intersection
  * regarding the lines parameter form.
  */
-template <class vector_t>
+template <typename vector_t>
 bool LineLineIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
 						   const vector_t &from0, const vector_t &to0,
 						   const vector_t &from1, const vector_t &to1,
@@ -391,7 +391,7 @@ bool LineLineIntersection3d(vector3& aOut, vector3& bOut,
 ///	Calculates the parameter values at wich two rays are closest.
 /**	Returns true if the calculation was successfull (e.g. if the rays were not parallel).
  * \sa RayRayIntersection2d, RayRayIntersection3d, LineLineProjection*/
-template <class vector_t>
+template <typename vector_t>
 bool RayRayProjection(number& t1Out, number& t2Out,
 						const vector_t& from1, const vector_t& dir1,
 						const vector_t& from2, const vector_t& dir2);
@@ -399,7 +399,7 @@ bool RayRayProjection(number& t1Out, number& t2Out,
 ////////////////////////////////////////////////////////////////////////
 ///	calculates the closest point between the rays through the given lines.
 /**	returns true if the closest points lie inside the line segments.*/
-template <class vector_t>
+template <typename vector_t>
 bool LineLineProjection(number& t1Out, number& t2Out,
 						  const vector_t& a1, const vector_t& a2,
 						  const vector_t& b1, const vector_t& b2);
@@ -433,7 +433,7 @@ number DistanceLineToLine(const vector3& a1, const vector3& a2,
  * will contain the local coordinate of the intersection
  * regarding the rays parameter form.
  */
-template <class vector_t>
+template <typename vector_t>
 bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, number& tOut,
 						   const vector_t &p0, const vector_t &p1, const vector_t &p2, 
 						   const vector_t &vFrom, const vector_t &vDir,
@@ -453,7 +453,7 @@ bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, num
  * the methods returns true and writes the position of
  * the intersection to vOut.
  */
-template <class vector_t> inline
+template <typename vector_t> inline
 bool RayTriangleIntersection(vector_t &vOut, const vector_t &p0,
 						   const vector_t &p1, const vector_t &p2, 
 						   const vector_t &vFrom, const vector_t &vDir);
@@ -473,7 +473,7 @@ bool RayTriangleIntersection(vector_t &vOut, const vector_t &p0,
  *
  * \sa LineBoxIntersection
  */
-template <class vector_t>
+template <typename vector_t>
 bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 						const vector_t& boxMin, const vector_t& boxMax,
 						number* tNearOut = nullptr, number* tFarOut = nullptr);
@@ -485,7 +485,7 @@ bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
  *
  * \sa RayBoxIntersection
  */
-template <class vector_t>
+template <typename vector_t>
 bool LineBoxIntersection(const vector_t& v1, const vector_t& v2,
 						const vector_t& boxMin, const vector_t& boxMax);
 
@@ -494,12 +494,12 @@ bool LineBoxIntersection(const vector_t& v1, const vector_t& v2,
 /**	The function returns the number of intersections and the values of s at
  * which the line segment intersects.
  */
-template <class vector_t>
+template <typename vector_t>
 int RaySphereIntersection(number& s1Out, number& s2Out,
 						  const vector_t& v, const vector_t& dir,
 						  const vector_t& center, number radius);
 
-template <class vector_t>
+template <typename vector_t>
 int LineSphereIntersection(number& s1Out, number& s2Out,
 						  const vector_t& v1, const vector_t& v2,
 						  const vector_t& center, number radius);
@@ -554,7 +554,7 @@ bool TriangleBoxIntersection(const MathVector<3>& p0, const MathVector<3>& p1,
 ////////////////////////////////////////////////////////////////////////
 ///	checks whether two boxes intersect.
 /**	Make sure that all parameters have the same size.*/
-template <class vector_t>
+template <typename vector_t>
 bool BoxBoxIntersection(const vector_t& box1Min, const vector_t& box1Max,
 						const vector_t& box2Min, const vector_t& box2Max);
 
@@ -563,19 +563,19 @@ bool BoxBoxIntersection(const vector_t& box1Min, const vector_t& box1Max,
 ///	Returns true if the point lies inside or on the boundary of the box
 /**	v.size() has to be the same or less than boxMin.size() and boxMax.size().
  *	If this condition is met, the method supports vectors of arbitrary dimension.*/
-template <class vector_t>
+template <typename vector_t>
 bool BoxBoundProbe(const vector_t& v, const vector_t& boxMin,
 					const vector_t& boxMax);
 
 ////////////////////////////////////////////////////////////////////////
 ///	calculates the are of the triangle defined by p1, p2 and p3
-template <class vector_t>
+template <typename vector_t>
 number TriangleArea(const vector_t& p1, const vector_t& p2,
 					const vector_t& p3);
 
 ////////////////////////////////////////////////////////////////////////
 ///	calculates the are of the triangle defined by p1, p2 and p3
-template <class vector_t>
+template <typename vector_t>
 number QuadrilateralArea(const vector_t& p1, const vector_t& p2,
 						 const vector_t& p3, const vector_t& p4);
 
@@ -585,7 +585,7 @@ number QuadrilateralArea(const vector_t& p1, const vector_t& p2,
  * returns the minimal dot-product of each normal of the triangle-corners
  * with the triangles normal.
  */
-template <class vector_t>
+template <typename vector_t>
 number GeometricApproximationDegree(vector_t& n1, vector_t& n2, vector_t& n3,
 									vector_t& tn);
 
@@ -596,7 +596,7 @@ number GeometricApproximationDegree(vector_t& n1, vector_t& n2, vector_t& n3,
  *
  *	a triangle whose sides have all zero length is considered to be
  *	a bad triangle - 0 is returned.*/
-template <class vector_t>
+template <typename vector_t>
 number TriangleQuality_Area(const vector_t& p1, const vector_t& p2,
 							const vector_t& p3);
 
@@ -606,7 +606,7 @@ number TriangleQuality_Area(const vector_t& p1, const vector_t& p2,
  * This method should only be used if v, v0, v1, and v2 do lie in the same
  * x-y-plane.
  */
-template <class vector_t>
+template <typename vector_t>
 bool PointIsInsideTriangle(const vector_t& v, const vector_t& v0,
 							const vector_t& v1, const vector_t& v2);
 
@@ -619,7 +619,7 @@ bool PointIsInsideTriangle(const vector_t& v, const vector_t& v0,
  * The method has a higher accuracy than PointIsInsideTriangle, however it also
  * has a higher performance overhead.
  */
-template <class vector_t>
+template <typename vector_t>
 bool PointIsInsideTriangle_HighAcc(const vector_t& v, const vector_t& v0,
 								   const vector_t& v1, const vector_t& v2);
 
@@ -629,7 +629,7 @@ bool PointIsInsideTriangle_HighAcc(const vector_t& v, const vector_t& v0,
  * This method should only be used if v, v0, v1, v2, and v3 do lie in the same
  * x-y-plane.
  */
-template <class vector_t>
+template <typename vector_t>
 bool PointIsInsideQuadrilateral(const vector_t& v, const vector_t& v0,
 								const vector_t& v1, const vector_t& v2,
 								const vector_t& v3);
@@ -642,7 +642,7 @@ bool PointIsInsideQuadrilateral(const vector_t& v, const vector_t& v0,
  * This however makes it a little slower than a method that only
  * works for correctly orientated tetrahedrons.
  */
-template <class vector_t>
+template <typename vector_t>
 bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vector_t& v1,
 							  const vector_t& v2, const vector_t& v3);
 
@@ -712,7 +712,7 @@ int BinomCoeff(int n, int k);
  * @param n					normal for plane specification
  * @param r0				root point of plane
  */
-template <class vector_t>
+template <typename vector_t>
 void ReflectVectorAtPlane(vector_t& vReflectedOut, const vector_t& v,
                           const vector_t& n, const vector_t& r0);
 

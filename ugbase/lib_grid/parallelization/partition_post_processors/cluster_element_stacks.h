@@ -40,7 +40,7 @@
 
 namespace ug{
 
-template <class elem_t, class vector_t>
+template <typename elem_t, typename vector_t>
 class ClusterElementStacks : public IPartitionPostProcessor
 {
 	public:

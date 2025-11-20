@@ -38,7 +38,7 @@
 
 namespace ug{
 
-template <class TIter, class TAAPos>
+template <typename TIter, typename TAAPos>
 size_t FindSlivers(std::vector<typename TIter::value_type>& sliversOut,
 				 TIter elemsBegin, TIter elemsEnd, number thresholdRatio,
 				 TAAPos aaPos, bool clearContainer)
@@ -64,4 +64,4 @@ size_t FindSlivers(std::vector<typename TIter::value_type>& sliversOut,
 
 }//	end of namespace
 
-#endif	//__H__problem_detection_util_impl
+#endif

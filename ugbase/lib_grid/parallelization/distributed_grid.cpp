@@ -148,7 +148,7 @@ grid_to_be_destroyed(Grid* grid)
 		free_grid_data();
 }
 /*
-template <class TElem>
+template <typename TElem>
 void DistributedGridManager::set_preliminary_ghost_states()
 {//	Works but is currently unused and would only be required, if
 //	horizontal interfaces between vertical-masters would exist.
@@ -303,7 +303,7 @@ void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TGeomObj>
+template <typename TGeomObj>
 void DistributedGridManager::update_all_elem_infos()
 {
 	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_H_MASTER,
@@ -320,7 +320,7 @@ void DistributedGridManager::update_all_elem_infos()
 }
 		
 ////////////////////////////////////////////////////////////////////////
-template <class TGeomObj>
+template <typename TGeomObj>
 void DistributedGridManager::reset_elem_infos()
 {
 	for(typename geometry_traits<TGeomObj>::iterator
@@ -332,7 +332,7 @@ void DistributedGridManager::reset_elem_infos()
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TGeomObj, class TLayoutMap>
+template <typename TGeomObj, typename TLayoutMap>
 void DistributedGridManager::
 update_elem_info(TLayoutMap& layoutMap, int nodeType, byte_t newStatus, bool addStatus)
 {
@@ -401,7 +401,7 @@ begin_ordered_element_insertion()
 	m_bOrderedInsertionMode = true;
 }
 /*
-template <class TElem, class TCommGrp>
+template <typename TElem, typename TCommGrp>
 void DistributedGridManager::
 add_element_to_interface(TElem* pElem, TCommGrp& commGrp,
 						int procID, InterfaceNodeTypes nodeType)
@@ -431,7 +431,7 @@ add_element_to_interface(TElem* pElem, TCommGrp& commGrp,
 
 }
 */
-template <class TElem>
+template <typename TElem>
 void DistributedGridManager::
 add_element_to_interface(TElem* pElem, int procID)
 {
@@ -467,7 +467,7 @@ add_element_to_interface(TElem* pElem, int procID)
 	elem_info(pElem).add_entry(interface, iter, intfcType);
 }
 		
-template <class TScheduledElemMap>
+template <typename TScheduledElemMap>
 void DistributedGridManager::
 perform_ordered_element_insertion(TScheduledElemMap& elemMap)
 {		
@@ -529,7 +529,7 @@ clear_scheduled_elements()
 
 //	adds a ScheduledElement to scheduled-element-maps, depending on
 //	the interfaces in which pParent is contained.
-template <class TElem, class TScheduledElemMap, class TParent>
+template <typename TElem, typename TScheduledElemMap, typename TParent>
 void DistributedGridManager::
 schedule_element_for_insertion(TScheduledElemMap& elemMap,
 										TElem* elem,
@@ -562,7 +562,7 @@ schedule_element_for_insertion(TScheduledElemMap& elemMap,
 }
 
 //	new elements are handled here.
-template <class TElem>
+template <typename TElem>
 void DistributedGridManager::
 handle_created_element(TElem* pElem, GridObject* pParent,
 						bool replacesParent)
@@ -709,7 +709,7 @@ begin_element_deletion()
 }
 
 
-template <class TLayout>
+template <typename TLayout>
 class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
@@ -1034,7 +1034,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 		//bool					m_checkHOrder;
 };
 
-template <class TElem>
+template <typename TElem>
 void DistributedGridManager::
 create_missing_constrained_h_interfaces(vector<TElem*>& newConstrainedElems)
 {
@@ -1219,7 +1219,7 @@ end_element_deletion()
 	UG_DLOG(LIB_GRID, 1, "DistributedGridManager stop - end_element_deletion\n");
 }
 
-template <class TElem>
+template <typename TElem>
 void DistributedGridManager::
 element_to_be_erased(TElem* elem)
 {

@@ -105,7 +105,7 @@ class Polynomial1D
 		}
 
 	///	multiply by a polynomial
-		Polynomial1D& operator *=(const Polynomial1D& v)
+		Polynomial1D& operator *= (const Polynomial1D& v)
 		{
 		//	new size of polynomial
 			size_t newDeg = degree() + v.degree();
@@ -137,7 +137,7 @@ class Polynomial1D
 		}
 
 	//	output
-		friend std::ostream& operator<< (std::ostream& outStream, Polynomial1D& v);
+		friend std::ostream& operator << (std::ostream& outStream, Polynomial1D& v);
 
 	protected:
 		void set_coefficients(const std::vector<number>& a)
@@ -157,7 +157,7 @@ class Polynomial1D
 		std::vector<number> m_vCoeff;
 };
 
-inline std::ostream& operator<< (std::ostream& outStream, Polynomial1D& v)
+inline std::ostream& operator << (std::ostream& outStream, Polynomial1D& v)
 {
 	for(size_t i = 0; i <= v.degree(); ++i)
 	{

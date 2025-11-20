@@ -42,8 +42,8 @@ class AlgebraicConnectionIterator : public TIterator
 	using TIterator::operator *;
 public:
 	AlgebraicConnectionIterator(TIterator &it) : TIterator(it) {}
-	TValue &value() { check(); return (operator*()).value();   }
-	size_t index() const { check(); return (operator*()).index(); }
+	TValue &value() { check(); return (operator * ()).value();   }
+	size_t index() const { check(); return (operator * ()).index(); }
 };
 template<typename TValue, typename TIterator>
 class ConstAlgebraicConnectionIterator : public TIterator
@@ -51,8 +51,8 @@ class ConstAlgebraicConnectionIterator : public TIterator
 	using TIterator::operator *;
 public:
 	AlgebraicConnectionIterator(TIterator &it) : TIterator(it) {}
-	const TValue &value() { check(); return (operator*()).value();   }
-	size_t index() const { check(); return (operator*()).index(); }
+	const TValue &value() { check(); return (operator * ()).value();   }
+	size_t index() const { check(); return (operator * ()).index(); }
 };*/
 
 
@@ -89,12 +89,12 @@ public:
 		return A.end_row(r);
 	}
 	
-	value_type &operator()(size_t c)
+	value_type &operator () (size_t c)
 	{
 		return A(r, c);
 	}
 	
-	value_type &operator()(size_t c) const
+	value_type &operator () (size_t c) const
 	{
 		return A(r, c);
 	}
@@ -134,11 +134,11 @@ public:
 		return A.end_row(r);
 	}
 	
-	const value_type &operator()(size_t c) const
+	const value_type &operator () (size_t c) const
 	{
 		return A(r, c);
 	}
-	value_type &operator()(size_t c)
+	value_type &operator () (size_t c)
 	{
 		return A(r, c);
 	}

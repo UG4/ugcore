@@ -77,7 +77,7 @@ void PrintSimpleGrid(SimpleGrid& sg);
  * If size > 0 then each triangle that contains a vertex of the neighbourhood
  * N(size - 1) is contained in N(size).
  */
-template <class TPosAcc, class TIntAcc, class TNormAcc>
+template <typename TPosAcc, typename TIntAcc, typename TNormAcc>
 bool ObtainSimpleGrid(SimpleGrid& sgOut, Grid& grid,
 						Vertex* vrt1, Vertex* vrt2, size_t size,
 						TPosAcc& aaPos, TNormAcc& aaNorm,
@@ -100,7 +100,7 @@ bool ObtainSimpleGrid(SimpleGrid& sgOut, Grid& grid,
  * Please note that the resulting grid is not suited for swap, split
  * or collapse operations.
  */
-template <class TPosAcc, class TIntAcc, class TNormAcc>
+template <typename TPosAcc, typename TIntAcc, typename TNormAcc>
 bool ObtainSimpleGrid_CollapseEdge(SimpleGrid& sgOut, Grid& grid,
 						Edge* e, size_t size,
 						TPosAcc& aaPos, TNormAcc& aaNorm,

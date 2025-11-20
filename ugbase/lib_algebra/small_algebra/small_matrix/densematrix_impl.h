@@ -65,7 +65,7 @@ DenseMatrix<TStorage>::DenseMatrix(const DenseMatrix<TStorage> &rhs) : TStorage(
 template<typename TStorage>
 DenseMatrix<TStorage>::DenseMatrix(double value) : TStorage()
 {
-	operator =(value);
+	operator = (value);
 }
 
 // matrix assignment operators
@@ -73,7 +73,7 @@ DenseMatrix<TStorage>::DenseMatrix(double value) : TStorage()
 
 template<typename TStorage>
 DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator =(const this_type &t)
+DenseMatrix<TStorage>::operator = (const this_type &t)
 {
 	resize(t.num_rows(), t.num_cols());
 	for(size_t r1=0; r1<t.num_rows(); r1++)
@@ -85,7 +85,7 @@ DenseMatrix<TStorage>::operator =(const this_type &t)
 template<typename TStorage>
 template<typename T2>
 DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator =(const T2 &t)
+DenseMatrix<TStorage>::operator = (const T2 &t)
 {
 	resize(t.num_rows(), t.num_cols());
 	for(size_t r1=0; r1<t.num_rows(); r1++)
@@ -173,7 +173,7 @@ template<typename TStorage>
 DenseMatrix<TStorage> &
 DenseMatrix<TStorage>::operator *= (const this_type &mat)
 {
-	operator=(operator*(mat));
+	operator = (operator * (mat));
 	return *this;
 }
 
@@ -231,7 +231,7 @@ DenseMatrix<TStorage>::operator - (const this_type &other ) const
 ////// unary -
 template<typename TStorage>
 DenseMatrix<TStorage> 
-DenseMatrix<TStorage>::operator-() const
+DenseMatrix<TStorage>::operator - () const
 {
 	this_type erg;
 	erg.resize(num_rows(), num_cols());

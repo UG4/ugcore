@@ -51,11 +51,11 @@ public:
 	int _ref{0};
 	int _index{0};
 
-	bool operator==(LuaTableHandle_ const& o) const{
+	bool operator == (LuaTableHandle_ const& o) const{
 		return _ref == o._ref;
 	}
-	bool operator!=(LuaTableHandle_ const& o) const{
-		return !operator==(o);
+	bool operator != (LuaTableHandle_ const& o) const{
+		return !operator == (o);
 	}
 
 	static void attach(LuaTableHandle_* c, LuaTableHandle_** to) {
@@ -190,13 +190,13 @@ LuaTableHandle::~LuaTableHandle()
 }
 
 
-LuaTableHandle& LuaTableHandle::operator=(LuaTableHandle const& p)
+LuaTableHandle& LuaTableHandle::operator = (LuaTableHandle const& p)
 { untested();
 	impl::LuaTableHandle_::attach(p._data, &_data);
 	return *this;
 }
 
-LuaTableHandle& LuaTableHandle::operator=(LuaTableHandle&& p)
+LuaTableHandle& LuaTableHandle::operator = (LuaTableHandle&& p)
 {
 	impl::LuaTableHandle_::attach(p._data, &_data);
 	impl::LuaTableHandle_::detach(&p._data);

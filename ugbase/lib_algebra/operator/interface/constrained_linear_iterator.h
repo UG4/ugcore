@@ -88,7 +88,7 @@ class ConstrainedLinearIterator : public TLinIt
 		}
 
 		///	destructor
-		virtual ~ConstrainedLinearIterator(){}
+		virtual ~ConstrainedLinearIterator() = default;
 
 	protected:
 		/// @copydoc ILinearIterator::name()
@@ -162,7 +162,7 @@ class ConstrainedLinearIterator : public TLinIt
 			explicit apply_update_defect_impl(ConstrainedLinearIterator& _cli)
 			: cli(_cli) {}
 
-			bool operator()(vector_type& c, vector_type& d)
+			bool operator () (vector_type& c, vector_type& d)
 			{
 				// FIXME: This implementation is not correct.
 				// As the defect is calculated from possibly erroneous corrections, there is no telling
@@ -241,7 +241,7 @@ class ConstrainedLinearIterator : public TLinIt
 			explicit apply_update_defect_impl(ConstrainedLinearIterator& _cli)
 			: cli(_cli) {}
 
-			bool operator()(vector_type& c, vector_type& d)
+			bool operator () (vector_type& c, vector_type& d)
 			{
 				// apply precond and constraints
 				if (!cli.apply(c, d)) return false;
