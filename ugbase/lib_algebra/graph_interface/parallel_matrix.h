@@ -42,7 +42,7 @@ namespace detail{
 
 class bglp_vertex_descriptor : public std::pair<int, int>{
 public:
-	bglp_vertex_descriptor() {}
+	bglp_vertex_descriptor() = default;
 	bglp_vertex_descriptor(int a, int b) : std::pair<int, int>(a, b) {
 	}
 public:
@@ -76,7 +76,7 @@ private:
 	using base_edge_iterator = typename boost::graph_traits<T>::out_edge_iterator;
 	class vertex_iterator_ // facade?
 		: public std::iterator<std::input_iterator_tag, vertex_descriptor,
-		                       ptrdiff_t, vertex_descriptor, vertex_descriptor> { //
+		                       ptrdiff_t, vertex_descriptor, vertex_descriptor> { // ø todo iterator
 	public:
 		explicit vertex_iterator_() : _owners(nullptr) {}
 		explicit vertex_iterator_(base_vertex_iterator b, owners const* o) : _base(b), _owners(o) {

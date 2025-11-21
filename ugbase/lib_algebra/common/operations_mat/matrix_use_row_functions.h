@@ -31,6 +31,7 @@
  */
 
 #include "../operations_vec.h"
+
 namespace ug
 {
 // MATRIX_USE_ROW_FUNCTIONS

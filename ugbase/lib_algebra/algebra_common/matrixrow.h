@@ -72,18 +72,22 @@ public:
 	MatrixRow(TMatrix &_A, size_t _r) : A(_A), r(_r)
 	{
 	}
+
 	iterator begin()
 	{
 		return A.begin_row(r);
 	}
+
 	iterator end()
 	{
 		return A.end_row(r);
 	}
+
 	iterator begin() const
 	{
 		return A.begin_row(r);
 	}
+
 	iterator end() const
 	{
 		return A.end_row(r);
@@ -98,6 +102,7 @@ public:
 	{
 		return A(r, c);
 	}
+
 	bool has_connection(size_t c) const
 	{
 		return A.has_connection(r, c);
@@ -107,6 +112,7 @@ public:
 	{
 		return A.num_cols();
 	}
+
 	size_t num_connections() const
 	{
 		return A.num_connections(r);

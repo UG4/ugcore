@@ -49,10 +49,7 @@ public:
 		m = &m_;
 	}
 
-	~localMatrix_from_mat_and_array()
-	{
-
-	}
+	~localMatrix_from_mat_and_array() = default;
 
 	size_t num_rows() const { return m->num_rows(); }
 	size_t num_cols() const { return m->num_cols(); }
