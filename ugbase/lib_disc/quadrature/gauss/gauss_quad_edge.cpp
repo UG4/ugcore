@@ -339,5 +339,5 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 	default: UG_THROW("Order "<<order<<" not available for GaussQuadrature of edge.");
 	}
 }
-}; // namespace ug
+} // namespace ug
 

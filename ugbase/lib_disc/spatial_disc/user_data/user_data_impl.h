@@ -1,20 +1,20 @@
 /*
  * Copyright (c) 2011-2015:  G-CSC, Goethe University Frankfurt
  * Author: Andreas Vogel
- * 
+ *
  * This file is part of UG4.
- * 
+ *
  * UG4 is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License version 3 (as published by the
  * Free Software Foundation) with the following additional attribution
  * requirements (according to LGPL/GPL v3 §7):
- * 
+ *
  * (1) The following notice must be displayed in the Appropriate Legal Notices
  * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
- * 
+ *
  * (2) The following notice must be displayed at a prominent place in the
  * terminal output of covered works: "Based on UG4 (www.ug4.org/license)".
- * 
+ *
  * (3) The following bibliography is recommended for citation and must be
  * preserved in all covered files:
  * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
@@ -23,7 +23,7 @@
  * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
  *   flexible software system for simulating pde based models on high performance
  *   computers. Computing and visualization in science 16, 4 (2013), 165-179"
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -77,7 +77,7 @@ size_t ICplUserData<dim>::register_local_ip_series(const MathVector<ldim>* vPos,
 	if(m_locPosDim == -1) m_locPosDim = ldim;
 	else if(m_locPosDim != ldim)
 		UG_THROW("Local IP dimension conflict");
-	
+
 //	get the "right" time point specification
 	int theTimePoint = (m_defaultTimePoint >= 0)? m_defaultTimePoint : timePointSpec;
 
@@ -103,9 +103,9 @@ size_t ICplUserData<dim>::register_local_ip_series(const MathVector<ldim>* vPos,
 
 //	invoke callback:
 //	This callback is called, whenever the local_ip_series have changed. It
-//	allows derived classes to react on this changes. For example, the data
+//	allows derived classes to react on these changes. For example, the data
 //	linker must himself request local_ip_series from the data inputs of
-//	the linker. In addition value fields and derivative fields must be adjusted
+//	the linker. In addition, value fields and derivative fields must be adjusted
 //	in UserData<TData, dim> etc.
 	local_ip_series_added(m_vNumIP.size() - 1);
 
@@ -146,9 +146,9 @@ void ICplUserData<dim>::set_local_ips(const size_t seriesID,
 
 //	invoke callback:
 //	This callback is called, whenever the local_ip_series have changed. It
-//	allows derived classes to react on this changes. For example, the data
+//	allows derived classes to react on these changes. For example, the data
 //	linker must himself request local_ip_series from the data inputs of
-//	the linker. In addition value fields and derivative fields must be adjusted
+//	the linker. In addition, value fields and derivative fields must be adjusted
 //	in UserData<TData, dim> etc.
 	local_ips_changed(seriesID, numIP);
 }
@@ -164,10 +164,10 @@ void ICplUserData<dim>::set_time_point(const size_t seriesID,
 //	check that series is changeable
 	if(!m_vMayChange[seriesID])
 		UG_THROW("Time point specification is not changable, but trying to set a new one.");
-	
+
 //	set the new time point specification (if it is not prescribed by the object)
 	m_vTimePoint[seriesID] = (m_defaultTimePoint >= 0)? m_defaultTimePoint : timePointSpec;
-	
+
 //TODO: Should we call the callback here? (No data sizes are changed!)
 }
 
@@ -221,7 +221,7 @@ template <int dim>
 bool ICplUserData<dim>::at_current_time(size_t s) const
 {
 	UG_ASSERT(s < num_series(), "Wrong series id:" << s << ">=" << num_series());
-	
+
 	int time_spec;
 	if ((time_spec = m_vTimePoint[s]) >= 0)
 		return ((size_t) time_spec) == m_timePoint;

@@ -65,7 +65,7 @@ class ScaleAddLinker
 
 	public:
 	///	constructor
-		ScaleAddLinker() {}
+		ScaleAddLinker() = default;
 
 	///	constructor
 		ScaleAddLinker(const ScaleAddLinker& linker);
@@ -160,13 +160,13 @@ class ScaleAddLinker
 	///	data input
 		std::vector<SmartPtr<CplUserData<TDataScale, dim> > > m_vpScaleData;
 
-	///	data input casted to dependend data
+	///	data input casted to dependent data
 		std::vector<SmartPtr<DependentUserData<TDataScale, dim> > > m_vpScaleDependData;
 
 	///	data input
 		std::vector<SmartPtr<CplUserData<TData, dim> > > m_vpUserData;
 
-	///	data input casted to dependend data
+	///	data input casted to dependent data
 		std::vector<SmartPtr<DependentUserData<TData, dim> > > m_vpDependData;
 };
 

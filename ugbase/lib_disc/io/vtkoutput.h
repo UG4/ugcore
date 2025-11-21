@@ -812,7 +812,7 @@ protected:
 	 * \param[in]		grid		Grid
 	 * \param[in]		ssGrp		subset
 	 * \param[in]		dim			dimension of subsets
-	 * \param[in]		numVert		number of vertices
+	 * \param[in]		numElem		number of elements
 	 */
 		template <typename TFunction>
 		void write_cell_values(VTKFileWriter& File, TFunction& u,

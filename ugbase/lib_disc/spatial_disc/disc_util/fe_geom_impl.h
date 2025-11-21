@@ -29,6 +29,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
+#ifndef IG_UGBASE_LIB_DISC_SPATIAL_DISC_DISC_UTIL_FE_GENOM_IMPL_H
+#define IG_UGBASE_LIB_DISC_SPATIAL_DISC_DISC_UTIL_FE_GENOM_IMPL_H
 
 #include "fe_geom.h"
 
@@ -106,3 +108,5 @@ update(GridObject* elem, const MathVector<worldDim>* vCorner,
 }
 
 } // end namespace ug
+
+#endif

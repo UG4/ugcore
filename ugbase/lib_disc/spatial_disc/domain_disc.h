@@ -112,42 +112,44 @@ class DomainDiscretizationBase
 		{};
 
 	/// virtual destructor
-		virtual ~DomainDiscretizationBase() {};
+		~DomainDiscretizationBase() override = default;
 
 	///////////////////////////
 	// Time independent part
 	///////////////////////////
 
 	/// \copydoc IAssemble::assemble_jacobian()
-		virtual void assemble_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<DoFDistribution> dd);
-		virtual void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl)
+		void assemble_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) override;
+		void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl) override
 		{assemble_jacobian(J, u, dd(gl));}
 
 	/// \copydoc IAssemble::assemble_defect()
-		virtual void assemble_defect(vector_type& d, const vector_type& u, ConstSmartPtr<DoFDistribution> dd);
-		virtual void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl)
+		void assemble_defect(vector_type& d, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) override;
+		void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl) override
 		{assemble_defect(d, u, dd(gl));}
 
 	/// \copydoc IAssemble::assemble_linear()
-		virtual void assemble_linear(matrix_type& A, vector_type& b, ConstSmartPtr<DoFDistribution> dd);
-		virtual void assemble_linear(matrix_type& mat, vector_type& rhs, const GridLevel& gl)
-		{assemble_linear(mat, rhs, dd(gl));}
+		void assemble_linear(matrix_type& A, vector_type& b, ConstSmartPtr<DoFDistribution> dd) override;
+		void assemble_linear(matrix_type& mat, vector_type& rhs, const GridLevel& gl) override
+		    {assemble_linear(mat, rhs, dd(gl));}
 
 	/// \copydoc IAssemble::assemble_rhs()
-		virtual void assemble_rhs(vector_type& rhs, const vector_type& u, ConstSmartPtr<DoFDistribution> dd);
-		virtual void assemble_rhs(vector_type& rhs, const vector_type& u, const GridLevel& gl)
-		{assemble_rhs(rhs, u, dd(gl));}
+		void assemble_rhs(vector_type& rhs, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) override;
+		void assemble_rhs(vector_type& rhs, const vector_type& u, const GridLevel& gl) override
+			{assemble_rhs(rhs, u, dd(gl));}
 
 	/// \copydoc IAssemble::assemble_rhs()
-		virtual void assemble_rhs(vector_type& rhs, ConstSmartPtr<DoFDistribution> dd)
-		{assemble_rhs(rhs, rhs, dd);}
-		virtual void assemble_rhs(vector_type& rhs, const GridLevel& gl)
-		{assemble_rhs(rhs, dd(gl));}
+		void assemble_rhs(vector_type& rhs, ConstSmartPtr<DoFDistribution> dd) override
+			{assemble_rhs(rhs, rhs, dd);}
+
+		void assemble_rhs(vector_type& rhs, const GridLevel& gl) override
+			{assemble_rhs(rhs, dd(gl));}
 
 	/// \copydoc IAssemble::adjust_solution()
-		virtual void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd);
-		virtual void adjust_solution(vector_type& u, const GridLevel& gl)
-		{adjust_solution(u, dd(gl));}
+		void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd) override;
+
+		void adjust_solution(vector_type& u, const GridLevel& gl) override
+			{adjust_solution(u, dd(gl));}
 
 	///	wrapper for GridFunction
 	/// \{
@@ -174,80 +176,87 @@ class DomainDiscretizationBase
 	// Time dependent part
 	///////////////////////
 	///	\copydoc IDomainDiscretization::prepare_timestep()
-		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, number future_time, ConstSmartPtr<DoFDistribution> dd);
-		virtual	void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, number future_time, const GridLevel& gl)
-		{prepare_timestep(vSol, future_time, dd(gl));}
+		void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, number future_time, ConstSmartPtr<DoFDistribution> dd) override;
+
+		void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, number future_time, const GridLevel& gl) override
+			{prepare_timestep(vSol, future_time, dd(gl));}
 
 
 	/// \copydoc IDomainDiscretization::prepare_timestep_elem()
-		virtual void prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-		                              ConstSmartPtr<DoFDistribution> dd);
-		virtual	void prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl)
-		{prepare_timestep_elem(vSol, dd(gl));}
+		void prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+                               ConstSmartPtr<DoFDistribution> dd) override;
+
+		void prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl) override
+			{prepare_timestep_elem(vSol, dd(gl));}
 
 	/// \copydoc IDomainDiscretization::assemble_jacobian()
-		virtual void assemble_jacobian(matrix_type& J,
-									   ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-									   const number s_a0,
-									   ConstSmartPtr<DoFDistribution> dd);
-		virtual void assemble_jacobian(matrix_type& J,
-		                               ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-		                               const number s_a, const GridLevel& gl)
-		{assemble_jacobian(J, vSol, s_a, dd(gl));}
+		void assemble_jacobian(matrix_type& J,
+	                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+	                           const number s_a0,
+	                           ConstSmartPtr<DoFDistribution> dd) override;
+
+		void assemble_jacobian(matrix_type& J,
+	                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+	                           const number s_a, const GridLevel& gl) override
+		  {assemble_jacobian(J, vSol, s_a, dd(gl));}
 
 	/// \copydoc IDomainDiscretization::assemble_defect()
-		virtual void assemble_defect(vector_type& d,
-									 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-									 const std::vector<number>& vScaleMass,
-									 const std::vector<number>& vScaleStiff,
-									 ConstSmartPtr<DoFDistribution> dd);
-		virtual	void assemble_defect(vector_type& d,
-		       	                     ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-		       	                     const std::vector<number>& vScaleMass,
-		       	                     const std::vector<number>& vScaleStiff,
-		       	                     const GridLevel& gl)
-		{assemble_defect(d, vSol, vScaleMass, vScaleStiff, dd(gl));}
+		void assemble_defect(vector_type& d,
+	                         ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+	                         const std::vector<number>& vScaleMass,
+	                         const std::vector<number>& vScaleStiff,
+	                         ConstSmartPtr<DoFDistribution> dd) override;
+
+		void assemble_defect(vector_type& d,
+	                         ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+	                         const std::vector<number>& vScaleMass,
+	                         const std::vector<number>& vScaleStiff,
+	                         const GridLevel& gl) override
+	    {assemble_defect(d, vSol, vScaleMass, vScaleStiff, dd(gl));}
 
 	/// \copydoc IDomainDiscretization::assemble_linear()
-		virtual void assemble_linear(matrix_type& A, vector_type& b,
-									 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-									 const std::vector<number>& vScaleMass,
-									 const std::vector<number>& vScaleStiff,
-									 ConstSmartPtr<DoFDistribution> dd);
-		virtual void assemble_linear(matrix_type& A, vector_type& b,
-		                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-		                             const std::vector<number>& vScaleMass,
-		                             const std::vector<number>& vScaleStiff,
-		                             const GridLevel& gl)
-		{assemble_linear(A, b, vSol, vScaleMass, vScaleStiff, dd(gl));}
+		void assemble_linear(matrix_type& A, vector_type& b,
+	                         ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+	                         const std::vector<number>& vScaleMass,
+	                         const std::vector<number>& vScaleStiff,
+	                         ConstSmartPtr<DoFDistribution> dd) override;
+
+		void assemble_linear(matrix_type& A, vector_type& b,
+	                         ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+	                         const std::vector<number>& vScaleMass,
+	                         const std::vector<number>& vScaleStiff,
+	                         const GridLevel& gl) override
+			{assemble_linear(A, b, vSol, vScaleMass, vScaleStiff, dd(gl));}
 
 	/// \copydoc IDomainDiscretization::assemble_rhs()
-		virtual void assemble_rhs(	 vector_type& b,
-									 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-									 const std::vector<number>& vScaleMass,
-									 const std::vector<number>& vScaleStiff,
-									 ConstSmartPtr<DoFDistribution> dd);
-		virtual void assemble_rhs(	 vector_type& b,
-		                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-		                             const std::vector<number>& vScaleMass,
-		                             const std::vector<number>& vScaleStiff,
-		                             const GridLevel& gl)
-		{assemble_rhs(b, vSol, vScaleMass, vScaleStiff, dd(gl));}
+		void assemble_rhs( vector_type& b,
+	                       ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+	                       const std::vector<number>& vScaleMass,
+	                       const std::vector<number>& vScaleStiff,
+	                       ConstSmartPtr<DoFDistribution> dd) override;
+
+		void assemble_rhs( vector_type& b,
+	                       ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+	                       const std::vector<number>& vScaleMass,
+	                       const std::vector<number>& vScaleStiff,
+	                       const GridLevel& gl) override
+			{assemble_rhs(b, vSol, vScaleMass, vScaleStiff, dd(gl));}
 
 	/// \copydoc IDomainDiscretization::adjust_solution()
-		virtual void adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd);
-		virtual void adjust_solution(vector_type& u, number time, const GridLevel& gl)
-		{adjust_solution(u, time, dd(gl));}
+		void adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd) override;
+		void adjust_solution(vector_type& u, number time, const GridLevel& gl) override
+			{adjust_solution(u, time, dd(gl));}
 
 	///	\copydoc IDomainDiscretization::finish_timestep()
-		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd);
-		virtual	void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl)
-		{finish_timestep(vSol, dd(gl));}
+		void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) override;
+		void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl) override
+			{finish_timestep(vSol, dd(gl));}
 
 	/// \copydoc IDomainDiscretization::finish_timestep_elem()
-		virtual void finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd);
-		virtual void finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl)
-		{finish_timestep_elem(vSol, dd(gl));}
+		void finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) override;
+
+		void finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl) override
+			{finish_timestep_elem(vSol, dd(gl));}
 
 	///////////////////////////
 	// Mass and Stiffness Matrix
@@ -259,18 +268,20 @@ class DomainDiscretizationBase
 		{init_all_exports(GridLevel(GridLevel::TOP), bAsTimeDependent);}
 
 	/// assembles the mass matrix
-		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u,
-		                                  ConstSmartPtr<DoFDistribution> dd);
-		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u,
-		                                  const GridLevel& gl)
-		{assemble_mass_matrix(M, u, dd(gl));}
+		void assemble_mass_matrix(matrix_type& M, const vector_type& u,
+			                      ConstSmartPtr<DoFDistribution> dd) override;
+
+		void assemble_mass_matrix(matrix_type& M, const vector_type& u,
+							      const GridLevel& gl) override
+			{assemble_mass_matrix(M, u, dd(gl));}
 
 	/// assembles the stiffness matrix
-		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
-		                                       ConstSmartPtr<DoFDistribution> dd);
-		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
-		                                       const GridLevel& gl)
-		{assemble_stiffness_matrix(A, u, dd(gl));}
+		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
+                                   ConstSmartPtr<DoFDistribution> dd) override;
+
+		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
+                                   const GridLevel& gl) override
+			{assemble_stiffness_matrix(A, u, dd(gl));}
 
 	///////////////////////////
 	// Init. all exports (an optional operation, to use the exports for plotting etc.)
@@ -281,39 +292,41 @@ class DomainDiscretizationBase
 public:
 	/// \copydoc IDomainDiscretization::mark_error()
 	// stationary
-		virtual void calc_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, error_vector_type* u_vtk = nullptr);
-		virtual	void calc_error(const vector_type& u, const GridLevel& gl, error_vector_type* u_vtk = nullptr)
-		{calc_error(u, dd(gl));}
+		void calc_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, error_vector_type* u_vtk = nullptr) override;
+
+		void calc_error(const vector_type& u, const GridLevel& gl, error_vector_type* u_vtk = nullptr) override
+			{calc_error(u, dd(gl));}
 
 		virtual	void calc_error(const GridFunction<TDomain,TAlgebra>& u)
-		{calc_error(u, u.dd(), nullptr);}
+			{calc_error(u, u.dd(), nullptr);}
 		virtual	void calc_error(const GridFunction<TDomain,TAlgebra>& u, error_vector_type* u_vtk)
-		{calc_error(u, u.dd(), u_vtk);}
+			{calc_error(u, u.dd(), u_vtk);}
 
 	// instationary
-		virtual void calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-								ConstSmartPtr<DoFDistribution> dd,
-								const std::vector<number>& vScaleMass,
-								const std::vector<number>& vScaleStiff,
-								error_vector_type* u_vtk);
-		virtual void calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-								const std::vector<number>& vScaleMass,
-								const std::vector<number>& vScaleStiff,
-								const GridLevel& gl,
-								error_vector_type* u_vtk)
+		void calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+                    ConstSmartPtr<DoFDistribution> dd,
+                    const std::vector<number>& vScaleMass,
+                    const std::vector<number>& vScaleStiff,
+                    error_vector_type* u_vtk) override;
+
+		void calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+                    const std::vector<number>& vScaleMass,
+                    const std::vector<number>& vScaleStiff,
+                    const GridLevel& gl,
+                    error_vector_type* u_vtk) override
 		{
-			calc_error((ConstSmartPtr<VectorTimeSeries<vector_type> >) vSol, dd(gl),
+			calc_error(static_cast<ConstSmartPtr<VectorTimeSeries<vector_type>>>(vSol), dd(gl),
 					   vScaleMass, vScaleStiff, u_vtk);
 		}
 
-		virtual void mark_with_strategy(IRefiner& refiner, SmartPtr <IElementMarkingStrategy<TDomain> > strategy);
+		void mark_with_strategy(IRefiner& refiner, SmartPtr <IElementMarkingStrategy<TDomain> > strategy) override;
 
 		/// marks error indicators as invalid; in order to revalidate them,
 		/// they will have to be newly calculated by a call to calc_error
-		virtual void invalidate_error();
+		void invalidate_error() override;
 
 		/// returns whether current error values are valid
-		virtual bool is_error_valid();
+		bool is_error_valid() override;
 
 	protected:
 		IMultigridElementIndicators<TDomain> m_mgElemErrors;  // holding the indicators
@@ -324,8 +337,8 @@ public:
 
 	public:
 	/// \{
-		virtual SmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() {return m_spAssTuner;}
-		virtual ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const {return m_spAssTuner;}
+		SmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() override {return m_spAssTuner;}
+		ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const override {return m_spAssTuner;}
 	/// \}
 
 	public:
@@ -353,10 +366,10 @@ public:
 			m_vDomainElemDisc.push_back(elem);
 		}
 
-	/// removes a element discretization from the assembling process
+	/// removes an element discretization from the assembling process
 	/**
 	 * This function removes a previously added IElemDisc from the assembling.
-	 * The element-wise assemblings are no longer called.
+	 * The element-wise assembling methods are no longer called.
 	 *
 	 * \param[in] 	elem		elem disc to be removed
 	 */
@@ -400,10 +413,10 @@ public:
 			m_vDomainElemError.push_back(elem);
 		}
 
-		/// removes a element discretization from the assembling process
+		/// removes an element discretization from the assembling process
 		/**
 		 * This function removes a previously added IElemDisc from the assembling.
-		 * The element-wise assemblings are no longer called.
+		 * The element-wise assembling methods are no longer called.
 		 *
 		 * \param[in] 	elem		elem disc to be removed
 		 */
@@ -449,7 +462,7 @@ public:
 	/// removes a constraint from the assembling process
 	/**
 	 * This function removes a previously added IConstraint from the assembling.
-	 * The constraint's assemblings are no longer called.
+	 * The constraint's assembling methods are no longer called.
 	 *
 	 * \param[in] 	pp		constraint to be removed
 	 */
@@ -489,10 +502,10 @@ public:
 		}
 
 	///	returns number of registered constraints
-		virtual size_t num_constraints() const {return m_vConstraint.size();}
+		size_t num_constraints() const override {return m_vConstraint.size();}
 
-	///	returns the i'th constraint
-		virtual SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) {return m_vConstraint[i];}
+	///	returns the i:th constraint
+		SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) override {return m_vConstraint[i];}
 
 		SmartPtr<approx_space_type> approximation_space ()				{return m_spApproxSpace;}
 		ConstSmartPtr<approx_space_type> approximation_space () const	{return m_spApproxSpace;}
@@ -635,11 +648,11 @@ public:
 /// domain discretization implementing the interface
 /**
  * This class template is an implementation of the IDomainDiscretization
- * interface based on the simple groupping of several local (element) 
+ * interface based on the simple grouping of several local (element)
  * discretizations and constraints.
  *
  * This is the "usual" and "trivial" global discretizations: all the
- * local (element) discretizations are perfomed once for every element, and
+ * local (element) discretizations are performed once for every element, and
  * their contributions are algebraically added to the global data.
  *
  * \tparam TDomain          domain type

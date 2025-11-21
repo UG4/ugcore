@@ -36,7 +36,7 @@
 #include <cmath> // for floor
 #include <algorithm>
 #include <string>
-#include <string.h>
+#include <cstring>
 #include "common/log.h"
 #include "common/util/string_util.h"
 #include "profile_node.h"

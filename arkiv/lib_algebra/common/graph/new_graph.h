@@ -95,9 +95,7 @@ public:
 
 	//!
 	//! destructor
-	~cgraph()
-	{
-	}
+	~cgraph() = default;
 
 	//! returns nr of nodes the node "node" is connected to.
 	size_t num_connections(size_t node) const

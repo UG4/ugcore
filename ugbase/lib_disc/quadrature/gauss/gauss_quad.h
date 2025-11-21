@@ -67,14 +67,14 @@ class GaussQuadBase
 	/// number of integration points
 		static size_t size() {return nip;}
 
-	/// returns i'th integration point
+	/// returns i:th integration point
 		static const MathVector<dim>& point(size_t i)
 			{UG_ASSERT(i < size(), "Wrong index"); return m_vPoint[i];}
 
 	/// returns all positions in an array of size()
 		static const MathVector<dim>* points() {return m_vPoint;}
 
-	/// return the i'th weight
+	/// return the i:th weight
 		static number weight(size_t i)
 			{UG_ASSERT(i < size(), "Wrong index"); return m_vWeight[i];}
 
@@ -94,7 +94,7 @@ class GaussQuadBase
 
 /// flexible order gauss quadrature
 /**
- * Providing gauss quadrature for an reference element. This class wrapps a
+ * Providing gauss quadrature for a reference element. This class wraps a
  * static GaussQuadrature into the Quadrature interface.
  *
  * \tparam 		TRefElem		Reference Element Type
@@ -108,7 +108,7 @@ class FlexGaussQuadrature
 		FlexGaussQuadrature(int order);
 
 	///	Destructor
-		~FlexGaussQuadrature() = default;
+		~FlexGaussQuadrature() override = default;
 };
 
 } // namespace ug

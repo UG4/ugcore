@@ -54,7 +54,7 @@ class Traverser
 {
 	public:
 		Traverser();
-		virtual ~Traverser();
+		virtual ~Traverser() = default;
 
 	protected:
 		void apply(SPNode& node);

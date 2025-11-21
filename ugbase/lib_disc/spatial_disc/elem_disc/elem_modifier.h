@@ -61,7 +61,7 @@ class IElemDiscModifier
 	 /// \}
 
 	/// Virtual destructor
-		virtual ~IElemDiscModifier()= default;
+		virtual ~IElemDiscModifier() = default;
 
 
 	/// virtual initiates pre-computations before the standard element assembling

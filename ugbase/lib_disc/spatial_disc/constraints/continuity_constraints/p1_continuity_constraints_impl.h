@@ -1147,7 +1147,7 @@ adjust_correction
 }
 
 
-}; // namespace ug
+} // namespace ug
 
 
 

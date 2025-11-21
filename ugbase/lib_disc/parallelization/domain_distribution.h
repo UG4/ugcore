@@ -42,10 +42,10 @@ namespace ug
 
 class PartitionMap;
 
-///	partitions a domain by repeatedly cutting it along the different axis
+/*///	partitions a domain by repeatedly cutting it along the different axis
 template <typename TDomain>
 static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMap,
-									  int firstAxisToCut);
+									  int firstAxisToCut);*/
 
 ///	partitions a domain by sorting all elements into a regular grid
 template <typename TDomain>

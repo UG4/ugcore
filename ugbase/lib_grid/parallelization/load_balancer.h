@@ -52,7 +52,7 @@ class LoadBalancer{
 	public:
 		LoadBalancer();
 
-		virtual ~LoadBalancer();
+		virtual ~LoadBalancer() = default;
 
 		virtual void set_grid(MultiGrid* mg);
 

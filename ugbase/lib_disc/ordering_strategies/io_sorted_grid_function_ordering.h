@@ -29,7 +29,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
-
+#ifndef IG_UGBASE_LIB_DISC_ORDERING_STRATEGIES_IO_SORTED_GRID_FUNCTION_ORDERING_H
+#define IG_UGBASE_LIB_DISC_ORDERING_STRATEGIES_IO_SORTED_GRID_FUNCTION_ORDERING_H
 
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
@@ -79,3 +80,5 @@ private:
 };
 
 } //namespace
+
+#endif

@@ -99,7 +99,7 @@ vector3 PNCTriangleNorm(const vector3& p0, const vector3& p1, const vector3& p2,
 
 class ILocalRemesher{
 	public:
-		virtual ~ILocalRemesher()	{}
+		virtual ~ILocalRemesher() = default;
 		virtual void smooth_vertex(Vertex* vrt) = 0;
 		virtual Vertex* collapse_edge(Edge* edge) = 0;
 		virtual Vertex* split_edge(Edge* edge) = 0;

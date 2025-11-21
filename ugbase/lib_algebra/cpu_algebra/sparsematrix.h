@@ -33,7 +33,7 @@
 #ifndef __H__UG__CPU_ALGEBRA__SPARSEMATRIX__
 #define __H__UG__CPU_ALGEBRA__SPARSEMATRIX__
 
-#include <math.h>
+#include <cmath>
 #include "common/common.h"
 #include "../algebra_common/sparsematrix_util.h"
 #include <iostream>

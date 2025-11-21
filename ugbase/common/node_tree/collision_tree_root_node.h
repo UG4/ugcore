@@ -56,7 +56,7 @@ class CollisionTreeRootNode : public BoxedGroupNode
 	public:
 		static SPCollisionTreeRootNode create();
 
-		~CollisionTreeRootNode() override;
+		~CollisionTreeRootNode() override = default;
 
 		virtual void clear_points();
 		virtual int num_points();
@@ -65,7 +65,7 @@ class CollisionTreeRootNode : public BoxedGroupNode
 		virtual const vector3* get_points() const;
 
 	protected:
-		CollisionTreeRootNode();
+		CollisionTreeRootNode() = default;
 
 	protected:
 		using PointVec = std::vector<vector3>;

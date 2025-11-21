@@ -35,7 +35,7 @@
 
 #include <vector>
 #include <iostream>
-#include <assert.h>
+#include <cassert>
 
 #include "common/common.h"
 #include "lib_algebra/small_algebra/blocks.h"	// needed for BlockRef

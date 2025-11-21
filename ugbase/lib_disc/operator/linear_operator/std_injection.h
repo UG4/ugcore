@@ -88,7 +88,7 @@ class StdInjection :
 		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
 	///	virtual Destructor
-	~StdInjection() override = default;
+		~StdInjection() override = default;
 	public:
 	///	Set approximation level
 		void set_levels(GridLevel coarseLevel, GridLevel fineLevel) override;

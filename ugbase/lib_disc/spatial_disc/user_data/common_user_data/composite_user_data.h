@@ -60,7 +60,7 @@ public:
 	
 	CompositeUserData(bool continuous) : m_bContinuous(continuous), m_bRequiresGridFunction(false) {}
 
-	virtual ~CompositeUserData(){}
+	~CompositeUserData() override = default;
 
 	/// Add 'UserData' object for given subset index.
 	void add

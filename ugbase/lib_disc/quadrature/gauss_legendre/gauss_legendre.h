@@ -49,7 +49,7 @@ class GaussLegendre : public QuadratureRule<1>
 		GaussLegendre(size_t order);
 
 	///	destructor
-		~GaussLegendre();
+		~GaussLegendre() override;
 };
 
 } // namespace ug

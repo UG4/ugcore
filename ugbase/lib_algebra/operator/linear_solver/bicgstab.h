@@ -433,7 +433,7 @@ class BiCGStab
 		}
 
 	public:
-		virtual std::string config_string() const
+		std::string config_string() const override
 		{
 			std::stringstream ss;
 			ss << "BiCGStab( restart = " << m_numRestarts << ", min_orthogonality = " << m_minOrtho << ")\n";

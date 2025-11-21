@@ -29,7 +29,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
-
+#ifndef IG_UGBASE_LIB_DISC_SPATIAL_DISC_DISC_UTIL_FV1_SSS_IMPL_H
+#define IG_UGBASE_LIB_DISC_SPATIAL_DISC_DISC_UTIL_FV1_SSS_IMPL_H
 /*
  * Singular sources and sinks for the FV discretizations: Implementation of the functions
  */
@@ -257,3 +258,4 @@ void FVSingularSourcesAndSinks<dim, TPointData, TLineData>::line_iterator<TElem,
 
 } // end of namespace ug
 
+#endif

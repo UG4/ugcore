@@ -84,8 +84,6 @@ NeuriteProjector::NeuriteProjector(SPIGeometry3d geometry)
 }
 
 
-NeuriteProjector::~NeuriteProjector() {}
-
 
 void NeuriteProjector::set_geometry(SPIGeometry3d geometry)
 {

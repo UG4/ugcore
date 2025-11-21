@@ -109,7 +109,7 @@ public:
 
 
 public:
-	virtual ~SomaProjector ()					{}
+	virtual ~SomaProjector () = default;
 
 ///	called when a new vertex was created from an old edge.
 	virtual number new_vertex(Vertex* vrt, Edge* parent)

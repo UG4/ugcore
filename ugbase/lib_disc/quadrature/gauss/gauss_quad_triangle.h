@@ -98,6 +98,6 @@ template <>
 class GaussQuadrature<ReferenceTriangle, 0> 
 : public GaussQuadrature<ReferenceTriangle, 1>{};
 
-}; // namespace ug
+} // namespace ug
 
 #endif

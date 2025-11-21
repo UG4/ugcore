@@ -164,7 +164,7 @@ class MessageHub
 		using SPCallbackId = SmartPtr<CallbackId>;
 
 	public:
-		MessageHub();
+		MessageHub() = default;
 		~MessageHub();
 
 	///	registers a function callback given a message-type.

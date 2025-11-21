@@ -74,7 +74,7 @@ class Raster{
 	public:
 		class MultiIndex {
 			public:
-				MultiIndex();
+				MultiIndex() = default;
 				MultiIndex(size_t i);
 				int	dim () const;
 				void 		set (size_t i);
@@ -99,7 +99,7 @@ class Raster{
 
 		class Coordinate {
 			public:
-				Coordinate();
+				Coordinate() = default;
 				Coordinate(number c);
 				Coordinate(const MathVector<TDIM, number>& v);
 

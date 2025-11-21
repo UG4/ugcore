@@ -60,7 +60,7 @@ class UserDataInfo {
 		virtual bool continuous() const = 0;
 
 	/// virtual destructor
-		virtual ~UserDataInfo() {}
+		virtual ~UserDataInfo() = default;
 
 	public:
 	///	returns if grid function is needed for evaluation

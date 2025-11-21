@@ -510,7 +510,7 @@ static void Domain(Registry& reg, string grp)
 			.template add_constructor<void (*)(SmartPtr<TDomain>, const AlgebraType&)>("Domain#AlgebraType")
 			.add_method("domain", static_cast<SmartPtr<TDomain> (T::*)()>(&T::domain))
 			.add_method("surface_view", static_cast<ConstSmartPtr<SurfaceView> (T::*)() const>(&T::surface_view))
-			.add_method("get_dim", &T::get_dim)
+			.add_method("get_dim", &T::get_dim_bridge)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ApproximationSpace", tag);
 	}

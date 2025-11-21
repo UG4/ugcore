@@ -128,7 +128,7 @@ class DomainInfo
  * a template Parameter in several classes to distinguish at compile-time
  * between needed types and parameters. It mainly has a grid and a subset
  * handler for the grid to define different physical subsets. In addition
- * to a grid, that may only contain topological informations a domain always
+ * to a grid, that may only contain topological information a domain always
  * has a Position Attachment holding the physical coordinates.
  *
  * \tparam	TGrid			Grid type
@@ -149,11 +149,11 @@ class IDomain
 	/**
 	 * creates an empty domain. Grid and Subset Handler are set up. The
 	 * Distributed Grid Manager is set in the parallel case.
-	 * \param[in]	options		Grid Options (optinal)*/
+	 * \param[in]	isAdaptive		Grid Options (optinal)*/
 		IDomain(bool isAdaptive = true);
 
 	///	Destructor
-		virtual ~IDomain();
+		virtual ~IDomain() = default;
 
 	///	World Dimension
 		virtual int get_dim() const = 0;
@@ -316,11 +316,11 @@ class Domain : public IDomain<TGrid, TSubsetHandler>
 	 * Distributed Grid Manager is set in the parallel case.
 	 * \param[in]	isAdaptive		Grid Options (optional)
 	 */
-		Domain(bool isAdaptive = true);
-		virtual ~Domain() = default;
+		explicit Domain(bool isAdaptive = true);
+		~Domain() override = default;
 
 	///	World Dimension
-		virtual int get_dim() const {return dim;}
+		int get_dim() const override {return dim;}
 
 	///	returns Position Attachment
 		inline position_attachment_type& position_attachment(){return m_aPos;}
@@ -334,7 +334,7 @@ class Domain : public IDomain<TGrid, TSubsetHandler>
 	///	const access to Position Accessor
 		inline const position_accessor_type& position_accessor() const{return m_aaPos;}
 
-		virtual SPIGeometry3d geometry3d() const	{return m_geometry3d;}
+		SPIGeometry3d geometry3d() const override {return m_geometry3d;}
 
 	protected:
 		position_attachment_type m_aPos;	///<Position Attachment

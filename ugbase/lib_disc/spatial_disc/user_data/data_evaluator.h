@@ -46,7 +46,7 @@ enum ProcessType {PT_ALL=0, PT_STATIONARY, PT_INSTATIONARY, MAX_PROCESS};
  * This class is a helper class to facilitate the correct evaluation of data
  * during the assembling process. For a given set of IElemDisc this class
  * prepares the assembling, checks for DataImport/DataExports and schedules the
- * evaluation of the data in the correct order. In addition the coupling
+ * evaluation of the data in the correct order. In addition, the coupling
  * contributions due to Import/Exports are computed by this class and can be
  * added to the local jacobian/defect.
  */

@@ -74,7 +74,7 @@ class GeomProvider
 		}
 
 		/// struct to sort keys
-		struct LFEIDandQuadOrder{
+		struct LFEIDandQuadOrder {
 				LFEIDandQuadOrder(const LFEID lfeID, const int order)
 				: m_lfeID(lfeID), m_order(order) {}
 

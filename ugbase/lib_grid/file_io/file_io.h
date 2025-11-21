@@ -36,8 +36,8 @@
 #include "common/types.h"
 #include "common/ug_config.h"
 #include "common/error.h"
-#include <lib_grid/attachments/attachment_pipe.h>
-#include <lib_grid/grid/grid_base_objects.h>
+#include "lib_grid/attachments/attachment_pipe.h"
+#include "lib_grid/grid/grid_base_objects.h"
 #include "lib_grid/refinement/projectors/projection_handler.h"
 
 namespace ug

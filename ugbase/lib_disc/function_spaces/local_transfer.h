@@ -50,7 +50,10 @@ class PiecewiseConstantElemTransfer
 	public:
 		PiecewiseConstantElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
-		virtual bool perform_prolongation_on(GridBaseObjectId gbo) {
+		~PiecewiseConstantElemTransfer() override = default;
+
+		bool perform_prolongation_on(GridBaseObjectId gbo) override
+		{
 			if(m_lfeid.dim() == gbo) return true;
 			return false;
 		}
@@ -72,7 +75,8 @@ class PiecewiseConstantElemTransfer
 			}
 		}
 
-		virtual bool perform_restriction_on(GridBaseObjectId gbo) {
+		bool perform_restriction_on(GridBaseObjectId gbo) override
+		{
 			if(m_lfeid.dim() == gbo) return true;
 			return false;
 		}
@@ -111,7 +115,10 @@ class P1LagrangeElemTransfer
 	public:
 		P1LagrangeElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
-		virtual bool perform_prolongation_on(GridBaseObjectId gbo) {
+		~P1LagrangeElemTransfer() override = default;
+
+		bool perform_prolongation_on(GridBaseObjectId gbo) override
+		{
 			if(m_lfeid.dim() < gbo) return false;
 			return true;
 		}
@@ -143,7 +150,8 @@ class P1LagrangeElemTransfer
 			vValueChild[0] *= 1.0/numVrt;
 		}
 
-		virtual bool perform_restriction_on(GridBaseObjectId gbo){
+		bool perform_restriction_on(GridBaseObjectId gbo) override
+		{
 			if(gbo == VERTEX) return true;
 			return false;
 		}
@@ -195,7 +203,10 @@ class StdLagrangeElemTransfer
 	public:
 		StdLagrangeElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
-		virtual bool perform_prolongation_on(GridBaseObjectId gbo) {
+		~StdLagrangeElemTransfer() override = default;
+
+		bool perform_prolongation_on(GridBaseObjectId gbo) override
+		{
 			if(m_lfeid.order() == 1 && gbo != VERTEX) return false;
 			if(m_lfeid.dim() < gbo) return false;
 			return true;
@@ -283,7 +294,7 @@ class StdLagrangeElemTransfer
 			}
 		}
 
-		virtual void prolongate(Vertex* parent)
+		void prolongate(Vertex* parent) override
 		{
 			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
 			TransferValueAccessor& vValueChild = *IElemProlongation<TDomain>::m_vValueChild;
@@ -308,7 +319,8 @@ class StdLagrangeElemTransfer
 		}
 
 
-		virtual bool perform_restriction_on(GridBaseObjectId gbo) {
+		bool perform_restriction_on(GridBaseObjectId gbo) override
+		{
 			if(m_lfeid.dim() < gbo) return false;
 			return true;
 		}
@@ -369,7 +381,7 @@ class StdLagrangeElemTransfer
 		}
 
 
-		virtual void do_restrict(Vertex* parent)
+		void do_restrict(Vertex* parent) override
 		{
 			const MultiGrid* mg = IElemRestriction<TDomain>::m_spGrid.get();
 			const int numChild = mg->num_children<Vertex>(parent);
@@ -404,7 +416,10 @@ class CrouzeixRaviartElemTransfer
 	public:
 		CrouzeixRaviartElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
-		virtual bool perform_prolongation_on(GridBaseObjectId gbo) {
+		~CrouzeixRaviartElemTransfer() override = default;
+
+		bool perform_prolongation_on(GridBaseObjectId gbo) override
+		{
 		//	prolongation from elems that have a side as child
 			if(m_lfeid.dim()-1 == gbo) return true;
 			if(m_lfeid.dim()   == gbo) return true;
@@ -509,7 +524,7 @@ class CrouzeixRaviartElemTransfer
 				const int numChild = mg->num_children<TParent>(parent);
 				if(numChild == 0) return;
 
-			//	get childs
+			//	get children
 				std::vector<TSide*> vChildSide(numChild);
 				for(int c = 0; c < numChild; ++c)
 					vChildSide[c] = mg->get_child<TParent>(parent, c);
@@ -525,7 +540,7 @@ class CrouzeixRaviartElemTransfer
 				this->template prolongate<TSide>(vParentElem, vChildSide, vValueChild, vValueParent);
 			}
 
-		//	b) prolongation from a element
+		//	b) prolongation from an element
 			if(TParent::dim == m_lfeid.dim()){
 				using TElem = TParent;
 				using TSide = typename TParent::side;
@@ -548,7 +563,8 @@ class CrouzeixRaviartElemTransfer
 			}
 		};
 
-		virtual bool perform_restriction_on(GridBaseObjectId gbo) {
+		bool perform_restriction_on(GridBaseObjectId gbo) override
+		{
 		//	restriction only on sides
 			if(m_lfeid.dim()-1 == gbo) return true;
 			return false;
@@ -575,7 +591,7 @@ class CrouzeixRaviartElemTransfer
 		//	reset values
 			vValueParent[0] = 0.0;
 
-		//	get childs
+		//	get children
 			for(int c = 0; c < numChild; ++c)
 			{
 			//	get child side

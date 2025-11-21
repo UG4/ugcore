@@ -48,7 +48,7 @@
 namespace ug{
 
 ///	Standard Prolongation Operator
-/**	By default a special optimization is performed for p1-lagrange-elements.
+/**	By default, a special optimization is performed for p1-lagrange-elements.
  * This optimization is only valid if all elements have been refined with
  * standard refinement rules. If closure elements are generated, this optimization
  * has to be deactivated (use StdTransfer::enable_p1_lagrange_optimization(false)).

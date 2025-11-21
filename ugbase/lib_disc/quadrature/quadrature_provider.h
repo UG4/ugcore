@@ -67,8 +67,8 @@ class QuadratureRuleProvider
 		QuadratureRuleProvider();
 
 	//	disallow copy
-		QuadratureRuleProvider(const QuadratureRuleProvider&);
-		QuadratureRuleProvider& operator = (const QuadratureRuleProvider&);
+		QuadratureRuleProvider(const QuadratureRuleProvider&) = delete;
+		QuadratureRuleProvider& operator = (const QuadratureRuleProvider&) = delete;
 
 	///	singleton provider
 		static QuadratureRuleProvider<dim>& instance()

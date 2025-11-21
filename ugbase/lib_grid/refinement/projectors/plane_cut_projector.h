@@ -64,7 +64,7 @@ public:
 		m_n (normal)
 	{}
 
-	virtual ~PlaneCutProjector ()			{}
+	virtual ~PlaneCutProjector () = default;
 
 	void set_position (const vector3& position)		{m_p = position;}
 	const vector3& position () const				{return m_p;}

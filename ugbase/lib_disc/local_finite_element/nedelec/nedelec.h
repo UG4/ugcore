@@ -137,14 +137,14 @@ class NedelecLSFS<ReferenceTriangle>
 
 	private:
 	///	Base class
-	using base_type = BaseLSFS<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> >;
+	using base_type = BaseLSFS;
 
 	public:
 	///	Shape type
-	using shape_type = base_type::shape_type;
+	using shape_type = shape_type;
 
 	///	Gradient type
-	using grad_type = base_type::grad_type;
+	using grad_type = grad_type;
 
 	protected:
 	///	number of shapes
@@ -217,14 +217,14 @@ class NedelecLSFS<ReferenceTetrahedron>
 
 	private:
 	///	Base class
-	using base_type = BaseLSFS<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> >;
+	using base_type = BaseLSFS;
 
 	public:
 	///	Shape type
-	using shape_type = base_type::shape_type;
+	using shape_type = shape_type;
 
 	///	Gradient type
-	using grad_type = base_type::grad_type;
+	using grad_type = grad_type;
 
 	protected:
 	///	number of shapes
@@ -232,7 +232,7 @@ class NedelecLSFS<ReferenceTetrahedron>
 
 	public:
 	///	Constructor
-		NedelecLSFS() {};
+		NedelecLSFS() = default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return false;}

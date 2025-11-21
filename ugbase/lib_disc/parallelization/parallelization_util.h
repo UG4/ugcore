@@ -114,9 +114,9 @@ bool AddExtraProcessEntriesToSubdomainLayout(
  * The vector vIndNew must return the new index for each old index,
  * i.e. newIndex = vIndNew[oldIndex].
  *
+ * \param[in]	layout		index layout
  * \param[in]	vIndNew		mapping for each index
- * \returns 	success flag
- */
+  */
 void PermuteIndicesInIndexLayout(	IndexLayout& layout,
 									const std::vector<size_t>& vIndNew);
 

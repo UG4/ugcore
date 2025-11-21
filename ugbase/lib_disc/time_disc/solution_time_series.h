@@ -166,7 +166,7 @@ class LocalVectorTimeSeries
 {
 	public:
 	///	constructor
-		LocalVectorTimeSeries() {}
+		LocalVectorTimeSeries() = default;
 
 	///	returns number of time points
 		size_t size() const {return m_vLocalVector.size();}

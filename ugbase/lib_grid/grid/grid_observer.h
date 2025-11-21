@@ -95,7 +95,7 @@ class UG_API GridObserver
 	 *
 	 * 	If replacesParent is true, then pParent is of the same base type as the
 	 * 	created object (e.g. in case of edge_created, the parent is an Edge*).
-	 *  This case usually appears, when a contraining object is replaced by a
+	 *  This case usually appears, when a containing object is replaced by a
 	 *  regular grid object if the same base type during refinement.
 	 * 	The method is called with replacesParent == true by
 	 * 	Grid::create_and_replace methods.

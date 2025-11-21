@@ -177,7 +177,7 @@ class OneSideP1Constraints
 		bool m_bAssembleLinearProblem;
 };
 
-}; // namespace ug
+} // namespace ug
 
 #include "p1_continuity_constraints_impl.h"
 

@@ -552,8 +552,7 @@ bool ComponentGaussSeidel<TDomain, TAlgebra>::
 step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 {
 //	check that grid funtion passed
-	GridFunction<TDomain, TAlgebra>* pC
-					= dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
+	GridFunction<TDomain, TAlgebra>* pC = dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
 	if(pC == nullptr)
 		UG_THROW("ComponentGaussSeidel: expects correction to be a GridFunction.");
 
@@ -610,8 +609,7 @@ template <typename TDomain, typename TAlgebra>
 SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >
 ComponentGaussSeidel<TDomain, TAlgebra>::clone()
 {
-	SmartPtr<ComponentGaussSeidel<TDomain, TAlgebra> >
-					newInst(new ComponentGaussSeidel<TDomain, TAlgebra>(m_relax, m_vFullRowCmp, m_vGroupObj, m_vDamp));
+	SmartPtr<ComponentGaussSeidel > newInst(new ComponentGaussSeidel(m_relax, m_vFullRowCmp, m_vGroupObj, m_vDamp));
 	newInst->set_debug(debug_writer());
 	newInst->set_damp(this->damping());
 	newInst->set_alpha(this->m_alpha);

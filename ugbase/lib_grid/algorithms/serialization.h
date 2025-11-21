@@ -185,7 +185,7 @@ using SPGridDataSerializer = SmartPtr<GridDataSerializer>;
 class GridDataSerializationHandler
 {
 	public:
-		~GridDataSerializationHandler()	{}
+		~GridDataSerializationHandler() = default;
 
 	///	Adds a callback class for serialization and deserialization.
 	/**	\{ */

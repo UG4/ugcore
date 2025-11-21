@@ -106,7 +106,7 @@ public:
 		m_influenceRadius (influenceRadius)
 	{}
 
-	virtual ~SphereProjector ()					{}
+	virtual ~SphereProjector () = default;
 
 	void set_center (const vector3& center)		{m_center = center;}
 	const vector3& center () const				{return m_center;}

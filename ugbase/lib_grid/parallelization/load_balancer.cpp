@@ -256,10 +256,6 @@ LoadBalancer() :
 	m_balanceWeights = make_sp(new StdBalanceWeights());
 }
 
-LoadBalancer::
-~LoadBalancer()
-{
-}
 
 void LoadBalancer::
 set_grid(MultiGrid* mg)

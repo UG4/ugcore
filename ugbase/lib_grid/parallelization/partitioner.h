@@ -49,7 +49,7 @@ class IPartitioner;
 class IBalanceWeights{
 	public:
 
-		virtual ~IBalanceWeights()	{}
+		virtual ~IBalanceWeights() = default;
 		virtual void refresh_weights(int baseLevel)	{};
 
 		virtual number get_weight(Vertex*)	{return 1.;}

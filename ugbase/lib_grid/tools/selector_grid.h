@@ -190,12 +190,12 @@ class UG_API Selector : public ISelector
 		template <typename TElem> TElem* back();
 
 	//	geometric-object-collection
-		virtual GridObjectCollection get_grid_objects() const;
+		GridObjectCollection get_grid_objects() const override;
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver
 		//virtual void unregistered_from_grid(Grid* grid);
-		virtual void grid_to_be_destroyed(Grid* grid);
+		void grid_to_be_destroyed(Grid* grid) override;
 
 	////////////////////////////////////////
 	//	for compatibility with MGSelector

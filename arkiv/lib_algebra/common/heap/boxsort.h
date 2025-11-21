@@ -99,9 +99,7 @@ public:
 		create(v.size(), &v[0]);
 	}
 	//! deconstructor
-	~BoxPriorityQueue()
-	{
-	}
+	~BoxPriorityQueue() = default;
 
 	/** create
 	 * \brief creates the queue on a external array arr_[0]..arr_[n-1]

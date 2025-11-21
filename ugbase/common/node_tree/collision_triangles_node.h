@@ -62,7 +62,7 @@ class CollisionTrianglesNode : public Node
 	public:
 		static SPCollisionTrianglesNode create();
 
-		~CollisionTrianglesNode() override;
+		~CollisionTrianglesNode() override = default;
 
 		virtual void add_triangle(int ind1, int ind2, int ind3);
 		virtual void add_triangle(int ind1, int ind2, int ind3,

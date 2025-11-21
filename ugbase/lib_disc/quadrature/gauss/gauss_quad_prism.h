@@ -58,6 +58,6 @@ template <>
 class GaussQuadrature<ReferencePrism, 1> 
 : public GaussQuadrature<ReferencePrism, 2>{};
 
-}; // namespace ug
+} // namespace ug
 
 #endif

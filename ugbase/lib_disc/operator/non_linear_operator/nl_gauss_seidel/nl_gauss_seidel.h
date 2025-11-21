@@ -62,7 +62,7 @@ class LocalToGlobalMapperNLGS : public ILocalToGlobalMapper<TAlgebra>
 
 	public:
 	///	default constructor
-		LocalToGlobalMapperNLGS() {}
+		LocalToGlobalMapperNLGS() = default;
 
 	///	adds a local vector to the global rhs
 		void add_local_vec_to_global(vector_type& vec, const LocalVector& lvec,

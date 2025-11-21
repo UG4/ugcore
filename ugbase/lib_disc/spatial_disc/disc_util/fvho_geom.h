@@ -63,8 +63,8 @@ namespace ug{
  * \tparam	TOrder			order
  * \tparam	TElem			Element type
  * \tparam	TWorldDim		(physical) world dimension
- * \tparam	TQuadOrderSCVF	integration order for scvf
- * \tparam	TQuadOrderSCV	integration order for scv
+ * \tparam	TQuadOrder		order for quadrature
+
  */
 template <	int TOrder, typename TElem, int TWorldDim,
 			int TQuadOrder = TOrder + 1>

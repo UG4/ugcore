@@ -477,7 +477,7 @@ bool CheckGFforNaN
 	
 	//	check the value
 		number value = DoFRef (*u, ind [0]);
-		if (isnan (value))
+		if (std::isnan (value))
 		{
 			int si = u->domain()->subset_handler()->get_subset_index (vert);
 			UG_LOG ("nan at index " << ind [0] << ", grid data idx " << vert->grid_data_index ());
@@ -486,7 +486,7 @@ bool CheckGFforNaN
 			UG_LOG ('\n');
 			return true;
 		}
-		if (isinf (value))
+		if (std::isinf (value))
 		{
 			int si = u->domain()->subset_handler()->get_subset_index (vert);
 			UG_LOG ("inf at index " << ind [0] << ", grid data idx " << vert->grid_data_index ());
@@ -1041,7 +1041,7 @@ public:
 		reset();
 	}
 
-	~GridFunctionDebugWriter() override {};
+	~GridFunctionDebugWriter() override = default;
 
 	///	sets the grid level
 	void set_grid_level(const GridLevel& gridLevel) {
@@ -1075,7 +1075,7 @@ public:
 	void set_print_consistent(bool b) {m_printConsistent = b;}
 
 	///	write vector
-	virtual void write_vector(const vector_type& vec, const char* filename) {
+	void write_vector(const vector_type& vec, const char* filename) override {
 		//	write to conn viewer
 		if (bConnViewerOut)
 			write_vector_to_conn_viewer(vec, filename);
@@ -1085,13 +1085,13 @@ public:
 			write_vector_to_vtk(vec, filename);
 	}
 
-	virtual void update_positions()
+	void update_positions() override
 	{
 		extract_positions(m_glFrom);
 	}
 
 	///	write matrix
-	virtual void write_matrix(const matrix_type& mat, const char* filename) {
+	void write_matrix(const matrix_type& mat, const char* filename) override {
 		PROFILE_FUNC_GROUP("debug");
 		//	something to do ?
 		if (!bConnViewerOut)
@@ -1230,8 +1230,7 @@ protected:
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TGridFunction>
-class GridFunctionPositionProvider: public IPositionProvider<
-		TGridFunction::domain_type::dim> {
+class GridFunctionPositionProvider: public IPositionProvider<TGridFunction::domain_type::dim> {
 public:
 	///	Constructor
 	GridFunctionPositionProvider() :

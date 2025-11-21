@@ -217,7 +217,7 @@ class UzawaBase : public IPreconditioner<TAlgebra>
 		~UzawaBase() override = default;
 
 		/// Overriding base type
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
+		bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u) override
 		{
 			UG_DLOG(SchurDebug, 4, "UzawaBase::init(J,u)")
 
@@ -230,7 +230,7 @@ class UzawaBase : public IPreconditioner<TAlgebra>
 			UG_ASSERT(pVecU!=nullptr,  "Need a GridFunction here!");
 			base_type::init(J,u);   // calls preprocess
 
-			// Extract sub-matrices afterwards.
+			// Extract sub-matrices afterward.
 			init_in_first_step(*pOp, *pVecU);
 			m_bInit = true;
 
@@ -459,7 +459,7 @@ protected:
 protected:
 	using base_type::debug_writer;
 
-	void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter);
+	void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter) override;
 
 	void create_slice_debug_writers();
 	template <int d> void reset_slice_debug_writers();
@@ -677,8 +677,7 @@ template <typename TDomain, typename TAlgebra>
 SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >
 UzawaBase<TDomain, TAlgebra>::clone()
 {
-	SmartPtr<UzawaBase<TDomain, TAlgebra> >
-					newInst(new UzawaBase<TDomain, TAlgebra>(m_vSchurCmp));
+	SmartPtr<UzawaBase > newInst(new UzawaBase(m_vSchurCmp));
 
 	newInst->set_debug(debug_writer());
 

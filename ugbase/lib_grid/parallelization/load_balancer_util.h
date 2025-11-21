@@ -54,7 +54,7 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 //
 //		StdConnectionWeights() : m_wgt(1.0)					{}
 //		StdConnectionWeights(number wgt) : m_wgt(wgt)		{}
-//		virtual ~StdConnectionWeights()						{}
+//		virtual ~StdConnectionWeights() = default;
 //
 //		virtual void set_weight(number wgt)					{m_wgt = wgt;}
 //

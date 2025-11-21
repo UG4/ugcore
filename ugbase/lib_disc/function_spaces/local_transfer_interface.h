@@ -166,7 +166,7 @@ class IElemRestriction
 		virtual void do_restrict(Face* parent) = 0;
 		virtual void do_restrict(Volume* parent) = 0;
 
-		virtual ~IElemRestriction() {}
+		virtual ~IElemRestriction() = default;
 
 	protected:
 		ConstSmartPtr<TDomain> m_spDomain;

@@ -75,7 +75,7 @@ public:
 
 
 
-	virtual ~CylinderCutProjector ()			{}
+	virtual ~CylinderCutProjector () = default;
 
 	void set_center (const vector3& center)		{m_center = center;}
 	const vector3& center () const				{return m_center;}

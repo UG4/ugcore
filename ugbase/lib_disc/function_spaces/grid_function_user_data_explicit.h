@@ -314,7 +314,7 @@ public:
 	static constexpr int dim = TGridFunction::dim;
 	
 private:
-	using base_type = StdExplicitGridFunctionData<ExplicitGridFunctionVector<TGridFunction>, MathVector<TGridFunction::dim>, TGridFunction>;
+	using base_type = StdExplicitGridFunctionData<ExplicitGridFunctionVector, MathVector<TGridFunction::dim>, TGridFunction>;
 
 	using base_type::m_spGridFct;
 	
@@ -434,7 +434,7 @@ template <typename TGridFunction>
 class ExplicitGridFunctionGradient
 : public StdExplicitGridFunctionData<ExplicitGridFunctionGradient<TGridFunction>, MathVector<TGridFunction::dim>, TGridFunction >
 {
-	using base_type = StdExplicitGridFunctionData<ExplicitGridFunctionGradient<TGridFunction>, MathVector<TGridFunction::dim>, TGridFunction >;
+	using base_type = StdExplicitGridFunctionData<ExplicitGridFunctionGradient, MathVector<TGridFunction::dim>, TGridFunction >;
 
 	using base_type::m_spGridFct;
 	
@@ -496,7 +496,7 @@ public:
 			}UG_CATCH_THROW("ExplicitGridFunctionGradient: failed.");
 		}
 
-		// scale with coeficient
+		// scale with coefficient
 		const int   subsetInd  = m_spGridFct->domain()->subset_handler()->get_subset_index(elem);
 		const char* subsetName = m_spGridFct->domain()->subset_handler()->get_subset_name(subsetInd);
 
@@ -548,7 +548,7 @@ public:
 
 	void add_subset_coeff(const std::string &key, double val)
 	{
-		m_diffCoeffMap.insert(std::pair<std::string, double>(key, val));
+		m_diffCoeffMap.insert(std::pair(key, val));
 	}
 
 	double get_subset_coeff(const std::string &key) const

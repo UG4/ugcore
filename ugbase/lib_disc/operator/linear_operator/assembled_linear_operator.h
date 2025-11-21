@@ -47,8 +47,8 @@ namespace ug{
 ///	matrix operator based on the assembling of a problem
 /**
  * This operator implements the MatrixOperator interface, thus is basically a
- * matrix that can be applied to vectors. In addition the class allows to set
- * an IAssemble object and an the GridLevel. Invoking the init method the
+ * matrix that can be applied to vectors. In addition, the class allows to set
+ * an IAssemble object and a GridLevel. Invoking the init method the
  * matrix is created using the IAssemble routine on the given GridLevel.
  *
  * \tparam	TAlgebra			algebra type

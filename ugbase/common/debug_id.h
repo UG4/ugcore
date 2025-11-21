@@ -317,7 +317,7 @@ public:
 	/// change the debugID level in this scope to another debugID plus some diff.
 	TemporaryDebugLevel(DebugID &debugID, DebugID &debugSrc, int diff=0){}
 	/// resets the debugID to the previous value.
-	~TemporaryDebugLevel(){}
+	~TemporaryDebugLevel() = default;
 	void set(int temporaryDebugLevel){}
 };
 #endif

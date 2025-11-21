@@ -57,7 +57,7 @@ class BoxedGroupNode : public GroupNode
 	public:
 		static SPBoxedGroupNode create();
 
-		~BoxedGroupNode() override;
+		~BoxedGroupNode() override = default;
 
 		virtual void set_box(const vector3& minCorner,
 							 const vector3& maxCorner);
@@ -66,7 +66,7 @@ class BoxedGroupNode : public GroupNode
 		virtual const vector3& max_corner() const;
 
 	protected:
-		BoxedGroupNode();
+		BoxedGroupNode() = default;
 
 	protected:
 		vector3 m_vMin;

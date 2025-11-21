@@ -225,7 +225,7 @@ class Cake
 class Base
 {
 	public:
-		virtual ~Base()	{}
+		virtual ~Base()	= default;
 		virtual void print() const
 		{
 			UG_LOG("Base::print() called\n");
@@ -236,7 +236,7 @@ class Base
 class Derived : public Base
 {
 	public:
-		virtual ~Derived()	{}
+		virtual ~Derived() = default;
 		virtual void print() const
 		{
 			UG_LOG("Derived::print() called.\n");
@@ -247,7 +247,7 @@ class Derived : public Base
 class FurtherDerived : public Derived
 {
 	public:
-		virtual ~FurtherDerived()	{}
+		virtual ~FurtherDerived() = default;
 		virtual void print() const
 		{
 			UG_LOG("FurtherDerived::print() called.\n");
@@ -262,7 +262,7 @@ const FurtherDerived* CreateConstFurtherDerived()
 class Base0
 {
 	public:
-		virtual ~Base0() {}
+		virtual ~Base0() = default;
 		virtual void virt_print_base0() const = 0;
 		void print_base0() const {UG_LOG("Base0::print_base0() called.\n");}
 };
@@ -270,7 +270,7 @@ class Base0
 class Base1
 {
 	public:
-		virtual ~Base1() {}
+		virtual ~Base1() = default;
 		virtual void virt_print_base1() const = 0;
 		void print_base1() const {UG_LOG("Base1::print_base1() called.\n");}
 };
@@ -278,7 +278,7 @@ class Base1
 class Base2
 {
 	public:
-		virtual ~Base2() {}
+		virtual ~Base2() = default;
 		virtual void virt_print_base2() const = 0;
 		void print_base2() const {UG_LOG("Base2::print_base2() called.\n");}
 };
@@ -286,7 +286,7 @@ class Base2
 class Base3
 {
 	public:
-		virtual ~Base3() {}
+		virtual ~Base3() = default;
 		virtual void virt_print_base3() const = 0;
 		void print_base3() const {UG_LOG("Base3::print_base3() called.\n");}
 };
@@ -294,7 +294,7 @@ class Base3
 class Intermediate0 : public Base0, public Base1
 {
 	public:
-		virtual ~Intermediate0() {}
+		virtual ~Intermediate0() = default;
 		virtual void virt_print_intermediate0() const = 0;
 		void print_intermediate0() const {UG_LOG("Intermediate0::print_intermediate0() called.\n");}
 };
@@ -302,7 +302,7 @@ class Intermediate0 : public Base0, public Base1
 class Intermediate1 : public Base2, public Base3
 {
 	public:
-		virtual ~Intermediate1() {}
+		virtual ~Intermediate1() = default;
 		virtual void virt_print_intermediate1() const = 0;
 		void print_intermediate1() const {UG_LOG("Intermediate1::print_intermediate1() called.\n");}
 };
@@ -310,7 +310,7 @@ class Intermediate1 : public Base2, public Base3
 class MultipleDerived : public Intermediate0, public Intermediate1
 {
 	public:
-		virtual ~MultipleDerived() {}
+		virtual ~MultipleDerived() = default;
 		void print_mulitple_derived(){UG_LOG("MultipleDerived::print() called\n");}
 
 		virtual void virt_print_intermediate0() const	{UG_LOG("MultipleDerived::virt_print_intermediate0() called\n");}

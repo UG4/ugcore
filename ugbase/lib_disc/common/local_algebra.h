@@ -57,7 +57,7 @@ class LocalIndices
 
 	public:
 	///	Default Constructor
-		LocalIndices() {};
+		LocalIndices() = default;
 
 	///	sets the number of functions
 		void resize_fct(size_t numFct)

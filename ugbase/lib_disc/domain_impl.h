@@ -84,11 +84,7 @@ IDomain<TGrid,TSubsetHandler>::IDomain(bool isAdaptive)
 		&ug::IDomain<ug::MultiGrid, ug::MultiGridSubsetHandler>::grid_distribution_callback);
 }
 
-///	Destructor
-template <typename TGrid, typename TSubsetHandler>
-IDomain<TGrid,TSubsetHandler>::~IDomain()
-{
-}
+
 
 
 template <typename TGrid, typename TSubsetHandler>
@@ -461,8 +457,8 @@ broadcast_refinement_projector (
 		SPRefinementProjector projector)
 {
 	BinaryBuffer 	buf;
-	const int		magicNumber	= 3243578;
-	const bool 		isRoot		= (pcl::ProcRank() == rootProc);
+	constexpr int magicNumber = 3243578;
+	const bool isRoot = (pcl::ProcRank() == rootProc);
 
 	if(isRoot){
 	//	if the specified projector is a projection handler, we'll perform a
@@ -657,8 +653,8 @@ template <int d, typename TGrid, typename TSubsetHandler>
 Domain<d,TGrid,TSubsetHandler>::
 Domain(bool isAdaptive) : IDomain<TGrid, TSubsetHandler>(isAdaptive)
 {
-//	Depending on the dimesion, we'll activeate different options.
-//	Otherwise we probably would waste memory...
+//	Depending on the dimension, we'll activate different options.
+//	Otherwise, we probably would waste memory...
 //	In any case, sides of elements should always be present
 	uint gridOpts = GRIDOPT_AUTOGENERATE_SIDES;
 
@@ -671,9 +667,9 @@ Domain(bool isAdaptive) : IDomain<TGrid, TSubsetHandler>(isAdaptive)
 	if(dim > 2)
 		gridOpts |= VRTOPT_STORE_ASSOCIATED_VOLUMES;
 
-//	thats it for now. One could think about enabling
+//	that's it for now. One could think about enabling
 //	FACEOPT_STORE_ASSOCIATED_EDGES, VOLOPT_STORE_ASSOCIATED_EDGES
-//	and VOLOPT_STORE_ASSOCIATED_FACES. However this costs considerably
+//	and VOLOPT_STORE_ASSOCIATED_FACES. However, this costs considerably
 //	more memory compared to the performance benefits.
 //	Now set the options
 	this->grid()->set_options(gridOpts);

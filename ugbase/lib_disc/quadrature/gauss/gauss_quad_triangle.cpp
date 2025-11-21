@@ -586,5 +586,5 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 	default: UG_THROW("Order "<<order<<" not available for GaussQuadrature of triangle.");
 	}
 }
-}; // namespace ug
+} // namespace ug
 

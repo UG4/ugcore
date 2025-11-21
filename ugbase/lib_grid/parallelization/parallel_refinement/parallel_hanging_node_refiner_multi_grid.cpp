@@ -69,12 +69,6 @@ ParallelHangingNodeRefiner_MultiGrid(
 	add_ref_mark_adjuster(ParallelHNodeAdjuster::create());
 }
 
-ParallelHangingNodeRefiner_MultiGrid::
-~ParallelHangingNodeRefiner_MultiGrid()
-{
-
-}
-
 void
 ParallelHangingNodeRefiner_MultiGrid::
 set_distributed_grid_manager(DistributedGridManager& distGridMgr)

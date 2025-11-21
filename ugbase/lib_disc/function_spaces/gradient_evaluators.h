@@ -72,7 +72,7 @@ class GradientEvaluator_LagrangeP1{
 			DimReferenceMapping<dim, dim>& map
 				= ReferenceMappingProvider::get<dim, dim>(roid);
 
-		//	get local Mid Point
+		//	get local mid-point
 			vector_t localIP = ReferenceElementCenter<dim>(roid);
 
 		//	number of shape functions
@@ -92,7 +92,7 @@ class GradientEvaluator_LagrangeP1{
 		//	compute jacobian
 			map.jacobian_transposed_inverse(JTInv, localIP);
 
-		//	compute gradient at mid point by summing contributions of all shape fct
+		//	compute gradient at mid-point by summing contributions of all shape fct
 			vector_t elemGrad;
 			VecSet(elemGrad, 0.0);
 			for(size_t sh = 0 ; sh < numSH; ++sh)

@@ -121,7 +121,7 @@ namespace ug{
 				m_callback.set_lua_callback(luaCallbackName, 5);
 			}
 
-			virtual ~BalanceWeightsLuaCallback()	{}
+			virtual ~BalanceWeightsLuaCallback() = default;
 
 
 			void set_time(number time)	{m_time = time;}

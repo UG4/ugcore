@@ -676,7 +676,7 @@ class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLa
 		{
 		}
 
-		virtual ~ComPol_CheckDistributedParentStates()	{}
+		virtual ~ComPol_CheckDistributedParentStates() = default;
 
 		virtual int
 		get_required_buffer_size(const Interface& interface)

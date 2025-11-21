@@ -52,8 +52,7 @@ namespace ug{
  * l = a / b
  *
  * \tparam		dim			world dimension
- * \tparam		TDataScale 	type of scaling data
- */
+  */
 template <int dim>
 class InverseLinker
 	: public StdDataLinker<InverseLinker<dim>, number, dim>
@@ -64,7 +63,7 @@ class InverseLinker
 
 	public:
 	///	constructor
-		InverseLinker() {}
+		InverseLinker() = default;
 
 	///	constructor
 		InverseLinker(const InverseLinker& linker);
@@ -156,13 +155,13 @@ class InverseLinker
 	///	data Dividend
 		std::vector<SmartPtr<CplUserData<number, dim> > > m_vpDividendData;
 
-	///	data Dividend casted to dependend data
+	///	data Dividend casted to dependent data
 		std::vector<SmartPtr<DependentUserData<number, dim> > > m_vpDividendDependData;
 
 	///	data Divisor
 		std::vector<SmartPtr<CplUserData<number, dim> > > m_vpDivisorData;
 
-	///	data Divisor casted to dependend data
+	///	data Divisor casted to dependent data
 		std::vector<SmartPtr<DependentUserData<number, dim> > > m_vpDependData;
 };
 

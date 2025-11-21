@@ -32,7 +32,7 @@
 //		necessary to get the triangle into voxel space.
 //
 //
-#include <math.h>
+#include <cmath>
 #include "../ugmath.h"
 
 ///

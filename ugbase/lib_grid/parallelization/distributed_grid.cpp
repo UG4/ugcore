@@ -768,12 +768,12 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 
 		~ComPol_NewConstrainedVerticals() override = default;
 
-		virtual int
-		get_required_buffer_size(const Interface& interface)
+		int
+		get_required_buffer_size(const Interface& interface) override
 		{return -1;}
 
-		virtual bool
-		collect(BinaryBuffer& buff, const Interface& interface)
+		bool
+		collect(BinaryBuffer& buff, const Interface& interface) override
 		{
 			vector<pair<int, size_t> > vInterfaces;
 
@@ -816,8 +816,8 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 			return true;
 		}
 
-		virtual bool
-		extract(BinaryBuffer& buff, const Interface& interface)
+		bool
+		extract(BinaryBuffer& buff, const Interface& interface) override
 		{
 			int index;
 			Deserialize(buff, index);

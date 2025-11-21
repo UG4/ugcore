@@ -49,7 +49,7 @@ class NeuriteProjector
 		NeuriteProjector();
 		NeuriteProjector(SPIGeometry3d geometry);
 
-		virtual ~NeuriteProjector();
+		virtual ~NeuriteProjector() = default;;
 
 		virtual void set_geometry(SPIGeometry3d geometry);
 

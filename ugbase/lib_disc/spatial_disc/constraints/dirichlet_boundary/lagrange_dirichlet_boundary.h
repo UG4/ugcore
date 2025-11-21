@@ -119,7 +119,7 @@ class DirichletBoundary
 #endif
 
 	///	destructor
-		~DirichletBoundary() {}
+		~DirichletBoundary() = default;
 
 	///	adds a lua callback (cond and non-cond)
 #ifdef UG_FOR_LUA

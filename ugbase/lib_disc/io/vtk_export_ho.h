@@ -402,7 +402,7 @@ void vtk_export_ho
 	}
 	UG_CATCH_THROW("Subsets are faulty.");
 
-	// find highest dim that contains any elements
+	// find the highest dim that contains any elements
 	MultiGrid& srcGrid = *u->approx_space()->domain()->grid();
 	if (srcGrid.num_volumes())
 		vtk_export_ho<TGridFunction, TGridFunction::dim >= 3 ? 3 : TGridFunction::dim>

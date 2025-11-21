@@ -222,7 +222,7 @@ class DataExport :
 		/* The following classes are used to implement the functors to support
 		 * free functions and member functions. We do not use boost::bind or
 		 * loki here, since they usually do not support that many arguments. In
-		 * addition arguments are known and can simply be hardcoded.
+		 * addition, arguments are known and can simply be hardcoded.
 		 */
 
 		// base class
@@ -239,7 +239,7 @@ class DataExport :
 				                const size_t nip,
 				                bool bDeriv,
 				                std::vector<std::vector<TData> > vvvDeriv[]) const = 0;
-				virtual ~FunctorBase() {}
+				virtual ~FunctorBase() = default;
 		};
 
 		// free function functor

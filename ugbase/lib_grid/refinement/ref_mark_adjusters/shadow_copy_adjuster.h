@@ -51,7 +51,7 @@ namespace ug {
 class ShadowCopyAdjuster : public IRefMarkAdjuster
 {
 	public:
-	~ShadowCopyAdjuster() override;
+	~ShadowCopyAdjuster() override = default;
 
 	void ref_marks_changed
 		(

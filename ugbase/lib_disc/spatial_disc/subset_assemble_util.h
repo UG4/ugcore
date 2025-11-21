@@ -50,7 +50,7 @@ namespace ug {
  * This function create the union of subsets on which the Element Discretizations
  * work.
  *
- * \param[out]		ssGrp		Union of Subsets
+ * \param[out]		vSSGrp		Union of Subsets
  * \param[in]		vElemDisc	Vector of element discs, defined for subsets
  * \param[in]		clearGroup	flag if group should be cleared
  */
@@ -98,8 +98,8 @@ void CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
  *  At the same time, pointers are converted
  *  e.g. from TElemIn=IElemDisc<TDomain> to typename TElemOut=IElemError<TDomain>
  *
- * \param[out]		vSubsetElemDisc		Elem Disc items  working on subset (pointers type of type TElemOut)
- * \param[in]		vElemDisc			Elem Disc items to select from (pointers type of type TElemIn)
+ * \param[out]		vSubsetElemDiscOut		Elem Disc items  working on subset (pointers type of type TElemOut)
+ * \param[in]		vElemDiscIn			Elem Disc items to select from (pointers type of type TElemIn)
  * \param[in]		si					Subset index
  * \param[in]		clearVec			flag if vector should be cleared
  */

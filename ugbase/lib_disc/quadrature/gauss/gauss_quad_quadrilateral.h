@@ -102,6 +102,6 @@ template <>
 class GaussQuadrature<ReferenceQuadrilateral, 0> 
 : public GaussQuadrature<ReferenceQuadrilateral, 1>{};
 
-}; // namespace ug
+} // namespace ug
 
 #endif

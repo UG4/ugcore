@@ -865,7 +865,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		FETISolver();
 
 	///	name of solver
-		virtual const char* name() const {return "FETI Solver";}
+		const char* name() const override {return "FETI Solver";}
 
 	///	returns if parallel solving is supported
 		bool supports_parallel() const override {
@@ -903,7 +903,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		}
 
 	//	set debug output
-		void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
+		void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter) override
 		{
 			m_LocalSchurComplement.set_debug(spDebugWriter);
 			m_PrimalSubassembledMatrixInverse.set_debug(spDebugWriter);
@@ -911,7 +911,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		}
 
 	///	initializes the solver for operator A
-		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A);
+		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A) override;
 
 	///	function which applies matrix \f$F\f$ of the reduced system ("Delta system") to a vector \f$v\f$
 	/**
@@ -975,10 +975,10 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 	///	solves the reduced system \f$F \lambda = d\f$ with preconditioned cg method
 	///	and returns the last defect of iteration in rhs
 	/// (derived from 'CGSolver::apply_return_defect()')
-		virtual bool apply_return_defect(vector_type& lambda, vector_type& d);
+		bool apply_return_defect(vector_type& lambda, vector_type& d) override;
 
 	///	solves the system
-		virtual bool apply(vector_type& x, const vector_type& b)
+		bool apply(vector_type& x, const vector_type& b) override
 		{
 		//	copy defect
 			vector_type d; d.resize(b.size());

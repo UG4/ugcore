@@ -32,8 +32,8 @@
 
 #include "common/log.h"
 #include "common/profiler/profiler.h"
-#include "assert.h"
-#include <stdlib.h>
+#include "common/assert.h"
+#include <cstdlib>
 
 #ifdef UG_POSIX
 #include "util/demangle.h"

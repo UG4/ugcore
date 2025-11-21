@@ -207,36 +207,32 @@ class DistributedGridManager : public GridObserver
 
 	////////////////////////////////
 	//	grid callbacks
-		virtual void grid_to_be_destroyed(Grid* grid);
+		void grid_to_be_destroyed(Grid* grid) override;
 		
 	//	vertex callbacks
-		virtual void vertex_created(Grid* grid, Vertex* vrt,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void vertex_created(Grid* grid, Vertex* vrt,
+		                    GridObject* pParent = nullptr,
+		                    bool replacesParent = false) override;
 
-		virtual void edge_created(Grid* grid, Edge* e,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
-		
-		virtual void face_created(Grid* grid, Face* f,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void edge_created(Grid* grid, Edge* e,
+		                  GridObject* pParent = nullptr,
+		                  bool replacesParent = false) override;
 
-		virtual void volume_created(Grid* grid, Volume* v,
-									GridObject* pParent = nullptr,
-									bool replacesParent = false);
+		void face_created(Grid* grid, Face* f,
+		                  GridObject* pParent = nullptr,
+		                  bool replacesParent = false) override;
 
-		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
-										 Vertex* replacedBy = nullptr);
+		void volume_created(Grid* grid, Volume* v,
+		                    GridObject* pParent = nullptr,
+		                    bool replacesParent = false) override;
 
-		virtual void edge_to_be_erased(Grid* grid, Edge* e,
-										 Edge* replacedBy = nullptr);
+		void vertex_to_be_erased(Grid* grid, Vertex* vrt, Vertex* replacedBy = nullptr) override;
 
-		virtual void face_to_be_erased(Grid* grid, Face* f,
-										 Face* replacedBy = nullptr);
+		void edge_to_be_erased(Grid* grid, Edge* e, Edge* replacedBy = nullptr) override;
 
-		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
-										 Volume* replacedBy = nullptr);
+		void face_to_be_erased(Grid* grid, Face* f, Face* replacedBy = nullptr) override;
+
+		void volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy = nullptr) override;
 
 	protected:
 	///	performs registration and deregistration at a grid.

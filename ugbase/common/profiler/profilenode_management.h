@@ -46,7 +46,7 @@ class ProfileNodeManager
 		static void release_latest();
 
 	private:
-		ProfileNodeManager();
+		ProfileNodeManager() = default;
 		~ProfileNodeManager();
 	public:
 		static ProfileNodeManager& inst();

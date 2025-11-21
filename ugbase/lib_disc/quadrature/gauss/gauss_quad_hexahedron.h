@@ -94,6 +94,6 @@ template <>
 class GaussQuadrature<ReferenceHexahedron, 0> 
 : public GaussQuadrature<ReferenceHexahedron, 1>{};
 
-}; // namespace ug
+} // namespace ug
 
 #endif

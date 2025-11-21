@@ -55,7 +55,7 @@ class GaussJacobi10 : public QuadratureRule<1>
 		GaussJacobi10(size_t order);
 
 	///	destructor
-		~GaussJacobi10();
+		~GaussJacobi10() override;
 };
 
 } // namespace ug

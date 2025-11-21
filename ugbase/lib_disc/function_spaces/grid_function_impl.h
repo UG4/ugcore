@@ -94,7 +94,7 @@ init(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
 	this->set_dof_distribution_info(m_spApproxSpace->dof_distribution_info());
 	m_spAdaptGridFct = nullptr;
 
-//	check correct passings
+//	check correct passing
 	if(m_spDD.invalid()) UG_THROW("GridFunction: DoF Distribution is null.");
 	if(m_spApproxSpace.invalid()) UG_THROW("GridFunction: ApproxSpace is null.");
 
@@ -205,8 +205,7 @@ template <typename TDomain, typename TAlgebra>
 GridFunction<TDomain, TAlgebra>*
 GridFunction<TDomain, TAlgebra>::virtual_clone_without_values() const
 {
-	GridFunction<TDomain, TAlgebra>* p =
-		new GridFunction<TDomain, TAlgebra>(m_spApproxSpace, m_spDD, m_bManaged);
+	auto* p = new GridFunction(m_spApproxSpace, m_spDD, m_bManaged);
 	p->enable_redistribution(redistribution_enabled());
 	if(p->size() != this->size())
 		p->resize(this->size());

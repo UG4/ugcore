@@ -446,7 +446,7 @@ template <> struct fv1_traits<ReferenceHexahedron, 3>
 
 /// Pyramids: dimension-independent part of the FV1 traits
 /**
- * For Pyramids we use triangular scvf, since the quadrilateral scvf would not be
+ * For Pyramids, we use triangular scvf, since the quadrilateral scvf would not be
  * flat in general by the positions where its corners are placed
  */
 struct fv1_traits_ReferencePyramid
@@ -549,7 +549,7 @@ struct fv1_traits_ReferencePyramid
 };
 /// Pyramids: the FV1 traits
 /**
- * For Pyramids we use triangular scvf, since the quadrilateral scvf would not be
+ * For Pyramids, we use triangular scvf, since the quadrilateral scvf would not be
  * flat in general by the positions where its corners are placed
  */
 template <> struct fv1_traits<ReferencePyramid, 3> : public fv1_traits_ReferencePyramid
@@ -1335,7 +1335,7 @@ template <> struct fv1_dim_traits<2, 3> : public fv1_traits_ReferenceFace3d, pub
 							 const MathVector<3>* vSCVFCorner,
 							 const MathVector<3>* vElemCorner)
 	{
-		// Little bit dirty, but should be correct:
+		// A little bit dirty, but should be correct:
 		// Even if the true element has more than three vertices (quadrilateral),
 		// we only need three to compute the direction of the normal ElemNormal in NormalOnSCVF_Face,
 		// the norm is not needed!

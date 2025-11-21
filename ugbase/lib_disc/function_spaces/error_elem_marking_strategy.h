@@ -61,7 +61,7 @@ public:
 	using attachment_accessor_type = MultiGrid::AttachmentAccessor<elem_type, error_attachment_type >;
 
 	/// CTOR
-	IMultigridElementIndicators() {}
+	IMultigridElementIndicators() = default;
 
 	/// DTOR
 	~IMultigridElementIndicators()
@@ -134,7 +134,7 @@ public:
 	IElementMarkingStrategy()
 	: m_latest_error(-1), m_latest_error_per_elem_max(-1), m_latest_error_per_elem_min(-1)
 	{}
-	virtual ~IElementMarkingStrategy(){};
+	virtual ~IElementMarkingStrategy()= default;
 
 
 	/// This function marks all elements

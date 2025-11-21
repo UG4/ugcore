@@ -71,9 +71,6 @@ MessageHub::CallbackId::~CallbackId()
 
 ////////////////////////////////////////////////////////////////////////////////
 //	MessageHub implementation
-MessageHub::MessageHub()
-{
-}
 
 MessageHub::~MessageHub()
 {

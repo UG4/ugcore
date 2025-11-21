@@ -50,8 +50,6 @@ release_latest()
 	}
 }
 
-ProfileNodeManager::
-ProfileNodeManager()	{}
 
 ProfileNodeManager::
 ~ProfileNodeManager()

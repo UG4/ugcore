@@ -43,10 +43,10 @@ namespace ug{
 class FileReaderASC{
 	public:
 		FileReaderASC();
-		~FileReaderASC();
+		~FileReaderASC()  = default;;
 
 	///	set an external field in which the data will be loaded
-	/**	By default data is loaded into the internal field of the FileReader.
+	/**	By default, data is loaded into the internal field of the FileReader.
 	 * If you want to provide a field into which the data shall be loaded,
 	 * e.g. to avoid memory duplication and copying, you may use this method.
 	 * In this case you should make sure that the provided field instance outlives

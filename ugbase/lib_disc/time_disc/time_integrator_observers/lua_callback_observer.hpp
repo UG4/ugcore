@@ -25,10 +25,10 @@ public:
 	LuaCallbackObserver(int lua_id)
 	: m_lua_callback(nullptr), m_lua_id(lua_id) {}
 
-	virtual ~LuaCallbackObserver()
-	{}
+	~LuaCallbackObserver() override = default;
 
-	virtual bool step_process(SmartPtr<grid_function_type> uNew, int step, number time, number dt)
+
+	bool step_process(SmartPtr<grid_function_type> uNew, int step, number time, number dt) override
 	{
 		if (!m_lua_callback.valid())
 			return true;

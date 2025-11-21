@@ -46,7 +46,7 @@
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 
-#include <math.h>       /* fabs */
+#include <cmath>       /* fabs */
 
 namespace ug{
 
@@ -130,7 +130,7 @@ class GlobalGridFunctionNumberData
 
 		};
 
-		virtual ~GlobalGridFunctionNumberData() {}
+		virtual ~GlobalGridFunctionNumberData() = default;
 
 		virtual bool continuous() const
 		{
@@ -336,7 +336,7 @@ class GlobalGridFunctionGradientData
 
 		};
 
-		virtual ~GlobalGridFunctionGradientData() {}
+		virtual ~GlobalGridFunctionGradientData() = default;
 
 		virtual bool continuous() const
 		{

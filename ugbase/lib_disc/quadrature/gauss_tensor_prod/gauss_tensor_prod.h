@@ -34,7 +34,7 @@
 #define __H__UG__LIB_DISC__QUADRATURE__GAUSS_TENSOR_PROD__
 
 /*
- * In this file, quadrature rules for arbitray order for elements with dim > 1
+ * In this file, quadrature rules for arbitrary order for elements with dim > 1
  * are implemented. The basic idea relies on a transformation of the considered
  * domain to the unit cube [0,1]^d and then using Gauss quadratures to carry out
  * the integrals. Note, that on some elements the transformation introduces
@@ -58,7 +58,7 @@ class GaussQuadratureTriangle : public QuadratureRule<2> {
 		GaussQuadratureTriangle(size_t order);
 
 	///	destructor
-		~GaussQuadratureTriangle();
+		~GaussQuadratureTriangle() override;
 };
 
 /**
@@ -72,7 +72,7 @@ class GaussQuadratureQuadrilateral : public QuadratureRule<2> {
 		GaussQuadratureQuadrilateral(size_t order);
 
 	///	destructor
-		~GaussQuadratureQuadrilateral();
+		~GaussQuadratureQuadrilateral() override;
 };
 
 /**
@@ -86,7 +86,7 @@ class GaussQuadratureHexahedron : public QuadratureRule<3> {
 		GaussQuadratureHexahedron(size_t order);
 
 	///	destructor
-		~GaussQuadratureHexahedron();
+		~GaussQuadratureHexahedron() override;
 };
 
 /**
@@ -100,7 +100,7 @@ class GaussQuadratureTetrahedron : public QuadratureRule<3> {
 		GaussQuadratureTetrahedron(size_t order);
 
 	///	destructor
-		~GaussQuadratureTetrahedron();
+		~GaussQuadratureTetrahedron() override;
 };
 
 /**
@@ -114,7 +114,7 @@ class GaussQuadraturePrism : public QuadratureRule<3> {
 		GaussQuadraturePrism(size_t order);
 
 	///	destructor
-		~GaussQuadraturePrism();
+		~GaussQuadraturePrism() override;
 };
 
 /**
@@ -132,7 +132,7 @@ class GaussQuadraturePyramid : public QuadratureRule<3> {
 		GaussQuadraturePyramid(size_t order);
 
 	///	destructor
-		~GaussQuadraturePyramid();
+		~GaussQuadraturePyramid() override;
 };
 
 /**
@@ -149,7 +149,7 @@ class GaussQuadratureOctahedron : public QuadratureRule<3> {
 	GaussQuadratureOctahedron(size_t order);
 
 	///	destructor
-		~GaussQuadratureOctahedron();
+		~GaussQuadratureOctahedron() override;
 };
 
 } // namespace ug

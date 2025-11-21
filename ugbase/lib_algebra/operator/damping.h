@@ -83,7 +83,7 @@ class IDamping
 		virtual number damping() const = 0;
 
 	///	virtual destructor
-		virtual ~IDamping() {}
+		virtual ~IDamping() = default;
 
 	///	returns information about configuration parameters
 		/**

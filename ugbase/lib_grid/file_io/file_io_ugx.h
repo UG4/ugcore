@@ -300,8 +300,8 @@ class GridWriterUGX
 class GridReaderUGX
 {
 	public:
-		GridReaderUGX();
-		virtual ~GridReaderUGX();
+		GridReaderUGX() = default;
+		virtual ~GridReaderUGX() = default;
 
 	///	parses an xml file
 		bool parse_file(const char* filename);

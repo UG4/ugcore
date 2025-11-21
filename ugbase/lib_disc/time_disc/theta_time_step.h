@@ -73,45 +73,44 @@ class MultiStepTimeDiscretization
 
 	public:
 	/// constructor
-		MultiStepTimeDiscretization(SmartPtr<IDomainDiscretization<algebra_type> > spDD)
+		explicit MultiStepTimeDiscretization(SmartPtr<IDomainDiscretization<algebra_type> > spDD)
 			: ITimeDiscretization<TAlgebra>(spDD),
 			  m_pPrevSol(nullptr)
 		{}
 
-		virtual ~MultiStepTimeDiscretization(){};
+		~MultiStepTimeDiscretization() override = default;
 
 	/// \copydoc ITimeDiscretization::num_prev_steps()
-		virtual size_t num_prev_steps() const {return m_prevSteps;}
+		size_t num_prev_steps() const override {return m_prevSteps;}
 
 	///	\copydoc ITimeDiscretization::prepare_step()
-		virtual void prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
-		                          number dt);
+		void prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol, number dt) override;
 
 	///	\copydoc ITimeDiscretization::prepare_step_elem()
-		virtual void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
-		                               number dt, const GridLevel& gl);
+		void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
+	                       number dt, const GridLevel& gl) override;
 
 	///	\copydoc ITimeDiscretization::finish_step()
-		virtual void finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol);
+		void finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol) override;
 
 	///	\copydoc ITimeDiscretization::finish_step_elem()
-		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
-		                              const GridLevel& gl);
+		void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
+	                      const GridLevel& gl) override;
 
-		virtual number future_time() const {return m_futureTime;}
+		number future_time() const override {return m_futureTime;}
 
 	public:
-		void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl);
+		void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl) override;
 
-		void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl);
+		void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl) override;
 
-		void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl);
+		void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl) override;
 
-		void assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl);
+		void assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl) override;
 
-		void assemble_rhs(vector_type& b, const GridLevel& gl);
+		void assemble_rhs(vector_type& b, const GridLevel& gl) override;
 
-		void adjust_solution(vector_type& u, const GridLevel& gl);
+		void adjust_solution(vector_type& u, const GridLevel& gl) override;
 
 	///////////////////////////////////////////////////////////////////
 	/// Error estimator												///
@@ -180,7 +179,7 @@ class ThetaTimeStep
 
 	public:
 	/// default constructor (implicit Euler)
-		ThetaTimeStep(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
+		explicit ThetaTimeStep(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
 			: MultiStepTimeDiscretization<TAlgebra>(spDD),
 			  m_stage(1), m_scheme("Theta")
 		{
@@ -206,14 +205,14 @@ class ThetaTimeStep
 			this->m_prevSteps = 1;
 		}
 
-		virtual ~ThetaTimeStep() {};
+		~ThetaTimeStep() override = default;
 
 	///	sets the scheme
 		void set_scheme(const char* scheme) {m_scheme = scheme;}
 
 	///	returns number of stages
-		virtual size_t num_stages() const
-		{
+		size_t num_stages() const override
+	{
 			if		(m_scheme == "Theta") 		return 1;
 			else if (m_scheme == "Alexander")	return 2;
 			else if	(m_scheme == "FracStep") 	return 3;
@@ -221,17 +220,17 @@ class ThetaTimeStep
 		}
 
 	///	sets the stage
-		virtual void set_stage(size_t stage) {m_stage = stage;}
+		void set_stage(size_t stage) override {m_stage = stage;}
 
 	///	sets the theta value
 		void set_theta(number theta) {m_theta = theta;}
 
 	protected:
-		virtual number update_scaling(std::vector<number>& vSM,
-		                              std::vector<number>& vSA,
-		                              number dt, number currentTime,
-		                              ConstSmartPtr<VectorTimeSeries<vector_type> > prevSol)
-		{
+		number update_scaling(std::vector<number>& vSM,
+	                      std::vector<number>& vSA,
+	                      number dt, number currentTime,
+	                      ConstSmartPtr<VectorTimeSeries<vector_type> > prevSol) override
+	{
 		//	resize scaling factors
 			vSM.resize(2);
 			vSM[0] = 1.;
@@ -288,7 +287,7 @@ class ThetaTimeStep
 
 		}
 
-		number m_theta;
+		number m_theta{};
 
 		size_t m_stage;
 
@@ -315,7 +314,7 @@ class BDF
 
 	public:
 	/// constructor
-		BDF(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
+		explicit BDF(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
 			: MultiStepTimeDiscretization<TAlgebra>(spDD)
 		{
 			set_order(2);
@@ -328,25 +327,25 @@ class BDF
 			set_order(order);
 		}
 
-		virtual ~BDF() {};
+		~BDF() override = default;
 
 	///	sets the theta value
 		void set_order(size_t order) {m_order = order; this->m_prevSteps = order;}
 
 	///	returns the number of stages
-		virtual size_t num_stages() const {return 1;}
+		size_t num_stages() const override {return 1;}
 
 	///	sets the stage
-		virtual void set_stage(size_t stage)
+		void set_stage(size_t stage) override
 		{
 			if(stage!=1) UG_THROW("BDF has only one stage.");
 		}
 
 	protected:
-		virtual number update_scaling(std::vector<number>& vSM,
-		                              std::vector<number>& vSA,
-		                              number dt, number currentTime,
-		                              ConstSmartPtr<VectorTimeSeries<vector_type> > prevSol)
+		number update_scaling(std::vector<number>& vSM,
+	                      std::vector<number>& vSA,
+	                      number dt, number currentTime,
+	                      ConstSmartPtr<VectorTimeSeries<vector_type> > prevSol) override
 		{
 		//	resize scaling factors
 			vSM.resize(m_order+1);
@@ -424,7 +423,7 @@ class SDIRK
 
 	public:
 	/// default constructor (implicit Euler)
-		SDIRK(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
+		explicit SDIRK(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
 			: MultiStepTimeDiscretization<TAlgebra>(spDD),
 			  m_stage(1), m_order(1)
 		{
@@ -440,7 +439,7 @@ class SDIRK
 			this->m_prevSteps = 1;
 		}
 
-		virtual ~SDIRK() {};
+		~SDIRK() override = default;
 
 	///	sets the scheme
 		void set_order(int order) {
@@ -449,7 +448,8 @@ class SDIRK
 		}
 
 	///	returns number of stages
-		virtual size_t num_stages() const {
+		size_t num_stages() const override
+		{
 			switch(m_order){
 				case 1: return 2; // Midpoint
 				case 2: return 2; // Alexander(2)
@@ -460,11 +460,10 @@ class SDIRK
 		}
 
 	///	sets the stage
-		virtual void set_stage(size_t stage);
+		void set_stage(size_t stage) override;
 
 	public:
-		virtual void prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
-								  number dt);
+		void prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol, number dt) override;
 	/*	Please overwrite any of the following methods, if applicable:
 	    virtual void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 									   number dt, const GridLevel& gl);
@@ -474,27 +473,28 @@ class SDIRK
 	*/
 
 	public:
-		void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl);
+		void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl) override;
 
-		void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl);
+		void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl) override;
 
-		void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl);
+		void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl) override;
 
-		void assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl);
+		void assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl) override;
 
-		void assemble_rhs(vector_type& b, const GridLevel& gl);
+		void assemble_rhs(vector_type& b, const GridLevel& gl) override;
 
-		void adjust_solution(vector_type& u, const GridLevel& gl);
+		void adjust_solution(vector_type& u, const GridLevel& gl) override;
 
 	protected:
 		virtual number update_scaling(std::vector<number>& vSM,
 									  std::vector<number>& vSA,
 									  number dt);
 
-		virtual number update_scaling(std::vector<number>& vSM,
-		                              std::vector<number>& vSA,
-		                              number dt, number currentTime,
-		                              ConstSmartPtr<VectorTimeSeries<vector_type> > prevSol) {
+		number update_scaling(std::vector<number>& vSM,
+	                      std::vector<number>& vSA,
+	                      number dt, number currentTime,
+	                      ConstSmartPtr<VectorTimeSeries<vector_type> > prevSol) override
+	{
 			UG_THROW("Not used.");
 		}
 

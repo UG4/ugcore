@@ -65,9 +65,8 @@ public:
 	};
 
 
-	virtual ~LognormalRandomField()
-	{
-	}
+	virtual ~LognormalRandomField() = default;
+
 	inline TRet evaluate(TData& D, const MathVector<dim>& x, number time, int si) const;
 
 	void set_no_exp() { m_bNoExp = true; }

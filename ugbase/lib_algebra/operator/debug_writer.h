@@ -49,7 +49,7 @@ public:
 	/** \param vec vector to be modified
 	 * todo: change to assign_positions () const?*/
 	virtual bool get_positions(std::vector<MathVector<dim> >&vec) = 0;
-	virtual ~IPositionProvider() {}
+	virtual ~IPositionProvider() = default;
 };
 
 /// Context of a debugger writer: Keeps the debugging section etc.

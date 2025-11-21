@@ -125,7 +125,7 @@ class SmallObject
 	public:
 		static void* operator new(std::size_t size);
 		static void operator delete(void* p, std::size_t size);
-		virtual ~SmallObject()	{}
+		virtual ~SmallObject() = default;
 };
 
 ////////////////////////////////

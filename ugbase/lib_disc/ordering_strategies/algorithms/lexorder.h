@@ -77,15 +77,14 @@ public:
 	/// Position attachment type
 	using Position_t = std::pair<MathVector<TDomain::dim>, size_t>;
 
-	LexOrdering()= default;
+	LexOrdering() = default;
 
 	/// clone constructor
-	LexOrdering( const LexOrdering<TAlgebra, TDomain, O_t> &parent )
-			: baseclass(){}
+	LexOrdering( const LexOrdering &parent ) : baseclass(){}
 
-	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
+	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone() override
 	{
-		return make_sp(new LexOrdering<TAlgebra, TDomain, O_t>(*this));
+		return make_sp(new LexOrdering(*this));
 	}
 
 	void parse(){
@@ -97,7 +96,8 @@ public:
 		std::cout << "length: " << strlen(m_dir) << std::endl;
 	}
 
-	void compute(){
+	void compute() override
+	{
 		size_t len = strlen(m_dir);
 
 		if(len == 0){
@@ -152,17 +152,20 @@ public:
 		mat = nullptr;
 	}
 
-	void check(){
+	void check() override
+	{
 		if(!is_permutation(o)){
 			UG_THROW(name() << "::check: Not a permutation!");
 		}
 	}
 
-	O_t& ordering(){
+	O_t& ordering() override
+	{
 		return o;
 	}
 
-	void init(M_t* A, const V_t& V){
+	void init(M_t* A, const V_t& V) override
+	{
 		if(strcmp(m_dir, "") == 0){
 			UG_THROW(name() << "::init: no direction chosen!");
 		}
@@ -195,19 +198,22 @@ public:
 		mat = A;
 	}
 
-	void init(M_t*){
+	void init(M_t*) override
+	{
 		UG_THROW(name() << "::init: Cannot initialize smoother without a geometry. Specify the 2nd argument for init!");
 	}
 
-	void init(M_t*, const V_t&, const O_t&){
+	void init(M_t*, const V_t&, const O_t&) override
+	{
 		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 	}
 
-	void init(M_t*, const O_t&){
+	void init(M_t*, const O_t&) override
+	{
 		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 	}
 
-	virtual const char* name() const {return "LexOrdering";}
+	const char* name() const override {return "LexOrdering";}
 
 	void set_direction(const char *dir){
 		m_dir = dir;

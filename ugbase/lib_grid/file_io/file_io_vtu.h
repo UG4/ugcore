@@ -92,7 +92,7 @@ class GridWriterVTU
 	 * are performed.*/
 		GridWriterVTU(std::ostream* out);
 
-		virtual ~GridWriterVTU();
+		virtual ~GridWriterVTU() = default;
 
 	///	Pass a pointer to an ostream to which the data shall be written.
 	/**	Make sure, that the stream is open and stays valid while write operations
@@ -190,8 +190,8 @@ class GridWriterVTU
 class GridReaderVTU
 {
 	public:
-		GridReaderVTU();
-		virtual ~GridReaderVTU();
+		GridReaderVTU() = default;;
+		virtual ~GridReaderVTU() = default;;
 
 	///	parses an xml file
 		bool parse_file(const char* filename);

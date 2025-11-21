@@ -525,8 +525,7 @@ class ReferenceMapping<ReferenceVertex, TWorldDim>
 		static constexpr bool isLinear = true;
 
 	public:
-		using base_type = BaseReferenceMapping<ReferenceVertex::dim, TWorldDim, true,
-			ReferenceMapping<ReferenceVertex, TWorldDim> >;
+		using base_type = BaseReferenceMapping<ReferenceVertex::dim, TWorldDim, true, ReferenceMapping >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -594,8 +593,7 @@ class ReferenceMapping<ReferenceEdge, TWorldDim>
 		static constexpr bool isLinear = true;
 
 	public:
-		using base_type = BaseReferenceMapping<ReferenceEdge::dim, TWorldDim, true,
-			ReferenceMapping<ReferenceEdge, TWorldDim> >;
+		using base_type = BaseReferenceMapping<ReferenceEdge::dim, TWorldDim, true, ReferenceMapping >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -604,7 +602,7 @@ class ReferenceMapping<ReferenceEdge, TWorldDim>
 
 	public:
 	///	Default Constructor
-		ReferenceMapping() {}
+		ReferenceMapping() = default;
 
 	///	Constructor setting the corners
 	/// \{
@@ -664,8 +662,7 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 		static constexpr bool isLinear = true;
 
 	public:
-		using base_type = BaseReferenceMapping<ReferenceTriangle::dim, TWorldDim, true,
-			ReferenceMapping<ReferenceTriangle, TWorldDim> >;
+		using base_type = BaseReferenceMapping<ReferenceTriangle::dim, TWorldDim, true, ReferenceMapping >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -674,7 +671,7 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 
 	public:
 	///	Default Constructor
-		ReferenceMapping() {}
+		ReferenceMapping() = default;
 
 	///	Constructor setting the corners
 	/// \{
@@ -909,7 +906,7 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 
 	public:
 	///	Default Constructor
-		ReferenceMapping() {}
+		ReferenceMapping() = default;
 
 	///	Constructor setting the corners
 	/// \{
@@ -1121,7 +1118,7 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 
 	public:
 	///	Default Constructor
-		ReferenceMapping() {}
+		ReferenceMapping() = default;
 
 	///	Constructor setting the corners
 	/// \{

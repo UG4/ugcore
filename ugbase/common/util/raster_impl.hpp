@@ -47,10 +47,6 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 //	Raster::MultiIndex
 
-template <typename T, int TDIM>
-Raster<T, TDIM>::MultiIndex::
-MultiIndex()
-{}
 
 template <typename T, int TDIM>
 Raster<T, TDIM>::MultiIndex::
@@ -92,10 +88,6 @@ operator [] (int d) const
 ////////////////////////////////////////////////////////////////////////////////
 //	Raster::Coordinate
 
-template <typename T, int TDIM>
-Raster<T, TDIM>::Coordinate::
-Coordinate()
-{}
 
 template <typename T, int TDIM>
 Raster<T, TDIM>::Coordinate::

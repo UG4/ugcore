@@ -46,7 +46,7 @@ class AdaptionSurfaceGridFunction : public GridObserver
 		using AValues = Attachment<Values>;
 
 	public:
-		AdaptionSurfaceGridFunction(SmartPtr<TDomain> spDomain,
+		explicit AdaptionSurfaceGridFunction(SmartPtr<TDomain> spDomain,
 				 bool bObserveStorage = true);
 
 		~AdaptionSurfaceGridFunction() override = default;

@@ -33,7 +33,7 @@
 #ifndef __H__UG__LIB_DISC__TIME_DISC__TIME_INTEGRATOR_OBSERVERS__TIME_INTEGRATOR_OBSERVER_INTERFACE
 #define __H__UG__LIB_DISC__TIME_DISC__TIME_INTEGRATOR_OBSERVERS__TIME_INTEGRATOR_OBSERVER_INTERFACE
 
-#include <registry/class.h>
+#include "registry/class.h"
 
 namespace ug {
 
@@ -63,13 +63,68 @@ public:
 		virtual bool name ## _action(SmartPtr<grid_function_type> u, int step, number time, number dt) = 0;\
 	};
 
-DECLARE_STAGE_OBSERVER(init)
-DECLARE_STAGE_OBSERVER(rewind)
-DECLARE_STAGE_OBSERVER(finalize)
-DECLARE_STAGE_OBSERVER(preprocess)
-DECLARE_STAGE_OBSERVER(postprocess)
-DECLARE_STAGE_OBSERVER(start)
-DECLARE_STAGE_OBSERVER(end)
+template <typename TDomain, typename TAlgebra>
+class ITimeIntegratorStageObserver_init
+{
+public:
+	using grid_function_type = GridFunction<TDomain, TAlgebra> ;
+	virtual ~ITimeIntegratorStageObserver_init() = default;
+	virtual bool init_action(SmartPtr<grid_function_type> u, int step, number time, number dt) = 0;
+};
+
+template <typename TDomain, typename TAlgebra>
+	class ITimeIntegratorStageObserver_rewind
+{
+public:
+	using grid_function_type = GridFunction<TDomain, TAlgebra> ;
+	virtual ~ITimeIntegratorStageObserver_rewind() = default;
+	virtual bool rewind_action(SmartPtr<grid_function_type> u, int step, number time, number dt) = 0;
+};
+
+template <typename TDomain, typename TAlgebra>
+	class ITimeIntegratorStageObserver_finalize
+{
+public:
+	using grid_function_type = GridFunction<TDomain, TAlgebra> ;
+	virtual ~ITimeIntegratorStageObserver_finalize() = default;
+	virtual bool finalize_action(SmartPtr<grid_function_type> u, int step, number time, number dt) = 0;
+};
+
+template <typename TDomain, typename TAlgebra>
+	class ITimeIntegratorStageObserver_preprocess
+{
+public:
+	using grid_function_type = GridFunction<TDomain, TAlgebra> ;
+	virtual ~ITimeIntegratorStageObserver_preprocess() = default;
+	virtual bool preprocess_action(SmartPtr<grid_function_type> u, int step, number time, number dt) = 0;
+};
+
+template <typename TDomain, typename TAlgebra>
+	class ITimeIntegratorStageObserver_postprocess
+{
+public:
+	using grid_function_type = GridFunction<TDomain, TAlgebra> ;
+	virtual ~ITimeIntegratorStageObserver_postprocess() = default;
+	virtual bool postprocess_action(SmartPtr<grid_function_type> u, int step, number time, number dt) = 0;
+};
+
+template <typename TDomain, typename TAlgebra>
+	class ITimeIntegratorStageObserver_start
+{
+public:
+	using grid_function_type = GridFunction<TDomain, TAlgebra> ;
+	virtual ~ITimeIntegratorStageObserver_start() = default;
+	virtual bool start_action(SmartPtr<grid_function_type> u, int step, number time, number dt) = 0;
+};
+
+template <typename TDomain, typename TAlgebra>
+	class ITimeIntegratorStageObserver_end
+{
+public:
+	using grid_function_type = GridFunction<TDomain, TAlgebra> ;
+	virtual ~ITimeIntegratorStageObserver_end() = default;
+	virtual bool end_action(SmartPtr<grid_function_type> u, int step, number time, number dt) = 0;
+};
 
 
 }

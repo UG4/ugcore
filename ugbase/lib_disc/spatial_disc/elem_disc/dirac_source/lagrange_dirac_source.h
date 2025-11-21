@@ -109,7 +109,7 @@ class DiracSourceDisc
 		}
 
 	/// Destructor
-		virtual ~DiracSourceDisc() {};
+		virtual ~DiracSourceDisc() = default;
 
 
 	
@@ -150,7 +150,7 @@ class DiracSourceDisc
 
 	///	prepares the element for assembling
 	/**
-	 * This methods prepares an element for the assembling. The Positions of
+	 * These methods prepares an element for the assembling. The Positions of
 	 * the Element Corners are read and the Finite Volume Geometry is updated.
 	 * The global ip positions are scheduled at the data imports.
 	 */

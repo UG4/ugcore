@@ -43,13 +43,6 @@ SPGroupNode GroupNode::create()
 	return SPGroupNode(node);
 }
 
-GroupNode::GroupNode()
-{
-}
-
-GroupNode::~GroupNode()
-{
-}
 
 void GroupNode::clear()
 {

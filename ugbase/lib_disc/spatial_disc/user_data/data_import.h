@@ -77,7 +77,7 @@ class IDataImport
 			 m_bCompLinDefect(compLinDefect)
 		{}
 
-		virtual ~IDataImport()	{}
+		virtual ~IDataImport() = default;
 
 	///	sets part of import
 		void set_part(DiscPart part) {m_part = part;}

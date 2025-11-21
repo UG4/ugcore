@@ -71,7 +71,7 @@ class LagrangeLSFS<ReferenceVertex, TOrder>
 		static constexpr size_t p = TOrder;
 
 	///	base class
-		using base_type = BaseLSFS<LagrangeLSFS<ReferenceVertex, TOrder>, 0>;
+		using base_type = BaseLSFS<LagrangeLSFS, 0>;
 
 	public:
 	///	Shape type
@@ -92,7 +92,7 @@ class LagrangeLSFS<ReferenceVertex, TOrder>
 
 	public:
 	///	Constructor
-		LagrangeLSFS() {}
+		LagrangeLSFS() = default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
@@ -188,7 +188,7 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		static constexpr size_t p = TOrder;
 
 	///	base class
-		using base_type = BaseLSFS<LagrangeLSFS<ReferenceEdge, TOrder>, 1>;
+		using base_type = BaseLSFS<LagrangeLSFS, 1>;
 
 	public:
 	///	Shape type
@@ -402,7 +402,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		static constexpr size_t p = TOrder;
 
 	///	base class
-		using base_type = BaseLSFS<LagrangeLSFS<ReferenceTriangle, TOrder>, 2>;
+		using base_type = BaseLSFS<LagrangeLSFS, 2>;
 
 	public:
 	///	Shape type
@@ -1060,7 +1060,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		static constexpr size_t p = TOrder;
 
 	///	base class
-		using base_type = BaseLSFS<LagrangeLSFS<ReferenceTetrahedron, TOrder>, 3>;
+		using base_type = BaseLSFS<LagrangeLSFS, 3>;
 
 	public:
 	///	Shape type
@@ -1899,7 +1899,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		static constexpr size_t p = TOrder;
 
 	///	base class
-		using base_type = BaseLSFS<LagrangeLSFS<ReferencePyramid, TOrder>, 3>;
+		using base_type = BaseLSFS<LagrangeLSFS, 3>;
 
 	public:
 	///	Shape type
@@ -2112,7 +2112,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		static constexpr size_t p = TOrder;
 
 	///	base class
-		using base_type = BaseLSFS<LagrangeLSFS<ReferenceHexahedron, TOrder>, 3>;
+		using base_type = BaseLSFS<LagrangeLSFS, 3>;
 
 	public:
 	///	Shape type

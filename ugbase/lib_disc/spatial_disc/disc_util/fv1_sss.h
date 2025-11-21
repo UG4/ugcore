@@ -235,7 +235,7 @@ private:
 public:
 
 ///	class constructor
-	FVSingularSourcesAndSinks () {}
+	FVSingularSourcesAndSinks () = default;
 
 ///	add a point source or sink
 	void add_point

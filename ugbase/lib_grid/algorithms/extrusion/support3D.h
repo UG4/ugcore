@@ -12,9 +12,9 @@
 #include <stdexcept>
 #include <cmath>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
-#include <assert.h>
+#include <cassert>
 #include <string>
 #include <sstream>
 #include <utility>

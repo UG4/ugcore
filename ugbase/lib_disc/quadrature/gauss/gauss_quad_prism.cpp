@@ -108,5 +108,5 @@ FlexGaussQuadrature<ReferencePrism>::FlexGaussQuadrature(int order)
 	default: UG_THROW("Order "<<order<<" not available for GaussQuadrature of prism.");
 	}
 }
-}; // namespace ug
+} // namespace ug
 

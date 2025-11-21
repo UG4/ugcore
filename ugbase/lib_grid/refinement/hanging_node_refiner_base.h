@@ -109,7 +109,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 		~HangingNodeRefinerBase() override;
 
-		virtual void grid_to_be_destroyed(Grid* grid);
+		void grid_to_be_destroyed(Grid* grid) override;
 
 	///	enables or disables node-dependency-order-1.
 	/**	\{
@@ -126,29 +126,29 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		void add_ref_mark_adjuster(SPIRefMarkAdjuster adjuster)		{m_refMarkAdjusters.push_back(adjuster);}
 
 
-		virtual void clear_marks();
+		void clear_marks() override;
 
 	///	Marks a element for refinement.
 	/**	\{ */
-		virtual bool mark(Vertex* v, RefinementMark refMark = RM_REFINE);
-		virtual bool mark(Edge* e, RefinementMark refMark = RM_REFINE);
-		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE);
-		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE);
+		bool mark(Vertex* v, RefinementMark refMark = RM_REFINE) override;
+		bool mark(Edge* e, RefinementMark refMark = RM_REFINE) override;
+		bool mark(Face* f, RefinementMark refMark = RM_REFINE) override;
+		bool mark(Volume* v, RefinementMark refMark = RM_REFINE) override;
 	/**	\} */
 
 	///	Marks the neighborhood of the current selection.
 	/**	\sa ISelector::mark_neighborhood*/
-		virtual void mark_neighborhood(
+		void mark_neighborhood(
 						size_t numIterations,
 						RefinementMark refMark,
-						bool sideNbrsOnly);
+						bool sideNbrsOnly) override;
 
 	///	Returns the mark of a given element.
 	/**	\{ */
-		virtual RefinementMark get_mark(Vertex* v) const;
-		virtual RefinementMark get_mark(Edge* e) const;
-		virtual RefinementMark get_mark(Face* f) const;
-		virtual RefinementMark get_mark(Volume* v) const;
+		RefinementMark get_mark(Vertex* v) const override;
+		RefinementMark get_mark(Edge* e) const override;
+		RefinementMark get_mark(Face* f) const override;
+		RefinementMark get_mark(Volume* v) const override;
 	/**	\} */
 
 		
@@ -186,8 +186,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		}
 
 
-
-		virtual bool save_marks_to_file(const char* filename);
+		bool save_marks_to_file(const char* filename) override;
 
 	protected:
 		using sel_vrt_iter = typename TSelector::template traits<Vertex>::iterator;
@@ -217,7 +216,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 * are called in the given order. During element refinement further
 	 * virtual methods are called, which perform the actual element refinement.
 	 */
-		void perform_refinement();
+		void perform_refinement() override;
 
 
 	///	a callback that allows to deny refinement of special vertices

@@ -45,13 +45,6 @@ SPCollisionTreeRootNode CollisionTreeRootNode::create()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-CollisionTreeRootNode::CollisionTreeRootNode()
-{
-}
-
-CollisionTreeRootNode::~CollisionTreeRootNode()
-{
-}
 
 void CollisionTreeRootNode::clear_points()
 {

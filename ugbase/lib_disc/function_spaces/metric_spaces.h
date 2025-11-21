@@ -58,7 +58,7 @@ class IBanachSpace
 {
 
 public:
-	virtual ~IBanachSpace() {}
+	virtual ~IBanachSpace() = default;
 
 	/// euclidean norm (default)
 	virtual double norm(TVector &x)
@@ -86,7 +86,7 @@ public:
 	using grid_function_type = TGridFunction;
 
 	/// DTOR
-	virtual ~IGridFunctionSpace() = default;
+	~IGridFunctionSpace() override = default;
 
 	/// norm (for grid functions)
 	virtual double norm(TGridFunction& x) = 0;
@@ -104,15 +104,15 @@ public:
 	}*/
 
 	/// OVERRIDE norm (for vectors)
-	virtual double norm(vector_type &x)
+	double norm(vector_type &x) override
 	{
-		TGridFunction* gfX=dynamic_cast< TGridFunction*>(&x);
+		auto* gfX=dynamic_cast< TGridFunction*>(&x);
 		UG_ASSERT(gfX!=nullptr, "Huhh: GridFunction required!");
 		return norm(*gfX);
 	}
 
 	/// OVERRIDE distance (for vectors)
-	virtual double distance(vector_type &x, vector_type &y)
+	double distance(vector_type &x, vector_type &y) override
 	{ return distance(static_cast<TGridFunction &>(x), static_cast<TGridFunction &>(y)); }
 
 	virtual double scaling() const
@@ -126,18 +126,18 @@ template<typename TGridFunction>
 class AlgebraicSpace : public IGridFunctionSpace<TGridFunction>
 {
 	using vector_type = typename TGridFunction::vector_type;
-	virtual ~AlgebraicSpace() {}
+	~AlgebraicSpace() override = default;
 
-	virtual double norm(TGridFunction& x)
+	double norm(TGridFunction& x) override
 	{return x.norm();}
 
-	virtual double norm2(TGridFunction& x)
+	double norm2(TGridFunction& x) override
 	{ double n = this->norm(x); return n*n; }
 
-	virtual double distance(TGridFunction& x, TGridFunction& y)
+	double distance(TGridFunction& x, TGridFunction& y) override
 	{ SmartPtr<TGridFunction> delta = x.clone(); *delta -= y; return delta->norm(); }
 
-	virtual double distance2(TGridFunction& x, TGridFunction& y)
+	double distance2(TGridFunction& x, TGridFunction& y) override
 	{ double d = this->distance(x,y);; return d*d;}
 };
 
@@ -211,18 +211,18 @@ public:
 	IComponentSpace(const char *fctNames, const char* ssNames, int order)
 	: m_fctNames(fctNames), m_ssNames(ssNames), m_quadorder(order){}
 
-	virtual ~IComponentSpace() {};
+	~IComponentSpace() override = default;
 
 	// per convention, norm must return sqrt of norm2
-	virtual double norm(TGridFunction& uFine)
+	double norm(TGridFunction& uFine) override
 	{ return sqrt(norm2(uFine)); }
 
 	// per convention, distance must return sqrt of distance2
-	virtual double distance(TGridFunction& uFine, TGridFunction& uCoarse)
+	double distance(TGridFunction& uFine, TGridFunction& uCoarse) override
 	{ return sqrt(distance2(uFine, uCoarse)); }
 
-	virtual double norm2(TGridFunction& uFine)  = 0;
-	virtual double distance2(TGridFunction& uFine, TGridFunction& uCoarse)  = 0;
+	double norm2(TGridFunction& uFine) override = 0;
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) override = 0;
 
 	std::string function_name(){return m_fctNames;}
 
@@ -230,7 +230,7 @@ public:
 
 public:
 	/// print config string
-	virtual std::string config_string() const
+	std::string config_string() const override
 	{
 		std::stringstream ss;
 
@@ -260,9 +260,9 @@ class GridFunctionComponentSpace
 		GridFunctionComponentSpace(const char* fctNames, const char* ssNames)
 		: IComponentSpace<TGridFunction>(fctNames, ssNames, 1) {}
 
-		virtual ~GridFunctionComponentSpace() {};
+		~GridFunctionComponentSpace() override = default;
 
-		virtual double norm2(TGridFunction& uFine)
+		double norm2(TGridFunction& uFine) override
 		{
 			ConstSmartPtr<DoFDistribution> dd = uFine.dof_distribution();
 
@@ -305,7 +305,7 @@ class GridFunctionComponentSpace
 			return sum;
 		}
 
-		virtual double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
+		double distance2(TGridFunction& uFine, TGridFunction& uCoarse) override
 		{
 			ConstSmartPtr<DoFDistribution> dd = uFine.dof_distribution();
 			UG_COND_THROW(dd != uCoarse.dof_distribution(),
@@ -466,14 +466,14 @@ public:
 	: m_spSpatialSpace(spSpace), m_tScale(tScale) {};
 
 	/// DTOR
-	virtual ~TimeDependentSpace() = default;
+	~TimeDependentSpace() override = default;
 
 	using base_type::norm;
 	using base_type::distance;
 	using base_type::scaling;
 
 	/// scaling (OVERRIDE)
-	double scaling() const
+	double scaling() const override
 	{ return (m_spSpatialSpace->scaling()*m_tScale); }
 
 	/// characteristic time
@@ -481,7 +481,7 @@ public:
 	{  m_tScale = tScale; }
 
 	/// print config string
-	std::string config_string() const
+	std::string config_string() const override
 	{
 		std::stringstream ss;
 		ss << "TimeDependentSpace for " <<  std::endl;
@@ -520,7 +520,7 @@ public:
 	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight) {};
 
 	/// DTOR
-	~L2ComponentSpace() {};
+	~L2ComponentSpace() override {};
 
 	using IComponentSpace<TGridFunction>::norm;
 	using IComponentSpace<TGridFunction>::distance;
@@ -568,7 +568,7 @@ public:
 	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight) {};
 
 	/// DTOR
-	~L2QuotientSpace() {};
+	~L2QuotientSpace() override = default;
 
 	using IComponentSpace<TGridFunction>::norm;
 	using IComponentSpace<TGridFunction>::distance;
@@ -579,7 +579,7 @@ public:
 	using weighted_obj_type::m_spWeight;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double norm2(TGridFunction& u)
+	double norm2(TGridFunction& u) override
 	{
 		using MyConstUserData = ConstUserNumber<TGridFunction::dim>;
 		using SPUserData = SmartPtr<UserData<number, TGridFunction::dim> >;
@@ -596,7 +596,7 @@ public:
 	}
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance
-	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) override
 	{
 		using MyConstUserData = ConstUserNumber<TGridFunction::dim>;
 		using SPUserData = SmartPtr<UserData<number, TGridFunction::dim> >;
@@ -646,7 +646,7 @@ public:
 	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight) {};
 
 	/// DTOR
-	~H1SemiComponentSpace() {};
+	~H1SemiComponentSpace() override = default;
 
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
@@ -655,11 +655,11 @@ public:
 	using IComponentSpace<TGridFunction>::distance;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm2
-	double norm2(TGridFunction& uFine)
+	double norm2(TGridFunction& uFine) override
 	{ return H1SemiNorm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, nullptr, weighted_obj_type::m_spWeight); }
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance2
-	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) override
 	{ return H1SemiDistance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder, m_spWeight); }
 
 	/// for weighted norms
@@ -770,7 +770,7 @@ public:
 	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(nullptr) {};*/
 
 	/// DTOR
-	~H1EnergyComponentSpace() {};
+	~H1EnergyComponentSpace() override = default;
 
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
@@ -779,7 +779,7 @@ public:
 	using IComponentSpace<TGridFunction>::distance;
  
 	/// \copydoc IComponentSpace<TGridFunction>::norm2
-	double norm2(TGridFunction& uFine)
+	double norm2(TGridFunction& uFine) override
 	{
 		if (m_spVelocity.valid()) {
 			//const char* subsets = nullptr; // [q^2]
@@ -791,7 +791,7 @@ public:
 	}
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance2
-	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) override
 	{ return H1EnergyDistance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder,base_type::m_ssNames, weighted_obj_type::m_spWeight); }
 
 	/// for weighted norms
@@ -817,7 +817,7 @@ public:
 	H1ComponentSpace(const char *fctNames) : base_type(fctNames) {};
 	H1ComponentSpace(const char *fctNames, int order) : base_type(fctNames, order) {};
 	H1ComponentSpace(const char *fctNames,  const char* ssNames, int order) : base_type(fctNames, ssNames, order) {};
-	~H1ComponentSpace() {};
+	~H1ComponentSpace() override = default;
 
 	using IComponentSpace<TGridFunction>::norm;
 	using IComponentSpace<TGridFunction>::distance;
@@ -847,18 +847,18 @@ public:
 	using time_dependent_obj_type = TimeDependentSpace<TGridFunction>;
 	using weighted_obj_type = std::pair<SmartPtr<obj_type>, number>;
 
-	CompositeSpace() {};
-	// virtual ~CompositeSpace() {};
+	CompositeSpace() = default;
+	~CompositeSpace() override = default;
 
 	using base_type::norm;
 	using base_type::distance;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double norm(TGridFunction& uFine)
+	double norm(TGridFunction& uFine) override
 	{ return(sqrt(norm2(uFine))); }
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm2
-	double norm2(TGridFunction& uFine)
+	double norm2(TGridFunction& uFine) override
 	{
 		number unorm2 = 0.0;
 		for (typename std::vector<weighted_obj_type>::iterator it = m_spWeightedSubspaces.begin();
@@ -874,7 +874,7 @@ public:
 	}
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance2
-	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) override
 	{
 		number unorm2 = 0.0;
 		for (typename std::vector<weighted_obj_type>::iterator it = m_spWeightedSubspaces.begin();
@@ -890,7 +890,7 @@ public:
 	}
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance2
-	double distance(TGridFunction& uFine, TGridFunction& uCoarse)
+	double distance(TGridFunction& uFine, TGridFunction& uCoarse) override
 	{ return sqrt(distance2(uFine, uCoarse)); }
 
 	/// add space to composite (with weight 1.0)
@@ -902,7 +902,7 @@ public:
 	{ m_spWeightedSubspaces.push_back(std::make_pair(spSubSpace, sigma)); }
 
 	/// print config string                                                                                                                                                                              
-	std::string config_string() const
+	std::string config_string() const override
 	{
 	    std::stringstream ss;
 	    ss << "CompositeSpace:" << std::endl;

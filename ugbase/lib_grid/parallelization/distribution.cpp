@@ -175,19 +175,17 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 		using InterfaceIter = typename Interface::const_iterator;
 
 		ComPol_SynchronizeDistInfos(DistInfoSupplier& distInfos, bool merge) :
-			m_distInfos(distInfos), m_mergeEnabled(merge)	{}
+			m_distInfos(distInfos), m_mergeEnabled(merge) {}
 
 		~ComPol_SynchronizeDistInfos() override = default;
 
-		void enable_merge(bool enable)	{m_mergeEnabled = enable;}
-		bool merge_enabled()			{return m_mergeEnabled;}
+		void enable_merge(bool enable) {m_mergeEnabled = enable;}
+		bool merge_enabled() {return m_mergeEnabled;}
 
-		virtual int
-		get_required_buffer_size(const Interface& interface)		{return -1;}
+		int get_required_buffer_size(const Interface& interface) override {return -1;}
 
 	///	write target processes and move-flag
-		virtual bool
-		collect(BinaryBuffer& buff, const Interface& intfc)
+		bool collect(BinaryBuffer& buff, const Interface& intfc) override
 		{
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter){
 				Element elem = intfc.get_element(iter);
@@ -197,8 +195,7 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 	///	read target processes and move-flag
-		virtual bool
-		extract(BinaryBuffer& buff, const Interface& intfc)
+		bool extract(BinaryBuffer& buff, const Interface& intfc) override
 		{
 			if(m_mergeEnabled){
 				vector<TargetProcInfo> tpInfo;

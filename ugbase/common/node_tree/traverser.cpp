@@ -48,9 +48,6 @@ Traverser::Traverser()
 	register_handler_function(OC_BOXED_GROUP_NODE, &Traverser::handle_boxed_group);
 }
 
-Traverser::~Traverser()
-{
-}
 
 bool Traverser::handler_function_registered(unsigned int oc)
 {

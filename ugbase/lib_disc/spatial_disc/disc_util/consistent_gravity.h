@@ -520,7 +520,7 @@ class StdLinConsistentGravityX : public StdLinConsistentGravity<refDim>
 public:
 
 ///	constructor
-	StdLinConsistentGravityX () {}
+	StdLinConsistentGravityX () = default;
 	
 ///	computation of the primary function for the consistent gravity at corners, cf. the specializations
 	template <int dim>

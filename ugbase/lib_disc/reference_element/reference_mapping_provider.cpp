@@ -214,7 +214,7 @@ class DimReferenceMappingWrapper
 		}
 
 	///	virtual destructor
-		virtual ~DimReferenceMappingWrapper() {}
+		virtual ~DimReferenceMappingWrapper() = default;
 };
 
 

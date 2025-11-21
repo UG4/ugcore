@@ -152,8 +152,7 @@ public: // construct
 	    : base_class(p), _v(p._v), _base(p._base){
 	}
 	UM_out_edge_iterator(UM_out_edge_iterator&& p) = delete;
-	~UM_out_edge_iterator(){
-	}
+	~UM_out_edge_iterator() = default;
 	UM_out_edge_iterator& operator = (UM_out_edge_iterator const& p) {
 		_v = p._v;
 		_base = p._base;

@@ -48,7 +48,7 @@ namespace ug{
 
 /// Class for computing integral properties of geometric objects types in lists
 /**
- * This class gets the maximum number of corners, edges etc over all the geometric
+ * This class gets the maximum number of corners, edges etc. over all the geometric
  * elements in a given list. The computation is performed at the compile time
  * so that the result (e.g. element_list_traits<ElemList>::max_edges) is a static
  * constant.

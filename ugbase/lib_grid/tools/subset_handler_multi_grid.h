@@ -85,22 +85,22 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		inline uint get_level(TGeomObj* obj) const	{return m_pMG->get_level(obj);}
 		
 	////////////////////////////////////////////////
-	//	implementation of public virtual methdos of ISubsetHandler.
+	//	implementation of public virtual methods of ISubsetHandler.
 	///	assigns a vertex to a subset.
 	/**	If the subset doesn't already exist, it will be created.*/
-		void assign_subset(Vertex* elem, int subsetIndex);
+		void assign_subset(Vertex* elem, int subsetIndex) override;
 
 	///	assigns an edge to a subset.
 	/**	If the subset doesn't already exist, it will be created.*/
-		void assign_subset(Edge* elem, int subsetIndex);
+		void assign_subset(Edge* elem, int subsetIndex) override;
 
 	///	assigns a face to a subset.
 	/**	If the subset doesn't already exist, it will be created.*/
-		void assign_subset(Face* elem, int subsetIndex);
+		void assign_subset(Face* elem, int subsetIndex) override;
 
 	///	assigns a volume to a subset.
 	/**	If the subset doesn't already exist, it will be created.*/
-		void assign_subset(Volume* elem, int subsetIndex);
+		void assign_subset(Volume* elem, int subsetIndex) override;
 
 	////////////////////////////////////////////////
 	//	element-access
@@ -160,7 +160,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 	/**	the returned GridObjectCollection hold the
 	 *	elements of the specified subset.*/
 		GridObjectCollection
-		get_grid_objects_in_subset(int subsetIndex) const;
+		get_grid_objects_in_subset(int subsetIndex) const override;
 
 	///	returns a GridObjectCollection with multiple levels - each representing a subset.
 	/**	the returned GridObjectCollection hold the
@@ -202,20 +202,20 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		//virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const;
 		
 	///	returns true if the subset contains vertices
-		virtual bool contains_vertices(int subsetIndex) const	{return num<Vertex>(subsetIndex) > 0;}
+		bool contains_vertices(int subsetIndex) const override {return num<Vertex>(subsetIndex) > 0;}
 
 	///	returns true if the subset contains edges
-		virtual bool contains_edges(int subsetIndex) const		{return num<Edge>(subsetIndex) > 0;}
+		bool contains_edges(int subsetIndex) const override {return num<Edge>(subsetIndex) > 0;}
 		
 	///	returns true if the subset contains faces
-		virtual bool contains_faces(int subsetIndex) const		{return num<Face>(subsetIndex) > 0;}
+		bool contains_faces(int subsetIndex) const override {return num<Face>(subsetIndex) > 0;}
 		
 	///	returns true if the subset contains volumes
-		virtual bool contains_volumes(int subsetIndex) const	{return num<Volume>(subsetIndex) > 0;}
+		bool contains_volumes(int subsetIndex) const override {return num<Volume>(subsetIndex) > 0;}
 
 
 	///	perform cleanup
-		virtual void grid_to_be_destroyed(Grid* grid);
+		void grid_to_be_destroyed(Grid* grid) override;
 
 	protected:
 	///	returns the number of subsets in the local list
@@ -227,35 +227,35 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 	////////////////////////////////////////////////
 	//	implementation of protected virtual methdos of ISubsetHandler.
 	///	erases the subsets. Doesn't alter any indices.
-		virtual void erase_subset_lists();
+		void erase_subset_lists() override;
 
 	///	non-virtual implementation of erase_subset_lists. Callable from destructor
 		void erase_subset_lists_impl();
 		
 	///	clears the element lists in the given subset. Does not alter any indices.
-		void clear_subset_lists(int index);
+		void clear_subset_lists(int index) override;
 
 	///	changes the subset-indices of all elements int the subset.
 	/**	WARNING: subsets are not automatically changed accordingly.
 	 *	After termination Subset-Indices and Subset-Infos/iterators are asynchronous.
 	 *	Make sure to change subset-infos and iterators accordingly.*/		
-		void change_subset_indices(int indOld, int indNew);		
+		void change_subset_indices(int indOld, int indNew) override;
 
 		
 	///	add a subset
-		void add_required_subset_lists(int maxIndex);
+		void add_required_subset_lists(int maxIndex) override;
 		
 	///	erases the subset but does not touch the subset-indices.
-		void erase_subset_lists(int index);
+		void erase_subset_lists(int index) override;
 
 	///	swaps the subsets but does not touch the subset-indices.
-		void swap_subset_lists(int ind1, int ind2);
+		void swap_subset_lists(int ind1, int ind2) override;
 
 	///	moves the subset but does not touch the subset-indices.
-		void move_subset_lists(int indexFrom, int indexTo);
+		void move_subset_lists(int indexFrom, int indexTo) override;
 
 	///	join the subset-lists but do not touch the subset-indices.
-		virtual void join_subset_lists(int target, int src1, int src2);
+		void join_subset_lists(int target, int src1, int src2) override;
 
 	///	this method is called by ISubsetHandler when attachment_support has been enabled.
 		//void register_subset_elements_at_pipe();

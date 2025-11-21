@@ -80,10 +80,10 @@ using matrix_type = typename algebra_type::matrix_type;
 	static constexpr int dim = domain_type::dim;
 	
 ///	Constructor
-	IInterfaceExtrapolation () {}
+	IInterfaceExtrapolation () = default;
 	
 ///	Destructor
-	virtual ~IInterfaceExtrapolation () {}
+	virtual ~IInterfaceExtrapolation () = default;
 
 ///	checks whether the element is intersected by the interface, or what, and prepares the data
 	virtual int check_elem_lsf
@@ -193,7 +193,7 @@ public:
 	LSGFGlobAssembler () : m_bAssembleOnlyCut(false) {};
 	
 ///	virtual destructor
-	virtual ~LSGFGlobAssembler () {};
+	virtual ~LSGFGlobAssembler () = default;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Assembling tools
@@ -691,7 +691,7 @@ using matrix_type = typename algebra_type::matrix_type;
 	{}
 
 /// virtual destructor
-	virtual ~LSGFConstraint () {};
+	~LSGFConstraint () override = default;
 
 /// sets a unity row for all conductor indices
 	void adjust_jacobian
@@ -779,6 +779,7 @@ private:
  *
  * \tparam TDomain          domain type
  * \tparam TAlgebra         algebra type
+ * \tparam TExtrapolation   extrapolation type
  */
 template <typename TDomain, typename TAlgebra, typename TExtrapolation>
 class LSGFDomainDiscretization

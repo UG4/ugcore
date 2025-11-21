@@ -718,7 +718,7 @@ inline void SideNormal<3>(ReferenceObjectID roid, MathVector<3>& normalOut, int 
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 
-// wrapper class to distinguish reference dimesion
+// wrapper class to distinguish reference dimension
 template <typename TRefElem, int TWorldDim, int TRefDim = TRefElem::dim>
 struct ElementSideRayIntersectionWrapper
 {
@@ -759,7 +759,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 2, 2>
 			p0 = rRefElem.id(dim-1, sideOut, 0, 0);
 			p1 = rRefElem.id(dim-1, sideOut, 0, 1);
 
-			// if match: break
+			// if matched: break
 			if(RayLineIntersection2d(	GlobalIntersectionPointOut, bc, t,
 										vCornerCoords[p0], vCornerCoords[p1],
 										From, Direction))
@@ -822,7 +822,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 			// get corner number 4
 			p1 = rRefElem.id(dim-1, sideOut, 0, 3);
 
-			// if match: break
+			// if matched: break
 			if(RayTriangleIntersection(	GlobalIntersectionPointOut, bc0, bc1, t,
 										vCornerCoords[p0], vCornerCoords[p1], vCornerCoords[p2],
 										From, Direction))
@@ -886,7 +886,7 @@ bool ElementSideRayIntersection(	size_t& sideOut,
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 
-// wrapper class to distinguish reference dimesion
+// wrapper class to distinguish reference dimension
 template <int TDim, int TWorldDim>
 struct SCVFofSCVRayIntersectionWrapper
 {
@@ -928,7 +928,7 @@ struct SCVFofSCVRayIntersectionWrapper<2, 2>
 			p0 = rRefElem.id(dim-1, sideOut, 0, 0);
 			p1 = rRefElem.id(dim-1, sideOut, 0, 1);
 
-			// if match: break
+			// if matched: break
 			if(RayLineIntersection2d(	GlobalIntersectionPointOut, bc, t,
 										vCornerCoords[p0], vCornerCoords[p1],
 										From, Direction))

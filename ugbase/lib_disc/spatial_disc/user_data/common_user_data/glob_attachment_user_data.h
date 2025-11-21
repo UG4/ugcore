@@ -58,7 +58,7 @@ class GlobAttachmentElementUserData
 		attachment_type m_att;
 		Grid::AttachmentAccessor<elem_type, attachment_type> m_aatt;
 		
-	///	Evalutation of the attachment in one element
+	///	Evaluation of the attachment in one element
 		inline void eval_on_elem
 		(
 			elem_type * elem, ///< the element to evaluate on

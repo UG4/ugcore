@@ -41,7 +41,7 @@
 #include <iomanip>
 #include <vector>
 #include <list>
-#include <math.h>
+#include <cmath>
 
 #include "common/common.h"
 #include "common/stopwatch.h"
@@ -74,7 +74,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 	/// \}
 
 	/// destructor
-		virtual ~CompositeConvCheck() {};
+		~CompositeConvCheck() override = default;
 
 	/// set level of grid, where defect vectors come from
 		void set_level(int level);
@@ -127,26 +127,26 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 	/// \}
 
 	/// defect control
-		void start_defect(number initialDefect);
-		void start(const TVector& d);
-		void update_defect(number newDefect);
-		void update(const TVector& d);
-		bool iteration_ended();
-		bool post();
+		void start_defect(number initialDefect) override;
+		void start(const TVector& d) override;
+		void update_defect(number newDefect) override;
+		void update(const TVector& d) override;
+		bool iteration_ended() override;
+		bool post() override;
 
 	/// information about current status
-		int step() const {return m_currentStep;}
-		number defect() const {return defect_all();};
-		number reduction() const {return defect_all()/initial_defect_all();};
-		number rate() const {return defect_all()/last_defect_all();}
-		number avg_rate() const {return std::pow(defect_all()/initial_defect_all(), 1.0/m_currentStep);}
+		int step() const override {return m_currentStep;}
+		number defect() const override {return defect_all();};
+		number reduction() const override {return defect_all()/initial_defect_all();};
+		number rate() const override {return defect_all()/last_defect_all();}
+		number avg_rate() const override {return std::pow(defect_all()/initial_defect_all(), 1.0/m_currentStep);}
 
 	/// output
-		int get_offset() const {return m_offset;};
-		void set_offset(int offset){m_offset = offset;};
-		void set_symbol(char symbol){m_symbol = symbol;};
-		void set_name(std::string name) {m_name = name;};
-		void set_info(std::string info) {m_info = info;};
+		int get_offset() const override {return m_offset;};
+		void set_offset(int offset) override {m_offset = offset;};
+		void set_symbol(char symbol) override {m_symbol = symbol;};
+		void set_name(std::string name) override {m_name = name;};
+		void set_info(std::string info) override {m_info = info;};
 
 	///	sets if verbose
 		void set_verbose(bool level) {m_verbose = level;};
@@ -157,16 +157,16 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 	///	enables time measurement
 		void set_time_measurement(bool yesOrNo) {m_bTimeMeas = yesOrNo;};
 
-	/// whether or not the underlying approximatioon space is adaptive
+	/// whether the underlying approximation space is adaptive
 		void set_adaptive(bool adapt) {m_bAdaptive = adapt;}
 
 	///	clones this instance
-		virtual SmartPtr<IConvergenceCheck<TVector> > clone();
+		SmartPtr<IConvergenceCheck<TVector> > clone() override;
 
 	///	prints a line using prefixes
-		void print_line(std::string line);
+		void print_line(std::string line) override;
 
-		virtual std::string config_string() const
+		std::string config_string() const override
 		{
 			std::stringstream ss;
 			ss << "CompositeConvCheck( max steps = " << m_maxSteps << ")";

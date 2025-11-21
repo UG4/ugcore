@@ -481,7 +481,6 @@ protected:
 
 template <typename TDomain>
 class IElemDiscBase
-
 {
 	public:
 	///	Domain type

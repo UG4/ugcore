@@ -61,7 +61,7 @@ class OStreamBufferSplitter : public std::streambuf
 
 		void set_buffers(std::streambuf* buf1, std::streambuf* buf2);
 
-		virtual int_type overflow(int_type c = traits_type::eof());
+		int_type overflow(int_type c = traits_type::eof()) override;
 
 	private:
 		static constexpr int BUF_SIZE = 128;

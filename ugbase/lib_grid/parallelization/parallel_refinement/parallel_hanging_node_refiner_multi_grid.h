@@ -62,12 +62,12 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 				DistributedGridManager& distGridMgr,
 				SPRefinementProjector projector = nullptr);
 
-		~ParallelHangingNodeRefiner_MultiGrid() override;
+		~ParallelHangingNodeRefiner_MultiGrid() override = default;;
 
 		void set_distributed_grid_manager(DistributedGridManager& distGridMgr);
 
 	/**	If not all processes are involved in refinement,
-	 *	one can set the involved processes here. By default
+	 *	one can set the involved processes here. By default,
 	 *	all processes are involved.*/
 		void set_involved_processes(pcl::ProcessCommunicator com);
 
@@ -142,7 +142,7 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 
 	private:
 		DistributedGridManager* m_pDistGridMgr;
-		MultiGrid*				m_pMG;
+		MultiGrid* m_pMG;
 		pcl::ProcessCommunicator m_procCom;
 		pcl::InterfaceCommunicator<VertexLayout> m_intfComVRT;
 		pcl::InterfaceCommunicator<EdgeLayout> m_intfComEDGE;

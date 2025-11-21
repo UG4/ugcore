@@ -29,7 +29,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
-
+#ifndef IG_UGBASE_LIB_DISC_ORDERING_STRATEGIES_ALGORITHMS_LEXORDER_COMPARATORS_H
+#define IG_UGBASE_LIB_DISC_ORDERING_STRATEGIES_ALGORITHMS_LEXORDER_COMPARATORS_H
 
 namespace ug{
 
@@ -213,3 +214,5 @@ bool ComparePosDimDec<3,2>(const std::pair<MathVector<3>, size_t> &p1,
 
 
 }
+
+#endif

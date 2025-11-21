@@ -46,7 +46,7 @@ namespace ug{
  * This class provides grid function spaces on a domain.
  *
  * The Domain defines a partition of the Grid/Multigrid in terms of subsets.
- * The user can add discrete functions on this subsets or unions of them.
+ * The user can add discrete functions on these subsets or unions of them.
  *
  * Once finalized, this function pattern is fixed. Internally DoF indices are
  * created. Using this Approximation Space the user can create GridFunctions
@@ -55,7 +55,7 @@ namespace ug{
  * - surface grid function = grid function representing the space on the surface grid
  * - level grid function = grid function representing the space on a level grid
  *  (NOTE: 	For a fully refined Multigrid a level grid covers the whole domain.
- *  		However for a locally/adaptively refined MultiGrid the level grid
+ *  		However, for a locally/adaptively refined MultiGrid the level grid
  *  		solution is only living on a part of the domain)
  */
 class IApproximationSpace : public DoFDistributionInfoProvider
@@ -92,7 +92,7 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	public:
 	/// add single solutions of LocalShapeFunctionSetID to the entire domain
 	/**
-	 * \param[in] 	name		name(s) of single solution (comma separated)
+	 * \param[in] 	vName		name(s) of single solution (comma separated)
 	 * \param[in] 	id			Shape Function set id
 	 */
 		void add(const std::vector<std::string>& vName, LFEID id){
@@ -114,9 +114,9 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	public:
 	/// add single solutions of LocalShapeFunctionSetID to selected subsets
 	/**
-	 * \param[in] name			name(s) of single solution (comma separated)
+	 * \param[in] vName			name(s) of single solution (comma separated)
 	 * \param[in] id			Shape Function set id
-	 * \param[in] subsets		Subsets separated by ','
+	 * \param[in] vSubset		Subsets separated by ','
 	 */
 		void add(const std::vector<std::string>& vName, LFEID id,
 				 const std::vector<std::string>& vSubset){
@@ -289,10 +289,12 @@ class ApproximationSpace : public IApproximationSpace
 
 	public:
 	/// constructor
-		ApproximationSpace(SmartPtr<TDomain> domain);
+		explicit ApproximationSpace(SmartPtr<TDomain> domain);
 
 	/// constructor passing requested algebra type
 		ApproximationSpace(SmartPtr<TDomain> domain, const AlgebraType& algebraType);
+
+		~ApproximationSpace() = default;
 
 	/// Return the domain
 		ConstSmartPtr<TDomain> domain() const {return m_spDomain;}
@@ -300,7 +302,8 @@ class ApproximationSpace : public IApproximationSpace
 	///	Return the domain
 		SmartPtr<TDomain> domain() {return m_spDomain;}
 
-		int get_dim() const { return dim; }
+		int get_dim_bridge() { return dim; }
+		static constexpr int get_dim() { return dim; }
 
 	protected:
 	///	Domain, where solution lives

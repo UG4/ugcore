@@ -52,7 +52,7 @@ class NewtonCotes : public QuadratureRule<1>
 		NewtonCotes(size_t order);
 
 	/// destructor
-		~NewtonCotes();
+		~NewtonCotes() override;
 };
 
 } // namespace ug

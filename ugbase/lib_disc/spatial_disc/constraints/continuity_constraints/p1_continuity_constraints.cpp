@@ -55,8 +55,7 @@ void CollectConstraining(std::vector<Vertex*>& vConstrainingVrt,
 		GridObject* constrainingObject = hgVrt->get_constraining_object();
 		if(constrainingObject){
 		//	cast to constraining edge
-			ConstrainingEdge* constrainingEdge =
-					dynamic_cast<ConstrainingEdge*>(constrainingObject);
+			ConstrainingEdge* constrainingEdge = dynamic_cast<ConstrainingEdge*>(constrainingObject);
 
 		//	check that edge is correct
 			if(constrainingEdge == nullptr)

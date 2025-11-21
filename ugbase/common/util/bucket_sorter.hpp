@@ -156,7 +156,7 @@ namespace boost {
            : s(p.s), b(p.b) {}
         const_iterator(const const_iterator&& p)
            : s(p.s), b(p.b) {untested();}
-        ~const_iterator(){}
+        ~const_iterator() = default;
       public:
         const_iterator& operator = (const const_iterator& o){
           assert(&s==&o.s); // how to compile time check?!

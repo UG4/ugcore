@@ -49,9 +49,6 @@ FileReaderASC::FileReaderASC() :
 	m_field = m_privateField.get();
 }
 
-FileReaderASC::~FileReaderASC()
-{
-}
 
 void FileReaderASC::set_field(Field<number>* field)
 {

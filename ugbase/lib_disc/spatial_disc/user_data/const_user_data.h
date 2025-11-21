@@ -222,9 +222,9 @@ class ConstUserVector
 /**
  * Constant matrix user data that can be used in assembling routines.
  *
- * \param N the row size of the matrix
- * \param M the column size of the matrix
- * \param worldDim the dimensionality of the space embedding the grid (for ex. 3 for 3d PDE problems)
+ * \tparam N the row size of the matrix
+ * \tparam M the column size of the matrix
+ * \tparam worldDim the dimensionality of the space embedding the grid (for ex. 3 for 3d PDE problems)
  */
 template <int N, int M = N, int worldDim = N>
 class ConstUserMatrix
@@ -297,8 +297,8 @@ class ConstUserTensor
 };
 
 /// creates user data of desired type
-template <typename TData, int dim>
-SmartPtr<CplUserData<TData,dim> > CreateConstUserData(number val, TData dummy);
+/*template <typename TData, int dim>
+SmartPtr<CplUserData<TData,dim> > CreateConstUserData(number val, TData dummy);*/
 
 template <int dim>
 inline SmartPtr<CplUserData<number,dim> > CreateConstUserData(number val, number)

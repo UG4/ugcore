@@ -113,7 +113,7 @@ class UGError
 		UGError(const std::string &msg, const std::exception &ex, const char *file, const unsigned long line);
 
 	///	virtual destructor
-		virtual ~UGError()	{}
+		virtual ~UGError() = default;
 
 	///	adds a message to the message stack
 		void push_msg(const std::string& msg, const char* file = " -- no file -- ",

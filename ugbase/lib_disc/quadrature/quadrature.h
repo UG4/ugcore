@@ -86,7 +86,7 @@ class QuadratureRule{
 		{}
 
 	///	destructor
-		virtual ~QuadratureRule() {}
+		virtual ~QuadratureRule() = default;
 
 	///	number of integration points
 		inline size_t size() const {return m_numPoints;}

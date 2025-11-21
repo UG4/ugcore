@@ -185,10 +185,6 @@ ParallelMultiGridRefiner(DistributedGridManager& distGridMgr) :
 {
 }
 
-ParallelMultiGridRefiner::~ParallelMultiGridRefiner()
-{
-}
-
 template <typename TDistributor, typename TCommunicator>
 void ParallelMultiGridRefiner::
 exchange_data(TDistributor& distributor,

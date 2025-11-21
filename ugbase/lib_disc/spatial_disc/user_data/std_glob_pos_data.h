@@ -43,7 +43,7 @@ namespace ug{
 
 /**
  * This class is a base class for all position and time dependent user data.
- * The data thus does not depend on the a computed solution.
+ * The data thus does not depend on the computed solution.
  * In order to use the interface, the deriving class must implement the method:
  *
  * inline TRet evaluate(TData& D, const MathVector<dim>& x, number time, int si) const

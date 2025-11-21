@@ -458,5 +458,5 @@ FlexGaussQuadrature<ReferenceTetrahedron>::FlexGaussQuadrature(int order)
 	default: UG_THROW("Order "<<order<<" not available for GaussQuadrature of tetrahedron.");
 	}
 }
-}; // namespace ug
+} // namespace ug
 

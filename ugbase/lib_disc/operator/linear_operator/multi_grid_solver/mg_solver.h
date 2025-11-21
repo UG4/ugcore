@@ -70,7 +70,7 @@ namespace ug{
  * or bicgstab.
  *
  * The coarse grid spaces are build up according to the Approximation Space
- * that is set from outside. In addition an Assembling routine must be
+ * that is set from outside. In addition, an Assembling routine must be
  * specified that is used to assemble the coarse grid matrices.
  *
  * \tparam		TDomain 		Type of Domain

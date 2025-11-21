@@ -140,10 +140,6 @@ EllipticCylinderProjector::EllipticCylinderProjector
 }
 
 
-EllipticCylinderProjector::~EllipticCylinderProjector()
-{}
-
-
 
 void EllipticCylinderProjector::set_center(const vector3& center)
 {

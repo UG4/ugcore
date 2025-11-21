@@ -87,7 +87,7 @@ class GridFunctionNumberData
 			assign(spGridFct, cmp);
 		}
 
-		GridFunctionNumberData(){}
+		GridFunctionNumberData()= default;
 
 		void assign(SmartPtr<TGridFunction> spGridFct, const char* cmp)
 		{

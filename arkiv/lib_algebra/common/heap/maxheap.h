@@ -80,9 +80,7 @@ public:
 		create(v.size(), &v[0]);
 	}
 	//! deconstructor
-	~maxheap()
-	{
-	}
+	~maxheap() = default;
 
 
 	/** create

@@ -50,7 +50,7 @@
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
 #include "lib_algebra/ordering_strategies/algorithms/util.h"
 
-#include <assert.h>
+#include <cassert>
 #include "common/error.h"
 
 
@@ -78,15 +78,15 @@ public:
 
 	using TSpUserData = SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> >;
 
-	DirectionalOrdering(){}
+	DirectionalOrdering()= default;
 
 	/// clone constructor
-	DirectionalOrdering( const DirectionalOrdering<TAlgebra, TDomain, O_t> &parent )
+	DirectionalOrdering( const DirectionalOrdering &parent )
 			: baseclass(){}
 
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new DirectionalOrdering<TAlgebra, TDomain, O_t>(*this));
+		return make_sp(new DirectionalOrdering(*this));
 	}
 
 	void compute(){

@@ -33,7 +33,7 @@
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION__
 
-#include <lib_algebra/cpu_algebra_types.h>
+#include "lib_algebra/cpu_algebra_types.h"
 
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 #include "lib_disc/dof_manager/function_pattern.h"
@@ -109,7 +109,7 @@ template <typename TDomain> class AdaptionSurfaceGridFunction;
  * A grid function brings approximation space and algebra together. For a given
  * DoF Distribution (e.g. a level dof distribution or a surface dof distribution)
  * the grid function stores the values of the DoFs in an algebraic vector.
- * In addition access to the grid elements is provided and the mapping between
+ * In addition, access to the grid elements is provided and the mapping between
  * grid elements and DoFs is provided.
  *
  * \tparam 	TDomain				domain type
@@ -287,7 +287,7 @@ class GridFunction
 			{return m_spDD->end<TElem>(si, validStates);}
 	/// \}
 
-	///	returns the adjacend elements
+	///	returns the adjacent elements
 		template <typename TElem, typename TBaseElem>
 		void collect_associated(std::vector<TBaseElem*>& vAssElem,
 								TElem* elem, bool clearContainer = true) const{
@@ -319,22 +319,22 @@ class GridFunction
 		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const
 			{m_spDD->indices(elem, ind, bHang);}
 
-	/// get multi indices on an finite element in canonical order
+	/// get multi indices on a finite element in canonical order
 		template <typename TElem>
 		size_t dof_indices(TElem* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang = false, bool bClear = true) const
 			{return m_spDD->dof_indices(elem, fct, ind, bHang, bClear);}
 
-	/// get multi indices on an geometric object in canonical order
+	/// get multi indices on a geometric object in canonical order
 		template <typename TElem>
 		size_t inner_dof_indices(TElem* elem, size_t fct,	std::vector<DoFIndex>& ind, bool bClear = true) const
 			{return m_spDD->inner_dof_indices(elem, fct, ind, bClear);}
 
-	/// get algebra indices on an geometric object in canonical order
+	/// get algebra indices on a geometric object in canonical order
 		template <typename TElem>
 		size_t algebra_indices(TElem* elem, std::vector<size_t>& ind, bool bClear = true) const
 			{return m_spDD->algebra_indices(elem, ind, bClear);}
 
-	/// get algebra indices on an geometric object in canonical order
+	/// get algebra indices on a geometric object in canonical order
 		template <typename TElem>
 		size_t inner_algebra_indices(TElem* elem, std::vector<size_t>& ind, bool bClear = true) const
 			{return m_spDD->inner_algebra_indices(elem, ind, bClear);}
@@ -359,13 +359,13 @@ class GridFunction
 	///	retruns true if the grid-function is redistributed together with the grid in parallel applications
 	/**	\note	if redistribution is disabled, values corresponding to elements
 	 *			which were received during redistribution will not be initialized
-	 *			and my be completely random.*/
+	 *			and may be completely random.*/
 		bool redistribution_enabled() const	{return m_bRedistribute;}
 
 	///	enables or disables redistribution for this grid function
 	/**	\note	if redistribution is disabled, values corresponding to elements
 	 *			which were received during redistribution will not be initialized
-	 *			and my be completely random.*/
+	 *			and may be completely random.*/
 		void enable_redistribution(bool enable)	{m_bRedistribute = enable;}
 
 	// for debugging purposes. To be removed.

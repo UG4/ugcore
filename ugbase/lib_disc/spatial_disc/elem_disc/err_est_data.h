@@ -246,7 +246,7 @@ public:
 							  std::vector<std::string> subsets = std::vector<std::string>(0));
 
 	///	virtual class destructor
-		virtual ~SideAndElemErrEstData() {};
+		~SideAndElemErrEstData() override = default;
 
 	//	Functions to access data
 
@@ -310,16 +310,16 @@ public:
 
 	//	virtual functions inherited from IErrEstData
 	///	virtual function to allocate data structures for the error estimator
-		virtual void alloc_err_est_data (ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl);
+		void alloc_err_est_data (ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl) override;
 
 	///	virtual function called after the computation of the error estimator data in all the elements
-		virtual void summarize_err_est_data (SmartPtr<TDomain> spDomain);
+		void summarize_err_est_data (SmartPtr<TDomain> spDomain) override;
 
 	/// calculate L2 integrals
-		virtual number get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		number get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]) override;
 
 	///	virtual function to release data structures of the error estimator
-		virtual void release_err_est_data ();
+		void release_err_est_data () override;
 
 	/// select L2/H1 Estimator
 		void set_type(int type) {m_type = (type<=H1_ERROR_TYPE) ? type : H1_ERROR_TYPE;}
@@ -434,7 +434,7 @@ class MultipleErrEstData : public IErrEstData<TDomain>
 		}
 
 	///	virtual class destructor
-		virtual ~MultipleErrEstData() {};
+		~MultipleErrEstData() override = default;
 
 	/// adding error estimator data objects
 		virtual void add(SmartPtr<TErrEstData> spEed, const char* fct)
@@ -478,16 +478,16 @@ class MultipleErrEstData : public IErrEstData<TDomain>
 
 	//	inherited from IErrEstData
 	///	virtual function to allocate data structures for the error estimator
-		virtual void alloc_err_est_data(ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl);
+		void alloc_err_est_data(ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl) override;
 
 	///	virtual function called after the computation of the error estimator data in all the elements
-		virtual void summarize_err_est_data(SmartPtr<TDomain> spDomain);
+		void summarize_err_est_data(SmartPtr<TDomain> spDomain) override;
 
 	/// calculate L2 integrals
-		virtual number get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		number get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]) override;
 
 	///	virtual function to release data structures for the error estimator
-		virtual void release_err_est_data();
+		void release_err_est_data() override;
 
 	protected:
 		std::vector<TErrEstData*> m_vEed;
@@ -518,11 +518,11 @@ class MultipleSideAndElemErrEstData
 			  m_bEqSideOrder(false), m_bEqElemOrder(false) {};
 
 	/// destructor
-		virtual ~MultipleSideAndElemErrEstData() {};
+		~MultipleSideAndElemErrEstData() override = default;
 
 	/// adding error estimator data objects
 	/// overrides parent add method; performs check for equal order after adding
-		virtual void add(SmartPtr<SideAndElemErrEstData<TDomain> > spEed, const char* fct);
+		void add(SmartPtr<SideAndElemErrEstData<TDomain> > spEed, const char* fct) override;
 
 	/// returns whether all underlying err ests have the same elem and side integration orders
 		bool equal_side_order() const {return m_bEqSideOrder;}

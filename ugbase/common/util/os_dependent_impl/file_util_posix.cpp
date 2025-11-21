@@ -32,7 +32,7 @@
 
 #include <dirent.h>
 #include <unistd.h>
-#include <limits.h>
+#include <climits>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "common/util/file_util.h"

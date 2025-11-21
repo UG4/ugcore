@@ -54,7 +54,7 @@ class LagrangeP1
 	  public BaseLSFS<LagrangeP1<TRefElem>, TRefElem::dim>
 {
 	///	base class
-		using base_type = BaseLSFS<LagrangeP1<TRefElem>, TRefElem::dim>;
+		using base_type = BaseLSFS<LagrangeP1, TRefElem::dim>;
 
 	public:
 	///	Shape type

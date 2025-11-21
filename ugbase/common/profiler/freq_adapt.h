@@ -51,7 +51,7 @@ class FreqAdaptNodeManager
 		static void release_latest();
 
 	private:
-		FreqAdaptNodeManager();
+		FreqAdaptNodeManager() = default;
 		~FreqAdaptNodeManager();
 
 	public:

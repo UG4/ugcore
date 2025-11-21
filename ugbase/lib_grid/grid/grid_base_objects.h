@@ -951,7 +951,7 @@ constexpr int MAX_VOLUME_VERTICES = 8;
 class UG_API VolumeDescriptor : public VolumeVertices
 {
 	public:
-		VolumeDescriptor();
+		VolumeDescriptor() = default;
 		VolumeDescriptor(uint numVertices);
 		VolumeDescriptor(const VolumeDescriptor& vd);
 

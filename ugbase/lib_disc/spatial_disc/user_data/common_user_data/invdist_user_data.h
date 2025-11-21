@@ -112,7 +112,7 @@ public:
 		data_type & res, ///< interpolated value
 		const MathVector<dim> & pos, ///< geometric position where to interpolate
 		t_pnt_iter pnt_beg, ///< the first interpolation point
-		t_pnt_iter pnt_end, ///< delimiter of the iterpolation points
+		t_pnt_iter pnt_end, ///< delimiter of the interpolation points
 		number order, ///< order of the interpolation
 		number small_dist = 1e-7 ///< distance at which we do not distinguish the points
 	);
@@ -124,7 +124,7 @@ public:
 		const MathVector<dim> & pos, ///< geometric position where to interpolate
 		number R, ///< radius of the ball (if 0 then the whole space)
 		t_pnt_iter pnt_beg, ///< the first interpolation point
-		t_pnt_iter pnt_end, ///< delimiter of the iterpolation points
+		t_pnt_iter pnt_end, ///< delimiter of the interpolation points
 		number order, ///< order of the interpolation
 		number small_dist = 1e-7 ///< distance at which we do not distinguish the points
 	);
@@ -156,7 +156,7 @@ public:
 	
 private:
 	
-/// type of a interpolation point data item
+/// type of interpolation point data item
 	struct data_item
 	{
 		MathVector<dim> pos; ///< (global) geometrical coordinates of the point
@@ -179,7 +179,7 @@ public:
 	{}
 
 ///	virtual destructor
-	~IDWUserData () {}
+	~IDWUserData () = default;
 
 public:
 

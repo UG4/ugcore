@@ -97,7 +97,7 @@ public:
 	/// constructor for empty SparseMatrix
 	MapSparseMatrix();
 	/// destructor
-	virtual ~MapSparseMatrix () {}
+	virtual ~MapSparseMatrix () = default;
 
 
 	/**

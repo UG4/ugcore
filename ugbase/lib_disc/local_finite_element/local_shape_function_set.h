@@ -159,7 +159,7 @@ class LocalShapeFunctionSet : public DimLocalDoFSet<TDim>
 		                   const std::vector<MathVector<dim> >& vLocPos) const = 0;
 
 	///	virtual destructor
-		virtual ~LocalShapeFunctionSet() {};
+	~LocalShapeFunctionSet() override = default;
 };
 
 /// @}

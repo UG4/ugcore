@@ -66,7 +66,7 @@ extern DebugID DID_ELEM_DISC_ASSEMBLE_UTIL;
 
 /// Global assembler based on the straightforward application of the local discretizations
 /**
- * Template class of the global assembler that applyes the local (element)
+ * Template class of the global assembler that applies the local (element)
  * discretizations to the elements in given subsets and adds the local data
  * to the global ones.
  *

@@ -143,11 +143,7 @@ GridWriterVTU(std::ostream* pout) :
 	set_stream(pout);
 }
 
-GridWriterVTU::
-~GridWriterVTU()
-{
 
-}
 
 void GridWriterVTU::
 set_stream(std::ostream* pout)
@@ -405,13 +401,7 @@ finish()
 ////////////////////////////////////////////////////////////////////////////////
 //	GridReaderVTU
 ////////////////////////////////////////////////////////////////////////////////
-GridReaderVTU::GridReaderVTU()
-{
-}
 
-GridReaderVTU::~GridReaderVTU()
-{
-}
 
 #if 0
 // original function

@@ -82,6 +82,6 @@ template <>
 class GaussQuadrature<ReferenceTetrahedron, 4> 
 : public GaussQuadrature<ReferenceTetrahedron, 5>{};
 
-}; // namespace ug
+} // namespace ug
 
 #endif

@@ -2,7 +2,7 @@
 
 #include "lua_table_handle.h"
 #include <iostream>
-#include <assert.h>
+#include <cassert>
 #include "common/util/variant.h"
 
 extern "C" {

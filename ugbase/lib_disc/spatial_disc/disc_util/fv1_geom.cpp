@@ -289,7 +289,7 @@ update_local_data()
 			m_vSCVF[i].localIP = m_vSCVF[i].vLocPos[0]; // the midpoint of the edge
 	}
 
-// 	set up local informations for SubControlVolumes (scv)
+// 	set up local information for SubControlVolumes (scv)
 // 	each scv is associated to one corner of the element
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
@@ -613,7 +613,7 @@ update_local(ReferenceObjectID roid)
 			AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].vLocPos, SCVF::numCo);
 		}
 	
-	// 	set up local informations for SubControlVolumes (scv)
+	// 	set up local information for SubControlVolumes (scv)
 	// 	each scv is associated to one corner of the element
 		for(size_t i = 0; i < num_scv(); ++i)
 		{

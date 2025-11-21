@@ -161,7 +161,7 @@ class IIntegrand
 		                    const size_t numIP) = 0;
 	/// \}
 
-		virtual ~IIntegrand() {}
+		virtual ~IIntegrand() = default;
 
 
 	///	sets the subset
@@ -242,7 +242,7 @@ class StdIntegrand : public IIntegrand<TData, TWorldDim>
  *    domain are integrated. Thus, no manifolds.
  *  - The implementation is using virtual functions. Thus, there is a small
  *    performance drawback compared to hard coding everything, but we gain
- *    flexibility. In addition all virtual calls compute for the whole set of
+ *    flexibility. In addition, all virtual calls compute for the whole set of
  *    integration points to avoid many virtual calls, i.e. only one virtual
  *    call for all integration points is needed.
  *
@@ -703,11 +703,11 @@ class UserDataDistIntegrandSq
 				UG_THROW("UserDataDistIntegrandSq: grid functions defined on different domains.");
 		};
 
-		virtual ~UserDataDistIntegrandSq() {}
+		~UserDataDistIntegrandSq() override = default;
 
 		///	sets subset
-		virtual void set_subset(int si)
-		{
+		void set_subset(int si) override
+	{
 			if(!m_fineData.is_def_in_subset(si))
 				UG_THROW("UserDataDistIntegrandSq: Grid function component"
 						<<m_fineData.fct()<<" not defined on subset "<<si);
@@ -773,7 +773,7 @@ class UserDataDistIntegrandSq
 			const LocalShapeFunctionSet<elemDim>& rCoarseLSFS =
 					LocalFiniteElementProvider::get<elemDim>(coarseROID, m_coarseData.id());*/
 
-		//	get multiindices of element
+		//	get multi-indices of element
 			/*std::vector<DoFIndex> vFineMI, vCoarseMI;
 			m_fineData.dof_indices(pFineElem, vFineMI);
 			m_coarseData.dof_indices(pCoarseElem, vCoarseMI);*/
@@ -981,10 +981,10 @@ class MaximumDistIntegrand
 			m_min(std::numeric_limits<float>::infinity())
 		{};
 
-		virtual ~MaximumDistIntegrand() {};
+		~MaximumDistIntegrand() override = default;
 
 	///	sets subset
-		virtual void set_subset(int si)
+		void set_subset(int si) override
 		{
 			UG_COND_THROW(!m_scalarData.is_def_in_subset(si), "L2ErrorIntegrand: Grid function component" <<
 							m_scalarData.fct()<<" not defined on subset "<<si);
@@ -1093,10 +1093,10 @@ class L2ErrorIntegrand
 		  m_spExactSolution(spExactSol), m_time(time)
 		{};
 
-		virtual ~L2ErrorIntegrand() {};
+		~L2ErrorIntegrand() override = default;
 
 	///	sets subset
-		virtual void set_subset(int si)
+		void set_subset(int si) override
 		{
 			if(!m_scalarData.is_def_in_subset(si))
 				UG_THROW("L2ErrorIntegrand: Grid function component"
@@ -1173,8 +1173,8 @@ class L2ErrorIntegrand
  * This function computes the L2-difference between a given analytic function
  * and a grid function.
  *
- * \param[in]		ExactSol	analytic function
- * \param[in]		spGridFct	grid function
+ * \param[in]		spExactSol	analytic function
+ * \param[in]		gridFct		grid function
  * \param[in]		cmp			symbolic name of component function
  * \param[in]		time		time point
  * \param[in]		quadOrder	order of quadrature rule
@@ -1595,10 +1595,10 @@ class L2Integrand
 		{};
 
 	/// DTOR
-		virtual ~L2Integrand() {};
+		~L2Integrand() override = default;
 
 	///	sets subset
-		virtual void set_subset(int si)
+		void set_subset(int si) override
 		{
 			if(!m_scalarData.is_def_in_subset(si))
 				UG_THROW("L2ErrorIntegrand: Grid function component" <<m_scalarData.fct() <<" not defined on subset "<<si);
@@ -1667,12 +1667,13 @@ class L2Integrand
 /**
  * This function computes the square of the L2-norm of a grid function.
  *
- * \param[in]		spGridFct	grid function
+ * \param[in]		u			grid function
  * \param[in]		cmp			symbolic name of function
  * \param[in]		quadOrder	order of quadrature rule
  * \param[in]		subsets		subsets, where to interpolate
  * 								(nullptr indicates that all full-dimensional subsets
  * 								shall be considered)
+ * \param spWeight				weighting
  * \returns			number 		l2-norm
  */
 
@@ -1716,7 +1717,7 @@ number L2Norm(TGridFunction& u, const char* cmp,
 /**
  * This function computes the L2-norm of a grid function on all full-dim subsets.
  *
- * \param[in]		spGridFct	grid function
+ * \param[in]		gridFct		grid function
  * \param[in]		cmp			symbolic name of function
  * \param[in]		quadOrder	order of quadrature rule
  * \returns			number 		l2-norm
@@ -1804,7 +1805,7 @@ class L2DistIntegrand
 		};
 
 
-		virtual ~L2DistIntegrand() {}
+		virtual ~L2DistIntegrand() = default;
 
 		///	sets subset
 		virtual void set_subset(int si)
@@ -1987,12 +1988,11 @@ class H1SemiIntegrand
 		: m_scalarData(gridFct, cmp), m_spWeight(spWeight) {}
 
 	/// DTOR
-		virtual ~H1SemiIntegrand() {};
+		~H1SemiIntegrand() override = default;
 
 	///	sets subset
-		virtual void set_subset(int si)
+		void set_subset(int si) override
 		{
-
 			UG_COND_THROW(!m_scalarData.is_def_in_subset(si), "H1Error: Grid function component"
 						<<m_scalarData.fct()<<" not defined on subset "<<si);
 			IIntegrand<number, worldDim>::set_subset(si);
@@ -2113,7 +2113,7 @@ class H1SemiIntegrand
 /**
  * This function computes the H1 semi-norm of a grid function
  *
- * \param[in]		spGridFct	grid function
+ * \param[in]		gridFct	grid function
  * \param[in]		cmp			symbolic name of component function
  * \param[in]		time		time point
  * \param[in]		quadOrder	order of quadrature rule
@@ -2221,7 +2221,8 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 			UG_COND_THROW(m_fineTopLevel < m_coarseTopLevel, "H1SemiDiffIntegrand: fine and top level inverted.");
 			UG_COND_THROW(m_fineData.domain().get() != m_coarseData.domain().get(), "H1SemiDiffIntegrand: grid functions defined on different domains.");
 		}
-		virtual ~H1SemiDistIntegrand(){}
+
+		~H1SemiDistIntegrand() override = default;
 
 	///	sets subset
 		virtual void set_subset(int si)
@@ -2474,10 +2475,10 @@ class H1EnergyIntegrand
 		: m_scalarData(gridFct, cmp), m_spWeight(spWeight) {}
 
 	/// DTOR
-		virtual ~H1EnergyIntegrand() {};
+		~H1EnergyIntegrand() override = default;
 
 	///	sets subset
-		virtual void set_subset(int si)
+		void set_subset(int si) override
 		{
 
 			UG_COND_THROW(!m_scalarData.is_def_in_subset(si), "H1EnergyIntegrand: Grid function component"
@@ -2601,7 +2602,7 @@ class H1EnergyIntegrand
 /**
  * This function computes the integral over  \f$ \| q  \|^2 \f$ where the velocity is given by \f$ q:= \kappa \nabla u \f$ of a grid function u.
  *
- * \param[in]		spGridFct	grid function
+ * \param[in]		gridFct		grid function
  * \param[in]		cmp			symbolic name of component function
  * \param[in]		time		time point
  * \param[in]		quadOrder	order of quadrature rule
@@ -2709,7 +2710,7 @@ class H1EnergyDistIntegrand
 			if(m_fineData.domain().get() != m_coarseData.domain().get())
 				UG_THROW("H1EnergyDistIntegrand: grid functions defined on different domains.");
 		}
-		virtual ~H1EnergyDistIntegrand(){}
+		virtual ~H1EnergyDistIntegrand() = default;
 
 	///	sets subset
 		virtual void set_subset(int si)
@@ -2927,10 +2928,10 @@ class H1NormIntegrand
 		: m_scalarData(gridFct, cmp) {}
 
 	/// DTOR
-		virtual ~H1NormIntegrand() {}
+		~H1NormIntegrand() override = default;
 
 	///	sets subset
-		virtual void set_subset(int si)
+		void set_subset(int si) override
 		{
 			if(!m_scalarData.is_def_in_subset(si))
 				UG_THROW("H1Norm: Grid function component"
@@ -3282,10 +3283,10 @@ class StdFuncIntegrand
 		: m_pGridFct(pGridFct), m_fct(cmp)
 		{};
 
-		virtual ~StdFuncIntegrand(){}
+		~StdFuncIntegrand() override = default;
 
 	///	sets subset
-		virtual void set_subset(int si)
+		void set_subset(int si) override
 		{
 			if(!m_pGridFct->is_def_in_subset(m_fct, si))
 				UG_THROW("L2ErrorIntegrand: Grid function component"

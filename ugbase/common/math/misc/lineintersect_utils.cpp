@@ -22,9 +22,9 @@
 |      Revisions: 05-Apr-2001 - GSR. Original.
 |
 **************************************************************************************/
-#include <math.h>
+#include <cmath>
 #include "lineintersect_utils.h"
-#include <assert.h>
+#include <cassert>
 
 // uncomment the following line to have the code check intermediate results
 //#define CHECK_ANSWERS

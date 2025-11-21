@@ -325,7 +325,7 @@ template <typename TBaseElem>
 class DualGraphNeighborCollector
 {
 	public:
-		virtual ~DualGraphNeighborCollector() {}
+		virtual ~DualGraphNeighborCollector() = default;
 		virtual void collect_neighbors(std::vector<TBaseElem*>& neighborsOut, TBaseElem* elem) = 0;
 };
 

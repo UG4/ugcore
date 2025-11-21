@@ -38,7 +38,7 @@
 //	stdint.h is included with most compilers.
 //	If stdint.h is not available (e.g. in Microsoft Visual C++.)
 //	you may either download pstint.h or use boost/cstdint.h
-#include <stdint.h>
+#include <cstdint>
 //#include "pstdint.h"
 
 /// \addtogroup ugbase_common

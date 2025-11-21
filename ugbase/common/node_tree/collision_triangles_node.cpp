@@ -50,10 +50,6 @@ CollisionTrianglesNode::CollisionTrianglesNode()
 	m_bTriangleIDsSupplied = false;
 }
 
-////////////////////////////////////////////////////////////////////////
-CollisionTrianglesNode::~CollisionTrianglesNode()
-{
-}
 
 ////////////////////////////////////////////////////////////////////////
 void CollisionTrianglesNode::add_triangle(int ind1, int ind2, int ind3)

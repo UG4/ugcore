@@ -110,7 +110,7 @@ class AssemblingTuner
 		m_bMatrixIsConst(false), m_bMatrixStructureIsConst(false), m_bClearOnResize(true) {}
 
 	/// destructor
-		virtual ~AssemblingTuner() {}
+		virtual ~AssemblingTuner() = default;
 
 	/// set local to global mapping
 		void set_mapping(ILocalToGlobalMapper<TAlgebra>* pMapper = nullptr)

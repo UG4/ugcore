@@ -111,7 +111,7 @@ public:
 			inline void check() const {iter.check(); }
 			row_iterator(typename encapsulated_matrix_type::row_iterator _iter)
 			: iter(_iter) {}
-			~row_iterator() {}
+			~row_iterator() = default;
 			row_iterator *operator -> () { return iter.operator -> (); }
 			bool operator != (const row_iterator &o) const { return *iter != o->iter;  }
 			void operator ++ () { ++iter; }
@@ -128,7 +128,7 @@ public:
 				inline void check() const {iter.check(); }
 				const_row_iterator(typename encapsulated_matrix_type::const_row_iterator _iter)
 				: iter(_iter) {}
-				~const_row_iterator() {}
+				~const_row_iterator() = default;
 				const_row_iterator *operator ->() { return iter.operator -> (); }
 				bool operator != (const const_row_iterator &o) const { return iter!= o.iter;  }
 				void operator ++ () { ++iter; }

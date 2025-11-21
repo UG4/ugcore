@@ -145,7 +145,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>, public IDomainErrorInd
 
 	/// Type of algebra vector
 	using vector_type = typename algebra_type::vector_type;
-	virtual ~IDomainDiscretization() = default;
+	~IDomainDiscretization() override = default;
 
 	public:
 		/// assembles Jacobian (or Approximation of Jacobian)
@@ -156,7 +156,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>, public IDomainErrorInd
 		 * \param[in]  	u 	Current iterate
 		 * \param[in]	dd	DoF Distribution
 		 */
-		virtual void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl) = 0;
+		void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl) override = 0;
 		virtual void assemble_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 		/// assembles Defect
@@ -167,26 +167,26 @@ class IDomainDiscretization : public IAssemble<TAlgebra>, public IDomainErrorInd
 		 * \param[in] 	u 	Current iterate
 		 * \param[in]	dd	DoF Distribution
 		 */
-		virtual void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl) = 0;
+		void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl) override;
 		virtual void assemble_defect(vector_type& d, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 		/// Assembles Matrix and Right-Hand-Side for a linear problem
 		/**
 		 * Assembles matrix_type and Right-Hand-Side for a linear problem
 		 *
-		 * \param[out] 	A 	Mass-/Stiffness- Matrix
+		 * \param[out] 	A 	Mass-/Stiffness-Matrix
 		 * \param[out] 	b 	Right-Hand-Side
 		 * \param[in]	dd	DoF Distribution
 		 */
-		virtual void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl) = 0;
+		void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl) override = 0;
 		virtual void assemble_linear(matrix_type& A, vector_type& b, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 		/// assembles the rhs
-		virtual void assemble_rhs(vector_type& rhs, const vector_type& u, const GridLevel& gl) = 0;
+		void assemble_rhs(vector_type& rhs, const vector_type& u, const GridLevel& gl) override = 0;
 		virtual void assemble_rhs(vector_type& rhs, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 		/// assembles the rhs
-		virtual void assemble_rhs(vector_type& b, const GridLevel& gl) = 0;
+		void assemble_rhs(vector_type& b, const GridLevel& gl) override = 0;
 		virtual void assemble_rhs(vector_type& b, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 		/// sets dirichlet values in solution vector
@@ -197,15 +197,15 @@ class IDomainDiscretization : public IAssemble<TAlgebra>, public IDomainErrorInd
 		 * \param[out] 	u	Numerical Solution
 		 * \param[in]	dd	DoF Distribution
 		 */
-		virtual void adjust_solution(vector_type& u, const GridLevel& gl) = 0;
+		void adjust_solution(vector_type& u, const GridLevel& gl) override = 0;
 		virtual void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 		/// assembles the mass matrix
-		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u, const GridLevel& gl) = 0;
+		void assemble_mass_matrix(matrix_type& M, const vector_type& u, const GridLevel& gl) override = 0;
 		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 		/// assembles the stiffness matrix
-		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u, const GridLevel& gl) = 0;
+		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u, const GridLevel& gl) override = 0;
 		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 
@@ -393,14 +393,19 @@ class IDomainDiscretization : public IAssemble<TAlgebra>, public IDomainErrorInd
 
 
 	///	returns the number of post processes
-		virtual size_t num_constraints() const = 0;
+		size_t num_constraints() const override = 0;
 
 	///	returns the i'th post process
-		virtual SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) = 0;
+		SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) override = 0;
 };
+
+template <typename TAlgebra>
+void IDomainDiscretization<TAlgebra>::assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl)
+{
+}
 
 /// @}
 
-}; // namespace ug
+} // namespace ug
 
 #endif

@@ -81,7 +81,7 @@ public:
 		m_defaultProjector = make_sp(new RefinementProjector);
 	}
 
-	virtual ~ProjectionHandler ();
+	virtual ~ProjectionHandler () = default;;
 
 	void clear();
 

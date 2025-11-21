@@ -123,5 +123,5 @@ FlexGaussQuadrature<ReferenceOctahedron>::FlexGaussQuadrature(int order)
 	default: UG_THROW("Order "<<order<<" not available for GaussQuadrature of octahedron.");
 	}
 }
-}; // namespace ug
+} // namespace ug
 

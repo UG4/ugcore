@@ -46,7 +46,7 @@ class Lagrange1D
 	: public Polynomial1D
 {
 	public:
-	/**	constructor for lagrange polynomial i using interpolation points pos
+	/**	constructor for lagrange polynomial is using interpolation points pos
 	 * This constructor creates a lagrange polynomial with interpolation points
 	 * given in pos for the i-th point, i.e. value(pos_i) == 1, value(pos_j) == 0
 	 * for j != i. Therefore, it must hold that 0 <= i < pos.size()

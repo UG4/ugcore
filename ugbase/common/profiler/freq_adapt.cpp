@@ -61,7 +61,6 @@ void FreqAdaptNodeManager::release_latest()
 	}
 }
 
-FreqAdaptNodeManager::FreqAdaptNodeManager() {}
 
 FreqAdaptNodeManager::~FreqAdaptNodeManager()
 {

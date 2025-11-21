@@ -144,7 +144,7 @@ template <>
 class GaussQuadrature<ReferenceVertex, 19>
 : public GaussQuadrature<ReferenceVertex, 0> {};
 
-}; // namespace ug
+} // namespace ug
 
 
 #endif

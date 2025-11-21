@@ -45,8 +45,8 @@ namespace ug{
 /**
  * This Class provides boost::mpl::lists storing the type of elements used in
  * for the Domain. It can be used to control dimension dependent builds, where
- * not all template instantiations are available (e.g. a Hexahedron in 1d,2d, etc)
- * While DimElemList returns the Element Types in the dimenion of the domain,
+ * not all template instantiations are available (e.g. a Hexahedron in 1d,2d, etc.)
+ * While DimElemList returns the Element Types in the dimension of the domain,
  * the list AllElemList returns all elements contained in the Domain-dimension
  * and the dimensions below.
  */
@@ -57,25 +57,23 @@ template <> struct domain_traits<0> : grid_dim_traits<0> {};
 
 // 1d
 template <> struct domain_traits<1> : grid_dim_traits<1> {
- using position_type = MathVector<1>;
-using position_attachment_type = Attachment<position_type>;
-using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
-
+    using position_type = MathVector<1>;
+    using position_attachment_type = Attachment<position_type>;
+    using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
 };
 
 // 2d
 template <> struct domain_traits<2> : grid_dim_traits<2> {
- using position_type = MathVector<2>;
- using position_attachment_type = Attachment<position_type>;
- using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
-
+    using position_type = MathVector<2>;
+    using position_attachment_type = Attachment<position_type>;
+    using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
 };
 
 // 3d
 template <> struct domain_traits<3> : grid_dim_traits<3> {
-  using position_type = MathVector<3>;
-  using position_attachment_type = Attachment<position_type>;
-  using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
+    using position_type = MathVector<3>;
+    using position_attachment_type = Attachment<position_type>;
+    using position_accessor_type = Grid::VertexAttachmentAccessor<position_attachment_type>;
 };
 
 

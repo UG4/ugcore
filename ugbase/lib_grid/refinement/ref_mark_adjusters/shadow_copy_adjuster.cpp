@@ -36,8 +36,6 @@
 namespace ug {
 
 
-ShadowCopyAdjuster::~ShadowCopyAdjuster()
-{}
 
 
 void ShadowCopyAdjuster:: ref_marks_changed

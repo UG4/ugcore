@@ -76,7 +76,7 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	public:
 	/// create and set domain discretization
 	/**
-	 * \param[in] dd	Domain Discretization
+	 * \param[in] spDD	Domain Discretization
 	 */
 		ITimeDiscretization(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
 			: m_spDomDisc(spDD)
@@ -102,7 +102,7 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 *
 	 * \param[in] prevSol 	the solution at the previous time steps
 	 * \param[in] dt		size of time step
-	 * \param[in] dd		DoF Distribution
+	 * \param[in] gl		Grid level
 	 */
 	/// \{
 		virtual void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
@@ -119,7 +119,6 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 *	at the end of a time step.
 	 *
 	 * \param[in] currSol 	the solution at the previous time steps
-	 * \param[in] dt		size of time step
 	 */
 		virtual void finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol) = 0;
 
@@ -132,7 +131,7 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 *	modifying data depending on the current solution at element-level.
 	 *
 	 * \param[in] currSol 	the current solution
-	 * \param[in] dd		DoF Distribution
+	 * \param[in] gl		Grid Level
 	 */
 	///	\{
 		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,

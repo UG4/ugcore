@@ -57,7 +57,7 @@ class GroupNode : public Node
 	public:
 		static SPGroupNode create();
 
-		~GroupNode() override;
+		~GroupNode() override = default;
 		
 		virtual void clear();
 		virtual void add_child(SPNode node);
@@ -67,7 +67,7 @@ class GroupNode : public Node
 		virtual SPNode get_child(int index);
 
 	protected:
-		GroupNode();
+		GroupNode() = default;
 
 	protected:
 		std::vector<SPNode>	vChildren;

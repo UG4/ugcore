@@ -44,5 +44,5 @@ number GaussQuadBase<GaussQuadrature<ReferenceVertex, 0>, 0, 0, 1>::m_vWeight[1]
 template <>
 MathVector<0> GaussQuadBase<GaussQuadrature<ReferenceVertex, 0>, 0, 0, 1>::m_vPoint[1] = {MathVector<0>(0.0)};
 
-}; // namespace ug
+} // namespace ug
 

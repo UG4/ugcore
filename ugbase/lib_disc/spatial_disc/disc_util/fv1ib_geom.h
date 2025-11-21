@@ -132,7 +132,7 @@ public:
 			static constexpr size_t numCo =	traits::NumCornersOfSCVF;
 
 		public:
-			SCVF() {}
+			SCVF() = default;
 
 		/// index of SubControlVolume on one side of the scvf
 			inline size_t from() const {return From;}

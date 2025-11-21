@@ -151,7 +151,7 @@ class IConstraint
 		virtual int type() const = 0;
 
 	///	virtual destructor
-		virtual ~IConstraint() {};
+		virtual ~IConstraint() = default;
 
 };
 

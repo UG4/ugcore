@@ -103,7 +103,7 @@ class ILineSearch
 		virtual std::string config_string() const = 0;
 
 	/// virtual destructor
-		virtual ~ILineSearch() {}
+		virtual ~ILineSearch() = default;
 
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 		virtual void setNewtonUpdater( SmartPtr<NewtonUpdaterGeneric<TVector> > nU ) = 0;

@@ -63,7 +63,7 @@
 #endif
 
 #ifdef UG_POSIX
-#include <signal.h>
+	#include <csignal>
 #endif
 
 #ifndef USE_LUAJIT

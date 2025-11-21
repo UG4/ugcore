@@ -155,7 +155,7 @@ class DimReferenceMapping
 								  const std::vector<MathVector<dim> >& vLocPos) const = 0;
 
 	///	virtual destructor
-		virtual ~DimReferenceMapping() {}
+		virtual ~DimReferenceMapping() = default;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

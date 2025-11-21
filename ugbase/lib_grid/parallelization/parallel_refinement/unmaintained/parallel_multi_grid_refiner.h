@@ -63,7 +63,7 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 	public:
 		//ParallelMultiGridRefiner();
 		ParallelMultiGridRefiner(DistributedGridManager& distGridMgr);
-		virtual ~ParallelMultiGridRefiner();
+		virtual ~ParallelMultiGridRefiner() = default;
 
 	///	BE CAREFUL! only for debugging purposes. Enabled by default.
 	/**	Disable communication only if you now what you are doing.

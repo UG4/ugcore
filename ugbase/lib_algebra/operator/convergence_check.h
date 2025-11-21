@@ -45,7 +45,7 @@
 #include <iomanip>
 #include <vector>
 #include <list>
-#include <math.h>
+#include <cmath>
 
 #include "common/common.h"
 #include "common/stopwatch.h"

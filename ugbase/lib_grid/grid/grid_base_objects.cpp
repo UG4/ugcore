@@ -137,9 +137,6 @@ void Volume::get_flipped_orientation(VolumeDescriptor& vdOut) const
 
 ////////////////////////////////////////////////////////////////////////
 //	implementation of volume-descriptor
-VolumeDescriptor::VolumeDescriptor()
-{
-}
 
 VolumeDescriptor::VolumeDescriptor(uint numVertices)
 {

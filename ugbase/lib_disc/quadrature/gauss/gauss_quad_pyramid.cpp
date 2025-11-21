@@ -91,5 +91,5 @@ FlexGaussQuadrature<ReferencePyramid>::FlexGaussQuadrature(int order)
 	default: UG_THROW("Order "<<order<<" not available for GaussQuadrature of pyramid.");
 	}
 }
-}; // namespace ug
+} // namespace ug
 

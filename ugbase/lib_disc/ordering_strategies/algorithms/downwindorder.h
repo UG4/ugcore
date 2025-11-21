@@ -44,9 +44,9 @@
 namespace ug{
 
 /**
- * Numbers vertices based on a adjacency matrix.
+ * Numbers vertices based on an adjacency matrix.
  * Depth first traversal approach.
- * based on "NumeriereKnoten in chapter Downwind-Numbering in
+ * based on "NumeriereKnoten" in chapter Downwind-Numbering in
  * <<Finite Volumen- und Mehrgitterverfahren für elliptische Randwertprobleme>>
  * by Jürgen Bey
  *
@@ -70,7 +70,9 @@ void NumeriereKnoten(const std::vector<std::vector<size_t> > &vvConnections,
  */
 template <typename TDomain>
 void OrderDownwindForDofDist(SmartPtr<DoFDistribution> spDd, ConstSmartPtr<TDomain> spDomain,
-		SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> > spVelocity, number threshold);
+		SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> > spVelocity, number time, int si, number threshold);
+	// ø todo quick fix, function was not implemented with the previous signature just added two parameters to match the .cpp function signature
+	// ø todo  should be checked
 
 /**
  * Calculates Downwind Numbering for all DofDistributions of one Domain.
@@ -85,7 +87,7 @@ void OrderDownwind(ApproximationSpace<TDomain>& approxSpace,
  * Calculates Downwind Numbering for all DofDistributions of one Domain.
  * @param[in] approxSpace the domain.
  * @param[in] spVelocity the velocity field.
- * @param threshold threshold Threshold for the angle between a connection and the Velocity field in radians.
+ * @param threshold threshold for the angle between a connection and the Velocity field in radians.
  */
 template <typename TDomain>
 void OrderDownwind(ApproximationSpace<TDomain>& approxSpace,
@@ -104,7 +106,7 @@ void OrderDownwind(ApproximationSpace<TDomain>& approxSpace,
  * Calculates Downwind Numbering for all DofDistributions of one Domain.
  * @param approxSpace the domain.
  * @param vVel a fixed velocity vector for a homogeneous velocity field.
- * @param threshold threshold Threshold for the angle between a connection and the Velocity field in radians.
+ * @param threshold threshold for the angle between a connection and the Velocity field in radians.
  */
 template <typename TDomain>
 void OrderDownwind(ApproximationSpace<TDomain>& approxSpace,
@@ -123,7 +125,7 @@ void OrderDownwind(ApproximationSpace<TDomain>& approxSpace, const char* strVelo
  * Calculates Downwind Numbering for all DofDistributions of one Domain.
  * @param approxSpace the domain.
  * @param strVelocity a lua callable to calculate the velocity field.
- * @param threshold threshold Threshold for the angle between a connection and the Velocity field in radians.
+ * @param threshold threshold for the angle between a connection and the Velocity field in radians.
  */
 template <typename TDomain>
 void OrderDownwind(ApproximationSpace<TDomain>& approxSpace, const char* strVelocity, number threshold);

@@ -83,7 +83,7 @@ class FV1Geometry : public FV1Geometry_gen<TElem, TWorldDim, false> {};
  * This class shifts the subcontrol volume face integration
  * points to the edges. This allows to reduce the matrix pattern and to avoid positive
  * off-diagonal entries in some cases. (For ex., the discretization of the Laplacian on
- * a grid of rectangles retains results in the 5-point stencil.) However note that, in many
+ * a grid of rectangles retains results in the 5-point stencil.) However, note that, in many
  * cases, this leads to the discretization order reduction.
  *
  * Cf. class FV1Geometry_gen for the implementation.
@@ -102,7 +102,7 @@ class FV1CondensedGeometry : public FV1Geometry_gen<TElem, TWorldDim, true> {};
  * The class provides an option (TCondensed) to shift the subcontrol volume face integration
  * points to the edges. This allows to reduce the matrix pattern and to avoid positive
  * off-diagonal entries in some cases. (For ex., the discretization of the Laplacian on
- * a grid of rectangles retains results in the 5-point stencil.) However note that, in many
+ * a grid of rectangles retains results in the 5-point stencil.) However, note that, in many
  * cases, this leads to the discretization order reduction.
  * 
  * \tparam	TElem		Element type

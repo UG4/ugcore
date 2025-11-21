@@ -16,7 +16,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
-#include <assert.h>
+#include <cassert>
 #include <string>
 #include <sstream>
 #include <utility>

@@ -69,11 +69,7 @@ Partitioner_DynamicBisection() :
 	}
 }
 
-template <typename TElem, int dim>
-Partitioner_DynamicBisection<TElem, dim>::
-~Partitioner_DynamicBisection()
-{
-}
+
 
 ////////////////////////////////
 //	SETTERS AND GETTERS

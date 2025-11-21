@@ -144,7 +144,7 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
                       std::vector<std::pair<MathVector<TDomain::dim>, size_t> >& vPosPair);
 
 /**
- * Checks that DoF Positions equal wheather they are extracted by a macroelement
+ * Checks that DoF Positions equal whether they are extracted by a macroelement
  * or a subelement.
  */
 /// \{

@@ -924,13 +924,6 @@ create_octahedron_node(OctahedronIterator octsBegin,
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	implementation of GridReaderUGX
-GridReaderUGX::GridReaderUGX()
-{
-}
-
-GridReaderUGX::~GridReaderUGX()
-{
-}
 
 const char* GridReaderUGX::
 get_grid_name(size_t index) const

@@ -43,13 +43,6 @@ SPBoxedGroupNode BoxedGroupNode::create()
 	return SPBoxedGroupNode(node);
 }
 
-BoxedGroupNode::BoxedGroupNode()
-{
-}
-
-BoxedGroupNode::~BoxedGroupNode()
-{
-}
 
 void BoxedGroupNode::set_box(const vector3& minCorner,
 							 const vector3& maxCorner)

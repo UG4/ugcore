@@ -34,8 +34,8 @@
 #define __H__UG__pointer_const_array__
 
 #include <vector>
-#include <common/assert.h>
-#include <common/types.h>
+#include "common/assert.h"
+#include "common/types.h"
 
 namespace ug
 {

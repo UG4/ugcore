@@ -371,7 +371,7 @@ class Base
 class Derived : public Base
 {
   public:
-    virtual ~Derived()	{}
+    virtual ~Derived() = default;
     virtual void print()
     {
       UG_LOG("Derived::print() called\n");

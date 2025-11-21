@@ -239,8 +239,8 @@ public: // construct
 		}
 	}
 	SM_out_edge_iterator(SM_out_edge_iterator&& p) = delete; // why?
-	~SM_out_edge_iterator(){
-	}
+	~SM_out_edge_iterator() = default;
+
 	SM_out_edge_iterator& operator = (SM_out_edge_iterator&& other) =  default;
 	SM_out_edge_iterator& operator = (SM_out_edge_iterator const& other) = default;
 #if 0
