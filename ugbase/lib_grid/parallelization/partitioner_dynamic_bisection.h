@@ -77,7 +77,7 @@ class Partitioner_DynamicBisection : public IPartitioner {
 	/**	the tolerance is defaulted to 0.99*/
 		void set_tolerance(number tol)	{m_tolerance = tol;}
 
-	///	enables automatical determination of split-axis by longest geometry extension
+	///	enables automatically determination of split-axis by longest geometry extension
 	/** disabled by default*/
 		void enable_longest_split_axis(bool enable)	{m_longestSplitAxisEnabled = enable;}
 
@@ -119,7 +119,7 @@ class Partitioner_DynamicBisection : public IPartitioner {
 		[[nodiscard]] const std::vector<int>* get_process_map() const override;
 
 	/**	static partitioning should be used if a globally refined multigrid is
-	 * is used throughout a simulation. Static partitioning drastically reduces
+	 *  used throughout a simulation. Static partitioning drastically reduces
 	 * global communication. The drawback is, that static partitioning e.g.
 	 * can't be used to properly rebalance a distributed adaptive grid.*/
 		void enable_static_partitioning(bool enable) override;

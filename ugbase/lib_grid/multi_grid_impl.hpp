@@ -29,12 +29,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
+#ifndef IG_UGBASE_LIB_GRID_MULTIGRID_IMPL_HPP
+#define IG_UGBASE_LIB_GRID_MULTIGRID_IMPL_HPP
 
 #include "common/static_assert.h"
 #include "multi_grid.h"
 
-#ifndef __H__LIB_GRID__MULTI_GRID_IMPL__
-#define __H__LIB_GRID__MULTI_GRID_IMPL__
 
 namespace ug
 {

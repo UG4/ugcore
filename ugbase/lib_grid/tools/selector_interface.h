@@ -88,8 +88,8 @@ enum SelectorElements
  * protected method set_grid to do so, or pass a grid directly to
  * the constructor.
  *
- * This is a base implementation that can not be instatiated.
- * It features most cruical methods like is_selected,
+ * This is a base implementation that can not be instantiated.
+ * It features most critical methods like is_selected,
  * select, deselect etc.
  * 
  * autoselection and selection_inheritance can be enabled here.
@@ -109,7 +109,7 @@ enum SelectorElements
  *
  * Derived classes have to store the selected elements in linked lists
  * of type ISelector::SectionContainer and should feature begin and
- * end itertors to the sections of those lists.
+ * end iterators to the sections of those lists.
  *
  * ISelector communicates with derived classes via the methods
  * add_to_list and erase_from_list.
@@ -144,7 +144,7 @@ class UG_API ISelector : public GridObserver
 	//	selection
 	///	selects an element
 	/**	You may optionally pass a status-flag. Note that 0 is reserved for
-	 * non-selected elements. status thus has to be bigger then 0.
+	 * non-selected elements. status thus has to be bigger than 0.
 	 *
 	 * If the element is already selected, then select only alters the status-
 	 * flag of the element. It however does not change the elements position
@@ -195,7 +195,7 @@ class UG_API ISelector : public GridObserver
 		{deselect(elem);}
 
 	//	selection status
-	///	returns the selection state of the specified elelent
+	///	returns the selection state of the specified element
 	/** \{ */
 		inline byte_t get_selection_status(GridObject* elem) const;
 		inline byte_t get_selection_status(Vertex* vrt) const {if(!elements_are_supported(SE_VERTEX)) return 0; return m_aaSelVRT[vrt];}
@@ -204,7 +204,7 @@ class UG_API ISelector : public GridObserver
 		inline byte_t get_selection_status(Volume* vol) const {if(!elements_are_supported(SE_VOLUME)) return 0; return m_aaSelVOL[vol];}
 	/** \} */
 
-	///	returns the selection state of the specified elelent
+	///	returns the selection state of the specified element
 	/** In this context, 'get_mark' is simply a synonym for 'get_selection_status'
 	 * and simply forwards to the corresponding method.*/
 		template <typename TElem>

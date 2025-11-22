@@ -78,7 +78,7 @@ class BoolMarker : public GridObserver
 		Grid* grid()								{return m_pGrid;}
 
 	///	set the mark which is applied when a new element is created
-	/**	By default the default-mark is set to false. Note that the default mark
+	/**	By default, the default-mark is set to false. Note that the default mark
 	 * only has an effect on child elements, if mark-inheritance is disabled.
 	 * @param mark	this mark is set to new elements on creation.*/
 		void set_default_mark(bool mark)			{m_defaultMark = mark;}

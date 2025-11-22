@@ -60,7 +60,7 @@ public:
 	using G_t = boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS>;
 	using baseclass = IOrderingAlgorithm<TAlgebra, O_t>;
 
-	BoostMinimumDegreeOrdering(){}
+	BoostMinimumDegreeOrdering()= default;
 
 	/// clone constructor
 	BoostMinimumDegreeOrdering( const BoostMinimumDegreeOrdering<TAlgebra, O_t> &parent )

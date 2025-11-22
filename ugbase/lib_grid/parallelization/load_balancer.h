@@ -88,7 +88,7 @@ class LoadBalancer{
 	/**	Set to 0.9 by default.*/
 		virtual void set_balance_threshold(number threshold);
 
-	/**	If distribution on a given level would lead to less elements per process
+	/**	If distribution on a given level would lead to fewer elements per process
 	 * than the given threshold (in average), then no redistribution will be
 	 * performed on that level. Default is 1.*/
 		virtual void set_element_threshold(size_t threshold);
@@ -97,7 +97,7 @@ class LoadBalancer{
 //		virtual number distribution_quality();
 
 	///	performs load balancing if the balance is too bad or if a distribution level has been reached.
-	/**	The balance is calculated using the provieded BalanceWeights class. If
+	/**	The balance is calculated using the provided BalanceWeights class. If
 	 * an imbalance is detected (minBalanceWeight / maxBalanceWeight < balanceThreshold)
 	 * on a given set of processes, then redistribution will be performed.
 	 *
@@ -109,7 +109,7 @@ class LoadBalancer{
 	 *
 	 * During redistribution the LoadBalancer tries to distribute elements such that
 	 * the sum of balance weights of elements on each process is the same on a
-	 * given level. Furthermore it tries to minimize the connection-weights of
+	 * given level. Furthermore, it tries to minimize the connection-weights of
 	 * edges which connect elements on different processes.
 	 *
 	 * The method returns false if e.g. problems during partitioning occurred.*/
@@ -119,7 +119,7 @@ class LoadBalancer{
 	/** The returned distribution quality represents the global quality of the elements
 	 * of highest dimension and is the same on all processes.
 	 * You may optionally specify a pointer to a std::vector which will be filled
-	 * with the distribution-qualities for each level. By default the pointer is
+	 * with the distribution-qualities for each level. By default, the pointer is
 	 * set to nullptr and no level-qualities are thus returned.
 	 * If a process doesn't participate on a given level, it will write -1
 	 * to the corresponding entry in pLvlQualitiesOut.
@@ -141,10 +141,10 @@ class LoadBalancer{
 
 	///	indicates whether problems occurred during the last rebalancing.
 	/**	This can e.g. happen if the partitioner has problems to create a
-	 * partition-map which fullfills the given specifications.
+	 * partition-map which fulfills the given specifications.
 	 * \note	if rebalance returns true, still performed rebalancing, even
 	 *			if problems occurred. However, the new partition may not
-	 *			fullfill all given specifications.*/
+	 *			fulfill all given specifications.*/
 		bool problems_occurred();
 
 		void create_quality_record(const char* label);

@@ -61,9 +61,9 @@ class SurfaceView
 {
 	public:
 		/**
-		 * Byte-Constants, that identify the SurfaceState of an grid-object.
+		 * Byte-Constants, that identify the SurfaceState of a grid-object.
 		 *
-		 * Every grid-object is in exactly one SurfaceState. In addition some
+		 * Every grid-object is in exactly one SurfaceState. In addition, some
 		 * combinations of the states are named for an easier usage.
 		 *
 		 * IMPORTANT: The order of the byte-flags is currently crucial. Do not

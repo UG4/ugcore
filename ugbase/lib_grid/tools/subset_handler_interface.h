@@ -68,7 +68,7 @@ enum SubsetHandlerElements
 
 ////////////////////////////////////////////////////////////////////////
 //	SubsetState
-///	The SubsetState is not yet really used inside of libGrid.
+///	The SubsetState is not yet really used inside libGrid.
 /**
  * The main reason why a SubsetState is introduced, is that
  * applications that use libGrid need a mechanism to store
@@ -715,7 +715,7 @@ class UG_API ISubsetHandler : public GridObserver
 	 *	you should not rely on the accessor to still work properly.
 	 *	Call access() in that case to re-validate him.*/
 /*
-		template <typename TAttachmet, typename TGeomBaseObj>
+		template <typename TAttachment, typename TGeomBaseObj>
 		class MultiSubsetAttachmentAccessor
 		{
 		//TODO: implement this!

@@ -93,7 +93,7 @@
 
 /**
  * use this with templates of the form
- * template<typename TALgebra> class MyClass;
+ * template<typename TAlgebra> class MyClass;
  *
  * UG_ALGEBRA_CPP_TEMPLATE_DEFINE_ALL(MyClass)
  * will generate the code

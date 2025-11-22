@@ -74,7 +74,7 @@ namespace ug
  *
  * Note that you may set a refinement callback, which will be
  * responsible to calculate new positions of newly created vertices.
- * By default a linear refinement callback is created for one of
+ * By default, a linear refinement callback is created for one of
  * the standard position attachments (ug::aPosition, ug::aPosition2,
  * ug::aPosition1 - whichever is present).
  *
@@ -197,7 +197,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	///	performs refinement on the marked elements.
 	/**
 	 * The grid's message hub is informed using a "GridAdaption" message,
-	 * passing an instance of GridMessage_Adapation, with values
+	 * passing an instance of GridMessage_Adaption, with values
 	 * GMAT_HNODE_REFINEMENT_BEGINS and GMAT_HNODE_REFINEMENT_ENDS.
 	 * See lib_grid/lib_grid_messages.h for more details.
 	 *
@@ -231,7 +231,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	///	performs registration and deregistration at a grid.
 	/**	Sets a grid and performs registration at the given grid.
 	 * 	The associated selector is also initialised with the given grid.
-	 * 	It is cruical to call this method or everything will fail.
+	 * 	It is crucial to call this method or everything will fail.
 	 *
 	 *  call set_grid(nullptr) to unregister the observer from a grid.
 	 *
@@ -245,12 +245,12 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 * Note that this will most likely be more elements than just the marked ones.
 	 *
 	 * This method is virtual to allow derivates to mark additional elements as required.
-	 * Normally a a derived class will first call the method of its this class and
-	 * the perform its own operations.
+	 * Normally a derived class will first call the method of this class and
+	 * then perform its own operations.
 	 */
 		virtual void collect_objects_for_refine();
 
-	/**	after each iteration in collet_objects_for_refine, this method determines
+	/**	after each iteration in collect_objects_for_refine, this method determines
 	 * whether the iteration shall be continued. Important for parallel refiners.
 	 * The default implementation simply returns the specified value. This is fine
 	 * for serial environments.*/
@@ -283,26 +283,21 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		virtual void process_constrained_vertex(ConstrainedVertex* cdv);
 		virtual void process_constrained_edge(ConstrainedEdge* cde);
 		virtual void process_constraining_edge(ConstrainingEdge* cge);
-		virtual void refine_edge_with_normal_vertex(Edge* e,
-											Vertex** newCornerVrts = nullptr);
-		virtual void refine_edge_with_hanging_vertex(Edge* e,
-											Vertex** newCornerVrts = nullptr);
+		virtual void refine_edge_with_normal_vertex(Edge* e, Vertex** newCornerVrts = nullptr);
+		virtual void refine_edge_with_hanging_vertex(Edge* e, Vertex** newCornerVrts = nullptr);
 
 		virtual void process_constrained_face(ConstrainedFace* cdf);
 		virtual void process_constraining_face(ConstrainingFace* cgf);
-		virtual void refine_face_with_normal_vertex(Face* f,
-											Vertex** newCornerVrts = nullptr);
-		virtual void refine_face_with_hanging_vertex(Face* f,
-											Vertex** newCornerVrts = nullptr);
+		virtual void refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts = nullptr);
+		virtual void refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts = nullptr);
 
-		virtual void refine_volume_with_normal_vertex(Volume* v,
-											Vertex** newVolumeVrts = nullptr);
+		virtual void refine_volume_with_normal_vertex(Volume* v, Vertex** newVolumeVrts = nullptr);
 	/**	\} */
 
 	////////////////////////////////////////////////////////////////////////
 	//	helpers. Make sure that everything is initialized properly
 	//	before calling these methods.
-	//	you should use this methods instead of directly marking elements.
+	//	you should use these methods instead of directly marking elements.
 		inline bool is_marked(Vertex* v)				{return m_selMarkedElements.is_selected(v);}
 		//inline void mark(Vertex* v)						{mark(v);}
 
@@ -350,7 +345,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		void remove_hmark(TElem* elem, uint mark);
 
 	///	removes coarsen marks from the selection
-	/**	Note that derived classes are not informed about those deselections!*/
+	/**	Note that derived classes are not informed about those deselection!*/
 		template <typename TElem>
 		bool remove_coarsen_marks();
 

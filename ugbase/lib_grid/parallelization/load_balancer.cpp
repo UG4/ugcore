@@ -461,7 +461,7 @@ rebalance()
 				  "LoadBalancer::rebalance can only be performed with a valid partitioner!");
 
 	UG_COND_THROW(m_processHierarchy->empty(),
-				  "A Process-Hierarchy has to be specifed for rebalancing");
+				  "A Process-Hierarchy has to be specified for rebalancing");
 
 	m_partitioner->set_next_process_hierarchy(m_processHierarchy);
 	//m_partitioner->set_communication_weights(m_communicationCostWeights);

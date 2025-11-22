@@ -47,11 +47,11 @@ class ISubsetHandler;
 
 ///	\addtogroup lib_grid_algorithms_refinement
 ///	@{
-///	Performs global grid refinement, while performig anisotropic refinement in the given fractures.
+///	Performs global grid refinement, while performing anisotropic refinement in the given fractures.
 /** If a subset shall be refined as a fracture, you may tell the refiner through
  * its method mark_as_fracture. Make sure that the subset specified in this
- * call, consists of two layers of elements. Pleas have a look at the literature
- * for a more detailed description of a fractures topology.
+ * call, consists of two layers of elements. Please have a look at the literature
+ * for a more detailed description of a fractures' topology.
  * If you don't want to treat a subset as a fracture anymore (i.e. since the elements
  * have a good aspect ratio after a couple of refinements), you may tell the
  * refiner by setting the fracture mark to false using the method
@@ -152,13 +152,13 @@ class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 	///	a callback that allows to deny refinement of special volumes
 		virtual bool refinement_is_allowed(Volume* elem)		{return true;}
 		
-	///	this method helps derived classes to perform operations directly before actual element refinment is performed.
+	///	this method helps derived classes to perform operations directly before actual element refinement is performed.
 	/**	Called from the refine() method in each refinement-iteration after
 	 *	collect_objects_for_refine().
 	 *	Default implementation is empty.*/
 		virtual void refinement_step_begins()	{};
 
-	///	this method helps derived classes to perform operations directly after actual element refinment took place.
+	///	this method helps derived classes to perform operations directly after actual element refinement took place.
 	/**	Called from the refine() method in each refinement-iteration after
 	 *	all scheduled elements had been refined.
 	 *	The refine process will either terminate after this method or will

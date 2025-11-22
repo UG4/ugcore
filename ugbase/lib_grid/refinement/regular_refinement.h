@@ -45,7 +45,7 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	Refine
-///	refines selected faces and edges regularily and builds a closure on adjacent unselected faces.
+///	refines selected faces and edges regularly and builds a closure on adjacent unselected faces.
 /**
  * Selected faces will be refined with regular refinement.
  * Faces which are adjacent to selected faces or selected edges and
@@ -78,15 +78,15 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			RefinementProjector* projector = nullptr,
 			bool useSnapPoints = false);
 
-///	refines selected faces and edges regularily and builds a closure on adjacent unselected faces.
+///	refines selected faces and edges regularly and builds a closure on adjacent unselected faces.
 /**
  * This method overloads Refine(Grid& grid, Selector& sel, AInt& aInt).
- * It is slower that the full version of refine, since it tempiroraily
+ * It is slower that the full version of refine, since it temporarily
  * attaches the required aInt attachment to the edges of aInt before
  * it calls the original version.
  *
  * This method should only be used if only very few refinement steps
- * are performed and if speed is not cruical.
+ * are performed and if speed is not critical.
  *
  * \sa ug::RegularRefiner, ug::HangingNodeRefiner
  */

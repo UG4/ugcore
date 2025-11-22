@@ -42,7 +42,8 @@
  * Goethe-Center for Scientific Computing 2011.
  *
  */
-
+#ifndef IG_UGBASE_LIB_ALGEBRA_PRALLELIZATION_PARALLEL_COLORING_H
+#define IG_UGBASE_LIB_ALGEBRA_PRALLELIZATION_PARALLEL_COLORING_H
 
 #include <map>
 #include <vector>
@@ -98,3 +99,5 @@ int ColorProcessorGraph(pcl::InterfaceCommunicator<IndexLayout> &com, std::set<i
 		std::vector<int> &processesWithHigherColor);
 
 }
+
+#endif

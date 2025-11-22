@@ -37,8 +37,8 @@
 
 namespace ug{
 
-/// Refines linearily except for when a refined edge intersects the given cylinder
-/**	Refines linearily except for when a refined edge intersects the given cylinder.
+/// Refines linearly except for when a refined edge intersects the given cylinder
+/**	Refines linearly except for when a refined edge intersects the given cylinder.
  * the new vertex will be placed at the intersection of the edge with the cylinder
  * in this case.
  *

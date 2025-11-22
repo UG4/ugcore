@@ -107,7 +107,7 @@ bool LoadMarkerPointsFromFile(MarkerPointManager& manager,
  * attachments of the given grid.
  *
  * Please note that marker.norm and marker.name will remain unchanged.
- * However the other entries will be changed.
+ * However, the other entries will be changed.
  *
  * Note that this method checks each vertex of the grid and is thus a
  * little slow. Alternate implementations should use a kd-tree or similar.

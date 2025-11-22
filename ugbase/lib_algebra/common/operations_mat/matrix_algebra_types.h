@@ -47,7 +47,7 @@ and add a function
 inline void yourmatrix::mat_mult_add_row(size_t row, yourvector::value_type &dest, double beta1, const yourvector &v) const;
 to your class.
 
-If you cannot or dont want to use rowwise multiplication, set
+If you cannot or don't want to use rowwise multiplication, set
 template<>
 class matrix_algebra_type_traits<yourclass>
 {

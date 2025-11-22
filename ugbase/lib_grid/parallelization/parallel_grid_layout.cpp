@@ -39,7 +39,7 @@ AGeomObjID 	aGeomObjID("globalID", false);
 template <>
 size_t hash_key<GeomObjID>(const GeomObjID& key)
 {
-//	of course this hash does not completly avoid collisions.
+//	of course this hash does not completely avoid collisions.
 //	One should check whether the chosen key is fine.
 	return (unsigned long)(99971 * key.first + key.second * key.second);
 }

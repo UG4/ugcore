@@ -204,7 +204,7 @@ bool SolveLU(const DenseMatrix<matrix_t> &A, DenseVector<vector_t> &x, const siz
 ///////////////////////////////////////////////////////////////////////////////////////
 /**
  * smallInverse<size_t n>
- * A class to hold a inverse of a smallMatrix<n>
+ * A class to hold an inverse of a smallMatrix<n>
  */
 template<typename TStorage>
 class DenseMatrixInverse

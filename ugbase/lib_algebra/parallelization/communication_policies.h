@@ -79,7 +79,7 @@ template <typename t> struct block_traits
  * This class is used as a policy to copy values on the interfaces of a
  * parallel vector. The collecting interfaces pack the values on the interface
  * into a stream. The extracting interfaces receive the stream and overwrites
- * the values of the vector with the sent data.
+ * the values of the vector with the send data.
  *
  * \tparam	TVector		Vector type
  */
@@ -187,7 +187,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
  * This class is used as a policy to copy scaled values on the interfaces of a
  * parallel vector. The collecting interfaces pack the values on the interface
  * into a stream. The extracting interfaces receive the stream and overwrites
- * the values of the vector with the sent data times the scaling.
+ * the values of the vector with the send data times the scaling.
  *
  * \tparam	TVector		Vector type
  */
@@ -522,7 +522,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
  * This class is used as a policy to add values on the interfaces of a
  * parallel vector and set the values to zero on the sending interface.
  * The collecting routine packs the interface values of the given vector
- * into a stream and and sets those entries to zero immediately after packing.
+ * into a stream and sets those entries to zero immediately after packing.
  * The extracting interfaces receive the stream and add the values to those of
  * already existing in the vector.
  *

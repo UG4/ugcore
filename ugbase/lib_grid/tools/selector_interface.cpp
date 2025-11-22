@@ -328,7 +328,7 @@ void ISelector::registered_at_grid(Grid* grid)
 	m_pGrid = grid;
 
 //	initialise attachments and accessors.
-//	do this whith a little trick:
+//	do this with a little trick:
 //	set the supported-element-options to SE_NONE,
 //	then call enable for all element-types that should be supported.
 	uint tmpOpts = m_supportedElements;

@@ -876,7 +876,7 @@ void HangingNodeRefiner2D_IRN::refine_constrained_edge(ConstrainedEdge* constrai
 
 	//	split the constrained edge and register new edges at the grid.
 	//	constrainedEdge may not be deleted, since associated faces would
-	//	be deleted too. Furthermore hv is associated with it.
+	//	be deleted too. Furthermore, hv is associated with it.
 		vector<ConstrainedEdge*> vConstrainedEdges;
 		if(constrainedEdge->refine(vConstrainedEdges, hv))
 		{
@@ -1360,7 +1360,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_hanging_vertex(Face* f)
 		}
 
 	//	we have to link the new constrained edges which have been auto-generated between the constrained faces.
-	//	Since only edges that lie inside of the constraining face are newly created, and since only those
+	//	Since only edges that lie inside the constraining face are newly created, and since only those
 	//	have to be linked with the constraining face, the following algorithm will be ok for
 	//	triangles and quadrilaterals.
 	//	Check for each new edge-vertex, if an edge exists with the new center vertex or with it's next neighbor.
@@ -1397,7 +1397,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_face(std::vector<Face*>& vNew
 //	associated edges of a constraining face are always constraining edges.
 //	new faces are created.
 //	we have to distribute the constrained faces to the new faces.
-//	afterwards we have to determine for each new face if it will
+//	afterward we have to determine for each new face if it will
 //	be a normal face or again by a constraining face.
 
 //	should constrained faces have a coordinate by themselves?

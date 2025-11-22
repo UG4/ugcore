@@ -134,7 +134,7 @@ class UG_API ExportedFunctionBase
 			using params_type = typename func_traits<TFunc>::params_type;
 			CreateParameterInfo<params_type>::create(m_paramsIn);
 
-		//	arbitrary choosen minimum number of infos exported
+		//	arbitrary chosen minimum number of infos exported
 		//	(If values non given we set them to an empty string)
 			const size_t MinNumInfos = 3; // for "name | style | options"
 
@@ -273,7 +273,7 @@ class UG_API ExportedFunctionGroup
 												funcOptions, group, retValInfos,
 												paramInfos, tooltip, help);
 
-			m_overloads.push_back(Overload(func, typeID));
+			m_overloads.emplace_back(func, typeID);
 			return func;
 		}
 
@@ -342,7 +342,7 @@ struct FunctionProxy
 	static void apply(void* func, const ParameterStack& in, ParameterStack& out)
 	{
 		using params_type = typename func_traits<TFunc>::params_type;
-		TFunc fp = (TFunc) func;
+		auto fp = (TFunc) func;
 
 	//  convert parameter stack
 		ParameterStackToTypeValueList<params_type> args(in);
@@ -362,7 +362,7 @@ struct FunctionProxy<TFunc, void>
 	static void apply(void* func, const ParameterStack& in, ParameterStack& out)
 	{
 		using params_type = typename func_traits<TFunc>::params_type;
-		TFunc fp = (TFunc) func;
+		auto fp = (TFunc) func;
 
 	//  convert parameter stack
 		ParameterStackToTypeValueList<params_type> args(in);

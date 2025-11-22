@@ -29,6 +29,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
+#ifndef IG_UGBASE_REGISTRY_PARAMETER_STACK_H
+#define IG_UGBASE_REGISTRY_PARAMETER_STACK_H
 
 #include <cstring>
 #include "class_name_provider.h"
@@ -40,8 +42,6 @@
 #include "bindings/lua/lua_function_handle.h"
 #endif
 
-#ifndef __H__UG_BRIDGE__PARAMETER_STACK__
-#define __H__UG_BRIDGE__PARAMETER_STACK__
 
 #include <iostream>
 #define untested() ( std::cerr <<  "@@#\n@@@:"<< __FILE__ << ":"<< __LINE__ \
@@ -57,7 +57,7 @@ namespace bridge
 
 /// a stack holding parameter infos about a parameter stack
 /**
- * This class is used to store type informations about the entries in a parameter
+ * This class is used to store type information about the entries in a parameter
  * list.
  *
  * Note that the maximal number of parameters is specified by the constant
@@ -217,7 +217,7 @@ template <> struct ParameterInfo::PushType<std::vector<double> >		{static void p
 template <> struct ParameterInfo::PushType<std::vector<const char*> >	{static void push(ParameterInfo* This){This->_push_vector_type<const char*>();}};
 template <> struct ParameterInfo::PushType<std::vector<std::string> >	{static void push(ParameterInfo* This){This->_push_vector_type<std::string>();}};
 
-/* Note: we do not support non-const references, since the bindings do not support the back-copy into the the binded language
+/* Note: we do not support non-const references, since the bindings do not support the back-copy into the the bound language
 template <> struct ParameterInfo::PushType<std::vector<bool>&>			{static void push(ParameterInfo* This){This->_push_vector_type<bool>();}};
 template <> struct ParameterInfo::PushType<std::vector<int>&>			{static void push(ParameterInfo* This){This->_push_vector_type<int>();}};
 template <> struct ParameterInfo::PushType<std::vector<size_t>&>		{static void push(ParameterInfo* This){This->_push_vector_type<size_t>();}};
@@ -324,7 +324,7 @@ class ParameterStack : public ParameterInfo
 
 		/**
 		 * pushes an std::vector to the stack, holding ptr/smartptr to
-		 * user-defined (registered) type. Ptrs are casted to void, and in order
+		 * user-defined (registered) type. Ptrs are cast to void, and in order
 		 * to get the concrete type (for casting back), the ClassNameNode is
 		 * stored.
 		 *
@@ -344,7 +344,7 @@ class ParameterStack : public ParameterInfo
 
 		/**
 		 * pushes an std::vector to the stack, holding ptr/smartptr to
-		 * user-defined (registered) type. Ptrs are casted to void, and in order
+		 * user-defined (registered) type. Ptrs are cast to void, and in order
 		 * to get the concrete type (for casting back), the ClassNameNode is
 		 * stored.
 		 *
@@ -397,7 +397,7 @@ class ParameterStack : public ParameterInfo
 		}};
 
 	public:
-	///	return element in param stack casted to type
+	///	return element in param stack cast to type
 		template <typename T>
 		inline void push(T data) {PushType<T>::push(this, data);}
 
@@ -405,19 +405,19 @@ class ParameterStack : public ParameterInfo
 	//	to
 	///////////////////////////////////////////////////////////////////////
 	protected:
-	///	return element in param stack casted to native type
+	///	return element in param stack cast to native type
 		template <typename T>
 		inline T _to_native(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			return m_vEntry[index].to<T>();
 		}
 
-	///	returns element in param stack casted to pointer type
+	///	returns element in param stack cast to pointer type
 	/**
-	 * returns the element at index in the stack casted to a pointer type
+	 * returns the element at index in the stack cast to a pointer type
 	 *
 	 * @param index		the stack index
-	 * @return	the casted pointer
+	 * @return	the cast pointer
 	 * \tparam	TPtr concrete pointer type
 	 * \tparam	TVoid ptr-type (one of void*, const void*, SmartPtr<void>, ConstSmartPtr<void>)
 	 */
@@ -439,7 +439,7 @@ class ParameterStack : public ParameterInfo
 			return *spVec;
 		}
 
-	///	return element in param stack casted to native type vector
+	///	return element in param stack cast to native type vector
 		template <typename T, typename TPtr, typename TVoid>
 		inline std::vector<TPtr>& _to_pointer_vector(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -458,7 +458,7 @@ class ParameterStack : public ParameterInfo
 		}
 		std::vector<SmartPtr<void> > m_vStoredSmartPtr;
 
-	///	return element in param stack casted to native type vector
+	///	return element in param stack cast to native type vector
 		template <typename TPtr>
 		inline SmartPtr<std::vector<std::pair<TPtr, const ClassNameNode*> > > _to_void_pointer_vector(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -476,7 +476,7 @@ class ParameterStack : public ParameterInfo
 		}};
 
 	public:
-	///	return element in param stack casted to type
+	///	return element in param stack cast to type
 		template <typename T>
 		inline T to(int index) const {return ToType<T>::to(this, index);}
 
@@ -515,7 +515,7 @@ template <> struct ParameterStack::PushType<std::vector<double> >		{static void 
 template <> struct ParameterStack::PushType<std::vector<const char*> >	{static void push(ParameterStack* This, const std::vector<const char*>& spVec)	{This->push(SmartPtr<std::vector<const char*> >(new std::vector<const char*>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<std::string> >	{static void push(ParameterStack* This, const std::vector<std::string>& spVec)	{This->push(SmartPtr<std::vector<std::string> >(new std::vector<std::string>(spVec)));}};
 
-/* Note: we do not support non-const references, since the bindings do not support the back-copy into the the binded language
+/* Note: we do not support non-const references, since the bindings do not support the back-copy into the the bound language
 template <> struct ParameterStack::PushType<std::vector<bool>& >		{static void push(ParameterStack* This, const std::vector<bool>& spVec)			{This->push(SmartPtr<std::vector<bool> >(new std::vector<bool>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<int>& >			{static void push(ParameterStack* This, const std::vector<int>& spVec)			{This->push(SmartPtr<std::vector<int> >(new std::vector<int>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<size_t>& >		{static void push(ParameterStack* This, const std::vector<size_t>& spVec)		{This->push(SmartPtr<std::vector<size_t> >(new std::vector<size_t>(spVec)));}};

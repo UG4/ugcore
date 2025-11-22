@@ -45,7 +45,7 @@ namespace ug
 //	Make sure not to use refinement marks with a value of 128 or higher! Those
 
 ///< Fully refines an element and all associated sides and edges
-enum RefinementMark{
+enum RefinementMark : byte_t {
 	RM_NONE = 0,					///< no refinement is performed
 	RM_CLOSURE = 1,					///< Refines elements according to associated marked edges
 	RM_COPY = RM_CLOSURE,			///< DEPRECATED. Use RM_CLOSURE or RM_LOCAL with localMark = 0 instead.
@@ -153,19 +153,19 @@ class IRefiner
 
 
 	///	returns the local mark of the specified edge of the given face
-	/**	Note that this is not necessarily the mark of the edge itself. Instead
+	/**	Note that this is not necessarily the mark of the edge itself. Instead,
 	 * the mark of the edge as induced by the local mark of the face is returned.
 	 * The method also considers marks RM_FULL and RM_CLOSURE.*/
 		int get_local_edge_mark(Face* f, Edge* e) const;
 		
 	///	returns the local mark of the specified edge of the given volume
-	/**	Note that this is not necessarily the mark of the edge itself. Instead
+	/**	Note that this is not necessarily the mark of the edge itself. Instead,
 	 * the mark of the edge as induced by the local mark of the volume is returned.
 	 * The method also considers marks RM_FULL and RM_CLOSURE.*/
 		int get_local_edge_mark(Volume* vol, Edge* e) const;
 
 	///	returns the local mark of the specified face of the given volume
-	/**	Note that this is not necessarily the mark of the face itself. Instead
+	/**	Note that this is not necessarily the mark of the face itself. Instead,
 	 * the mark of the face as induced by the local mark of the volume is returned.
 	 * The method also considers marks RM_FULL and RM_CLOSURE.*/
 		int get_local_face_mark(Volume* vol, Face* f) const;
@@ -181,12 +181,12 @@ class IRefiner
 
 	///	marks the neighborhood of currently marked elements.
 	/**	In each step direct neighbors of currently marked elements are also marked.
-	 * You may specify the refinement mark that will be applied to newly mared elements
+	 * You may specify the refinement mark that will be applied to newly marked elements
 	 * - elements which already were marked will be ignored.
 	 * By passing RM_NONE as refMark, the refinement-mark will be derived from
 	 * neighbored elements.
 	 * If sideNbrsOnly is set to true, only elements which are connected to
-	 * sides of marked elements are also marked. Otherwise all elements which are
+	 * sides of marked elements are also marked. Otherwise, all elements which are
 	 * connected to vertices of marked elements are marked.*/
 		virtual void mark_neighborhood(
 						size_t numIterations,
@@ -285,7 +285,7 @@ class IRefiner
 	///	called by refine(). Derived classes should implement their refinement algorithm here.
 		virtual void perform_refinement() = 0;
 
-	///	Called by coarsen(). Derived classes sould implement their coarsen algorithm here.
+	///	Called by coarsen(). Derived classes should implement their coarsen algorithm here.
 	/** Since the default implementation does not perform coarsening, it returns false.*/
 		virtual bool perform_coarsening() {return false;}
 

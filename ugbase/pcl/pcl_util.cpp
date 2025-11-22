@@ -103,7 +103,7 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 
 	vReceiveFromRanksOut.clear();
 
-	if(!procComm.size())
+	if(procComm.empty())
 		return;
 
 	const int localProcRank = ProcRank();
@@ -156,7 +156,7 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 			if(vGlobalProcList[vDisplacements[i] + j] == localProcRank)
 			{
 				vReceiveFromRanksOut.push_back(procComm.get_proc_id(i));
-			//	the j-th proc is handled completly. resume with the next.
+			//	the j-th proc is handled completely. resume with the next.
 				break;
 			}
 		}
@@ -171,7 +171,7 @@ bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
 						const ProcessCommunicator& involvedProcs)
 {
 	PCL_PROFILE_FUNC();
-//	we overwrite some data in recvFrom - thats why we need a copy
+//	we overwrite some data in recvFrom - that's why we need a copy
 	std::vector<int> recvFrom = recvFromTmp;
 	
 //	make sure that all processes know, who is sending data to them
@@ -213,7 +213,7 @@ bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
 		involvedProcs.gather(&mismatch, 1, PCL_DT_INT, &buffer.front(), 1,
 							PCL_DT_INT, root);
 
-		UG_LOG("SEND / RECEIVE MISMATCH OCCURED ON PROC:");
+		UG_LOG("SEND / RECEIVE MISMATCH OCCURRED ON PROC:");
 		for(size_t i = 0; i < buffer.size(); ++i){
 			if(buffer[i] != 0){
 			//	a mismatch occurred
@@ -285,7 +285,7 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 		involvedProcs.gather(&mismatch, 1, PCL_DT_INT, &buffer.front(), 1,
 							PCL_DT_INT, root);
 
-		UG_LOG("SEND / RECEIVE BUFFER MISMATCH OCCURED ON PROC:");
+		UG_LOG("SEND / RECEIVE BUFFER MISMATCH OCCURRED ON PROC:");
 		for(size_t i = 0; i < buffer.size(); ++i){
 			if(buffer[i] != 0){
 			//	a mismatch occurred

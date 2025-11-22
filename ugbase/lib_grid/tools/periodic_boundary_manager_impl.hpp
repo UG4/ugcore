@@ -105,7 +105,7 @@ void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2,
 		make_slave(g, e2);
 	}
 
-	// while elements have sides, recursively identify sub type elements
+	// while elements have sides, recursively identify subtype elements
 	if (TElem::HAS_SIDES) {
 		container sides1, sides2;
 		// collect sides and identify them

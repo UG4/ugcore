@@ -39,6 +39,7 @@
 #include <string>
 #include <boost/type_traits.hpp>
 #include <boost/optional.hpp>
+#include <utility>
 
 #include "parameter_stack.h"
 #include "function_traits.h"
@@ -400,7 +401,7 @@ class UG_API ExportedConstructor
 	/// gives some information to the exported functions
 		const std::string& tooltip() const {return m_tooltip;}
 
-	/// help informations
+	/// help information
 		const std::string& help() const {return m_help;}
 
 	/// parameter list for input values
@@ -418,7 +419,7 @@ class UG_API ExportedConstructor
 			using params_type = typename func_traits<TFunc>::params_type;
 			CreateParameterInfo<params_type>::create(m_paramsIn);
 
-		//	arbitrary choosen minimum number of infos exported
+		//	arbitrary chosen minimum number of infos exported
 		//	(If values non given we set them to an empty string)
 			constexpr size_t MinNumInfos = 3; // for "name | style | options"
 
@@ -713,7 +714,7 @@ class ExportedClass : public ExportedClassBaseImpl
 		}
 
 	/// destructor
-		virtual ~ExportedClass()= default;
+		~ExportedClass() override = default;
 
 	/// name of class
 		virtual const std::string& name() const {return ClassNameProvider<TClass>::name();}
@@ -732,7 +733,7 @@ class ExportedClass : public ExportedClassBaseImpl
 		virtual const std::vector<const char*>* class_names() const	{return &ClassNameProvider<TClass>::names();}
 
 		template<typename T>
-		ExportedClass<TClass>& add_(T t)
+		ExportedClass& add_(T t)
 		{
 			return t.add_to(*this);
 		}
@@ -749,14 +750,14 @@ class ExportedClass : public ExportedClassBaseImpl
 	 * @sa \ref secSTHowToSpecifyParameterInformation
 	 */
 		template <typename TMethod>
-		ExportedClass<TClass>& add_method (std::string methodName, TMethod func,
+		ExportedClass& add_method (std::string methodName, TMethod func,
 		                                    std::string retValInfos = "", std::string paramInfos = "",
 		                                    std::string tooltip = "", std::string help = "")
 		{
 		//	At this point the method name contains parameters (name|param1=...).
 		//todo: they should be removed and specified with an extra parameter.
 
-			std::string strippedMethodName = methodName;
+			std::string strippedMethodName = std::move(methodName);
 			std::string methodOptions;
 			std::string::size_type pos = strippedMethodName.find('|');
 			if(pos != std::string::npos){
@@ -816,7 +817,7 @@ class ExportedClass : public ExportedClassBaseImpl
 		}
 
 	/// Make default constructor accessible
-		ExportedClass<TClass>& add_constructor ()
+		ExportedClass& add_constructor ()
 		{
 		//	add also in new style
 			add_constructor<void (*)()>();
@@ -830,7 +831,7 @@ class ExportedClass : public ExportedClassBaseImpl
 	/// constructor registration
 	/**
 	 * @param paramInfos string documenting the parameters of the function
-	 * seperate parameters with an # e.g. "x#y#z" (don't specify the type of the values)  (optional)
+	 * separate parameters with an # e.g. "x#y#z" (don't specify the type of the values)  (optional)
 	 * @param tooltip small documentation for the function (optional)
 	 * @param help help string for the function
 	 * @param options style option of the constructor itself (for visualisation)
@@ -868,7 +869,7 @@ class ExportedClass : public ExportedClassBaseImpl
 		//	create parameter stack
 			expConstr->template create_parameter_stack<TFunc>();
 
-		//	rememeber it
+		//	remember it
 			m_vConstructor.push_back(ConstructorOverload(expConstr, typeID));
 
 		//	done

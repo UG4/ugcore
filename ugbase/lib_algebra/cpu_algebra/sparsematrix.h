@@ -86,7 +86,7 @@ namespace ug{
  *  \brief sparse matrix for big, variable sparse matrices.
  *
  *  matrix is stored independent row-wise
- *  When doing discretisation, use the add set and get methods
+ *  When doing discretization, use the add set and get methods
  *  for dealing with submatrices of A.
  *  For other things you can use the row iterators or
  *  operator () -methods.
@@ -138,8 +138,8 @@ public:
 	 * \param scale		an optional scaling
 	 * \return			true on success
 	 */
-	void set_as_transpose_of(const SparseMatrix<value_type> &B, double scale=1.0);
-	void set_as_transpose_of2(const SparseMatrix<value_type> &B, double scale=1.0);
+	void set_as_transpose_of(const SparseMatrix &B, double scale=1.0);
+	void set_as_transpose_of2(const SparseMatrix &B, double scale=1.0);
 
 	/**
 	 * \brief create/recreate this as a copy of SparseMatrix B
@@ -147,8 +147,8 @@ public:
 	 * \param scale		an optional scaling
 	 * \return			true on success
 	 */
-	void set_as_copy_of(const SparseMatrix<value_type> &B, double scale=1.0);
-	SparseMatrix<value_type> &operator = (const SparseMatrix<value_type> &B)
+	void set_as_copy_of(const SparseMatrix &B, double scale=1.0);
+	SparseMatrix &operator = (const SparseMatrix &B)
 	{
 		set_as_copy_of(B);
 		return *this;

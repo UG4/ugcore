@@ -104,12 +104,11 @@ refinement_ends()
 //	we have to adjust positions of old vertices (no multigrid) or vertex children
 //	(multigrid) here.
 	Grid& g = geom().grid();
-	MultiGrid* pmg = dynamic_cast<MultiGrid*>(&g);
+	auto* pmg = dynamic_cast<MultiGrid*>(&g);
 
 	if(pmg){
 		MultiGrid& mg = *pmg;
-		for(new_pos_vec_t::iterator i = m_newPositions.begin();
-			i != m_newPositions.end(); ++i)
+		for(auto i = m_newPositions.begin(); i != m_newPositions.end(); ++i)
 		{
 			Vertex* child = mg.get_child_vertex(i->first);
 			if(child)
@@ -119,8 +118,7 @@ refinement_ends()
 		}
 	}
 	else{
-		for(new_pos_vec_t::iterator i = m_newPositions.begin();
-			i != m_newPositions.end(); ++i)
+		for(auto i = m_newPositions.begin(); i != m_newPositions.end(); ++i)
 		{
 			set_pos(i->first, i->second);
 		}
@@ -222,9 +220,9 @@ nbr_crease_edges (Vertex* vrt,
 			else{
 				grid.associated_elements(faces, edge);
 				size_t num = 0;
-				if(faces.size() != 0)
+				if(!faces.empty())
 					num = concerned_nbr_faces(edge, &faces);
-				if(faces.size() == 0 || ((num > 0) && (num!= 2))){
+				if(faces.empty() || ((num > 0) && (num!= 2))){
 					if(creaseEdges < 2)
 						creaseEdgesOut[creaseEdges] = edge;
 					++creaseEdges;
@@ -239,7 +237,7 @@ nbr_crease_edges (Vertex* vrt,
 				++creaseEdges;
 			else{
 				grid.associated_elements(faces, edge);
-				if(faces.size() == 0)
+				if(faces.empty())
 					++creaseEdges;
 				else{
 					size_t num = concerned_nbr_faces(edge, &faces);

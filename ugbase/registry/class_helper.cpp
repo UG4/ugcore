@@ -212,7 +212,7 @@ string ClassHierarchyString(const Registry &reg, const char *classname)
   */
 string ParameterToString(const ParameterInfo &par, int i)
 {
-	string res = string("");
+	string res;
 	if(par.is_vector(i)) res.append("std::vector<");
 	switch(par.type(i))
 	{

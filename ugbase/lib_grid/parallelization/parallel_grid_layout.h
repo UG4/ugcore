@@ -98,7 +98,7 @@ namespace ug
  *					in this case (it would not be clear whether the master
  *					was in the H or in the V interface).
  */
-enum InterfaceNodeTypes
+enum InterfaceNodeTypes : byte_t
 {
 	INT_NONE =	0,
 	INT_H_MASTER = 1,		///< horizontal master node

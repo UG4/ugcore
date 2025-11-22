@@ -78,7 +78,7 @@ add_and_get_function(std::string funcName, TFunc func, std::string group,
 
 	std::string strippedMethodName = funcName;
 	std::string methodOptions;
-	std::string::size_type pos = strippedMethodName.find("|");
+	std::string::size_type pos = strippedMethodName.find('|');
 	if(pos != std::string::npos){
 		methodOptions = strippedMethodName.substr(pos + 1, strippedMethodName.length() - pos);
 		strippedMethodName = strippedMethodName.substr(0, pos);

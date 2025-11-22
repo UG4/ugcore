@@ -200,7 +200,7 @@ refinement_begins (const ISubGrid* psg)
 			bool selectionPerformed = false;
 
 		//	this is a small optimization. We can either iterate over the elements
-		//	of sg or of subset (i-1), i>0. Choose the one with less elements.
+		//	of sg or of subset (i-1), i>0. Choose the one with fewer elements.
 			GridObjectCollection subsetGoc;
 			if(i > 0){
 				subsetGoc = m_sh->get_grid_objects_in_subset(i - 1);

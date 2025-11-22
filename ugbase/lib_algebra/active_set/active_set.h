@@ -65,7 +65,7 @@ namespace ug {
  *	Otherwise (\f$ c_i(x) > 0 \f$) it is called inactive.
  *
  *	A common approach to treat the inequality constraints is its reformulation as
- *	equations by using so called complementarity functions, see e.g. C.Hager und B. I. Wohlmuth:
+ *	equations by using so-called complementarity functions, see e.g. C.Hager und B. I. Wohlmuth:
  *	"Hindernis- und Kontaktprobleme" for a simple introduction into this topic.
  *	By means of complementarity functions, constraints of the form
  *  \f{eqnarray*}{

@@ -163,7 +163,7 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 
 
 //	This is some old and unmaintained code.
-//	Maybe it will be useful somewhen...
+//	It might come in handy someday...
 /**
  * this is a very simple and unoptimized algorithm!
  * Only intended for testing-purposes.
@@ -188,7 +188,7 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
  * \param numSubsets has to be chosen as a power of 2.
  * \param aVrtPos	position attachment
  *
- * This algorithm may possibly fail. However, if the grid is somehow aligned
+ * This algorithm may fail. However, if the grid is somehow aligned
  * to the main axes and there is a similar amount of elements in each direction
  * (no anisotropy), it should work well.
  */
@@ -246,7 +246,7 @@ bool PartitionElementsByRepeatedIntersectionKD(ug::SubsetHandler& shOut,
 		LOG("PROBLEM in PartitionElementsByRepeatedIntersection: ");
 		LOG("could not find the correct intersections.\n");
 		LOG("This can happen depending on the properties of the grid.\n");
-		LOG("Search the source-code for more informations.\n");
+		LOG("Search the source-code for more information's.\n");
 		return false;
 	}
 

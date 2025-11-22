@@ -44,7 +44,7 @@ namespace ug{
 //   Algebra Types
 ////////////////////////////////////////////////////////////////////////////////
 
-/// class describing the type of an algebra
+/// class describing the type of algebra
 class AlgebraType
 {
 	public:

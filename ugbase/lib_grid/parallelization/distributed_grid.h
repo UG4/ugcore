@@ -75,7 +75,7 @@ enum ElementStatusTypes
  * create new elements in the associated grid between calls to
  * begin_ordered_element_insertion() and end_ordered_element_insertion().
  *
- * Similarly elements of the associated grid may only be erased during calls to
+ * Similarly, elements of the associated grid may only be erased during calls to
  * begin_element_deletion() and end_element_deletion().
  *
  * Those barriers are important, so that distributed grid managers can insert
@@ -100,7 +100,7 @@ class DistributedGridManager : public GridObserver
 
 	//	layout access
 	/**	if you change the layout externally, be sure to call
-	 *	DistributedGrid::layout_changed() afterwards.*/
+	 *	DistributedGrid::layout_changed() afterward.*/
 		inline GridLayoutMap& grid_layout_map()				{return m_gridLayoutMap;}
 		inline const GridLayoutMap& grid_layout_map() const	{return m_gridLayoutMap;}	
 		
@@ -286,7 +286,7 @@ class DistributedGridManager : public GridObserver
 
 	protected:
 	///	Be careful when creating copies of ElementInfo.
-	/**	Ownership of the internal data-object is transfered to the new copy.
+	/**	Ownership of the internal data-object is transferred to the new copy.
 	 * The old instance will thus point to a nullptr pointer instead of the data
 	 * object after the copy operation.
 	 */
@@ -397,7 +397,7 @@ class DistributedGridManager : public GridObserver
 
 			///	OwnedPtr is required to transfer ownership of the data-ptr during copy-operations.
 			/**	Since ElementInfo objects are stored in attachments, they will be copied
-			 * from time to time. Ownership is thereby transfered to the new copy.
+			 * from time to time. Ownership is thereby transferred to the new copy.
 			 */
 				OwnedPtr<Data>	m_data;
 		};

@@ -77,7 +77,7 @@ class BalanceWeightsRefMarks : public IBalanceWeights
 
 		bool has_level_offsets() override {return true;}
 
-	///	Indicator in which level the specifed elements should be partitioned.
+	///	Indicator in which level the specified elements should be partitioned.
 	/** This will only have effect if the given element does not have any children
 	 * \{ */
 		bool consider_in_level_above(Vertex* e) override {return consider_in_level_above_impl(e);}

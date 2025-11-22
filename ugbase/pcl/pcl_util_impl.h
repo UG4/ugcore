@@ -43,7 +43,7 @@ namespace pcl {
 		//	iterate over all interfaces of the layout.
 		//	for each we'll create a new one, into which elements selected
 		//	elements will be inserted.
-		//	Finally we'll swap the content of the those interfaces.
+		//	Finally, we'll swap the content of the those interfaces.
 		//	if the interface is empty at the end of the operation, it will be
 		//	removed from the layout.
 		bool retVal = false;

@@ -57,7 +57,7 @@ namespace ug{
  *
  * Rows of H-Master-Overlap entries are DirichletRows (a_ii=1, a_ij=0 for i!=j).
  *
- * The methods replaces the AlgebraLayout in matInOut with a new one which
+ * The method replaces the AlgebraLayout in matInOut with a new one which
  * contains master_overlap and slave_overlap interfaces.
  *
  * \param matInOut	An additive parallel square matrix without overlap.

@@ -232,7 +232,7 @@ bool GridSubsetHandler::perform_self_tests()
 	bool bSuccess = true;
 	
 	LOG("performing self tests on GridSubsetHandler\n");
-	LOG("  num subets: " << num_subsets_in_list() << std::endl);
+	LOG("  num subsets: " << num_subsets_in_list() << std::endl);
 	
 //	iterate through the subsets and check whether the assigned
 //	elements have the correct subset index

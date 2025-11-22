@@ -743,7 +743,7 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 			}
 
 		//	since all elements from the elem list have been assigned to other arrays,
-		//	we have to clear elems, since it would be invalid anyways
+		//	we have to clear elems, since it would be invalid anyway
 			tn.elems.clear();
 		}
 

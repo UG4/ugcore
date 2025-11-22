@@ -1,3 +1,4 @@
+// ø todo delete?
 /*
  * Copyright (c) 2017:  G-CSC, Goethe University Frankfurt
  * Author: Sebastian Reiter

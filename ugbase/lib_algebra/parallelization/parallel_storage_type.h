@@ -42,7 +42,7 @@ namespace ug
 ///\ingroup lib_algebra_parallelization
 /// Parallel Storage type
 /**
- * The storage type of a vector is used in parallel applications.
+ * The storage type of vector is used in parallel applications.
  * We assume that the dofs are distributed to the processes in the way that
  * each dof is master on exactly one process and can be a slave (i.e. a local
  * copy) on several other processes. Given the real values of the dofs the

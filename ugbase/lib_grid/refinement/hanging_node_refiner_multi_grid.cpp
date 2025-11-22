@@ -499,7 +499,7 @@ restrict_selection_to_coarsen_families()
 				sel.deselect(e);
 		}
 		else{
-		//	the parent of this element has a different type or it doesn't exist
+		//	the parent of this element has a different type, or it doesn't exist
 		//	at all. The element is thus not regarded as a valid candidate.
 			sel.deselect(e);
 		}
@@ -1102,7 +1102,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 	bool running = gotVols || gotFaces;
 	while(running){
 	//	classify unknown vertices
-		for(VrtVec::iterator iter = vvrts.begin(); iter != vvrts.end(); ++iter)
+		for(auto iter = vvrts.begin(); iter != vvrts.end(); ++iter)
 		{
 			Vertex* e = *iter;
 
@@ -1376,7 +1376,7 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 
 
 //	ATTENTION:	We post the message that coarsening begins at this point, since
-//				we don't want REPLACE elements to be selected and thus contained
+//				we don't want TO REPLACE elements to be selected and thus contained
 //				in the specified geometric-object-collection.
 	if(scheduleCoarseningBeginsMessage){
 		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_BEGINS,
@@ -1388,7 +1388,7 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 //	edges and faces with HNCM_REPLACE to indicate, that they have to be
 //	transformed to a normal edge
 //	mark parents of normal and constraining edges and faces which were marked for
-//	partial refinement with a replace mark
+//	partial refinement with a replacement mark
 	for(selector_t::traits<Edge>::iterator
 		iter = sel.begin<Edge>(); iter != sel.end<Edge>(); ++iter)
 	{
@@ -1443,7 +1443,7 @@ We have to handle elements as follows:
   normal edge:
 	All nbrs marked: remove
 	Some nbrs marked (hnode):
-	  If has (unconstrained) parent:
+	  If it has (unconstrained) parent:
 	    convert to constrained. If parent is normal, then make parent constraining.
 	    add edge to constrained elements of parent.
 	  else
@@ -1488,8 +1488,7 @@ We have to handle elements as follows:
 
 ////////////////////
 //	FACES
-	for(selector_t::traits<Face>::iterator iter = sel.begin<Face>();
-		iter != sel.end<Face>();)
+	for(auto iter = sel.begin<Face>(); iter != sel.end<Face>();)
 	{
 		Face* elem = *iter;
 		++iter;
@@ -1536,7 +1535,7 @@ We have to handle elements as follows:
 			//	the face has to be replaced by a constrained face.
 			//	Volume-children don't have to be considered here, since
 			//	they should all be marked with HNCM_ALL_NBRS_SELECTED
-				Face* parent = dynamic_cast<Face*>(mg.get_parent(elem));
+				auto parent = dynamic_cast<Face*>(mg.get_parent(elem));
 
 				if(parent){
 				//	the parent may not be a constrained object
@@ -1547,7 +1546,7 @@ We have to handle elements as follows:
 				//	check whether the parent is already constraining.
 				//	if not, it will be transformed to a constraining element later on
 				//	and the connection is established then.
-					ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(parent);
+					auto* cf = dynamic_cast<ConstrainingFace*>(parent);
 					if(cf){
 						cf->add_constrained_object(cdf);
 						cdf->set_constraining_object(cf);
@@ -1610,8 +1609,7 @@ We have to handle elements as follows:
 				//	note - associated constrained vertices and constrained edges can
 				//	not exist at this point.
 					for(size_t i = 0; i < mg.num_children<Face>(cf); ++i){
-						if(ConstrainedFace* cdf =
-						   dynamic_cast<ConstrainedFace*>(mg.get_child<Face>(cf, i)))
+						if(auto* cdf = dynamic_cast<ConstrainedFace*>(mg.get_child<Face>(cf, i)))
 						{
 							cf->add_constrained_object(cdf);
 							cdf->set_constraining_object(cf);
@@ -1671,7 +1669,7 @@ We have to handle elements as follows:
 										  << ElementDebugInfo(mg, elem));
 
 							//	check whether the parent is already constraining
-								ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(edgeParent);
+								auto* ce = dynamic_cast<ConstrainingEdge*>(edgeParent);
 								if(ce){
 									ce->add_constrained_object(cde);
 									cde->set_constraining_object(ce);
@@ -1680,8 +1678,8 @@ We have to handle elements as follows:
 						case FACE:{
 							//	if the parent is a face, then it the face should have been converted
 							//	to a constraining face during the face-coarsening step. If it hasn't
-							//	been converted, then the somethings wrong with the selection states.
-								ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(parent);
+							//	been converted, then the something's wrong with the selection states.
+								auto* cf = dynamic_cast<ConstrainingFace*>(parent);
 								UG_ASSERT(cf, "The parent face should have been transformed"
 										  " to a constraining face already: "
 										  << ElementDebugInfo(mg, cf));
@@ -1729,8 +1727,7 @@ We have to handle elements as follows:
 				//	note - associated constrained vertices and constrained edges can
 				//	not exist at this point.
 					for(size_t i = 0; i < mg.num_children<Edge>(cge); ++i){
-						if(ConstrainedEdge* cde =
-						   dynamic_cast<ConstrainedEdge*>(mg.get_child<Edge>(cge, i)))
+						if(auto* cde = dynamic_cast<ConstrainedEdge*>(mg.get_child<Edge>(cge, i)))
 						{
 							cge->add_constrained_object(cde);
 							cde->set_constraining_object(cge);
@@ -1795,7 +1792,7 @@ We have to handle elements as follows:
 						case EDGE:{
 						//	the parent already has to be a constraining edge, due to
 						//	the operations performed during edge-coarsening
-							ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(parent);
+							auto* ce = dynamic_cast<ConstrainingEdge*>(parent);
 							UG_ASSERT(ce, "The parent edge already has to be constraining: "
 										  << ElementDebugInfo(mg, parent));
 							UG_ASSERT(ce->num_constrained_vertices() == 0,
@@ -1810,7 +1807,7 @@ We have to handle elements as follows:
 						case FACE:{
 						//	the parent already has to be a constraining face, due to
 						//	the operations performed during face-coarsening
-							ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(parent);
+							auto* cf = dynamic_cast<ConstrainingFace*>(parent);
 							UG_ASSERT(cf, "The parent face already has to be constraining: "
 										  << ElementDebugInfo(mg, parent));
 							UG_ASSERT(cf->num_constrained_vertices() == 0,

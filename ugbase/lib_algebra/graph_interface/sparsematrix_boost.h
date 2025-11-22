@@ -8,7 +8,7 @@
  * requirements (according to LGPL/GPL v3 §7):
  */
 
-// BGL interface for cpu sparse martrix (dynamic CRS).
+// BGL interface for cpu sparse matrix (dynamic CRS).
 
 #ifndef UG_SPARSEMATRIX_BOOST_H
 #define UG_SPARSEMATRIX_BOOST_H

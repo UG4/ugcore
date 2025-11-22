@@ -95,7 +95,7 @@ communicate_marks(BoolMarker& marker)
 
 //	we have to communicate side marks. In 3d we also have to communicate edge marks.
 //	we'll simply communicate edge and face marks. This is no overhead,
-//	since no face interfaces don't exist in 2d anyways. The 1d case is ignored.
+//	since no face interfaces don't exist in 2d anyway. The 1d case is ignored.
 	ComPol_BoolMarker_AddMarks<EdgeLayout> compolMarkerEDGE(marker);
 	ComPol_BoolMarker_AddMarks<FaceLayout> compolMarkerFACE(marker);
 

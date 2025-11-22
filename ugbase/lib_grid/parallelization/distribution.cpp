@@ -187,7 +187,7 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 	///	write target processes and move-flag
 		bool collect(BinaryBuffer& buff, const Interface& intfc) override
 		{
-			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter){
+			for(auto iter = intfc.begin(); iter != intfc.end(); ++iter){
 				Element elem = intfc.get_element(iter);
 				Serialize(buff, m_distInfos.get(elem));
 			}
@@ -199,7 +199,7 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 		{
 			if(m_mergeEnabled){
 				vector<TargetProcInfo> tpInfo;
-				for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter){
+				for(auto iter = intfc.begin(); iter != intfc.end(); ++iter){
 					tpInfo.clear();
 					Deserialize(buff, tpInfo);
 
@@ -231,7 +231,7 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 				}
 			}
 			else{
-				for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter){
+				for(auto iter = intfc.begin(); iter != intfc.end(); ++iter){
 					Element elem = intfc.get_element(iter);
 					vector<TargetProcInfo>& tpInfo = m_distInfos.get(elem);
 					tpInfo.clear();
@@ -265,9 +265,9 @@ static void SynchronizeDistInfos(MultiGrid& mg, DistInfoSupplier& distInfos)
 	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolSync);
 	com.communicate();
 
-//	if an element is a mulit-v-master, all v-master copies are connected to
+//	if an element is a multi-v-master, all v-master copies are connected to
 //	all v-slave copies. However, multi-v-masters are not connected with one another
-//	through h-interfaces. That's a pitty and requires this triple communication
+//	through h-interfaces. That's a pity and requires this triple communication
 	compolSync.enable_merge(true);
 	com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolSync);
 	com.communicate();
@@ -1285,7 +1285,7 @@ static void PostProcessDistInfos(MultiGrid& mg, DistInfoSupplier& distInfos)
 		}
 
 		if(gotVMaster && gotNeither){
-		//	those which have neither a vmaster or vslave mark have to be marked as vslaves.
+		//	those which have neither a vmaster nor vslave mark have to be marked as vslaves.
 			for(size_t i = 0; i < di.size(); ++i){
 				TargetProcInfo& tpi = di[i];
 				if(!(tpi.interfaceState & (IS_VMASTER | IS_VSLAVE))){
@@ -1971,7 +1971,7 @@ bool DistributeGrid(MultiGrid& mg,
 			localPartitionInd = partInd;
 
 	//	don't serialize the local partition since we'll keep it here on the local
-	//	process anyways.
+	//	process anyway.
 		if(!localPartition){
 			BinaryBuffer& out = outBufs[i_to];
 

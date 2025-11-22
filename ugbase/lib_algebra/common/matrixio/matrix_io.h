@@ -116,7 +116,7 @@ class MatrixFileType
  * \brief Generic matrix I/O functionality
  *
  * This is the generic class for matrix I/O functionality.
- * For actual matrix I/O operations use one of it's subclasses specifying the
+ * For actual matrix I/O operations use one of its subclasses specifying the
  * specific behaviour for one of the supported matrix exchange file formats.
  *
  * \note Please include this header file, when you want to use the I/O functions
@@ -125,7 +125,7 @@ class MatrixFileType
 class MatrixIO
 {
   public:
-    /// Specifies how file names pointing to non-existing files should be handeld
+    /// Specifies how file names pointing to non-existing files should be handled
     enum OpenMode {
       /// Only existing files are valid files (i.e. non-existing file result in error)
       EXISTING = 1,

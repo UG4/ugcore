@@ -69,7 +69,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		void assign_grid(Grid& grid);
 
 	////////////////////////////////////////////////
-	//	implementation of public virtual methdos of ISubsetHandler.
+	//	implementation of public virtual methods of ISubsetHandler.
 	///	assigns a vertex to a subset.
 	/**	If the subset doesn't already exist, it will be created.*/
 		void assign_subset(Vertex* elem, int subsetIndex) override;
@@ -151,7 +151,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 
 	///	collects all vertices that are in the given subset.
 	/**	Please consider using begin and end methods instead.
-	 *	If subset -1 is specified, the method has compexity O(n), where n is the number
+	 *	If subset -1 is specified, the method has complexity O(n), where n is the number
 	 *	of vertices in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
@@ -159,7 +159,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 
 	///	collects all edges that are in the given subset.
 	/**	Please consider using begin and end methods instead.
-	 *	If subset -1 is specified, the method has compexity O(n), where n is the number
+	 *	If subset -1 is specified, the method has complexity O(n), where n is the number
 	 *	of edges in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
@@ -167,7 +167,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 
 	///	collects all faces that are in the given subset.
 	/**	Please consider using begin and end methods instead.
-	 *	If subset -1 is specified, the method has compexity O(n), where n is the number
+	 *	If subset -1 is specified, the method has complexity O(n), where n is the number
 	 *	of faces in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
@@ -175,7 +175,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 
 	///	collects all volumes that are in the given subset.
 	/**	Please consider using begin and end methods instead.
-	 *	If subset -1 is specified, the method has compexity O(n), where n is the number
+	 *	If subset -1 is specified, the method has complexity O(n), where n is the number
 	 *	of volumes in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/

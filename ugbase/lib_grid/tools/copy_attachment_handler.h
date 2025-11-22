@@ -209,14 +209,14 @@ class CopyAttachmentHandler : public GridObserver
 		template <typename TCreatedElem, typename Dummy>
 		struct propagate
 		{
-			propagate(TCreatedElem* elem, GridObject* pParent, CopyAttachmentHandler<TElem, TAttachment>* cah) {};
+			propagate(TCreatedElem* elem, GridObject* pParent, CopyAttachmentHandler* cah) {};
 		};
 
 		// this template will be used if created is called with an elem of type TElem
 		template <typename Dummy>
 		struct propagate<TElem, Dummy>
 		{
-			propagate(TElem* elem, GridObject* pParent, CopyAttachmentHandler<TElem, TAttachment>* cah)
+			propagate(TElem* elem, GridObject* pParent, CopyAttachmentHandler* cah)
 			{
 				// check that parent is given
 				if (!pParent) return;

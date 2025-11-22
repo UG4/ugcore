@@ -340,15 +340,15 @@ assign_hnode_marks()
 	m_intfComFACE.communicate();
 
 
-//	until now we only communicated hnode-marks over horizontal interfaces.
+//	until now, we only communicated hnode-marks over horizontal interfaces.
 //	However, while we won't refine ghosts (vertical masters which do not lie
 //	in any horizontal interface) we have to adjust their type (constrained / constraining)
 //	so that they match the type of their vertical slaves. While this is not really
 //	important for most uses, differing types of ghosts cause problems during
-//	redistribution, which possibly causes issues in methods executed afterwards.
+//	redistribution, which possibly causes issues in methods executed afterward.
 //	Note: we adjust types of ghosts before refinement here. This is not a problem,
 //	since it only involves replacement, which can be handled by the distributed
-//	grid manager even outside of begin_ordered_element_insertion/end_...
+//	grid manager even outside begin_ordered_element_insertion/end_...
 
 	ComPol_AdjustType<VertexLayout> compolAdjustVRT(BaseClass::m_selMarkedElements,
 													*m_pDistGridMgr);
@@ -551,8 +551,7 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 		bool
 		collect(BinaryBuffer& buff, const Interface& interface) override {
 		//	write the entry indices of marked elements.
-			for(InterfaceIter iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
 				byte_t refMark = m_sel.get_selection_status(elem);

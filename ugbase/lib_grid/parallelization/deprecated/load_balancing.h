@@ -92,7 +92,7 @@ bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
  *
  * hWeight and vWeight determine, how important it is to keep horizontal
  * and vertical neighbors on the same process as the element itself.
- * The bigger hWeight, the more attention is spend to keep neighbors together.
+ * The bigger hWeight, the more attention is spent to keep neighbors together.
  * Both parameters have to be > 0. Default is 1.
  *
  * Valid template arguments are Edge, Face, Volume and derived types.

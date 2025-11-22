@@ -89,7 +89,7 @@ void SendData(ProcID destProc,
 	int bufferSize,
 	int tag);
 
-///	receives the data that was send with \sa SendData or \sa DistributeData.
+///	receives the data that was sent with \sa SendData or \sa DistributeData.
 void ReceiveData(void* pBuffOut,
 	ProcID srcProc,
 	int bufferSize,
@@ -135,7 +135,7 @@ void DistributeData(ProcID thisProcID, int* pRecProcMap,
 /**
  * Both, sendBuf and recBuf have to hold count elements of the specified type.
  * \param sendBuf	Sending buffer
- * \param recBuf	Recieve buffer
+ * \param recBuf	Receive buffer
  * \param count
  * \param type		Data type
  * \param op has to be one of the

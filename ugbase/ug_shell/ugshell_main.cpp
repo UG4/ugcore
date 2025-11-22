@@ -112,7 +112,7 @@ void quit_all_mpi_procs_in_parallel()
 void ugshell_print_header()
 {
 	LOG("********************************************************************************\n");
-	std::string aux_str(""); // for nicer output we need some padding with spaces ...
+	std::string aux_str; // for nicer output we need some padding with spaces ...
 
 	aux_str.append("* ugshell - ug").append(UGGetVersionString()).append(", head revision '").append(UGGitRevision()).append("',");
 	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
@@ -189,7 +189,7 @@ void ug_init_path(char* argv[], bool &errorOccurred)
 		}
 		catch(UGError& err)
 		{
-		//	if an UGError is thrown, an internal fatal error occured, we terminate shell
+		//	if an UGError is thrown, an internal fatal error occurred, we terminate shell
 			UG_ERR_LOG("UGError occurred during Path Initialization:\n");
 			for(size_t i=0; i<err.num_msg(); i++)
 				UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
@@ -279,7 +279,7 @@ void ug_check_registry(bool &errorOccurred)
 			}
 
 			if(!errorOccurred){
-			//	register the lua only functonality at the registry
+			//	register the lua only functionality at the registry
 				RegisterDefaultLuaBridge(&bridge::GetUGRegistry());
 
 			//	check that registry is consistent. Else abort.
@@ -453,7 +453,7 @@ int ugshell_main(int argc, char* argv[])
 	EnableMemTracker(true);
 
 ////////////////////////////////
-// EANBLE TERMINAL OUTPUT AGAIN
+// ENABLE TERMINAL OUTPUT AGAIN
   if (quiet) {
     GetLogAssistant().enable_terminal_output(true);
   }
@@ -569,7 +569,7 @@ int ugshell_main(int argc, char* argv[])
 	UG_LOG(endl);
 
   ////////////////////////////////
-  // EANBLE TERMINAL OUTPUT AGAIN
+  // ENABLE TERMINAL OUTPUT AGAIN
   if (quiet)
     GetLogAssistant().enable_terminal_output(true);
 

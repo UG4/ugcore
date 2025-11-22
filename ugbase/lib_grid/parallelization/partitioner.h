@@ -64,7 +64,7 @@ class IBalanceWeights{
 		
 		virtual bool has_level_offsets()		{return false;}
 
-	///	Relative indicator in which level the specifed elements should be partitioned.
+	///	Relative indicator in which level the specified elements should be partitioned.
 	/** If this method returns true, one should use get_refined_weight instead of get_weight.
 	 * \{ */
 		virtual bool consider_in_level_above(Vertex*)	{return false;}
@@ -100,7 +100,7 @@ class ICommunicationWeights
 		virtual number get_weight(GridObject* conn) = 0;
 
 		/**
-		 * Whether or not the given connection is to be assigned another weight.
+		 * Whether the given connection is to be assigned another weight.
 		 * If true, this weight can be obtained by get_weight(),
 		 * if false, no such weight must be requested.
 		 * @param conn pointer to the connection in question
@@ -227,13 +227,13 @@ class IPartitioner{
 		};
 
 	///	returns the processes map. Updated during partitioning. may be nullptr.
-	/**	If nullptr is returned, this means that each subset index correspons to a
+	/**	If nullptr is returned, this means that each subset index corresponds to a
 	 * global proc-rank.*/
 		virtual const std::vector<int>* get_process_map() const = 0;
 
 	///	indicates whether problems occurred during the last partitioning
 	/**	\note	if partition(...) returns true, the partition map is valid,
-	 *			even if problems occured. It may however not be optimal.*/
+	 *			even if problems occurred. It may however not be optimal.*/
 		virtual bool problems_occurred() {return m_problemsOccurred;}
 
 		void set_verbose(bool verbose) {m_verbose = verbose;}

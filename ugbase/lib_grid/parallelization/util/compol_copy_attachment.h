@@ -30,13 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
+#ifndef __H__PLG__COMPOL_COPY_ATTACHMENT__
+#define __H__PLG__COMPOL_COPY_ATTACHMENT__
+
 #include "lib_grid/grid/grid.h"  // for Grid::AttachmentAccessor
 #include "pcl/pcl_base.h"
 #include "pcl/pcl_communication_structs.h"  // for ICommunicationPolicy
 #include "common/serialization.h"
 
-#ifndef __H__PLG__COMPOL_COPY_ATTACHMENT__
-#define __H__PLG__COMPOL_COPY_ATTACHMENT__
 
 namespace ug
 {

@@ -48,7 +48,7 @@ namespace ug
 /**	Each step of global refinement is subsequently followed by
  * a vertex smoothing pass determined by a user-specified subdivision scheme.
  *
- * Currently this only works in 2d and 3d.
+ * Currently, this only works in 2d and 3d.
  */
 template <typename TAPosition>
 class GlobalSubdivisionMultiGridRefiner : public GlobalMultiGridRefiner

@@ -48,7 +48,7 @@ class ComPol_Subset : public pcl::ICommunicationPolicy<TLayout>
 		using Interface = typename Layout::Interface;
 		using InterfaceIter = typename Interface::const_iterator;
 
-	///	Construct the communication policy with a ug::SubsetHandler.
+	///	Construct the communication policy with an ug::SubsetHandler.
 	/**	If overwrite is specified, the subset index in the target handler is
 	 * simply overwritten (default is false).*/
 		ComPol_Subset(ISubsetHandler& sel, bool overwrite = false)

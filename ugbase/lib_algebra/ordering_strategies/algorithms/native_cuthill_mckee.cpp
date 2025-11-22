@@ -29,11 +29,11 @@ bool CheckPermutationBijective(const std::vector<size_t> &perm)
 	return bId;
 }
 
-/// help class to provide compare operator for indices based on their degree
+/// help struct to provide compare operator for indices based on their degree
 /**
- * This class is used to provide an ordering for indices. The ordering relation
+ * This struct is used to provide an ordering for indices. The ordering relation
  * is based on the connectivity-degree, i.e. on the number of connections the
- * index has. The indices with less connections are ordered first.
+ * index has. The indices with fewer connections are ordered first.
  */
 struct CompareDegree {
 ///	constructor, passing field with connections for each index

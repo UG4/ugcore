@@ -64,8 +64,8 @@ NeuriteProjector::NeuriteProjector() // : m_quadOrder(80)
 	if (!GlobalAttachments::is_declared("npSurfParams"))
 		GlobalAttachments::declare_attachment<NPSurfParam>("npSurfParams", true);
 
-	// If branching points extend 5r in each direction and we integrate over twice that size
-	// we add around quadOrder/2 Gaussians with sigma=r over a total length of 20r.
+	// If branching points extend 5r in each direction, and we integrate over twice that size
+	// we add around quadOrder/2 Gaussian's with sigma=r over a total length of 20r.
 	// So we should use about quadOrder=80 to ensure a smooth surface
 	// that does not look like a pearl necklace.
 	prepare_quadrature();
@@ -162,7 +162,7 @@ void NeuriteProjector::direction_at_grid_object(vector3& dirOut, GridObject* o) 
 		return;
 	}
 
-	IVertexGroup* vrtGrp = dynamic_cast<IVertexGroup*>(o);
+	auto* vrtGrp = dynamic_cast<IVertexGroup*>(o);
 	UG_COND_THROW(!vrtGrp, "Non-vertex element which is not a vertex group.");
 
 	uint32_t nid;
@@ -316,7 +316,7 @@ void NeuriteProjector::prepare_quadrature()
     }
 	*/
 	m_qPoints.resize(40);
-	/// points
+	/// points 20 symmetric pairs around 0.5, Gauss–Legendre quadrature nodes mapped from  [−1,1] to [0,1].
 	m_qPoints[0].first = 4.8061379124697458903340327798768835266e-1;
 	m_qPoints[1].first = 5.1938620875302541096659672201231164734e-1;
 	m_qPoints[2].first = 4.4195796466237239575827435779598794312e-1;
@@ -581,8 +581,8 @@ void NeuriteProjector::average_params
 	std::vector<uint32_t> maxCands;
 	size_t maxCnt = 0;
 
-	std::map<uint32_t, size_t>::const_iterator it = candidates.begin();
-	std::map<uint32_t, size_t>::const_iterator itEnd = candidates.end();
+	auto it = candidates.begin();
+	auto itEnd = candidates.end();
 	for (; it != itEnd; ++it)
 		if (it->second > maxCnt)
 			maxCnt = it->second;
@@ -598,7 +598,7 @@ void NeuriteProjector::average_params
 		neuriteID = *std::min_element(maxCands.begin(), maxCands.end());
 		for (size_t i = 0; i < nMaxCands; ++i)
 		{
-			std::map<uint32_t, uint32_t>::const_iterator it2 = branchInfo.find(maxCands[i]);
+			auto it2 = branchInfo.find(maxCands[i]);
 			if (it2 != branchInfo.end())
 				neuriteID = neuriteID | it2->second;
 		}
@@ -629,8 +629,8 @@ void NeuriteProjector::average_params
 		{
 			bool allChildCounts4 = true;
 
-			std::map<uint32_t, uint32_t>::const_iterator it2 = branchInfo.begin();
-			std::map<uint32_t, uint32_t>::const_iterator it2End = branchInfo.end();
+			auto it2 = branchInfo.begin();
+			auto it2End = branchInfo.end();
 			for (; it2 != it2End; ++it2)
 			{
 				if (candidates[it2->first] != 4)
@@ -711,7 +711,7 @@ void NeuriteProjector::average_params
 	{
 		foreignParentPosCenter /= nForeignParents;
 
-		std::vector<Section>::const_iterator secIt = m_vNeurites[plainNID].vSec.begin();
+		auto secIt = m_vNeurites[plainNID].vSec.begin();
 		vector3 pos0, pos1;
 		compute_first_section_end_points(pos0, pos1, secIt);
 		VecSubtract(pos1, pos1, pos0);
@@ -1273,8 +1273,7 @@ static void pos_in_neurite
 
 	// find correct section
 	NeuriteProjector::Section cmpSec(t);
-	std::vector<NeuriteProjector::Section>::const_iterator it =
-		std::lower_bound(vSections.begin(), vSections.end(), cmpSec, NeuriteProjector::CompareSections());
+	auto it = std::lower_bound(vSections.begin(), vSections.end(), cmpSec, NeuriteProjector::CompareSections());
 
 	UG_COND_THROW(it == vSections.end(),
 		"Could not find section for parameter t = " << t << " in neurite " << neuriteID << ".");
@@ -1342,8 +1341,7 @@ static void bp_newton_start_pos
 	// find correct section
 	const std::vector<NeuriteProjector::Section>& vSections = np->neurite(neuriteID).vSec;
 	NeuriteProjector::Section cmpSec(t);
-	std::vector<NeuriteProjector::Section>::const_iterator it =
-		std::lower_bound(vSections.begin(), vSections.end(), cmpSec, NeuriteProjector::CompareSections());
+	auto it = std::lower_bound(vSections.begin(), vSections.end(), cmpSec, NeuriteProjector::CompareSections());
 	UG_COND_THROW(it == vSections.end(),
 		"Could not find section for parameter t = " << t << " in neurite " << neuriteID << ".");
 
@@ -1527,8 +1525,7 @@ static void pos_in_bp
 	vector3 constAngleSurfNormal;
 	NeuriteProjector::Section cmpSec(t);
 	const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
-	std::vector<NeuriteProjector::Section>::const_iterator secIt =
-		std::lower_bound(vSections.begin(), vSections.end(), cmpSec, NeuriteProjector::CompareSections());
+	auto secIt = std::lower_bound(vSections.begin(), vSections.end(), cmpSec, NeuriteProjector::CompareSections());
 
 	vector3 s, v;
 	number radius;
@@ -1568,7 +1565,7 @@ static void pos_in_bp
 	//rad = VecNorm(s) / radius;
 
 	/*
-	// if we have ended up outside of the BP, then use the usual positioning
+	// if we have ended up outside the BP, then use the usual positioning
 	if (t > it->tend)
 	{
 		vector3 posAx;
@@ -1653,9 +1650,9 @@ bool NeuriteProjector::is_in_axial_range_around_soma_region
 	Vertex* vrt
 ) const {
 	///const number radius = axial_range_around_soma_region(sr, 0.1, nid, vrt);
-	const number radius = 0.1;
+	constexpr number radius = 0.1;
 	UG_LOGN("Soma Branching Region center: " << sr.center);
-	UG_LOGN("Soma Branching Region raidus: " << radius);
+	UG_LOGN("Soma Branching Region raids: " << radius);
 	return IsElementInsideSphere<Vertex>(vrt, sr.center, radius);
 }
 
@@ -1663,7 +1660,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 {
 	// average axial and angular params from parent;
 	// also decide on neuriteID for aaSurfParams.
-	// the mapping parameters 1d<->2d are not needed on higher levels of refinment
+	// the mapping parameters 1d<->2d are not needed on higher levels of refinement
 	uint32_t neuriteID;
 	float t;
 	float angle;

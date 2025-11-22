@@ -279,7 +279,7 @@ void DistributedGridManager::update_ghost_states()
 ////////////////////////////////////////////////////////////////////////
 void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 {
-//	I don't think that addedElemsOnly is correctly implemented in the moment.
+//	I don't think that addedElemsOnly is correctly implemented at the moment.
 //	I thus disabled it here.
 	//if(!addedElemsOnly)
 	{
@@ -570,7 +570,7 @@ handle_created_element(TElem* pElem, GridObject* pParent,
 	if(replacesParent){
 	//	we have to replace the parent entry. To do this
 	//	we'll replace all occurrences of the parent in all interfaces.
-	//	If a replace takes place, the parent has to be of the same type
+	//	If a replacement takes place, the parent has to be of the same type
 	//	as pElem.
 		TElem* parent = dynamic_cast<TElem*>(pParent);
 		if(parent){
@@ -749,7 +749,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 			else if(m_dgm->contains_status(e, ES_V_MASTER)
 					&& (!m_dgm->contains_status(e, ES_H_SLAVE)))
 			{
-			//	find lowest connected vslave proc
+			//	find the lowest connected vslave proc
 				vector<pair<int, size_t> >	interfaceEntries;
 				m_dgm->collect_interface_entries(interfaceEntries, e, ES_V_MASTER);
 				UG_ASSERT(!interfaceEntries.empty(),
@@ -779,8 +779,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 
 			int targetProc = interface.get_target_proc();
 			int counter = 0;
-			for(InterfaceIter iter = interface.begin();
-				iter != interface.end(); ++iter, ++counter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter, ++counter)
 			{
 				bool sendVMasterRanks = false;
 				Element elem = interface.get_element(iter);
@@ -922,7 +921,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 		//	in the first communication step we notify v-slaves about what their
 		//	associated v-masters presume to be the new h-master. Most of the time
 		//	this is, however, only a guess by the v-masters -- only if they are a
-		//	h-master them selves, this guess should be right.
+		//	h-master themselves, this guess should be right.
 			UG_DLOG(LIB_GRID, 3, "  communicating vmasters->vslaves...\n");
 			m_exchangeVMasterRanks = false;
 //			if(glm.has_layout<GeomObj>(INT_V_MASTER))

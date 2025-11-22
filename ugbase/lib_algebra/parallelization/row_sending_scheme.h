@@ -84,13 +84,12 @@ public:
 			const IndexLayout &sendLayout, const IndexLayout &receiveLayout)
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "*** RowSendingScheme::issue_send: ***\n");
-		for(IndexLayout::const_iterator it = sendLayout.begin(); it != sendLayout.end(); ++it)
+		for(auto it = sendLayout.begin(); it != sendLayout.end(); ++it)
 		{
 			const IndexLayout::Interface& interface = sendLayout.interface(it);
 			int pid = sendLayout.proc_id(it);
 			BinaryBuffer buf;
-			for(IndexLayout::Interface::const_iterator iter2 = interface.begin();
-					iter2 != interface.end(); ++iter2)
+			for(auto iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 			{
 				issue_send(buf, pid, interface.get_element(iter2));
 			}
@@ -100,7 +99,7 @@ public:
 
 		rowsBufferMap.clear();
 
-		for(IndexLayout::const_iterator it = receiveLayout.begin(); it != receiveLayout.end(); ++it)
+		for(auto it = receiveLayout.begin(); it != receiveLayout.end(); ++it)
 		{
 			int pid = receiveLayout.proc_id(it);
 			UG_DLOG(LIB_ALG_MATRIX, 4, "issue receive from processor " << pid << "\n");

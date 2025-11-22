@@ -58,7 +58,7 @@ AlgebraType::AlgebraType(const char* type, int blockSize)
 	if(sType == "CPU") m_type = CPU;
 	else if(sType == "GPU") m_type = GPU;
 	else if(sType == "CRS") { UG_THROW("Type CRS is deprecated, use CPU instead."); }
-	else UG_THROW("Algebra Type '"<<sType<<"' not reconized. Available: CPU, GPU.");
+	else UG_THROW("Algebra Type '"<<sType<<"' not recognized. Available: CPU, GPU.");
 }
 
 AlgebraType::AlgebraType(const char* type)
@@ -69,7 +69,7 @@ AlgebraType::AlgebraType(const char* type)
 	if(sType == "CPU") m_type = CPU;
 	else if(sType == "GPU") m_type = GPU;
 	else if(sType == "CRS") { UG_THROW("Type CRS is deprecated, use CPU instead."); }
-	else UG_THROW("Algebra Type '"<<sType<<"' not reconized. Available: CPU, CRS.");
+	else UG_THROW("Algebra Type '"<<sType<<"' not recognized. Available: CPU, CRS.");
 }
 
 

@@ -39,7 +39,7 @@
 
 namespace ug {
 ///	Projects new vertices onto a cylinder with an elliptic base.
-/** For projection during refinement the radius property is ignored. Instead
+/** For projection during refinement the radius property is ignored. Instead,
  * the distance to the center of a newly inserted vertex is calculated
  * as the average distance of the vertices of the parent element to the center.
  * The radius property thus defaults to -1.

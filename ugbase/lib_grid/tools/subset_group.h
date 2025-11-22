@@ -105,7 +105,7 @@ class SubsetGroup
 	/// removes subsets with given names from this group
 	/**
 	 * This function removes all subsets by name from this group
-	 * \param[in]	name	Name of Subset(s) to be removed
+	 * \param[in]	vName	Name of Subset(s) to be removed
 	 */
 		void remove(const std::vector<std::string>& vName);
 

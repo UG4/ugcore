@@ -403,7 +403,7 @@ perform_refinement()
     // instead of not marked faces, the cloning condition is changed for those, of which no edges will be refined.
 	// It means, a face will be cloned to the next level if none of its edges should be refined.
 	// There are no such cases for testing. If such faces exist in your case, please test to ensure if it works for parallel computing. 
-		if(vEdgeVrts.size()==0){
+		if(vEdgeVrts.empty()){
 			fd.set_num_vertices(vVrts.size());
 			for(size_t i = 0; i < vVrts.size(); ++i)
 				fd.set_vertex(i, vVrts[i]);
@@ -836,7 +836,7 @@ assign_elem_and_side_marks()
 		TElem* e = *iter;
 		m_marker.mark(e);
 
-	//	sides which are marked as fixed or have a fixed side them selfes (3d only)
+	//	sides which are marked as fixed or have a fixed side them self (3d only)
 	//	may not be refined. All others may be refined.
 		CollectAssociated(sides, mg, e);
 		for(size_t i_side = 0; i_side < sides.size(); ++i_side){

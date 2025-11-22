@@ -127,7 +127,7 @@ FixedArray2<T, rowsT, colsT, T_ordering>::FixedArray2(size_t rows, size_t cols)
 }
 
 template<typename T, size_t rowsT, size_t colsT, eMatrixOrdering T_ordering>
-FixedArray2<T, rowsT, colsT, T_ordering>::FixedArray2(const FixedArray2<T, rowsT, colsT, T_ordering> &other)
+FixedArray2<T, rowsT, colsT, T_ordering>::FixedArray2(const FixedArray2 &other)
 {
 	for(size_type i=0; i<rowsT*colsT; i++)
 		values[i] = other.values[i];
@@ -234,9 +234,9 @@ std::ostream &operator << (std::ostream &out, const FixedArray2<T, rowsT, colsT,
 	//out << "FixedArray2 (" << rowsT << "x" << colsT << "), " << ((T_ordering == ColMajor) ? "ColMajor" : "RowMajor") << endl;
 	out << "[";
 	using size_type = typename FixedArray2<T, rowsT, colsT, T_ordering>::size_type;
-	for(size_type r=0; r<arr.num_rows(); r++)
+	for(size_type r=0; r<arr.num_rows(); ++r)
 	{
-		for(size_type c=0; c<arr.num_cols(); c++)
+		for(size_type c=0; c<arr.num_cols(); ++c)
 			out << arr(r, c) << " ";
 		if(r != arr.num_rows()-1) out << "| ";
 	}

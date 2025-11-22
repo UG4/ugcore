@@ -49,7 +49,7 @@
 #ifdef PCL_DEBUG_BARRIER_ENABLED
 ///	A debug barrier. Halts program execution until all processes of the communicator
 ///	have called the barrier function.
-/**	Note that this barrier is only has effect, if the define PCL_DEBUG_BARRIER_ENABLED
+/**	Note that this barrier is only has effect, if the defined PCL_DEBUG_BARRIER_ENABLED
  * is enabled.*/
 	#define PCL_DEBUG_BARRIER(communicator) communicator.barrier()
 	#define PCL_DEBUG_BARRIER_ALL()	{pcl::ProcessCommunicator com; com.barrier();}

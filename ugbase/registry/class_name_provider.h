@@ -136,7 +136,7 @@ class UG_API ClassNameProvider
 		static const ClassNameNode& class_name_node() {return m_ClassNameNode;}
 
 	///	returns if class name is forward declared
-		static bool forward_declared() {return m_bForwardDeclared;}
+		static bool forward_declared() {return m_bForwardDeclared;} // ø todo correct spelling
 
 	///	returns if the class has been named by user
 		static bool named() {return !m_bForwardDeclared && !m_ClassNameNode.empty();}

@@ -155,7 +155,7 @@ ref_marks_changed(IRefiner& ref,
 	bool exchangeFlag = pcl::OneProcTrue(newlyMarkedElems);
 
 	if(exchangeFlag){
-		const byte_t consideredMarks = RM_REFINE | RM_ANISOTROPIC;
+		constexpr byte_t consideredMarks = RM_REFINE | RM_ANISOTROPIC;
 		ComPol_BroadcastRefineMarks<VertexLayout> compolRefVRT(ref, consideredMarks);
 		ComPol_BroadcastRefineMarks<EdgeLayout> compolRefEDGE(ref, consideredMarks);
 		ComPol_BroadcastRefineMarks<FaceLayout> compolRefFACE(ref, consideredMarks);

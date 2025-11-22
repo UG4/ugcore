@@ -42,10 +42,10 @@
 namespace ug
 {
 
-///	Generates the parralel dual graph of a MultiGrid as, e.g., required by Parmetis
+///	Generates the parallel dual graph of a MultiGrid as, e.g., required by Parmetis
 /** Indices on elements of TGeomBaseObj are distributed in the order in which
  * one iterates over those elements in the associated mg starting at level 0.
- * Note that only elements which were considered are associated with a index.
+ * Note that only elements which were considered are associated with an index.
  * \todo	The current implementation has support for MultiGrids only.
  * 			Support for flat grids should be added.*/
 template <typename TGeomBaseObj, typename TIndexType,

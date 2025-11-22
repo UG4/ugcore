@@ -272,7 +272,7 @@ set_grid(Grid* grid)
 		m_pGrid = grid;
 
 	//	initialise attachments and accessors.
-	//	do this whith a little trick:
+	//	do this with a little trick:
 	//	set the supported-element-options to SHE_NONE,
 	//	then call enable for all element-types that should be supported.
 		uint tmpOpts = m_supportedElements;
@@ -502,7 +502,7 @@ clear()
 //	erase subsets
 	erase_subset_lists();
 
-//	erase subset indfos
+//	erase subset infos
 	m_subsetInfos.clear();
 
 //	reset all element subset-indices.
@@ -903,7 +903,7 @@ registered_at_grid(Grid* grid)
 	if(m_pGrid != nullptr)
 	{
 	//	initialise attachments and accessors.
-	//	do this whith a little trick:
+	//	do this with a little trick:
 	//	set the supported-element-options to SHE_NONE,
 	//	then call enable for all element-types that should be supported.
 		uint tmpOpts = m_supportedElements;
@@ -983,7 +983,7 @@ vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent,
 	if(elements_are_supported(SHE_VERTEX)){
 	//LOG("new vertex...\n");
 		m_aaSubsetIndexVRT[vrt] = -1;
-	//LOG("si_before assignement: " << get_subset_index(vrt) << endl);
+	//LOG("si_before assignment: " << get_subset_index(vrt) << endl);
 		if((pParent != nullptr) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == VERTEX){

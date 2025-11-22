@@ -132,18 +132,18 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 	 * Note that this will most likely be more elements than just the marked ones.
 	 *
 	 * This method is virtual to allow derivates to mark additional elements as required.
-	 * Normally a a derived class will first call the method of its this class and
-	 * the perform its own operations.
+	 * Normally a derived class will first call the method of this class and
+	 * then perform its own operations.
 	 */
 		virtual void collect_objects_for_refine();
 
-	///	this method helps derived classes to perform operations directly before actual element refinment is performed.
+	///	this method helps derived classes to perform operations directly before actual element refinement is performed.
 	/**	Called from the refine() method in each refinement-iteration after
 	 *	collect_objects_for_refine().
 	 *	Default implementation is empty.*/
 		virtual void refinement_step_begins()	{};
 
-	///	this method helps derived classes to perform operations directly after actual element refinment took place.
+	///	this method helps derived classes to perform operations directly after actual element refinement took place.
 	/**	Called from the refine() method in each refinement-iteration after
 	 *	all scheduled elements had been refined.
 	 *	The refine process will either terminate after this method or will

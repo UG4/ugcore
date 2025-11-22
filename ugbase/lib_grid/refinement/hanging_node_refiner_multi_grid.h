@@ -111,7 +111,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	///	performs coarsening on the elements marked with RM_COARSEN.
 	/**
 	 * The grid's message hub is informed using a "GridAdaption" message,
-	 * passing an instance of GridMessage_Adapation, with values
+	 * passing an instance of GridMessage_Adaption, with values
 	 * GMAT_HNODE_COARSENING_BEGINS and GMAT_HNODE_COARSENING_ENDS.
 	 * See lib_grid/lib_grid_messages.h for more details.
 	 *
@@ -123,7 +123,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	 *
 	 * Note that coarsen in contrary to refine is conservative. While refine
 	 * extends the selection to construct a valid grid, coarsen shrinks the
-	 * selection. On could think of implementing an alternative non conservative
+	 * selection. On could think of implementing an alternative non-conservative
 	 * coarsen approach. However, the conservative one is the one mostly used
 	 * in adaptive multigrid methods and was thus chosen here.
 	 *

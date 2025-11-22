@@ -45,7 +45,7 @@
 
 namespace ug{
 
-// Symmetrify matrix stencil
+// Symmetrize matrix stencil
 template<typename T>
 class UndirectedMatrix {
 	using const_row_iterator = typename T::const_row_iterator;

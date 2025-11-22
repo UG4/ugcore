@@ -48,7 +48,7 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 		using Interface = typename Layout::Interface;
 		using InterfaceIter = typename Interface::const_iterator;
 
-	///	Construct the communication policy with a ug::Selector.
+	///	Construct the communication policy with an ug::Selector.
 	/**	Through the parameters select and deselect one may specify whether
 	 * a process selects and/or deselects elements based on the received
 	 * selection status.*/

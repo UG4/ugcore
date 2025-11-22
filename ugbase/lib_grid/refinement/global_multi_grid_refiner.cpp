@@ -173,7 +173,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 													mg.get_grid_objects(oldTopLevel)));
 
 	if(projector()->refinement_begins_requires_subgrid()){
-		SubGrid<ConsiderAll> sg(mg.get_grid_objects(), ConsiderAll());
+		SubGrid sg(mg.get_grid_objects(), ConsiderAll());
 		projector()->refinement_begins(&sg);
 	}
 	else
@@ -235,9 +235,9 @@ void GlobalMultiGridRefiner::perform_refinement()
 	vector<Vertex*> vVrts;
 	vector<Vertex*> vEdgeVrts;
 	vector<Vertex*> vFaceVrts;
-	vector<Edge*>	vEdges;
-	vector<Face*>		vFaces;
-	vector<Volume*>		vVols;
+	vector<Edge*> vEdges;
+	vector<Face*> vFaces;
+	vector<Volume*> vVols;
 	
 //	some repeatedly used objects
 	EdgeDescriptor ed;

@@ -549,7 +549,7 @@ communicate_and_resume(int tag)
 		int counter;
 		std::vector<int> streamSizes;
 
-	//	shedule receives first
+	//	schedule receives first
 		counter = 0;
 		for(auto iter = m_curInProcs.begin(); iter != m_curInProcs.end(); ++iter, ++counter)
 		{

@@ -91,7 +91,7 @@ inline double &te_transpose(double &t)
 /**
  * DenseVector is a one-dimensional mathematical vector of objects TStorage::value_type.
  * Use DenseVector with FixedArray1, VariableArray1 or stl::vector. Depending on
- * TStorage, DenseVector is of fixed size or variable size, and inheritates the interface
+ * TStorage, DenseVector is of fixed size or variable size, and inheritances the interface
  * or TStorage.
  * \tparam TStorage storage policy with interface of VariableArray1.
  * \sa FixedArray1, VariableArray1

@@ -42,7 +42,7 @@ template <>
 inline AttachmentPipe<Vertex*, ISubsetHandler>&
 ISubsetHandler::get_attachment_pipe<Vertex>(int subsetIndex)
 {
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this method.");
 	return *m_vertexAttachmentPipes[subsetIndex];
 }
 
@@ -50,7 +50,7 @@ template <>
 inline AttachmentPipe<Edge*, ISubsetHandler>&
 ISubsetHandler::get_attachment_pipe<Edge>(int subsetIndex)
 {
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this method.");
 	return *m_edgeAttachmentPipes[subsetIndex];
 }
 
@@ -58,7 +58,7 @@ template <>
 inline AttachmentPipe<Face*, ISubsetHandler>&
 ISubsetHandler::get_attachment_pipe<Face>(int subsetIndex)
 {
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this method.");
 	return *m_faceAttachmentPipes[subsetIndex];
 }
 
@@ -66,7 +66,7 @@ template <>
 inline AttachmentPipe<Volume*, ISubsetHandler>&
 ISubsetHandler::get_attachment_pipe<Volume>(int subsetIndex)
 {
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this method.");
 	return *m_volumeAttachmentPipes[subsetIndex];
 }
 */
@@ -204,7 +204,7 @@ template <typename TGeomObjClass>
 void ISubsetHandler::
 attach_to(IAttachment& attachment, int subsetIndex)
 {
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this method.");
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_ID != -1,
 			invalid_GeomObjClass);
 
@@ -234,7 +234,7 @@ void ISubsetHandler::
 attach_to_dv(TAttachment& attachment, int subsetIndex,
 			const typename TAttachment::ValueType& defaultValue)
 {
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this method.");
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_ID != -1,
 			invalid_GeomObjClass);
 
@@ -262,7 +262,7 @@ attach_to_dv(TAttachment& attachment, int subsetIndex,
 template <typename TGeomObjClass>
 void ISubsetHandler::detach_from(IAttachment& attachment, int subsetIndex)
 {
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this method.");
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_ID != -1,
 				invalid_GeomObjClass);
 
@@ -291,7 +291,7 @@ template <typename TGeomObj, typename TAttachment>
 inline typename TAttachment::ContainerType*
 ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex)
 {
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this method.");
 	return get_attachment_pipe<TGeomObj>(subsetIndex).get_data_container(attachment);
 }
 */

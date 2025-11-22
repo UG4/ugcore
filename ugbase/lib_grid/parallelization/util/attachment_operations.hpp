@@ -40,8 +40,8 @@
 namespace ug{
 
 /**
- * Syncronizes a given attachment using a given reduction operation.
- * Note that the syncronization takes place only for the horizontal
+ * Synchronizes a given attachment using a given reduction operation.
+ * Note that the synchronization takes place only for the horizontal
  * masters and slaves.
  * Use e.g. like this:
  *

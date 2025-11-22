@@ -193,7 +193,7 @@ bool Registry::check_consistency()
 {
 
 	// list to check for duplicates in global functions.
-	// comparison is not case sensitive.
+	// comparison is not case-sensitive.
 	std::vector<std::string> globalFunctionNames;
     
 	//	check global functions
@@ -213,7 +213,7 @@ bool Registry::check_consistency()
 		}
 	}
 	
-	// check for duplicate function names. comparison is not case sensitive.
+	// check for duplicate function names. comparison is not case-sensitive.
 	std::vector<std::string> globFuncDuplicates = 
 			FindDuplicates(globalFunctionNames);
 	bool globFuncDuplicatesExist = !globFuncDuplicates.empty();
@@ -236,7 +236,7 @@ bool Registry::check_consistency()
 	size_t constructorUndef = 0;
 	size_t notConstructedAsSmartPtr = 0;
 	// list to check for duplicate classes.
-	// comparison is not case sensitive.
+	// comparison is not case-sensitive.
 	std::vector<std::string> classNames;
 	for(size_t i=0; i<num_classes(); i++)
 	{
@@ -278,7 +278,7 @@ bool Registry::check_consistency()
 				constructorUndef++;
 	}
 	
-	// check for duplicate class names. comparison is not case sensitive.
+	// check for duplicate class names. comparison is not case-sensitive.
 	std::vector<std::string> classDuplicates = 
 			FindDuplicates(classNames);
 	bool classDuplicatesExist = !classDuplicates.empty();

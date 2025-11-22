@@ -53,7 +53,7 @@ namespace ug
  *
  * \details CommunicationScheme is a base class for a recurring programming task:
  *   You want to send data over a layout/interface. Now you just need to
- *   specify what to to at each index on the receiver side, and on each index 
+ *   specify what to at each index on the receiver side, and on each index
  *   on the sender side
  *   Example with own CommunicationScheme
  * \code{.cpp}

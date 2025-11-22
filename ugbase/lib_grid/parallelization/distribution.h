@@ -75,7 +75,7 @@ enum InterfaceStates{
  * \param	processMap is by default nullptr and thus ignored. If you specify it
  * 			make sure to specify a pointer to an array with size
  * 			shPartition.num_subsets(). All values in the array have to be
- * 			in the range [0, pcl:NumProcs()[.
+ * 			in the range [0, pcl:NumProcs()].
  * 			The procMap associates a process rank with each subset index.
  */
 bool DistributeGrid(MultiGrid& mg,

@@ -53,7 +53,7 @@ namespace pcl
 //	type-traits
 ///	associate internally used types with an external typename
 /**
- * By default it is assumed, that the external typename and the element
+ * By default, it is assumed, that the external typename and the element
  * type used in interfaces match.
  *
  * You may specialize type_traits for your own types through template
@@ -76,10 +76,10 @@ namespace interface_tags
  *	This tag simply says that one may iterate over the elements of the
  *	interface.
  *
- *	Additionally you may receive the local_src_id. This id represents the
+ *	Additionally, you may receive the local_src_id. This id represents the
  *	sender during local communication (communication on one process only).
  *	Values < 0 mark the sender as invalid (during local communication).
- *	The src-id is ignored during parallel communication. Instead pcl::ProcRank
+ *	The src-id is ignored during parallel communication. Instead, pcl::ProcRank
  *	is used.
  *
  *	type definitions that have to be featured in such interfaces:
@@ -102,11 +102,11 @@ namespace interface_tags
 class basic_interface_tag									{};
 
 /**	The ordered_interface_tag derives from the basic_interface_tag.
- *	Thus all classes and methods that may operate on interfaces
+ *	Thus, all classes and methods that may operate on interfaces
  *	with the basic_interface_tag will operate on interfaces with
  *	this tag, too.
  *
- *	Interfaces with this category have to associated a local id with
+ *	Interfaces with this category have to associate a local id with
  *	each entry.
  *
  *	Methods that have to be featured in such interfaces:
@@ -440,7 +440,7 @@ class multi_level_layout_tag	{};
  *
  * The layout passes its local srcID on to created interfaces.
  *
- * Additionally it features methods that allow to add new interfaces
+ * Additionally, it features methods that allow to add new interfaces
  *
  * In order to allow one method to operate both on a SingleLevelLayout
  * and a MultiLevelLayout, the (size_t level = 0) convenience parameter
@@ -582,7 +582,7 @@ class SingleLevelLayout
 	///	copy-constructor is not yet implemented
 		SingleLevelLayout(const SingleLevelLayout& sll);
 
-	///	assignement-operator is not yet implemented
+	///	assignment-operator is not yet implemented
 		SingleLevelLayout& operator = (const SingleLevelLayout& sll);
 */
 	protected:
@@ -608,7 +608,7 @@ class SingleLevelLayout
  * This layout type supports the requirements of the
  * pcl::layout_tags::multi_level_layout_tag category.
  *
- * Additionally it features methods that allow to add new interfaces.
+ * Additionally, it features methods that allow to add new interfaces.
  */
 template <typename TInterface>
 class MultiLevelLayout
@@ -783,7 +783,7 @@ class MultiLevelLayout
 //	ICommunicationPolicy
 ///	specializations are responsible to pack and unpack interface data during communication.
 /**	Make sure that you use the same communication-policy for send and receive operations.
- *	Otherwise problems regarding buffer-sizes may occur.
+ *	Otherwise, problems regarding buffer-sizes may occur.
  */
 template <typename TLayout>
 class ICommunicationPolicy

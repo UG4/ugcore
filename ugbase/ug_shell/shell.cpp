@@ -137,11 +137,11 @@ int RunShell(const char *prompt)
 	if(prompt == nullptr) prompt=UG_PROMPT;
 
 	//	run the shell
-	const char *completitions[] ={"quit", "exit"};
+	const char *completions[] ={"quit", "exit"};
 	while(true)
 	{
 #if defined(UG_USE_LINENOISE)
-		SetOtherCompletions(completitions, sizeof(completitions)/sizeof(completitions[0]));
+		SetOtherCompletions(completions, sizeof(completions)/sizeof(completions[0]));
 #endif
 
 		bool quit;
@@ -211,7 +211,7 @@ int RunShell(const char *prompt)
 debug_return DebugShell()
 {
 
-	static string last="";
+	static string last;
 
 	LuaStackTrace(0);
 	//ug::bridge::LuaPrintCurrentLine(GetDefaultLuaState());
@@ -225,12 +225,12 @@ debug_return DebugShell()
 #endif
 
 	//	run the shell
-	const char *completitions[]={"quit", "exit", "step", "next", "cont", "continue", "finish", "list", "backtrace", "bt",
+	const char *completions[]={"quit", "exit", "step", "next", "cont", "continue", "finish", "list", "backtrace", "bt",
 			"up", "down"};
 	while(true)
 	{
 #if defined(UG_USE_LINENOISE)
-		SetOtherCompletions(completitions, sizeof(completitions)/sizeof(completitions[0]));
+		SetOtherCompletions(completions, sizeof(completions)/sizeof(completions[0]));
 #endif
 		bool quit;
 		string buf;
@@ -252,7 +252,7 @@ debug_return DebugShell()
 		}
 		else
 		{
-			if(last.length() > 0)
+			if(!last.empty())
 			{
 				buf = last;
 				UG_LOG("debug:> " << last << "\n");
@@ -291,8 +291,8 @@ debug_return DebugShell()
 		}
 		else if(len > 6 && strncmp(buf.c_str(), "print ", 6)==0 && buf[6] != '(')
 		{
-			script::ParseAndExecuteBuffer((std::string("PrintTemporaryObject=")+buf.substr(6)).c_str(), "debug shell");
-			bridge::UGTypeInfo("PrintTemporaryObject");
+			ParseAndExecuteBuffer((std::string("PrintTemporaryObject=")+buf.substr(6)).c_str(), "debug shell");
+			UGTypeInfo("PrintTemporaryObject");
 			continue;
 		}
 
@@ -301,13 +301,13 @@ debug_return DebugShell()
 			if(buf[len-1]=='?')
 			{
 				buf.resize(len-1);
-				bridge::UGTypeInfo(buf.c_str());
+				UGTypeInfo(buf.c_str());
 				continue;
 			}
 
 			try
 			{
-				script::ParseAndExecuteBuffer(buf.c_str(), "debug shell");
+				ParseAndExecuteBuffer(buf.c_str(), "debug shell");
 			}
 			catch(LuaError& err)
 			{

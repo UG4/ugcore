@@ -41,7 +41,9 @@
  * \ref lib_grid_algorithms section.
  *
  */
- 
+#ifndef IG_UGBASE_LIB_GRID_LIB_GRID_H
+#define IG_UGBASE_LIB_GRID_LIB_GRID_H
+
 #include "grid/grid.h"
 #include "grid/grid_util.h"
 #include "grid_objects/grid_objects.h"
@@ -52,3 +54,4 @@
 #include "file_io/file_io.h"
 #include "algorithms/algorithms.h"
 #include "multi_grid.h"
+#endif

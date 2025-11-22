@@ -60,7 +60,7 @@ namespace ug
  * new elements are added one layer higher than their parents.
  * (nullptr indicates base-level).
  *
- * Whenever a a level is added or removed, a message is posted at the
+ * Whenever a level is added or removed, a message is posted at the
  * associated MessageHub (MultiGrid::message_hub()). The message has the type
  * GridMessage_MultiGridChanged (defined in "lib_grid/lib_grid_messages.h").
  * You may register a callback at the grids message-hub if you want to react
@@ -302,7 +302,7 @@ class MultiGrid : public Grid, public GridObserver
 
 	///	establishes a parent child connection between the given elements
 	/**	Note that the MultGrid class automatically establishes a parent child
-	 * connection during element creation, based on the suppliend parent argument.
+	 * connection during element creation, based on the supplied parent argument.
 	 * This method should thus only be used in the rare cases where this
 	 * automatic association is not sufficient.
 	 * Note that only elements of equal or higher dimension can be parent to a
@@ -320,7 +320,7 @@ class MultiGrid : public Grid, public GridObserver
 	///	sets the object-type of the parent of a given object
 	/**	The parent type is normally handled internally. However, e.g. during
 	 * parallel redistribution it may have to be set from outside (e.g. if
-	 * a parent element hasn't been transfered to the same process as its children).*/
+	 * a parent element hasn't been transferred to the same process as its children).*/
 		template <typename TElem>
 		void set_parent_type(TElem* elem, char type);
 
@@ -431,7 +431,7 @@ class MultiGrid : public Grid, public GridObserver
 		template <typename TElem, typename TParent>
 		void element_created(TElem* elem, TParent* pParent, TElem* pReplaceMe);
 
-	///	this method is called for elements that havn't got any parent.
+	///	this method is called for elements that haven't got any parent.
 		template <typename TElem>
 		void element_to_be_erased(TElem* elem);
 

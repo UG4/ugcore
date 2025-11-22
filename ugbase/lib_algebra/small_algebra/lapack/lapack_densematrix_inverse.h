@@ -42,7 +42,7 @@ namespace ug
 ///////////////////////////////////////////////////////////////////////////////////////
 /**
  * smallInverse<size_t n>
- * A class to hold a inverse of a smallMatrix<n>
+ * A class to hold an inverse of a smallMatrix<n>
  * implemented with LAPACKs LU-Decomposition dgetrf
  * (uses double[n*n] for LU and interchange[n] for pivoting
  */

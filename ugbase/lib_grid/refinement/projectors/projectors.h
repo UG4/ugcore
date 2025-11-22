@@ -72,7 +72,7 @@ using ProjectorTypes = vector<
 	pair <ug::RasterLayersProjector,string<'rast','er'> >,
 	pair <ug::SomaProjector,        string<'soma','ta'> >,
 	pair <ug::NeuriteProjector,     string<'neur','ite'> >
->;
+>; // ø todo BOOST_METAPARSE_STRING("default")
 }
 }
 }

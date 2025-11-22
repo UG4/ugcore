@@ -46,7 +46,7 @@ namespace ug
  *  with regular closure and copy elements.
  *
  *  It is currently not used in the simulation system.
- *  Instead on can use e.g. the HangingNodeRefiner_MultiGrid.
+ *  Instead, on can use e.g. the HangingNodeRefiner_MultiGrid.
  *
  *  Before this class should be used in simulations, one should
  *  derive it from IRefiner and adjust the mark methods as well

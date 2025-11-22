@@ -261,7 +261,7 @@ protected:
 	template <typename TElem> void set_group(Group<TElem>* g, TElem* e);
 	template <typename TElem> void remove_group(Group<TElem>* g);
 
-	///	replaces all group occurrances of pParent by the specified elem
+	///	replaces all group occurrences of pParent by the specified elem
 	template <typename TElem>
 	void replace_parent(TElem* e, TElem* pParent);
 
@@ -289,7 +289,7 @@ protected:
 
 };
 
-///	Accesses attachements with consideration to periodic boundaries
+///	Accesses attachments with consideration to periodic boundaries
 /**	Slave element redirects to related master element
  *  also works in case of no periodic boundary conditions
  *  (but is then probably slower than standard attachment accessor)

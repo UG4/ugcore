@@ -262,7 +262,7 @@ mark_shadowing(bool markSides)
 				//	be copied across v-interfaces during add-missing-coarse-grid-correction etc.
 				//	However, when a closure is used, shadowing shadows do currently exist
 				//	and this is why the assertion is only triggered for parallel cases
-				//	(in which closure isn't assumed to work anyways).
+				//	(in which closure isn't assumed to work anyway).
 				//	The assertion probably shouldn't be done here but directly in the gmg.
 					UG_COND_THROW((pcl::NumProcs() > 1) &&
 								  surface_state(e).contains(MG_SHADOW_RIM_COPY),

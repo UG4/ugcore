@@ -118,28 +118,28 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 		
 //	make sure that GRIDOPT_VERTEXCENTRIC_INTERCONNECTION is enabled
 	if(grid.num_edges() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))){
-		LOG("  INFO in Refine: autoenabling VRTOPT_STORE_ASSOCIATED_EDGES\n");
+		LOG("  INFO in Refine: auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES\n");
 		grid.enable_options(VRTOPT_STORE_ASSOCIATED_EDGES);
 	}
 	if(grid.num_faces() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))){
-		LOG("  INFO in Refine: autoenabling VRTOPT_STORE_ASSOCIATED_FACES\n");
+		LOG("  INFO in Refine: auto-enabling VRTOPT_STORE_ASSOCIATED_FACES\n");
 		grid.enable_options(VRTOPT_STORE_ASSOCIATED_FACES);
 	}
 	if(grid.num_volumes() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))){
-		LOG("  INFO in Refine: autoenabling VRTOPT_STORE_ASSOCIATED_VOLUMES\n");
+		LOG("  INFO in Refine: auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES\n");
 		grid.enable_options(VRTOPT_STORE_ASSOCIATED_VOLUMES);
 	}
 
 //	make sure that FACEOPT_AUTOGENERATE_EDGES is enabled
 	if(grid.num<Face>() > 0 && (!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))){
-		LOG("  INFO in Refine: autoenabling FACEOPT_AUTOGENERATE_EDGES\n");
+		LOG("  INFO in Refine: auto-enabling FACEOPT_AUTOGENERATE_EDGES\n");
 		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 	}
 	
 //	if there are volumes, make sure that VOLOPT_AUTOGENERATE_FACES is enabled.
 	if(grid.num<Volume>() > 0 && (!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)))
 	{
-		LOG("  INFO in Refine: autoenabling VOLOPT_AUTOGENERATE_FACES\n");
+		LOG("  INFO in Refine: auto-enabling VOLOPT_AUTOGENERATE_FACES\n");
 		grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
 	}
 	

@@ -1029,10 +1029,10 @@ void HangingNodeRefinerBase<TSelector>::collect_objects_for_refine()
 				"Removed coarsen marks.\n");
 	}
 
-	std::vector<Vertex*>	newlyMarkedVrts;
-	std::vector<Edge*>		newlyMarkedEdges;
-	std::vector<Face*>			newlyMarkedFaces;
-	std::vector<Volume*>		newlyMarkedVols;
+	std::vector<Vertex*> newlyMarkedVrts;
+	std::vector<Edge*> newlyMarkedEdges;
+	std::vector<Face*> newlyMarkedFaces;
+	std::vector<Volume*> newlyMarkedVols;
 
 	newlyMarkedVrts.assign(m_selMarkedElements.template begin<Vertex>(),
 						   m_selMarkedElements.template end<Vertex>());
@@ -1095,14 +1095,14 @@ assign_hnode_marks()
 //	iterate over all faces and volumes. If the element is not marked, but
 //	a side is marked, the side has to be marked for hnode refinement.
 //	Note that we won't mark any new elements for refinement here - we only adjust the marks
-//	or add conversion marks (HNRM_TO_NORMAL etc).
+//	or add conversion marks (HNRM_TO_NORMAL etc.).
 //	Note also that we won't remove any marks during this algorithm (neither normal
 //	nor hnode marks).
 	Grid::edge_traits::secure_container edges;
 	vector<Face*> faces;
 	vector<Volume*> vols;
 
-	std::vector<int>	vinds;
+	std::vector<int> vinds;
 	vinds.reserve(4);
 
 //	the grid
@@ -1342,8 +1342,7 @@ add_hmark(TElem* elem, HNodeRefMarks mark)
 
 		using slave_container_t = typename PeriodicBoundaryManager::Group<base_elem_t>::SlaveContainer;
 		slave_container_t* slaves = pbm->slaves(master);
-		for(typename slave_container_t::iterator i = slaves->begin();
-			i != slaves->end(); ++i)
+		for(auto i = slaves->begin(); i != slaves->end(); ++i)
 		{
 			m_selMarkedElements.select(*i,
 					m_selMarkedElements.get_selection_status(*i) | mark);
@@ -1398,7 +1397,7 @@ process_constrained_vertex(ConstrainedVertex* cdv)
 		if(constrObj){
 			switch(cdv->get_parent_base_object_id()){
 				case EDGE:{
-						ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(constrObj);
+						auto* cge = dynamic_cast<ConstrainingEdge*>(constrObj);
 						UG_ASSERT(cge, "Constraining edge has invalid type!");
 						UG_ASSERT(marked_to_normal(cge),
 								  "Constraining edge has to be converted to a normal edge!");
@@ -1408,7 +1407,7 @@ process_constrained_vertex(ConstrainedVertex* cdv)
 								  "Center vertex and constrained vertex do not match!");
 					}break;
 				case FACE:{
-						ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(constrObj);
+						auto* cgf = dynamic_cast<ConstrainingFace*>(constrObj);
 						UG_ASSERT(cgf, "Constraining face has invalid type!");
 						UG_ASSERT(marked_to_normal(cgf),
 								  "Constraining edge has to be converted to a normal edge!");
@@ -1439,14 +1438,14 @@ process_constrained_edge(ConstrainedEdge* cde)
 	if(constrObj && (marked_to_normal(cde) || marked_to_constraining(cde))){
 		switch(cde->get_parent_base_object_id()){
 			case EDGE:{
-					ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(constrObj);
+					auto* cge = dynamic_cast<ConstrainingEdge*>(constrObj);
 					UG_ASSERT(cge, "Constraining edge has invalid type!");
 					UG_ASSERT(marked_to_normal(cge),
 							  "Constraining edge has to be converted to a normal edge!");
 					cge->clear_constrained_edges();
 				}break;
 			case FACE:{
-					ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(constrObj);
+					auto* cgf = dynamic_cast<ConstrainingFace*>(constrObj);
 					UG_ASSERT(cgf, "Constraining face has invalid type!");
 					UG_ASSERT(marked_to_normal(cgf),
 							  "Constraining face has to be converted to a normal face!");
@@ -1494,7 +1493,7 @@ process_constraining_edge(ConstrainingEdge* cge)
 
 //	Iterate over the constrained edges.
 //	Unmarked constrained edges will be replaced by a normal edge.
-//	Marked ones will be replaced by a ConstrainingEdge. Additionally
+//	Marked ones will be replaced by a ConstrainingEdge. Additionally,
 //	associated constrained edges will be created together with the
 //	new central vertex.
 	for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
@@ -1809,14 +1808,14 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 		}
 
 	//	we have to link the new constrained edges which have been auto-generated between the constrained faces.
-	//	Since only edges that lie inside of the constraining face are newly created, and since only those
+	//	Since only edges that lie inside the constraining face are newly created, and since only those
 	//	have to be linked with the constraining face, the following algorithm will be ok for
 	//	triangles and quadrilaterals.
 	//	Check for each new edge-vertex, if an edge exists with the new center vertex or with it's next neighbor.
 		if(hv)
 		{
 			for(size_t i = 0; i < numEdges; ++i) {
-				ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vNewEdgeVertices[i], hv));
+				auto* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vNewEdgeVertices[i], hv));
 				if(e)
 				{
 				//	link e with the constraining face
@@ -1829,7 +1828,7 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 			for(size_t i = 0; i < numEdges; ++i) {
 			//	check if a constrained edge exists between the vertex and its next neighbor
 				Vertex* vNext = vNewEdgeVertices[(i + 1) % numEdges];
-				ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vNewEdgeVertices[i], vNext));
+				auto* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vNewEdgeVertices[i], vNext));
 				if(e)
 				{
 				//	link e with the constraining face
@@ -1849,7 +1848,7 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 				for(size_t j = i + 1; j < numEdges; ++j){
 					Vertex* vNext = vNewEdgeVertices[j];
 					if(vNext){
-						ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vCur, vNext));
+						auto* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vCur, vNext));
 						if(e)
 						{
 						//	link e with the constraining face
@@ -1866,7 +1865,7 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 					else
 						vNext = cgf->vertex(j%numVrts);
 
-					ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vCur, vNext));
+					auto* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vCur, vNext));
 					if(e)
 					{
 					//	link e with the constraining face
@@ -1888,7 +1887,7 @@ process_constrained_face(ConstrainedFace* cdf)
 	if(constrObj && (marked_to_normal(cdf) || marked_to_constraining(cdf))){
 		switch(cdf->get_parent_base_object_id()){
 			case FACE:{
-					ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(constrObj);
+					auto* cgf = dynamic_cast<ConstrainingFace*>(constrObj);
 					UG_ASSERT(cgf, "Constraining face has invalid type!");
 					UG_ASSERT(marked_to_normal(cgf),
 							  "Constraining face has to be converted to a normal face!");

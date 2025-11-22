@@ -74,7 +74,7 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 //	we copy data from vertical slaves to vertical masters and not vice versa for
 //	the following reason:
 //	Multiple copies of low dimensional elements may reside in vertical master
-//	interfaces and they do not necessarily have the same global id yet.
+//	interfaces, and they do not necessarily have the same global id yet.
 //	Elements in horizontal interfaces, however, already have the same ids yet.
 //	Since all vertical slaves are either unique or in a horizontal interface,
 //	we can simply copy their global ids to vertical master elements.

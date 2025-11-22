@@ -52,9 +52,9 @@ namespace ug
 /**
  * A ParallelVector is a wrapper around a sequential vector to make it usable
  * in parallel. It has all the function a sequential vector supports, since it
- * is derived from it. Furthermore the ParallelStorageType is remembered and
- * can be switched. In addition some functions of the sequential vector are
- * overwritten to adapted the functionality to parallel (e.g. norm, set).
+ * is derived from it. Furthermore, the ParallelStorageType is remembered and
+ * can be switched. In addition, some functions of the sequential vector are
+ * overwritten to adapt the functionality to parallel (e.g. norm, set).
  *
  * \tparam 	TVector		Sequential Vector type
  */
@@ -195,7 +195,7 @@ class ParallelVector : public TVector
 
 	private:
 	// 	type of storage  (i.e. consistent, additive, additive unique)
-	//	holds or-combiation of constants enumerated in ug::ParallelStorageType.
+	//	holds or-combination of constants enumerated in ug::ParallelStorageType.
 		uint m_type;
 
 	/// algebra layouts and communicators

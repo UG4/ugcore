@@ -95,7 +95,7 @@ public:
 	virtual bool refinement_begins_requires_subgrid () const	{return false;}
 
 ///	called before refinement begins
-/**	if not nullptr, the specified sub-grid will contains all elements that will be
+/**	if not nullptr, the specified sub-grid will contain all elements that will be
  * refined and are affected by the given projector.
  *
  * If the specialized implementation of refinement_begins requires this subgrid,

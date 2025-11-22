@@ -143,7 +143,7 @@ PeriodicBoundaryManager::get_group_accessor() const {
 template <>
 const Grid::AttachmentAccessor<Volume, Attachment<PeriodicBoundaryManager::Group<Volume>* > >&
 PeriodicBoundaryManager::get_group_accessor() const {
-	UG_THROW("not impled");
+	UG_THROW("not implemented");
 }
 
 // periodic status accessors
@@ -186,13 +186,13 @@ PeriodicBoundaryManager::get_periodic_status_accessor() const {
 template <>
 Grid::AttachmentAccessor<Volume, Attachment<PeriodicBoundaryManager::PeriodicStatus> >&
 PeriodicBoundaryManager::get_periodic_status_accessor() {
-	UG_THROW("not impled");
+	UG_THROW("not implemented");
 }
 
 template <>
 const Grid::AttachmentAccessor<Volume, Attachment<PeriodicBoundaryManager::PeriodicStatus> >&
 PeriodicBoundaryManager::get_periodic_status_accessor() const {
-	UG_THROW("not impled");
+	UG_THROW("not implemented");
 }
 
 ///// grid observer methods
@@ -334,7 +334,7 @@ void PeriodicBoundaryManager::validity_check()
 						 << "  elem-info: " << ElementDebugInfo(g, e));
 			}
 			if(elemSlaveCount > 1){
-				UG_THROW("Multi-occurance of an element in a groups slave list!\n"
+				UG_THROW("Multi-occurrence of an element in a groups slave list!\n"
 						 << "  elem-info: " << ElementDebugInfo(g, e));
 			}
 			if((!isMaster) && (elemSlaveCount == 0)){

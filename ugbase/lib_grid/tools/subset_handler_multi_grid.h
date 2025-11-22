@@ -171,7 +171,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		
 	///	collects all vertices that are in the given subset.
 	/**	Please consider using begin and end methods instead.
-	 *	If subset -1 is specified, the method has compexity O(n), where n is the number
+	 *	If subset -1 is specified, the method has complexity O(n), where n is the number
 	 *	of vertices in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
@@ -187,7 +187,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 
 	///	collects all faces that are in the given subset.
 	/**	Please consider using begin and end methods instead.
-	 *	If subset -1 is specified, the method has compexity O(n), where n is the number
+	 *	If subset -1 is specified, the method has complexity O(n), where n is the number
 	 *	of faces in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
@@ -195,7 +195,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 
 	///	collects all volumes that are in the given subset.
 	/**	Please consider using begin and end methods instead.
-	 *	If subset -1 is specified, the method has compexity O(n), where n is the number
+	 *	If subset -1 is specified, the method has complexity O(n), where n is the number
 	 *	of volumes in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
@@ -225,7 +225,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		void detach_data();
 
 	////////////////////////////////////////////////
-	//	implementation of protected virtual methdos of ISubsetHandler.
+	//	implementation of protected virtual methods of ISubsetHandler.
 	///	erases the subsets. Doesn't alter any indices.
 		void erase_subset_lists() override;
 

@@ -54,7 +54,7 @@ UG_API class ProjectionHandler : public RefinementProjector {
 public:
 	ProjectionHandler ();
 
-/**	Please makre sure that the given subset-handler outlives the ProjectionHandler.
+/**	Please make sure that the given subset-handler outlives the ProjectionHandler.
  * Please note that an alternative constructor taking a smart-pointer to a
  * SubsetHandler exists.
  * \sa ug::RefinementProjector::RefinementProjector*/
@@ -63,7 +63,7 @@ public:
 /**	\sa ug::RefinementProjector::RefinementProjector*/
 	ProjectionHandler (SmartPtr<ISubsetHandler> psh);
 
-/**	Please makre sure that the given subset-handler outlives the ProjectionHandler.
+/**	Please make sure that the given subset-handler outlives the ProjectionHandler.
  * Please note that an alternative constructor taking a smart-pointer to a
  * SubsetHandler exists.
  * \sa ug::RefinementProjector::RefinementProjector*/

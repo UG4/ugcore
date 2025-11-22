@@ -63,8 +63,8 @@ using namespace std;
 namespace ug{
 namespace bridge{
 
-int iOtherCompletitionsLength;
-const char **pOtherCompletitions=nullptr;
+int iOtherCompletionsLength;
+const char **pOtherCompletions=nullptr;
 
 
 void print(const std::string& s)
@@ -76,7 +76,7 @@ void print(const std::string& s)
 /// \{
 
 /**
- * GetNamespaceCompletitions
+ * GetNamespaceCompletions
  * gets completion of the word in p, e.g. for math.pi (with '.')
  * and puts matching completions in matches.
  * \param buf the buffer to complete
@@ -85,7 +85,7 @@ void print(const std::string& s)
  * \param sniplen how much of buf we use (for example, completing "ex" to "example" is 2, completing "examp" to "example" is 5)
  * \return number of added matches
  */
-static size_t GetNamespaceCompletitions(char *buf, int len, std::vector<string> &matches, size_t &sniplen, int iPrintCompletionList)
+static size_t GetNamespaceCompletions(char *buf, int len, std::vector<string> &matches, size_t &sniplen, int iPrintCompletionList)
 {
 	size_t matchesSizeBefore = matches.size();
 	char *p = buf+len-1;
@@ -137,7 +137,7 @@ static size_t GetNamespaceCompletitions(char *buf, int len, std::vector<string> 
 }
 
 /**
- * GetMemberFunctionCompletitions
+ * GetMemberFunctionCompletions
  * gets completion of the word in p, based on the classname which is before p,
  * and puts matching completions in matches.
  * \param buf the buffer to complete
@@ -146,7 +146,7 @@ static size_t GetNamespaceCompletitions(char *buf, int len, std::vector<string> 
  * \param sniplen how much of buf we use (for example, completing "ex" to "example" is 2, completing "examp" to "example" is 5)
  * \return number of added matches
  */
-static size_t GetMemberFunctionCompletitions(char *buf, int len, std::vector<string> &matches, size_t &sniplen)
+static size_t GetMemberFunctionCompletions(char *buf, int len, std::vector<string> &matches, size_t &sniplen)
 {
 	size_t matchesSizeBefore = matches.size();
 	char *p = buf+len-1;
@@ -330,7 +330,7 @@ static bool GetMemberFunctionInfo(char *buf, int len)
 }
 
 /**
- * GetGlobalsCompletitions
+ * GetGlobalsCompletions
  * searches in the Lua string table for string that completes the string in buf
  * if they are also globals, we add them to vector\<string\> matches.
  * \param buf the buffer to complete
@@ -339,7 +339,7 @@ static bool GetMemberFunctionInfo(char *buf, int len)
  * \param sniplen how much of buf we use (for example, completing "ex" to "example" is 2, completing "examp" to "example" is 5)
  * \return number of added matches
  */
-static size_t GetGlobalsCompletitions(char *buf, int len, std::vector<string> &matches, size_t &sniplen, int iPrintCompletionList)
+static size_t GetGlobalsCompletions(char *buf, int len, std::vector<string> &matches, size_t &sniplen, int iPrintCompletionList)
 {
 	size_t matchesSizeBefore = matches.size();
 	char *p = buf+len-1;
@@ -416,9 +416,9 @@ static size_t GetGlobalsCompletitions(char *buf, int len, std::vector<string> &m
 	return matches.size() - matchesSizeBefore;
 }
 
-static size_t GetClassesCompletitions(char *buf, int len, std::vector<string> &matches, size_t &sniplen, int iPrintCompletionList)
+static size_t GetClassesCompletions(char *buf, int len, std::vector<string> &matches, size_t &sniplen, int iPrintCompletionList)
 {
-	// we miss some classes which are not instatiable otherwise
+	// we miss some classes which are not instantiable otherwise
 	size_t matchesSizeBefore = matches.size();
 	char *p = buf+len-1;
 
@@ -450,15 +450,15 @@ static size_t GetClassesCompletitions(char *buf, int len, std::vector<string> &m
 }
 
 /**
- * GetPathCompletitions
- * puts in matches completitions of path in buf if possible
+ * GetPathCompletions
+ * puts in matches completions of path in buf if possible
  * \param buf the buffer to complete
  * \param len the length of buf
  * \param matches put your matches here
  * \param sniplen how much of buf we use (for example, completing "ex" to "example" is 2, completing "examp" to "example" is 5)
  * \return number of added matches
  */
-size_t GetPathCompletitions(char *buf, int len, std::vector<string> &matches, size_t &sniplen)
+size_t GetPathCompletions(char *buf, int len, std::vector<string> &matches, size_t &sniplen)
 {
 	size_t matchesSizeBefore = matches.size();
 	char *p = buf+len-1;
@@ -529,17 +529,17 @@ size_t GetPathCompletitions(char *buf, int len, std::vector<string> &matches, si
 }
 
 /**
- * GetOtherCompletitions
- * puts in matches completitions of user-provided strings like "quit", "continue" etc.
+ * GetOtherCompletions
+ * puts in matches completions of user-provided strings like "quit", "continue" etc.
  * \param buf the buffer to complete
  * \param len the length of buf
  * \param matches put your matches here
  * \param sniplen how much of buf we use (for example, completing "ex" to "example" is 2, completing "examp" to "example" is 5)
  * \return number of added matches
  *
- * use pOtherCompletitions and iOtherCompletitionsLength to set an array with user-provided completition strings.
+ * use pOtherCompletions and iOtherCompletionsLength to set an array with user-provided completion strings.
  */
-static size_t GetOtherCompletitions(char *buf, int len, std::vector<string> &matches, size_t &sniplen)
+static size_t GetOtherCompletions(char *buf, int len, std::vector<string> &matches, size_t &sniplen)
 {
 	size_t matchesSizeBefore = matches.size();
 	char *p = buf+len-1;
@@ -555,11 +555,11 @@ static size_t GetOtherCompletitions(char *buf, int len, std::vector<string> &mat
 	sniplen = strlen(snip);
 	if(sniplen == 0) return 0;
 
-	if(pOtherCompletitions)
-		for(int i=0; i<iOtherCompletitionsLength; i++)
+	if(pOtherCompletions)
+		for(int i=0; i<iOtherCompletionsLength; i++)
 		{
-			if(strncmp(pOtherCompletitions[i], snip, sniplen) == 0)
-				matches.emplace_back(pOtherCompletitions[i]);
+			if(strncmp(pOtherCompletions[i], snip, sniplen) == 0)
+				matches.emplace_back(pOtherCompletions[i]);
 		}
 
 	return matches.size() - matchesSizeBefore;
@@ -585,12 +585,12 @@ int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 	if(iPrintCompletionList == 0 && (GetGlobalFunctionInfo(buf, len) || GetMemberFunctionInfo(buf, len)) )
 		return len;
 
-	GetOtherCompletitions(buf, len, matches, sniplen);
-	if( GetPathCompletitions(buf, len, matches, sniplen)  == 0
-		&& GetMemberFunctionCompletitions(buf, len, matches, sniplen) == 0
-		&& GetNamespaceCompletitions(buf, len, matches, sniplen, iPrintCompletionList) == 0
-		&& GetGlobalsCompletitions(buf, len, matches, sniplen, iPrintCompletionList)==0
-		&& GetClassesCompletitions(buf, len, matches, sniplen, iPrintCompletionList)==0)
+	GetOtherCompletions(buf, len, matches, sniplen);
+	if( GetPathCompletions(buf, len, matches, sniplen)  == 0
+		&& GetMemberFunctionCompletions(buf, len, matches, sniplen) == 0
+		&& GetNamespaceCompletions(buf, len, matches, sniplen, iPrintCompletionList) == 0
+		&& GetGlobalsCompletions(buf, len, matches, sniplen, iPrintCompletionList)==0
+		&& GetClassesCompletions(buf, len, matches, sniplen, iPrintCompletionList)==0)
 		{ }
 
 	if(matches.empty())
@@ -603,7 +603,7 @@ int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 	}
 	else
 	{
-		// several matches. get longest common substring:
+		// several matches. get the longest common substring:
 		size_t submatch=0, i;
 		for(submatch = 0; submatch < matches[0].size(); submatch++)
 		{
@@ -615,7 +615,7 @@ int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 				break;
 		}
 
-		// append longest common substring
+		// append the longest common substring
 		if(strlen(buf)+submatch > buflen+sniplen)
 			submatch = buflen-strlen(buf)-sniplen;
 		if(submatch > sniplen)
@@ -642,8 +642,8 @@ int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 
 void SetOtherCompletions(const char **otherCompletions, int nr)
 {
-	pOtherCompletitions = otherCompletions;
-	iOtherCompletitionsLength = nr;
+	pOtherCompletions = otherCompletions;
+	iOtherCompletionsLength = nr;
 }
 
 }

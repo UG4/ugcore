@@ -201,7 +201,7 @@ void MultiGrid::vertex_created(Grid* grid, Vertex* vrt,
 								GridObject* pParent,
 								bool replacesParent)
 {
-//	if hierarchical_insertion is disabled, the elemenet is inserted
+//	if hierarchical_insertion is disabled, the element is inserted
 //	into the same level as its parent.
 //	From the standpoint of a multigrid-hierarchy it thus makes sense
 //	to make pParents parent the parent of elem!!!
@@ -215,7 +215,7 @@ void MultiGrid::vertex_created(Grid* grid, Vertex* vrt,
 		auto pReplaceMe = static_cast<Vertex*>(pParent);
 		GridObject* realParent = get_parent(pReplaceMe);
 
-	//	we call a version of element_created, which allows a replace
+	//	we call a version of element_created, which allows a replacement
 		if(realParent){
 			int baseType = realParent->base_object_id();
 			switch(baseType)
@@ -297,7 +297,7 @@ void MultiGrid::edge_created(Grid* grid, Edge* edge,
 		Edge* pReplaceMe = static_cast<Edge*>(pParent);
 		GridObject* realParent = get_parent(pReplaceMe);
 		if(realParent){
-		//	we call a version of element_created, which allows a replace
+		//	we call a version of element_created, which allows a replacement
 			int baseType = realParent->base_object_id();
 			switch(baseType)
 			{
@@ -379,7 +379,7 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 		Face* pReplaceMe = static_cast<Face*>(pParent);
 		GridObject* realParent = get_parent(pReplaceMe);
 
-	//	we call a version of element_created, which allows a replace
+	//	we call a version of element_created, which allows a replacement
 		if(realParent){
 			int baseType = realParent->base_object_id();
 			switch(baseType)
@@ -468,7 +468,7 @@ void MultiGrid::volume_created(Grid* grid, Volume* vol,
 		auto* pReplaceMe = static_cast<Volume*>(pParent);
 		GridObject* realParent = get_parent(pReplaceMe);
 
-	//	we call a version of element_created, which allows a replace
+	//	we call a version of element_created, which allows a replacement
 		element_created(vol, (Volume*)realParent, pReplaceMe);
 
 	//	copy pReplaceMes children and replace parent of children

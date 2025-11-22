@@ -168,7 +168,7 @@ create_sub_communicator(bool participate) const
 	newProcs.reserve(size);
 
 	// note: ranks are ranks in the (group!) communicator m_comm->m_mpiComm
-	// since we building the new group relative to the old,
+	// since we're building the new group relative to the old,
 	// we add to newProcs the group ranks
 	// these are NOT the global ranks like in pcl::ProcRank
 	for(size_t i = 0; i < destArray.size(); ++i){
@@ -653,7 +653,7 @@ distribute_data(ug::BinaryBuffer* recvBufs, int* recvFromRanks, int numRecvs,
 	std::vector<MPI_Status> vSendStates(numSends);
 	std::vector<MPI_Status> vReceiveStates(numRecvs);
 
-//	shedule receives first
+//	schedule receives first
 	for(int i = 0; i < numRecvs; ++i){
 		recvBufs[i].clear();
 		recvBufs[i].reserve(recvSizes[i]);
