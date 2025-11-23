@@ -91,7 +91,7 @@ class EllipticCylinderProjector
 			number influenceRadius
 		);
 
-		virtual ~EllipticCylinderProjector()  = default;;
+		virtual ~EllipticCylinderProjector()  = default;
 
 		void set_center(const vector3& center);
 		const vector3& center() const;

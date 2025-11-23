@@ -58,8 +58,8 @@ DegeneratedLayerManager<dim>::DegeneratedLayerManager
 	m_layerSsGrp.set_subset_handler (m_spSH);
 	
 //	Initialize the attachment:
-	MultiGrid * pMG = (MultiGrid *) (m_spSH->multi_grid ());
-	pMG->template attach_to_dv<Vertex> (m_aVertexMarks, D_LAYER_UNKNOWN);
+	MultiGrid * pMG = m_spSH->multi_grid ();
+	pMG->attach_to_dv<Vertex> (m_aVertexMarks, D_LAYER_UNKNOWN);
 	m_aaVertMarks.access (*pMG, m_aVertexMarks);
 	
 //	Register the callbacks in the message hub:
@@ -77,9 +77,9 @@ DegeneratedLayerManager<dim>::DegeneratedLayerManager
 template <int dim>
 DegeneratedLayerManager<dim>::~DegeneratedLayerManager ()
 {
-	MultiGrid * pMG = (MultiGrid *) (m_spSH->multi_grid ());
+	MultiGrid * pMG = m_spSH->multi_grid ();
 	m_aaVertMarks.invalidate ();
-	pMG->template detach_from<Vertex> (m_aVertexMarks);
+	pMG->detach_from<Vertex> (m_aVertexMarks);
 	m_bClosed = false; // (to be on the very safe side...)
 }
 
@@ -193,8 +193,8 @@ void DegeneratedLayerManager<dim>::mark_vertices ()
 		int si = m_layerSsGrp [i];
 		for (size_t lev = 0; lev < pMG->num_levels (); lev++)
 		{
-			t_elem_iter list_end = m_spSH->template end<element_type> (si, lev);
-			for (t_elem_iter iElem = m_spSH->template begin<element_type> (si, lev);
+			t_elem_iter list_end = m_spSH->end<element_type> (si, lev);
+			for (t_elem_iter iElem = m_spSH->begin<element_type> (si, lev);
 					iElem != list_end; ++iElem)
 			{
 				element_type * elem = *iElem;
@@ -214,8 +214,8 @@ void DegeneratedLayerManager<dim>::mark_vertices ()
 	if (DimensionOfSubset (*m_spSH, si) == dim && ! m_layerSsGrp.contains (si))
 		for (size_t lev = 0; lev < pMG->num_levels (); lev++)
 		{
-			t_elem_iter list_end = m_spSH->template end<element_type> (si, lev);
-			for (t_elem_iter iElem = m_spSH->template begin<element_type> (si, lev);
+			t_elem_iter list_end = m_spSH->end<element_type> (si, lev);
+			for (t_elem_iter iElem = m_spSH->begin<element_type> (si, lev);
 				iElem != list_end; ++iElem)
 			{
 				element_type * elem = *iElem;
@@ -278,9 +278,8 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 	size_t n_inner, n_outer;
 	size_t n_co = elem->num_vertices ();
 	MultiGrid * pMG = (MultiGrid *) (m_spSH->multi_grid ());
-	typename Grid::traits<Edge>::secure_container edge_list;
-	
-//	First, we check, whether the inner and outer sides are well defined.
+
+	//	First, we check, whether the inner and outer sides are well defined.
 //	Loop over the sides: We look for sides with only inner or only outer corners
 	inner_side = nullptr; n_inner = 0;
 	outer_side = nullptr; n_outer = 0;
@@ -367,6 +366,7 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 //	Loop over the edges: Find out the associated corners
 	if (ass_co != nullptr)
 	{
+		Grid::traits<Edge>::secure_container edge_list;
 		pMG->associated_elements (edge_list, elem);
 		for (size_t i = 0; i < edge_list.size (); i++)
 		{
@@ -415,7 +415,7 @@ int DegeneratedLayerManager<dim>::assign_middle_subset
 {
 	using t_elem_iter = typename geometry_traits<element_type>::const_iterator;
 	
-	MultiGrid * pMG = (MultiGrid *) (m_spSH->multi_grid ());
+	MultiGrid * pMG = m_spSH->multi_grid ();
 	
 //	Assign the default value of the subset (if necessary)
 	if (middle_si < 0) middle_si = m_spSH->num_subsets ();
@@ -424,8 +424,8 @@ int DegeneratedLayerManager<dim>::assign_middle_subset
 	pMG->message_hub()->post_message (GridMessage_Creation (GMCT_CREATION_STARTS, 0));
 	for (size_t lev = 0; lev < pMG->num_levels (); lev++)
 	{
-		t_elem_iter list_end = m_spSH->template end<element_type> (layer_si, lev);
-		for (t_elem_iter iElem = m_spSH->template begin<element_type> (layer_si, lev);
+		t_elem_iter list_end = m_spSH->end<element_type> (layer_si, lev);
+		for (t_elem_iter iElem = m_spSH->begin<element_type> (layer_si, lev);
 				iElem != list_end; ++iElem)
 		{
 			element_type * elem = *iElem;

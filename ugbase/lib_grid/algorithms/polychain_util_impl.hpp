@@ -59,8 +59,7 @@ GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
 			Vertex* v = (*iter)->vertex(i);
 			
 			size_t counter = 0;
-			for(Grid::AssociatedEdgeIterator aiter = grid.associated_edges_begin(v);
-				aiter != grid.associated_edges_end(v); ++aiter)
+			for(auto aiter = grid.associated_edges_begin(v); aiter != grid.associated_edges_end(v); ++aiter)
 			{
 				if(cbEdgeIsInPolyChain(*aiter))
 					++counter;
@@ -154,9 +153,8 @@ bool CreatePolyChain(std::vector<Vertex*>& polyChainOut, Grid& grid,
 	while(bRunning){
 		bRunning = false;
 	//	find a connected  unmarked vertex
-		Grid::AssociatedEdgeIterator assEdgesEnd = grid.associated_edges_end(actVrt);
-		for(Grid::AssociatedEdgeIterator eIter = grid.associated_edges_begin(actVrt);
-			eIter != assEdgesEnd; ++eIter)
+		auto assEdgesEnd = grid.associated_edges_end(actVrt);
+		for(auto eIter = grid.associated_edges_begin(actVrt); eIter != assEdgesEnd; ++eIter)
 		{
 			Edge* e = *eIter;
 			if(grid.is_marked(e)){

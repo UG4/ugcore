@@ -52,12 +52,12 @@ constexpr int MAX_NUM_CONVERT_TO_TETS_INDS_OUT = 15;
 constexpr int MAX_NUM_COLLAPSE_INDS_OUT = 6;
 
 ///	the local vertex indices of the given edge
-const int EDGE_VRT_INDS[][2] = {{0, 1}, {1, 2}, {2, 0},
+constexpr int EDGE_VRT_INDS[9][2] = {{0, 1}, {1, 2}, {2, 0},
 									{0, 3}, {1, 4}, {2, 5},
 									{3, 4}, {4, 5}, {5, 3}};
 
 ///	the local vertex indices of the given face
-const int FACE_VRT_INDS[][4] = {{0, 1, 2, -1},	{0, 3, 4, 1},
+constexpr int FACE_VRT_INDS[5][4] = {{0, 1, 2, -1},	{0, 3, 4, 1},
 //									{1, 4, 5, 2},	{0, 2, 5, 3},
 									{1, 4, 5, 2},	{2, 5, 3, 0},
 									{3, 5, 4, -1}};
@@ -69,7 +69,7 @@ constexpr int OPPOSED_FACE[NUM_FACES] = {4, -1, -1, -1, 0};
 /** for each vertex, a pair containing the object type (0: vrt, 1: edge, 2: face)
  * and an index into the associated array, which describe the object which lies
  * on the opposite side of the prism, to a given vertex.*/
-const int OPPOSED_OBJECT[][NUM_VERTICES] = {{1, 7}, {1, 8}, {1, 6}, {1, 1}, {1, 2}, {1, 0}};
+constexpr int OPPOSED_OBJECT[6][NUM_VERTICES] = {{1, 7}, {1, 8}, {1, 6}, {1, 1}, {1, 2}, {1, 0}};
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -77,9 +77,9 @@ const int OPPOSED_OBJECT[][NUM_VERTICES] = {{1, 7}, {1, 8}, {1, 6}, {1, 1}, {1, 
 constexpr int TOP_FACE = 4;
 constexpr int BOTTOM_FACE =	0;
 
-const int IS_BOTTOM_EDGE[9] = {1, 1, 1, 0, 0, 0, 0, 0, 0};
-const int IS_SIDE_EDGE[9] = {0, 0, 0, 1, 1, 1, 0, 0, 0};
-const int IS_TOP_EDGE[9] = {0, 0, 0, 0, 0, 0, 1, 1, 1};
+constexpr int IS_BOTTOM_EDGE[9] = {1, 1, 1, 0, 0, 0, 0, 0, 0};
+constexpr int IS_SIDE_EDGE[9] = {0, 0, 0, 1, 1, 1, 0, 0, 0};
+constexpr int IS_TOP_EDGE[9] = {0, 0, 0, 0, 0, 0, 1, 1, 1};
 
 constexpr int TRIS[2] = {0, 4};
 constexpr int QUADS[3] = {1, 2, 3};
@@ -89,13 +89,13 @@ constexpr int QUADS[3] = {1, 2, 3};
 //	NOTE: The lists below are all generated automatically
 
 ///	returns the j-th edge of the i-th face
-const int FACE_EDGE_INDS[5][4] =	{{0, 1, 2, -1}, {3, 6, 4, 0}, {4, 7, 5, 1},
+constexpr int FACE_EDGE_INDS[5][4] =	{{0, 1, 2, -1}, {3, 6, 4, 0}, {4, 7, 5, 1},
 									 {5, 8, 3, 2}, {8, 7, 6, -1}};
 //const int FACE_EDGE_INDS[5][4] =	{{0, 1, 2, -1}, {3, 6, 4, 0}, {4, 7, 5, 1},
 //									 {2, 5, 8, 3}, {8, 7, 6, -1}};
 
 ///	tells whether the i-th face contains the j-th edge
-const int FACE_CONTAINS_EDGE[][9] =
+constexpr int FACE_CONTAINS_EDGE[5][9] =
 				{{1, 1, 1, 0, 0, 0, 0, 0, 0}, {1, 0, 0, 1, 1, 0, 1, 0, 0},
 				 {0, 1, 0, 0, 1, 1, 0, 1, 0}, {0, 0, 1, 1, 0, 1, 0, 0, 1},
 				 {0, 0, 0, 0, 0, 0, 1, 1, 1}};
@@ -104,7 +104,7 @@ const int FACE_CONTAINS_EDGE[][9] =
 /**	Use two vertex indices to index into this table to retrieve the index
  * of their connecting edge.
  */
-const int EDGE_FROM_VRTS[6][6] =
+constexpr int EDGE_FROM_VRTS[6][6] =
 				{{-1, 0, 2, 3, -1, -1}, {0, -1, 1, -1, 4, -1},
 				 {2, 1, -1, -1, -1, 5}, {3, -1, -1, -1, 6, 8},
 				 {-1, 4, -1, 6, -1, 7}, {-1, -1, 5, 8, 7, -1}};
@@ -113,7 +113,7 @@ const int EDGE_FROM_VRTS[6][6] =
 /**	Use three vertex indices to index into this table to retrieve the index
  * of their connecting face.
  */
-const int FACE_FROM_VRTS[6][6][6] =
+constexpr int FACE_FROM_VRTS[6][6][6] =
 							{{{-1, -1, -1, -1, -1, -1}, {-1, -1, 0, 1, 1, -1},
 							  {-1, 0, -1, 3, -1, 3}, {-1, 1, 3, -1, 1, 3},
 							  {-1, 1, -1, 1, -1, -1}, {-1, -1, 3, 3, -1, -1}},
@@ -134,7 +134,7 @@ const int FACE_FROM_VRTS[6][6][6] =
 							  {-1, 2, 2, 4, -1, -1}, {-1, -1, -1, -1, -1, -1}}};
 
 ///	given two edges, the table returns the face, which contains both (or -1)
-const int FACE_FROM_EDGES[][9] =
+constexpr int FACE_FROM_EDGES[9][9] =
 				{{0, 0, 0, 1, 1, -1, 1, -1, -1}, {0, 0, 0, -1, 2, 2, -1, 2, -1},
 				 {0, 0, 0, 3, -1, 3, -1, -1, 3}, {1, -1, 3, 1, 1, 3, 1, -1, 3},
 				 {1, 2, -1, 1, 1, 2, 1, 2, -1}, {-1, 2, 3, 3, 2, 2, -1, 2, 3},

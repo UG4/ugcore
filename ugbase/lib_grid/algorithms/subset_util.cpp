@@ -973,7 +973,7 @@ bool SeparateRegions(Grid& grid, ISubsetHandler& shVolsOut,
 	if(!grid.has_vertex_attachment(aPosition))
 		return false;
 
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
+	Grid::VertexAttachmentAccessor aaPos(grid, aPosition);
 
 	for(size_t i = 0; i < mpm.num_markers(); ++i)
 	{
@@ -1344,7 +1344,7 @@ void ComputeLocalSubsetDimensions(
 	UG_COND_THROW(!sh.grid(), "The subset-handler has to operate on a grid!");
 	Grid& grid = *sh.grid();
 	grid.attach_to_all(aDimension);
-	MultiElementAttachmentAccessor<AChar> aaDim(grid, aDimension, true, true, true, true);
+	MultiElementAttachmentAccessor aaDim(grid, aDimension, true, true, true, true);
 
 
 	for(VolumeIterator ivol = grid.begin<Volume>(); ivol != grid.end<Volume>(); ++ivol){

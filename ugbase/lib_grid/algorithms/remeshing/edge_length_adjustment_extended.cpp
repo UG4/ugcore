@@ -188,6 +188,7 @@ static void AssignCreaseVertices(Grid& grid, SubsetHandler& shMarks)
 
 
 ////////////////////////////////////////////////////////////////////////
+/* ø unused function
 template <typename TVertexPositionAccessor>
 static number CalculateNormalDot(TriangleDescriptor& td1, TriangleDescriptor& td2,
 						  TVertexPositionAccessor& aaPos)
@@ -199,7 +200,7 @@ static number CalculateNormalDot(TriangleDescriptor& td1, TriangleDescriptor& td
 	CalculateTriangleNormal(n2, aaPos[td2.vertex(0)],
 							aaPos[td2.vertex(1)], aaPos[td2.vertex(2)]);
 	return VecDot(n1, n2);
-}
+}*/
 
 
 // ////////////////////////////////////////////////////////////////////////

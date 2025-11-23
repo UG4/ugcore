@@ -207,19 +207,19 @@ class IDomain
 		bool create_additional_subset_handler(std::string name);
 
 	///	returns a list with the names of additional subset handlers
-		std::vector<std::string> additional_subset_handler_names() const;
+		[[nodiscard]] std::vector<std::string> additional_subset_handler_names() const;
 
 	///	returns an additional subset handler Subset Handler
 		SmartPtr<TSubsetHandler> additional_subset_handler(std::string name);
 
 	///	const access to Subset Handler
-		const ConstSmartPtr<TSubsetHandler> additional_subset_handler(std::string name) const;
+		[[nodiscard]] const ConstSmartPtr<TSubsetHandler> additional_subset_handler(std::string name) const;
 
 	///	sets the ug::RefinementProjector which can be used by refiners during refinement
 		void set_refinement_projector(SPRefinementProjector proj);
 
 	///	returns the domain's ug::RefinementProjector. The pointer may be invalid.
-		SPRefinementProjector refinement_projector() const;
+		[[nodiscard]] SPRefinementProjector refinement_projector() const;
 
 	///	returns the geometry of the domain
 		virtual SPIGeometry3d geometry3d() const = 0;
@@ -334,7 +334,7 @@ class Domain : public IDomain<TGrid, TSubsetHandler>
 	///	const access to Position Accessor
 		inline const position_accessor_type& position_accessor() const{return m_aaPos;}
 
-		SPIGeometry3d geometry3d() const override {return m_geometry3d;}
+		[[nodiscard]] SPIGeometry3d geometry3d() const override {return m_geometry3d;}
 
 	protected:
 		position_attachment_type m_aPos;	///<Position Attachment

@@ -61,8 +61,8 @@ bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos)
 //	calculate weights for subdivision mask
 	for(int i = 1; i < numPrecalculated; ++i)
 	{
-		double tmp = 0.375 + 0.25 * cos( (2.0 * M_PI) / (float)i );
-		beta[i] = ( 0.625 - tmp * tmp ) / (float)i ;
+		double tmp = 0.375 + 0.25 * cos( (2.0 * M_PI) / static_cast<number>(i) );
+		beta[i] = ( 0.625 - tmp * tmp ) / static_cast<number>(i) ;
 	}
 
 	beta[0] = 0;
@@ -84,8 +84,8 @@ bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos)
 
 			if(valence >= numPrecalculated)
 			{
-				double tmp = 0.375 + 0.25 * cos( (2.0*M_PI) / (float)valence );
-				b = (0.625 - tmp*tmp) / (float)valence;
+				double tmp = 0.375 + 0.25 * cos( (2.0*M_PI) / static_cast<number>(valence) );
+				b = (0.625 - tmp*tmp) / static_cast<number>(valence);
 			}
 
 			else
@@ -112,9 +112,9 @@ bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos)
 		y*=chi;
 		z*=chi;
 
-		aaProjPos[v].x() = aaPos[v].x() * (1.0 - (float)valence * chi);
-		aaProjPos[v].y() = aaPos[v].y() * (1.0 - (float)valence * chi);
-		aaProjPos[v].z() = aaPos[v].z() * (1.0 - (float)valence * chi);
+		aaProjPos[v].x() = aaPos[v].x() * (1.0 - static_cast<number>(valence) * chi);
+		aaProjPos[v].y() = aaPos[v].y() * (1.0 - static_cast<number>(valence) * chi);
+		aaProjPos[v].z() = aaPos[v].z() * (1.0 - static_cast<number>(valence) * chi);
 
 		aaProjPos[v].x() += x;
 		aaProjPos[v].y() += y;

@@ -155,22 +155,22 @@ class UG_API DelaunayInfo : public GridObserver
 
 	////////////////////////////////////////////////////////////////
 	//	GRID-OBERSERVER CALLBACKS
-		virtual void vertex_created(Grid* grid, Vertex* vrt,
-									GridObject* pParent,
-									bool replacesParent);
+		void vertex_created(Grid* grid, Vertex* vrt,
+		                    GridObject* pParent,
+		                    bool replacesParent) override;
 
-		virtual void edge_created(Grid* grid, Edge* e,
-									GridObject* pParent,
-									bool replacesParent);
+		void edge_created(Grid* grid, Edge* e,
+		                  GridObject* pParent,
+		                  bool replacesParent) override;
 
-		virtual void face_created(Grid* grid, Face* f,
-									GridObject* pParent,
-									bool replacesParent);
+		void face_created(Grid* grid, Face* f,
+		                  GridObject* pParent,
+		                  bool replacesParent) override;
 
-		
-		virtual void edge_to_be_erased(Grid* grid, Edge* e, Edge* replacedBy);
 
-		virtual void face_to_be_erased(Grid* grid, Face* f, Face* replacedBy);
+		void edge_to_be_erased(Grid* grid, Edge* e, Edge* replacedBy) override;
+
+		void face_to_be_erased(Grid* grid, Face* f, Face* replacedBy) override;
 
 	private:
 		struct FaceInfo{

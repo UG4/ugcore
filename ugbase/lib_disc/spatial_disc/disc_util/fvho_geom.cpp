@@ -1080,7 +1080,7 @@ update_local_data()
 		const size_t locSCV = i % numSCVPerSubElem;
 
 	//	store associated node
-		m_vSCV[i].nodeId = m_vSubElem[se].vDoFID[locSCV];;
+		m_vSCV[i].nodeId = m_vSubElem[se].vDoFID[locSCV];
 
 	//	compute mid ids scv
 		ComputeSCVMidID(m_rRefElem, m_vSCV[i].vMidID, locSCV);
@@ -1544,7 +1544,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 		const size_t locSCV = i % m_numSCVPerSubElem;
 
 	//	store associated node
-		m_vSCV[i].nodeId = m_vSubElem[se].vDoFID[locSCV];;
+		m_vSCV[i].nodeId = m_vSubElem[se].vDoFID[locSCV];
 
 	//	compute mid ids scv
 		ComputeSCVMidID(rRefElem, m_vSCV[i].vMidID, locSCV);

@@ -146,16 +146,16 @@ class UserData : virtual public UserDataInfo
 		using return_type = TRet;
 
 	///	returns dimension
-		int get_dim() const {return dim;}
+		int get_dim() const override {return dim;}
 
 	///	returns type of data as string (e.g. "Number", "Vector", "Matrix")
-		std::string type() const {return user_data_traits<TData>::name();}
+		std::string type() const override {return user_data_traits<TData>::name();}
 
 	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool continuous() const = 0;
+		bool continuous() const override = 0;
 
 	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const = 0;
+		bool requires_grid_fct() const override = 0;
 
 	public:
 	///	returns value for a global position
@@ -310,7 +310,7 @@ class ICplUserData : virtual public UserDataInfo
 		virtual void check_setup() const {}
 
 	///	virtual desctructor
-		virtual ~ICplUserData() {};
+		~ICplUserData() override = default;
 
 	public:
 	///	returns if data depends on solution
@@ -539,7 +539,7 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 			{check_series_ip(s,ip); return m_vvBoolFlag[s][ip];}
 
 	///	destructor
-		~CplUserData() {local_ip_series_to_be_cleared();}
+		~CplUserData() override {local_ip_series_to_be_cleared();}
 
 	///	register external callback, invoked when data storage changed
 		void register_storage_callback(DataImport<TData,dim>* obj, void (DataImport<TData,dim>::*func)());
@@ -555,13 +555,13 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 		inline void check_series_ip(size_t s, size_t ip) const;
 
 	///	resizes the data field, when local ip changed signaled
-		virtual void local_ip_series_added(const size_t seriesID);
+		void local_ip_series_added(const size_t seriesID) override;
 
 	///	free the data field memory and set series to zero
-		virtual void local_ip_series_to_be_cleared();
+		void local_ip_series_to_be_cleared() override;
 
 	///	implement callback, called when local IPs changed
-		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP);
+		void local_ips_changed(const size_t seriesID, const size_t newNumIP) override;
 
 	///	callback, invoked when storage of data has changed for a series
 		virtual void value_storage_changed(const size_t seriesID) {}
@@ -644,16 +644,16 @@ class DependentUserData : public CplUserData<TData, dim>
 
 	public:
 	///	returns that data depends on solution
-		virtual bool zero_derivative() const {return false;}
+		bool zero_derivative() const override {return false;}
 
 	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return true;}
+		bool requires_grid_fct() const override {return true;}
 
 	///	resize lin defect arrays
-		virtual void update_dof_sizes(const LocalIndices& ind);
+		void update_dof_sizes(const LocalIndices& ind) override;
 
 	///	sets the associated function pattern
-		virtual void set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt);
+		void set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt) override;
 
 	///	sets the associated symbolic functions
 	/// \{
@@ -681,13 +681,13 @@ class DependentUserData : public CplUserData<TData, dim>
 		inline void check_s_ip_fct_dof(size_t s, size_t ip, size_t fct, size_t dof) const;
 
 	///	resizes the derivative field when local ip change is signaled
-		virtual void local_ip_series_added(const size_t seriesID);
+		void local_ip_series_added(const size_t seriesID) override;
 
 	///	implement callback, called when local IPs changed
-		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP);
+		void local_ips_changed(const size_t seriesID, const size_t newNumIP) override;
 
 	///	implement callback, invoked when local ips are cleared
-		virtual void local_ip_series_to_be_cleared();
+		void local_ip_series_to_be_cleared() override;
 
 	///	resizes the derivative arrays for current number of ips.
 		void resize_deriv_array();

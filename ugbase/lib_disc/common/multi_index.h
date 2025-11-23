@@ -53,7 +53,7 @@ class MultiIndex
 
 	public:
 		/// number of indices in multi index
-		inline size_t size() const {return N;}
+		static constexpr inline size_t size() {return N;}
 
 		/// access to index component
 		inline single_index_type& operator [] (size_t i)
@@ -103,7 +103,7 @@ class MultiIndex<1, size_t>
 		{};
 
 		/// number of indices in multi index
-		inline size_t size() const {return 1;}
+		static constexpr inline size_t size() {return 1;}
 
 		/// access to index component
 		inline single_index_type& operator [] (size_t i)
@@ -152,7 +152,7 @@ class MultiIndex<2, size_t>
 		}
 
 		/// number of indices in multi index
-		inline size_t size() const {return 2;}
+		static constexpr inline size_t size() {return 2;}
 
 		/// access to index component
 		inline single_index_type& operator [] (size_t i)
@@ -218,7 +218,7 @@ class MultiIndex<3, size_t>
 		}
 
 		/// number of indices in multi index
-		inline size_t size() const {return 3;}
+		static constexpr inline size_t size() {return 3;}
 
 		/// access to index component
 		inline single_index_type& operator [] (size_t i)

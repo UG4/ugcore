@@ -214,9 +214,8 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 	//	we have to find the triangles 'by hand'
 	//	iterate over all associated faces of vertex 0
 		int counter = 0;
-		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v0);
-		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v0);
-			iter != iterEnd; ++iter)
+		auto iterEnd = grid.associated_faces_end(v0);
+		for(auto iter = grid.associated_faces_begin(v0); iter != iterEnd; ++iter)
 		{
 			Face* tf = *iter;
 			uint numVrts = tf->num_vertices();
@@ -249,9 +248,8 @@ int NumAssociatedFaces(Grid& grid, Edge* e)
 	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
 		int counter = 0;
-		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(e);
-		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
-			iter != iterEnd; ++iter)
+		auto iterEnd = grid.associated_faces_end(e);
+		for(auto iter = grid.associated_faces_begin(e); iter != iterEnd; ++iter)
 		{
 			counter++;
 		}
@@ -269,9 +267,8 @@ int NumAssociatedFaces(Grid& grid, Edge* e)
 	//	iterate over all associated faces of vertex 0
 		int counter = 0;
 		Vertex* v = e->vertex(0);
-		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v);
-		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
-			iter != iterEnd; ++iter)
+		auto iterEnd = grid.associated_faces_end(v);
+		for(auto iter = grid.associated_faces_begin(v); iter != iterEnd; ++iter)
 		{
 			Face* tf = *iter;
 			uint numVrts = tf->num_vertices();
@@ -650,8 +647,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 
 	//	iterate through those faces and split each.
 	//	If vertices are missing in destGrid, create them first.
-		for(vector<Face*>::iterator oldFaceIter = vOldFaces.begin();
-			oldFaceIter != vOldFaces.end(); ++oldFaceIter)
+		for(auto oldFaceIter = vOldFaces.begin(); oldFaceIter != vOldFaces.end(); ++oldFaceIter)
 		{
 			Face* oldFace = *oldFaceIter;
 			uint numVrts = oldFace->num_vertices();
@@ -696,8 +692,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 				if(&srcGrid == &destGrid)
 					pParent = oldFace;
 
-				for(vector<Face*>::iterator iter = vNewFaces.begin();
-					iter != vNewFaces.end(); ++iter)
+				for(auto iter = vNewFaces.begin(); iter != vNewFaces.end(); ++iter)
 				{
 					destGrid.register_element(*iter, pParent);
 					if(pParent)
@@ -777,8 +772,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 				if(newVolVrt)
 					destGrid.register_element(newVolVrt, pParent);
 					
-				for(vector<Volume*>::iterator iter = newVols.begin();
-					iter != newVols.end(); ++iter)
+				for(auto iter = newVols.begin(); iter != newVols.end(); ++iter)
 				{
 					destGrid.register_element(*iter, pParent);
 					if(pParent)
@@ -880,7 +874,7 @@ bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
 		return false;
 	}
 	
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+	Grid::VertexAttachmentAccessor aaPos(grid, aPos);
 	
 //	used for plane-intersection
 	number t;

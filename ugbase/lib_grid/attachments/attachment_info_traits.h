@@ -47,18 +47,18 @@ struct attachment_info_traits {
 	static const char* type_name ();
 };
 
-template <> struct attachment_info_traits<Attachment<bool>> { static const char* type_name () {return "bool";}};;
-template <> struct attachment_info_traits<Attachment<char>> { static const char* type_name () {return "char";}};;
-template <> struct attachment_info_traits<Attachment<byte_t>> { static const char* type_name () {return "byte";}};;
-template <> struct attachment_info_traits<Attachment<int>> { static const char* type_name () {return "int";}};;
-template <> struct attachment_info_traits<Attachment<uint>> { static const char* type_name () {return "uint";}};;
-template <> struct attachment_info_traits<Attachment<float>> { static const char* type_name () {return "float";}};;
-template <> struct attachment_info_traits<Attachment<double>> { static const char* type_name () {return "double";}};;
+template <> struct attachment_info_traits<Attachment<bool>> { static const char* type_name () {return "bool";}};
+template <> struct attachment_info_traits<Attachment<char>> { static const char* type_name () {return "char";}};
+template <> struct attachment_info_traits<Attachment<byte_t>> { static const char* type_name () {return "byte";}};
+template <> struct attachment_info_traits<Attachment<int>> { static const char* type_name () {return "int";}};
+template <> struct attachment_info_traits<Attachment<uint>> { static const char* type_name () {return "uint";}};
+template <> struct attachment_info_traits<Attachment<float>> { static const char* type_name () {return "float";}};
+template <> struct attachment_info_traits<Attachment<double>> { static const char* type_name () {return "double";}};
 
-template <> struct attachment_info_traits<Attachment<vector1>> { static const char* type_name () {return "vector1";}};;
-template <> struct attachment_info_traits<Attachment<vector2>> { static const char* type_name () {return "vector2";}};;
-template <> struct attachment_info_traits<Attachment<vector3>> { static const char* type_name () {return "vector3";}};;
-template <> struct attachment_info_traits<Attachment<vector4>> { static const char* type_name () {return "vector4";}};;
+template <> struct attachment_info_traits<Attachment<vector1>> { static const char* type_name () {return "vector1";}};
+template <> struct attachment_info_traits<Attachment<vector2>> { static const char* type_name () {return "vector2";}};
+template <> struct attachment_info_traits<Attachment<vector3>> { static const char* type_name () {return "vector3";}};
+template <> struct attachment_info_traits<Attachment<vector4>> { static const char* type_name () {return "vector4";}};
 
 
 }//	end of namespace

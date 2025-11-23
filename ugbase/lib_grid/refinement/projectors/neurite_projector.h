@@ -49,21 +49,21 @@ class NeuriteProjector
 		NeuriteProjector();
 		NeuriteProjector(SPIGeometry3d geometry);
 
-		virtual ~NeuriteProjector() = default;;
+		~NeuriteProjector() override = default;
 
-		virtual void set_geometry(SPIGeometry3d geometry);
+		void set_geometry(SPIGeometry3d geometry) override;
 
 		/// called when a new vertex was created from an old vertex
-		virtual number new_vertex(Vertex* vrt, Vertex* parent);
+		number new_vertex(Vertex* vrt, Vertex* parent) override;
 
 		/// called when a new vertex was created from an old edge
-		virtual number new_vertex(Vertex* vrt, Edge* parent);
+		number new_vertex(Vertex* vrt, Edge* parent) override;
 
 		/// called when a new vertex was created from an old face
-		virtual number new_vertex(Vertex* vrt, Face* parent);
+		number new_vertex(Vertex* vrt, Face* parent) override;
 
 		/// called when a new vertex was created from an old volume
-		virtual number new_vertex(Vertex* vrt, Volume* parent);
+		number new_vertex(Vertex* vrt, Volume* parent) override;
 
 		/// project a vertex to its model position
 		void project(Vertex* vrt);

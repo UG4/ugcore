@@ -86,8 +86,8 @@ using pos_type = typename TAVrtPos::ValueType;
 			Vertex* vrt = *iter;
 		//	collect all surface neighbors of vrt in vrts
 			vrts.clear();
-			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(vrt);
-				iter != grid.associated_edges_end(vrt); ++iter)
+			for(auto iter = grid.associated_edges_begin(vrt);
+			    iter != grid.associated_edges_end(vrt); ++iter)
 			{
 				if(IsBoundaryEdge3D(grid, *iter))
 					vrts.push_back(GetConnectedVertex(*iter, vrt));

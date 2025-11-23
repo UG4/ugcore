@@ -537,7 +537,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 				m_vSCV[i].m_vGloPos[2] = m_gloMid[dim][0];
 			}
 
-           m_vSCV[i].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[i].m_vGloPos[0]));;
+           m_vSCV[i].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[i].m_vGloPos[0]));
 		}
 	}
 
@@ -567,8 +567,8 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 			m_vSCV[2*i + 1].nodeId = to;
 			m_vSCV[2*i + 1].m_numCorners = 4;
 
-			m_vSCV[2*i + 0].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[2*i + 0].m_vGloPos[0]));;
-			m_vSCV[2*i + 1].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[2*i + 1].m_vGloPos[0]));;
+			m_vSCV[2*i + 0].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[2*i + 0].m_vGloPos[0]));
+			m_vSCV[2*i + 1].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[2*i + 1].m_vGloPos[0]));
 		}
 	}
 
@@ -1127,7 +1127,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 				m_vSCV[i].m_vGloPos[2] = m_gloMid[dim][0];
 			}
 
-           m_vSCV[i].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[i].m_vGloPos[0]));;
+           m_vSCV[i].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[i].m_vGloPos[0]));
 		}
 	}
 
@@ -1157,8 +1157,8 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 			m_vSCV[2*i + 1].nodeId = to;
 			m_vSCV[2*i + 1].m_numCorners = 4;
 
-			m_vSCV[2*i + 0].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[2*i + 0].m_vGloPos[0]));;
-			m_vSCV[2*i + 1].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[2*i + 1].m_vGloPos[0]));;
+			m_vSCV[2*i + 0].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[2*i + 0].m_vGloPos[0]));
+			m_vSCV[2*i + 1].vol = ElementSize<typename SCV::scv_type, worldDim>(&(m_vSCV[2*i + 1].m_vGloPos[0]));
 		}
 	}
 

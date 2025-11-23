@@ -54,17 +54,15 @@ class StdGlobPosData
 	: 	public StdUserData<StdGlobPosData<TImpl,TData,dim,TRet>, TData, dim, TRet>
 {
 	public:
-		virtual TRet operator () (TData& value,
-								 const MathVector<dim>& globIP,
-								 number time, int si) const
-		{
+		TRet operator () (TData& value,
+	                  const MathVector<dim>& globIP,
+	                  number time, int si) const override {
 			return this->getImpl().evaluate(value, globIP, time, si);
 		}
 
-		virtual void operator () (TData vValue[],
-								const MathVector<dim> vGlobIP[],
-								number time, int si, const size_t nip) const
-		{
+		void operator () (TData vValue[],
+		                  const MathVector<dim> vGlobIP[],
+		                  number time, int si, const size_t nip) const override {
 			for(size_t ip = 0; ip < nip; ++ip)
 				this->getImpl().evaluate(vValue[ip], vGlobIP[ip], time, si);
 		}
@@ -85,8 +83,9 @@ class StdGlobPosData
 		}
 
 	///	implement as a UserData
-		virtual void compute(LocalVector* u, GridObject* elem,
-		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
+		void compute(LocalVector* u, GridObject* elem,
+		                     const MathVector<dim> vCornerCoords[],
+		                     bool bDeriv = false) override
 		{
 			const number t = this->time();
 			const int si = this->subset();
@@ -97,8 +96,10 @@ class StdGlobPosData
 		}
 
 	///	implement as a UserData
-		virtual void compute(LocalVectorTimeSeries* u, GridObject* elem,
-		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
+		void compute(LocalVectorTimeSeries* u, GridObject* elem,
+		                     const MathVector<dim> vCornerCoords[],
+		                     bool bDeriv = false) override
+
 		{
 			const int si = this->subset();
 
@@ -108,13 +109,13 @@ class StdGlobPosData
 		}
 
 	///	returns if data is constant
-		virtual bool constant() const {return false;}
+		bool constant() const override {return false;}
 
 	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return false;}
+		bool requires_grid_fct() const override {return false;}
 
 	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool continuous() const {return true;}
+		bool continuous() const override {return true;}
 
 	protected:
 	///	access to implementation

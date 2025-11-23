@@ -138,7 +138,7 @@ class AlgebraicSpace : public IGridFunctionSpace<TGridFunction>
 	{ SmartPtr<TGridFunction> delta = x.clone(); *delta -= y; return delta->norm(); }
 
 	double distance2(TGridFunction& x, TGridFunction& y) override
-	{ double d = this->distance(x,y);; return d*d;}
+	{ double d = this->distance(x,y); return d*d;}
 };
 
 
@@ -531,13 +531,16 @@ public:
 	using weighted_obj_type::m_spWeight;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double norm2(TGridFunction& uFine)
-	{ return L2Norm2(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames, weighted_obj_type::m_spWeight); }
+		double norm2(TGridFunction& uFine) override {
+			return L2Norm2(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder,
+				base_type::m_ssNames, weighted_obj_type::m_spWeight);
+		}
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance
-	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
-	{ return L2Distance2(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(),
-		base_type::m_quadorder, base_type::m_ssNames, weighted_obj_type::m_spWeight);}
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) override {
+			return L2Distance2(uFine, base_type::m_fctNames.c_str(), uCoarse,
+			base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames,
+			weighted_obj_type::m_spWeight);}
 
 
 
@@ -823,12 +826,16 @@ public:
 	using IComponentSpace<TGridFunction>::distance;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double norm2(TGridFunction& uFine)
-	{ return H1Norm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames); }
+	double norm2(TGridFunction& uFine) override {
+		return H1Norm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder,
+			base_type::m_ssNames);
+	}
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
-	{ return H1Distance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames); }
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) override {
+		return H1Distance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse,
+			base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames);
+	}
 
 };
 

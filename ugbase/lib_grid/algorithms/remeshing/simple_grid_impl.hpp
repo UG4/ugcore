@@ -116,9 +116,9 @@ bool ObtainSimpleGrid(SimpleGrid& sgOut, Grid& grid,
 		{
 			Vertex* vrt = vVrts[nextVrt];
 		//	colelct neighbour faces
-			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrt);
-			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt);
-				iter != iterEnd; ++iter)
+			auto iterEnd = grid.associated_faces_end(vrt);
+			for(auto iter = grid.associated_faces_begin(vrt);
+			    iter != iterEnd; ++iter)
 			{
 				Face* f = *iter;
 			//	if f is unmarked

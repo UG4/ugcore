@@ -682,11 +682,11 @@ class DomainDiscretization
     using approx_space_type = ApproximationSpace<TDomain>;
 		
 	///	world dimension
-		static constexpr int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 		
 	public:
 	///	default Constructor
-		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace)
+	DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace)
 		: DomainDiscretizationBase<domain_type, algebra_type, gass_type> (pApproxSpace)
 		{};
 

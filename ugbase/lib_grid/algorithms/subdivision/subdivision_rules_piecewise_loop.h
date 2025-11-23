@@ -95,7 +95,7 @@ class SubdivRules_PLoop
 			assert(creaseValence > 2 && "Bad crease valence. Underlying grid is not a surface grid.");
 			if(creaseValence == 4)
 				return ref_odd_inner_weights();
-			number gamma = 0.5 - 0.25 * cos(PI / (number)(creaseValence - 1));
+			number gamma = 0.5 - 0.25 * cos(PI / static_cast<number>(creaseValence - 1));
 			return vector4(0.75 - gamma, gamma, 0.125, 0.125);
 			
 			//number c = 0.25 * cos((2.*PI) / (number)(creaseValence - 1));

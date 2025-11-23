@@ -49,19 +49,19 @@ namespace ug{
 ///	callback that always returns true
 class ConsiderAll : public ElementCallback {
 	public:
-		bool operator () (Vertex* v) const {return true;}
-		bool operator () (Edge* e) const {return true;}
-		bool operator () (Face* f) const {return true;}
-		bool operator () (Volume* v) const {return true;}
+		bool operator () (Vertex* v) const override {return true;}
+		bool operator () (Edge* e) const override {return true;}
+		bool operator () (Face* f) const override {return true;}
+		bool operator () (Volume* v) const override {return true;}
 };
 
 ///	callback that always returns false
 class ConsiderNone : public ElementCallback {
 	public:
-		bool operator () (Vertex* v) const {return false;}
-		bool operator () (Edge* e) const {return false;}
-		bool operator () (Face* f) const {return false;}
-		bool operator () (Volume* v) const {return false;}
+		bool operator () (Vertex* v) const override {return false;}
+		bool operator () (Edge* e) const override {return false;}
+		bool operator () (Face* f) const override {return false;}
+		bool operator () (Volume* v) const override {return false;}
 };
 
 
@@ -73,10 +73,10 @@ class IsMarked : public ElementCallback
 		IsMarked(const Grid& grid) :
 			m_grid(grid)	{}
 
-		bool operator () (Vertex* v) const {return callback(v);}
-		bool operator () (Edge* e) const {return callback(e);}
-		bool operator () (Face* f) const {return callback(f);}
-		bool operator () (Volume* v) const {return callback(v);}
+		bool operator () (Vertex* v) const override {return callback(v);}
+		bool operator () (Edge* e) const override {return callback(e);}
+		bool operator () (Face* f) const override {return callback(f);}
+		bool operator () (Volume* v) const override {return callback(v);}
 
 	private:
 		template <typename TElem>
@@ -93,10 +93,10 @@ class IsNotMarked : public ElementCallback
 		IsNotMarked(const Grid& grid) :
 			m_grid(grid)	{}
 
-		bool operator () (Vertex* v) const {return callback(v);}
-		bool operator () (Edge* e) const {return callback(e);}
-		bool operator () (Face* f) const {return callback(f);}
-		bool operator () (Volume* v) const {return callback(v);}
+		bool operator () (Vertex* v) const override {return callback(v);}
+		bool operator () (Edge* e) const override {return callback(e);}
+		bool operator () (Face* f) const override {return callback(f);}
+		bool operator () (Volume* v) const override {return callback(v);}
 
 	private:
 		template <typename TElem>

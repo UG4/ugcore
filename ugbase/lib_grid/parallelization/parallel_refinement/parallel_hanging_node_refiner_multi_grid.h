@@ -62,7 +62,7 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 				DistributedGridManager& distGridMgr,
 				SPRefinementProjector projector = nullptr);
 
-		~ParallelHangingNodeRefiner_MultiGrid() override = default;;
+		~ParallelHangingNodeRefiner_MultiGrid() override = default;
 
 		void set_distributed_grid_manager(DistributedGridManager& distGridMgr);
 

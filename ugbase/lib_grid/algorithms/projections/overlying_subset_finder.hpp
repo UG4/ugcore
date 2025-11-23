@@ -1,3 +1,6 @@
+#ifndef IG_UGBASE_LIB_GRID_OVERLYING_SUBSET_FINDER_HPP
+#define IG_UGBASE_LIB_GRID_OVERLYING_SUBSET_FINDER_HPP
+
 #include <common/util/string_util.h>
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include <lib_grid/grid_objects/grid_dim_traits.h>
@@ -29,7 +32,7 @@ namespace ug {
 
 		public:
 
-			OverlyingSubsetFinder(        
+			OverlyingSubsetFinder(
 				SmartPtr<TDomain> sp_domain, ///< the domain
         		const std::string & top_ss_names) ///< top surface subset names
 				: m_sp_domain (sp_domain),
@@ -38,10 +41,10 @@ namespace ug {
 
 				MultiGrid & mg = * m_sp_domain->grid ();
         		MGSubsetHandler & sh = * m_sp_domain->subset_handler ();
-        		std::vector<side_t*> topSides;			
+        		std::vector<side_t*> topSides;
 
 				m_top_tracer_tree.set_grid(m_top_grid, m_sp_domain->position_attachment ());
-                
+
 				mg.attach_to<side_t>(subset_index_attachment);
 				m_top_grid.attach_to<side_t>(subset_index_attachment);
 
@@ -52,13 +55,13 @@ namespace ug {
                 Selector sel (mg);
                 for (size_t i = 0; i < m_top_ss_grp.size (); i++)
                 {
-                    int si = m_top_ss_grp [i];                   
-                    
+                    int si = m_top_ss_grp [i];
+
 					for (SideIterator it = sh.begin<side_t> (si, 0); it != sh.end<side_t> (si, 0); ++it)
 					{
 						sel.select (*it);
-						subset_index_accessor[*it] = si;          
-					}          
+						subset_index_accessor[*it] = si;
+					}
                 }
 
 				position_accessor_type accessor;
@@ -71,7 +74,7 @@ namespace ug {
 				// {
 				// 	UG_LOG_ALL_PROCS(subset_index_accessor[(*it)] << ": " << accessor[(*it)->vertex(0)] << "-" << accessor[(*it)->vertex(1)] << std::endl);
 				// }
-                
+
             	//	copy the top Sides into a new grid
 
 				#ifdef UG_PARALLEL
@@ -80,8 +83,8 @@ namespace ug {
                 serializer.add
                     (GeomObjAttachmentSerializer<Vertex, position_attachment_type>::create (mg, m_sp_domain->position_attachment ()));
                 serializer.add
-					(GeomObjAttachmentSerializer<side_t, Attachment<int> >::create (mg, subset_index_attachment));   
-                
+					(GeomObjAttachmentSerializer<side_t, Attachment<int> >::create (mg, subset_index_attachment));
+
 				GridDataSerializationHandler deserializer;
                 deserializer.add
                     (GeomObjAttachmentSerializer<Vertex, position_attachment_type>::create (m_top_grid, m_sp_domain->position_attachment ()));
@@ -108,7 +111,7 @@ namespace ug {
 
 				if (point.size () != dim)
 					UG_THROW ("OverlyingSubsetFinder::findOverlyingSubset: Exactly " << dim << " coordinates have to be specified!");
-		
+
 				MathVector<dim> measure_point;
 
 				for(size_t d = 0; d < dim; d++)
@@ -122,11 +125,11 @@ namespace ug {
 				up_dir [dim - 1] = 1;
 				m_top_intersection_records.clear ();
 				RayElementIntersections (m_top_intersection_records, m_top_tracer_tree, measure_point, up_dir, 0.001);
-				
+
 			//	check if there are intersections at all
 				if (m_top_intersection_records.size () == 0)
 					return "";
-				
+
 				Grid::AttachmentAccessor<side_t, Attachment<int> > subset_index_accessor;
 				subset_index_accessor.access(m_top_grid, subset_index_attachment);
 
@@ -135,7 +138,7 @@ namespace ug {
 			//	find the lowest point
 				MathVector<dim> x = PointOnRay (measure_point, up_dir, m_top_intersection_records[0].smin);
 				number z_min = x [dim - 1];
-				int si = subset_index_accessor[m_top_intersection_records[0].elem];				
+				int si = subset_index_accessor[m_top_intersection_records[0].elem];
 
 				// UG_LOG("<dbg>  x: " << x << std::endl);
 				for (size_t i = 1; i < m_top_intersection_records.size (); i++)
@@ -148,7 +151,7 @@ namespace ug {
 						si = subset_index_accessor[r.elem];
 					}
 				}
-				
+
 				return m_sp_domain->subset_handler ()->get_subset_name(si);
 			}
 
@@ -182,10 +185,11 @@ namespace ug {
 			Attachment<int> subset_index_attachment;
 
 			top_tracer_tree_t m_top_tracer_tree;
-			
+
 		///	array to store all the intersections
 			std::vector<top_intersection_record_t> m_top_intersection_records;
 
 	};
 
 }
+#endif // IG_UGBASE_LIB_GRID_OVERLYING_SUBSET_FINDER_HPP

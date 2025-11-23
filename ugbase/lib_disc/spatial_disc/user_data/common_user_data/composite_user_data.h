@@ -57,8 +57,8 @@ public:
 	using ref_type = SmartPtr<base_type>; ///< the attached UserData objects should have the same type as this class (i.e. they are "remapped")
 
 	CompositeUserData() : m_bContinuous(true), m_bRequiresGridFunction(false) {}
-	
-	CompositeUserData(bool continuous) : m_bContinuous(continuous), m_bRequiresGridFunction(false) {}
+
+	explicit CompositeUserData(bool continuous) : m_bContinuous(continuous), m_bRequiresGridFunction(false) {}
 
 	~CompositeUserData() override = default;
 
@@ -117,63 +117,59 @@ public:
 
 	// Implementing virtual functions
 
-	virtual bool continuous() const {return m_bContinuous;}
+	bool continuous() const override {return m_bContinuous;}
 
 	/// returns true, if at least one of the underlying UserData requires grid functions.
-	 virtual bool requires_grid_fct() const
-	 {
+	bool requires_grid_fct() const override {
 		 return m_bRequiresGridFunction;
 	 }
 
 	///	returns value for a global position
-	 virtual TRet operator () (TData& value,
-									 const MathVector<dim>& globIP,
-									 number time, int si) const
+	TRet operator () (TData& value,
+	                  const MathVector<dim>& globIP,
+	                  number time, int si) const override
 	{ check (si); return (*m_vData[si]) (value, globIP, time, si); }
 
 	///	returns values for global positions
-	virtual void operator ()(TData vValue[],
-							const MathVector<dim> vGlobIP[],
-							number time, int si, const size_t nip) const
+	void operator ()(TData vValue[],
+	                 const MathVector<dim> vGlobIP[],
+	                 number time, int si, const size_t nip) const override
 	{ check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, nip); }
 
 
-	virtual void operator ()(TData vValue[],
-									const MathVector<dim> vGlobIP[],
-									number time, int si,
-									GridObject* elem,
-									const MathVector<dim> vCornerCoords[],
-									const MathVector<1> vLocIP[],
-									const size_t nip,
-									LocalVector* u,
-									const MathMatrix<1, dim>* vJT = nullptr) const
-	{
+	void operator ()(TData vValue[],
+	                 const MathVector<dim> vGlobIP[],
+	                 number time, int si,
+	                 GridObject* elem,
+	                 const MathVector<dim> vCornerCoords[],
+	                 const MathVector<1> vLocIP[],
+	                 const size_t nip,
+	                 LocalVector* u,
+	                 const MathMatrix<1, dim>* vJT = nullptr) const override {
 		check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 	}
 
-	virtual void operator () (TData vValue[],
-									const MathVector<dim> vGlobIP[],
-									number time, int si,
-									GridObject* elem,
-									const MathVector<dim> vCornerCoords[],
-									const MathVector<2> vLocIP[],
-									const size_t nip,
-									LocalVector* u,
-									const MathMatrix<2, dim>* vJT = nullptr) const
-	{
+	void operator () (TData vValue[],
+	                  const MathVector<dim> vGlobIP[],
+	                  number time, int si,
+	                  GridObject* elem,
+	                  const MathVector<dim> vCornerCoords[],
+	                  const MathVector<2> vLocIP[],
+	                  const size_t nip,
+	                  LocalVector* u,
+	                  const MathMatrix<2, dim>* vJT = nullptr) const override {
 		check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 	}
 
-	virtual void operator () (TData vValue[],
-						   const MathVector<dim> vGlobIP[],
-							number time, int si,
-							GridObject* elem,
-							const MathVector<dim> vCornerCoords[],
-							const MathVector<3> vLocIP[],
-							const size_t nip,
-							LocalVector* u,
-							const MathMatrix<3, dim>* vJT = nullptr) const
-	{
+	void operator () (TData vValue[],
+	                  const MathVector<dim> vGlobIP[],
+	                  number time, int si,
+	                  GridObject* elem,
+	                  const MathVector<dim> vCornerCoords[],
+	                  const MathVector<3> vLocIP[],
+	                  const size_t nip,
+	                  LocalVector* u,
+	                  const MathMatrix<3, dim>* vJT = nullptr) const override {
 		check (si); return (*m_vData[si]) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 	}
 

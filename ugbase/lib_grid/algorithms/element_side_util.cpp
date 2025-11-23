@@ -54,7 +54,7 @@ Face* GetOpposingSide(Grid& g, Volume* elem, Face* side)
 			return sl[s];
 	}
 
-	return (Face*) nullptr;
+	return nullptr;
 }
 
 

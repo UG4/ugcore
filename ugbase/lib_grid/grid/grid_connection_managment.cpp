@@ -936,7 +936,7 @@ void Grid::register_face(Face* f, GridObject* pParent, Volume* createdByVol)
 			m_aaFaceContainerVERTEX[vrts[i]].push_back(f);
 	}
 
-	bool createEdges = option_is_enabled(FACEOPT_AUTOGENERATE_EDGES);;
+	bool createEdges = option_is_enabled(FACEOPT_AUTOGENERATE_EDGES);
 	const bool edgesStoreFaces = option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES);
 	const bool facesStoreEdges = option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES);
 

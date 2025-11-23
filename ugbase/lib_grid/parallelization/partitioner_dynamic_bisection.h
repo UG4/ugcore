@@ -66,7 +66,7 @@ class Partitioner_DynamicBisection : public IPartitioner {
 
 		Partitioner_DynamicBisection();
 
-		~Partitioner_DynamicBisection() override  = default;;
+		~Partitioner_DynamicBisection() override  = default;
 
 		void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos);
 

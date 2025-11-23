@@ -29,6 +29,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
+// ø todo move classes out of bridge
 
 #include <iostream>
 #include <sstream>
@@ -42,7 +43,9 @@
 
 #include "bindings/lua/lua_user_data.h"
 
+
 #ifdef UG_PARALLEL
+	#include "lib_grid/refinement/projectors/projectors.h"
 	#include "lib_disc/parallelization/domain_load_balancer.h"
 	#include "lib_grid/parallelization/load_balancer.h"
 	#include "lib_grid/parallelization/load_balancer_util.h"
@@ -90,17 +93,16 @@ namespace ug{
 
 			m_ppp = make_sp(new PPP_RC (aPos, aRelZ, dim - 1));
 		}
+		~PartPreProc_RasterProjectorCoordinates() override = default;
 
-		virtual void partitioning_starts (	MultiGrid* mg,
-		                                 	IPartitioner* partitioner)
-		{
+		void partitioning_starts ( MultiGrid* mg,
+								   IPartitioner* partitioner) override {
 			m_ppp->partitioning_starts (mg, partitioner);
 		}
 
 
-		virtual void partitioning_done (	MultiGrid* mg,
-		                                	IPartitioner* partitioner)
-		{
+		void partitioning_done ( MultiGrid* mg,
+			                        IPartitioner* partitioner) override {
 			m_ppp->partitioning_done (mg, partitioner);
 		}
 
@@ -121,16 +123,16 @@ namespace ug{
 				m_callback.set_lua_callback(luaCallbackName, 5);
 			}
 
-			virtual ~BalanceWeightsLuaCallback() = default;
+			~BalanceWeightsLuaCallback() override = default;
 
 
 			void set_time(number time)	{m_time = time;}
 			number time() const			{return m_time;}
 
-			virtual number get_weight(Vertex* e)	{return	get_weight_impl(e);}
-			virtual number get_weight(Edge* e)		{return	get_weight_impl(e);}
-			virtual number get_weight(Face* e)		{return	get_weight_impl(e);}
-			virtual number get_weight(Volume* e)	{return	get_weight_impl(e);}
+			number get_weight(Vertex* e) override {return get_weight_impl(e);}
+			number get_weight(Edge* e) override {return	get_weight_impl(e);}
+			number get_weight(Face* e) override {return	get_weight_impl(e);}
+			number get_weight(Volume* e) override {return get_weight_impl(e);}
 
 		private:
 			using grid_t = typename TDomain::grid_type;

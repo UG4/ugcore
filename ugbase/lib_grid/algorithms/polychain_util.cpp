@@ -55,9 +55,8 @@ GetNextSectionOfPolyChain(Grid& grid, std::pair<Vertex*, Edge*> lastSection,
 	Vertex* nVrt = GetConnectedVertex(lastSection.second, lastSection.first);
 	
 //	find the next edge
-	Grid::AssociatedEdgeIterator edgesEnd = grid.associated_edges_end(nVrt);
-	for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(nVrt);
-		iter != edgesEnd; ++iter)
+	auto edgesEnd = grid.associated_edges_end(nVrt);
+	for(auto iter = grid.associated_edges_begin(nVrt); iter != edgesEnd; ++iter)
 	{
 		if(cbEdgeIsInPolyChain(*iter) && (*iter != lastSection.second)){
 		//	we got the next edge
@@ -113,10 +112,9 @@ bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex)
 			break;
 
 		size_t counter = 0;
-		
-		Grid::AssociatedEdgeIterator edgesEnd = grid.associated_edges_end(cv);
-		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(cv);
-			iter != edgesEnd; ++iter)
+
+		auto edgesEnd = grid.associated_edges_end(cv);
+		for(auto iter = grid.associated_edges_begin(cv); iter != edgesEnd; ++iter)
 		{
 			if(sh.get_subset_index(*iter) == srcIndex)
 				++counter;

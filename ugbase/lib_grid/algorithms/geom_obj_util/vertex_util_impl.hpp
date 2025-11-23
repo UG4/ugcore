@@ -281,12 +281,12 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 	using AVertexList = Attachment<std::list<Vertex*> >;
 	AVertexList aVertexList;
 	grid.attach_to_vertices(aVertexList);
-	Grid::VertexAttachmentAccessor<AVertexList> aaVL(grid, aVertexList);
+	Grid::VertexAttachmentAccessor aaVL(grid, aVertexList);
 
 //	we'll store in this attachment whether a vertex will be merged or not.
 	AInt aInt;
 	grid.attach_to_vertices(aInt);
-	Grid::VertexAttachmentAccessor<AInt> aaInt(grid, aInt);
+	Grid::VertexAttachmentAccessor aaInt(grid, aInt);
 	{
 		for(TVrtIterator iter = iterBegin; iter != iterEnd; ++iter)
 			aaInt[*iter] = 0;
@@ -317,8 +317,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 		//	store them in the vertexVec attachment
 			if(!neighbours.empty())
 			{
-				for(std::vector<Vertex*>::iterator nIter = neighbours.begin();
-					nIter != neighbours.end(); ++nIter)
+				for(auto nIter = neighbours.begin(); nIter != neighbours.end(); ++nIter)
 				{
 					Vertex* nv = *nIter;
 					if(aaInt[nv] == 0)
@@ -351,7 +350,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 			Vertex* v = *iter;
 			if(!aaVL[v].empty())
 			{
-				std::list<Vertex*>::iterator nIter = aaVL[v].begin();
+				auto nIter = aaVL[v].begin();
 				while(nIter != aaVL[v].end())
 				{
 					Vertex* delVrt = *nIter;

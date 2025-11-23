@@ -84,12 +84,12 @@ class GlobAttachmentElementUserData
 	
 	//	UserData interface
 		
-		virtual bool continuous () const
+		bool continuous () const override
 		{
 			return false;
 		}
 
-		virtual bool requires_grid_fct () const
+		bool requires_grid_fct () const override
 		{
 			return true;
 		}
@@ -116,13 +116,13 @@ class GlobAttachmentElementUserData
 	
 	//	StdUserData interface
 		
-		virtual void compute
+		void compute
 		(
 			LocalVector* u,
 			GridObject* elem,
 			const MathVector<dim> vCornerCoords[],
 			bool bDeriv = false
-		)
+		) override
 		{
 			UG_ASSERT (elem->base_object_id() == dim, "GlobAttachmentElementUserData: Dimensionality of the element should be equal to the world dimensionality.");
 			
@@ -130,13 +130,13 @@ class GlobAttachmentElementUserData
 				eval_on_elem ((elem_type *) elem, this->num_ip (s), this->values (s));
 		}
 
-		virtual void compute
+		void compute
 		(
 			LocalVectorTimeSeries* u,
 			GridObject* elem,
 			const MathVector<dim> vCornerCoords[],
 			bool bDeriv = false
-		)
+		) override
 		{
 			UG_ASSERT (elem->base_object_id() == dim, "GlobAttachmentElementUserData: Dimensionality of the element should be equal to the world dimensionality.");
 			
@@ -144,25 +144,23 @@ class GlobAttachmentElementUserData
 				eval_on_elem ((elem_type *) elem, this->num_ip (s), this->values (s));
 		}
 
-		virtual void operator () ///< cannot be implemented here
+		void operator () ///< cannot be implemented here
 		(
 			data_type& value,
 			const MathVector<dim>& globIP,
 			number time, int si
-		) const
-		{
+		) const override {
 			UG_THROW("GlobAttachmentElementUserData: Element required"
 					 " for evaluation, but not passed. Cannot evaluate.");
 		}
 
-		virtual void operator () ///< cannot be implemented here
+		void operator () ///< cannot be implemented here
 		(
 			data_type vValue[],
 			const MathVector<dim> vGlobIP[],
 			number time, int si,
 			const size_t nip
-		) const
-		{
+		) const override {
 			UG_THROW("GlobAttachmentElementUserData: Element required"
 					 " for evaluation, but not passed. Cannot evaluate.");
 		}

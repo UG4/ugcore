@@ -40,15 +40,19 @@ namespace ug{
 void GenerateIcosahedron(Grid& grid, const vector3& center,
 						 number radius, AVector3& aPos)
 {
-	const number A = 0.85065080835204;
-	const number B = 0.525731112119134;
+	// normalize (1,phi,0) with phi = (1 + sqrt(5)) / 2 to get A and B
+	// A^2 + B^2 = 1^2
+	constexpr number A = 0.85065080835204;
+	//                   0.85065080835203993218154049706301107224040140376483
+	constexpr number B = 0.525731112119134;
+	//					 0.52573111211913360602566908484787660728549793224334
 
 //	create the vertices
-	const number coords[12][3] = {	{-B, A, 0}, {0, B, A}, {B, A, 0}, {0, B, -A},
+	constexpr number coords[12][3] = {	{-B, A, 0}, {0, B, A}, {B, A, 0}, {0, B, -A},
 									{-A, 0, B}, {A, 0, B}, {A, 0, -B}, {-A, 0, -B},
 									{-B, -A, 0}, {0, -B, A}, {B, -A, 0}, {0, -B, -A}};
 
-	const int inds[20][3] = {	{0, 1, 2}, {0, 2, 3},
+	constexpr int inds[20][3] = {	{0, 1, 2}, {0, 2, 3},
 								{3, 7, 0}, {7, 4, 0}, {0, 4, 1},
 								{1, 5, 2}, {5, 6, 2}, {2, 6, 3},
 								{4, 9, 1}, {1, 9, 5}, {7, 3, 11}, {3, 6, 11},

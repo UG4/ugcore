@@ -78,9 +78,11 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	/**
 	 * \param[in] spDD	Domain Discretization
 	 */
-		ITimeDiscretization(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
+		explicit ITimeDiscretization(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
 			: m_spDomDisc(spDD)
 		{}
+
+		~ITimeDiscretization() override = default;
 
 	/// prepares the assembling of Defect/Jacobian for a time step
 	/**
@@ -157,14 +159,12 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 		{return m_spDomDisc;}
 
 	///	returns the number of constraint
-		virtual size_t num_constraints() const
-		{
+		size_t num_constraints() const override {
 			return m_spDomDisc->num_constraints();
 		}
 
 	///	returns the i'th constraint
-		virtual SmartPtr<IConstraint<TAlgebra> > constraint(size_t i)
-		{
+		SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) override {
 			return m_spDomDisc->constraint(i);
 		}
 
@@ -174,8 +174,8 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	private:
 	///	returns the assemble adapter
 	/// \{
-		SmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() {return m_spDomDisc->ass_tuner();}
-		ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const {return m_spDomDisc->ass_tuner();}
+		SmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() override {return m_spDomDisc->ass_tuner();}
+		ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const override {return m_spDomDisc->ass_tuner();}
 	/// \}
 };
 

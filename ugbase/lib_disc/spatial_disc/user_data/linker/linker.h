@@ -53,13 +53,13 @@ class StdDataLinker
 						  DependentUserData<TData, dim> >
 {
 	public:
-		virtual void operator () (TData& value,
-								 const MathVector<dim>& globIP,
-								 number time, int si) const;
+		void operator () (TData& value,
+	                  const MathVector<dim>& globIP,
+	                  number time, int si) const override;
 
-		virtual void operator () (TData vValue[],
-								const MathVector<dim> vGlobIP[],
-								number time, int si, const size_t nip) const;
+		void operator () (TData vValue[],
+		                  const MathVector<dim> vGlobIP[],
+		                  number time, int si, const size_t nip) const override;
 
 		template <int refDim>
 		inline void evaluate(TData vValue[],
@@ -72,10 +72,13 @@ class StdDataLinker
 							 LocalVector* u,
 							 const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
-		virtual void compute(LocalVector* u, GridObject* elem,
-							 const MathVector<dim> vCornerCoords[], bool bDeriv = false);
-		virtual void compute(LocalVectorTimeSeries* u, GridObject* elem,
-							 const MathVector<dim> vCornerCoords[], bool bDeriv = false);
+		void compute(LocalVector* u, GridObject* elem,
+							 const MathVector<dim> vCornerCoords[],
+							 bool bDeriv = false) override;
+
+		void compute(LocalVectorTimeSeries* u, GridObject* elem,
+							 const MathVector<dim> vCornerCoords[],
+							 bool bDeriv = false) override;
 
 	protected:
 		template <int refDim>
@@ -87,13 +90,13 @@ class StdDataLinker
 
 	public:
 	///	returns that a grid function is needed for evaluation
-		virtual bool requires_grid_fct() const;
+		bool requires_grid_fct() const override;
 
 	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool continuous() const;
+		bool continuous() const override;
 
 	///	returns if derivative is zero
-		virtual bool zero_derivative() const;
+		bool zero_derivative() const override;
 
 	public:
 	///	returns if the derivative of the i'th input is zero
@@ -124,10 +127,10 @@ class StdDataLinker
 		virtual size_t num_input() const {return num_needed_data();}
 
 	///	number of other Data this data depends on
-		virtual size_t num_needed_data() const {return m_vspICplUserData.size();}
+		size_t num_needed_data() const override {return m_vspICplUserData.size();}
 
 	///	return needed data
-		virtual SmartPtr<ICplUserData<dim> > needed_data(size_t i)
+		SmartPtr<ICplUserData<dim> > needed_data(size_t i) override
 		{
 			UG_ASSERT(i < m_vspICplUserData.size(), "Input not needed");
 			UG_ASSERT(m_vspICplUserData[i].valid(), "Data input not valid");
@@ -135,10 +138,10 @@ class StdDataLinker
 		}
 
 	///	returns if data is ok
-		virtual void check_setup() const;
+		void check_setup() const override;
 
 	///	updates the function group
-		virtual void set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt);
+		void set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt) override;
 
 	protected:
 	///	returns number of functions the input depends on
@@ -166,16 +169,16 @@ class StdDataLinker
 		}
 
 	///	requests series id's from input data
-		virtual void local_ip_series_added(const size_t seriesID);
+		void local_ip_series_added(size_t seriesID) override;
 
 	///	forwards the local positions to the data inputs
-		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP);
+		void local_ips_changed(size_t seriesID, size_t newNumIP) override;
 
 	///	requests cleaning of the ip series in the data inputs
-		virtual void local_ip_series_to_be_cleared();
+		void local_ip_series_to_be_cleared() override;
 
 	///	forwards the global positions to the data inputs
-		virtual void global_ips_changed(const size_t seriesID, const MathVector<dim>* vPos, const size_t numIP);
+		void global_ips_changed(size_t seriesID, const MathVector<dim>* vPos, size_t numIP) override;
 
 	protected:
 	///	data input

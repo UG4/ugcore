@@ -63,7 +63,7 @@ TRet LognormalRandomField<TData,dim,TRet>::evaluate(TData& D, const MathVector<d
 				D[i][j] = k;
 		}
 	}
-	return;
+	return; // ø todo here a value should be returned if TRet is not void
 }
 
 template <typename TData, int dim, typename TRet>

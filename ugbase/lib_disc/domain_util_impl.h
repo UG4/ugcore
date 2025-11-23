@@ -76,7 +76,7 @@ void CollectCornerCoordinates(	std::vector<typename TAAPos::ValueType>& vCornerC
 								const TElem& elem, const TAAPos& aaPos, bool clearContainer)
 {
 //	cast constness away
-	TElem* pElem = const_cast<TElem*>(&elem);
+	auto* pElem = const_cast<TElem*>(&elem);
 
 //	forward
 	return CollectCornerCoordinates(vCornerCoordsOut, pElem, aaPos, clearContainer);

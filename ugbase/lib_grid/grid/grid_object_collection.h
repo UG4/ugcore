@@ -144,14 +144,14 @@ class UG_API GridObjectCollection
 		typename geometry_traits<TGeomObj>::iterator
 		end(size_t level = 0);
 
-		inline VertexIterator	vertices_begin(size_t level = 0)	{return begin<Vertex>(level);}
-		inline VertexIterator	vertices_end(size_t level = 0)		{return end<Vertex>(level);}
-		inline EdgeIterator		edges_begin(size_t level = 0)		{return begin<Edge>(level);}
-		inline EdgeIterator		edges_end(size_t level = 0)			{return end<Edge>(level);}
-		inline FaceIterator			faces_begin(size_t level = 0)		{return begin<Face>(level);}
-		inline FaceIterator			faces_end(size_t level = 0)			{return end<Face>(level);}
-		inline VolumeIterator		volumes_begin(size_t level = 0)		{return begin<Volume>(level);}
-		inline VolumeIterator		volumes_end(size_t level = 0)		{return end<Volume>(level);}
+		inline VertexIterator vertices_begin(size_t level = 0) {return begin<Vertex>(level);}
+		inline VertexIterator vertices_end(size_t level = 0) {return end<Vertex>(level);}
+		inline EdgeIterator edges_begin(size_t level = 0) {return begin<Edge>(level);}
+		inline EdgeIterator edges_end(size_t level = 0) {return end<Edge>(level);}
+		inline FaceIterator faces_begin(size_t level = 0) {return begin<Face>(level);}
+		inline FaceIterator faces_end(size_t level = 0) {return end<Face>(level);}
+		inline VolumeIterator volumes_begin(size_t level = 0) {return begin<Volume>(level);}
+		inline VolumeIterator volumes_end(size_t level = 0) {return end<Volume>(level);}
 
 	//	const iterators
 	//	begin
@@ -166,14 +166,14 @@ class UG_API GridObjectCollection
 		typename geometry_traits<TGeomObj>::const_iterator
 		end(size_t level = 0) const;
 
-		inline ConstVertexIterator	vertices_begin(size_t level = 0) const	{return begin<Vertex>(level);}
-		inline ConstVertexIterator	vertices_end(size_t level = 0) const	{return end<Vertex>(level);}
-		inline ConstEdgeIterator	edges_begin(size_t level = 0) const		{return begin<Edge>(level);}
-		inline ConstEdgeIterator	edges_end(size_t level = 0) const		{return end<Edge>(level);}
-		inline ConstFaceIterator		faces_begin(size_t level = 0) const		{return begin<Face>(level);}
-		inline ConstFaceIterator		faces_end(size_t level = 0) const		{return end<Face>(level);}
-		inline ConstVolumeIterator		volumes_begin(size_t level = 0) const	{return begin<Volume>(level);}
-		inline ConstVolumeIterator		volumes_end(size_t level = 0) const		{return end<Volume>(level);}
+		inline ConstVertexIterator vertices_begin(size_t level = 0) const {return begin<Vertex>(level);}
+		inline ConstVertexIterator vertices_end(size_t level = 0) const {return end<Vertex>(level);}
+		inline ConstEdgeIterator edges_begin(size_t level = 0) const {return begin<Edge>(level);}
+		inline ConstEdgeIterator edges_end(size_t level = 0) const {return end<Edge>(level);}
+		inline ConstFaceIterator faces_begin(size_t level = 0) const {return begin<Face>(level);}
+		inline ConstFaceIterator faces_end(size_t level = 0) const {return end<Face>(level);}
+		inline ConstVolumeIterator volumes_begin(size_t level = 0) const {return begin<Volume>(level);}
+		inline ConstVolumeIterator volumes_end(size_t level = 0) const {return end<Volume>(level);}
 		
 	//	element numbers
 		template <typename TGeomObj>

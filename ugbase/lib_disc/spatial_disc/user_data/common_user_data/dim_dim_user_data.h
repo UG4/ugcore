@@ -120,10 +120,10 @@ public:
 	{}
 	
 ///	Indicator functions are discontinuous
-	virtual bool continuous () const {return false;}
+	bool continuous () const override {return false;}
 
 ///	Returns true to get the grid element in the evaluation routine
-	virtual bool requires_grid_fct () const {return m_spData->requires_grid_fct ();}
+	bool requires_grid_fct () const override {return m_spData->requires_grid_fct ();}
 	// Remark: Note that actually we have not enought data for that. This dependence is neglected.
 
 ///	Evaluator
@@ -235,9 +235,7 @@ public:
 		const MathVector<dim> & globIP,
 		number time,
 		int si
-	)
-	const
-	{
+	) const override {
 		UG_THROW("OutNormCmp: Element required for evaluation, but not passed. Cannot evaluate.");
 	}
 
@@ -249,8 +247,7 @@ public:
 		number time,
 		int si,
 		const size_t nip
-	) const
-	{
+	) const override {
 		UG_THROW("OutNormCmp: Element required for evaluation, but not passed. Cannot evaluate.");
 	}
 
@@ -330,10 +327,10 @@ public:
 	{}
 	
 ///	Indicator functions are discontinuous
-	virtual bool continuous () const {return false;}
+	bool continuous () const override {return false;}
 
 ///	Returns true to get the grid element in the evaluation routine
-	virtual bool requires_grid_fct () const {return m_spVecData->requires_grid_fct () || m_spScalData->requires_grid_fct ();}
+	bool requires_grid_fct () const override {return m_spVecData->requires_grid_fct () || m_spScalData->requires_grid_fct ();}
 	// Remark: Note that actually we have not enought data for that. This dependence is neglected.
 
 ///	Evaluator
@@ -455,8 +452,7 @@ public:
 		number time,
 		int si
 	)
-	const
-	{
+	const override {
 		UG_THROW("ScaledOutNormCmp: Element required for evaluation, but not passed. Cannot evaluate.");
 	}
 
@@ -468,8 +464,7 @@ public:
 		number time,
 		int si,
 		const size_t nip
-	) const
-	{
+	) const override {
 		UG_THROW("ScaledOutNormCmp: Element required for evaluation, but not passed. Cannot evaluate.");
 	}
 
@@ -527,9 +522,9 @@ public:
 	:	m_spVecData (spVecData), m_spScalData (spScalData), m_spDomain (spDomain), m_ssGrp (spDomain->subset_handler ())
 	{
 	// Parse the subset names:
-		std::vector<std::string> vssNames;
-		try
+	try
 		{
+			std::vector<std::string> vssNames;
 			TokenizeString (ss_names, vssNames);
 			for (size_t k = 0; k < vssNames.size (); k++)
 				RemoveWhitespaceFromString (vssNames [k]);
@@ -549,10 +544,11 @@ public:
 	{}
 	
 ///	Indicator functions are discontinuous
-	virtual bool continuous () const {return false;}
+	bool continuous () const override {return false;}
 
 ///	Returns true to get the grid element in the evaluation routine
-	virtual bool requires_grid_fct () const {return m_spVecData->requires_grid_fct () || m_spScalData->requires_grid_fct ();}
+	bool requires_grid_fct () const override
+		{return m_spVecData->requires_grid_fct () || m_spScalData->requires_grid_fct ();}
 	// Remark: Note that actually we have not enought data for that. This dependence is neglected.
 
 ///	Evaluator
@@ -669,8 +665,7 @@ public:
 		number time,
 		int si
 	)
-	const
-	{
+	const override {
 		UG_THROW("ScaledFluxData: Element required for evaluation, but not passed. Cannot evaluate.");
 	}
 
@@ -682,8 +677,7 @@ public:
 		number time,
 		int si,
 		const size_t nip
-	) const
-	{
+	) const override {
 		UG_THROW("ScaledFluxData: Element required for evaluation, but not passed. Cannot evaluate.");
 	}
 

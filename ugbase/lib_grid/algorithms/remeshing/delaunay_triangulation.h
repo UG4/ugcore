@@ -33,13 +33,13 @@
 #ifndef __H__UG__delaunay_triangulation__
 #define __H__UG__delaunay_triangulation__
 
-#include <queue>
-#include <vector>
-#include <sstream>
+// #include <queue>
+// #include <vector>
+// #include <sstream>
 #include "delaunay_info.h"
-#include "common/ug_config.h"
+// #include "common/ug_config.h"
 #include "lib_grid/lg_base.h"
-#include "lib_grid/algorithms/geom_obj_util/edge_util.h"
+// #include "lib_grid/algorithms/geom_obj_util/edge_util.h"
 #include "lib_grid/callbacks/basic_callbacks.h"
 
 namespace ug

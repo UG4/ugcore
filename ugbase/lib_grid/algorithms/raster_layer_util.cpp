@@ -152,9 +152,9 @@ remove_small_holes(number maxArea)
 {
 	using namespace std;
 
-	const size_t numNbrs = 4;
-	const int xadd[numNbrs] = {0, -1, 1, 0};
-	const int yadd[numNbrs] = {-1, 0, 0, 1};
+	constexpr size_t numNbrs = 4;
+	constexpr int xadd[numNbrs] = {0, -1, 1, 0};
+	constexpr int yadd[numNbrs] = {-1, 0, 0, 1};
 
 	Field<bool>	visited;
 	vector<pair<int, int> > cells;

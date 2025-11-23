@@ -87,7 +87,7 @@ class AgglomeratingBase : public TBase
 		bool i_am_root()
 		{
 			return m_bRoot;
-			//m_bRoot = pcl::ProcRank() == agglomerationLayout.proc_comm().get_proc_id(0);;
+			//m_bRoot = pcl::ProcRank() == agglomerationLayout.proc_comm().get_proc_id(0);
 		}
 
 		bool empty()

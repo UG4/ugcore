@@ -182,8 +182,8 @@ void CreateGridFromFieldBoundary(Grid& grid,
 			}
 
 		//	now check for each inner side whether it's a neighbor to an empty cell
-			const int colAdd[4] = {-1, 0, 1, 0};
-			const int rowAdd[4] = {0, 1, 0, -1};
+		constexpr int colAdd[4] = {-1, 0, 1, 0};
+		constexpr int rowAdd[4] = {0, 1, 0, -1};
 			for(int iside = 0; iside < 4; ++iside){
 				const int ind[2] = {iside, (iside + 1) % 4};
 				if(val[ind[0]] != noDataValue && val[ind[1]] != noDataValue){

@@ -139,18 +139,16 @@ class StdDependentUserData
 		StdDependentUserData(const std::vector<std::string>& symbFct) {this->set_functions(symbFct);}
 
 	public:
-		virtual void operator () (TData& value,
-								 const MathVector<dim>& globIP,
-								 number time, int si) const
-		{
+		void operator () (TData& value,
+		                  const MathVector<dim>& globIP,
+		                  number time, int si) const override {
 			UG_THROW("StdDependentUserData: Solution, element and local ips required "
 					"for evaluation, but not passed. Cannot evaluate.");
 		}
 
-		virtual void operator () (TData vValue[],
-								const MathVector<dim> vGlobIP[],
-								number time, int si, const size_t nip) const
-		{
+		void operator () (TData vValue[],
+		                  const MathVector<dim> vGlobIP[],
+		                  number time, int si, const size_t nip) const override {
 			UG_THROW("StdDependentUserData: Solution, element and local ips required "
 					"for evaluation, but not passed. Cannot evaluate.");
 		}
@@ -218,8 +216,10 @@ class StdDependentUserData
 			}
 		}
 
-		virtual void compute(LocalVector* u, GridObject* elem,
-							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
+		void compute(LocalVector* u, GridObject* elem,
+							 const MathVector<dim> vCornerCoords[],
+							 bool bDeriv = false) override
+	{
 
 			UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),
 			          "local ip dimension (" << this->dim_local_ips()
@@ -234,8 +234,9 @@ class StdDependentUserData
 			}
 		}
 
-		virtual void compute(LocalVectorTimeSeries* u, GridObject* elem,
-							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
+		void compute(LocalVectorTimeSeries* u, GridObject* elem,
+							 const MathVector<dim> vCornerCoords[],
+							 bool bDeriv = false) override {
 
 			UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),
 			          "local ip dimension and reference element dimension mismatch.");

@@ -71,7 +71,7 @@ allocate()
 	assert(m_allocChunk->m_numAvailableBlocks > 0);
 	
 	--m_numFreeBlocks;
-	return m_allocChunk->allocate(m_blockSize);;
+	return m_allocChunk->allocate(m_blockSize);
 }
 
 void FixedAllocator::

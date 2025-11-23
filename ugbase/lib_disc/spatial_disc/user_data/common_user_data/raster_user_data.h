@@ -87,9 +87,9 @@ public:
 	void set_order(int order) {m_interpOrder = order;}
 	void set_scale(number alpha) {m_rescale = alpha;}
 
-	virtual bool requires_grid_fct() const {return false;}
-	virtual bool constant() const {return false;}
-	virtual bool continuous() const {return false;}
+	bool requires_grid_fct() const override {return false;}
+	bool constant() const override {return false;}
+	bool continuous() const override {return false;}
 
 };
 

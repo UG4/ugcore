@@ -510,8 +510,7 @@ SweepLineEdge* GetEdgeOnTheLeft(MapEdgeCuts& edgeCuts, SweepLineVertex& v)
 	SweepLineEdge* leftEdge = nullptr;
 	number leftEdgeVal = 0;
 
-	for(MapEdgeCuts::iterator iter = edgeCuts.begin();
-		iter != edgeCuts.end(); ++iter)
+	for(auto iter = edgeCuts.begin(); iter != edgeCuts.end(); ++iter)
 	{
 		if(iter->first < v.vrtPtr->x()){
 			if(!iter->second->contains(&v)){
@@ -572,8 +571,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 		number sweepLineY = v.vrtPtr->y();
 	//	update the edgeCutsMap.
 		MapEdgeCuts	tmap;
-		for(MapEdgeCuts::iterator iter = edgeCuts.begin();
-			iter != edgeCuts.end(); ++iter)
+		for(auto iter = edgeCuts.begin(); iter != edgeCuts.end(); ++iter)
 		{
 		//	if the helper was set to nullptr, we'll ignore the edge
 			if(iter->second->m_helper){
@@ -639,7 +637,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 					if(incoming->m_helper != nullptr){
 						if(incoming->m_helper->m_status == SLVS_MERGE){
 						//	insert a diagonal between helper and v
-							edges.push_back(SweepLineEdge(incoming->m_helper, &v));
+							edges.emplace_back(incoming->m_helper, &v);
 							incoming->m_helper->connections.push_back(&edges.back());
 							v.connections.push_back(&edges.back());
 						}
@@ -687,7 +685,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 							}
 							if(incoming->m_helper->m_status == SLVS_MERGE){
 							//	insert a diagonal between helper and v
-								edges.push_back(SweepLineEdge(incoming->m_helper, &v));
+								edges.emplace_back(incoming->m_helper, &v);
 								incoming->m_helper->connections.push_back(&edges.back());
 								v.connections.push_back(&edges.back());
 
@@ -726,7 +724,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 								}
 								if(leftEdge->m_helper->m_status == SLVS_MERGE){
 								//	add a diagonal and replace the helper
-									edges.push_back(SweepLineEdge(leftEdge->m_helper, &v));
+									edges.emplace_back(leftEdge->m_helper, &v);
 									leftEdge->m_helper->connections.push_back(&edges.back());
 									v.connections.push_back(&edges.back());
 								}
@@ -768,7 +766,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 							{
 								if(incoming.m_helper->m_status == SLVS_MERGE){
 								//	insert a diagonal between helper and v
-									edges.push_back(SweepLineEdge(incoming.m_helper, &v));
+									edges.emplace_back(incoming.m_helper, &v);
 									incoming.m_helper->connections.push_back(&edges.back());
 									v.connections.push_back(&edges.back());
 
@@ -788,7 +786,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 							}
 							if(leftEdge->m_helper->m_status == SLVS_MERGE){
 							//	add a diagonal and replace the helper
-								edges.push_back(SweepLineEdge(leftEdge->m_helper, &v));
+								edges.emplace_back(leftEdge->m_helper, &v);
 								leftEdge->m_helper->connections.push_back(&edges.back());
 								v.connections.push_back(&edges.back());
 							}
@@ -832,7 +830,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 					}
 
 				//	create a new diagonal from leftEdges helper to v
-					edges.push_back(SweepLineEdge(leftEdge->m_helper, &v));
+					edges.emplace_back(leftEdge->m_helper, &v);
 					leftEdge->m_helper->connections.push_back(&edges.back());
 					v.connections.push_back(&edges.back());
 
@@ -877,7 +875,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 
 						if(incoming->m_helper->m_status == SLVS_MERGE){
 						//	insert a diagonal between helper and v
-							edges.push_back(SweepLineEdge(incoming->m_helper, &v));
+							edges.emplace_back(incoming->m_helper, &v);
 							incoming->m_helper->connections.push_back(&edges.back());
 							v.connections.push_back(&edges.back());
 						}
@@ -893,7 +891,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 							SweepLineEdge* incoming = v.connections[i];
 							if(incoming->m_helper){
 								if(incoming->m_helper->m_status == SLVS_MERGE){
-									edges.push_back(SweepLineEdge(incoming->m_helper, &v));
+									edges.emplace_back(incoming->m_helper, &v);
 									incoming->m_helper->connections.push_back(&edges.back());
 									v.connections.push_back(&edges.back());
 								}
@@ -925,7 +923,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 					   && leftEdge->m_helper->m_status == SLVS_MERGE)
 					{
 					//	add a diagonal and replace the helper
-						edges.push_back(SweepLineEdge(leftEdge->m_helper, &v));
+						edges.emplace_back(leftEdge->m_helper, &v);
 						leftEdge->m_helper->connections.push_back(&edges.back());
 						v.connections.push_back(&edges.back());
 					}

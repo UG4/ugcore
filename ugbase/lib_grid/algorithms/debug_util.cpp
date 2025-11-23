@@ -683,7 +683,7 @@ class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLa
 		{return interface.size() * sizeof(int);}
 
 		virtual bool
-		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		collect(BinaryBuffer& buff, const Interface& interface)
 		{
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
@@ -696,7 +696,7 @@ class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLa
 		}
 
 		virtual bool
-		extract(ug::BinaryBuffer& buff, const Interface& interface)
+		extract(BinaryBuffer& buff, const Interface& interface)
 		{
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)

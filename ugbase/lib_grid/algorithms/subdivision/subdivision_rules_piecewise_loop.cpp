@@ -79,8 +79,8 @@ calculate_beta(size_t valency) const
 		return 0.0625;
 		
 	if(valency > 0){
-		const number tmp = 0.375 + 0.25 * cos((2.0*PI)/(number)valency);
-		return (0.625 - tmp*tmp)/(number)valency;
+		const number tmp = 0.375 + 0.25 * cos((2.0*PI)/static_cast<number>(valency));
+		return (0.625 - tmp*tmp)/static_cast<number>(valency);
 	}
 
 	return 0;

@@ -107,7 +107,7 @@ coordinate_to_index(number x, number y) const
 {
 //	roundOffset 0: value is constant across each cell
 //	roundOffset 0.5: value is constant around each node
-	const number roundOffset = 0.5;
+	constexpr number roundOffset = 0.5;
 
 	pair<int, int> c;
 	if(m_cellSize.x() != 0)

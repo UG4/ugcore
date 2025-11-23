@@ -61,7 +61,7 @@ void ComputeGradientLagrange1(TFunction& u, size_t fct,
                      typename TFunction::element_type,
                      Attachment<number> >& aaError)
 {
-	static constexpr int dim = TFunction::dim;
+	constexpr int dim = TFunction::dim;
 	using const_iterator = typename TFunction::const_element_iterator;
 	using element_type = typename TFunction::element_type;
 
@@ -70,7 +70,6 @@ void ComputeGradientLagrange1(TFunction& u, size_t fct,
 			= u.domain()->position_accessor();
 
 //	some storage
-	MathMatrix<dim, dim> JTInv;
 	std::vector<MathVector<dim> > vLocalGrad;
 	std::vector<MathVector<dim> > vGlobalGrad;
 	std::vector<MathVector<dim> > vCorner;
@@ -82,7 +81,8 @@ void ComputeGradientLagrange1(TFunction& u, size_t fct,
 //	loop elements
 	for(; iter != iterEnd; ++iter)
 	{
-	//	get the element
+		MathMatrix<dim, dim> JTInv;
+		//	get the element
 		element_type* elem = *iter;
 
 	//	reference object type
@@ -151,7 +151,7 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
                      typename TFunction::element_type,
                      Attachment<number> >& aaError)
 {
-	static constexpr int dim = TFunction::dim;
+	constexpr int dim = TFunction::dim;
 	using const_iterator = typename TFunction::const_element_iterator;
 	using domain_type = typename TFunction::domain_type;
 	using grid_type = typename domain_type::grid_type;
@@ -167,7 +167,6 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
 	grid_type& grid = *u.domain()->grid();
 
 //	some storage
-	MathMatrix<dim, dim> JTInv;
 	std::vector<MathVector<dim> > vLocalGrad;
 	std::vector<MathVector<dim> > vGlobalGrad;
 	std::vector<MathVector<dim> > vCorner;
@@ -179,7 +178,8 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
 //	loop elements
 	for(; iter != iterEnd; ++iter)
 	{
-	//	get the element
+		MathMatrix<dim, dim> JTInv;
+		//	get the element
 		element_type* elem = *iter;
 	
 	//  get sides of element		
@@ -272,7 +272,7 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
                      typename TFunction::element_type,
                      Attachment<number> >& aaError)
 {
-	static constexpr int dim = TFunction::dim;
+	constexpr int dim = TFunction::dim;
 	using const_iterator = typename TFunction::const_element_iterator;
 	using domain_type = typename TFunction::domain_type;
 	using grid_type = typename domain_type::grid_type;
@@ -291,7 +291,7 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 	grid_type& grid = *u.domain()->grid();
 
 //	some storage
-	MathMatrix<dim, dim> JTInv;
+	//MathMatrix<dim, dim> JTInv;
 	
 	std::vector<MathVector<dim> > vCorner;
 	std::vector<MathVector<dim> > sideCorners;
@@ -376,7 +376,7 @@ void MarkForAdaption_GradientIndicator(IRefiner& refiner,
 	using TFunction = GridFunction<TDomain, TAlgebra>;
 	using grid_type = typename TFunction::domain_type::grid_type;
 	using element_type = typename TFunction::element_type;
-	const int dim = TFunction::dim;
+	constexpr int dim = TFunction::dim;
 
 //	function id
 	const size_t fct = u.fct_id_by_name(fctName);
@@ -423,7 +423,7 @@ void MarkForAdaption_AbsoluteGradientIndicator(IRefiner& refiner,
 	using TFunction = GridFunction<TDomain, TAlgebra>;
 	using grid_type = typename TFunction::domain_type::grid_type;
 	using element_type = typename TFunction::element_type;
-	const int dim = TFunction::dim;
+	constexpr int dim = TFunction::dim;
 
 //	function id
 	const size_t fct = u.fct_id_by_name(fctName);
@@ -506,7 +506,7 @@ void MarkForAdaption_GradientJumpIndicator(IRefiner& refiner,
 	using TFunction = GridFunction<TDomain, TAlgebra>;
 	using grid_type = typename TFunction::domain_type::grid_type;
 	using element_type = typename TFunction::element_type;
-	const int dim = TFunction::dim;
+	constexpr int dim = TFunction::dim;
 
 //	function id
 	const size_t fct = u.fct_id_by_name(fctName);
@@ -557,7 +557,7 @@ void MarkForAdaption_AbsoluteGradientJumpIndicator(IRefiner& refiner,
 	using TFunction = GridFunction<TDomain, TAlgebra>;
 	using grid_type = typename TFunction::domain_type::grid_type;
 	using element_type = typename TFunction::element_type;
-	const int dim = TFunction::dim;
+	constexpr int dim = TFunction::dim;
 
 //	function id
 	const size_t fct = u.fct_id_by_name(fctName);
@@ -614,7 +614,7 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 	using TFunction = GridFunction<TDomain, TAlgebra>;
 	using grid_t = typename TFunction::domain_type::grid_type;
 	using elem_t = typename TFunction::element_type;
-	const int dim = TFunction::dim;
+	constexpr int dim = TFunction::dim;
 
 //	function id
 	const size_t fct = u->fct_id_by_name(cmp);
@@ -725,7 +725,7 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 //	since there may be constrained sides which locally do not have a constraining
 //	side we do this before adding the constrained values to their constraining objects.
 	#ifdef UG_PARALLEL
-	using layout_t = typename GridLayoutMap::Types<side_t>::Layout;
+		using layout_t = typename GridLayoutMap::Types<side_t>::Layout;
 		DistributedGridManager& dgm = *g.distributed_grid_manager();
 		GridLayoutMap& glm = dgm.grid_layout_map();
 		pcl::InterfaceCommunicator<layout_t > icom;
@@ -832,7 +832,7 @@ void EvaluateGradientJump_SideIntegral(TFunction& u, size_t fct,
 {
 	using std::max;
 
-	static constexpr int dim = TFunction::dim;
+	constexpr int dim = TFunction::dim;
 	using grid_t = typename TFunction::domain_type::grid_type;
 	using const_iterator = typename TFunction::const_element_iterator;
 	using elem_t = typename TFunction::element_type;
@@ -918,7 +918,7 @@ void EvaluateGradientJump_Norm(TFunction& u, size_t fct,
 {
 	using std::max;
 
-	static constexpr int dim = TFunction::dim;
+	constexpr int dim = TFunction::dim;
 	using grid_t = typename TFunction::domain_type::grid_type;
 	using const_iterator = typename TFunction::const_element_iterator;
 	using elem_t = typename TFunction::element_type;
@@ -1085,7 +1085,7 @@ void EvaluateResidualErrorP1(SmartPtr<TFunction> u,
 	using grid_t = typename TFunction::domain_type::grid_type;
 	using elem_t = typename TFunction::element_type;
 	using ElemIter = typename TFunction::template traits<elem_t>::const_iterator;
-	const int dim = TFunction::dim;
+	constexpr int dim = TFunction::dim;
 
 //	function id
 	const size_t fct = u->fct_id_by_name(cmp);
@@ -1282,7 +1282,7 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 	using namespace std;
 //	types
 	using TFunction = GridFunction<TDomain, TAlgebra>;
-	static constexpr int dim = TFunction::dim;
+	constexpr int dim = TFunction::dim;
 	using grid_t = typename TFunction::domain_type::grid_type;
 	using elem_t = typename TFunction::element_type;
 	using ElemIter = typename TFunction::template traits<elem_t>::const_iterator;
@@ -1463,8 +1463,7 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 
 //	evaluate integral over difference of element gradients and averaged
 //	vertex gradients
-	for(ElemIter iter = u->template begin<elem_t>();
-		iter != iterElemEnd; ++iter)
+	for(ElemIter iter = u->template begin<elem_t>(); iter != iterElemEnd; ++iter)
 	{
 	//	get the element
 		elem_t* elem = *iter;

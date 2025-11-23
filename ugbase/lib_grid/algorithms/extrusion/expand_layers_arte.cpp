@@ -775,7 +775,7 @@ bool SortFaces4DiamondCreation(	SubsetHandler& sh, std::vector<Face *> & assoFac
 
 	IndexType dbg_rndl = 0;
 
-	while( assoFacCrossCop.size() != 0 )
+	while( !assoFacCrossCop.empty() )
 	{
 		//				UG_LOG("Debug Rundlauf " << dbg_rndl << std::endl);
 
@@ -830,7 +830,7 @@ bool SortFaces4DiamondCreation(	SubsetHandler& sh, std::vector<Face *> & assoFac
 
 		IndexType dbg_itEd = 0;
 
-		for( std::vector<Edge *>::iterator iterEdgF = grid.associated_edges_begin(assoFacConsider);
+		for( auto iterEdgF = grid.associated_edges_begin(assoFacConsider);
 				iterEdgF != grid.associated_edges_end(assoFacConsider); iterEdgF++ )
 		{
 			edgesThisFac.push_back(*iterEdgF);
@@ -1067,7 +1067,7 @@ bool SortFaces4DiamondCreation(	SubsetHandler& sh, std::vector<Face *> & assoFac
 
 		IndexType dbg_it_er = 0;
 
-		for( std::vector<Face*>::iterator itFac = assoFacCrossCop.begin(); itFac != assoFacCrossCop.end(); itFac++ )
+		for( auto itFac = assoFacCrossCop.begin(); itFac != assoFacCrossCop.end(); itFac++ )
 		{
 			Face * iFa = *itFac;
 
@@ -1098,7 +1098,7 @@ bool SortFaces4DiamondCreation(	SubsetHandler& sh, std::vector<Face *> & assoFac
 		//				UG_LOG("Debug Paarbildung	Rasieren durch " << std::endl);
 
 
-		if( assoFacCrossCop.size() == 0 )
+		if( assoFacCrossCop.empty() )
 		{
 			if( secondEdgeFac != assoFacEdgBeg2Fix )
 			{
@@ -1122,7 +1122,7 @@ bool SortFaces4DiamondCreation(	SubsetHandler& sh, std::vector<Face *> & assoFac
 
 		IndexType nextFaceFound = 0;
 
-		for( std::vector<Face*>::iterator itFac = assoFacCrossCop.begin(); itFac != assoFacCrossCop.end(); itFac++ )
+		for(auto itFac = assoFacCrossCop.begin(); itFac != assoFacCrossCop.end(); itFac++ )
 		{
 			Face * iFa = *itFac;
 
@@ -1139,7 +1139,7 @@ bool SortFaces4DiamondCreation(	SubsetHandler& sh, std::vector<Face *> & assoFac
 			UG_THROW("folgendes Gesicht in falscher Anztahl gefunden Diamant " << nextFaceFound << " " << isXCross << std::endl);
 		}
 
-		for( std::vector<Face*>::iterator itFac = assoFacCrossCop.begin(); itFac != assoFacCrossCop.end(); itFac++ )
+		for(auto itFac = assoFacCrossCop.begin(); itFac != assoFacCrossCop.end(); itFac++ )
 		{
 			Face * iFa = *itFac;
 
@@ -1169,7 +1169,7 @@ bool SortFaces4DiamondCreation(	SubsetHandler& sh, std::vector<Face *> & assoFac
 //				UG_THROW("Shift vertizes nicht alle gefinden " << std::endl);
 //			}
 
-	if( assoFacCrossCop.size() != 0 )
+	if( !assoFacCrossCop.empty() )
 	{
 		UG_LOG("nicht alle asso facs gefunden " << isXCross << std::endl);
 //				return false;

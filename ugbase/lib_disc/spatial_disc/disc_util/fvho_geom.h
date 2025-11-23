@@ -170,7 +170,7 @@ class FVGeometry : public FVGeometryBase
 
 			///	integration weight
 				inline number weight(size_t ip) const
-					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip]*vDetJMap[ip];;}
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip]*vDetJMap[ip];}
 
 			/// local integration point of scvf
 				inline const MathVector<dim>& local_ip(size_t ip) const

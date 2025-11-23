@@ -289,8 +289,8 @@ bool CollectSurfaceNeighborsSorted(std::vector<Vertex*>& vNeighborsOut,
 		//	iterate through the faces associated with v and find an unmarked one that
 		//	contains two marked vertices
 			f = nullptr;
-			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v);
-			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
+			auto iterEnd = grid.associated_faces_end(v);
+			for(auto iter = grid.associated_faces_begin(v);
 				iter != iterEnd; ++iter)
 			{
 				if(!grid.is_marked(*iter)){
@@ -427,8 +427,8 @@ void MergeVertices(Grid& grid, Vertex* v1, Vertex* v2)
 		if(grid.num_edges() > 0)
 		{
 			EdgeDescriptor ed;
-			Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(v2);
-			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v2); iter != iterEnd; ++iter)
+			auto iterEnd = grid.associated_edges_end(v2);
+			for(auto iter = grid.associated_edges_begin(v2); iter != iterEnd; ++iter)
 			{
 				Edge* e = *iter;
 				if(e->vertex(0) == v2)
@@ -449,8 +449,8 @@ void MergeVertices(Grid& grid, Vertex* v1, Vertex* v2)
 		if(grid.num_faces() > 0)
 		{
 			FaceDescriptor fd;
-			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v2);
-			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v2); iter != iterEnd; ++iter)
+			auto iterEnd = grid.associated_faces_end(v2);
+			for(auto iter = grid.associated_faces_begin(v2); iter != iterEnd; ++iter)
 			{
 				Face* f = *iter;
 				uint numVrts = f->num_vertices();
@@ -475,8 +475,8 @@ void MergeVertices(Grid& grid, Vertex* v1, Vertex* v2)
 		if(grid.num_volumes() > 0)
 		{
 			VolumeDescriptor vd;
-			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v2);
-			for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v2); iter != iterEnd; ++iter)
+			auto iterEnd = grid.associated_volumes_end(v2);
+			for(auto iter = grid.associated_volumes_begin(v2); iter != iterEnd; ++iter)
 			{
 				Volume* v = *iter;
 				uint numVrts = v->num_vertices();
@@ -514,7 +514,7 @@ bool IsBoundaryVertex1D(Grid& grid, Vertex* v,
 //	iterate over associated edges and return true if only one of them
 //	should be considered for the polygonal chain
 	size_t counter = 0;
-	for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
+	for(auto iter = grid.associated_edges_begin(v);
 		iter != grid.associated_edges_end(v); ++iter)
 	{
 		if(cbConsiderEdge(*iter)){
@@ -545,8 +545,7 @@ bool IsBoundaryVertex2D(Grid& grid, Vertex* v)
 		grid.enable_options(VRTOPT_STORE_ASSOCIATED_EDGES);
 	}
 
-	for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
-		iter != grid.associated_edges_end(v); ++iter)
+	for(auto iter = grid.associated_edges_begin(v); iter != grid.associated_edges_end(v); ++iter)
 	{
 		if(IsBoundaryEdge2D(grid, *iter))
 			return true;
@@ -572,8 +571,7 @@ bool IsBoundaryVertex3D(Grid& grid, Vertex* v)
 		grid.enable_options(VRTOPT_STORE_ASSOCIATED_FACES);
 	}
 
-	for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
-		iter != grid.associated_faces_end(v); ++iter)
+	for(auto iter = grid.associated_faces_begin(v); iter != grid.associated_faces_end(v); ++iter)
 	{
 		if(IsVolumeBoundaryFace(grid, *iter))
 			return true;
@@ -601,9 +599,8 @@ bool LiesOnBoundary(Grid& grid, Vertex* v)
 bool IsRegularSurfaceVertex(Grid& grid, Vertex* v)
 {
 //	check how many faces each associated edge has
-	Grid::AssociatedEdgeIterator edgesEnd = grid.associated_edges_end(v);
-	for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
-		iter != edgesEnd; ++iter)
+	auto edgesEnd = grid.associated_edges_end(v);
+	for(auto iter = grid.associated_edges_begin(v); iter != edgesEnd; ++iter)
 	{
 		if(NumAssociatedFaces(grid, *iter) != 2)
 			return false;
@@ -638,9 +635,8 @@ void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,
 				grid.mark(v);
 			//	count associated crease edges
 				int counter = 0;
-				Grid::AssociatedEdgeIterator aeIterEnd = grid.associated_edges_end(v);
-				for(Grid::AssociatedEdgeIterator aeIter = grid.associated_edges_begin(v);
-					aeIter != aeIterEnd; ++aeIter)
+				auto aeIterEnd = grid.associated_edges_end(v);
+				for(auto aeIter = grid.associated_edges_begin(v); aeIter != aeIterEnd; ++aeIter)
 				{
 					if(sh.get_subset_index(*aeIter) == creaseSI)
 					{

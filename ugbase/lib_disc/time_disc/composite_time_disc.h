@@ -72,8 +72,7 @@ class CompositeTimeDiscretization
 				void add_ass_tuner(SmartPtr<AssemblingTuner<TAlgebra> > assTuner)
 				{m_vAssTuner.push_back(assTuner);}
 
-				void set_force_regular_grid(bool bForce)
-				{
+				void set_force_regular_grid(bool bForce) override {
 					for (size_t i = 0; i < m_vAssTuner.size(); ++i)
 						m_vAssTuner[i]->set_force_regular_grid(bForce);
 				}
@@ -120,34 +119,35 @@ class CompositeTimeDiscretization
 	// inherited from IAssemble
 	public:
 		/// @copydoc IAssemble::assemble_jacobian
-		void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl);
+		void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl) override;
 
 		/// @copydoc IAssemble::assemble_defect
-		void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl);
+		void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl) override;
 
 		/// @copydoc IAssemble::assemble_linear
-		void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl);
+		void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl) override;
 
 		/// @copydoc IAssemble::assemble_rhs(vector_type&, vector_type&, GridLevel&)
-		void assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl);
+		void assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl) override;
 
 		/// @copydoc IAssemble::assemble_rhs(vector_type&, GridLevel&)
-		void assemble_rhs(vector_type& b, const GridLevel& gl);
+		void assemble_rhs(vector_type& b, const GridLevel& gl) override;
 
 		/// @copydoc IAssemble::adjust_solution
-		void adjust_solution(vector_type& u, const GridLevel& gl);
+		void adjust_solution(vector_type& u, const GridLevel& gl) override;
 
 		///\{
 		/// @copydoc IAssemble::ass_tuner
-		virtual SmartPtr<AssemblingTuner<TAlgebra> > ass_tuner();
-		virtual ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const;
+		SmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() override;
+
+		ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const override;
 		///\}
 
 		///	@copydoc IAssemble::num_constraints
-		virtual size_t num_constraints() const;
+		size_t num_constraints() const override;
 
 		///	@copydoc IAssemble::constraint
-		virtual SmartPtr<IConstraint<TAlgebra> > constraint(size_t i);
+		SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) override;
 
 	protected:
 		std::vector<SmartPtr<ITimeDiscretization<TAlgebra> > > m_vTimeDisc;

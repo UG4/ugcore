@@ -133,7 +133,7 @@ public:
 		}
 	public:
 		bool operator == (adjacency_iterator const& o) const{
-			return _base == o._base;;
+			return _base == o._base;
 		}
 		bool operator != (adjacency_iterator const& p) const{
 			return !operator == (p);

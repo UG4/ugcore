@@ -382,9 +382,9 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	AInt aAdjMarker;	// used to mark how many adjacent fractures a vertex has.
 						// 0: no frac, 1: frac-boundary, >1: inner frac vertex
 	grid.attach_to_vertices_dv(aAdjMarker, 0);
-	Grid::VertexAttachmentAccessor<AInt> aaMarkVRT(grid, aAdjMarker);
+	Grid::VertexAttachmentAccessor aaMarkVRT(grid, aAdjMarker);
 	grid.attach_to_edges_dv(aAdjMarker, 0);
-	Grid::EdgeAttachmentAccessor<AInt> aaMarkEDGE(grid, aAdjMarker);
+	Grid::EdgeAttachmentAccessor aaMarkEDGE(grid, aAdjMarker);
 
 //	iterate over the given fracture infos and select all fracture edges
 //	and fracture vertices.
@@ -822,12 +822,12 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
 
 	for(size_t i = 0; i < edges.size(); ++i){
 		vector3 center = CalculateCenter(edges[i], aaPos);
-		RegularVertex* v =	SplitEdge<RegularVertex>(grid, edges[i], false);
+		auto* v =	SplitEdge<RegularVertex>(grid, edges[i], false);
 		aaPos[v] = center;
 		aaMarkVRT[v] = 2;
 		sel.select(v);
 	//	assign adjacency values for associated selected edges (2 to each)
-		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
+		for(auto iter = grid.associated_edges_begin(v);
 			iter != grid.associated_edges_end(v); ++iter)
 		{
 			if(sel.is_selected(*iter))

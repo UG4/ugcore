@@ -47,10 +47,10 @@ class IsSelected : public ElementCallback
 		IsSelected(const ISelector& sel) :
 			m_sel(sel)	{}
 
-		bool operator () (Vertex* v) const	{return callback(v);}
-		bool operator () (Edge* e) const		{return callback(e);}
-		bool operator () (Face* f) const		{return callback(f);}
-		bool operator () (Volume* v) const	{return callback(v);}
+		bool operator () (Vertex* v) const override {return callback(v);}
+		bool operator () (Edge* e) const override {return callback(e);}
+		bool operator () (Face* f) const override {return callback(f);}
+		bool operator () (Volume* v) const override {return callback(v);}
 
 	private:
 		template <typename TElem>
@@ -67,10 +67,10 @@ class IsNotSelected : public ElementCallback
 		IsNotSelected(const ISelector& sel) :
 			m_sel(sel)	{}
 
-		bool operator () (Vertex* v) const	{return callback(v);}
-		bool operator () (Edge* e) const		{return callback(e);}
-		bool operator () (Face* f) const		{return callback(f);}
-		bool operator () (Volume* v) const	{return callback(v);}
+		bool operator () (Vertex* v) const override {return callback(v);}
+		bool operator () (Edge* e) const override {return callback(e);}
+		bool operator () (Face* f) const override {return callback(f);}
+		bool operator () (Volume* v) const override {return callback(v);}
 
 	private:
 		template <typename TElem>

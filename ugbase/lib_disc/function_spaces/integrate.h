@@ -2225,8 +2225,7 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 		~H1SemiDistIntegrand() override = default;
 
 	///	sets subset
-		virtual void set_subset(int si)
-		{
+		void set_subset(int si) override {
 
 			UG_COND_THROW(!m_fineData.is_def_in_subset(si), "H1SemiDiffIntegrand: Grid function component"
 						 <<m_fineData.fct()<<" not defined on subset "<<si);

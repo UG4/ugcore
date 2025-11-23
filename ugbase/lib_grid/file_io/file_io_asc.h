@@ -43,7 +43,7 @@ namespace ug{
 class FileReaderASC{
 	public:
 		FileReaderASC();
-		~FileReaderASC()  = default;;
+		~FileReaderASC()  = default;
 
 	///	set an external field in which the data will be loaded
 	/**	By default, data is loaded into the internal field of the FileReader.

@@ -52,7 +52,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 		UG_THROW("Position attachment required!");
 	}
 
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+	Grid::VertexAttachmentAccessor aaPos(grid, aPos);
 
 	if(rimSnapThreshold < 0)
 		rimSnapThreshold = 0;
@@ -147,8 +147,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 
 //	refine selected edges and use a special refinement callback, which places
 //	new vertices on edges which intersect a cylinder on the cylinders hull.
-	CylinderCutProjector refCallback(MakeGeometry3d(grid, aPos),
-									 center, axis, radius);
+	CylinderCutProjector refCallback(MakeGeometry3d(grid, aPos), center, axis, radius);
 	Refine(grid, sel, aInt, &refCallback);
 
 //	finally select all triangles which lie in the cylinder

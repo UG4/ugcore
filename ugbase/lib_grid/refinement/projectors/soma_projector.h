@@ -252,8 +252,8 @@ private:
 	{
 		ar & make_nvp("center", m_center);
 		ar & make_nvp("axis", m_axis);
-		ar & make_nvp("soma", m_soma);;
-		ar & make_nvp("somaRad", m_somaRad);;
+		ar & make_nvp("soma", m_soma);
+		ar & make_nvp("somaRad", m_somaRad);
 		UG_EMPTY_BASE_CLASS_SERIALIZATION(SomaProjector, RefinementProjector);
 	}
 

@@ -430,7 +430,7 @@ static void Dimension(Registry& reg, string grp)
 	{
 		using T = LognormalRandomField<MathMatrix<dim, dim>, dim>;
 		using TBase = CplUserData<MathMatrix<dim, dim>, dim>;
-		string name = string("LognormalRandomField").append(dimSuffix);;
+		string name = string("LognormalRandomField").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			//.add_constructor()
 			.template add_constructor<void (*)()>("LognormalRandomField")

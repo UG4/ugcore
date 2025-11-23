@@ -30,16 +30,17 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <list>
-#include <vector>
-#include <cassert>
-#include <map>
-#include <stack>
-#include "lib_grid/lg_base.h"
-#include "common/ug_config.h"
-
 #ifndef __H__UG4__LIB_GRID__TRIANGLE_FILL_SWEEP_LINE__
 #define __H__UG4__LIB_GRID__TRIANGLE_FILL_SWEEP_LINE__
+
+#include <vector>
+// #include <list>
+// #include <cassert>
+// #include <map>
+// #include <stack>
+
+#include "lib_grid/lg_base.h"
+#include "common/ug_config.h"
 
 namespace ug
 {

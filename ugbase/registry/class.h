@@ -717,20 +717,20 @@ class ExportedClass : public ExportedClassBaseImpl
 		~ExportedClass() override = default;
 
 	/// name of class
-		virtual const std::string& name() const {return ClassNameProvider<TClass>::name();}
+		const std::string& name() const override {return ClassNameProvider<TClass>::name();}
 
 	///	name node of class
-		virtual const ClassNameNode& class_name_node() const {return ClassNameProvider<TClass>::class_name_node();}
+		const ClassNameNode& class_name_node() const override {return ClassNameProvider<TClass>::class_name_node();}
 
 	///	get groups
-		virtual const std::string& group() const {return ClassNameProvider<TClass>::group();}
+		const std::string& group() const override {return ClassNameProvider<TClass>::group();}
 
 	/// is json constructible
-		virtual bool is_json_constructible() const { return std::is_base_of<JSONConstructible, TClass>::value; }
+		bool is_json_constructible() const override { return std::is_base_of<JSONConstructible, TClass>::value; }
 
 	//\todo: remove this method, use class name nodes instead
 	///	class-hierarchy
-		virtual const std::vector<const char*>* class_names() const	{return &ClassNameProvider<TClass>::names();}
+		const std::vector<const char*>* class_names() const override {return &ClassNameProvider<TClass>::names();}
 
 		template<typename T>
 		ExportedClass& add_(T t)
@@ -877,8 +877,7 @@ class ExportedClass : public ExportedClassBaseImpl
 		}
 
 	///	return pointer to the delete method
-		virtual DeleteFunction get_delete_function() const
-		{
+		DeleteFunction get_delete_function() const override {
 			return CastAndDelete<TClass>;
 		}
 };

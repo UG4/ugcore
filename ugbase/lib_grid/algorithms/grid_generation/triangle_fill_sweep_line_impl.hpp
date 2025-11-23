@@ -52,8 +52,8 @@ bool TriangleFill_SweepLine(Grid& grid, TIterator edgesBegin,
 		return false;
 	}
 
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosVRT);
-	Grid::VertexAttachmentAccessor<AInt> aaInt(grid, aIntVRT);
+	Grid::VertexAttachmentAccessor aaPos(grid, aPosVRT);
+	Grid::VertexAttachmentAccessor aaInt(grid, aIntVRT);
 
 //	set up the vertex and edge arrays and build some additional
 //	information that is required when it comes to building the triangles.

@@ -94,10 +94,10 @@ public:
 	}
 
 ///	Indicator functions are discontinuous
-	virtual bool continuous () const {return false;}
+	bool continuous () const override {return false;}
 
 ///	Returns true to get the grid element in the evaluation routine
-	virtual bool requires_grid_fct () const {return true;}
+	bool requires_grid_fct () const override {return true;}
 
 ///	Evaluator
 	template <int refDim>
@@ -132,8 +132,7 @@ public:
 		number time,
 		int si
 	)
-	const
-	{
+	const override {
 	//	Check if si is in one of the specified subsets:
 		vValue = (m_ssGrp.contains (si))? 1 : 0;
 	}
@@ -146,8 +145,7 @@ public:
 		number time,
 		int si,
 		const size_t nip
-	) const
-	{
+	) const override {
 	//	Check if si is in one of the specified subsets:
 		number indicator = (m_ssGrp.contains (si))? 1 : 0;
 	//	Return the indicator:
@@ -199,10 +197,10 @@ public:
 	}
 
 ///	Indicator functions are discontinuous
-	virtual bool continuous () const {return m_spData->continuous ();}
+	bool continuous () const override {return m_spData->continuous ();}
 
 ///	Returns true to get the grid element in the evaluation routine
-	virtual bool requires_grid_fct () const {return m_spData->requires_grid_fct ();}
+	bool requires_grid_fct () const override {return m_spData->requires_grid_fct ();}
 
 ///	Evaluator
 	template <int refDim>
@@ -235,8 +233,7 @@ public:
 		number time,
 		int si
 	)
-	const
-	{
+	const override {
 	//	Call the original UserData, get the values
 		(* m_spData) (vValue, globIP, time, si);
 	
@@ -252,8 +249,7 @@ public:
 		number time,
 		int si,
 		const size_t nip
-	) const
-	{
+	) const override {
 	//	Call the original UserData, get the values
 		(* m_spData) (vValue, vGlobIP, time, si, nip);
 	

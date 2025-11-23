@@ -49,10 +49,10 @@ class IsInSubset : public ElementCallback
 			m_sh(sh),
 			m_si(subsetIndex)	{}
 
-		bool operator () (Vertex* v) const	{return callback(v);}
-		bool operator () (Edge* e) const		{return callback(e);}
-		bool operator () (Face* f) const		{return callback(f);}
-		bool operator () (Volume* v) const	{return callback(v);}
+		bool operator () (Vertex* v) const override {return callback(v);}
+		bool operator () (Edge* e) const override {return callback(e);}
+		bool operator () (Face* f) const override {return callback(f);}
+		bool operator () (Volume* v) const override {return callback(v);}
 
 	private:
 		template <typename TElem>
@@ -71,10 +71,10 @@ class IsNotInSubset : public ElementCallback
 			m_sh(sh),
 			m_si(subsetIndex)	{}
 
-		bool operator () (Vertex* v) const	{return callback(v);}
-		bool operator () (Edge* e) const		{return callback(e);}
-		bool operator () (Face* f) const		{return callback(f);}
-		bool operator () (Volume* v) const	{return callback(v);}
+		bool operator () (Vertex* v) const override {return callback(v);}
+		bool operator () (Edge* e) const override {return callback(e);}
+		bool operator () (Face* f) const override {return callback(f);}
+		bool operator () (Volume* v) const override {return callback(v);}
 
 	private:
 		template <typename TElem>

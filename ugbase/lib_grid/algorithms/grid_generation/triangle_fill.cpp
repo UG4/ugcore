@@ -286,7 +286,7 @@ bool TriangleFill(Grid& grid, EdgeIterator edgesBegin,
 	if(!grid.has_vertex_attachment(aPosition))
 		return false;
 		
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
+	Grid::VertexAttachmentAccessor aaPos(grid, aPosition);
 	
 //	get the vertices of the poly-chain
 	std::vector<Vertex*> vrtPolyChain;

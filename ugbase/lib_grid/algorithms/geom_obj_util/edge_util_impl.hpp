@@ -118,8 +118,8 @@ TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
 				CollectFaces(vFaces, srcGrid, e, false);
 
 			//	erase them
-				for(std::vector<Face*>::iterator iter = vFaces.begin();
-					iter != vFaces.end(); ++iter)
+				for(auto iter = vFaces.begin();
+				    iter != vFaces.end(); ++iter)
 				{
 					srcGrid.erase(*iter);
 				}
@@ -134,8 +134,7 @@ TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
 				CollectVolumes(vVolumes, srcGrid, e, false);
 
 			//	erase them
-				for(std::vector<Volume*>::iterator iter = vVolumes.begin();
-					iter != vVolumes.end(); ++iter)
+				for(auto iter = vVolumes.begin(); iter != vVolumes.end(); ++iter)
 				{
 					srcGrid.erase(*iter);
 				}
@@ -222,8 +221,7 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 				
 			//	iterate through all associated edges
 				for(size_t i = 0; i < 2; ++i){
-					for(Grid::AssociatedEdgeIterator assIter =
-						grid.associated_edges_begin(e->vertex(i));
+					for(auto assIter = grid.associated_edges_begin(e->vertex(i));
 						assIter != grid.associated_edges_end(e->vertex(i)); ++assIter)
 					{
 						Edge* ae = *assIter;

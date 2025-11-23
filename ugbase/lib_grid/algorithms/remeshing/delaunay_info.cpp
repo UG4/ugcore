@@ -73,7 +73,7 @@ DelaunayInfo<TAAPos>::
 
 template <typename TAAPos>
 void DelaunayInfo<TAAPos>::
-set_mark(Face* f, typename DelaunayInfo<TAAPos>::Mark mark)
+set_mark(Face* f, Mark mark)
 {
 	m_aaMark[f] = mark;
 	if(face_classification_enabled()){

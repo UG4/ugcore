@@ -73,15 +73,15 @@ IDomain<TGrid,TSubsetHandler>::IDomain(bool isAdaptive)
 //	register function for grid adaption
 	m_spGridAdaptionCallbackID =
 		message_hub()->register_class_callback(this,
-		&ug::IDomain<ug::MultiGrid, ug::MultiGridSubsetHandler>::grid_adaption_callback);
+		&IDomain::grid_adaption_callback);
 
 	m_spGridCreationCallbackID =
 		message_hub()->register_class_callback(this,
-		&ug::IDomain<ug::MultiGrid, ug::MultiGridSubsetHandler>::grid_creation_callback);
+		&IDomain::grid_creation_callback);
 
 	m_spGridDistributionCallbackID =
 		message_hub()->register_class_callback(this,
-		&ug::IDomain<ug::MultiGrid, ug::MultiGridSubsetHandler>::grid_distribution_callback);
+		&IDomain::grid_distribution_callback);
 }
 
 

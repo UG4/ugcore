@@ -37,10 +37,16 @@
 #include "lib_grid/callbacks/basic_callbacks.h"
 
 namespace ug{
+/* ø todo not implemented, maybe deprecated interface
 template <typename TVrtIter, typename TAAPos>
 void SelectKinkVertices(Grid& grid, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 						number thresholdAngle, bool selectDarts, TAAPos aaPos,
 						Grid::edge_traits::callback cbConsiderEdge = ConsiderAll());
+*/
+template <typename TVrtIter, typename TAAPos>
+void SelectKinkVertices(Selector& sel, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
+						number thresholdAngle, bool selectDarts, TAAPos aaPos,
+						Grid::edge_traits::callback cbConsiderEdge);
 }//	end of namespace
 
 

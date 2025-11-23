@@ -703,8 +703,7 @@ using matrix_type = typename algebra_type::matrix_type;
 		number time = 0.0,
 		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
 		const number s_a0 = 1.0
-	)
-	{
+	) override {
 		m_rExtrapolation.set_outer_matrices (J, dd.get ());
 	}
 
@@ -719,8 +718,7 @@ using matrix_type = typename algebra_type::matrix_type;
 		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
 		const std::vector<number> * vScaleMass = nullptr,
 		const std::vector<number> * vScaleStiff = nullptr
-	)
-	{
+	) override {
 		m_rExtrapolation.clear_outer_values (d, dd.get ());
 	}
 
@@ -731,8 +729,7 @@ using matrix_type = typename algebra_type::matrix_type;
 		ConstSmartPtr<DoFDistribution> dd,
 		int type,
 		number time = 0.0
-	)
-	{
+	) override {
 		m_rExtrapolation.set_outer_values (u, dd.get (), time);
 	}
 
@@ -744,8 +741,7 @@ using matrix_type = typename algebra_type::matrix_type;
 		ConstSmartPtr<DoFDistribution> dd,
 		int type,
 		number time = 0.0
-	)
-	{ // Note that this function is not really used, so it needs not to be optimal.
+	) override { // Note that this function is not really used, so it needs not to be optimal.
 		m_rExtrapolation.set_outer_matrices (A, dd.get ());
 		m_rExtrapolation.clear_outer_values (b, dd.get ());
 	}
@@ -758,13 +754,12 @@ using matrix_type = typename algebra_type::matrix_type;
 		ConstSmartPtr<DoFDistribution> dd,
 		int type,
 		number time = 0.0
-	)
-	{
+	) override {
 		m_rExtrapolation.clear_outer_values (b, dd.get ());
 	}
 
 ///	returns the type of the constraints
-	int type () const {return CT_DIRICHLET;}
+	int type () const override {return CT_DIRICHLET;}
 	
 private:
 	
@@ -833,7 +828,7 @@ public:
 	}
 
 /// virtual destructor
-	virtual ~LSGFDomainDiscretization () {};
+	~LSGFDomainDiscretization () override {};
 	
 ///	set the level-set function and check it
 	void set_LSF
@@ -959,7 +954,7 @@ public:
 	}
 	
 ///	checks whether the element is intersected by the interface, or what, and prepares the data
-	virtual int check_elem_lsf
+	int check_elem_lsf
 	(
 		size_t n_co, ///< number of the corners of the element
 		GridObject * pElem, ///< the element to process
@@ -968,13 +963,12 @@ public:
 		bool use_hanging, ///< if there can be hanging nodes
 		const MathVector<dim> vCornerCoords [], ///< coordinates of the corners of the element
 		number time ///< the phisical time
-	)
-	{
+	) override {
 		return gass_type::check_elem_lsf (n_co, pElem, si, g_level, use_hanging, vCornerCoords, time);
 	}
 	
 ///	(slow version) checks whether the element is intersected by the interface, or what, and prepares the data
-	virtual int check_elem_lsf
+	int check_elem_lsf
 	(
 		size_t n_co, ///< number of the corners of the element
 		GridObject * pElem, ///< the element to process
@@ -982,8 +976,7 @@ public:
 		bool use_hanging, ///< if there can be hanging nodes
 		const MathVector<dim> vCornerCoords [], ///< coordinates of the corners of the element
 		number time ///< the phisical time
-	)
-	{
+	) override {
 		ConstSmartPtr<grid_type> mg = base_type::m_spApproxSpace->domain()->grid ();
 		int g_level = mg->get_level (pElem);
 		UG_ASSERT (g_level >= 0, "LSGFDomainDiscretization: Grid element without grid level.");
@@ -991,41 +984,37 @@ public:
 	}
 	
 ///	extrapolates a component of the solution to the vertices behind the interface (w.r.t. a base corner)
-	virtual void extrapolate_by_lsf
+	void extrapolate_by_lsf
 	(
 		size_t num_co, ///< number of the corners
 		size_t base_co, ///< the base corner
 		number * u, ///< nodal values to extrapolate
 		size_t fct ///< index of the function (to identify to type of the extrapolation)
-	) const
-	{
+	) const override {
 		gass_type::extrapolate_by_lsf (num_co, base_co, u, fct);
 	}
 	
 ///	extrapolates a component of the solution to the vertices behind the interface (by averaging)
-	virtual void extrapolate_by_lsf
+	void extrapolate_by_lsf
 	(
 		size_t num_co, ///< number of the corners
 		number * u, ///< nodal values to extrapolate
 		size_t fct ///< index of the function (to identify to type of the extrapolation)
-	) const
-	{
+	) const override {
 		gass_type::extrapolate_by_lsf (num_co, u, fct);
 	}
 	
 ///	returns true if the corner is "inside" (use after check_elem_lsf)
-	virtual bool corner_inside
+	bool corner_inside
 	(
 		size_t co ///< the corner
-	) const
-	{return gass_type::corner_inside (co);}
+	) const override {return gass_type::corner_inside (co);}
 	
 ///	returns the effective value of the LSF at a corner (use after check_elem_lsf)
-	virtual number lsf_at
+	number lsf_at
 	(
 		size_t co ///< the corner
-	) const
-	{return gass_type::lsf_at (co);}
+	) const override {return gass_type::lsf_at (co);}
 	
 protected:
 ///	the Level-Set Function constraint

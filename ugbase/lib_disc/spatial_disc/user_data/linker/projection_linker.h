@@ -81,7 +81,7 @@ public:
 	}
 	
 ///	Returns true because without a grid function, we do not get the element to project to!
-	virtual bool requires_grid_fct() const {return true;}
+	bool requires_grid_fct() const override {return true;}
 
 ///	Evaluation with no element is impossible
 	inline void evaluate

@@ -139,9 +139,9 @@ class IPatchRemesher : public ILocalRemesher{
 
 	private:
 		class ProjectedPoint{
-			int 				patchID;
-			GridObject* 	elem;
-			vector2				barycentricCoords;
+			int patchID;
+			GridObject* elem;
+			vector2 barycentricCoords;
 		};
 
 		Grid	m_refGrid;

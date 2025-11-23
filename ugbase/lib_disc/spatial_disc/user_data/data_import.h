@@ -188,19 +188,19 @@ class DataImport : public IDataImport<dim>
 		}
 
 	///	Destructor
-		~DataImport();
+		~DataImport() override;
 
 	///	set the user data
 		void set_data(SmartPtr<CplUserData<TData, dim> > spData);
 
 	/// returns the connected ICplUserData
-		SmartPtr<ICplUserData<dim> > data() {return m_spUserData.template cast_dynamic<ICplUserData<dim> >();}
+		SmartPtr<ICplUserData<dim> > data() override {return m_spUserData.template cast_dynamic<ICplUserData<dim> >();}
 
 	/// returns the connected ICplUserData
 		SmartPtr<CplUserData<TData, dim> > user_data(){return m_spUserData;}
 
 	///	returns true if data given
-		virtual bool data_given() const {return m_spUserData.valid();}
+	bool data_given() const override {return m_spUserData.valid();}
 
 
 	/////////////////////////////////////////
@@ -208,8 +208,7 @@ class DataImport : public IDataImport<dim>
 	/////////////////////////////////////////
 
 	/// \copydoc IDataImport::constant()
-		virtual bool constant() const
-		{
+		bool constant() const override {
 			if(data_given()) return m_spUserData->constant();
 			else return false;
 		}
@@ -276,7 +275,7 @@ class DataImport : public IDataImport<dim>
 		}
 
 	///	removes the positions
-		virtual void clear_ips();
+		void clear_ips() override;
 
 	/////////////////////////////////////////
 	// Linearization of Defect
@@ -306,10 +305,10 @@ class DataImport : public IDataImport<dim>
 			{check_ip_fct_sh(ip,fct,sh);return m_vvvLinDefect[ip][fct][sh];}
 
 	/// compute jacobian for derivative w.r.t. non-system owned unknowns
-		void add_jacobian(LocalMatrix& J, const number scale);
+		void add_jacobian(LocalMatrix& J, const number scale) override;
 
 	///	resize lin defect arrays
-		virtual void update_dof_sizes(const LocalIndices& ind);
+		void update_dof_sizes(const LocalIndices& ind) override;
 
 	public:
 	///	type of evaluation function
@@ -318,10 +317,10 @@ class DataImport : public IDataImport<dim>
 	                                            const size_t nip)>;
 
 	///	sets the geometric object type
-		virtual void set_roid(ReferenceObjectID id);
+		void set_roid(ReferenceObjectID id) override;
 
 	///	checks if ready for evaluation
-		virtual void check_setup();
+		void check_setup() override;
 
 	///	register evaluation of linear defect for a element
 		template <typename TClass>
@@ -342,8 +341,7 @@ class DataImport : public IDataImport<dim>
 		void clear_fct();
 
 	///	compute lin defect
-		virtual void compute_lin_defect(LocalVector& u)
-		{
+		void compute_lin_defect(LocalVector& u) override {
 		///	compute the linearization only if the export parameter is 'at current time'
 			if (! m_spUserData->at_current_time (m_seriesID))
 				return;

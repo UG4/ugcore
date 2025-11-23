@@ -296,13 +296,11 @@ class GeomObjAttachmentSerializer :
 		GeomObjAttachmentSerializer(Grid& g, TAttachment a) :
 			m_aa(g, a, true)	{}
 
-		virtual ~GeomObjAttachmentSerializer() {};
+		~GeomObjAttachmentSerializer() override = default;
 
-		virtual void write_data(BinaryBuffer& out, TGeomObj* o) const
-		{Serialize(out, m_aa[o]);}
+		void write_data(BinaryBuffer& out, TGeomObj* o) const override {Serialize(out, m_aa[o]);}
 
-		virtual void read_data(BinaryBuffer& in, TGeomObj* o)
-		{Deserialize(in, m_aa[o]);}
+		void read_data(BinaryBuffer& in, TGeomObj* o) override {Deserialize(in, m_aa[o]);}
 
 	private:
 		Grid::AttachmentAccessor<TGeomObj, TAttachment>	m_aa;
@@ -315,22 +313,23 @@ class SubsetHandlerSerializer : public GridDataSerializer
 		{return SPGridDataSerializer(new SubsetHandlerSerializer(sh));}
 
 		SubsetHandlerSerializer(ISubsetHandler& sh);
+		~SubsetHandlerSerializer() override = default;
 
 	///	writes subset-infos to the stream (subset names and colors)
-		virtual void write_info(BinaryBuffer& out) const;
+		void write_info(BinaryBuffer& out) const override;
 
 		///	Read the info written during write_info here. Default: empty implementation.
-		virtual void read_info(BinaryBuffer& in);
+		void read_info(BinaryBuffer& in) override;
 
-		virtual void write_data(BinaryBuffer& out, Vertex* o) const;
-		virtual void write_data(BinaryBuffer& out, Edge* o) const;
-		virtual void write_data(BinaryBuffer& out, Face* o) const;
-		virtual void write_data(BinaryBuffer& out, Volume* o) const;
+		void write_data(BinaryBuffer& out, Vertex* o) const override;
+		void write_data(BinaryBuffer& out, Edge* o) const override;
+		void write_data(BinaryBuffer& out, Face* o) const override;
+		void write_data(BinaryBuffer& out, Volume* o) const override;
 
-		virtual void read_data(BinaryBuffer& in, Vertex* o);
-		virtual void read_data(BinaryBuffer& in, Edge* o);
-		virtual void read_data(BinaryBuffer& in, Face* o);
-		virtual void read_data(BinaryBuffer& in, Volume* o);
+		void read_data(BinaryBuffer& in, Vertex* o) override;
+		void read_data(BinaryBuffer& in, Edge* o) override;
+		void read_data(BinaryBuffer& in, Face* o) override;
+		void read_data(BinaryBuffer& in, Volume* o) override;
 
 	private:
 		ISubsetHandler& m_sh;

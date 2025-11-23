@@ -81,11 +81,11 @@ constexpr int TOP_EDGE_INDS[NUM_BOTTOM_EDGES] = {4, 5, 6, 7};
 //	NOTE: The lists below are all generated automatically
 
 ///	returns the j-th edge of the i-th face
-const int FACE_EDGE_INDS[5][4] = 	{{0, 1, 2, 3}, {4, 5, 0, -1}, {5, 6, 1, -1},
+constexpr int FACE_EDGE_INDS[5][4] =  {{0, 1, 2, 3}, {4, 5, 0, -1}, {5, 6, 1, -1},
 									 {6, 7, 2, -1}, {3, 7, 4, -1}};
 
 ///	tells whether the i-th face contains the j-th edge
-const int FACE_CONTAINS_EDGE[][8] =
+constexpr int FACE_CONTAINS_EDGE[5][8] =
 						{{1, 1, 1, 1, 0, 0, 0, 0}, {1, 0, 0, 0, 1, 1, 0, 0},
 						 {0, 1, 0, 0, 0, 1, 1, 0}, {0, 0, 1, 0, 0, 0, 1, 1},
 						 {0, 0, 0, 1, 1, 0, 0, 1}};
@@ -94,7 +94,7 @@ const int FACE_CONTAINS_EDGE[][8] =
 /**	Use two vertex indices to index into this table to retrieve the index
  * of their connecting edge.
  */
-const int EDGE_FROM_VRTS[5][5] =	{{-1, 0, -1, 3, 4}, {0, -1, 1, -1, 5},
+constexpr int EDGE_FROM_VRTS[5][5] = {{-1, 0, -1, 3, 4}, {0, -1, 1, -1, 5},
 									 {-1, 1, -1, 2, 6}, {3, -1, 2, -1, 7},
 									 {4, 5, 6, 7, -1}};
 
@@ -102,7 +102,7 @@ const int EDGE_FROM_VRTS[5][5] =	{{-1, 0, -1, 3, 4}, {0, -1, 1, -1, 5},
 /**	Use three vertex indices to index into this table to retrieve the index
  * of their connecting face.
  */
-const int FACE_FROM_VRTS[5][5][5] =
+constexpr int FACE_FROM_VRTS[5][5][5] =
 				{{{-1, -1, -1, -1, -1}, {-1, -1, 0, 0, 1}, {-1, 0, -1, 0, -1},
 				  {-1, 0, 0, -1, 4}, {-1, 1, -1, 4, -1}},
 				 {{-1, -1, 0, 0, 1}, {-1, -1, -1, -1, -1}, {0, -1, -1, 0, 2},
@@ -115,7 +115,7 @@ const int FACE_FROM_VRTS[5][5][5] =
 				  {4, -1, 3, -1, -1}, {-1, -1, -1, -1, -1}}};
 
 ///	given two edges, the table returns the face, which contains both (or -1)
-const int FACE_FROM_EDGES[][8] =
+constexpr int FACE_FROM_EDGES[8][8] =
 					{{0, 0, 0, 0, 1, 1, -1, -1}, {0, 0, 0, 0, -1, 2, 2, -1},
 					 {0, 0, 0, 0, -1, -1, 3, 3}, {0, 0, 0, 0, 4, -1, -1, 4},
 					 {1, -1, -1, 4, 1, 1, -1, 4}, {1, 2, -1, -1, 1, 1, 2, -1},

@@ -47,16 +47,16 @@ template <typename TElem>
 vector3 GetGridObjectCenter(Grid& g, TElem* elem)
 {
 	if(g.has_vertex_attachment(aPosition)){
-		Grid::VertexAttachmentAccessor<APosition> aaPos(g, aPosition);
+		Grid::VertexAttachmentAccessor aaPos(g, aPosition);
 		return CalculateCenter(elem, aaPos);
 	}
 	else if(g.has_vertex_attachment(aPosition2)){
-		Grid::VertexAttachmentAccessor<APosition2> aaPos(g, aPosition2);
+		Grid::VertexAttachmentAccessor aaPos(g, aPosition2);
 		vector2 v = CalculateCenter(elem, aaPos);
 		return vector3(v.x(), v.y(), 0);
 	}
 	if(g.has_vertex_attachment(aPosition1)){
-		Grid::VertexAttachmentAccessor<APosition1> aaPos(g, aPosition1);
+		Grid::VertexAttachmentAccessor aaPos(g, aPosition1);
 		vector1 v = CalculateCenter(elem, aaPos);
 		return vector3(v.x(), 0, 0);
 	}

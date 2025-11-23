@@ -65,7 +65,7 @@ number TriangleAspectRatio (FaceVertices* f, TAAPos& aaPos)
 	const number A = TriangleArea(aaPos[vrts[0]], aaPos[vrts[1]], aaPos[vrts[2]]);
 
 	if(aMax > 0)
-		return (6.9282032302755091741097853660235 * A) / (aMax * (a[0] + a[1] + a[2]));
+		return (6.9282032302755091741097853660235 * A) / (aMax * (a[0] + a[1] + a[2])); // 4 * sqrt(3) = 6.928...
 	return 0;
 }
 

@@ -65,9 +65,9 @@ bool Duplicate(Grid& grid, Selector& sel, const typename TAPos::ValueType& offse
 
 //	store the currently selected elements in arrays
 	vector<Vertex*>	oldVrts;
-	vector<Edge*>	oldEdges;
-	vector<Face*>		oldFaces;
-	vector<Volume*>		oldVols;
+	vector<Edge*> oldEdges;
+	vector<Face*> oldFaces;
+	vector<Volume*> oldVols;
 	oldVrts.reserve(sel.num<Vertex>());
 	oldVrts.assign(sel.vertices_begin(), sel.vertices_end());
 	oldEdges.reserve(sel.num<Edge>());

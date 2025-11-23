@@ -81,11 +81,11 @@ public:
 		m_defaultProjector = make_sp(new RefinementProjector);
 	}
 
-	virtual ~ProjectionHandler () = default;;
+	~ProjectionHandler () override = default;
 
 	void clear();
 
-	virtual void set_geometry (SPIGeometry3d geometry);
+	void set_geometry (SPIGeometry3d geometry) override;
 
 ///	Sets the geometry of the ProjectionHandler and of all associated projectors
 /** \note	If you'd like to change the geometry of the ProjectionHandler only,
@@ -137,26 +137,26 @@ public:
 
 ////////////////////////////////////////
 //	IMPLEMENTATION OF RefinementProjector
-	virtual bool refinement_begins_requires_subgrid () const;
+	bool refinement_begins_requires_subgrid () const override;
 
 ///	prepares associated projectors for refinement
 /**	If an associated projector hasn't got an associated geometry, the geometry
  * of the ProjectionHandler will automatically be assigned.*/
-	virtual void refinement_begins (const ISubGrid* psg);
+	void refinement_begins (const ISubGrid* psg) override;
 
-	virtual void refinement_ends();
+	void refinement_ends() override;
 
 ///	called when a new vertex was created from an old vertex.
-	virtual number new_vertex (Vertex* vrt, Vertex* parent);
+	number new_vertex (Vertex* vrt, Vertex* parent) override;
 
 ///	called when a new vertex was created from an old edge.
-	virtual number new_vertex (Vertex* vrt, Edge* parent);
+	number new_vertex (Vertex* vrt, Edge* parent) override;
 
 ///	called when a new vertex was created from an old face.
-	virtual number new_vertex (Vertex* vrt, Face* parent);
+	number new_vertex (Vertex* vrt, Face* parent) override;
 
 ///	called when a new vertex was created from an old volume.
-	virtual number new_vertex (Vertex* vrt, Volume* parent);
+	number new_vertex (Vertex* vrt, Volume* parent) override;
 
 
 private:

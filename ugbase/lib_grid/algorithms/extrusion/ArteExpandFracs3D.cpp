@@ -5671,7 +5671,7 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 			UG_THROW("muss fracture sein " << std::endl);
 //
 		int sudoSide = planeDescr.spuckSudo();
-		number width = m_fracInfosBySubset[sudoSide].width;;
+		number width = m_fracInfosBySubset[sudoSide].width;
 
 		// ensure that the width is nonzero only for real fractures, not for pseudo vectors or such stuff
 //		if( ! isBndry )

@@ -89,7 +89,7 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	using RowType = UnsortedSparseVector<typename ABC_type::value_type>;
 	using RowIterator = typename RowType::iterator;
 
-	RowType row(C.num_cols());;
+	RowType row(C.num_cols());
 
 	std::vector<typename ABC_type::connection> con2;
 	//typename C_type::value_type cvalue;
@@ -184,7 +184,7 @@ void AddMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &
 	using RowType = UnsortedSparseVector<typename ABC_type::value_type>;
 	using RowIterator = typename RowType::iterator;
 
-	RowType row(C.num_cols());;
+	RowType row(C.num_cols());
 
 	std::vector<typename ABC_type::connection> con2;
 	//typename C_type::value_type cvalue;

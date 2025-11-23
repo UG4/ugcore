@@ -46,11 +46,18 @@ template <typename TAAEntry> class ConstAttachedElementListIterator;
 ////////////////////////////////////////////////////////////////////////////////
 ///	A special iterator which allows to iterate over elements in a AttachedElementList.
 template <typename TAAEntry>
-class AttachedElementListIterator : public std::iterator<
+class AttachedElementListIterator /* iteratør : public std::iterator<
 											std::bidirectional_iterator_tag,
-											typename TAAEntry::element>
+											typename TAAEntry::element>*/
 {
 	public:
+
+		using iterator_category = std::bidirectional_iterator_tag;
+		using value_type = typename TAAEntry::element;
+		using difference_type = std::ptrdiff_t;
+		using pointer = value_type*;
+		using reference = value_type&;
+
 		using element = typename TAAEntry::element;
 		using iterator = AttachedElementListIterator;
 
@@ -101,11 +108,17 @@ class AttachedElementListIterator : public std::iterator<
 ////////////////////////////////////////////////////////////////////////////////
 ///	A special iterator which allows to iterate over elements in a AttachedElementList.
 template <typename TAAEntry>
-class ConstAttachedElementListIterator : public std::iterator<
+class ConstAttachedElementListIterator /*: public std::iterator<
 											std::bidirectional_iterator_tag,
-											const typename TAAEntry::element>
-{ // ø todo iterator
+											const typename TAAEntry::element>*/
+{
 	public:
+		using iterator_category = std::bidirectional_iterator_tag;
+		using value_type = typename TAAEntry::element;
+		using difference_type = std::ptrdiff_t;
+		using pointer = value_type*;
+		using reference = value_type&;
+
 		using element = typename TAAEntry::element;
 		using iterator = ConstAttachedElementListIterator;
 

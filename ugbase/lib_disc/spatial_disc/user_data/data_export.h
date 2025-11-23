@@ -303,8 +303,7 @@ class DataExport :
 				                const MathVector<refDim> vLocIP[],
 				                const size_t nip,
 				                bool bDeriv,
-				                std::vector<std::vector<TData> > vvvDeriv[]) const
-				{
+				                std::vector<std::vector<TData> > vvvDeriv[]) const override {
 					((m_pObj)->*m_mf)(vValue, vGlobIP, time, si, u, elem, vCornerCoords, vLocIP, nip, bDeriv, vvvDeriv);
 				}
 

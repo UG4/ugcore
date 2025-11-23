@@ -337,15 +337,12 @@ void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
 //	get position accessor
 	const typename TDomain::position_accessor_type& aaPos = domain->position_accessor();
 
-//	iterator
-	typename DoFDistribution::traits<Vertex>::const_iterator iter, iterEnd;
-
 //	algebra indices vector
 	std::vector<size_t> ind;
 
 //	get iterators
-	iter = dd->begin<Vertex>(SurfaceView::ALL);
-	iterEnd = dd->end<Vertex>(SurfaceView::ALL);
+	auto iter = dd->begin<Vertex>(SurfaceView::ALL);
+	auto iterEnd = dd->end<Vertex>(SurfaceView::ALL);
 
 //	loop all vertices
 	for(;iter != iterEnd; ++iter)

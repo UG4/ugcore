@@ -177,7 +177,7 @@ bool ReadFile(const char* filename, vector<char> &file, bool bText)
 string MakeTmpFile(string filename, const string &extension, bool &bSuccess)
 {
 	PROFILE_FUNC();  // since i/o
-	bSuccess = true;
+	/*bSuccess = true;
 	string t = filename+extension;
 	const char *name = t.c_str();
 	if(!FileExists(name)) return name;
@@ -188,7 +188,20 @@ string MakeTmpFile(string filename, const string &extension, bool &bSuccess)
 		name = ss.str().c_str();
 		if(!FileExists(name)) return name;
 	}	
+	bSuccess = false;*/
+	bSuccess = true;
+	string t = filename + extension;
+	if (!FileExists(t.c_str()))
+		return t;
+	for (int i = 0; i < 999999; i++)
+	{
+		string candidate = filename + std::to_string(i) + extension;
+		if (!FileExists(candidate.c_str()))
+			return candidate;
+	}
+
 	bSuccess = false;
+
 	return "";
 }
 

@@ -53,7 +53,7 @@ int ConvertToTetrahedra(int* newIndsOut, TCmp cmp)
 	}
 
 //	create a local ordering
-	static const int permutations [6][6] = {{0, 1, 2, 3, 4, 5},
+	static constexpr int permutations [6][6] = {{0, 1, 2, 3, 4, 5},
 											{1, 2, 0, 4, 5, 3},
 											{2, 0, 1, 5, 3, 4},
 											{3, 5, 4, 0, 2, 1},

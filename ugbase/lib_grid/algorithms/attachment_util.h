@@ -112,10 +112,10 @@ class MultiElementAttachmentAccessor
 			}
 		}
 
-		ConstRefType operator [] (Vertex* e) const	{return m_aaVrt[e];}
-		ConstRefType operator [] (Edge* e) const		{return m_aaEdge[e];}
-		ConstRefType operator [] (Face* e) const			{return m_aaFace[e];}
-		ConstRefType operator [] (Volume* e) const 		{return m_aaVol[e];}
+		ConstRefType operator [] (Vertex* e) const {return m_aaVrt[e];}
+		ConstRefType operator [] (Edge* e) const {return m_aaEdge[e];}
+		ConstRefType operator [] (Face* e) const {return m_aaFace[e];}
+		ConstRefType operator [] (Volume* e) const {return m_aaVol[e];}
 		ConstRefType operator [] (GridObject* e) const
 		{
 			switch(e->base_object_id()){
@@ -127,16 +127,16 @@ class MultiElementAttachmentAccessor
 			}
 		}
 
-		Grid::AttachmentAccessor<Vertex, TAttachment>&	vertex_accessor()	{return m_aaVrt;}
-		Grid::AttachmentAccessor<Edge, TAttachment>&	edge_accessor()		{return m_aaEdge;}
-		Grid::AttachmentAccessor<Face, TAttachment>&		face_accessor()		{return m_aaFace;}
-		Grid::AttachmentAccessor<Volume, TAttachment>&		volume_accessor()	{return m_aaVol;}
+		Grid::AttachmentAccessor<Vertex, TAttachment>& vertex_accessor()	{return m_aaVrt;}
+		Grid::AttachmentAccessor<Edge, TAttachment>& edge_accessor()		{return m_aaEdge;}
+		Grid::AttachmentAccessor<Face, TAttachment>& face_accessor()		{return m_aaFace;}
+		Grid::AttachmentAccessor<Volume, TAttachment>& volume_accessor()	{return m_aaVol;}
 
 	private:
-		Grid::AttachmentAccessor<Vertex, TAttachment>	m_aaVrt;
-		Grid::AttachmentAccessor<Edge, TAttachment>		m_aaEdge;
-		Grid::AttachmentAccessor<Face, TAttachment>			m_aaFace;
-		Grid::AttachmentAccessor<Volume, TAttachment>		m_aaVol;
+		Grid::AttachmentAccessor<Vertex, TAttachment> m_aaVrt;
+		Grid::AttachmentAccessor<Edge, TAttachment> m_aaEdge;
+		Grid::AttachmentAccessor<Face, TAttachment> m_aaFace;
+		Grid::AttachmentAccessor<Volume, TAttachment> m_aaVol;
 };
 
 

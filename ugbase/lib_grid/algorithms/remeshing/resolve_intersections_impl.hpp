@@ -1501,7 +1501,7 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 								}
 							}
 							if(inds[0] != inds[1])
-								aaEdgeDescVec[t1].push_back(make_pair(inds[0], inds[1]));
+								aaEdgeDescVec[t1].emplace_back(inds[0], inds[1]);
 						}
 					}
 				//	swap tris
@@ -1617,9 +1617,9 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 			//	we found the indices of both endpoints and can now add an edge
 			//	connecting both to the edgeDesc arrays of t[0] and t[1].
 				if(inds1[0] != inds1[1])
-					aaEdgeDescVec[t[0]].push_back(make_pair(inds1[0], inds1[1]));
+					aaEdgeDescVec[t[0]].emplace_back(inds1[0], inds1[1]);
 				if(inds2[0] != inds2[1])
-					aaEdgeDescVec[t[1]].push_back(make_pair(inds2[0], inds2[1]));
+					aaEdgeDescVec[t[1]].emplace_back(inds2[0], inds2[1]);
 			}
 		}
 	}

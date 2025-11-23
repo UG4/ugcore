@@ -83,8 +83,7 @@ class MaxStepsFinishedCondition : public IFinishedCondition
 		MaxStepsFinishedCondition(int max_timesteps) : m_max_timesteps(max_timesteps)
 		{}
 
-		bool check_finished(number time, int step)
-		{
+		bool check_finished(number time, int step) override {
 			return step >= m_max_timesteps;
 		}
 	private:
@@ -98,8 +97,7 @@ class TemporalFinishedCondition : public IFinishedCondition
 			m_end_time(end_time), m_max_step_size(max_step_size), m_relative_precision_bound(relative_precision_bound)
 		{}
 
-		bool check_finished(number time, int step)
-		{
+		bool check_finished(number time, int step) override {
 			return (time >= m_end_time) || ((m_end_time-time)/m_max_step_size <= m_relative_precision_bound);
 		}
 

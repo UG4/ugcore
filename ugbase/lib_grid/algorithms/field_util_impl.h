@@ -88,12 +88,12 @@ bool EliminateInvalidCells(Field<T>& field, const T& noDataValue)
 	deque<Cell>	cells;
 	number inProgressValue = -noDataValue;
 
-	const int numNbrs = 8;
-	const int xadd[numNbrs] = {-1, 0, 1, -1, 1, -1, 0, 1};
-	const int yadd[numNbrs] = {-1, -1, -1, 0, 0, 1, 1, 1};
+	constexpr int numNbrs = 8;
+	constexpr int xadd[numNbrs] = {-1, 0, 1, -1, 1, -1, 0, 1};
+	constexpr int yadd[numNbrs] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
-	const int maxNumSteps = 4;
-	const int minNumValidNbrsInStep[maxNumSteps] = {4, 3, 2, 1};
+	constexpr int maxNumSteps = 4;
+	constexpr int minNumValidNbrsInStep[maxNumSteps] = {4, 3, 2, 1};
 
 //	initially count the number of invalid cells
 	size_t numInvalidCells = 0;
@@ -227,9 +227,9 @@ void InvalidateSmallLenses(Field<T>& field, size_t thresholdCellCount,
 	// const int numNbrs = 8;
 	// const int xadd[numNbrs] = {-1, 0, 1, -1, 1, -1, 0, 1};
 	// const int yadd[numNbrs] = {-1, -1, -1, 0, 0, 1, 1, 1};
-	const size_t numNbrs = 4;
-	const int xadd[numNbrs] = {0, -1, 1, 0};
-	const int yadd[numNbrs] = {-1, 0, 0, 1};
+	constexpr size_t numNbrs = 4;
+	constexpr int xadd[numNbrs] = {0, -1, 1, 0};
+	constexpr int yadd[numNbrs] = {-1, 0, 0, 1};
 
 //	this field stores whether we already visited the given cell
 	Field<bool>	visited(field.width(), field.height(), false);

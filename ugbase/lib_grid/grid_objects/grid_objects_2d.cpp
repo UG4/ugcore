@@ -172,7 +172,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 			case 1:
 			{
 			//	get the index of the edge that will be refined
-				int iNew = -1;;
+				int iNew = -1;
 				for(int i = 0; i < 3; ++i){
 					if(newEdgeVertices[i]){
 						iNew = i;

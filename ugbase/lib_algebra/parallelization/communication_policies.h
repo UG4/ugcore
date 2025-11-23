@@ -36,6 +36,7 @@
 #include "pcl/pcl.h"
 #include "common/serialization.h"
 #include "parallel_index_layout.h"
+#include "lib_algebra/common/operations_vec.h"
 #include "algebra_id.h"
 
 

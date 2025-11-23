@@ -62,6 +62,22 @@ template <typename TVector = Vector<double>>
 class ParallelVector : public TVector
 {
 	public:
+
+	/*static_assert(!std::is_same_v<TVector,
+		Vector< DenseMatrix< FixedArray2<double,2,2,eMatrixOrdering::RowMajor> > >
+	>, "This type of ParallelVector is not allowed.");
+
+	static_assert(!std::is_same_v<TVector,
+		Vector< DenseMatrix< FixedArray2<double,3,3,eMatrixOrdering::RowMajor> > >
+	>, "This type of ParallelVector is not allowed.");
+	static_assert(!std::is_same_v<TVector,
+		Vector< DenseMatrix< FixedArray2<double,2,2,eMatrixOrdering::ColMajor> > >
+	>, "This type of ParallelVector is not allowed.");
+
+	static_assert(!std::is_same_v<TVector,
+		Vector< DenseMatrix< FixedArray2<double,3,3,eMatrixOrdering::ColMajor> > >
+	>, "This type of ParallelVector is not allowed.");*/
+
 		using value_type = typename TVector::value_type;
 		using size_type = size_t;
 		using vector_type = typename TVector::vector_type;
@@ -205,5 +221,14 @@ class ParallelVector : public TVector
 } // end namespace ug
 
 #include "parallel_vector_impl.h"
+
+//extern template class ug::ParallelVector<ug::Vector<double>>;
+//extern template class ug::ParallelVector<ug::Vector<ug::DenseVector<ug::FixedArray1<double, 2ul>>>>;
+//extern template class ug::ParallelVector<ug::Vector<ug::DenseVector<ug::FixedArray1<double, 3ul>>>>;
+//extern template class ug::ParallelVector<ug::Vector<ug::DenseMatrix<ug::FixedArray2<double, 2ul, 2ul, (ug::eMatrixOrdering)1>>>>;
+//extern template class ug::ParallelVector<ug::Vector<ug::DenseMatrix<ug::FixedArray2<double, 3ul, 3ul, (ug::eMatrixOrdering)1>>>>;
+//extern template class ug::ParallelVector<ug::Vector<ug::DenseMatrix<ug::FixedArray2<double, 2ul, 2ul, (ug::eMatrixOrdering)1>>>>;
+//extern template class ug::ParallelVector<ug::Vector<ug::DenseMatrix<ug::FixedArray2<double, 3ul, 3ul, (ug::eMatrixOrdering)1>>>>;
+
 
 #endif

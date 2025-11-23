@@ -645,7 +645,7 @@ inline void SideNormal(MathVector<TWorldDim>& normalOut, int side, const MathVec
 	static constexpr int maxSideCorners = element_list_traits<typename domain_traits<dim-1>::DimElemList>::maxCorners;
 	
 //	Get own reference element and the side roid:
-	TRefElem & rRefElem = (TRefElem&) ReferenceElementProvider::get(TRefElem::REFERENCE_OBJECT_ID);
+	auto & rRefElem = (TRefElem&) ReferenceElementProvider::get(TRefElem::REFERENCE_OBJECT_ID);
 	ReferenceObjectID sideRoid = rRefElem.roid(dim-1,side);
 	
 //	Get the coordinates of the vertices:
@@ -656,7 +656,7 @@ inline void SideNormal(MathVector<TWorldDim>& normalOut, int side, const MathVec
 	// we need another point if dim != TWorldDim:
 	// take the highest-numbered corner of the next side, since
 	// it is always different from the other points (is it not?)
-	if (dim != TWorldDim)
+	if constexpr (dim != TWorldDim)
 	{
 		vSideCorner[numSideCorners] =
 			vCornerCoords[rRefElem.id(dim-1, (side+1)%rRefElem.num(dim-1), 0,
@@ -793,7 +793,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 		static const TRefElem& rRefElem = Provider<TRefElem>::get();
 
 		// reference dimension
-		const int dim = TRefElem::dim;
+		constexpr int dim = TRefElem::dim;
 
 		// parameters
 		number bc0 = 0., bc1 = 0., t = 0.;

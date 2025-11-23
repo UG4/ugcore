@@ -443,4 +443,12 @@ inline std::ostream& operator << (std::ostream& outStream, const GridFunction<TD
 // include implementation
 #include "grid_function_impl.h"
 
+/*extern template class ug::GridFunction<ug::Domain1d,ug::CPUAlgebra>;
+extern template class ug::GridFunction<ug::Domain1d,ug::CPUBlockAlgebra<2>>;
+extern template class ug::GridFunction<ug::Domain1d,ug::CPUBlockAlgebra<3>>;
+
+extern template class ug::GridFunction<ug::Domain2d,ug::CPUAlgebra>;
+extern template class ug::GridFunction<ug::Domain2d,ug::CPUBlockAlgebra<2>>;
+extern template class ug::GridFunction<ug::Domain2d,ug::CPUBlockAlgebra<3>>;
+*/
 #endif

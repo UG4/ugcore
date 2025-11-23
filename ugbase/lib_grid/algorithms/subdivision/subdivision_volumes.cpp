@@ -284,7 +284,7 @@ void SplitOctahedronToTetrahedrons(	Grid& grid, Octahedron* oct, Volume* parentV
 									std::vector<Tetrahedron*>& vTetsOut, int bestDiag)
 {
 //	Position attachment management
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
+	Grid::VertexAttachmentAccessor aaPos(grid, aPosition);
 
 //	Determine the shortest diagonal to split upon the octahedron
 	if(bestDiag != 0 && bestDiag != 1 && bestDiag != 2)
@@ -675,7 +675,7 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 		{
 		//	perform loop subdivision on even manifold vertices
 		//	first get neighbored manifold vertices
-			for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(vrt); eIter != mg.associated_edges_end(vrt); ++eIter)
+			for(auto eIter = mg.associated_edges_begin(vrt); eIter != mg.associated_edges_end(vrt); ++eIter)
 			{
 				Edge* e = *eIter;
 
@@ -947,7 +947,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition
 		{
 		//	perform loop subdivision on even manifold vertices
 		//	first get neighbored manifold vertices
-			for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(vrt); eIter != mg.associated_edges_end(vrt); ++eIter)
+			for(auto eIter = mg.associated_edges_begin(vrt); eIter != mg.associated_edges_end(vrt); ++eIter)
 			{
 				Edge* e = *eIter;
 
@@ -1654,10 +1654,10 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 	#endif
 
 //	Define attachment accessors
-	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_toc(mg, aSmoothVolPos_toc);
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_prism(mg, aSmoothVolPos_prism);
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_hex(mg, aSmoothVolPos_hex);
+	Grid::VertexAttachmentAccessor aaPos(mg, aPosition);
+	Grid::VertexAttachmentAccessor aaSmoothVolPos_toc(mg, aSmoothVolPos_toc);
+	Grid::VertexAttachmentAccessor aaSmoothVolPos_prism(mg, aSmoothVolPos_prism);
+	Grid::VertexAttachmentAccessor aaSmoothVolPos_hex(mg, aSmoothVolPos_hex);
 
 //	Declare volume centroid coordinate vector
 	using pos_type = APosition::ValueType;
@@ -1808,8 +1808,8 @@ void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandle
 	#endif
 
 //	Define attachment accessors
-	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_toc(mg, aSmoothVolPos_toc);
+	Grid::VertexAttachmentAccessor aaPos(mg, aPosition);
+	Grid::VertexAttachmentAccessor aaSmoothVolPos_toc(mg, aSmoothVolPos_toc);
 
 //	Declare volume centroid coordinate vector
 	using pos_type = APosition::ValueType;
@@ -1964,9 +1964,9 @@ void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandle
 void CalculateNumElemsVertexAttachmentInTopLevel(MultiGrid& mg, AInt& aNumElems_toc, AInt& aNumElems_prism, AInt& aNumElems_hex)
 {
 //	Define attachment accessor
-	Grid::VertexAttachmentAccessor<AInt> aaNumElems_toc(mg, aNumElems_toc);
-	Grid::VertexAttachmentAccessor<AInt> aaNumElems_prism(mg, aNumElems_prism);
-	Grid::VertexAttachmentAccessor<AInt> aaNumElems_hex(mg, aNumElems_hex);
+	Grid::VertexAttachmentAccessor aaNumElems_toc(mg, aNumElems_toc);
+	Grid::VertexAttachmentAccessor aaNumElems_prism(mg, aNumElems_prism);
+	Grid::VertexAttachmentAccessor aaNumElems_hex(mg, aNumElems_hex);
 
 //	Manage vertex attachment communication in parallel case:
 //	- Setup communication policy for the above attachment
@@ -2034,7 +2034,7 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 															AInt& aNumManifoldEdges, bool bCreaseSurf)
 {
 //	Define attachment accessor
-	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges(mg, aNumManifoldEdges);
+	Grid::VertexAttachmentAccessor aaNumManifoldEdges(mg, aNumManifoldEdges);
 
 //	Manage vertex attachment communication in parallel case:
 //	- Setup communication policy for the above attachment
@@ -2122,8 +2122,8 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumManifoldFaces_tri, AInt& aNumManifoldFaces_quad)
 {
 //	Define attachment accessor
-	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldFaces_tri(mg, aNumManifoldFaces_tri);
-	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldFaces_quad(mg, aNumManifoldFaces_quad);
+	Grid::VertexAttachmentAccessor aaNumManifoldFaces_tri(mg, aNumManifoldFaces_tri);
+	Grid::VertexAttachmentAccessor aaNumManifoldFaces_quad(mg, aNumManifoldFaces_quad);
 
 //	Manage vertex attachment communication in parallel case:
 //	- Setup communication policy for the above attachment
@@ -2431,7 +2431,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
 			if(mg.get_parent(vrt)->reference_object_id() == ROID_VERTEX)
 			{
 			//	Get parent vertex
-				Vertex* parentVrt = static_cast<Vertex*>(mg.get_parent(vrt));
+				auto* parentVrt = static_cast<Vertex*>(mg.get_parent(vrt));
 
 				aaPos[vrt] = aaSmoothBndPosEvenVrt[parentVrt];
 			}
@@ -2440,7 +2440,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
 			else if(mg.get_parent(vrt)->reference_object_id() == ROID_EDGE)
 			{
 			//	Get parent edge
-				Edge* parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
+				auto parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
 
 				aaPos[vrt] =  aaSmoothBndPosOddVrt[parentEdge];
 			}
@@ -2585,7 +2585,7 @@ void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& 
 			if(mg.get_parent(vrt)->reference_object_id() == ROID_EDGE)
 			{
 			//	Get parent edge
-				Edge* parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
+				auto parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
 
 				aaPos[vrt] =  aaSmoothBndPosOddVrt[parentEdge];
 			}
@@ -2653,8 +2653,8 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, TAPosition& 
 
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<TAPosition> aaPos(mg, aPos);
-	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldFaces_tri(mg, aNumManifoldFaces_tri);
-	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldFaces_quad(mg, aNumManifoldFaces_quad);
+	Grid::VertexAttachmentAccessor aaNumManifoldFaces_tri(mg, aNumManifoldFaces_tri);
+	Grid::VertexAttachmentAccessor aaNumManifoldFaces_quad(mg, aNumManifoldFaces_quad);
 	Grid::VertexAttachmentAccessor<TAPosition> aaSmoothBndPos_tri(mg, aSmoothBndPos_tri);
 	Grid::VertexAttachmentAccessor<TAPosition> aaSmoothBndPos_quad(mg, aSmoothBndPos_quad);
 
@@ -2775,13 +2775,13 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 	mg.attach_to_vertices_dv(aSmoothVolPos_hex, vector3(0, 0, 0));
 
 //	Define attachment accessors
-	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
-	Grid::VertexAttachmentAccessor<AInt> aaNumElems_toc(mg, aNumElems_toc);
-	Grid::VertexAttachmentAccessor<AInt> aaNumElems_prism(mg, aNumElems_prism);
-	Grid::VertexAttachmentAccessor<AInt> aaNumElems_hex(mg, aNumElems_hex);
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_toc(mg, aSmoothVolPos_toc);
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_prism(mg, aSmoothVolPos_prism);
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_hex(mg, aSmoothVolPos_hex);
+	Grid::VertexAttachmentAccessor aaPos(mg, aPosition);
+	Grid::VertexAttachmentAccessor aaNumElems_toc(mg, aNumElems_toc);
+	Grid::VertexAttachmentAccessor aaNumElems_prism(mg, aNumElems_prism);
+	Grid::VertexAttachmentAccessor aaNumElems_hex(mg, aNumElems_hex);
+	Grid::VertexAttachmentAccessor aaSmoothVolPos_toc(mg, aSmoothVolPos_toc);
+	Grid::VertexAttachmentAccessor aaSmoothVolPos_prism(mg, aSmoothVolPos_prism);
+	Grid::VertexAttachmentAccessor aaSmoothVolPos_hex(mg, aSmoothVolPos_hex);
 
 //	Manage vertex attachment communication in parallel case:
 //	- Setup communication policy for the above attachment aPosition

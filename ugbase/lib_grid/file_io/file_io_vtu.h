@@ -190,8 +190,8 @@ class GridWriterVTU
 class GridReaderVTU
 {
 	public:
-		GridReaderVTU() = default;;
-		virtual ~GridReaderVTU() = default;;
+		GridReaderVTU() = default;
+		virtual ~GridReaderVTU() = default;
 
 	///	parses an xml file
 		bool parse_file(const char* filename);

@@ -58,17 +58,15 @@ class StdConstData
 	: 	public StdUserData<StdConstData<TImpl,TData,dim>, TData, dim>
 {
 	public:
-		virtual void operator () (TData& value,
-								 const MathVector<dim>& globIP,
-								 number time, int si) const
-		{
+		void operator () (TData& value,
+	                  const MathVector<dim>& globIP,
+	                  number time, int si) const override {
 			getImpl().evaluate(value);
 		}
 
-		virtual void operator () (TData vValue[],
-								const MathVector<dim> vGlobIP[],
-								number time, int si, const size_t nip) const
-		{
+		void operator () (TData vValue[],
+		                  const MathVector<dim> vGlobIP[],
+		                  number time, int si, const size_t nip) const override {
 			for(size_t ip = 0; ip < nip; ++ip)
 				getImpl().evaluate(vValue[ip]);
 		}
@@ -89,8 +87,9 @@ class StdConstData
 		}
 
 	///	implement as a UserData
-		virtual void compute(LocalVector* u, GridObject* elem,
-		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
+		void compute(LocalVector* u, GridObject* elem,
+		                     const MathVector<dim> vCornerCoords[],
+		                     bool bDeriv = false) override
 		{
 			for(size_t s = 0; s < this->num_series(); ++s)
 				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
@@ -98,8 +97,9 @@ class StdConstData
 		}
 
 	///	implement as a UserData
-		virtual void compute(LocalVectorTimeSeries* u, GridObject* elem,
-		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
+		void compute(LocalVectorTimeSeries* u, GridObject* elem,
+		                     const MathVector<dim> vCornerCoords[],
+		                     bool bDeriv = false) override
 		{
 			for(size_t s = 0; s < this->num_series(); ++s)
 				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
@@ -107,20 +107,20 @@ class StdConstData
 		}
 
 	///	callback, invoked when data storage changed
-		virtual void value_storage_changed(const size_t seriesID)
+		void value_storage_changed(const size_t seriesID) override
 		{
 			for(size_t ip = 0; ip < this->num_ip(seriesID); ++ip)
 				getImpl().evaluate(this->value(seriesID,ip));
 		}
 
 	///	returns if data is constant
-		virtual bool constant() const {return true;}
+		bool constant() const override {return true;}
 
 	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return false;}
+		bool requires_grid_fct() const override {return false;}
 
 	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool continuous() const {return true;}
+		bool continuous() const override {return true;}
 
 	protected:
 	///	access to implementation
@@ -178,8 +178,8 @@ class ConstUserNumber
 /**
  * Constant vector user data that can be used in assembling routines.
  *
- * \param dim the dimensionality of the vector itself (for ex. 2 for vectors of two components)
- * \param worldDim the dimensionality of the space embedding the grid (for ex. 3 for 3d PDE problems)
+ * \tparam dim the dimensionality of the vector itself (for ex. 2 for vectors of two components)
+ * \tparam worldDim the dimensionality of the space embedding the grid (for ex. 3 for 3d PDE problems)
  */
 template <int dim, int worldDim = dim>
 class ConstUserVector

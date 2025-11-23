@@ -282,7 +282,7 @@ void TangentialSmooth(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 
 	//	now smooth the offset vectors by repeatedly taking the average of
 	//	neighbored vectors
-		const size_t numOffsetSmoothSteps = 1;
+		constexpr size_t numOffsetSmoothSteps = 1;
 		for(size_t i_step = 0; i_step < numOffsetSmoothSteps; ++i_step){
 			for(size_t i_vrt = 0; i_vrt + 1 < adjVrtOffsets.size(); ++i_vrt){
 				int adjVrtsBegin = adjVrtOffsets[i_vrt];
