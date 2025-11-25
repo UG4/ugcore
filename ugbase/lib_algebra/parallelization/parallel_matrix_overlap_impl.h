@@ -315,7 +315,7 @@ public:
 				else
 				{
 					PROFILE_BEGIN(calculate3_1b);
-					bool bCreateNewNodes = (current_overlap == m_overlapDepthMaster ? false : true);
+					bool bCreateNewNodes = (current_overlap != m_overlapDepthMaster);
 					communicate(*send_layout, *receive_layout, bCreateNewNodes,
 						slaveOLLayouts[current_overlap], masterOLLayouts[current_overlap], pids, false, current_overlap);
 				}
@@ -347,7 +347,7 @@ public:
 				else
 				{
 					PROFILE_BEGIN(calculate3_2b);
-					bool bCreateNewNodes = (current_overlap == m_overlapDepthSlave ? false : true);
+					bool bCreateNewNodes = (current_overlap != m_overlapDepthSlave);
 					communicate(*backward_send_layout, *backward_receive_layout, bCreateNewNodes,
 						backward_slaveOLLayouts[current_overlap], backward_masterOLLayouts[current_overlap], pids, true, current_overlap+1);
 				}

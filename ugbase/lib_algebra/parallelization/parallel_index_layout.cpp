@@ -44,7 +44,7 @@ void LogIndexLayout(IndexLayout& layout, int depth)
 	using namespace std;
 
 	using Interface = IndexLayout::Interface;
-	using InterfaceIter = IndexLayout::iterator;
+	//ø using InterfaceIter = IndexLayout::iterator;
 
 	UG_LOG("-- IndexLayout Informations: Proc "<< GetLogAssistant().get_output_process() << " --\n");
 
@@ -56,8 +56,9 @@ void LogIndexLayout(IndexLayout& layout, int depth)
 	for(auto iiter = layout.begin(); iiter != layout.end(); ++iiter, ++i)
 	{
 		Interface& interface = layout.interface(iiter);
-		UG_LOG(" " << std::setw(9) << i << " | " << std::setw(14) <<
-		       layout.proc_id(iiter) << " | " << std::setw(9) << interface.size() << " ");
+		UG_LOG(" " << std::setw(9) << i << " | " << std::setw(14)
+			       << layout.proc_id(iiter) << " | " << std::setw(9)
+			       << interface.size() << " ");
 		if(depth >= 1)
 		{
 			UG_LOG(" | (");

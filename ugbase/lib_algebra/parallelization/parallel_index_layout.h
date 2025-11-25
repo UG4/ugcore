@@ -78,7 +78,7 @@ inline IndexLayout::Interface::iterator find(IndexLayout::Interface &interface, 
 	for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 	{
 		if(interface.get_element(iter) == i)
-			return iter;
+			return iter; // ø todo can escape function
 	}
 	return interface.end();
 }

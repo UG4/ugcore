@@ -89,7 +89,7 @@ class ParallelVector : public TVector
 		//ParallelVector(const ParallelVector&);
 
 	/// catch all other assignments so we don't use copy constructor here
-		template<typename T> this_type &operator = (T t);
+		template<typename T> this_type &operator = (T t) = delete;
 
 
 	public:
@@ -115,7 +115,7 @@ class ParallelVector : public TVector
 		/////////////////////////
 
 	///	returns the algebra layouts
-		ConstSmartPtr<AlgebraLayouts> layouts() const {return m_spAlgebraLayouts;}
+		[[nodiscard]] ConstSmartPtr<AlgebraLayouts> layouts() const {return m_spAlgebraLayouts;}
 
 	///	sets the algebra layouts
 		void set_layouts(ConstSmartPtr<AlgebraLayouts> layouts) {m_spAlgebraLayouts = layouts;}
@@ -137,12 +137,12 @@ class ParallelVector : public TVector
 
 	/// returns if the current storage type has a given representation
 	/**	type may be any or-combination of constants enumerated in ug::ParallelStorageType.*/
-		bool has_storage_type(uint type) const
+		[[nodiscard]] bool has_storage_type(uint type) const
 			{return type == PST_UNDEFINED ? m_type == PST_UNDEFINED : (m_type & type) == type;}
 
 	/// returns storage type mask
-		uint get_storage_mask() const { return m_type; }
-		ParallelStorageType get_storage_type() const { return (ParallelStorageType) m_type; }
+		[[nodiscard]] uint get_storage_mask() const { return m_type; }
+		[[nodiscard]] ParallelStorageType get_storage_type() const { return static_cast<ParallelStorageType>(m_type); }
 
 	///	checks correctness of storage type
 		void check_storage_type() const;
@@ -160,10 +160,10 @@ class ParallelVector : public TVector
 	 * is computed using the norm() method of the sequential vector. Then,
 	 * the norms are summarized over all processes.
 	 */
-		number norm() const;
+		[[nodiscard]] number norm() const;
 
 	/// max norm (overwrites TVector::maxnorm())
-		number maxnorm() const;
+		[[nodiscard]] number maxnorm() const;
 
 	/// dotprod (overwrites TVector::dotprod())
 	/**

@@ -267,7 +267,7 @@ class InterfaceCommunicator
 		void disable_communication_debugging();
 	
 	///	returns true if communication debugging is enabled
-		bool communication_debugging_enabled();
+		bool communication_debugging_enabled() const;
 	 
 	protected:
 		using BufferMap = std::map<int, ug::BinaryBuffer>;
@@ -288,12 +288,12 @@ class InterfaceCommunicator
 										 std::set<int>& curProcs,
 										 const TLayout& layout);
 	/// specialization of stream-pack preparation for single-level-layouts
-		void prepare_receiver_buffer_map(BufferMap& streamPack,
+		void prepare_receiver_buffer_map(BufferMap& bufMap,
 										 std::set<int>& curProcs,
 										 const TLayout& layout,
 										 const layout_tags::single_level_layout_tag&);
 	/// specialization of stream-pack preparation for multi-level-layouts
-		void prepare_receiver_buffer_map(BufferMap& streamPack,
+		void prepare_receiver_buffer_map(BufferMap& bufMap,
 										 std::set<int>& curProcs,
 										 const TLayout& layout,
 										 const layout_tags::multi_level_layout_tag&);

@@ -250,6 +250,8 @@ operator = (number d)
 {
 	this->set(d);
 	return d;
+	// ø todo check if this value is actually needed to be returnd
+	//  ø todo  standard c++ operator= returns this& instead of number
 }
 
 template <typename TVector>

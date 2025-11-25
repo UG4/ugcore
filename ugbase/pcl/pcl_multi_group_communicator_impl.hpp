@@ -57,7 +57,7 @@ allreduce (const T *sendBuf, T *recvBuf,
 		return;
 	}
 
-	const int tag = 4378;
+	constexpr int tag = 4378;
 	const int procRank = m_com.get_local_proc_id ();
 	
 	vector<T> receivedVals;
@@ -98,7 +98,7 @@ allreduce (const T *sendBuf, T *recvBuf,
 			if (m_groupMembers [o] == procRank){
 				for(size_t i = 1; i < s; ++i){
 					MPI_Irecv(&receivedVals.front() + recvCount * countPerGroup,
-					          (int) countPerGroup * sizeof (T),
+					          static_cast<int>(countPerGroup) * sizeof (T),
 					          MPI_UNSIGNED_CHAR,	
 							  m_com.get_proc_id ((size_t)m_groupMembers [o + i]),
 							  tag,
@@ -110,7 +110,7 @@ allreduce (const T *sendBuf, T *recvBuf,
 			else {
 				//note: const_cast required for some MPI implementations...
 				MPI_Isend(const_cast<T*>(sendBuf) + imem * countPerGroup,
-				          (int) countPerGroup * sizeof (T),
+				          static_cast<int>(countPerGroup) * sizeof (T),
 				          MPI_UNSIGNED_CHAR,
 				  		  m_com.get_proc_id ((size_t)m_groupMembers [o]),
 				  		  tag,
@@ -183,7 +183,7 @@ allreduce (const T *sendBuf, T *recvBuf,
 			if (m_groupMembers [o] == procRank){
 				for(size_t i = 1; i < s; ++i){
 					MPI_Isend(recvBuf + imem * countPerGroup,
-				          (int) countPerGroup * sizeof (T),
+				          static_cast<int>(countPerGroup) * sizeof (T),
 				          MPI_UNSIGNED_CHAR,
 				  		  m_com.get_proc_id ((size_t)m_groupMembers [o + i]),
 				  		  tag,
@@ -194,9 +194,9 @@ allreduce (const T *sendBuf, T *recvBuf,
 			}
 			else {
 				MPI_Irecv(recvBuf + imem * countPerGroup,
-				          (int) countPerGroup * sizeof (T),
+				          static_cast<int>(countPerGroup) * sizeof (T),
 				          MPI_UNSIGNED_CHAR,
-				  		  m_com.get_proc_id ((size_t)m_groupMembers [o]),
+				  		  m_com.get_proc_id (static_cast<size_t>(m_groupMembers[o])),
 				  		  tag,
 				  		  m_com.get_mpi_communicator(),
 				  		  &recvRequests[recvCount]);

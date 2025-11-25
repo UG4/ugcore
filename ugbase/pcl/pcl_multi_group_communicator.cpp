@@ -67,7 +67,7 @@ reinit (const std::vector<bool>& participates)
 	m_memberships.clear();
 	for(size_t i = 0; i < m_participates.size(); ++i){
 		if(m_participates[i]){
-			memIndFromGrpInd [i] = (int) m_memberships.size();
+			memIndFromGrpInd [i] = static_cast<int>(m_memberships.size());
 			m_memberships.push_back (i);
 		}
 	}

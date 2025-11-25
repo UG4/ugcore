@@ -112,9 +112,9 @@ public:
 	NewLayoutCreator(ParallelNodes &_PN, IndexLayout &masterLayout, IndexLayout &slaveLayout)
 		: PN(_PN)
 	{
-		for(IndexLayout::iterator it = slaveLayout.begin(); it != slaveLayout.end(); ++it)
+		for(auto it = slaveLayout.begin(); it != slaveLayout.end(); ++it)
 			slavePIDs.insert(slaveLayout.proc_id(it));
-		for(IndexLayout::iterator it = masterLayout.begin(); it != masterLayout.end(); ++it)
+		for(auto it = masterLayout.begin(); it != masterLayout.end(); ++it)
 			masterPIDs.insert(masterLayout.proc_id(it));
 		create_mark_map(masterLayout);
 	}
@@ -213,7 +213,7 @@ public:
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "NewLayoutCreator::issue\n");
 		// notifications for new Master Nodes
-		for(std::set<int>::iterator it = slavePIDs.begin(); it != slavePIDs.end(); ++it)
+		for(auto it = slavePIDs.begin(); it != slavePIDs.end(); ++it)
 		{
 			BinaryBuffer buf;
 			int pid = *it;
@@ -224,7 +224,7 @@ public:
 		}
 		newSlaveNotifications.clear();
 
-		for(std::set<int>::iterator it = masterPIDs.begin(); it != masterPIDs.end(); ++it)
+		for(auto it = masterPIDs.begin(); it != masterPIDs.end(); ++it)
 		{
 			int pid = *it;
 			UG_DLOG(LIB_ALG_MATRIX, 4, " issue receive from processor " << pid << "\n");
@@ -235,7 +235,7 @@ public:
 	void process()
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "NewLayoutCreator::process\n");
-		for(std::set<int>::iterator it = masterPIDs.begin(); it != masterPIDs.end(); ++it)
+		for(auto it = masterPIDs.begin(); it != masterPIDs.end(); ++it)
 		{
 			int pid = *it;
 			BinaryBuffer &buf = notificationBufferMap[pid];
@@ -278,9 +278,9 @@ public:
 	{
 		PN.insert_into_layout_sorted(newMasters, newMasterLayout);
 		PN.insert_into_layout_sorted(newSlaves, newSlaveLayout);
-		for(std::map<int, std::set<size_t> >::iterator it = newMasters.begin(); it != newMasters.end(); ++it)
+		for(auto it = newMasters.begin(); it != newMasters.end(); ++it)
 			masterPIDs.insert(it->first);
-		for(std::map<int, std::set<size_t> >::iterator it = newSlaves.begin(); it != newSlaves.end(); ++it)
+		for(auto it = newSlaves.begin(); it != newSlaves.end(); ++it)
 			slavePIDs.insert(it->first);
 		newMasters.clear();
 		newSlaves.clear();

@@ -414,8 +414,8 @@ void ExpectedErrorMarkingStrategy<TDomain>::merge_sorted_lists
 	std::vector<std::pair<number, int> > sorted;
 	sorted.reserve(nVal);
 
-	std::vector<std::pair<number, int> >::iterator it1 = beginFirst;
-	std::vector<std::pair<number, int> >::iterator it2 = beginSecond;
+	auto it1 = beginFirst;
+	auto it2 = beginSecond;
 	while (it1 != beginSecond && it2 != end)
 	{
 		if (it1->first > it2->first)
@@ -540,11 +540,9 @@ void ExpectedErrorMarkingStrategy<TDomain>::mark
 				const size_t nMerge = nProcs / std::min(nLists, (size_t) nProcs);
 				for (size_t m = 0; m < nMerge; ++m)
 				{
-					std::vector<std::pair<number, int> >::iterator beginFirst =
-						vGlobErrors.begin() + vOffsets[m*nLists];
-					std::vector<std::pair<number, int> >::iterator beginSecond =
-						vGlobErrors.begin() + vOffsets[m*nLists + nLists/2];
-					std::vector<std::pair<number, int> >::iterator endSecond =
+					auto beginFirst = vGlobErrors.begin() + vOffsets[m*nLists];
+					auto beginSecond = vGlobErrors.begin() + vOffsets[m*nLists + nLists/2];
+					auto endSecond =
 						(m+1)*nLists < (size_t) nProcs ? vGlobErrors.begin() + vOffsets[(m+1)*nLists] : vGlobErrors.end();
 
 					merge_sorted_lists(beginFirst, beginSecond, endSecond);

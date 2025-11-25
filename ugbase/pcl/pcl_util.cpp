@@ -73,7 +73,7 @@ bool AllProcsTrue(bool bFlag, ProcessCommunicator comm)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-bool OneProcTrue(bool bFlag, ProcessCommunicator comm)
+bool OneProcTrue(bool bFlag, const ProcessCommunicator &comm)
 {
 	if(comm.is_local() || comm.empty()) return bFlag;
 	PCL_DEBUG_BARRIER(comm);
@@ -113,10 +113,10 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 	vector<int> vNumAssProcs(procComm.size());
 
 //	perform allgather with proc-numbers
-	int procCount = (int)vSendToRanks.size();
+	int procCount = static_cast<int>(vSendToRanks.size());
 
 	procComm.allgather(&procCount, 1, PCL_DT_INT,
-					   GetDataPtr(vNumAssProcs),
+					   vNumAssProcs.data(),
 					   1,
 					   PCL_DT_INT);
 
@@ -125,7 +125,7 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 	size_t listSize = 0;
 	vector<int> vDisplacements(vNumAssProcs.size());
 	for(size_t i = 0; i < vNumAssProcs.size(); ++i){
-		vDisplacements[i] = (int)listSize;
+		vDisplacements[i] = static_cast<int>(listSize);
 		listSize += vNumAssProcs[i];
 	}
 
@@ -148,7 +148,8 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 //	we can now check for each process whether it wants to
 //	communicate with this process. Simply iterate over
 //	the adjacency list to do so.
-	for(int i = 0; i < (int)vNumAssProcs.size(); ++i)
+	const int ssize = static_cast<int>(vNumAssProcs.size());
+	for(int i = 0; i <ssize; ++i)
 	{
 	//	check whether the i-th proc wants to communicate with the local proc
 		for(int j = 0; j < vNumAssProcs[i]; ++j)
@@ -181,9 +182,10 @@ bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
 //	check whether the list of sendingProcs and the list of recvFrom procs matches.
 //	we do this by setting each entry in recvFrom, which also lies in sendingProcs to -1.
 	bool sendRecvMismatch = false;
-	for(size_t i = 0; i < sendingProcs.size(); ++i){
+	size_t ssize = sendingProcs.size();
+	for(size_t i = 0; i < ssize; ++i){
 		int rank = sendingProcs[i];
-		vector<int>::iterator findIter = find(recvFrom.begin(), recvFrom.end(), rank);
+		auto findIter = find(recvFrom.begin(), recvFrom.end(), rank);
 		if(findIter != recvFrom.end())
 			*findIter = -1;
 		else{
@@ -195,7 +197,8 @@ bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
 	}
 	
 //	now check whether an entry != -1 still resides in recvFrom.
-	for(size_t i = 0; i < recvFrom.size(); ++i){
+	const size_t ssize_recv = recvFrom.size();
+	for(size_t i = 0; i < ssize_recv; ++i){
 		if(recvFrom[i] != -1){
 			UG_LOG("ERROR: receive / send mismatch: ");
 			UG_LOG("proc " << ProcRank() << " awaits data from proc " << recvFrom[i]);
@@ -206,8 +209,8 @@ bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
 	
 //	if a mismatch occurred on one, then we'll gather all procs which failed.
 	if(!AllProcsTrue(!sendRecvMismatch, involvedProcs)){
-		int mismatch = (int)sendRecvMismatch;
-		vector<int> buffer(involvedProcs.size(), 0);
+		int mismatch = sendRecvMismatch;
+		vector buffer(involvedProcs.size(), 0);
 		int root = GetLogAssistant().get_output_process();
 		if(root < 0) root = 0;
 		involvedProcs.gather(&mismatch, 1, PCL_DT_INT, &buffer.front(), 1,
@@ -238,14 +241,14 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 	assert(sendTo.size() == sendBufSizes.size());
 	
 //	number of in and out-streams.
-	size_t	numOutStreams = sendTo.size();
-	size_t	numInStreams = recvFrom.size();
+	const size_t	numOutStreams = sendTo.size();
+	const size_t	numInStreams = recvFrom.size();
 	
 //	used for mpi-communication.
 	std::vector<MPI_Request> vSendRequests(numOutStreams);
 	std::vector<MPI_Request> vReceiveRequests(numInStreams);
 
-	int testTag = 744444;//	an arbitrary number
+	constexpr int testTag = 744444;//	an arbitrary number
 
 	std::vector<int> vSendBufSizes(numInStreams);
 	for(size_t i = 0; i < recvFrom.size(); ++i)
@@ -286,7 +289,8 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 							PCL_DT_INT, root);
 
 		UG_LOG("SEND / RECEIVE BUFFER MISMATCH OCCURRED ON PROC:");
-		for(size_t i = 0; i < buffer.size(); ++i){
+		const size_t ssize_buffer = buffer.size();
+		for(size_t i = 0; i < ssize_buffer; ++i){
 			if(buffer[i] != 0){
 			//	a mismatch occurred
 				UG_LOG(" " << involvedProcs.get_proc_id(i));

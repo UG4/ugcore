@@ -55,11 +55,11 @@ public:
 
 	void reinit (const std::vector<bool>& participates);
 
-	bool participates (size_t igrp) const;
-	size_t num_groups () const;
+	[[nodiscard]] bool participates (size_t igrp) const;
+	[[nodiscard]] size_t num_groups () const;
 	
-	size_t num_memberships () const;
-	size_t membership_group_index (size_t imem) const;
+	[[nodiscard]] size_t num_memberships () const;
+	[[nodiscard]] size_t membership_group_index (size_t imem) const;
 
 ///	performs an allreduce between all groups
 /** sendBuf and recvBuf have to be of length

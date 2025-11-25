@@ -714,8 +714,12 @@ class PrimalSubassembledMatrixInverse
 	///	returns if parallel solving is supported
 		bool supports_parallel() const override {
 			bool bRet = true;
+
+			// ø todo if invalid second argument (nullptr)->method is evaluated
 			if(m_spNeumannSolver.valid() || !m_spNeumannSolver->supports_parallel())
 				bRet = false;
+
+			// ø todo if invalid second argument (nullptr) is evaluated
 			if(m_spCoarseProblemSolver.valid() || !m_spCoarseProblemSolver->supports_parallel())
 				bRet = false;
 			return bRet;
@@ -765,7 +769,7 @@ class PrimalSubassembledMatrixInverse
 		void print_statistic_of_inner_solver(bool bPrintOnlyAverages); // const;
 
 		void clear_total_itercnt_of_inner_solvers() {m_totalIterCntOfInnerSolvers = 0;}
-		int get_total_itercnt_of_inner_solvers() {return m_totalIterCntOfInnerSolvers;}
+		int get_total_itercnt_of_inner_solvers() const {return m_totalIterCntOfInnerSolvers;}
 
 	///	set 'm_bTestOneToManyLayouts'
 		void set_test_one_to_many_layouts(bool bTest) {m_bTestOneToManyLayouts = bTest;}

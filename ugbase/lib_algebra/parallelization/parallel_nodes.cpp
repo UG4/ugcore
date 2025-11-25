@@ -44,7 +44,7 @@ ParallelNodes::ParallelNodes(ConstSmartPtr<AlgebraLayouts> layout, size_t s)
 	for(size_t i=0; i<m_localToGlobal.size(); ++i)
 	{
 		if(m_localToGlobal[i].first != pcl::ProcRank())
-			m_globalToLocal.insert(pair<AlgebraID, size_t> (m_localToGlobal[i], i));
+			m_globalToLocal.insert(pair (m_localToGlobal[i], i));
 	}
 
 	m_OLtype.resize(s);
@@ -115,7 +115,7 @@ size_t ParallelNodes::get_local_index_or_create_new(const AlgebraID &globalIndex
 	}
 	else
 	{
-		pair<iterator, bool> ret = m_globalToLocal.insert(pair<AlgebraID, size_t> (globalIndex, m_localToGlobal.size()));
+		pair<iterator, bool> ret = m_globalToLocal.insert(pair (globalIndex, m_localToGlobal.size()));
 		if(ret.second)
 		{
 			UG_DLOG(LIB_ALG_MATRIX, 4, "created new index " << m_localToGlobal.size() << " (global Index = " << globalIndex << "\n");

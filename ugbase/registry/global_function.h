@@ -70,59 +70,59 @@ class UG_API ExportedFunctionBase
 		                     const std::string& tooltip, const std::string& help);
 
 	///	name of function
-		const std::string& name() const {return m_name;}
+		[[nodiscard]] const std::string& name() const {return m_name;}
 
 	///	name of function
-		const std::string& options() const {return m_methodOptions;}
+		[[nodiscard]] const std::string& options() const {return m_methodOptions;}
 
 	/// name of return value
-		const std::string& return_name() const {return return_info(0);}
+		[[nodiscard]] const std::string& return_name() const {return return_info(0);}
 
 	///	type info of return type
-		const std::string& return_info(size_t i) const {return m_vRetValInfo.at(i);}
+		[[nodiscard]] const std::string& return_info(size_t i) const {return m_vRetValInfo.at(i);}
 
 	/// type info of return value
-		const std::vector<std::string>& return_info_vec() const {return m_vRetValInfo;}
+		[[nodiscard]] const std::vector<std::string>& return_info_vec() const {return m_vRetValInfo;}
 
 	/// number of parameters.
-		size_t num_parameter() const {return m_vvParamInfo.size();}
+		[[nodiscard]] size_t num_parameter() const {return m_vvParamInfo.size();}
 
 	///	number of info strings for one parameter
-		size_t num_infos(size_t i) const {return m_vvParamInfo.at(i).size();}
+		[[nodiscard]] size_t num_infos(size_t i) const {return m_vvParamInfo.at(i).size();}
 
 	/// class name of parameter i
-		const char* parameter_class_name(size_t i) const	{return params_in().class_name((int)i);}
+		[[nodiscard]] const char* parameter_class_name(size_t i) const	{return params_in().class_name((int)i);}
 		
 	/// name of parameter i
-		const std::string& parameter_name(size_t i) const {return parameter_info(i, 0);}
+		[[nodiscard]] const std::string& parameter_name(size_t i) const {return parameter_info(i, 0);}
 
 	///	type info of all parameters
-		const std::string& parameter_info(size_t i, size_t j) const	{return m_vvParamInfo.at(i).at(j);}
+		[[nodiscard]] const std::string& parameter_info(size_t i, size_t j) const	{return m_vvParamInfo.at(i).at(j);}
 
 	/// type info of i th parameters
-		const std::vector<std::string>& parameter_info_vec(size_t i) const {return m_vvParamInfo.at(i);}
+		[[nodiscard]] const std::vector<std::string>& parameter_info_vec(size_t i) const {return m_vvParamInfo.at(i);}
 
 	///	whole string of all type infos for of all parameters
-		const std::string& parameter_info_string() const {return m_paramInfos;}
+		[[nodiscard]] const std::string& parameter_info_string() const {return m_paramInfos;}
 
 	/// gives some information to the exported functions
-		const std::string& tooltip() const {return m_tooltip;}
+		[[nodiscard]] const std::string& tooltip() const {return m_tooltip;}
 
 	/// help informations
-		const std::string& help() const {return m_help;}
+		[[nodiscard]] const std::string& help() const {return m_help;}
 
 	/// parameter list for input values
-		const ParameterInfo& params_in() const	{return m_paramsIn;}
+		[[nodiscard]] const ParameterInfo& params_in() const	{return m_paramsIn;}
 
 	/// parameter list for input values
-		const ParameterInfo& params_out() const {return m_paramsOut;}
+		[[nodiscard]] const ParameterInfo& params_out() const {return m_paramsOut;}
 
 	// todo: we export non-const here, since we can not make ExportedClass<TClass> a friend
 	/// non-const export of param list
 		ParameterInfo& params_in() {return m_paramsIn;}
 
 	/// returns true if all parameters of the function are correctly declared
-		bool check_consistency(std::string classname = "") const;
+		[[nodiscard]] bool check_consistency(const std::string &classname = "") const;
 
 	protected:
 		template <typename TFunc>
@@ -136,7 +136,7 @@ class UG_API ExportedFunctionBase
 
 		//	arbitrary chosen minimum number of infos exported
 		//	(If values non given we set them to an empty string)
-			const size_t MinNumInfos = 3; // for "name | style | options"
+		    constexpr size_t MinNumInfos = 3; // for "name | style | options"
 
 		//	Fill missing Parameter
 			m_vvParamInfo.resize(m_paramsIn.size());
@@ -157,8 +157,9 @@ class UG_API ExportedFunctionBase
 		}
 
 	// 	help function to tokenize the parameter string
-		void tokenize(const std::string& str, std::vector<std::string>& tokens,
-		              const char delimiter);
+		void tokenize(const std::string& str,
+					  std::vector<std::string>& tokens,
+		              char delimiter);
 
 	protected:
 		std::string m_name;
@@ -219,7 +220,7 @@ class UG_API ExportedFunction : public ExportedFunctionBase
 		}
 
 	///	return groups
-		const std::string& group() const {return m_group;}
+		[[nodiscard]] const std::string& group() const {return m_group;}
 
 	protected:
 	/// save groups
@@ -253,7 +254,7 @@ class UG_API ExportedFunctionGroup
 		}
 
 	///	name of function group
-		const std::string& name() const {return m_name;}
+		[[nodiscard]] const std::string& name() const {return m_name;}
 
 	///	adds an overload. Returns false if the overload already existed.
 		template <typename TFunc>
@@ -277,12 +278,12 @@ class UG_API ExportedFunctionGroup
 			return func;
 		}
 
-		size_t num_overloads() const {return m_overloads.size();}
+		[[nodiscard]] size_t num_overloads() const {return m_overloads.size();}
 
 		ExportedFunction* get_overload(size_t index)
 			{return m_overloads.at(index).m_func;}
 
-		const ExportedFunction* get_overload(size_t index) const
+		[[nodiscard]] const ExportedFunction* get_overload(size_t index) const
 			{return m_overloads.at(index).m_func;}
 
 		template <typename TType>
@@ -293,7 +294,7 @@ class UG_API ExportedFunctionGroup
 		}
 
 		template <typename TType>
-		const ExportedFunction* get_overload_by_type() const
+		[[nodiscard]] const ExportedFunction* get_overload_by_type() const
 		{
 			size_t typeID = GetUniqueTypeID<TType>();
 			return get_overload_by_type_id(typeID);
@@ -308,7 +309,7 @@ class UG_API ExportedFunctionGroup
 			return nullptr;
 		}
 
-		const ExportedFunction* get_overload_by_type_id(size_t typeID) const
+		[[nodiscard]] const ExportedFunction* get_overload_by_type_id(size_t typeID) const
 		{
 			for(size_t i = 0; i < m_overloads.size(); ++i){
 				if(m_overloads[i].m_typeID == typeID)
@@ -317,7 +318,7 @@ class UG_API ExportedFunctionGroup
 			return nullptr;
 		}
 
-		size_t get_overload_type_id(size_t index) const
+		[[nodiscard]] size_t get_overload_type_id(size_t index) const
 			{return m_overloads.at(index).m_typeID;}
 
 	private:

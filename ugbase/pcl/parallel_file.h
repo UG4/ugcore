@@ -74,8 +74,8 @@ namespace pcl{
  * @param pc			a processes communicator (default pcl::World)
  */
 void WriteCombinedParallelFile(ug::BinaryBuffer &buffer,
-                               std::string strFilename,
-                               ProcessCommunicator pc = ProcessCommunicator(PCD_WORLD));
+                               const std::string &strFilename,
+                               const ProcessCommunicator &pc = ProcessCommunicator(PCD_WORLD));
 
 
 /**
@@ -92,8 +92,8 @@ void WriteCombinedParallelFile(ug::BinaryBuffer &buffer,
  * @param pc			a processes communicator (default pcl::World)
  */
 void ReadCombinedParallelFile(ug::BinaryBuffer &buffer,
-                              std::string strFilename,
-                              ProcessCommunicator pc = ProcessCommunicator(PCD_WORLD));
+                              const std::string& strFilename,
+                              const ProcessCommunicator& pc = ProcessCommunicator(PCD_WORLD));
 
 }
 #endif

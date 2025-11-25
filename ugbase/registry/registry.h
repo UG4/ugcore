@@ -81,32 +81,32 @@ class UG_API ClassGroupDesc
 		void set_name(const std::string& name) 	{m_name = name;}
 
 	///	returns name of group
-		const std::string& name() const {return m_name;}
+		[[nodiscard]] const std::string& name() const {return m_name;}
 
 	///	adds a class to group
 		void add_class(IExportedClass* c, const std::string& tag)
 			{m_classes.push_back(c); m_classTags.push_back(tag);}
 
 	///	returns number of classes in group
-		size_t num_classes() const			{return m_classes.size();}
+		[[nodiscard]] size_t num_classes() const {return m_classes.size();}
 
 	///	returns if classes in group
-		bool empty() const					{return num_classes() == 0;}
+		[[nodiscard]] bool empty() const {return num_classes() == 0;}
 
 	///	returns a class of the group
 		IExportedClass* get_class(size_t i)	{return m_classes[i];}
 
 	///	returns a class of the group
-		const IExportedClass* get_class(size_t i) const	{return m_classes[i];}
+		[[nodiscard]] const IExportedClass* get_class(size_t i) const	{return m_classes[i];}
 
 	///	returns the class group tag for a class
-		const std::string& get_class_tag(size_t i) const{return m_classTags[i];}
+		[[nodiscard]] const std::string& get_class_tag(size_t i) const {return m_classTags[i];}
 
 	///	sets the i'th class as default
 		void set_default_class(size_t i)	{m_defaultClass = m_classes[i];}
 
 	///	if no default class is set, this method returns nullptr.
-		IExportedClass* get_default_class()	const {return m_defaultClass;}
+		[[nodiscard]] IExportedClass* get_default_class()	const {return m_defaultClass;}
 
 	private:
 	///	name of class group
@@ -189,14 +189,14 @@ class UG_API Registry {
 		                     std::string tooltip = "", std::string help = "");
 
 	/// number of functions registered at the Registry (overloads are not counted)
-		size_t num_functions() const;
+		[[nodiscard]] size_t num_functions() const;
 
 	/// returns the first overload of an exported function
 		ExportedFunction& get_function(size_t ind);
-		const ExportedFunction& get_function(size_t ind) const;
+		[[nodiscard]] const ExportedFunction& get_function(size_t ind) const;
 
 	///	returns the number of overloads of a function
-		size_t num_overloads(size_t ind) const;
+		[[nodiscard]] size_t num_overloads(size_t ind) const;
 
 	///	returns the i-th overload of a function
 		ExportedFunction& get_overload(size_t funcInd, size_t oInd);
@@ -249,16 +249,16 @@ class UG_API Registry {
 		ExportedClass<TClass>& get_class_();
 
 	/// number of classes registered at the Registry
-		size_t num_classes() const;
+		[[nodiscard]] size_t num_classes() const;
 
 	/// returns an exported class
-		const IExportedClass& get_class(size_t ind)	const;
+		[[nodiscard]] const IExportedClass& get_class(size_t ind)	const;
 
 	/// returns an exported class
 		IExportedClass* get_class(const std::string& name);
 
 	/// returns an exported class
-		const IExportedClass* get_class(const std::string& name) const;
+		[[nodiscard]] const IExportedClass* get_class(const std::string& name) const;
 
 	///	returns true if everything well-declared, else false
 		bool check_consistency();
@@ -269,10 +269,10 @@ class UG_API Registry {
 	///////////////////
 
 	///	returns the number of available class groups
-		size_t num_class_groups() const;
+		[[nodiscard]] size_t num_class_groups() const;
 
 	///	returns a const pointer to the i-th class group
-		const ClassGroupDesc* get_class_group(size_t i) const;
+		[[nodiscard]] const ClassGroupDesc* get_class_group(size_t i) const;
 
     ///	returns a pointer to the i-th class group
 		ClassGroupDesc* get_class_group(size_t i);
@@ -283,14 +283,15 @@ class UG_API Registry {
 
 	///	Returns the class-group with the given name.
 	/**	If no such group exists at the time of calling, nullptr is returned.*/
-		const ClassGroupDesc* get_class_group(const std::string& name) const;
+		[[nodiscard]] const ClassGroupDesc* get_class_group(const std::string& name) const;
 
 	///	adds the given class to the given group.
 	/**	Groups are constructed automatically if required.
 	 * This method is just for convenience. It is effectively the same as:
 	 * get_class_group(groupName).add_class(reg.get_class(className), classTag).*/
-		void add_class_to_group(std::string className, std::string groupName,
-		                        std::string classTag = "");
+		void add_class_to_group(const std::string& className,
+								const std::string& groupName,
+		                        const std::string& classTag = "");
 
 
 	/// returns true if classname is already used by a class in this registry

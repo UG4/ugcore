@@ -49,12 +49,12 @@ class IDomainDecompositionInfo
 	 * \param[out] 	procID		id of processor
 	 * \return 		int			id of subdomain the processor operates on
 	 */
-		virtual int map_proc_id_to_subdomain_id(int procID) const = 0;
+		[[nodiscard]] virtual int map_proc_id_to_subdomain_id(int procID) const = 0;
 
-		virtual int get_num_subdomains() const = 0;
+		[[nodiscard]] virtual int get_num_subdomains() const = 0;
 
 		//virtual int get_num_procs_per_subdomain() const = 0;
-		virtual int get_num_spatial_dimensions() const = 0;
+		[[nodiscard]] virtual int get_num_spatial_dimensions() const = 0;
 
 		virtual void get_subdomain_procs(std::vector<int>& procsOut,
 										 int subdomIndex) = 0;
@@ -74,7 +74,7 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 			m_num_procs_per_subdomain(1)
 			{}
 
-		StandardDomainDecompositionInfo(int numSubdomains) :
+		explicit StandardDomainDecompositionInfo(int numSubdomains) :
 			m_num_subdomains(numSubdomains),
 			m_num_procs_per_subdomain(-1)
 			/*m_pDebugWriter(nullptr)*/
@@ -92,7 +92,7 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 	 * \param[out] 	procID		id of processor
 	 * \return 		int			id of subdomain the processor operates on
 	 */
-		int map_proc_id_to_subdomain_id(int procID) const override {
+		[[nodiscard]] int map_proc_id_to_subdomain_id(int procID) const override {
 			return procID / m_num_procs_per_subdomain;
         }
 
@@ -105,13 +105,17 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 				m_num_procs_per_subdomain = -1;
 		}
 
-		int get_num_subdomains() const override {return m_num_subdomains;}
+		[[nodiscard]] int get_num_subdomains() const override {
+			return m_num_subdomains;
+		}
 
 		void set_num_spatial_dimensions(int dim) {
 			m_num_spatial_dimensions = dim;
 		}
 
-		int get_num_spatial_dimensions() const override {return m_num_spatial_dimensions;}
+		[[nodiscard]] int get_num_spatial_dimensions() const override {
+			return m_num_spatial_dimensions;
+		}
 
 		//int get_num_procs_per_subdomain() const {return m_num_procs_per_subdomain;}
 

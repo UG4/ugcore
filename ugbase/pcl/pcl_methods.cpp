@@ -90,7 +90,7 @@ void CollectData(ProcID thisProcID, int firstSendProc, int numSendProcs,
 		if(srcProcIndex == thisProcID)
 			srcProcIndex++;
 	
-		MPI_Irecv((byte_t*)pBuffer + bufferSizePerProc * i, bufferSizePerProc, MPI_UNSIGNED_CHAR,
+		MPI_Irecv(static_cast<byte_t *>(pBuffer) + bufferSizePerProc * i, bufferSizePerProc, MPI_UNSIGNED_CHAR,
 					srcProcIndex, tag, PCL_COMM_WORLD, &vReceiveRequests[i]);
 	}
 	
@@ -116,7 +116,7 @@ void DistributeData(ProcID thisProcID, int firstRecProc, int numRecProcs,
 			destProcIndex++;
 	
 		MPI_Isend(pBuffer, pBufferSegSizes[i], MPI_UNSIGNED_CHAR, destProcIndex, tag, PCL_COMM_WORLD, &vSendRequests[i]);
-		pBuffer = (byte_t*)pBuffer + pBufferSegSizes[i];
+		pBuffer = static_cast<byte_t *>(pBuffer) + pBufferSegSizes[i];
 	}
 	
 //	wait until data has been received
@@ -136,7 +136,7 @@ void DistributeData(ProcID thisProcID, int* pRecProcMap, int numRecProcs,
 	for(int i = 0; i < numRecProcs; ++i)
 	{
 		MPI_Isend(pBuffer, pBufferSegSizes[i], MPI_UNSIGNED_CHAR, pRecProcMap[i], tag, PCL_COMM_WORLD, &vSendRequests[i]);
-		pBuffer = (byte_t*)pBuffer + pBufferSegSizes[i];
+		pBuffer = static_cast<byte_t *>(pBuffer) + pBufferSegSizes[i];
 	}
 	
 //	wait until data has been received	

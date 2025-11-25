@@ -62,7 +62,7 @@ ExportedConstructor(ProxyFunc pf,
 		tokenize(vParamInfoTmp[i], m_vvParamInfo[i], '|');
 };
 
-bool ExportedConstructor::check_consistency(std::string classname) const
+bool ExportedConstructor::check_consistency(const std::string &classname) const
 {
 //	flag to indicate, that unnamed parameter is found
 	bool bUndeclaredParameterFound = false;

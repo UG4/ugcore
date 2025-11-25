@@ -241,7 +241,7 @@ bool Registry::check_consistency()
 	for(size_t i=0; i<num_classes(); i++)
 	{
 	//	get class
-		const bridge::IExportedClass &c = get_class(i);
+		const IExportedClass &c = get_class(i);
 		
 	//	check if class is constructed via smart pointer
 		if(m_bForceConstructionWithSmartPtr)
@@ -380,8 +380,9 @@ const ClassGroupDesc* Registry::get_class_group(const std::string& name) const
 	return nullptr;
 }
 
-void Registry::add_class_to_group(std::string className, std::string groupName,
-								  std::string classTag)
+void Registry::add_class_to_group(const std::string& className,
+								  const std::string& groupName,
+								  const std::string& classTag)
 {
 //	make sure that no class with groupName exists.
 	if(classname_registered(groupName)){

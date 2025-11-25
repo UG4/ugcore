@@ -105,7 +105,7 @@ class ProcessHierarchy{
 		};
 
 		HLevelInfo& get_hlevel_info(size_t lvl) {return m_levels.at(lvl);}
-		const HLevelInfo& get_hlevel_info(size_t lvl) const {return m_levels.at(lvl);}
+		[[nodiscard]] const HLevelInfo& get_hlevel_info(size_t lvl) const {return m_levels.at(lvl);}
 
 		void init_cluster_procs(std::vector<int>& clusterProcs,
 								size_t hlvl,

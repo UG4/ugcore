@@ -17,7 +17,7 @@
  * 
  * (3) The following bibliography is recommended for citation and must be
  * preserved in all covered files:
- * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
+ * "Reiter, S., Vogel, A., Heppner, I.ExportedClassBaseImpl, Rupp, M., and Wittum, G. A massively
  *   parallel geometric multigrid solver on hierarchically distributed grids.
  *   Computing and visualization in science 16, 4 (2013), 151-164"
  * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
@@ -411,7 +411,7 @@ class UG_API ExportedConstructor
 		ParameterInfo& params_in() {return m_paramsIn;}
 
 	/// returns true if all parameters of the function are correctly declared
-		bool check_consistency(std::string classname) const;
+		bool check_consistency(const std::string &classname) const;
 
 		template <typename TFunc>
 		void create_parameter_stack()
@@ -503,81 +503,81 @@ class IExportedClass
 
 	public:
 	///  name of class
-		virtual const std::string& name() const = 0;
+		[[nodiscard]] virtual const std::string& name() const = 0;
 
 	///	get groups
-		virtual const std::string& group() const = 0;
+		[[nodiscard]] virtual const std::string& group() const = 0;
 
 	///	name node of class
-		virtual const ClassNameNode& class_name_node() const = 0;
+		[[nodiscard]] virtual const ClassNameNode& class_name_node() const = 0;
 
 	/// get tooltip
-		virtual const std::string& tooltip() const = 0;
+		[[nodiscard]] virtual const std::string& tooltip() const = 0;
 
 	///	name-list of class hierarchy
-		virtual const std::vector<const char*>* class_names() const = 0;
+		[[nodiscard]] virtual const std::vector<const char*>* class_names() const = 0;
 
 	///  number of method of the class
-		virtual size_t num_methods() const = 0;
+		[[nodiscard]] virtual size_t num_methods() const = 0;
 
 	///	number of registered const-methods
-		virtual size_t num_const_methods() const = 0;
+		[[nodiscard]] virtual size_t num_const_methods() const = 0;
 		
 	///  get exported method
-		virtual const ExportedMethod& get_method(size_t i) const = 0;
+		[[nodiscard]] virtual const ExportedMethod& get_method(size_t i) const = 0;
 
 	/// get exported const-method
-		virtual const ExportedMethod& get_const_method(size_t i) const = 0;
+		[[nodiscard]] virtual const ExportedMethod& get_const_method(size_t i) const = 0;
 		
 	///	returns the number of overloads of a method
-		virtual size_t num_overloads(size_t funcInd) const = 0;
+		[[nodiscard]] virtual size_t num_overloads(size_t funcInd) const = 0;
 
 	///	returns the number of overloads of a const method
-		virtual size_t num_const_overloads(size_t funcInd) const = 0;
+		[[nodiscard]] virtual size_t num_const_overloads(size_t funcInd) const = 0;
 
 	///	returns the i-th overload of a method
-		virtual const ExportedMethod& get_overload(size_t funcInd, size_t oInd) const = 0;
+		[[nodiscard]] virtual const ExportedMethod& get_overload(size_t funcInd, size_t oInd) const = 0;
 
 	///	returns the i-th overload of a const method
-		virtual const ExportedMethod& get_const_overload(size_t funcInd, size_t oInd) const = 0;
+		[[nodiscard]] virtual const ExportedMethod& get_const_overload(size_t funcInd, size_t oInd) const = 0;
 
 	///	returns the i-th method group (all overloads of the i-th function)
-		virtual const ExportedMethodGroup& get_method_group(size_t ind) const = 0;
+		[[nodiscard]] virtual const ExportedMethodGroup& get_method_group(size_t ind) const = 0;
 
 	///	returns the i-th method group (all overloads of the i-th function)
-		virtual const ExportedMethodGroup& get_const_method_group(size_t ind) const = 0;
+		[[nodiscard]] virtual const ExportedMethodGroup& get_const_method_group(size_t ind) const = 0;
 
-		virtual const ExportedMethodGroup* get_exported_method_group(const std::string& name) const = 0;
+		[[nodiscard]] virtual const ExportedMethodGroup* get_exported_method_group(const std::string& name) const = 0;
 
-		virtual const ExportedMethodGroup* get_const_exported_method_group(const std::string& name) const = 0;
+		[[nodiscard]] virtual const ExportedMethodGroup* get_const_exported_method_group(const std::string& name) const = 0;
 
 	/**  can we create instances of this class
 	 *	(i.e. the class does not contain pure virtual functions)*/
-		virtual bool is_instantiable() const = 0;
+		[[nodiscard]] virtual bool is_instantiable() const = 0;
 
 	///	number of registered constructors
-		virtual size_t num_constructors() const = 0;
+		[[nodiscard]] virtual size_t num_constructors() const = 0;
 
 	///	get exported constructor
-		virtual const ExportedConstructor& get_constructor(size_t i) const = 0;
+		[[nodiscard]] virtual const ExportedConstructor& get_constructor(size_t i) const = 0;
 
 	/// get constructor for construction from json
-		virtual const boost::optional<ExportedConstructor&> get_json_constructor() const = 0;
+		[[nodiscard]] virtual const boost::optional<ExportedConstructor&> get_json_constructor() const = 0;
 
 	/// get constructor for construction from json
-		virtual bool is_json_constructible() const = 0;
+		[[nodiscard]] virtual bool is_json_constructible() const = 0;
 
 	///	true if the class shall be wrapped in a SmartPtr on construction
-		virtual bool construct_as_smart_pointer() const = 0;
+		[[nodiscard]] virtual bool construct_as_smart_pointer() const = 0;
 
 	///	destructur for object
 		virtual void destroy(void* obj) const = 0;
 
 	///	returns a function which will call delete on the object
-		virtual DeleteFunction get_delete_function() const = 0;
+		[[nodiscard]] virtual DeleteFunction get_delete_function() const = 0;
 
 	///	returns false is consistency-check failed
-		virtual bool check_consistency() const;
+		[[nodiscard]] virtual bool check_consistency() const;
 
 	///  virtual destructor
 		virtual ~IExportedClass() = default;
@@ -593,69 +593,69 @@ class ExportedClassBaseImpl : public IExportedClass
 		ExportedClassBaseImpl(const ExportedClassBaseImpl& other);
 
 	public:
-		ExportedClassBaseImpl(const std::string& tooltip);
+		explicit ExportedClassBaseImpl(const std::string& tooltip);
 
 	/// destructor
-		virtual ~ExportedClassBaseImpl();
+		~ExportedClassBaseImpl() override;
 
 	/// tooltip
-		virtual const std::string& tooltip() const;
+		[[nodiscard]] const std::string& tooltip() const override;
 
 	/// number of registered methods (overloads are not counted)
-		virtual size_t num_methods() const;
+		[[nodiscard]] size_t num_methods() const override;
 
 	///	number of registered const-methods (overloads are not counted)
-		virtual size_t num_const_methods() const;
+		[[nodiscard]] size_t num_const_methods() const override;
 
 	/// returns the first overload of an exported function
-		virtual const ExportedMethod& get_method(size_t i) const;
+		[[nodiscard]] const ExportedMethod& get_method(size_t i) const override;
 
 	/// returns the first overload of an exported const function
-		virtual const ExportedMethod& get_const_method(size_t i) const;
+		[[nodiscard]] const ExportedMethod& get_const_method(size_t i) const override;
 
 	///	returns the number of overloads of a method
-		virtual size_t num_overloads(size_t funcInd) const;
+		[[nodiscard]] size_t num_overloads(size_t funcInd) const override;
 
 	///	returns the number of overloads of a const method
-		virtual size_t num_const_overloads(size_t funcInd) const;
+		[[nodiscard]] size_t num_const_overloads(size_t funcInd) const override;
 
 	///	returns the i-th overload of a method
-		virtual const ExportedMethod& get_overload(size_t funcInd, size_t oInd) const;
+		[[nodiscard]] const ExportedMethod& get_overload(size_t funcInd, size_t oInd) const override;
 
 	///	returns the i-th overload of a const method
-		virtual const ExportedMethod& get_const_overload(size_t funcInd, size_t oInd) const;
+		[[nodiscard]] const ExportedMethod& get_const_overload(size_t funcInd, size_t oInd) const override;
 
 	///	returns the i-th method group (all overloads of the i-th function)
-		virtual const ExportedMethodGroup& get_method_group(size_t ind) const;
+		[[nodiscard]] const ExportedMethodGroup& get_method_group(size_t ind) const override;
 
 	///	returns the i-th method group (all overloads of the i-th function)
-		virtual const ExportedMethodGroup& get_const_method_group(size_t ind) const;
+		[[nodiscard]] const ExportedMethodGroup& get_const_method_group(size_t ind) const override;
 
-		virtual const ExportedMethodGroup* get_exported_method_group(const std::string& name) const;
+		[[nodiscard]] const ExportedMethodGroup* get_exported_method_group(const std::string& name) const override;
 
-		virtual const ExportedMethodGroup* get_const_exported_method_group(const std::string& name) const;
+		[[nodiscard]] const ExportedMethodGroup* get_const_exported_method_group(const std::string& name) const override;
 
 	///	number of registered constructors
-		virtual size_t num_constructors() const;
+		[[nodiscard]] size_t num_constructors() const override;
 
 	///	get exported constructor
-		virtual const ExportedConstructor& get_constructor(size_t i) const;
+		[[nodiscard]] const ExportedConstructor& get_constructor(size_t i) const override;
 
 	/// get constructor for construction from json
-		virtual const boost::optional<ExportedConstructor&> get_json_constructor() const;
+		[[nodiscard]] const boost::optional<ExportedConstructor&> get_json_constructor() const override;
 
 	///	returns whether the class shall be wrapped in a SmartPtr on construction
-		virtual bool construct_as_smart_pointer() const;
+		[[nodiscard]] bool construct_as_smart_pointer() const override;
 
 	///	sets whether the class shall be wrapped in a SmartPtr
 	/**	Returns a reference to this, so that it can be used in a chained call.*/
 		virtual void set_construct_as_smart_pointer(bool enable);
 
 	/// is instantiable
-		virtual bool is_instantiable() const;
+		[[nodiscard]] bool is_instantiable() const override;
 
 	///	destructur for object
-		virtual void destroy(void* obj) const;
+		void destroy(void* obj) const override;
 
 	protected:
 	///	returns if a constructor overload is registered
@@ -717,20 +717,20 @@ class ExportedClass : public ExportedClassBaseImpl
 		~ExportedClass() override = default;
 
 	/// name of class
-		const std::string& name() const override {return ClassNameProvider<TClass>::name();}
+		[[nodiscard]] const std::string& name() const override {return ClassNameProvider<TClass>::name();}
 
 	///	name node of class
-		const ClassNameNode& class_name_node() const override {return ClassNameProvider<TClass>::class_name_node();}
+		[[nodiscard]] const ClassNameNode& class_name_node() const override {return ClassNameProvider<TClass>::class_name_node();}
 
 	///	get groups
-		const std::string& group() const override {return ClassNameProvider<TClass>::group();}
+		[[nodiscard]] const std::string& group() const override {return ClassNameProvider<TClass>::group();}
 
 	/// is json constructible
-		bool is_json_constructible() const override { return std::is_base_of<JSONConstructible, TClass>::value; }
+		[[nodiscard]] bool is_json_constructible() const override { return std::is_base_of<JSONConstructible, TClass>::value; }
 
 	//\todo: remove this method, use class name nodes instead
 	///	class-hierarchy
-		const std::vector<const char*>* class_names() const override {return &ClassNameProvider<TClass>::names();}
+		[[nodiscard]] const std::vector<const char*>* class_names() const override {return &ClassNameProvider<TClass>::names();}
 
 		template<typename T>
 		ExportedClass& add_(T t)
@@ -877,7 +877,7 @@ class ExportedClass : public ExportedClassBaseImpl
 		}
 
 	///	return pointer to the delete method
-		DeleteFunction get_delete_function() const override {
+		[[nodiscard]] DeleteFunction get_delete_function() const override {
 			return CastAndDelete<TClass>;
 		}
 };

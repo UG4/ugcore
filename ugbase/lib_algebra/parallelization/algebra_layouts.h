@@ -52,20 +52,21 @@ class HorizontalAlgebraLayouts
 	///	clears the struct
 		void clear()
 		{
-			masterLayout.clear();			slaveLayout.clear();
+			masterLayout.clear();
+			slaveLayout.clear();
 		}
 
 	public:
 	/// returns the horizontal slave/master index layout
 	/// \{
-		const IndexLayout& master() const 				{return masterLayout;}
-		const IndexLayout& master_overlap() const 		{return masterOverlapLayout;}
-		const IndexLayout& slave() const 				{return slaveLayout;}
-		const IndexLayout& slave_overlap() const		{return slaveOverlapLayout;}
+		[[nodiscard]] const IndexLayout& master() const 			{return masterLayout;}
+		[[nodiscard]] const IndexLayout& master_overlap() const 	{return masterOverlapLayout;}
+		[[nodiscard]] const IndexLayout& slave() const 				{return slaveLayout;}
+		[[nodiscard]] const IndexLayout& slave_overlap() const		{return slaveOverlapLayout;}
 	/// \}
 
 	///	returns process communicator
-		const pcl::ProcessCommunicator& proc_comm() const 	{return processCommunicator;}
+		[[nodiscard]] const pcl::ProcessCommunicator& proc_comm() const 	{return processCommunicator;}
 
 	///	returns (non-const !!!) communicator
 	/**
@@ -75,13 +76,15 @@ class HorizontalAlgebraLayouts
 	 * be created each time for communication, but for performance reasons we
 	 * provide this one that can be shared and reused.
 	 */
-		pcl::InterfaceCommunicator<IndexLayout>& comm() const  	{return const_cast<HorizontalAlgebraLayouts*>(this)->communicator;}
+		[[nodiscard]] pcl::InterfaceCommunicator<IndexLayout>& comm() const {
+			return const_cast<HorizontalAlgebraLayouts*>(this)->communicator;
+		}
 
 	/**	It is important to enable or disable overlap on all involved processes
 	 * at the same time. Otherwise communication issues may arise.*/
 		void enable_overlap(bool enable)	{m_overlapEnabled = enable;}
 	///	Tells whether overlap interfaces should be considered
-		bool overlap_enabled() const		{return m_overlapEnabled;}
+		[[nodiscard]] bool overlap_enabled() const {return m_overlapEnabled;}
 
 	public:
 	/// returns the horizontal slave/master index layout
@@ -130,8 +133,8 @@ class AlgebraLayouts : public HorizontalAlgebraLayouts
 	public:
 	/// returns the vertical slave/master index layout
 	/// \{
-		const IndexLayout& vertical_master() const 	{return verticalMasterLayout;}
-		const IndexLayout& vertical_slave() const 	{return verticalSlaveLayout;}
+		[[nodiscard]] const IndexLayout& vertical_master() const 	{return verticalMasterLayout;}
+		[[nodiscard]] const IndexLayout& vertical_slave() const 	{return verticalSlaveLayout;}
 	/// \}
 
 	public:

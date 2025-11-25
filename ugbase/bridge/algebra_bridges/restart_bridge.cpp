@@ -69,7 +69,7 @@ void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename
 	fclose(f);
 }
 
-void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename)
+void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, const std::string &strFilename)
 {
 	FILE *f = fopen(strFilename.c_str(), "rb");
 	int numProcs, myNextOffset;

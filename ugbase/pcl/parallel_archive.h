@@ -61,7 +61,7 @@ struct FileBufferDescriptor
 	{	}
 
 	FileBufferDescriptor(std::string _name, ug::BinaryStream& _buf) :
-				name(std::move(_name)), buf((char*)_buf.buffer()), size(_buf.size())
+				name(std::move(_name)), buf(static_cast<char *>(_buf.buffer())), size(_buf.size())
 	{	}
 
 	// Initializing buf with buf.str().c_str() is unsafe, as _buf.str() is only temporary.
@@ -76,7 +76,7 @@ struct FileBufferDescriptor
 
 };
 
-void WriteParallelArchive(ProcessCommunicator &pc, std::string strFilename, const std::vector<FileBufferDescriptor> &files);
+void WriteParallelArchive(const ProcessCommunicator &pc, const std::string &strFilename, const std::vector<FileBufferDescriptor> &files);
 
 template<typename TBuffer>
 void WriteParallelArchive(ProcessCommunicator &pc, std::string strFilename, const std::map<std::string, TBuffer> &files)
@@ -126,7 +126,7 @@ private:
 	struct BufferBinaryStream : BufferInterface
 	{
 		ug::BinaryStream internal_buffer;
-		const char *buffer() override { return (const char*)internal_buffer.buffer(); };
+		const char *buffer() override { return static_cast<const char *>(internal_buffer.buffer()); };
 		size_t size() override { return internal_buffer.size(); }
 	};
 
@@ -156,8 +156,8 @@ public:
 	 * @param filename  the name of the archive. add .a for clearness
 	 * @param pc		the process communicator used for MPI purposes. default WORLD
 	 */
-	ParallelArchive(std::string filename, ProcessCommunicator pc = ProcessCommunicator(PCD_WORLD))
-		: m_filename(std::move(filename)), m_pc(pc)
+	explicit ParallelArchive(std::string filename, ProcessCommunicator pc = ProcessCommunicator(PCD_WORLD))
+		: m_filename(std::move(filename)), m_pc(std::move(pc))
 	{
 		m_bWritten = false;
 		m_bUnsafe = false;
@@ -189,9 +189,9 @@ public:
 	 * @param name the filename inside the archive. can be a path, but only filename is taken
 	 * @return a BinaryBuffer to write data to
 	 */
-	ug::BinaryBuffer &create_BinaryBuffer_file(std::string name)
+	ug::BinaryBuffer &create_BinaryBuffer_file(const std::string &name)
 	{
-		SmartPtr<BufferBinaryBuffer> p(new BufferBinaryBuffer);
+		SmartPtr p(new BufferBinaryBuffer);
 		files[name] = p;
 		return p->internal_buffer;
 	}
@@ -201,9 +201,9 @@ public:
 	 * @param name the filename inside the archive. can be a path, but only filename is taken
 	 * @return a BinaryStream to write data to
 	 */
-	ug::BinaryStream &create_BinaryStream_file(std::string name)
+	ug::BinaryStream &create_BinaryStream_file(const std::string &name)
 	{
-		SmartPtr<BufferBinaryStream > p(new BufferBinaryStream);
+		SmartPtr p(new BufferBinaryStream);
 		files[name] = p;
 		return p->internal_buffer;
 	}
@@ -213,9 +213,9 @@ public:
 	 * @param name the filename inside the archive. can be a path, but only filename is taken
 	 * @return a stringstream to write data to
 	 */
-	std::stringstream &create_stringstream_file(std::string name)
+	std::stringstream &create_stringstream_file(const std::string &name)
 	{
-		SmartPtr<Buffer_stringstream > p(new Buffer_stringstream);
+		SmartPtr p(new Buffer_stringstream);
 		files[name] = p;
 		return p->internal_buffer;
 	}
@@ -227,7 +227,7 @@ public:
 	 * using deconstructors is UNSAFE since data can be deconstructed before ParallelArchive.
 	 * @param f
 	 */
-	void add_raw(FileBufferDescriptor f)
+	void add_raw(const FileBufferDescriptor &f)
 	{
 		files[f.name] = make_sp(new ConstCharBuffer(f.buf, f.size));
 		m_bUnsafe = true;

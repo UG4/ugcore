@@ -153,69 +153,68 @@ namespace pcl {
 		return true;
 	}
 
-template<typename TLayout>
-void AddLayout(TLayout &destLayout, const TLayout &sourceLayout) {
-	for(typename TLayout::const_iterator iter = sourceLayout.begin(); iter != sourceLayout.end(); ++iter)
-	{
-		const typename TLayout::Interface &source_interface = sourceLayout.interface(iter);
-		typename TLayout::Interface &dest_interface = destLayout.interface(sourceLayout.proc_id(iter));
-		for(auto iter2 = source_interface.begin(); iter2 != source_interface.end(); ++iter2)
-			dest_interface.push_back(source_interface.get_element(iter2));
-	}
-}
-
-template <typename TKey, typename TValue, typename Compare>
-void MinimalKeyValuePairAcrossAllProcs(TKey& keyInOut, TValue& valInOut, const Compare& cmp)
-{
-	// in the serial case, input key and value are already output key and value
-#ifndef UG_PARALLEL
-	return;
-#endif
-	size_t nProc = NumProcs();
-	if (nProc == 1)
-		return;
-
-	// write key/value pair into binary buffer
-	ug::BinaryBuffer buf;
-	ug::Serialize(buf, keyInOut);
-	ug::Serialize(buf, valInOut);
-
-	// gather buffers on root
-	ProcessCommunicator pc;
-	pc.gather(buf, 0);
-
-	// find minimum on root
-	size_t rk = ProcRank();
-	if (rk == 0)
-	{
-		TKey key;
-		TValue val;
-
-		for (size_t i = 0; i < nProc; ++i)
+	template<typename TLayout>
+	void AddLayout(TLayout &destLayout, const TLayout &sourceLayout) {
+		for(typename TLayout::const_iterator iter = sourceLayout.begin(); iter != sourceLayout.end(); ++iter)
 		{
-			ug::Deserialize(buf, key);
-			ug::Deserialize(buf, val);
-
-			if (cmp(key, keyInOut))
-			{
-				keyInOut = key;
-				valInOut = val;
-			}
+			const typename TLayout::Interface &source_interface = sourceLayout.interface(iter);
+			typename TLayout::Interface &dest_interface = destLayout.interface(sourceLayout.proc_id(iter));
+			for(auto iter2 = source_interface.begin(); iter2 != source_interface.end(); ++iter2)
+				dest_interface.push_back(source_interface.get_element(iter2));
 		}
+	}
 
-		buf.clear();
+	template <typename TKey, typename TValue, typename Compare>
+	void MinimalKeyValuePairAcrossAllProcs(TKey& keyInOut, TValue& valInOut, const Compare& cmp)
+	{
+		// in the serial case, input key and value are already output key and value
+	#ifndef UG_PARALLEL
+		return;
+	#endif
+		size_t nProc = NumProcs();
+		if (nProc == 1)
+			return;
+
+		// write key/value pair into binary buffer
+		ug::BinaryBuffer buf;
 		ug::Serialize(buf, keyInOut);
 		ug::Serialize(buf, valInOut);
+
+		// gather buffers on root
+		ProcessCommunicator pc;
+		pc.gather(buf, 0);
+
+		// find minimum on root
+		size_t rk = ProcRank();
+		if (rk == 0)
+		{
+			TKey key;
+			TValue val;
+
+			for (size_t i = 0; i < nProc; ++i)
+			{
+				ug::Deserialize(buf, key);
+				ug::Deserialize(buf, val);
+
+				if (cmp(key, keyInOut))
+				{
+					keyInOut = key;
+					valInOut = val;
+				}
+			}
+
+			buf.clear();
+			ug::Serialize(buf, keyInOut);
+			ug::Serialize(buf, valInOut);
+		}
+
+		// communicate minimum to all procs
+		pc.broadcast(buf, 0);
+
+		// copy to return values
+		ug::Deserialize(buf, keyInOut);
+		ug::Deserialize(buf, valInOut);
 	}
-
-	// communicate minimum to all procs
-	pc.broadcast(buf, 0);
-
-	// copy to return values
-	ug::Deserialize(buf, keyInOut);
-	ug::Deserialize(buf, valInOut);
-}
-
 
 }
 #endif

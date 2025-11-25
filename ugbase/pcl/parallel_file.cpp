@@ -45,7 +45,7 @@
 namespace pcl{
 
 
-void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename, ProcessCommunicator pc)
+void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, const std::string &strFilename, const ProcessCommunicator &pc)
 {
 		MPI_Status status;
 	MPI_Comm m_mpiComm = pc.get_mpi_communicator();
@@ -92,7 +92,7 @@ void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename
 	MPI_File_close(&fh);
 }
 
-void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename, ProcessCommunicator pc)
+void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, const std::string& strFilename, const ProcessCommunicator& pc)
 {
 	MPI_Status status;
 	MPI_Comm m_mpiComm = pc.get_mpi_communicator();
@@ -106,7 +106,7 @@ void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename,
 	std::vector<long long> allNextOffsets;
 	allNextOffsets.resize(pc.size()+1);
 
-	allNextOffsets[0] = (pc.size())*sizeof(long long) + sizeof(int);
+	allNextOffsets[0] = pc.size() * sizeof(long long) + sizeof(int);
 	bool bFirst = (pc.get_proc_id(0) == ProcRank());
 	if (bFirst)
 	{
@@ -131,7 +131,7 @@ void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename,
 	MPI_File_seek(fh, myNextOffset, MPI_SEEK_SET);
 
 	char *p = new char[mySize];
-	MPI_File_read(fh, p, mySize, MPI_BYTE, &status);
+	MPI_File_read(fh, p, static_cast<int>(mySize), MPI_BYTE, &status);
 	buffer.clear();
 	buffer.reserve(mySize);
 	buffer.write(p, mySize);

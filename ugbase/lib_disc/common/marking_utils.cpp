@@ -76,7 +76,7 @@ void MarkSubsets
 	SmartPtr<MGSubsetHandler> sh = domain->subset_handler();
 
 	// transform subset names to indices
-	std::vector<bool> contained(sh->num_subsets(), false);
+	std::vector contained(sh->num_subsets(), false);
 	{
 		SubsetGroup ssg(sh);
 		try {ssg.add(vSubset);}

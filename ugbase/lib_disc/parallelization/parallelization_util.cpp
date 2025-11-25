@@ -67,7 +67,7 @@ bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
 	using IndexInterface = IndexLayout::Interface;
 
 //	iterate over all grid element interfaces
-	for(InterfaceIterator iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter)
+	for(auto iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter)
 	{
 	//	get a grid element interface
 		ElemInterface& elemInterface = elemLayout.interface(iIter);
@@ -78,8 +78,7 @@ bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
 
 	//	if some elements shall be ignored, then we'll perform a special loop
 		if(pIgnoreMap){
-			std::map<int, std::vector<bool> >::const_iterator
-				findIter = pIgnoreMap->find(elemInterface.get_target_proc());
+			auto findIter = pIgnoreMap->find(elemInterface.get_target_proc());
 
 			UG_ASSERT(findIter != pIgnoreMap->end(), "The vector has to exist");
 			const std::vector<bool>& vec = findIter->second;

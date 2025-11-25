@@ -1490,7 +1490,7 @@ void DoFDistribution::reinit_index_layout(IndexLayout& layout, int keyType)
 
 //	touching an interface means creation. Thus we remove the empty interfaces
 //	to avoid storage, communication (should not happen any longer) etc...
-	pcl::RemoveEmptyInterfaces(layout);
+	RemoveEmptyInterfaces(layout);
 }
 
 template <typename TBaseElem>
@@ -1505,9 +1505,9 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 
 //	types
 	using TLayout = typename GridLayoutMap::Types<TBaseElem>::Layout::LevelLayout;
-	using InterfaceIterator = typename TLayout::iterator;
+	// using InterfaceIterator = typename TLayout::iterator;
 	using ElemInterface = typename TLayout::Interface;
-	using ElemIterator = typename ElemInterface::iterator;
+	// using ElemIterator = typename ElemInterface::iterator;
 	using IndexInterface = IndexLayout::Interface;
 
 //	vector for algebra indices
@@ -1524,8 +1524,7 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 		TLayout& elemLayout = layoutMap.get_layout<TBaseElem>(keyType).layout_on_level(lvl);
 
 	//	iterate over all grid element interfaces
-		for(InterfaceIterator iIter = elemLayout.begin();
-			iIter != elemLayout.end(); ++iIter)
+		for(auto iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter)
 		{
 		//	get a grid element interface
 			ElemInterface& elemInterface = elemLayout.interface(iIter);
@@ -1534,8 +1533,7 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 			IndexInterface& indexInterface = indexLayout.interface(elemLayout.proc_id(iIter));
 
 		//	iterate over entries in the grid element interface
-			for(ElemIterator eIter = elemInterface.begin();
-				eIter != elemInterface.end(); ++eIter)
+			for(auto eIter = elemInterface.begin(); eIter != elemInterface.end(); ++eIter)
 			{
 			//	get the grid element
 				typename ElemInterface::Element elem = elemInterface.get_element(eIter);

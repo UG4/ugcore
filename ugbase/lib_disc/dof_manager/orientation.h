@@ -78,15 +78,15 @@ void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
 /// \}
 
 void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
-                                      EdgeDescriptor& ed, EdgeVertices* edge, const size_t p);
+                                      EdgeDescriptor& ed, EdgeVertices* edge, size_t p);
 
 void MapLagrangeMultiIndexQuad(std::vector<size_t>& vOrientOffset,
-							   const int id0, bool sameOrientation,
-							   const size_t pOuter);
+                               int id0, bool sameOrientation,
+                               size_t pOuter);
 
 void MapLagrangeMultiIndexTriangle(std::vector<size_t>& vOrientOffset,
-								   const int id0, bool sameOrientation,
-								   const size_t pOuter);
+                                   int id0, bool sameOrientation,
+                                   size_t pOuter);
 
 
 } // end namespace ug

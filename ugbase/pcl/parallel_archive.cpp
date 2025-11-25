@@ -43,11 +43,12 @@ size_t Get512Padding(size_t s)
 	return s%512 == 0 ? 0 : (512- (s%512));
 }
 
-void WriteParallelArchive(ProcessCommunicator &pc, std::string strFilename, const std::vector<FileBufferDescriptor> &files)
+void WriteParallelArchive(const ProcessCommunicator &pc, const std::string &strFilename, const std::vector<FileBufferDescriptor> &files)
 {
 
-	char padding[1024];
-	memset(padding, 0, 1024);
+	/*char padding[1024];
+	memset(padding, 0, 1024);*/
+	char padding[1024] = {};
 
 	MPI_Offset my_current_offset;
 
@@ -55,7 +56,7 @@ void WriteParallelArchive(ProcessCommunicator &pc, std::string strFilename, cons
 	MPI_Comm m_mpiComm = pc.get_mpi_communicator();
 	MPI_File fh;
 
-	bool bLast = pc.get_local_proc_id()+1 == (int)pc.size();
+	bool bLast = pc.get_local_proc_id()+1 == static_cast<int>(pc.size());
 	bool bFirst = pc.get_proc_id(0) == ProcRank();
 
 
@@ -100,33 +101,36 @@ void WriteParallelArchive(ProcessCommunicator &pc, std::string strFilename, cons
 		t.set_filesize(ug4tarLookupSize);
 		t.set_checksum();
 
-		 // write header
-		 MPI_File_write(fh, (void*)&t, sizeof(t), MPI_BYTE, &status);
-		 // write file
-		 MPI_File_write(fh, (void*)&allOffsets[0], ug4tarLookupSize, MPI_BYTE, &status);
-		 // write padding
-		 MPI_File_write(fh, (void*)padding, Get512Padding(ug4tarLookupSize), MPI_BYTE, &status);
+		// write header
+		MPI_File_write(fh, &t, sizeof(t), MPI_BYTE, &status);
+		// write file
+		MPI_File_write(fh, &allOffsets[0], ug4tarLookupSize, MPI_BYTE, &status);
+		// write padding
+		int tar_padding =static_cast<int>(Get512Padding(ug4tarLookupSize));
+		MPI_File_write(fh, padding, tar_padding, MPI_BYTE, &status);
 	}
 
 
 
 	for(size_t i=0; i<files.size(); i++)
 	{
-		 MPI_File_get_position(fh, &my_current_offset);
+		MPI_File_get_position(fh, &my_current_offset);
 //		 UG_LOG_ALL_PROCS("Writing file " << files[i].name << " of size " << files[i].size
 //				 << " " << 512-files[i].size%512 << " " << " at pos " << my_current_offset << "\n");
 
-		 TarHeader t;
-		 t.set_filename(files[i].name);
-		 t.set_filesize(files[i].size);
-		 t.set_checksum();
+		TarHeader t;
+		t.set_filename(files[i].name);
+		t.set_filesize(files[i].size);
+		t.set_checksum();
 
-		 // write header
-		 MPI_File_write(fh, (void*)&t, sizeof(t), MPI_BYTE, &status);
-		 // write file
-		 MPI_File_write(fh, (void*)files[i].buf, files[i].size, MPI_BYTE, &status);
-		 // write padding
-		 MPI_File_write(fh, (void*)padding, Get512Padding(files[i].size), MPI_BYTE, &status);
+		// write header
+		MPI_File_write(fh, &t, sizeof(t), MPI_BYTE, &status);
+		// write file
+		int file_size = static_cast<int>(files[i].size);
+		MPI_File_write(fh, files[i].buf, file_size, MPI_BYTE, &status);
+		// write padding
+		int file_padding = static_cast<int>(Get512Padding(files[i].size));
+		MPI_File_write(fh, padding, file_padding, MPI_BYTE, &status);
 	}
 
 

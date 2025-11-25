@@ -62,7 +62,7 @@ namespace ug
  *  To change into another type
  *       -- v.change_storage_type(PST_ADDITIVE)
  */
-enum ParallelStorageType
+enum ParallelStorageType : uint
 {
 	PST_UNDEFINED = 0,
 	PST_CONSISTENT = 1 << 0,
@@ -73,7 +73,7 @@ enum ParallelStorageType
 // bitwise and for Parallel Storage Type
 inline ParallelStorageType operator & (const ParallelStorageType &a, const ParallelStorageType &b)
 {
-	return (ParallelStorageType) ((int)a&(int)b);
+	return static_cast<ParallelStorageType>(static_cast<uint>(a) & static_cast<uint>(b));
 }
 
 inline std::ostream& operator << (std::ostream& outStream, const ParallelStorageType& type)

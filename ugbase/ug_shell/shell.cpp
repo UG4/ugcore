@@ -141,7 +141,7 @@ int RunShell(const char *prompt)
 	while(true)
 	{
 #if defined(UG_USE_LINENOISE)
-		SetOtherCompletions(completions, sizeof(completions)/sizeof(completions[0]));
+		SetOtherCompletions(completions, sizeof(completions)/sizeof(completions[0])); // ø todo std::size ?
 #endif
 
 		bool quit;
@@ -230,7 +230,7 @@ debug_return DebugShell()
 	while(true)
 	{
 #if defined(UG_USE_LINENOISE)
-		SetOtherCompletions(completions, sizeof(completions)/sizeof(completions[0]));
+		SetOtherCompletions(completions, sizeof(completions)/sizeof(completions[0])); // ø todo std::size ?
 #endif
 		bool quit;
 		string buf;

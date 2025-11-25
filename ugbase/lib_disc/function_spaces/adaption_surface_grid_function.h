@@ -76,7 +76,7 @@ class AdaptionSurfaceGridFunction : public GridObserver
 
 	protected:
 		template <typename TBaseElem>
-		void prolongate(const GridMessage_Adaption& msg, const size_t lvl);
+		void prolongate(const GridMessage_Adaption& msg, size_t lvl);
 
 		template <typename TBaseElem>
 		void do_restrict(const MGSelector& sel, const GridMessage_Adaption& msg);
@@ -126,7 +126,7 @@ class AdaptionSurfaceGridFunction : public GridObserver
 		SmartPtr<TDomain> m_spDomain;
 		SmartPtr<MultiGrid> m_spGrid;
 		ConstSmartPtr<DoFDistributionInfo> m_spDDInfo;
-		int m_ParallelStorageType;
+		uint m_ParallelStorageType;
 		bool m_bObserveStorage;
 
 		void attach_entries(ConstSmartPtr<DoFDistributionInfo> spDDInfo);

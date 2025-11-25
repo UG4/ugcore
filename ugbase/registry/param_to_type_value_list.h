@@ -59,7 +59,7 @@ struct ParameterStackToTypeValueList;
 // specialization for empty TypeValueList
 template <int index>
 struct ParameterStackToTypeValueList<TypeList<>, index> :
-	public TypeValueList<TypeList<> >
+		TypeValueList<TypeList<> >
 {
 	ParameterStackToTypeValueList(const ParameterStack& in) {}
 };
@@ -67,7 +67,7 @@ struct ParameterStackToTypeValueList<TypeList<>, index> :
 // implementation for non-empty TypeValueList
 template <typename TTypeList, int index>
 struct ParameterStackToTypeValueList :
-	public TypeValueList<TTypeList>
+		TypeValueList<TTypeList>
 {
 	using head = typename TTypeList::head;
 	using tail = typename TTypeList::tail;

@@ -78,7 +78,7 @@ bool AllProcsTrue(bool bFlag, ProcessCommunicator comm = ProcessCommunicator());
 
 /// performs an allreduce and returns true at least one process called the
 /// function with bFlag = true
-bool OneProcTrue(bool bFlag, ProcessCommunicator comm = ProcessCommunicator());
+bool OneProcTrue(bool bFlag, const ProcessCommunicator &comm = ProcessCommunicator());
 
 ////////////////////////////////////////////////////////////////////////
 ///	exchanges information about which process wants to communicate with which other process.

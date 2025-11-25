@@ -101,7 +101,7 @@ class MultiGrid : public Grid, public GridObserver
 		~MultiGrid() override;
 
 		void enable_hierarchical_insertion(bool bEnable);
-		inline bool hierarchical_insertion_enabled() {return m_bHierarchicalInsertion;}
+		inline bool hierarchical_insertion_enabled() const {return m_bHierarchicalInsertion;}
 
 	////////////////////////////////////////////////
 	//	element creation

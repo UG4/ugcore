@@ -91,7 +91,7 @@ ExportedFunctionBase(	const std::string& funcName, const std::string& funcOption
 	}
 };
 
-bool ExportedFunctionBase::check_consistency(std::string classname) const
+bool ExportedFunctionBase::check_consistency(const std::string &classname) const
 {
 //	flag to indicate, that unnamed parameter is found
 	bool bUndeclared = false, bUndeclaredParameter = false, bUndeclaredReturn = false;

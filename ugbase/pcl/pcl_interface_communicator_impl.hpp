@@ -73,9 +73,9 @@ send_raw(int targetProc, const void* pBuff, int bufferSize,
 	m_curOutProcs.insert(targetProc);
 
 	if(!bSizeKnownAtTarget)
-		buffer.write((char*)&bufferSize, sizeof(int));
+		buffer.write(reinterpret_cast<char *>(&bufferSize), sizeof(int));
 		
-	buffer.write((const char*)pBuff, bufferSize);
+	buffer.write(static_cast<const char *>(pBuff), bufferSize);
 	m_bSendBuffersFixed = m_bSendBuffersFixed
 						&& bSizeKnownAtTarget;
 }
@@ -333,7 +333,7 @@ PCL_PROFILE_FUNC();
 				}
 				else if(pMapBuffSizesOut){
 				//	find the entry in the map
-					std::map<int, int>::iterator iter = pMapBuffSizesOut->find(layout.proc_id(li));
+					auto iter = pMapBuffSizesOut->find(layout.proc_id(li));
 					if(iter != pMapBuffSizesOut->end())
 						iter->second += buffSize;
 					else
@@ -682,7 +682,7 @@ wait()
 				info.m_extractor->extract(binBuf, *info.m_interface);
 			}
 			else if(info.m_buffer){
-				binBuf.read((char*)info.m_buffer, info.m_rawSize);
+				binBuf.read(static_cast<char *>(info.m_buffer), info.m_rawSize);
 			}
 			else{
 				assert(info.m_binBuffer && "ERROR in InterfaceCommunicator::communicate: No valid receiver specified.");
@@ -690,12 +690,12 @@ wait()
 				int rawSize = info.m_rawSize;
 				if(rawSize < 0){
 				//	the raw size is encoded in the buffer in this case.
-					binBuf.read((char*)&rawSize, sizeof(int));
+					binBuf.read(reinterpret_cast<char *>(&rawSize), sizeof(int));
 				}
 				
 				info.m_binBuffer->clear();
 				info.m_binBuffer->reserve(rawSize);
-				binBuf.read((char*)info.m_binBuffer->buffer(), rawSize);
+				binBuf.read(static_cast<char *>(info.m_binBuffer->buffer()), rawSize);
 				info.m_binBuffer->set_write_pos(rawSize);
 			}
 		}
@@ -747,8 +747,7 @@ disable_communication_debugging()
 
 template <typename TLayout>
 bool InterfaceCommunicator<TLayout>::
-communication_debugging_enabled()
-{
+communication_debugging_enabled() const {
 	return m_bDebugCommunication;
 }
 

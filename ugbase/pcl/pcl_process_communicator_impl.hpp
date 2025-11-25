@@ -54,7 +54,7 @@ gatherv(std::vector<TValue>& recBufOut,
 
 //	gather the sizes on root. Note that we send the actual data
 //	in bytes later on.
-	int localSize = (int)sendBuf.size() * sizeof(TValue);
+	int localSize = static_cast<int>(sendBuf.size()) * sizeof(TValue);
 	gather(&localSize, 1, PCL_DT_INT, GetDataPtr(sizes),
 			1, PCL_DT_INT, root);
 
@@ -125,7 +125,7 @@ allgatherv(std::vector<TValue>& recBufOut,
 
 //	gather the sizes on root. Note that we send the actual data
 //	in bytes later on.
-	int localSize = (int)sendBuf.size() * sizeof(TValue);
+	int localSize = static_cast<int>(sendBuf.size()) * sizeof(TValue);
 	allgather(&localSize, 1, PCL_DT_INT, &sizes.front(),
 			  1, PCL_DT_INT);
 

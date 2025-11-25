@@ -76,45 +76,45 @@ class ProcessCommunicator
 	public:
 	///	creates a communicator.
 	/**	By default, a communicator for all processes is generated.*/
-		ProcessCommunicator(ProcessCommunicatorDefaults pcd = PCD_WORLD);
+		explicit ProcessCommunicator(ProcessCommunicatorDefaults pcd = PCD_WORLD);
 		
 	///	returns true if the communicator is empty, false if not.
-		inline bool empty() const {return !is_local() && m_comm->m_mpiComm == MPI_COMM_NULL;}
+		[[nodiscard]] inline bool empty() const {return !is_local() && m_comm->m_mpiComm == MPI_COMM_NULL;}
 
 	/// return true if the communicator is PCD_WORLD
-		inline bool is_world() const { return !is_local() && m_comm->m_mpiComm == PCL_COMM_WORLD; }
+		[[nodiscard]] inline bool is_world() const { return !is_local() && m_comm->m_mpiComm == PCL_COMM_WORLD; }
 		
 	/// return true if the communicator is local, simulating current proc is the only proc
-		inline bool is_local() const {return m_comm.valid() == false;}
+		[[nodiscard]] inline bool is_local() const {return m_comm.valid() == false;}
 
 	///	returns the size of the communicator
-		size_t size() const;
+		[[nodiscard]] size_t size() const;
 		
 	///	returns the i-th process in the communicator
-		int get_proc_id(size_t index) const;
+		[[nodiscard]] int get_proc_id(size_t index) const;
 
 	/// returns true if we are the i-th process in the communicator
-		bool is_proc_id(size_t index) const
+		[[nodiscard]] bool is_proc_id(size_t index) const
 		{
 			return get_proc_id(index) == ProcRank();
 		}
 
 	///	returns the proc-id relative to this communicator
 	/**	This method has the worst time complexity of O(n)*/
-		int get_local_proc_id(int globalProcID = ProcRank()) const;
+		[[nodiscard]] int get_local_proc_id(int globalProcID = ProcRank()) const;
 
 	///	returns the mpi-communicator, in case someone needs it
-		MPI_Comm get_mpi_communicator() const	{return m_comm->m_mpiComm;}
+		[[nodiscard]] MPI_Comm get_mpi_communicator() const	{return m_comm->m_mpiComm;}
 
 	///	creates a new communicator containing a subset of the current communicator
 	/**	Note that this method has to be called by all processes in the current
 	 *	communicator - even if they don't want to participate in the new one.*/
-		ProcessCommunicator create_sub_communicator(bool participate) const;
+		[[nodiscard]] ProcessCommunicator create_sub_communicator(bool participate) const;
 		
 	/**	Make sure that all processes which participate in the current communicator
 	 * call this method with the same parameters! Process indices are to be specified
 	 * relative to the current communicator.*/
-		ProcessCommunicator create_sub_communicator(std::vector<int> &newProcs) const;
+		[[nodiscard]] ProcessCommunicator create_sub_communicator(std::vector<int> &newProcs) const;
 
 	/**	Make sure that all processes call this method with the same parameters!
 	 * \{ */

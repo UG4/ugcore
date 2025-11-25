@@ -247,7 +247,8 @@ class LocalVector
 	/// set all components of the vector
 		this_type& operator = (number val)
 		{
-			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
+			const size_t ssize = m_vvValue.size();
+			for(size_t fct = 0; fct < ssize; ++fct)
 				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
 					m_vvValue[fct][dof] = val;
 			return *this;
@@ -262,7 +263,8 @@ class LocalVector
 	/// multiply all components of the vector
 		this_type& operator *= (number val)
 		{
-			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
+			const size_t ssize = m_vvValue.size();
+			for(size_t fct = 0; fct < ssize; ++fct)
 				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
 					m_vvValue[fct][dof] *= val;
 			return *this;
@@ -272,7 +274,8 @@ class LocalVector
 		this_type& operator += (const this_type& rhs)
 		{
 			UG_LOCALALGEBRA_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
-			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
+			const size_t ssize = m_vvValue.size();
+			for(size_t fct = 0; fct < ssize; ++fct)
 				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
 					m_vvValue[fct][dof] += rhs.m_vvValue[fct][dof];
 			return *this;
@@ -282,7 +285,8 @@ class LocalVector
 		this_type& operator -= (const this_type& rhs)
 		{
 			UG_LOCALALGEBRA_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
-			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
+			const size_t ssize = m_vvValue.size();
+			for(size_t fct = 0; fct < ssize; ++fct)
 				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
 					m_vvValue[fct][dof] -= rhs.m_vvValue[fct][dof];
 			return *this;
@@ -292,7 +296,8 @@ class LocalVector
 		this_type& scale_append(number s, const this_type& rhs)
 		{
 			UG_LOCALALGEBRA_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
-			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
+			const size_t ssize = m_vvValue.size();
+			for(size_t fct = 0; fct < ssize; ++fct)
 				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
 					m_vvValue[fct][dof] += s * rhs.m_vvValue[fct][dof];
 			return *this;
@@ -306,7 +311,8 @@ class LocalVector
 		void access_by_map(const FunctionIndexMapping& funcMap)
 		{
 			m_pFuncMap = &funcMap;
-			for(size_t i = 0; i < funcMap.num_fct(); ++i)
+			const size_t ssize = funcMap.num_fct();
+			for(size_t i = 0; i < ssize; ++i)
 			{
 				const size_t mapFct = funcMap[i];
 				m_vvValueAcc[i] = &(m_vvValue[mapFct][0]);
@@ -367,16 +373,16 @@ class LocalVector
 		///////////////////////////
 
 	///	returns the number of all functions
-		size_t num_all_fct() const {return m_vvValue.size();}
+		[[nodiscard]] size_t num_all_fct() const {return m_vvValue.size();}
 
 	///	returns the number of dofs for a function (unrestricted functions)
-		size_t num_all_dof(size_t fct) const {check_all_fct(fct); return m_vvValue[fct].size();}
+		[[nodiscard]] size_t num_all_dof(size_t fct) const {check_all_fct(fct); return m_vvValue[fct].size();}
 
 	/// access to dof of a fct (unrestricted functions)
 		number& value(size_t fct, size_t dof){check_all_dof(fct,dof);return m_vvValue[fct][dof];}
 
 	/// const access to dof of a fct (unrestricted functions)
-		const number& value(size_t fct, size_t dof) const{check_all_dof(fct,dof);return m_vvValue[fct][dof];}
+		[[nodiscard]] const number& value(size_t fct, size_t dof) const{check_all_dof(fct,dof);return m_vvValue[fct][dof];}
 
 	protected:
 	///	checks correct fct index in debug mode
@@ -464,10 +470,10 @@ class LocalMatrix
 		}
 
 	/// get current local indices
-		const LocalIndices& get_row_indices() const {return *m_pRowIndex;}
+		[[nodiscard]] const LocalIndices& get_row_indices() const {return *m_pRowIndex;}
 
 	/// get current local indices
-		const LocalIndices& get_col_indices() const {return *m_pColIndex;}
+		[[nodiscard]] const LocalIndices& get_col_indices() const {return *m_pColIndex;}
 
 		///////////////////////////
 		// Matrix functions
@@ -571,21 +577,21 @@ class LocalMatrix
 		}
 
 	///	returns the number of currently accessible (restricted) functions
-		size_t num_row_fct() const
+		[[nodiscard]] size_t num_row_fct() const
 		{
 			if(m_pRowFuncMap != nullptr) return m_pRowFuncMap->num_fct();
 			return m_CplMatAcc.num_rows();
 		}
 
 	///	returns the number of currently accessible (restricted) functions
-		size_t num_col_fct() const
+		[[nodiscard]] size_t num_col_fct() const
 		{
 			if(m_pColFuncMap != nullptr) return m_pColFuncMap->num_fct();
 			return m_CplMatAcc.num_cols();
 		}
 
 	///	returns the number of dofs for the currently accessible (restricted) function
-		size_t num_row_dof(size_t fct) const
+		[[nodiscard]] size_t num_row_dof(size_t fct) const
 		{
 			if(m_CplMat.num_rows()==0) return 0;
 			if(m_pRowFuncMap == nullptr) return m_CplMat(fct, 0).num_rows();
@@ -593,7 +599,7 @@ class LocalMatrix
 		}
 
 	///	returns the number of dofs for the currently accessible (restricted) function
-		size_t num_col_dof(size_t fct) const
+		[[nodiscard]] size_t num_col_dof(size_t fct) const
 		{
 			if(m_CplMat.num_cols()==0) return 0;
 			if(m_pRowFuncMap == nullptr) return m_CplMat(0, fct).num_cols();
@@ -621,16 +627,16 @@ class LocalMatrix
 		///////////////////////////
 
 	///	returns the number of all functions
-		size_t num_all_row_fct() const{	return m_CplMat.num_rows();}
+		[[nodiscard]] size_t num_all_row_fct() const{ return m_CplMat.num_rows();}
 
 	///	returns the number of all functions
-		size_t num_all_col_fct() const{return m_CplMat.num_cols();}
+		[[nodiscard]] size_t num_all_col_fct() const{ return m_CplMat.num_cols();}
 
 	///	returns the number of dofs for a function
-		size_t num_all_row_dof(size_t fct) const {return m_CplMat(fct, 0).num_rows();}
+		[[nodiscard]] size_t num_all_row_dof(size_t fct) const { return m_CplMat(fct, 0).num_rows();}
 
 	///	returns the number of dofs for a function
-		size_t num_all_col_dof(size_t fct) const {return m_CplMat(0, fct).num_cols();}
+		[[nodiscard]] size_t num_all_col_dof(size_t fct) const { return m_CplMat(0, fct).num_cols();}
 
 	/// access to coupling (rowFct, rowDoF) x (colFct, colDoF)
 		number& value(size_t rowFct, size_t rowDoF,
@@ -641,7 +647,7 @@ class LocalMatrix
 		}
 
 	/// const access to coupling (rowFct, rowDoF) x (colFct, colDoF)
-		number value(size_t rowFct, size_t rowDoF,
+		[[nodiscard]] number value(size_t rowFct, size_t rowDoF,
 		                   size_t colFct, size_t colDoF) const
 		{
 			check_all_dof(rowFct, rowDoF, colFct, colDoF);

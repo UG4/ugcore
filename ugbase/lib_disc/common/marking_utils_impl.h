@@ -30,6 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
+#ifndef IG_UGBASE_LIB_DISC_COMMON_MARKING_UTILS_IMPL_H
+#define IG_UGBASE_LIB_DISC_COMMON_MARKING_UTILS_IMPL_H
 
 #include "lib_disc/common/multi_index.h"  // for DoFIndex
 #include "lib_disc/domain_traits.h"  // for domain_traits
@@ -128,3 +130,5 @@ void MarkOutOfRangeElems
 }
 
 } // namespace ug
+
+#endif

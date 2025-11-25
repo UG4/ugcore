@@ -89,7 +89,7 @@ get_proc_id(size_t groupIndex) const
 {
 	if(is_local()) return ProcRank();
 	if(m_comm->m_mpiComm == PCL_COMM_WORLD)
-		return (int)groupIndex;
+		return static_cast<int>(groupIndex);
 	return m_comm->m_procs[groupIndex];
 }
 
@@ -111,7 +111,7 @@ get_local_proc_id(int globalProcID) const
 
 	for(size_t i = 0; i < procs.size(); ++i){
 		if(globalProcID == procs[i])
-			return (int)i;
+			return static_cast<int>(i);
 	}
 
 	UG_LOG("  ERROR in ProcessCommunicator::get_local_proc_id(): given id not contained in local proc list.\n");
@@ -154,7 +154,7 @@ create_sub_communicator(bool participate) const
 		PCL_DEBUG_BARRIER((*this));
 	}
 
-	allreduce(&srcArray.front(), &destArray.front(),
+	allreduce(srcArray.data(), destArray.data(),
 			   size, PCL_DT_INT, PCL_RO_MAX);
 
 	{
@@ -191,7 +191,7 @@ create_sub_communicator(vector<int> &newProcs) const
 {
 	UG_COND_THROW(is_local(), "not available");
 	PCL_PROFILE(pcl_ProcCom_create_sub_com__array);
-	if(newProcs.size() == 0)
+	if(newProcs.empty())
 		return ProcessCommunicator(PCD_EMPTY);
 	if((int)newProcs.size() == NumProcs())
 		return ProcessCommunicator(PCD_WORLD);
@@ -202,7 +202,7 @@ create_sub_communicator(vector<int> &newProcs) const
 	MPI_Comm commNew;
 
 	MPI_Comm_group(m_comm->m_mpiComm, &grpOld);
-	MPI_Group_incl(grpOld, (int)newProcs.size(), &newProcs.front(), &grpNew);
+	MPI_Group_incl(grpOld, static_cast<int>(newProcs.size()), newProcs.data(), &grpNew);
 	MPI_Comm_create(m_comm->m_mpiComm, grpNew, &commNew);
 	PCL_PROFILE_END();
 
@@ -242,7 +242,7 @@ create_communicator(vector<int> &newGlobalProcs)
 	MPI_Comm commNew;
 
 	MPI_Comm_group(PCL_COMM_WORLD, &grpWorld);
-	MPI_Group_incl(grpWorld, (int)newGlobalProcs.size(), &newGlobalProcs.front(), &grpNew);
+	MPI_Group_incl(grpWorld, (int)newGlobalProcs.size(), newGlobalProcs.data(), &grpNew);
 	MPI_Comm_create(PCL_COMM_WORLD, grpNew, &commNew);
 
 //	create a new ProcessCommunicator
@@ -276,7 +276,7 @@ create_communicator(size_t first, size_t num)
 		procs[i] = first + i;
 
 	MPI_Comm_group(PCL_COMM_WORLD, &grpWorld);
-	MPI_Group_incl(grpWorld, (int)procs.size(), &procs.front(), &grpNew);
+	MPI_Group_incl(grpWorld, static_cast<int>(procs.size()), procs.data(), &grpNew);
 	MPI_Comm_create(PCL_COMM_WORLD, grpNew, &commNew);
 
 	//	create a new ProcessCommunicator
@@ -357,24 +357,24 @@ gather(BinaryBuffer &buf, int root) const
 	if(is_local()) return;
 
 	int localSize;
-	localSize = (int)buf.write_pos();
+	localSize = static_cast<int>(buf.write_pos());
 	
 	if(ProcRank() == root) {
 		std::vector<int> recvSizes(size());
 
 		gather(&localSize, 1, PCL_DT_INT,
-		       &recvSizes.front(), 1, PCL_DT_INT, root);
+		       recvSizes.data(), 1, PCL_DT_INT, root);
 
 		std::vector<int> displacements(size());
 		size_t totalSize = 0;
 		for(size_t i = 0; i < recvSizes.size(); ++i){
-			displacements[i] = (int)totalSize;
+			displacements[i] = static_cast<int>(totalSize);
 			totalSize += (size_t)recvSizes[i];
 		}
 
 		buf.reserve(totalSize);
 		gatherv(MPI_IN_PLACE, localSize, PCL_DT_CHAR,
-		        buf.buffer(), &recvSizes.front(), &displacements.front(),
+		        buf.buffer(), recvSizes.data(), displacements.data(),
 		        PCL_DT_CHAR, root);
 
 		buf.set_write_pos(totalSize);
@@ -399,8 +399,9 @@ scatter(const void* sendBuf, int sendCount, DataType sendType,
 
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::scatter: empty communicator.");
 	
-	MPI_Scatter(const_cast<void*>(sendBuf), sendCount, sendType, recBuf,
-			   recCount, recType, root, m_comm->m_mpiComm);
+	MPI_Scatter(sendBuf, sendCount, sendType,
+				recBuf, recCount, recType,
+				root, m_comm->m_mpiComm);
 }
 
 void
@@ -414,8 +415,9 @@ gatherv(const void* sendBuf, int sendCount, DataType sendType,
 
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::gather: empty communicator.");
 
-	MPI_Gatherv(const_cast<void*>(sendBuf), sendCount, sendType, recBuf,
-				recCounts, displs, recType, root, m_comm->m_mpiComm);
+	MPI_Gatherv(sendBuf, sendCount, sendType,
+				recBuf, recCounts, displs, recType,
+				root, m_comm->m_mpiComm);
 }
 
 void
@@ -428,13 +430,14 @@ allgather(const void* sendBuf, int sendCount, DataType sendType,
 
 	UG_COND_THROW(empty(), "ERROR in ProcessCommunicator::allgather: empty communicator.");
 	
-	MPI_Allgather(const_cast<void*>(sendBuf), sendCount, sendType, recBuf,
-				  recCount, recType, m_comm->m_mpiComm);
+	MPI_Allgather(sendBuf, sendCount, sendType,
+				  recBuf, recCount, recType,
+				  m_comm->m_mpiComm);
 }
 
 void
 ProcessCommunicator::
-allgather(ug::BinaryBuffer &buf) const
+allgather(BinaryBuffer &buf) const
 {
 	gather(buf, 0);
 	broadcast(buf, 0);
@@ -451,8 +454,9 @@ allgatherv(const void* sendBuf, int sendCount, DataType sendType,
 
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::allgatherv: empty communicator.");
 	
-	MPI_Allgatherv(const_cast<void*>(sendBuf), sendCount, sendType, recBuf,
-				   recCounts, displs, recType, m_comm->m_mpiComm);
+	MPI_Allgatherv(sendBuf, sendCount, sendType,
+				   recBuf, recCounts, displs, recType,
+				   m_comm->m_mpiComm);
 }
 
 void
@@ -465,7 +469,9 @@ alltoall(const void* sendBuf, int sendCount, DataType sendType,
 
 	UG_COND_THROW(empty(), "ERROR in ProcessCommunicator::alltoall: empty communicator.");
 
-	MPI_Alltoall(const_cast<void*>(sendBuf), sendCount, sendType, recBuf, recCount, recType, m_comm->m_mpiComm);
+	MPI_Alltoall(sendBuf, sendCount, sendType,
+				 recBuf, recCount, recType,
+				 m_comm->m_mpiComm);
 }
 
 void
@@ -481,7 +487,7 @@ send_data(void* pBuffer, int bufferSize, int destProc, int tag) const
 	
 	MPI_Isend(pBuffer, bufferSize, MPI_UNSIGNED_CHAR, destProc, 
 			  tag, m_comm->m_mpiComm, &request);
-	pcl::MPI_Wait(&request);
+	pcl::MPI_Wait(&request); // ø todo why is a asynchronouse send used when direcly waited to finished?
 }
 
 void
@@ -501,7 +507,7 @@ send_data(void* pBuffer, int* pBufferSegSizes,
 	{
 		MPI_Isend(pBuffer, pBufferSegSizes[i], MPI_UNSIGNED_CHAR,
 				  pRecProcMap[i], tag, m_comm->m_mpiComm, &vSendRequests[i]);
-		pBuffer = (byte*)pBuffer + pBufferSegSizes[i];
+		pBuffer = static_cast<byte_t *>(pBuffer) + pBufferSegSizes[i];
 	}
 	
 //	wait until data has been received
@@ -521,7 +527,7 @@ receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag) const
 	
 	MPI_Irecv(pBuffOut, bufferSize, MPI_UNSIGNED_CHAR,	
 					srcProc, tag, m_comm->m_mpiComm, &request);					
-	pcl::MPI_Wait(&request);
+	pcl::MPI_Wait(&request); // ø todo async and wait directly?
 }
 
 void ProcessCommunicator::
@@ -545,7 +551,7 @@ distribute_data(void* recvBufOut, int* recvBufSegSizesOut,
 		MPI_Irecv(recvBufOut, recvBufSegSizesOut[i], MPI_UNSIGNED_CHAR,	
 				  recvFromRanks[i], tag, m_comm->m_mpiComm,
 				  &vReceiveRequests[i]);
-		recvBufOut = (byte*)recvBufOut + recvBufSegSizesOut[i];
+		recvBufOut = static_cast<byte_t *>(recvBufOut) + recvBufSegSizesOut[i];
 	}
 
 //	now send the data
@@ -554,7 +560,7 @@ distribute_data(void* recvBufOut, int* recvBufSegSizesOut,
 		MPI_Isend(sendBuf, sendBufSegSizes[i], MPI_UNSIGNED_CHAR,
 				  sendToRanks[i], tag, m_comm->m_mpiComm,
 				  &vSendRequests[i]);
-		sendBuf = (byte*)sendBuf + sendBufSegSizes[i];
+		sendBuf = static_cast<byte_t *>(sendBuf) + sendBufSegSizes[i];
 	}
 
 	//	wait until data has been received
@@ -583,12 +589,12 @@ distribute_data(void* recvBufOut, int* recvBufSegSizesOut,
 }
 
 void ProcessCommunicator::
-distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
+distribute_data(BinaryBuffer& recvBufOut, int* segSizesOut,
 				int* recvFromRanks, int numRecvFroms,
 				void* sendBuf, int* sendSegSizes,
 				int* sendToRanks, int numSendTos, int tag) const
 {
-	if(is_local() || ((sendToRanks == 0) && (numRecvFroms == 0))) return;
+	if(is_local() || ((sendToRanks == nullptr) && (numRecvFroms == 0))) return;
 	PCL_PROFILE(pcl_ProcCom_distribute_data__flex);
 
 //	small helper arrays
@@ -622,8 +628,8 @@ distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 }
 
 void ProcessCommunicator::
-distribute_data(ug::BinaryBuffer* recvBufs, int* recvFromRanks, int numRecvs,
-				ug::BinaryBuffer* sendBufs, int* sendToRanks, int numSends,
+distribute_data(BinaryBuffer* recvBufs, int* recvFromRanks, int numRecvs,
+				BinaryBuffer* sendBufs, int* sendToRanks, int numSends,
 				int tag) const
 {
 	if(is_local() || ((numSends == 0) && (numRecvs == 0))) return;
