@@ -181,6 +181,28 @@ class ParallelVector : public TVector
 	/// clones the vector (deep-copy) excluding values
 		SmartPtr<this_type> clone_without_values() const;
 
+public:
+	void print_storage_type() {
+		bool consistent = (PST_CONSISTENT & this->m_type) > 0;
+		bool additive = (PST_ADDITIVE & this->m_type) > 0;
+		bool unique = (PST_UNIQUE & this->m_type) > 0;
+
+		std::cout << "GridFunction (" << this->m_type << ") is ";
+		if(consistent) {
+			std::cout << "consistent ";
+		}
+		if(additive) {
+			std::cout << "additive ";
+		}
+		if(unique) {
+			std::cout << "unique ";
+		}
+		if(!consistent && !additive && !unique) {
+			std::cout << "undefined";
+		}
+		std::cout << std::endl;
+	}
+
 	protected:
 		/// virtual clone using covariant return type
 		virtual this_type* virtual_clone() const;

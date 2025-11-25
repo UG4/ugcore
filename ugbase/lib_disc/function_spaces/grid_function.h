@@ -185,6 +185,7 @@ class GridFunction
 	/// Initializing Constructor using a grid level
 		GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace, const GridLevel& gl, bool bManage = true);
 
+
 	protected:
 	///	checks the algebra
 		void check_algebra();

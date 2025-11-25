@@ -539,9 +539,10 @@ assemble_level_operator()
 			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start assemble_level_operator: project sol\n");
 			GMG_PROFILE_BEGIN(GMG_ProjectSolution_CopyFromSurface);
 			#ifdef UG_PARALLEL
-			if(!m_pSurfaceSol->has_storage_type(PST_CONSISTENT))
-				UG_THROW("GMG::init: Can only project "
-						"a consistent solution. Make sure to pass a consistent on.");
+			if(!m_pSurfaceSol->has_storage_type(PST_CONSISTENT)) {
+				UG_LOG("Storage Mask: " << m_pSurfaceSol->get_storage_mask());
+				UG_THROW("GMG::init: Can only project a consistent solution. Make sure to pass a consistent one.");
+			}
 			#endif
 
 			init_projection();

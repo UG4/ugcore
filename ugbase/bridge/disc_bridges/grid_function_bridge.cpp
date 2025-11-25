@@ -103,6 +103,11 @@ static void DomainAlgebra(Registry& reg, string grp)
 						"Success", "Vector")
 			.add_method("clone", &TFct::clone)
 			.add_method("set_consistent_storage_type", &TFct::SetConsistentStorageType)
+
+#if UG_PARALLEL
+		.add_method("print_storage_type", &TFct::print_storage_type)
+#endif
+
 			.add_method("grid_level", &TFct::grid_level)
 			.add_method("num_dofs", static_cast<size_t (TFct::*)() const>(&TFct::num_dofs))
 			.add_method("approx_space", static_cast<SmartPtr<approximation_space_type> (TFct::*)()>(&TFct::approx_space))
