@@ -52,11 +52,14 @@ inline void
 MatAdd(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 {
 	using size_type = typename matrix_t::size_type;
-	for(size_type i = 0; i < mOut.num_rows(); ++i)
-		for(size_type j = 0; j < mOut.num_cols(); ++j)
+	const size_type m_num_rows = mOut.num_rows();
+	for(size_type i = 0; i < m_num_rows; ++i) {
+		const size_type m_num_cols = mOut.num_cols();
+		for(size_type j = 0; j < m_num_cols; ++j)
 		{
 			mOut(i,j) = m1(i,j) + m2(i,j);
 		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -68,11 +71,14 @@ inline void
 MatSubtract(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 {
 	using size_type = typename matrix_t::size_type;
-	for(size_type i = 0; i < mOut.num_rows(); ++i)
-		for(size_type j = 0; j < mOut.num_cols(); ++j)
+	const size_type m_num_rows = mOut.num_rows();
+	for(size_type i = 0; i < m_num_rows; ++i){
+		const size_type m_num_cols = mOut.num_cols();
+		for(size_type j = 0; j < m_num_cols; ++j)
 		{
 			mOut(i,j) = m1(i,j) - m2(i,j);
 		}
+	}
 }
 
 
@@ -99,11 +105,10 @@ MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1,
 template <size_t N, size_t M, size_t L, size_t P, typename T>
 inline void
 MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1,
-            const MathMatrix<L, P, T>& m2, const MathMatrix<P, M, T>& m3)
-{
+            const MathMatrix<L, P, T>& m2, const MathMatrix<P, M, T>& m3) {
 	MathMatrix<L, M, T> help;
 
-	for(size_t i = 0; i < N; ++i)
+	for(size_t i = 0; i < N; ++i) {
 		for(size_t j = 0; j < M; ++j)
 		{
 			mOut(i,j) = 0;
@@ -118,6 +123,7 @@ MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1,
 				mOut(i,j) += m1(i,k) * help(k,j);
 			}
 		}
+	}
 }
 
 template <size_t N, size_t M, size_t L, typename T>
@@ -125,7 +131,7 @@ inline void
 MatMultiplyTransposed(MathMatrix<N, M, T>& mOut, const MathMatrix<L, N, T>& m1,
                       const MathMatrix<M, L, T>& m2)
 {
-	for(size_t i = 0; i < N; ++i)
+	for(size_t i = 0; i < N; ++i) {
 		for(size_t j = 0; j < M; ++j)
 		{
 			mOut(i,j) = 0;
@@ -134,6 +140,7 @@ MatMultiplyTransposed(MathMatrix<N, M, T>& mOut, const MathMatrix<L, N, T>& m1,
 				mOut(i,j) += m1(k,i) * m2(j,k);
 			}
 		}
+	}
 }
 
 template <size_t N, size_t M, typename T>
@@ -225,7 +232,7 @@ MatMultiplyMBMT(MathMatrix<N, N, T>& mOut, const MathMatrix<N, M, T>& m1,
 {
 	MathMatrix<M, N, T> help;
 
-	for(size_t i = 0; i < N; ++i)
+	for(size_t i = 0; i < N; ++i) {
 		for(size_t j = 0; j < N; ++j)
 		{
 			mOut(i,j) = 0;
@@ -240,6 +247,7 @@ MatMultiplyMBMT(MathMatrix<N, N, T>& mOut, const MathMatrix<N, M, T>& m1,
 				mOut(i,j) += m1(i,k) * help(k,j);
 			}
 		}
+	}
 }
 
 template <size_t N, size_t M, typename T>

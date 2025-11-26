@@ -79,12 +79,12 @@ struct FileBufferDescriptor
 void WriteParallelArchive(const ProcessCommunicator &pc, const std::string &strFilename, const std::vector<FileBufferDescriptor> &files);
 
 template<typename TBuffer>
-void WriteParallelArchive(ProcessCommunicator &pc, std::string strFilename, const std::map<std::string, TBuffer> &files)
+void WriteParallelArchive(ProcessCommunicator &pc, const std::string &strFilename, const std::map<std::string, TBuffer> &files)
 {
 	std::vector<FileBufferDescriptor> fdesc;
 	for(typename std::map<std::string, TBuffer>::const_iterator it = files.begin(); it != files.end(); ++it)
 		 files.push_back(FileBufferDescriptor(ug::FilenameWithoutPath(it->first), it->second));
-	WriteParallelArchive(pc, std::move(strFilename), fdesc);
+	WriteParallelArchive(pc, strFilename, fdesc);
 }
 
 /**

@@ -53,7 +53,7 @@ void SynchronizeProcesses()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-bool AllProcsTrue(bool bFlag, ProcessCommunicator comm)
+bool AllProcsTrue(bool bFlag, const ProcessCommunicator& comm)
 {
 	if(comm.is_local() || comm.empty()) return bFlag;
 	PCL_DEBUG_BARRIER(comm);
@@ -182,7 +182,7 @@ bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
 //	check whether the list of sendingProcs and the list of recvFrom procs matches.
 //	we do this by setting each entry in recvFrom, which also lies in sendingProcs to -1.
 	bool sendRecvMismatch = false;
-	size_t ssize = sendingProcs.size();
+	const size_t ssize = sendingProcs.size();
 	for(size_t i = 0; i < ssize; ++i){
 		int rank = sendingProcs[i];
 		auto findIter = find(recvFrom.begin(), recvFrom.end(), rank);

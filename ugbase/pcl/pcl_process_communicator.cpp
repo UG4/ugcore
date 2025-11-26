@@ -78,7 +78,7 @@ size() const
 	
 	int size;
 	if(MPI_Comm_size(m_comm->m_mpiComm, &size) == MPI_SUCCESS)
-		return (size_t)size;
+		return static_cast<size_t>(size);
 		
 	UG_LOG("  ERROR in ProcessCommunicator::size(): Unknown MPI Error. Returning 0.\n");
 	return 0;
@@ -193,7 +193,7 @@ create_sub_communicator(vector<int> &newProcs) const
 	PCL_PROFILE(pcl_ProcCom_create_sub_com__array);
 	if(newProcs.empty())
 		return ProcessCommunicator(PCD_EMPTY);
-	if((int)newProcs.size() == NumProcs())
+	if(static_cast<int>(newProcs.size()) == NumProcs())
 		return ProcessCommunicator(PCD_WORLD);
 
 	PCL_PROFILE(create_mpi_com);
@@ -233,7 +233,7 @@ create_sub_communicator(vector<int> &newProcs) const
 
 ProcessCommunicator
 ProcessCommunicator::
-create_communicator(vector<int> &newGlobalProcs)
+create_communicator(const vector<int> &newGlobalProcs)
 {
 	CommWrapper comm(PCL_COMM_WORLD, false);
 
@@ -242,7 +242,7 @@ create_communicator(vector<int> &newGlobalProcs)
 	MPI_Comm commNew;
 
 	MPI_Comm_group(PCL_COMM_WORLD, &grpWorld);
-	MPI_Group_incl(grpWorld, (int)newGlobalProcs.size(), newGlobalProcs.data(), &grpNew);
+	MPI_Group_incl(grpWorld, static_cast<int>(newGlobalProcs.size()), newGlobalProcs.data(), &grpNew);
 	MPI_Comm_create(PCL_COMM_WORLD, grpNew, &commNew);
 
 //	create a new ProcessCommunicator
@@ -273,7 +273,7 @@ create_communicator(size_t first, size_t num)
 
 	procs.resize(num);
 	for(size_t i = 0; i < num; ++i)
-		procs[i] = first + i;
+		procs[i] = static_cast<int>(first + i);
 
 	MPI_Comm_group(PCL_COMM_WORLD, &grpWorld);
 	MPI_Group_incl(grpWorld, static_cast<int>(procs.size()), procs.data(), &grpNew);
@@ -324,7 +324,7 @@ allreduce(const void* sendBuf, void* recBuf, int count,
 	if(is_local()) {memcpy(recBuf, sendBuf, count*GetSize(type)); return;}
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::allreduce: empty communicator.");
 
-	MPI_Allreduce(const_cast<void*>(sendBuf), recBuf, count, type, op, m_comm->m_mpiComm);
+	MPI_Allreduce(sendBuf, recBuf, count, type, op, m_comm->m_mpiComm);
 }
 
 size_t ProcessCommunicator::
@@ -369,7 +369,7 @@ gather(BinaryBuffer &buf, int root) const
 		size_t totalSize = 0;
 		for(size_t i = 0; i < recvSizes.size(); ++i){
 			displacements[i] = static_cast<int>(totalSize);
-			totalSize += (size_t)recvSizes[i];
+			totalSize += static_cast<size_t>(recvSizes[i]);
 		}
 
 		buf.reserve(totalSize);
@@ -643,7 +643,7 @@ distribute_data(BinaryBuffer* recvBufs, int* recvFromRanks, int numRecvs,
 	vector<int> recvSizes(numRecvs);
 	vector<int> sendSizes(numSends);
 	for(int i = 0; i < numSends; ++i)
-		sendSizes[i] = sendBufs[i].write_pos();
+		sendSizes[i] = static_cast<int>(sendBufs[i].write_pos());
 
 //	exchange buffer sizes (use an arbitrary tag)
 	distribute_data(GetDataPtr(recvSizes), GetDataPtr(tmpRecvSegSizes),
@@ -695,7 +695,7 @@ void ProcessCommunicator::broadcast(void *v, size_t size, DataType type, int roo
 	PCL_PROFILE(pcl_ProcCom_Bcast);
 	if(is_local()) return;
 	//UG_LOG("broadcasting " << (root==pcl::ProcRank() ? "(sender) " : "(receiver) ") << size << " root = " << root << "\n");
-	MPI_Bcast(v, size, type, root, m_comm->m_mpiComm);
+	MPI_Bcast(v, static_cast<long>(size), type, root, m_comm->m_mpiComm);
 }
 
 void ProcessCommunicator::broadcast(BinaryBuffer &buf, int root) const
@@ -704,14 +704,14 @@ void ProcessCommunicator::broadcast(BinaryBuffer &buf, int root) const
 	if(ProcRank() == root)
 	{
 		long size;
-		size = buf.write_pos();
+		size = static_cast<long>(buf.write_pos());
 		broadcast(&size, 1, PCL_DT_LONG, root);
 		broadcast(buf.buffer(), size, PCL_DT_CHAR, root);
 	}
 	else
 	{
 		long size;
-		size = buf.write_pos();
+		size = static_cast<long>(buf.write_pos());
 		broadcast(&size, 1, PCL_DT_LONG, root);
 		buf.reserve(size);
 		broadcast(buf.buffer(), size, PCL_DT_CHAR, root);

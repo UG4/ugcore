@@ -17,7 +17,7 @@
  * 
  * (3) The following bibliography is recommended for citation and must be
  * preserved in all covered files:
- * "Reiter, S., Vogel, A., Heppner, I.ExportedClassBaseImpl, Rupp, M., and Wittum, G. A massively
+ * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
  *   parallel geometric multigrid solver on hierarchically distributed grids.
  *   Computing and visualization in science 16, 4 (2013), 151-164"
  * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
@@ -69,7 +69,7 @@ class MethodPtrWrapper
 {
 	public:
 		template <typename TMethod>
-		MethodPtrWrapper(TMethod m)
+		explicit MethodPtrWrapper(TMethod m)
 		{
 			size = sizeof(TMethod);
 			data = malloc(size);
@@ -95,7 +95,7 @@ class MethodPtrWrapper
 ///	Performs a reinterpret cast on the given pointer, then calls delete on it
 template <typename TClass> void CastAndDelete(const void* ptr)
 {
-	delete reinterpret_cast<const TClass*>(ptr);
+	delete static_cast<const TClass*>(ptr); // ø was reinterpret_cast
 }
 
 template <> inline void CastAndDelete<void>(const void* ptr)
@@ -150,10 +150,10 @@ class ExportedMethod : public ExportedFunctionBase
 		}
 		
 	///	returns the class name this method belongs to
-		const std::string& class_name() const {return m_className;}
+		[[nodiscard]] const std::string& class_name() const {return m_className;}
 
 	/// returns true if this method handles its own return of values to lua
-		bool has_custom_return() const {return m_customReturn;}
+		[[nodiscard]] bool has_custom_return() const {return m_customReturn;}
 
 	private:
 	/// pointer to function (stored in a wrapper)
@@ -223,11 +223,17 @@ class ExportedMethodGroup
 			return true;
 		}
 
-		size_t num_overloads() const {return m_overloads.size();}
+		[[nodiscard]] size_t num_overloads() const {
+			return m_overloads.size();
+		}
 
-		ExportedMethod* get_overload(size_t index) {return m_overloads.at(index).m_func;}
+		ExportedMethod* get_overload(size_t index) {
+			return m_overloads.at(index).m_func;
+		}
 
-		const ExportedMethod* get_overload(size_t index) const {return m_overloads.at(index).m_func;}
+		[[nodiscard]] const ExportedMethod* get_overload(size_t index) const {
+			return m_overloads.at(index).m_func;
+		}
 
 		template <typename TType>
 		ExportedMethod* get_overload_by_type()
@@ -237,7 +243,7 @@ class ExportedMethodGroup
 		}
 
 		template <typename TType>
-		const ExportedMethod* get_overload_by_type() const
+		[[nodiscard]] const ExportedMethod* get_overload_by_type() const
 		{
 			size_t typeID = GetUniqueTypeID<TType>();
 			return get_overload_by_type_id(typeID);
@@ -252,7 +258,7 @@ class ExportedMethodGroup
 			return nullptr;
 		}
 
-		const ExportedMethod* get_overload_by_type_id(size_t typeID) const
+		[[nodiscard]] const ExportedMethod* get_overload_by_type_id(size_t typeID) const
 		{
 			for(size_t i = 0; i < m_overloads.size(); ++i){
 				if(m_overloads[i].m_typeID == typeID)
@@ -261,7 +267,9 @@ class ExportedMethodGroup
 			return nullptr;
 		}
 
-		size_t get_overload_type_id(size_t index) const {return m_overloads.at(index).m_typeID;}
+		[[nodiscard]] size_t get_overload_type_id(size_t index) const {
+			return m_overloads.at(index).m_typeID;
+		}
 
 	private:
 		struct Overload{
@@ -285,10 +293,10 @@ struct MethodProxy
 	                  const ParameterStack& in, ParameterStack& out)
 	{
 	//  cast to method pointer
-		TMethod mptr = *(TMethod*) method.get_raw_ptr();
+		TMethod mptr = *static_cast<TMethod *>(method.get_raw_ptr());
 
 	//  cast object to type
-		auto* objPtr = (TClass*) (obj);
+		auto* objPtr = static_cast<TClass *>(obj);
 
 	//  get parameter
 		using params_type = typename func_traits<TMethod>::params_type;
@@ -309,10 +317,10 @@ struct MethodProxy<TClass, TMethod, void>
 	                  const ParameterStack& in, ParameterStack& out)
 	{
 	//  cast to method pointer
-		TMethod mptr = *(TMethod*) method.get_raw_ptr();
+		TMethod mptr = *static_cast<TMethod *>(method.get_raw_ptr());
 
 	//  cast object to type
-		auto* objPtr = (TClass*) (obj);
+		auto* objPtr = static_cast<TClass *>(obj);
 
 	//  get parameter
 		using params_type = typename func_traits<TMethod>::params_type;
@@ -330,10 +338,10 @@ struct MethodProxy<TClass, TMethod, CustomReturn>
 	                  const ParameterStack& in, ParameterStack& out)
 	{
 	//  cast to method pointer
-		TMethod mptr = *(TMethod*) method.get_raw_ptr();
+		TMethod mptr = *static_cast<TMethod *>(method.get_raw_ptr());
 
 	//  cast object to type
-		auto* objPtr = (TClass*) (obj);
+		auto* objPtr = static_cast<TClass *>(obj);
 
 	//  get parameter
 		using params_type = typename func_traits<TMethod>::params_type;
@@ -363,7 +371,7 @@ class UG_API ExportedConstructor
 		                    const std::string& tooltip, const std::string& help);
 
 	/// executes the function
-		void* create(const ParameterStack& paramsIn) const
+		[[nodiscard]] void* create(const ParameterStack& paramsIn) const
 		{
 #ifdef PROFILE_BRIDGE
 			m_dpi.beginNode();
@@ -378,40 +386,40 @@ class UG_API ExportedConstructor
 		}
 
 	///	options
-		const std::string& options() const {return m_options;}
+		[[nodiscard]] const std::string& options() const {return m_options;}
 
 	/// number of parameters.
-		size_t num_parameter() const {return m_vvParamInfo.size();}
+		[[nodiscard]] size_t num_parameter() const {return m_vvParamInfo.size();}
 
 	///	number of info strings for one parameter
-		size_t num_infos(size_t i) const {return m_vvParamInfo.at(i).size();}
+		[[nodiscard]] size_t num_infos(size_t i) const {return m_vvParamInfo.at(i).size();}
 
 	/// name of parameter i
-		const std::string& parameter_name(size_t i) const {return parameter_info(i, 0);}
+		[[nodiscard]] const std::string& parameter_name(size_t i) const {return parameter_info(i, 0);}
 
 	///	type info of all parameters
-		const std::string& parameter_info(size_t i, size_t j) const	{return m_vvParamInfo.at(i).at(j);}
+		[[nodiscard]] const std::string& parameter_info(size_t i, size_t j) const	{return m_vvParamInfo.at(i).at(j);}
 
 	/// type info of i th parameters
-		const std::vector<std::string>& parameter_info_vec(size_t i) const {return m_vvParamInfo.at(i);}
+		[[nodiscard]] const std::vector<std::string>& parameter_info_vec(size_t i) const {return m_vvParamInfo.at(i);}
 
 	///	whole string of all type infos for of all parameters
-		const std::string& parameter_info_string() const {return m_paramInfos;}
+		[[nodiscard]] const std::string& parameter_info_string() const {return m_paramInfos;}
 
 	/// gives some information to the exported functions
-		const std::string& tooltip() const {return m_tooltip;}
+		[[nodiscard]] const std::string& tooltip() const {return m_tooltip;}
 
 	/// help information
-		const std::string& help() const {return m_help;}
+		[[nodiscard]] const std::string& help() const {return m_help;}
 
 	/// parameter list for input values
-		const ParameterInfo& params_in() const	{return m_paramsIn;}
+		[[nodiscard]] const ParameterInfo& params_in() const	{return m_paramsIn;}
 
 	/// non-const export of param list
 		ParameterInfo& params_in() {return m_paramsIn;}
 
 	/// returns true if all parameters of the function are correctly declared
-		bool check_consistency(const std::string &classname) const;
+		[[nodiscard]] bool check_consistency(const std::string &classname) const;
 
 		template <typename TFunc>
 		void create_parameter_stack()
@@ -434,8 +442,8 @@ class UG_API ExportedConstructor
 
 	protected:
 	// 	help function to tokenize the parameter string
-		void tokenize(const std::string& str, std::vector<std::string>& tokens,
-		              const char delimiter);
+	static void tokenize(const std::string& str, std::vector<std::string>& tokens,
+	                     const char delimiter);
 
 	protected:
 	private:
@@ -477,7 +485,7 @@ struct ConstructorProxy
 		TClass* newInst = constructor_traits<TClass, params_type>::apply(args);
 
 	//  return new pointer
-		return (void*) newInst;
+		return static_cast<void *>(newInst);
 	}
 };
 
@@ -590,7 +598,7 @@ class ExportedClassBaseImpl : public IExportedClass
 	private:
 	//  disallow
 		ExportedClassBaseImpl() = default;
-		ExportedClassBaseImpl(const ExportedClassBaseImpl& other);
+		ExportedClassBaseImpl(const ExportedClassBaseImpl& other) = delete;
 
 	public:
 		explicit ExportedClassBaseImpl(const std::string& tooltip);
@@ -659,13 +667,13 @@ class ExportedClassBaseImpl : public IExportedClass
 
 	protected:
 	///	returns if a constructor overload is registered
-		bool constructor_type_id_registered(size_t typeID);
+		bool constructor_type_id_registered(size_t typeID) const;
 
 	/// returns true if methodname is already used by a method in this class
-		bool constmethodname_registered(const std::string& name);
+		bool constmethodname_registered(const std::string& name) const;
 
 	/// returns true if methodname is already used by a method in this class
-		bool methodname_registered(const std::string& name);
+		bool methodname_registered(const std::string& name) const;
 
 		ExportedMethodGroup* get_exported_method_group(const std::string& name);
 
@@ -701,7 +709,7 @@ class ExportedClass : public ExportedClassBaseImpl
 	private:
 	//  disallow
 		ExportedClass () = default;
-		ExportedClass (const ExportedClass& other);
+		ExportedClass (const ExportedClass& other) = delete;
 
 	public:
 	//  contructor

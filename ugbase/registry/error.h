@@ -44,19 +44,19 @@ namespace bridge{
 
 struct UGRegistryError : UGError
 {
-	UGRegistryError(std::string name_,
-	                                     std::string msg_,
-	                     		         const char* file = " -- no file -- ",
-	                     		         const unsigned long line = 0)
+	UGRegistryError(const std::string &name_,
+	                const std::string &msg_,
+	                const char* file = " -- no file -- ",
+	                const unsigned long line = 0)
 	:	UGError(msg_, file, line),
 		name(name_), msg(msg_)
 	{
 		UG_ERR_LOG("#### Registry ERROR ("<<name_<<"):"<<msg_<<"\n");
 	}
 
-	UGRegistryError(std::string msg_,
-	                     		         const char* file = " -- no file -- ",
-	                     		         const unsigned long line = 0)
+	UGRegistryError(const std::string &msg_,
+	                const char* file = " -- no file -- ",
+	                const unsigned long line = 0)
 	:	UGError(msg_, file, line),
 		name("-- no name --"), msg(msg_)
 	{

@@ -156,10 +156,6 @@ bool IExportedClass::check_consistency() const
 // Implementation of ExportedClassBaseImpl
 ////////////////////////////////////////////////////////////////////////////////
 
-ExportedClassBaseImpl::
-ExportedClassBaseImpl(const ExportedClassBaseImpl& other)
-{
-}
 
 ExportedClassBaseImpl::
 ExportedClassBaseImpl(const std::string& tooltip)
@@ -299,7 +295,7 @@ destroy(void* obj) const
 }
 
 bool ExportedClassBaseImpl::
-constructor_type_id_registered(size_t typeID)
+constructor_type_id_registered(size_t typeID) const
 {
 	for(size_t i = 0; i < m_vConstructor.size(); ++i)
 		if(typeID == m_vConstructor[i].m_typeID)
@@ -309,7 +305,7 @@ constructor_type_id_registered(size_t typeID)
 }
 
 bool ExportedClassBaseImpl::
-constmethodname_registered(const std::string& name)
+constmethodname_registered(const std::string& name) const
 {
 	for(size_t i = 0; i < m_vConstMethod.size(); ++i)
 		if(name == m_vConstMethod[i]->name())
@@ -319,7 +315,7 @@ constmethodname_registered(const std::string& name)
 }
 
 bool ExportedClassBaseImpl::
-methodname_registered(const std::string& name)
+methodname_registered(const std::string& name) const
 {
 	for(size_t i = 0; i < m_vMethod.size(); ++i)
 		if(name == m_vMethod[i]->name())

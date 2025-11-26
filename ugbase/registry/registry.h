@@ -199,13 +199,13 @@ class UG_API Registry {
 		[[nodiscard]] size_t num_overloads(size_t ind) const;
 
 	///	returns the i-th overload of a function
-		ExportedFunction& get_overload(size_t funcInd, size_t oInd);
+		ExportedFunction& get_overload(size_t funcInd, size_t oInd) const;
 
 	///	returns a group which contains all overloads of a function
-		ExportedFunctionGroup& get_function_group(size_t ind);
+		ExportedFunctionGroup& get_function_group(size_t ind) const;
 
 	///	returns an exported function group by name
-		ExportedFunctionGroup* get_exported_function_group(const std::string& name);
+		ExportedFunctionGroup* get_exported_function_group(const std::string& name) const;
 
 	///////////////////
 	// classes
@@ -298,10 +298,10 @@ class UG_API Registry {
 		bool classname_registered(const std::string& name);
 
 	/// returns true if groupname is already used by a class in this registry
-		bool groupname_registered(const std::string& name);
+		bool groupname_registered(const std::string& name) const;
 
 	/// returns true if functionname is already used by a function in this registry
-		bool functionname_registered(const std::string& name);
+		bool functionname_registered(const std::string& name) const;
 
 	protected:
 	///	performs some checks, throws error if something wrong

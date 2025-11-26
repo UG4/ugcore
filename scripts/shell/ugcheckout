@@ -23,7 +23,7 @@ function is_ug4_root_set {
 
 #------------------------------------------------------------------------------#
 # co_plugin_scaffold()                                                         #
-# Checks out the immediates of $UG4_ROOT/plugins                               #
+# Checks out the immediate of $UG4_ROOT/plugins                               #
 # Returns:                                                                     #
 #   0   on success                                                             #
 #  >0   on failure                                                             #

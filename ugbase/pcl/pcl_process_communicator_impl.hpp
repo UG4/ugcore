@@ -49,8 +49,8 @@ gatherv(std::vector<TValue>& recBufOut,
 
 //todo: One could declare a special MPI_Datatype and could thus
 //	directly work on pSizesOut and pOffsetsOut.
-	std::vector<int> sizes(this->size(), 0);
-	std::vector<int> offsets(this->size(), 0);
+	std::vector sizes(this->size(), 0);
+	std::vector offsets(this->size(), 0);
 
 //	gather the sizes on root. Note that we send the actual data
 //	in bytes later on.

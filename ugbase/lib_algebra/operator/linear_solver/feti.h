@@ -715,7 +715,7 @@ class PrimalSubassembledMatrixInverse
 		bool supports_parallel() const override {
 			bool bRet = true;
 
-			// ø todo if invalid second argument (nullptr)->method is evaluated
+			// ø todo if invalid second argument (nullptr)->method is evaluated which could leads to error
 			if(m_spNeumannSolver.valid() || !m_spNeumannSolver->supports_parallel())
 				bRet = false;
 

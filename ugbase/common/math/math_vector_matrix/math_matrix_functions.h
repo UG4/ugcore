@@ -553,9 +553,11 @@ inline typename MathMatrix<N,M,T>::value_type
 MaxAbsEigenvalue(const MathMatrix<M,N,T>& m);
 
 /// Computes minimum eigenvalue of a (symmetric) matrix
+// ø todo method is not implemented
+/*
 template <size_t N, size_t M, typename T>
 inline typename MathMatrix<N,M,T>::value_type
-MinAbsEigenvalue(const MathMatrix<M,N,T>& m);
+MinAbsEigenvalue(const MathMatrix<M,N,T>& m); */
 
 
 // end group math_matrix

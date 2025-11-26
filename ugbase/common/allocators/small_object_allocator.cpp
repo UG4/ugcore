@@ -88,7 +88,7 @@ deallocate(void* p)
 		for(;;){
 			if(iDown >= 0){
 				if(pointer_is_in_chunk(p, &m_chunks[iDown])){
-					m_deallocChunkIndex = (std::size_t)iDown;
+					m_deallocChunkIndex = static_cast<std::size_t>(iDown);
 					break;
 				}
 				--iDown;
@@ -125,7 +125,7 @@ deallocate(void* p)
 		}
 		else{
 		//	swap deallocChunk with the last chunk and erase it afterwards.
-			if(m_deallocChunkIndex != (int)m_chunks.size() - 1)
+			if(m_deallocChunkIndex != static_cast<int>(m_chunks.size()) - 1)
 			{
 				std::swap(m_chunks[m_deallocChunkIndex], m_chunks.back());
 			}

@@ -64,6 +64,7 @@ TElem TrivialToValue(TElem e)
 {
 	return e;
 }
+
 inline void PrintPC(const ProcessCommunicator &processCommunicator)
 {
 	UG_LOG(processCommunicator.size() << " involved procs: ");
@@ -81,7 +82,7 @@ inline void PrintPC(const ProcessCommunicator &processCommunicator)
  * that is, iff processor P1 has processor P2 in his masterLayout, then processor P2 needs to have P1 in his slaveLayout
  */
 template<typename TLayout>
-bool TestLayoutIsDoubleEnded(const ProcessCommunicator processCommunicator,
+bool TestLayoutIsDoubleEnded(const ProcessCommunicator &processCommunicator,
 		InterfaceCommunicator<TLayout> &com,
 		const TLayout &masterLayout, const TLayout &slaveLayout)
 {

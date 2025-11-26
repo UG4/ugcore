@@ -61,7 +61,7 @@ namespace pcl
 #define PCL_DT_LONG_DOUBLE 			MPI_LONG_DOUBLE
 #define PCL_DT_UNSIGNED_CHAR 		MPI_UNSIGNED_CHAR
 
-	using DataType = MPI_Datatype;
+using DataType = MPI_Datatype;
 
 class DataTypeDirectlySupported {};
 class DataTypeIndirectlySupported {};

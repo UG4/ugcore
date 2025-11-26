@@ -411,7 +411,7 @@ static size_t GetGlobalsCompletions(char *buf, int len, std::vector<string> &mat
 	if(iPrintCompletionList == 2 && matches.size() == 1 && sniplen == matches[0].size())
 	{
 		UG_LOG("\n");
-		bridge::UGTypeInfo(p);
+		UGTypeInfo(p);
 	}
 	return matches.size() - matchesSizeBefore;
 }

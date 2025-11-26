@@ -6,7 +6,7 @@
 # mail: martin.rupp@gcsc.uni-frankfurt.de
 #
 # source this file in your ~/.bashrc :
-# 1. with specifiying UG4_ROOT:
+# 1. with specifying UG4_ROOT:
 # UG4_ROOT=~/Documents/workspace/ug4
 # source $UG4_ROOT/ugcore/scripts/shell/ugbash
 # 2. without (UG4_ROOT is set to the path ../../ of ugbash)
@@ -26,7 +26,7 @@ if [ -z "$UG4_ROOT" ]; then
 	UG4_ROOT=`dirname ${BASH_SOURCE[0]}`/../../../
 	
 	# make path absolute
-	# for compatibilty to mac, don't use realpath or readlink here.
+	# for compatibility to mac, don't use realpath or readlink here.
 	olddir=`pwd`
 	cd $UG4_ROOT
 	UG4_ROOT=`pwd`

@@ -112,7 +112,7 @@ class UG_API ExportedFunctionBase
 		[[nodiscard]] const std::string& help() const {return m_help;}
 
 	/// parameter list for input values
-		[[nodiscard]] const ParameterInfo& params_in() const	{return m_paramsIn;}
+		[[nodiscard]] const ParameterInfo& params_in() const {return m_paramsIn;}
 
 	/// parameter list for input values
 		[[nodiscard]] const ParameterInfo& params_out() const {return m_paramsOut;}
@@ -141,7 +141,8 @@ class UG_API ExportedFunctionBase
 		//	Fill missing Parameter
 			m_vvParamInfo.resize(m_paramsIn.size());
 		//	resize missing infos for each parameter
-			for(int i = 0; i < (int)m_vvParamInfo.size(); ++i)
+			const int ssize = static_cast<int>(m_vvParamInfo.size());
+			for(int i = 0; i < ssize; ++i)
 				for(size_t j = m_vvParamInfo.at(i).size(); j < MinNumInfos; ++j)
 					m_vvParamInfo.at(i).emplace_back("");
 
@@ -157,9 +158,9 @@ class UG_API ExportedFunctionBase
 		}
 
 	// 	help function to tokenize the parameter string
-		void tokenize(const std::string& str,
-					  std::vector<std::string>& tokens,
-		              char delimiter);
+		static void tokenize(const std::string& str,
+		                     std::vector<std::string>& tokens,
+		                     char delimiter);
 
 	protected:
 		std::string m_name;
@@ -244,7 +245,7 @@ class UG_API ExportedFunctionGroup
 {
 	public:
 	///	constructor
-		ExportedFunctionGroup(const std::string& name) : m_name(name){}
+		explicit ExportedFunctionGroup(const std::string& name) : m_name(name){}
 
 	///	destructor
 		~ExportedFunctionGroup()

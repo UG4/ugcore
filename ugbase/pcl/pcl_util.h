@@ -74,7 +74,7 @@ void SynchronizeProcesses();
 
 /// performs an allreduce and returns true if and only if all procs called the
 /// function with bFlag = true
-bool AllProcsTrue(bool bFlag, ProcessCommunicator comm = ProcessCommunicator());
+bool AllProcsTrue(bool bFlag, const ProcessCommunicator &comm = ProcessCommunicator());
 
 /// performs an allreduce and returns true at least one process called the
 /// function with bFlag = true

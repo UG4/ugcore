@@ -158,7 +158,7 @@ cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const std::stri
 		const ClassNameNode* pBaseClassNode = &pCurrNode->base_class(vWay.back());
 
 	//	get name pair
-		std::pair<const ClassNameNode*, const ClassNameNode*> namePair(pBaseClassNode, pCurrNode);
+		std::pair namePair(pBaseClassNode, pCurrNode);
 
 	//	find in map
 		std::map<std::pair<const ClassNameNode*, const ClassNameNode*>, CastFunc>::iterator it;
@@ -198,7 +198,7 @@ cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const std::stri
 const void* ClassCastProvider::
 cast_to_base_class(const void* pDerivVoid, const ClassNameNode*& node, const std::string& baseName)
 {
-	return const_cast<const void*>(cast_to_base_class(const_cast<void*>(pDerivVoid), node, baseName));
+	return cast_to_base_class(const_cast<void*>(pDerivVoid), node, baseName);
 }
 
 

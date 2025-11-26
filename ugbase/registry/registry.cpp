@@ -137,13 +137,11 @@ size_t Registry::num_overloads(size_t ind) const
 	return m_vFunction.at(ind)->num_overloads();
 }
 
-ExportedFunction& Registry::get_overload(size_t funcInd, size_t oInd)
-{
+ExportedFunction& Registry::get_overload(size_t funcInd, size_t oInd) const {
 	return *m_vFunction.at(funcInd)->get_overload(oInd);
 }
 
-ExportedFunctionGroup& Registry::get_function_group(size_t ind)
-{
+ExportedFunctionGroup& Registry::get_function_group(size_t ind) const {
 	return *m_vFunction.at(ind);
 }
 
@@ -217,7 +215,6 @@ bool Registry::check_consistency()
 	std::vector<std::string> globFuncDuplicates = 
 			FindDuplicates(globalFunctionNames);
 	bool globFuncDuplicatesExist = !globFuncDuplicates.empty();
-	//todo: use stringstream
 	std::string duplicateFuncMsg = "#### Registry ERROR: duplicate function names:\n";
 	if (globFuncDuplicatesExist) {
 		for(size_t i = 0; i < globFuncDuplicates.size();i++) {
@@ -409,8 +406,7 @@ bool Registry::classname_registered(const std::string& name)
 	return get_class(name) != nullptr;
 }
 
-bool Registry::groupname_registered(const std::string& name)
-{
+bool Registry::groupname_registered(const std::string& name) const {
 //todo:	use a map to quickly access classGroups by name
 	for(size_t i = 0; i < m_vClassGroups.size(); ++i){
 		if(name == m_vClassGroups[i]->name())
@@ -420,8 +416,7 @@ bool Registry::groupname_registered(const std::string& name)
 }
 
 // returns true if functionname is already used by a function in this registry
-bool Registry::functionname_registered(const std::string& name)
-{
+bool Registry::functionname_registered(const std::string& name) const {
 	for(size_t i = 0; i < m_vFunction.size(); ++i)
 		if(name == m_vFunction[i]->name())
 			return true;
@@ -429,8 +424,7 @@ bool Registry::functionname_registered(const std::string& name)
 	return false;
 }
 
-ExportedFunctionGroup* Registry::get_exported_function_group(const std::string& name)
-{
+ExportedFunctionGroup* Registry::get_exported_function_group(const std::string& name) const {
 	for(size_t i = 0; i < m_vFunction.size(); ++i)
 		if(name == m_vFunction[i]->name())
 			return m_vFunction[i];

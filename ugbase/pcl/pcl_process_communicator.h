@@ -118,7 +118,7 @@ class ProcessCommunicator
 
 	/**	Make sure that all processes call this method with the same parameters!
 	 * \{ */
-		static ProcessCommunicator create_communicator(std::vector<int> &newGlobalProcs);
+		static ProcessCommunicator create_communicator(const std::vector<int> &newGlobalProcs);
 		static ProcessCommunicator create_communicator(size_t first, size_t num);
 	/** \} */
 		

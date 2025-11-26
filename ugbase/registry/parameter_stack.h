@@ -97,22 +97,22 @@ class ParameterInfo
 	////////////////////////////////
 
 	///	returns number of parameters in the param stack
-		inline int size() const		{return m_numEntries;}
+		[[nodiscard]] inline int size() const {return m_numEntries;}
 
 	///	returns if index is a std::vector
-		inline bool is_vector(int index) const{
+		[[nodiscard]] inline bool is_vector(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			return m_vEntryType[index].bVector;
 		}
 
 	///	returns ParameterType enum of data type for a stack entry
-		Variant::Type type(int index) const{
+		[[nodiscard]] Variant::Type type(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			return m_vEntryType[index].type;
 		}
 
 	///	returns the class name node for an element in the param stack
-		const ClassNameNode* class_name_node(int index) const{
+		[[nodiscard]] const ClassNameNode* class_name_node(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			if(m_vEntryType[index].pClassNameNode == nullptr)
 				UG_THROW("ClassNameNode missing in Parameter stack.");
@@ -120,12 +120,12 @@ class ParameterInfo
 		}
 
 	///	returns the class name for an element in the param stack
-		const char* class_name(int index) const{
+		[[nodiscard]] const char* class_name(int index) const{
 			return class_name_node(index)->name().c_str();
 		}
 
 	///	returns true if a parameter of the stack has been named by user
-		bool parameter_named(int index) const{
+		[[nodiscard]] bool parameter_named(int index) const{
 			return class_name_node(index)->named();
 		}
 

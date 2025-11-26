@@ -125,7 +125,8 @@ bool ExportedFunctionBase::check_consistency(const std::string &classname) const
 		else { UG_ERR_LOG("void ");}
 		if(!classname.empty()) UG_ERR_LOG(classname << ":");
 		UG_ERR_LOG(name() << "(");
-		for(size_t i=0; i < (size_t)params_in().size(); ++i)
+		const size_t ssize = static_cast<size_t>(params_in().size());
+		for(size_t i=0; i < ssize; ++i)
 		{
 			if(i>0) UG_ERR_LOG(", ");
 			UG_ERR_LOG(ParameterToString(params_in(), i));

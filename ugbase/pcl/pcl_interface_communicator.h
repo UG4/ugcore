@@ -267,7 +267,7 @@ class InterfaceCommunicator
 		void disable_communication_debugging();
 	
 	///	returns true if communication debugging is enabled
-		bool communication_debugging_enabled() const;
+		[[nodiscard]] bool communication_debugging_enabled() const;
 	 
 	protected:
 		using BufferMap = std::map<int, ug::BinaryBuffer>;
@@ -364,17 +364,17 @@ class InterfaceCommunicator
 
 	protected:
 	///	holds the buffers that are used to send data
-		BufferMap		m_bufMapOut;
+		BufferMap m_bufMapOut;
 	///	stores out-procs for the next communication step
-		std::set<int>	m_curOutProcs;
+		std::set<int> m_curOutProcs;
 
 	///	holds the buffers that are used to receive data
-		BufferMap		m_bufMapIn;
+		BufferMap m_bufMapIn;
 	///	stores in-procs for the next communication step
-		std::set<int>	m_curInProcs;
+		std::set<int> m_curInProcs;
 
 	///	holds information about the extractors that are awaiting data.
-		ExtractorInfoList	m_extractorInfos;
+		ExtractorInfoList m_extractorInfos;
 		
 	///	used by communicate, communicate_and_resume and wait, to check whether communication is done.
 		std::vector<MPI_Request> m_vSendRequests;

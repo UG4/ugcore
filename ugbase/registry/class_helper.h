@@ -70,7 +70,7 @@ namespace bridge
 class UG_API ClassHierarchy
 {
 	public:
-		ClassHierarchy() : name(), bGroup(false), subclasses() {}
+		ClassHierarchy() : bGroup(false) {}
 
 		/**
 		 * adds the class c to the class hierarchy by attaching it to its base

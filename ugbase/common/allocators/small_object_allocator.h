@@ -73,8 +73,7 @@ class FixedAllocator
 		};
 
 	private:
-		inline bool pointer_is_in_chunk(void* p, Chunk* chunk)
-		{
+		inline bool pointer_is_in_chunk(void* p, Chunk* chunk) const {
 			return (p >= chunk->m_pData)
 				   && (p < chunk->m_pData + m_blockSize * m_numBlocksPerChunk);
 		}

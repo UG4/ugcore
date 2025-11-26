@@ -154,7 +154,7 @@ class BasicInterface
 		using const_iterator = typename ElemContainer::const_iterator;
 
 	public:
-		BasicInterface(int targetProc = -1)	: m_size(0), m_targetProc(targetProc) {};
+		explicit BasicInterface(int targetProc = -1)	: m_size(0), m_targetProc(targetProc) {};
 
 		inline iterator push_back(const Element& elem) {++m_size; return m_elements.insert(m_elements.end(), elem);}
 		inline iterator erase(iterator iter) {--m_size; return m_elements.erase(iter);}
