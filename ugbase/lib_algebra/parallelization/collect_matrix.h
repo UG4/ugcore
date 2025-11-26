@@ -133,7 +133,7 @@ size_t DeserializeRow(BinaryBuffer &stream, stdvector<TConnectionType> &cons, Pa
  *	Receives a distributed matrix from several processors
  * \param A				(in) input matrix
  * \param M				(out) collected matrix
- * \param masterLayout	(out) created master layout to processors in srcprocs
+ * \param verticalMasterLayout	(out) created master layout to processors in srcprocs
  * \param
  * \param srcprocs		list of source processors
  *
@@ -365,8 +365,8 @@ void BroadcastVectorFromOne(IndexLayout &agglomeratedMaster, IndexLayout &agglom
 	if(type == PST_ADDITIVE)
 	{
 		UG_THROW("ONLY CONSISTENT!");
-		// das problem ist, dass der vektor noch slave-interfaces nach "au�en" haben kann,
-		// diese werden dann f�lschlicherweise auch 0 gesetzt.
+		// das problem ist, dass der vektor noch slave-interfaces nach "außen" haben kann,
+		// diese werden dann fälschlicherweise auch 0 gesetzt.
 
 		//!!! WRONG !!! SetLayoutValues(&vec, vec.layouts()->slave(), 0.0); //!!!
 		//vec.set_storage_type(PST_ADDITIVE);

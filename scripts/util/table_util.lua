@@ -242,7 +242,7 @@ function table.print(data, style)
 end
 
 
---! traverses a table recursively and returns the length of the longest identifyer
+--! traverses a table recursively and returns the length of the longest identifier
 function table.len_of_longest_identifyer(t)
 	local maxLen = 0
 	for n, v in pairs(t) do

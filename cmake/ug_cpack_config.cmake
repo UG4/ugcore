@@ -49,7 +49,7 @@ include (cmake/cpack/deb-config.cmake)
 # set (CPACK_GENERATOR "DEB") # Override? # ZIP, DEB
 include (CPack)
 
-# These are the 'component' categories used (extend, if neccessary!)
+# These are the 'component' categories used (extend, if necessary!)
 cpack_add_component (applications DISPLAY_NAME "Executables")
 cpack_add_component (libraries DISPLAY_NAME "Libraries")
 cpack_add_component (sources DISPLAY_NAME "Sources")

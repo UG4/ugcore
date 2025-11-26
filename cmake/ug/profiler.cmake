@@ -76,7 +76,7 @@ if (NOT "${PROFILER}" STREQUAL "None")
         # a) write compiler wrapper - cannot be set afterwards
 #       	file(WRITE ${CMAKE_BINARY_DIR}/scalasca_mpicxx
 #    		"#! /bin/sh"
-#    		"# THIS IS AN AUTOMATICALL GENERATED FILE. DO NOT EDIT!\n"
+#    		"# THIS IS AN AUTOMATICALLY GENERATED FILE. DO NOT EDIT!\n"
 #    		"${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER}")
 #        set(CMAKE_CXX_COMPILER "${CMAKE_BINARY_DIR}/scalasca_mpicxx")
 
@@ -100,7 +100,7 @@ if (NOT "${PROFILER}" STREQUAL "None")
         if (VAMPIRTRACE_FOUND)
             message ("-- Info: Vampir: using compiler wrapper c++: ${VAMPIRTRACE_CXX}")
             message ("-- Info: Vampir: using compiler wrapper cc : ${VAMPIRTRACE_CC}")
-            message ("-- Info: Vampir: using inlcude dir: ${VAMPIRTRACE_INCLUDE_DIR}")
+            message ("-- Info: Vampir: using include dir: ${VAMPIRTRACE_INCLUDE_DIR}")
             message ("-- Info: Vampir: using library dir: ${VAMPIRTRACE_LIBRARIES}")
             message ("-- Info: Vampir: check that compiler wrapper are set!")
             message ("--       Use: CC=\"vtcc\" CXX=\"vtcxx\" cmake ...")

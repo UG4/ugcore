@@ -52,7 +52,7 @@ function ug_error(msg, otherMsg, backtraceSkipLevel)
 	exit()
 end
 
---! use it like ug_assert(numPreRefs <= numRefs, "It must be choosen: numPreRefs <= numRefs")
+--! use it like ug_assert(numPreRefs <= numRefs, "It must be chosen: numPreRefs <= numRefs")
 --! @param condition the condition to assert
 --! @param msg (optional) message to be printed if condition is not fulfilled
 function ug_assert(condition, msg)
@@ -93,7 +93,7 @@ end
 
 --! Creates a grid function debug writer for the utilities. The function reads
 --! the settings from the table util.debug. If this is a boolean variable then no
---! special settings are applied. If this variable is undefinde the no debug writer
+--! special settings are applied. If this variable is undefined the no debug writer
 --! is created.
 --! @param approxSpace the approximation space for the debug writer
 function util.CreateGridFuncDebugWriter (approxSpace)

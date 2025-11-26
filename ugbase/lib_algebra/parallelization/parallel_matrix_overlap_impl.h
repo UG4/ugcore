@@ -55,13 +55,13 @@ extern DebugID DBG_MATRIX_OVERLAP;
 // neuer algorithmus:
 // overlap 0
 // 1. slave-knoten verschicken ihre Zeile an den Master.
-// 2. Master nimmt diese entgegen, zeile wird f�r vorhandene Knoten addiert
+// 2. Master nimmt diese entgegen, zeile wird für vorhandene Knoten addiert
 // 3. fertig.
 
 // overlap 1
 // 1. slave-knoten verschicken ihre Zeile an den Master.
-//    /!\ werden verkn�pfungen zu anderen prozessoren verschickt, werden die prozessoren informiert
-//    /!\ unter umst�nden wird so ein prozessor "von 2 seiten" informiert. dann muss es eine
+//    /!\ werden verknüpfungen zu anderen prozessoren verschickt, werden die prozessoren informiert
+//    /!\ unter umständen wird so ein prozessor "von 2 seiten" informiert. dann muss es eine
 // 2. verschicke die matrixzeilen und benachrichtungen
 // 3. nehme matrixzeilen und benachrichtungen entgegen
 // 4. verarbeite benachrichtungen: erzeuge u.U. neue Master Knoten

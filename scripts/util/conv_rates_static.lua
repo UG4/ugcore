@@ -64,7 +64,7 @@ function util.rates.static.StdComputeLinearSolution(u, domainDisc, solver)
 	
 	-- 2. set dirichlet values in start iterate
 	domainDisc:adjust_solution(u)
-	write(">> Inital guess for solution prepared.\n")
+	write(">> Initial guess for solution prepared.\n")
 	
 	-- 3. init solver for linear Operator
 	solver:init(A, u)
@@ -350,7 +350,7 @@ function util.rates.static.compute(ConvRateSetup)
 				for lev = minLev, maxLev do
 					write("\n>> Computing Level "..lev..", "..disc..", "..p..".\n")
 					
-					write(">> Preparing inital guess on level "..lev..".\n")
+					write(">> Preparing initial guess on level "..lev..".\n")
 					--solver = CreateSolver(approxSpace, disc, p)
 					PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver, approxSpace, disc, p)
 					

@@ -38,12 +38,12 @@
 This lua script can be used to compare profiling outputs from different
 runs of one problem. Edit the inFiles-list below, so that it contains your
 output-files. Make sure, that all files contain the same profiler output.
-Run the script using the lua command-line-inerpreter
+Run the script using the lua command-line-interpreter
 (call lua scaling_analyzer.lua).
 Optionally you can also run it with ug4 (ugshell -ex scaling_analyzer.lua)
 
 The script outputs the timings of associated profiler node in the different
-files in one row, together with the speedup factor between neigbored runs.
+files in one row, together with the speedup factor between neighbored runs.
 
 Note - if the timings do not exactly match and if some nodes in each run
 have the same name, then this script may give you unexpected results.
@@ -221,7 +221,7 @@ for _, fileName in ipairs(inFiles) do
 end
 
 
---	If the profilings contain a "main" entry, we will subtract all timings
+--	If the profiling contain a "main" entry, we will subtract all timings
 --	from direct child entries of "main" and store the result in an additional
 --	entry named "unknown"
 for _, timing in ipairs(timings) do

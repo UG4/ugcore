@@ -57,7 +57,7 @@ end
 --! numRefs global refinements.
 --! A list of subset-names can be specified which have to be present in the loaded grid.
 --! The method returns the created domain.
---! @note Some paramters are optional. nil is a valid value for each optional parameter.
+--! @note Some parameters are optional. nil is a valid value for each optional parameter.
 --! @return	(Domain) the created domain
 --! @param gridName	(string) The filename of the grid which shall be loaded.
 --!					The grid is searched in a path relative to the current path
@@ -127,7 +127,7 @@ end
 --! A list of subset-names can be specified. After distribution the methods checks
 --! Whether all processes received the required subsets.
 --! The method returns the created domain.
---! @note Some paramters are optional. nil is a valid value for each optional parameter.
+--! @note Some parameters are optional. nil is a valid value for each optional parameter.
 --! @return	(Domain) the created domain
 --! @param gridName	(string) The filename of the grid which shall be loaded.
 --!					The grid is searched in a path relative to the current path

@@ -2,7 +2,7 @@
 # screen that is 1280x800 pixels:
 # maxw = 2000
 # maxh = 1200
-# you can adjust deplacements with dx and dy, for example, if you have a second screen.
+# you can adjust displacements with dx and dy, for example, if you have a second screen.
 # if windows are overlapping, you might have to adjust charWidth/HeightFactor10.
 
 maxw=1700

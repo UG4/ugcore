@@ -37,9 +37,9 @@
 ]]--
 
 --!	Returns a NeumannBoundary Element-Disc of the requested type
---! @return Returns the element discreatization (of the Neumann BC)
+--! @return Returns the element discretization (of the Neumann BC)
 --! @param fcts (String) names of symbolic function 
---! @param discType (String) discretizatin scheme 
+--! @param discType (String) discretization scheme
 function NeumannBoundary(fcts, discType)
 	if discType == nil then discType = "fv1" end
 	if 		discType == "fv1"  then return NeumannBoundaryFV1(fcts)

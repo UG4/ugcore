@@ -92,7 +92,7 @@ function co_experimental_plugin {
 
 #------------------------------------------------------------------------------#
 # co_apps_scaffold()                                                           #
-# Checks out the immediates of $UG4_ROOT/apps                                  #
+# Checks out the immediate of $UG4_ROOT/apps                                   #
 # Returns:                                                                     #
 #   0   on success                                                             #
 #  >0   on failure                                                             #

@@ -39,10 +39,10 @@
 util = util or {}
 
 --[[!
-\brief Create a function with namend parameters
+\brief Create a function with named parameters
 With this function it is easy to create Lua functions with default values for
 their arguments and defining names for them to circumvent the position 
-dependentness of the arguments.
+dependence of the arguments.
 This is especially useful for functions with a lot of arguments.
 
 \attention When calling with named parameters, you have to give a table with
@@ -64,7 +64,7 @@ myfunction( { a=3, c=1 } ) -->> prints: 3 7 1
 \endcode
 \param[in] arg_def table defining the arguments of the function and their default values
 \param[in] f the function itself
-\return function with namend parameters
+\return function with named parameters
 \note Source: https://gist.github.com/stuartpb/975399
 ]]--
 function util.CreateFancyFunction( arg_def, f )

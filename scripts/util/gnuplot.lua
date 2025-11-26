@@ -101,7 +101,7 @@ function gnuplot.write_data(filename, data, passRows, mode)
 		local maxRow = -math.huge
 		for _, column in ipairs(data) do
 
-			-- check that tables passed as coulumns
+			-- check that tables passed as columns
 			if not(type(column) == "table") then
 				write("Gnuplot Error: Data array must contain only tables.\n");
 				return 1						
@@ -310,7 +310,7 @@ function gnuplot.plot(filename, data, options)
 	--					 { {file = "f3.dat", 1, 2}, {file = "f3.dat", 1, 2}, ...}, ...}	
 	-- NOTE: plots will always be of structure c), i.e.
 	--	plots = { { DataSet, DataSet, ...}, { DataSet, DataSet, ...}, ... }
-	-- where DataSet is of type { [file | data |�func ] = , ...}
+	-- where DataSet is of type { [file | data | func ] = , ...}
 	local plots = nil
 	local multiplot = nil -- will be set based on data
 	if data then
@@ -371,7 +371,7 @@ function gnuplot.plot(filename, data, options)
 	end
 
 	if not plots then
-		write("Gnuplot Error: data source not correctly specifiec. Valid formats are:\n");
+		write("Gnuplot Error: data source not correctly specified. Valid formats are:\n");
 		write(" a) single data: data = {file = \"f1.dat\", 1, 2}\n");
 		write(" b) multi-data:  data = {{file = \"f1.dat\", 1, 2}, {file = \"f1.dat\", 1, 2}, ...}	\n");
 		write(" c) multiplot-multi-data: \n");		
@@ -451,7 +451,7 @@ function gnuplot.plot(filename, data, options)
 		if filename == nil then
 			if table.contains(availTerms, "x11") then
 				terminal = "x11"	
-				-- for interactive, add persitance; size is automatic
+				-- for interactive, add persistence; size is automatic
 				add_term_opt = add_term_opt.." persist raise"
 				size = nil
 			else
@@ -575,7 +575,7 @@ function gnuplot.plot(filename, data, options)
 		end		
 	end
 	
-	-- { enhanced |�noenhanced }
+	-- { enhanced | noenhanced }
 	term.enhanced = "" -- no support: tikz, cairolatex, epslatex
 	if table.contains({"pdfcairo", "pdf", "epscairo", "postscript",
 			   			"pngcairo", "png", "svg", "x11"}, terminal) then
@@ -583,7 +583,7 @@ function gnuplot.plot(filename, data, options)
 		else 			 term.enhanced = "noenhanced" end
 	end
 	
-	-- {color |�mono}
+	-- {color | mono}
 	term.color = "" -- no support: svg, png 
 	if color then
 		if table.contains({"pdfcairo","epscairo","pngcairo", 
@@ -617,7 +617,7 @@ function gnuplot.plot(filename, data, options)
 		term.font = "fontscale "..fontscale	
 	end	
 	
-	-- { solid |�dashed}
+	-- { solid | dashed}
 	term.dashed = "" -- no support: svg, png 
 	if table.contains({"pdfcairo","epscairo","pngcairo", 
 						"pdf","postscript","tikz","cairolatex","epslatex", "x11"}, terminal) then
@@ -628,7 +628,7 @@ function gnuplot.plot(filename, data, options)
 		end
 	end
 	
-	-- { rounded |�butt}
+	-- { rounded | butt}
 	-- currently not supported, since not needed - butt seems always good
 	
 	-- linewidth

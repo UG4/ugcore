@@ -46,11 +46,11 @@
 #  OUTPUT_DIRECTORY     name of directory, where the documentation should be 
 #                       generated, defaults to 'docs-generated' (relative to
 #                       CMAKE_CURRENT_BINARY_DIR)
-#  INSTALL_DESTINATION  where the documentation should be coppied afterwars
+#  INSTALL_DESTINATION  where the documentation should be copied afterwards
 #  INSTALL_PDF_NAME     name of the final PDF documentation
 #  DOC_TARGET           name of the make target to generate the documentation,
 #                       defaults to 'doc'
-#  WORKING_DIRECTORY    path from which Doxygen should be invoced, defaults to
+#  WORKING_DIRECTORY    path from which Doxygen should be invoked, defaults to
 #                       CMAKE_CURRENT_SOURCE_DIR
 #  PROJECT_NUMBER       project version to appear in documentation
 #  NO_WARNINGS          don't print warnings while running Doxygen, default TRUE

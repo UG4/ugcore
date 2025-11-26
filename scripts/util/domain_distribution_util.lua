@@ -42,7 +42,7 @@ util = util or {}
 
 --!	Distributes the top-level of a domain to the given number of processes.
 --! This method has to be called by all processes with the same parameters!
---! @note Some paramters are optional. nil is a valid value for each optional parameter.
+--! @note Some parameters are optional. nil is a valid value for each optional parameter.
 --! @return (bool) Returns whether the method was a success
 --! @param dom	(Domain) A valid domain instance.
 --! @param partitioningMethod	(optional string) Choose the partitioning method.
@@ -145,13 +145,13 @@ function util.PartitionMapBisection(dom, partitionMapOut, numProcs)
 	
 	local partitioner = nil
 	if(dom:domain_info():element_type() == dom:get_dim() - 2) then
-		--print("HyperManifoldPartiioner_DynamicBisection")
+		--print("HyperManifoldPartitioner_DynamicBisection")
 		partitioner = HyperManifoldPartitioner_DynamicBisection(dom)
 	elseif(dom:domain_info():element_type() == dom:get_dim() - 1) then
-		 --print("ManifoldPartiioner_DynamicBisection")
+		 --print("ManifoldPartitioner_DynamicBisection")
 		partitioner = ManifoldPartitioner_DynamicBisection(dom)
 	elseif(dom:domain_info():element_type() == dom:get_dim()) then
-		 --print("Partiioner_DynamicBisection")
+		 --print("Partitioner_DynamicBisection")
 		partitioner = Partitioner_DynamicBisection(dom)
 	end
 	

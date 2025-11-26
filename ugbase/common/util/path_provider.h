@@ -141,8 +141,8 @@ class PathProvider
 		{
 			const char* pathSep = GetPathSeparator();
 
-			if(inst().has_current_path() == false) return false;
-			absoluteFilename = inst().get_current_path() + pathSep + relativeFilename;
+			if(has_current_path() == false) return false;
+			absoluteFilename = get_current_path() + pathSep + relativeFilename;
 			return FileExists(absoluteFilename.c_str());
 		}
 
@@ -156,9 +156,9 @@ class PathProvider
 		{
 			const char* pathSep = GetPathSeparator();
 
-			if (!inst().has_current_path())
+			if (!has_current_path())
 				return false;
-			absoluteDirname = inst().get_current_path() + pathSep + relativeDirname;
+			absoluteDirname = get_current_path() + pathSep + relativeDirname;
 			return DirectoryExists(absoluteDirname.c_str());
 		}
 
@@ -171,8 +171,8 @@ class PathProvider
 		{
 			const char* pathSep = GetPathSeparator();
 
-			if(inst().has_path(pathType) == false) return false;
-			absoluteFilename = inst().get_path(pathType) + pathSep + relativeFilename;
+			if(has_path(pathType) == false) return false;
+			absoluteFilename = get_path(pathType) + pathSep + relativeFilename;
 			return FileExists(absoluteFilename.c_str());
 		}
 
@@ -185,13 +185,13 @@ class PathProvider
 		{
 			const char* pathSep = GetPathSeparator();
 
-			if (!inst().has_path(pathType))
+			if (!has_path(pathType))
 				return false;
-			absoluteDirname = inst().get_path(pathType) + pathSep + relativeDirname;
+			absoluteDirname = get_path(pathType) + pathSep + relativeDirname;
 			return DirectoryExists(absoluteDirname.c_str());
 		}
 	private:
-		PathProvider()	{}
+		PathProvider()	 = default;
 		PathProvider(const PathProvider&)	{}
 
 		static PathProvider& inst()

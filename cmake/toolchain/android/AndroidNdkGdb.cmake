@@ -40,7 +40,7 @@
 
 
 # add gdbserver and general gdb configuration to project
-# also create a mininal NDK skeleton so ndk-gdb finds the paths
+# also create a minimal NDK skeleton so ndk-gdb finds the paths
 #
 # the optional parameter defines the path to the android project.
 # uses PROJECT_SOURCE_DIR by default.

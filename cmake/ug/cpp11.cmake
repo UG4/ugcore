@@ -34,7 +34,7 @@
 
 if ("${CMAKE_VERSION}" VERSION_LESS 3.1)
     if (${CMAKE_CXX_COMPILER_ID} MATCHES GNU|Clang|Intel|PGI)
-        # Check for the compilers's C++11 capabilities
+        # Check for the compiler's C++11 capabilities
         INCLUDE (CheckCXXCompilerFlag)
         CHECK_CXX_COMPILER_FLAG (-std=c++0x HAVE_CXX0X)
         CHECK_CXX_COMPILER_FLAG (-std=c++11 HAVE_CXX11)

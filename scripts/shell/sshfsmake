@@ -15,7 +15,7 @@
 # 1. logging in to mrupp@cekon
 # 2. cd ug4/debug
 # 3. make -j4
-# 4. replace every occurence of /home/mrupp with /Volumes/mrupp@cekon
+# 4. replace every occurrence of /home/mrupp with /Volumes/mrupp@cekon
 #
 # so instead of /home/mrupp/ug4/ugbase/bridge/algebra_bridges/eigensolver_bridge.cpp:86: error
 # you get

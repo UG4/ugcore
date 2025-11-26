@@ -35,7 +35,7 @@ util.refinement = util.refinement or {}
 
 --! Creates a regular hierarchy through global refinement. Redistribution
 --! is handled through 'load_balancing_util_2.lua'. To this end a balancerDesc
---! may optionally be specified, which is used to create the invloved balancer.
+--! may optionally be specified, which is used to create the involved balancer.
 --!
 --! @param dom			(Domain) the domain on which a hierarchy shall be created
 --! @param numRefs		(integer) the number of refinements that shall be performed

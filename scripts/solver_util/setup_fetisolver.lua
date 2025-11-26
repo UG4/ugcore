@@ -185,7 +185,7 @@ function CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
 end
 
 --! function 'SetupFETISolver()' (first parameters only for (re)naming of logfile):
---! futher commandline parameters:
+--! further commandline parameters:
 --! - -numPPSD : numProcsPerSubdomain
 --! - -cps : coarseProblemSolverType (choose one in [default: "exact" | "cg" | "hlib" ])
 --! - -ns : neumannProblemSolverType choose one in ["exact" | "ls" | default: "cg" | "bicg" | "rsamg" | "famg" ]

@@ -60,7 +60,7 @@ Each Compute Node (CN) has a 16-core IBM PowerPC A2 running at 1.6 GHz with 16 G
 
 <ol>
 <li>get the project ID (note: not the project number) from someone like Sebastian, Andreas, Martin or Arne.</li>
-<li>goto <a href="https://dispatch.fz-juelich.de:8812/nic_account_ident/back=/RESSOURCEN">here</a>, enter email adress .
+<li>goto <a href="https://dispatch.fz-juelich.de:8812/nic_account_ident/back=/RESSOURCEN">here</a>, enter email address .
 <li>open the link in the email
 <li>enter the project id
 <li>enter name and stuff

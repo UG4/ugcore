@@ -207,7 +207,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 
 	using ListIter = typename elemList::iterator;
 
-	/* VERSION �BER ATTACHMENT:
+	/* VERSION ÜBER ATTACHMENT:
 	typename Grid::traits<grid_base_object>::secure_container elems;
 
 	int vtr_count = 0;

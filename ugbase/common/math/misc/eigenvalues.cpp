@@ -98,7 +98,7 @@ bool CalculateEigenvalues(const ug::matrix33& mat, number& lambdaMinOut,
 			
 			// Berechnung fertig: 
 			
-      // Code zum sortieren der Eigenwerte einf�gen:
+      // Code zum sortieren der Eigenwerte einfügen:
 			int max_index = 0;
 			int med_index = 0;
 			int min_index = 0;
@@ -119,7 +119,7 @@ bool CalculateEigenvalues(const ug::matrix33& mat, number& lambdaMinOut,
 					
 			}
 			
-			// Gr��ter Eigenwert:
+			// Größter Eigenwert:
 			lambdaMaxOut = d[max_index];
 			evMaxOut[0] = V[0][max_index];
 			evMaxOut[1] = V[1][max_index];

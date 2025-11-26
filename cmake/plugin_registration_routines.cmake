@@ -217,7 +217,7 @@ function (WriteStaticPluginsHeader)
 	# NOTE: the leading and closing whitespace in the string returned by InitializeEmbeddedPlugins is intentional!
 	#		It allows to easily search for loaded plugins
 	file (WRITE ${CMAKE_BINARY_DIR}/embedded_plugins.h
-		"// THIS IS AN AUTOMATICALL GENERATED FILE. DO NOT EDIT!\n"
+		"// THIS IS AN AUTOMATICALLY GENERATED FILE. DO NOT EDIT!\n"
 		"#ifndef __H__UG_STATIC_PLUGINS\n"
 		"#define __H__UG_STATIC_PLUGINS\n"
 		"#include <string>\n"

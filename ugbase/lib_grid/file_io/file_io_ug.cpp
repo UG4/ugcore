@@ -1172,7 +1172,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 //	open the file
 	out.open(ngFileName.c_str());
 
-//	enable scientific number format�
+//	enable scientific number format
 	//out.setf(ios::scientific);
 
 	if(!out)

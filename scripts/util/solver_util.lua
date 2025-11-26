@@ -48,7 +48,7 @@ creates and returns the requested solver.
 
 All components may either be specified through a string-id or through a
 descriptor. You only have to specify those components which deviate from
-the defaults (solver.util.defaults), the rest will be ammended.
+the defaults (solver.util.defaults), the rest will be amended.
 
 To use a geometric multigrid preconditioner, you either have
 to specify an approxSpace entry in its descriptor or set
@@ -107,7 +107,7 @@ here someApproxSpace points to a previously created approximation space
 			cycle		= "V",		-- gmg-cycle ["V", "F", "W"]
 			preSmooth	= 3,		-- number presmoothing steps
 			postSmooth 	= 3,		-- number postsmoothing steps
-			rap		= false,	-- comutes RAP-product instead of assembling if true
+			rap		= false,	-- computes RAP-product instead of assembling if true
 			baseLevel	= 0,		-- gmg - baselevel
 			baseSolver	= {			-- better options are most likely "lu" or "superlu"
 				type	  = "bicgstab",
@@ -117,7 +117,7 @@ here someApproxSpace points to a previously created approximation space
 					iterations	= 1000,
 					absolute	= 1e-12,
 					reduction	= 1e-10,	-- higher values may suffice and may be much
-										-- more efficent (e.g. 1e-2, 1e-4, ...).
+										-- more efficient (e.g. 1e-2, 1e-4, ...).
 					verbose		= false
 				}
 			},
@@ -145,7 +145,7 @@ You may also provide instances of preconditioners instead of descriptor tables:
 
 <br>
 <h3>Example: Accessing the created solvers and preconditioners (advanced)</h3>
-For conveniance, all the methods will add an 'instance' entry to their respective
+For convenience, all the methods will add an 'instance' entry to their respective
 descriptor tables, assigning the created solver component.
 If you thus setup a solver, e.g.
 \code
@@ -488,8 +488,8 @@ util.solver.defaults =
 			beta 			= 0,
 			damping 		= 1,
 			sort			= false,
-			sortEps 		= 1.e-50,
-			inversionEps 		= 1.e-8,
+			sortEps 		= 1.0e-50,
+			inversionEps 		= 1.0e-8,
 			consistentInterfaces   = false,
 			overlap 		= false,
 			ordering 		= nil
@@ -597,7 +597,7 @@ end
 --! Creates a solver.
 --! @param solverutil	You may OPTIONALLY pass a table solverutil in which
 --! 					solver related information will be stored. If solverDesc
---!						is a table, you may also acacess this information through
+--!						is a table, you may also access this information through
 --!						solverDesc.solverutil (even if the parameter solverutil == nil).
 function util.solver.CreateSolver(solverDesc, solverutil)
 	solverutil = util.solver.PrepareSolverUtil(solverDesc, solverutil)

@@ -37,7 +37,7 @@
 
 util = util or {}
 
---! Parses a callback object and attachs the corresponding callbacks to a TimeIntegratorObserver object.
+--! Parses a callback object and attaches the corresponding callbacks to a TimeIntegratorObserver object.
 --! @param timeIntegratorSubject a TimeIntegratorObserver object to attach callbacks to
 --! @luaobject the object by the user, to be parsed.
 --!	a)	If this is a function then it is called after
@@ -620,8 +620,8 @@ end
 --! @param startTime		start time point
 --! @param endTime			end time point")
 --! @param maxStepSize		maximal step sized used
---! @param minStepSize 		(optinal) minimal step sized used	
---! @param reductionFactor 	(optinal) factor by which the step size is
+--! @param minStepSize 		(optional) minimal step sized used
+--! @param reductionFactor 	(optional) factor by which the step size is
 --! 						reduced, if the problem was not solved.
 --! 						Iterated until minStepSize is reached.
 --! @param useCheckpointing (optional) if true, use checkpointing.
@@ -1499,7 +1499,7 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 			time = timeDisc:future_time()
 			nlsteps = nlsteps + newtonSolver:num_newton_steps() 	 
 			
-			-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
+			-- push oldest solutions with new values to front, oldest sol pointer is popped from end
 			oldestSol = solTimeSeries:oldest()
 			VecScaleAssign(oldestSol, 1.0, u2)
 			solTimeSeries:push_discard_oldest(oldestSol, time)

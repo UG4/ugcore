@@ -106,7 +106,7 @@ function usage
 	echo "        -walltime <hh:mm:ss>   : max walltime for job to run (optional; default is "$walltime")"
 	echo "        -partition <partition> : the partition to be used"
 	echo "        -mem <mem>             : max (overall) main memory for the job"
-	echo "        -email <emailadress>   : emailadress. you can also use the environment variable UGSUBMIT_EMAIL."
+	echo "        -email <emailaddress>  : email-address. you can also use the environment variable UGSUBMIT_EMAIL."
 	echo "        -mail-start            : mail when job starts"
 	echo "        -mail-end              : mail when job ends"
 	echo "        -mail-error            : mail on error"

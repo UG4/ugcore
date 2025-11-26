@@ -31,7 +31,7 @@
  */
 
 /*
- *  Method described in Comput Visual Sci (2006) 9: 1�10, DOI 10.1007/s00791-006-0012-2
+ *  Method described in Comput Visual Sci (2006) 9: 1–10, DOI 10.1007/s00791-006-0012-2
  *  Simulation of lognormal random fields with varying resolution scale and local average for Darcy flow
  *  For the generation of the d-dimensional Gaussian random field we choose
  *  a simple spectral method which can sim- ulate anisotropicly correlated fields.

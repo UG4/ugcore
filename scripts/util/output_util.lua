@@ -290,7 +290,7 @@ local function PrepareIntegralData(DataSet, Integrals, file)
       thefile:write("time"..IntegralData.sep.."value\n")
       io.close(thefile)
       
-      -- append to integral datas 
+      -- append to integral data
       table.insert(Integrals, IntegralData)   
 end
 

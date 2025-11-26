@@ -28,19 +28,19 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-# This function sets the CMAKE_C_FLAGS and CMAKE_CXX_FLAGS variabels.
+# This function sets the CMAKE_C_FLAGS and CMAKE_CXX_FLAGS variables.
 # 
 # TODO: maybe add sanity checks for flags
 #
 
 # add flag for c language only
 function (add_c_flag flag)
-	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}" CACHE STRING "overriden flags!" FORCE)
+	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}" CACHE STRING "override flags!" FORCE)
 endfunction ()
 
 # add flag for c++ language only
 function (add_cpp_flag flag)
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" CACHE STRING "overriden flags!" FORCE)
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" CACHE STRING "override flags!" FORCE)
 endfunction ()
 
 # add flag for c and c++ language

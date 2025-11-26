@@ -44,7 +44,7 @@ namespace ug {
 /**
  * Returns the global DoF position on an element.
  */
-///�\{
+/// \{
 template <int dim>
 bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, ReferenceObjectID roid,
                       const std::vector<MathVector<dim> >& vCornerCoord, const LFEID& lfeID);
@@ -58,7 +58,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
 /**
  * Returns the global DoF position on an element.
  */
-///�\{
+/// \{
 template <int dim>
 bool DoFPosition(std::vector<MathVector<dim> >& vPos, ReferenceObjectID roid,
                  const std::vector<MathVector<dim> >& vCornerCoord, const LFEID& lfeID);

@@ -80,7 +80,7 @@ void ActiveSet<TDomain, TAlgebra>::prepare(function_type& u)
 /*template <typename TDomain, typename TAlgebra>
 bool ActiveSet<TDomain, TAlgebra>::check_dist_to_obs(vector_type& u)
 {
-	//	STILL IN PROGRESS: u sollte hier reference-position + Startl�sung sein!
+	//	STILL IN PROGRESS: u sollte hier reference-position + Startlösung sein!
 	value_type dist;
 
 	bool geometry_cut_by_cons = false;
@@ -91,7 +91,7 @@ bool ActiveSet<TDomain, TAlgebra>::check_dist_to_obs(vector_type& u)
 		UG_LOG("m_spObs(" << i << "):" << (*m_spObs)[i] << "\n");
 		dist = (*m_spObs)[i] - u[i];
 		UG_LOG("dist:" << dist << "\n");
-		//TODO: anstatt u muss hier die geometrische Info einflie�en!
+		//TODO: anstatt u muss hier die geometrische Info einfließen!
 		for (size_t fct = 0; fct < m_nrFcts; fct++)
 		{
 			if (BlockRef(dist,fct) < 0.0) // i.e.: u < m_spObs
@@ -219,7 +219,7 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 					//	create list of active global MultiIndex-pairs. Only those pairs should be attached
 					//	which are not already a member of the 'activeSetGlob'-vector
 					bool bAlreadyActive = false;
-					for (vector<DoFIndex>::iterator itActiveInd = m_vActiveSetGlob.begin();
+					for (auto itActiveInd = m_vActiveSetGlob.begin();
 							itActiveInd < m_vActiveSetGlob.end(); ++itActiveInd)
 					{
 						if ((*itActiveInd)[0] == ind.index(fct, dof)
@@ -289,8 +289,8 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 	UG_LOG("#sizeOfvActiveSubsets: " << m_vActiveSubsets.size() << "\n");
 
 	//	2.) loop over all elements of the possible active subsets
-	for (vector<int>::iterator activeSI = m_vActiveSubsets.begin();
-			activeSI != m_vActiveSubsets.end(); ++activeSI)
+	for (auto activeSI = m_vActiveSubsets.begin();
+	     activeSI != m_vActiveSubsets.end(); ++activeSI)
 	{
 		//UG_LOG("activeSI: " << *activeSI << "\n");
 		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *activeSI);
@@ -321,7 +321,7 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 		}
 	}
 
-	if (m_vActiveSetGlob.size() > 0) return true;
+	if (!m_vActiveSetGlob.empty()) return true;
 	else return false;
 }
 
@@ -330,8 +330,8 @@ template <typename TDomain, typename TAlgebra>
 void ActiveSet<TDomain, TAlgebra>::
 set_dirichlet_rows(matrix_type& mat)
 {
-	for (vector<DoFIndex>::iterator itActiveInd = m_vActiveSetGlob.begin();
-			itActiveInd < m_vActiveSetGlob.end(); ++itActiveInd){
+	for (auto itActiveInd = m_vActiveSetGlob.begin();
+	     itActiveInd < m_vActiveSetGlob.end(); ++itActiveInd){
 		SetDirichletRow(mat, *itActiveInd);
 	}
 }
@@ -431,8 +431,8 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv_elem(TIterator iterBegin,
 template <typename TDomain, typename TAlgebra>
 void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv(matrix_type& lagrangeMatInv)
 {
-	for (vector<int>::iterator activeSI = m_vActiveSubsets.begin();
-				activeSI != m_vActiveSubsets.end(); ++activeSI)
+	for (auto activeSI = m_vActiveSubsets.begin();
+	     activeSI != m_vActiveSubsets.end(); ++activeSI)
 	{
 		UG_LOG("activeSI: " << *activeSI << "\n");
 		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *activeSI);
@@ -490,7 +490,7 @@ void ActiveSet<TDomain, TAlgebra>::residual_lagrange_mult(vector_type& lagMult,
 		//(*spRes).resize(u.size());
 
 		//	loop MultiIndex-pairs in activeSet-vector
-		for (vector<DoFIndex>::iterator itActiveInd = m_vActiveSetGlob.begin();
+		for (auto itActiveInd = m_vActiveSetGlob.begin();
 				itActiveInd < m_vActiveSetGlob.end(); ++itActiveInd)
 		{
 			//	compute lagrange multiplier for active multiIndices
@@ -624,8 +624,8 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv(function_type& u, const function_t
 	{
 		//	check if constraint is fulfilled
 		bool bConstraintViolated = false;
-		for (vector<int>::iterator activeSI = m_vActiveSubsets.begin();
-				activeSI != m_vActiveSubsets.end(); ++activeSI)
+		for (auto activeSI = m_vActiveSubsets.begin();
+		     activeSI != m_vActiveSubsets.end(); ++activeSI)
 		{
 			const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *activeSI);
 			switch(subsetDim)

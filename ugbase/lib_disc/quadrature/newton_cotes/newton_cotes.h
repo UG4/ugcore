@@ -40,7 +40,7 @@ namespace ug{
 
 /**
  * This class provides Newton-Cotes integrals for the 1d line [0,1]. See e.g.
- * http://en.wikipedia.org/wiki/Newton�Cotes_formulas for details.
+ * https://en.wikipedia.org/wiki/Newton%E2%80%93Cotes_formulas for details.
  *
  * The implemented rules are auto-generate using mathematica. If higher orders
  * are needed, rerun the corresponding file.

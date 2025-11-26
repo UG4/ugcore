@@ -311,7 +311,7 @@ function util.HasParamOption(name, description)
 end
 
 --! util.CheckForParam
---! Checks whether a paramneter was specified in the command line
+--! Checks whether a parameter was specified in the command line
 --! @param name of the parameter to search for in argv
 --! @return true if the parameter was found, false if not
 function util.CheckForParam(name)

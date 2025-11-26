@@ -166,7 +166,7 @@ output:
 --! @param tab		table in the form t={{["colA"
 --! @param bNumbers	if true, print a colum with the key of the table (default false)
 --! @param type		type of column padding ("r", "l" or "c", default "l")
---! @param header	colums to be printed, like {"colA", "colB"}. if nil, all.
+--! @param header	columns to be printed, like {"colA", "colB"}. if nil, all.
 
 function util.printFormattedTable(tab, bNumbers, type, header)
 	local length = {}
@@ -251,7 +251,7 @@ util.printFormattedTable(tab, true, "c")
 --! @param tab		table in the form t={{["colA"
 --! @param type		type of row padding ("r", "l" or "c", default "l")
 --! @param bNumbers	if true, print a colum with the number of the table (default false)
---! @param header	colums to be printed, like {"colA", "colB"}, if nil: all
+--! @param header	columns to be printed, like {"colA", "colB"}, if nil: all
 function util.printFormattedTableSideways(tab, bNumbers,  header)
 	local length = {}
 	local j, col, i, v
@@ -356,7 +356,7 @@ end
 --!  {"tab.c.word", 3},
 --!  {"tab.c.nose", 4}
 --! }
---! especially usefull for util.writeFileStats
+--! especially useful for util.writeFileStats
 --! note: syntax {name, value} used instead of name=value
 --! because this way the order is stable
 function util.flattenTable(tab, name, resTable)
