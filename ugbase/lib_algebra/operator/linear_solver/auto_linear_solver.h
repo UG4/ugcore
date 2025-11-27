@@ -103,7 +103,7 @@ class AutoLinearSolver
 	~AutoLinearSolver() override = default;
 
 ///	returns if parallel solving is supported
-	bool supports_parallel() const override {
+	[[nodiscard]] bool supports_parallel() const override {
 		if(preconditioner().valid())
 			return preconditioner()->supports_parallel();
 		else return true;
@@ -138,15 +138,15 @@ private:
 	}
 
 	///	returns the name of the solver
-		const char* name() const override {return "Auto Iterative Linear Solver";}
+		[[nodiscard]] const char* name() const override {return "Auto Iterative Linear Solver";}
 
 
-		bool init(SmartPtr<ILinearOperator<vector_type,vector_type> > J, const vector_type& u) override {
+		[[nodiscard]] bool init(SmartPtr<ILinearOperator<vector_type,vector_type> > J, const vector_type& u) override {
 			m_u = u;
 			return init_op(J);
 		}
 
-		bool init(SmartPtr<ILinearOperator<vector_type,vector_type> > J) override {
+		[[nodiscard]] bool init(SmartPtr<ILinearOperator<vector_type,vector_type> > J) override {
 			m_u.resize(0);
 			return init_op(J);
 		}

@@ -30,7 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "grid_bridges.h"
+//#include "grid_bridges.h"
+#include "registry/registry.h"
 #include "../suffix_tag.h"
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/grid/geometry.h"

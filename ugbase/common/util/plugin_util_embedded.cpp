@@ -51,7 +51,7 @@ bool PluginLoaded(const string &name)
 	return (strstr(ListOfEmbeddedPlugins(), searchStr.c_str()) != nullptr);
 }
 
-bool LoadPlugins(const char*, string parentGroup, bridge::Registry& reg, bool bPrefixGroup)
+bool LoadPlugins(const char*, const string &parentGroup, bridge::Registry& reg, bool bPrefixGroup)
 {
 	InitializeEmbeddedPlugins(&reg, parentGroup);
 	return true;

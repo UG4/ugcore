@@ -30,7 +30,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "mem_info.h"
+#include "../mem_info.h"
 
 #include <unistd.h>
 #include <ios>

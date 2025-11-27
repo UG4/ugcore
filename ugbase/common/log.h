@@ -117,10 +117,10 @@ class UG_API LogAssistant
 		bool enable_terminal_output(bool bEnable);
 
 	/// returns the debug output stream
-		inline std::ostream& debug_logger();
+		static inline std::ostream& debug_logger();
 
 	/// returns the normal output stream
-		inline std::ostream& logger();
+		static inline std::ostream& logger();
 
 	///	returns the error output stream
 	/**	Note that error-logs are not immediately visible. Instead they are
@@ -179,10 +179,10 @@ class UG_API LogAssistant
 
 	///	returns true if the current process is an output process.
 	/**	This is always true, if the application is executed in a serial environment.*/
-		bool is_output_process();
+		bool is_output_process() const;
 
 	///	returns the process rank of the underlying process (same as pcl::ProcRank)
-		int get_process_rank();
+		int get_process_rank() const;
 
 		void flush();
 

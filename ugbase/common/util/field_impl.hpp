@@ -159,7 +159,7 @@ copy(size_t x, size_t y, const Field& f){
 }
 
 template <typename T> void Field<T>::
-swap(Field& f){
+swap(Field& f) noexcept {
 	using std::swap;
 	swap(m_width, f.m_width);
 	swap(m_height, f.m_height);

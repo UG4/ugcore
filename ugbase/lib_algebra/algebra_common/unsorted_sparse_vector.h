@@ -92,12 +92,12 @@ public:
 		return con.end();
 	}
 
-	size_t num_connections() const
+	[[nodiscard]] size_t num_connections() const
 	{
 		return con.size();
 	}
 
-	size_t size() const
+	[[nodiscard]] size_t size() const
 	{
 		return m_size;
 	}
@@ -137,7 +137,7 @@ public:
 			return con[p].value();
 		}
 	}
-	bool has_connection(size_t c) const
+	[[nodiscard]] bool has_connection(size_t c) const
 	{
 		assert(c < m_size);
 		return posInConnections[c] != -1;

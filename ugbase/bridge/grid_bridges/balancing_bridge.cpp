@@ -30,7 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "grid_bridges.h"
+//#include "grid_bridges.h"
+#include "registry/registry.h"
 #include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
 #include "lib_grid/tools/partition_map.h"
 #include "lib_grid/algorithms/graph/dual_graph.h"	// DualGraphNeighborCollector

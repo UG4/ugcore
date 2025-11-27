@@ -63,8 +63,8 @@ class GroupNode : public Node
 		virtual void add_child(SPNode node);
 		virtual void remove_child(SPNode node);
 		
-		virtual int num_children();
-		virtual SPNode get_child(int index);
+		[[nodiscard]] virtual int num_children() const;
+		[[nodiscard]] virtual SPNode get_child(int index) const;
 
 	protected:
 		GroupNode() = default;

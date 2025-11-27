@@ -57,8 +57,8 @@ class hash_iterator
 		hash_iterator(const key_t& key, const entry_t* entries, size_t entryInd) :
 			m_key(key), m_entries(entries), m_entryInd(entryInd)	{}
 
-		this_type operator ++ ()							{increment(); return *this;}
-		this_type operator ++ (int unused)				{this_type i = *this; increment(); return i;}
+		this_type operator ++ () {increment(); return *this;}
+		this_type operator ++ (int unused) {this_type i = *this; increment(); return i;}
 
 		bool operator == (const this_type& iter) const	{return equal(iter);}
 		bool operator != (const this_type& iter) const	{return !equal(iter);}

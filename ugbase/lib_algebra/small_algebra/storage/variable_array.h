@@ -74,16 +74,16 @@ public:
 
 public:
 	// capacity
-	inline size_type
+	[[nodiscard]] inline size_type
 	size() const;
 
-	inline size_type
+	[[nodiscard]] inline size_type
 	capacity() const;
 
 	inline bool
 	resize(size_type n, bool bCopyValues=true);
 
-	inline bool
+	[[nodiscard]] inline bool
 	reserve(size_type n) const;
 
 	// Element access
@@ -158,19 +158,19 @@ public:
 
 public:
 	// Capacity
-	inline size_type
+	[[nodiscard]] inline size_type
 	num_rows() const;
 
-	inline size_type
+	[[nodiscard]] inline size_type
 	num_cols() const;
 
 	inline bool
 	resize(size_type newRows, size_type newCols, bool bCopyValues=true);
 
-	inline size_type
+	[[nodiscard]] inline size_type
 	capacity_num_rows() const { return rows; }
 
-	inline size_type
+	[[nodiscard]] inline size_type
 	capacity_num_cols() const { return cols; };
 
 	inline void

@@ -263,7 +263,11 @@ struct func_traits <TRet (*) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)
 template <typename TClass, typename TRet>
 struct func_traits <TRet (TClass::*) ()>
 {
-	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = false;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<>;
 	static TRet apply(TRet (TClass::*fp)(), TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -275,7 +279,11 @@ struct func_traits <TRet (TClass::*) ()>
 template <typename TClass, typename TRet, typename P1>
 struct func_traits <TRet (TClass::*) (P1)>
 {
-	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = false;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<P1>;
 	static TRet apply(TRet (TClass::*fp)(P1), TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -287,7 +295,11 @@ struct func_traits <TRet (TClass::*) (P1)>
 template <typename TClass, typename TRet, typename T1, typename T2>
 struct func_traits <TRet (TClass::*) (T1, T2)>
 {
-	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = false;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<T1, T2>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2), TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -298,7 +310,11 @@ struct func_traits <TRet (TClass::*) (T1, T2)>
 template <typename TClass, typename TRet, typename T1, typename T2, typename T3>
 struct func_traits <TRet (TClass::*) (T1, T2, T3)>
 {
-	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = false;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<T1, T2, T3>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3), TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -310,7 +326,11 @@ template <typename TClass, typename TRet, typename T1, typename T2, typename T3,
 			typename T4>
 struct func_traits <TRet (TClass::*) (T1, T2, T3, T4)>
 {
-	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = false;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<T1, T2, T3, T4>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3, T4), TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -322,7 +342,11 @@ template <typename TClass, typename TRet, typename T1, typename T2, typename T3,
 			typename T4, typename T5>
 struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5)>
 {
-	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = false;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<T1, T2, T3, T4, T5>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3, T4, T5), TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -334,7 +358,11 @@ template <typename TClass, typename TRet, typename T1, typename T2, typename T3,
 			typename T4, typename T5, typename T6>
 struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5, T6)>
 {
-	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = false;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<T1, T2, T3, T4, T5, T6>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3, T4, T5, T6), TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -347,7 +375,11 @@ template <typename TClass, typename TRet, typename T1, typename T2, typename T3,
 			typename T4, typename T5, typename T6, typename T7>
 struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5, T6, T7)>
 {
-	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = false;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<T1, T2, T3, T4, T5, T6, T7>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3, T4, T5, T6, T7), TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -360,7 +392,11 @@ template <typename TClass, typename TRet, typename T1, typename T2, typename T3,
 			typename T4, typename T5, typename T6, typename T7, typename T8>
 struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5, T6, T7, T8)>
 {
-	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = false;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<T1, T2, T3, T4, T5, T6, T7, T8>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3, T4, T5, T6, T7, T8), TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -373,7 +409,11 @@ template <typename TClass, typename TRet, typename T1, typename T2, typename T3,
 			typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
 struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5, T6, T7, T8, T9)>
 {
-	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = false;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<T1, T2, T3, T4, T5, T6, T7, T8, T9>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3, T4, T5, T6, T7, T8, T9), TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -397,7 +437,11 @@ struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5, T6, T7, T8, T9)>
 template <typename TClass, typename TRet>
 struct func_traits <TRet (TClass::*) () const>
 {
-	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = true;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<>;
 	static TRet apply(TRet (TClass::*fp)() const, const TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -409,7 +453,11 @@ struct func_traits <TRet (TClass::*) () const>
 template <typename TClass, typename TRet, typename P1>
 struct func_traits <TRet (TClass::*) (P1) const>
 {
-	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = true;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<P1>;
 	static TRet apply(TRet (TClass::*fp)(P1) const, const TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -421,7 +469,11 @@ struct func_traits <TRet (TClass::*) (P1) const>
 template <typename TClass, typename TRet, typename T1, typename T2>
 struct func_traits <TRet (TClass::*) (T1, T2) const>
 {
-	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = true;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<T1, T2>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2) const, const TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -432,7 +484,11 @@ struct func_traits <TRet (TClass::*) (T1, T2) const>
 template <typename TClass, typename TRet, typename T1, typename T2, typename T3>
 struct func_traits <TRet (TClass::*) (T1, T2, T3) const>
 {
-	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = true;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<T1, T2, T3>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3) const, const TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -444,7 +500,11 @@ template <typename TClass, typename TRet, typename T1, typename T2, typename T3,
 			typename T4>
 struct func_traits <TRet (TClass::*) (T1, T2, T3, T4) const>
 {
-	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = true;
+	using class_type = TClass;
+	using return_type = TRet;
+
 	using params_type = TypeList<T1, T2, T3, T4>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3, T4) const, const TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -456,7 +516,9 @@ template <typename TClass, typename TRet, typename T1, typename T2, typename T3,
 			typename T4, typename T5>
 struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5) const>
 {
-	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = true;
+	using class_type = TClass; using return_type = TRet;
 	using params_type = TypeList<T1, T2, T3, T4, T5>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3, T4, T5) const, const TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -468,8 +530,11 @@ template <typename TClass, typename TRet, typename T1, typename T2, typename T3,
 			typename T4, typename T5, typename T6>
 struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5, T6) const>
 {
-	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = true;
+	using class_type = TClass; using return_type = TRet;
 	using params_type = TypeList<T1, T2, T3, T4, T5, T6>;
+
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3, T4, T5, T6) const, const TClass* obj, TypeValueList<params_type>& args)
 	{
 		return (obj->*fp)(args.hd, args.tl.hd, args.tl.tl.hd, args.tl.tl.tl.hd, args.tl.tl.tl.tl.hd,
@@ -481,7 +546,10 @@ template <typename TClass, typename TRet, typename T1, typename T2, typename T3,
 			typename T4, typename T5, typename T6,  typename T7>
 struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5, T6, T7) const>
 {
-	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = true;
+	using class_type = TClass; using return_type = TRet;
+
 	using params_type = TypeList<T1, T2, T3, T4, T5, T6, T7>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3, T4, T5, T6, T7) const, const TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -494,7 +562,10 @@ template <typename TClass, typename TRet, typename T1, typename T2, typename T3,
 			typename T4, typename T5, typename T6,  typename T7, typename T8>
 struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5, T6, T7, T8) const>
 {
-	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = true;
+	using class_type = TClass; using return_type = TRet;
+
 	using params_type = TypeList<T1, T2, T3, T4, T5, T6, T7, T8>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3, T4, T5, T6, T7, T8) const, const TClass* obj, TypeValueList<params_type>& args)
 	{
@@ -507,7 +578,10 @@ template <typename TClass, typename TRet, typename T1, typename T2, typename T3,
 			typename T4, typename T5, typename T6,  typename T7, typename T8, typename T9>
 struct func_traits <TRet (TClass::*) (T1, T2, T3, T4, T5, T6, T7, T8, T9) const>
 {
-	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	static constexpr bool custom_return = std::is_same<TRet, CustomReturn>::value;
+	static constexpr bool const_method = true;
+	using class_type = TClass; using return_type = TRet;
+
 	using params_type = TypeList<T1, T2, T3, T4, T5, T6, T7, T8, T9>;
 	static TRet apply(TRet (TClass::*fp)(T1, T2, T3, T4, T5, T6, T7, T8, T9) const, const TClass* obj, TypeValueList<params_type>& args)
 	{

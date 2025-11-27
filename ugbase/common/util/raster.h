@@ -76,6 +76,7 @@ class Raster{
 			public:
 				MultiIndex() = default;
 				MultiIndex(size_t i);
+
 				int	dim () const;
 				void 		set (size_t i);
 				size_t&		operator [] (int d);

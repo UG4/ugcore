@@ -667,13 +667,13 @@ class ExportedClassBaseImpl : public IExportedClass
 
 	protected:
 	///	returns if a constructor overload is registered
-		bool constructor_type_id_registered(size_t typeID) const;
+		[[nodiscard]] bool constructor_type_id_registered(size_t typeID) const;
 
 	/// returns true if methodname is already used by a method in this class
-		bool constmethodname_registered(const std::string& name) const;
+		[[nodiscard]] bool constmethodname_registered(const std::string& name) const;
 
 	/// returns true if methodname is already used by a method in this class
-		bool methodname_registered(const std::string& name) const;
+		[[nodiscard]] bool methodname_registered(const std::string& name) const;
 
 		ExportedMethodGroup* get_exported_method_group(const std::string& name);
 

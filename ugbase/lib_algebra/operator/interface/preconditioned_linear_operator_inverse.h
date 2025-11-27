@@ -135,8 +135,7 @@ class IPreconditionedLinearOperatorInverse
 		}
 
 	///	initializes the solver for an operator
-		virtual bool init(SmartPtr<ILinearOperator<X,X> > L)
-		{
+		bool init(SmartPtr<ILinearOperator<X,X> > L) override {
 			if(!base_type::init(L)) return false;
 
 			LS_PROFILE_BEGIN(LS_InitPrecond);
@@ -149,8 +148,7 @@ class IPreconditionedLinearOperatorInverse
 			return true;
 		}
 
-		virtual bool apply(X& x, const X& b)
-		{
+		bool apply(X& x, const X& b) override {
 		//	copy defect
 			SmartPtr<X> spB = b.clone(); X& bTmp = *spB;
 //			X bTmp; bTmp.resize(b.size()); bTmp = b;
@@ -197,7 +195,7 @@ class IPreconditionedLinearOperatorInverse
 		}
 
 	///	returns config information of convergence check and preconditioner
-		std::string config_string_preconditioner_convergence_check() const
+		[[nodiscard]] std::string config_string_preconditioner_convergence_check() const
 		{
 			std::stringstream ss;
 			ss << " Convergence Check: ";
@@ -210,8 +208,7 @@ class IPreconditionedLinearOperatorInverse
 		}
 
 	///	returns information about configuration parameters
-		virtual std::string config_string() const
-		{
+		[[nodiscard]] std::string config_string() const override {
 			std::stringstream ss;
 			ss << name() << "\n" << config_string_preconditioner_convergence_check();
 			return ss.str();

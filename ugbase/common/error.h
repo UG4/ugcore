@@ -172,7 +172,7 @@ class UGError
 class SoftAbort : public UGError
 {
 	public:
-		SoftAbort(std::string msg) : UGError(msg.c_str())	{}
+		SoftAbort(const std::string &msg) : UGError(msg.c_str())	{}
 };
 
 

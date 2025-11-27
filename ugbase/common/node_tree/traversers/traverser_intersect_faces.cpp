@@ -52,7 +52,7 @@ intersect_tri(const vector3& v0, const vector3& v1,
 	
 	m_intersectedElementIDs.clear();
 	
-	Traverser_CollisionTree::apply(nodeGraph);
+	apply(nodeGraph);
 
 	return !m_intersectedElementIDs.empty();
 }

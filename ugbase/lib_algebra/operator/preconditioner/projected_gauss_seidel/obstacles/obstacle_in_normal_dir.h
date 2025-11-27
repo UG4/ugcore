@@ -104,18 +104,18 @@ class ObstacleInNormalDir:
 		ObstacleInNormalDir(): IObstacleConstraint<TDomain,TAlgebra>(){};
 
 	///	preprocess is useful to attach the normals for every obstacle DoF
-		void preprocess();
+		void preprocess() override;
 
 	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
 		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsActive,
-				const DoFIndex& dof);
+				const DoFIndex& dof) override;
 
-		void adjust_defect_to_constraint(vector_type& d);
+		void adjust_defect_to_constraint(vector_type& d) override;
 
-		void restrict_obs_values();
+		void restrict_obs_values() override;
 
 	///	Destructor
-		~ObstacleInNormalDir(){};
+		~ObstacleInNormalDir() override = default;
 
 	private:
 		void transform_eulerian_coord_sys(MathVector<dim> transformedONB[],

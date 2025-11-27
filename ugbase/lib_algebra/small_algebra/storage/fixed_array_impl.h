@@ -43,9 +43,9 @@ namespace ug{
 
 
 template<typename T, size_t nT>
-FixedArray1<T, nT>::FixedArray1(size_t n)
+FixedArray1<T, nT>::FixedArray1(size_t _n)
 {
-	assert(n == nT);
+	assert(_n == nT);
 }
 
 template<typename T, size_t n>
@@ -107,7 +107,8 @@ template<typename T, size_t n>
 std::ostream &operator << (std::ostream &out, const FixedArray1<T, n> &arr)
 {
 	out << "FixedArray (n=" << n << ") [ ";
-	for(typename FixedArray1<T, n>::size_type i=0; i<arr.size(); i++)
+	const typename FixedArray1<T, n>::size_type ssize = arr.size();
+	for(typename FixedArray1<T, n>::size_type i=0; i<ssize; ++i)
 		out << arr[i] << " ";
 	out << "]";
 	return out;

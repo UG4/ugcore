@@ -53,17 +53,17 @@ class Traverser_ProjectPoint : protected Traverser_CollisionTree
 
 	/** after the distance of a point to the geometry has been determined,
 	 *	this funtion returns the id of the element closest to the point.*/
-		CollisionElementID get_closest_element_id();
+		CollisionElementID get_closest_element_id() const;
 		
 	///	returns the type of the element to which the closest distance was found.
 	/**	0: invalid,
 	 *	2: edge,
 	 *	3: triangle*/
 	 	int get_closest_element_type();
+
+		[[nodiscard]] inline number get_distance() const {return m_distance;}
 		
-		inline number get_distance() {return m_distance;}
-		
-		inline vector3 get_closest_point() {return m_closestPoint;}
+		[[nodiscard]] inline vector3 get_closest_point() const {return m_closestPoint;}
 		
 	protected:
 		void handle_group(GroupNode* group) override;

@@ -125,7 +125,7 @@ class IOperatorInverse
 	 *
 	 * \returns std::string	necessary information about configuration parameters
 	 */
-		virtual std::string config_string() const = 0;
+		[[nodiscard]] virtual std::string config_string() const = 0;
 };
 
 

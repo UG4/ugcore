@@ -61,9 +61,9 @@ class Traverser_FindLowestLeafNodeLevel
 			return TRAVERSE_CHILDREN;
 		}
 
-		void visit_down(const tree_t&, size_t)	{}
+		void visit_down(const tree_t&, size_t) const	{}
 
-		void end_traversal(const tree_t&)	{}
+		void end_traversal(const tree_t&) const	{}
 
 		size_t result() const {return m_lowestLeafNodeLvl;}
 
@@ -123,8 +123,8 @@ class Traverser_MinMaxNumElements
 
 		void end_traversal(const tree_t&)	{}
 
-		size_t min_num_elements() const {return m_minNumElements;}
-		size_t max_num_elements() const {return m_maxNumElements;}
+		[[nodiscard]] size_t min_num_elements() const {return m_minNumElements;}
+		[[nodiscard]] size_t max_num_elements() const {return m_maxNumElements;}
 
 	private:
 		size_t m_lvl;
@@ -186,18 +186,18 @@ class Traverser_FindContainingElement
 			return TRAVERSE_CHILDREN;
 		}
 
-		void visit_down(const tree_t&, size_t)	{}
+		void visit_down(const tree_t&, size_t) const {}
 
-		void end_traversal(const tree_t&)	{}
+		void end_traversal(const tree_t&) const {}
 
-		bool result(elem_t& foundElemOut) const
+		[[nodiscard]] bool result(elem_t& foundElemOut) const
 		{
 			if(m_foundElem)
 				foundElemOut = m_elem;
 			return m_foundElem;
 		}
 
-		size_t num_elems_checked() const	{return m_numElemsChecked;}
+		[[nodiscard]] size_t num_elems_checked() const	{return m_numElemsChecked;}
 
 	private:
 		vector_t	m_point;
@@ -259,9 +259,9 @@ class Traverser_FindElementsInIntersectingNodes
 			return TRAVERSE_CHILDREN;
 		}
 
-		void visit_down(const tree_t&, size_t)	{}
+		void visit_down(const tree_t&, size_t) const {}
 
-		void end_traversal(const tree_t&)	{}
+		void end_traversal(const tree_t&) const {}
 
 		const std::vector<elem_t>& result() const	{return m_foundElems;}
 
@@ -308,7 +308,7 @@ bool FindElementsInIntersectingNodes(std::vector<typename tree_t::elem_t>& elems
 template <typename TElem>
 struct RayElemIntersectionRecord
 {
-	RayElemIntersectionRecord()	{}
+	RayElemIntersectionRecord()	= default;
 	RayElemIntersectionRecord(number _smin, number _smax, TElem _elem) :
 		smin(_smin), smax(_smax), elem(_elem)	{}
 
@@ -369,9 +369,9 @@ class Traverser_RayElementIntersection
 			return TRAVERSE_CHILDREN;
 		}
 
-		void visit_down(const tree_t&, size_t)	{}
+		void visit_down(const tree_t&, size_t) const {}
 
-		void end_traversal(const tree_t&)	{}
+		void end_traversal(const tree_t&) const {}
 
 		const std::vector<intersection_record_t>& result() const	{return m_intersections;}
 

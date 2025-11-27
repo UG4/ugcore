@@ -41,7 +41,7 @@ class SmartPtrVector : public std::vector< SmartPtr<T> >
 {
 	using super = std::vector< SmartPtr<T> >;
 private:
-	SmartPtrVector(SmartPtrVector &);
+	SmartPtrVector(SmartPtrVector &) = delete;
 public:
 	SmartPtrVector() : super() {}
 	SmartPtrVector(size_t size) : super(size)

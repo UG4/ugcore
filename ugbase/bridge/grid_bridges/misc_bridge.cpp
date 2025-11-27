@@ -30,7 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "grid_bridges.h"
+//#include "grid_bridges.h"
+#include "registry/registry.h"
 #include "common/space_partitioning/ntree_traverser.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/refinement/hanging_node_refiner_grid.h"

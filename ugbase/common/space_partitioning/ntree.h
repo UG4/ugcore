@@ -181,7 +181,7 @@ class ntree
 	/** warnings are enabled by default. If a problem is detected and warnings
 	 * are enabled, a warning message will be written to stdout.*/
 		void enable_warnings(bool enable)	{m_warningsEnabled = enable;}
-		bool warnings_enabled () const		{return m_warningsEnabled;}
+		[[nodiscard]] bool warnings_enabled () const		{return m_warningsEnabled;}
 
 	///	sets the balancing-parameters of the tree.
 	/** \note	The method has no effect until the next call to 'rebalance',
@@ -190,23 +190,23 @@ class ntree
 		void set_desc(const NTreeDesc& desc);
 
 	///	returns the balancing-parameters of the tree.
-		const NTreeDesc& desc() const;
+		[[nodiscard]] const NTreeDesc& desc() const;
 
 	///	sets the common-data which the tree passes on to callback methods
 		void set_common_data(const common_data_t& commonData);
 
 	///	returns the common-data stored in the tree
-		const common_data_t& common_data() const;
+		[[nodiscard]] const common_data_t& common_data() const;
 
 	///	returns true if the tree is empty
-		bool empty() const;
+		[[nodiscard]] bool empty() const;
 
 	///	returns the number of entries in the tree (delayed entries excluded)
-		size_t size() const;
+		[[nodiscard]] size_t size() const;
 
 	///	returns the number of elements which have been added but are not yet accessible in the tree.
 	/**	\note delayed elements are inserted on a call to rebalance.*/
-		size_t num_delayed_elements() const;
+		[[nodiscard]] size_t num_delayed_elements() const;
 
 	///	adds an element to the tree.
 	/**	The element will only be scheduled for insertion but won't be inserted
@@ -219,30 +219,30 @@ class ntree
 		void rebalance();
 
 	///	returns the total number of nodes in the tree
-		size_t num_nodes() const;
+		[[nodiscard]] size_t num_nodes() const;
 
 	///	returns the number of children of a node
-		size_t num_child_nodes(size_t nodeId) const;
+		[[nodiscard]] size_t num_child_nodes(size_t nodeId) const;
 
 	///	returns an array of child-id's for the given node
 	/**	Use ntree::num_children on the node to retrieve the length of the returned array.*/
-		const size_t* child_node_ids(size_t nodeId) const;
+		[[nodiscard]] const size_t* child_node_ids(size_t nodeId) const;
 
 	///	returns an iterator to the first element of a given node
-		elem_iterator_t elems_begin(size_t nodeId) const;
+		[[nodiscard]] elem_iterator_t elems_begin(size_t nodeId) const;
 
 	///	returns an iterator to the end of the element-sequence of a given node
 	/**	this iterator points one element behind the last element of the sequence.*/
-		elem_iterator_t elems_end(size_t nodeId) const;
+		[[nodiscard]] elem_iterator_t elems_end(size_t nodeId) const;
 
 	///	returns the number of elements that the given node contains
-		size_t num_elements(size_t nodeId) const;
+		[[nodiscard]] size_t num_elements(size_t nodeId) const;
 
 	///	returns the number tree-level in which the node is located
-		size_t level(size_t nodeId) const;
+		[[nodiscard]] size_t level(size_t nodeId) const;
 
 	///	returns the smallest box which contains all elements of the given node
-		const box_t& bounding_box(size_t nodeId) const;
+		[[nodiscard]] const box_t& bounding_box(size_t nodeId) const;
 
 	private:
 	
@@ -250,6 +250,8 @@ class ntree
 		void clear_nodes ();
 		
 	///	static template implementation to raise n to the power exponent
+		// ø todo use metraprogramming util instead of recalculating ?
+		/*
 		template <size_t n, size_t exponent>
 		struct pow;
 
@@ -257,10 +259,10 @@ class ntree
 		struct pow<n, 0>	{static constexpr size_t val = 1;};
 
 		template <size_t n, size_t exponent>
-		struct pow	{static constexpr size_t val = n * pow<n, exponent - 1>::val;};
+		struct pow	{static constexpr size_t val = n * pow<n, exponent - 1>::val;};*/
 
 	///	the number of children each non-leaf node has
-		static constexpr size_t s_numChildren = pow<2, tree_dim>::val;
+		static constexpr size_t s_numChildren = Pow<2, tree_dim>::value;
 
 	///	marks an index as invalid
 		static constexpr size_t s_invalidIndex = -1;

@@ -274,8 +274,7 @@ set_output_process(int procRank)
 }
 
 bool LogAssistant::
-is_output_process()
-{
+is_output_process() const {
 	#ifdef UG_PARALLEL
 		if((m_outputProc == pcl::ProcRank()) || (m_outputProc == -1))
 			return true;
@@ -287,7 +286,7 @@ is_output_process()
 }
 
 int LogAssistant::
-get_process_rank()
+get_process_rank() const
 {
 	#ifdef UG_PARALLEL
 		return pcl::ProcRank();

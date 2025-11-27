@@ -83,7 +83,7 @@ class BiCGStab
 			m_numRestarts(0), m_minOrtho(0.0)
 		{};
 
-		BiCGStab(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond)
+		explicit BiCGStab(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond)
 			: base_type ( spPrecond ),
 			  m_numRestarts(0), m_minOrtho(0.0)
 		{}
@@ -97,10 +97,10 @@ class BiCGStab
 		~BiCGStab() override = default;
 
 	///	name of solver
-		const char* name() const override {return "BiCGStab";}
+		[[nodiscard]] const char* name() const override {return "BiCGStab";}
 
 	///	returns if parallel solving is supported
-		bool supports_parallel() const override {
+		[[nodiscard]] bool supports_parallel() const override {
 			if(preconditioner().valid())
 				return preconditioner()->supports_parallel();
 			return true;
@@ -433,7 +433,7 @@ class BiCGStab
 		}
 
 	public:
-		std::string config_string() const override
+		[[nodiscard]] std::string config_string() const override
 		{
 			std::stringstream ss;
 			ss << "BiCGStab( restart = " << m_numRestarts << ", min_orthogonality = " << m_minOrtho << ")\n";

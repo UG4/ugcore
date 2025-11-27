@@ -94,7 +94,7 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	std::vector<typename ABC_type::connection> con2;
 	//typename C_type::value_type cvalue;
 
-	typename ABC_type::connection c;
+	//typename ABC_type::connection c;
 
 	using cAiterator = typename A_type::const_row_iterator;
 	using cBiterator = typename B_type::const_row_iterator;

@@ -57,7 +57,7 @@ void ParallelProgress::setD(double now)
 	if(now < 0 && now > m_total) return;
 
 
-	int i2=(int)(m_length*now/m_total);
+	int i2=static_cast<int>(m_length * now / m_total);
 	if(i2 != posNow)
 	{
 		for(; posNow<i2; posNow++)

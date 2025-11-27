@@ -137,7 +137,7 @@ private:
 	using factory_sig = TBase* (*)();
 
 	struct ClassInfo {
-		ClassInfo ()	{}
+		ClassInfo () = default;
 		ClassInfo (const char* _name,
 				   factory_sig _factory) :
 			name(_name),

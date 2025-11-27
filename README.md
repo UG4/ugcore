@@ -18,7 +18,7 @@ Please install/clone this repository through *UG4's* package manager
 
 *UG4* is an extensive, flexible, cross-platform open source simulation framework for the numerical solution of systems of partial differential equations. Using *Finite Element* and *Finite Volume* methods on hybrid, adaptive, unstructured multigrid hierarchies, *UG4* allows for the simulation of complex real world models (physical, biological etc.) on massively parallel computer architectures.
 
-*UG4* is implemented in the *C++* programming language and provides grid management, discretization and (linear as well as non-linear) solver utilities. It is extensible and customizable via its plugin mechanism. The highly scalable *MPI* based parallelization of *UG4* has been shown to scale to hundred thousands of cores.
+*UG4* is implemented in the *C++* programming language and provides grid management, discretization and (linear as well as non-linear) solver utilities. It is extensible and customizable via its plugin mechanism. The highly scalable *MPI* based parallelization of *UG4* has been shown to scale to hundred thousand cores.
 
 Simulation workflows are defined either using the *Lua* scripting language or the graphical VRL interface [https://vrl-studio.mihosoft.eu/](https://vrl-studio.mihosoft.eu/). Besides that, UG4 can be used as a library for third-party code.
 

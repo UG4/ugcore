@@ -96,9 +96,9 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 			m_spOrderingAlgo = ordering_algo;
 		}
 
-		const char* name() const override = 0;
+		[[nodiscard]] const char* name() const override = 0;
 	protected:
-		bool supports_parallel() const override {return true;}
+		[[nodiscard]] bool supports_parallel() const override {return true;}
 
 	//	Preprocess routine
 		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
@@ -265,7 +265,7 @@ class GaussSeidel : public GaussSeidelBase<TAlgebra>
 
 public:
 	//	Name of preconditioner
-		const char* name() const override {return "Gauss-Seidel";}
+		[[nodiscard]] const char* name() const override {return "Gauss-Seidel";}
 
 	/// constructor
 		GaussSeidel() = default;
@@ -310,7 +310,7 @@ class BackwardGaussSeidel : public GaussSeidelBase<TAlgebra>
 
 public:
 	//	Name of preconditioner
-		const char* name() const override {return "Backward Gauss-Seidel";}
+		[[nodiscard]] const char* name() const override {return "Backward Gauss-Seidel";}
 
 	/// constructor
 		BackwardGaussSeidel() = default;
@@ -344,7 +344,7 @@ class SymmetricGaussSeidel : public GaussSeidelBase<TAlgebra>
 
 public:
 	//	Name of preconditioner
-		const char* name() const override {return "Symmetric Gauss-Seidel";}
+		[[nodiscard]] const char* name() const override {return "Symmetric Gauss-Seidel";}
 
 	/// constructor
 		SymmetricGaussSeidel() = default;

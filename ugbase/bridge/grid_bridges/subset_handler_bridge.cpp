@@ -30,7 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "grid_bridges.h"
+//#include "grid_bridges.h"
+#include "registry/registry.h"
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/subset_handler.h"
 #include "lib_grid/tools/surface_view.h"

@@ -100,7 +100,7 @@ class IProjGaussSeidel:
 
 
 	/// clone constructor
-		IProjGaussSeidel( const IProjGaussSeidel<TDomain, TAlgebra> &parent )
+		IProjGaussSeidel( const IProjGaussSeidel &parent )
 			: base_type(parent)
 		{
 			m_spvObsConstraint = parent.m_spvObsConstraint;
@@ -118,13 +118,13 @@ class IProjGaussSeidel:
 		}
 
 	///	Destructor
-		~IProjGaussSeidel(){};
+		~IProjGaussSeidel() override = default;
 
 	///	name
-		virtual const char* name() const = 0;
+		const char* name() const override = 0;
 
 	/// Prepare for Operator J(u) and linearization point u (current solution)
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u);
+		bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u) override;
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
 	/**
@@ -135,16 +135,16 @@ class IProjGaussSeidel:
 	 * \param[in]	d			defect
 	 * \param[in]	relax		relaxation parameter
 	 */
-		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax) = 0;
+		void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax) override = 0;
 
 	///	projects the correction on the underlying constraints set by the obstacleConstraints
 		void project_correction(value_type& c_i, const size_t i);
 
 	///	Compute new correction c = B*d
-		virtual bool apply(vector_type& c, const vector_type& d);
+		bool apply(vector_type& c, const vector_type& d) override;
 
 	///	Compute new correction c = B*d and return new defect d := d - A*c
-		virtual bool apply_update_defect(vector_type& c, vector_type& d);
+		bool apply_update_defect(vector_type& c, vector_type& d) override;
 
 	private:
 	///	for all indices stored in vInd:

@@ -59,14 +59,13 @@ class UID
 		UID(const UID& uid)					{m_uID = uid.id();}
 		inline unsigned int id() const		{return m_uID;}
 
-		inline bool operator == (const UID& uid)
-			{
+		inline bool operator == (const UID& uid) const {
 				if(uid.id() == this->id())
 					return true;
 				return false;
 			}
 
-		virtual ~UID() {};
+		virtual ~UID() = default;
 
 	private:
 		unsigned int m_uID;

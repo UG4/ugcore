@@ -172,9 +172,8 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 	if((maxDepth > 0) && (numElems > elemThreshold))
 	{
 	//	yes, we have to create subnodes.
-		vector3 boxMin, boxMax;
-		boxMin = parentNode->min_corner();
-		boxMax = parentNode->max_corner();
+		vector3 boxMin = parentNode->min_corner();
+		vector3 boxMax = parentNode->max_corner();
 		
 		vector3 boxSize;
 		boxSize.x() = boxMax.x() - boxMin.x();

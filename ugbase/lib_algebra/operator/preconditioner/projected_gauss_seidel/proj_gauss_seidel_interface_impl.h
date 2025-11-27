@@ -56,7 +56,7 @@ truncateVec(vector_type& vec, vector<DoFIndex>& vInd)
 	using iter_type = vector<DoFIndex>::iterator;
 	iter_type dofIter = vInd.begin();
 	iter_type dofIterEnd = vInd.end();
-	for( ; dofIter != dofIterEnd; dofIter++)
+	for( ; dofIter != dofIterEnd; ++dofIter)
 	{
 		if (vec.size() <= (*dofIter)[0])
 			UG_THROW("vec size is to small in IProjGaussSeidel::truncateVec \n");
@@ -75,7 +75,7 @@ truncateMat(matrix_type& mat, vector<DoFIndex>& vInd)
 	using iter_type = vector<DoFIndex>::iterator;
 	iter_type dofIter = vInd.begin();
 	iter_type dofIterEnd = vInd.end();
-	for( ; dofIter != dofIterEnd; dofIter++)
+	for( ; dofIter != dofIterEnd; ++dofIter)
 	{
 		UG_LOG("activeDof : " <<*dofIter<< "\n");
 
@@ -110,7 +110,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	using iter_type = typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator;
 	iter_type iter = m_spvObsConstraint.begin();
 	iter_type iterEnd = m_spvObsConstraint.end();
-	for( ; iter != iterEnd; iter++)
+	for( ; iter != iterEnd; ++iter)
 		(*iter)->preprocess();
 
 //	(ugly) hint, that usual damping (x += damp * c) does not make sense for the projected
@@ -147,7 +147,7 @@ project_correction(value_type& c_i, const size_t i)
 		//UG_LOG("dof "<<dof<<"\n");
 		//	set iterator to the first obstacle constraint
 		iter_type iter = m_spvObsConstraint.begin();
-		for( ; iter != iterEnd; iter++)
+		for( ; iter != iterEnd; ++iter)
 		{
 			//	check, if the dof lies in an obstacle subset: if not -> continue!
 			if (!((*iter)->is_obs_dof(dof)))
@@ -222,7 +222,7 @@ apply(vector_type &c, const vector_type& d)
 					iter_type iter = m_spvObsConstraint.begin();
 					iter_type iterEnd = m_spvObsConstraint.end();
 
-					for( ; iter != iterEnd; iter++)
+					for( ; iter != iterEnd; ++iter)
 					{
 						//	1. get all active indices
 						vector<DoFIndex> vActiveDoFs;
@@ -232,7 +232,7 @@ apply(vector_type &c, const vector_type& d)
 						using dof_iter_type = vector<DoFIndex>::iterator;
 						dof_iter_type dofIter = vActiveDoFs.begin();
 						dof_iter_type dofIterEnd = vActiveDoFs.end();
-						for( ; dofIter != dofIterEnd; dofIter++)
+						for( ; dofIter != dofIterEnd; ++dofIter)
 							UG_LOG("activeDof : " <<*dofIter<< "\n");
 
 						/*UG_LOG("\n");
@@ -312,7 +312,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 		iter_type iter = m_spvObsConstraint.begin();
 		iter_type iterEnd = m_spvObsConstraint.end();
 
-		for( ; iter != iterEnd; iter++)
+		for( ; iter != iterEnd; ++iter)
 			(*iter)->adjust_defect_to_constraint(d);
 	}
 

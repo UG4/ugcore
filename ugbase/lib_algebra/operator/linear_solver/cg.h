@@ -82,7 +82,7 @@ class CG
 	///	constructors
 		CG() : base_type() {}
 
-		CG(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond)
+		explicit CG(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond)
 			: base_type ( spPrecond )  {}
 
 		CG(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond, SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
@@ -286,7 +286,7 @@ class CG
 		}
 
 	protected:
-		number VecProd(vector_type& a, vector_type& b)
+		static number VecProd(vector_type& a, vector_type& b)
 		{
 			return a.dotprod(b);
 		}

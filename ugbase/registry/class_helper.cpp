@@ -260,7 +260,7 @@ string PrintParametersIn(const T &thefunc, const char*highlightclassname)
 {
 	std::stringstream ss;
 	ss << "(";
-	size_t ssize = static_cast<size_t>(thefunc.params_in().size());
+	auto ssize = static_cast<size_t>(thefunc.params_in().size());
 	for(size_t i=0; i < ssize; ++i)
 	{
 		if(i>0) ss << ", ";

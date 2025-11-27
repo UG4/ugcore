@@ -62,7 +62,7 @@ public:
 		vecs.push_back(v2);
 	}
 
-	VecScaleAddClass(double scale, SmartPtr<VecScaleAddClass<TAlgebra > > vsac, double scale1, SmartPtr<vector_type> v1)
+	VecScaleAddClass(double scale, SmartPtr<VecScaleAddClass > vsac, double scale1, SmartPtr<vector_type> v1)
 	{
 		scaling.push_back(scale1);
 		vecs.push_back(v1);
@@ -73,7 +73,7 @@ public:
 		}
 	}
 
-	VecScaleAddClass(double scale1, SmartPtr<vector_type> v1, double scale, SmartPtr<VecScaleAddClass<TAlgebra > > vsac)
+	VecScaleAddClass(double scale1, SmartPtr<vector_type> v1, double scale, SmartPtr<VecScaleAddClass > vsac)
 	{
 		scaling.push_back(scale1);
 		vecs.push_back(v1);
@@ -84,7 +84,7 @@ public:
 		}
 	}
 
-	VecScaleAddClass(double scale, SmartPtr<VecScaleAddClass<TAlgebra > > vsac)
+	VecScaleAddClass(double scale, SmartPtr<VecScaleAddClass > vsac)
 	{
 		for(size_t i=0; i<vsac->size(); i++)
 		{
@@ -93,9 +93,9 @@ public:
 		}
 	}
 
-	VecScaleAddClass() {}
+	VecScaleAddClass() = default;
 
-	VecScaleAddClass(const VecScaleAddClass<TAlgebra> &parent) :
+	VecScaleAddClass(const VecScaleAddClass &parent) :
 		scaling(parent.scaling), vecs(parent.vecs)
 	{	}
 

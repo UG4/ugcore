@@ -55,7 +55,7 @@ public:
 		}else{
 		}
 	}
-	explicit BidirectionalMatrix(BidirectionalMatrix const& o)
+	BidirectionalMatrix(BidirectionalMatrix const& o)
 	    : _matrix(o._matrix) {
 		_matrix_transpose = o._matrix_transpose; // BUG: missing copy constructor.
 	}
@@ -80,13 +80,13 @@ public: // interface
 #endif
 	}
 
-	int num_rows() const {
+	[[nodiscard]] int num_rows() const {
 		return std::max(_matrix->num_rows(), _matrix->num_cols());
 	}
-	int num_cols() const { untested();
+	[[nodiscard]] int num_cols() const { untested();
 		return num_rows();
 	}
-	int num_connections(int v) const {
+	[[nodiscard]] int num_connections(int v) const {
 		if(v<_matrix->num_rows()){
 			return _matrix->num_connections(v);
 		}else{
@@ -94,30 +94,30 @@ public: // interface
 			return _matrix_transpose.num_connections(v);
 		}
 	}
-	int out_degree(int v) const {
+	[[nodiscard]] int out_degree(int v) const {
 		assert(_matrix);
-		if(size_t(v)<_matrix->num_rows()){
+		if(static_cast<size_t>(v) <_matrix->num_rows()){
 			assert(size_t(v)<_matrix->num_rows());
 			return boost::out_degree(v, *_matrix);
 		}else{
 			return 0;
 		}
 	}
-	int in_degree(int v) const {
+	[[nodiscard]] int in_degree(int v) const {
 		// could use difference, requires zero-pruning in _matrix_transpose.
-		if(size_t(v)<_matrix_transpose.num_rows()){
+		if(static_cast<size_t>(v)<_matrix_transpose.num_rows()){
 			return boost::out_degree(v, _matrix_transpose);
 		}else{
 			return 0;
 		}
 	}
-	int degree(int v) const { untested();
+	[[nodiscard]] int degree(int v) const { untested();
 		return 2*out_degree(v);
 	}
 
 	const_row_iterator begin_row(int row) const {
 		assert(_matrix);
-		if(size_t(row)<_matrix->num_rows()){
+		if(static_cast<size_t>(row)<_matrix->num_rows()){
 		}else{
 			row = 0;
 		}
@@ -125,7 +125,7 @@ public: // interface
 	}
 	const_row_iterator end_row(int row) const {
 		assert(_matrix);
-		if(size_t(row)<_matrix->num_rows()){
+		if(static_cast<size_t>(row)<_matrix->num_rows()){
 			return _matrix->end_row(row);
 		}else{
 			return _matrix->begin_row(0);
@@ -133,14 +133,14 @@ public: // interface
 	}
 
 	const_row_iterator begin_col(int col) const {
-		if(size_t(col)<_matrix_transpose.num_rows()){
+		if(static_cast<size_t>(col)<_matrix_transpose.num_rows()){
 		}else{
 			col = 0;
 		}
 		return _matrix_transpose.begin_row(col);
 	}
 	const_row_iterator end_col(int col) const {
-		if(size_t(col)<_matrix_transpose.num_rows()){
+		if(static_cast<size_t>(col)<_matrix_transpose.num_rows()){
 			return _matrix_transpose.end_row(col);
 		}else{
 			return _matrix_transpose.begin_row(0);

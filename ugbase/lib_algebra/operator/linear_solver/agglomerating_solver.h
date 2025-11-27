@@ -82,7 +82,7 @@ class AgglomeratingBase : public TBase
 
 	public:
 	// 	Destructor
-		virtual ~AgglomeratingBase() {};
+		~AgglomeratingBase() override = default;
 
 		bool i_am_root()
 		{
@@ -214,7 +214,7 @@ class AgglomeratingBase : public TBase
 			return base_init(op);
 		}
 
-		virtual bool apply(vector_type& x, const vector_type& b)
+		bool apply(vector_type& x, const vector_type& b) override
 		{
 			try{
 
@@ -256,7 +256,7 @@ class AgglomeratingBase : public TBase
 			return true;
 		}
 
-		virtual bool apply_update_defect(vector_type& u, vector_type& f)
+		bool apply_update_defect(vector_type& u, vector_type& f) override
 		{
 			PROFILE_FUNC();
 		//	solve u
@@ -317,44 +317,43 @@ class AgglomeratingSolver : public
 			m_name = std::string("AgglomeratingSolver(") + linOpInverse->name() + ")";
 		};
 
-		virtual bool init_agglomerated(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
-		{
+		bool init_agglomerated(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op) override {
 			try{
 				return m_pLinOpInverse->init(Op);
 			}UG_CATCH_THROW("AgglomeratingSolver::" << __FUNCTION__ << " failed")
 		}
-		virtual bool apply_agglomerated(vector_type& x, const vector_type& b)
-		{
+
+		bool apply_agglomerated(vector_type& x, const vector_type& b) override {
 			try{
 				return m_pLinOpInverse->apply(x, b);
 			}UG_CATCH_THROW("AgglomeratingSolver::" << __FUNCTION__ << " failed")
 		}
 
 	// 	Destructor
-		virtual ~AgglomeratingSolver() {};
+		virtual ~AgglomeratingSolver() = default;
 
 
-		virtual const char* name() const
+		[[nodiscard]] const char* name() const override
 		{
 			return m_name.c_str();
 		}
 
-		virtual bool supports_parallel() const { return true; }
+		[[nodiscard]] bool supports_parallel() const override { return true; }
 
-		virtual std::string config_string() const
+		[[nodiscard]] std::string config_string() const override
 		{
 			return std::string("AgglomeratingSolver: ") + m_pLinOpInverse->config_string();
 		}
 
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > A)
+		bool init(SmartPtr<ILinearOperator<vector_type> > A) override
 		{
 			return base_type::base_init(A);
 		}
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > A, const vector_type& u)
+		bool init(SmartPtr<ILinearOperator<vector_type> > A, const vector_type& u) override
 		{
 			return base_type::base_init(A);
 		}
-		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
+		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op) override
 		{
 			return base_type::base_init(Op);
 		}
@@ -392,48 +391,47 @@ class AgglomeratingIterator : public
 			m_name = std::string("AgglomeratingIterator(") + splinIt->name() + std::string(")");
 		}
 
-		virtual bool init_agglomerated(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
-		{
+		bool init_agglomerated(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op) override {
 			try{
 				return m_splinIt->init(Op);
 			}UG_CATCH_THROW("AgglomeratingIterator::" << __FUNCTION__ << " failed")
 		}
-		virtual bool apply_agglomerated(vector_type& x, const vector_type& b)
-		{
+
+		bool apply_agglomerated(vector_type& x, const vector_type& b) override {
 			try{
 				return m_splinIt->apply(x, b);
 			}UG_CATCH_THROW("AgglomeratingIterator::" << __FUNCTION__ << " failed")
 		}
 
 	// 	Destructor
-		virtual ~AgglomeratingIterator() {};
+		~AgglomeratingIterator() override = default;
 
 
-		virtual const char* name() const
+		const char* name() const override
 		{
 			return m_name.c_str();
 		}
 
-		virtual bool supports_parallel() const { return true; }
+		bool supports_parallel() const override { return true; }
 
 		///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
+		SmartPtr<ILinearIterator<vector_type> > clone() override
 		{
 			SmartPtr<ILinearIterator<vector_type> > linIt = m_splinIt->clone();
 			return make_sp(new AgglomeratingIterator<algebra_type>(linIt));
 		}
 
-		virtual std::string config_string() const
+		std::string config_string() const override
 		{
 			return std::string("AgglomeratingIterator: ") + m_splinIt->config_string();
 		}
 
 
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > A)
+		bool init(SmartPtr<ILinearOperator<vector_type> > A) override
 		{
 			return base_type::base_init(A);
 		}
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > A, const vector_type& u)
+		bool init(SmartPtr<ILinearOperator<vector_type> > A, const vector_type& u) override
 		{
 			return base_type::base_init(A);
 		}
@@ -462,51 +460,50 @@ class AgglomeratingPreconditioner: public
 		using base_type = AgglomeratingBase<IPreconditioner<TAlgebra>, TAlgebra >;
 
 	public:
-		AgglomeratingPreconditioner(SmartPtr<ILinearIterator<vector_type> > splinIt)
+		explicit AgglomeratingPreconditioner(SmartPtr<ILinearIterator<vector_type> > splinIt)
 		{
 			UG_COND_THROW(splinIt.valid()==false, "linOpInverse has to be != nullptr");
 			m_splinIt = splinIt;
 			m_name = std::string("AgglomeratingPreconditioner(") + splinIt->name() + std::string(")");
 		}
 
-		virtual bool init_agglomerated(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
-		{
+		bool init_agglomerated(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op) override {
 			try{
 				return m_splinIt->init(Op);
 			}UG_CATCH_THROW("AgglomeratingIterator::" << __FUNCTION__ << " failed")
 		}
-		virtual bool apply_agglomerated(vector_type& x, const vector_type& b)
-		{
+
+		bool apply_agglomerated(vector_type& x, const vector_type& b) override {
 			try{
 				return m_splinIt->apply(x, b);
 			}UG_CATCH_THROW("AgglomeratingIterator::" << __FUNCTION__ << " failed")
 		}
 
 	// 	Destructor
-		virtual ~AgglomeratingPreconditioner() {};
+		~AgglomeratingPreconditioner() override = default;
 
 
-		virtual const char* name() const
+		const char* name() const override
 		{
 			return m_name.c_str();
 		}
 
-		virtual bool supports_parallel() const { return true; }
+		bool supports_parallel() const override { return true; }
 
 		///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
+		SmartPtr<ILinearIterator<vector_type> > clone() override
 		{
 			SmartPtr<ILinearIterator<vector_type> > linIt = m_splinIt->clone();
 			return make_sp(new AgglomeratingIterator<algebra_type>(linIt));
 		}
 
-		virtual std::string config_string() const
+		std::string config_string() const override
 		{
 			return std::string("AgglomeratingPreconditioner: ") + m_splinIt->config_string();
 		}
 
-		virtual bool postprocess() { return true; }
-		virtual bool preprocess(SmartPtr<MatrixOperator<typename TAlgebra::matrix_type, typename TAlgebra::vector_type> > pOp)
+		bool postprocess() override { return true; }
+		bool preprocess(SmartPtr<MatrixOperator<typename TAlgebra::matrix_type, typename TAlgebra::vector_type> > pOp) override
 		{
 			return base_type::base_init(pOp);
 		}

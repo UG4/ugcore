@@ -60,12 +60,11 @@ class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 
 	public:
 	///	Constructor
-		AlgebraDebugWriter() : base_type() {}
+		AlgebraDebugWriter() = default;
 
 	///	write vector
-		virtual void write_vector(const vector_type& vec,
-		                          const char* filename)
-		{
+		void write_vector(const vector_type& vec,
+	                  const char* filename) override {
 			switch (base_type::current_dimension())
 			{
 				case 1: write_vector_dim<1>(vec, filename); break;
@@ -76,9 +75,8 @@ class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 		}
 
 	///	write matrix
-		virtual void write_matrix(const matrix_type& mat,
-		                          const char* filename)
-		{
+		void write_matrix(const matrix_type& mat,
+	                  const char* filename) override {
 		//	check name
 			if( !FileTypeIs( filename, ".mat" ) ) {
 				UG_THROW( "Only '.mat' format supported for matrices, but"

@@ -44,7 +44,7 @@ std::string scientificStr(double d, size_t width)
 {
 	std::stringstream s;
 	if(d < 0)
-		std::setprecision(width-7);
+		s << std::setprecision(width-7);
 	else
 		s << std::setprecision(width-6);
 	s << std::left << std::scientific << std::setw(width) << d;
@@ -65,7 +65,7 @@ std::string cutString(double d, size_t width)
 
 std::string HistogrammString(std::vector<double> values)
 {
-	if(values.size() == 0) return "";
+	if(values.empty()) return "";
 	std::stringstream ss;
 	std::sort(values.begin(), values.end());
 
@@ -116,7 +116,7 @@ std::string HistogrammString(std::vector<double> values)
 
 std::string DistributionPercentage(std::vector<double> values)
 {
-	if(values.size() == 0) return "";
+	if(values.empty()) return "";
 	std::stringstream ss;
 	std::sort(values.begin(), values.end());
 

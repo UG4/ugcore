@@ -39,7 +39,7 @@ namespace node_tree
 ////////////////////////////////////////////////////////////////////////
 SPCollisionTrianglesNode CollisionTrianglesNode::create()
 {
-	CollisionTrianglesNode* node = new CollisionTrianglesNode;
+	auto node = new CollisionTrianglesNode;
 	node->m_objectCode = OC_COLLISION_TRIANGLES_NODE;
 	return SPCollisionTrianglesNode(node);
 }

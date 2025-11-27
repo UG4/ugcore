@@ -94,25 +94,25 @@ class SchurComplementOperator
 	}
 
 	// destructor
-	virtual ~SchurComplementOperator() {};
+	~SchurComplementOperator() override = default;
 
 	///	name of solver
 	virtual const char* name() const {return "My local Schur complement Solver";}
 
 
 	/// implementation of the operator for the solution dependent initialization.
-	void init(const vector_type& u) {init();}
+	void init(const vector_type& u) override {init();}
 
 	///	initializes the solver for operator A
-	virtual void init();
+	void init() override;
 
 	///	applies the Schur complement built from matrix operator set via 'set_matrix()'
 	/// to 'u' and returns the result 'f := S times u'
-	virtual void apply(vector_type& f, const vector_type& u);
+	void apply(vector_type& f, const vector_type& u) override;
 
 	///	applies the Schur complement built from matrix operator set via 'set_matrix()'
 	/// to 'u' and returns the result 'f := f - S times u'
-	virtual void apply_sub(vector_type& f, const vector_type& u);
+	void apply_sub(vector_type& f, const vector_type& u) override;
 
 	//	save current operator
 	void set_matrix(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
@@ -129,8 +129,9 @@ class SchurComplementOperator
 	SmartPtr<MatrixOperator<matrix_type, vector_type> > sub_operator(int r, int c)
 	{return m_op[r][c];}
 
-	size_t sub_size(schur_slice_desc_type type)
-	{return m_slicing.get_num_elems(type);}
+	size_t sub_size(schur_slice_desc_type type) const {
+		return m_slicing.get_num_elems(type);
+	}
 
 	const SchurSlicingData &slicing() const
 	{return m_slicing;}

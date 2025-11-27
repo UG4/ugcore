@@ -207,7 +207,7 @@ void sgs_step(const Matrix_type &A, Vector_type &c, const Vector_type &d, const 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //	diag_step
-/**
+/***
  * \brief Performs a jacobi-step
  * \param A Matrix \f$A = D - L - R\f$
  * \param c will be \f$c = N * d = D^{-1} d \f$

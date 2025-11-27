@@ -114,11 +114,11 @@ struct AlgebraTypeIDProvider
 		struct AlgebraIDBase
 		{
 			// needed - otherwise compiler will assume AlgebraIDBase is not polymorphic
-			virtual ~AlgebraIDBase() {};
+			virtual ~AlgebraIDBase() = default;
 		};
 
 		template <typename TAlgebra>
-		struct AlgebraID : public AlgebraIDBase {};
+		struct AlgebraID : AlgebraIDBase {};
 
 		template <typename TAlgebra>
 		void reg()

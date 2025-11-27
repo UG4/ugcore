@@ -38,7 +38,7 @@ namespace node_tree
 
 SPGroupNode GroupNode::create()
 {
-	GroupNode* node = new GroupNode;
+	auto* node = new GroupNode;
 	node->m_objectCode = OC_GROUP_NODE;
 	return SPGroupNode(node);
 }
@@ -56,8 +56,7 @@ void GroupNode::add_child(SPNode node)
 
 void GroupNode::remove_child(SPNode node)
 {
-	for(std::vector<SPNode>::iterator iter = vChildren.begin();
-		iter != vChildren.end(); iter++)
+	for(auto iter = vChildren.begin(); iter != vChildren.end(); ++iter)
 	{
 		SPNode& spNode = *iter;
 		if(spNode == node)
@@ -68,12 +67,12 @@ void GroupNode::remove_child(SPNode node)
 	}
 }
 
-int GroupNode::num_children()
+int GroupNode::num_children() const
 {
 	return vChildren.size();
 }
 
-SPNode GroupNode::get_child(int index)
+SPNode GroupNode::get_child(int index) const
 {
 	return vChildren[index];
 }

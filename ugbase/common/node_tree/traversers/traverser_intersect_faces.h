@@ -74,7 +74,7 @@ class Traverser_IntersectFaces : protected Traverser_CollisionTree
 
 	/** after the intersection with the geometry has been performed,
 	 *	this function returns the ids of the intersected elements.*/
-		const std::vector<CollisionElementID>& get_intersected_element_ids() const;
+		[[nodiscard]] const std::vector<CollisionElementID>& get_intersected_element_ids() const;
 		
 	protected:
 		void handle_boxed_group(BoxedGroupNode* boxedGroup) override;

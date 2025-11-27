@@ -148,7 +148,7 @@ class IConvergenceCheck
 		virtual SmartPtr<IConvergenceCheck<TVector> > clone() = 0;
 
 		/// virtual destructor
-		virtual ~IConvergenceCheck() {};
+		virtual ~IConvergenceCheck() = default;
 
 		///	returns information about configuration parameters
 		/**
@@ -190,44 +190,43 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 		void set_reduction(number relReduction) {m_relReduction = relReduction;}
 		void set_supress_unsuccessful(bool bsupress){ m_supress_unsuccessful = bsupress; }
 
-		void start_defect(number initialDefect);
+		void start_defect(number initialDefect) override;
 
-		void start(const TVector& d);
+		void start(const TVector& d) override;
 
-		void update_defect(number newDefect);
+		void update_defect(number newDefect) override;
 
-		void update(const TVector& d);
+		void update(const TVector& d) override;
 
-		bool iteration_ended();
+		bool iteration_ended() override;
 
-		bool post();
+		bool post() override;
 
-		virtual std::string config_string() const
+		std::string config_string() const override
 		{
 			std::stringstream ss;
 			ss << "StdConvCheck( max steps = " << m_maxSteps << ", min defect = " << m_minDefect << ", relative reduction = " << m_relReduction << ")";
 			return ss.str();
 		}
 
-		number reduction() const {return m_currentDefect/m_initialDefect;};
-		number defect() const {return m_currentDefect;};
+		number reduction() const override {return m_currentDefect/m_initialDefect;};
+		number defect() const override {return m_currentDefect;};
 		number previous_defect() const { return m_lastDefect; }
-		int step() const {return m_currentStep;}
-		number rate() const {return m_currentDefect/m_lastDefect;};
-		number avg_rate() const {return std::pow((number)m_ratesProduct,(number)1.0/step());}
+		int step() const override {return m_currentStep;}
+		number rate() const override {return m_currentDefect/m_lastDefect;};
+		number avg_rate() const override {return std::pow((number)m_ratesProduct,(number)1.0/step());}
 
-		int get_offset() const {return m_offset;}
-		void set_offset(int offset){m_offset = offset;}
-		void set_symbol(char symbol){m_symbol = symbol;}
-		void set_name(std::string name) {m_name = name;}
-		void set_info(std::string info) {m_info = info;}
+		int get_offset() const override {return m_offset;}
+		void set_offset(int offset) override {m_offset = offset;}
+		void set_symbol(char symbol) override {m_symbol = symbol;}
+		void set_name(std::string name) override {m_name = name;}
+		void set_info(std::string info) override {m_info = info;}
 		const std::vector<number> get_defects() const { return _defects;}
 		number get_defect(size_t i) const { return _defects[i];}
-		void print_line(std::string line);
+		void print_line(std::string line) override;
 
-		virtual SmartPtr<IConvergenceCheck<TVector> > clone()
-		{
-			SmartPtr<StdConvCheck<TVector> > newInst(new StdConvCheck<TVector>);
+		SmartPtr<IConvergenceCheck<TVector> > clone() override {
+			SmartPtr<StdConvCheck > newInst(new StdConvCheck);
 			// use std assignment (implicit member-wise is fine here)
 			*newInst = *this;
 			return newInst;

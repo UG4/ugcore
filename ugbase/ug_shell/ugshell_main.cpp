@@ -119,7 +119,7 @@ void ugshell_print_header()
 
 	aux_str = "";
 	aux_str.append("*                    compiled '").append(UGCompileDate()).append("'");
-	LOG(AppendSpacesToString(aux_str,80-0).append("*\n"));
+	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 
 	aux_str = "";
 	aux_str.append("*                    on '").append(UGBuildHost()).append("'");
@@ -384,11 +384,11 @@ int ugshell_main(int argc, char* argv[])
 	if(ParamToString(&pluginPath, "-pluginpath", argc, argv))
 		SetPluginPath(pluginPath);
 
-	#ifdef UG_PARALLEL
-		const bool parallelEnvironment = (pcl::NumProcs() > 1);
-	#else
-		const bool parallelEnvironment = false;
-	#endif
+#ifdef UG_PARALLEL
+	const bool parallelEnvironment = (pcl::NumProcs() > 1);
+#else
+	const bool parallelEnvironment = false;
+#endif
 
 ////////////////////////////////
 // DO NOT PRINT HEADER AND TRAILER

@@ -99,7 +99,7 @@ public:
 	}
 	
 ///	returns the number of the operations
-	size_t size () {return m_pp_chain.size ();}
+	[[nodiscard]] size_t size () const {return m_pp_chain.size ();}
 	
 ///	returns the operation #i
 	SmartPtr<p_process_type> operator [] (size_t i) {return m_pp_chain [i];}

@@ -95,7 +95,7 @@ static inline bool DirectoryExists( std::string filename)
  * \return \c true if the specified file exists, \c false otherwise
  */
 UG_API bool FileExists( const char *filename );
-static inline bool FileExists( std::string filename)
+static inline bool FileExists(const std::string &filename)
 {
 	return FileExists(filename.c_str());
 }
@@ -109,7 +109,7 @@ static inline bool FileExists( std::string filename)
  *                            be opened for reading.
  */
 UG_API size_t FileSize( const char *filename );
-static inline size_t FileSize( std::string filename)
+static inline size_t FileSize(const std::string &filename)
 {
 	return FileSize(filename.c_str());
 }
@@ -162,7 +162,7 @@ UG_API bool CreateDirectory(const char *directory, int mode);
  * \param[in] directory name of the directory
  * \return true if successfull
  */
-static inline bool CreateDirectory(std::string directory)
+static inline bool CreateDirectory(const std::string &directory)
 {
 	return CreateDirectoryTMP(directory.c_str());
 }
@@ -207,7 +207,7 @@ UG_API bool ReadFile(const char* filename, std::vector<char> &file, bool bText);
  * \return filenameXXXXXX.extension, where XXXXXX is some number between 1 and 999999,
  *			so that the file doesn't exist yet.
  */
-UG_API std::string MakeTmpFile(std::string filename, const std::string &extension,
+UG_API std::string MakeTmpFile(const std::string &filename, const std::string &extension,
 		bool &bSuccess);
 
 ///	Changes the current directory

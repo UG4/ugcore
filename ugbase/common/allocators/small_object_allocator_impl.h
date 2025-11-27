@@ -38,7 +38,7 @@ SmallObjectAllocator<maxObjSize, maxChunkSize>&
 SmallObjectAllocator<maxObjSize, maxChunkSize>::
 inst()
 {
-	static SmallObjectAllocator<maxObjSize, maxChunkSize> alloc;
+	static SmallObjectAllocator alloc;
 	return alloc;
 }
 

@@ -99,7 +99,7 @@ class ILinearOperatorInverse : public ILinearIterator<X,Y>
 		{}
 
 	/// virtual destructor
-		virtual ~ILinearOperatorInverse() {};
+		~ILinearOperatorInverse() override = default;
 
 	///	returns the name of the operator inverse
 	/**
@@ -109,7 +109,7 @@ class ILinearOperatorInverse : public ILinearIterator<X,Y>
 	 *
 	 * \returns 	const char* 	name of inverse operator
 	 */
-		virtual const char* name() const = 0;
+		[[nodiscard]] const char* name() const override = 0;
 
 
 	///	returns information about configuration parameters
@@ -119,10 +119,10 @@ class ILinearOperatorInverse : public ILinearIterator<X,Y>
 	 *
 	 * \returns std::string	necessary information about configuration parameters
 	 */
-		virtual std::string config_string() const { return name(); }
+		[[nodiscard]] std::string config_string() const override { return name(); }
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const = 0;
+		[[nodiscard]] bool supports_parallel() const override = 0;
 
 	/// initializes for the inverse for a linear operator
 	/**
@@ -132,8 +132,7 @@ class ILinearOperatorInverse : public ILinearIterator<X,Y>
 	 * \param[in]	L		linear operator to invert
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(SmartPtr<ILinearOperator<Y,X> > L)
-		{
+		[[nodiscard]] bool init(SmartPtr<ILinearOperator<Y,X> > L) override {
 		//	remember operator
 			m_spLinearOperator = L;
 			return true;
@@ -151,8 +150,7 @@ class ILinearOperatorInverse : public ILinearIterator<X,Y>
 	 * \param[in]	u		linearization point
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u)
-		{
+		[[nodiscard]] bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) override {
 		//	remember operator
 			m_spLinearOperator = J;
 			return true;
@@ -169,7 +167,7 @@ class ILinearOperatorInverse : public ILinearIterator<X,Y>
 	 * \param[out]	u		solution
 	 * \returns		bool	success flag
 	 */
-		virtual bool apply(Y& u, const X& f) = 0;
+		[[nodiscard]] bool apply(Y& u, const X& f) override = 0;
 
 	///	applies inverse operator, i.e. returns u = A^{-1} f and returns defect d := f - A*u
 	/**
@@ -187,13 +185,11 @@ class ILinearOperatorInverse : public ILinearIterator<X,Y>
 	 */
 		virtual bool apply_return_defect(Y& u, X& f) = 0;
 
-		virtual bool apply_update_defect(Y& u, X& f)
-		{
+		[[nodiscard]] bool apply_update_defect(Y& u, X& f) override {
 			return apply_return_defect(u,f);
 		}
 
-		virtual SmartPtr<ILinearIterator<X,Y> > clone()
-		{
+		[[nodiscard]] SmartPtr<ILinearIterator<X,Y> > clone() override {
 			UG_THROW("No cloning implemented.");
 			return nullptr;
 		}

@@ -62,8 +62,8 @@ class BoxedGroupNode : public GroupNode
 		virtual void set_box(const vector3& minCorner,
 							 const vector3& maxCorner);
 
-		virtual const vector3& min_corner() const;
-		virtual const vector3& max_corner() const;
+		[[nodiscard]] virtual const vector3& min_corner() const;
+		[[nodiscard]] virtual const vector3& max_corner() const;
 
 	protected:
 		BoxedGroupNode() = default;

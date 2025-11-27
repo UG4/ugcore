@@ -114,14 +114,14 @@ UG_API void RemoveWhitespaceFromString(std::string& string);
 
 /**
  * \brief removes all white space from the front and end of a string
- * \param[in] string the string to modify
+ * \param[in] str the string to modify
  * \return the modified string
  */
 UG_API std::string TrimString(const std::string& str);
 
 /**
  * \brief creates a truncated string and may add truncation symbol at end
- * \param[in] string 		the string to modify
+ * \param[in] str 		the string to modify
  * \param[in] totalSize		the total size of snippet
  * \param[in] replaceLast	the number of last chars to be replaced by symbol
  * \param[in] replace		the replace symbol
@@ -132,9 +132,9 @@ UG_API std::string SnipString(const std::string& str, size_t totalSize,
 
 /**
  * \brief creates a truncated string and may add truncation symbol at front
- * \param[in] string 		the string to modify
+ * \param[in] str 		the string to modify
  * \param[in] totalSize		the total size of snippet
- * \param[in] replaceLast	the number of last chars to be replaced by symbol
+ * \param[in] replaceFront	the number of first chars to be replaced by symbol
  * \param[in] replace		the replace symbol
  * \return the modified string
  */
@@ -161,7 +161,7 @@ UG_API int NumberOfDigits(int n);
  * \param[in]     counter    counter added
  * \param[in]     maxCounter maximum counter to be added
  */
-UG_API void AppendCounterToString( std::string& str, std::string indicator,
+UG_API void AppendCounterToString( std::string& str, const std::string &indicator,
                                    int counter, int maxCounter=-1 );
 
 /**

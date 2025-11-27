@@ -73,8 +73,7 @@ void
 ScalarLowerObstacle<TDomain, TAlgebra>::
 adjust_defect_to_constraint(vector_type& d)
 {
-	for (std::vector<MultiIndex<2> >::iterator itActiveInd = m_vActiveDofs.begin();
-			itActiveInd < m_vActiveDofs.end(); ++itActiveInd)
+	for (auto itActiveInd = m_vActiveDofs.begin(); itActiveInd < m_vActiveDofs.end(); ++itActiveInd)
 	{
 		//	check, if Ax <= b. For that case the new defect is set to zero,
 		//	since all equations/constraints are fulfilled
@@ -127,8 +126,7 @@ void
 ScalarUpperObstacle<TDomain, TAlgebra>::
 adjust_defect_to_constraint(vector_type& d)
 {
-	for (std::vector<MultiIndex<2> >::iterator itActiveInd = m_vActiveDofs.begin();
-			itActiveInd < m_vActiveDofs.end(); ++itActiveInd)
+	for (auto itActiveInd = m_vActiveDofs.begin(); itActiveInd < m_vActiveDofs.end(); ++itActiveInd)
 	{
 		//	check, if Ax > b. For that case the new defect is set to zero,
 		//	since all equations/constraints are fulfilled

@@ -160,7 +160,7 @@ public:
 	{
 		return config_string();
 	}
-	virtual std::string config_string() const
+	[[nodiscard]] virtual std::string config_string() const
 	{
 		std::stringstream ss;
 		ss << "PINVIT Eigensolver by Martin Rupp / G-CSC 2013-2015." <<
@@ -378,7 +378,9 @@ public:
 		m_bPrintUsedTestvectors = b;
 	}
 
-	void print_projected_eigenvectors(DenseMatrix<VariableArray2<double> > &r_ev, std::vector<std::complex<double> > &r_lambda, std::vector<std::string> &vTestVectorDescription)
+	void print_projected_eigenvectors(const DenseMatrix<VariableArray2<double> > &r_ev,
+									const std::vector<std::complex<double> > &r_lambda,
+									const std::vector<std::string> &vTestVectorDescription) const
 	{
 		UG_LOG("evs: \n");
 		for(size_t c=0; c < r_ev.num_cols(); c++)
@@ -425,12 +427,11 @@ public:
 	std::vector<std::vector<double> > m_defects;
 	std::vector<std::vector<double> > m_lambdas;
 
-	size_t get_iterations()
-	{
+	size_t get_iterations() const {
 		return m_iteration;
 	}
 
-	double get_defect(size_t nev, size_t it)
+	double get_defect(size_t nev, size_t it) const
 	{
 		UG_COND_THROW(m_bStoreDefects == false, "Not storing defects. Use set_store_defects(true).");
 		UG_COND_THROW(nev > m_defects.size(), nev << " > #EV" << m_defects.size());
@@ -438,7 +439,7 @@ public:
 		return m_defects[nev][it];
 	}
 
-	double get_lambda(size_t nev, size_t it)
+	double get_lambda(size_t nev, size_t it) const
 	{
 		UG_COND_THROW(m_bStoreLambdas == false, "Not storing lambdas. Use set_store_lambdas(true).");
 		UG_COND_THROW(nev > m_lambdas.size(), nev << " > #EV" << m_lambdas.size());
@@ -810,7 +811,7 @@ public:
 		}UG_CATCH_THROW("PINVIT::set_new_approximations_and_save_old failed.");
 	}
 
-	void assert_real_positive(const std::vector<std::complex<double> > &r_lambda)
+	void assert_real_positive(const std::vector<std::complex<double> > &r_lambda) const
 	{
 		PINVIT_PROFILE_FUNC();
 		try{
@@ -930,8 +931,7 @@ private:
 	 * @param[in]  x			current normalized eigenvalue approximation (<x,x> = 1)
 	 * @param[out] lambda		lambda = <x, Ax> / <x, Bx>
 	 * @param[out] defect		defect = lambda x - Ax
-	 * @param[out] vDefectNorm 	vDefectNorm = | defect |_2
-	 * @param[out] vCorr		P defect
+	 * @param[out] defectNorm 	vDefectNorm = | defect |_2
 	 */
 	void compute_rayleigh_and_defect(vector_type &x, double &lambda, vector_type &defect, double &defectNorm)
 	{
@@ -983,9 +983,13 @@ private:
 	 * @param[in] 		vDefectNorm		vector of defect norms
 	 * @param[in,out] 	vOldDefectNorm	vector of defect norms from previous iteration
 	 * @param[in] 		vLambda			vector of eigenvalue approximations
+	 * @param bConverged[in]
 	 */
-	void print_eigenvalues_and_defect(int iteration, const std::vector<double> &vDefectNorm,
-			std::vector<double> &vOldDefectNorm, const std::vector<double> &vLambda, std::vector<bool> &bConverged)
+	void print_eigenvalues_and_defect(int iteration,
+									const std::vector<double> &vDefectNorm,
+									std::vector<double> &vOldDefectNorm,
+									const std::vector<double> &vLambda,
+									std::vector<bool> &bConverged) const
 	{
 		PINVIT_PROFILE_FUNC();
 		UG_LOG("=====================================================================================\n");
@@ -1110,7 +1114,8 @@ private:
 	 * @param[in]  mat					the input matrix
 	 * @param[out] bLinearIndependent	output vector (true if linear independent)
 	 */
-	void get_linear_independent_rows(DenseMatrix<VariableArray2<double> > mat, std::vector<bool> &bLinearIndependent)
+	void get_linear_independent_rows(DenseMatrix<VariableArray2<double> > mat,
+									std::vector<bool> &bLinearIndependent) const
 	{
 		PINVIT_PROFILE_FUNC();
 		// Remove linear depended vectors
@@ -1148,7 +1153,7 @@ private:
 
 	}
 
-	void print_used_testvectors(std::vector<std::string> &vTestVectorDescription, std::vector<bool> bUse)
+	void print_used_testvectors(std::vector<std::string> &vTestVectorDescription, std::vector<bool> bUse) const
 	{
 		UG_LOG("used testvectors:\n");
 		for(size_t i=0; i<vTestVectorDescription.size(); i++)

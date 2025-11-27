@@ -122,7 +122,7 @@ public:
 
 	struct RepeatedCol
 	{
-		RepeatedCol(std::string _content, size_t _number) :
+		RepeatedCol(const std::string &_content, size_t _number) :
 			content(_content), number(_number) {}
 		std::string content;
 		size_t number;

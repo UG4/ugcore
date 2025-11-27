@@ -54,7 +54,7 @@ struct SortStruct
 		return value;
 	}
 
-	bool operator < (const SortStruct<TIndex, TValue> &other) const
+	bool operator < (const SortStruct &other) const
 	{
 		return value < other.value;
 	}

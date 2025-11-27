@@ -61,7 +61,7 @@ public:
 
 public:
 	FixedArray1() = default;
-	explicit FixedArray1(size_type n_);
+	explicit FixedArray1(size_type _n);
 	FixedArray1(const FixedArray1 &other);
 
 //protected:
@@ -70,28 +70,31 @@ public:
 
 public:
 	// capacity
-	inline size_type
+	[[nodiscard]] inline size_type
 	size() const;
 
-	inline size_type
-	capacity() const;
+	// ø not implemented
+	/*inline size_type
+	capacity() const;*/
 
 	inline bool
 	resize(size_type newN, bool bCopyValues=true);
 
-	inline bool
+	[[nodiscard]] inline bool
 	reserve(size_type newN) const;
 
 	// Element access
 	inline const T &
 	at(size_type i) const
 	{
+		// todo: throw if(i >= n)
 		return operator [] (i);
 	}
 
 	inline T &
 	at(size_type i)
 	{
+		// todo: throw if(i >= n)
 		return operator [] (i);
 	}
 
@@ -154,25 +157,27 @@ public:
 
 public:
 	// capacity
-	inline size_type
+	[[nodiscard]] inline size_type
 	num_rows() const;
 
-	inline size_type
+	[[nodiscard]] inline size_type
 	num_cols() const;
 
 	inline bool
 	resize(size_type newRows, size_type newCols, bool bCopyValues=true);
 
-	inline size_type
+	[[nodiscard]] 	inline size_type
 	capacity_num_rows() const { return rowsT; }
 
-	inline size_type
+	[[nodiscard]] inline size_type
 	capacity_num_cols() const { return colsT; };
 
-	inline bool
-	empty() const;
+	// ø not implemented
+	/*
+	[[nodiscard]] inline bool
+	empty() const;*/
 
-	inline bool
+	[[nodiscard]] inline bool
 	reserve(size_type nrRows, size_type nrCols) const
 	{
 		assert(nrRows == rowsT && nrCols == colsT);

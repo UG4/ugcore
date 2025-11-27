@@ -104,7 +104,7 @@ void StdConvCheck<TVector>::start_defect(number initialDefect)
 	//	print name line
 		print_offset();
 		UG_LOG(repeat(m_symbol, num_sym));
-		int pre_space = (int)(max_length -(int)m_name.length()) / 2;
+		int pre_space = (int)(max_length -static_cast<int>(m_name.length())) / 2;
 		UG_LOG(repeat(' ', pre_space));
 		UG_LOG("  "<< m_name << "  ");
 		UG_LOG(repeat(' ', max_length - pre_space -m_name.length()));

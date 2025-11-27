@@ -30,7 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "grid_bridges.h"
+#include "registry/registry.h"
+
 #include "bridge/suffix_tag.h"
 #include "lib_grid/refinement/adaptive_regular_mg_refiner.h"
 #include "lib_grid/refinement/global_fractured_media_refiner.h"

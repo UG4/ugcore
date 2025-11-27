@@ -200,7 +200,7 @@ adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsActive,
 		const DoFIndex& dof)
 {
 	//	loop over all obstacle subsets
-	for (vector<int>::iterator obsSI = m_vObsSubsets.begin();
+	for (auto obsSI = m_vObsSubsets.begin();
 			obsSI != m_vObsSubsets.end(); ++obsSI)
 	{
 		const int si = *obsSI;

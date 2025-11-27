@@ -56,7 +56,7 @@ class Hash
 		// using const_iterator = const_hash_iterator<key_t, value_t, Entry>;
 
 		Hash();
-		Hash(size_t hashSize);
+		explicit Hash(size_t hashSize);
 
 		void resize_hash(size_t size);
 		size_t hash_size() const;
@@ -101,14 +101,15 @@ class Hash
 	private:
 		size_t hash_index(const key_t& key) const;
 		size_t find_entry(const key_t& key) const;
-		inline size_t invalid_index() const	{return -1;}
+
+		static inline constexpr size_t invalid_index() {return -1;}
 
 		struct Entry{
 			key_t	key;
 			value_t	value;
 			size_t	next;
 
-			Entry()	{}
+			Entry()	= default;
 			Entry(const key_t& k, const value_t& v) :
 				key(k), value(v), next(-1)
 			{}

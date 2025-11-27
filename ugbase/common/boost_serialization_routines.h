@@ -52,31 +52,31 @@ namespace serialization{
 	template <typename Archive>
 	void serialize(Archive& ar, ug::vector1& v, const unsigned int version)
 	{
-		ar & ug::make_nvp("x", v[0]);
+		ar & make_nvp("x", v[0]);
 	}
 
 	template <typename Archive>
 	void serialize(Archive& ar, ug::vector2& v, const unsigned int version)
 	{
-		ar & ug::make_nvp("x", v[0]);
-		ar & ug::make_nvp("y", v[1]);
+		ar & make_nvp("x", v[0]);
+		ar & make_nvp("y", v[1]);
 	}
 
 	template <typename Archive>
 	void serialize(Archive& ar, ug::vector3& v, const unsigned int version)
 	{
-		ar & ug::make_nvp("x", v[0]);
-		ar & ug::make_nvp("y", v[1]);
-		ar & ug::make_nvp("z", v[2]);
+		ar & make_nvp("x", v[0]);
+		ar & make_nvp("y", v[1]);
+		ar & make_nvp("z", v[2]);
 	}
 
 	template <typename Archive>
 	void serialize(Archive& ar, ug::vector4& v, const unsigned int version)
 	{
-		ar & ug::make_nvp("x", v[0]);
-		ar & ug::make_nvp("y", v[1]);
-		ar & ug::make_nvp("z", v[2]);
-		ar & ug::make_nvp("w", v[3]);
+		ar & make_nvp("x", v[0]);
+		ar & make_nvp("y", v[1]);
+		ar & make_nvp("z", v[2]);
+		ar & make_nvp("w", v[3]);
 	}
 }
 

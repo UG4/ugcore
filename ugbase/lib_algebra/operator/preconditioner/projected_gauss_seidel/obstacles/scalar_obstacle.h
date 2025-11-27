@@ -90,14 +90,14 @@ class ScalarLowerObstacle:
 
 	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
 		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsActive,
-				const DoFIndex& dof);
+				const DoFIndex& dof) override;
 
-		void adjust_defect_to_constraint(vector_type& d);
+		void adjust_defect_to_constraint(vector_type& d) override;
 
-		void restrict_obs_values();
+		void restrict_obs_values() override;
 
 	///	Destructor
-		~ScalarLowerObstacle(){};
+		~ScalarLowerObstacle() override = default;
 
 	private:
 	///	store the dofs, which satisfy the constraints with equality
@@ -141,14 +141,14 @@ class ScalarUpperObstacle:
 
 	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
 		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsActive,
-				const DoFIndex& dof);
+				const DoFIndex& dof) override;
 
-		void adjust_defect_to_constraint(vector_type& d);
+		void adjust_defect_to_constraint(vector_type& d) override;
 
-		void restrict_obs_values();
+		void restrict_obs_values() override;
 
 	///	Destructor
-		~ScalarUpperObstacle(){};
+		~ScalarUpperObstacle() override = default;
 
 	private:
 	///	store the dofs, which satisfy the constraints with equality

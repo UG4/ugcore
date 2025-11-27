@@ -49,19 +49,19 @@ static void split_parameters(ParameterList* pParamList, const char* pParamString
 {
 	string param(pParamString);
 
-	while(param.size())
+	while(!param.empty())
 	{
 	//	delete empty spaces at the front of the string
-		while(param.find(" ", 0) == 0)
+		while(param.find(' ', 0) == 0)
 		{
 			param.erase(0, 1);
 		}
 	//	find the next empty space
-		int iSpace = param.find(" ", 0);
+		int iSpace = param.find(' ', 0);
 		if(iSpace == -1)
 		{
 		//	there is no -> the rest of the string is a parameter
-			if(param.size() > 0)
+			if(!param.empty())
 			{
 			/*
 				SParameter nParam;
@@ -110,8 +110,8 @@ string replace_chars(string& str, char cToR, char cNew)
 //TODO: IMPROVE THIS FUNCTION!!! MOVE IT TO A COMMON UTIL-FILE
 string extract_path(const string& filename)
 {
-	string::size_type idx1 = filename.rfind("/");
-	string::size_type idx2 = filename.rfind("\\");
+	string::size_type idx1 = filename.rfind('/');
+	string::size_type idx2 = filename.rfind('\\');
 
 	if(idx2 < idx1)
 		idx1 = idx2;
@@ -130,7 +130,7 @@ LoaderObj::~LoaderObj()
 
 void LoaderObj::clear()
 {
-	for(LoaderObj::ObjectIterator iter = m_vObjects.begin(); iter != m_vObjects.end(); iter++)
+	for(auto iter = m_vObjects.begin(); iter != m_vObjects.end(); ++iter)
 		delete (*iter);
 	m_vObjects.clear();
 }
@@ -197,7 +197,7 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 			if(pActiveObject)
 				m_vObjects.push_back(pActiveObject);
 
-			pActiveObject = new LoaderObj::Object;
+			pActiveObject = new Object;
 			pActiveObject->m_strName = *lstParams.begin();
 			pActiveObject->m_iMaterialIndex = -1;
 		}
@@ -233,7 +233,7 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 
 				if(strCommand == newMaterial)
 				{
-					m_vMaterials.push_back(Material());
+					m_vMaterials.emplace_back();
 					pActMaterial = &m_vMaterials[m_vMaterials.size() - 1];
 					if(!lstParams.empty())
 						pActMaterial->m_strName = *lstParams.begin();
@@ -245,18 +245,18 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 						if(lstParams.size() != 3)
 							continue;
 						PIter = lstParams.begin();
-						pActMaterial->m_vDiffuse.x() = atof((*PIter).c_str());
-						PIter++;
-						pActMaterial->m_vDiffuse.y() = atof((*PIter).c_str());
-						PIter++;
-						pActMaterial->m_vDiffuse.z() = atof((*PIter).c_str());
+						pActMaterial->m_vDiffuse.x() = atof(PIter->c_str());
+						++PIter;
+						pActMaterial->m_vDiffuse.y() = atof(PIter->c_str());
+						++PIter;
+						pActMaterial->m_vDiffuse.z() = atof(PIter->c_str());
 					}
 					else if(strCommand == colorAlpha)
 					{
 						if(lstParams.size() != 1)
 							continue;
 						PIter = lstParams.begin();
-						pActMaterial->m_fAlpha = pActMaterial->m_vDiffuse.w() = atof((*PIter).c_str());
+						pActMaterial->m_fAlpha = pActMaterial->m_vDiffuse.w() = atof(PIter->c_str());
 					}
 					else if(strCommand == textureDiffuse)
 					{
@@ -274,11 +274,11 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 				continue;
 			vector3 v;
 			PIter = lstParams.begin();
-			v.x() = atof((*PIter).c_str());
-			PIter++;
-			v.y() = atof((*PIter).c_str());
-			PIter++;
-			v.z() = atof((*PIter).c_str());
+			v.x() = atof(PIter->c_str());
+			++PIter;
+			v.y() = atof(PIter->c_str());
+			++PIter;
+			v.z() = atof(PIter->c_str());
 			m_vPoints.push_back(v);
 		}
 		else if(strCommand == strNorm)
@@ -292,9 +292,9 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 				continue;
 			vector2 v;
 			PIter = lstParams.begin();
-			v.x() = atof((*PIter).c_str());
-			PIter++;
-			v.y() = -atof((*PIter).c_str());
+			v.x() = atof(PIter->c_str());
+			++PIter;
+			v.y() = -atof(PIter->c_str());
 			m_vTexCoords.push_back(v);
 		}
 		else if(strCommand == strFace){
@@ -308,7 +308,7 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 
 			if(lstParams.size() == 2)
 			{
-				for(; PIter != lstParams.end(); PIter++)
+				for(; PIter != lstParams.end(); ++PIter)
 				{
 					string tStr = replace_chars((*PIter), '/', ' ');
 					ParameterList	lstIndexParams;
@@ -323,7 +323,7 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 			}
 			else if(lstParams.size() == 3)
 			{
-				for(; PIter != lstParams.end(); PIter++)
+				for(; PIter != lstParams.end(); ++PIter)
 				{
 					string tStr = replace_chars((*PIter), '/', ' ');
 					ParameterList	lstIndexParams;
@@ -355,12 +355,12 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 				unsigned int tIndTex[4];
 
 				int counter = 0;
-				for(; PIter != lstParams.end(); PIter++)
+				for(; PIter != lstParams.end(); ++PIter)
 				{
 					string tStr = replace_chars((*PIter), '/', ' ');
 					ParameterList	lstIndexParams;
 					split_parameters(&lstIndexParams, tStr.c_str());
-					tInd[counter] = atoi((*lstIndexParams.begin()).c_str());
+					tInd[counter] = atoi(lstIndexParams.begin()->c_str());
 					uint iCount = 0;
 					if(bGotPosition)
 					{
@@ -449,9 +449,9 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 int LoaderObj::get_material_index_by_name(const char* name) const
 {
 	int counter = 0;
-	for(MaterialVector::const_iterator iter = m_vMaterials.begin(); iter != m_vMaterials.end(); iter++)
+	for(auto iter = m_vMaterials.begin(); iter != m_vMaterials.end(); ++iter)
 	{
-		if((*iter).m_strName.compare(name) == 0)
+		if(iter->m_strName.compare(name) == 0)
 			return counter;
 		counter++;
 	}

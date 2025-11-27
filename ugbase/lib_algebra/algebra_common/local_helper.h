@@ -51,10 +51,10 @@ public:
 
 	~localMatrix_from_mat_and_array() = default;
 
-	size_t num_rows() const { return m->num_rows(); }
-	size_t num_cols() const { return m->num_cols(); }
-	size_t row_index(size_t i) const { return rows[i]; }
-	size_t col_index(size_t i) const { return cols[i]; }
+	[[nodiscard]] size_t num_rows() const { return m->num_rows(); }
+	[[nodiscard]] size_t num_cols() const { return m->num_cols(); }
+	[[nodiscard]] size_t row_index(size_t i) const { return rows[i]; }
+	[[nodiscard]] size_t col_index(size_t i) const { return cols[i]; }
 	typename M::value_type &operator () (size_t i, size_t j) { return (*m)(i,j); }
 	const typename M::value_type &operator () (size_t i, size_t j) const { return (*m)(i,j); }
 
@@ -71,10 +71,10 @@ public:
 	const_localMatrix_from_mat_and_array(const M &m_, const size_t *rows_, const size_t *cols_) : m(m_), rows(rows_), cols(cols_)
 	{	}
 
-	size_t num_rows() const { return m.num_rows(); }
-	size_t num_cols() const { return m.num_cols(); }
-	size_t row_index(size_t i) const { return rows[i]; }
-	size_t col_index(size_t i) const { return cols[i]; }
+	[[nodiscard]] size_t num_rows() const { return m.num_rows(); }
+	[[nodiscard]] size_t num_cols() const { return m.num_cols(); }
+	[[nodiscard]] size_t row_index(size_t i) const { return rows[i]; }
+	[[nodiscard]] size_t col_index(size_t i) const { return cols[i]; }
 	const typename M::value_type &operator () (size_t i, size_t j) const { return m(i,j); }
 
 private:
@@ -94,10 +94,10 @@ public:
 		numcols = numcols_;
 	}
 
-	size_t num_rows() const { return numrows; }
-	size_t num_cols() const { return numcols; }
-	size_t row_index(size_t i) const { return rows[i]; }
-	size_t col_index(size_t i) const { return cols[i]; }
+	[[nodiscard]] size_t num_rows() const { return numrows; }
+	[[nodiscard]] size_t num_cols() const { return numcols; }
+	[[nodiscard]] size_t row_index(size_t i) const { return rows[i]; }
+	[[nodiscard]] size_t col_index(size_t i) const { return cols[i]; }
 	T &operator () (size_t i, size_t j) { return m[i + j*numcols]; }
 	const T &operator () (size_t i, size_t j) const { return m[i + j*numcols]; }
 
@@ -120,10 +120,10 @@ public:
 		numcols = numcols_;
 	}
 
-	size_t num_rows() const { return numrows; }
-	size_t num_cols() const { return numcols; }
-	size_t row_index(size_t i) const { return rows[i]; }
-	size_t col_index(size_t i) const { return cols[i]; }
+	[[nodiscard]] size_t num_rows() const { return numrows; }
+	[[nodiscard]] size_t num_cols() const { return numcols; }
+	[[nodiscard]] size_t row_index(size_t i) const { return rows[i]; }
+	[[nodiscard]] size_t col_index(size_t i) const { return cols[i]; }
 	T &operator () (size_t i, size_t j) { return m[i*numrows + j]; }
 	const T &operator () (size_t i, size_t j) const { return m[i*numrows + j]; }
 
@@ -144,8 +144,8 @@ public:
 	{
 	}
 
-	size_t size() const { return N; }
-	size_t index(size_t i) const { return indices[i]; }
+	[[nodiscard]] size_t size() const { return N; }
+	[[nodiscard]] size_t index(size_t i) const { return indices[i]; }
 
 	T &operator [] (size_t i) { return v[i]; }
 	const T &operator [] (size_t i) const { return v[i]; }

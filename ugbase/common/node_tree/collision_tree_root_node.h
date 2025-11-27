@@ -59,17 +59,17 @@ class CollisionTreeRootNode : public BoxedGroupNode
 		~CollisionTreeRootNode() override = default;
 
 		virtual void clear_points();
-		virtual int num_points();
+		[[nodiscard]] virtual int num_points() const;
 		virtual void add_points(vector3* pPoints, int numPoints);
-		virtual const vector3& get_point(int index) const;
-		virtual const vector3* get_points() const;
+		[[nodiscard]] virtual const vector3& get_point(int index) const;
+		[[nodiscard]] virtual const vector3* get_points() const;
 
 	protected:
 		CollisionTreeRootNode() = default;
 
 	protected:
 		using PointVec = std::vector<vector3>;
-		PointVec	m_vPoints;
+		PointVec m_vPoints;
 };
 
 }//	end of namespace node_tree

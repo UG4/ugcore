@@ -65,7 +65,7 @@ class OwnedPtr
 		using TPtr = T*;
 		using TRef = T&;
 
-		OwnedPtr(TPtr p = 0) : m_p(p)	{}
+		explicit OwnedPtr(TPtr p = nullptr) : m_p(p)	{}
 
 	///	Transfers ownership of the associated object from ap to this.
 	/**	Note that ap looses ownership of the associated object.
@@ -86,14 +86,14 @@ class OwnedPtr
 			return *this;
 		}
 
-		void reset(TPtr p = 0) {if(m_p) delete m_p; m_p = p;}
+		void reset(TPtr p = nullptr) {if(m_p) delete m_p; m_p = p;}
 
 		TPtr operator -> () const {return m_p;}
 		TRef operator * () const {return *m_p;}
 
 		TPtr& get() const {return m_p;}
 
-		operator bool ()	const {return m_p != 0;}
+		operator bool ()	const {return m_p != nullptr;}
 
 	private:
 	///	This method is a hack, to allow that only one instance owns the pointer

@@ -150,11 +150,11 @@ endif(UNIX)
 
 
 if (APPLE)
-	set(sources ${sources} util/mem_info.cpp util/mem_info_apple.cpp)
+	set(sources ${sources} util/mem_info.cpp util/os_dependent_impl/mem_info_apple.cpp)
 endif (APPLE)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-	set(sources ${sources} util/mem_info.cpp util/mem_info_linux.cpp)
+	set(sources ${sources} util/mem_info.cpp util/os_dependent_impl/mem_info_linux.cpp)
 endif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 
 

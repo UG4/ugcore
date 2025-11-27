@@ -53,8 +53,7 @@ class EmptyStreamBuffer : public std::streambuf
 			{setp(m_buf, m_buf + BUF_SIZE);}
 
 	//	implementation of virtual std::streambuf methods.
-		inline virtual int_type overflow(int_type c = traits_type::eof())
-		{
+		inline int_type overflow(int_type c = traits_type::eof()) override {
 			setp(m_buf, m_buf + BUF_SIZE);
 			return c;
 		}

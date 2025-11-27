@@ -103,17 +103,17 @@ public:
 		return A(r, c);
 	}
 
-	bool has_connection(size_t c) const
+	[[nodiscard]] bool has_connection(size_t c) const
 	{
 		return A.has_connection(r, c);
 	}
 
-	size_t size() const
+	[[nodiscard]] size_t size() const
 	{
 		return A.num_cols();
 	}
 
-	size_t num_connections() const
+	[[nodiscard]] size_t num_connections() const
 	{
 		return A.num_connections(r);
 	}

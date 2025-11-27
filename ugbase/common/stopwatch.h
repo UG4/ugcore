@@ -170,7 +170,7 @@ class Stopwatch
      * to the specified std::ostream.
      *
      * \param[out]  out std::ostream to print number of milliseconds to
-     * \param[in]   sw  a Stopwatch instance (usualy 'this')
+     * \param[in]   s  a Stopwatch instance (usualy 'this')
      */
     friend std::ostream &operator << ( std::ostream &out, Stopwatch &s ) {
       out << s.ms() << " ms";

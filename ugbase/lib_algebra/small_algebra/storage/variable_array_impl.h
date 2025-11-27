@@ -249,7 +249,7 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols, bool bCopy
 		return true;
 	}
 
-	value_type *new_values = new T[newRows*newCols];
+	auto *new_values = new T[newRows*newCols]; // ø todo try std::vector or other storage options
 	memset(reinterpret_cast<void *> (new_values), 0, sizeof(T)*newRows*newCols); // todo: think about that
 	UG_ASSERT(new_values != nullptr, "out of memory");
 	if(new_values==nullptr) return false;

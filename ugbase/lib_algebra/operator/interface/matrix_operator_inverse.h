@@ -91,7 +91,7 @@ class IMatrixOperatorInverse
 	 * \param[in]	f		right-hand side
 	 * \returns		bool	success flag
 	 */
-		virtual bool apply(Y& u, const X& f) = 0;
+		bool apply(Y& u, const X& f) override = 0;
 
 	/// applies the inverse operator and updates the defect
 	/**
@@ -102,10 +102,10 @@ class IMatrixOperatorInverse
 	 * \param[in]	f		right-hand side on entry, defect on exit
 	 * \returns		bool	success flag
 	 */
-		virtual bool apply_return_defect(Y& u, X& f) = 0;
+		bool apply_return_defect(Y& u, X& f) override = 0;
 
 	/// virtual destructor
-		virtual ~IMatrixOperatorInverse() {};
+		~IMatrixOperatorInverse() override = default;
 
 	public:
 	///	initializes this inverse operator for a linear operator
@@ -119,8 +119,7 @@ class IMatrixOperatorInverse
 	 * \param[in]	u		linearization point
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(SmartPtr<ILinearOperator<Y,X> > A, const Y&u)
-		{
+		bool init(SmartPtr<ILinearOperator<Y,X> > A, const Y&u) override {
 		//	forget about u and forward request.
 			return init(A);
 		}
@@ -135,8 +134,7 @@ class IMatrixOperatorInverse
 	 * \param[in]	A		linear matrix-based operator to invert
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(SmartPtr<ILinearOperator<Y,X> > A)
-		{
+		bool init(SmartPtr<ILinearOperator<Y,X> > A) override {
 		//	cast operator
 			SmartPtr<MatrixOperator<M,Y,X> > op =
 									A.template cast_dynamic<MatrixOperator<M,Y,X> >();

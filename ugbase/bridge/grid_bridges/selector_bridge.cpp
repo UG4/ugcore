@@ -30,7 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "grid_bridges.h"
+//#include "grid_bridges.h"
+#include "registry/registry.h"
 #include "lib_grid/selector.h"
 #include "lib_grid/grid_objects/grid_objects.h"
 

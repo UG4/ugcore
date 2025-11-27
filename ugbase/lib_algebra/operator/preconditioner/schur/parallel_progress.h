@@ -67,7 +67,7 @@ public:
 	void calc_next_value()
 	{
 		dNextValueToUpdate = (posNow+1)*m_total/m_length;
-		iNextValueToUpdate = (int) dNextValueToUpdate;
+		iNextValueToUpdate = static_cast<int>(dNextValueToUpdate);
 	}
 	void start(double total, std::string msg, size_t numProc);
 
@@ -78,7 +78,7 @@ public:
 	}
 	inline void set(int now)
 	{
-		if(now < 0 || (size_t)now < iNextValueToUpdate) return;
+		if(now < 0 || static_cast<size_t>(now) < iNextValueToUpdate) return;
 		setD(now);
 	}
 

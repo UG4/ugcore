@@ -51,7 +51,7 @@ void CollisionTreeRootNode::clear_points()
 	m_vPoints.clear();
 }
 
-int CollisionTreeRootNode::num_points()
+int CollisionTreeRootNode::num_points() const
 {
 	return m_vPoints.size();
 }

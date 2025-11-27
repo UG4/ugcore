@@ -65,10 +65,10 @@ class LinearSolver
 	///	constructors
 		LinearSolver() : base_type() {}
 
-		LinearSolver(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond)
+		LinearSolver(SmartPtr<ILinearIterator<vector_type> > spPrecond)
 			: base_type ( spPrecond )  {}
 
-		LinearSolver(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond, SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
+		LinearSolver(SmartPtr<ILinearIterator<vector_type> > spPrecond, SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
 			: base_type ( spPrecond, spConvCheck)  {}
 
 		~LinearSolver() override = default;
@@ -81,10 +81,10 @@ class LinearSolver
 
 	public:
 	///	returns the name of the solver
-		const char* name() const override {return "Iterative Linear Solver";}
+		[[nodiscard]] const char* name() const override {return "Iterative Linear Solver";}
 
 	///	returns if parallel solving is supported
-		bool supports_parallel() const override {
+		[[nodiscard]] bool supports_parallel() const override {
 			if(preconditioner().valid())
 				return preconditioner()->supports_parallel();
 			else return true;

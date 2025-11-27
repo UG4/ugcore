@@ -61,14 +61,14 @@ int ArrayEraseEntry(TType* array, const TType& entry, size_t size)
 
 //	proceed if the entry has been found
 	if(i >= size)
-		return (int)size;
+		return static_cast<int>(size);
 
 //	copy elements
 	for(; i < size - 1; ++i)
 		array[i] = array[i+1];
 
 //	done
-	return (int)size - 1;
+	return static_cast<int>(size) - 1;
 }
 
 ///	Swaps the first entry with the given value with the last entry in the list

@@ -91,12 +91,12 @@ public:
 	// Begin CRTP
 
 	/// implementation of init for non-linear (CRTP)
-	bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
-	{ return derived().init(J,u);};
+	bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u) override {
+		return derived().init(J,u);
+	};
 
 	/// implementation of init for linear (CRTP)
-	bool init(SmartPtr<ILinearOperator<vector_type> > L)
-	{ return derived().init(L);};
+	bool init(SmartPtr<ILinearOperator<vector_type> > L) override { return derived().init(L);};
 
 	/// original operator (CRTP)
 	SmartPtr<ILinearOperator<vector_type> > original_operator()
@@ -118,8 +118,7 @@ public:
 	// End CRTP
 
 	///  implementation of apply (final, non-CRTP)
-	virtual bool apply(vector_type& c, const vector_type& d)
-	{
+	bool apply(vector_type& c, const vector_type& d) override {
 		return (derived().transform_defect(c,d) &&
 				derived().apply_transformed(c,d) &&
 				derived().untransform_correction(c,d));
@@ -127,8 +126,7 @@ public:
 
 
 	///  implementation of apply (final, non-CRTP)
-	virtual bool apply_update_defect(vector_type &c, vector_type& d)
-	{
+	bool apply_update_defect(vector_type &c, vector_type& d) override {
 		// compute correction
 		if (!apply(c,d)) return false;
 
@@ -207,18 +205,20 @@ class AssembledTransformingSmoother :
 		{}
 
 	///	name
-		virtual const char* name() const {return "Assembled Transform Smoother";}
+		const char* name() const override {return "Assembled Transform Smoother";}
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const
-		{return (m_spAuxSmoother.valid()) ? m_spAuxSmoother->supports_parallel() : false;}
+		bool supports_parallel() const override {
+			return (m_spAuxSmoother.valid()) ? m_spAuxSmoother->supports_parallel() : false;
+		}
 
 		// Begin CRTP functions
-		bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u);
+		bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u) override;
 
 		/// Since we need grid information, linear operators are not supported...
-		bool init(SmartPtr<ILinearOperator<vector_type> > L)
-		{ UG_THROW("Not Implemented!!"); }
+		bool init(SmartPtr<ILinearOperator<vector_type> > L) override {
+			UG_THROW("Not Implemented!!");
+		}
 
 		bool transform_defect(vector_type& c, const vector_type& d) {return true;}
 		bool apply_transformed(vector_type &c, const vector_type &d);
@@ -226,9 +226,7 @@ class AssembledTransformingSmoother :
 
 
 	///	Clone
-		SmartPtr<ILinearIterator<vector_type> > clone();
-
-
+		SmartPtr<ILinearIterator<vector_type> > clone() override;
 
 
 		SmartPtr<ILinearOperator<vector_type> > original_operator()
@@ -385,8 +383,7 @@ SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >
 AssembledTransformingSmoother<TDomain, TAlgebra>::
 clone()
 {
-	SmartPtr<AssembledTransformingSmoother<TDomain, TAlgebra> > clone(
-		new AssembledTransformingSmoother<TDomain, TAlgebra>(
+	SmartPtr<AssembledTransformingSmoother > clone( new AssembledTransformingSmoother(
 										m_spAuxSystemAss, m_spAuxSmoother,
 										m_spRightTrafoAss, m_spRightTrafoSmoother));
 

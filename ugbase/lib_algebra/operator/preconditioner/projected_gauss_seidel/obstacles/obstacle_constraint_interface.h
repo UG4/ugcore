@@ -147,8 +147,9 @@ class IObstacleConstraint:
 		void reset_active_dofs(){m_vActiveDofs.resize(0);}
 
 	///	returns the vector storing the active dofs
-		void active_dofs(vector<DoFIndex>& vActiveDoFs)
-		{vActiveDoFs = m_vActiveDofs;}
+		void active_dofs(vector<DoFIndex>& vActiveDoFs) const {
+			vActiveDoFs = m_vActiveDofs;
+		}
 
 
 	///	this preprocess-method is called in every init-call of the underlying proj. preconditioner
@@ -169,7 +170,7 @@ class IObstacleConstraint:
 
 
 	///	Destructor
-		virtual ~IObstacleConstraint(){};
+		~IObstacleConstraint() override = default;
 
 	public:
 	///////////////////////////////
@@ -180,7 +181,7 @@ class IObstacleConstraint:
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
                              ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
-							 const number s_a0 = 1.0){
+							 const number s_a0 = 1.0) override {
 			UG_LOG("IObstacleConstraint::adjust_jacobian() \n");
 		};
 
@@ -189,47 +190,47 @@ class IObstacleConstraint:
 		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
                            ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
 						   const std::vector<number>* vScaleMass = nullptr,
-						   const std::vector<number>* vScaleStiff = nullptr){
+						   const std::vector<number>* vScaleStiff = nullptr) override {
 			UG_LOG("IObstacleConstraint::adjust_defect() \n");
 		};
 
 	/// sets the dirichlet value in the solution for all dirichlet indices
 		void adjust_solution(vector_type& u,
-		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0){
+		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0) override {
 			UG_LOG("IObstacleConstraint::adjust_solution() \n");
 		};
 
 	///	sets unity rows in A and dirichlet values in right-hand side b
 		void adjust_linear(matrix_type& A, vector_type& b,
-		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0){
+		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0) override {
 			UG_LOG("IObstacleConstraint::adjust_linear() \n");
 		};
 
 	///	sets the dirichlet value in the right-hand side
 		void adjust_rhs(vector_type& b, const vector_type& u,
-		                ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0){
+		                ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0) override {
 			UG_LOG("IObstacleConstraint::adjust_rhs() \n");
 		};
 
 	///	sets constraints in prolongation
-		virtual void adjust_prolongation(matrix_type& P,
-										 ConstSmartPtr<DoFDistribution> ddFine,
-										 ConstSmartPtr<DoFDistribution> ddCoarse,
-										 int type,
-										 number time = 0.0){
+		void adjust_prolongation(matrix_type& P,
+	                         ConstSmartPtr<DoFDistribution> ddFine,
+	                         ConstSmartPtr<DoFDistribution> ddCoarse,
+	                         int type,
+	                         number time = 0.0) override {
 			UG_LOG("IObstacleConstraint::adjust_prolongationP() \n");
 		};
 
 	///	sets constraints in restriction
-		virtual void adjust_restriction(matrix_type& R,
-										ConstSmartPtr<DoFDistribution> ddCoarse,
-										ConstSmartPtr<DoFDistribution> ddFine,
-										int type,
-										number time = 0.0);
+		void adjust_restriction(matrix_type& R,
+	                        ConstSmartPtr<DoFDistribution> ddCoarse,
+	                        ConstSmartPtr<DoFDistribution> ddFine,
+	                        int type,
+	                        number time = 0.0) override;
 
 	///	returns the type of the constraints
 		//TODO: does another type make more sense?
-		virtual int type() const {return CT_CONSTRAINTS;}
+		int type() const override {return CT_CONSTRAINTS;}
 
 	private:
 	///	extract the UserDatas
@@ -278,11 +279,12 @@ class IObstacleConstraint:
 			static constexpr size_t numFct = 1;
 			using value_type = MathVector<1>;
 			NumberData(SmartPtr<UserData<number, dim> > functor_,
-					   std::string fctName_)
+			           const std::string &fctName_)
 				: spFunctor(functor_), fctName(fctName_), bWholeDomain(true)
 			{}
+
 			NumberData(SmartPtr<UserData<number, dim> > functor_,
-					   std::string fctName_, std::string ssName_)
+			           const std::string &fctName_, const std::string &ssName_)
 				: spFunctor(functor_), fctName(fctName_), ssName(ssName_),
 				  bWholeDomain(false)
 			{}
@@ -307,11 +309,11 @@ class IObstacleConstraint:
 			static constexpr size_t numFct = 1;
 			using value_type = MathVector<1>;
 			CondNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
-						  std::string fctName_)
+			               const std::string &fctName_)
 				: spFunctor(functor_), fctName(fctName_), bWholeDomain(true)
 			{}
 			CondNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
-						  std::string fctName_, std::string ssName_)
+			               const std::string &fctName_, const std::string &ssName_)
 				: spFunctor(functor_), fctName(fctName_), ssName(ssName_),
 				  bWholeDomain(true)
 			{}
@@ -336,11 +338,11 @@ class IObstacleConstraint:
 			static constexpr size_t numFct = 1;
 			using value_type = MathVector<1>;
 			ConstNumberData(number value_,
-						  std::string fctName_)
+			                const std::string &fctName_)
 				: functor(value_), fctName(fctName_), bWholeDomain(true)
 			{}
 			ConstNumberData(number value_,
-						  std::string fctName_, std::string ssName_)
+			                const std::string &fctName_, const std::string &ssName_)
 				: functor(value_), fctName(fctName_), ssName(ssName_),
 				  bWholeDomain(false)
 			{}
@@ -365,11 +367,11 @@ class IObstacleConstraint:
 			static constexpr size_t numFct = dim;
 			using value_type = MathVector<dim>;
 			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > value_,
-					   std::string fctName_)
+			           const std::string &fctName_)
 				: spFunctor(value_), fctName(fctName_), bWholeDomain(true)
 			{}
 			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > value_,
-					   std::string fctName_, std::string ssName_)
+			           const std::string &fctName_, const std::string &ssName_)
 				: spFunctor(value_), fctName(fctName_), ssName(ssName_),
 				  bWholeDomain(false)
 			{}

@@ -58,13 +58,11 @@ class AnalyzingSolver
 		using matrix_type = M;
 
 	public:
-		virtual bool apply(Y& u, const X& f)
-		{
+		bool apply(Y& u, const X& f) override {
 			return m_pLinearOperatorInverse->apply(u, f);
 		}
 
-		virtual bool apply_return_defect(Y& u, X& f)
-		{
+		bool apply_return_defect(Y& u, X& f) override {
 			return m_pLinearOperatorInverse->apply_return_defect(u, f);
 		}
 
@@ -74,11 +72,10 @@ class AnalyzingSolver
 		}
 
 	/// virtual destructor
-		virtual ~AnalyzingSolver() {};
+		~AnalyzingSolver() override = default;
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const
-		{
+		bool supports_parallel() const override {
 			return m_pLinearOperatorInverse->supports_parallel();
 		}
 
@@ -127,14 +124,13 @@ class AnalyzingSolver
 			mat.defragment();
 			checksub(mat);
 		}
-		virtual bool init(SmartPtr<ILinearOperator<Y,X> > A, const Y&u)
-		{
+
+		bool init(SmartPtr<ILinearOperator<Y,X> > A, const Y&u) override {
 			check(A);
 			return m_pLinearOperatorInverse->init(A, u);
 		}
 
-		virtual bool init(SmartPtr<ILinearOperator<Y,X> > A)
-		{
+		bool init(SmartPtr<ILinearOperator<Y,X> > A) override {
 			check(A);
 			return m_pLinearOperatorInverse->init(A);
 		}
@@ -153,10 +149,10 @@ class AnalyzingSolver
 		//	forward request
 			check(*op);
 		}
-		virtual const char *name() const { return m_pLinearOperatorInverse->name(); }
 
-		virtual std::string config_string() const
-		{
+		const char *name() const override { return m_pLinearOperatorInverse->name(); }
+
+		std::string config_string() const override {
 			return "AnalyzingSolver " + m_pLinearOperatorInverse->config_string();
 		}
 	private:

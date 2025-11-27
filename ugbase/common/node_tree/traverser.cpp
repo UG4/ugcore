@@ -49,8 +49,7 @@ Traverser::Traverser()
 }
 
 
-bool Traverser::handler_function_registered(unsigned int oc)
-{
+bool Traverser::handler_function_registered(unsigned int oc) const {
 	// the first expression has been always true for unsigned int (AV)
 	if(/*oc >= 0 &&*/ oc < m_vHandlerFuncs.size())
 	{

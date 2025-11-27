@@ -50,19 +50,21 @@ class EnergyConvCheck : public StdConvCheck<TVector>
 	EnergyConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose,bool suppressUnsuccessful)
 	 	 : base_type(maxSteps, minDefect, relReduction, verbose, suppressUnsuccessful) {}
 
-	virtual SmartPtr<IConvergenceCheck<TVector> > clone()
-	{
-		SmartPtr<EnergyConvCheck<TVector> > newInst(new EnergyConvCheck<TVector>);
+	~EnergyConvCheck() override = default;
+
+	SmartPtr<IConvergenceCheck<TVector> > clone() override
+		{
+		SmartPtr<EnergyConvCheck > newInst(new EnergyConvCheck);
 		// use std assignment (implicit member-wise is fine here)
 		*newInst = *this;
 		return newInst;
 	}
 
-	void start(const TVector& d)
+	void start(const TVector& d) override
 	{
 		base_type::start_defect(energy_norm(d));
 	}
-	void update(const TVector& d)
+	void update(const TVector& d) override
 	{
 		base_type::update_defect(energy_norm(d));
 	}
@@ -84,8 +86,8 @@ class EnergyConvCheck : public StdConvCheck<TVector>
 		return sqrt(VecProd(t, t2));
 	}
 
-	virtual std::string config_string() const
-	{
+	std::string config_string() const override
+		{
 		std::stringstream ss;
 		ss << "EnergyConvCheck( max steps = " << base_type::m_maxSteps << ", min defect = " << base_type::m_minDefect <<
 				", relative reduction = " << base_type::m_relReduction << ")";

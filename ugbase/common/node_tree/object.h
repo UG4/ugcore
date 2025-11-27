@@ -71,7 +71,7 @@ class Object
 	public:
 		virtual ~Object()  = default;
 
-		inline unsigned int getObjectCode()	{return m_objectCode;}
+		[[nodiscard]] inline unsigned int getObjectCode() const {return m_objectCode;}
 
 	protected:
 		Object() = default;

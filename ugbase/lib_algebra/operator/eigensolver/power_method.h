@@ -297,17 +297,17 @@ class PowerMethod
 			return true;
 		}
 
-		double get_max_eigenvalue()
+		double get_max_eigenvalue() const
 		{
 			return m_dMaxEigenvalue;
 		}
 
-		double get_min_eigenvalue()
+		double get_min_eigenvalue() const
 		{
 			return m_dMinEigenvalue;
 		}
 
-		size_t get_iterations()
+		size_t get_iterations() const
 		{
 			return m_iteration;
 		}
@@ -322,7 +322,7 @@ class PowerMethod
 			PrintMatrix(m_spMatOpB->get_matrix(), "B");
 		}
 
-		void print_eigenvector()
+		void print_eigenvector() const
 		{
 			m_spEigenvector->print();
 		}

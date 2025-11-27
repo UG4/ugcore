@@ -76,7 +76,7 @@ class StrongNegativeConnectionsByBlockNorm
 protected:
 	double m_theta;
 public:
-	StrongNegativeConnectionsByBlockNorm(double theta) : m_theta(theta){}
+	explicit StrongNegativeConnectionsByBlockNorm(double theta) : m_theta(theta){}
 
 	template<typename TRowType>
 	void find(const TRowType &Ci, size_t i, cgraph &graph)
@@ -198,11 +198,10 @@ void GetBlockGSCorrectionILUT(const TSparseMatrixType &A, TVectorType &x, TVecto
 		std::vector<size_t> &indices, CPUAlgebra::vector_type &tmp, CPUAlgebra::vector_type &tmp2)
 {
 	size_t blockSize = GetSize(b[0]);
-	size_t k;
 	using const_row_iterator = typename TSparseMatrixType::const_row_iterator;
 	using smallvec_type = typename TVectorType::value_type;
 
-	k = 0;
+	size_t k = 0;
 	tmp.resize(indices.size()*blockSize);
 	tmp2.resize(indices.size()*blockSize);
 	for(size_t i=0; i<indices.size(); i++)
@@ -328,7 +327,7 @@ class IBlockJacobiPreconditioner : public IPreconditioner<TAlgebra>
 
 	//	Postprocess routine
 	bool postprocess() override {return true;}
-	bool supports_parallel() const override { return true; }
+	[[nodiscard]] bool supports_parallel() const override { return true; }
 
 	//	Stepping routine
 	bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
@@ -401,7 +400,7 @@ public:
 			m_depth = 1;
 		};
 
-		BlockGaussSeidel(int depth) {
+		explicit BlockGaussSeidel(int depth) {
 			m_depth = depth;
 		};
 
@@ -423,7 +422,7 @@ public:
 
 	protected:
 	//	Name of preconditioner
-		const char* name() const override {return "BlockGaussSeidel";}
+		[[nodiscard]] const char* name() const override {return "BlockGaussSeidel";}
 
 		//	Preprocess routine
 		bool block_preprocess(matrix_type &A) override {
@@ -464,7 +463,7 @@ public:
 
 	//	Postprocess routine
 		bool postprocess() override {return true;}
-		bool supports_parallel() const override { return true; }
+		[[nodiscard]] bool supports_parallel() const override { return true; }
 
 		//	Stepping routine
 		bool block_step(matrix_type &A, vector_type& c, const vector_type& d) override {
@@ -502,7 +501,7 @@ public:
 			return true;
 		}
 
-		std::string config_string() const override {
+		[[nodiscard]] std::string config_string() const override {
 			std::stringstream ss ; ss << "BlockGaussSeidel(depth = " << m_depth << ")";
 			return ss.str();
 		}
@@ -578,7 +577,7 @@ class BlockGaussSeidelIterative : public IBlockJacobiPreconditioner<TAlgebra>
 
 	protected:
 	//	Name of preconditioner
-		const char* name() const override {
+		[[nodiscard]] const char* name() const override {
 			if(backward&&forward) return "SymmetricBlockGaussSeidelIterative";
 			else if(backward) return "BackwardBlockGaussSeidelIterative";
 			return "BlockGaussSeidelIterative";
@@ -607,7 +606,7 @@ class BlockGaussSeidelIterative : public IBlockJacobiPreconditioner<TAlgebra>
 
 	//	Postprocess routine
 		bool postprocess() override {return true;}
-		bool supports_parallel() const override { return true; }
+		[[nodiscard]] bool supports_parallel() const override { return true; }
 
 
 		void correct(size_t i, const matrix_type &A, vector_type& x, const vector_type& b)
@@ -625,16 +624,20 @@ class BlockGaussSeidelIterative : public IBlockJacobiPreconditioner<TAlgebra>
 
 		void correct_forward(size_t i, matrix_type &A, vector_type& x, const vector_type& b)
 		{
-			for(size_t k=0; k<m_nu; k++)
-				for(size_t j=0; j<indices[i].size(); j++)
+			for(size_t k=0; k<m_nu; k++) {
+				for(size_t j=0; j<indices[i].size(); j++) {
 					correct(indices[i][j], A, x, b);
+				}
+			}
 		}
 
 		void correct_backward(size_t i, matrix_type &A, vector_type& x, const vector_type& b)
 		{
-			for(size_t k=0; k<m_nu; k++)
-				for(int j=(int)(indices[i].size())-1; j>=0 ; j--)
+			for(size_t k=0; k<m_nu; k++) {
+				for(int j=(int)(indices[i].size())-1; j>=0 ; j--) {
 					correct(indices[i][j], A, x, b);
+				}
+			}
 		}
 
 
@@ -648,12 +651,12 @@ class BlockGaussSeidelIterative : public IBlockJacobiPreconditioner<TAlgebra>
 			b = d;
 
 			if(forward)
-				for(size_t i=0; i<x.size(); i++)
+				for(size_t i=0; i<x.size(); ++i)
 				{
 					correct_forward(i, A, x, b);
 				}
 			if(backward)
-				for(size_t i=x.size()-1; ; i--)
+				for(size_t i=x.size()-1; ; --i)
 				{
 					correct_backward(i, A, x, b);
 					if(i==0) break;
@@ -673,7 +676,7 @@ class BlockGaussSeidelIterative : public IBlockJacobiPreconditioner<TAlgebra>
 			}
 
 
-		std::string config_string() const override {
+		[[nodiscard]] std::string config_string() const override {
 			std::stringstream ss ;
 			if(backward&&forward) ss << "Symmetric";
 			else if(backward) ss << "Backward";
@@ -724,7 +727,7 @@ protected:
 			m_depth = 1;
 		};
 
-		SparseBlockGaussSeidel(int depth) {
+		explicit SparseBlockGaussSeidel(int depth) {
 			m_depth = depth;
 		};
 
@@ -748,7 +751,7 @@ protected:
 
 	protected:
 	//	Name of preconditioner
-		const char* name() const override {return "SparseBlockGaussSeidel";}
+		[[nodiscard]] const char* name() const override {return "SparseBlockGaussSeidel";}
 
 		//	Preprocess routine
 		bool block_preprocess(matrix_type &A) override {
@@ -806,7 +809,7 @@ protected:
 
 	//	Postprocess routine
 		bool postprocess() override {return true;}
-		bool supports_parallel() const override { return true; }
+		[[nodiscard]] bool supports_parallel() const override { return true; }
 
 		//	Stepping routine
 		bool block_step(matrix_type &A, vector_type& c, const vector_type& d) override {
@@ -820,7 +823,7 @@ protected:
 			CPUAlgebra::vector_type tmp, tmp2;
 			PROGRESS_START(prog, x.size(), "SparseBlockGaussSeidel: step");
 			if(forward)
-				for(size_t i=0; i<x.size(); i++)
+				for(size_t i=0; i<x.size(); ++i)
 				{
 					PROGRESS_UPDATE(prog, i);
 					// c = D^{-1}(b-Ax)
@@ -829,7 +832,7 @@ protected:
 						GetBlockGSCorrectionILUT(A, x, b, m_ilut[i], indices[i], tmp, tmp2);
 				}
 			if(backward)
-				for(size_t i=x.size()-1; ; i--)
+				for(size_t i=x.size()-1; ; --i)
 				{
 					PROGRESS_UPDATE(prog, i);
 					// c = D^{-1}(b-Ax)
@@ -847,7 +850,7 @@ protected:
 			return true;
 		}
 
-		std::string config_string() const override {
+		[[nodiscard]] std::string config_string() const override {
 			std::stringstream ss ;
 			if(backward&&forward) ss << "Symmetric";
 			else if(backward) ss << "Backward";
@@ -904,7 +907,7 @@ class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 			m_depth = 1;
 		};
 
-		SparseBlockGaussSeidel2(int depth) {
+		explicit SparseBlockGaussSeidel2(int depth) {
 			m_depth = depth;
 		};
 
@@ -930,7 +933,7 @@ class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 
 	protected:
 	//	Name of preconditioner
-		const char* name() const override {return "SparseBlockGaussSeidel2";}
+		[[nodiscard]] const char* name() const override {return "SparseBlockGaussSeidel2";}
 
 		//	Preprocess routine
 		bool block_preprocess(matrix_type &A) override {
@@ -1001,7 +1004,7 @@ class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 
 	//	Postprocess routine
 		bool postprocess() override {return true;}
-		bool supports_parallel() const override { return true; }
+		[[nodiscard]] bool supports_parallel() const override { return true; }
 
 		//	Stepping routine
 		bool block_step(matrix_type &A, vector_type& c, const vector_type& d) override {
@@ -1015,7 +1018,7 @@ class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 			CPUAlgebra::vector_type tmp, tmp2;
 			PROGRESS_START(prog, x.size(), "SparseBlockGaussSeidel: step");
 			if(forward)
-				for(size_t i=0; i<x.size(); i++)
+				for(size_t i=0; i<x.size(); ++i)
 				{
 					PROGRESS_UPDATE(prog, i);
 					// c = D^{-1}(b-Ax)
@@ -1024,7 +1027,7 @@ class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 						GetBlockGSCorrectionILUT(A, x, b, m_ilut[i], indices[i], tmp, tmp2);
 				}
 			if constexpr (backward)
-				for(size_t i=x.size()-1; ; i--)
+				for(size_t i=x.size()-1; ; --i)
 				{
 					PROGRESS_UPDATE(prog, i);
 					// c = D^{-1}(b-Ax)
@@ -1042,7 +1045,7 @@ class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 			return true;
 		}
 
-		std::string config_string() const override {
+		[[nodiscard]] std::string config_string() const override {
 			std::stringstream ss ;
 			if(backward&&forward) ss << "Symmetric";
 			else if(backward) ss << "Backward";

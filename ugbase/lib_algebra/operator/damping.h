@@ -103,21 +103,21 @@ class ConstantDamping : public IDamping<X,Y>
 		ConstantDamping(number factor) : m_factor(factor) {}
 
 	///	returns the constant damping factor
-		virtual number damping(const Y& c, const X& d, ConstSmartPtr<ILinearOperator<Y,X> > spLinOp) const
+		number damping(const Y& c, const X& d, ConstSmartPtr<ILinearOperator<Y,X> > spLinOp) const override
 		{
 			return m_factor;
 		}
 
 	///	returns the constant damping factor
-		virtual number damping() const
+		number damping() const override
 		{
 			return m_factor;
 		}
 
 	///	returns if damping is constant
-		virtual bool constant_damping() const {return true;};
+		bool constant_damping() const override {return true;};
 
-		virtual std::string config_string() const
+		std::string config_string() const override
 		{
 			std::stringstream ss; ss << "ConstantDamping(" << m_factor << ")"; return ss.str();
 		}
@@ -132,7 +132,7 @@ class MinimalResiduumDamping : public IDamping<X,Y>
 {
 	public:
 	///	returns the damping factor
-		virtual number damping(const Y& c, const X& d, ConstSmartPtr<ILinearOperator<Y,X> > spLinOp) const
+		number damping(const Y& c, const X& d, ConstSmartPtr<ILinearOperator<Y,X> > spLinOp) const override
 		{
 			SmartPtr<X> spAc = d.clone_without_values();
 			X& Ac = *spAc;
@@ -153,16 +153,14 @@ class MinimalResiduumDamping : public IDamping<X,Y>
 		}
 
 	///	returns if damping is constant
-		virtual bool constant_damping() const {return false;};
+		bool constant_damping() const override {return false;};
 
 	///	returns the constant damping factor
-		virtual number damping() const
-		{
+		number damping() const override {
 			UG_THROW("MinimalResiduumDamping: non-constant damping.");
 		}
 
-		virtual std::string config_string() const
-		{
+		std::string config_string() const override {
 			return "MinimalResiduumDamping";
 		}
 };
@@ -173,8 +171,7 @@ class MinimalEnergyDamping : public IDamping<X,Y>
 {
 	public:
 	///	returns the damping factor
-		virtual number damping(const Y& c, const X& d, ConstSmartPtr<ILinearOperator<Y,X> > spLinOp) const
-		{
+		number damping(const Y& c, const X& d, ConstSmartPtr<ILinearOperator<Y,X> > spLinOp) const override {
 			SmartPtr<X> spAc = d.clone_without_values();
 			X& Ac = *spAc;
 			spLinOp.cast_const()->apply(Ac, c);
@@ -189,16 +186,14 @@ class MinimalEnergyDamping : public IDamping<X,Y>
 		}
 
 	///	returns if damping is constant
-		virtual bool constant_damping() const {return false;};
+		bool constant_damping() const override {return false;};
 
 	///	returns the constant damping factor
-		virtual number damping() const
-		{
+		number damping() const override {
 			UG_THROW("MinimalEnergyDamping: non-constant damping.");
 		}
 
-		virtual std::string config_string() const
-		{
+		std::string config_string() const override {
 			return "MinimalEnergyDamping";
 		}
 };

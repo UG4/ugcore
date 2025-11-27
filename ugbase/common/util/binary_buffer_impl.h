@@ -96,8 +96,7 @@ inline char* BinaryBuffer::buffer()
 	return GetDataPtr(m_data);
 }
 
-inline bool BinaryBuffer::eof()
-{
+inline bool BinaryBuffer::eof() const {
 	return m_readPos >= m_writePos;
 }
 

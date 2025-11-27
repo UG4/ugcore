@@ -55,7 +55,7 @@ struct CollisionElementID{
 	CollisionElementID(void* p)	: m_ptrID(p) {}
 	CollisionElementID(int i)	: m_intID(i) {}
 
-	inline bool is_valid() {return m_intID != -1;}
+	[[nodiscard]] inline bool is_valid() const {return m_intID != -1;}
 	
 	bool operator == (const CollisionElementID& id) const {return m_ptrID == id.m_ptrID;}
 

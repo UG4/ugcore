@@ -231,9 +231,9 @@ int Variant::to_int() const
 	switch(m_type){
 		case VT_BOOL:	return (int)m_bool;
 		case VT_INT:	return m_int;
-		case VT_SIZE_T:	return (int)m_size_t;
-		case VT_FLOAT:	return (int)m_float;
-		case VT_DOUBLE:	return (int)m_double;
+		case VT_SIZE_T:	return static_cast<int>(m_size_t);
+		case VT_FLOAT:	return static_cast<int>(m_float);
+		case VT_DOUBLE:	return static_cast<int>(m_double);
 		default: break;
 	}
 
@@ -260,10 +260,10 @@ float Variant::to_float() const
 {
 	switch(m_type){
 		case VT_BOOL:	return (float)m_bool;
-		case VT_INT:	return (float)m_int;
-		case VT_SIZE_T:	return (float)m_size_t;
+		case VT_INT:	return static_cast<float>(m_int);
+		case VT_SIZE_T:	return static_cast<float>(m_size_t);
 		case VT_FLOAT:	return m_float;
-		case VT_DOUBLE:	return (float)m_double;
+		case VT_DOUBLE:	return static_cast<float>(m_double);
 		default: break;
 	}
 
@@ -275,11 +275,11 @@ float Variant::to_float() const
 number Variant::to_number() const
 {
 	switch(m_type){
-		case VT_BOOL:	return (number)m_bool;
-		case VT_INT:	return (number)m_int;
-		case VT_SIZE_T:	return (number)m_size_t;
-		case VT_FLOAT:	return (number)m_float;
-		case VT_DOUBLE:	return (number)m_double;
+		case VT_BOOL:	return m_bool;
+		case VT_INT:	return m_int;
+		case VT_SIZE_T:	return m_size_t;
+		case VT_FLOAT:	return m_float;
+		case VT_DOUBLE:	return m_double;
 		default: break;
 	}
 
@@ -291,10 +291,10 @@ number Variant::to_number() const
 double Variant::to_double() const
 {
 	switch(m_type){
-		case VT_BOOL:	return (double)m_bool;
-		case VT_INT:	return (double)m_int;
-		case VT_SIZE_T:	return (double)m_size_t;
-		case VT_FLOAT:	return (double)m_float;
+		case VT_BOOL:	return m_bool;
+		case VT_INT:	return m_int;
+		case VT_SIZE_T:	return m_size_t;
+		case VT_FLOAT:	return m_float;
 		case VT_DOUBLE:	return m_double;
 		default: break;
 	}

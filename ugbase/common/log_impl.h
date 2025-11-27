@@ -74,7 +74,7 @@ GetLogAssistant()
 inline unsigned int
 GetNumberOfDigits (uint64_t i)
 {
-    return i > 0 ? (unsigned int) log10 ((double) i) + 1 : 1;
+    return i > 0 ? static_cast<unsigned int>(log10((double) i)) + 1 : 1;
 }
 
 inline std::string

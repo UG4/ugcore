@@ -77,7 +77,7 @@ struct TarHeader
 		strcpy(ustarDeviceMajorNumber, "000000 ");
 		strcpy(ustarDeviceMinorNumber, "000000 ");
 
-		sprintf(octalModificationTimeStamp, "%o", ((unsigned int)time(nullptr)));
+		sprintf(octalModificationTimeStamp, "%o", static_cast<unsigned int>(time(nullptr)));
 //		strncpy(octalModificationTimeStamp, "12253557334 ", 12);
 		linkIndicator = '0';
 	}
@@ -88,14 +88,14 @@ struct TarHeader
 	void set_filesize(size_t size)
 	{
 		char buf[13];
-		sprintf(buf, "%011o ", (unsigned int)size);
+		sprintf(buf, "%011o ", static_cast<unsigned int>(size));
 		memcpy(octalFileSize, buf, 12);
 	}
 
 	void set_checksum()
 	{
 		memset(checksum, 32, sizeof(checksum));
-		unsigned char *p = (unsigned char *) this;
+		auto p = reinterpret_cast<unsigned char *>(this);
 		unsigned int cs = 0;
 		for(size_t i=0; i<sizeof(TarHeader); i++)
 			cs += p[i];

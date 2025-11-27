@@ -68,8 +68,7 @@ class IExternalSolver
 
 		virtual const char *double_name() const = 0;
 
-		virtual const char* name() const
-		{
+		const char* name() const override {
 			return double_name();
 		}
 
@@ -95,15 +94,14 @@ class IExternalSolver
 
 	// 	Clone
 
-		SmartPtr<ILinearIterator<vector_type> > clone()
-		{
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
 			UG_THROW("");
 			return nullptr;
 		}
 
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const {return false;}
+		bool supports_parallel() const override {return false;}
 
 	/// disable preprocessing (if underlying matrix has not changed)
 		void set_disable_preprocessing(bool bDisable)	{m_bDisablePreprocessing = bDisable;}
@@ -170,8 +168,8 @@ class IExternalSolver
 		}
 
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spOperator;
-		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
-		{
+
+		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op) override {
 		// 	remember operator
 			m_spOperator = Op;
 
@@ -215,8 +213,7 @@ class IExternalSolver
 
 
 	//	Stepping routine
-		virtual bool apply(vector_type& c, const vector_type& d)
-		{
+		bool apply(vector_type& c, const vector_type& d) override {
 			if (m_size == 0)
 			{
 #ifdef UG_PARALLEL
@@ -261,8 +258,7 @@ class IExternalSolver
 			return true;
 		}
 
-		virtual bool apply_return_defect(vector_type& u, vector_type& f)
-		{
+		bool apply_return_defect(vector_type& u, vector_type& f) override {
 		//	solve u
 			if(!apply(u, f)) return false;
 
@@ -338,8 +334,9 @@ public:
 				for(size_t k=0; k<m_blockSize; k++)
 				{
 					dest[i*m_blockSize + k]=0;
-					for(size_t j=0; j<dim2; j++)
+					for(size_t j=0; j<dim2; j++) {
 						dest[i*m_blockSize + k][j] = src[i][j];
+					}
 				}
 			}
 			return true;

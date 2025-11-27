@@ -39,14 +39,15 @@ template<typename T>
 class AlgebraicConnection
 {
 public:
-	size_t iIndex;		// index to
+	size_t iIndex; // index to
 	T dValue; // smallmatrix value;
 
 	AlgebraicConnection() = default;
 	AlgebraicConnection(size_t i, const T &v)
 	: iIndex(i), dValue(v) {}
 
-	void print(){std::cout << *this;}
+	void print() const {std::cout << *this;}
+
 	friend std::ostream &operator << (std::ostream &output, const AlgebraicConnection&c)
 	{
 		output << "(" << c.iIndex << "-> ";
@@ -59,11 +60,13 @@ public:
 	{
 		iIndex = other.iIndex;
 		dValue = other.dValue;
+		// ø todo should normally return AlgebraicConnection& as a type
 	}
 
 	int operator < (const AlgebraicConnection &c) const
 	{
 		return iIndex < c.iIndex;
+		// ø todo should normally return bool as a type to be compliant with stl
 	}
 
 	size_t &index()

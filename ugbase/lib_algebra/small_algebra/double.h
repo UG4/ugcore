@@ -52,21 +52,21 @@ namespace ug{
 
 
 //////////////////////////////////////////////////////
-template<typename T> number BlockNorm(const T &t);
+template<typename T> number BlockNorm(const T &t); // ø todo check if declaration is redundand
 template <>
-inline number BlockNorm(const number &a)
+inline number BlockNorm(const number &t)
 {
-	return a>0 ? a : -a;
+	return t>0 ? t : -t;
 }
 
-template<typename T> number BlockNorm2(const T &t);
+template<typename T> number BlockNorm2(const T &t); // ø todo check if declaration is redundand
 template <>
 inline number BlockNorm2(const number &a)
 {
 	return a*a;
 }
 
-template<typename T> number BlockMaxNorm(const T &t);
+template<typename T> number BlockMaxNorm(const T &t); // ø todo check if declaration is redundand
 template <>
 inline number BlockMaxNorm(const number &a)
 {
@@ -125,14 +125,12 @@ template<>
 inline void SetSize(number &d, size_t a)
 {
 	UG_ASSERT(a == 1, "block is number, cannot change size to " << a << ".");
-	return;
 }
 
 template<>
 inline void SetSize(number &d, size_t a, size_t b)
 {
 	UG_ASSERT(a == 1 && b == 1, "block is number, cannot change size to (" << a << ", " << b << ").");
-	return;
 }
 
 template<>

@@ -115,7 +115,7 @@ class SchurPrecond: public IPreconditioner<TAlgebra>
 
 	protected:
 	///	name of solver
-		const char* name() const override {return "Schur complement";}
+		[[nodiscard]] const char* name() const override {return "Schur complement";}
 
 		//	Preprocess routine
 		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override;

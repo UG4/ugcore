@@ -174,7 +174,7 @@ bool ReadFile(const char* filename, vector<char> &file, bool bText)
 }
 
 /// !!! Serial i/o version !!!
-string MakeTmpFile(string filename, const string &extension, bool &bSuccess)
+string MakeTmpFile(const string &filename, const string &extension, bool &bSuccess)
 {
 	PROFILE_FUNC();  // since i/o
 	/*bSuccess = true;

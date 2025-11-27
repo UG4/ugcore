@@ -60,4 +60,10 @@ else ()
     set (CMAKE_CXX_STANDARD 20)
     set (CMAKE_CXX_EXTENSIONS OFF)
     message (STATUS "Info: Trying to activate 'CMAKE_CXX_STANDARD 20'")
+
+    set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
+    message (STATUS "Exporting compile command" )
+
+    # add_compile_options(-march=native -mtune=native)
+
 endif ()

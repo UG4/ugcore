@@ -96,9 +96,8 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 		};
 
 	/// 	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			SmartPtr<DebugIterator<algebra_type> > newInst(new DebugIterator<algebra_type> ());
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			SmartPtr<DebugIterator > newInst(new DebugIterator ());
 			newInst->set_damp(this->damping());
 			newInst->set_preconditioner(this->get_preconditioner()->clone());  // clone preconditioner
 			newInst->set_solver(this->get_solver());  						   // keep solver (initialized below)
@@ -109,8 +108,7 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 		}
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const
-		{
+		[[nodiscard]] bool supports_parallel() const override {
 			if(m_pprecond.valid())
 				return m_pprecond->supports_parallel();
 			return true;
@@ -134,14 +132,12 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 
 
 	///	name of preconditioner
-		virtual const char* name() const
-		{return "DebugIterator";}
+		[[nodiscard]] const char* name() const override {return "DebugIterator";}
 
 
 		/// init (expensive)
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J,
-				const vector_type& u)
-		{
+		bool init(SmartPtr<ILinearOperator<vector_type> > J,
+	          const vector_type& u) override {
 			//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -157,8 +153,7 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 		}
 
 		/// init (expensive)
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > L)
-		{
+		[[nodiscard]] bool init(SmartPtr<ILinearOperator<vector_type> > L) override {
 			//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -174,8 +169,7 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 		}
 
 		/// init (expensive, since it calls \sa find_smooth_error)
-		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
+		[[nodiscard]] virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) {
 			m_pOperator->get_matrix() = pOp->get_matrix();
 			//m_pOperator->get_matrix().set_as_copy_of(pOp->get_matrix());
 #ifdef UG_PARALLEL
@@ -227,14 +221,12 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 		}
 
 	/// forwarding call to original preconditioner
-		virtual bool apply(vector_type& c, const vector_type& d)
-		{
+		bool apply(vector_type& c, const vector_type& d) override {
 			return m_pprecond->apply(c, d);
 		}
 
 	/// forwarding call to original preconditioner
-		virtual bool apply_update_defect(vector_type& c, vector_type& d)
-		{
+		bool apply_update_defect(vector_type& c, vector_type& d) override {
 			return (m_pprecond->apply_update_defect(c, d));
 		}
 

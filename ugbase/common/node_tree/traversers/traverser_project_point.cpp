@@ -78,14 +78,13 @@ project(const vector3& point, SPNode nodeGraph,
 	else
 		m_checkNormals= false;
 	
-	Traverser_CollisionTree::apply(nodeGraph);
+	apply(nodeGraph);
 
 	return m_searchState == GOT_ONE;
 }
 
 CollisionElementID Traverser_ProjectPoint::
-get_closest_element_id()
-{
+get_closest_element_id() const {
 	return m_closestElemID;
 }
 

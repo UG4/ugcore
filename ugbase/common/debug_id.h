@@ -142,7 +142,7 @@ private:
 	/// returns the debug level of debugIDhash, -1 if not found
 		inline int get_debug_level(uint32 debugIDhash) const
 		{
-			std::map<uint32, int>::const_iterator it = m_dbgLevels.find(debugIDhash);
+			auto it = m_dbgLevels.find(debugIDhash);
 			if(it == m_dbgLevels.end()) return -1;
 			else return (*it).second;
 		}
@@ -150,7 +150,7 @@ private:
 		/// sets the debug level of debugIDhash if registered to 'level'
 		inline bool set_debug_level(uint32 debugIDhash, int level)
 		{
-			std::map<uint32, int>::iterator it = m_dbgLevels.find(debugIDhash);
+			auto it = m_dbgLevels.find(debugIDhash);
 			if(it == m_dbgLevels.end()) return false;
 			else
 			{

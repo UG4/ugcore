@@ -1,3 +1,34 @@
+/*
+ * Copyright (c) 2011-2015:  G-CSC, Goethe University Frankfurt
+ * Author:
+ *
+ * This file is part of UG4.
+ *
+ * UG4 is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License version 3 (as published by the
+ * Free Software Foundation) with the following additional attribution
+ * requirements (according to LGPL/GPL v3 §7):
+ *
+ * (1) The following notice must be displayed in the Appropriate Legal Notices
+ * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
+ *
+ * (2) The following notice must be displayed at a prominent place in the
+ * terminal output of covered works: "Based on UG4 (www.ug4.org/license)".
+ *
+ * (3) The following bibliography is recommended for citation and must be
+ * preserved in all covered files:
+ * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
+ *   parallel geometric multigrid solver on hierarchically distributed grids.
+ *   Computing and visualization in science 16, 4 (2013), 151-164"
+ * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
+ *   flexible software system for simulating pde based models on high performance
+ *   computers. Computing and visualization in science 16, 4 (2013), 165-179"
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILUT__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILUT__
@@ -80,7 +111,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		~ILUTPreconditioner() override = default;
 
 	///	returns if parallel solving is supported
-		bool supports_parallel() const override {return true;}
+		[[nodiscard]] bool supports_parallel() const override {return true;}
 
 	///	sets threshold for incomplete LU factorisation (added 01122010ih)
 		void set_threshold(number thresh)
@@ -100,7 +131,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			m_show_progress = s;
 		}
 
-		std::string config_string() const override {
+		[[nodiscard]] std::string config_string() const override {
 			std::stringstream ss;
 			ss << "ILUT(threshold = " << m_eps << ", sort = " << (m_spOrderingAlgo.valid()?"true":"false") << ")";
 			if(m_eps == 0.0) ss << " = Sparse LU";
@@ -395,8 +426,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				UG_LOG("	A is " << A->num_rows() << " x " << A->num_cols() << " matrix.\n");
 				UG_LOG("	A nr of connections: " << A->total_num_connections()  << "\n");
 				UG_LOG("	L+U nr of connections: " << m_L.total_num_connections()+m_U.total_num_connections() << "\n");
-				UG_LOG("	Increase factor: " << (float)(m_L.total_num_connections() + m_U.total_num_connections() )/A->total_num_connections() << "\n");
-				UG_LOG(reset_floats << "	Total entries: " << totalentries << " (" << ((double)totalentries) / (A->num_rows()*A->num_rows()) << "% of dense)\n");
+				UG_LOG("	Increase factor: " << static_cast<float>(m_L.total_num_connections() + m_U.total_num_connections())/A->total_num_connections() << "\n");
+				UG_LOG(reset_floats << "	Total entries: " << totalentries << " (" << (static_cast<double>(totalentries)) / (A->num_rows()*A->num_rows()) << "% of dense)\n");
 				if(m_spOrderingAlgo.valid())
 				{
 					UG_LOG("	Using " <<  m_spOrderingAlgo->name() << "\n");
@@ -571,7 +602,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 			// handle all other rows
 			if(m_U.num_rows() > 1){
-				for(size_t i=m_U.num_rows()-2; ; i--)
+				for(size_t i=m_U.num_rows()-2; ; --i)
 				{
 					for(size_t e=0; e<vc.size(); e++)
 					{

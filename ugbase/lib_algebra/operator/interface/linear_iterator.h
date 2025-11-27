@@ -95,10 +95,10 @@ class ILinearIterator
 	 *
 	 * \returns 	const char* 	name of inverse operator
 	 */
-		virtual const char* name() const = 0;
+		[[nodiscard]] virtual const char* name() const = 0;
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const = 0;
+		[[nodiscard]] virtual bool supports_parallel() const = 0;
 
 	///	initialize for operator J(u) and linearization point u
 	/**
@@ -187,7 +187,7 @@ class ILinearIterator
 			set_damp(parent.m_spDamping);
 		};
 
-		virtual std::string config_string() const
+		[[nodiscard]] virtual std::string config_string() const
 		{
 			std::stringstream ss; ss << name() << "( damping = " << m_spDamping->config_string() << ")"; return ss.str();
 		}

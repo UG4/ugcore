@@ -57,10 +57,10 @@ bool PluginLoaded(const string &name)
 	return find(loadedPluginNames.begin(), loadedPluginNames.end(), name) != loadedPluginNames.end();
 }
 
-bool LoadPlugins(const char* pluginPath, string parentGroup, bridge::Registry& reg, bool bPrefixGroup)
+bool LoadPlugins(const char* pluginPath, const string &parentGroup, bridge::Registry& reg, bool bPrefixGroup)
 {
 	PROFILE_FUNC();
-	using FctInitPlugin = void(*)(ug::bridge::Registry*, string);
+	using FctInitPlugin = void(*)(bridge::Registry*, string);
 
 	bool bSuccess = true;
 
@@ -137,8 +137,7 @@ bool LoadPlugins(const char* pluginPath, string parentGroup, bridge::Registry& r
 		string fctName("InitUGPlugin_");
 		fctName.append(pluginName);
 
-		FctInitPlugin fctInitPlugin =
-				(FctInitPlugin) GetLibraryProcedure(libHandle, fctName.c_str());
+		auto fctInitPlugin = (FctInitPlugin) GetLibraryProcedure(libHandle, fctName.c_str());
 
 		if(!fctInitPlugin){
 			UG_ERR_LOG("PLUGIN-ERROR: Couldn't find entry point " <<  fctName
@@ -189,8 +188,7 @@ bool UnloadPlugins()
 		string fctName("FinalizeUGPlugin");
 		DynLibHandle libHandle = loadedPlugins[i];
 
-		FctFinalizePlugin fctFinalizePlugin =
-				(FctFinalizePlugin) GetLibraryProcedure(libHandle, fctName.c_str());
+		auto fctFinalizePlugin = (FctFinalizePlugin) GetLibraryProcedure(libHandle, fctName.c_str());
 
 		if(fctFinalizePlugin) fctFinalizePlugin();
 

@@ -226,7 +226,7 @@ void Base64FileWriter::flushInputBuffer(bool force)
 
 	size_t buff_len = 0;
 	// amount of elements to flush at once
-	const uint elements_to_flush = 12;
+constexpr uint elements_to_flush = 12;
 	// in case of normal format, no input size is known, so this evals to zero.
 	const uint bytes_to_flush = 3 * m_lastInputByteSize * elements_to_flush;
 	// in case of forced flush we have to add padding

@@ -69,7 +69,7 @@ class SurfaceView
 		 * IMPORTANT: The order of the byte-flags is currently crucial. Do not
 		 * 			  change them. See ComPol_GatherSurfaceStates.
 		 */
-		enum SurfaceConstants{
+		enum SurfaceConstants : byte_t {
 			// each grid-object has exactly on of these states (begin)
 			MG_SHADOW_PURE = 1,               ///< full-covered (inner)
 			MG_SURFACE_PURE = 1 << 1,         ///< surface, i.e., without children (inner)

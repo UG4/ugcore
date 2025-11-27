@@ -390,7 +390,7 @@ init_obstacle_dofs_with_values(const std::vector<TUserData*>& vUserData, int si,
 	iter_type iterEnd = m_spDD->end<TBaseElem>(si);
 
 //	loop elements
-	for( ; iter != iterEnd; iter++)
+	for( ; iter != iterEnd; ++iter)
 	{
 	//	get baseElem
 		TBaseElem* elem = *iter;
@@ -452,7 +452,7 @@ adjust_restriction(matrix_type& R, ConstSmartPtr<DoFDistribution> ddCoarse,
 	using iter_type = vector<DoFIndex>::iterator;
 	iter_type dofIter = m_vActiveDofs.begin();
 	iter_type dofIterEnd = m_vActiveDofs.end();
-	for( ; dofIter != dofIterEnd; dofIter++)
+	for( ; dofIter != dofIterEnd; ++dofIter)
 	{
 		UG_LOG("IObstacleConstraint<TDomain,TAlgebra>::"
 				"adjust_restrictionR::activeDof : " <<*dofIter<< "\n");

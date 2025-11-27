@@ -185,7 +185,7 @@ class IVectorDebugWriter
 		inline void set_base_dir(const char* const baseDir)
 		{
 			if (! m_spContext.valid())
-				set_context (SmartPtr<DebugWriterContext> (new DebugWriterContext));
+				set_context (SmartPtr (new DebugWriterContext));
 			m_spContext->set_base_dir (baseDir);
 		}
 		
@@ -249,7 +249,7 @@ class IDebugWriter : public IVectorDebugWriter<typename TAlgebra::vector_type>
 
 	public:
 	///	write vector
-		virtual void write_vector(const vector_type& vec, const char* name) = 0;
+		void write_vector(const vector_type& vec, const char* name) override = 0;
 
 	///	write matrix
 		virtual void write_matrix(const matrix_type& mat, const char* name) = 0;
@@ -395,8 +395,7 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 			write_debug(mat, std::string(filename));
 		}
 	///	write debug output for a matrix (if debug writer set)
-		void write_debug(const matrix_type& mat, std::string name)
-		{
+		virtual void write_debug(const matrix_type& mat, std::string name) {
 			PROFILE_FUNC_GROUP("algebra debug");
 		//	if no debug writer set, we're done
 			if(m_spDebugWriter.invalid()) return;

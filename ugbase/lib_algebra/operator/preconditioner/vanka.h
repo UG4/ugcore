@@ -334,7 +334,7 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 			return newInst;
 		}
 
-		bool supports_parallel() const override {return true;}
+		[[nodiscard]] bool supports_parallel() const override {return true;}
 
 	///	Destructor
 		~DiagVanka() override = default;
@@ -345,7 +345,7 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 
 	protected:
 	///	Name of preconditioner
-		const char* name() const override {return "DiagVanka";}
+		[[nodiscard]] const char* name() const override {return "DiagVanka";}
 
 	///	Preprocess routine
 		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {

@@ -50,6 +50,7 @@ namespace bridge{
 
 #ifdef UG_PARALLEL
 
+	// ø todo move methods out of bridge
 static bool PclDebugBarrierEnabled()
 {
 #ifdef PCL_DEBUG_BARRIER_ENABLED

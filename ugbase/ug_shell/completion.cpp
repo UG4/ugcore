@@ -444,7 +444,7 @@ static size_t GetClassesCompletions(char *buf, int len, std::vector<string> &mat
 	if(iPrintCompletionList == 2 && matches.size() == 1 && sniplen == matches[0].size())
 	{
 		UG_LOG("\n");
-		bridge::UGTypeInfo(p);
+		UGTypeInfo(p);
 	}
 	return matches.size() - matchesSizeBefore;
 }
@@ -633,7 +633,7 @@ int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 			for(int i=first+1; i < first+5 && i < (int)matches.size(); i++)
 				printf(", %s", matches[i].c_str());
 			if((int)matches.size() > first+5)
-				printf(" ... (%lu more)", (long unsigned) matches.size()-first-5);
+				printf(" ... (%lu more)", matches.size()-first-5);
 			printf("\n");
 		}
 		return strlen(buf);

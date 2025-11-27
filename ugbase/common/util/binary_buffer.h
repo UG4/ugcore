@@ -93,7 +93,7 @@ class BinaryBuffer
 		inline char* buffer();
 
 	///	returns true if the read-position reached the write-position
-		inline bool eof();
+		inline bool eof() const;
 
 	///	sets the read position (in bytes).
 		void set_read_pos(size_t pos);

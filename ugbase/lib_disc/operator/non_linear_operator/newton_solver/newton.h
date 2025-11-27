@@ -182,7 +182,7 @@ class NewtonSolver
 	///	help functions for debug output
 	///	\{
 		void write_debug(const vector_type& vec, std::string filename) override;
-		virtual void write_debug(const matrix_type& mat, std::string filename);
+		void write_debug(const matrix_type& mat, std::string filename) override;
 	/// \}
 
 	private:

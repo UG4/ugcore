@@ -127,7 +127,7 @@ class IPreconditioner :
 		{};
 
 	///	constructor setting debug writer
-		IPreconditioner(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter) :
+		explicit IPreconditioner(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter) :
 			DebugWritingObject<TAlgebra>(spDebugWriter),
 			m_spDefectOperator(nullptr), m_spApproxOperator(nullptr), m_bInit(false), m_bOtherApproxOperator(false)
 		{};
@@ -148,7 +148,7 @@ class IPreconditioner :
 	 *
 	 * \returns 	const char* 	name of inverse operator
 	 */
-		const char* name() const override = 0;
+		[[nodiscard]] const char* name() const override = 0;
 
 	///	initializes the preconditioner
 	/**
@@ -244,8 +244,7 @@ class IPreconditioner :
 	 * \param[in]	Op		matrix based operator
 	 * \returns		bool	success flag
 	 */
-		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
-		{
+		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op) {
 		// 	Remember operator
 			m_spApproxOperator = Op;
 			m_spDefectOperator = Op;

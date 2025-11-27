@@ -79,7 +79,7 @@ class GMRES
 
 	public:
 	///	default constructor
-		GMRES(size_t restart) : m_restart(restart) {};
+		explicit GMRES(size_t restart) : m_restart(restart) {};
 
 	///	constructor setting the preconditioner and the convergence check
 		GMRES( size_t restart,
@@ -90,10 +90,10 @@ class GMRES
 		~GMRES() override = default;
 
 	///	name of solver
-		const char* name() const override {return "GMRES";}
+		[[nodiscard]] const char* name() const override {return "GMRES";}
 
 	///	returns if parallel solving is supported
-		bool supports_parallel() const override {
+		[[nodiscard]] bool supports_parallel() const override {
 			if(preconditioner().valid())
 				return preconditioner()->supports_parallel();
 			return true;
@@ -279,7 +279,7 @@ class GMRES
 		}
 
 	public:
-		std::string config_string() const override {
+		[[nodiscard]] std::string config_string() const override {
 			std::stringstream ss;
 			ss << "GMRes ( restart = " << m_restart << ")\n";
 			ss << base_type::config_string_preconditioner_convergence_check();
@@ -350,7 +350,7 @@ class GMRES
 		}
 
 	///	computes the vector product
-		number VecProd(vector_type& a, vector_type& b)
+		static number VecProd(vector_type& a, vector_type& b)
 		{
 			return a.dotprod(b);
 		}

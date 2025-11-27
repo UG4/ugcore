@@ -44,24 +44,7 @@
 
 namespace ug
 {
-/*
-template <typename X, typename Y, typename M>
-void MatAdd(	IMatrixOperator<M, X, Y>& opOut,
-				IMatrixOperator<M, X, Y>& op1,
-				IMatrixOperator<M, X, Y>& op2)
-{
-	using MatrixOperator = IMatrixOperator<M, X, Y> ;
 
-	using Matrix = typename MatrixOperator::matrix_type ;
-
-	Matrix& matOut = opOut.get_matrix();
-	Matrix& mat1 = op1.get_matrix();
-	Matrix& mat2 = op2.get_matrix();
-
-//	matOut = mat1 + mat2;
-	MatAdd<X, M>(matOut, mat1, mat2);
-}
-*/
 
 template <typename X, typename Y, typename M>
 void MatIdentity(	MatrixOperator<M, X, Y>& opOut)

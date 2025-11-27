@@ -36,6 +36,7 @@
 #include <iostream>
 #include <cassert>
 #include "../storage/storage.h"
+#include "concepts/vector_storage_type.hpp"
 
 namespace ug{
 
@@ -96,7 +97,7 @@ inline double &te_transpose(double &t)
  * \tparam TStorage storage policy with interface of VariableArray1.
  * \sa FixedArray1, VariableArray1
  */
-template<typename TStorage> // VariableArray1<number>
+template<VectorStorageType TStorage> // VariableArray1<number>
 class DenseVector : public TStorage
 {
 public:
@@ -199,8 +200,9 @@ public:
 
 	bool operator != (double d) const
 	{
-		for(size_t i=0; i<size(); i++)
+		for(size_t i=0; i<size(); ++i) {
 			if(entry(i) != d) return true;
+		}
 		return false;
 	}
 	////////////////////////////////////////////////////////////////////
@@ -212,8 +214,9 @@ public:
 		UG_ASSERT(size() == other.size(), "");
 		this_type erg;
 		erg.resize(size());
-		for(size_t i=0; i<size(); i++)
+		for(size_t i=0; i<size(); i++) {
 			erg[i] = entry(i) + other[i];
+		}
 		return erg;
 	}
 
@@ -222,8 +225,9 @@ public:
 		UG_ASSERT(size() == other.size(), "");
 		this_type erg;
 		erg.resize(size());
-		for(size_t i=0; i<size(); i++)
+		for(size_t i=0; i<size(); i++) {
 			erg[i] = entry(i) - other[i];
+		}
 		return erg;
 	}
 
@@ -232,8 +236,9 @@ public:
 	{
 		this_type erg;
 		erg.resize(size());
-		for(size_t i=0; i<size(); i++)
+		for(size_t i=0; i<size(); i++) {
 			erg[i] = alpha*entry(i);
+		}
 		return erg;
 	}
 	
@@ -241,8 +246,9 @@ public:
 	{
 		this_type erg;
 		erg.resize(size());
-		for(size_t i=0; i<size(); i++)
+		for(size_t i=0; i<size(); i++) {
 			erg[i] *= -1.0;
+		}
 		return erg;
 	}
 
@@ -297,8 +303,9 @@ public:
 	subassign(size_t i, const T2 &t)
 	{
 		UG_ASSERT(i+t.size() <= size(), "");
-		for(size_t i1=0; i1<t.size(); i1++)
+		for(size_t i1=0; i1<t.size(); i1++) {
 			entry(i+i1) = t[i1];
+		}
 	}
 };
 

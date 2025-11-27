@@ -64,7 +64,7 @@ class Field {
 		void fill(size_t x, size_t y, size_t w, size_t h, const T& value);
 		void fill_all(const T& value);
 		void copy(size_t x, size_t y, const Field& f);
-		void swap(Field& f);
+		void swap(Field& f) noexcept;
 
 	private:
 		inline size_t array_index(size_t x, size_t y) const;

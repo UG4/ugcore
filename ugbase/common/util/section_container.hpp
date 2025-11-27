@@ -263,7 +263,7 @@ insert(const TValue& val, int sectionIndex)
 
 	//	insert the element
 		nHandle = m_vSections[sectionIndex].m_elemsBegin = m_container.insert(m_vSections[sectionIndex].m_elemsEnd, val);
-		m_vSections[sectionIndex].m_numElements++;
+		++m_vSections[sectionIndex].m_numElements;
 //		m_vSections[sectionIndex].m_elemsRBegin = reverse_iterator(nHandle);
 		
 	//	adjust rend iterator of the next section
@@ -282,7 +282,7 @@ insert(const TValue& val, int sectionIndex)
 	{
 	//	the section is not empty. Simply insert the element before the sections end-iterator.
 		nHandle = m_container.insert(m_vSections[sectionIndex].m_elemsEnd, val);
-		m_vSections[sectionIndex].m_numElements++;
+		++m_vSections[sectionIndex].m_numElements;
 	}
 
 	m_numElements++;
@@ -306,7 +306,7 @@ erase(const iterator& elemHandle, int sectionIndex)
 	{
 	//	erase the element
 		hNext = m_container.erase(elemHandle);
-		m_vSections[sectionIndex].m_numElements--;
+		--m_vSections[sectionIndex].m_numElements;
 
 	//	update the current section and the previous valid one.
 		m_vSections[sectionIndex].m_elemsBegin = hNext;
@@ -328,7 +328,7 @@ erase(const iterator& elemHandle, int sectionIndex)
 	{
 	//	erase the element
 		hNext = m_container.erase(elemHandle);
-		m_vSections[sectionIndex].m_numElements--;
+		--m_vSections[sectionIndex].m_numElements;
 	}
 
 	m_numElements--;

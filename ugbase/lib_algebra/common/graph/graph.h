@@ -66,11 +66,9 @@ public:
 public:
 	/** constructor
 	 */
-	cgraph()
-	{
-	}
+	cgraph() = default;
 	
-	cgraph(size_t n) : m_data(n)
+	explicit cgraph(size_t n) : m_data(n)
 	{
 		for(size_t i=0; i<m_data.size(); ++i)
 			m_data[i].resize(0);
@@ -89,19 +87,19 @@ public:
 
 	//!
 	//! destructor
-	~cgraph()
-	{
+	~cgraph() = default;
+	//{
 		// destructors of std::vector are getting called
-	}
+	//}
 
 	//! returns nr of nodes the node "node" is connected to.
-	size_t num_connections(size_t node) const
+	[[nodiscard]] size_t num_connections(size_t node) const
 	{
 		size_check(node);
 		return m_data[node].size() ;
 	}
 
-	bool is_isolated(size_t i) const
+	[[nodiscard]] bool is_isolated(size_t i) const
 	{
 		size_check(i);
 		return num_connections(i)==0 ||
@@ -109,7 +107,7 @@ public:
 	}
 
 	//! returns true if graph has connection from "from" to "to", otherwise false
-	bool has_connection(size_t from, size_t to) const
+	[[nodiscard]] bool has_connection(size_t from, size_t to) const
 	{
 		size_check(from, to);
 		return binary_search(begin_row(from), end_row(from), to);
@@ -187,7 +185,7 @@ public:
 	}
 		
 	
-	size_t size() const { return m_data.size(); }
+	[[nodiscard]] size_t size() const { return m_data.size(); }
 	
 public:
 	// print functions
@@ -196,7 +194,7 @@ public:
 	void pr(size_t i) const
 	{
 		std::cout << "graph row " << i << ", length " << num_connections(i) << ":" << std::endl;
-		for(const_row_iterator it = begin_row(i); it != end_row(i); ++it)
+		for(auto it = begin_row(i); it != end_row(i); ++it)
 			std::cout << (*it) << " ";
 		std::cout << std::endl;
 		std::cout.flush();
@@ -213,7 +211,7 @@ public:
 		for(size_t i=0; i<g.size(); ++i)
 		{
 			out << "[" << i << "]:  ";
-			for(const_row_iterator it = g.begin_row(i); it != g.end_row(i); ++it)
+			for(auto it = g.begin_row(i); it != g.end_row(i); ++it)
 				out << (*it) << " ";
 			out << std::endl;
 		}

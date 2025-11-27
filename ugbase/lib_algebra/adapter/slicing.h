@@ -98,8 +98,7 @@ public:
 		reset_set_mappings();
 	}
 
-	bool is_valid()
-	{ return m_valid;}
+	bool is_valid() const { return m_valid;}
 
 
 protected:
@@ -298,7 +297,7 @@ public:
 protected:
 
 	//! returns type for a global index
-	slice_desc_type get_type(size_t index)
+	slice_desc_type get_type(size_t index) const
 	{return m_slice_types[index];}
 
 
@@ -380,7 +379,7 @@ protected:
 				else {
 					UG_DLOG(SchurDebug, 7, "Deleting:" << myindex << std::endl);
 					interf.erase(eiter);
-					eiter--;
+					eiter--; // ø todo prfx ?
 				}
 
 			}

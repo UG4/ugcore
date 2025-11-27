@@ -38,102 +38,110 @@
 
 namespace ug{
 
-template<typename TStorage>
+template<VectorStorageType TStorage>
 DenseVector<TStorage>::DenseVector(double alpha)
 {
 	operator = (alpha);
 }
 
-template<typename TStorage>
+template<VectorStorageType TStorage>
 DenseVector<TStorage>::DenseVector(const DenseVector &rhs) : TStorage(rhs)
 {
 }
 
 // operations with vectors
-template<typename TStorage>
+template<VectorStorageType TStorage>
 DenseVector<TStorage> &
 DenseVector<TStorage>::operator = (const DenseVector &rhs)
 {
 	if(this == &rhs) return *this;
 	if(size() != rhs.size()) resize(rhs.size());
 
-	for(size_type i=0; i<size(); i++)
+	for(size_type i=0; i<size(); ++i) {
 		entry(i) = rhs[i];
+	}
 	return *this;
 }
 
 
-template<typename TStorage>
+template<VectorStorageType TStorage>
 DenseVector<TStorage> &
 DenseVector<TStorage>::operator += (const DenseVector &rhs)
 {
-	for(size_type i=0; i<size(); i++)
+	for(size_type i=0; i<size(); ++i) {
 		entry(i) += rhs[i];
+	}
 	return *this;
 }
 
 
-template<typename TStorage>
+template<VectorStorageType TStorage>
 DenseVector<TStorage> &
 DenseVector<TStorage>::operator -= (const DenseVector &rhs)
 {
-	for(size_type i=0; i<size(); i++)
+	for(size_type i=0; i<size(); ++i) {
 		entry(i) -= rhs[i];
+	}
 	return *this;
 }
 
 
 // operations with scalars
-template<typename TStorage>
+template<VectorStorageType TStorage>
 template<typename T>
 DenseVector<TStorage> &
 DenseVector<TStorage>::operator = (const T &alpha)
 {
-	for(size_t i=0; i<size(); i++)
+	for(size_t i=0; i<size(); ++i){
 		entry(i) = alpha;
+	}
 	return *this;
 }
 
-template<typename TStorage>
+template<VectorStorageType TStorage>
 DenseVector<TStorage> &
 DenseVector<TStorage>::operator += (const value_type &alpha)
 {
-	for(size_t i=0; i<size(); i++)
+	for(size_t i=0; i<size(); ++i) {
 		entry(i) += alpha;
+	}
 	return *this;
 }
 
-template<typename TStorage>
+template<VectorStorageType TStorage>
 DenseVector<TStorage> &
 DenseVector<TStorage>::operator -= (const value_type &alpha)
 {
-	for(size_t i=0; i<size(); i++)
+	for(size_t i=0; i<size(); ++i) {
 		entry(i) -= alpha;
+	}
 	return *this;
 }
 
-template<typename TStorage>
+template<VectorStorageType TStorage>
 template<typename T>
 DenseVector<TStorage> &
 DenseVector<TStorage>::operator *= (const T &alpha)
 {
-	for(size_t i=0; i<size(); i++)
+	for(size_t i=0; i<size(); ++i) {
 		entry(i) *= alpha;
+	}
 	return *this;
 }
 
 
-template<typename TStorage>
+template<VectorStorageType TStorage>
 DenseVector<TStorage> &
 DenseVector<TStorage>::operator /= (const value_type &alpha)
 {
-	for(size_t i=0; i<size(); i++)
+	for(size_t i=0; i<size(); ++i) {
 		entry(i) /= alpha;
+	}
 
 	return *this;
 }
 
-template<typename TStorage>
+template<VectorStorageType TStorage>
 void DenseVector<TStorage>::maple_print(const char *name)
 {
 	UG_LOG(name << " = vector([");
@@ -149,7 +157,7 @@ void DenseVector<TStorage>::maple_print(const char *name)
 // methods
 
 
-template<typename TStorage>
+template<VectorStorageType TStorage>
 std::ostream &operator << (std::ostream &out, const DenseVector<TStorage> &vec)
 {
 	out << "[";
@@ -162,7 +170,7 @@ std::ostream &operator << (std::ostream &out, const DenseVector<TStorage> &vec)
 
 
 
-template<typename TStorage>
+template<VectorStorageType TStorage>
 template<typename Type>
 DenseVector<TStorage> &
 DenseVector<TStorage>::assign(const Type &t)

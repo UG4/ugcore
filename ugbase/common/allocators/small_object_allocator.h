@@ -58,7 +58,7 @@ class FixedAllocator
 			void init(std::size_t blockSize, unsigned char numBlocks);
 
 		///	call this method instead of a destructor
-			void free();
+			void free() const;
 			
 		///	returns 0 if no more blocks are available.
 			void* allocate(std::size_t blockSize);

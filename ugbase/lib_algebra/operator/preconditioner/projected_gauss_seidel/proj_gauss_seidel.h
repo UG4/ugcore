@@ -92,23 +92,22 @@ class ProjGaussSeidel:
 
 	protected:
 	///	name
-		virtual const char* name() const {return "Projected GaussSeidel";}
+		const char* name() const override {return "Projected GaussSeidel";}
 
 	public:
 		ProjGaussSeidel() : base_type() {}
 	/// copy constructor
-		ProjGaussSeidel( const ProjGaussSeidel<TDomain, TAlgebra> &parent )
+		ProjGaussSeidel( const ProjGaussSeidel &parent )
 			: base_type(parent)
 		{	}
 
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			return make_sp(new ProjGaussSeidel<TDomain, algebra_type>(*this));
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			return make_sp(new ProjGaussSeidel(*this));
 		}
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
-		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax);
+		void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax) override;
 };
 
 template <typename TDomain, typename TAlgebra>
@@ -130,24 +129,23 @@ class ProjBackwardGaussSeidel:
 
 	protected:
 	///	name
-		virtual const char* name() const {return "Projected Backward GaussSeidel";}
+		const char* name() const override {return "Projected Backward GaussSeidel";}
 
 	public:
 		ProjBackwardGaussSeidel() : base_type() {}
 	/// clone constructor
-		ProjBackwardGaussSeidel( const ProjBackwardGaussSeidel<TDomain, TAlgebra> &parent )
+		ProjBackwardGaussSeidel( const ProjBackwardGaussSeidel &parent )
 			: base_type(parent)
 		{	}
 
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			return make_sp(new ProjBackwardGaussSeidel<TDomain, algebra_type>(*this));
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			return make_sp(new ProjBackwardGaussSeidel(*this));
 		}
 
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
-		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax);
+		void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax) override;
 };
 
 
@@ -170,24 +168,23 @@ class ProjSymmetricGaussSeidel:
 
 	protected:
 	///	name
-		virtual const char* name() const {return "Projected Symmetric GaussSeidel";}
+		const char* name() const override {return "Projected Symmetric GaussSeidel";}
 
 	public:
 		ProjSymmetricGaussSeidel() : base_type() {}
 
 	/// copy constructor
-		ProjSymmetricGaussSeidel( const ProjSymmetricGaussSeidel<TDomain, TAlgebra> &parent )
+		ProjSymmetricGaussSeidel( const ProjSymmetricGaussSeidel &parent )
 			: base_type(parent)
 		{	}
 
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			return make_sp(new ProjSymmetricGaussSeidel<TDomain, algebra_type>(*this));
+		SmartPtr<ILinearIterator<vector_type> > clone() override {
+			return make_sp(new ProjSymmetricGaussSeidel(*this));
 		}
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
-		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax);
+		void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax) override;
 };
 
 } // end namespace ug

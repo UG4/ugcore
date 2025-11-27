@@ -236,9 +236,9 @@ class FetiLayouts
 		}
 
 	//	standard layouts
-		const IndexLayout& get_std_master_layout() {return m_spStdLayouts->master();}
-		const IndexLayout& get_std_slave_layout() {return m_spStdLayouts->slave();}
-		const pcl::ProcessCommunicator& get_std_process_communicator() {return m_spStdLayouts->proc_comm();}
+		const IndexLayout& get_std_master_layout() const {return m_spStdLayouts->master();}
+		const IndexLayout& get_std_slave_layout() const {return m_spStdLayouts->slave();}
+		const pcl::ProcessCommunicator& get_std_process_communicator() const {return m_spStdLayouts->proc_comm();}
 
 	//	intra subdomain layouts
 		IndexLayout& get_intra_sd_master_layout() {return m_spInnerLayouts->master();}
@@ -385,7 +385,7 @@ class FetiLayouts
 		}
 
 	protected:
-		void sort_and_remove_doubles(std::vector<IndexLayout::Element>& vIndex)
+		static void sort_and_remove_doubles(std::vector<IndexLayout::Element>& vIndex)
 		{
 		//	sort vector
 			std::sort(vIndex.begin(), vIndex.end());
@@ -395,8 +395,8 @@ class FetiLayouts
 			                         vIndex.end());
 		}
 
-		void add_merge_sort_remove_doubles(std::vector<IndexLayout::Element>& vOut,
-		                                   const std::vector<IndexLayout::Element>& v)
+		static void add_merge_sort_remove_doubles(std::vector<IndexLayout::Element>& vOut,
+	                                          const std::vector<IndexLayout::Element>& v)
 		{
 		//	on entry, vOut and v are supposed to be sorted
 
@@ -607,7 +607,7 @@ class LocalSchurComplement
 		}
 
 	/// implementation of the operator for the solution dependent initialization.
-		void init(const vector_type& u) {init();}
+		void init(const vector_type& u) override {init();}
 
 	///	initializes the solver for operator A
 	/**
@@ -617,14 +617,14 @@ class LocalSchurComplement
 	 * to the \f$\Delta\f$ and \f$\Pi\f$ unknowns are set to identity rows. This
 	 * matrix is used in the solution of the local dirichlet problem.
 	 */
-		virtual void init();
+		void init() override;
 
 	///	applies the Schur complement built from matrix operator set via 'set_matrix()'
 	/// to 'u' and returns the result 'f := S times u'
-		virtual void apply(vector_type& f, const vector_type& u);
+		void apply(vector_type& f, const vector_type& u) override;
 
 	///	solves the system
-		virtual void apply_sub(vector_type& f, const vector_type& u);
+		void apply_sub(vector_type& f, const vector_type& u) override;
 
 	///	sets statistic slot where next iterate should be counted
 		void set_statistic_type(std::string type) {m_statType = type;}
@@ -633,10 +633,10 @@ class LocalSchurComplement
 		void print_statistic_of_inner_solver(bool bPrintOnlyAverages); // const;
 
 		void clear_total_itercnt_of_inner_solvers() {m_totalIterCntOfInnerSolvers = 0;}
-		int get_total_itercnt_of_inner_solvers() {return m_totalIterCntOfInnerSolvers;}
+		int get_total_itercnt_of_inner_solvers() const {return m_totalIterCntOfInnerSolvers;}
 
 	// destructor
-		virtual ~LocalSchurComplement() {};
+		~LocalSchurComplement() override = default;
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator
@@ -709,10 +709,10 @@ class PrimalSubassembledMatrixInverse
 		PrimalSubassembledMatrixInverse();
 
 	///	name of class
-		const char* name() const override {return "Schur Complement Inverse";}
+		[[nodiscard]] const char* name() const override {return "Schur Complement Inverse";}
 
 	///	returns if parallel solving is supported
-		bool supports_parallel() const override {
+		[[nodiscard]] bool supports_parallel() const override {
 			bool bRet = true;
 
 			// ø todo if invalid second argument (nullptr)->method is evaluated which could leads to error
@@ -942,7 +942,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		bool compute_d(vector_type& d, const vector_type& f);
 
 	///	function which applies diagonal scaling matrix \f$D_{\Delta}^{(i)}\f$ to a vector \f$v\f$
-		bool apply_scaling_matrix(vector_type& s, const vector_type& v) // maybe restrict to layout
+		static bool apply_scaling_matrix(vector_type& s, const vector_type& v) // maybe restrict to layout
 		{
 		// 	copy values
 			s = v;
@@ -1017,7 +1017,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		}
 
 		// destructor
-		virtual ~FETISolver() {};
+		~FETISolver() override = default;
 
 	protected:
 	//	Prepare the convergence check

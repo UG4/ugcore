@@ -37,7 +37,7 @@ FixedAllocator::
 FixedAllocator(std::size_t blockSize, unsigned char numBlocksPerChunk) :
 	m_blockSize(blockSize),
 	m_numBlocksPerChunk(numBlocksPerChunk),
-	m_allocChunk(0),
+	m_allocChunk(nullptr),
 	m_emptyChunkIndex(-1),
 	m_deallocChunkIndex(-1),
 	m_numFreeBlocks(0)
@@ -58,7 +58,7 @@ allocate()
 	}
 	else if(m_allocChunk->m_numAvailableBlocks == 0)
 	{
-		Chunks::iterator iter = m_chunks.begin();
+		auto iter = m_chunks.begin();
 		for(;iter != m_chunks.end(); ++iter){
 			if(iter->m_numAvailableBlocks > 0){
 				m_allocChunk = &*iter;
@@ -156,8 +156,7 @@ init(std::size_t blockSize, unsigned char numBlocks)
 }
 
 void FixedAllocator::Chunk::
-free()
-{
+free() const {
 	delete[] m_pData;
 }
 

@@ -68,7 +68,7 @@ class Traverser
 		virtual void handle_boxed_group(BoxedGroupNode* boxedGroup);
 
 	private:
-		bool handler_function_registered(unsigned int oc);
+		[[nodiscard]] bool handler_function_registered(unsigned int oc) const;
 
 	private:
 		using HandlerFunc = void(Traverser::*)(Object* obj);
@@ -81,7 +81,7 @@ void Traverser::register_handler_function(unsigned int oc, HandlerType func)
 {
 //	make sure that there is enough space
 	if(oc >= m_vHandlerFuncs.size())
-		m_vHandlerFuncs.resize(oc+1, 0);
+		m_vHandlerFuncs.resize(oc+1, nullptr);
 
 	m_vHandlerFuncs[oc] = (HandlerFunc)func;
 }

@@ -48,24 +48,25 @@ namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Some methods which assist in creating vectors
+// ø todo move methods out of bridge
 static SmartPtr<vector1> MakeVec(number x)
 {
-	return SmartPtr<vector1>(new vector1(x));
+	return SmartPtr(new vector1(x));
 }
 
 static SmartPtr<vector2> MakeVec(number x, number y)
 {
-	return SmartPtr<vector2>(new vector2(x, y));
+	return SmartPtr(new vector2(x, y));
 }
 
 static SmartPtr<vector3> MakeVec(number x, number y, number z)
 {
-	return SmartPtr<vector3>(new vector3(x, y, z));
+	return SmartPtr(new vector3(x, y, z));
 }
 
 static SmartPtr<vector4> MakeVec(number x, number y, number z, number w)
 {
-	return SmartPtr<vector4>(new vector4(x, y, z, w));
+	return SmartPtr(new vector4(x, y, z, w));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

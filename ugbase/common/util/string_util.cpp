@@ -151,7 +151,7 @@ int NumberOfDigits(int nsigned)
     return cnt;
 }
 
-void AppendCounterToString( string& str, string indicator, int counter, 
+void AppendCounterToString( string& str, const string &indicator, int counter,
                             int maxCounter )
 {
 //	check correct usage
@@ -305,9 +305,9 @@ vector<string> FindDuplicates(const vector<string>& vec) {
 }
 
 
-const unsigned int cost_del = 1;
-const unsigned int cost_ins = 1;
-const unsigned int cost_sub = 1;
+constexpr unsigned int cost_del = 1;
+constexpr unsigned int cost_ins = 1;
+constexpr unsigned int cost_sub = 1;
 size_t LevenshteinDistance( const string& s1, const string& s2 )
 {
   size_t n1 = s1.length();
@@ -438,7 +438,7 @@ string XMLStringEscape(string s)
 }
 
 static constexpr char shiftCharacters[] = "|#[+";
-static constexpr size_t shiftCharactersLength = sizeof(shiftCharacters)/sizeof(shiftCharacters[0]);
+static constexpr size_t shiftCharactersLength = sizeof(shiftCharacters)/sizeof(shiftCharacters[0]); // ø todo std::size ?
 
 bool IsShiftChar(char c)
 {

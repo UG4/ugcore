@@ -350,7 +350,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILU (double beta=0.0) :
+	explicit ILU (double beta=0.0) :
 			m_beta(beta),
 			m_sortEps(1.e-50),
 			m_invEps(1.e-8),
@@ -385,7 +385,7 @@ class ILU : public IPreconditioner<TAlgebra>
 		~ILU() override = default;
 
 	///	returns if parallel solving is supported
-		bool supports_parallel() const override {return true;}
+		[[nodiscard]] bool supports_parallel() const override {return true;}
 
 	///	set factor for \f$ ILU_{\beta} \f$
 		void set_beta(double beta) {m_beta = beta;}
@@ -426,7 +426,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 	protected:
 	//	Name of preconditioner
-		const char* name() const override {return "ILU";}
+		[[nodiscard]] const char* name() const override {return "ILU";}
 
 		void apply_ordering()
 		{

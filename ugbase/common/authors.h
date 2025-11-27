@@ -33,6 +33,8 @@
 #ifndef AUTHORS_H
 #define	AUTHORS_H
 
+#include <string>
+
 namespace ug {
 
 /// \addtogroup ugbase_common

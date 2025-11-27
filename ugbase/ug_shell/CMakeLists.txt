@@ -184,7 +184,7 @@ if(STATIC_BUILD)
     # static linker flag when specifying library locations. This is needed, 
     # e.g. when a compiler wrapper (like scalasca) adds its own libraries at the
     # end and the libraries are available  as shared and (!) static on the 
-    # system. In that case, without the oprtions below, the dynamic lib would 
+    # system. In that case, without the options below, the dynamic lib would
     # be selected. Setting options to ON lets cmake choose the static lib.
     #set_target_properties(${targetExecutableName} PROPERTIES LINK_SEARCH_START_STATIC ON)
     #set_target_properties(${targetExecutableName} PROPERTIES LINK_SEARCH_END_STATIC ON)

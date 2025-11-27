@@ -92,8 +92,7 @@ namespace ug{
  *  operator () -methods.
  *
  * \sa matrixrow, CreateAsMultiplyOf
- * \param T blocktype
- * \param T blocktype
+ * \tparam TValueType block or value type of the matrix
  */
 template<typename TValueType>
 class SparseMatrix {
@@ -483,6 +482,7 @@ public:
 
 	row_iterator         begin_row(size_t r)         { return row_iterator(*this, r, rowStart[r]);  }
     row_iterator         end_row(size_t r)           { return row_iterator(*this, r, rowEnd[r]);  }
+
     const_row_iterator   begin_row(size_t r) const   { return const_row_iterator(*this, r, rowStart[r]);  }
     const_row_iterator   end_row(size_t r)   const   { return const_row_iterator(*this, r, rowEnd[r]);  }
 

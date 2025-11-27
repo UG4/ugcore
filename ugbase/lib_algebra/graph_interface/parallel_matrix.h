@@ -35,6 +35,7 @@
 
 #include "sparsematrix_boost.h"
 #include <boost/iterator/filter_iterator.hpp>
+#include <utility>
 
 namespace ug{
 
@@ -46,8 +47,8 @@ public:
 	bglp_vertex_descriptor(int a, int b) : std::pair<int, int>(a, b) {
 	}
 public:
-	int owner() const{ return first; }
-	int local() const{ return second; }
+	[[nodiscard]] int owner() const{ return first; }
+	[[nodiscard]] int local() const{ return second; }
 };
 
 inline int owner(bglp_vertex_descriptor p)
@@ -75,9 +76,16 @@ private:
 	using base_vertex_iterator = typename boost::graph_traits<T>::vertex_iterator;
 	using base_edge_iterator = typename boost::graph_traits<T>::out_edge_iterator;
 	class vertex_iterator_ // facade?
-		: public std::iterator<std::input_iterator_tag, vertex_descriptor,
-		                       ptrdiff_t, vertex_descriptor, vertex_descriptor> { // ø todo iterator
+	 // ø 	: public std::iterator<std::input_iterator_tag, vertex_descriptor, ptrdiff_t, vertex_descriptor, vertex_descriptor> { // ø todo iterator
+	{
 	public:
+
+		using iterator_category = std::input_iterator_tag;
+		using value_type = vertex_descriptor;
+		using difference_type = ptrdiff_t;
+		using pointer = vertex_descriptor*;
+		using reference = vertex_descriptor;
+
 		explicit vertex_iterator_() : _owners(nullptr) {}
 		explicit vertex_iterator_(base_vertex_iterator b, owners const* o) : _base(b), _owners(o) {
 		}
@@ -121,8 +129,15 @@ private:
 public:
 	using vertex_iterator = boost::filter_iterator<filter_local, vertex_iterator_>;
 	class adjacency_iterator // facade?
-		:public std::iterator<std::input_iterator_tag, vertex_descriptor, ptrdiff_t, vertex_descriptor, vertex_descriptor> { //
-	public:
+		// ø : public std::iterator<std::input_iterator_tag, vertex_descriptor, ptrdiff_t, vertex_descriptor, vertex_descriptor> { //
+	{
+		public:
+		using iterator_category = std::input_iterator_tag;
+		using value_type = vertex_descriptor;
+		using difference_type = ptrdiff_t;
+		using pointer = vertex_descriptor*;
+		using reference = vertex_descriptor;
+
 		using base = typename boost::graph_traits<T>::adjacency_iterator;
 	public:
 		adjacency_iterator()
@@ -151,7 +166,7 @@ public:
 			int o = (*_owners)[i];
 			int l = (*_ghosts)[i];
 
-			return vertex_descriptor(o, l);
+			return {o, l};
 		}
 		base _base;
 		owners const* _owners;
@@ -192,14 +207,14 @@ public:
 	};
 	class edge {
 	public:
-		edge(vertex_descriptor s, vertex_descriptor t) : _s(s), _t(t) {
+		edge(vertex_descriptor s, vertex_descriptor t) : _s(std::move(s)), _t(std::move(t)) {
 		}
 	public:
 
-		vertex_descriptor source() const{
+		[[nodiscard]] vertex_descriptor source() const{
 			return _s;
 		}
-		vertex_descriptor target() const{
+		[[nodiscard]] vertex_descriptor target() const{
 			return _t;
 		}
 
@@ -229,13 +244,13 @@ public:
 public: // interface
 	void refresh();
 
-	int num_rows() const {
+	[[nodiscard]] int num_rows() const {
 		return std::max(_matrix->num_rows(), _matrix->num_cols());
 	}
-	int num_cols() const { untested();
+	[[nodiscard]] int num_cols() const { untested();
 		return num_rows();
 	}
-	int num_connections(int v) const {
+	[[nodiscard]] int num_connections(int v) const {
 		if(v<_matrix->num_rows()){
 			return _matrix->num_connections(v);
 		}else{
@@ -243,11 +258,11 @@ public: // interface
 			return _matrix_transpose.num_connections(v);
 		}
 	}
-	int out_degree(int v) const {
+	[[nodiscard]] int out_degree(int v) const {
 		// could call in_degree?
 		return in_degree(v);
 	}
-	int in_degree(int v) const {
+	[[nodiscard]] int in_degree(int v) const {
 		// could use difference, requires zero-pruning in _matrix_transpose.
 		if(v<_matrix_transpose.num_rows()){
 			return boost::out_degree(v, _matrix_transpose);
@@ -257,7 +272,7 @@ public: // interface
 			return boost::out_degree(v, *_matrix);
 		}
 	}
-	int degree(int v) const { untested();
+	[[nodiscard]] int degree(int v) const { untested();
 		return 2*out_degree(v);
 	}
 

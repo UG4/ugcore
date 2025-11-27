@@ -30,7 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "grid_bridges.h"
+//#include "grid_bridges.h"
+#include "registry/registry.h"
 #include "common/profiler/profiler.h"
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/file_io/file_io.h"

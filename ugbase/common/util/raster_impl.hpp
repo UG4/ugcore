@@ -57,7 +57,7 @@ MultiIndex(size_t i)
 
 template <typename T, int TDIM>
 int Raster<T, TDIM>::MultiIndex::
-dim () const				
+dim () const
 {
 	return TDIM;
 }
@@ -140,6 +140,7 @@ operator += (const Coordinate& c)
 {
 	for(int d = 0; d < TDIM; ++d)
 		m_coord[d] += c[d];
+	// ø todo add missing return statement
 }
 
 template <typename T, int TDIM>
@@ -148,6 +149,7 @@ operator -= (const Coordinate& c)
 {
 	for(int d = 0; d < TDIM; ++d)
 		m_coord[d] -= c[d];
+	// ø todo add missing return statement
 }
 
 template <typename T, int TDIM>
@@ -156,6 +158,7 @@ operator *= (number s)
 {
 	for(int d = 0; d < TDIM; ++d)
 		m_coord[d] *= s;
+	// ø todo add missing return statement
 }
 
 

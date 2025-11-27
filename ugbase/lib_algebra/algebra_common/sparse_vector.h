@@ -49,19 +49,19 @@ public:
 	{
 		using container::const_iterator::operator *;
 	public:
-		const_iterator(typename container::const_iterator it) : container::const_iterator(it) {}
+		explicit const_iterator(typename container::const_iterator it) : container::const_iterator(it) {}
 		const T &value() const { return (operator *()).second; }
-		size_t index() const { return (operator *()).first; }
+		[[nodiscard]] size_t index() const { return (operator *()).first; }
 	};
 
 	class iterator : public container::iterator
 	{
 		using container::iterator::operator *;
 	public:
-		iterator(typename container::iterator it) : container::iterator(it) {}
+		explicit iterator(typename container::iterator it) : container::iterator(it) {}
 		const T &value() const { return (operator *()).second; }
 		T &value() { return (operator *())->second; }
-		size_t index() const { return (operator *()).first; }
+		[[nodiscard]] size_t index() const { return (operator *()).first; }
 	};
 
 	explicit SparseVector(size_t s) : m_size(s)
@@ -87,16 +87,20 @@ public:
 		assert(c < m_size);
 		return data[c];
 	}
-	bool has_connection(size_t c) const
+	[[nodiscard]] bool has_connection(size_t c) const
 	{
+#if __cplusplus >= 202002L
+		return data.contains(c);
+#else
 		return data.find(c) != data.end();
+#endif
 	}
 
-	size_t size()
-	{
+	[[nodiscard]] size_t size() const {
 		return m_size;
 	}
-	size_t num_connections() const
+
+	[[nodiscard]] size_t num_connections() const
 	{
 		return data.size();
 	}
