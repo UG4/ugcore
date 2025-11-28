@@ -171,6 +171,7 @@ add_definitions(-DUG_PROFILER_SHINY_CHECK_CONSISTENCY)
 
 
 # the following options are real cmake-options
+option (NATIVE "Enables compilation for the cpu architecture of the build system" OFF)
 option(STATIC_BUILD "Enables static linking. Valid options are: ON, OFF" OFF)
 option(DEBUG "Enables debugging. Valid options are: ON, OFF" OFF)
 option(DEBUG_LOGS "Enables debug output. Valid options are: ON, OFF" OFF)
