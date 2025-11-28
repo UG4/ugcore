@@ -416,6 +416,13 @@ endif()
 ########################################
 include(${UG_ROOT_CMAKE_PATH}/ug/debug.cmake)
 
+
+if (NATIVE)
+	message (STATUS "Activating build for Host CPU-Architecture")
+	add_cpp_flag ("-march=native -mtune=native")
+	add_c_flag ("-march=native -mtune=native")
+endif ()
+
 # if build type is set print own cflags and flags from build type 
 if(CMAKE_BUILD_TYPE)
 	string(TOUPPER ${CMAKE_BUILD_TYPE} bt_upper)

@@ -59,11 +59,5 @@ ELSE("${CMAKE_VERSION}" VERSION_LESS 3.1)
     set(CMAKE_CXX_STANDARD 11)
     set(CMAKE_CXX_EXTENSIONS OFF)
 
-    if (NATIVE)
-        message (STATUS "Activating build for Host CPU-Architecture")
-        add_cpp_flag ("-march=native -mtune=native")
-        add_c_flag ("-march=native -mtune=native")
-    endif ()
-
     MESSAGE(STATUS "Info: Trying to activate 'CMAKE_CXX_STANDARD 11'")
 ENDIF("${CMAKE_VERSION}" VERSION_LESS 3.1)
