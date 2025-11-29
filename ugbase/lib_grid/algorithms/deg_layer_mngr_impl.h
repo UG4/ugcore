@@ -59,7 +59,7 @@ DegeneratedLayerManager<dim>::DegeneratedLayerManager
 	
 //	Initialize the attachment:
 	MultiGrid * pMG = m_spSH->multi_grid ();
-	pMG->attach_to_dv<Vertex> (m_aVertexMarks, D_LAYER_UNKNOWN);
+	pMG->attach_to_dv<Vertex> (m_aVertexMarks, t_grid_object_mark::D_LAYER_UNKNOWN);
 	m_aaVertMarks.access (*pMG, m_aVertexMarks);
 	
 //	Register the callbacks in the message hub:
@@ -201,7 +201,7 @@ void DegeneratedLayerManager<dim>::mark_vertices ()
 				for (size_t i = 0; i < elem->num_vertices (); i++)
 				{
 					Vertex * vert = elem->vertex(i);
-					m_aaVertMarks [vert] = (! vert->is_constrained ())? D_LAYER_INNER : D_LAYER_OUTER;
+					m_aaVertMarks [vert] = (! vert->is_constrained ())? t_grid_object_mark::D_LAYER_INNER : t_grid_object_mark::D_LAYER_OUTER;
 					// REMARK: Constrained vertices cannot be inner for degenerated layers!
 					// We cannot catch this situation somewhere else, so we do it here.
 				}
@@ -220,7 +220,7 @@ void DegeneratedLayerManager<dim>::mark_vertices ()
 			{
 				element_type * elem = *iElem;
 				for (size_t i = 0; i < elem->num_vertices (); i++)
-					m_aaVertMarks [elem->vertex(i)] = D_LAYER_OUTER;
+					m_aaVertMarks [elem->vertex(i)] = t_grid_object_mark::D_LAYER_OUTER;
 			}
 		}
 	
@@ -291,9 +291,9 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 		for (size_t co = 0; co < side_n_co; co++)
 		{
 			int mark = vert_mark (side->vertex (co));
-			if (mark == D_LAYER_OUTER)
+			if (mark == t_grid_object_mark::D_LAYER_OUTER)
 				has_outer = true;
-			else if (mark == D_LAYER_INNER)
+			else if (mark == t_grid_object_mark::D_LAYER_INNER)
 				has_inner = true;
 			else
 				UG_THROW ("DegeneratedLayerManager: Some vertices are not marked!");
@@ -329,7 +329,7 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 	for (size_t co = 0; co < n_co; co++)
 	{
 		Vertex * vrt = elem->vertex (co);
-		if (vert_mark (vrt) == D_LAYER_INNER)
+		if (vert_mark (vrt) == t_grid_object_mark::D_LAYER_INNER)
 		{
 			inner_vert_ptr [inner_i] = vrt;
 			inner_corners [inner_i] = co;
@@ -379,7 +379,7 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 			if (mark_1 == mark_2)
 				continue; // an edge of the inner or the outer size
 			
-			if (mark_1 == D_LAYER_OUTER)
+			if (mark_1 == t_grid_object_mark::D_LAYER_OUTER)
 			{	// Vertex # 1 must be inner, vertex # 2 must be outer
 				t = v_1; v_1 = v_2; v_2 = t;
 			}
