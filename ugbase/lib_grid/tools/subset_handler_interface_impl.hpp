@@ -74,7 +74,7 @@ ISubsetHandler::get_attachment_pipe<Volume>(int subsetIndex)
 inline int ISubsetHandler::
 get_subset_index(Vertex* elem) const
 {
-	if(elements_are_supported(SHE_VERTEX))
+	if(elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
 		return m_aaSubsetIndexVRT[elem];
 	return -1;
 }
@@ -82,7 +82,7 @@ get_subset_index(Vertex* elem) const
 inline int ISubsetHandler::
 get_subset_index(Edge* elem) const
 {
-	if(elements_are_supported(SHE_EDGE))
+	if(elements_are_supported(SubsetHandlerElements::SHE_EDGE))
 		return m_aaSubsetIndexEDGE[elem];
 	return -1;
 }
@@ -90,7 +90,7 @@ get_subset_index(Edge* elem) const
 inline int ISubsetHandler::
 get_subset_index(Face* elem) const
 {
-	if(elements_are_supported(SHE_FACE))
+	if(elements_are_supported(SubsetHandlerElements::SHE_FACE))
 		return m_aaSubsetIndexFACE[elem];
 	return -1;
 }
@@ -98,7 +98,7 @@ get_subset_index(Face* elem) const
 inline int ISubsetHandler::
 get_subset_index(Volume* elem) const
 {
-	if(elements_are_supported(SHE_VOLUME))
+	if(elements_are_supported(SubsetHandlerElements::SHE_VOLUME))
 		return m_aaSubsetIndexVOL[elem];
 	return -1;
 }

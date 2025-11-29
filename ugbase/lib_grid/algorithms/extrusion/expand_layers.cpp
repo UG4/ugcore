@@ -170,9 +170,9 @@ CalculateCreaseNormal(Grid& grid, Face* f, Vertex* vrt,
 						Grid::edge_traits::callback funcIsCreaseEdge,
 						TAAPosVRT& aaPos)
 {
-	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
+	if(!grid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES)){
 		UG_LOG("WARNING in CalculateCreaseNormal: grid option FACEOPT_AUTOGENERATE_EDGES autoenabled.\n");
-		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+		grid.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
 	}
 
 	using vector_t = typename TAAPosVRT::ValueType;
@@ -260,9 +260,9 @@ CalculateCreaseNormal(Grid& grid, Volume* vol, Vertex* vrt,
 						Grid::face_traits::callback funcIsCreaseFace,
 						TAAPosVRT& aaPos)
 {
-	if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
+	if(!grid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES)){
 		UG_LOG("WARNING in CalculateCreaseNormal: grid option VOLOPT_AUTOGENERATE_FACES autoenabled.\n");
-		grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
+		grid.enable_options(VolumeOptions::VOLOPT_AUTOGENERATE_FACES);
 	}
 
 	using vector_t = typename TAAPosVRT::ValueType;
@@ -352,9 +352,9 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	}
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
 
-	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
+	if(!grid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES)){
 		UG_LOG("WARNING in CalculateCreaseNormal: grid option FACEOPT_AUTOGENERATE_EDGES autoenabled.\n");
-		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+		grid.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
 	}
 
 //	objects for temporary results
@@ -931,14 +931,14 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const std::vector<Fracture
 	Grid::VertexAttachmentAccessor aaPos(grid, aPosition);
 
 //	make sure that the required options are enabled.
-	if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
+	if(!grid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES)){
 		UG_LOG("WARNING in CalculateCreaseNormal: grid option VOLOPT_AUTOGENERATE_FACES autoenabled.\n");
-		grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
+		grid.enable_options(VolumeOptions::VOLOPT_AUTOGENERATE_FACES);
 	}
 
-	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
+	if(!grid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES)){
 		UG_LOG("WARNING in CalculateCreaseNormal: grid option FACEOPT_AUTOGENERATE_EDGES autoenabled.\n");
-		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+		grid.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
 	}
 
 //	objects for temporary results

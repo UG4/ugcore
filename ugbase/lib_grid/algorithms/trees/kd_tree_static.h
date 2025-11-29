@@ -108,13 +108,13 @@ class KDTreeStatic
 		template <typename TVrtIterator>
 		bool create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
 								TPositionAttachment& aPos, int maxTreeDepth, int splitThreshold,
-								KDSplitDimension splitDimension = KDSD_LARGEST);
+								KDSplitDimension splitDimension = KDSplitDimension::KDSD_LARGEST);
 
 		template <typename TVrtIterator>
 		bool create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
 								Grid::VertexAttachmentAccessor<TPositionAttachment> aaPos,
 								int maxTreeDepth, int splitThreshold,
-								KDSplitDimension splitDimension = KDSD_LARGEST);
+								KDSplitDimension splitDimension = KDSplitDimension::KDSD_LARGEST);
 
 		bool get_neighbourhood(std::vector<Vertex*>& vrtsOut,
 								typename TPositionAttachment::ValueType& pos, int numClosest);

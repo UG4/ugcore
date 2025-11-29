@@ -81,7 +81,7 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 						std::vector<TIndexType>& adjacencyMapOut,
 						Grid& grid, Attachment<TIndexType>* paIndex = nullptr,
 						TGeomBaseObj** pGeomObjsOut = nullptr,
-						NeighborhoodType nbhType = NHT_DEFAULT,
+						NeighborhoodType nbhType = NeighborhoodType::NHT_DEFAULT,
 						const GridObjectCollection* pgoc = nullptr)
 {
 	using namespace std;
@@ -212,7 +212,7 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 						int hWeight = 1, int vWeight = 1,
 						Attachment<TIndexType>* paIndex = nullptr,
 						TGeomBaseObj** pGeomObjsOut = nullptr,
-						NeighborhoodType nbhType = NHT_DEFAULT)
+						NeighborhoodType nbhType = NeighborhoodType::NHT_DEFAULT)
 {
 	using namespace std;
 	using Elem = TGeomBaseObj;
@@ -373,7 +373,7 @@ void ConstructDualGraphMGLevel(
 		MultiGrid& mg, size_t level,
 		Attachment<TIndexType>* paIndex = nullptr,
 		TGeomBaseObj** pGeomObjsOut = nullptr,
-		NeighborhoodType nbhType = NHT_DEFAULT,
+		NeighborhoodType nbhType = NeighborhoodType::NHT_DEFAULT,
 		DualGraphNeighborCollector<TGeomBaseObj>* neighborCollector = nullptr)
 {
 	using namespace std;

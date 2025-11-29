@@ -37,12 +37,12 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-Selector::Selector(uint supportedElements) :
+Selector::Selector(byte_t supportedElements) :
 	ISelector(supportedElements)
 {
 }
 
-Selector::Selector(Grid& grid, uint supportedElements) :
+Selector::Selector(Grid& grid, byte_t supportedElements) :
 	ISelector(supportedElements)
 {
 	assign_grid(&grid);
@@ -74,7 +74,7 @@ void Selector::assign_grid(Grid& grid)
 void Selector::assign_grid(Grid* grid)
 {
 	if(grid != m_pGrid){
-		uint elementSupport = m_supportedElements;
+		byte_t elementSupport = m_supportedElements;
 
 		if(m_pGrid){
 		//	release the attachments in the current grid
@@ -91,7 +91,7 @@ void Selector::assign_grid(Grid* grid)
 	}
 }
 
-void Selector::set_supported_elements(uint shElements)
+void Selector::set_supported_elements(byte_t shElements)
 {
 //	do this in two steps:
 //	1: disable the element-support that is no longer required.
@@ -105,7 +105,7 @@ void Selector::set_supported_elements(uint shElements)
 	enable_element_support(shElements & (~m_supportedElements));
 }
 
-void Selector::enable_element_support(uint shElements)
+void Selector::enable_element_support(byte_t shElements)
 {
 	if((shElements & SE_VERTEX) && (!elements_are_supported(SE_VERTEX)))
 		section_container<Vertex>().get_container().
@@ -126,7 +126,7 @@ void Selector::enable_element_support(uint shElements)
 	ISelector::enable_element_support(shElements);
 }
 
-void Selector::disable_element_support(uint shElements)
+void Selector::disable_element_support(byte_t shElements)
 {
 	//	release the attachments in the current grid
 	if((shElements & SE_VERTEX) && elements_are_supported(SE_VERTEX))

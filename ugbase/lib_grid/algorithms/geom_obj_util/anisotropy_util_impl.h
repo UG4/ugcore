@@ -46,7 +46,7 @@ AnisotropyState is_anisotropic
 	number thresholdRatio
 )
 {
-	return ISOTROPIC;
+	return AnisotropyState::ISOTROPIC;
 }
 
 
@@ -67,11 +67,11 @@ static AnisotropyState is_anisotropic
 			+ VertexDistance(q->vertex(3), q->vertex(0), aaPos);
 
 	if (sideLength02 < thresholdRatio * sideLength13)
-		return QUAD_SHORTX;
+		return AnisotropyState::QUAD_SHORTX;
 	if (sideLength13 < thresholdRatio * sideLength02)
-		return QUAD_SHORTY;
+		return AnisotropyState::QUAD_SHORTY;
 
-	return ISOTROPIC;
+	return AnisotropyState::ISOTROPIC;
 }
 
 
@@ -84,9 +84,9 @@ AnisotropyState is_anisotropic
 	number thresholdRatio
 )
 {
-	Quadrilateral* q = dynamic_cast<Quadrilateral*>(elem);
+	auto q = dynamic_cast<Quadrilateral*>(elem);
 	if (!q)
-		return ISOTROPIC;
+		return AnisotropyState::ISOTROPIC;
 
 	return is_anisotropic(q, aaPos, thresholdRatio);
 }
@@ -117,13 +117,13 @@ static AnisotropyState is_anisotropic
 
 	// flat case
 	if (ratio < thresholdRatio)
-		return PRISM_FLAT;
+		return AnisotropyState::PRISM_FLAT;
 
 	// long case
 	if (ratio*thresholdRatio > 1)
-		return PRISM_LONG;
+		return AnisotropyState::PRISM_LONG;
 
-	return ISOTROPIC;
+	return AnisotropyState::ISOTROPIC;
 }
 
 
@@ -165,23 +165,23 @@ static AnisotropyState is_anisotropic
 	if (shortx)
 	{
 		if (shorty)
-			return HEX_SHORTXY;
+			return AnisotropyState::HEX_SHORTXY;
 		if (shortz)
-			return HEX_SHORTXZ;
-		return HEX_SHORTX;
+			return AnisotropyState::HEX_SHORTXZ;
+		return AnisotropyState::HEX_SHORTX;
 	}
 
 	if (shorty)
 	{
 		if (shortz)
-			return HEX_SHORTYZ;
-		return HEX_SHORTY;
+			return AnisotropyState::HEX_SHORTYZ;
+		return AnisotropyState::HEX_SHORTY;
 	}
 
 	if (shortz)
-		return HEX_SHORTZ;
+		return AnisotropyState::HEX_SHORTZ;
 
-	return ISOTROPIC;
+	return AnisotropyState::ISOTROPIC;
 }
 
 
@@ -195,17 +195,17 @@ AnisotropyState is_anisotropic
 )
 {
 	// treat prism case
-	Prism* prism = dynamic_cast<Prism*>(elem);
+	auto prism = dynamic_cast<Prism*>(elem);
 	if (prism)
 		return is_anisotropic(prism, aaPos, thresholdRatio);
 
 	// treat hexahedron case
-	Hexahedron* hex = dynamic_cast<Hexahedron*>(elem);
+	auto hex = dynamic_cast<Hexahedron*>(elem);
 	if (hex)
 		return is_anisotropic(hex, aaPos, thresholdRatio);
 
 	// other cases do not exist
-	return ISOTROPIC;
+	return AnisotropyState::ISOTROPIC;
 }
 
 
@@ -220,7 +220,7 @@ AnisotropyState close_sides_of_anisotropic_elem
 	std::vector<Vertex*>& sidesOut
 )
 {
-	return ISOTROPIC;
+	return AnisotropyState::ISOTROPIC;
 }
 
 
@@ -235,16 +235,16 @@ AnisotropyState close_sides_of_anisotropic_elem
 )
 {
 	// check whether this is a quadrilateral
-	Quadrilateral* q = dynamic_cast<Quadrilateral*>(elem);
+	auto q = dynamic_cast<Quadrilateral*>(elem);
 	if (!q)
-		return ISOTROPIC;
+		return AnisotropyState::ISOTROPIC;
 
 	// check whether element is anisotropic (and which case)
 	AnisotropyState state = is_anisotropic(q, aaPos, thresholdRatio);
-	if (state == ISOTROPIC)
+	if (state == AnisotropyState::ISOTROPIC)
 		return state;
 
-	if (state == QUAD_SHORTX)
+	if (state == AnisotropyState::QUAD_SHORTX)
 	{
 		Grid::SecureEdgeContainer assEd;
 		grid.associated_elements_sorted(assEd, q);
@@ -254,7 +254,7 @@ AnisotropyState close_sides_of_anisotropic_elem
 		return state;
 	}
 
-	if (state == QUAD_SHORTY)
+	if (state == AnisotropyState::QUAD_SHORTY)
 	{
 		Grid::SecureEdgeContainer assEd;
 		grid.associated_elements_sorted(assEd, q);
@@ -280,15 +280,15 @@ AnisotropyState close_sides_of_anisotropic_elem
 )
 {
 	// treat prism case
-	Prism* prism = dynamic_cast<Prism*>(elem);
+	auto prism = dynamic_cast<Prism*>(elem);
 	if (prism)
 	{
 		AnisotropyState state = is_anisotropic(prism, aaPos, thresholdRatio);
-		if (state == ISOTROPIC)
+		if (state == AnisotropyState::ISOTROPIC)
 			return state;
 
 		// flat case
-		if (state == PRISM_FLAT)
+		if (state == AnisotropyState::PRISM_FLAT)
 		{
 			Face* side = grid.get_side(prism, 0);
 			if (side)
@@ -300,7 +300,7 @@ AnisotropyState close_sides_of_anisotropic_elem
 		}
 
 		// long case
-		if (state == PRISM_LONG)
+		if (state == AnisotropyState::PRISM_LONG)
 		{
 			Face* side = grid.get_side(prism, 1);
 			if (side)
@@ -320,16 +320,16 @@ AnisotropyState close_sides_of_anisotropic_elem
 
 
 	// treat heaxahedron case
-	Hexahedron* hex = dynamic_cast<Hexahedron*>(elem);
+	auto hex = dynamic_cast<Hexahedron*>(elem);
 	if (hex)
 	{
 		AnisotropyState state = is_anisotropic(hex, aaPos, thresholdRatio);
-		if (state == ISOTROPIC)
+		if (state == AnisotropyState::ISOTROPIC)
 			return state;
 
 
 		// short in x direction
-		if (state == HEX_SHORTX || state == HEX_SHORTXY || state == HEX_SHORTXZ)
+		if (state == AnisotropyState::HEX_SHORTX || state == AnisotropyState::HEX_SHORTXY || state == AnisotropyState::HEX_SHORTXZ)
 		{
 			Face* side = grid.get_side(hex, 2);
 			if (side)
@@ -341,7 +341,7 @@ AnisotropyState close_sides_of_anisotropic_elem
 		}
 
 		// short in y direction
-		if (state == HEX_SHORTY || state == HEX_SHORTXY || state == HEX_SHORTYZ)
+		if (state == AnisotropyState::HEX_SHORTY || state == AnisotropyState::HEX_SHORTXY || state == AnisotropyState::HEX_SHORTYZ)
 		{
 			Face* side = grid.get_side(hex, 1);
 			if (side)
@@ -353,7 +353,7 @@ AnisotropyState close_sides_of_anisotropic_elem
 		}
 
 		// short in z direction
-		if (state == HEX_SHORTZ || state == HEX_SHORTXZ || state == HEX_SHORTYZ)
+		if (state == AnisotropyState::HEX_SHORTZ || state == AnisotropyState::HEX_SHORTXZ || state == AnisotropyState::HEX_SHORTYZ)
 		{
 			Face* side = grid.get_side(hex, 0);
 			if (side)
@@ -369,7 +369,7 @@ AnisotropyState close_sides_of_anisotropic_elem
 
 
 	// other elements cannot be anisotropic
-	return ISOTROPIC;
+	return AnisotropyState::ISOTROPIC;
 }
 
 
@@ -386,7 +386,7 @@ AnisotropyState long_edges_of_anisotropic_elem
 	std::vector<Edge*>& longEdges
 )
 {
-	return ISOTROPIC;
+	return AnisotropyState::ISOTROPIC;
 }
 
 
@@ -415,15 +415,15 @@ AnisotropyState long_edges_of_anisotropic_elem
 )
 {
 	// treat prism case
-	Prism* prism = dynamic_cast<Prism*>(elem);
+	auto prism = dynamic_cast<Prism*>(elem);
 	if (prism)
 	{
 		AnisotropyState state = is_anisotropic(prism, aaPos, thresholdRatio);
-		if (state == ISOTROPIC)
+		if (state == AnisotropyState::ISOTROPIC)
 			return state;
 
 		// flat case
-		if (state == PRISM_FLAT)
+		if (state == AnisotropyState::PRISM_FLAT)
 		{
 			Grid::SecureEdgeContainer assEd;
 			grid.associated_elements_sorted(assEd, prism);
@@ -443,7 +443,7 @@ AnisotropyState long_edges_of_anisotropic_elem
 		}
 
 		// long case
-		if (state == PRISM_LONG)
+		if (state == AnisotropyState::PRISM_LONG)
 		{
 			Grid::SecureEdgeContainer assEd;
 			grid.associated_elements_sorted(assEd, prism);
@@ -464,16 +464,16 @@ AnisotropyState long_edges_of_anisotropic_elem
 
 
 	// treat heaxahedron case
-	Hexahedron* hex = dynamic_cast<Hexahedron*>(elem);
+	auto hex = dynamic_cast<Hexahedron*>(elem);
 	if (hex)
 	{
 		AnisotropyState state = is_anisotropic(hex, aaPos, thresholdRatio);
-		if (state == ISOTROPIC)
+		if (state == AnisotropyState::ISOTROPIC)
 			return state;
 
 
 		// short in x direction
-		if (state == HEX_SHORTX)
+		if (state == AnisotropyState::HEX_SHORTX)
 		{
 			Grid::SecureEdgeContainer assEd;
 			grid.associated_elements_sorted(assEd, hex);
@@ -495,7 +495,7 @@ AnisotropyState long_edges_of_anisotropic_elem
 		}
 
 		// short in y direction
-		if (state == HEX_SHORTY)
+		if (state == AnisotropyState::HEX_SHORTY)
 		{
 			Grid::SecureEdgeContainer assEd;
 			grid.associated_elements_sorted(assEd, hex);
@@ -517,7 +517,7 @@ AnisotropyState long_edges_of_anisotropic_elem
 		}
 
 		// short in z direction
-		if (state == HEX_SHORTZ)
+		if (state == AnisotropyState::HEX_SHORTZ)
 		{
 			Grid::SecureEdgeContainer assEd;
 			grid.associated_elements_sorted(assEd, hex);
@@ -539,7 +539,7 @@ AnisotropyState long_edges_of_anisotropic_elem
 		}
 
 		// short in x and y direction
-		if (state == HEX_SHORTXY)
+		if (state == AnisotropyState::HEX_SHORTXY)
 		{
 			Grid::SecureEdgeContainer assEd;
 			grid.associated_elements_sorted(assEd, hex);
@@ -557,7 +557,7 @@ AnisotropyState long_edges_of_anisotropic_elem
 		}
 
 		// short in x and z direction
-		if (state == HEX_SHORTXZ)
+		if (state == AnisotropyState::HEX_SHORTXZ)
 		{
 			Grid::SecureEdgeContainer assEd;
 			grid.associated_elements_sorted(assEd, hex);
@@ -575,7 +575,7 @@ AnisotropyState long_edges_of_anisotropic_elem
 		}
 
 		// short in y and z direction
-		if (state == HEX_SHORTYZ)
+		if (state == AnisotropyState::HEX_SHORTYZ)
 		{
 			Grid::SecureEdgeContainer assEd;
 			grid.associated_elements_sorted(assEd, hex);
@@ -597,7 +597,7 @@ AnisotropyState long_edges_of_anisotropic_elem
 
 
 	// other elements cannot be anisotropic
-	return ISOTROPIC;
+	return AnisotropyState::ISOTROPIC;
 }
 
 } // namespace ug

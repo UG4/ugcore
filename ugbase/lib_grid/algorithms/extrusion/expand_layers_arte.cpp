@@ -2225,9 +2225,9 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 	}
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
 
-	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
+	if(!grid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES)){
 		UG_LOG("WARNING in Arte 2D CalculateCreaseNormal: grid option FACEOPT_AUTOGENERATE_EDGES autoenabled.\n");
-		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+		grid.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
 	}
 
 

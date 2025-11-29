@@ -110,17 +110,17 @@ struct GridObjectInfo{
 		}
 
 		GridObjectInfo(){
-			for(size_t i = 0; i < GOID_NUM_GRID_OBJECT_IDS; ++i)
+			for(size_t i = 0; i <GridObjectID:: GOID_NUM_GRID_OBJECT_IDS; ++i)
 				m_numVertices[i] = 0;
 
-			m_numVertices[GOID_TETRAHEDRON] = 4;
-			m_numVertices[GOID_PYRAMID] = 5;
-			m_numVertices[GOID_PRISM] = 6;
-			m_numVertices[GOID_OCTAHEDRON] = 6;
-			m_numVertices[GOID_HEXAHEDRON] = 8;
+			m_numVertices[GridObjectID::GOID_TETRAHEDRON] = 4;
+			m_numVertices[GridObjectID::GOID_PYRAMID] = 5;
+			m_numVertices[GridObjectID::GOID_PRISM] = 6;
+			m_numVertices[GridObjectID::GOID_OCTAHEDRON] = 6;
+			m_numVertices[GridObjectID::GOID_HEXAHEDRON] = 8;
 		}
 
-		size_t	m_numVertices[GOID_NUM_GRID_OBJECT_IDS];
+		size_t	m_numVertices[GridObjectID::GOID_NUM_GRID_OBJECT_IDS];
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -146,11 +146,11 @@ void CreateVolumesFromElementIndexList (
 		}
 
 		switch(gridObjectID){
-			case GOID_TETRAHEDRON: volsOut.push_back(new Tetrahedron(TetrahedronDescriptor(vd)));	break;
-			case GOID_PYRAMID: volsOut.push_back(new Pyramid(PyramidDescriptor(vd)));		break;
-			case GOID_PRISM: volsOut.push_back(new Prism(PrismDescriptor(vd))); 		break;
-			case GOID_HEXAHEDRON: volsOut.push_back(new Hexahedron(HexahedronDescriptor(vd)));	break;
-			case GOID_OCTAHEDRON: volsOut.push_back(new Octahedron(OctahedronDescriptor(vd)));	break;
+			case GridObjectID::GOID_TETRAHEDRON: volsOut.push_back(new Tetrahedron(TetrahedronDescriptor(vd)));	break;
+			case GridObjectID::GOID_PYRAMID: volsOut.push_back(new Pyramid(PyramidDescriptor(vd)));		break;
+			case GridObjectID::GOID_PRISM: volsOut.push_back(new Prism(PrismDescriptor(vd))); 		break;
+			case GridObjectID::GOID_HEXAHEDRON: volsOut.push_back(new Hexahedron(HexahedronDescriptor(vd)));	break;
+			case GridObjectID::GOID_OCTAHEDRON: volsOut.push_back(new Octahedron(OctahedronDescriptor(vd)));	break;
 		}
 	}
 }

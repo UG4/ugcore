@@ -94,29 +94,29 @@ enum GridOptions : uint32_t
 /**	Note that this is the minimal required interconnection for many dynamic
  * algorithms (i.e. deleting an object from a grid automatically enables this
  * option.*/
-	GRIDOPT_VERTEXCENTRIC_INTERCONNECTION = VRTOPT_STORE_ASSOCIATED_EDGES
-											| VRTOPT_STORE_ASSOCIATED_FACES
-											| VRTOPT_STORE_ASSOCIATED_VOLUMES,
+	GRIDOPT_VERTEXCENTRIC_INTERCONNECTION = VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES
+											| VertexOptions::VRTOPT_STORE_ASSOCIATED_FACES
+											| VertexOptions::VRTOPT_STORE_ASSOCIATED_VOLUMES,
 
 ///	sides are automatically created
-	GRIDOPT_AUTOGENERATE_SIDES = static_cast<uint32_t>(FACEOPT_AUTOGENERATE_EDGES)
-	                             | static_cast<uint32_t>(VOLOPT_AUTOGENERATE_FACES),
+	GRIDOPT_AUTOGENERATE_SIDES = static_cast<uint32_t>(FaceOptions::FACEOPT_AUTOGENERATE_EDGES)
+	                             | static_cast<uint32_t>(VolumeOptions::VOLOPT_AUTOGENERATE_FACES),
 
 ///	All elements store references to associated lower dimensional geometric objects
 /**	Additionally GRIDOPT_VERTEXCENTRIC_INTERCONNECTION is used.*/
 	GRIDOPT_STANDARD_INTERCONNECTION = GRIDOPT_VERTEXCENTRIC_INTERCONNECTION
 										| GRIDOPT_AUTOGENERATE_SIDES
-										| FACEOPT_STORE_ASSOCIATED_EDGES
-										| VOLOPT_STORE_ASSOCIATED_EDGES
-										| VOLOPT_STORE_ASSOCIATED_FACES,
+										| FaceOptions::FACEOPT_STORE_ASSOCIATED_EDGES
+										| VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES
+										| VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES,
 
 ///	All elements store references to all associated elements
 /**	This includes GRIDOPT_VERTEXCENTRIC_INTERCONNECTION and
  * GRIDOPT_STANDARD_INTERCONNECTION.*/
 	GRIDOPT_FULL_INTERCONNECTION = GRIDOPT_STANDARD_INTERCONNECTION
-									| EDGEOPT_STORE_ASSOCIATED_FACES
-									| EDGEOPT_STORE_ASSOCIATED_VOLUMES
-									| FACEOPT_STORE_ASSOCIATED_VOLUMES,
+									| EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES
+									| EdgeOptions::EDGEOPT_STORE_ASSOCIATED_VOLUMES
+									| FaceOptions::FACEOPT_STORE_ASSOCIATED_VOLUMES,
 
 	GRIDOPT_DEFAULT = GRIDOPT_VERTEXCENTRIC_INTERCONNECTION
 					  | GRIDOPT_AUTOGENERATE_SIDES

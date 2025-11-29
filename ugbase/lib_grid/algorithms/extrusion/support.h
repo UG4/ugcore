@@ -23,6 +23,8 @@
 #include <vector>
 #include <type_traits>
 
+#include "support3D.h"
+
 namespace ug
 {
 
@@ -262,15 +264,15 @@ public:
 	{
 		if( numbCrossFracs == 2 )
 		{
-			m_fracTyp = SingleFrac;
+			m_fracTyp = FracTyp::SingleFrac;
 		}
 		if( numbCrossFracs == 3 )
 		{
-			m_fracTyp = TEnd;
+			m_fracTyp = FracTyp::TEnd;
 		}
 		else if( numbCrossFracs == 4 )
 		{
-			m_fracTyp = XCross;
+			m_fracTyp = FracTyp::XCross;
 		}
 		else
 		{
@@ -291,7 +293,7 @@ public:
 //		if( isAtFreeSide )
 //			UG_THROW("XCross ohne freie Seite " << std::endl);
 
-		if( m_fracTyp == TEnd )
+		if( m_fracTyp == support::FracTypVol::TEnd )
 		{
 			std::pair<VRT, bool > addSVI( vrt, isAtFreeSide );
 			m_vecShiftedVrtsWithTypInf.push_back(addSVI);
@@ -337,7 +339,7 @@ public:
 
 	std::vector<std::pair<VRT,bool>> getVecShiftedVrtsWithTypInfo() const
 	{
-		if( m_fracTyp != TEnd )
+		if( m_fracTyp != support::FracTypVol::TEnd )
 			UG_THROW("fuer Kreuz nicht erlaubt " << std::endl);
 
 		return m_vecShiftedVrtsWithTypInf;

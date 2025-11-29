@@ -538,11 +538,11 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 		GridLayoutMap& glm = pdgm->grid_layout_map();
 		ComPol_Subset<layout_t>	compolSHCopy(sh, true);
 
-		if(glm.has_layout<elem_t>(INT_V_SLAVE))
-			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(partitionLvl),
+		if(glm.has_layout<elem_t>(InterfaceNodeTypes::INT_V_SLAVE))
+			m_intfcCom.send_data(glm.get_layout<elem_t>(InterfaceNodeTypes::INT_V_SLAVE).layout_on_level(partitionLvl),
 								 compolSHCopy);
-		if(glm.has_layout<elem_t>(INT_V_MASTER))
-			m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(partitionLvl),
+		if(glm.has_layout<elem_t>(InterfaceNodeTypes::INT_V_MASTER))
+			m_intfcCom.receive_data(glm.get_layout<elem_t>(InterfaceNodeTypes::INT_V_MASTER).layout_on_level(partitionLvl),
 									compolSHCopy);
 		m_intfcCom.communicate();
 	}
@@ -1028,11 +1028,11 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 
 	//	if child counts are required in vmasters on the base-level, copy them now...
 		if(copyToVMastersOnBaseLvl){
-			if(glm.has_layout<elem_t>(INT_V_SLAVE))
-				m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(baseLvl),
+			if(glm.has_layout<elem_t>(InterfaceNodeTypes::INT_V_SLAVE))
+				m_intfcCom.send_data(glm.get_layout<elem_t>(InterfaceNodeTypes::INT_V_SLAVE).layout_on_level(baseLvl),
 									 compolCopy);
-			if(glm.has_layout<elem_t>(INT_V_MASTER))
-				m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(baseLvl),
+			if(glm.has_layout<elem_t>(InterfaceNodeTypes::INT_V_MASTER))
+				m_intfcCom.receive_data(glm.get_layout<elem_t>(InterfaceNodeTypes::INT_V_MASTER).layout_on_level(baseLvl),
 										compolCopy);
 			m_intfcCom.communicate();
 		}

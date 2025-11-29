@@ -192,6 +192,7 @@ static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 	#endif
 
 	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STARTS, procId));
+
 	bool retVal = false;
 	if(loadingGrid){
 	//	Now perform the actual loading.

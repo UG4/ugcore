@@ -70,7 +70,7 @@ struct ng_bnode
     /** \brief the number of line positions */
     int num_lpos;
     /** \brief the node's line position data */
-    struct ng_line_pos* lpos;
+    ng_line_pos* lpos;
 };
 
 /**

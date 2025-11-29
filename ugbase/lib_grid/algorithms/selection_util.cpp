@@ -232,17 +232,17 @@ void SelectAssociatedGridObjects(TSelector& sel, ISelector::status_t status)
 	{
 		SelectAssociatedFaces(sel, sel.template begin<Volume>(i),
 							  sel.template end<Volume>(i), status);
-		if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
+		if(!grid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES)){
 			SelectAssociatedEdges(sel, sel.template begin<Volume>(i),
 								  sel.template end<Volume>(i), status);
-			if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
+			if(!grid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_EDGES))
 				SelectAssociatedVertices(sel, sel.template begin<Volume>(i),
 										 sel.template end<Volume>(i), status);
 		}
 		
 		SelectAssociatedEdges(sel, sel.template begin<Face>(i),
 							  sel.template end<Face>(i), status);
-		if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
+		if(!grid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
 			SelectAssociatedVertices(sel, sel.template begin<Face>(i),
 									 sel.template end<Face>(i), status);
 			
@@ -473,9 +473,9 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree, number normalWe
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
 	
 //	make sure that associated edges can be easily accessed.
-	if(!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES)){
+	if(!grid.option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES)){
 		UG_LOG("  INFO in SelectSmoothEdgePath: auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES.\n");
-		grid.enable_options(VRTOPT_STORE_ASSOCIATED_EDGES);
+		grid.enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES);
 	}
 	
 //	convert the thresholdDegree to thresholdDot

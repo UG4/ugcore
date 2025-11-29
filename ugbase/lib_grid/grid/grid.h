@@ -823,7 +823,7 @@ class UG_API Grid
 		/**
 		 * observerType may be any or-combination of constants enumerated in ObserverType.
 		 */
-		void register_observer(GridObserver* observer, uint observerType = OT_FULL_OBSERVER);
+		void register_observer(GridObserver* observer, ObserverType observerType = ObserverType::OT_FULL_OBSERVER);
 		void unregister_observer(GridObserver* observer);
 
 /*

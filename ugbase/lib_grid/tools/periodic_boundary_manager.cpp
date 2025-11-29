@@ -74,9 +74,9 @@ void PeriodicBoundaryManager::set_grid(Grid* g)
 		m_pGrid->attach_to_edges_dv(aGroupEDG, nullptr);
 		m_pGrid->attach_to_faces_dv(aGroupFCE, nullptr);
 
-		m_pGrid->attach_to_vertices_dv(aPeriodicStatus, P_NOT_PERIODIC);
-		m_pGrid->attach_to_edges_dv(aPeriodicStatus, P_NOT_PERIODIC);
-		m_pGrid->attach_to_faces_dv(aPeriodicStatus, P_NOT_PERIODIC);
+		m_pGrid->attach_to_vertices_dv(aPeriodicStatus, PeriodicStatus::P_NOT_PERIODIC);
+		m_pGrid->attach_to_edges_dv(aPeriodicStatus, PeriodicStatus::P_NOT_PERIODIC);
+		m_pGrid->attach_to_faces_dv(aPeriodicStatus, PeriodicStatus::P_NOT_PERIODIC);
 
 		// access grid with those attachments
 		m_aaGroupVRT.access(*m_pGrid, aGroupVRT);
@@ -87,8 +87,8 @@ void PeriodicBoundaryManager::set_grid(Grid* g)
 		m_aaPeriodicStatusEDG.access(*m_pGrid, aPeriodicStatus);
 		m_aaPeriodicStatusFCE.access(*m_pGrid, aPeriodicStatus);
 
-		uint options = OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
-				OT_FACE_OBSERVER;
+		ObserverType options = ObserverType::OT_GRID_OBSERVER | ObserverType::OT_VERTEX_OBSERVER | ObserverType::OT_EDGE_OBSERVER |
+				ObserverType::OT_FACE_OBSERVER;
 		m_pGrid->register_observer(this, options);
 	}
 }

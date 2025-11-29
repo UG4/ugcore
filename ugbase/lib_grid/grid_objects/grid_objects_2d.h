@@ -115,7 +115,7 @@ class UG_API CustomTriangle : public BaseClass
 		CustomTriangle(Vertex* v1, Vertex* v2, Vertex* v3);
 
 		virtual GridObject* create_empty_instance() const	{return new ConcreteTriangleType;}
-		virtual ReferenceObjectID reference_object_id() const {return ROID_TRIANGLE;}
+		virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_TRIANGLE;}
 
 		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
 		virtual Face::ConstVertexArray vertices() const		{return m_vertices;}
@@ -180,7 +180,7 @@ class UG_API Triangle :
 		Triangle(const TriangleDescriptor& td) : BaseClass(td)	{}
 		Triangle(Vertex* v1, Vertex* v2, Vertex* v3) : BaseClass(v1, v2, v3)	{}
 
-		int container_section() const override	{return CSFACE_TRIANGLE;}
+		int container_section() const override	{return FaceContainerSections::CSFACE_TRIANGLE;}
 
 	protected:
 		Edge* create_edge(int index) override {
@@ -201,10 +201,10 @@ class geometry_traits<Triangle>
 
 		enum
 		{
-			CONTAINER_SECTION = CSFACE_TRIANGLE,
-			BASE_OBJECT_ID = FACE
+			CONTAINER_SECTION = FaceContainerSections::CSFACE_TRIANGLE,
+			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TRIANGLE;
 };
 
 using TriangleIterator = geometry_traits<Triangle>::iterator;
@@ -259,7 +259,7 @@ class UG_API CustomQuadrilateral : public BaseClass
 							Vertex* v3, Vertex* v4);
 
 		GridObject* create_empty_instance() const override	{return new ConcreteQuadrilateralType;}
-		ReferenceObjectID reference_object_id() const override {return ROID_QUADRILATERAL;}
+		ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_QUADRILATERAL;}
 
 		[[nodiscard]] Vertex* vertex(size_t index) const override	{return m_vertices[index];}
 		[[nodiscard]] Face::ConstVertexArray vertices() const override		{return m_vertices;}
@@ -331,7 +331,7 @@ class UG_API Quadrilateral :
 		Quadrilateral(Vertex* v1, Vertex* v2,
 					  Vertex* v3, Vertex* v4) : BaseClass(v1, v2, v3, v4)	{}
 
-		int container_section() const override {return CSFACE_QUADRILATERAL;}
+		int container_section() const override {return FaceContainerSections::CSFACE_QUADRILATERAL;}
 
 	protected:
 		Edge* create_edge(int index) override {
@@ -351,10 +351,10 @@ class geometry_traits<Quadrilateral>
 
 		enum
 		{
-			CONTAINER_SECTION = CSFACE_QUADRILATERAL,
-			BASE_OBJECT_ID = FACE
+			CONTAINER_SECTION = FaceContainerSections::CSFACE_QUADRILATERAL,
+			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_QUADRILATERAL;
 };
 
 using QuadrilateralIterator = geometry_traits<Quadrilateral>::iterator;
@@ -445,7 +445,7 @@ class UG_API ConstrainedTriangle :
 		ConstrainedTriangle(Vertex* v1, Vertex* v2, Vertex* v3) :
 			BaseTriangle(v1, v2, v3)	{}
 
-		int container_section() const override {return CSFACE_CONSTRAINED_TRIANGLE;}
+		int container_section() const override {return FaceContainerSections::CSFACE_CONSTRAINED_TRIANGLE;}
 
 	protected:
 		Edge* create_edge(int index) override {
@@ -466,10 +466,10 @@ class geometry_traits<ConstrainedTriangle>
 
 		enum
 		{
-			CONTAINER_SECTION = CSFACE_CONSTRAINED_TRIANGLE,
-			BASE_OBJECT_ID = FACE
+			CONTAINER_SECTION = FaceContainerSections::CSFACE_CONSTRAINED_TRIANGLE,
+			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TRIANGLE;
 };
 
 using ConstrainedTriangleIterator = geometry_traits<ConstrainedTriangle>::iterator;
@@ -497,7 +497,7 @@ class UG_API ConstrainedQuadrilateral :
 		ConstrainedQuadrilateral(Vertex* v1, Vertex* v2,
 								 Vertex* v3, Vertex* v4) : BaseClass(v1, v2, v3, v4)	{}
 
-		int container_section() const override {return CSFACE_CONSTRAINED_QUADRILATERAL;}
+		int container_section() const override {return FaceContainerSections::CSFACE_CONSTRAINED_QUADRILATERAL;}
 
 	protected:
 		Edge* create_edge(int index) override {
@@ -519,10 +519,10 @@ class geometry_traits<ConstrainedQuadrilateral>
 
 		enum
 		{
-			CONTAINER_SECTION = CSFACE_CONSTRAINED_QUADRILATERAL,
-			BASE_OBJECT_ID = FACE
+			CONTAINER_SECTION = FaceContainerSections::CSFACE_CONSTRAINED_QUADRILATERAL,
+			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_QUADRILATERAL;
 };
 
 using ConstrainedQuadrilateralIterator = geometry_traits<ConstrainedQuadrilateral>::iterator;
@@ -716,7 +716,7 @@ class UG_API ConstrainingTriangle :
 		ConstrainingTriangle(Vertex* v1, Vertex* v2, Vertex* v3) :
 			BaseTriangle(v1, v2, v3)	{reserve_memory();}
 
-		int container_section() const override {return CSFACE_CONSTRAINING_TRIANGLE;}
+		int container_section() const override {return FaceContainerSections::CSFACE_CONSTRAINING_TRIANGLE;}
 
 	protected:
 		void reserve_memory()
@@ -743,10 +743,10 @@ class geometry_traits<ConstrainingTriangle>
 
 		enum
 		{
-			CONTAINER_SECTION = CSFACE_CONSTRAINING_TRIANGLE,
-			BASE_OBJECT_ID = FACE
+			CONTAINER_SECTION = FaceContainerSections::CSFACE_CONSTRAINING_TRIANGLE,
+			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TRIANGLE;
 };
 
 using ConstrainingTriangleIterator = geometry_traits<ConstrainingTriangle>::iterator;
@@ -776,7 +776,7 @@ class UG_API ConstrainingQuadrilateral :
 								  Vertex* v3, Vertex* v4) :
 			BaseClass(v1, v2, v3, v4)	{reserve_memory();}
 
-		int container_section() const override {return CSFACE_CONSTRAINING_QUADRILATERAL;}
+		int container_section() const override {return FaceContainerSections::CSFACE_CONSTRAINING_QUADRILATERAL;}
 
 	protected:
 		void reserve_memory()
@@ -805,10 +805,10 @@ class geometry_traits<ConstrainingQuadrilateral>
 
 		enum
 		{
-			CONTAINER_SECTION = CSFACE_CONSTRAINING_QUADRILATERAL,
-			BASE_OBJECT_ID = FACE
+			CONTAINER_SECTION = FaceContainerSections::CSFACE_CONSTRAINING_QUADRILATERAL,
+			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_QUADRILATERAL;
 };
 
 using ConstrainingQuadrilateralIterator = geometry_traits<ConstrainingQuadrilateral>::iterator;

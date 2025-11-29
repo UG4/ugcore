@@ -82,12 +82,12 @@ void MarkForAnisotropicRefinement (
 			continue;
 
 	//	the element is anisotropic mark it and all long edges
-		ref.mark(elem, RM_ANISOTROPIC);
+		ref.mark(elem, RefinementMark::RM_ANISOTROPIC);
 	//	refine all edges that are at least half as long as the longest one
 		number thresholdLenSq = shortestLenSq / minEdgeRatioSq;
 		for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){ Edge* e = assEdges[_vfeI];{
 			if(EdgeLengthSq(e, aaPos) > thresholdLenSq){
-				ref.mark(e, RM_REFINE);
+				ref.mark(e, RefinementMark::RM_REFINE);
 			}
 		}};
 	}
@@ -132,11 +132,11 @@ void MarkForRefinementByDirection (
 			
 			g.associated_elements(faces, e);
 			for(size_t i = 0; i < faces.size(); ++i)
-				ref.mark(faces[i], RM_CLOSURE);
+				ref.mark(faces[i], RefinementMark::RM_CLOSURE);
 
 			g.associated_elements(vols, e);
 			for(size_t i = 0; i < vols.size(); ++i)
-				ref.mark(vols[i], RM_CLOSURE);
+				ref.mark(vols[i], RefinementMark::RM_CLOSURE);
 			
 		}
 	}

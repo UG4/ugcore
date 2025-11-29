@@ -106,7 +106,7 @@ public:
 		if (! the_object)
 			return false;
 		int si = the_object->m_pSH->get_subset_index (elem);
-		for (size_t i = 0; i < si_ar.size (); i++) if (si == si_ar[i]) return true;
+		for (size_t i = 0; i < si_ar.size (); i++) {if (si == si_ar[i]) {return true;}}
 		return false;
 	};
 

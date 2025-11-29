@@ -139,8 +139,8 @@ class AssembledMultiGridCycle :
 
 	///	sets if copies should be used to emulate a full-refined grid
 		void set_emulate_full_refined_grid(bool bEmulate){
-			if(bEmulate) m_GridLevelType = GridLevel::SURFACE;
-			else m_GridLevelType = GridLevel::LEVEL;
+			if(bEmulate) m_GridLevelType = GridLevel::ViewType::SURFACE;
+			else m_GridLevelType = GridLevel::ViewType::LEVEL;
 		}
 
 	///	sets if RAP - Product used to build coarse grid matrices

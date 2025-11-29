@@ -40,7 +40,7 @@ namespace tet_rules
 {
 
 /// global refinement rule information switching between regular and subdivision volume refinement
-static GlobalRefinementRule g_refinementRule = STANDARD;
+static GlobalRefinementRule g_refinementRule = GlobalRefinementRule::STANDARD;
 
 void SetRefinementRule(GlobalRefinementRule refRule)
 {
@@ -126,7 +126,7 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 		case 0:
 		{
 		//	simply put the default tetrahedron back to newIndsOut
-			newIndsOut[fillCount++] = GOID_TETRAHEDRON;
+			newIndsOut[fillCount++] = GridObjectID::GOID_TETRAHEDRON;
 			newIndsOut[fillCount++] = 0;
 			newIndsOut[fillCount++] = 1;
 			newIndsOut[fillCount++] = 2;
@@ -142,7 +142,7 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 				if(!FACE_CONTAINS_EDGE[i_face][refEdgeInd]){
 					const int* fvi = FACE_VRT_INDS[i_face];
 
-					newIndsOut[fillCount++] = GOID_TETRAHEDRON;
+					newIndsOut[fillCount++] = GridObjectID::GOID_TETRAHEDRON;
 					newIndsOut[fillCount++] = fvi[0];
 					newIndsOut[fillCount++] = fvi[1];
 					newIndsOut[fillCount++] = fvi[2];
@@ -170,19 +170,19 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 			//	from this local order we can now construct the 4 new tetrahedrons.
 				int& fi = fillCount;
 				int* inds = newIndsOut;
-				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 				inds[fi++] = v0;	inds[fi++] = n0;
 				inds[fi++] = v2; 	inds[fi++] = n1;
 
-				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 				inds[fi++] = v0;	inds[fi++] = n0;
 				inds[fi++] = n1; 	inds[fi++] = v3;
 
-				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 				inds[fi++] = n0;	inds[fi++] = v1;
 				inds[fi++] = v2; 	inds[fi++] = n1;
 
-				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 				inds[fi++] = n0;	inds[fi++] = v1;
 				inds[fi++] = n1; 	inds[fi++] = v3;
 			}
@@ -222,13 +222,13 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 			//	now lets build the pyramid
 				int& fi = fillCount;
 				int* inds = newIndsOut;
-				inds[fi++] = GOID_PYRAMID;
+				inds[fi++] = GridObjectID::GOID_PYRAMID;
 				inds[fi++] = v0;	inds[fi++] = v1;
 				inds[fi++] = v1v2; 	inds[fi++] = v2v0;
 				inds[fi++] = vtop;
 
 			//	and now the terahedron
-				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 				inds[fi++] = v2;	inds[fi++] = vtop;
 				inds[fi++] = v2v0;	inds[fi++] = v1v2;
 			}
@@ -262,16 +262,16 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 
 				int& fi = fillCount;
 				int* inds = newIndsOut;
-				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 				inds[fi++] = v0;	inds[fi++] = vtop;
 				inds[fi++] = v0v1;	inds[fi++] = v2v0;
-				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 				inds[fi++] = v1;	inds[fi++] = vtop;
 				inds[fi++] = v1v2;	inds[fi++] = v0v1;
-				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 				inds[fi++] = v2;	inds[fi++] = vtop;
 				inds[fi++] = v2v0;	inds[fi++] = v1v2;
-				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 				inds[fi++] = v0v1;	inds[fi++] = vtop;
 				inds[fi++] = v1v2;	inds[fi++] = v2v0;
 			}
@@ -305,11 +305,11 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 				//	add a prism and a tetrahedron
 					int& fi = fillCount;
 					int* inds = newIndsOut;
-					inds[fi++] = GOID_PRISM;
+					inds[fi++] = GridObjectID::GOID_PRISM;
 					inds[fi++] = f[0]; inds[fi++] = f[1]; inds[fi++] = f[2];
 					inds[fi++] = v0v3; inds[fi++] = v1v3; inds[fi++] = v2v3;
 
-					inds[fi++] = GOID_TETRAHEDRON;
+					inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 					inds[fi++] = v2v3; inds[fi++] = corner3; inds[fi++] = v0v3;
 					inds[fi++] = v1v3;
 				}
@@ -357,11 +357,11 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 				int& fi = fillCount;
 				int* inds = newIndsOut;
 
-				inds[fi++] = GOID_PRISM;
+				inds[fi++] = GridObjectID::GOID_PRISM;
 				inds[fi++] = t[0];	inds[fi++] = v0v3;	inds[fi++] = v0v1;
 				inds[fi++] = t[2];	inds[fi++] = v2v3;	inds[fi++] = v1v2;
 
-				inds[fi++] = GOID_PRISM;
+				inds[fi++] = GridObjectID::GOID_PRISM;
 				inds[fi++] = t[1];	inds[fi++] = v1v2;	inds[fi++] = v0v1;
 				inds[fi++] = t[3];	inds[fi++] = v2v3;	inds[fi++] = v0v3;
 			}
@@ -397,20 +397,20 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 				int& fi = fillCount;
 				int* inds = newIndsOut;
 
-				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 				inds[fi++] = I[0];	inds[fi++] = v01;
 				inds[fi++] = v02;	inds[fi++] = v03;
 
-				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 				inds[fi++] = v01;	inds[fi++] = v12;
 				inds[fi++] = v02;	inds[fi++] = v03;
 
-				inds[fi++] = GOID_PYRAMID;
+				inds[fi++] = GridObjectID::GOID_PYRAMID;
 				inds[fi++] = I[3];	inds[fi++] = I[1];
 				inds[fi++] = v01;	inds[fi++] = v03;
 				inds[fi++] = v12;
 
-				inds[fi++] = GOID_PYRAMID;
+				inds[fi++] = GridObjectID::GOID_PYRAMID;
 				inds[fi++] = I[2];	inds[fi++] = I[3];
 				inds[fi++] = v03;	inds[fi++] = v02;
 				inds[fi++] = v12;
@@ -463,20 +463,20 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 			int& fi = fillCount;
 			int* inds = newIndsOut;
 
-			inds[fi++] = GOID_TETRAHEDRON;
+			inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 			inds[fi++] = I[0];	inds[fi++] = v01;
 			inds[fi++] = v02;	inds[fi++] = v03;
 
-			inds[fi++] = GOID_TETRAHEDRON;
+			inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 			inds[fi++] = I[1];	inds[fi++] = v12;
 			inds[fi++] = v01;	inds[fi++] = v13;
 
-			inds[fi++] = GOID_PYRAMID;
+			inds[fi++] = GridObjectID::GOID_PYRAMID;
 			inds[fi++] = v02;	inds[fi++] = v12;
 			inds[fi++] = v13;	inds[fi++] = v03;
 			inds[fi++] = v01;
 
-			inds[fi++] = GOID_PRISM;
+			inds[fi++] = GridObjectID::GOID_PRISM;
 			inds[fi++] = v02;	inds[fi++] = v12;	inds[fi++] = I[2];
 			inds[fi++] = v03;	inds[fi++] = v13;	inds[fi++] = I[3];
 
@@ -494,19 +494,19 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 					int& fi = fillCount;
 					int* inds = newIndsOut;
 
-					inds[fi++] = GOID_TETRAHEDRON;
+					inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 					inds[fi++] = 0;					inds[fi++] = NUM_VERTICES + 0;
 					inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 3;
 
-					inds[fi++] = GOID_TETRAHEDRON;
+					inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 					inds[fi++] = 1;					inds[fi++] = NUM_VERTICES + 1;
 					inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 4;
 
-					inds[fi++] = GOID_TETRAHEDRON;
+					inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 					inds[fi++] = 2;					inds[fi++] = NUM_VERTICES + 2;
 					inds[fi++] = NUM_VERTICES + 1;	inds[fi++] = NUM_VERTICES + 5;
 
-					inds[fi++] = GOID_TETRAHEDRON;
+					inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 					inds[fi++] = NUM_VERTICES + 3;	inds[fi++] = NUM_VERTICES + 4;
 					inds[fi++] = NUM_VERTICES + 5;	inds[fi++] = 3;
 
@@ -549,57 +549,57 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 
 					switch(bestDiag){
 					case 0:// diag: 0-5
-						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 						inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 1;
 						inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 5;
 
-						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 						inds[fi++] = NUM_VERTICES + 1;	inds[fi++] = NUM_VERTICES + 4;
 						inds[fi++] = NUM_VERTICES + 5;	inds[fi++] = NUM_VERTICES + 0;
 
-						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 						inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 5;
 						inds[fi++] = NUM_VERTICES + 3;	inds[fi++] = NUM_VERTICES + 0;
 
-						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 						inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 3;
 						inds[fi++] = NUM_VERTICES + 4;	inds[fi++] = NUM_VERTICES + 5;
 
 						break;
 
 					case 1:// diag: 1-3
-						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 						inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 1;
 						inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 3;
 
-						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 						inds[fi++] = NUM_VERTICES + 1;	inds[fi++] = NUM_VERTICES + 4;
 						inds[fi++] = NUM_VERTICES + 5;	inds[fi++] = NUM_VERTICES + 3;
 
-						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 						inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 5;
 						inds[fi++] = NUM_VERTICES + 3;	inds[fi++] = NUM_VERTICES + 1;
 
-						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 						inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 3;
 						inds[fi++] = NUM_VERTICES + 4;	inds[fi++] = NUM_VERTICES + 1;
 
 						break;
 
 					case 2:// diag 2-4
-						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 						inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 2;
 						inds[fi++] = NUM_VERTICES + 3;	inds[fi++] = NUM_VERTICES + 4;
 
-						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 						inds[fi++] = NUM_VERTICES + 1;	inds[fi++] = NUM_VERTICES + 2;
 						inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 4;
 
-						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 						inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 3;
 						inds[fi++] = NUM_VERTICES + 4;	inds[fi++] = NUM_VERTICES + 5;
 
-						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 						inds[fi++] = NUM_VERTICES + 4;	inds[fi++] = NUM_VERTICES + 1;
 						inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 5;
 
@@ -607,26 +607,26 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 					}
 				}break;
 				
-				case HYBRID_TET_OCT:
+				case GlobalRefinementRule::HYBRID_TET_OCT:
 				{
 				//	REGULAR REFINEMENT
 					int& fi = fillCount;
 					int* inds = newIndsOut;
 
 				//	outer tetrahedrons analogously defined to STANDARD case
-					inds[fi++] = GOID_TETRAHEDRON;
+					inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 					inds[fi++] = 0;					inds[fi++] = NUM_VERTICES + 0;
 					inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 3;
 
-					inds[fi++] = GOID_TETRAHEDRON;
+					inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 					inds[fi++] = 1;					inds[fi++] = NUM_VERTICES + 1;
 					inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 4;
 
-					inds[fi++] = GOID_TETRAHEDRON;
+					inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 					inds[fi++] = 2;					inds[fi++] = NUM_VERTICES + 2;
 					inds[fi++] = NUM_VERTICES + 1;	inds[fi++] = NUM_VERTICES + 5;
 
-					inds[fi++] = GOID_TETRAHEDRON;
+					inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 					inds[fi++] = NUM_VERTICES + 3;	inds[fi++] = NUM_VERTICES + 4;
 					inds[fi++] = NUM_VERTICES + 5;	inds[fi++] = 3;
 
@@ -673,21 +673,21 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 
 					switch(bestDiag){
 						case 0:// diag: 0-5
-							inds[fi++] = GOID_OCTAHEDRON;
+							inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 							inds[fi++] = NUM_VERTICES + 1;		inds[fi++] = NUM_VERTICES + 0;
 							inds[fi++] = NUM_VERTICES + 4;		inds[fi++] = NUM_VERTICES + 5;
 							inds[fi++] = NUM_VERTICES + 2;		inds[fi++] = NUM_VERTICES + 3;
 						break;
 
 						case 1:// diag: 1-3
-							inds[fi++] = GOID_OCTAHEDRON;
+							inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 							inds[fi++] = NUM_VERTICES + 0;		inds[fi++] = NUM_VERTICES + 3;
 							inds[fi++] = NUM_VERTICES + 4;		inds[fi++] = NUM_VERTICES + 1;
 							inds[fi++] = NUM_VERTICES + 2;		inds[fi++] = NUM_VERTICES + 5;
 						break;
 
 						case 2:// diag 2-4
-							inds[fi++] = GOID_OCTAHEDRON;
+							inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 							inds[fi++] = NUM_VERTICES + 1;		inds[fi++] = NUM_VERTICES + 2;
 							inds[fi++] = NUM_VERTICES + 0;		inds[fi++] = NUM_VERTICES + 4;
 							inds[fi++] = NUM_VERTICES + 5;		inds[fi++] = NUM_VERTICES + 3;

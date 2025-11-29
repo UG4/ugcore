@@ -127,16 +127,17 @@ public:
 			Container m_slaves;
 	};
 
-	enum PeriodicStatus {
+	enum PeriodicStatus : byte_t {
 		P_SLAVE, P_SLAVE_MASTER_UNKNOWN, P_MASTER, P_NOT_PERIODIC
 	};
+
 
 	PeriodicBoundaryManager();
 	~PeriodicBoundaryManager() override;
 
 	// sets grid and inits group info attachment accessors
 	void set_grid(Grid* g);
-	Grid* get_grid() const;
+	[[nodiscard]] Grid* get_grid() const;
 
 	// sets the subset handler to use for element lookup
 //	void set_subset_handler(ISubsetHandler* sh);
@@ -309,7 +310,7 @@ class PeriodicAttachmentAccessor
 			access(g, a);
 		}
 
-		PeriodicAttachmentAccessor(PeriodicBoundaryManager& pbm) : m_pbm(&pbm) {}
+		explicit PeriodicAttachmentAccessor(PeriodicBoundaryManager& pbm) : m_pbm(&pbm) {}
 
 		bool access(Grid& g, TAttachment& a)
 		{

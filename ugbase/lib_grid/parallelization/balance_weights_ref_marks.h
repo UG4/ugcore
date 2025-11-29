@@ -45,32 +45,32 @@ class BalanceWeightsRefMarks : public IBalanceWeights
 
 		number get_refined_weight(Vertex* e) override {
 			RefinementMark m = m_refiner->get_mark(e);
-			if(m == RM_REFINE || m == RM_ANISOTROPIC)
+			if(m == RefinementMark::RM_REFINE || m == RefinementMark::RM_ANISOTROPIC)
 				return get_weight(e);
 			return 0;
 		}
 
 		number get_refined_weight(Edge* e) override {
 			RefinementMark m = m_refiner->get_mark(e);
-			if(m == RM_REFINE || m == RM_ANISOTROPIC)
+			if(m == RefinementMark::RM_REFINE || m == RefinementMark::RM_ANISOTROPIC)
 				return 2. * get_weight(e);
 			return 0;
 		}
 
 		number get_refined_weight(Face* e) override {
 			RefinementMark m = m_refiner->get_mark(e);
-			if(m == RM_REFINE)
+			if(m == RefinementMark::RM_REFINE)
 				return 4. * get_weight(e);
-			if(m == RM_ANISOTROPIC)
+			if(m == RefinementMark::RM_ANISOTROPIC)
 				return 2. * get_weight(e);// ok - that isn't always true...
 			return 0;
 		}
 
 		number get_refined_weight(Volume* e) override {
 			RefinementMark m = m_refiner->get_mark(e);
-			if(m == RM_REFINE)
+			if(m == RefinementMark::RM_REFINE)
 				return 8. * get_weight(e);	// ok - that isn't always true...
-			if(m == RM_ANISOTROPIC)
+			if(m == RefinementMark::RM_ANISOTROPIC)
 				return 2. * get_weight(e);	// yep - that isn't always true...
 			return 0;
 		}
@@ -91,7 +91,7 @@ class BalanceWeightsRefMarks : public IBalanceWeights
 		bool consider_in_level_above_impl(TElem* e)
 		{
 			RefinementMark m = m_refiner->get_mark(e);
-			return (m == RM_REFINE) || (m == RM_ANISOTROPIC);
+			return (m == RefinementMark::RM_REFINE) || (m == RefinementMark::RM_ANISOTROPIC);
 		}
 
 		IRefiner*	m_refiner;

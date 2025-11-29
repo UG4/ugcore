@@ -40,7 +40,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	GridSubsetHandler implementation
 GridSubsetHandler::
-GridSubsetHandler(uint supportedElements) :
+GridSubsetHandler(SubsetHandlerElements_t supportedElements) :
 	ISubsetHandler(supportedElements),
 	m_aSharedEntryVRT("SubsetHandler_SharedListEntryVRT", false),
 	m_aSharedEntryEDGE("SubsetHandler_SharedListEntryEDGE", false),
@@ -50,7 +50,7 @@ GridSubsetHandler(uint supportedElements) :
 }
 
 GridSubsetHandler::
-GridSubsetHandler(Grid& grid, uint supportedElements) :
+GridSubsetHandler(Grid& grid, SubsetHandlerElements_t supportedElements) :
 	ISubsetHandler(supportedElements),
 	m_aSharedEntryVRT("SubsetHandler_SharedListEntryVRT", false),
 	m_aSharedEntryEDGE("SubsetHandler_SharedListEntryEDGE", false),
@@ -106,7 +106,7 @@ void GridSubsetHandler::assign_grid(Grid* grid)
 	if(m_pGrid)
 		cleanup();
 
-	ISubsetHandler::set_grid(grid);
+	set_grid(grid);
 
 	//	attach shared entries
 	if(m_pGrid){
@@ -246,7 +246,7 @@ void GridSubsetHandler::add_required_subset_lists(int maxIndex)
 {
 	while((int)m_subsets.size() <= maxIndex){
 	//	initialize section containers
-		Subset* sub = new Subset;
+		auto sub = new Subset();
 		if(elements_are_supported(SHE_VERTEX))
 			sub->m_vertices.get_container().set_pipe(
 					&m_pGrid->get_attachment_pipe<Vertex>(), m_aSharedEntryVRT);

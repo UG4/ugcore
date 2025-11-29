@@ -565,11 +565,69 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-enum ConstraintTypes{
+enum class ConstraintTypes : byte_t{
 	CT_NONE = 0,
 	CT_CONSTRAINING = 1,
 	CT_CONSTRAINED = 1 << 1
 };
+using ConstraintTypes_t = byte_t;
+
+constexpr ConstraintTypes& operator |= (ConstraintTypes &lhs, ConstraintTypes rhs) noexcept {
+	lhs = static_cast<ConstraintTypes>(
+		static_cast<ConstraintTypes_t>(lhs) |
+		static_cast<ConstraintTypes_t>(rhs)
+	);
+	return lhs;
+}
+
+constexpr ConstraintTypes& operator * (ConstraintTypes &lhs, ConstraintTypes rhs) noexcept {
+	lhs = static_cast<ConstraintTypes>(
+		static_cast<ConstraintTypes_t>(lhs) *
+		static_cast<ConstraintTypes_t>(rhs)
+	);
+	return lhs;
+} // ø todo delete illegal operation which currently is needed to compile in compol_attachment_reduce
+
+constexpr ConstraintTypes& operator + (ConstraintTypes &lhs, ConstraintTypes rhs) noexcept {
+	lhs = static_cast<ConstraintTypes>(
+		static_cast<ConstraintTypes_t>(lhs) +
+		static_cast<ConstraintTypes_t>(rhs)
+	);
+	return lhs;
+} // ø todo delete illegal operation which currently is needed to compile in compol_attachment_reduce
+
+constexpr ConstraintTypes& operator && (ConstraintTypes &lhs, ConstraintTypes rhs) noexcept {
+	lhs = static_cast<ConstraintTypes>(
+		static_cast<ConstraintTypes_t>(lhs) &&
+		static_cast<ConstraintTypes_t>(rhs)
+	);
+	return lhs;
+} // ø todo delete illegal operation which currently is needed to compile in compol_attachment_reduce
+
+constexpr ConstraintTypes& operator || (ConstraintTypes &lhs, ConstraintTypes rhs) noexcept {
+	lhs = static_cast<ConstraintTypes>(
+		static_cast<ConstraintTypes_t>(lhs) ||
+		static_cast<ConstraintTypes_t>(rhs)
+	);
+	return lhs;
+} // ø todo delete illegal operation which currently is needed to compile in compol_attachment_reduce
+
+constexpr ConstraintTypes& operator & (ConstraintTypes &lhs, ConstraintTypes rhs) noexcept {
+	lhs = static_cast<ConstraintTypes>(
+		static_cast<ConstraintTypes_t>(lhs) &
+		static_cast<ConstraintTypes_t>(rhs)
+	);
+	return lhs;
+} // ø todo delete illegal operation which currently is needed to compile in compol_attachment_reduce
+
+constexpr ConstraintTypes& operator | (ConstraintTypes &lhs, ConstraintTypes rhs) noexcept {
+	lhs = static_cast<ConstraintTypes>(
+		static_cast<ConstraintTypes_t>(lhs) |
+		static_cast<ConstraintTypes_t>(rhs)
+	);
+	return lhs;
+} // ø todo delete illegal operation which currently is needed to compile in compol_attachment_reduce
+
 
 template <typename TElem>
 static bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
@@ -577,18 +635,18 @@ static bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
 	using ElemIter = typename Grid::traits<TElem>::iterator;
 	bool retVal = true;
 
-	AInt aState;
+	Attachment<ConstraintTypes> aState;
 	mg.attach_to<TElem>(aState);
-	Grid::AttachmentAccessor<TElem, AInt> aaState(mg, aState);
+	Grid::AttachmentAccessor<TElem, Attachment<ConstraintTypes>> aaState(mg, aState);
 
 //	set up local states
 	for(ElemIter iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
 		TElem* e = *iter;
-		aaState[e] = CT_NONE;
+		aaState[e] = ConstraintTypes::CT_NONE;
 		if(e->is_constraining())
-			aaState[e] |= CT_CONSTRAINING;
+			aaState[e] |= ConstraintTypes::CT_CONSTRAINING;
 		if(e->is_constrained())
-			aaState[e] |= CT_CONSTRAINED;
+			aaState[e] |= ConstraintTypes::CT_CONSTRAINED;
 	}
 
 //	communicate states
@@ -598,31 +656,31 @@ static bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
 		DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 		GridLayoutMap& glm = distGridMgr.grid_layout_map();
 
-		ComPol_AttachmentReduce<Layout, AInt>  compolOr(mg, aState, PCL_RO_BOR);
-		com.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolOr);
+		ComPol_AttachmentReduce<Layout, Attachment<ConstraintTypes>>  compolOr(mg, aState, PCL_RO_BOR);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, compolOr);
 		com.communicate();
 
-		com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolOr);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, compolOr);
 		com.communicate();
 
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolOr);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compolOr);
 		com.communicate();
 
-		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolOr);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, compolOr);
 		com.communicate();
 
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolOr);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compolOr);
 		com.communicate();
 	#endif
 
 //	check whether communicated states match the actual element states on this proc.
 	for(ElemIter iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
 		TElem* e = *iter;
-		int state = CT_NONE;
+		ConstraintTypes state = ConstraintTypes::CT_NONE;
 		if(e->is_constraining())
-			state |= CT_CONSTRAINING;
+			state |= ConstraintTypes::CT_CONSTRAINING;
 		if(e->is_constrained())
-			state |= CT_CONSTRAINED;
+			state |= ConstraintTypes::CT_CONSTRAINED;
 
 		if(state != aaState[e]){
 			UG_LOG("ERROR: Distributed object has different constraint states on different procs. "
@@ -668,7 +726,7 @@ class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLa
 		using Interface = typename Layout::Interface;
 		using InterfaceIter = typename Interface::const_iterator;
 
-		ComPol_CheckDistributedParentStates(MultiGrid& mg) :
+		explicit ComPol_CheckDistributedParentStates(MultiGrid& mg) :
 			m_mg(mg),
 			m_dgm(mg.distributed_grid_manager()),
 			m_comparisionFailed(false),
@@ -676,15 +734,13 @@ class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLa
 		{
 		}
 
-		virtual ~ComPol_CheckDistributedParentStates() = default;
+		~ComPol_CheckDistributedParentStates() override = default;
 
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{return interface.size() * sizeof(int);}
+		int
+		get_required_buffer_size(const Interface& interface) override {return interface.size() * sizeof(int);}
 
-		virtual bool
-		collect(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		collect(BinaryBuffer& buff, const Interface& interface) override {
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
@@ -695,9 +751,8 @@ class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLa
 			return true;
 		}
 
-		virtual bool
-		extract(BinaryBuffer& buff, const Interface& interface)
-		{
+		bool
+		extract(BinaryBuffer& buff, const Interface& interface) override {
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{

@@ -802,7 +802,7 @@ bool LoadGridFromSMESH(Grid& grid, const char* filename, AVector3& aPos,
 		READ_FACES
 	};
 
-	ReadState readState = READ_VRT_HEADER;
+	ReadState readState = ReadState::READ_VRT_HEADER;
 
 	size_t numVrts = 0;
 	size_t dim = 0;
@@ -820,27 +820,27 @@ bool LoadGridFromSMESH(Grid& grid, const char* filename, AVector3& aPos,
 		string line;
 		getline(file, line);
 		string trimmedLine = TrimString(line);
-		
+
 		if(trimmedLine.empty())
 			continue;
 
 		if(trimmedLine[0] == '#')
 			continue;
-		
+
 		stringstream in(trimmedLine);
 
 		try{
 			switch(readState){
-				case READ_VRT_HEADER:{
+				case ReadState::READ_VRT_HEADER:{
 					in >> numVrts >> dim >> numAttribs >> bndMarker;
 					UG_COND_THROW(!in, "Couldn't read vertex header");
 					if(numVrts == 0)
 						return true;
-					readState = READ_VERTICES;
+					readState = ReadState::READ_VERTICES;
 				}break;
 
 
-				case READ_VERTICES:{
+				case ReadState::READ_VERTICES:{
 					size_t vrtInd;
 					int tmp;
 					Vertex* vrt = *grid.create<RegularVertex>();
@@ -858,20 +858,20 @@ bool LoadGridFromSMESH(Grid& grid, const char* filename, AVector3& aPos,
 
 					vrts.push_back(vrt);
 					if(vrts.size() >= numVrts)
-						readState = READ_FACE_HEADER;
+						readState = ReadState::READ_FACE_HEADER;
 				}break;
 
 
-				case READ_FACE_HEADER:{
+				case ReadState::READ_FACE_HEADER:{
 					in >> numFaces >> bndMarker;
 					UG_COND_THROW(!in, "Couldn't read face header");
 					if(numFaces == 0)
 						return true;
-					readState = READ_FACES;
+					readState = ReadState::READ_FACES;
 				}break;
 
 
-				case READ_FACES:{
+				case ReadState::READ_FACES:{
 					size_t numCorners;
 					size_t inds[4];
 					

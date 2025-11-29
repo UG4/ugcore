@@ -155,14 +155,14 @@ bool ImportGridFromNG(Grid& grid,
 			// create face
 			switch(elem->num_nodes)
 			{
-				case ng_triangle:
+				case ng_face_type::ng_triangle:
 					face = *grid.create<Triangle>(TriangleDescriptor(
 							vVertices[elem->nodes[0]],
 							vVertices[elem->nodes[1]],
 							vVertices[elem->nodes[2]]));
 					break;
 
-				case ng_quadrilateral:
+				case ng_face_type::ng_quadrilateral:
 					face = *grid.create<Quadrilateral>(QuadrilateralDescriptor(
 							vVertices[elem->nodes[0]],
 							vVertices[elem->nodes[1]],
@@ -216,7 +216,7 @@ bool ImportGridFromNG(Grid& grid,
 							vVertices[elem->nodes[4]],
 							vVertices[elem->nodes[5]]));
 					break;
-				case ng_hexahedra:
+				case ng_volume_type::ng_hexahedra:
 					vol = *grid.create<Hexahedron>(HexahedronDescriptor(
 							vVertices[elem->nodes[0]],
 							vVertices[elem->nodes[1]],

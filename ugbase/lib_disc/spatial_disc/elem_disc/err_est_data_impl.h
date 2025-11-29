@@ -43,7 +43,7 @@ void SideFluxErrEstData<TDomain>::alloc_err_est_data
 )
 {
 //	Get and check the grid level:
-	if (gl.type () != GridLevel::SURFACE)
+	if (gl.type () != GridLevel::ViewType::SURFACE)
 		UG_THROW("SideFluxErrEstData::alloc_err_est_data:"
 			" The error estimator can work only with grid functions of the SURFACE type.");
 	
@@ -474,7 +474,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 )
 {
 //	get and check the grid level
-	UG_COND_THROW(gl.type () != GridLevel::SURFACE, "SideFluxErrEstData::alloc_err_est_data:"
+	UG_COND_THROW(gl.type () != GridLevel::ViewType::SURFACE, "SideFluxErrEstData::alloc_err_est_data:"
 			" The error estimator can work only with grid functions of the SURFACE type.");
 
 //	get the subset handler

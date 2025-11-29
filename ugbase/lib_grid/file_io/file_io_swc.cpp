@@ -111,14 +111,14 @@ bool FileReaderSWC::load_file(const char* fileName)
         int type = boost::lexical_cast<int>(strs[1]);
         switch (type)
         {
-            case 0: pt.type = swc_types::SWC_UNDF; break;
-            case 1: pt.type = swc_types::SWC_SOMA; break;
-            case 2: pt.type = swc_types::SWC_AXON; break;
-            case 3: pt.type = swc_types::SWC_DEND; break;
-            case 4: pt.type = swc_types::SWC_APIC; break;
-            case 5: pt.type = swc_types::SWC_FORK; break;
-            case 6: pt.type = swc_types::SWC_END; break;
-            default: pt.type = swc_types::SWC_CUSTOM;
+            case 0: pt.type = swc_types::swc_type::SWC_UNDF; break;
+            case 1: pt.type = swc_types::swc_type::SWC_SOMA; break;
+            case 2: pt.type = swc_types::swc_type::SWC_AXON; break;
+            case 3: pt.type = swc_types::swc_type::SWC_DEND; break;
+            case 4: pt.type = swc_types::swc_type::SWC_APIC; break;
+            case 5: pt.type = swc_types::swc_type::SWC_FORK; break;
+            case 6: pt.type = swc_types::swc_type::SWC_END; break;
+            default: pt.type = swc_types::swc_type::SWC_CUSTOM;
         }
 
         // coordinates

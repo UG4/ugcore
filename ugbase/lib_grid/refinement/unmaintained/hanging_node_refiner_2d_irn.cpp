@@ -185,7 +185,7 @@ set_grid(Grid* grid)
 	
 	if(grid){
 		m_pGrid = grid;
-		grid->register_observer(this, OT_GRID_OBSERVER);
+		grid->register_observer(this, ObserverType::OT_GRID_OBSERVER);
 		m_selMarkedElements.assign_grid(*grid);
 		m_selMarkedElements.enable_autoselection(false);
 		m_selMarkedElements.enable_selection_inheritance(false);

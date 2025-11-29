@@ -124,7 +124,7 @@ class SurfaceView
 	///	returns if the element is contained in the surface view
 		template <typename TGeomObj>
 		inline bool is_contained(TGeomObj* obj, const GridLevel& gl,
-		                         SurfaceState validStates = ALL) const;
+		                         SurfaceState validStates = SurfaceConstants::ALL) const;
 
 	///	returns the surface states, when considered as part of grid level
 		template <typename TElem>
@@ -354,7 +354,7 @@ class SurfaceView
 	 * states to sides of surface elements.
 	 * Make sure that all elements in lower levels have already been processed!*/
 		template <typename TElem, typename TSide>
-		void mark_sides_as_surface_or_shadow(TElem* elem, byte_t surfaceState = MG_SURFACE_PURE);
+		void mark_sides_as_surface_or_shadow(TElem* elem, byte_t surfaceState = SurfaceConstants::MG_SURFACE_PURE);
 
 		template <typename TElem>
 		void mark_shadowing(bool markSides = false);

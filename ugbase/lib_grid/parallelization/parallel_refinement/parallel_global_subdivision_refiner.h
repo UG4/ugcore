@@ -48,8 +48,8 @@ template <typename TAPosition>
 class ParallelGlobalSubdivisionRefiner : public TParallelGlobalRefiner<GlobalSubdivisionMultiGridRefiner<TAPosition> >
 {
 	public:
-		ParallelGlobalSubdivisionRefiner(DistributedGridManager& distGridMgr,
-											SPRefinementProjector projector = nullptr);
+	explicit ParallelGlobalSubdivisionRefiner(DistributedGridManager& distGridMgr,
+	                                          SPRefinementProjector projector = nullptr);
 
 		~ParallelGlobalSubdivisionRefiner() override = default;
 

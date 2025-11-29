@@ -39,9 +39,9 @@ namespace grid_unit_tests{
 void CheckAssociatedEdgesOfVolumes(Grid& g)
 {
 //	VOLOPT_STORE_ASSOCIATED_EDGES has to be enabled, so that this method makes sense...
-	if(!g.option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES)){
+	if(!g.option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES)){
 		UG_LOG("WARNING: Autoenabling VOLOPT_STORE_ASSOCIATED_EDGES in CheckAssociatedEdgesOfVolumes.\n");
-		g.enable_options(VOLOPT_STORE_ASSOCIATED_EDGES);
+		g.enable_options(VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES);
 	}
 
 	g.begin_marking();
@@ -65,8 +65,8 @@ void CheckAssociatedEdgesOfVolumes(Grid& g)
 
 	//	make sure that the elements have the right order, if VOLOPT_AUTOGENERATE_EDGES
 	//	or GRIDOPT_AUTOGENERATE_SIDES is active
-		if(g.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES) ||
-			g.option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES))
+		if(g.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_EDGES) ||
+			g.option_is_enabled(GridOptions::GRIDOPT_AUTOGENERATE_SIDES))
 		{
 		//	edges should be sorted...
 		//	also check get_edge(vol, i)...
@@ -106,9 +106,9 @@ void CheckAssociatedEdgesOfVolumes(Grid& g)
 void CheckAssociatedVolumesOfEdges(Grid& g)
 {
 //	VOLOPT_STORE_ASSOCIATED_EDGES has to be enabled, so that this method makes sense...
-	if(!g.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES)){
+	if(!g.option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_VOLUMES)){
 		UG_LOG("WARNING: Autoenabling EDGEOPT_STORE_ASSOCIATED_VOLUMES in CheckAssociatedVolumesOfEdges.\n");
-		g.enable_options(EDGEOPT_STORE_ASSOCIATED_VOLUMES);
+		g.enable_options(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_VOLUMES);
 	}
 
 	g.begin_marking();

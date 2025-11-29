@@ -48,7 +48,7 @@ class Volume;
 
 ////////////////////////////////////////////////////////////////////////
 //	Observer types
-enum ObserverType
+enum ObserverType : uint8_t
 {
 	OT_NONE = 0,
 	OT_GRID_OBSERVER = 1,
@@ -59,6 +59,29 @@ enum ObserverType
 	OT_FULL_OBSERVER = OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
 						OT_FACE_OBSERVER | OT_VOLUME_OBSERVER
 };
+
+using ObserverType_t = uint8_t;
+
+constexpr ObserverType operator | (ObserverType lhs, ObserverType rhs) noexcept {
+	return static_cast<ObserverType>(
+		static_cast<ObserverType_t>(lhs) |
+		static_cast<ObserverType_t>(rhs)
+	);
+}
+constexpr ObserverType operator & (ObserverType lhs, ObserverType rhs) noexcept {
+	return static_cast<ObserverType>(
+		static_cast<ObserverType_t>(lhs) &
+		static_cast<ObserverType_t>(rhs)
+	);
+}
+constexpr ObserverType& operator |= (ObserverType &lhs, ObserverType rhs) noexcept {
+		lhs = static_cast<ObserverType>(
+			static_cast<ObserverType_t>(lhs) |
+			static_cast<ObserverType_t>(rhs)
+		);
+	return lhs;
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 //	GridObserver

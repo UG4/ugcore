@@ -55,8 +55,8 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		using ISubsetHandler::assign_subset;
 		
 	public:
-		GridSubsetHandler(uint supportedElements = SHE_ALL);
-		GridSubsetHandler(Grid& grid, uint supportedElements = SHE_ALL);
+		explicit GridSubsetHandler(SubsetHandlerElements_t supportedElements = SHE_ALL);
+		explicit GridSubsetHandler(Grid& grid, SubsetHandlerElements_t supportedElements = SHE_ALL);
 	/**	WARNING: Don't call the copy-constructor from derived classes,
 	  *	Since it calls virtual methods.*/
 		GridSubsetHandler(const GridSubsetHandler& sh);
@@ -114,39 +114,39 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		
 	///	returns the number of elements in the given subset
 		template <typename TElem>
-		uint num_elements(int subsetIndex) const;
+		[[nodiscard]] uint num_elements(int subsetIndex) const;
 
 	///	returns the total number of elements
 		template <typename TElem>
-		uint num() const;
+		[[nodiscard]] uint num() const;
 
 	///	returns the number of elements in the given subset
 		template <typename TElem>
-		uint num(int subsetIndex) const;
+		[[nodiscard]] uint num(int subsetIndex) const;
 
 	///	returns true if the subset-handler contains no elements of the given type.
-		template <typename TElem> inline
+		template <typename TElem> [[nodiscard]] inline
 		bool empty() const;
 		
 	///	returns true if the subset-handler contains no elements at all.
-		inline bool empty() const;
+		[[nodiscard]] inline bool empty() const;
 
-		template <typename TElem> inline
+		template <typename TElem> [[nodiscard]] inline
 		bool empty(int subsetIndex) const;
 		
 	///	returns true if the subset-handler contains no elements at all.
-		inline bool empty(int subsetIndex) const;
+		[[nodiscard]] inline bool empty(int subsetIndex) const;
 		
 	///	removes all elements of type TElem from the specified subset.
 		template <typename TElem>
 		void clear_subset_elements(int subsetIndex);
 
 	//	geometric-object-collection
-		GridObjectCollection
+		[[nodiscard]] GridObjectCollection
 		get_grid_objects_in_subset(int subsetIndex) const override;
 		
 	//	multi-level-geometric-object-collection
-		GridObjectCollection
+		[[nodiscard]] GridObjectCollection
 		get_grid_objects() const;
 
 	///	collects all vertices that are in the given subset.

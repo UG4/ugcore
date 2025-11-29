@@ -175,11 +175,11 @@ is_contained(TGeomObj* obj) const
 
 	SurfaceState oss = m_pSurfView->surface_state(obj);
 
-	if( m_validStates.contains(TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE)
+	if( m_validStates.contains(SurfaceConstants::TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE)
 		&& (m_lvl == m_topLvl)
-		&& oss.partially_contains(MG_SHADOW))
+		&& oss.partially_contains(SurfaceConstants::MG_SHADOW))
 	{
-		oss = MG_SURFACE_PURE;
+		oss = SurfaceConstants::MG_SURFACE_PURE;
 	}
 
 	return m_validStates.contains(oss);
@@ -210,7 +210,6 @@ template <typename TElem>
 SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 ConstSurfaceViewElementIterator() :
 	m_pSurfView(nullptr),
-	m_gl(),
 	m_validStates(0),
 	m_fromSI(0),
 	m_toSI(0),
@@ -344,11 +343,11 @@ is_contained(TGeomObj* obj) const
 
 	SurfaceState oss = m_pSurfView->surface_state(obj);
 
-	if( m_validStates.contains(TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE)
+	if( m_validStates.contains(SurfaceConstants::TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE)
 		&& (m_lvl == m_topLvl)
-		&& oss.partially_contains(MG_SHADOW))
+		&& oss.partially_contains(SurfaceConstants::MG_SHADOW))
 	{
-		oss = MG_SURFACE_PURE;
+		oss = SurfaceConstants::MG_SURFACE_PURE;
 	}
 
 	return m_validStates.contains(oss);
@@ -454,11 +453,11 @@ bool SurfaceView::is_contained(TGeomObj* obj, const GridLevel& gl,
 
 	SurfaceState oss = surface_state(obj);
 
-	if( validStates.contains(TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE)
+	if( validStates.contains(SurfaceConstants::TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE)
 		&& (lvl == topLvl)
-		&& oss.partially_contains(MG_SHADOW))
+		&& oss.partially_contains(SurfaceConstants::MG_SHADOW))
 	{
-		oss = MG_SURFACE_PURE;
+		oss = SurfaceConstants::MG_SURFACE_PURE;
 	}
 
 	return validStates.contains(oss);
@@ -475,7 +474,7 @@ SurfaceView::SurfaceState SurfaceView::surface_state(TGeomObj* obj, const GridLe
 
 	#ifdef UG_PARALLEL
 	if(is_ghost(obj)){
-		if(gl.ghosts() && (lvl == topLvl)) return MG_SURFACE_PURE;
+		if(gl.ghosts() && (lvl == topLvl)) return SurfaceConstants::MG_SURFACE_PURE;
 		else {
 			UG_THROW("SurfaceView::surface_state: Call only on objects contained "
 					"in the grid level. (Else result is undefined)");
@@ -486,9 +485,9 @@ SurfaceView::SurfaceState SurfaceView::surface_state(TGeomObj* obj, const GridLe
 	SurfaceState oss = surface_state(obj);
 
 	if( (lvl == topLvl)
-		&& oss.partially_contains(MG_SHADOW))
+		&& oss.partially_contains(SurfaceConstants::MG_SHADOW))
 	{
-		oss = MG_SURFACE_PURE;
+		oss = SurfaceConstants::MG_SURFACE_PURE;
 	}
 
 	return oss;
@@ -507,20 +506,20 @@ bool SurfaceView::is_ghost(TGeomObj* obj) const
 template <typename TGeomObj>
 bool SurfaceView::is_shadowed(TGeomObj* obj) const
 {
-	return surface_state(obj).partially_contains(MG_SHADOW_RIM);
+	return surface_state(obj).partially_contains(SurfaceConstants::MG_SHADOW_RIM);
 }
 
 template <typename TGeomObj>
 bool SurfaceView::is_shadowing(TGeomObj* obj) const
 {
-	return surface_state(obj).contains(MG_SURFACE_RIM);
+	return surface_state(obj).contains(SurfaceConstants::MG_SURFACE_RIM);
 }
 
 template <typename TElem>
 bool SurfaceView::is_vmaster(TElem* elem) const
 {
 	#ifdef UG_PARALLEL
-		return m_distGridMgr->contains_status(elem, ES_V_MASTER);
+		return m_distGridMgr->contains_status(elem, ElementStatusTypes::ES_V_MASTER);
 	#else
 		return false;
 	#endif
@@ -536,19 +535,19 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 	if(clearContainer) vAssElem.clear();
 
 //	collect associated on this level
-	if(is_contained(elem, gl, SURFACE)){
+	if(is_contained(elem, gl, SurfaceConstants::SURFACE)){
 		std::vector<TBaseElem*> vCoarseElem;
 		CollectAssociated(vCoarseElem, *m_pMG, elem, true);
 		for(size_t i = 0; i < vCoarseElem.size(); ++i)
 		{
-			if(!is_contained(vCoarseElem[i], gl, ALL)) continue;
+			if(!is_contained(vCoarseElem[i], gl, SurfaceConstants::ALL)) continue;
 			vAssElem.push_back(vCoarseElem[i]);
 		}
 	}
 
 //	if at border of a level grid, there may be connections of the "shadow" element
 //	to surface elements on the coarser level. These must be taken into account.
-	if(is_contained(elem, gl, SURFACE_RIM))
+	if(is_contained(elem, gl, SurfaceConstants::SURFACE_RIM))
 	{
 	//	get parent if copy
 		GridObject* pParent = m_pMG->get_parent(elem);
@@ -562,7 +561,7 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 
 		for(size_t i = 0; i < vCoarseElem.size(); ++i)
 		{
-			if(!is_contained(vCoarseElem[i], gl, SURFACE)) continue;
+			if(!is_contained(vCoarseElem[i], gl, SurfaceConstants::SURFACE)) continue;
 			vAssElem.push_back(vCoarseElem[i]);
 		}
 	}

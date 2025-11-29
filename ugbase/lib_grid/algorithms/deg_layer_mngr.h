@@ -114,7 +114,7 @@ public:
 		static constexpr size_t maxLayerSideCorners = maxElemCorners / 2;
 	
 	/// Marks for the grid vertices
-		enum t_grid_object_mark
+		enum class t_grid_object_mark
 		{
 			D_LAYER_UNKNOWN = -1,
 			D_LAYER_OUTER = 0,
@@ -123,7 +123,7 @@ public:
 
 public:
 	/// Constructor
-		DegeneratedLayerManager
+		explicit DegeneratedLayerManager
 		(
 			SmartPtr<MultiGridSubsetHandler> spSH ///< [in] subset handler of the grid
 		);

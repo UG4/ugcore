@@ -83,11 +83,11 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 	
 //	assign associated elements of lower dimension to the surface view
 	bool assignSidesOnly = true;
-	if(mgsh.num<Volume>() > 0 && !mg.option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
+	if(mgsh.num<Volume>() > 0 && !mg.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES))
 		assignSidesOnly = false;
-	else if(mgsh.num<Volume>() > 0 && !mg.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
+	else if(mgsh.num<Volume>() > 0 && !mg.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_EDGES))
 		assignSidesOnly = false;
-	else if(mgsh.num<Face>() > 0 && !mg.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
+	else if(mgsh.num<Face>() > 0 && !mg.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
 		assignSidesOnly = false;
 
 	if(assignSidesOnly){

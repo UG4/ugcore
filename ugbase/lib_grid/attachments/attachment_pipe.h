@@ -53,10 +53,11 @@ class IAttachmentDataContainer;
 
 
 // CONSTANTS
-enum ATTACHMENT_CONSTANTS
+enum ATTACHMENT_CONSTANTS : uint32
 {
 	INVALID_ATTACHMENT_INDEX = 0xFFFFFFFF
 };
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -142,7 +143,7 @@ template <typename T> class UG_API AttachmentDataContainer : public IAttachmentD
 	public:
 		using ValueType = T;
 
-		AttachmentDataContainer(const T& defaultValue = T())	: m_defaultValue(defaultValue)	{}
+		AttachmentDataContainer(const T& defaultValue = T()) : m_defaultValue(defaultValue)	{}
 
 		~AttachmentDataContainer() override {m_vData.clear();}
 
@@ -168,7 +169,7 @@ template <typename T> class UG_API AttachmentDataContainer : public IAttachmentD
 				for(size_t i = 0; i < numOldElems; ++i)
 				{
 					size_t nInd = pNewIndices[i];
-					if(nInd != INVALID_ATTACHMENT_INDEX)
+					if(nInd != ATTACHMENT_CONSTANTS::INVALID_ATTACHMENT_INDEX)
 						m_vData[nInd] = vDataOld[i];
 				}
 			}
@@ -184,7 +185,7 @@ template <typename T> class UG_API AttachmentDataContainer : public IAttachmentD
 	 *	on which this method is called.*/
 		void copy_to_container(IAttachmentDataContainer* pDestCon,
 		                       int* indexMap, int num) const override {
-				ClassType* destConT = dynamic_cast<ClassType*>(pDestCon);
+				auto* destConT = dynamic_cast<ClassType*>(pDestCon);
 				assert(destConT && "Type of pDestBuf has to be the same as the"
 						"type of this buffer");
 
@@ -233,13 +234,13 @@ class UG_API IAttachment : public UID
 {
 	public:
 		IAttachment() : m_name("undefined")   {}
-		IAttachment(const char* name) : m_name(name)
+		explicit IAttachment(const char* name) : m_name(name)
 			{assert(m_name);}
 
 		~IAttachment() override = default;
 		virtual IAttachment* clone() = 0;
 		virtual IAttachmentDataContainer*	create_container() = 0;
-		virtual bool default_pass_on_behaviour() const = 0;
+		[[nodiscard]] virtual bool default_pass_on_behaviour() const = 0;
 
 		const char* get_name()  {return m_name;}    ///< should only be used for debug purposes.
 
@@ -260,15 +261,15 @@ template <typename T> class UG_API Attachment : public IAttachment
 		using ValueType = T;
 
 		Attachment() : m_passOnBehaviour(false)    {}
-		Attachment(bool passOnBehaviour) : m_passOnBehaviour(passOnBehaviour)    {}
-		Attachment(const char* name) : IAttachment(name), m_passOnBehaviour(false)   		{}
+		explicit Attachment(bool passOnBehaviour) : m_passOnBehaviour(passOnBehaviour)    {}
+		explicit Attachment(const char* name) : IAttachment(name), m_passOnBehaviour(false)   		{}
 		Attachment(const char* name, bool passOnBehaviour) : IAttachment(name), m_passOnBehaviour(passOnBehaviour)	{}
 
 		~Attachment() override = default;
 
 		IAttachment* clone() override {IAttachment* pA = new Attachment<T>; *pA = *this; return pA;}
 		IAttachmentDataContainer* create_container() override {return new ContainerType;}
-		bool default_pass_on_behaviour() const override {return m_passOnBehaviour;}
+		[[nodiscard]] bool default_pass_on_behaviour() const override {return m_passOnBehaviour;}
 		IAttachmentDataContainer* create_container(const T& defaultValue)	{return new ContainerType(defaultValue);}
 
 	protected:
@@ -309,7 +310,7 @@ class attachment_traits
 
 		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)					{}
 		static inline element_iterator elements_end(ElemHandlerPtr pHandler)					{}
-		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)			{return INVALID_ATTACHMENT_INDEX;/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
+		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)			{return ATTACHMENT_CONSTANTS::INVALID_ATTACHMENT_INDEX;/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, size_t index)	{/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
 };
 

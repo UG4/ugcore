@@ -66,7 +66,7 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 		UG_THROW("SelectNonShadowsAdjacentToShadowsOnLevel: Requested "
 						"level "<<level<<" does not exist in Multigrid.");
 
-	const GridLevel gl(GridLevel::TOP, GridLevel::SURFACE);
+	const GridLevel gl(GridLevel::TOP, GridLevel::ViewType::SURFACE);
 
 //	iterator type
 	geometry_traits<Vertex>::const_iterator iter, iterEnd;

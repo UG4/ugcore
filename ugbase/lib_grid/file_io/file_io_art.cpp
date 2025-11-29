@@ -527,15 +527,15 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 		}
 
 	//	get the type of volume
-		int volType = ROID_UNKNOWN;
+		int volType = ReferenceObjectID::ROID_UNKNOWN;
 		if(vTris.size() == 4 && vQuads.size() == 0)
-			volType = ROID_TETRAHEDRON;
+			volType = ReferenceObjectID::ROID_TETRAHEDRON;
 		else if(vTris.size() == 4 && vQuads.size() == 1)
-			volType = ROID_PYRAMID;
+			volType = ReferenceObjectID::ROID_PYRAMID;
 		else if(vTris.size() == 2 && vQuads.size() == 3)
-			volType = ROID_PRISM;
+			volType = ReferenceObjectID::ROID_PRISM;
 		else if(vTris.size() == 0 && vQuads.size() == 6)
-			volType = ROID_HEXAHEDRON;
+			volType = ReferenceObjectID::ROID_HEXAHEDRON;
 
 
 	//	create the volume
@@ -543,16 +543,16 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 
 		switch(volType)
 		{
-			case ROID_TETRAHEDRON:
+			case ReferenceObjectID::ROID_TETRAHEDRON:
 				v = CreateTetrahedron(grid, vTris, aaPos);
 				break;
-			case ROID_PYRAMID:
+			case ReferenceObjectID::ROID_PYRAMID:
 				v = CreatePyramid(grid, vTris, vQuads, aaPos);
 				break;
-			case ROID_PRISM:
+			case ReferenceObjectID::ROID_PRISM:
 				v = CreatePrism(grid, vTris, vQuads, aaPos);
 				break;
-			case ROID_HEXAHEDRON:
+			case ReferenceObjectID::ROID_HEXAHEDRON:
 //TODO: create hexahedron
 				break;
 			default:
@@ -600,8 +600,8 @@ bool SaveGridToART(Grid& srcGrid, const char* filename,
 	Grid tGrid;
 	SubsetHandler tSH(tGrid);
 	Grid* pGrid;	// Used to initialise the reference Grid& grid later on.
-	if(!srcGrid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES
-								| VOLOPT_AUTOGENERATE_FACES))
+	if(!srcGrid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES
+								| VolumeOptions::VOLOPT_AUTOGENERATE_FACES))
 	{
 	//	copy grid and subset-handler
 		tGrid = srcGrid;
@@ -609,9 +609,9 @@ bool SaveGridToART(Grid& srcGrid, const char* filename,
 			tSH = *pSH;
 			pSH = &tSH;
 		}
-		
-		tGrid.enable_options(VOLOPT_AUTOGENERATE_FACES);
-		tGrid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+
+		tGrid.enable_options(VolumeOptions::VOLOPT_AUTOGENERATE_FACES);
+		tGrid.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
 		pGrid = &tGrid;
 		
 	//	make sure that the position attachment has been copied

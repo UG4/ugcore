@@ -43,7 +43,7 @@ template <typename TElem>
 bool DistributedGridManager::
 is_interface_element(TElem* elem)
 {
-	return elem_info(elem).get_status() & ES_IN_INTERFACE;
+	return elem_info(elem).get_status() & ElementStatusTypes::ES_IN_INTERFACE;
 }
 
 template <typename TElem>
@@ -51,7 +51,7 @@ inline bool DistributedGridManager::
 is_in_horizontal_interface(TElem* elem) const
 {
 	byte_t status = get_status(elem);
-	return 	(status & (ES_H_MASTER | ES_H_SLAVE)) != 0;
+	return 	(status & (ElementStatusTypes::ES_H_MASTER | ElementStatusTypes::ES_H_SLAVE)) != 0;
 }
 
 template <typename TElem>
@@ -59,7 +59,7 @@ inline bool DistributedGridManager::
 is_in_vertical_interface(TElem* elem) const
 {
 	byte_t status = get_status(elem);
-	return 	(status & (ES_V_MASTER | ES_V_SLAVE)) != 0;
+	return 	(status & (ElementStatusTypes::ES_V_MASTER | ElementStatusTypes::ES_V_SLAVE)) != 0;
 }
 
 template <typename TElem>
@@ -67,7 +67,7 @@ inline bool DistributedGridManager::
 is_ghost(TElem* elem) const
 {
 	byte_t status = get_status(elem);
-	return 	(status & (ES_V_MASTER | ES_H_MASTER | ES_H_SLAVE)) == ES_V_MASTER;
+	return 	(status & (ElementStatusTypes::ES_V_MASTER | ElementStatusTypes::ES_H_MASTER | ElementStatusTypes::ES_H_SLAVE)) == ElementStatusTypes::ES_V_MASTER;
 
 	//would require update_ghost_states
 	//return contains_status(elem, ES_GHOST);

@@ -49,7 +49,7 @@ namespace ug
 
 ///	Constants to specify a neighborhood
 /**	Use arbitrary or combinations. */
-enum NeighborhoodType
+enum class NeighborhoodType : uint8_t
 {
 	NHT_DEFAULT = 0,
 	NHT_VERTEX_NEIGHBORS = 1,
@@ -61,6 +61,14 @@ enum NeighborhoodType
 			| NHT_FACE_NEIGHBORS
 			| NHT_VOLUME_NEIGHBORS
 };
+using NeighborhoodType_t = uint8_t;
+
+constexpr NeighborhoodType operator & (NeighborhoodType lhs, NeighborhoodType rhs) noexcept {
+	return static_cast<NeighborhoodType>(
+		static_cast<NeighborhoodType_t>(lhs) &
+		static_cast<NeighborhoodType_t>(rhs)
+	);
+}
 
 ////////////////////////////////////////////////////////////////////////
 ///	Collects all vertices that are connected by elements of the specified type
@@ -84,7 +92,7 @@ enum NeighborhoodType
  * \param considerVol todo
  */
 void CollectNeighbors(std::vector<Vertex*>& vNeighborsOut,
-						Grid& grid, Vertex* vrt, uint nbhType = NHT_EDGE_NEIGHBORS,
+						Grid& grid, Vertex* vrt, NeighborhoodType nbhType = NeighborhoodType::NHT_EDGE_NEIGHBORS,
 						Grid::edge_traits::callback considerEdge = ConsiderAll(),
 						Grid::face_traits::callback considerFace = ConsiderAll(),
 						Grid::volume_traits::callback considerVol = ConsiderAll());
@@ -100,7 +108,7 @@ void CollectNeighbors(std::vector<Vertex*>& vNeighborsOut,
  * CollectNeighbors methods.
  */
 void CollectNeighbors(std::vector<Edge*>& vNeighborsOut, Edge* e,
-					   Grid& grid, NeighborhoodType nbhType = NHT_VERTEX_NEIGHBORS);
+					   Grid& grid, NeighborhoodType nbhType = NeighborhoodType::NHT_VERTEX_NEIGHBORS);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -114,7 +122,7 @@ void CollectNeighbors(std::vector<Edge*>& vNeighborsOut, Edge* e,
  *	- NHT_VERTEX_NEIGHBORS: All faces that share a vertex with the given one are regarded as neighbours.
  */
 void CollectNeighbors(std::vector<Face*>& vNeighborsOut, Face* f,
-					   Grid& grid, NeighborhoodType nbhType = NHT_EDGE_NEIGHBORS);
+					   Grid& grid, NeighborhoodType nbhType = NeighborhoodType::NHT_EDGE_NEIGHBORS);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectNeighbors
@@ -128,7 +136,7 @@ void CollectNeighbors(std::vector<Face*>& vNeighborsOut, Face* f,
  *	- NHT_VERTEX_NEIGHBORS: All volumes that share a vertex with the given one are regarded as neighbors.
  */
 void CollectNeighbors(std::vector<Volume*>& vNeighboursOut, Volume* v,
-					   Grid& grid, NeighborhoodType nbhType = NHT_FACE_NEIGHBORS);
+					   Grid& grid, NeighborhoodType nbhType = NeighborhoodType::NHT_FACE_NEIGHBORS);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Collects all neighbors in a given neighborhood of a vertex

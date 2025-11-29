@@ -81,10 +81,10 @@ typename TAAPosVRT::ValueType
 CalculateGridObjectCenter(const GridObject* o, TAAPosVRT& aaPosVRT)
 {
 	switch(o->base_object_id()){
-		case VERTEX:	return CalculateCenter(static_cast<const Vertex*>(o), aaPosVRT);
-		case EDGE:		return CalculateCenter(static_cast<const Edge*>(o), aaPosVRT);
-		case FACE:		return CalculateCenter(static_cast<const Face*>(o), aaPosVRT);
-		case VOLUME:	return CalculateCenter(static_cast<const Volume*>(o), aaPosVRT);
+		case GridBaseObjectId::VERTEX:	return CalculateCenter(static_cast<const Vertex*>(o), aaPosVRT);
+		case GridBaseObjectId::EDGE:		return CalculateCenter(static_cast<const Edge*>(o), aaPosVRT);
+		case GridBaseObjectId::FACE:		return CalculateCenter(static_cast<const Face*>(o), aaPosVRT);
+		case GridBaseObjectId::VOLUME:	return CalculateCenter(static_cast<const Volume*>(o), aaPosVRT);
 		default:
 			UG_THROW("Unknown geometric-object type.");
 	}
@@ -98,13 +98,13 @@ CalculateGridObjectCenter(const GridObject* o, TAAPosVRT& aaPosVRT,
 							   TAAWeightVRT& aaWeight)
 {
 	switch(o->base_object_id()){
-		case VERTEX:
+		case GridBaseObjectId::VERTEX:
 			return CalculateCenter(static_cast<const Vertex*>(o), aaPosVRT, aaWeight);
-		case EDGE:
+		case GridBaseObjectId::EDGE:
 			return CalculateCenter(static_cast<const Edge*>(o), aaPosVRT, aaWeight);
-		case FACE:
+		case GridBaseObjectId::FACE:
 			return CalculateCenter(static_cast<const Face*>(o), aaPosVRT, aaWeight);
-		case VOLUME:
+		case GridBaseObjectId::VOLUME:
 			return CalculateCenter(static_cast<const Volume*>(o), aaPosVRT, aaWeight);
 		default:
 			UG_THROW("Unknown geometric-object type.");
@@ -270,10 +270,10 @@ number ElementDiameterSq(Grid& grid,
 						 GridObject* elem)
 {
 	switch(elem->base_object_id()){
-		case VERTEX: return ElementDiameterSq(grid, aaPos, static_cast<Vertex*>(elem));
-		case EDGE: return ElementDiameterSq(grid, aaPos, static_cast<Edge*>(elem));
-		case FACE: return ElementDiameterSq(grid, aaPos, static_cast<Face*>(elem));
-		case VOLUME: return ElementDiameterSq(grid, aaPos, static_cast<Volume*>(elem));
+		case GridBaseObjectId::VERTEX: return ElementDiameterSq(grid, aaPos, static_cast<Vertex*>(elem));
+		case GridBaseObjectId::EDGE: return ElementDiameterSq(grid, aaPos, static_cast<Edge*>(elem));
+		case GridBaseObjectId::FACE: return ElementDiameterSq(grid, aaPos, static_cast<Face*>(elem));
+		case GridBaseObjectId::VOLUME: return ElementDiameterSq(grid, aaPos, static_cast<Volume*>(elem));
 		default: UG_THROW("ElementDiameterSq: Element type not found.")
 	}
 }

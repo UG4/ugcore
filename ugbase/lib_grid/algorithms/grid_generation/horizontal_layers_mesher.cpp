@@ -345,7 +345,7 @@ void ExtrudeLayers (
 		curVrts.swap(tmpVrts);
 		curFaces.swap(tmpFaces);
 		Extrude(grid, &curVrts, nullptr, &curFaces, vector3(0, 0, 0), aaPos,
-				EO_DEFAULT, &newVols);
+		        ExtrusionOptions::EO_DEFAULT, &newVols);
 
 	// assign pre-determined subsets
 		for(size_t ivol = 0; ivol < newVols.size(); ++ivol){

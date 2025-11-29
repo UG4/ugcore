@@ -41,7 +41,7 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////////////
-enum GridMessageMultiGridChangedType{
+enum GridMessageMultiGridChangedType : byte_t {
 	GMMGCT_LEVEL_ADDED = 1,
 	GMMGCT_REMOVED = 2
 };
@@ -57,10 +57,10 @@ class GridMessage_MultiGridChanged : public MessageHub::IMessage
 		{}
 
 	///	returns the type of the message
-		GridMessageMultiGridChangedType message_type() const	{return m_msgType;}
+		[[nodiscard]] GridMessageMultiGridChangedType message_type() const	{return m_msgType;}
 
 	///	returns the current number of levels in the multigrid, which did send the message.
-		int num_levels_in_grid() const		{return m_numLevels;}
+		[[nodiscard]] int num_levels_in_grid() const		{return m_numLevels;}
 
 	private:
 		GridMessageMultiGridChangedType	m_msgType;
@@ -70,7 +70,7 @@ class GridMessage_MultiGridChanged : public MessageHub::IMessage
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	constants which indicate the adaption type in a grid refinement message.
-enum GridMessageAdaptionType{
+enum GridMessageAdaptionType : byte_t {
 	GMAT_UNKNOWN = 0,
 	GMAT_GLOBAL_ADAPTION_BEGINS,
 	GMAT_HNODE_ADAPTION_BEGINS,
@@ -98,36 +98,36 @@ class GridMessage_Adaption : public MessageHub::IMessage
 			m_adaptionType(adaptionType),
 			m_affectedElements(affectedElements){}
 
-		GridMessageAdaptionType adaption_type() const	{return m_adaptionType;}
+		[[nodiscard]] GridMessageAdaptionType adaption_type() const	{return m_adaptionType;}
 
 	///	tells whether grid adaption has just been started or has been finished.
 	/**	Note that begins and ends may both be false. An adaption consists of
 	 * multiple steps.
 	 * \{ */
-		bool adaption_begins() const;
-		bool adaption_ends() const;
+		[[nodiscard]] bool adaption_begins() const;
+		[[nodiscard]] bool adaption_ends() const;
 	/** \} */
 
 	///	tells whether an adaption step has just been started or has been finished.
 	/**	Note that both may be false. An adaption consists of multiple adaption steps.
 	 * \{ */
-		bool step_begins() const;
-		bool step_ends() const;
+		[[nodiscard]] bool step_begins() const;
+		[[nodiscard]] bool step_ends() const;
 	/** \} */
 
 	///	tells whether refinement / coarsening is adaptive (adaptive() == !global())
-		bool adaptive() const;
+		[[nodiscard]] bool adaptive() const;
 
 	///	tells whether refinement / coarsening is global (global() == !adaptive())
-		bool global() const;
+		[[nodiscard]] bool global() const;
 
 	///	tells whether a step is a refinement step.
 	/**	This is always false if adaption_begins() or adaption_ends() returns true*/
-		bool refinement() const;
+		[[nodiscard]] bool refinement() const;
 
 	///	tells whether a step is a coarsen step
 	/**	This is always false if adaption_begins() or adaption_ends() returns true*/
-		bool coarsening() const;
+		[[nodiscard]] bool coarsening() const;
 
 	///	returns the geometric-object-collection, which holds lists with affected elements.
 	/**	- REFINEMENT_BEGINS: Elements on which new elements will occur or which are
@@ -147,7 +147,7 @@ class GridMessage_Adaption : public MessageHub::IMessage
 	 *			Note that elements may be marked during coarsening which actually have children
 	 *			themselves, even if not all of those children are removed during coarsening
 	 *			(e.g. edges which are replaced by constraining edges).*/
-		const GridObjectCollection& affected_elements() const {return m_affectedElements;}
+		[[nodiscard]] const GridObjectCollection& affected_elements() const {return m_affectedElements;}
 
 	protected:
 		GridMessageAdaptionType		m_adaptionType;
@@ -156,7 +156,7 @@ class GridMessage_Adaption : public MessageHub::IMessage
 
 
 ///	Instances of this class inform about distribution
-enum GridMessageDistributionType{
+enum GridMessageDistributionType : byte_t {
 	GMDT_NONE,
 	GMDT_DISTRIBUTION_STARTS,
 	GMDT_DISTRIBUTION_STOPS
@@ -171,9 +171,9 @@ class GridMessage_Distribution : public MessageHub::IMessage
 			m_serializationHandler(gdsh)
 		{}
 
-		GridMessageDistributionType msg() const	{return m_msg;}
+		[[nodiscard]] GridMessageDistributionType msg() const	{return m_msg;}
 
-		GridDataSerializationHandler& serialization_handler() const
+		[[nodiscard]] GridDataSerializationHandler& serialization_handler() const
 		{
 			return m_serializationHandler;
 		}
@@ -185,7 +185,7 @@ class GridMessage_Distribution : public MessageHub::IMessage
 
 
 ///	Instances of this class inform about grid creation (e.g. during load or distribution)
-enum GridMessageCreationType{
+enum GridMessageCreationType : byte_t {
 	GMCT_NONE,
 	GMCT_CREATION_STARTS,
 	GMCT_CREATION_STOPS
@@ -194,11 +194,11 @@ enum GridMessageCreationType{
 class GridMessage_Creation : public MessageHub::IMessage
 {
 	public:
-		GridMessage_Creation(GridMessageCreationType msg = GMCT_NONE, int procId = -1) :
+		explicit GridMessage_Creation(GridMessageCreationType msg = GridMessageCreationType::GMCT_NONE, int procId = -1) :
 			m_msg(msg), m_procId(procId)	{}
 
-		GridMessageCreationType msg() const	{return m_msg;}
-		int proc_id() const					{return m_procId;}
+		[[nodiscard]] GridMessageCreationType msg() const	{return m_msg;}
+		[[nodiscard]] int proc_id() const					{return m_procId;}
 
 	private:
 		GridMessageCreationType	m_msg;

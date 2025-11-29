@@ -162,9 +162,9 @@ init(SmartPtr<IOperator<vector_type> > op)
 	m_gridLevel = m_spAssOp->level();
 
 	//	set DoF distribution type
-	if(m_gridLevel.type() == GridLevel::LEVEL)
+	if(m_gridLevel.type() == GridLevel::ViewType::LEVEL)
 		m_spLevDD = m_spApproxSpace->dof_distribution(m_gridLevel);
-	else if (m_gridLevel.type() == GridLevel::SURFACE)
+	else if (m_gridLevel.type() == GridLevel::ViewType::SURFACE)
 		m_spSurfDD = m_spApproxSpace->dof_distribution(m_gridLevel);
 	else
 		UG_THROW("Grid Level not recognized.");
@@ -229,9 +229,9 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 		//	get element
 		grid_base_object* elem = *elemIter;
 
-		if(m_gridLevel.type() == GridLevel::LEVEL)
+		if(m_gridLevel.type() == GridLevel::ViewType::LEVEL)
 			m_spLevDD->indices(elem, ind);
-		else if (m_gridLevel.type() == GridLevel::SURFACE)
+		else if (m_gridLevel.type() == GridLevel::ViewType::SURFACE)
 			m_spSurfDD->indices(elem, ind);
 		else
 			UG_THROW("Grid Level not recognized.");

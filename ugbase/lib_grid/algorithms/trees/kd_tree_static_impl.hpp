@@ -385,10 +385,10 @@ get_next_split_dimension(int actSplitDimension, TVertexIterator vrts_begin, TVer
 {
 	switch(m_splitDimension)
 	{
-		case KDSD_LARGEST:
+		case KDSplitDimension::KDSD_LARGEST:
 			return get_largest_dimension(vrts_begin, vrts_end);
 			break;
-		case KDSD_CIRCULAR:
+		case KDSplitDimension::KDSD_CIRCULAR:
 			return (actSplitDimension+1) % numDimensions;
 			break;
 

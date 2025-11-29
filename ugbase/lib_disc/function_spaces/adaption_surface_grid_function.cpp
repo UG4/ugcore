@@ -270,10 +270,10 @@ attach_entries(ConstSmartPtr<DoFDistributionInfo> spDDInfo)
 	m_spDDInfo = spDDInfo;
 
 //	get required elem types
-	const bool vrt = (spDDInfo->max_dofs(VERTEX) > 0);
-	const bool edge = (spDDInfo->max_dofs(EDGE) > 0);
-	const bool face = (spDDInfo->max_dofs(FACE) > 0);
-	const bool vol = (spDDInfo->max_dofs(VOLUME) > 0);
+	const bool vrt = (spDDInfo->max_dofs(GridBaseObjectId::VERTEX) > 0);
+	const bool edge = (spDDInfo->max_dofs(GridBaseObjectId::EDGE) > 0);
+	const bool face = (spDDInfo->max_dofs(GridBaseObjectId::FACE) > 0);
+	const bool vol = (spDDInfo->max_dofs(GridBaseObjectId::VOLUME) > 0);
 
 //	attach storage arrays
 	if(vrt) m_spGrid->attach_to<Vertex>(m_aValue);
@@ -287,11 +287,11 @@ attach_entries(ConstSmartPtr<DoFDistributionInfo> spDDInfo)
 	if(m_bObserveStorage)
 	{
 	//	get type of observer
-		int type = OT_GRID_OBSERVER;
-		if(vrt) type |= OT_VERTEX_OBSERVER;
-		if(edge) type |= OT_EDGE_OBSERVER;
-		if(face) type |= OT_FACE_OBSERVER;
-		if(vol) type |= OT_VOLUME_OBSERVER;
+		ObserverType type = ObserverType::OT_GRID_OBSERVER;
+		if(vrt) type |= ObserverType:: OT_VERTEX_OBSERVER;
+		if(edge) type |= ObserverType::OT_EDGE_OBSERVER;
+		if(face) type |= ObserverType::OT_FACE_OBSERVER;
+		if(vol) type |= ObserverType::OT_VOLUME_OBSERVER;
 
 	//	register observer
 		m_spGrid->register_observer(this, type);
@@ -334,7 +334,7 @@ ValueAccessor(AdaptionSurfaceGridFunction& rASGF,
 			  size_t fct)
 	: m_rASGF(rASGF), m_fct(fct)
 {
-	for(int g = 0; g < NUM_GEOMETRIC_BASE_OBJECTS; ++g)
+	for(int g = 0; g < GridBaseObjectId::NUM_GEOMETRIC_BASE_OBJECTS; ++g)
 	{
 		const GridBaseObjectId gbo = (GridBaseObjectId)g;
 		m_HasDoFs[gbo] = (m_rASGF.m_spDDInfo->max_fct_dofs(fct, gbo) > 0);
@@ -401,10 +401,10 @@ AdaptionSurfaceGridFunction<TDomain>::ValueAccessor::
 access_closure(TBaseElem* elem)
 {
 	m_Val.clear();
-	if(m_HasDoFs[VERTEX]) access_closure<TBaseElem, Vertex>(elem);
-	if(m_HasDoFs[EDGE]) access_closure<TBaseElem, Edge>(elem);
-	if(m_HasDoFs[FACE]) access_closure<TBaseElem, Face>(elem);
-	if(m_HasDoFs[VOLUME]) access_closure<TBaseElem, Volume>(elem);
+	if(m_HasDoFs[GridBaseObjectId::VERTEX]) access_closure<TBaseElem, Vertex>(elem);
+	if(m_HasDoFs[GridBaseObjectId::EDGE]) access_closure<TBaseElem, Edge>(elem);
+	if(m_HasDoFs[GridBaseObjectId::FACE]) access_closure<TBaseElem, Face>(elem);
+	if(m_HasDoFs[GridBaseObjectId::VOLUME]) access_closure<TBaseElem, Volume>(elem);
 }
 
 template <typename TDomain>
@@ -413,10 +413,10 @@ AdaptionSurfaceGridFunction<TDomain>::ValueAccessor::
 access_closure(GridObject* elem)
 {
 	switch(elem->base_object_id()){
-		case VERTEX: access_closure(static_cast<Vertex*>(elem)); return;
-		case EDGE: access_closure(static_cast<Edge*>(elem)); return;
-		case FACE: access_closure(static_cast<Face*>(elem)); return;
-		case VOLUME: access_closure(static_cast<Volume*>(elem)); return;
+		case GridBaseObjectId::VERTEX: access_closure(static_cast<Vertex*>(elem)); return;
+		case GridBaseObjectId::EDGE: access_closure(static_cast<Edge*>(elem)); return;
+		case GridBaseObjectId::FACE: access_closure(static_cast<Face*>(elem)); return;
+		case GridBaseObjectId::VOLUME: access_closure(static_cast<Volume*>(elem)); return;
 		default: UG_THROW("Base object id not found.")
 	}
 }

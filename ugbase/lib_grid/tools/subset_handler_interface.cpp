@@ -43,7 +43,7 @@ SubsetInfo::SubsetInfo()
 {
 	name = "";
 	materialIndex = -1;
-	subsetState = SS_NONE;
+	subsetState = SubsetState::SS_NONE;
 }
 
 void SubsetInfo::
@@ -80,7 +80,7 @@ get_property(const std::string& name, Variant defaultValue) const
 ////////////////////////////////////////////////////////////////////////
 //	ISubsetHandler implementation
 ISubsetHandler::
-ISubsetHandler(uint supportedElements) :
+ISubsetHandler(SubsetHandlerElements_t supportedElements) :
 	m_aSubsetIndex("ISubsetHandler_SubsetIndex", false)
 //	m_aDataIndex("ISubsetHandler_DataIndex", false)
 {
@@ -93,16 +93,16 @@ ISubsetHandler(uint supportedElements) :
 	m_defaultSubsetInfo.name = "defSub";
 	m_defaultSubsetInfo.materialIndex = 0;
 	m_defaultSubsetInfo.color = vector4(1., 1., 1., 1.);
-	m_defaultSubsetInfo.subsetState = SS_NONE;
+	m_defaultSubsetInfo.subsetState = SubsetState::SS_NONE;
 }
 
 ISubsetHandler::
-ISubsetHandler(Grid& grid, uint supportedElements) :
+ISubsetHandler(Grid& grid, SubsetHandlerElements_t supportedElements) :
 	m_aSubsetIndex("ISubsetHandler_SubsetIndex", false)
 	//m_aDataIndex("ISubsetHandler_DataIndex", false)
 {
 	m_pGrid = &grid;
-	m_supportedElements = SHE_NONE;
+	m_supportedElements = SubsetHandlerElements::SHE_NONE;
 	m_defaultSubsetIndex = -1;
 	m_bSubsetInheritanceEnabled = true;
 	m_bStrictInheritanceEnabled = false;
@@ -110,11 +110,11 @@ ISubsetHandler(Grid& grid, uint supportedElements) :
 	m_defaultSubsetInfo.name = "defSub";
 	m_defaultSubsetInfo.materialIndex = 0;
 	m_defaultSubsetInfo.color = vector4(1., 1., 1., 1.);
-	m_defaultSubsetInfo.subsetState = SS_NONE;
+	m_defaultSubsetInfo.subsetState = SubsetState::SS_NONE;
 
 	enable_element_support(supportedElements);
-	grid.register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
-									OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
+	grid.register_observer(this, ObserverType::OT_GRID_OBSERVER | ObserverType::OT_VERTEX_OBSERVER | ObserverType::OT_EDGE_OBSERVER |
+									ObserverType::OT_FACE_OBSERVER | ObserverType::OT_VOLUME_OBSERVER);
 }
 
 ISubsetHandler::
@@ -183,25 +183,25 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 	if(srcGrid && destGrid){
 		//LOG("sh-copying -");
 	//	assign the subsets for each element-type
-		if(elements_are_supported(SHE_VERTEX)){
+		if(elements_are_supported(SubsetHandlerElements::SHE_VERTEX)){
 			//LOG(" vrts -");
 			CopySubsetIndices(*this, sh, destGrid->begin<Vertex>(), destGrid->end<Vertex>(),
 								srcGrid->begin<Vertex>(), srcGrid->end<Vertex>());
 		}
 
-		if(elements_are_supported(SHE_EDGE)){
+		if(elements_are_supported(SubsetHandlerElements::SHE_EDGE)){
 			//LOG(" edges -");
 			CopySubsetIndices(*this, sh, destGrid->begin<Edge>(), destGrid->end<Edge>(),
 							srcGrid->begin<Edge>(), srcGrid->end<Edge>());
 		}
 
-		if(elements_are_supported(SHE_FACE)){
+		if(elements_are_supported(SubsetHandlerElements::SHE_FACE)){
 			//LOG(" faces -");
 			CopySubsetIndices(*this, sh, destGrid->begin<Face>(), destGrid->end<Face>(),
 							srcGrid->begin<Face>(), srcGrid->end<Face>());
 		}
 
-		if(elements_are_supported(SHE_VOLUME)){
+		if(elements_are_supported(SubsetHandlerElements::SHE_VOLUME)){
 			//LOG(" volumes -");
 			CopySubsetIndices(*this, sh, destGrid->begin<Volume>(), destGrid->end<Volume>(),
 							srcGrid->begin<Volume>(), srcGrid->end<Volume>());
@@ -221,10 +221,10 @@ void ISubsetHandler::
 assign_subset(GridObject* elem, int subsetIndex)
 {
 	switch(elem->base_object_id()){
-		case VERTEX: assign_subset(static_cast<Vertex*>(elem), subsetIndex); break;
-		case EDGE: assign_subset(static_cast<Edge*>(elem), subsetIndex); break;
-		case FACE: assign_subset(static_cast<Face*>(elem), subsetIndex); break;
-		case VOLUME: assign_subset(static_cast<Volume*>(elem), subsetIndex); break;
+		case GridBaseObjectId::VERTEX: assign_subset(static_cast<Vertex*>(elem), subsetIndex); break;
+		case GridBaseObjectId::EDGE: assign_subset(static_cast<Edge*>(elem), subsetIndex); break;
+		case GridBaseObjectId::FACE: assign_subset(static_cast<Face*>(elem), subsetIndex); break;
+		case GridBaseObjectId::VOLUME: assign_subset(static_cast<Volume*>(elem), subsetIndex); break;
 		default:
 			UG_THROW("Unsupported base-object-id encountered: " << elem->base_object_id());
 	}
@@ -275,8 +275,8 @@ set_grid(Grid* grid)
 	//	do this with a little trick:
 	//	set the supported-element-options to SHE_NONE,
 	//	then call enable for all element-types that should be supported.
-		uint tmpOpts = m_supportedElements;
-		m_supportedElements = SHE_NONE;
+		SubsetHandlerElements_t tmpOpts = m_supportedElements;
+		m_supportedElements = SubsetHandlerElements::SHE_NONE;
 		enable_element_support(tmpOpts);
 
 	//	enable attachments - if required
@@ -286,8 +286,8 @@ set_grid(Grid* grid)
 			enable_subset_attachments(true);
 		}*/
 
-		m_pGrid->register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
-										OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
+		m_pGrid->register_observer(this, ObserverType::OT_GRID_OBSERVER | ObserverType::OT_VERTEX_OBSERVER | ObserverType::OT_EDGE_OBSERVER |
+										ObserverType::OT_FACE_OBSERVER | ObserverType::OT_VOLUME_OBSERVER);
 	}
 }
 
@@ -307,13 +307,13 @@ grid() const
 }
 
 bool ISubsetHandler::
-elements_are_supported(uint shElements) const
+elements_are_supported(SubsetHandlerElements_t shElements) const
 {
 	return (m_supportedElements & shElements) == shElements;
 }
 
 void ISubsetHandler::
-set_supported_elements(uint shElements)
+set_supported_elements(SubsetHandlerElements_t shElements)
 {
 //	do this in two steps:
 //	1: disable the element-support that is no longer required.
@@ -328,7 +328,7 @@ set_supported_elements(uint shElements)
 }
 
 void ISubsetHandler::
-enable_element_support(uint shElements)
+enable_element_support(SubsetHandlerElements_t shElements)
 {
 //	if no grid is assigned, we can't do anything.
 	if(m_pGrid)
@@ -337,54 +337,54 @@ enable_element_support(uint shElements)
 	//	to reduce unnecessary operations, we have to make sure that
 	//	that option hasn't already been enabled.
 
-		if((shElements & SHE_VERTEX) &&
-			(!elements_are_supported(SHE_VERTEX)))
+		if((shElements & SubsetHandlerElements::SHE_VERTEX) &&
+			(!elements_are_supported(SubsetHandlerElements::SHE_VERTEX)))
 		{
 //LOG("enabling vertex support\n");
 		//	enable vertex-support.
 			m_pGrid->attach_to_vertices(m_aSubsetIndex);
 			m_aaSubsetIndexVRT.access(*m_pGrid, m_aSubsetIndex);
-			m_supportedElements |= SHE_VERTEX;
-			reset_subset_indices(SHE_VERTEX);
+			m_supportedElements |= SubsetHandlerElements::SHE_VERTEX;
+			reset_subset_indices(SubsetHandlerElements::SHE_VERTEX);
 		}
 
-		if((shElements & SHE_EDGE) &&
-			(!elements_are_supported(SHE_EDGE)))
+		if((shElements & SubsetHandlerElements::SHE_EDGE) &&
+			(!elements_are_supported(SubsetHandlerElements::SHE_EDGE)))
 		{
 //LOG("enabling edge support\n");
 		//	enable edge support
 			m_pGrid->attach_to_edges(m_aSubsetIndex);
 			m_aaSubsetIndexEDGE.access(*m_pGrid, m_aSubsetIndex);
-			m_supportedElements |= SHE_EDGE;
-			reset_subset_indices(SHE_EDGE);
+			m_supportedElements |= SubsetHandlerElements::SHE_EDGE;
+			reset_subset_indices(SubsetHandlerElements::SHE_EDGE);
 		}
 
-		if((shElements & SHE_FACE) &&
-			(!elements_are_supported(SHE_FACE)))
+		if((shElements & SubsetHandlerElements::SHE_FACE) &&
+			(!elements_are_supported(SubsetHandlerElements::SHE_FACE)))
 		{
 //LOG("enabling face support\n");
 		//	enable face support
 			m_pGrid->attach_to_faces(m_aSubsetIndex);
 			m_aaSubsetIndexFACE.access(*m_pGrid, m_aSubsetIndex);
-			m_supportedElements |= SHE_FACE;
-			reset_subset_indices(SHE_FACE);
+			m_supportedElements |= SubsetHandlerElements::SHE_FACE;
+			reset_subset_indices(SubsetHandlerElements::SHE_FACE);
 		}
 
-		if((shElements & SHE_VOLUME) &&
-			(!elements_are_supported(SHE_VOLUME)))
+		if((shElements & SubsetHandlerElements::SHE_VOLUME) &&
+			(!elements_are_supported(SubsetHandlerElements::SHE_VOLUME)))
 		{
 //LOG("enabling volume support\n");
 		//	enable volume support
 			m_pGrid->attach_to_volumes(m_aSubsetIndex);
 			m_aaSubsetIndexVOL.access(*m_pGrid, m_aSubsetIndex);
-			m_supportedElements |= SHE_VOLUME;
-			reset_subset_indices(SHE_VOLUME);
+			m_supportedElements |= SubsetHandlerElements::SHE_VOLUME;
+			reset_subset_indices(SubsetHandlerElements::SHE_VOLUME);
 		}
 	}
 }
 
 void ISubsetHandler::
-disable_element_support(uint shElements)
+disable_element_support(SubsetHandlerElements_t shElements)
 {
 //	if no grid is assigned, we can't do anything.
 	if(m_pGrid)
@@ -393,25 +393,25 @@ disable_element_support(uint shElements)
 	//	to reduce unnecessary operations, we have to make sure that
 	//	that option hasn't already been disabled.
 
-		if((shElements & SHE_VERTEX) && elements_are_supported(SHE_VERTEX))
+		if((shElements & SubsetHandlerElements::SHE_VERTEX) && elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
 		{
 //LOG("disabling vertex support\n");
 			m_pGrid->detach_from_vertices(m_aSubsetIndex);
 		}
 
-		if((shElements & SHE_EDGE) && elements_are_supported(SHE_EDGE))
+		if((shElements & SubsetHandlerElements::SHE_EDGE) && elements_are_supported(SubsetHandlerElements::SHE_EDGE))
 		{
 //LOG("disabling edge support\n");
 			m_pGrid->detach_from_edges(m_aSubsetIndex);
 		}
 
-		if((shElements & SHE_FACE) && elements_are_supported(SHE_FACE))
+		if((shElements & SubsetHandlerElements::SHE_FACE) && elements_are_supported(SubsetHandlerElements::SHE_FACE))
 		{
 //LOG("disabling face support\n");
 			m_pGrid->detach_from_faces(m_aSubsetIndex);
 		}
 
-		if((shElements & SHE_VOLUME) && elements_are_supported(SHE_VOLUME))
+		if((shElements & SubsetHandlerElements::SHE_VOLUME) && elements_are_supported(SubsetHandlerElements::SHE_VOLUME))
 		{
 //LOG("disabling volume support\n");
 			m_pGrid->detach_from_volumes(m_aSubsetIndex);
@@ -541,17 +541,17 @@ ResetSubsetIndices(Grid* pGrid, TAAInd& aaInd)
 }
 
 void ISubsetHandler::
-reset_subset_indices(uint shElements)
+reset_subset_indices(SubsetHandlerElements_t shElements)
 {
 	if(m_pGrid)
 	{
-		if((shElements & SHE_VERTEX) && elements_are_supported(SHE_VERTEX))
+		if((shElements & SubsetHandlerElements::SHE_VERTEX) && elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
 			ResetSubsetIndices<Vertex>(m_pGrid, m_aaSubsetIndexVRT);
-		if((shElements & SHE_EDGE) && elements_are_supported(SHE_EDGE))
+		if((shElements & SubsetHandlerElements::SHE_EDGE) && elements_are_supported(SubsetHandlerElements::SHE_EDGE))
 			ResetSubsetIndices<Edge>(m_pGrid, m_aaSubsetIndexEDGE);
-		if((shElements & SHE_FACE) && elements_are_supported(SHE_FACE))
+		if((shElements & SubsetHandlerElements::SHE_FACE) && elements_are_supported(SubsetHandlerElements::SHE_FACE))
 			ResetSubsetIndices<Face>(m_pGrid, m_aaSubsetIndexFACE);
-		if((shElements & SHE_VOLUME) && elements_are_supported(SHE_VOLUME))
+		if((shElements & SubsetHandlerElements::SHE_VOLUME) && elements_are_supported(SubsetHandlerElements::SHE_VOLUME))
 			ResetSubsetIndices<Volume>(m_pGrid, m_aaSubsetIndexVOL);
 	}
 }
@@ -559,16 +559,16 @@ reset_subset_indices(uint shElements)
 int ISubsetHandler::
 get_subset_index(GridObject* elem) const
 {
-	uint type = elem->base_object_id();
+	SubsetHandlerElements_t type = elem->base_object_id();
 	switch(type)
 	{
-		case VERTEX:
+		case GridBaseObjectId::VERTEX:
 			return get_subset_index(reinterpret_cast<Vertex*>(elem));
-		case EDGE:
+		case GridBaseObjectId::EDGE:
 			return get_subset_index(reinterpret_cast<Edge*>(elem));
-		case FACE:
+		case GridBaseObjectId::FACE:
 			return get_subset_index(reinterpret_cast<Face*>(elem));
-		case VOLUME:
+		case GridBaseObjectId::VOLUME:
 			return get_subset_index(reinterpret_cast<Volume*>(elem));
 	}
 
@@ -581,7 +581,7 @@ int ISubsetHandler::
 get_subset_index(const char* name) const
 {
 	for(int i = 0; i < num_subsets(); ++i){
-		if(subset_info(i).name.compare(name) == 0)
+		if(subset_info(i).name == name)
 			return i;
 	}
 	return -1;
@@ -906,7 +906,7 @@ registered_at_grid(Grid* grid)
 	//	do this with a little trick:
 	//	set the supported-element-options to SHE_NONE,
 	//	then call enable for all element-types that should be supported.
-		uint tmpOpts = m_supportedElements;
+		SubsetHandlerElements_t tmpOpts = m_supportedElements;
 		m_supportedElements = SHE_NONE;
 		enable_element_support(tmpOpts);
 
@@ -980,13 +980,13 @@ vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent,
 //TODO: this if could be removed if the subset-handler was only registered for
 //		the elements that it supports. Note that a dynamic register/unregister
 //		would be required...
-	if(elements_are_supported(SHE_VERTEX)){
+	if(elements_are_supported(SubsetHandlerElements::SHE_VERTEX)){
 	//LOG("new vertex...\n");
 		m_aaSubsetIndexVRT[vrt] = -1;
 	//LOG("si_before assignment: " << get_subset_index(vrt) << endl);
 		if((pParent != nullptr) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
-				if(pParent->base_object_id() == VERTEX){
+				if(pParent->base_object_id() == GridBaseObjectId::VERTEX){
 					assign_subset(vrt, get_subset_index(
 										reinterpret_cast<Vertex*>(pParent)));
 				}
@@ -1008,7 +1008,7 @@ vertex_to_be_erased(Grid* grid, Vertex* vrt, Vertex* replacedBy)
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::vertex_to_be_erased(...): Grids do not match.");
 
 ///TODO: see vertex_created
-	if(elements_are_supported(SHE_VERTEX)){
+	if(elements_are_supported(SubsetHandlerElements::SHE_VERTEX)){
 		if(m_aaSubsetIndexVRT[vrt] != -1)
 			assign_subset(vrt, -1);
 	}
@@ -1022,12 +1022,12 @@ edge_created(Grid* grid, Edge* edge, GridObject* pParent,
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::edge_created(...): Grids do not match.");
 
 ///TODO: see vertex_created
-	if(elements_are_supported(SHE_EDGE)){
+	if(elements_are_supported(SubsetHandlerElements::SHE_EDGE)){
 		m_aaSubsetIndexEDGE[edge] = -1;
 
 		if((pParent != nullptr) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
-				if(pParent->base_object_id() == EDGE){
+				if(pParent->base_object_id() == GridBaseObjectId::EDGE){
 					assign_subset(edge, get_subset_index(
 										reinterpret_cast<Edge*>(pParent)));
 				}
@@ -1048,7 +1048,7 @@ edge_to_be_erased(Grid* grid, Edge* edge, Edge* replacedBy)
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::edge_to_be_erased(...): Grids do not match.");
 
 ///TODO: see vertex_created
-	if(elements_are_supported(SHE_EDGE)){
+	if(elements_are_supported(SubsetHandlerElements::SHE_EDGE)){
 		if(m_aaSubsetIndexEDGE[edge] != -1)
 			assign_subset(edge, -1);
 	}
@@ -1063,12 +1063,12 @@ face_created(Grid* grid, Face* face, GridObject* pParent,
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::face_created(...): Grids do not match.");
 
 ///TODO: see vertex_created
-	if(elements_are_supported(SHE_FACE)){
+	if(elements_are_supported(SubsetHandlerElements::SHE_FACE)){
 		m_aaSubsetIndexFACE[face] = -1;
 
 		if((pParent != nullptr) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
-				if(pParent->base_object_id() == FACE){
+				if(pParent->base_object_id() == GridBaseObjectId::FACE){
 					assign_subset(face, get_subset_index(
 										reinterpret_cast<Face*>(pParent)));
 				}
@@ -1089,7 +1089,7 @@ face_to_be_erased(Grid* grid, Face* face, Face* replacedBy)
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::face_to_be_erased(...): Grids do not match.");
 
 ///TODO: see vertex_created
-	if(elements_are_supported(SHE_FACE)){
+	if(elements_are_supported(SubsetHandlerElements::SHE_FACE)){
 		if(m_aaSubsetIndexFACE[face] != -1)
 			assign_subset(face, -1);
 	}
@@ -1103,12 +1103,12 @@ volume_created(Grid* grid, Volume* vol, GridObject* pParent,
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::volume_created(...): Grids do not match.");
 
 ///TODO: see vertex_created
-	if(elements_are_supported(SHE_VOLUME)){
+	if(elements_are_supported(SubsetHandlerElements::SHE_VOLUME)){
 		m_aaSubsetIndexVOL[vol] = -1;
 
 		if((pParent != nullptr) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
-				if(pParent->base_object_id() == VOLUME){
+				if(pParent->base_object_id() == GridBaseObjectId::VOLUME){
 					assign_subset(vol, get_subset_index(
 										reinterpret_cast<Volume*>(pParent)));
 				}
@@ -1129,7 +1129,7 @@ volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy)
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::volume_to_be_erased(...): Grids do not match.");
 
 ///TODO: see vertex_created
-	if(elements_are_supported(SHE_VOLUME)){
+	if(elements_are_supported(SubsetHandlerElements::SHE_VOLUME)){
 		if(m_aaSubsetIndexVOL[vol] != -1)
 			assign_subset(vol, -1);
 	}
@@ -1154,7 +1154,7 @@ void ISubsetHandler::
 vertices_to_be_merged(Grid* grid, Vertex* target,
 					 Vertex* elem1, Vertex* elem2)
 {
-	if(elements_are_supported(SHE_VERTEX))
+	if(elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
 		elems_to_be_merged(grid, target, elem1, elem2);
 
 }
@@ -1163,7 +1163,7 @@ void ISubsetHandler::
 edges_to_be_merged(Grid* grid, Edge* target,
 				  Edge* elem1, Edge* elem2)
 {
-	if(elements_are_supported(SHE_EDGE))
+	if(elements_are_supported(SubsetHandlerElements::SHE_EDGE))
 		elems_to_be_merged(grid, target, elem1, elem2);
 }
 
@@ -1171,7 +1171,7 @@ void ISubsetHandler::
 faces_to_be_merged(Grid* grid, Face* target,
 					Face* elem1, Face* elem2)
 {
-	if(elements_are_supported(SHE_FACE))
+	if(elements_are_supported(SubsetHandlerElements::SHE_FACE))
 		elems_to_be_merged(grid, target, elem1, elem2);
 }
 
@@ -1179,7 +1179,7 @@ void ISubsetHandler::
 volumes_to_be_merged(Grid* grid, Volume* target,
 					Volume* elem1, Volume* elem2)
 {
-	if(elements_are_supported(SHE_VOLUME))
+	if(elements_are_supported(SubsetHandlerElements::SHE_VOLUME))
 		elems_to_be_merged(grid, target, elem1, elem2);
 }
 

@@ -65,9 +65,9 @@ enum SweepLineEdgeStatus{
  */
 struct SweepLineVertex
 {
-	SweepLineVertex() : m_status(SLVS_NONE), isRimVertex(false)	{}
+	SweepLineVertex() : m_status(SweepLineVertexStatus::SLVS_NONE), isRimVertex(false)	{}
 	SweepLineVertex(int ind, vector2* ptr) :
-		vrtInd(ind), vrtPtr(ptr), m_status(SLVS_NONE), isRimVertex(false)	{}
+		vrtInd(ind), vrtPtr(ptr), m_status(SweepLineVertexStatus::SLVS_NONE), isRimVertex(false)	{}
 
 	int vrtInd;
 	const vector2* vrtPtr;
@@ -82,7 +82,7 @@ struct SweepLineVertex
 struct SweepLineEdge
 {
 	SweepLineEdge(SweepLineVertex* v1, SweepLineVertex* v2) :
-		m_status(SLES_UNKNOWN), m_v1(v1), m_v2(v2), m_helper(nullptr), m_numConnectedPolygons(0)
+		m_status(SweepLineEdgeStatus::SLES_UNKNOWN), m_v1(v1), m_v2(v2), m_helper(nullptr), m_numConnectedPolygons(0)
 	{}
 
 	SweepLineVertex* get_connected(const SweepLineVertex* v) const
@@ -219,7 +219,7 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 	SweepLineVertex* comingFromVrt = nullptr;
 	vector2 lastDir(-1, 0);
 	SweepLineVertex* lastVrt = &vrtsOut[0];
-	lastVrt->m_status = SLVS_START;
+	lastVrt->m_status = SweepLineVertexStatus::SLVS_START;
 	lastVrt->isRimVertex = true;
 
 //	the start vertex has to have at least one connection
@@ -269,29 +269,29 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 
 	//	based on lastDir and nextDir we can assign the new status to lastVrt, if none has been
 	//	previously assigned.
-		if(lastVrt->m_status == SLVS_NONE){
+		if(lastVrt->m_status == SweepLineVertexStatus::SLVS_NONE){
 			if(lastDir.y() > 0){
 				if(nextDir.y() < 0){
 					if(bestNormDot < 0)
-						lastVrt->m_status = SLVS_START;
+						lastVrt->m_status = SweepLineVertexStatus::SLVS_START;
 					else
-						lastVrt->m_status = SLVS_SPLIT;
+						lastVrt->m_status = SweepLineVertexStatus::SLVS_SPLIT;
 				}
 				else if(nextDir.y() > 0)
-					lastVrt->m_status = SLVS_REGULAR;
+					lastVrt->m_status = SweepLineVertexStatus::SLVS_REGULAR;
 				else{
 					if(nextDir.x() < 0)
-						lastVrt->m_status = SLVS_REGULAR;
+						lastVrt->m_status = SweepLineVertexStatus::SLVS_REGULAR;
 					else
-						lastVrt->m_status = SLVS_SPLIT;
+						lastVrt->m_status = SweepLineVertexStatus::SLVS_SPLIT;
 				}
 
 			//	if an inner edge leaves lastVrt upwards, then we have to
 			//	regard it as a regular vertex.
-				if(lastVrt->m_status == SLVS_SPLIT){
+				if(lastVrt->m_status == SweepLineVertexStatus::SLVS_SPLIT){
 					for(size_t i = 0; i < lastVrt->connections.size(); ++i){
 						if(cmp_slv(*lastVrt->connections[i]->get_connected(lastVrt), *lastVrt)){
-							lastVrt->m_status = SLVS_REGULAR;
+							lastVrt->m_status = SweepLineVertexStatus::SLVS_REGULAR;
 							break;
 						}
 					}
@@ -300,25 +300,25 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 			else if(lastDir.y() < 0){	//	lastDir.y() < 0 from now on
 				if(nextDir.y() > 0){
 					if(bestNormDot > 0)
-						lastVrt->m_status = SLVS_MERGE;
+						lastVrt->m_status = SweepLineVertexStatus::SLVS_MERGE;
 					else
-						lastVrt->m_status = SLVS_END;
+						lastVrt->m_status = SweepLineVertexStatus::SLVS_END;
 				}
 				else if(nextDir.y() < 0)
-					lastVrt->m_status = SLVS_REGULAR;
+					lastVrt->m_status = SweepLineVertexStatus::SLVS_REGULAR;
 				else{
 					if(nextDir.x() > 0)
-						lastVrt->m_status = SLVS_REGULAR;
+						lastVrt->m_status = SweepLineVertexStatus::SLVS_REGULAR;
 					else
-						lastVrt->m_status = SLVS_MERGE;
+						lastVrt->m_status = SweepLineVertexStatus::SLVS_MERGE;
 				}
 
 			//	if an inner edge leaves lastVrt downwards, then we have to
 			//	regard it as a regular vertex.
-				if(lastVrt->m_status == SLVS_MERGE){
+				if(lastVrt->m_status == SweepLineVertexStatus::SLVS_MERGE){
 					for(size_t i = 0; i < lastVrt->connections.size(); ++i){
 						if(!cmp_slv(*lastVrt->connections[i]->get_connected(lastVrt), *lastVrt)){
-							lastVrt->m_status = SLVS_REGULAR;
+							lastVrt->m_status = SweepLineVertexStatus::SLVS_REGULAR;
 							break;
 						}
 					}
@@ -327,21 +327,21 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 			else{ // lastDir.y() == 0 from now on
 				if(lastDir.x() < 0){
 					if(nextDir.y() >= 0)
-						lastVrt->m_status = SLVS_REGULAR;
+						lastVrt->m_status = SweepLineVertexStatus::SLVS_REGULAR;
 					else
-						lastVrt->m_status = SLVS_START;
+						lastVrt->m_status = SweepLineVertexStatus::SLVS_START;
 				}
 				else{
 					if(nextDir.y() <= 0)
-						lastVrt->m_status = SLVS_REGULAR;
+						lastVrt->m_status = SweepLineVertexStatus::SLVS_REGULAR;
 					else
-						lastVrt->m_status = SLVS_END;
+						lastVrt->m_status = SweepLineVertexStatus::SLVS_END;
 				}
 			}
 		}
 
 	//	mark the current edge as a rim edge
-		nextEdge->m_status = SLES_RIM;
+		nextEdge->m_status = SweepLineEdgeStatus::SLES_RIM;
 
 	//	get the next vertex
 		comingFromVrt = lastVrt;
@@ -349,14 +349,14 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 		lastVrt->isRimVertex = true;
 		lastDir = nextDir;
 	//	if the vertex has already been processed, we have to quit here
-		if(lastVrt->m_status != SLVS_NONE)
+		if(lastVrt->m_status != SweepLineVertexStatus::SLVS_NONE)
 			break;
 	}
 
 //	now make sure that vertices that do not lie on the outer rim have a correct status
 	for(size_t i = 0; i < vrtsOut.size(); ++i){
 		SweepLineVertex& vrt = vrtsOut[i];
-		if(vrt.m_status == SLVS_NONE){
+		if(vrt.m_status == SweepLineVertexStatus::SLVS_NONE){
 		//	check the position of connected vertices
 			bool gotUpper = false;
 			bool gotLower = false;
@@ -384,41 +384,41 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 		//	if there is only one connection, we have to treat the vertex specially
 			if(vrt.connections.size() == 1){
 				if(gotUpper)
-					vrt.m_status = SLVS_MERGE;
+					vrt.m_status = SweepLineVertexStatus::SLVS_MERGE;
 				else if(gotLower)
-					vrt.m_status = SLVS_SPLIT;
+					vrt.m_status = SweepLineVertexStatus::SLVS_SPLIT;
 				else{
 					if(gotRight)
-						vrt.m_status = SLVS_SPLIT;
+						vrt.m_status = SweepLineVertexStatus::SLVS_SPLIT;
 					else
-						vrt.m_status = SLVS_MERGE;
+						vrt.m_status = SweepLineVertexStatus::SLVS_MERGE;
 				}
 			}
 			else{ // more than one connection from now on
 				if(gotUpper && gotLower)
-					vrt.m_status = SLVS_REGULAR;
+					vrt.m_status = SweepLineVertexStatus::SLVS_REGULAR;
 				else{
 					if(gotEqualYLeft && gotEqualYRight)
-						vrt.m_status = SLVS_REGULAR;
+						vrt.m_status = SweepLineVertexStatus::SLVS_REGULAR;
 					else if(gotUpper){
 						if(gotEqualYRight)
-							vrt.m_status = SLVS_REGULAR;
+							vrt.m_status = SweepLineVertexStatus::SLVS_REGULAR;
 						else
-							vrt.m_status = SLVS_MERGE;
+							vrt.m_status = SweepLineVertexStatus::SLVS_MERGE;
 					}
 					else if(gotLower){
 						if(gotEqualYLeft)
-							vrt.m_status = SLVS_REGULAR;
+							vrt.m_status = SweepLineVertexStatus::SLVS_REGULAR;
 						else
-							vrt.m_status = SLVS_SPLIT;
+							vrt.m_status = SweepLineVertexStatus::SLVS_SPLIT;
 					}
 					else
-						vrt.m_status = SLVS_REGULAR;
+						vrt.m_status = SweepLineVertexStatus::SLVS_REGULAR;
 				}
 			}
 
 			assert((vrt.m_status != SLVS_NONE) && "no status found");
-			if(vrt.m_status == SLVS_NONE){
+			if(vrt.m_status == SweepLineVertexStatus::SLVS_NONE){
 				UG_LOG("ERROR in CreateSweeplineStructs: Could not assign status.\n");
 				return false;
 			}
@@ -444,12 +444,12 @@ void PrintDebugInfos(const vector<SweepLineVertex>& vrts,
 		}
 
 		switch(vrts[i].m_status){
-			case SLVS_NONE:		UG_LOG("none"); break;
-			case SLVS_START:	UG_LOG("start"); break;
-			case SLVS_END:		UG_LOG("end"); break;
-			case SLVS_REGULAR:	UG_LOG("regular"); break;
-			case SLVS_SPLIT:	UG_LOG("split"); break;
-			case SLVS_MERGE:	UG_LOG("merge"); break;
+			case SweepLineVertexStatus::SLVS_NONE:		UG_LOG("none"); break;
+			case SweepLineVertexStatus::SLVS_START:	UG_LOG("start"); break;
+			case SweepLineVertexStatus::SLVS_END:		UG_LOG("end"); break;
+			case SweepLineVertexStatus::SLVS_REGULAR:	UG_LOG("regular"); break;
+			case SweepLineVertexStatus::SLVS_SPLIT:	UG_LOG("split"); break;
+			case SweepLineVertexStatus::SLVS_MERGE:	UG_LOG("merge"); break;
 			default:			UG_LOG("unknown"); break;
 		}
 		UG_LOG(", ");
@@ -458,7 +458,7 @@ void PrintDebugInfos(const vector<SweepLineVertex>& vrts,
 //	log inner edges
 	UG_LOG("\n  inner edges:\n");
 	for(list<SweepLineEdge>::const_iterator iter = edges.begin(); iter != edges.end(); ++iter){
-		if(iter->m_status != SLES_RIM)
+		if(iter->m_status != SweepLineEdgeStatus::SLES_RIM)
 		{
 			UG_LOG("     - " << *iter->m_v1->vrtPtr << ", " << *iter->m_v2->vrtPtr << endl);
 		}
@@ -587,9 +587,9 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 		edgeCuts.swap(tmap);
 
 		switch(v.m_status){
-			case SLVS_NONE:
+			case SweepLineVertexStatus::SLVS_NONE:
 				break;
-			case SLVS_START:
+			case SweepLineVertexStatus::SLVS_START:
 			//	rim-edges that leave v and that have v as their first
 			//	vertex, have to be added to edgeCuts.
 
@@ -615,12 +615,12 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 					}*/
 				}
 				break;
-			case SLVS_END:
+			case SweepLineVertexStatus::SLVS_END:
 				{
 				//	get the incoming edge
 					SweepLineEdge* incoming = nullptr;
 					for(size_t i = 0; i < v.connections.size(); ++i){
-						if((v.connections[i]->m_status == SLES_RIM)
+						if((v.connections[i]->m_status == SweepLineEdgeStatus::SLES_RIM)
 						   && (v.connections[i]->m_v2 == &v))
 						{
 							incoming = v.connections[i];
@@ -635,7 +635,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 					}
 
 					if(incoming->m_helper != nullptr){
-						if(incoming->m_helper->m_status == SLVS_MERGE){
+						if(incoming->m_helper->m_status == SweepLineVertexStatus::SLVS_MERGE){
 						//	insert a diagonal between helper and v
 							edges.emplace_back(incoming->m_helper, &v);
 							incoming->m_helper->connections.push_back(&edges.back());
@@ -648,13 +648,13 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 				//	The rest will be handled later on
 					incoming->m_helper = nullptr;
 				}break;
-			case SLVS_REGULAR:
+			case SweepLineVertexStatus::SLVS_REGULAR:
 				{
 				//	get the direction of the incoming edge
 					if(v.isRimVertex && (v.connections.size() == 2)){
 						SweepLineEdge* incoming = nullptr;
 						for(size_t i = 0; i < v.connections.size(); ++i){
-							if((v.connections[i]->m_status == SLES_RIM)
+							if((v.connections[i]->m_status == SweepLineEdgeStatus::SLES_RIM)
 							   && (v.connections[i]->m_v2 == &v))
 							{
 								incoming = v.connections[i];
@@ -683,7 +683,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 								UG_LOG("ERROR in SweepLine_CreateMonotones (SLVS_REGULAR-rim): incoming-edge has no helper at vertex " << vrts[i_vrt].vrtInd << ".\n");
 								return false;
 							}
-							if(incoming->m_helper->m_status == SLVS_MERGE){
+							if(incoming->m_helper->m_status == SweepLineVertexStatus::SLVS_MERGE){
 							//	insert a diagonal between helper and v
 								edges.emplace_back(incoming->m_helper, &v);
 								incoming->m_helper->connections.push_back(&edges.back());
@@ -696,7 +696,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 						//	add the outgoing edge to edgeCuts
 							SweepLineEdge* outgoing = nullptr;
 							for(size_t i = 0; i < v.connections.size(); ++i){
-								if((v.connections[i]->m_status == SLES_RIM)
+								if((v.connections[i]->m_status == SweepLineEdgeStatus::SLES_RIM)
 								   && (v.connections[i]->m_v1 == &v))
 								{
 									outgoing = v.connections[i];
@@ -722,7 +722,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 									UG_LOG("ERROR in SweepLine_CreateMonotones (SLVS_REGULAR-rim): left-edge has no helper at vertex " << vrts[i_vrt].vrtInd << ".\n");
 									return false;
 								}
-								if(leftEdge->m_helper->m_status == SLVS_MERGE){
+								if(leftEdge->m_helper->m_status == SweepLineVertexStatus::SLVS_MERGE){
 								//	add a diagonal and replace the helper
 									edges.emplace_back(leftEdge->m_helper, &v);
 									leftEdge->m_helper->connections.push_back(&edges.back());
@@ -745,7 +745,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 						//	rim vertices have to be treated specially
 							if(v.isRimVertex){
 							//	if the edge is a rim edge, then it has to end at v
-								if((incoming.m_status == SLES_RIM)
+								if((incoming.m_status == SweepLineEdgeStatus::SLES_RIM)
 								   && (incoming.m_v1 == &v))
 								{
 									continue;
@@ -764,7 +764,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 							//assert((incoming.m_helper != nullptr) && "a helper has to exist");
 							if(incoming.m_helper)
 							{
-								if(incoming.m_helper->m_status == SLVS_MERGE){
+								if(incoming.m_helper->m_status == SweepLineVertexStatus::SLVS_MERGE){
 								//	insert a diagonal between helper and v
 									edges.emplace_back(incoming.m_helper, &v);
 									incoming.m_helper->connections.push_back(&edges.back());
@@ -784,7 +784,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 								UG_LOG("ERROR in SweepLine_CreateMonotones (SLVS_REGULAR): left-edge has no helper at vertex " << i_vrt << ".\n");
 								return false;
 							}
-							if(leftEdge->m_helper->m_status == SLVS_MERGE){
+							if(leftEdge->m_helper->m_status == SweepLineVertexStatus::SLVS_MERGE){
 							//	add a diagonal and replace the helper
 								edges.emplace_back(leftEdge->m_helper, &v);
 								leftEdge->m_helper->connections.push_back(&edges.back());
@@ -812,7 +812,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 						}
 					}
 				}break;
-			case SLVS_SPLIT:
+			case SweepLineVertexStatus::SLVS_SPLIT:
 				{
 				//	find the edge in edgeCuts which is directly left of v
 					SweepLineEdge* leftEdge = GetEdgeOnTheLeft(edgeCuts, v);
@@ -846,14 +846,14 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 						}
 					}
 				}break;
-			case SLVS_MERGE:
+			case SweepLineVertexStatus::SLVS_MERGE:
 				{
 				//	we differentiate between rim vertices and inner vertices, since this gives a speedup.
 					if(v.isRimVertex){
 					//	get the incoming edge
 						SweepLineEdge* incoming = nullptr;
 						for(size_t i = 0; i < v.connections.size(); ++i){
-							if((v.connections[i]->m_status == SLES_RIM)
+							if((v.connections[i]->m_status == SweepLineEdgeStatus::SLES_RIM)
 							   && (v.connections[i]->m_v2 == &v))
 							{
 								incoming = v.connections[i];
@@ -873,7 +873,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 							return false;
 						}
 
-						if(incoming->m_helper->m_status == SLVS_MERGE){
+						if(incoming->m_helper->m_status == SweepLineVertexStatus::SLVS_MERGE){
 						//	insert a diagonal between helper and v
 							edges.emplace_back(incoming->m_helper, &v);
 							incoming->m_helper->connections.push_back(&edges.back());
@@ -890,7 +890,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 						for(size_t i = 0; i < v.connections.size(); ++i){
 							SweepLineEdge* incoming = v.connections[i];
 							if(incoming->m_helper){
-								if(incoming->m_helper->m_status == SLVS_MERGE){
+								if(incoming->m_helper->m_status == SweepLineVertexStatus::SLVS_MERGE){
 									edges.emplace_back(incoming->m_helper, &v);
 									incoming->m_helper->connections.push_back(&edges.back());
 									v.connections.push_back(&edges.back());
@@ -920,7 +920,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 					}
 
 					if(leftEdge->m_helper != &v
-					   && leftEdge->m_helper->m_status == SLVS_MERGE)
+					   && leftEdge->m_helper->m_status == SweepLineVertexStatus::SLVS_MERGE)
 					{
 					//	add a diagonal and replace the helper
 						edges.emplace_back(leftEdge->m_helper, &v);
@@ -1021,8 +1021,8 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 		//	e is only a candidate for a branch, if it meets the following reqirements:
 		//	- e is a rim edge and hasn't yet got a connected polygon.
 		//	- e is an inner edge and has at most one connected polygon
-			if(((e.m_status == SLES_RIM) && e.m_numConnectedPolygons == 0)
-			   || ((e.m_status != SLES_RIM) && (e.m_numConnectedPolygons < 2)))
+			if(((e.m_status == SweepLineEdgeStatus::SLES_RIM) && e.m_numConnectedPolygons == 0)
+			   || ((e.m_status != SweepLineEdgeStatus::SLES_RIM) && (e.m_numConnectedPolygons < 2)))
 			{
 				vector2 tDir;
 				number dNorm;

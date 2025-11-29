@@ -190,9 +190,9 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 	///	writes the selection states of the interface entries
 		bool
 		collect(BinaryBuffer& buff, const Interface& interface) override {
-			constexpr int TO_NORMAL = HangingNodeRefiner_MultiGrid::HNRM_TO_NORMAL;
-			constexpr int TO_CONSTRAINED = HangingNodeRefiner_MultiGrid::HNRM_TO_CONSTRAINED;
-			constexpr int TO_CONSTRAINING = HangingNodeRefiner_MultiGrid::HNRM_TO_CONSTRAINING;
+			constexpr int TO_NORMAL = HangingNodeRefiner_MultiGrid::HNodeRefMarks::HNRM_TO_NORMAL;
+			constexpr int TO_CONSTRAINED = HangingNodeRefiner_MultiGrid::HNodeRefMarks::HNRM_TO_CONSTRAINED;
+			constexpr int TO_CONSTRAINING = HangingNodeRefiner_MultiGrid::HNodeRefMarks::HNRM_TO_CONSTRAINING;
 
 		//	search for entries which changed their constrained/constraining status
 			UG_ASSERT(m_distGridMgr.get_assigned_grid(),
@@ -203,19 +203,19 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter, ++counter)
 			{
-				byte_t mark = CT_IGNORE;
+				byte_t mark = ConversionTypes::CT_IGNORE;
 				Element elem = interface.get_element(iter);
 				if(m_sel.is_selected(elem)){
 					int refMark = m_sel.get_selection_status(elem);
 					if((refMark & TO_NORMAL) == TO_NORMAL)
-						mark = CT_TO_NORMAL;
+						mark = ConversionTypes::CT_TO_NORMAL;
 					if((refMark & TO_CONSTRAINED) == TO_CONSTRAINED)
-						mark = CT_TO_CONSTRAINED;
+						mark = ConversionTypes::CT_TO_CONSTRAINED;
 					if((refMark & TO_CONSTRAINING) == TO_CONSTRAINING)
-						mark = CT_TO_CONSTRAINING;
+						mark = ConversionTypes::CT_TO_CONSTRAINING;
 				}
 
-				if(mark != CT_IGNORE){
+				if(mark != ConversionTypes::CT_IGNORE){
 					buff.write((char*)&counter, sizeof(int));
 					buff.write((char*)&mark, sizeof(byte_t));
 				}
@@ -263,21 +263,21 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 					continue;
 
 				switch(mark){
-					case CT_TO_NORMAL:
+					case ConversionTypes::CT_TO_NORMAL:
 						if(elem->is_constraining() || elem->is_constrained()){
 //							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with normal element at "
 //									<< GetGridObjectCenter(mg, elem) << ".\n");
 							ReplaceByNormal(mg, elem);
 						}
 						break;
-					case CT_TO_CONSTRAINING:
+					case ConversionTypes::CT_TO_CONSTRAINING:
 						if(!elem->is_constraining()){
 //							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with constraining element at "
 //									<< GetGridObjectCenter(mg, elem) << ".\n");
 							ReplaceByConstraining(mg, elem);
 						}
 						break;
-					case CT_TO_CONSTRAINED:
+					case ConversionTypes::CT_TO_CONSTRAINED:
 						if(!elem->is_constrained()){
 //							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with constrained element at "
 //									<< GetGridObjectCenter(mg, elem) << ".\n");
@@ -499,7 +499,7 @@ copy_marks_to_vmasters(TIntfcCom& com)
 	ComPol_Selection<TLayout> comPol(get_refmark_selector());
 
 	com.exchange_data(m_pDistGridMgr->grid_layout_map(),
-					  INT_V_SLAVE, INT_V_MASTER, comPol);
+	                  InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, comPol);
 	com.communicate();
 }
 
@@ -524,7 +524,7 @@ copy_marks_to_vslaves(TIntfcCom& com)
 	ComPol_Selection<TLayout> comPol(get_refmark_selector());
 
 	com.exchange_data(m_pDistGridMgr->grid_layout_map(),
-					  INT_V_MASTER, INT_V_SLAVE, comPol);
+	                  InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, comPol);
 	com.communicate();
 }
 
@@ -580,7 +580,7 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 				byte_t maxVal = max(curVal, val);
 				byte_t minVal = min(curVal, val);
 
-				if(m_allowDeselection && (minVal == SE_NONE)){
+				if(m_allowDeselection && (minVal == SelectorElements::SE_NONE)){
 					m_sel.deselect(elem);
 					continue;
 				}
@@ -609,23 +609,23 @@ broadcast_marks_horizontally(bool vertices, bool edges, bool faces, bool allowDe
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
 	if(vertices){
 		ComPol_BroadcastCoarsenMarks<VertexLayout>	comPol(get_refmark_selector(), allowDeselection);
-		m_intfComVRT.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
+		m_intfComVRT.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, comPol);
 		m_intfComVRT.communicate();
-		m_intfComVRT.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
+		m_intfComVRT.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, comPol);
 		m_intfComVRT.communicate();
 	}
 	if(edges){
 		ComPol_BroadcastCoarsenMarks<EdgeLayout>	comPol(get_refmark_selector(), allowDeselection);
-		m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
+		m_intfComEDGE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, comPol);
 		m_intfComEDGE.communicate();
-		m_intfComEDGE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
+		m_intfComEDGE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, comPol);
 		m_intfComEDGE.communicate();
 	}
 	if(faces){
 		ComPol_BroadcastCoarsenMarks<FaceLayout>	comPol(get_refmark_selector(), allowDeselection);
-		m_intfComFACE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
+		m_intfComFACE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, comPol);
 		m_intfComFACE.communicate();
-		m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
+		m_intfComFACE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, comPol);
 		m_intfComFACE.communicate();
 	}
 }
@@ -637,22 +637,22 @@ broadcast_marks_vertically(bool vertices, bool edges, bool faces, bool volumes,
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
 	if(vertices){
 		ComPol_BroadcastCoarsenMarks<VertexLayout>	comPol(get_refmark_selector(), allowDeselection);
-		m_intfComVRT.exchange_data(layoutMap, INT_V_MASTER, INT_V_SLAVE, comPol);
+		m_intfComVRT.exchange_data(layoutMap, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, comPol);
 		m_intfComVRT.communicate();
 	}
 	if(edges){
 		ComPol_BroadcastCoarsenMarks<EdgeLayout>	comPol(get_refmark_selector(), allowDeselection);
-		m_intfComEDGE.exchange_data(layoutMap, INT_V_MASTER, INT_V_SLAVE, comPol);
+		m_intfComEDGE.exchange_data(layoutMap, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, comPol);
 		m_intfComEDGE.communicate();
 	}
 	if(faces){
 		ComPol_BroadcastCoarsenMarks<FaceLayout>	comPol(get_refmark_selector(), allowDeselection);
-		m_intfComFACE.exchange_data(layoutMap, INT_V_MASTER, INT_V_SLAVE, comPol);
+		m_intfComFACE.exchange_data(layoutMap, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, comPol);
 		m_intfComFACE.communicate();
 	}
 	if(volumes){
 		ComPol_BroadcastCoarsenMarks<VolumeLayout>	comPol(get_refmark_selector(), allowDeselection);
-		m_intfComVOL.exchange_data(layoutMap, INT_V_MASTER, INT_V_SLAVE, comPol);
+		m_intfComVOL.exchange_data(layoutMap, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, comPol);
 		m_intfComVOL.communicate();
 	}
 

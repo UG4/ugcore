@@ -104,7 +104,7 @@ set_grid(Grid* grid)
 	
 	if(grid){
 		m_pGrid = dynamic_cast<MultiGrid*>(grid);
-		m_pGrid->register_observer(this, OT_FULL_OBSERVER);
+		m_pGrid->register_observer(this, ObserverType::OT_FULL_OBSERVER);
 		UG_ASSERT(m_pGrid, "Only MultiGrids are supported by the DistributedGridManager"
 						   " in its current implementation.");
 						   
@@ -306,19 +306,19 @@ void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 template <typename TGeomObj>
 void DistributedGridManager::update_all_elem_infos()
 {
-	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_H_MASTER,
-							   ES_IN_INTERFACE | ES_H_MASTER);
+	update_elem_info<TGeomObj>(m_gridLayoutMap, InterfaceNodeTypes::INT_H_MASTER,
+							   ElementStatusTypes::ES_IN_INTERFACE | ElementStatusTypes::ES_H_MASTER);
 
-	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_H_SLAVE,
-							   ES_IN_INTERFACE | ES_H_SLAVE);
+	update_elem_info<TGeomObj>(m_gridLayoutMap, InterfaceNodeTypes::INT_H_SLAVE,
+							   ElementStatusTypes::ES_IN_INTERFACE | ElementStatusTypes::ES_H_SLAVE);
 
-	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_V_MASTER,
-							   ES_V_MASTER, true);
+	update_elem_info<TGeomObj>(m_gridLayoutMap, InterfaceNodeTypes::INT_V_MASTER,
+							   ElementStatusTypes::ES_V_MASTER, true);
 
-	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_V_SLAVE,
-							   ES_V_SLAVE, true);
+	update_elem_info<TGeomObj>(m_gridLayoutMap, InterfaceNodeTypes::INT_V_SLAVE,
+							   ElementStatusTypes::ES_V_SLAVE, true);
 }
-		
+
 ////////////////////////////////////////////////////////////////////////
 template <typename TGeomObj>
 void DistributedGridManager::reset_elem_infos()
@@ -340,7 +340,7 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte_t newStatus, bool add
 	if(layoutMap.template has_layout<TGeomObj>(nodeType)){
 	//	get the layout
 		 Layout& layout = layoutMap.template get_layout<TGeomObj>(nodeType);
-		 
+
 	//	iterate through the levels of the layout
 		for(size_t l = 0; l < layout.num_levels(); ++l){
 		//	iterate through the interfaces of the layout
@@ -348,7 +348,7 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte_t newStatus, bool add
 			{
 				typename Layout::Interface& interface = layout.interface(iiter);
 				//int procID = layout.proc_id(iiter);
-				
+
 			///	iterate through the elements of the interface
 				for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 				{
@@ -359,7 +359,7 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte_t newStatus, bool add
 							elem_info(interface.get_element(iter)).get_status() | newStatus);
 					else
 						elem_info(interface.get_element(iter)).set_status(newStatus);
-					
+
 				//	add the iterator to the iterator list and set the proc-id
 					//if(newStatus & ES_IN_INTERFACE)
 					elem_info(interface.get_element(iter)).add_entry(&interface, iter, nodeType);
@@ -379,13 +379,13 @@ get_status(GridObject* go) const
 	int baseType = go->base_object_id();
 	switch(baseType)
 	{
-		case VERTEX:
+		case GridBaseObjectId::VERTEX:
 			return get_status(static_cast<Vertex*>(go));
-		case EDGE:
+		case GridBaseObjectId::EDGE:
 			return get_status(static_cast<Edge*>(go));
-		case FACE:
+		case GridBaseObjectId::FACE:
 			return get_status(static_cast<Face*>(go));
-		case VOLUME:
+		case GridBaseObjectId::VOLUME:
 			return get_status(static_cast<Volume*>(go));
 	}
 	return 0;
@@ -407,7 +407,7 @@ add_element_to_interface(TElem* pElem, TCommGrp& commGrp,
 						int procID, InterfaceNodeTypes nodeType)
 {
 	typename TCommGrp::HNODE hNode;
-	
+
 //	if ele hasn't already been inserted into the group, then do it now.
 	if(!check_status(pElem, ES_IN_COMM_GRP))
 	{
@@ -417,16 +417,16 @@ add_element_to_interface(TElem* pElem, TCommGrp& commGrp,
 	}
 	else
 		hNode = commGrp.get_handle(pElem);
-	
+
 //	add ele to the interface
 	commGrp.add_node_to_interface(hNode, procID);
-	
+
 //	update status
 	if(nodeType == pcl::NT_MASTER)
 		set_status(pElem, get_status(pElem) | ES_H_MASTER);
 	else if(nodeType == pcl::NT_SLAVE)
 		set_status(pElem, get_status(pElem) | ES_H_SLAVE);
-		
+
 	set_status(pElem, get_status(pElem) | ES_IN_INTERFACE);
 
 }
@@ -436,67 +436,67 @@ void DistributedGridManager::
 add_element_to_interface(TElem* pElem, int procID)
 {
 	byte_t status = get_status(pElem);
-	
+
 	typename GridLayoutMap::Types<TElem>::Interface::iterator iter;
 	typename GridLayoutMap::Types<TElem>::Interface* interface;
-	int intfcType = ES_NONE;
+	int intfcType = ElementStatusTypes::ES_NONE;
 	byte_t s = get_status(pElem);
-	
-	if(status & ES_H_MASTER){
-		interface = &m_gridLayoutMap.get_layout<TElem>(INT_H_MASTER)
+
+	if(status & ElementStatusTypes::ES_H_MASTER){
+		interface = &m_gridLayoutMap.get_layout<TElem>(InterfaceNodeTypes::INT_H_MASTER)
 						.interface(procID, m_pGrid->get_level(pElem));
 		iter = interface->push_back(pElem);
-		s &= (~ES_SCHEDULED_FOR_INTERFACE);
-		s |= ES_IN_INTERFACE | ES_H_MASTER;
+		s &= (~ElementStatusTypes::ES_SCHEDULED_FOR_INTERFACE);
+		s |= ElementStatusTypes::ES_IN_INTERFACE | ElementStatusTypes::ES_H_MASTER;
 		elem_info(pElem).set_status(s);
-		intfcType = ES_H_MASTER;
+		intfcType = ElementStatusTypes::ES_H_MASTER;
 	}
 	else{
 		UG_ASSERT(status & ES_H_SLAVE, "interface-elements have to be either master or slave!");
-		interface = &m_gridLayoutMap.get_layout<TElem>(INT_H_SLAVE)
+		interface = &m_gridLayoutMap.get_layout<TElem>(InterfaceNodeTypes::INT_H_SLAVE)
 						.interface(procID, m_pGrid->get_level(pElem));
 		iter = interface->push_back(pElem);
 
-		s &= (~ES_SCHEDULED_FOR_INTERFACE);
-		s |= ES_IN_INTERFACE | ES_H_SLAVE;
+		s &= (~ElementStatusTypes::ES_SCHEDULED_FOR_INTERFACE);
+		s |= ElementStatusTypes::ES_IN_INTERFACE | ElementStatusTypes::ES_H_SLAVE;
 		elem_info(pElem).set_status(s);
-		intfcType = ES_H_SLAVE;
+		intfcType = ElementStatusTypes::ES_H_SLAVE;
 	}
-	
+
 //	add the interface-entry to the info
 	elem_info(pElem).add_entry(interface, iter, intfcType);
 }
-		
+
 template <typename TScheduledElemMap>
 void DistributedGridManager::
 perform_ordered_element_insertion(TScheduledElemMap& elemMap)
-{		
+{
 	for(auto iter = elemMap.begin(); iter != elemMap.end(); ++iter)
 	{
 		ScheduledElement& schedElem = iter->second;
 		int objType = schedElem.geomObj->base_object_id();
 		switch(objType)
 		{
-			case VERTEX:
+			case GridBaseObjectId::VERTEX:
 				add_element_to_interface(static_cast<Vertex*>(schedElem.geomObj),
 										schedElem.connectedProcID);
 				break;
-			case EDGE:
+			case GridBaseObjectId::EDGE:
 				add_element_to_interface(static_cast<Edge*>(schedElem.geomObj),
 										schedElem.connectedProcID);
 				break;
-			case FACE:
+			case GridBaseObjectId::FACE:
 				add_element_to_interface(static_cast<Face*>(schedElem.geomObj),
 										schedElem.connectedProcID);
 				break;
-			case VOLUME:
+			case GridBaseObjectId::VOLUME:
 				add_element_to_interface(static_cast<Volume*>(schedElem.geomObj),
 										schedElem.connectedProcID);
 				break;
 		}
 	}
 }
-										
+
 void
 DistributedGridManager::
 end_ordered_element_insertion()
@@ -544,19 +544,19 @@ schedule_element_for_insertion(TScheduledElemMap& elemMap,
 			iter != parentInfo.entries_end(); ++iter)
 		{
 			int intfcType = parentInfo.get_interface_type(iter);
-			if(!(intfcType & (ES_V_MASTER | ES_V_SLAVE))){
+			if(!(intfcType & (ElementStatusTypes::ES_V_MASTER | ElementStatusTypes::ES_V_SLAVE))){
 				//UG_DLOG(LIB_GRID, 3, parentInfo.get_target_proc(iter) << ", ");
 				elemMap.insert(make_pair(parentInfo.get_local_id(iter),
 						ScheduledElement(elem, parentInfo.get_target_proc(iter))));
 			}
 		}
-	
+
 	//	set the status
-		if(parentInfo.get_status() & (ES_H_MASTER))
-			elem_info(elem).set_status(ES_H_MASTER | ES_SCHEDULED_FOR_INTERFACE);
+		if(parentInfo.get_status() & (ElementStatusTypes::ES_H_MASTER))
+			elem_info(elem).set_status(ElementStatusTypes::ES_H_MASTER | ElementStatusTypes::ES_SCHEDULED_FOR_INTERFACE);
 		else{
 			UG_ASSERT(parentInfo.get_status() & (ES_H_SLAVE), "interface-elements have to be either master or slave!");
-			elem_info(elem).set_status(ES_H_SLAVE | ES_SCHEDULED_FOR_INTERFACE);
+			elem_info(elem).set_status(ElementStatusTypes::ES_H_SLAVE | ElementStatusTypes::ES_SCHEDULED_FOR_INTERFACE);
 		}
 	}
 }
@@ -606,19 +606,19 @@ handle_created_element(TElem* pElem, GridObject* pParent,
 		}
 	}
 
-	elem_info(pElem).set_status(ES_NONE);
-	
+	elem_info(pElem).set_status(ElementStatusTypes::ES_NONE);
+
 	if(!m_interfaceManagementEnabled)
 		return;
-		
+
 //	if there is no parent, we can immediately leave.
 	if(!pParent)
 		return;
-	
+
 //	if the parent is not in an interface or scheduled to for an interface,
 //	there is nothing to do either
 	if(!(get_status(pParent) &
-		(ES_IN_INTERFACE | ES_SCHEDULED_FOR_INTERFACE)))
+		(ElementStatusTypes::ES_IN_INTERFACE | ElementStatusTypes::ES_SCHEDULED_FOR_INTERFACE)))
 		return;
 
 	int parentType = pParent->base_object_id();
@@ -629,29 +629,29 @@ handle_created_element(TElem* pElem, GridObject* pParent,
 	{
 		switch(parentType)
 		{
-			case VERTEX:
+			case GridBaseObjectId::VERTEX:
 				//UG_DLOG(LIB_GRID, 3, "scheduling element with vertex-parent to interfaces ");
 				schedule_element_for_insertion(m_vrtMap,
 												pElem,
 												(Vertex*)pParent);
 				//UG_DLOG(LIB_GRID, 3, endl);
 				break;
-				
-			case EDGE:
+
+			case GridBaseObjectId::EDGE:
 				//UG_DLOG(LIB_GRID, 3, "scheduling element with edge-parent to interfaces ");
 				schedule_element_for_insertion(m_edgeMap, pElem,
 												(Edge*)pParent);
 				//UG_DLOG(LIB_GRID, 3, endl);
 				break;
 
-			case FACE:
+			case GridBaseObjectId::FACE:
 				//UG_DLOG(LIB_GRID, 3, "scheduling element with face-parent to interfaces ");
 				schedule_element_for_insertion(m_faceMap, pElem,
 												(Face*)pParent);
 				//UG_DLOG(LIB_GRID, 3, endl);
 				break;
 
-			case VOLUME:
+			case GridBaseObjectId::VOLUME:
 				//UG_DLOG(LIB_GRID, 3, "scheduling element with volume-parent to interfaces ");
 				schedule_element_for_insertion(m_volMap, pElem,
 												(Volume*)pParent);
@@ -742,16 +742,16 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 
 		void create_initial_hash_entry(GeomObj* e)
 		{
-			if(m_dgm->contains_status(e, ES_H_MASTER)){
+			if(m_dgm->contains_status(e, ElementStatusTypes::ES_H_MASTER)){
 				m_hash.insert(e, Entry(pcl::ProcRank(), m_localHMasterCount));
 				++m_localHMasterCount;
 			}
-			else if(m_dgm->contains_status(e, ES_V_MASTER)
-					&& (!m_dgm->contains_status(e, ES_H_SLAVE)))
+			else if(m_dgm->contains_status(e, ElementStatusTypes::ES_V_MASTER)
+					&& (!m_dgm->contains_status(e, ElementStatusTypes::ES_H_SLAVE)))
 			{
 			//	find the lowest connected vslave proc
 				vector<pair<int, size_t> >	interfaceEntries;
-				m_dgm->collect_interface_entries(interfaceEntries, e, ES_V_MASTER);
+				m_dgm->collect_interface_entries(interfaceEntries, e, ElementStatusTypes::ES_V_MASTER);
 				UG_ASSERT(!interfaceEntries.empty(),
 						  "Elem with type " << e->base_object_id() << " at " <<
 						   GetGridObjectCenter(*m_dgm->get_assigned_grid(), e)
@@ -797,7 +797,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 							  "Only v-slaves can communicate associated v-masters.");
 
 					if(sendVMasterRanks){
-						m_dgm->collect_interface_entries(vInterfaces, elem, ES_V_SLAVE);
+						m_dgm->collect_interface_entries(vInterfaces, elem, ElementStatusTypes::ES_V_SLAVE);
 						int numOtherMasters = (int)vInterfaces.size() - 1;
 						Serialize(buff, numOtherMasters);
 						for(size_t i = 0; i < vInterfaces.size(); ++i){
@@ -899,14 +899,14 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 		//	sure, that both have matching elements in their hashes.
 			UG_DLOG(LIB_GRID, 3, "  Initial handshake\n");
 			m_initialHandshake = true;
-			com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, *this);
-			com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, *this);
+			com.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, *this);
+			com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, *this);
 			com.communicate();
 		//	This extra communication step is required for the rare cases, in which
 		//	only a vslave was registered as new-constrained. It most likely wouldn't
 		//	be necessary if one would guarantee, that lower dimensional elements
 		//	of vmasters are always vmasters again.
-			com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, *this);
+			com.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, *this);
 			com.communicate();
 			m_initialHandshake = false;
 
@@ -928,7 +928,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 //				com.send_data(glm.get_layout<GeomObj>(INT_V_MASTER), *this);
 //			if(glm.has_layout<GeomObj>(INT_V_SLAVE))
 //				com.receive_data(glm.get_layout<GeomObj>(INT_V_SLAVE), *this);
-			com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, *this);
+			com.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, *this);
 			com.communicate();
 
 		//	v-slaves now know where their associated v-masters assume that the
@@ -939,7 +939,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 			int localProc = pcl::ProcRank();
 			for(size_t i = 0; i < m_newConstrained.size(); ++i){
 				GeomObj* elem = m_newConstrained[i];
-				if(!m_dgm->contains_status(elem, ES_H_SLAVE)){
+				if(!m_dgm->contains_status(elem, ElementStatusTypes::ES_H_SLAVE)){
 					Entry& entry = m_hash.get_entry(elem);
 					if((entry.hmasterProcInfo.first == localProc)
 						&& (entry.hmasterProcInfo.second == -1))
@@ -956,7 +956,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 //				com.send_data(glm.get_layout<GeomObj>(INT_V_SLAVE), *this);
 //			if(glm.has_layout<GeomObj>(INT_V_MASTER))
 //				com.receive_data(glm.get_layout<GeomObj>(INT_V_MASTER), *this);
-			com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, *this);
+			com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, *this);
 			com.communicate();
 			m_exchangeVMasterRanks = false;
 
@@ -1066,7 +1066,7 @@ create_missing_constrained_h_interfaces(vector<TElem*>& newConstrainedElems)
 	for(size_t i_nce = 0; i_nce < newConstrainedElems.size(); ++i_nce){
 		TElem* e = newConstrainedElems[i_nce];
 	//	nothing to do for h-slave entries, since the h-master won't change.
-		if(contains_status(e, ES_H_SLAVE))
+		if(contains_status(e, ElementStatusTypes::ES_H_SLAVE))
 			continue;
 
 		std::pair<int, int> hmasterInfo = compolHMasters.get_h_master_info(e);
@@ -1078,10 +1078,10 @@ create_missing_constrained_h_interfaces(vector<TElem*>& newConstrainedElems)
 
 		if(hmasterRank == localRank){
 		//	make the local element a hmaster and create hinterfaces to all other vmasters
-			if(contains_status(e, ES_V_SLAVE)){
-				collect_interface_entries(hInterfaces, e, ES_H_SLAVE);
-				collect_interface_entries(hInterfaces, e, ES_H_MASTER, false);
-				collect_interface_entries(vInterfaces, e, ES_V_SLAVE);
+			if(contains_status(e, ElementStatusTypes::ES_V_SLAVE)){
+				collect_interface_entries(hInterfaces, e, ElementStatusTypes::ES_H_SLAVE);
+				collect_interface_entries(hInterfaces, e, ElementStatusTypes::ES_H_MASTER, false);
+				collect_interface_entries(vInterfaces, e, ElementStatusTypes::ES_V_SLAVE);
 
 				for(size_t i_v = 0; i_v < vInterfaces.size(); ++i_v){
 					int tp = vInterfaces[i_v].first;
@@ -1096,14 +1096,14 @@ create_missing_constrained_h_interfaces(vector<TElem*>& newConstrainedElems)
 
 					if(!hInterfaceExists){
 						scheduledElems.insert(make_pair(hmasterOrder, ScheduledElement(e, tp)));
-						elem_info(e).set_status(get_status(e) | ES_H_MASTER | ES_SCHEDULED_FOR_INTERFACE);
+						elem_info(e).set_status(get_status(e) | ElementStatusTypes::ES_H_MASTER | ElementStatusTypes::ES_SCHEDULED_FOR_INTERFACE);
 					}
 				}
 			}
 			else{
 				UG_ASSERT(contains_status(e, ES_V_MASTER), "Only vslaves and vmasters should be handled here!");
-				collect_interface_entries(hInterfaces, e, ES_H_SLAVE);
-				collect_interface_entries(hInterfaces, e, ES_H_MASTER, false);
+				collect_interface_entries(hInterfaces, e, ElementStatusTypes::ES_H_SLAVE);
+				collect_interface_entries(hInterfaces, e, ElementStatusTypes::ES_H_MASTER, false);
 				vector<int>& otherVMasters = compolHMasters.other_v_masters(e);
 				for(size_t i_om = 0; i_om < otherVMasters.size(); ++i_om){
 					int om = otherVMasters[i_om];
@@ -1118,11 +1118,11 @@ create_missing_constrained_h_interfaces(vector<TElem*>& newConstrainedElems)
 
 					if(!hInterfaceExists){
 						scheduledElems.insert(make_pair(hmasterOrder, ScheduledElement(e, om)));
-						elem_info(e).set_status(get_status(e) | ES_H_MASTER | ES_SCHEDULED_FOR_INTERFACE);
+						elem_info(e).set_status(get_status(e) | ElementStatusTypes::ES_H_MASTER | ElementStatusTypes::ES_SCHEDULED_FOR_INTERFACE);
 					}
 				}
 
-				collect_interface_entries(vInterfaces, e, ES_V_MASTER);
+				collect_interface_entries(vInterfaces, e, ElementStatusTypes::ES_V_MASTER);
 				for(size_t i_vm = 0; i_vm < vInterfaces.size(); ++i_vm){
 					int tp = vInterfaces[i_vm].first;
 				//	check whether a h-interface to that process exists already
@@ -1136,16 +1136,16 @@ create_missing_constrained_h_interfaces(vector<TElem*>& newConstrainedElems)
 
 					if(!hInterfaceExists){
 						scheduledElems.insert(make_pair(hmasterOrder, ScheduledElement(e, tp)));
-						elem_info(e).set_status(get_status(e) | ES_H_MASTER | ES_SCHEDULED_FOR_INTERFACE);
+						elem_info(e).set_status(get_status(e) | ElementStatusTypes::ES_H_MASTER | ElementStatusTypes::ES_SCHEDULED_FOR_INTERFACE);
 					}
 				}
 			}
 		}
-		else if(contains_status(e, ES_V_MASTER)){
+		else if(contains_status(e, ElementStatusTypes::ES_V_MASTER)){
 			UG_ASSERT(!contains_status(e, ES_H_MASTER), "This proc should not be considered as h-master proc!");
 		//	create a hslaveinterface to the hmasterRank.
-			collect_interface_entries(hInterfaces, e, ES_H_SLAVE);
-			collect_interface_entries(hInterfaces, e, ES_H_MASTER, false);
+			collect_interface_entries(hInterfaces, e, ElementStatusTypes::ES_H_SLAVE);
+			collect_interface_entries(hInterfaces, e, ElementStatusTypes::ES_H_MASTER, false);
 
 		//	make sure that no h-interface to this process exists already!
 			bool hInterfaceExists = false;
@@ -1158,7 +1158,7 @@ create_missing_constrained_h_interfaces(vector<TElem*>& newConstrainedElems)
 
 			if(!hInterfaceExists){
 				scheduledElems.insert(make_pair(hmasterOrder, ScheduledElement(e, hmasterRank)));
-				elem_info(e).set_status(get_status(e) | ES_H_SLAVE | ES_SCHEDULED_FOR_INTERFACE);
+				elem_info(e).set_status(get_status(e) | ElementStatusTypes::ES_H_SLAVE | ElementStatusTypes::ES_SCHEDULED_FOR_INTERFACE);
 			}
 		}
 	}

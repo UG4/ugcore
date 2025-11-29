@@ -132,8 +132,8 @@ void MarkAlongSurface
 			<< volumeSubsets[i] << " to indices.");
 
 		//	loop elements for marking
-		iter_type iter = sv.begin<Vertex>(surf_si, GridLevel(), SurfaceView::MG_ALL);
-		iter_type iterEnd = sv.end<Vertex>(surf_si, GridLevel(), SurfaceView::MG_ALL);
+		iter_type iter = sv.begin<Vertex>(surf_si, GridLevel(), SurfaceView::SurfaceConstants::MG_ALL);
+		iter_type iterEnd = sv.end<Vertex>(surf_si, GridLevel(), SurfaceView::SurfaceConstants::MG_ALL);
 		for (; iter != iterEnd; ++iter)
 		{
 			Vertex* v = *iter;
@@ -143,10 +143,10 @@ void MarkAlongSurface
 			for (size_t j = 0; j < el_sz; ++j)
 			{
 				int elem_si = spSH->get_subset_index(el[j]);
-				if (elem_si == vol_si && !sv.surface_state(el[j]).contains(SurfaceView::MG_SHADOW_PURE))
+				if (elem_si == vol_si && !sv.surface_state(el[j]).contains(SurfaceView::SurfaceConstants::MG_SHADOW_PURE))
 				{
 					// mark the element for anisotropic refinement
-					refiner->mark(el[j], RM_REFINE);
+					refiner->mark(el[j], RefinementMark::RM_REFINE);
 				}
 			}
 		}
@@ -171,8 +171,8 @@ void MarkAnisotropic
 
 	// get surface view and prepare loop over all surface elements
 	SurfaceView sv(domain->subset_handler());
-	const_iterator iter = sv.begin<elem_type>(GridLevel(), SurfaceView::ALL_BUT_SHADOW_COPY);
-	const_iterator iterEnd = sv.end<elem_type>(GridLevel(), SurfaceView::ALL_BUT_SHADOW_COPY);
+	const_iterator iter = sv.begin<elem_type>(GridLevel(), SurfaceView::SurfaceConstants::ALL_BUT_SHADOW_COPY);
+	const_iterator iterEnd = sv.end<elem_type>(GridLevel(), SurfaceView::SurfaceConstants::ALL_BUT_SHADOW_COPY);
 
 	// loop elements for marking
 	std::vector<Edge*> longEdges;
@@ -180,23 +180,23 @@ void MarkAnisotropic
 	{
 		longEdges.clear();
 		AnisotropyState state = long_edges_of_anisotropic_elem(*iter, grid, aaPos, thresholdRatio, longEdges);
-		if (state != ISOTROPIC)
+		if (state != AnisotropyState::ISOTROPIC)
 		{
 			// mark elem
-			refiner->mark(*iter, RM_CLOSURE);
+			refiner->mark(*iter, RefinementMark::RM_CLOSURE);
 
 			// mark long edges
 			const size_t nEdges = longEdges.size();
 			for (size_t e = 0; e < nEdges; ++e)
-				refiner->mark(longEdges[e], RM_FULL);
+				refiner->mark(longEdges[e], RefinementMark::RM_FULL);
 
 			// mark all sides
 			typename Grid::traits<side_type>::secure_container sl;
 			grid.associated_elements(sl, *iter);
 			const size_t slSz = sl.size();
 			for (size_t s = 0; s < slSz; ++s)
-				if (refiner->get_mark(sl[s]) != RM_FULL)
-					refiner->mark(sl[s], RM_CLOSURE);
+				if (refiner->get_mark(sl[s]) != RefinementMark::RM_FULL)
+					refiner->mark(sl[s], RefinementMark::RM_CLOSURE);
 		}
 	}
 }
@@ -219,8 +219,8 @@ void MarkAnisotropicOnlyX
 
 	// get surface view and prepare loop over all surface elements
 	SurfaceView sv(domain->subset_handler());
-	const_iterator iter = sv.begin<elem_type>(GridLevel(), SurfaceView::ALL_BUT_SHADOW_COPY);
-	const_iterator iterEnd = sv.end<elem_type>(GridLevel(), SurfaceView::ALL_BUT_SHADOW_COPY);
+	const_iterator iter = sv.begin<elem_type>(GridLevel(), SurfaceView::SurfaceConstants::ALL_BUT_SHADOW_COPY);
+	const_iterator iterEnd = sv.end<elem_type>(GridLevel(), SurfaceView::SurfaceConstants::ALL_BUT_SHADOW_COPY);
 
 	// loop elements for marking
 	std::vector<Edge*> longEdges;
@@ -228,7 +228,7 @@ void MarkAnisotropicOnlyX
 	{
 		longEdges.clear();
 		AnisotropyState state = long_edges_of_anisotropic_elem(*iter, grid, aaPos, thresholdRatio, longEdges);
-		if (state == ISOTROPIC)
+		if (state == AnisotropyState::ISOTROPIC)
 			continue;
 
 		UG_COND_THROW(!longEdges.size(), "Element is anisotropic, but no long edges present.");
@@ -241,20 +241,20 @@ void MarkAnisotropicOnlyX
 		if (fabs(dir[0]) > 0.9)
 		{
 			// mark elem
-			refiner->mark(*iter, RM_CLOSURE);
+			refiner->mark(*iter, RefinementMark::RM_CLOSURE);
 
 			// mark long edges
 			const size_t nEdges = longEdges.size();
 			for (size_t e = 0; e < nEdges; ++e)
-				refiner->mark(longEdges[e], RM_FULL);
+				refiner->mark(longEdges[e], RefinementMark::RM_FULL);
 
 			// mark all sides
 			typename Grid::traits<side_type>::secure_container sl;
 			grid.associated_elements(sl, *iter);
 			const size_t slSz = sl.size();
 			for (size_t s = 0; s < slSz; ++s)
-				if (refiner->get_mark(sl[s]) != RM_FULL)
-					refiner->mark(sl[s], RM_CLOSURE);
+				if (refiner->get_mark(sl[s]) != RefinementMark::RM_FULL)
+					refiner->mark(sl[s], RefinementMark::RM_CLOSURE);
 		}
 	}
 }

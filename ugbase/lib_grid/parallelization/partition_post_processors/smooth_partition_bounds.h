@@ -120,7 +120,7 @@ class SmoothPartitionBounds : public IPartitionPostProcessor
 						mg.associated_elements(sides, e);
 						int numOwnSubsetNbrs = 0;
 						for(size_t _vfeI = 0; _vfeI < sides.size(); ++_vfeI){ side_t* s = sides[_vfeI];{
-							if(s->reference_object_id() == ROID_QUADRILATERAL){
+							if(s->reference_object_id() == ReferenceObjectID::ROID_QUADRILATERAL){
 								const subset_pair_t& nbrs = aaSubsetNbrs[s];
 								if(nbrs.first == si && nbrs.second == si)
 									++numOwnSubsetNbrs;

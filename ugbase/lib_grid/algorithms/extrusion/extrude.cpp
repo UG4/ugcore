@@ -122,7 +122,7 @@ void Extrude(Grid& grid,
 //	orientation later on (only if pvEdgesInOut has been specified).
 	vector<Face*> vNewFaces;
 	bool bRecordNewFaces = false;
-	if((pvEdgesInOut != nullptr) && (extrusionOptions & EO_CREATE_FACES))
+	if((pvEdgesInOut != nullptr) && (extrusionOptions & ExtrusionOptions::EO_CREATE_FACES))
 	{
 		if(!pvEdgesInOut->empty()){
 			bRecordNewFaces = true;
@@ -196,7 +196,7 @@ void Extrude(Grid& grid,
 			vEdges[i] = eNew;
 
 		//	finally create the face.
-			if(extrusionOptions & EO_CREATE_FACES)
+			if(extrusionOptions & ExtrusionOptions::EO_CREATE_FACES)
 			{
 			//	create a quadrilateral from the four points.
 			//	the orientation will be done later on.
@@ -248,7 +248,7 @@ void Extrude(Grid& grid,
 				fNew = *grid.create<Triangle>(TriangleDescriptor(v[0], v[1], v[2]), f);
 
 			//	create the volume
-				if(extrusionOptions & EO_CREATE_VOLUMES)
+				if(extrusionOptions & ExtrusionOptions::EO_CREATE_VOLUMES)
 				{
 					Prism prism(f->vertex(0), f->vertex(1), f->vertex(2),
 								fNew->vertex(0), fNew->vertex(1), fNew->vertex(2));
@@ -270,7 +270,7 @@ void Extrude(Grid& grid,
 				fNew = *grid.create<Quadrilateral>(QuadrilateralDescriptor(v[0], v[1], v[2], v[3]), f);
 
 			//	create the volume
-				if(extrusionOptions & EO_CREATE_VOLUMES)
+				if(extrusionOptions & ExtrusionOptions::EO_CREATE_VOLUMES)
 				{
 					Hexahedron hex(f->vertex(0), f->vertex(1), f->vertex(2), f->vertex(3),
 								   fNew->vertex(0), fNew->vertex(1), fNew->vertex(2), fNew->vertex(3));

@@ -590,13 +590,13 @@ static void SaveCoarsenMarksToFile(ISelector& sel, const char* filename)
 		ISelector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
 			case RM_COARSEN: sh.assign_subset(*iter, 0); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_ALL: sh.assign_subset(*iter, 1); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_PARTIAL: sh.assign_subset(*iter, 2); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_NONE: sh.assign_subset(*iter, 3); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_UNKNOWN: sh.assign_subset(*iter, 4); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_INVALID: sh.assign_subset(*iter, 5); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_REPLACE: sh.assign_subset(*iter, 6); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_NO_NBRS: sh.assign_subset(*iter, 7); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_ALL: sh.assign_subset(*iter, 1); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_PARTIAL: sh.assign_subset(*iter, 2); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_NONE: sh.assign_subset(*iter, 3); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_UNKNOWN: sh.assign_subset(*iter, 4); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_INVALID: sh.assign_subset(*iter, 5); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_REPLACE: sh.assign_subset(*iter, 6); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_NO_NBRS: sh.assign_subset(*iter, 7); break;
 		}
 	}
 
@@ -604,13 +604,13 @@ static void SaveCoarsenMarksToFile(ISelector& sel, const char* filename)
 		ISelector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
 			case RM_COARSEN: sh.assign_subset(*iter, 0); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_ALL: sh.assign_subset(*iter, 1); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_PARTIAL: sh.assign_subset(*iter, 2); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_NONE: sh.assign_subset(*iter, 3); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_UNKNOWN: sh.assign_subset(*iter, 4); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_INVALID: sh.assign_subset(*iter, 5); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_REPLACE: sh.assign_subset(*iter, 6); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_NO_NBRS: sh.assign_subset(*iter, 7); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_ALL: sh.assign_subset(*iter, 1); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_PARTIAL: sh.assign_subset(*iter, 2); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_NONE: sh.assign_subset(*iter, 3); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_UNKNOWN: sh.assign_subset(*iter, 4); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_INVALID: sh.assign_subset(*iter, 5); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_REPLACE: sh.assign_subset(*iter, 6); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_NO_NBRS: sh.assign_subset(*iter, 7); break;
 		}
 	}
 
@@ -618,13 +618,13 @@ static void SaveCoarsenMarksToFile(ISelector& sel, const char* filename)
 		ISelector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
 			case RM_COARSEN: sh.assign_subset(*iter, 0); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_ALL: sh.assign_subset(*iter, 1); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_PARTIAL: sh.assign_subset(*iter, 2); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_NONE: sh.assign_subset(*iter, 3); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_UNKNOWN: sh.assign_subset(*iter, 4); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_INVALID: sh.assign_subset(*iter, 5); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_REPLACE: sh.assign_subset(*iter, 6); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_NO_NBRS: sh.assign_subset(*iter, 7); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_ALL: sh.assign_subset(*iter, 1); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_PARTIAL: sh.assign_subset(*iter, 2); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_NONE: sh.assign_subset(*iter, 3); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_UNKNOWN: sh.assign_subset(*iter, 4); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_INVALID: sh.assign_subset(*iter, 5); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_REPLACE: sh.assign_subset(*iter, 6); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_NO_NBRS: sh.assign_subset(*iter, 7); break;
 		}
 	}
 
@@ -632,13 +632,13 @@ static void SaveCoarsenMarksToFile(ISelector& sel, const char* filename)
 		ISelector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
 			case RM_COARSEN: sh.assign_subset(*iter, 0); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_ALL: sh.assign_subset(*iter, 1); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_PARTIAL: sh.assign_subset(*iter, 2); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_NONE: sh.assign_subset(*iter, 3); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_UNKNOWN: sh.assign_subset(*iter, 4); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_INVALID: sh.assign_subset(*iter, 5); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_REPLACE: sh.assign_subset(*iter, 6); break;
-			case HangingNodeRefiner_MultiGrid::HNCM_NO_NBRS: sh.assign_subset(*iter, 7); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_ALL: sh.assign_subset(*iter, 1); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_PARTIAL: sh.assign_subset(*iter, 2); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_NONE: sh.assign_subset(*iter, 3); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_UNKNOWN: sh.assign_subset(*iter, 4); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_INVALID: sh.assign_subset(*iter, 5); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_REPLACE: sh.assign_subset(*iter, 6); break;
+			case HangingNodeRefiner_MultiGrid::HNodeCoarsenMarks::HNCM_NO_NBRS: sh.assign_subset(*iter, 7); break;
 		}
 	}
 
@@ -1080,9 +1080,9 @@ debug_save(sel, "coarsen_marks_01_start");
 	restrict_selection_to_coarsen_families();
 	copy_marks_to_vslaves(true, true, true, true);
 
-	SelectAssociatedVertices(sel, sel.begin<Edge>(), sel.end<Edge>(), HNCM_UNKNOWN);
-	SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>(), HNCM_UNKNOWN);
-	SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>(), HNCM_UNKNOWN);
+	SelectAssociatedVertices(sel, sel.begin<Edge>(), sel.end<Edge>(), HNodeCoarsenMarks::HNCM_UNKNOWN);
+	SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>(), HNodeCoarsenMarks::HNCM_UNKNOWN);
+	SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>(), HNodeCoarsenMarks::HNCM_UNKNOWN);
 	broadcast_marks_horizontally(true, false, false);
 	copy_marks_to_vmasters(true, false, false, false);
 
@@ -1106,7 +1106,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 		{
 			Vertex* e = *iter;
 
-			if(sel.get_selection_status(e) == HNCM_UNKNOWN){
+			if(sel.get_selection_status(e) == HNodeCoarsenMarks::HNCM_UNKNOWN){
 				size_t numSel = 0;
 				size_t numNbrs = 0;
 				if(gotVols){
@@ -1128,14 +1128,14 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 
 				if(numNbrs > 0){
 					if(numSel == 0)
-						sel.select(e, HNCM_NONE);
+						sel.select(e, HNodeCoarsenMarks::HNCM_NONE);
 					else if(numSel < numNbrs)
-						sel.select(e, HNCM_PARTIAL);
+						sel.select(e, HNodeCoarsenMarks::HNCM_PARTIAL);
 					else
-						sel.select(e, HNCM_ALL);
+						sel.select(e, HNodeCoarsenMarks::HNCM_ALL);
 				}
 				else
-					sel.select(e, HNCM_NO_NBRS);
+					sel.select(e, HNodeCoarsenMarks::HNCM_NO_NBRS);
 			}
 		}
 
@@ -1148,7 +1148,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 		{
 			Vertex* e = *iter;
 			++iter;
-			if(sel.get_selection_status(e) == HNCM_NONE)
+			if(sel.get_selection_status(e) == HNodeCoarsenMarks::HNCM_NONE)
 				sel.deselect(e);
 		}
 
@@ -1160,9 +1160,9 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 		{
 			Vertex* e = *iter;
 			Vertex* c = mg.get_child_vertex(e);
-			if(c && sel.get_selection_status(c) != HNCM_ALL){
+			if(c && sel.get_selection_status(c) != HNodeCoarsenMarks::HNCM_ALL){
 				foundInvalid = true;
-				sel.select(e, HNCM_INVALID);
+				sel.select(e, HNodeCoarsenMarks::HNCM_INVALID);
 			}
 		}
 
@@ -1185,7 +1185,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 		{
 			Vertex* e = *iter;
 			++iter;
-			if(sel.get_selection_status(e) == HNCM_INVALID){
+			if(sel.get_selection_status(e) == HNodeCoarsenMarks::HNCM_INVALID){
 				if(gotVols){
 					mg.associated_elements(vols, e);
 					for(size_t i_vol = 0; i_vol < vols.size(); ++i_vol){
@@ -1198,11 +1198,11 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 							for(size_t i_vrt = 0; i_vrt < vrts.size(); ++i_vrt){
 								Vertex* vrt = vrts[i_vrt];
 								if(sel.is_selected(vrt))
-									sel.select(vrt, HNCM_UNKNOWN);
+									sel.select(vrt, HNodeCoarsenMarks::HNCM_UNKNOWN);
 
 								Vertex* c = mg.get_child_vertex(vrt);
 								if(c && sel.is_selected(c)){
-									sel.select(c, HNCM_UNKNOWN);
+									sel.select(c, HNodeCoarsenMarks::HNCM_UNKNOWN);
 								}
 							}
 
@@ -1212,11 +1212,11 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 								Edge* edge = edges[i_edge];
 								if(sel.is_selected(edge))
-									sel.select(edge, HNCM_UNKNOWN);
+									sel.select(edge, HNodeCoarsenMarks::HNCM_UNKNOWN);
 
 								Vertex* c = mg.get_child_vertex(edge);
 								if(c && sel.is_selected(c)){
-									sel.select(c, HNCM_UNKNOWN);
+									sel.select(c, HNodeCoarsenMarks::HNCM_UNKNOWN);
 								}
 							}
 
@@ -1224,11 +1224,11 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 							for(size_t i_face = 0; i_face < faces.size(); ++i_face){
 								Face* f = faces[i_face];
 								if(sel.is_selected(f))
-									sel.select(f, HNCM_UNKNOWN);
+									sel.select(f, HNodeCoarsenMarks::HNCM_UNKNOWN);
 
 								Vertex* c = mg.get_child_vertex(f);
 								if(c && sel.is_selected(c)){
-									sel.select(c, HNCM_UNKNOWN);
+									sel.select(c, HNodeCoarsenMarks::HNCM_UNKNOWN);
 								}
 							}
 
@@ -1247,11 +1247,11 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 							for(size_t i_vrt = 0; i_vrt < vrts.size(); ++i_vrt){
 								Vertex* vrt = vrts[i_vrt];
 								if(sel.is_selected(vrt))
-									sel.select(vrt, HNCM_UNKNOWN);
+									sel.select(vrt, HNodeCoarsenMarks::HNCM_UNKNOWN);
 
 								Vertex* c = mg.get_child_vertex(vrt);
 								if(c && sel.is_selected(c)){
-									sel.select(c, HNCM_UNKNOWN);
+									sel.select(c, HNodeCoarsenMarks::HNCM_UNKNOWN);
 								}
 							}
 
@@ -1260,11 +1260,11 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 								Edge* edge = edges[i_edge];
 								if(sel.is_selected(edge))
-									sel.select(edge, HNCM_UNKNOWN);
+									sel.select(edge, HNodeCoarsenMarks::HNCM_UNKNOWN);
 
 								Vertex* c = mg.get_child_vertex(edge);
 								if(c && sel.is_selected(c)){
-									sel.select(c, HNCM_UNKNOWN);
+									sel.select(c, HNodeCoarsenMarks::HNCM_UNKNOWN);
 								}
 							}
 						}
@@ -1272,7 +1272,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 				}
 
 			//	mark the formerly invalid vertex as unknown
-				sel.select(e, HNCM_UNKNOWN);
+				sel.select(e, HNodeCoarsenMarks::HNCM_UNKNOWN);
 			}
 		}
 
@@ -1291,10 +1291,10 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 
 
 	//	find vertices which were marked as unknown and prepare the candidates array for the next run
-		for(selector_t::traits<Vertex>::iterator iter = sel.begin<Vertex>();
-			iter != sel.end<Vertex>(); ++iter)
+		for(auto iter = sel.begin<Vertex>();
+		    iter != sel.end<Vertex>(); ++iter)
 		{
-			if(sel.get_selection_status(*iter) == HNCM_UNKNOWN)
+			if(sel.get_selection_status(*iter) == HNodeCoarsenMarks::HNCM_UNKNOWN)
 				vvrts.push_back(*iter);
 		}
 	}
@@ -1302,8 +1302,8 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 debug_save(sel, "coarsen_marks_03_irregularities_resolved");
 
 //	finally classify faces and edges
-	SelectAssociatedFaces(sel, sel.begin<Volume>(), sel.end<Volume>(), HNCM_ALL);
-	SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>(), HNCM_ALL);
+	SelectAssociatedFaces(sel, sel.begin<Volume>(), sel.end<Volume>(), HNodeCoarsenMarks::HNCM_ALL);
+	SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>(), HNodeCoarsenMarks::HNCM_ALL);
 
 //	we only have to communicate face marks if volumes exist
 	if(gotVols){
@@ -1325,7 +1325,7 @@ debug_save(sel, "coarsen_marks_03_irregularities_resolved");
 			mg.associated_elements(vols, f);
 			for(size_t i = 0; i < vols.size(); ++i){
 				if(!sel.is_selected(vols[i])){
-					sel.select(f, HNCM_PARTIAL);
+					sel.select(f, HNodeCoarsenMarks::HNCM_PARTIAL);
 					break;
 				}
 			}
@@ -1356,7 +1356,7 @@ debug_save(sel, "coarsen_marks_03_irregularities_resolved");
 			mg.associated_elements(faces, e);
 			for(size_t i = 0; i < faces.size(); ++i){
 				if(!sel.is_selected(faces[i])){
-					sel.select(e, HNCM_PARTIAL);
+					sel.select(e, HNodeCoarsenMarks::HNCM_PARTIAL);
 					break;
 				}
 			}
@@ -1395,11 +1395,11 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 		Edge* e = *iter;
 		if(GridObject* parent = mg.get_parent(e)){
 			bool isConstrained = e->is_constrained();
-			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
-			    ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
+			if((isConstrained && (sel.get_selection_status(e) == HNodeCoarsenMarks::HNCM_ALL)) ||
+			    ((!isConstrained) && (sel.get_selection_status(*iter) == HNodeCoarsenMarks::HNCM_PARTIAL)))
 			{
 				if(!sel.is_selected(parent))
-					sel.select(parent, HNCM_REPLACE);
+					sel.select(parent, HNodeCoarsenMarks::HNCM_REPLACE);
 			}
 		}
 	}
@@ -1411,11 +1411,11 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 			Face* e = *iter;
 			if(GridObject* parent = mg.get_parent(e)){
 				bool isConstrained = e->is_constrained();
-				if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
-				   ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
+				if((isConstrained && (sel.get_selection_status(e) == HNodeCoarsenMarks::HNCM_ALL)) ||
+				   ((!isConstrained) && (sel.get_selection_status(*iter) == HNodeCoarsenMarks::HNCM_PARTIAL)))
 				{
 					if(!sel.is_selected(parent))
-						sel.select(parent, HNCM_REPLACE);
+						sel.select(parent, HNodeCoarsenMarks::HNCM_REPLACE);
 				}
 			}
 		}
@@ -1497,13 +1497,13 @@ We have to handle elements as follows:
 
 		switch(selState){
 			case RM_COARSEN:
-			case HNCM_ALL:{
+			case HNodeCoarsenMarks::HNCM_ALL:{
 			//	this should only be set on normal or constrained faces
 				assert(!elem->is_constraining());
 				mg.erase(elem);
 			}break;
 
-			case HNCM_PARTIAL:{
+			case HNodeCoarsenMarks::HNCM_PARTIAL:{
 				if(elem->is_constrained()){
 				//	a constrained element where not all nbrs are selected
 				//	will be kept as it is.
@@ -1560,7 +1560,7 @@ We have to handle elements as follows:
 
 			}break;
 
-			case HNCM_REPLACE:{
+			case HNodeCoarsenMarks::HNCM_REPLACE:{
 				assert(!elem->is_constrained());
 				if(elem->is_constraining()){
 					#ifdef UG_DEBUG
@@ -1638,13 +1638,13 @@ We have to handle elements as follows:
 
 		switch(selState){
 			case RM_COARSEN:
-			case HNCM_ALL:{
+			case HNodeCoarsenMarks::HNCM_ALL:{
 			//	this should only be set on normal or constrained edges
 				assert(!elem->is_constraining());
 				mg.erase(elem);
 			}break;
 
-			case HNCM_PARTIAL:{
+			case HNodeCoarsenMarks::HNCM_PARTIAL:{
 				if(elem->is_constrained()){
 				//	a constrained element where not all nbrs are selected
 				//	will be kept as it is.
@@ -1700,7 +1700,7 @@ We have to handle elements as follows:
 				}
 			}break;
 
-			case HNCM_REPLACE:{
+			case HNodeCoarsenMarks::HNCM_REPLACE:{
 			//	this should only not be set on constrained edges
 				UG_ASSERT(!elem->is_constrained(), "RegularEdge should not be constrained: "
 						  << ElementDebugInfo(mg, elem));
@@ -1756,11 +1756,11 @@ We have to handle elements as follows:
 
 		switch(selState){
 			case RM_COARSEN:
-			case HNCM_ALL:{
+			case HNodeCoarsenMarks::HNCM_ALL:{
 				mg.erase(elem);
 			}break;
 
-			case HNCM_PARTIAL:{
+			case HNodeCoarsenMarks::HNCM_PARTIAL:{
 				if(elem->is_constrained()){
 				//	a constrained element where not all nbrs are selected
 				//	will be kept as it is.

@@ -119,8 +119,8 @@ void ConstructGridOfSCVF(ISubsetHandler& shOut,
 
 	// iterators for primary grid
 	typename SurfaceView::traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = surfView.begin<TElem>(GridLevel(GridLevel::TOP, GridLevel::SURFACE, false), SurfaceView::SURFACE);
-	iterEnd = surfView.end<TElem>(GridLevel(GridLevel::TOP, GridLevel::SURFACE, false), SurfaceView::SURFACE);
+	iterBegin = surfView.begin<TElem>(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false), SurfaceView::SURFACE);
+	iterEnd = surfView.end<TElem>(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false), SurfaceView::SURFACE);
 
 	// corners of element
 	std::vector<MathVector<TWorldDim> > vCornerCoords;
@@ -306,8 +306,8 @@ void ConstructGridOfSCV(ISubsetHandler& shOut, const SurfaceView& surfView,
 
 	// iterators for primary grid
 	typename SurfaceView::traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = surfView.begin<TElem>(GridLevel(GridLevel::TOP, GridLevel::SURFACE, false), SurfaceView::SURFACE);
-	iterEnd = surfView.end<TElem>(GridLevel(GridLevel::TOP, GridLevel::SURFACE, false), SurfaceView::SURFACE);
+	iterBegin = surfView.begin<TElem>(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false), SurfaceView::SURFACE);
+	iterEnd = surfView.end<TElem>(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false), SurfaceView::SURFACE);
 
 	// corners of element
 	std::vector<MathVector<TWorldDim> > vCornerCoords;

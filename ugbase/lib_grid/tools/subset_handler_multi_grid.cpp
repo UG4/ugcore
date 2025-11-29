@@ -123,16 +123,16 @@ void MultiGridSubsetHandler::assign_grid(MultiGrid& mg)
 
 	m_pMG = &mg;
 
-	ISubsetHandler::set_grid(&mg);
+	set_grid(&mg);
 
 //	attach shared entries
-	if(elements_are_supported(SHE_VERTEX))
+	if(elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
 		m_pGrid->attach_to_vertices(m_aSharedEntryVRT);
-	if(elements_are_supported(SHE_EDGE))
+	if(elements_are_supported(SubsetHandlerElements::SHE_EDGE))
 		m_pGrid->attach_to_edges(m_aSharedEntryEDGE);
-	if(elements_are_supported(SHE_FACE))
+	if(elements_are_supported(SubsetHandlerElements::SHE_FACE))
 		m_pGrid->attach_to_faces(m_aSharedEntryFACE);
-	if(elements_are_supported(SHE_VOLUME))
+	if(elements_are_supported(SubsetHandlerElements::SHE_VOLUME))
 		m_pGrid->attach_to_volumes(m_aSharedEntryVOL);
 
 //	register the callback
@@ -144,13 +144,13 @@ void MultiGridSubsetHandler::assign_grid(MultiGrid& mg)
 
 void MultiGridSubsetHandler::detach_data()
 {
-	if(elements_are_supported(SHE_VERTEX))
+	if(elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
 		m_pGrid->detach_from_vertices(m_aSharedEntryVRT);
-	if(elements_are_supported(SHE_EDGE))
+	if(elements_are_supported(SubsetHandlerElements::SHE_EDGE))
 		m_pGrid->detach_from_edges(m_aSharedEntryEDGE);
-	if(elements_are_supported(SHE_FACE))
+	if(elements_are_supported(SubsetHandlerElements::SHE_FACE))
 		m_pGrid->detach_from_faces(m_aSharedEntryFACE);
-	if(elements_are_supported(SHE_VOLUME))
+	if(elements_are_supported(SubsetHandlerElements::SHE_VOLUME))
 		m_pGrid->detach_from_volumes(m_aSharedEntryVOL);
 }
 
@@ -216,25 +216,25 @@ assign_subset_impl(TElem* elem, int subsetIndex)
 
 void MultiGridSubsetHandler::assign_subset(Vertex* elem, int subsetIndex)
 {
-	if(elements_are_supported(SHE_VERTEX))
+	if(elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
 		assign_subset_impl(elem, subsetIndex);
 }
 
 void MultiGridSubsetHandler::assign_subset(Edge* elem, int subsetIndex)
 {
-	if(elements_are_supported(SHE_EDGE))
+	if(elements_are_supported(SubsetHandlerElements::SHE_EDGE))
 		assign_subset_impl(elem, subsetIndex);
 }
 
 void MultiGridSubsetHandler::assign_subset(Face* elem, int subsetIndex)
 {
-	if(elements_are_supported(SHE_FACE))
+	if(elements_are_supported(SubsetHandlerElements::SHE_FACE))
 		assign_subset_impl(elem, subsetIndex);
 }
 
 void MultiGridSubsetHandler::assign_subset(Volume* elem, int subsetIndex)
 {
-	if(elements_are_supported(SHE_VOLUME))
+	if(elements_are_supported(SubsetHandlerElements::SHE_VOLUME))
 		assign_subset_impl(elem, subsetIndex);
 }
 
@@ -243,13 +243,13 @@ change_subset_indices(int indOld, int indNew)
 {
 	if(m_pGrid)
 	{
-		if(elements_are_supported(SHE_VERTEX))
+		if(elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
 			change_elem_subset_indices<Vertex>(indOld, indNew);
-		if(elements_are_supported(SHE_EDGE))
+		if(elements_are_supported(SubsetHandlerElements::SHE_EDGE))
 			change_elem_subset_indices<Edge>(indOld, indNew);
-		if(elements_are_supported(SHE_FACE))
+		if(elements_are_supported(SubsetHandlerElements::SHE_FACE))
 			change_elem_subset_indices<Face>(indOld, indNew);
-		if(elements_are_supported(SHE_VOLUME))
+		if(elements_are_supported(SubsetHandlerElements::SHE_VOLUME))
 			change_elem_subset_indices<Volume>(indOld, indNew);
 	}
 }
@@ -428,18 +428,17 @@ get_grid_objects_in_level(int level) const
 
 MultiGridSubsetHandler::Subset* MultiGridSubsetHandler::new_subset()
 {
-
-	Subset* sub = new Subset;
-	if(elements_are_supported(SHE_VERTEX))
+	auto sub = new Subset();
+	if(elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
 		sub->m_vertices.get_container().set_pipe(
 				&m_pGrid->get_attachment_pipe<Vertex>(), m_aSharedEntryVRT);
-	if(elements_are_supported(SHE_EDGE))
+	if(elements_are_supported(SubsetHandlerElements::SHE_EDGE))
 		sub->m_edges.get_container().set_pipe(
 				&m_pGrid->get_attachment_pipe<Edge>(), m_aSharedEntryEDGE);
-	if(elements_are_supported(SHE_FACE))
+	if(elements_are_supported(SubsetHandlerElements::SHE_FACE))
 		sub->m_faces.get_container().set_pipe(
 				&m_pGrid->get_attachment_pipe<Face>(), m_aSharedEntryFACE);
-	if(elements_are_supported(SHE_VOLUME))
+	if(elements_are_supported(SubsetHandlerElements::SHE_VOLUME))
 		sub->m_volumes.get_container().set_pipe(
 				&m_pGrid->get_attachment_pipe<Volume>(), m_aSharedEntryVOL);
 	return sub;
@@ -464,7 +463,7 @@ void MultiGridSubsetHandler::add_subset_to_all_levels()
 void MultiGridSubsetHandler::
 multigrid_changed(const GridMessage_MultiGridChanged& gm)
 {
-	if(gm.message_type() == GMMGCT_LEVEL_ADDED)
+	if(gm.message_type() == GridMessageMultiGridChangedType::GMMGCT_LEVEL_ADDED)
 		level_required(gm.num_levels_in_grid() - 1);
 }
 

@@ -1631,7 +1631,7 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 //	here we collect all vertices on which a merge has to be performed at the end
 //	of the algorithm (vertices created through edge-edge intersections inside a triangle)
 	vector<Vertex*> cutVertices;
-	Grid tgrid(GRIDOPT_STANDARD_INTERCONNECTION);
+	Grid tgrid(GridOptions::GRIDOPT_STANDARD_INTERCONNECTION);
 	AInt aInt;
 	AVertex aVrt;
 	tgrid.attach_to_vertices(aPos);

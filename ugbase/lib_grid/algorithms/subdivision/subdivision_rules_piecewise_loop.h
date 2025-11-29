@@ -70,7 +70,7 @@ class SubdivRules_PLoop
 	////////////////////////////////
 	//	WEIGHTS
 		number ref_even_inner_center_weight(size_t valence) const
-			{return 1. - (number)valence * get_beta(valence);}
+			{return 1. - static_cast<number>(valence) * get_beta(valence);}
 		
 		number ref_even_inner_nbr_weight(size_t valence) const
 			{return get_beta(valence);}

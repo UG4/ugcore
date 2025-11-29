@@ -184,7 +184,7 @@ void ConstructParallelDualGraphMGLevel(
 		pcl::ProcessCommunicator procCom,
 		Attachment<TIndexType>* paIndex = nullptr,
 		TGeomBaseObj** pGeomObjsOut = nullptr,
-		NeighborhoodType nbhType = NHT_DEFAULT)
+		NeighborhoodType nbhType = NeighborhoodType::NHT_DEFAULT)
 {
 	GDIST_PROFILE_FUNC();
 	using namespace std;

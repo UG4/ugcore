@@ -247,7 +247,7 @@ class CopyAttachmentHandler : public GridObserver
 		{
 			register_as_observer(SmartPtr<MultiGrid> mg, CopyAttachmentHandler<Vertex, TAttachment>* cah)
 			{
-				mg->register_observer(cah, OT_VERTEX_OBSERVER);
+				mg->register_observer(cah, ObserverType::OT_VERTEX_OBSERVER);
 			}
 		};
 		template <typename Dummy>
@@ -255,7 +255,7 @@ class CopyAttachmentHandler : public GridObserver
 		{
 			register_as_observer(SmartPtr<MultiGrid> mg, CopyAttachmentHandler<Edge, TAttachment>* cah)
 			{
-				mg->register_observer(cah, OT_EDGE_OBSERVER);
+				mg->register_observer(cah, ObserverType::OT_EDGE_OBSERVER);
 			}
 		};
 		template <typename Dummy>
@@ -263,7 +263,7 @@ class CopyAttachmentHandler : public GridObserver
 		{
 			register_as_observer(SmartPtr<MultiGrid> mg, CopyAttachmentHandler<Face, TAttachment>* cah)
 			{
-				mg->register_observer(this, OT_FACE_OBSERVER);
+				mg->register_observer(this, ObserverType::OT_FACE_OBSERVER);
 			}
 		};
 		template <typename Dummy>
@@ -271,7 +271,7 @@ class CopyAttachmentHandler : public GridObserver
 		{
 			register_as_observer(SmartPtr<MultiGrid> mg, CopyAttachmentHandler<Volume, TAttachment>* cah)
 			{
-				mg->register_observer(this, OT_VOLUME_OBSERVER);
+				mg->register_observer(this, ObserverType::OT_VOLUME_OBSERVER);
 			}
 		};
 
@@ -296,7 +296,7 @@ class CopyAttachmentHandler : public GridObserver
 				pcl::InterfaceCommunicator<layout_type> icom;
 
 				ComPol_CopyAttachment<layout_type, TAttachment> compolCopy(*m_spMG, m_a);
-				icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopy);
+				icom.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, compolCopy);
 				icom.communicate();
 			}
 #endif

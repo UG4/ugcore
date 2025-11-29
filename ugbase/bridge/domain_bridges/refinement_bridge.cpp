@@ -355,7 +355,7 @@ static void MarkForRefinement_AllAnisotropic(SmartPtr<IRefiner> ref)
 		UG_LOG("Refiner is not registered at a grid. Aborting.\n");
 		return;
 	}
-	ref->mark(g->begin<TElem>(), g->end<TElem>(), RM_ANISOTROPIC);
+	ref->mark(g->begin<TElem>(), g->end<TElem>(), RefinementMark::RM_ANISOTROPIC);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -572,7 +572,7 @@ void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 
 	//	we'll mark all volumes as anisotropic, since we currently have to use
 	//	copy elements during anisotropic refinement.
-		refiner.mark(elem, RM_ANISOTROPIC);
+		refiner.mark(elem, RefinementMark::RM_ANISOTROPIC);
 
 		mg.associated_elements(edges, elem);
 
@@ -1498,17 +1498,17 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 
 void MarkNeighborsForFullRefinement(IRefiner& refiner, bool sideNbrsOnly)
 {
-	refiner.mark_neighborhood(1, RM_REFINE, sideNbrsOnly);
+	refiner.mark_neighborhood(1, RefinementMark::RM_REFINE, sideNbrsOnly);
 }
 
 void MarkNeighborsForAnisotropicRefinement(IRefiner& refiner, bool sideNbrsOnly)
 {
-	refiner.mark_neighborhood(1, RM_ANISOTROPIC, sideNbrsOnly);
+	refiner.mark_neighborhood(1, RefinementMark::RM_ANISOTROPIC, sideNbrsOnly);
 }
 
 void MarkNeighborsForLocalRefinement(IRefiner& refiner, bool sideNbrsOnly)
 {
-	refiner.mark_neighborhood(1, RM_LOCAL, sideNbrsOnly);
+	refiner.mark_neighborhood(1, RefinementMark::RM_LOCAL, sideNbrsOnly);
 }
 
 

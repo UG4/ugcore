@@ -47,7 +47,7 @@ namespace ug
 class ParallelGlobalFracturedMediaRefiner : public GlobalFracturedMediaRefiner
 {
 	public:
-		ParallelGlobalFracturedMediaRefiner(DistributedGridManager& distGridMgr, SPRefinementProjector projector = nullptr);
+		explicit ParallelGlobalFracturedMediaRefiner(DistributedGridManager& distGridMgr, SPRefinementProjector projector = nullptr);
 
 		~ParallelGlobalFracturedMediaRefiner() override = default;
 

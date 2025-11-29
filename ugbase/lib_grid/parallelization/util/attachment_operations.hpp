@@ -66,13 +66,13 @@ void AttachmentAllReduce
 
 	ComPol_AttachmentReduce<layout_t, AType> cpAValue (grid, aValue, op);
 	
-	icom.exchange_data (glm, INT_H_SLAVE, INT_H_MASTER, cpAValue);
+	icom.exchange_data (glm, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, cpAValue);
 
 	icom.communicate();
 
 	ComPol_CopyAttachment<layout_t, AType> cpCopyAValue (grid, aValue);
 	
-	icom.exchange_data (glm, INT_H_MASTER, INT_H_SLAVE, cpCopyAValue);
+	icom.exchange_data (glm, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, cpCopyAValue);
 	
 	icom.communicate();
 }

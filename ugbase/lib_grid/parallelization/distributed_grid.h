@@ -54,11 +54,11 @@ namespace ug
  */
 enum ElementStatusTypes
 {
-	ES_NONE = INT_NONE,
-	ES_H_MASTER = INT_H_MASTER,
-	ES_H_SLAVE = INT_H_SLAVE,
-	ES_V_MASTER = INT_V_MASTER,
-	ES_V_SLAVE = INT_V_SLAVE,
+	ES_NONE = InterfaceNodeTypes::INT_NONE,
+	ES_H_MASTER = InterfaceNodeTypes::INT_H_MASTER,
+	ES_H_SLAVE = InterfaceNodeTypes::INT_H_SLAVE,
+	ES_V_MASTER = InterfaceNodeTypes::INT_V_MASTER,
+	ES_V_SLAVE = InterfaceNodeTypes::INT_V_SLAVE,
 
 	//ES_GHOST = 1 << 5,//currently unused
 	ES_SCHEDULED_FOR_INTERFACE = 1 << 6,
@@ -362,13 +362,13 @@ class DistributedGridManager : public GridObserver
 				
 				void set_status(byte_t status)
 				{
-					if(!has_data() && (status == ES_NONE))
+					if(!has_data() && (status == ElementStatusTypes::ES_NONE))
 						return;
 					data().m_status = status;
 				}
 				byte_t get_status() const
 				{
-					if(!has_data()) return ES_NONE;
+					if(!has_data()) return ElementStatusTypes::ES_NONE;
 					return m_data->m_status;
 				}
 				
@@ -380,7 +380,7 @@ class DistributedGridManager : public GridObserver
 
 			protected:
 				struct Data{
-					Data() : m_status(ES_NONE) {}
+					Data() : m_status(ElementStatusTypes::ES_NONE) {}
 					EntryList m_entries;
 					byte_t m_status;
 				};

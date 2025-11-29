@@ -75,9 +75,9 @@ bool ObtainSimpleGrid(SimpleGrid& sgOut, Grid& grid,
 //	find the triangles that are adjacent to the edge between vrt1 and vrt2
 //	at this point we assume that all associated faces are triangles.
 //	If they are not they are simply treated as if they were some.
-	Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrt1);
-	for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt1);
-		iter != iterEnd; ++iter)
+	auto iterEnd = grid.associated_faces_end(vrt1);
+	for(auto iter = grid.associated_faces_begin(vrt1);
+	    iter != iterEnd; ++iter)
 	{
 		Vertex* vUnmarked = nullptr;
 		Face* f = *iter;

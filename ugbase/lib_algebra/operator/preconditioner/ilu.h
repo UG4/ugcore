@@ -497,7 +497,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			return base_type::init(pOp);
 		}
 
-		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op) {
+		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op) override {
 			m_u = nullptr;
 
 			return base_type::init(Op);

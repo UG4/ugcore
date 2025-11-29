@@ -85,8 +85,8 @@ class UG_API RegularEdge : public Edge
 
 		virtual GridObject* create_empty_instance() const	{return new RegularEdge;}
 
-		virtual int container_section() const	{return CSEDGE_REGULAR_EDGE;}
-		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
+		virtual int container_section() const	{return EdgeContainerSections::CSEDGE_REGULAR_EDGE;}
+		virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_EDGE;}
 
 	///	virtual refine. Returns pointers to Edge.
 	/**
@@ -121,10 +121,10 @@ class geometry_traits<RegularEdge>
 
 		enum
 		{
-			CONTAINER_SECTION = CSEDGE_REGULAR_EDGE,
-			BASE_OBJECT_ID = EDGE
+			CONTAINER_SECTION = EdgeContainerSections::CSEDGE_REGULAR_EDGE,
+			BASE_OBJECT_ID = GridBaseObjectId::EDGE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
 };
 
 using RegularEdgeIterator = geometry_traits<RegularEdge>::iterator;
@@ -173,8 +173,8 @@ class UG_API ConstrainedEdge : public Edge
 
 		virtual GridObject* create_empty_instance() const	{return new ConstrainedEdge;}
 
-		virtual int container_section() const	{return CSEDGE_CONSTRAINED_EDGE;}
-		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
+		virtual int container_section() const	{return EdgeContainerSections::CSEDGE_CONSTRAINED_EDGE;}
+		virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_EDGE;}
 
 		virtual bool is_constrained() const			{return true;}
 
@@ -255,10 +255,10 @@ class geometry_traits<ConstrainedEdge>
 
 		enum
 		{
-			CONTAINER_SECTION = CSEDGE_CONSTRAINED_EDGE,
-			BASE_OBJECT_ID = EDGE
+			CONTAINER_SECTION = EdgeContainerSections::CSEDGE_CONSTRAINED_EDGE,
+			BASE_OBJECT_ID = GridBaseObjectId::EDGE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
 };
 
 using ConstrainedEdgeIterator = geometry_traits<ConstrainedEdge>::iterator;
@@ -311,8 +311,8 @@ class UG_API ConstrainingEdge : public Edge
 
 		virtual GridObject* create_empty_instance() const	{return new ConstrainingEdge;}
 
-		virtual int container_section() const	{return CSEDGE_CONSTRAINING_EDGE;}
-		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
+		virtual int container_section() const	{return EdgeContainerSections::CSEDGE_CONSTRAINING_EDGE;}
+		virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_EDGE;}
 
 		virtual bool is_constraining() const	{return true;}
 
@@ -440,10 +440,10 @@ class geometry_traits<ConstrainingEdge>
 
 		enum
 		{
-			CONTAINER_SECTION = CSEDGE_CONSTRAINING_EDGE,
-			BASE_OBJECT_ID = EDGE
+			CONTAINER_SECTION = EdgeContainerSections::CSEDGE_CONSTRAINING_EDGE,
+			BASE_OBJECT_ID = GridBaseObjectId::EDGE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
 };
 
 using ConstrainingEdgeIterator = geometry_traits<ConstrainingEdge>::iterator;

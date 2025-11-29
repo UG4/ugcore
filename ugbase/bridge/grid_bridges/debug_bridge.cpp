@@ -31,6 +31,8 @@
  */
 
 //#include "grid_bridges.h"
+#include <utility>
+
 #include "registry/registry.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/algorithms/problem_detection_util.h"
@@ -42,7 +44,7 @@ namespace bridge{
 
 void RegisterGridBridge_Debug(Registry& reg, string parentGroup)
 {
-	string grp = parentGroup;
+	string grp = std::move(parentGroup);
 
 	reg.add_function("CheckHangingNodeConsistency", static_cast<bool (*)(MultiGrid&)>(&CheckHangingNodeConsistency), grp)
 		.add_function("CheckMultiGridConsistency", &CheckMultiGridConsistency, grp)

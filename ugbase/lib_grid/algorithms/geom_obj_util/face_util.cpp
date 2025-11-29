@@ -149,7 +149,7 @@ int NumAssociatedVolumes(Grid& grid, Face* f)
 //	check if FACEOPT_STORE_ASSOCIATED_VOLUMES is enabled.
 //	if so, use it to count the number of adjacent volumes.
 	int counter = 0;
-	if(grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
+	if(grid.option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
 		for(auto iter = grid.associated_volumes_begin(f);
 		    iter != grid.associated_volumes_end(f); iter++)
@@ -366,10 +366,10 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 //	in the current implementation this method requires, that all edges
 //	are created for all faces.
 //TODO: improve this!
-	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
+	if(!grid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
 	{
 		LOG("WARNING: autoenabling FACEOPT_AUTOGENERATE_EDGES in GetNeighbours(Face).\n");
-		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+		grid.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
 	}
 	
 	if(clearContainer)

@@ -44,13 +44,13 @@ struct ng_info
  * \relates ng_info
  * \ingroup libng
  */
-struct ng_info* ng_info_new(void);
+struct ng_info* ng_info_new();
 
 /**
  * \brief dispose and clean a no longer needed ng_info instance
  * \relates ng_info
  * \ingroup libng
  */
-void ng_info_delete(struct ng_info* ninfo);
+void ng_info_delete(ng_info* ninfo);
 
 #endif

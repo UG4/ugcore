@@ -110,7 +110,7 @@ TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
 		if(!bConservative)
 		{
 		//	erase unused elements.
-			if(!srcGrid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
+			if(!srcGrid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
 			{
 			//	we have to erase the faces manually
 			//	collect them
@@ -125,8 +125,8 @@ TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
 				}
 			}
 
-			if((!srcGrid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)) &&
-				(!srcGrid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)))
+			if((!srcGrid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_EDGES)) &&
+				(!srcGrid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES)))
 			{
 			//	we have to erase them manually
 			//	collect them

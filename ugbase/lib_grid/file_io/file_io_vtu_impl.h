@@ -98,12 +98,12 @@ new_piece(Grid& grid, ISubsetHandler* psh, TPositionAttachment& aPos)
 {
 	using namespace std;
 
-	if(m_pieceMode == OPEN)
+	if(m_pieceMode == Mode::OPEN)
 		end_piece();
 
-	m_pieceMode = OPEN;
-	m_pointDataMode = NONE;
-	m_cellDataMode = NONE;
+	m_pieceMode = Mode::OPEN;
+	m_pointDataMode = Mode::NONE;
+	m_cellDataMode = Mode::NONE;
 
 	ostream& out = out_stream();
 
@@ -226,7 +226,7 @@ grid(Grid& gridOut, size_t index, TPositionAttachment& aPos)
 //	since we have to make sure that no elements are created in between,
 //	we'll first disable all grid-options and reenable them later on
 	uint gridopts = grid.get_options();
-	grid.set_options(GRIDOPT_NONE);
+	grid.set_options(GridOptions::GRIDOPT_NONE);
 
 //	access node data
 	if(!grid.has_vertex_attachment(aPos)){

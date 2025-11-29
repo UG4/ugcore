@@ -62,8 +62,8 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		using ISubsetHandler::assign_subset;
 		
 	public:
-		MultiGridSubsetHandler(uint supportedElements = SHE_ALL);
-		MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements = SHE_ALL);
+		MultiGridSubsetHandler(uint supportedElements = SubsetHandlerElements::SHE_ALL);
+		MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements = SubsetHandlerElements::SHE_ALL);
 	/**	WARNING: Don't call the copy-constructor from derived classes,
 	  *	Since it calls virtual methods.*/
 		MultiGridSubsetHandler(const MultiGridSubsetHandler& sh);

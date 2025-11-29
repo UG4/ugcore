@@ -86,7 +86,7 @@ inline size_t MultiGrid::
 top_level() const
 {
 	if(m_hierarchy.num_subsets() <= 0) return 0;
-	return size_t(m_hierarchy.num_subsets() - 1);
+	return static_cast<size_t>(m_hierarchy.num_subsets() - 1);
 }
 
 template <typename TElem>
@@ -145,10 +145,10 @@ template <typename TChild>
 size_t MultiGrid::num_children(GridObject* elem) const
 {
 	switch(elem->base_object_id()){
-	case VERTEX:	return num_children<TChild>(static_cast<Vertex*>(elem));
-	case EDGE:		return num_children<TChild>(static_cast<Edge*>(elem));
-	case FACE:		return num_children<TChild>(static_cast<Face*>(elem));
-	case VOLUME:	return num_children<TChild>(static_cast<Volume*>(elem));
+	case GridBaseObjectId::VERTEX:	return num_children<TChild>(static_cast<Vertex*>(elem));
+	case GridBaseObjectId::EDGE:		return num_children<TChild>(static_cast<Edge*>(elem));
+	case GridBaseObjectId::FACE:		return num_children<TChild>(static_cast<Face*>(elem));
+	case GridBaseObjectId::VOLUME:	return num_children<TChild>(static_cast<Volume*>(elem));
 	}
 	return 0;
 }
@@ -157,10 +157,10 @@ template <typename TChild>
 TChild* MultiGrid::get_child(GridObject* elem, size_t ind) const
 {
 	switch(elem->base_object_id()){
-	case VERTEX:	return get_child<TChild>(static_cast<Vertex*>(elem), ind);
-	case EDGE:		return get_child<TChild>(static_cast<Edge*>(elem), ind);
-	case FACE:		return get_child<TChild>(static_cast<Face*>(elem), ind);
-	case VOLUME:	return get_child<TChild>(static_cast<Volume*>(elem), ind);
+	case GridBaseObjectId::VERTEX:	return get_child<TChild>(static_cast<Vertex*>(elem), ind);
+	case GridBaseObjectId::EDGE:		return get_child<TChild>(static_cast<Edge*>(elem), ind);
+	case GridBaseObjectId::FACE:		return get_child<TChild>(static_cast<Face*>(elem), ind);
+	case GridBaseObjectId::VOLUME:	return get_child<TChild>(static_cast<Volume*>(elem), ind);
 	}
 	return nullptr;
 }
@@ -190,7 +190,7 @@ associate_parent(TElem* elem, GridObject* parent)
 
 	if(parent){
 		add_child(parent, elem);
-		set_parent_type(elem, (char)parent->base_object_id());
+		set_parent_type(elem, static_cast<char>(parent->base_object_id()));
 	}
 
 	set_parent(elem, parent);
@@ -273,10 +273,10 @@ template <typename TChild>
 void MultiGrid::add_child(GridObject* p, TChild* c)
 {
 	switch(p->base_object_id()){
-	case VERTEX:	add_child(static_cast<Vertex*>(p), c); break;
-	case EDGE:		add_child(static_cast<Edge*>(p), c); break;
-	case FACE:		add_child(static_cast<Face*>(p), c); break;
-	case VOLUME:	add_child(static_cast<Volume*>(p), c); break;
+	case GridBaseObjectId::VERTEX:	add_child(static_cast<Vertex*>(p), c); break;
+	case GridBaseObjectId::EDGE:		add_child(static_cast<Edge*>(p), c); break;
+	case GridBaseObjectId::FACE:		add_child(static_cast<Face*>(p), c); break;
+	case GridBaseObjectId::VOLUME:	add_child(static_cast<Volume*>(p), c); break;
 	}
 }
 
@@ -290,10 +290,10 @@ template <typename TChild>
 void MultiGrid::remove_child(GridObject* p, TChild* c)
 {
 	switch(p->base_object_id()){
-	case VERTEX:	remove_child(static_cast<Vertex*>(p), c); break;
-	case EDGE:		remove_child(static_cast<Edge*>(p), c); break;
-	case FACE:		remove_child(static_cast<Face*>(p), c); break;
-	case VOLUME:	remove_child(static_cast<Volume*>(p), c); break;
+	case GridBaseObjectId::VERTEX:	remove_child(static_cast<Vertex*>(p), c); break;
+	case GridBaseObjectId::EDGE:		remove_child(static_cast<Edge*>(p), c); break;
+	case GridBaseObjectId::FACE:		remove_child(static_cast<Face*>(p), c); break;
+	case GridBaseObjectId::VOLUME:	remove_child(static_cast<Volume*>(p), c); break;
 	}
 }
 

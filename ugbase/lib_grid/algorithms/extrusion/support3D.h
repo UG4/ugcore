@@ -945,7 +945,7 @@ private:
 	{
 		m_status = status;
 
-		if( status < noFracSuDoAtt || status > threeFracSuDoAtt )
+		if( status < VrtxFracStatus::noFracSuDoAtt || status > VrtxFracStatus::threeFracSuDoAtt )
 			return false;
 
 		return true;
@@ -1456,7 +1456,7 @@ public:
 	  m_scaleShiftNormal(0),
 	  m_dim(3),
 	  m_sudo(-1),
-	  m_manifTyp( isArtificial )
+	  m_manifTyp( ManifoldType::isArtificial )
 	{
 	}
 
@@ -1465,7 +1465,7 @@ public:
 	ManifoldDescriptor( VECTOR_TYP const & normalVect,
 						VECTOR_TYP const & baseVect,
 						int sudo = -1,
-						ManifoldType manifTyp = isArtificial,
+						ManifoldType manifTyp = ManifoldType::isArtificial,
 						number scaleShiftNormal = 0
 						)
 	: m_normalVect(normalVect),

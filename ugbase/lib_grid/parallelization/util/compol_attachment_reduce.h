@@ -297,16 +297,16 @@ class ComPol_AttachmentReduce : public pcl::ICommunicationPolicy<TLayout>
 								pcl::ReduceOperation op) :
 			m_grid(grid),
 			m_aa(grid, attachment),
-			m_op(NONE)
+			m_op(ReduceOperation::NONE)
 		{
-			if(op == PCL_RO_MAX)		m_op = MAX;
-			else if(op == PCL_RO_MIN)	m_op = MIN;
-			else if(op == PCL_RO_SUM)	m_op = SUM;
-			else if(op == PCL_RO_PROD)	m_op = PROD;
-			else if(op == PCL_RO_LAND)	m_op = LAND;
-			else if(op == PCL_RO_BAND)	m_op = BAND;
-			else if(op == PCL_RO_LOR)	m_op = LOR;
-			else if(op == PCL_RO_BOR)	m_op = BOR;
+			if(op == PCL_RO_MAX)		m_op = ReduceOperation::MAX;
+			else if(op == PCL_RO_MIN)	m_op = ReduceOperation::MIN;
+			else if(op == PCL_RO_SUM)	m_op = ReduceOperation::SUM;
+			else if(op == PCL_RO_PROD)	m_op = ReduceOperation::PROD;
+			else if(op == PCL_RO_LAND)	m_op = ReduceOperation::LAND;
+			else if(op == PCL_RO_BAND)	m_op = ReduceOperation::BAND;
+			else if(op == PCL_RO_LOR)	m_op = ReduceOperation::LOR;
+			else if(op == PCL_RO_BOR)	m_op = ReduceOperation::BOR;
 		}
 
 		ComPol_AttachmentReduce(Grid& grid, TAttachment& attachment,
@@ -353,14 +353,14 @@ bool ComPol_AttachmentReduce<TLayout, TAttachment>::
 extract(BinaryBuffer& buff, const Interface& interface)
 {
 	switch(m_op){
-		case MAX:	return extract_max(buff, interface);
-		case MIN:	return extract_min(buff, interface);
-		case SUM:	return extract_sum(buff, interface);
-		case PROD:	return extract_prod(buff, interface);
-		case LAND:	return extract_land(buff, interface);
-		case BAND:	return extract_band(buff, interface);
-		case LOR:	return extract_lor(buff, interface);
-		case BOR:	return extract_bor(buff, interface);
+		case ReduceOperation::MAX:	return extract_max(buff, interface);
+		case ReduceOperation::MIN:	return extract_min(buff, interface);
+		case ReduceOperation::SUM:	return extract_sum(buff, interface);
+		case ReduceOperation::PROD:	return extract_prod(buff, interface);
+		case ReduceOperation::LAND:	return extract_land(buff, interface);
+		case ReduceOperation::BAND:	return extract_band(buff, interface);
+		case ReduceOperation::LOR:	return extract_lor(buff, interface);
+		case ReduceOperation::BOR:	return extract_bor(buff, interface);
 		default:
 			UG_THROW("Unsupported reduce operation in ComPol_AttachmentReduce::extract:"
 					 << m_op);

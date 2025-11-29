@@ -97,16 +97,16 @@ std::ostream& operator << (std::ostream& outStream, ReferenceObjectID type)
 {
 	switch(type)
 	{
-		case ROID_UNKNOWN: outStream << "(invalid)"; break;
-		case ROID_VERTEX: outStream << "Vertex"; break;
-		case ROID_EDGE: outStream << "Edge"; break;
-		case ROID_TRIANGLE: outStream << "Triangle"; break;
-		case ROID_QUADRILATERAL: outStream << "Quadrilateral"; break;
-		case ROID_TETRAHEDRON: outStream << "Tetrahedron"; break;
-		case ROID_OCTAHEDRON: outStream << "Octahedron"; break;
-		case ROID_HEXAHEDRON: outStream << "Hexahedron"; break;
-		case ROID_PRISM: outStream << "Prism"; break;
-		case ROID_PYRAMID: outStream << "Pyramid"; break;
+		case ReferenceObjectID::ROID_UNKNOWN: outStream << "(invalid)"; break;
+		case ReferenceObjectID::ROID_VERTEX: outStream << "Vertex"; break;
+		case ReferenceObjectID::ROID_EDGE: outStream << "Edge"; break;
+		case ReferenceObjectID::ROID_TRIANGLE: outStream << "Triangle"; break;
+		case ReferenceObjectID::ROID_QUADRILATERAL: outStream << "Quadrilateral"; break;
+		case ReferenceObjectID::ROID_TETRAHEDRON: outStream << "Tetrahedron"; break;
+		case ReferenceObjectID::ROID_OCTAHEDRON: outStream << "Octahedron"; break;
+		case ReferenceObjectID::ROID_HEXAHEDRON: outStream << "Hexahedron"; break;
+		case ReferenceObjectID::ROID_PRISM: outStream << "Prism"; break;
+		case ReferenceObjectID::ROID_PYRAMID: outStream << "Pyramid"; break;
 		default: throw(UGError("Unknown ReferenceObjectID in operator <<"));
 	}
 	return outStream;
@@ -168,7 +168,7 @@ class UG_API GridObject
 		virtual GridObject* create_empty_instance() const {return nullptr;}
 
 		virtual int container_section() const = 0;
-		virtual int base_object_id() const = 0;
+		virtual byte_t base_object_id() const = 0;
 	/**
 	 * A reference object represents a class of geometric objects.
 	 * Tetrahedrons, Triangles etc are such classes.
@@ -249,7 +249,7 @@ class UG_API Vertex : public GridObject
 	/// reference dimension
 		static constexpr int dim = 0;
 
-		static constexpr int BASE_OBJECT_ID = VERTEX;
+		static constexpr int BASE_OBJECT_ID = GridBaseObjectId::VERTEX;
 
 		static constexpr size_t NUM_VERTICES = 1;
 
@@ -261,8 +261,8 @@ class UG_API Vertex : public GridObject
 		inline uint num_sides() const	{return 0;}
 
 		int container_section() const override {return -1;}
-		int base_object_id() const override {return VERTEX;}
-		ReferenceObjectID reference_object_id() const override {return ROID_UNKNOWN;}
+		byte_t base_object_id() const override {return GridBaseObjectId::VERTEX;}
+		ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
 
 	///	returns a value that can be used for hashing.
 	/**	this value is unique per grid.
@@ -413,7 +413,7 @@ class UG_API Edge : public GridObject, public EdgeVertices
 	/// reference dimension
 		static constexpr int dim = 1;
 
-		static constexpr int BASE_OBJECT_ID = EDGE;
+		static constexpr int BASE_OBJECT_ID = GridBaseObjectId::EDGE;
 
 		static constexpr size_t NUM_VERTICES = 2;
 
@@ -423,8 +423,8 @@ class UG_API Edge : public GridObject, public EdgeVertices
 		~Edge() override = default;
 
 		int container_section() const override {return -1;}
-		int base_object_id() const override {return EDGE;}
-		ReferenceObjectID reference_object_id() const override {return ROID_UNKNOWN;}
+		byte_t base_object_id() const override {return GridBaseObjectId::EDGE;}
+		ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
 
 		inline uint num_sides() const {return 2;}
 
@@ -526,7 +526,7 @@ class UG_API Face : public GridObject, public FaceVertices
 
 	/// reference dimension
 		static constexpr int dim = 2;
-		static constexpr int BASE_OBJECT_ID = FACE;
+		static constexpr int BASE_OBJECT_ID = GridBaseObjectId::FACE;
 
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Face*>(pObj) != nullptr;}
@@ -547,8 +547,8 @@ class UG_API Face : public GridObject, public FaceVertices
 		[[nodiscard]] inline uint num_sides() const	{return num_edges();}
 
 		[[nodiscard]] int container_section() const override {return -1;}
-		[[nodiscard]] int base_object_id() const override {return FACE;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ROID_UNKNOWN;}
+		[[nodiscard]] byte_t base_object_id() const override {return GridBaseObjectId::FACE;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
 
 	/**	A default implementation is featured to allow empty instances of
 	 *	this class. This is required to allow the use of this class
@@ -771,7 +771,7 @@ class UG_API Volume : public GridObject, public VolumeVertices
 
 	/// reference dimension
 		static constexpr int dim = 3;
-		static constexpr int BASE_OBJECT_ID = VOLUME;
+		static constexpr int BASE_OBJECT_ID = GridBaseObjectId::VOLUME;
 
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Volume*>(pObj) != nullptr;}
@@ -924,8 +924,8 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 	virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
 		int container_section() const override {return -1;}
-		int base_object_id() const override {return VOLUME;}
-		ReferenceObjectID reference_object_id() const override {return ROID_UNKNOWN;}
+		byte_t base_object_id() const override {return GridBaseObjectId::VOLUME;}
+		ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
 
 	/**	creates the volumes that result from the splitting of the edge with index 'splitEdgeIndex'.*/
 		//virtual void create_volumes_by_edge_split(int splitEdgeIndex,

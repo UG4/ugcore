@@ -68,7 +68,7 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 	pcl::InterfaceCommunicator<Layout> com;
 	ComPol_CopyAttachment<Layout, AGeomObjID> compolCopy(g, aID);
 
-	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopy);
+	com.exchange_data(glm, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, compolCopy);
 	com.communicate();
 
 //	we copy data from vertical slaves to vertical masters and not vice versa for
@@ -78,7 +78,7 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 //	Elements in horizontal interfaces, however, already have the same ids yet.
 //	Since all vertical slaves are either unique or in a horizontal interface,
 //	we can simply copy their global ids to vertical master elements.
-	com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopy);
+	com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compolCopy);
 	com.communicate();
 }
 

@@ -198,8 +198,8 @@ class UG_API MGSelector : public ISelector
 		};
 
 
-		MGSelector(uint supportedElements = SE_ALL);
-		MGSelector(MultiGrid& grid, uint supportedElements = SE_ALL);
+		MGSelector(byte_t supportedElements = SE_ALL);
+		MGSelector(MultiGrid& grid, byte_t supportedElements = SE_ALL);
 
 		~MGSelector() override;
 
@@ -212,19 +212,19 @@ class UG_API MGSelector : public ISelector
 	 *	\sa Selector::enable_element_support*/
 	//	forwards to protected ISelector method. This rather complicated setup
 	//	is required to avoid virtual method calls during construction.
-		inline void set_supported_elements(uint shElements);
+		inline void set_supported_elements(byte_t shElements);
 
 	///	enable support for element-types. Does not invalidate previous settings.
 	/**	pass an or-combination of constants enumerated in SelectorElements.*/
 	//	forwards to protected ISelector method. This rather complicated setup
 	//	is required to avoid virtual method calls during construction.
-		inline void enable_element_support(uint shElements);
+		inline void enable_element_support(byte_t shElements);
 
 	///	disable support for element-types.
 	/**	pass an or-combination of constants enumerated in SelectorElements.*/
 	//	forwards to protected ISelector method. This rather complicated setup
 	//	is required to avoid virtual method calls during construction.
-		void disable_element_support(uint shElements);
+		void disable_element_support(byte_t shElements);
 
 		inline size_t num_levels() const	{return m_levels.size();}
 		inline size_t top_level() const

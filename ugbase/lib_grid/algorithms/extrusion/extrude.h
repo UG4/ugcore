@@ -90,7 +90,7 @@ void Extrude(Grid& grid,
 			std::vector<Edge*>* pvEdgesInOut,
 			std::vector<Face*>* pvFacesInOut,
 			const vector_t& direction,
-			uint extrusionOptions = EO_DEFAULT,
+			uint extrusionOptions = ExtrusionOptions::EO_DEFAULT,
 			Attachment<vector_t>& aPos = aPosition,
 			std::vector<Volume*>* pvVolsOut = nullptr);
 
@@ -101,7 +101,7 @@ void Extrude(Grid& grid,
 			std::vector<Face*>* pvFacesInOut,
 			const typename TAAPos::ValueType& direction,
 			TAAPos aaPos,
-			uint extrusionOptions = EO_DEFAULT,
+			uint extrusionOptions = ExtrusionOptions::EO_DEFAULT,
 			std::vector<Volume*>* pvVolsOut = nullptr);
 /** \} */
 

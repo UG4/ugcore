@@ -307,7 +307,7 @@ defragment()
 	else
 	{
 	//	calculate the fragmentation array. It has to be of the same size as the fragmented data containers.
-		std::vector<uint> vNewIndices(num_data_entries(), INVALID_ATTACHMENT_INDEX);
+		std::vector<uint> vNewIndices(num_data_entries(), ATTACHMENT_CONSTANTS::INVALID_ATTACHMENT_INDEX);
 
 	//	iterate through the elements and calculate the new index of each
 		size_t counter = 0;
@@ -326,8 +326,7 @@ defragment()
 
 	//	now iterate through the attached data-containers and defragment each one.
 		{
-			for(AttachmentEntryIterator iter = m_attachmentEntryContainer.begin();
-						iter != m_attachmentEntryContainer.end(); iter++)
+			for(auto iter = m_attachmentEntryContainer.begin(); iter != m_attachmentEntryContainer.end(); ++iter)
 			{
 				(*iter).m_pContainer->defragment(&vNewIndices.front(), num_elements());
 			}

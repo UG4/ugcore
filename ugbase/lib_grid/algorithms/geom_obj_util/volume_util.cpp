@@ -50,8 +50,8 @@ void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
 
 //	if VOLOPT_AUTOGENERATE_FACES and FACEOPT_STORE_ASSOCIATED_VOLUMES are
 //	activated, we may use them to find the connected volume quite fast.
-	if(grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES
-							| FACEOPT_STORE_ASSOCIATED_VOLUMES))
+	if(grid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES
+							| FaceOptions::FACEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
 		Face* f = grid.get_face(v, side);
 		auto iterEnd = grid.associated_volumes_end(f);
@@ -144,21 +144,17 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 	 * (s. Shewchuk 2002)
 	 */
 
-	number aspectRatio;
-	number maxEdgeLength;
-	number minTetrahedronHeight;
-
-//	Collect tetrahedron edges, find longest edge and calculate its length
+	//	Collect tetrahedron edges, find longest edge and calculate its length
 	vector<Edge*> edges;
 	CollectAssociated(edges, grid, tet);
 	Edge* longestEdge = FindLongestEdge(edges.begin(), edges.end(), aaPos);
-	maxEdgeLength = EdgeLength(longestEdge, aaPos);
+	number maxEdgeLength = EdgeLength(longestEdge, aaPos);
 
 //	Calculate the minimal tetrahedron height
-	minTetrahedronHeight = CalculateMinVolumeHeight(tet, aaPos);
+	number minTetrahedronHeight = CalculateMinVolumeHeight(tet, aaPos);
 
 //	Calculate the aspect ratio
-	aspectRatio =  std::sqrt(3/2.0) * minTetrahedronHeight / maxEdgeLength;
+	number aspectRatio = std::sqrt(3 / 2.0) * minTetrahedronHeight / maxEdgeLength;
 
 	return aspectRatio;
 }
@@ -186,7 +182,7 @@ number CalculateHexahedronAspectRatio(Grid& grid, Hexahedron* hex,
 	 */
 	vector<Face*> faces;
 	CollectAssociated(faces, grid, hex);
-	ug::vector3 center = CalculateCenter(hex, aaPos);
+	vector3 center = CalculateCenter(hex, aaPos);
 
 	/// Max distance to face center
 	std::vector<number> As;

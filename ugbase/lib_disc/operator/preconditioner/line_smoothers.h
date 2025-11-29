@@ -432,21 +432,21 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 //				OrderLex<TDomain>(*m_spApproxSpace,"lr");
 			}
 			if (m_nr_forwardy+m_nr_backwardy+m_nr_forwardz+m_nr_backwardz>0){
-				size_t level=3289578756;
+				size_t level=3289578756; // ø todo standardize
 				for (size_t i=0;i<m_spApproxSpace->num_levels();i++){
-					if (m_spApproxSpace->dof_distribution(GridLevel(i, GridLevel::LEVEL, true))->num_indices()==xsize){
+					if (m_spApproxSpace->dof_distribution(GridLevel(i, GridLevel::ViewType::LEVEL, true))->num_indices()==xsize){
 						level = i;
 						break;
 					};
 				};
-				if (level==3289578756){
+				if (level==3289578756){ // ø todo standardize
 					return false;
 				}
 				if ((dim>1)&&(m_nr_forwardy+m_nr_backwardy>0)){
-					OrderDirectionYForDofDist<TDomain>(m_spApproxSpace->dof_distribution(GridLevel(level, GridLevel::LEVEL, true)), m_spApproxSpace->domain(),indY);
+					OrderDirectionYForDofDist<TDomain>(m_spApproxSpace->dof_distribution(GridLevel(level, GridLevel::ViewType::LEVEL, true)), m_spApproxSpace->domain(),indY);
 				}
 				if ((dim>2)&&(m_nr_forwardz+m_nr_backwardz>0)){
-					OrderDirectionZForDofDist<TDomain>(m_spApproxSpace->dof_distribution(GridLevel(level, GridLevel::LEVEL, true)), m_spApproxSpace->domain(),indZ);
+					OrderDirectionZForDofDist<TDomain>(m_spApproxSpace->dof_distribution(GridLevel(level, GridLevel::ViewType::LEVEL, true)), m_spApproxSpace->domain(),indZ);
 				}
 			};
 			m_ind_end = indY.size();
@@ -780,7 +780,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 			if (m_nr_forwardy+m_nr_backwardy+m_nr_forwardz+m_nr_backwardz>0){
 				size_t level=3289578756;
 				for (size_t i=0;i<m_spApproxSpace->num_levels();i++){
-					if (m_spApproxSpace->dof_distribution(GridLevel(i, GridLevel::LEVEL, true))->num_indices()==xsize){
+					if (m_spApproxSpace->dof_distribution(GridLevel(i, GridLevel::ViewType::LEVEL, true))->num_indices()==xsize){
 						level = i;
 						break;
 					};
@@ -789,10 +789,10 @@ class LineVanka : public IPreconditioner<TAlgebra>
 					return false;
 				}
 				if ((dim>1)&&(m_nr_forwardy+m_nr_backwardy>0)){
-					OrderDirectionYForDofDist<TDomain>(m_spApproxSpace->dof_distribution(GridLevel(level, GridLevel::LEVEL, true)), m_spApproxSpace->domain(),indY);
+					OrderDirectionYForDofDist<TDomain>(m_spApproxSpace->dof_distribution(GridLevel(level, GridLevel::ViewType::LEVEL, true)), m_spApproxSpace->domain(),indY);
 				}
 				if ((dim>2)&&(m_nr_forwardz+m_nr_backwardz>0)){
-					OrderDirectionZForDofDist<TDomain>(m_spApproxSpace->dof_distribution(GridLevel(level, GridLevel::LEVEL, true)), m_spApproxSpace->domain(),indZ);
+					OrderDirectionZForDofDist<TDomain>(m_spApproxSpace->dof_distribution(GridLevel(level, GridLevel::ViewType::LEVEL, true)), m_spApproxSpace->domain(),indZ);
 				}
 			};
 			m_ind_end = indY.size();

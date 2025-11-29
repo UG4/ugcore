@@ -92,7 +92,7 @@ set_grid(Grid* grid)
 			return;
 
 		MultiGrid& mg = *m_pMG;
-		mg.register_observer(this, OT_GRID_OBSERVER);
+		mg.register_observer(this, ObserverType::OT_GRID_OBSERVER);
 	//	selection-marks
 		m_selMarks.assign_grid(mg);
 		m_selMarks.enable_autoselection(false);

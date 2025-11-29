@@ -47,7 +47,7 @@ GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
 {
 //	if the chain is empty, there's nothing to do
 	if(edgesBegin == edgesEnd)
-		return PCT_EMPTY;
+		return PolyChainTypes::PCT_EMPTY;
 
 //	check for each vertex to how many chain-edges it is connected
 	size_t numBnd = 0;
@@ -78,17 +78,17 @@ GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
 	}
 	
 //	prepare the return value
-	size_t type = PCT_UNKNOWN;
+	size_t type = PolyChainTypes::PCT_UNKNOWN;
 	
 	if(numBnd == 0)
-		type = PCT_CLOSED;
+		type = PolyChainTypes::PCT_CLOSED;
 	else if(numBnd < 3)
-		type = PCT_OPEN;
+		type = PolyChainTypes::PCT_OPEN;
 	else
-		type = PCT_SEPARATED;
+		type = PolyChainTypes::PCT_SEPARATED;
 
 	if(irregular)
-		type |= PCT_IRREGULAR;
+		type |= PolyChainTypes::PCT_IRREGULAR;
 		
 	return type;
 }

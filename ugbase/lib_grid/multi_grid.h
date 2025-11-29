@@ -101,7 +101,7 @@ class MultiGrid : public Grid, public GridObserver
 		~MultiGrid() override;
 
 		void enable_hierarchical_insertion(bool bEnable);
-		inline bool hierarchical_insertion_enabled() const {return m_bHierarchicalInsertion;}
+		[[nodiscard]] inline bool hierarchical_insertion_enabled() const {return m_bHierarchicalInsertion;}
 
 	////////////////////////////////////////////////
 	//	element creation
@@ -142,7 +142,7 @@ class MultiGrid : public Grid, public GridObserver
 										 int level);
 
 	///	number of levels
-		inline size_t num_levels() const {return (size_t)m_hierarchy.num_subsets();}
+		inline size_t num_levels() const {return static_cast<size_t>(m_hierarchy.num_subsets());}
 
 	///	index of the highest level.
 		inline size_t top_level() const;
@@ -158,7 +158,7 @@ class MultiGrid : public Grid, public GridObserver
 		begin(int level)
 		{
 			//assert(level < (int)num_levels() && "ERROR in MultiGrid::begin(...): requested level too high!");
-			if(level >= (int)num_levels())
+			if(level >= static_cast<int>(num_levels()))
 				return end<TElem>();
 			return m_hierarchy.begin<TElem>(level);
 		}
@@ -168,7 +168,7 @@ class MultiGrid : public Grid, public GridObserver
 		end(int level)
 		{
 			//assert(level < (int)num_levels() && "ERROR in MultiGrid::end(...): requested level too high!");
-			if(level >= (int)num_levels())
+			if(level >= static_cast<int>(num_levels()))
 				return end<TElem>();
 			return m_hierarchy.end<TElem>(level);
 		}
@@ -178,7 +178,7 @@ class MultiGrid : public Grid, public GridObserver
 		begin(int level) const
 		{
 			//assert(level < (int)num_levels() && "ERROR in MultiGrid::begin(...): requested level too high!");
-			if(level >= (int)num_levels())
+			if(level >= static_cast<int>(num_levels()))
 				return end<TElem>();
 			return m_hierarchy.begin<TElem>(level);
 		}
@@ -188,7 +188,7 @@ class MultiGrid : public Grid, public GridObserver
 		end(int level) const
 		{
 			//assert(level < (int)num_levels() && "ERROR in MultiGrid::end(...): requested level too high!");
-			if(level >= (int)num_levels())
+			if(level >= static_cast<int>(num_levels()))
 				return end<TElem>();
 			return m_hierarchy.end<TElem>(level);
 		}
@@ -580,7 +580,7 @@ class MGWrapper
 		template <typename TElem> inline
 		typename geometry_traits<TElem>::iterator
 		end(int level);
-};
+}; // ø todo det här har faktiskt ingen användning i coden
 
 }//	end of namespace
 

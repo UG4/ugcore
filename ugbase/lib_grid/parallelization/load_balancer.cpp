@@ -325,22 +325,22 @@ number LoadBalancer::
 estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 {
 	if(m_mg){
-		int highestElem = VERTEX;
-		if(m_mg->num<Volume>() > 0)		highestElem = VOLUME;
-		else if(m_mg->num<Face>() > 0)	highestElem = FACE;
-		else if(m_mg->num<Edge>() > 0)	highestElem = EDGE;
+		int highestElem = GridBaseObjectId::VERTEX;
+		if(m_mg->num<Volume>() > 0)		highestElem = GridBaseObjectId::VOLUME;
+		else if(m_mg->num<Face>() > 0)	highestElem = GridBaseObjectId::FACE;
+		else if(m_mg->num<Edge>() > 0)	highestElem = GridBaseObjectId::EDGE;
 
 		pcl::ProcessCommunicator procCom;
 		highestElem = procCom.allreduce(highestElem, PCL_RO_MAX);
 
 		switch(highestElem){
-		case VERTEX:
+		case GridBaseObjectId::VERTEX:
 			return estimate_distribution_quality_impl<Vertex>(pLvlQualitiesOut);
-		case EDGE:
+		case GridBaseObjectId::EDGE:
 			return estimate_distribution_quality_impl<Edge>(pLvlQualitiesOut);
-		case FACE:
+		case GridBaseObjectId::FACE:
 			return estimate_distribution_quality_impl<Face>(pLvlQualitiesOut);
-		case VOLUME:
+		case GridBaseObjectId::VOLUME:
 			return estimate_distribution_quality_impl<Volume>(pLvlQualitiesOut);
 		}
 	}

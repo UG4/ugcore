@@ -87,14 +87,14 @@ class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 				byte_t curVal = m_ref.get_mark(elem);
 
 				if(val > curVal){
-					if(val & RM_COARSEN)
-						m_ref.mark(elem, RM_COARSEN);
-					if(val & RM_CLOSURE)
-						m_ref.mark(elem, RM_CLOSURE);
-					if(val & RM_ANISOTROPIC)
-						m_ref.mark(elem, RM_ANISOTROPIC);
-					if(val & RM_REFINE)
-						m_ref.mark(elem, RM_REFINE);
+					if(val & RefinementMark::RM_COARSEN)
+						m_ref.mark(elem, RefinementMark::RM_COARSEN);
+					if(val & RefinementMark::RM_CLOSURE)
+						m_ref.mark(elem, RefinementMark::RM_CLOSURE);
+					if(val & RefinementMark::RM_ANISOTROPIC)
+						m_ref.mark(elem, RefinementMark::RM_ANISOTROPIC);
+					if(val & RefinementMark::RM_REFINE)
+						m_ref.mark(elem, RefinementMark::RM_REFINE);
 				}
 			}
 			return true;
@@ -155,19 +155,19 @@ ref_marks_changed(IRefiner& ref,
 	bool exchangeFlag = pcl::OneProcTrue(newlyMarkedElems);
 
 	if(exchangeFlag){
-		constexpr byte_t consideredMarks = RM_REFINE | RM_ANISOTROPIC;
+		constexpr byte_t consideredMarks = RefinementMark::RM_REFINE | RefinementMark::RM_ANISOTROPIC;
 		ComPol_BroadcastRefineMarks<VertexLayout> compolRefVRT(ref, consideredMarks);
 		ComPol_BroadcastRefineMarks<EdgeLayout> compolRefEDGE(ref, consideredMarks);
 		ComPol_BroadcastRefineMarks<FaceLayout> compolRefFACE(ref, consideredMarks);
 
 	//	send data SLAVE -> MASTER
-		m_intfComVRT.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
+		m_intfComVRT.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER,
 									compolRefVRT);
 
-		m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
+		m_intfComEDGE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER,
 									compolRefEDGE);
 
-		m_intfComFACE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
+		m_intfComFACE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER,
 									compolRefFACE);
 
 		m_intfComVRT.communicate();
@@ -175,13 +175,13 @@ ref_marks_changed(IRefiner& ref,
 		m_intfComFACE.communicate();
 
 	//	and now MASTER -> SLAVE (the selection has been adjusted on the fly)
-		m_intfComVRT.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
+		m_intfComVRT.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE,
 									compolRefVRT);
 
-		m_intfComEDGE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
+		m_intfComEDGE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE,
 									compolRefEDGE);
 
-		m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
+		m_intfComFACE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE,
 									compolRefFACE);
 
 		m_intfComVRT.communicate();

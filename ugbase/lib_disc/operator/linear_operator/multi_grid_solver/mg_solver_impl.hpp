@@ -82,7 +82,7 @@ AssembledMultiGridCycle() :
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_cycleType(_V_),
 	m_numPreSmooth(2), m_numPostSmooth(2),
-	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::LEVEL),
+	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::ViewType::LEVEL),
 	m_bUseRAP(false), m_bSmoothOnSurfaceRim(false),
 	m_bCommCompOverlap(false),
 	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
@@ -107,7 +107,7 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_cycleType(_V_),
 	m_numPreSmooth(2), m_numPostSmooth(2),
-	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::LEVEL),
+	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::ViewType::LEVEL),
 	m_bUseRAP(false), m_bSmoothOnSurfaceRim(false),
 	m_bCommCompOverlap(false),
 	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
@@ -525,7 +525,7 @@ assemble_level_operator()
 	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start assemble_level_operator\n");
 
-	if(m_GridLevelType == GridLevel::SURFACE)
+	if(m_GridLevelType == GridLevel::ViewType::SURFACE)
 		UG_THROW("GMG: emulate_full_refined_grid currently only implemented "
 				"for set_rap(true) - since assembling of on surface-level with "
 				" lev < topLev is currently not supported by constraints and "
@@ -605,7 +605,7 @@ assemble_level_operator()
 			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start assemble_level_operator: assemble on lev "<<lev<<"\n");
 			GMG_PROFILE_BEGIN(GMG_AssembleLevelMat_AssembleOnLevel);
 			try{
-			if(m_GridLevelType == GridLevel::LEVEL)
+			if(m_GridLevelType == GridLevel::ViewType::LEVEL)
 				m_spAss->ass_tuner()->set_force_regular_grid(true);
 			m_spAss->assemble_jacobian(*ld.A, *ld.st, GridLevel(lev, m_GridLevelType, false));
 			m_spAss->ass_tuner()->set_force_regular_grid(false);
@@ -727,7 +727,7 @@ assemble_level_operator()
 		{
 			GMG_PROFILE_BEGIN(GMG_AssembleLevelMat_GatheredBase);
 			try{
-			if(m_GridLevelType == GridLevel::LEVEL)
+			if(m_GridLevelType == GridLevel::ViewType::LEVEL)
 				m_spAss->ass_tuner()->set_force_regular_grid(true);
 			m_spAss->assemble_jacobian(*spGatheredBaseMat, *ld.t, GridLevel(m_baseLev, m_GridLevelType, true));
 			m_spAss->ass_tuner()->set_force_regular_grid(false);
@@ -1259,7 +1259,7 @@ init_index_mappings()
 		vLevelDD[lev] = m_spApproxSpace->dof_distribution(GridLevel(lev, m_GridLevelType, false));
 
 	ConstSmartPtr<DoFDistribution> surfDD =
-			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
+			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::ViewType::SURFACE));
 
 //	iterators for subset
 	// \todo: The loop below should only be on SURFACE_NONCOPY, since the
@@ -1288,7 +1288,7 @@ init_index_mappings()
 	//	get elem level
 		int level = m_spApproxSpace->domain()->grid()->get_level(elem);
 
-		if (m_GridLevelType == GridLevel::SURFACE)
+		if (m_GridLevelType == GridLevel::ViewType::SURFACE)
 			level = m_topLev;
 
 	//	check that coarse grid covers whole domain. If this is not the case,
@@ -1310,7 +1310,7 @@ init_index_mappings()
 		UG_ASSERT(vSurfInd.size() == vLevelInd.size(), "Number of indices does not match.");
 
 	//	extract shadows
-		if(m_GridLevelType == GridLevel::LEVEL) {
+		if(m_GridLevelType == GridLevel::ViewType::LEVEL) {
 			if(spSurfView->surface_state(elem).contains(SurfaceView::MG_SURFACE_RIM)){
 				for(size_t i = 0; i < vSurfInd.size(); ++i){
 					m_vLevData[level]->vShadowing.push_back(vLevelInd[i]);
@@ -1323,7 +1323,7 @@ init_index_mappings()
 		for(size_t i = 0; i < vSurfInd.size(); ++i){
 			if(spSurfView->surface_state(elem).contains(SurfaceView::MG_SHADOW_RIM_COPY)
 				&& (level != m_topLev)) {
-				if(m_GridLevelType == GridLevel::LEVEL){
+				if(m_GridLevelType == GridLevel::ViewType::LEVEL){
 					m_vSurfToLevelMap[vSurfInd[i]].indexLower = vLevelInd[i];
 					m_vSurfToLevelMap[vSurfInd[i]].levelLower = level;
 				}
@@ -1343,7 +1343,7 @@ init_index_mappings()
 {
 	GMG_PROFILE_FUNC();
 	ConstSmartPtr<DoFDistribution> surfDD =
-			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
+			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::ViewType::SURFACE));
 
 	m_vSurfToLevelMap.resize(0);
 	m_vSurfToLevelMap.resize(surfDD->num_indices());

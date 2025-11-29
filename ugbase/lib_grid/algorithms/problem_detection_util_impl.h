@@ -52,7 +52,7 @@ size_t FindSlivers(std::vector<typename TIter::value_type>& sliversOut,
 	for(TIter iter = elemsBegin; iter != elemsEnd; ++iter){
 		elem_ptr_t e = *iter;
 		Volume::ConstVertexArray v = e->vertices();
-		if((e->reference_object_id() == ROID_TETRAHEDRON) &&
+		if((e->reference_object_id() == ReferenceObjectID::ROID_TETRAHEDRON) &&
 			(IsSliver(aaPos[v[0]], aaPos[v[1]], aaPos[v[2]], aaPos[v[3]], thresholdRatio) != -1))
 		{
 			sliversOut.push_back(e);

@@ -757,7 +757,7 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 
 //	if we're currently operating on a surface function, we have to adjust
 //	errors between shadowed and shadowing sides (constraining and constrained sides).
-	if(u.grid_level().type() == GridLevel::SURFACE){
+	if(u.grid_level().type() == GridLevel::ViewType::SURFACE){
 	//todo: avoid iteration over the whole grid!
 	//todo: reduce communication
 		const SurfaceView* surfView = u.approx_space()->surface_view().get();
@@ -1380,7 +1380,7 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 
 //	if we're currently operating on a surface function, we have to adjust
 //	errors between shadowed and shadowing vertices
-	if(u->grid_level().type() == GridLevel::SURFACE){
+	if(u->grid_level().type() == GridLevel::ViewType::SURFACE){
 	//todo: avoid iteration over the whole grid!
 	//todo: reduce communication
 		const SurfaceView* surfView = u->approx_space()->surface_view().get();

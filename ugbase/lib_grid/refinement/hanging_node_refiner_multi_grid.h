@@ -82,28 +82,30 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 		};
 
 	public:
-		HangingNodeRefiner_MultiGrid(SPRefinementProjector projector = nullptr);
-		HangingNodeRefiner_MultiGrid(MultiGrid& mg, SPRefinementProjector projector = nullptr);
+		explicit HangingNodeRefiner_MultiGrid(SPRefinementProjector projector = nullptr);
 
-		virtual ~HangingNodeRefiner_MultiGrid();
+		explicit HangingNodeRefiner_MultiGrid(MultiGrid& mg, SPRefinementProjector projector = nullptr);
 
-		virtual void grid_to_be_destroyed(Grid* grid);
+		~HangingNodeRefiner_MultiGrid() override;
+
+		void grid_to_be_destroyed(Grid* grid) override;
 
 		virtual void assign_grid(MultiGrid& mg);
-		virtual Grid* get_associated_grid()		{return m_pMG;}//depreciated
-		virtual Grid* grid()					{return m_pMG;}
-		virtual MultiGrid* multi_grid()			{return m_pMG;}
 
-		virtual bool adaptivity_supported() const	{return true;}
-		virtual bool coarsening_supported() const	{return true;}
+		Grid* get_associated_grid() override {return m_pMG;}//depreciated
+		Grid* grid() override {return m_pMG;}
+		virtual MultiGrid* multi_grid() {return m_pMG;}
+
+		bool adaptivity_supported() const override {return true;}
+		bool coarsening_supported() const override {return true;}
 
 	protected:
 	///	returns the number of (globally) marked edges on this level of the hierarchy
-		virtual void num_marked_edges_local(std::vector<int>& numMarkedEdgesOut);
+		void num_marked_edges_local(std::vector<int>& numMarkedEdgesOut) override;
 	///	returns the number of (globally) marked faces on this level of the hierarchy
-		virtual void num_marked_faces_local(std::vector<int>& numMarkedFacesOut);
+		void num_marked_faces_local(std::vector<int>& numMarkedFacesOut) override;
 	///	returns the number of (globally) marked volumes on this level of the hierarchy
-		virtual void num_marked_volumes_local(std::vector<int>& numMarkedVolsOut);
+		void num_marked_volumes_local(std::vector<int>& numMarkedVolsOut) override;
 		
 		template <typename TElem>
 		void num_marked_elems(std::vector<int>& numMarkedElemsOut);
@@ -130,19 +132,19 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	 * coarsen returns false, if no elements have been coarsened, true if at
 	 * least one has been coarsened.
 	 */
-		virtual bool perform_coarsening();
+		bool perform_coarsening() override;
 
 		void save_coarsen_marks_to_file(ISelector& sel, const char* filename);
 		void debug_save(ISelector& sel, const char* filename);
 
 	///	a callback that allows to deny refinement of special vertices
-		virtual bool refinement_is_allowed(Vertex* elem);
+		bool refinement_is_allowed(Vertex* elem) override;
 	///	a callback that allows to deny refinement of special edges
-		virtual bool refinement_is_allowed(Edge* elem);
+		bool refinement_is_allowed(Edge* elem) override;
 	///	a callback that allows to deny refinement of special faces
-		virtual bool refinement_is_allowed(Face* elem);
+		bool refinement_is_allowed(Face* elem) override;
 	///	a callback that allows to deny refinement of special volumes
-		virtual bool refinement_is_allowed(Volume* elem);
+		bool refinement_is_allowed(Volume* elem) override;
 
 	///	performs registration and deregistration at a grid.
 	/**	Initializes all grid related variables.
@@ -153,10 +155,10 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	 *  during construction and destruction.*/
 		void set_grid(MultiGrid* mg);
 
-		virtual void assign_hnode_marks();
+		void assign_hnode_marks() override;
 
 	///	creates required vertices in higher levels.
-		virtual void pre_refine();
+		void pre_refine() override;
 
 	///	called before elements are removed in coarsening
 	/**	Default implementation is emtpy */
@@ -172,33 +174,30 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	 *  are ignored.
 	 *  \{*/
 	///	calls base implementation and replaces cge with a normal edge.
-		virtual void process_constraining_edge(ConstrainingEdge* cge);
+		void process_constraining_edge(ConstrainingEdge* cge) override;
 
-		virtual void refine_edge_with_normal_vertex(Edge* e,
-											Vertex** newCornerVrts = nullptr);
-		virtual void refine_edge_with_hanging_vertex(Edge* e,
-											Vertex** newCornerVrts = nullptr);
+		void refine_edge_with_normal_vertex(Edge* e, Vertex** newCornerVrts = nullptr) override;
 
-		virtual void refine_face_with_normal_vertex(Face* f,
-											Vertex** newCornerVrts = nullptr);
-		virtual void refine_face_with_hanging_vertex(Face* f,
-											Vertex** newCornerVrts = nullptr);
+		void refine_edge_with_hanging_vertex(Edge* e, Vertex** newCornerVrts = nullptr) override;
 
-		virtual void refine_volume_with_normal_vertex(Volume* v,
-											Vertex** newVolumeVrts = nullptr);
+		void refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts = nullptr) override;
+
+		void refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts = nullptr) override;
+
+		void refine_volume_with_normal_vertex(Volume* v, Vertex** newVolumeVrts = nullptr) override;
 	/*	\} */
 
 	///	Returns the vertex associated with the edge
-		virtual Vertex* get_center_vertex(Edge* e);
+		Vertex* get_center_vertex(Edge* e) override;
 
 	///	Associates a vertex with the edge.
-		virtual void set_center_vertex(Edge* e, Vertex* v);
+		void set_center_vertex(Edge* e, Vertex* v) override;
 
 	///	Returns the vertex associated with the face
-		virtual Vertex* get_center_vertex(Face* f);
+		Vertex* get_center_vertex(Face* f) override;
 
 	///	Associates a vertex with the face.
-		virtual void set_center_vertex(Face* f, Vertex* v);
+		void set_center_vertex(Face* f, Vertex* v) override;
 
 
 	///	collects corner vertices and fills them into the associated vector
@@ -299,15 +298,15 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 
 	///	allows to check whether a distributed grid contains edges
 	/**	The default implementation returns whether the local grid contains edges.*/
-		virtual bool contains_edges()			{return m_pMG->num<Edge>() > 0;}
+		virtual bool contains_edges() {return m_pMG->num<Edge>() > 0;}
 
 	///	allows to check whether a distributed grid contains faces
 	/**	The default implementation returns whether the local grid contains faces.*/
-		virtual bool contains_faces()			{return m_pMG->num<Face>() > 0;}
+		virtual bool contains_faces() {return m_pMG->num<Face>() > 0;}
 
 	///	allows to check whether a distributed grid contains volumes
 	/**	The default implementation returns whether the local grid contains volumes.*/
-		virtual bool contains_volumes()			{return m_pMG->num<Volume>() > 0;}
+		virtual bool contains_volumes() {return m_pMG->num<Volume>() > 0;}
 
 	/**	This callback is called during execution of the coarsen() method after
 	 * collect_objects_for_coarsen is done. It is responsible to mark
@@ -318,18 +317,17 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 		//virtual void assign_hnode_coarsen_marks();
 
 		virtual void broadcast_marks_horizontally(bool vertices, bool edges, bool faces,
-												  bool allowDeselection = false)	{}
+												  bool allowDeselection = false) {}
+
 		virtual void broadcast_marks_vertically(bool vertices, bool edges,
 												bool faces, bool volumes,
-												bool allowDeselection = false)	{}
+												bool allowDeselection = false) {}
 
-		virtual void copy_marks_to_vmasters(bool vertices, bool edges,
-											bool faces, bool volumes)			{}
+		virtual void copy_marks_to_vmasters(bool vertices, bool edges, bool faces, bool volumes) {}
 
-		virtual void copy_marks_to_vslaves(bool vertices, bool edges,
-											bool faces, bool volumes)			{}
+		virtual void copy_marks_to_vslaves(bool vertices, bool edges, bool faces, bool volumes) {}
 
-		virtual bool one_proc_true(bool localProcTrue)		{return localProcTrue;}
+		virtual bool one_proc_true(bool localProcTrue) {return localProcTrue;}
 
 	private:
 		MultiGrid*	m_pMG;

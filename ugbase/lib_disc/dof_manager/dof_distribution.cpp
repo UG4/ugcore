@@ -1342,7 +1342,7 @@ void DoFDistribution::reinit()
 	if(max_dofs(dim) == 0) return;
 
 //	SURFACE
-	if(grid_level().type() == GridLevel::SURFACE){
+	if(grid_level().type() == GridLevel::ViewType::SURFACE){
 
 	//	in order to also cater for some seldom occurring parallel cases, we have
 	//	to perform a slightly cumbersome iteration here. The basic idea is the following:
@@ -1393,7 +1393,7 @@ void DoFDistribution::reinit()
 	}
 
 	// LEVEL
-	else if(grid_level().type() == GridLevel::LEVEL){
+	else if(grid_level().type() == GridLevel::ViewType::LEVEL){
 
 		for(int si = 0; si < num_subsets(); ++si)
 		{

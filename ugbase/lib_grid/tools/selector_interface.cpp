@@ -41,7 +41,7 @@
 namespace ug
 {
 	
-ISelector::ISelector(uint supportedElements) :
+ISelector::ISelector(SelectorElements_t supportedElements) :
 	m_aSelected("ISelector_IsSelected")
 {
 	m_pGrid = nullptr;
@@ -51,19 +51,19 @@ ISelector::ISelector(uint supportedElements) :
 	m_bStrictInheritanceEnabled = false;
 }
 
-ISelector::ISelector(Grid& grid, uint supportedElements) :
+ISelector::ISelector(Grid& grid, SelectorElements_t supportedElements) :
 	m_aSelected("ISelector_IsSelected")
 {
 	m_pGrid = &grid;
-	m_supportedElements = SE_NONE;
+	m_supportedElements = SelectorElements::SE_NONE;
 	m_bAutoselectionEnabled = false;
 	m_bSelectionInheritanceEnabled = true;
 	m_bStrictInheritanceEnabled = false;
 
 //	register at grid. Don't use set_grid here since it invokes virtual methods.
 	if(m_pGrid){
-		m_pGrid->register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
-									OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
+		m_pGrid->register_observer(this, ObserverType::OT_GRID_OBSERVER | ObserverType::OT_VERTEX_OBSERVER | ObserverType::OT_EDGE_OBSERVER |
+									ObserverType::OT_FACE_OBSERVER | ObserverType::OT_VOLUME_OBSERVER);
 									
 	//	initialise attachments and accessors.
 		enable_element_support(supportedElements);
@@ -83,7 +83,7 @@ ISelector::~ISelector()
 }
 
 void ISelector::
-set_supported_elements(uint shElements)
+set_supported_elements(SelectorElements_t shElements)
 {
 //	do this in two steps:
 //	1: disable the element-support that is no longer required.
@@ -97,7 +97,7 @@ set_supported_elements(uint shElements)
 	enable_element_support(shElements & (~m_supportedElements));
 }
 
-void ISelector::enable_element_support(uint shElements)
+void ISelector::enable_element_support(SelectorElements_t shElements)
 {
 //	if no grid is assigned, we can't do anything.
 	if(m_pGrid){
@@ -154,7 +154,7 @@ void ISelector::enable_element_support(uint shElements)
 	}
 }
 
-void ISelector::disable_element_support(uint shElements)
+void ISelector::disable_element_support(SelectorElements_t shElements)
 {
 //	if no grid is assigned, we can't do anything.
 	if(m_pGrid){
@@ -220,16 +220,16 @@ void ISelector::set_grid(Grid* grid)
 
 //	if the new grid is not empty, we'll initialise and register
 	if(grid){
-		grid->register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
-									OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
+		grid->register_observer(this, ObserverType::OT_GRID_OBSERVER | ObserverType::OT_VERTEX_OBSERVER | ObserverType::OT_EDGE_OBSERVER |
+									ObserverType::OT_FACE_OBSERVER | ObserverType::OT_VOLUME_OBSERVER);
 		m_pGrid = grid;
 
 	//	initialise attachments and accessors.
 	//	do this whith a little trick:
 	//	set the supported-element-options to SE_NONE,
 	//	then call enable for all element-types that should be supported.
-		uint tmpOpts = m_supportedElements;
-		m_supportedElements = SE_NONE;
+		SelectorElements_t tmpOpts = m_supportedElements;
+		m_supportedElements = SelectorElements::SE_NONE;
 		enable_element_support(tmpOpts);
 	}
 }
@@ -275,22 +275,22 @@ void ISelector::broadcast_selection_states(bool deselect,
 		//	if ghosts shall be included, we will first have to make sure that
 		//	copies in h-interfaces know about the selection state of associated
 		//	ghosts
-			icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compol);
+			icom.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, compol);
 			icom.communicate();
 		}
 
 	//	gather selection state at h-master
-		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compol);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, compol);
 		icom.communicate();
 
 	//	copy it to all h-slaves
-		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compol);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, compol);
 		icom.communicate();
 
 		if(includeGhosts){
 		//	if ghosts shall be included, we will now have to copy the values back
 		//	to those ghosts
-			icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compol);
+			icom.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compol);
 			icom.communicate();
 		}
 	}

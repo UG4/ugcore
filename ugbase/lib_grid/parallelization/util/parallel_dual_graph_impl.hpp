@@ -232,23 +232,23 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 	pcl::InterfaceCommunicator<Layout> com;
 
 	ComPol_GatherVecAttachment<Layout, AElemIndices> compolGather(mg, m_aElemIndices);
-	if(glm.has_layout<ConElem>(INT_H_SLAVE)){
-		com.send_data(glm.get_layout<ConElem>(INT_H_SLAVE).layout_on_level(level),
+	if(glm.has_layout<ConElem>(InterfaceNodeTypes::INT_H_SLAVE)){
+		com.send_data(glm.get_layout<ConElem>(InterfaceNodeTypes::INT_H_SLAVE).layout_on_level(level),
 					  compolGather);
 	}
-	if(glm.has_layout<ConElem>(INT_H_MASTER)){
-		com.receive_data(glm.get_layout<ConElem>(INT_H_MASTER).layout_on_level(level),
+	if(glm.has_layout<ConElem>(InterfaceNodeTypes::INT_H_MASTER)){
+		com.receive_data(glm.get_layout<ConElem>(InterfaceNodeTypes::INT_H_MASTER).layout_on_level(level),
 						 compolGather);
 	}
 	com.communicate();
 
 	ComPol_CopyAttachment<Layout, AElemIndices> compolCopy(mg, m_aElemIndices);
-	if(glm.has_layout<ConElem>(INT_H_MASTER)){
-		com.send_data(glm.get_layout<ConElem>(INT_H_MASTER).layout_on_level(level),
+	if(glm.has_layout<ConElem>(InterfaceNodeTypes::INT_H_MASTER)){
+		com.send_data(glm.get_layout<ConElem>(InterfaceNodeTypes::INT_H_MASTER).layout_on_level(level),
 					  compolCopy);
 	}
-	if(glm.has_layout<ConElem>(INT_H_SLAVE)){
-		com.receive_data(glm.get_layout<ConElem>(INT_H_SLAVE).layout_on_level(level),
+	if(glm.has_layout<ConElem>(InterfaceNodeTypes::INT_H_SLAVE)){
+		com.receive_data(glm.get_layout<ConElem>(InterfaceNodeTypes::INT_H_SLAVE).layout_on_level(level),
 						 compolCopy);
 	}
 	com.communicate();

@@ -171,6 +171,7 @@ add_definitions (-DUG_PROFILER_SHINY_CHECK_CONSISTENCY)
 
 
 # the following options are real cmake-options
+option (NATIVE "Enables compilation for the cpu architecture of the build system" OFF)
 option (STATIC_BUILD "Enables static linking. Valid options are: ON, OFF" OFF)
 option (DEBUG "Enables debugging. Valid options are: ON, OFF" OFF)
 option (DEBUG_LOGS "Enables debug output. Valid options are: ON, OFF" OFF)
@@ -417,6 +418,12 @@ endif ()
 # DEBUG
 ########################################
 include (${UG_ROOT_CMAKE_PATH}/ug/debug.cmake)
+
+if (NATIVE)
+	message (STATUS "Activating build for Host CPU-Architecture")
+	add_cpp_flag ("-march=native -mtune=native")
+	add_c_flag ("-march=native -mtune=native")
+endif ()
 
 # if build type is set print own cflags and flags from build type 
 if (CMAKE_BUILD_TYPE)

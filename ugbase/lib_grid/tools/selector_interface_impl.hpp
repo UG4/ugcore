@@ -36,7 +36,7 @@
 namespace ug
 {
 inline bool
-ISelector::elements_are_supported(uint shElements) const
+ISelector::elements_are_supported(SelectorElements_t shElements) const
 {
 	return (m_supportedElements & shElements) == shElements;
 }
@@ -80,7 +80,7 @@ inline void ISelector::select(TIterator iterBegin, TIterator iterEnd, byte_t sta
 {
 	while(iterBegin != iterEnd){
 		select(*iterBegin, status);
-		iterBegin++;
+		iterBegin++; // ø todo check if prefix variant ++iterBegin is possible
 	}
 }
 
@@ -122,7 +122,7 @@ inline void ISelector::deselect(TIterator iterBegin, TIterator iterEnd)
 }
 
 
-byte_t ISelector::get_selection_status(GridObject* elem) const{
+SelectorElements_t ISelector::get_selection_status(GridObject* elem) const{
 	int elemID = elem->base_object_id();
 	switch(elemID){
 		case VERTEX:

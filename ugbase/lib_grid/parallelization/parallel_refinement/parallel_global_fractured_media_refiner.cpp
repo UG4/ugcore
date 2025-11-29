@@ -100,18 +100,18 @@ communicate_marks(BoolMarker& marker)
 	ComPol_BoolMarker_AddMarks<FaceLayout> compolMarkerFACE(marker);
 
 //	SLAVE->MASTER
-	m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
+	m_intfComEDGE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER,
 								compolMarkerEDGE);
-	m_intfComFACE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
+	m_intfComFACE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER,
 								compolMarkerFACE);
 
 	m_intfComEDGE.communicate();
 	m_intfComFACE.communicate();
 
 //	MASTER->SLAVE
-	m_intfComEDGE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
+	m_intfComEDGE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE,
 								compolMarkerEDGE);
-	m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
+	m_intfComFACE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE,
 								compolMarkerFACE);
 
 	m_intfComEDGE.communicate();

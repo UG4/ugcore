@@ -124,7 +124,7 @@ assign_grid(MultiGrid* mg)
 	if(mg){
 		m_pMG = mg;
 		set_message_hub(mg->message_hub());
-		m_pMG->register_observer(this, OT_GRID_OBSERVER);
+		m_pMG->register_observer(this, ObserverType::OT_GRID_OBSERVER);
 		m_marker.assign_grid(mg);
 	}
 }

@@ -56,7 +56,7 @@ class ISubsetHandler;
 /**
  * You may combine the constants using or-operations.
  */
-enum SubsetHandlerElements
+enum SubsetHandlerElements : byte_t
 {
 	SHE_NONE = 0,
 	SHE_VERTEX = 1,
@@ -65,6 +65,7 @@ enum SubsetHandlerElements
 	SHE_VOLUME = 1 << 3,
 	SHE_ALL = SHE_VERTEX | SHE_EDGE | SHE_FACE | SHE_VOLUME
 };
+using SubsetHandlerElements_t = byte_t;
 
 ////////////////////////////////////////////////////////////////////////
 //	SubsetState
@@ -76,11 +77,12 @@ enum SubsetHandlerElements
  * It would be a good idea to think about an attachment-like system
  * for subsets.
  */
-enum SubsetState
+enum SubsetState : uint
 {
 	SS_NONE = 0,
 	SS_USER_STATE = 1 << 16
 };
+using SubsetState_t = uint;
 
 ////////////////////////////////////////////////////////////////////////
 //	SubsetInfo
@@ -99,7 +101,7 @@ struct SubsetInfo
 	std::string	name;
 	int			materialIndex;///< mostly ignored.
 	vector4		color;
-	uint		subsetState;///< an or-combination of SubsetState flags.
+	SubsetState_t subsetState;///< an or-combination of SubsetState flags.
 
 	using PropertyMap = std::map<std::string, Variant>;
 ///	custom properties can be stored in this map.
@@ -116,8 +118,8 @@ struct SubsetInfo
 /** You may optionally specify a default value, which will be returned if the
  * entry is not found.
  * \{ */
-	Variant get_property(const char* name, Variant defaultValue = Variant()) const;
-	Variant get_property(const std::string& name, Variant defaultValue = Variant()) const;
+	[[nodiscard]] Variant get_property(const char* name, Variant defaultValue = Variant()) const;
+	[[nodiscard]] Variant get_property(const std::string& name, Variant defaultValue = Variant()) const;
 /**	\} */
 };
 
@@ -243,12 +245,12 @@ class UG_API ISubsetHandler : public GridObserver
 	///	pass an or-combination of SubsetHandlerElements to supportedElements.
 	/**	supportedElements define the elements on which the SubsetHandler works.
 	 *	Default is SHE_ALL (all element-types).*/
-		ISubsetHandler(uint supportedElements = SHE_ALL);
+		ISubsetHandler(byte_t supportedElements = SubsetHandlerElements::SHE_ALL);
 
 	///	pass a grid and an or-combination of SubsetHandlerElements to supportedElements.
 	/**	supportedElements define the elements on which the SubsetHandler works.
 	 *	Default is SHE_ALL (all element-types).*/
-		ISubsetHandler(Grid& grid, uint supportedElements = SHE_ALL);
+		ISubsetHandler(Grid& grid, byte_t supportedElements = SubsetHandlerElements::SHE_ALL);
 
 	/**	The destructor automatically unregisters the subset-handler from the grid.
 	 *	on deregistration erase_subset_lists of the derived class will be called.*/
@@ -270,33 +272,33 @@ class UG_API ISubsetHandler : public GridObserver
 
 	///	returns true if the given element-types are supported.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
-		bool elements_are_supported(uint shElements) const;
+		bool elements_are_supported(byte_t shElements) const;
 
 	///	set the type of elements that shall be handled by the SubsetHandler.
 	/**	Pass an or-combination of constants enumerated in SubsetHandlerElements.
 	 *	\sa SubsetHandler::enable_element_support*/
-		void set_supported_elements(uint shElements);
+		void set_supported_elements(byte_t shElements);
 
 	///	enable support for element-types. Does not invalidate previous settings.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
-		void enable_element_support(uint shElements);
+		void enable_element_support(byte_t shElements);
 
 	///	disable support for element-types.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
-		void disable_element_support(uint shElements);
+		void disable_element_support(byte_t shElements);
 
 	/**	new elements will be automatically assigned to this subset.
 	 * 	set this to a negative value to avoid automatic assignment (-1 by default).
 	 *	only used if subset_inheritance is disabled or if no parent is specified.*/
 		void set_default_subset_index(int subsetIndex);
-		inline int get_default_subset_index()	{return m_defaultSubsetIndex;}
+		inline int get_default_subset_index() const {return m_defaultSubsetIndex;}
 
 	/**	if enabled, newly created elements derive their subset-index from their parents.
 	 *	Enabled by default.
 	 *	If enabled, the default subset index will be ignored if a parent is specified
 	 *	on element creation.*/
 		void enable_subset_inheritance(bool bEnable);
-		inline bool subset_inheritance_enabled()	{return m_bSubsetInheritanceEnabled;}
+		inline bool subset_inheritance_enabled() const {return m_bSubsetInheritanceEnabled;}
 
 	/**	restricts subset inheritance so that new elements derive their
 	 * 	subset index only from parents with the same base-type.
@@ -304,7 +306,7 @@ class UG_API ISubsetHandler : public GridObserver
 	 * 	NOTE: strict inheritance only has an effect if
 	 * 	subset inheritance is enabled.*/
 		void enable_strict_inheritance(bool bEnable);
-		inline bool strict_inheritance_enabled()	{return m_bStrictInheritanceEnabled;}
+		inline bool strict_inheritance_enabled() const {return m_bStrictInheritanceEnabled;}
 
 	///	if the subset with the given index does not yet exist, it will be created.
 	/**	All subsets in between num_subsets and index will be created, too.*/
@@ -583,7 +585,7 @@ class UG_API ISubsetHandler : public GridObserver
 	/**	Use with care! Only indices are affected. The elements are not
 	 *	removed from any lists.
 	 *	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
-		void reset_subset_indices(uint shElements = SHE_ALL);
+		void reset_subset_indices(byte_t shElements = SubsetHandlerElements::SHE_ALL);
 
 	///	creates all required infos (and pipes) up to the given index.
 		void create_required_subsets(int index);
@@ -742,7 +744,7 @@ class UG_API ISubsetHandler : public GridObserver
 
 		SubsetInfoVec	m_subsetInfos;
 		SubsetInfo		m_defaultSubsetInfo;
-		uint			m_supportedElements;
+		SubsetHandlerElements_t m_supportedElements;
 
 		ASubsetIndex	m_aSubsetIndex;
 		//ADataIndex		m_aDataIndex;

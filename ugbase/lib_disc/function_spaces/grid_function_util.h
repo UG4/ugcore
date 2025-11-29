@@ -1058,7 +1058,7 @@ public:
 
 	///	sets to toplevel on surface
 	void reset() {
-		set_grid_level(GridLevel(GridLevel::TOP, GridLevel::SURFACE));
+		set_grid_level(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE));
 	}
 
 
@@ -1385,12 +1385,12 @@ public:
 		size_t numDoFs = 0;
 		GridLevel gl;
 		if (m_level == (size_t) -1) {
-			numDoFs = m_pApproxSpace->dof_distribution(GridLevel(GridLevel::TOP, GridLevel::SURFACE))->num_indices();
+			numDoFs = m_pApproxSpace->dof_distribution(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE))->num_indices();
 			gl = GridLevel();
 		} else {
 			numDoFs =
-					m_pApproxSpace->dof_distribution(GridLevel(m_level, GridLevel::LEVEL, true))->num_indices();
-			gl = GridLevel(m_level, GridLevel::LEVEL);
+					m_pApproxSpace->dof_distribution(GridLevel(m_level, GridLevel::ViewType::LEVEL, true))->num_indices();
+			gl = GridLevel(m_level, GridLevel::ViewType::LEVEL);
 		}
 		vec.resize(numDoFs);
 		vec.set(1.0);

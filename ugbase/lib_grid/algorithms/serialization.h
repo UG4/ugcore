@@ -142,26 +142,26 @@ class GridDataSerializer
 	///	can be used to write arbitrary info to the file.
 	/**	Make sure to read everything you've written during read_data.
 	 * Default implementation is empty.*/
-		virtual void write_info(BinaryBuffer& out) const				{}
+		virtual void write_info(BinaryBuffer& out) const {}
 
 	///	Read the info written during write_info here. Default: empty implementation.
-		virtual void read_info(BinaryBuffer& in)					{}
+		virtual void read_info(BinaryBuffer& in) {}
 
 		virtual void write_data(BinaryBuffer& out, Vertex* o) const	{}
-		virtual void write_data(BinaryBuffer& out, Edge* o) const	{}
-		virtual void write_data(BinaryBuffer& out, Face* o) const		{}
-		virtual void write_data(BinaryBuffer& out, Volume* o) const		{}
+		virtual void write_data(BinaryBuffer& out, Edge* o) const {}
+		virtual void write_data(BinaryBuffer& out, Face* o) const {}
+		virtual void write_data(BinaryBuffer& out, Volume* o) const {}
 
-		virtual void read_data(BinaryBuffer& in, Vertex* o)	{}
-		virtual void read_data(BinaryBuffer& in, Edge* o)	{}
-		virtual void read_data(BinaryBuffer& in, Face* o)		{}
-		virtual void read_data(BinaryBuffer& in, Volume* o)		{}
-
-	///	this method is called after read_info has been called for all geometric objects.
-		virtual void deserialization_starts()					{}
+		virtual void read_data(BinaryBuffer& in, Vertex* o) {}
+		virtual void read_data(BinaryBuffer& in, Edge* o) {}
+		virtual void read_data(BinaryBuffer& in, Face* o) {}
+		virtual void read_data(BinaryBuffer& in, Volume* o) {}
 
 	///	this method is called after read_info has been called for all geometric objects.
-		virtual void deserialization_done()						{}
+		virtual void deserialization_starts() {}
+
+	///	this method is called after read_info has been called for all geometric objects.
+		virtual void deserialization_done() {}
 };
 
 using SPGridDataSerializer = SmartPtr<GridDataSerializer>;
@@ -257,16 +257,16 @@ class GridDataSerializationHandler
 					   TDeserializers& deserializers);
 
 		template <typename TSerializers>
-		void write_info(BinaryBuffer& out, TSerializers& serializers) const;
+		static void write_info(BinaryBuffer& out, TSerializers& serializers);
 
 		template <typename TSerializers>
-		void read_info(BinaryBuffer& in, TSerializers& serializers);
+		static void read_info(BinaryBuffer& in, TSerializers& serializers);
 
 		template <typename TSerializers>
-		void deserialization_starts(TSerializers& serializers);
+		static void deserialization_starts(TSerializers& serializers);
 
 		template <typename TSerializers>
-		void deserialization_done(TSerializers& serializers);
+		static void deserialization_done(TSerializers& serializers);
 
 	private:
 		std::vector<SPVertexDataSerializer>	m_vrtSerializers;
@@ -312,7 +312,7 @@ class SubsetHandlerSerializer : public GridDataSerializer
 		static SPGridDataSerializer create(ISubsetHandler& sh)
 		{return SPGridDataSerializer(new SubsetHandlerSerializer(sh));}
 
-		SubsetHandlerSerializer(ISubsetHandler& sh);
+		explicit SubsetHandlerSerializer(ISubsetHandler& sh);
 		~SubsetHandlerSerializer() override = default;
 
 	///	writes subset-infos to the stream (subset names and colors)

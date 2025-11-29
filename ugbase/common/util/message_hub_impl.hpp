@@ -70,8 +70,7 @@ post_message(const TMsg& msg)
 	size_t id = GetUniqueTypeID<TMsg>();
 //	call the callbacks
 	CallbackEntryList& callbacks = m_callbackMap[id];
-	for(CallbackEntryList::iterator iter = callbacks.begin();
-		iter != callbacks.end(); ++iter)
+	for(auto iter = callbacks.begin(); iter != callbacks.end(); ++iter)
 	{
 		iter->m_callback(msg);
 	}

@@ -53,7 +53,7 @@ namespace ug
 /**
  * You may combine the constants using or-operations.
  */
-enum SelectorElements
+enum SelectorElements : byte_t
 {
 	SE_NONE = 0,
 	SE_VERTEX = 1,
@@ -62,6 +62,7 @@ enum SelectorElements
 	SE_VOLUME = 1 << 3,
 	SE_ALL = SE_VERTEX | SE_EDGE | SE_FACE | SE_VOLUME
 };
+using SelectorElements_t = byte_t;
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -133,8 +134,8 @@ class UG_API ISelector : public GridObserver
 		};
 
 	public:
-		ISelector(uint supportedElements = SE_ALL);
-		ISelector(Grid& grid, uint supportedElements = SE_ALL);
+		ISelector(SelectorElements_t supportedElements = SE_ALL);
+		ISelector(Grid& grid, SelectorElements_t supportedElements = SE_ALL);
 
 		~ISelector() override;
 
@@ -197,41 +198,41 @@ class UG_API ISelector : public GridObserver
 	//	selection status
 	///	returns the selection state of the specified element
 	/** \{ */
-		inline byte_t get_selection_status(GridObject* elem) const;
-		inline byte_t get_selection_status(Vertex* vrt) const {if(!elements_are_supported(SE_VERTEX)) return 0; return m_aaSelVRT[vrt];}
-		inline byte_t get_selection_status(Edge* edge) const {if(!elements_are_supported(SE_EDGE)) return 0; return m_aaSelEDGE[edge];}
-		inline byte_t get_selection_status(Face* face) const {if(!elements_are_supported(SE_FACE)) return 0; return m_aaSelFACE[face];}
-		inline byte_t get_selection_status(Volume* vol) const {if(!elements_are_supported(SE_VOLUME)) return 0; return m_aaSelVOL[vol];}
+		[[nodiscard]] inline SelectorElements_t get_selection_status(GridObject* elem) const;
+		[[nodiscard]] inline SelectorElements_t get_selection_status(Vertex* vrt) const {if(!elements_are_supported(SE_VERTEX)) return 0; return m_aaSelVRT[vrt];}
+		[[nodiscard]] inline SelectorElements_t get_selection_status(Edge* edge) const {if(!elements_are_supported(SE_EDGE)) return 0; return m_aaSelEDGE[edge];}
+		[[nodiscard]] inline SelectorElements_t get_selection_status(Face* face) const {if(!elements_are_supported(SE_FACE)) return 0; return m_aaSelFACE[face];}
+		[[nodiscard]] inline SelectorElements_t get_selection_status(Volume* vol) const {if(!elements_are_supported(SE_VOLUME)) return 0; return m_aaSelVOL[vol];}
 	/** \} */
 
 	///	returns the selection state of the specified element
 	/** In this context, 'get_mark' is simply a synonym for 'get_selection_status'
 	 * and simply forwards to the corresponding method.*/
 		template <typename TElem>
-		inline byte_t get_mark(TElem* elem) const
+		inline SelectorElements_t get_mark(TElem* elem) const
 		{return get_selection_status(elem);}
 
 	///	returns true if an element is selected
 		template <typename TElem>
-		inline bool is_selected(TElem* elem) const {return get_selection_status(elem) != 0;}
+		[[nodiscard]] inline bool is_selected(TElem* elem) const {return get_selection_status(elem) != 0;}
 
 	//	non-virtual methods.
-		inline Grid* grid() const		{return m_pGrid;}
+		[[nodiscard]] inline Grid* grid() const		{return m_pGrid;}
 
 	///	returns a geometric object collection, containing all selected objects
-		virtual GridObjectCollection get_grid_objects() const = 0;
+		[[nodiscard]] virtual GridObjectCollection get_grid_objects() const = 0;
 
 	///	returns true if the given element-types are supported.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
-		inline bool elements_are_supported(uint shElements) const;
+		[[nodiscard]] inline bool elements_are_supported(SelectorElements_t shElements) const;
 
 	//	if enabled, all new elements will be automatically enabled. Disabled by default.
 		void enable_autoselection(bool bEnable);
-		inline bool autoselection_enabled() {return m_bAutoselectionEnabled;}
+		[[nodiscard]] inline bool autoselection_enabled() const {return m_bAutoselectionEnabled;}
 
 	//	if enabled, newly created elements derive their selection status from their parents. Enabled by default.
 		void enable_selection_inheritance(bool bEnable);
-		inline bool selection_inheritance_enabled()	 {return m_bSelectionInheritanceEnabled;}
+		[[nodiscard]] inline bool selection_inheritance_enabled() const {return m_bSelectionInheritanceEnabled;}
 
 	/**	restricts subset inheritance so that new elements derive their
 	 * 	selection status only from parents with the same base-type.
@@ -239,7 +240,7 @@ class UG_API ISelector : public GridObserver
 	 * 	NOTE: strict inheritance only has an effect if
 	 * 	selection inheritance is enabled.*/
 		void enable_strict_inheritance(bool bEnable);
-		inline bool strict_inheritance_enabled() {return m_bStrictInheritanceEnabled;}
+		[[nodiscard]] inline bool strict_inheritance_enabled() const {return m_bStrictInheritanceEnabled;}
 	//	grid callbacks
 	/*
 		virtual void registered_at_grid(Grid* grid);
@@ -291,16 +292,16 @@ class UG_API ISelector : public GridObserver
 		                          Volume* elem1, Volume* elem2) override;
 
 	///	returns true if the selector contains vertices
-		virtual bool contains_vertices() const = 0;
+		[[nodiscard]] virtual bool contains_vertices() const = 0;
 
 	///	returns true if the selector contains edges
-		virtual bool contains_edges() const = 0;
+		[[nodiscard]] virtual bool contains_edges() const = 0;
 
 	///	returns true if the selector contains faces
-		virtual bool contains_faces() const = 0;
+		[[nodiscard]] virtual bool contains_faces() const = 0;
 
 	///	returns true if the selector contains volumes
-		virtual bool contains_volumes() const = 0;
+		[[nodiscard]] virtual bool contains_volumes() const = 0;
 
 	///	broadcasts the current selection
 	/**	This method is only interesting for parallel algorithms.
@@ -350,17 +351,17 @@ class UG_API ISelector : public GridObserver
 	/**	Pass an or-combination of constants enumerated in SubsetHandlerElements.
 	 *	\sa SubsetHandler::enable_element_support*/
 	//	Protected non-virtual to avoid virtual calls during construction
-		void set_supported_elements(uint shElements);
+		void set_supported_elements(SelectorElements_t shElements);
 
 	///	enable support for element-types. Does not invalidate previous settings.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
 	//	Protected non-virtual to avoid virtual calls during construction
-		void enable_element_support(uint shElements);
+		void enable_element_support(SelectorElements_t shElements);
 
 	///	disable support for element-types.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
 	//	Protected non-virtual to avoid virtual calls during construction
-		void disable_element_support(uint shElements);
+		void disable_element_support(SelectorElements_t shElements);
 
 		inline void mark_selected(Vertex* elem, byte_t status) {assert(elements_are_supported(SE_VERTEX)); m_aaSelVRT[elem] = status;}
 		inline void mark_selected(Edge* elem, byte_t status) {assert(elements_are_supported(SE_EDGE)); m_aaSelEDGE[elem] = status;}
@@ -378,7 +379,7 @@ class UG_API ISelector : public GridObserver
 								TElem* elem1, TElem* elem2);
 
 	private:
-		ISelector(const ISelector& sel){};///<	Copy Constructor not yet implemented!
+		ISelector(const ISelector& sel) = delete;///<	Copy Constructor not yet implemented!
 
 		#ifdef UG_PARALLEL
 			template <typename TIntfcCom>
@@ -388,7 +389,7 @@ class UG_API ISelector : public GridObserver
 
 	protected:
 		Grid* m_pGrid;
-		uint m_supportedElements;
+		SelectorElements_t m_supportedElements;
 		bool m_bAutoselectionEnabled;
 		bool m_bSelectionInheritanceEnabled;
 		bool m_bStrictInheritanceEnabled;

@@ -45,11 +45,12 @@ class GridLevel
 		enum{TOP = -1};
 
 	///	type of view
-		enum ViewType{LEVEL = 0, SURFACE = 1};
+		enum class ViewType : bool {LEVEL = false, SURFACE = true};
+
 
 	public:
 	///	constructor creation surface grid
-		GridLevel() : m_level(TOP), m_type(SURFACE), m_bWithGhosts(false) {}
+		GridLevel() : m_level(TOP), m_type(ViewType::SURFACE), m_bWithGhosts(false) {}
 
 	///	constructor
 		GridLevel(int level, ViewType type, bool bWithGhosts = false)
@@ -58,15 +59,15 @@ class GridLevel
 
 	///	constructor
 		GridLevel(int level)
-			: m_level(level), m_type(SURFACE), m_bWithGhosts(false)
+			: m_level(level), m_type(ViewType::SURFACE), m_bWithGhosts(false)
 		{}
 
 	///	constructor
 		GridLevel(int level, const std::string& type)
 			: m_level(level), m_bWithGhosts(false)
 		{
-			if(type == "top") {m_type = LEVEL;}
-			else if(type == "surf") {m_type = SURFACE;}
+			if(type == "top") {m_type = ViewType::LEVEL;}
+			else if(type == "surf") {m_type = ViewType::SURFACE;}
 			else UG_THROW("Grid Level Type not in ['top' | 'surf'].");
 		}
 
@@ -83,10 +84,10 @@ class GridLevel
 		bool top() const {return level() == TOP;}
 
 	///	returns if type is level
-		bool is_level() const {return type() == LEVEL;}
+		[[nodiscard]] bool is_level() const {return type() == ViewType::LEVEL;}
 
 	///	returns if type is surface
-		bool is_surface() const {return type() == SURFACE;}
+		[[nodiscard]] bool is_surface() const {return type() == ViewType::SURFACE;}
 
 	///	operator ==
 		bool operator == (const GridLevel& rhs) const {
@@ -140,7 +141,9 @@ class GridLevel
 };
 
 /// writes to the output stream
-std::ostream& operator << (std::ostream& out,	const GridLevel& v);
+std::ostream& operator << (std::ostream& out, const GridLevel& v);
+
+std::ostream& operator << (std::ostream& stream, const GridLevel::ViewType & type);
 
 /// returns appendix for a grid level
 std::string GridLevelAppendix(const GridLevel& gl, int minfill = 2);

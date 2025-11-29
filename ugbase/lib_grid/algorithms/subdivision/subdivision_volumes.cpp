@@ -38,7 +38,7 @@ namespace ug
 
 
 /// global boundary refinement rule variable for switching between linear and Subdivision Loop refinement
-static GlobalBoundaryRefinementRule g_boundaryRefinementRule = LINEAR;
+static GlobalBoundaryRefinementRule g_boundaryRefinementRule = GlobalBoundaryRefinementRule::LINEAR;
 
 ////////////////////////////////////////////////////////////////////////////////
 void SetBoundaryRefinementRule(GlobalBoundaryRefinementRule refRule)
@@ -494,7 +494,7 @@ void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag)
 				 * Therefore, if(dgm->is_ghost(oct)) is not
 				 * sufficient.
 				 */
-				if(dgm->contains_status(oct, ES_V_SLAVE))
+				if(dgm->contains_status(oct, ElementStatusTypes::ES_V_SLAVE))
 					continue;
 			#endif
 
@@ -553,7 +553,7 @@ void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, TAPosition& aPos)
 //	AttachmentCopy VSLAVE->VMASTER on mg.top_level() in case not all VMasters in toplevel don't have correct position already
 	#ifdef UG_PARALLEL
 	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyAPosition);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, comPolCopyAPosition);
 		com.communicate();
 	#endif
 
@@ -575,7 +575,7 @@ void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, TAPosition& aPos)
 
 	#ifdef UG_PARALLEL
 	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyAPosition);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, comPolCopyAPosition);
 		com.communicate();
 	#endif
 	}
@@ -690,7 +690,7 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 					if(dgm.is_ghost(e))
 						continue;
 
-					if(dgm.contains_status(e, ES_H_SLAVE))
+					if(dgm.contains_status(e, ElementStatusTypes::ES_H_SLAVE))
 						continue;
 				#endif
 
@@ -723,7 +723,7 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 				if(dgm.is_ghost(vrt))
 					continue;
 
-				if(dgm.contains_status(vrt, ES_H_SLAVE))
+				if(dgm.contains_status(vrt, ElementStatusTypes::ES_H_SLAVE))
 				{
 					VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], nbrWght, p);
 					continue;
@@ -773,7 +773,7 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 			//	Exclude ghost and horizontal slaves of the parent edge vertices of the currently smoothed vertex
 			//	to avoid multiple contributions to the centroid of the edge adjacent vertices
 				#ifdef UG_PARALLEL
-					if(dgm.is_ghost(e) || dgm.contains_status(e, ES_H_SLAVE))
+					if(dgm.is_ghost(e) || dgm.contains_status(e, ElementStatusTypes::ES_H_SLAVE))
 						continue;
 				#endif
 
@@ -815,7 +815,7 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 						if(dgm.is_ghost(associatedFaces[i]))
 							continue;
 
-						if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
+						if(dgm.contains_status(associatedFaces[i], ElementStatusTypes::ES_H_SLAVE))
 							continue;
 					#endif
 
@@ -846,7 +846,7 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 						if(dgm.is_ghost(e))
 							continue;
 
-						if(dgm.contains_status(e, ES_H_SLAVE))
+						if(dgm.contains_status(e, ElementStatusTypes::ES_H_SLAVE))
 						{
 							VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.125, p);
 							continue;
@@ -959,7 +959,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition
 						if(dgm.is_ghost(e))
 							continue;
 
-						if(dgm.contains_status(e, ES_H_SLAVE))
+						if(dgm.contains_status(e, ElementStatusTypes::ES_H_SLAVE))
 							continue;
 					#endif
 
@@ -975,7 +975,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition
 				if(dgm.is_ghost(vrt))
 					continue;
 
-				if(dgm.contains_status(vrt, ES_H_SLAVE))
+				if(dgm.contains_status(vrt, ElementStatusTypes::ES_H_SLAVE))
 				{
 					VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], nbrWgt, p);
 					continue;
@@ -1035,7 +1035,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition
 						if(dgm.is_ghost(associatedFaces[i]))
 							continue;
 
-						if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
+						if(dgm.contains_status(associatedFaces[i], ElementStatusTypes::ES_H_SLAVE))
 							continue;
 					#endif
 
@@ -1069,7 +1069,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition
 						continue;
 					}
 
-					if(dgm.contains_status(e, ES_H_SLAVE))
+					if(dgm.contains_status(e, ElementStatusTypes::ES_H_SLAVE))
 					{
 						VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.125, p);
 						continue;
@@ -1145,7 +1145,7 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, TAPositi
 		if(markSH.get_subset_index(f) != -1 && linearManifoldSH.get_subset_index(f) == -1)
 		{
 		//	TRIANGLE CASE
-			if(f->reference_object_id() == ROID_TRIANGLE)
+			if(f->reference_object_id() == ReferenceObjectID::ROID_TRIANGLE)
 			{
 			//	Iterate over all face vertices, calculate and apply local centroid masks
 				for(size_t i = 0; i < f->num_vertices(); ++i)
@@ -1169,7 +1169,7 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, TAPositi
 			}
 
 		//	QUADRILATERAL CASE
-			else if(f->reference_object_id() == ROID_QUADRILATERAL)
+			else if(f->reference_object_id() == ReferenceObjectID::ROID_QUADRILATERAL)
 			{
 			//	Iterate over all face vertices, calculate and apply local centroid masks
 				for(size_t i = 0; i < f->num_vertices(); ++i)
@@ -1322,7 +1322,7 @@ void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPos
 							if(dgm.is_ghost(associatedFaces[i]))
 								continue;
 
-							if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
+							if(dgm.contains_status(associatedFaces[i], ElementStatusTypes::ES_H_SLAVE))
 								continue;
 						#endif
 
@@ -1378,7 +1378,7 @@ void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPos
 											if(dgm.is_ghost(associatedButterflyFaces[k]))
 												continue;
 
-											if(dgm.contains_status(associatedButterflyFaces[k], ES_H_SLAVE))
+											if(dgm.contains_status(associatedButterflyFaces[k], ElementStatusTypes::ES_H_SLAVE))
 												continue;
 										#endif
 
@@ -1409,7 +1409,7 @@ void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPos
 							continue;
 						}
 
-						if(dgm.contains_status(e, ES_H_SLAVE))
+						if(dgm.contains_status(e, ElementStatusTypes::ES_H_SLAVE))
 						{
 							VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.125, p, -1.0/16, q);
 							continue;
@@ -1488,7 +1488,7 @@ void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPos
 								if(dgm.is_ghost(associatedFaces[i]))
 									continue;
 
-								if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
+								if(dgm.contains_status(associatedFaces[i], ElementStatusTypes::ES_H_SLAVE))
 									continue;
 							#endif
 
@@ -1549,7 +1549,7 @@ void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPos
 							associatedManifoldFaces.clear();
 
 						//	Get connecting edge of next butterfly vertex s_i in line to vrt
-							if(f->get_opposing_object(butterflyVertex).first != EDGE)
+							if(f->get_opposing_object(butterflyVertex).first != GridBaseObjectId::EDGE)
 							{
 								UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelButterflyScheme3d: "
 										"Opposing object of butterfly vertex in manifold face is not an edge: "
@@ -1583,7 +1583,7 @@ void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPos
 										if(dgm.is_ghost(associatedFaces[j]))
 											continue;
 
-										if(dgm.contains_status(associatedFaces[j], ES_H_SLAVE))
+										if(dgm.contains_status(associatedFaces[j], ElementStatusTypes::ES_H_SLAVE))
 											continue;
 									#endif
 
@@ -1606,7 +1606,7 @@ void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPos
 								continue;
 							}
 
-							if(dgm.contains_status(e, ES_H_SLAVE))
+							if(dgm.contains_status(e, ElementStatusTypes::ES_H_SLAVE))
 							{
 								VecScaleAppend(aaSmoothBndPosOddVrt[e], 1.0/numLoops, q);
 								continue;
@@ -1683,13 +1683,13 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 
 		//	In case of linear or subdivision Loop boundary manifold refinement:
 		//	handle vertices of separating manifolds separately
-			if(markSH.get_subset_index(vrt) != -1 && g_boundaryRefinementRule != SUBDIV_VOL)
+			if(markSH.get_subset_index(vrt) != -1 && g_boundaryRefinementRule != GlobalBoundaryRefinementRule::SUBDIV_VOL)
 			{
 				continue;
 			}
 
 		//	TETRAHEDRON CASE
-			if(vol->reference_object_id() == ROID_TETRAHEDRON)
+			if(vol->reference_object_id() == ReferenceObjectID::ROID_TETRAHEDRON)
 			{
 			//	Summate coordinates of neighbor vertices to vrt inside tetrahedron
 				for(size_t j = 0; j < vol->num_vertices(); ++j)
@@ -1705,7 +1705,7 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 			}
 
 		//	OCTAHEDRON CASE
-			else if(vol->reference_object_id() == ROID_OCTAHEDRON)
+			else if(vol->reference_object_id() == ReferenceObjectID::ROID_OCTAHEDRON)
 			{
 			//	Get cell-adjacent vertex
 				Vertex* oppVrt = vol->vertex(vol->get_opposing_object(vrt).second);
@@ -1729,7 +1729,7 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 			}
 
 		//	PRISM CASE
-			else if(vol->reference_object_id() == ROID_PRISM)
+			else if(vol->reference_object_id() == ReferenceObjectID::ROID_PRISM)
 			{
 			//	Get cell-adjacent vertex
 				Vertex* oppVrt;
@@ -1761,7 +1761,7 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 			}
 
 		//	HEXAHEDRON CASE
-			else if(vol->reference_object_id() == ROID_HEXAHEDRON)
+			else if(vol->reference_object_id() == ReferenceObjectID::ROID_HEXAHEDRON)
 			{
 			//	Summate coordinates of neighbor vertices to vrt inside hexahedron
 				for(size_t j = 0; j < vol->num_vertices(); ++j)
@@ -1839,13 +1839,13 @@ void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandle
 
 		//	In case of linear or subdivision Loop boundary manifold refinement:
 		//	handle vertices of separating manifolds separately
-			if(markSH.get_subset_index(vrt) != -1 && g_boundaryRefinementRule != SUBDIV_VOL)
+			if(markSH.get_subset_index(vrt) != -1 && g_boundaryRefinementRule != GlobalBoundaryRefinementRule::SUBDIV_VOL)
 			{
 				continue;
 			}
 
 		//	TETRAHEDRON CASE
-			if(vol->reference_object_id() == ROID_TETRAHEDRON)
+			if(vol->reference_object_id() == ReferenceObjectID::ROID_TETRAHEDRON)
 			{
 			//	Summate coordinates of neighbor vertices to vrt inside tetrahedron
 				for(size_t j = 0; j < vol->num_vertices(); ++j)
@@ -1878,7 +1878,7 @@ void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandle
 			}
 
 		//	OCTAHEDRON CASE
-			else if(vol->reference_object_id() == ROID_OCTAHEDRON)
+			else if(vol->reference_object_id() == ReferenceObjectID::ROID_OCTAHEDRON)
 			{
 			//	Get cell-adjacent vertex
 				Vertex* oppVrt = vol->vertex(vol->get_opposing_object(vrt).second);
@@ -1998,11 +1998,11 @@ void CalculateNumElemsVertexAttachmentInTopLevel(MultiGrid& mg, AInt& aNumElems_
 
 		for(size_t i = 0; i < vol->num_vertices(); ++i)
 		{
-			if(vol->reference_object_id() == ROID_TETRAHEDRON || vol->reference_object_id() == ROID_OCTAHEDRON)
+			if(vol->reference_object_id() == ReferenceObjectID::ROID_TETRAHEDRON || vol->reference_object_id() == ReferenceObjectID::ROID_OCTAHEDRON)
 				++aaNumElems_toc[vol->vertex(i)];
-			else if(vol->reference_object_id() == ROID_PRISM)
+			else if(vol->reference_object_id() == ReferenceObjectID::ROID_PRISM)
 				++aaNumElems_prism[vol->vertex(i)];
-			else if(vol->reference_object_id() == ROID_HEXAHEDRON)
+			else if(vol->reference_object_id() == ReferenceObjectID::ROID_HEXAHEDRON)
 				++aaNumElems_hex[vol->vertex(i)];
 			else
 				UG_THROW("ERROR in CalculateNumElemsVertexAttachmentInTopLevel: not supported element type included in grid.");
@@ -2021,9 +2021,9 @@ void CalculateNumElemsVertexAttachmentInTopLevel(MultiGrid& mg, AInt& aNumElems_
 		AttachmentAllReduce<Vertex>(mg, aNumElems_hex, PCL_RO_SUM);
 
 	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumElems_toc);
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumElems_prism);
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumElems_hex);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, comPolCopyNumElems_toc);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, comPolCopyNumElems_prism);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, comPolCopyNumElems_hex);
 		com.communicate();
 	#endif
 }
@@ -2093,7 +2093,7 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 				if(dgm.is_ghost(e))
 					continue;
 
-				if(dgm.contains_status(e, ES_H_SLAVE))
+				if(dgm.contains_status(e, ElementStatusTypes::ES_H_SLAVE))
 					continue;
 			#endif
 
@@ -2112,7 +2112,7 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 		AttachmentAllReduce<Vertex>(mg, aNumManifoldEdges, PCL_RO_SUM);
 
 	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldEdges);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, comPolCopyNumManifoldEdges);
 		com.communicate();
 	#endif
 }
@@ -2157,9 +2157,9 @@ void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubset
 
 			for(size_t i = 0; i < f->num_vertices(); ++i)
 			{
-				if(f->reference_object_id() == ROID_TRIANGLE)
+				if(f->reference_object_id() == ReferenceObjectID::ROID_TRIANGLE)
 					++aaNumManifoldFaces_tri[f->vertex(i)];
-				else if(f->reference_object_id() == ROID_QUADRILATERAL)
+				else if(f->reference_object_id() == ReferenceObjectID::ROID_QUADRILATERAL)
 					++aaNumManifoldFaces_quad[f->vertex(i)];
 				else
 					UG_THROW("ERROR in CalculateNumManifoldFacesVertexAttachmentInTopLevel: Non triangular/quadrilateral faces included in grid.");
@@ -2178,8 +2178,8 @@ void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubset
 		AttachmentAllReduce<Vertex>(mg, aNumManifoldFaces_quad, PCL_RO_SUM);
 
 	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldFaces_tri);
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldFaces_quad);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, comPolCopyNumManifoldFaces_tri);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, comPolCopyNumManifoldFaces_quad);
 		com.communicate();
 	#endif
 }
@@ -2428,7 +2428,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
 		if(bSwitch)
 		{
 		//	EVEN VERTEX
-			if(mg.get_parent(vrt)->reference_object_id() == ROID_VERTEX)
+			if(mg.get_parent(vrt)->reference_object_id() == ReferenceObjectID::ROID_VERTEX)
 			{
 			//	Get parent vertex
 				auto* parentVrt = static_cast<Vertex*>(mg.get_parent(vrt));
@@ -2437,7 +2437,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
 			}
 
 		//	ODD VERTEX
-			else if(mg.get_parent(vrt)->reference_object_id() == ROID_EDGE)
+			else if(mg.get_parent(vrt)->reference_object_id() == ReferenceObjectID::ROID_EDGE)
 			{
 			//	Get parent edge
 				auto parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
@@ -2458,7 +2458,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
 //	Communicate aPosition in parallel case
 	#ifdef UG_PARALLEL
 	//	copy ghosts = VMASTER to v_slaves
-		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopyAPosition);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, comPolCopyAPosition);
 		com.communicate();
 	#endif
 
@@ -2582,7 +2582,7 @@ void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& 
 		if(markSH.get_subset_index(vrt) != -1 && linearManifoldSH.get_subset_index(vrt) == -1)
 		{
 		//	ODD VERTEX
-			if(mg.get_parent(vrt)->reference_object_id() == ROID_EDGE)
+			if(mg.get_parent(vrt)->reference_object_id() == ReferenceObjectID::ROID_EDGE)
 			{
 			//	Get parent edge
 				auto parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
@@ -2603,7 +2603,7 @@ void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& 
 //	Communicate aPosition in parallel case
 	#ifdef UG_PARALLEL
 	//	copy ghosts = VMASTER to v_slaves
-		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopyAPosition);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, comPolCopyAPosition);
 		com.communicate();
 	#endif
 
@@ -2729,7 +2729,7 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, TAPosition& 
 //	Communicate aPosition in parallel case
 	#ifdef UG_PARALLEL
 	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyAPosition);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, comPolCopyAPosition);
 		com.communicate();
 	#endif
 
@@ -2835,7 +2835,7 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 		if(aaNumElems_toc[vrt] == 0 &&  aaNumElems_prism[vrt] == 0 && aaNumElems_hex[vrt] == 0)
 			UG_THROW("ERROR in ApplySmoothVolumePosToTopLevel: grid contains vertex not contained in any volume.");
 
-		if(g_boundaryRefinementRule == SUBDIV_VOL)
+		if(g_boundaryRefinementRule == GlobalBoundaryRefinementRule::SUBDIV_VOL)
 		{
 		//	Scale smooth vertex position by the number of associated volume elements (SubdivisionVolumes smoothing)
 			VecScale(aaSmoothVolPos_toc[vrt],  aaSmoothVolPos_toc[vrt], 1.0/14.0/(aaNumElems_toc[vrt]/14.0 + aaNumElems_prism[vrt]/12.0 + aaNumElems_hex[vrt]/8.0));
@@ -2868,7 +2868,7 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 //	Communicate aPosition in parallel case
 	#ifdef UG_PARALLEL
 	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyAPosition);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, comPolCopyAPosition);
 		com.communicate();
 	#endif
 
@@ -2932,20 +2932,20 @@ void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, M
  *****************************************/
 
 	if(bCreaseSurf){
-		if(!(g_boundaryRefinementRule == SUBDIV_SURF_LOOP_SCHEME || g_boundaryRefinementRule == LINEAR)){
+		if(!(g_boundaryRefinementRule == GlobalBoundaryRefinementRule::SUBDIV_SURF_LOOP_SCHEME || g_boundaryRefinementRule == GlobalBoundaryRefinementRule::LINEAR)){
 			UG_THROW("Error in ApplySmoothSubdivisionSurfacesToTopLevel: "
 					 "Crease surfaces are currently only supported with 'subdiv_surf_loop_scheme' or 'linear' refinement.");
 		}
 	}
 
-	if(g_boundaryRefinementRule == SUBDIV_SURF_LOOP_SCHEME)
+	if(g_boundaryRefinementRule == GlobalBoundaryRefinementRule::SUBDIV_SURF_LOOP_SCHEME)
 		ApplySmoothManifoldPosToTopLevelLoopScheme(mg, aPos, markSH, linearManifoldSH, bCreaseSurf);
-	else if(g_boundaryRefinementRule == SUBDIV_SURF_AVERAGING_SCHEME)
+	else if(g_boundaryRefinementRule == GlobalBoundaryRefinementRule::SUBDIV_SURF_AVERAGING_SCHEME)
 		ApplySmoothManifoldPosToTopLevelAveragingScheme(mg, aPos, markSH, linearManifoldSH);
-	else if(g_boundaryRefinementRule == SUBDIV_SURF_BUTTERFLY_SCHEME)
+	else if(g_boundaryRefinementRule == GlobalBoundaryRefinementRule::SUBDIV_SURF_BUTTERFLY_SCHEME)
 		ApplySmoothManifoldPosToTopLevelButterflyScheme(mg, aPos, markSH, linearManifoldSH);
-	else if(g_boundaryRefinementRule == SUBDIV_VOL){}
-	else if(g_boundaryRefinementRule == LINEAR){}
+	else if(g_boundaryRefinementRule == GlobalBoundaryRefinementRule::SUBDIV_VOL){}
+	else if(g_boundaryRefinementRule == GlobalBoundaryRefinementRule::LINEAR){}
 	else
 		UG_THROW("ERROR in ApplySmoothSubdivisionSurfacesToTopLevel: Unknown boundary refinement rule. Known rules are 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme', 'subdiv_surf_butterfly_scheme' or 'linear'.");
 }
@@ -2964,7 +2964,7 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
 	PROFILE_FUNC_GROUP("subdivision_volumes");
 
 //	Ensure, that hybrid tet-/oct refinement is used as refinement rule for tetrahedrons
-	if(tet_rules::GetRefinementRule() != tet_rules::HYBRID_TET_OCT)
+	if(tet_rules::GetRefinementRule() != tet_rules::GlobalRefinementRule::HYBRID_TET_OCT)
 		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Set necessary refinement rule by SetTetRefinementRule('hybrid_tet_oct').");
 
 //	Catch use of procedure for MultiGrids with just one level
@@ -2990,14 +2990,14 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
  *
  *****************************************/
 
-	if(g_boundaryRefinementRule == SUBDIV_SURF_LOOP_SCHEME)
+	if(g_boundaryRefinementRule == GlobalBoundaryRefinementRule::SUBDIV_SURF_LOOP_SCHEME)
 		ApplySmoothManifoldPosToTopLevelLoopScheme(mg, aPosition, markSH, linearManifoldSH, false);
-	else if(g_boundaryRefinementRule == SUBDIV_SURF_AVERAGING_SCHEME)
+	else if(g_boundaryRefinementRule == GlobalBoundaryRefinementRule::SUBDIV_SURF_AVERAGING_SCHEME)
 		ApplySmoothManifoldPosToTopLevelAveragingScheme(mg, aPosition, markSH, linearManifoldSH);
-	else if(g_boundaryRefinementRule == SUBDIV_SURF_BUTTERFLY_SCHEME)
+	else if(g_boundaryRefinementRule == GlobalBoundaryRefinementRule::SUBDIV_SURF_BUTTERFLY_SCHEME)
 		ApplySmoothManifoldPosToTopLevelButterflyScheme(mg, aPosition, markSH, linearManifoldSH);
-	else if(g_boundaryRefinementRule == SUBDIV_VOL){}
-	else if(g_boundaryRefinementRule == LINEAR){}
+	else if(g_boundaryRefinementRule == GlobalBoundaryRefinementRule::SUBDIV_VOL){}
+	else if(g_boundaryRefinementRule == GlobalBoundaryRefinementRule::LINEAR){}
 	else
 		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Unknown boundary refinement rule. Known rules are 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme', 'subdiv_surf_butterfly_scheme', 'linear' or 'subdiv_vol'.");
 

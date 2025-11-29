@@ -49,7 +49,7 @@ using namespace std;
 namespace ug
 {
 
-enum LGBConstants
+enum LGBConstants : uint // ø todo check file for size_type, enum could be derived from byte_t, but file writes to uint
 {
 	LGBC_NONE = 0,
 	LGBC_POS2D = 1,
@@ -58,6 +58,23 @@ enum LGBConstants
 	LGBC_SELECTOR = 1 << 3,
 	LGBC_PROJECTION_HANDLER = 1 << 4
 };
+using LGBConstants_t = uint;
+
+constexpr LGBConstants operator | (LGBConstants lhs, LGBConstants rhs) noexcept {
+	return static_cast<LGBConstants>(
+		static_cast<LGBConstants_t>(lhs) |
+		static_cast<LGBConstants_t>(rhs)
+	);
+}
+
+constexpr LGBConstants& operator |= (LGBConstants &lhs, LGBConstants rhs) noexcept {
+		lhs = static_cast<LGBConstants>(
+			static_cast<LGBConstants_t>(lhs) |
+			static_cast<LGBConstants_t>(rhs)
+		);
+	return lhs;
+}
+
 
 void SerializeProjector(BinaryBuffer& out, RefinementProjector& proj)
 {
@@ -78,7 +95,7 @@ void SerializeProjector(BinaryBuffer& out, RefinementProjector& proj)
 
 void SerializeProjectionHandler(BinaryBuffer& out, ProjectionHandler& ph)
 {
-	const int magicNumber = 978523;
+	constexpr int magicNumber = 978523;
 	out.write((char*)&magicNumber, sizeof(int));
 
 	if(ph.default_projector().valid()){
@@ -208,16 +225,16 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 	tbuf.write((char*)&versionNumber, sizeof(int));
 
 //	the options
-	uint opts = LGBC_POS3D;
+	LGBConstants opts = LGBConstants::LGBC_POS3D;
 	if(numSHs > 0)
-		opts |= LGBC_SUBSET_HANDLER;
+		opts |= LGBConstants::LGBC_SUBSET_HANDLER;
 	if(numSels > 0)
-		opts |= LGBC_SELECTOR;
+		opts |= LGBConstants::LGBC_SELECTOR;
 	if(pPH)
-		opts |= LGBC_PROJECTION_HANDLER;
+		opts |= LGBConstants::LGBC_PROJECTION_HANDLER;
 
 //	write the options
-	tbuf.write((char*)&opts, sizeof(uint));
+	tbuf.write((char*)&opts, sizeof(LGBConstants));
 
 //	serialize the grid
 	SerializeGridElements(grid, tbuf);
@@ -359,13 +376,13 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 	bool readGridHeader = (versionNumber >= 3);
 
 //	read the options
-	uint opts;
-	tbuf.read((char*)&opts, sizeof(uint));
+	LGBConstants opts;
+	tbuf.read((char*)&opts, sizeof(LGBConstants));
 
 //	to avoid problems with autgenerated elements we'll deactivate
 //	all options and reactivate them later on
 	uint gridOptions = grid.get_options();
-	grid.set_options(GRIDOPT_NONE);
+	grid.set_options(GridOptions::GRIDOPT_NONE);
 
 //	deserialize the grid
 	DeserializeGridElements(grid, tbuf, readGridHeader);
@@ -374,7 +391,7 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 	DeserializeAttachment<Vertex>(grid, aPos, tbuf);
 
 //	Serialize the subset-handler
-	if((opts & LGBC_SUBSET_HANDLER) == LGBC_SUBSET_HANDLER)
+	if((opts & LGBConstants::LGBC_SUBSET_HANDLER) == LGBConstants::LGBC_SUBSET_HANDLER)
 	{
 	//	read number of subset handlers
 		int numSrcSHs;
@@ -396,7 +413,7 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 		}
 	}
 
-	if((opts & LGBC_SELECTOR) == LGBC_SELECTOR)
+	if((opts & LGBConstants::LGBC_SELECTOR) == LGBConstants::LGBC_SELECTOR)
 	{
 	//	read number of subset handlers
 		int numSrcSels;
@@ -416,7 +433,7 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 	}
 
 
-	if((opts & LGBC_PROJECTION_HANDLER) == LGBC_PROJECTION_HANDLER)
+	if((opts & LGBConstants::LGBC_PROJECTION_HANDLER) == LGBConstants::LGBC_PROJECTION_HANDLER)
 	{
 	//	read number of subset handlers
 		int shIndex;

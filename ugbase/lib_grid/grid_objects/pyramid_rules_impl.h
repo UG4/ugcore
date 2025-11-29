@@ -54,22 +54,22 @@ int ConvertToTetrahedra(int* newIndsOut, TCmp cmp)
 
 	if((smallest == 0) || (smallest == 2)){
 		int i = 0;
-		newIndsOut[i++] = GOID_TETRAHEDRON;
+		newIndsOut[i++] = GridObjectID::GOID_TETRAHEDRON;
 		newIndsOut[i++] = 0; newIndsOut[i++] = 1;
 		newIndsOut[i++] = 2; newIndsOut[i++] = TOP_VERTEX;
 
-		newIndsOut[i++] = GOID_TETRAHEDRON;
+		newIndsOut[i++] = GridObjectID::GOID_TETRAHEDRON;
 		newIndsOut[i++] = 0; newIndsOut[i++] = 2;
 		newIndsOut[i++] = 3; newIndsOut[i++] = TOP_VERTEX;
 		return i;
 	}
 	else{
 		int i = 0;
-		newIndsOut[i++] = GOID_TETRAHEDRON;
+		newIndsOut[i++] = GridObjectID::GOID_TETRAHEDRON;
 		newIndsOut[i++] = 0; newIndsOut[i++] = 1;
 		newIndsOut[i++] = 3; newIndsOut[i++] = TOP_VERTEX;
 
-		newIndsOut[i++] = GOID_TETRAHEDRON;
+		newIndsOut[i++] = GridObjectID::GOID_TETRAHEDRON;
 		newIndsOut[i++] = 1; newIndsOut[i++] = 2;
 		newIndsOut[i++] = 3; newIndsOut[i++] = TOP_VERTEX;
 		return i;

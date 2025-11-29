@@ -562,7 +562,7 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 			size_t chainType = GetPolyChainType(grid, sh.begin<Edge>(i),
 												sh.end<Edge>(i),
 												IsInSubset(sh, i));
-			if(chainType == PCT_CLOSED){
+			if(chainType == PolyChainTypes::PCT_CLOSED){
 			//	since the chain is regular (see loop above) and since it is
 			//	closed, it is enough to simply move the first edge of the
 			//	chain to a new subset.
@@ -600,9 +600,9 @@ bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
 	Grid& grid = *sh.grid();
 
 //	edges are required
-	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
+	if(!grid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES)){
 		UG_LOG("WARNING in SplitIrregularManifoldSubset: Autoenabling FACEOPT_AUTOGENERATE_EDGES.\n");
-		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+		grid.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
 	}
 
 //	here we'll store some temporary results

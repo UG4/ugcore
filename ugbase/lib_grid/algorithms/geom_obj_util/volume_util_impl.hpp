@@ -237,15 +237,15 @@ void ConvertToTetrahedra (
 		size_t numEntries = 0;
 
 		switch(roid){
-			case ROID_PYRAMID:
+			case ReferenceObjectID::ROID_PYRAMID:
 				numEntries = pyra_rules::ConvertToTetrahedra(inds, cmp);
 				break;
 
-			case ROID_PRISM:
+			case ReferenceObjectID::ROID_PRISM:
 				numEntries = prism_rules::ConvertToTetrahedra(inds, cmp);
 				break;
 
-			case ROID_HEXAHEDRON:
+			case ReferenceObjectID::ROID_HEXAHEDRON:
 				UG_THROW("ConvertToTetrahedra for hexahedra not yet implemented!");
 				break;
 			default:
@@ -258,7 +258,7 @@ void ConvertToTetrahedra (
 			Volume::ConstVertexArray vrts = vol->vertices();
 			while(i < numEntries){
 				int goid = inds[i++];
-				UG_COND_THROW(goid != GOID_TETRAHEDRON,
+				UG_COND_THROW(goid != GridObjectID::GOID_TETRAHEDRON,
 							  "Only tetrahedra may result from ConvertToTetrahedra");
 				int i0 = inds[i++];
 				int i1 = inds[i++];

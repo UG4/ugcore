@@ -546,7 +546,7 @@ void FindSubsetGroups(
 		std::vector<int> & minCondInd,
 		const std::vector<bool> & isMarked,
 		const ISubsetHandler & sh,
-		const NeighborhoodType nbhType = NHT_VERTEX_NEIGHBORS);
+		const NeighborhoodType nbhType = NeighborhoodType::NHT_VERTEX_NEIGHBORS);
 
 
 ////////////////////////////////////////////////////////////////////////

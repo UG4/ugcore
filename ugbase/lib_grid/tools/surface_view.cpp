@@ -124,10 +124,10 @@ refresh_surface_states()
 {
 //todo	we need a global max-dim!!! (empty processes have to do the right thing, too)
 	int maxElem = -1;
-	if(m_pMG->num<Volume>() > 0) maxElem = VOLUME;
-	else if(m_pMG->num<Face>() > 0) maxElem = FACE;
-	else if(m_pMG->num<Edge>() > 0) maxElem = EDGE;
-	else if(m_pMG->num<Vertex>() > 0) maxElem = VERTEX;
+	if(m_pMG->num<Volume>() > 0) maxElem = GridBaseObjectId::VOLUME;
+	else if(m_pMG->num<Face>() > 0) maxElem = GridBaseObjectId::FACE;
+	else if(m_pMG->num<Edge>() > 0) maxElem = GridBaseObjectId::EDGE;
+	else if(m_pMG->num<Vertex>() > 0) maxElem = GridBaseObjectId::VERTEX;
 
 	#ifdef UG_PARALLEL
 		pcl::ProcessCommunicator pc;
@@ -135,10 +135,10 @@ refresh_surface_states()
 	#endif
 
 	switch(maxElem){
-		case VOLUME: refresh_surface_states<Volume>(); break;
-		case FACE:refresh_surface_states<Face>(); break;
-		case EDGE: refresh_surface_states<Edge>(); break;
-		case VERTEX: refresh_surface_states<Vertex>(); break;
+		case GridBaseObjectId::VOLUME: refresh_surface_states<Volume>(); break;
+		case GridBaseObjectId::FACE:refresh_surface_states<Face>(); break;
+		case GridBaseObjectId::EDGE: refresh_surface_states<Edge>(); break;
+		case GridBaseObjectId::VERTEX: refresh_surface_states<Vertex>(); break;
 		default: break;
 	}
 }
@@ -152,10 +152,10 @@ refresh_surface_states()
 	MultiGrid& mg = *m_pMG;
 
 //	reset surface states of all elements. Initially, we'll set all states to hidden
-	SetAttachmentValues(m_aaSurfState, mg.begin<Vertex>(), mg.end<Vertex>(), MG_SHADOW_PURE);
-	SetAttachmentValues(m_aaSurfState, mg.begin<Edge>(), mg.end<Edge>(), MG_SHADOW_PURE);
-	SetAttachmentValues(m_aaSurfState, mg.begin<Face>(), mg.end<Face>(), MG_SHADOW_PURE);
-	SetAttachmentValues(m_aaSurfState, mg.begin<Volume>(), mg.end<Volume>(), MG_SHADOW_PURE);
+	SetAttachmentValues(m_aaSurfState, mg.begin<Vertex>(), mg.end<Vertex>(), SurfaceConstants::MG_SHADOW_PURE);
+	SetAttachmentValues(m_aaSurfState, mg.begin<Edge>(), mg.end<Edge>(), SurfaceConstants::MG_SHADOW_PURE);
+	SetAttachmentValues(m_aaSurfState, mg.begin<Face>(), mg.end<Face>(), SurfaceConstants::MG_SHADOW_PURE);
+	SetAttachmentValues(m_aaSurfState, mg.begin<Volume>(), mg.end<Volume>(), SurfaceConstants::MG_SHADOW_PURE);
 
 //	iterate through all levels of the mgsh
 	for(size_t level = 0; level < mg.num_levels(); ++level)
@@ -167,7 +167,7 @@ refresh_surface_states()
 			TElem* elem = *iter;
 
 			if(is_local_surface_view_element(elem)){
-				surface_state(elem).set(MG_SURFACE_PURE);
+				surface_state(elem).set(SurfaceConstants::MG_SURFACE_PURE);
 				mark_sides_as_surface_or_shadow<TElem, typename TElem::side>(elem);
 			}
 		}
@@ -210,14 +210,14 @@ mark_sides_as_surface_or_shadow(TElem* elem, byte_t surfaceState)
 	m_pMG->associated_elements(sides, elem);
 	for(size_t i = 0; i < sides.size(); ++i){
 		TSide* s = sides[i];
-		if(surface_state(s) == MG_SHADOW_PURE){
+		if(surface_state(s) == SurfaceConstants::MG_SHADOW_PURE){
 			size_t numChildren = m_pMG->num_children<TSide>(s);
 			if(numChildren == 0)
 				surface_state(s).set(surfaceState);
 			else if(numChildren == 1)
-				surface_state(s).set(MG_SHADOW_RIM_COPY);
+				surface_state(s).set(SurfaceConstants::MG_SHADOW_RIM_COPY);
 			else
-				surface_state(s).set(MG_SHADOW_RIM_NONCOPY);
+				surface_state(s).set(SurfaceConstants::MG_SHADOW_RIM_NONCOPY);
 
 		//	if a periodic boundary manager exists, we have to copy this state
 		//	to all linked elements
@@ -250,12 +250,12 @@ mark_shadowing(bool markSides)
 		for(TIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
 		{
 			TElem* e = *iter;
-			if(surface_state(e).contains(MG_SHADOW_PURE))
+			if(surface_state(e).contains(SurfaceConstants::MG_SHADOW_PURE))
 				continue;
 
 			GridObject* p = mg.get_parent(e);
-			if(p && (surface_state(p).contains(MG_SHADOW_RIM_COPY)
-					 || surface_state(p).contains(MG_SHADOW_RIM_NONCOPY)))
+			if(p && (surface_state(p).contains(SurfaceConstants::MG_SHADOW_RIM_COPY)
+					 || surface_state(p).contains(SurfaceConstants::MG_SHADOW_RIM_NONCOPY)))
 			{
 				#ifdef UG_PARALLEL
 				//	The following assertions make sure that during gmg no values have to
@@ -265,14 +265,14 @@ mark_shadowing(bool markSides)
 				//	(in which closure isn't assumed to work anyway).
 				//	The assertion probably shouldn't be done here but directly in the gmg.
 					UG_COND_THROW((pcl::NumProcs() > 1) &&
-								  surface_state(e).contains(MG_SHADOW_RIM_COPY),
+								  surface_state(e).contains(SurfaceConstants::MG_SHADOW_RIM_COPY),
 								  "SHADOWING-SHADOW_COPY encountered: " << ElementDebugInfo(mg, e));
 					UG_COND_THROW((pcl::NumProcs() > 1) &&
-							  	  surface_state(e).contains(MG_SHADOW_RIM_NONCOPY),
+							  	  surface_state(e).contains(SurfaceConstants::MG_SHADOW_RIM_NONCOPY),
 							  	  "SHADOWING-SHADOW_NONCOPY encountered: " << ElementDebugInfo(mg, e));
 				#endif
-				surface_state(e).add(MG_SURFACE_RIM);
-				surface_state(e).remove(MG_SURFACE_PURE);
+				surface_state(e).add(SurfaceConstants::MG_SURFACE_RIM);
+				surface_state(e).remove(SurfaceConstants::MG_SURFACE_PURE);
 			}
 		}
 	}
@@ -292,17 +292,17 @@ adjust_parallel_surface_states()
 		GridLayoutMap& glm = m_distGridMgr->grid_layout_map();
 		ComPol_GatherSurfaceStates<Layout>	cpAdjust(*m_pMG, m_aaSurfState);
 		pcl::InterfaceCommunicator<Layout> com;
-		com.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, cpAdjust);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, cpAdjust);
 	//	the v-communication is only required if constrained ghosts can be surface elements.
-		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, cpAdjust);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, cpAdjust);
 		com.communicate();
 
 		ComPol_CopyAttachment<Layout, ASurfaceState> cpCopyStates(*m_pMG, m_aSurfState);
-		com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, cpCopyStates);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, cpCopyStates);
 		com.communicate();
 
 	//  communicate final marks to v-masters (if one wants to iterate over ghosts...)
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, cpCopyStates);
+		com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, cpCopyStates);
 		com.communicate();
 	#endif
 }

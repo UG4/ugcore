@@ -287,8 +287,8 @@ void IApproximationSpace::init_levels()
 {
 	PROFILE_FUNC();
 	for(size_t lvl = 0; lvl < num_levels(); ++lvl){
-		dof_distribution(GridLevel(lvl, GridLevel::LEVEL, false));
-		dof_distribution(GridLevel(lvl, GridLevel::LEVEL, true));
+		dof_distribution(GridLevel(lvl, GridLevel::ViewType::LEVEL, false));
+		dof_distribution(GridLevel(lvl, GridLevel::ViewType::LEVEL, true));
 	}
 }
 
@@ -296,7 +296,7 @@ void IApproximationSpace::init_surfaces()
 {
 	PROFILE_FUNC();
 	for(size_t lvl = 0; lvl < num_levels(); ++lvl)
-		dof_distribution(GridLevel(lvl, GridLevel::SURFACE, false));
+		dof_distribution(GridLevel(lvl, GridLevel::ViewType::SURFACE, false));
 
 	init_top_surface();
 }
@@ -304,7 +304,7 @@ void IApproximationSpace::init_surfaces()
 void IApproximationSpace::init_top_surface()
 {
 	PROFILE_FUNC();
-	dof_distribution(GridLevel(GridLevel::TOP, GridLevel::SURFACE, false));
+	dof_distribution(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

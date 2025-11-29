@@ -184,19 +184,19 @@ bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* ps
 
 //	create a vector which contains all objects that shall be rendered and sort it
 	vector<TIKZElem>	elems;
-	for(Grid::traits<Vertex>::iterator _feI = grid.begin<Vertex>(); _feI != grid.end<Vertex>(); ++_feI){ Vertex* v = *_feI;{
+	for(auto _feI = grid.begin<Vertex>(); _feI != grid.end<Vertex>(); ++_feI){ Vertex* v = *_feI;{
 		if(psh->get_subset_index(v) != -1)
 			elems.push_back(TIKZElem(v, psh->get_subset_index(v),
 									 CalculateBoundingBox(v, aaPos)));
 	}};
 
-	for(Grid::traits<Edge>::iterator _feI = grid.begin<Edge>(); _feI != grid.end<Edge>(); ++_feI){ Edge* e = *_feI;{
+	for(auto _feI = grid.begin<Edge>(); _feI != grid.end<Edge>(); ++_feI){ Edge* e = *_feI;{
 		if(psh->get_subset_index(e) != -1)
 			elems.push_back(TIKZElem(e, psh->get_subset_index(e),
 									 CalculateBoundingBox(e, aaPos)));
 	}};
 
-	for(Grid::traits<Face>::iterator _feI = grid.begin<Face>(); _feI != grid.end<Face>(); ++_feI){ Face* f = *_feI;{
+	for(auto _feI = grid.begin<Face>(); _feI != grid.end<Face>(); ++_feI){ Face* f = *_feI;{
 		if(psh->get_subset_index(f) != -1)
 			elems.push_back(TIKZElem(f, psh->get_subset_index(f),
 									 CalculateBoundingBox(f, aaPos)));
@@ -208,13 +208,13 @@ bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* ps
 	for(size_t _vfeI = 0; _vfeI < elems.size(); ++_vfeI){ TIKZElem& tikzElem = elems[_vfeI];{
 		const std::string& subsetName = subsetIdentifyer[tikzElem.subsetId];
 		switch(tikzElem.elemId){
-			case VERTEX:{
-				Vertex* vrt = static_cast<Vertex*>(tikzElem.elem);
+			case GridBaseObjectId::VERTEX:{
+				auto vrt = static_cast<Vertex*>(tikzElem.elem);
 				vector2 p = trunk(vector2(aaPos[vrt].x(), aaPos[vrt].y()), sml);
 				out << "\\node[vertex_" << subsetName << "] at (" << p.x() << "cm, " << p.y() << "cm) {};" << endl;
 			}break;
 
-			case EDGE:{
+			case GridBaseObjectId::EDGE:{
 				Edge* e = static_cast<Edge*>(tikzElem.elem);
 				out << "\\draw[edge_" << subsetName << "]";
 				for(size_t i = 0; i < e->num_vertices(); ++i){
@@ -227,8 +227,8 @@ bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* ps
 				out << ";" << endl;
 			}break;
 
-			case FACE:{
-				Face* f = static_cast<Face*>(tikzElem.elem);
+			case GridBaseObjectId::FACE:{
+				auto f = static_cast<Face*>(tikzElem.elem);
 				out << "\\filldraw[face_" << subsetName << "]";
 				for(size_t i = 0; i < f->num_vertices(); ++i){
 					Vertex* vrt = f->vertex(i);

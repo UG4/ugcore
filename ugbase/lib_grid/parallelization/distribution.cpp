@@ -98,10 +98,10 @@ class DistInfoSupplier{
 		{
 			int objType = obj->base_object_id();
 			switch(objType){
-				case VERTEX:	return get(static_cast<Vertex*>(obj));
-				case EDGE:		return get(static_cast<Edge*>(obj));
-				case FACE:		return get(static_cast<Face*>(obj));
-				case VOLUME:	return get(static_cast<Volume*>(obj));
+				case GridBaseObjectId::VERTEX:	return get(static_cast<Vertex*>(obj));
+				case GridBaseObjectId::EDGE:		return get(static_cast<Edge*>(obj));
+				case GridBaseObjectId::FACE:		return get(static_cast<Face*>(obj));
+				case GridBaseObjectId::VOLUME:	return get(static_cast<Volume*>(obj));
 				default:	UG_THROW("Unknown geometric object base type."); 
 			}
 		}
@@ -120,27 +120,27 @@ class DistInfoSupplier{
 			size_t ri = 1;
 			t(ri, 0) << "normal";
 			for(size_t i = 0; i < di.size(); ++i)
-				t(ri, i+1) << ((di[i].interfaceState & IS_NORMAL) != 0);
+				t(ri, i+1) << ((di[i].interfaceState & InterfaceStates::IS_NORMAL) != 0);
 
 			ri = 2;
 			t(ri, 0) << "vmaster";
 			for(size_t i = 0; i < di.size(); ++i)
-				t(ri, i+1) << ((di[i].interfaceState & IS_VMASTER) != 0);
+				t(ri, i+1) << ((di[i].interfaceState & InterfaceStates::IS_VMASTER) != 0);
 
 			ri = 3;
 			t(ri, 0) << "vslave";
 			for(size_t i = 0; i < di.size(); ++i)
-				t(ri, i+1) << ((di[i].interfaceState & IS_VSLAVE) != 0);
+				t(ri, i+1) << ((di[i].interfaceState & InterfaceStates::IS_VSLAVE) != 0);
 
 			ri = 4;
 			t(ri, 0) << "dummy";
 			for(size_t i = 0; i < di.size(); ++i)
-				t(ri, i+1) << ((di[i].interfaceState & IS_DUMMY) != 0);
+				t(ri, i+1) << ((di[i].interfaceState & InterfaceStates::IS_DUMMY) != 0);
 
 			ri = 5;
 			t(ri, 0) << "has parent";
 			for(size_t i = 0; i < di.size(); ++i)
-				t(ri, i+1) << ((di[i].interfaceState & HAS_PARENT) != 0);
+				t(ri, i+1) << ((di[i].interfaceState & InterfaceStates::HAS_PARENT) != 0);
 
 			return t;
 		}
@@ -258,26 +258,26 @@ static void SynchronizeDistInfos(MultiGrid& mg, DistInfoSupplier& distInfos)
 	ComPol_SynchronizeDistInfos<ElemLayout>	compolSync(distInfos, true);
 
 	compolSync.enable_merge(true);
-	com.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolSync);
+	com.exchange_data(glm, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, compolSync);
 	com.communicate();
 
 	compolSync.enable_merge(false);
-	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolSync);
+	com.exchange_data(glm, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, compolSync);
 	com.communicate();
 
 //	if an element is a multi-v-master, all v-master copies are connected to
 //	all v-slave copies. However, multi-v-masters are not connected with one another
 //	through h-interfaces. That's a pity and requires this triple communication
 	compolSync.enable_merge(true);
-	com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolSync);
+	com.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, compolSync);
 	com.communicate();
 
 	compolSync.enable_merge(true);
-	com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolSync);
+	com.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compolSync);
 	com.communicate();
 
 	compolSync.enable_merge(false);
-	com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolSync);
+	com.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, compolSync);
 	com.communicate();
 }
 
@@ -614,7 +614,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 			{
 				ConstrainingFace* e = *iter;
 			//	we won't select constrained elements of pure v-masters!
-				if(msel.get_selection_status(e) == IS_VMASTER)
+				if(msel.get_selection_status(e) == InterfaceStates::IS_VMASTER)
 					continue;
 
 				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
@@ -654,7 +654,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 			{
 				ConstrainingFace* e = *iter;
 			//	we won't select constrained elements of pure v-masters!
-				if(msel.get_selection_status(e) == IS_VMASTER)
+				if(msel.get_selection_status(e) == InterfaceStates::IS_VMASTER)
 					continue;
 
 				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
@@ -694,7 +694,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 			{
 				ConstrainingEdge* e = *iter;
 			//	we won't select constrained elements of pure v-masters!
-				if(msel.get_selection_status(e) == IS_VMASTER)
+				if(msel.get_selection_status(e) == InterfaceStates::IS_VMASTER)
 					continue;
 
 				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
@@ -871,7 +871,7 @@ static void SelectChildrenOfSelectedShadowRimFaces
 		for (; iter != msel.end<Face>(lvl); ++iter)
 		{
 			Face* face = *iter;
-			if (msel.get_selection_status(face) == IS_VMASTER)
+			if (msel.get_selection_status(face) == InterfaceStates::IS_VMASTER)
 				continue;
 
 			size_t numCh = mg.num_child_faces(face);
@@ -919,7 +919,7 @@ static void SelectChildrenOfSelectedShadowRimEdges
 		for (; iter != msel.end<Edge>(lvl); ++iter)
 		{
 			Edge* edge = *iter;
-			if (msel.get_selection_status(edge) == IS_VMASTER)
+			if (msel.get_selection_status(edge) == InterfaceStates::IS_VMASTER)
 				continue;
 
 			size_t numCh = mg.num_child_edges(edge);
@@ -972,7 +972,7 @@ static void SelectChildrenOfSelectedShadowVertices(MGSelector& msel,
 			iter != msel.end<Vertex>(lvl); ++iter)
 		{
 			Vertex* vrt = *iter;
-			if(msel.get_selection_status(vrt) == IS_VMASTER)
+			if(msel.get_selection_status(vrt) == InterfaceStates::IS_VMASTER)
 				continue;
 
 			Vertex* child = mg.get_child_vertex(vrt);
@@ -1028,8 +1028,8 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel, bool partitionF
 		//TODO: Check this! if e is VSLAVE and is sent to another proc,
 		//		it's children have to be sent there too, since they will
 		//		be VMASTER on this new proc!
-			if((msel.get_selection_status(e) & IS_VMASTER)
-				|| (msel.get_selection_status(e) & IS_VSLAVE))
+			if((msel.get_selection_status(e) & InterfaceStates::IS_VMASTER)
+				|| (msel.get_selection_status(e) & InterfaceStates::IS_VSLAVE))
 			{
 			//	nothing to do here...
 				continue;
@@ -1046,12 +1046,12 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel, bool partitionF
 				for(size_t i = 0; i < numChildren; ++i){
 					auto* c = mg.get_child<TElem>(e, i);
 					if(!msel.is_selected(c))
-						msel.select(c, IS_VMASTER);
+						msel.select(c, InterfaceStates::IS_VMASTER);
 				}
 			}
-			else if(distGridMgr.contains_status(e, ES_V_MASTER)){
+			else if(distGridMgr.contains_status(e, ElementStatusTypes::ES_V_MASTER)){
 				if(parentIsSelected || (partitionForLocalProc && (lvl == 0))){
-					msel.select(e, IS_VMASTER);
+					msel.select(e, InterfaceStates::IS_VMASTER);
 					continue;
 				}
 				else{
@@ -1063,11 +1063,11 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel, bool partitionF
 		//	and now slave states
 			if(parent){
 				if(!msel.is_selected(parent))
-					msel.select(e, IS_VSLAVE);
+					msel.select(e, InterfaceStates::IS_VSLAVE);
 			}
 			else{
-				if(distGridMgr.contains_status(e, ES_V_SLAVE))
-					msel.select(e, IS_VSLAVE);
+				if(distGridMgr.contains_status(e, ElementStatusTypes::ES_V_SLAVE))
+					msel.select(e, InterfaceStates::IS_VSLAVE);
 			}
 		}
 	}
@@ -1091,8 +1091,8 @@ static void SelectUnselectedRootElementsAsVMasters(MGSelector& msel)
 
 	for(TIter iter = mg.begin<TElem>(0); iter != mg.end<TElem>(0); ++iter){
 		if(!msel.is_selected(*iter)){
-			if(!distGridMgr.contains_status(*iter, ES_V_SLAVE))
-				msel.select(*iter, IS_VMASTER);
+			if(!distGridMgr.contains_status(*iter, ElementStatusTypes::ES_V_SLAVE))
+				msel.select(*iter, InterfaceStates::IS_VMASTER);
 		}
 	}
 	UG_DLOG(LG_DIST, 3, "dist-stop: SelectUnselectedRootElementsAsVMasters\n");
@@ -1113,8 +1113,8 @@ static void SelectSelectedRootElementsAsVSlaves(MGSelector& msel)
 	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 
 	for(TIter iter = msel.begin<TElem>(0); iter != msel.end<TElem>(0); ++iter){
-		if(!distGridMgr.contains_status(*iter, ES_V_MASTER))
-			msel.select(*iter, IS_VSLAVE);
+		if(!distGridMgr.contains_status(*iter, ElementStatusTypes::ES_V_MASTER))
+			msel.select(*iter, InterfaceStates::IS_VSLAVE);
 	}
 	UG_DLOG(LG_DIST, 3, "dist-stop: SelectSelectedRootElementsAsVSlaves\n");
 }
@@ -1142,7 +1142,7 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 
 	if(mg.num<Volume>() > 0){
 		if(partitionIndex >= 0)
-			SelectSubsetElements<Volume>(msel, shPartition, partitionIndex, IS_NORMAL);
+			SelectSubsetElements<Volume>(msel, shPartition, partitionIndex, InterfaceStates::IS_NORMAL);
 		if(createVerticalInterfaces){
 			if(partitionForLocalProc)
 				SelectUnselectedRootElementsAsVMasters<Volume>(msel);
@@ -1152,7 +1152,7 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 	}
 	else if(mg.num<Face>() > 0){
 		if(partitionIndex >= 0)
-			SelectSubsetElements<Face>(msel, shPartition, partitionIndex, IS_NORMAL);
+			SelectSubsetElements<Face>(msel, shPartition, partitionIndex, InterfaceStates::IS_NORMAL);
 		if(createVerticalInterfaces){
 			if(partitionForLocalProc)
 				SelectUnselectedRootElementsAsVMasters<Face>(msel);
@@ -1162,7 +1162,7 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 	}
 	else if(mg.num<Edge>() > 0){
 		if(partitionIndex >= 0)
-			SelectSubsetElements<Edge>(msel, shPartition, partitionIndex, IS_NORMAL);
+			SelectSubsetElements<Edge>(msel, shPartition, partitionIndex, InterfaceStates::IS_NORMAL);
 		if(createVerticalInterfaces){
 			if(partitionForLocalProc)
 				SelectUnselectedRootElementsAsVMasters<Edge>(msel);
@@ -1172,7 +1172,7 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 	}
 	else if(mg.num<Vertex>() > 0){
 		if(partitionIndex >= 0)
-			SelectSubsetElements<Vertex>(msel, shPartition, partitionIndex, IS_NORMAL);
+			SelectSubsetElements<Vertex>(msel, shPartition, partitionIndex, InterfaceStates::IS_NORMAL);
 		if(createVerticalInterfaces){
 			if(partitionForLocalProc)
 				SelectUnselectedRootElementsAsVMasters<Vertex>(msel);
@@ -1211,10 +1211,10 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 //	additional unselected constrained elements.
 //	UG_LOG("DEBUG: SELECTING CONSTRAINING ELEMENTS...\n");
 //	SelectAssociatedConstrainingElements(msel, IS_DUMMY);
-	SelectAssociatedConstrainedElements(msel, IS_DUMMY | HAS_PARENT);
-	SelectChildrenOfSelectedShadowRimFaces(msel, IS_DUMMY | HAS_PARENT);
-	SelectChildrenOfSelectedShadowRimEdges(msel, IS_DUMMY | HAS_PARENT);
-	SelectChildrenOfSelectedShadowVertices(msel, IS_DUMMY | HAS_PARENT);
+	SelectAssociatedConstrainedElements(msel, InterfaceStates::IS_DUMMY | InterfaceStates::HAS_PARENT);
+	SelectChildrenOfSelectedShadowRimFaces(msel, InterfaceStates::IS_DUMMY | InterfaceStates::HAS_PARENT);
+	SelectChildrenOfSelectedShadowRimEdges(msel, InterfaceStates::IS_DUMMY | InterfaceStates::HAS_PARENT);
+	SelectChildrenOfSelectedShadowVertices(msel, InterfaceStates::IS_DUMMY | InterfaceStates::HAS_PARENT);
 	UG_DLOG(LG_DIST, 3, "dist-stop: SelectElementsForTargetPartition\n");
 }
 
@@ -1276,10 +1276,10 @@ static void PostProcessDistInfos(MultiGrid& mg, DistInfoSupplier& distInfos)
 		bool gotNeither = false;
 		for(size_t i = 0; i < di.size(); ++i){
 			TargetProcInfo& tpi = di[i];
-			if(tpi.interfaceState & IS_VMASTER){
+			if(tpi.interfaceState & InterfaceStates::IS_VMASTER){
 				gotVMaster = true;
 			}
-			else if(!(tpi.interfaceState & IS_VSLAVE)){
+			else if(!(tpi.interfaceState & InterfaceStates::IS_VSLAVE)){
 				gotNeither = true;
 			}
 		}
@@ -1288,8 +1288,8 @@ static void PostProcessDistInfos(MultiGrid& mg, DistInfoSupplier& distInfos)
 		//	those which have neither a vmaster nor vslave mark have to be marked as vslaves.
 			for(size_t i = 0; i < di.size(); ++i){
 				TargetProcInfo& tpi = di[i];
-				if(!(tpi.interfaceState & (IS_VMASTER | IS_VSLAVE))){
-					tpi.interfaceState |= IS_VSLAVE;
+				if(!(tpi.interfaceState & (InterfaceStates::IS_VMASTER | InterfaceStates::IS_VSLAVE))){
+					tpi.interfaceState |= InterfaceStates::IS_VSLAVE;
 				}
 			}
 		}
@@ -1472,7 +1472,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				if(tpi.procID == localProcID)
 					localInterfaceState = tpi.interfaceState;
 
-				if(tpi.interfaceState & IS_VMASTER){
+				if(tpi.interfaceState & InterfaceStates::IS_VMASTER){
 				//	if there is more than one vmaster, then we have to build
 				//	h interfaces
 //					if(vMasterExists){
@@ -1486,13 +1486,13 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					}
 					if(tpi.procID < minVMasterProc)
 						minVMasterProc = tpi.procID;
-					if(!(tpi.interfaceState & IS_VSLAVE)){
+					if(!(tpi.interfaceState & InterfaceStates::IS_VSLAVE)){
 						if(tpi.procID < minVMasterNoVSlave)
 							minVMasterNoVSlave = tpi.procID;
 					}
 				}
 
-				if(tpi.interfaceState & IS_VSLAVE){
+				if(tpi.interfaceState & InterfaceStates::IS_VSLAVE){
 					if(tpi.procID == localProcID)
 						isVSlave = true;
 					if(tpi.procID < minRegularHMasterProc)
@@ -1500,7 +1500,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					++numVSlaveProcs;
 				}
 
-				if(tpi.interfaceState & (IS_NORMAL)){
+				if(tpi.interfaceState & (InterfaceStates::IS_NORMAL)){
 					createNormalHInterface = true;
 					if(tpi.procID < minRegularHMasterProc)
 						minRegularHMasterProc = tpi.procID;
@@ -1510,7 +1510,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 						isNormal = true;
 				}
 
-				if(tpi.interfaceState & (IS_DUMMY)){
+				if(tpi.interfaceState & (InterfaceStates::IS_DUMMY)){
 					createNormalHInterface = true;
 					dummyExists = true;
 					if(tpi.procID == localProcID)
@@ -1581,10 +1581,10 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				if(tpi.procID == localProcID)
 					continue;
 
-				bool tpIsVMaster = (tpi.interfaceState & IS_VMASTER);
-				bool tpIsVSlave = (tpi.interfaceState & IS_VSLAVE);
-				bool tpIsNormal = (tpi.interfaceState & IS_NORMAL);
-				bool tpIsDummy = (tpi.interfaceState & IS_DUMMY);
+				bool tpIsVMaster = (tpi.interfaceState & InterfaceStates::IS_VMASTER);
+				bool tpIsVSlave = (tpi.interfaceState & InterfaceStates::IS_VSLAVE);
+				bool tpIsNormal = (tpi.interfaceState & InterfaceStates::IS_NORMAL);
+				bool tpIsDummy = (tpi.interfaceState & InterfaceStates::IS_DUMMY);
 
 
 				if(tpIsVMaster && tpIsVSlave){
@@ -1614,11 +1614,11 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			//	add entry to vertical interface if necessary
 				//if(isVSlave && (tpi.procID == minVMasterProc)){
 				if(isVSlave && tpIsVMaster){
-					glm.get_layout<TElem>(INT_V_SLAVE).
+					glm.get_layout<TElem>(InterfaceNodeTypes::INT_V_SLAVE).
 						interface(tpi.procID, lvl).push_back(e);
 				}
 				if(isVMaster && tpIsVSlave){
-					glm.get_layout<TElem>(INT_V_MASTER).
+					glm.get_layout<TElem>(InterfaceNodeTypes::INT_V_MASTER).
 						interface(tpi.procID, lvl).push_back(e);
 
 				//	we have to destroy parent-child relations to possibly existing
@@ -1641,13 +1641,13 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					if(localProcID == minRegularHMasterProc){
 					//	horizontal master
 						interfaceCreated = true;
-						glm.get_layout<TElem>(INT_H_MASTER).
+						glm.get_layout<TElem>(InterfaceNodeTypes::INT_H_MASTER).
 							interface(tpi.procID, lvl).push_back(e);
 					}
 					else if(tpi.procID == minRegularHMasterProc){
 					//	horizontal slave
 						interfaceCreated = true;
-						glm.get_layout<TElem>(INT_H_SLAVE).
+						glm.get_layout<TElem>(InterfaceNodeTypes::INT_H_SLAVE).
 							interface(tpi.procID, lvl).push_back(e);
 					}
 
@@ -1664,10 +1664,10 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					//	horizontal master
 					//	only build the interface if the process is not a pure
 					//	v-master
-						if(tpi.interfaceState != IS_VMASTER){
+						if(tpi.interfaceState != InterfaceStates::IS_VMASTER){
 						//if((tpi.procID != minVMasterProc) || (tpi.interfaceState != IS_VMASTER)){
 						//if(forceHInterface || (tpi.interfaceState != IS_VMASTER)){
-							glm.get_layout<TElem>(INT_H_MASTER).
+							glm.get_layout<TElem>(InterfaceNodeTypes::INT_H_MASTER).
 								interface(tpi.procID, lvl).push_back(e);
 						}
 					}
@@ -1675,10 +1675,10 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					//	horizontal slave
 					//	only build the interface if the process is not a pure
 					//	v-master
-						if(localInterfaceState != IS_VMASTER){
+						if(localInterfaceState != InterfaceStates::IS_VMASTER){
 						//if((localProcID != minVMasterProc) || (localInterfaceState != IS_VMASTER)){
 						//if(forceHInterface || (localInterfaceState != IS_VMASTER)){
-							glm.get_layout<TElem>(INT_H_SLAVE).
+							glm.get_layout<TElem>(InterfaceNodeTypes::INT_H_SLAVE).
 								interface(tpi.procID, lvl).push_back(e);
 						}
 					}
@@ -1690,16 +1690,16 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				//	the lowest normal process will be transformed to a v-master
 					UG_ASSERT(minNormalProc < pcl::NumProcs(), "invalid minNormalProc!");
 
-					if(isDummy && (!(localInterfaceState & HAS_PARENT))
+					if(isDummy && (!(localInterfaceState & InterfaceStates::HAS_PARENT))
 						&& (tpi.procID == minNormalProc))
 					{
-						glm.get_layout<TElem>(INT_V_SLAVE).
+						glm.get_layout<TElem>(InterfaceNodeTypes::INT_V_SLAVE).
 								interface(tpi.procID, lvl).push_back(e);
 					}
-					else if(tpIsDummy && (!(tpi.interfaceState & HAS_PARENT))
+					else if(tpIsDummy && (!(tpi.interfaceState & InterfaceStates::HAS_PARENT))
 							&& (localProcID == minNormalProc))
 					{
-						glm.get_layout<TElem>(INT_V_MASTER).
+						glm.get_layout<TElem>(InterfaceNodeTypes::INT_V_MASTER).
 								interface(tpi.procID, lvl).push_back(e);
 					}
 				}
@@ -1709,14 +1709,14 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 
 //	Now sort the interface entries in the different layouts
 	CompareByAttachment<TElem, AGeomObjID> gidCmp(mg, aGID);
-	if(glm.has_layout<TElem>(INT_H_MASTER))
-		glm.get_layout<TElem>(INT_H_MASTER).sort_interface_entries(gidCmp);
-	if(glm.has_layout<TElem>(INT_H_SLAVE))
-		glm.get_layout<TElem>(INT_H_SLAVE).sort_interface_entries(gidCmp);
-	if(glm.has_layout<TElem>(INT_V_MASTER))
-		glm.get_layout<TElem>(INT_V_MASTER).sort_interface_entries(gidCmp);
-	if(glm.has_layout<TElem>(INT_V_SLAVE))
-		glm.get_layout<TElem>(INT_V_SLAVE).sort_interface_entries(gidCmp);
+	if(glm.has_layout<TElem>(InterfaceNodeTypes::INT_H_MASTER))
+		glm.get_layout<TElem>(InterfaceNodeTypes::INT_H_MASTER).sort_interface_entries(gidCmp);
+	if(glm.has_layout<TElem>(InterfaceNodeTypes::INT_H_SLAVE))
+		glm.get_layout<TElem>(InterfaceNodeTypes::INT_H_SLAVE).sort_interface_entries(gidCmp);
+	if(glm.has_layout<TElem>(InterfaceNodeTypes::INT_V_MASTER))
+		glm.get_layout<TElem>(InterfaceNodeTypes::INT_V_MASTER).sort_interface_entries(gidCmp);
+	if(glm.has_layout<TElem>(InterfaceNodeTypes::INT_V_SLAVE))
+		glm.get_layout<TElem>(InterfaceNodeTypes::INT_V_SLAVE).sort_interface_entries(gidCmp);
 
 	UG_DLOG(LG_DIST, 3, "dist-stop: CreateLayoutsFromDistInfos\n");
 }
@@ -1827,7 +1827,7 @@ bool DistributeGrid(MultiGrid& mg,
 	AddGlobalAttachmentsToSerializer<Volume>(userDataSerializer, mg);
 
 	SPMessageHub msgHub = mg.message_hub();
-	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STARTS, userDataSerializer));
+	msgHub->post_message(GridMessage_Distribution(GridMessageDistributionType::GMDT_DISTRIBUTION_STARTS, userDataSerializer));
 
 	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();
@@ -2029,7 +2029,7 @@ bool DistributeGrid(MultiGrid& mg,
 	GDIST_PROFILE(gdist_IntermediateCleanup);
 	UG_DLOG(LG_DIST, 2, "dist-DistributeGrid: Intermediate cleanup\n");
 
-	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STARTS));
+	msgHub->post_message(GridMessage_Creation(GridMessageCreationType::GMCT_CREATION_STARTS));
 
 //	we have to remove all elements which won't stay on the local process.
 //	To do so, we'll first select all elements that stay, invert that selection
@@ -2331,14 +2331,14 @@ bool DistributeGrid(MultiGrid& mg,
 	GDIST_PROFILE(gdist_ExternalPostProcessing);
 	UG_DLOG(LG_DIST, 2, "dist: Informing msg-hub that distribution stops\n");
 
-	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STOPS));
+	msgHub->post_message(GridMessage_Creation(GridMessageCreationType::GMCT_CREATION_STOPS));
 	//msgHub->post_message(GridMessage_Distribution(GMDT_GRID_SERIALIZATION_DONE));
 
 //	we'll inform deserializers now, that deserialization is complete.
 	distInfoSerializer.deserialization_done();
 	serializer.deserialization_done();
 	userDataSerializer.deserialization_done();
-	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STOPS, userDataSerializer));
+	msgHub->post_message(GridMessage_Distribution(GridMessageDistributionType::GMDT_DISTRIBUTION_STOPS, userDataSerializer));
 	//msgHub->post_message(GridMessage_Distribution(GMDT_DATA_SERIALIZATION_DONE));
 	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();

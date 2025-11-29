@@ -65,10 +65,10 @@ Grid::Grid() :
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
-	m_options = GRIDOPT_NONE;
+	m_options = GridOptions::GRIDOPT_NONE;
 	m_messageHub = SPMessageHub(new MessageHub());
 
-	change_options(GRIDOPT_DEFAULT);
+	change_options(GridOptions::GRIDOPT_DEFAULT);
 }
 
 Grid::Grid(uint options) :
@@ -83,7 +83,7 @@ Grid::Grid(uint options) :
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
-	m_options = GRIDOPT_NONE;
+	m_options = GridOptions::GRIDOPT_NONE;
 	m_messageHub = SPMessageHub(new MessageHub());
 
 	change_options(options);
@@ -101,7 +101,7 @@ Grid::Grid(const Grid& grid) :
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
-	m_options = GRIDOPT_NONE;
+	m_options = GridOptions::GRIDOPT_NONE;
 	m_messageHub = SPMessageHub(new MessageHub());
 
 	assign_grid(grid);
@@ -227,7 +227,7 @@ void Grid::clear_geometry()
 {
 //	disable all options to speed it up
 	uint opts = get_options();
-	set_options(GRIDOPT_NONE);
+	set_options(GridOptions::GRIDOPT_NONE);
 	
 	clear<Volume>();
 	clear<Face>();
@@ -281,7 +281,7 @@ Grid& Grid::operator = (const Grid& grid)
 //	we're disabling any options, since new options will
 //	be set during assign_grid anyway. This might speed
 //	things up a little
-	set_options(GRIDOPT_NONE);
+	set_options(GridOptions::GRIDOPT_NONE);
 	clear_geometry();
 	assign_grid(grid);
 	
@@ -318,11 +318,11 @@ void Grid::assign_grid(const Grid& grid)
 	vector<Vertex*>	vrtMap(grid.attachment_container_size<Vertex>(), nullptr);
 
 //	we need index-lists that allow us to copy attachments later on
-	vector<int> vSrcDataIndex[NUM_GEOMETRIC_BASE_OBJECTS];
-	vector<int>& vSrcDataIndexVRT = vSrcDataIndex[VERTEX];
-	vector<int>& vSrcDataIndexEDGE = vSrcDataIndex[EDGE];
-	vector<int>& vSrcDataIndexFACE = vSrcDataIndex[FACE];
-	vector<int>& vSrcDataIndexVOL = vSrcDataIndex[VOLUME];
+	vector<int> vSrcDataIndex[GridBaseObjectId::NUM_GEOMETRIC_BASE_OBJECTS];
+	vector<int>& vSrcDataIndexVRT = vSrcDataIndex[GridBaseObjectId::VERTEX];
+	vector<int>& vSrcDataIndexEDGE = vSrcDataIndex[GridBaseObjectId::EDGE];
+	vector<int>& vSrcDataIndexFACE = vSrcDataIndex[GridBaseObjectId::FACE];
+	vector<int>& vSrcDataIndexVOL = vSrcDataIndex[GridBaseObjectId::VOLUME];
 
 //	copy all vertices
 	vSrcDataIndexVRT.resize(grid.num<Vertex>());
@@ -464,16 +464,16 @@ void Grid::erase(GridObject* geomObj)
 	uint objType = geomObj->base_object_id();
 	switch(objType)
 	{
-		case VERTEX:
+		case GridBaseObjectId::VERTEX:
 			erase(dynamic_cast<Vertex*>(geomObj));
 			break;
-		case EDGE:
+		case GridBaseObjectId::EDGE:
 			erase(dynamic_cast<Edge*>(geomObj));
 			break;
-		case FACE:
+		case GridBaseObjectId::FACE:
 			erase(dynamic_cast<Face*>(geomObj));
 			break;
-		case VOLUME:
+		case GridBaseObjectId::VOLUME:
 			erase(dynamic_cast<Volume*>(geomObj));
 			break;
 	};
@@ -551,7 +551,7 @@ void Grid::flip_orientation(Face* f)
 		f->set_vertex(i, vVrts[numVrts - 1 - i]);
 
 //	update associated edge list
-	if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES)){
+	if(option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_EDGES)){
 		m_aaEdgeContainerFACE[f].clear();
 		EdgeDescriptor ed;
 		for(size_t ind = 0; ind < f->num_edges(); ++ind){
@@ -578,7 +578,7 @@ void Grid::flip_orientation(Volume* vol)
 		vol->set_vertex(i, vd.vertex(i));
 
 //	update associated edge list
-	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES)){
+	if(option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES)){
 		m_aaEdgeContainerVOLUME[vol].clear();
 		EdgeDescriptor ed;
 		for(size_t ind = 0; ind < vol->num_edges(); ++ind){
@@ -592,7 +592,7 @@ void Grid::flip_orientation(Volume* vol)
 	}
 
 //	update associated face list
-	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES)){
+	if(option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES)){
 		m_aaFaceContainerVOLUME[vol].clear();
 		FaceDescriptor fd;
 		for(size_t ind = 0; ind < vol->num_faces(); ++ind){
@@ -636,9 +636,9 @@ get_opposing_object(Vertex* vrt, Face* elem)
 {
 	std::pair<GridBaseObjectId, int> id = elem->get_opposing_object(vrt);
 	switch(id.first){
-		case VERTEX:
+		case GridBaseObjectId::VERTEX:
 			return elem->vertex(id.second);
-		case EDGE:
+		case GridBaseObjectId::EDGE:
 			return get_edge(elem, id.second);
 		default:
 			UG_THROW("Unsupported geometric base object type returned by "
@@ -651,11 +651,11 @@ get_opposing_object(Vertex* vrt, Volume* elem)
 {
 	std::pair<GridBaseObjectId, int> id = elem->get_opposing_object(vrt);
 	switch(id.first){
-		case VERTEX:
+		case GridBaseObjectId::VERTEX:
 			return elem->vertex(id.second);
-		case EDGE:
+		case GridBaseObjectId::EDGE:
 			return get_edge(elem, id.second);
-		case FACE:
+		case GridBaseObjectId::FACE:
 			return get_face(elem, id.second);
 		default:
 			UG_THROW("Unsupported geometric base object type returned by "
@@ -780,11 +780,11 @@ void Grid::unregister_observer(GridObserver* observer)
 		observer->unregistered_from_grid(this);
 }
 */
-void Grid::register_observer(GridObserver* observer, uint observerType)
+void Grid::register_observer(GridObserver* observer, ObserverType observerType)
 {
 //	check which elements have to be observed and store pointers to the observers.
 //	avoid double-registration!
-	if((observerType & OT_GRID_OBSERVER) == OT_GRID_OBSERVER)
+	if((observerType & ObserverType::OT_GRID_OBSERVER) == ObserverType::OT_GRID_OBSERVER)
 	{
 		auto iter = find(m_gridObservers.begin(),
 		                 m_gridObservers.end(), observer);
@@ -792,7 +792,7 @@ void Grid::register_observer(GridObserver* observer, uint observerType)
 			m_gridObservers.push_back(observer);
 	}
 
-	if((observerType & OT_VERTEX_OBSERVER) == OT_VERTEX_OBSERVER)
+	if((observerType & ObserverType::OT_VERTEX_OBSERVER) == ObserverType::OT_VERTEX_OBSERVER)
 	{
 		auto iter = find(m_vertexObservers.begin(),
 		                 m_vertexObservers.end(), observer);
@@ -800,7 +800,7 @@ void Grid::register_observer(GridObserver* observer, uint observerType)
 			m_vertexObservers.push_back(observer);
 	}
 
-	if((observerType & OT_EDGE_OBSERVER) == OT_EDGE_OBSERVER)
+	if((observerType & ObserverType::OT_EDGE_OBSERVER) == ObserverType::OT_EDGE_OBSERVER)
 	{
 		auto iter = find(m_edgeObservers.begin(),
 												m_edgeObservers.end(), observer);
@@ -808,7 +808,7 @@ void Grid::register_observer(GridObserver* observer, uint observerType)
 			m_edgeObservers.push_back(observer);
 	}
 
-	if((observerType & OT_FACE_OBSERVER) == OT_FACE_OBSERVER)
+	if((observerType & ObserverType::OT_FACE_OBSERVER) == ObserverType::OT_FACE_OBSERVER)
 	{
 		auto iter = find(m_faceObservers.begin(),
 												m_faceObservers.end(), observer);
@@ -816,7 +816,7 @@ void Grid::register_observer(GridObserver* observer, uint observerType)
 			m_faceObservers.push_back(observer);
 	}
 
-	if((observerType & OT_VOLUME_OBSERVER) == OT_VOLUME_OBSERVER)
+	if((observerType & ObserverType::OT_VOLUME_OBSERVER) == ObserverType::OT_VOLUME_OBSERVER)
 	{
 		auto iter = find(m_volumeObservers.begin(),
 												m_volumeObservers.end(), observer);
@@ -825,7 +825,7 @@ void Grid::register_observer(GridObserver* observer, uint observerType)
 	}
 
 //	if the observer is a grid observer, notify him about the registration
-//	if((observerType & OT_GRID_OBSERVER) == OT_GRID_OBSERVER)
+//	if((observerType & ObserverType::OT_GRID_OBSERVER) == ObserverType::OT_GRID_OBSERVER)
 //		observer->registered_at_grid(this);
 }
 
@@ -878,7 +878,7 @@ void Grid::unregister_observer(GridObserver* observer)
 //	associated edge access
 Grid::AssociatedEdgeIterator Grid::associated_edges_begin(Vertex* vrt)
 {
-	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
+	if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
 		LOG("WARNING in associated_edges_begin(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << endl);
 		vertex_store_associated_edges(true);
@@ -888,7 +888,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_begin(Vertex* vrt)
 
 Grid::AssociatedEdgeIterator Grid::associated_edges_end(Vertex* vrt)
 {
-	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
+	if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
 		LOG("WARNING in associated_edges_end(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << endl);
 		vertex_store_associated_edges(true);
@@ -898,7 +898,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_end(Vertex* vrt)
 
 Grid::AssociatedEdgeIterator Grid::associated_edges_begin(Face* face)
 {
-	if(!option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
+	if(!option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_EDGES))
 	{
 		LOG("WARNING in associated_edges_begin(face): auto-enabling FACEOPT_STORE_ASSOCIATED_EDGES." << endl);
 		face_store_associated_edges(true);
@@ -908,7 +908,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_begin(Face* face)
 
 Grid::AssociatedEdgeIterator Grid::associated_edges_end(Face* face)
 {
-	if(!option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
+	if(!option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_EDGES))
 	{
 		LOG("WARNING in associated_edges_end(face): auto-enabling FACEOPT_STORE_ASSOCIATED_EDGES." << endl);
 		face_store_associated_edges(true);
@@ -918,7 +918,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_end(Face* face)
 
 Grid::AssociatedEdgeIterator Grid::associated_edges_begin(Volume* vol)
 {
-	if(!option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
+	if(!option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
 		LOG("WARNING in associated_edges_begin(vol): auto-enabling VOLOPT_STORE_ASSOCIATED_EDGES." << endl);
 		volume_store_associated_edges(true);
@@ -928,7 +928,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_begin(Volume* vol)
 
 Grid::AssociatedEdgeIterator Grid::associated_edges_end(Volume* vol)
 {
-	if(!option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
+	if(!option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
 		LOG("WARNING in associated_edges_end(vol): auto-enabling VOLOPT_STORE_ASSOCIATED_EDGES." << endl);
 		volume_store_associated_edges(true);
@@ -940,7 +940,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_end(Volume* vol)
 //	associated face access
 Grid::AssociatedFaceIterator Grid::associated_faces_begin(Vertex* vrt)
 {
-	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))
+	if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_FACES))
 	{
 		LOG("WARNING in associated_faces_begin(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << endl);
 		vertex_store_associated_faces(true);
@@ -950,7 +950,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_begin(Vertex* vrt)
 
 Grid::AssociatedFaceIterator Grid::associated_faces_end(Vertex* vrt)
 {
-	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))
+	if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_FACES))
 	{
 		LOG("WARNING in associated_faces_end(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << endl);
 		vertex_store_associated_faces(true);
@@ -960,7 +960,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_end(Vertex* vrt)
 
 Grid::AssociatedFaceIterator Grid::associated_faces_begin(Edge* edge)
 {
-	if(!option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+	if(!option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
 		LOG("WARNING in associated_faces_begin(edge): auto-enabling EDGEOPT_STORE_ASSOCIATED_FACES." << endl);
 		edge_store_associated_faces(true);
@@ -970,7 +970,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_begin(Edge* edge)
 
 Grid::AssociatedFaceIterator Grid::associated_faces_end(Edge* edge)
 {
-	if(!option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+	if(!option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
 		LOG("WARNING in associated_faces_end(edge): auto-enabling EDGEOPT_STORE_ASSOCIATED_FACES." << endl);
 		edge_store_associated_faces(true);
@@ -980,7 +980,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_end(Edge* edge)
 
 Grid::AssociatedFaceIterator Grid::associated_faces_begin(Volume* vol)
 {
-	if(!option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
+	if(!option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES))
 	{
 		LOG("WARNING in associated_faces_begin(vol): auto-enabling VOLOPT_STORE_ASSOCIATED_FACES." << endl);
 		volume_store_associated_faces(true);
@@ -990,7 +990,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_begin(Volume* vol)
 
 Grid::AssociatedFaceIterator Grid::associated_faces_end(Volume* vol)
 {
-	if(!option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
+	if(!option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES))
 	{
 		LOG("WARNING in associated_faces_end(vol): auto-enabling VOLOPT_STORE_ASSOCIATED_FACES." << endl);
 		volume_store_associated_faces(true);
@@ -1002,7 +1002,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_end(Volume* vol)
 //	associated volume access
 Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(Vertex* vrt)
 {
-	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))
+	if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_VOLUMES))
 	{
 		LOG("WARNING in associated_volumes_begin(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		vertex_store_associated_volumes(true);
@@ -1012,7 +1012,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(Vertex* vrt)
 
 Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Vertex* vrt)
 {
-	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))
+	if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_VOLUMES))
 	{
 		LOG("WARNING in associated_volumes_end(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		vertex_store_associated_volumes(true);
@@ -1022,7 +1022,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Vertex* vrt)
 
 Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(Edge* edge)
 {
-	if(!option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
+	if(!option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
 		LOG("WARNING in associated_volumes_begin(edge): auto-enabling EDGEOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		edge_store_associated_volumes(true);
@@ -1032,7 +1032,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(Edge* edge)
 
 Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Edge* edge)
 {
-	if(!option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
+	if(!option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
 		LOG("WARNING in associated_volumes_end(edge): auto-enabling EDGEOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		edge_store_associated_volumes(true);
@@ -1042,7 +1042,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Edge* edge)
 
 Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(Face* face)
 {
-	if(!option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
+	if(!option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
 		LOG("WARNING in associated_volumes_begin(face): auto-enabling FACEOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		face_store_associated_volumes(true);
@@ -1052,7 +1052,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(Face* face)
 
 Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Face* face)
 {
-	if(!option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
+	if(!option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
 		LOG("WARNING in associated_volumes_end(face): auto-enabling FACEOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		face_store_associated_volumes(true);
@@ -1077,9 +1077,9 @@ Edge* Grid::get_edge(const EdgeVertices& ev)
 Edge* Grid::get_edge(Face* f, int ind)
 {
 //	check whether the face stores associated edges
-	if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
+	if(option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_EDGES))
 	{
-		if(option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
+		if(option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
 			return m_aaEdgeContainerFACE[f][ind];
 		else{
 			EdgeDescriptor ed;
@@ -1102,12 +1102,12 @@ Edge* Grid::get_edge(Face* f, int ind)
 Edge* Grid::get_edge(Volume* v, int ind)
 {
 //	check whether the face stores associated edges
-	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
+	if(option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
 	//	if autogenerate is enabeld, edges are sorted.
-		if(option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)
-			|| option_is_enabled(VOLOPT_AUTOGENERATE_FACES
-								| FACEOPT_AUTOGENERATE_EDGES))
+		if(option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_EDGES)
+			|| option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES
+								| FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
 		{
 			return m_aaEdgeContainerVOLUME[v][ind];
 		}
@@ -1125,7 +1125,7 @@ Edge* Grid::get_edge(Volume* v, int ind)
 	//	it doesn't. find the edge by checking vertices.
 		return find_edge_in_associated_edges(ed.vertex(0), ed);
 	}
-	
+
 	return nullptr;
 }
 
@@ -1137,10 +1137,10 @@ Face* Grid::get_face(const FaceVertices& fv)
 Face* Grid::get_face(Volume* v, int ind)
 {
 //	check whether the volume stores associated faces
-	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
+	if(option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES))
 	{
 	//	if autogenerate is enabeld, faces are sorted.
-		if(option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
+		if(option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES))
 			return m_aaFaceContainerVOLUME[v][ind];
 		else{
 			FaceDescriptor fd;

@@ -108,8 +108,8 @@ class UG_API Selector : public ISelector
 		};
 
 	public:
-		Selector(uint supportedElements = SE_ALL);
-		Selector(Grid& grid, uint supportedElements = SE_ALL);
+		Selector(byte_t supportedElements = SE_ALL);
+		Selector(Grid& grid, byte_t supportedElements = SE_ALL);
 
 		~Selector() override;
 
@@ -121,19 +121,19 @@ class UG_API Selector : public ISelector
 	 *	\sa Selector::enable_element_support*/
 	//	forwards to protected ISelector method. This rather complicated setup
 	//	is required to avoid virtual method calls during construction.
-		void set_supported_elements(uint shElements);
+		void set_supported_elements(byte_t shElements);
 
 	///	enable support for element-types. Does not invalidate previous settings.
 	/**	pass an or-combination of constants enumerated in SelectorElements.*/
 	//	forwards to protected ISelector method. This rather complicated setup
 	//	is required to avoid virtual method calls during construction.
-		void enable_element_support(uint shElements);
+		void enable_element_support(byte_t shElements);
 
 	///	disable support for element-types.
 	/**	pass an or-combination of constants enumerated in SelectorElements.*/
 	//	forwards to protected ISelector method. This rather complicated setup
 	//	is required to avoid virtual method calls during construction.
-		void disable_element_support(uint shElements);
+		void disable_element_support(byte_t shElements);
 
 		void clear() override;
 

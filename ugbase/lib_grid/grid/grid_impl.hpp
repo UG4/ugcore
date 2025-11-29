@@ -451,10 +451,10 @@ template <typename TContainer>
 void Grid::get_associated(TContainer& container, GridObject* o)
 {
 	switch(o->base_object_id()){
-		case VERTEX: return get_associated(container, static_cast<Vertex*>(o));
-		case EDGE: return get_associated(container, static_cast<Edge*>(o));
-		case FACE: return get_associated(container, static_cast<Face*>(o));
-		case VOLUME: return get_associated(container, static_cast<Volume*>(o));
+		case GridBaseObjectId::VERTEX: return get_associated(container, static_cast<Vertex*>(o));
+		case GridBaseObjectId::EDGE: return get_associated(container, static_cast<Edge*>(o));
+		case GridBaseObjectId::FACE: return get_associated(container, static_cast<Face*>(o));
+		case GridBaseObjectId::VOLUME: return get_associated(container, static_cast<Volume*>(o));
 	}
 }
 
@@ -767,10 +767,10 @@ inline void Grid::mark(GridObject* obj)
 {
 	const int typeID = obj->base_object_id();
 	switch(typeID){
-		case VERTEX: mark(static_cast<Vertex*>(obj)); break;
-		case EDGE: mark(static_cast<Edge*>(obj)); break;
-		case FACE: mark(static_cast<Face*>(obj)); break;
-		case VOLUME: mark(static_cast<Volume*>(obj)); break;
+		case GridBaseObjectId::VERTEX: mark(static_cast<Vertex*>(obj)); break;
+		case GridBaseObjectId::EDGE: mark(static_cast<Edge*>(obj)); break;
+		case GridBaseObjectId::FACE: mark(static_cast<Face*>(obj)); break;
+		case GridBaseObjectId::VOLUME: mark(static_cast<Volume*>(obj)); break;
 	}
 }
 
@@ -802,10 +802,10 @@ inline void Grid::unmark(GridObject* obj)
 {
 	const int typeID = obj->base_object_id();
 	switch(typeID){
-		case VERTEX: unmark(static_cast<Vertex*>(obj)); break;
-		case EDGE: unmark(static_cast<Edge*>(obj)); break;
-		case FACE: unmark(static_cast<Face*>(obj)); break;
-		case VOLUME: unmark(static_cast<Volume*>(obj)); break;
+		case GridBaseObjectId::VERTEX: unmark(static_cast<Vertex*>(obj)); break;
+		case GridBaseObjectId::EDGE: unmark(static_cast<Edge*>(obj)); break;
+		case GridBaseObjectId::FACE: unmark(static_cast<Face*>(obj)); break;
+		case GridBaseObjectId::VOLUME: unmark(static_cast<Volume*>(obj)); break;
 	}
 }
 
@@ -837,10 +837,10 @@ inline bool Grid::is_marked(GridObject* obj) const
 {
 	const int typeID = obj->base_object_id();
 	switch(typeID){
-		case VERTEX: return is_marked(static_cast<Vertex*>(obj));
-		case EDGE: return is_marked(static_cast<Edge*>(obj));
-		case FACE: return is_marked(static_cast<Face*>(obj));
-		case VOLUME: return is_marked(static_cast<Volume*>(obj));
+		case GridBaseObjectId::VERTEX: return is_marked(static_cast<Vertex*>(obj));
+		case GridBaseObjectId::EDGE: return is_marked(static_cast<Edge*>(obj));
+		case GridBaseObjectId::FACE: return is_marked(static_cast<Face*>(obj));
+		case GridBaseObjectId::VOLUME: return is_marked(static_cast<Volume*>(obj));
 		default: return false;
 	}
 }

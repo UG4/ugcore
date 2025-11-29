@@ -46,11 +46,11 @@ namespace ug
 int GetAssociatedInterfaceType(int interfaceType)
 {
 	switch(interfaceType){
-		case INT_H_MASTER:	return INT_H_SLAVE;
-		case INT_H_SLAVE:	return INT_H_MASTER;
-		case INT_V_MASTER:	return INT_V_SLAVE;
-		case INT_V_SLAVE:	return INT_V_MASTER;
-		default: return INT_NONE;
+		case InterfaceNodeTypes::INT_H_MASTER:	return InterfaceNodeTypes::INT_H_SLAVE;
+		case InterfaceNodeTypes::INT_H_SLAVE:	return InterfaceNodeTypes::INT_H_MASTER;
+		case InterfaceNodeTypes::INT_V_MASTER:	return InterfaceNodeTypes::INT_V_SLAVE;
+		case InterfaceNodeTypes::INT_V_SLAVE:	return InterfaceNodeTypes::INT_V_MASTER;
+		default: return InterfaceNodeTypes::INT_NONE;
 	}
 }
 
@@ -94,8 +94,8 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos, bool verb
 
 	UG_LOG("Testing horizontal vertex layouts...\n");
 	{
-		VertexLayout& masterLayout = glm.get_layout<Vertex>(INT_H_MASTER);
-		VertexLayout& slaveLayout = glm.get_layout<Vertex>(INT_H_SLAVE);
+		VertexLayout& masterLayout = glm.get_layout<Vertex>(InterfaceNodeTypes::INT_H_MASTER);
+		VertexLayout& slaveLayout = glm.get_layout<Vertex>(InterfaceNodeTypes::INT_H_SLAVE);
 
 	//	we have to retrieve the max level of all layouts
 		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
@@ -113,8 +113,8 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos, bool verb
 
 	UG_LOG("Testing vertical vertex layouts...\n");
 	{
-		VertexLayout& masterLayout = glm.get_layout<Vertex>(INT_V_MASTER);
-		VertexLayout& slaveLayout = glm.get_layout<Vertex>(INT_V_SLAVE);
+		VertexLayout& masterLayout = glm.get_layout<Vertex>(InterfaceNodeTypes::INT_V_MASTER);
+		VertexLayout& slaveLayout = glm.get_layout<Vertex>(InterfaceNodeTypes::INT_V_SLAVE);
 		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
 		int globMaxLevel = locMaxLevel;
 		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);
@@ -134,8 +134,8 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos, bool verb
 
 	UG_LOG("Testing horizontal edge layouts...\n");
 	{
-		EdgeLayout& masterLayout = glm.get_layout<Edge>(INT_H_MASTER);
-		EdgeLayout& slaveLayout = glm.get_layout<Edge>(INT_H_SLAVE);
+		EdgeLayout& masterLayout = glm.get_layout<Edge>(InterfaceNodeTypes::INT_H_MASTER);
+		EdgeLayout& slaveLayout = glm.get_layout<Edge>(InterfaceNodeTypes::INT_H_SLAVE);
 
 	//	we have to retrieve the max level of all layouts
 		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
@@ -153,8 +153,8 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos, bool verb
 
 	UG_LOG("Testing vertical edge layouts...\n");
 	{
-		EdgeLayout& masterLayout = glm.get_layout<Edge>(INT_V_MASTER);
-		EdgeLayout& slaveLayout = glm.get_layout<Edge>(INT_V_SLAVE);
+		EdgeLayout& masterLayout = glm.get_layout<Edge>(InterfaceNodeTypes::INT_V_MASTER);
+		EdgeLayout& slaveLayout = glm.get_layout<Edge>(InterfaceNodeTypes::INT_V_SLAVE);
 		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
 		int globMaxLevel = locMaxLevel;
 		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);
@@ -173,8 +173,8 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos, bool verb
 
 	UG_LOG("Testing horizontal face layouts...\n");
 	{
-		FaceLayout& masterLayout = glm.get_layout<Face>(INT_H_MASTER);
-		FaceLayout& slaveLayout = glm.get_layout<Face>(INT_H_SLAVE);
+		FaceLayout& masterLayout = glm.get_layout<Face>(InterfaceNodeTypes::INT_H_MASTER);
+		FaceLayout& slaveLayout = glm.get_layout<Face>(InterfaceNodeTypes::INT_H_SLAVE);
 
 	//	we have to retrieve the max level of all layouts
 		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
@@ -192,8 +192,8 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos, bool verb
 
 	UG_LOG("Testing vertical face layouts...\n");
 	{
-		FaceLayout& masterLayout = glm.get_layout<Face>(INT_V_MASTER);
-		FaceLayout& slaveLayout = glm.get_layout<Face>(INT_V_SLAVE);
+		FaceLayout& masterLayout = glm.get_layout<Face>(InterfaceNodeTypes::INT_V_MASTER);
+		FaceLayout& slaveLayout = glm.get_layout<Face>(InterfaceNodeTypes::INT_V_SLAVE);
 		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
 		int globMaxLevel = locMaxLevel;
 		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);

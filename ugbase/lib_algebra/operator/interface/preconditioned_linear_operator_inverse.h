@@ -120,8 +120,7 @@ class IPreconditionedLinearOperatorInverse
 	/// \}
 
 	///	initializes the solver for an operator
-		virtual bool init(SmartPtr<ILinearOperator<X,X> > J, const X& u)
-		{
+		bool init(SmartPtr<ILinearOperator<X,X> > J, const X& u) override {
 			if(!base_type::init(J, u)) return false;
 
 			LS_PROFILE_BEGIN(LS_InitPrecond);

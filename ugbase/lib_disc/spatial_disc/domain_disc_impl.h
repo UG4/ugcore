@@ -2817,7 +2817,7 @@ mark_with_strategy
 	// mark elements for refinement
 	if (spMarkingStrategy.valid())
 	{
-		spMarkingStrategy->mark( m_mgElemErrors, refiner, this->dd(GridLevel(GridLevel::TOP, GridLevel::SURFACE)));
+		spMarkingStrategy->mark( m_mgElemErrors, refiner, this->dd(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE)));
 	}
 }
 
@@ -2929,37 +2929,37 @@ finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		switch(dim)
 		{
 		case 0:
-			this->template FinishTimestepElem<RegularVertex>
+			this->FinishTimestepElem<RegularVertex>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 1:
-			this->template FinishTimestepElem<RegularEdge>
+			this->FinishTimestepElem<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template FinishTimestepElem<ConstrainingEdge>
+			this->FinishTimestepElem<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 2:
-			this->template FinishTimestepElem<Triangle>
+			this->FinishTimestepElem<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template FinishTimestepElem<Quadrilateral>
+			this->FinishTimestepElem<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template FinishTimestepElem<ConstrainingTriangle>
+			this->FinishTimestepElem<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template FinishTimestepElem<ConstrainingQuadrilateral>
+			this->FinishTimestepElem<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 3:
-			this->template FinishTimestepElem<Tetrahedron>
+			this->FinishTimestepElem<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template FinishTimestepElem<Pyramid>
+			this->FinishTimestepElem<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template FinishTimestepElem<Prism>
+			this->FinishTimestepElem<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template FinishTimestepElem<Hexahedron>
+			this->FinishTimestepElem<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template FinishTimestepElem<Octahedron>
+			this->FinishTimestepElem<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		default:

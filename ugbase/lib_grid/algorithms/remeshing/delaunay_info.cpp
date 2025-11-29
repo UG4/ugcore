@@ -42,20 +42,20 @@ DelaunayInfo(Grid& g, TAAPos& aaPos,
 	  m_maxDot(1), m_cbConstrainedEdge(cbConstrainedEdge),
 	  m_candidateRecordingEnabled(false)
 {
-	g.attach_to_vertices_dv(m_aMark, NONE);
-	g.attach_to_edges_dv(m_aMark, NONE);
-	g.attach_to_faces_dv(m_aMark, NONE);
+	g.attach_to_vertices_dv(m_aMark, Mark::NONE);
+	g.attach_to_edges_dv(m_aMark, Mark::NONE);
+	g.attach_to_faces_dv(m_aMark, Mark::NONE);
 	m_aaMark.access(g, m_aMark, true, true, true, false);
 	
 	g.attach_to_edges_dv(m_aCandidate, false);
 	m_aaCandidateEDGE.access(g, m_aCandidate);
 
-	if(!g.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
+	if(!g.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES)){
 		UG_LOG("WARNING in DelaunayInfo: enabling FACEOPT_AUTOGENERATE_EDGES.\n");
-		g.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+		g.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
 	}
 
-	g.register_observer(this, OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER | OT_FACE_OBSERVER);
+	g.register_observer(this, ObserverType::OT_VERTEX_OBSERVER | ObserverType::OT_EDGE_OBSERVER | ObserverType::OT_FACE_OBSERVER);
 }
 
 template <typename TAAPos>
@@ -78,7 +78,7 @@ set_mark(Face* f, Mark mark)
 	m_aaMark[f] = mark;
 	if(face_classification_enabled()){
 		FaceInfo* fi = m_aaFaceInfo[f];
-		if((mark == INNER) || (mark == NEW_INNER)){
+		if((mark == Mark::INNER) || (mark == Mark::NEW_INNER)){
 			if(!fi){
 				m_aaFaceInfo[f] = fi = new FaceInfo();
 				fi->f = f;
@@ -108,7 +108,7 @@ bool DelaunayInfo<TAAPos>::
 is_dart_segment(Edge* e)
 {
 	Edge::ConstVertexArray vrts = e->vertices();
-	return is_segment(e) && (mark(vrts[0]) == DART || mark(vrts[1]) == DART);
+	return is_segment(e) && (mark(vrts[0]) == Mark::DART || mark(vrts[1]) == Mark::DART);
 }
 
 template <typename TAAPos>
@@ -116,7 +116,7 @@ bool DelaunayInfo<TAAPos>::
 is_new_dart_segment(Edge* e)
 {
 	Edge::ConstVertexArray vrts = e->vertices();
-	return mark(e) == NEW_SEGMENT && (mark(vrts[0]) == DART || mark(vrts[1]) == DART);
+	return mark(e) == Mark::NEW_SEGMENT && (mark(vrts[0]) == Mark::DART || mark(vrts[1]) == Mark::DART);
 }
 
 
@@ -126,8 +126,8 @@ is_dart_shell_segment(Edge* e)
 {
 	Edge::ConstVertexArray vrts = e->vertices();
 	return is_segment(e)
-			&& ((mark(vrts[0]) == DART && mark(vrts[1]) == SHELL)
-			    || (mark(vrts[0]) == SHELL && mark(vrts[1]) == DART));
+			&& ((mark(vrts[0]) == Mark::DART && mark(vrts[1]) == Mark::SHELL)
+			    || (mark(vrts[0]) == Mark::SHELL && mark(vrts[1]) == Mark::DART));
 }
 
 
@@ -291,7 +291,7 @@ is_classifiable(Face* f)
 	int subtended = -1;
 	int numShell = 0;
 	for(size_t i = 0; i < 3; ++i){
-		if(mark(f->vertex(i)) == SHELL)
+		if(mark(f->vertex(i)) == Mark::SHELL)
 			++numShell;
 		else
 			subtended = i;
@@ -449,11 +449,11 @@ void DelaunayInfo<TAAPos>::
 vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent, bool replacesParent)
 {
 
-	set_mark(vrt, NEW_INNER);
-	if(pParent && (pParent->base_object_id() == EDGE)
+	set_mark(vrt, Mark::NEW_INNER);
+	if(pParent && (pParent->base_object_id() == GridBaseObjectId::EDGE)
 		&& is_segment(static_cast<Edge*>(pParent)))
 	{
-		set_mark(vrt, NEW_SEGMENT);
+		set_mark(vrt, Mark::NEW_SEGMENT);
 	}
 }
 
@@ -463,11 +463,11 @@ void DelaunayInfo<TAAPos>::
 edge_created(Grid* grid, Edge* e, GridObject* pParent, bool replacesParent)
 {
 
-	set_mark(e, NEW_INNER);
-	if(pParent && (pParent->base_object_id() == EDGE)
+	set_mark(e, Mark::NEW_INNER);
+	if(pParent && (pParent->base_object_id() == GridBaseObjectId::EDGE)
 		&& is_segment(static_cast<Edge*>(pParent)))
 	{
-		set_mark(e, NEW_SEGMENT);
+		set_mark(e, Mark::NEW_SEGMENT);
 	}
 
 	if(m_candidateRecordingEnabled)
@@ -479,10 +479,10 @@ template <typename TAAPos>
 void DelaunayInfo<TAAPos>::
 face_created(Grid* grid, Face* f, GridObject* pParent, bool replacesParent)
 {
-	if(pParent && (pParent->base_object_id() == FACE)
+	if(pParent && (pParent->base_object_id() == GridBaseObjectId::FACE)
 		&& is_inner(static_cast<Face*>(pParent)))
 	{
-		set_mark(f, NEW_INNER);
+		set_mark(f, Mark::NEW_INNER);
 	}
 }
 
@@ -509,7 +509,7 @@ void DelaunayInfo<TAAPos>::
 face_to_be_erased(Grid* grid, Face* f, Face* replacedBy)
 {
 //	unmark the face.
-	set_mark(f, NONE);
+	set_mark(f, Mark::NONE);
 }
 
 

@@ -79,7 +79,7 @@ bool IsBoundaryEdge(Grid& grid, Edge* e,
 					Grid::face_traits::callback funcIsSurfFace)
 {
 	int counter = 0;
-	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+	if(grid.option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
 		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
 			iter != grid.associated_faces_end(e); ++iter)
@@ -138,13 +138,13 @@ bool IsBoundaryEdge2D(Grid& grid, Edge* e)
 ////////////////////////////////////////////////////////////////////////
 bool IsBoundaryEdge3D(Grid& grid, Edge* e)
 {
-	if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
+	if(!grid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES)){
 		UG_LOG("WARNING in IsBoundaryEdge3D: Autoenabling VOLOPT_AUTOGENERATE_FACES.\n");
-		grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
+		grid.enable_options(VolumeOptions::VOLOPT_AUTOGENERATE_FACES);
 	}
 
 //	check whether an associated face is a boundary face
-	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+	if(grid.option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
 		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
 			iter != grid.associated_faces_end(e); ++iter)
@@ -186,7 +186,7 @@ bool LiesOnBoundary(Grid& grid, Edge* e)
 int GetAssociatedFaces(Face** facesOut, Grid& grid,
 						Edge* e, int maxNumFaces)
 {
-	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+	if(grid.option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
 		int counter = 0;
 		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(e);
@@ -245,7 +245,7 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 //	NumAssociatedFaces
 int NumAssociatedFaces(Grid& grid, Edge* e)
 {
-	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+	if(grid.option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
 		int counter = 0;
 		auto iterEnd = grid.associated_faces_end(e);

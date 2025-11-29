@@ -91,14 +91,15 @@ const char* VTKCellNames[] = {	"UNDEFINED",
 								"QUADRATIC_TETRA",
 								"QUADRATIC_HEXAHEDRON"};
 
-const int ugRefObjIdToVTKCellType[] = {	VTK_VERTEX,
-										VTK_LINE,
-										VTK_TRIANGLE,
-										VTK_QUAD,
-										VTK_TETRA,
-										VTK_HEXAHEDRON,
-										VTK_WEDGE,
-										VTK_PYRAMID};
+const int ugRefObjIdToVTKCellType[] = {
+										VTKCellTypes::VTK_VERTEX,
+										VTKCellTypes::VTK_LINE,
+										VTKCellTypes::VTK_TRIANGLE,
+										VTKCellTypes::VTK_QUAD,
+										VTKCellTypes::VTK_TETRA,
+										VTKCellTypes::VTK_HEXAHEDRON,
+										VTKCellTypes::VTK_WEDGE,
+										VTKCellTypes::VTK_PYRAMID};
 
 bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh,
 					const char* filename)
@@ -124,9 +125,9 @@ bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh,
 GridWriterVTU::
 GridWriterVTU() :
 	m_pout(nullptr),
-	m_pieceMode(NONE),
-	m_pointDataMode(NONE),
-	m_cellDataMode(NONE),
+	m_pieceMode(Mode::NONE),
+	m_pointDataMode(Mode::NONE),
+	m_cellDataMode(Mode::NONE),
 	m_curGrid(nullptr)
 {
 
@@ -135,9 +136,9 @@ GridWriterVTU() :
 GridWriterVTU::
 GridWriterVTU(std::ostream* pout) :
 	m_pout(nullptr),
-	m_pieceMode(NONE),
-	m_pointDataMode(NONE),
-	m_cellDataMode(NONE),
+	m_pieceMode(Mode::NONE),
+	m_pointDataMode(Mode::NONE),
+	m_cellDataMode(Mode::NONE),
 	m_curGrid(nullptr)
 {
 	set_stream(pout);
@@ -167,7 +168,7 @@ set_stream(std::ostream* pout)
 void GridWriterVTU::
 add_subset_handler(ISubsetHandler& sh, const std::string& name)
 {
-	UG_COND_THROW(m_cellDataMode == CLOSED,
+	UG_COND_THROW(m_cellDataMode == Mode::CLOSED,
 				  "A subset handler has to be added before a call to 'end_cell_data'");
 
 	m_pieceSubsetHandlers.push_back(make_pair(&sh, name));
@@ -196,50 +197,50 @@ write_data_array_footer()
 void GridWriterVTU::
 begin_point_data()
 {
-	UG_COND_THROW(m_pointDataMode != NONE,
+	UG_COND_THROW(m_pointDataMode != Mode::NONE,
 				  "begin_point_data can only be called once per piece!");
 	
-	UG_COND_THROW(m_cellDataMode == OPEN,
+	UG_COND_THROW(m_cellDataMode == Mode::OPEN,
 				  "begin_point_data may not be called between "
 				  "begin_cell_data and end_cell_data!");
 
 	out_stream() << "      <PointData>" << endl;
 
-	m_pointDataMode = OPEN;
+	m_pointDataMode = Mode::OPEN;
 }
 
 void GridWriterVTU::
 end_point_data()
 {
-	UG_COND_THROW(m_pointDataMode != OPEN,
+	UG_COND_THROW(m_pointDataMode != Mode::OPEN,
 				  "end_point_data has to be called after begin_point_data!");
 	
 	out_stream() << "      </PointData>" << endl;
 
-	m_pointDataMode = CLOSED;
+	m_pointDataMode = Mode::CLOSED;
 }
 
 
 void GridWriterVTU::
 begin_cell_data()
 {
-	UG_COND_THROW(m_cellDataMode != NONE,
+	UG_COND_THROW(m_cellDataMode != Mode::NONE,
 				  "begin_cell_data can only be called once per piece!");
 	
-	UG_COND_THROW(m_pointDataMode == OPEN,
+	UG_COND_THROW(m_pointDataMode == Mode::OPEN,
 				  "begin_cell_data may not be called between "
 				  "begin_point_data and end_point_data!");
 
 	out_stream() << "      <CellData>" << endl;
 
-	m_cellDataMode = OPEN;
+	m_cellDataMode = Mode::OPEN;
 }
 
 
 void GridWriterVTU::
 end_cell_data()
 {
-	UG_COND_THROW(m_cellDataMode != OPEN,
+	UG_COND_THROW(m_cellDataMode != Mode::OPEN,
 				  "end_cell_data has to be called after begin_cell_data!");
 
 	ostream& out = out_stream();
@@ -260,7 +261,7 @@ end_cell_data()
 
 	out << "      </CellData>" << endl;
 
-	m_cellDataMode = CLOSED;
+	m_cellDataMode = Mode::CLOSED;
 
 //	finally write regionos-info
 	for(size_t i = 0; i < m_pieceSubsetHandlers.size(); ++i){
@@ -295,7 +296,7 @@ write_cells(std::vector<GridObject*>& cells, Grid & grid,
 		GridObject* cell = cells[icell];
 		grid.associated_elements(vrts, cell);
 	//	Prisms have a different vertex order in ug than in vtk.
-		if(cell->reference_object_id() == ROID_PRISM){
+		if(cell->reference_object_id() == ReferenceObjectID::ROID_PRISM){
 			out << " " << aaInd[vrts[1]];
 			out << " " << aaInd[vrts[0]];
 			out << " " << aaInd[vrts[2]];
@@ -335,7 +336,7 @@ write_cells(std::vector<GridObject*>& cells, Grid & grid,
 	for(size_t icell = 0; icell < cells.size(); ++icell){
 		GridObject* cell = cells[icell];
 		int roid = cell->reference_object_id();
-		if(roid >= 0 && roid <= ROID_PYRAMID){
+		if(roid >= 0 && roid <= ReferenceObjectID::ROID_PYRAMID){
 			out << " " << ugRefObjIdToVTKCellType[roid];
 		}
 		else{
@@ -353,18 +354,18 @@ write_cells(std::vector<GridObject*>& cells, Grid & grid,
 void GridWriterVTU::
 end_piece()
 {
-	if(m_pieceMode == OPEN){
-		if(m_pointDataMode == NONE)
+	if(m_pieceMode == Mode::OPEN){
+		if(m_pointDataMode == Mode::NONE)
 			begin_point_data();
-		if(m_pointDataMode == OPEN)
+		if(m_pointDataMode == Mode::OPEN)
 			end_point_data();
 
-		if(m_cellDataMode == NONE)
+		if(m_cellDataMode == Mode::NONE)
 			begin_cell_data();
-		if(m_cellDataMode == OPEN)
+		if(m_cellDataMode == Mode::OPEN)
 			end_cell_data();
 
-		m_pieceMode = CLOSED;
+		m_pieceMode = Mode::CLOSED;
 		out_stream() << "    </Piece>" << endl;
 	}
 
@@ -376,8 +377,8 @@ void GridWriterVTU::
 finish()
 {
 //	make sure that point and cell data are present in the file
-	if(m_pieceMode == NONE){
-		m_pieceMode = OPEN;
+	if(m_pieceMode == Mode::NONE){
+		m_pieceMode = Mode::OPEN;
 		m_pieceSubsetHandlers.clear();
 		m_cells.clear();
 		out_stream() << "    <Piece NumberOfPoints=\"0\" NumberOfCells=\"0\">" << endl;
@@ -385,7 +386,7 @@ finish()
 		out_stream() << "		<Cells></Cells>" << endl;
 	}
 
-	if(m_pieceMode == OPEN)
+	if(m_pieceMode == Mode::OPEN)
 		end_piece();
 
 	out_stream() << "  </UnstructuredGrid>" << endl;
@@ -762,18 +763,18 @@ create_cells(std::vector<GridObject*>& cellsOut,
 		try{
 			size_t nextOffset = offsets[icell];
 			switch(types[icell]){
-				case VTK_VERTEX:{
+				case VTKCellTypes::VTK_VERTEX:{
 					check_indices(connectivity, curOffset, 1, numPieceVrts);
 					cellsOut.push_back(VRT(0));
 				}break;
 
-				case VTK_LINE:{
+				case VTKCellTypes::VTK_LINE:{
 					check_indices(connectivity, curOffset, 2, numPieceVrts);
 					RegularEdge* e = *grid.create<RegularEdge>(EdgeDescriptor(VRT(0), VRT(1)));
 					cellsOut.push_back(e);
 				}break;
 				
-				case VTK_TRIANGLE:{
+				case VTKCellTypes::VTK_TRIANGLE:{
 					check_indices(connectivity, curOffset, 3, numPieceVrts);
 					Triangle* f =
 						*grid.create<Triangle>(
@@ -785,7 +786,7 @@ create_cells(std::vector<GridObject*>& cellsOut,
 
 				// }break;
 				
-				case VTK_QUAD:{
+				case VTKCellTypes::VTK_QUAD:{
 					check_indices(connectivity, curOffset, 4, numPieceVrts);
 					Quadrilateral* f =
 						*grid.create<Quadrilateral>(
@@ -793,7 +794,7 @@ create_cells(std::vector<GridObject*>& cellsOut,
 					cellsOut.push_back(f);
 				}break;
 				
-				case VTK_TETRA:{
+				case VTKCellTypes::VTK_TETRA:{
 					check_indices(connectivity, curOffset, 4, numPieceVrts);
 					Volume* v = *grid.create<Tetrahedron>(
 									TetrahedronDescriptor(VRT(0), VRT(1),
@@ -801,7 +802,7 @@ create_cells(std::vector<GridObject*>& cellsOut,
 					cellsOut.push_back(v);
 				}break;
 				
-				case VTK_HEXAHEDRON:{
+				case VTKCellTypes::VTK_HEXAHEDRON:{
 					check_indices(connectivity, curOffset, 8, numPieceVrts);
 					Volume* v = *grid.create<Hexahedron>(
 									HexahedronDescriptor(VRT(0), VRT(1), VRT(2), VRT(3),
@@ -809,7 +810,7 @@ create_cells(std::vector<GridObject*>& cellsOut,
 					cellsOut.push_back(v);
 				}break;
 				
-				case VTK_WEDGE:{
+				case VTKCellTypes::VTK_WEDGE:{
 					check_indices(connectivity, curOffset, 6, numPieceVrts);
 					Volume* v = *grid.create<Prism>(
 									PrismDescriptor(VRT(1), VRT(0), VRT(2),
@@ -817,7 +818,7 @@ create_cells(std::vector<GridObject*>& cellsOut,
 					cellsOut.push_back(v);
 				}break;
 				
-				case VTK_PYRAMID:{
+				case VTKCellTypes::VTK_PYRAMID:{
 					check_indices(connectivity, curOffset, 5, numPieceVrts);
 					Volume* v = *grid.create<Pyramid>(
 									PyramidDescriptor(VRT(0), VRT(1), VRT(2),
@@ -836,7 +837,7 @@ create_cells(std::vector<GridObject*>& cellsOut,
 			UG_LOG("icell: " << icell << ", types[icell]: " << types[icell] << endl);
 
 			string cellName = "UNDEFINED";
-			if(types[icell] > 0 && types[icell] < VTK_NUM_TYPES)
+			if(types[icell] > 0 && types[icell] < VTKCellTypes::VTK_NUM_TYPES)
 				cellName = VTKCellNames[types[icell]];
 
 			std::stringstream ss;

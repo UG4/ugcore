@@ -141,7 +141,7 @@ add_subset_attributes(rapidxml::xml_node<>* targetNode,
 //	write state
 	{
 		stringstream ss;
-		ss << (size_t)si.subsetState;
+		ss << static_cast<size_t>(si.subsetState);
 		char* stateData = m_doc.allocate_string(ss.str().c_str(), ss.str().size() + 1);
 		stateData[ss.str().size()] = 0;
 		targetNode->append_attribute(m_doc.allocate_attribute("state", stateData));
@@ -1005,25 +1005,25 @@ subset_handler(ISubsetHandler& shOut,
 			stringstream ss(attrib->value(), ios_base::in);
 			size_t state;
 			ss >> state;
-			si.subsetState = (uint)state;
+			si.subsetState = static_cast<SubsetState_t>(state);
 		}
 
 		shOut.set_subset_info(subsetInd, si);
 
 	//	read elements of this subset
-		if(shOut.elements_are_supported(SHE_VERTEX))
+		if(shOut.elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
 			read_subset_handler_elements<Vertex>(shOut, "vertices",
 													 subsetNode, subsetInd,
 													 gridEntry.vertices);
-		if(shOut.elements_are_supported(SHE_EDGE))
+		if(shOut.elements_are_supported(SubsetHandlerElements::SHE_EDGE))
 			read_subset_handler_elements<Edge>(shOut, "edges",
 													 subsetNode, subsetInd,
 													 gridEntry.edges);
-		if(shOut.elements_are_supported(SHE_FACE))
+		if(shOut.elements_are_supported(SubsetHandlerElements::SHE_FACE))
 			read_subset_handler_elements<Face>(shOut, "faces",
 												 subsetNode, subsetInd,
 												 gridEntry.faces);
-		if(shOut.elements_are_supported(SHE_VOLUME))
+		if(shOut.elements_are_supported(SubsetHandlerElements::SHE_VOLUME))
 			read_subset_handler_elements<Volume>(shOut, "volumes",
 												 subsetNode, subsetInd,
 												 gridEntry.volumes);
@@ -1039,7 +1039,7 @@ template <typename TGeomObj>
 bool GridReaderUGX::
 read_subset_handler_elements(ISubsetHandler& shOut,
 							 const char* elemNodeName,
-							 rapidxml::xml_node<>* subsetNode,
+							 xml_node<>* subsetNode,
 							 int subsetIndex,
 							 std::vector<TGeomObj*>& vElems)
 {
@@ -1123,19 +1123,19 @@ selector(ISelector& selOut, size_t selectorIndex, size_t refGridIndex)
 	xml_node<>* selectorNode = selEntry.node;
 
 //	read elements of this subset
-	if(selOut.elements_are_supported(SHE_VERTEX))
+	if(selOut.elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
 		read_selector_elements<Vertex>(selOut, "vertices",
 											selectorNode,
 											gridEntry.vertices);
-	if(selOut.elements_are_supported(SHE_EDGE))
+	if(selOut.elements_are_supported(SubsetHandlerElements::SHE_EDGE))
 		read_selector_elements<Edge>(selOut, "edges",
 											selectorNode,
 											gridEntry.edges);
-	if(selOut.elements_are_supported(SHE_FACE))
+	if(selOut.elements_are_supported(SubsetHandlerElements::SHE_FACE))
 		read_selector_elements<Face>(selOut, "faces",
 										selectorNode,
 										gridEntry.faces);
-	if(selOut.elements_are_supported(SHE_VOLUME))
+	if(selOut.elements_are_supported(SubsetHandlerElements::SHE_VOLUME))
 		read_selector_elements<Volume>(selOut, "volumes",
 										selectorNode,
 										gridEntry.volumes);

@@ -78,8 +78,8 @@ void MultiGrid::init()
 	m_bHierarchicalInsertion = true;
 
 //	the MultiGrid observes itself (its underlying grid).
-	register_observer(this, OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
-							OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
+	register_observer(this, ObserverType::OT_VERTEX_OBSERVER | ObserverType::OT_EDGE_OBSERVER |
+							ObserverType::OT_FACE_OBSERVER | ObserverType::OT_VOLUME_OBSERVER);
 
 //	attach parent-pointers
 	attach_to_faces(m_aParent);
@@ -111,7 +111,7 @@ void MultiGrid::create_levels(int numLevels)
 		m_hierarchy.subset_required(num_levels());
 	//	send a message, that a new level has been created
 		message_hub()->post_message(
-				GridMessage_MultiGridChanged(GMMGCT_LEVEL_ADDED, num_levels()));
+				GridMessage_MultiGridChanged(GridMessageMultiGridChangedType::GMMGCT_LEVEL_ADDED, num_levels()));
 	}
 }
 
@@ -180,10 +180,10 @@ GridObject* MultiGrid::get_parent(GridObject* parent) const
 	int baseType = parent->base_object_id();
 	switch(baseType)
 	{
-		case VERTEX:	return get_parent((Vertex*)parent);
-		case EDGE:		return get_parent((Edge*)parent);
-		case FACE:		return get_parent((Face*)parent);
-		case VOLUME:	return get_parent((Volume*)parent);
+		case GridBaseObjectId::VERTEX:	return get_parent((Vertex*)parent);
+		case GridBaseObjectId::EDGE:		return get_parent((Edge*)parent);
+		case GridBaseObjectId::FACE:		return get_parent((Face*)parent);
+		case GridBaseObjectId::VOLUME:	return get_parent((Volume*)parent);
 	}
 	return nullptr;
 }
@@ -220,10 +220,10 @@ void MultiGrid::vertex_created(Grid* grid, Vertex* vrt,
 			int baseType = realParent->base_object_id();
 			switch(baseType)
 			{
-			case VERTEX:	element_created(vrt, (Vertex*)realParent, pReplaceMe); break;
-			case EDGE:		element_created(vrt, (Edge*)realParent, pReplaceMe); break;
-			case FACE:		element_created(vrt, (Face*)realParent, pReplaceMe); break;
-			case VOLUME:	element_created(vrt, (Volume*)realParent, pReplaceMe); break;
+			case GridBaseObjectId::VERTEX:	element_created(vrt, (Vertex*)realParent, pReplaceMe); break;
+			case GridBaseObjectId::EDGE:		element_created(vrt, (Edge*)realParent, pReplaceMe); break;
+			case GridBaseObjectId::FACE:		element_created(vrt, (Face*)realParent, pReplaceMe); break;
+			case GridBaseObjectId::VOLUME:	element_created(vrt, (Volume*)realParent, pReplaceMe); break;
 			}
 		}
 		else
@@ -236,7 +236,7 @@ void MultiGrid::vertex_created(Grid* grid, Vertex* vrt,
 		if(replaceInfo.child_vertex()){
 			myInfo.add_child(replaceInfo.child_vertex());
 			set_parent(replaceInfo.child_vertex(), vrt);
-			set_parent_type(replaceInfo.child_vertex(), VERTEX);
+			set_parent_type(replaceInfo.child_vertex(), GridBaseObjectId::VERTEX);
 		}
 	}
 	else{
@@ -248,10 +248,10 @@ void MultiGrid::vertex_created(Grid* grid, Vertex* vrt,
 			int baseType = pParent->base_object_id();
 			switch(baseType)
 			{
-			case VERTEX:	element_created(vrt, (Vertex*)pParent); break;
-			case EDGE:		element_created(vrt, (Edge*)pParent); break;
-			case FACE:		element_created(vrt, (Face*)pParent); break;
-			case VOLUME:	element_created(vrt, (Volume*)pParent); break;
+			case GridBaseObjectId::VERTEX:	element_created(vrt, (Vertex*)pParent); break;
+			case GridBaseObjectId::EDGE:		element_created(vrt, (Edge*)pParent); break;
+			case GridBaseObjectId::FACE:		element_created(vrt, (Face*)pParent); break;
+			case GridBaseObjectId::VOLUME:	element_created(vrt, (Volume*)pParent); break;
 			}
 		}
 		else
@@ -273,10 +273,10 @@ void MultiGrid::vertex_to_be_erased(Grid* grid, Vertex* vrt,
 		int baseType = pParent->base_object_id();
 		switch(baseType)
 		{
-		case VERTEX:	element_to_be_erased(vrt, (Vertex*)pParent); break;
-		case EDGE:		element_to_be_erased(vrt, (Edge*)pParent); break;
-		case FACE:		element_to_be_erased(vrt, (Face*)pParent); break;
-		case VOLUME:	element_to_be_erased(vrt, (Volume*)pParent); break;
+		case GridBaseObjectId::VERTEX:	element_to_be_erased(vrt, (Vertex*)pParent); break;
+		case GridBaseObjectId::EDGE:		element_to_be_erased(vrt, (Edge*)pParent); break;
+		case GridBaseObjectId::FACE:		element_to_be_erased(vrt, (Face*)pParent); break;
+		case GridBaseObjectId::VOLUME:	element_to_be_erased(vrt, (Volume*)pParent); break;
 		}
 	}
 	else
@@ -301,9 +301,9 @@ void MultiGrid::edge_created(Grid* grid, Edge* edge,
 			int baseType = realParent->base_object_id();
 			switch(baseType)
 			{
-			case EDGE:		element_created(edge, (Edge*)realParent, pReplaceMe); break;
-			case FACE:		element_created(edge, (Face*)realParent, pReplaceMe); break;
-			case VOLUME:	element_created(edge, (Volume*)realParent, pReplaceMe); break;
+			case GridBaseObjectId::EDGE:		element_created(edge, (Edge*)realParent, pReplaceMe); break;
+			case GridBaseObjectId::FACE:		element_created(edge, (Face*)realParent, pReplaceMe); break;
+			case GridBaseObjectId::VOLUME:	element_created(edge, (Volume*)realParent, pReplaceMe); break;
 			}
 		}
 		else
@@ -316,13 +316,13 @@ void MultiGrid::edge_created(Grid* grid, Edge* edge,
 		if(replaceInfo.child_vertex()){
 			myInfo.add_child(replaceInfo.child_vertex());
 			set_parent(replaceInfo.child_vertex(), edge);
-			set_parent_type(replaceInfo.child_vertex(), EDGE);
+			set_parent_type(replaceInfo.child_vertex(), GridBaseObjectId::EDGE);
 		}
 
 		for(size_t i = 0; i < replaceInfo.num_child_edges(); ++i){
 			myInfo.add_child(replaceInfo.child_edge(i));
 			set_parent(replaceInfo.child_edge(i), edge);
-			set_parent_type(replaceInfo.child_edge(i), EDGE);
+			set_parent_type(replaceInfo.child_edge(i), GridBaseObjectId::EDGE);
 		}
 	}
 	else{
@@ -334,9 +334,9 @@ void MultiGrid::edge_created(Grid* grid, Edge* edge,
 			int baseType = pParent->base_object_id();
 			switch(baseType)
 			{
-			case EDGE:		element_created(edge, (Edge*)pParent); break;
-			case FACE:		element_created(edge, (Face*)pParent); break;
-			case VOLUME:	element_created(edge, (Volume*)pParent); break;
+			case GridBaseObjectId::EDGE:		element_created(edge, (Edge*)pParent); break;
+			case GridBaseObjectId::FACE:		element_created(edge, (Face*)pParent); break;
+			case GridBaseObjectId::VOLUME:	element_created(edge, (Volume*)pParent); break;
 			}
 		}
 		else
@@ -356,9 +356,9 @@ void MultiGrid::edge_to_be_erased(Grid* grid, Edge* edge,
 		int baseType = pParent->base_object_id();
 		switch(baseType)
 		{
-		case EDGE:		element_to_be_erased(edge, (Edge*)pParent); break;
-		case FACE:		element_to_be_erased(edge, (Face*)pParent); break;
-		case VOLUME:	element_to_be_erased(edge, (Volume*)pParent); break;
+		case GridBaseObjectId::EDGE:		element_to_be_erased(edge, (Edge*)pParent); break;
+		case GridBaseObjectId::FACE:		element_to_be_erased(edge, (Face*)pParent); break;
+		case GridBaseObjectId::VOLUME:	element_to_be_erased(edge, (Volume*)pParent); break;
 		}
 	}
 	else
@@ -384,8 +384,8 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 			int baseType = realParent->base_object_id();
 			switch(baseType)
 			{
-			case FACE:		element_created(face, (Face*)realParent, pReplaceMe); break;
-			case VOLUME:	element_created(face, (Volume*)realParent, pReplaceMe); break;
+			case GridBaseObjectId::FACE:		element_created(face, (Face*)realParent, pReplaceMe); break;
+			case GridBaseObjectId::VOLUME:	element_created(face, (Volume*)realParent, pReplaceMe); break;
 			}
 		}
 		else
@@ -400,19 +400,19 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 			if(replaceInfo.child_vertex()){
 				myInfo.add_child(replaceInfo.child_vertex());
 				set_parent(replaceInfo.child_vertex(), face);
-				set_parent_type(replaceInfo.child_vertex(), FACE);
+				set_parent_type(replaceInfo.child_vertex(), GridBaseObjectId::FACE);
 			}
 
 			for(size_t i = 0; i < replaceInfo.num_child_edges(); ++i){
 				myInfo.add_child(replaceInfo.child_edge(i));
 				set_parent(replaceInfo.child_edge(i), face);
-				set_parent_type(replaceInfo.child_edge(i), FACE);
+				set_parent_type(replaceInfo.child_edge(i), GridBaseObjectId::FACE);
 			}
 
 			for(size_t i = 0; i < replaceInfo.num_child_faces(); ++i){
 				myInfo.add_child(replaceInfo.child_face(i));
 				set_parent(replaceInfo.child_face(i), face);
-				set_parent_type(replaceInfo.child_face(i), FACE);
+				set_parent_type(replaceInfo.child_face(i), GridBaseObjectId::FACE);
 			}
 		}
 	}
@@ -425,8 +425,8 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 			int baseType = pParent->base_object_id();
 			switch(baseType)
 			{
-			case FACE:		element_created(face, (Face*)pParent); break;
-			case VOLUME:	element_created(face, (Volume*)pParent); break;
+			case GridBaseObjectId::FACE:		element_created(face, (Face*)pParent); break;
+			case GridBaseObjectId::VOLUME:	element_created(face, (Volume*)pParent); break;
 			}
 		}
 		else
@@ -446,8 +446,8 @@ void MultiGrid::face_to_be_erased(Grid* grid, Face* face,
 		int baseType = pParent->base_object_id();
 		switch(baseType)
 		{
-		case FACE: element_to_be_erased(face, (Face*)pParent); break;
-		case VOLUME: element_to_be_erased(face, (Volume*)pParent); break;
+		case GridBaseObjectId::FACE: element_to_be_erased(face, (Face*)pParent); break;
+		case GridBaseObjectId::VOLUME: element_to_be_erased(face, (Volume*)pParent); break;
 		}
 	}
 	else
@@ -480,25 +480,25 @@ void MultiGrid::volume_created(Grid* grid, Volume* vol,
 			if(replaceInfo.child_vertex()){
 				myInfo.add_child(replaceInfo.child_vertex());
 				set_parent(replaceInfo.child_vertex(), vol);
-				set_parent_type(replaceInfo.child_vertex(), VOLUME);
+				set_parent_type(replaceInfo.child_vertex(), GridBaseObjectId::VOLUME);
 			}
 
 			for(size_t i = 0; i < replaceInfo.num_child_edges(); ++i){
 				myInfo.add_child(replaceInfo.child_edge(i));
 				set_parent(replaceInfo.child_edge(i), vol);
-				set_parent_type(replaceInfo.child_edge(i), VOLUME);
+				set_parent_type(replaceInfo.child_edge(i), GridBaseObjectId::VOLUME);
 			}
 
 			for(size_t i = 0; i < replaceInfo.num_child_faces(); ++i){
 				myInfo.add_child(replaceInfo.child_face(i));
 				set_parent(replaceInfo.child_face(i), vol);
-				set_parent_type(replaceInfo.child_face(i), VOLUME);
+				set_parent_type(replaceInfo.child_face(i), GridBaseObjectId::VOLUME);
 			}
 
 			for(size_t i = 0; i < replaceInfo.num_child_volumes(); ++i){
 				myInfo.add_child(replaceInfo.child_volume(i));
 				set_parent(replaceInfo.child_volume(i), vol);
-				set_parent_type(replaceInfo.child_volume(i), VOLUME);
+				set_parent_type(replaceInfo.child_volume(i), GridBaseObjectId::VOLUME);
 			}
 		}
 	}

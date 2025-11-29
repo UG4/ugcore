@@ -64,14 +64,14 @@ template <typename TDomain, typename TAlgebra>
 GridFunction<TDomain, TAlgebra>::
 GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace, bool bManage)
 {
-	init(spApproxSpace, spApproxSpace->dof_distribution(GridLevel(GridLevel::TOP, GridLevel::SURFACE, false)), bManage);
+	init(spApproxSpace, spApproxSpace->dof_distribution(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false)), bManage);
 };
 
 template <typename TDomain, typename TAlgebra>
 GridFunction<TDomain, TAlgebra>::
 GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace, int level, bool bManage)
 {
-	init(spApproxSpace, spApproxSpace->dof_distribution(GridLevel(level, GridLevel::SURFACE, false)), bManage);
+	init(spApproxSpace, spApproxSpace->dof_distribution(GridLevel(level, GridLevel::ViewType::SURFACE, false)), bManage);
 };
 
 template <typename TDomain, typename TAlgebra>

@@ -43,15 +43,15 @@ template <typename TAAPos>
 number CalculateVolume(Volume* elem, TAAPos aaPos)
 {
 	switch (elem->reference_object_id()) {
-	case ROID_TETRAHEDRON:
+	case ReferenceObjectID::ROID_TETRAHEDRON:
 		return CalculateVolume(static_cast<Tetrahedron*>(elem), aaPos);
-	case ROID_PRISM:
+	case ReferenceObjectID::ROID_PRISM:
 		return CalculateVolume(static_cast<Prism*>(elem), aaPos);
-	case ROID_PYRAMID:
+	case ReferenceObjectID::ROID_PYRAMID:
 		return CalculateVolume(static_cast<Pyramid*>(elem), aaPos);
-	case ROID_HEXAHEDRON:
+	case ReferenceObjectID::ROID_HEXAHEDRON:
 		return CalculateVolume(static_cast<Hexahedron*>(elem), aaPos);
-	case ROID_OCTAHEDRON:
+	case ReferenceObjectID::ROID_OCTAHEDRON:
 		return CalculateVolume(static_cast<Octahedron*>(elem), aaPos);
 	default:
 		UG_THROW("Unknown volume type");

@@ -50,9 +50,9 @@ init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates)
 		if(f->num_vertices() != 3)
 			continue;
 
-		set_mark(f, INNER);
+		set_mark(f, Mark::INNER);
 		for(size_t i = 0; i < 3; ++i){
-			set_mark(f->vertex(i), INNER);
+			set_mark(f->vertex(i), Mark::INNER);
 		}
 	}
 
@@ -65,14 +65,14 @@ init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates)
 			Edge* e = edges[i];
 
 		//	treat edges only once
-			if(mark(e) != NONE)
+			if(mark(e) != Mark::NONE)
 				continue;
 
 		//	mark inner and outer segments
 			if(m_cbConstrainedEdge(e)){
-				set_mark(e, SEGMENT);
-				set_mark(e->vertex(0), SEGMENT);
-				set_mark(e->vertex(1), SEGMENT);
+				set_mark(e, Mark::SEGMENT);
+				set_mark(e->vertex(0), Mark::SEGMENT);
+				set_mark(e->vertex(1), Mark::SEGMENT);
 			}
 			else{
 				Face* nbrFaces[2];
@@ -87,9 +87,9 @@ init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates)
 				}
 				else{
 				//	the edge lies on the rim and has to be marked as a segment
-					set_mark(e, SEGMENT);
-					set_mark(e->vertex(0), SEGMENT);
-					set_mark(e->vertex(1), SEGMENT);
+					set_mark(e, Mark::SEGMENT);
+					set_mark(e->vertex(0), Mark::SEGMENT);
+					set_mark(e->vertex(1), Mark::SEGMENT);
 				}
 			}
 		}
@@ -112,7 +112,7 @@ init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates)
 				continue;
 			m_grid.mark(vrt);
 			
-			if(mark(vrt) != SEGMENT)
+			if(mark(vrt) != Mark::SEGMENT)
 				continue;
 
 			vector_t vrtPos = aaPos[vrt];
@@ -121,7 +121,7 @@ init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates)
 			m_grid.associated_elements(edges, vrt);
 			for(size_t iedge = 0; (iedge < edges.size()) && searching; ++iedge){
 				Edge* edge = edges[iedge];
-				if(mark(edge) != SEGMENT)
+				if(mark(edge) != Mark::SEGMENT)
 					continue;
 
 				vector_t dir1;
@@ -131,7 +131,7 @@ init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates)
 			//	is smaller than PI/3, then the vertex will be marked as DART vertex.
 				for(size_t iotherEdge = iedge + 1; iotherEdge < edges.size(); ++iotherEdge){
 					Edge* otherEdge = edges[iotherEdge];
-					if(mark(otherEdge) != SEGMENT)
+					if(mark(otherEdge) != Mark::SEGMENT)
 						continue;
 
 					vector_t dir2;
@@ -139,7 +139,7 @@ init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates)
 
 					if(VecAngle(dir1, dir2) < PI / 3. + SMALL){
 						searching = false;
-						set_mark(vrt, DART);
+						set_mark(vrt, Mark::DART);
 						break;
 					}
 				}
@@ -156,7 +156,7 @@ bool DelaunayInfo<TAAPos>::
 is_inner(TElem* e)
 {
 	Mark m = mark(e);
-	return (m == INNER) || (m == NEW_INNER);
+	return (m == Mark::INNER) || (m == Mark::NEW_INNER);
 }
 
 
@@ -166,7 +166,7 @@ bool DelaunayInfo<TAAPos>::
 is_segment(TElem* e)
 {
 	Mark m = mark(e);
-	return (m == SEGMENT) || (m == NEW_SEGMENT) || (m == DART) || (m == SHELL);
+	return (m == Mark::SEGMENT) || (m == Mark::NEW_SEGMENT) || (m == Mark::DART) || (m == Mark::SHELL);
 }
 
 

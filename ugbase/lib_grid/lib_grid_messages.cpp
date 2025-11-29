@@ -37,23 +37,23 @@ namespace ug{
 
 bool GridMessage_Adaption::adaption_begins() const
 {
-	return	(m_adaptionType == GMAT_GLOBAL_ADAPTION_BEGINS)
-			|| (m_adaptionType == GMAT_HNODE_ADAPTION_BEGINS);
+	return	(m_adaptionType == GridMessageAdaptionType::GMAT_GLOBAL_ADAPTION_BEGINS)
+			|| (m_adaptionType == GridMessageAdaptionType::GMAT_HNODE_ADAPTION_BEGINS);
 }
 
 bool GridMessage_Adaption::adaption_ends() const
 {
-	return	(m_adaptionType == GMAT_GLOBAL_ADAPTION_ENDS)
-			|| (m_adaptionType == GMAT_HNODE_ADAPTION_ENDS);
+	return	(m_adaptionType == GridMessageAdaptionType::GMAT_GLOBAL_ADAPTION_ENDS)
+			|| (m_adaptionType == GridMessageAdaptionType::GMAT_HNODE_ADAPTION_ENDS);
 }
 
 bool GridMessage_Adaption::step_begins() const
 {
 	switch(m_adaptionType){
-		case GMAT_GLOBAL_REFINEMENT_BEGINS:
-		case GMAT_HNODE_REFINEMENT_BEGINS:
-		case GMAT_GLOBAL_COARSENING_BEGINS:
-		case GMAT_HNODE_COARSENING_BEGINS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_REFINEMENT_BEGINS:
+		case GridMessageAdaptionType::GMAT_HNODE_REFINEMENT_BEGINS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_COARSENING_BEGINS:
+		case GridMessageAdaptionType::GMAT_HNODE_COARSENING_BEGINS:
 			return true;
 		default:
 			return false;
@@ -63,10 +63,10 @@ bool GridMessage_Adaption::step_begins() const
 bool GridMessage_Adaption::step_ends() const
 {
 	switch(m_adaptionType){
-		case GMAT_GLOBAL_REFINEMENT_ENDS:
-		case GMAT_HNODE_REFINEMENT_ENDS:
-		case GMAT_GLOBAL_COARSENING_ENDS:
-		case GMAT_HNODE_COARSENING_ENDS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_REFINEMENT_ENDS:
+		case GridMessageAdaptionType::GMAT_HNODE_REFINEMENT_ENDS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_COARSENING_ENDS:
+		case GridMessageAdaptionType::GMAT_HNODE_COARSENING_ENDS:
 			return true;
 		default:
 			return false;
@@ -76,12 +76,12 @@ bool GridMessage_Adaption::step_ends() const
 bool GridMessage_Adaption::adaptive() const
 {
 	switch(m_adaptionType){
-		case GMAT_HNODE_ADAPTION_BEGINS:
-		case GMAT_HNODE_ADAPTION_ENDS:
-		case GMAT_HNODE_REFINEMENT_BEGINS:
-		case GMAT_HNODE_REFINEMENT_ENDS:
-		case GMAT_HNODE_COARSENING_BEGINS:
-		case GMAT_HNODE_COARSENING_ENDS:
+		case GridMessageAdaptionType::GMAT_HNODE_ADAPTION_BEGINS:
+		case GridMessageAdaptionType::GMAT_HNODE_ADAPTION_ENDS:
+		case GridMessageAdaptionType::GMAT_HNODE_REFINEMENT_BEGINS:
+		case GridMessageAdaptionType::GMAT_HNODE_REFINEMENT_ENDS:
+		case GridMessageAdaptionType::GMAT_HNODE_COARSENING_BEGINS:
+		case GridMessageAdaptionType::GMAT_HNODE_COARSENING_ENDS:
 			return true;
 		default:
 			return false;
@@ -91,12 +91,12 @@ bool GridMessage_Adaption::adaptive() const
 bool GridMessage_Adaption::global() const
 {
 	switch(m_adaptionType){
-		case GMAT_GLOBAL_ADAPTION_BEGINS:
-		case GMAT_GLOBAL_ADAPTION_ENDS:
-		case GMAT_GLOBAL_REFINEMENT_BEGINS:
-		case GMAT_GLOBAL_REFINEMENT_ENDS:
-		case GMAT_GLOBAL_COARSENING_BEGINS:
-		case GMAT_GLOBAL_COARSENING_ENDS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_ADAPTION_BEGINS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_ADAPTION_ENDS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_REFINEMENT_BEGINS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_REFINEMENT_ENDS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_COARSENING_BEGINS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_COARSENING_ENDS:
 			return true;
 		default:
 			return false;
@@ -106,10 +106,10 @@ bool GridMessage_Adaption::global() const
 bool GridMessage_Adaption::refinement() const
 {
 	switch(m_adaptionType){
-		case GMAT_GLOBAL_REFINEMENT_BEGINS:
-		case GMAT_HNODE_REFINEMENT_BEGINS:
-		case GMAT_GLOBAL_REFINEMENT_ENDS:
-		case GMAT_HNODE_REFINEMENT_ENDS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_REFINEMENT_BEGINS:
+		case GridMessageAdaptionType::GMAT_HNODE_REFINEMENT_BEGINS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_REFINEMENT_ENDS:
+		case GridMessageAdaptionType::GMAT_HNODE_REFINEMENT_ENDS:
 			return true;
 		default:
 			return false;
@@ -119,10 +119,10 @@ bool GridMessage_Adaption::refinement() const
 bool GridMessage_Adaption::coarsening() const
 {
 	switch(m_adaptionType){
-		case GMAT_GLOBAL_COARSENING_BEGINS:
-		case GMAT_HNODE_COARSENING_BEGINS:
-		case GMAT_GLOBAL_COARSENING_ENDS:
-		case GMAT_HNODE_COARSENING_ENDS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_COARSENING_BEGINS:
+		case GridMessageAdaptionType::GMAT_HNODE_COARSENING_BEGINS:
+		case GridMessageAdaptionType::GMAT_GLOBAL_COARSENING_ENDS:
+		case GridMessageAdaptionType::GMAT_HNODE_COARSENING_ENDS:
 			return true;
 		default:
 			return false;

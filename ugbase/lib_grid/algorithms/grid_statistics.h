@@ -107,7 +107,7 @@ void PrintElementEdgeRatios(Grid& grid, TIterator elemsBegin, TIterator elemsEnd
 {
 	using namespace std;
 	using elem_t = typename PtrToValueType<typename TIterator::value_type>::base_type;
-	UG_COND_THROW(elem_t::BASE_OBJECT_ID == VERTEX || elem_t::BASE_OBJECT_ID == EDGE,
+	UG_COND_THROW(elem_t::BASE_OBJECT_ID == GridBaseObjectId::VERTEX || elem_t::BASE_OBJECT_ID == GridBaseObjectId::EDGE,
 				  "Can't evaluate anisotropy statistics for vertices or edges.");
 
 	Grid::edge_traits::secure_container	edges;

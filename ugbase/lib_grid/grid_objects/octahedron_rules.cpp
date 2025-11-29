@@ -98,7 +98,7 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corne
 		case 0:
 		{
 		//	simply put the default octahedron back to newIndsOut
-			newIndsOut[fillCount++] = GOID_OCTAHEDRON;
+			newIndsOut[fillCount++] = GridObjectID::GOID_OCTAHEDRON;
 			newIndsOut[fillCount++] = 0;
 			newIndsOut[fillCount++] = 1;
 			newIndsOut[fillCount++] = 2;
@@ -117,36 +117,36 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corne
 			int* inds = newIndsOut;
 
 		//	lower tetrahedrons
-			inds[fi++] = GOID_TETRAHEDRON;
+			inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 			inds[fi++] = E + 4;		inds[fi++] = E + 1;
 			inds[fi++] = E;			inds[fi++] = V;
 
-			inds[fi++] = GOID_TETRAHEDRON;
+			inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 			inds[fi++] = E + 5;		inds[fi++] = E + 2;
 			inds[fi++] = E + 1;		inds[fi++] = V;
 
-			inds[fi++] = GOID_TETRAHEDRON;
+			inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 			inds[fi++] = E + 6;		inds[fi++] = E + 3;
 			inds[fi++] = E + 2;		inds[fi++] = V;
 
-			inds[fi++] = GOID_TETRAHEDRON;
+			inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 			inds[fi++] = E + 7;		inds[fi++] = E;
 			inds[fi++] = E + 3;		inds[fi++] = V;
 
 		//	upper tetrahedrons
-			inds[fi++] = GOID_TETRAHEDRON;
+			inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 			inds[fi++] = E + 9;		inds[fi++] = E + 4;
 			inds[fi++] = E + 8;		inds[fi++] = V;
 
-			inds[fi++] = GOID_TETRAHEDRON;
+			inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 			inds[fi++] = E + 10;	inds[fi++] = E + 5;
 			inds[fi++] = E + 9;		inds[fi++] = V;
 
-			inds[fi++] = GOID_TETRAHEDRON;
+			inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 			inds[fi++] = E + 11;	inds[fi++] = E + 6;
 			inds[fi++] = E + 10;	inds[fi++] = V;
 
-			inds[fi++] = GOID_TETRAHEDRON;
+			inds[fi++] = GridObjectID::GOID_TETRAHEDRON;
 			inds[fi++] = E + 8;		inds[fi++] = E + 7;
 			inds[fi++] = E + 11;	inds[fi++] = V;
 
@@ -352,21 +352,21 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corne
 		//	Sub-octahedron 0
 			switch(bestDiag[0]){
 				case 0: // diag 6-8
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = 0;			inds[fi++] = E;
 					inds[fi++] = E + 1;		inds[fi++] = E + 2;
 					inds[fi++] = E + 3;		inds[fi++] = V;
 				break;
 
 				case 1: // diag 7-9
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = 0;			inds[fi++] = E + 3;
 					inds[fi++] = E;			inds[fi++] = E + 1;
 					inds[fi++] = E + 2;		inds[fi++] = V;
 				break;
 
 				case 2: // diag 0-18
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = E;			inds[fi++] = V;
 					inds[fi++] = E + 1;		inds[fi++] = 0;
 					inds[fi++] = E + 3;		inds[fi++] = E + 2;
@@ -376,21 +376,21 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corne
 		//	Sub-octahedron 1
 			switch(bestDiag[1]){
 				case 0: // diag 1-18
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = E;			inds[fi++] = 1;
 					inds[fi++] = E + 4;		inds[fi++] = V;
 					inds[fi++] = E + 7;		inds[fi++] = E + 8;
 				break;
 
 				case 1: // diag 10-13
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = E;			inds[fi++] = E + 7;
 					inds[fi++] = 1;			inds[fi++] = E + 4;
 					inds[fi++] = V;			inds[fi++] = E + 8;
 				break;
 
 				case 2: // diag 6-14
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = 1;			inds[fi++] = E + 8;
 					inds[fi++] = E + 4;		inds[fi++] = E;
 					inds[fi++] = E + 7;		inds[fi++] = V;
@@ -400,21 +400,21 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corne
 		//	Sub-octahedron 2
 			switch(bestDiag[2]){
 				case 0: // diag 10-11
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = E + 1;		inds[fi++] = E + 4;
 					inds[fi++] = 2;			inds[fi++] = E + 5;
 					inds[fi++] = V;			inds[fi++] = E + 9;
 				break;
 
 				case 1: // diag 2-18
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = E + 1;		inds[fi++] = V;
 					inds[fi++] = E + 4;		inds[fi++] = 2;
 					inds[fi++] = E + 5;		inds[fi++] = E + 9;
 				break;
 
 				case 2: // diag 7-15
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = E + 4;		inds[fi++] = E + 9;
 					inds[fi++] = 2; 		inds[fi++] = E + 1;
 					inds[fi++] = V; 		inds[fi++] = E + 5;
@@ -424,21 +424,21 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corne
 		//	Sub-octahedron 3
 			switch(bestDiag[3]){
 				case 0: // diag 18-3
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = E + 2;		inds[fi++] = V;
 					inds[fi++] = E + 5;		inds[fi++] = 3;
 					inds[fi++] = E + 6;		inds[fi++] = E + 10;
 				break;
 
 				case 1: // diag 11-12
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = E + 2;		inds[fi++] = E + 6;
 					inds[fi++] = V;		    inds[fi++] = E + 5;
 					inds[fi++] = 3;			inds[fi++] = E + 10;
 				break;
 
 				case 2: // diag 8-16
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = V;			inds[fi++] = E + 10;
 					inds[fi++] = E + 5;		inds[fi++] = E + 2;
 					inds[fi++] = E + 6;		inds[fi++] = 3;
@@ -448,21 +448,21 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corne
 		//	Sub-octahedron 4
 			switch(bestDiag[4]){
 				case 0: // diag 13-12
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = E + 3;		inds[fi++] = E + 7;
 					inds[fi++] = V;			inds[fi++] = E + 6;
 					inds[fi++] = 4;			inds[fi++] = E + 11;
 				break;
 
 				case 1: // diag 18-4
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = E + 3;		inds[fi++] = 4;
 					inds[fi++] = E + 7;		inds[fi++] = V;
 					inds[fi++] = E + 6;		inds[fi++] = E + 11;
 				break;
 
 				case 2: // diag 9-17
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = E + 7;		inds[fi++] = E + 11;
 					inds[fi++] = V;			inds[fi++] = E + 3;
 					inds[fi++] = 4;			inds[fi++] = E + 6;
@@ -472,21 +472,21 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corne
 		//	Sub-octahedron 5
 			switch(bestDiag[5]){
 				case 0: // diag 14-16
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = V;			inds[fi++] = E + 8;
 					inds[fi++] = E + 9;		inds[fi++] = E + 10;
 					inds[fi++] = E + 11;	inds[fi++] = 5;
 				break;
 
 				case 1: // diag 15-17
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = V;			inds[fi++] = E + 11;
 					inds[fi++] = E + 8;		inds[fi++] = E + 9;
 					inds[fi++] = E + 10;	inds[fi++] = 5;
 				break;
 
 				case 2: // diag 18-5
-					inds[fi++] = GOID_OCTAHEDRON;
+					inds[fi++] = GridObjectID::GOID_OCTAHEDRON;
 					inds[fi++] = E + 8;		inds[fi++] = 5;
 					inds[fi++] = E + 9;		inds[fi++] = V;
 					inds[fi++] = E + 11;	inds[fi++] = E + 10;

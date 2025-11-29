@@ -104,8 +104,8 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 	Grid grid = g;
 
 //	we need subset-handlers that operate on the local grid
-	SubsetHandler shFaces(grid, SHE_FACE);
-	SubsetHandler shVolumes(grid, SHE_VOLUME);
+	SubsetHandler shFaces(grid, SubsetHandlerElements::SHE_FACE);
+	SubsetHandler shVolumes(grid, SubsetHandlerElements::SHE_VOLUME);
 	shFaces = shFace;
 	shVolumes = shVolume;
 
@@ -151,11 +151,11 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 	VertexSelector	SurfVrtSel(grid);
 	VertexSelector 	InnVrtSel(grid);
 
-	grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
-	grid.enable_options(EDGEOPT_STORE_ASSOCIATED_FACES);
+	grid.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
+	grid.enable_options(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES);
 //	for write ng
-	grid.enable_options(FACEOPT_STORE_ASSOCIATED_EDGES);
-	grid.enable_options(VRTOPT_STORE_ASSOCIATED_FACES);
+	grid.enable_options(FaceOptions::FACEOPT_STORE_ASSOCIATED_EDGES);
+	grid.enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_FACES);
 
 	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPosition);
 

@@ -68,8 +68,8 @@ class UG_API RegularVertex : public Vertex
 
 		virtual GridObject* create_empty_instance() const	{return new RegularVertex;}
 
-		virtual int container_section() const	{return CSVRT_REGULAR_VERTEX;}
-		virtual ReferenceObjectID reference_object_id() const {return ROID_VERTEX;}
+		virtual int container_section() const	{return VertexContainerSections::CSVRT_REGULAR_VERTEX;}
+		virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_VERTEX;}
 };
 
 template <>
@@ -84,11 +84,11 @@ class geometry_traits<RegularVertex>
 
 		enum
 		{
-			CONTAINER_SECTION = CSVRT_REGULAR_VERTEX,
-			BASE_OBJECT_ID = VERTEX
+			CONTAINER_SECTION = VertexContainerSections::CSVRT_REGULAR_VERTEX,
+			BASE_OBJECT_ID = GridBaseObjectId::VERTEX
 		};
 
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_VERTEX;
 };
 
 using RegularVertexIterator = geometry_traits<RegularVertex>::iterator;
@@ -121,8 +121,8 @@ class UG_API ConstrainedVertex : public Vertex
 
 		virtual GridObject* create_empty_instance() const	{return new ConstrainedVertex;}
 
-		virtual int container_section() const	{return CSVRT_CONSTRAINED_VERTEX;}
-		virtual ReferenceObjectID reference_object_id() const {return ROID_VERTEX;}
+		virtual int container_section() const	{return VertexContainerSections::CSVRT_CONSTRAINED_VERTEX;}
+		virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_VERTEX;}
 
 		virtual bool is_constrained() const			{return true;}
 
@@ -187,10 +187,10 @@ class geometry_traits<ConstrainedVertex>
 
 		enum
 		{
-			CONTAINER_SECTION = CSVRT_CONSTRAINED_VERTEX,
-			BASE_OBJECT_ID = VERTEX
+			CONTAINER_SECTION = VertexContainerSections::CSVRT_CONSTRAINED_VERTEX,
+			BASE_OBJECT_ID = GridBaseObjectId::VERTEX
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_VERTEX;
 };
 
 using ConstrainedVertexIterator = geometry_traits<ConstrainedVertex>::iterator;

@@ -111,9 +111,9 @@ class geometry_traits<Vertex>
 		enum
 		{
 			CONTAINER_SECTION = -1,
-			BASE_OBJECT_ID = VERTEX
+			BASE_OBJECT_ID = GridBaseObjectId::VERTEX
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_VERTEX;
 };
 
 
@@ -130,9 +130,9 @@ class geometry_traits<Edge>
 		enum
 		{
 			CONTAINER_SECTION = -1,
-			BASE_OBJECT_ID = EDGE
+			BASE_OBJECT_ID = GridBaseObjectId::EDGE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
 };
 
 
@@ -149,9 +149,9 @@ class geometry_traits<Face>
 		enum
 		{
 			CONTAINER_SECTION = -1,
-			BASE_OBJECT_ID = FACE
+			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_UNKNOWN;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_UNKNOWN;
 };
 
 template <>
@@ -167,9 +167,9 @@ class geometry_traits<Volume>
 		enum
 		{
 			CONTAINER_SECTION = -1,
-			BASE_OBJECT_ID = VOLUME
+			BASE_OBJECT_ID = GridBaseObjectId::VOLUME
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_UNKNOWN;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_UNKNOWN;
 };
 
 }//	end of namespace

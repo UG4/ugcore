@@ -67,30 +67,30 @@ int ConvertToTetrahedra(int* newIndsOut, TCmp cmp)
 
 	if(cmp(t0, t1)){
 		int i = 0;
-		newIndsOut[i++] = GOID_TETRAHEDRON;
+		newIndsOut[i++] = GridObjectID::GOID_TETRAHEDRON;
 		newIndsOut[i++] = I[0]; newIndsOut[i++] = I[1];
 		newIndsOut[i++] = I[2]; newIndsOut[i++] = I[5];
 
-		newIndsOut[i++] = GOID_TETRAHEDRON;
+		newIndsOut[i++] = GridObjectID::GOID_TETRAHEDRON;
 		newIndsOut[i++] = I[0]; newIndsOut[i++] = I[1];
 		newIndsOut[i++] = I[5]; newIndsOut[i++] = I[4];
 
-		newIndsOut[i++] = GOID_TETRAHEDRON;
+		newIndsOut[i++] = GridObjectID::GOID_TETRAHEDRON;
 		newIndsOut[i++] = I[0]; newIndsOut[i++] = I[4];
 		newIndsOut[i++] = I[5]; newIndsOut[i++] = I[3];
 		return i;
 	}
 	else{
 		int i = 0;
-		newIndsOut[i++] = GOID_TETRAHEDRON;
+		newIndsOut[i++] = GridObjectID::GOID_TETRAHEDRON;
 		newIndsOut[i++] = I[0]; newIndsOut[i++] = I[1];
 		newIndsOut[i++] = I[2]; newIndsOut[i++] = I[4];
 
-		newIndsOut[i++] = GOID_TETRAHEDRON;
+		newIndsOut[i++] = GridObjectID::GOID_TETRAHEDRON;
 		newIndsOut[i++] = I[0]; newIndsOut[i++] = I[4];
 		newIndsOut[i++] = I[2]; newIndsOut[i++] = I[5];
 
-		newIndsOut[i++] = GOID_TETRAHEDRON;
+		newIndsOut[i++] = GridObjectID::GOID_TETRAHEDRON;
 		newIndsOut[i++] = I[0]; newIndsOut[i++] = I[4];
 		newIndsOut[i++] = I[5]; newIndsOut[i++] = I[3];
 		return i;

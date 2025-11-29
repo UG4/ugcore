@@ -223,8 +223,8 @@ void CollectEdgesSorted(vector<Edge*>& vEdgesOut, Grid& grid, Face* f, bool clea
 		vEdgesOut.clear();
 
 //	to improve performance, we first check the grid options.
-	if(grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES
-							| FACEOPT_STORE_ASSOCIATED_EDGES))
+	if(grid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES
+							| FaceOptions::FACEOPT_STORE_ASSOCIATED_EDGES))
 	{
 	//	the edges can be accessed in a sorted way through iterators
 		auto end = grid.associated_edges_end(f);
@@ -256,11 +256,11 @@ void CollectEdgesSorted(vector<Edge*>& vEdgesOut, Grid& grid, Volume* v, bool cl
 		vEdgesOut.clear();
 
 //	to improve performance, we first check the grid options.
-	if(grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES
-							| VOLOPT_STORE_ASSOCIATED_EDGES)
-		|| grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES
-							| FACEOPT_AUTOGENERATE_EDGES
-							| VOLOPT_STORE_ASSOCIATED_EDGES))
+	if(grid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_EDGES
+							| VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES)
+		|| grid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES
+							| FaceOptions::FACEOPT_AUTOGENERATE_EDGES
+							| VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
 	//	the edges can be accessed in a sorted way through iterators
 		auto end = grid.associated_edges_end(v);
@@ -333,7 +333,7 @@ void CollectEdges(vector<Edge*>& vEdgesOut, Grid& grid, Face* f, bool clearConta
 		return;
 
 //	best-option: FACEOPT_STORE_ASSOCIATED_EDGES
-	if(grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
+	if(grid.option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_EDGES))
 	{
 	//	ok. simply push them into the container.
 		auto iterEnd = grid.associated_edges_end(f);
@@ -368,7 +368,7 @@ void CollectEdges(vector<Edge*>& vEdgesOut, Grid& grid, Volume* v, bool clearCon
 		return;
 
 //	best option: VOLOPT_STORE_ASSOCIATED_EDGES
-	if(grid.option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
+	if(grid.option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
 	//	iterate through the associated edges and push them into the container.
 		auto iterEnd = grid.associated_edges_end(v);
@@ -426,8 +426,8 @@ void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool cl
 		vFacesOut.clear();
 
 //	to improve performance, we first check the grid options.
-	if(grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES
-							| VOLOPT_STORE_ASSOCIATED_FACES))
+	if(grid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES
+							| VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES))
 	{
 	//	the faces can be accessed in a sorted way through iterators
 		auto end = grid.associated_faces_end(v);
@@ -483,7 +483,7 @@ void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, Edge* e, bool clear
 		return;
 
 //	best option: EDGEOPT_STORE_ASSOCIATED_FACES
-	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+	if(grid.option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
 		auto iterEnd = grid.associated_faces_end(e);
 		for(auto iter = grid.associated_faces_begin(e);
@@ -532,7 +532,7 @@ void CollectFaces(vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool clearCon
 		return;
 
 //	best option: VOLOPT_STORE_ASSOCIATED_FACES
-	if(grid.option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
+	if(grid.option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES))
 	{
 	//	iterate through the faces and add them to the container
 		auto iterEnd = grid.associated_faces_end(v);
@@ -619,7 +619,7 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Edge* e, bool
 		return;
 
 //	best option: EDGEOPT_STORE_ASSOCIATED_VOLUMES
-	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
+	if(grid.option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
 		auto iterEnd = grid.associated_volumes_end(e);
 		for(auto iter = grid.associated_volumes_begin(e);
@@ -655,7 +655,7 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Face* f, bool
 	if(!ignoreAssociatedVolumes)
 	{
 	//	best option: FACEOPT_STORE_ASSOCIATED_VOLUMES
-		if(grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
+		if(grid.option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_VOLUMES))
 		{
 			auto iterEnd = grid.associated_volumes_end(f);
 			for(auto iter = grid.associated_volumes_begin(f);

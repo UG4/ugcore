@@ -46,7 +46,7 @@ namespace ug
  * @{
  */
 
-enum PolyChainTypes
+enum PolyChainTypes : byte_t
 {
 	PCT_UNKNOWN = 0,
 	PCT_CLOSED = 1,
@@ -54,7 +54,7 @@ enum PolyChainTypes
 	PCT_SEPARATED = 1 << 2,
 	PCT_IRREGULAR = 1 << 3,
 	PCT_EMPTY = 1 << 4
-};
+}; // ø todo seems unused?
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns an or combination of constants enumerated in PolyChainTypes.

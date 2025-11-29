@@ -164,7 +164,7 @@ class ReferenceElement
 		int m_id[MAXDIM+1][MAXOBJECTS][MAXDIM+1][MAXOBJECTS];
 
 	///	number of reference elements
-		size_t m_vNumRefElem[NUM_REFERENCE_OBJECTS];
+		size_t m_vNumRefElem[ReferenceObjectID::NUM_REFERENCE_OBJECTS];
 
 	///	type of reference elements
 		ReferenceObjectID m_vRefElemType[MAXDIM+1][MAXOBJECTS];
@@ -218,7 +218,7 @@ struct UGError_ReferenceElementMissing : public UGError
 	{
 		std::stringstream ss; ss << "Reference Element not found for "
 							<<roid<<" (dim="<<dim<<")";
-		UGError::push_msg(ss.str());
+		push_msg(ss.str());
 	}
 	int dim;
 	ReferenceObjectID roid;
@@ -249,7 +249,7 @@ class ReferenceElementProvider
 		static const ReferenceElement& get_elem(ReferenceObjectID roid);
 
 	///	vector storing all ReferenceElement
-		static const ReferenceElement* m_vElem[NUM_REFERENCE_OBJECTS];
+		static const ReferenceElement* m_vElem[ReferenceObjectID::NUM_REFERENCE_OBJECTS];
 
 	///	adds a Reference Element
 		template <int dim>
@@ -270,7 +270,7 @@ class ReferenceElementProvider
 		template <int dim>
 		static const DimReferenceElement<dim>** get_vector()
 		{
-			static const DimReferenceElement<dim>* sVec[NUM_REFERENCE_OBJECTS];
+			static const DimReferenceElement<dim>* sVec[ReferenceObjectID::NUM_REFERENCE_OBJECTS];
 			return sVec;
 		}
 
@@ -303,7 +303,7 @@ class ReferenceVertex : public DimReferenceElement<0>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_VERTEX;
 
 	///	dimension of reference element
 		static constexpr int dim = 0;
@@ -345,7 +345,7 @@ class ReferenceEdge : public DimReferenceElement<1>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
 
 	///	dimension of reference element
 		static constexpr int dim = 1;
@@ -394,7 +394,7 @@ class ReferenceTriangle : public DimReferenceElement<2>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TRIANGLE;
 
 	///	dimension of reference element
 		static constexpr int dim = 2;
@@ -445,7 +445,7 @@ class ReferenceQuadrilateral : public DimReferenceElement<2>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_QUADRILATERAL;
 
 	///	dimension of reference element
 		static constexpr int dim = 2;
@@ -494,7 +494,7 @@ class ReferenceTetrahedron : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TETRAHEDRON;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TETRAHEDRON;
 
 	///	dimension of reference element
 		static constexpr int dim = 3;
@@ -546,7 +546,7 @@ class ReferencePyramid : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PYRAMID;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_PYRAMID;
 
 	///	dimension of reference element
 		static constexpr int dim = 3;
@@ -595,7 +595,7 @@ class ReferencePrism : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PRISM;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_PRISM;
 
 	///	dimension of reference element
 		static constexpr int dim = 3;
@@ -648,7 +648,7 @@ class ReferenceHexahedron : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_HEXAHEDRON;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_HEXAHEDRON;
 
 	///	dimension of reference element
 		static constexpr int dim = 3;
@@ -699,7 +699,7 @@ class ReferenceOctahedron : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ROID_OCTAHEDRON;
+		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_OCTAHEDRON;
 
 	///	dimension of reference element
 		static constexpr int dim = 3;

@@ -745,16 +745,16 @@ bool ArteExpandFracs3D::initialize()
 
 	//	make sure that the required options are enabled.
 
-	if( ! m_grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES) )
+	if( ! m_grid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES) )
 	{
 		UG_LOG("WARNING in Arte 3D init : grid option VOLOPT_AUTOGENERATE_FACES autoenabled.\n");
-		m_grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
+		m_grid.enable_options(VolumeOptions::VOLOPT_AUTOGENERATE_FACES);
 	}
 
-	if( ! m_grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES) )
+	if( ! m_grid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES) )
 	{
 		UG_LOG("WARNING in Arte 3D init: grid option FACEOPT_AUTOGENERATE_EDGES autoenabled.\n");
-		m_grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+		m_grid.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
 	}
 
 	//	vectors that allow to access fracture properties by subset index
@@ -1006,10 +1006,10 @@ bool ArteExpandFracs3D::detachMarkers()
 bool ArteExpandFracs3D::enableVolOptAutoGenFac()
 {
 	// brauchen wir das? für was? von SR irgendwie übernommen, wo dort was entfernt ähnliches gemacht wird....
-	if(! m_grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES) )
+	if(! m_grid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES) )
 	{
 		UG_LOG("WARNING grid option VOLOPT_AUTOGENERATE_FACES autoenabled.\n");
-		m_grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
+		m_grid.enable_options(VolumeOptions::VOLOPT_AUTOGENERATE_FACES);
 		return true;
 	}
 

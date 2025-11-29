@@ -108,7 +108,7 @@ get_opposing_object(Vertex* vrt) const
 {
 	for(int i = 0; i < 3; ++i){
 		if(vrt == m_vertices[i]){
-			return make_pair(EDGE, (i + 1) % 3);
+			return make_pair(GridBaseObjectId::EDGE, (i + 1) % 3);
 		}
 	}
 
@@ -401,7 +401,7 @@ get_opposing_object(Vertex* vrt) const
 {
 	for(int i = 0; i < 4; ++i){
 		if(vrt == m_vertices[i]){
-			return make_pair(VERTEX, (i + 2) % 4);
+			return make_pair(GridBaseObjectId::VERTEX, (i + 2) % 4);
 		}
 	}
 

@@ -395,7 +395,7 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 			write_debug(mat, std::string(filename));
 		}
 	///	write debug output for a matrix (if debug writer set)
-		virtual void write_debug(const matrix_type& mat, std::string name) {
+		void virtual write_debug(const matrix_type& mat, std::string name) {
 			PROFILE_FUNC_GROUP("algebra debug");
 		//	if no debug writer set, we're done
 			if(m_spDebugWriter.invalid()) return;
