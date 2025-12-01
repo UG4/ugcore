@@ -40,6 +40,7 @@ using namespace rapidxml;
 namespace ug{
 
 enum VTKCellTypes{
+	VTK_NONE					= 0,
 	VTK_VERTEX					= 1,
 	VTK_POLY_VERTEX				= 2,
 	VTK_LINE					= 3,
@@ -63,6 +64,8 @@ enum VTKCellTypes{
 
 	VTK_NUM_TYPES
 };
+
+using VTKCellTypes_t = uint8_t;
 
 const char* VTKCellNames[] = {	"UNDEFINED",
 								"VERTEX",
@@ -91,7 +94,7 @@ const char* VTKCellNames[] = {	"UNDEFINED",
 								"QUADRATIC_TETRA",
 								"QUADRATIC_HEXAHEDRON"};
 
-const int ugRefObjIdToVTKCellType[] = {
+constexpr VTKCellTypes ugRefObjIdToVTKCellType[] = {
 										VTKCellTypes::VTK_VERTEX,
 										VTKCellTypes::VTK_LINE,
 										VTKCellTypes::VTK_TRIANGLE,
@@ -101,6 +104,10 @@ const int ugRefObjIdToVTKCellType[] = {
 										VTKCellTypes::VTK_WEDGE,
 										VTKCellTypes::VTK_PYRAMID};
 
+std::ostream & operator << (std::ostream & stream, const VTKCellTypes & vtk) {
+	stream << static_cast<int>(vtk);
+	return stream;
+}
 bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh,
 					const char* filename)
 {
@@ -280,8 +287,8 @@ end_cell_data()
 }
 
 void GridWriterVTU::
-write_cells(std::vector<GridObject*>& cells, Grid & grid,
-			AAVrtIndex aaInd)
+write_cells(const std::vector<GridObject*>& cells, Grid & grid,
+            AAVrtIndex aaInd)
 {
 	ostream& out = out_stream();
 
@@ -381,7 +388,7 @@ finish()
 		m_pieceMode = Mode::OPEN;
 		m_pieceSubsetHandlers.clear();
 		m_cells.clear();
-		out_stream() << "    <Piece NumberOfPoints=\"0\" NumberOfCells=\"0\">" << endl;
+		out_stream() << R"(    <Piece NumberOfPoints="0" NumberOfCells="0">)" << endl;
 		out_stream() << "		<Points></Points>" << endl;
 		out_stream() << "		<Cells></Cells>" << endl;
 	}
@@ -527,14 +534,14 @@ new_document_parsed()
 //	iterate through all grids
 	xml_node<>* curNode = ugridNode->first_node("Piece");
 	while(curNode){
-		m_entries.push_back(GridEntry(curNode));
+		m_entries.emplace_back(curNode);
 		GridEntry& gridEntry = m_entries.back();
 
 
 	//	collect associated subset handlers
 		xml_node<>* curSHNode = curNode->first_node("RegionInfo");
 		while(curSHNode){
-			gridEntry.subsetHandlerEntries.push_back(SubsetHandlerEntry(curSHNode));
+			gridEntry.subsetHandlerEntries.emplace_back(curSHNode);
 			curSHNode = curSHNode->next_sibling("RegionInfo");
 		}
 
@@ -706,7 +713,7 @@ subset_handler(ISubsetHandler& shOut,
 bool GridReaderVTU::
 create_cells(std::vector<GridObject*>& cellsOut,
 			 Grid& grid,
-			 rapidxml::xml_node<>* cellNode,
+			 xml_node<>* cellNode,
 			 std::vector<Vertex*> vertices,
 			 size_t pieceVrtOffset)
 {
@@ -837,7 +844,7 @@ create_cells(std::vector<GridObject*>& cellsOut,
 			UG_LOG("icell: " << icell << ", types[icell]: " << types[icell] << endl);
 
 			string cellName = "UNDEFINED";
-			if(types[icell] > 0 && types[icell] < VTKCellTypes::VTK_NUM_TYPES)
+			if(types[icell] != VTKCellTypes::VTK_NONE && types[icell] < VTKCellTypes::VTK_NUM_TYPES)
 				cellName = VTKCellNames[types[icell]];
 
 			std::stringstream ss;

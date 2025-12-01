@@ -239,10 +239,10 @@ class UG_API IAttachment : public UID
 
 		~IAttachment() override = default;
 		virtual IAttachment* clone() = 0;
-		virtual IAttachmentDataContainer*	create_container() = 0;
+		virtual IAttachmentDataContainer* create_container() = 0;
 		[[nodiscard]] virtual bool default_pass_on_behaviour() const = 0;
 
-		const char* get_name()  {return m_name;}    ///< should only be used for debug purposes.
+		const char* get_name() const {return m_name;}    ///< should only be used for debug purposes.
 
 	protected:
 		const char* m_name; //only for debug
@@ -342,10 +342,10 @@ class UG_API AttachmentPipe
 
 	public:
 		AttachmentPipe();
-		AttachmentPipe(typename atraits::ElemHandlerPtr pHandler);
+		explicit AttachmentPipe(typename atraits::ElemHandlerPtr pHandler);
 		~AttachmentPipe();
 		
-		inline typename atraits::ElemHandlerPtr get_elem_handler()		{return m_pHandler;}
+		inline typename atraits::ElemHandlerPtr get_elem_handler() {return m_pHandler;}
 		
 	///	calls both clear_elements and clear_attachments.
 		void clear();
@@ -440,16 +440,16 @@ class UG_API AttachmentPipe
 		get_data_container(TAttachment& attachment);
 	/**	\} */
 
-		inline ConstAttachmentEntryIterator attachments_begin() const	{return m_attachmentEntryContainer.begin();}
-		inline ConstAttachmentEntryIterator attachments_end() const		{return m_attachmentEntryContainer.end();}
+		[[nodiscard]] inline ConstAttachmentEntryIterator attachments_begin() const	{return m_attachmentEntryContainer.begin();}
+		[[nodiscard]] inline ConstAttachmentEntryIterator attachments_end() const		{return m_attachmentEntryContainer.end();}
 
 	///	Returns the number of registered elements
-		inline size_t num_elements() const		{return m_numElements;}
+		[[nodiscard]] inline size_t num_elements() const {return m_numElements;}
 	///	Returns the size of the associated data arrays
 	/**	Note: If the pipe is fragmented, then num_elements and num_data_entries
 	 * differ. If the pipe however isn't fragmented, then both values are the same.
 	 */
-		inline size_t num_data_entries() const	{return m_numDataEntries;}
+		[[nodiscard]] inline size_t num_data_entries() const {return m_numDataEntries;}
 
 	///	Returns whether the attachment pipe is fragmented.
 	/**	The pipe gets fragmented whenever elements are erased.
@@ -457,7 +457,7 @@ class UG_API AttachmentPipe
 	 * defragmented.
 	 * Through a call to defragment() the pipe can be defragmented at any time.
 	 */
-		inline bool is_fragmented() const		{return m_numElements != m_numDataEntries;}
+		[[nodiscard]] inline bool is_fragmented() const {return m_numElements != m_numDataEntries;}
 
 		void reset_values(size_t dataIndex);///< fills the attached data at the given index with the default values.
 
@@ -553,7 +553,7 @@ class UG_API AttachmentAccessor
 			{m_pContainer = nullptr;}
 			
 	///	calls swap on associated containers
-		void swap(AttachmentAccessor<TElem, TAttachment, TElemHandler>& acc) noexcept {
+		void swap(AttachmentAccessor& acc) noexcept {
 			m_pContainer->swap(*acc.m_pContainer);
 		}
 

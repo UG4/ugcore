@@ -84,7 +84,7 @@ template <typename TElem>
 SurfaceView::SurfaceViewElementIterator<TElem>::
 SurfaceViewElementIterator() :
 	m_pSurfView(nullptr),
-	m_validStates(0),
+	m_validStates(SurfaceConstants::MG_UNDEFINED),
 	m_fromSI(0),
 	m_toSI(0),
 	m_si(0),
@@ -210,7 +210,7 @@ template <typename TElem>
 SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 ConstSurfaceViewElementIterator() :
 	m_pSurfView(nullptr),
-	m_validStates(0),
+	m_validStates(SurfaceConstants::MG_UNDEFINED),
 	m_fromSI(0),
 	m_toSI(0),
 	m_si(0),
@@ -463,17 +463,17 @@ bool SurfaceView::is_contained(TGeomObj* obj, const GridLevel& gl,
 	return validStates.contains(oss);
 }
 
-template <typename TGeomObj>
-SurfaceView::SurfaceState SurfaceView::surface_state(TGeomObj* obj, const GridLevel& gl) const
+template <typename TElem>
+SurfaceView::SurfaceState SurfaceView::surface_state(TElem* elem, const GridLevel& gl) const
 {
-	const int lvl = m_pMG->get_level(obj);
+	const int lvl = m_pMG->get_level(elem);
 	const int topLvl = (gl.top() ? (subset_handler()->num_levels()-1) : gl.level());
 	if(lvl > topLvl)
 		UG_THROW("SurfaceView::surface_state: Call only on objects contained "
 				"in the grid level. (Else result is undefined)");
 
 	#ifdef UG_PARALLEL
-	if(is_ghost(obj)){
+	if(is_ghost(elem)){
 		if(gl.ghosts() && (lvl == topLvl)) return SurfaceConstants::MG_SURFACE_PURE;
 		else {
 			UG_THROW("SurfaceView::surface_state: Call only on objects contained "
@@ -482,7 +482,7 @@ SurfaceView::SurfaceState SurfaceView::surface_state(TGeomObj* obj, const GridLe
 	}
 	#endif
 
-	SurfaceState oss = surface_state(obj);
+	SurfaceState oss = surface_state(elem);
 
 	if( (lvl == topLvl)
 		&& oss.partially_contains(SurfaceConstants::MG_SHADOW))

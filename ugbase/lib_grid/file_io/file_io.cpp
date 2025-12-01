@@ -80,19 +80,19 @@ static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 
 	bool bAutoassignFaces = false;
 	bool bSuccess = false;
-	if(strExt.compare("txt") == 0)
+	if(strExt == "txt")
 	{
 		bAutoassignFaces = true;
 		bSuccess = LoadGridFromTXT(grid, filename, aPos);
 	}
-	else if(strExt.compare("grdecl") == 0)
+	else if(strExt == "grdecl")
 	{
 		bAutoassignFaces = true;
 		bSuccess = LoadGridFromGRDECL(grid, filename, aPos);
 	}
-	else if(strExt.compare("obj") == 0)
+	else if(strExt == "obj")
 		bSuccess = LoadGridFromOBJ(grid, filename, aPos, nullptr, pSH);
-	else if(strExt.compare("lgb") == 0)
+	else if(strExt == "lgb")
 	{
 		int numSHs = 0;
 		if(pSH)
@@ -100,35 +100,33 @@ static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 
 		bSuccess = LoadGridFromLGB(grid, filename, &pSH, numSHs, nullptr, aPos);
 	}
-	else if(strExt.compare("2df") == 0)
+	else if(strExt == "2df")
 		bSuccess = LoadGridFrom2DF(grid, filename, pSH, aPos);
-	else if(strExt.compare("stl") == 0)
+	else if(strExt == "stl")
 		bSuccess = LoadGridFromSTL(grid, filename, pSH, aPos);
-	else if(strExt.compare("net") == 0)
+	else if(strExt == "net")
 		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
-	else if(strExt.compare("art") == 0)
+	else if(strExt == "art")
 		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
-	else if(strExt.compare("dat") == 0)
+	else if(strExt == "dat")
 		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
-	else if(strExt.compare("lgm") == 0)
+	else if(strExt == "lgm")
 		bSuccess = ImportGridFromLGM(grid, filename, aPos, pSH);
-	else if(strExt.compare("ng") == 0)
+	else if(strExt == "ng")
 		bSuccess = ImportGridFromNG(grid, filename, aPos, pSH);
-	else if(strExt.compare("dump") == 0)
-	{
+	else if(strExt == "dump")
 		bSuccess = LoadGridFromDUMP(grid, filename, pSH, aPos);
-	}
-	else if(strExt.compare("ele") == 0)
+	else if(strExt == "ele")
 		return LoadGridFromELE(grid, filename, pSH, aPos);
-	else if(strExt.compare("msh") == 0)
+	else if(strExt == "msh")
 		bSuccess = LoadGridFromMSH(grid, filename, pSH, aPos);
-	else if(strExt.compare("smesh") == 0)
+	else if(strExt == "smesh")
 		bSuccess = LoadGridFromSMESH(grid, filename, aPos, pSH);
-	else if(strExt.compare("asc") == 0){
+	else if(strExt == "asc"){
 		bSuccess = LoadGridFromASC(grid, filename, aPos);
 		bAutoassignFaces = true;
 	}
-	else if(strExt.compare("swc") == 0){
+	else if(strExt == "swc"){
 		bSuccess = LoadGridFromSWC(grid, pSH, filename, aPos);
 	}
 
@@ -646,7 +644,7 @@ bool SaveParallelGridLayout(MultiGrid& mg, const char* filename, number offset)
 		for(VertexIterator iter = mg.begin<Vertex>(lvl);
 			iter != mg.end<Vertex>(lvl); ++iter)
 		{
-			aaPos[*iter].z() += (number)lvl * offset;
+			aaPos[*iter].z() += static_cast<number>(lvl) * offset;
 		}
 	}
 
@@ -682,11 +680,11 @@ static void AssignSubsetsBySurfaceViewState(SubsetHandler& sh, const SurfaceView
 	}
 	for(int i = 0; i < sh.num_subsets(); ++i)
 		sh.subset_info(i).name = "unknown";
-	sh.subset_info(SurfaceView::MG_SHADOW_PURE).name = "shadow-pure";
-	sh.subset_info(SurfaceView::MG_SURFACE_PURE).name = "surface-pure";
-	sh.subset_info(SurfaceView::MG_SURFACE_RIM).name = "surface-rim";
-	sh.subset_info(SurfaceView::MG_SHADOW_RIM_COPY).name = "shadow-rim-copy";
-	sh.subset_info(SurfaceView::MG_SHADOW_RIM_NONCOPY).name = "shadow-rim-noncopy";
+	sh.subset_info(SurfaceView::SurfaceConstants::MG_SHADOW_PURE).name = "shadow-pure";
+	sh.subset_info(SurfaceView::SurfaceConstants::MG_SURFACE_PURE).name = "surface-pure";
+	sh.subset_info(SurfaceView::SurfaceConstants::MG_SURFACE_RIM).name = "surface-rim";
+	sh.subset_info(SurfaceView::SurfaceConstants::MG_SHADOW_RIM_COPY).name = "shadow-rim-copy";
+	sh.subset_info(SurfaceView::SurfaceConstants::MG_SHADOW_RIM_NONCOPY).name = "shadow-rim-noncopy";
 	//EraseEmptySubsets(sh);
 }
 
@@ -775,7 +773,7 @@ void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
 
 	AVertex aNewVrt;
 	srcMG.attach_to_vertices(aNewVrt);
-	Grid::VertexAttachmentAccessor<AVertex> aaNewVrt(srcMG, aNewVrt);
+	Grid::VertexAttachmentAccessor aaNewVrt(srcMG, aNewVrt);
 
 	for(int si = destSH.num_subsets(); si < srcSH.num_subsets(); ++si)
 	{
@@ -810,7 +808,7 @@ void CopyGrid(Grid& srcGrid, Grid& destGrid,
 
 	AVertex aNewVrt;
 	srcGrid.attach_to_vertices(aNewVrt);
-	Grid::VertexAttachmentAccessor<AVertex> aaNewVrt(srcGrid, aNewVrt);
+	Grid::VertexAttachmentAccessor aaNewVrt(srcGrid, aNewVrt);
 
 	for(int si = destSH.num_subsets(); si < srcSH.num_subsets(); ++si)
 	{
@@ -872,8 +870,7 @@ void MergeGrids
 	Grid::AttachmentAccessor<Vertex, AVertex> aaVrt(grid, aVrt);
 
 	// copy vertices
-	for (VertexIterator iter = grid.begin<Vertex>();
-			iter != grid.end<Vertex>(); ++iter)
+	for (auto iter = grid.begin<Vertex>(); iter != grid.end<Vertex>(); ++iter)
 	{
 		Vertex* nvrt = *mrgGrid.create_by_cloning(*iter);
 		aaPosMRG[nvrt] = aaPos[*iter];
@@ -883,8 +880,7 @@ void MergeGrids
 
 	//	copy edges
 	EdgeDescriptor ed;
-	for (EdgeIterator iter = grid.begin<Edge>();
-			iter != grid.end<Edge>(); ++iter)
+	for (auto iter = grid.begin<Edge>(); iter != grid.end<Edge>(); ++iter)
 	{
 		Edge* eSrc = *iter;
 		ed.set_vertices(aaVrt[eSrc->vertex(0)], aaVrt[eSrc->vertex(1)]);
@@ -894,13 +890,12 @@ void MergeGrids
 
 	//	copy faces
 	FaceDescriptor fd;
-	for (FaceIterator iter = grid.begin<Face>();
-		iter != grid.end<Face>(); ++iter)
+	for (auto iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter)
 	{
 		Face* fSrc = *iter;
-		fd.set_num_vertices((uint)fSrc->num_vertices());
+		fd.set_num_vertices(static_cast<uint>(fSrc->num_vertices()));
 		for (size_t i = 0; i < fd.num_vertices(); ++i) {
-			fd.set_vertex((uint)i, aaVrt[fSrc->vertex(i)]);
+			fd.set_vertex(static_cast<uint>(i), aaVrt[fSrc->vertex(i)]);
 		}
 		Face* f = *mrgGrid.create_by_cloning(fSrc, fd);
 		mrgSH.assign_subset(f, subsetBaseInd + sh.get_subset_index(fSrc));
@@ -908,13 +903,12 @@ void MergeGrids
 
 	// copy volumes
 	VolumeDescriptor vd;
-	for (VolumeIterator iter = grid.begin<Volume>();
-			iter != grid.end<Volume>(); ++iter)
+	for (auto iter = grid.begin<Volume>(); iter != grid.end<Volume>(); ++iter)
 	{
 		Volume* vSrc = *iter;
-		vd.set_num_vertices((uint)vSrc->num_vertices());
+		vd.set_num_vertices(static_cast<uint>(vSrc->num_vertices()));
 		for (size_t i = 0; i < vd.num_vertices(); ++i) {
-			vd.set_vertex((uint)i, aaVrt[vSrc->vertex(i)]);
+			vd.set_vertex(static_cast<uint>(i), aaVrt[vSrc->vertex(i)]);
 		}
 
 		Volume* v = *mrgGrid.create_by_cloning(vSrc, vd);

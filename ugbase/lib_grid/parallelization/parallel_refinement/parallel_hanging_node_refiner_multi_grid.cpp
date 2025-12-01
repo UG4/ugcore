@@ -171,7 +171,7 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 		using Interface = typename Layout::Interface;
 		using InterfaceIter = typename Interface::const_iterator;
 
-		enum ConversionTypes{
+		enum class ConversionTypes{
 			CT_IGNORE = 0,
 			CT_TO_NORMAL = 1,
 			CT_TO_CONSTRAINED = 2,
@@ -200,10 +200,9 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 			//MultiGrid& mg = *m_distGridMgr.get_assigned_grid();
 
 			int counter = 0;
-			for(InterfaceIter iter = interface.begin();
-				iter != interface.end(); ++iter, ++counter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter, ++counter)
 			{
-				byte_t mark = ConversionTypes::CT_IGNORE;
+				ConversionTypes mark = ConversionTypes::CT_IGNORE;
 				Element elem = interface.get_element(iter);
 				if(m_sel.is_selected(elem)){
 					int refMark = m_sel.get_selection_status(elem);
@@ -217,7 +216,8 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 
 				if(mark != ConversionTypes::CT_IGNORE){
 					buff.write((char*)&counter, sizeof(int));
-					buff.write((char*)&mark, sizeof(byte_t));
+					auto mark_write = static_cast<byte_t>(mark);
+					buff.write((char*)&mark_write, sizeof(byte_t));
 				}
 			}
 
@@ -242,8 +242,8 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 				if(index == -1)
 					break;
 
-				byte_t mark;
-				buff.read((char*)&mark, sizeof(byte_t));
+				byte_t mark_read;
+				buff.read((char*)&mark_read, sizeof(byte_t));
 
 				while((counter < index) && (iter != interface.end())){
 					++iter;
@@ -261,7 +261,7 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 			//	communication step.
 				if(m_distGridMgr.is_in_horizontal_interface(elem))
 					continue;
-
+				auto mark = static_cast<ConversionTypes>(mark_read);
 				switch(mark){
 					case ConversionTypes::CT_TO_NORMAL:
 						if(elem->is_constraining() || elem->is_constrained()){
@@ -473,7 +473,7 @@ post_coarsen()
 
 void
 ParallelHangingNodeRefiner_MultiGrid::
-set_involved_processes(pcl::ProcessCommunicator com)
+set_involved_processes(const pcl::ProcessCommunicator &com)
 {
 	m_procCom = com;
 }
@@ -565,8 +565,7 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 		bool
 		extract(BinaryBuffer& buff, const Interface& interface) override {
 			byte_t val;
-			for(InterfaceIter iter = interface.begin();
-				iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
 				buff.read((char*)&val, sizeof(byte_t));

@@ -278,7 +278,7 @@ create_vertices(std::vector<Vertex*>& vrtsOut, Grid& grid,
 	if(attrib)
 		numSrcCoords = atoi(attrib->value());
 
-	int numDestCoords = (int)TAAPos::ValueType::Size;
+	int numDestCoords = static_cast<int>(TAAPos::ValueType::Size);
 
 	assert(numDestCoords > 0 && "bad position attachment type");
 

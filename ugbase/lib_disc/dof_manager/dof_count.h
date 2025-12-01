@@ -43,7 +43,7 @@ class DoFCount : public DoFDistributionInfoProvider
 {
 	public:
 		static constexpr byte_t ES_MAX = (ES_V_MASTER | ES_H_MASTER | ES_H_SLAVE | ES_V_SLAVE);
-		static constexpr byte_t SS_MAX = SurfaceView::ALL;
+		static constexpr byte_t SS_MAX = static_cast<byte_t>(SurfaceView::SurfaceConstants::ALL);
 
 		static constexpr int ALL_FCT = -1;
 		static constexpr int ALL_SUBSET = -1;

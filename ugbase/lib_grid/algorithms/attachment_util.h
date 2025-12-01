@@ -92,15 +92,15 @@ class MultiElementAttachmentAccessor
 			m_aaVol.invalidate();
 		}
 
-		bool is_valid_vertex_accessor() const		{return m_aaVrt.valid();}
-		bool is_valid_edge_accessor() const			{return m_aaEdge.valid();}
-		bool is_valid_face_accessor() const			{return m_aaFace.valid();}
-		bool is_valid_volume_accessor() const		{return m_aaVol.valid();}
+		[[nodiscard]] bool is_valid_vertex_accessor() const {return m_aaVrt.valid();}
+		[[nodiscard]] bool is_valid_edge_accessor() const {return m_aaEdge.valid();}
+		[[nodiscard]] bool is_valid_face_accessor() const {return m_aaFace.valid();}
+		[[nodiscard]] bool is_valid_volume_accessor() const {return m_aaVol.valid();}
 
 		RefType operator [] (Vertex* e)	{return m_aaVrt[e];}
-		RefType operator [] (Edge* e)		{return m_aaEdge[e];}
-		RefType operator [] (Face* e)			{return m_aaFace[e];}
-		RefType operator [] (Volume* e)		{return m_aaVol[e];}
+		RefType operator [] (Edge* e) {return m_aaEdge[e];}
+		RefType operator [] (Face* e) {return m_aaFace[e];}
+		RefType operator [] (Volume* e) {return m_aaVol[e];}
 		RefType operator [] (GridObject* e)
 		{
 			switch(e->base_object_id()){
@@ -127,10 +127,10 @@ class MultiElementAttachmentAccessor
 			}
 		}
 
-		Grid::AttachmentAccessor<Vertex, TAttachment>& vertex_accessor()	{return m_aaVrt;}
-		Grid::AttachmentAccessor<Edge, TAttachment>& edge_accessor()		{return m_aaEdge;}
-		Grid::AttachmentAccessor<Face, TAttachment>& face_accessor()		{return m_aaFace;}
-		Grid::AttachmentAccessor<Volume, TAttachment>& volume_accessor()	{return m_aaVol;}
+		Grid::AttachmentAccessor<Vertex, TAttachment>& vertex_accessor() {return m_aaVrt;}
+		Grid::AttachmentAccessor<Edge, TAttachment>& edge_accessor() {return m_aaEdge;}
+		Grid::AttachmentAccessor<Face, TAttachment>& face_accessor() {return m_aaFace;}
+		Grid::AttachmentAccessor<Volume, TAttachment>& volume_accessor() {return m_aaVol;}
 
 	private:
 		Grid::AttachmentAccessor<Vertex, TAttachment> m_aaVrt;
@@ -162,7 +162,7 @@ class CompareByAttachment
 		}
 
 	private:
-		Grid::AttachmentAccessor<TElem, TAttachment>	m_aaGID;
+		Grid::AttachmentAccessor<TElem, TAttachment> m_aaGID;
 };
 
 ////////////////////////////////////////////////////////////////////////

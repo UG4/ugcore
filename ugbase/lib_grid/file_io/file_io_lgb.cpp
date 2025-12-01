@@ -49,7 +49,7 @@ using namespace std;
 namespace ug
 {
 
-enum LGBConstants : uint // ø todo check file for size_type, enum could be derived from byte_t, but file writes to uint
+enum LGBConstants : uint
 {
 	LGBC_NONE = 0,
 	LGBC_POS2D = 1,
@@ -60,20 +60,6 @@ enum LGBConstants : uint // ø todo check file for size_type, enum could be deri
 };
 using LGBConstants_t = uint;
 
-constexpr LGBConstants operator | (LGBConstants lhs, LGBConstants rhs) noexcept {
-	return static_cast<LGBConstants>(
-		static_cast<LGBConstants_t>(lhs) |
-		static_cast<LGBConstants_t>(rhs)
-	);
-}
-
-constexpr LGBConstants& operator |= (LGBConstants &lhs, LGBConstants rhs) noexcept {
-		lhs = static_cast<LGBConstants>(
-			static_cast<LGBConstants_t>(lhs) |
-			static_cast<LGBConstants_t>(rhs)
-		);
-	return lhs;
-}
 
 
 void SerializeProjector(BinaryBuffer& out, RefinementProjector& proj)
@@ -215,8 +201,8 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 
 //	write the header
 	byte_t endianess = 1;
-	byte_t intSize = (byte_t)sizeof(int);
-	byte_t numberSize = (byte_t)sizeof(number);
+	byte_t intSize = sizeof(int);
+	byte_t numberSize = sizeof(number);
 	int versionNumber = 4;
 	
 	tbuf.write((char*)&endianess, sizeof(byte_t));
@@ -225,7 +211,7 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 	tbuf.write((char*)&versionNumber, sizeof(int));
 
 //	the options
-	LGBConstants opts = LGBConstants::LGBC_POS3D;
+	LGBConstants_t opts = LGBConstants::LGBC_POS3D;
 	if(numSHs > 0)
 		opts |= LGBConstants::LGBC_SUBSET_HANDLER;
 	if(numSels > 0)

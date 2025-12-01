@@ -65,36 +65,33 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 			 :	m_mg(mg), m_aaESS(aaElemSurfState)
 		{}
 
-		virtual ~ComPol_GatherSurfaceStates() = default;
+		~ComPol_GatherSurfaceStates() override = default;
 
-		virtual int get_required_buffer_size(const Interface& interface)
-		{
+		int get_required_buffer_size(const Interface& interface) override {
 			return interface.size() * sizeof(byte_t);
 		}
 
 	///	write surface state for each entry
-		virtual bool collect(BinaryBuffer& buff, const Interface& intfc)
-		{
+		bool collect(BinaryBuffer& buff, const Interface& intfc) override {
 		//	write the entry indices of marked elements.
-			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
+			for(auto iter = intfc.begin(); iter != intfc.end(); ++iter)
 			{
 				Element elem = intfc.get_element(iter);
-				byte_t val = m_aaESS[elem].get();
+				auto val = static_cast<byte_t>(m_aaESS[elem].get()); // ø todo SurfaceView type?
 				buff.write((char*)&val, sizeof(byte_t));
 			}
 			return true;
 		}
 
 	///	reads marks from the given stream
-		virtual bool extract(BinaryBuffer& buff, const Interface& intfc)
-		{
+		bool extract(BinaryBuffer& buff, const Interface& intfc) override {
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
 			{
 				Element elem = intfc.get_element(iter);
 				byte_t nv;
 				buff.read((char*)&nv, sizeof(byte_t));
 				if(nv > m_aaESS[elem].get())
-					m_aaESS[elem] = nv;
+					m_aaESS[elem] = static_cast<SurfaceView::SurfaceConstants>(nv);
 			}
 			return true;
 		}
@@ -136,7 +133,7 @@ refresh_surface_states()
 
 	switch(maxElem){
 		case GridBaseObjectId::VOLUME: refresh_surface_states<Volume>(); break;
-		case GridBaseObjectId::FACE:refresh_surface_states<Face>(); break;
+		case GridBaseObjectId::FACE: refresh_surface_states<Face>(); break;
 		case GridBaseObjectId::EDGE: refresh_surface_states<Edge>(); break;
 		case GridBaseObjectId::VERTEX: refresh_surface_states<Vertex>(); break;
 		default: break;
@@ -196,7 +193,7 @@ refresh_surface_states()
 
 template <typename TElem, typename TSide>
 void SurfaceView::
-mark_sides_as_surface_or_shadow(TElem* elem, byte_t surfaceState)
+mark_sides_as_surface_or_shadow(TElem* elem, SurfaceConstants surfaceState)
 {
 	using periodic_slave_container_t = typename PeriodicBoundaryManager::Group<TSide>::SlaveContainer;
 	using periodic_slave_iterator_t = typename periodic_slave_container_t::iterator;
@@ -321,7 +318,7 @@ SurfaceView::SurfaceView(SmartPtr<MGSubsetHandler> spMGSH,
 {
 	UG_ASSERT(m_pMG, "A MultiGrid has to be assigned to the given subset handler");
 
-	m_pMG->attach_to_all_dv(m_aSurfState, 0);
+	m_pMG->attach_to_all_dv(m_aSurfState, SurfaceConstants::MG_UNDEFINED);
 	m_aaSurfState.access(*m_pMG, m_aSurfState);
 
 	refresh_surface_states();

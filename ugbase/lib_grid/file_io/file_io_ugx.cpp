@@ -1005,7 +1005,7 @@ subset_handler(ISubsetHandler& shOut,
 			stringstream ss(attrib->value(), ios_base::in);
 			size_t state;
 			ss >> state;
-			si.subsetState = static_cast<SubsetState_t>(state);
+			si.subsetState = static_cast<SubsetState>(state);
 		}
 
 		shOut.set_subset_info(subsetInd, si);

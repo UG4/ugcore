@@ -54,8 +54,8 @@ void MarkGlobal(SmartPtr<IRefiner> refiner, SmartPtr<TDomain> domain)
 	SurfaceView sv(domain->subset_handler());
 
 	// loop elements for marking
-	const_iterator iter = sv.begin<elem_type>(GridLevel(), SurfaceView::ALL_BUT_SHADOW_COPY);
-	const_iterator iterEnd = sv.end<elem_type>(GridLevel(), SurfaceView::ALL_BUT_SHADOW_COPY);
+	const_iterator iter = sv.begin<elem_type>(GridLevel(), SurfaceView::SurfaceConstants::ALL_BUT_SHADOW_COPY);
+	const_iterator iterEnd = sv.end<elem_type>(GridLevel(), SurfaceView::SurfaceConstants::ALL_BUT_SHADOW_COPY);
 	for (; iter != iterEnd; ++iter)
 		refiner->mark(*iter, RM_FULL);
 }
@@ -91,8 +91,8 @@ void MarkSubsets
 	SurfaceView sv(sh);
 
 	// loop elements for marking
-	const_iterator iter = sv.begin<elem_type>(GridLevel(), SurfaceView::ALL_BUT_SHADOW_COPY);
-	const_iterator iterEnd = sv.end<elem_type>(GridLevel(), SurfaceView::ALL_BUT_SHADOW_COPY);
+	const_iterator iter = sv.begin<elem_type>(GridLevel(), SurfaceView::SurfaceConstants::ALL_BUT_SHADOW_COPY);
+	const_iterator iterEnd = sv.end<elem_type>(GridLevel(), SurfaceView::SurfaceConstants::ALL_BUT_SHADOW_COPY);
 	for (; iter != iterEnd; ++iter)
 		if (contained[sh->get_subset_index(*iter)])
 			refiner->mark(*iter, RM_FULL);

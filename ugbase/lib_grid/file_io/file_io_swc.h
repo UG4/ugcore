@@ -73,7 +73,7 @@ class FileReaderSWC
 		~FileReaderSWC() = default;
 
 		bool load_file(const char* fileName);
-		bool create_grid(Grid& g, ISubsetHandler* pSH, number scale_length = 1.0);
+		bool create_grid(Grid& g, ISubsetHandler* pSH, number scale_length = 1.0) const;
 
 		const std::vector<swc_types::SWCPoint>& swc_points() const;
 		std::vector<swc_types::SWCPoint>& swc_points();
@@ -87,8 +87,8 @@ class FileReaderSWC
 class FileWriterSWC
 {
 	public:
-		FileWriterSWC() {};
-		~FileWriterSWC() {};
+		FileWriterSWC() = default;
+		~FileWriterSWC() = default;
 
 		bool export_grid_to_file(Grid& grid, ISubsetHandler* pSH, const char* filename);
 };

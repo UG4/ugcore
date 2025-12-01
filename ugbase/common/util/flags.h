@@ -62,9 +62,9 @@ namespace ug{
 template <typename TEnum, typename TStorageType = unsigned int, TStorageType defaultValue = 0>
 class Flag {
 	public:
-		Flag()					: m_value(defaultValue)	{}
+		Flag() : m_value(defaultValue) {}
 		Flag(TStorageType flag)	: m_value(flag)			{}
-		Flag(const Flag& flag)	: m_value(flag.m_value)	{}
+		Flag(const Flag& flag) : m_value(flag.m_value)	{}
 
 		bool contains(TStorageType flag) const	{return (m_value & flag) == flag;}
 		bool contains(const Flag& flag) const	{return (m_value & flag.m_value) == flag.m_value;}
@@ -76,15 +76,16 @@ class Flag {
 		Flag& add(TStorageType flag)			{m_value |= flag; return *this;}
 		Flag& remove(TStorageType flag)			{m_value &= (~flag); return *this;}
 
-		Flag operator & (const Flag& flag) const	{return Flag(m_value & flag.m_value);}
-		Flag operator &= (const Flag& flag)		{m_value &= flag.m_value; return *this;}
-		Flag operator | (const Flag& flag) const	{return Flag(m_value | flag.m_value);}
-		Flag operator |= (const Flag& flag)		{m_value |= flag.m_value; return *this;}
-		Flag operator = (const Flag& flag)		{m_value = flag.m_value; return *this;}
-		Flag operator = (TStorageType val)		{m_value = val; return *this;}
 
-		TStorageType operator () () const			{return m_value;}
-		TStorageType get() const				{return m_value;}
+		Flag operator & (const Flag& flag) const {return Flag(m_value & flag.m_value);}
+		Flag operator | (const Flag& flag) const {return Flag(m_value | flag.m_value);}
+		Flag operator &= (const Flag& flag) {m_value &= flag.m_value; return *this;}
+		Flag operator |= (const Flag& flag) {m_value |= flag.m_value; return *this;}
+		Flag operator = (const Flag& flag) {m_value = flag.m_value; return *this;} // ø todo return Flag& ?
+		Flag operator = (TStorageType val) {m_value = val; return *this;}// ø todo return Flag& ?
+
+		TStorageType operator () () const {return m_value;}
+		TStorageType get() const {return m_value;}
 
 		bool operator == (const Flag& flag) const	{return m_value == flag.m_value;}
 		bool operator == (TStorageType val) const	{return m_value == val;}

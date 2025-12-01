@@ -65,10 +65,10 @@ DegeneratedLayerManager<dim>::DegeneratedLayerManager
 //	Register the callbacks in the message hub:
 	m_spGridAdaptionCallbackID =
 		pMG->message_hub()->register_class_callback
-			(this, & DegeneratedLayerManager<dim>::grid_adaption_callback);
+			(this, & DegeneratedLayerManager::grid_adaption_callback);
 	m_spGridDistributionCallbackID =
 		pMG->message_hub()->register_class_callback
-			(this, & DegeneratedLayerManager<dim>::grid_distribution_callback);
+			(this, & DegeneratedLayerManager::grid_distribution_callback);
 }
 
 /**
@@ -371,8 +371,8 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 		for (size_t i = 0; i < edge_list.size (); i++)
 		{
 			Edge * e = edge_list [i];
-			Vertex * v_1 = e->vertex (0); int mark_1 = vert_mark (v_1);
-			Vertex * v_2 = e->vertex (1); int mark_2 = vert_mark (v_2);
+			Vertex * v_1 = e->vertex (0); t_grid_object_mark_t mark_1 = vert_mark (v_1);
+			Vertex * v_2 = e->vertex (1); t_grid_object_mark_t mark_2 = vert_mark (v_2);
 			Vertex * t;
 			size_t co_1, co_2;
 			

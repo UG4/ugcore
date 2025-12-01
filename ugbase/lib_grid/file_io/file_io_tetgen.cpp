@@ -793,9 +793,9 @@ bool LoadGridFromSMESH(Grid& grid, const char* filename, AVector3& aPos,
 
 	if(!grid.has_vertex_attachment(aPos))
 		grid.attach_to_vertices(aPos);
-	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
+	Grid::VertexAttachmentAccessor aaPos(grid, aPos);
 
-	enum ReadState{
+	enum class ReadState{
 		READ_VRT_HEADER,
 		READ_VERTICES,
 		READ_FACE_HEADER,

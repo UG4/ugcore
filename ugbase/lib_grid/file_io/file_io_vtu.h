@@ -90,7 +90,7 @@ class GridWriterVTU
 	///	Pass a pointer to an ostream to which the data shall be written.
 	/**	Make sure, that the stream is open and stays valid while write operations
 	 * are performed.*/
-		GridWriterVTU(std::ostream* out);
+		explicit GridWriterVTU(std::ostream* out);
 
 		virtual ~GridWriterVTU() = default;
 
@@ -145,16 +145,15 @@ class GridWriterVTU
 		void write_vector_data(Grid& grid,
 							   TAttachment aData,
 							   const char* name = "",
-							   typename Grid::traits<TElem>::callback consider_elem =
-							  		ConsiderAll());
+							   typename Grid::traits<TElem>::callback consider_elem = ConsiderAll());
 
 		template <typename TElem>
 		void collect_cells(std::vector<GridObject*>& cellsOut,
 						   Grid& grid,
-						   typename Grid::traits<TElem>::callback consider_elem =
-							  		ConsiderAll());
+						   typename Grid::traits<TElem>::callback consider_elem = ConsiderAll());
 
-		void write_cells(std::vector<GridObject*>& cells, Grid& grid,
+		void write_cells(const std::vector<GridObject*>& cells,
+						 Grid& grid,
 						 AAVrtIndex aaInd);
 
 		void end_piece();
@@ -197,7 +196,7 @@ class GridReaderVTU
 		bool parse_file(const char* filename);
 
 	///	returns the number of grids in the given file
-		size_t num_grids() const	{return m_entries.size();}
+		[[nodiscard]] size_t num_grids() const {return m_entries.size();}
 
 	///	returns the i-th grid.
 	/**	TPositionAttachments value type has to be compatible with MathVector.
@@ -206,13 +205,13 @@ class GridReaderVTU
 		bool grid(Grid& gridOut, size_t index, TPositionAttachment& aPos);
 
 	///	returns the name of the i-th grid
-		const char* get_grid_name(size_t index) const;
+		[[nodiscard]] const char* get_grid_name(size_t index) const;
 
 	///	returns the number of subset handlers for the given grid
-		size_t num_subset_handlers(size_t refGridIndex) const;
+		[[nodiscard]] size_t num_subset_handlers(size_t refGridIndex) const;
 
 	///	returns the name of the given subset handler
-		const char* get_subset_handler_name(size_t refGridIndex,
+		[[nodiscard]] const char* get_subset_handler_name(size_t refGridIndex,
 											size_t subsetHandlerIndex) const;
 
 	///	fills the given subset-handler
@@ -220,7 +219,7 @@ class GridReaderVTU
 							size_t refGridIndex,
 							size_t subsetHandlerIndex);
 
-		static std::string const getRegionOfInterestIdentifyer()
+		static std::string getRegionOfInterestIdentifyer()
 		{ return m_regionOfInterest; }
 
 		static void setRegionOfInterestIdentifier( std::string const & regOfInt )
@@ -229,7 +228,7 @@ class GridReaderVTU
 	protected:
 		struct SubsetHandlerEntry
 		{
-			SubsetHandlerEntry(rapidxml::xml_node<>* n) : node(n), sh(nullptr) {}
+			explicit SubsetHandlerEntry(rapidxml::xml_node<>* n) : node(n), sh(nullptr) {}
 
 			rapidxml::xml_node<>* 	node;
 			ISubsetHandler*			sh;
@@ -237,7 +236,7 @@ class GridReaderVTU
 
 		struct GridEntry
 		{
-			GridEntry(rapidxml::xml_node<>* n) : node(n), grid(nullptr), mg(nullptr)	{}
+			explicit GridEntry(rapidxml::xml_node<>* n) : node(n), grid(nullptr), mg(nullptr)	{}
 
 			rapidxml::xml_node<>* 	node;
 			Grid* 					grid;
@@ -275,12 +274,12 @@ class GridReaderVTU
 							  rapidxml::xml_node<>* dataNode,
 							  bool clearData = true);
 
-		void trafoDblVec2Int( std::vector<double> const & dblVec, std::vector<int> & intVec );
+		static void trafoDblVec2Int( std::vector<double> const & dblVec, std::vector<int> & intVec );
 
 		template <typename T>
 		void check_indices(std::vector<T>& inds, size_t first, size_t num, size_t max);
 
-		rapidxml::xml_node<>* find_child_node_by_argument_value(
+		static rapidxml::xml_node<>* find_child_node_by_argument_value(
 													rapidxml::xml_node<>* parent,
 													const char* nodeName,
 													const char* argName,

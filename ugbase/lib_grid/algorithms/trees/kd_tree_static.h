@@ -58,7 +58,7 @@ class KDVertexDistance
 
 ////////////////////////////////////////////////////////////////////////
 ///	used by KDTreeStatic
-enum KDSplitDimension
+enum class KDSplitDimension
 {
 	KDSD_CIRCULAR,
 	KDSD_LARGEST
@@ -122,7 +122,7 @@ class KDTreeStatic
 		bool get_points_in_box(std::vector<Vertex*>& vrtsOut,
 								const TVector& boxMin, const TVector& boxMax);
 
-		Node* get_root()	{return &m_parentNode;}
+		Node* get_root() {return &m_parentNode;}
 		
 		void get_leafs(std::vector<Node*>& vLeafsOut);
 		

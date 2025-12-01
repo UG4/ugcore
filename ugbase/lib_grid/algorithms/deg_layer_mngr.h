@@ -98,8 +98,19 @@ template <int dim>
 class DegeneratedLayerManager
 {
 public:
+
+	/// Marks for the grid vertices
+	enum t_grid_object_mark : int8_t
+	{
+		D_LAYER_UNKNOWN = -1,
+		D_LAYER_OUTER = 0,
+		D_LAYER_INNER = 1
+	};
+	using t_grid_object_mark_t = int8_t;
+
+
 	/// type of the attachment for the marks
-		using mark_attachment_type = Attachment<signed char>;
+		using mark_attachment_type = Attachment<t_grid_object_mark_t>;
 		
 	///	base grid element object type
 		using element_type = typename grid_dim_traits<dim>::grid_base_object;
@@ -112,14 +123,6 @@ public:
 		
 	///	max. number of corners of non-degenerated sides
 		static constexpr size_t maxLayerSideCorners = maxElemCorners / 2;
-	
-	/// Marks for the grid vertices
-		enum class t_grid_object_mark
-		{
-			D_LAYER_UNKNOWN = -1,
-			D_LAYER_OUTER = 0,
-			D_LAYER_INNER = 1
-		};
 
 public:
 	/// Constructor
@@ -154,24 +157,24 @@ public:
 		);
 		
 	///	Returns true if the manager is closed (and can be used) or false otherwise
-		bool is_closed () {return m_bClosed;};
+		bool is_closed () const {return m_bClosed;};
 		
 	///	Whether a subset is registered in the manager
 		bool contains
 		(
 			int si ///< [in] subset index
-		)
-		{return m_layerSsGrp.contains (si);};
+		) const {
+			return m_layerSsGrp.contains (si);
+		};
 		
 	///	Returns the subset group of the fracture network
 		const SubsetGroup & subset_grp () {return m_layerSsGrp;};
 		
 	///	Number of subsets in the manager
-		size_t num_subsets () {return m_layerSsGrp.size ();};
+		size_t num_subsets () const {return m_layerSsGrp.size ();};
 		
 	/// Subset no. i in the manager (only if the manager is closed)
-		int subset (size_t i)
-		{
+		int subset (size_t i) const {
 			if (! is_closed ()) UG_THROW ("DegeneratedLayerManager: The manager is not closed.");
 			return m_layerSsGrp[i];
 		}

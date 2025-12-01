@@ -154,29 +154,29 @@ DoFCount::Cnt::Cnt()
 void DoFCount::Cnt::collect_values(std::vector<uint64>& vNum) const
 {
 	PROFILE_FUNC();
-	vNumSS[SurfaceView::MG_SHADOW_PURE].collect_values(vNum);
-	vNumSS[SurfaceView::MG_SURFACE_PURE].collect_values(vNum);
-	vNumSS[SurfaceView::MG_SURFACE_RIM].collect_values(vNum);
-	vNumSS[SurfaceView::MG_SHADOW_RIM_COPY].collect_values(vNum);
-	vNumSS[SurfaceView::MG_SHADOW_RIM_NONCOPY].collect_values(vNum);
+	vNumSS[SurfaceView::SurfaceConstants::MG_SHADOW_PURE].collect_values(vNum);
+	vNumSS[SurfaceView::SurfaceConstants::MG_SURFACE_PURE].collect_values(vNum);
+	vNumSS[SurfaceView::SurfaceConstants::MG_SURFACE_RIM].collect_values(vNum);
+	vNumSS[SurfaceView::SurfaceConstants::MG_SHADOW_RIM_COPY].collect_values(vNum);
+	vNumSS[SurfaceView::SurfaceConstants::MG_SHADOW_RIM_NONCOPY].collect_values(vNum);
 }
 
 void DoFCount::Cnt::set_values(const std::vector<uint64>& vNum, size_t& cnt)
 {
 	PROFILE_FUNC();
-	vNumSS[SurfaceView::MG_SHADOW_PURE].set_values(vNum, cnt);
-	vNumSS[SurfaceView::MG_SURFACE_PURE].set_values(vNum, cnt);
-	vNumSS[SurfaceView::MG_SURFACE_RIM].set_values(vNum, cnt);
-	vNumSS[SurfaceView::MG_SHADOW_RIM_COPY].set_values(vNum, cnt);
-	vNumSS[SurfaceView::MG_SHADOW_RIM_NONCOPY].set_values(vNum, cnt);
+	vNumSS[SurfaceView::SurfaceConstants::MG_SHADOW_PURE].set_values(vNum, cnt);
+	vNumSS[SurfaceView::SurfaceConstants::MG_SURFACE_PURE].set_values(vNum, cnt);
+	vNumSS[SurfaceView::SurfaceConstants::MG_SURFACE_RIM].set_values(vNum, cnt);
+	vNumSS[SurfaceView::SurfaceConstants::MG_SHADOW_RIM_COPY].set_values(vNum, cnt);
+	vNumSS[SurfaceView::SurfaceConstants::MG_SHADOW_RIM_NONCOPY].set_values(vNum, cnt);
 }
 
 
 void DoFCount::Cnt::add(uint64 num, SurfaceView::SurfaceState ss, byte_t is)
 {
 	// restrict to only considered flags:
-	size_t ss_index = (size_t)(ss & SS_MAX)();
-	size_t is_index = (size_t)(is & ES_MAX);
+	auto ss_index = static_cast<size_t>((ss & SS_MAX)());
+	auto is_index = static_cast<size_t>(is & ES_MAX);
 
 	if(!(ss_index < vNumSS.size()))
 		UG_THROW("Something wrong with surface state storage: is: "<<
@@ -200,11 +200,11 @@ uint64 DoFCount::Cnt::num(SurfaceView::SurfaceState ss, byte_t is) const
 	}
 
 	if(ss == UNIQUE_SS){
-		return num(SurfaceView::MG_SHADOW_PURE, is)
-				+ num(SurfaceView::MG_SURFACE_PURE, is)
-				+ num(SurfaceView::MG_SURFACE_RIM, is)
+		return num(SurfaceView::SurfaceConstants::MG_SHADOW_PURE, is)
+				+ num(SurfaceView::SurfaceConstants::MG_SURFACE_PURE, is)
+				+ num(SurfaceView::SurfaceConstants::MG_SURFACE_RIM, is)
 	//			+ num(SurfaceView::SHADOW_COPY, is) 	// copies not counted
-				+ num(SurfaceView::MG_SHADOW_RIM_NONCOPY, is);
+				+ num(SurfaceView::SurfaceConstants::MG_SHADOW_RIM_NONCOPY, is);
 	}
 
 	return vNumSS[ss()].num(is);
@@ -220,11 +220,11 @@ uint64 DoFCount::Cnt::num_contains(SurfaceView::SurfaceState ss, byte_t is) cons
 	}
 
 	if(ss == UNIQUE_SS){
-		return vNumSS[SurfaceView::MG_SHADOW_PURE].num_contains(is)
-				+ vNumSS[SurfaceView::MG_SURFACE_PURE].num_contains(is)
-				+ vNumSS[SurfaceView::MG_SURFACE_RIM].num_contains(is)
+		return vNumSS[SurfaceView::SurfaceConstants::MG_SHADOW_PURE].num_contains(is)
+				+ vNumSS[SurfaceView::SurfaceConstants::MG_SURFACE_PURE].num_contains(is)
+				+ vNumSS[SurfaceView::SurfaceConstants::MG_SURFACE_RIM].num_contains(is)
 	//			+ vNumSS[SurfaceView::SHADOW_COPY].num_contains(is) // copies not counted
-				+ vNumSS[SurfaceView::MG_SHADOW_RIM_NONCOPY].num_contains(is);
+				+ vNumSS[SurfaceView::SurfaceConstants::MG_SHADOW_RIM_NONCOPY].num_contains(is);
 	}
 
 	uint64 cnt = 0;

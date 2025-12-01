@@ -315,6 +315,7 @@ enum GridSerializationID
 
 	GSID_NEW_LEVEL = 1000
 };
+using GridSerializationID_t = int;
 
 ////////////////////////////////////////////////////////////////////////
 //	GRID HEADER
@@ -323,39 +324,32 @@ enum GridHeaderConstants{
 	GHC_HEADER_END = 2,
 	GHC_READ_OPTIONS = 3,
 };
+using GridHeaderConstants_t = uint;
 
-enum class GridHeaderReadOptions : uint8_t{
+enum GridHeaderReadOptions : int{
 	GHRO_READ_DEFAULT = 0,
 	GHRO_READ_LEVELS =	1 << 0,
 	GHRO_READ_PARENTS =	1 << 1
 };
-using GridHeaderReadOptions_t = uint8_t;
+using GridHeaderReadOptions_t = int;
 
-constexpr GridHeaderReadOptions operator | (GridHeaderReadOptions lhs, GridHeaderReadOptions rhs) noexcept {
+constexpr GridHeaderReadOptions operator | (const GridHeaderReadOptions &lhs, const GridHeaderReadOptions &rhs) {
 	return static_cast<GridHeaderReadOptions>(
-		static_cast<GridHeaderReadOptions_t>(lhs) |
-		static_cast<GridHeaderReadOptions_t>(rhs)
-	);
-}
-
-constexpr GridHeaderReadOptions operator & (GridHeaderReadOptions lhs, GridHeaderReadOptions rhs) noexcept {
-	return static_cast<GridHeaderReadOptions>(
-		static_cast<GridHeaderReadOptions_t>(lhs) &
-		static_cast<GridHeaderReadOptions_t>(rhs)
-	);
+			static_cast<GridHeaderReadOptions_t>(lhs) | static_cast<GridHeaderReadOptions_t>(rhs)
+		);
 }
 
 struct GridHeader{
 	GridHeader() :
 		m_readOptions(GridHeaderReadOptions::GHRO_READ_DEFAULT) {}
-	GridHeader(GridHeaderReadOptions readOptions) :
+	explicit GridHeader(GridHeaderReadOptions readOptions) :
 		m_readOptions(readOptions)	{}
 
-	bool contains_option(GridHeaderReadOptions option){
+	bool contains_option(GridHeaderReadOptions option) const {
 		return (m_readOptions & option) == option;
 	}
 
-	GridHeaderReadOptions m_readOptions;
+	GridHeaderReadOptions_t m_readOptions;
 };
 
 static void WriteGridHeader(const GridHeader& gridHeader, BinaryBuffer& out)
@@ -368,7 +362,7 @@ static void WriteGridHeader(const GridHeader& gridHeader, BinaryBuffer& out)
 //	we now write the read options
 	t = GridHeaderConstants::GHC_READ_OPTIONS;
 	out.write((char*)&t, sizeof(int));
-	out.write((char*)&gridHeader.m_readOptions, sizeof(GridHeaderReadOptions)); // ! ø obs type was uint
+	out.write((char*)&gridHeader.m_readOptions, sizeof(uint));
 
 //	the header ends
 	t = GridHeaderConstants::GHC_HEADER_END;
@@ -394,8 +388,8 @@ static bool ReadGridHeader(GridHeader& gridHeader, BinaryBuffer& in)
 
 		switch(t){
 			case GridHeaderConstants::GHC_READ_OPTIONS:{
-				GridHeaderReadOptions opt;
-				in.read((char*)&opt, sizeof(GridHeaderReadOptions)); // ! ø obs type was uint
+				int opt;
+				in.read((char*)&opt, sizeof(int));
 				gridHeader.m_readOptions = opt;
 			}break;
 
@@ -1499,10 +1493,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 	SRLZ_PROFILE(srlz_settingUpHashes);
 //	create hashes for existing geometric objects
-	Hash<GeomObjID, Vertex*>	vrtHash((int)(1.1f * (float)mg.num<Vertex>()));
-	Hash<GeomObjID, Edge*>	edgeHash((int)(1.1f * (float)mg.num<Edge>()));
-	Hash<GeomObjID, Face*>		faceHash((int)(1.1f * (float)mg.num<Face>()));
-	Hash<GeomObjID, Volume*>		volHash((int)(1.1f * (float)mg.num<Volume>()));
+	Hash<GeomObjID, Vertex*> vrtHash((int)(1.1f * (float)mg.num<Vertex>()));
+	Hash<GeomObjID, Edge*> edgeHash((int)(1.1f * (float)mg.num<Edge>()));
+	Hash<GeomObjID, Face*> faceHash((int)(1.1f * (float)mg.num<Face>()));
+	Hash<GeomObjID, Volume*> volHash((int)(1.1f * (float)mg.num<Volume>()));
 
 	vrtHash.reserve(mg.num<Vertex>());
 	edgeHash.reserve(mg.num<Edge>());
@@ -1633,14 +1627,14 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									//	make sure that constrained/constraining relations are fine
 										switch(parent->base_object_id()){
 											case GridBaseObjectId::EDGE:{
-												ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(parent);
+												auto* cge = dynamic_cast<ConstrainingEdge*>(parent);
 												UG_ASSERT(cge, "Constraining edge has to be of type ConstrainingEdge");
 												cge->add_constrained_object(oldVrt);
 												static_cast<ConstrainedVertex*>(oldVrt)->set_constraining_object(cge);
 											}break;
 
 											case GridBaseObjectId::FACE:{
-												ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(parent);
+												auto* cgf = dynamic_cast<ConstrainingFace*>(parent);
 												UG_ASSERT(cgf, "Constraining face has to be of type ConstrainingFace");
 												cgf->add_constrained_object(oldVrt);
 												static_cast<ConstrainedVertex*>(oldVrt)->set_constraining_object(cgf);
@@ -1797,14 +1791,14 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									//	make sure that constrained/constraining relations are fine
 										switch(parent->base_object_id()){
 											case GridBaseObjectId::EDGE:{
-												ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(parent);
+												auto* cge = dynamic_cast<ConstrainingEdge*>(parent);
 												UG_ASSERT(cge, "Constraining edge has to be of type ConstrainingEdge");
 												cge->add_constrained_object(oldEdge);
 												static_cast<ConstrainedEdge*>(oldEdge)->set_constraining_object(cge);
 											}break;
 
 											case GridBaseObjectId::FACE:{
-												ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(parent);
+												auto cgf = dynamic_cast<ConstrainingFace*>(parent);
 												UG_ASSERT(cgf, "Constraining face has to be of type ConstrainingFace");
 												cgf->add_constrained_object(oldEdge);
 												static_cast<ConstrainedEdge*>(oldEdge)->set_constraining_object(cgf);
@@ -2015,7 +2009,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									//	make sure that constrained/constraining relations are fine
 										UG_ASSERT(parent->base_object_id() == FACE,
 												  "Only faces may constrain faces");
-										ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(parent);
+										auto* cgf = dynamic_cast<ConstrainingFace*>(parent);
 										UG_ASSERT(cgf, "Constraining face has to be of type ConstrainingFace");
 										cgf->add_constrained_object(oldFace);
 										static_cast<ConstrainedFace*>(oldFace)->set_constraining_object(cgf);
@@ -2131,7 +2125,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									//	make sure that constrained/constraining relations are fine
 										UG_ASSERT(parent->base_object_id() == FACE,
 												  "Only faces may constrain faces");
-										ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(parent);
+										auto* cgf = dynamic_cast<ConstrainingFace*>(parent);
 										UG_ASSERT(cgf, "Constraining face has to be of type ConstrainingFace");
 										cgf->add_constrained_object(oldFace);
 										static_cast<ConstrainedFace*>(oldFace)->set_constraining_object(cgf);

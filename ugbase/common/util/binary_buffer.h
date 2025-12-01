@@ -87,7 +87,7 @@ class BinaryBuffer
 
 	/// writes data of the given size (in bytes)
 	/**	This automatically advances the write position.*/
-		inline void write(const char* buf, size_t size);
+		inline void write(const char* buf, size_t size); // ø why const char instead of byte-type? / unsigned const char
 
 	///	returns the raw buffer pointer or nullptr if the buffer is empty (capacity() == 0)
 		inline char* buffer();

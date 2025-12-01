@@ -70,6 +70,7 @@ class SurfaceView
 		 * 			  change them. See ComPol_GatherSurfaceStates.
 		 */
 		enum SurfaceConstants : byte_t {
+			MG_UNDEFINED = 0,
 			// each grid-object has exactly on of these states (begin)
 			MG_SHADOW_PURE = 1,               ///< full-covered (inner)
 			MG_SURFACE_PURE = 1 << 1,         ///< surface, i.e., without children (inner)
@@ -102,13 +103,13 @@ class SurfaceView
 			ALL = MG_ALL               | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE
 			// combo-states with flags as in level-view (end)
 		};
+		using SurfaceConstants_t = byte_t; 	// obs! untyped enum template parameter (SurfaceConstants) get treated as int
 
-		using SurfaceState = Flag<SurfaceConstants, byte_t>;
+		using SurfaceState = Flag<SurfaceConstants, SurfaceConstants_t, SurfaceConstants::MG_UNDEFINED>;
 		using ASurfaceState = Attachment<SurfaceState>;
 
 	public:
-		SurfaceView(SmartPtr<MGSubsetHandler> spMGSH,
-		            bool adaptiveMG = true);
+		explicit SurfaceView(SmartPtr<MGSubsetHandler> spMGSH, bool adaptiveMG = true);
 
 		~SurfaceView();
 
@@ -116,10 +117,10 @@ class SurfaceView
 		inline SmartPtr<MGSubsetHandler> subset_handler();
 
 	///	returns underlying subset handler
-		inline ConstSmartPtr<MGSubsetHandler> subset_handler() const;
+		[[nodiscard]] inline ConstSmartPtr<MGSubsetHandler> subset_handler() const;
 
 	///	returns if multigrid is adaptive
-		inline bool is_adaptive() const;
+		[[nodiscard]] inline bool is_adaptive() const;
 
 	///	returns if the element is contained in the surface view
 		template <typename TGeomObj>
@@ -128,7 +129,7 @@ class SurfaceView
 
 	///	returns the surface states, when considered as part of grid level
 		template <typename TElem>
-		SurfaceState surface_state(TElem* elem, const GridLevel& gl) const;
+		[[nodiscard]] SurfaceState surface_state(TElem* elem, const GridLevel& gl) const;
 
 	///	returns if the element is ghost
 	/**	ghost elements are vertical masters that are in no other interfaces.*/
@@ -354,7 +355,7 @@ class SurfaceView
 	 * states to sides of surface elements.
 	 * Make sure that all elements in lower levels have already been processed!*/
 		template <typename TElem, typename TSide>
-		void mark_sides_as_surface_or_shadow(TElem* elem, byte_t surfaceState = SurfaceConstants::MG_SURFACE_PURE);
+		void mark_sides_as_surface_or_shadow(TElem* elem, SurfaceConstants surfaceState = SurfaceConstants::MG_SURFACE_PURE);
 
 		template <typename TElem>
 		void mark_shadowing(bool markSides = false);

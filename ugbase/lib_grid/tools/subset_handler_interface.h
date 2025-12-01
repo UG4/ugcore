@@ -77,7 +77,7 @@ using SubsetHandlerElements_t = byte_t;
  * It would be a good idea to think about an attachment-like system
  * for subsets.
  */
-enum SubsetState : uint
+enum class SubsetState : uint
 {
 	SS_NONE = 0,
 	SS_USER_STATE = 1 << 16
@@ -101,7 +101,7 @@ struct SubsetInfo
 	std::string	name;
 	int			materialIndex;///< mostly ignored.
 	vector4		color;
-	SubsetState_t subsetState;///< an or-combination of SubsetState flags.
+	SubsetState subsetState;///< an or-combination of SubsetState flags.
 
 	using PropertyMap = std::map<std::string, Variant>;
 ///	custom properties can be stored in this map.
@@ -245,12 +245,12 @@ class UG_API ISubsetHandler : public GridObserver
 	///	pass an or-combination of SubsetHandlerElements to supportedElements.
 	/**	supportedElements define the elements on which the SubsetHandler works.
 	 *	Default is SHE_ALL (all element-types).*/
-		ISubsetHandler(byte_t supportedElements = SubsetHandlerElements::SHE_ALL);
+		explicit ISubsetHandler(byte_t supportedElements = SubsetHandlerElements::SHE_ALL);
 
 	///	pass a grid and an or-combination of SubsetHandlerElements to supportedElements.
 	/**	supportedElements define the elements on which the SubsetHandler works.
 	 *	Default is SHE_ALL (all element-types).*/
-		ISubsetHandler(Grid& grid, byte_t supportedElements = SubsetHandlerElements::SHE_ALL);
+		explicit ISubsetHandler(Grid& grid, byte_t supportedElements = SubsetHandlerElements::SHE_ALL);
 
 	/**	The destructor automatically unregisters the subset-handler from the grid.
 	 *	on deregistration erase_subset_lists of the derived class will be called.*/
@@ -268,11 +268,11 @@ class UG_API ISubsetHandler : public GridObserver
 
 	///	returns a pointer to the grid on which the subset-handler works.
 	/**	returns nullptr if no grid is assigned.*/
-		Grid* grid() const;
+		[[nodiscard]] Grid* grid() const;
 
 	///	returns true if the given element-types are supported.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
-		bool elements_are_supported(byte_t shElements) const;
+		[[nodiscard]] bool elements_are_supported(byte_t shElements) const;
 
 	///	set the type of elements that shall be handled by the SubsetHandler.
 	/**	Pass an or-combination of constants enumerated in SubsetHandlerElements.
@@ -291,14 +291,14 @@ class UG_API ISubsetHandler : public GridObserver
 	 * 	set this to a negative value to avoid automatic assignment (-1 by default).
 	 *	only used if subset_inheritance is disabled or if no parent is specified.*/
 		void set_default_subset_index(int subsetIndex);
-		inline int get_default_subset_index() const {return m_defaultSubsetIndex;}
+		[[nodiscard]] inline int get_default_subset_index() const {return m_defaultSubsetIndex;}
 
 	/**	if enabled, newly created elements derive their subset-index from their parents.
 	 *	Enabled by default.
 	 *	If enabled, the default subset index will be ignored if a parent is specified
 	 *	on element creation.*/
 		void enable_subset_inheritance(bool bEnable);
-		inline bool subset_inheritance_enabled() const {return m_bSubsetInheritanceEnabled;}
+		[[nodiscard]] inline bool subset_inheritance_enabled() const {return m_bSubsetInheritanceEnabled;}
 
 	/**	restricts subset inheritance so that new elements derive their
 	 * 	subset index only from parents with the same base-type.
@@ -306,7 +306,7 @@ class UG_API ISubsetHandler : public GridObserver
 	 * 	NOTE: strict inheritance only has an effect if
 	 * 	subset inheritance is enabled.*/
 		void enable_strict_inheritance(bool bEnable);
-		inline bool strict_inheritance_enabled() const {return m_bStrictInheritanceEnabled;}
+		[[nodiscard]] inline bool strict_inheritance_enabled() const {return m_bStrictInheritanceEnabled;}
 
 	///	if the subset with the given index does not yet exist, it will be created.
 	/**	All subsets in between num_subsets and index will be created, too.*/
@@ -316,10 +316,10 @@ class UG_API ISubsetHandler : public GridObserver
 		inline void subset_required(int index) const;
 
 	///	returns the number of subset-infos (return value is int, since SubsetIndices are of type int)
-		inline int num_subsets() const		{return (int)m_subsetInfos.size();}
+		[[nodiscard]] inline int num_subsets() const		{return (int)m_subsetInfos.size();}
 
 	///	returns the name of a subset
-		const char* get_subset_name(int subsetIndex) const;
+		[[nodiscard]] const char* get_subset_name(int subsetIndex) const;
 
 	///	sets the name of a subset
 		void set_subset_name(const char* name, int subsetIndex);
@@ -332,7 +332,7 @@ class UG_API ISubsetHandler : public GridObserver
 		SubsetInfo& subset_info(int subsetIndex);
 
 	/** Be careful: queried subset has to exist! Check with num_subsets()*/
-		const SubsetInfo& subset_info(int subsetIndex) const;
+		[[nodiscard]] const SubsetInfo& subset_info(int subsetIndex) const;
 
 	///	sets the default subset-info. Used when initializing new subset-infos.
 		void set_default_subset_info(const SubsetInfo& defSI);

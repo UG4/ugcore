@@ -58,7 +58,7 @@ class GridLevel
 		{}
 
 	///	constructor
-		GridLevel(int level)
+	explicit GridLevel(int level)
 			: m_level(level), m_type(ViewType::SURFACE), m_bWithGhosts(false)
 		{}
 
@@ -72,16 +72,16 @@ class GridLevel
 		}
 
 	///	returns the level
-		int level() const {return m_level;}
+		[[nodiscard]] int level() const {return m_level;}
 
 	///	returns the type
-		ViewType type() const {return m_type;}
+		[[nodiscard]] ViewType type() const {return m_type;}
 
 	///	returns if ghosts are considered as part of the level
-		bool ghosts() const {return m_bWithGhosts;}
+		[[nodiscard]] bool ghosts() const {return m_bWithGhosts;}
 
 	///	returns if top level
-		bool top() const {return level() == TOP;}
+		[[nodiscard]] bool top() const {return level() == TOP;}
 
 	///	returns if type is level
 		[[nodiscard]] bool is_level() const {return type() == ViewType::LEVEL;}

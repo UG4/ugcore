@@ -639,10 +639,10 @@ void PrintDoFCount(const vector<DoFCount>& vDC,
 	//	if PrintSurface and a surface level: add more output
 		if(bPrintSurface && gl.is_surface()){
 			vInSS.emplace_back("all",ALL_SS);
-			vInSS.emplace_back("pure",SurfaceView::MG_SURFACE_PURE);
-			vInSS.emplace_back("shadowing",SurfaceView::MG_SURFACE_RIM);
-			vInSS.emplace_back("shadow-cpy",SurfaceView::MG_SHADOW_RIM_COPY);
-			vInSS.emplace_back("shadow-nocpy",SurfaceView::MG_SHADOW_RIM_NONCOPY);
+			vInSS.emplace_back("pure",SurfaceView::SurfaceConstants::MG_SURFACE_PURE);
+			vInSS.emplace_back("shadowing",SurfaceView::SurfaceConstants::MG_SURFACE_RIM);
+			vInSS.emplace_back("shadow-cpy",SurfaceView::SurfaceConstants::MG_SHADOW_RIM_COPY);
+			vInSS.emplace_back("shadow-nocpy",SurfaceView::SurfaceConstants::MG_SHADOW_RIM_NONCOPY);
 		}
 
 		UG_LOG(sLeft<<setw(LEVEL) << left << ssGL.str() << right);

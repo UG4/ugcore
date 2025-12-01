@@ -178,9 +178,10 @@ void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
  * Note: To copy a grid w/o subset information can use Grid's copy constructor
  * \param[in] srcGrid the grid to be copied
  * \param[out] destGrid the copied grid
- * \param[in] srcSh the SubsetHandler for the srcGrid
- * \param[out] destSh the SubsetHandler for the destGrid
- * \tparam[in] aPos position attachment
+ * \param[in] srcSH the SubsetHandler for the srcGrid
+ * \param[out] destSH the SubsetHandler for the destGrid
+ * \param[in] aPos position attachment
+ * \tparam TAPos position attachment type
  */
 template <typename TAPos>
 void CopyGrid
@@ -197,10 +198,11 @@ void CopyGrid
  * Merges all grid elements and subset information from grid to mrgGrid
  * \param[in,out] mrgGrid merged grid
  * \param[in] grid input to be merged into merged grid
- * \param[in] mrgSH the SubsetHandler for mrgGrid
+ * \param[in] mrgSh the SubsetHandler for mrgGrid
  * \param[in,out] sh the SubsetHandler for grid
- * \tparam[in] aPos position attachment
+ * \param[in] aPos position attachment
  * \param[in] joinSubsets if true then subsets will be joined otherwise not
+ * \tparam TAPos position attachment
  */
 template <typename TAPos>
 void MergeGrids

@@ -95,7 +95,7 @@ bool ImportGridFromNG(Grid& grid,
 		grid.attach_to_vertices(aPos);
 
 	//	set up vertex attachment accessor
-	Grid::VertexAttachmentAccessor<AVector3> aaPosition(grid, aPos);
+	Grid::VertexAttachmentAccessor aaPosition(grid, aPos);
 
 	//	read nodes and store them in an array for index access
 	vector<RegularVertex*>	vVertices;
@@ -113,9 +113,9 @@ bool ImportGridFromNG(Grid& grid,
 
 		// set vertex coordinates
 		aaPosition[vert] = vector3(
-			(number)node->coords[0],
-			(number)node->coords[1],
-			(number)node->coords[2]
+			node->coords[0],
+			node->coords[1],
+			node->coords[2]
 		);
 	}
 
@@ -131,9 +131,9 @@ bool ImportGridFromNG(Grid& grid,
 
 		// set vertex coordinates
 		aaPosition[vert] = vector3(
-			(number)node->coords[0],
-			(number)node->coords[1],
-			(number)node->coords[2]
+			node->coords[0],
+			node->coords[1],
+			node->coords[2]
 		);
 	}
 
@@ -190,7 +190,7 @@ bool ImportGridFromNG(Grid& grid,
 			// create volume
 			switch(elem->num_nodes)
 			{
-				case ng_tetrahedra:
+				case ng_volume_type::ng_tetrahedra:
 					vol = *grid.create<Tetrahedron>(TetrahedronDescriptor(
 							vVertices[elem->nodes[0]],
 							vVertices[elem->nodes[1]],
@@ -199,7 +199,7 @@ bool ImportGridFromNG(Grid& grid,
 					));
 					break;
 
-				case ng_pyramid:
+				case ng_volume_type::ng_pyramid:
 					vol = *grid.create<Pyramid>(PyramidDescriptor(
 							vVertices[elem->nodes[0]],
 							vVertices[elem->nodes[1]],
@@ -207,7 +207,7 @@ bool ImportGridFromNG(Grid& grid,
 							vVertices[elem->nodes[3]],
 							vVertices[elem->nodes[4]]));
 					break;
-				case ng_prism:
+				case ng_volume_type::ng_prism:
 					vol = *grid.create<Prism>(PrismDescriptor(
 							vVertices[elem->nodes[0]],
 							vVertices[elem->nodes[1]],

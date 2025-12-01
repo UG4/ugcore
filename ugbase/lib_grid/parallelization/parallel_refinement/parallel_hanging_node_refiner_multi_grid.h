@@ -69,7 +69,7 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 	/**	If not all processes are involved in refinement,
 	 *	one can set the involved processes here. By default,
 	 *	all processes are involved.*/
-		void set_involved_processes(pcl::ProcessCommunicator com);
+		void set_involved_processes(const pcl::ProcessCommunicator &com);
 
 	protected:
 	///	a callback that allows to deny refinement of special vertices
