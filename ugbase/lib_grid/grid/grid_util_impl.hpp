@@ -172,10 +172,10 @@ inline void CollectAssociated(std::vector<Vertex*>& vVertexOut,
 	uint type = obj->base_object_id();
 	switch(type)
 	{
-		case GridBaseObjectId::VERTEX:CollectAssociated(vVertexOut, grid, reinterpret_cast<Vertex*>(obj), clearContainer); return;
-		case GridBaseObjectId::EDGE:	CollectAssociated(vVertexOut, grid, reinterpret_cast<Edge*>(obj), clearContainer); return;
-		case GridBaseObjectId::FACE:	CollectAssociated(vVertexOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
-		case GridBaseObjectId::VOLUME:CollectAssociated(vVertexOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
+		case GridBaseObjectId::VERTEX: CollectAssociated(vVertexOut, grid, reinterpret_cast<Vertex*>(obj), clearContainer); return;
+		case GridBaseObjectId::EDGE: CollectAssociated(vVertexOut, grid, reinterpret_cast<Edge*>(obj), clearContainer); return;
+		case GridBaseObjectId::FACE: CollectAssociated(vVertexOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
+		case GridBaseObjectId::VOLUME: CollectAssociated(vVertexOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
 	}
 	throw(UGError("GeomObject type not known."));
 }
@@ -212,10 +212,10 @@ inline void CollectAssociated(std::vector<Edge*>& vEdgesOut,
 	uint type = obj->base_object_id();
 	switch(type)
 	{
-		case GridBaseObjectId::VERTEX:CollectAssociated(vEdgesOut, grid, reinterpret_cast<Vertex*>(obj), clearContainer); return;
-		case GridBaseObjectId::EDGE:	CollectAssociated(vEdgesOut, grid, reinterpret_cast<Edge*>(obj), clearContainer); return;
-		case GridBaseObjectId::FACE:	CollectAssociated(vEdgesOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
-		case GridBaseObjectId::VOLUME:CollectAssociated(vEdgesOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
+		case GridBaseObjectId::VERTEX: CollectAssociated(vEdgesOut, grid, reinterpret_cast<Vertex*>(obj), clearContainer); return;
+		case GridBaseObjectId::EDGE: CollectAssociated(vEdgesOut, grid, reinterpret_cast<Edge*>(obj), clearContainer); return;
+		case GridBaseObjectId::FACE: CollectAssociated(vEdgesOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
+		case GridBaseObjectId::VOLUME: CollectAssociated(vEdgesOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
 	}
 	throw(UGError("GeomObject type not known."));
 }
@@ -252,10 +252,10 @@ inline void CollectAssociated(std::vector<Face*>& vFacesOut,
 	uint type = obj->base_object_id();
 	switch(type)
 	{
-		case GridBaseObjectId::VERTEX:CollectAssociated(vFacesOut, grid, reinterpret_cast<Vertex*>(obj), clearContainer); return;
-		case GridBaseObjectId::EDGE:	CollectAssociated(vFacesOut, grid, reinterpret_cast<Edge*>(obj), clearContainer); return;
-		case GridBaseObjectId::FACE:	CollectAssociated(vFacesOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
-		case GridBaseObjectId::VOLUME:CollectAssociated(vFacesOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
+		case GridBaseObjectId::VERTEX: CollectAssociated(vFacesOut, grid, reinterpret_cast<Vertex*>(obj), clearContainer); return;
+		case GridBaseObjectId::EDGE: CollectAssociated(vFacesOut, grid, reinterpret_cast<Edge*>(obj), clearContainer); return;
+		case GridBaseObjectId::FACE: CollectAssociated(vFacesOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
+		case GridBaseObjectId::VOLUME: CollectAssociated(vFacesOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
 	}
 	throw(UGError("GeomObject type not known."));
 }
@@ -299,10 +299,10 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 	uint type = obj->base_object_id();
 	switch(type)
 	{
-		case GridBaseObjectId::VERTEX:CollectAssociated(vVolumesOut, grid, reinterpret_cast<Vertex*>(obj), clearContainer); return;
-		case GridBaseObjectId::EDGE:	CollectAssociated(vVolumesOut, grid, reinterpret_cast<Edge*>(obj), clearContainer); return;
-		case GridBaseObjectId::FACE:	CollectAssociated(vVolumesOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
-		case GridBaseObjectId::VOLUME:CollectAssociated(vVolumesOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
+		case GridBaseObjectId::VERTEX: CollectAssociated(vVolumesOut, grid, reinterpret_cast<Vertex*>(obj), clearContainer); return;
+		case GridBaseObjectId::EDGE: CollectAssociated(vVolumesOut, grid, reinterpret_cast<Edge*>(obj), clearContainer); return;
+		case GridBaseObjectId::FACE: CollectAssociated(vVolumesOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
+		case GridBaseObjectId::VOLUME: CollectAssociated(vVolumesOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
 	}
 	throw(UGError("GeomObject type not known."));
 }
@@ -315,10 +315,10 @@ inline void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid,
 {
 	switch(obj->base_object_id())
 	{
-		case GridBaseObjectId::VERTEX:CollectVertices(vVertexOut, grid, static_cast<Vertex*>(obj), clearContainer); return;
-		case GridBaseObjectId::EDGE:	CollectVertices(vVertexOut, grid, static_cast<Edge*>(obj), clearContainer); return;
-		case GridBaseObjectId::FACE:	CollectVertices(vVertexOut, grid, static_cast<Face*>(obj), clearContainer); return;
-		case GridBaseObjectId::VOLUME:CollectVertices(vVertexOut, grid, static_cast<Volume*>(obj), clearContainer); return;
+		case GridBaseObjectId::VERTEX: CollectVertices(vVertexOut, grid, static_cast<Vertex*>(obj), clearContainer); return;
+		case GridBaseObjectId::EDGE: CollectVertices(vVertexOut, grid, static_cast<Edge*>(obj), clearContainer); return;
+		case GridBaseObjectId::FACE: CollectVertices(vVertexOut, grid, static_cast<Face*>(obj), clearContainer); return;
+		case GridBaseObjectId::VOLUME: CollectVertices(vVertexOut, grid, static_cast<Volume*>(obj), clearContainer); return;
 	}
 	throw(UGError("GeomObject type not known."));
 }
@@ -328,10 +328,10 @@ inline void CollectEdgesSorted(std::vector<Edge*>& vEdgesOut, Grid& grid,
 {
 	switch(obj->base_object_id())
 	{
-		case GridBaseObjectId::VERTEX:CollectEdgesSorted(vEdgesOut, grid, static_cast<Vertex*>(obj), clearContainer); return;
-		case GridBaseObjectId::EDGE:	CollectEdgesSorted(vEdgesOut, grid, static_cast<Edge*>(obj), clearContainer); return;
-		case GridBaseObjectId::FACE:	CollectEdgesSorted(vEdgesOut, grid, static_cast<Face*>(obj), clearContainer); return;
-		case GridBaseObjectId::VOLUME:CollectEdgesSorted(vEdgesOut, grid, static_cast<Volume*>(obj), clearContainer); return;
+		case GridBaseObjectId::VERTEX: CollectEdgesSorted(vEdgesOut, grid, static_cast<Vertex*>(obj), clearContainer); return;
+		case GridBaseObjectId::EDGE: CollectEdgesSorted(vEdgesOut, grid, static_cast<Edge*>(obj), clearContainer); return;
+		case GridBaseObjectId::FACE: CollectEdgesSorted(vEdgesOut, grid, static_cast<Face*>(obj), clearContainer); return;
+		case GridBaseObjectId::VOLUME: CollectEdgesSorted(vEdgesOut, grid, static_cast<Volume*>(obj), clearContainer); return;
 	}
 	throw(UGError("GeomObject type not known."));
 }
@@ -341,10 +341,10 @@ inline void CollectFacesSorted(std::vector<Face*>& vFacesOut, Grid& grid,
 {
 	switch(obj->base_object_id())
 	{
-		case GridBaseObjectId::VERTEX:CollectFacesSorted(vFacesOut, grid, static_cast<Vertex*>(obj), clearContainer); return;
-		case GridBaseObjectId::EDGE:	CollectFacesSorted(vFacesOut, grid, static_cast<Edge*>(obj), clearContainer); return;
-		case GridBaseObjectId::FACE:	CollectFacesSorted(vFacesOut, grid, static_cast<Face*>(obj), clearContainer); return;
-		case GridBaseObjectId::VOLUME:CollectFacesSorted(vFacesOut, grid, static_cast<Volume*>(obj), clearContainer); return;
+		case GridBaseObjectId::VERTEX: CollectFacesSorted(vFacesOut, grid, static_cast<Vertex*>(obj), clearContainer); return;
+		case GridBaseObjectId::EDGE: CollectFacesSorted(vFacesOut, grid, static_cast<Edge*>(obj), clearContainer); return;
+		case GridBaseObjectId::FACE: CollectFacesSorted(vFacesOut, grid, static_cast<Face*>(obj), clearContainer); return;
+		case GridBaseObjectId::VOLUME: CollectFacesSorted(vFacesOut, grid, static_cast<Volume*>(obj), clearContainer); return;
 	}
 	throw(UGError("GeomObject type not known."));
 }

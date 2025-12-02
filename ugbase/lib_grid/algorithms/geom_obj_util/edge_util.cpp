@@ -81,7 +81,7 @@ bool IsBoundaryEdge(Grid& grid, Edge* e,
 	int counter = 0;
 	if(grid.option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
-		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
+		for(auto iter = grid.associated_faces_begin(e);
 			iter != grid.associated_faces_end(e); ++iter)
 		{
 			if(funcIsSurfFace(*iter))
@@ -146,7 +146,7 @@ bool IsBoundaryEdge3D(Grid& grid, Edge* e)
 //	check whether an associated face is a boundary face
 	if(grid.option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
-		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
+		for(auto iter = grid.associated_faces_begin(e);
 			iter != grid.associated_faces_end(e); ++iter)
 		{
 			if(IsBoundaryFace3D(grid, *iter))
@@ -189,8 +189,8 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 	if(grid.option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
 		int counter = 0;
-		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(e);
-		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
+		auto iterEnd = grid.associated_faces_end(e);
+		for(auto iter = grid.associated_faces_begin(e);
 			iter != iterEnd; ++iter)
 		{
 			if(counter < maxNumFaces)
@@ -889,7 +889,7 @@ bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
 	EdgeIterator iter = sel.begin<Edge>();
 	while(iter != sel.end<Edge>()){
 		Edge* e = *iter;
-		iter++;
+		++iter;
 	
 	//	check whether the edge intersects the plane
 		vector3 rayDir;
@@ -923,7 +923,7 @@ bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
 		EdgeIterator iter = sel.begin<Edge>();
 		while(iter != sel.end<Edge>()){
 			Edge* e = *iter;
-			iter++;
+			++iter;
 			if(!(sel.is_selected(e->vertex(0)) && sel.is_selected(e->vertex(1)))){
 				sel.deselect(e);
 			}

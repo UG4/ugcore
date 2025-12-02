@@ -47,7 +47,7 @@ namespace ug{
  * elements shall be sorted in the order in which they appear in the reference
  * element of given element (false by default).*/
 template <typename TElem, typename TAssocElem, bool VSorted = false>
-class AssocElemIter /*: public std::iterator<std::input_iterator_tag, TAssocElem*>*/
+class AssocElemIter /* ø 2025 public std::iterator<std::input_iterator_tag, TAssocElem*>*/
 {
 		public:
 			using iterator_category = std::input_iterator_tag;
@@ -56,15 +56,13 @@ class AssocElemIter /*: public std::iterator<std::input_iterator_tag, TAssocElem
 			using pointer = TAssocElem**;
 			using reference = TAssocElem*&;
 
-			AssocElemIter(typename Grid::traits<TAssocElem>::callback cbConsiderElem =
-							ConsiderAll()) :
+			explicit AssocElemIter(typename Grid::traits<TAssocElem>::callback cbConsiderElem = ConsiderAll()) :
 				m_i(0),
 				m_cbConsiderElem(cbConsiderElem)
 			{}
 
 			AssocElemIter(Grid& grid, TElem* elem,
-						  typename Grid::traits<TAssocElem>::callback cbConsiderElem =
-							ConsiderAll()) :
+						  typename Grid::traits<TAssocElem>::callback cbConsiderElem = ConsiderAll()) :
 				m_i(0),
 				m_cbConsiderElem(cbConsiderElem)
 			{
@@ -99,11 +97,11 @@ class AssocElemIter /*: public std::iterator<std::input_iterator_tag, TAssocElem
 				return e;
 			}
 
-			bool valid() const	{return m_i < m_assElems.size();}
-			bool invalid() const	{return m_i >= m_assElems.size();}
+			[[nodiscard]] inline bool valid() const {return m_i < m_assElems.size();}
+			[[nodiscard]] inline bool invalid() const {return m_i >= m_assElems.size();}
 
 
-			AssocElemIter& operator ++ ()			{increment(); return *this;}
+			AssocElemIter& operator ++ () {increment(); return *this;}
 			AssocElemIter operator ++ (int)	{AssocElemIter i = *this; increment(); return i;}
 
 		///	returns true if both iterators are invalid or if both point to the same elemnt.
@@ -111,7 +109,7 @@ class AssocElemIter /*: public std::iterator<std::input_iterator_tag, TAssocElem
 		///	returns true if exactly one iterator is invalid or if the iterators point to different elements.
 			bool operator !=(const AssocElemIter& iter) const {return !equal(iter);}
 
-			TAssocElem* operator *()	{return dereference();}
+			TAssocElem* operator *() {return dereference();}
 
 		private:
 			inline void init(Grid& grid, TElem* elem){
@@ -140,7 +138,7 @@ class AssocElemIter /*: public std::iterator<std::input_iterator_tag, TAssocElem
 			}
 
 		///	returns next iterator
-			void increment(){
+			inline void increment(){
 				while(true){
 					++m_i;
 					if(valid()){
@@ -160,7 +158,7 @@ class AssocElemIter /*: public std::iterator<std::input_iterator_tag, TAssocElem
 		private:
 			size_t m_i;
 			typename Grid::traits<TAssocElem>::secure_container	m_assElems;
-			typename Grid::traits<TAssocElem>::callback			m_cbConsiderElem;
+			typename Grid::traits<TAssocElem>::callback m_cbConsiderElem;
 	};
 
 }//	end of namespace

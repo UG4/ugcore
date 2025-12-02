@@ -79,8 +79,8 @@ using namespace std;
 /**
  * Be sure that callback is a complete function call - including parameters.
  */
-#define NOTIFY_OBSERVERS(observerContainer, callback)	{for(Grid::ObserverContainer::iterator iter = observerContainer.begin(); iter != observerContainer.end(); iter++) (*iter)->callback;}
-#define NOTIFY_OBSERVERS_REVERSE(observerContainer, callback)	{for(Grid::ObserverContainer::reverse_iterator iter = observerContainer.rbegin(); iter != observerContainer.rend(); iter++) (*iter)->callback;}
+#define NOTIFY_OBSERVERS(observerContainer, callback) {for(Grid::ObserverContainer::iterator iter = observerContainer.begin(); iter != observerContainer.end(); iter++) (*iter)->callback;}
+#define NOTIFY_OBSERVERS_REVERSE(observerContainer, callback) {for(Grid::ObserverContainer::reverse_iterator iter = observerContainer.rbegin(); iter != observerContainer.rend(); iter++) (*iter)->callback;}
 
 ////////////////////////////////////////////////////////////////////////
 ///	a useful macro that checks if a set of options contains the specified option.

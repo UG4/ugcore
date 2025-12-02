@@ -140,7 +140,7 @@ public:
 	{
 		if (! the_object)
 			return false;
-		if (si_ar.size () == 0)
+		if (si_ar.empty())
 			return in_all; // dummy value ("sum or product over the empty set")
 
 		using flags_t = unsigned long;
@@ -163,7 +163,7 @@ public:
 				if (si == si_ar [j])
 				{
 					if (! in_all) return true;
-					flags |= ((flags_t) 1) << j;
+					flags |= static_cast<flags_t>(1) << j;
 				}
 		}
 		return flags == all_flags;

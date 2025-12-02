@@ -111,7 +111,7 @@ int GetConnectedVertexIndex(Face* f, const EdgeVertices* e)
 		if((f->vertex(i) != e->vertex(0)) &&
 			(f->vertex(i) != e->vertex(1)))
 		{
-			return i;
+			return static_cast<int>(i);
 		}
 	}
 	return -1;
@@ -201,7 +201,7 @@ int NumAssociatedEdges(Grid& grid, Vertex* v)
 {
 	Grid::edge_traits::secure_container edges;
 	grid.associated_elements(edges, v);
-	return (int)edges.size();
+	return static_cast<int>(edges.size());
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -209,7 +209,7 @@ int NumAssociatedFaces(Grid& grid, Vertex* v)
 {
 	Grid::face_traits::secure_container faces;
 	grid.associated_elements(faces, v);
-	return (int)faces.size();
+	return static_cast<int>(faces.size());
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -324,7 +324,7 @@ Vertex* FindVertexByCoordiante(vector3& coord, VertexIterator iterBegin, VertexI
 	number bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]);
 
 	VertexIterator iter = iterBegin;
-	iter++;
+	++iter;
 	while(iter != iterEnd)
 	{
 		number distSq = VecDistanceSq(coord, aaPos[*iter]);
@@ -349,12 +349,12 @@ bool CalculateVertexNormals(Grid& grid,
 //	set all normals to zero
 	{
 		for(VertexIterator iter = grid.begin<Vertex>();
-			iter != grid.end<Vertex>(); iter++)
+			iter != grid.end<Vertex>(); ++iter)
 			aaNorm[*iter] = vector3(0, 0, 0);
 	}
 //	loop through all the faces, calculate their normal and add them to their connected points
 	{
-		for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); iter++)
+		for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter)
 		{
 			Face* f = *iter;
 			vector3 vN;
@@ -368,7 +368,7 @@ bool CalculateVertexNormals(Grid& grid,
 //	loop through all the points and normalize their normals
 	{
 		for(VertexIterator iter = grid.begin<Vertex>();
-			iter != grid.end<Vertex>(); iter++)
+			iter != grid.end<Vertex>(); ++iter)
 			VecNormalize(aaNorm[*iter], aaNorm[*iter]);
 	}
 //	done
@@ -382,8 +382,8 @@ bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm)
 	if(!grid.has_attachment<Vertex>(aNorm))
 		grid.attach_to<Vertex>(aNorm);
 
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
-	Grid::VertexAttachmentAccessor<ANormal> aaNorm(grid, aNorm);
+	Grid::VertexAttachmentAccessor aaPos(grid, aPos);
+	Grid::VertexAttachmentAccessor aaNorm(grid, aNorm);
 
 	return CalculateVertexNormals(grid, aaPos, aaNorm);
 }
@@ -613,7 +613,7 @@ void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,
 							int creaseSI, int fixedSI)
 {
 //	if there are no crease-edges then there is nothing to do.
-	if((int)sh.num_subsets() <= creaseSI)
+	if(sh.num_subsets() <= creaseSI)
 		return;
 	if(sh.num<Edge>(creaseSI) == 0)
 		return;

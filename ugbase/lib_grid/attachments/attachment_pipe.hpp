@@ -65,8 +65,8 @@ AttachmentPipe<TElem, TElemHandler>::
 ~AttachmentPipe()
 {
 //	clear attachment entries
-	for(AttachmentEntryIterator iter = m_attachmentEntryContainer.begin();
-					iter != m_attachmentEntryContainer.end(); iter++)
+	for(auto iter = m_attachmentEntryContainer.begin();
+	    iter != m_attachmentEntryContainer.end(); ++iter)
 	{
 		delete (*iter).m_pAttachment;
 		delete (*iter).m_pContainer;
@@ -107,8 +107,8 @@ void
 AttachmentPipe<TElem, TElemHandler>::
 reset_values(size_t dataIndex)
 {
-	for(AttachmentEntryIterator iter = m_attachmentEntryContainer.begin();
-					iter != m_attachmentEntryContainer.end(); iter++)
+	for(auto iter = m_attachmentEntryContainer.begin();
+	    iter != m_attachmentEntryContainer.end(); ++iter)
 	{
 		(*iter).m_pContainer->reset_entry(dataIndex);
 	}
@@ -188,8 +188,8 @@ attach(TAttachment& attachment,
 		IAttachment* pClonedAttachment = attachment.clone();
 		IAttachmentDataContainer* pClonedContainer = attachment.create_container(defaultValue);
 		pClonedContainer->resize(get_container_size());
-		AttachmentEntryIterator iter = m_attachmentEntryContainer.
-				insert(m_attachmentEntryContainer.end(),
+		auto iter = m_attachmentEntryContainer.insert(
+				m_attachmentEntryContainer.end(),
 						AttachmentEntry(pClonedAttachment,
 						pClonedContainer, options));
 		m_attachmentEntryIteratorHash.insert(pClonedAttachment->id(), iter);
@@ -214,7 +214,7 @@ attach(IAttachment& attachment, uint options)
 		IAttachment* pClonedAttachment = attachment.clone();
 		IAttachmentDataContainer* pClonedContainer = pClonedAttachment->create_container();
 		pClonedContainer->resize(get_container_size());
-		AttachmentEntryIterator iter = m_attachmentEntryContainer.insert(m_attachmentEntryContainer.end(), AttachmentEntry(pClonedAttachment, pClonedContainer, options));
+		auto iter = m_attachmentEntryContainer.insert(m_attachmentEntryContainer.end(), AttachmentEntry(pClonedAttachment, pClonedContainer, options));
 		m_attachmentEntryIteratorHash.insert(pClonedAttachment->id(), iter);
 	}
 	else
@@ -230,11 +230,11 @@ detach(IAttachment& attachment)
 {
 	if(has_attachment(attachment))
 	{
-		AttachmentEntryIterator iter = m_attachmentEntryIteratorHash.get_entry(attachment.id());
-		delete ((*iter).m_pAttachment);
-		((*iter).m_pAttachment) = nullptr;
-		delete((*iter).m_pContainer);
-		((*iter).m_pContainer) = nullptr;
+		auto iter = m_attachmentEntryIteratorHash.get_entry(attachment.id());
+		delete (iter->m_pAttachment);
+		(iter->m_pAttachment) = nullptr;
+		delete(iter->m_pContainer);
+		(iter->m_pContainer) = nullptr;
 		m_attachmentEntryContainer.erase(iter);
 		m_attachmentEntryIteratorHash.erase(attachment.id());
 	}
@@ -296,10 +296,10 @@ defragment()
 	if(num_elements() == 0)
 	{
 	//	just clear the attachment containers.
-		for(AttachmentEntryIterator iter = m_attachmentEntryContainer.begin();
-			iter != m_attachmentEntryContainer.end(); iter++)
+		for(auto iter = m_attachmentEntryContainer.begin();
+		    iter != m_attachmentEntryContainer.end(); ++iter)
 		{
-			(*iter).m_pContainer->resize(0);
+			iter->m_pContainer->resize(0);
 		}
 		m_stackFreeEntries = UINTStack();
 		m_numDataEntries = 0;
@@ -328,7 +328,7 @@ defragment()
 		{
 			for(auto iter = m_attachmentEntryContainer.begin(); iter != m_attachmentEntryContainer.end(); ++iter)
 			{
-				(*iter).m_pContainer->defragment(&vNewIndices.front(), num_elements());
+				iter->m_pContainer->defragment(&vNewIndices.front(), num_elements());
 			}
 		}
 	}
@@ -400,10 +400,10 @@ resize_attachment_containers(size_t newSize)
 //UG_LOG("resizing attachment containers\n");
 	//PROFILE_BEGIN(AttachmentResize);
 	m_containerSize = newSize;
-	for(AttachmentEntryIterator iter = m_attachmentEntryContainer.begin();
-				iter != m_attachmentEntryContainer.end(); iter++)
+	for(auto iter = m_attachmentEntryContainer.begin();
+	    iter != m_attachmentEntryContainer.end(); ++iter)
 	{
-		(*iter).m_pContainer->resize(newSize);
+		iter->m_pContainer->resize(newSize);
 	}
 	//PROFILE_END();
 //UG_LOG("done\n");

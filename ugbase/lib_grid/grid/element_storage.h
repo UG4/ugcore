@@ -75,9 +75,9 @@ class attachment_traits<Vertex*, ElementStorage<Vertex> >
 		using ConstElemHandlerPtr = const ElementStorage<Vertex>*;
 		using element_iterator = ElementStorage<Vertex>::SectionContainer::iterator;
 
-		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.begin();}
-		static inline element_iterator elements_end(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.end();}
-		static inline uint get_data_index(ConstElemHandlerPtr pHandler, ConstElemPtr elem)	{return elem->grid_data_index();}
+		static inline element_iterator elements_begin(ElemHandlerPtr pHandler) {return pHandler->m_sectionContainer.begin();}
+		static inline element_iterator elements_end(ElemHandlerPtr pHandler) {return pHandler->m_sectionContainer.end();}
+		static inline uint get_data_index(ConstElemHandlerPtr pHandler, ConstElemPtr elem) {return elem->grid_data_index();}
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index){elem->set_grid_data_index(index);}
 };
 
@@ -92,9 +92,9 @@ class attachment_traits<Edge*, ElementStorage<Edge> >
 		using ConstElemHandlerPtr = const ElementStorage<Edge>*;
 		using element_iterator = ElementStorage<Edge>::SectionContainer::iterator;
 
-		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.begin();}
-		static inline element_iterator elements_end(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.end();}
-		static inline uint get_data_index(ConstElemHandlerPtr pHandler, ConstElemPtr elem)	{return elem->grid_data_index();}
+		static inline element_iterator elements_begin(ElemHandlerPtr pHandler) {return pHandler->m_sectionContainer.begin();}
+		static inline element_iterator elements_end(ElemHandlerPtr pHandler) {return pHandler->m_sectionContainer.end();}
+		static inline uint get_data_index(ConstElemHandlerPtr pHandler, ConstElemPtr elem) {return elem->grid_data_index();}
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index){elem->set_grid_data_index(index);}
 };
 
@@ -109,8 +109,8 @@ class attachment_traits<Face*, ElementStorage<Face> >
 		using ConstElemHandlerPtr = const ElementStorage<Face>*;
 		using element_iterator = ElementStorage<Face>::SectionContainer::iterator;
 
-		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.begin();}
-		static inline element_iterator elements_end(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.end();}
+		static inline element_iterator elements_begin(ElemHandlerPtr pHandler) {return pHandler->m_sectionContainer.begin();}
+		static inline element_iterator elements_end(ElemHandlerPtr pHandler) {return pHandler->m_sectionContainer.end();}
 		static inline uint get_data_index(ConstElemHandlerPtr pHandler, ConstElemPtr elem)	{return elem->grid_data_index();}
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index){elem->set_grid_data_index(index);}
 };
@@ -126,8 +126,8 @@ class attachment_traits<Volume*, ElementStorage<Volume> >
 		using ConstElemHandlerPtr = const ElementStorage<Volume>*;
 		using element_iterator = ElementStorage<Volume>::SectionContainer::iterator;
 
-		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.begin();}
-		static inline element_iterator elements_end(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.end();}
+		static inline element_iterator elements_begin(ElemHandlerPtr pHandler) {return pHandler->m_sectionContainer.begin();}
+		static inline element_iterator elements_end(ElemHandlerPtr pHandler) {return pHandler->m_sectionContainer.end();}
 		static inline uint get_data_index(ConstElemHandlerPtr pHandler, ConstElemPtr elem)	{return elem->grid_data_index();}
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index){elem->set_grid_data_index(index);}
 };

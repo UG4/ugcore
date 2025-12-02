@@ -69,7 +69,7 @@ bool TriangleFill_SweepLine(Grid& grid, TIterator edgesBegin,
 		for(size_t i = 0; i < 2; ++i){
 			Vertex* vrt = e->vertex(i);
 			if(!grid.is_marked(vrt)){
-				aaInt[vrt] = (int)vrts.size();
+				aaInt[vrt] = static_cast<int>(vrts.size());
 				vrts.push_back(aaPos[vrt]);
 				//vrts.push_back(vector2(aaPos[vrt].x(), aaPos[vrt].y()));
 				vrtPtrs.push_back(vrt);

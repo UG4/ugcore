@@ -326,7 +326,7 @@ size_t IntersectPlaneWithTetrahedron
     using namespace tet_rules;
     size_t numIntersections = 0;
     int intersectingEdges[4];
-    for(size_t ie = 0; ie < (size_t) NUM_EDGES; ++ie)
+    for(size_t ie = 0; ie < static_cast<size_t>(NUM_EDGES); ++ie)
     {
         vector3 v0 = t[EDGE_VRT_INDS[ie][0]];
         vector3 v1 = t[EDGE_VRT_INDS[ie][1]];

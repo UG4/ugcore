@@ -425,8 +425,8 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 			int baseType = pParent->base_object_id();
 			switch(baseType)
 			{
-			case GridBaseObjectId::FACE:		element_created(face, (Face*)pParent); break;
-			case GridBaseObjectId::VOLUME:	element_created(face, (Volume*)pParent); break;
+			case GridBaseObjectId::FACE: element_created(face, static_cast<Face *>(pParent)); break;
+			case GridBaseObjectId::VOLUME: element_created(face, static_cast<Volume *>(pParent)); break;
 			}
 		}
 		else
@@ -446,8 +446,8 @@ void MultiGrid::face_to_be_erased(Grid* grid, Face* face,
 		int baseType = pParent->base_object_id();
 		switch(baseType)
 		{
-		case GridBaseObjectId::FACE: element_to_be_erased(face, (Face*)pParent); break;
-		case GridBaseObjectId::VOLUME: element_to_be_erased(face, (Volume*)pParent); break;
+		case GridBaseObjectId::FACE: element_to_be_erased(face, static_cast<Face *>(pParent)); break;
+		case GridBaseObjectId::VOLUME: element_to_be_erased(face, static_cast<Volume *>(pParent)); break;
 		}
 	}
 	else
@@ -469,7 +469,7 @@ void MultiGrid::volume_created(Grid* grid, Volume* vol,
 		GridObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replacement
-		element_created(vol, (Volume*)realParent, pReplaceMe);
+		element_created(vol, static_cast<Volume *>(realParent), pReplaceMe);
 
 	//	copy pReplaceMes children and replace parent of children
 		if(has_children(pReplaceMe)){
@@ -510,7 +510,7 @@ void MultiGrid::volume_created(Grid* grid, Volume* vol,
 		{
 			UG_ASSERT(pParent->base_object_id() == VOLUME,
 				  "Only volumes can be parents to volumes.");
-			element_created(vol, (Volume*)pParent);
+			element_created(vol, static_cast<Volume *>(pParent));
 		}
 		else
 			element_created(vol);
@@ -528,7 +528,7 @@ void MultiGrid::volume_to_be_erased(Grid* grid, Volume* vol,
 	{
 		UG_ASSERT(pParent->base_object_id() == VOLUME,
 				  "Only volumes can be parents to volumes.");
-		element_to_be_erased(vol, (Volume*)pParent);
+		element_to_be_erased(vol, static_cast<Volume *>(pParent));
 	}
 	else
 		element_to_be_erased(vol);
@@ -544,7 +544,7 @@ void MultiGrid::check_edge_elem_infos(int level) const
 		iter != end<Edge>(level); ++iter)
 		maxChildEdges = max(get_info(*iter).num_child_edges(), maxChildEdges);
 
-	UG_LOG("MultiGrid: max edge child edges on level " << level << ": " << (int)maxChildEdges << endl);
+	UG_LOG("MultiGrid: max edge child edges on level " << level << ": " << static_cast<int>(maxChildEdges) << endl);
 }
 
 void MultiGrid::check_face_elem_infos(int level) const
@@ -560,8 +560,8 @@ void MultiGrid::check_face_elem_infos(int level) const
 		maxChildFaces = max(get_info(*iter).num_child_faces(), maxChildFaces);
 	}
 
-	UG_LOG("MultiGrid: max face child edges on level " << level << ": " << (int)maxChildEdges << endl);
-	UG_LOG("MultiGrid: max face child faces on level " << level << ": " << (int)maxChildFaces << endl);
+	UG_LOG("MultiGrid: max face child edges on level " << level << ": " << static_cast<int>(maxChildEdges) << endl);
+	UG_LOG("MultiGrid: max face child faces on level " << level << ": " << static_cast<int>(maxChildFaces) << endl);
 }
 
 void MultiGrid::check_volume_elem_infos(int level) const
@@ -578,9 +578,9 @@ void MultiGrid::check_volume_elem_infos(int level) const
 		maxChildVolumes = max(get_info(*iter).num_child_volumes(), maxChildVolumes);
 	}
 
-	UG_LOG("MultiGrid: max volume child edges on level " << level << ": " << (int)maxChildEdges << endl);
-	UG_LOG("MultiGrid: max volume child faces on level " << level << ": " << (int)maxChildFaces << endl);
-	UG_LOG("MultiGrid: max volume child volumes on level " << level << ": " << (int)maxChildVolumes << endl);
+	UG_LOG("MultiGrid: max volume child edges on level " << level << ": " << static_cast<int>(maxChildEdges) << endl);
+	UG_LOG("MultiGrid: max volume child faces on level " << level << ": " << static_cast<int>(maxChildFaces) << endl);
+	UG_LOG("MultiGrid: max volume child volumes on level " << level << ": " << static_cast<int>(maxChildVolumes) << endl);
 }
 
 

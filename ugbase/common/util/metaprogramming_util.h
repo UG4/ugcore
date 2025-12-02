@@ -146,13 +146,13 @@ struct TypeValueList< TypeList<> > {};
 template <size_t n>
 struct Factorial
 {
-    enum{value = n*Factorial<n-1>::value};
+    static constexpr size_t value = n*Factorial<n-1>::value;
 };
 
 template <>
 struct Factorial<1>
 {
-    enum {value = 1};
+    static constexpr size_t value = 1;
 };
 
 //////////////////////////////
@@ -164,13 +164,13 @@ struct Factorial<1>
 template <int n, size_t d>
 struct Pow
 {
-    enum{value = n*Pow<n, d-1>::value};
+     static constexpr int value = n*Pow<n, d-1>::value;
 };
 
 template <int n>
 struct Pow<n, 0>
 {
-    enum {value = 1};
+    static constexpr int value = 1;
 };
 
 //////////////////////////////
@@ -187,39 +187,39 @@ struct Pow<n, 0>
 template <size_t n, int k>
 struct BinomialCoefficient
 {
-    enum { value = 	Factorial<n>::value/
-    				(Factorial<k>::value*Factorial<n-k>::value) };
+    static constexpr size_t value = Factorial<n>::value/
+    				(Factorial<k>::value*Factorial<n-k>::value);
 };
 
 // end rekursion
 template <size_t n>
 struct BinomialCoefficient<n,0>
 {
-    enum { value = 1};
+    static constexpr size_t value = 1;
 };
 // end rekursion
 template <size_t n>
 struct BinomialCoefficient<n,-1>
 {
-    enum { value = 0};
+    static constexpr size_t value = 0;
 };
 // end rekursion
 template <size_t n>
 struct BinomialCoefficient<n,-2>
 {
-    enum { value = 0};
+    static constexpr size_t value = 0;
 };
 // end rekursion
 template <size_t n>
 struct BinomialCoefficient<n,-3>
 {
-    enum { value = 0};
+    static constexpr size_t value = 0;
 };
 // end rekursion
 template <size_t n>
 struct BinomialCoefficient<n,-4>
 {
-    enum { value = 0};
+    static constexpr size_t value = 0;
 };
 
 //////////////////////////////

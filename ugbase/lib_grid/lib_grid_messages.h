@@ -64,7 +64,7 @@ class GridMessage_MultiGridChanged : public MessageHub::IMessage
 
 	private:
 		GridMessageMultiGridChangedType	m_msgType;
-		int		m_numLevels;
+		int m_numLevels;
 };
 
 
@@ -150,8 +150,8 @@ class GridMessage_Adaption : public MessageHub::IMessage
 		[[nodiscard]] const GridObjectCollection& affected_elements() const {return m_affectedElements;}
 
 	protected:
-		GridMessageAdaptionType		m_adaptionType;
-		GridObjectCollection	m_affectedElements;
+		GridMessageAdaptionType m_adaptionType;
+		GridObjectCollection m_affectedElements;
 };
 
 

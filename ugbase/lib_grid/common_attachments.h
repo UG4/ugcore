@@ -103,6 +103,7 @@ extern ANormal aNormal;
  *		- APosition2 (AVector2)		the default 2d position type. Returns aPosition2.
  *		- APosition1 (AVector1)		the default 1d position type. Returns aPosition1.
  */
+// ø todo implement or delete | currently not implemented
 template <typename TAttachment>
 UG_API
 inline

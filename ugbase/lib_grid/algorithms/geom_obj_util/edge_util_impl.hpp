@@ -230,7 +230,7 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						if(grid.is_marked(ae)){
 						//	the local index of the vertex over which ae is connected to e has
 						//	to be different from the local index of the vertex in e.
-							if(GetVertexIndex(ae, e->vertex(i)) == (int)i){
+							if(GetVertexIndex(ae, e->vertex(i)) == static_cast<int>(i)){
 							//	we have to flip the orientation
 								grid.flip_orientation(ae);
 							}

@@ -66,8 +66,8 @@ class UG_API DelaunayInfo : public GridObserver
 
 		~DelaunayInfo() override;
 
-		Grid& grid()				{return m_grid;}
-		AAPos& position_accessor()	{return m_aaPos;}
+		Grid& grid() const {return m_grid;}
+		AAPos& position_accessor() {return m_aaPos;}
 
 
 	/**	\warning	init_marks may currently only be called once! Undefined behaviour
@@ -120,10 +120,10 @@ class UG_API DelaunayInfo : public GridObserver
 	/**	candidates are used during MakeDelaunay to define the set of edges which
 	 * may have to be swapped to obtain a delaunay triangulation.
 	 * \{ */
-		bool is_candidate(Edge* e)		{return m_aaCandidateEDGE[e];}
+		bool is_candidate(Edge* e) {return m_aaCandidateEDGE[e];}
 		void push_candidate(Edge* e);
 		Edge* pop_candidate();
-		bool candidates_left()			{return !m_qEdgeCandidates.empty();}
+		bool candidates_left() const {return !m_qEdgeCandidates.empty();}
 	/** \} */
 
 	///	newly created edges will be recorded as possible new candidates
@@ -146,7 +146,7 @@ class UG_API DelaunayInfo : public GridObserver
 	 * \{ */
 		bool classified_faces_left();
 		Face* pop_classified_face();
-		bool face_classification_enabled()		{return m_aaFaceInfo.valid();}
+		bool face_classification_enabled() const {return m_aaFaceInfo.valid();}
 		void enable_face_classification(number minAngle);
 
 		number min_angle() const				{return m_minAngle;}

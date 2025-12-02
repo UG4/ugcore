@@ -222,7 +222,7 @@ class CopyAttachmentHandler : public GridObserver
 				if (!pParent) return;
 
 				// if parent is of different elem type than child
-				TElem* par = dynamic_cast<TElem*>(pParent);
+				auto* par = dynamic_cast<TElem*>(pParent);
 				if (!par)
 				{
 					cah->copy_from_other_elem_type(pParent, elem);

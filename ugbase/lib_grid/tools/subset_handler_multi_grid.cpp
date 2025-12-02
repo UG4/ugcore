@@ -426,8 +426,8 @@ get_grid_objects_in_level(int level) const
 	return goc;
 }
 
-MultiGridSubsetHandler::Subset* MultiGridSubsetHandler::new_subset()
-{
+MultiGridSubsetHandler::Subset* MultiGridSubsetHandler::new_subset() const
+	{
 	auto sub = new Subset();
 	if(elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
 		sub->m_vertices.get_container().set_pipe(

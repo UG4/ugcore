@@ -43,7 +43,7 @@ struct attachment_io_traits{
 	using const_reference_type = typename attachment_value_traits<value_type>::const_reference;
 
 	static void write_value (std::ostream& out, const_reference_type v)	{out << v;}
-	static void read_value(std::istream& in, reference_type v)			{in >> v;}
+	static void read_value(std::istream& in, reference_type v) {in >> v;}
 };
 
 template <>
@@ -53,7 +53,7 @@ struct attachment_io_traits<Attachment<bool> > {
 	using const_reference_type = attachment_value_traits<value_type>::const_reference;
 
 	static void write_value (std::ostream& out, const_reference_type v)	{out << v;}
-	static void read_value(std::istream& in, reference_type v)			{value_type tmp; in >> tmp; v = tmp;}
+	static void read_value(std::istream& in, reference_type v) {value_type tmp; in >> tmp; v = tmp;}
 };
 
 template <>

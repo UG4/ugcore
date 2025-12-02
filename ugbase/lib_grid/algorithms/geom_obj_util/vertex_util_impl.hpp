@@ -66,7 +66,7 @@ void CalculateVertexNormal(vector3& nOut, Grid& grid, Vertex* vrt, TAAPosVRT& aa
 //	loop through all associated faces, calculate their normal and add them to thee normal
 	auto iterEnd = grid.associated_faces_end(vrt);
 	for(auto iter = grid.associated_faces_begin(vrt);
-	    iter != iterEnd; iter++)
+	    iter != iterEnd; ++iter)
 	{
 		vector3 vN;
 		CalculateNormal(vN, *iter, aaPos);
@@ -354,7 +354,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 				while(nIter != aaVL[v].end())
 				{
 					Vertex* delVrt = *nIter;
-					nIter++;
+					++nIter;
 					MergeVertices(grid, v, delVrt);
 				}
 			}

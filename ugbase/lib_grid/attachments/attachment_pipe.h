@@ -135,7 +135,7 @@ struct attachment_value_traits<bool>{
 template <typename T> class UG_API AttachmentDataContainer : public IAttachmentDataContainer
 {
 	private:
-		using ClassType = AttachmentDataContainer<T>;
+		using ClassType = AttachmentDataContainer;
 		using DataContainer = std::vector<T>;
 		using TRef = typename attachment_value_traits<T>::reference;
 		using TConstRef = typename attachment_value_traits<T>::const_reference;
@@ -143,7 +143,7 @@ template <typename T> class UG_API AttachmentDataContainer : public IAttachmentD
 	public:
 		using ValueType = T;
 
-		AttachmentDataContainer(const T& defaultValue = T()) : m_defaultValue(defaultValue)	{}
+		explicit AttachmentDataContainer(const T& defaultValue = T()) : m_defaultValue(defaultValue)	{}
 
 		~AttachmentDataContainer() override {m_vData.clear();}
 
@@ -204,7 +204,7 @@ template <typename T> class UG_API AttachmentDataContainer : public IAttachmentD
 		}
 
 		inline TConstRef get_elem(size_t index) const		{return m_vData[index];}
-		inline TRef get_elem(size_t index)					{return m_vData[index];}
+		inline TRef get_elem(size_t index)  				{return m_vData[index];}
 		inline TConstRef operator [] (size_t index) const	{return m_vData[index];}
 		inline TRef operator [] (size_t index)				{return m_vData[index];}
 
@@ -242,7 +242,7 @@ class UG_API IAttachment : public UID
 		virtual IAttachmentDataContainer* create_container() = 0;
 		[[nodiscard]] virtual bool default_pass_on_behaviour() const = 0;
 
-		const char* get_name() const {return m_name;}    ///< should only be used for debug purposes.
+		[[nodiscard]] const char* get_name() const {return m_name;}    ///< should only be used for debug purposes.
 
 	protected:
 		const char* m_name; //only for debug
@@ -267,10 +267,10 @@ template <typename T> class UG_API Attachment : public IAttachment
 
 		~Attachment() override = default;
 
-		IAttachment* clone() override {IAttachment* pA = new Attachment<T>; *pA = *this; return pA;}
+		IAttachment* clone() override {IAttachment* pA = new Attachment; *pA = *this; return pA;}
 		IAttachmentDataContainer* create_container() override {return new ContainerType;}
 		[[nodiscard]] bool default_pass_on_behaviour() const override {return m_passOnBehaviour;}
-		IAttachmentDataContainer* create_container(const T& defaultValue)	{return new ContainerType(defaultValue);}
+		IAttachmentDataContainer* create_container(const T& defaultValue) {return new ContainerType(defaultValue);}
 
 	protected:
 		bool m_passOnBehaviour;
@@ -308,10 +308,10 @@ class attachment_traits
 
 		using element_iterator = void;
 
-		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)					{}
-		static inline element_iterator elements_end(ElemHandlerPtr pHandler)					{}
-		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)			{return ATTACHMENT_CONSTANTS::INVALID_ATTACHMENT_INDEX;/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
-		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, size_t index)	{/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
+		static inline element_iterator elements_begin(ElemHandlerPtr pHandler) {}
+		static inline element_iterator elements_end(ElemHandlerPtr pHandler) {}
+		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem) {return ATTACHMENT_CONSTANTS::INVALID_ATTACHMENT_INDEX;}
+		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, size_t index)	{}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -470,16 +470,16 @@ class UG_API AttachmentPipe
 		using UINTStack = std::stack<size_t>;
 
 	protected:
-		AttachmentEntryContainer	m_attachmentEntryContainer;
+		AttachmentEntryContainer m_attachmentEntryContainer;
 		AttachmentEntryIteratorHash	m_attachmentEntryIteratorHash;
 
-		UINTStack		m_stackFreeEntries;	///< holds indices to free entries.
+		UINTStack m_stackFreeEntries;	///< holds indices to free entries.
 
-		size_t			m_numElements;
-		size_t			m_numDataEntries;
-		size_t			m_containerSize; ///< total size of containers.
+		size_t m_numElements;
+		size_t m_numDataEntries;
+		size_t m_containerSize; ///< total size of containers.
 		
-		typename atraits::ElemHandlerPtr	m_pHandler;
+		typename atraits::ElemHandlerPtr m_pHandler;
 };
 
 

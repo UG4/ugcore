@@ -142,15 +142,15 @@ class MultiGrid : public Grid, public GridObserver
 										 int level);
 
 	///	number of levels
-		inline size_t num_levels() const {return static_cast<size_t>(m_hierarchy.num_subsets());}
+		[[nodiscard]] inline size_t num_levels() const {return static_cast<size_t>(m_hierarchy.num_subsets());}
 
 	///	index of the highest level.
-		inline size_t top_level() const;
+		[[nodiscard]] inline size_t top_level() const;
 
 	///	creates new (empty) levels until num_levels() == lvl+1
 		inline void level_required(int lvl);
 
-		template <typename TElem> inline
+		template <typename TElem> [[nodiscard]] inline
 		size_t num(int level) const {return m_hierarchy.num<TElem>(level);}
 
 		template <typename TElem> inline
@@ -194,24 +194,24 @@ class MultiGrid : public Grid, public GridObserver
 		}
 
 	//	geometric-object-collection
-		inline GridObjectCollection
+		[[nodiscard]] inline GridObjectCollection
 		get_grid_objects(int level) const {return m_hierarchy.get_grid_objects_in_subset(level);}
 		
 	//	multi-level-geometric-object-collection
 		GridObjectCollection get_grid_objects() override {return m_hierarchy.get_grid_objects();}
 		
-		template <typename TElem> inline
+		template <typename TElem> [[nodiscard]] inline
 		int get_level(TElem* elem) const
 		{return m_hierarchy.get_subset_index(elem);}
 
-		GridObject* get_parent(GridObject* parent) const;
-		inline GridObject* get_parent(Vertex* o) const {return get_info(o).m_pParent;}
-		inline GridObject* get_parent(Edge* o) const {return get_info(o).m_pParent;}
-		inline GridObject* get_parent(Face* o) const {return m_aaParentFACE[o];}
-		inline GridObject* get_parent(Volume* o) const {return m_aaParentVOL[o];}
+		[[nodiscard]] GridObject* get_parent(GridObject* parent) const;
+		[[nodiscard]] inline GridObject* get_parent(Vertex* o) const {return get_info(o).m_pParent;}
+		[[nodiscard]] inline GridObject* get_parent(Edge* o) const {return get_info(o).m_pParent;}
+		[[nodiscard]] inline GridObject* get_parent(Face* o) const {return m_aaParentFACE[o];}
+		[[nodiscard]] inline GridObject* get_parent(Volume* o) const {return m_aaParentVOL[o];}
 
 	//	number of children
-		template <typename TElem> inline
+		template <typename TElem> [[nodiscard]] inline
 		bool has_children(TElem* elem) const
 		{return get_info(elem).has_children();}
 
@@ -220,41 +220,41 @@ class MultiGrid : public Grid, public GridObserver
 	///	returns the number of children of the given child-type
 	/** \{ */
 		template <typename TChild, typename TElem>
-		inline size_t num_children(TElem* elem) const {return num_children(elem, TChild());}
+		[[nodiscard]] inline size_t num_children(TElem* elem) const {return num_children(elem, TChild());}
 
 		template <typename TChild>
-		size_t num_children(GridObject* elem) const;
+		[[nodiscard]] size_t num_children(GridObject* elem) const;
 	/** \} */
 
 	///	returns the total number of children and grand-children.
 	/**	Only children of the same type as the given elements are regarded here.*/
 		template <typename TElem>
-		inline size_t num_children_total(TElem* elem) const;
+		[[nodiscard]] inline size_t num_children_total(TElem* elem) const;
 
 	///	Returns the number of child vertices
 		template <typename TElem>
-		inline size_t num_child_vertices(TElem* elem) const {return get_info(elem).num_child_vertices();}
+		[[nodiscard]] inline size_t num_child_vertices(TElem* elem) const {return get_info(elem).num_child_vertices();}
 
 	///	Returns the number of child edges
 	/**	\{	*/
 		template <typename TElem>
-		inline size_t num_child_edges(TElem* elem) const {return get_info(elem).num_child_edges();}
-		inline size_t num_child_edges(Vertex*) const {return 0;}
+		[[nodiscard]] inline size_t num_child_edges(TElem* elem) const {return get_info(elem).num_child_edges();}
+		[[nodiscard]] inline size_t num_child_edges(Vertex*) const {return 0;}
 	/**	\}	*/
 
 	///	Returns the number of child faces
 	/**	\{	*/
 		template <typename TElem>
-		inline size_t num_child_faces(TElem* elem) const {return get_info(elem).num_child_faces();}
-		inline size_t num_child_faces(Vertex*) const {return 0;}
-		inline size_t num_child_faces(Edge*) const {return 0;}
+		[[nodiscard]] inline size_t num_child_faces(TElem* elem) const {return get_info(elem).num_child_faces();}
+		[[nodiscard]] inline size_t num_child_faces(Vertex*) const {return 0;}
+		[[nodiscard]] inline size_t num_child_faces(Edge*) const {return 0;}
 	/**	\}	*/
 
 	///	Returns the number of child volumes
 	/**	\{	*/
-		inline size_t num_child_volumes(Volume* elem) const {return get_info(elem).num_child_volumes();}
+		[[nodiscard]] inline size_t num_child_volumes(Volume* elem) const {return get_info(elem).num_child_volumes();}
 		template <typename TElem>
-		inline size_t num_child_volumes(TElem*) const {return 0;}
+		[[nodiscard]] inline size_t num_child_volumes(TElem*) const {return 0;}
 	/**	\}	*/
 
 
@@ -263,36 +263,36 @@ class MultiGrid : public Grid, public GridObserver
 	///	returns the i-th child of the given child-type
 	/** \{ */
 		template <typename TChild, typename TElem>
-		inline TChild* get_child(TElem* elem, size_t ind) const {return get_child(elem, ind, TChild());}
+		[[nodiscard]] inline TChild* get_child(TElem* elem, size_t ind) const {return get_child(elem, ind, TChild());}
 
 		template <typename TChild>
-		TChild* get_child(GridObject* elem, size_t ind) const;
+		[[nodiscard]] TChild* get_child(GridObject* elem, size_t ind) const;
 	/** \} */
 
 	///	Returns the child vertex of the given element or nullptr if there is none
 		template <typename TElem>
-		inline Vertex* get_child_vertex(TElem* elem) const {return get_info(elem).child_vertex();}
+		[[nodiscard]] inline Vertex* get_child_vertex(TElem* elem) const {return get_info(elem).child_vertex();}
 
 	///	Returns the child edges of the given element or nullptr if there is none
 	/**	\{	*/
 		template <typename TElem>
-		inline Edge* get_child_edge(TElem* elem, size_t ind) const {return get_info(elem).child_edge(ind);}
-		inline Edge* get_child_edge(Vertex*, size_t) const {return nullptr;}
+		[[nodiscard]] inline Edge* get_child_edge(TElem* elem, size_t ind) const {return get_info(elem).child_edge(ind);}
+		[[nodiscard]] inline Edge* get_child_edge(Vertex*, size_t) const {return nullptr;}
 	/**	\}	*/
 
 	///	Returns the child faces of the given element or nullptr if there is none
 	/**	\{	*/
 		template <typename TElem>
-		inline Face* get_child_face(TElem* elem, size_t ind) const {return get_info(elem).child_face(ind);}
-		inline Face* get_child_face(Vertex*, size_t) const {return nullptr;}
-		inline Face* get_child_face(Edge*, size_t) const {return nullptr;}
+		[[nodiscard]] inline Face* get_child_face(TElem* elem, size_t ind) const {return get_info(elem).child_face(ind);}
+		[[nodiscard]] inline Face* get_child_face(Vertex*, size_t) const {return nullptr;}
+		[[nodiscard]] inline Face* get_child_face(Edge*, size_t) const {return nullptr;}
 	/**	\}	*/
 
 	///	Returns the child volumes of the given element or nullptr if there is none
 	/**	\{	*/
-		inline Volume* get_child_volume(Volume* elem, size_t ind) const {return get_info(elem).child_volume(ind);}
+		[[nodiscard]] inline Volume* get_child_volume(Volume* elem, size_t ind) const {return get_info(elem).child_volume(ind);}
 		template <typename TElem>
-		inline Volume* get_child_volume(TElem*, size_t) const {return nullptr;}
+		[[nodiscard]] inline Volume* get_child_volume(TElem*, size_t) const {return nullptr;}
 	/**	\}	*/
 
 	///	clears the relation between a parent and its children
@@ -315,7 +315,7 @@ class MultiGrid : public Grid, public GridObserver
 
 	///	returns the object-type of the parent of a given object
 		template <typename TElem>
-		char parent_type(TElem* elem) const;
+		[[nodiscard]] char parent_type(TElem* elem) const;
 
 	///	sets the object-type of the parent of a given object
 	/**	The parent type is normally handled internally. However, e.g. during

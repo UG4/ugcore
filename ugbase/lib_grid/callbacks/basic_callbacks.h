@@ -70,7 +70,7 @@ class ConsiderNone : public ElementCallback {
 class IsMarked : public ElementCallback
 {
 	public:
-		IsMarked(const Grid& grid) :
+		explicit IsMarked(const Grid& grid) :
 			m_grid(grid)	{}
 
 		bool operator () (Vertex* v) const override {return callback(v);}
@@ -90,7 +90,7 @@ class IsMarked : public ElementCallback
 class IsNotMarked : public ElementCallback
 {
 	public:
-		IsNotMarked(const Grid& grid) :
+		explicit IsNotMarked(const Grid& grid) :
 			m_grid(grid)	{}
 
 		bool operator () (Vertex* v) const override {return callback(v);}

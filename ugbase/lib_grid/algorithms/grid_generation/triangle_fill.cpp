@@ -95,7 +95,7 @@ struct ChainInfo{
 		myVrt(vrtInd), inVrt(vrtIndIn), outVrt(vrtIndOut),
 		isCandidate(false), associatedDistanceSq(0)	{}
 		
-	bool operator == (const ChainInfo& ci){
+	bool operator == (const ChainInfo& ci) const {
 		return myVrt == ci.myVrt && inVrt == ci.inVrt && outVrt == ci.outVrt
 				&& isCandidate == ci.isCandidate
 				&& associatedDistanceSq == ci.associatedDistanceSq;

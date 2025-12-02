@@ -100,8 +100,7 @@ struct SweepLineEdge
 						m_v2->vrtPtr->y() - m_v1->vrtPtr->y());
 	}
 
-	bool contains(const SweepLineVertex* v)
-	{
+	bool contains(const SweepLineVertex* v) const {
 		return (m_v1 == v) || (m_v2 == v);
 	}
 
@@ -1208,15 +1207,15 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 		//	hardest turn to the left (in direction of travel). The opposite is the case
 		//	if we are on the right branch.
 		//	in any case - if the next edge points upwards, we're done.
-			number multiplyer = 1;	// left-right helper
+			number multiplyer = 1.0;	// left-right helper
 			if(curBranchInd == 0)
-				multiplyer = -1;
+				multiplyer = -1.0;
 
 			SweepLineVertex* conn = branch[curBranchInd]->get_connected(cur);
 			vector2 lastDir;
 			VecSubtract(lastDir, *cur->vrtPtr, *conn->vrtPtr);
 			VecNormalize(lastDir, lastDir);
-			number bestVal = -2;
+			number bestVal = -2.0;
 			SweepLineEdge* nextEdge = nullptr;
 			vector2 newDir(0, 1);
 			for(size_t i = 0; i < cur->connections.size(); ++i){

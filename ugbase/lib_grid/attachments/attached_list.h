@@ -67,7 +67,7 @@ class AttachedElementListIterator /* iteratør : public std::iterator<
 		AttachedElementListIterator(const AttachedElementListIterator& cpy) :
 			m_aaEntry(cpy.m_aaEntry), m_curElem(cpy.m_curElem)	{}
 
-		const iterator& operator = (const iterator& iter)
+		AttachedElementListIterator& operator = (const iterator& iter)
 		{
 			m_aaEntry = iter.m_aaEntry;
 			m_curElem = iter.m_curElem;
@@ -95,8 +95,8 @@ class AttachedElementListIterator /* iteratør : public std::iterator<
 		}
 
 	//	note that each element may only be in the list once.
-		bool operator == (const iterator& iter) const	{return m_curElem == iter.m_curElem;}
-		bool operator != (const iterator& iter) const	{return m_curElem != iter.m_curElem;}
+		bool operator == (const iterator& iter) const {return m_curElem == iter.m_curElem;}
+		bool operator != (const iterator& iter) const {return m_curElem != iter.m_curElem;}
 
 	private:
 		TAAEntry	m_aaEntry;
@@ -123,14 +123,17 @@ class ConstAttachedElementListIterator /*: public std::iterator<
 		using iterator = ConstAttachedElementListIterator;
 
 		ConstAttachedElementListIterator() : m_curElem(nullptr)	{}
-		ConstAttachedElementListIterator(element curElem, const TAAEntry& aaEntry) :
-			m_aaEntry(aaEntry), m_curElem(curElem)	{}
-		ConstAttachedElementListIterator(const ConstAttachedElementListIterator& it) :
-			m_aaEntry(it.m_aaEntry), m_curElem(it.m_curElem)	{}
-		ConstAttachedElementListIterator(const AttachedElementListIterator<TAAEntry>& it) :
-			m_aaEntry(it.m_aaEntry), m_curElem(it.m_curElem)	{}
 
-		const iterator& operator = (const iterator& iter)
+		ConstAttachedElementListIterator(element curElem, const TAAEntry& aaEntry) :
+			m_aaEntry(aaEntry), m_curElem(curElem) {}
+
+		ConstAttachedElementListIterator(const ConstAttachedElementListIterator& it) :
+			m_aaEntry(it.m_aaEntry), m_curElem(it.m_curElem) {}
+
+		ConstAttachedElementListIterator(const AttachedElementListIterator<TAAEntry>& it) :
+			m_aaEntry(it.m_aaEntry), m_curElem(it.m_curElem) {}
+
+		iterator& operator = (const iterator& iter)
 		{
 			m_aaEntry = iter.m_aaEntry;
 			m_curElem = iter.m_curElem;
@@ -197,7 +200,7 @@ class AttachedElementList
 		using element = typename TAttachmentPipe::element;
 
 		struct Entry{
-			Entry() : prev(nullptr), next(nullptr)	{}
+			Entry() : prev(nullptr), next(nullptr) {}
 			Entry(const element& p, const element& n) : prev(p), next(n) {}
 			element prev;
 			element next;
@@ -211,7 +214,7 @@ class AttachedElementList
 		using const_iterator = ConstAttachedElementListIterator<AAEntry>;
 
 	public:
-		AttachedElementList(TAttachmentPipe* pipe = nullptr) :
+		explicit AttachedElementList(TAttachmentPipe* pipe = nullptr) :
 			m_pipe(nullptr),
 			m_aEntry("AttachedElementList_Entry", false),
 			m_front(nullptr),
@@ -223,7 +226,7 @@ class AttachedElementList
 		}
 
 	///	Note that auto-copy on aEntry has to be disabled.
-		AttachedElementList(AEntry aEntry) :
+		explicit AttachedElementList(AEntry aEntry) :
 			m_pipe(nullptr),
 			m_aEntry(aEntry),
 			m_front(nullptr),
@@ -264,7 +267,7 @@ class AttachedElementList
 			set_pipe(nullptr);
 		}
 
-		const AttachedElementList& operator = (const AttachedElementList& ael)
+		AttachedElementList& operator = (const AttachedElementList& ael)
 		{
 			clear();
 
@@ -341,17 +344,17 @@ class AttachedElementList
 
 
 	///	retunrs true if the list is empty
-		bool empty() const				{return m_front == nullptr;}
+		[[nodiscard]] bool empty() const {return m_front == nullptr;}
 
 	///	returns the first element in the list
-		element front()					{return m_front;}
+		element front() {return m_front;}
 	///	returns the last element in the list
-		element back()					{return m_back;}
+		element back() {return m_back;}
 
 	///	returns the first element in the list (const)
-		const element front() const		{return m_front;}
+		const element front() const {return m_front;}
 	///	returns the last element in the list (const)
-		const element back() const		{return m_back;}
+		const element back() const {return m_back;}
 
 	///	pushes an element to the end of the list
 		void push_back(const element& elem)
@@ -462,20 +465,20 @@ class AttachedElementList
 
 	private:
 	//	the attachment pipe on which we'll operate
-		TAttachmentPipe*	m_pipe;
+		TAttachmentPipe* m_pipe;
 
 	//	The entry attachment
-		AEntry		m_aEntry;
+		AEntry m_aEntry;
 
 	//	the attachment accessor with which the entries are accessed
-		AAEntry		m_aaEntry;
+		AAEntry m_aaEntry;
 
 	//	front and back elements
-		element		m_front;
-		element		m_back;
+		element m_front;
+		element m_back;
 
 	//	tells whether the entry attachment is shared with other lists
-		bool		m_bSharedAttachment;
+		bool m_bSharedAttachment;
 };
 
 

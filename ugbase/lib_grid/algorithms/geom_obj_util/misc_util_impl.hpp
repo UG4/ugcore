@@ -81,10 +81,10 @@ typename TAAPosVRT::ValueType
 CalculateGridObjectCenter(const GridObject* o, TAAPosVRT& aaPosVRT)
 {
 	switch(o->base_object_id()){
-		case GridBaseObjectId::VERTEX:	return CalculateCenter(static_cast<const Vertex*>(o), aaPosVRT);
-		case GridBaseObjectId::EDGE:		return CalculateCenter(static_cast<const Edge*>(o), aaPosVRT);
-		case GridBaseObjectId::FACE:		return CalculateCenter(static_cast<const Face*>(o), aaPosVRT);
-		case GridBaseObjectId::VOLUME:	return CalculateCenter(static_cast<const Volume*>(o), aaPosVRT);
+		case GridBaseObjectId::VERTEX: return CalculateCenter(static_cast<const Vertex*>(o), aaPosVRT);
+		case GridBaseObjectId::EDGE: return CalculateCenter(static_cast<const Edge*>(o), aaPosVRT);
+		case GridBaseObjectId::FACE: return CalculateCenter(static_cast<const Face*>(o), aaPosVRT);
+		case GridBaseObjectId::VOLUME: return CalculateCenter(static_cast<const Volume*>(o), aaPosVRT);
 		default:
 			UG_THROW("Unknown geometric-object type.");
 	}
@@ -125,7 +125,7 @@ CalculateCenter(TIterator begin, TIterator end, TAAPosVRT& aaPos)
 		VecAdd(center, center, CalculateCenter(*iter, aaPos));
 		
 	if(counter > 0)
-		VecScale(center, center, 1./(number)counter);
+		VecScale(center, center, 1./static_cast<number>(counter));
 		
 	return center;
 }
@@ -144,7 +144,7 @@ TElem* FindClosestByCoordinate(const typename TVertexPositionAttachmentAccessor:
 	typename geometry_traits<TElem>::iterator iter = iterBegin;
 	TElem* bestElem = *iter;
 	number bestDistSq = VecDistanceSq(coord, CalculateCenter(bestElem, aaPosVRT));
-	iter++;
+	++iter;
 
 	while(iter != iterEnd)
 	{
@@ -226,7 +226,7 @@ void EraseElements(Grid& grid, typename geometry_traits<TElem>::iterator iterBeg
 	while(iterBegin != iterEnd)
 	{
 		TElem* e = *iterBegin;
-		iterBegin++;
+		++iterBegin;
 		grid.erase(e);
 	}
 }

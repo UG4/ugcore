@@ -84,7 +84,7 @@ MultiGridSubsetHandler::
 begin(int subsetIndex, int level) const
 {
 	UG_ASSERT(subsetIndex >= 0, "-1 is not a valid subset index when accessing iterators!");
-	if(subsetIndex >= (int)num_subsets_in_list() || level >= (int)num_levels())
+	if(subsetIndex >= static_cast<int>(num_subsets_in_list()) || level >= static_cast<int>(num_levels()))
 		return end<TElem>(subsetIndex, level);
 
 	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
@@ -103,7 +103,7 @@ MultiGridSubsetHandler::
 end(int subsetIndex, int level) const
 {
 	UG_ASSERT(subsetIndex >= 0, "-1 is not a valid subset index when accessing iterators!");
-	if(subsetIndex >= (int)num_subsets_in_list() || level >= (int)num_levels()){
+	if(subsetIndex >= static_cast<int>(num_subsets_in_list()) || level >= static_cast<int>(num_levels())){
 		static typename geometry_traits<TElem>::const_iterator dummyEndIter;
 		return dummyEndIter;
 	}
@@ -122,7 +122,7 @@ void
 MultiGridSubsetHandler::
 clear_subset_elements(int subsetIndex)
 {
-	for(int i = 0; i < (int)num_levels(); ++i)
+	for(int i = 0; i < static_cast<int>(num_levels()); ++i)
 		clear_subset_elements<TElem>(subsetIndex, i);
 }
 
@@ -163,7 +163,7 @@ num(int subsetIndex, int level) const
 
 	// TODO: Maybe the passed level should be of uint-type
 	// if level does not exist, there are no elements in it
-	if((uint)level >= num_levels()) return 0;
+	if(static_cast<uint>(level) >= num_levels()) return 0;
 
 	if(sectionInd < 0)
 		return section_container<TElem>(subsetIndex, level).num_elements();
@@ -185,12 +185,12 @@ num(int subsetIndex) const
 	if(sectionInd < 0)
 	{
 		for(size_t i = 0; i < m_levels.size(); ++i)
-			numElems += section_container<TElem>(subsetIndex, (int)i).num_elements();
+			numElems += section_container<TElem>(subsetIndex, static_cast<int>(i)).num_elements();
 	}
 	else
 	{
 		for(size_t i = 0; i < m_levels.size(); ++i)
-			numElems += section_container<TElem>(subsetIndex, (int)i).num_elements(sectionInd);
+			numElems += section_container<TElem>(subsetIndex, static_cast<int>(i)).num_elements(sectionInd);
 	}
 
 	return numElems;
@@ -217,7 +217,7 @@ change_elem_subset_indices(int indOld, int indNew)
 	for(size_t i = 0; i < m_levels.size(); ++i)
 	{
 		for(iterator iter = begin<TElem>(indOld, i);
-			iter != end<TElem>(indOld, i); iter++)
+			iter != end<TElem>(indOld, i); ++iter)
 			alter_subset_index(*iter, indNew);
 	}
 }

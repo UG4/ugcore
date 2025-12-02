@@ -47,7 +47,7 @@ class IsInSubset : public ElementCallback
 	public:
 		IsInSubset(const ISubsetHandler& sh, int subsetIndex) :
 			m_sh(sh),
-			m_si(subsetIndex)	{}
+			m_si(subsetIndex) {}
 
 		bool operator () (Vertex* v) const override {return callback(v);}
 		bool operator () (Edge* e) const override {return callback(e);}
@@ -56,7 +56,7 @@ class IsInSubset : public ElementCallback
 
 	private:
 		template <typename TElem>
-		bool callback(TElem* e) const		{return m_sh.get_subset_index(e) == m_si;}
+		bool callback(TElem* e) const {return m_sh.get_subset_index(e) == m_si;}
 
 	private:
 		const ISubsetHandler& m_sh;
@@ -69,7 +69,7 @@ class IsNotInSubset : public ElementCallback
 	public:
 		IsNotInSubset(const ISubsetHandler& sh, int subsetIndex) :
 			m_sh(sh),
-			m_si(subsetIndex)	{}
+			m_si(subsetIndex) {}
 
 		bool operator () (Vertex* v) const override {return callback(v);}
 		bool operator () (Edge* e) const override {return callback(e);}
@@ -78,7 +78,7 @@ class IsNotInSubset : public ElementCallback
 
 	private:
 		template <typename TElem>
-		bool callback(TElem* e) const		{return m_sh.get_subset_index(e) != m_si;}
+		bool callback(TElem* e) const {return m_sh.get_subset_index(e) != m_si;}
 
 	private:
 		const ISubsetHandler& m_sh;

@@ -72,8 +72,8 @@ class UG_API TetrahedronDescriptor
 		explicit TetrahedronDescriptor(const VolumeVertices& vv);
 		TetrahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4);
 
-		inline uint num_vertices() const	{return 4;}
-		inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
+		[[nodiscard]] inline uint num_vertices() const {return 4;}
+		[[nodiscard]] inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[4];
@@ -210,8 +210,8 @@ class UG_API HexahedronDescriptor
 		HexahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4,
 							Vertex* v5, Vertex* v6, Vertex* v7, Vertex* v8);
 
-		inline uint num_vertices() const	{return 8;}
-		inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
+		[[nodiscard]] inline uint num_vertices() const {return 8;}
+		[[nodiscard]] inline Vertex* vertex(size_t index) const {return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[8];
@@ -268,11 +268,11 @@ class UG_API Hexahedron : public Volume
 		void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
 		                                size_t side) const override;
 
-		[[nodiscard]] int get_edge_index_from_vertices(	const size_t vi0,
-			                                 const size_t vi1) const override;
+		[[nodiscard]] int get_edge_index_from_vertices(	size_t vi0,
+			                                 			size_t vi1) const override;
 
-		[[nodiscard]] int get_face_edge_index (	const size_t faceInd,
-			                         const size_t faceEdgeInd) const override;
+		[[nodiscard]] int get_face_edge_index (	size_t faceInd,
+			                         			size_t faceEdgeInd) const override;
 
 		bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const override;
 
@@ -347,8 +347,8 @@ class UG_API PrismDescriptor
 		PrismDescriptor(Vertex* v1, Vertex* v2, Vertex* v3,
 						Vertex* v4, Vertex* v5, Vertex* v6);
 
-		inline uint num_vertices() const {return 6;}
-		inline Vertex* vertex(size_t index) const {return m_vertex[index];}
+		[[nodiscard]] inline uint num_vertices() const {return 6;}
+		[[nodiscard]] inline Vertex* vertex(size_t index) const {return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[6];
@@ -405,11 +405,11 @@ class UG_API Prism : public Volume
 		void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
 		                                size_t side) const override;
 
-		[[nodiscard]] int get_edge_index_from_vertices(	const size_t vi0,
-			                                 const size_t vi1) const override;
+		[[nodiscard]] int get_edge_index_from_vertices(	size_t vi0,
+			                                 size_t vi1) const override;
 
-		[[nodiscard]] int get_face_edge_index (	const size_t faceInd,
-			                         const size_t faceEdgeInd) const override;
+		[[nodiscard]] int get_face_edge_index (	size_t faceInd,
+			                         size_t faceEdgeInd) const override;
 
 		bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const override;
 
@@ -484,8 +484,8 @@ class UG_API PyramidDescriptor
 		PyramidDescriptor(Vertex* v1, Vertex* v2, Vertex* v3,
 						Vertex* v4, Vertex* v5);
 
-		inline uint num_vertices() const	{return 5;}
-		inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
+		[[nodiscard]] inline uint num_vertices() const	{return 5;}
+		[[nodiscard]] inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[5];
@@ -542,11 +542,11 @@ class UG_API Pyramid : public Volume
 		void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
 		                                size_t side) const override;
 
-		[[nodiscard]] int get_edge_index_from_vertices(	const size_t vi0,
-			                                 const size_t vi1) const override;
+		[[nodiscard]] int get_edge_index_from_vertices(	size_t vi0,
+			                                   			size_t vi1) const override;
 
-		[[nodiscard]] int get_face_edge_index (	const size_t faceInd,
-			                         const size_t faceEdgeInd) const override;
+		[[nodiscard]] int get_face_edge_index (	size_t faceInd,
+			                          		    size_t faceEdgeInd) const override;
 
 		std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const override;
 

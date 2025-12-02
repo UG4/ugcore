@@ -6,6 +6,8 @@
 #include "lib_grid/parallelization/gather_grid.h"
 #include "lib_grid/parallelization/distributed_grid.h"
 #endif
+#include "lib_grid/tools/subset_group.h"
+
 #include "common/common.h"
 
 namespace ug
@@ -96,7 +98,7 @@ public:
                                                 it != sh.end<side_t> (si, grid_level); ++it)
                             sel.select (*it);
                     else
-                        for (int lvl = 0; lvl < (int) sh.num_levels(); lvl++)
+                        for (int lvl = 0; lvl < static_cast<int>(sh.num_levels()); lvl++)
                             for (SideIterator it = sh.begin<side_t> (si, lvl);
                                                     it != sh.end<side_t> (si, lvl); ++it)
                             {

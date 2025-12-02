@@ -74,9 +74,9 @@ struct MGVertexInfo
 	inline void remove_child(Volume*) {UG_THROW("INVALID OPERATION!");}//dummy...
 	inline void replace_child(Vertex* elem, Vertex* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
 	void unregister_from_children(MultiGrid& mg);
-	size_t num_child_vertices() const	{return m_pVrtChild ? 1 : 0;}
+	[[nodiscard]] size_t num_child_vertices() const	{return m_pVrtChild ? 1 : 0;}
 
-	Vertex* child_vertex() const {return m_pVrtChild;}
+	[[nodiscard]] Vertex* child_vertex() const {return m_pVrtChild;}
 
 	GridObject*	m_pParent;
 private:
@@ -95,7 +95,7 @@ struct MGEdgeInfo
 {
 	MGEdgeInfo() : m_pParent(nullptr), m_pVrtChild(nullptr), m_numEdgeChildren(0)		{}
 	inline void clear_children() {m_pVrtChild = nullptr; m_numEdgeChildren = 0;}
-	inline bool has_children() const {return m_pVrtChild || m_numEdgeChildren;}
+	[[nodiscard]] inline bool has_children() const {return m_pVrtChild || m_numEdgeChildren;}
 	inline void add_child(Vertex* elem) {assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void add_child(Edge* elem) {assert(m_numEdgeChildren < MG_EDGE_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
 	inline void add_child(Face*) {UG_THROW("INVALID OPERATION!");}//dummy...
@@ -107,11 +107,11 @@ struct MGEdgeInfo
 	inline void replace_child(Vertex* elem, Vertex* child) {assert(child == m_pVrtChild); m_pVrtChild = elem;}
 	inline void replace_child(Edge* elem, Edge* child) {ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
 	void unregister_from_children(MultiGrid& mg);
-	size_t num_child_vertices() const {return m_pVrtChild ? 1 : 0;}
-	size_t num_child_edges() const {return m_numEdgeChildren;}
+	[[nodiscard]] size_t num_child_vertices() const {return m_pVrtChild ? 1 : 0;}
+	[[nodiscard]] size_t num_child_edges() const {return m_numEdgeChildren;}
 
-	Vertex* child_vertex() const {return m_pVrtChild;}
-	Edge* child_edge(size_t i) const {assert(i < num_child_edges()); return m_pEdgeChild[i];}
+	[[nodiscard]] Vertex* child_vertex() const {return m_pVrtChild;}
+	[[nodiscard]] Edge* child_edge(size_t i) const {assert(i < num_child_edges()); return m_pEdgeChild[i];}
 
 	GridObject*	m_pParent;
 private:
@@ -126,7 +126,7 @@ struct MGFaceInfo
 {
 	MGFaceInfo() : m_pVrtChild(nullptr), m_numEdgeChildren(0), m_numFaceChildren(0)	{}
 	inline void clear_children() {m_pVrtChild = nullptr; m_numEdgeChildren = m_numFaceChildren = 0;}
-	inline bool has_children() const {return m_pVrtChild || m_numEdgeChildren || m_numFaceChildren;}
+	[[nodiscard]] inline bool has_children() const {return m_pVrtChild || m_numEdgeChildren || m_numFaceChildren;}
 	inline void add_child(Vertex* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void add_child(Edge* elem) {assert(m_numEdgeChildren < MG_FACE_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
 	inline void add_child(Face* elem) {assert(m_numFaceChildren < MG_FACE_MAX_FACE_CHILDREN); m_pFaceChild[m_numFaceChildren++] = elem;}
@@ -140,13 +140,13 @@ struct MGFaceInfo
 	inline void replace_child(Face* elem, Face* child) {ArrayReplaceEntry(m_pFaceChild, elem, child, m_numFaceChildren);}
 	void unregister_from_children(MultiGrid& mg);
 
-	size_t num_child_vertices() const {return m_pVrtChild ? 1 : 0;}
-	size_t num_child_edges() const {return m_numEdgeChildren;}
-	size_t num_child_faces() const {return m_numFaceChildren;}
+	[[nodiscard]] size_t num_child_vertices() const {return m_pVrtChild ? 1 : 0;}
+	[[nodiscard]] size_t num_child_edges() const {return m_numEdgeChildren;}
+	[[nodiscard]] size_t num_child_faces() const {return m_numFaceChildren;}
 
-	Vertex* child_vertex() const {return m_pVrtChild;}
-	Edge* child_edge(size_t i) const {assert(i < num_child_edges()); return m_pEdgeChild[i];}
-	Face* child_face(size_t i) const {assert(i < num_child_faces()); return m_pFaceChild[i];}
+	[[nodiscard]] Vertex* child_vertex() const {return m_pVrtChild;}
+	[[nodiscard]] Edge* child_edge(size_t i) const {assert(i < num_child_edges()); return m_pEdgeChild[i];}
+	[[nodiscard]] Face* child_face(size_t i) const {assert(i < num_child_faces()); return m_pFaceChild[i];}
 
 private:
 	Vertex* m_pVrtChild;
@@ -162,7 +162,7 @@ struct MGVolumeInfo
 {
 	MGVolumeInfo() : m_pVrtChild(nullptr) {}
 	inline void clear_children() {m_pVrtChild = nullptr; m_edgeChildren.clear(); m_faceChildren.clear(); m_volumeChildren.clear();}
-	inline bool has_children()	const {return m_pVrtChild || !(m_edgeChildren.empty() && m_faceChildren.empty() && m_volumeChildren.empty());}
+	[[nodiscard]] inline bool has_children() const {return m_pVrtChild || !(m_edgeChildren.empty() && m_faceChildren.empty() && m_volumeChildren.empty());}
 	inline void add_child(Vertex* elem) {assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void add_child(Edge* elem) {m_edgeChildren.push_back(elem);}
 	inline void add_child(Face* elem) {m_faceChildren.push_back(elem);}
@@ -177,15 +177,15 @@ struct MGVolumeInfo
 	inline void replace_child(Volume* elem, Volume* child) {ArrayReplaceEntry(&m_volumeChildren.front(), elem, child, m_volumeChildren.size());}
 	void unregister_from_children(MultiGrid& mg);
 
-	size_t num_child_vertices() const {return m_pVrtChild ? 1 : 0;}
-	size_t num_child_edges() const {return m_edgeChildren.size();}
-	size_t num_child_faces() const {return m_faceChildren.size();}
-	size_t num_child_volumes() const {return m_volumeChildren.size();}
+	[[nodiscard]] size_t num_child_vertices() const {return m_pVrtChild ? 1 : 0;}
+	[[nodiscard]] size_t num_child_edges() const {return m_edgeChildren.size();}
+	[[nodiscard]] size_t num_child_faces() const {return m_faceChildren.size();}
+	[[nodiscard]] size_t num_child_volumes() const {return m_volumeChildren.size();}
 
-	Vertex* child_vertex() const {return m_pVrtChild;}
-	Edge* child_edge(size_t i) const {assert(i < num_child_edges()); return m_edgeChildren[i];}
-	Face* child_face(size_t i) const {assert(i < num_child_faces()); return m_faceChildren[i];}
-	Volume* child_volume(size_t i) const {assert(i < num_child_volumes()); return m_volumeChildren[i];}
+	[[nodiscard]] Vertex* child_vertex() const {return m_pVrtChild;}
+	[[nodiscard]] Edge* child_edge(size_t i) const {assert(i < num_child_edges()); return m_edgeChildren[i];}
+	[[nodiscard]] Face* child_face(size_t i) const {assert(i < num_child_faces()); return m_faceChildren[i];}
+	[[nodiscard]] Volume* child_volume(size_t i) const {assert(i < num_child_volumes()); return m_volumeChildren[i];}
 
 private:
 	Vertex* m_pVrtChild;

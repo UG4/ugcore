@@ -132,8 +132,8 @@ static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
 			if(!grid.is_marked(vrt)){
 				grid.mark(vrt);
 				int counter = 0;
-				for(Grid::AssociatedEdgeIterator nbIter = grid.associated_edges_begin(vrt);
-					nbIter != grid.associated_edges_end(vrt); ++nbIter)
+				for(auto nbIter = grid.associated_edges_begin(vrt);
+				    nbIter != grid.associated_edges_end(vrt); ++nbIter)
 				{
 					if(shMarks.get_subset_index(*nbIter) != RemeshingElementMarks::REM_NONE)
 						++counter;
@@ -206,8 +206,8 @@ number CalculateMinCurvature(Grid& grid, SubsetHandler& shMarks,
 	
 //	calculate the normals of associated faces
 	vNormals.clear();
-	Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrt);
-	for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt);
+	auto iterEnd = grid.associated_faces_end(vrt);
+	for(auto iter = grid.associated_faces_begin(vrt);
 		iter != iterEnd; ++iter)
 	{
 		vector3 nTmp;
@@ -250,7 +250,7 @@ number CalculateLengthFac(Grid& grid, SubsetHandler& shMarks,
 {
 	number lenFac = CalculateAverageCurvature(grid, shMarks, e, aaPos);
 	lenFac = (lenFac - 0.95) / 0.05;
-	lenFac = max(number(0.25), lenFac);
+	lenFac = max(0.25, lenFac);
 	GPLOTPOINT(gplotLengthFac, 0.5, lenFac);
 	return lenFac;
 }
@@ -688,7 +688,7 @@ bool TrySplit(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 	}
 
 //	split the edge
-	RegularVertex* vrt = SplitEdge<RegularVertex>(grid, e, false);
+	auto* vrt = SplitEdge<RegularVertex>(grid, e, false);
 
 //	assign the new position
 	aaPos[vrt] = vCenter;

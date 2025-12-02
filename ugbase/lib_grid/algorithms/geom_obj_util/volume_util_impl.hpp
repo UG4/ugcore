@@ -108,7 +108,7 @@ CalculateCenter(const VolumeVertices* vol, TVertexPositionAttachmentAccessor& aa
 
 //	average
 	if(numVrts > 0)
-		VecScale(v, v, 1./(number)numVrts);
+		VecScale(v, v, 1./static_cast<number>(numVrts));
 
 	return v;
 }
@@ -139,7 +139,7 @@ CalculateCenter(const VolumeVertices* vol, TAAPosVRT& aaPos, TAAWeightVRT& aaWei
 
 //	average
 	if(totalWeight != 0)
-		VecScale(v, v, 1./(number)totalWeight);
+		VecScale(v, v, 1./static_cast<number>(totalWeight));
 
 	return v;
 }
@@ -168,8 +168,8 @@ void ConvertToTetrahedra (
 
 //	first we'll collect all quadrilaterals that are connected to selected
 //	volumes. Avoid 'grid.mark' here, since it may be used by 'grid.associated_elements'
-	Grid::face_traits::secure_container	faces;
-	vector<Face*>	quads;
+	Grid::face_traits::secure_container faces;
+	vector<Face*> quads;
 
 	for(TVolIter iv = volsBegin; iv != volsEnd; ++iv){
 		grid.associated_elements(faces, *iv);
@@ -201,9 +201,10 @@ void ConvertToTetrahedra (
 
 	grid.end_marking();
 
-	for(size_t _vfeI = 0; _vfeI < quads.size(); ++_vfeI){ Face* f = quads[_vfeI];{
+	for(size_t _vfeI = 0; _vfeI < quads.size(); ++_vfeI){
+		Face* f = quads[_vfeI];
 //todo	in a parallel environment, global id's should be compared here
-		CmpVrtsByHash<Face> cmp(f);
+		CmpVrtsByHash cmp(f);
 	//	get the smallest vertex of the face
 		int smallest = 0;
 		for(int i = 1; i < 4; ++i){
@@ -217,7 +218,7 @@ void ConvertToTetrahedra (
 		int i3 = (smallest + 3) % 4;
 		grid.create<Triangle>(TriangleDescriptor(f->vertex(i0), f->vertex(i1), f->vertex(i2)), f);
 		grid.create<Triangle>(TriangleDescriptor(f->vertex(i2), f->vertex(i3), f->vertex(i0)), f);
-	}};
+	}
 
 
 //	now convert the given volume-elements
@@ -233,7 +234,7 @@ void ConvertToTetrahedra (
 	for(TVolIter iv = volsBegin; iv != volsEnd; ++iv){
 		Volume* vol = *iv;
 		const ReferenceObjectID roid = vol->reference_object_id();
-		CmpVrtsByHash<Volume> cmp(vol);
+		CmpVrtsByHash cmp(vol);
 		size_t numEntries = 0;
 
 		switch(roid){
@@ -272,16 +273,18 @@ void ConvertToTetrahedra (
 	}
 
 //	finally erase all unused volumes and quadrilaterals
-	for(size_t _vfeI = 0; _vfeI < volsToErase.size(); ++_vfeI){ Volume* v = volsToErase[_vfeI];{
+	for(size_t _vfeI = 0; _vfeI < volsToErase.size(); ++_vfeI){
+		Volume* v = volsToErase[_vfeI];
 		grid.erase(v);
-	}};
+	}
 
 	Grid::volume_traits::secure_container	assVols;
-	for(size_t _vfeI = 0; _vfeI < quads.size(); ++_vfeI){ Face* f = quads[_vfeI];{
+	for(size_t _vfeI = 0; _vfeI < quads.size(); ++_vfeI){
+		Face* f = quads[_vfeI];
 		grid.associated_elements(assVols, f);
 		if(assVols.empty())
 			grid.erase(f);
-	}};
+	}
 }
 
 }//	end of namespace

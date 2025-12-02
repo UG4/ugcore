@@ -62,8 +62,8 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		using ISubsetHandler::assign_subset;
 		
 	public:
-		MultiGridSubsetHandler(uint supportedElements = SubsetHandlerElements::SHE_ALL);
-		MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements = SubsetHandlerElements::SHE_ALL);
+		explicit MultiGridSubsetHandler(uint supportedElements = SubsetHandlerElements::SHE_ALL);
+		explicit MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements = SubsetHandlerElements::SHE_ALL);
 	/**	WARNING: Don't call the copy-constructor from derived classes,
 	  *	Since it calls virtual methods.*/
 		MultiGridSubsetHandler(const MultiGridSubsetHandler& sh);
@@ -78,7 +78,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		inline void level_required(int level);
 
 	///	returns the number of levels
-		inline uint num_levels() const	{return (uint)m_levels.size();}
+		inline uint num_levels() const	{return static_cast<uint>(m_levels.size());}
 		
 	///	returns the level in which an element is located
 		template <typename TGeomObj>
@@ -277,8 +277,8 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		void add_subset_to_all_levels();///< increases m_numSubsets.
 
 	///	helper for collect_subset_elements
-		template <typename TElem>
-		size_t collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const;
+		// template <typename TElem>
+		// size_t collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const;
 		
 	protected:
 		using ISubsetHandler::AttachedVertexList;
@@ -307,7 +307,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		inline const Subset* subset(int si, int level)	const {return m_levels[level][si];}
 
 	///	creates a new subset. Caller is responsible for deletion
-		Subset* new_subset();
+		Subset* new_subset() const;
 
 		void cleanup();
 

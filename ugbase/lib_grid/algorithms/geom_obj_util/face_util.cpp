@@ -51,7 +51,7 @@ int GetFaceIndex(Volume* vol, Face* f)
 	{
 		vol->face_desc(i, fd);
 		if(CompareVertices(f, &fd))
-			return (int)i;
+			return static_cast<int>(i);
 	}
 	return -1;
 }
@@ -88,13 +88,12 @@ void CalculateNormal(vector3& vNormOut, const FaceVertices* face,
 	}
 
 	vNormOut = vector3(0, 0, 0);
-	return;
 }
 
 void CalculateNormalNoNormalize(vector3& vNormOut, FaceVertices* face,
 								Grid::AttachmentAccessor<Vertex, APosition>& aaPos)
 {
-	if(face->num_vertices() == 3)
+	if(face->num_vertices() == 3 || face->num_vertices() > 4)
 	{
 		CalculateTriangleNormalNoNormalize(vNormOut, aaPos[face->vertex(0)],
 								aaPos[face->vertex(1)], aaPos[face->vertex(2)]);
@@ -112,15 +111,8 @@ void CalculateNormalNoNormalize(vector3& vNormOut, FaceVertices* face,
 
 		return;
 	}
-	else if(face->num_vertices() > 4)
-	{
-		CalculateTriangleNormalNoNormalize(vNormOut, aaPos[face->vertex(0)],
-								aaPos[face->vertex(1)], aaPos[face->vertex(2)]);
-		return;
-	}
 
 	vNormOut = vector3(0, 0, 0);
-	return;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -152,7 +144,7 @@ int NumAssociatedVolumes(Grid& grid, Face* f)
 	if(grid.option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
 		for(auto iter = grid.associated_volumes_begin(f);
-		    iter != grid.associated_volumes_end(f); iter++)
+		    iter != grid.associated_volumes_end(f); ++iter)
 		{
 			++counter;
 		}
@@ -163,7 +155,7 @@ int NumAssociatedVolumes(Grid& grid, Face* f)
 	//	and check if they contain the face...
 	auto iterEnd = grid.associated_volumes_end(f->vertex(0));
 		for(auto iter = grid.associated_volumes_begin(f->vertex(0));
-		    iter != iterEnd; iter++)
+		    iter != iterEnd; ++iter)
 		{
 			if(VolumeContains(*iter, f))
 				++counter;
@@ -353,7 +345,7 @@ void Triangulate(Grid& grid,
 	while(iterBegin != iterEnd)
 	{
 		Quadrilateral* q = *iterBegin;
-		iterBegin++;
+		++iterBegin;
 		Triangulate(grid, q, paaPos);
 	}
 }

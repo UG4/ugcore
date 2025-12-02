@@ -70,7 +70,7 @@ public:
 
 	virtual ~IGeometry () = default;
 
-	virtual vector_t pos (Vertex* vrt) const = 0;
+	[[nodiscard]] virtual vector_t pos (Vertex* vrt) const = 0;
 	virtual void set_pos (Vertex* vrt, const vector_t& p) = 0;
 
 	[[nodiscard]] Grid& grid() const {return m_grid;}
@@ -78,10 +78,10 @@ public:
 	[[nodiscard]] virtual int position_attachment_dim() const = 0;
 	[[nodiscard]] virtual const IAttachment& position_attachment() const = 0;
 
-	virtual vector_t element_center(Vertex* e) const	= 0;
-	virtual vector_t element_center(Edge* e) const		= 0;
-	virtual vector_t element_center(Face* e) const		= 0;
-	virtual vector_t element_center(Volume* e) const	= 0;
+	[[nodiscard]] virtual vector_t element_center(Vertex* e) const	= 0;
+	[[nodiscard]] virtual vector_t element_center(Edge* e) const		= 0;
+	[[nodiscard]] virtual vector_t element_center(Face* e) const		= 0;
+	[[nodiscard]] virtual vector_t element_center(Volume* e) const	= 0;
 
 private:
 	Grid&	m_grid;
@@ -121,6 +121,7 @@ public:
 
 	~Geometry () override = default;
 
+	[[nodiscard]]
 	vector_t pos (Vertex* vrt) const override {
 		return vector_t::from(m_aaPos[vrt]);
 	}
@@ -133,19 +134,19 @@ public:
 	[[nodiscard]] const IAttachment& position_attachment () const override {return m_aPos;}
 
 
-	vector_t element_center (Vertex* e) const override {
+	[[nodiscard]] vector_t element_center (Vertex* e) const override {
 		return vector_t::from(m_aaPos[e]);
 	}
 
-	vector_t element_center (Edge* e) const override {
+	[[nodiscard]] vector_t element_center (Edge* e) const override {
 		return vector_t::from(CalculateCenter(e, m_aaPos));
 	}
 
-	vector_t element_center (Face* e) const override {
+	[[nodiscard]] vector_t element_center (Face* e) const override {
 		return vector_t::from(CalculateCenter(e, m_aaPos));
 	}
 
-	vector_t element_center (Volume* e) const override {
+	[[nodiscard]] vector_t element_center (Volume* e) const override {
 		return vector_t::from(CalculateCenter(e, m_aaPos));
 	}
 

@@ -93,10 +93,10 @@ class PointerConstArray{
 		PointerConstArray& operator = (const PointerConstArray& pa);
 
 	///	returns the size of the associated array.
-		inline size_t size() const;
+		[[nodiscard]] inline size_t size() const;
 
 	///	returns true if the associated array is empty
-		inline bool empty() const;
+		[[nodiscard]] inline bool empty() const;
 
 	///	returns the i-th entry of the array. Make sure that i < size().
 	/**	Note that this is a read only operation and that entries in the associated

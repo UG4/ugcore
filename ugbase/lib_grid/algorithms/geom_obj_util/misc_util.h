@@ -153,19 +153,19 @@ void EraseElements(Grid& grid, typename geometry_traits<TElem>::iterator iterBeg
 template <typename TElem, typename TAAPos>
 number ElementDiameterSq(Grid& grid,
                          TAAPos& aaPos,
-					     TElem* elem);
+					                    TElem* elem);
 
 ///	returns the maximal squared distance between to element vertices
 template <typename TAAPos>
 number ElementDiameterSq(Grid& grid,
                          TAAPos& aaPos,
-					     GridObject* elem);
+					                    GridObject* elem);
 
 ///	returns the maximal distance between to element vertices
 template <typename TElem, typename TAAPos>
 number ElementDiameter(Grid& grid,
                        TAAPos& aaPos,
-					   TElem* elem);
+					                  TElem* elem);
 
 ///	returns the maximal diameter of all elements between iterBegin and iterEnd.
 /** In parallel, the global max diameter is returned.*/

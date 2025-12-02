@@ -252,7 +252,7 @@ static bool
 DelaunayLineLineIntersection(vector3& vOut,
 							 const vector3& lineFrom, const vector3& lineTo,
 							 const vector3& edgeVrt1, const vector3& edgeVrt2,
-							 vector3 areaNormal,
+							 const vector3 &areaNormal,
 							 number smallsq = SMALL_SQ)
 {
 	number t;

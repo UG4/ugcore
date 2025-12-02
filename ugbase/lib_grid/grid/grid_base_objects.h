@@ -258,11 +258,11 @@ class UG_API Vertex : public GridObject
 
 		~Vertex() override = default;
 
-		inline uint num_sides() const	{return 0;}
+		inline uint num_sides() const {return 0;}
 
-		int container_section() const override {return -1;}
-		byte_t base_object_id() const override {return GridBaseObjectId::VERTEX;}
-		ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
+		[[nodiscard]] int container_section() const override {return -1;}
+		[[nodiscard]] byte_t base_object_id() const override {return GridBaseObjectId::VERTEX;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
 
 	///	returns a value that can be used for hashing.
 	/**	this value is unique per grid.

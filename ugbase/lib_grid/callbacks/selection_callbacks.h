@@ -44,7 +44,7 @@ namespace ug{
 class IsSelected : public ElementCallback
 {
 	public:
-		IsSelected(const ISelector& sel) :
+		explicit IsSelected(const ISelector& sel) :
 			m_sel(sel)	{}
 
 		bool operator () (Vertex* v) const override {return callback(v);}
@@ -64,7 +64,7 @@ class IsSelected : public ElementCallback
 class IsNotSelected : public ElementCallback
 {
 	public:
-		IsNotSelected(const ISelector& sel) :
+		explicit IsNotSelected(const ISelector& sel) :
 			m_sel(sel)	{}
 
 		bool operator () (Vertex* v) const override {return callback(v);}

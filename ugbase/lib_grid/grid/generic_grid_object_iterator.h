@@ -80,7 +80,7 @@ class ConstGenericGridObjectIterator : public TConstBaseIterator
 		ConstGenericGridObjectIterator(const ConstGenericGridObjectIterator& iter) :
 			TConstBaseIterator(iter)	{}
 
-		ConstGenericGridObjectIterator(const GenericGridObjectIterator<TValue, TBaseIterator>& iter) :
+		explicit ConstGenericGridObjectIterator(const GenericGridObjectIterator<TValue, TBaseIterator>& iter) :
 			TConstBaseIterator(iter) {}
 
 	///	note that the * operator is read only.

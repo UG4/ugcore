@@ -47,7 +47,8 @@ void EraseConnectingElements(Grid& grid, Vertex* v1, Vertex* v2)
 	//	iterate through associated volumes
 		std::vector<Volume*> vols;
 		CollectVolumes(vols, grid, v1);
-		for(size_t _vfeI = 0; _vfeI < vols.size(); ++_vfeI){ Volume* v = vols[_vfeI];{
+		for(size_t _vfeI = 0; _vfeI < vols.size(); ++_vfeI){
+			Volume* v = vols[_vfeI];
 			uint numVrts = v->num_vertices();
 			bool gotOne = false;
 			for(uint i = 0; i < numVrts; ++i)
@@ -61,7 +62,7 @@ void EraseConnectingElements(Grid& grid, Vertex* v1, Vertex* v2)
 
 			if(gotOne == true)
 				grid.erase(v);
-		}};
+		}
 	}
 	
 //	check faces for direct connection.
@@ -70,7 +71,8 @@ void EraseConnectingElements(Grid& grid, Vertex* v1, Vertex* v2)
 	//	iterate through associated faces
 		std::vector<Face*> faces;
 		CollectFaces(faces, grid, v1);
-		for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){ Face* f = faces[_vfeI];{
+		for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){
+			Face* f = faces[_vfeI];
 			uint numVrts = f->num_vertices();
 			bool gotOne = false;
 			for(uint i = 0; i < numVrts; ++i)
@@ -84,7 +86,7 @@ void EraseConnectingElements(Grid& grid, Vertex* v1, Vertex* v2)
 
 			if(gotOne == true)
 				grid.erase(f);
-		}};
+		}
 	}
 
 //	check edges
@@ -93,13 +95,14 @@ void EraseConnectingElements(Grid& grid, Vertex* v1, Vertex* v2)
 	//	iterate through associated edges
 		std::vector<Edge*> edges;
 		CollectEdges(edges, grid, v1);
-		for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){ Edge* e = edges[_vfeI];{
+		for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){
+			Edge* e = edges[_vfeI];
 		//	if e contains v2 we have to remove it.
 			if((e->vertex(0) == v2) || (e->vertex(1) == v2))
 			{
 				grid.erase(e);
 			}
-		}};
+		}
 	}
 }
 

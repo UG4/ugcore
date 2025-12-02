@@ -64,7 +64,8 @@ class BoolMarker : public GridObserver
 {
 	public:
 		BoolMarker();
-		BoolMarker(Grid& g);
+
+		explicit BoolMarker(Grid& g);
 
 		~BoolMarker() override;
 
@@ -73,22 +74,22 @@ class BoolMarker : public GridObserver
 	 * The marker may only be used, if it is associated with a grid instance.*/
 		void assign_grid(Grid* g);
 	///	Assign the grid on which the marker shall operate.
-		void assign_grid(Grid& g)					{assign_grid(&g);}
+		void assign_grid(Grid& g) {assign_grid(&g);}
 
-		Grid* grid()								{return m_pGrid;}
+		[[nodiscard]] Grid* grid() const {return m_pGrid;}
 
 	///	set the mark which is applied when a new element is created
 	/**	By default, the default-mark is set to false. Note that the default mark
 	 * only has an effect on child elements, if mark-inheritance is disabled.
 	 * @param mark	this mark is set to new elements on creation.*/
-		void set_default_mark(bool mark)			{m_defaultMark = mark;}
+		void set_default_mark(bool mark) {m_defaultMark = mark;}
 	///	returns the default mark.
-		bool default_mark()							{return m_defaultMark;}
+		[[nodiscard]] bool default_mark() const {return m_defaultMark;}
 
 	///	if enabled, marks are passed from parents on to their children
 	/**	\{ */
-		void enable_mark_inheritance(bool enable)	{m_markInheritanceEnabled = enable;}
-		bool mark_inheritance_enabeld()				{return m_markInheritanceEnabled;}
+		void enable_mark_inheritance(bool enable) {m_markInheritanceEnabled = enable;}
+		[[nodiscard]] bool mark_inheritance_enabeld() const {return m_markInheritanceEnabled;}
 	/**	\} */
 
 	/**	restricts mark inheritance so that new elements derive their selection
@@ -96,15 +97,15 @@ class BoolMarker : public GridObserver
 	 * 	NOTE: strict inheritance only has an effect if selection inheritance is enabled.
 	 * 	\{ */
 		void enable_strict_inheritance(bool enable)	{m_strictInheritanceEnabled = enable;}
-		bool strict_inheritance_enabled()			{return m_strictInheritanceEnabled;}
+		[[nodiscard]] bool strict_inheritance_enabled() const {return m_strictInheritanceEnabled;}
 	/**	\} */
 
 
-		bool is_marked(GridObject* e) const;
-		bool is_marked(Vertex* e) const {assert(m_pGrid); return m_aaMarkVRT[e];}
-		bool is_marked(Edge* e)	const {assert(m_pGrid); return m_aaMarkEDGE[e];}
-		bool is_marked(Face* e)	const {assert(m_pGrid); return m_aaMarkFACE[e];}
-		bool is_marked(Volume* e) const {assert(m_pGrid); return m_aaMarkVOL[e];}
+		[[nodiscard]] bool is_marked(GridObject* e) const;
+		[[nodiscard]] bool is_marked(Vertex* e) const {assert(m_pGrid); return m_aaMarkVRT[e];}
+		[[nodiscard]] bool is_marked(Edge* e)	const {assert(m_pGrid); return m_aaMarkEDGE[e];}
+		[[nodiscard]] bool is_marked(Face* e)	const {assert(m_pGrid); return m_aaMarkFACE[e];}
+		[[nodiscard]] bool is_marked(Volume* e) const {assert(m_pGrid); return m_aaMarkVOL[e];}
 
 		void mark(Vertex* e, bool mark = true) {assert(m_pGrid); m_aaMarkVRT[e] = mark;}
 		void mark(Edge* e, bool mark = true) {assert(m_pGrid); m_aaMarkEDGE[e] = mark;}
@@ -123,7 +124,7 @@ class BoolMarker : public GridObserver
 		void unmark(Volume* e) {mark(e, false);}
 
 		template <typename TIter>
-		void unmark(TIter begin, TIter end)			{mark(begin, end, false);}
+		void unmark(TIter begin, TIter end) {mark(begin, end, false);}
 
 	///	Sets all marks to false. O(n).
 		void clear();
