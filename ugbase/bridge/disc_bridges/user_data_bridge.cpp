@@ -590,7 +590,7 @@ static void Domain(TRegistry& reg, string grp)
 		typedef UserData<MathVector<dim>, dim> TBase;
 		typedef UserData<number, dim> TScale;
 		
-		reg.add_class_<T, TBase> (name, grp)
+		reg.template add_class_<T, TBase> (name, grp)
 			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TScale>, SmartPtr<TBase>, const char*)>("Domain#Scaling#Vector#Subsets")
 			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TScale>, SmartPtr<TBase>)>("Domain#Scaling#Vector")
 			.set_construct_as_smart_pointer(true);
@@ -605,7 +605,7 @@ static void Domain(TRegistry& reg, string grp)
 		typedef UserData<MathVector<dim>, dim> TVec;
 		typedef UserData<number, dim> TScale;
 		
-		reg.add_class_<T, TBase> (name, grp)
+		reg.template add_class_<T, TBase> (name, grp)
 			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TScale>, SmartPtr<TVec>, const char*)>("Domain#Scaling#Vector#Subsets")
 			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TScale>, SmartPtr<TVec>)>("Domain#Scaling#Vector")
 			.set_construct_as_smart_pointer(true);
