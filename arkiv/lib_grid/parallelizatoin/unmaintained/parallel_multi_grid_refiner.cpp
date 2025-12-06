@@ -1,4 +1,3 @@
-øunused
 /*
  * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
  * Author: Sebastian Reiter

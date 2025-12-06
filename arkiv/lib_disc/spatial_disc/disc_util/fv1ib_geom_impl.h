@@ -1,4 +1,3 @@
-øunused
 /*
  * Copyright (c) 2014-2015:  G-CSC, Goethe University Frankfurt
  * Author: Susanne Höllbacher

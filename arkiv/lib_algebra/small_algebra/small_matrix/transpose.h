@@ -1,4 +1,3 @@
-øunused densevector.h
 /*
  * Copyright (c) 2013-2015:  G-CSC, Goethe University Frankfurt
  * Author: Martin Rupp

@@ -1,7 +1,6 @@
-øunused
 /*
- * Copyright (c) 2017:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Copyright (c) 2012-2015:  G-CSC, Goethe University Frankfurt
+ * Author: Martin Rupp
  * 
  * This file is part of UG4.
  * 
@@ -31,14 +30,41 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG_apply_raster_z_coordinate
-#define __H__UG_apply_raster_z_coordinate
+#ifndef __H__LIB_ALGEBRA__LIB_ALGEBRA_IMPL__
+#define __H__LIB_ALGEBRA__LIB_ALGEBRA_IMPL__
 
-#include "../load_balancer.h"
+//////////////////////////////////////////////////////////////////////////////
+//
+// This file is intended to include implementations of lib_algebra
+//
+//////////////////////////////////////////////////////////////////////////////
 
-namespace ug{
+
+#include "lib_algebra.h"
 
 
-}//	end of namespace
+// preconditioner
+#include "lib_algebra/operator/preconditioner/jacobi.h"
+#include "lib_algebra/operator/preconditioner/gauss_seidel.h"
+#include "lib_algebra/operator/preconditioner/ilu.h"
+#include "lib_algebra/operator/preconditioner/ilut.h"
+#include "lib_algebra/operator/preconditioner/vanka.h"
+
+// solver
+#include "lib_algebra/operator/linear_solver/linear_solver.h"
+#include "lib_algebra/operator/linear_solver/cg.h"
+#include "lib_algebra/operator/linear_solver/bicgstab.h"
+#include "lib_algebra/operator/linear_solver/lu.h"
+#ifdef UG_PARALLEL
+#include "lib_algebra/operator/linear_solver/feti.h"
+	#ifdef UG_HLIBPRO
+	#include "lib_algebra/operator/linear_solver/hlibpro.h"
+	#endif
+#endif
+
+// operator util
+#include "lib_algebra/operator/preconditioner/iterator_product.h"
+#include "lib_algebra/operator/operator_util.h"
+#include "lib_algebra/operator/vector_writer.h"
 
 #endif

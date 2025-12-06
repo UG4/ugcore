@@ -1,4 +1,3 @@
-øunused?
 /*
  * Copyright (c) 2012-2018:  G-CSC, Goethe University Frankfurt
  * Author: Martin Stepniewski
