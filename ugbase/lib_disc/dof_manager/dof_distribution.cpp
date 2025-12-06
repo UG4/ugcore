@@ -35,9 +35,9 @@
 
 #include "common/log.h"
 #include "lib_disc/domain.h"
-#include "lib_disc/local_finite_element/local_dof_set.h"
+//ø #include "lib_disc/local_finite_element/local_dof_set.h"
 #include "lib_disc/reference_element/reference_element.h"
-#include "lib_disc/reference_element/reference_element_traits.h"
+//ø #include "lib_disc/reference_element/reference_element_traits.h"
 #include "lib_disc/reference_element/reference_mapping.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/common/groups_util.h"

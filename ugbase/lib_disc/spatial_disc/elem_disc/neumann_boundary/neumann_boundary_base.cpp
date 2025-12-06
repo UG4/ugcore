@@ -31,7 +31,7 @@
  */
 
 #include "neumann_boundary_base.h"
-#include "lib_disc/common/groups_util.h"
+//ø #include "lib_disc/common/groups_util.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
 #ifdef UG_FOR_LUA

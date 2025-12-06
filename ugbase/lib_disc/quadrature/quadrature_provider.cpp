@@ -36,8 +36,8 @@
 #include "gauss/gauss_quad_vertex.h"
 #include "newton_cotes/newton_cotes.h"
 #include "gauss_legendre/gauss_legendre.h"
-#include "gauss_jacobi/gauss_jacobi10.h"
-#include "gauss_jacobi/gauss_jacobi20.h"
+//ø #include "gauss_jacobi/gauss_jacobi10.h"
+//ø #include "gauss_jacobi/gauss_jacobi20.h"
 #include "gauss_tensor_prod/gauss_tensor_prod.h"
 #include "lib_disc/reference_element/reference_element.h"
 #include <algorithm>

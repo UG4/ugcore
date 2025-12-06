@@ -35,7 +35,6 @@
 #include "lib_grid/algorithms/grid_generation/triangle_fill_sweep_line.h"
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/algorithms/polychain_util.h"
-//temporary
 #include "lib_grid/file_io/file_io.h"
 
 using namespace std;

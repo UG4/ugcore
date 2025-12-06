@@ -31,7 +31,7 @@
  */
 
 #include "debug_util.h"
-#include "attachment_util.h"
+//ø #include "attachment_util.h"
 
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/distributed_grid.h"

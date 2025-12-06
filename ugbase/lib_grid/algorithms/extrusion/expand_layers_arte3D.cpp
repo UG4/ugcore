@@ -32,17 +32,17 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <boost/function.hpp>
-#include <stack>
+//ø #include <boost/function.hpp>
+//ø #include <stack>
 #include <vector>
 #include "lib_grid/lg_base.h"
 #include "expand_layers.h"
-#include "expand_layers_arte.h"
+//ø #include "expand_layers_arte.h"
 #include "expand_layers_arte3D.h"
-#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
-#include "lib_grid/callbacks/callbacks.h"
-#include "lib_grid/grid/grid_util.h"
-//#include "lib_grid/util/simple_algebra/least_squares_solver.h"
+//ø #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+//ø #include "lib_grid/callbacks/callbacks.h"
+//ø #include "lib_grid/grid/grid_util.h"
+//ø //#include "lib_grid/util/simple_algebra/least_squares_solver.h"
 
 #include <vector>
 

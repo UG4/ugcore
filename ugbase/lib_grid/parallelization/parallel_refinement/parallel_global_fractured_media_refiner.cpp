@@ -30,7 +30,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <vector>
+//ø #include <vector>
 #include "parallel_global_fractured_media_refiner.h"
 #include "lib_grid/parallelization/util/compol_boolmarker.h"
 

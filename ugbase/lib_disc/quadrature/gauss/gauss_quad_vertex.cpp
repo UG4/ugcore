@@ -33,7 +33,7 @@
 //  It provides the Gauss Quadratures for a reference vertex.
 
 
-#include "../quadrature.h"
+//ø #include "../quadrature.h"
 #include "gauss_quad_vertex.h"
 
 namespace ug {

@@ -33,7 +33,7 @@
 #include <cassert>
 #include <algorithm>
 #include "grid.h"
-#include "grid_util.h"
+//ø #include "grid_util.h"
 #include "common/common.h"
 #include "lib_grid/attachments/attached_list.h"
 #include "lib_grid/tools/periodic_boundary_manager.h"

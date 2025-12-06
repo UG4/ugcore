@@ -33,7 +33,7 @@
 #include "common/common.h"
 #include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h" //ComputeCuthillMcKeeOrder
 #include "cuthill_mckee.h"
-#include <algorithm>
+//ø #include <algorithm>
 #include <vector>
 #include <queue>
 #include "common/profiler/profiler.h"

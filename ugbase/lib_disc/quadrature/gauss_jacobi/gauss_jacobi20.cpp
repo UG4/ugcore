@@ -32,7 +32,7 @@
 
 #include "gauss_jacobi20.h"
 #include "../quadrature.h"
-#include "common/util/provider.h"
+//ø #include "common/util/provider.h"
 
 namespace ug
 {

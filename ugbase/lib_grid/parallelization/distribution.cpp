@@ -37,7 +37,7 @@
 #include "distributed_grid.h"
 #include "lib_grid/tools/selector_multi_grid.h"
 #include "lib_grid/algorithms/selection_util.h"
-#include "lib_grid/algorithms/subset_util.h"
+//ø #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "parallelization_util.h"

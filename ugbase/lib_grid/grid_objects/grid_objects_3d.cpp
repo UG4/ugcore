@@ -32,9 +32,11 @@
 
 #include <vector>
 #include <algorithm>
+#include <cassert>
 #include "grid_objects.h"
 #include "common/common.h"
-#include "common/assert.h"
+//ø #include "common/assert.h"
+
 #include "tetrahedron_rules.h"
 #include "octahedron_rules.h"
 #include "pyramid_rules.h"

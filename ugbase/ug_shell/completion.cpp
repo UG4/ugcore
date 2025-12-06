@@ -37,7 +37,7 @@
 #include <string>
 #include <sys/stat.h>
 #include <string>
-#include "ug.h"
+
 
 #include "bindings/lua/lua_util.h"
 #include "bridge/bridge.h"

@@ -39,7 +39,7 @@
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 #include "lib_grid/file_io/file_io_asc.h"
 #include "lib_grid/iterators/associated_elements_iterator.h"
-#include "lib_grid/iterators/lg_for_each.h"
+//ø #include "lib_grid/iterators/lg_for_each.h"
 
 using namespace std;
 

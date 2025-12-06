@@ -38,11 +38,11 @@
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/callbacks/callbacks.h"
 #include "lib_grid/grid/grid_util.h"
-#include "common/math/misc/math_constants.h"
-#include <stack>
+//ø #include "common/math/misc/math_constants.h"
+//ø #include <stack>
 #include <utility>
 #include <vector>
-#include <type_traits>
+//ø #include <type_traits>
 #include <limits>
 #include <atomic>
 #include <cstddef>

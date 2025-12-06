@@ -30,7 +30,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "common/util/vec_for_each.h"
+//ø #include "common/util/vec_for_each.h"
 #include "misc_util.h"
 
 namespace ug

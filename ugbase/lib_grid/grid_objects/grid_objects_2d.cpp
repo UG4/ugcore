@@ -33,7 +33,7 @@
 #include <vector>
 #include <algorithm>
 #include "grid_objects_2d.h"
-//#include "../algorithms/geom_obj_util/geom_obj_util.h"
+//ø //#include "../algorithms/geom_obj_util/geom_obj_util.h"
 
 using namespace std;
 

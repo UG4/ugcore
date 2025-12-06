@@ -36,10 +36,10 @@
 
 #include "common/util/provider.h"
 #include "hfvcr_geom.h"
-#include "lib_disc/reference_element/reference_element.h"
+//ø #include "lib_disc/reference_element/reference_element.h"
 #include "lib_disc/reference_element/reference_mapping.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
-#include "lib_disc/quadrature/quadrature.h"
+//ø #include "lib_disc/quadrature/quadrature.h"
 
 namespace ug{
 

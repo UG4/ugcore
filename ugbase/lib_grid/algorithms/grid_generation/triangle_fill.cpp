@@ -34,7 +34,7 @@
 #include <algorithm>
 #include "triangle_fill.h"
 #include "common/math/ugmath.h"
-#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+//ø #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/polychain_util.h"
 
 using namespace std;

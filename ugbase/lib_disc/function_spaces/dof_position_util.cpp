@@ -34,7 +34,7 @@
 #include "approximation_space.h"
 #include "lib_disc/domain.h"
 #include "lib_disc/domain_util.h"
-#include "lib_disc/domain_traits.h"
+//ø #include "lib_disc/domain_traits.h"
 
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"

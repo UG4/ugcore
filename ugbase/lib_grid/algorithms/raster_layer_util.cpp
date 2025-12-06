@@ -41,7 +41,7 @@ namespace ug{
 
 //	initialize all values with simple-values and record a list of all invalid ones
 struct CellIdx {
-	CellIdx()	{}
+	CellIdx() = default;
 	CellIdx(size_t x, size_t y) : ix(x), iy(y)	{}
 	size_t ix;
 	size_t iy;

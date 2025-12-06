@@ -38,7 +38,7 @@
 #include "lib_grid/parallelization/parallelization_util.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/algorithms/subset_util.h"
-#include "lib_grid/iterators/lg_for_each.h"
+//ø #include "lib_grid/iterators/lg_for_each.h"
 #include "pcl/pcl_multi_group_communicator.h"
 
 using namespace std;

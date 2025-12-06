@@ -32,7 +32,7 @@
 
 #include "grid_util.h"
 #include "grid.h"
-#include <iostream>
+//ø #include <iostream>
 
 using namespace std;
 

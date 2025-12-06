@@ -30,7 +30,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cassert>
+//ø #include <cassert>
 #include "octahedron_rules.h"
 #include "rule_util.h"
 #include "grid_object_ids.h"

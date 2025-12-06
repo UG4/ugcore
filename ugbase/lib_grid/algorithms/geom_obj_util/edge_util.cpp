@@ -38,8 +38,8 @@
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/refinement/regular_refinement.h"
 #include "lib_grid/refinement/projectors/plane_cut_projector.h"
-#include "common/util/vec_for_each.h"
-#include "common/util/vec_for_each.h"
+//ø #include "common/util/vec_for_each.h"
+//ø #include "common/util/vec_for_each.h"
 
 using namespace std;
 

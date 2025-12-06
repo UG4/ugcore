@@ -37,7 +37,7 @@
 
 #include "pcl_comm_world.h"
 #include "pcl_methods.h"
-#include "pcl_profiling.h"
+//ø #include "pcl_profiling.h"
 
 namespace pcl
 {

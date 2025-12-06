@@ -1,8 +1,8 @@
 #include "../include/lgm.h"
 
-#include <stdlib.h>
+//ø #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+//ø #include <string.h>
 
 #include "../include/lgm_line.h"
 #include "../include/lgm_surface.h"

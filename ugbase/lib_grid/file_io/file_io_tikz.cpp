@@ -34,11 +34,12 @@
 #include <cmath>
 #include <fstream>
 #include <vector>
+
 #include "file_io_tikz.h"
 #include "common/util/string_util.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/bounding_box_util.h"
-#include "lib_grid/iterators/lg_for_each.h"
+//ø #include "lib_grid/iterators/lg_for_each.h"
 
 using namespace std;
 

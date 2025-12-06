@@ -30,7 +30,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cassert>
+//ø #include <cassert>
 #include "selector_grid.h"
 
 namespace ug

@@ -62,7 +62,7 @@ vector3 GetColorFromDefaultPalette(int index)
 
 	index -= numCols;
 
-	float val = 2.f* M_PI * (float)index / 3.148 + (float)index / 15.f;
+	float val = 2.f* M_PI * static_cast<float>(index) / 3.148 + static_cast<float>(index) / 15.f;
 	vector3 vCol(1.f + cos(val), 1.f + sin(0.6* val), 1.f - cos(0.373*val));
 
 	VecNormalize(vCol, vCol);
@@ -99,7 +99,7 @@ void AssignSubsetColorsRedToGreen(ISubsetHandler& sh, int firstSi, int numSi)
 	{
 		number ia = 1;
 		if(numSi > 1)
-			ia = (number)i / (number)(numSi - 1);
+			ia = static_cast<number>(i) / static_cast<number>(numSi - 1);
 
 		vector3 c;
 		VecScaleAdd(c, (1. - ia), red, ia, green);
@@ -126,7 +126,7 @@ void AssignSubsetColorsBlueToGreen(ISubsetHandler& sh, int firstSi, int numSi)
 	{
 		number ia = 1;
 		if(numSi > 1)
-			ia = (number)i / (number)(numSi - 1);
+			ia = static_cast<number>(i) / static_cast<number>(numSi - 1);
 
 		vector3 c;
 		VecScaleAdd(c, (1. - ia), blue, ia, green);

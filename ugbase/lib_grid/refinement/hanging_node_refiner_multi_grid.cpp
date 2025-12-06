@@ -32,7 +32,7 @@
 
 #include <sstream>
 #include "common/assert.h"
-#include "lib_grid/algorithms/multi_grid_util.h"
+//ø #include "lib_grid/algorithms/multi_grid_util.h"
 #include "lib_grid/algorithms/selection_util.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "hanging_node_refiner_multi_grid.h"
@@ -43,7 +43,7 @@
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
-#include "lib_grid/parallelization/distributed_grid.h"
+//ø #include "lib_grid/parallelization/distributed_grid.h"
 #include "lib_grid/parallelization/parallelization_util.h"
 #endif
 

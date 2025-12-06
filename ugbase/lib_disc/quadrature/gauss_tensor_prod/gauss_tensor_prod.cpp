@@ -32,7 +32,7 @@
 
 
 #include "../quadrature.h"
-#include "common/util/provider.h"
+//ø #include "common/util/provider.h"
 #include "gauss_tensor_prod.h"
 #include "../gauss_legendre/gauss_legendre.h"
 #include "../gauss_jacobi/gauss_jacobi10.h"
@@ -43,13 +43,13 @@ namespace ug {
 
 GaussQuadratureTriangle::GaussQuadratureTriangle(size_t order)
 {
-	GaussLegendre quadRule = GaussLegendre(order);
-	GaussJacobi10 quadRule10 = GaussJacobi10(order);
+	auto quadRule = GaussLegendre(order);
+	auto quadRule10 = GaussJacobi10(order);
 
 	m_order = std::min(quadRule.order(), quadRule10.order());
 	m_numPoints = quadRule10.size() * quadRule.size();
-	position_type* pvPoint = new position_type[m_numPoints];
-	weight_type* pvWeight = new weight_type[m_numPoints];
+	auto pvPoint = new position_type[m_numPoints];
+	auto pvWeight = new weight_type[m_numPoints];
 
 	size_t cnt = 0;
 	for(size_t i = 0; i < quadRule.size(); i++){
@@ -75,8 +75,8 @@ GaussQuadratureQuadrilateral::GaussQuadratureQuadrilateral(size_t order)
 
 	m_order = std::min(quadRule.order(), quadRule.order());
 	m_numPoints = quadRule.size() * quadRule.size();
-	position_type* pvPoint = new position_type[m_numPoints];
-	weight_type* pvWeight = new weight_type[m_numPoints];
+	auto pvPoint = new position_type[m_numPoints];
+	auto pvWeight = new weight_type[m_numPoints];
 
 	size_t cnt  = 0;
 	for(size_t i = 0; i < quadRule.size(); i ++) {
@@ -102,8 +102,8 @@ GaussQuadratureHexahedron::GaussQuadratureHexahedron(size_t order)
 
 	m_order = std::min(quadRule.order(), std::min(quadRule.order(), quadRule.order()));
 	m_numPoints = quadRule.size() * quadRule.size() * quadRule.size();
-	position_type* pvPoint = new position_type[m_numPoints];
-	weight_type* pvWeight = new weight_type[m_numPoints];
+	auto pvPoint = new position_type[m_numPoints];
+	auto pvWeight = new weight_type[m_numPoints];
 
 	size_t cnt  = 0;
 	for(size_t i = 0; i < quadRule.size(); i ++) {
@@ -128,14 +128,14 @@ GaussQuadratureHexahedron::~GaussQuadratureHexahedron()
 
 GaussQuadratureTetrahedron::GaussQuadratureTetrahedron(size_t order)
 {
-	GaussLegendre quadRule = GaussLegendre(order);
-	GaussJacobi10 quadRule10 = GaussJacobi10(order);
-	GaussJacobi20 quadRule20 = GaussJacobi20(order);
+	auto quadRule = GaussLegendre(order);
+	auto quadRule10 = GaussJacobi10(order);
+	auto quadRule20 = GaussJacobi20(order);
 
 	m_order = std::min(quadRule.order(), std::min(quadRule10.order(), quadRule20.order()));
 	m_numPoints = quadRule.size() * quadRule10.size() * quadRule20.size();
-	position_type* pvPoint = new position_type[m_numPoints];
-	weight_type* pvWeight = new weight_type[m_numPoints];
+	auto* pvPoint = new position_type[m_numPoints];
+	auto* pvWeight = new weight_type[m_numPoints];
 
 	size_t cnt = 0;
 	for(size_t i = 0; i < quadRule20.size(); i++) {
@@ -160,13 +160,13 @@ GaussQuadratureTetrahedron::~GaussQuadratureTetrahedron()
 
 GaussQuadraturePrism::GaussQuadraturePrism(size_t order)
 {
-	GaussLegendre quadRule = GaussLegendre(order);
-	GaussJacobi10 quadRule10 = GaussJacobi10(order);
+	auto quadRule = GaussLegendre(order);
+	auto quadRule10 = GaussJacobi10(order);
 
 	m_order = std::min(quadRule.order(), quadRule10.order());
 	m_numPoints = quadRule10.size() * quadRule.size() * quadRule.size();
-	position_type* pvPoint = new position_type[m_numPoints];
-	weight_type* pvWeight = new weight_type[m_numPoints];
+	auto pvPoint = new position_type[m_numPoints];
+	auto pvWeight = new weight_type[m_numPoints];
 
 	size_t cnt = 0;
 	for(size_t i = 0; i < quadRule10.size(); i++) {
@@ -243,8 +243,8 @@ GaussQuadratureOctahedron::GaussQuadratureOctahedron(size_t order)
 
 	m_order = quadRule.order();
 	m_numPoints = quadRule.size() * 4;
-	position_type* pvPoint = new position_type[m_numPoints];
-	weight_type* pvWeight = new weight_type[m_numPoints];
+	auto pvPoint = new position_type[m_numPoints];
+	auto pvWeight = new weight_type[m_numPoints];
 
 	MathVector<3> Tet1Co[4];
 	//Tet1Co[0] = MathVector<3>(0,0,0);

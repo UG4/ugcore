@@ -32,7 +32,7 @@
 
 #include "vertex_util.h"
 #include "edge_util.h"
-#include "../trees/kd_tree_static.h"
+//ø #include "../trees/kd_tree_static.h"
 #include "misc_util.h"
 
 using namespace std;

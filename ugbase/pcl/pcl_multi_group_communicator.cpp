@@ -30,7 +30,6 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "common/log.h"
 
 #include "pcl_multi_group_communicator.h"
 

@@ -1,8 +1,8 @@
 #include "../include/ng.h"
 
-#include <stdlib.h>
+//ø #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+//ø #include <string.h>
 
 #include "../include/ng_node.h"
 #include "../include/ng_element.h"

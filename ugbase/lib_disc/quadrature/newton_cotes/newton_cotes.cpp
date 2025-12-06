@@ -32,7 +32,7 @@
 
 #include "newton_cotes.h"
 #include "../quadrature.h"
-#include "common/util/provider.h"
+//ø #include "common/util/provider.h"
 
 namespace ug
 {

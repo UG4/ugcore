@@ -31,11 +31,11 @@
  */
 
 #include <cassert>
-#include <algorithm>
+//ø #include <algorithm>
 #include <iostream>
 #include "rule_util.h"
 #include "tetrahedron_rules.h"
-#include "octahedron_rules.h"
+//ø #include "octahedron_rules.h"
 #include "pyramid_rules.h"
 #include "hexahedron_rules.h"
 

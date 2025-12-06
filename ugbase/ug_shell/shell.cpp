@@ -43,7 +43,7 @@
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
-#include "pcl/pcl_util.h"
+//ø #include "pcl/pcl_util.h"
 #endif
 
 #if defined(UG_USE_READLINE)

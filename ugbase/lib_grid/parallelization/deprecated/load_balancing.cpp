@@ -35,10 +35,10 @@
 
 //	if we're using metis, then include the header now
 #ifdef UG_PARALLEL
-#include "pcl/pcl_base.h"
-#include "pcl/pcl_interface_communicator.h"
+//ø #include "pcl/pcl_base.h"
+//ø #include "pcl/pcl_interface_communicator.h"
 #include "lib_grid/parallelization/util/parallel_dual_graph.h"
-#include "lib_grid/parallelization/util/compol_subset.h"
+//ø #include "lib_grid/parallelization/util/compol_subset.h"
 #endif
 
 #ifdef UG_METIS

@@ -32,7 +32,7 @@
 
 #include "common/math/ugmath_types.h"
 #include "horizontal_anisotropy_adjuster.h"
-#include "common/util/vec_for_each.h"
+//ø #include "common/util/vec_for_each.h"
 
 namespace ug{
 

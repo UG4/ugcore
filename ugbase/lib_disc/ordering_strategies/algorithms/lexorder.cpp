@@ -37,7 +37,7 @@
 
 #include "common/common.h"
 #include "lib_disc/function_spaces/dof_position_util.h"
-#include "lib_disc/reference_element/reference_element_util.h"
+//ø #include "lib_disc/reference_element/reference_element_util.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/domain.h"
 

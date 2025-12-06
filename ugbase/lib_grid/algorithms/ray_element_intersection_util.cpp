@@ -33,7 +33,7 @@
 #include <algorithm>
 #include "ray_element_intersection_util.h"
 #include "common/math/misc/math_util.h"
-#include "lib_grid/iterators/lg_for_each.h"
+//ø #include "lib_grid/iterators/lg_for_each.h"
 
 using namespace std;
 

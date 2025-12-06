@@ -32,10 +32,10 @@
 
 #include "global_function.h"
 #include <iostream>
-#include <algorithm>
+
 #include <string>
 #include "class_helper.h"
-#include "class_name_provider.h"
+
 #include "common/util/string_util.h"
 
 namespace ug

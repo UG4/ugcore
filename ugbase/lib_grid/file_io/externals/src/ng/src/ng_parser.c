@@ -3,7 +3,7 @@
 #include "ng_parser.h"
 
 #include <stdlib.h>
-#include <stdio.h>
+//ø #include <stdio.h>
 #include <string.h>
 
 #include "../../../include/tokstream/tokstream.h"
