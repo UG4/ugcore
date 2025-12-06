@@ -475,7 +475,7 @@ protected:
 	 */
 		template <typename T>
 		void
-		count_piece_sizes(Grid& grid, const T& iterContainer, const SubsetGroup& ssGrp, const int dim,
+		count_piece_sizes(Grid& grid, const T& iterContainer, const SubsetGroup& ssGrp, int dim,
 		                  int& numVert, int& numElem, int& numConn);
 
 	/**
@@ -496,7 +496,7 @@ protected:
 	 */
 		template <typename TElem, typename T>
 		void
-		count_sizes(Grid& grid, const T& iterContainer, const int si,
+		count_sizes(Grid& grid, const T& iterContainer, int si,
 		            int& numVert, int& numElem, int& numConn);
 
 		template <typename T>
@@ -505,7 +505,7 @@ protected:
 		                         Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		                         const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
 		                         Grid& grid, const T& iterContainer, const SubsetGroup& ssGrp,
-		                         const int dim, const int numVert, const int numElem, const int numConn);
+		                         int dim, int numVert, int numElem, int numConn);
 
 		template <typename T>
 		void
@@ -524,10 +524,10 @@ public:
 protected:
 
 		// writes an xml comment to a vtu file
-		void write_comment(VTKFileWriter& File);
+		void write_comment(VTKFileWriter& File) const;
 
 		// writes an xml comment to a pvd file
-		void write_comment_printf(FILE* File);
+		void write_comment_printf(FILE* File) const;
 
 	/**
 	 * This function writes the vertices of a piece (the specified subsets) of
@@ -544,8 +544,8 @@ protected:
 		write_points(VTKFileWriter& File,
 		             Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		             const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
-		             Grid& grid, const T& iterContainer, const SubsetGroup& ssGrp, const int dim,
-		             const int numVert);
+		             Grid& grid, const T& iterContainer, const SubsetGroup& ssGrp, int dim,
+		             int numVert);
 
 	/**
 	 * This method loops all elements of a subset and writes the vertex
@@ -563,7 +563,7 @@ protected:
 		write_points_elementwise(VTKFileWriter& File,
 		                         Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		                         const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
-		                         Grid& grid, const T& iterContainer, const int si, int& n);
+		                         Grid& grid, const T& iterContainer, int si, int& n);
 
 	/**
 	 * This function writes the elements that are part of the specified subsets.
@@ -580,7 +580,7 @@ protected:
 		write_cells(VTKFileWriter& File,
 		            Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		            Grid& grid, const T& iterContainer, const SubsetGroup& ssGrp,
-		            const int dim, const int numElem, const int numConn);
+		            int dim, int numElem, int numConn);
 
 
 	/**
@@ -595,14 +595,14 @@ protected:
 		void
 		write_cell_connectivity(VTKFileWriter& File,
 		                        Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
-		                        Grid& grid, const T& iterContainer, const int si);
+		                        Grid& grid, const T& iterContainer, int si);
 
 		template <typename T>
 		void
 		write_cell_connectivity(VTKFileWriter& File,
 		                        Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		                        Grid& grid, const T& iterContainer, const SubsetGroup& ssGrp,
-		                        const int dim, const int numConn);
+		                        int dim, int numConn);
 
 	/**
 	 * This method writes the 'offset' for each element of a subset.
@@ -614,12 +614,12 @@ protected:
 	 */
 		template <typename TElem, typename T>
 		void
-		write_cell_offsets(VTKFileWriter& File, const T& iterContainer, const int si, int& n);
+		write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int& n);
 
 		template <typename T>
 		void
 		write_cell_offsets(VTKFileWriter& File, const T& iterContainer, const SubsetGroup& ssGrp,
-		                   const int dim, const int numElem);
+		                   int dim, int numElem);
 
 	/**
 	 * This method writes the 'type' for each element of a subset. The type is
@@ -631,12 +631,12 @@ protected:
 	 */
 		template <typename TElem, typename T>
 		void
-		write_cell_types(VTKFileWriter& File, const T& iterContainer, const int si);
+		write_cell_types(VTKFileWriter& File, const T& iterContainer, int si);
 
 		template <typename T>
 		void
 		write_cell_types(VTKFileWriter& File, const T& iterContainer, const SubsetGroup& ssGrp,
-		                 const int dim, const int numElem);
+		                 int dim, int numElem);
 
 	/**
 	 * This method writes the 'region' for each element of a subset. The region is
@@ -649,12 +649,12 @@ protected:
 	 */
 		template <typename TElem, typename T>
 		void
-		write_cell_subsets(VTKFileWriter& File, const T& iterContainer, const int si, MGSubsetHandler& sh);
+		write_cell_subsets(VTKFileWriter& File, const T& iterContainer, int si, MGSubsetHandler& sh);
 
 		template <typename T>
 		void
 		write_cell_subsets(VTKFileWriter& File, const T& iterContainer, const SubsetGroup& ssGrp,
-		                 const int dim, const int numElem, MGSubsetHandler& sh);
+		                   int dim, int numElem, MGSubsetHandler& sh);
 
 	/**
 	 * This method writes the subset names.
@@ -663,7 +663,7 @@ protected:
 	 * \param[in]	sh			multigrid subset handler
 	 */
 		void
-		write_cell_subset_names(VTKFileWriter& File, MGSubsetHandler& sh);
+		write_cell_subset_names(VTKFileWriter& File, MGSubsetHandler& sh) const;
 
 	/**
 	 * This method writes the proc ranks for each cell.
@@ -675,12 +675,12 @@ protected:
 	 */
 		template <typename TElem, typename T>
 		void
-		write_cell_proc_ranks(VTKFileWriter& File, const T& iterContainer, const int si, MGSubsetHandler& sh);
+		write_cell_proc_ranks(VTKFileWriter& File, const T& iterContainer, int si, MGSubsetHandler& sh);
 
 		template <typename T>
 		void
 		write_cell_proc_ranks(VTKFileWriter& File, const T& iterContainer, const SubsetGroup& ssGrp,
-		                 const int dim, const int numElem, MGSubsetHandler& sh);
+		                      int dim, int numElem, MGSubsetHandler& sh);
 
 	protected:
 	/**
@@ -698,7 +698,7 @@ protected:
 		write_grid_solution_piece(VTKFileWriter& File,
 								  Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 								  Grid& grid, TFunction& u, number time,
-								  const SubsetGroup& ssGrp, const int dim);
+								  const SubsetGroup& ssGrp, int dim);
 
 	///////////////////////////////////////////////////////////////////////////
 	// nodal data
@@ -718,7 +718,7 @@ protected:
 		template <typename TElem, typename TFunction>
 		void write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 		                                    const std::vector<size_t>& vFct,
-		                                    Grid& grid, const int si);
+		                                    Grid& grid, int si);
 
 	/**
 	 * This function writes the values of a function as a \<DataArray\> field to
@@ -737,8 +737,8 @@ protected:
 		void write_nodal_values(VTKFileWriter& File, TFunction& u,
 								const std::vector<size_t>& vFct,
 								const std::string& name,
-								Grid& grid, const int si, const int dim,
-								const int numVert);
+								Grid& grid, int si, int dim,
+								int numVert);
 
 	/**
 	 * This function writes the values of a function as a \<DataArray\> field to
@@ -757,8 +757,8 @@ protected:
 		void write_nodal_values(VTKFileWriter& File, TFunction& u,
 								const std::vector<size_t>& vFct,
 								const std::string& name,
-								Grid& grid, const SubsetGroup& ssGrp, const int dim,
-								const int numVert);
+								Grid& grid, const SubsetGroup& ssGrp, int dim,
+								int numVert);
 
 	///	writes the nodal scalar data
 	/// \{
@@ -766,21 +766,21 @@ protected:
 		void write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u,
 		                                  number time,
 		                                  SmartPtr<UserData<TData, TDim> > spData,
-		                                  Grid& grid, const int si);
+		                                  Grid& grid, int si);
 		
 		template <typename TFunction, typename TData>
 		void write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
 		                      SmartPtr<UserData<TData, TDim> > spData,
-		                      const int numCmp,
+		                      int numCmp,
 		                      const std::string& name,
-		                      Grid& grid, const SubsetGroup& ssGrp, const int dim,
-		                      const int numVert);
+		                      Grid& grid, const SubsetGroup& ssGrp, int dim,
+		                      int numVert);
 	/// \}
 
 		template <typename TFunction>
 		void write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time,
-		                              Grid& grid, const SubsetGroup& ssGrp, const int dim,
-		                              const int numVert);
+		                              Grid& grid, const SubsetGroup& ssGrp, int dim,
+		                              int numVert);
 
 	///////////////////////////////////////////////////////////////////////////
 	// cell data
@@ -799,7 +799,7 @@ protected:
 		template <typename TElem, typename TFunction>
 		void write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 										   const std::vector<size_t>& vFct,
-										   Grid& grid, const int si);
+										   Grid& grid, int si);
 
 	/**
 	 * This function writes the values of a function as a \<DataArray\> field to
@@ -818,29 +818,29 @@ protected:
 		void write_cell_values(VTKFileWriter& File, TFunction& u,
 								const std::vector<size_t>& vFct,
 								const std::string& name,
-								Grid& grid, const SubsetGroup& ssGrp, const int dim,
-								const int numElem);
+								Grid& grid, const SubsetGroup& ssGrp, int dim,
+								int numElem);
 
 	///	writes the nodal cell data
 	/// \{
 		template <typename TElem, typename TFunction, typename TData>
 		void write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 										  SmartPtr<UserData<TData, TDim> > spData,
-										  Grid& grid, const int si);
+										  Grid& grid, int si);
 
 		template <typename TFunction, typename TData>
 		void write_cell_data(VTKFileWriter& File, TFunction& u, number time,
 							  SmartPtr<UserData<TData, TDim> > spData,
-							  const int numCmp,
+							  int numCmp,
 							  const std::string& name,
-							  Grid& grid, const SubsetGroup& ssGrp, const int dim,
-							  const int numElem);
+							  Grid& grid, const SubsetGroup& ssGrp, int dim,
+							  int numElem);
 	/// \}
 
 		template <typename TFunction>
 		void write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time,
-									  Grid& grid, const SubsetGroup& ssGrp, const int dim,
-									  const int numElem);
+									  Grid& grid, const SubsetGroup& ssGrp, int dim,
+									  int numElem);
 
 	///////////////////////////////////////////////////////////////////////////
 	// file names
@@ -856,18 +856,18 @@ protected:
 		                             int step = -1, number time = 0.0);
 
 	///	creates the needed vtu file name
-		static void vtu_filename(std::string& nameOut, std::string nameIn,
+		static void vtu_filename(std::string& nameOut, const std::string &nameIn,
 		                         int rank, int si, int maxSi, int step);
 
 	///	create the needed pvtu file name
-		static void pvtu_filename(std::string& nameOut, std::string nameIn,
+		static void pvtu_filename(std::string& nameOut, const std::string &nameIn,
 		                          int si, int maxSi, int step);
 
 	///	creates the needed pvd file name
-		static void pvd_filename(std::string& nameOut, std::string nameIn);
+		static void pvd_filename(std::string& nameOut, const std::string &nameIn);
 
 	///	creates the needed pvd file name to group the time steps
-		static void pvd_time_filename(std::string& nameOut, std::string nameIn,
+		static void pvd_time_filename(std::string& nameOut, const std::string &nameIn,
 		                              int step);
 
 	public:
@@ -901,13 +901,13 @@ protected:
 	 */
 	/// \{
 		inline void write_item_to_file(VTKFileWriter& File, float data);
-		inline void write_item_to_file(VTKFileWriter& File, double data) {write_item_to_file(File, (float) data);};
-		inline void write_item_to_file(VTKFileWriter& File, const ug::MathVector<1>& data);
-		inline void write_item_to_file(VTKFileWriter& File, const ug::MathVector<2>& data);
-		inline void write_item_to_file(VTKFileWriter& File, const ug::MathVector<3>& data);
-		inline void write_item_to_file(VTKFileWriter& File, const ug::MathMatrix<1,1>& data);
-		inline void write_item_to_file(VTKFileWriter& File, const ug::MathMatrix<2,2>& data);
-		inline void write_item_to_file(VTKFileWriter& File, const ug::MathMatrix<3,3>& data);
+		inline void write_item_to_file(VTKFileWriter& File, double data) {write_item_to_file(File, static_cast<float>(data));};
+		inline void write_item_to_file(VTKFileWriter& File, const MathVector<1>& data);
+		inline void write_item_to_file(VTKFileWriter& File, const MathVector<2>& data);
+		inline void write_item_to_file(VTKFileWriter& File, const MathVector<3>& data);
+		inline void write_item_to_file(VTKFileWriter& File, const MathMatrix<1,1>& data);
+		inline void write_item_to_file(VTKFileWriter& File, const MathMatrix<2,2>& data);
+		inline void write_item_to_file(VTKFileWriter& File, const MathMatrix<3,3>& data);
 	/// \}
 	
 	/// prints ascii representation of a float in the Float32 format (a protection against the denormalized floats)

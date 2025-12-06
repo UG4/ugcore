@@ -182,16 +182,16 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		//virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const;
 
 	///	returns true if the subset contains vertices
-		bool contains_vertices(int subsetIndex) const override {return num<Vertex>(subsetIndex) > 0;}
+		[[nodiscard]] bool contains_vertices(int subsetIndex) const override {return num<Vertex>(subsetIndex) > 0;}
 
 	///	returns true if the subset contains edges
-		bool contains_edges(int subsetIndex) const override {return num<Edge>(subsetIndex) > 0;}
+		[[nodiscard]] bool contains_edges(int subsetIndex) const override {return num<Edge>(subsetIndex) > 0;}
 		
 	///	returns true if the subset contains faces
-		bool contains_faces(int subsetIndex) const override {return num<Face>(subsetIndex) > 0;}
+		[[nodiscard]] bool contains_faces(int subsetIndex) const override {return num<Face>(subsetIndex) > 0;}
 		
 	///	returns true if the subset contains volumes
-		bool contains_volumes(int subsetIndex) const override {return num<Volume>(subsetIndex) > 0;}
+		[[nodiscard]] bool contains_volumes(int subsetIndex) const override {return num<Volume>(subsetIndex) > 0;}
 
 	///	only for debug purposes
 		template <typename TElem>
@@ -201,7 +201,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 	//	for compatibility with MGSubsetHandler
 	///	returns number of levels (always 1)
 	/**	only for compatibility reasons with MGSubsetHandler.*/
-		uint num_levels() const						{return 1;}
+		[[nodiscard]] uint num_levels() const {return 1;}
 		
 	///	returns the begin-iterator for the elements of type TElem in the given subset.
 	/**	only for compatibility reasons with MGSubsetHandler.
@@ -209,7 +209,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 	 *	use i.e. as follows: begin<Triangle>(0, 0)*/
 		template <typename TElem>
 		typename geometry_traits<TElem>::const_iterator
-		begin(int subsetIndex, size_t) const		{return begin<TElem>(subsetIndex);}
+		begin(int subsetIndex, size_t) const {return begin<TElem>(subsetIndex);}
 
 	///	returns the end-iterator for the elements of type TElem in the given subset.
 	/**	only for compatibility reasons with MGSubsetHandler.
@@ -217,19 +217,19 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 	 *	use i.e. as follows: end<Triangle>(0, 0)*/
 		template <typename TElem>
 		typename geometry_traits<TElem>::const_iterator
-		end(int subsetIndex, size_t) const			{return end<TElem>(subsetIndex);}
+		end(int subsetIndex, size_t) const {return end<TElem>(subsetIndex);}
 
 	///	returns the number of elements in the given subset
 	/**	only for compatibility reasons with MGSubsetHandler.
 	 *	second argument is ignored.*/
 		template <typename TElem>
-		uint num_elements(int subsetIndex, size_t) const	{return num_elements<TElem>();}
+		uint num_elements(int subsetIndex, size_t) const {return num_elements<TElem>();}
 
 	///	returns the number of elements in the given subset
 	/**	only for compatibility reasons with MGSubsetHandler.
 	 *	second argument is ignored.*/
 		template <typename TElem>
-		uint num(int subsetIndex, size_t) const				{return num<TElem>();}
+		uint num(int subsetIndex, size_t) const {return num<TElem>();}
 		
 
 	///	perform cleanup
@@ -247,7 +247,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		using ISubsetHandler::VolumeSectionContainer;
 
 	///	returns the number of subsets in the local list
-		inline uint num_subsets_in_list() const	{return (uint)m_subsets.size();}
+		[[nodiscard]] inline uint num_subsets_in_list() const	{return (uint)m_subsets.size();}
 		
 	///	detaches all attached data.
 		void detach_data();

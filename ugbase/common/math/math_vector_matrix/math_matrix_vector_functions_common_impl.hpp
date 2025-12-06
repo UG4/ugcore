@@ -166,8 +166,8 @@ GivensMatVecMult (matrix_t& A, vector_t& v)
 	value_type s, c;
 	value_type d, x, y;
 
-	for (size_type i = 0; i < matrix_t::RowSize - 1; i++) // the 1st index of the elementar rotation
-		for (size_type k = matrix_t::RowSize - 1; k > i; k--) // the 2nd index of this rotation
+	for (size_type i = 0; i < matrix_t::RowSize - 1; ++i) // the 1st index of the elementar rotation
+		for (size_type k = matrix_t::RowSize - 1; k > i; --k) // the 2nd index of this rotation
 		{
 			d = A (i, i); x = A (k, i);
 			
@@ -187,7 +187,7 @@ GivensMatVecMult (matrix_t& A, vector_t& v)
 			else continue; // nothing to eliminate
 
 		// Multiplication of A by the elementar transformation:
-			for (size_type j = i; j < matrix_t::ColSize; j++)
+			for (size_type j = i; j < matrix_t::ColSize; ++j)
 			{
 				x = A (i, j); y = A (k, j);
 				A (i, j) = c * x + s * y;
@@ -231,8 +231,8 @@ InvMatVecMult_byGivens (matrix_t& A, vector_t& v)
 	size_type i = matrix_t::ColSize; // <= matrix_t::RowSize, i.e. we invert only the square block
 	do
 	{
-		i--;
-		for (size_type j = i + 1; j < matrix_t::ColSize; j++)
+		--i;
+		for (size_type j = i + 1; j < matrix_t::ColSize; ++j)
 			v [i] -= A (i, j) * v [j];
 		if (std::abs (A (i, i)) < SMALL * std::abs (v [i]))
 			UG_THROW ("InvMatVecMult_byGivens: Inverting singular matrix by the Givens rotations");

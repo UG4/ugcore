@@ -127,7 +127,7 @@ class EquidistantLagrange1D
 		static number position(const size_t i, const size_t degree)
 		{
 			UG_ASSERT(i <= degree, "Invalid index");
-			return (number)i/(number)degree;
+			return static_cast<number>(i)/static_cast<number>(degree);
 		}
 
 	protected:
@@ -191,7 +191,7 @@ class TruncatedEquidistantLagrange1D
 		static number position(const size_t i, const size_t degree)
 		{
 			UG_ASSERT(i <= degree, "Invalid index");
-			return (number)i/(number)degree;
+			return static_cast<number>(i)/static_cast<number>(degree);
 		}
 
 	protected:
@@ -259,7 +259,7 @@ class BoundedEquidistantLagrange1D
 		static number position(const size_t i, const size_t degree)
 		{
 			UG_ASSERT(i <= degree, "Invalid index");
-			return (number)i/(number)degree;
+			return static_cast<number>(i)/static_cast<number>(degree);
 		}
 
 	protected:

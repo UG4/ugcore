@@ -72,10 +72,10 @@ class AlgebraType
 		explicit AlgebraType(const char* type);
 
 	///	returns the type
-		int type() const {return m_type;}
+		[[nodiscard]] int type() const {return m_type;}
 
 	///	returns the blocksize
-		int blocksize() const {return m_blockSize;}
+		[[nodiscard]] int blocksize() const {return m_blockSize;}
 
 	protected:
 		int m_type;

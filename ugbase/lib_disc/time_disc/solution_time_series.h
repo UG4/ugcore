@@ -79,34 +79,34 @@ class VectorTimeSeries
 		void clear() {m_vTimeSol.clear();}
 
 	///	returns number of time steps handled
-		size_t size() const {return m_vTimeSol.size();}
+		[[nodiscard]] size_t size() const {return m_vTimeSol.size();}
 
 	///	returns point in time for solution
-		number time(size_t i) const {return m_vTimeSol.at(i).time();}
+		[[nodiscard]] number time(size_t i) const {return m_vTimeSol.at(i).time();}
 
 	///	returns solution
 		SmartPtr<vector_type> solution(size_t i) {return m_vTimeSol.at(i).solution();}
 
 	///	returns solution
-		ConstSmartPtr<vector_type> solution(size_t i) const {return m_vTimeSol.at(i).solution();}
+		[[nodiscard]] ConstSmartPtr<vector_type> solution(size_t i) const {return m_vTimeSol.at(i).solution();}
 
 	///	returns oldest solution
 		SmartPtr<vector_type> oldest() {return m_vTimeSol.back().solution();}
 
 	/// const access to oldest solution
-		ConstSmartPtr<vector_type> oldest() const {return m_vTimeSol.back().solution();}
+		[[nodiscard]] ConstSmartPtr<vector_type> oldest() const {return m_vTimeSol.back().solution();}
 
 	/// time associated with oldest solution
-		number oldest_time() const {return m_vTimeSol.back().time();}
+		[[nodiscard]] number oldest_time() const {return m_vTimeSol.back().time();}
 
 	///	returns latest solution
 		SmartPtr<vector_type> latest() {return m_vTimeSol.front().solution();}
 
 	///	const access to latest solution
-		ConstSmartPtr<vector_type> latest() const {return m_vTimeSol.front().solution();}
+		[[nodiscard]] ConstSmartPtr<vector_type> latest() const {return m_vTimeSol.front().solution();}
 
 	/// time associated with latest solution
-		number latest_time() const {return m_vTimeSol.front().time();}
+		[[nodiscard]] number latest_time() const {return m_vTimeSol.front().time();}
 
 	///	adds new time point, not discarding the oldest
 		void push(SmartPtr<vector_type> vec, number time) {m_vTimeSol.push_front(TimeSol(vec, time));}
@@ -145,7 +145,7 @@ class VectorTimeSeries
 				number& time() {return t;}
 
 			///	const access time
-				const number& time() const {return t;}
+				[[nodiscard]] const number& time() const {return t;}
 
 			protected:
 			//	solution vector at time point
@@ -169,16 +169,16 @@ class LocalVectorTimeSeries
 		LocalVectorTimeSeries() = default;
 
 	///	returns number of time points
-		size_t size() const {return m_vLocalVector.size();}
+		[[nodiscard]] size_t size() const {return m_vLocalVector.size();}
 
 	///	returns time point i
-		number time(size_t i) const {return m_vTime.at(i);}
+		[[nodiscard]] number time(size_t i) const {return m_vTime.at(i);}
 
 	///	returns time points
-		const std::vector<number>& times() const {return m_vTime;}
+		[[nodiscard]] const std::vector<number>& times() const {return m_vTime;}
 
 	///	returns the local vector for the i'th time point
-		const LocalVector& solution(size_t i) const {return m_vLocalVector.at(i);}
+		[[nodiscard]] const LocalVector& solution(size_t i) const {return m_vLocalVector.at(i);}
 
 	///	returns the local vector for the i'th time point
 		LocalVector& solution(size_t i) {return m_vLocalVector.at(i);}

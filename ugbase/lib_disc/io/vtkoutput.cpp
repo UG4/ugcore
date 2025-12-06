@@ -139,7 +139,7 @@ write_empty_grid_piece(VTKFileWriter& File, bool binary)
 	int n = 0;
 	File << "    <Piece NumberOfPoints=\"0\" NumberOfCells=\"0\">\n";
 	File << "      <Points>\n";
-	File << "        <DataArray type=\"Float32\" NumberOfComponents=\"3\" format="
+	File << R"(        <DataArray type="Float32" NumberOfComponents="3" format=)"
 		 <<	(binary ? "\"binary\"" : "\"ascii\"") << ">\n";
 	if(binary)
 		File << VTKFileWriter::base64_binary << n << VTKFileWriter::normal;
@@ -148,7 +148,7 @@ write_empty_grid_piece(VTKFileWriter& File, bool binary)
 	File << "\n        </DataArray>\n";
 	File << "      </Points>\n";
 	File << "      <Cells>\n";
-	File << "        <DataArray type=\"Int32\" Name=\"connectivity\" format="
+	File << R"(        <DataArray type="Int32" Name="connectivity" format=)"
 		 <<	(binary ? "\"binary\"" : "\"ascii\"") << ">\n";
 	if(binary)
 		File << VTKFileWriter::base64_binary << n << VTKFileWriter::normal;
@@ -176,8 +176,7 @@ write_empty_grid_piece(VTKFileWriter& File, bool binary)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_comment(VTKFileWriter& File)
-{
+write_comment(VTKFileWriter& File) const {
 	if (!m_sComment.size()){
 		return;
 	}
@@ -190,9 +189,8 @@ write_comment(VTKFileWriter& File)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_comment_printf(FILE* File)
-{
-	if (!m_sComment.size()){
+write_comment_printf(FILE* File) const {
+	if (m_sComment.empty()){
 		return;
 	}
 	
@@ -229,7 +227,7 @@ void baseName(std::string& nameOut, const std::string& nameIn)
 
 template <int TDim>
 void VTKOutput<TDim>::
-vtu_filename(std::string& nameOut, std::string nameIn, int rank,
+vtu_filename(std::string& nameOut, const std::string &nameIn, int rank,
              int si, int maxSi, int step)
 {
 // remove extension of file if necessary
@@ -256,7 +254,7 @@ vtu_filename(std::string& nameOut, std::string nameIn, int rank,
 
 template <int TDim>
 void VTKOutput<TDim>::
-pvtu_filename(std::string& nameOut, std::string nameIn,
+pvtu_filename(std::string& nameOut, const std::string &nameIn,
               int si, int maxSi, int step)
 {
 // remove extension of file if necessary
@@ -277,7 +275,7 @@ pvtu_filename(std::string& nameOut, std::string nameIn,
 
 template <int TDim>
 void VTKOutput<TDim>::
-pvd_filename(std::string& nameOut, std::string nameIn)
+pvd_filename(std::string& nameOut, const std::string &nameIn)
 {
 // remove extension of file if necessary
 	baseName(nameOut, nameIn);
@@ -289,7 +287,7 @@ pvd_filename(std::string& nameOut, std::string nameIn)
 
 template <int TDim>
 void VTKOutput<TDim>::
-pvd_time_filename(std::string& nameOut, std::string nameIn, int step)
+pvd_time_filename(std::string& nameOut, const std::string &nameIn, int step)
 {
 // remove extension of file if necessary
 	baseName(nameOut, nameIn);
@@ -384,7 +382,8 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 			for(int si = 0; si < numSubset; ++si)
 			{
 				vtu_filename(name, filename, rank, si, numSubset-1, step);
-				if(numProcs > 1) pvtu_filename(name, filename, si, numSubset-1, step);
+				/*if(numProcs > 1) ø already set by outer if condition */
+				pvtu_filename(name, filename, si, numSubset-1, step);
 
 				name = FilenameWithoutPath(name);
 				fprintf(file, "  <DataSet timestep=\"%.17g\" part=\"%d\" file=\"%s\"/>\n",
@@ -413,7 +412,7 @@ select(const std::vector<std::string>& vFct, const char* name)
 	select_all(false);
 
 //	check that admissible number of components passed
-	if(vFct.size() != 1 && vFct.size() != (size_t)TDim){
+	if(vFct.size() != 1 && vFct.size() != static_cast<size_t>(TDim)){
 		std::stringstream ss;
 		ss <<"VTK:select_nodal: In order to select"
 			 " a element data of a grid function for output to vtk,"
@@ -488,7 +487,7 @@ select_nodal(const std::vector<std::string>& vFct, const char* name)
 	select_all(false);
 
 //	check that admissible number of components passed
-	if(vFct.size() != 1 && vFct.size() != (size_t)TDim){
+	if(vFct.size() != 1 && vFct.size() != static_cast<size_t>(TDim)){
 		std::stringstream ss;
 		ss <<"VTK:select_nodal: In order to select"
 			 " a element data of a grid function for output to vtk,"
@@ -579,7 +578,7 @@ select_element(const std::vector<std::string>& vFct, const char* name)
 	select_all(false);
 
 //	check that admissible number of components passed
-	if(vFct.size() != 1 && vFct.size() != (size_t)TDim){
+	if(vFct.size() != 1 && vFct.size() != static_cast<size_t>(TDim)){
 		std::stringstream ss;
 		ss <<"VTK:select_element: In order to select"
 			 " a element data of a grid function for output to vtk,"

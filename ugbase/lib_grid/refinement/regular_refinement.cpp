@@ -356,7 +356,7 @@ constexpr ISelector::status_t snapSelVal = ISelector::SELECTED + 1;
 	volFaceVrts.reserve(6);
 	
 //	only used for tetrahedron refinement
-	vector<vector3> corners(4, vector3(0, 0, 0));
+	vector corners(4, vector3(0, 0, 0));
 
 // //	DEBUG
 // 	UG_LOG("> VOL-REF-BEGIN\n");

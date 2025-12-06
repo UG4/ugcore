@@ -65,10 +65,10 @@ class DoFCount : public DoFDistributionInfoProvider
 				PCnt();
 
 				// dofs exactly matching this state
-				uint64 num(byte_t is) const;
+				[[nodiscard]] uint64 num(byte_t is) const;
 
 				// dofs that contain this state
-				uint64 num_contains(byte_t is) const;
+				[[nodiscard]] uint64 num_contains(byte_t is) const;
 
 				void collect_values(std::vector<uint64>& vNum) const;
 				void set_values(const std::vector<uint64>& vNum, size_t& cnt);
@@ -76,8 +76,8 @@ class DoFCount : public DoFDistributionInfoProvider
 				std::vector<uint64> vNumIS;
 			};
 
-			uint64 num(SurfaceView::SurfaceState ss, byte_t is) const;
-			uint64 num_contains(SurfaceView::SurfaceState ss, byte_t is) const;
+			[[nodiscard]] uint64 num(SurfaceView::SurfaceState ss, byte_t is) const;
+			[[nodiscard]] uint64 num_contains(SurfaceView::SurfaceState ss, byte_t is) const;
 
 			std::vector<PCnt> vNumSS;
 		};
@@ -93,10 +93,10 @@ class DoFCount : public DoFDistributionInfoProvider
 
 		void add(int fct, int si, SurfaceView::SurfaceState ss, byte_t is, uint64 numDoF);
 
-		const GridLevel& grid_level() const {return m_gridLevel;}
+		[[nodiscard]] const GridLevel& grid_level() const {return m_gridLevel;}
 
-		uint64 num(int fct, int si, SurfaceView::SurfaceState ss, byte_t is) const;
-		uint64 num_contains(int fct, int si, SurfaceView::SurfaceState ss, byte_t is) const;
+		[[nodiscard]] uint64 num(int fct, int si, SurfaceView::SurfaceState ss, byte_t is) const;
+		[[nodiscard]] uint64 num_contains(int fct, int si, SurfaceView::SurfaceState ss, byte_t is) const;
 
 	protected:
 		GridLevel m_gridLevel;

@@ -408,11 +408,11 @@ void MatAddNonDirichlet(matrix_type &M, number alpha1, const matrix_type &A, num
 		using value_type = typename matrix_type::value_type;
 
 		const value_type &Aii = A(i,i);
-		value_type Pii = 1.0;
+		value_type Pii = typename matrix_type::value_type(1.0);
 
 
 		UG_ASSERT (GetRows(Aii)==GetRows(Pii), "Huhh: Numbers of rows does not match!");
- 		for(size_t alpha = 0; alpha < (size_t) GetRows(Aii); ++alpha)
+ 		for(size_t alpha = 0; alpha < static_cast<size_t>(GetRows(Aii)); ++alpha)
  		{
  			if (IsDirichletRow(A, i, alpha)) BlockRef(Pii, alpha, alpha) =  0.0;
  		}
@@ -720,7 +720,7 @@ void SetRow(TSparseMatrix &A, size_t i, size_t alpha, number val = 0.0)
 	{
 		value_type& block = conn.value();
 		// block : 1x1 (CPU=1), 3x3 (CPU=3)
-		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
+		for(size_t beta = 0; beta < static_cast<size_t>(GetCols(block)); ++beta)
 		{
 			BlockRef(block, alpha, beta) = val;
 		}
@@ -743,7 +743,7 @@ void SetCol(TSparseMatrix &A, size_t i, size_t alpha, number val = 0.0)
 	{
 		value_type& block = A(row, i);
 		// block : 1x1 (CPU=1), 3x3 (CPU=3)
-		for(size_t beta = 0; beta < (size_t) GetRows(block); ++beta)
+		for(size_t beta = 0; beta < static_cast<size_t>(GetRows(block)); ++beta)
 		{
 			BlockRef(block, beta, alpha) = val;
 		}
@@ -809,7 +809,7 @@ void SetDirichletRow(TSparseMatrix &A, size_t i, size_t alpha)
 	{
 		value_type& block = conn.value();
 		// block : 1x1 (CPU=1), 3x3 (CPU=3)
-		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
+		for(size_t beta = 0; beta < static_cast<size_t>(GetCols(block)); ++beta)
 		{
 			if(conn.index() != i) BlockRef(block, alpha, beta) = 0.0;
 			else if(beta != alpha) BlockRef(block, alpha, beta) = 0.0;
@@ -834,7 +834,7 @@ bool IsDirichletRow(const TSparseMatrix &A, size_t i, size_t alpha)
 	{
 		const value_type& block = conn.value();
 		// block : 1x1 (CPU=1), 3x3 (CPU=3)
-		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
+		for(size_t beta = 0; beta < static_cast<size_t>(GetCols(block)); ++beta)
 		{
 			sum += BlockRef(block, alpha, beta) * BlockRef(block, alpha, beta);
 		}
@@ -871,7 +871,7 @@ void SetDirichletRow(TSparseMatrix& A, size_t i)
 //-------------------------
 /**
  * set Dirichlet row for block i.
- * \param[in/out] Matrix A
+ * \param[in/out] A Matrix
  * \param[in] vIndex vector of row indices to set dirichlet, that is A(i,i) = 1.0, A(i,k) = 0.0 for all k != i.
  */
 template <typename TSparseMatrix>
@@ -1149,13 +1149,13 @@ bool CheckVectorInvertible(const TVector &v)
 template<typename TSparseMatrix>
 bool CheckDiagonalInvertible(const ParallelMatrix<TSparseMatrix> &m)
 {
-	return AllProcsTrue(CheckDiagonalInvertible((TSparseMatrix&)m), m.layouts()->proc_comm());
+	return AllProcsTrue(CheckDiagonalInvertible(static_cast<const TSparseMatrix &>(m)), m.layouts()->proc_comm());
 }
 
 template<typename TVector>
 bool CheckVectorInvertible(const ParallelVector<TVector> &v)
 {
-	return AllProcsTrue(CheckVectorInvertible((TVector&)v), v.layouts()->proc_comm());
+	return AllProcsTrue(CheckVectorInvertible(static_cast<const TVector &>(v)), v.layouts()->proc_comm());
 }
 #endif
 

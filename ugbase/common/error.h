@@ -103,14 +103,15 @@ std::string ErrorStringFromStdException(const std::exception *pex);
 class UGError
 {
 	public:
-		UGError(const char* msg,
-		        const char* file = " -- no file -- ", const unsigned long line = 0)
-			{push_msg(msg, file, line);}
-		UGError(const std::string& msg,
-		        const char* file = " -- no file -- ", const unsigned long line = 0)
+		explicit UGError(const char* msg,
+	                     const char* file = " -- no file -- ", const unsigned long line = 0)
 			{push_msg(msg, file, line);}
 
-		UGError(const std::string &msg, const std::exception &ex, const char *file, const unsigned long line);
+		explicit UGError(const std::string& msg,
+		                 const char* file = " -- no file -- ", const unsigned long line = 0)
+			{push_msg(msg, file, line);}
+
+		UGError(const std::string &msg, const std::exception &ex, const char *file, unsigned long line);
 
 	///	virtual destructor
 		virtual ~UGError() = default;
@@ -134,21 +135,21 @@ class UGError
 		}
 
 	///	returns the initial message
-		const std::string& get_msg() const			{return m_vMsg.at(0);}
+		[[nodiscard]] const std::string& get_msg() const			{return m_vMsg.at(0);}
 
 	///	number of messages in message-stack
-		size_t num_msg() const 						{return m_vMsg.size();}
+		[[nodiscard]] size_t num_msg() const 						{return m_vMsg.size();}
 
 	///	returns a message in the message-stack (innermost is first)
-		const std::string& get_msg(size_t i) const	{return m_vMsg.at(i);}
+		[[nodiscard]] const std::string& get_msg(size_t i) const	{return m_vMsg.at(i);}
 
 	/// returns the file where a message occured
-		const std::string& get_file(size_t i) const	{return m_vFile.at(i);}
+		[[nodiscard]] const std::string& get_file(size_t i) const	{return m_vFile.at(i);}
 
 	///	returns the line where a message occured
-		unsigned long get_line(size_t i) const{return m_vLine.at(i);}
+		[[nodiscard]] unsigned long get_line(size_t i) const{return m_vLine.at(i);}
 
-		std::string get_stacktrace() const
+		[[nodiscard]] std::string get_stacktrace() const
 		{
 			std::stringstream ss;
 			for(size_t i = 0; i < num_msg(); ++i)
@@ -172,7 +173,7 @@ class UGError
 class SoftAbort : public UGError
 {
 	public:
-		SoftAbort(const std::string &msg) : UGError(msg.c_str())	{}
+		explicit SoftAbort(const std::string &msg) : UGError(msg.c_str())	{}
 };
 
 

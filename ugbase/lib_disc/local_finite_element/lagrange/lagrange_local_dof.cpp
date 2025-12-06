@@ -126,7 +126,7 @@ void SetLagrangeVolumeLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
 		//\todo:order dofs
 		{
 			size_t numInnerDoF = 0;
-			for(int i=1; i <= (int)p -2; ++i) numInnerDoF += i*i;
+			for(int i=1; i <= static_cast<int>(p) -2; ++i) numInnerDoF += i*i;
 
 			for(size_t i = 0; i < numInnerDoF; ++i)
 				vLocalDoF.push_back(LocalDoF(3, 0, i));
@@ -182,7 +182,7 @@ void SetLagrangeLocalDoFs(	std::vector<LocalDoF>& vLocalDoF,
 size_t GetNumberOfDoFsOfPyramid(int p)
 {
 	if(p <= 0) return 0;
-	if(p == 0) return 1;
+	if(p == 0) return 1; // if p <= 0 then p==0 can not be reached?  was p < 0 intended?
 	if(p == 1) return 5;
 	else return GetNumberOfDoFsOfPyramid(p-1) + (p+1)*(p+1);
 }

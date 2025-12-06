@@ -45,7 +45,7 @@ begin(int subsetIndex)
 {
 	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
-	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
+	if(subsetIndex < 0 || subsetIndex >= static_cast<int>(num_subsets_in_list()))
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
 					typename Grid::traits<TElem>::AttachedElementList::iterator());
 
@@ -64,7 +64,7 @@ end(int subsetIndex)
 {
 	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
-	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
+	if(subsetIndex < 0 || subsetIndex >= static_cast<int>(num_subsets_in_list()))
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
 					typename Grid::traits<TElem>::AttachedElementList::iterator());
 
@@ -83,7 +83,7 @@ begin(int subsetIndex) const
 {
 	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
-	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
+	if(subsetIndex < 0 || subsetIndex >= static_cast<int>(num_subsets_in_list()))
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
 					typename Grid::traits<TElem>::AttachedElementList::iterator());
 
@@ -102,7 +102,7 @@ end(int subsetIndex) const
 {
 	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
-	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
+	if(subsetIndex < 0 || subsetIndex >= static_cast<int>(num_subsets_in_list()))
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
 					typename Grid::traits<TElem>::AttachedElementList::iterator());
 
@@ -122,7 +122,7 @@ clear_subset_elements(int subsetIndex)
 {
 	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
-	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
+	if(subsetIndex < 0 || subsetIndex >= static_cast<int>(num_subsets_in_list()))
 		return;
 
 //	iterate through the elements of type TElem and erase them from the subsets list.
@@ -148,7 +148,7 @@ num_elements(int subsetIndex) const
 {
 	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
-	if((subsetIndex < 0) || (subsetIndex >= (int)num_subsets_in_list()))
+	if((subsetIndex < 0) || (subsetIndex >= static_cast<int>(num_subsets_in_list())))
 		return 0;
 		
 	if(sectionInd < 0)
@@ -164,7 +164,7 @@ num(int subsetIndex) const
 {
 	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
-	if((subsetIndex < 0) || (subsetIndex >= (int)num_subsets_in_list()))
+	if((subsetIndex < 0) || (subsetIndex >= static_cast<int>(num_subsets_in_list())))
 		return 0;
 
 	if(sectionInd < 0)
@@ -219,7 +219,7 @@ change_elem_subset_indices(int indOld, int indNew)
 {
 	using iterator = typename geometry_traits<TElem>::iterator;
 	for(iterator iter = begin<TElem>(indOld);
-		iter != end<TElem>(indOld); iter++){
+		iter != end<TElem>(indOld); ++iter){
 		ISubsetHandler::alter_subset_index(*iter, indNew);
 	}
 }

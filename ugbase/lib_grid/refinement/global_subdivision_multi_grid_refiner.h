@@ -54,9 +54,9 @@ template <typename TAPosition>
 class GlobalSubdivisionMultiGridRefiner : public GlobalMultiGridRefiner
 {
 	public:
-		GlobalSubdivisionMultiGridRefiner(SPRefinementProjector projector = nullptr);
+		explicit GlobalSubdivisionMultiGridRefiner(SPRefinementProjector projector = nullptr);
 
-		GlobalSubdivisionMultiGridRefiner(MultiGrid& mg, SPRefinementProjector projector = nullptr);
+		explicit GlobalSubdivisionMultiGridRefiner(MultiGrid& mg, SPRefinementProjector projector = nullptr);
 
 		GlobalSubdivisionMultiGridRefiner(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
 								MGSubsetHandler& markSH, SPRefinementProjector projector = nullptr);

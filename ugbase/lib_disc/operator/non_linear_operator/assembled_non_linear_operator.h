@@ -57,7 +57,7 @@ public:
 			: m_spAss(nullptr) {};
 
 	///	constructor
-		AssembledOperator(SmartPtr<IAssemble<TAlgebra> > ass)
+		explicit AssembledOperator(SmartPtr<IAssemble<TAlgebra> > ass)
 			: m_spAss(ass){};
 
 	///	constructor

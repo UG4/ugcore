@@ -134,8 +134,8 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	 */
 		bool perform_coarsening() override;
 
-		void save_coarsen_marks_to_file(ISelector& sel, const char* filename);
-		void debug_save(ISelector& sel, const char* filename);
+		void save_coarsen_marks_to_file(ISelector& sel, const char* filename) const;
+		void debug_save(ISelector& sel, const char* filename) const;
 
 	///	a callback that allows to deny refinement of special vertices
 		bool refinement_is_allowed(Vertex* elem) override;

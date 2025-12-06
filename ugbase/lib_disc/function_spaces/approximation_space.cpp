@@ -135,7 +135,7 @@ bool MightContainGhosts(const GridLayoutMap& layoutMap, int lvl)
 
 bool IApproximationSpace::might_contain_ghosts(int lvl) const
 {
-	if(lvl < 0 || lvl > (int)num_levels()-1)
+	if(lvl < 0 || lvl > static_cast<int>(num_levels())-1)
 		UG_THROW("ApproximationSpace: Level not contained.");
 
 	const DistributedGridManager* pDistGridMgr = m_spMG->distributed_grid_manager();
@@ -154,7 +154,7 @@ bool IApproximationSpace::might_contain_ghosts(int lvl) const
 bool IApproximationSpace::might_contain_ghosts() const
 {
 	bool bGhosts = false;
-	for(int lvl = 0; lvl < (int)num_levels(); ++lvl)
+	for(int lvl = 0; lvl < static_cast<int>(num_levels()); ++lvl)
 		bGhosts |= might_contain_ghosts(lvl);
 
 	return bGhosts;
@@ -378,7 +378,7 @@ void IApproximationSpace::dof_distribution_info_required()
 //	if block algebra, check that number of sub-elements is zero or == blockSize
 	else if(blockSize > 1){
 		for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
-			const ReferenceObjectID roid = (ReferenceObjectID)r;
+			const auto roid = static_cast<ReferenceObjectID>(r);
 
 			for(int si = 0; si < m_spDDI->num_subsets(); ++si){
 				const int  numDoFs = m_spDDI->num_dofs(roid, si);

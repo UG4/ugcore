@@ -389,7 +389,7 @@ void ConsistentToUnique(	TVector* pVec,
                         	const IndexLayout& slaveLayout)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
-	SetLayoutValues(pVec, slaveLayout, 0.0);
+	SetLayoutValues(pVec, slaveLayout, typename TVector::value_type(0.0));
 }
 
 /// subtracts values of slave layout from master layout and sets slave layouts to negative of difference
@@ -511,7 +511,7 @@ int GetHighestReferencedIndex(IndexLayout& layout);
  * The first entry for each connection is the process on which the
  * master-element lies, followed by the processes where associated slaves lie.
  *
- * \param	connectionsOut will have the size highestReferencedIndex + 1 when the
+ * \param	connectionsToProcsOut will have the size highestReferencedIndex + 1 when the
  * 			method is done. By indexing connectionsOut with an entry of one of the
  * 			layouts interfaces, you will obtain a vector of all processes on
  * 			which copies of that entry reside.
@@ -591,7 +591,7 @@ void MatExtractDiagOnLayout(	TVector* pDiagVector,
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterator
-	IndexLayout::const_iterator iter = Layout.begin();
+	auto iter = Layout.begin();
 	auto end = Layout.end();
 
 	for(; iter != end; ++iter)
@@ -632,7 +632,7 @@ void MatWriteDiagOnLayout(	TMatrix* pMatrix,
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterator
 	auto iter = Layout.begin();
-	IndexLayout::const_iterator end = Layout.end();
+	auto end = Layout.end();
 
 	for(; iter != end; ++iter)
 	{

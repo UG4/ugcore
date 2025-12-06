@@ -61,7 +61,7 @@ class TransferValueAccessor
 			return *m_Val[i];
 		}
 
-		size_t size() const {return m_Val.size();}
+		[[nodiscard]] size_t size() const {return m_Val.size();}
 
 	protected:
 		std::vector<number*> m_Val;

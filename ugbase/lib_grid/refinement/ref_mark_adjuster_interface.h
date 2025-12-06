@@ -81,8 +81,8 @@ class IRefMarkAdjuster
 										const std::vector<Volume*>& vols)
 		{}
 
-		virtual void enable(bool enable)	{m_enabled = enable;}
-		virtual bool enabled() const		{return m_enabled;}
+		virtual void enable(bool enable) {m_enabled = enable;}
+		virtual bool enabled() const {return m_enabled;}
 
 	///	enables or disables node-dependency-order-1.
 	/**	\{
@@ -91,8 +91,8 @@ class IRefMarkAdjuster
 	 * as a corner vertex.
 	 *
 	 * Enabled by default.*/
-		void enable_node_dependency_order_1(bool bEnable)	{m_nodeDependencyOrder1 = bEnable;}
-		bool node_dependency_order_1_enabled()				{return m_nodeDependencyOrder1;}
+		void enable_node_dependency_order_1(bool bEnable) {m_nodeDependencyOrder1 = bEnable;}
+		bool node_dependency_order_1_enabled() const {return m_nodeDependencyOrder1;}
 	/**	\} */
 
 	private:

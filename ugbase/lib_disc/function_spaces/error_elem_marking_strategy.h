@@ -254,7 +254,7 @@ class StdCoarseningMarkingStrategy : public IElementMarkingStrategy<TDomain>
 public:
 	using base_type = IElementMarkingStrategy<TDomain>;
 
-	StdCoarseningMarkingStrategy(number tol)
+	explicit StdCoarseningMarkingStrategy(number tol)
 		: m_tol(tol), m_safety(8.0), m_minLvl(0) {}
 
 	StdCoarseningMarkingStrategy(number tol, number safety)
@@ -375,7 +375,7 @@ protected:
 		std::vector<std::pair<number, int> >::iterator beginFirst,
 		std::vector<std::pair<number, int> >::iterator beginSecond,
 		std::vector<std::pair<number, int> >::iterator end
-	);
+	) const;
 
 protected:
 	number m_tol;
@@ -408,7 +408,7 @@ void ExpectedErrorMarkingStrategy<TDomain>::merge_sorted_lists
 	std::vector<std::pair<number, int> >::iterator beginFirst,
 	std::vector<std::pair<number, int> >::iterator beginSecond,
 	std::vector<std::pair<number, int> >::iterator end
-)
+) const
 {
 	const size_t nVal = std::distance(beginFirst, end);
 	std::vector<std::pair<number, int> > sorted;
@@ -674,7 +674,7 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 	const const_iterator iterEnd = dd->end<TElem>();
 
 	// determine (local) number of excess elements
-	const size_t ndiscard = (size_t) (numElemLocal*m_eps); // TODO: on every process?
+	const size_t ndiscard = static_cast<size_t>(numElemLocal * m_eps); // TODO: on every process?
 	UG_LOG("  +++ MaximumMarking: Found max "<<  maxElemErr << ", ndiscard="<<ndiscard<<".\n");
 
 	if (numElemLocal > 0)
@@ -762,7 +762,7 @@ class APosterioriCoarsening : public IElementMarkingStrategy<TDomain>{
 
 public:
 	using base_type = IElementMarkingStrategy<TDomain>;
-	APosterioriCoarsening(number theta=0.1)
+	explicit APosterioriCoarsening(number theta=0.1)
 	: m_theta(theta), m_max_level(100), m_min_level(0) {};
 protected:
 	void mark(typename base_type::elem_accessor_type& aaErrorSq, IRefiner& refiner, ConstSmartPtr<DoFDistribution> dd);
@@ -866,7 +866,7 @@ class EquilibrationMarkingStrategy : public IElementMarkingStrategy<TDomain>{
 
 public:
 	using base_type = IElementMarkingStrategy<TDomain>;
-	EquilibrationMarkingStrategy(number theta_top=0.9)
+	explicit EquilibrationMarkingStrategy(number theta_top=0.9)
 	: m_theta_top(theta_top), m_theta_bot(0.0) {} //, m_max_level(100) {};
 	EquilibrationMarkingStrategy(number theta_top, number theta_bot)
 	: m_theta_top(theta_top), m_theta_bot(theta_bot) {} ;// , m_max_level(100) {};
@@ -921,14 +921,14 @@ void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 
 	// discard a fraction of elements
 	// a) largest elements
-	typename std::vector<double>::const_iterator top = etaSq.begin();
+	std::vector<double>::const_iterator top = etaSq.begin();
 	for (number sumSq=0.0;
 		(sumSq<m_theta_top*errLocal) && (top !=(etaSq.end()-1));
 		++top) { sumSq += *top; }
 	number top_threshold = (top != etaSq.begin()) ? (*top + *(top-1))/2.0 : *top;
 
 	// a) smallest elements
-	typename std::vector<double>::const_iterator bot = etaSq.end()-1;
+	std::vector<double>::const_iterator bot = etaSq.end()-1;
 		for (number sumSq=0.0;
 			(sumSq<m_theta_bot*errLocal) && (bot !=etaSq.begin() );
 			--bot) { sumSq += *bot; }
@@ -974,7 +974,7 @@ class VarianceMarking : public IElementMarkingStrategy<TDomain>{
 
 public:
 	using base_type = IElementMarkingStrategy<TDomain>;
-	VarianceMarking(number theta) : m_theta(theta), m_width(3.0), m_max_level(100) {};
+	explicit VarianceMarking(number theta) : m_theta(theta), m_width(3.0), m_max_level(100) {};
 	VarianceMarking(number theta, number width) : m_theta(theta), m_width (width), m_max_level(100) {};
 
 
@@ -1108,7 +1108,7 @@ class VarianceMarkingEta : public IElementMarkingStrategy<TDomain>{
 
 public:
 	using base_type = IElementMarkingStrategy<TDomain>;
-	VarianceMarkingEta(number theta) :
+	explicit VarianceMarkingEta(number theta) :
 		m_theta(theta), m_width(3.0), m_max_level(100), m_theta_coarse(0.0), m_min_level(0)
 	{};
 	VarianceMarkingEta(number theta, number width) :
@@ -1364,7 +1364,7 @@ class AbsoluteMarking : public IElementMarkingStrategy<TDomain>{
 
 public:
 	using base_type = IElementMarkingStrategy<TDomain>;
-	AbsoluteMarking(number eta) : m_eta(eta), m_max_level(100) {};
+	explicit AbsoluteMarking(number eta) : m_eta(eta), m_max_level(100) {};
 
 protected:
 	void mark(typename base_type::elem_accessor_type& aaError,

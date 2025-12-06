@@ -75,8 +75,7 @@ bool ParallelShiftIdentifier<TAAPos>::match_impl(TElem* e1, TElem* e2) const {
 }
 
 template <typename TElem>
-void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2,
-		IIdentifier& ident) {
+void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2, IIdentifier& ident) {
 	using container = typename Grid::traits<typename TElem::side>::secure_container;
 
 	// determine masters
@@ -232,7 +231,7 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent) {
 
 	if (is_master<TParent>(pParent)) {
 		// create new group for e, with e as master
-		Group<TElem>* newGroup = new Group<TElem>(e);
+		auto* newGroup = new Group<TElem>(e);
 		UG_ASSERT(group(e) == nullptr, "element already has a group.")
 		set_group(newGroup, e);
 
@@ -339,8 +338,7 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent) {
 }
 
 template <typename TElem>
-void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e,
-		GridObject* pParent, bool replacesParent) {
+void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e, GridObject* pParent, bool replacesParent) {
 	// we can only identify periodic elements, which have a periodic parent
 	if(!pParent)
 		return;
@@ -666,10 +664,8 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	using gocIter = typename ElementStorage<TElem>::SectionContainer::iterator;
 
 	// calculate shift vector for top level
-	position_type c1 = CalculateCenter(goc1.begin<TElem>(0), goc1.end<TElem>(0),
-			aaPos);
-	position_type c2 = CalculateCenter(goc2.begin<TElem>(0), goc2.end<TElem>(0),
-			aaPos);
+	position_type c1 = CalculateCenter(goc1.begin<TElem>(0), goc1.end<TElem>(0), aaPos);
+	position_type c2 = CalculateCenter(goc2.begin<TElem>(0), goc2.end<TElem>(0), aaPos);
 
 	VecSubtract(shift, c1, c2);
 	ident.set_shift(shift);

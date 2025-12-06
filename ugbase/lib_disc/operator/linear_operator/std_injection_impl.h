@@ -82,7 +82,7 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	{
 	// 	get father
 		GridObject* geomObj = grid.get_parent(*iter);
-		Vertex* vert = dynamic_cast<Vertex*>(geomObj);
+		auto vert = dynamic_cast<Vertex*>(geomObj);
 
 	//	Check if father is RegularVertex
 		if(vert != nullptr)

@@ -162,48 +162,40 @@ void Selector::clear()
 
 void Selector::add_to_list(Vertex* elem)
 {
-	section_container<Vertex>().insert(elem,
-								elem->container_section());
+	section_container<Vertex>().insert(elem, elem->container_section());
 }
 
 void Selector::add_to_list(Edge* elem)
 {
-	section_container<Edge>().insert(elem,
-								elem->container_section());
+	section_container<Edge>().insert(elem, elem->container_section());
 }
 
 void Selector::add_to_list(Face* elem)
 {
-	section_container<Face>().insert(elem,
-								elem->container_section());
+	section_container<Face>().insert(elem, elem->container_section());
 }
 
 void Selector::add_to_list(Volume* elem)
 {
-	section_container<Volume>().insert(elem,
-								elem->container_section());
+	section_container<Volume>().insert(elem, elem->container_section());
 }	
 
 void Selector::erase_from_list(Vertex* elem)
 {
-	section_container<Vertex>().erase(get_iterator(elem),
-						elem->container_section());
+	section_container<Vertex>().erase(get_iterator(elem), elem->container_section());
 }
 void Selector::erase_from_list(Edge* elem)
 {
-	section_container<Edge>().erase(get_iterator(elem),
-						elem->container_section());
+	section_container<Edge>().erase(get_iterator(elem), elem->container_section());
 }
 void Selector::erase_from_list(Face* elem)
 {
-	section_container<Face>().erase(get_iterator(elem),
-						elem->container_section());
+	section_container<Face>().erase(get_iterator(elem), elem->container_section());
 }
 
 void Selector::erase_from_list(Volume* elem)
 {
-	section_container<Volume>().erase(get_iterator(elem),
-						elem->container_section());
+	section_container<Volume>().erase(get_iterator(elem), elem->container_section());
 }
 
 //	geometric-object-collection

@@ -476,7 +476,7 @@ void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunct
  * @param[in] spInterpolFunction	data providing interpolation values
  * @param[out] spGridFct			interpolated grid function
  * @param[in] fct					id of function component
- * @param[in] subsets				subsets, where to interpolate (nullptr = everywhere)
+ * @param[in] ssGrp					subsets, where to interpolate (nullptr = everywhere)
  * @param[in] time					time point
  */
 template <typename TGridFunction>

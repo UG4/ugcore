@@ -48,8 +48,8 @@ template<>
 size_t hash_key<AlgebraID>(const AlgebraID& key)
 {
 	const unsigned long factor = 1000000;
-	const unsigned long ind = (unsigned long)key.index_on_master();
-	return  factor * (unsigned long)key.master_proc() * ind + ind;
+	const unsigned long ind = key.index_on_master();
+	return  factor * static_cast<unsigned long>(key.master_proc()) * ind + ind;
 }
 
 std::ostream& operator << (std::ostream &out, const AlgebraID &ID)
@@ -71,7 +71,7 @@ void CommunicateConnections(vector<vector<int> >& connectionsToProcsOut,
 							vector<vector<int> >& connectionsToSubDomsOut,
 							const IndexLayout& masterLayout,
 							const IndexLayout& slaveLayout,
-							int highestReferencedIndex, pcl::IDomainDecompositionInfo& ddinfo)
+							int highestReferencedIndex, IDomainDecompositionInfo& ddinfo)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	using Interface = IndexLayout::Interface;
@@ -88,7 +88,7 @@ void CommunicateConnections(vector<vector<int> >& connectionsToProcsOut,
 	connectionsToSubDomsOut.clear();
 	connectionsToSubDomsOut.resize(connectionVecSize);
 
-	int localProc = pcl::ProcRank();
+	int localProc = ProcRank();
 
 //	iterate over all master interfaces
 	for(InterfaceIter iiter = masterLayout.begin();
@@ -123,8 +123,8 @@ void CommunicateConnections(vector<vector<int> >& connectionsToProcsOut,
 	}
 
 //	now communicate the connectionsToProcsOut to the slaves
-	pcl::InterfaceCommunicator<IndexLayout> interfaceComm;
-	ComPol_VecCopy<vector<vector<int> > > compolCopy(&connectionsToProcsOut);
+	InterfaceCommunicator<IndexLayout> interfaceComm;
+	ComPol_VecCopy compolCopy(&connectionsToProcsOut);
 	interfaceComm.send_data(masterLayout, compolCopy);
 	interfaceComm.receive_data(slaveLayout, compolCopy);
 	interfaceComm.communicate();
@@ -151,8 +151,8 @@ int GetHighestReferencedIndex(IndexLayout& layout)
 			eiter != interface.end(); ++eiter)
 		{
 			IndexLayout::Interface::Element elem = interface.get_element(eiter);
-			if((int)elem > highestReferencedIndex)
-				highestReferencedIndex = (int)elem;
+			if(static_cast<int>(elem) > highestReferencedIndex)
+				highestReferencedIndex = static_cast<int>(elem);
 		}
 	}
 
@@ -164,7 +164,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 						  int rootProcID,
 						  IndexLayout& masterLayout,
 						  IndexLayout& slaveLayout,
-						  pcl::ProcessCommunicator procComm,
+						  ProcessCommunicator procComm,
 						  std::vector<int>* pNewMasterIDsOut)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
@@ -173,7 +173,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 	//int localRank = procComm.get_local_proc_id();
 	vector<IndexLayout::Element> oldMasterNodes;
 	vector<IndexLayout::Element> oldSlaveNodes;
-	pcl::InterfaceCommunicator<IndexLayout> interfaceComm;
+	InterfaceCommunicator<IndexLayout> interfaceComm;
 
 	int highestReferencedIndex = max(GetHighestReferencedIndex(masterLayout),
 									 GetHighestReferencedIndex(slaveLayout));
@@ -189,7 +189,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 	}
 
 	int numLocalMasterNodes = (int)oldMasterNodes.size();
-	std::vector<int> numOldMasterNodes(procComm.size(), 0);
+	std::vector numOldMasterNodes(procComm.size(), 0);
 	procComm.gather(&numLocalMasterNodes, 1, PCL_DT_INT,
 					&numOldMasterNodes.front(),
 					1, PCL_DT_INT, rootProcID);
@@ -209,7 +209,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 //	a vector that holds a unique id for each new node on the source process
 	vector<int> rootIDs;
 
-	if(pcl::ProcRank() == rootProcID){
+	if(ProcRank() == rootProcID){
 
 		for(size_t i = 0; i < procComm.size(); ++i){
 			int numEntries = numOldMasterNodes[i];
@@ -229,16 +229,16 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 ////////////////////////
 //	send the local ids of the new nodes on the master proc to
 //	associated slaves (old masters)
-	if(pcl::ProcRank() == rootProcID){
+	if(ProcRank() == rootProcID){
 	//	use the new interfaces to copy the localID of each node from
 	//	rootProc to its slaves (the old masters).
-		ComPol_VecCopy<vector<int> > compolCopy(&rootIDs);
+		ComPol_VecCopy compolCopy(&rootIDs);
 		interfaceComm.send_data(masterLayoutOut, compolCopy);
 	}
 
 //	receive at all processes containing old master nodes.
-	vector<int> masterIDs(algVecSize, -1);
-	ComPol_VecCopy<vector<int> > compolCopy(&masterIDs);
+	vector masterIDs(algVecSize, -1);
+	ComPol_VecCopy compolCopy(&masterIDs);
 
 	if(!oldMasterNodes.empty()){
 		interfaceComm.receive_data(slaveLayoutOut, compolCopy);
@@ -260,8 +260,8 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 		CollectUniqueElements(oldSlaveNodes, slaveLayout);
 	}
 
-	int numLocalSlaveNodes = (int)oldSlaveNodes.size();
-	std::vector<int> numOldSlaveNodes(procComm.size(), 0);
+	int numLocalSlaveNodes = static_cast<int>(oldSlaveNodes.size());
+	std::vector numOldSlaveNodes(procComm.size(), 0);
 	procComm.gather(&numLocalSlaveNodes, 1, PCL_DT_INT,
 					&numOldSlaveNodes.front(),
 					1, PCL_DT_INT, rootProcID);
@@ -279,10 +279,10 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 //	now gather this data on the root process
 	vector<int> associatedSlaveIDs;
 	vector<int> arrayDisplacements;
-	size_t totalSlaveDataSize = 0;
 
-	if(pcl::ProcRank() == rootProcID){
-	//	first calculate the total size of data that we have to receive
+	if(ProcRank() == rootProcID){
+		size_t totalSlaveDataSize = 0;
+		//	first calculate the total size of data that we have to receive
 	//	and the displacements for each data-buffer
 		arrayDisplacements.resize(numOldSlaveNodes.size());
 		for(size_t i = 0; i < numOldSlaveNodes.size(); ++i){
@@ -302,14 +302,14 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 ////////////////////////
 //	finally we build new slave interfaces to root for old slave interfaces
 //	and corresponding new master interfaces on root.
-	if(oldSlaveNodes.size() > 0){
+	if(!oldSlaveNodes.empty()){
 		IndexLayout::Interface& interface = slaveLayoutOut.interface(rootProcID);
 		for(size_t i = 0; i < oldSlaveNodes.size(); ++i){
 			interface.push_back(oldSlaveNodes[i]);
 		}
 	}
 
-	if(pcl::ProcRank() == rootProcID){
+	if(ProcRank() == rootProcID){
 		size_t counter = 0;
 		for(size_t i = 0; i < numOldSlaveNodes.size(); ++i){
 			int numEntries = numOldSlaveNodes[i];
@@ -391,7 +391,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	using Interface = IndexLayout::Interface;
-	using ConstInterfaceIter = IndexLayout::const_iterator;
+	// using ConstInterfaceIter = IndexLayout::const_iterator;
 	using Element = Interface::Element;
 	// using ConstElemIter = Interface::const_iterator;
 
@@ -505,8 +505,8 @@ void BuildDomainDecompositionLayouts(
 	PROFILE_FUNC_GROUP("algebra parallelization");
 
 	using Interface = IndexLayout::Interface;
-	using ConstInterfaceIter = IndexLayout::const_iterator;
-	using ConstElemIter = Interface::const_iterator;
+	//using ConstInterfaceIter = IndexLayout::const_iterator;
+	//using ConstElemIter = Interface::const_iterator;
 
 //	the local process and subdomain id
 	int localProcID = ProcRank();
@@ -747,7 +747,7 @@ void BuildDomainDecompositionLayouts(
  *
  * \note because the order in the interfaces is important, this function is more complicate that one would expect.
  */
-void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &communicator,
+void AddConnectionsBetweenSlaves(InterfaceCommunicator<IndexLayout> &communicator,
 		IndexLayout &masterLayout, IndexLayout &slaveLayout, IndexLayout &allToAllSend,
 		IndexLayout &allToAllReceive)
 {
@@ -913,7 +913,7 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 
 }
 
-void CreateAllToAllFromMasterSlave(pcl::InterfaceCommunicator<IndexLayout> &communicator,
+void CreateAllToAllFromMasterSlave(InterfaceCommunicator<IndexLayout> &communicator,
 		IndexLayout &OLCoarseningSendLayout, IndexLayout &OLCoarseningReceiveLayout,
 		IndexLayout &OL1MasterLayout, IndexLayout &OL1SlaveLayout)
 {
@@ -936,8 +936,8 @@ SmartPtr<AlgebraLayouts> CreateLocalAlgebraLayouts()
 {
 	auto *p = new AlgebraLayouts;
 	p->clear();
-	p->proc_comm() = pcl::ProcessCommunicator(pcl::PCD_LOCAL);
-	return SmartPtr<AlgebraLayouts>(p);
+	p->proc_comm() = ProcessCommunicator(PCD_LOCAL);
+	return SmartPtr(p);
 }
 
 

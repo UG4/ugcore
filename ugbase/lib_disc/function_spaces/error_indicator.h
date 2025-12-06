@@ -337,7 +337,7 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 				u.inner_dof_indices(assoElements[i], fct, ind);
 				faceValue+=DoFRef(u, ind[0]);
 			}
-			faceValue/=(number)numOfAsso;
+			faceValue/=static_cast<number>(numOfAsso);
 			MathVector<dim> normal;
 			size_t numSideCo = rRefElem.num(dim-1,s,0);
 
@@ -346,7 +346,7 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 
 			// faces have dim corners in 1d, 2d
 			// in 3d they have dim corners (triangle) or dim+1 corners (quadrilateral)
-			if ((int)numSideCo==dim)
+			if (static_cast<int>(numSideCo)==dim)
 				ElementNormal<face_type0,dim>(normal,&vSideCoPos[0]);
 			else
 				ElementNormal<face_type1,dim>(normal,&vSideCoPos[0]);
@@ -355,7 +355,7 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 				vGlobalGrad[d] += faceValue * normal[d];
 			}
 		}
-		vGlobalGrad/=(number)elemSize;
+		vGlobalGrad/=static_cast<number>(elemSize);
 
 	//	write result in array storage
 		aaError[elem] = VecTwoNorm(vGlobalGrad) * pow(elemSize, 2./dim);
@@ -774,7 +774,7 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 
 			const size_t numChildren = g.template num_children<side_t>(s);
 			if(numChildren > 0){
-				number w = 1. / number(numChildren);
+				number w = 1. / static_cast<number>(numChildren);
 				for(size_t i_child = 0; i_child < numChildren; ++i_child){
 					side_t* c = g.template get_child<side_t>(s, i_child);
 					aaSideError[s] += w * aaSideError[c];
@@ -798,7 +798,7 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 
 			const size_t numChildren = g.template num_children<side_t>(s);
 			if(numChildren > 0){
-				number w = 1. / number(numChildren);
+				number w = 1. / static_cast<number>(numChildren);
 				for(size_t i_child = 0; i_child < numChildren; ++i_child){
 					side_t* c = g.template get_child<side_t>(s, i_child);
 					aaSideError[c] = w * aaSideError[s];
@@ -979,7 +979,7 @@ void EvaluateGradientJump_Norm(TFunction& u, size_t fct,
 				err = max(err, fabs(elemErr - aaSideError[s] / aaNumElems[s]));
 		}
 		//aaError[elem] = 2. * err * pow(CalculateVolume(elem, aaPos), number(dim-1)/number(dim));
-		aaError[elem] = 2. * err * pow(CalculateVolume(elem, aaPos), 2./number(dim));
+		aaError[elem] = 2. * err * pow(CalculateVolume(elem, aaPos), 2./static_cast<number>(dim));
 		//aaError[elem] = 2. * err * pow(CalculateVolume(elem, aaPos), 2./ (1. + 0.5*number(dim)));
 		//aaError[elem] = 2. * err * CalculateVolume(elem, aaPos);
 	}
@@ -1008,7 +1008,7 @@ void MarkForAdaption_GradientJump(IRefiner& refiner,
                                    const char* cmp,
                                    number refFrac,
                                    int minLvl, int maxLvl,
-                                   std::string jumpType)
+                                   const std::string &jumpType) // ø todo replace by enum?
 {
 	PROFILE_FUNC();
 	using namespace std;
@@ -1478,10 +1478,10 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 			vg /= aaNumContribsVrt[v];
 			vrtAvrgGrad += vg;
 		}
-		vrtAvrgGrad /= (number)vrts.size();
+		vrtAvrgGrad /= static_cast<number>(vrts.size());
 		aaErrorElem[elem] = CalculateVolume(elem, aaPos)
 					  * VecDistance(elemGrad, vrtAvrgGrad)
-					  / (number)(dim+1);
+					  / static_cast<number>(dim + 1);
 	}
 
 //	mark for adaption

@@ -331,10 +331,10 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 		ElementGaussSeidel() : m_relax(1.0), m_type("element"), m_schur_alpha(1.0), m_elim_off_diag(false) {};
 
 	///	constructor setting relaxation
-		ElementGaussSeidel(number relax) : m_relax(relax), m_type("element"), m_schur_alpha(1.0), m_elim_off_diag(false) {};
+		explicit ElementGaussSeidel(number relax) : m_relax(relax), m_type("element"), m_schur_alpha(1.0), m_elim_off_diag(false) {};
 
 	///	constructor setting type
-		ElementGaussSeidel(const std::string& type) : m_relax(1.0), m_type(type), m_schur_alpha(1.0), m_elim_off_diag(false) {};
+		explicit ElementGaussSeidel(const std::string& type) : m_relax(1.0), m_type(type), m_schur_alpha(1.0), m_elim_off_diag(false) {};
 
 	///	constructor setting relaxation and type
 		ElementGaussSeidel(number relax, const std::string& type) : m_relax(relax), m_type(type), m_schur_alpha(1.0), m_elim_off_diag(false) {};

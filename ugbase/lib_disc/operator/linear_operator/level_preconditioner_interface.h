@@ -51,7 +51,7 @@ class ILevelPreconditioner : public IPreconditioner<TAlgebra>
 		: IPreconditioner<TAlgebra>() {}
 
 		/// constructor with grid level
-		ILevelPreconditioner(const GridLevel& gl)
+		explicit ILevelPreconditioner(const GridLevel& gl)
 		: IPreconditioner<TAlgebra>(), m_gl(gl) {}
 
 		/// clone constructor

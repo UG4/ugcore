@@ -96,7 +96,7 @@ class NLJacobiSolver
 		NLJacobiSolver();
 
 	///	constructor
-		NLJacobiSolver(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
+	explicit NLJacobiSolver(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
 
 	    ~NLJacobiSolver() override = default;
 
@@ -105,7 +105,7 @@ class NLJacobiSolver
 		void set_damp(number damp) {m_damp = damp;}
 
 	///	returns information about configuration parameters
-		std::string config_string() const override {
+		[[nodiscard]] std::string config_string() const override {
 			std::stringstream ss;
 			ss << "NonlinearJacobiSolver( damp = " << m_damp << ")\n";
 			ss << " ConvergenceCheck: ";

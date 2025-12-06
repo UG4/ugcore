@@ -72,9 +72,7 @@ MultiGridSubsetHandler(const MultiGridSubsetHandler& sh) :
 	m_aSharedEntryFACE("MGSubsetHandler_SharedListEntryFACE", false),
 	m_aSharedEntryVOL("MGSubsetHandler_SharedListEntryVOL", false)
 {
-	MultiGrid* pGrid = sh.m_pMG;
-
-	if(pGrid){
+	if(MultiGrid* pGrid = sh.m_pMG){
 //TODO: remove virtual function calls from constructor
 		assign_grid(*pGrid);		
 		assign_subset_handler(sh);
@@ -446,7 +444,7 @@ MultiGridSubsetHandler::Subset* MultiGridSubsetHandler::new_subset() const
 
 void MultiGridSubsetHandler::add_level()
 {
-	m_levels.push_back(SubsetVec());
+	m_levels.emplace_back();
 	int topLevel = m_levels.size() - 1;
 	for(uint i = 0; i < num_subsets_in_list(); ++i)
 		m_levels[topLevel].push_back(new_subset());

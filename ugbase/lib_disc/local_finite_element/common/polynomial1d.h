@@ -51,12 +51,12 @@ class Polynomial1D
 {
 	public:
 	///	Constructor producing zero polynomial of degree 'degree'
-		Polynomial1D(size_t degree = 0)
+	explicit Polynomial1D(size_t degree = 0)
 			: m_vCoeff(degree+1, 0.0)
 		{}
 
 	///	Constructor passing coefficients for the polynomial
-		Polynomial1D(const std::vector<number>& a)
+	explicit Polynomial1D(const std::vector<number>& a)
 			: m_vCoeff(a)
 		{
 		//	check that at least constant of polynomial set

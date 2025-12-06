@@ -120,7 +120,7 @@ void OrderDirectionYForDofDist(SmartPtr<DoFDistribution> dd,
 			const CommonLocalDoFSet& locDoF = LocalFiniteElementProvider::get_dofs(lfeID);
 
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
-				const int numDoF = locDoF.num_dof((ReferenceObjectID)roid);
+				const int numDoF = locDoF.num_dof(static_cast<ReferenceObjectID>(roid));
 
 				if(numDoF <= 0) continue;
 
@@ -139,7 +139,7 @@ void OrderDirectionYForDofDist(SmartPtr<DoFDistribution> dd,
 			const CommonLocalDoFSet& locDoF = LocalFiniteElementProvider::get_dofs(lfeID);
 
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
-				if(locDoF.num_dof((ReferenceObjectID)roid) != 0){
+				if(locDoF.num_dof(static_cast<ReferenceObjectID>(roid)) != 0){
 					if(bSingleSpaceUsage[roid] == false)
 						bSortableComp[fct] = false;
 				}
@@ -206,7 +206,7 @@ void OrderDirectionZForDofDist(SmartPtr<DoFDistribution> dd,
 		int numDoFOnGeomObj = -1;
 		for(int si = 0; si < dd->num_subsets(); ++si){
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
-				const int numDoF = dd->num_dofs((ReferenceObjectID)roid, si);
+				const int numDoF = dd->num_dofs(static_cast<ReferenceObjectID>(roid), si);
 
 				if(numDoF == 0) continue;
 
@@ -229,7 +229,7 @@ void OrderDirectionZForDofDist(SmartPtr<DoFDistribution> dd,
 			const CommonLocalDoFSet& locDoF = LocalFiniteElementProvider::get_dofs(lfeID);
 
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
-				const int numDoF = locDoF.num_dof((ReferenceObjectID)roid);
+				const int numDoF = locDoF.num_dof(static_cast<ReferenceObjectID>(roid));
 
 				if(numDoF <= 0) continue;
 
@@ -248,7 +248,7 @@ void OrderDirectionZForDofDist(SmartPtr<DoFDistribution> dd,
 			const CommonLocalDoFSet& locDoF = LocalFiniteElementProvider::get_dofs(lfeID);
 
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
-				if(locDoF.num_dof((ReferenceObjectID)roid) != 0){
+				if(locDoF.num_dof(static_cast<ReferenceObjectID>(roid)) != 0){
 					if(bSingleSpaceUsage[roid] == false)
 						bSortableComp[fct] = false;
 				}
@@ -305,8 +305,8 @@ void collectStretchedElementIndices(ConstSmartPtr<TDomain> domain,
 	for(int si = 0; si < dd->num_subsets(); ++si)
 	{
 	//	get iterators
-		iter = dd->template begin<TBaseElem>(si);
-		iterEnd = dd->template end<TBaseElem>(si);
+		iter = dd->begin<TBaseElem>(si);
+		iterEnd = dd->end<TBaseElem>(si);
 
 	//	loop all elements
 		for(;iter != iterEnd; ++iter)
@@ -501,12 +501,12 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 		bool supports_parallel() const override {return true;}
 
 	public:
-		size_t get_num_forwardx(){return m_nr_forwardx;}
-		size_t get_num_backwardx(){return m_nr_backwardx;}
-		size_t get_num_forwardy(){return m_nr_forwardy;}
-		size_t get_num_backwardy(){return m_nr_backwardy;}
-		size_t get_num_forwardz(){return m_nr_forwardz;}
-		size_t get_num_backwardz(){return m_nr_backwardz;}
+		size_t get_num_forwardx() const {return m_nr_forwardx;}
+		size_t get_num_backwardx() const {return m_nr_backwardx;}
+		size_t get_num_forwardy() const {return m_nr_forwardy;}
+		size_t get_num_backwardy() const {return m_nr_backwardy;}
+		size_t get_num_forwardz() const {return m_nr_forwardz;}
+		size_t get_num_backwardz() const {return m_nr_backwardz;}
 
 	protected:
 	//	Name of preconditioner
@@ -642,7 +642,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 
 		// backward in y direction
 		for (size_t count=0;count<m_nr_backwardy;count++){
-		for (size_t j=m_ind_end-1;(int)j >= 0; j--){
+		for (size_t j=m_ind_end-1;static_cast<int>(j) >= 0; j--){
 			i = indY[j];
 
 			s = b[i];
@@ -678,7 +678,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 
 		// backward in z direction
 		for (size_t count=0;count<m_nr_backwardz;count++){
-		for (size_t j=m_ind_end-1;(int)j >= 0; j--){
+		for (size_t j=m_ind_end-1;static_cast<int>(j) >= 0; j--){
 			i = indZ[j];
 
 			s = b[i];
@@ -749,14 +749,14 @@ class LineVanka : public IPreconditioner<TAlgebra>
 	public:
 		/// set m_relaxation parameter
 		void set_relax(number omega){m_relax=omega;};
-		number relax(){return m_relax;};
+		number relax() const {return m_relax;};
 
 	protected:
 		number m_relax;
 
 	public:
 	//	Constructor
-		LineVanka(SmartPtr<ApproximationSpace<TDomain> > approxSpace){
+	explicit LineVanka(SmartPtr<ApproximationSpace<TDomain> > approxSpace){
 			m_spApproxSpace = approxSpace;
 			m_init = false;
 			m_nr_forwardx=1;
@@ -848,12 +848,12 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		bool supports_parallel() const override {return true;}
 
 	public:
-		size_t get_num_forwardx(){return m_nr_forwardx;}
-		size_t get_num_backwardx(){return m_nr_backwardx;}
-		size_t get_num_forwardy(){return m_nr_forwardy;}
-		size_t get_num_backwardy(){return m_nr_backwardy;}
-		size_t get_num_forwardz(){return m_nr_forwardz;}
-		size_t get_num_backwardz(){return m_nr_backwardz;}
+		size_t get_num_forwardx() const {return m_nr_forwardx;}
+		size_t get_num_backwardx() const {return m_nr_backwardx;}
+		size_t get_num_forwardy() const {return m_nr_forwardy;}
+		size_t get_num_backwardy() const {return m_nr_backwardy;}
+		size_t get_num_forwardz() const {return m_nr_forwardz;}
+		size_t get_num_backwardz() const {return m_nr_backwardz;}
 
 	protected:
 	//	Name of preconditioner
@@ -966,7 +966,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		};
 		// backward in x direction
 		for (size_t count=0;count<m_nr_backwardx;count++){
-			for	(i=x.size()-1;(int)i>= 0; i--)
+			for	(i=x.size()-1;static_cast<int>(i)>= 0; i--)
 			{
 				if (A(i,i)==0){ 
 				blocksize=0;
@@ -1039,7 +1039,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 
 		// backward in y direction
 		for (size_t count=0;count<m_nr_backwardy;count++){
-		for (size_t sortedi=m_ind_end-1;(int)sortedi >= 0; sortedi--){
+		for (size_t sortedi=m_ind_end-1;static_cast<int>(sortedi) >= 0; sortedi--){
 			i = indY[sortedi];
 				blocksize=0;
 				for(typename matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i) ; ++it){
@@ -1107,7 +1107,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 
 		// backward in z direction
 		for (size_t count=0;count<m_nr_backwardz;count++){
-		for (size_t sortedi=m_ind_end-1;(int)sortedi >= 0; sortedi--){
+		for (size_t sortedi=m_ind_end-1;static_cast<int>(sortedi) >= 0; sortedi--){
 			i = indZ[sortedi];
 				blocksize=0;
 				for(typename matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i) ; ++it){

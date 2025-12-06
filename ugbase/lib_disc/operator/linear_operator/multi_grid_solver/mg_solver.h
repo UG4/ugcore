@@ -108,7 +108,7 @@ class AssembledMultiGridCycle :
 		AssembledMultiGridCycle();
 
 	/// constructor setting approximation space
-		AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
+		explicit AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
 	///	sets MGStats, an object which records statistics for individual iterations
 	/**	Setting MGStats is optional. If set, a runtime overhead is incurred. Only

@@ -422,7 +422,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("AverageFunctionDifference");
 		using grid_function = ug::GridFunction<TDomain, TAlgebra>;
 		using function_pointer = SmartPtr< grid_function >;
-		reg.add_function(name, static_cast<number (*)(function_pointer, std::string, std::string, std::string)>(&AverageFunctionDifference<TDomain, TAlgebra>), grp);
+		reg.add_function(name, static_cast<number (*)(function_pointer, const std::string&, const std::string&, const std::string&)>(&AverageFunctionDifference<TDomain, TAlgebra>), grp);
 	}
 
 //	CheckDoFPositions

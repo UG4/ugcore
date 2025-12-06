@@ -81,7 +81,7 @@ class MultiStepTimeDiscretization
 		~MultiStepTimeDiscretization() override = default;
 
 	/// \copydoc ITimeDiscretization::num_prev_steps()
-		size_t num_prev_steps() const override {return m_prevSteps;}
+		[[nodiscard]] size_t num_prev_steps() const override {return m_prevSteps;}
 
 	///	\copydoc ITimeDiscretization::prepare_step()
 		void prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol, number dt) override;
@@ -97,7 +97,7 @@ class MultiStepTimeDiscretization
 		void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
 	                      const GridLevel& gl) override;
 
-		number future_time() const override {return m_futureTime;}
+		[[nodiscard]] number future_time() const override {return m_futureTime;}
 
 	public:
 		void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl) override;
@@ -211,7 +211,7 @@ class ThetaTimeStep
 		void set_scheme(const char* scheme) {m_scheme = scheme;}
 
 	///	returns number of stages
-		size_t num_stages() const override
+		[[nodiscard]] size_t num_stages() const override
 	{
 			if		(m_scheme == "Theta") 		return 1;
 			else if (m_scheme == "Alexander")	return 2;
@@ -333,7 +333,7 @@ class BDF
 		void set_order(size_t order) {m_order = order; this->m_prevSteps = order;}
 
 	///	returns the number of stages
-		size_t num_stages() const override {return 1;}
+		[[nodiscard]] size_t num_stages() const override {return 1;}
 
 	///	sets the stage
 		void set_stage(size_t stage) override
@@ -448,7 +448,7 @@ class SDIRK
 		}
 
 	///	returns number of stages
-		size_t num_stages() const override
+		[[nodiscard]] size_t num_stages() const override
 		{
 			switch(m_order){
 				case 1: return 2; // Midpoint

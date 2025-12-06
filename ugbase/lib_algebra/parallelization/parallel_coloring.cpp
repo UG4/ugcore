@@ -63,7 +63,7 @@ int ParallelColoring::color(pcl::InterfaceCommunicator<IndexLayout> &com)
 	std::map<int, size_t> othersDegree;
 	UG_DLOG(DBG_COLORING, 1, "my degree is " << myDegree);
 	UG_DLOG(DBG_COLORING, 1, "sending degree data to ");
-	for(setiterator iter = pids.begin(); iter != pids.end(); ++iter)
+	for(auto iter = pids.begin(); iter != pids.end(); ++iter)
 	{
 		int pid = *iter;
 		com.send_raw(pid, &myDegree, sizeof(size_t), true);

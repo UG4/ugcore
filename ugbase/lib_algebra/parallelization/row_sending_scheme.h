@@ -240,7 +240,7 @@ private:
 				if(k==j)
 				{
 					colMax = std::max(colMax, cons[j].iIndex+1);
-					j++;
+					++j;
 				}
 			}
 		}

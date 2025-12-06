@@ -56,7 +56,7 @@ bool InvertNdyn(DenseMatrix<T> &mat)
 	double worksize; int iWorksize = -1;
 	info = getri(mat.num_rows(), &mat(0,0), mat.num_rows(), &interchange[0], &worksize, iWorksize);
 	//UG_ASSERT(info == 0, "");
-	iWorksize = (int)worksize;
+	iWorksize = static_cast<int>(worksize);
 
 	std::vector<double> work(iWorksize);
 
@@ -81,7 +81,7 @@ bool Invert(DenseMatrix<FixedArray2<T, TUnknowns, TUnknowns> > &mat)
 	double worksize; int iWorksize = -1;
 	info = getri(mat.num_rows(), &mat(0,0), mat.num_rows(), interchange, &worksize, iWorksize);
 	UG_ASSERT(info == 0, "");
-	iWorksize = (int)worksize;
+	iWorksize = static_cast<int>(worksize);
 
 	std::vector<double> work;
 	work.resize(iWorksize);

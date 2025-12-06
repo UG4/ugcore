@@ -115,13 +115,60 @@ public:
 		return false;\
 	}
 
-	DECLARE_CHECK_STATIC_ATTACH(init, m_vInitObservers)
-	DECLARE_CHECK_STATIC_ATTACH(rewind, m_vRewindObservers)
-	DECLARE_CHECK_STATIC_ATTACH(finalize, m_vFinalizeObservers)
-	DECLARE_CHECK_STATIC_ATTACH(preprocess, m_vPreprocessObservers)
-	DECLARE_CHECK_STATIC_ATTACH(postprocess, m_vPostprocessObservers)
-	DECLARE_CHECK_STATIC_ATTACH(start, m_vStartObservers)
-	DECLARE_CHECK_STATIC_ATTACH(end, m_vEndObservers)
+	bool check_attach_init(SmartPtr<process_observer_type> obs) {
+		SmartPtr<init_observer_type> sp_staticObs = obs.template cast_dynamic<init_observer_type>();
+		if (sp_staticObs.valid()) {
+			(m_vInitObservers).push_back(sp_staticObs);
+			return true;
+		}
+		return false;
+	}
+
+	bool check_attach_rewind(SmartPtr<process_observer_type> obs) {
+		SmartPtr<rewind_observer_type> sp_staticObs = obs.template cast_dynamic<rewind_observer_type>();
+		if (sp_staticObs.valid()) {
+			(m_vRewindObservers).push_back(sp_staticObs);
+			return true;
+		}
+		return false;
+	}
+	bool check_attach_finalize(SmartPtr<process_observer_type> obs) {
+		SmartPtr<finalize_observer_type> sp_staticObs = obs.template cast_dynamic<finalize_observer_type>();
+		if (sp_staticObs.valid()) {
+			(m_vFinalizeObservers).push_back(sp_staticObs);
+			return true;
+		}
+		return false;
+	}
+	bool check_attach_preprocess(SmartPtr<process_observer_type> obs) {
+		SmartPtr<preprocess_observer_type> sp_staticObs = obs.template cast_dynamic<preprocess_observer_type>();
+		if (sp_staticObs.valid()) {
+			(m_vPreprocessObservers).push_back(sp_staticObs);
+			return true; } return false;
+	}
+	bool check_attach_postprocess(SmartPtr<process_observer_type> obs) {
+		SmartPtr<postprocess_observer_type> sp_staticObs = obs.template cast_dynamic<postprocess_observer_type>();
+		if (sp_staticObs.valid()) {
+			(m_vPostprocessObservers).push_back(sp_staticObs);
+			return true;
+		}
+		return false;
+	}
+	bool check_attach_start(SmartPtr<process_observer_type> obs) {
+		SmartPtr<start_observer_type> sp_staticObs = obs.template cast_dynamic<start_observer_type>();
+		if (sp_staticObs.valid()) {
+			(m_vStartObservers).push_back(sp_staticObs);
+			return true;
+		}
+		return false;
+	}
+	bool check_attach_end(SmartPtr<process_observer_type> obs) {
+		SmartPtr<end_observer_type> sp_staticObs = obs.template cast_dynamic<end_observer_type>();
+		if (sp_staticObs.valid()) {
+			(m_vEndObservers).push_back(sp_staticObs);
+			return true;
+		} return false;
+	}
 
 	//! Attach statically mapped observers to their respective stages.
 	//! Other observers are mapped to the finalize stage.
@@ -210,25 +257,66 @@ public:
 	}
 
 	/// notify all observers that time step evolution starts
-	DECLARE_NOTIFY_STEP(init_step, init, TIO_GROUP_INIT_STEP, m_vInitObservers)
+	bool notify_init_step(SmartPtr<grid_function_type> u, int step, number time, number dt) {
+		bool res = notify_group<(TIO_GROUP_INIT_STEP)>(u, step, time, dt);
+		const size_t numObs = (m_vInitObservers).size();
+		for (size_t o = 0; o < numObs; ++o)
+			res &= (m_vInitObservers)[o]->init_action(u, step, time, dt);
+		return res;
+	}
 
 	/// Notify all observers that time step must be rewinded.
-	DECLARE_NOTIFY_STEP(rewind_step, rewind, TIO_GROUP_REWIND_STEP, m_vRewindObservers)
+	bool notify_rewind_step(SmartPtr<grid_function_type> u, int step, number time, number dt) {
+		bool res = notify_group<(TIO_GROUP_REWIND_STEP)>(u, step, time, dt);
+		const size_t numObs = (m_vRewindObservers).size();
+		for (size_t o = 0; o < numObs; ++o)
+			res &= (m_vRewindObservers)[o]->rewind_action(u, step, time, dt);
+		return res;
+	}
 
 	/// notify all observers that time step has been evolved (successfully)
-	DECLARE_NOTIFY_STEP(finalize_step, finalize, TIO_GROUP_FINALIZE_STEP, m_vFinalizeObservers)
+	bool notify_finalize_step(SmartPtr<grid_function_type> u, int step, number time, number dt) {
+		bool res = notify_group<(TIO_GROUP_FINALIZE_STEP)>(u, step, time, dt);
+		const size_t numObs = (m_vFinalizeObservers).size();
+		for (size_t o = 0; o < numObs; ++o)
+			res &= (m_vFinalizeObservers)[o]->finalize_action(u, step, time, dt);
+		return res;
+	}
 
 	/// notify all observers that newton solver is about to start (may happen multiple times per time step)
-	DECLARE_NOTIFY_STEP(preprocess_step, preprocess, TIO_GROUP_PREPROCESS_STEP, m_vPreprocessObservers)
+	bool notify_preprocess_step(SmartPtr<grid_function_type> u, int step, number time, number dt) {
+		bool res = notify_group<(TIO_GROUP_PREPROCESS_STEP)>(u, step, time, dt);
+		const size_t numObs = (m_vPreprocessObservers).size();
+		for (size_t o = 0; o < numObs; ++o)
+			res &= (m_vPreprocessObservers)[o]->preprocess_action(u, step, time, dt);
+		return res;
+	}
 
 	/// notify all observers that newton solver has finished (may happen multiple times per time step)
-	DECLARE_NOTIFY_STEP(postprocess_step, postprocess, TIO_GROUP_POSTPROCESS_STEP, m_vPostprocessObservers)
+	bool notify_postprocess_step(SmartPtr<grid_function_type> u, int step, number time, number dt) {
+		bool res = notify_group<(TIO_GROUP_POSTPROCESS_STEP)>(u, step, time, dt);
+		const size_t numObs = (m_vPostprocessObservers).size();
+		for (size_t o = 0; o < numObs; ++o)
+			res &= (m_vPostprocessObservers)[o]->postprocess_action(u, step, time, dt);
+		return res;
+	}
 
 	/// notify all observers that the simulation has started
-	DECLARE_NOTIFY_STEP(start, start, TIO_GROUP_START, m_vStartObservers)
+	bool notify_start(SmartPtr<grid_function_type> u, int step, number time, number dt) {
+		bool res = notify_group<(TIO_GROUP_START)>(u, step, time, dt);
+		const size_t numObs = (m_vStartObservers).size();
+		for (size_t o = 0; o < numObs; ++o)
+			res &= (m_vStartObservers)[o]->start_action(u, step, time, dt);
+		return res;
+	}
 
 	/// notify all observers that the simulation has ended
-	DECLARE_NOTIFY_STEP(end, end, TIO_GROUP_END, m_vEndObservers)
+	bool notify_end(SmartPtr<grid_function_type> u, int step, number time, number dt) {
+		bool res = notify_group<(TIO_GROUP_END)>(u, step, time, dt);
+		const size_t numObs = (m_vEndObservers).size();
+		for (size_t o = 0; o < numObs; ++o)
+			res &= (m_vEndObservers)[o]->end_action(u, step, time, dt); return res;
+	}
 };
 
 }

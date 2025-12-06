@@ -75,10 +75,10 @@ class NewtonSolver
 
 	public:
 	///	constructor setting operator
-		NewtonSolver(SmartPtr<IOperator<vector_type> > N);
+	explicit NewtonSolver(SmartPtr<IOperator<vector_type> > N);
 
 	///	constructor using assembling
-		NewtonSolver(SmartPtr<IAssemble<TAlgebra> > spAss);
+	explicit NewtonSolver(SmartPtr<IAssemble<TAlgebra> > spAss);
 
 	///	default constructor
 		NewtonSolver();

@@ -316,7 +316,7 @@ class UG_API ISubsetHandler : public GridObserver
 		inline void subset_required(int index) const;
 
 	///	returns the number of subset-infos (return value is int, since SubsetIndices are of type int)
-		[[nodiscard]] inline int num_subsets() const		{return (int)m_subsetInfos.size();}
+		[[nodiscard]] inline int num_subsets() const {return static_cast<int>(m_subsetInfos.size());}
 
 	///	returns the name of a subset
 		[[nodiscard]] const char* get_subset_name(int subsetIndex) const;
@@ -599,22 +599,22 @@ class UG_API ISubsetHandler : public GridObserver
 	 *	change_subset_indices or reset_subset_indices.
 	 *	WARNING: This method only alters the index but does not actually
 	 *	move the element to another subset. Use assign_subset instead for this task.*/
-		inline void alter_subset_index(Vertex* v, int subsetIndex)	{m_aaSubsetIndexVRT[v] = subsetIndex;}
+		inline void alter_subset_index(Vertex* v, int subsetIndex) {m_aaSubsetIndexVRT[v] = subsetIndex;}
 	/**	alters the subset index only. Suited as a helper for methods like
 	 *	change_subset_indices or reset_subset_indices.
 	 *	WARNING: This method only alters the index but does not actually
 	 *	move the element to another subset. Use assign_subset instead for this task.*/
-		inline void alter_subset_index(Edge* e, int subsetIndex)	{m_aaSubsetIndexEDGE[e] = subsetIndex;}
+		inline void alter_subset_index(Edge* e, int subsetIndex) {m_aaSubsetIndexEDGE[e] = subsetIndex;}
 	/**	alters the subset index only. Suited as a helper for methods like
 	 *	change_subset_indices or reset_subset_indices.
 	 *	WARNING: This method only alters the index but does not actually
 	 *	move the element to another subset. Use assign_subset instead for this task.*/
-		inline void alter_subset_index(Face* f, int subsetIndex)		{m_aaSubsetIndexFACE[f] = subsetIndex;}
+		inline void alter_subset_index(Face* f, int subsetIndex) {m_aaSubsetIndexFACE[f] = subsetIndex;}
 	/**	alters the subset index only. Suited as a helper for methods like
 	 *	change_subset_indices or reset_subset_indices.
 	 *	WARNING: This method only alters the index but does not actually
 	 *	move the element to another subset. Use assign_subset instead for this task.*/
-		inline void alter_subset_index(Volume* v, int subsetIndex)		{m_aaSubsetIndexVOL[v] = subsetIndex;}
+		inline void alter_subset_index(Volume* v, int subsetIndex) {m_aaSubsetIndexVOL[v] = subsetIndex;}
 
 		virtual void erase_subset_lists() = 0;
 
@@ -724,7 +724,7 @@ class UG_API ISubsetHandler : public GridObserver
 		};
 */
 	private:
-		ISubsetHandler(const ISubsetHandler& sh)	{};
+		ISubsetHandler(const ISubsetHandler& sh) = default;
 
 	protected:
 		using ASubsetIndex = AInt;

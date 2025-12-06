@@ -387,7 +387,7 @@ void MarkElementsForRefinement
  * \param[in]		aaError		error value attachment to elements (\f$ \eta_i^2 \f$)
  * \param[in, out]	refiner		refiner, elements marked on exit
  * \param[in]		dd			dof distribution
- * \param[in]		tol			tolerated global error
+ * \param[in]		TOL			tolerated global error
  * \param[in]		safety		safety factor
  */
 template<typename TElem>

@@ -77,7 +77,7 @@ void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
 //	... and for reverse order
 	else
 	{
-		for(int i = ((int)p) - 2; i >= 0; --i)
+		for(int i = static_cast<int>(p) - 2; i >= 0; --i)
 			vOrientOffset.push_back(i);
 	}
 }

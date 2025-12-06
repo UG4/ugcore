@@ -107,7 +107,7 @@ void SnapMarkerPointToGridVertex(MarkerPoint& markerInOut, Grid& grid,
 		VertexIterator iter = grid.begin<Vertex>();
 		vrt = *iter;
 		number distSq = VecDistanceSq(aaPos[vrt], p);
-		iter++;
+		++iter;
 		for(; iter != grid.end<Vertex>(); ++iter){
 			number d = VecDistanceSq(aaPos[*iter], p);
 			if(d < distSq){

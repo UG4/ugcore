@@ -80,7 +80,7 @@ public:
 	using base_type = SlicingData;
 
 	// build an object with
-	UzawaSlicing(const std::vector<std::string>& vSchurCmps) // ø todo remove unused variable from interface
+	explicit UzawaSlicing(const std::vector<std::string>& vSchurCmps) // ø todo remove unused variable from interface
 	{}
 
 	void init(const TGridFunction &u, const std::vector<std::string>& vSchurCmps);
@@ -198,7 +198,7 @@ class UzawaBase : public IPreconditioner<TAlgebra>
 
 	public:
 	///	default constructor
-		UzawaBase(const std::vector<std::string>& vSchurCmp)
+	explicit UzawaBase(const std::vector<std::string>& vSchurCmp)
 		:  m_bInit(false), m_vSchurCmp(vSchurCmp), m_slicing(vSchurCmp), m_dSchurUpdateWeight(0.0)
 		{
 			init_block_operators();
@@ -206,7 +206,7 @@ class UzawaBase : public IPreconditioner<TAlgebra>
 			{ std::cout << "Comp = " << vSchurCmp[i] << std::endl; }
 		}
 
-		UzawaBase(const char *sSchurCmp)
+	explicit UzawaBase(const char *sSchurCmp)
 		:  m_bInit(false), m_vSchurCmp(TokenizeTrimString(sSchurCmp)), m_slicing(m_vSchurCmp), m_dSchurUpdateWeight(0.0)
 		{
 			init_block_operators();
@@ -369,7 +369,7 @@ public:
 			}
 */
 
-			void postprocess_block_iterations()
+			void postprocess_block_iterations() const
 			{
 
 			}

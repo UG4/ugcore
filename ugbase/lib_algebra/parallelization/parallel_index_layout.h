@@ -97,7 +97,7 @@ inline void AddIfUnique(IndexLayout::Interface &interface, size_t i)
 /**
  * Marks all indices in the IndexLayout::Interface with true
  * @param mark a std::vector which has to be big enough for maximum index in interface
- * @param layout
+ * @param interface
  */
 void MarkAllFromInterface(std::vector<bool> &mark, const IndexLayout::Interface &interface);
 
@@ -123,14 +123,14 @@ void MarkAllFromLayout(std::vector<T> &mark, const IndexLayout &layout, const T 
 }
 
 /**
-  * @param mark a set to which all indices from the interface are added
- * @param layout
+  * @param s a set to which all indices from the interface are added
+ * @param interface
  */
 void AddAllFromInterface(std::set<size_t> &s, const IndexLayout::Interface &interface);
 
 
 /**
- * @param mark a set to which all indices from the interface are added
+ * @param s a set to which all indices from the interface are added
  * @param layout
  */
 void AddAllFromLayout(std::set<size_t> &s, const IndexLayout &layout);

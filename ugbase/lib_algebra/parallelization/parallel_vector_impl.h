@@ -170,7 +170,7 @@ change_storage_type(ParallelStorageType type)
 				PARVEC_PROFILE_BEGIN(ParVec_CSTConsistent2Additive);
 				ConsistentToUnique(this, layouts()->slave());
 				if(layouts()->overlap_enabled())
-					SetLayoutValues(this, layouts()->master_overlap(), 0);
+					SetLayoutValues(this, layouts()->master_overlap(),  typename TVector::value_type(0));
 				set_storage_type(PST_ADDITIVE);
 				add_storage_type(PST_UNIQUE);
 				PARVEC_PROFILE_END(); //ParVec_CSTConsistent2Additive
@@ -209,7 +209,7 @@ change_storage_type(ParallelStorageType type)
 			else return false;
 
 			if(layouts()->overlap_enabled()){
-				SetLayoutValues(this, layouts()->slave_overlap(), 0);
+				SetLayoutValues(this, layouts()->slave_overlap(),   typename TVector::value_type(0));
 			}
 			break;
 		default: return false;
@@ -441,7 +441,7 @@ void ParallelVector<TVector>::enforce_consistent_type()
 	// if not unique -> make it unique
 	// at this point one may change the vector
 	if(!this->has_storage_type(PST_UNIQUE)){
-		SetLayoutValues(this, layouts()->slave(), 0.0);
+		SetLayoutValues(this, layouts()->slave(), typename TVector::value_type(0.0));
 		this->set_storage_type(PST_UNIQUE);
 	}
 
@@ -506,9 +506,9 @@ inline void VecScaleAdd(ParallelVector<T> &dest,
 	dest.set_storage_type(mask);
 
 	VecScaleAdd((T&)dest,
-				alpha1, (const T&)v1,
-				alpha2, (const T&)v2,
-				alpha3, (const T&)v3);
+				alpha1, static_cast<const T &>(v1),
+				alpha2, static_cast<const T &>(v2),
+				alpha3, static_cast<const T &>(v3));
 }
 
 // returns scal<a, b>

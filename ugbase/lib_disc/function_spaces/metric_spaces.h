@@ -53,7 +53,7 @@
 
 namespace ug {
 /// Abstract base class for (algebraic) vectors
-template<typename TVector>
+/*template<typename TVector>
 class IBanachSpace
 {
 
@@ -71,14 +71,14 @@ public:
 		return norm(*delta);
 	}
 
-};
+};*/
 
 
 
 /// Abstract base class for grid functions
 template<typename TGridFunction>
-class IGridFunctionSpace  :
-		public IBanachSpace<typename TGridFunction::vector_type>
+class IGridFunctionSpace
+		// :public IBanachSpace<typename TGridFunction::vector_type>
 {
 
 public:
@@ -86,7 +86,7 @@ public:
 	using grid_function_type = TGridFunction;
 
 	/// DTOR
-	~IGridFunctionSpace() override = default;
+	virtual ~IGridFunctionSpace() = default;
 
 	/// norm (for grid functions)
 	virtual double norm(TGridFunction& x) = 0;
@@ -104,7 +104,7 @@ public:
 	}*/
 
 	/// OVERRIDE norm (for vectors)
-	double norm(vector_type &x) override
+	virtual double norm(vector_type &x)
 	{
 		auto* gfX=dynamic_cast< TGridFunction*>(&x);
 		UG_ASSERT(gfX!=nullptr, "Huhh: GridFunction required!");
@@ -112,13 +112,13 @@ public:
 	}
 
 	/// OVERRIDE distance (for vectors)
-	double distance(vector_type &x, vector_type &y) override
+	virtual double distance(vector_type &x, vector_type &y)
 	{ return distance(static_cast<TGridFunction &>(x), static_cast<TGridFunction &>(y)); }
 
-	virtual double scaling() const
+	[[nodiscard]] virtual double scaling() const
 	{ return 1.0; }
 
-	virtual std::string config_string() const
+	[[nodiscard]] virtual std::string config_string() const
 	 { return std::string("IGridFunctionSpace"); }
 };
 
@@ -153,7 +153,7 @@ public:
 	IObjectWithWeights()
 	: m_spWeight(nullptr) {}
 
-	IObjectWithWeights(ConstSmartPtr<weight_type> spW)
+	explicit IObjectWithWeights(ConstSmartPtr<weight_type> spW)
 	: m_spWeight(spW) {}
 
 	/// for weighted norms
@@ -202,7 +202,7 @@ public:
 	using base_type = IGridFunctionSpace<TGridFunction>;
 	static constexpr int dim=TGridFunction::dim;
 
-	IComponentSpace(const char *fctNames)
+	explicit IComponentSpace(const char *fctNames)
 	: m_fctNames(fctNames), m_ssNames(nullptr), m_quadorder(3){}
 
 	IComponentSpace(const char *fctNames, int order)
@@ -230,7 +230,7 @@ public:
 
 public:
 	/// print config string
-	std::string config_string() const override
+	[[nodiscard]] std::string config_string() const override
 	{
 		std::stringstream ss;
 
@@ -254,7 +254,7 @@ class GridFunctionComponentSpace
 : public IComponentSpace<TGridFunction>
 {
 	public:
-		GridFunctionComponentSpace(const char* fctNames)
+	explicit GridFunctionComponentSpace(const char* fctNames)
 		: IComponentSpace<TGridFunction>(fctNames) {}
 
 		GridFunctionComponentSpace(const char* fctNames, const char* ssNames)
@@ -370,8 +370,8 @@ class GridFunctionComponentSpace
 
 			// iterate all elements (including SHADOW_RIM_COPY!)
 			typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
-			iter = dd->template begin<TBaseElem>(si, SurfaceView::ALL);
-			iterEnd = dd->template end<TBaseElem>(si, SurfaceView::ALL);
+			iter = dd->begin<TBaseElem>(si, SurfaceView::ALL);
+			iterEnd = dd->end<TBaseElem>(si, SurfaceView::ALL);
 			std::vector<DoFIndex> vInd;
 			for (; iter != iterEnd; ++iter)
 			{
@@ -418,8 +418,8 @@ class GridFunctionComponentSpace
 
 			// iterate all elements (including SHADOW_RIM_COPY!)
 			typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
-			iter = dd->template begin<TBaseElem>(si, SurfaceView::ALL);
-			iterEnd = dd->template end<TBaseElem>(si, SurfaceView::ALL);
+			iter = dd->begin<TBaseElem>(si, SurfaceView::ALL);
+			iterEnd = dd->end<TBaseElem>(si, SurfaceView::ALL);
 			std::vector<DoFIndex> vInd;
 			for (; iter != iterEnd; ++iter)
 			{
@@ -558,7 +558,7 @@ public:
 	using weighted_obj_type = IObjectWithWeights<weight_type>;
 
 	/// CTOR
-	L2QuotientSpace(const char *fctNames)
+	explicit L2QuotientSpace(const char *fctNames)
 	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
 
 	L2QuotientSpace(const char *fctNames, int order)
@@ -633,7 +633,7 @@ public:
 	using weighted_obj_type = IObjectWithWeights<weight_type>;
 
 
-	H1SemiComponentSpace(const char *fctNames)
+	explicit H1SemiComponentSpace(const char *fctNames)
 	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))) {};
 
 	H1SemiComponentSpace(const char *fctNames, int order)
@@ -757,7 +757,7 @@ public:
 	static constexpr int dim = TGridFunction::dim;
 	using velocity_type = UserData<MathVector<dim>, dim>;
 
-	H1EnergyComponentSpace(const char *fctNames)
+	explicit H1EnergyComponentSpace(const char *fctNames)
 	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))), m_spVelocity(nullptr) {};
 
 	H1EnergyComponentSpace(const char *fctNames, int order)
@@ -817,7 +817,7 @@ class H1ComponentSpace :
 public:
 	using base_type = IComponentSpace<TGridFunction>;
 
-	H1ComponentSpace(const char *fctNames) : base_type(fctNames) {};
+	explicit H1ComponentSpace(const char *fctNames) : base_type(fctNames) {};
 	H1ComponentSpace(const char *fctNames, int order) : base_type(fctNames, order) {};
 	H1ComponentSpace(const char *fctNames,  const char* ssNames, int order) : base_type(fctNames, ssNames, order) {};
 	~H1ComponentSpace() override = default;
@@ -909,7 +909,7 @@ public:
 	{ m_spWeightedSubspaces.push_back(std::make_pair(spSubSpace, sigma)); }
 
 	/// print config string                                                                                                                                                                              
-	std::string config_string() const override
+	[[nodiscard]] std::string config_string() const override
 	{
 	    std::stringstream ss;
 	    ss << "CompositeSpace:" << std::endl;
@@ -934,7 +934,7 @@ public:
 	}
 
 	//! Check, if any object is time-dependent.
-	bool is_time_dependent() const
+	[[nodiscard]] bool is_time_dependent() const
 	{
 		for (typename std::vector<weighted_obj_type>::const_iterator it = m_spWeightedSubspaces.begin();
 				it!= m_spWeightedSubspaces.end(); ++it)
@@ -945,7 +945,7 @@ public:
 		return false;
 	}
 
-	const std::vector<weighted_obj_type> &get_subspaces() const
+	[[nodiscard]] const std::vector<weighted_obj_type> &get_subspaces() const
 	{ return m_spWeightedSubspaces; }
 
 protected:

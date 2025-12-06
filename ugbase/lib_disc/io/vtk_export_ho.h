@@ -271,7 +271,7 @@ void vtk_export_ho
 	MultiGrid& destGrid = *destDom->grid();
 	GlobalMultiGridRefiner refiner(destGrid);
 #endif
-	size_t numRefs = (size_t) ceil(log2(order));
+	size_t numRefs = static_cast<size_t>(ceil(log2(order)));
 	for (size_t iref = 0; iref < numRefs; ++iref)
 	{
 		try	{refiner.refine();}
@@ -346,7 +346,7 @@ void vtk_export_ho
 #endif
 
 	// print out new grid function on desired subsets
-	bool printAll = ssg.size() == (size_t) u->subset_handler()->num_subsets();
+	bool printAll = ssg.size() == static_cast<size_t>(u->subset_handler()->num_subsets());
 	if (printAll)
 		vtkOutput->print(filename, *u_new, step, time);
 	else

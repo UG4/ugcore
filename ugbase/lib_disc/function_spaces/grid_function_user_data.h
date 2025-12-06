@@ -236,7 +236,7 @@ class GridFunctionVectorData
 			for(size_t i = 0; i < tokens.size(); ++i)
 				RemoveWhitespaceFromString(tokens[i]);
 
-			if((int)tokens.size() != dim)
+			if(static_cast<int>(tokens.size()) != dim)
 				UG_THROW("GridFunctionVectorData: Needed "<<dim<<" components "
 				         "in symbolic function names, but given: "<<cmp);
 
@@ -258,12 +258,12 @@ class GridFunctionVectorData
 		//	create function group of this elem disc
 		try
 		{
-			if ((int)vCmp.size() != dim)
+			if (static_cast<int>(vCmp.size()) != dim)
 				UG_THROW("GridFunctionVectorData: Needed "<<dim<<" components "
-						 "in symbolic function names, but given: "<< (int) vCmp.size());
+						 "in symbolic function names, but given: "<< static_cast<int>(vCmp.size()));
 
 			//	get function id of name
-			for (size_t i = 0; i < (size_t) dim; ++i)
+			for (size_t i = 0; i < static_cast<size_t>(dim); ++i)
 			{
 				m_vfct[i] = spGridFct->fct_id_by_name(vCmp[i].c_str());
 				m_vlfeID[i] = spGridFct->local_finite_element_id(m_vfct[i]);
@@ -299,7 +299,7 @@ class GridFunctionVectorData
 		const ReferenceObjectID roid = elem->reference_object_id();
 
 		//	memory for shapes
-		std::vector<number> vShape;
+		std::vector<number> vShape; // ø todo move to inner scope?
 		//	memory for indices
 		std::vector<DoFIndex> ind;
 
@@ -417,7 +417,7 @@ class GridFunctionGradientData
 		m_lfeID = spGridFct->local_finite_element_id(m_fct);
 	};
 
-	virtual bool continuous() const
+	[[nodiscard]] virtual bool continuous() const
 	{
 		return false;
 	}

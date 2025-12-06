@@ -70,8 +70,8 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 		Grid* get_associated_grid() override {return m_pGrid;}
 		Grid* grid() override {return m_pGrid;}
 
-		bool adaptivity_supported() const override {return true;}
-		bool coarsening_supported() const override {return false;}
+		[[nodiscard]] bool adaptivity_supported() const override {return true;}
+		[[nodiscard]] bool coarsening_supported() const override {return false;}
 
 	///	Marks a vertex for refinement (ignores RM_COARSEN).
 		bool mark(Vertex* v, RefinementMark refMark = RM_REFINE) override;

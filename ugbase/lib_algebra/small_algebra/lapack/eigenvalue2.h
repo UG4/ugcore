@@ -88,8 +88,8 @@ int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_ty
 		info = gegv(false, true, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], nullptr, N, &X(0,0), N, &dWorksize, worksize);
 	UG_COND_THROW(info != 0, "gegv: failed to detect worksize");
 
-	worksize = (int)dWorksize;
-	double *dwork = new double[worksize];
+	worksize = static_cast<int>(dWorksize);
+	auto *dwork = new double[worksize];
 	if(A_type::ordering == RowMajor)
 		info = gegv(true, false, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], &X(0,0), N, nullptr, 0, dwork, worksize);
 	if(A_type::ordering == ColMajor)
@@ -105,7 +105,7 @@ int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_ty
 	{
 
 		// bubblesort
-		for(int i=N-1; i>0; i--)
+		for(int i=N-1; i>0; --i)
 		{
 			for(int j=0; j<i; j++)
 				if(std::abs(lambda[j]) > std::abs(lambda[j+1]))

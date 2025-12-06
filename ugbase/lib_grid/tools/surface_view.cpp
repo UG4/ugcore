@@ -60,8 +60,7 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 		using InterfaceIter = typename Interface::const_iterator;
 
 	///	Construct the communication policy with a ug::BoolMarker.
-		ComPol_GatherSurfaceStates(MultiGrid& mg,
-						MultiElementAttachmentAccessor<SurfaceView::ASurfaceState>& aaElemSurfState)
+		ComPol_GatherSurfaceStates(MultiGrid& mg, const MultiElementAttachmentAccessor<SurfaceView::ASurfaceState>& aaElemSurfState)
 			 :	m_mg(mg), m_aaESS(aaElemSurfState)
 		{}
 
@@ -85,7 +84,7 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 
 	///	reads marks from the given stream
 		bool extract(BinaryBuffer& buff, const Interface& intfc) override {
-			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
+			for(auto iter = intfc.begin(); iter != intfc.end(); ++iter)
 			{
 				Element elem = intfc.get_element(iter);
 				byte_t nv;

@@ -68,7 +68,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 	public:
 	/// constructors
 	/// \{
-		CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx);
+		explicit CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx);
 		CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
 		                   int maxSteps, number minDefect, number relReduction);
 	/// \}
@@ -103,27 +103,27 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		                         const std::vector<number>& vRelReduction);
 
 		void set_component_check(const std::vector<std::string>& vFctName,
-								 const number minDefect,
-								 const number relReduction);
+		                         number minDefect,
+								 number relReduction);
 
 		void set_component_check(const std::string& fctName,
-								 const number minDefect,
-								 const number relReduction);
+		                         number minDefect,
+		                         number relReduction);
 	/// \}
 
 	///	sets check for all components in approximation space
-		void set_all_component_check(const number minDefect,
-		                             const number relReduction);
+		void set_all_component_check(number minDefect,
+		                             number relReduction);
 
 	///	sets check for group of components
 	/// \{
 		void set_group_check(const std::vector<std::string>& vFctName,
-							 const number minDefect,
-							 const number relReduction);
+		                     number minDefect,
+							 number relReduction);
 
 		void set_group_check(const std::string& fctNames,
-							 const number minDefect,
-							 const number relReduction);
+		                     number minDefect,
+							 number relReduction);
 	/// \}
 
 	/// defect control
@@ -135,14 +135,14 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		bool post() override;
 
 	/// information about current status
-		int step() const override {return m_currentStep;}
-		number defect() const override {return defect_all();};
-		number reduction() const override {return defect_all()/initial_defect_all();};
-		number rate() const override {return defect_all()/last_defect_all();}
-		number avg_rate() const override {return std::pow(defect_all()/initial_defect_all(), 1.0/m_currentStep);}
+		[[nodiscard]] int step() const override {return m_currentStep;}
+		[[nodiscard]] number defect() const override {return defect_all();};
+		[[nodiscard]] number reduction() const override {return defect_all()/initial_defect_all();};
+		[[nodiscard]] number rate() const override {return defect_all()/last_defect_all();}
+		[[nodiscard]] number avg_rate() const override {return std::pow(defect_all()/initial_defect_all(), 1.0/m_currentStep);}
 
 	/// output
-		int get_offset() const override {return m_offset;};
+		[[nodiscard]] int get_offset() const override {return m_offset;};
 		void set_offset(int offset) override {m_offset = offset;};
 		void set_symbol(char symbol) override {m_symbol = symbol;};
 		void set_name(std::string name) override {m_name = name;};
@@ -166,7 +166,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 	///	prints a line using prefixes
 		void print_line(std::string line) override;
 
-		std::string config_string() const override
+		[[nodiscard]] std::string config_string() const override
 		{
 			std::stringstream ss;
 			ss << "CompositeConvCheck( max steps = " << m_maxSteps << ")";
@@ -177,8 +177,8 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		}
 
 	protected:
-		void print_offset();
-		bool is_valid_number(number value);
+		void print_offset() const;
+		bool is_valid_number(number value) const;
 		const std::string& fctName(size_t i) {return m_CmpInfo[i].name;};
 
 	///	extracts multi-indices for a fct-comp on a element type
@@ -210,7 +210,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		size_t m_numAllDoFs;
 
 	///	returns defect for all components
-		number defect_all() const {
+		[[nodiscard]] number defect_all() const {
 			number defect = 0.0;
 			for(size_t fct = 0; fct < m_vNativCmpInfo.size(); ++fct)
 				defect += pow(m_vNativCmpInfo[fct].currDefect, 2);
@@ -218,7 +218,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		}
 
 	///	returns last defect for all components
-		number last_defect_all() const {
+		[[nodiscard]] number last_defect_all() const {
 			number defect = 0.0;
 			for(size_t fct = 0; fct < m_vNativCmpInfo.size(); ++fct)
 				defect += pow(m_vNativCmpInfo[fct].lastDefect, 2);
@@ -226,7 +226,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		}
 
 	///	returns initial defect for all components
-		number initial_defect_all() const {
+		[[nodiscard]] number initial_defect_all() const {
 			number defect = 0.0;
 			for(size_t fct = 0; fct < m_vNativCmpInfo.size(); ++fct)
 				defect += pow(m_vNativCmpInfo[fct].initDefect, 2);
@@ -250,7 +250,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 
 			bool isRest; 	///< Shows, that this is group of remaining cmps
 
-			std::string config_string() const
+			[[nodiscard]] std::string config_string() const
 			{
 				std::stringstream ss;
 				if(isRest) ss << "[Remaining Components]";

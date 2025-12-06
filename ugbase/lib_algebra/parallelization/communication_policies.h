@@ -243,7 +243,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 			TVector& v = *m_pVec;
 
 		//	loop interface
-			for(Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -355,7 +355,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 			const TVector& v = *m_pVecSrc;
 
 		//	loop interface
-			for(Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
+			for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 			//	get index
 				const size_t index = interface.get_element(iter);
@@ -439,9 +439,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 *
 	 * \param[in]	interface	Interface that will communicate
 	 */
-		virtual int
-		get_required_buffer_size(const Interface& interface)
-		{
+	int get_required_buffer_size(const Interface& interface) override {
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
 			else
@@ -456,9 +454,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[out]		buff		Buffer
 	 * \param[in]		interface	Interface that will communicate
 	 */
-		virtual bool
-		collect(BinaryBuffer& buff, const Interface& interface)
-		{
+	bool collect(BinaryBuffer& buff, const Interface& interface) override {
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleAdd_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == nullptr) return false;
@@ -834,7 +830,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 		ComPol_VecSubtractOnlyOneSlave() : m_pVec(nullptr)	{}
 
 	///	Constructor setting the values
-		ComPol_VecSubtractOnlyOneSlave(TVector* pVec) 
+	explicit ComPol_VecSubtractOnlyOneSlave(TVector* pVec)
 	  	{
 			set_vector(pVec);
 		}

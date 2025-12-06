@@ -64,7 +64,7 @@ to_string() const
 		t(r, 1) << m_numElems[i];
 		t(r, 2) << m_numLocalElems[i];
 		if(m_numElems[i] > 0)
-			t(r, 3) << 100. * (double)m_numLocalElems[i] / (double)m_numElems[i];
+			t(r, 3) << 100. * static_cast<double>(m_numLocalElems[i]) / static_cast<double>(m_numElems[i]);
 		else
 			t(r, 3) << "-";
 		t(r, 4) << m_numLocalGhosts[i];

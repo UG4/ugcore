@@ -57,8 +57,8 @@ class FracturedMediaRefiner : public THangingNodeRefiner<TGrid>
 		using BaseClass::mark;
 
 	public:
-		FracturedMediaRefiner(SPRefinementProjector projector = nullptr);
-		FracturedMediaRefiner(TGrid& g, SPRefinementProjector projector = nullptr);
+		explicit FracturedMediaRefiner(SPRefinementProjector projector = nullptr);
+		explicit FracturedMediaRefiner(TGrid& g, SPRefinementProjector projector = nullptr);
 
 		~FracturedMediaRefiner() override = default;
 

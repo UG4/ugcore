@@ -98,7 +98,7 @@ class MultiIndex<1, size_t>
 		MultiIndex() = default;
 
 	///	Constructor with values
-		MultiIndex(single_index_type a)
+		explicit MultiIndex(single_index_type a)
 			: m_indices(a)
 		{};
 

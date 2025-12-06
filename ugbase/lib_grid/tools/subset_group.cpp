@@ -69,8 +69,7 @@ void SubsetGroup::add(int si)
 	if(si < 0)
 		UG_THROW("Subset indices must be non-negative, but " << si);
 
-	vector<int>::iterator iter;
-	iter = find(m_vSubset.begin(), m_vSubset.end(), si);
+	vector<int>::iterator iter = find(m_vSubset.begin(), m_vSubset.end(), si);
 	if(iter != m_vSubset.end()) return;
 
 	m_vSubset.push_back(si);

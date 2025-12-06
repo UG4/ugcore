@@ -74,7 +74,7 @@ public:
 public:
 	// 'tors
 	DenseMatrix();
-	DenseMatrix(double val);
+	explicit DenseMatrix(double val);
 	DenseMatrix(const this_type &rhs);
 
 	//~DenseMatrix() {} // dont implement a destructor, since ~base may not be virtual

@@ -80,7 +80,7 @@ class StdInjection :
 		StdInjection() : m_bInit(false) {}
 
 	///	Constructor
-		StdInjection(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
+	explicit StdInjection(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 			m_spApproxSpace(approxSpace), m_bInit(false)
 		{}
 

@@ -44,8 +44,7 @@ AdaptiveRegularRefiner_MultiGrid(SPRefinementProjector projector) :
 }
 
 AdaptiveRegularRefiner_MultiGrid::
-AdaptiveRegularRefiner_MultiGrid(MultiGrid& mg,
-								 SPRefinementProjector projector) :
+AdaptiveRegularRefiner_MultiGrid(MultiGrid& mg, SPRefinementProjector projector) :
 	HangingNodeRefiner_MultiGrid(projector)
 {
 	set_grid(&mg);
@@ -134,8 +133,7 @@ create_closure_elements_2d()
 //	we'll select all new elements on the fly
 	m_closureElems.enable_autoselection(true);
 
-	for(Grid::traits<ConstrainingEdge>::iterator i_edge = mg.begin<ConstrainingEdge>();
-		i_edge != mg.end<ConstrainingEdge>(); ++i_edge)
+	for(auto i_edge = mg.begin<ConstrainingEdge>(); i_edge != mg.end<ConstrainingEdge>(); ++i_edge)
 	{
 	//	check all associated elements of i_edge, whether one is a surface element.
 	//	If so, create the closure.

@@ -238,7 +238,7 @@ class AgglomeratingBase : public TBase
 
 	// 	Compute u = L^{-1} * f AND return defect f := f - L*u
 
-		virtual bool apply_return_defect(vector_type& u, vector_type& f)
+		virtual bool apply_return_defect(vector_type& u, vector_type& f) /*ø override */ //for some basetypes not for ug::ILinearIterator<ug::ParallelVector<ug::Vector<ug::DenseVector<ug::FixedArray1<double, 2>>>>> */
 		{
 			PROFILE_FUNC();
 		//	solve u

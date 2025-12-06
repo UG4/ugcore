@@ -105,7 +105,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		};
 
 	public:
-		HangingNodeRefinerBase(SPRefinementProjector projector = nullptr);
+		explicit HangingNodeRefinerBase(SPRefinementProjector projector = nullptr);
 
 		~HangingNodeRefinerBase() override;
 
@@ -119,7 +119,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 *
 	 * Enabled by default.*/
 		void enable_node_dependency_order_1(bool bEnable);
-		bool node_dependency_order_1_enabled()				{return m_nodeDependencyOrder1;}
+		bool node_dependency_order_1_enabled() const {return m_nodeDependencyOrder1;}
 	/**	\} */
 
 	///	Add a refmark adjuster, which will be called while marks are adjusted during refinement / coarsening
@@ -220,13 +220,13 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 
 	///	a callback that allows to deny refinement of special vertices
-		virtual bool refinement_is_allowed(Vertex* elem)	{return true;}
+		virtual bool refinement_is_allowed(Vertex* elem) {return true;}
 	///	a callback that allows to deny refinement of special edges
-		virtual bool refinement_is_allowed(Edge* elem)		{return true;}
+		virtual bool refinement_is_allowed(Edge* elem) {return true;}
 	///	a callback that allows to deny refinement of special faces
-		virtual bool refinement_is_allowed(Face* elem)			{return true;}
+		virtual bool refinement_is_allowed(Face* elem) {return true;}
 	///	a callback that allows to deny refinement of special volumes
-		virtual bool refinement_is_allowed(Volume* elem)		{return true;}
+		virtual bool refinement_is_allowed(Volume* elem) {return true;}
 
 	///	performs registration and deregistration at a grid.
 	/**	Sets a grid and performs registration at the given grid.
@@ -255,7 +255,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 * The default implementation simply returns the specified value. This is fine
 	 * for serial environments.*/
 		virtual bool continue_collect_objects_for_refine(bool continueRequired)
-		{return continueRequired;}
+			{return continueRequired;}
 
 	/**	This callback is called during execution of the refine() method after
 	 * collect_objects_for_refine has returned. It is responsible to mark
@@ -298,11 +298,11 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	//	helpers. Make sure that everything is initialized properly
 	//	before calling these methods.
 	//	you should use these methods instead of directly marking elements.
-		inline bool is_marked(Vertex* v)				{return m_selMarkedElements.is_selected(v);}
-		//inline void mark(Vertex* v)						{mark(v);}
+		inline bool is_marked(Vertex* v) {return m_selMarkedElements.is_selected(v);}
+		//inline void mark(Vertex* v) {mark(v);}
 
-		inline bool is_marked(Edge* e)					{return m_selMarkedElements.is_selected(e);}
-		//inline void mark(Edge* e)						{mark(e);}
+		inline bool is_marked(Edge* e) {return m_selMarkedElements.is_selected(e);}
+		//inline void mark(Edge* e) {mark(e);}
 
 	///	Returns the vertex associated with the edge
 	/**	pure virtual method.
@@ -313,8 +313,8 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	///	Associates a vertex with the edge (pure virtual).
 		virtual void set_center_vertex(Edge* e, Vertex* v) = 0;
 
-		inline bool is_marked(Face* f)						{return m_selMarkedElements.is_selected(f);}
-		//inline void mark(Face* f)							{mark(f);}
+		inline bool is_marked(Face* f) {return m_selMarkedElements.is_selected(f);}
+		//inline void mark(Face* f) {mark(f);}
 
 	///	Returns the vertex associated with the face
 	/**	pure virtual method.
@@ -325,18 +325,18 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	///	Associates a vertex with the face (pure virtual).
 		virtual void set_center_vertex(Face* f, Vertex* v) = 0;
 
-		inline bool is_marked(Volume* v)					{return m_selMarkedElements.is_selected(v);}
-		//inline void mark(Volume* v)						{mark(v);}
+		inline bool is_marked(Volume* v) {return m_selMarkedElements.is_selected(v);}
+		//inline void mark(Volume* v) {mark(v);}
 
 
 		template <typename TElem>
-		inline bool marked_to_normal(TElem* elem) const			{return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_NORMAL) == HNRM_TO_NORMAL;}
+		inline bool marked_to_normal(TElem* elem) const {return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_NORMAL) == HNRM_TO_NORMAL;}
 
 		template <typename TElem>
-		inline bool marked_to_constrained(TElem* elem) const	{return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINED) == HNRM_TO_CONSTRAINED;}
+		inline bool marked_to_constrained(TElem* elem) const {return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINED) == HNRM_TO_CONSTRAINED;}
 
 		template <typename TElem>
-		inline bool marked_to_constraining(TElem* elem) const	{return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINING) == HNRM_TO_CONSTRAINING;}
+		inline bool marked_to_constraining(TElem* elem) const {return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINING) == HNRM_TO_CONSTRAINING;}
 
 		template <typename TElem>
 		void add_hmark(TElem* elem, HNodeRefMarks mark);
@@ -351,7 +351,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	///	returns the selector which is internally used to mark elements.
 	/**	Be sure to use it carefully!*/
-		TSelector& get_refmark_selector()	{return m_selMarkedElements;}
+		TSelector& get_refmark_selector() {return m_selMarkedElements;}
 
 		inline bool adjusting_ref_marks() const	{return m_adjustingRefMarks;}
 
@@ -360,25 +360,25 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		HangingNodeRefinerBase(const HangingNodeRefinerBase&);
 
 	protected:
-		TSelector							m_selMarkedElements;
-		std::vector<SPIRefMarkAdjuster>		m_refMarkAdjusters;
+		TSelector m_selMarkedElements;
+		std::vector<SPIRefMarkAdjuster> m_refMarkAdjusters;
 
 	private:
-		Grid*		m_pGrid;
-		std::vector<Vertex*>	m_newlyMarkedRefVrts;
-		std::vector<Edge*>		m_newlyMarkedRefEdges;
-		std::vector<Face*>			m_newlyMarkedRefFaces;
-		std::vector<Volume*>		m_newlyMarkedRefVols;
+		Grid* m_pGrid;
+		std::vector<Vertex*> m_newlyMarkedRefVrts;
+		std::vector<Edge*> m_newlyMarkedRefEdges;
+		std::vector<Face*> m_newlyMarkedRefFaces;
+		std::vector<Volume*> m_newlyMarkedRefVols;
 		//todo:	Use the following vectors during coarsening...
 		/*
-		std::vector<Vertex*>	m_newlyMarkedCoarseVrts;
-		std::vector<Edge*>		m_newlyMarkedCoarseEdges;
-		std::vector<Face*>			m_newlyMarkedCoarseFaces;
-		std::vector<Volume*>		m_newlyMarkedCoarseVols;
+		std::vector<Vertex*> m_newlyMarkedCoarseVrts;
+		std::vector<Edge*> m_newlyMarkedCoarseEdges;
+		std::vector<Face*> m_newlyMarkedCoarseFaces;
+		std::vector<Volume*> m_newlyMarkedCoarseVols;
 		*/
-		bool		m_nodeDependencyOrder1;
-		//bool		m_automarkHigherDimensionalObjects; <-- unused
-		bool		m_adjustingRefMarks;///<	true during collect_objects_for_refine
+		bool m_nodeDependencyOrder1;
+		//bool m_automarkHigherDimensionalObjects; <-- unused
+		bool m_adjustingRefMarks;///<	true during collect_objects_for_refine
 };
 
 /// @}	// end of add_to_group command

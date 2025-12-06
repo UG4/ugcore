@@ -85,13 +85,13 @@ class MGStats {
 		void set_filename_prefix(const char* filename);
 
 	///	saves current stats to filenamePrefix.log
-		void save_stats_to_file();
+		void save_stats_to_file() const;
 
 	///	saves current stats to the specified file
-		void save_stats_to_file(const char* filename);
+		void save_stats_to_file(const char* filename) const;
 
 	///	prints the current stats
-		void print();
+		void print() const;
 
 	///	clears the current stats
 		void clear();

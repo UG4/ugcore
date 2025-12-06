@@ -57,10 +57,10 @@ class AverageComponent :
 
 	public:
 	///	Constructor setting approximation space
-		AverageComponent(const std::string& fcts){m_vCmp = TokenizeTrimString(fcts);};
+	explicit AverageComponent(const std::string& fcts){m_vCmp = TokenizeTrimString(fcts);};
 
 	///	Constructor setting approximation space
-		AverageComponent(const std::vector<std::string>& vCmp){m_vCmp = vCmp;};
+	explicit AverageComponent(const std::vector<std::string>& vCmp){m_vCmp = vCmp;};
 
 	public:
 	/// apply Operator, interpolate function

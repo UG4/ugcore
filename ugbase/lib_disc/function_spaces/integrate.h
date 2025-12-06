@@ -302,7 +302,7 @@ number Integrate(TConstIterator iterBegin,
 		grid_base_object* pElem = *iter;
 
 	//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-		ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
+		auto roid = static_cast<ReferenceObjectID>(pElem->reference_object_id());
 
 	//	get quadrature Rule for reference object id and order
 		try{
@@ -647,14 +647,14 @@ class UserDataIntegrandSq
 		}
 	protected:
 
-		number inner_prod(const number &d1, const number &d2)
+		number inner_prod(const number &d1, const number &d2) const
 		{return d1*d2;}
 
-		number inner_prod(const MathVector<worldDim> &d1, const MathVector<worldDim> &d2)
+		number inner_prod(const MathVector<worldDim> &d1, const MathVector<worldDim> &d2) const
 		{return VecDot(d1, d2);}
 
 		template<typename T>
-		number inner_prod(const T &d1, const T &d2)
+		number inner_prod(const T &d1, const T &d2) const
 		{ UG_ASSERT(0, "NOT IMPLEMENTED"); return 0.0;}
 };
 
@@ -821,26 +821,26 @@ class UserDataDistIntegrandSq
 
 	protected:
 
-			number inner_prod(const number &d1, const number &d2)
+			number inner_prod(const number &d1, const number &d2) const
 			{return d1*d2;}
 
-			number inner_prod(const MathVector<worldDim> &d1, const MathVector<worldDim> &d2)
+			number inner_prod(const MathVector<worldDim> &d1, const MathVector<worldDim> &d2) const
 			{return VecDot(d1, d2);}
 
 			template<typename T>
-			number inner_prod(const T &d1, const T &d2)
+			number inner_prod(const T &d1, const T &d2) const
 			{ UG_ASSERT(0, "NOT IMPLEMENTED"); return 0.0;}
 
 
 
-			number inner_dist2(const number &v1, const number &v2)
+			number inner_dist2(const number &v1, const number &v2) const
 			{ return (v1-v2)*(v1-v2); }
 
-			number inner_dist2(const MathVector<worldDim> &v1, const MathVector<worldDim> &v2)
+			number inner_dist2(const MathVector<worldDim> &v1, const MathVector<worldDim> &v2) const
 			{ return VecDistanceSq(v1, v2); }
 
 			template<typename T>
-			number inner_dist2(const T &d1, const T &d2)
+			number inner_dist2(const T &d1, const T &d2) const
 			{ UG_ASSERT(0, "NOT IMPLEMENTED"); return 0.0;}
 
 };
@@ -1616,7 +1616,7 @@ class L2Integrand
 		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
+			ReferenceObjectID roid = pElem->reference_object_id();
 
 		// element weights
 			using ipdata_type = typename weight_type::data_type;
@@ -1805,11 +1805,10 @@ class L2DistIntegrand
 		};
 
 
-		virtual ~L2DistIntegrand() = default;
+		~L2DistIntegrand() override = default;
 
 		///	sets subset
-		virtual void set_subset(int si)
-		{
+		void set_subset(int si) override {
 			UG_COND_THROW(!m_fineData.is_def_in_subset(si),
 				"L2DiffIntegrand: Grid function component" <<m_fineData.fct()<<" not defined on subset "<<si);
 			UG_COND_THROW(!m_coarseData.is_def_in_subset(si),
@@ -2603,7 +2602,6 @@ class H1EnergyIntegrand
  *
  * \param[in]		gridFct		grid function
  * \param[in]		cmp			symbolic name of component function
- * \param[in]		time		time point
  * \param[in]		quadOrder	order of quadrature rule
  * \param[in]		subsets		subsets, where to compute (OPTIONAL)
  * \param[in]		weights		element-wise matrix-valued weights kappa (OPTIONAL)
@@ -2709,11 +2707,11 @@ class H1EnergyDistIntegrand
 			if(m_fineData.domain().get() != m_coarseData.domain().get())
 				UG_THROW("H1EnergyDistIntegrand: grid functions defined on different domains.");
 		}
-		virtual ~H1EnergyDistIntegrand() = default;
+
+		~H1EnergyDistIntegrand() override = default;
 
 	///	sets subset
-		virtual void set_subset(int si)
-		{
+		void set_subset(int si) override {
 			if(!m_fineData.is_def_in_subset(si))
 				UG_THROW("H1EnergyDistIntegrand: Grid function component"
 						<<m_fineData.fct()<<" not defined on subset "<<si);
@@ -3095,11 +3093,10 @@ class H1DistIntegrand
 		};
 
 	/// DTOR
-		virtual ~H1DistIntegrand() {};
+		~H1DistIntegrand() override = default;
 
 	///	sets subset
-		virtual void set_subset(int si)
-		{
+		void set_subset(int si) override {
 			if(!m_fineData.is_def_in_subset(si))
 				UG_THROW("H1DiffIntegrand: Grid function component"
 						<<m_fineData.fct()<<" not defined on subset "<<si);
@@ -3304,7 +3301,7 @@ class StdFuncIntegrand
 		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
+			ReferenceObjectID roid = pElem->reference_object_id();
 
 			const LFEID m_id = m_pGridFct->local_finite_element_id(m_fct);
 

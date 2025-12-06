@@ -120,7 +120,7 @@ public:
 	using matrix_type_local = DenseMatrix< VariableArray2<number> >;
 
 	/// virtual DTOR
-	virtual ~LocalIndexSubspace() = default;
+	~LocalIndexSubspace() override = default;
 
 	/// Called once.
 	/*virtual bool preprocess(const vector_type &c, obj_iterator_type &objBegin, obj_iterator_type &objEnd)
@@ -131,11 +131,10 @@ public:
 	}
 */
 	/// Extract local data (based on group obj)
-	virtual void init(TObject*, const vector_type &) = 0;
+	void init(TObject*, const vector_type &) override = 0;
 
 	/// Extract matrix (on local index set)
-	virtual void extract_matrix(const matrix_type &A)
-	{
+	void extract_matrix(const matrix_type &A) override {
 		using const_row_iterator = typename TAlgebra::matrix_type::const_row_iterator;
 		static constexpr int blockSize = TAlgebra::blockSize;
 		const size_t numIndex  = this->size();
@@ -158,8 +157,7 @@ public:
 
 
 	/// Extract rhs (on local index set) for parallel subspace correction
-	virtual void extract_rhs(const vector_type &d)
-	{
+	void extract_rhs(const vector_type &d) override {
 		const size_t numIndex  = this->size();
 		static constexpr int blockSize = TAlgebra::blockSize;
 
@@ -174,8 +172,7 @@ public:
 	}
 
 	/// Extract rhs (on local index set) for sequential subspace correction
-	virtual void extract_rhs(const vector_type &d, const matrix_type &A, const vector_type &c)
-	{
+	void extract_rhs(const vector_type &d, const matrix_type &A, const vector_type &c) override {
 		using const_row_iterator = typename TAlgebra::matrix_type::const_row_iterator;
 		static constexpr int blockSize = TAlgebra::blockSize;
 		const size_t numIndex  = this->size();
@@ -197,8 +194,7 @@ public:
 	};
 
 	/// u = u + ck
-	virtual void update_solution(vector_type &u, double omega=1.0)
-	{
+	void update_solution(vector_type &u, double omega=1.0) override {
 		const size_t numIndex  = this->size();
 
 		// solve block
@@ -212,7 +208,7 @@ public:
 	}
 
 
-	virtual size_t size() { return m_vInd.size(); }
+	size_t size() override { return m_vInd.size(); }
 
 protected:
 
@@ -247,17 +243,16 @@ public:
 	using matrix_type_local = DenseMatrix< VariableArray2<number> >;
 
 	/// virtual DTOR
-	virtual ~LocalDoFSubspace() = default;
+	~LocalDoFSubspace() override = default;
 
 	bool check(void *obj) const
 	{ return (dynamic_cast<TObject*> (obj) != nullptr); }
 
 	/// Extract local data (based on group obj)
-	virtual void init(TObject*, const vector_type &) = 0;
+	void init(TObject*, const vector_type &) override = 0;
 
 	/// Extract matrix (on local index set)
-	virtual void extract_matrix(const matrix_type &A)
-	{
+	void extract_matrix(const matrix_type &A) override {
 		// using const_row_iterator = typename TAlgebra::matrix_type::const_row_iterator;
 		// static constexpr int blockSize = TAlgebra::blockSize;
 		const size_t numIndex  = this->size();
@@ -277,8 +272,7 @@ public:
 
 
 	/// Extract rhs (on local index set) for parallel subspace correction
-	virtual void extract_rhs(const vector_type &d)
-	{
+	void extract_rhs(const vector_type &d) override {
 		const size_t numIndex  = this->size();
 		m_dloc.resize(numIndex);
 
@@ -289,8 +283,7 @@ public:
 	}
 
 	/// Extract rhs (on local index set) for sequential subspace correction
-	virtual void extract_rhs(const vector_type &d, const matrix_type &A, const vector_type &c)
-	{
+	void extract_rhs(const vector_type &d, const matrix_type &A, const vector_type &c) override {
 		using const_row_iterator = typename TAlgebra::matrix_type::const_row_iterator;
 		static constexpr int blockSize = TAlgebra::blockSize;
 		const size_t numIndex  = this->size();
@@ -313,8 +306,7 @@ public:
 
 
 	/// u = u + ck
-	virtual void update_solution(vector_type &u, double omega=1.0)
-	{
+	void update_solution(vector_type &u, double omega=1.0) override {
 		const size_t numIndex  = this->size();
 
 		// solve block
@@ -328,7 +320,7 @@ public:
 	}
 
 
-	virtual size_t size() { return m_vInd.size(); }
+	size_t size() override { return m_vInd.size(); }
 
 protected:
 	/// Algebraic indices.
@@ -367,16 +359,15 @@ public:
 	VertexBasedSubspace() = default;
 
 	/// virtual DTOR
-	virtual ~VertexBasedSubspace() = default;
+	~VertexBasedSubspace() override = default;
 
 	bool check(void *obj) const
 	{ return true; /*return (dynamic_cast<TObject*> (obj) != nullptr);*/ }
 
 	/// Extract indices for local DoFs.
-	void init(void *obj, const vector_type &cvec)
-	{
+	void init(void *obj, const vector_type &cvec) override {
 		UG_ASSERT(check(obj), "HUHH: Expecting vertex!");
-		Vertex *groupObj = reinterpret_cast<Vertex*> (obj);
+		auto groupObj = reinterpret_cast<Vertex*> (obj);
 
 		// We will modify index list of base class.
 		std::vector<size_t> &vInd = base_type::m_vInd;
@@ -430,7 +421,7 @@ public:
 		: m_vVtxCmp(vVtxCmp), m_vElemCmp(vElemCmp) {}
 
 	/// virtual DTOR
-	virtual ~VertexCenteredVankaSubspace() = default;
+	~VertexCenteredVankaSubspace() override = default;
 
 	/// Extracts function IDs.
 protected:
@@ -453,9 +444,7 @@ protected:
 			m_vElemFct.push_back(ddinfo->fct_id_by_name(m_vElemCmp[i].c_str()));
 	}
 public:
-	/// OVERRIDE
-	bool preprocess(const vector_type &cvec)
-	{
+	bool preprocess(const vector_type &cvec) override {
 		using TGridFunction = GridFunction<TDomain, TAlgebra>;
 		const TGridFunction *c = dynamic_cast<const TGridFunction *> (&cvec);  // Need a grid function here!
 
@@ -466,8 +455,7 @@ public:
 	}
 
 	/// Extract indices for single vertex.
-	void init(Vertex *groupObj, const vector_type &cvec)
-	{
+	void init(Vertex *groupObj, const vector_type &cvec) override {
 		// We will modify index list of base class.
 		typename base_type::index_vector &vInd = base_type::m_vInd;
 		vInd.clear();
@@ -673,7 +661,7 @@ void SequentialSubspaceCorrectionLoopBackward(const typename TAlgebra::matrix_ty
 template <typename TDomain>
 class customLexLess{
 		public:
-			customLexLess(const typename TDomain::position_accessor_type& aaPos): _aaPos(aaPos){}
+			explicit customLexLess(const typename TDomain::position_accessor_type& aaPos): _aaPos(aaPos){}
 			bool operator () (Vertex* a, Vertex *b) const
 			{ return _aaPos[a] < _aaPos[b]; }
 		protected:
@@ -725,21 +713,20 @@ public:
 	FullVertexCover() : m_pSol(nullptr) {}
 
 		/// virtual DTOR
-	virtual ~FullVertexCover()= default;
+	~FullVertexCover() override = default;
 
-	virtual void init(const typename base_type::vector_type &x)
-	{
+	void init(const typename base_type::vector_type &x) override {
 		auto* m_pSol = dynamic_cast<TGridFunction*>(&x);
 		UG_ASSERT(m_pSol !=nullptr, "Error: Cast failed!");
 	}
 
 	template <typename TElem>
-	typename TGridFunction::template traits<TElem>::const_iterator
+	[[nodiscard]] typename TGridFunction::template traits<TElem>::const_iterator
 	begin() const
 	{ return m_pSol->template begin<Vertex>();}
 
 	template <typename TElem>
-	typename TGridFunction::template traits<TElem>::const_iterator
+	[[nodiscard]] typename TGridFunction::template traits<TElem>::const_iterator
 	end() const
 	{ return m_pSol->template end<Vertex>(); }
 protected:
@@ -783,7 +770,7 @@ public:
 	SequentialSubspaceCorrection() : m_relax(1.0), m_type("vertex") {};
 
 	///	constructor setting relaxation
-	SequentialSubspaceCorrection(number relax) : m_relax(relax), m_type("vertex") {};
+	explicit SequentialSubspaceCorrection(number relax) : m_relax(relax), m_type("vertex") {};
 
 	///	Clone
 	SmartPtr<ILinearIterator<vector_type> > clone() override {
@@ -800,7 +787,7 @@ public:
 	~SequentialSubspaceCorrection() override = default;
 
 	///	returns if parallel solving is supported
-	bool supports_parallel() const override {return true;}
+	[[nodiscard]] bool supports_parallel() const override {return true;}
 
 	/// set relaxation parameter
 	void set_relax(number omega){ m_relax=omega; }
@@ -815,7 +802,7 @@ public:
 
 protected:
 	///	Name of preconditioner
-	const char* name() const override {return "SequentialSubspaceCorrection";}
+	[[nodiscard]] const char* name() const override {return "SequentialSubspaceCorrection";}
 
 	///	Preprocess routine
 	bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {

@@ -80,7 +80,7 @@ class FinishedTester
 class MaxStepsFinishedCondition : public IFinishedCondition
 {	
 	public:
-		MaxStepsFinishedCondition(int max_timesteps) : m_max_timesteps(max_timesteps)
+		explicit MaxStepsFinishedCondition(int max_timesteps) : m_max_timesteps(max_timesteps)
 		{}
 
 		bool check_finished(number time, int step) override {

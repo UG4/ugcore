@@ -263,8 +263,8 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols, bool bCopy
 	 */
 	if(bCopyValues)
 	{
-		size_t minRows = std::min(rows, newRows);
-		size_t minCols = std::min(cols, newCols);
+		const size_t minRows = std::min(rows, newRows);
+		const size_t minCols = std::min(cols, newCols);
 
 		// we are using swap to avoid re-allocations
 		if(T_ordering==RowMajor)

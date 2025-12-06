@@ -68,20 +68,19 @@ struct MarkerPoint
 class MarkerPointManager
 {
 	public:
-		void clear()									{m_markers.clear();}
-		inline void add_marker()						{m_markers.resize(m_markers.size() + 1);}
-		inline void add_markers(size_t num = 1)			{m_markers.resize(m_markers.size() + num);}
-		void add_marker(const MarkerPoint& marker)		{m_markers.push_back(marker);}
+		void clear() {m_markers.clear();}
+		inline void add_marker() {m_markers.resize(m_markers.size() + 1);}
+		inline void add_markers(size_t num = 1) {m_markers.resize(m_markers.size() + num);}
+		void add_marker(const MarkerPoint& marker) {m_markers.push_back(marker);}
 
-		inline size_t num_markers()	const				{return m_markers.size();}
+		[[nodiscard]] inline size_t num_markers()	const {return m_markers.size();}
 
-		inline MarkerPoint& get_marker(size_t index)				{return m_markers[index];}
-		inline const MarkerPoint& get_marker(size_t index) const	{return m_markers[index];}
+		inline MarkerPoint& get_marker(size_t index) {return m_markers[index];}
+		[[nodiscard]] inline const MarkerPoint& get_marker(size_t index) const {return m_markers[index];}
 
-		inline void set_marker(size_t index,
-								const MarkerPoint& marker)			{m_markers[index] = marker;}
+		inline void set_marker(size_t index, const MarkerPoint& marker) {m_markers[index] = marker;}
 
-		inline MarkerPoint const *get_array()						{return &m_markers.front();}
+		[[nodiscard]] inline MarkerPoint const *get_array() const {return &m_markers.front();}
 
 	protected:
 		std::vector<MarkerPoint>	m_markers;

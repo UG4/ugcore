@@ -70,7 +70,7 @@ public:
 	~ParallelShiftIdentifier() override = default;
 
 	using AttachmentType = typename TPosAA::ValueType;
-	ParallelShiftIdentifier(TPosAA& aa) : m_aaPos(aa) {}
+	explicit ParallelShiftIdentifier(TPosAA& aa) : m_aaPos(aa) {}
 	void set_shift(AttachmentType& shift) {m_shift = shift; VecScale(m_shift_opposite, m_shift, -1);}
 protected:
 	AttachmentType m_shift;
@@ -113,7 +113,7 @@ public:
 			using master_slave_pair = std::pair<TElem*, TElem*>;
 			using unique_pairs = std::set<master_slave_pair>;
 
-			Group(TElem* m = nullptr) : m_master(m) {}
+			explicit Group(TElem* m = nullptr) : m_master(m) {}
 
 			void add_slave(TElem* e) {
 				UG_ASSERT(e, "add_slave: slave not valid");

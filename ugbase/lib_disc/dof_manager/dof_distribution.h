@@ -62,16 +62,16 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		~DoFDistribution() = default;
 
 		///	returns the surface view
-		ConstSmartPtr<SurfaceView> surface_view() const {return m_spSurfView;}
+		[[nodiscard]] ConstSmartPtr<SurfaceView> surface_view() const {return m_spSurfView;}
 
 		///	returns the multigrid
 		/// \{
 		SmartPtr<MultiGrid> multi_grid() {return m_spMG;}
-		ConstSmartPtr<MultiGrid> multi_grid() const {return m_spMG;}
+		[[nodiscard]] ConstSmartPtr<MultiGrid> multi_grid() const {return m_spMG;}
 		/// \}
 
 		///	returns grid level
-		const GridLevel& grid_level() const {return m_gridLevel;}
+		[[nodiscard]] const GridLevel& grid_level() const {return m_gridLevel;}
 
 	public:
 		template <typename TElem>
@@ -169,7 +169,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		///	\}
 
 		/// returns the default valid surface state
-		SurfaceView::SurfaceConstants defaultValidSurfState() const;
+		[[nodiscard]] SurfaceView::SurfaceConstants defaultValidSurfState() const;
 
 		///	returns the adjacent elements
 		template <typename TElem, typename TBaseElem>
@@ -212,13 +212,13 @@ class DoFDistribution : public DoFDistributionInfoProvider
 
 	public:
 		///	returns if dofs are grouped
-		bool grouped() const {return m_bGrouped;}
+		[[nodiscard]] bool grouped() const {return m_bGrouped;}
 
 		/// return the number of dofs distributed
-		size_t num_indices() const {return m_numIndex;}
+		[[nodiscard]] size_t num_indices() const {return m_numIndex;}
 
 		/// return the number of dofs distributed on subset si
-		size_t num_indices(int si) const {return m_vNumIndexOnSubset[si];}
+		[[nodiscard]] size_t num_indices(int si) const {return m_vNumIndexOnSubset[si];}
 
 	public:
 		/// extracts all indices of the element (sorted)
@@ -379,7 +379,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 
 		///	extracts the indices of the vertices
 		template<typename TBaseElem>
-		void indices_on_vertex(TBaseElem* elem, const ReferenceObjectID roid,
+		void indices_on_vertex(TBaseElem* elem, ReferenceObjectID roid,
 		                       LocalIndices& ind,
 		                       const Grid::SecureVertexContainer& vElem) const;
 
@@ -406,13 +406,13 @@ class DoFDistribution : public DoFDistributionInfoProvider
 
 		/// extracts the indices of the subelement of an element
 		template<typename TBaseElem, typename TSubBaseElem>
-		void indices(TBaseElem* elem, const ReferenceObjectID roid,
+		void indices(TBaseElem* elem, ReferenceObjectID roid,
 		             LocalIndices& ind,
 		             const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const;
 
 		/// extracts the indices of a subelement of an element
 		template<typename TBaseElem, typename TSubBaseElem>
-		void dof_indices(TBaseElem* elem, const ReferenceObjectID roid,
+		void dof_indices(TBaseElem* elem, ReferenceObjectID roid,
 		                   size_t fct, std::vector<DoFIndex>& ind,
 		                   const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const;
 
@@ -444,7 +444,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 	protected:
 		/// adds indices to a geometric object
 		template <typename TBaseObject>
-		void add(TBaseObject* obj, const ReferenceObjectID roid, const int si);
+		void add(TBaseObject* obj, ReferenceObjectID roid, int si);
 
 		///	checks that subset assignment is ok
 		void check_subsets();
@@ -516,14 +516,14 @@ class DoFDistribution : public DoFDistributionInfoProvider
 
 	public:
 	///	permutes values in managed functions, if indices permuted
-		void permute_values(const std::vector<size_t>& vIndNew);
+		void permute_values(const std::vector<size_t>& vIndNew) const;
 
 	///	swaps values in managed functions, if indices swapped
 		void copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
-		                                         bool bDisjunct);
+		                                         bool bDisjunct) const;
 
 	///	changes values in managed functions, number of indices changed
-		void resize_values(size_t newSize);
+		void resize_values(size_t newSize) const;
 
 	protected:
 	///	managed grid functions
@@ -541,7 +541,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		public:
 		///	returns algebra layouts
 		///	\{
-		ConstSmartPtr<AlgebraLayouts> layouts() const 	{return m_spAlgebraLayouts;}
+		[[nodiscard]] ConstSmartPtr<AlgebraLayouts> layouts() const {return m_spAlgebraLayouts;}
 		SmartPtr<AlgebraLayouts> layouts() 				{return m_spAlgebraLayouts;}
 		///	\}
 
@@ -558,7 +558,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 #endif
 
 	public:
-		DoFCount dof_count() const;
+		[[nodiscard]] DoFCount dof_count() const;
 
 	protected:
 		template <typename TBaseElem>

@@ -167,7 +167,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 
 					for(size_t i = 0; i < c.size(); ++i)
 						c[i] = m_oC[i];
-					SetLayoutValues(&c, c.layouts()->slave(), 0);
+					SetLayoutValues(&c, c.layouts()->slave(), typename TAlgebra::vector_type::value_type(0));
 					c.set_storage_type(PST_UNIQUE);
 				}
 				else if (m_bConsistentInterfaces)

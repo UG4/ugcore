@@ -104,7 +104,7 @@ void DoFDistributionInfo::create_offsets()
 	for(int r = ROID_VERTEX; r < NUM_REFERENCE_OBJECTS; ++r)
 	{
 	//	get reference element and dimension
-		const ReferenceObjectID roid = (ReferenceObjectID) r;
+		const auto roid = static_cast<ReferenceObjectID>(r);
 		const int d = ReferenceElementDimension(roid);
 
 	//	loop subsets and functions
@@ -256,7 +256,7 @@ void DoFDistributionInfo::print_local_dof_statistic(int verboseLev) const
 
 	for(int i=ROID_VERTEX; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
-		ReferenceObjectID roid = (ReferenceObjectID) i;
+		auto roid = static_cast<ReferenceObjectID>(i);
 
 		UG_LOG(" " << setw(16) << roid << " |");
 		UG_LOG("   "<<setw(4) << m_vMaxDoFsOnROID[roid] << "    |");

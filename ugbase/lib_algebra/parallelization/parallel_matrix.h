@@ -70,7 +70,7 @@ class ParallelMatrix : public TMatrix
 
 	private:
 	// 	disallow copy constructor
-		ParallelMatrix(const ParallelMatrix&);
+		ParallelMatrix(const ParallelMatrix&) = delete;
 
 	public:
 	///	own type

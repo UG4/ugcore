@@ -764,8 +764,8 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 2, 2>
 										vCornerCoords[p0], vCornerCoords[p1],
 										From, Direction))
 			{
-				if(bPositiv && t >= 0.0) break;
-				else if(!bPositiv && t <= 0.0) break;
+				if ((bPositiv && t >= 0.0) || (!bPositiv && t <= 0.0))
+					break;
 			}
 		}
 		// if not found
@@ -812,8 +812,8 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 										vCornerCoords[p0], vCornerCoords[p1], vCornerCoords[p2],
 										From, Direction))
 			{
-				if(bPositiv && t >= 0.0) break;
-				else if(!bPositiv && t <= 0.0) break;
+				if ((bPositiv && t >= 0.0) || (!bPositiv && t <= 0.0))
+					break;
 			}
 
 			// second triangle (only if 4 corners)
@@ -827,8 +827,8 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 										vCornerCoords[p0], vCornerCoords[p1], vCornerCoords[p2],
 										From, Direction))
 			{
-				if(bPositiv && t >= 0.0) break;
-				else if(!bPositiv && t <= 0.0) break;
+				if ((bPositiv && t >= 0.0) || (!bPositiv && t <= 0.0))
+					break;
 			}
 		}
 
@@ -938,8 +938,8 @@ struct SCVFofSCVRayIntersectionWrapper<2, 2>
 					continue;
 
 			//	upwind / downwind switch
-				if(bPositiv && t >= 0.0) break;
-				else if(!bPositiv && t <= 0.0) break;
+				if ((bPositiv && t >= 0.0) || (!bPositiv && t <= 0.0))
+					break;
 			}
 		}
 

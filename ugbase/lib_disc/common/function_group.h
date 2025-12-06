@@ -110,22 +110,22 @@ class FunctionGroup
 		void sort();
 
 	/// returns if function group is empty
-		bool empty() const {return m_vFunction.empty();}
+		[[nodiscard]] bool empty() const {return m_vFunction.empty();}
 
 	/// number of functions in this group
-		size_t size() const {return m_vFunction.size();}
+		[[nodiscard]] size_t size() const {return m_vFunction.size();}
 
 	/// returns the name of a function
-		const char* name(size_t i) const;
+		[[nodiscard]] const char* name(size_t i) const;
 
 	/// returns the comma-separted names of all functions
-		std::string names() const;
+		[[nodiscard]] std::string names() const;
 
 	/// returns unique function id of a function
 		size_t operator [] (size_t i) const {return unique_id(i);}
 
 	/// returns unique function id of a function
-		size_t unique_id(size_t i) const
+		[[nodiscard]] size_t unique_id(size_t i) const
 		{
 			UG_ASSERT(i < size(), "Invalid function access");
 			return m_vFunction[i];
@@ -136,7 +136,7 @@ class FunctionGroup
 	 * Returns the dimension of a function. The dimension is defined
 	 * to be the highest dimension of grid entity the function lives on
 	 */
-		int dim(size_t i) const;
+		[[nodiscard]] int dim(size_t i) const;
 
 	/// common dimension of all functions
 	/**
@@ -147,26 +147,26 @@ class FunctionGroup
 	 * \return 		-1			if no common dimension available
 	 * 				dim	>= 0	common dimension
 	 */
-		int dim() const;
+		[[nodiscard]] int dim() const;
 
 	/// returns the trial space of the discrete function fct
 	/// \{
-		LFEID local_finite_element_id(size_t i) const;
-		LFEID lfeid(size_t i) const;
+		[[nodiscard]] LFEID local_finite_element_id(size_t i) const;
+		[[nodiscard]] LFEID lfeid(size_t i) const;
 	/// \}
 
 	/// returns true if unique id is contained in this group
-		bool contains(size_t uniqueID) const;
+		[[nodiscard]] bool contains(size_t uniqueID) const;
 
 	/// returns true if all unique ids of another function group are contained
-		bool contains(const FunctionGroup& fctGroup) const;
+		[[nodiscard]] bool contains(const FunctionGroup& fctGroup) const;
 
 	/// return index in Function group for a function
-		size_t local_index(size_t uniqueID) const;
+		[[nodiscard]] size_t local_index(size_t uniqueID) const;
 
 	protected:
 	/// returns if FunctionGroup is ready for use
-		bool is_init() const {return m_spFunctionPattern.valid();}
+		[[nodiscard]] bool is_init() const {return m_spFunctionPattern.valid();}
 
 	protected:
 	/// underlying function pattern
@@ -192,7 +192,7 @@ class FunctionIndexMapping
 		void push_back(size_t indexTo){m_vMapping.push_back(indexTo);}
 
 	/// returns the number of indices that are mapped
-		size_t num_fct() const {return m_vMapping.size();}
+		[[nodiscard]] size_t num_fct() const {return m_vMapping.size();}
 
 	/// returns the mapped index
 		size_t operator [] (size_t i) const

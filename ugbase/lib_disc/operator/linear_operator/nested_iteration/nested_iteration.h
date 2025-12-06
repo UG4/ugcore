@@ -83,16 +83,16 @@ class NestedIterationSolver
 		NestedIterationSolver();
 
 	///	constructor setting operator
-		NestedIterationSolver(SmartPtr<IOperator<vector_type> > N);
+	explicit NestedIterationSolver(SmartPtr<IOperator<vector_type> > N);
 
 	///	constructor using assembling
-		NestedIterationSolver(SmartPtr<IAssemble<TAlgebra> > spAss);
+	explicit NestedIterationSolver(SmartPtr<IAssemble<TAlgebra> > spAss);
 
 	///	constructor using assembling
 		NestedIterationSolver(SmartPtr<IAssemble<TAlgebra> > spAss, SmartPtr<IAssemble<TAlgebra> > spDomErr);
 
 	///	constructor
-		NestedIterationSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver);
+	explicit NestedIterationSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver);
 
 		~NestedIterationSolver() override = default;
 

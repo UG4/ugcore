@@ -183,7 +183,7 @@ apply(vector_type& rC, const vector_type& rD)
 // 	Check if surface level has been chosen correctly
 //	Please note, that the approximation space returns the global number of levels,
 //	i.e. the maximum of levels among all processes.
-	if(m_topLev >= (int)m_spApproxSpace->num_levels())
+	if(m_topLev >= static_cast<int>(m_spApproxSpace->num_levels()))
 		UG_THROW("GMG::apply: SurfaceLevel "<<m_topLev<<" does not exist.");
 
 // 	Check if base level has been choose correctly
@@ -1561,8 +1561,8 @@ init_level_memory(int baseLev, int topLev)
 			ld.PostSmoother = m_spPostSmootherPrototype->clone();
 
 		// let the smoothers know the grid level they are on if they need to know
-		ILevelPreconditioner<TAlgebra>* lpre = dynamic_cast<ILevelPreconditioner<TAlgebra>*>(ld.PreSmoother.get());
-		ILevelPreconditioner<TAlgebra>* lpost = dynamic_cast<ILevelPreconditioner<TAlgebra>*>(ld.PostSmoother.get());
+		auto* lpre = dynamic_cast<ILevelPreconditioner<TAlgebra>*>(ld.PreSmoother.get());
+		auto* lpost = dynamic_cast<ILevelPreconditioner<TAlgebra>*>(ld.PostSmoother.get());
 		if (lpre) lpre->set_grid_level(gl);
 		if (lpost) lpost->set_grid_level(gl);
 
@@ -1727,7 +1727,7 @@ presmooth_and_restriction(int lev)
 		}
 	}
 	UG_CATCH_THROW("GMG: Pre-Smoothing on level "<<lev<<" failed.");
-	lf.n_pre_calls++;
+	++lf.n_pre_calls;
 	GMG_PROFILE_END();
 
 	log_debug_data(lev, lf.n_restr_calls, "AfterPreSmooth_BeforeCom");
@@ -1752,7 +1752,7 @@ presmooth_and_restriction(int lev)
 		//	remains valid and can be used when the cycle comes back to this level.
 
 		GMG_PROFILE_BEGIN(GMG_Restrict_CopyNoghostToGhost);
-		SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_master(), 0);
+		SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_master(), typename TAlgebra::vector_type::value_type(0));
 		copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
 		GMG_PROFILE_END();
 
@@ -1806,7 +1806,7 @@ presmooth_and_restriction(int lev)
 		m_vspRestrictionPostProcess[i]->post_process(lc.sd);
 	GMG_PROFILE_END();
 	leave_debug_writer_section(gw_gl);
-	lf.n_restr_calls++;
+	++lf.n_restr_calls;
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level "<<lev<<"\n");
 }
@@ -1956,7 +1956,7 @@ prolongation_and_postsmooth(int lev)
 	log_debug_data(lev, lf.n_prolong_calls, "AfterPostSmooth");
 	mg_stats_defect(*lf.sd, lev, mg_stats_type::AFTER_POST_SMOOTH);
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - postsmooth on level "<<lev<<"\n");
-	lf.n_prolong_calls++;
+	++lf.n_prolong_calls;
 }
 
 // performs the base solving
@@ -2007,7 +2007,7 @@ base_solve(int lev)
 			!ld.t->layouts()->vertical_master().empty())
 		{
 			GMG_PROFILE_BEGIN(GMG_GatheredBaseSolver_Defect_CopyNoghostToGhost);
-			SetLayoutValues(&(*ld.t), ld.t->layouts()->vertical_master(), 0);
+			SetLayoutValues(&(*ld.t), ld.t->layouts()->vertical_master(), typename TAlgebra::vector_type::value_type(0));
 			copy_noghost_to_ghost(ld.t, ld.sd, ld.vMapPatchToGlobal);
 			GMG_PROFILE_END();
 
@@ -2075,7 +2075,7 @@ base_solve(int lev)
 	}
 
 	log_debug_data(lev, ld.n_base_calls, "AfterBaseSolver");
-	ld.n_base_calls++;
+	++ld.n_base_calls;
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level "<<lev<<"\n");
 	}
 	UG_CATCH_THROW("GMG: Base Solver failed.");

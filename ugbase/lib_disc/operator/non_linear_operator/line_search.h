@@ -79,7 +79,7 @@ class ILineSearch
 	/**
 	 *	Performs a line search to a given direction.
 	 *
-	 * \param[in]		Op		Non-linear operator
+	 * \param[in]		spOp		Non-linear operator
 	 * \param[in]  		u 		current solution
 	 * \param[in]		p		search direction
 	 * \param[in,out]	d		defect
@@ -155,8 +155,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 			 {};
 
 	///	returns information about configuration parameters
-		virtual std::string config_string() const
-		{
+		std::string config_string() const override {
 			std::stringstream ss;
 			ss << "StandardLineSearch( maxSteps = " << m_maxSteps << ", lambdaStart = " << m_lambdaStart << ", lambdaReduce = " << m_lambdaReduce << ", accept best = " <<
 					(m_bAcceptBest ? "true" : "false") << " check all = " << (m_bCheckAll ? "true" : "false");
@@ -189,13 +188,12 @@ class StandardLineSearch : public ILineSearch<TVector>
 		void set_verbose(bool level) {m_verbose = level;}
 
 	///	\copydoc ILineSearch::set_offset
-		virtual void set_offset(std::string offset) {m_offset = offset;};
+		void set_offset(std::string offset) override {m_offset = offset;};
 
 	///	\copydoc ILineSearch::search
-		virtual bool search(SmartPtr<IOperator<vector_type> > spOp,
-		                    vector_type& u, vector_type& p,
-		                    vector_type& d, number defect)
-		{
+		bool search(SmartPtr<IOperator<vector_type> > spOp,
+	            vector_type& u, vector_type& p,
+	            vector_type& d, number defect) override {
 			PROFILE_BEGIN_GROUP(StandardLineSearch_search, ""); // group?
 		// 	clone pattern for s
 			s.resize(u.size());
@@ -407,13 +405,11 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 //#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
 
-		virtual void setNewtonUpdater( SmartPtr<NewtonUpdaterGeneric<TVector> > nU )
-		{
+		void setNewtonUpdater( SmartPtr<NewtonUpdaterGeneric<TVector> > nU ) override {
 			m_newtonUpdater = nU;
 		}
 
-		virtual bool createNewtonUpdater()
-		{
+		bool createNewtonUpdater() override {
 			if( m_newtonUpdater != nullptr )
 			{
 				m_newtonUpdater = SmartPtr<NewtonUpdaterGeneric<TVector> >

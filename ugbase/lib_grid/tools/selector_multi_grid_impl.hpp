@@ -94,7 +94,7 @@ inline size_t
 MGSelector::num(int level) const
 {
 	const int sInd = get_section_index<TElem>();
-	if(level < (int)num_levels()){
+	if(level < static_cast<int>(num_levels())){
 		if(sInd < 0)
 			return section_container<TElem>(level).num_elements();
 		else
@@ -116,7 +116,7 @@ MGSelector::num() const
 {
 	size_t n = 0;
 	for(size_t i = 0; i < num_levels(); ++i)
-		n += num<TElem>((int)i);
+		n += num<TElem>(static_cast<int>(i));
 	return n;
 }
 

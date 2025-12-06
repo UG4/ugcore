@@ -65,9 +65,9 @@ class PartitionMap{
 
 		void add_target_procs(int first, int num);
 
-		size_t num_target_procs();
+		size_t num_target_procs() const;
 
-		int get_target_proc(size_t index);
+		int get_target_proc(size_t index) const;
 
 		int* get_target_procs();
 
@@ -77,7 +77,7 @@ class PartitionMap{
 		bool change_target_proc(size_t index, int newRank);
 
 	///	returns the index at which the given process lies. -1 if it doesn't exist.
-		int find_target_proc(int procRank);
+		int find_target_proc(int procRank) const;
 
 	///	adds the given offset to all target-proc-ranks
 		void shift_target_procs(int offset);

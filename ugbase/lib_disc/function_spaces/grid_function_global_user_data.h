@@ -439,7 +439,7 @@ class GlobalGridFunctionGradientData
 		// evaluates at given position
 		std::vector<number> evaluate_global(std::vector<number> vPos)
 		{
-			if((int)vPos.size() != dim)
+			if(static_cast<int>(vPos.size()) != dim)
 				UG_THROW("Expected "<<dim<<" components, but given "<<vPos.size());
 
 			MathVector<dim> x;

@@ -66,7 +66,7 @@ enum RefinementMark : byte_t {
 class IRefiner
 {
 	public:
-		IRefiner(SPRefinementProjector projector = nullptr) :
+		explicit IRefiner(SPRefinementProjector projector = nullptr) :
 			m_msgIdAdaption(-1), m_projector(projector),
 			m_adaptionIsActive(false), m_debuggingEnabled(false)	{}
 
@@ -100,10 +100,10 @@ class IRefiner
 
 	///	Marks an element for refinement. Default implementation is empty
 	/**	\{ */
-		virtual bool mark(Vertex* v, RefinementMark refMark = RM_REFINE)	{return false;}
-		virtual bool mark(Edge* e, RefinementMark refMark = RM_REFINE)		{return false;}
-		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE)		{return false;}
-		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE)	{return false;}
+		virtual bool mark(Vertex* v, RefinementMark refMark = RM_REFINE) {return false;}
+		virtual bool mark(Edge* e, RefinementMark refMark = RM_REFINE) {return false;}
+		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE) {return false;}
+		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE) {return false;}
 	/**	\} */
 
 	///	marks the specified geometric object
@@ -191,14 +191,14 @@ class IRefiner
 		virtual void mark_neighborhood(
 						size_t numIterations,
 						RefinementMark refMark,
-						bool sideNbrsOnly)			{}
+						bool sideNbrsOnly) {}
 
 	///	Returns the mark of a given element. Default returns RM_REFINE
 	/**	\{ */
-		virtual RefinementMark get_mark(Vertex* v) const	{return RM_REFINE;}
-		virtual RefinementMark get_mark(Edge* e) const		{return RM_REFINE;}
-		virtual RefinementMark get_mark(Face* f) const		{return RM_REFINE;}
-		virtual RefinementMark get_mark(Volume* v) const	{return RM_REFINE;}
+		virtual RefinementMark get_mark(Vertex* v) const {return RM_REFINE;}
+		virtual RefinementMark get_mark(Edge* e) const {return RM_REFINE;}
+		virtual RefinementMark get_mark(Face* f) const {return RM_REFINE;}
+		virtual RefinementMark get_mark(Volume* v) const {return RM_REFINE;}
 	/**	\} */
 
 	///	returns the mark of the specified geometric object
@@ -273,8 +273,8 @@ class IRefiner
 	 * If you want to unset the file, either pass a nullptr pointer or an empty string.*/
 		void set_adjusted_marks_debug_filename(const char* filename);
 
-		void enable_debugging(bool enable)	{m_debuggingEnabled = enable;}
-		bool debugging_enabled() const		{return m_debuggingEnabled;}
+		void enable_debugging(bool enable) {m_debuggingEnabled = enable;}
+		bool debugging_enabled() const {return m_debuggingEnabled;}
 
 	protected:
 	///	sets the message hub.

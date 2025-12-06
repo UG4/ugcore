@@ -108,8 +108,8 @@ class UG_API Selector : public ISelector
 		};
 
 	public:
-		Selector(byte_t supportedElements = SE_ALL);
-		Selector(Grid& grid, byte_t supportedElements = SE_ALL);
+		explicit Selector(byte_t supportedElements = SE_ALL);
+		explicit Selector(Grid& grid, byte_t supportedElements = SE_ALL);
 
 		~Selector() override;
 
@@ -141,15 +141,15 @@ class UG_API Selector : public ISelector
 		inline void clear();
 
 		template <typename TElem>
-		inline size_t num() const;
+		[[nodiscard]] inline size_t num() const;
 		
-		inline size_t num() const;
+		[[nodiscard]] inline size_t num() const;
 		
 	//	empty
-		inline bool empty() const;
+		[[nodiscard]] inline bool empty() const;
 
 		template <typename TElem>
-		inline bool empty() const;
+		[[nodiscard]] inline bool empty() const;
 
 	//	begin
 		template <typename TElem>
@@ -157,7 +157,7 @@ class UG_API Selector : public ISelector
 		begin();
 
 		template <typename TElem>
-		inline typename geometry_traits<TElem>::const_iterator
+		[[nodiscard]] inline typename geometry_traits<TElem>::const_iterator
 		begin() const;
 		
 	//	end
@@ -166,7 +166,7 @@ class UG_API Selector : public ISelector
 		end();
 		
 		template <typename TElem>
-		inline typename geometry_traits<TElem>::const_iterator
+		[[nodiscard]] inline typename geometry_traits<TElem>::const_iterator
 		end() const;
 
 	//	convenience begin and end
@@ -190,7 +190,7 @@ class UG_API Selector : public ISelector
 		template <typename TElem> TElem* back();
 
 	//	geometric-object-collection
-		GridObjectCollection get_grid_objects() const override;
+		[[nodiscard]] GridObjectCollection get_grid_objects() const override;
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver
@@ -200,19 +200,20 @@ class UG_API Selector : public ISelector
 	////////////////////////////////////////
 	//	for compatibility with MGSelector
 	///	always returns 1
-		inline size_t num_levels() const;
+		[[nodiscard]] inline size_t num_levels() const;
 		
 	///	calls num();
-		inline uint num(size_t) const;
+		[[nodiscard]] inline uint num(size_t) const;
 	///	calls num<TElem>();
-		template <typename TElem> inline size_t num(size_t) const;
+		template <typename TElem>
+		[[nodiscard]] inline size_t num(size_t) const;
 		
 	//	empty
 	///	calls empty();
-		inline bool empty(size_t) const;
+		[[nodiscard]] inline bool empty(size_t) const;
 	//	calls empty<TElem>();
 		template <typename TElem>
-		inline bool empty(size_t) const;
+		[[nodiscard]] inline bool empty(size_t) const;
 
 	//	begin
 	///	calls begin<TElem>();
@@ -227,16 +228,16 @@ class UG_API Selector : public ISelector
 		end(size_t);
 
 	///	returns true if the selector contains vertices
-		bool contains_vertices() const override {return num<Vertex>() > 0;}
+		[[nodiscard]] bool contains_vertices() const override {return num<Vertex>() > 0;}
 
 	///	returns true if the selector contains edges
-		bool contains_edges() const override {return num<Edge>() > 0;}
+		[[nodiscard]] bool contains_edges() const override {return num<Edge>() > 0;}
 
 	///	returns true if the selector contains faces
-		bool contains_faces() const override {return num<Face>() > 0;}
+		[[nodiscard]] bool contains_faces() const override {return num<Face>() > 0;}
 
 	///	returns true if the selector contains volumes
-		bool contains_volumes() const override {return num<Volume>() > 0;}
+		[[nodiscard]] bool contains_volumes() const override {return num<Volume>() > 0;}
 
 	protected:
 		using ISelector::AttachedVertexList;
@@ -306,7 +307,7 @@ class UG_API Selector : public ISelector
 		section_container() const;
 
 		template <typename TElem>
-		inline int get_section_index() const;
+		[[nodiscard]] inline int get_section_index() const;
 		
 	private:
 		Selector(const Selector& sel){};///<	Copy Constructor not yet implemented!

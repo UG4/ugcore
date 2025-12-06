@@ -67,11 +67,9 @@ void PartitionMap::add_target_procs(int first, int num)
 		add_target_proc(first + i);
 }
 
-size_t PartitionMap::num_target_procs()
-{return m_targetProcs.size();}
+size_t PartitionMap::num_target_procs() const {return m_targetProcs.size();}
 
-int PartitionMap::get_target_proc(size_t index)
-{
+int PartitionMap::get_target_proc(size_t index) const {
 	if(index < m_targetProcs.size())
 		return m_targetProcs[index];
 	UG_LOG("BAD INDEX in PartitionMap::get_target_proc: " << index);
@@ -102,8 +100,7 @@ bool PartitionMap::change_target_proc(size_t index, int newRank)
 	return true;
 }
 
-int PartitionMap::find_target_proc(int procRank)
-{
+int PartitionMap::find_target_proc(int procRank) const {
 	for(size_t i = 0; i < m_targetProcs.size(); ++i){
 		if(m_targetProcs[i] == procRank)
 			return i;

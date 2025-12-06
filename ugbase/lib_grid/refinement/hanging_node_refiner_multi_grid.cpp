@@ -403,8 +403,7 @@ restrict_selection_to_surface_coarsen_elements()
 	MultiGrid& mg = *m_pMG;
 	selector_t& sel = get_refmark_selector();
 
-	for(typename selector_t::traits<TElem>::iterator iter = sel.begin<TElem>();
-		iter != sel.end<TElem>();)
+	for(auto iter = sel.begin<TElem>(); iter != sel.end<TElem>();)
 	{
 		TElem* e = *iter;
 		++iter;
@@ -449,8 +448,7 @@ restrict_selection_to_coarsen_families()
 //	parent, but is not marked itself, then it is clear that it is not a valid
 //	candidate.
 	mg.begin_marking();
-	for(typename selector_t::traits<TElem>::iterator iter = sel.begin<TElem>();
-		iter != sel.end<TElem>();)
+	for(auto iter = sel.begin<TElem>(); iter != sel.end<TElem>();)
 	{
 		TElem* e = *iter;
 		++iter;
@@ -468,8 +466,7 @@ restrict_selection_to_coarsen_families()
 			continue;
 
 	//	get the parent
-		TBaseElem* parent = dynamic_cast<TBaseElem*>(mg.get_parent(e));
-		if(parent){
+		if(TBaseElem* parent = dynamic_cast<TBaseElem*>(mg.get_parent(e))){
 			if(mg.is_marked(parent)){
 			//	the parent is marked and e is not. We thus have to deselect e
 				sel.deselect(e);
@@ -665,7 +662,7 @@ static void SaveCoarsenMarksToFile(ISelector& sel, const char* filename)
 }
 
 void HangingNodeRefiner_MultiGrid::
-save_coarsen_marks_to_file(ISelector& sel, const char* filename)
+save_coarsen_marks_to_file(ISelector& sel, const char* filename) const
 {
 	SaveCoarsenMarksToFile(sel, filename);
 }
@@ -673,7 +670,7 @@ save_coarsen_marks_to_file(ISelector& sel, const char* filename)
 
 ///	temporary method, which will be removed when debugging is done.
 void HangingNodeRefiner_MultiGrid::
-debug_save(ISelector& sel, const char* filePrefix)
+debug_save(ISelector& sel, const char* filePrefix) const
 {
 	if(debugging_enabled()){
 		stringstream ss;

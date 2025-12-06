@@ -59,11 +59,11 @@ class RevisionCounter
 		RevisionCounter() : m_pObj(nullptr), m_cnt(0) {};
 
 	///	constructor (with valid state initialization)
-		RevisionCounter(const void* pObj) : m_pObj(pObj), m_cnt(1) {}
+		explicit RevisionCounter(const void* pObj) : m_pObj(pObj), m_cnt(1) {}
 
 	///	constructor (with valid state initialization)
 		template <typename T>
-		RevisionCounter(const T* pObj) : m_pObj(static_cast<const void*>(pObj)), m_cnt(1) {}
+		explicit RevisionCounter(const T* pObj) : m_pObj(static_cast<const void*>(pObj)), m_cnt(1) {}
 
 	///	increase state (prefix)
 		RevisionCounter& operator ++ () {
@@ -111,16 +111,16 @@ class RevisionCounter
 		}
 
 	///	returns if state is valid
-		bool valid() const {return m_pObj != nullptr && m_cnt != 0;}
+		[[nodiscard]] bool valid() const {return m_pObj != nullptr && m_cnt != 0;}
 
 	///	returns if state is invalid
-		bool invalid() const {return !valid();}
+		[[nodiscard]] bool invalid() const {return !valid();}
 
 	///	invalidates state
 		void invalidate() {m_pObj = nullptr; m_cnt = 0;}
 
 	///	returns the associated object
-		const void* obj() const {return m_pObj;}
+		[[nodiscard]] const void* obj() const {return m_pObj;}
 
 	protected:
 		const void* m_pObj; ///< associated object

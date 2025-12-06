@@ -33,7 +33,7 @@
 #include "grid_function.h"
 
 namespace ug{
-
+// ø todo va? should this file explicitly instanciate template expressions? extern template?
 
 
 } // end namespace ug

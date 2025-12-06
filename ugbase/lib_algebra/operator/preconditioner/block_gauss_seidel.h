@@ -65,7 +65,7 @@ void CopyOffDiagEntries(const TMatrixType &A, size_t i, TRowType &row, bool enfo
 	for(typename TMatrixType::const_row_iterator connij = A.begin_row(i); connij != A.end_row(i); ++connij)
 	{
 		const size_t j=connij.index();
-		row(connij.index()) = (i==j) ? 0.0 : connij.value();
+		row(connij.index()) = (i==j) ? typename TMatrixType::value_type(0.0) : connij.value();
 	}
 }
 

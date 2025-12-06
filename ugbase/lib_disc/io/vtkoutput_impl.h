@@ -98,7 +98,7 @@ void VTKOutput<TDim>::
 write_item_to_file(VTKFileWriter& File, const MathVector<1>& data)
 {
 	if(m_bBinary)
-		File << (float) data[0] << (float) 0.f << (float) 0.f;
+		File << static_cast<float>(data[0]) << (float) 0.f << (float) 0.f;
 	else
 		write_asc_float (File, data[0]) << " 0 0 ";
 }
@@ -135,7 +135,7 @@ void VTKOutput<TDim>::
 write_item_to_file(VTKFileWriter& File, const MathMatrix<1,1>& data)
 {
 	if(m_bBinary)
-		File << (float) data(0,0) << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f;
+		File << static_cast<float>(data(0, 0)) << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f;
 	else
 		write_asc_float (File, data(0,0)) << " 0 0 0 0 0 0 0 0 ";
 }
@@ -146,8 +146,8 @@ write_item_to_file(VTKFileWriter& File, const MathMatrix<2,2>& data)
 {
 	if(m_bBinary)
 	{
-		File << (float) data(0,0) << (float) data(0,1) << (float) 0.f;
-		File << (float) data(1,0) << (float) data(1,1) << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f;
+		File << static_cast<float>(data(0, 0)) << static_cast<float>(data(0, 1)) << (float) 0.f;
+		File << static_cast<float>(data(1, 0)) << static_cast<float>(data(1, 1)) << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f;
 	}
 	else
 	{
@@ -162,9 +162,9 @@ write_item_to_file(VTKFileWriter& File, const MathMatrix<3,3>& data)
 {
 	if(m_bBinary)
 	{
-		File << (float) data(0,0) << (float) data(0,1) << (float) data(0,2);
-		File << (float) data(1,0) << (float) data(1,1) << (float) data(1,2);
-		File << (float) data(2,0) << (float) data(2,1) << (float) data(2,2);
+		File << static_cast<float>(data(0, 0)) << static_cast<float>(data(0, 1)) << static_cast<float>(data(0, 2));
+		File << static_cast<float>(data(1, 0)) << static_cast<float>(data(1, 1)) << static_cast<float>(data(1, 2));
+		File << static_cast<float>(data(2, 0)) << static_cast<float>(data(2, 1)) << static_cast<float>(data(2, 2));
 	}
 	else
 	{
@@ -820,7 +820,7 @@ write_points(VTKFileWriter& File,
 //	write starting xml tag for points
 	File << VTKFileWriter::normal;
 	File << "      <Points>\n";
-	File << "        <DataArray type=\"Float32\" NumberOfComponents=\"3\" format="
+	File << R"(        <DataArray type="Float32" NumberOfComponents="3" format=)"
 		 <<	(m_bBinary ? "\"binary\"" : "\"ascii\"") << ">\n";
 	int n = 3*sizeof(float) * numVert;
 	if(m_bBinary)
@@ -833,26 +833,26 @@ write_points(VTKFileWriter& File,
 	grid.begin_marking();
 
 //	switch dimension
-	if(numVert > 0)
-	for(size_t i = 0; i < ssGrp.size(); i++){
-		switch(dim){
-			case 0: write_points_elementwise<Vertex,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n); break;
-			case 1: write_points_elementwise<RegularEdge,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
-					write_points_elementwise<ConstrainingEdge,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n); break;
-			case 2: write_points_elementwise<Triangle,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
-					write_points_elementwise<Quadrilateral,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
-					write_points_elementwise<ConstrainingTriangle,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
-					write_points_elementwise<ConstrainingQuadrilateral,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n); break;
-			case 3:	write_points_elementwise<Tetrahedron,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
-					write_points_elementwise<Pyramid,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
-					write_points_elementwise<Prism,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
-					write_points_elementwise<Octahedron,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
-					write_points_elementwise<Hexahedron,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n); break;
-			default: UG_THROW("VTK::write_points: Dimension " << dim <<
-			                        " is not supported.");
+	if(numVert > 0) {
+		for(size_t i = 0; i < ssGrp.size(); i++){
+			switch(dim){
+				case 0: write_points_elementwise<Vertex,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n); break;
+				case 1: write_points_elementwise<RegularEdge,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
+				write_points_elementwise<ConstrainingEdge,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n); break;
+				case 2: write_points_elementwise<Triangle,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
+				write_points_elementwise<Quadrilateral,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
+				write_points_elementwise<ConstrainingTriangle,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
+				write_points_elementwise<ConstrainingQuadrilateral,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n); break;
+				case 3:	write_points_elementwise<Tetrahedron,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
+				write_points_elementwise<Pyramid,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
+				write_points_elementwise<Prism,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
+				write_points_elementwise<Octahedron,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n);
+				write_points_elementwise<Hexahedron,T>(File, aaVrtIndex, aaPos, grid, iterContainer, ssGrp[i], n); break;
+				default: UG_THROW("VTK::write_points: Dimension " << dim <<
+										" is not supported.");
+			}
 		}
 	}
-
 //	signal end of marking the grid
 	grid.end_marking();
 
@@ -868,7 +868,7 @@ write_points(VTKFileWriter& File,
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_cell_subset_names(VTKFileWriter& File, MGSubsetHandler &sh)
+write_cell_subset_names(VTKFileWriter& File, MGSubsetHandler &sh) const
 {
 	File << VTKFileWriter::normal;
 	File << "      <RegionInfo Name=\"regions\">\n";
@@ -1115,7 +1115,7 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, const SubsetGrou
 {
 	File << VTKFileWriter::normal;
 //	write opening tag indicating that offsets are going to be written
-	File << "        <DataArray type=\"Int32\" Name=\"offsets\" format="
+	File << R"(        <DataArray type="Int32" Name="offsets" format=)"
 		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 	int n = sizeof(int) * numElem;
 	if(m_bBinary)
@@ -1197,10 +1197,11 @@ using const_iterator = typename IteratorProvider<T>::template traits<TElem>::con
 	//	handle octahedral case separately by splitting into a top and bottom pyramid
 		if(ref_elem_type::REFERENCE_OBJECT_ID != ROID_OCTAHEDRON)
 		{
-			if(m_bBinary)
+			if(m_bBinary) {
 				File << type;
-			 else
-				File << (int) type << ' ';
+			} else {
+				File << static_cast<int>(type) << ' ';
+			}
 		}
 		else
 		{
@@ -1211,8 +1212,8 @@ using const_iterator = typename IteratorProvider<T>::template traits<TElem>::con
 			}
 			else
 			{
-				File << (int) type << ' '; // top pyramid
-				File << (int) type << ' '; // bottom pyramid
+				File << static_cast<int>(type) << ' '; // top pyramid
+				File << static_cast<int>(type) << ' '; // bottom pyramid
 			}
 		}
 	}
@@ -1230,31 +1231,32 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, const SubsetGroup&
 {
 	File << VTKFileWriter::normal;
 //	write opening tag to indicate that types will be written
-	File << "        <DataArray type=\"Int8\" Name=\"types\" format="
+	File << R"(        <DataArray type="Int8" Name="types" format=)"
 		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 	if(m_bBinary)
 		File << VTKFileWriter::base64_binary << numElem;
 
 //	switch dimension
-	if(numElem > 0)
-	for(size_t i = 0; i < ssGrp.size(); i++)
-	{
-		switch(dim)
+	if(numElem > 0) {
+		for(size_t i = 0; i < ssGrp.size(); i++)
 		{
-			case 0: break; // no elements -> nothing to do
-			case 1: write_cell_types<RegularEdge>(File, iterContainer, ssGrp[i]);
-					write_cell_types<ConstrainingEdge>(File, iterContainer, ssGrp[i]); break;
-			case 2: write_cell_types<Triangle>(File, iterContainer, ssGrp[i]);
-					write_cell_types<Quadrilateral>(File, iterContainer, ssGrp[i]);
-					write_cell_types<ConstrainingTriangle>(File, iterContainer, ssGrp[i]);
-					write_cell_types<ConstrainingQuadrilateral>(File, iterContainer, ssGrp[i]); break;
-			case 3: write_cell_types<Tetrahedron>(File, iterContainer, ssGrp[i]);
-					write_cell_types<Pyramid>(File, iterContainer, ssGrp[i]);
-					write_cell_types<Prism>(File, iterContainer, ssGrp[i]);
-					write_cell_types<Octahedron>(File, iterContainer, ssGrp[i]);
-					write_cell_types<Hexahedron>(File, iterContainer, ssGrp[i]); break;
-			default: UG_THROW("VTK::write_cell_types: Dimension " << dim <<
-			                        " is not supported.");
+			switch(dim)
+			{
+				case 0: break; // no elements -> nothing to do
+				case 1: write_cell_types<RegularEdge>(File, iterContainer, ssGrp[i]);
+				write_cell_types<ConstrainingEdge>(File, iterContainer, ssGrp[i]); break;
+				case 2: write_cell_types<Triangle>(File, iterContainer, ssGrp[i]);
+				write_cell_types<Quadrilateral>(File, iterContainer, ssGrp[i]);
+				write_cell_types<ConstrainingTriangle>(File, iterContainer, ssGrp[i]);
+				write_cell_types<ConstrainingQuadrilateral>(File, iterContainer, ssGrp[i]); break;
+				case 3: write_cell_types<Tetrahedron>(File, iterContainer, ssGrp[i]);
+				write_cell_types<Pyramid>(File, iterContainer, ssGrp[i]);
+				write_cell_types<Prism>(File, iterContainer, ssGrp[i]);
+				write_cell_types<Octahedron>(File, iterContainer, ssGrp[i]);
+				write_cell_types<Hexahedron>(File, iterContainer, ssGrp[i]); break;
+				default: UG_THROW("VTK::write_cell_types: Dimension " << dim <<
+										" is not supported.");
+			}
 		}
 	}
 
@@ -1274,7 +1276,6 @@ void VTKOutput<TDim>::
 write_cell_subsets(VTKFileWriter& File, const T& iterContainer, const int si, MGSubsetHandler& sh)
 {
 //	subset
-	int subset;
 
 //	get iterators
 	using const_iterator = typename IteratorProvider<T>::template traits<TElem>::const_iterator;
@@ -1288,11 +1289,11 @@ write_cell_subsets(VTKFileWriter& File, const T& iterContainer, const int si, MG
 //	loop all elements, write type for each element to stream
 	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
-		subset = (char)sh.get_subset_index(*iterBegin);
+		int subset = static_cast<char>(sh.get_subset_index(*iterBegin));
 		//iterContainer.get_subset_name(2);
 
 		if(m_bBinary){
-			File << (char) subset << ' ';
+			File << static_cast<char>(subset) << ' ';
 		}
 		else{
 			File << subset << ' ';
@@ -1312,7 +1313,7 @@ write_cell_subsets(VTKFileWriter& File, const T& iterContainer, const SubsetGrou
 {
 	File << VTKFileWriter::normal;
 //	write opening tag to indicate that types will be written
-	File << "        <DataArray type=\"Int8\" Name=\"regions\" format="
+	File << R"(        <DataArray type="Int8" Name="regions" format=)"
 		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 	if(m_bBinary)
 		File << VTKFileWriter::base64_binary << numElem;
@@ -1376,7 +1377,7 @@ using const_iterator = typename IteratorProvider<T>::template traits<TElem>::con
 	{
 
 		if(m_bBinary){
-			File << (char) rank << ' ';
+			File << static_cast<char>(rank) << ' ';
 		}
 		else{
 			File << rank << ' ';
@@ -1395,31 +1396,32 @@ write_cell_proc_ranks(VTKFileWriter& File, const T& iterContainer, const SubsetG
 {
 	File << VTKFileWriter::normal;
 //	write opening tag to indicate that types will be written
-	File << "        <DataArray type=\"Int8\" Name=\"proc_ranks\" format="
+	File << R"(        <DataArray type="Int8" Name="proc_ranks" format=)"
 		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 	if(m_bBinary)
 		File << VTKFileWriter::base64_binary << numElem;
 
 //	switch dimension
-	if(numElem > 0)
-	for(size_t i = 0; i < ssGrp.size(); i++)
-	{
-		switch(dim)
+	if(numElem > 0) {
+		for(size_t i = 0; i < ssGrp.size(); i++)
 		{
-			case 0: break; // no elements -> nothing to do
-			case 1: write_cell_proc_ranks<RegularEdge>(File, iterContainer, ssGrp[i], sh);
-					write_cell_proc_ranks<ConstrainingEdge>(File, iterContainer, ssGrp[i], sh); break;
-			case 2: write_cell_proc_ranks<Triangle>(File, iterContainer, ssGrp[i], sh);
-					write_cell_proc_ranks<Quadrilateral>(File, iterContainer, ssGrp[i], sh);
-					write_cell_proc_ranks<ConstrainingTriangle>(File, iterContainer, ssGrp[i], sh);
-					write_cell_proc_ranks<ConstrainingQuadrilateral>(File, iterContainer, ssGrp[i], sh); break;
-			case 3: write_cell_proc_ranks<Tetrahedron>(File, iterContainer, ssGrp[i], sh);
-					write_cell_proc_ranks<Pyramid>(File, iterContainer, ssGrp[i], sh);
-					write_cell_proc_ranks<Prism>(File, iterContainer, ssGrp[i], sh);
-					write_cell_proc_ranks<Octahedron>(File, iterContainer, ssGrp[i], sh);
-					write_cell_proc_ranks<Hexahedron>(File, iterContainer, ssGrp[i], sh); break;
-			default: UG_THROW("VTK::write_cell_proc_ranks: Dimension " << dim <<
-			                        " is not supported.");
+			switch(dim)
+			{
+				case 0: break; // no elements -> nothing to do
+				case 1: write_cell_proc_ranks<RegularEdge>(File, iterContainer, ssGrp[i], sh);
+				write_cell_proc_ranks<ConstrainingEdge>(File, iterContainer, ssGrp[i], sh); break;
+				case 2: write_cell_proc_ranks<Triangle>(File, iterContainer, ssGrp[i], sh);
+				write_cell_proc_ranks<Quadrilateral>(File, iterContainer, ssGrp[i], sh);
+				write_cell_proc_ranks<ConstrainingTriangle>(File, iterContainer, ssGrp[i], sh);
+				write_cell_proc_ranks<ConstrainingQuadrilateral>(File, iterContainer, ssGrp[i], sh); break;
+				case 3: write_cell_proc_ranks<Tetrahedron>(File, iterContainer, ssGrp[i], sh);
+				write_cell_proc_ranks<Pyramid>(File, iterContainer, ssGrp[i], sh);
+				write_cell_proc_ranks<Prism>(File, iterContainer, ssGrp[i], sh);
+				write_cell_proc_ranks<Octahedron>(File, iterContainer, ssGrp[i], sh);
+				write_cell_proc_ranks<Hexahedron>(File, iterContainer, ssGrp[i], sh); break;
+				default: UG_THROW("VTK::write_cell_proc_ranks: Dimension " << dim <<
+										" is not supported.");
+			}
 		}
 	}
 
@@ -1544,7 +1546,7 @@ write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
 
 //	write opening tag
 	File << VTKFileWriter::normal;
-	File << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
+	File << R"(        <DataArray type="Float32" Name=")"<<name<<"\" "
 	"NumberOfComponents=\""<<numCmp<<"\" format="
 		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 
@@ -1556,22 +1558,23 @@ write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
 	grid.begin_marking();
 
 //	switch dimension
-	for(size_t i = 0; i < ssGrp.size(); i++)
-	switch(dim)
-	{
-		case 1:	write_nodal_data_elementwise<RegularEdge,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_nodal_data_elementwise<ConstrainingEdge,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]); break;
-		case 2:	write_nodal_data_elementwise<Triangle,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_nodal_data_elementwise<Quadrilateral,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_nodal_data_elementwise<ConstrainingTriangle,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_nodal_data_elementwise<ConstrainingQuadrilateral,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]); break;
-		case 3:	write_nodal_data_elementwise<Tetrahedron,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_nodal_data_elementwise<Pyramid,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_nodal_data_elementwise<Prism,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_nodal_data_elementwise<Octahedron,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_nodal_data_elementwise<Hexahedron,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]); break;
-		default: UG_THROW("VTK::write_nodal_data: Dimension " << dim <<
-		                        " is not supported.");
+	for(size_t i = 0; i < ssGrp.size(); i++) {
+		switch(dim)
+		{
+			case 1:	write_nodal_data_elementwise<RegularEdge,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_nodal_data_elementwise<ConstrainingEdge,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]); break;
+			case 2:	write_nodal_data_elementwise<Triangle,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_nodal_data_elementwise<Quadrilateral,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_nodal_data_elementwise<ConstrainingTriangle,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_nodal_data_elementwise<ConstrainingQuadrilateral,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]); break;
+			case 3:	write_nodal_data_elementwise<Tetrahedron,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_nodal_data_elementwise<Pyramid,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_nodal_data_elementwise<Prism,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_nodal_data_elementwise<Octahedron,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_nodal_data_elementwise<Hexahedron,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]); break;
+			default: UG_THROW("VTK::write_nodal_data: Dimension " << dim <<
+									" is not supported.");
+		}
 	}
 
 //	end marking
@@ -1660,7 +1663,7 @@ write_nodal_values(VTKFileWriter& File, TFunction& u,
 {
 	File << VTKFileWriter::normal;
 //	write opening tag
-	File << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
+	File << R"(        <DataArray type="Float32" Name=")"<<name<<"\" "
 	"NumberOfComponents=\""<<(vFct.size() == 1 ? 1 : 3)<<"\" format="
 		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 
@@ -1672,23 +1675,24 @@ write_nodal_values(VTKFileWriter& File, TFunction& u,
 	grid.begin_marking();
 
 //	switch dimension
-	for(size_t i = 0; i < ssGrp.size(); i++)
-	switch(dim)
-	{
-		case 0:	write_nodal_values_elementwise<Vertex>(File, u, vFct, grid, ssGrp[i]); break;
-		case 1:	write_nodal_values_elementwise<RegularEdge>(File, u, vFct, grid, ssGrp[i]);
-				write_nodal_values_elementwise<ConstrainingEdge>(File, u, vFct, grid, ssGrp[i]); break;
-		case 2:	write_nodal_values_elementwise<Triangle>(File, u, vFct, grid, ssGrp[i]);
-				write_nodal_values_elementwise<Quadrilateral>(File, u, vFct, grid, ssGrp[i]);
-				write_nodal_values_elementwise<ConstrainingTriangle>(File, u, vFct, grid, ssGrp[i]);
-				write_nodal_values_elementwise<ConstrainingQuadrilateral>(File, u, vFct, grid, ssGrp[i]); break;
-		case 3:	write_nodal_values_elementwise<Tetrahedron>(File, u, vFct, grid, ssGrp[i]);
-				write_nodal_values_elementwise<Pyramid>(File, u, vFct, grid, ssGrp[i]);
-				write_nodal_values_elementwise<Prism>(File, u, vFct, grid, ssGrp[i]);
-				write_nodal_values_elementwise<Octahedron>(File, u, vFct, grid, ssGrp[i]);
-				write_nodal_values_elementwise<Hexahedron>(File, u, vFct, grid, ssGrp[i]); break;
-		default: UG_THROW("VTK::write_nodal_values: Dimension " << dim <<
-		                        " is not supported.");
+	for(size_t i = 0; i < ssGrp.size(); i++) {
+		switch(dim)
+		{
+			case 0:	write_nodal_values_elementwise<Vertex>(File, u, vFct, grid, ssGrp[i]); break;
+			case 1:	write_nodal_values_elementwise<RegularEdge>(File, u, vFct, grid, ssGrp[i]);
+			write_nodal_values_elementwise<ConstrainingEdge>(File, u, vFct, grid, ssGrp[i]); break;
+			case 2:	write_nodal_values_elementwise<Triangle>(File, u, vFct, grid, ssGrp[i]);
+			write_nodal_values_elementwise<Quadrilateral>(File, u, vFct, grid, ssGrp[i]);
+			write_nodal_values_elementwise<ConstrainingTriangle>(File, u, vFct, grid, ssGrp[i]);
+			write_nodal_values_elementwise<ConstrainingQuadrilateral>(File, u, vFct, grid, ssGrp[i]); break;
+			case 3:	write_nodal_values_elementwise<Tetrahedron>(File, u, vFct, grid, ssGrp[i]);
+			write_nodal_values_elementwise<Pyramid>(File, u, vFct, grid, ssGrp[i]);
+			write_nodal_values_elementwise<Prism>(File, u, vFct, grid, ssGrp[i]);
+			write_nodal_values_elementwise<Octahedron>(File, u, vFct, grid, ssGrp[i]);
+			write_nodal_values_elementwise<Hexahedron>(File, u, vFct, grid, ssGrp[i]); break;
+			default: UG_THROW("VTK::write_nodal_values: Dimension " << dim <<
+									" is not supported.");
+		}
 	}
 
 //	end marking
@@ -1706,8 +1710,7 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
                          const SubsetGroup& ssGrp, const int dim, const int numVert)
 {
 	if(!m_vSymbFct.empty()){
-		for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
-				m_vSymbFct.begin(); iter != m_vSymbFct.end(); ++iter){
+		for(auto iter = m_vSymbFct.begin(); iter != m_vSymbFct.end(); ++iter){
 			const std::vector<std::string>& symbNames = (*iter).second;
 			const std::string& vtkName = (*iter).first;
 
@@ -1734,8 +1737,7 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 	File << "      <PointData>\n";
 
 //	loop all selected symbolic names
-	for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
-			m_vSymbFctNodal.begin(); iter != m_vSymbFctNodal.end(); ++iter)
+	for(auto iter = m_vSymbFctNodal.begin(); iter != m_vSymbFctNodal.end(); ++iter)
 	{
 	//	get symb function
 		const std::vector<std::string>& symbNames = (*iter).second;
@@ -1928,7 +1930,7 @@ write_cell_data(VTKFileWriter& File, TFunction& u, number time,
 
 //	write opening tag
 	File << VTKFileWriter::normal;
-	File << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
+	File << R"(        <DataArray type="Float32" Name=")"<<name<<"\" "
 	"NumberOfComponents=\""<<numCmp<<"\" format="
 		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 
@@ -1937,22 +1939,23 @@ write_cell_data(VTKFileWriter& File, TFunction& u, number time,
 		File << VTKFileWriter::base64_binary << n;
 
 //	switch dimension
-	for(size_t i = 0; i < ssGrp.size(); i++)
-	switch(dim)
-	{
-		case 1:	write_cell_data_elementwise<RegularEdge,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_cell_data_elementwise<ConstrainingEdge,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]); break;
-		case 2:	write_cell_data_elementwise<Triangle,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_cell_data_elementwise<Quadrilateral,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_cell_data_elementwise<ConstrainingTriangle,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_cell_data_elementwise<ConstrainingQuadrilateral,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]); break;
-		case 3:	write_cell_data_elementwise<Tetrahedron,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_cell_data_elementwise<Pyramid,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_cell_data_elementwise<Prism,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_cell_data_elementwise<Octahedron,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
-				write_cell_data_elementwise<Hexahedron,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]); break;
-		default: UG_THROW("VTK::write_cell_data: Dimension " << dim <<
-		                        " is not supported.");
+	for(size_t i = 0; i < ssGrp.size(); i++) {
+		switch(dim)
+		{
+			case 1:	write_cell_data_elementwise<RegularEdge,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_cell_data_elementwise<ConstrainingEdge,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]); break;
+			case 2:	write_cell_data_elementwise<Triangle,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_cell_data_elementwise<Quadrilateral,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_cell_data_elementwise<ConstrainingTriangle,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_cell_data_elementwise<ConstrainingQuadrilateral,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]); break;
+			case 3:	write_cell_data_elementwise<Tetrahedron,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_cell_data_elementwise<Pyramid,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_cell_data_elementwise<Prism,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_cell_data_elementwise<Octahedron,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]);
+			write_cell_data_elementwise<Hexahedron,TFunction,TData>(File, u, time, spData, grid, ssGrp[i]); break;
+			default: UG_THROW("VTK::write_cell_data: Dimension " << dim <<
+									" is not supported.");
+		}
 	}
 
 //	write closing tag
@@ -2065,7 +2068,7 @@ write_cell_values(VTKFileWriter& File, TFunction& u,
 {
 //	write opening tag
 	File << VTKFileWriter::normal;
-	File << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
+	File << R"(        <DataArray type="Float32" Name=")"<<name<<"\" "
 	"NumberOfComponents=\""<<(vFct.size() == 1 ? 1 : 3)<<"\" format="
 		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 
@@ -2074,22 +2077,23 @@ write_cell_values(VTKFileWriter& File, TFunction& u,
 		File << VTKFileWriter::base64_binary << n;
 
 //	switch dimension
-	for(size_t i = 0; i < ssGrp.size(); i++)
-	switch(dim)
-	{
-		case 1:	write_cell_values_elementwise<RegularEdge>(File, u, vFct, grid, ssGrp[i]);
-				write_cell_values_elementwise<ConstrainingEdge>(File, u, vFct, grid, ssGrp[i]); break;
-		case 2:	write_cell_values_elementwise<Triangle>(File, u, vFct, grid, ssGrp[i]);
-				write_cell_values_elementwise<Quadrilateral>(File, u, vFct, grid, ssGrp[i]);
-				write_cell_values_elementwise<ConstrainingTriangle>(File, u, vFct, grid, ssGrp[i]);
-				write_cell_values_elementwise<ConstrainingQuadrilateral>(File, u, vFct, grid, ssGrp[i]); break;
-		case 3:	write_cell_values_elementwise<Tetrahedron>(File, u, vFct, grid, ssGrp[i]);
-				write_cell_values_elementwise<Pyramid>(File, u, vFct, grid, ssGrp[i]);
-				write_cell_values_elementwise<Prism>(File, u, vFct, grid, ssGrp[i]);
-				write_cell_values_elementwise<Octahedron>(File, u, vFct, grid, ssGrp[i]);
-				write_cell_values_elementwise<Hexahedron>(File, u, vFct, grid, ssGrp[i]); break;
-		default: UG_THROW("VTK::write_cell_values: Dimension " << dim <<
-		                        " is not supported.");
+	for(size_t i = 0; i < ssGrp.size(); i++) {
+		switch(dim)
+		{
+			case 1:	write_cell_values_elementwise<RegularEdge>(File, u, vFct, grid, ssGrp[i]);
+			write_cell_values_elementwise<ConstrainingEdge>(File, u, vFct, grid, ssGrp[i]); break;
+			case 2:	write_cell_values_elementwise<Triangle>(File, u, vFct, grid, ssGrp[i]);
+			write_cell_values_elementwise<Quadrilateral>(File, u, vFct, grid, ssGrp[i]);
+			write_cell_values_elementwise<ConstrainingTriangle>(File, u, vFct, grid, ssGrp[i]);
+			write_cell_values_elementwise<ConstrainingQuadrilateral>(File, u, vFct, grid, ssGrp[i]); break;
+			case 3:	write_cell_values_elementwise<Tetrahedron>(File, u, vFct, grid, ssGrp[i]);
+			write_cell_values_elementwise<Pyramid>(File, u, vFct, grid, ssGrp[i]);
+			write_cell_values_elementwise<Prism>(File, u, vFct, grid, ssGrp[i]);
+			write_cell_values_elementwise<Octahedron>(File, u, vFct, grid, ssGrp[i]);
+			write_cell_values_elementwise<Hexahedron>(File, u, vFct, grid, ssGrp[i]); break;
+			default: UG_THROW("VTK::write_cell_values: Dimension " << dim <<
+									" is not supported.");
+		}
 	}
 
 //	write closing tag
@@ -2104,8 +2108,7 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
                          const SubsetGroup& ssGrp, const int dim, const int numElem)
 {
 	if(!m_vSymbFct.empty()){
-		for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
-				m_vSymbFct.begin(); iter != m_vSymbFct.end(); ++iter){
+		for(auto iter = m_vSymbFct.begin(); iter != m_vSymbFct.end(); ++iter){
 			const std::vector<std::string>& symbNames = (*iter).second;
 			const std::string& vtkName = (*iter).first;
 
@@ -2132,8 +2135,7 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 	File << "      <CellData>\n";
 
 //	loop all selected symbolic names
-	for(ComponentsIterator iter = m_vSymbFctElem.begin();
-			iter != m_vSymbFctElem.end(); ++iter)
+	for(auto iter = m_vSymbFctElem.begin(); iter != m_vSymbFctElem.end(); ++iter)
 	{
 	//	get symb function
 		const std::vector<std::string>& symbNames = (*iter).second;
@@ -2269,8 +2271,7 @@ write_pvtu(TFunction& u, const std::string& filename,
 		{
 			fprintf(file, "    <PPointData>\n");
 //			for(size_t sym = 0; sym < m_vSymbFctNodal.size(); ++sym)
-			for(ComponentsIterator iter = m_vSymbFctNodal.begin();
-					iter != m_vSymbFctNodal.end(); ++iter)
+			for(auto iter = m_vSymbFctNodal.begin(); iter != m_vSymbFctNodal.end(); ++iter)
 			{
 			//	get symb function
 				const std::vector<std::string>& symbNames = (*iter).second;
@@ -2337,8 +2338,7 @@ write_pvtu(TFunction& u, const std::string& filename,
 		{
 			fprintf(file, "    <PCellData>\n");
 //			for(size_t sym = 0; sym < m_vSymbFctElem.size(); ++sym)
-			for(ComponentsIterator iter = m_vSymbFctElem.begin();
-					iter != m_vSymbFctElem.end(); ++iter)
+			for(auto iter = m_vSymbFctElem.begin(); iter != m_vSymbFctElem.end(); ++iter)
 			{
 			//	get symb function
 				const std::vector<std::string>& symbNames = (*iter).second;//m_vSymbFctElem[sym].first;
@@ -2484,7 +2484,7 @@ write_time_pvd(const char* filename, TFunction& u)
 	// 	include files from all procs
 		if(bEverywhere)
 		{
-			for(int step = 0; step < (int)vTimestep.size(); ++step)
+			for(int step = 0; step < static_cast<int>(vTimestep.size()); ++step)
 			{
 				vtu_filename(name, filename, 0, -1, 0, step);
 				if(numProcs > 1) pvtu_filename(name, filename, -1, 0, step);
@@ -2496,7 +2496,7 @@ write_time_pvd(const char* filename, TFunction& u)
 		}
 		else
 		{
-			for(int step = 0; step < (int)vTimestep.size(); ++step)
+			for(int step = 0; step < static_cast<int>(vTimestep.size()); ++step)
 				for(int si = 0; si < u.num_subsets(); ++si)
 				{
 					vtu_filename(name, filename, 0, si, u.num_subsets()-1, step);
@@ -2570,7 +2570,7 @@ write_time_processwise_pvd(const char* filename, TFunction& u)
 		fprintf(file, "  <Collection>\n");
 
 	// 	include files from all procs
-		for(int step = 0; step < (int)vTimestep.size(); ++step)
+		for(int step = 0; step < static_cast<int>(vTimestep.size()); ++step)
 			for (int rank = 0; rank < numProcs; rank++)
 				for(int si = 0; si < u.num_subsets(); ++si)
 				{

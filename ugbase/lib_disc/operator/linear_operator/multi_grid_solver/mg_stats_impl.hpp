@@ -91,7 +91,7 @@ set_active_stages(const std::vector<int>& activeStages)
 		m_stageIsActive[i] = false;
 
 	for(size_t i = 0; i < activeStages.size(); ++i){
-		if(activeStages[i] >= 0 && (int)activeStages[i] < NUM_STAGES)
+		if(activeStages[i] >= 0 && static_cast<int>(activeStages[i]) < NUM_STAGES)
 			m_stageIsActive[activeStages[i]] = true;
 	}
 
@@ -100,16 +100,14 @@ set_active_stages(const std::vector<int>& activeStages)
 
 template <typename TDomain, typename TAlgebra>
 void MGStats<TDomain, TAlgebra>::
-save_stats_to_file()
-{
+save_stats_to_file() const {
 	std::string filename = mkstr(m_filenamePrefix << ".log");
 	save_stats_to_file(filename.c_str());
 }
 
 template <typename TDomain, typename TAlgebra>
 void MGStats<TDomain, TAlgebra>::
-save_stats_to_file(const char* filename)
-{
+save_stats_to_file(const char* filename) const {
 	#ifdef UG_PARALLEL
 	if(pcl::ProcRank() == 0){
 	#endif
@@ -126,8 +124,7 @@ save_stats_to_file(const char* filename)
 
 template <typename TDomain, typename TAlgebra>
 void MGStats<TDomain, TAlgebra>::
-print()
-{
+print() const {
 	UG_LOG(m_stats << std::endl);
 }
 
@@ -247,7 +244,7 @@ template <typename TDomain, typename TAlgebra>
 void MGStats<TDomain, TAlgebra>::
 level_required(int lvl)
 {
-	if((int)m_funcs.size() <= lvl)
+	if(static_cast<int>(m_funcs.size()) <= lvl)
 		m_funcs.resize(lvl + 1);
 }
 

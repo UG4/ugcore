@@ -48,7 +48,7 @@ class TE_TRANSPOSED
 {
 public:
 	using value_type = typename T::value_type;
-	TE_TRANSPOSED(const T&_t) : t(_t) {}
+	explicit TE_TRANSPOSED(const T&_t) : t(_t) {}
 	inline size_t num_rows() const
 	{
 		return t.num_cols();
@@ -119,7 +119,7 @@ public:
 
 public:
 	// constructors
-	DenseVector(double alpha=0.0);
+	explicit DenseVector(double alpha=0.0);
 	DenseVector(const DenseVector &rhs);
 
 	// ~DenseVector(); // dont implement a destructor, since ~base may not be virtual
@@ -268,14 +268,14 @@ public:
 	assign(const Type &t);
 
 	void maple_print(const char *name);
-	
-	
-	inline size_t num_rows() const
+
+
+	[[nodiscard]] inline size_t num_rows() const
 	{
 		return size();
 	}
 	
-	inline size_t num_cols() const
+	[[nodiscard]] inline size_t num_cols() const
 	{
 		return 1;
 	}

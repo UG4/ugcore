@@ -129,7 +129,7 @@ assemble_prolongation_p1(matrix_type& P,
 				{
 					case ROID_VERTEX:
 					{
-						Vertex* vrt = dynamic_cast<Vertex*>(parent);
+						auto vrt = dynamic_cast<Vertex*>(parent);
 						coarseDD.inner_dof_indices(vrt, fct, vParentDoF);
 						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 1.0;
 					}
@@ -137,7 +137,7 @@ assemble_prolongation_p1(matrix_type& P,
 					case ROID_EDGE:
 					for(int i = 0; i < 2; ++i)
 					{
-						Edge* edge = dynamic_cast<Edge*>(parent);
+						auto edge = dynamic_cast<Edge*>(parent);
 						coarseDD.inner_dof_indices(edge->vertex(i), fct, vParentDoF);
 						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.5;
 					}
@@ -145,7 +145,7 @@ assemble_prolongation_p1(matrix_type& P,
 					case ROID_QUADRILATERAL:
 					for(int i = 0; i < 4; ++i)
 					{
-						Face* face = dynamic_cast<Face*>(parent);
+						auto face = dynamic_cast<Face*>(parent);
 						coarseDD.inner_dof_indices(face->vertex(i), fct, vParentDoF);
 						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.25;
 					}
@@ -153,7 +153,7 @@ assemble_prolongation_p1(matrix_type& P,
 					case ROID_HEXAHEDRON:
 					for(int i = 0; i < 8; ++i)
 					{
-						Volume* hexaeder = dynamic_cast<Volume*>(parent);
+						auto hexaeder = dynamic_cast<Volume*>(parent);
 						coarseDD.inner_dof_indices(hexaeder->vertex(i), fct, vParentDoF);
 						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.125;
 					}

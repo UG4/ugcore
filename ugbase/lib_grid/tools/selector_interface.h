@@ -134,8 +134,8 @@ class UG_API ISelector : public GridObserver
 		};
 
 	public:
-		ISelector(SelectorElements_t supportedElements = SE_ALL);
-		ISelector(Grid& grid, SelectorElements_t supportedElements = SE_ALL);
+		explicit ISelector(SelectorElements_t supportedElements = SE_ALL);
+		explicit ISelector(Grid& grid, SelectorElements_t supportedElements = SE_ALL);
 
 		~ISelector() override;
 

@@ -66,20 +66,20 @@ class LocalToGlobalMapperNLGS : public ILocalToGlobalMapper<TAlgebra>
 
 	///	adds a local vector to the global rhs
 		void add_local_vec_to_global(vector_type& vec, const LocalVector& lvec,
-				ConstSmartPtr<DoFDistribution> dd);
+				ConstSmartPtr<DoFDistribution> dd) override;
 
 	///	adds a local matrix to the global matrix
 		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat,
-				ConstSmartPtr<DoFDistribution> dd);
+				ConstSmartPtr<DoFDistribution> dd) override;
 
 	///	modifies local solution vector for adapted defect computation
-		 void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd){}
+		 void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd) override {}
 
 	/// sets assembling index
 		void set_assembling_index(const size_t assIndex){ m_assemblingIndex = assIndex;}
 
 	///	destructor
-		~LocalToGlobalMapperNLGS() {};
+		~LocalToGlobalMapperNLGS() override = default;
 
 	private:
 		size_t m_assemblingIndex;

@@ -137,9 +137,9 @@ mark_as_fracture(int subInd, bool isFracture)
 	if(subInd < 0)
 		return;
 
-	while(subInd > (int)m_subsetIsFracture.size())
+	while(subInd > static_cast<int>(m_subsetIsFracture.size()))
 		m_subsetIsFracture.push_back(false);
-	if(subInd == (int)m_subsetIsFracture.size())
+	if(subInd == static_cast<int>(m_subsetIsFracture.size()))
 		m_subsetIsFracture.push_back(isFracture);
 	else
 		m_subsetIsFracture[subInd] = isFracture;
@@ -150,7 +150,7 @@ mark_as_fracture(int subInd, bool isFracture)
 bool GlobalFracturedMediaRefiner::
 is_fracture(int subInd)
 {
-	if((subInd < 0) || (subInd >= (int)m_subsetIsFracture.size()))
+	if((subInd < 0) || (subInd >= static_cast<int>(m_subsetIsFracture.size())))
 		return false;
 	return m_subsetIsFracture[subInd];
 }
@@ -176,8 +176,7 @@ num_marked_volumes_local(std::vector<int>& numMarkedVolsOut)
 
 template <typename TElem>
 void GlobalFracturedMediaRefiner::
-num_marked_elems(std::vector<int>& numMarkedElemsOut)
-{
+num_marked_elems(std::vector<int>& numMarkedElemsOut) const {
 	numMarkedElemsOut.clear();
 	if(!m_pMG)
 		return;
@@ -294,9 +293,9 @@ perform_refinement()
 	vector<Vertex*> vVrts;
 	vector<Vertex*> vEdgeVrts;
 	vector<Vertex*> vFaceVrts;
-	vector<Edge*>	vEdges;
-	vector<Face*>		vFaces;
-	vector<Volume*>		vVols;
+	vector<Edge*> vEdges;
+	vector<Face*> vFaces;
+	vector<Volume*> vVols;
 	
 //	some repeatedly used objects
 	EdgeDescriptor ed;
@@ -830,7 +829,7 @@ assign_elem_and_side_marks()
 	communicate_marks(fixedMarker);
 
 //	now adjust marks at cap elements
-	for(typename std::vector<TElem*>::iterator iter = caps.begin();
+	for(auto iter = caps.begin();
 		iter != caps.end(); ++iter)
 	{
 		TElem* e = *iter;

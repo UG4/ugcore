@@ -121,8 +121,7 @@ num_marked_volumes_local(std::vector<int>& numMarkedVolsOut)
 
 template <typename TElem>
 void GlobalMultiGridRefiner::
-num_marked_elems(std::vector<int>& numMarkedElemsOut)
-{
+num_marked_elems(std::vector<int>& numMarkedElemsOut) const {
 	numMarkedElemsOut.clear();
 	if(!m_pMG)
 		return;

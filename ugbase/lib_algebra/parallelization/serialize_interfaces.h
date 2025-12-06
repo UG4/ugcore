@@ -151,7 +151,7 @@ void MergeInterfaces(TLayout &layout, const std::vector<int> pidSources, int pid
 template<typename TLayout>
 void MergeInterfaces(TLayout &layout, const std::map<int, int> merge)
 {
-	for(std::map<int, int>::const_iterator it = merge.begin(); it != merge.end(); ++it)
+	for(auto it = merge.begin(); it != merge.end(); ++it)
 	{
 		AppendInterface(layout, it->first, it->second);
 		RemoveInterface(layout, it->first);

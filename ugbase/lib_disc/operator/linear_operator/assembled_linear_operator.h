@@ -76,7 +76,7 @@ class AssembledLinearOperator :
 		AssembledLinearOperator() :	m_spAss(nullptr) {};
 
 	///	Constructor
-		AssembledLinearOperator(SmartPtr<IAssemble<TAlgebra> > ass) : m_spAss(ass) {};
+		explicit AssembledLinearOperator(SmartPtr<IAssemble<TAlgebra> > ass) : m_spAss(ass) {};
 
 	///	Constructor
 		AssembledLinearOperator(SmartPtr<IAssemble<TAlgebra> > ass, const GridLevel& gl)
@@ -92,7 +92,7 @@ class AssembledLinearOperator :
 		void set_level(const GridLevel& gl) {m_gridLevel = gl;}
 
 	///	returns the level
-		const GridLevel& level() const {return m_gridLevel;}
+		[[nodiscard]] const GridLevel& level() const {return m_gridLevel;}
 
 	///	initializes the operator that may depend on the current solution
 		void init(const vector_type& u) override;

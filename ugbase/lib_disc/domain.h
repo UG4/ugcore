@@ -86,7 +86,7 @@ class DomainInfo
 				for(size_t i = 0; i < m_numElems.size(); ++i){
 					total += m_numElems[i];
 				}
-				return (size_t)total;
+				return static_cast<size_t>(total);
 			}
 
 		inline void set_info(GridBaseObjectId elemType,

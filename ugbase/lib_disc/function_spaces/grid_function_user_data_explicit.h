@@ -85,7 +85,7 @@ protected:
 
 public:
 	/// common constructor
-	StdExplicitGridFunctionData
+	explicit StdExplicitGridFunctionData
 	(
 		SmartPtr<TGridFunction> spGridFct ///< grid function
 	)
@@ -93,14 +93,14 @@ public:
 	{}
 
 	///	returns if data is constant
-	virtual bool constant() const {return false;}
+	[[nodiscard]] virtual bool constant() const {return false;}
 
 	///	returns if grid function is needed for evaluation
 	/** (true, since local coordinates may not be sufficient)*/
-	virtual bool requires_grid_fct() const {return true;}
+	[[nodiscard]] virtual bool requires_grid_fct() const {return true;}
 
 	///	returns if provided data is continuous over geometric object boundaries
-	virtual bool continuous() const {return getImpl().continuous(); }
+	[[nodiscard]] virtual bool continuous() const {return getImpl().continuous(); }
 
 	template <int refDim>
 	void eval(LocalVector* u, GridObject* elem,
@@ -290,7 +290,7 @@ public:
 
 	}
 
-	bool continuous() const {return LocalFiniteElementProvider::continuous(m_lfeID);}
+	[[nodiscard]] bool continuous() const {return LocalFiniteElementProvider::continuous(m_lfeID);}
 
 };
 
@@ -409,7 +409,7 @@ public:
 		}
 	}
 
-	bool continuous() const
+	[[nodiscard]] bool continuous() const
 	{
 		for(int i = 0; i < dim; ++i)
 			if(!LocalFiniteElementProvider::continuous(m_vlfeID[i]))
@@ -544,16 +544,16 @@ public:
 				<<m_lfeID<<", refDim="<<refDim);
 	}
 
-	bool continuous() const { return false; }
+	[[nodiscard]] bool continuous() const { return false; }
 
 	void add_subset_coeff(const std::string &key, double val)
 	{
 		m_diffCoeffMap.insert(std::pair(key, val));
 	}
 
-	double get_subset_coeff(const std::string &key) const
+	[[nodiscard]] double get_subset_coeff(const std::string &key) const
 	{
-		std::map<std::string, double>::const_iterator it = m_diffCoeffMap.find(key);
+		auto it = m_diffCoeffMap.find(key);
 		double val = (it != m_diffCoeffMap.end()) ? it->second : 1.0;
 		return val;
 	}

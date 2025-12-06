@@ -61,8 +61,8 @@ class ISubsetHandler;
 class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 {
 	public:
-		GlobalFracturedMediaRefiner(SPRefinementProjector projector = nullptr);
-		GlobalFracturedMediaRefiner(MultiGrid& mg, SPRefinementProjector projector = nullptr);
+		explicit GlobalFracturedMediaRefiner(SPRefinementProjector projector = nullptr);
+		explicit GlobalFracturedMediaRefiner(MultiGrid& mg, SPRefinementProjector projector = nullptr);
 							   
 		~GlobalFracturedMediaRefiner() override;
 
@@ -95,7 +95,7 @@ class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 
 		Grid* get_associated_grid() override {return m_pMG;}
 		Grid* grid() override {return m_pMG;}
-		virtual MultiGrid* multi_grid()			{return m_pMG;}
+		virtual MultiGrid* multi_grid() {return m_pMG;}
 
 		bool adaptivity_supported() const override {return false;}
 		bool coarsening_supported() const override {return false;}
@@ -111,7 +111,7 @@ class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 		void num_marked_volumes_local(std::vector<int>& numMarkedVolsOut) override;
 
 		template <typename TElem>
-		void num_marked_elems(std::vector<int>& numMarkedElemsOut);
+		void num_marked_elems(std::vector<int>& numMarkedElemsOut) const;
 		
 	////////////////////////////////
 	///	performs refinement on the marked elements.
@@ -128,7 +128,7 @@ class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 	/**	If you communicate marks (using an or operation) in this method, then the
 	 * GlobalFracturedMediaRefiner should run fine in a parallel environment, too.
 	 * The default implementation does nothing (that's fine for a serial environment).*/
-		virtual void communicate_marks(BoolMarker& marker)		{}
+		virtual void communicate_marks(BoolMarker& marker) {}
 
 	///	performs the actual marking
 	/**	This class is specialized for Face and Volume.*/
@@ -144,19 +144,19 @@ class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 		size_t num_marked(const std::vector<TElem*>& elems) const;
 
 	///	a callback that allows to deny refinement of special vertices
-		virtual bool refinement_is_allowed(Vertex* elem)	{return true;}
+		virtual bool refinement_is_allowed(Vertex* elem) {return true;}
 	///	a callback that allows to deny refinement of special edges
-		virtual bool refinement_is_allowed(Edge* elem)		{return true;}
+		virtual bool refinement_is_allowed(Edge* elem) {return true;}
 	///	a callback that allows to deny refinement of special faces
-		virtual bool refinement_is_allowed(Face* elem)			{return true;}
+		virtual bool refinement_is_allowed(Face* elem) {return true;}
 	///	a callback that allows to deny refinement of special volumes
-		virtual bool refinement_is_allowed(Volume* elem)		{return true;}
+		virtual bool refinement_is_allowed(Volume* elem) {return true;}
 		
 	///	this method helps derived classes to perform operations directly before actual element refinement is performed.
 	/**	Called from the refine() method in each refinement-iteration after
 	 *	collect_objects_for_refine().
 	 *	Default implementation is empty.*/
-		virtual void refinement_step_begins()	{};
+		virtual void refinement_step_begins() {};
 
 	///	this method helps derived classes to perform operations directly after actual element refinement took place.
 	/**	Called from the refine() method in each refinement-iteration after
@@ -164,7 +164,7 @@ class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 	 *	The refine process will either terminate after this method or will
 	 *	start a new iteration, if new elements had been marked during refine.
 	 *	Default implementation is empty.*/
-		virtual void refinement_step_ends()		{};
+		virtual void refinement_step_ends() {};
 		
 	///	returns true if the specified element is a fracture element.
 	/**	Note that this method does not check whether the underlying subset-handler
@@ -173,11 +173,11 @@ class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 		bool is_fracture_element(TElem* e)	{return is_fracture(m_pSH->get_subset_index(e));}
 
 	protected:
-		BoolMarker			m_marker;
-		std::vector<bool>	m_subsetIsFracture;
+		BoolMarker m_marker;
+		std::vector<bool> m_subsetIsFracture;
 		//TAPosition			m_aPos;
-		MultiGrid*			m_pMG;
-		ISubsetHandler*		m_pSH;
+		MultiGrid* m_pMG;
+		ISubsetHandler* m_pSH;
 };
 
 /// @}

@@ -286,9 +286,9 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		
 	//	store convergence history
 		const int numSteps = m_spLinearSolver->step();
-		if(loopCnt >= (int)m_vTotalLinSolverSteps.size()) m_vTotalLinSolverSteps.resize(loopCnt+1);
-		if(loopCnt >= (int)m_vLinSolverCalls.size()) m_vLinSolverCalls.resize(loopCnt+1, 0);
-		if(loopCnt >= (int)m_vLinSolverRates.size()) m_vLinSolverRates.resize(loopCnt+1, 0);
+		if(loopCnt >= static_cast<int>(m_vTotalLinSolverSteps.size())) m_vTotalLinSolverSteps.resize(loopCnt+1);
+		if(loopCnt >= static_cast<int>(m_vLinSolverCalls.size())) m_vLinSolverCalls.resize(loopCnt+1, 0);
+		if(loopCnt >= static_cast<int>(m_vLinSolverRates.size())) m_vLinSolverRates.resize(loopCnt+1, 0);
 		m_vTotalLinSolverSteps[loopCnt] += numSteps;
 		m_vLinSolverCalls[loopCnt] += 1;
 		m_vLinSolverRates[loopCnt] += m_spLinearSolver->convergence_check()->avg_rate();
@@ -358,7 +358,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 
 	// 	check convergence
 		m_spConvCheck->update(*spD);
-		if(loopCnt-1 >= (int)m_vNonLinSolverRates.size()) m_vNonLinSolverRates.resize(loopCnt, 0);
+		if(loopCnt-1 >= static_cast<int>(m_vNonLinSolverRates.size())) m_vNonLinSolverRates.resize(loopCnt, 0);
 		m_vNonLinSolverRates[loopCnt-1] += m_spConvCheck->rate();
 
 	//	write defect for debug
@@ -391,19 +391,19 @@ void NewtonSolver<TAlgebra>::print_average_convergence() const
 		allCalls += m_vLinSolverCalls[call];
 		UG_LOG(std::setw(15) << m_vTotalLinSolverSteps[call] << " | ");
 		allLinSteps += m_vTotalLinSolverSteps[call];
-		UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << m_vTotalLinSolverSteps[call] / (double)m_vLinSolverCalls[call] << " | ");
-		allNonLinRatesProduct *= pow((number)m_vNonLinSolverRates[call]/(double)m_vLinSolverCalls[call],(double)m_vLinSolverCalls[call]);
-		UG_LOG(std::setw(16) << std::setprecision(6) << std::scientific << m_vNonLinSolverRates[call] / (double)m_vLinSolverCalls[call] << " | ");
-		allLinRatesProduct *= (number)std::pow((number)m_vLinSolverRates[call]/(double)m_vLinSolverCalls[call],(number)m_vTotalLinSolverSteps[call]);
-		UG_LOG(std::setw(13) << std::setprecision(6) << std::scientific << m_vLinSolverRates[call] / (double)m_vLinSolverCalls[call]);
+		UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << m_vTotalLinSolverSteps[call] / static_cast<double>(m_vLinSolverCalls[call]) << " | ");
+		allNonLinRatesProduct *= pow(static_cast<number>(m_vNonLinSolverRates[call])/static_cast<double>(m_vLinSolverCalls[call]),static_cast<double>(m_vLinSolverCalls[call]));
+		UG_LOG(std::setw(16) << std::setprecision(6) << std::scientific << m_vNonLinSolverRates[call] / static_cast<double>(m_vLinSolverCalls[call]) << " | ");
+		allLinRatesProduct *= (number)std::pow(static_cast<number>(m_vLinSolverRates[call])/static_cast<double>(m_vLinSolverCalls[call]),static_cast<number>(m_vTotalLinSolverSteps[call]));
+		UG_LOG(std::setw(13) << std::setprecision(6) << std::scientific << m_vLinSolverRates[call] / static_cast<double>(m_vLinSolverCalls[call]));
 		UG_LOG("\n");
 	}
 	UG_LOG( "        all | ");
 	UG_LOG(std::setw(9) << allCalls << " | ");
 	UG_LOG(std::setw(15) << allLinSteps << " | ");
-	UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << allLinSteps / (number)allCalls << " | ");
-	UG_LOG(std::setw(16) << std::setprecision(6) << std::scientific << std::pow((number)allNonLinRatesProduct,(number)1.0/(number)allCalls) << " | ");
-	UG_LOG(std::setw(13) << std::setprecision(6) << std::scientific << std::pow((number)allLinRatesProduct,(number)1.0/(number)allLinSteps));
+	UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << allLinSteps / static_cast<number>(allCalls) << " | ");
+	UG_LOG(std::setw(16) << std::setprecision(6) << std::scientific << std::pow((number)allNonLinRatesProduct,(number)1.0/static_cast<number>(allCalls)) << " | ");
+	UG_LOG(std::setw(13) << std::setprecision(6) << std::scientific << std::pow((number)allLinRatesProduct,(number)1.0/static_cast<number>(allLinSteps)));
 	UG_LOG("\n");
 }
 
@@ -428,7 +428,7 @@ int NewtonSolver<TAlgebra>::num_linsolver_steps(size_t call) const
 template <typename TAlgebra>
 double NewtonSolver<TAlgebra>::average_linear_steps(size_t call) const
 {
-	return m_vTotalLinSolverSteps[call] / ((double)m_vLinSolverCalls[call]);
+	return m_vTotalLinSolverSteps[call] / static_cast<double>(m_vLinSolverCalls[call]);
 }
 
 template <typename TAlgebra>
@@ -452,7 +452,7 @@ int NewtonSolver<TAlgebra>::total_linsolver_steps() const
 template <typename TAlgebra>
 double NewtonSolver<TAlgebra>::total_average_linear_steps() const
 {
-	return total_linsolver_steps()/((double)total_linsolver_calls());
+	return total_linsolver_steps()/static_cast<double>(total_linsolver_calls());
 }
 
 

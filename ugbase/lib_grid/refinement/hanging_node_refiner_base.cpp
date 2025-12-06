@@ -203,9 +203,9 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 	using SelFaceIter = typename TSelector::template traits<Face>::iterator;
 	using SelVolIter = typename TSelector::template traits<Volume>::iterator;
 
-	Grid::edge_traits::secure_container		edges;
-	Grid::face_traits::secure_container		faces;
-	Grid::volume_traits::secure_container	vols;
+	Grid::edge_traits::secure_container edges;
+	Grid::face_traits::secure_container faces;
+	Grid::volume_traits::secure_container vols;
 
 	EdgeDescriptor edesc;
 
@@ -473,32 +473,32 @@ template <typename TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Vertex* v) const
 {
-	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
-							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
+	return static_cast<RefinementMark>(m_selMarkedElements.get_selection_status(v)
+	                                   & (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
 template <typename TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Edge* e) const
 {
-	return (RefinementMark)(m_selMarkedElements.get_selection_status(e)
-							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
+	return static_cast<RefinementMark>(m_selMarkedElements.get_selection_status(e)
+	                                   & (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
 template <typename TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Face* f) const
 {
-	return (RefinementMark)(m_selMarkedElements.get_selection_status(f)
-							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
+	return static_cast<RefinementMark>(m_selMarkedElements.get_selection_status(f)
+	                                   & (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
 template <typename TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Volume* v) const
 {
-	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
-							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
+	return static_cast<RefinementMark>(m_selMarkedElements.get_selection_status(v)
+	                                   & (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
 
@@ -1392,9 +1392,8 @@ process_constrained_vertex(ConstrainedVertex* cdv)
 	if(marked_to_normal(cdv)){
 		Edge* parentEdge = nullptr;
 		Face* parentFace = nullptr;
-		GridObject* constrObj = cdv->get_constraining_object();
 
-		if(constrObj){
+		if(GridObject* constrObj = cdv->get_constraining_object()){
 			switch(cdv->get_parent_base_object_id()){
 				case EDGE:{
 						auto* cge = dynamic_cast<ConstrainingEdge*>(constrObj);
@@ -1797,7 +1796,7 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 	//	register the new faces
 		for(size_t i = 0; i < vFaces.size(); ++i)
 		{
-			ConstrainedFace* cdf = dynamic_cast<ConstrainedFace*>(vFaces[i]);
+			auto* cdf = dynamic_cast<ConstrainedFace*>(vFaces[i]);
 			assert(cdf && "constrained face refine did produce faces which are not constrained.");
 			if(cdf)
 			{

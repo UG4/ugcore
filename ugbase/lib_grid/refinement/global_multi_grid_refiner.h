@@ -47,9 +47,9 @@ namespace ug
 class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 {
 	public:
-		GlobalMultiGridRefiner(SPRefinementProjector projector = nullptr);
-		GlobalMultiGridRefiner(MultiGrid& mg,
-							   SPRefinementProjector projector = nullptr);
+		explicit GlobalMultiGridRefiner(SPRefinementProjector projector = nullptr);
+
+		explicit GlobalMultiGridRefiner(MultiGrid& mg, SPRefinementProjector projector = nullptr);
 							   
 		~GlobalMultiGridRefiner() override;
 
@@ -76,7 +76,7 @@ class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 		void num_marked_volumes_local(std::vector<int>& numMarkedVolsOut) override;
 
 		template <typename TElem>
-		void num_marked_elems(std::vector<int>& numMarkedElemsOut);
+		void num_marked_elems(std::vector<int>& numMarkedElemsOut)  const;
 
 	////////////////////////////////
 	///	performs refinement on the marked elements.

@@ -72,13 +72,13 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 				
 		void assign_grid(MultiGrid& mg);
 		inline MultiGrid* multi_grid()	{return m_pMG;}
-		inline const MultiGrid* multi_grid() const {return m_pMG;}
+		[[nodiscard]] inline const MultiGrid* multi_grid() const {return m_pMG;}
 
 	///	creates the required levels, if they do not yet exist
 		inline void level_required(int level);
 
 	///	returns the number of levels
-		inline uint num_levels() const	{return static_cast<uint>(m_levels.size());}
+		[[nodiscard]] inline uint num_levels() const {return static_cast<uint>(m_levels.size());}
 		
 	///	returns the level in which an element is located
 		template <typename TGeomObj>
@@ -132,15 +132,15 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		
 	///	returns the total number of elements
 		template <typename TElem>
-		uint num() const;
+		[[nodiscard]] uint num() const;
 		
 	///	returns the number of elements in the given subset
 		template <typename TElem>
-		uint num(int subsetIndex) const;
+		[[nodiscard]] uint num(int subsetIndex) const;
 
 	///	returns the number of elements in the given subset on the given level
 		template <typename TElem>
-		uint num(int subsetIndex, int level) const;
+		[[nodiscard]] uint num(int subsetIndex, int level) const;
 
 	///	removes all elements of type TElem from the specified subset.
 		template <typename TElem>
@@ -153,20 +153,20 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 	///	returns a GridObjectCollection
 	/**	the returned GridObjectCollection hold the elements of the
 	 *	specified subset on the given level.*/
-		GridObjectCollection
+		[[nodiscard]] GridObjectCollection
 		get_grid_objects(int subsetIndex, int level) const;
 		
 	///	returns a GridObjectCollection with multiple levels
 	/**	the returned GridObjectCollection hold the
 	 *	elements of the specified subset.*/
-		GridObjectCollection
+		[[nodiscard]] GridObjectCollection
 		get_grid_objects_in_subset(int subsetIndex) const override;
 
 	///	returns a GridObjectCollection with multiple levels - each representing a subset.
 	/**	the returned GridObjectCollection hold the
 	 *	elements of the specified level, each level of the collection
 	 *	represents a subset.*/
-		GridObjectCollection
+		[[nodiscard]] GridObjectCollection
 		get_grid_objects_in_level(int level) const;
 		
 	///	collects all vertices that are in the given subset.
@@ -202,16 +202,16 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		//virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const;
 		
 	///	returns true if the subset contains vertices
-		bool contains_vertices(int subsetIndex) const override {return num<Vertex>(subsetIndex) > 0;}
+		[[nodiscard]] bool contains_vertices(int subsetIndex) const override {return num<Vertex>(subsetIndex) > 0;}
 
 	///	returns true if the subset contains edges
-		bool contains_edges(int subsetIndex) const override {return num<Edge>(subsetIndex) > 0;}
+		[[nodiscard]] bool contains_edges(int subsetIndex) const override {return num<Edge>(subsetIndex) > 0;}
 		
 	///	returns true if the subset contains faces
-		bool contains_faces(int subsetIndex) const override {return num<Face>(subsetIndex) > 0;}
+		[[nodiscard]] bool contains_faces(int subsetIndex) const override {return num<Face>(subsetIndex) > 0;}
 		
 	///	returns true if the subset contains volumes
-		bool contains_volumes(int subsetIndex) const override {return num<Volume>(subsetIndex) > 0;}
+		[[nodiscard]] bool contains_volumes(int subsetIndex) const override {return num<Volume>(subsetIndex) > 0;}
 
 
 	///	perform cleanup
@@ -219,7 +219,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 
 	protected:
 	///	returns the number of subsets in the local list
-		inline uint num_subsets_in_list() const	{return m_numSubsets;}
+		[[nodiscard]] inline uint num_subsets_in_list() const {return m_numSubsets;}
 		
 	///	detaches all attached data.
 		void detach_data();
@@ -304,10 +304,10 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 
 	///	returns the subset with index si on the given level
 		inline Subset* subset(int si, int level)	{return m_levels[level][si];}
-		inline const Subset* subset(int si, int level)	const {return m_levels[level][si];}
+		[[nodiscard]] inline const Subset* subset(int si, int level)	const {return m_levels[level][si];}
 
 	///	creates a new subset. Caller is responsible for deletion
-		Subset* new_subset() const;
+		[[nodiscard]] Subset* new_subset() const;
 
 		void cleanup();
 

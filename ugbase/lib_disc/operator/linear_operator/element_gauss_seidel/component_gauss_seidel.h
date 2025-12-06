@@ -76,7 +76,7 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 
 	public:
 	///	default constructor
-		ComponentGaussSeidel(const std::vector<std::string>& vFullRowCmp)
+		explicit ComponentGaussSeidel(const std::vector<std::string>& vFullRowCmp)
 			: m_bInit(false), m_relax(1), m_alpha(1.0), m_beta(1.0), m_bWeighted(false), m_vFullRowCmp(vFullRowCmp) {}
 
 	///	constructor setting relaxation and type
@@ -584,7 +584,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 
 	//	get relax param
 		number damp = m_relax;
-		if(d < (int)m_vDamp.size()) damp *= m_vDamp[d];
+		if(d < static_cast<int>(m_vDamp.size())) damp *= m_vDamp[d];
 
 	//	apply
 		if (m_weight.invalid()) {

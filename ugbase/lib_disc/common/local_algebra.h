@@ -104,24 +104,24 @@ class LocalIndices
 		void push_back_multi_index(size_t fct, size_t index, size_t comp)
 		{
 			check_fct(fct);
-			m_vvIndex[fct].push_back(DoFIndex(index,comp));
+			m_vvIndex[fct].emplace_back(index,comp);
 		}
 
 	///	clears all fct
 		void clear() {m_vvIndex.clear();}
 
 	///	number of functions
-		size_t num_fct() const {return m_vvIndex.size();}
+		[[nodiscard]] size_t num_fct() const {return m_vvIndex.size();}
 
 	/// number of dofs for accessible function
-		size_t num_dof(size_t fct) const
+		[[nodiscard]] size_t num_dof(size_t fct) const
 		{
 			check_fct(fct);
 			return m_vvIndex[fct].size();
 		}
 
 	/// number of dofs of all accessible (sum)
-		size_t num_dof() const
+		[[nodiscard]] size_t num_dof() const
 		{
 			size_t num = 0;
 			for(size_t fct = 0; fct < num_fct(); ++fct) num += num_dof(fct);
@@ -129,14 +129,14 @@ class LocalIndices
 		}
 
 	/// global algebra multi-index for (fct, dof)
-		const DoFIndex& multi_index(size_t fct, size_t dof) const
+		[[nodiscard]] const DoFIndex& multi_index(size_t fct, size_t dof) const
 		{
 			check_dof(fct, dof);
 			return m_vvIndex[fct][dof];
 		}
 
 	/// global algebra index for (fct, dof)
-		index_type index(size_t fct, size_t dof) const
+		[[nodiscard]] index_type index(size_t fct, size_t dof) const
 		{
 			check_dof(fct, dof);
 			return m_vvIndex[fct][dof][0];
@@ -150,7 +150,7 @@ class LocalIndices
 		}
 
 	/// algebra comp for (fct, dof)
-		comp_type comp(size_t fct, size_t dof) const
+		[[nodiscard]] comp_type comp(size_t fct, size_t dof) const
 		{
 			check_dof(fct, dof);
 			return m_vvIndex[fct][dof][1];
@@ -331,14 +331,14 @@ class LocalVector
 		}
 
 	///	returns the number of currently accessible functions
-		size_t num_fct() const
+		[[nodiscard]] size_t num_fct() const
 		{
 			if(m_pFuncMap == nullptr) return m_vvValue.size();
 			return m_pFuncMap->num_fct();
 		}
 
 	///	returns the local finite element id of a function
-		const LFEID& local_finite_element_id(size_t fct) const
+		[[nodiscard]] const LFEID& local_finite_element_id(size_t fct) const
 		{
 			UG_ASSERT(m_pIndex != nullptr, "No indices present");
 			check_fct(fct);
@@ -347,7 +347,7 @@ class LocalVector
 		}
 
 	///	returns the number of dofs for the currently accessible function
-		size_t num_dof(size_t fct) const
+		[[nodiscard]] size_t num_dof(size_t fct) const
 		{
 			check_fct(fct);
 			if(m_pFuncMap == nullptr) return m_vvValue[fct].size();

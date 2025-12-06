@@ -148,7 +148,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 
 	M = A;
 	//M.print();
-	M.set_layouts(SmartPtr<AlgebraLayouts>(new AlgebraLayouts));
+	M.set_layouts(SmartPtr(new AlgebraLayouts));
 	using BufferMap = std::map<int, BinaryBuffer>;
 	BufferMap streams;
 

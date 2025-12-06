@@ -62,10 +62,10 @@ class AdaptiveRegularRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 		using HangingNodeRefiner_MultiGrid::mark;
 
 	public:
-		AdaptiveRegularRefiner_MultiGrid(SPRefinementProjector projector = nullptr);
-		AdaptiveRegularRefiner_MultiGrid(MultiGrid& mg, SPRefinementProjector projector = nullptr);
+		explicit AdaptiveRegularRefiner_MultiGrid(SPRefinementProjector projector = nullptr);
+		explicit AdaptiveRegularRefiner_MultiGrid(MultiGrid& mg, SPRefinementProjector projector = nullptr);
 
-		virtual ~AdaptiveRegularRefiner_MultiGrid() = default;
+		~AdaptiveRegularRefiner_MultiGrid() override = default;
 
 		void assign_grid(MultiGrid& mg) override;
 
@@ -108,7 +108,7 @@ class AdaptiveRegularRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 		bool perform_coarsening() override;
 
 	protected:
-		Selector	m_closureElems;
+		Selector m_closureElems;
 };
 
 /// @}	// end of add_to_group command

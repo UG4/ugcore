@@ -237,7 +237,7 @@ update_domain_info()
 		}
 
 	//	communicate the element type of highest dimension present in the global grid.
-		elemType = (GridBaseObjectId) commWorld.allreduce((int)locElemType, PCL_RO_MAX);
+		elemType = static_cast<GridBaseObjectId>(commWorld.allreduce(static_cast<int>(locElemType), PCL_RO_MAX));
 	#else
 		elemType = locElemType;
 	#endif

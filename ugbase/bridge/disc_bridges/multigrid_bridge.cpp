@@ -170,9 +170,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_filename_prefix", &T::set_filename_prefix, "", "filename")
 			.add_method("set_active_stages", &T::set_active_stages, "", "activeStages")
 			.add_method("save_stats_to_file",
-			    static_cast<void (T::*)()>(&T::save_stats_to_file), "", "")
+			    static_cast<void (T::*)() const>(&T::save_stats_to_file), "", "")
 			.add_method("save_stats_to_file",
-			    static_cast<void (T::*)(const char*)>(&T::save_stats_to_file),
+			    static_cast<void (T::*)(const char*) const>(&T::save_stats_to_file),
 			    "", "filename")
 			.add_method("print", &T::print, "", "")
 			.add_method("clear", &T::clear, "", "")

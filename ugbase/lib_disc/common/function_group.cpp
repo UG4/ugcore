@@ -86,8 +86,7 @@ void FunctionGroup::add(size_t fct)
 		               "underlying function pattern (with size=" <<
 		               	  m_spFunctionPattern->num_fct() << ".");
 
-	std::vector<size_t>::iterator iter;
-	iter = find(m_vFunction.begin(), m_vFunction.end(), fct);
+	auto iter = find(m_vFunction.begin(), m_vFunction.end(), fct);
 	if(iter != m_vFunction.end()) return;
 
 	m_vFunction.push_back(fct);
@@ -158,8 +157,7 @@ void FunctionGroup::sort()
 
 void FunctionGroup::remove(size_t fct)
 {
-	std::vector<size_t>::iterator iter;
-	iter = find(m_vFunction.begin(), m_vFunction.end(), fct);
+	auto iter = find(m_vFunction.begin(), m_vFunction.end(), fct);
 	if(iter == m_vFunction.end())
 		UG_THROW("Function "<<fct<<" not contained in FunctionGroup.");
 
@@ -278,8 +276,7 @@ int FunctionGroup::dim() const
 
 bool FunctionGroup::contains(size_t fct) const
 {
-	std::vector<size_t>::const_iterator iter;
-	iter = find(m_vFunction.begin(), m_vFunction.end(), fct);
+	auto iter = find(m_vFunction.begin(), m_vFunction.end(), fct);
 	if(iter == m_vFunction.end()) return false;
 	return true;
 }

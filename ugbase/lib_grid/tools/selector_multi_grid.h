@@ -127,8 +127,8 @@ class UG_API MGSelector : public ISelector
 				MGSelectionIterator() : m_sel(nullptr), m_lvl(0)	{}
 
 			///	copy constructor that allows creation of const-iterators from non-const iterators
-				MGSelectionIterator(const MGSelectionIterator<TElem, MGSelector,
-									typename geometry_traits<TElem>::iterator>& iter)
+				/*explicit*/ MGSelectionIterator(const MGSelectionIterator<TElem, MGSelector,
+							        		typename geometry_traits<TElem>::iterator>& iter)
 				{
 					m_sel = iter.m_sel;
 					m_lvl = iter.m_lvl;
@@ -198,14 +198,14 @@ class UG_API MGSelector : public ISelector
 		};
 
 
-		MGSelector(byte_t supportedElements = SE_ALL);
-		MGSelector(MultiGrid& grid, byte_t supportedElements = SE_ALL);
+		explicit MGSelector(byte_t supportedElements = SE_ALL);
+		explicit MGSelector(MultiGrid& grid, byte_t supportedElements = SE_ALL);
 
 		~MGSelector() override;
 
 		void assign_grid(MultiGrid& grid);
 		void assign_grid(MultiGrid* grid);
-		inline MultiGrid* multi_grid()	{return m_pMultiGrid;}
+		[[nodiscard]] inline MultiGrid* multi_grid() const {return m_pMultiGrid;}
 
 	///	set the type of elements that shall be handled by the Selector.
 	/**	Pass an or-combination of constants enumerated in SelectorElements.
@@ -226,8 +226,8 @@ class UG_API MGSelector : public ISelector
 	//	is required to avoid virtual method calls during construction.
 		void disable_element_support(byte_t shElements);
 
-		inline size_t num_levels() const	{return m_levels.size();}
-		inline size_t top_level() const
+		[[nodiscard]] inline size_t num_levels() const	{return m_levels.size();}
+		[[nodiscard]] inline size_t top_level() const
 		{
 			size_t l = m_levels.size();
 			if(l == 0)
@@ -247,25 +247,25 @@ class UG_API MGSelector : public ISelector
 		inline void clear(int level);
 
 		template <typename TElem>
-		inline size_t num(int level) const;
+		[[nodiscard]] inline size_t num(int level) const;
 		
-		inline size_t num(int level) const;
+		[[nodiscard]] inline size_t num(int level) const;
 
 		template <typename TElem>
-		inline size_t num() const;
+		[[nodiscard]] inline size_t num() const;
 		
-		inline size_t num() const;
+		[[nodiscard]] inline size_t num() const;
 
 	//	empty
-		inline bool empty(int level) const;
+		[[nodiscard]] inline bool empty(int level) const;
 
 		template <typename TElem>
-		inline bool empty(int level) const;
+		[[nodiscard]] inline bool empty(int level) const;
 
-		inline bool empty() const;
+		[[nodiscard]] inline bool empty() const;
 
 		template <typename TElem>
-		inline bool empty() const;
+		[[nodiscard]] inline bool empty() const;
 
 	//	begin
 		template <typename TElem>
@@ -273,7 +273,7 @@ class UG_API MGSelector : public ISelector
 		begin();
 
 		template <typename TElem>
-		inline typename traits<TElem>::const_iterator
+		[[nodiscard]] inline typename traits<TElem>::const_iterator
 		begin() const;
 
 		template <typename TElem>
@@ -281,7 +281,7 @@ class UG_API MGSelector : public ISelector
 		begin(int level);
 
 		template <typename TElem>
-		inline typename traits<TElem>::const_level_iterator
+		[[nodiscard]] inline typename traits<TElem>::const_level_iterator
 		begin(int level) const;
 		
 	//	end
@@ -298,7 +298,7 @@ class UG_API MGSelector : public ISelector
 		end(int level);
 		
 		template <typename TElem>
-		inline typename traits<TElem>::const_level_iterator
+		[[nodiscard]] inline typename traits<TElem>::const_level_iterator
 		end(int level) const;
 
 	//	convenience begin and end
@@ -322,7 +322,7 @@ class UG_API MGSelector : public ISelector
 		template <typename TElem> TElem* back(int level);
 		
 	//	geometric-object-collection
-		GridObjectCollection get_grid_objects() const override;
+		[[nodiscard]] GridObjectCollection get_grid_objects() const override;
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver
@@ -333,16 +333,16 @@ class UG_API MGSelector : public ISelector
 		void grid_to_be_destroyed(Grid* grid) override;
 		
 	///	returns true if the selector contains vertices
-		bool contains_vertices() const override {return num<Vertex>() > 0;}
+		[[nodiscard]] bool contains_vertices() const override {return num<Vertex>() > 0;}
 
 	///	returns true if the selector contains edges
-		bool contains_edges() const override {return num<Edge>() > 0;}
+		[[nodiscard]] bool contains_edges() const override {return num<Edge>() > 0;}
 
 	///	returns true if the selector contains faces
-		bool contains_faces() const override {return num<Face>() > 0;}
+		[[nodiscard]] bool contains_faces() const override {return num<Face>() > 0;}
 
 	///	returns true if the selector contains volumes
-		bool contains_volumes() const override {return num<Volume>() > 0;}
+		[[nodiscard]] bool contains_volumes() const override {return num<Volume>() > 0;}
 
 	protected:
 		void clear_lists();
@@ -389,7 +389,7 @@ class UG_API MGSelector : public ISelector
 		section_container(int level) const;
 		
 		template <typename TElem>
-		inline int get_section_index() const;
+		[[nodiscard]] inline int get_section_index() const;
 
 		inline void level_required(int newSize);
 		void add_level();

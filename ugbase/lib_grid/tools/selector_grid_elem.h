@@ -114,7 +114,7 @@ class UG_API TElemSelector : public Selector
 			}
 		}
 
-		TElemSelector(Grid& grid) : Selector(grid, SE_NONE)
+		explicit TElemSelector(Grid& grid) : Selector(grid, SE_NONE)
 		{
 			int typId = geometry_traits<TBaseElem>::BASE_OBJECT_ID;
 			switch(typId){

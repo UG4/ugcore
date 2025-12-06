@@ -392,11 +392,11 @@ dof_indices(TBaseElem* elem, const ReferenceObjectID roid,
 
 			if(vOrientOffset.empty()){
 				for(size_t j = 0; j < numDoFsOnSub; ++j)
-					ind.push_back(DoFIndex(firstIndex, comp + j));
+					ind.emplace_back(firstIndex, comp + j);
 			}
 			else{
 				for(size_t j = 0; j < numDoFsOnSub; ++j)
-					ind.push_back(DoFIndex(firstIndex, comp + vOrientOffset[j]));
+					ind.emplace_back(firstIndex, comp + vOrientOffset[j]);
 			}
 		}
 
@@ -433,7 +433,7 @@ size_t DoFDistribution::_inner_dof_indices(TBaseElem* elem, size_t fct,
 		const size_t index = obj_index(elem) + offset(roid,si,fct);
 
 		for(size_t j = 0; j < numDoFsOnSub; ++j)
-			ind.push_back(DoFIndex(index+j,0));
+			ind.emplace_back(index+j,0);
 	}
 	else
 	{
@@ -442,7 +442,7 @@ size_t DoFDistribution::_inner_dof_indices(TBaseElem* elem, size_t fct,
 		const size_t firstIndex = obj_index(elem);
 
 		for(size_t j = 0; j < numDoFsOnSub; ++j)
-			ind.push_back(DoFIndex(firstIndex, comp+j));
+			ind.emplace_back(firstIndex, comp+j);
 	}
 
 //	done
@@ -458,7 +458,7 @@ constrained_vertex_dof_indices(size_t fct,std::vector<DoFIndex>& ind,
 	for(size_t i = 0; i < vSubElem.size(); ++i)
 	{
 	//	only constraining objects are of interest
-		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
+		auto* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
 		if(constrainingObj == nullptr) continue;
 
 		//	get subset index
@@ -491,7 +491,7 @@ constrained_vertex_dof_indices(size_t fct,std::vector<DoFIndex>& ind,
 				const size_t index = obj_index(vrt) + offset(subRoid,si,fct);
 
 				for (size_t k=0;k<numDoFsOnSub;k++)
-					ind.push_back(DoFIndex(index + k,0));
+					ind.emplace_back(index + k,0);
 			}
 			else
 			{
@@ -501,7 +501,7 @@ constrained_vertex_dof_indices(size_t fct,std::vector<DoFIndex>& ind,
 
 			//	add dof to local indices
 				for(size_t k = 0; k < numDoFsOnSub; ++k)
-					ind.push_back(DoFIndex(index, comp + k));
+					ind.emplace_back(index, comp + k);
 			}
 		}
 	}
@@ -519,7 +519,7 @@ constrained_edge_dof_indices(TBaseElem* elem,size_t fct,std::vector<DoFIndex>& i
 	for(size_t i = 0; i < vSubElem.size(); ++i)
 	{
 	//	only constraining objects are of interest
-		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
+		auto* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
 		if(constrainingObj == nullptr) continue;
 
 		std::vector<size_t> sortedInd;
@@ -556,11 +556,11 @@ constrained_edge_dof_indices(TBaseElem* elem,size_t fct,std::vector<DoFIndex>& i
 
 				if(vOrientOffset.empty()){
 					for(size_t k = 0; k < numDoFsOnSub; ++k)
-						ind.push_back(DoFIndex(index + k,0));
+						ind.emplace_back(index + k,0);
 				}
 				else{
 					for(size_t k = 0; k < numDoFsOnSub; ++k)
-						ind.push_back(DoFIndex(index + vOrientOffset[k],0));
+						ind.emplace_back(index + vOrientOffset[k],0);
 				}
 			}
 			else
@@ -571,11 +571,11 @@ constrained_edge_dof_indices(TBaseElem* elem,size_t fct,std::vector<DoFIndex>& i
 
 				if(vOrientOffset.empty()){
 				for(size_t k = 0; k < numDoFsOnSub; ++k)
-					ind.push_back(DoFIndex(index, comp + k));
+					ind.emplace_back(index, comp + k);
 				}
 				else{
 					for(size_t k = 0; k < numDoFsOnSub; ++k)
-						ind.push_back(DoFIndex(index, comp + vOrientOffset[k]));
+						ind.emplace_back(index, comp + vOrientOffset[k]);
 				}
 			}
 		}
@@ -594,7 +594,7 @@ constrained_face_dof_indices(TBaseElem* elem,size_t fct,std::vector<DoFIndex>& i
 	for(size_t i = 0; i < vSubElem.size(); ++i)
 	{
 	//	only constraining objects are of interest
-		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
+		auto* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
 		if(constrainingObj == nullptr) continue;
 
 		std::vector<size_t> sortedInd;
@@ -631,11 +631,11 @@ constrained_face_dof_indices(TBaseElem* elem,size_t fct,std::vector<DoFIndex>& i
 
 				if(vOrientOffset.empty()){
 					for(size_t k = 0; k < numDoFsOnSub; ++k)
-						ind.push_back(DoFIndex(index + k,0));
+						ind.emplace_back(index + k,0);
 				}
 				else{
 					for(size_t k = 0; k < numDoFsOnSub; ++k)
-						ind.push_back(DoFIndex(index + vOrientOffset[k],0));
+						ind.emplace_back(index + vOrientOffset[k],0);
 				}
 			}
 			else
@@ -854,7 +854,7 @@ constrained_vertex_indices(LocalIndices& ind,
 	for(size_t i = 0; i < vSubElem.size(); ++i)
 	{
 	//	only constraining objects are of interest
-		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
+		auto* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
 		if(constrainingObj == nullptr) continue;
 
 	//	loop constraining vertices
@@ -912,11 +912,11 @@ sort_constrained_edges(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 	Vertex* vertex0 = nullptr;
 	// get child of vertex
 	if (dim==2){
-		Face* baseElem = dynamic_cast<Face*>(elem);
+		auto baseElem = dynamic_cast<Face*>(elem);
 		vertex0 = multi_grid()->template get_child<Vertex,Vertex>(baseElem->vertex(vertexIndex),0);
 	}
 	if (dim==3){
-		Volume* baseElem = dynamic_cast<Volume*>(elem);
+		auto* baseElem = dynamic_cast<Volume*>(elem);
 		vertex0 = multi_grid()->template get_child<Vertex,Vertex>(baseElem->vertex(vertexIndex),0);
 	}
 	TConstrained* edg = constrainingObj->constrained_edge(0);
@@ -960,7 +960,7 @@ sort_constrained_faces(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 	const size_t numVrt = constrainingObj->num_vertices();
 	sortedInd.resize(4);
 	Vertex* vrt = nullptr;
-	Volume* baseElem = dynamic_cast<Volume*>(elem);
+	auto* baseElem = dynamic_cast<Volume*>(elem);
 	for (size_t i=0;i<numVrt;i++){
 		const size_t vertexIndex = refElem.id(2,objIndex,0,i);
 		vrt = multi_grid()->template get_child<Vertex,Vertex>(baseElem->vertex(vertexIndex),0);
@@ -1009,7 +1009,7 @@ constrained_edge_indices(TBaseElem* elem,LocalIndices& ind,
 	for(size_t i = 0; i < vSubElem.size(); ++i)
 	{
 	//	only constraining objects are of interest
-		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
+		auto* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
 		if(constrainingObj == nullptr) continue;
 
 		std::vector<size_t> sortedInd;
@@ -1064,7 +1064,7 @@ constrained_face_indices(TBaseElem* elem,LocalIndices& ind,
 	for(size_t i = 0; i < vSubElem.size(); ++i)
 	{
 	//	only constraining objects are of interest
-		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
+		auto* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
 
 		if(constrainingObj == nullptr) continue;
 
@@ -1169,9 +1169,6 @@ void DoFDistribution::_indices(TBaseElem* elem, LocalIndices& ind, bool bHang) c
 		if(dim >= FACE) constrained_face_indices<TBaseElem,ConstrainingTriangle, Face, Face>(elem,ind, vFace);
 		if(dim >= FACE) constrained_face_indices<TBaseElem,ConstrainingQuadrilateral, Face, Face>(elem,ind, vFace);
 	}
-
-//	we're done
-	return;
 }
 
 
@@ -1305,22 +1302,21 @@ void DoFDistribution::unmanage_grid_function(IGridFunction& gridFct)
 	, m_vpGridFunction.end());
 }
 
-void DoFDistribution::permute_values(const std::vector<size_t>& vIndNew)
-{
+void DoFDistribution::permute_values(const std::vector<size_t>& vIndNew) const {
 //	swap values of handled grid functions
 	for(size_t i = 0; i < m_vpGridFunction.size(); ++i)
 		m_vpGridFunction[i]->permute_values(vIndNew);
 }
 
 void DoFDistribution::copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
-                                         bool bDisjunct)
+                                         bool bDisjunct) const
 {
 //	swap values of handled grid functions
 	for(size_t i = 0; i < m_vpGridFunction.size(); ++i)
 		m_vpGridFunction[i]->copy_values(vIndexMap, bDisjunct);
 }
 
-void DoFDistribution::resize_values(size_t newSize)
+void DoFDistribution::resize_values(size_t newSize) const
 {
 //	swap values of handled grid functions
 	for(size_t i = 0; i < m_vpGridFunction.size(); ++i)
@@ -1373,7 +1369,7 @@ void DoFDistribution::reinit()
 				TBaseElem* elem = *iter;
 				if(sv.is_contained(elem, grid_level(), SurfaceView::SHADOW_RIM_COPY)){
 					if(mg.num_children<TBaseElem>(elem) > 0){
-						TBaseElem* child = mg.get_child<TBaseElem>(elem, 0);
+						auto* child = mg.get_child<TBaseElem>(elem, 0);
 						if(sv.is_contained(child, grid_level(), SurfaceView::SURFACE_RIM))
 							continue;
 					}
@@ -1383,7 +1379,7 @@ void DoFDistribution::reinit()
 				const ReferenceObjectID roid = elem->reference_object_id();
 				add(elem, roid, si);
 
-				TBaseElem* p = dynamic_cast<TBaseElem*>(mg.get_parent(elem));
+				auto* p = dynamic_cast<TBaseElem*>(mg.get_parent(elem));
 				while(p && sv.is_contained(p, grid_level(), SurfaceView::SHADOW_RIM_COPY)){
 					obj_index(p) = obj_index(elem);
 					p = dynamic_cast<TBaseElem*>(mg.get_parent(p));
@@ -1626,12 +1622,6 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 //	dimension of Base Elem
 	static constexpr int dim = TBaseElem::dim;
 
-//	Adjacent geometric objects
-	std::vector<Vertex*> vVrts;
-	std::vector<Edge*> vEdges;
-	std::vector<Face*> vFaces;
-	std::vector<Volume*> vVols;
-
 // 	Iterators
 	using const_iterator = typename traits<TBaseElem>::const_iterator;
 	const_iterator iterEnd = end<TBaseElem>();
@@ -1646,18 +1636,22 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 
 	//	Get connected elements
 		if(dim >= VERTEX && max_dofs(VERTEX) > 0) {
+			std::vector<Vertex*> vVrts;
 			collect_associated(vVrts, elem);
 			changable_indices<Vertex>(vIndex, vVrts);
 		}
 		if(dim >= EDGE   && max_dofs(EDGE) > 0)	{
+			std::vector<Edge*> vEdges;
 			collect_associated(vEdges, elem);
 			changable_indices<Edge>(vIndex, vEdges);
 		}
 		if(dim >= FACE   && max_dofs(FACE) > 0)	{
+			std::vector<Face*> vFaces;
 			collect_associated(vFaces, elem);
 			changable_indices<Face>(vIndex, vFaces);
 		}
 		if(dim >= VOLUME && max_dofs(VOLUME) > 0) {
+			std::vector<Volume*> vVols;
 			collect_associated(vVols, elem);
 			changable_indices<Volume>(vIndex, vVols);
 		}

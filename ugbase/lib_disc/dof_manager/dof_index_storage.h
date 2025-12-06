@@ -48,7 +48,7 @@ class DoFIndexStorage : public DoFDistributionInfoProvider
 	public:
 		///	returns the multigrid
 		SmartPtr<MultiGrid> multi_grid() {return m_spMG;}
-		ConstSmartPtr<MultiGrid> multi_grid() const {return m_spMG;}
+		[[nodiscard]] ConstSmartPtr<MultiGrid> multi_grid() const {return m_spMG;}
 
 		///	returns first algebra index of a geometric object
 		/// \{

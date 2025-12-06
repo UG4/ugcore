@@ -131,7 +131,7 @@ public:
 			set_inner();
 		}
 
-		OverlapType(int distanceToMasterOrInner)
+		explicit OverlapType(int distanceToMasterOrInner)
 		{
 			set_distance_to_master_or_inner(distanceToMasterOrInner);
 		}
@@ -265,8 +265,7 @@ public:
 	ParallelNodes(const ParallelNodes &);
 	ParallelNodes(ConstSmartPtr<AlgebraLayouts> layout, size_t s);
 
-	size_t get_original_size()
-	{
+	size_t get_original_size() const {
 		return m_originalSize;
 	}
 
@@ -303,8 +302,7 @@ public:
 	}
 
 
-	void sort_by_global_id(std::vector<size_t> &v)
-	{
+	void sort_by_global_id(std::vector<size_t> &v) const {
 		sort(v.begin(), v.end(), CompareIndicesBy(m_localToGlobal) );
 	}
 
@@ -377,8 +375,7 @@ public:
 	}
 
 	/// returns the overlap type (inner, master, slave or distanceToMasterOrInner=X)
-	const OverlapType &overlap_type(size_t i)
-	{
+	const OverlapType &overlap_type(size_t i) const {
 		return m_OLtype[i];
 	}
 

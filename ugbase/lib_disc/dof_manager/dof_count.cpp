@@ -51,10 +51,10 @@ DoFCount::DoFCount(const GridLevel& gl, ConstSmartPtr<DoFDistributionInfo> spDDI
 
 void DoFCount::add(int fct, int si, SurfaceView::SurfaceState ss, byte_t is, uint64 numDoF)
 {
-	if(!(fct < (int)vvCmpSubset.size()))
+	if(!(fct < static_cast<int>(vvCmpSubset.size())))
 		UG_THROW("DoFCount: fct index "<<fct<<" invalid. NumFct: "<<vvCmpSubset.size());
 
-	if(!(si < (int)vvCmpSubset[fct].size()))
+	if(!(si < static_cast<int>(vvCmpSubset[fct].size())))
 		UG_THROW("DoFCount: subset index "<<si<<" invalid. NumSubset: "<<vvCmpSubset[fct].size());
 
 	vvCmpSubset[fct][si].add(numDoF, ss, is);

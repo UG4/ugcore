@@ -200,16 +200,16 @@ class SmartPtr
 		const T* get() const	{return m_ptr;}
 
 	///	returns refcount
-		int refcount() const {if(m_refCount) return *m_refCount; return 0;}
+		[[nodiscard]] int refcount() const {if(m_refCount) return *m_refCount; return 0;}
 
 	///	returns true if the pointer is valid, false if not.
-		inline bool valid() const	{return m_ptr != nullptr;}
+		[[nodiscard]] inline bool valid() const	{return m_ptr != nullptr;}
 
 		// pointer compat -- behave like std::shared_ptr<T>
 		explicit operator bool () const noexcept { return m_ptr != nullptr; }
 
 	///	returns true if the pointer is invalid, false if not.
-		inline bool invalid() const	{return m_ptr == nullptr;}
+		[[nodiscard]] inline bool invalid() const	{return m_ptr == nullptr;}
 
 	///	preforms a dynamic cast
 		template <typename TDest>
@@ -237,7 +237,7 @@ class SmartPtr
 
 	///
 		template <typename TDest>
-		bool is_of_type() const
+		[[nodiscard]] bool is_of_type() const
 		{
 			return dynamic_cast<TDest*>(m_ptr) != nullptr;
 		}
@@ -260,7 +260,7 @@ class SmartPtr
 	 *	It is featured in order to allow to implement a template-constructor
 	 *	that casts element-pointers of a smart pointer.
 	 *	\{*/
-		int* refcount_ptr() const 	{return m_refCount;}
+		[[nodiscard]] int* refcount_ptr() const 	{return m_refCount;}
 
 		T* get_nonconst() const	{return m_ptr;}
 	/**	\}	*/
@@ -297,9 +297,9 @@ class ConstSmartPtr
 	friend class ConstSmartPtr<void>;
 
 	public:
-		explicit ConstSmartPtr() : m_ptr(nullptr), m_refCount(nullptr) {}
-		explicit ConstSmartPtr(const T* ptr) : m_ptr(ptr), m_refCount(nullptr) {if(ptr) m_refCount = new int(1);}
-		ConstSmartPtr(std::nullptr_t) : m_ptr(nullptr), m_refCount(nullptr)	{}
+		/*implicit*/ explicit ConstSmartPtr() : m_ptr(nullptr), m_refCount(nullptr) {}
+		/*implicit*/ ConstSmartPtr(const T* ptr) : m_ptr(ptr), m_refCount(nullptr) {if(ptr) m_refCount = new int(1);}
+		/*implicit*/ ConstSmartPtr(std::nullptr_t) : m_ptr(nullptr), m_refCount(nullptr)	{}
 		ConstSmartPtr(const ConstSmartPtr& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
 		{
 			if(m_refCount) (*m_refCount)++;
@@ -309,7 +309,7 @@ class ConstSmartPtr
 	 *	derivates of T. Make sure that the pointer-type of TSmartPtr is castable
 	 *	to T*.*/
 		template <typename TPtr>
-		ConstSmartPtr(const SmartPtr<TPtr, FreePolicy>& sp) :
+		/*implicit*/  ConstSmartPtr(const SmartPtr<TPtr, FreePolicy>& sp) :
 			m_ptr(sp.get()),
 			m_refCount(sp.refcount_ptr())
 		{

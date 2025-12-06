@@ -33,6 +33,7 @@
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
 
+#include <utility>
 #include <vector>
 #include <string>
 #include <cmath>  // for isinf, isnan
@@ -83,8 +84,8 @@ static void ScaleGFOnElems
 	try
 	{
 		// iterate all elements (including SHADOW_RIM_COPY!)
-		iter = dd->template begin<TBaseElem>(SurfaceView::ALL);
-		iterEnd = dd->template end<TBaseElem>(SurfaceView::ALL);
+		iter = dd->begin<TBaseElem>(SurfaceView::ALL);
+		iterEnd = dd->end<TBaseElem>(SurfaceView::ALL);
 		for (; iter != iterEnd; ++iter)
 		{
 			for (size_t fi = 0; fi < dd->num_fct(); ++fi)
@@ -767,7 +768,7 @@ inline void SaveMatrixToMTX( const char *filename,
 	
 	// create MatrixIO object for handling the export
 	MatrixIOMtx mtx( filename, openMode );
-	mtx.write_from( A.get_matrix(), comment );
+	mtx.write_from( A.get_matrix(), std::move(comment) );
 }
 
 template <typename TFunction>
@@ -849,7 +850,7 @@ void SaveVectorDiffForConnectionViewer(
 // from connection_viewer_input.h
 // with additional checks
 template<typename vector_type>
-bool ReadVector(std::string filename, vector_type &vec,int dim)
+bool ReadVector(const std::string& filename, vector_type &vec)
 {
     Progress p;
 	std::cout << " Reading std::vector from " <<  filename << "... ";
@@ -911,7 +912,7 @@ void LoadVector(TGridFunction& u,const char* filename){
 	PROFILE_FUNC();
 	typename TGridFunction::algebra_type::vector_type b;
 	b.resize(u.num_indices());
-	ReadVector(filename,b,TGridFunction::dim);
+	ReadVector(filename,b /*,TGridFunction::dim*/);
 	u.assign(b);
 }
 
@@ -934,7 +935,7 @@ void WriteVectorCSV(const char *filename,
 //	add p000X extension in parallel
 #ifdef UG_PARALLEL
 	std::string name(filename);
-	size_t iExtPos = name.find_last_of(".");
+	size_t iExtPos = name.find_last_of('.');
 	name.resize(iExtPos);
 	int rank = pcl::ProcRank();
 	char ext[20]; snprintf(ext, 20, "_p%05d.csv", rank);
@@ -971,7 +972,7 @@ void SaveVectorCSV(TGridFunction& b, const char* filename) {
 template<typename TDomain, typename TAlgebra>
 number AverageFunctionDifference(
 		SmartPtr< GridFunction<TDomain, TAlgebra> > spGridFct,
-		std::string subset, std::string fct1, std::string fct2 )
+		const std::string& subset, const std::string& fct1, const std::string& fct2 )
 {
 	PROFILE_FUNC();
 	// get subset index
@@ -987,8 +988,8 @@ number AverageFunctionDifference(
 
 	// loop over all vertices in given subset and compare values of fct1 and fct2
 	using gridFctIterator = typename GridFunction<TDomain, TAlgebra>::template traits<Vertex>::const_iterator;
-	for( gridFctIterator iter = spGridFct->template begin<Vertex>((int)subSetID); 
-	       iter != spGridFct->template end<Vertex>((int)subSetID); ++iter ) {
+	for( gridFctIterator iter = spGridFct->template begin<Vertex>(static_cast<int>(subSetID));
+	       iter != spGridFct->template end<Vertex>(static_cast<int>(subSetID)); ++iter ) {
 		// get dof_indices for the two functions on given subset
 		std::vector< DoFIndex > indFct1, indFct2;
 		spGridFct->template dof_indices<Vertex>( *iter, fct1ID, indFct1 );
@@ -1032,7 +1033,7 @@ public:
 
 public:
 	///	Constructor
-	GridFunctionDebugWriter(
+	explicit GridFunctionDebugWriter(
 			SmartPtr<ApproximationSpace<TDomain> > spApproxSpace) :
 			m_spApproxSpace(spApproxSpace), bConnViewerOut(true),
 			bConnViewerIndices(false), bVTKOut(true), m_printConsistent(true)
@@ -1054,7 +1055,7 @@ public:
 	}
 
 	///	returns current grid level
-	GridLevel grid_level() const {return m_glFrom;}
+	[[nodiscard]] GridLevel grid_level() const {return m_glFrom;}
 
 	///	sets to toplevel on surface
 	void reset() {
@@ -1144,7 +1145,7 @@ public:
 
 protected:
 
-	void write_algebra_indices_CV(std::string name)
+	void write_algebra_indices_CV(const std::string& name)
 	{
 		if(bConnViewerIndices)
 			WriteAlgebraIndices<TDomain>(name, m_spApproxSpace->domain(), m_spApproxSpace->dof_distribution(m_glFrom));
@@ -1236,7 +1237,7 @@ public:
 	GridFunctionPositionProvider() :
 			m_pGridFunc(nullptr) {
 	}
-	GridFunctionPositionProvider(const TGridFunction& u) :
+	explicit GridFunctionPositionProvider(const TGridFunction& u) :
 			m_pGridFunc(&u) {
 	}
 	void set_reference_grid_function(const TGridFunction& u) {
@@ -1384,7 +1385,7 @@ public:
 
 		size_t numDoFs = 0;
 		GridLevel gl;
-		if (m_level == (size_t) -1) {
+		if (m_level == static_cast<size_t>(-1)) {
 			numDoFs = m_pApproxSpace->dof_distribution(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE))->num_indices();
 			gl = GridLevel();
 		} else {

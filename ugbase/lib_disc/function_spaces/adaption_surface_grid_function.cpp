@@ -69,7 +69,7 @@ template <typename TBaseElem>
 void AdaptionSurfaceGridFunction<TDomain>::
 prolongate(const GridMessage_Adaption& msg, const size_t lvl)
 {
-	const GridBaseObjectId gbo = (GridBaseObjectId)TBaseElem::BASE_OBJECT_ID;
+	const auto gbo = static_cast<GridBaseObjectId>(TBaseElem::BASE_OBJECT_ID);
 
 //	extract and init prolongations working on the base element type
 	std::vector<SmartPtr<IElemProlongation<TDomain> > > vpProlong;
@@ -213,7 +213,7 @@ template <typename TBaseElem>
 void AdaptionSurfaceGridFunction<TDomain>::
 do_restrict(const MGSelector& sel, const GridMessage_Adaption& msg)
 {
-	const GridBaseObjectId gbo = (GridBaseObjectId)TBaseElem::BASE_OBJECT_ID;
+	const auto gbo = static_cast<GridBaseObjectId>(TBaseElem::BASE_OBJECT_ID);
 
 //	extract and init prolongations working on the base element type
 	std::vector<SmartPtr<IElemRestriction<TDomain> > > vpRestrict;
@@ -336,7 +336,7 @@ ValueAccessor(AdaptionSurfaceGridFunction& rASGF,
 {
 	for(int g = 0; g < GridBaseObjectId::NUM_GEOMETRIC_BASE_OBJECTS; ++g)
 	{
-		const GridBaseObjectId gbo = (GridBaseObjectId)g;
+		const auto gbo = static_cast<GridBaseObjectId>(g);
 		m_HasDoFs[gbo] = (m_rASGF.m_spDDInfo->max_fct_dofs(fct, gbo) > 0);
 	}
 }

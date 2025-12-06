@@ -96,8 +96,8 @@ extract_dof_indices(ConstSmartPtr<DoFDistribution> dd)
 	// (cf. DoFDistribution::reinit() implementation comments)
 
 	// iterate all elements (including SHADOW_RIM_COPY!)
-	iter = dd->template begin<TBaseElem>(SurfaceView::ALL);
-	iterEnd = dd->template end<TBaseElem>(SurfaceView::ALL);
+	iter = dd->begin<TBaseElem>(SurfaceView::ALL);
+	iterEnd = dd->end<TBaseElem>(SurfaceView::ALL);
 
 	// loop over all elements
 	std::vector<DoFIndex> vInd;
@@ -164,7 +164,7 @@ norm(const TVector& vec, const std::vector<DoFIndex>& vMultiIndex)
 	for (size_t dof = 0; dof < sz; ++dof)
 	{
 		const number val = DoFRef(vec, vMultiIndex[dof]);
-		norm += (double) (val*val);
+		norm += val*val;
 	}
 
 #ifdef UG_PARALLEL
@@ -330,7 +330,7 @@ set_group_check(const std::vector<std::string>& vFctName,
 	if(cmp == m_CmpInfo.size())
 		m_CmpInfo.push_back(CmpInfo());
 
-	std::string name("");
+	std::string name;
 	for(size_t fct = 0; fct < vFct.size(); ++fct){
 		if(!name.empty()) name.append(", ");
 		name.append(m_vNativCmpInfo[vFct[fct]].name);
@@ -377,7 +377,7 @@ update_rest_check()
 	}
 
 	std::vector<int> vFct;
-	std::string name("");
+	std::string name;
 
 	for(size_t fct = 0; fct < vUsed.size(); ++fct){
 		if(vUsed[fct]) continue;
@@ -697,7 +697,7 @@ bool CompositeConvCheck<TVector, TDomain>::post()
 
 
 template <typename TVector, typename TDomain>
-void CompositeConvCheck<TVector, TDomain>::print_offset()
+void CompositeConvCheck<TVector, TDomain>::print_offset() const
 {
 	// step 1: whitespace
 	UG_LOG(repeat(' ', m_offset));
@@ -715,7 +715,7 @@ void CompositeConvCheck<TVector, TDomain>::print_line(std::string line)
 
 
 template <typename TVector, typename TDomain>
-bool CompositeConvCheck<TVector, TDomain>::is_valid_number(number value)
+bool CompositeConvCheck<TVector, TDomain>::is_valid_number(number value) const
 {
 	if (value == 0.0) return true;
 	else return (value >= std::numeric_limits<number>::min()
