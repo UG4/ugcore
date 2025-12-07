@@ -64,6 +64,18 @@ namespace diamonds
 //
 //};
 
+//template<
+//typename VERTEXTYPE
+//>
+//class CrossingVerticesInfo
+//{
+//public:
+//
+//	CrossingVerticesInfo( VERTEXTYPE const & oldVrtx, VERTEXTYPE const & shiftVrtx, bool  )
+//
+//
+//};
+//
 ////////////////////////////////////////////////////////////////
 
 template <
