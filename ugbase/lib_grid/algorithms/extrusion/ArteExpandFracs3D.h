@@ -58,6 +58,7 @@
 #include "support.h"
 #include "support3D.h"
 
+#include "DiamondInfo.h"
 
 
 #ifndef UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_ARTEEXPANDFRACS3D_H_
@@ -494,9 +495,27 @@ private:
 	std::vector<Vertex*> m_vrtcsViolatingExpansion;
 	std::vector<Volume*> m_volsViolatingExpansion;
 
-
 	bool averageBndryNormals( VecPlaneDescriptor const & vecPlaneBndryDescr, vector3 & averagedNormal );
 
+private:
+
+	using VolManifVrtxCombi = diamonds::VolManifVrtxCombi<Volume*,Face*,Vertex*, IndexType>;
+
+	using VecVolManifVrtxCombi = std::vector<VolManifVrtxCombi>;
+
+	VecVolManifVrtxCombi m_vecVolManifVrtxCombiToShrink4Diams;
+
+//	using DiamantInfo3D = diamonds::DiamondInfo<Volume*, Face*, Edge*, Vertex*, vector3, IndexType>;
+//
+//	std::vector<DiamantInfo3D> m_diamInfos3D;
+//
+	using VrtxPair = std::pair<Vertex*,Vertex*>;
+//
+//	std::vector<VrtxPair> m_oldNewVrtcs4Diams;
+
+	std::vector<Vertex*> m_vrtcsCrossingPts;
+
+	bool createTheDiamonds();
 };
 
 // specification has to be declared outside central class context, else compilation error
