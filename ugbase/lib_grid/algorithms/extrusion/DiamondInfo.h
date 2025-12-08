@@ -91,16 +91,16 @@ class VolManifVrtxCombi
 {
 public:
 
-	using VrtxPairVec = std::vector<std::pair<VERTEXTYP,VERTEXTYP>>;
+	using VrtxPair = std::pair<VERTEXTYP,VERTEXTYP>;
 
 	VolManifVrtxCombi( VOLELEM const & vol,
 					   MANIFELEM const & manif,
-					   VrtxPairVec const & oldAndShiftVrtcs,
+					   VrtxPair const & oldAndShiftVrtx,
 					   INDEXTYP	sudo
 					 )
 	: m_volElm(vol),
 	  m_manifElm(manif),
-	  m_oldAndshiftVrtcs(oldAndShiftVrtcs),
+	  m_oldAndshiftVrtx(oldAndShiftVrtx),
 	  m_sudo(sudo)
 	{};
 
@@ -108,11 +108,7 @@ public:
 
 	void spuckManif( MANIFELEM & manif ) { manif = m_manifElm; }
 
-	INDEXTYP spuckOldAndShiftVrtcs( VrtxPairVec & vrtpv )
-	{
-		vrtpv = m_oldAndshiftVrtcs;
-		return vrtpv.size();
-	}
+	void spuckOldAndShiftVrtx( VrtxPair & vrtp ) { vrtp = m_oldAndshiftVrtx; }
 
 	INDEXTYP spuckSudo() { return m_sudo; }
 
@@ -120,7 +116,7 @@ private:
 
 	VOLELEM m_volElm;
 	MANIFELEM m_manifElm;
-	VrtxPairVec m_oldAndshiftVrtcs;
+	VrtxPair m_oldAndshiftVrtx;
 	INDEXTYP m_sudo;
 
 };

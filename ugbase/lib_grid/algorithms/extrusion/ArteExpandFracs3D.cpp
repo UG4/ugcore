@@ -7828,7 +7828,7 @@ bool ArteExpandFracs3D::createNewElements()
 						IndexType constexpr maxVolVrtxNum = 3;  // restricts algo to tetrahedral based grids
 
 #if 1
-						std::vector<VrtxPair> oldShiftVrtcs;
+//						std::vector<VrtxPair> oldShiftVrtcs;
 
 						for( auto const & crossVrtx : m_vrtcsCrossingPts )
 						{
@@ -7844,19 +7844,18 @@ bool ArteExpandFracs3D::createNewElements()
 									if( shiVrt )
 									{
 										Vertex * oldVrt = sv->vertex(iv);
-										VrtxPair cv( oldVrt, shiVrt );
-										oldShiftVrtcs.push_back(cv);
+										VrtxPair osv( oldVrt, shiVrt );
+										VolManifVrtxCombi vmvc( expVol, tFace, osv, newSubs );
+
+										m_vecVolManifVrtxCombiToShrink4Diams.push_back(vmvc);
 									}
 								}
 							}
 						}
 
-						if( oldShiftVrtcs.size() > 0 )
-						{
-							VolManifVrtxCombi vmvc( expVol, tFace, oldShiftVrtcs, newSubs );
-
-							m_vecVolManifVrtxCombiToShrink4Diams.push_back(vmvc);
-						}
+//						if( oldShiftVrtcs.size() > 0 )
+//						{
+//						}
 
 #else
 
