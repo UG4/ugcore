@@ -501,7 +501,7 @@ private:
 
 private:
 
-	using VolManifVrtxCombi = diamonds::VolManifVrtxCombi<Volume*,Face*,Vertex*, IndexType>;
+	using VolManifVrtxCombi = diamonds::VolManifVrtxCombi<Volume*,Face*,Edge*, Vertex*, IndexType>;
 
 	using VecVolManifVrtxCombi = std::vector<VolManifVrtxCombi>;
 
