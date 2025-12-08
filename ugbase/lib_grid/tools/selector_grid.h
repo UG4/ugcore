@@ -170,24 +170,26 @@ class UG_API Selector : public ISelector
 		end() const;
 
 	//	convenience begin and end
-		inline VertexIterator vertices_begin()	{return begin<Vertex>();}
-		inline VertexIterator vertices_end()	{return end<Vertex>();}
-		inline EdgeIterator edges_begin()		{return begin<Edge>();}
-		inline EdgeIterator edges_end()			{return end<Edge>();}
-		inline FaceIterator faces_begin()			{return begin<Face>();}
-		inline FaceIterator faces_end()				{return end<Face>();}
-		inline VolumeIterator volumes_begin()		{return begin<Volume>();}
-		inline VolumeIterator volumes_end()			{return end<Volume>();}
+		inline VertexIterator vertices_begin() {return begin<Vertex>();}
+		inline VertexIterator vertices_end() {return end<Vertex>();}
+		inline EdgeIterator edges_begin() {return begin<Edge>();}
+		inline EdgeIterator edges_end() {return end<Edge>();}
+		inline FaceIterator faces_begin() {return begin<Face>();}
+		inline FaceIterator faces_end() {return end<Face>();}
+		inline VolumeIterator volumes_begin() {return begin<Volume>();}
+		inline VolumeIterator volumes_end() {return end<Volume>();}
 
 	///	returns the first selected element of the given type.
 	/**	Make sure that elements of the given type exist!
 	 *	Behaviour is undefined, if not.*/
-		template <typename TElem> TElem* front();
+		template <typename TElem>
+		TElem* front();
 		
 	///	returns the last selected element of the given type.
 	/**	Make sure that elements of the given type exist!
 	 *	Behaviour is undefined, if not.*/
-		template <typename TElem> TElem* back();
+		template <typename TElem>
+		TElem* back();
 
 	//	geometric-object-collection
 		[[nodiscard]] GridObjectCollection get_grid_objects() const override;
@@ -302,7 +304,8 @@ class UG_API Selector : public ISelector
 		section_container();
 
 	///	returns the const section container for the given type, subset and level
-		template <typename TElem> inline
+		template <typename TElem>
+		[[nodiscard]] inline
 		const typename Grid::traits<TElem>::SectionContainer&
 		section_container() const;
 

@@ -97,7 +97,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	/**	additional mark to RefinementMarks. Used to flag whether an element
 	 * will be refined with constraining.*/
-		enum HNodeRefMarks{
+		enum HNodeRefMarks {
 			HNRM_TO_NORMAL = 		1 << 5,
 			HNRM_TO_CONSTRAINED =	1 << 6,
 			HNRM_TO_CONSTRAINING =	1 << 7,
@@ -119,11 +119,11 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 *
 	 * Enabled by default.*/
 		void enable_node_dependency_order_1(bool bEnable);
-		bool node_dependency_order_1_enabled() const {return m_nodeDependencyOrder1;}
+		[[nodiscard]] bool node_dependency_order_1_enabled() const {return m_nodeDependencyOrder1;}
 	/**	\} */
 
 	///	Add a refmark adjuster, which will be called while marks are adjusted during refinement / coarsening
-		void add_ref_mark_adjuster(SPIRefMarkAdjuster adjuster)		{m_refMarkAdjusters.push_back(adjuster);}
+		void add_ref_mark_adjuster(SPIRefMarkAdjuster adjuster) {m_refMarkAdjusters.push_back(adjuster);}
 
 
 		void clear_marks() override;
@@ -152,34 +152,34 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	/**	\} */
 
 		
-		inline bool marked_refine(Edge* elem) const
+		[[nodiscard]] inline bool marked_refine(Edge* elem) const
 		{
 			return (m_selMarkedElements.get_selection_status(elem)
 				 	& RM_REFINE) != 0;
 		}
 
 		template <typename TElem>
-		inline bool marked_refine(TElem* elem) const
+		[[nodiscard]] inline bool marked_refine(TElem* elem) const
 		{
 			return (m_selMarkedElements.get_selection_status(elem)
 				 	& (RM_CLOSURE | RM_LOCAL | RM_FULL)) != 0;
 		}
 
 		template <typename TElem>
-		inline bool marked_adaptive(TElem* elem) const
+		[[nodiscard]] inline bool marked_adaptive(TElem* elem) const
 		{
 			return (m_selMarkedElements.get_selection_status(elem)
 					& (RM_CLOSURE | RM_LOCAL));
 		}
 
 		template <typename TElem>
-		inline bool marked_regular(TElem* elem) const
+		[[nodiscard]] inline bool marked_regular(TElem* elem) const
 		{
 			return marked_refine(elem) && (!(marked_adaptive(elem)));
 		}
 
 		template <typename TElem>
-		inline bool marked_coarsen(TElem* elem) const
+		[[nodiscard]] inline bool marked_coarsen(TElem* elem) const
 		{
 			return (m_selMarkedElements.get_selection_status(elem)
 					& RM_COARSEN) == RM_COARSEN;
@@ -330,13 +330,13 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 
 		template <typename TElem>
-		inline bool marked_to_normal(TElem* elem) const {return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_NORMAL) == HNRM_TO_NORMAL;}
+		[[nodiscard]] inline bool marked_to_normal(TElem* elem) const {return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_NORMAL) == HNRM_TO_NORMAL;}
 
 		template <typename TElem>
-		inline bool marked_to_constrained(TElem* elem) const {return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINED) == HNRM_TO_CONSTRAINED;}
+		[[nodiscard]] inline bool marked_to_constrained(TElem* elem) const {return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINED) == HNRM_TO_CONSTRAINED;}
 
 		template <typename TElem>
-		inline bool marked_to_constraining(TElem* elem) const {return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINING) == HNRM_TO_CONSTRAINING;}
+		[[nodiscard]] inline bool marked_to_constraining(TElem* elem) const {return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINING) == HNRM_TO_CONSTRAINING;}
 
 		template <typename TElem>
 		void add_hmark(TElem* elem, HNodeRefMarks mark);
@@ -353,7 +353,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	/**	Be sure to use it carefully!*/
 		TSelector& get_refmark_selector() {return m_selMarkedElements;}
 
-		inline bool adjusting_ref_marks() const	{return m_adjustingRefMarks;}
+		[[nodiscard]] inline bool adjusting_ref_marks() const	{return m_adjustingRefMarks;}
 
 	private:
 	///	private copy constructor to avoid copy construction

@@ -35,11 +35,11 @@
 
 // include declarations
 #include "periodic_boundary_manager.h"
-#include "lib_grid/algorithms/debug_util.h"
+#include "lib_grid/algorithms/debug_util.h" // for GetGridObjectCenter
 #include "lib_grid/grid_objects/grid_dim_traits.h"
 #include "common/assert.h"
 #include "common/error.h"
-#include "pcl/pcl_base.h"
+// #include "pcl/pcl_base.h"
 
 #include <boost/mpl/map.hpp>
 // #include <boost/mpl/at.hpp>

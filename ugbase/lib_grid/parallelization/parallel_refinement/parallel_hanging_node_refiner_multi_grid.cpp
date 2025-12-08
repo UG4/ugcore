@@ -323,17 +323,17 @@ assign_hnode_marks()
 														 | BaseClass::HNRM_TO_CONSTRAINED
 														 | BaseClass::HNRM_TO_CONSTRAINING);
 
-	m_intfComVRT.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, compolVRT);
-	m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, compolEDGE);
-	m_intfComFACE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, compolFACE);
+	m_intfComVRT.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, compolVRT);
+	m_intfComEDGE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, compolEDGE);
+	m_intfComFACE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, compolFACE);
 
 	m_intfComVRT.communicate();
 	m_intfComEDGE.communicate();
 	m_intfComFACE.communicate();
 
-	m_intfComVRT.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, compolVRT);
-	m_intfComEDGE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, compolEDGE);
-	m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, compolFACE);
+	m_intfComVRT.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, compolVRT);
+	m_intfComEDGE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, compolEDGE);
+	m_intfComFACE.exchange_data(layoutMap, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, compolFACE);
 
 	m_intfComVRT.communicate();
 	m_intfComEDGE.communicate();
@@ -357,11 +357,11 @@ assign_hnode_marks()
 	ComPol_AdjustType<FaceLayout> compolAdjustFACE(BaseClass::m_selMarkedElements,
 												   *m_pDistGridMgr);
 
-	m_intfComVRT.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER,
+	m_intfComVRT.exchange_data(layoutMap, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER,
 							   compolAdjustVRT);
-	m_intfComEDGE.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER,
+	m_intfComEDGE.exchange_data(layoutMap, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER,
 								compolAdjustEDGE);
-	m_intfComFACE.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER,
+	m_intfComFACE.exchange_data(layoutMap, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER,
 								compolAdjustFACE);
 
 	m_intfComVRT.communicate();

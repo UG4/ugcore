@@ -33,7 +33,7 @@
 #ifndef __H__LIBGRID__SUBSET_HANDLER_INTERFACE__
 #define __H__LIBGRID__SUBSET_HANDLER_INTERFACE__
 
-#include <list>
+// #include <list>
 #include <string>
 #include <vector>
 #include <map>
@@ -358,11 +358,11 @@ class UG_API ISubsetHandler : public GridObserver
 		template <typename TIterator>
 		void assign_subset(TIterator iterBegin, TIterator iterEnd, int subsetIndex);
 
-		int get_subset_index(GridObject* elem) const;
-		inline int get_subset_index(Vertex* elem) const;
-		inline int get_subset_index(Edge* elem) const;
-		inline int get_subset_index(Face* elem) const;
-		inline int get_subset_index(Volume* elem) const;
+		[[nodiscard]] int get_subset_index(GridObject* elem) const;
+		[[nodiscard]] inline int get_subset_index(Vertex* elem) const;
+		[[nodiscard]] inline int get_subset_index(Edge* elem) const;
+		[[nodiscard]] inline int get_subset_index(Face* elem) const;
+		[[nodiscard]] inline int get_subset_index(Volume* elem) const;
 
 	///	returns the index of the first subset with the given name.
 	/**	If no subset with the given name exists, -1 is returned.
@@ -472,20 +472,20 @@ class UG_API ISubsetHandler : public GridObserver
 		//									   int subsetIndex) const = 0;
 
 	///	returns true if the subset contains vertices
-		virtual bool contains_vertices(int subsetIndex) const = 0;
+		[[nodiscard]] virtual bool contains_vertices(int subsetIndex) const = 0;
 
 	///	returns true if the subset contains edges
-		virtual bool contains_edges(int subsetIndex) const = 0;
+		[[nodiscard]] virtual bool contains_edges(int subsetIndex) const = 0;
 
 	///	returns true if the subset contains faces
-		virtual bool contains_faces(int subsetIndex) const = 0;
+		[[nodiscard]] virtual bool contains_faces(int subsetIndex) const = 0;
 
 	///	returns true if the subset contains volumes
-		virtual bool contains_volumes(int subsetIndex) const = 0;
+		[[nodiscard]] virtual bool contains_volumes(int subsetIndex) const = 0;
 
 	///	Returns the geometric object collection for the given subset.
 	/**	Note that the GOC may contain multiple levels.*/
-		virtual GridObjectCollection
+		[[nodiscard]] virtual GridObjectCollection
 			get_grid_objects_in_subset(int subsetInd) const = 0;
 
 	////////////////////////////////

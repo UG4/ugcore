@@ -44,8 +44,8 @@ NewtonCotes::NewtonCotes(size_t order)
 	if (order == 0) order = 1;
 	m_order = order;
 	m_numPoints = order+1;
-	position_type* pvPoint= new position_type[m_numPoints];
-	weight_type* pvWeight= new weight_type[m_numPoints];
+	auto pvPoint= new position_type[m_numPoints];
+	auto pvWeight= new weight_type[m_numPoints];
 	m_pvPoint = pvPoint;
 	m_pvWeight = pvWeight;
 

@@ -206,7 +206,7 @@ static void CheckMultiGridConsistencyImpl(MultiGrid& mg)
 			else{
 				if(lvl > 0){
 					#ifdef UG_PARALLEL
-						if(!dgm->contains_status(e, INT_V_SLAVE))
+						if(!dgm->contains_status(e, InterfaceNodeTypes::INT_V_SLAVE))
 						{
 							UG_THROW("Each element in a higher level has to have a parent"
 									 " unless it is a v-slave!");
@@ -778,7 +778,7 @@ class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLa
 				else if(parentType != m_mg.parent_type(elem)){
 					UG_LOG("  PARENT-TYPE MISMATCH AT ELEMENT WITH OBJECT ID " << elem->base_object_id()
 							<< " at " << GetGridObjectCenter(m_mg, elem) << " on level " << m_mg.get_level(elem) << "\n");
-					UG_LOG("    Parent object id: " <<  (int)m_mg.parent_type(elem) << ", received id: " << parentType << "\n");
+					UG_LOG("    Parent object id: " <<  static_cast<int>(m_mg.parent_type(elem)) << ", received id: " << parentType << "\n");
 					m_comparisionFailed = true;
 				}
 			}
@@ -792,17 +792,17 @@ class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLa
 			m_comparisionFailed = false;
 			GridLayoutMap& glm = m_dgm->grid_layout_map();
 			m_performMasterCheck = false;
-			if(glm.has_layout<GeomObj>(INT_H_SLAVE))
-				com.send_data(glm.get_layout<GeomObj>(INT_H_SLAVE), *this);
-			if(glm.has_layout<GeomObj>(INT_H_MASTER))
-				com.receive_data(glm.get_layout<GeomObj>(INT_H_MASTER), *this);
+			if(glm.has_layout<GeomObj>(InterfaceNodeTypes::INT_H_SLAVE))
+				com.send_data(glm.get_layout<GeomObj>(InterfaceNodeTypes::INT_H_SLAVE), *this);
+			if(glm.has_layout<GeomObj>(InterfaceNodeTypes::INT_H_MASTER))
+				com.receive_data(glm.get_layout<GeomObj>(InterfaceNodeTypes::INT_H_MASTER), *this);
 			com.communicate();
 
 			m_performMasterCheck = true;
-			if(glm.has_layout<GeomObj>(INT_V_SLAVE))
-				com.send_data(glm.get_layout<GeomObj>(INT_V_SLAVE), *this);
-			if(glm.has_layout<GeomObj>(INT_V_MASTER))
-				com.receive_data(glm.get_layout<GeomObj>(INT_V_MASTER), *this);
+			if(glm.has_layout<GeomObj>(InterfaceNodeTypes::INT_V_SLAVE))
+				com.send_data(glm.get_layout<GeomObj>(InterfaceNodeTypes::INT_V_SLAVE), *this);
+			if(glm.has_layout<GeomObj>(InterfaceNodeTypes::INT_V_MASTER))
+				com.receive_data(glm.get_layout<GeomObj>(InterfaceNodeTypes::INT_V_MASTER), *this);
 			com.communicate();
 
 			return !m_comparisionFailed;

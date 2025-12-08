@@ -90,7 +90,7 @@ enum GridMessageAdaptionType : byte_t {
 class GridMessage_Adaption : public MessageHub::IMessage
 {
 	public:
-		GridMessage_Adaption(GridMessageAdaptionType adaptionType) :
+		explicit GridMessage_Adaption(GridMessageAdaptionType adaptionType) :
 			m_adaptionType(adaptionType)	{}
 
 		GridMessage_Adaption(GridMessageAdaptionType adaptionType,

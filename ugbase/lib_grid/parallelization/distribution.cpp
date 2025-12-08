@@ -76,7 +76,7 @@ using ADistInfo = Attachment<vector<TargetProcInfo> >;
  */
 class DistInfoSupplier{
 	public:
-		DistInfoSupplier(Grid& grid) : m_grid(grid), m_aDistInfo("distribution-info")
+	explicit DistInfoSupplier(Grid& grid) : m_grid(grid), m_aDistInfo("distribution-info")
 		{
 			m_grid.attach_to_all(m_aDistInfo);
 			m_aaDistInfoVRT.access(grid, m_aDistInfo);
@@ -90,23 +90,23 @@ class DistInfoSupplier{
 			m_grid.detach_from_all(m_aDistInfo);
 		}
 
-		vector<TargetProcInfo>& get(Vertex* vrt)	{return m_aaDistInfoVRT[vrt];}
-		vector<TargetProcInfo>& get(Edge* edge)		{return m_aaDistInfoEDGE[edge];}
-		vector<TargetProcInfo>& get(Face* face)			{return m_aaDistInfoFACE[face];}
-		vector<TargetProcInfo>& get(Volume* vol)		{return m_aaDistInfoVOL[vol];}
+		vector<TargetProcInfo>& get(Vertex* vrt) {return m_aaDistInfoVRT[vrt];}
+		vector<TargetProcInfo>& get(Edge* edge) {return m_aaDistInfoEDGE[edge];}
+		vector<TargetProcInfo>& get(Face* face) {return m_aaDistInfoFACE[face];}
+		vector<TargetProcInfo>& get(Volume* vol) {return m_aaDistInfoVOL[vol];}
 		vector<TargetProcInfo>& get(GridObject* obj)
 		{
 			int objType = obj->base_object_id();
 			switch(objType){
 				case GridBaseObjectId::VERTEX:	return get(static_cast<Vertex*>(obj));
-				case GridBaseObjectId::EDGE:		return get(static_cast<Edge*>(obj));
-				case GridBaseObjectId::FACE:		return get(static_cast<Face*>(obj));
+				case GridBaseObjectId::EDGE: return get(static_cast<Edge*>(obj));
+				case GridBaseObjectId::FACE: return get(static_cast<Face*>(obj));
 				case GridBaseObjectId::VOLUME:	return get(static_cast<Volume*>(obj));
 				default:	UG_THROW("Unknown geometric object base type."); 
 			}
 		}
 
-		ADistInfo dist_info_attachment()	{return m_aDistInfo;}
+		ADistInfo dist_info_attachment() {return m_aDistInfo;}
 
 		template <typename TElem>
 		StringStreamTable get_debug_info(TElem* e)
@@ -602,7 +602,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 	UG_DLOG(LG_DIST, 3, "dist-start: SelectAssociatedConstrainedElements\n");
 	GDIST_PROFILE_FUNC();
 
-	const bool selectAll = true;
+	constexpr bool selectAll = true;
 
 //	constraining triangles
 	{
@@ -915,7 +915,7 @@ static void SelectChildrenOfSelectedShadowRimEdges
 
 	for (size_t lvl = 0; lvl < msel.num_levels(); ++lvl)
 	{
-		MGSelector::traits<Edge>::level_iterator iter = msel.begin<Edge>(lvl);
+		auto iter = msel.begin<Edge>(lvl);
 		for (; iter != msel.end<Edge>(lvl); ++iter)
 		{
 			Edge* edge = *iter;
@@ -1018,7 +1018,7 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel, bool partitionF
 //	we start on the highest level and go downwards to avoid side
 //	effects from repeated selection adjustment.
 	using TIter = typename MGSelector::traits<TElem>::level_iterator;
-	for(int lvl = (int)msel.num_levels() - 1; lvl >= 0 ; --lvl){
+	for(int lvl = static_cast<int>(msel.num_levels()) - 1; lvl >= 0 ; --lvl){
 		for(TIter iter = msel.begin<TElem>(lvl);
 			iter != msel.end<TElem>(lvl);)
 		{
@@ -1809,9 +1809,9 @@ bool DistributeGrid(MultiGrid& mg,
 	UG_STATIC_ASSERT(IS_DUMMY < 256, RedistributeGrid_IS_DUMMY_too_big);
 
 	UG_DLOG(LG_DIST, 3, "dist-start: DistributeGrid\n");
-	const char* errprefix = "ERROR in DistributeGrid: ";
 
 	if(!mg.is_parallel()){
+		const char* errprefix = "ERROR in DistributeGrid: ";
 		UG_THROW(errprefix << "Can't distribute a serial grid! Compile ug with -DPARALLEL=ON");
 	}
 
@@ -1910,7 +1910,7 @@ bool DistributeGrid(MultiGrid& mg,
 //	has to communicate.
 	vector<int> sendToRanks, recvFromRanks, sendPartitionInds;
 
-	if(processMap && (shPartition.num_subsets() > (int)processMap->size())){
+	if(processMap && (shPartition.num_subsets() > static_cast<int>(processMap->size()))){
 		UG_THROW("process-map is too small for the given number of partitions!");
 	}
 

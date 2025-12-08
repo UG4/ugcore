@@ -250,7 +250,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 		m_partitionPostProcessor->init_post_processing(m_mg, m_sh.get());
 
 //	assign all elements below baseLvl to the local process
-	for(int i = 0; i < (int)baseLvl; ++i)
+	for(int i = 0; i < static_cast<int>(baseLvl); ++i)
 		sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
 
 	const ProcessHierarchy* procH;
@@ -275,7 +275,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 		int numProcs = procH->num_global_procs_involved(hlevel);
 
 		int minLvl = procH->grid_base_level(hlevel);
-		int maxLvl = (int)mg.top_level();
+		int maxLvl = static_cast<int>(mg.top_level());
 
 		if(m_balanceWeights->has_level_offsets()){
 			if(mg.top_level() < procH->grid_base_level(hlevel)){
@@ -285,7 +285,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 			//	to true, to indicate that another redistribution is necessary
 			//	in order to distribute the grid over all involved processes.
 				if((hlevel == 0) ||
-					((int)procH->num_global_procs_involved(hlevel - 1) != numProcs))
+					(static_cast<int>(procH->num_global_procs_involved(hlevel - 1)) != numProcs))
 				{
 					UG_LOG("Partitioner_DynamicBisection: Ignoring hierarchy level "
 						<< hlevel << " since it doesn't contain any elements yet\n");
@@ -297,18 +297,18 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 		if(hlevel + 1 < procH->num_hierarchy_levels()){
 			maxLvl = min<int>(maxLvl,
-						(int)procH->grid_base_level(hlevel + 1) - 1);
+						static_cast<int>(procH->grid_base_level(hlevel + 1)) - 1);
 		}
 
-		if(minLvl < (int)baseLvl)
-			minLvl = (int)baseLvl;
+		if(minLvl < static_cast<int>(baseLvl))
+			minLvl = static_cast<int>(baseLvl);
 
 		if(maxLvl < minLvl)
 			continue;
 
 		int numPartitions = numProcs;
 		if(static_partitioning_enabled())
-			numPartitions = (int)procH->cluster_procs(hlevel).size();
+			numPartitions = static_cast<int>(procH->cluster_procs(hlevel).size());
 
 		if((numProcs <= 1) || (numPartitions == 1)){
 			for(int i = minLvl; i <= maxLvl; ++i)
@@ -316,7 +316,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 			continue;
 		}
 
-		if(static_partitioning_enabled() && ((int)hlevel <= m_highestRedistLevel)){
+		if(static_partitioning_enabled() && (static_cast<int>(hlevel) <= m_highestRedistLevel)){
 			for(int i = minLvl; i <= maxLvl; ++i)
 				sh.assign_subset( mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
 			continue;
@@ -589,7 +589,7 @@ control_bisection(ISubsetHandler& partitionSH, std::vector<TreeNode>& treeNodes,
 
 		int numTargetProcsLeft = tn.numTargetProcs / 2;
 		int numTargetProcsRight = tn.numTargetProcs - numTargetProcsLeft;
-		tn.ratioLeft = (number)numTargetProcsLeft / (number)tn.numTargetProcs;
+		tn.ratioLeft = static_cast<number>(numTargetProcsLeft) / static_cast<number>(tn.numTargetProcs);
 
 		tn.firstChildNode = childNodes.size();
 		childNodes.resize(childNodes.size() + 2);
@@ -698,7 +698,7 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 	}
 
 	if(cutRecursion < m_numSplitAxisEnabled - 1){
-		const size_t numWgtsPerNode = 5;
+		constexpr size_t numWgtsPerNode = 5;
 		vector<double> weights(parentNodes.size() * numWgtsPerNode, 0);
 
 		for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
@@ -918,12 +918,12 @@ copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl)
 	//	communicate partitions from v-masters to v-slaves, since v-slaves
 	//	havn't got no parents on their procs.
 		ComPol_Subset<layout_t>	compolSHCopy(partitionSH, true);
-		if(glm.has_layout<elem_t>(INT_V_MASTER)){
-			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl+1),
+		if(glm.has_layout<elem_t>(InterfaceNodeTypes::INT_V_MASTER)){
+			m_intfcCom.send_data(glm.get_layout<elem_t>(InterfaceNodeTypes::INT_V_MASTER).layout_on_level(lvl+1),
 								 compolSHCopy);
 		}
-		if(glm.has_layout<elem_t>(INT_V_SLAVE)){
-			m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl+1),
+		if(glm.has_layout<elem_t>(InterfaceNodeTypes::INT_V_SLAVE)){
+			m_intfcCom.receive_data(glm.get_layout<elem_t>(InterfaceNodeTypes::INT_V_SLAVE).layout_on_level(lvl+1),
 									compolSHCopy);
 		}
 		m_intfcCom.communicate();
@@ -951,7 +951,7 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 //	childLvl may be at most one level above the highest level of the grid hierarchy.
 //	This is allowed to consider top-level elements which are to be considered one level
 //	above their actual level...
-	if(childLvl < baseLvl || childLvl >= (int)mg.num_levels()){
+	if(childLvl < baseLvl || childLvl >= static_cast<int>(mg.num_levels())){
 		SetAttachmentValues(aaWeight, mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl), 0);
 		return;
 	}
@@ -985,11 +985,11 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 
 		for(int lvl = childLvl - 1; lvl >= baseLvl; --lvl){
 		//	copy from v-slaves to vmasters
-			if(glm.has_layout<elem_t>(INT_V_SLAVE))
-				m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl + 1),
+			if(glm.has_layout<elem_t>(InterfaceNodeTypes::INT_V_SLAVE))
+				m_intfcCom.send_data(glm.get_layout<elem_t>(InterfaceNodeTypes::INT_V_SLAVE).layout_on_level(lvl + 1),
 									 compolCopy);
-			if(glm.has_layout<elem_t>(INT_V_MASTER))
-				m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl + 1),
+			if(glm.has_layout<elem_t>(InterfaceNodeTypes::INT_V_MASTER))
+				m_intfcCom.receive_data(glm.get_layout<elem_t>(InterfaceNodeTypes::INT_V_MASTER).layout_on_level(lvl + 1),
 										compolCopy);
 			m_intfcCom.communicate();
 
@@ -1182,7 +1182,7 @@ improve_split_values(vector<TreeNode>& treeNodes,
 			}
 		}
 
-		if (com.allreduce (char(allAreDone), PCL_RO_LAND)){
+		if (com.allreduce (static_cast<char>(allAreDone), PCL_RO_LAND)){
 			// UG_LOG("improve_split_values done after " << iteration + 1 << " iterations.\n");
 			break;
 		}

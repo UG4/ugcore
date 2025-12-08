@@ -52,47 +52,41 @@ class DimReferenceMappingWrapper
 
 	public:
 	///	returns if mapping is affine
-		virtual bool is_linear() const {return TRefMapping::isLinear;}
+		bool is_linear() const override {return TRefMapping::isLinear;}
 
 	///	refresh mapping for new set of corners
-		virtual void update(const MathVector<worldDim>* vCorner)
-		{
+		void update(const MathVector<worldDim>* vCorner) override {
 			TRefMapping::update(vCorner);
 		}
 
 	///	refresh mapping for new set of corners
-		virtual void update(const std::vector<MathVector<worldDim> >& vCorner)
-		{
+		void update(const std::vector<MathVector<worldDim> >& vCorner) override {
 			TRefMapping::update(vCorner);
 		}
 
 	///	map local coordinate to global coordinate
-		virtual void local_to_global(MathVector<worldDim>& globPos,
-		                             const MathVector<dim>& locPos) const
-		{
+		void local_to_global(MathVector<worldDim>& globPos,
+	                     const MathVector<dim>& locPos) const override {
 			TRefMapping::local_to_global(globPos, locPos);
 		}
 
 	///	map n local coordinate to global coordinate
-		virtual void local_to_global(MathVector<worldDim>* vGlobPos,
-									 const MathVector<dim>* vLocPos, size_t n) const
-		{
+		void local_to_global(MathVector<worldDim>* vGlobPos,
+	                     const MathVector<dim>* vLocPos, size_t n) const override {
 			TRefMapping::local_to_global(vGlobPos, vLocPos, n);
 		}
 
 	///	map local coordinate to global coordinate for a vector of local positions
-		virtual void local_to_global(std::vector<MathVector<worldDim> >& vGlobPos,
-		                             const std::vector<MathVector<dim> >& vLocPos) const
-		{
+		void local_to_global(std::vector<MathVector<worldDim> >& vGlobPos,
+	                     const std::vector<MathVector<dim> >& vLocPos) const override {
 			TRefMapping::local_to_global(vGlobPos, vLocPos);
 		}
 
 	///	map global coordinate to local coordinate
-		void global_to_local(MathVector<dim>& locPos,
+			void global_to_local(MathVector<dim>& locPos,
 							 const MathVector<worldDim>& globPos,
 							 const size_t maxIter = 1000,
-							 const number tol = 1e-10) const
-		{
+							 const number tol = 1e-10) const override {
 			TRefMapping::global_to_local(locPos, globPos, maxIter, tol);
 		}
 
@@ -100,8 +94,7 @@ class DimReferenceMappingWrapper
 		void global_to_local(MathVector<dim>* vLocPos,
 							 const MathVector<worldDim>* vGlobPos, size_t n,
 							 const size_t maxIter = 1000,
-							 const number tol = 1e-10) const
-		{
+							 const number tol = 1e-10) const override {
 			TRefMapping::global_to_local(vLocPos, vGlobPos, n, maxIter, tol);
 		}
 
@@ -109,112 +102,97 @@ class DimReferenceMappingWrapper
 		void global_to_local(std::vector<MathVector<dim> >& vLocPos,
 							 const std::vector<MathVector<worldDim> >& vGlobPos,
 							 const size_t maxIter = 1000,
-							 const number tol = 1e-10) const
-		{
+							 const number tol = 1e-10) const override {
 			TRefMapping::global_to_local(vLocPos, vGlobPos, maxIter, tol);
 		}
 
 	///	returns jacobian
-		virtual void jacobian(MathMatrix<worldDim, dim>& J,
-		                      const MathVector<dim>& locPos) const
-		{
+		void jacobian(MathMatrix<worldDim, dim>& J,
+	              const MathVector<dim>& locPos) const override {
 			TRefMapping::jacobian(J, locPos);
 		}
 
 	///	returns jacobian for n local positions
-		virtual void jacobian(MathMatrix<worldDim, dim>* vJ,
-		                      const MathVector<dim>* vLocPos, size_t n) const
-		{
+		void jacobian(MathMatrix<worldDim, dim>* vJ,
+	              const MathVector<dim>* vLocPos, size_t n) const override {
 			TRefMapping::jacobian(vJ, vLocPos, n);
 		}
 
 	///	returns jacobian for a vector of local positions
-		virtual void jacobian(std::vector<MathMatrix<worldDim, dim> >& vJ,
-		                      const std::vector<MathVector<dim> >& vLocPos) const
-		{
+		void jacobian(std::vector<MathMatrix<worldDim, dim> >& vJ,
+	              const std::vector<MathVector<dim> >& vLocPos) const override {
 			TRefMapping::jacobian(vJ, vLocPos);
 		}
 
 	///	returns transposed of jacobian
-		virtual void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
-		                                 const MathVector<dim>& locPos) const
-		{
+		void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
+	                         const MathVector<dim>& locPos) const override {
 			TRefMapping::jacobian_transposed(JT, locPos);
 		}
 
 	///	returns transposed of jacobian for n local positions
-		virtual void jacobian_transposed(MathMatrix<dim, worldDim>* vJT,
-										 const MathVector<dim>* vLocPos, size_t n) const
-		{
+		void jacobian_transposed(MathMatrix<dim, worldDim>* vJT,
+	                         const MathVector<dim>* vLocPos, size_t n) const override {
 			TRefMapping::jacobian_transposed(vJT, vLocPos, n);
 		}
 
 	///	returns transposed of jacobian for a vector of positions
-		virtual void jacobian_transposed(std::vector<MathMatrix<dim, worldDim> >& vJT,
-		                                 const std::vector<MathVector<dim> >& vLocPos) const
-		{
+		void jacobian_transposed(std::vector<MathMatrix<dim, worldDim> >& vJT,
+	                         const std::vector<MathVector<dim> >& vLocPos) const override {
 			TRefMapping::jacobian_transposed(vJT, vLocPos);
 		}
 
 	///	returns transposed of the inverse of the jacobian
-		virtual number jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
-		                                         const MathVector<dim>& locPos) const
-		{
+		number jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
+	                                   const MathVector<dim>& locPos) const override {
 			return TRefMapping::jacobian_transposed_inverse(JTInv, locPos);
 		}
 
 	///	returns transposed of the inverse of the jacobian for n local positions
-		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* vJTInv,
-												 const MathVector<dim>* vLocPos, size_t n) const
-		{
+		void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* vJTInv,
+	                                 const MathVector<dim>* vLocPos, size_t n) const override {
 			TRefMapping::jacobian_transposed_inverse(vJTInv, vLocPos, n);
 		}
 
 	///	returns transposed of the inverse of the jacobian for n local positions
-		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* vJTInv,
-		                                         number* vDet,
-												 const MathVector<dim>* vLocPos, size_t n) const
-		{
+		void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* vJTInv,
+	                                 number* vDet,
+	                                 const MathVector<dim>* vLocPos, size_t n) const override {
 			TRefMapping::jacobian_transposed_inverse(vJTInv, vDet, vLocPos, n);
 		}
 
 	///	returns transposed of the inverse of the jacobian for a vector of positions
-		virtual void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
-		                                         const std::vector<MathVector<dim> >& vLocPos) const
-		{
+		void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
+	                                 const std::vector<MathVector<dim> >& vLocPos) const override {
 			TRefMapping::jacobian_transposed_inverse(vJTInv, vLocPos);
 		}
 
 	///	returns transposed of the inverse of the jacobian for a vector of positions
-		virtual void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
-		                                         std::vector<number>& vDet,
-												 const std::vector<MathVector<dim> >& vLocPos) const
-		{
+		void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
+	                                 std::vector<number>& vDet,
+	                                 const std::vector<MathVector<dim> >& vLocPos) const override {
 			TRefMapping::jacobian_transposed_inverse(vJTInv, vDet, vLocPos);
 		}
 
 	///	returns the determinate of the jacobian
-		virtual number sqrt_gram_det(const MathVector<dim>& locPos) const
-		{
+		number sqrt_gram_det(const MathVector<dim>& locPos) const override {
 			return TRefMapping::sqrt_gram_det(locPos);
 		}
 
 	///	returns the determinate of the jacobian for n local positions
-		virtual void sqrt_gram_det(number* vDet,
-		                          const MathVector<dim>* vLocPos, size_t n) const
-		{
+		void sqrt_gram_det(number* vDet,
+	                   const MathVector<dim>* vLocPos, size_t n) const override {
 			TRefMapping::sqrt_gram_det(vDet, vLocPos, n);
 		}
 
 	///	returns the determinate of the jacobian for a vector of local positions
-		virtual void sqrt_gram_det(std::vector<number>& vDet,
-		                          const std::vector<MathVector<dim> >& vLocPos) const
-		{
+		void sqrt_gram_det(std::vector<number>& vDet,
+	                   const std::vector<MathVector<dim> >& vLocPos) const override {
 			TRefMapping::sqrt_gram_det(vDet, vLocPos);
 		}
 
 	///	virtual destructor
-		virtual ~DimReferenceMappingWrapper() = default;
+		~DimReferenceMappingWrapper() override = default;
 };
 
 

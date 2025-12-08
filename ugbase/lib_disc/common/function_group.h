@@ -36,7 +36,7 @@
 #include <vector>
 #include <string>
 
-#include "common/common.h"
+// #include "common/common.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 #include "lib_disc/dof_manager/function_pattern.h"
 
@@ -55,7 +55,7 @@ class FunctionGroup
 		FunctionGroup();
 
 	///	Constructor setting function pattern
-		FunctionGroup(ConstSmartPtr<FunctionPattern> spFuncPattern);
+		explicit FunctionGroup(ConstSmartPtr<FunctionPattern> spFuncPattern);
 
 	///	Constructor setting function pattern and function
 		FunctionGroup(ConstSmartPtr<FunctionPattern> spFuncPattern, const char* name);
@@ -122,7 +122,7 @@ class FunctionGroup
 		[[nodiscard]] std::string names() const;
 
 	/// returns unique function id of a function
-		size_t operator [] (size_t i) const {return unique_id(i);}
+		[[nodiscard]] size_t operator [] (size_t i) const {return unique_id(i);}
 
 	/// returns unique function id of a function
 		[[nodiscard]] size_t unique_id(size_t i) const

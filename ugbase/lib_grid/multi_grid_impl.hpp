@@ -403,7 +403,7 @@ template <>
 class MGWrapper<Grid>
 {
 	public:
-		MGWrapper(Grid& grid) : m_grid(grid)	{}
+		explicit MGWrapper(Grid& grid) : m_grid(grid)	{}
 		
 		inline uint num_levels() const
 		{return 1;}
@@ -432,7 +432,7 @@ template <>
 class MGWrapper<MultiGrid>
 {
 	public:
-		MGWrapper(MultiGrid& grid) : m_grid(grid)	{}
+		explicit MGWrapper(MultiGrid& grid) : m_grid(grid)	{}
 		
 		inline uint num_levels() const
 		{return (uint)m_grid.num_levels();}

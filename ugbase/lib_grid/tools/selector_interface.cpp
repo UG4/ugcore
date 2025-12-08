@@ -250,22 +250,22 @@ void ISelector::broadcast_selection_states(bool deselect,
 		//	if ghosts shall be included, we will first have to make sure that
 		//	copies in h-interfaces know about the selection state of associated
 		//	ghosts
-			icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compol);
+			icom.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, compol);
 			icom.communicate();
 		}
 
 	//	gather selection state at h-master
-		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compol);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, compol);
 		icom.communicate();
 
 	//	copy it to all h-slaves
-		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compol);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, compol);
 		icom.communicate();
 
 		if(includeGhosts){
 		//	if ghosts shall be included, we will now have to copy the values back
 		//	to those ghosts
-			icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compol);
+			icom.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compol);
 			icom.communicate();
 		}
 	}

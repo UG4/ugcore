@@ -74,13 +74,13 @@ DoFDistribution(SmartPtr<MultiGrid> spMG,
 	  m_numIndex(0)
 {
 	if(m_spDoFIndexStorage.invalid())
-		m_spDoFIndexStorage = SmartPtr<DoFIndexStorage>(new DoFIndexStorage(spMG, spDDInfo));
+		m_spDoFIndexStorage = SmartPtr(new DoFIndexStorage(spMG, spDDInfo));
 
 	check_subsets();
 	m_vNumIndexOnSubset.resize(num_subsets(), 0);
 
 #ifdef UG_PARALLEL
-	m_spAlgebraLayouts = SmartPtr<AlgebraLayouts>(new AlgebraLayouts);
+	m_spAlgebraLayouts = SmartPtr(new AlgebraLayouts);
 #endif
 
 	reinit();
@@ -1143,8 +1143,8 @@ void DoFDistribution::_indices(TBaseElem* elem, LocalIndices& ind, bool bHang) c
 //	get regular dofs on all subelements and the element itself
 //	use specialized function for vertices (since only one position and one reference object)
 	if(dim >= VERTEX && max_dofs(VERTEX) > 0) indices_on_vertex<TBaseElem>(elem, roid, ind, vCorner);
-	if(dim >= EDGE && max_dofs(EDGE) > 0) 	  indices<TBaseElem, Edge>(elem, roid, ind, vEdge);
-	if(dim >= FACE && max_dofs(FACE) > 0) 	  indices<TBaseElem, Face>(elem, roid, ind, vFace);
+	if(dim >= EDGE && max_dofs(EDGE) > 0) indices<TBaseElem, Edge>(elem, roid, ind, vEdge);
+	if(dim >= FACE && max_dofs(FACE) > 0) indices<TBaseElem, Face>(elem, roid, ind, vFace);
 	if(dim >= VOLUME && max_dofs(VOLUME) > 0) indices<TBaseElem, Volume>(elem, roid, ind, vVol);
 
 //	If no hanging dofs are required, we're done
@@ -1480,8 +1480,8 @@ void DoFDistribution::reinit_index_layout(IndexLayout& layout, int keyType)
 
 //	add the index from grid layouts
 	if(max_dofs(VERTEX)) add_indices_from_layouts<Vertex>(layout, keyType);
-	if(max_dofs(EDGE))   add_indices_from_layouts<Edge>(layout, keyType);
-	if(max_dofs(FACE))   add_indices_from_layouts<Face>(layout, keyType);
+	if(max_dofs(EDGE)) add_indices_from_layouts<Edge>(layout, keyType);
+	if(max_dofs(FACE)) add_indices_from_layouts<Face>(layout, keyType);
 	if(max_dofs(VOLUME)) add_indices_from_layouts<Volume>(layout, keyType);
 
 //	touching an interface means creation. Thus we remove the empty interfaces
@@ -1698,7 +1698,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 		for(int si = 0; si < num_subsets(); ++si)
 			for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 			{
-				const ReferenceObjectID roid = (ReferenceObjectID) i;
+				const auto roid = (ReferenceObjectID) i;
 				if(num_dofs(roid,si) == 0) continue;
 				if(numDoFs == 0) {numDoFs = num_dofs(roid,si); continue;}
 				if(num_dofs(roid,si) != numDoFs)

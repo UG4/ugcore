@@ -233,12 +233,12 @@ get_local_edge_mark(Face* f, Edge* e) const
 		const int faceLocalMark = get_local_mark(f);
 		return (faceLocalMark >> edgeInd) & 1;
 	}
-	else if(marked_full(f)){
+	if(marked_full(f)){
 		return 1;
 	}
-	else if(marked_closure(f)){
+	if(marked_closure(f)){
 
-		return static_cast<int>(marked_full(e));
+	return marked_full(e);
 	}
 	return 0;
 }
@@ -383,12 +383,11 @@ size_t IRefiner::num_marked_elements(std::vector<int>& numMarkedElemsOut)
 
 		if(numVolumes > 0)
 			return num_marked_volumes(numMarkedElemsOut);
-		else if(numFaces > 0)
+		if(numFaces > 0)
 			return num_marked_faces(numMarkedElemsOut);
-		else if(numEdges > 0)
+		if(numEdges > 0)
 			return num_marked_edges(numMarkedElemsOut);
-		else
-			return 0;
+		return 0;
 	}
 	return 0;
 }

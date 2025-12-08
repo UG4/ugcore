@@ -56,14 +56,14 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 	if(maxNumRedistProcs > maxNumProcs)
 		maxNumRedistProcs = maxNumProcs;
 
-	if(((int)numLvls <= minDistLvl) || (maxNumProcs == 0) || (maxNumRedistProcs == 0))
+	if((static_cast<int>(numLvls) <= minDistLvl) || (maxNumProcs == 0) || (maxNumRedistProcs == 0))
 	{
 		procH->add_hierarchy_level(0, 1);
 		return procH;
 	}
 
 //	find the level with the most elements first
-	size_t largestLvl = (size_t)minDistLvl;
+	size_t largestLvl = static_cast<size_t>(minDistLvl);
 
 	for(size_t i = minDistLvl + 1; i < numLvls; ++i){
 		if(numElemsOnLvl[i] > numElemsOnLvl[largestLvl])
@@ -96,9 +96,9 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 		}
 
 		if((curNumProcs * numRedistProcs * minNumElemsPerProcPerLvl <= numElemsOnLvl[lvl])
-			&& ((int)lvl - lastDistLvl > 1))
+			&& (static_cast<int>(lvl) - lastDistLvl > 1))
 		{
-			lastDistLvl = (int)lvl;
+			lastDistLvl = static_cast<int>(lvl);
 			procH->add_hierarchy_level(lvl, numRedistProcs);
 			curNumProcs *= numRedistProcs;
 		}

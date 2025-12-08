@@ -294,7 +294,7 @@ void MultiGrid::edge_created(Grid* grid, Edge* edge,
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
 		UG_ASSERT(pParent->base_object_id() == EDGE,
 				  "only objects of the same base type can be replaced.");
-		Edge* pReplaceMe = static_cast<Edge*>(pParent);
+		auto pReplaceMe = static_cast<Edge*>(pParent);
 		GridObject* realParent = get_parent(pReplaceMe);
 		if(realParent){
 		//	we call a version of element_created, which allows a replacement
@@ -376,7 +376,7 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
 		UG_ASSERT(pParent->base_object_id() == FACE,
 				  "only objects of the same base type can be replaced.");
-		Face* pReplaceMe = static_cast<Face*>(pParent);
+		auto pReplaceMe = static_cast<Face*>(pParent);
 		GridObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replacement

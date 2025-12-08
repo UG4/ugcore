@@ -125,11 +125,11 @@ struct reference_element_traits<Quadrilateral>
 
 template <>
 struct reference_element_traits<ConstrainedQuadrilateral>
-	: public reference_element_traits<Quadrilateral>{};
+	: reference_element_traits<Quadrilateral>{};
 
 template <>
 struct reference_element_traits<ConstrainingQuadrilateral>
-	: public reference_element_traits<Quadrilateral>{};
+	: reference_element_traits<Quadrilateral>{};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Tetrahedron

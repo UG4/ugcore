@@ -128,7 +128,7 @@ class AnisotropicBalanceWeights : public IBalanceWeights{
 			return CalculateVolume(e, m_aaPos) * m_weightFactor;
 		}
 
-		number get_weight_impl(GridObject* e){
+		number get_weight_impl(GridObject* e) const {
 			return 1;
 		}
 

@@ -38,7 +38,7 @@
 #ifndef __H__LIBGRID__SELECTOR_GRID_ELEM__
 #define __H__LIBGRID__SELECTOR_GRID_ELEM__
 
-#include <cassert>
+// #include <cassert>
 #include "selector_grid.h"
 
 namespace ug
@@ -128,11 +128,11 @@ class UG_API TElemSelector : public Selector
 
 		using Selector::begin;// support for iteration over Edge, ConstrainedEdge, ...
 		inline iterator begin()						{return Selector::begin<TBaseElem>();}
-		inline const_iterator begin() const			{return Selector::begin<TBaseElem>();}
+		[[nodiscard]] inline const_iterator begin() const			{return Selector::begin<TBaseElem>();}
 
 		using Selector::end;// support for iteration over Edge, ConstrainedEdge, ...
 		inline iterator end()						{return Selector::end<TBaseElem>();}
-		inline const_iterator end() const			{return Selector::end<TBaseElem>();}
+		[[nodiscard]] inline const_iterator end() const			{return Selector::end<TBaseElem>();}
 
 };
 

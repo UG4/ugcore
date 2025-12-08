@@ -89,7 +89,7 @@ class QuadratureRule{
 		virtual ~QuadratureRule() = default;
 
 	///	number of integration points
-		inline size_t size() const {return m_numPoints;}
+		[[nodiscard]] inline size_t size() const {return m_numPoints;}
 
 	///	returns i'th integration point
 		inline const MathVector<dim>& point(size_t i) const
@@ -102,17 +102,17 @@ class QuadratureRule{
 		inline const MathVector<dim>* points() const {return m_pvPoint;}
 
 	///	return the i'th weight
-		inline number weight(size_t i) const
+		[[nodiscard]] inline number weight(size_t i) const
 		{
 			UG_ASSERT(i < size(), "Wrong index");
 			return m_pvWeight[i];
 		}
 
 	/// returns all weights in an array of size()
-		inline const number* weights() const	{return m_pvWeight;}
+		[[nodiscard]] inline const number* weights() const	{return m_pvWeight;}
 
 	///	returns the order
-		inline size_t order() const {return m_order;}
+		[[nodiscard]] inline size_t order() const {return m_order;}
 
 	protected:
 		const MathVector<dim>* m_pvPoint;	///< Integration points

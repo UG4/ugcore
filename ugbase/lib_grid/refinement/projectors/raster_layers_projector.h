@@ -46,7 +46,7 @@ public:
 
 	RasterLayersProjector ()	{}
 
-	RasterLayersProjector (SPIGeometry3d geometry) :
+	explicit RasterLayersProjector (SPIGeometry3d geometry) :
 		RefinementProjector (geometry)
 	{add_attachments();}
 
@@ -55,8 +55,7 @@ public:
 	{add_attachments();
 	 set_layers(layers);}
 
-	void set_geometry(SPIGeometry3d g)
-	{
+	void set_geometry(SPIGeometry3d g) override {
 		if(g == geometry())
 			return;
 
@@ -86,28 +85,24 @@ public:
 			relZ += m_aaRelZ[vrts[i]];
 		}
 
-		return relZ / (number)numVrts;
+		return relZ / static_cast<number>(numVrts);
 	}
 
-	virtual number new_vertex(Vertex* vrt, Vertex* parent)
-	{
+	number new_vertex(Vertex* vrt, Vertex* parent) override {
 		m_aaRelZ[vrt] = m_aaRelZ[parent];
 		set_pos(vrt, pos(parent));
 		return 1;
 	}
 
-	virtual number new_vertex(Vertex* vrt, Edge* parent)
-	{
+	number new_vertex(Vertex* vrt, Edge* parent) override {
 		return new_vertex_impl(vrt, parent);
 	}
 
-	virtual number new_vertex(Vertex* vrt, Face* parent)
-	{
+	number new_vertex(Vertex* vrt, Face* parent) override {
 		return new_vertex_impl(vrt, parent);
 	}
 
-	virtual number new_vertex(Vertex* vrt, Volume* parent)
-	{
+	number new_vertex(Vertex* vrt, Volume* parent) override {
 		return new_vertex_impl(vrt, parent);
 	}
 

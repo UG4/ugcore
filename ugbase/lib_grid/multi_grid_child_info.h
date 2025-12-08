@@ -36,7 +36,9 @@
 #include <vector>
 #include "common/error.h"
 #include "common/assert.h"
+#include "common/util/array_util.h"
 #include "lib_grid/grid/grid_base_objects.h"
+
 namespace ug{
 
 

@@ -58,8 +58,9 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 		using HangingNodeRefinerBase::mark;
 
 	public:
-		HangingNodeRefiner_Grid(SPRefinementProjector projector = nullptr);
-		HangingNodeRefiner_Grid(Grid& grid, SPRefinementProjector projector = nullptr);
+		explicit HangingNodeRefiner_Grid(SPRefinementProjector projector = nullptr);
+
+		explicit HangingNodeRefiner_Grid(Grid& grid, SPRefinementProjector projector = nullptr);
 
 		~HangingNodeRefiner_Grid() override;
 

@@ -53,14 +53,14 @@ public:
 		m_cbIsCrease (Grid::edge_traits::callback(ConsiderNone())),
 		m_customConcernedElementsCallbackUsed (false)
 	{}
-	
-	SubdivisionProjector (Grid::edge_traits::callback cbIsCrease) :
+
+	explicit SubdivisionProjector (Grid::edge_traits::callback cbIsCrease) :
 		m_cbIsCrease (cbIsCrease),
 		m_customConcernedElementsCallbackUsed (false)
 	{}
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
-	SubdivisionProjector (SPIGeometry3d geometry) :
+	explicit SubdivisionProjector (SPIGeometry3d geometry) :
 		RefinementProjector (geometry, make_sp(new IsBoundaryOrManifodFace(geometry->grid()))),
 		m_cbIsCrease (Grid::edge_traits::callback(ConsiderNone())),
 		m_customConcernedElementsCallbackUsed (false)
@@ -74,8 +74,7 @@ public:
 		m_customConcernedElementsCallbackUsed (false)
 	{}
 
-	virtual void set_geometry (SPIGeometry3d geometry)
-	{
+	void set_geometry (SPIGeometry3d geometry) override {
 		RefinementProjector::set_geometry (geometry);
 		if(!m_customConcernedElementsCallbackUsed){
 			RefinementProjector::set_concerned_elements(
@@ -83,18 +82,18 @@ public:
 		}
 	}
 
-	virtual void set_concerned_elements (SPElementCallback cb)
-	{
+	void set_concerned_elements (SPElementCallback cb) override {
 		RefinementProjector::set_concerned_elements (cb);
 		m_customConcernedElementsCallbackUsed = true;
 	}
 
-	virtual bool refinement_begins_requires_subgrid () const	{return true;}
-	
-	virtual void refinement_begins(const ISubGrid* sg);
-	virtual void refinement_ends();
+	bool refinement_begins_requires_subgrid () const override {return true;}
 
-	virtual number new_vertex(Vertex* vrt, Edge* parent);
+	void refinement_begins(const ISubGrid* sg) override;
+
+	void refinement_ends() override;
+
+	number new_vertex(Vertex* vrt, Edge* parent) override;
 	// virtual number new_vertex(Vertex* vrt, Face* parent);
 	// virtual number new_vertex(Vertex* vrt, Volume* parent);
 

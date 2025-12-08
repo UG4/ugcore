@@ -62,39 +62,35 @@ public:
 	{}
 
 	int iterations () const	{return m_iterations;}
-	void set_iterations (int iterations)	{m_iterations = iterations;}
+	void set_iterations (int iterations) {m_iterations = iterations;}
 
 	number change_rate () const	{return m_changeRate;}
-	void set_change_rate (number changeRate)	{m_changeRate = changeRate;}
+	void set_change_rate (number changeRate) {m_changeRate = changeRate;}
 
 ///	called before refinement begins
-	virtual void refinement_begins(const ISubGrid* sg)
-	{
+	void refinement_begins(const ISubGrid* sg) override {
 		RefinementProjector::refinement_begins(sg);
 		m_newVrts.clear();
 	}
 
 ///	called when refinement is done.
 /**	The actual smoothing is performed here*/
-	virtual void refinement_ends();
+	void refinement_ends() override;
 
 ///	called when a new vertex was created from an old edge.
-	virtual number new_vertex(Vertex* vrt, Edge* parent)
-	{
+	number new_vertex(Vertex* vrt, Edge* parent) override {
 		m_newVrts.push_back(vrt);
 		return RefinementProjector::new_vertex(vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old face.
-	virtual number new_vertex(Vertex* vrt, Face* parent)
-	{
+	number new_vertex(Vertex* vrt, Face* parent) override {
 		m_newVrts.push_back(vrt);
 		return RefinementProjector::new_vertex(vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old volume.
-	virtual number new_vertex(Vertex* vrt, Volume* parent)
-	{
+	number new_vertex(Vertex* vrt, Volume* parent) override {
 		m_newVrts.push_back(vrt);
 		return RefinementProjector::new_vertex(vrt, parent);
 	}
@@ -111,7 +107,7 @@ private:
 	}
 
 	std::vector<Vertex*> m_newVrts;
-	int		m_iterations;
+	int m_iterations;
 	number	m_changeRate;
 };
 

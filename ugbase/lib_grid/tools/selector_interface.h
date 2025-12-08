@@ -217,7 +217,7 @@ class UG_API ISelector : public GridObserver
 		[[nodiscard]] inline bool is_selected(TElem* elem) const {return get_selection_status(elem) != 0;}
 
 	//	non-virtual methods.
-		[[nodiscard]] inline Grid* grid() const		{return m_pGrid;}
+		[[nodiscard]] inline Grid* grid() const {return m_pGrid;}
 
 	///	returns a geometric object collection, containing all selected objects
 		[[nodiscard]] virtual GridObjectCollection get_grid_objects() const = 0;

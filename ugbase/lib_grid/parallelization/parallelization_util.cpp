@@ -43,7 +43,7 @@ using namespace std;
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
-int GetAssociatedInterfaceType(int interfaceType)
+InterfaceNodeTypes GetAssociatedInterfaceType(InterfaceNodeTypes interfaceType)
 {
 	switch(interfaceType){
 		case InterfaceNodeTypes::INT_H_MASTER:	return InterfaceNodeTypes::INT_H_SLAVE;

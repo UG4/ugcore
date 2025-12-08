@@ -46,8 +46,8 @@ ref_marks_changed(IRefiner& ref,
 	if(!ref.grid()){
 		return;
 	}
-	
-	MultiGrid* pmg = dynamic_cast<MultiGrid*>(ref.grid());
+
+	auto * pmg = dynamic_cast<MultiGrid*>(ref.grid());
 	UG_ASSERT(pmg, "MGHNodeAdjuster can only operate on multi-grids, not on standard grids.");
 	if(!pmg)
 		return;

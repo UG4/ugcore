@@ -39,9 +39,9 @@
 #include "common/util/table.h"
 #include "partitioner.h"
 
-#ifdef UG_PARALLEL
-	#include "pcl/pcl_process_communicator.h"
-#endif
+//#ifdef UG_PARALLEL
+	// #include "pcl/pcl_process_communicator.h"
+//#endif
 
 
 namespace ug{

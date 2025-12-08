@@ -302,7 +302,7 @@ class ApproximationSpace : public IApproximationSpace
 	///	Return the domain
 		SmartPtr<TDomain> domain() {return m_spDomain;}
 
-		int get_dim_bridge() { return dim; }
+		int get_dim_bridge() const { return dim; }
 		static constexpr int get_dim() { return dim; }
 
 	protected:

@@ -83,20 +83,20 @@ class DimReferenceMapping
 	///	map global coordinate to local coordinate
 		virtual void global_to_local(MathVector<dim>& locPos,
 		                             const MathVector<worldDim>& globPos,
-		                             const size_t maxIter = 1000,
-									 const number tol = 1e-10) const = 0;
+		                             size_t maxIter = 1000,
+		                             number tol = 1e-10) const = 0;
 
 	///	map global coordinate to local coordinate for n local positions
 		virtual void global_to_local(MathVector<dim>* vLocPos,
 		                             const MathVector<worldDim>* vGlobPos, size_t n,
-		                             const size_t maxIter = 1000,
-									 const number tol = 1e-10) const = 0;
+		                             size_t maxIter = 1000,
+		                             number tol = 1e-10) const = 0;
 
 	///	map global coordinate to local coordinate for a vector of local positions
 		virtual void global_to_local(std::vector<MathVector<dim> >& vLocPos,
 		                             const std::vector<MathVector<worldDim> >& vGlobPos,
-		                             const size_t maxIter = 1000,
-									 const number tol = 1e-10) const = 0;
+		                             size_t maxIter = 1000,
+		                             number tol = 1e-10) const = 0;
 
 	///	returns jacobian
 		virtual void jacobian(MathMatrix<worldDim, dim>& J,

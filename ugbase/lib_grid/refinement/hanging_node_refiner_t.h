@@ -47,10 +47,10 @@ template <>
 class THangingNodeRefiner<Grid> : public HangingNodeRefiner_Grid
 {
 	public:
-		THangingNodeRefiner(SPRefinementProjector projector = nullptr) :
+	explicit THangingNodeRefiner(SPRefinementProjector projector = nullptr) :
 			HangingNodeRefiner_Grid(projector)	{}
 
-		THangingNodeRefiner(Grid& grid, SPRefinementProjector projector = nullptr) :
+	explicit THangingNodeRefiner(Grid& grid, SPRefinementProjector projector = nullptr) :
 			HangingNodeRefiner_Grid(grid, projector)	{}
 };
 
@@ -58,10 +58,10 @@ template <>
 class THangingNodeRefiner<MultiGrid> : public HangingNodeRefiner_MultiGrid
 {
 	public:
-		THangingNodeRefiner(SPRefinementProjector projector = nullptr) :
+	explicit THangingNodeRefiner(SPRefinementProjector projector = nullptr) :
 			HangingNodeRefiner_MultiGrid(projector)	{}
 
-		THangingNodeRefiner(MultiGrid& mg, SPRefinementProjector projector = nullptr) :
+	explicit THangingNodeRefiner(MultiGrid& mg, SPRefinementProjector projector = nullptr) :
 			HangingNodeRefiner_MultiGrid(mg, projector)	{}
 };
 

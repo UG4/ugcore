@@ -33,7 +33,7 @@
 #ifndef __H__UG__LIB_DISC__COMMON__MULTI_INDEX__
 #define __H__UG__LIB_DISC__COMMON__MULTI_INDEX__
 
-#include <vector>
+
 #include <iostream>
 #include <cassert>
 

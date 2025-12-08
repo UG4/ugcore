@@ -56,12 +56,12 @@ class RefinementProjector {
 public:
 	RefinementProjector () = default;
 
-	RefinementProjector (SPIGeometry3d geometry) :
+	explicit RefinementProjector (SPIGeometry3d geometry) :
 		m_geometry (geometry),
 		m_concernedElementsCallback (make_sp(new ConsiderAll()))
 	{}
-	
-	RefinementProjector (SPElementCallback cb) :
+
+	explicit RefinementProjector (SPElementCallback cb) :
 		m_concernedElementsCallback (cb)
 	{}
 
@@ -146,7 +146,7 @@ public:
 	}
 
 protected:
-	vector3 pos (Vertex* v) const
+	[[nodiscard]] vector3 pos (Vertex* v) const
 	{
 		// UG_COND_THROW(m_geometry.invalid(),
 		// 			  "Invalid Geometry in IRefinementProjector. Please make "
@@ -163,7 +163,7 @@ protected:
 	}
 
 	IGeometry3d& geom () {return *m_geometry;}
-	const IGeometry3d& geom () const {return *m_geometry;}
+	[[nodiscard]] const IGeometry3d& geom () const {return *m_geometry;}
 
 	template <typename TElem>
 	bool is_concerned (TElem* e) {

@@ -377,8 +377,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 	vector<vector3> corners(6, vector3(0, 0, 0));
 
 //	create new vertices and volumes from marked volumes
-	for(VolumeIterator iter = mg.begin<Volume>(oldTopLevel);
-		iter != mg.end<Volume>(oldTopLevel); ++iter)
+	for(auto iter = mg.begin<Volume>(oldTopLevel); iter != mg.end<Volume>(oldTopLevel); ++iter)
 	{
 		if(!refinement_is_allowed(*iter))
 			continue;

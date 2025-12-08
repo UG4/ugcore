@@ -89,13 +89,14 @@ refinement_ends ()
 
 			const size_t numNbrs = localNbrs.size();
 			if(numNbrs > 0){
-				number wgt = m_changeRate / (number)numNbrs;
+				number wgt = m_changeRate / static_cast<number>(numNbrs);
 				vector3 weigtedCenter(0, 0, 0);
-				for(size_t _vfeI = 0; _vfeI < localNbrs.size(); ++_vfeI){ Vertex* nbr = localNbrs[_vfeI];{
+				for(size_t _vfeI = 0; _vfeI < localNbrs.size(); ++_vfeI){
+					Vertex* nbr = localNbrs[_vfeI];
 					vector3 nbrPos = pos(nbr);
 					nbrPos *= wgt;
 					weigtedCenter += nbrPos;
-				}};
+				}
 
 				vector3 newPos = pos(vrt);
 				newPos *= (1. - m_changeRate);

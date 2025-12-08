@@ -107,20 +107,20 @@ class ReferenceMapping
 	///	map global coordinate to local coordinate
 		void global_to_local(MathVector<dim>& locPos,
 							 const MathVector<worldDim>& globPos,
-							 const size_t maxIter = 1000,
-							 const number tol = 1e-10) const;
+							 size_t maxIter = 1000,
+							 number tol = 1e-10) const;
 
 	///	map global coordinate to local coordinate for n local positions
 		void global_to_local(MathVector<dim>* vLocPos,
 							 const MathVector<worldDim>* vGlobPos, size_t n,
-							 const size_t maxIter = 1000,
-							 const number tol = 1e-10) const;
+							 size_t maxIter = 1000,
+							 number tol = 1e-10) const;
 
 	///	map global coordinate to local coordinate for a vector of local positions
 		void global_to_local(std::vector<MathVector<dim> >& vLocPos,
 							 const std::vector<MathVector<worldDim> >& vGlobPos,
-							 const size_t maxIter = 1000,
-							 const number tol = 1e-10) const;
+							 size_t maxIter = 1000,
+							 number tol = 1e-10) const;
 
 	///	returns jacobian
 		void jacobian(MathMatrix<worldDim, dim>& J,
@@ -534,12 +534,12 @@ class ReferenceMapping<ReferenceVertex, TWorldDim>
 
 	public:
 	///	Default Constructor
-		ReferenceMapping() {}
+		ReferenceMapping() = default;
 
 	///	Constructor setting the corners
 	/// \{
-		ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
-		ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
 	/// \}
 
 	///	refresh mapping for new set of corners
@@ -606,8 +606,8 @@ class ReferenceMapping<ReferenceEdge, TWorldDim>
 
 	///	Constructor setting the corners
 	/// \{
-		ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
-		ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
 	/// \}
 
 	///	refresh mapping for new set of corners
@@ -675,8 +675,8 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 
 	///	Constructor setting the corners
 	/// \{
-		ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
-		ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
 	/// \}
 
 	///	refresh mapping for new set of corners
@@ -735,8 +735,7 @@ class ReferenceMapping<ReferenceQuadrilateral, TWorldDim>
 		static constexpr bool isLinear = false;
 
 	public:
-		using base_type = BaseReferenceMapping<ReferenceQuadrilateral::dim, TWorldDim, false,
-			ReferenceMapping<ReferenceQuadrilateral, TWorldDim> >;
+		using base_type = BaseReferenceMapping<ReferenceQuadrilateral::dim, TWorldDim, false, ReferenceMapping >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -745,12 +744,12 @@ class ReferenceMapping<ReferenceQuadrilateral, TWorldDim>
 
 	public:
 	///	Default Constructor
-		ReferenceMapping() {}
+		ReferenceMapping() = default;
 
 	///	Constructor setting the corners
 	/// \{
-		ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
-		ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
 	/// \}
 
 	///	refresh mapping for new set of corners
@@ -829,12 +828,12 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 
 	public:
 	///	Default Constructor
-		ReferenceMapping() {}
+		ReferenceMapping() = default;
 
 	///	Constructor setting the corners
 	/// \{
-		ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
-		ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
 	/// \}
 
 	///	refresh mapping for new set of corners
@@ -896,8 +895,7 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 		static constexpr bool isLinear = false;
 
 	public:
-		using base_type = BaseReferenceMapping<ReferencePyramid::dim, TWorldDim, false,
-			ReferenceMapping<ReferencePyramid, TWorldDim> >;
+		using base_type = BaseReferenceMapping<ReferencePyramid::dim, TWorldDim, false, ReferenceMapping >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -910,8 +908,8 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 
 	///	Constructor setting the corners
 	/// \{
-		ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
-		ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
 	/// \}
 
 	///	refresh mapping for new set of corners
@@ -1014,8 +1012,7 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 		static constexpr bool isLinear = false;
 
 	public:
-		using base_type = BaseReferenceMapping<ReferencePrism::dim, TWorldDim, false,
-			ReferenceMapping<ReferencePrism, TWorldDim> >;
+		using base_type = BaseReferenceMapping<ReferencePrism::dim, TWorldDim, false, ReferenceMapping >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -1024,12 +1021,12 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 
 	public:
 	///	Default Constructor
-		ReferenceMapping() {}
+		ReferenceMapping() = default;
 
 	///	Constructor setting the corners
 	/// \{
-		ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
-		ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
 	/// \}
 
 	///	refresh mapping for new set of corners
@@ -1108,8 +1105,7 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 		static constexpr bool isLinear = false;
 
 	public:
-		using base_type = BaseReferenceMapping<ReferenceHexahedron::dim, TWorldDim, false,
-			ReferenceMapping<ReferenceHexahedron, TWorldDim> >;
+		using base_type = BaseReferenceMapping<ReferenceHexahedron::dim, TWorldDim, false, ReferenceMapping >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -1122,8 +1118,8 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 
 	///	Constructor setting the corners
 	/// \{
-		ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
-		ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
 	/// \}
 
 	///	refresh mapping for new set of corners
@@ -1167,14 +1163,13 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 		void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
 								 const MathVector<dim>& locPos) const
 	   {
-			number a0,a1,a2,a3;
-			const number a = 1.0 - locPos[0];
+		    const number a = 1.0 - locPos[0];
 			const number b = 1.0 - locPos[1];
 			const number c = 1.0 - locPos[2];
-			a0 = b * c;
-			a1 = locPos[1] * c;
-			a2 = locPos[1] * locPos[2];
-			a3 = b * locPos[2];
+			number a0 = b * c;
+			number a1 = locPos[1] * c;
+			number a2 = locPos[1] * locPos[2];
+			number a3 = b * locPos[2];
 			for(int d = 0; d < worldDim; ++d)
 				JT(0,d) = a0*(x[1][d]-x[0][d])+a1*(x[2][d]-x[3][d])
 						+ a2*(x[6][d]-x[7][d])+a3*(x[5][d]-x[4][d]);
@@ -1219,8 +1214,7 @@ class ReferenceMapping<ReferenceOctahedron, TWorldDim>
 		static constexpr bool isLinear = false;
 
 	public:
-		using base_type = BaseReferenceMapping<ReferenceOctahedron::dim, TWorldDim, false,
-			ReferenceMapping<ReferenceOctahedron, TWorldDim> >;
+		using base_type = BaseReferenceMapping<ReferenceOctahedron::dim, TWorldDim, false, ReferenceMapping >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -1229,12 +1223,12 @@ class ReferenceMapping<ReferenceOctahedron, TWorldDim>
 
 	public:
 	///	Default Constructor
-		ReferenceMapping() {}
+		ReferenceMapping() = default;
 
 	///	Constructor setting the corners
 	/// \{
-		ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
-		ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
+		explicit ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
 	/// \}
 
 	///	refresh mapping for new set of corners

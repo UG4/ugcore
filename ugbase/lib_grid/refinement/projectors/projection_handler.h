@@ -38,8 +38,8 @@
 #include "common/assert.h"
 #include "refinement_projector.h"
 #include "lib_grid/tools/subset_handler_interface.h"
-#include "lib_grid/callbacks/selection_callbacks.h"
-#include "lib_grid/callbacks/subset_callbacks.h"
+//ø #include "lib_grid/callbacks/selection_callbacks.h"
+//ø #include "lib_grid/callbacks/subset_callbacks.h"
 
 namespace ug{
 
@@ -58,10 +58,10 @@ public:
  * Please note that an alternative constructor taking a smart-pointer to a
  * SubsetHandler exists.
  * \sa ug::RefinementProjector::RefinementProjector*/
-	ProjectionHandler (ISubsetHandler* psh);
+	explicit ProjectionHandler (ISubsetHandler* psh);
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
-	ProjectionHandler (SmartPtr<ISubsetHandler> psh);
+	explicit ProjectionHandler (SmartPtr<ISubsetHandler> psh);
 
 /**	Please make sure that the given subset-handler outlives the ProjectionHandler.
  * Please note that an alternative constructor taking a smart-pointer to a
@@ -101,7 +101,7 @@ public:
 
 
 ///	return the subset handler that the projection handler is based on
-	inline const ISubsetHandler* subset_handler() const			{return m_sh;}
+	[[nodiscard]] inline const ISubsetHandler* subset_handler() const {return m_sh;}
 
 	void set_default_projector (SPRefinementProjector projector);
 	
@@ -121,23 +121,23 @@ public:
  *			the geometry-object of the projector for its own use.*/
 	void set_projector (const char* subsetName, SPRefinementProjector projector);
 
-	inline size_t num_projectors () const		{return m_projectors.size() > 0 ? m_projectors.size() - 1 : 0;}
+	[[nodiscard]] inline size_t num_projectors () const {return !m_projectors.empty() ? m_projectors.size() - 1 : 0;}
 	
 	inline SPRefinementProjector
-	projector (size_t i)						{projector_required((int)i); return m_projectors.at(i + 1);}
+	projector (size_t i) {projector_required(static_cast<int>(i)); return m_projectors.at(i + 1);}
 
-	inline ConstSmartPtr<RefinementProjector>
-	projector (size_t i)	const				{return m_projectors.at(i + 1);}
+	[[nodiscard]] inline ConstSmartPtr<RefinementProjector>
+	projector (size_t i) const {return m_projectors.at(i + 1);}
 
 	inline SPRefinementProjector
-	default_projector ()						{return m_defaultProjector;}
+	default_projector () {return m_defaultProjector;}
 
-	inline ConstSmartPtr<RefinementProjector>
-	default_projector ()	const				{return m_defaultProjector;}
+	[[nodiscard]] inline ConstSmartPtr<RefinementProjector>
+	default_projector () const {return m_defaultProjector;}
 
 ////////////////////////////////////////
 //	IMPLEMENTATION OF RefinementProjector
-	bool refinement_begins_requires_subgrid () const override;
+	[[nodiscard]] bool refinement_begins_requires_subgrid () const override;
 
 ///	prepares associated projectors for refinement
 /**	If an associated projector hasn't got an associated geometry, the geometry

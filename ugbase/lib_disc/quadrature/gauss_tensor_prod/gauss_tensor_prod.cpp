@@ -195,8 +195,8 @@ GaussQuadraturePyramid::GaussQuadraturePyramid(size_t order)
 
 	m_order = quadRule.order();
 	m_numPoints = quadRule.size() * 2;
-	position_type* pvPoint = new position_type[m_numPoints];
-	weight_type* pvWeight = new weight_type[m_numPoints];
+	auto* pvPoint = new position_type[m_numPoints];
+	auto* pvWeight = new weight_type[m_numPoints];
 
 	MathVector<3> Tet1Co[4];
 	Tet1Co[0] = MathVector<3>(0,0,0);

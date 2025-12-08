@@ -54,7 +54,7 @@ using ConstSPProcessHierarchy = ConstSmartPtr<ProcessHierarchy>;
 /**	Used by LoadBalancer and by different partitioners.*/
 class ProcessHierarchy{
 	public:
-		static SPProcessHierarchy create()	{return SPProcessHierarchy(new ProcessHierarchy);}
+		static SPProcessHierarchy create() {return SPProcessHierarchy(new ProcessHierarchy);}
 		~ProcessHierarchy() = default;
 
 	//todo:	add a proc list for more sophisticated hierarchy levels

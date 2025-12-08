@@ -54,7 +54,7 @@ class SubsetGroup
 		SubsetGroup();
 
 	///	Constructor setting subset handler
-		SubsetGroup(ConstSmartPtr<ISubsetHandler> sh);
+		explicit SubsetGroup(ConstSmartPtr<ISubsetHandler> sh);
 
 	///	Constructor setting subset handler and subsets
 		SubsetGroup(ConstSmartPtr<ISubsetHandler> sh, const char* names);
@@ -116,10 +116,10 @@ class SubsetGroup
 		void clear() {m_vSubset.clear();}
 
 	/// returns if function group is empty
-		bool empty() const {return m_vSubset.empty();}
+		[[nodiscard]] bool empty() const {return m_vSubset.empty();}
 
 	/// number of subsets in this group
-		inline size_t size() const
+		[[nodiscard]] inline size_t size() const
 		{
 			if (!m_pSH.valid()) return 0;
 			return m_vSubset.size();
@@ -134,16 +134,16 @@ class SubsetGroup
 		}
 		
 	///	vector of the subset indices in the group
-		inline const std::vector<int>& index_vector() const
+		[[nodiscard]] inline const std::vector<int>& index_vector() const
 		{
 			return m_vSubset;
 		}
 
 	///	name of subset
-		const char* name(size_t i) const;
+		[[nodiscard]] const char* name(size_t i) const;
 
 	///	returns if a subset is a regular grid
-		bool regular_grid(size_t i) const;
+		[[nodiscard]] bool regular_grid(size_t i) const;
 
 	/// dimension of subset
 	/**
@@ -151,7 +151,7 @@ class SubsetGroup
 	 * is defined as the highest dimension of geometric objects contained in
 	 * the subset. This maximum is taken over all procs in parallel.
 	 */
-		int dim(size_t i) const;
+		[[nodiscard]] int dim(size_t i) const;
 
 	/// highest dimension of all subset
 	/**
@@ -163,17 +163,17 @@ class SubsetGroup
 	 * \return 		-1			if no dimension available
 	 * 				dim	>= 0	highest dimension of all subsets in this group
 	 */
-		int get_highest_subset_dimension() const;
+		[[nodiscard]] int get_highest_subset_dimension() const;
 
 	/// returns true if subset is contained in this group
-		bool contains(int si) const;
+		[[nodiscard]] bool contains(int si) const;
 
 	/// returns true if at least one subset of a name is contained in this group
 		bool contains(const char* name) const;
 
 	protected:
 	// returns if SubsetGroup is ready for use
-		bool is_init() const {return m_pSH.valid();}
+		[[nodiscard]] bool is_init() const {return m_pSH.valid();}
 
 	protected:
 		ConstSmartPtr<ISubsetHandler> m_pSH; ///< underlying SubsetHandler

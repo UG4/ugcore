@@ -55,7 +55,7 @@ MGSelector::level_required(int level)
 {
 //	create new SectionContainers and push them to the list,
 //	until there are enough of them.
-	while((int)m_levels.size() <= level){
+	while(static_cast<int>(m_levels.size()) <= level){
 		add_level();
 	}
 }

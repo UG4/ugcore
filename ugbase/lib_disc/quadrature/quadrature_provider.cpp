@@ -200,16 +200,16 @@ QuadratureRuleProvider<TDim>::create_newton_cotes_rule(ReferenceObjectID roid, s
 template <int TDim>
 QuadratureRuleProvider<TDim>::QuadratureRuleProvider()
 {
-	for(int type = 0; type < NUM_QUADRATURE_TYPES; ++type)
-		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
+	for(int type = 0; type < QuadType::NUM_QUADRATURE_TYPES; ++type)
+		for(int roid = 0; roid < ReferenceObjectID::NUM_REFERENCE_OBJECTS; ++roid)
 			m_vRule[type][roid].clear();
 }
 
 template <int TDim>
 QuadratureRuleProvider<TDim>::~QuadratureRuleProvider()
 {
-	for(int type = 0; type < NUM_QUADRATURE_TYPES; ++type)
-		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
+	for(int type = 0; type < QuadType::NUM_QUADRATURE_TYPES; ++type)
+		for(int roid = 0; roid < ReferenceObjectID::NUM_REFERENCE_OBJECTS; ++roid)
 			for(size_t order = 0; order < m_vRule[type][roid].size(); ++order)
 				if(m_vRule[type][roid][order] != nullptr)
 					delete m_vRule[type][roid][order];
@@ -243,7 +243,7 @@ QuadratureRuleProvider<TDim>::create_rule(ReferenceObjectID roid,
 	m_vRule[type][roid][order] = nullptr;
 
 	switch(type){
-		case BEST: {
+		case QuadType::BEST: {
 			// 1. Try GaussQuad
 			m_vRule[type][roid][order] = create_gauss_rule(roid, order);
 			if(m_vRule[type][roid][order] != nullptr) break;
@@ -256,13 +256,13 @@ QuadratureRuleProvider<TDim>::create_rule(ReferenceObjectID roid,
 				m_vRule[type][roid][order] = create_gauss_legendre_rule(roid, order);
 			if(m_vRule[type][roid][order] != nullptr) break;
 		}break;
-		case GAUSS: {
+		case QuadType::GAUSS: {
 			m_vRule[type][roid][order] = create_gauss_rule(roid, order);
 		}break;
-		case GAUSS_LEGENDRE: {
+		case QuadType::GAUSS_LEGENDRE: {
 			m_vRule[type][roid][order] = create_gauss_legendre_rule(roid, order);
 		}break;
-		case NEWTON_COTES: {
+		case QuadType::NEWTON_COTES: {
 			m_vRule[type][roid][order] = create_newton_cotes_rule(roid, order);
 		}break;
 		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: Cannot create rule for "
@@ -287,10 +287,10 @@ std::ostream& operator << (std::ostream& out,	const QuadType& v)
 {
 	switch(v)
 	{
-		case BEST: out << "Best"; break;
-		case GAUSS: out << "Gauss"; break;
-		case NEWTON_COTES: out << "Newton-Cotes"; break;
-		case GAUSS_LEGENDRE: out << "Gauss-Legendre"; break;
+		case QuadType::BEST: out << "Best"; break;
+		case QuadType::GAUSS: out << "Gauss"; break;
+		case QuadType::NEWTON_COTES: out << "Newton-Cotes"; break;
+		case QuadType::GAUSS_LEGENDRE: out << "Gauss-Legendre"; break;
 		default: out << "invalid";
 	}
 	return out;
@@ -300,10 +300,10 @@ QuadType GetQuadratureType(const std::string& name)
 {
 	std::string n = TrimString(name);
 	std::transform(n.begin(), n.end(), n.begin(), ::tolower);
-	if(n == "best") return BEST;
-	if(n == "gauss") return GAUSS;
-	if(n == "gauss-legendre") return GAUSS_LEGENDRE;
-	if(n == "newton-cotes") return NEWTON_COTES;
+	if(n == "best") return QuadType::BEST;
+	if(n == "gauss") return QuadType::GAUSS;
+	if(n == "gauss-legendre") return QuadType::GAUSS_LEGENDRE;
+	if(n == "newton-cotes") return QuadType::NEWTON_COTES;
 
 	UG_THROW("GetQuadratureType: type '"<<name<<"' not recognized. Options "
 	         "are: best, gauss, gauss-legendre, newton-cotes.");

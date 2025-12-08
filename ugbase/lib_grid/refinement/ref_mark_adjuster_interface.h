@@ -82,7 +82,7 @@ class IRefMarkAdjuster
 		{}
 
 		virtual void enable(bool enable) {m_enabled = enable;}
-		virtual bool enabled() const {return m_enabled;}
+		[[nodiscard]] virtual bool enabled() const {return m_enabled;}
 
 	///	enables or disables node-dependency-order-1.
 	/**	\{
@@ -92,7 +92,7 @@ class IRefMarkAdjuster
 	 *
 	 * Enabled by default.*/
 		void enable_node_dependency_order_1(bool bEnable) {m_nodeDependencyOrder1 = bEnable;}
-		bool node_dependency_order_1_enabled() const {return m_nodeDependencyOrder1;}
+		[[nodiscard]] bool node_dependency_order_1_enabled() const {return m_nodeDependencyOrder1;}
 	/**	\} */
 
 	private:

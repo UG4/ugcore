@@ -53,8 +53,8 @@ public:
 		m_radius (-1),
 		m_influenceRadius (-1)
 	{}
-	
-	SphereProjector (const vector3& center) :
+
+	explicit SphereProjector (const vector3& center) :
 		m_center (center),
 		m_radius (-1),
 		m_influenceRadius (-1)
@@ -106,32 +106,29 @@ public:
 		m_influenceRadius (influenceRadius)
 	{}
 
-	virtual ~SphereProjector () = default;
+	~SphereProjector () override = default;
 
-	void set_center (const vector3& center)		{m_center = center;}
-	const vector3& center () const				{return m_center;}
+	void set_center (const vector3& center) {m_center = center;}
+	[[nodiscard]] const vector3& center () const {return m_center;}
 
-	void set_radius (number radius)				{m_radius = radius;}
-	number radius () const						{return m_radius;}
+	void set_radius (number radius) {m_radius = radius;}
+	[[nodiscard]] number radius () const {return m_radius;}
 
-	void set_influence_radius (number influenceRadius)	{m_influenceRadius = influenceRadius;}
-	number influence_radius () const					{return m_influenceRadius;}
+	void set_influence_radius (number influenceRadius) {m_influenceRadius = influenceRadius;}
+	number influence_radius () const {return m_influenceRadius;}
 
 ///	called when a new vertex was created from an old edge.
-	virtual number new_vertex(Vertex* vrt, Edge* parent)
-	{
+	number new_vertex(Vertex* vrt, Edge* parent) override {
 		return perform_projection(vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old face.
-	virtual number new_vertex(Vertex* vrt, Face* parent)
-	{
+	number new_vertex(Vertex* vrt, Face* parent) override {
 		return perform_projection(vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old volume.
-	virtual number new_vertex(Vertex* vrt, Volume* parent)
-	{
+	number new_vertex(Vertex* vrt, Volume* parent) override {
 		return perform_projection(vrt, parent);
 	}
 
@@ -159,8 +156,8 @@ private:
 			parentCenter += p;
 		}
 
-		avDist /= (number)numVrts;
-		VecScale(parentCenter, parentCenter, 1. / (number)numVrts);
+		avDist /= static_cast<number>(numVrts);
+		VecScale(parentCenter, parentCenter, 1. / static_cast<number>(numVrts));
 
 	//	calculate projection
 		vector3 proj;

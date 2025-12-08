@@ -52,7 +52,7 @@ class GaussJacobi10 : public QuadratureRule<1>
 {
 	public:
 	///	constructor
-		GaussJacobi10(size_t order);
+		explicit GaussJacobi10(size_t order);
 
 	///	destructor
 		~GaussJacobi10() override;

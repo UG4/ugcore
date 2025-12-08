@@ -57,8 +57,7 @@ private:
     Grid::VertexAttachmentAccessor<Attachment<NeuriteProjector::SurfaceParams> > m_aaSurfParams;
     CopyAttachmentHandler<Vertex, Attachment<NeuriteProjector::SurfaceParams> > m_cah;
 protected:
-    virtual void set_geometry(SPIGeometry3d geometry)
-    {
+	void set_geometry(SPIGeometry3d geometry) override {
         // call base class method
         RefinementProjector::set_geometry(geometry);
 		attach_surf_params();
@@ -109,29 +108,26 @@ public:
 
 
 public:
-	virtual ~SomaProjector () = default;
+	~SomaProjector () override = default;
 
 ///	called when a new vertex was created from an old edge.
-	virtual number new_vertex(Vertex* vrt, Edge* parent)
-	{
+	number new_vertex(Vertex* vrt, Edge* parent) override {
 		return perform_projection(vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old face.
-	virtual number new_vertex(Vertex* vrt, Face* parent)
-	{
+	number new_vertex(Vertex* vrt, Face* parent) override {
 		return perform_projection(vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old volume.
-	virtual number new_vertex(Vertex* vrt, Volume* parent)
-	{
+	number new_vertex(Vertex* vrt, Volume* parent) override {
 		return perform_projection(vrt, parent);
 	}
 
 private:
 /// check if global attachment was declared
-	void check_attachment() {
+	void check_attachment() const {
 		using NPSurfParam = Attachment<NeuriteProjector::SurfaceParams>;
 		if (!GlobalAttachments::is_declared("npSurfParams"))
 			GlobalAttachments::declare_attachment<NPSurfParam>("npSurfParams", true);
@@ -190,8 +186,8 @@ private:
 			parentCenter += p;
 		}
 
-		avDist /= (number)numVrts;
-		VecScale(parentCenter, parentCenter, 1. / (number)numVrts);
+		avDist /= static_cast<number>(numVrts);
+		VecScale(parentCenter, parentCenter, 1. / static_cast<number>(numVrts));
 
 		vector3 proj, v;
 		ProjectPointToRay(proj, parentCenter, m_center, m_axis);

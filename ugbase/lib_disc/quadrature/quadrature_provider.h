@@ -83,7 +83,7 @@ class QuadratureRuleProvider
 
 	protected:
 	///	Vector, holding all registered rules
-		static std::vector<const QuadratureRule<TDim>*> m_vRule[NUM_QUADRATURE_TYPES][NUM_REFERENCE_OBJECTS];
+		static std::vector<const QuadratureRule<TDim>*> m_vRule[QuadType::NUM_QUADRATURE_TYPES][NUM_REFERENCE_OBJECTS];
 
 	///	provide rule, try to create it if not already present
 		static const QuadratureRule<TDim>&
@@ -111,7 +111,7 @@ class QuadratureRuleProvider
 	 */
 		template <typename TRefElem>
 		static const QuadratureRule<TDim>&
-		get(size_t order, QuadType type = BEST);
+		get(size_t order, QuadType type = QuadType::BEST);
 
 	///	gets quadrature rule of requested order
 	/**
@@ -123,12 +123,12 @@ class QuadratureRuleProvider
 	 * \param[in]	order		Order of requested quadrature rule
 	 */
 		static const QuadratureRule<TDim>&
-		get(ReferenceObjectID roid, size_t order, QuadType type = BEST);
+		get(ReferenceObjectID roid, size_t order, QuadType type = QuadType::BEST);
 };
 
 // Init static member
 template <int dim>
-std::vector<const QuadratureRule<dim>*> QuadratureRuleProvider<dim>::m_vRule[NUM_QUADRATURE_TYPES][NUM_REFERENCE_OBJECTS];
+std::vector<const QuadratureRule<dim>*> QuadratureRuleProvider<dim>::m_vRule[QuadType::NUM_QUADRATURE_TYPES][NUM_REFERENCE_OBJECTS];
 
 /// writes the Identifier to the output stream
 std::ostream& operator << (std::ostream& out,	const QuadType& v);

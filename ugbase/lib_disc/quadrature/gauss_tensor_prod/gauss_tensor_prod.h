@@ -55,7 +55,7 @@ class GaussQuadratureTriangle : public QuadratureRule<2> {
 
 	public:
 	/// constructor
-		GaussQuadratureTriangle(size_t order);
+		explicit GaussQuadratureTriangle(size_t order);
 
 	///	destructor
 		~GaussQuadratureTriangle() override;
@@ -69,7 +69,7 @@ class GaussQuadratureQuadrilateral : public QuadratureRule<2> {
 
 	public:
 	///	constructor
-		GaussQuadratureQuadrilateral(size_t order);
+		explicit GaussQuadratureQuadrilateral(size_t order);
 
 	///	destructor
 		~GaussQuadratureQuadrilateral() override;
@@ -83,7 +83,7 @@ class GaussQuadratureHexahedron : public QuadratureRule<3> {
 
 	public:
 	///	constructor
-		GaussQuadratureHexahedron(size_t order);
+		explicit GaussQuadratureHexahedron(size_t order);
 
 	///	destructor
 		~GaussQuadratureHexahedron() override;
@@ -97,7 +97,7 @@ class GaussQuadratureTetrahedron : public QuadratureRule<3> {
 
 	public:
 	///	constructor
-		GaussQuadratureTetrahedron(size_t order);
+		explicit GaussQuadratureTetrahedron(size_t order);
 
 	///	destructor
 		~GaussQuadratureTetrahedron() override;
@@ -111,7 +111,7 @@ class GaussQuadraturePrism : public QuadratureRule<3> {
 
 	public:
 	///	constructor
-		GaussQuadraturePrism(size_t order);
+		explicit GaussQuadraturePrism(size_t order);
 
 	///	destructor
 		~GaussQuadraturePrism() override;
@@ -129,7 +129,7 @@ class GaussQuadraturePyramid : public QuadratureRule<3> {
 
 	public:
 	///	constructor
-		GaussQuadraturePyramid(size_t order);
+		explicit GaussQuadraturePyramid(size_t order);
 
 	///	destructor
 		~GaussQuadraturePyramid() override;
@@ -146,7 +146,7 @@ class GaussQuadratureOctahedron : public QuadratureRule<3> {
 
 	public:
 	///	constructor
-	GaussQuadratureOctahedron(size_t order);
+		explicit GaussQuadratureOctahedron(size_t order);
 
 	///	destructor
 		~GaussQuadratureOctahedron() override;

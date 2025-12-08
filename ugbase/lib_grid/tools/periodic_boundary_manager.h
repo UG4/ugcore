@@ -61,7 +61,8 @@ public:
  * \tparam TPosAA {class needs to be instantiated with the
  * position attachment used on the Domain.}
  */
-template <typename TPosAA> class ParallelShiftIdentifier: public IIdentifier {
+template <typename TPosAA>
+class ParallelShiftIdentifier: public IIdentifier {
 public:
 	bool match(Vertex* v1, Vertex* v2) override {return match_impl(v1, v2);}
 	bool match(Edge* e1, Edge* e2) override {return match_impl(e1, e2);}
@@ -153,12 +154,23 @@ public:
 	 */
 	template <typename TElem> void identify(TElem* e1, TElem* e2, IIdentifier& i);
 
-	template <typename TElem> bool is_periodic(TElem* e) const;
-	template <typename TElem> bool is_slave(TElem*) const;
-	template <typename TElem> bool is_master(TElem*) const;
-	template <typename TElem> TElem* master(TElem* e) const;
-	template <typename TElem> typename Group<TElem>::SlaveContainer* slaves( TElem* e) const;
-	template <typename TElem> void print_identification() const;
+	template <typename TElem>
+	bool is_periodic(TElem* e) const;
+
+	template <typename TElem>
+	bool is_slave(TElem*) const;
+
+	template <typename TElem>
+	bool is_master(TElem*) const;
+
+	template <typename TElem>
+	TElem* master(TElem* e) const;
+
+	template <typename TElem>
+	typename Group<TElem>::SlaveContainer* slaves( TElem* e) const;
+
+	template <typename TElem>
+	void print_identification() const;
 
 
 	/// grid observation methods
@@ -240,7 +252,7 @@ protected:
 
 	// get typed attachment accessor for group attachment
 	template <typename TElem>
-	const Grid::AttachmentAccessor<TElem, Attachment<Group<TElem>* > >&
+	[[nodiscard]] const Grid::AttachmentAccessor<TElem, Attachment<Group<TElem>* > >&
 	get_group_accessor() const;
 
 	template <typename TElem>
@@ -249,7 +261,7 @@ protected:
 
 	// get typed attachment accessor for periodic status attachment
 	template <typename TElem>
-	const Grid::AttachmentAccessor<TElem, Attachment<PeriodicStatus> >&
+	[[nodiscard]] const Grid::AttachmentAccessor<TElem, Attachment<PeriodicStatus> >&
 	get_periodic_status_accessor() const;
 
 	template <typename TElem>
@@ -257,7 +269,8 @@ protected:
 	get_periodic_status_accessor();
 
 	// gets group of given element e
-	template <typename TElem> Group<TElem>* group(TElem* e) const;
+	template <typename TElem>
+	[[nodiscard]] Group<TElem>* group(TElem* e) const;
 	// set group attachment to element e
 	template <typename TElem> void set_group(Group<TElem>* g, TElem* e);
 	template <typename TElem> void remove_group(Group<TElem>* g);
@@ -324,7 +337,7 @@ class PeriodicAttachmentAccessor
 			return m_aa[e];
 		}
 
-		ConstRefType operator [] (TElem* e) const	{
+		[[nodiscard]] ConstRefType operator [] (TElem* e) const	{
 			if(m_pbm && m_pbm->is_slave(e))
 				return m_aa[m_pbm->master(e)];
 			return m_aa[e];

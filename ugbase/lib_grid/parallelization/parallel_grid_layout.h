@@ -162,7 +162,7 @@ class GridLayoutMap
 	public:
 	///	checks whether the layout associated with the given key exists for the given type.
 		template <typename TType>
-		bool
+		[[nodiscard]] bool
 		has_layout(const Key& key) const;
 
 	///	creates the required layout if it doesn't exist already.
@@ -252,10 +252,10 @@ class GridLayoutMap
 	// \}
 	
 	private:
-		Types<Vertex>::Map	m_vertexLayoutMap;
-		Types<Edge>::Map	m_edgeLayoutMap;
-		Types<Face>::Map		m_faceLayoutMap;
-		Types<Volume>::Map		m_volumeLayoutMap;
+		Types<Vertex>::Map m_vertexLayoutMap;
+		Types<Edge>::Map m_edgeLayoutMap;
+		Types<Face>::Map m_faceLayoutMap;
+		Types<Volume>::Map m_volumeLayoutMap;
 };
 
 /// @}

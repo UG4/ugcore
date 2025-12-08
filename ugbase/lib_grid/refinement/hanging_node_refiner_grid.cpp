@@ -301,8 +301,8 @@ post_refine()
 	UG_DLOG(LIB_GRID, 1, "  erasing elements.\n");
 
 	Grid& grid = *m_pGrid;
-	vector<Face*>	 	vFaces;
-	vector<Volume*>		vVols;
+	vector<Face*> vFaces;
+	vector<Volume*> vVols;
 
 //	erase faces that are no longer needed.
 	if(grid.num_volumes() > 0)

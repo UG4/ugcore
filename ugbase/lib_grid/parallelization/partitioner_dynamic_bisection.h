@@ -33,7 +33,7 @@
 #ifndef __H__UG__partitioner_dynamic_biscection__
 #define __H__UG__partitioner_dynamic_biscection__
 
-#include <utility>
+//#include <utility>
 #include <vector>
 #include "parallel_grid_layout.h"
 #include "partitioner.h"
@@ -88,7 +88,7 @@ class Partitioner_DynamicBisection : public IPartitioner {
 	///	sets the axis with which bisection is started.
 	/** 0 by default.
 	 * \note	the start-split-axis is only considered if longest-split-axis is disabled.*/
-		void set_start_split_axis(int axis)			{m_startSplitAxis = axis;}
+		void set_start_split_axis(int axis) {m_startSplitAxis = axis;}
 
 	///	the maximum number of iterations performed to find a good split plane
 		[[nodiscard]] int num_split_improvement_iterations() const {return m_splitImproveIterations;}
@@ -176,12 +176,12 @@ class Partitioner_DynamicBisection : public IPartitioner {
 			size_t size() const	{return m_num;}
 			bool empty() const {return m_num == 0;}
 
-			size_t first() const				{return m_first;}
-			size_t last() const					{return m_last;}
-			size_t next(size_t entryInd) const	{return (*m_entries)[entryInd].next;}
-			elem_t* elem(size_t entryInd) const	{return (*m_entries)[entryInd].elem;}
+			size_t first() const {return m_first;}
+			size_t last() const {return m_last;}
+			size_t next(size_t entryInd) const {return (*m_entries)[entryInd].next;}
+			elem_t* elem(size_t entryInd) const {return (*m_entries)[entryInd].elem;}
 
-			std::vector<Entry>* entries()		{return m_entries;}
+			std::vector<Entry>* entries() {return m_entries;}
 
 			private:
 				std::vector<Entry>* m_entries;

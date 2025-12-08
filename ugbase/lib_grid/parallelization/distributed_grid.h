@@ -52,13 +52,13 @@ namespace ug
  * Please also note that the constants are currently stored in bytes. No
  * value using more than 8 bits is thus allowed.
  */
-enum ElementStatusTypes
+enum ElementStatusTypes : byte_t
 {
-	ES_NONE = InterfaceNodeTypes::INT_NONE,
-	ES_H_MASTER = InterfaceNodeTypes::INT_H_MASTER,
-	ES_H_SLAVE = InterfaceNodeTypes::INT_H_SLAVE,
-	ES_V_MASTER = InterfaceNodeTypes::INT_V_MASTER,
-	ES_V_SLAVE = InterfaceNodeTypes::INT_V_SLAVE,
+	ES_NONE = static_cast<uint>(InterfaceNodeTypes::INT_NONE),
+	ES_H_MASTER = static_cast<uint>(InterfaceNodeTypes::INT_H_MASTER),
+	ES_H_SLAVE = static_cast<uint>(InterfaceNodeTypes::INT_H_SLAVE),
+	ES_V_MASTER = static_cast<uint>(InterfaceNodeTypes::INT_V_MASTER),
+	ES_V_SLAVE = static_cast<uint>(InterfaceNodeTypes::INT_V_SLAVE),
 
 	//ES_GHOST = 1 << 5,//currently unused
 	ES_SCHEDULED_FOR_INTERFACE = 1 << 6,
@@ -88,7 +88,7 @@ class DistributedGridManager : public GridObserver
 {	
 	public:
 		DistributedGridManager();
-		DistributedGridManager(MultiGrid& grid);
+		explicit DistributedGridManager(MultiGrid& grid);
 
 		~DistributedGridManager() override;
 		
@@ -96,13 +96,13 @@ class DistributedGridManager : public GridObserver
 		void assign(MultiGrid& grid);
 			
 		inline MultiGrid* get_assigned_grid()	{return m_pGrid;}
-		inline const MultiGrid* get_assigned_grid()	const {return m_pGrid;}
+		[[nodiscard]] inline const MultiGrid* get_assigned_grid()	const {return m_pGrid;}
 
 	//	layout access
 	/**	if you change the layout externally, be sure to call
 	 *	DistributedGrid::layout_changed() afterward.*/
 		inline GridLayoutMap& grid_layout_map()				{return m_gridLayoutMap;}
-		inline const GridLayoutMap& grid_layout_map() const	{return m_gridLayoutMap;}	
+		[[nodiscard]] inline const GridLayoutMap& grid_layout_map() const	{return m_gridLayoutMap;}
 		
 	///	call this method if you altered the layout externally.
 	/**	This should be done as seldom as possible.
@@ -122,32 +122,32 @@ class DistributedGridManager : public GridObserver
 	 * in InterfaceNodeTypes and ElementStatusTypes.
 	 * \sa contains_status
 	 * \{ */
-		byte_t get_status(GridObject* go) const;
-		inline byte_t get_status(Vertex* vrt) const {return elem_info(vrt).get_status();}
-		inline byte_t get_status(Edge* edge) const {return elem_info(edge).get_status();}
-		inline byte_t get_status(Face* face) const {return elem_info(face).get_status();}
-		inline byte_t get_status(Volume* vol) const {return elem_info(vol).get_status();}
+		[[nodiscard]] byte_t get_status(GridObject* go) const;
+		[[nodiscard]] inline byte_t get_status(Vertex* vrt) const {return elem_info(vrt).get_status();}
+		[[nodiscard]] inline byte_t get_status(Edge* edge) const {return elem_info(edge).get_status();}
+		[[nodiscard]] inline byte_t get_status(Face* face) const {return elem_info(face).get_status();}
+		[[nodiscard]] inline byte_t get_status(Volume* vol) const {return elem_info(vol).get_status();}
 	/**	\} */
 
 	///	returns true if the status of the given object contains the given status.
 	/**	status can be an or-combination of constants enumerated in InterfaceNodeTypes
 	 * and ElementStatusTypes.*/
 		template <typename TGeomObj>
-		bool contains_status(TGeomObj* o, byte_t status) const {return (get_status(o) & status) == status;}
+		[[nodiscard]] bool contains_status(TGeomObj* o, byte_t status) const {return (get_status(o) & status) == status;}
 
 	///	returns true if the element is a ghost
 	/**	ghost elements are vertical masters that are in no other interfaces.
 	 *	Those elements shouldn't be refined.*/
 	 	template <typename TElem>
-		inline bool is_ghost(TElem* elem) const;
+		[[nodiscard]] inline bool is_ghost(TElem* elem) const;
 
 	///	returns true if the element is contained in a horizontal interface
 	 	template <typename TElem>
-		inline bool is_in_horizontal_interface(TElem* elem) const;
+		[[nodiscard]] inline bool is_in_horizontal_interface(TElem* elem) const;
 
 	///	returns true if the element is contained in a vertical interface
 	 	template <typename TElem>
-		inline bool is_in_vertical_interface(TElem* elem) const;
+		[[nodiscard]] inline bool is_in_vertical_interface(TElem* elem) const;
 
 	//	element creation
 	///	call this method before you start creating new elements in the associated grid.
@@ -317,7 +317,7 @@ class DistributedGridManager : public GridObserver
 			//	methods
 				ElementInfo() = default;
 
-				~ElementInfo()	{if(has_data()) m_data.reset();}
+				~ElementInfo() {if(has_data()) m_data.reset();}
 
 				void reset()
 					{
@@ -342,13 +342,13 @@ class DistributedGridManager : public GridObserver
 				inline ConstEntryIterator entries_end() const	{assert(has_data()); return m_data->m_entries.end();}
 			/**	\} */
 
-				size_t get_local_id(EntryIterator iter) const	{return iter->m_interface->get_local_id(iter->m_interfaceElemIter);}
-				size_t get_local_id(ConstEntryIterator iter) const	{return iter->m_interface->get_local_id(iter->m_interfaceElemIter);}
-				int get_target_proc(EntryIterator iter) const	{return iter->m_interface->get_target_proc();}
-				int get_target_proc(ConstEntryIterator iter) const	{return iter->m_interface->get_target_proc();}
-				Interface* get_interface(EntryIterator iter)	{return iter->m_interface;}
-				int get_interface_type(EntryIterator iter) const	{return iter->m_interfaceType;}
-				int get_interface_type(ConstEntryIterator iter) const	{return iter->m_interfaceType;}
+				[[nodiscard]] size_t get_local_id(EntryIterator iter) const {return iter->m_interface->get_local_id(iter->m_interfaceElemIter);}
+				[[nodiscard]] size_t get_local_id(ConstEntryIterator iter) const {return iter->m_interface->get_local_id(iter->m_interfaceElemIter);}
+				[[nodiscard]] int get_target_proc(EntryIterator iter) const {return iter->m_interface->get_target_proc();}
+				[[nodiscard]] int get_target_proc(ConstEntryIterator iter) const {return iter->m_interface->get_target_proc();}
+				[[nodiscard]] Interface* get_interface(EntryIterator iter) const {return iter->m_interface;}
+				[[nodiscard]] int get_interface_type(EntryIterator iter) const {return iter->m_interfaceType;}
+				[[nodiscard]] int get_interface_type(ConstEntryIterator iter) const {return iter->m_interfaceType;}
 
 			///	Note: This method may only be called if is_interface_entry() returns true.
 				EntryIterator find_entry(Interface* interface)
@@ -366,7 +366,7 @@ class DistributedGridManager : public GridObserver
 						return;
 					data().m_status = status;
 				}
-				byte_t get_status() const
+				[[nodiscard]] byte_t get_status() const
 				{
 					if(!has_data()) return ElementStatusTypes::ES_NONE;
 					return m_data->m_status;
@@ -393,7 +393,7 @@ class DistributedGridManager : public GridObserver
 					return *m_data;
 				}
 
-				inline bool has_data() const	{return m_data.get() != nullptr;}
+				[[nodiscard]] inline bool has_data() const {return m_data.get() != nullptr;}
 
 			///	OwnedPtr is required to transfer ownership of the data-ptr during copy-operations.
 			/**	Since ElementInfo objects are stored in attachments, they will be copied
@@ -421,58 +421,58 @@ class DistributedGridManager : public GridObserver
 		struct ScheduledElement
 		{
 			ScheduledElement(GridObject* obj, int procID) :
-				geomObj(obj), connectedProcID(procID)				{}
+				geomObj(obj), connectedProcID(procID) {}
 
 			GridObject*	geomObj;
-			int					connectedProcID;
+			int connectedProcID;
 		};
 
 		using ScheduledElemMap = std::multimap<size_t, ScheduledElement>;
 
 	protected:
-		inline ElemInfoVrt& elem_info(Vertex* ele)	{return m_aaElemInfoVRT[ele];}
-		inline ElemInfoEdge& elem_info(Edge* ele)	{return m_aaElemInfoEDGE[ele];}
-		inline ElemInfoFace& elem_info(Face* ele)		{return m_aaElemInfoFACE[ele];}
-		inline ElemInfoVol& elem_info(Volume* ele)		{return m_aaElemInfoVOL[ele];}
+		inline ElemInfoVrt& elem_info(Vertex* ele) {return m_aaElemInfoVRT[ele];}
+		inline ElemInfoEdge& elem_info(Edge* ele) {return m_aaElemInfoEDGE[ele];}
+		inline ElemInfoFace& elem_info(Face* ele) {return m_aaElemInfoFACE[ele];}
+		inline ElemInfoVol& elem_info(Volume* ele) {return m_aaElemInfoVOL[ele];}
 
-		inline const ElemInfoVrt& elem_info(Vertex* ele) const	{return m_aaElemInfoVRT[ele];}
-		inline const ElemInfoEdge& elem_info(Edge* ele) const	{return m_aaElemInfoEDGE[ele];}
-		inline const ElemInfoFace& elem_info(Face* ele) const		{return m_aaElemInfoFACE[ele];}
-		inline const ElemInfoVol& elem_info(Volume* ele) const		{return m_aaElemInfoVOL[ele];}
+		[[nodiscard]] inline const ElemInfoVrt& elem_info(Vertex* ele) const {return m_aaElemInfoVRT[ele];}
+		[[nodiscard]] inline const ElemInfoEdge& elem_info(Edge* ele) const {return m_aaElemInfoEDGE[ele];}
+		[[nodiscard]] inline const ElemInfoFace& elem_info(Face* ele) const {return m_aaElemInfoFACE[ele];}
+		[[nodiscard]] inline const ElemInfoVol& elem_info(Volume* ele) const {return m_aaElemInfoVOL[ele];}
 
-		inline void got_new_constrained_vertical(Vertex* v)	{m_newConstrainedVerticalVrts.push_back(v);}
-		inline void got_new_constrained_vertical(Edge* e)	{m_newConstrainedVerticalEdges.push_back(e);}
-		inline void got_new_constrained_vertical(Face* f)		{m_newConstrainedVerticalFaces.push_back(f);}
-		inline void got_new_constrained_vertical(Volume*)		{UG_THROW("There are no constrained volumes!");}
+		inline void got_new_constrained_vertical(Vertex* v) {m_newConstrainedVerticalVrts.push_back(v);}
+		inline void got_new_constrained_vertical(Edge* e) {m_newConstrainedVerticalEdges.push_back(e);}
+		inline void got_new_constrained_vertical(Face* f) {m_newConstrainedVerticalFaces.push_back(f);}
+		inline void got_new_constrained_vertical(Volume*) {UG_THROW("There are no constrained volumes!");}
 
 
 	protected:
-		MultiGrid*		m_pGrid;
-		GridLayoutMap	m_gridLayoutMap;
+		MultiGrid* m_pGrid;
+		GridLayoutMap m_gridLayoutMap;
 		
 		bool m_interfaceManagementEnabled;///<only for debug purposes
 		
 		bool m_bOrderedInsertionMode;
 		bool m_bElementDeletionMode;
 		
-		AElemInfoVrt	m_aElemInfoVrt;
-		AElemInfoEdge	m_aElemInfoEdge;
-		AElemInfoFace	m_aElemInfoFace;
-		AElemInfoVol	m_aElemInfoVol;
+		AElemInfoVrt m_aElemInfoVrt;
+		AElemInfoEdge m_aElemInfoEdge;
+		AElemInfoFace m_aElemInfoFace;
+		AElemInfoVol m_aElemInfoVol;
 		
-		Grid::VertexAttachmentAccessor<AElemInfoVrt>	m_aaElemInfoVRT;
-		Grid::EdgeAttachmentAccessor<AElemInfoEdge>		m_aaElemInfoEDGE;
-		Grid::FaceAttachmentAccessor<AElemInfoFace>		m_aaElemInfoFACE;
-		Grid::VolumeAttachmentAccessor<AElemInfoVol>	m_aaElemInfoVOL;
+		Grid::VertexAttachmentAccessor<AElemInfoVrt> m_aaElemInfoVRT;
+		Grid::EdgeAttachmentAccessor<AElemInfoEdge> m_aaElemInfoEDGE;
+		Grid::FaceAttachmentAccessor<AElemInfoFace> m_aaElemInfoFACE;
+		Grid::VolumeAttachmentAccessor<AElemInfoVol> m_aaElemInfoVOL;
 		
-		ScheduledElemMap	m_vrtMap;	///< holds all elements that were scheduled by vertices
-		ScheduledElemMap	m_edgeMap;	///< holds all elements that were scheduled by edges
-		ScheduledElemMap	m_faceMap;	///< holds all elements that were scheduled by faces
-		ScheduledElemMap	m_volMap;	///< holds all elements that were scheduled by volumes
+		ScheduledElemMap m_vrtMap;	///< holds all elements that were scheduled by vertices
+		ScheduledElemMap m_edgeMap;	///< holds all elements that were scheduled by edges
+		ScheduledElemMap m_faceMap;	///< holds all elements that were scheduled by faces
+		ScheduledElemMap m_volMap;	///< holds all elements that were scheduled by volumes
 
-		std::vector<Vertex*>	m_newConstrainedVerticalVrts;
-		std::vector<Edge*>		m_newConstrainedVerticalEdges;
-		std::vector<Face*>			m_newConstrainedVerticalFaces;
+		std::vector<Vertex*> m_newConstrainedVerticalVrts;
+		std::vector<Edge*> m_newConstrainedVerticalEdges;
+		std::vector<Face*> m_newConstrainedVerticalFaces;
 
 		SmartPtr<DistroAdjuster> m_spDistroAdjuster;
 };

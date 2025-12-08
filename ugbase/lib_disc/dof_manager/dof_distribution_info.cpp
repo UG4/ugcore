@@ -124,7 +124,7 @@ void DoFDistributionInfo::create_offsets()
 
 			//	if number specified by the space, set it
 				if(lds.num_dof(roid) != CommonLocalDoFSet::NOT_SPECIFIED)
-					numFctDoFOnROIDPerSubset = (size_t)lds.num_dof(roid);
+					numFctDoFOnROIDPerSubset = static_cast<size_t>(lds.num_dof(roid));
 
 			//	if function not defined on subset, number of DoFs is zero
 				if(!is_def_in_subset(fct, si))

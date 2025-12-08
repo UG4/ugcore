@@ -67,8 +67,7 @@ ref_marks_changed(IRefiner& ref,
 			//todo: instead of a full refine, only regularize associated vol-marks?
 				int constraintMark = 0;
 				for(size_t iedge = 0; iedge < numEdges; ++iedge){
-					if(ConstrainingEdge* cge =
-							dynamic_cast<ConstrainingEdge*>(assEdges[iedge]))
+					if(auto* cge = dynamic_cast<ConstrainingEdge*>(assEdges[iedge]))
 					{
 						if(cge->num_constrained_vertices())
 							constraintMark |= (1<<iedge);
@@ -109,8 +108,7 @@ ref_marks_changed(IRefiner& ref,
 		grid.associated_elements(assFaces, vol);
 		for(size_t iface = 0; iface < assFaces.size(); ++iface){
 			Face* f = assFaces[iface];
-			const int sideMark = ref.get_local_face_mark(vol, f);
-			if(sideMark){
+			if(const int sideMark = ref.get_local_face_mark(vol, f)){
 				const int curMark = ref.get_mark(f);
 				if(curMark == RM_FULL)
 					continue;

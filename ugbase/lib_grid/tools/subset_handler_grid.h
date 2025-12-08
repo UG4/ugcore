@@ -223,13 +223,13 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 	/**	only for compatibility reasons with MGSubsetHandler.
 	 *	second argument is ignored.*/
 		template <typename TElem>
-		uint num_elements(int subsetIndex, size_t) const {return num_elements<TElem>();}
+		[[nodiscard]] uint num_elements(int subsetIndex, size_t) const {return num_elements<TElem>();}
 
 	///	returns the number of elements in the given subset
 	/**	only for compatibility reasons with MGSubsetHandler.
 	 *	second argument is ignored.*/
 		template <typename TElem>
-		uint num(int subsetIndex, size_t) const {return num<TElem>();}
+		[[nodiscard]] uint num(int subsetIndex, size_t) const {return num<TElem>();}
 		
 
 	///	perform cleanup

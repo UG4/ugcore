@@ -390,7 +390,7 @@ struct ElemErrorSortDesc
 {
 	using elem_type = typename domain_traits<TDomain::dim>::element_type;
 	using error_accessor_type = Grid::AttachmentAccessor<elem_type, Attachment<number> >;
-	ElemErrorSortDesc(const error_accessor_type& aaErr)
+	explicit ElemErrorSortDesc(const error_accessor_type& aaErr)
 	: m_aaErr(aaErr) {}
 
 	bool operator () (const elem_type* elem1, const elem_type* elem2)
@@ -537,7 +537,7 @@ void ExpectedErrorMarkingStrategy<TDomain>::mark
 			size_t nLists = 2;
 			while (true)
 			{
-				const size_t nMerge = nProcs / std::min(nLists, (size_t) nProcs);
+				const size_t nMerge = nProcs / std::min(nLists, static_cast<size_t>(nProcs));
 				for (size_t m = 0; m < nMerge; ++m)
 				{
 					auto beginFirst = vGlobErrors.begin() + vOffsets[m*nLists];
@@ -572,9 +572,9 @@ void ExpectedErrorMarkingStrategy<TDomain>::mark
 		pc.broadcast(globNumRefineElems, rootProc);
 
 		// mark for refinement
-		UG_COND_THROW((size_t) nRefElems > nLocalElem, "More elements supposedly need refinement here ("
+		UG_COND_THROW(static_cast<size_t>(nRefElems) > nLocalElem, "More elements supposedly need refinement here ("
 			<< nRefElems << ") than are refineable (" << nLocalElem << ").");
-		for (size_t i = 0; i < (size_t) nRefElems; ++i)
+		for (size_t i = 0; i < static_cast<size_t>(nRefElems); ++i)
 			refiner.mark(elemVec[i], RM_REFINE);
 
 		if (globNumRefineElems)
@@ -624,7 +624,8 @@ class MaximumMarking : public IElementMarkingStrategy<TDomain>{
 
 public:
 	using base_type = IElementMarkingStrategy<TDomain>;
-	MaximumMarking(number theta=1.0)
+
+	explicit MaximumMarking(number theta=1.0)
 	: m_theta(theta), m_theta_min(0.0), m_eps(0.01), m_max_level(100), m_min_level(0) {};
 	MaximumMarking(number theta, number eps)
 	: m_theta(theta), m_theta_min(0.0), m_eps (eps), m_max_level(100), m_min_level(0) {};
@@ -921,14 +922,14 @@ void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 
 	// discard a fraction of elements
 	// a) largest elements
-	std::vector<double>::const_iterator top = etaSq.begin();
+	auto top = etaSq.begin();
 	for (number sumSq=0.0;
 		(sumSq<m_theta_top*errLocal) && (top !=(etaSq.end()-1));
 		++top) { sumSq += *top; }
 	number top_threshold = (top != etaSq.begin()) ? (*top + *(top-1))/2.0 : *top;
 
 	// a) smallest elements
-	std::vector<double>::const_iterator bot = etaSq.end()-1;
+	auto bot = etaSq.end()-1;
 		for (number sumSq=0.0;
 			(sumSq<m_theta_bot*errLocal) && (bot !=etaSq.begin() );
 			--bot) { sumSq += *bot; }

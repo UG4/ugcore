@@ -53,8 +53,8 @@ refinement_begins(const ISubGrid* psg)
 	Grid& g = geom().grid();
 	Grid::edge_traits::secure_container edges;
 
-	for(Grid::traits<Vertex>::const_iterator _feI = sg.goc().begin<Vertex>(); _feI != sg.goc().end<Vertex>(); ++_feI){ Vertex* vrt = *_feI;
-	{
+	for(auto _feI = sg.goc().begin<Vertex>(); _feI != sg.goc().end<Vertex>(); ++_feI){
+		Vertex* vrt = *_feI;
 		g.associated_elements (edges, vrt);
 
 		Edge* creaseNbrs[2];
@@ -70,7 +70,7 @@ refinement_begins(const ISubGrid* psg)
 			m_newPositions.push_back(make_pair(vrt, p));
 		}
 		else if(numCreaseNbrs > 0){
-			m_newPositions.push_back(make_pair(vrt, pos(vrt)));
+			m_newPositions.emplace_back(vrt, pos(vrt));
 		}
 		else{
 		//	perform loop subdivision on even vertices
@@ -93,9 +93,9 @@ refinement_begins(const ISubGrid* psg)
 
 			vector3 np;
 			VecScaleAdd(np, centerWgt, pos(vrt), nbrWgt, p);
-			m_newPositions.push_back(make_pair(vrt, np));
+			m_newPositions.emplace_back(vrt, np);
 		}
-	} };
+	}
 }
 
 void SubdivisionProjector::
@@ -241,7 +241,7 @@ nbr_crease_edges (Vertex* vrt,
 					++creaseEdges;
 				else{
 					size_t num = concerned_nbr_faces(edge, &faces);
-					creaseEdges += int((num > 0) && (num != 2));
+					creaseEdges += static_cast<int>((num > 0) && (num != 2));
 				}
 			}
 		}
@@ -274,7 +274,7 @@ concerned_nbr_faces (Edge* edge,
 	}
 	else{
 		for(size_t i = 0; i < assFaces->size(); ++i)
-			numConcernedFaces += (size_t)is_concerned((*assFaces)[i]);
+			numConcernedFaces += static_cast<size_t>(is_concerned((*assFaces)[i]));
 	}
 
 	return numConcernedFaces;

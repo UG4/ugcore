@@ -118,7 +118,7 @@ template <typename TElem>
 bool MightContainGhosts(const GridLayoutMap& layoutMap, int lvl)
 {
 	if(!layoutMap.has_layout<TElem>(INT_V_MASTER)) return false;
-	if(lvl >= (int)layoutMap.get_layout<TElem>(INT_V_MASTER).num_levels()) return false;
+	if(lvl >= static_cast<int>(layoutMap.get_layout<TElem>(INT_V_MASTER).num_levels())) return false;
 	if(layoutMap.get_layout<TElem>(INT_V_MASTER).empty(lvl)) return false;
 
 	using TLayout = typename GridLayoutMap::Types<TElem>::Layout::LevelLayout;
@@ -326,20 +326,20 @@ void IApproximationSpace::create_dof_distribution(const GridLevel& gl)
 	if(gl.is_level()){
 		if(gl.ghosts()){
 			if(m_spDoFIndexStrgForLevelWithGhost.invalid())
-				m_spDoFIndexStrgForLevelWithGhost = SmartPtr<DoFIndexStorage>(
+				m_spDoFIndexStrgForLevelWithGhost = SmartPtr(
 						new DoFIndexStorage(m_spMG, m_spDoFDistributionInfo));
 			spIndexStrg = m_spDoFIndexStrgForLevelWithGhost;
 		}
 		else{
 			if(m_spDoFIndexStrgForLevelNoGhost.invalid())
-				m_spDoFIndexStrgForLevelNoGhost = SmartPtr<DoFIndexStorage>(
+				m_spDoFIndexStrgForLevelNoGhost = SmartPtr(
 						new DoFIndexStorage(m_spMG, m_spDoFDistributionInfo));
 			spIndexStrg = m_spDoFIndexStrgForLevelNoGhost;
 		}
 	}
 
 //	create DoFDistribution
-	SmartPtr<DoFDistribution> spDD = SmartPtr<DoFDistribution>(new
+	SmartPtr<DoFDistribution> spDD = SmartPtr(new
 		DoFDistribution(m_spMG, m_spMGSH, m_spDoFDistributionInfo,
 						m_spSurfaceView, gl, m_bGrouped, spIndexStrg));
 
@@ -352,7 +352,7 @@ void IApproximationSpace::surface_view_required()
 {
 //	allocate surface view if needed
 	if(!m_spSurfaceView.valid())
-		m_spSurfaceView = SmartPtr<SurfaceView>(new SurfaceView(m_spMGSH));
+		m_spSurfaceView = SmartPtr(new SurfaceView(m_spMGSH));
 }
 
 void IApproximationSpace::dof_distribution_info_required()
@@ -556,7 +556,7 @@ void PrintDoFCount(const vector<DoFCount>& vDC,
 	vCmp.push_back(pair<string,int>("all", ALL_FCT));
 	if(bPrintCmps){
 		ssHead << setw(COMPONENT) << "Comps" << sSep;
-		for(int fct = 0; fct < (int)vDC[0].num_fct(); ++fct){
+		for(int fct = 0; fct < static_cast<int>(vDC[0].num_fct()); ++fct){
 			stringstream name; name << fct << ": "<< vDC[0].name(fct);
 			vCmp.push_back(pair<string,int>(SnipString(name.str(), COMPONENT, 2), fct));
 		}
@@ -763,7 +763,7 @@ void IApproximationSpace::print_statistic(std::string flags) const
 	if(m_vDD.empty()){
 		static const char* sLeft = " | ";
 		static const char* sRight = " | ";
-		const int LINE = 60;
+		constexpr int LINE = 60;
 		UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
 		UG_LOG(left);
 		UG_LOG(sLeft << setw(LINE) << "No DoFDistributions created."<<sRight<<endl);
@@ -827,7 +827,7 @@ void IApproximationSpace::print_statistic(std::string flags) const
 static size_t NumIndices(const IndexLayout& Layout)
 {
 	size_t sum = 0;
-	for(IndexLayout::const_iterator iter = Layout.begin(); iter != Layout.end(); ++iter)
+	for(auto iter = Layout.begin(); iter != Layout.end(); ++iter)
 		sum += Layout.interface(iter).size();
 	return sum;
 }

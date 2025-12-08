@@ -88,7 +88,7 @@ ref_marks_changed(IRefiner& ref,
 			Vertex* vrt = vrts[i_vrt];
 			if(!vrt->is_constrained())
 				continue;
-			ConstrainedVertex* hv = dynamic_cast<ConstrainedVertex*>(vrt);
+			auto hv = dynamic_cast<ConstrainedVertex*>(vrt);
 			if(!hv)
 				continue;
 

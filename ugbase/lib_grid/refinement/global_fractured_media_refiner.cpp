@@ -437,7 +437,7 @@ perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  creating new volumes\n");
 
 //	only used for tetrahedron refinement
-	vector<vector3> corners(4, vector3(0, 0, 0));
+	vector corners(4, vector3(0, 0, 0));
 
 //	create new vertices and volumes from marked volumes
 	for(VolumeIterator iter = mg.begin<Volume>(oldTopLevel);

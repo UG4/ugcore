@@ -733,15 +733,15 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 	//	sum all copies at the h-master attachment
 		ComPol_AttachmentReduce<layout_t, ANumber> compolSumErr(g, aSideError, PCL_RO_SUM);
 		ComPol_AttachmentReduce<layout_t, ANumber> compolSumNum(g, aNumElems, PCL_RO_SUM);
-		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolSumErr);
-		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolSumNum);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, compolSumErr);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, compolSumNum);
 		icom.communicate();
 
 	//	copy the sum from the master to all of its slave-copies
 		ComPol_CopyAttachment<layout_t, ANumber> compolCopyErr(g, aSideError);
 		ComPol_CopyAttachment<layout_t, ANumber> compolCopyNum(g, aNumElems);
-		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopyErr);
-		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopyNum);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, compolCopyErr);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, compolCopyNum);
 		icom.communicate();
 
 	//	since we're copying from vmasters to vslaves later on, we have to make
@@ -749,8 +749,8 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 	//todo: communication to vmasters may not be necessary here...
 	//		it is performed to make sure that all surface-rim-children
 	//		contain their true value.
-		icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyErr);
-		icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyNum);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compolCopyErr);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compolCopyNum);
 
 		icom.communicate();
 	#endif
@@ -784,8 +784,8 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 		}
 	//	those elems which have local children now contain their true value (vslaves...)
 		#ifdef UG_PARALLEL
-			icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyErr);
-			icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyNum);
+			icom.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compolCopyErr);
+			icom.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compolCopyNum);
 			icom.communicate();
 		#endif
 
@@ -813,8 +813,8 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 		//	sides which locally do not have a constraining element. Note that
 		//	constrained V-Masters always have a local constraining element and thus
 		//	contain the correct value.
-			icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopyErr);
-			icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopyNum);
+			icom.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, compolCopyErr);
+			icom.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, compolCopyNum);
 			icom.communicate();
 		#endif
 	}
@@ -1358,22 +1358,22 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 	//	sum all copies at the h-master attachment
 		ComPol_AttachmentReduce<layout_t, AGrad> compolSumGrad(mg, aGrad, PCL_RO_SUM);
 		ComPol_AttachmentReduce<layout_t, ANumber> compolSumNum(mg, aNumContribs, PCL_RO_SUM);
-		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolSumGrad);
-		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolSumNum);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, compolSumGrad);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_H_SLAVE, InterfaceNodeTypes::INT_H_MASTER, compolSumNum);
 		icom.communicate();
 
 	//	copy the sum from the master to all of its slave-copies
 		ComPol_CopyAttachment<layout_t, AGrad> compolCopyGrad(mg, aGrad);
 		ComPol_CopyAttachment<layout_t, ANumber> compolCopyNum(mg, aNumContribs);
-		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopyGrad);
-		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopyNum);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, compolCopyGrad);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_H_MASTER, InterfaceNodeTypes::INT_H_SLAVE, compolCopyNum);
 		icom.communicate();
 
 	//todo: communication to vmasters may not be necessary here...
 	//		it is performed to make sure that all surface-rim-children
 	//		contain their true value.
-		icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyGrad);
-		icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyNum);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compolCopyGrad);
+		icom.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compolCopyNum);
 
 		icom.communicate();
 	#endif
@@ -1403,8 +1403,8 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 		}
 	//	those elems which have local children now contain their true value (vslaves...)
 		#ifdef UG_PARALLEL
-			icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyGrad);
-			icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyNum);
+			icom.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compolCopyGrad);
+			icom.exchange_data(glm, InterfaceNodeTypes::INT_V_SLAVE, InterfaceNodeTypes::INT_V_MASTER, compolCopyNum);
 			icom.communicate();
 		#endif
 
@@ -1455,8 +1455,8 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 		//	sides which locally do not have a constraining element. Note that
 		//	constrained V-Masters always have a local constraining element and thus
 		//	contain the correct value.
-			icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopyGrad);
-			icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopyNum);
+			icom.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, compolCopyGrad);
+			icom.exchange_data(glm, InterfaceNodeTypes::INT_V_MASTER, InterfaceNodeTypes::INT_V_SLAVE, compolCopyNum);
 			icom.communicate();
 		#endif
 	}

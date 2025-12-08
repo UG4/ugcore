@@ -234,16 +234,16 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 	for(size_t iteration = 0; iteration < numIterations; ++iteration){
 		if(sideNbrsOnly){
 		//	first we'll select all unselected sides which are connected to marked elements
-			for(SelVolIter iter = sel.template begin<Volume>();
-				iter != sel.template end<Volume>(); ++iter)
+			for(SelVolIter iter = sel.template begin<Volume>();	iter != sel.template end<Volume>(); ++iter)
 			{
 				Volume* vol = *iter;
 				RefinementMark s = get_mark(vol);
 				g.associated_elements(faces, vol);
-				for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){ Face* f = faces[_vfeI];{
+				for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){
+					Face* f = faces[_vfeI];
 					if(!sel.is_selected(f) && this->refinement_is_allowed(f))
 						this->mark(f, s);
-				}};
+				}
 			}
 
 			for(SelFaceIter iter = sel.template begin<Face>();
@@ -252,10 +252,11 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 				Face* f = *iter;
 				RefinementMark s = get_mark(f);
 				g.associated_elements(edges, f);
-				for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){ Edge* e = edges[_vfeI];{
+				for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){
+					Edge* e = edges[_vfeI];
 					if(!sel.is_selected(e) && this->refinement_is_allowed(e))
 						this->mark(e, s);
-				}};
+				}
 			}
 
 			for(SelEdgeIter iter = sel.template begin<Edge>();
@@ -308,13 +309,15 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 		//	mark those elements which have a marked side
 			if(hasVolumes){
 				vector<Edge*> markedDummyEdges;
-				for(Grid::traits<Volume>::iterator _feI = g.begin<Volume>(); _feI != g.end<Volume>(); ++_feI){ Volume* vol = *_feI;{
+				for(auto _feI = g.begin<Volume>(); _feI != g.end<Volume>(); ++_feI){
+					Volume* vol = *_feI;
 					if(this->refinement_is_allowed(vol)){
 						RefinementMark s = get_mark(vol);
 						if(s < refMark){
 							g.associated_elements(faces, vol);
 							RefinementMark rm = RM_NONE;
-							for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){ Face* f = faces[_vfeI];{
+							for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){
+								Face* f = faces[_vfeI];
 								RefinementMark sSide = get_mark(f);
 								if(sSide){
 									rm = refMark;
@@ -330,16 +333,18 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 									mark(vol, rm);
 									break;
 								}
-							}};
+							}
 
 							if(rm == RM_ANISOTROPIC){
 							//	we'll also copy edge-marks to guarantee an anisotropic refinement
 								bool copying = true;
 								while(copying){
 									copying = false;
-									for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){ Face* f = faces[_vfeI];{
+									for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){
+										Face* f = faces[_vfeI];
 										g.associated_elements(edges, f);
-										for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){ Edge* e = edges[_vfeI];{
+										for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){
+											Edge* e = edges[_vfeI];
 											RefinementMark erm = get_mark(e);
 											if(erm == RM_REFINE){
 												if(f->get_opposing_side(e, edesc)){
@@ -351,26 +356,29 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 													}
 												}
 											}	
-										}};
-									}};
+										}
+									}
 								}
 							}
 						}
 					}
-				}};
+				}
 
-				for(size_t _vfeI = 0; _vfeI < markedDummyEdges.size(); ++_vfeI){ Edge* e = markedDummyEdges[_vfeI];{
-					mark(e, RM_REFINE);	
-				}};
+				for(size_t _vfeI = 0; _vfeI < markedDummyEdges.size(); ++_vfeI){
+					Edge* e = markedDummyEdges[_vfeI];
+					mark(e, RM_REFINE);
+					}
 			}
 			else if(hasFaces){
-				for(Grid::traits<Face>::iterator _feI = g.begin<Face>(); _feI != g.end<Face>(); ++_feI){ Face* f = *_feI;{
+				for(auto _feI = g.begin<Face>(); _feI != g.end<Face>(); ++_feI){
+					Face* f = *_feI;
 					if(this->refinement_is_allowed(f)){
 						RefinementMark s = get_mark(f);
 						if(s < refMark){
 							g.associated_elements(edges, f);
 							RefinementMark rm = RM_NONE;
-							for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){ Edge* e = edges[_vfeI];{
+							for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){
+								Edge* e = edges[_vfeI];
 								RefinementMark sSide = get_mark(e);
 								if(sSide){
 									rm = refMark;
@@ -386,15 +394,16 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 									mark(f, rm);
 									break;
 								}
-							}};
+							}
 
 						//	todo: if rm == RM_ANISOTROPIC: mark opposite edges (cf hasVolumes)
 						}
 					}
-				}};
+				}
 			}
 			else if(hasEdges){
-				for(Grid::traits<Edge>::iterator _feI = g.begin<Edge>(); _feI != g.end<Edge>(); ++_feI){ Edge* e = *_feI;{
+				for(auto _feI = g.begin<Edge>(); _feI != g.end<Edge>(); ++_feI){
+					Edge* e = *_feI;
 					if(this->refinement_is_allowed(e)){
 						RefinementMark s = get_mark(e);
 						if(s < refMark){
@@ -417,13 +426,12 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 							}
 						}
 					}
-				}};
+				}
 			}
 		}
 		else{
 		//	mark all associated elements of marked vertices
-			for(SelVrtIter iter = sel.template begin<Vertex>();
-				iter != sel.template end<Vertex>(); ++iter)
+			for(SelVrtIter iter = sel.template begin<Vertex>(); iter != sel.template end<Vertex>(); ++iter)
 			{
 				ISelector::status_t s = sel.get_selection_status(*iter);
 				RefinementMark rm = refMark;

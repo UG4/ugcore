@@ -51,7 +51,7 @@ class HorizontalAnisotropyAdjuster : public IRefMarkAdjuster
 		using position_attachment_t = TAPos;
 		using position_accessor_t = Grid::VertexAttachmentAccessor<TAPos>;
 
-		HorizontalAnisotropyAdjuster(TAPos aPos) : m_aPos(aPos) {}
+		explicit HorizontalAnisotropyAdjuster(TAPos aPos) : m_aPos(aPos) {}
 
 		~HorizontalAnisotropyAdjuster() override = default;
 

@@ -46,7 +46,7 @@ class GaussLegendre : public QuadratureRule<1>
 {
 	public:
 	///	constructor
-		GaussLegendre(size_t order);
+		explicit GaussLegendre(size_t order);
 
 	///	destructor
 		~GaussLegendre() override;

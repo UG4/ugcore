@@ -33,9 +33,9 @@
 #ifndef __H__LIB_GRID__GEOMETRIC_OBJECT_ID__
 #define __H__LIB_GRID__GEOMETRIC_OBJECT_ID__
 
-#include <algorithm>
+//#include <algorithm>
 #include <ostream>
-#include "lib_grid/grid/grid_base_objects.h"
+// #include "lib_grid/grid/grid_base_objects.h"
 #include "common/util/hash_function.h"
 
 namespace ug{

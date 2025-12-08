@@ -33,12 +33,12 @@
 #ifndef __H__LIB_GRID__MULTI_GRID__
 #define __H__LIB_GRID__MULTI_GRID__
 
-#include <vector>
+//#include <vector>
 #include <cassert>
 #include "grid/grid.h"
 #include "tools/subset_handler_grid.h"
-#include "common_attachments.h"
-#include "common/util/array_util.h"
+//#include "common_attachments.h"
+//#include "common/util/array_util.h"
 #include "multi_grid_child_info.h"
 #include "algorithms/attachment_util.h"
 

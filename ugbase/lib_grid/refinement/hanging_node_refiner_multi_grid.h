@@ -96,8 +96,8 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 		Grid* grid() override {return m_pMG;}
 		virtual MultiGrid* multi_grid() {return m_pMG;}
 
-		bool adaptivity_supported() const override {return true;}
-		bool coarsening_supported() const override {return true;}
+		[[nodiscard]] bool adaptivity_supported() const override {return true;}
+		[[nodiscard]] bool coarsening_supported() const override {return true;}
 
 	protected:
 	///	returns the number of (globally) marked edges on this level of the hierarchy

@@ -52,25 +52,25 @@ class IBalanceWeights{
 		virtual ~IBalanceWeights() = default;
 		virtual void refresh_weights(int baseLevel)	{};
 
-		virtual number get_weight(Vertex*)	{return 1.;}
-		virtual number get_weight(Edge*) 	{return 1.;}
-		virtual number get_weight(Face*) 	{return 1.;}
-		virtual number get_weight(Volume*)	{return 1.;}
+		virtual number get_weight(Vertex*) {return 1.;}
+		virtual number get_weight(Edge*) {return 1.;}
+		virtual number get_weight(Face*) {return 1.;}
+		virtual number get_weight(Volume*) {return 1.;}
 
-		virtual number get_refined_weight(Vertex* e)	{return get_weight(e);}
-		virtual number get_refined_weight(Edge* e) 		{return 2. * get_weight(e);}
-		virtual number get_refined_weight(Face* e) 		{return 4. * get_weight(e);}///< todo: use a more sophisticated implementation
-		virtual number get_refined_weight(Volume* e)	{return 8. * get_weight(e);}///< todo: use a more sophisticated implementation
+		virtual number get_refined_weight(Vertex* e) {return get_weight(e);}
+		virtual number get_refined_weight(Edge* e) {return 2. * get_weight(e);}
+		virtual number get_refined_weight(Face* e) {return 4. * get_weight(e);}///< todo: use a more sophisticated implementation
+		virtual number get_refined_weight(Volume* e) {return 8. * get_weight(e);}///< todo: use a more sophisticated implementation
 		
 		virtual bool has_level_offsets()		{return false;}
 
 	///	Relative indicator in which level the specified elements should be partitioned.
 	/** If this method returns true, one should use get_refined_weight instead of get_weight.
 	 * \{ */
-		virtual bool consider_in_level_above(Vertex*)	{return false;}
-		virtual bool consider_in_level_above(Edge*) 	{return false;}
-		virtual bool consider_in_level_above(Face*) 	{return false;}
-		virtual bool consider_in_level_above(Volume*)	{return false;}		
+		virtual bool consider_in_level_above(Vertex*) {return false;}
+		virtual bool consider_in_level_above(Edge*) {return false;}
+		virtual bool consider_in_level_above(Face*) {return false;}
+		virtual bool consider_in_level_above(Volume*) {return false;}
 	/** \} */
 };
 
@@ -191,9 +191,9 @@ class IPartitioner{
 		virtual ConstSPProcessHierarchy current_process_hierarchy() const = 0;
 		virtual ConstSPProcessHierarchy next_process_hierarchy() const = 0;
 
-		virtual bool supports_balance_weights() const 			{return false;}
-		virtual bool supports_communication_weights() const 	{return false;}
-		virtual bool supports_repartitioning() const 			{return false;}
+		virtual bool supports_balance_weights() const {return false;}
+		virtual bool supports_communication_weights() const {return false;}
+		virtual bool supports_repartitioning() const {return false;}
 
 	/**	clustered siblings help to ensure that all vertices which are connected to
 	 * a constrained vertex through are on the same process as the constrained vertex.
@@ -206,8 +206,8 @@ class IPartitioner{
 	 * The distribution quality is most likely better in this case.
 	 * \note	enabled by default
 	 * \{ */
-		virtual void enable_clustered_siblings(bool bEnable)	{m_clusteredSiblings = bEnable;}
-		virtual bool clustered_siblings_enabled()				{return m_clusteredSiblings;}
+		virtual void enable_clustered_siblings(bool bEnable) {m_clusteredSiblings = bEnable;}
+		virtual bool clustered_siblings_enabled() {return m_clusteredSiblings;}
 	/**	\} */
 
 

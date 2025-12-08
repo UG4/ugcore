@@ -49,7 +49,7 @@ class NewtonCotes : public QuadratureRule<1>
 {
 	public:
 	/// constructor
-		NewtonCotes(size_t order);
+		explicit NewtonCotes(size_t order);
 
 	/// destructor
 		~NewtonCotes() override;
