@@ -31,51 +31,6 @@ namespace diamonds
 
 ///////////////////////////////////////////
 
-//template <
-//typename VOLELEM,
-//typename MANIFELEM,
-//typename = std::enable_if< std::is_pointer<VOLELEM>::value>,
-//typename = std::enable_if< std::is_pointer<MANIFELEM>::value>
-//>
-//class VolManifCombi
-//{
-//
-//public:
-//
-//	using VolPair = std::pair<VOLELEM>;
-//
-//	VolManifCombi( MANIFELEM const & manifEl, VolPair const & volPr )
-//	: m_manifElm(manifEl),
-//	  m_volPr(volPr),
-//	  m_sudo(-1)
-//	{}
-//
-//	void spuckVolManifCombi( MANIFELEM & manifEl, VolPair & volPr )
-//	{
-//		manifEl = m_manifElm;
-//		volPr = m_volPr;
-//	}
-//
-//private:
-//
-//	MANIFELEM m_manifElm;
-//	VolPair m_volPr;
-//	int m_sudo;
-//
-//};
-
-//template<
-//typename VERTEXTYPE
-//>
-//class CrossingVerticesInfo
-//{
-//public:
-//
-//	CrossingVerticesInfo( VERTEXTYPE const & oldVrtx, VERTEXTYPE const & shiftVrtx, bool  )
-//
-//
-//};
-//
 ////////////////////////////////////////////////////////////////
 
 template <
@@ -112,6 +67,11 @@ public:
 
 	INDEXTYP spuckSudo() { return m_sudo; }
 
+	void changeVol( VOLELEM const & vol ) { m_volElm = vol; }
+
+	void changeManif( MANIFELEM const & manif ) { m_manifElm = manif; }
+
+
 private:
 
 	VOLELEM m_volElm;
@@ -119,113 +79,12 @@ private:
 	VrtxPair m_oldAndshiftVrtx;
 	INDEXTYP m_sudo;
 
+	// TODO FIXME compute automatisch the edge which connects the both vertices!!!!
+
 };
 
 
 /////////////////////////////////////////////////////////////////
-//
-//template <
-//typename VOLELEM,
-//typename MANIFELEM,
-//typename LOWDIMELM,
-//typename VERTEXTYP,
-//typename VECTORTYP,
-//typename INDEXTYP,
-//typename = std::enable_if< std::is_pointer<VOLELEM>::value>,
-//typename = std::enable_if< std::is_pointer<MANIFELEM>::value>,
-//typename = std::enable_if< std::is_pointer<LOWDIMELM>::value>,
-//typename = std::enable_if< std::is_pointer<VERTEXTYP>::value>
-//>
-//class DiamondSegmentInfo
-//{
-//
-//public:
-//
-//	using VolManifCombiVec = std::vector<VolManifCombi<VOLELEM,MANIFELEM>;
-//	using VolPair = std::pair<VOLELEM>;
-//	using LowDimPair = std::pair<LOWDIMELM>;
-//	using VrtxPair = std::pair<VERTEXTYP>;
-//
-//	DiamondSegmentInfo( // VERTEXTYP const & vertexOld,
-//				 VrtxPair const & vertcsShift,
-//				 VolManifCombiVec const & volManifCV,
-//				 LowDimPair const & lowdimElems,
-//				 INDEXTYP sudo )
-//	: // m_vertexOld(vertexOld),
-//	  m_vertcsShift(vertcsShift),
-//	  m_volManifCV(volManifCV),
-//	  m_lowdimElems(lowdimElems),
-//	  m_sudo(sudo)
-//	{};
-//
-////	void spuckVertexOld( VERTEXTYP & vertexOld )
-////	{
-////		vertexOld = m_vertexOld;
-////	}
-//
-//	void spuckVrtcsShift( VrtxPair & vertcsShift )
-//	{
-//		vertcsShift = m_vertcsShift;
-//	}
-//
-//	INDEXTYP spuckvolManifCombiVec( VolManifCombiVec & volManifCV )
-//	{
-//		volManifCV = m_volManifCV;
-//		return volManifCV.size();
-//	}
-//
-//	void spuckLowdimElems( LowDimPair & lowdimElems )
-//	{
-//		lowdimElems = m_lowdimElems;
-//	}
-//
-//	INDEXTYP spuckSudo()
-//	{
-//		return m_sudo;
-//	}
-//
-//
-//
-//private:
-//
-////	VERTEXTYP m_vertexOld;
-//	VrtxPair m_vertcsShift;
-//	VolManifCombiVec m_volManifCV;
-//	LowDimPair m_lowdimElems;
-//	INDEXTYP m_sudo;
-//
-//};
-//
-//template <
-//typename VOLELEM,
-//typename MANIFELEM,
-//typename LOWDIMELM,
-//typename VERTEXTYP,
-//typename VECTORTYP,
-//typename INDEXTYP,
-//typename = std::enable_if< std::is_pointer<VOLELEM>::value>,
-//typename = std::enable_if< std::is_pointer<MANIFELEM>::value>,
-//typename = std::enable_if< std::is_pointer<LOWDIMELM>::value>,
-//typename = std::enable_if< std::is_pointer<VERTEXTYP>::value>
-//>
-//class DiamondInfo
-//{
-//
-//public:
-//
-//	DiamondInfo( VERTEXTYP const & vertexOld )
-//	: m_vertexOld(vertexOld)
-//	{};
-//
-//	void spuckVertexOld( VERTEXTYP & vertexOld )
-//	{
-//		vertexOld = m_vertexOld;
-//	}
-//
-//private:
-//
-//	VERTEXTYP m_vertexOld;
-//};
 
 
 

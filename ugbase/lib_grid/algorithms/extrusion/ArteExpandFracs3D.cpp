@@ -9258,23 +9258,26 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 bool ArteExpandFracs3D::createTheDiamonds()
 {
+	diamonds::DiamondsEstablish3D establishDiams( m_grid, m_sh, m_vecVolManifVrtxCombiToShrink4Diams );
 
 	UG_LOG("Establishing diamonds" << std::endl);
 
-	IndexType sudos = m_sh.num_subsets();
+	return establishDiams.createTheDiamonds();
 
-	for( auto & vmvcd: m_vecVolManifVrtxCombiToShrink4Diams )
-	{
-		Volume* vol;
-		vmvcd.spuckVol(vol);
-
-		m_sh.assign_subset(vol, sudos);
-	}
-
-	UG_LOG("Established diamonds" << std::endl);
-
-
-	return true;
+//	IndexType sudos = m_sh.num_subsets();
+//
+//	for( auto & vmvcd : m_vecVolManifVrtxCombiToShrink4Diams )
+//	{
+//		Volume* vol;
+//		vmvcd.spuckVol(vol);
+//
+//		m_sh.assign_subset(vol, sudos);
+//	}
+//
+//	UG_LOG("Established diamonds" << std::endl);
+//
+//
+//	return true;
 }
 
 } /* namespace ug */

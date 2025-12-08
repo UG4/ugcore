@@ -1,0 +1,60 @@
+/*
+ * DiamondsEstablish3D.h
+ *
+ *  Created on: 08.12.2025
+ *      Author: Markus Knodel
+ */
+
+#ifndef UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_DIAMONDSESTABLISH3D_H_
+#define UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_DIAMONDSESTABLISH3D_H_
+
+#include <boost/function.hpp>
+#include <stack>
+#include <vector>
+#include "lib_grid/lg_base.h"
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/callbacks/callbacks.h"
+#include "lib_grid/grid/grid_util.h"
+
+#include "DiamondInfo.h"
+
+namespace ug
+{
+
+namespace diamonds
+{
+
+
+class DiamondsEstablish3D
+{
+public:
+
+	using IndexType = unsigned short;
+
+	using VolManifVrtxCombi = diamonds::VolManifVrtxCombi<Volume*,Face*,Vertex*, IndexType>;
+
+	using VecVolManifVrtxCombi = std::vector<VolManifVrtxCombi>;
+
+	using VrtxPair = std::pair<Vertex*,Vertex*>;
+
+
+	DiamondsEstablish3D( Grid & grid, SubsetHandler & sh, VecVolManifVrtxCombi const & vecVolManifVrtxC );
+
+	virtual ~DiamondsEstablish3D();
+
+	bool createTheDiamonds();
+
+private:
+
+	Grid & m_grid;
+	SubsetHandler & m_sh;
+	VecVolManifVrtxCombi m_vecVolManifVrtxCombiToShrink4Diams;
+
+
+};
+
+} /* namespace diamonds */
+
+} /* namespace ug */
+
+#endif /* UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_DIAMONDSESTABLISH3D_H_ */
