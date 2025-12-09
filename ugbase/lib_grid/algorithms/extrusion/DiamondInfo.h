@@ -470,14 +470,14 @@ public:
 	using FullLowDimManifQntpl = FullLowDimManifQuintuplet<FULLDIMELEM,MANIFELEM,LOWDIMELEM,VERTEXTYP>;
 	using VecFullLowDimManifQuintuplet = std::vector<FullLowDimManifQntpl>;
 
-	ElemsToBeQuenched4DiamSpace( VERTEXTYP const & centerVrtx,
-								 VecFullLowDimManifQuintuplet const & vfldm5
-							   )
-	: m_centerVrtx(centerVrtx), m_vecFullLowDimManifQuintpl(vfldm5)
+	ElemsToBeQuenched4DiamSpace( VecFullLowDimManifQuintuplet const & vfldm5 )
+	: m_centerVrtx(nullptr), m_vecFullLowDimManifQuintpl(vfldm5)
 	{}
 
 	bool checkIntegrity()
 	{
+		bool centerAssigned = false;
+
 		for( auto & fldmq : m_vecFullLowDimManifQuintpl )
 		{
 			if( ! fldmq.checkIntegrity() )
@@ -486,19 +486,39 @@ public:
 				return false;
 			}
 
-			if( fldmq.spuckCenterVertex() != m_centerVrtx )
+			if( ! centerAssigned )
 			{
-				UG_LOG("Center vertex not identical " << std::endl);
-				return false;
+				fldmq.spuckCenterVertex( m_centerVrtx );
+				centerAssigned = true;
 			}
+			else
+			{
+				Vertex * testVrtx = nullptr;
+				fldmq.spuckCenterVertex( testVrtx );
+
+				if( testVrtx != m_centerVrtx )
+				{
+					UG_LOG("different centers " << std::endl);
+					return false;
+				}
+			}
+
+//			if( fldmq.spuckCenterVertex() != m_centerVrtx )
+//			{
+//				UG_LOG("Center vertex not identical " << std::endl);
+//				return false;
+//			}
+		}
+
+		if( ! centerAssigned || m_centerVrtx == nullptr )
+		{
+			UG_LOG("CEnter problem " << std::endl);
 		}
 
 		return true;
 	}
 
-	bool changeElems( VERTEXTYP const & centerVrtx,
-			 	 	  VecFullLowDimManifQuintuplet const & vfldm5
-		   	   	   	 )
+	bool changeElems( VecFullLowDimManifQuintuplet const & vfldm5 )
 	{
 		if( vfldm5.size() != m_vecFullLowDimManifQuintpl.size())
 		{
@@ -506,10 +526,14 @@ public:
 			return false;
 		}
 
-		m_centerVrtx = centerVrtx;
 		m_vecFullLowDimManifQuintpl = vfldm5;
 
 		return true;
+	}
+
+	void spuckCenterVertex( VERTEXTYP & center )
+	{
+		center = m_centerVrtx;
 	}
 
 private:
