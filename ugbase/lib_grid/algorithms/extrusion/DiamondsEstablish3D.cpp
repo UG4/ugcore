@@ -24,7 +24,7 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_vecElems2BQuenched(VecElems2BQuenched()),
 			m_disappearingVols(std::vector<Volume*>()),
 			m_disappearingFacs(std::vector<Face*>()),
-			m_disappearingEdgs(std::vector<Edge*>)
+			m_disappearingEdgs(std::vector<Edge*>())
 {
 }
 
@@ -125,6 +125,10 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 
 	for( auto & vmvcd : m_vecVolManifVrtxCombiToShrink4Diams )
 	{
+//		Elems2BQuenched e2bq;
+		VrtxPair oldAndShiftV;
+		vmvcd.spuckOldAndShiftVrtx( oldAndShiftV);
+		Vertex * oldCenter = oldAndShiftV.first;
 
 	}
 
