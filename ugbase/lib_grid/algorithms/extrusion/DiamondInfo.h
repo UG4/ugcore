@@ -137,14 +137,18 @@ private:
 // a pair of a volume and a face, the face should be part of the volume!
 template <
 typename FULLDIMELEM,
-typename LOWDIMELEM
+typename LOWDIMELEM,
+typename INDEXTYP
 >
 class FulldimLowdimTwin
 {
 public:
 
-	FulldimLowdimTwin( FULLDIMELEM const & fulldimElem, LOWDIMELEM const & lowdimElem  )
-	: m_fullDimElem(fulldimElem), m_lowDimElem(lowdimElem)
+	FulldimLowdimTwin( FULLDIMELEM const & fulldimElem,
+					   LOWDIMELEM const & lowdimElem,
+					   INDEXTYP sudo
+				     )
+	: m_fullDimElem(fulldimElem), m_lowDimElem(lowdimElem), m_sudo(sudo)
 	{}
 
 	void spuckFullDimElem( FULLDIMELEM & fulldimElem )
@@ -157,10 +161,15 @@ public:
 		lowdimElem = m_lowDimElem;
 	}
 
-	void changeTheElems( FULLDIMELEM const & fulldimElem, LOWDIMELEM const & lowdimElem )
+	INDEXTYP spuckSudo() { return m_sudo; }
+
+	void changeTheElems( FULLDIMELEM const & fulldimElem,
+						 LOWDIMELEM const & lowdimElem,
+						 INDEXTYP sudo )
 	{
 		m_fullDimElem = fulldimElem;
 		m_lowDimElem = lowdimElem;
+		m_sudo = sudo;
 	}
 
 	// template check if volume and edge valid......
@@ -184,6 +193,7 @@ private:
 
 	FULLDIMELEM m_fullDimElem;
 	LOWDIMELEM m_lowDimElem;
+	INDEXTYP m_sudo;
 };
 
 ////////////////////////////////////////////////////////////
@@ -220,6 +230,7 @@ typename FULLDIMELEM,
 typename MANIFELEM,
 typename LOWDIMELEM,
 typename VERTEXTYP,
+typename INDEXTYP,
 typename = std::enable_if< std::is_pointer<FULLDIMELEM>::value>,
 typename = std::enable_if< std::is_pointer<MANIFELEM>::value>,
 typename = std::enable_if< std::is_pointer<LOWDIMELEM>::value>,
@@ -229,7 +240,7 @@ class FullLowDimManifQuintuplet
 {
 public:
 
-	using FullLowDimTwin = FulldimLowdimTwin<FULLDIMELEM,LOWDIMELEM>;
+	using FullLowDimTwin = FulldimLowdimTwin<FULLDIMELEM,LOWDIMELEM,INDEXTYP>;
 	using PairFullLowDimTwin = std::pair<FullLowDimTwin,FullLowDimTwin>;
 	using PairVrtcs = std::pair<VERTEXTYP,VERTEXTYP>;
 
@@ -237,7 +248,8 @@ public:
 	: m_pairFullLowDimTwin(fullLowPr),
 	  m_manifElem(manif),
 	  m_centerVrtx(nullptr),
-	  m_shiftVrtcs(PairVrtcs())
+	  m_shiftVrtcs(PairVrtcs()),
+	  m_sudo(fullLowPr.first.spuckSudo())
 	{};
 
 	template
@@ -263,6 +275,12 @@ public:
 		if( ! figureOutMajorVertices() )
 		{
 			UG_LOG("major vertices not found " << std::endl);
+			return false;
+		}
+
+		if( ! figureOutSudo() )
+		{
+			UG_LOG("sudo not unique " << std::endl);
 			return false;
 		}
 
@@ -295,6 +313,7 @@ private:
 	MANIFELEM m_manifElem;
 	VERTEXTYP m_centerVrtx;
 	PairVrtcs m_shiftVrtcs;
+	INDEXTYP m_sudo;
 
 	bool checkIntegrityVols()
 	{
@@ -446,6 +465,21 @@ private:
 		return true;
 	}
 
+	bool figureOutSudo()
+	{
+		int sudoFirst = m_pairFullLowDimTwin.first.spuckSudo();
+		int sudoSecond = m_pairFullLowDimTwin.second.spuckSudo();
+
+		if( sudoFirst != sudoSecond )
+		{
+			UG_LOG("Sudos do not coincide " << std::endl );
+		}
+
+		m_sudo = sudoFirst;
+
+		return true;
+	}
+
 };
 
 
@@ -458,6 +492,7 @@ typename FULLDIMELEM,
 typename MANIFELEM,
 typename LOWDIMELEM,
 typename VERTEXTYP,
+typename INDEXTYP,
 typename = std::enable_if< std::is_pointer<FULLDIMELEM>::value>,
 typename = std::enable_if< std::is_pointer<MANIFELEM>::value>,
 typename = std::enable_if< std::is_pointer<LOWDIMELEM>::value>,
@@ -467,16 +502,18 @@ class ElemsToBeQuenched4DiamSpace
 {
 public:
 
-	using FullLowDimManifQntpl = FullLowDimManifQuintuplet<FULLDIMELEM,MANIFELEM,LOWDIMELEM,VERTEXTYP>;
+	using FullLowDimManifQntpl = FullLowDimManifQuintuplet<FULLDIMELEM,MANIFELEM,LOWDIMELEM,VERTEXTYP,INDEXTYP>;
 	using VecFullLowDimManifQuintuplet = std::vector<FullLowDimManifQntpl>;
 
 	ElemsToBeQuenched4DiamSpace( VecFullLowDimManifQuintuplet const & vfldm5 )
-	: m_centerVrtx(nullptr), m_vecFullLowDimManifQuintpl(vfldm5)
+	: m_centerVrtx(nullptr), m_vecFullLowDimManifQuintpl(vfldm5), m_sudo(vfldm5[0].spuckSudo())
 	{}
 
 	bool checkIntegrity()
 	{
 		bool centerAssigned = false;
+
+		bool sudoAssigned = false;
 
 		for( auto & fldmq : m_vecFullLowDimManifQuintpl )
 		{
@@ -503,6 +540,22 @@ public:
 				}
 			}
 
+			if( ! sudoAssigned )
+			{
+				m_sudo = fldmq.spuckSudo();
+				sudoAssigned = true;
+			}
+			else
+			{
+				INDEXTYP sudoTest = fldmq.spuckSudo();
+
+				if( sudoTest != m_sudo )
+				{
+					UG_LOG("sudos not the same " << std::endl);
+					return false;
+				}
+			}
+
 //			if( fldmq.spuckCenterVertex() != m_centerVrtx )
 //			{
 //				UG_LOG("Center vertex not identical " << std::endl);
@@ -510,9 +563,10 @@ public:
 //			}
 		}
 
-		if( ! centerAssigned || m_centerVrtx == nullptr )
+		if( ! centerAssigned || m_centerVrtx == nullptr || ! sudoAssigned )
 		{
 			UG_LOG("CEnter problem " << std::endl);
+			return false;
 		}
 
 		return true;
@@ -528,6 +582,12 @@ public:
 
 		m_vecFullLowDimManifQuintpl = vfldm5;
 
+		if( ! checkIntegrity() )
+		{
+			UG_LOG("Quintuplet not integer " << std::endl);
+			return false;
+		}
+
 		return true;
 	}
 
@@ -540,6 +600,7 @@ private:
 
 	VERTEXTYP m_centerVrtx;
 	VecFullLowDimManifQuintuplet m_vecFullLowDimManifQuintpl;
+	INDEXTYP m_sudo;
 
 };
 

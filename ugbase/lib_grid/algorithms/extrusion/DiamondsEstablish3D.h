@@ -54,7 +54,7 @@ private:
 
 	bool findRegions2BShrinked();
 
-	using Elems2BQuenched = ElemsToBeQuenched4DiamSpace<Volume*, Face*, Edge*, Vertex*>;
+	using Elems2BQuenched = ElemsToBeQuenched4DiamSpace<Volume*, Face*, Edge*, Vertex*, IndexType>;
 	using VecElems2BQuenched = std::vector<Elems2BQuenched>;
 
 	VecElems2BQuenched m_vecElems2BQuenched;
@@ -62,6 +62,10 @@ private:
 	std::vector<Volume*> m_disappearingVols;
 	std::vector<Face*> m_disappearingFacs;
 	std::vector<Edge*> m_disappearingEdgs;
+
+	using VolumeElementTwin = FulldimLowdimTwin<Volume*, Edge*, IndexType>;
+
+	using VolumeElementFaceQuintuplet = FullLowDimManifQuintuplet<Volume*, Face*, Edge*, Vertex*, IndexType>;
 };
 
 } /* namespace diamonds */
