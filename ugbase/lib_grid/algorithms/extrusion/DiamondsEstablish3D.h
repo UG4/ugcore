@@ -50,7 +50,18 @@ private:
 	SubsetHandler & m_sh;
 	VecVolManifVrtxCombi m_vecVolManifVrtxCombiToShrink4Diams;
 
+	bool figureOutTheEdges();
 
+	bool findRegions2BShrinked();
+
+	using Elems2BQuenched = ElemsToBeQuenched4DiamSpace<Volume*, Face*, Edge*, Vertex*>;
+	using VecElems2BQuenched = std::vector<Elems2BQuenched>;
+
+	VecElems2BQuenched m_vecElems2BQuenched;
+
+	std::vector<Volume*> m_disappearingVols;
+	std::vector<Face*> m_disappearingFacs;
+	std::vector<Edge*> m_disappearingEdgs;
 };
 
 } /* namespace diamonds */
