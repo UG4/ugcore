@@ -54,8 +54,22 @@ private:
 
 	bool findRegions2BShrinked();
 
+	using VolumeElementTwin = FulldimLowdimTwin<Volume*, Edge*, IndexType>;
+
+	using VolumeElementFaceQuintuplet = FullLowDimManifQuintuplet<Volume*, Face*, Edge*, Vertex*, IndexType>;
+
+	using VecVolumeElementFaceQuintuplet = std::vector<VolumeElementFaceQuintuplet>;
+
+	bool trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( VecVolManifVrtxCombi const & vVolFacVrtxC,
+															 VolumeElementFaceQuintuplet & vef5
+															);
+
 	using Elems2BQuenched = ElemsToBeQuenched4DiamSpace<Volume*, Face*, Edge*, Vertex*, IndexType>;
 	using VecElems2BQuenched = std::vector<Elems2BQuenched>;
+
+	bool establishElems2BeQuenched( VecVolumeElementFaceQuintuplet const & vef5,
+									Elems2BQuenched & elem2BQuenched
+								  );
 
 	VecElems2BQuenched m_vecElems2BQuenched;
 
@@ -63,9 +77,7 @@ private:
 	std::vector<Face*> m_disappearingFacs;
 	std::vector<Edge*> m_disappearingEdgs;
 
-	using VolumeElementTwin = FulldimLowdimTwin<Volume*, Edge*, IndexType>;
 
-	using VolumeElementFaceQuintuplet = FullLowDimManifQuintuplet<Volume*, Face*, Edge*, Vertex*, IndexType>;
 };
 
 } /* namespace diamonds */

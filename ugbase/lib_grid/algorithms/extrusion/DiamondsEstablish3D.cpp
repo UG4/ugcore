@@ -330,6 +330,26 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
+	 VecVolManifVrtxCombi const & vVolFacVrtxC, VolumeElementFaceQuintuplet & vef5 )
+{
+	if( vVolFacVrtxC.size() != 2 )
+	{
+		UG_LOG("wrong size of vol fac vrtx combi " << std::endl);
+		return false;
+	}
+
+	//TODO FIXME
+
+	return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////
 
 
 } /* namespace diamonds */
