@@ -643,6 +643,13 @@ public:
 		origCenterVrtx = m_originalCenterVrtx;
 	}
 
+	void spuckVecFullLowDimManifQuintuplet( VecFullLowDimManifQuintuplet & vfldm5 )
+	{
+		vfldm5 = m_vecFullLowDimManifQuintpl;
+	}
+
+	INDEXTYP spuckSudo() { return m_sudo; }
+
 private:
 
 	VERTEXTYP m_centerVrtx, m_originalCenterVrtx;

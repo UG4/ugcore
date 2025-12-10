@@ -68,7 +68,7 @@ private:
 															 VolumeElementFaceQuintuplet & vef5
 															);
 
-	bool establishElems2BeQuenched( VecVolumeElementFaceQuintuplet & vef5,
+	bool establishElems2BeQuenched( VecVolumeElementFaceQuintuplet & vvef5,
 									Elems2BQuenched & elem2BQuenched
 								  );
 

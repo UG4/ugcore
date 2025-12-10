@@ -123,6 +123,13 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 {
 	UG_LOG("want to find regions to be shrinked" << std::endl);
 
+	IndexType sudoNum = m_sh.num_subsets();
+
+	IndexType sudoVols = sudoNum;
+	IndexType sudoFacs = sudoNum+1;
+	IndexType sudoEdgs = sudoNum+2;
+	IndexType sudoVrtx = sudoNum+3;
+
 	// collect the pairs of volumes connected by a face relevant for the shrinking of the volumes
 
 //	for( auto & vmvcd : m_vecVolManifVrtxCombiToShrink4Diams )
@@ -372,6 +379,48 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 			return false;
 		}
 
+		for( auto & v: vecvef5 )
+		{
+			Volume * vol1;
+			Volume * vol2;
+			Face * fac;
+			Edge * edg1;
+			Edge * edg2;
+			Vertex * vrtC;
+			Vertex * vrtE1;
+			Vertex * vrtE2;
+
+			std::pair<VolumeElementTwin,VolumeElementTwin> pvv;
+
+			v.spuckPairFullLowDimTwin(pvv);
+
+			pvv.first.spuckFullDimElem(vol1);
+			pvv.second.spuckFullDimElem(vol2);
+
+			v.spuckManifElem( fac );
+
+			pvv.first.spuckLowDimElem(edg1);
+			pvv.second.spuckLowDimElem(edg2);
+
+			v.spuckCenterVertex(vrtC);
+
+			VrtxPair vp;
+			v.spuckShiftVrtcs(vp);
+
+			vrtE1 = vp.first;
+			vrtE2 = vp.second;
+
+			m_sh.assign_subset(vol1, sudoVols);
+			m_sh.assign_subset(vol2, sudoVols);
+			m_sh.assign_subset(fac, sudoFacs);
+			m_sh.assign_subset(edg1, sudoEdgs);
+			m_sh.assign_subset(edg2, sudoEdgs);
+			m_sh.assign_subset(vrtC, sudoVrtx);
+			m_sh.assign_subset(vrtE1, sudoVrtx);
+			m_sh.assign_subset(vrtE2, sudoVrtx);
+
+		}
+
 		Elems2BQuenched elem2BQuenched;
 
 		if( ! establishElems2BeQuenched( vecvef5, elem2BQuenched ) )
@@ -380,7 +429,15 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 			return false;
 		}
 
+#if 0
+		if( ! elem2BQuenched.checkIntegrity())
+		{
+			UG_LOG("elems to be quenched not integer " << std::endl);
+			return false;
+		}
+
 		m_vecElems2BQuenched.push_back(elem2BQuenched);
+#endif
 	}
 
 	UG_LOG("found regions to be shrinked" << std::endl);
@@ -505,7 +562,7 @@ bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
 
 ////////////////////////////////////////////////////////////////////////////
 
-bool DiamondsEstablish3D::establishElems2BeQuenched( VecVolumeElementFaceQuintuplet & vef5,
+bool DiamondsEstablish3D::establishElems2BeQuenched( VecVolumeElementFaceQuintuplet & vvef5,
 													 Elems2BQuenched & elem2BQuenched )
 {
 	// TODO FIXME
