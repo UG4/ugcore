@@ -23,8 +23,8 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_vecVolManifVrtxCombiToShrink4Diams(vecVolManifVrtxC),
 			m_vecElems2BQuenched(VecElems2BQuenched()),
 			m_disappearingVols(std::vector<Volume*>()),
-			m_disappearingFacs(std::vector<Face*>()),
-			m_disappearingEdgs(std::vector<Edge*>())
+			m_disappearingFacs(std::vector<Face*>())
+//			m_disappearingEdgs(std::vector<Edge*>())
 {
 }
 
@@ -121,6 +121,8 @@ bool DiamondsEstablish3D::figureOutTheEdges()
 
 bool DiamondsEstablish3D::findRegions2BShrinked()
 {
+	UG_LOG("want to find regions to be shrinked" << std::endl);
+
 	// collect the pairs of volumes connected by a face relevant for the shrinking of the volumes
 
 //	for( auto & vmvcd : m_vecVolManifVrtxCombiToShrink4Diams )
@@ -381,13 +383,16 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 		m_vecElems2BQuenched.push_back(elem2BQuenched);
 	}
 
+	UG_LOG("found regions to be shrinked" << std::endl);
+
+
 	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
 bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
-	 VecVolManifVrtxCombi const & vVolFacVrtxC, VolumeElementFaceQuintuplet & vef5 )
+	 VecVolManifVrtxCombi & vVolFacVrtxC, VolumeElementFaceQuintuplet & vef5 )
 {
 	if( vVolFacVrtxC.size() != 2 )
 	{
@@ -397,13 +402,110 @@ bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
 
 	//TODO FIXME
 
+	VolManifVrtxCombi & mvcOne = vVolFacVrtxC[0];
+	VolManifVrtxCombi & mvcTwo = vVolFacVrtxC[1];
+
+	IndexType sudoOne = mvcOne.spuckSudo();
+	IndexType sudoTwo = mvcTwo.spuckSudo();
+
+	if( sudoOne != sudoTwo )
+	{
+		UG_LOG("sudos differ " << std::endl);
+		return false;
+	}
+
+	IndexType sudo = sudoOne;
+
+	Face * faceOne;
+	Face * faceTwo;
+
+	mvcOne.spuckManif(faceOne);
+	mvcTwo.spuckManif(faceTwo);
+
+	if( faceOne != faceTwo )
+	{
+		UG_LOG("faces differ " << std::endl);
+		return false;
+	}
+
+	Face * connectingFace = faceOne;
+
+	VrtxPair oldAndShiftVrtxOne;
+	mvcOne.spuckOldAndShiftVrtx( oldAndShiftVrtxOne );
+
+	VrtxPair oldAndShiftVrtxTwo;
+	mvcTwo.spuckOldAndShiftVrtx( oldAndShiftVrtxTwo );
+
+	Vertex * oldVrtxOne = oldAndShiftVrtxOne.first;
+	Vertex * oldVrtxTwo = oldAndShiftVrtxTwo.first;
+
+	if( oldVrtxOne != oldVrtxTwo )
+	{
+		UG_LOG("center vertices not identical " << std::endl);
+		return false;
+	}
+
+	Vertex * oldVrtx = oldVrtxOne;
+
+	Vertex * shiftVrtxOne = oldAndShiftVrtxOne.second;
+	Vertex * shiftVrtxTwo = oldAndShiftVrtxTwo.second;
+
+	if( shiftVrtxOne == shiftVrtxTwo )
+	{
+		UG_LOG("shift vertices coincide but should not " << std::endl);
+		return false;
+	}
+
+	Volume * volOne;
+	Volume * volTwo;
+
+	mvcOne.spuckVol( volOne );
+	mvcTwo.spuckVol( volTwo );
+
+	if( volOne == volTwo )
+	{
+		UG_LOG("volumes coincide but should not " << std::endl);
+		return false;
+	}
+
+	Edge * edgeOne;
+	Edge * edgeTwo;
+
+	mvcOne.spuckLowdimElem( edgeOne );
+	mvcTwo.spuckLowdimElem( edgeTwo );
+
+	if( edgeOne == edgeTwo )
+	{
+		UG_LOG("edges coincide but should not " << std::endl);
+		return false;
+	}
+
+	VolumeElementTwin volElTwinOne( volOne, edgeOne, sudo );
+	VolumeElementTwin volElTwinTwo( volTwo, edgeTwo, sudo );
+
+	if( ! volElTwinOne.checkIntegrity() || ! volElTwinTwo.checkIntegrity() )
+	{
+		UG_LOG("twins of vol edge not integer " << std::endl);
+		return false;
+	}
+
+	std::pair<VolumeElementTwin,VolumeElementTwin> volElTwinPair( volElTwinOne, volElTwinTwo );
+
+	vef5 = VolumeElementFaceQuintuplet( volElTwinPair, connectingFace );
+
+	if( ! vef5.checkIntegrity() )
+	{
+		UG_LOG( "quitent not integer " << std::endl );
+		return false;
+	}
+
 	return true;
 }
 
 
 ////////////////////////////////////////////////////////////////////////////
 
-bool DiamondsEstablish3D::establishElems2BeQuenched( VecVolumeElementFaceQuintuplet const & vef5,
+bool DiamondsEstablish3D::establishElems2BeQuenched( VecVolumeElementFaceQuintuplet & vef5,
 													 Elems2BQuenched & elem2BQuenched )
 {
 	// TODO FIXME

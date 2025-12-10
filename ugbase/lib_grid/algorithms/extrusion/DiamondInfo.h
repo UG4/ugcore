@@ -254,7 +254,7 @@ public:
 	  m_manifElem(manif),
 	  m_centerVrtx(nullptr),
 	  m_shiftVrtcs(PairVrtcs()),
-	  m_sudo(fullLowPr.first.spuckSudo())
+	  m_sudo(0)
 	{};
 
 	FullLowDimManifQuintuplet()
@@ -489,6 +489,9 @@ private:
 			return false;
 		}
 
+		m_centerVrtx = connctVrtx;
+		m_shiftVrtcs = PairVrtcs( outerVrtxOne, outerVrtxTwo );
+
 		return true;
 	}
 
@@ -533,11 +536,11 @@ public:
 	using VecFullLowDimManifQuintuplet = std::vector<FullLowDimManifQntpl>;
 
 	ElemsToBeQuenched4DiamSpace( VecFullLowDimManifQuintuplet const & vfldm5 )
-	: m_centerVrtx(nullptr), m_vecFullLowDimManifQuintpl(vfldm5), m_sudo(vfldm5[0].spuckSudo())
+	: m_centerVrtx(nullptr), m_originalCenterVrtx(nullptr), m_vecFullLowDimManifQuintpl(vfldm5), m_sudo(vfldm5[0].spuckSudo())
 	{}
 
 	ElemsToBeQuenched4DiamSpace()
-	: m_centerVrtx(nullptr), m_vecFullLowDimManifQuintpl(VecFullLowDimManifQuintuplet()), m_sudo(0)
+	: m_centerVrtx(nullptr), m_originalCenterVrtx(nullptr),m_vecFullLowDimManifQuintpl(VecFullLowDimManifQuintuplet()), m_sudo(0)
 	{}
 
 
@@ -559,6 +562,13 @@ public:
 			{
 				fldmq.spuckCenterVertex( m_centerVrtx );
 				centerAssigned = true;
+
+				if( m_originalCenterVrtx == nullptr )
+				{
+					// must be first call
+					m_originalCenterVrtx = m_centerVrtx;
+				}
+
 			}
 			else
 			{
@@ -628,9 +638,14 @@ public:
 		center = m_centerVrtx;
 	}
 
+	void spuchOrigCenterVertex( VERTEXTYP & origCenterVrtx )
+	{
+		origCenterVrtx = m_originalCenterVrtx;
+	}
+
 private:
 
-	VERTEXTYP m_centerVrtx;
+	VERTEXTYP m_centerVrtx, m_originalCenterVrtx;
 	VecFullLowDimManifQuintuplet m_vecFullLowDimManifQuintpl;
 	INDEXTYP m_sudo;
 

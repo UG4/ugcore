@@ -64,11 +64,11 @@ private:
 	using Elems2BQuenched = ElemsToBeQuenched4DiamSpace<Volume*, Face*, Edge*, Vertex*, IndexType>;
 	using VecElems2BQuenched = std::vector<Elems2BQuenched>;
 
-	bool trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( VecVolManifVrtxCombi const & vVolFacVrtxC,
+	bool trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( VecVolManifVrtxCombi & vVolFacVrtxC,
 															 VolumeElementFaceQuintuplet & vef5
 															);
 
-	bool establishElems2BeQuenched( VecVolumeElementFaceQuintuplet const & vef5,
+	bool establishElems2BeQuenched( VecVolumeElementFaceQuintuplet & vef5,
 									Elems2BQuenched & elem2BQuenched
 								  );
 
@@ -76,7 +76,7 @@ private:
 
 	std::vector<Volume*> m_disappearingVols;
 	std::vector<Face*> m_disappearingFacs;
-	std::vector<Edge*> m_disappearingEdgs;
+//	std::vector<Edge*> m_disappearingEdgs;
 
 
 };
