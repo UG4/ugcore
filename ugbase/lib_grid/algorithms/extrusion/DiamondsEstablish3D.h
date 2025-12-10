@@ -60,12 +60,13 @@ private:
 
 	using VecVolumeElementFaceQuintuplet = std::vector<VolumeElementFaceQuintuplet>;
 
-	bool trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( VecVolManifVrtxCombi const & vVolFacVrtxC,
-															 VolumeElementFaceQuintuplet & vef5
-															);
 
 	using Elems2BQuenched = ElemsToBeQuenched4DiamSpace<Volume*, Face*, Edge*, Vertex*, IndexType>;
 	using VecElems2BQuenched = std::vector<Elems2BQuenched>;
+
+	bool trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( VecVolManifVrtxCombi const & vVolFacVrtxC,
+															 VolumeElementFaceQuintuplet & vef5
+															);
 
 	bool establishElems2BeQuenched( VecVolumeElementFaceQuintuplet const & vef5,
 									Elems2BQuenched & elem2BQuenched

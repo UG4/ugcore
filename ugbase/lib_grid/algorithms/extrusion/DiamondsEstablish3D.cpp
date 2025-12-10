@@ -322,10 +322,64 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 		// create the new combination and attach it to the vector
 		//		Elems2BQuenched
 //		m_vecElems2BQuenched.push_back(...);
+
+		VolumeElementFaceQuintuplet vef5Twin;
+
+		if( ! trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( twinCombi2Outer, vef5Twin ) )
+		{
+			UG_LOG("trafo failed twin " << std::endl);
+			return false;
+		}
+
+
+		if( ! vef5Twin.checkIntegrity())
+		{
+			UG_LOG("twins not integer " << std::endl);
+			return false;
+		}
+
+		VecVolumeElementFaceQuintuplet vecvef5;
+
+		vecvef5.push_back(vef5Twin);
+
+		if( partnerCombi2Outer.size() == 0 )
+		{
+			;
+		}
+		else if( partnerCombi2Outer.size() == 2 )
+		{
+			VolumeElementFaceQuintuplet vef5Partner;
+
+			if( ! trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( partnerCombi2Outer, vef5Partner ) )
+			{
+				UG_LOG("trafo failed partner " << std::endl);
+				return false;
+			}
+
+			if( ! vef5Partner.checkIntegrity() )
+			{
+				UG_LOG("partner not integer " << std::endl);
+				return false;
+			}
+
+			vecvef5.push_back(vef5Partner);
+		}
+		else
+		{
+			UG_LOG("strange parter size " << std::endl);
+			return false;
+		}
+
+		Elems2BQuenched elem2BQuenched;
+
+		if( ! establishElems2BeQuenched( vecvef5, elem2BQuenched ) )
+		{
+			UG_LOG("establish quench failed " << std::endl);
+			return false;
+		}
+
+		m_vecElems2BQuenched.push_back(elem2BQuenched);
 	}
-
-
-
 
 	return true;
 }
@@ -349,6 +403,13 @@ bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
 
 ////////////////////////////////////////////////////////////////////////////
 
+bool DiamondsEstablish3D::establishElems2BeQuenched( VecVolumeElementFaceQuintuplet const & vef5,
+													 Elems2BQuenched & elem2BQuenched )
+{
+	// TODO FIXME
+
+	return {};
+}
 ////////////////////////////////////////////////////////////////////////////
 
 

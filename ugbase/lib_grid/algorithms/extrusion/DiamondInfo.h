@@ -151,6 +151,11 @@ public:
 	: m_fullDimElem(fulldimElem), m_lowDimElem(lowdimElem), m_sudo(sudo)
 	{}
 
+	FulldimLowdimTwin()
+	: m_fullDimElem(nullptr), m_lowDimElem(nullptr), m_sudo(0)
+	{}
+
+
 	void spuckFullDimElem( FULLDIMELEM & fulldimElem )
 	{
 		fulldimElem = m_fullDimElem;
@@ -178,7 +183,7 @@ public:
 		typename = std::enable_if<std::is_same<Volume*,FULLDIMELEM>::value>,
 		typename = std::enable_if<std::is_same<Edge*,LOWDIMELEM>::value>
 	>
-	bool checkIntegrety()
+	bool checkIntegrity()
 	{
 		if( ! VolumeContains(m_fullDimElem,m_lowDimElem))
 		{
@@ -252,13 +257,21 @@ public:
 	  m_sudo(fullLowPr.first.spuckSudo())
 	{};
 
+	FullLowDimManifQuintuplet()
+	: m_pairFullLowDimTwin(PairFullLowDimTwin()),
+	  m_manifElem(nullptr),
+	  m_centerVrtx(nullptr),
+	  m_shiftVrtcs(PairVrtcs()),
+	  m_sudo(0)
+	{};
+
 	template
 	<
 		typename = std::enable_if<std::is_same<Volume*,FULLDIMELEM>::value>,
 		typename = std::enable_if<std::is_same<Face*,MANIFELEM>::value>,
 		typename = std::enable_if<std::is_same<Edge*,LOWDIMELEM>::value>
 	>
-	bool checkIntegrety()
+	bool checkIntegrity()
 	{
 		if( ! checkIntegrityVols() )
 		{
@@ -332,9 +345,13 @@ private:
 		typename = std::enable_if<std::is_same<Face*,MANIFELEM>::value>,
 		typename = std::enable_if<std::is_same<Edge*,LOWDIMELEM>::value>
 	>
-	bool checkIntegrityFaceInVol( FullLowDimTwin const & fldt )
+	bool checkIntegrityFaceInVol( FullLowDimTwin & fldt )
 	{
-		if( ! VolumeContains(fldt.spuckFullDimElem(), m_manifElem ) )
+		FULLDIMELEM fudiel;
+
+		fldt.spuckFullDimElem(fudiel);
+
+		if( ! VolumeContains(fudiel, m_manifElem ) )
 		{
 			UG_LOG("Face not in Vol " << std::endl);
 			return false;
@@ -352,8 +369,13 @@ private:
 	>
 	bool checkIntegrityFaceInBothVols()
 	{
-		if(    ! checkIntegrityFaceInVol( m_pairFullLowDimTwin.first.spuckVol())
-			|| ! checkIntegrityFaceInVol( m_pairFullLowDimTwin.second.spuckVol())
+		FULLDIMELEM firstV, secondV;
+		m_pairFullLowDimTwin.first.spuckFullDimElem(firstV);
+		m_pairFullLowDimTwin.second.spuckFullDimElem(secondV);
+
+//		if( ! checkIntegrityFaceInVol( firstV ) || ! checkIntegrityFaceInVol( secondV )
+		if(    ! checkIntegrityFaceInVol( m_pairFullLowDimTwin.first)
+			|| ! checkIntegrityFaceInVol( m_pairFullLowDimTwin.second )
 		  )
 		{
 			UG_LOG("face not in one vol at least " << std::endl);
@@ -372,17 +394,22 @@ private:
 	>
 	bool figureOutMajorVertices()
 	{
-		Edge * edgeOne, edgeTwo;
+		Edge * edgeOne;
+		Edge * edgeTwo;
 
-		edgeOne = m_pairFullLowDimTwin.first.spuckLowDimElem();
-		edgeTwo = m_pairFullLowDimTwin.first.spuckLowDimElem();
+		m_pairFullLowDimTwin.first.spuckLowDimElem(edgeOne);
+		m_pairFullLowDimTwin.second.spuckLowDimElem(edgeTwo);
+		//		edgeOne = m_pairFullLowDimTwin.first.spuckLowDimElem();
+		//		edgeTwo = m_pairFullLowDimTwin.first.spuckLowDimElem();
 
-		Vertex * centerVrtx, shiftVrtxOne, shiftVrtxTwo;
+		Vertex * centerVrtx;
+		Vertex * shiftVrtxOne;
+		Vertex * shiftVrtxTwo;
 		centerVrtx = nullptr;
 		shiftVrtxOne = nullptr;
 		shiftVrtxTwo = nullptr;
 
-		if( ! findConnectingAndExtrnlVertex() )
+		if( ! findConnectingAndExtrnlVertex(edgeOne, edgeTwo, centerVrtx, shiftVrtxOne, shiftVrtxTwo) )
 		{
 			UG_LOG("Vertices not found " << std::endl);
 			return false;
@@ -508,6 +535,11 @@ public:
 	ElemsToBeQuenched4DiamSpace( VecFullLowDimManifQuintuplet const & vfldm5 )
 	: m_centerVrtx(nullptr), m_vecFullLowDimManifQuintpl(vfldm5), m_sudo(vfldm5[0].spuckSudo())
 	{}
+
+	ElemsToBeQuenched4DiamSpace()
+	: m_centerVrtx(nullptr), m_vecFullLowDimManifQuintpl(VecFullLowDimManifQuintuplet()), m_sudo(0)
+	{}
+
 
 	bool checkIntegrity()
 	{
