@@ -62,7 +62,7 @@ public:
 	  m_lowDimElm(nullptr)
 	{};
 
-	void spuckVol( FULLDIMELEM & vol ) { vol = m_volElm; }
+	void spuckFulldimElem( FULLDIMELEM & vol ) { vol = m_volElm; }
 
 	void spuckManif( MANIFELEM & manif ) { manif = m_manifElm; }
 

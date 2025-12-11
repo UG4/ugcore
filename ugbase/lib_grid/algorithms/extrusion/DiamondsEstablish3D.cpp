@@ -142,9 +142,13 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 
 	VecVolManifVrtxCombi vecVolManifVrtxCopy = m_vecVolManifVrtxCombiToShrink4Diams;
 
+	int d_itE = 0;
+
 	for( typename VecVolManifVrtxCombi::iterator itVMVOuter = vecVolManifVrtxCopy.begin();
 				  itVMVOuter != vecVolManifVrtxCopy.end(); )
 	{
+//		UG_LOG("entering E " << d_itE << std::endl);
+
 		VolManifVrtxCombi outer = *itVMVOuter;
 
 		VrtxPair oldAndShiftVrtxOuter;
@@ -156,23 +160,32 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 		Face * faceOuter;
 		outer.spuckManif(faceOuter);
 
+		IndexType sudoOuter = outer.spuckSudo();
+
 //		IndexType twin2OuterFound = 0;
 //		IndexType partner2OuterFound = 0;
 //		IndexType twin2InnerFound = 0;
 
+		// TODO FIXME von wegen Twin...... und sudo auch sehr wichtig!!!!
 		VecVolManifVrtxCombi twinCombi2Outer;
 		// should get length 2 in the procedure
 
 		twinCombi2Outer.push_back(outer); // in each case part a twin has to exist, sharing same face
 
-		// should get length 0 or 2 in the procedure: 0 in case of 3 cross, 2 in case of 2 cross
+		// Quatsch: should get length 0 or 2 in the procedure: 0 in case of 3 cross, 2 in case of 2 cross
 		VecVolManifVrtxCombi partnerCombi2Outer;
 
 //		bool partnerFound = false;
 
+//		UG_LOG("entering inner " << d_itE << std::endl);
+
+		int d_itI = 0;
+
 		for( typename VecVolManifVrtxCombi::iterator itVMVInner = itVMVOuter + 1;
 					  itVMVInner != vecVolManifVrtxCopy.end(); )
 		{
+//			UG_LOG("in the inner " << d_itI << std::endl);
+
 			VolManifVrtxCombi inner = *itVMVInner;
 
 			VrtxPair oldAndShiftVrtxInner;
@@ -205,16 +218,31 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 
 					}
 					// else can be any combination of a completely different side of the crossing point
+					else
+					{
+						itVMVInner++;
+					}
 				}
 				else if( shiftVrtxInner == shiftVrtxOuter )
 				{
-					// side partner found, for this side partner, the twin is needed as well!
-//					partner2OuterFound++;
-					partnerCombi2Outer.push_back(inner);
-					// will be able to find only one partner in this loop,
-					//its twin has to be found in an additional inner loop!
+					// CHECK IF SUDO COINCIDE; ELSE NOT SUITABLE
 
-					itVMVInner = vecVolManifVrtxCopy.erase(itVMVInner);
+					IndexType sudoInner = inner.spuckSudo();
+
+					if( sudoInner == sudoOuter )
+					{
+						// side partner found, for this side partner, the twin is needed as well!
+	//					partner2OuterFound++;
+						partnerCombi2Outer.push_back(inner);
+						// will be able to find only one partner in this loop,
+						//its twin has to be found in an additional inner loop!
+						itVMVInner = vecVolManifVrtxCopy.erase(itVMVInner);
+
+					}
+					else
+					{
+						itVMVInner++;
+					}
 
 				}
 
@@ -224,100 +252,128 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 				// else: do nothing, as no relevant relation between the two objects
 				++itVMVInner;
 			}
+
+//			UG_LOG("end one inner " << d_itI << std::endl);
+
+			d_itI++;
 		}
 
-		if( partnerCombi2Outer.size() == 1 )
+	//		UG_LOG("left inner " << d_itE << std::endl);
+
+
+		if( partnerCombi2Outer.size() > 0 )
 		{
 			// additional inner loop to find the twin of the partner
 
-			VolManifVrtxCombi partnerOuter = partnerCombi2Outer[0];
-
-			VrtxPair oldAndShiftVrtxPartnerOuter;
-			outer.spuckOldAndShiftVrtx( oldAndShiftVrtxPartnerOuter );
-
-			Vertex * oldVrtxPartnerOuter = oldAndShiftVrtxPartnerOuter.first;
-			Vertex * shiftVrtxPartnerOuter = oldAndShiftVrtxPartnerOuter.second;
-
-			Face * facePartnerOuter;
-			partnerOuter.spuckManif(facePartnerOuter);
-
-			for( typename VecVolManifVrtxCombi::iterator itVMVInner = itVMVOuter + 1;
-						  itVMVInner != vecVolManifVrtxCopy.end(); )
+			for( VolManifVrtxCombi & partnerOuter : partnerCombi2Outer )
 			{
-				VolManifVrtxCombi inner = *itVMVInner;
+	//			VolManifVrtxCombi partnerOuter = partnerCombi2Outer[0];
 
-				VrtxPair oldAndShiftVrtxInner;
-				inner.spuckOldAndShiftVrtx( oldAndShiftVrtxInner );
+				VrtxPair oldAndShiftVrtxPartnerOuter;
+				outer.spuckOldAndShiftVrtx( oldAndShiftVrtxPartnerOuter );
 
-				Vertex * oldVrtxInner = oldAndShiftVrtxInner.first;
-//				Vertex * shiftVrtxInner = oldAndShiftVrtxInner.second;
+				Vertex * oldVrtxPartnerOuter = oldAndShiftVrtxPartnerOuter.first;
+				Vertex * shiftVrtxPartnerOuter = oldAndShiftVrtxPartnerOuter.second;
 
-				if( oldVrtxInner == oldVrtxPartnerOuter )
+				Face * facePartnerOuter;
+				partnerOuter.spuckManif(facePartnerOuter);
+
+				IndexType sudoPartnerOuter = partnerOuter.spuckSudo();
+
+				for( typename VecVolManifVrtxCombi::iterator itVMVInner = itVMVOuter + 1;
+							  itVMVInner != vecVolManifVrtxCopy.end(); )
 				{
-					Vertex * shiftVrtxInner = oldAndShiftVrtxInner.second;
+					VolManifVrtxCombi inner = *itVMVInner;
 
-					if( shiftVrtxInner != shiftVrtxPartnerOuter )
+					VrtxPair oldAndShiftVrtxInner;
+					inner.spuckOldAndShiftVrtx( oldAndShiftVrtxInner );
+
+					Vertex * oldVrtxInner = oldAndShiftVrtxInner.first;
+	//				Vertex * shiftVrtxInner = oldAndShiftVrtxInner.second;
+
+					if( oldVrtxInner == oldVrtxPartnerOuter )
 					{
-						// if connected by a face, twin to outer found, partner may exist or not
-	//					 twin2OuterFound++;
-						// check if the face is identical, else is from the partner twin
+						Vertex * shiftVrtxInner = oldAndShiftVrtxInner.second;
 
-						Face * faceInner;
-						inner.spuckManif(faceInner);
-
-						if( faceInner == facePartnerOuter )
+						if( shiftVrtxInner != shiftVrtxPartnerOuter )
 						{
-							// twin found
-							partnerCombi2Outer.push_back(inner);
+							// if connected by a face, twin to outer found, partner may exist or not
+		//					 twin2OuterFound++;
+							// check if the face is identical, else is from the partner twin
 
-	//						twinFound = true;
+							Face * faceInner;
+							inner.spuckManif(faceInner);
 
-							itVMVInner = vecVolManifVrtxCopy.erase(itVMVInner);
+							if( faceInner == facePartnerOuter )
+							{
+								// twin found
+								partnerCombi2Outer.push_back(inner);
 
+		//						twinFound = true;
+
+								itVMVInner = vecVolManifVrtxCopy.erase(itVMVInner);
+
+							}
+							else
+							{
+								itVMVInner++;
+							}
+							// else can be any combination of a completely different side of the crossing point
 						}
-						// else can be any combination of a completely different side of the crossing point
+						else if( shiftVrtxInner == shiftVrtxOuter )
+						{
+//							UG_LOG("too much partners or twins " << std::endl);
+							// darf nicht mehr passieren
+	//						UG_THROW("");
+							// side partner found, for this side partner, the twin is needed as well!
+		//					partner2OuterFound++;
+	//						partnerCombi2Outer.push_back(inner);
+							// will be able to find only one partner in this loop,
+							//its twin has to be found in an additional inner loop!
+
+							IndexType sudoInner = inner.spuckSudo();
+
+							if( sudoInner == sudoPartnerOuter )
+							{
+								partnerCombi2Outer.push_back(inner);
+
+								itVMVInner = vecVolManifVrtxCopy.erase(itVMVInner);
+
+							}
+							else
+							{
+								itVMVInner++;
+							}
+						}
+
 					}
-					else if( shiftVrtxInner == shiftVrtxOuter )
+					else
 					{
-						UG_LOG("too much partners or twins " << std::endl);
-						// darf nicht mehr passieren
-//						UG_THROW("");
-						// side partner found, for this side partner, the twin is needed as well!
-	//					partner2OuterFound++;
-//						partnerCombi2Outer.push_back(inner);
-						// will be able to find only one partner in this loop,
-						//its twin has to be found in an additional inner loop!
-
-						itVMVInner = vecVolManifVrtxCopy.erase(itVMVInner);
-
+						// else: do nothing, as no relevant relation between the two objects
+						++itVMVInner;
 					}
 
-				}
-				else
-				{
-					// else: do nothing, as no relevant relation between the two objects
-					++itVMVInner;
-				}
 
-
+				}
 			}
 
-			if( partnerCombi2Outer.size() != 2 )
-			{
-				UG_LOG("no partner found " << std::endl);
-				return false;
-			}
 
 		}
-		else if( partnerCombi2Outer.size() != 0 )
+//		else if( partnerCombi2Outer.size() != 0 )
+//		{
+//			UG_LOG("strange partner size " << partnerCombi2Outer.size() << std::endl);
+//			return false;
+//		}
+
+		if( twinCombi2Outer.size() %2 != 0 )
 		{
-			UG_LOG("strange partner size " << std::endl);
+			UG_LOG("strange twin size " << std::endl);
 			return false;
 		}
 
-		if( twinCombi2Outer.size() != 2 )
+		if( partnerCombi2Outer.size() % 2 != 0 )
 		{
-			UG_LOG("strange twin size " << std::endl);
+			UG_LOG("no partner found " << std::endl);
 			return false;
 		}
 
@@ -334,7 +390,7 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 
 		VolumeElementFaceQuintuplet vef5Twin;
 
-		if( ! trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( twinCombi2Outer, vef5Twin ) )
+		if( ! trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( twinCombi2Outer, vef5Twin, false ) )
 		{
 			UG_LOG("trafo failed twin " << std::endl);
 			return false;
@@ -359,7 +415,7 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 		{
 			VolumeElementFaceQuintuplet vef5Partner;
 
-			if( ! trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( partnerCombi2Outer, vef5Partner ) )
+			if( ! trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( partnerCombi2Outer, vef5Partner, true ) )
 			{
 				UG_LOG("trafo failed partner " << std::endl);
 				return false;
@@ -438,6 +494,8 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 
 		m_vecElems2BQuenched.push_back(elem2BQuenched);
 #endif
+
+		d_itE++;
 	}
 
 	UG_LOG("found regions to be shrinked" << std::endl);
@@ -449,7 +507,7 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 ////////////////////////////////////////////////////////////////////////////
 
 bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
-	 VecVolManifVrtxCombi & vVolFacVrtxC, VolumeElementFaceQuintuplet & vef5 )
+	 VecVolManifVrtxCombi & vVolFacVrtxC, VolumeElementFaceQuintuplet & vef5, bool flip )
 {
 	if( vVolFacVrtxC.size() != 2 )
 	{
@@ -516,8 +574,8 @@ bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
 	Volume * volOne;
 	Volume * volTwo;
 
-	mvcOne.spuckVol( volOne );
-	mvcTwo.spuckVol( volTwo );
+	mvcOne.spuckFulldimElem( volOne );
+	mvcTwo.spuckFulldimElem( volTwo );
 
 	if( volOne == volTwo )
 	{
@@ -548,6 +606,11 @@ bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
 
 	std::pair<VolumeElementTwin,VolumeElementTwin> volElTwinPair( volElTwinOne, volElTwinTwo );
 
+	if( flip )
+	{
+		volElTwinPair = std::pair<VolumeElementTwin,VolumeElementTwin>( volElTwinTwo, volElTwinOne );
+	}
+
 	vef5 = VolumeElementFaceQuintuplet( volElTwinPair, connectingFace );
 
 	if( ! vef5.checkIntegrity() )
@@ -567,7 +630,7 @@ bool DiamondsEstablish3D::establishElems2BeQuenched( VecVolumeElementFaceQuintup
 {
 	// TODO FIXME
 
-	return {};
+	return true;
 }
 ////////////////////////////////////////////////////////////////////////////
 

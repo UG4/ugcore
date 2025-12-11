@@ -65,7 +65,8 @@ private:
 	using VecElems2BQuenched = std::vector<Elems2BQuenched>;
 
 	bool trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( VecVolManifVrtxCombi & vVolFacVrtxC,
-															 VolumeElementFaceQuintuplet & vef5
+															 VolumeElementFaceQuintuplet & vef5,
+															 bool flip
 															);
 
 	bool establishElems2BeQuenched( VecVolumeElementFaceQuintuplet & vvef5,
