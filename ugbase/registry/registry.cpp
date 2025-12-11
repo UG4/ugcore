@@ -364,8 +364,8 @@ ClassGroupDesc* Registry::get_class_group(size_t i)
 ClassGroupDesc* Registry::get_class_group(const std::string& name)
 {
 #if defined(FEATURE_REGISTRY_CLASS_GROUP_MAP) && FEATURE_REGISTRY_CLASS_GROUP_MAP == 1
-	auto it = m_vClassGroupsMap.find(name);
-	if (it != m_vClassGroupsMap.end())
+	auto it = m_classGroupsMap.find(name);
+	if (it != m_classGroupsMap.end())
 		return it->second;
 #else
 	for(size_t i = 0; i < m_vClassGroups.size(); ++i)
@@ -385,7 +385,7 @@ ClassGroupDesc* Registry::get_class_group(const std::string& name)
 	classGroup->set_name(name);
 	m_vClassGroups.push_back(classGroup);
 #if defined(FEATURE_REGISTRY_CLASS_GROUP_MAP) && FEATURE_REGISTRY_CLASS_GROUP_MAP == 1
-	m_vClassGroupsMap[name] = classGroup;
+	m_classGroupsMap[name] = classGroup;
 #endif
 	return classGroup;
 }
@@ -393,8 +393,8 @@ ClassGroupDesc* Registry::get_class_group(const std::string& name)
 const ClassGroupDesc* Registry::get_class_group(const std::string& name) const
 {
 #if defined(FEATURE_REGISTRY_CLASS_GROUP_MAP) && FEATURE_REGISTRY_CLASS_GROUP_MAP == 1
-	auto it = m_vClassGroupsMap.find(name);
-	if (it != m_vClassGroupsMap.end())
+	auto it = m_classGroupsMap.find(name);
+	if (it != m_classGroupsMap.end())
 		return it->second;
 #else
 	for(size_t i = 0; i < m_vClassGroups.size(); ++i)
@@ -436,7 +436,7 @@ bool Registry::classname_registered(const std::string& name)
 bool Registry::groupname_registered(const std::string& name)
 {
 #if defined(FEATURE_REGISTRY_CLASS_GROUP_MAP) && FEATURE_REGISTRY_CLASS_GROUP_MAP == 1
-	return m_vClassGroupsMap.find(name) != m_vClassGroupsMap.end();
+	return m_classGroupsMap.find(name) != m_classGroupsMap.end();
 	// todo cxx20  return m_vClassGroupsMap.contains(name);
 #else
 	for(size_t i = 0; i < m_vClassGroups.size(); ++i){

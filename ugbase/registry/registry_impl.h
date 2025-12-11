@@ -322,6 +322,9 @@ add_class_(std::string className, std::string group, std::string tooltip)
 
 //	add new class to list of classes
 	m_vClass.push_back(newClass);
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+	m_classMap[className] = newClass;
+#endif
 	return *newClass;
 }
 
@@ -331,16 +334,21 @@ get_class_()
 {
 // 	get class names
 	const std::string& name = ClassNameProvider<TClass>::name();
-
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+	auto it = m_classMap.find(name);
+	if (it != m_classMap.end()) {
+		return *dynamic_cast<ExportedClass<TClass>* >(it->second);
+	}
+#else
 //	look for class in this registry
 	for(size_t i = 0; i < m_vClass.size(); ++i)
 		if(name == m_vClass[i]->name())
 			return *dynamic_cast<ExportedClass<TClass>* >(m_vClass[i]);
-
+#endif
 //	not found
 	UG_THROW_REGISTRY_ERROR(name,
-	"Trying to get class with name '" << name
-	<< "', that has not yet been registered to this Registry.");
+		"Trying to get class with name '" << name
+		<< "', that has not yet been registered to this Registry.");
 }
 
 }//	end of namespace

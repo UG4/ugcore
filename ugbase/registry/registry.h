@@ -320,18 +320,18 @@ class UG_API Registry {
 
 	///	registered classes
 		std::vector<IExportedClass*> m_vClass;
-
-	///	registered class groups
-		std::vector<ClassGroupDesc*> m_vClassGroups;
 #if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
 	std::unordered_map<std::string, IExportedClass*> m_classMap;
+#endif
+	///	registered class groups
+		std::vector<ClassGroupDesc*> m_vClassGroups;
+#if defined(FEATURE_REGISTRY_CLASS_GROUP_MAP) && FEATURE_REGISTRY_CLASS_GROUP_MAP == 1
+	std::unordered_map<std::string, ClassGroupDesc*> m_classGroupsMap;
 #endif
 
 	///	Callback, that are called when registry changed is invoked
 		std::vector<FuncRegistryChanged> m_callbacksRegChanged;
-#if defined(FEATURE_REGISTRY_CLASS_GROUP_MAP) && FEATURE_REGISTRY_CLASS_GROUP_MAP == 1
-	std::unordered_map<std::string, ClassGroupDesc*> m_vClassGroupsMap;
-#endif
+
 
 	///	flag if classes must be constructed via smart-pointer
 		bool m_bForceConstructionWithSmartPtr;
