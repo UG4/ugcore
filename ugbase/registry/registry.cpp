@@ -37,6 +37,7 @@
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_function_handle.h"
 #endif
+#include "common/ug_config.h"
 
 using namespace ug::bridge;
 
@@ -165,22 +166,36 @@ const IExportedClass& Registry::get_class(size_t ind) const
 
 IExportedClass* Registry::get_class(const std::string& name)
 {
-//todo:	use a map to access classes by name.
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+	auto it = m_classMap.find(name);
+	if (it != m_classMap.end())
+		return it->second;
+
+	return nullptr;
+#else
 	for(size_t i = 0; i < m_vClass.size(); ++i)
 		if(name == m_vClass[i]->name())
 			return m_vClass[i];
 
 	return NULL;
+#endif
 }
 
 const IExportedClass* Registry::get_class(const std::string& name) const
 {
-//todo:	use a map to access classes by name.
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+	auto it = m_classMap.find(name);
+	if (it != m_classMap.end())
+		return it->second;
+
+	return nullptr;
+#else
 	for(size_t i = 0; i < m_vClass.size(); ++i)
 		if(name == m_vClass[i]->name())
 			return m_vClass[i];
 
 	return NULL;
+#endif
 }
 
 
@@ -348,11 +363,15 @@ ClassGroupDesc* Registry::get_class_group(size_t i)
 
 ClassGroupDesc* Registry::get_class_group(const std::string& name)
 {
-//todo:	use a map to quickly access classGroups by name
+#if defined(FEATURE_REGISTRY_CLASS_GROUP_MAP) && FEATURE_REGISTRY_CLASS_GROUP_MAP == 1
+	auto it = m_vClassGroupsMap.find(name);
+	if (it != m_vClassGroupsMap.end())
+		return it->second;
+#else
 	for(size_t i = 0; i < m_vClassGroups.size(); ++i)
 		if(name == m_vClassGroups[i]->name())
 			return m_vClassGroups[i];
-
+#endif
 //	since we reached this point, no class-group with the given name exists.
 	
 	// check that name does not contain illegal characters
@@ -365,17 +384,23 @@ ClassGroupDesc* Registry::get_class_group(const std::string& name)
 	ClassGroupDesc* classGroup = new ClassGroupDesc();
 	classGroup->set_name(name);
 	m_vClassGroups.push_back(classGroup);
-
+#if defined(FEATURE_REGISTRY_CLASS_GROUP_MAP) && FEATURE_REGISTRY_CLASS_GROUP_MAP == 1
+	m_vClassGroupsMap[name] = classGroup;
+#endif
 	return classGroup;
 }
 
 const ClassGroupDesc* Registry::get_class_group(const std::string& name) const
 {
-//todo:	use a map to quickly access classGroups by name
+#if defined(FEATURE_REGISTRY_CLASS_GROUP_MAP) && FEATURE_REGISTRY_CLASS_GROUP_MAP == 1
+	auto it = m_vClassGroupsMap.find(name);
+	if (it != m_vClassGroupsMap.end())
+		return it->second;
+#else
 	for(size_t i = 0; i < m_vClassGroups.size(); ++i)
 		if(name == m_vClassGroups[i]->name())
 			return m_vClassGroups[i];
-
+#endif
 //	since we reached this point, no class-group with the given name exists.
 	return NULL;
 }
@@ -410,12 +435,16 @@ bool Registry::classname_registered(const std::string& name)
 
 bool Registry::groupname_registered(const std::string& name)
 {
-//todo:	use a map to quickly access classGroups by name
+#if defined(FEATURE_REGISTRY_CLASS_GROUP_MAP) && FEATURE_REGISTRY_CLASS_GROUP_MAP == 1
+	return m_vClassGroupsMap.find(name) != m_vClassGroupsMap.end();
+	// todo cxx20  return m_vClassGroupsMap.contains(name);
+#else
 	for(size_t i = 0; i < m_vClassGroups.size(); ++i){
 		if(name == m_vClassGroups[i]->name())
 			return true;
 	}
 	return false;
+#endif
 }
 
 // returns true if functionname is already used by a function in this registry

@@ -69,4 +69,13 @@
 // end group ugbase_common
 /// \}
 
+
+// ---------
+
+
+#define FEATURE_REGISTRY_CLASS_NAME_MAP 1
+#define FEATURE_REGISTRY_CLASS_GROUP_MAP 1
+
+
+
 #endif

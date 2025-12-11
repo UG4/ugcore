@@ -48,6 +48,10 @@
 #include "parameter_stack.h"
 #include "common/ug_config.h"
 
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+#include <unordered_map>
+#endif
+
 namespace ug
 {
 namespace bridge
@@ -319,9 +323,15 @@ class UG_API Registry {
 
 	///	registered class groups
 		std::vector<ClassGroupDesc*> m_vClassGroups;
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+	std::unordered_map<std::string, IExportedClass*> m_classMap;
+#endif
 
 	///	Callback, that are called when registry changed is invoked
 		std::vector<FuncRegistryChanged> m_callbacksRegChanged;
+#if defined(FEATURE_REGISTRY_CLASS_GROUP_MAP) && FEATURE_REGISTRY_CLASS_GROUP_MAP == 1
+	std::unordered_map<std::string, ClassGroupDesc*> m_vClassGroupsMap;
+#endif
 
 	///	flag if classes must be constructed via smart-pointer
 		bool m_bForceConstructionWithSmartPtr;

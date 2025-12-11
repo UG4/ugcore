@@ -206,7 +206,9 @@ add_class_(std::string className, std::string group, std::string tooltip)
 
 //	add new class to list of classes
 	m_vClass.push_back(newClass);
-
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+	m_classMap[className] = newClass;
+#endif
 	return *newClass;
 }
 
@@ -261,6 +263,9 @@ add_class_(std::string className, std::string group, std::string tooltip)
 
 //	add new class to list of classes
 	m_vClass.push_back(newClass);
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+	m_classMap[className] = newClass;
+#endif
 	return *newClass;
 }
 
