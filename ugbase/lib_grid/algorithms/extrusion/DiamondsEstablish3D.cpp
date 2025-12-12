@@ -528,6 +528,7 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 
 //	int d_q = 10;
 
+#if 0
 	for( Elems2BQuenched & e2bq : m_vecElems2BQuenched )
 	{
 		IndexType sudoNum = m_sh.num_subsets();
@@ -675,7 +676,7 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 //
 		}
 	}
-
+#endif
 
 	return true;
 }
