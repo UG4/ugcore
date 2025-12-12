@@ -30,11 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
+#ifndef IG_UGBASE_LIBGRID_DEG_LAYER_MANAGER_IMPL_H
+#define IG_UGBASE_LIBGRID_DEG_LAYER_MANAGER_IMPL_H
 /*
  * Implementation of the degenerated layer subset manager.
  */
 // ug4 headers
 #include "common/util/string_util.h"
+#include "subset_dim_util.h"
 
 namespace ug {
 
@@ -502,3 +505,4 @@ int DegeneratedLayerManager<dim>::assign_middle_subset
 
 } // end namespace ug
 
+#endif

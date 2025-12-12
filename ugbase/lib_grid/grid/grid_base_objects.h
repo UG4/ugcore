@@ -33,21 +33,21 @@
 #ifndef __H__LIB_GRID__GEOMETRIC_BASE_OBJECTS__
 #define __H__LIB_GRID__GEOMETRIC_BASE_OBJECTS__
 
-#include <list>
+//#include <list>
 #include <cassert>
-#include <iostream>
+//#include <iostream>
 #include <utility>
 #include "common/types.h"
 #include "common/common.h"
 #include "common/assert.h"
 #include "lib_grid/attachments/attachment_pipe.h"
 #include "lib_grid/attachments/attached_list.h"
-#include "common/util/hash_function.h"
+//#include "common/util/hash_function.h"
 #include "common/math/ugmath_types.h"
-#include "common/util/pointer_const_array.h"
+//#include "common/util/pointer_const_array.h"
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	CONSTANTS

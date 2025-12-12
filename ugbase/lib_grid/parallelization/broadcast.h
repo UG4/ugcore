@@ -37,7 +37,7 @@
 #include "lib_grid/algorithms/serialization.h"
 #include "pcl/pcl_process_communicator.h"
 
-namespace ug{
+namespace ug {
 
 ///	Broadcasts the specified Selection from 'root' to all processes in procCom
 /** Selected elements and associated attachments are broadcasted from

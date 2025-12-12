@@ -33,7 +33,7 @@
 #ifndef MATRIX_ALGEBRA_TYPES_H_
 #define MATRIX_ALGEBRA_TYPES_H_
 
-namespace ug{
+namespace ug {
 
 /*
 suppose you have your algebra with your vector class yourvector and your matrix class yourmatrix.

@@ -51,8 +51,11 @@
 ////////////////////////////////////////////////////////////////////////
 
 
-#include <algorithm>
 #include "grid.h"
+
+#include <algorithm>
+
+#include "grid_constants.h"
 #include "grid_util.h"
 #include "common/common.h"
 #include "common/profiler/profiler.h"
@@ -87,8 +90,7 @@ using namespace std;
 #define OPTIONS_CONTAIN_OPTION(options, option) (((options) & (option)) == (option))
 
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -135,7 +137,7 @@ void Grid::register_and_replace_element(Vertex* v, Vertex* pReplaceMe)
 //	update edges
 	if(num_edges()){
 		if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES)){
-			LOG("WARNING in Grid::register_and_replace_element(...) - Vertex: autoenabling grid-option VRTOPT_STORE_ASSOCIATED_EDGES.");
+			UG_LOG("WARNING in Grid::register_and_replace_element(...) - Vertex: autoenabling grid-option VRTOPT_STORE_ASSOCIATED_EDGES.");
 			enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES);
 		}
 
@@ -157,7 +159,7 @@ void Grid::register_and_replace_element(Vertex* v, Vertex* pReplaceMe)
 //	update faces
 	if(num_faces()){
 		if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_FACES)){
-			LOG("WARNING in Grid::register_and_replace_element(...) - Vertex: autoenabling grid-option VRTOPT_STORE_ASSOCIATED_FACES.");
+			UG_LOG("WARNING in Grid::register_and_replace_element(...) - Vertex: autoenabling grid-option VRTOPT_STORE_ASSOCIATED_FACES.");
 			enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_FACES);
 		}
 
@@ -181,11 +183,11 @@ void Grid::register_and_replace_element(Vertex* v, Vertex* pReplaceMe)
 //	update volumes
 	if(num_volumes()){
 		if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_VOLUMES)){
-			LOG("WARNING in Grid::register_and_replace_element(...) - Vertex: autoenabling grid-option VRTOPT_STORE_ASSOCIATED_VOLUMES.");
+			UG_LOG("WARNING in Grid::register_and_replace_element(...) - Vertex: autoenabling grid-option VRTOPT_STORE_ASSOCIATED_VOLUMES.");
 			enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_VOLUMES);
 		}
 
-		for(AssociatedVolumeIterator iter = associated_volumes_begin(pReplaceMe);
+		for(auto iter = associated_volumes_begin(pReplaceMe);
 			iter != associated_volumes_end(pReplaceMe); ++iter)
 		{
 			Volume* vol = *iter;
@@ -229,7 +231,7 @@ void Grid::unregister_vertex(Vertex* v)
 	//	if there are edges this option has to be enabled!
 		if(num_edges() > 0)
 		{
-			LOG("WARNING in Grid::unregister_vertex(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << std::endl);
+			UG_LOG("WARNING in Grid::unregister_vertex(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << std::endl);
 			vertex_store_associated_edges(true);
 		}
 	}
@@ -245,7 +247,7 @@ void Grid::unregister_vertex(Vertex* v)
 				 &&	option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES)))
 			{
 			//	since adjacent faces have to be removed, we have to enable VRTOPT_STORE_ASSOCIATED_FACES
-				LOG("WARNING in Grid::unregister_vertex(...): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << std::endl);
+				UG_LOG("WARNING in Grid::unregister_vertex(...): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << std::endl);
 				vertex_store_associated_faces(true);
 			}
 		}
@@ -267,7 +269,7 @@ void Grid::unregister_vertex(Vertex* v)
 			if(!(cond1 || cond2))
 			{
 			//	since we have to remove adjacent volumes we have to enable VRTOPT_STORE_ASSOCIATED_VOLUMES
-				LOG("WARNING in Grid::unregister_vertex(...): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << std::endl);
+				UG_LOG("WARNING in Grid::unregister_vertex(...): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << std::endl);
 				vertex_store_associated_volumes(true);
 			}
 		}
@@ -829,11 +831,11 @@ void Grid::edge_store_associated_faces(bool bStoreIt)
 		//	if it is disabled here, we'll enable it.
 			if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES))
 			{
-				LOG("WARNING in edge_store_associated_faces(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << endl);
+				UG_LOG("WARNING in edge_store_associated_faces(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << endl);
 				vertex_store_associated_edges(true);
 			}
 
-			for(FaceIterator iter = faces_begin(); iter != faces_end(); iter++)
+			for(FaceIterator iter = faces_begin(); iter != faces_end(); ++iter)
 			{
 				Face* f = *iter;
 			//	iterate through the edges of the face
@@ -878,7 +880,7 @@ void Grid::edge_store_associated_volumes(bool bStoreIt)
 		//	if it is disabled here, we'll enable it.
 			if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_VOLUMES))
 			{
-				LOG("WARNING in Grid::edge_store_associated_volumes(...): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+				UG_LOG("WARNING in Grid::edge_store_associated_volumes(...): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 				vertex_store_associated_volumes(true);
 			}
 
@@ -1046,8 +1048,8 @@ void Grid::register_and_replace_element(Face* f, Face* pReplaceMe)
 //	check that f and pReplaceMe have the same amount of vertices.
 	if(f->num_vertices() != pReplaceMe->num_vertices())
 	{
-		LOG("WARNING in Grid::register_and_replace_element(Face* f, Face* pReplaceMe): f and pReplaceMe have different numbers of vertices.");
-		LOG("  f has not been registered. pReplaceMe has not been replaced.");
+		UG_LOG("WARNING in Grid::register_and_replace_element(Face* f, Face* pReplaceMe): f and pReplaceMe have different numbers of vertices.");
+		UG_LOG("  f has not been registered. pReplaceMe has not been replaced.");
 		assert(!"ERROR in Grid::register_and_replace_element(Face* f, Face* pReplaceMe): f and pReplaceMe have different numbers of vertices.");
 		return;
 	}
@@ -1578,8 +1580,8 @@ void Grid::register_and_replace_element(Volume* v, Volume* pReplaceMe)
 //	check that v and pReplaceMe have the same number of vertices.
 	if(v->num_vertices() != pReplaceMe->num_vertices())
 	{
-		LOG("WARNING in Grid::register_and_replace_element(Volume* v, Volume* pReplaceMe): v and pReplaceMe have different numbers of vertices.");
-		LOG("  v has not been registered. pReplaceMe has not been replaced.");
+		UG_LOG("WARNING in Grid::register_and_replace_element(Volume* v, Volume* pReplaceMe): v and pReplaceMe have different numbers of vertices.");
+		UG_LOG("  v has not been registered. pReplaceMe has not been replaced.");
 		assert(!"ERROR in Grid::register_and_replace_element(Volume* v, Volume* pReplaceMe): v and pReplaceMe have different numbers of vertices.");
 		return;
 	}
@@ -2635,7 +2637,7 @@ void Grid::get_associated(SecureEdgeContainer& edges, Vertex* v)
 			return;
 		}
 
-		LOG("WARNING in get_associated(edges, vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << endl);
+		UG_LOG("WARNING in get_associated(edges, vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << endl);
 		vertex_store_associated_edges(true);
 	}
 
@@ -2721,7 +2723,7 @@ void Grid::get_associated(SecureFaceContainer& faces, Vertex* v)
 			return;
 		}
 
-		LOG("WARNING in get_associated(faces, vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << endl);
+		UG_LOG("WARNING in get_associated(faces, vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << endl);
 		vertex_store_associated_faces(true);
 	}
 
@@ -2755,7 +2757,7 @@ void Grid::get_associated(SecureFaceContainer& faces, Edge* e)
 				return;
 			}
 
-			LOG("WARNING in get_associated(faces, edge): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << endl);
+			UG_LOG("WARNING in get_associated(faces, edge): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << endl);
 			vertex_store_associated_faces(true);
 		}
 
@@ -2822,7 +2824,7 @@ void Grid::get_associated(SecureVolumeContainer& vols, Vertex* v)
 			return;
 		}
 
-		LOG("WARNING in get_associated(volumes, vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+		UG_LOG("WARNING in get_associated(volumes, vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		vertex_store_associated_volumes(true);
 	}
 
@@ -2856,7 +2858,7 @@ void Grid::get_associated(SecureVolumeContainer& vols, Edge* e)
 				return;
 			}
 
-			LOG("WARNING in get_associated(volumes, edge): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+			UG_LOG("WARNING in get_associated(volumes, edge): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 			vertex_store_associated_volumes(true);
 		}
 
@@ -2907,7 +2909,7 @@ void Grid::get_associated_vols_raw(SecureVolumeContainer& vols, Face* f)
 			return;
 		}
 
-		LOG("WARNING in get_associated_vols_raw(volumes, face): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+		UG_LOG("WARNING in get_associated_vols_raw(volumes, face): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		vertex_store_associated_volumes(true);
 	}
 

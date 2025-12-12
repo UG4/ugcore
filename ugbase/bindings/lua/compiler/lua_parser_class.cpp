@@ -45,7 +45,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
     
 
 vector<nodeType*> CommaListToVector(nodeType *a)

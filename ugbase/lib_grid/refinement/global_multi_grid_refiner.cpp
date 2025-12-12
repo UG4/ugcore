@@ -51,8 +51,8 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 
 GlobalMultiGridRefiner::
 GlobalMultiGridRefiner(SPRefinementProjector projector) :
@@ -148,7 +148,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 	if(mg.num_volumes() > 0){
 		if(!mg.option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
 		{
-			LOG("WARNING in GlobalMultiGridRefiner::refine(): auto-enabling VOLOPT_AUTOGENERATE_FACES.\n");
+			UG_LOG("WARNING in GlobalMultiGridRefiner::refine(): auto-enabling VOLOPT_AUTOGENERATE_FACES.\n");
 			mg.enable_options(VOLOPT_AUTOGENERATE_FACES);
 		}
 	}
@@ -156,7 +156,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 	if(mg.num_faces() > 0){
 		if(!mg.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
 		{
-			LOG("WARNING in GlobalMultiGridRefiner::refine(): auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
+			UG_LOG("WARNING in GlobalMultiGridRefiner::refine(): auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
 			mg.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 		}
 	}
@@ -365,7 +365,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 				mg.register_element(vFaces[j], f);
 		}
 		else{
-			LOG("  WARNING in Refine: could not refine face.\n");
+			UG_LOG("  WARNING in Refine: could not refine face.\n");
 		}
 		//GMGR_PROFILE_END();
 	}
@@ -440,7 +440,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 				mg.register_element(vVols[j], v);
 		}
 		else{
-			LOG("  WARNING in Refine: could not refine volume.\n");
+			UG_LOG("  WARNING in Refine: could not refine volume.\n");
 		}
 		//GMGR_PROFILE_END();
 	}

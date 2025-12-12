@@ -30,11 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "common/util/provider.h"
 #include "reference_mapping_provider.h"
+
+#include "common/util/provider.h"
 #include "reference_mapping.h"
 
-namespace ug{
+namespace ug {
 
 
 /// wrapper of a ReferenceElementMapping into the virtual base class

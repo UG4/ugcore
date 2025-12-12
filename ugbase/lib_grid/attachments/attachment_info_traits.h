@@ -33,10 +33,10 @@
 #ifndef __H__UG_attachment_info_traits
 #define __H__UG_attachment_info_traits
 
-#include <typeinfo>
+//#include <typeinfo>
 #include "common/math/ugmath_types.h"
 
-namespace ug{
+namespace ug {
 
 #define DECLARE_ATTACHMENT_INFO_TRAITS(attachmentType, typeName)\
 		template <> struct attachment_info_traits<attachmentType> {\

@@ -35,7 +35,7 @@
 
 #include <ostream>
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup lib_algebra lib_algebra
 /// \{

@@ -30,14 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <algorithm>
 #include "ray_element_intersection_util.h"
+
+#include <algorithm>
+
 #include "common/math/misc/math_util.h"
 //ø #include "lib_grid/iterators/lg_for_each.h"
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 ///	utility method for the full-dimensional RayElementIntersection implementation
 template <typename TElem, typename vector_t>

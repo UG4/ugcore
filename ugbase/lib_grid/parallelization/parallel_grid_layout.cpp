@@ -31,10 +31,13 @@
  */
 
 #include "parallel_grid_layout.h"
-#include "pcl/pcl_layout_util.h"
 
-namespace ug{
-AGeomObjID 	aGeomObjID("globalID", false);
+#include "pcl/pcl_layout_util.h"
+#include "grid_object_id.h"
+
+namespace ug {
+
+AGeomObjID aGeomObjID("globalID", false);
 
 template <>
 size_t hash_key<GeomObjID>(const GeomObjID& key)

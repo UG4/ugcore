@@ -33,19 +33,18 @@
 #ifndef __H__UG__message_hub__
 #define __H__UG__message_hub__
 
-#include <vector>
+//#include <vector>
 #include <list>
 #include <string>
 #include <map>
 
-#include "common/assert.h"
+//#include "common/assert.h"
 #include "common/util/smart_pointer.h"
-#include "common/util/metaprogramming_util.h"
+//#include "common/util/metaprogramming_util.h"
 #include "common/error.h"
-#include "common/log.h"
+//#include "common/log.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_util
 /// \{

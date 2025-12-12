@@ -34,12 +34,12 @@
 #define LAGRANGE_MULTIPLIER_DISC_INTERFACE_H_
 
 // other ug4 modules
-#include "common/common.h"
+//#include "common/common.h"
 
 // library intern headers
 #include "lib_disc/common/multi_index.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain, typename TGridFunction>
 class ILagrangeMultiplierDisc

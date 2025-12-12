@@ -33,10 +33,8 @@
 #ifndef LUA_STACK_CHECK_H_
 #define LUA_STACK_CHECK_H_
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 #ifndef NDEBUG
 class LuaStackCheck

@@ -30,15 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <fstream>
 #include "file_io_dump.h"
+
+#include <fstream>
+
 #include "common/util/loader/loader_util.h"
 #include "lib_grid/lg_base.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 static bool ReadTriangles(Grid& grid, ifstream& in,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
@@ -166,13 +167,13 @@ bool LoadGridFromDUMP(Grid& grid, const char* filename,
 
 	if(!in)
 	{
-		LOG(" file not found: " << filename << "\n");
+		UG_LOG(" file not found: " << filename << "\n");
 		return false;
 	}
 
 	if(!grid.has_vertex_attachment(aPos))
 		grid.attach_to_vertices(aPos);
-	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
+	Grid::VertexAttachmentAccessor aaPos(grid, aPos);
 
 	char* BUFFER = new char[512];
 	vector<string> paramVec;
@@ -208,8 +209,8 @@ bool LoadGridFromDUMP(Grid& grid, const char* filename,
 			else if(str.find("begin") == 0)
 			{
 				if(paramVec.size() < 2){
-					LOG("  PROBLEM while reading from " << filename << ":\n");
-					LOG("  missing block type specifier in line " << lineCount << endl);
+					UG_LOG("  PROBLEM while reading from " << filename << ":\n");
+					UG_LOG("  missing block type specifier in line " << lineCount << endl);
 					continue;
 				}
 				
@@ -223,21 +224,21 @@ bool LoadGridFromDUMP(Grid& grid, const char* filename,
 				
 				if(type.find("triangles") == 0){
 					if(!ReadTriangles(grid, in, aaPos, lineCount)){
-						LOG("  PROBLEM while reading from " << filename << ":\n");
-						LOG("  ReadTriangles failed in line " << lineCount << endl);
+						UG_LOG("  PROBLEM while reading from " << filename << ":\n");
+						UG_LOG("  ReadTriangles failed in line " << lineCount << endl);
 						bSuccess = false;
 					}
 				}
 				else if(type.find("tetrahedrons") == 0){
 					if(!ReadTetrahedrons(grid, in ,aaPos, lineCount)){
-						LOG("  PROBLEM while reading from " << filename << ":\n");
-						LOG("  ReadTetrahedrons failed in line " << lineCount << endl);
+						UG_LOG("  PROBLEM while reading from " << filename << ":\n");
+						UG_LOG("  ReadTetrahedrons failed in line " << lineCount << endl);
 						bSuccess = false;
 					}
 				}
 				else{
-					LOG("  PROBLEM while reading from " << filename << ":\n");
-					LOG("  unknown block type specifier in line " << lineCount << endl);				
+					UG_LOG("  PROBLEM while reading from " << filename << ":\n");
+					UG_LOG("  unknown block type specifier in line " << lineCount << endl);
 					bSuccess = false;
 				}
 			}

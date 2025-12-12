@@ -32,16 +32,18 @@
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__AUTO_LINEAR_OPERATOR__LINEAR_SOLVER__
 #define __H__UG__LIB_DISC__OPERATOR__AUTO_LINEAR_OPERATOR__LINEAR_SOLVER__
+
 #include <iostream>
 #include <string>
 
 #include "lib_algebra/operator/interface/preconditioned_linear_operator_inverse.h"
 #include "lib_algebra/operator/interface/linear_solver_profiling.h"
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
 #endif
 #include "common/util/ostream_util.h"
-namespace ug{
+
+namespace ug {
 
 // this is for matrix operators which recalculate their "real" operator
 // if necessary

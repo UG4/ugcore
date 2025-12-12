@@ -32,8 +32,9 @@
 
 #include <iostream>
 #include <string>
+
 #include "registry/registry.h"
-#include "bridge/bridge.h"
+//#include "bridge/bridge.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
@@ -41,8 +42,8 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 /// \defgroup pcl_bridge PCL Bridge
 /// \ingroup misc_bridge

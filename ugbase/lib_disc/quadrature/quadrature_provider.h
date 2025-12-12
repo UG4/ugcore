@@ -46,7 +46,7 @@ enum QuadType {
 	NUM_QUADRATURE_TYPES // always last
 };
 
-namespace ug{
+namespace ug {
 
 /// provides quadrature rules for a reference dimension
 /**

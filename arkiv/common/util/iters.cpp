@@ -33,7 +33,7 @@
 #include <tuple>
 #include <vector>
 
-namespace ug{
+namespace ug {
 
 #ifndef HAVE_BOOL
 #define HAVE_BOOL

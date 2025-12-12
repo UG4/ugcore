@@ -37,18 +37,17 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__COMPONENT_GAUSS_SEIDEL__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__COMPONENT_GAUSS_SEIDEL__
 
-#include "lib_algebra/operator/interface/preconditioner.h"
-
 #include <vector>
 #include <algorithm>
 
+#include "lib_algebra/operator/interface/preconditioner.h"
 #ifdef UG_PARALLEL
-	#include "pcl/pcl_util.h"
-	#include "lib_algebra/parallelization/parallelization_util.h"
-	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
+	//#include "pcl/pcl_util.h"
+	//#include "lib_algebra/parallelization/parallelization_util.h"
+	#include "lib_algebra/parallelization/parallel_matrix_overlap.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 ///	ComponentGaussSeidel Preconditioner
 template <typename TDomain, typename TAlgebra>

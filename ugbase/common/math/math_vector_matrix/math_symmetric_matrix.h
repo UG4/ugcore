@@ -36,12 +36,12 @@
 #include <cstddef>
 #include <ostream>
 #include <iomanip>
+
 #include "../../types.h"
 #include "math_vector.h"
 #include "common/assert.h"
 
-namespace ug
-{
+namespace ug {
 
 /**
  * \defgroup math_matrix Matrix

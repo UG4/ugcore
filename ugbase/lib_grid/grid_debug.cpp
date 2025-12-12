@@ -32,8 +32,7 @@
 
 #include "grid_debug.h"
 
-namespace ug
-{
+namespace ug {
 
 /// Pointer to the single (if any) object of the grid debug info provider
 std::unique_ptr<grid_global_debug_info_provider> grid_global_debug_info_provider::the_object (nullptr);

@@ -33,7 +33,7 @@
 #ifndef __H__LIB_GRID__SERIALIZATION__
 #define __H__LIB_GRID__SERIALIZATION__
 
-#include <iostream>
+// #include <iostream>
 #include "common/util/smart_pointer.h"
 #include "common/util/binary_buffer.h"
 #include "common/serialization.h"
@@ -47,8 +47,7 @@
 // #include "lib_grid/refinement/projectors/refinement_projector.h"
 // #include "lib_grid/refinement/projectors/projection_handler.h"
 
-namespace ug
-{
+namespace ug {
 
 /**
  * Methods that perform grid-related serialization are grouped here.

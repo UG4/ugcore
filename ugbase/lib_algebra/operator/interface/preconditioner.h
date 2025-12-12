@@ -35,14 +35,16 @@
 
 #include "linear_iterator.h"
 #include "matrix_operator.h"
-#include "lib_algebra/operator/damping.h"
+//#include "lib_algebra/operator/damping.h"
 #include "lib_algebra/operator/debug_writer.h"
 
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
+	#include "lib_algebra/parallelization/parallel_storage_type.h"
 #endif
 
-namespace ug{
+namespace ug {
+
 ///////////////////////////////////////////////////////////////////////////////
 // Matrix Iterator Operator (Preconditioner)
 ///////////////////////////////////////////////////////////////////////////////

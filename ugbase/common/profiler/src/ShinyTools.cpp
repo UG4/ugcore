@@ -55,7 +55,7 @@ namespace Shiny {
 
 #if SHINY_PLATFORM == SHINY_PLATFORM_WIN32
 
-	tick_t _InitTickFreq(void) {
+	tick_t _InitTickFreq() {
 		tick_t freq;
 
 		QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&freq));
@@ -66,12 +66,12 @@ namespace Shiny {
 		QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(p));
 	}
 
-	tick_t GetTickFreq(void) {
+	tick_t GetTickFreq() {
 		static tick_t freq = _InitTickFreq();
 		return freq;
 	}
 
-	float GetTickInvFreq(void) {
+	float GetTickInvFreq() {
 		static float invfreq = 1.0f / GetTickFreq();
 		return invfreq;
 	}
@@ -88,11 +88,11 @@ namespace Shiny {
 		*p = time.tv_sec * 1000000 + time.tv_usec;
 	}
 
-	tick_t GetTickFreq(void) {
+	tick_t GetTickFreq() {
 		return 1000000;
 	}
 
-	float GetTickInvFreq(void) {
+	float GetTickInvFreq() {
 		return 1.0f / 1000000.0f;
 	}
 

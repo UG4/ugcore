@@ -32,9 +32,10 @@
 
 #ifndef FIXED_CONVERGENCE_CHECK_H_
 #define FIXED_CONVERGENCE_CHECK_H_
+
 #include "convergence_check.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TVector>
 class FixedConvergenceCheck : public IConvergenceCheck<TVector>

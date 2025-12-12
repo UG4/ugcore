@@ -32,7 +32,7 @@
 
 #include "../os_info.h"
 
-namespace ug{
+namespace ug {
 
 const char* GetDynamicLibraryPrefix()
 {

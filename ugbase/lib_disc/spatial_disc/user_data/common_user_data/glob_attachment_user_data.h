@@ -40,7 +40,7 @@
 #include "lib_grid/grid_objects/grid_dim_traits.h"
 
 
-namespace ug{
+namespace ug {
 
 template <int WDim, typename TData = number>
 class GlobAttachmentElementUserData

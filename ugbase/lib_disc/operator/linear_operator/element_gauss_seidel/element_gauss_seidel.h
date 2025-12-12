@@ -43,14 +43,14 @@
 #include <algorithm>
 
 #ifdef UG_PARALLEL
-	#include "pcl/pcl_util.h"
-	#include "lib_algebra/parallelization/parallelization_util.h"
-	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
+	//#include "pcl/pcl_util.h"
+	//#include "lib_algebra/parallelization/parallelization_util.h"
+	#include "lib_algebra/parallelization/parallel_matrix_overlap.h"
 #endif
 
 
 #define SCHUR_MOD
-namespace ug{
+namespace ug {
 
 template<typename TGroupObj, typename TDomain, typename TAlgebra>
 void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,

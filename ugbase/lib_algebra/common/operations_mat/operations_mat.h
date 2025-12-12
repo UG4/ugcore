@@ -33,7 +33,7 @@
 #ifndef __H__UG__CPU_ALGEBRA__OPERATIONS_MAT__
 #define __H__UG__CPU_ALGEBRA__OPERATIONS_MAT__
 
-#include "common/common.h"
+//#include "common/common.h"
 #include "matrix_algebra_types.h"
 
 // operations for matrices
@@ -48,8 +48,7 @@
 
 #include "matrix_use_member_functions.h"
 
-namespace ug
-{
+namespace ug {
 
 // functions transforming MatMult into the right operation, depending on matrix_algebra_type_traits.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

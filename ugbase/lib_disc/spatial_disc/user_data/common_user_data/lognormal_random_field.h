@@ -39,11 +39,11 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__LOGNORMAL_RANDOM_FIELD__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__LOGNORMAL_RANDOM_FIELD__
 
-// extern headers
 #include <vector>
+
 #include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TData, int dim, typename TRet = void>
 class LognormalRandomField

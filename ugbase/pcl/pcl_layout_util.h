@@ -37,10 +37,10 @@
 
 #include "common/util/hash.h"
 
-#include "pcl_communication_structs.h"
+// #include "pcl_communication_structs.h"
 
 
-namespace pcl{
+namespace pcl {
 
 /// \addtogroup pcl
 /// \{

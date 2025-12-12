@@ -29,6 +29,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
+
+#include "file_io_grdecl.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -39,12 +42,9 @@
 #include "common/util/string_util.h"
 #include "lib_grid/global_attachments.h"
 
-#include "file_io_grdecl.h"
-
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 	struct xy
 	{

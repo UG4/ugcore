@@ -39,7 +39,7 @@
 #include "common/stopwatch.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 // give access to edges both ways.
 // keep a transpose matrix to cache iterators.

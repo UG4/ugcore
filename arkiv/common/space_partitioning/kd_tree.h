@@ -34,7 +34,7 @@
 #ifndef __H__UG__kd_tree__
 #define __H__UG__kd_tree__
 
-namespace ug{
+namespace ug {
 
 enum KDTreeSplitStrategy
 {

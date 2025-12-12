@@ -30,6 +30,10 @@
  * GNU Lesser General Public License for more details.
  */
 
+#ifndef IG_UGBASE_LIB_DISC_SPATIAL_DISC_DOM_DISC_EMBB_IMPL_H
+#define IG_UGBASE_LIB_DISC_SPATIAL_DISC_DOM_DISC_EMBB_IMPL_H
+
+#include "dom_disc_embb.h"
 /*
  * Implementation of functions from embass.h
  */
@@ -2069,3 +2073,4 @@ InitAllExports(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 
 } // end namespace ug
 
+#endif

@@ -30,13 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cmath>
 #include "subdivision_rules_piecewise_loop.h"
+
+#include <cmath>
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 SubdivRules_PLoop::
 SubdivRules_PLoop()

@@ -30,11 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <vector>
 #include "parallel_global_subdivision_refiner.h"
 
-namespace ug
-{
+// #include <vector>
+
+
+namespace ug {
 
 template <typename TAPosition>
 ParallelGlobalSubdivisionRefiner<TAPosition>::

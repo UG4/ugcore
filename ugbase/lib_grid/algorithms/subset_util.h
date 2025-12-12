@@ -34,11 +34,11 @@
 #define __H__LIB_GRID__SUBSET_UTIL__
 
 #include <vector>
+
 #include "lib_grid/lg_base.h"
 #include "common/ug_config.h"
 
-namespace ug
-{
+namespace ug {
 
 /**
  * Several methods that ease subset-handling are grouped here. 

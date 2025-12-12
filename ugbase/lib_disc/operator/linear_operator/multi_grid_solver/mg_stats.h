@@ -35,9 +35,10 @@
 
 #include <string>
 #include <vector>
+
 #include "common/util/table.h"
 
-namespace ug{
+namespace ug {
 
 ///	Records statistics on how individual parts of a multigrid method worked
 template <typename TDomain, typename TAlgebra>

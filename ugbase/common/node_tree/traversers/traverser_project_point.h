@@ -36,9 +36,9 @@
 #include "common/math/ugmath.h"
 #include "traverser_collision_tree.h"
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
+
 ////////////////////////////////////////////////////////////////////////
 ///	traverses a node-tree and projects a given point to the contained geometry.
 class Traverser_ProjectPoint : protected Traverser_CollisionTree

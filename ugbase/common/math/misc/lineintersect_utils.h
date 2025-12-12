@@ -30,19 +30,19 @@
 /// \addtogroup ugbase_math
 /// \{
 
-void IntersectLineSegments(const number A1x, const number A1y, const number A1z,
-                           const number A2x, const number A2y, const number A2z,
-                           const number B1x, const number B1y, const number B1z,
-                           const number B2x, const number B2y, const number B2z,
+void IntersectLineSegments(number A1x, number A1y, number A1z,
+                           number A2x, number A2y, number A2z,
+                           number B1x, number B1y, number B1z,
+                           number B2x, number B2y, number B2z,
                            bool infinite_lines, number epsilon, number &PointOnSegAx,
                            number &PointOnSegAy, number &PointOnSegAz, number &PointOnSegBx,
                            number &PointOnSegBy, number &PointOnSegBz, number &NearestPointX,
                            number &NearestPointY, number &NearestPointZ, number &NearestVectorX,
                            number &NearestVectorY, number &NearestVectorZ, bool &true_intersection);
 
-void FindNearestPointOnLineSegment(const number A1x, const number A1y, const number A1z,
-                                   const number Lx, const number Ly, const number Lz,
-                                   const number Bx, const number By, const number Bz,
+void FindNearestPointOnLineSegment(number A1x, number A1y, number A1z,
+                                   number Lx, number Ly, number Lz,
+                                   number Bx, number By, number Bz,
                                    bool infinite_line, number epsilon_squared, number &NearestPointX,
                                    number &NearestPointY, number &NearestPointZ,
                                    number &parameter);

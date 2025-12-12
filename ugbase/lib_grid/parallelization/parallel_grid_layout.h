@@ -33,17 +33,16 @@
 #ifndef __H__LIB_GRID__PARALLEL_GRID_LAYOUT__
 #define __H__LIB_GRID__PARALLEL_GRID_LAYOUT__
 
-#include <vector>
+//#include <vector>
 #include <list>
 #include <map>
-#include <algorithm>
+//#include <algorithm>
 #include "pcl/pcl_communication_structs.h"
 #include "lib_grid/grid/grid_base_objects.h"
-#include "grid_object_id.h"
+
 
 //	specialize pcl::type_traits for Vertex, Edge, Face and Volume
-namespace pcl
-{
+namespace pcl {
 ///	Vertex interfaces and layouts store elements of type Vertex*
 template <>
 struct type_traits<ug::Vertex>
@@ -74,8 +73,7 @@ struct type_traits<ug::Volume>
 
 }//	end of namespace pcl
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

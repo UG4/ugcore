@@ -33,8 +33,7 @@
 #ifndef __H__UG__generic_grid_object_iterator__
 #define __H__UG__generic_grid_object_iterator__
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	GenericGridObjectIterator

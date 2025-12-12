@@ -30,15 +30,17 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "octree.h"
+
 #include <cassert>
 #include <vector>
-#include "octree.h"
+
 
 using namespace std;
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
+
 
 ////////////////////////////////////////////////////////////////////////
 /**	calculates the bounding box around a set of points*/

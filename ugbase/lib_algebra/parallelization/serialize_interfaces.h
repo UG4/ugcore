@@ -39,11 +39,10 @@
 #endif
 
 #include "pcl/pcl.h"
-#include "parallelization.h"
+//#include "parallelization.h"
 #include "common/serialization.h"
 
-namespace ug
-{
+namespace ug {
 
 
 template<typename TLocalToGlobal>

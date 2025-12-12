@@ -37,7 +37,7 @@
 //#include "blockMatrix.h"
 
 
-namespace ug{
+namespace ug {
 
 // the problem:
 // template<typename T> void bla(T &t) { }

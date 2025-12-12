@@ -33,14 +33,15 @@
 #ifndef __H__UGMATH__MATH_UTIL_IMPL__
 #define __H__UGMATH__MATH_UTIL_IMPL__
 
+#include "math_util.h"
+
 #include <algorithm>
 #include "common/common.h"
 #include "common/math/math_vector_matrix/math_vector_functions.h"
 #include "common/math/math_vector_matrix/math_matrix_functions.h"
 #include "common/math/math_vector_matrix/math_matrix_vector_functions.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	deg_to_rad

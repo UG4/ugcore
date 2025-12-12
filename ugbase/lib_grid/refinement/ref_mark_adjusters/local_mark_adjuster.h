@@ -35,7 +35,7 @@
 
 #include "../ref_mark_adjuster_interface.h"
 
-namespace ug{
+namespace ug {
 
 class LocalMarkAdjuster;
 using SPLocalMarkAdjuster = SmartPtr<LocalMarkAdjuster>;

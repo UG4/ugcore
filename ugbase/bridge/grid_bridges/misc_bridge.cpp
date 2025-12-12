@@ -34,15 +34,15 @@
 #include "registry/registry.h"
 #include "common/space_partitioning/ntree_traverser.h"
 #include "lib_grid/algorithms/debug_util.h"
-#include "lib_grid/refinement/hanging_node_refiner_grid.h"
+//#include "lib_grid/refinement/hanging_node_refiner_grid.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include "lib_grid/file_io/file_io.h"
 #include "lib_grid/grid_debug.h"
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 bool TestNTree(const char* filename)
 {

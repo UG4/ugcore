@@ -31,14 +31,17 @@
  */
 
 #include "debug_id.h"
-#include "common/log.h"
-#include "common/error.h"
-#include "common/assert.h"
+
 #include <iostream>
 #include <cstring>
+
+#include "common/log.h"
+#include "common/error.h"
+//#include "common/assert.h"
+
 #include "util/string_util.h"
 
-namespace ug{
+namespace ug {
 
 /**
  * register the debug id.

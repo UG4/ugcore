@@ -34,13 +34,14 @@
 #define __H__LIB_GRID__SUBSET_UTIL_IMPL__
 
 #include "subset_util.h"
+
 #include "selection_util.h"
-#include "lib_grid/callbacks/basic_callbacks.h"
+//#include "lib_grid/callbacks/basic_callbacks.h"
 #include "lib_grid/callbacks/subset_callbacks.h"
 #include "lib_grid/callbacks/selection_callbacks.h"
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 //	FindFirstFreeSubset
 template <typename TElem>

@@ -33,11 +33,14 @@
 #ifndef __H__UG__pointer_array_impl__
 #define __H__UG__pointer_array_impl__
 
+#include "pointer_const_array.h"
+
 #include <cstring>
 #include <algorithm>
 
-namespace ug
-{
+#include "common/assert.h"
+
+namespace ug {
 
 template <typename TPtr>
 PointerConstArray<TPtr>::

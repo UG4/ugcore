@@ -37,20 +37,20 @@
 #include <deque>
 #include <queue>
 
-namespace ug{
+namespace ug {
 
 template <typename T>
 void BlurField(Field<T>& field, number alpha, size_t numIterations, const T& noDataValue)
 {
 	using namespace std;
 	for(size_t mainIter = 0; mainIter < numIterations; ++mainIter){
-		for(int iy = 0; iy < (int)field.height(); ++iy){
-			for(int ix = 0; ix < (int)field.width(); ++ix){
+		for(int iy = 0; iy < static_cast<int>(field.height()); ++iy){
+			for(int ix = 0; ix < static_cast<int>(field.width()); ++ix){
 				if(field.at(ix, iy) != noDataValue){
 					T val = 0;
 					number num = 0;
-					for(int iny = max<int>(iy - 1, 0); iny < min<int>(iy + 2, (int)field.height()); ++iny){
-						for(int inx = max<int>(ix - 1, 0); inx < min<int>(ix + 2, (int)field.width()); ++inx){
+					for(int iny = max<int>(iy - 1, 0); iny < min<int>(iy + 2, static_cast<int>(field.height())); ++iny){
+						for(int inx = max<int>(ix - 1, 0); inx < min<int>(ix + 2, static_cast<int>(field.width())); ++inx){
 							if(!(inx == 0 && iny == 0) && (field.at(inx, iny) != noDataValue)){
 								val += field.at(inx, iny);
 								++num;
@@ -111,8 +111,8 @@ bool EliminateInvalidCells(Field<T>& field, const T& noDataValue)
 	for(int istep = 0; (istep < maxNumSteps) && (numInvalidCells > 0); ++istep){
 		const int minNumValidNbrs = minNumValidNbrsInStep[istep];
 
-		for(int iy = 0; iy < (int)field.height(); ++iy){
-			for(int ix = 0; ix < (int)field.width(); ++ix){
+		for(int iy = 0; iy < static_cast<int>(field.height()); ++iy){
+			for(int ix = 0; ix < static_cast<int>(field.width()); ++ix){
 				if(field.at(ix, iy) != noDataValue)
 					continue;
 
@@ -121,8 +121,8 @@ bool EliminateInvalidCells(Field<T>& field, const T& noDataValue)
 					const int inx = ix + xadd[i];
 					const int iny = iy + yadd[i];
 
-					if((inx >= 0) && (inx < (int)field.width())
-						&& (iny >= 0) && (iny < (int)field.height())
+					if((inx >= 0) && (inx < static_cast<int>(field.width()))
+						&& (iny >= 0) && (iny < static_cast<int>(field.height()))
 						&& (field.at(inx, iny) != noDataValue)
 						&& (field.at(inx, iny) != inProgressValue))
 					{
@@ -153,8 +153,8 @@ bool EliminateInvalidCells(Field<T>& field, const T& noDataValue)
 					const int inx = ix + xadd[i];
 					const int iny = iy + yadd[i];
 
-					if((inx >= 0) && (inx < (int)field.width())
-						&& (iny >= 0) && (iny < (int)field.height()))
+					if((inx >= 0) && (inx < static_cast<int>(field.width()))
+						&& (iny >= 0) && (iny < static_cast<int>(field.height())))
 					{
 						if((field.at(inx, iny) != noDataValue)
 						   && (field.at(inx, iny) != inProgressValue))
@@ -165,7 +165,7 @@ bool EliminateInvalidCells(Field<T>& field, const T& noDataValue)
 					}
 				}
 
-				UG_COND_THROW(numValidNbrs < (number)minNumValidNbrs, "Implementation error!");
+				UG_COND_THROW(numValidNbrs < static_cast<number>(minNumValidNbrs), "Implementation error!");
 				avVal *= 1. / numValidNbrs;
 				cell.value = avVal;
 				--numInvalidCells;
@@ -195,8 +195,8 @@ bool EliminateInvalidCells(Field<T>& field, const T& noDataValue)
 								const int inxNbr = inx + xadd[j];
 								const int inyNbr = iny + yadd[j];
 
-								if((inxNbr >= 0) && (inxNbr < (int)field.width())
-									&& (inyNbr >= 0) && (inyNbr < (int)field.height())
+								if((inxNbr >= 0) && (inxNbr < static_cast<int>(field.width()))
+									&& (inyNbr >= 0) && (inyNbr < static_cast<int>(field.height()))
 									&& (field.at(inxNbr, inyNbr) != noDataValue)
 									&& (field.at(inxNbr, inyNbr) != inProgressValue))
 								{
@@ -235,8 +235,8 @@ void InvalidateSmallLenses(Field<T>& field, size_t thresholdCellCount,
 	Field<bool>	visited(field.width(), field.height(), false);
 	vector<pair<int, int> > cells;
 
-	const int fwidth = (int)field.width();
-	const int fheight = (int)field.height();
+	const int fwidth = static_cast<int>(field.width());
+	const int fheight = static_cast<int>(field.height());
 
 	for(int outerIy = 0; outerIy < fheight; ++outerIy){
 		for(int outerIx = 0; outerIx < fwidth; ++outerIx){

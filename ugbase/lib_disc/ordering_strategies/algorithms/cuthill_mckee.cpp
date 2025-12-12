@@ -30,16 +30,18 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "common/common.h"
-#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h" //ComputeCuthillMcKeeOrder
 #include "cuthill_mckee.h"
+
 //ø #include <algorithm>
 #include <vector>
 #include <queue>
+
+#include "common/common.h"
+#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h" //ComputeCuthillMcKeeOrder
 #include "common/profiler/profiler.h"
 #include "lib_disc/domain.h"
 
-namespace ug{
+namespace ug {
 
 void OrderCuthillMcKee(DoFDistribution& dofDistr, bool bReverse)
 {

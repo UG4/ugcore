@@ -34,11 +34,14 @@
 #define NUMBER_UTIL_H_
 
 #include "common/math/ugmath.h"
-namespace ug{
+
+namespace ug {
+
 extern bool g_bNoNANCheck;
+
 inline bool IsFiniteAndNotTooBig(double d)
 {
-	const double tooBigValue = 1e30;
+	constexpr double tooBigValue = 1e30;
 	if(d > tooBigValue || d < -tooBigValue || std::isfinite(d) == false)
 //	if(std::isfinite(d) == false)
 		return false;

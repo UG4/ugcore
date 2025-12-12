@@ -30,13 +30,15 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "grid_objects_3d.h"
+
 #include <vector>
 #include <algorithm>
 #include <cassert>
-#include "grid_objects.h"
-#include "common/common.h"
-//ø #include "common/assert.h"
 
+#include "common/common.h"
+#include "grid_objects.h"
+//ø #include "common/assert.h"
 #include "tetrahedron_rules.h"
 #include "octahedron_rules.h"
 #include "pyramid_rules.h"
@@ -48,8 +50,7 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 class TetrahedronClass{
 	public:

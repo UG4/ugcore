@@ -35,7 +35,7 @@
 
 #include "common/math/misc/shapes.h"
 
-namespace ug{
+namespace ug {
 
 ///	calculates the smallest axis aligned box that contains the given vertex
 template <typename TAAPos>

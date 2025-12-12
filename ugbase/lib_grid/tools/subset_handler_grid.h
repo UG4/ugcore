@@ -35,12 +35,12 @@
 
 #include <vector>
 #include <cassert>
+
 #include "lib_grid/grid/grid.h"
 #include "common/util/section_container.h"
 #include "subset_handler_interface.h"
 
-namespace ug
-{
+namespace ug {
 
 /** \ingroup lib_grid_tools
  *  \{ */
@@ -221,7 +221,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 
 	///	returns the number of elements in the given subset
 	/**	only for compatibility reasons with MGSubsetHandler.
-	 *	second argument is ignored.*/
+	 *	first argument is ignored.*/
 		template <typename TElem>
 		[[nodiscard]] uint num_elements(int subsetIndex, size_t) const {return num_elements<TElem>();}
 

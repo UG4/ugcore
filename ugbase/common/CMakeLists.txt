@@ -42,7 +42,7 @@ set(srcCommon	log.cpp
 				debug_id.cpp
 				assert.cpp
 				error.cpp
-				serialization.cpp
+				#serialization.cpp
 				progress.cpp
 				allocators/small_object_allocator.cpp
 				util/base64_file_writer.cpp

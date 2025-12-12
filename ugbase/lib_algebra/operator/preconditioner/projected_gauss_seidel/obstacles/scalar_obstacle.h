@@ -38,7 +38,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 /// Scalar Lower Obstacles
 /**

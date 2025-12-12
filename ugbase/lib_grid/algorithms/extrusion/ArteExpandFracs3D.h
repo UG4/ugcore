@@ -41,16 +41,23 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <boost/function.hpp>
-#include <stack>
+
+#ifndef UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_ARTEEXPANDFRACS3D_H_
+#define UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_ARTEEXPANDFRACS3D_H_
+
+
+//#include <stack>
 #include <vector>
+
+//#include <boost/function.hpp>
+
 #include "lib_grid/lg_base.h"
 #include "expand_layers.h"
-	//#include "expand_layers_arte.h"
-	//#include "expand_layers_arte3D.h"
-#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+//#include "expand_layers_arte.h"
+//#include "expand_layers_arte3D.h"
+//#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/callbacks/callbacks.h"
-#include "lib_grid/grid/grid_util.h"
+//#include "lib_grid/grid/grid_util.h"
 //#include "lib_grid/util/simple_algebra/least_squares_solver.h"
 
 #include <vector>
@@ -59,9 +66,6 @@
 #include "support3D.h"
 
 
-
-#ifndef UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_ARTEEXPANDFRACS3D_H_
-#define UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_ARTEEXPANDFRACS3D_H_
 
 namespace ug {
 

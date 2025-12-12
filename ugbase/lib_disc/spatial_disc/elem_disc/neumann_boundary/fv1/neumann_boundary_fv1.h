@@ -39,7 +39,7 @@
 // library intern headers
 #include "../neumann_boundary_base.h"
 
-namespace ug{
+namespace ug {
 
 template<typename TDomain>
 class NeumannBoundaryFV1

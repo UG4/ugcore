@@ -33,12 +33,11 @@
 #ifndef __H__LIB_GRID__PARALLEL_GLOBAL_FRACTURED_MEDIA_REFINER__
 #define __H__LIB_GRID__PARALLEL_GLOBAL_FRACTURED_MEDIA_REFINER__
 
-#include "../distributed_grid.h"
+// #include "../distributed_grid.h"
 #include "lib_grid/refinement/global_fractured_media_refiner.h"
 #include "pcl/pcl_interface_communicator.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup lib_grid_parallelization_refinement
 /// @{

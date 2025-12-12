@@ -37,7 +37,7 @@
 #include <utility> // for pair
 #include <cstring> //strlen
 
-#include "lib_disc/domain.h"
+//#include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
@@ -46,7 +46,7 @@
 
 #include "common/error.h"
 
-namespace ug{
+namespace ug {
 
 template<int dim>
 void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,

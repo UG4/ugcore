@@ -34,10 +34,11 @@
 #define __H__UG__LIB_DISC__DOF_MANAGER__ORIENTATION__
 
 #include <vector>
+
 #include "lib_grid/grid/grid_base_objects.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 
-namespace ug{
+namespace ug {
 
 /// returns the orientation offsets if required
 /**

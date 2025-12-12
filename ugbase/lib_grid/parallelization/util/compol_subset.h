@@ -32,10 +32,10 @@
 
 #ifndef __H__UG__compol_subset__
 #define __H__UG__compol_subset__
+
 #include "pcl/pcl_communication_structs.h"
 
-namespace ug
-{
+namespace ug {
 
 
 template <typename TLayout>

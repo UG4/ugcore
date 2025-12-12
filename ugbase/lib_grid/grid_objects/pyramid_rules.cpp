@@ -30,13 +30,15 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cassert>
 #include "pyramid_rules.h"
+
+#include <cassert>
+
 #include "rule_util.h"
 #include "grid_object_ids.h"
 
-namespace ug{
-namespace pyra_rules{
+namespace ug {
+namespace pyra_rules {
 
 ///	Output are the vertices of a pyramid rotated around its vertical axis
 void RotatePyramid(int vrtsOut[NUM_VERTICES], int steps)

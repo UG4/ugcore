@@ -34,7 +34,7 @@
 #include "lib_grid/tools/periodic_boundary_manager.h"
 #include "lib_grid/algorithms/debug_util.h"
 
-namespace ug{
+namespace ug {
 
 // marks geometric object e for refinement if it is periodic
 template <typename TElem>
@@ -56,8 +56,9 @@ static void mark_if_periodic(IRefiner& ref, TElem* e) {
 		using SlaveContainer = typename PeriodicBoundaryManager::Group<TElem>::SlaveContainer;
 		using SlaveIterator = typename PeriodicBoundaryManager::Group<TElem>::SlaveIterator;
 		SlaveContainer& slaves = *pbm.slaves(e);
-		for (SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter)
+		for (SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter) {
 			ref.mark(*iter, refMark);
+		}
 	}
 	else { // is slave
 		ref.mark(pbm.master(e), refMark);

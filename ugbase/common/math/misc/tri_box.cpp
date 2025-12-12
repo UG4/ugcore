@@ -1,4 +1,4 @@
-/* Copyright (C) Dan Ginsburg, 2000. 
+/* Copyright (C) Dan Ginsburg, 2000.
  * All rights reserved worldwide.
  *
  * This software is provided "as is" without express or implied
@@ -32,6 +32,8 @@
 //		necessary to get the triangle into voxel space.
 //
 //
+#include "math_util.h"
+
 #include <cmath>
 #include "../ugmath.h"
 
@@ -69,8 +71,7 @@
 #define MAX3(a,b,c) ((((a)>(b))&&((a)>(c))) ? (a) : (((b)>(c)) ? (b) : (c)))
 
 
-namespace ug
-{
+namespace ug {
 
 //	a very simple triangle type
 struct TRI

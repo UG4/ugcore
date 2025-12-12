@@ -37,7 +37,7 @@
 #include "lua_compiler_debug.h"
 
 using namespace std;
-namespace ug{
+namespace ug {
 
 int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, SmartPtr<VMAdd> > &subVM)
 {

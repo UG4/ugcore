@@ -37,7 +37,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 int LUAParserClass::createJITSG(ostream &out, eReturnType r, set<string> &subfunctions)
 {

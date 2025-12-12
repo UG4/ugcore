@@ -30,6 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "lexorder.h"
+
 #include <algorithm>
 #include <vector>
 #include <queue>
@@ -42,9 +44,9 @@
 #include "lib_disc/domain.h"
 
 #include "lib_disc/ordering_strategies/algorithms/lexorder_comparators.h"
-#include "lib_disc/ordering_strategies/algorithms/lexorder.h"
 
-namespace ug{
+
+namespace ug {
 
 template<int dim>
 void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,

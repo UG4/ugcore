@@ -33,11 +33,11 @@
 #ifndef __H__LIB_GRID__PARALLEL_GLOBAL_REFINER_T_IMPL__
 #define __H__LIB_GRID__PARALLEL_GLOBAL_REFINER_T_IMPL__
 
-#include <vector>
 #include "parallel_global_refiner_t.h"
 
-namespace ug
-{
+// #include <vector>
+
+namespace ug {
 
 template <typename TRefiner>
 TParallelGlobalRefiner<TRefiner>::

@@ -35,11 +35,12 @@
 
 #include <algorithm>
 #include <vector>
+
 #include "refinement_projector.h"
 #include "lib_grid/callbacks/basic_callbacks.h"
 #include "lib_grid/callbacks/topology_callbacks.h"
 
-namespace ug{
+namespace ug {
 
 ///	Applies piecewise smooth loop subdivision rules
 /**

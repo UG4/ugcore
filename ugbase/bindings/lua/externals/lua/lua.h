@@ -448,10 +448,10 @@ LUA_API void (lua_closeslot) (lua_State *L, int idx);
 /*
 ** Event masks
 */
-#define LUA_MASKCALL	(1 << LUA_HOOKCALL)
+#define LUA_MASKCALL (1 << LUA_HOOKCALL)
 #define LUA_MASKRET	(1 << LUA_HOOKRET)
-#define LUA_MASKLINE	(1 << LUA_HOOKLINE)
-#define LUA_MASKCOUNT	(1 << LUA_HOOKCOUNT)
+#define LUA_MASKLINE (1 << LUA_HOOKLINE)
+#define LUA_MASKCOUNT (1 << LUA_HOOKCOUNT)
 
 
 LUA_API int (lua_getstack) (lua_State *L, int level, lua_Debug *ar);

@@ -36,8 +36,9 @@
 #include <string>
 #include "projectors/refinement_projector.h"
 
-namespace ug
-{
+namespace ug {
+
+
 ///	\addtogroup lib_grid_algorithms_refinement
 ///	@{
 

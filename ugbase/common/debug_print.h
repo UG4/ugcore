@@ -34,10 +34,10 @@
 #define __H__UG__DEBUG_PRINT_H_
 
 #include <string>
-#include <sstream>
-#include "error.h"
+//#include <sstream>
+//#include "error.h"
 
-namespace ug{
+namespace ug {
 
 template<typename T>
 void PrintVector(const T &v, std::string desc="")

@@ -44,13 +44,13 @@
 #include <cstddef>
 #include <iostream>
 #include <algorithm>
+
 #include "../../ug_config.h"
 #include "../../types.h"
 #include "common/math/misc/math_constants.h"
 
 
-namespace ug
-{
+namespace ug {
 
 /**
  * \defgroup vectors Vectors

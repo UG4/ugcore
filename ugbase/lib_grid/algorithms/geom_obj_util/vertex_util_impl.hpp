@@ -34,13 +34,13 @@
 #define __H__LIB_GRID__VERTEX_UTIL_IMPL__
 
 #include "vertex_util.h"
+
 #include "edge_util.h"
 #include "face_util.h"
 #include "../trees/kd_tree_static.h"
 #include "misc_util.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 template <typename TAAPos>

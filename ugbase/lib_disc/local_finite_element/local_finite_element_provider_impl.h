@@ -33,10 +33,12 @@
 #ifndef __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_FINITE_ELEMENT_PROVIDER_IMPL__
 #define __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_FINITE_ELEMENT_PROVIDER_IMPL__
 
-#include "common/common.h"
 #include "local_finite_element_provider.h"
 
-namespace ug{
+//#include "common/common.h"
+
+
+namespace ug {
 
 ///////////////////////////////////////////
 // LocalFiniteElementProvider

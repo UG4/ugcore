@@ -54,9 +54,9 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace Ordering{
+namespace ug {
+namespace bridge {
+namespace Ordering {
 
 /**
  * \defgroup ordering_bridge Ordering Bridge

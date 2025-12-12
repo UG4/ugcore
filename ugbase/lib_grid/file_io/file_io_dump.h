@@ -37,8 +37,7 @@
 #include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_grid/common_attachments.h"
 
-namespace ug
-{
+namespace ug {
 
 ///	loads dump-files.
 /**

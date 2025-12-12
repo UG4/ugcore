@@ -39,7 +39,8 @@
 #include <ctime>
 #include <string>
 
-namespace ug{
+namespace ug {
+
 struct TarHeader
 {
 	char filename[100];

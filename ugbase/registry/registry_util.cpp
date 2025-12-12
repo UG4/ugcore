@@ -32,7 +32,7 @@
 
 #include "registry_util.h"
 
-namespace ug{
+namespace ug {
 
 /*
  * 

@@ -32,9 +32,11 @@
 
 #include <dirent.h>
 #include <unistd.h>
-#include <climits>
+#include <fstream>
+//#include <climits>
 #include <sys/types.h>
 #include <sys/stat.h>
+
 #include "common/util/file_util.h"
 #include "common/profiler/profiler.h"
 #include "common/error.h"
@@ -48,7 +50,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 //todo:	implement with ftello and fseeko
 size_t FileSize( const char *filename )

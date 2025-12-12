@@ -47,10 +47,8 @@
 /*
 using namespace std;
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 /// \defgroup test_bridge Test Bridge
 /// \ingroup misc_bridge

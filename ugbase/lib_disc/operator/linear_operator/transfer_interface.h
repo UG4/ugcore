@@ -33,12 +33,12 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_INTERFACE__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_INTERFACE__
 
-#include "lib_algebra/operator/interface/operator.h"
+// #include "lib_algebra/operator/interface/operator.h"
 #include "lib_grid/tools/grid_level.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 
-namespace ug{
+namespace ug {
 
 ///////////////////////////////////////////////////////////////////////////////
 // Transfer Operator

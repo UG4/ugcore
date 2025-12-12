@@ -32,8 +32,10 @@
 
 #ifndef FAMG_ADDITIONAL_MATH_H_
 #define FAMG_ADDITIONAL_MATH_H_
+
 #include "lib_algebra/small_algebra/small_matrix/densematrix.h"
-namespace ug{
+
+namespace ug {
 
 inline void vecSum(double &erg, double alpha, double vec)
 {

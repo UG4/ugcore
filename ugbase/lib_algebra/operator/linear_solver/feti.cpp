@@ -40,12 +40,12 @@
 
 #ifdef UG_PARALLEL
 
+// own header
+#include "feti.h"
+
 // extern headers
 #include <cmath>
 #include <sstream>  // added for 'stringstream'
-
-// own header
-#include "feti.h"
 
 // algebra types
 #include "lib_algebra/cpu_algebra_types.h"
@@ -66,7 +66,7 @@
 #endif
 // additions for profiling - end
 
-namespace ug{
+namespace ug {
 
 
 //	used to inform root over primal connections.

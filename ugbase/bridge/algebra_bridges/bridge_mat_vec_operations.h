@@ -30,19 +30,18 @@
  * GNU Lesser General Public License for more details.
  */
 
-
-// include bridge
-#include "bridge/bridge.h"
-#include "bridge/util.h"
-#include "bridge/util_algebra_dependent.h"
-
 #ifndef BRIDGE_MAT_VEC_OPERATIONS_H_
 #define BRIDGE_MAT_VEC_OPERATIONS_H_
 
-namespace ug{
 
-namespace bridge{
-namespace AlgebraCommon{
+// include bridge
+// #include "bridge/bridge.h"
+// #include "bridge/util.h"
+#include "bridge/util_algebra_dependent.h"
+
+namespace ug {
+namespace bridge {
+namespace AlgebraCommon {
 
 template<typename TAlgebra>
 class VecScaleAddClass

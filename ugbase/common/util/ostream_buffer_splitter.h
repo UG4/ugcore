@@ -33,12 +33,11 @@
 #ifndef __H__UG_OSTREAM_BUFFER_SPLITTER__
 #define __H__UG_OSTREAM_BUFFER_SPLITTER__
 
-#include <iostream>
+//#include <iostream>
 #include <fstream>
-#include "empty_stream.h"
+//#include "empty_stream.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_io
 /// \{

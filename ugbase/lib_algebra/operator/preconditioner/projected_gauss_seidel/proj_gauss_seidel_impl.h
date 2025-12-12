@@ -35,7 +35,7 @@
 
 #include "proj_gauss_seidel.h"
 
-namespace ug{
+namespace ug {
 
 ///	commmon GaussSeidel-step-calls for a single index 'i'
 template<typename Matrix_type, typename Vector_type>

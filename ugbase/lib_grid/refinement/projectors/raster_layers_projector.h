@@ -37,14 +37,14 @@
 #include "refinement_projector.h"
 #include "lib_grid/algorithms/raster_layer_util.h"
 
-namespace ug{
+namespace ug {
 
 class RasterLayersProjector : public RefinementProjector {
 public:
 	using rel_z_attachment_t = ANumber;
 	using rel_z_attachment_accessor_t = Grid::VertexAttachmentAccessor<ANumber>;
 
-	RasterLayersProjector ()	{}
+	RasterLayersProjector () = default;
 
 	explicit RasterLayersProjector (SPIGeometry3d geometry) :
 		RefinementProjector (geometry)
@@ -67,8 +67,8 @@ public:
 	void set_layers(SPRasterLayers layers)
 	{m_layers = layers;}
 
-	rel_z_attachment_t			rel_z_attachment () const			{return m_aRelZ;}
-	rel_z_attachment_accessor_t	rel_z_attachment_accessor () const	{return m_aaRelZ;}
+	[[nodiscard]] rel_z_attachment_t rel_z_attachment () const {return m_aRelZ;}
+	[[nodiscard]] rel_z_attachment_accessor_t	rel_z_attachment_accessor () const {return m_aaRelZ;}
 
 	number average_rel_z(Vertex* e) const	{return m_aaRelZ[e];}
 

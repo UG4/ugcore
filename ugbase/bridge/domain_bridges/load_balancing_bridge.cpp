@@ -58,7 +58,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 /**
  * \defgroup loadbalance_bridge Load Balancing Bridge
@@ -161,8 +161,8 @@ namespace ug{
 // end group loadbalance_bridge
 /// \}
 
-namespace bridge{
-namespace LoadBalancing{
+namespace bridge {
+namespace LoadBalancing {
 
 /// \addtogroup loadbalance_bridge
 /// \{

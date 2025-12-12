@@ -35,8 +35,7 @@
 
 #include "common/util/string_util.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup registry
 /// \{

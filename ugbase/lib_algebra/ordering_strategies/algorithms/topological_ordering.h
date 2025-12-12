@@ -33,27 +33,27 @@
 #ifndef UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_TOPOLOGICAL_ORDERING_H
 #define UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_TOPOLOGICAL_ORDERING_H
 
+#include <vector>
+#include <utility> //for pair
+#include <deque>
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
-#include <boost/graph/properties.hpp>
+//#include <boost/graph/properties.hpp>
 
 #include "lib_algebra/graph_interface/sparsematrix_boost.h"
 #include "lib_algebra/graph_interface/parallel_matrix_boost.h"
 #include "lib_algebra/graph_interface/bidirectional.h"
 #include "lib_algebra/graph_interface/bidirectional_boost.h"
 
-#include <vector>
-#include <utility> //for pair
-#include <deque>
-
 #include "IOrderingAlgorithm.h"
 #include "util.h"
 
 //debug
 #include "common/error.h"
-#include "common/log.h"
+//#include "common/log.h"
 
-namespace ug{
+namespace ug {
 
 template <typename O_t, typename G_t>
 void topological_ordering_core_bidirectional(O_t& o, G_t& g, bool inverse){

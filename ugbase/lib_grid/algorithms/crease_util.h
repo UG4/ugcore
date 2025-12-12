@@ -34,9 +34,10 @@
 #define __H__UG_crease_util
 
 #include "lib_grid/lg_base.h"
-#include "lib_grid/callbacks/basic_callbacks.h"
+// #include "lib_grid/callbacks/basic_callbacks.h"
 
-namespace ug{
+namespace ug {
+
 /* ø todo not implemented, maybe deprecated interface
 template <typename TVrtIter, typename TAAPos>
 void SelectKinkVertices(Grid& grid, TVrtIter vrtsBegin, TVrtIter vrtsEnd,

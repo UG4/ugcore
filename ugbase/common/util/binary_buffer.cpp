@@ -32,8 +32,7 @@
 
 #include "binary_buffer.h"
 
-namespace ug
-{
+namespace ug {
 
 BinaryBuffer::BinaryBuffer() :
 	m_readPos(0), m_writePos(0)

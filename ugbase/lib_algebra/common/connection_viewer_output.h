@@ -39,6 +39,8 @@
 #include <string>
 #include <limits>
 
+#include "common/log.h"
+#include "common/profiler/profiler.h"
 #include "common/progress.h"
 #include "common/util/string_util.h"
 
@@ -50,10 +52,9 @@
 
 #define CONNECTION_VIEWER_VERSION 1
 
-namespace ug
-{
-namespace ConnectionViewer
-{
+namespace ug {
+namespace ConnectionViewer {
+
 extern bool g_parallelConnectionViewer;
 #ifdef UG_PARALLEL
 /**

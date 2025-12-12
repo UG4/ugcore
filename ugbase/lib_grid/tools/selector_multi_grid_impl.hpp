@@ -38,10 +38,11 @@
 #ifndef __H__LIBGRID__SELECTOR_MULTI_GRID_IMPL__
 #define __H__LIBGRID__SELECTOR_MULTI_GRID_IMPL__
 
+#include "selector_multi_grid.h"
+
 #include <cassert>
 
-namespace ug
-{
+namespace ug {
 
 template <typename TElem>
 inline int

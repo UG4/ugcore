@@ -33,14 +33,14 @@
 #ifndef __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__
 #define __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__
 
-#include <vector>
-#include <map>
+// #include <vector>
+// #include <map>
 
-#include "local_finite_element_id.h"
+// #include "local_finite_element_id.h"
 #include "lib_disc/reference_element/reference_element_traits.h"
 #include "lib_grid/grid/grid_base_objects.h"
 
-namespace ug{
+namespace ug {
 
 /// \ingroup lib_disc_local_finite_elements
 /// @{

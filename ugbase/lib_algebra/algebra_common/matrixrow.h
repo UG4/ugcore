@@ -33,7 +33,8 @@
 #ifndef __H__UG__CPU_ALGEBRA__MATRIXROW__
 #define __H__UG__CPU_ALGEBRA__MATRIXROW__
 
-namespace ug{
+namespace ug {
+
 ///////////////////////////////////////////////////////////////////
 
 /*template<typename TValue, typename TIterator>

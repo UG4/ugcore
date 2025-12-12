@@ -46,8 +46,7 @@
 using namespace std;
 using namespace ug;
 
-namespace pcl
-{
+namespace pcl {
 
 
 ProcessCommunicator::
@@ -138,7 +137,7 @@ create_sub_communicator(bool participate) const
 		return ProcessCommunicator(PCD_EMPTY);
 
 //	create a buffer and initialise it with 0
-	vector<int> srcArray(size, 0);
+	vector srcArray(size, 0);
 
 //	if the process wants to participate, set his entry to 1
 	int rank;
@@ -147,7 +146,7 @@ create_sub_communicator(bool participate) const
 		srcArray[rank] = 1;
 
 //	synchronize the newProcs array between all processes in the communicator
-	vector<int> destArray(size, 0);
+	vector destArray(size, 0);
 
 	{
 		PCL_PROFILE(waiting_before_allreduce);
@@ -173,7 +172,7 @@ create_sub_communicator(bool participate) const
 	// these are NOT the global ranks like in pcl::ProcRank
 	for(size_t i = 0; i < destArray.size(); ++i){
 		if(destArray[i])
-			newProcs.push_back(i);
+			newProcs.push_back(static_cast<int>(i));
 	}
 
 //	if newProcs is not empty, we'll build a new mpi-communicator.
@@ -249,7 +248,7 @@ create_communicator(const vector<int> &newGlobalProcs)
 //	if the process is not participating, MPI_Comm_create will return MPI_COMM_NULL
 	if(commNew == MPI_COMM_NULL)
 		return ProcessCommunicator(PCD_EMPTY);
-	else if(commNew == PCL_COMM_WORLD)
+	if(commNew == PCL_COMM_WORLD)
 		return ProcessCommunicator(PCD_WORLD);
 
 	ProcessCommunicator newProcComm;
@@ -283,7 +282,7 @@ create_communicator(size_t first, size_t num)
 //	if the process is not participating, MPI_Comm_create will return MPI_COMM_NULL
 	if(commNew == MPI_COMM_NULL)
 		return ProcessCommunicator(PCD_EMPTY);
-	else if(commNew == PCL_COMM_WORLD)
+	if(commNew == PCL_COMM_WORLD)
 		return ProcessCommunicator(PCD_WORLD);
 
 	newProcComm.m_comm->m_mpiComm = commNew;
@@ -695,7 +694,7 @@ void ProcessCommunicator::broadcast(void *v, size_t size, DataType type, int roo
 	PCL_PROFILE(pcl_ProcCom_Bcast);
 	if(is_local()) return;
 	//UG_LOG("broadcasting " << (root==pcl::ProcRank() ? "(sender) " : "(receiver) ") << size << " root = " << root << "\n");
-	MPI_Bcast(v, static_cast<long>(size), type, root, m_comm->m_mpiComm);
+	MPI_Bcast(v, static_cast<int>(size), type, root, m_comm->m_mpiComm);
 }
 
 void ProcessCommunicator::broadcast(BinaryBuffer &buf, int root) const

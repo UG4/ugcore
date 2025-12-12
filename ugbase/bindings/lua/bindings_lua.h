@@ -33,26 +33,23 @@
 #ifndef __H__UG__INTERFACE__BINDINGS_LUA__
 #define __H__UG__INTERFACE__BINDINGS_LUA__
 
-#include <vector>
-#include <string>
+// #include <vector>
+// #include <string>
 #include "common/types.h"
 extern "C" {
 #include "externals/lua/lua.h"
-#include "externals/lua/lauxlib.h"
-#include "externals/lua/lualib.h"
-#include "externals/lua/lua.hpp"
+// #include "externals/lua/lauxlib.h"
+// #include "externals/lua/lualib.h"
+// #include "externals/lua/lua.hpp"
 }
 
 
-#include "common/common.h"
+// #include "common/common.h"
 #include "registry/registry.h"
 
-namespace ug
-{
-namespace bridge
-{
-namespace lua
-{
+namespace ug {
+namespace bridge {
+namespace lua {
 
 extern const bool IMLPICIT_SMART_PTR_TO_PTR_CONVERSION;
 

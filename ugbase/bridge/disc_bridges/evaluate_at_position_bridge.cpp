@@ -49,10 +49,11 @@
 // user data
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 
-#include "lib_disc/reference_element/reference_element_traits.h"
+//#include "lib_disc/reference_element/reference_element_traits.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
-#include "common/util/provider.h"
+//#include "common/util/provider.h"
+#include "common/space_partitioning/ntree_traverser.h"
 #include "lib_disc/domain_util.h"
 #include "lib_disc/time_disc/time_integrator_observers/time_integrator_observer_interface.h"
 
@@ -68,9 +69,9 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace Evaluate{
+namespace ug {
+namespace bridge {
+namespace Evaluate {
 
 
 template <typename TDomain, typename TAlgebra>

@@ -35,7 +35,7 @@
 
 #include "assembled_non_linear_operator.h"
 
-namespace ug{
+namespace ug {
 
 //	Prepare functions
 template <typename TAlgebra>

@@ -31,6 +31,7 @@
  */
 
 #include "neighborhood_util.h"
+
 #include "grid.h"
 #include "lib_grid/selector.h"
 #include "lib_grid/algorithms/selection_util.h"

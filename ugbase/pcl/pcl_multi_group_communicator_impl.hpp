@@ -33,6 +33,8 @@
 #ifndef __H__PCL_multi_group_communicator_impl
 #define __H__PCL_multi_group_communicator_impl
 
+#include "pcl_multi_group_communicator.h"
+
 #include "pcl_methods.h"
 #include "pcl_datatype.h"
 #include "pcl_reduce_traits.h"

@@ -36,8 +36,8 @@
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/common_attachments.h"
 
-namespace ug
-{
+namespace ug {
+
 
 /** \ingroup lib_grid_tools
  *  \{ */

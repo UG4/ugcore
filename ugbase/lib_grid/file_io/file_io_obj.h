@@ -30,18 +30,18 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <string>
-#include <vector>
-#include "common/math/ugmath.h"
-#include "../grid/grid.h"
-#include "../common_attachments.h"
-#include "../subset_handler.h"
-
 #ifndef __H__LIB_GRID__FILE_IO_OBJ__
 #define __H__LIB_GRID__FILE_IO_OBJ__
 
-namespace ug
-{
+#include <string>
+#include <vector>
+
+#include "common/math/ugmath.h"
+//#include "../grid/grid.h"
+#include "../common_attachments.h"
+#include "../subset_handler.h"
+
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	OBJMaterial

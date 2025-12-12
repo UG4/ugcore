@@ -33,7 +33,7 @@
 #ifndef __H__UG_sub_grid
 #define __H__UG_sub_grid
 
-namespace ug{
+namespace ug {
 
 ///	Instances represent a part of a grid.
 /** One can iterate over the objects in a sub-grid and one may check whether

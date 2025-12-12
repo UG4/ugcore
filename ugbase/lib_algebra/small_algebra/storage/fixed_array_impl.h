@@ -34,10 +34,12 @@
 #ifndef __H__UG__COMMON__FIXED_ARRAY_IMPL_H__
 #define __H__UG__COMMON__FIXED_ARRAY_IMPL_H__
 
-#include "storage.h"
 #include "fixed_array.h"
 
-namespace ug{
+//#include "storage.h"
+
+
+namespace ug {
 // 'tors
 
 

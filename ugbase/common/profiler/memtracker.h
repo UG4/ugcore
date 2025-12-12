@@ -62,7 +62,7 @@
 #include "common/profiler/profiler.h"
 
 
-namespace ug{
+namespace ug {
 
 /**
  * The profiling process only calcs the selfMemory of each Profile Node.

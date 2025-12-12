@@ -50,9 +50,9 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace Preconditioner{
+namespace ug {
+namespace bridge {
+namespace Preconditioner {
 
 /**
  * \defgroup domdepprecond_bridge Domain Dependend Preconditioner Bridge

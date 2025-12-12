@@ -33,10 +33,12 @@
 #ifndef __H__UG__ntree_impl__
 #define __H__UG__ntree_impl__
 
-#include <cassert>
 #include "ntree.h"
 
-namespace ug{
+#include <cassert>
+
+
+namespace ug {
 
 template <int tree_dim, int world_dim, typename elem_t, typename common_data_t>
 ntree<tree_dim, world_dim, elem_t, common_data_t>::

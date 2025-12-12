@@ -39,7 +39,7 @@
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/function_spaces/dof_position_util.h"
 
-namespace ug{
+namespace ug {
 
 
 template <typename TDomain>
@@ -48,7 +48,7 @@ class PiecewiseConstantElemTransfer
 	, public ElemRestrictionBase<TDomain, PiecewiseConstantElemTransfer<TDomain> >
 {
 	public:
-		PiecewiseConstantElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
+		explicit PiecewiseConstantElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
 		~PiecewiseConstantElemTransfer() override = default;
 

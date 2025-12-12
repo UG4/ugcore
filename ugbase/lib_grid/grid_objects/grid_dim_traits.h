@@ -34,9 +34,10 @@
 #define __H__LIB_GRID__GRID_DIM_TRAITS__
 
 #include <boost/mpl/list.hpp>
+
 #include "lib_grid/grid_objects/grid_objects.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Element types for different dimensions

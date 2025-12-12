@@ -35,12 +35,13 @@
 
 #include <list>
 #include <vector>
-#include "lib_grid/grid/grid.h"
-#include "common/math/ugmath.h"
 
-namespace ug
-{
-	using KDVertexDistanceList = std::list<KDVertexDistance>;
+#include "lib_grid/grid/grid.h"
+// #include "common/math/ugmath.h"
+
+namespace ug {
+
+using KDVertexDistanceList = std::list<KDVertexDistance>;
 
 template <typename TPositionAttachment, int numDimensions, typename TVector>
 void

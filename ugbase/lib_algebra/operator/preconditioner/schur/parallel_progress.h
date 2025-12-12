@@ -35,18 +35,16 @@
 
 #ifdef UG_PARALLEL
 
-#include <iostream>
-#include "common/util/string_util.h"
-#include "common/log.h"
-#include <ctime>
 #include <string>
-#include <sstream>
-
+//#include <iostream>
+//#include <ctime>
+//#include <sstream>
+//#include "common/util/string_util.h"
+//#include "common/log.h"
 #include "common/stopwatch.h"
-#include "common/util/ostream_util.h"
+//#include "common/util/ostream_util.h"
 
-namespace ug
-{
+namespace ug {
 
 class ParallelProgress
 {

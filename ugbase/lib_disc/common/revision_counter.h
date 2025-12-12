@@ -35,7 +35,7 @@
 
 #include "common/common.h"
 
-namespace ug{
+namespace ug {
 
 /// Class used to identify a state of adaption of a grid, approx-space, ...
 /**

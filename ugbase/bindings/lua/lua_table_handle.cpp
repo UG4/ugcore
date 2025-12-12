@@ -8,7 +8,7 @@
 extern "C" {
 #include "externals/lua/lua.h"
 #include "externals/lua/lauxlib.h"
-#include "externals/lua/lualib.h"
+// #include "externals/lua/lualib.h"
 #include "externals/lua/ldo.h"
 }
 
@@ -177,8 +177,8 @@ LuaTableHandle::LuaTableHandle(LuaTableHandle const& p)
 	impl::LuaTableHandle_::attach(p._data, &_data);
 }
 
-LuaTableHandle::LuaTableHandle(LuaTableHandle&& p)
-    : _data(nullptr)
+LuaTableHandle::LuaTableHandle(LuaTableHandle&& p) noexcept
+	: _data(nullptr)
 {
 	impl::LuaTableHandle_::attach(p._data, &_data);
 	impl::LuaTableHandle_::detach(&p._data);

@@ -33,14 +33,14 @@
 #ifndef __H__UG_BRIDGE__CLASS_NAME_PROVIDER_IMPL__
 #define __H__UG_BRIDGE__CLASS_NAME_PROVIDER_IMPL__
 
-#include <algorithm>
-#include <string>
-
 #include "class_name_provider.h"
+
+//#include <algorithm>
+#include <string>
 #include "common/util/typename.h"
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 ////////////////////////////////////////////////////////////////////////////////
 //  ClassNameProvider
@@ -152,7 +152,7 @@ template <typename TClass>
 const std::string& ClassNameProvider<TClass>::name()
 {
 //	if name has not been set, set temporary forward declaration
-	if(m_ClassNameNode.empty()) set_foreward_declared();
+	if(m_ClassNameNode.empty()) set_forward_declared();
 
 //	return the name of this class as stored in ClassNameNode
 	return m_ClassNameNode.name();
@@ -162,7 +162,7 @@ template <typename TClass>
 const std::vector<const char*>& ClassNameProvider<TClass>::names()
 {
 //	if name has not been set, set temporary forward declaration
-	if(m_ClassNameNode.empty()) set_foreward_declared();
+	if(m_ClassNameNode.empty()) set_forward_declared();
 
 //	create names list, including this class and all base classes
 //	\todo: remove this, avoid names-vector
@@ -173,7 +173,7 @@ const std::vector<const char*>& ClassNameProvider<TClass>::names()
 }
 
 template <typename TClass>
-void ClassNameProvider<TClass>::set_foreward_declared()
+void ClassNameProvider<TClass>::set_forward_declared()
 {
 //	build default name using typeinfo
 	std::string name("[[");

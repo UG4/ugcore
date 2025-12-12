@@ -36,8 +36,7 @@
 #ifndef __H__UG__MARTIN_ALGEBRA__LOCAL_HELPER__
 #define __H__UG__MARTIN_ALGEBRA__LOCAL_HELPER__
 
-namespace ug
-{
+namespace ug {
 
 
 template<typename M>

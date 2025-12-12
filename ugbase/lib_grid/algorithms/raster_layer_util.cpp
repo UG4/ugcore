@@ -30,14 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <vector>
 #include "raster_layer_util.h"
+
+#include <vector>
+
 #include "field_util.h"
 #include "lib_grid/file_io/file_io_asc.h"
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 //	initialize all values with simple-values and record a list of all invalid ones
 struct CellIdx {
@@ -96,20 +98,20 @@ invalidate_flat_cells()
 //	one layer below the top.
 	if(size() <= 1)
 		return;
-	for(int lvl = (int)size() - 2; lvl >= 0; --lvl){
+	for(int lvl = static_cast<int>(size()) - 2; lvl >= 0; --lvl){
 		Heightfield& curHF = heightfield(lvl);
 		Field<number>& innerField = curHF.field();
 		number minHeight = min_height(lvl);
 
 	//	iterate over the cells of each heightfield and invalidate values
-		for(int iy = 0; iy < (int)innerField.height(); ++iy){
-			for(int ix = 0; ix < (int)innerField.width(); ++ix){
+		for(int iy = 0; iy < static_cast<int>(innerField.height()); ++iy){
+			for(int ix = 0; ix < static_cast<int>(innerField.width()); ++ix){
 				number val = innerField.at(ix, iy);
 				if(val != curHF.no_data_value()){
 					bool gotDataVal = false;
 					vector2 c = curHF.index_to_coordinate(ix, iy);
 				//	compare the value against values from higher layers
-					for(int ulvl = lvl + 1; ulvl < (int)size(); ++ulvl){
+					for(int ulvl = lvl + 1; ulvl < static_cast<int>(size()); ++ulvl){
 						Heightfield& uHF = heightfield(ulvl);
 						number uval = uHF.interpolate(c);
 						if(uval != uHF.no_data_value()){
@@ -159,7 +161,7 @@ remove_small_holes(number maxArea)
 	Field<bool>	visited;
 	vector<pair<int, int> > cells;
 
-	for(int lvl = (int)size() - 2; lvl >= 0; --lvl){
+	for(int lvl = static_cast<int>(size()) - 2; lvl >= 0; --lvl){
 		Heightfield& hf = heightfield(lvl);
 		Field<number>& field = hf.field();
 		number noDataValue = hf.no_data_value();
@@ -175,8 +177,8 @@ remove_small_holes(number maxArea)
 		visited.resize_no_copy(field.width(), field.height());
 		visited.fill_all(false);
 
-		const int fwidth = (int)field.width();
-		const int fheight = (int)field.height();
+		const int fwidth = static_cast<int>(field.width());
+		const int fheight = static_cast<int>(field.height());
 
 		for(int outerIy = 0; outerIy < fheight; ++outerIy){
 			for(int outerIx = 0; outerIx < fwidth; ++outerIx){
@@ -225,8 +227,8 @@ remove_small_holes(number maxArea)
 								pair<int, int> index = lhf.coordinate_to_index(c.x(), c.y());
 								int lx = index.first;
 								int ly = index.second;
-								if(lx >= 0 && lx < (int)lfield.width()
-									&& ly >= 0 && ly < (int)lfield.height())
+								if(lx >= 0 && lx < static_cast<int>(lfield.width())
+									&& ly >= 0 && ly < static_cast<int>(lfield.height()))
 								{
 									number lval = lfield.at(lx, ly);
 									if(lval != lhf.no_data_value()){
@@ -300,7 +302,7 @@ blur_layers(number alpha, size_t numIterations)
 std::pair<int, number> RasterLayers::
 trace_line_down(const vector2& c, size_t firstLayer) const
 {
-	for(int i = (int)firstLayer; i >= 0; --i){
+	for(int i = static_cast<int>(firstLayer); i >= 0; --i){
 		number val = heightfield(i).interpolate(c);
 		if(val != heightfield(i).no_data_value()){
 			return make_pair(i, val);
@@ -316,7 +318,7 @@ trace_line_up(const vector2& c, size_t firstLayer) const
 	for(size_t i = firstLayer; i < size(); ++i){
 		number val = heightfield(i).interpolate(c);
 		if(val != heightfield(i).no_data_value()){
-			return make_pair((int)i, val);
+			return make_pair(static_cast<int>(i), val);
 		}
 	}
 
@@ -353,12 +355,12 @@ relative_to_global_height(const vector2& c, number relHeight) const
 	if(m_relativeToGlobalHeights.empty())
 		return relative_to_global_height_simple(c, relHeight);
 	else{
-		const int relHeightLow = (int)(relHeight + SMALL);
-		const int topLvl = (int)m_relativeToGlobalHeights.size() - 1;
+		const int relHeightLow = static_cast<int>(relHeight + SMALL);
+		const int topLvl = static_cast<int>(m_relativeToGlobalHeights.size()) - 1;
 		if((relHeightLow >= 0)
 			&& (relHeightLow + 1 <= topLvl))
 		{
-			number rel = relHeight - (number)relHeightLow;
+			number rel = relHeight - static_cast<number>(relHeightLow);
 			return (1. - rel) * m_relativeToGlobalHeights[relHeightLow]
 									->interpolate(c, order)
 					+ rel * m_relativeToGlobalHeights[relHeightLow + 1]
@@ -374,8 +376,8 @@ relative_to_global_height(const vector2& c, number relHeight) const
 number RasterLayers::
 relative_to_global_height_simple(const vector2& c, number relHeight) const
 {
-	const int relHeightLower = max((int)(relHeight + SMALL), 0);
-	const int relHeightUpper = min(relHeightLower + 1, (int)num_layers() - 1);
+	const int relHeightLower = max(static_cast<int>(relHeight + SMALL), 0);
+	const int relHeightUpper = min(relHeightLower + 1, static_cast<int>(num_layers()) - 1);
 	const std::pair<int, number> lower = trace_line_down(c, relHeightLower);
 	const std::pair<int, number> upper = trace_line_up(c, relHeightUpper);
 	
@@ -388,7 +390,7 @@ relative_to_global_height_simple(const vector2& c, number relHeight) const
 		return upper.second;
 	
 	number layerDiff = max(1, upper.first - lower.first);
-	number rel = (clip<number>(relHeight - (number)relHeightLower, 0, 1)
+	number rel = (clip<number>(relHeight - static_cast<number>(relHeightLower), 0, 1)
 				  + relHeightLower - lower.first)
 				/ layerDiff;
 	return (1. - rel) * lower.second + rel * upper.second;
@@ -426,7 +428,7 @@ construct_relative_to_global_height_table(size_t iterations, number alpha)
 	std::vector<std::vector<CellIdx> > allCells;
 	allCells.resize(m_relativeToGlobalHeights.size());
 
-	for(int lvl = 1; lvl + 1 < (int)m_relativeToGlobalHeights.size(); ++lvl){
+	for(int lvl = 1; lvl + 1 < static_cast<int>(m_relativeToGlobalHeights.size()); ++lvl){
 		Heightfield& curHF = *m_relativeToGlobalHeights[lvl];
 		Field<number>& curField = curHF.field();
 
@@ -447,7 +449,7 @@ construct_relative_to_global_height_table(size_t iterations, number alpha)
 
 //	now iterate over all recorded cells and perform relaxation
 	for(size_t iteration = 0; iteration < iterations; ++iteration){
-		for(int lvl = 1; lvl + 1 < (int)m_relativeToGlobalHeights.size(); ++lvl){
+		for(int lvl = 1; lvl + 1 < static_cast<int>(m_relativeToGlobalHeights.size()); ++lvl){
 			Field<number>& cur = m_relativeToGlobalHeights[lvl]->field();
 			Field<number>& lower = m_relativeToGlobalHeights[lvl-1]->field();
 			Field<number>& upper = m_relativeToGlobalHeights[lvl+1]->field();
@@ -528,7 +530,7 @@ upper_lower_dist_relation (	Field<number>&lower,
 							Field<number>& middle,
 							Field<number>& upper,
 							size_t ix,
-							size_t iy)
+							size_t iy) const
 {
 	number totalDist = fabs(upper.at(ix, iy) - lower.at(ix, iy));
 	if(totalDist > 0)

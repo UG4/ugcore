@@ -34,13 +34,16 @@
 #ifndef __H__UG__COMMON__FIXED_ARRAY_H__
 #define __H__UG__COMMON__FIXED_ARRAY_H__
 
-#include "storage.h"
-#include <iostream>
+//#include <iostream>
 #include <cassert>
+
+//#include "storage.h"
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //	FixedArray1
-namespace ug{
+
+namespace ug {
 
 /**
  * FixedArray1 is a one-dimensional array which supports most of the interface of std::vector.

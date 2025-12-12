@@ -33,15 +33,15 @@
 #ifndef __H__UG_orientation_util_impl
 #define __H__UG_orientation_util_impl
 
-#include "common/math/ugmath.h"
-#include "geom_obj_util/face_util.h"
-#include "geom_obj_util/volume_util.h"
 
 #include <stack>
 #include <vector>
 
+#include "common/math/ugmath.h"
+#include "geom_obj_util/face_util.h"
+#include "geom_obj_util/volume_util.h"
 
-namespace ug{
+namespace ug {
 
 
 ////////////////////////////////////////////////////////////////////////

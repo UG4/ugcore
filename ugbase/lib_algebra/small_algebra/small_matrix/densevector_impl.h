@@ -34,9 +34,11 @@
 #ifndef __H__UG__COMMON__DENSEVECTOR_IMPL_H__
 #define __H__UG__COMMON__DENSEVECTOR_IMPL_H__
 
+#include "densevector.h"
+
 #include "common/serialization.h"
 
-namespace ug{
+namespace ug {
 
 template<VectorStorageType TStorage>
 DenseVector<TStorage>::DenseVector(double alpha)

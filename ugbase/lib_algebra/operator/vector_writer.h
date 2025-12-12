@@ -33,7 +33,7 @@
 #ifndef __H__LIB_ALGEBRA__OPERATOR__VECTOR_WRITER__
 #define __H__LIB_ALGEBRA__OPERATOR__VECTOR_WRITER__
 
-namespace ug{
+namespace ug {
 
 /// Interface for modifying a vector (e.g, setting Dirichlet values, ...)
 /** sa GridFunctionVectorWriterDirichlet0*/

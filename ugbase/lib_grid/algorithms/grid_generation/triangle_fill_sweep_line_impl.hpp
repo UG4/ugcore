@@ -33,8 +33,10 @@
 #ifndef __H__UG4__LIB_GRID__TRIANGLE_FILL_SWEEP_LINE_IMPL__
 #define __H__UG4__LIB_GRID__TRIANGLE_FILL_SWEEP_LINE_IMPL__
 
-namespace ug
-{
+#include "triangle_fill_sweep_line.h"
+
+namespace ug {
+
 template <typename TIterator>
 bool TriangleFill_SweepLine(Grid& grid, TIterator edgesBegin,
 							TIterator edgesEnd, APosition& aPosVRT,

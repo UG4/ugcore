@@ -35,8 +35,9 @@
 
 #include "lib_grid/lg_base.h"
 
-namespace ug{
-namespace grid_unit_tests{
+namespace ug {
+namespace grid_unit_tests {
+
 /** THIS METHOD USES Grid::mark!
  * iterates over all volumes in g and checks for each whether the edges stored
  * in the associated container are the same as the edges which can be found

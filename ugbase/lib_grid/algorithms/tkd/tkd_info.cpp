@@ -30,8 +30,10 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cmath>
 #include "tkd_info.h"
+
+#include <cmath>
+
 #include "common/math/misc/math_constants.h"
 
 namespace ug {

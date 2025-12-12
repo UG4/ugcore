@@ -38,8 +38,8 @@
 #include "global_multi_grid_refiner.h"
 #include "lib_grid/algorithms/subdivision/subdivision_volumes.h"
 
-namespace ug
-{
+namespace ug {
+
 
 ///	\addtogroup lib_grid_algorithms_refinement
 ///	@{

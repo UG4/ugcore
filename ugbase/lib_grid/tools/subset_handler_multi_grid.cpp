@@ -30,13 +30,15 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cassert>
 #include "subset_handler_multi_grid.h"
+
+#include <cassert>
+
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 //	MultiGridSubsetHandler implementation
 MultiGridSubsetHandler::
@@ -254,7 +256,7 @@ change_subset_indices(int indOld, int indNew)
 
 void MultiGridSubsetHandler::add_required_subset_lists(int maxIndex)
 {
-	while((int)num_subsets_in_list() <= maxIndex)
+	while(static_cast<int>(num_subsets_in_list()) <= maxIndex)
 		add_subset_to_all_levels();
 }
 

@@ -48,8 +48,8 @@
 	#define GDIST_PROFILE_END()
 #endif
 
-namespace ug
-{
+namespace ug {
+
 /// \addtogroup lib_grid_parallelization
 ///	@{
 ////////////////////////////////////////////////////////////////////////

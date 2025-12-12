@@ -37,7 +37,7 @@
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 #include "lib_disc/spatial_disc/user_data/data_import.h"
 
-namespace ug{
+namespace ug {
 
 enum ProcessType {PT_ALL=0, PT_STATIONARY, PT_INSTATIONARY, MAX_PROCESS};
 

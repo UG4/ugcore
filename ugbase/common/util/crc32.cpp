@@ -30,11 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cstring>
-#include "boost/crc.hpp"
 #include "crc32.h"
 
-namespace ug{
+#include <cstring>
+
+#include <boost/crc.hpp>
+
+
+namespace ug {
 
 uint32 crc32(const char* str)
 {

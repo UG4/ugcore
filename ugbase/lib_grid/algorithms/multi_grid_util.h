@@ -33,10 +33,9 @@
 #ifndef __H__UG__MULTI_GRID_UTIL__
 #define __H__UG__MULTI_GRID_UTIL__
 
-#include "lib_grid/lg_base.h"
+//#include "lib_grid/lg_base.h"
 
-namespace ug
-{
+namespace ug {
 
 /**	iterates over the multi-grid and assigns all surface-elements to surfaceViewOut.*/
 template <typename TElem>

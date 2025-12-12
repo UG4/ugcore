@@ -38,8 +38,8 @@
 #include "lib_grid/tools/subset_handler_grid.h"
 #include "common/util/smart_pointer.h"
 
-namespace ug
-{
+namespace ug {
+
 
 /** \ingroup lib_grid_tools
  *  \{ */

@@ -34,7 +34,7 @@
 #define __H__UG_index_list_util
 
 #include <cctype>
-#include <cstring>
+//#include <cstring>
 #include <vector>
 #include <sstream>
 

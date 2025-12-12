@@ -52,8 +52,10 @@
 #ifndef __H__UG__CPU_ALGEBRA__LAPACK_H__
 #define __H__UG__CPU_ALGEBRA__LAPACK_H__
 
-#include "common/common.h"
 #include <complex>
+
+#include "common/common.h"
+
 
 /*
 #ifdef LAPACK_AVAILABLE

@@ -41,13 +41,15 @@
 #include <map>
 
 // other ug modules
+#include "lib_grid/grid/grid.h"
 #include "common/util/string_util.h"
 #include "common/util/base64_file_writer.h"
-#include "lib_disc/common/function_group.h"
+// #include "lib_disc/common/function_group.h"
 #include "lib_disc/domain.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 
-namespace ug{
+namespace ug {
+
 // todo this should avoid refactoring all the signatures of VTKOutput, remove it later
 using VTKFileWriter = Base64FileWriter;
 
@@ -900,18 +902,18 @@ protected:
 	 * those values (lying near to 0) with 0.
 	 */
 	/// \{
-		inline void write_item_to_file(VTKFileWriter& File, float data);
-		inline void write_item_to_file(VTKFileWriter& File, double data) {write_item_to_file(File, static_cast<float>(data));};
-		inline void write_item_to_file(VTKFileWriter& File, const MathVector<1>& data);
-		inline void write_item_to_file(VTKFileWriter& File, const MathVector<2>& data);
-		inline void write_item_to_file(VTKFileWriter& File, const MathVector<3>& data);
-		inline void write_item_to_file(VTKFileWriter& File, const MathMatrix<1,1>& data);
-		inline void write_item_to_file(VTKFileWriter& File, const MathMatrix<2,2>& data);
-		inline void write_item_to_file(VTKFileWriter& File, const MathMatrix<3,3>& data);
+		inline void write_item_to_file(VTKFileWriter& File, float data) const;
+		inline void write_item_to_file(VTKFileWriter& File, double data) const {write_item_to_file(File, static_cast<float>(data));};
+		inline void write_item_to_file(VTKFileWriter& File, const MathVector<1>& data) const;
+		inline void write_item_to_file(VTKFileWriter& File, const MathVector<2>& data) const;
+		inline void write_item_to_file(VTKFileWriter& File, const MathVector<3>& data) const;
+		inline void write_item_to_file(VTKFileWriter& File, const MathMatrix<1,1>& data) const;
+		inline void write_item_to_file(VTKFileWriter& File, const MathMatrix<2,2>& data) const;
+		inline void write_item_to_file(VTKFileWriter& File, const MathMatrix<3,3>& data) const;
 	/// \}
 	
 	/// prints ascii representation of a float in the Float32 format (a protection against the denormalized floats)
-		inline VTKFileWriter& write_asc_float(VTKFileWriter& File, float data);
+		inline VTKFileWriter& write_asc_float(VTKFileWriter& File, float data) const;
 
 	protected:
 	///	scheduled components to be printed

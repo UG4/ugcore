@@ -59,8 +59,7 @@
   #include <sys/time.h>
 #endif
 
-namespace ug
-{
+namespace ug {
 
 
 

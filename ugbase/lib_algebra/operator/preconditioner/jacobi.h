@@ -38,10 +38,10 @@
 #include "lib_algebra/cpu_algebra/vector.h"
 
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///		Jacobi-Iteration

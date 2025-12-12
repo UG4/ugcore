@@ -34,9 +34,10 @@
 #define __H__UG_crease_util_impl
 
 #include <algorithm>
+
 #include "lib_grid/iterators/associated_elements_iterator.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TVrtIter, typename TAAPos>
 void SelectKinkVertices(Selector& sel, TVrtIter vrtsBegin, TVrtIter vrtsEnd,

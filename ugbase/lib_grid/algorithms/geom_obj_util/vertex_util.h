@@ -41,8 +41,8 @@
 #include "lib_grid/callbacks/basic_callbacks.h"
 #include "common/math/ugmath.h"
 
-namespace ug
-{
+namespace ug {
+
 /**
  * \brief contains methods to manipulate vertices
  *

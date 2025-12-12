@@ -33,7 +33,7 @@
 
 #include "./lagrangep1.h"
 
-namespace ug{
+namespace ug {
 
 /// \cond HIDDEN_SYMBOLS
 

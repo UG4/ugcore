@@ -49,9 +49,9 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace Integrate{
+namespace ug {
+namespace bridge {
+namespace Integrate {
 
 /**
  * \defgroup integrate_bridge Integration Bridge

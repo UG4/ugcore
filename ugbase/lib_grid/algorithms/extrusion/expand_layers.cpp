@@ -30,10 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <boost/function.hpp>
+#include "expand_layers.h"
+
 #include <stack>
 #include <vector>
-#include "expand_layers.h"
+#include <boost/function.hpp>
+
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/callbacks/callbacks.h"
 #include "lib_grid/grid/grid_util.h"
@@ -41,7 +43,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 
 ///	This class can be used in Element callbacks.

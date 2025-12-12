@@ -31,11 +31,12 @@
 
 //  This file provides the Gauss Quadratures for a reference octahedron.
 
-
-#include "../quadrature.h"
 #include "gauss_quad_octahedron.h"
 
-namespace ug{
+#include "../quadrature.h"
+
+
+namespace ug {
 
 template <>
 number GaussQuadBase<GaussQuadrature<ReferenceOctahedron, 2>, 3, 2, 16>::m_vWeight[16] =

@@ -34,26 +34,25 @@
 #define __H__UG__SUBDIVISION_VOLUMES__
 
 #include <vector>
-#include <cassert>
+//#include <cassert>
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/debug_util.h"
-#include "lib_grid/grid_objects/tetrahedron_rules.h"
-#include "lib_grid/algorithms/attachment_util.h"
+//#include "lib_grid/grid_objects/tetrahedron_rules.h"
+//#include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/file_io/file_io.h"
-#include "lib_grid/algorithms/subdivision/subdivision_loop.h"
+//#include "lib_grid/algorithms/subdivision/subdivision_loop.h"
 
 #ifdef UG_PARALLEL
-	#include "lib_grid/parallelization/util/compol_attachment_reduce.h"
-	#include "lib_grid/parallelization/util/compol_copy_attachment.h"
-	#include "lib_grid/parallelization/util/attachment_operations.hpp"
-	#include "lib_grid/parallelization/distributed_grid.h"
-	#include "pcl/pcl_interface_communicator.h"
+	//#include "lib_grid/parallelization/util/compol_attachment_reduce.h"
+	//#include "lib_grid/parallelization/util/compol_copy_attachment.h"
+	//#include "lib_grid/parallelization/util/attachment_operations.hpp"
+	//#include "lib_grid/parallelization/distributed_grid.h"
+	//#include "pcl/pcl_interface_communicator.h"
 #endif
 
 #include  "common/profiler/profiler.h"
 
-namespace ug
-{
+namespace ug {
 
 
 ////////////////////////////////////////////////////////////////////////////////

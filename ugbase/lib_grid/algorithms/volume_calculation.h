@@ -35,7 +35,7 @@
 
 #include "lib_grid/grid_objects/grid_objects_3d.h"
 
-namespace ug{
+namespace ug {
 
 /**
  * \brief	contains methods for the calculation of the volumes of

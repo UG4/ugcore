@@ -39,7 +39,7 @@
 // library intern headers
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 
-namespace ug{
+namespace ug {
 
 template<typename TDomain>
 class NeumannBoundaryBase

@@ -34,13 +34,16 @@
 #ifndef __H__UG__COMMON__VARIABLE_ARRAY_IMPL_H__
 #define __H__UG__COMMON__VARIABLE_ARRAY_IMPL_H__
 
-#include "storage.h"
 #include "variable_array.h"
-#include "common/common.h"
+
 #include <algorithm> // for min
 #include <cstring>
 
-namespace ug{
+//#include "storage.h"
+//#include "common/common.h"
+
+
+namespace ug {
 
 // 'tors
 template<typename T>

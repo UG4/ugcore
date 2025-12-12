@@ -33,15 +33,17 @@
 #ifndef __H__UG__COMMON__MATH_TENSOR_FUNCTIONS_COMMON_IMPL__
 #define __H__UG__COMMON__MATH_TENSOR_FUNCTIONS_COMMON_IMPL__
 
-#include <cmath>
+#include "math_tensor_functions.h"
+
+// #include <cmath>
 #include <iostream>
-#include <iomanip>
+// #include <iomanip>
 #include <cassert>
 #include "math_tensor.h"
-#include "common/assert.h"
-#include "common/static_assert.h"
+// #include "common/assert.h"
+// #include "common/static_assert.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // transformation of a tensors

@@ -41,8 +41,8 @@
 #include <cassert>
 #include "selector_interface.h"
 
-namespace ug
-{
+namespace ug {
+
 
 /** \ingroup lib_grid_tools
  *  \{ */

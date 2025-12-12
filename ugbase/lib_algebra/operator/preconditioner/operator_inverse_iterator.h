@@ -35,18 +35,16 @@
 
 #include <string>
 
+#include "common/log.h"
 #include "common/util/smart_pointer.h"
 #include "lib_algebra/operator/interface/linear_iterator.h"
 #include "lib_algebra/operator/interface/linear_operator_inverse.h"
 #include "lib_algebra/operator/interface/preconditioner.h"
-
-#include "common/log.h"
-
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 /**
  * a LinearIterator which can uses ILinearOperatorInverse to perform B^{-1}

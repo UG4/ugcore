@@ -34,7 +34,7 @@ New code is marked with //sreiter
 #include "ShinyConfig.h"
 
 #include "common/types.h"//sreiter
-#include "stdlib.h"//sreiter
+// #include "stdlib.h"//sreiter
 
 /*//sreiter
 #if SHINY_PLATFORM == SHINY_PLATFORM_POSIX

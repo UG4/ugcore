@@ -35,7 +35,7 @@
 
 #ifdef SHINY_CALL_LOGGING
 
-namespace ug{
+namespace ug {
 void ShinyCallLoggingStart();
 void ShinyCallLoggingEnd();
 extern int g_ShinyCallLoggingMaxFreq;

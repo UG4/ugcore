@@ -36,7 +36,6 @@
 #include <string>
 #include <vector>
 #include <sstream>
-
 #include <exception>
 
 /// \addtogroup ugbase_common
@@ -91,7 +90,7 @@ void ug_throw_error();
 // UG Error
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace ug{
+namespace ug {
 
 std::string ErrorStringFromStdException(const std::exception *pex);
 

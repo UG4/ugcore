@@ -30,11 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "shiny_call_logging.h"
+
 #include <vector>
+
 #include "src/ShinyManager.h"
 #include "profile_call.h"
 
-namespace ug{
+namespace ug {
 
 std::vector<ProfileCall> profileCalls;
 

@@ -33,7 +33,7 @@
 #ifndef __H__UG_file_io_2df
 #define __H__UG_file_io_2df
 
-#include "../grid/grid.h"
+// #include "../grid/grid.h"
 #include "../common_attachments.h"
 #include "../tools/subset_handler_interface.h"
 

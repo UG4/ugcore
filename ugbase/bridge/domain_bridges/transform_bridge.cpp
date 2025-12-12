@@ -45,7 +45,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 /**
  * \defgroup transform_bridge Transformation Bridge
@@ -252,8 +252,8 @@ void ScaleDomainSqrtWeighting(TDomain& dom, ISelector& sel, const vector3& cente
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-namespace bridge{
-namespace Transform{
+namespace bridge {
+namespace Transform {
 
 /// \addtogroup transform_bridge
 /// \{

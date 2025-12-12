@@ -33,12 +33,11 @@
 #ifndef __H__UG__domain_distribution__
 #define __H__UG__domain_distribution__
 
-#include "lib_disc/domain.h"
+//#include "lib_disc/domain.h"
 #include "lib_grid/tools/partition_map.h"
 #include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
 
-namespace ug
-{
+namespace ug {
 
 class PartitionMap;
 

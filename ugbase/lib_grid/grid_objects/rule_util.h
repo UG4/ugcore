@@ -33,9 +33,10 @@
 #ifndef __H__UG__rule_util__
 #define __H__UG__rule_util__
 
-namespace ug{
-namespace shared_rules{
-    constexpr int MAX_NUM_INDS_OUT = 256;
+namespace ug {
+namespace shared_rules {
+
+constexpr int MAX_NUM_INDS_OUT = 256;
 
 /**
  * \todo	add support for snap-vertices.*/

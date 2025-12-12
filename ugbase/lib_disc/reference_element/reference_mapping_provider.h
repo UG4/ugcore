@@ -38,7 +38,7 @@
 #include "common/math/ugmath.h"
 #include "lib_grid/grid/grid_base_objects.h"
 
-namespace ug{
+namespace ug {
 
 ///	virtual base class for reference mappings
 /**

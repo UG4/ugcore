@@ -36,6 +36,7 @@
 #include <utility>
 #include <vector>
 #include <map>
+
 #include "common/assert.h"
 #include "algebra_id.h"
 #include "communication_policies.h"
@@ -55,7 +56,7 @@
 #endif
 // additions for profiling - end
 
-namespace ug{
+namespace ug {
 
 /**
  * \brief Util Functions for parallel Algebra

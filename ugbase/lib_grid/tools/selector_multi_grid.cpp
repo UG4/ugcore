@@ -30,12 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
-//ø #include <cassert>
 #include "selector_multi_grid.h"
+
+//ø #include <cassert>
+
 #include "lib_grid/multi_grid.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 MGSelector::MGSelector(byte_t supportedElements) :

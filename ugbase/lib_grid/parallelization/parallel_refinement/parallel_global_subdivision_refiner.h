@@ -33,12 +33,11 @@
 #ifndef __H__LIB_GRID__PARALLEL_GLOBAL_SUBDIVISION_REFINER__
 #define __H__LIB_GRID__PARALLEL_GLOBAL_SUBDIVISION_REFINER__
 
-#include "../distributed_grid.h"
+// #include "../distributed_grid.h"
 #include "lib_grid/refinement/global_subdivision_multi_grid_refiner.h"
 #include "parallel_global_refiner_t.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup lib_grid_parallelization_refinement
 /// @{

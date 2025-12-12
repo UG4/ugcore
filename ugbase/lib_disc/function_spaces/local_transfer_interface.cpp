@@ -31,9 +31,10 @@
  */
 
 #include "local_transfer_interface.h"
+
 #include "local_transfer.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain>
 SmartPtr<IElemProlongation<TDomain> >

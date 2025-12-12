@@ -42,11 +42,11 @@
 #include <set>
 
 #include "lib_algebra/operator/interface/preconditioner.h"
-#include "lib_algebra/operator/interface/linear_operator.h"
+//#include "lib_algebra/operator/interface/linear_operator.h"
 #include "lib_algebra/operator/interface/linear_operator_inverse.h"
 #include "lib_algebra/operator/interface/preconditioned_linear_operator_inverse.h"
 #include "lib_algebra/operator/interface/matrix_operator.h"
-#include "lib_algebra/operator/interface/matrix_operator_inverse.h"
+//#include "lib_algebra/operator/interface/matrix_operator_inverse.h"
 #include "lib_algebra/parallelization/parallelization.h"
 #include "lib_algebra/operator/debug_writer.h"
 #include "schur_complement_inverse_interface.h"
@@ -68,7 +68,7 @@
 	#define SCHUR_PROFILE_END_(name)
 #endif
 
-namespace ug{
+namespace ug {
 
 extern DebugID SchurDebug;
 

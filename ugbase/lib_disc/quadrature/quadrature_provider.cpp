@@ -30,8 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "common/util/string_util.h"
 #include "quadrature_provider.h"
+
+#include <algorithm>
+#include <locale>
+
+#include "common/util/string_util.h"
 #include "gauss/gauss_quad.h"
 #include "gauss/gauss_quad_vertex.h"
 #include "newton_cotes/newton_cotes.h"
@@ -40,10 +44,9 @@
 //ø #include "gauss_jacobi/gauss_jacobi20.h"
 #include "gauss_tensor_prod/gauss_tensor_prod.h"
 #include "lib_disc/reference_element/reference_element.h"
-#include <algorithm>
-#include <locale>
 
-namespace ug{
+
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // gauss

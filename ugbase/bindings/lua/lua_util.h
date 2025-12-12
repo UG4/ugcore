@@ -32,30 +32,29 @@
 
 #ifndef __H__UG__UG_SCRIPT__
 #define __H__UG__UG_SCRIPT__
-#include <vector>
+// #include <vector>
 #include <string>
 
 #ifndef USE_LUAJIT
 // default lua
 extern "C" {
 #include "externals/lua/lua.h"
-#include "externals/lua/lauxlib.h"
-#include "externals/lua/lualib.h"
+// #include "externals/lua/lauxlib.h"
+// #include "externals/lua/lualib.h"
 }
 #else
 // luajit
 #include <lua.hpp>
 #endif
 
-#include "common/common.h"
-#include "common/util/path_provider.h"
+// #include "common/common.h"
+// #include "common/util/path_provider.h"
 #include "registry/registry.h"
 
 
 
 
-namespace ug
-{
+namespace ug {
 
 namespace script
 {
@@ -64,7 +63,7 @@ namespace script
 class LuaError : public UGError
 {
 	public:
-		LuaError(const char* msg) : UGError(msg), bShowMsg(true)	{}
+  explicit LuaError(const char* msg) : UGError(msg), bShowMsg(true)	{}
 		LuaError() : UGError(""), bShowMsg(false)	{}
 
 		bool show_msg() const {return bShowMsg;}

@@ -35,8 +35,8 @@
 
 #include "hanging_node_refiner_base.h"
 
-namespace ug
-{
+namespace ug {
+
 
 ///	\addtogroup lib_grid_algorithms_refinement
 ///	@{

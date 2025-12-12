@@ -30,9 +30,11 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "tetrahedralization.h"
+
 #include <vector>
 #include <sstream>
-#include "tetrahedralization.h"
+
 #include "../geom_obj_util/geom_obj_util.h"
 #include "../remove_duplicates_util.h"
 
@@ -46,8 +48,7 @@ static char const* sTetgenMissing = "Tetrahedralization failed since Tetgen is n
                                     "and enable Tetgen in your build using `cmake -Dtetgen=ON -DLINK_TETGEN=ON .`";
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 #ifdef UG_TETGEN
 const char* VerbosityToTetgenParam(int verbosity)

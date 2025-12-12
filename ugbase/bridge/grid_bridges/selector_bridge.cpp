@@ -37,8 +37,8 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 void RegisterGridBridge_Selector(Registry& reg, string parentGroup)
 {

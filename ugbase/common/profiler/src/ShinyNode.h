@@ -84,21 +84,21 @@ namespace Shiny {
 
 		void updateTree(float a_damping);
 
-		void destroy(void) { *_cache = &_dummy; }
+		void destroy() { *_cache = &_dummy; }
 
 		SHINY_INLINE void appendTicks(tick_t a_elapsedTicks) { _last.selfTicks += a_elapsedTicks; }
-		SHINY_INLINE void beginEntry(void) { _last.entryCount++; }
+		SHINY_INLINE void beginEntry() { _last.entryCount++; }
 
-		bool isRoot(void) const { return (entryLevel == 0); }
-		bool isDummy(void) const { return (this == &_dummy); }
+		bool isRoot() const { return (entryLevel == 0); }
+		bool isDummy() const { return (this == &_dummy); }
 
 		bool isEqual(const ProfileNode* a_parent, const ProfileZone* a_zone) const {
 			return (parent == a_parent && zone == a_zone);
 		}
 
-		const ProfileNode* findNextInTree(void) const;
+		const ProfileNode* findNextInTree() const;
 
-		void clear(void);
+		void clear();
 	};
 
 } // namespace Shiny

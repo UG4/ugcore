@@ -34,6 +34,7 @@
 #define ACTIVE_SET_IMPL_H_
 
 #include "active_set.h"
+
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/spatial_disc/disc_util/fe_geom.h"
 

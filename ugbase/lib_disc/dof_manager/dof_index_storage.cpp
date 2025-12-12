@@ -32,7 +32,7 @@
 
 #include "dof_index_storage.h"
 
-namespace ug{
+namespace ug {
 
 DoFIndexStorage::
 DoFIndexStorage(SmartPtr<MultiGrid> spMG,

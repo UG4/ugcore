@@ -33,8 +33,12 @@
 #ifdef UG_PARALLEL
 
 #include "parallel_progress.h"
+
 #include "pcl/pcl.h"
-namespace ug{
+#include "common/log.h"
+#include "common/util/ostream_util.h"
+
+namespace ug {
 
 
 ParallelProgress::ParallelProgress()

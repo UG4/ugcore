@@ -44,7 +44,7 @@
 using namespace std;
 using namespace ug;
 
-namespace pcl{
+namespace pcl {
 
 ////////////////////////////////////////////////////////////////////////////////
 void SynchronizeProcesses()

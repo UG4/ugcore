@@ -34,6 +34,7 @@
 #define __H__UG__load_balancer__
 
 #include <vector>
+
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/algorithms/serialization.h"
 #include "common/util/table.h"
@@ -44,7 +45,7 @@
 //#endif
 
 
-namespace ug{
+namespace ug {
 
 
 ///	A load-balancer redistributes grids using the specified partitioner and process-hierarchy

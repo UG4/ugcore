@@ -30,6 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "file_io_swc.h"
+
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -37,7 +39,6 @@
 #include <queue>
 #include <map>
 
-#include "file_io_swc.h"
 #include "common/error.h"
 #include "common/util/string_util.h"
 #include "lib_grid/global_attachments.h"
@@ -47,7 +48,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 
 bool FileReaderSWC::load_file(const char* fileName)

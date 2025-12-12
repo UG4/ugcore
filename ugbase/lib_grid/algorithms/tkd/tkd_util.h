@@ -34,7 +34,8 @@
 #define __H__UG_tkd_util
 
 #include "tkd_info.h"
-#include "lib_grid/grid/grid.h"
+
+// #include "lib_grid/grid/grid.h"
 #include "lib_grid/common_attachments.h"
 
 namespace ug {

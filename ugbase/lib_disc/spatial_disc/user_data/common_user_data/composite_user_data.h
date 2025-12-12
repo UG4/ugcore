@@ -40,7 +40,7 @@
 #include "lib_grid/tools/subset_group.h"
 #include "lib_disc/spatial_disc/user_data/linker/linker.h"
 
-namespace ug{
+namespace ug {
 
 /// This is a compositum for user data defined on different subsets
 /**

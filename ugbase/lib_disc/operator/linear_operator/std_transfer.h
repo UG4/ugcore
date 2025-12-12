@@ -37,7 +37,7 @@
 #include <iostream>
 
 // other ug4 modules
-#include "common/common.h"
+//#include "common/common.h"
 #include "transfer_interface.h"
 #include "lib_algebra/operator/debug_writer.h"
 
@@ -45,7 +45,7 @@
 #include "lib_disc/parallelization/parallelization_util.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 ///	Standard Prolongation Operator
 /**	By default, a special optimization is performed for p1-lagrange-elements.

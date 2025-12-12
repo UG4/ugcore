@@ -31,11 +31,11 @@
  */
 
 #include "newton_cotes.h"
+
 #include "../quadrature.h"
 //ø #include "common/util/provider.h"
 
-namespace ug
-{
+namespace ug {
 
 //constructor
 NewtonCotes::NewtonCotes(size_t order)

@@ -44,11 +44,13 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+
 #include "lib_algebra/operator/interface/linear_operator.h"
 #include "lib_algebra/operator/interface/linear_operator_inverse.h"
 #include "lib_algebra/operator/interface/matrix_operator.h"
 #include "lib_algebra/operator/interface/matrix_operator_inverse.h"
 #include "lib_algebra/parallelization/parallelization.h"
+#include "lib_algebra/parallelization/parallelization_util.h"
 #include "lib_algebra/operator/debug_writer.h"
 #include "pcl/pcl.h"
 
@@ -81,7 +83,7 @@
  *    final, global part of the linear system of equations.
  */
 
-namespace ug{
+namespace ug {
 
 /// Auxiliary class for handling of "FETI layouts"
 /**
@@ -627,7 +629,7 @@ class LocalSchurComplement
 		void apply_sub(vector_type& f, const vector_type& u) override;
 
 	///	sets statistic slot where next iterate should be counted
-		void set_statistic_type(std::string type) {m_statType = type;}
+		void set_statistic_type(const std::string &type) {m_statType = type;}
 
 	///	prints some convergence statistic of inner solvers
 		void print_statistic_of_inner_solver(bool bPrintOnlyAverages); // const;
@@ -716,11 +718,11 @@ class PrimalSubassembledMatrixInverse
 			bool bRet = true;
 
 			// ø todo if invalid second argument (nullptr)->method is evaluated which could leads to error
-			if(m_spNeumannSolver.valid() || !m_spNeumannSolver->supports_parallel())
+			if(m_spNeumannSolver.valid() && !m_spNeumannSolver->supports_parallel()) // ø obs ! was || instead of &&
 				bRet = false;
 
 			// ø todo if invalid second argument (nullptr) is evaluated
-			if(m_spCoarseProblemSolver.valid() || !m_spCoarseProblemSolver->supports_parallel())
+			if(m_spCoarseProblemSolver.valid() && !m_spCoarseProblemSolver->supports_parallel()) // ø obs ! was || instead of &&
 				bRet = false;
 			return bRet;
 		}
@@ -763,7 +765,7 @@ class PrimalSubassembledMatrixInverse
 		bool apply_return_defect(vector_type& u, vector_type& f) override;
 
 	///	sets statistic slot where next iterate should be counted
-		void set_statistic_type(std::string type) {m_statType = type;}
+		void set_statistic_type(const std::string &type) {m_statType = type;}
 
 	///	prints some convergence statistic of inner solvers
 		void print_statistic_of_inner_solver(bool bPrintOnlyAverages); // const;

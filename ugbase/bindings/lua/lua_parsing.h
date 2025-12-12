@@ -36,16 +36,21 @@
 #ifdef USE_LUAJIT
 #include <lua.h>
 #else
+
+extern "C" {
 #include "externals/lua/lua.h"
+#include "bindings/lua/externals/lua/lauxlib.h"
+}
+
 #endif
 
 #include "bindings_lua.h"
 #include "bindings/lua/lua_function_handle.h"
 #include "bindings/lua/lua_table_handle.h"
 
-namespace ug{
-namespace bridge{
-namespace lua{
+namespace ug {
+namespace bridge {
+namespace lua {
 
 template <typename T>
 struct LuaParsing;

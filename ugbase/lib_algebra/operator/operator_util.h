@@ -39,7 +39,7 @@
 #include "lib_algebra/operator/interface/linear_operator.h"
 #include "lib_algebra/operator/interface/linear_operator_inverse.h"
 
-namespace ug{
+namespace ug {
 
 template <typename vector_type>
 bool ApplyLinearSolver(	SmartPtr<ILinearOperator<vector_type> > A,

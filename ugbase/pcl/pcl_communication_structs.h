@@ -43,8 +43,7 @@
 #include "common/util/binary_buffer.h"
 #include "common/error.h"
 
-namespace pcl
-{
+namespace pcl {
 
 /// \addtogroup pcl
 /// \{
@@ -165,14 +164,14 @@ class BasicInterface
 		inline const_iterator begin() const {return m_elements.begin();}
 		inline const_iterator end() const {return m_elements.end();}
 
-		inline Element& get_element(iterator iter) {return *iter;}
-		inline const Element& get_element(const_iterator iter) const {return *iter;}
+		static inline Element& get_element(iterator iter) {return *iter;}
+		static inline const Element& get_element(const_iterator iter) {return *iter;}
 
 	///	returns the number of elements that are stored in the interface.
 		[[nodiscard]] inline size_t size() const {return m_size;}
 		[[nodiscard]] inline bool empty() const {return size() == 0;}
 
-		int get_target_proc() const {return m_targetProc;}
+		[[nodiscard]] int get_target_proc() const {return m_targetProc;}
 
 	///	swaps the content of two interfaces.
 	/** m_elements, m_size and m_targetProc are swapped.*/
@@ -522,10 +521,10 @@ class SingleLevelLayout
 		}
 
 	///	returns the target process of the interface given in iterator
-		inline int proc_id(iterator iter) const {
+		[[nodiscard]] inline int proc_id(iterator iter) const {
 			return iter->first;
 		}
-		inline int proc_id(const_iterator iter) const {
+		[[nodiscard]] inline int proc_id(const_iterator iter) const {
 			return iter->first;
 		}
 
@@ -704,6 +703,7 @@ class MultiLevelLayout
 		inline bool empty(size_t level) {
 			return begin(level) == end(level);
 		}
+
 		[[nodiscard]] inline bool empty(size_t level) const {
 			return begin(level) == end(level);
 		}
@@ -727,7 +727,7 @@ class MultiLevelLayout
 		}
 
 	///	returns the interface to the given iterator.
-		inline int proc_id(const_iterator iter) const {
+		[[nodiscard]] inline int proc_id(const_iterator iter) const {
 			return iter->first;
 		}
 

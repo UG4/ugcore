@@ -33,13 +33,15 @@
 #ifndef __H__UG__COMMON__LOG_IMPL__
 #define __H__UG__COMMON__LOG_IMPL__
 
+#include "common/log.h"
+
 #include <iostream>
 #include <string>  // added for 'string'
 #include <sstream>  // added for 'stringstream'
 #include <iomanip> // added for 'setprecision()'
 #include <cmath>
 
-namespace ug{
+namespace ug {
 
 inline std::ostream& LogAssistant::
 debug_logger()

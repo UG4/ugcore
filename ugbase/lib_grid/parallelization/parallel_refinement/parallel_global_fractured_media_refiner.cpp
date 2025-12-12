@@ -30,12 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
-//ø #include <vector>
 #include "parallel_global_fractured_media_refiner.h"
+
+//ø #include <vector>
+
 #include "lib_grid/parallelization/util/compol_boolmarker.h"
 
-namespace ug
-{
+namespace ug {
 
 ParallelGlobalFracturedMediaRefiner::
 ParallelGlobalFracturedMediaRefiner(DistributedGridManager& distGridMgr,

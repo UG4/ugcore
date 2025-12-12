@@ -34,13 +34,14 @@
 #define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__OBSTACLE_CONSTRAINT_INTERFACE_IMPL__
 
 #include "obstacle_constraint_interface.h"
+
 #include "lib_disc/function_spaces/dof_position_util.h"
 
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_user_data.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::

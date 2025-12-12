@@ -33,16 +33,16 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__
 
-#include "lib_algebra/operator/interface/operator.h"
+// #include "lib_algebra/operator/interface/operator.h"
 #include "lib_algebra/operator/interface/matrix_operator.h"
 
 #ifdef UG_PARALLEL
-#include "lib_disc/parallelization/parallelization_util.h"
+//#include "lib_disc/parallelization/parallelization_util.h"
 #endif
 
 #include "lib_disc/assemble_interface.h"
 
-namespace ug{
+namespace ug {
 
 ///	matrix operator based on the assembling of a problem
 /**

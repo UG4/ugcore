@@ -223,7 +223,7 @@ function (WriteStaticPluginsHeader)
 		"#include <string>\n"
 		"#include \"registry/registry.h\"\n\n"
 		"${funcDeclarations}\n"
-		"namespace ug{\n"
+		"namespace ug {\n"
 		"inline const char* ListOfEmbeddedPlugins()	{return \" ${enabledPluginsStr} \";}\n\n"
 		"inline void InitializeEmbeddedPlugins(ug::bridge::Registry* reg, const std::string& parentGroup)\n{\n"
 		"${initCalls}"

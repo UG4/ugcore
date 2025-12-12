@@ -35,8 +35,7 @@
 
 #include <iostream>
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_io
 /// \{

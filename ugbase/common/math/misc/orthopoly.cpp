@@ -29,13 +29,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
-#include <cmath>
-#include "math_constants.h"
-// own header
+
 #include "orthopoly.h"
 
-namespace ug
-{
+#include <cmath>
+#include "math_constants.h"
+
+
+
+namespace ug {
 
 /** returns the values of the Legendre polynomials
  *

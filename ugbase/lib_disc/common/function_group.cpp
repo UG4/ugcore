@@ -31,14 +31,16 @@
  */
 
 #include "function_group.h"
-#include "common/common.h"
-#include "common/util/string_util.h"
+
 #include <algorithm>
 #include <cstring>
 
+#include "common/common.h"
+#include "common/util/string_util.h"
+
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 FunctionGroup::FunctionGroup() : m_spFunctionPattern(nullptr) {clear();}
 

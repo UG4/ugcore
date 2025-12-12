@@ -33,7 +33,7 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NI_SOLVER__NI__
 #define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NI_SOLVER__NI__
 
-#include <cmath>
+//#include <cmath>
 
 #include "lib_algebra/operator/interface/operator_inverse.h"
 #include "lib_algebra/operator/interface/linear_operator_inverse.h"
@@ -43,13 +43,13 @@
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/operator/non_linear_operator/assembled_non_linear_operator.h"
 #include "lib_disc/operator/linear_operator/assembled_linear_operator.h"
-#include "lib_disc/assemble_interface.h"
+//#include "lib_disc/assemble_interface.h"
 
 #include "lib_disc/spatial_disc/domain_disc.h"
 #include "lib_disc/function_spaces/metric_spaces.h"
 #include "lib_disc/function_spaces/error_elem_marking_strategy.h"
 
-#include "lib_algebra/operator/debug_writer.h"
+//#include "lib_algebra/operator/debug_writer.h"
 
 namespace ug {
 

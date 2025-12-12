@@ -30,15 +30,18 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "file_io_asc.h"
+
 #include <string>
 #include <fstream>
-#include "file_io_asc.h"
+
 #include "common/error.h"
 #include "common/util/string_util.h"
+#include "lib_grid/algorithms/field_util.h"
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 FileReaderASC::FileReaderASC() :
 	m_cellSize(0),

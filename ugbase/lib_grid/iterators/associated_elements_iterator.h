@@ -35,9 +35,10 @@
 
 #include <iterator>
 #include <limits>
+
 #include "lib_grid/callbacks/basic_callbacks.h"
 
-namespace ug{
+namespace ug {
 
 ///	Iterator that allows to traverse associated elements of a given element
 /** The type of the element whose associated elements shall be traversed

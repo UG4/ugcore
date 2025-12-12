@@ -36,7 +36,7 @@
 #include "common/util/stringify.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain, typename TAlgebra>
 MGStats<TDomain, TAlgebra>::

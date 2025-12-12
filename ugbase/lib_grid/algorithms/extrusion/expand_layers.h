@@ -34,10 +34,10 @@
 #define __H__UG__expand_layers__
 
 #include <vector>
+
 #include "lib_grid/lg_base.h"
 
-namespace ug
-{
+namespace ug {
 
 /// Used to tell ExpandLayers_... which subsets should be regarded as layers.
 /**

@@ -31,12 +31,13 @@
  */
 
 #include "quality_util.h"
+
 #include "common/util/table.h"
 
 namespace ug {
 
 std::string
-AspectRatioInfo::to_string ()
+AspectRatioInfo::to_string () const
 {
 	StringStreamTable table;
 

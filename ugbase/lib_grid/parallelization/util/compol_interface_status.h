@@ -35,12 +35,12 @@
 
 #include <map>
 #include <vector>
+
 #include "common/assert.h"
 #include "../distributed_grid.h"
 #include "pcl/pcl_communication_structs.h"
 
-namespace ug
-{
+namespace ug {
 
 ///	Exchanges information on the interface-status of connected elements.
 /**	The policy fills bool-vectors for each interface, telling whether

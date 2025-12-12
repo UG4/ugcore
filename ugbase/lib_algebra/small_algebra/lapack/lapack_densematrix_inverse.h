@@ -37,8 +37,7 @@
 #include "../small_matrix/densevector.h"
 #include "../../common/operations.h"
 
-namespace ug
-{
+namespace ug {
 ///////////////////////////////////////////////////////////////////////////////////////
 /**
  * smallInverse<size_t n>

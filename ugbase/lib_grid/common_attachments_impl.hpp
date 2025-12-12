@@ -33,8 +33,9 @@
 #ifndef __H__LIB_GRID__COMMON_ATTACHMENTS_IMPL__
 #define __H__LIB_GRID__COMMON_ATTACHMENTS_IMPL__
 
-namespace ug
-{
+#include "common_attachments.h"
+
+namespace ug {
 
 template <>
 inline

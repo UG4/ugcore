@@ -34,10 +34,11 @@
 #define __H__UG_prism_rules_impl
 
 #include "prism_rules.h"
+
 #include "grid_object_ids.h"
 
-namespace ug{
-namespace prism_rules{
+namespace ug {
+namespace prism_rules {
 
 template <typename TCmp>
 int ConvertToTetrahedra(int* newIndsOut, TCmp cmp)

@@ -32,9 +32,10 @@
 
 #ifndef DEMANGLE_H_
 #define DEMANGLE_H_
+
 #include <string>
 
-namespace ug{
+namespace ug {
 /**
  * demangles C++ function names like _ZZ12ug_backtracev = ug_backtrace().
  * also demangles them when a lot of them appear "in between". make sure they are

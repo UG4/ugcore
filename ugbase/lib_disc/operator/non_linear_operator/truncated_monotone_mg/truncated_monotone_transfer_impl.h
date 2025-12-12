@@ -35,7 +35,7 @@
 
 #include "truncated_monotone_transfer.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain, typename TAlgebra>
 void

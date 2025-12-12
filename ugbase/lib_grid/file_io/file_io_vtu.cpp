@@ -31,13 +31,14 @@
  */
 
 #include "file_io_vtu.h"
+
 #include <string>
 #include <iostream>
 
 using namespace std;
 using namespace rapidxml;
 
-namespace ug{
+namespace ug {
 
 enum VTKCellTypes{
 	VTK_NONE					= 0,

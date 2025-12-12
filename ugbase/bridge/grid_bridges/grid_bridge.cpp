@@ -39,8 +39,8 @@
 #include "lib_grid/multi_grid.h"
 using namespace std;
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 template <typename T>
 static

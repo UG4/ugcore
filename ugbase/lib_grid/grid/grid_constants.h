@@ -33,8 +33,7 @@
 #ifndef __H__LIB_GRID__GRID_CONSTANTS__
 #define __H__LIB_GRID__GRID_CONSTANTS__
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup lib_grid
 /// @{

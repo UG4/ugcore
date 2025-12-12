@@ -30,11 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-//ø #include "common/util/vec_for_each.h"
 #include "misc_util.h"
 
-namespace ug
-{
+//ø #include "common/util/vec_for_each.h"
+
+
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	EraseConnectingElements

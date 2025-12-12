@@ -46,7 +46,7 @@
 #include "common/ug_config.h"
 #include "stringify.h"
 
-namespace ug{
+namespace ug {
 
 /**
  * \defgroup ugbase_common_util_strings String Utilities

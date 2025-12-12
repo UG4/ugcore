@@ -46,9 +46,9 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace MaxError{
+namespace ug {
+namespace bridge {
+namespace MaxError {
 
 /**
  * Class exporting the functionality. All functionality that is to

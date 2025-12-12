@@ -30,10 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "common/debug_id.h"
 #include "schur.h"
 
-namespace ug{
+#include "common/debug_id.h"
+
+
+namespace ug {
 
 DebugID SchurDebug("SchurComplementDebug");
 

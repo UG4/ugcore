@@ -33,9 +33,11 @@
 #ifndef __H__UG_delaunay_info_impl
 #define __H__UG_delaunay_info_impl
 
+#include "delaunay_info.h"
+
 #include "lib_grid/algorithms/geom_obj_util/edge_util.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TAAPos>
 template <typename TIter>

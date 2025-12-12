@@ -36,8 +36,8 @@
 #include "hanging_node_refiner_grid.h"
 #include "hanging_node_refiner_multi_grid.h"
 
-namespace ug
-{
+namespace ug {
+
 
 ///	Gives access to a hanging node refiner, depending on the grid-type
 template <typename TGrid>

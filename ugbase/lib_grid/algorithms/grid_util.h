@@ -36,7 +36,7 @@
 #include "../grid/grid.h"
 #include "../tools/selector_grid.h"
 
-namespace ug{
+namespace ug {
 
 /** Make sure that aNewVrt is attached to srcSel.grid() and contains a
  * pointer to a valid vertex in destGrid for each selected vertex in srcGrid.

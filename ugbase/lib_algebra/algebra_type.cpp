@@ -31,9 +31,10 @@
  */
 
 #include "algebra_type.h"
+
 #include "common/common.h"
 
-namespace ug{
+namespace ug {
 
 AlgebraType::AlgebraType()
 	: m_type(CPU), m_blockSize(VariableBlockSize)

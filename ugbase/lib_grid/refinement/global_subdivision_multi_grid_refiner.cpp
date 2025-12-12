@@ -35,8 +35,8 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 
 template <typename TAPosition>
 GlobalSubdivisionMultiGridRefiner<TAPosition>::

@@ -35,13 +35,13 @@
 
 // extern libraries
 #include <cassert>
-#include <map>
+//#include <map>
 
 // other ug4 modules
-#include "common/math/ugmath.h"
+//#include "common/math/ugmath.h"
 
 // library intern headers
-#include "local_finite_element_id.h"
+//#include "local_finite_element_id.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
 
 namespace ug {

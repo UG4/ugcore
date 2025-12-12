@@ -35,23 +35,27 @@
 
 #include <vector>
 #include <string>
-#include <cstring>
-#include <typeinfo>
+// #include <cstring>
+// #include <typeinfo>
 #include <iostream>
 #include <boost/function.hpp>
-#include <boost/type_traits.hpp>
+// #include <boost/type_traits.hpp>
 
 
 #include "global_function.h"
 #include "class.h"
-#include "param_to_type_value_list.h"
-#include "parameter_stack.h"
+// #include "param_to_type_value_list.h"
+// #include "parameter_stack.h"
 #include "common/ug_config.h"
+#include "common/config.hpp"
 
-namespace ug
-{
-namespace bridge
-{
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+#include <unordered_map>
+#endif
+
+
+namespace ug {
+namespace bridge {
 
 /**
  * \defgroup registry Registry
@@ -75,10 +79,10 @@ using FuncRegistryChanged = boost::function<void (Registry* pReg)>;
 class UG_API ClassGroupDesc
 {
 	public:
-		ClassGroupDesc() : m_defaultClass(nullptr)	{}
+		ClassGroupDesc() : m_defaultClass(nullptr) {}
 
 	///	sets name of group
-		void set_name(const std::string& name) 	{m_name = name;}
+		void set_name(const std::string& name) {m_name = name;}
 
 	///	returns name of group
 		[[nodiscard]] const std::string& name() const {return m_name;}
@@ -97,13 +101,13 @@ class UG_API ClassGroupDesc
 		IExportedClass* get_class(size_t i)	{return m_classes[i];}
 
 	///	returns a class of the group
-		[[nodiscard]] const IExportedClass* get_class(size_t i) const	{return m_classes[i];}
+		[[nodiscard]] const IExportedClass* get_class(size_t i) const {return m_classes[i];}
 
 	///	returns the class group tag for a class
 		[[nodiscard]] const std::string& get_class_tag(size_t i) const {return m_classTags[i];}
 
 	///	sets the i'th class as default
-		void set_default_class(size_t i)	{m_defaultClass = m_classes[i];}
+		void set_default_class(size_t i) {m_defaultClass = m_classes[i];}
 
 	///	if no default class is set, this method returns nullptr.
 		[[nodiscard]] IExportedClass* get_default_class()	const {return m_defaultClass;}
@@ -177,16 +181,16 @@ class UG_API Registry {
 	 * it with the FuntionWrapper.
 	 */
 		template<typename TFunc>
-		Registry& add_function(std::string funcName, TFunc func, std::string group = "",
-		                       std::string retValInfos = "", std::string paramInfos = "",
-		                       std::string tooltip = "", std::string help = "");
+		Registry& add_function(const std::string& funcName, TFunc func, const std::string& group = "",
+		                       const std::string& retValInfos = "", const std::string& paramInfos = "",
+		                       const std::string& tooltip = "", const std::string& help = "");
 
 	///	Similar to add_function but returns the added function instead of the registry.
 		template<typename TFunc>
 		ExportedFunction*
-		add_and_get_function(std::string funcName, TFunc func, std::string group = "",
-		                     std::string retValInfos = "", std::string paramInfos = "",
-		                     std::string tooltip = "", std::string help = "");
+		add_and_get_function(const std::string& funcName, TFunc func, const std::string& group = "",
+		                     const std::string& retValInfos = "", const std::string& paramInfos = "",
+		                     const std::string& tooltip = "", const std::string& help = "");
 
 	/// number of functions registered at the Registry (overloads are not counted)
 		[[nodiscard]] size_t num_functions() const;
@@ -199,13 +203,13 @@ class UG_API Registry {
 		[[nodiscard]] size_t num_overloads(size_t ind) const;
 
 	///	returns the i-th overload of a function
-		ExportedFunction& get_overload(size_t funcInd, size_t oInd) const;
+		[[nodiscard]] ExportedFunction& get_overload(size_t funcInd, size_t oInd) const;
 
 	///	returns a group which contains all overloads of a function
-		ExportedFunctionGroup& get_function_group(size_t ind) const;
+		[[nodiscard]] ExportedFunctionGroup& get_function_group(size_t ind) const;
 
 	///	returns an exported function group by name
-		ExportedFunctionGroup* get_exported_function_group(const std::string& name) const;
+		[[nodiscard]] ExportedFunctionGroup* get_exported_function_group(const std::string& name) const;
 
 	///////////////////
 	// classes
@@ -218,9 +222,9 @@ class UG_API Registry {
 	 * @param tooltip describing text for the class (optional)
 	 */
 		template <typename TClass>
-		ExportedClass<TClass>& add_class_(std::string className,
-		                                   std::string group = "",
-		                                   std::string tooltip = "");
+		ExportedClass<TClass>& add_class_(const std::string& className,
+		                                   const std::string& group = "",
+		                                   const std::string& tooltip = "");
 
 	/**
 	 * @brief Register a class at this registry together with its base class
@@ -229,9 +233,9 @@ class UG_API Registry {
 	 * @param tooltip describing text for the class (optional)
 	 */
 		template <typename TClass, typename TBaseClass>
-		ExportedClass<TClass>& add_class_(std::string className,
-		                                   std::string group = "",
-		                                   std::string tooltip = "");
+		ExportedClass<TClass>& add_class_(const std::string& className,
+		                                   const std::string& group = "",
+		                                   const std::string& tooltip = "");
 
 	/**
 	 * @brief Register a class at this registry together with two base classes
@@ -240,9 +244,9 @@ class UG_API Registry {
 	 * @param tooltip describing text for the class (optional)
 	 */
 		template <typename TClass, typename TBaseClass1, typename TBaseClass2>
-		ExportedClass<TClass>& add_class_(std::string className,
-		                                   std::string group = "",
-		                                   std::string tooltip = "");
+		ExportedClass<TClass>& add_class_(const std::string& className,
+		                                   const std::string& group = "",
+		                                   const std::string& tooltip = "");
 
 	/// Get Reference to already registered class
 		template <typename TClass>
@@ -298,10 +302,10 @@ class UG_API Registry {
 		bool classname_registered(const std::string& name);
 
 	/// returns true if groupname is already used by a class in this registry
-		bool groupname_registered(const std::string& name) const;
+		[[nodiscard]] bool groupname_registered(const std::string& name) const;
 
 	/// returns true if functionname is already used by a function in this registry
-		bool functionname_registered(const std::string& name) const;
+		[[nodiscard]] bool functionname_registered(const std::string& name) const;
 
 	protected:
 	///	performs some checks, throws error if something wrong
@@ -317,9 +321,14 @@ class UG_API Registry {
 
 	///	registered classes
 		std::vector<IExportedClass*> m_vClass;
-
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+		std::unordered_map<std::string, IExportedClass*> m_classMap;
+#endif
 	///	registered class groups
 		std::vector<ClassGroupDesc*> m_vClassGroups;
+#if defined(FEATURE_REGISTRY_CLASS_GROUP_MAP) && FEATURE_REGISTRY_CLASS_GROUP_MAP == 1
+	std::unordered_map<std::string, ClassGroupDesc*> m_classGroupsMap;
+#endif
 
 	///	Callback, that are called when registry changed is invoked
 		std::vector<FuncRegistryChanged> m_callbacksRegChanged;

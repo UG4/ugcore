@@ -30,19 +30,20 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "triangle_fill_sweep_line.h"
+
 #include <list>
 #include <vector>
 #include <cassert>
 #include <map>
 #include <stack>
 #include <algorithm>
+
 #include "lib_grid/lg_base.h"
-#include "triangle_fill_sweep_line.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 struct SweepLineEdge;
 

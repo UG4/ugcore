@@ -49,9 +49,9 @@
 #define SPNODE(node) *((ng::SPNode*)&node)
 
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
+
 
 class Node;
 

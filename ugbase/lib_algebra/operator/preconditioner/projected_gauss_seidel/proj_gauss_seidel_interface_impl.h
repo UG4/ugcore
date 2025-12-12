@@ -46,7 +46,7 @@
 	#define PROJ_GAUSS_SEIDEL_PROFILE_END()
 #endif
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain, typename TAlgebra>
 void

@@ -36,7 +36,6 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/properties.hpp>
-
 #include <boost/graph/minimum_degree_ordering.hpp>
 
 #include "IOrderingAlgorithm.h"
@@ -46,7 +45,7 @@
 #include "common/error.h"
 #include "common/log.h"
 
-namespace ug{
+namespace ug {
 
 //Important Note: This implementation requires the BGL graph to be
 //directed.  Therefore, nonzero entry (i, j) in a symmetrical matrix

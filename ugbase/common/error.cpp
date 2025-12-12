@@ -31,10 +31,12 @@
  */
 
 #include "error.h"
+
 #include <typeinfo>
 #include <new>
 #include <stdexcept>
-namespace ug{
+
+namespace ug {
 
 std::string ErrorStringFromStdException(const std::exception *pex)
 {

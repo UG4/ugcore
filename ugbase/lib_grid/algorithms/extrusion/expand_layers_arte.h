@@ -35,11 +35,11 @@
 #define UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_H_
 
 #include <vector>
+
 #include "lib_grid/lg_base.h"
 #include "expand_layers.h"
 
-namespace ug
-{
+namespace ug {
 
 /**
  * 2 dimensional fracture expansion for finite extensions, using the Arte algorithm

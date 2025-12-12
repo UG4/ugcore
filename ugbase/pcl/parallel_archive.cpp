@@ -35,7 +35,7 @@
 #include "parallel_archive.h"
 
 
-namespace pcl{
+namespace pcl {
 using namespace ug;
 
 size_t Get512Padding(size_t s)
@@ -135,7 +135,7 @@ void WriteParallelArchive(const ProcessCommunicator &pc, const std::string &strF
 
 
 	if(bLast)
-		MPI_File_write(fh, (void*)padding, 2*512, MPI_BYTE, &status);
+		MPI_File_write(fh, padding, 2*512, MPI_BYTE, &status);
 
 	MPI_File_close(&fh);
 }

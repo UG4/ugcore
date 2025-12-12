@@ -36,8 +36,9 @@
 #include "compol_attachment_reduce.h"
 #include "compol_copy_attachment.h"
 #include "pcl/pcl_interface_communicator.h"
+#include "lib_grid/parallelization/distributed_grid.h"
 
-namespace ug{
+namespace ug {
 
 /**
  * Synchronizes a given attachment using a given reduction operation.

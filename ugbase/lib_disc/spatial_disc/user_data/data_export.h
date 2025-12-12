@@ -33,17 +33,19 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EXPORT__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EXPORT__
 
+#include "data_export.h"
+
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/common/groups_util.h"
-#include "common/util/string_util.h"
+// #include "common/util/string_util.h"
 
-#include "lib_disc/reference_element/reference_mapping_provider.h"
-#include "lib_disc/local_finite_element/local_finite_element_provider.h"
+// #include "lib_disc/reference_element/reference_mapping_provider.h"
+// #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 
 #include "std_user_data.h"
 
-namespace ug{
+namespace ug {
 
 
 ////////////////////////////////////////////////////////////////////////////////

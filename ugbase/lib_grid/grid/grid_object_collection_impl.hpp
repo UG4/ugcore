@@ -33,12 +33,15 @@
 #ifndef __H__LIB_GRID__GEOMETRIC_OBJECT_COLLECTION_IMPL__
 #define __H__LIB_GRID__GEOMETRIC_OBJECT_COLLECTION_IMPL__
 
-#include <cassert>
 #include "grid_object_collection.h"
-#include "element_storage.h"
 
-namespace ug
-{
+#include <cassert>
+
+#include "element_storage.h"
+#include "generic_grid_object_iterator.h"
+
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	GridObjectCollection

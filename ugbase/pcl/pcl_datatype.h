@@ -39,8 +39,7 @@
 #include "common/types.h"
 #include "common/error.h"
 
-namespace pcl
-{
+namespace pcl {
 
 /// \addtogroup pcl
 /// \{

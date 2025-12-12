@@ -30,17 +30,18 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "triangle_fill.h"
+
 #include <queue>
 #include <algorithm>
-#include "triangle_fill.h"
+
 #include "common/math/ugmath.h"
 //ø #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/polychain_util.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 /**	Make sure that edgeNormalsOut has the same size as poly-chain.
  *	The poly-chain is treated as a closed poly-chain where an edge

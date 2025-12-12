@@ -30,12 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "freq_adapt.h"
+
 #include <cpufreq.h>  // frequency adaption library
 #include <iostream>   // usual i/o
 #include <fstream>    // file i/o
 #include <cstdlib>	  //used for atoi. Better: boost::lexical_cast
 #include <unistd.h>   // usleep
-#include "freq_adapt.h"
+
 #include "common/common.h"
 #include "common/util/string_util.h"
 

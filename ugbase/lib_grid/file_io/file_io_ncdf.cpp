@@ -30,15 +30,17 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "file_io_ncdf.h"
+
 #include <fstream>
+
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/attachment_util.h"
-#include "file_io_ncdf.h"
+
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 bool SaveGridToNCDF(Grid& grid, const char* filename,
 					ISubsetHandler* pSH,

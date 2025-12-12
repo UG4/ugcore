@@ -30,8 +30,9 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "number_util.h"
 
+namespace ug {
 
-namespace ug{
 bool g_bNoNANCheck = true;
 }

@@ -34,18 +34,18 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC__
 
 // other ug4 modules
-#include "common/common.h"
-#include "common/util/string_util.h"
+//#include "common/common.h"
+//#include "common/util/string_util.h"
 
 // library intern headers
 #include "subset_assemble_util.h"
 #include "domain_disc_interface.h"
 #include "lib_algebra/cpu_algebra_types.h"
-#include "lib_disc/common/function_group.h"
+//#include "lib_disc/common/function_group.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_assemble_util.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "disc_item.h"
-#include "lib_disc/spatial_disc/domain_disc_interface.h"
+//#include "lib_disc/spatial_disc/domain_disc_interface.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/error_elem_marking_strategy.h"
 

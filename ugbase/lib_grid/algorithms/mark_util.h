@@ -33,7 +33,7 @@
 #ifndef __H__UG_mark_util
 #define __H__UG_mark_util
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 /**

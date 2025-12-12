@@ -43,7 +43,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 TikzExportDesc::
 TikzExportDesc() :

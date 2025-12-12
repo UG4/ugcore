@@ -68,14 +68,13 @@
  *  static const bool isEmpty = boost::mpl::empty<List>::value;
 	typename boost::mpl::if_c<isEmpty, ListProcessEnd, ListProcessNext>::type (reg,grp);
  */
-namespace ug{
+namespace ug {
 	struct end_boost_list{};
 }
 
-namespace boost
-{
-namespace mpl
-{
+namespace boost {
+namespace mpl {
+
 /// specializing boost::mpl::empty so that an list<end_boost_list> appears to be empty
 template<>
 struct empty<list1<ug::end_boost_list> >

@@ -37,7 +37,7 @@
 #include "../small_matrix/densevector.h"
 #include "../small_matrix/block_dense.h"
 
-namespace ug{
+namespace ug {
 
 template<typename TMatrix, typename TInverseMatrixType, typename TVector>
 void InverseFromInverseType(TMatrix &mat, TInverseMatrixType &inv, TVector &x, TVector &e)

@@ -33,11 +33,10 @@
 #ifndef __H__LIB_GRID__ATTACHMENT_UTIL__
 #define __H__LIB_GRID__ATTACHMENT_UTIL__
 
-#include <vector>
+// #include <vector>
 #include "lib_grid/grid/grid.h"
 
-namespace ug
-{
+namespace ug {
 
 /**
  * Several methods that ease attachment-handling are grouped here.

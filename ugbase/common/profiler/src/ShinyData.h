@@ -62,7 +62,7 @@ namespace Shiny {
 			void computeAverage(float a_damping) { avg = a_damping * avg + cur; }
 			//void computeAverage(float a_damping) { avg = a_damping * (avg - cur) + cur; }
 
-			void clear(void) { cur = 0; avg = 0; }
+			void clear() { cur = 0; avg = 0; }
 		};
 
 
@@ -71,8 +71,8 @@ namespace Shiny {
 		Data<tick_t> childTicks;
 
 
-		tick_t totalTicksCur(void) const { return selfTicks.cur + childTicks.cur; }
-		float totalTicksAvg(void) const { return selfTicks.avg + childTicks.avg; }
+		[[nodiscard]] tick_t totalTicksCur() const { return selfTicks.cur + childTicks.cur; }
+		[[nodiscard]] float totalTicksAvg() const { return selfTicks.avg + childTicks.avg; }
 
 		void computeAverage(float a_damping) {
 			entryCount.computeAverage(a_damping);
@@ -80,13 +80,13 @@ namespace Shiny {
 			childTicks.computeAverage(a_damping);
 		}
 
-		void clearAll(void) {
+		void clearAll() {
 			entryCount.clear();
 			selfTicks.clear();
 			childTicks.clear();
 		}
 
-		void clearCurrent(void) {
+		void clearCurrent() {
 			entryCount.cur = 0;
 			selfTicks.cur = 0;
 			childTicks.cur = 0;

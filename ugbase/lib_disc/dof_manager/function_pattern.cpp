@@ -31,6 +31,7 @@
  */
 
 #include "function_pattern.h"
+
 #include "lib_grid/algorithms/subset_dim_util.h"
 #include "lib_disc/common/groups_util.h"
 #include "common/util/string_util.h"
@@ -39,7 +40,7 @@
 	#include "pcl/pcl.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 void FunctionPattern::set_subset_handler(ConstSmartPtr<ISubsetHandler> spSH){
 	if(m_bLocked)

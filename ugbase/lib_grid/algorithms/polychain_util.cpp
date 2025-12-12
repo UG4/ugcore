@@ -31,12 +31,12 @@
  */
 
 #include "polychain_util.h"
+
 #include "lib_grid/callbacks/callbacks.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 std::pair<Vertex*, Edge*>
@@ -46,7 +46,7 @@ GetNextSectionOfPolyChain(Grid& grid, std::pair<Vertex*, Edge*> lastSection,
 	if(!grid.option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
 	//	we have to enable this option, since nothing works without it in reasonable time.
-		LOG("WARNING in GetFirstVertexOfPolyChain(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES.\n");
+		UG_LOG("WARNING in GetFirstVertexOfPolyChain(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES.\n");
 		grid.enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES);
 	}
 
@@ -78,7 +78,7 @@ bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex)
 	if(!grid.option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
 	//	we have to enable this option, since nothing works without it in reasonable time.
-		LOG("WARNING in SplitPolyChain(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES.\n");
+		UG_LOG("WARNING in SplitPolyChain(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES.\n");
 		grid.enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES);
 	}
 	

@@ -35,16 +35,15 @@
 
 #include "../ugmath_types.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_math
 /// \{
 
-bool CalculateEigenvalues(const ug::matrix33& mat, number& lambdaMinOut,
+bool CalculateEigenvalues(const matrix33& mat, number& lambdaMinOut,
 						number& lambdaMedOut, number& lambdaMaxOut,
-						ug::vector3& evMinOut, ug::vector3& evMedOut,
-						ug::vector3& evMaxOut);
+						vector3& evMinOut, vector3& evMedOut,
+						vector3& evMaxOut);
 
 // end group ugbase_math
 /// \}

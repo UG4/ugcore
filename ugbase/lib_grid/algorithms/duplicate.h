@@ -34,11 +34,12 @@
 #define __H__UG__duplicate__
 
 #include <vector>
+
 #include "lib_grid/lg_base.h"
 #include "selection_util.h"
 
-namespace ug
-{
+namespace ug {
+
 ///	Duplicates the selected part of a grid and translates it by an offset
 /**	NOTE: This method is not suited for MultiGrids.
  * Duplicates all selected elements and associated lower dimensional elements.

@@ -40,19 +40,19 @@
 #include <ostream>
 #include <sstream>
 #include <string>
-#include <limits>
-#include <algorithm>
+//#include <limits>
+//#include <algorithm>
 #include <iomanip>
 #include <vector>
-#include <list>
+//#include <list>
 #include <cmath>
 
-#include "common/common.h"
+//#include "common/common.h"
 #include "common/stopwatch.h"
 #include "lib_disc/function_spaces/approximation_space.h"
-#include "lib_disc/common/function_group.h"
+//#include "lib_disc/common/function_group.h"
 
-namespace ug{
+namespace ug {
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////

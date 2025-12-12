@@ -30,14 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "fv1_geom.h"
 
 #include "common/util/provider.h"
-#include "fv1_geom.h"
-#include "lib_disc/reference_element/reference_element.h"
-#include "lib_disc/quadrature/quadrature.h"
-#include "lib_algebra/common/operations_vec.h"
 
-namespace ug{
+#include "lib_disc/reference_element/reference_mapping_provider.h"
+#include "lib_disc/reference_element/reference_element.h"
+//#include "lib_disc/quadrature/quadrature.h"
+// #include "lib_algebra/common/operations_vec.h"
+
+namespace ug {
 
 DebugID DID_FV1_GEOM("FV1_GEOM");
 DebugID DID_REFERENCE_MAPPING("REFERENCE_MAPPING");

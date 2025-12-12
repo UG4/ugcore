@@ -36,10 +36,11 @@
 #include <utility>
 #include <string>
 #include <vector>
+
 #include "lib_grid/algorithms/heightfield_util.h"
 #include "common/boost_serialization.h"
 
-namespace ug{
+namespace ug {
 
 struct RasterLayerDesc{
 	RasterLayerDesc(const std::string& filename, number minHeight) : 
@@ -209,7 +210,7 @@ class RasterLayers{
 											Field<number>& middle,
 											Field<number>& upper,
 											size_t ix,
-											size_t iy);
+											size_t iy) const;
 
 	//	BEGIN SERIALIZATION
 		friend class boost::serialization::access;

@@ -32,10 +32,8 @@
 
 #include "class_name_provider.h"
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 ClassNameNode::ClassNameNode()
 {

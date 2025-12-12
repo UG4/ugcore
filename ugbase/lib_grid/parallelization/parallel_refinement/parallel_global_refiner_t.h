@@ -35,8 +35,7 @@
 
 #include "../distributed_grid.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup lib_grid_parallelization_refinement
 /// @{

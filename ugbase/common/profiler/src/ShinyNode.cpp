@@ -77,7 +77,7 @@ namespace Shiny {
 
 //-----------------------------------------------------------------------------
 
-	const ProfileNode* ProfileNode::findNextInTree(void) const {
+	const ProfileNode* ProfileNode::findNextInTree() const {
 		if (firstChild) {
 			return firstChild;
 
@@ -99,7 +99,7 @@ namespace Shiny {
 
 //-----------------------------------------------------------------------------
 
-	void ProfileNode::clear(void) {
+	void ProfileNode::clear() {
 		memset(this, 0, sizeof(ProfileNode));
 	}
 

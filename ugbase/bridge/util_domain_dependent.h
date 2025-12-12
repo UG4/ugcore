@@ -38,7 +38,7 @@
 #include "registry/registry.h"
 #include "lib_disc/domain.h"
 
-#include "suffix_tag.h"
+// #include "suffix_tag.h"
 
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/list.hpp>
@@ -47,8 +47,8 @@
 #include <boost/mpl/pop_front.hpp>
 
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup bridge
 /// \{

@@ -30,9 +30,10 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "subset_color_util.h"
+
 #include "common/math/ugmath.h"
 #include "common/math/misc/math_constants.h"
-#include "subset_color_util.h"
 
 namespace ug {
 

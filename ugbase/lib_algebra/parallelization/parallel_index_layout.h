@@ -36,10 +36,10 @@
 #include <set>
 #include <vector>
 #include <iostream>
+
 #include "pcl/pcl.h"
 
-namespace ug
-{
+namespace ug {
 
 ///\ingroup lib_algebra_parallelization
 

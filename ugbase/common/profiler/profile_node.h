@@ -34,11 +34,11 @@
 #define __H_UG__PROFILE_NODE__
 
 #include <string>
-#include <vector>
-#include <sstream>
+//#include <vector>
+#include <map>
+//#include <sstream>
 
-namespace ug
-{
+namespace ug {
 
 /**
  * UGProfileNode class for more information about Shiny's ProfileNode.
@@ -55,74 +55,74 @@ class UGProfileNode
 {
 public:
 	/// \return number of entries in this profiler node
-	double get_avg_entry_count() const;
+	[[nodiscard]] double get_avg_entry_count() const;
 
 	/// \return time in milliseconds spend in this node excluding subnodes
-	double get_avg_self_time_ms() const;
+	[[nodiscard]] double get_avg_self_time_ms() const;
 
 	/// \return time in milliseconds spend in this node including subnodes
-	double get_avg_total_time_ms() const;
+	[[nodiscard]] double get_avg_total_time_ms() const;
 
 	/// \return time in seconds spend in this node excluding subnodes
-	double get_avg_self_time() const;
+	[[nodiscard]] double get_avg_self_time() const;
 
 	/// \return time in seconds spend in this node including subnodes
-	double get_avg_total_time() const;
+	[[nodiscard]] double get_avg_total_time() const;
 
-	double get_self_mem() const;
-	double get_total_mem() const;
+	[[nodiscard]] double get_self_mem() const;
+	[[nodiscard]] double get_total_mem() const;
 
 	/**
 	 * @param dSkipMarginal 	nodes with full*dSkipMarginal > node->full[ms or mem] are skipped
 	 * @return call tree profile information
 	 */
-	std::string call_tree(double dSkipMarginal) const;
-	std::string call_tree() const { return call_tree(0.0);	}
+	[[nodiscard]] std::string call_tree(double dSkipMarginal) const;
+	[[nodiscard]] std::string call_tree() const { return call_tree(0.0);	}
 
 	/**
 	 * @param dSkipMarginal 	nodes with full*dSkipMarginal > node->full[ms or mem] are skipped
 	 * @return a table with all profile nodes information, sorted by self time
 	 */
-	std::string child_self_time_sorted(double dSkipMarginal) const;
-	std::string child_self_time_sorted() const { return child_self_time_sorted(0.0); }
+	[[nodiscard]] std::string child_self_time_sorted(double dSkipMarginal) const;
+	[[nodiscard]] std::string child_self_time_sorted() const { return child_self_time_sorted(0.0); }
 
 	/**
 	 * @param dSkipMarginal 	nodes with full*dSkipMarginal > node->full[ms or mem] are skipped
 	 * @return a table with all profile nodes information, sorted by total time
 	 */
-	std::string total_time_sorted(double dSkipMarginal) const;
-	std::string total_time_sorted() const { return total_time_sorted(0.0); }
+	[[nodiscard]] std::string total_time_sorted(double dSkipMarginal) const;
+	[[nodiscard]] std::string total_time_sorted() const { return total_time_sorted(0.0); }
 
 
 	/**
 	 * @param dSkipMarginal 	nodes with full*dSkipMarginal > node->full[ms or mem] are skipped
 	 * @return a table with all profile nodes information, sorted by self memory
 	 */
-	std::string child_self_memory_sorted(double dSkipMarginal) const;
-	std::string child_self_memory_sorted() const { return child_self_memory_sorted(0.0); }
+	[[nodiscard]] std::string child_self_memory_sorted(double dSkipMarginal) const;
+	[[nodiscard]] std::string child_self_memory_sorted() const { return child_self_memory_sorted(0.0); }
 
 	/**
 	 * @param dSkipMarginal 	nodes with full*dSkipMarginal > node->full[ms or mem] are skipped
 	 * @return a table with all profile nodes information, sorted by total memory
 	 */
-	std::string total_memory_sorted(double dSkipMarginal) const;
-	std::string total_memory_sorted() const { return total_memory_sorted(0.0); }
+	[[nodiscard]] std::string total_memory_sorted(double dSkipMarginal) const;
+	[[nodiscard]] std::string total_memory_sorted() const { return total_memory_sorted(0.0); }
 
 
 	/**
 	 * @param dSkipMarginal 	nodes with full*dSkipMarginal > node->full[ms or mem] are skipped
 	 * @return a table with all profile nodes information, sorted by entry count
 	 */
-	std::string entry_count_sorted(double dSkipMarginal) const;
-	std::string entry_count_sorted() const { return entry_count_sorted(0.0); }
+	[[nodiscard]] std::string entry_count_sorted(double dSkipMarginal) const;
+	[[nodiscard]] std::string entry_count_sorted() const { return entry_count_sorted(0.0); }
 
 	/**
 	 * @return Profiling group information
 	 */
-	std::string groups() const;
+	[[nodiscard]] std::string groups() const;
 
 	/// \return true if node has been found
-	bool valid() const;
+	[[nodiscard]] bool valid() const;
 
 	static const UGProfileNode *get_root();
 
@@ -213,10 +213,11 @@ class UGProfileNodeNull
            return &instance;
        }
 
-   private:
-       UGProfileNodeNull() {};
-       UGProfileNodeNull(UGProfileNodeNull const&); // do not implement
-       void operator = (UGProfileNodeNull const&); // do not implement
+private:
+       UGProfileNodeNull() = default;
+public:
+       UGProfileNodeNull(UGProfileNodeNull const&) = delete; // do not implement
+       void operator = (UGProfileNodeNull const&) = delete; // do not implement
 };
 
 #define PROFILER_NULL_NODE UGProfileNodeNull::getInstance()

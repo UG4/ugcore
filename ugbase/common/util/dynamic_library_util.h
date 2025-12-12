@@ -38,7 +38,7 @@
 	#include <windows.h>
 #endif
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup ugbase_common_util
 /// \{

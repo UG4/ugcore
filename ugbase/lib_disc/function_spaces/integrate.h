@@ -35,14 +35,14 @@
 
 #include <cmath>
 
-#include <boost/function.hpp>
+//#include <boost/function.hpp>
 
 #include "common/common.h"
 
 #include "lib_grid/tools/subset_group.h"
 
 #include "lib_disc/common/function_group.h"
-#include "lib_disc/common/groups_util.h"
+//#include "lib_disc/common/groups_util.h"
 #include "lib_disc/domain_util.h"  // for CollectCornerCoordinates
 #include "lib_disc/quadrature/quadrature_provider.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
@@ -55,7 +55,7 @@
 #include "bindings/lua/lua_user_data.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -37,8 +37,7 @@
 #include "lib_grid/grid/grid_object_collection.h"
 #include "lib_grid/algorithms/serialization.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 enum GridMessageMultiGridChangedType : byte_t {

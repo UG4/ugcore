@@ -33,9 +33,9 @@
 #ifndef __H__UG__NODE_TREE__OBJECT__
 #define __H__UG__NODE_TREE__OBJECT__
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
+
 
 ////////////////////////////////////////////////////////////////////////
 //	Object-Codes

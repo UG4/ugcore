@@ -34,8 +34,6 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__SCHUR_SLICING_H_
 
 
-
-
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -43,13 +41,14 @@
 
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/algebra_layouts.h"
-#include "pcl/pcl.h"
+//#include "pcl/pcl.h"
 #endif
 
 #include "common/log.h"
+#include "common/assert.h"
 
 
-namespace ug{
+namespace ug {
 
 
 //! todo: replace DebugID

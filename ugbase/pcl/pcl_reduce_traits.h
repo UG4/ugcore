@@ -68,8 +68,8 @@ struct reduce_traits<float>
 	static value_t sum(value_t v1, value_t v2) {return v1 + v2;}
 	static value_t prod(value_t v1, value_t v2) {return v1 * v2;}
 	static value_t land(value_t v1, value_t v2) {return v1 && v2;}
-	static value_t band(value_t v1, value_t v2) {UG_THROW("floats do not support a binary and operation.");}
 	static value_t lor(value_t v1, value_t v2) {return v1 || v2;}
+	static value_t band(value_t v1, value_t v2) {UG_THROW("floats do not support a binary and operation.");}
 	static value_t bor(value_t v1, value_t v2) {UG_THROW("floats do not support a binary or operation.");}
 };
 
@@ -83,8 +83,8 @@ struct reduce_traits<double>
 	static value_t sum(value_t v1, value_t v2) {return v1 + v2;}
 	static value_t prod(value_t v1, value_t v2) {return v1 * v2;}
 	static value_t land(value_t v1, value_t v2) {return v1 && v2;}
-	static value_t band(value_t v1, value_t v2) {UG_THROW("doubles do not support a binary and operation.");}
 	static value_t lor(value_t v1, value_t v2) {return v1 || v2;}
+	static value_t band(value_t v1, value_t v2) {UG_THROW("doubles do not support a binary and operation.");}
 	static value_t bor(value_t v1, value_t v2) {UG_THROW("doubles do not support a binary or operation.");}
 };
 
@@ -92,7 +92,7 @@ struct reduce_traits<double>
 template <typename T>
 class Reducer {
 public:
-	Reducer (ReduceOperation rop)
+	explicit Reducer (ReduceOperation rop)
 	{
 		if(rop == MPI_MIN) m_op = &reduce_traits<T>::min;
 		else if(rop == MPI_MAX) m_op = &reduce_traits<T>::max;

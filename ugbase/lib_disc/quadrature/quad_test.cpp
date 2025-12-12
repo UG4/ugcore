@@ -31,14 +31,17 @@
  */
 
 #include "quad_test.h"
+
+#include <iostream>
+
 #include "gauss/gauss_quad.h"
 #include "quadrature.h"
 #include "quadrature_provider.h"
 
-#include <iostream>
+
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 void PrintQuadRule(const QuadratureRule<2>& q)
 {

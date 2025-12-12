@@ -32,8 +32,8 @@
 
 #include "class.h"
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 ////////////////////////////////////////////////////////////////////////////////
 // ExportedConstructor
@@ -199,49 +199,49 @@ num_const_methods() const
 const ExportedMethod& ExportedClassBaseImpl::
 get_method(size_t i) const
 {
-	return *m_vMethod.at(i)->get_overload(0);
+	return *m_vMethod[i]->get_overload(0);
 }
 
 const ExportedMethod& ExportedClassBaseImpl::
 get_const_method(size_t i) const
 {
-	return *m_vConstMethod.at(i)->get_overload(0);
+	return *m_vConstMethod[i]->get_overload(0);
 }
 
 size_t ExportedClassBaseImpl::
 num_overloads(size_t funcInd) const
 {
-	return m_vMethod.at(funcInd)->num_overloads();
+	return m_vMethod[funcInd]->num_overloads();
 }
 
 size_t ExportedClassBaseImpl::
 num_const_overloads(size_t funcInd) const
 {
-	return m_vConstMethod.at(funcInd)->num_overloads();
+	return m_vConstMethod[funcInd]->num_overloads();
 }
 
 const ExportedMethod& ExportedClassBaseImpl::
 get_overload(size_t funcInd, size_t oInd) const
 {
-	return *m_vMethod.at(funcInd)->get_overload(oInd);
+	return *m_vMethod[funcInd]->get_overload(oInd);
 }
 
 const ExportedMethod& ExportedClassBaseImpl::
 get_const_overload(size_t funcInd, size_t oInd) const
 {
-	return *m_vConstMethod.at(funcInd)->get_overload(oInd);
+	return *m_vConstMethod[funcInd]->get_overload(oInd);
 }
 
 const ExportedMethodGroup& ExportedClassBaseImpl::
 get_method_group(size_t ind) const
 {
-	return *m_vMethod.at(ind);
+	return *m_vMethod[ind];
 }
 
 const ExportedMethodGroup& ExportedClassBaseImpl::
 get_const_method_group(size_t ind) const
 {
-	return *m_vConstMethod.at(ind);
+	return *m_vConstMethod[ind];
 }
 
 size_t ExportedClassBaseImpl::

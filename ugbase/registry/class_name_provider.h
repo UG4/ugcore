@@ -39,18 +39,16 @@
 #include <cstring>
 #include <string>
 #include <algorithm>
-#include <iostream>
-#include <typeinfo>
+//#include <iostream>
+//#include <typeinfo>
 #include <map>
 #include "common/common.h"
 #include "common/util/smart_pointer.h"
 #include "common/ug_config.h"
 #include "error.h"
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup registry
 /// \{
@@ -74,19 +72,19 @@ class UG_API ClassNameNode
 		void add_base_class(const ClassNameNode& node);
 
 	///	returns own name
-		const std::string& name() const {return m_name;}
+		[[nodiscard]] const std::string& name() const {return m_name;}
 
 	///	returns if a name has been set
-		bool empty() const {return m_name.empty();}
+		[[nodiscard]] bool empty() const {return m_name.empty();}
 
 	///	returns if a name has been set by the user
-		bool named() const;
+		[[nodiscard]] bool named() const;
 
 	///	returns number of parents
-		size_t num_base_classes() const {return m_vBaseClass.size();}
+		[[nodiscard]] size_t num_base_classes() const {return m_vBaseClass.size();}
 
 	///	return a base class
-		const ClassNameNode& base_class(size_t i) const {return *m_vBaseClass.at(i);}
+		[[nodiscard]] const ClassNameNode& base_class(size_t i) const {return *m_vBaseClass[i];}
 
 	protected:
 	///	own name
@@ -136,14 +134,14 @@ class UG_API ClassNameProvider
 		static const ClassNameNode& class_name_node() {return m_ClassNameNode;}
 
 	///	returns if class name is forward declared
-		static bool forward_declared() {return m_bForwardDeclared;} // ø todo correct spelling
+		static bool forward_declared() {return m_bForwardDeclared;}
 
 	///	returns if the class has been named by user
 		static bool named() {return !m_bForwardDeclared && !m_ClassNameNode.empty();}
 
 	protected:
 	///	sets a temporary name to the class
-		static void set_foreward_declared();
+		static void set_forward_declared();
 
 	private:
 	///	vector of parent class names (depreciated)

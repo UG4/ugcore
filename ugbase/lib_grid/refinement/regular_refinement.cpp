@@ -31,7 +31,9 @@
  */
 
 #include <vector>
-#include "boost/container/vector.hpp"	// for bool-vectors
+
+#include <boost/container/vector.hpp>	// for bool-vectors
+
 #include "regular_refinement.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/selection_util.h"
@@ -40,8 +42,8 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 
 bool Refine(Grid& grid, Selector& sel,
 			RefinementProjector* projector,
@@ -105,7 +107,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 {
 //	position data is required
 	if(!grid.has_vertex_attachment(aPosition)){
-		LOG("  WARNING in Refine: aPosition is not attached to the vertices of the grid. Aborting.\n");
+		UG_LOG("  WARNING in Refine: aPosition is not attached to the vertices of the grid. Aborting.\n");
 		return false;
 	}
 
@@ -118,28 +120,28 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 		
 //	make sure that GRIDOPT_VERTEXCENTRIC_INTERCONNECTION is enabled
 	if(grid.num_edges() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))){
-		LOG("  INFO in Refine: auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES\n");
+		UG_LOG("  INFO in Refine: auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES\n");
 		grid.enable_options(VRTOPT_STORE_ASSOCIATED_EDGES);
 	}
 	if(grid.num_faces() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))){
-		LOG("  INFO in Refine: auto-enabling VRTOPT_STORE_ASSOCIATED_FACES\n");
+		UG_LOG("  INFO in Refine: auto-enabling VRTOPT_STORE_ASSOCIATED_FACES\n");
 		grid.enable_options(VRTOPT_STORE_ASSOCIATED_FACES);
 	}
 	if(grid.num_volumes() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))){
-		LOG("  INFO in Refine: auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES\n");
+		UG_LOG("  INFO in Refine: auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES\n");
 		grid.enable_options(VRTOPT_STORE_ASSOCIATED_VOLUMES);
 	}
 
 //	make sure that FACEOPT_AUTOGENERATE_EDGES is enabled
 	if(grid.num<Face>() > 0 && (!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))){
-		LOG("  INFO in Refine: auto-enabling FACEOPT_AUTOGENERATE_EDGES\n");
+		UG_LOG("  INFO in Refine: auto-enabling FACEOPT_AUTOGENERATE_EDGES\n");
 		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 	}
 	
 //	if there are volumes, make sure that VOLOPT_AUTOGENERATE_FACES is enabled.
 	if(grid.num<Volume>() > 0 && (!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)))
 	{
-		LOG("  INFO in Refine: auto-enabling VOLOPT_AUTOGENERATE_FACES\n");
+		UG_LOG("  INFO in Refine: auto-enabling VOLOPT_AUTOGENERATE_FACES\n");
 		grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
 	}
 	
@@ -170,14 +172,14 @@ constexpr ISelector::status_t snapSelVal = ISelector::SELECTED + 1;
 
 //	aInt has to be attached to the edges of the grid
 	if(sel.num<Face>() > 0 && (!grid.has_edge_attachment(aInt))){
-		LOG("  WARNING in Refine: aInt is not attached to the edges of the grid. Aborting.\n");
+		UG_LOG("  WARNING in Refine: aInt is not attached to the edges of the grid. Aborting.\n");
 		return false;
 	}
 
 //	if there are selected volumes,
 //	aInt has to be attached to the faces of the grid
 	if(sel.num<Volume>() && (!grid.has_face_attachment(aInt))){
-		LOG("  WARNING in Refine: aInt is not attached to the faces of the grid. Aborting.\n");
+		UG_LOG("  WARNING in Refine: aInt is not attached to the faces of the grid. Aborting.\n");
 		return false;
 	}
 
@@ -249,7 +251,7 @@ constexpr ISelector::status_t snapSelVal = ISelector::SELECTED + 1;
 				grid.register_element(newEdges[j], e);
 		}
 		else{
-			LOG("  WARNING in Refine: could not refine edge.\n");
+			UG_LOG("  WARNING in Refine: could not refine edge.\n");
 		}
 	}
 	
@@ -325,7 +327,7 @@ constexpr ISelector::status_t snapSelVal = ISelector::SELECTED + 1;
 				grid.register_element(newFaces[j], f);
 		}
 		else{
-			LOG("  WARNING in Refine: could not refine face.\n");
+			UG_LOG("  WARNING in Refine: could not refine face.\n");
 		}
 	}
 
@@ -435,7 +437,7 @@ constexpr ISelector::status_t snapSelVal = ISelector::SELECTED + 1;
 				grid.register_element(newVols[j], v);
 		}
 		else{
-			LOG("  WARNING in Refine: could not refine volume.\n");
+			UG_LOG("  WARNING in Refine: could not refine volume.\n");
 		}
 	}
 // UG_LOG("> VOL-REF-END\n");

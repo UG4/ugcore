@@ -33,8 +33,14 @@
 
 #include  "subdivision_volumes.h"
 
-namespace ug
-{
+#include "subdivision_rules_piecewise_loop.h"
+#include "lib_grid/grid_objects/tetrahedron_rules.h"
+#ifdef UG_PARALLEL
+#include "lib_grid/parallelization/util/compol_copy_attachment.h"
+#include "lib_grid/parallelization/util/attachment_operations.hpp"
+#endif
+
+namespace ug {
 
 
 /// global boundary refinement rule variable for switching between linear and Subdivision Loop refinement

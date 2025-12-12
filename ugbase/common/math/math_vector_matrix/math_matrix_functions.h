@@ -35,7 +35,7 @@
 
 #include "math_matrix.h"
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup math_matrix
 /// \{
@@ -566,6 +566,6 @@ MinAbsEigenvalue(const MathMatrix<M,N,T>& m); */
 } //end of namespace
 
 //	include a general, but not very fast implementation of the declared methods above.
-#include "math_matrix_functions_common_impl.hpp"
+#include "math_matrix_functions_impl.hpp"
 
 #endif

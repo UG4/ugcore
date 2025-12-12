@@ -34,7 +34,7 @@
 #define __H__UG__LIB_DISC__TIME_DISC__THETA_TIME_STEP__
 
 // extern libraries
-#include <deque>
+// #include <deque>
 #include <cmath>
 
 // other ug libraries
@@ -43,9 +43,9 @@
 
 // module-intern libraries
 #include "lib_disc/time_disc/time_disc_interface.h"
-#include "lib_disc/local_finite_element/common/lagrange1d.h"
+// #include "lib_disc/local_finite_element/common/lagrange1d.h"
 
-namespace ug{
+namespace ug {
 
 /// \ingroup lib_disc_time_assemble
 /// @{

@@ -35,13 +35,13 @@
 
 #include <fstream>
 #include <sstream>
+
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "common/util/table.h"
 #include "lib_grid/tools/periodic_boundary_manager.h"
 
-namespace ug
-{
+namespace ug {
 
 template <typename TElem>
 vector3 GetGridObjectCenter(Grid& g, TElem* elem)

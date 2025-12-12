@@ -40,22 +40,20 @@
 // extern headers
 #include <vector>
 #include <string>
-#include <limits>
+// #include <limits>
 
 // intern headers
 #include "lib_grid/tools/surface_view.h"
-#include "lib_grid/algorithms/multi_grid_util.h"
+// #include "lib_grid/algorithms/multi_grid_util.h"
 #include "lib_disc/function_spaces/integrate.h"
 
 #ifdef UG_PARALLEL
- 	#include "lib_grid/parallelization/util/compol_attachment_reduce.h"
- 	#include "lib_grid/parallelization/util/compol_copy_attachment.h"
+ 	//#include "lib_grid/parallelization/util/compol_attachment_reduce.h"
+ 	//#include "lib_grid/parallelization/util/compol_copy_attachment.h"
 #endif
 
-#include <boost/mpl/for_each.hpp>
 
-
-namespace ug{
+namespace ug {
 
 /// Base class for error estimator data
 /**

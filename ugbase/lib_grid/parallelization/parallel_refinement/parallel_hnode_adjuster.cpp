@@ -35,7 +35,7 @@
 #include "lib_grid/algorithms/debug_util.h"
 #include "common/error.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TLayout>
 class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>

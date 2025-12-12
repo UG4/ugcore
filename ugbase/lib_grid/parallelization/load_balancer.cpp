@@ -30,8 +30,10 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <algorithm>
 #include "load_balancer.h"
+
+#include <algorithm>
+
 #include "load_balancer_util.h"
 #include "distribution.h"
 #include "distributed_grid.h"
@@ -44,7 +46,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 void ProcessHierarchy::
 add_hierarchy_level(size_t gridLvl, size_t numProcsPerProc)
@@ -133,13 +135,13 @@ init_cluster_procs(std::vector<int>& clusterProcs, size_t hlvl, size_t numProcsP
 //	calculate the root process for this cluster and create the group based on rootProc
 	int localProc = pcl::ProcRank();
 	int rootProc = localProc;
-	if(localProc >= (int)parentLvl.numGlobalProcsInUse)
-		rootProc = (localProc - (int)parentLvl.numGlobalProcsInUse) / ((int)numProcsPerProc - 1);
+	if(localProc >= static_cast<int>(parentLvl.numGlobalProcsInUse))
+		rootProc = (localProc - static_cast<int>(parentLvl.numGlobalProcsInUse)) / (static_cast<int>(numProcsPerProc) - 1);
 
 	clusterProcs.push_back(rootProc);
-	int firstNewProc = (int)parentLvl.numGlobalProcsInUse + rootProc * ((int)numProcsPerProc - 1);
+	int firstNewProc = static_cast<int>(parentLvl.numGlobalProcsInUse) + rootProc * (static_cast<int>(numProcsPerProc) - 1);
 
-	for(int i = 0; i < (int)numProcsPerProc - 1; ++i){
+	for(int i = 0; i < static_cast<int>(numProcsPerProc) - 1; ++i){
 		clusterProcs.push_back(firstNewProc + i);
 	}
 }
@@ -396,7 +398,7 @@ estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut)
 				localWeight += wgts.get_weight(*iter);
 		}
 
-		if(procComAll.size() == 0){
+		if(procComAll.empty()){
 			participatesInAllLevels = false;
 			if(pLvlQualitiesOut)
 				pLvlQualitiesOut->push_back(-1);

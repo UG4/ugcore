@@ -30,9 +30,11 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "horizontal_layers_mesher.h"
+
 #include <algorithm>
 #include <vector>
-#include "horizontal_layers_mesher.h"
+
 #include "lib_grid/callbacks/callbacks.h"
 #include "lib_grid/algorithms/extrusion/extrude.h"
 #include "lib_grid/algorithms/geom_obj_util/face_util.h"
@@ -43,7 +45,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 void MeshLayerBoundaries(Grid& grid, const RasterLayers& layers,

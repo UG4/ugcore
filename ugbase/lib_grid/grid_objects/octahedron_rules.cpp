@@ -30,14 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
-//ø #include <cassert>
 #include "octahedron_rules.h"
+
+//ø #include <cassert>
+
 #include "rule_util.h"
 #include "grid_object_ids.h"
 
-namespace ug{
-namespace oct_rules
-{
+namespace ug {
+namespace oct_rules {
+
 
 ///	Output are the vertices of a octahedron rotated around its vertical axis
 void RotateOctahedron(int vrtsOut[NUM_VERTICES], int steps)

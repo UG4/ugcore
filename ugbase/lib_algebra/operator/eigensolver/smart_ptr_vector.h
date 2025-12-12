@@ -29,13 +29,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
+#ifndef IG_UGBASE_LIB_ALGEBRA_OPERATOR_EIGENSOLVER_SMART_PTR_VECTOR_H
+#define IG_UGBASE_LIB_ALGEBRA_OPERATOR_EIGENSOLVER_SMART_PTR_VECTOR_H
 
 #include <vector>
 
-#ifndef SMART_PTR_VECTOR_H
-#define SMART_PTR_VECTOR_H
 
-namespace ug{
+namespace ug {
+
 template<typename T>
 class SmartPtrVector : public std::vector< SmartPtr<T> >
 {
@@ -44,7 +45,8 @@ private:
 	SmartPtrVector(SmartPtrVector &) = delete;
 public:
 	SmartPtrVector() : super() {}
-	SmartPtrVector(size_t size) : super(size)
+
+	explicit SmartPtrVector(size_t size) : super(size)
 	{
 	}
 

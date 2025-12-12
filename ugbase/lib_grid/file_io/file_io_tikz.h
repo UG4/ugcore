@@ -37,9 +37,9 @@
 #include "lib_grid/tools/subset_handler_grid.h"
 #include "lib_grid/common_attachments.h"
 
-namespace ug{
+namespace ug {
 
-struct TikzExportDesc{
+struct TikzExportDesc {
 	TikzExportDesc();
 
 	number	vrtRadius;

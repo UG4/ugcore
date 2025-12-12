@@ -35,7 +35,7 @@
 
 #include <vector>
 #include <list>
-#include <iostream>
+//#include <iostream>
 #include <cassert>
 #include <mpi.h>
 
@@ -43,17 +43,16 @@
 //	It is only included to allow us to define some constants.
 //	This include will most likely be removed in future versions.
 
-#include "common/types.h"
+//#include "common/types.h"
 #include "common/profiler/profiler.h"
 
 #include "pcl_comm_world.h"
-#include "pcl_base.h"
+//#include "pcl_base.h"
 #include "pcl_datatype.h"
 
 
 
-namespace pcl
-{
+namespace pcl {
 
 /// \addtogroup pcl
 /// \{

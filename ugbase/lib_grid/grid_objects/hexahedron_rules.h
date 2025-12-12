@@ -36,8 +36,8 @@
 //	only required for dummy-parameter ug::vector3*
 #include "common/math/ugmath_types.h"
 
-namespace ug{
-namespace hex_rules{
+namespace ug {
+namespace hex_rules {
 
 ////////////////////////////////////////////////////////////////////////////////
 //	LOOKUP TABLES

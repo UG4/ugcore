@@ -34,7 +34,7 @@
 #define __SMART_POINTER__
 
 #include <functional>
-#include <cstring>
+//#include <cstring>
 // #include <boost/pointee.hpp>
 
 /// \addtogroup ugbase_common_util

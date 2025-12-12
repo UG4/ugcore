@@ -34,7 +34,7 @@
 #ifndef __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA__
 #define __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA__
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <string>
 #include "registry/registry.h"
 
@@ -53,13 +53,13 @@ extern "C" {
 
 #include "lua_util.h"
 
-#include "common/common.h"
+//#include "common/common.h"
 #include "common/math/ugmath.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 #include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 #include "lib_disc/spatial_disc/user_data/linker/linker.h"
-#include "lua_traits.h"
+//#include "lua_traits.h"
 
 #include "bindings/lua/lua_function_handle.h"
 
@@ -67,8 +67,7 @@ extern "C" {
 #include "bindings/lua/compiler/lua_compiler.h"
 #endif
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // LuaUserData
@@ -429,7 +428,7 @@ class LuaFunction : public IFunction<TData, TDataIn>
 
 
 
-namespace bridge{
+namespace bridge {
 
 void RegisterLuaUserData(Registry& reg, std::string grp);
 

@@ -60,8 +60,8 @@ extern "C" {
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 int iOtherCompletionsLength;
 const char **pOtherCompletions=nullptr;
@@ -83,6 +83,7 @@ void print(const std::string& s)
  * \param len the length of buf
  * \param matches put your matches here
  * \param sniplen how much of buf we use (for example, completing "ex" to "example" is 2, completing "examp" to "example" is 5)
+ * \param iPrintCompletionList prints type information if equals 2
  * \return number of added matches
  */
 static size_t GetNamespaceCompletions(char *buf, int len, std::vector<string> &matches, size_t &sniplen, int iPrintCompletionList)
@@ -131,7 +132,7 @@ static size_t GetNamespaceCompletions(char *buf, int len, std::vector<string> &m
 	if(iPrintCompletionList == 2 && matches.size() == 1 && sniplen == matches[0].size())
 	{
 		UG_LOG("\n");
-		bridge::UGTypeInfo(p);
+		UGTypeInfo(p);
 	}
 	return matches.size() - matchesSizeBefore;
 }
@@ -499,8 +500,8 @@ size_t GetPathCompletions(char *buf, int len, std::vector<string> &matches, size
 
 	sniplen = strlen(p);
 
-	DIR           *d;
-	struct dirent *dir;
+	DIR *d;
+	dirent *dir;
 	d = opendir(dirname.c_str());
 	if (d)
 	{
@@ -630,7 +631,7 @@ int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 			if(first == 0) printf("completions: "); //, p);
 			else printf(" ... ");
 			printf("%s", matches[first].c_str());
-			for(int i=first+1; i < first+5 && i < (int)matches.size(); i++)
+			for(int i = first+1; i < first+5 && i < (int)matches.size(); i++)
 				printf(", %s", matches[i].c_str());
 			if((int)matches.size() > first+5)
 				printf(" ... (%lu more)", matches.size()-first-5);

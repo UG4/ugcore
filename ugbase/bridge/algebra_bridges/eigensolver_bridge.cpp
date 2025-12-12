@@ -49,9 +49,9 @@ using namespace std;
 #include "lib_algebra/operator/eigensolver/pinvit.h"
 #include "lib_algebra/operator/preconditioner/operator_inverse_iterator.h"
 
-namespace ug{
-namespace bridge{
-namespace Eigensolver{
+namespace ug {
+namespace bridge {
+namespace Eigensolver {
 
 /**
  * \defgroup eigensolver_bridge Eigensolver Bridge

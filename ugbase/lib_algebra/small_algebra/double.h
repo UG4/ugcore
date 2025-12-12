@@ -46,9 +46,10 @@
 #define __H__UG__SMALL_ALGEBRA__DOUBLE__
 
 #include "blocks.h"
-#include "common/common.h"
+#include "common/common.h" // for operator <<
+#include "common/types.h"
 
-namespace ug{
+namespace ug {
 
 
 //////////////////////////////////////////////////////

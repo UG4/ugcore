@@ -34,13 +34,14 @@
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__ADAPTION_SURFACE_GRID_FUNCTION_IMPL__
 
 #include "adaption_surface_grid_function.h"
+
 #include "common/profiler/profiler.h"
 #include "lib_grid/algorithms/debug_util.h"
 
 #define GFUNCADAPT_PROFILE_FUNC()	PROFILE_FUNC_GROUP("gfunc-adapt")
 
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain>
 template <typename TElem, typename TAlgebra>

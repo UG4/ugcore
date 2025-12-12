@@ -31,13 +31,13 @@
  */
 
 #include "histogramm.h"
+
 #include <algorithm>    // std::sort
 #include <sstream>
 #include <iomanip> // setprecision
 
 
-namespace ug
-{
+namespace ug {
 
 // minimum width is 8
 std::string scientificStr(double d, size_t width)

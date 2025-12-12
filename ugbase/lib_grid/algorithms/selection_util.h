@@ -34,13 +34,13 @@
 #define __H__LIB_GRID__SELECTION_UTIL__
 
 #include <stack>
+
 #include "lib_grid/lg_base.h"
 #include "common/ug_config.h"
 #include "lib_grid/tools/selector_multi_grid.h"
 #include "lib_grid/callbacks/basic_callbacks.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

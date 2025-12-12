@@ -31,6 +31,7 @@
  */
 
 #include "string_util.h"
+
 #include <algorithm>
 #include <string>
 #include <cstring>
@@ -39,11 +40,12 @@
 #include <iomanip>
 #include <cctype>
 #include <fstream>
+
 #include "common/common.h"
 #include "common/assert.h"
 #include "common/profiler/profiler.h"
 
-namespace ug{
+namespace ug {
 
 using namespace std;
 

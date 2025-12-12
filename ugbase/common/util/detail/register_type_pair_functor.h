@@ -35,13 +35,13 @@
 
 #include <boost/mpl/string.hpp>
 
-namespace ug{
-namespace detail{
+namespace ug {
+namespace detail {
 
 template <typename TRegistry>
 struct RegisterTypePairFunctor
 {
-	RegisterTypePairFunctor(TRegistry* reg) : m_reg(reg) {}
+	explicit RegisterTypePairFunctor(TRegistry* reg) : m_reg(reg) {}
 
 ///	inserts classes into the set of known classes
 /**	This function allows for the usage of boost::mpl::for_each.

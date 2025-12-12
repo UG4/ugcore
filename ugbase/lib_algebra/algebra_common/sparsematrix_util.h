@@ -43,8 +43,7 @@
 #include "lib_algebra/parallelization/parallel_vector.h"
 #endif
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup lib_algebra
 ///	@{

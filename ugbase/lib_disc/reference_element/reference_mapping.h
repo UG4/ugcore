@@ -36,11 +36,12 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
+
 #include "common/common.h"
 #include "common/math/ugmath.h"
 #include "lib_disc/reference_element/reference_element.h"
 
-namespace ug{
+namespace ug {
 
 extern DebugID DID_REFERENCE_MAPPING;
 extern DebugID DID_REFERENCE_MAPPING_GLOB_TO_LOC;

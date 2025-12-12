@@ -33,10 +33,10 @@
 #ifndef __H__UG__LIB_DISC__DOF_MANAGER__CUTHILL_MCKEE__
 #define __H__UG__LIB_DISC__DOF_MANAGER__CUTHILL_MCKEE__
 
-#include <vector>
+// #include <vector>
 #include "lib_disc/function_spaces/approximation_space.h"
 
-namespace ug{
+namespace ug {
 
 /// orders the dof distribution using Cuthill-McKee
 inline void OrderCuthillMcKee(DoFDistribution& dofDistr, bool bReverse);

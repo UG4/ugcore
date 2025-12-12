@@ -30,10 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifdef UG_PARALLEL
+
 
 #ifndef CONSISTENCY_CHECK_H
 #define CONSISTENCY_CHECK_H
+
+#ifdef UG_PARALLEL
 
 #include <string>
 #include "pcl/pcl.h"
@@ -42,7 +44,7 @@
 #include "communication_scheme.h"
 #include "lib_algebra/parallelization/parallel_index_layout.h" // for IndexLayout
 
-namespace ug{
+namespace ug {
 
 /**
  * \defgroup lib_algebra_parallel_consistencycheck Parallel Algebra Consistency Check

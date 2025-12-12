@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <limits>
 #include <vector>
+
 #include "lib_grid/lg_base.h"
 
 #ifdef UG_PARALLEL
@@ -43,8 +44,7 @@
 	#include "pcl/pcl_process_communicator.h"
 #endif
 
-namespace ug
-{
+namespace ug {
 	
 //**********************************************************************
 //								declarations

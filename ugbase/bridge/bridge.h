@@ -35,13 +35,13 @@
 #define __H__UG_BRIDGE__UG_BRIDGE__
 
 #include <string>
-#include <sstream>
+//#include <sstream>
 #include "registry/registry.h"
 #include "lib_algebra/algebra_type.h"
 #include "common/ug_config.h"
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 /**
  * \defgroup bridge Bridge

@@ -33,7 +33,7 @@
 #ifndef __H__UG__flags__
 #define __H__UG__flags__
 
-namespace ug{
+namespace ug {
 
 ///	Helps maintaining, activating and deactivating a set of flags from an enum.
 /**	Given an enum

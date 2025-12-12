@@ -35,12 +35,13 @@
 
 #include <algorithm>
 #include <vector>
-#include "lib_grid/lg_base.h"
+
+//#include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/smoothing/manifold_smoothing.h"
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 #include "lib_grid/iterators/associated_elements_iterator.h"
 
-namespace ug{
+namespace ug {
 
 struct IndCmp{
 	IndCmp(const std::vector<number>& vals) : m_vals(vals) {}

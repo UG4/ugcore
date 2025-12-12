@@ -31,14 +31,6 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <boost/function.hpp>
-
-#include "expand_layers.h"
-#include "expand_layers_arte.h"
-#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
-#include "lib_grid/callbacks/callbacks.h"
-#include "lib_grid/grid/grid_util.h"
-//ø #include "common/math/misc/math_constants.h"
 //ø #include <stack>
 #include <utility>
 #include <vector>
@@ -50,12 +42,20 @@
 #include <string>
 #include <cmath>
 
+#include <boost/function.hpp>
+
+#include "expand_layers.h"
+#include "expand_layers_arte.h"
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/callbacks/callbacks.h"
+#include "lib_grid/grid/grid_util.h"
+//ø #include "common/math/misc/math_constants.h"
 #include "support.h"
 
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 //using namespace ug::support;
 

@@ -30,13 +30,15 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cassert>
 #include "subset_handler_interface.h"
+
+#include <cassert>
+
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 //	SubsetInfo implementation
 SubsetInfo::SubsetInfo()

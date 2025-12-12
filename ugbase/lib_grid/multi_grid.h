@@ -35,6 +35,7 @@
 
 //#include <vector>
 #include <cassert>
+
 #include "grid/grid.h"
 #include "tools/subset_handler_grid.h"
 //#include "common_attachments.h"
@@ -42,8 +43,7 @@
 #include "multi_grid_child_info.h"
 #include "algorithms/attachment_util.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 /**

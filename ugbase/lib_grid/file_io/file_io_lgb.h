@@ -33,13 +33,12 @@
 #ifndef __H__LIBGRID__FILE_IO_BIN__
 #define __H__LIBGRID__FILE_IO_BIN__
 
-#include "lib_grid/grid/grid.h"
+// #include "lib_grid/grid/grid.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_grid/tools/selector_interface.h"
 #include "lib_grid/common_attachments.h"
 
-namespace ug
-{
+namespace ug {
 
 class ProjectionHandler;
 

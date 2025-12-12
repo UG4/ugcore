@@ -33,13 +33,16 @@
 #ifndef __H__TABLE_IMPL__
 #define __H__TABLE_IMPL__
 
+#include "table.h"
+
 #include <iomanip>
 #include <cassert>
+
 #include "common/error.h"
 #include "common/log.h"
 #include "string_util.h"
 
-namespace ug{
+namespace ug {
 
 template <typename T>
 Table<T>::Table() :

@@ -33,10 +33,14 @@
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__COMMON__POLYNOMIAL1D__
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__COMMON__POLYNOMIAL1D__
 
-#include "common/math/ugmath.h"
-#include <vector>
 
-namespace ug{
+#include <vector>
+#include <iostream>
+
+#include "common/types.h"
+// #include "common/math/ugmath.h"
+
+namespace ug {
 
 /// \addtogroup lib_discretization
 ///	@{

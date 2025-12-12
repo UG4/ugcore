@@ -64,12 +64,9 @@
 
 using namespace std;
 
-namespace ug{
-
-
+namespace ug {
+namespace bridge {
 using namespace script;
-namespace bridge
-{
 
 #if defined(UG_USE_READLINE)
 	string ug_readline(const char *prompt, bool &quit)
@@ -103,7 +100,7 @@ namespace bridge
 			free(str);
 			return ret;
 		}
-		void ug_cacheline(string str)
+		void ug_cacheline(const string &str)
 		{
 			linenoiseHistoryAdd(str.c_str());
 		}

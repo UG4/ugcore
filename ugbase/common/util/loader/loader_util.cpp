@@ -30,13 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cstring>
 #include "loader_util.h"
+
+#include <cstring>
+
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 void split_parameters(std::vector<std::string>& paramsOut, char* strParams, const char* delims)
 {
@@ -45,7 +46,7 @@ void split_parameters(std::vector<std::string>& paramsOut, char* strParams, cons
 	while(param != nullptr)
 	{
 		if(*param != '\0')
-			paramsOut.push_back(string(param));
+			paramsOut.emplace_back(param);
 		param = strtok(nullptr, delims);
 	}
 }

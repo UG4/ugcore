@@ -33,10 +33,10 @@
 #ifndef __H__UG_field__
 #define __H__UG_field__
 
-#include "common/boost_serialization.h"
+// #include "common/boost_serialization.h"
 #include <boost/serialization/split_member.hpp> // if boost is not from BoostForUG4 for separate load/save methods
 
-namespace ug{
+namespace ug {
 
 template <typename T>
 class Field {

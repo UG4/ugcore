@@ -32,11 +32,12 @@
 //  This file is parsed from UG 3.9.
 //  It provides the Gauss Quadratures for a reference triangle.
 
-
-#include "../quadrature.h"
 #include "gauss_quad_triangle.h"
 
-namespace ug{
+#include "../quadrature.h"
+
+
+namespace ug {
 
 template <>
 number GaussQuadBase<GaussQuadrature<ReferenceTriangle, 1>, 2, 1, 1>::m_vWeight[1] =

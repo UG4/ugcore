@@ -44,8 +44,7 @@
 
 #include "../quadrature.h"
 
-namespace ug
-{
+namespace ug {
 
 /**
  * The following class provides QuadratureRules for triangles

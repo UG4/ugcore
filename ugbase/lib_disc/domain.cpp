@@ -31,12 +31,13 @@
  */
 
 #include "domain.h"
+
 #include "common/util/table.h"
 
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 std::string DomainInfo::
 to_string() const

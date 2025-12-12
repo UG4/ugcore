@@ -32,8 +32,7 @@
 
 #include "common_attachments.h"
 
-namespace ug
-{
+namespace ug {
 
 APosition aPosition("position", true);	//	strings are passed for debug purposes
 APosition2 aPosition2("position2", true);	//	strings are passed for debug purposes

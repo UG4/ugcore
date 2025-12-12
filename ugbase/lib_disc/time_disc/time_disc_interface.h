@@ -37,14 +37,14 @@
 #include <deque>
 
 // other ug libraries
-#include "common/common.h"
+//#include "common/common.h"
 
 // module intern libraries
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/time_disc/solution_time_series.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
 
-namespace ug{
+namespace ug {
 
 /// \ingroup lib_disc_time_assemble
 /// @{

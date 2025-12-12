@@ -31,9 +31,10 @@
  */
 
 #include "broadcast.h"
+
 #include "lib_grid/algorithms/selection_util.h"
 
-namespace ug{
+namespace ug {
 
 void BroadcastGrid(	Grid& gridOut,
 					Selector& sel,

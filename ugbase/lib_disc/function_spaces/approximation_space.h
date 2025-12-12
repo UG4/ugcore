@@ -39,7 +39,7 @@
 #include "lib_grid/tools/surface_view.h"
 #include "lib_algebra/algebra_type.h"
 
-namespace ug{
+namespace ug {
 
 /// describes the ansatz spaces on a domain
 /**

@@ -41,9 +41,8 @@
 #include "common/math/misc/math_util.h"
 
 
-namespace ug{
-
-namespace ConnectionViewer{
+namespace ug {
+namespace ConnectionViewer {
 
 template<typename matrix_type>
 bool ReadMatrix(std::string filename, matrix_type &matrix, std::vector<MathVector<3> > &grid, int &dimension)

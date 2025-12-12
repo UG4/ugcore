@@ -35,7 +35,7 @@
 
 #include "scalar_obstacle.h"
 
-namespace ug{
+namespace ug {
 
 //////////////////////////////
 //	SCALAR LOWER OBSTACLE

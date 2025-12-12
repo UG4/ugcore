@@ -35,8 +35,7 @@
 
 #include "parallel_grid_layout.h"
 
-namespace ug
-{
+namespace ug {
 ////////////////////////////////////////////////////////////////////////
 //	GridLayoutMap - implementation
 template <typename TType>

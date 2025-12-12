@@ -34,6 +34,7 @@
 #define __H__UG_tkd_info
 
 #include <vector>
+
 #include "common/math/ugmath_types.h"
 
 namespace ug {

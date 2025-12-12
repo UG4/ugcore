@@ -40,7 +40,7 @@
 #include <sstream>
 #include <limits>
 
-#include "common/common.h"
+// #include "common/common.h"
 
 //#include "lib_disc/operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
 
@@ -52,7 +52,7 @@
 
 
 
-namespace ug{
+namespace ug {
 
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////

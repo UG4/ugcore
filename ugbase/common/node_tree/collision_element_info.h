@@ -33,9 +33,8 @@
 #ifndef __H__UG__NODE_TREE__COLLSISION_ELEMENT_INFO__
 #define __H__UG__NODE_TREE__COLLSISION_ELEMENT_INFO__
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
 
 ////////////////////////////////////////////////////////////////////////
 //	CollisionElementID

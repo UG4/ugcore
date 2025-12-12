@@ -42,15 +42,15 @@
 
 // lib_disc includes
 #include "lib_disc/function_spaces/grid_function.h"
-#include "lib_disc/function_spaces/approximation_space.h"
+//#include "lib_disc/function_spaces/approximation_space.h"
 
 #include "lib_disc/spatial_disc/disc_util/fv_output.h"
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace FiniteVolume{
+namespace ug {
+namespace bridge {
+namespace FiniteVolume {
 
 /**
  * \defgroup finitvolume_bridge Finite Volume Bridge

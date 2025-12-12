@@ -8,17 +8,16 @@
 #ifndef UGCORE_UGBASE_LIB_DISC_OPERATOR_NON_LINEAR_OPERATOR_NEWTON_SOLVER_NEWTONUPDATERGENERIC_H_
 #define UGCORE_UGBASE_LIB_DISC_OPERATOR_NON_LINEAR_OPERATOR_NEWTON_SOLVER_NEWTONUPDATERGENERIC_H_
 
-#include <ostream>
-#include <string>
-#include <vector>
-#include <cmath>
-#include <sstream>
-#include <type_traits>
+//#include <ostream>
+//#include <string>
+//#include <vector>
+//#include <cmath>
+//#include <sstream>
+//#include <type_traits>
 
-#include "common/common.h"
+//#include "common/common.h"
 
-namespace ug
-{
+namespace ug {
 
 template <typename TVector>
 class NewtonUpdaterGeneric

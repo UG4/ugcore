@@ -31,12 +31,14 @@
  */
 
 #include "local_finite_element_id.h"
+
 #include <string>
 #include <algorithm> // std::transform
 #include <cctype> // std::tolower
+
 #include "common/error.h"
 
-namespace ug{
+namespace ug {
 
 /// writes the Identifier to the output stream
 std::ostream& operator << (std::ostream& out, const LFEID& v)

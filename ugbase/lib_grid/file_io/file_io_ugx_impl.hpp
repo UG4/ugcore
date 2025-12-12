@@ -33,14 +33,16 @@
 #ifndef __H__LIB_GRID__FILE_IO_UGX_IMPL__
 #define __H__LIB_GRID__FILE_IO_UGX_IMPL__
 
+#include "file_io_ugx.h"
+
 #include <sstream>
 #include <cstring>
+
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/global_attachments.h"
 #include "lib_grid/refinement/projectors/projection_handler.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 template <typename TAPosition>

@@ -33,10 +33,10 @@
 #ifndef __H__UG__MULTI_GRID_UTIL_IMPL__
 #define __H__UG__MULTI_GRID_UTIL_IMPL__
 
+#include "multi_grid_util.h"
 #include "subset_util.h"
 
-namespace ug
-{
+namespace ug {
 
 template <typename TElem>
 void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,

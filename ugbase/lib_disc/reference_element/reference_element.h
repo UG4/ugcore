@@ -36,11 +36,12 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
+
 #include "common/common.h"
 #include "common/math/ugmath.h"
 #include "lib_grid/grid/grid_base_objects.h"
 
-namespace ug{
+namespace ug {
 
 ///////////////////////////////////////////////////////////////////////////////
 // Reference Element Common Base Class

@@ -30,16 +30,19 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "common/error.h"
 #include "variant.h"
 
 #include <iostream>
+
+#include "common/error.h"
+
+
 #define untested() ( std::cerr <<  "@@#\n@@@:"<< __FILE__ << ":"<< __LINE__ \
           <<":" << __func__ << "\n" )
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 Variant::Variant() :
 	m_type(VT_INVALID)

@@ -35,7 +35,7 @@
 
 #include "refinement_projector.h"
 
-namespace ug{
+namespace ug {
 
 ///	calculates new positions by cutting parent edges with a plane
 /**	For each edge the intersection of the edge with the initially
@@ -64,17 +64,16 @@ public:
 		m_n (normal)
 	{}
 
-	virtual ~PlaneCutProjector () = default;
+	~PlaneCutProjector () override = default;
 
-	void set_position (const vector3& position)		{m_p = position;}
-	const vector3& position () const				{return m_p;}
+	void set_position (const vector3& position) {m_p = position;}
+	const vector3& position () const {return m_p;}
 
-	void set_normal (const vector3& normal)			{m_n = normal;}
-	const vector3& normal () const					{return m_n;}
+	void set_normal (const vector3& normal) {m_n = normal;}
+	[[nodiscard]] const vector3& normal () const {return m_n;}
 
 ///	called when a new vertex was created from an old edge.
-	virtual number new_vertex(Vertex* vrt, Edge* parent)
-	{
+	number new_vertex(Vertex* vrt, Edge* parent) override {
 		number t;
 		vector3 v;
 		vector3 dir;

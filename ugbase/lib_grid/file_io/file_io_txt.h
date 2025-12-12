@@ -36,8 +36,8 @@
 #ifndef __H__LIB_GRID__FILE_IO_TXT__
 #define __H__LIB_GRID__FILE_IO_TXT__
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 ///	loads a grid from txt
 bool LoadGridFromTXT(Grid&grid, const char* filename, AVector3& aPos = aPosition);

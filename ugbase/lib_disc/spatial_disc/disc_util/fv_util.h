@@ -34,7 +34,7 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_VOLUME_UTIL__
 
 // extern libraries
-#include <cmath>
+// #include <cmath>
 #include <vector>
 
 // other ug4 modules
@@ -44,7 +44,7 @@
 #include "lib_disc/local_finite_element/lagrange/lagrange.h"
 #include "lib_disc/spatial_disc/disc_util/fv_geom_base.h"
 
-namespace ug{
+namespace ug {
 
 /// averages positions by arithmetic mean
 /**

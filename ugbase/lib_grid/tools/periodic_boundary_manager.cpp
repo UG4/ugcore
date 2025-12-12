@@ -34,6 +34,7 @@
 
 namespace ug {
 
+
 PeriodicBoundaryManager::PeriodicBoundaryManager() :
 				m_pGrid(nullptr)/*, m_pSH(nullptr)*/ {}
 

@@ -32,7 +32,8 @@
 
 #include "delaunay_info.h"
 
-namespace ug{
+namespace ug {
+
 
 template <typename TAAPos>
 DelaunayInfo<TAAPos>::

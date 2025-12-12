@@ -31,11 +31,12 @@
  */
 
 #include "dof_count.h"
+
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_process_communicator.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // DoFCount

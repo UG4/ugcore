@@ -32,7 +32,7 @@
 
 #include "bool_marker.h"
 
-namespace ug{
+namespace ug {
 
 BoolMarker::BoolMarker() :
 	m_pGrid(nullptr),

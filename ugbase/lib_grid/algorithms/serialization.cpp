@@ -30,10 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "serialization.h"
+
 #include <cassert>
 #include <vector>
 #include <algorithm>
-#include "serialization.h"
+
 #include "common/serialization.h"
 #include "debug_util.h"
 #include "common/util/hash.h"
@@ -61,8 +63,7 @@ using namespace std;
 #endif
 
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	Implementation
@@ -840,7 +841,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 						}
 					}break;
 				default:
-					LOG("Unknown geometric-object-id in grid-pack. Aborting reconstruction.\n");
+					UG_LOG("Unknown geometric-object-id in grid-pack. Aborting reconstruction.\n");
 					return false;
 			}
 		}
@@ -2396,7 +2397,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 						}
 					}break;
 				default:
-					LOG("Unknown geometric-object-id in grid-pack. Aborting reconstruction.\n");
+					UG_LOG("Unknown geometric-object-id in grid-pack. Aborting reconstruction.\n");
 					return false;
 			}
 		}

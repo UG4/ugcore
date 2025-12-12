@@ -48,7 +48,7 @@
 
 
 
-namespace pcl{
+namespace pcl {
 
 struct FileBufferDescriptor
 {
@@ -106,13 +106,12 @@ void WriteParallelArchive(ProcessCommunicator &pc, const std::string &strFilenam
  */
 class ParallelArchive
 {
-private:
 	/// internal virtual buffer interface to support different buffers
 	struct BufferInterface
 	{
 		virtual ~BufferInterface() = default;
-		virtual const char *buffer()=0;
-		virtual size_t size()=0;
+		virtual const char *buffer() = 0;
+		virtual size_t size() = 0;
 		virtual void update() {}
 	};
 

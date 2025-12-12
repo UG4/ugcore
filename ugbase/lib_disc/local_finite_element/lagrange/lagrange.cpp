@@ -31,10 +31,12 @@
  */
 
 #include "lagrange.h"
+
 #include <sstream>
+
 #include "common/util/provider.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TRefElem>
 void SetLagrangeVertexMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,

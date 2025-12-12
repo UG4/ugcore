@@ -41,7 +41,7 @@
 // ug libraries
 #include "ug.h"
 #include "lua_util.h"
-#include "common/util/file_util.h"
+// #include "common/util/file_util.h"
 #include "bindings_lua.h"
 #include "bridge/bridge.h"
 #include "registry/class_helper.h"
@@ -55,7 +55,7 @@
 #include "common/util/string_util.h"
 
 #ifndef USE_LUAJIT
-extern "C" { // lua default
+extern "C" {
 #include "externals/lua/lstate.h"
 }
 #else
@@ -65,11 +65,8 @@ extern "C" { // lua default
 
 using namespace std;
 
-namespace ug
-{
-
-namespace script
-{
+namespace ug {
+namespace script {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // globals
@@ -422,7 +419,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			// if a return, reduce depth. If depth == 0, we also have to
 			// finish the current profile node, since this must be the return
 			// from the original c-call
-			else if(ar->event == LUA_HOOKRET || ar->event == LUA_HOOKTAILRET){
+			else if(ar->event == LUA_HOOKRET ){ /* removed in Lua 5.2: || ar->event == LUA_HOOKTAILRET*/
 				if(--profileDepthInCcall != 0) return;
 			}
 			else{
@@ -441,7 +438,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 		if(bDebugLuaProfiler){
 			std::string type = "call";
 			if(ar->event == LUA_HOOKRET) type = "ret ";
-			else if(ar->event == LUA_HOOKTAILRET) type = "tailret ";
+			// else if(ar->event == LUA_HOOKTAILRET) type = "tailret ";
 			UG_LOG(repeat(' ', pisStack.size()) << "## lua profile: source: "<<ar->source<<", line: "
 			       <<ar->currentline<<" "<<type<<" " << ar->what);
 		}
@@ -468,7 +465,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 		if(bDebugLuaProfiler){
 			std::string type = "call";
 			if(entry.event == LUA_HOOKRET) type = "ret ";
-			else if(entry.event == LUA_HOOKTAILRET) type = "tailret ";
+			// else if(entry.event == LUA_HOOKTAILRET) type = "tailret ";
 			UG_LOG(",  corr: source: "<<source<<", line: "<<line<<" "<<type<<" " << entry.what << "\n");
 		}
 
@@ -514,7 +511,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 		}
 
 		// a return
-		else if(ar->event == LUA_HOOKRET || ar->event == LUA_HOOKTAILRET)
+		else if(ar->event == LUA_HOOKRET /*|| ar->event == LUA_HOOKTAILRET*/)
 		{		
 			 // if only starting the profiling, do not react on returns
 			 if(bStartProfiling) { bStartProfiling = false; return; }
@@ -527,7 +524,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			 {
 				 // get profile node
 				 pRuntimeProfileInfo pi;
-				 if(line < 0 || ar->event == LUA_HOOKTAILRET)
+				 if(line < 0 || ar->event == LUA_HOOKRET)
 					 pi = pisStack.top();
 				 else
 				 {

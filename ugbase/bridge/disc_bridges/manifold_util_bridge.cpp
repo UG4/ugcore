@@ -77,7 +77,7 @@ struct Functionality
 	//	registry of H slave exclusion functionality
 		reg.add_function("MarkAllElemsForAssemblyButHSlaves",
 				static_cast<void(*)(SmartPtr<IAssemble<TAlgebra> >, Grid&)>
-		(&ug::MarkAllElemsForAssemblyButHSlaves<TAlgebra>), grp.c_str());
+				(&ug::MarkAllElemsForAssemblyButHSlaves<TAlgebra>), grp.c_str());
 	}
 };
 

@@ -38,9 +38,10 @@
 #ifdef SHINY_CALL_LOGGING
 
 #include <vector>
+
 #include "src/ShinyTools.h"
 
-namespace ug{
+namespace ug {
 
 struct ProfileCall
 {

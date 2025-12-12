@@ -37,7 +37,7 @@
 #include "lib_algebra/common/connection_viewer_output.h"
 #include "common/util/file_util.h"
 
-namespace ug{
+namespace ug {
 
 
 /// Debug writer for connection viewer (based on algebraic information + vector positions only)

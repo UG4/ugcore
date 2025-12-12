@@ -43,7 +43,7 @@
 #include "lib_algebra/parallelization/algebra_layouts.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 class IGridFunction;
 

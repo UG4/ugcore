@@ -36,7 +36,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 nodeType *
 LUAParserClass::reduce(nodeType *p)

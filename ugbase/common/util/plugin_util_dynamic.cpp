@@ -45,7 +45,7 @@ using namespace std;
 
 
 
-namespace ug{
+namespace ug {
 
 namespace {
 	vector<DynLibHandle> loadedPlugins;

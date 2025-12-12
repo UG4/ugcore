@@ -33,11 +33,13 @@
 #ifndef __H__UG_matrix_overlap_impl
 #define __H__UG_matrix_overlap_impl
 
+#include "matrix_overlap.h"
+
 #include "algebra_layouts.h"
 #include "lib_algebra/algebra_common/sparsematrix_util.h"
 #include "parallelization_util.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TLayout>
 void GetLayoutTargetProcs(std::vector<int>& procsOut, const TLayout& layout)

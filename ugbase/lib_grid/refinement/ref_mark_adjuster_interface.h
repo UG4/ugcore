@@ -36,7 +36,7 @@
 #include "refiner_interface.h"
 #include "common/util/smart_pointer.h"
 
-namespace ug{
+namespace ug {
 
 ///	\addtogroup lib_grid_algorithms_refinement
 ///	@{

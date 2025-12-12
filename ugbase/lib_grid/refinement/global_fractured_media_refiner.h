@@ -40,8 +40,8 @@
 #include "lib_grid/tools/bool_marker.h"
 
 
-namespace ug
-{
+namespace ug {
+
 
 class ISubsetHandler;
 

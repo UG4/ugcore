@@ -37,8 +37,9 @@
 #define __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__EDGE__
 
 #include "gauss_quad.h"
+#include "lib_disc/reference_element/reference_element.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Implemented GaussQuadrature for ReferenceEdge

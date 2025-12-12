@@ -30,12 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "subset_util.h"
+
 #include <vector>
 #include <stack>
 #include <queue>
 #include <map>
 
-#include "subset_util.h"
 #include "geom_obj_util/geom_obj_util.h"
 #include "polychain_util.h"
 #include "orientation_util.h"
@@ -43,8 +44,7 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 int GetFirstFreeSubset(const ISubsetHandler& sh)

@@ -32,13 +32,14 @@
 
 #ifndef UG_PARALLEL_MATRIX_BOOST_H
 #define UG_PARALLEL_MATRIX_BOOST_H
+
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/parallel_matrix.h"
 #include "lib_algebra/graph_interface/parallel_matrix.h"
-#include "lib_algebra/small_algebra/storage/fixed_array.h"
+//#include "lib_algebra/small_algebra/storage/fixed_array.h"
 
 
-namespace boost{
+namespace boost {
 
 template <typename T> struct graph_traits<ug::BGLParallelMatrix<ug::ParallelMatrix<T>>>{
 	using type = ug::BGLParallelMatrix<ug::ParallelMatrix<T>>;

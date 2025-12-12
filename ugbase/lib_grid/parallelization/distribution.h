@@ -34,11 +34,12 @@
 #define __H__UG__distribution__
 
 #include <vector>
+
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/serialization.h"
 #include "pcl/pcl_process_communicator.h"
 
-namespace ug{
+namespace ug {
 
 
 enum InterfaceStates{

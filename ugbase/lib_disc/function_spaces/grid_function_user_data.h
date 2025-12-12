@@ -35,17 +35,16 @@
 
 #include "common/common.h"
 
-#include "lib_grid/tools/subset_group.h"
-
-#include "lib_disc/common/function_group.h"
-#include "lib_disc/common/groups_util.h"
+// #include "lib_grid/tools/subset_group.h"
+// #include "lib_disc/common/function_group.h"
+// #include "lib_disc/common/groups_util.h"
 #include "lib_disc/quadrature/quadrature.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/spatial_disc/user_data/std_user_data.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 
 
-namespace ug{
+namespace ug {
 
 /**
  * Class for StdDependentUserData interface to scalar values from GridFunction objects.

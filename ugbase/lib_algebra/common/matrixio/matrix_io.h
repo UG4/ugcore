@@ -40,12 +40,11 @@
 #include "common/assert.h"
 #include "common/error.h"
 #include "common/log.h"
-#include "common/profiler/profiler.h"
-#include "lib_algebra/lib_algebra.h"
+//#include "common/profiler/profiler.h"
+//#include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/cpu_algebra_types.h"
 
-namespace ug
-{
+namespace ug {
 
 /**
  * \defgroup matrixio MatrixIO

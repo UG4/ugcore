@@ -30,13 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "bindings_lua.h"
+// #include "bindings_lua.h"
 #include "registry/registry.h"
 #include "registry/class_helper.h"
-#include "common/common.h"
-#include "info_commands.h"
+// #include "common/common.h"
+// #include "info_commands.h"
 #include "lua_util.h"
-#include "lua_parsing.h"
+// #include "lua_parsing.h"
 
 #include "lua_stack.h"
 
@@ -45,8 +45,7 @@
 #include "bindings/lua/lua_table_handle.h"
 #endif
 
-namespace ug
-{
+namespace ug {
 namespace bridge {
 
 

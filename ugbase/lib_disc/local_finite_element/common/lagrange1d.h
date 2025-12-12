@@ -33,11 +33,15 @@
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__COMMON__LAGRANGE1D__
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__COMMON__LAGRANGE1D__
 
-#include "./polynomial1d.h"
-#include "common/math/ugmath.h"
+
 #include <vector>
 
-namespace ug{
+#include "./polynomial1d.h"
+// #include "common/math/ugmath.h"
+#include "common/assert.h"
+
+
+namespace ug {
 
 /** Lagrange Polynomial for arbitrary points
  *

@@ -44,7 +44,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 /**
  * \defgroup selection_bridge Selection Bridge

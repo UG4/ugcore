@@ -33,14 +33,14 @@
 #ifndef __H__UG__LIB_GRID__PARALLELIZATION__UTIL__PARTITION_WEIGHTING_CALLBACKS__
 #define __H__UG__LIB_GRID__PARALLELIZATION__UTIL__PARTITION_WEIGHTING_CALLBACKS__
 
+#include <vector>
 
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/tools/tools.h"
 #include "common/error.h"
-#include <vector>
 
-namespace ug
-{
+
+namespace ug {
 
 /**
 *	Base class for partition weighting callbacks.

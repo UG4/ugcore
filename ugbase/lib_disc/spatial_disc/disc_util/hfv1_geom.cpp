@@ -31,9 +31,10 @@
  */
 
 #include "hfv1_geom.h"
+
 #include "common/util/provider.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TElem, int TWorldDim>
 HFV1Geometry<TElem, TWorldDim>::

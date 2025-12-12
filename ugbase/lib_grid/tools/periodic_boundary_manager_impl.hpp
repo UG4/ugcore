@@ -35,13 +35,14 @@
 
 // include declarations
 #include "periodic_boundary_manager.h"
+
 #include "lib_grid/algorithms/debug_util.h" // for GetGridObjectCenter
 #include "lib_grid/grid_objects/grid_dim_traits.h"
 #include "common/assert.h"
 #include "common/error.h"
 // #include "pcl/pcl_base.h"
 
-#include <boost/mpl/map.hpp>
+//#include <boost/mpl/map.hpp>
 // #include <boost/mpl/at.hpp>
 
 #include <algorithm>
@@ -97,7 +98,7 @@ void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2, IIdentifier& ident)
 		}
 	} else {
 		// create new group with e1 as master
-		Group<TElem>* g = new Group<TElem>(e1);
+		auto* g = new Group<TElem>(e1);
 		// set group of master
 		set_group(g, e1);
 		// make e2 slave

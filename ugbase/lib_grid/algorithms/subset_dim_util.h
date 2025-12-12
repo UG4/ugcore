@@ -38,7 +38,7 @@
 #include "lib_grid/tools/subset_handler_multi_grid.h"
 #include "lib_grid/tools/subset_handler_grid.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 /// returns if a subset is a regular grid

@@ -35,7 +35,7 @@
 
 #include "../ref_mark_adjuster_interface.h"
 
-namespace ug{
+namespace ug {
 
 ///	Selects additional edges to preserve layers in a grid with horizontal anisotropies
 /** Selects additional edges to preserve layers in a grid with horizontal anisotropies

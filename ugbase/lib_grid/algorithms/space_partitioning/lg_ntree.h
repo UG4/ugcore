@@ -34,12 +34,12 @@
 #define __H__UG__lg_ntree__
 
 #include "common/space_partitioning/ntree.h"
-#include "common/space_partitioning/ntree_traverser.h"
+// #include "common/space_partitioning/ntree_traverser.h"
 #include "common/math/misc/shapes.h"
 #include "lib_grid/algorithms/ray_element_intersection_util.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 
-namespace ug{
+namespace ug {
 
 
 template <int world_dim>

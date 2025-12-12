@@ -33,13 +33,15 @@
 #ifndef __H__LGMATH__MATRIX_VECTOR_FUNCTIONS_COMMON_IMPL__
 #define __H__LGMATH__MATRIX_VECTOR_FUNCTIONS_COMMON_IMPL__
 
+#include "math_matrix_vector_functions.h"
+
 #include <cmath>
+
 #include "common/error.h"
 #include "math_matrix.h"
 #include "math_vector.h"
 
-namespace ug
-{
+namespace ug {
 
 /// Matrix - Vector Multiplication
 // vOut = m * v

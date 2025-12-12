@@ -30,12 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "../quadrature.h"
 
 #ifndef __H__UG__LIB_DISC__QUADRATURE__GAUSS_LEGENDRE__
 #define __H__UG__LIB_DISC__QUADRATURE__GAUSS_LEGENDRE__
 
-namespace ug{
+#include "../quadrature.h"
+
+namespace ug {
 
 /**
  * This class provides GaussLegendre integrals up to order 70.

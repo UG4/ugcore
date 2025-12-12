@@ -38,9 +38,9 @@
 #include <string>
 #include <sstream>
 
-#include "lib_disc/reference_element/reference_element.h"
+#include "lib_disc/reference_element/reference_element.h" // for reference_element_traits
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

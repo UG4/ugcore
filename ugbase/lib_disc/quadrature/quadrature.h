@@ -36,7 +36,7 @@
 #include "common/common.h"
 #include "common/math/ugmath.h"
 
-namespace ug{
+namespace ug {
 
 // Doxygen group
 ////////////////////////////////////////////////////////////////////////

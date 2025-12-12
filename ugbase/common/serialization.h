@@ -39,12 +39,12 @@
 #include <map>
 #include <string>
 #include <cassert>
+
 #include "log.h"
 #include "util/variant.h"
 #include "error.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common
 /// \{

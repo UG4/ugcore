@@ -42,7 +42,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 void PrintElementNumbers(const GridObjectCollection& goc)
 {

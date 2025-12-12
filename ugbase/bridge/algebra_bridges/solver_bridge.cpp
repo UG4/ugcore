@@ -39,6 +39,7 @@
 #include "bridge/bridge.h"
 #include "bridge/util.h"
 #include "bridge/util_algebra_dependent.h"
+#include "bridge/util_overloaded.h"
 
 // solver
 #include "lib_algebra/lib_algebra.h"
@@ -53,17 +54,19 @@
 #include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
 #include "lib_algebra/operator/linear_solver/debug_iterator.h"
 #include "lib_algebra/operator/linear_solver/external_solvers/external_solvers.h"
+
 #ifdef UG_PARALLEL
 #include "lib_algebra/operator/linear_solver/feti.h"
 #endif
-#include "../util_overloaded.h"
+
+
 
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace Solver{
+namespace ug {
+namespace bridge {
+namespace Solver {
 
 /**
  * \defgroup solver_bridge Solver Bridge

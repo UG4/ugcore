@@ -35,11 +35,12 @@
 
 #include <utility>
 #include <vector>
-#include <map>
+// #include <map>
+
 #include "common/util/hash.h"
 #include "pcl/pcl.h"
 
-namespace ug{
+namespace ug {
 
 ///	this type is used to identify distributed objects.
 struct AlgebraID : std::pair<int, size_t>

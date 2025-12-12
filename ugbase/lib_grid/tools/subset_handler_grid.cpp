@@ -30,13 +30,15 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cassert>
 #include "subset_handler_grid.h"
+
+#include <cassert>
+
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 //	GridSubsetHandler implementation
 GridSubsetHandler::
@@ -244,7 +246,7 @@ change_subset_indices(int indOld, int indNew)
 
 void GridSubsetHandler::add_required_subset_lists(int maxIndex)
 {
-	while((int)m_subsets.size() <= maxIndex){
+	while(static_cast<int>(m_subsets.size()) <= maxIndex){
 	//	initialize section containers
 		auto sub = new Subset();
 		if(elements_are_supported(SHE_VERTEX))

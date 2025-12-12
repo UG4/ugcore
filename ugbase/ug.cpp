@@ -58,7 +58,7 @@
 //	If you changed something that requires a new version number, please contact
 //	sreiter@gcsc.uni-frankfurt.de (for the moment...)
 //	See docs/ug4/additional_pages/releases.doxygen for information on the different releases.
-std::string gUGVersionString("4.0.2");
+std::string gUGVersionString("4.1.0");
 
 
 /** Tells whether profile-output is desired on exit.*/
@@ -66,8 +66,7 @@ std::string gUGVersionString("4.0.2");
 static bool outputProfileStats = false;
 
 
-namespace ug
-{
+namespace ug {
 	
 static bool s_abortRun = false;
 
@@ -91,7 +90,7 @@ bool InitPaths(const char* argv0)
 	char* ug4Root = getenv("UG4_ROOT");
 	const char* pathSep = GetPathSeparator();
 
-	std::string strRoot = "";
+	std::string strRoot;
 
 	if(ug4Root){
 		strRoot = ug4Root;

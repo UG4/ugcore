@@ -35,15 +35,13 @@
 
 #include "parameter_stack.h"
 #include "class_name_provider.h"
-#include <string>
-#include <vector>
-#include <cstring>
+//#include <string>
+//#include <vector>
+//#include <cstring>
 #include "function_traits.h"
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup registry
 /// \{
@@ -131,7 +129,6 @@ struct CreateParameterInfoOut<void>{
 /// \}
 
 } // end namespace bridge
-
 } // end namespace ug
 
 #endif

@@ -34,11 +34,12 @@
 #ifndef __H__UG__COMMON__VARIABLE_ARRAY_H__
 #define __H__UG__COMMON__VARIABLE_ARRAY_H__
 
-#include "storage.h"
-#include <iostream>
 #include <cassert>
 
-namespace ug{
+//#include "storage.h"
+//#include <iostream>
+
+namespace ug {
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //	VariableArray1

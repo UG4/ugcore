@@ -40,7 +40,7 @@
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 #include "lib_disc/dof_manager/function_pattern.h"
 
-namespace ug{
+namespace ug {
 
 /** Group of functions represented by integers
  * FunctionGroup is just a group of size_t, representing some functions. The

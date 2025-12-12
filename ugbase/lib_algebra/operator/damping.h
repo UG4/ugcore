@@ -37,7 +37,7 @@
 #include "common/util/smart_pointer.h"
 #include "interface/linear_operator.h"
 
-namespace ug{
+namespace ug {
 
 /**
  * Base class for damping of correction in iterative schemes. An iteration for the

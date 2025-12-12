@@ -31,10 +31,11 @@
  */
 
 #include "lagrange_local_dof.h"
+
 #include "common/util/provider.h"
 #include "lib_disc/common/multi_index.h"
 
-namespace ug{
+namespace ug {
 
 ///////////////////////////////////////////////////////////////////////////////
 // Help Functions to create LocalDoFs

@@ -37,7 +37,7 @@
 #include "lib_grid/algorithms/geom_obj_util/face_util.h"
 #include "../volume_calculation.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 template <typename TIterator, typename AAPosVRT>

@@ -31,9 +31,10 @@
  */
 
 #include "math_vector.h"
+
 #include  <iostream>
 
-namespace ug{
+namespace ug {
 
 ///	formatted output of MathVector objects: (...,...)
 std::ostream& operator << (std::ostream& outStream, const ug::MathVector<1>& v)

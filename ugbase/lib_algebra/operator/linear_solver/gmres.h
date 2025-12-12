@@ -36,14 +36,14 @@
 #include <iostream>
 #include <string>
 
-#include "lib_algebra/operator/interface/operator.h"
-#include "common/profiler/profiler.h"
+//#include "lib_algebra/operator/interface/operator.h"
+//#include "common/profiler/profiler.h"
 #include "lib_algebra/operator/interface/pprocess.h"
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 ///	the GMREs method as a solver for linear operators
 /**

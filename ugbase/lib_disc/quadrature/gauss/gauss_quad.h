@@ -35,9 +35,9 @@
 
 #include "common/common.h"
 #include "../quadrature.h"
-#include "lib_disc/reference_element/reference_element.h"
+// #include "lib_disc/reference_element/reference_element.h"
 
-namespace ug{
+namespace ug {
 
 /// fixed order gauss quadrature
 template <typename TRefElem, int order>

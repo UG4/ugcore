@@ -30,15 +30,18 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <fstream>
-#include "lib_grid/lg_base.h"
-#include "lib_grid/algorithms/serialization.h"
 #include "file_io_lgb.h"
 
+#include <fstream>
 #include <sstream>
+
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-#include "common/boost_serialization_routines.h"
+
+#include "lib_grid/lg_base.h"
+#include "lib_grid/algorithms/serialization.h"
+
+#include "common/boost_serialization_routines.h" // for serialize
 #include "common/util/archivar.h"
 #include "common/util/factory.h"
 #include "lib_grid/refinement/projectors/projection_handler.h"
@@ -46,8 +49,7 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 enum LGBConstants : uint
 {
@@ -339,22 +341,22 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 //	check whether the values are ok
 	if(endianess != 1)
 	{
-		LOG("ERROR in LoadGridFromLGB: wrong endianess\n");
+		UG_LOG("ERROR in LoadGridFromLGB: wrong endianess\n");
 		return false;
 	}
 	if(intSize != sizeof(int))
 	{
-		LOG("ERROR in LoadGridFromLGB: bad integer-size\n");
+		UG_LOG("ERROR in LoadGridFromLGB: bad integer-size\n");
 		return false;
 	}
 	if(numberSize != sizeof(number))
 	{
-		LOG("ERROR in LoadGridFromLGB: bad number-size\n");
+		UG_LOG("ERROR in LoadGridFromLGB: bad number-size\n");
 		return false;
 	}
 	if((versionNumber < 2) || (versionNumber > 4))
 	{
-		LOG("ERROR in LoadGridFromLGB: bad file-version: " << versionNumber << ". Expected 2 or 3.\n");
+		UG_LOG("ERROR in LoadGridFromLGB: bad file-version: " << versionNumber << ". Expected 2 or 3.\n");
 		return false;
 	}
 
@@ -441,7 +443,7 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 	tbuf.read((char*)&magicNumber, sizeof(int));
 
 	if(magicNumber != 3478384){
-		LOG("ERROR in LoadGridFromLGB: Bad magic number at end of file: " << magicNumber << endl);
+		UG_LOG("ERROR in LoadGridFromLGB: Bad magic number at end of file: " << magicNumber << endl);
 		return false;
 	}
 //	done

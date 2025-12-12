@@ -34,12 +34,12 @@
 #define __H__UG__NODE_TREE__TRAVERSER_COLLISION_TREE__
 
 #include <stack>
+
 #include "../traverser.h"
 #include "../collision_element_info.h"
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
 
 class CollisionTreeRootNode;
 class CollisionEdgesNode;

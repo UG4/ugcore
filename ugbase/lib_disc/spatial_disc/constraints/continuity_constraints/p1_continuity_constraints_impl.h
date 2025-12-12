@@ -34,6 +34,7 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__CONSTRAINTS__CONTINUITY_CONSTRAINTS__P1_CONTINUITY_CONSTRAINTS_IMPL__
 
 #include "lib_disc/spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.h"
+
 #include "lib_disc/domain.h"
 
 namespace ug {

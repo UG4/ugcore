@@ -52,9 +52,9 @@
 #include "lib_disc/function_spaces/metric_spaces.h"
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace GridFunction{
+namespace ug {
+namespace bridge {
+namespace GridFunction {
 
 /**
  * \defgroup gridfnct_bridge Grid Function Bridge

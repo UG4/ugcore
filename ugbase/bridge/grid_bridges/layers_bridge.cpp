@@ -39,8 +39,8 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 /**
  * A template function for registering a degenerated layer manager for a

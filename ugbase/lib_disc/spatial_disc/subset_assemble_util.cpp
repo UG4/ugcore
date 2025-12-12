@@ -32,7 +32,7 @@
 
 #include "subset_assemble_util.h"
 
-namespace ug{
+namespace ug {
 
 
 

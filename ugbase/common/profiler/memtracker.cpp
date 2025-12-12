@@ -37,6 +37,7 @@
 
 
 #include "memtracker.h"
+
 #include "common/log.h"
 #include "assert.h"
 #include "common/util/string_util.h"
@@ -45,7 +46,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -125,7 +126,7 @@ void* operator new( size_t size ) throw(std::bad_alloc)
 	return ug::get_mem(size);
 }
 
-namespace ug{
+namespace ug {
 
 void DisplayVacantMemory()
 {

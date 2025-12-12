@@ -34,9 +34,10 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EXPORT_IMPL__
 
 #include "data_export.h"
+
 #include "lib_disc/reference_element/reference_element_util.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // DataExport

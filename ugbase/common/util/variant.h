@@ -35,15 +35,17 @@
 
 #include <iostream>
 #include <string>
+
 #include "smart_pointer.h"
 #include "common/types.h"
 #include "common/ug_config.h"
+
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_function_handle.h"
 #include "bindings/lua/lua_table_handle.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup ugbase_common_types
 /// \{
@@ -140,27 +142,27 @@ class UG_API Variant{
 
 		const Variant& operator =(const Variant& v);
 
-		inline Type type() const {return m_type;}
+		[[nodiscard]] inline Type type() const {return m_type;}
 
 		template <typename T>
 		inline static Type type() {return VT_INVALID;}
 
-		bool is_valid() const{return m_type;}
-		bool to_bool() const;
-		int to_int() const;
-		size_t to_size_t() const;
-		float to_float() const;
-		number to_number() const;
-		double to_double() const;
-		const char* to_c_string() const;
-		const std::string& to_std_string() const;
-		void* to_pointer() const;
-		const void* to_const_pointer() const;
-		SmartPtr<void> to_smart_pointer() const;
-		ConstSmartPtr<void> to_const_smart_pointer() const;
+		[[nodiscard]] bool is_valid() const{return m_type;}
+		[[nodiscard]] bool to_bool() const;
+		[[nodiscard]] int to_int() const;
+		[[nodiscard]] size_t to_size_t() const;
+		[[nodiscard]] float to_float() const;
+		[[nodiscard]] number to_number() const;
+		[[nodiscard]] double to_double() const;
+		[[nodiscard]] const char* to_c_string() const;
+		[[nodiscard]] const std::string& to_std_string() const;
+		[[nodiscard]] void* to_pointer() const;
+		[[nodiscard]] const void* to_const_pointer() const;
+		[[nodiscard]] SmartPtr<void> to_smart_pointer() const;
+		[[nodiscard]] ConstSmartPtr<void> to_const_smart_pointer() const;
 #ifdef UG_FOR_LUA
-		LuaFunctionHandle to_lua_function_handle() const;
-		LuaTableHandle to_lua_table_handle() const;
+		[[nodiscard]] LuaFunctionHandle to_lua_function_handle() const;
+		[[nodiscard]] LuaTableHandle to_lua_table_handle() const;
 #endif
 
 		template <typename T>
@@ -171,7 +173,7 @@ class UG_API Variant{
 		void assign_variant(const Variant& v);
 
 	///	returns the name of the current type
-		const char* type_name() const;
+		[[nodiscard]] const char* type_name() const;
 
 	private:
 		union{
@@ -208,7 +210,7 @@ template <> inline const void* 		   	Variant::to<const void*>() const 			{return
 template <> inline SmartPtr<void> 	   	Variant::to<SmartPtr<void> >() const 		{return to_smart_pointer();}
 template <> inline ConstSmartPtr<void> 	Variant::to<ConstSmartPtr<void> >() const 	{return to_const_smart_pointer();}
 #ifdef UG_FOR_LUA
-template <> inline LuaFunctionHandle 	Variant::to<LuaFunctionHandle>() const 		{return to_lua_function_handle();}
+template <> inline LuaFunctionHandle  Variant::to<LuaFunctionHandle>() const 		{return to_lua_function_handle();}
 template <> inline LuaTableHandle 	Variant::to<LuaTableHandle>() const 		{return to_lua_table_handle();}
 #endif
 

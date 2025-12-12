@@ -30,16 +30,17 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <vector>
-#include "extrude.h"
 #include "cylinder_extrusion.h"
+
+#include <vector>
+
+#include "extrude.h"
 #include "lib_grid/algorithms/remeshing/grid_adaption.h"
 #include "lib_grid/algorithms/selection_util.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 //	this method actually performs the extrusion. It is only callable from
 //	inside this file.
@@ -59,7 +60,7 @@ static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, Vertex* vrt,
 	Selector& sel = *pSel;
 	
 	if(!AdaptSurfaceGridToCylinder(sel, grid, vrt, direction, radius, rimSnapThreshold)){
-		LOG("  WARNING: AdaptSurfaceGridToCylinder failed during ExtrudeCylinder.\n");
+		UG_LOG("  WARNING: AdaptSurfaceGridToCylinder failed during ExtrudeCylinder.\n");
 		return false;
 	}
 

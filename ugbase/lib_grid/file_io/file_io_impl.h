@@ -35,7 +35,8 @@
 #define __H__LIB_GRID__FILE_IO_IMPL__
 
 #include "file_io.h"
-#include "lib_grid/algorithms/attachment_util.h"
+
+//#include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/algorithms/subset_util.h"
 
 namespace ug {
@@ -44,7 +45,7 @@ namespace ug {
 					      ISubsetHandler& srcSH, ISubsetHandler& destSH,
 						  Attachment<Vertex*>& aNewVrt)
 	{
-		Grid::VertexAttachmentAccessor<Attachment<Vertex*> > aaNewVrt(srcGrid, aNewVrt);
+		Grid::VertexAttachmentAccessor aaNewVrt(srcGrid, aNewVrt);
 		GridObjectCollection goc = srcGrid.get_grid_objects();
 		CustomVertexGroup vrts;
 

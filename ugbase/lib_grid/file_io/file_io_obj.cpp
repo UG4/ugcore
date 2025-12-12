@@ -30,20 +30,21 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "file_io_obj.h"
+
 #include <fstream>
 #include <vector>
 #include <cstring>
 #include <string>
 
-#include "file_io_obj.h"
 #include "../lg_base.h"
 #include "common/util/loader/loader_obj.h"
 #include "common/error.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 //TODO: disable automatic triangulation. create edges. create quads.
 ////////////////////////////////////////////////////////////////////////
 //	LoadGridFromOBJ

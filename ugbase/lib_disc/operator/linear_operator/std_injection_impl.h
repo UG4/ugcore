@@ -35,7 +35,7 @@
 
 #include "std_injection.h"
 
-namespace ug{
+namespace ug {
 
 /**
  * This functions assembles the interpolation matrix between to

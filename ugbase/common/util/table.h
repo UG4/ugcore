@@ -36,9 +36,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <iostream>
+//#include <iostream>
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup ugbase_common_types
 /// \{

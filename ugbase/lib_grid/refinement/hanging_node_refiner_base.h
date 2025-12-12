@@ -39,8 +39,8 @@
 #include "refiner_interface.h"
 #include "ref_mark_adjuster_interface.h"
 
-namespace ug
-{
+namespace ug {
+
 
 ///	\addtogroup lib_grid_algorithms_refinement
 ///	@{

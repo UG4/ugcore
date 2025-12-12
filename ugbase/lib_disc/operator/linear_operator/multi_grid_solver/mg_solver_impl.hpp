@@ -33,18 +33,20 @@
 #ifndef __H__UG__LIB_DISC__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__
 #define __H__UG__LIB_DISC__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__
 
+#include "mg_solver.h"
+
 #include <iostream>
 #include <sstream>
 #include <string>
+
 #include "common/profiler/profiler.h"
- #include "common/error.h"
+#include "common/error.h"
 #include "lib_algebra/operator/preconditioner/jacobi.h"
-#include "lib_disc/function_spaces/grid_function_util.h"
+//#include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/operator/linear_operator/std_transfer.h"
 #include "lib_disc/operator/linear_operator/std_injection.h"
 #include "lib_grid/tools/periodic_boundary_manager.h"
 #include "lib_disc/operator/linear_operator/level_preconditioner_interface.h"
-#include "mg_solver.h"
 
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
@@ -69,7 +71,7 @@
 	#define GMG_PROFILE_END()
 #endif
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor

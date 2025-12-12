@@ -32,7 +32,7 @@
 
 #include "mini.h"
 
-namespace ug{
+namespace ug {
 
 	const double MiniBubbleLSFS<ReferenceQuadrilateral>::SQRT_FIVE= 2.2360679774997896964091736687312762354406;
 

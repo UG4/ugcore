@@ -34,11 +34,11 @@
 #define __H__UG_BRIDGE__REGISTRY_IMPL__
 
 #include "registry_util.h"
-#include "common/util/typename.h"
+// #include "common/util/typename.h"
+#include "common/config.hpp"
 
-namespace ug{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 //////////////////////
 // global functions
@@ -58,9 +58,9 @@ namespace bridge
 
 template<typename TFunc>
 Registry& Registry::
-add_function(std::string funcName, TFunc func, std::string group,
-					 std::string retValInfos, std::string paramInfos,
-					 std::string tooltip, std::string help)
+add_function(const std::string& funcName, TFunc func, const std::string& group,
+					 const std::string& retValInfos, const std::string& paramInfos,
+					 const std::string& tooltip, const std::string& help)
 {
 	add_and_get_function(funcName, func, group, retValInfos, paramInfos,
 						 tooltip, help);
@@ -69,9 +69,9 @@ add_function(std::string funcName, TFunc func, std::string group,
 
 template<typename TFunc>
 ExportedFunction* Registry::
-add_and_get_function(std::string funcName, TFunc func, std::string group,
-					 std::string retValInfos, std::string paramInfos,
-					 std::string tooltip, std::string help)
+add_and_get_function(const std::string& funcName, TFunc func, const std::string& group,
+					 const std::string& retValInfos, const std::string& paramInfos,
+					 const std::string& tooltip, const std::string& help)
 {
 //	At this point the method name contains parameters (name|param1=...).
 //todo: they should be removed and specified with an extra parameter.
@@ -168,7 +168,7 @@ check_base_class(const std::string& className)
 
 template <typename TClass>
 ExportedClass<TClass>& Registry::
-add_class_(std::string className, std::string group, std::string tooltip)
+add_class_(const std::string& className, const std::string& group, const std::string& tooltip)
 {
 //	check that className is not already used
 	if(classname_registered(className))
@@ -206,13 +206,15 @@ add_class_(std::string className, std::string group, std::string tooltip)
 
 //	add new class to list of classes
 	m_vClass.push_back(newClass);
-
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+	m_classMap[className] = newClass;
+#endif
 	return *newClass;
 }
 
 template <typename TClass, typename TBaseClass>
 ExportedClass<TClass>& Registry::
-add_class_(std::string className, std::string group, std::string tooltip)
+add_class_(const std::string& className, const std::string& group, const std::string& tooltip)
 {
 //	check that className is not already used
 	if(classname_registered(className))
@@ -261,12 +263,15 @@ add_class_(std::string className, std::string group, std::string tooltip)
 
 //	add new class to list of classes
 	m_vClass.push_back(newClass);
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+	m_classMap[className] = newClass;
+#endif
 	return *newClass;
 }
 
 template <typename TClass, typename TBaseClass1, typename TBaseClass2>
 ExportedClass<TClass>& Registry::
-add_class_(std::string className, std::string group, std::string tooltip)
+add_class_(const std::string& className, const std::string& group, const std::string& tooltip)
 {
 //	check that className is not already used
 	if(classname_registered(className))
@@ -317,6 +322,9 @@ add_class_(std::string className, std::string group, std::string tooltip)
 
 //	add new class to list of classes
 	m_vClass.push_back(newClass);
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+	m_classMap[className] = newClass;
+#endif
 	return *newClass;
 }
 
@@ -327,11 +335,17 @@ get_class_()
 // 	get class names
 	const std::string& name = ClassNameProvider<TClass>::name();
 
+#if defined(FEATURE_REGISTRY_CLASS_NAME_MAP) && FEATURE_REGISTRY_CLASS_NAME_MAP == 1
+	auto it = m_classMap.find(name);
+	if (it != m_classMap.end()) {
+		return *dynamic_cast<ExportedClass<TClass>* >(it->second);
+	}
+#else
 //	look for class in this registry
 	for(size_t i = 0; i < m_vClass.size(); ++i)
 		if(name == m_vClass[i]->name())
 			return *dynamic_cast<ExportedClass<TClass>* >(m_vClass[i]);
-
+#endif
 //	not found
 	UG_THROW_REGISTRY_ERROR(name,
 	"Trying to get class with name '" << name

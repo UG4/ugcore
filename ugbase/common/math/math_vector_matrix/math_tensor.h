@@ -35,10 +35,10 @@
 
 #include <cstddef>
 #include <iostream>
+
 #include "../../types.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	MathTensor

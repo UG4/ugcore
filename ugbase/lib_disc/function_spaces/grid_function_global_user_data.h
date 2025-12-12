@@ -33,22 +33,25 @@
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_GLOBAL_USER_DATA__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_GLOBAL_USER_DATA__
 
-#include "common/common.h"
+#include <cmath> // fabs
 
+#include "common/common.h"
+#include "common/space_partitioning/ntree_traverser.h"
 #include "lib_grid/tools/subset_group.h"
 
-#include "lib_disc/common/function_group.h"
-#include "lib_disc/common/groups_util.h"
-#include "lib_disc/quadrature/quadrature.h"
+//#include "lib_disc/common/function_group.h"
+//#include "lib_disc/common/groups_util.h"
+//#include "lib_disc/quadrature/quadrature.h"
+
 #include "lib_disc/domain_util.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 
-#include <cmath>       /* fabs */
 
-namespace ug{
+
+namespace ug {
 
 
 

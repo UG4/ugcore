@@ -30,10 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "analyzing_solver.h"
+
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/cpu_algebra_types.h"
 #include "common/util/histogramm.h"
-namespace ug{
+
+namespace ug {
+
 void checksub(const CPUAlgebra::matrix_type &A)
 {
 	if(A.num_rows() == 0)

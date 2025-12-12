@@ -35,7 +35,7 @@
 
 #include "gauss_quad.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Implemented GaussQuadrature for ReferenceOctahedron

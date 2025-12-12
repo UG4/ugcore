@@ -37,27 +37,27 @@
 #ifdef UG_PARALLEL
 
 #include <iostream>
-#include <sstream>
-#include <string>
-#include <set>
+// #include <sstream>
+// #include <string>
+// #include <set>
 
-#include "lib_algebra/operator/interface/preconditioner.h"
+// #include "lib_algebra/operator/interface/preconditioner.h"
 #include "lib_algebra/operator/interface/linear_operator.h"
 #include "lib_algebra/operator/interface/linear_operator_inverse.h"
-#include "lib_algebra/operator/interface/preconditioned_linear_operator_inverse.h"
+// #include "lib_algebra/operator/interface/preconditioned_linear_operator_inverse.h"
 #include "lib_algebra/operator/interface/matrix_operator.h"
-#include "lib_algebra/operator/interface/matrix_operator_inverse.h"
-#include "lib_algebra/parallelization/parallelization.h"
+// #include "lib_algebra/operator/interface/matrix_operator_inverse.h"
+// #include "lib_algebra/parallelization/parallelization.h"
 #include "lib_algebra/operator/debug_writer.h"
-#include "schur_complement_inverse_interface.h"
+// #include "schur_complement_inverse_interface.h"
 #include "lib_algebra/operator/algebra_debug_writer.h"
-#include "pcl/pcl.h"
+// #include "pcl/pcl.h"
 
-#include "common/log.h"
+// #include "common/log.h"
 
 #include "schur.h"
 
-namespace ug{
+namespace ug {
 
 
 
@@ -97,7 +97,7 @@ class SchurComplementOperator
 	~SchurComplementOperator() override = default;
 
 	///	name of solver
-	virtual const char* name() const {return "My local Schur complement Solver";}
+	[[nodiscard]] virtual const char* name() const {return "My local Schur complement Solver";}
 
 
 	/// implementation of the operator for the solution dependent initialization.
@@ -129,11 +129,11 @@ class SchurComplementOperator
 	SmartPtr<MatrixOperator<matrix_type, vector_type> > sub_operator(int r, int c)
 	{return m_op[r][c];}
 
-	size_t sub_size(schur_slice_desc_type type) const {
+	[[nodiscard]] size_t sub_size(schur_slice_desc_type type) const {
 		return m_slicing.get_num_elems(type);
 	}
 
-	const SchurSlicingData &slicing() const
+	[[nodiscard]] const SchurSlicingData &slicing() const
 	{return m_slicing;}
 
 

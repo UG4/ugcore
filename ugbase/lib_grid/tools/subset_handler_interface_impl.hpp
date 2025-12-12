@@ -35,8 +35,8 @@
 
 #include "subset_handler_interface.h"
 
-namespace ug
-{
+namespace ug {
+
 /*
 template <>
 inline AttachmentPipe<Vertex*, ISubsetHandler>&

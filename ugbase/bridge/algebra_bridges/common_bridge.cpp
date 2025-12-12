@@ -66,10 +66,9 @@
 
 using namespace std;
 
-namespace ug{
-
-namespace bridge{
-namespace AlgebraCommon{
+namespace ug {
+namespace bridge {
+namespace AlgebraCommon {
 
 /// \addtogroup algebracommon_bridge
 /// \{

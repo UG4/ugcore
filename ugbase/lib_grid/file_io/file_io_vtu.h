@@ -40,13 +40,12 @@
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/tools/subset_handler_interface.h"
-#include "lib_grid/tools/selector_interface.h"
+//#include "lib_grid/tools/selector_interface.h"
 #include "lib_grid/common_attachments.h"
-#include "lib_grid/grid_objects/grid_objects.h"
+//#include "lib_grid/grid_objects/grid_objects.h"
 #include "lib_grid/callbacks/basic_callbacks.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 ///	Reads a grid to an vtu (vtk) file. internally uses GridReaderVTK.

@@ -36,17 +36,19 @@
 
 #ifdef LAPACK_AVAILABLE
 
-#include "lapack.h"
-#include "../small_algebra.h"
+#include <complex>
 
-#include "lapack_invert.h"
+//#include "lapack.h"
+//#include "../small_algebra.h"
+
+//#include "lapack_invert.h"
 #include "lapack_densematrix_inverse.h"
 #include "lapack_interface.h"
-#include <complex>
+
 #include "../small_matrix/densematrix.h"
 #include "common/error.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -123,7 +125,9 @@ int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_ty
 
 }
 #else // LAPACK_AVAILABLE
-namespace ug{
+
+namespace ug {
+
 template<typename A_type, typename TLambdaVectorType>
 int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_type> &X,
 		TLambdaVectorType &lambda, DenseMatrix<A_type> &B, bool bSortEigenvalues=false)

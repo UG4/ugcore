@@ -35,10 +35,11 @@
 
 #include "lib_algebra/small_algebra/blocks.h"
 #ifdef UG_PARALLEL
-#include "pcl/pcl.h"
+//#include "pcl/pcl.h"
+#include "lib_algebra/parallelization/parallel_vector.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 template<typename TBlock>
 bool BlockVectorFiniteAndNotTooBig(TBlock &v, double tooBigValue=1e24)

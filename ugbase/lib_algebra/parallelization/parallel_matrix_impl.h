@@ -35,8 +35,7 @@
 
 #include "parallel_matrix.h"
 
-namespace ug
-{
+namespace ug {
 
 template <typename TMatrix>
 typename ParallelMatrix<TMatrix>::this_type&

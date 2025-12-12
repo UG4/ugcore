@@ -39,8 +39,7 @@
 
 
 
-namespace ug
-{
+namespace ug {
 
 template<typename TDomain>
 void DiracSourceDisc<TDomain>::

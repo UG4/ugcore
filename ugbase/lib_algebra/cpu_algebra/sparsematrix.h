@@ -50,7 +50,7 @@
 #define CHECK_ROW_ITERATORS
 #endif
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup cpu_algebra
 ///	@{

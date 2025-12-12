@@ -36,7 +36,7 @@
 #include <vector>
 #include <string>
 
-namespace ug{
+namespace ug {
 
 
 std::string HistogrammString(std::vector<double> values);

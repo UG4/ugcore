@@ -39,12 +39,13 @@
 #define __H__LIBGRID__SELECTOR_MULTI_GRID__
 
 #include <cassert>
+
 #include "selector_interface.h"
 #include "../multi_grid.h"
 #include "../lib_grid_messages.h"
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 //	predeclarations
 class MultiGrid;
@@ -91,7 +92,7 @@ class MultiGrid;
  * // number of selected vertices on level 1
  * int nSelVrts = sel.num<Vertex>(1);
  *
- * // total number of selected triangles
+ * second// total number of selected triangles
  * int nSelTris = sel.num<Triangle>();
  *
  * // iteration over all faces

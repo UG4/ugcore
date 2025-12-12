@@ -37,8 +37,8 @@
 #include "util_algebra_dependent.h"
 #include "util_domain_dependent.h"
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup bridge
 /// \{

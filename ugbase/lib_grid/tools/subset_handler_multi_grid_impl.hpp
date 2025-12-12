@@ -33,10 +33,11 @@
 #ifndef __H__LIBGRID__SUBSET_HANDLER_MULTI_GRID_IMPL__
 #define __H__LIBGRID__SUBSET_HANDLER_MULTI_GRID_IMPL__
 
+#include "subset_handler_multi_grid.h"
+
 #include <cassert>
 
-namespace ug
-{
+namespace ug {
 
 template <typename TElem>
 typename geometry_traits<TElem>::iterator
@@ -225,13 +226,15 @@ change_elem_subset_indices(int indOld, int indNew)
 inline void MultiGridSubsetHandler::
 level_required(int level)
 {
-	while((int)m_levels.size() <= level) add_level();
+	while(static_cast<int>(m_levels.size()) <= level) {
+		add_level();
+	}
 }
 
 inline void MultiGridSubsetHandler::
 level_required(int level) const
 {
-	if(level >= (int)num_levels()){
+	if(level >= static_cast<int>(num_levels())){
 		UG_THROW("Can't create additional levels in const MGSubsetHandler. "
 						<< "num current levels: " << num_levels()
 						<< " required level: " << level);

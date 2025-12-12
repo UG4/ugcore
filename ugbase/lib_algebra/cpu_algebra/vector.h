@@ -33,15 +33,17 @@
 #ifndef __H__UG__CPU_ALGEBRA__VECTOR__
 #define __H__UG__CPU_ALGEBRA__VECTOR__
 
-// #include "sparsematrix.h"
-
-#include "../common/template_expressions.h"
-#include "../common/operations.h"
-#include "common/util/smart_pointer.h"
 #include <vector>
 
+// #include "sparsematrix.h"
+//#include "../common/template_expressions.h"
+#include "../common/operations.h"
+#include "common/util/smart_pointer.h"
 
-namespace ug{
+
+
+namespace ug {
+
 ///////////////////////////////////////////////////////////////////
 //							Vector
 ///////////////////////////////////////////////////////////////////

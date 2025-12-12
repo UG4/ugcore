@@ -36,7 +36,6 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/properties.hpp>
-
 #include <boost/graph/cuthill_mckee_ordering.hpp>
 
 #include "IOrderingAlgorithm.h"
@@ -44,9 +43,9 @@
 
 //debug
 #include "common/error.h"
-#include "common/log.h"
+//#include "common/log.h"
 
-namespace ug{
+namespace ug {
 
 
 template <typename G_t, typename M_t>

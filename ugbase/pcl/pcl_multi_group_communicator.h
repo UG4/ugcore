@@ -34,6 +34,7 @@
 #define __H__pcl_multi_group_communicator
 
 #include <vector>
+#include <map>
 
 #include "pcl_process_communicator.h"
 
@@ -49,9 +50,10 @@ namespace pcl {
  */
 class MultiGroupCommunicator {
 public:
-	MultiGroupCommunicator (ProcessCommunicator com = ProcessCommunicator());
-	MultiGroupCommunicator (const std::vector<bool>& participates,
-	                        ProcessCommunicator com = ProcessCommunicator());
+	explicit MultiGroupCommunicator (ProcessCommunicator com = ProcessCommunicator());
+
+	explicit MultiGroupCommunicator (const std::vector<bool>& participates,
+	                                 ProcessCommunicator com = ProcessCommunicator());
 
 	void reinit (const std::vector<bool>& participates);
 

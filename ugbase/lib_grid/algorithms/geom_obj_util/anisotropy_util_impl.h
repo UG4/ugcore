@@ -31,8 +31,13 @@
  * GNU Lesser General Public License for more details.
  */
 
+#ifndef LIB_GRID_ALGORITHM_ANISOTROPY_UTIL_H
+#define LIB_GRID_ALGORITHM_ANISOTROPY_UTIL_H
+
+#include "anisotropy_util.h"
+
 #include "lib_grid/algorithms/element_side_util.h"        // for GetOpposingSide
-#include "lib_grid/grid/grid_util.h"                      // for CompareVertices
+//#include "lib_grid/grid/grid_util.h"                      // for CompareVertices
 
 
 namespace ug {
@@ -602,3 +607,4 @@ AnisotropyState long_edges_of_anisotropic_elem
 
 } // namespace ug
 
+#endif

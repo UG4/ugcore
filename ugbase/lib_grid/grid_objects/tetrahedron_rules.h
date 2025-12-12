@@ -35,9 +35,9 @@
 
 #include "common/math/ugmath.h"
 
-namespace ug{
-namespace tet_rules
-{
+namespace ug {
+namespace tet_rules {
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //	REFINEMENT RULE

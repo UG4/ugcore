@@ -34,10 +34,9 @@
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_STORAGE_TYPE__
 
 #include <iostream>
-#include "common/types.h"
+//#include "common/types.h"
 
-namespace ug
-{
+namespace ug {
 
 ///\ingroup lib_algebra_parallelization
 /// Parallel Storage type

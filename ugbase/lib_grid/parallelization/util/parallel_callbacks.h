@@ -36,8 +36,7 @@
 #include "../distributed_grid.h"
 #include "common/assert.h"
 
-namespace ug
-{
+namespace ug {
 
 ///	Returns true if an element is a regular surface element.
 /**	Regular surface elements are elements which lie on the
@@ -47,7 +46,7 @@ namespace ug
 class IsRegularSurfaceElem
 {
 	public:
-		IsRegularSurfaceElem(const DistributedGridManager& dgm) :
+	explicit IsRegularSurfaceElem(const DistributedGridManager& dgm) :
 			m_dgm(dgm), m_mg(dgm.get_assigned_grid())
 		{
 			UG_ASSERT(m_mg, "A grid has to be assigned to the distributed grid manager.");

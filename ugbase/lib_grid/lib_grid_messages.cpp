@@ -32,7 +32,7 @@
 
 #include "lib_grid_messages.h"
 
-namespace ug{
+namespace ug {
 
 
 bool GridMessage_Adaption::adaption_begins() const

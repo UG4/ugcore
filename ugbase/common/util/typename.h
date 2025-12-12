@@ -35,7 +35,7 @@
 #include <string>
 #include "demangle.h"
 
-namespace ug{
+namespace ug {
 template<typename T>
 inline std::string TypeName(const T &t)
 {

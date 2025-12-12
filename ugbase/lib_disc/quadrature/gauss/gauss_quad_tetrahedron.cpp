@@ -32,11 +32,12 @@
 //  This file is parsed from UG 3.9.
 //  It provides the Gauss Quadratures for a reference tetrahedron.
 
-
-#include "../quadrature.h"
 #include "gauss_quad_tetrahedron.h"
 
-namespace ug{
+#include "../quadrature.h"
+
+
+namespace ug {
 
 template <>
 number GaussQuadBase<GaussQuadrature<ReferenceTetrahedron, 0>, 3, 0, 7>::m_vWeight[7] =

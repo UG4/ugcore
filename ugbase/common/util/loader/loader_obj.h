@@ -35,10 +35,10 @@
 
 #include <vector>
 #include <string>
+
 #include "../../math/ugmath.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_util
 /// \{

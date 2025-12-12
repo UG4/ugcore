@@ -38,7 +38,7 @@
 #include "lib_disc/spatial_disc/local_to_global/local_to_global_mapper.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain, typename TAlgebra>
 class IDomainConstraint;

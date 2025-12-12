@@ -31,9 +31,10 @@
  */
 
 
+#include "gauss_tensor_prod.h"
+
 #include "../quadrature.h"
 //ø #include "common/util/provider.h"
-#include "gauss_tensor_prod.h"
 #include "../gauss_legendre/gauss_legendre.h"
 #include "../gauss_jacobi/gauss_jacobi10.h"
 #include "../gauss_jacobi/gauss_jacobi20.h"

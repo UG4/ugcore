@@ -37,7 +37,7 @@
 #include "lib_grid/common_attachments.h"
 #include "lib_grid/grid/grid.h"
 
-namespace ug{
+namespace ug {
 
 ///	2d ray-element intersection for edges
 /** sminOut and smaxOut return the relative coordinates of the intersection

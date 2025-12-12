@@ -56,8 +56,7 @@ enum ng_volume_type
 	ng_hexahedra = 8
 };
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	ImportGridFromNG
@@ -82,7 +81,7 @@ bool ImportGridFromNG(Grid& grid,
 	//TODO: 2d parsing fails, since it is not fully supported.
 	//		There are problems in the element description (awaits F).
 		if(ng_read(filename, n, ninfo)){
-			LOG("WARNING in ImportGridFromNG: " << ninfo->err_msg << endl);
+			UG_LOG("WARNING in ImportGridFromNG: " << ninfo->err_msg << endl);
 			ng_info_delete(ninfo);
 			ng_delete(n);
 			return false;
@@ -170,7 +169,7 @@ bool ImportGridFromNG(Grid& grid,
 							vVertices[elem->nodes[3]]));
 					break;
 				default:
-					LOG("WARNING in ImportGridFromNG: Face type not implemented!" << endl);
+					UG_LOG("WARNING in ImportGridFromNG: Face type not implemented!" << endl);
 					break;
 			}
 
@@ -228,7 +227,7 @@ bool ImportGridFromNG(Grid& grid,
 							vVertices[elem->nodes[7]]));
 					break;
 				default:
-					LOG("WARNING in ImportGridFromNG: Volume type not implemented!" << endl);
+					UG_LOG("WARNING in ImportGridFromNG: Volume type not implemented!" << endl);
 					break;
 			}
 

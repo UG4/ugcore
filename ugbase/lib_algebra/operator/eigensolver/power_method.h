@@ -35,6 +35,7 @@
 
 #include <vector>
 #include <string>
+
 #include "additional_math.h"
 
 #include "lib_algebra/operator/interface/linear_operator.h"
@@ -42,11 +43,11 @@
 #include "lib_algebra/operator/interface/preconditioner.h"
 #include "lib_algebra/operator/interface/matrix_operator.h"
 
-#include "lib_algebra/algebra_common/vector_util.h"
+//#include "lib_algebra/algebra_common/vector_util.h"
 #include  "common/profiler/profiler.h"
 
 
-namespace ug{
+namespace ug {
 
 
 /**

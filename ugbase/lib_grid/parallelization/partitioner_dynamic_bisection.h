@@ -35,11 +35,12 @@
 
 //#include <utility>
 #include <vector>
+
 #include "parallel_grid_layout.h"
 #include "partitioner.h"
 #include "pcl/pcl_interface_communicator.h"
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup lib_grid_parallelization_distribution
 ///	\{
@@ -110,7 +111,7 @@ class Partitioner_DynamicBisection : public IPartitioner {
 		[[nodiscard]] bool supports_balance_weights() const override;
 		[[nodiscard]] virtual bool supports_connection_weights() const;
 
-		bool supports_repartitioning() const override {return false;}
+		[[nodiscard]] bool supports_repartitioning() const override {return false;}
 
 		bool partition(size_t baseLvl, size_t elementThreshold) override;
 
@@ -123,7 +124,7 @@ class Partitioner_DynamicBisection : public IPartitioner {
 	 * global communication. The drawback is, that static partitioning e.g.
 	 * can't be used to properly rebalance a distributed adaptive grid.*/
 		void enable_static_partitioning(bool enable) override;
-		bool static_partitioning_enabled() const;
+		[[nodiscard]] bool static_partitioning_enabled() const;
 
 	private:
 		enum constants{
@@ -142,13 +143,14 @@ class Partitioner_DynamicBisection : public IPartitioner {
 		struct Entry{
 			elem_t* elem;
 			size_t	next;
-			Entry(elem_t* e) : elem(e), next(s_invalidIndex)	{}
+			explicit Entry(elem_t* e) : elem(e), next(s_invalidIndex)	{}
 		};
 
 		struct ElemList{
 			ElemList() :
 				m_entries(nullptr), m_first(s_invalidIndex), m_last(s_invalidIndex), m_num(0)		{}
-			ElemList(std::vector<Entry>* entries) :
+
+			explicit ElemList(std::vector<Entry>* entries) :
 				m_entries(entries), m_first(s_invalidIndex), m_last(s_invalidIndex), m_num(0)	{}
 
 			void set_entry_list(std::vector<Entry>* entries)	{m_entries = entries;}
@@ -173,12 +175,12 @@ class Partitioner_DynamicBisection : public IPartitioner {
 				m_num = 0;
 			}
 
-			size_t size() const	{return m_num;}
-			bool empty() const {return m_num == 0;}
+			[[nodiscard]] size_t size() const	{return m_num;}
+			[[nodiscard]] bool empty() const {return m_num == 0;}
 
-			size_t first() const {return m_first;}
-			size_t last() const {return m_last;}
-			size_t next(size_t entryInd) const {return (*m_entries)[entryInd].next;}
+			[[nodiscard]] size_t first() const {return m_first;}
+			[[nodiscard]] size_t last() const {return m_last;}
+			[[nodiscard]] size_t next(size_t entryInd) const {return (*m_entries)[entryInd].next;}
 			elem_t* elem(size_t entryInd) const {return (*m_entries)[entryInd].elem;}
 
 			std::vector<Entry>* entries() {return m_entries;}
@@ -238,7 +240,7 @@ class Partitioner_DynamicBisection : public IPartitioner {
 		int get_next_split_axis();
 
 	///	returns the next valid split axis to the specified one
-		int get_next_split_axis(int lastAxis) const;
+		[[nodiscard]] int get_next_split_axis(int lastAxis) const;
 
 
 		void copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl);

@@ -32,11 +32,12 @@
 
 #include "vtkoutput.h"
 
-#include "common/util/os_info.h"  // for GetPathSeparator
-
 #include <sstream>
 
-namespace ug{
+#include "common/util/os_info.h"  // for GetPathSeparator
+
+
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Domain Output

@@ -42,8 +42,7 @@
 #include "pcl_comm_world.h"
 
 
-namespace pcl
-{
+namespace pcl {
 
 static bool PERFORM_MPI_INITIALIZATION = true;
 
@@ -74,7 +73,7 @@ void Init(int *argcp, char ***argvp)
 void Abort(int errorcode)
 {
 	PCL_PROFILE(pclAbort);
-	MPI_Abort(PCL_COMM_WORLD, 1); // ø todo parameter errorcode is not used, should it put here?
+	MPI_Abort(PCL_COMM_WORLD, errorcode);
 }
 
 ////////////////////////////////////////////////////////////////////////

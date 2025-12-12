@@ -33,12 +33,15 @@
  */
 
 #include "neurite_projector.h"
+
+#include <cmath>
+#include <iterator> // std::distance
+
+#include <boost/lexical_cast.hpp>
+
 #include "common/error.h"
 #include "lib_grid/global_attachments.h" // GlobalAttachments
 #include "lib_grid/algorithms/debug_util.h"  // ElementDebugInfo
-#include <cmath>
-#include <iterator> // std::distance
-#include <boost/lexical_cast.hpp>
 
 namespace ug {
 
@@ -276,8 +279,7 @@ NeuriteProjector::get_section_iterator(uint32_t nid, float t) const
 {
 	Section cmpSec(t);
 	const std::vector<Section>& vSections = m_vNeurites[nid].vSec;
-	std::vector<Section>::const_iterator itSec =
-		std::lower_bound(vSections.begin(), vSections.end(), cmpSec, CompareSections());
+	auto itSec = std::lower_bound(vSections.begin(), vSections.end(), cmpSec, CompareSections());
 
 	UG_COND_THROW(itSec == vSections.end(),
 		"Could not find section for parameter t = " << t << " in neurite " << nid << ".");
@@ -290,8 +292,7 @@ NeuriteProjector::get_soma_section_iterator(uint32_t nid, float t) const
 {
 	Section cmpSec(t);
 	const std::vector<Section>& vSections = m_vNeurites[nid].vSomaSec;
-	std::vector<Section>::const_iterator itSec =
-		std::lower_bound(vSections.begin(), vSections.end(), cmpSec, CompareSections());
+	auto itSec = std::lower_bound(vSections.begin(), vSections.end(), cmpSec, CompareSections());
 
 	UG_COND_THROW(itSec == vSections.end(),
 		"Could not find section for parameter t = " << t << " in neurite " << nid << ".");
@@ -608,7 +609,7 @@ void NeuriteProjector::average_params
 	// special case:
 	// when refining the initial BP volume the center vertex needs to belong
 	// to all branches and the parent
-	if (branchInfo.size() && nVrt == 8)
+	if (!branchInfo.empty() && nVrt == 8)
 	{
 		// all must have the same radius and parent
 		// and all children need to have count 4
@@ -666,7 +667,6 @@ void NeuriteProjector::average_params
 	size_t nForeignParents = 0;
 	std::vector<number> foreignParentRad(8, 0.0);
 	vector3 foreignParentPosCenter = 0.0;
-	number foreignParentsCenterRadial = 0.0;
 
 	size_t nForeignChildren = 0;
 	vector3 foreignChildrenPosCenter = 0.0;
@@ -709,6 +709,7 @@ void NeuriteProjector::average_params
 	// w.r.t. branching neurite
 	if (nForeignParents)
 	{
+		number foreignParentsCenterRadial = 0.0;
 		foreignParentPosCenter /= nForeignParents;
 
 		auto secIt = m_vNeurites[plainNID].vSec.begin();
@@ -737,8 +738,8 @@ void NeuriteProjector::average_params
 	// w.r.t. parent neurite TODO: ATM this is not done as it is not overly important.
 	if (nForeignChildren)
 	{
-		t *= ((number) nVrt) / (nVrt - nForeignChildren);
-		VecScale(v, v, ((number) nVrt) / (nVrt - nForeignChildren));
+		t *= static_cast<number>(nVrt) / (nVrt - nForeignChildren);
+		VecScale(v, v, static_cast<number>(nVrt) / (nVrt - nForeignChildren));
 	}
 
 
@@ -794,7 +795,7 @@ void NeuriteProjector::average_pos_from_parent(vector3& posOut, const IVertexGro
 	size_t nVrt = parent->num_vertices();
 	for (size_t i = 0; i < nVrt; ++i)
 		posOut += this->pos(parent->vertex(i));
-	posOut /= (number) nVrt;
+	posOut /= nVrt;
 }
 
 
@@ -932,7 +933,7 @@ static void bp_defect_and_gradient
 		for (size_t j = 0; j < nPts; ++j)
 		{
 			// transform point coords to current context
-			float t = (float) (start + qPoints[j].first*(end-start));
+			float t = static_cast<float>(start + qPoints[j].first * (end - start));
 			while (secIt->endParam < t) ++secIt;    // this should be safe as last section must end with 1.0
 
 			vector3 posAx, vel, blub;
@@ -1702,14 +1703,12 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	/// This works due to the fact that vBR is sorted ascending
 	bool isBP = false;
 	BranchingRegion cmpBR(t);
-	std::vector<BranchingRegion>::const_iterator it =
-		std::upper_bound(vBR.begin(), vBR.end(), cmpBR, CompareBranchingRegionEnds());
+	auto it = std::upper_bound(vBR.begin(), vBR.end(), cmpBR, CompareBranchingRegionEnds());
 
 	/// This works due to the fact that vSBR is sorted ascending
 	bool isSP = false;
 	SomaBranchingRegion cmpSBR(t);
-	std::vector<SomaBranchingRegion>::const_iterator it2 =
-		std::lower_bound(vSBR.begin(), vSBR.end(), cmpSBR, CompareSomaBranchingRegionsEnd());
+	auto it2 = std::lower_bound(vSBR.begin(), vSBR.end(), cmpSBR, CompareSomaBranchingRegionsEnd());
 
 	if (it2 != vSBR.end()) {
 		isSP = is_in_axial_range_around_soma_region(*it2, plainNID, vrt);

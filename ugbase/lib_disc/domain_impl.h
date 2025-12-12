@@ -34,12 +34,13 @@
 #define __H__UG__LIB_DISC__DOMAIN_IMPL__
 
 #include "domain.h"
+
 #include "common/serialization.h"
 #include "common/profiler/profiler.h"
 
 #ifdef UG_PARALLEL
 	#include "lib_grid/refinement/projectors/projectors.h"
-	#include "common/boost_serialization_routines.h"
+	//#include "common/boost_serialization_routines.h"
 	#include "common/util/archivar.h"
 	#include "common/util/factory.h"
 	#include <boost/archive/text_oarchive.hpp>
@@ -51,7 +52,7 @@
 #endif
 
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // IDomain

@@ -34,12 +34,11 @@
 #define __H__LIBGRID__FILE_IO_TETGEN__
 
 #include <vector>
-#include "../grid/grid.h"
+//#include "../grid/grid.h"
 #include "../subset_handler.h"
 #include "../common_attachments.h"
 
-namespace ug
-{
+namespace ug {
 
 bool LoadGridFromELE(Grid& grid, const char* filename, ISubsetHandler* pSH = nullptr,
 					APosition& aPos = aPosition);

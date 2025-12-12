@@ -35,7 +35,7 @@
 #define __H__UG__COMMON__STORAGE_H__
 
 
-namespace ug{
+namespace ug {
 
 /**
  * Use eMatrixOrdering to indicate if in a two-dimensional array

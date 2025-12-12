@@ -33,12 +33,12 @@
 #ifndef __H__LIB_GRID__EDGE_LENGTH_ADJUSTMENT_EXTENDED__
 #define __H__LIB_GRID__EDGE_LENGTH_ADJUSTMENT_EXTENDED__
 
-#include "lib_grid/lg_base.h"
-#include "common/ug_config.h"
 #include "edge_length_adjustment.h"
 
-namespace ug
-{
+#include "lib_grid/lg_base.h"
+#include "common/ug_config.h"
+
+namespace ug {
 
 ///	\addtogroup lib_grid_algorithms_remeshing
 ///	@{

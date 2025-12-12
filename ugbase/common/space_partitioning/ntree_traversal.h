@@ -33,7 +33,7 @@
 #ifndef __H__UG__ntree_traversal__
 #define __H__UG__ntree_traversal__
 
-namespace ug{
+namespace ug {
 
 enum TraversalStates{
 	DONT_TRAVERSE_CHILDREN,

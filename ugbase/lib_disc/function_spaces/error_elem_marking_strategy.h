@@ -41,7 +41,7 @@
 #include "lib_disc/function_spaces/grid_function.h"
 #include "error_indicator_util.h"
 
-namespace ug{
+namespace ug {
 
 /// Abstract base class for element marking (in adaptive refinement)
 template <typename TDomain> class IElementMarkingStrategy;

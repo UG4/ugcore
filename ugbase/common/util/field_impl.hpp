@@ -33,10 +33,12 @@
 #ifndef __H__UG_field_impl__
 #define __H__UG_field_impl__
 
+#include "field.h"
+
 #include <cstring>
 #include <algorithm>
 
-namespace ug{
+namespace ug {
 
 template <typename T> Field<T>::
 Field() :

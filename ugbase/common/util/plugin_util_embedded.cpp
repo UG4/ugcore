@@ -42,7 +42,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 bool PluginLoaded(const string &name)
 {

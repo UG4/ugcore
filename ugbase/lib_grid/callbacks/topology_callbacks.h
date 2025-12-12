@@ -36,7 +36,7 @@
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 #include "element_callback_interface.h"
 
-namespace ug{
+namespace ug {
 
 /** \ingroup lib_grid_element_callbacks
  * \{ */
@@ -46,7 +46,7 @@ class IsOnBoundary : public ElementCallback
 {
 	public:
 		explicit IsOnBoundary(Grid& g) :
-			m_grid(g)	{}
+			m_grid(g) {}
 
 		bool operator () (Vertex* v) const override {return callback(v);}
 		bool operator () (Edge* e) const override {return callback(e);}

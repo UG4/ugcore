@@ -34,16 +34,16 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GAUSS__
 
 #include "lib_algebra/operator/interface/preconditioner.h"
-#include "lib_algebra/algebra_common/core_smoothers.h"
+//#include "lib_algebra/algebra_common/core_smoothers.h"
 #include "lib_algebra/algebra_common/sparsematrix_util.h"
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
-	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallel_matrix_overlap.h"
 #endif
 
-#include "lib_algebra/algebra_common/sparsematrix_util.h"
+//#include "lib_algebra/algebra_common/sparsematrix_util.h"
 #include "lib_algebra/algebra_common/local_helper.h"
-#include "lib_algebra/small_algebra/small_matrix/print.h"
+//#include "lib_algebra/small_algebra/small_matrix/print.h"
 #include "lib_algebra/operator/preconditioner/ilut.h"
 #include "common/debug_print.h"
 #include "common/progress.h"
@@ -54,7 +54,7 @@
 
 
 
-namespace ug{
+namespace ug {
 
 //////////////////// FROM AMG //////////////////////////////
 

@@ -33,8 +33,10 @@
 #ifndef __UTIL__SECTION_CONTAINER__IMPL__
 #define __UTIL__SECTION_CONTAINER__IMPL__
 
-#include <cassert>
 #include "section_container.h"
+
+#include <cassert>
+
 
 /*
 I began work on reverse iterators. All associated code is in comments.
@@ -48,8 +50,7 @@ directly from normal iterators in the rbegin / rend calls. This is done
 similar in the current implementation of back.
 */
 
-namespace ug
-{
+namespace ug {
 
 template <typename TValue, typename TContainer>
 SectionContainer<TValue, TContainer>::

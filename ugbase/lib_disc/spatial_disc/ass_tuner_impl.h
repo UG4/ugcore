@@ -35,7 +35,7 @@
 
 #include "ass_tuner.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TAlgebra>
 void AssemblingTuner<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,

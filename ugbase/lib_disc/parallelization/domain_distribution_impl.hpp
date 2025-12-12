@@ -34,9 +34,11 @@
 #define __H__UG__domain_distribution_impl__
 
 #include "domain_distribution.h"
-#include "lib_grid/algorithms/attachment_util.h"
+
+//#include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/parallelization/deprecated/load_balancing.h"
-#include "common/serialization.h"
+//#include "common/serialization.h"
+#include "lib_grid/parallelization/util/parallel_callbacks.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
@@ -44,8 +46,7 @@
 #endif
 
 
-namespace ug
-{
+namespace ug {
 
 ///	partitions a domain by sorting all elements into a regular grid
 template <typename TDomain>
@@ -81,7 +82,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 
 		int bucketSubset = partitionMap.find_target_proc(localProc);
 		if(bucketSubset == -1)
-			bucketSubset = (int)partitionMap.num_target_procs();
+			bucketSubset = static_cast<int>(partitionMap.num_target_procs());
 
 	//	partition the grid
 		if(pMG->num<Volume>() > 0){
@@ -141,7 +142,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 											cbConsiderElem, bucketSubset);
 		}
 		else{
-			LOG("partitioning could not be performed - "
+			UG_LOG("partitioning could not be performed - "
 				<< "grid doesn't contain any elements!\n");
 			return false;
 		}
@@ -149,7 +150,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 	//	if elements have been assigned to bucketProc, then we have to make sure,
 	//	that it is also present in the process-map
 		if(!partitionHandler.empty(bucketSubset)){
-			if(bucketSubset >= (int)partitionMap.num_target_procs())
+			if(bucketSubset >= static_cast<int>(partitionMap.num_target_procs()))
 				partitionMap.add_target_proc(localProc);
 		}
 
@@ -183,7 +184,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 
 	int bucketSubset = partitionMap.find_target_proc(localProc);
 	if(bucketSubset == -1)
-		bucketSubset = (int)partitionMap.num_target_procs();
+		bucketSubset = static_cast<int>(partitionMap.num_target_procs());
 
 //	call the actual partitioning routine
 	if(pMG->num<Volume>() > 0){
@@ -212,7 +213,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 	}
 
 	if(!partitionHandler.empty(bucketSubset)){
-		if(bucketSubset >= (int)partitionMap.num_target_procs())
+		if(bucketSubset >= static_cast<int>(partitionMap.num_target_procs()))
 			partitionMap.add_target_proc(localProc);
 	}
 
@@ -247,7 +248,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 
 	int bucketSubset = partitionMap.find_target_proc(localProc);
 	if(bucketSubset == -1)
-		bucketSubset = (int)partitionMap.num_target_procs();
+		bucketSubset = static_cast<int>(partitionMap.num_target_procs());
 
 //	call the actual partitioning routine
 	if(pMG->num<Volume>() > 0){
@@ -278,7 +279,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 	}
 
 	if(!partitionHandler.empty(bucketSubset)){
-		if(bucketSubset >= (int)partitionMap.num_target_procs())
+		if(bucketSubset >= static_cast<int>(partitionMap.num_target_procs()))
 			partitionMap.add_target_proc(localProc);
 	}
 

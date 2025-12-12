@@ -30,13 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "grid_level.h"
+
 #include <sstream>
 #include <iomanip>     // std::setw
 
 #include "common/common.h"
-#include "grid_level.h"
 
-namespace ug{
+namespace ug {
 
 
 std::ostream& operator << (std::ostream& out, const GridLevel& v)

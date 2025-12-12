@@ -38,12 +38,12 @@
 
 #include "lib_grid/tools/subset_group.h"
 
-#include "lib_disc/domain_util.h"
-#include "lib_disc/common/groups_util.h"
-#include "lib_disc/local_finite_element/local_finite_element_provider.h"
-#include "lib_disc/reference_element/reference_mapping.h"
+// #include "lib_disc/domain_util.h"
+// #include "lib_disc/common/groups_util.h"
+// #include "lib_disc/local_finite_element/local_finite_element_provider.h"
+// #include "lib_disc/reference_element/reference_mapping.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TGridFunction>
 void AddFunctionValuesToGridCoordinatesP1(

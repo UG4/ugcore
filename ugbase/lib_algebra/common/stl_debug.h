@@ -38,7 +38,7 @@
 #ifndef NDEBUG
 #include "common/error.h"
 
-namespace ug{
+namespace ug {
 
 template<typename T, typename Allocator = std::allocator<T> >
 class stdvector : public std::vector<T, Allocator>

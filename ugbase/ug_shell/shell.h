@@ -36,9 +36,8 @@
 #include "bindings/lua/lua_debug.h"
 
 
-namespace ug{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 void InitShell();
 int RunShell(const char *prompt=nullptr);

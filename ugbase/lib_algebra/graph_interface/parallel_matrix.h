@@ -33,11 +33,14 @@
 #ifndef UG_GRAPH_INTERFACE_PARALLEL_MATRIX_H
 #define UG_GRAPH_INTERFACE_PARALLEL_MATRIX_H
 
-#include "sparsematrix_boost.h"
-#include <boost/iterator/filter_iterator.hpp>
+
 #include <utility>
 
-namespace ug{
+#include <boost/iterator/filter_iterator.hpp>
+
+#include "sparsematrix_boost.h"
+
+namespace ug {
 
 namespace detail{
 

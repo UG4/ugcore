@@ -38,7 +38,7 @@
 #include "lib_grid/algorithms/polychain_util.h"
 #include "lib_grid/grid/grid.h"
 
-namespace ug{
+namespace ug {
 
 inline bool Valence3VertexIsObsolete(const vector3& p, const vector3& c0,
 							  const vector3& c1, const vector3& c2,

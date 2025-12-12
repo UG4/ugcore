@@ -62,7 +62,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 HangingNodeRefiner_MultiGrid::
 HangingNodeRefiner_MultiGrid(SPRefinementProjector projector) :

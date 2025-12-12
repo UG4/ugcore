@@ -34,9 +34,9 @@
 #define __H__UG_smooth_partition_bounds
 
 #include "../partitioner.h"
-#include "lib_grid/iterators/lg_for_each.h"
+// #include "lib_grid/iterators/lg_for_each.h"
 
-namespace ug{
+namespace ug {
 
 ///	early draft. Currently only useful for prism-geometries in the d3f-wipp setting
 template <typename elem_t>/*, int dim>*/

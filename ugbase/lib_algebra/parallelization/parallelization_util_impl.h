@@ -34,11 +34,14 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION_UTIL_IMPL__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION_UTIL_IMPL__
 
-#include <vector>
-#include "common/error.h"
 #include "parallelization_util.h"
 
-namespace ug{
+#include <vector>
+
+#include "common/error.h"
+
+
+namespace ug {
 
 template <typename TIndVec>
 void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,

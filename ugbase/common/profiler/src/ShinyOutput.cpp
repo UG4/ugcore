@@ -26,8 +26,9 @@ see marks.
 */
 
 #include "ShinyOutput.h"
+#include "ShinyZone.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 #if SHINY_COMPILER == SHINY_COMPILER_MSVC
 #	pragma warning(disable: 4996)

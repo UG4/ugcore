@@ -33,7 +33,7 @@
 #ifndef __H__UG_refinement_mark_util
 #define __H__UG_refinement_mark_util
 
-namespace ug{
+namespace ug {
 
 /**
  * \param grid	The whose elements shall be marked.

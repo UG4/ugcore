@@ -30,18 +30,19 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "file_io_art.h"
+
 #include <fstream>
 #include <vector>
 #include <iostream>
 #include <cstring>
-#include "file_io_art.h"
+
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/attachment_util.h"
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 /**
  * If you havn't already used strtok on the given buffer,
@@ -456,7 +457,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 																	vLocalVrts[2], vLocalVrts[3]));
 				break;
 			default:
-				LOG("  LoadGridFromART: bad number of vertices in face: " << numVrts << " (3 or 4 supported).\n");
+				UG_LOG("  LoadGridFromART: bad number of vertices in face: " << numVrts << " (3 or 4 supported).\n");
 				continue;
 		};
 
@@ -556,7 +557,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 //TODO: create hexahedron
 				break;
 			default:
-				LOG("  LoadGridFromART: bad volume type. volume has "
+				UG_LOG("  LoadGridFromART: bad volume type. volume has "
 					<< vTris.size() << " triangles and "
 					<< vQuads.size() << " quadrilaterals.\n");
 				continue;
@@ -566,7 +567,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 		if(v)
 			sh.assign_subset(v, si);
 		else {
-			LOG("  LoadGridFromART: could not create volume element.\n");
+			UG_LOG("  LoadGridFromART: could not create volume element.\n");
 		}
 	}
 
@@ -581,7 +582,7 @@ bool SaveGridToART(Grid& srcGrid, const char* filename,
 				   ISubsetHandler* pSH, AVector3& aPos)
 {
 	if(!srcGrid.has_vertex_attachment(aPos)){
-		LOG("  Aborting SaveGridToART: position attachment is missing.\n");
+		UG_LOG("  Aborting SaveGridToART: position attachment is missing.\n");
 		return false;
 	}
 	

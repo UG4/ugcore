@@ -30,14 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "global_layout.h"
+
 #ifndef UG_PARALLEL
 #error "This only works with a UG_PARALLEL define."
 #endif
 
-#include "global_layout.h"
 
-namespace ug
-{
+namespace ug {
 
 void DeserializeAndAddGlobalInterface(BinaryBuffer &stream,	std::vector<AlgebraID> &interface)
 {

@@ -33,8 +33,9 @@
 #ifndef __H__UG__LIB_ALGEBRA__INDEX_VIEW_H__
 #define __H__UG__LIB_ALGEBRA__INDEX_VIEW_H__
 
-namespace ug
-{
+#include <vector>
+
+namespace ug {
 
 
 template<typename index_type>

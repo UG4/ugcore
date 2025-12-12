@@ -36,9 +36,10 @@
 #ifndef __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__HEXAHEDRON__
 #define __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__HEXAHEDRON__
 
+#include "lib_disc/reference_element/reference_element.h"
 #include "gauss_quad.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Implemented GaussQuadrature for ReferenceHexahedron

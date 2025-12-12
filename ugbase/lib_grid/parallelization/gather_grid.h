@@ -37,7 +37,7 @@
 #include "lib_grid/algorithms/serialization.h"
 #include "pcl/pcl_process_communicator.h"
 
-namespace ug{
+namespace ug {
 
 ///	Gathers selected parts of a grid into 'gridOut' on 'rootProc'
 /**	After the operation completes, 'gridOut' on 'rootProc' will contain the

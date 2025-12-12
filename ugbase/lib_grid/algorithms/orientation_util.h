@@ -35,7 +35,7 @@
 
 #include "../grid/grid.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 ///	inverts the orientation of all elements between elemsBegin and elemsEnd

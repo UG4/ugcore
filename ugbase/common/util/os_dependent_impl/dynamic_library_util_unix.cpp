@@ -30,11 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <dlfcn.h>
 #include "../dynamic_library_util.h"
+
+#include <dlfcn.h>
 #include <string>
 
-namespace ug{
+
+namespace ug {
 
 DynLibHandle OpenLibrary(const char* fileName)
 {

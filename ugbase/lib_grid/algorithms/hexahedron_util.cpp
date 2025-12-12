@@ -31,10 +31,11 @@
  */
 
 #include "hexahedron_util.h"
+
 #include "../grid_objects/prism_rules.h"
 #include "geom_obj_util/face_util.h"
 
-namespace ug{
+namespace ug {
 
 Hexahedron* CreateHexahedronFromPrisms(Grid& grid, Prism* p0, Prism* p1)
 {

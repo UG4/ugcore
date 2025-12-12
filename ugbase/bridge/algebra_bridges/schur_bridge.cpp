@@ -51,10 +51,9 @@
 #include "../util_overloaded.h"
 using namespace std;
 
-namespace ug{
-
-namespace bridge{
-namespace Schur{
+namespace ug {
+namespace bridge {
+namespace Schur {
 
 /**
  * \defgroup precond_bridge Preconditioner Bridge

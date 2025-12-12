@@ -33,13 +33,15 @@
 #ifndef __H__UG__hash_impl__
 #define __H__UG__hash_impl__
 
-#include <cassert>
-#include <algorithm>
-#include <limits>
-#include "common/error.h"
 #include "hash.h"
 
-namespace ug{
+#include <cassert>
+#include <algorithm>
+// #include <limits>
+#include "common/error.h"
+#include "hash_function.h"
+
+namespace ug {
 
 template <typename TKey, typename TValue>
 Hash<TKey, TValue>::

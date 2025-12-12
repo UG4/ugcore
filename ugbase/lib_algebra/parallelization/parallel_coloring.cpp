@@ -43,15 +43,15 @@
  *
  */
 
+#include "parallel_coloring.h"
 
 #include "common/common.h"
 #include "pcl/pcl.h"
-#include "parallel_coloring.h"
 #include "lib_algebra/common/stl_debug.h"
 
 
-namespace ug
-{
+namespace ug {
+
 DebugID DBG_COLORING("ParallelColoring");
 
 int ParallelColoring::color(pcl::InterfaceCommunicator<IndexLayout> &com)

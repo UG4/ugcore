@@ -34,10 +34,10 @@
 #define __H__LIB_GRID__GRID_UTIL__
 
 #include <vector>
+
 #include "grid_base_objects.h"
 
-namespace ug
-{
+namespace ug {
 
 class Grid;
 

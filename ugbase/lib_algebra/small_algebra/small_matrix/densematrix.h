@@ -36,10 +36,11 @@
 
 #include <iostream>
 #include <cassert>
+
 #include "../storage/storage.h"
 #include "densevector.h"
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup small_algebra
 /// \{
@@ -73,7 +74,7 @@ public:
 	
 public:
 	// 'tors
-	DenseMatrix();
+	DenseMatrix() = default;
 	explicit DenseMatrix(double val);
 	DenseMatrix(const this_type &rhs);
 

@@ -33,14 +33,13 @@
 #ifndef __H__LIB_GRID__GEOMETRIC_OBJECT_COLLECTION__
 #define __H__LIB_GRID__GEOMETRIC_OBJECT_COLLECTION__
 
-#include <list>
+//#include <list>
 #include "grid_base_objects.h"
 #include "common/util/section_container.h"
 #include "element_storage.h"
 #include "grid_base_object_traits.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup lib_grid_grid
 /// @{

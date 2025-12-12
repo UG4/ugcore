@@ -30,9 +30,11 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "grid.h"
+
 #include <cassert>
 #include <algorithm>
-#include "grid.h"
+
 //ø #include "grid_util.h"
 #include "common/common.h"
 #include "lib_grid/attachments/attached_list.h"
@@ -45,8 +47,8 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	implementation of Grid
@@ -880,7 +882,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_begin(Vertex* vrt)
 {
 	if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
-		LOG("WARNING in associated_edges_begin(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << endl);
+		UG_LOG("WARNING in associated_edges_begin(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << endl);
 		vertex_store_associated_edges(true);
 	}
 	return m_aaEdgeContainerVERTEX[vrt].begin();
@@ -890,7 +892,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_end(Vertex* vrt)
 {
 	if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
-		LOG("WARNING in associated_edges_end(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << endl);
+		UG_LOG("WARNING in associated_edges_end(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << endl);
 		vertex_store_associated_edges(true);
 	}
 	return m_aaEdgeContainerVERTEX[vrt].end();
@@ -900,7 +902,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_begin(Face* face)
 {
 	if(!option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_EDGES))
 	{
-		LOG("WARNING in associated_edges_begin(face): auto-enabling FACEOPT_STORE_ASSOCIATED_EDGES." << endl);
+		UG_LOG("WARNING in associated_edges_begin(face): auto-enabling FACEOPT_STORE_ASSOCIATED_EDGES." << endl);
 		face_store_associated_edges(true);
 	}
 	return m_aaEdgeContainerFACE[face].begin();
@@ -910,7 +912,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_end(Face* face)
 {
 	if(!option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_EDGES))
 	{
-		LOG("WARNING in associated_edges_end(face): auto-enabling FACEOPT_STORE_ASSOCIATED_EDGES." << endl);
+		UG_LOG("WARNING in associated_edges_end(face): auto-enabling FACEOPT_STORE_ASSOCIATED_EDGES." << endl);
 		face_store_associated_edges(true);
 	}
 	return m_aaEdgeContainerFACE[face].end();
@@ -920,7 +922,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_begin(Volume* vol)
 {
 	if(!option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
-		LOG("WARNING in associated_edges_begin(vol): auto-enabling VOLOPT_STORE_ASSOCIATED_EDGES." << endl);
+		UG_LOG("WARNING in associated_edges_begin(vol): auto-enabling VOLOPT_STORE_ASSOCIATED_EDGES." << endl);
 		volume_store_associated_edges(true);
 	}
 	return m_aaEdgeContainerVOLUME[vol].begin();
@@ -930,7 +932,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_end(Volume* vol)
 {
 	if(!option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
-		LOG("WARNING in associated_edges_end(vol): auto-enabling VOLOPT_STORE_ASSOCIATED_EDGES." << endl);
+		UG_LOG("WARNING in associated_edges_end(vol): auto-enabling VOLOPT_STORE_ASSOCIATED_EDGES." << endl);
 		volume_store_associated_edges(true);
 	}
 	return m_aaEdgeContainerVOLUME[vol].end();
@@ -942,7 +944,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_begin(Vertex* vrt)
 {
 	if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_FACES))
 	{
-		LOG("WARNING in associated_faces_begin(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << endl);
+		UG_LOG("WARNING in associated_faces_begin(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << endl);
 		vertex_store_associated_faces(true);
 	}
 	return m_aaFaceContainerVERTEX[vrt].begin();
@@ -952,7 +954,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_end(Vertex* vrt)
 {
 	if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_FACES))
 	{
-		LOG("WARNING in associated_faces_end(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << endl);
+		UG_LOG("WARNING in associated_faces_end(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << endl);
 		vertex_store_associated_faces(true);
 	}
 	return m_aaFaceContainerVERTEX[vrt].end();
@@ -962,7 +964,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_begin(Edge* edge)
 {
 	if(!option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
-		LOG("WARNING in associated_faces_begin(edge): auto-enabling EDGEOPT_STORE_ASSOCIATED_FACES." << endl);
+		UG_LOG("WARNING in associated_faces_begin(edge): auto-enabling EDGEOPT_STORE_ASSOCIATED_FACES." << endl);
 		edge_store_associated_faces(true);
 	}
 	return m_aaFaceContainerEDGE[edge].begin();
@@ -972,7 +974,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_end(Edge* edge)
 {
 	if(!option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
-		LOG("WARNING in associated_faces_end(edge): auto-enabling EDGEOPT_STORE_ASSOCIATED_FACES." << endl);
+		UG_LOG("WARNING in associated_faces_end(edge): auto-enabling EDGEOPT_STORE_ASSOCIATED_FACES." << endl);
 		edge_store_associated_faces(true);
 	}
 	return m_aaFaceContainerEDGE[edge].end();
@@ -982,7 +984,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_begin(Volume* vol)
 {
 	if(!option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES))
 	{
-		LOG("WARNING in associated_faces_begin(vol): auto-enabling VOLOPT_STORE_ASSOCIATED_FACES." << endl);
+		UG_LOG("WARNING in associated_faces_begin(vol): auto-enabling VOLOPT_STORE_ASSOCIATED_FACES." << endl);
 		volume_store_associated_faces(true);
 	}
 	return m_aaFaceContainerVOLUME[vol].begin();
@@ -992,7 +994,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_end(Volume* vol)
 {
 	if(!option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES))
 	{
-		LOG("WARNING in associated_faces_end(vol): auto-enabling VOLOPT_STORE_ASSOCIATED_FACES." << endl);
+		UG_LOG("WARNING in associated_faces_end(vol): auto-enabling VOLOPT_STORE_ASSOCIATED_FACES." << endl);
 		volume_store_associated_faces(true);
 	}
 	return m_aaFaceContainerVOLUME[vol].end();
@@ -1004,7 +1006,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(Vertex* vrt)
 {
 	if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_VOLUMES))
 	{
-		LOG("WARNING in associated_volumes_begin(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+		UG_LOG("WARNING in associated_volumes_begin(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		vertex_store_associated_volumes(true);
 	}
 	return m_aaVolumeContainerVERTEX[vrt].begin();
@@ -1014,7 +1016,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Vertex* vrt)
 {
 	if(!option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_VOLUMES))
 	{
-		LOG("WARNING in associated_volumes_end(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+		UG_LOG("WARNING in associated_volumes_end(vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		vertex_store_associated_volumes(true);
 	}
 	return m_aaVolumeContainerVERTEX[vrt].end();
@@ -1024,7 +1026,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(Edge* edge)
 {
 	if(!option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
-		LOG("WARNING in associated_volumes_begin(edge): auto-enabling EDGEOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+		UG_LOG("WARNING in associated_volumes_begin(edge): auto-enabling EDGEOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		edge_store_associated_volumes(true);
 	}
 	return m_aaVolumeContainerEDGE[edge].begin();
@@ -1034,7 +1036,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Edge* edge)
 {
 	if(!option_is_enabled(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
-		LOG("WARNING in associated_volumes_end(edge): auto-enabling EDGEOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+		UG_LOG("WARNING in associated_volumes_end(edge): auto-enabling EDGEOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		edge_store_associated_volumes(true);
 	}
 	return m_aaVolumeContainerEDGE[edge].end();
@@ -1044,7 +1046,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(Face* face)
 {
 	if(!option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
-		LOG("WARNING in associated_volumes_begin(face): auto-enabling FACEOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+		UG_LOG("WARNING in associated_volumes_begin(face): auto-enabling FACEOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		face_store_associated_volumes(true);
 	}
 	return m_aaVolumeContainerFACE[face].begin();
@@ -1054,7 +1056,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Face* face)
 {
 	if(!option_is_enabled(FaceOptions::FACEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
-		LOG("WARNING in associated_volumes_end(face): auto-enabling FACEOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+		UG_LOG("WARNING in associated_volumes_end(face): auto-enabling FACEOPT_STORE_ASSOCIATED_VOLUMES." << endl);
 		face_store_associated_volumes(true);
 	}
 	return m_aaVolumeContainerFACE[face].end();

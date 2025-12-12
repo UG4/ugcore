@@ -41,7 +41,7 @@
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 //	DoFPositions

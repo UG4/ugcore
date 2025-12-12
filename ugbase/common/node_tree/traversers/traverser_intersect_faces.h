@@ -34,12 +34,13 @@
 #define __H__UG__NODE_TREE__INTERSECT_FACES__
 
 #include <vector>
+
 #include "common/math/ugmath.h"
 #include "traverser_collision_tree.h"
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
+
 ////////////////////////////////////////////////////////////////////////////////
 ///	traverses a node-tree and intersect a given face with the contained geometry.
 /**	Currently only triangles are supported.

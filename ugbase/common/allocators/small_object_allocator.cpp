@@ -31,6 +31,7 @@
  */
 
 #include "small_object_allocator.h"
+
 #include <cassert>
 
 FixedAllocator::

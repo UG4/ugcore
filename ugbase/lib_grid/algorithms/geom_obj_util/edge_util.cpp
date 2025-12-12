@@ -30,8 +30,10 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <vector>
 #include "edge_util.h"
+
+#include <vector>
+
 #include "lib_grid/grid/grid_util.h"
 #include "vertex_util.h"
 #include "face_util.h"
@@ -43,8 +45,7 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 int GetEdgeIndex(Face* f, Edge* e)
@@ -55,7 +56,7 @@ int GetEdgeIndex(Face* f, Edge* e)
 	{
 		f->edge_desc(i, ed);
 		if(CompareVertices(e, &ed))
-			return (int)i;
+			return static_cast<int>(i);
 	}
 	return -1;
 }
@@ -69,7 +70,7 @@ int GetEdgeIndex(Volume* vol, Edge* e)
 	{
 		vol->edge_desc(i, ed);
 		if(CompareVertices(e, &ed))
-			return (int)i;
+			return static_cast<int>(i);
 	}
 	return -1;
 }

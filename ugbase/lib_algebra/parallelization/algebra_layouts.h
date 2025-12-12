@@ -34,11 +34,11 @@
 #define __H__UG4__LIB_ALGEBRA__PARALLELIZATION__ALGEBRA_LAYOUTS__
 
 #ifdef UG_PARALLEL
-#include "pcl/pcl_base.h"
+//#include "pcl/pcl_base.h"
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 #ifdef UG_PARALLEL
 

@@ -34,7 +34,8 @@
 #define SPARSE_VECTOR_H_
 
 #include <map>
-namespace ug{
+
+namespace ug {
 
 template<typename T>
 class SparseVector

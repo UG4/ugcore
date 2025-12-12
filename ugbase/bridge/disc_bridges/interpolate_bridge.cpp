@@ -47,9 +47,9 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace Interpolate{
+namespace ug {
+namespace bridge {
+namespace Interpolate {
 
 /**
  * \defgroup interpolate_bridge Interpolation Bridge

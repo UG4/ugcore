@@ -35,8 +35,7 @@
 
 #include "lib_grid/grid/grid.h"
 
-namespace ug
-{
+namespace ug {
 
 ///	\addtogroup lib_grid_algorithms_trees
 ///	@{

@@ -30,15 +30,17 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <sstream>
 #include "marker_points.h"
+
+#include <sstream>
+
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/file_io/file_io.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 
 MarkerPoint::MarkerPoint() :
 	localCoord(0, 0, 0),

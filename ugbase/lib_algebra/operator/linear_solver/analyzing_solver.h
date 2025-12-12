@@ -33,13 +33,15 @@
 #ifndef __H__LIB_ALGEBRA__LAPACK_ANALYZING_SOLVER__
 #define __H__LIB_ALGEBRA__LAPACK_ANALYZING_SOLVER__
 
+
 #include "../interface/linear_operator_inverse.h"
 #include "../interface/matrix_operator.h"
 #include "common/error.h"
 #include "common/util/smart_pointer.h"
 #include "common/util/histogramm.h"
+#include "lib_algebra/cpu_algebra_types.h"
 
-namespace ug{
+namespace ug {
 
 void checksub(const CPUAlgebra::matrix_type &A);
 

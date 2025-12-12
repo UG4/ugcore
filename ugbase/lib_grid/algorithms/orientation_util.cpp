@@ -32,7 +32,7 @@
 
 #include "orientation_util.h"
 
-namespace ug{
+namespace ug {
 
 bool EdgeOrientationMatches(EdgeVertices* ev, Face* f)
 {

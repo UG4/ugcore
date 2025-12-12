@@ -33,22 +33,22 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_MATRIX_OVERLAP_IMPL__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_MATRIX_OVERLAP_IMPL__
 
+
 #include <vector>
 #include <set>
 #include <map>
 
-#include "parallelization_util.h"
+//#include "parallelization_util.h"
 //#include "test_layout.h"
-#include "common/util/sort_util.h"
+//#include "common/util/sort_util.h"
 #include "common/util/binary_buffer.h"
 #include "lib_algebra/algebra_common/sparsematrix_util.h"
 #include "parallel_nodes.h"
 
 #include "row_sending_scheme.h"
-#include "new_layout_creator.h"
+//#include "new_layout_creator.h"
 
-namespace ug
-{
+namespace ug {
 
 extern DebugID DBG_MATRIX_OVERLAP;
 

@@ -33,11 +33,12 @@
 #ifndef __H__UG__LIB_GRID__parallelization_util_impl__
 #define __H__UG__LIB_GRID__parallelization_util_impl__
 
+#include "parallelization_util.h"
+
 #include "util/compol_copy_attachment.h"
 #include "pcl/pcl_interface_communicator.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 template <typename TGeomObj>

@@ -36,7 +36,7 @@
 #include "partitioner.h"
 #include "lib_grid/algorithms/volume_calculation.h"
 
-namespace ug{
+namespace ug {
 
 ///	Creates a process-hierarchy that fulfills the given conditions.
 SPProcessHierarchy
@@ -109,7 +109,7 @@ class AnisotropicBalanceWeights : public IBalanceWeights{
 			m_weightFactor = weightFactor;
 		}
 
-		virtual number weight_factor() const	{return m_weightFactor;}
+		[[nodiscard]] virtual number weight_factor() const	{return m_weightFactor;}
 
 		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos)
 		{

@@ -34,9 +34,10 @@
 #define __H__UG_isolated_elements
 
 #include <vector>
+
 #include "lib_grid/grid/grid.h"
 
-namespace ug{
+namespace ug {
 
 /**	Writes all elements between 'begin' and 'end' which are not sides of
  * elements in 'grid' to 'elemsOut'. This method only makes sense if called

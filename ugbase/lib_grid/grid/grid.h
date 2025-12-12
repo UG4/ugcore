@@ -36,10 +36,13 @@
 #include <vector>
 #include <list>
 #include <memory>
+
 #include <boost/function.hpp>
+
 #include "common/util/message_hub.h"
 #include "common/ug_config.h"
-#include "grid_constants.h"
+#include "common/util/pointer_const_array.h"
+//#include "grid_constants.h"
 #include "grid_base_objects.h"
 #include "grid_observer.h"
 #include "grid_object_collection.h"
@@ -59,8 +62,7 @@
 	#define GRID_PROFILE_END()
 #endif
 
-namespace ug
-{
+namespace ug {
 
 //	predeclaration of the distributed grid manager, which handles parallelization
 //	of grids. If you want to use it, you have to include

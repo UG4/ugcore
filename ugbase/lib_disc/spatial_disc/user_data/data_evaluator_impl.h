@@ -33,7 +33,9 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EVALUATOR_IMPL__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EVALUATOR_IMPL__
 
-namespace ug{
+#include "data_evaluator.h"
+
+namespace ug {
 
 template <typename TDomain, typename TElemDisc>
 DataEvaluatorBase<TDomain, TElemDisc>::

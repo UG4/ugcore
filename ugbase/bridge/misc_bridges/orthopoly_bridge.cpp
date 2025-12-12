@@ -30,20 +30,21 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "../util_overloaded.h"
-#include "ug.h"
-#include "bridge/bridge.h"
+
+//#include <cstdlib>
+#include <string>
+
+//#include "../util_overloaded.h"
+//#include "ug.h"
+//#include "bridge/bridge.h"
 #include "common/math/misc/orthopoly.h"
 #include "registry/registry.h"
 
-#include <cstdlib>
-#include <string>
 
 using namespace std;
 
-namespace ug{
-
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 /// \ingroup misc_bridge
 /// \{

@@ -37,6 +37,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+
 #include "common/math/misc/math_util.h"
 #include "lib_grid/algorithms/geom_obj_util/volume_util.h"
 #include "lib_grid/grid/grid_base_objects.h"
@@ -171,7 +172,7 @@ struct AspectRatioInfo {
 	number mean;
 	number sd;
 
-	std::string to_string();
+	std::string to_string() const;
 };
 
 

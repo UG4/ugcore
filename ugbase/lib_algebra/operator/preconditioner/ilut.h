@@ -36,20 +36,17 @@
 #include "common/util/smart_pointer.h"
 #include "lib_algebra/operator/interface/preconditioner.h"
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
 #endif
 #include "common/progress.h"
 #include "common/util/ostream_util.h"
 #include "common/profiler/profiler.h"
-
 #include "lib_algebra/algebra_common/vector_util.h"
-
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
 #include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h" // for backward compatibility
-
 #include "lib_algebra/algebra_common/permutation_util.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TAlgebra>
 class ILUTPreconditioner : public IPreconditioner<TAlgebra>

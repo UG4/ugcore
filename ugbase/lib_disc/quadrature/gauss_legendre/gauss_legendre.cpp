@@ -31,11 +31,11 @@
  */
 
 #include "gauss_legendre.h"
-#include "../quadrature.h"
-#include "common/util/provider.h"
 
-namespace ug
-{
+#include "../quadrature.h"
+//#include "common/util/provider.h"
+
+namespace ug {
 
 GaussLegendre::GaussLegendre(size_t order)
 {

@@ -30,29 +30,26 @@
  * GNU Lesser General Public License for more details.
  */
 
-
-#include "registry/registry.h"
-
-#include "lib_algebra/cpu_algebra_types.h"
-#include "suffix_tag.h"
+#ifndef UTIL_ALGEBRA_DEPENDENT_H
+#define	UTIL_ALGEBRA_DEPENDENT_H
 
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/empty.hpp>
 #include <boost/mpl/front.hpp>
 #include <boost/mpl/pop_front.hpp>
+#include <boost/mpl/size.hpp>
 
-#include "boost/mpl/size.hpp"
+#include "registry/registry.h"
+
+#include "lib_algebra/cpu_algebra_types.h"
+//#include "suffix_tag.h"
 
 #include "common/util/end_boost_list.h"
 
-#ifndef UTIL_ALGEBRA_DEPENDENT_H
-#define	UTIL_ALGEBRA_DEPENDENT_H
 
-
-
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup bridge
 /// \{

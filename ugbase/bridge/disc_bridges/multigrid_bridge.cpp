@@ -57,9 +57,9 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace MultiGrid{
+namespace ug {
+namespace bridge {
+namespace MultiGrid {
 
 /**
  * \defgroup multigrid_bridge Multi Grid Bridge

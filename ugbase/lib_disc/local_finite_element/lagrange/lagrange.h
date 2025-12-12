@@ -37,11 +37,11 @@
 #include "../local_finite_element_provider.h"
 #include "../local_dof_set.h"
 #include "lagrange_local_dof.h"
-#include "lib_disc/common/multi_index.h"
+// #include "lib_disc/common/multi_index.h"
 #include "common/util/metaprogramming_util.h"
-#include "lib_grid/grid/grid_base_objects.h"
+// #include "lib_grid/grid/grid_base_objects.h"
 
-namespace ug{
+namespace ug {
 
 /// Lagrange Shape Function Set without virtual functions and fixed order
 template <typename TRefElem, int TOrder>

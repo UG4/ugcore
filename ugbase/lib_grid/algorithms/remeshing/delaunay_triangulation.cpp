@@ -30,8 +30,10 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <algorithm>
 #include "delaunay_triangulation.h"
+
+#include <algorithm>
+
 #include "lib_grid/algorithms/grid_generation/triangle_fill_sweep_line.h"
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/algorithms/polychain_util.h"
@@ -39,7 +41,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 class DelaunayDebugSaver

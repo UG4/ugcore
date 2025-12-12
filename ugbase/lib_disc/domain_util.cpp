@@ -31,18 +31,20 @@
  */
 
 #include "domain_util.h"
+
 #include "domain_traits.h"
 #include "common/util/string_util.h"
-#include "common/util/file_util.h"
+#include "common/profiler/profiler.h"
+// #include "common/util/file_util.h"
 #include "lib_grid/file_io/file_io.h"
 #include "lib_grid/file_io/file_io_ugx.h"
 #include "lib_grid/algorithms/geom_obj_util/misc_util.h"
 #include "lib_grid/refinement/projectors/projection_handler.h"
-#include "common/profiler/profiler.h"
+
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain>
 void LoadDomain(TDomain& domain, const char* filename)

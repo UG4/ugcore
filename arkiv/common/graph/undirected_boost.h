@@ -5,7 +5,7 @@
 //#include "trace.h"
 #include <boost/iterator/counting_iterator.hpp>
 
-namespace boost{
+namespace boost {
 
 #if 0
 template<typename T>
@@ -344,7 +344,7 @@ make_degree_map(const ug::UndirectedMatrix<T>& g)
 
 } // boost
 
-namespace ug{
+namespace ug {
 
 // adl hack/workaround?
 // (required by adjacency list concept

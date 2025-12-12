@@ -35,10 +35,11 @@
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/subset_handler.h"
 #include "lib_grid/tools/surface_view.h"
+
 using namespace std;
 
 
-namespace ug{
+namespace ug {
 
 template <typename TElem>
 static void AssignSubsetsByLevel(SubsetHandler& sh, MultiGrid& mg)

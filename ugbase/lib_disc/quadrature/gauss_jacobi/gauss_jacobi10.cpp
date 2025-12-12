@@ -31,11 +31,11 @@
  */
 
 #include "gauss_jacobi10.h"
+
 #include "../quadrature.h"
 //ø #include "common/util/provider.h"
 
-namespace ug
-{
+namespace ug {
 
 GaussJacobi10::GaussJacobi10(size_t order)
 {

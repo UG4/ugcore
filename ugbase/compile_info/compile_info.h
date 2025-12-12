@@ -36,8 +36,7 @@
 
 #include "common/ug_config.h"
 
-namespace ug
-{
+namespace ug {
 
 /**
  * \defgroup ugbase_compileinfo CompileInfo

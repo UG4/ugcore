@@ -30,17 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
-
-
-
-#include "pcl/pcl_process_communicator.h"
 #include "algebra_layouts.h"
 
+//#include "pcl/pcl_process_communicator.h"
 #include "common/util/string_util.h"
 
 
-namespace ug
-{
+namespace ug {
 
 
 std::ostream &operator << (std::ostream &out, const HorizontalAlgebraLayouts &layouts)

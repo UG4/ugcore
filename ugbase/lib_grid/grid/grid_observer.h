@@ -33,10 +33,10 @@
 #ifndef __H__LIBGRID__GRID_OBSERVERS__
 #define __H__LIBGRID__GRID_OBSERVERS__
 
-#include "common/types.h"
+//#include "common/types.h"
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 //	predeclarations
 class Grid;

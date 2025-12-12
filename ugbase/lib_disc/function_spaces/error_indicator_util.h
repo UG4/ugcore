@@ -37,7 +37,7 @@
 #include "lib_grid/refinement/refiner_interface.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
 
-namespace ug{
+namespace ug {
 
 
 /// helper function that computes min/max and total of error indicators

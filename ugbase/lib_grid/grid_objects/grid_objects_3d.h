@@ -34,14 +34,13 @@
 #define __H__UG__grid_objects_3d__
 
 #include "../grid/grid.h"
-#include "common/math/ugmath.h"
+// #include "common/math/ugmath.h"
 
 #include "grid_objects_0d.h"
 #include "grid_objects_1d.h"
 #include "grid_objects_2d.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 ///	These numbers define where in the volume-section-container a volume will be stored.

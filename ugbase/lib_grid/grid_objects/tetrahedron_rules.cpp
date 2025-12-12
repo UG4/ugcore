@@ -30,14 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cassert>
 #include "tetrahedron_rules.h"
+
+#include <cassert>
+
 #include "rule_util.h"
 #include "grid_object_ids.h"
 
-namespace ug{
-namespace tet_rules
-{
+namespace ug {
+namespace tet_rules {
+
 
 /// global refinement rule information switching between regular and subdivision volume refinement
 static GlobalRefinementRule g_refinementRule = GlobalRefinementRule::STANDARD;

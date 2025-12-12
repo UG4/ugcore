@@ -34,9 +34,11 @@
 #define __H__UG_problem_detection_util
 
 #include <vector>
+
 #include "common/math/ugmath_types.h"
 
-namespace ug{
+namespace ug {
+
 class Grid;
 
 /**	Checks for all edges of the given tetrahedron whether the distance to the

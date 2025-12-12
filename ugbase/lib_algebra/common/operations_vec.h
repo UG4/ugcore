@@ -36,8 +36,7 @@
 #include <cstddef> // size_t
 #include <cmath> // log, exp
 
-namespace ug
-{
+namespace ug {
 
 // operations for doubles
 //-----------------------------------------------------------------------------

@@ -34,18 +34,20 @@
 #define __H__PCL__PCL_PROCESS_COMMUNICATOR__
 
 
-#include <iostream>
-#include <map>
+//#include <iostream>
+//#include <map>
 #include <vector>
 #include <mpi.h>
 
 #include "common/util/smart_pointer.h"
-#include "common/util/binary_stream.h"
+//#include "common/util/binary_stream.h"
 #include "common/util/binary_buffer.h"
-#include "common/error.h"
+#include "common/error.h" // macro include
 
 
 #include "pcl_methods.h"
+#include "pcl_base.h"
+#include "pcl_comm_world.h"
 
 namespace pcl
 {

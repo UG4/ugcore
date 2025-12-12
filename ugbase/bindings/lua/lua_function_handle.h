@@ -33,7 +33,7 @@
 #ifndef __H__UG__LUA_FUNCTION_HANDLE__
 #define __H__UG__LUA_FUNCTION_HANDLE__
 
-namespace ug{
+namespace ug {
 
 /// Handle for a lua reference
 class LuaFunctionHandle

@@ -35,7 +35,7 @@
 
 #include "refinement_projector.h"
 
-namespace ug{
+namespace ug {
 
 
 ///	Smoothes vertices during refinement
@@ -61,10 +61,10 @@ public:
 		m_changeRate (changeRate)
 	{}
 
-	int iterations () const	{return m_iterations;}
+	[[nodiscard]] int iterations () const	{return m_iterations;}
 	void set_iterations (int iterations) {m_iterations = iterations;}
 
-	number change_rate () const	{return m_changeRate;}
+	[[nodiscard]] number change_rate () const {return m_changeRate;}
 	void set_change_rate (number changeRate) {m_changeRate = changeRate;}
 
 ///	called before refinement begins

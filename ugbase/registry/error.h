@@ -36,8 +36,8 @@
 #include "common/common.h"
 #include "common/error.h"
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup registry
 /// \{

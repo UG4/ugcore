@@ -35,7 +35,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 int LUAParserClass::createLUA(nodeType *p, ostream &out)
 {

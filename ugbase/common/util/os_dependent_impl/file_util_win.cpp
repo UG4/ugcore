@@ -31,10 +31,12 @@
  */
 
 #define _WIN32_IE 0x0501 //0x0400 //required so that SHGetSpecialFolderPath is exposed by shlobj.h
+
 #include <windows.h>
 #include <direct.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "shlobj.h"
 #include "common/util/file_util.h"
 #include "common/error.h"
@@ -43,7 +45,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 size_t FileSize( const char *filename )
 {

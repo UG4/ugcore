@@ -30,20 +30,23 @@
  * GNU Lesser General Public License for more details.
  */
 
-
 #include "profiler.h"
+
+
+
 #include <iomanip>
 #include <cmath> // for floor
 #include <algorithm>
 #include <string>
 #include <cstring>
+#include <map>
+#include <fstream>
+
+
 #include "common/log.h"
-#include "common/util/string_util.h"
 #include "profile_node.h"
 #include "common/util/string_util.h"
 #include "common/util/path_provider.h"
-#include <map>
-#include <fstream>
 #include "compile_info/compile_info.h"
 #include "pcl/pcl_base.h"
 #include "common/error.h"
@@ -58,8 +61,7 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 #if SHINY_PROFILER
 

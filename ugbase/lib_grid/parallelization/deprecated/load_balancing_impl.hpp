@@ -33,14 +33,16 @@
 #ifndef __H__UG__load_balancing_impl__
 #define __H__UG__load_balancing_impl__
 
-#include <vector>
+
 #include "load_balancing.h"
+
+#include <vector>
+
 #include "common/static_assert.h"
-#include "lib_grid/algorithms/trees/kd_tree_static.h"
+//#include "lib_grid/algorithms/trees/kd_tree_static.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup lib_grid_parallelization_distribution
 ///	@{

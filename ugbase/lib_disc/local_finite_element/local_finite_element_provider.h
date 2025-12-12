@@ -34,7 +34,7 @@
 #define __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_FINITE_ELEMENT_PROVIDER__
 
 // extern libraries
-#include <cassert>
+//#include <cassert>
 #include <map>
 
 // other ug4 modules

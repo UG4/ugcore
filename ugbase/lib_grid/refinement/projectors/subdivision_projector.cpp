@@ -35,7 +35,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 void SubdivisionProjector::
 refinement_begins(const ISubGrid* psg)
@@ -67,7 +67,7 @@ refinement_begins(const ISubGrid* psg)
 			vector3 p;
 			VecScaleAdd(p, w.x(), pos(vrt),
 						w.y(), p0, w.z(), p1);
-			m_newPositions.push_back(make_pair(vrt, p));
+			m_newPositions.emplace_back(vrt, p);
 		}
 		else if(numCreaseNbrs > 0){
 			m_newPositions.emplace_back(vrt, pos(vrt));

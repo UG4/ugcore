@@ -35,7 +35,7 @@
 
 #include "proj_gauss_seidel_interface.h"
 
-namespace ug{
+namespace ug {
 
 /// Projected GaussSeidel (SOR) -method
 /**

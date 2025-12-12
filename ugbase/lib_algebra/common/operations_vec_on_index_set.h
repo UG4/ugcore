@@ -34,11 +34,11 @@
 #define __H__UG__LIB_ALGEBRA__OPERATIONS_VEC_ON_INDEX_SET__
 
 #include <vector>
+
 #include "operations_vec.h"
 #include "common/types.h"
 
-namespace ug
-{
+namespace ug {
 
 /// sets dest = alpha on a given index set
 template<typename vector_t>

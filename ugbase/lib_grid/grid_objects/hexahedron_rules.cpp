@@ -30,13 +30,17 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cassert>
-#include "rule_util.h"
+
 #include "hexahedron_rules.h"
+
+#include <cassert>
+
+#include "rule_util.h"
 #include "grid_object_ids.h"
 
-namespace ug{
-namespace hex_rules{
+namespace ug {
+namespace hex_rules {
+
 
 ///	Output are the vertices of a rotated quadrilateral.
 void RotateQuad(int vrtsOut[4], const int quad[4], int steps)

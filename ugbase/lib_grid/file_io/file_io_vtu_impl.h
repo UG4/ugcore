@@ -33,12 +33,14 @@
 #ifndef __H__UG_file_io_vtu_impl
 #define __H__UG_file_io_vtu_impl
 
+#include "file_io_vtu.h"
+
 #include <sstream>
-#include <cstring>
+//#include <cstring>
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/callbacks/subset_callbacks.h"
 
-namespace ug{
+namespace ug {
 
 
 template <typename TAPosition>

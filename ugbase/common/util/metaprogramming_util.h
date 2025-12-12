@@ -33,6 +33,8 @@
 #ifndef __H__COMMON__METAPROGRAMMING_UTIL__
 #define __H__COMMON__METAPROGRAMMING_UTIL__
 
+#include <iostream>
+
 namespace ug {
 
 /// \addtogroup ugbase_common_util

@@ -33,7 +33,7 @@
 #include "permutation_util.h"
 
 
-namespace ug{
+namespace ug {
 
 
 bool GetInversePermutation(const std::vector<size_t> &perm, std::vector<size_t> &invPerm)

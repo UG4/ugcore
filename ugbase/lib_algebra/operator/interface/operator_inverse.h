@@ -33,11 +33,13 @@
 #ifndef __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR_INVERSE__
 #define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR_INVERSE__
 
-#include "common/util/smart_pointer.h"
-#include "operator.h"
 #include <string>
 
-namespace ug{
+#include "common/util/smart_pointer.h"
+#include "operator.h"
+
+
+namespace ug {
 
 ///////////////////////////////////////////////////////////////////////////////
 // Inverse of a (Nonlinear-) Operator

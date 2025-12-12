@@ -34,13 +34,13 @@
 #define __H__LIB_ALGEBRA__PARALLELIZATION__ROW_SENDING_SCHEME_H_
 
 #include <map>
-#include "parallel_nodes.h"
-#include "parallelization_util.h"
-#include "pcl/pcl.h"
-#include "new_layout_creator.h"
 
-namespace ug
-{
+#include "parallel_nodes.h"
+//#include "parallelization_util.h"
+#include "pcl/pcl.h"
+//#include "new_layout_creator.h"
+
+namespace ug {
 
 template<typename matrix_type>
 class RowSendingScheme

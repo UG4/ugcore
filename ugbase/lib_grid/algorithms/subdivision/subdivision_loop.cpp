@@ -30,14 +30,15 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "common/math/misc/math_util.h"
-#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "subdivision_loop.h"
+
+#include "common/math/misc/math_util.h"
+//#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 ////////////////////////////////////////////////////////////////////////
 //	ProjectToLimitLoop
 /// projects surface vertices to their limit subdivision surface position

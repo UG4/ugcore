@@ -36,7 +36,7 @@
 #include "lib_grid/grid/grid.h"
 #include "element_callback_interface.h"
 
-namespace ug{
+namespace ug {
 
 /**
  * \brief contains grid element callback definitions for common usage

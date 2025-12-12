@@ -31,9 +31,10 @@
  */
 
 #include "math_matrix.h"
+
 #include  <iostream>
 
-namespace ug{
+namespace ug {
 
 std::ostream& operator << (std::ostream& outStream, const MathMatrix<2,2>& m)
 {

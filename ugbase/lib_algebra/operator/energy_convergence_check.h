@@ -35,7 +35,7 @@
 
 #include "convergence_check.h"
 
-namespace ug{
+namespace ug {
 
 
 template <typename TVector>

@@ -35,13 +35,15 @@
 #define __H__UG_process_hierarchy
 
 #include <vector>
+#include <map>
+
 #include "common/util/variant.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_process_communicator.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 class ProcessHierarchy;
 using SPProcessHierarchy = SmartPtr<ProcessHierarchy>;

@@ -34,12 +34,14 @@
 #define __H__UG_refinement_projector
 
 #include "common/boost_serialization.h"
+#include "common/boost_serialization_routines.h"
+
 #include "common/error.h"
 #include "lib_grid/grid/geometry.h"
 #include "lib_grid/grid/sub_grid.h"
 #include "lib_grid/callbacks/element_callback_interface.h"
 
-namespace ug{
+namespace ug {
 
 ///	Adjusts vertex coordinates during refinement
 /** The refinement projector serves as a base class for other refinement projectors
@@ -78,7 +80,7 @@ public:
 		m_geometry = geometry;
 	}
 
-	virtual SPIGeometry3d geometry () const {return m_geometry;}
+	[[nodiscard]] virtual SPIGeometry3d geometry () const {return m_geometry;}
 
 
 	virtual void set_concerned_elements (SPElementCallback cb)
@@ -92,7 +94,7 @@ public:
  *			Please have a look at the documentation of 
  *			'RefinementProjector::refinement_begins' for more information.
  */
-	virtual bool refinement_begins_requires_subgrid () const	{return false;}
+	[[nodiscard]] virtual bool refinement_begins_requires_subgrid () const	{return false;}
 
 ///	called before refinement begins
 /**	if not nullptr, the specified sub-grid will contain all elements that will be

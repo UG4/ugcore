@@ -33,7 +33,7 @@
 #ifndef __H__UG_matrix_overlap
 #define __H__UG_matrix_overlap
 
-namespace ug{
+namespace ug {
 
 /* NOTE TO DEVELOPERS:	This method is newer than the one in 'parallel_matrix_overlap_impl.hpp'
  * The main difference is that this method creates separate 'overlap' interfaces,

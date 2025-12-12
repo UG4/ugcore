@@ -37,14 +37,14 @@
 #define __H__UG__LIB_DISC__REFERENCE_ELEMENT__ELEMENT_LIST_TRAITS__
 
 // further lib_disc headers
-#include "lib_disc/reference_element/reference_element.h"
+// #include "lib_disc/reference_element/reference_element.h"
 
 // Boost-C++ headers
 #include <boost/mpl/transform_view.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/min_max.hpp>
 
-namespace ug{
+namespace ug {
 
 /// Class for computing integral properties of geometric objects types in lists
 /**

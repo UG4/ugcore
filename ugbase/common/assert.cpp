@@ -30,10 +30,11 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "common/assert.h"
+
+#include <cstdlib>
 #include "common/log.h"
 #include "common/profiler/profiler.h"
-#include "common/assert.h"
-#include <cstdlib>
 
 #ifdef UG_POSIX
 #include "util/demangle.h"
@@ -46,9 +47,16 @@
 #include <sstream>
 
 #ifdef UG_FOR_LUA
-#include "bindings/lua/info_commands.h"
 #include <map>
-namespace ug{namespace script{bool IsLUADebug();}}
+#include "bindings/lua/info_commands.h"
+
+
+namespace ug {
+namespace script {
+	bool IsLUADebug();
+}
+}
+
 #endif
 
 #ifdef UG_PARALLEL

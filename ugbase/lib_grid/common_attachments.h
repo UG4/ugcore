@@ -39,13 +39,14 @@
 #define __H__LIB_GRID__COMMON_ATTACHMENTS__
 
 #include "common/types.h"
-#include "lib_grid/attachments/attachment_pipe.h"
-#include "lib_grid/attachments/attachment_info_traits.h"
 #include "common/math/ugmath_types.h"
+
+#include "lib_grid/attachments/attachment_pipe.h"
+//#include "lib_grid/attachments/attachment_info_traits.h"
+
 #include "grid/grid_base_objects.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	attachment-types

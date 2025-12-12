@@ -60,7 +60,8 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
+
 template <typename TSelector>
 HangingNodeRefinerBase<TSelector>::
 HangingNodeRefinerBase(SPRefinementProjector projector) :
@@ -664,7 +665,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 //	check grid options.
 	if(!grid.option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES))
 	{
-		LOG("WARNING in HangingNodeRefiner::refine(): grid option GRIDOPT_AUTOGENERATE_SIDES auto-enabled." << endl);
+		UG_LOG("WARNING in HangingNodeRefiner::refine(): grid option GRIDOPT_AUTOGENERATE_SIDES auto-enabled." << endl);
 		grid.enable_options(GRIDOPT_AUTOGENERATE_SIDES);
 	}
 

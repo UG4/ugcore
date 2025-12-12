@@ -45,14 +45,14 @@
 
 #include <sstream>
 #include <vector>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include "lib_algebra/common/matrixio/matrix_io.h"
 #include "lib_algebra/common/matrixio/mm_type_code.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup matrixio
 /// \{

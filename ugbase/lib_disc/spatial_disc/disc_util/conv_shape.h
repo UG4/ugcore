@@ -41,7 +41,7 @@
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
 #include "lib_disc/spatial_disc/disc_util/hfv1_geom.h"
 
-namespace ug{
+namespace ug {
 
 /////////////////////////////////////////////////////////////////////////////
 // No Upwind

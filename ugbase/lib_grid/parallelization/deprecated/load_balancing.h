@@ -33,15 +33,14 @@
 #ifndef __H__UG__load_balancing__
 #define __H__UG__load_balancing__
 
-#include <vector>
-#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+// #include <vector>
+//#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/tools/subset_handler_grid.h"
 #include "lib_grid/multi_grid.h"
-#include "lib_grid/parallelization/util/parallel_callbacks.h"
+// #include "lib_grid/parallelization/util/parallel_callbacks.h"
 #include "lib_grid/callbacks/basic_callbacks.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Partitions the elements in the grid by sorting them into a regular grid.

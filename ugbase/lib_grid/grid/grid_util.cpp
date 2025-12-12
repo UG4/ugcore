@@ -31,13 +31,14 @@
  */
 
 #include "grid_util.h"
+
 #include "grid.h"
+#include "grid_constants.h"
 //ø #include <iostream>
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	CompareVertices

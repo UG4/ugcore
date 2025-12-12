@@ -33,15 +33,16 @@
 #ifndef __H__UG__LIB_DISC__DOF_MANAGER__DOF_DISTRIBUTION_INFO__
 #define __H__UG__LIB_DISC__DOF_MANAGER__DOF_DISTRIBUTION_INFO__
 
+#include <vector>
+
 #include "common/common.h"
-#include "lib_grid/lg_base.h"
+//#include "lib_grid/lg_base.h"
 #include "lib_disc/dof_manager/function_pattern.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
 
-#include <vector>
 
-namespace ug{
+namespace ug {
 
 class DoFDistributionInfo : public FunctionPattern
 {

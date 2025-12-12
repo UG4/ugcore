@@ -33,8 +33,10 @@
 #ifndef __H__LIBGRID__SELECTOR_INTERFACE_IMPL__
 #define __H__LIBGRID__SELECTOR_INTERFACE_IMPL__
 
-namespace ug
-{
+#include "selector_interface.h"
+
+namespace ug {
+
 inline bool
 ISelector::elements_are_supported(SelectorElements_t shElements) const
 {
@@ -69,7 +71,7 @@ inline void ISelector::select(GridObject* elem, byte_t status){
 			select(static_cast<Volume*>(elem), status);
 			break;
 		default:
-			LOG("  ERROR: Bad Element Type in ISelector::select. Aborting.\n");
+			UG_LOG("  ERROR: Bad Element Type in ISelector::select. Aborting.\n");
 			assert(0);
 			break;
 	}

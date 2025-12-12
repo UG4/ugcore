@@ -20,7 +20,7 @@ namespace rapidxml
     ///////////////////////////////////////////////////////////////////////
     // Printing flags
 
-    const int print_no_indenting = 0x1;   //!< Printer flag instructing the printer to suppress indenting of XML. See print() function.
+    constexpr int print_no_indenting = 0x1;   //!< Printer flag instructing the printer to suppress indenting of XML. See print() function.
 
     ///////////////////////////////////////////////////////////////////////
     // Internal

@@ -35,8 +35,7 @@
 
 #include "common/types.h"
 
-namespace ug
-{
+namespace ug {
 
 // computes the Legendre polynomials
 number LegendrePoly (size_t k, number x);

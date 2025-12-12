@@ -31,12 +31,12 @@
  */
 
 #include "neighborhood.h"
+
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 							
 ////////////////////////////////////////////////////////////////////////
 //

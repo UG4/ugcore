@@ -30,18 +30,20 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "file_io_msh.h"
+
 #include <fstream>
 #include <vector>
 #include <string>
 #include <cctype>
 #include <algorithm>
-#include "file_io_msh.h"
+
 #include "../lg_base.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 bool LoadGridFromMSH(Grid& grid, const char* filename,
 					 ISubsetHandler* psh, AVector3& aPos)
 {

@@ -39,10 +39,8 @@
 
 #include <iostream>
 #include <fstream>
-#include <vector>
 
-namespace ug
-{
+namespace ug {
 
 
 

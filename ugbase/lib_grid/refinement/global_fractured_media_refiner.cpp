@@ -52,8 +52,8 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 
 //template <typename TAPosition>
 //GlobalFracturedMediaRefiner<TAPosition>::
@@ -210,7 +210,7 @@ perform_refinement()
 	if(mg.num_volumes() > 0){
 		if(!mg.option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
 		{
-			LOG("WARNING in GlobalFracturedMediaRefiner::refine(): auto-enabling VOLOPT_AUTOGENERATE_FACES.\n");
+			UG_LOG("WARNING in GlobalFracturedMediaRefiner::refine(): auto-enabling VOLOPT_AUTOGENERATE_FACES.\n");
 			mg.enable_options(VOLOPT_AUTOGENERATE_FACES);
 		}
 	}
@@ -218,7 +218,7 @@ perform_refinement()
 	if(mg.num_faces() > 0){
 		if(!mg.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
 		{
-			LOG("WARNING in GlobalFracturedMediaRefiner::refine(): auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
+			UG_LOG("WARNING in GlobalFracturedMediaRefiner::refine(): auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
 			mg.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 		}
 	}
@@ -428,7 +428,7 @@ perform_refinement()
 				mg.register_element(vFaces[j], f);
 		}
 		else{
-			LOG("  WARNING in Refine: could not refine face.\n");
+			UG_LOG("  WARNING in Refine: could not refine face.\n");
 		}
 		//GFDR_PROFILE_END();
 	}
@@ -498,7 +498,7 @@ perform_refinement()
 				mg.register_element(vVols[j], v);
 		}
 		else{
-			LOG("  WARNING in Refine: could not refine volume.\n");
+			UG_LOG("  WARNING in Refine: could not refine volume.\n");
 		}
 		//GFDR_PROFILE_END();
 	}

@@ -34,6 +34,8 @@
 #define __H__PCL__PCL_INTERFACE_COMMUNICATOR_IMPL__
 
 
+#include "pcl_interface_communicator.h"
+
 #include <cassert>
 #include <mpi.h>
 
@@ -41,15 +43,14 @@
 
 #include "pcl_methods.h"
 #include "pcl_communication_structs.h"
-#include "pcl_interface_communicator.h"
+
 #include "pcl_util.h"
 #include "pcl_comm_world.h"
 #include "pcl_methods.h"
 #include "pcl_process_communicator.h"
 #include "pcl_profiling.h"
 
-namespace pcl
-{
+namespace pcl {
 
 template <typename TLayout>
 InterfaceCommunicator<TLayout>::

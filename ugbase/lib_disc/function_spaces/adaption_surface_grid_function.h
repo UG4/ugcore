@@ -36,7 +36,7 @@
 #include "grid_function.h"
 #include "local_transfer_interface.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain>
 class AdaptionSurfaceGridFunction : public GridObserver

@@ -35,8 +35,7 @@
 
 #include "math_vector.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup vectors
 /// \{
@@ -415,6 +414,6 @@ VecIsInBB(const vector_t& v, const vector_t& low, const vector_t& high);
 
 ////////////////////////////////////////////////////////////////////////
 //	include a general, but not very fast implementation of the declared methods above.
-#include "math_vector_functions_common_impl.hpp"
+#include "math_vector_functions_impl.hpp"
 
 #endif

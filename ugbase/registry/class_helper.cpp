@@ -52,10 +52,9 @@
 
 using namespace std;
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
+
 extern Registry& GetUGRegistry();
 
 
@@ -75,9 +74,9 @@ void ClassHierarchy::insert_class(const IExportedClass &c)
 		bool bFound = false;
 		for(size_t j=0; j<base->subclasses.size(); j++)
 		{
-			if(base->subclasses.at(j).name == thename)
+			if(base->subclasses[j].name == thename)
 			{
-				base = &base->subclasses.at(j);
+				base = &base->subclasses[j];
 				bFound = true;
 				break;
 			}
@@ -103,9 +102,9 @@ void ClassHierarchy::insert_class(const IExportedClass &c)
 		bool bFound = false;
 		for(size_t j=0; j<base->subclasses.size(); j++)
 		{
-			if(base->subclasses.at(j).name == thename)
+			if(base->subclasses[j].name == thename)
 			{
-				base = &base->subclasses.at(j);
+				base = &base->subclasses[j];
 				bFound = true;
 				break;
 			}
@@ -184,7 +183,7 @@ string ClassHierarchyString(const Registry &reg, const char *classname)
 		for(int i = names->size()-1; i>0; i--)
 		{
 			for(int j=0; j<level; j++) ss << "  ";
-			ss << names->at(i) << endl;
+			ss << names->operator[](i) << endl;
 			level++;
 		}
 	}

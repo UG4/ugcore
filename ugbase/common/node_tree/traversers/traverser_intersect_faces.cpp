@@ -30,17 +30,18 @@
  * GNU Lesser General Public License for more details.
  */
 
-//#include <iostream>
 #include "traverser_intersect_faces.h"
+
+//#include <iostream>
+
 #include "../node_tree.h"
-#include "common/log.h"
-#include "common/profiler/profiler.h"
+// #include "common/log.h"
+// #include "common/profiler/profiler.h"
 
 using namespace std;
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
 
 
 bool Traverser_IntersectFaces::

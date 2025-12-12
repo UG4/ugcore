@@ -41,7 +41,7 @@
 #include "lib_disc/time_disc/solution_time_series.h"
 #include "lib_disc/common/function_group.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 //	UserData Info

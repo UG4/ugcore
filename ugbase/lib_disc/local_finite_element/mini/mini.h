@@ -38,13 +38,13 @@
 #include "../local_dof_set.h"
 #include "lib_disc/common/multi_index.h"
 #include "common/util/provider.h"
-#include "common/util/metaprogramming_util.h"
+// #include "common/util/metaprogramming_util.h"
 #include "lib_grid/grid/grid_base_objects.h"
-#include "common/util/provider.h"
+// #include "common/util/provider.h"
 #include "lib_disc/reference_element/reference_element_util.h"
-#include "lib_disc/common/multi_index.h"
+// #include "lib_disc/common/multi_index.h"
 
-namespace ug{
+namespace ug {
 
 /// Lagrange Shape Function Set without virtual functions and fixed order
 template <typename TRefElem>

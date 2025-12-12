@@ -31,11 +31,12 @@
  */
 
 #include "field_util.h"
+
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 void CreateGridFromField(Grid& grid,

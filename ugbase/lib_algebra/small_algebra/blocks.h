@@ -35,7 +35,7 @@
 #define __H__UG__SMALL_ALGEBRA__BLOCKS__
 
 
-namespace ug{
+namespace ug {
 	
 inline double dabs(double a) { return a > 0 ? a : -a; }
 

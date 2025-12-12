@@ -37,10 +37,10 @@
 #include <iostream>
 #include <cassert>
 
-#include "common/common.h"
+//#include "common/common.h"
 #include "lib_algebra/small_algebra/blocks.h"	// needed for BlockRef
 
-namespace ug{
+namespace ug {
 
 /**
  * A MultiIndex is just a vector of integers.

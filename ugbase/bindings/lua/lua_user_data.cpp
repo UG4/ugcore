@@ -39,11 +39,11 @@
 #include "bridge/util.h"
 
 #include "lua_user_data.h"
+#include "lua_traits.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 	
 
 ///	returns true if callback exists
@@ -116,8 +116,8 @@ number LuaUserNumberNumberFunction::operator () (int numArgs, ...) const
 
 
 
-namespace bridge{
-namespace LuaUserData{
+namespace bridge {
+namespace LuaUserData {
 
 
 template <typename TData, int dim>

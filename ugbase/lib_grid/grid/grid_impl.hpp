@@ -33,14 +33,16 @@
 #ifndef __H__LIB_GRID__GRID_IMPLEMENTATION__
 #define __H__LIB_GRID__GRID_IMPLEMENTATION__
 
+#include "grid.h"
+
 //#include <cassert>
 #include "common/common.h"
 #include "common/static_assert.h"
 #include "grid_util.h"
-#include "grid.h"
 
-namespace ug
-{
+
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 //	parallelism
 bool Grid::
@@ -119,7 +121,7 @@ Grid::create_and_replace(typename geometry_traits<TGeomObj>::grid_base_object* p
 	}
 	else
 	{
-		LOG("ERROR in Grid::create_and_replace(...): reference objects do not match!");
+		UG_LOG("ERROR in Grid::create_and_replace(...): reference objects do not match!");
 		assert(!"ERROR in Grid::create_and_replace(...): reference objects do not match!");
 		delete geomObj;
 		return end<TGeomObj>();
@@ -424,7 +426,7 @@ Grid::autoenable_option(uint option, const char* caller, const char* optionName)
 {
 	if(!option_is_enabled(option))
 	{
-		LOG("WARNING in " << caller << ": auto-enabling " << optionName << "." << std::endl);
+		UG_LOG("WARNING in " << caller << ": auto-enabling " << optionName << "." << std::endl);
 		enable_options(option);
 	}
 }

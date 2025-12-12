@@ -52,10 +52,8 @@
 #include "class.h"
 #include "global_function.h"
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup registry
 /// \{

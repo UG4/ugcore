@@ -53,12 +53,12 @@
 
 
 void yyerror(const char *s);
-namespace ug{
+namespace ug {
 class LUAParserClass;
 }
 void yaccparse(const char*command, ug::LUAParserClass *p);
 
-namespace ug{
+namespace ug {
 
 
 class LUAParserClass

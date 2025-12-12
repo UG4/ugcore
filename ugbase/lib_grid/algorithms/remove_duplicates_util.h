@@ -36,7 +36,7 @@
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/grid/grid_util.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 ///	Removes elements which share the same set of vertices with other elements in the given range

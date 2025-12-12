@@ -34,11 +34,14 @@
 #ifndef __H__UG__SMALL_ALGEBRA__BLOCK_DENSE__
 #define __H__UG__SMALL_ALGEBRA__BLOCK_DENSE__
 
-#include "densematrix.h"
-#include "densevector.h"
 #include <algorithm>
 
-namespace ug{
+#include "../blocks.h" // definition of generic function
+//#include "lib_algebra/small_algebra/small_matrix/densematrix.h"
+#include "lib_algebra/small_algebra/small_matrix/densevector.h"
+
+
+namespace ug {
 
 template<typename A>
 inline double BlockNorm2(const DenseMatrix<A> &mat)

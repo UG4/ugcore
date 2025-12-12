@@ -43,7 +43,7 @@
 #include "common/error.h"
 #include "common/log.h"
 
-namespace ug{
+namespace ug {
 
 /// returns an array describing the needed index mapping for Cuthill-McKee ordering
 /**

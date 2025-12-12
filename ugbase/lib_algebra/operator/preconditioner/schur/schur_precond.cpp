@@ -39,6 +39,7 @@
 
 #ifdef UG_PARALLEL
 
+#include "schur_precond.h"
 
 // extern headers
 #include <cmath>
@@ -50,20 +51,19 @@
 #include "lib_algebra/operator/preconditioner/preconditioners.h"
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 
-#include "lib_algebra/algebra_common/sparsematrix_util.h"  // DenseMatrixFromSparseMatrix
+//#include "lib_algebra/algebra_common/sparsematrix_util.h"  // DenseMatrixFromSparseMatrix
 #include "lib_algebra/small_algebra/small_algebra.h"   // DEnseMAtrix...
 #include "lib_algebra/algebra_template_define_helper.h"
 
-#include "pcl/pcl_layout_tests.h"
+//#include "pcl/pcl_layout_tests.h"
 
 #include "common/profiler/profiler.h"        // additions for profiling
 
 // own header
 #include "schur.h"
-#include "schur_precond.h"
 #include "schur_complement_inverse_interface.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

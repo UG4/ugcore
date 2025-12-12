@@ -36,7 +36,8 @@
 #include "common/math/misc/math_util.h"
 #include "refinement_projector.h"
 
-namespace ug{
+namespace ug {
+
 ///	Projects new vertices onto a sphere during refinement
 /** For projection during refinement the radius property is ignored. Instead,
  * the distance to the center of a newly inserted vertex is calculated
@@ -95,7 +96,7 @@ public:
 		m_influenceRadius (influenceRadius)
 	{}
 
-	virtual ~CylinderProjector () = default;
+	~CylinderProjector () override = default;
 
 	void set_center (const vector3& center)		{m_center = center;}
 	const vector3& center () const				{return m_center;}
@@ -110,20 +111,17 @@ public:
 	number influence_radius () const					{return m_influenceRadius;}
 
 ///	called when a new vertex was created from an old edge.
-	virtual number new_vertex(Vertex* vrt, Edge* parent)
-	{
+	number new_vertex(Vertex* vrt, Edge* parent) override {
 		return perform_projection(vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old face.
-	virtual number new_vertex(Vertex* vrt, Face* parent)
-	{
+	number new_vertex(Vertex* vrt, Face* parent) override {
 		return perform_projection(vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old volume.
-	virtual number new_vertex(Vertex* vrt, Volume* parent)
-	{
+	number new_vertex(Vertex* vrt, Volume* parent) override {
 		return perform_projection(vrt, parent);
 	}
 
@@ -151,8 +149,8 @@ private:
 			parentCenter += p;
 		}
 
-		avDist /= (number)numVrts;
-		VecScale(parentCenter, parentCenter, 1. / (number)numVrts);
+		avDist /= static_cast<number>(numVrts);
+		VecScale(parentCenter, parentCenter, 1. / static_cast<number>(numVrts));
 
 		vector3 proj, v;
 		ProjectPointToRay(proj, parentCenter, m_center, m_axis);

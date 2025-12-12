@@ -86,6 +86,7 @@
 #include <cerrno>
 #include <cstring>
 #include <sys/ioctl.h>
+
 #include "linenoise.h"
 
 #define LINENOISE_DEFAULT_HISTORY_MAX_LEN 100
@@ -221,7 +222,7 @@ static void refreshLine(int fd, const char *prompt, char *buf, size_t len, size_
     snprintf(seq,64,"\x1b[0K");
     if (write(fd,seq,strlen(seq)) == -1) return;
     /* Move cursor to original position. */
-    snprintf(seq,64,"\x1b[0G\x1b[%dC", (int)(pos+plen));
+    snprintf(seq,64,"\x1b[0G\x1b[%dC", static_cast<int>(pos + plen));
     if (write(fd,seq,strlen(seq)) == -1) return;
 }
 
@@ -243,10 +244,9 @@ static int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt)
     while(true)
     {
         char c;
-        int nread;
         char seq[2], seq2[2];
 
-        nread = read(fd,&c,1);
+        int nread = read(fd, &c, 1);
         if (nread <= 0) return len;
 
         static int tabhitcount = 0;
@@ -267,7 +267,7 @@ static int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt)
         case 4: /* ctrl-d */
             history_len--;
             free(history[history_len]);
-            return (len == 0 && c == 4) ? -1 : (int)len;
+            return (len == 0 && c == 4) ? -1 : static_cast<int>(len);
         case 3: /* ctrl-c */
             errno = EAGAIN;
             return -1;
@@ -427,22 +427,19 @@ static int linenoiseRaw(char *buf, size_t buflen, const char *prompt) {
 
 char *linenoise(const char *prompt) {
     char buf[LINENOISE_MAX_LINE];
-    int count;
 
     if (isUnsupportedTerm()) {
-        size_t len;
-
         printf("%s",prompt);
         fflush(stdout);
         if (fgets(buf,LINENOISE_MAX_LINE,stdin) == nullptr) return nullptr;
-        len = strlen(buf);
+        size_t len = strlen(buf);
         while(len && (buf[len-1] == '\n' || buf[len-1] == '\r')) {
             len--;
             buf[len] = '\0';
         }
         return strdup(buf);
     } else {
-        count = linenoiseRaw(buf,LINENOISE_MAX_LINE,prompt);
+        int count = linenoiseRaw(buf,LINENOISE_MAX_LINE, prompt);
         if (count == -1) return nullptr;
         return strdup(buf);
     }
@@ -450,15 +447,13 @@ char *linenoise(const char *prompt) {
 
 /* Using a circular buffer is smarter, but a bit more complex to handle. */
 int linenoiseHistoryAdd(const char *line) {
-    char *linecopy;
-
     if (history_max_len == 0) return 0;
     if (history == nullptr) {
         history = (char**)malloc(sizeof(char*)*history_max_len);
         if (history == nullptr) return 0;
         memset(history,0,(sizeof(char*)*history_max_len));
     }
-    linecopy = strdup(line);
+    char *linecopy = strdup(line);
     if (!linecopy) return 0;
     if (history_len == history_max_len) {
         free(history[0]);
@@ -471,13 +466,11 @@ int linenoiseHistoryAdd(const char *line) {
 }
 
 int linenoiseHistorySetMaxLen(int len) {
-    char **newChar;
-
     if (len < 1) return 0;
     if (history) {
         int tocopy = history_len;
 
-        newChar = (char**)malloc(sizeof(char*)*len);
+        char **newChar = (char **) malloc(sizeof(char *) * len);
         if (newChar == nullptr) return 0;
         if (len < tocopy) tocopy = len;
         memcpy(newChar,history+(history_max_len-tocopy), sizeof(char*)*tocopy);

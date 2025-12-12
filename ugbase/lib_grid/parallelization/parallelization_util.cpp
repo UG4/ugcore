@@ -30,8 +30,10 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <sstream>
 #include "parallelization_util.h"
+
+#include <sstream>
+
 #include "distribution.h"
 #include "lib_grid/refinement/global_multi_grid_refiner.h"
 #include "lib_grid/file_io/file_io.h"
@@ -40,8 +42,8 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 InterfaceNodeTypes GetAssociatedInterfaceType(InterfaceNodeTypes interfaceType)
 {
@@ -213,13 +215,13 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, bool verbose)
 {
 	if(mg.has_vertex_attachment(aPosition))
 		return TestGridLayoutMap(mg, glm, aPosition, verbose);
-	else if(mg.has_vertex_attachment(aPosition2))
+	if(mg.has_vertex_attachment(aPosition2))
 		return TestGridLayoutMap(mg, glm, aPosition2, verbose);
-	else if(mg.has_vertex_attachment(aPosition1))
+	if(mg.has_vertex_attachment(aPosition1))
 		return TestGridLayoutMap(mg, glm, aPosition1, verbose);
-	else
-		UG_LOG("ERROR in TestGridLayoutMap: A standard position attachment"
-				" is required.\n");
+
+	UG_LOG("ERROR in TestGridLayoutMap: A standard position attachment"
+		" is required.\n");
 	return false;
 }
 

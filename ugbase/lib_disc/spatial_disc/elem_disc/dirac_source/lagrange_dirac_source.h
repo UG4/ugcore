@@ -45,10 +45,10 @@
 #ifndef __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__DIRAC_SOURCE__LAGRANGE_DIRAC_SOURCE_H__
 #define __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__DIRAC_SOURCE__LAGRANGE_DIRAC_SOURCE_H__
 
-#include <boost/function.hpp>
+// #include <boost/function.hpp>
 #include <vector>
 #include <string>
-#include <utility>      // std::pair
+//#include <utility>      // std::pair
 
 // other ug4 modules
 #include "common/common.h"
@@ -57,13 +57,12 @@
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/user_data/data_export.h"
 #include "lib_disc/spatial_disc/user_data/data_import.h"
-#include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
+// #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
 
 
 
 
-namespace ug
-{
+namespace ug {
 
 
 

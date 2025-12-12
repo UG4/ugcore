@@ -38,7 +38,7 @@
 // #include "lib_grid/grid/grid_base_objects.h"
 #include "common/util/hash_function.h"
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup lib_grid_parallelization
 /// @{

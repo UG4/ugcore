@@ -31,6 +31,7 @@
  */
 
 #include "distributed_grid.h"
+
 #include "common/serialization.h"
 #include "common/util/hash.h"
 #include "pcl/pcl_interface_communicator.h"
@@ -38,8 +39,8 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	constructor / destructor

@@ -33,8 +33,7 @@
 #ifndef __H__UNIQUE_IDENTITY__
 #define __H__UNIQUE_IDENTITY__
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_util
 /// \{
@@ -57,7 +56,7 @@ class UID
 			}
 
 		UID(const UID& uid)					{m_uID = uid.id();}
-		inline unsigned int id() const		{return m_uID;}
+		[[nodiscard]] inline unsigned int id() const		{return m_uID;}
 
 		inline bool operator == (const UID& uid) const {
 				if(uid.id() == this->id())

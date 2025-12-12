@@ -33,11 +33,12 @@
 #ifndef PERIODIC_IDENTIFIER_H_
 #define PERIODIC_IDENTIFIER_H_
 
+#include <set>
+
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/grid/grid_base_objects.h"
 
-#include <set>
 
 namespace ug {
 

@@ -32,10 +32,12 @@
 
 // MATRIX_USE_GLOBAL_FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+#ifndef IG_UGBASE_LIB_ALGEBRA_COMMON_OPERATIONS_MAT_MATRIX_USE_GLOBAL_FUNCTIONS_H
+#define IG_UGBASE_LIB_ALGEBRA_COMMON_OPERATIONS_MAT_MATRIX_USE_GLOBAL_FUNCTIONS_H
 
 #include "../operations_vec.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 //! calculates dest = alpha1*v1 + beta1 * A1 *w1;
@@ -145,3 +147,5 @@ struct mat_operations_class<vector_t, matrix_t, MATRIX_USE_GLOBAL_FUNCTIONS>
 	}
 };
 }
+
+#endif

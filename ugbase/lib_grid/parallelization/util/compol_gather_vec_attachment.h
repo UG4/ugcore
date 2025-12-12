@@ -30,13 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "pcl/pcl_base.h"
-
 #ifndef __H__PLG__COMPOL_GATHER_VEC_ATTACHMENT__
 #define __H__PLG__COMPOL_GATHER_VEC_ATTACHMENT__
 
-namespace ug
-{
+// #include "pcl/pcl_base.h"
+#include "pcl/pcl_communication_structs.h"
+
+namespace ug {
 
 /// \addtogroup lib_grid_parallelization
 /// @{

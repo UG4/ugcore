@@ -40,8 +40,7 @@
 #include "grid/grid.h"
 #include "subset_handler.h"
 
-namespace ug
-{
+namespace ug {
 
 /// Debugging tool for function that do have no direct access to the grid
 /**

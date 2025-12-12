@@ -38,9 +38,9 @@
 #include "collision_edges_node.h"
 #include "collision_triangles_node.h"
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
+
 ////////////////////////////////////////////////////////////////////////
 //	CreateOctree
 ///	Creates an Octree from a list of elements

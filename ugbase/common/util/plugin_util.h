@@ -38,8 +38,7 @@
 #include "common/ug_config.h"
 #include "registry/registry.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_util
 /// \{

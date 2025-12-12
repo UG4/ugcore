@@ -46,7 +46,7 @@
 	#include "lib_grid/parallelization/util/compol_copy_attachment.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // GridFunction : init

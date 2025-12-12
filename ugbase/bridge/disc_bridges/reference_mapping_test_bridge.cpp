@@ -44,8 +44,8 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup ordering_bridge
 void RegisterBridge_ReferenceMappingTest(Registry& reg, string grp)

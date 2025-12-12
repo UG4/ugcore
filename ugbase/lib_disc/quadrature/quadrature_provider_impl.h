@@ -29,10 +29,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
+#ifndef IG_UGBASE_LIB_DISC_QUADRATURE_QUADRATURE_PROVIDER_IMPL_H
+#define IG_UGBASE_LIB_DISC_QUADRATURE_QUADRATURE_PROVIDER_IMPL_H
 
 #include "quadrature_provider.h"
 
-namespace ug{
+namespace ug {
 
 template <int TDim>
 template <typename TRefElem>
@@ -52,3 +54,4 @@ QuadratureRuleProvider<TDim>::get(size_t order, QuadType type)
 }
 
 } // namespace ug
+#endif

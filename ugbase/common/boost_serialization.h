@@ -33,11 +33,11 @@
 #ifndef __H__UG_boost_serialization
 #define __H__UG_boost_serialization
 
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/export.hpp>
-#include <boost/serialization/level.hpp>
+//#include <boost/serialization/access.hpp>
+//#include <boost/serialization/export.hpp>
+//#include <boost/serialization/level.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
+//#include <boost/serialization/version.hpp>
 
 /* Include this file if you want to add serialization functionality to your types.
  * If you want to perform serialization, please make sure to also include
@@ -52,7 +52,7 @@
 		boost::serialization::void_cast_register<clsDerived, clsBase>(\
 				static_cast<clsDerived *>(nullptr), static_cast<clsBase *>(nullptr));
 
-namespace ug{
+namespace ug {
 
 /**	make_nvp is used to create a name-value pair during serialization. Given an
  * archive 'ar', one serializes data using 'ar & make_nvp("somename", someVar);'

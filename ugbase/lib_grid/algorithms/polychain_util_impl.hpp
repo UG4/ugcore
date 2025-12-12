@@ -33,10 +33,11 @@
 #ifndef __H__LIB_GRID__POLYCHAIN_UTIL_IMPL__
 #define __H__LIB_GRID__POLYCHAIN_UTIL_IMPL__
 
+#include "polychain_util.h"
+
 #include "geom_obj_util/vertex_util.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 template <typename TEdgeIterator>

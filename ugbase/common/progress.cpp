@@ -31,7 +31,11 @@
  */
 
 #include "progress.h"
-namespace ug{
+
+#include "log.h"
+#include "util/ostream_util.h"
+
+namespace ug {
 
 int Progress::totalDepth = 0;
 int Progress::lastUpdateDepth = -1;

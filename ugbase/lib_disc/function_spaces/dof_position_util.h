@@ -33,7 +33,7 @@
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__DOF_POSITION_UTIL__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__DOF_POSITION_UTIL__
 
-#include "common/common.h"
+//#include "common/common.h"
 #include "common/math/ugmath.h"
 #include "common/util/smart_pointer.h"
 #include "lib_disc/dof_manager/dof_distribution.h"

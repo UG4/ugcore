@@ -33,10 +33,11 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NI_SOLVER__NI_IMPL__
 #define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NI_SOLVER__NI_IMPL__
 
+#include "nested_iteration.h"
+
 #include <iostream>
 #include <sstream>
 
-#include "nested_iteration.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "common/util/string_util.h"
 
@@ -51,7 +52,7 @@
 	#define NESTED_ITER_PROFILE_END()
 #endif
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain, typename TAlgebra>
 NestedIterationSolver<TDomain,TAlgebra>::

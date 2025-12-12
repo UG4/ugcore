@@ -32,7 +32,7 @@
 
 #include "../util_overloaded.h"
 #include "ug.h"
-#include "bridge/bridge.h"
+//#include "bridge/bridge.h"
 #include "common/stopwatch.h"
 #include "common/util/file_util.h"
 #include "common/util/path_provider.h"
@@ -48,7 +48,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 // determines when to show the progress bar
 extern size_t g_minSecondUntilProgress;

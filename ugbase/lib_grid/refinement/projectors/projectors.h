@@ -78,7 +78,8 @@ using ProjectorTypes = vector<
 }
 
 
-namespace ug{
+namespace ug {
+
 	using ProjectorTypes = boost::mpl::tmp::ProjectorTypes;
 
 }//	end of namespace

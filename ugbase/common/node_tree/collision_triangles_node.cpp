@@ -32,9 +32,8 @@
 
 #include "collision_triangles_node.h"
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
 
 ////////////////////////////////////////////////////////////////////////
 SPCollisionTrianglesNode CollisionTrianglesNode::create()

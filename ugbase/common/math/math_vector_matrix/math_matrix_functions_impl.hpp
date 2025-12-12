@@ -33,6 +33,8 @@
 #ifndef __H__UG__COMMON__MATH_MATRIX_FUNCTIONS_COMMON_IMPL__
 #define __H__UG__COMMON__MATH_MATRIX_FUNCTIONS_COMMON_IMPL__
 
+#include "math_matrix_functions.h"
+
 #include <cmath>
 #include <iostream>
 #include <iomanip>
@@ -41,7 +43,7 @@
 #include "common/assert.h"
 #include "common/static_assert.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Addition of Matrices

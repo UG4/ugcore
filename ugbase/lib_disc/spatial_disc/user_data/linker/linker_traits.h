@@ -35,7 +35,7 @@
 
 #include "common/common.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Linker Traits to allow generic programming

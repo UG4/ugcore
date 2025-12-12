@@ -30,10 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "distribution.h"
+
 #include <sstream>
+
 #include "common/static_assert.h"
 #include "common/util/table.h"
-#include "distribution.h"
 #include "distributed_grid.h"
 #include "lib_grid/tools/selector_multi_grid.h"
 #include "lib_grid/algorithms/selection_util.h"
@@ -50,7 +52,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 static DebugID LG_DIST("LG_DIST");
 
@@ -426,7 +428,7 @@ static void WriteDistInfosToTextFile(MultiGrid& mg, DistInfoSupplier& infoSuppli
 
 			for(size_t i = 0; i < infos.size(); ++i){
 				table(row, 2) << "p" << infos[i].procID << ": ";
-				byte is = infos[i].interfaceState;
+				byte_t is = infos[i].interfaceState;
 				if(is & IS_NORMAL)	table(row, 2) << "normal ";
 				if(is & IS_VMASTER)	table(row, 2) << "vmaster ";
 				if(is & IS_VSLAVE)	table(row, 2) << "vslave ";

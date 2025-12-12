@@ -30,11 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "registry/registry.h"
-#include "bridge/bridge.h"
 #include <string>
 #include <sstream>
 #include <ctime>
+
+#include "registry/registry.h"
+//#include "bridge/bridge.h"
 #include "common/util/string_util.h"
 #include "compile_info/compile_info.h"
 #include "common/util/crc32.h"
@@ -48,8 +49,8 @@
 using namespace std;
 
 void ug_backtrace();
-namespace ug
-{
+
+namespace ug {
 	
 void PrintLUA();
 namespace bridge

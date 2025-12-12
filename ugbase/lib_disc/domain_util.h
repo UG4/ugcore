@@ -36,7 +36,7 @@
 // other lib_discretization headers
 #include "domain.h"
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup lib_disc_domain
 /// \{

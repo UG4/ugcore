@@ -39,6 +39,8 @@
 
 #ifdef UG_PARALLEL
 
+#include "schur_complement_operator.h"
+
 
 // extern headers
 #include <cmath>
@@ -62,7 +64,7 @@
 #include "schur.h"
 #include "parallel_progress.h"
 
-namespace ug{
+namespace ug {
 
 
 template <typename VT>

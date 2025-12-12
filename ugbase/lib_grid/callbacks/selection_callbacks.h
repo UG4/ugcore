@@ -36,7 +36,8 @@
 #include "lib_grid/tools/selector_interface.h"
 #include "element_callback_interface.h"
 
-namespace ug{
+namespace ug {
+
 /** \ingroup lib_grid_element_callbacks
  * \{ */
 

@@ -34,10 +34,11 @@
 #define __H__UG__LIB_DISC__TIME_DISC__THETA_TIME_STEP_IMPL__
 
 #include "theta_time_step.h"
-#include "common/math/misc/math_constants.h"
+
+// #include "common/math/misc/math_constants.h"
 
 
-namespace ug{
+namespace ug {
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::

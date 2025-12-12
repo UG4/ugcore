@@ -59,8 +59,8 @@
 #endif
 
 
-namespace ug{
-namespace vrl{
+namespace ug {
+namespace vrl {
 
 void Log(std::string s) {
 	UG_LOG(s);

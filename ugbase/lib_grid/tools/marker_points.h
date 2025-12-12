@@ -35,12 +35,13 @@
 
 #include <vector>
 #include <string>
-#include "common/common.h"
+
+//#include "common/common.h"
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/common_attachments.h"
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 /**
  * Marker points help when it comes to associating something with a

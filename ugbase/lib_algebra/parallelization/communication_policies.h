@@ -35,12 +35,14 @@
 
 #include "pcl/pcl.h"
 #include "common/serialization.h"
+#include "common/assert.h"
+
 #include "parallel_index_layout.h"
 #include "lib_algebra/common/operations_vec.h"
 #include "algebra_id.h"
 
 
-namespace ug{
+namespace ug {
 
 // predeclaration of block_traits
 /**	The block-traits are required by communication policies to determine whether buffers

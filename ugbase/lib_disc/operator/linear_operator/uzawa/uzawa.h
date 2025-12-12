@@ -36,16 +36,15 @@
 #include <vector>
 #include <string>
 
-
 #include "lib_algebra/operator/algebra_debug_writer.h"
 #include "lib_algebra/adapter/slicing.h"
 
 #include "common/util/string_util.h"  // string tokenizer
 
 
-namespace ug{
+namespace ug {
 
-	using binary_grouping_vector = std::vector<bool>;
+using binary_grouping_vector = std::vector<bool>;
 
 
 template<typename TGroupObj, typename TGridFunction>

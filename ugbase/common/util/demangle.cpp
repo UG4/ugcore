@@ -30,6 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "demangle.h"
+
 #ifdef UG_POSIX
 #include <cxxabi.h>
 #endif
@@ -39,7 +41,8 @@
 #include <cstdlib>
 
 using namespace std;
-namespace ug{
+
+namespace ug {
 
 #ifdef UG_POSIX
 string demangle_block(const char *str)

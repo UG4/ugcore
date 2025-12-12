@@ -32,7 +32,8 @@
 
 
 #include "runtime_profile_info.h"
-#include "string.h"
+
+#include <cstring>
 
 RuntimeProfileInfo::RuntimeProfileInfo(
 		const char* name, bool bCopyName,

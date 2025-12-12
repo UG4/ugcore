@@ -33,12 +33,13 @@
 #ifndef __H__UG__NODE_TREE__COLLISION_TREE_ROOT_NODE__
 #define __H__UG__NODE_TREE__COLLISION_TREE_ROOT_NODE__
 
-#include "boxed_group_node.h"
 #include <vector>
 
-namespace ug{
-namespace node_tree
-{
+#include "boxed_group_node.h"
+
+
+namespace ug {
+namespace node_tree {
 
 class CollisionTreeRootNode;
 ////////////////////////////////////////////////////////////////////////

@@ -34,10 +34,11 @@
 #define __H__UG_PCL_COMPOL_ATTACHMENT_REDUCE__
 
 #include <algorithm>
+
 #include "pcl/pcl_methods.h"
 #include "common/serialization.h"
 
-namespace ug{
+namespace ug {
 
 ///	methods defined in those traits are used by ComPol_AttachmentReduce
 /**	A default implementation is provided which works for integer types*/

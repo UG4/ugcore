@@ -33,6 +33,8 @@
 #ifndef __H__SMALL_OBJECT_ALLOCATOR_IMPL__
 #define __H__SMALL_OBJECT_ALLOCATOR_IMPL__
 
+#include "small_object_allocator.h"
+
 template <std::size_t maxObjSize, std::size_t maxChunkSize>
 SmallObjectAllocator<maxObjSize, maxChunkSize>&
 SmallObjectAllocator<maxObjSize, maxChunkSize>::

@@ -37,20 +37,20 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__SEQUENTIAL_SSC__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__SEQUENTIAL_SSC__
 
-#include "lib_algebra/operator/interface/preconditioner.h"
-
 #include <vector>
 #include <algorithm>
 
+#include "lib_algebra/operator/interface/preconditioner.h"
+
 #ifdef UG_PARALLEL
-	#include "pcl/pcl_util.h"
-	#include "lib_algebra/parallelization/parallelization_util.h"
-	#include "lib_algebra/parallelization/parallelization.h"
+	// #include "pcl/pcl_util.h"
+	// #include "lib_algebra/parallelization/parallelization_util.h"
+	// #include "lib_algebra/parallelization/parallelization.h"
 	#include "lib_algebra/parallelization/matrix_overlap.h"
-	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
+	// #include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 
 //! Abstract definition for subspace V_k

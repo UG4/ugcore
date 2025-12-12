@@ -50,7 +50,7 @@
 	#define SCHUR_PROFILE_END_(name)
 #endif
 
-namespace ug{
+namespace ug {
 
 extern DebugID SchurDebug;
 
@@ -59,7 +59,8 @@ extern DebugID SchurDebug;
 
 #include "lib_algebra/adapter/slicing.h"
 
-namespace ug{
+namespace ug {
+
 enum schur_slice_desc_type {SD_INNER=0, SD_SKELETON, SLICE_DESC_SIZE};
 
 using SchurSliceDescVector = std::vector<schur_slice_desc_type>;

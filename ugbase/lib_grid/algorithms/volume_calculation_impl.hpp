@@ -33,10 +33,12 @@
 #ifndef __H__UG__volume_calculation_impl__
 #define __H__UG__volume_calculation_impl__
 
+#include "volume_calculation.h"
+
 #include "common/math/misc/math_util.h"
 #include "geom_obj_util/face_util.h"
 
-namespace ug{
+namespace ug {
 
 
 template <typename TAAPos>

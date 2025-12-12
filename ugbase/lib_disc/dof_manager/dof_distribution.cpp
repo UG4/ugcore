@@ -31,8 +31,8 @@
  */
 
 #include "dof_distribution.h"
-#include "lib_disc/function_spaces/grid_function.h"
 
+#include "lib_disc/function_spaces/grid_function.h"
 #include "common/log.h"
 #include "lib_disc/domain.h"
 //ø #include "lib_disc/local_finite_element/local_dof_set.h"
@@ -44,13 +44,12 @@
 #include "common/util/string_util.h"
 #include "orientation.h"
 #include "lib_grid/tools/periodic_boundary_manager.h"
-
 #include "lib_grid/file_io/file_io.h"
 #include "lib_grid/algorithms/debug_util.h"
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // DoFDistribution

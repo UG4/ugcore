@@ -33,7 +33,7 @@
 #include "mg_hnode_adjuster.h"
 #include "lib_grid/algorithms/debug_util.h"
 
-namespace ug{
+namespace ug {
 
 void MGHNodeAdjuster::
 ref_marks_changed(IRefiner& ref,

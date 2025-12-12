@@ -31,6 +31,7 @@
  */
 
 #include "partitioner_dynamic_bisection.h"
+
 #include "load_balancer_util.h"
 #include "distributed_grid.h"
 #include "lib_grid/parallelization/util/compol_copy_attachment.h"
@@ -43,7 +44,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 template <typename TElem, int dim>
 Partitioner_DynamicBisection<TElem, dim>::

@@ -38,7 +38,7 @@
 #include "pcl/pcl_interface_communicator.h"
 #include "pcl/pcl_process_communicator.h"
 
-namespace ug{
+namespace ug {
 
 class ParallelHNodeAdjuster;
 using SPParallelHNodeAdjuster = SmartPtr<ParallelHNodeAdjuster>;

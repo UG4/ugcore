@@ -42,8 +42,7 @@
 #include "lib_grid/lg_base.h"
 #include "common/ug_config.h"
 
-namespace ug
-{
+namespace ug {
 
 ///	Performs triangulation of a polygon and resoves additional inner edges.
 /**	This algorithm triangulates a set of edges.

@@ -34,7 +34,7 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_VOLUME_BASE__
 
 
-namespace ug{
+namespace ug {
 
 /// helper class to store dimension and id of a midpoint of a sub-element
 struct MidID

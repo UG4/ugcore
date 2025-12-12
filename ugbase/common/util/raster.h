@@ -35,7 +35,7 @@
 
 #include "common/math/ugmath_types.h"
 
-namespace ug{
+namespace ug {
 
 ///	Generic raster for arbitrary dimensions.
 /** The raster provides access to raster-data in arbitrary dimensions.

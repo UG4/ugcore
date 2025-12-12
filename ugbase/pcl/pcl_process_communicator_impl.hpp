@@ -33,10 +33,11 @@
 #ifndef __H__PCL__pcl_process_communicator_impl__
 #define __H__PCL__pcl_process_communicator_impl__
 
+#include "pcl_process_communicator.h"
+
 #include "common/util/vector_util.h"
 
-namespace pcl
-{
+namespace pcl {
 
 template<typename TValue>
 void ProcessCommunicator::

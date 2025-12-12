@@ -30,17 +30,19 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "lib_grid/algorithms/attachment_util.h"
 #include "selector_interface.h"
+
+#include "lib_grid/algorithms/attachment_util.h"
+
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/distributed_grid.h"
 	#include "lib_grid/parallelization/util/compol_selection.h"
 #endif
 
 
-namespace ug
-{
-	
+namespace ug {
+
+
 ISelector::ISelector(SelectorElements_t supportedElements) :
 	m_aSelected("ISelector_IsSelected")
 {

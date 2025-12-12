@@ -34,6 +34,7 @@
 #define STRING_TABLE_STREAM_H_
 
 #include <vector>
+
 #include "table.h"
 #include "string_util.h"
 #include "stringify.h"
@@ -61,7 +62,9 @@
  * This class uses internally StringTable.
  * @sa StringTable, Table
  */
-namespace ug{
+
+namespace ug {
+
 class StringTableStream
 {
 private:

@@ -30,17 +30,19 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <iostream>
 #include "traverser_project_point.h"
+
+//#include <iostream>
+
 #include "../node_tree.h"
-#include "common/log.h"
-#include "common/profiler/profiler.h"
+//#include "common/log.h"
+//#include "common/profiler/profiler.h"
 
 using namespace std;
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
+
 
 /*
 force_find muss überarbeitet werden:

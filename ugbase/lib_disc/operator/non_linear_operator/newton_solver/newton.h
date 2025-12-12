@@ -33,7 +33,7 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NEWTON_SOLVER__NEWTON__
 #define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NEWTON_SOLVER__NEWTON__
 
-#include <cmath>
+//#include <cmath>
 
 #include "lib_algebra/operator/interface/operator_inverse.h"
 #include "lib_algebra/operator/interface/linear_operator_inverse.h"
@@ -45,7 +45,7 @@
 #include "lib_disc/operator/linear_operator/assembled_linear_operator.h"
 #include "../line_search.h"
 #include "newton_update_interface.h"
-#include "lib_algebra/operator/debug_writer.h"
+// #include "lib_algebra/operator/debug_writer.h"
 
 //#include "nestedNewtonRFSwitch.h"
 

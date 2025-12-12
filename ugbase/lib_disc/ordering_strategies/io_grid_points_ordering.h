@@ -30,6 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
+#ifndef IG_UGBASE_LIB_DISC_ORDERING_STRATEGIES_IO_GRID_POINTS_ORDERING_H
+#define IG_UGBASE_LIB_DISC_ORDERING_STRATEGIES_IO_GRID_POINTS_ORDERING_H
 
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
@@ -37,7 +39,7 @@
 
 #include "lib_disc/io/vtkoutput.h" ////IteratorProvider
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain, typename TAlgebra>
 class GridPointsOrdering
@@ -270,3 +272,4 @@ private:
 };
 
 } //namespace
+#endif

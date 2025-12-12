@@ -35,13 +35,16 @@
 
 #include <string>
 #include <cstddef>
+
 using std::size_t;
 
 typedef struct lua_State lua_State;
 
-namespace ug{
+namespace ug {
+
 class Variant;
-namespace impl{
+
+namespace impl {
 struct LuaTableHandle_;
 }
 
@@ -49,17 +52,17 @@ struct LuaTableHandle_;
 class LuaTableHandle /* public SuitableBaseClass */ {
 public:
 	LuaTableHandle() = delete;
-	LuaTableHandle(LuaTableHandle const&);
-	LuaTableHandle(LuaTableHandle&&);
+	LuaTableHandle(const LuaTableHandle&);
+	LuaTableHandle(LuaTableHandle&&) noexcept;
 	explicit LuaTableHandle(lua_State* ref, int idx);
 	~LuaTableHandle();
 
 public:
-	size_t size() const;
-	Variant get(std::string const& key) const;
-	Variant get(int const& key) const;
+	[[nodiscard]] size_t size() const;
+	[[nodiscard]] Variant get(std::string const& key) const;
+	[[nodiscard]] Variant get(int const& key) const;
 
-	LuaTableHandle& operator = (LuaTableHandle const&);
+	LuaTableHandle& operator = (const LuaTableHandle&);
 	LuaTableHandle& operator = (LuaTableHandle&&);
 
 private:

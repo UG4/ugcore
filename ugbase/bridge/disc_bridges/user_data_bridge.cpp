@@ -45,11 +45,11 @@
 
 // lib disc
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
-#include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
+//#include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
 #include "lib_disc/spatial_disc/user_data/common_user_data/common_user_data.h"
 #include "lib_disc/spatial_disc/user_data/common_user_data/raster_user_data.h"
 
-#include "lib_disc/spatial_disc/user_data/linker/linker.h"
+//#include "lib_disc/spatial_disc/user_data/linker/linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/scale_add_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/inverse_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/darcy_velocity_linker.h"
@@ -62,7 +62,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 template <typename TData, int dim>
 void PrintUserDataValue(const UserData<TData, dim>& ud, const MathVector<dim>& globIP,

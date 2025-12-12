@@ -33,9 +33,11 @@
 #ifndef __H__UG__resolve_intersections_impl__
 #define __H__UG__resolve_intersections_impl__
 
+#include "resolve_intersections.h"
+
 #include <map>
 #include <limits>
-#include "resolve_intersections.h"
+
 #include "common/math/misc/shapes.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/algorithms/grid_generation/triangle_fill_sweep_line.h"
@@ -45,9 +47,9 @@
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include "common/space_partitioning/ntree_traverser.h"
 
-namespace ug{
-
+namespace ug {
 namespace grid_intersection_impl {
+
 // 	static int fileCounter = 1;
 // 	string filenamePrefix = "/home/sreiter/Desktop/failed_sweeplines/failed_sweepline_";
 // 	stringstream ss2d, ss3d;

@@ -31,10 +31,11 @@
  */
 
 #include "message_hub.h"
+
 #include "common/assert.h"
 #include "common/error.h"
 
-namespace ug{
+namespace ug {
 
 MessageHub::CallbackEntry::
 CallbackEntry(const Callback& cb, CallbackId* cbId) :

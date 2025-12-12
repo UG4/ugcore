@@ -29,14 +29,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
-
+#ifndef IG_UGBASE_LIB_DISC_ORDERING_STRATEGIES_IO_GRID_FUNCTION_ORDERING_H
+#define IG_UGBASE_LIB_DISC_ORDERING_STRATEGIES_IO_GRID_FUNCTION_ORDERING_H
 
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/grid_function_user_data.h"
-#include "lib_disc/reference_element/reference_element.h"
+// #include "lib_disc/reference_element/reference_element.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain, typename TAlgebra>
 class GridFunctionOrdering
@@ -75,3 +76,5 @@ private:
 };
 
 } //namespace
+
+#endif

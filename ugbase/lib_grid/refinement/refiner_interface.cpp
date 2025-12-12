@@ -42,7 +42,7 @@
 	#include "pcl/pcl_util.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 bool IRefiner::mark(GridObject* o, RefinementMark refMark)
 {

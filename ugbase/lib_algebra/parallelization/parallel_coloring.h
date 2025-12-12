@@ -48,10 +48,11 @@
 #include <map>
 #include <vector>
 #include <set>
+
 #include "parallelization_util.h"
 
-namespace ug
-{
+namespace ug {
+
 extern DebugID DBG_COLORING;
 
 class ParallelColoring

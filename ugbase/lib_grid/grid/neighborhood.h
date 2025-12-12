@@ -34,11 +34,11 @@
 #define __H__LIB_GRID__NEIGHBORHOOD__
 
 #include <vector>
+
 #include "grid.h"
 #include "lib_grid/callbacks/basic_callbacks.h"
 
-namespace ug
-{
+namespace ug {
 
 /**
  * Methods to access the neighborhood of geometric objects

@@ -36,7 +36,7 @@
 #include "obstacle_constraint_interface.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
-namespace ug{
+namespace ug {
 
 /// Obstacle Class for Obstacle in normal direction
 /**

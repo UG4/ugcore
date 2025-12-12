@@ -34,15 +34,15 @@
 #ifndef __H_MANIFOLD_ASSEMBLE_UTIL__
 #define __H_MANIFOLD_ASSEMBLE_UTIL__
 
-#include "bindings/lua/lua_user_data.h"
+//#include "bindings/lua/lua_user_data.h"
 #include "common/util/smart_pointer.h"
 #include "lib_disc/spatial_disc/domain_disc.h"
 
 // other ug4 modules
-#include "common/common.h"
-#include "lib_grid/tools/subset_group.h"
-#include "lib_disc/common/function_group.h"
-#include "lib_disc/common/groups_util.h"
+//#include "common/common.h"
+//#include "lib_grid/tools/subset_group.h"
+//#include "lib_disc/common/function_group.h"
+//#include "lib_disc/common/groups_util.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 
 

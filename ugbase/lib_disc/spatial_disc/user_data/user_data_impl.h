@@ -34,9 +34,10 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__USER_DATA__USER_DATA_IMPL__
 
 #include "user_data.h"
+
 #include "lib_disc/common/groups_util.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ICplUserData

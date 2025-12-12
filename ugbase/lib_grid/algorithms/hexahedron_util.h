@@ -35,9 +35,9 @@
 
 #include "../grid_objects/grid_objects_3d.h"
 #include "../grid/grid.h"
-#include "../grid/grid_util.h"
+// #include "../grid/grid_util.h"
 
-namespace ug{
+namespace ug {
 
 ///	Creates a hexahedron from two prisms which share a quadrilateral side
 /**

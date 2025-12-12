@@ -35,7 +35,7 @@
 
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
-#include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
+//#include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 
 namespace ug {
 

@@ -31,7 +31,9 @@
  */
 
 #include "line_smoothers.h"
-namespace ug{
+
+namespace ug {
+
 template<int dim>
 bool ComparePosDimYDir(const std::pair<MathVector<dim>, size_t> &p1,
 					   const std::pair<MathVector<dim>, size_t> &p2)

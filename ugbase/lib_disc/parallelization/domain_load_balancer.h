@@ -38,7 +38,7 @@
 #include "lib_grid/parallelization/load_balancer.h"
 #include "lib_grid/parallelization/load_balancer_util.h"
 
-namespace ug{
+namespace ug {
 
 ///	Creates a process-hierarchy that fullfills the given conditions.
 template <typename TDomain>

@@ -34,7 +34,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 ParallelNodes::ParallelNodes(ConstSmartPtr<AlgebraLayouts> layout, size_t s)
 {

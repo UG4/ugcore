@@ -35,9 +35,9 @@
 
 #include "common/math/ugmath.h"
 
-namespace ug{
-namespace oct_rules
-{
+namespace ug {
+namespace oct_rules {
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //	LOOKUP TABLES

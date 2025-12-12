@@ -32,14 +32,13 @@
 
 #include "collision_edges_node.h"
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
 
 ////////////////////////////////////////////////////////////////////////
 SPCollisionEdgesNode CollisionEdgesNode::create()
 {
-	CollisionEdgesNode* node = new CollisionEdgesNode;
+	auto node = new CollisionEdgesNode;
 	node->m_objectCode = OC_COLLISION_EDGES_NODE;
 	return SPCollisionEdgesNode(node);
 }

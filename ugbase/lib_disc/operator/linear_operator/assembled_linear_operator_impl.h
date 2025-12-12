@@ -34,6 +34,7 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR_IMPL__
 
 #include "assembled_linear_operator.h"
+
 #include "common/profiler/profiler.h"
 
 #define PROFILE_ASS
@@ -47,7 +48,7 @@
 	#define ASS_PROFILE_END()
 #endif
 
-namespace ug{
+namespace ug {
 
 template <typename TAlgebra>
 void

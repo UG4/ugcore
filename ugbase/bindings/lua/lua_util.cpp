@@ -38,7 +38,7 @@
 
 
 // ug libraries
-#include "ug.h"
+// #include "ug.h"
 #include "lua_util.h"
 #include "common/util/path_provider.h"
 #include "common/util/file_util.h"
@@ -52,8 +52,13 @@
 #include "registry/class_name_provider.h"
 #include "registry/registry.h"
 #include "lua_debug.h"
-#include "lua_stack.h"
-#include "common/util/binary_buffer.h"
+
+extern "C" {
+#include "externals/lua/lualib.h"
+}
+
+// #include "lua_stack.h"
+// #include "common/util/binary_buffer.h"
 
 
 #ifdef UG_PARALLEL
@@ -67,16 +72,14 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 #ifdef USE_LUA2C
 	namespace bridge{
 		bool RegisterConverter(Registry &reg, const char* parentGroup);
 	}
 #endif
 
-namespace script
-{
+namespace script {
 
 #define PL_COULDNT_FIND -2
 #define PL_COULDNT_READ -1

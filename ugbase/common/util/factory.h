@@ -37,13 +37,13 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/type_traits/is_base_of.hpp>
-#include "../boost_serialization.h"
+
+// #include "../boost_serialization.h"
 #include "detail/register_type_pair_functor.h"
 
-namespace ug{
-
-namespace detail{
-namespace factory{
+namespace ug {
+namespace detail {
+namespace factory {
 	///	used internally to construct derived classes of a given type
 	template <typename TBase, typename TDerived>
 	TBase* DerivedClassFactory ()

@@ -39,8 +39,8 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 bool LoadGrid(Grid& grid, ISubsetHandler& sh, const char* filename)
 {

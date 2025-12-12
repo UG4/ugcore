@@ -36,8 +36,8 @@
 #include "grid_base_objects.h"
 #include "common/util/section_container.h"
 
-namespace ug
-{
+namespace ug {
+
 ///	This struct is used to hold GridObjects and their attachment pipes.
 template <typename TElem>
 class ElementStorage

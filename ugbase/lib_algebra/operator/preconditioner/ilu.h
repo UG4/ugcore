@@ -34,7 +34,8 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILU__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILU__
 
-#include <limits>
+//#include <limits>
+
 #include "common/error.h"
 #ifndef NDEBUG
 #include "common/stopwatch.h"
@@ -43,7 +44,7 @@
 #include "lib_algebra/operator/interface/preconditioner.h"
 
 #ifdef UG_PARALLEL
-	#include "pcl/pcl_util.h"
+	//#include "pcl/pcl_util.h"
 	#include "lib_algebra/parallelization/parallelization_util.h"
 	#include "lib_algebra/parallelization/matrix_overlap.h"
 	#include "lib_algebra/parallelization/overlap_writer.h"
@@ -54,7 +55,7 @@
 
 #include "lib_algebra/algebra_common/permutation_util.h"
 
-namespace ug{
+namespace ug {
 
 
 // ILU(0) solver, i.e. static pattern ILU w/ P=P(A)

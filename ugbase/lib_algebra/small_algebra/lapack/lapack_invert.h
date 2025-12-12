@@ -33,13 +33,15 @@
 #ifndef __H__UG__CPU_ALGEBRA__LAPACK_INVERT_H__
 #define __H__UG__CPU_ALGEBRA__LAPACK_INVERT_H__
 
-#include "../small_matrix/densematrix.h"
-#include "../small_matrix/densevector.h"
-#include "../small_matrix/block_dense.h"
-#include "lapack.h"
 #include <vector>
 
-namespace ug{
+#include "../small_matrix/densematrix.h"
+#include "../small_matrix/densevector.h"
+//#include "../small_matrix/block_dense.h"
+//#include "lapack.h"
+
+
+namespace ug {
 
 
 

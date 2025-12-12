@@ -46,7 +46,7 @@
 #include "vm.h"
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 extern bool useLua2VM;
 extern bool useLuaCompiler;

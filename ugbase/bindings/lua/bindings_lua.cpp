@@ -32,17 +32,17 @@
 
 #include <sstream>
 #include <cstring>
-#include <cstdlib>
+//#include <cstdlib>
 #include <queue>
 #include "bindings_lua.h"
 #include "registry/registry.h"
 #include "registry/class_helper.h"
-#include "common/common.h"
+//#include "common/common.h"
 #include "info_commands.h"
 #include "lua_util.h"
 #include "lua_parsing.h"
 #ifdef UG_PARALLEL
-#include "pcl/pcl_base.h"
+//#include "pcl/pcl_base.h"
 #endif
 #include "bridge/bridge.h"
 
@@ -120,9 +120,9 @@ static const char* errSymb = " % ";
 		}
 
 
-namespace ug{
-namespace bridge{
-namespace lua{
+namespace ug {
+namespace bridge {
+namespace lua {
 
 //	set this variable to true if smart-ptr arguments shall be automatically
 //	converted to raw-ptrs where required.

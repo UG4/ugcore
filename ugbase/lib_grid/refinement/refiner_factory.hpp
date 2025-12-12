@@ -47,7 +47,7 @@
 #include "lib_grid/parallelization/parallel_refinement/parallel_refinement.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Creates a global domain refiner.

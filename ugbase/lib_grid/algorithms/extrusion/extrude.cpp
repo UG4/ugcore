@@ -31,6 +31,7 @@
  */
 
 #include "extrude.h"
+
 #include "common/util/hash.h"
 #include "lib_grid/algorithms/orientation_util.h"
 //ø #include "lib_grid/algorithms/geom_obj_util/face_util.h"
@@ -38,8 +39,7 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 static bool ExtrusionHelper_CheckOrientation(Volume* v, Grid::VertexAttachmentAccessor<Attachment<vector1> >& aaPos)
 {

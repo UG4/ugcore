@@ -38,7 +38,7 @@
 #include "lib_algebra/small_algebra/small_matrix/densevector.h"
 #include "lib_algebra/small_algebra/small_matrix/densematrix.h"
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup math_tensor
 /// \{
@@ -161,6 +161,6 @@ Tens4IdentitySym(MathTensor4<TDim, TDim, TDim, TDim>& Ident);
 } //end of namespace
 
 //	include a general, but not very fast implementation of the declared methods above.
-#include "math_tensor_functions_common_impl.hpp"
+#include "math_tensor_functions_impl.hpp"
 
 #endif

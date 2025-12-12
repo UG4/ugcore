@@ -37,7 +37,8 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
+
 
 HangingNodeRefiner_Grid::
 HangingNodeRefiner_Grid(SPRefinementProjector projector) :

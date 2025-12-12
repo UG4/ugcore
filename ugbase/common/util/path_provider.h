@@ -41,8 +41,7 @@
 #include "common/util/os_info.h"
 
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_util
 /// \{

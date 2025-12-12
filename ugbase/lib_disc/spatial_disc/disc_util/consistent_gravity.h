@@ -33,11 +33,13 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONSISTENT_GRAVITY__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONSISTENT_GRAVITY__
 
-// other ug4 modules
-#include "common/common.h"
 #include <vector>
 
-namespace ug{
+// other ug4 modules
+#include "common/common.h"
+
+
+namespace ug {
 
 /// Class for the computation of the standard version ('Voss-Souza-type') of the consistent gravity
 /**

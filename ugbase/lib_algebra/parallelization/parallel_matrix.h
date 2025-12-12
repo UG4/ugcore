@@ -33,17 +33,16 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_MATRIX__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_MATRIX__
 
-#include "pcl/pcl.h"
+//#include "pcl/pcl.h"
 #include "parallel_index_layout.h"
-#include "parallelization_util.h"
+//#include "parallelization_util.h"
 #include "parallel_storage_type.h"
 #include "algebra_layouts.h"
 #include "lib_algebra/common/operations.h"
 #include "parallel_vector.h"
 
 
-namespace ug
-{
+namespace ug {
 
 ///\ingroup lib_algebra_parallelization
 

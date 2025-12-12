@@ -40,8 +40,7 @@
 #include "lib_grid/grid/grid_base_objects.h"
 #include "lib_grid/refinement/projectors/projection_handler.h"
 
-namespace ug
-{
+namespace ug {
 
 //	predeclaration of surface view (declared in lib_grid/tools/surface_view.h)
 class Grid;

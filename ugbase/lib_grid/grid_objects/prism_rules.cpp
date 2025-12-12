@@ -30,13 +30,15 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cassert>
 #include "prism_rules.h"
+
+#include <cassert>
+
 #include "rule_util.h"
 #include "grid_object_ids.h"
 
-namespace ug{
-namespace prism_rules{
+namespace ug {
+namespace prism_rules {
 
 ///	Output are the vertices of a prism rotated around its vertical axis
 void RotatePrism(int vrtsOut[NUM_VERTICES], int steps)

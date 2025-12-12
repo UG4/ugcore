@@ -35,13 +35,13 @@
 
 #include <map>
 #include <vector>
+
 #include "parallel_grid_layout.h"
 #include "lib_grid/multi_grid.h"
 #include "common/util/owned_pointer.h"
 #include "distro_adjuster.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup lib_grid_parallelization
 /// @{

@@ -30,17 +30,17 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "pcl_methods.h"
 
 #include <mpi.h>
 
 #include "common/log.h"
 
 #include "pcl_comm_world.h"
-#include "pcl_methods.h"
+
 //ø #include "pcl_profiling.h"
 
-namespace pcl
-{
+namespace pcl {
 
 ////////////////////////////////////////////////////////////////////////
 double Time()

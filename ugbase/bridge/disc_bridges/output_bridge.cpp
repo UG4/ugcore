@@ -53,9 +53,9 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace Output{
+namespace ug {
+namespace bridge {
+namespace Output {
 
 /**
  * \defgroup output_bridge Output Bridge

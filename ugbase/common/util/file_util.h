@@ -41,13 +41,12 @@
 #ifndef __H__UG__FILE_UTIL__
 #define __H__UG__FILE_UTIL__
 
-#include <fstream>
+//#include <fstream>
 #include <vector>
 #include <string>
 #include "common/ug_config.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_io
 /// \{

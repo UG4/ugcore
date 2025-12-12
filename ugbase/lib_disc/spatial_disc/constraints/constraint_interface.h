@@ -38,11 +38,11 @@
 
 // intern headers
 #include "lib_disc/assemble_interface.h"
-#include "lib_disc/common/local_algebra.h"
+// #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 
-namespace ug{
+namespace ug {
 
 /// interface for adjustment of constraints
 /**

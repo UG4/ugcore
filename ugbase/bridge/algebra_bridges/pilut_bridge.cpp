@@ -48,9 +48,9 @@
 #include "lib_algebra/operator/preconditioner/pilut.h"
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace Preconditioner{
+namespace ug {
+namespace bridge {
+namespace Preconditioner {
 
 /**
  * \defgroup precond_bridge Preconditioner Bridge
@@ -130,8 +130,8 @@ void RegisterBridge_PILUT(Registry& reg, string grp)
 
 #endif
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 /// \addtogroup precond_bridge
 void RegisterBridge_PILUT(Registry& reg, std::string grp)
 {

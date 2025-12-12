@@ -34,11 +34,12 @@
 #define __H__REMESHING__SIMPLE_GRID_IMPL__
 
 #include <queue>
+
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/graph/graph.h"
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 //	ObtainSimpleGrid
 template <typename TPosAcc, typename TIntAcc, typename TNormAcc>

@@ -30,17 +30,18 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "subset_group.h"
+
 #include <algorithm>
 #include <cstring>
 
-#include "subset_group.h"
 #include "common/common.h"
 #include "common/util/string_util.h"
 #include "lib_grid/algorithms/subset_dim_util.h"
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 SubsetGroup::SubsetGroup() : m_pSH(nullptr) {clear();}
 SubsetGroup::SubsetGroup(ConstSmartPtr<ISubsetHandler> sh) : m_pSH(sh) {clear();}
@@ -69,7 +70,7 @@ void SubsetGroup::add(int si)
 	if(si < 0)
 		UG_THROW("Subset indices must be non-negative, but " << si);
 
-	vector<int>::iterator iter = find(m_vSubset.begin(), m_vSubset.end(), si);
+	auto iter = find(m_vSubset.begin(), m_vSubset.end(), si);
 	if(iter != m_vSubset.end()) return;
 
 	m_vSubset.push_back(si);
@@ -232,7 +233,6 @@ bool SubsetGroup::regular_grid(size_t i) const
 	return SubsetIsRegularGrid(*m_pSH, m_vSubset[i]);
 }
 
-
 int SubsetGroup::dim(size_t i) const
 {
 	if(!is_init())
@@ -274,8 +274,7 @@ bool SubsetGroup::contains(int si) const
 		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 	//TODO: since we subetindices are sorted be increasing number, one could optimize the search
-	vector<int>::const_iterator iter;
-	iter = find(m_vSubset.begin(), m_vSubset.end(), si);
+	auto iter = find(m_vSubset.begin(), m_vSubset.end(), si);
 	if(iter == m_vSubset.end()) return false;
 	return true;
 }

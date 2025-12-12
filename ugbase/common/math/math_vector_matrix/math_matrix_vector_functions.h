@@ -33,10 +33,10 @@
 #ifndef __H__UGMATH__MATRIX_VECTOR_FUNCTIONS__
 #define __H__UGMATH__MATRIX_VECTOR_FUNCTIONS__
 
-#include "math_matrix.h"
-#include "math_vector.h"
+//#include "math_matrix.h"
+//#include "math_vector.h"
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup ugbase_math
 /// \{
@@ -99,6 +99,6 @@ OrthogProjectVec (vector_t& v, const matrix_t& A);
 
 } //end of namespace: ug
 
-#include "math_matrix_vector_functions_common_impl.hpp"
+#include "math_matrix_vector_functions_impl.hpp"
 
 #endif

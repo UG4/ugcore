@@ -35,12 +35,13 @@
 
 #include <queue>
 #include <vector>
-#include <sstream>
+// #include <sstream>
+
 #include "common/ug_config.h"
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/attachment_util.h"
 
-namespace ug{
+namespace ug {
 
 /** This class intended for internal use in delaunay related algorithms.
  */

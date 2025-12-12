@@ -35,7 +35,7 @@
 
 #include "lib_grid/algorithms/raster_layer_util.h"
 
-namespace ug{
+namespace ug {
 
 
 void MeshLayerBoundaries(

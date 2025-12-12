@@ -33,12 +33,12 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONV_SHAPE_INTERFACE__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONV_SHAPE_INTERFACE__
 
-#include "common/common.h"
-#include "common/util/provider.h"
+// #include "common/common.h"
+// #include "common/util/provider.h"
 #include "common/math/ugmath_types.h"
 #include "lib_disc/spatial_disc/disc_util/fv_geom_base.h"
 
-namespace ug{
+namespace ug {
 
 /////////////////////////////////////////////////////////////////////////////
 // Interface for Convection shapes

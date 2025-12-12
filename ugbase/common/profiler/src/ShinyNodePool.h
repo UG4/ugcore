@@ -44,14 +44,14 @@ namespace Shiny {
 		T _items[1];
 
 
-		T* firstItem(void) { return &_items[0]; }
-		T* newItem(void) { return _nextItem++; }
-		const T* unusedItem(void) const { return _nextItem; }
+		T* firstItem() { return &_items[0]; }
+		T* newItem() { return _nextItem++; }
+		const T* unusedItem() const { return _nextItem; }
 
 		static ProfileNodePool* createNodePool(uint32_t a_items);
 
-		uint32_t memoryUsageChain(void);
-		void destroy(void);
+		uint32_t memoryUsageChain();
+		void destroy();
 	};
 
 } // namespace Shiny

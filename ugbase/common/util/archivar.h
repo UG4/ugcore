@@ -36,10 +36,11 @@
 #include <boost/static_assert.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/type_traits/is_base_of.hpp>
+
 #include "../boost_serialization.h"
 #include "detail/register_type_pair_functor.h"
 
-namespace ug{
+namespace ug {
 
 
 namespace detail{

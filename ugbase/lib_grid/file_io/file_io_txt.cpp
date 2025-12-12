@@ -29,6 +29,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
+
+#include "file_io_txt.h"
+
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -37,12 +40,10 @@
 #include "../lg_base.h"
 #include "common/util/string_util.h"
 
-#include "file_io_txt.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 bool LoadGridFromTXT(Grid& grid, const char* filename, AVector3& aPos)
 {

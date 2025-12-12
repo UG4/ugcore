@@ -34,10 +34,10 @@
 #define __H__REMESHING__SIMPLE_GRID__
 
 #include <vector>
+
 #include "lib_grid/lg_base.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	SimpleGrid

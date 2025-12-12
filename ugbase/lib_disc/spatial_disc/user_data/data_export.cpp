@@ -31,9 +31,13 @@
  */
 
 #include "data_export.h"
+
+#include "lib_disc/reference_element/reference_mapping_provider.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
+#include "lib_disc/local_finite_element/local_shape_function_set.h"
 //ø #include "lib_disc/reference_element/reference_element_util.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // ValueDataExport
@@ -68,6 +72,7 @@ void ValueDataExport<dim>::eval_and_deriv(number vValue[],
 
 //	request for trial space
 	try{
+
 	const LocalShapeFunctionSet<refDim>& rTrialSpace
 		 = LocalFiniteElementProvider::get<refDim>(roid, lfeID);
 

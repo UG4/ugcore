@@ -33,12 +33,13 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NEWTON_SOLVER__NEWTON_IMPL__
 #define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NEWTON_SOLVER__NEWTON_IMPL__
 
+#include "newton.h"
+
 #include <iostream>
 #include <sstream>
-#include <limits>
+// #include <limits>
 
-#include "newton.h"
-#include "lib_disc/function_spaces/grid_function_util.h"
+// #include "lib_disc/function_spaces/grid_function_util.h"
 #include "common/util/string_util.h"
 
 //#include "lib_disc/operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
@@ -54,7 +55,7 @@
 	#define NEWTON_PROFILE_END()
 #endif
 
-namespace ug{
+namespace ug {
 
 template <typename TAlgebra>
 NewtonSolver<TAlgebra>::

@@ -33,12 +33,13 @@
 #ifndef __H__UG__COMMON__DENSEVECTOR_H__
 #define __H__UG__COMMON__DENSEVECTOR_H__
 
-#include <iostream>
+// #include <iostream>
 #include <cassert>
+
 #include "../storage/storage.h"
 #include "concepts/vector_storage_type.hpp"
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup small_algebra
 /// \{

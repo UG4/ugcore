@@ -34,10 +34,10 @@
 #define __H__UG__binary_buffer__
 
 #include <vector>
-#include "common/types.h"
 
-namespace ug
-{
+//#include "common/types.h"
+
+namespace ug {
 
 /// \addtogroup ugbase_common_io
 /// \{

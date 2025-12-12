@@ -31,11 +31,12 @@
  */
 
 #include "binary_stream.h"
+
 #include "../log.h"
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 BinaryStreamBuffer::BinaryStreamBuffer()
 {

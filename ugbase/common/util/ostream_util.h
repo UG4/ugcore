@@ -33,8 +33,7 @@
 #ifndef __H__UG_OSTREAM_UTIL_H_
 #define __H__UG_OSTREAM_UTIL_H_
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_io
 /// \{

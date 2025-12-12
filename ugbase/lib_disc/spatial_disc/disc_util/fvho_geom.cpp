@@ -30,15 +30,17 @@
  * GNU Lesser General Public License for more details.
  */
 
-
-#include "common/util/provider.h"
 #include "fvho_geom.h"
-#include "lib_disc/reference_element/reference_element.h"
-#include "lib_disc/quadrature/quadrature_provider.h"
-#include "lib_algebra/common/operations_vec.h"
+
 #include <cmath>       /* pow */
 
-namespace ug{
+#include "common/util/provider.h"
+#include "lib_algebra/common/operations_vec.h"
+#include "lib_disc/reference_element/reference_element.h"
+#include "lib_disc/quadrature/quadrature_provider.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
+
+namespace ug {
 
 
 /**
@@ -1643,8 +1645,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
 
 //	get reference element mapping
 	try{
-	DimReferenceMapping<dim, worldDim>& rMapping
-		= ReferenceMappingProvider::get<dim, worldDim>(roid);
+	DimReferenceMapping<dim, worldDim>& rMapping = ReferenceMappingProvider::get<dim, worldDim>(roid);
 
 //	update reference mapping
 	rMapping.update(vCornerCoords);

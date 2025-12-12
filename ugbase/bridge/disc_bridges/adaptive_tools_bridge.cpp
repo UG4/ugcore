@@ -56,7 +56,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 #ifdef UG_FOR_LUA
 	template <typename TDomain, typename TAlgebra>
@@ -114,8 +114,8 @@ namespace ug{
 #endif
 	
 
-namespace bridge{
-namespace AdaptiveTools{
+namespace bridge {
+namespace AdaptiveTools {
 
 /**
  * \defgroup adaptivetools_bridge Adaptive Tools Bridge

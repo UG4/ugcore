@@ -30,12 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cmath>
-#include "../ugmath_types.h"
 #include "eigenvalues.h"
 
-namespace ug
-{
+#include <cmath>
+#include "../ugmath_types.h"
+
+
+namespace ug {
 
 static void rot(number A[3][3], const number s, const number tau,
 				const int i, const int j, const int k, const int l)

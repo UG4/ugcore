@@ -40,7 +40,7 @@
 #include "bridge/bridge.h"
 #include "bridge/util.h"
 #include "bridge/util_domain_algebra_dependent.h"
-#include "bridge/util_overloaded.h"
+//#include "bridge/util_overloaded.h"
 
 // discretization interfaces
 #include "lib_algebra/active_set/active_set.h"
@@ -48,7 +48,7 @@
 #include "lib_algebra/operator/convergence_check.h"
 #include "lib_algebra/operator/matrix_operator_functions.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
-#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
+//#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "lib_disc/time_disc/time_disc_interface.h"
 #include "lib_disc/time_disc/theta_time_step.h"
@@ -77,9 +77,9 @@
 using namespace std;
 
 
-namespace ug{
-namespace bridge{
-namespace DiscAlgebra{
+namespace ug {
+namespace bridge {
+namespace DiscAlgebra {
 
 /**
  * \defgroup discalgebra_bridge Discretization Algebra Bridge

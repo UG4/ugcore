@@ -36,7 +36,7 @@
 #include "common/util/smart_pointer.h"
 #include "schur_complement_operator.h"
 
-namespace ug{
+namespace ug {
 
 /*template <typename TAlgebra>
 class SchurComplementOperator;
@@ -48,10 +48,10 @@ class ISchurComplementInverse
 public:
 	virtual ~ISchurComplementInverse() = default;
 	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op) = 0;
-	virtual std::string config_string() const = 0;
+	[[nodiscard]] virtual std::string config_string() const = 0;
 	virtual bool apply(vector_type& u, const vector_type& f) = 0;
 	virtual bool apply_return_defect(vector_type& u, vector_type& f) = 0;
-	virtual bool supports_parallel() const = 0;
+	[[nodiscard]] virtual bool supports_parallel() const = 0;
 };
 
 }

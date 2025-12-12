@@ -34,7 +34,7 @@
 #define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR__
 
 
-namespace ug{
+namespace ug {
 
 ///////////////////////////////////////////////////////////////////////////////
 // (Nonlinear-) Operator

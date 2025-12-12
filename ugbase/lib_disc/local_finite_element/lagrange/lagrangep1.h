@@ -34,10 +34,10 @@
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LAGRANGEP1__LAGRANGEP1__
 
 #include "../local_finite_element_provider.h"
-#include "../local_dof_set.h"
+// #include "../local_dof_set.h"
 #include "lagrange_local_dof.h"
 
-namespace ug{
+namespace ug {
 
 /// \ingroup lib_discretization_local_shape_function_set
 /// @{

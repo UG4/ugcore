@@ -33,12 +33,14 @@
 #ifndef __H__UG__binary_buffer_impl__
 #define __H__UG__binary_buffer_impl__
 
+#include "binary_buffer.h"
+
 #include <cassert>
 #include <cstring>
+
 #include "vector_util.h"
 
-namespace ug
-{
+namespace ug {
 
 inline size_t BinaryBuffer::capacity() const
 {

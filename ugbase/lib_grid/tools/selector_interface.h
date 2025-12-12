@@ -34,6 +34,7 @@
 #define __H__LIBGRID__SELECTOR_INTERFACE__
 
 #include <cassert>
+
 #include "lib_grid/grid/grid.h"
 
 #ifdef UG_PARALLEL
@@ -42,8 +43,8 @@
 #endif
 
 
-namespace ug
-{
+namespace ug {
+
 /** \ingroup lib_grid_tools
  *  \{ */
 

@@ -30,14 +30,15 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "../grid/grid.h"
-#include "../common_attachments.h"
-
 #ifndef __H__LIB_GRID__FILE_IO_GRDECL__
 #define __H__LIB_GRID__FILE_IO_GRDECL__
 
-namespace ug
-{
+//#include "../grid/grid.h"
+#include "../common_attachments.h"
+
+
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 ///	loads a grid from txt
 bool LoadGridFromGRDECL(Grid&grid, const char* filename, AVector3& aPos = aPosition);

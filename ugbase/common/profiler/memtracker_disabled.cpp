@@ -37,13 +37,13 @@
 
 #include "memtracker.h"
 #include "common/log.h"
-#include "assert.h"
-#include <map>
+// #include "assert.h"
+// #include <map>
 
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 #ifdef UG_PROFILER_SHINY
 size_t GetSelfMem(const Shiny::ProfileNode *p)

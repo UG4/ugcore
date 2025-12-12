@@ -41,12 +41,6 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <boost/function.hpp>
-
-#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
-#include "lib_grid/callbacks/callbacks.h"
-#include "lib_grid/grid/grid_util.h"
-
 //ø #include <stack>
 #include <utility>
 #include <vector>
@@ -61,15 +55,18 @@
 #include "support.h"
 #include "support3D.h"
 
+#include <boost/function.hpp>
 
-#include <lib_grid/algorithms/extrusion/ArteExpandFracs3D.h>
+#include "lib_grid/algorithms/extrusion/ArteExpandFracs3D.h"
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/callbacks/callbacks.h"
+#include "lib_grid/grid/grid_util.h"
 
 #include "simpleMatrixOps.h"
 
 
 
-namespace ug
-{
+namespace ug {
 
 ArteExpandFracs3D::ArteExpandFracs3D(
 		Grid & grid, SubsetHandler & sh,

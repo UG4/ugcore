@@ -33,20 +33,22 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILUT_SCALAR__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILUT_SCALAR__
 
+#include "ilut.h"
+
 #include "common/util/smart_pointer.h"
 #include "lib_algebra/operator/interface/preconditioner.h"
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+	// #include "lib_algebra/parallelization/parallelization.h"
+	#include "lib_algebra/parallelization/parallelization_util.h"
 #endif
 #include "common/progress.h"
-#include "common/util/ostream_util.h"
-
+//#include "common/util/ostream_util.h"
 #include "lib_algebra/algebra_common/vector_util.h"
 #include "lib_algebra/operator/linear_solver/linear_solver.h"
 #include "lib_algebra/cpu_algebra_types.h"
-#include "ilut.h"
 
-namespace ug{
+
+namespace ug {
 
 template <typename TAlgebra>
 class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>

@@ -38,7 +38,7 @@
 
 #include "pcl_process_communicator.h"
 
-namespace pcl{
+namespace pcl {
 
 /**
  * This function writes a binarybuffers from all participating cores into one combined parallel file.

@@ -37,7 +37,9 @@
 #include "grid_objects_1d.h"
 #include "grid_objects_2d.h"
 
-namespace ug{
+namespace ug {
+
+
 /**	constraint traits provide the associated constrained and constraining grid
  * grid object types to a given grid object type.*/
 template <typename TElem>

@@ -33,13 +33,15 @@
 #ifndef __H__UG_refinement_mark_util_impl
 #define __H__UG_refinement_mark_util_impl
 
+#include "refinement_mark_util.h"
+
 #include <algorithm>
 #include <limits>
-#include "refinement_mark_util.h"
-#include "lib_grid/lg_base.h"
+
+// #include "lib_grid/lg_base.h"
 #include "lib_grid/refinement/refiner_interface.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TRef, typename TIter, typename TAAPos>
 void MarkForAnisotropicRefinement (

@@ -34,17 +34,17 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_INJECTION__
 
 // extern headers
-#include <iostream>
+//#include <iostream>
 
 // other ug4 modules
-#include "common/common.h"
+//#include "common/common.h"
 #include "transfer_interface.h"
 
 #ifdef UG_PARALLEL
-#include "lib_disc/parallelization/parallelization_util.h"
+//#include "lib_disc/parallelization/parallelization_util.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 /**
  * The Projection operator transfers is used to transfer vectors between two

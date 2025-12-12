@@ -35,13 +35,13 @@
 
 #include <vector>
 #include <cassert>
+
 #include "lib_grid/multi_grid.h"
 #include "common/util/section_container.h"
 #include "subset_handler_interface.h"
 #include "../lib_grid_messages.h"
 
-namespace ug
-{
+namespace ug {
 
 /** \ingroup lib_grid_tools
  *  \{ */

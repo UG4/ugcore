@@ -37,8 +37,8 @@
 #include "lib_grid/grid_objects/grid_objects.h"
 #include "lib_grid/common_attachments.h"
 
-namespace ug
-{
+namespace ug {
+
 /**
  * \brief contains miscellaneus methods that are related to GridObjects.
  * 

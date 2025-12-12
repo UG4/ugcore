@@ -33,6 +33,8 @@
 #ifndef IG_UGBASE_LIB_DISC_COMMON_MARKING_UTILS_IMPL_H
 #define IG_UGBASE_LIB_DISC_COMMON_MARKING_UTILS_IMPL_H
 
+#include "marking_utils.h"
+
 #include "lib_disc/common/multi_index.h"  // for DoFIndex
 #include "lib_disc/domain_traits.h"  // for domain_traits
 #include "lib_grid/refinement/refiner_interface.h"  // for IRefiner

@@ -30,8 +30,10 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <algorithm>
 #include "parallel_hanging_node_refiner_multi_grid.h"
+
+#include <algorithm>
+
 #include "../util/compol_selection.h"
 #include "parallel_hnode_adjuster.h"
 #include "lib_grid/algorithms/debug_util.h"
@@ -46,7 +48,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 ParallelHangingNodeRefiner_MultiGrid::
 ParallelHangingNodeRefiner_MultiGrid(

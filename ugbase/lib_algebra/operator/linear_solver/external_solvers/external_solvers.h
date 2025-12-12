@@ -35,19 +35,16 @@
 
 #include "common/common.h"
 #include "lib_algebra/operator/interface/matrix_operator_inverse.h"
-
-
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
 #endif
-#include "common/progress.h"
-#include "common/util/ostream_util.h"
-
+//#include "common/progress.h"
+//#include "common/util/ostream_util.h"
 #include "lib_algebra/operator/linear_solver/linear_solver.h"
 #include "lib_algebra/cpu_algebra_types.h"
 
 
-namespace ug{
+namespace ug {
 
 class IExternalSolverImplementation
 {

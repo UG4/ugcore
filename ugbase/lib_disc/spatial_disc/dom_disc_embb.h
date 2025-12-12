@@ -41,7 +41,7 @@
 // ug4 headers
 #include "common/common.h"
 #include "common/util/smart_pointer.h"
-#include "lib_disc/domain_traits.h"
+// #include "lib_disc/domain_traits.h"
 #include "lib_disc/spatial_disc/domain_disc.h"
 #include "lib_disc/operator/linear_operator/std_injection.h"
 #include "bridge/util_algebra_dependent.h"

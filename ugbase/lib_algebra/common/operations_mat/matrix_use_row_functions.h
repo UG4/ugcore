@@ -29,11 +29,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
+#ifndef IG_UGBASE_LIB_ALGEBRA_COMMON_OPERATIONS_MAT_MATRIX_USE_ROW_FUNCTIONS_H
+#define IG_UGBASE_LIB_ALGEBRA_COMMON_OPERATIONS_MAT_MATRIX_USE_ROW_FUNCTIONS_H
 
 #include "../operations_vec.h"
 
-namespace ug
-{
+namespace ug {
 // MATRIX_USE_ROW_FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -126,3 +127,4 @@ struct mat_operations_class<vector_t, matrix_t, MATRIX_USE_ROW_FUNCTIONS>
 	}
 };
 }
+#endif

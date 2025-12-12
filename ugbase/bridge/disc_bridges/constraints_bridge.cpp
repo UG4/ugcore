@@ -53,9 +53,9 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace Constraints{
+namespace ug {
+namespace bridge {
+namespace Constraints {
 
 /**
  * \defgroup constraints_bridge Constraints Bridge

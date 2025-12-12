@@ -34,22 +34,21 @@
 #define PROGRESS_H_
 
 #include <iostream>
-#include "common/util/string_util.h"
-#include "common/log.h"
-#include <ctime>
+//#include "common/util/string_util.h"
+//#include "common/log.h"
+//#include <ctime>
 #include <string>
-#include <sstream>
+//#include <sstream>
 
 #include "stopwatch.h"
-#include "util/ostream_util.h"
+//#include "util/ostream_util.h"
 
-namespace ug
-{
+namespace ug {
 
 class Progress
 {
 public:
-	Progress(int minSecondsUntilProgress=-1);
+	explicit Progress(int minSecondsUntilProgress=-1);
 
 	~Progress()
 	{

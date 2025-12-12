@@ -33,7 +33,7 @@
 #ifndef __H__UG__COMMON__UTIL__ENDIAN__
 #define __H__UG__COMMON__UTIL__ENDIAN__
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup ugbase_common_util
 /// \{

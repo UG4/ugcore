@@ -64,7 +64,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 /**
  * \defgroup domain_bridge Domain Bridge

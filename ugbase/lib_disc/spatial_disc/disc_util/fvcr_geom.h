@@ -50,17 +50,17 @@
 #include "lib_disc/reference_element/reference_mapping.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/reference_element/reference_element_traits.h"
-#include "lib_disc/local_finite_element/local_finite_element_provider.h"
+// #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/local_finite_element/crouzeix-raviart/crouzeix_raviart.h"
-#include "lib_disc/quadrature/gauss/gauss_quad.h"
+// #include "lib_disc/quadrature/gauss/gauss_quad.h"
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/domain_util_impl.h"
 
 #include "fv_geom_base.h"
-#include "fv_util.h"
+// #include "fv_util.h"
 #include "hfvcr_geom.h"
 
-namespace ug{
+namespace ug {
 
 /* crfv traits */
 

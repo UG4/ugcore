@@ -40,7 +40,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 /// \defgroup vecmath_bridge VecMath Bridge
 /// \ingroup misc_bridge

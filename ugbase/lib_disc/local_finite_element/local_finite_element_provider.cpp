@@ -31,6 +31,7 @@
  */
 
 #include "local_finite_element_provider.h"
+
 #include "lib_disc/reference_element/reference_element_util.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 
@@ -43,7 +44,7 @@
 #include "nedelec/nedelec.h"
 
 
-namespace ug{
+namespace ug {
 
 DebugID DID_LOCAL_FINITE_ELEMENT_PROVIDER("LOCAL_FINITE_ELEMENT_PROVIDER");
 

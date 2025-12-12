@@ -34,12 +34,13 @@
 #define __H__UG__NODE_TREE__TRAVERSER__
 
 #include <vector>
+
 #include "object.h"
 #include "node.h"
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
+
 
 class Traverser;
 class GroupNode;

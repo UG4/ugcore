@@ -39,9 +39,9 @@
 
 #include "common/util/provider.h"
 #include "../local_dof_set.h"
-#include "lib_disc/common/multi_index.h"
+// #include "lib_disc/common/multi_index.h"
 
-namespace ug{
+namespace ug {
 
 ///////////////////////////////////////////////////////////////////////////////
 // Nedelec Set

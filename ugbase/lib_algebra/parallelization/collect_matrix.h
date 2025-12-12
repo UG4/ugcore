@@ -37,7 +37,7 @@
 #include "serialize_interfaces.h"
 #include "common/debug_print.h"
 
-namespace ug{
+namespace ug {
 
 template<typename matrix_type>
 void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowIndex, ParallelNodes &PN)

@@ -36,9 +36,9 @@
 #include "common/util/field.h"
 #include "common/math/ugmath_types.h"
 #include "lib_grid/lg_base.h"
-#include "lib_grid/algorithms/field_util.h"
+//#include "lib_grid/algorithms/field_util.h"
 
-namespace ug{
+namespace ug {
 
 class FileReaderASC{
 	public:

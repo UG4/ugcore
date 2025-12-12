@@ -35,7 +35,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 AdaptiveRegularRefiner_MultiGrid::
 AdaptiveRegularRefiner_MultiGrid(SPRefinementProjector projector) :

@@ -33,8 +33,8 @@
 //ø #include <cassert>
 #include "selector_grid.h"
 
-namespace ug
-{
+namespace ug {
+
 
 ////////////////////////////////////////////////////////////////////////
 Selector::Selector(byte_t supportedElements) :

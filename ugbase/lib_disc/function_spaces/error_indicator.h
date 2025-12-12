@@ -39,7 +39,7 @@
 #include "error_indicator_util.h"
 #include "gradient_evaluators.h"
 #include "common/common.h"
-#include "common/util/provider.h"
+// #include "common/util/provider.h"
 #include "lib_grid/refinement/refiner_interface.h"
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/reference_element/reference_element_util.h"
@@ -52,7 +52,7 @@
  	#include "lib_grid/parallelization/util/compol_attachment_reduce.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 
 template <typename TFunction>

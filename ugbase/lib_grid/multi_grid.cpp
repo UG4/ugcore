@@ -30,14 +30,15 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <algorithm>
 #include "multi_grid.h"
+
+#include <algorithm>
+
 #include "lib_grid_messages.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 MultiGrid::MultiGrid() : m_aVertexInfo("MultiGrid_VertexInfo"),
                          m_aEdgeInfo("MultiGrid_EdgeInfo"),

@@ -35,7 +35,7 @@
 
 #include <cassert>
 
-namespace ug{
+namespace ug {
 
 ///	this iterator is used by the ntree class to provide access to the elements of a given node
 template <typename elem_t, typename entry_t>

@@ -33,11 +33,11 @@
 #ifndef __H__UG_NORMAL_CALCULATION_IMPL__
 #define __H__UG_NORMAL_CALCULATION_IMPL__
 
-#include "normal_calculation.h"
+//#include "normal_calculation.h"
 #include "geom_obj_util/face_util.h"
 #include "common/math/ugmath.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TAAPos>
 inline typename TAAPos::ValueType

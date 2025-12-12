@@ -35,10 +35,8 @@
 
 #include "registry/registry.h"
 
-namespace ug
-{
-namespace script
-{
+namespace ug {
+namespace script {
 
 /**
  * enum used to control execution flow in debug mode

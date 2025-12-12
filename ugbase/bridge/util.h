@@ -34,10 +34,10 @@
 #define __H__UG_BRIDGE__UTIL__
 
 #include "registry/registry.h"
-#include "suffix_tag.h"
+//#include "suffix_tag.h"
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup bridge
 /// \{

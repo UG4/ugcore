@@ -30,12 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "edge_length_adjustment.h"
+
 #include <fstream>
 #include <queue>
+
 #include "lib_grid/lg_base.h"
 #include "common/profiler/profiler.h"
 #include "simple_grid.h"
-#include "edge_length_adjustment.h"
 #include "lib_grid/refinement/regular_refinement.h"
 #include "common/node_tree/node_tree.h"
 #include "lib_grid/algorithms/trees/octree.h"
@@ -44,8 +46,7 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 ///	only for debugging purposes!!!
 /**	Output value pairs to gnuplot...
@@ -283,7 +284,7 @@ bool TrySwap(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 	if(!ObtainSimpleGrid(sg, grid, e->vertex(0), e->vertex(1), 0,
 						aaPos, aaNorm, aaInt))
 	{
-		LOG("ObtainSimpleGrid failed. ignoring edge...\n");
+		UG_LOG("ObtainSimpleGrid failed. ignoring edge...\n");
 		return false;
 	}
 
@@ -314,7 +315,7 @@ bool TrySwap(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 //	perform a swap on the simple grid
 	if(!SwapEdge(sg))
 	{
-		LOG("swap edge failed...\n");
+		UG_LOG("swap edge failed...\n");
 		return false;
 	}
 
@@ -362,7 +363,7 @@ bool PerformSwaps(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 				TAAPosVRT& aaPos, TAANormVRT& aaNorm, TAAIntVRT& aaInt)
 {	
 	PROFILE_FUNC();
-	LOG("  performing swaps\n");
+	UG_LOG("  performing swaps\n");
 	int numSwaps = 0;
 	int maxNumSwaps = esel.num<Edge>() * 2;
 		
@@ -379,7 +380,7 @@ bool PerformSwaps(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 			}
 		}
 	}
-	LOG("  swaps performed: " << numSwaps << endl);
+	UG_LOG("  swaps performed: " << numSwaps << endl);
 	
 	return true;
 }
@@ -422,7 +423,7 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 		if(!ObtainSimpleGrid(sgSrc, grid, e->vertex(0), e->vertex(1), 1,
 							aaPos, aaNorm, aaInt))
 		{
-			LOG("ObtainSimpleGrid failed. ignoring edge...\n");
+			UG_LOG("ObtainSimpleGrid failed. ignoring edge...\n");
 			return nullptr;
 		}
 		
@@ -435,7 +436,7 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 		if(!ObtainSimpleGrid_CollapseEdge(sgDest, grid, e,
 									1, aaPos, aaNorm, aaInt))
 		{
-			LOG("collapse edge failed...\n");
+			UG_LOG("collapse edge failed...\n");
 			return nullptr;
 		}
 
@@ -623,7 +624,7 @@ bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 					  TAAIntVRT& aaInt, bool adaptive = true)
 {	
 	PROFILE_FUNC();
-	LOG("  performing collapses\n");
+	UG_LOG("  performing collapses\n");
 	vector<Edge*>	edges;
 	int numCollapses = 0;
 //	compare squares
@@ -653,7 +654,7 @@ bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 			}
 		}
 	}
-	LOG("  collapses performed: " << numCollapses << endl);
+	UG_LOG("  collapses performed: " << numCollapses << endl);
 	
 	return true;
 }
@@ -717,7 +718,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 //	compare squares
 	maxEdgeLen *= maxEdgeLen;
 
-	LOG("  performing splits\n");
+	UG_LOG("  performing splits\n");
 	int numSplits = 0;
 
 	while(!esel.empty())
@@ -740,7 +741,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 		}
 	}
 
-	LOG("  splits performed: " << numSplits << endl);
+	UG_LOG("  splits performed: " << numSplits << endl);
 	return true;
 }
 
@@ -1013,7 +1014,7 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 //	make sure that faces create associated edges
 	if(!grid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
 	{
-		LOG("  INFO: auto-enabling FACEOPT_AUTOGENERATE_EDGES in AdjustEdgeLength.\n");
+		UG_LOG("  INFO: auto-enabling FACEOPT_AUTOGENERATE_EDGES in AdjustEdgeLength.\n");
 		grid.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
 	}
 
@@ -1091,13 +1092,13 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 		PerformSmoothing(grid, shMarks, aaPos, aaNorm, 10, 0.1);
 		LOG(" done\n");*/
 
-		LOG("  updating normals...\n");
+		UG_LOG("  updating normals...\n");
 		CalculateVertexNormals(grid, aPos, aNorm);
 
 	//	project points back on the surface
 		if(projectPoints)
 		{
-			LOG("  projecting points...");
+			UG_LOG("  projecting points...");
 			//PROFILE_BEGIN(projecting_points);
 			for(VertexIterator iter = grid.vertices_begin();
 				iter != grid.vertices_end(); ++iter)
@@ -1109,16 +1110,16 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 						aaPos[*iter] = pojectionTraverser.get_closest_point();
 					}
 					else{
-						LOG("f");
+						UG_LOG("f");
 					}
 				}
 			}
 			//PROFILE_END();
-			LOG(" done\n");
+			UG_LOG(" done\n");
 		}
 
 		if(iteration < numIterations - 1){
-			LOG("  updating normals...");
+			UG_LOG("  updating normals...");
 			CalculateVertexNormals(grid, aPos, aNorm);
 		}
 	}

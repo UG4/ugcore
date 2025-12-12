@@ -33,7 +33,7 @@
 #ifndef __H__UG_grid_object_ids
 #define __H__UG_grid_object_ids
 
-namespace ug{
+namespace ug {
 
 enum GridObjectID{
 	GOID_VERTEX	= 0,

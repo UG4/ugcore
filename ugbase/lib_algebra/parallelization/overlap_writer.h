@@ -34,12 +34,13 @@
 #define __H__UG_overlap_writer
 
 #include <vector>
+
 #include "common/error.h"
 #include "lib_algebra/common/connection_viewer_output.h"
 #include "lib_algebra/operator/debug_writer.h"
 #include "parallelization_util.h"
 
-namespace ug{
+namespace ug {
 
 ///	Writes overlapping matrices and vectors
 /** Since local positions of overlapping matrices and vectors are not present

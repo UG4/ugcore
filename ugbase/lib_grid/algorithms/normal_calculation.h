@@ -33,7 +33,7 @@
 #ifndef __H__UG_NORMAL_CALCULATION__
 #define __H__UG_NORMAL_CALCULATION__
 
-namespace ug{
+namespace ug {
 
 /**
  * \brief	contains methods for the calculation of normals of

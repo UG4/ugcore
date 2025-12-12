@@ -33,11 +33,15 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_VECTOR_IMPL__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_VECTOR_IMPL__
 
-#include <cmath>
 #include "parallel_vector.h"
+
+#include <cmath>
+
 #include "common/common.h" // for UGError
-// additions for profiling (14042011ih)
-#include "common/profiler/profiler.h"
+#include "common/profiler/profiler.h" // additions for profiling (14042011ih)
+#include "lib_algebra/parallelization/communication_policies.h"
+#include "lib_algebra/parallelization/parallelization_util.h"
+
 #define PROFILE_PARALLEL_VECTOR
 #ifdef PROFILE_PARALLEL_VECTOR
 #define PARVEC_PROFILE_FUNC()		PROFILE_FUNC()
@@ -50,8 +54,7 @@
 #endif
 // additions for profiling - end
 
-namespace ug
-{
+namespace ug {
 
 template <typename TVector>
 typename ParallelVector<TVector>::this_type&

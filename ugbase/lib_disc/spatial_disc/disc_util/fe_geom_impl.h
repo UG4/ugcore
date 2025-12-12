@@ -34,7 +34,9 @@
 
 #include "fe_geom.h"
 
-namespace ug{
+#include "common/util/provider.h"
+
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // FEGeometry

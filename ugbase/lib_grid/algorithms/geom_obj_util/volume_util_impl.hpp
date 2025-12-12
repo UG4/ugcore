@@ -33,17 +33,20 @@
 #ifndef __H__LIB_GRID__VOLUME_UTIL_IMPL__
 #define __H__LIB_GRID__VOLUME_UTIL_IMPL__
 
-#include <algorithm>
+#include "volume_util.h"
+
+//#include <algorithm>
 #include <vector>
+
 #include "lib_grid/lg_base.h"
 #include "common/static_assert.h"
-#include "common/util/vec_for_each.h"
+//#include "common/util/vec_for_each.h"
 #include "lib_grid/grid_objects/hexahedron_rules.h"
 #include "lib_grid/grid_objects/prism_rules.h"
 #include "lib_grid/grid_objects/pyramid_rules.h"
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 template <typename TAAPos>
 bool

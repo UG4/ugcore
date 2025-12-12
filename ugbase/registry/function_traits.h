@@ -45,10 +45,8 @@
  */
 constexpr int UG_REGISTRY_MAX_NUM_ARGS = 12;
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup registry
 /// \{

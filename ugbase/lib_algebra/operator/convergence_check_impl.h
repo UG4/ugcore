@@ -34,9 +34,10 @@
 #define __H__LIB_ALGEBRA__OPERATOR__CONVERGENCE_CHECK_IMPL__
 
 #include "convergence_check.h"
+
 #include "common/util/string_util.h"
 
-namespace ug{
+namespace ug {
 
 
 //////////////////////////////////////////////////////////

@@ -22,8 +22,11 @@
 |      Revisions: 05-Apr-2001 - GSR. Original.
 |
 **************************************************************************************/
-#include <cmath>
+
 #include "lineintersect_utils.h"
+
+// #include <cmath>
+
 #include <cassert>
 
 // uncomment the following line to have the code check intermediate results

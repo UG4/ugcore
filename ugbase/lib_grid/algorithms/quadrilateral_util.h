@@ -35,9 +35,9 @@
 
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/grid_objects/grid_objects_2d.h"
-#include "common/error.h"
+// #include "common/error.h"
 
-namespace ug{
+namespace ug {
 
 ///	Creates a new quadrilateral from the specified triangles but doesn't register it at the grid.
 /** Ownership of the returned quadrilateral is transferred to the caller.

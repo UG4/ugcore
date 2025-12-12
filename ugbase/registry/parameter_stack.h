@@ -47,10 +47,8 @@
 #define untested() ( std::cerr <<  "@@#\n@@@:"<< __FILE__ << ":"<< __LINE__ \
           <<":" << __func__ << "\n" )
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup registry
 /// \{

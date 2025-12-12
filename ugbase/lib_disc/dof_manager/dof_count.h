@@ -37,7 +37,7 @@
 #include "lib_grid/parallelization/distributed_grid.h"
 #include "dof_distribution_info.h"
 
-namespace ug{
+namespace ug {
 
 class DoFCount : public DoFDistributionInfoProvider
 {

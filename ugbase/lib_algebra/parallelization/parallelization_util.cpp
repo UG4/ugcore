@@ -30,11 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-//
+
+#include "parallelization_util.h"
 
 #include <algorithm>
 #include <vector>
-#include "parallelization_util.h"
+
 #include "communication_policies.h"
 #include "pcl/pcl.h"
 #include "common/profiler/profiler.h"
@@ -42,7 +43,7 @@
 using namespace std;
 using namespace pcl;
 
-namespace ug{
+namespace ug {
 
 template<>
 size_t hash_key<AlgebraID>(const AlgebraID& key)

@@ -38,8 +38,7 @@
 #include "common/assert.h"
 #include "grid_objects_0d.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 ///	These numbers define where in the edge-section-container an edge will be stored.

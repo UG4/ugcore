@@ -30,17 +30,19 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "loader_obj.h"
+
 #include <vector>
 #include <fstream>
 #include <cstring>
 #include <string>
-#include "loader_obj.h"
+
 #include "loader_util.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	some string functions
 //TODO: IMPROVE THIS FUNCTION!!! MOVE IT TO A COMMON UTIL-FILE

@@ -35,7 +35,7 @@
 
 #include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
 
-namespace ug{
+namespace ug {
 
 class RotatingVelocity2d
 	: public StdGlobPosData<RotatingVelocity2d, MathVector<2>, 2>

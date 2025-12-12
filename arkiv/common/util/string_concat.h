@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2011-2015:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Copyright (c) 2013-2015:  G-CSC, Goethe University Frankfurt
+ * Author: Martin Rupp
  * 
  * This file is part of UG4.
  * 
@@ -30,9 +30,32 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "serialization.h"
+#ifndef STRING_CONCAT_H_
+#define STRING_CONCAT_H_
 
-namespace ug{
+#include <string>
+#include "string_util.h"
 
+namespace ug {
 
-}// end of namespace
+template<typename T>
+inline std::string operator << (std::string a, T t)
+{
+	return a + ug::ToString(t);
+}
+
+template<>
+inline std::string operator << (std::string a, const char *s)
+{
+	return a + s;
+}
+
+template<>
+inline std::string operator << (std::string a, std::string b)
+{
+	return a + b;
+}
+
+}
+
+#endif

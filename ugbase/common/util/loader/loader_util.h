@@ -36,8 +36,7 @@
 #include <vector>
 #include <string>
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_util
 /// \{

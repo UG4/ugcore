@@ -35,7 +35,7 @@
 
 #include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
 
-namespace ug{
+namespace ug {
 
 class RotatingCone2d
 	: public StdGlobPosData<RotatingCone2d, number, 2>

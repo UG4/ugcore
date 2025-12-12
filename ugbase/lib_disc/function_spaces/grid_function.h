@@ -35,7 +35,7 @@
 
 #include "lib_algebra/cpu_algebra_types.h"
 
-#include "lib_disc/local_finite_element/local_finite_element_id.h"
+//#include "lib_disc/local_finite_element/local_finite_element_id.h"
 #include "lib_disc/dof_manager/function_pattern.h"
 #include "lib_disc/common/local_algebra.h"
 #include "approximation_space.h"
@@ -45,7 +45,7 @@
 	#include "lib_algebra/parallelization/parallel_storage_type.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 /// Base class for all Grid Functions
 /**

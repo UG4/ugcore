@@ -36,8 +36,8 @@
 
 #include "bridge.h"
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 /**
  * \defgroup bridge Bridge

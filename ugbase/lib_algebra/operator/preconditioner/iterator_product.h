@@ -33,15 +33,15 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PRODUCT__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PRODUCT__
 
-#include "lib_algebra/operator/interface/linear_iterator.h"
-#include "common/util/smart_pointer.h"
 #include <vector>
 
+#include "lib_algebra/operator/interface/linear_iterator.h"
+#include "common/util/smart_pointer.h"
 #ifdef UG_PARALLEL
-#include "lib_algebra/parallelization/parallelization.h"
+//#include "lib_algebra/parallelization/parallelization.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 /** Base class for ILinearIterators build from other ILinearIterators */
 template <typename X, typename Y>
@@ -50,16 +50,15 @@ class CombinedLinearIterator : public ILinearIterator<X,Y>
 	public:
 		CombinedLinearIterator() = default;
 
-		CombinedLinearIterator(const std::vector<SmartPtr<ILinearIterator<X,Y> > >& vIterator)
+		explicit CombinedLinearIterator(const std::vector<SmartPtr<ILinearIterator<X,Y> > >& vIterator)
 			: m_vIterator(vIterator)
 		{};
 
 		//	Name of Iterator
-		virtual const char* name() const = 0;
+		const char* name() const override = 0;
 
 		///	returns if parallel solving is supported
-		virtual bool supports_parallel() const
-		{
+		bool supports_parallel() const override {
 			for(size_t i = 0; i < m_vIterator.size(); ++i)
 				if(!m_vIterator[i]->supports_parallel())
 					return false;
@@ -67,23 +66,23 @@ class CombinedLinearIterator : public ILinearIterator<X,Y>
 		}
 
 		// 	Prepare for Operator J(u) and linearization point u (current solution)
-		virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) = 0;
+		bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) override = 0;
 
 		// Prepare for Linear Operator L
-		virtual bool init(SmartPtr<ILinearOperator<Y,X> > L) = 0;
+		bool init(SmartPtr<ILinearOperator<Y,X> > L) override = 0;
 
 		// Compute correction
-		virtual bool apply(Y& c, const X& d) = 0;
+		bool apply(Y& c, const X& d) override = 0;
 
 		// Compute correction and update defect
-		virtual bool apply_update_defect(Y& c, X& d) = 0;
+		bool apply_update_defect(Y& c, X& d) override = 0;
 
 		void add_iterator(SmartPtr<ILinearIterator<X,Y> > I) {m_vIterator.push_back(I);}
 
 		void add_iterator(SmartPtr<ILinearIterator<X,Y> > I,size_t nr) { for (size_t i=0;i<nr;i++) m_vIterator.push_back(I);}
 
 		//	Clone
-		virtual SmartPtr<ILinearIterator<X,Y> > clone() = 0;
+		SmartPtr<ILinearIterator<X,Y> > clone() override = 0;
 
 	protected:
 		std::vector<SmartPtr<ILinearIterator<X,Y> > > m_vIterator;

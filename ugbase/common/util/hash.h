@@ -35,10 +35,11 @@
 
 #include <vector>
 #include <utility>
-#include "hash_iterator.h"
-#include "hash_function.h"
 
-namespace ug{
+#include "hash_iterator.h"
+// #include "hash_function.h"
+
+namespace ug {
 
 ///	An associative container for key-value pairs, which provides fast access using hash-keys
 /**	\addtogroup ugbase_common_util

@@ -35,8 +35,7 @@
 
 #include "face_util.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 template <typename TIterator>

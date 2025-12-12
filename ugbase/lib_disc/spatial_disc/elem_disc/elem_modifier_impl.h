@@ -33,7 +33,9 @@
 #ifndef ELEM_MODIFIER_IMPL_
 #define ELEM_MODIFIER_IMPL_
 
-namespace ug{
+#include "elem_modifier.h"
+
+namespace ug {
 
 template <typename TDomain>
 void IElemDiscModifier<TDomain>::

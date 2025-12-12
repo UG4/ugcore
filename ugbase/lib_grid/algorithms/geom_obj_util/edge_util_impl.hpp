@@ -33,15 +33,18 @@
 #ifndef __H__LIB_GRID__EDGE_UTIL_IMPL__
 #define __H__LIB_GRID__EDGE_UTIL_IMPL__
 
-//#include "edge_util.h"
+#include "edge_util.h"
+
 #include <stack>
 #include <queue>
 #include <map>
+
 #include "lib_grid/grid/grid_util.h"
 #include "../orientation_util.h"
 #include "vertex_util.h"
-namespace ug
-{
+#include "lib_grid/grid/grid_constants.h"
+
+namespace ug {
 
 template <typename face_iter_t>
 void GetInnerEdgesOfFaceSoup(

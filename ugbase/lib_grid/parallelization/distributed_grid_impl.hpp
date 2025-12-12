@@ -33,11 +33,12 @@
 #ifndef __H__LIB_GRID__DISTRIBUTED_GRID_IMPL__
 #define __H__LIB_GRID__DISTRIBUTED_GRID_IMPL__
 
+#include "distributed_grid_impl.hpp"
+
 #include <vector>
 #include <utility>
 
-namespace ug
-{
+namespace ug {
 
 template <typename TElem>
 bool DistributedGridManager::

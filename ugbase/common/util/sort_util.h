@@ -30,10 +30,11 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <utility>
-
 #ifndef __H__SORT_UTIL__
 #define __H__SORT_UTIL__
+
+//#include <utility>
+
 
 /// \addtogroup ugbase_common_util
 /// \{
@@ -41,7 +42,7 @@
 template<typename TIndex, typename TValue>
 struct SortStruct
 {
-	SortStruct() { }
+	SortStruct() = default;
 	SortStruct(TIndex &i, TValue &v) : index(i), value(v) { }
 
 	void set_value(TValue &val)
@@ -69,7 +70,7 @@ template<typename TCompareValues, bool bReverse>
 class CompareIndicesByClass
 {
 public:
-	CompareIndicesByClass(const TCompareValues &compareValues) : m_compareValues(compareValues) { }
+	explicit CompareIndicesByClass(const TCompareValues &compareValues) : m_compareValues(compareValues) { }
 
 	template<typename TIndex>
 	bool operator () (const TIndex &i, const TIndex &j) const

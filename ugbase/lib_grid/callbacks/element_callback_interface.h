@@ -35,7 +35,7 @@
 
 #include "common/util/smart_pointer.h"
 
-namespace ug{
+namespace ug {
 
 class ElementCallback {
 public:

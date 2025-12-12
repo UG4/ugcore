@@ -33,7 +33,7 @@
 #ifndef CONNECTION_H_
 #define CONNECTION_H_
 
-namespace ug{
+namespace ug {
 
 template<typename T>
 class AlgebraicConnection

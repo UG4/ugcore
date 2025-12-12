@@ -36,8 +36,8 @@
 #include "attachment_pipe.h"
 #include "common/profiler/profiler.h"
 
-namespace ug
-{
+namespace ug {
+
 template <typename TElem, typename TElemHandler>
 AttachmentPipe<TElem, TElemHandler>::
 AttachmentPipe() :

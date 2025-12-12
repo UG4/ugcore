@@ -33,7 +33,7 @@
 #include "elem_disc_interface.h"
 #include "lib_disc/common/groups_util.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain>
 IElemDiscBase<TDomain>::IElemDiscBase(const char* functions, const char* subsets)

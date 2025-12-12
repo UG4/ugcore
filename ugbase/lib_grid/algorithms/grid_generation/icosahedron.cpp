@@ -31,10 +31,11 @@
  */
 
 #include "icosahedron.h"
+
 #include "lib_grid/refinement/regular_refinement.h"
 #include "lib_grid/refinement/projectors/sphere_projector.h"
 
-namespace ug{
+namespace ug {
 
 ///	Creates an Icosahedron
 void GenerateIcosahedron(Grid& grid, const vector3& center,

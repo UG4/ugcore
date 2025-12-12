@@ -33,16 +33,16 @@
 #ifndef __H__UG__LIB_DISC__DOMAIN__
 #define __H__UG__LIB_DISC__DOMAIN__
 
+#include <map>
+
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/refinement/projectors/refinement_projector.h"
-
-#include <map>
 
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/distributed_grid.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 /**
  * Domain
@@ -60,27 +60,27 @@ class DomainInfo
 	public:
 		using int_t = unsigned long long;
 
-		inline int element_type() const									{return m_elementType;}
-		inline size_t num_levels() const								{return m_numElems.size();}
+		[[nodiscard]] inline int element_type() const									{return m_elementType;}
+		[[nodiscard]] inline size_t num_levels() const								{return m_numElems.size();}
 	///	returns the global number of elements on the given level (excluding ghosts...)
-		inline size_t num_elements_on_level(size_t lvl) const			{return (size_t)m_numElems[lvl];}
+		[[nodiscard]] inline size_t num_elements_on_level(size_t lvl) const			{return (size_t)m_numElems[lvl];}
 	///	returns the global number of surface elements (elements without children)
-		inline size_t num_surface_elements() const						{return (size_t)m_numSurfElems;}
+		[[nodiscard]] inline size_t num_surface_elements() const						{return (size_t)m_numSurfElems;}
 	///	returns the local number of elements on the given level (excluding ghosts...)
-		inline size_t num_local_elements_on_level(size_t lvl) const		{return (size_t)m_numLocalElems[lvl];}
+		[[nodiscard]] inline size_t num_local_elements_on_level(size_t lvl) const		{return (size_t)m_numLocalElems[lvl];}
 	///	returns the minimum number of elements a process has on a given leven (excluding ghosts)
-		inline size_t min_num_local_elements_on_level(size_t lvl) const	{return (size_t)m_minNumLocalElems[lvl];}
+		[[nodiscard]] inline size_t min_num_local_elements_on_level(size_t lvl) const	{return (size_t)m_minNumLocalElems[lvl];}
 	///	returns the maximum number of elements a process has on a given leven (excluding ghosts)
-		inline size_t max_num_local_elements_on_level(size_t lvl) const	{return (size_t)m_maxNumLocalElems[lvl];}
+		[[nodiscard]] inline size_t max_num_local_elements_on_level(size_t lvl) const	{return (size_t)m_maxNumLocalElems[lvl];}
 	///	returns the local number of ghosts on the given level
-		inline size_t num_local_ghosts_on_level(size_t lvl) const		{return (size_t)m_numLocalGhosts[lvl];}
+		[[nodiscard]] inline size_t num_local_ghosts_on_level(size_t lvl) const		{return (size_t)m_numLocalGhosts[lvl];}
 
-		inline size_t num_subsets() const
+		[[nodiscard]] inline size_t num_subsets() const
 			{return m_subsetDims.size();}
-		inline size_t subset_dim(int si) const
+		[[nodiscard]] inline size_t subset_dim(int si) const
 			{return m_subsetDims[si];}
 
-		inline size_t num_elements() const
+		[[nodiscard]] inline size_t num_elements() const
 			{
 				int_t total = 0;
 				for(size_t i = 0; i < m_numElems.size(); ++i){
@@ -107,7 +107,7 @@ class DomainInfo
 			 m_numSurfElems = numSurfElems;
 			}
 
-		std::string to_string() const;
+		[[nodiscard]] std::string to_string() const;
 
 	private:
 		GridBaseObjectId	m_elementType;
@@ -150,7 +150,7 @@ class IDomain
 	 * creates an empty domain. Grid and Subset Handler are set up. The
 	 * Distributed Grid Manager is set in the parallel case.
 	 * \param[in]	isAdaptive		Grid Options (optinal)*/
-		IDomain(bool isAdaptive = true);
+		explicit IDomain(bool isAdaptive = true);
 
 	///	Destructor
 		virtual ~IDomain() = default;
@@ -162,7 +162,7 @@ class IDomain
 		inline SmartPtr<TGrid> grid() {return m_spGrid;};
 
 	///	const access to Grid
-		inline const ConstSmartPtr<TGrid> grid() const {return m_spGrid;};
+		inline ConstSmartPtr<TGrid> const grid() const {return m_spGrid;};
 
 	///	returns Subset Handler
 		inline SmartPtr<TSubsetHandler> subset_handler() {return m_spSH;};
@@ -174,11 +174,11 @@ class IDomain
 		SPMessageHub message_hub() {return m_spGrid->message_hub();}
 
 	///	returns whether the domain may be used for adaptive refinement
-		bool is_adaptive() const		{return m_isAdaptive;}
+		[[nodiscard]] bool is_adaptive() const {return m_isAdaptive;}
 
 	///	returns whether the associated grid is empty
 	/**	Note that one vertex is enough to consider the grid as non-empty.*/
-		bool empty() const			{return m_spGrid->num_vertices() == 0;}
+		[[nodiscard]] bool empty() const {return m_spGrid->num_vertices() == 0;}
 
 	///	updates and broadcasts subset names and dimensions from the given rootProc to all other processes.
 		void update_subset_infos(int rootProc);
@@ -186,7 +186,7 @@ class IDomain
 	///	returns information on the current domain
 	/**	In a parallel environment, this information relates to the global
 	 * (distributed) domain.*/
-		const DomainInfo& domain_info() const		{return m_domainInfo;}
+		[[nodiscard]] const DomainInfo& domain_info() const {return m_domainInfo;}
 
 	///	updates the internal domain-info object.
 	/**	This method is called automatically each time the associated grid has changed.*/
@@ -195,10 +195,10 @@ class IDomain
 	///	returns whether the domain can be used for parallel computations
 	/**	If ug was build with support for parallelism, this method will always return true
 	 * and always false, if ug was build for serial environments.*/
-		bool is_parallel()											{return m_spGrid->is_parallel();}
+		bool is_parallel() {return m_spGrid->is_parallel();}
 
 	///	returns Distributed Grid Manager
-		inline DistributedGridManager* distributed_grid_manager()	{return m_spGrid->distributed_grid_manager();}
+		inline DistributedGridManager* distributed_grid_manager() {return m_spGrid->distributed_grid_manager();}
 
 	///	creates an additional subset-handler with the given name
 	/**	If this subset-handler is created before the domain is loaded from a file,

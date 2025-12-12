@@ -38,12 +38,15 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_JACOBI__NL_JACOBIL_IMPL_H_
 #define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_JACOBI__NL_JACOBIL_IMPL_H_
 
+
+#include "nl_jacobi.h"
+
 // extern includes
 #include <iostream>
 
-#include "lib_disc/function_spaces/grid_function_util.h"
+//#include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/common/local_algebra.h"
-#include "nl_jacobi.h"
+
 
 #define PROFILE_NL_JACOBI
 #ifdef PROFILE_NL_JACOBI
@@ -56,7 +59,7 @@
 	#define NL_JACOBI_PROFILE_END()
 #endif
 
-namespace ug{
+namespace ug {
 
 template <typename TAlgebra>
 NLJacobiSolver<TAlgebra>::

@@ -34,12 +34,12 @@
 #define __H__LIB_GRID__VOLUME_UTIL__
 
 #include <vector>
+
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/grid_objects/grid_objects.h"
 #include "lib_grid/common_attachments.h"
 
-namespace ug
-{
+namespace ug {
 
 /**
  * \brief contains methods to manipulate volumes

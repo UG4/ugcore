@@ -31,11 +31,12 @@
  */
 
 #include "fe_geom.h"
+
 #include "lib_disc/domain_traits.h"
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/quadrature/quadrature_provider.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // DimFEGeometry
@@ -45,7 +46,6 @@ template <int TWorldDim, int TRefDim>
 DimFEGeometry<TWorldDim,TRefDim>::
 DimFEGeometry() :
 	m_roid(ROID_UNKNOWN), m_quadOrder(0),
-	m_lfeID(),
 	m_vIPLocal(nullptr), m_vQuadWeight(nullptr)
 {}
 

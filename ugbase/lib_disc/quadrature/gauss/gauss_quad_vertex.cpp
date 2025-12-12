@@ -32,9 +32,9 @@
 //  This file is parsed from UG 3.9.
 //  It provides the Gauss Quadratures for a reference vertex.
 
+#include "gauss_quad_vertex.h"
 
 //ø #include "../quadrature.h"
-#include "gauss_quad_vertex.h"
 
 namespace ug {
 

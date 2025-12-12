@@ -37,12 +37,13 @@
 #include <string>
 #include <vector>
 #include <map>
+
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/common_attachments.h"
 #include "common/util/variant.h"
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 //	predeclarations
 class ISubsetHandler;

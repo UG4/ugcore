@@ -31,6 +31,7 @@
  */
 
 #include "groups_util.h"
+
 #include "common/util/string_util.h"
 
 //ø #include <algorithm>
@@ -38,7 +39,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 void
 CreateFunctionIndexMapping(FunctionIndexMapping& map,

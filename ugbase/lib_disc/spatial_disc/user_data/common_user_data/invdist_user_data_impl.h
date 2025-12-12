@@ -30,6 +30,11 @@
  * GNU Lesser General Public License for more details.
  */
 
+#ifndef IG_UGBASE_LIB_DISC_USER_DATA_COMMON_USER_DATAINVDIST_USER_DATA_IMPL_H
+#define IG_UGBASE_LIB_DISC_USER_DATA_COMMON_USER_DATAINVDIST_USER_DATA_IMPL_H
+
+#include "invdist_user_data.h"
+
 /*
  * Implementation of the Inverse Distance Weighting (IDW) interpolation for data sets
  */
@@ -173,3 +178,4 @@ void IDWUserData<WDim, TData>::load_data_from (const char * file_name)
 
 } // end namespace ug
 
+#endif

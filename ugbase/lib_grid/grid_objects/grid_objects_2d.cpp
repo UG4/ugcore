@@ -30,15 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "grid_objects_2d.h"
+
 #include <vector>
 #include <algorithm>
-#include "grid_objects_2d.h"
 //ø //#include "../algorithms/geom_obj_util/geom_obj_util.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	TOOLS
@@ -273,7 +274,7 @@ collapse_edges(std::vector<Face*>& vNewFacesOut,
 	if(vNewEdgeVertices.size() > BaseClass::num_edges())
 	{
 		assert(!"WARNING in Triangle::collapse_edges(...): bad number of newEdgeVertices.");
-		LOG("WARNING in Triangle::collapse_edges(...): bad number of newEdgeVertices.");
+		UG_LOG("WARNING in Triangle::collapse_edges(...): bad number of newEdgeVertices.");
 		return false;
 	}
 
@@ -291,7 +292,7 @@ collapse_edges(std::vector<Face*>& vNewFacesOut,
 	if(!bGotOne)
 	{
 		assert(!"WARNING in Triangle::collapse:edges(...): no new vertex was specified.");
-		LOG("WARNING in Triangle::collapse:edges(...): no new vertex was specified.");
+		UG_LOG("WARNING in Triangle::collapse:edges(...): no new vertex was specified.");
 		return false;
 	}
 
@@ -720,7 +721,7 @@ collapse_edges(std::vector<Face*>& vNewFacesOut,
 	if(vNewEdgeVertices.size() > BaseClass::num_edges())
 	{
 		assert(!"WARNING in Quadrilateral::collapse_edges(...): bad number of newEdgeVertices.");
-		LOG("WARNING in Quadrilateral::collapse_edges(...): bad number of newEdgeVertices.");
+		UG_LOG("WARNING in Quadrilateral::collapse_edges(...): bad number of newEdgeVertices.");
 		return false;
 	}
 
@@ -745,7 +746,7 @@ collapse_edges(std::vector<Face*>& vNewFacesOut,
 	if(numCollapses == 0)
 	{
 		assert(!"WARNING in Quadrilateral::collapse:edges(...): no new vertex was specified.");
-		LOG("WARNING in Quadrilateral::collapse:edges(...): no new vertex was specified.");
+		UG_LOG("WARNING in Quadrilateral::collapse:edges(...): no new vertex was specified.");
 		return false;
 	}
 	else if(numCollapses == 1)

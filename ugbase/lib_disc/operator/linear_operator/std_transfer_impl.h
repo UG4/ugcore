@@ -34,12 +34,13 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_TRANSFER_IMPL__
 
 #include "std_transfer.h"
-#include "lib_disc/reference_element/reference_mapping_provider.h"
-#include "lib_disc/local_finite_element/local_finite_element_provider.h"
+
+// #include "lib_disc/reference_element/reference_mapping_provider.h"
+// #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_grid/algorithms/debug_util.h"								// ElementDebugInfo
 
-namespace ug{
+namespace ug {
 
 
 template <typename TDomain, typename TAlgebra>

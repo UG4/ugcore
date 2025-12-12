@@ -35,7 +35,7 @@
 
 #include "common/log.h"
 
-namespace ug{
+namespace ug {
 
 extern DebugID DID_LUACOMPILER;
 }

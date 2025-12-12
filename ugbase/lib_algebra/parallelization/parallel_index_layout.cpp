@@ -30,14 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "common/common.h"
+#include "parallel_index_layout.h"
+
 #include <vector>
 #include <iomanip>
-#include "pcl/pcl.h"
-#include "parallel_index_layout.h"
-#include "common/util/string_util.h"
 
-namespace ug{
+#include "pcl/pcl.h"
+#include "common/util/string_util.h"
+#include "common/common.h"
+
+namespace ug {
 
 void LogIndexLayout(IndexLayout& layout, int depth)
 {

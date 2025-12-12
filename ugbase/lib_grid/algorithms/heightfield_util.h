@@ -37,7 +37,7 @@
 #include "common/util/field.h"
 #include "common/boost_serialization.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	A heightfield represents a grid of number-values together with descriptors for

@@ -34,18 +34,18 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_POST_PROCESS__
 
 // extern headers
-#include <iostream>
+//#include <iostream>
 
 // other ug4 modules
-#include "common/common.h"
+//#include "common/common.h"
 #include "transfer_interface.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 
 #ifdef UG_PARALLEL
-#include "lib_disc/parallelization/parallelization_util.h"
+//#include "lib_disc/parallelization/parallelization_util.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain, typename TAlgebra>
 class AverageComponent :

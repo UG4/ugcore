@@ -31,6 +31,7 @@
  */
 
 #include "approximation_space.h"
+
 #include "lib_disc/domain.h"
 #include "lib_disc/common/groups_util.h"
 #include "common/util/string_util.h"
@@ -52,7 +53,7 @@ using namespace std;
 //#define APPROX_SPACE_PERFORM_CHANGED_GRID_DEBUG_SAVES
 //#define APPROX_SPACE_PERFORM_DISTRIBUTED_GRID_DEBUG_SAVES
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // IApproximationSpace

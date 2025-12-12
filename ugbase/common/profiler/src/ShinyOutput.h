@@ -29,7 +29,7 @@ see marks.
 #define SHINY_OUTPUT_H
 
 #include "ShinyNode.h"
-#include "ShinyZone.h"
+// #include "ShinyZone.h"
 
 #include <string>
 

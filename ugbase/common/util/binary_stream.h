@@ -35,10 +35,10 @@
 
 #include <iostream>
 #include <vector>
+
 #include "vector_util.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_io
 /// \{

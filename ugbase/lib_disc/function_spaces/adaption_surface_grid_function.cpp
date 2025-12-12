@@ -31,10 +31,11 @@
  */
 
 #include "adaption_surface_grid_function.h"
+
 #include "lib_disc/dof_manager/orientation.h"
 #include "lib_disc/function_spaces/local_transfer_interface.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain>
 AdaptionSurfaceGridFunction<TDomain>::

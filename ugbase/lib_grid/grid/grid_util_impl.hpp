@@ -33,13 +33,15 @@
 #ifndef __H__LIB_GRID__GRID_UTIL_IMPL__
 #define __H__LIB_GRID__GRID_UTIL_IMPL__
 
-#include <vector>
 #include "grid_util.h"
-#include "common/assert.h"
-#include "common/common.h"
 
-namespace ug
-{
+#include <vector>
+
+#include "common/assert.h"
+//#include "common/common.h"
+
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 //	EdgeContains
 inline bool EdgeContains(EdgeVertices* e, Vertex* vrt)

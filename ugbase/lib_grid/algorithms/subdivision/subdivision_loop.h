@@ -37,8 +37,7 @@
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "subdivision_rules_piecewise_loop.h"
 
-namespace ug
-{
+namespace ug {
 
 ///	\addtogroup lib_grid_algorithms_refinement_subdivision
 ///	@{

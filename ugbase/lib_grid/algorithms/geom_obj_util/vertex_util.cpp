@@ -37,8 +37,7 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 int GetVertexIndex(EdgeVertices* e, Vertex* v)
@@ -396,15 +395,15 @@ void MergeVertices(Grid& grid, Vertex* v1, Vertex* v2)
 {
 //	make sure that GRIDOPT_VERTEXCENTRIC_INTERCONNECTION is enabled
 	if(grid.num_edges() && (!grid.option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES))){
-		LOG("  WARNING in MergeVertices: autoenabling VRTOPT_STORE_ASSOCIATED_EDGES\n");
+		UG_LOG("  WARNING in MergeVertices: autoenabling VRTOPT_STORE_ASSOCIATED_EDGES\n");
 		grid.enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES);
 	}
 	if(grid.num_faces() && (!grid.option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_FACES))){
-		LOG("  WARNING in MergeVertices: autoenabling VRTOPT_STORE_ASSOCIATED_FACES\n");
+		UG_LOG("  WARNING in MergeVertices: autoenabling VRTOPT_STORE_ASSOCIATED_FACES\n");
 		grid.enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_FACES);
 	}
 	if(grid.num_volumes() && (!grid.option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_VOLUMES))){
-		LOG("  WARNING in MergeVertices: autoenabling VRTOPT_STORE_ASSOCIATED_VOLUMES\n");
+		UG_LOG("  WARNING in MergeVertices: autoenabling VRTOPT_STORE_ASSOCIATED_VOLUMES\n");
 		grid.enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_VOLUMES);
 	}
 
@@ -507,7 +506,7 @@ bool IsBoundaryVertex1D(Grid& grid, Vertex* v,
 	if(!grid.option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
 	//	we have to enable this option, since nothing works without it in reasonable time.
-		LOG("WARNING in IsBoundaryVertex1D(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES.\n");
+		UG_LOG("WARNING in IsBoundaryVertex1D(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES.\n");
 		grid.enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES);
 	}
 
@@ -535,13 +534,13 @@ bool IsBoundaryVertex2D(Grid& grid, Vertex* v)
 	if(!grid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
 	{
 	//	we have to enable this option, since we need edges in order to detect boundary vertices.
-		LOG("WARNING in IsBoundaryVertex2D(...): auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
+		UG_LOG("WARNING in IsBoundaryVertex2D(...): auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
 		grid.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
 	}
 	if(!grid.option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
 	//	we have to enable this option, since nothing works without it in reasonable time.
-		LOG("WARNING in IsBoundaryVertex2D(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES.\n");
+		UG_LOG("WARNING in IsBoundaryVertex2D(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES.\n");
 		grid.enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_EDGES);
 	}
 
@@ -561,13 +560,13 @@ bool IsBoundaryVertex3D(Grid& grid, Vertex* v)
 	if(!grid.option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES))
 	{
 	//	we have to enable this option, since we need edges in order to detect boundary vertices.
-		LOG("  WARNING in IsBoundaryVertex2D(...): auto-enabling VOLOPT_AUTOGENERATE_FACES.\n");
+		UG_LOG("  WARNING in IsBoundaryVertex2D(...): auto-enabling VOLOPT_AUTOGENERATE_FACES.\n");
 		grid.enable_options(VolumeOptions::VOLOPT_AUTOGENERATE_FACES);
 	}
 	if(!grid.option_is_enabled(VertexOptions::VRTOPT_STORE_ASSOCIATED_FACES))
 	{
 	//	we have to enable this option, since nothing works without it in reasonable time.
-		LOG("  WARNING in IsBoundaryVertex2D(...): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES.\n");
+		UG_LOG("  WARNING in IsBoundaryVertex2D(...): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES.\n");
 		grid.enable_options(VertexOptions::VRTOPT_STORE_ASSOCIATED_FACES);
 	}
 

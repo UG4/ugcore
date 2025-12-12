@@ -50,9 +50,9 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace DomainDisc{
+namespace ug {
+namespace bridge {
+namespace DomainDisc {
 
 /**
  * \defgroup domaindisc_bridge Domain Discretization Bridge

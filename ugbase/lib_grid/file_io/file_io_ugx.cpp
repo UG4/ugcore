@@ -30,13 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "file_io_ugx.h"
+
 #include <sstream>
 #include <fstream>
+
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+
 //ø #include "common/common.h"
 #include "common/util/file_util.h"
-#include "file_io_ugx.h"
 #include "common/boost_serialization_routines.h"
 #include "common/parser/rapidxml/rapidxml_print.hpp"
 #include "common/util/archivar.h"
@@ -48,8 +51,7 @@
 using namespace std;
 using namespace rapidxml;
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh,

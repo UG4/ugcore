@@ -34,11 +34,11 @@
 #define __H__LIB_GRID__OCTREE_IMPL__
 
 #include <vector>
+
 #include "lib_grid/lg_base.h"
 #include "common/node_tree/octree.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	CreateOctree

@@ -33,11 +33,10 @@
 #ifndef __H__LIB_GRID__GRID_ADAPTION__
 #define __H__LIB_GRID__GRID_ADAPTION__
 
-#include <vector>
+// #include <vector>
 #include "lib_grid/lg_base.h"
 
-namespace ug
-{
+namespace ug {
 
 ///	\addtogroup lib_grid_algorithms_remeshing
 ///	@{

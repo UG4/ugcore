@@ -31,11 +31,11 @@
  */
 
 #include "traverser_collision_tree.h"
+
 #include "../node_tree.h"
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
 
 Traverser_CollisionTree::Traverser_CollisionTree()
 {

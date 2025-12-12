@@ -47,6 +47,7 @@
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif
+
 #include "common/catch_std.h"
 
 void get_undeleted();
@@ -60,11 +61,8 @@ using namespace ug;
 using namespace script;
 
 
-namespace ug
-{
-
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 void SetLuaNamespace(string name, string value);
 }
@@ -111,15 +109,15 @@ void quit_all_mpi_procs_in_parallel()
 
 void ugshell_print_header()
 {
-	LOG("********************************************************************************\n");
+	UG_LOG("********************************************************************************\n");
 	std::string aux_str; // for nicer output we need some padding with spaces ...
 
 	aux_str.append("* ugshell - ug").append(UGGetVersionString()).append(", head revision '").append(UGGitRevision()).append("',");
-	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
+	UG_LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 
 	aux_str = "";
 	aux_str.append("*                    compiled '").append(UGCompileDate()).append("'");
-	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
+	UG_LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 
 	aux_str = "";
 	aux_str.append("*                    on '").append(UGBuildHost()).append("'");
@@ -128,25 +126,25 @@ void ugshell_print_header()
 #else
 	aux_str.append(".");
 #endif
-	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
+	UG_LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 
-	LOG("*                                                                              *\n");
-	LOG("* arguments:                                                                   *\n");
-	LOG("*   -outproc id:         Sets the output-proc to id. Default is 0.             *\n");
-	LOG("*   -ex scriptname:      Executes the specified script.                        *\n");
-	LOG("*   -noquit:             Runs the interactive shell after specified script.    *\n");
-    LOG("*   -quiet:              Disables printing of header and trailer.              *\n");
-    LOG("*   -help:               Print this help message and exit.                     *\n");
-	LOG("*   -noterm:             Terminal logging will be disabled.                    *\n");
-	LOG("*   -logtofile filename: Output will be written to the specified file.         *\n");
+	UG_LOG("*                                                                              *\n");
+	UG_LOG("* arguments:                                                                   *\n");
+	UG_LOG("*   -outproc id:         Sets the output-proc to id. Default is 0.             *\n");
+	UG_LOG("*   -ex scriptname:      Executes the specified script.                        *\n");
+	UG_LOG("*   -noquit:             Runs the interactive shell after specified script.    *\n");
+    UG_LOG("*   -quiet:              Disables printing of header and trailer.              *\n");
+    UG_LOG("*   -help:               Print this help message and exit.                     *\n");
+	UG_LOG("*   -noterm:             Terminal logging will be disabled.                    *\n");
+	UG_LOG("*   -logtofile filename: Output will be written to the specified file.         *\n");
 #ifdef UG_PROFILER
-	LOG("*   -profile:            Shows profile-output when the application terminates. *\n");
+	UG_LOG("*   -profile:            Shows profile-output when the application terminates. *\n");
 #endif
-	LOG("*   -call:               Combines all following arguments to one lua command   *\n");
-	LOG("*                        and executes it. Ignored if it follows '-ex'.         *\n");
-	LOG("*                        '(', ')', and '\"' have to be escaped, e.g.: '\\('      *\n");
-	LOG("* Additional parameters are passed to the script through ugargc and ugargv.    *\n");
-	LOG("*                                                                              *\n");
+	UG_LOG("*   -call:               Combines all following arguments to one lua command   *\n");
+	UG_LOG("*                        and executes it. Ignored if it follows '-ex'.         *\n");
+	UG_LOG("*                        '(', ')', and '\"' have to be escaped, e.g.: '\\('      *\n");
+	UG_LOG("* Additional parameters are passed to the script through ugargc and ugargv.    *\n");
+	UG_LOG("*                                                                              *\n");
 }
 
 
@@ -178,7 +176,7 @@ void ug_init_path(char* argv[], bool &errorOccurred)
 {
 	//	INIT PATH
 		try{
-			LOG("* Initializing: paths... ");
+			UG_LOG("* Initializing: paths... ");
 			if(InitPaths((argv)[0])) {UG_LOG("done");}
 		//	if only false is returned, the error is non-fatal. Still continue shell
 			else{
@@ -404,7 +402,7 @@ int ugshell_main(int argc, char* argv[])
   // PRINT USAGE MESSAGE AND EXIT
   if (help)
   {
-    LOG("********************************************************************************\n");
+    UG_LOG("********************************************************************************\n");
     return 1;
   }
 
@@ -421,7 +419,7 @@ int ugshell_main(int argc, char* argv[])
 
 //	INIT PLUGINS
 	ug_init_plugins(errorOccurred);
-  LOG("********************************************************************************\n");
+  UG_LOG("********************************************************************************\n");
 
 
 	#ifdef UG_DEBUG
@@ -574,7 +572,7 @@ int ugshell_main(int argc, char* argv[])
     GetLogAssistant().enable_terminal_output(true);
 
 	// If shell aborted and no custom ret-value defined then return '1'; return 'ret' otherwise
-	return errorOccurred&&ret==0?1:ret;
+	return errorOccurred&&ret==0 ? 1 : ret;
 }
 
 // end group ugbase_ugshell

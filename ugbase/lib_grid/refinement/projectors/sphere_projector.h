@@ -35,7 +35,7 @@
 
 #include "refinement_projector.h"
 
-namespace ug{
+namespace ug {
 
 ///	Projects new vertices onto a sphere during refinement
 /** For projection during refinement the radius property is ignored. Instead,

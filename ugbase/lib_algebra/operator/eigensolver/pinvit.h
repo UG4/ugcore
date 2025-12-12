@@ -36,6 +36,7 @@
 #include <complex>
 #include <vector>
 #include <string>
+
 #include "common/util/string_util.h"
 #include "common/util/sort_util.h"
 #include "additional_math.h"
@@ -50,10 +51,10 @@
 
 #include "lib_algebra/algebra_common/vector_util.h"
 
-#include "smart_ptr_vector.h"
+//#include "smart_ptr_vector.h"
 
 // constructors
-namespace ug{
+namespace ug {
 
 
 /**

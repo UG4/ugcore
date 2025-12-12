@@ -42,13 +42,14 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__LOGNORMAL_RANDOM_FIELD_IMPL__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__LOGNORMAL_RANDOM_FIELD_IMPL__
 
-#include "common/util/typename.h"
 #include "lognormal_random_field.h"
+
+// #include "common/util/typename.h"
 #include "common/math/misc/math_util.h" // urand
-#include "common/math/misc/math_constants.h" // urand
+// #include "common/math/misc/math_constants.h" // urand
 
 
-namespace ug{
+namespace ug {
 
 template <typename TData, int dim, typename TRet>
 TRet LognormalRandomField<TData,dim,TRet>::evaluate(TData& D, const MathVector<dim>& x, number time, int si) const

@@ -34,11 +34,12 @@
 #define __H__UG_cluster_element_stacks
 
 #include <stack>
+
 #include "../partitioner.h"
-#include "lib_grid/iterators/lg_for_each.h"
+// #include "lib_grid/iterators/lg_for_each.h"
 #include "lib_grid/algorithms/normal_calculation.h"
 
-namespace ug{
+namespace ug {
 
 template <typename elem_t, typename vector_t>
 class ClusterElementStacks : public IPartitionPostProcessor

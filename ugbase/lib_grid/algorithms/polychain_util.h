@@ -34,10 +34,10 @@
 #define __H__LIB_GRID__POLYCHAIN_UTIL__
 
 #include <utility>
+
 #include "lib_grid/lg_base.h"
 
-namespace ug
-{
+namespace ug {
 
 /**
  * Methods that allow to interprete parts of a grid as a polygonal chain.

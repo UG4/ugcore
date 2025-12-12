@@ -36,7 +36,7 @@
 #include "obstacles/obstacle_constraint_interface.h"
 #include "lib_algebra/operator/preconditioner/gauss_seidel.h"
 
-namespace ug{
+namespace ug {
 
 /// Interface for Projected GaussSeidel Preconditioner
 /**

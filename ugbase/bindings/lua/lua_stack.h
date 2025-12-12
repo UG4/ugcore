@@ -35,11 +35,10 @@
 
 #include "registry/registry.h"
 #include "lua_parsing.h"
-#include "bindings_lua.h"
+// #include "bindings_lua.h"
 #include "common/util/smart_pointer.h"
 
-namespace ug
-{
+namespace ug {
 namespace bridge {
 
 ///	copies parameter values from the lua-stack to a parameter-list.

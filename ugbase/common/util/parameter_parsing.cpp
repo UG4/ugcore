@@ -30,11 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cstring>
-#include <cstdlib>
 #include "parameter_parsing.h"
 
-namespace ug{
+#include <cstring>
+#include <cstdlib>
+
+
+
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 int GetParamIndex(const char* param, int argc, const char * const * argv) {

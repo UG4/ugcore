@@ -35,7 +35,7 @@
 
 #include "bidirectional.h"
 
-namespace boost{
+namespace boost {
 
 struct BS_traversal_tag
     : adjacency_graph_tag, bidirectional_graph_tag, vertex_list_graph_tag {};

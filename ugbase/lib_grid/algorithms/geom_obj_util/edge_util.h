@@ -33,16 +33,16 @@
 #ifndef __H__LIB_GRID__EDGE_UTIL__
 #define __H__LIB_GRID__EDGE_UTIL__
 
-#include "face_util.h"
+//#include "face_util.h"
 #include "lib_grid/grid/grid.h"
-#include "lib_grid/grid/grid_util.h"
-#include "lib_grid/grid_objects/grid_objects.h"
+//#include "lib_grid/grid/grid_util.h"
+//#include "lib_grid/grid_objects/grid_objects.h"
 #include "lib_grid/common_attachments.h"
 #include "lib_grid/tools/selector_grid.h"
-#include "lib_grid/tools/subset_handler_interface.h"
+//#include "lib_grid/tools/subset_handler_interface.h"
 
-namespace ug
-{
+namespace ug {
+
 /**
  * \brief contains methods to manipulate edges
  * 

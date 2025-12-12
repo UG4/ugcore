@@ -36,7 +36,7 @@
 #include "problem_detection_util.h"
 #include "lib_grid/grid/grid_base_objects.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TIter, typename TAAPos>
 size_t FindSlivers(std::vector<typename TIter::value_type>& sliversOut,

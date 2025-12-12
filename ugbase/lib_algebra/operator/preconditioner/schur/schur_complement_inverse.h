@@ -44,7 +44,7 @@
 #include "schur_complement_inverse_interface.h"
 
 
-namespace ug{
+namespace ug {
 
 
 

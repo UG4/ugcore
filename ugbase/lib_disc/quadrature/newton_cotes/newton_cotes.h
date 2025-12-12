@@ -30,12 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "../quadrature.h"
 
 #ifndef __H__UG__LIB_DISC__QUADRATURE__NEWTON_COTES__
 #define __H__UG__LIB_DISC__QUADRATURE__NEWTON_COTES__
 
-namespace ug{
+#include "../quadrature.h"
+
+namespace ug {
 
 
 /**

@@ -43,14 +43,15 @@
 #ifndef __H__COMMON__VECTOR_FUNCTIONS_COMMON_IMPL__
 #define __H__COMMON__VECTOR_FUNCTIONS_COMMON_IMPL__
 
+#include "math_vector_functions.h"
+
 #include <cmath>
 #include <algorithm>
 #include "common/error.h"
-#include "common/assert.h"
-#include "common/static_assert.h"
+//#include "common/assert.h"
+//#include "common/static_assert.h"
 
-namespace ug
-{
+namespace ug {
 
 template <typename vector_target_t, typename vector_source_t>
 void VecCopy(vector_target_t& target, const vector_source_t& source,

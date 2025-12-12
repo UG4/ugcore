@@ -36,7 +36,7 @@
 #include "lua_compiler_debug.h"
 
 using namespace std;
-namespace ug{
+namespace ug {
 
 int LUAParserClass::createC(nodeType *p, ostream &out, int indent)
 {

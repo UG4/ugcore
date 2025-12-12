@@ -33,8 +33,7 @@
 #ifndef __H__PCL__DOMAIN_DECOMPOSITION__
 #define __H__PCL__DOMAIN_DECOMPOSITION__
 
-namespace pcl
-{
+namespace pcl {
 
 /// \addtogroup pcl
 /// \{

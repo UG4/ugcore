@@ -47,8 +47,7 @@
 
 #include "common/error.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup matrixio
 /// \{

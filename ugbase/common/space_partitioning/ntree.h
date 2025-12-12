@@ -35,7 +35,7 @@
 
 #include "ntree_iterator.h"
 
-namespace ug{
+namespace ug {
 
 /**	The following methods have to be provided for the given vector-type:
  * \code

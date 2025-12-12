@@ -35,11 +35,11 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
-#include <boost/graph/properties.hpp>
+//#include <boost/graph/properties.hpp>
 
 #include <vector>
-#include <utility> //for pair
-#include <climits> //INT_MAX
+//#include <utility> //for pair
+//#include <climits> //INT_MAX
 
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
@@ -49,7 +49,7 @@
 
 #include "common/error.h"
 
-namespace ug{
+namespace ug {
 
 
 

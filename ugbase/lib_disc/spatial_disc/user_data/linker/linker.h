@@ -34,9 +34,9 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER__
 
 #include "../std_user_data.h"
-#include "lib_disc/common/groups_util.h"
+// #include "lib_disc/common/groups_util.h"
 
-namespace ug{
+namespace ug {
 
 /// combines several UserDatas to a new UserData of a specified type
 /**

@@ -34,12 +34,12 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__LOCAL_TO_GLOBAL_MAPPER__
 
 // extern headers
-#include <vector>
+// #include <vector>
 
 // intern headers
 #include "lib_disc/dof_manager/dof_distribution.h"
 
-namespace ug{
+namespace ug {
 
 /// interface for definition of special LocalToGlobal mappings
 /**

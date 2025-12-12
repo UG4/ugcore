@@ -30,12 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "../quadrature.h"
-
 #ifndef __H__UG__LIB_DISC__QUADRATURE__GAUSS_JACOBI20__
 #define __H__UG__LIB_DISC__QUADRATURE__GAUSS_JACOBI20__
 
-namespace ug{
+#include "../quadrature.h"
+
+namespace ug {
 
 /**
  * This class provides GaussJacobi integrals up to order 70

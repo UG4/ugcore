@@ -35,20 +35,18 @@
 #include <iostream>
 #include <sstream>
 
-#include "common/common.h"
+//#include "common/common.h"
 #include "lib_algebra/operator/interface/matrix_operator_inverse.h"
-
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
 #endif
 #include "../preconditioner/ilut_scalar.h"
 #include "../interface/preconditioned_linear_operator_inverse.h"
-#include "linear_solver.h"
-
+//#include "linear_solver.h"
 #include "lib_algebra/cpu_algebra_types.h"
-
 #include "../operator_util.h"
-namespace ug{
+
+namespace ug {
 
 template <typename TAlgebra>
 class LU

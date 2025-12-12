@@ -33,10 +33,11 @@
 #ifndef __H__LIBGRID__SUBSET_HANDLER_GRID_IMPL__
 #define __H__LIBGRID__SUBSET_HANDLER_GRID_IMPL__
 
+#include "subset_handler_grid.h"
+
 #include <cassert>
 
-namespace ug
-{
+namespace ug {
 
 template <typename TElem>
 typename geometry_traits<TElem>::iterator
@@ -231,14 +232,14 @@ bool GridSubsetHandler::perform_self_tests()
 	
 	bool bSuccess = true;
 	
-	LOG("performing self tests on GridSubsetHandler\n");
-	LOG("  num subsets: " << num_subsets_in_list() << std::endl);
+	UG_LOG("performing self tests on GridSubsetHandler\n");
+	UG_LOG("  num subsets: " << num_subsets_in_list() << std::endl);
 	
 //	iterate through the subsets and check whether the assigned
 //	elements have the correct subset index
-	LOG("  checking subset indices\n");
+	UG_LOG("  checking subset indices\n");
 	for(size_t i = 0; i < num_subsets_in_list(); ++i){
-		LOG("  checking subset " << i);
+		UG_LOG("  checking subset " << i);
 		for(iterator iter = begin<TElem>(i); iter != end<TElem>(i); ++iter)
 		{
 			if(get_subset_index(*iter) != i){
@@ -248,7 +249,7 @@ bool GridSubsetHandler::perform_self_tests()
 				break;
 			}
 		}
-		LOG("\n");
+		UG_LOG("\n");
 	}
 	
 	return bSuccess;

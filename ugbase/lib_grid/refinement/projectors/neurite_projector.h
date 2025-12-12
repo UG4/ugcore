@@ -35,10 +35,12 @@
 #ifndef UG__LIB_GRID__REFINEMENT__PROJECTORS__NEURITE_PROJECTOR_H
 #define UG__LIB_GRID__REFINEMENT__PROJECTORS__NEURITE_PROJECTOR_H
 
+#include <boost/serialization/split_member.hpp> // for separate load/save methods
+
 #include "common/types.h"
 #include "lib_grid/refinement/projectors/refinement_projector.h"
+#include "lib_grid/attachments/attachment_info_traits.h"
 
-#include <boost/serialization/split_member.hpp> // for separate load/save methods
 
 namespace ug {
 
@@ -47,7 +49,8 @@ class NeuriteProjector
 {
 	public:
 		NeuriteProjector();
-		NeuriteProjector(SPIGeometry3d geometry);
+
+		explicit NeuriteProjector(SPIGeometry3d geometry);
 
 		~NeuriteProjector() override = default;
 
@@ -79,7 +82,7 @@ class NeuriteProjector
 		struct Section
 		{
 			Section() : endParam(0) {}                // constructor for serialization
-			Section(number _endParam)   // constructor for search with CompareSections
+			explicit Section(number _endParam)   // constructor for search with CompareSections
 			: endParam(_endParam) {}
 
 			number endParam;
@@ -107,7 +110,7 @@ class NeuriteProjector
 		struct BranchingRegion
 		{
 			BranchingRegion() : t(0.0), bp(nullptr) {} // constructor for serialization
-			BranchingRegion(number _t)       // constructor for search with CompareBranchingPointEnds
+			explicit BranchingRegion(number _t)       // constructor for search with CompareBranchingPointEnds
 			: t(_t) {}
 
 			/// the axial parameter where other neurite(s) branch off
@@ -197,7 +200,7 @@ class NeuriteProjector
 				  bp(center)
 			{}
 
-			SomaBranchingRegion(number t)
+			explicit SomaBranchingRegion(number t)
 				 : radius(-1),
 				  t(t)
 			{}
@@ -306,7 +309,7 @@ class NeuriteProjector
 		void debug_neurites() const;
 
 		struct CompareSomaBranchingRegionsEnd {
-			bool operator () (const SomaBranchingRegion& a, const SomaBranchingRegion& b) {
+			bool operator () (const SomaBranchingRegion& a, const SomaBranchingRegion& b) const {
 				return a.t < b.t;
 			}
 		};
@@ -314,21 +317,21 @@ class NeuriteProjector
 	public:
 		std::vector<Neurite>& neurites();
 		std::vector<SomaBranchingRegion>& somata();
-		const Neurite& neurite(uint32_t nid) const;
+		[[nodiscard]] const Neurite& neurite(uint32_t nid) const;
 		Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor();
-		const Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor() const;
-		const std::vector<std::pair<number, number> >& quadrature_points() const;
+		[[nodiscard]] const Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor() const;
+		[[nodiscard]] const std::vector<std::pair<number, number> >& quadrature_points() const;
 		void average_pos_from_parent(vector3& posOut, const IVertexGroup* const parent) const;
 		vector3 position(Vertex* vrt) const;
 
-		number axial_range_around_branching_region
+		[[nodiscard]] number axial_range_around_branching_region
 		(
 			uint32_t nid,
 			size_t brInd,
 			number numberOfRadii = 5.0
 		) const;
 
-		number axial_range_around_soma_region
+		[[nodiscard]] number axial_range_around_soma_region
 		(
 			const SomaBranchingRegion& sr,
 			size_t numRadii,
@@ -346,8 +349,8 @@ class NeuriteProjector
 		void print_surface_params(const Vertex* const v) const;
 
 	protected:
-		std::vector<Section>::const_iterator get_section_iterator(uint32_t nid, float t) const;
-		std::vector<NeuriteProjector::Section>::const_iterator get_soma_section_iterator(uint32_t nid, float t) const;
+		[[nodiscard]] std::vector<Section>::const_iterator get_section_iterator(uint32_t nid, float t) const;
+		[[nodiscard]] std::vector<Section>::const_iterator get_soma_section_iterator(uint32_t nid, float t) const;
 
 		void prepare_quadrature();
 

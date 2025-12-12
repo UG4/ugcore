@@ -39,7 +39,7 @@
 #include "vm.h"
 
 using namespace std;
-namespace ug{
+namespace ug {
 namespace bridge {
 	
 

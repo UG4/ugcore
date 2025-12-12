@@ -30,16 +30,18 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "file_io_ug.h"
+
 #include <vector>
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <cstdlib>
-#include <cstring>
+//#include <cstdlib>
+//#include <cstring>
 #include <algorithm>
 #include <set>
 
-#include "file_io_ug.h"
+
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/attachment_util.h"
 //ø #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
@@ -50,8 +52,7 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 static	bool CollectLines(Grid& grid, const SubsetHandler& shFace, EdgeSelector& LineSel);
 
@@ -489,10 +490,10 @@ static bool WriteLGM(Grid& grid,
 			int tmpLeft, tmpRight;
 			if(!GetRightLeftUnitIndex(tmpRight, tmpLeft, grid, *shFaces.begin<Face>(i), shVolumes))
 			{
-				LOG("- GetRightLeftUnitIndex failed during lgm-write.\n");
-				LOG("- In surface " << i << " face 0\n");
-				LOG("- This can happen due to volume-elements with bad orinentation.\n");
-				LOG("- IMPLEMENT a geometrical method for fallback!\n");
+				UG_LOG("- GetRightLeftUnitIndex failed during lgm-write.\n");
+				UG_LOG("- In surface " << i << " face 0\n");
+				UG_LOG("- This can happen due to volume-elements with bad orinentation.\n");
+				UG_LOG("- IMPLEMENT a geometrical method for fallback!\n");
 			}
 
 			out << "surface " << i << ": left=" << tmpLeft << "; right=" << tmpRight << "; points:";
@@ -870,7 +871,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 	ofstream out(lgmFileName.c_str());
 	if(!out)
 	{
-		LOG("Failure in ExportGridToUG_2D: couldn't open " << lgmFileName << " for write" << endl);
+		UG_LOG("Failure in ExportGridToUG_2D: couldn't open " << lgmFileName << " for write" << endl);
 		return false;
 	}
 
@@ -1178,7 +1179,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 
 	if(!out)
 	{
-		LOG("Failure in ExportGridToUG_2D: couldn't open " << ngFileName << " for write" << endl);
+		UG_LOG("Failure in ExportGridToUG_2D: couldn't open " << ngFileName << " for write" << endl);
 		grid.detach_from_vertices(aInt);
 		grid.detach_from_edges(aInt);
 		return false;

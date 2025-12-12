@@ -33,8 +33,7 @@
 #ifndef __H__UG__owned_pointer__
 #define __H__UG__owned_pointer__
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_util
 /// \{

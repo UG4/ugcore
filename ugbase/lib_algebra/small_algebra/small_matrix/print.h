@@ -33,12 +33,14 @@
 #ifndef SMALL_ALGEBRA_PRINT_H_
 #define SMALL_ALGEBRA_PRINT_H_
 
-#include "densematrix.h"
 #include <string>
 #include <sstream>
+
+// #include "densematrix.h"
 #include "common/log.h"
 
-namespace ug{
+namespace ug {
+
 template<typename TStorage>
 void MaplePrint(const DenseMatrix<TStorage> &A, const char *name)
 {

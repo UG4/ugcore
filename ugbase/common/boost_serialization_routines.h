@@ -46,8 +46,8 @@ BOOST_CLASS_IMPLEMENTATION(ug::vector2, boost::serialization::object_serializabl
 BOOST_CLASS_IMPLEMENTATION(ug::vector3, boost::serialization::object_serializable);
 BOOST_CLASS_IMPLEMENTATION(ug::vector4, boost::serialization::object_serializable);
 
-namespace boost{
-namespace serialization{
+namespace boost {
+namespace serialization {
 
 	template <typename Archive>
 	void serialize(Archive& ar, ug::vector1& v, const unsigned int version)

@@ -35,7 +35,7 @@
 
 #include "lib_disc/operator/linear_operator/std_transfer.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain, typename TAlgebra>
 class TruncatedMonotoneTransfer:

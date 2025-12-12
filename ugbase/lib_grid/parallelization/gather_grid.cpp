@@ -31,9 +31,10 @@
  */
 
 #include "gather_grid.h"
+
 #include "lib_grid/algorithms/selection_util.h"
 
-namespace ug{
+namespace ug {
 
 void GatherGrid(	Grid& gridOut,
 					Selector& sel,

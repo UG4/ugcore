@@ -35,26 +35,25 @@
 
 #include "lib_grid/lg_base.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 template <typename TIterator>
 bool RepeatedVertexExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
-							int numSteps, const ug::vector3& stepDir);
+							int numSteps, const vector3& stepDir);
 
 ////////////////////////////////////////////////////////////////////////
 template <typename TIterator>
 bool RepeatedEdgeExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
-							int numSteps, const ug::vector3& stepDir);
+							int numSteps, const vector3& stepDir);
 
 ////////////////////////////////////////////////////////////////////////
 template <typename TIterator>
 bool RepeatedFaceExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
-							int numSteps, const ug::vector3& stepDir);
+							int numSteps, const vector3& stepDir);
 					
 }//	end of namespace
 

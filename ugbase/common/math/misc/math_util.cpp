@@ -30,8 +30,11 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <vector>
 #include "math_util.h"
+
+#include <vector>
+
+#include "eigenvalues.h"
 #include "../ugmath.h"
 #include "../ugmath_types.h"
 #include "lineintersect_utils.h"
@@ -39,8 +42,7 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 bool TriangleCircumcenter(vector2& centerOut, const vector2& p1,
 						  const vector2& p2, const vector2& p3)

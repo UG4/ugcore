@@ -3,10 +3,11 @@
 #define UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_UTIL_H
 
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_traits.hpp>
+// #include <boost/graph/graph_traits.hpp>
+
 #include "common/error.h" // UG_THROW
 
-namespace ug{
+namespace ug {
 
 #ifndef HAVE_BOOL
 #define HAVE_BOOL

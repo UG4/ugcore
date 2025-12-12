@@ -42,8 +42,7 @@
 
 #include "lib_algebra/operator/interface/matrix_operator.h"
 
-namespace ug
-{
+namespace ug {
 
 
 template <typename X, typename Y, typename M>

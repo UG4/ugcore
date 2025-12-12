@@ -31,17 +31,17 @@
  */
 
 #include "traverser.h"
-#include "node_tree.h"
-#include <iostream>
 
-namespace ug{
-namespace node_tree
-{
+#include "node_tree.h"
+// #include <iostream>
+
+namespace ug {
+namespace node_tree {
 
 Traverser::Traverser()
 {
 //	initialise the handler-function array to reduce the number of resizes
-	m_vHandlerFuncs.resize(OC_NODES_END, 0);
+	m_vHandlerFuncs.resize(OC_NODES_END, nullptr);
 
 //	register handler functions
 	register_handler_function(OC_GROUP_NODE, &Traverser::handle_group);

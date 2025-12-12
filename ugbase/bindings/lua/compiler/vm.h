@@ -40,7 +40,7 @@
 #include "parser.hpp"
 #include "common/error.h"
 
-namespace ug{
+namespace ug {
 
 //////////////////////////////////////////
 /// --> documentation in vm.doxygen <--///

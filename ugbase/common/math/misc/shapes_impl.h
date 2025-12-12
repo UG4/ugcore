@@ -35,7 +35,7 @@
 
 #include "shapes.h"
 
-namespace ug{
+namespace ug {
 
 template <typename vector_t>
 bool Sphere<vector_t>::contains_point(const vector_t& p) const

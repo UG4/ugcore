@@ -36,8 +36,8 @@
 #include <queue>
 #include "hanging_node_refiner_t.h"
 
-namespace ug
-{
+namespace ug {
+
 
 /**	This class takes special care for degenerated fractures during refinement.
  * Degenerated faces are refined using anisotropic refinement, so that their

@@ -31,16 +31,18 @@
  */
 
 #include "dof_distribution_info.h"
+
+#include <iostream>
+
 #include "lib_grid/tools/subset_group.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
-
 #include "common/log.h"
-#include <iostream>
+
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 DoFDistributionInfo::DoFDistributionInfo(ConstSmartPtr<ISubsetHandler> spSH)
 	: FunctionPattern(spSH)

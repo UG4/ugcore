@@ -33,13 +33,13 @@
 #ifndef __UG__LIB_DISC__SPATIAL_DISC__RASTER_USER_DATA_H__
 #define __UG__LIB_DISC__SPATIAL_DISC__RASTER_USER_DATA_H__
 
-#include "common/common.h"
+//#include "common/common.h"
 #include "common/util/raster.h"
 #include "common/math/ugmath_types.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 #include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
 
-namespace ug{
+namespace ug {
 
 ///! 
 template <int dim>

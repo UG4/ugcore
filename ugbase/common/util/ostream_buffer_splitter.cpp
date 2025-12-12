@@ -34,7 +34,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 OStreamBufferSplitter::
 OStreamBufferSplitter() : m_buf1(nullptr), m_buf2(nullptr)

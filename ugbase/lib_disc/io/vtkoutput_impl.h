@@ -29,13 +29,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
+#ifndef __H__UG__LIB_DISC__IO__VTKOUTPUT_IMPL_H_
+#define __H__UG__LIB_DISC__IO__VTKOUTPUT_IMPL_H_
+
+#include "vtkoutput.h"
 
 //other libraries
 #include <cstdio>
 #include <iostream>
 #include <cstring>
 #include <string>
-#include <algorithm>
+//#include <algorithm>
 
 // ug4 libraries
 #include "common/log.h"
@@ -44,7 +48,7 @@
 #include "common/profiler/profiler.h"
 #include "common/util/provider.h"
 #include "lib_disc/common/function_group.h"
-#include "lib_disc/common/groups_util.h"
+// #include "lib_disc/common/groups_util.h"
 #include "lib_disc/common/multi_index.h"
 #include "lib_disc/reference_element/reference_element.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
@@ -56,17 +60,15 @@
 #include "lib_algebra/parallelization/parallel_storage_type.h"
 #endif
 
-// own interface
-#include "vtkoutput.h"
 
-namespace ug{
+namespace ug {
 
 /**
  * Writes a float in the VTU-compatible ascii format:
  */
 template <int TDim>
 VTKFileWriter& VTKOutput<TDim>::
-write_asc_float(VTKFileWriter& File, float data)
+write_asc_float(VTKFileWriter& File, float data) const
 {
 	if (std::abs (data) < std::numeric_limits<float>::min ()) // a protection against the denormalized floats
 		File << '0';
@@ -84,7 +86,7 @@ write_asc_float(VTKFileWriter& File, float data)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, float data)
+write_item_to_file(VTKFileWriter& File, float data) const
 {
 	if(m_bBinary)
 		File << (float) data;
@@ -95,7 +97,7 @@ write_item_to_file(VTKFileWriter& File, float data)
 // fill position data up with zeros if dim < 3.
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, const MathVector<1>& data)
+write_item_to_file(VTKFileWriter& File, const MathVector<1>& data) const
 {
 	if(m_bBinary)
 		File << static_cast<float>(data[0]) << (float) 0.f << (float) 0.f;
@@ -105,7 +107,7 @@ write_item_to_file(VTKFileWriter& File, const MathVector<1>& data)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, const MathVector<2>& data)
+write_item_to_file(VTKFileWriter& File, const MathVector<2>& data) const
 {
 	if(m_bBinary)
 		File << (float) data[0] << (float) data[1] << (float) 0.f;
@@ -118,7 +120,7 @@ write_item_to_file(VTKFileWriter& File, const MathVector<2>& data)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, const MathVector<3>& data)
+write_item_to_file(VTKFileWriter& File, const MathVector<3>& data) const
 {
 	if(m_bBinary)
 		File << (float) data[0] << (float) data[1] << (float) data[2];
@@ -132,7 +134,7 @@ write_item_to_file(VTKFileWriter& File, const MathVector<3>& data)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, const MathMatrix<1,1>& data)
+write_item_to_file(VTKFileWriter& File, const MathMatrix<1,1>& data) const
 {
 	if(m_bBinary)
 		File << static_cast<float>(data(0, 0)) << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f;
@@ -142,7 +144,7 @@ write_item_to_file(VTKFileWriter& File, const MathMatrix<1,1>& data)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, const MathMatrix<2,2>& data)
+write_item_to_file(VTKFileWriter& File, const MathMatrix<2,2>& data) const
 {
 	if(m_bBinary)
 	{
@@ -158,7 +160,7 @@ write_item_to_file(VTKFileWriter& File, const MathMatrix<2,2>& data)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, const MathMatrix<3,3>& data)
+write_item_to_file(VTKFileWriter& File, const MathMatrix<3,3>& data) const
 {
 	if(m_bBinary)
 	{
@@ -937,7 +939,7 @@ write_cell_connectivity(VTKFileWriter& File,
 		File << VTKFileWriter::normal;
 
 //	loop all elements
-	for( ; iterBegin != iterEnd; iterBegin++)
+	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
 	//	get element
 		TElem* elem = *iterBegin;
@@ -945,7 +947,7 @@ write_cell_connectivity(VTKFileWriter& File,
 	//	write ids of the element
 		if(refID != ROID_PRISM && refID != ROID_OCTAHEDRON)
 		{
-			for(size_t i=0; i< (size_t) ref_elem_type::numCorners; i++)
+			for(size_t i=0; i< static_cast<size_t>(ref_elem_type::numCorners); i++)
 			{
 				Vertex* vert = elem->vertex(i);
 				int id = aaVrtIndex[vert];
@@ -1171,14 +1173,14 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, const int si)
 //	get type, based on reference element type
 	switch(refID)
 	{
-		case ROID_EDGE: type = (char) 3; break;
-		case ROID_TRIANGLE: type = (char) 5; break;
-		case ROID_QUADRILATERAL: type = (char) 9; break;
-		case ROID_TETRAHEDRON: type = (char) 10; break;
-		case ROID_PYRAMID: type = (char) 14; break;
-		case ROID_PRISM: type = (char) 13; break;
-		case ROID_OCTAHEDRON: type = (char) 14; break; // use type id == 14 (PYRAMID) as we handle an octahedron by splitting into a top and bottom pyramid
-		case ROID_HEXAHEDRON: type = (char) 12; break;
+		case ROID_EDGE: type = static_cast<char>(3); break;
+		case ROID_TRIANGLE: type = static_cast<char>(5); break;
+		case ROID_QUADRILATERAL: type = static_cast<char>(9); break;
+		case ROID_TETRAHEDRON: type = static_cast<char>(10); break;
+		case ROID_PYRAMID: type = static_cast<char>(14); break;
+		case ROID_PRISM: type = static_cast<char>(13); break;
+		case ROID_OCTAHEDRON: type = static_cast<char>(14); break; // use type id == 14 (PYRAMID) as we handle an octahedron by splitting into a top and bottom pyramid
+		case ROID_HEXAHEDRON: type = static_cast<char>(12); break;
 		default: UG_THROW("Element Type not known.");
 	}
 
@@ -1615,7 +1617,7 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 		TElem *elem = *iterBegin;
 
 	//	loop vertices of element
-		for(size_t co = 0; co < (size_t) ref_elem_type::numCorners; ++co)
+		for(size_t co = 0; co < static_cast<size_t>(ref_elem_type::numCorners); ++co)
 		{
 		//	get vertex of element
 			Vertex* v = GetVertex(elem, co);
@@ -2227,7 +2229,6 @@ write_pvtu(TFunction& u, const std::string& filename,
 {
 #ifdef UG_PARALLEL
 //	File pointer
-	FILE* file;
 
 //	file name
 	std::string name;
@@ -2245,7 +2246,8 @@ write_pvtu(TFunction& u, const std::string& filename,
 //	only the master process writes this file
 	if (isOutputProc)
 	{
-	//	get name for *.pvtu file
+		FILE* file;
+		//	get name for *.pvtu file
 		pvtu_filename(name, filename, si, maxSi, step);
 
 	//	open file
@@ -2434,7 +2436,6 @@ void VTKOutput<TDim>::
 write_time_pvd(const char* filename, TFunction& u)
 {
 //	File
-	FILE* file;
 
 //	filename
 	std::string name;
@@ -2455,11 +2456,11 @@ write_time_pvd(const char* filename, TFunction& u)
 
 	if (isOutputProc)
 	{
-	//	get file name
+		//	get file name
 		pvd_filename(name, filename);
 
 	//	open file
-		file = fopen(name.c_str(), "w");
+		FILE *file = fopen(name.c_str(), "w");
 		if (file == nullptr)
 			UG_THROW("Cannot print to file.");
 
@@ -2529,7 +2530,6 @@ void VTKOutput<TDim>::
 write_time_processwise_pvd(const char* filename, TFunction& u)
 {
 //	File
-	FILE* file;
 
 //	filename
 	std::string name;
@@ -2550,13 +2550,13 @@ write_time_processwise_pvd(const char* filename, TFunction& u)
 
 	if (isOutputProc && numProcs > 1)
 	{
-	//	adjust filename
+		//	adjust filename
 		std::string procName = filename;
 		procName.append("_processwise");
 		pvd_filename(name, procName);
 
 	//	open file
-		file = fopen(name.c_str(), "w");
+		FILE *file = fopen(name.c_str(), "w");
 		if (file == nullptr)
 			UG_THROW("Cannot print to file.");
 
@@ -2643,7 +2643,7 @@ write_time_pvd_subset(const char* filename, TFunction& u, int si)
 		fprintf(file, "  <Collection>\n");
 
 	// 	include files from all procs
-		for(int step = 0; step < (int)vTimestep.size(); ++step)
+		for(int step = 0; step < static_cast<int>(vTimestep.size()); ++step)
 		{
 			vtu_filename(name, filename, 0, si, u.num_subsets()-1, step);
 			if(numProcs > 1) pvtu_filename(name, filename, si, u.num_subsets()-1, step);
@@ -2670,3 +2670,4 @@ write_time_pvd_subset(const char* filename, TFunction& u, int si)
 }
 
 
+#endif

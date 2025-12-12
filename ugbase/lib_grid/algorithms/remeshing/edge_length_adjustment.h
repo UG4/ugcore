@@ -36,8 +36,7 @@
 #include "lib_grid/lg_base.h"
 #include "common/ug_config.h"
 
-namespace ug
-{
+namespace ug {
 
 ///	\addtogroup lib_grid_algorithms_remeshing
 ///	@{

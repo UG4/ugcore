@@ -33,17 +33,20 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_IMPL__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_IMPL__
 
-#include "common/profiler/profiler.h"
 #include "domain_disc.h"
-#include "lib_disc/common/groups_util.h"
-#include "lib_disc/function_spaces/error_indicator_util.h"
+
+#include "common/profiler/profiler.h"
+//#include "lib_disc/common/groups_util.h"
+//#include "lib_disc/function_spaces/error_indicator_util.h"
 #include "lib_disc/spatial_disc/subset_assemble_util.h"
+#include "lib_grid/algorithms/debug_util.h"
+
 #ifdef UG_PARALLEL
 #include "lib_disc/parallelization/parallelization_util.h"
 #endif
-#include "lib_grid/algorithms/debug_util.h"
 
-namespace ug{
+
+namespace ug {
 
 template <typename TElemDisc>
 static void prep_assemble_loop(std::vector<TElemDisc*> vElemDisc)

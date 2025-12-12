@@ -33,7 +33,7 @@
 #ifndef __H__UG_attachment_io_traits
 #define __H__UG_attachment_io_traits
 
-namespace ug{
+namespace ug {
 
 
 template <typename TAttachment>

@@ -32,9 +32,8 @@
 
 #include "boxed_group_node.h"
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
 
 SPBoxedGroupNode BoxedGroupNode::create()
 {

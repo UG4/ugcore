@@ -43,7 +43,7 @@
 #include "common/stopwatch.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 // Symmetrize matrix stencil
 template<typename T>

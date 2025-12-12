@@ -38,7 +38,7 @@
 /**
  * D = MatrixDiagonal(mat) creates a LinearOperator which acts like D = diag(mat)
  */
-namespace ug{
+namespace ug {
 template <typename M, typename X, typename Y = X>
 class MatrixDiagonal :	public virtual ILinearOperator<X,Y>,
 						public M

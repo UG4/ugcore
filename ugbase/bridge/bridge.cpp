@@ -44,10 +44,8 @@
 
 using namespace std;
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 const char* UG4_GRP = "/ug4";
 

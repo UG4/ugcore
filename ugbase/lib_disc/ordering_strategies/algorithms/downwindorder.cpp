@@ -32,15 +32,16 @@
 
 
 #include "lib_disc/ordering_strategies/algorithms/downwindorder.h"
+
 //ø #include "common/common.h"
 #include <iostream>
-
 #include <utility> // for pair
 //ø #include <map> // for graph structure
+
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/dof_position_util.h"
 
-namespace ug{
+namespace ug {
 /**
  * For Debugging:
  */

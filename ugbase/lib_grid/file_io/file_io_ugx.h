@@ -34,8 +34,9 @@
 #define __H__LIB_GRID__FILE_IO_UGX__
 
 
-#include <errno.h>
-#include <cstdlib>
+//#include <errno.h>
+// #include <cstdlib>
+
 #include <iostream>
 #include <vector>
 #include <utility>
@@ -49,8 +50,7 @@
 #include "lib_grid/refinement/projectors/refinement_projector.h"
 #include "common/math/misc/shapes.h"	// AABox
 
-namespace ug
-{
+namespace ug {
 
 class ProjectionHandler;
 

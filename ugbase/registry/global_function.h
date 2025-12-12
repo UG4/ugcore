@@ -50,10 +50,8 @@
 
 #endif
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup registry
 /// \{
@@ -79,7 +77,7 @@ class UG_API ExportedFunctionBase
 		[[nodiscard]] const std::string& return_name() const {return return_info(0);}
 
 	///	type info of return type
-		[[nodiscard]] const std::string& return_info(size_t i) const {return m_vRetValInfo.at(i);}
+		[[nodiscard]] const std::string& return_info(size_t i) const {return m_vRetValInfo[i];}
 
 	/// type info of return value
 		[[nodiscard]] const std::vector<std::string>& return_info_vec() const {return m_vRetValInfo;}
@@ -88,19 +86,19 @@ class UG_API ExportedFunctionBase
 		[[nodiscard]] size_t num_parameter() const {return m_vvParamInfo.size();}
 
 	///	number of info strings for one parameter
-		[[nodiscard]] size_t num_infos(size_t i) const {return m_vvParamInfo.at(i).size();}
+		[[nodiscard]] size_t num_infos(size_t i) const {return m_vvParamInfo[i].size();}
 
 	/// class name of parameter i
-		[[nodiscard]] const char* parameter_class_name(size_t i) const	{return params_in().class_name((int)i);}
+		[[nodiscard]] const char* parameter_class_name(size_t i) const	{return params_in().class_name(static_cast<int>(i));}
 		
 	/// name of parameter i
 		[[nodiscard]] const std::string& parameter_name(size_t i) const {return parameter_info(i, 0);}
 
 	///	type info of all parameters
-		[[nodiscard]] const std::string& parameter_info(size_t i, size_t j) const	{return m_vvParamInfo.at(i).at(j);}
+		[[nodiscard]] const std::string& parameter_info(size_t i, size_t j) const	{return m_vvParamInfo[i][j];}
 
 	/// type info of i th parameters
-		[[nodiscard]] const std::vector<std::string>& parameter_info_vec(size_t i) const {return m_vvParamInfo.at(i);}
+		[[nodiscard]] const std::vector<std::string>& parameter_info_vec(size_t i) const {return m_vvParamInfo[i];}
 
 	///	whole string of all type infos for of all parameters
 		[[nodiscard]] const std::string& parameter_info_string() const {return m_paramInfos;}
@@ -143,8 +141,8 @@ class UG_API ExportedFunctionBase
 		//	resize missing infos for each parameter
 			const int ssize = static_cast<int>(m_vvParamInfo.size());
 			for(int i = 0; i < ssize; ++i)
-				for(size_t j = m_vvParamInfo.at(i).size(); j < MinNumInfos; ++j)
-					m_vvParamInfo.at(i).emplace_back("");
+				for(size_t j = m_vvParamInfo[i].size(); j < MinNumInfos; ++j)
+					m_vvParamInfo[i].emplace_back("");
 
 		////////////////////////////////////////////////
 		//	Create parameter stack for RETURN VALUES
@@ -282,10 +280,10 @@ class UG_API ExportedFunctionGroup
 		[[nodiscard]] size_t num_overloads() const {return m_overloads.size();}
 
 		ExportedFunction* get_overload(size_t index)
-			{return m_overloads.at(index).m_func;}
+			{return m_overloads[index].m_func;}
 
 		[[nodiscard]] const ExportedFunction* get_overload(size_t index) const
-			{return m_overloads.at(index).m_func;}
+			{return m_overloads[index].m_func;}
 
 		template <typename TType>
 		ExportedFunction* get_overload_by_type()
@@ -320,7 +318,7 @@ class UG_API ExportedFunctionGroup
 		}
 
 		[[nodiscard]] size_t get_overload_type_id(size_t index) const
-			{return m_overloads.at(index).m_typeID;}
+			{return m_overloads[index].m_typeID;}
 
 	private:
 		struct Overload{

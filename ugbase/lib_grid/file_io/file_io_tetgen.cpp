@@ -30,15 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <fstream>
 #include "file_io_tetgen.h"
+
+#include <fstream>
+
 #include "common/util/string_util.h"
 #include "../lg_base.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 bool LoadGridFromELE(Grid& grid, const char* filename, ISubsetHandler* pSH,
@@ -56,7 +57,7 @@ bool LoadGridFromELE(Grid& grid, const char* filename, ISubsetHandler* pSH,
 	}
 	else
 	{
-		LOG("Problem in LoadGridFromELE with file " << filename << ". filename has to end with .ele\n");
+		UG_LOG("Problem in LoadGridFromELE with file " << filename << ". filename has to end with .ele\n");
 		return false;
 	}
 		
@@ -121,7 +122,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 		ifstream in(nodesFilename);
 		if(!in)
 		{
-			LOG("WARNING in ImportGridFromTETGEN: nodes file not found: " << nodesFilename << endl);
+			UG_LOG("WARNING in ImportGridFromTETGEN: nodes file not found: " << nodesFilename << endl);
 			return false;
 		}
 
@@ -231,7 +232,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 			}
 		}
 		else
-			LOG("WARNING in ImportGridFromTETGEN: faces file not found: " << facesFilename << endl);
+			UG_LOG("WARNING in ImportGridFromTETGEN: faces file not found: " << facesFilename << endl);
 
 		in.close();
 	}
@@ -274,7 +275,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 			}
 		}
 		else
-			LOG("WARNING in ImportGridFromTETGEN: elems file not found: " << elemsFilename << endl);
+			UG_LOG("WARNING in ImportGridFromTETGEN: elems file not found: " << elemsFilename << endl);
 
 		in.close();
 	}
@@ -298,7 +299,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 		ifstream in(nodesFilename);
 		if(!in)
 		{
-			LOG("WARNING in ImportGridFromTETGEN: nodes file not found: " << nodesFilename << endl);
+			UG_LOG("WARNING in ImportGridFromTETGEN: nodes file not found: " << nodesFilename << endl);
 			return false;
 		}
 
@@ -400,7 +401,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 			}
 		}
 		else
-			LOG("WARNING in ImportGridFromTETGEN: faces file not found: " << facesFilename << endl);
+			UG_LOG("WARNING in ImportGridFromTETGEN: faces file not found: " << facesFilename << endl);
 
 		in.close();
 	}
@@ -440,7 +441,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 			}
 		}
 		else
-			LOG("WARNING in ImportGridFromTETGEN: elems file not found: " << elemsFilename << endl);
+			UG_LOG("WARNING in ImportGridFromTETGEN: elems file not found: " << elemsFilename << endl);
 
 		in.close();
 	}

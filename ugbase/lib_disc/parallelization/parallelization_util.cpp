@@ -32,7 +32,7 @@
 
 #include "parallelization_util.h"
 
-namespace ug{
+namespace ug {
 
 
 //	Adds dof-indices of elements in elemLayout to the specified IndexLayout.

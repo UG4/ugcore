@@ -6,13 +6,15 @@
  */
 
 #include <vector>
+
+#include "common/log.h"
+
 #include "simpleMatrixOps.h"
 
-namespace ug
-{
 
-namespace simpleMatrOps
-{
+
+namespace ug {
+namespace simpleMatrOps {
 
 double determinant_2x2(std::vector<std::vector<double>> const & matrix)
 {

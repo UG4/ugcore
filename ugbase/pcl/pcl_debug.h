@@ -47,8 +47,7 @@
 #define PCLLOG(msg) UG_LOG(msg)
 
 
-namespace pcl
-{
+namespace pcl {
 
 /// \addtogroup pcl
 /// \{

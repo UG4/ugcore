@@ -52,7 +52,7 @@
 #include "bindings/lua/lua_user_data.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Compute max error on Vertices only

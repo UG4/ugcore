@@ -34,14 +34,14 @@
 #define __H__UG_projection_handler_new
 
 #include <vector>
-#include <algorithm>
+// #include <algorithm>
 #include "common/assert.h"
 #include "refinement_projector.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 //ø #include "lib_grid/callbacks/selection_callbacks.h"
 //ø #include "lib_grid/callbacks/subset_callbacks.h"
 
-namespace ug{
+namespace ug {
 
 ///	Associates different projectors with individual subsets
 /**	In many cases it is useful to use different RefinementProjectors on different

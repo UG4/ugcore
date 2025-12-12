@@ -44,10 +44,8 @@
 
 using namespace std;
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 /**
  * \defgroup disccommon_bridge Common Discretization Bridge

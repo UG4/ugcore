@@ -34,7 +34,7 @@
 #include "lib_disc/spatial_disc/disc_util/fvho_geom.h"
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Constructor

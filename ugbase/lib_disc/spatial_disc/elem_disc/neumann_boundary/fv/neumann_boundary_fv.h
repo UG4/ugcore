@@ -34,12 +34,12 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__NEUMANN_BOUNDARY___NEUMANN_BOUNDARY_FV__
 
 // other ug4 modules
-#include "common/common.h"
+// #include "common/common.h"
 
 // library intern headers
 #include "../neumann_boundary_base.h"
 
-namespace ug{
+namespace ug {
 
 template<typename TDomain>
 class NeumannBoundaryFV

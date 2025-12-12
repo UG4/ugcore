@@ -32,11 +32,12 @@
 //  This file is parsed from UG 3.9.
 //  It provides the Gauss Quadratures for a reference prism.
 
-
-#include "../quadrature.h"
 #include "gauss_quad_prism.h"
 
-namespace ug{
+#include "../quadrature.h"
+
+
+namespace ug {
 
 template <>
 number GaussQuadBase<GaussQuadrature<ReferencePrism, 0>, 3, 0, 6>::m_vWeight[6] =

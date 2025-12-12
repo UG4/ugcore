@@ -34,14 +34,17 @@
 #ifndef __H__UG__CPU_ALGEBRA__VECTOR_IMPL__
 #define __H__UG__CPU_ALGEBRA__VECTOR_IMPL__
 
+//#include "vector.h" // for urand
 #include <algorithm>
+
 #include "algebra_misc.h"
 #include "common/math/ugmath.h"
-#include "vector.h" // for urand
+
 
 #define prefetchReadWrite(a)
 
-namespace ug{
+namespace ug {
+
 template<typename value_type>
 inline value_type &Vector<value_type>::operator [] (size_t i)
 {

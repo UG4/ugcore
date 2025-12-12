@@ -35,7 +35,7 @@
 
 #include "lib_grid/grid/grid.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TAAPosVRT>
 Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,

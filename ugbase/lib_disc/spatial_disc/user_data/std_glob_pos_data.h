@@ -35,7 +35,7 @@
 
 #include "std_user_data.h"
 
-namespace ug{
+namespace ug {
 
 ///////////////////////////////////////////////////////////////////////////////
 // Base class for Position-Time-UserData

@@ -40,8 +40,8 @@
 
 // ug4 headers
 #include "common/common.h"
-#include "common/math/ugmath.h"
-#include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
+//#include "common/math/ugmath.h"
+//#include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
 
 namespace ug {
 

@@ -31,10 +31,13 @@
  */
 
 #include "check_associated_elements.h"
+
+#include "lib_grid/grid/grid_constants.h"
+
 #include "lib_grid/grid/grid_util.h"
 
-namespace ug{
-namespace grid_unit_tests{
+namespace ug {
+namespace grid_unit_tests {
 
 void CheckAssociatedEdgesOfVolumes(Grid& g)
 {

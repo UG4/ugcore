@@ -53,7 +53,7 @@
 #include "common/util/string_util.h"
 #include "lua_stack_check.h"
 #include "registry/class_name_provider.h"
-#include "common/util/string_util.h"
+// #include "common/util/string_util.h"
 #include "common/util/stringify.h"
 #include "common/util/string_table_stream.h"
 
@@ -88,13 +88,11 @@ void lua_backtrace();
 void shiny_backtrace();
 void ug_backtrace();
 
-namespace ug
-{
+namespace ug {
 bool useLua2VM=false;
 bool useLuaCompiler=false;
 
-namespace bridge
-{
+namespace bridge {
 
 #ifdef UG_POSIX
 void (*oldSIGSEGVhandler)(int);
@@ -133,12 +131,12 @@ void InitSignals()
 }
 #endif
 
-void SetLuaNamespaceInTable(string name, string value)
+void SetLuaNamespaceInTable(const string& name, const string &value)
 {
 	UG_LOGN("SetLuaNamespaceInTable " << name << " str " << value);
 	lua_State* L = script::GetDefaultLuaState();
 	LUA_STACK_CHECK(L, 0);
-	int dotPos = name.find(".");
+	int dotPos = name.find('.');
 
 	if(dotPos == -1)
 	{
@@ -170,13 +168,13 @@ void SetLuaNamespaceInTable(string name, string value)
 		}
 	}
 }
-void SetLuaNamespace(string name, string value)
+void SetLuaNamespace(const string& name, const string &value)
 {
 	UG_LOGN("SetLuaNamespace " << name << " str " << value);
 	lua_State* L = script::GetDefaultLuaState();
 	LUA_STACK_CHECK(L, 0);
 
-	int dotPos = name.find(".");
+	int dotPos = name.find('.');
 
 	if(dotPos == -1)
 	{
@@ -215,7 +213,7 @@ string GetFileLinesLUA(const char *filename, size_t fromline, size_t toline)
 	if(GetLogAssistant().is_output_process()) return "";
 	char buf[512];
 	fstream file(filename, ios::in);
-	if(file.is_open() == false) return string("");
+	if(file.is_open() == false) return "";
 	stringstream *pss = nullptr;
 	for(size_t i=0; i<fromline-1 && !file.eof(); i++)
 	{
@@ -287,7 +285,7 @@ bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable)
  * \param name			name of the namespace. also nested namespaces are allowed (like struc1.struc2)
  * \return true if namespace found
  */
-bool GetLuaNamespace(lua_State* L, string name)
+bool GetLuaNamespace(lua_State* L, const string &name)
 {
 	LUA_STACK_CHECK(L, 1);
 	vector<string> tokens;
@@ -328,7 +326,7 @@ const ClassNameNode* GetClassNameNode(lua_State *L, int index)
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
 		if(!lua_isnil(L, -1) && lua_isuserdata(L, -1))
-			classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+			classNameNode = static_cast<const ClassNameNode *>(lua_touserdata(L, -1));
 		lua_pop(L, 2); // pop userdata, metatable
 	}
 	return classNameNode;
@@ -345,7 +343,7 @@ const std::vector<const char*> *GetClassNames(lua_State *L, int index)
 		lua_pushstring(L, "__names");
 		lua_rawget(L, -2);
 		if(!lua_isnil(L, -1) && lua_isuserdata(L, -1))
-			p = (const std::vector<const char*>*) lua_touserdata(L, -1);
+			p = static_cast<const std::vector<const char *> *>(lua_touserdata(L, -1));
 		lua_pop(L, 2); // pop userdata, metatable
 	}
 	return p;
@@ -528,8 +526,7 @@ int UGTypeInfo(const char *p)
 			lua_pop(L, 3); // pop metatable, userdata, globals
 			return false;
 		}
-		const std::vector<const char*> *names =
-				(const std::vector<const char*>*) lua_touserdata(L, -1);
+		const auto *names = static_cast<const std::vector<const char *> *>(lua_touserdata(L, -1));
 		lua_pop(L, 2); // pop metatable, userdata
 		UG_LOG("Typeinfo for " << p << ": " << endl);
 		for(size_t i=0; i < names->size(); ++i)
@@ -796,24 +793,24 @@ void GetLuaGlobals(std::vector<std::string>  *functions,
 			{
 				if(FindFunction(reg, luastr))
 				{
-					if(functions) functions->push_back(luastr);
+					if(functions) functions->emplace_back(luastr);
 				}
 				else if(lua_isfunction(L, -1) || lua_iscfunction(L, -1))
 				{
 					lua_Debug ar;
 					lua_pushvalue(L, -1);
 					if(lua_getinfo(L, ">S", &ar) != 0 && ar.linedefined != -1) {
-						if(scriptFunctions) scriptFunctions->push_back(luastr);
+						if(scriptFunctions) scriptFunctions->emplace_back(luastr);
 					}
 					else {
-						if(internalFunctions) internalFunctions->push_back(luastr);
+						if(internalFunctions) internalFunctions->emplace_back(luastr);
 					}
 				}
 				else if(lua_isuserdata(L, -1)) {
-					if(classInstantiations) classInstantiations->push_back(luastr);
+					if(classInstantiations) classInstantiations->emplace_back(luastr);
 				}
 				else {
-					if(luaObjects) luaObjects->push_back(luastr);
+					if(luaObjects) luaObjects->emplace_back(luastr);
 				}
 			}
 		}
@@ -870,7 +867,7 @@ void LuaList_classes()
 
 void LuaList_cfunctions()
 {
-	bridge::Registry &reg = GetUGRegistry();
+	Registry &reg = GetUGRegistry();
 	std::vector<std::string> functions;
 	GetLuaGlobal_functions(functions);
 	UG_LOG(endl << "--- C Functions: ------------------" << endl)
@@ -955,7 +952,7 @@ void LuaList_classInstantiations()
 		void* ptr = lua_touserdata(L, 1);
 		
 	//	we perform delete if the user-data is a raw pointer
-		if(((lua::UserDataWrapper*)ptr)->is_raw_ptr()){
+		if(static_cast<lua::UserDataWrapper *>(ptr)->is_raw_ptr()){
 			type = "raw ptr ";
 		}
 		else if(((lua::UserDataWrapper*)ptr)->is_smart_ptr()){
@@ -1008,7 +1005,7 @@ void LuaList()
 string GetLuaTypeString(lua_State* L, int index)
 {
 	if(lua_isnil(L, index))
-		return string("nil");
+		return "nil";
 	string str("");
 	// somehow lua_typeinfo always prints userdata
 	if(lua_isboolean(L, index)) str.append("boolean/");
@@ -1034,7 +1031,7 @@ string GetLuaTypeString(lua_State* L, int index)
 	if(lua_isthread(L, index)) str.append("thread/");
 	if(lua_isuserdata(L, index))
 	{
-		if(((lua::UserDataWrapper*)lua_touserdata(L, index))->is_const()){
+		if(static_cast<lua::UserDataWrapper *>(lua_touserdata(L, index))->is_const()){
 			str.append("const ");
 		}
 		const ClassNameNode* classNameNode = GetClassNameNode(L, index);
@@ -1045,8 +1042,8 @@ string GetLuaTypeString(lua_State* L, int index)
 
 	if(lua_type(L, index) == LUA_TNONE)	str.append("none/");
 
-	if(str.size() == 0)
-		return string("unknown type");
+	if(str.empty())
+		return "unknown type";
 	else
 		return str.substr(0, str.size()-1);
 }
@@ -1248,49 +1245,49 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 
 	try
 	{
-		reg.add_function("ls", &LuaList, grp.c_str(), 
+		reg.add_function("ls", &LuaList, grp,
 		                 "", "", "list all objects");
-		reg.add_function("list_cfunctions", &LuaList_cfunctions, grp.c_str(), 
+		reg.add_function("list_cfunctions", &LuaList_cfunctions, grp,
 		                 "", "", "list all cfunctions");
-		reg.add_function("list_classes", &LuaList_classes, grp.c_str(), 
+		reg.add_function("list_classes", &LuaList_classes, grp,
 		                 "", "", "list all classes");
-		reg.add_function("list_internalFunctions", &LuaList_internalFunctions, grp.c_str(), 
+		reg.add_function("list_internalFunctions", &LuaList_internalFunctions, grp,
 		                 "", "", "list all of LUAs internal functions");
-		reg.add_function("list_luaObjects", &LuaList_luaObjects, grp.c_str(), 
+		reg.add_function("list_luaObjects", &LuaList_luaObjects, grp,
 		                 "", "", "list all created LUA objects");
-		reg.add_function("list_scriptFunctions", LuaList_scriptFunctions, grp.c_str(), 
+		reg.add_function("list_scriptFunctions", LuaList_scriptFunctions, grp,
 		                 "", "", "list all LUA script functions");
-		reg.add_function("list_objects", LuaList_classInstantiations, grp.c_str(),
+		reg.add_function("list_objects", LuaList_classInstantiations, grp,
 				                 "", "", "list all LUA class objects");
 
-		reg.add_function("TypeInfo", &UGTypeInfo, grp.c_str(), 
+		reg.add_function("TypeInfo", &UGTypeInfo, grp,
 		                 "", "typeName", "print information about a type");
-		reg.add_function("ClassUsage", &ScriptPrintClassUsage, grp.c_str(),
+		reg.add_function("ClassUsage", &ScriptPrintClassUsage, grp,
 		                 "", "typeName", "print information about the usage of a type");
-		reg.add_function("ClassInstantiations" ,&ClassInstantiations, grp.c_str(), 
+		reg.add_function("ClassInstantiations" ,&ClassInstantiations, grp,
 		                 "", "typeName", "print all objects of the type");
-		reg.add_function("ClassHierarchy" ,&ScriptPrintClassHierarchy, grp.c_str(), 
+		reg.add_function("ClassHierarchy" ,&ScriptPrintClassHierarchy, grp,
 		                 "", "typeName", "print the class hierachy of type");
-		reg.add_function("Stacktrace", &LuaStackTrace, grp.c_str(),
+		reg.add_function("Stacktrace", &LuaStackTrace, grp,
 		                 "", "", "prints the LUA function stack, that is which functions are called up to this point");
-		reg.add_function("HasClass", &ScriptHasClass, grp.c_str(), 
+		reg.add_function("HasClass", &ScriptHasClass, grp,
 		                 "true if class exists", "className", "use only if you know that you're not using a class group, otherwise HasClassGroup");
-		reg.add_function("HasClassGroup", &ScriptHasClassGroup, grp.c_str(), 
+		reg.add_function("HasClassGroup", &ScriptHasClassGroup, grp,
 		                 "true if class oder classGroup exists", "classGroupName", "can be used before instantiating a class");
 #ifdef UG_PLUGINS
-		reg.add_function("PluginLoaded", &PluginLoaded, grp.c_str(), 
+		reg.add_function("PluginLoaded", &PluginLoaded, grp,
 		                 "true if plugin loaded", "pluginName", "pluginName as listed when using cmake ..");
 
-		reg.add_function("PluginRequired", &PluginRequired, grp.c_str(),
+		reg.add_function("PluginRequired", &PluginRequired, grp,
 		                 "true if plugin loaded", "pluginName", "throws an error if plugin not loaded, displays help string how to enable plugins via cmake -DpluginName=ON ..");
-		reg.add_function("GetLoadedPlugins", &GetLoadedPlugins, grp.c_str(), 
+		reg.add_function("GetLoadedPlugins", &GetLoadedPlugins, grp,
 		                 "list of loaded plugins names", "", "");
 #endif
-		reg.add_function("EnableLUA2C", &EnableLUA2C, grp.c_str(), 
+		reg.add_function("EnableLUA2C", &EnableLUA2C, grp,
 		                 "", "bEnable", "");
-		reg.add_function("EnableLUA2VM", &EnableLUA2VM, grp.c_str(),
+		reg.add_function("EnableLUA2VM", &EnableLUA2VM, grp,
 				"", "bEnable", "");
-		reg.add_function("InitSignals", &InitSignals, grp.c_str());
+		reg.add_function("InitSignals", &InitSignals, grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 

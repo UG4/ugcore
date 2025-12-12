@@ -34,8 +34,8 @@
 #define __H__UG_BRIDGE__SUFFIX_TAG__
 
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup bridge
 /// \{

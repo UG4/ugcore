@@ -38,12 +38,14 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_GAUSS_SEIDEL__NL_GAUSS_SEIDEL_IMPL_H_
 #define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_GAUSS_SEIDEL__NL_GAUSS_SEIDEL_IMPL_H_
 
+#include "nl_gauss_seidel.h"
+
 // extern includes
 #include <iostream>
 
-#include "lib_disc/function_spaces/grid_function_util.h"
+//#include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/common/local_algebra.h"
-#include "nl_gauss_seidel.h"
+
 
 #define PROFILE_NL_GAUSSSEIDEL
 #ifdef PROFILE_NL_GAUSSSEIDEL
@@ -56,7 +58,7 @@
 	#define NL_GAUSSSEIDEL_PROFILE_END()
 #endif
 
-namespace ug{
+namespace ug {
 
 
 template <typename TAlgebra>

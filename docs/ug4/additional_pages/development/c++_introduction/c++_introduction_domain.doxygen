@@ -68,7 +68,7 @@ take a template parameter TDomain. In the following we'll develop a simple metho
 that center in this example simply means the average of all vertex positions:
 
 \code
-	namespace ug{
+	namespace ug {
 	
 	template <class TDomain>
 	typename TDomain::position_type

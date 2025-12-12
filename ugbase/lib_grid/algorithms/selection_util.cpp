@@ -30,18 +30,20 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "selection_util.h"
+
 #include <vector>
 #include <stack>
 #include <queue>
+
 #include "lib_grid/selector.h"
-#include "selection_util.h"
 #include "geom_obj_util/geom_obj_util.h"
 #include "lib_grid/grid/grid_util.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 //	instatiate template specializations
 template void SelectInnerSelectionVertices<Selector>(Selector&);

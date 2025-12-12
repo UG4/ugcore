@@ -34,7 +34,7 @@
 #define __H__UG__LIB_DISC__QUADRATURE__QUAD_TEST__
 
 
-namespace ug{
+namespace ug {
 
 void TestQuadRule();
 

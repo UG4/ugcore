@@ -34,10 +34,9 @@
 #define __H__UG__grid_base_object_traits__
 
 #include "element_storage.h"
-#include "generic_grid_object_iterator.h"
+//#include "generic_grid_object_iterator.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	The geometry_traits. This class can be specialized by each element-type.

@@ -38,7 +38,7 @@
 #include <cmath>
 
 // UG includes
-#include "common/common.h"
+//#include "common/common.h"
 #include "common/util/smart_pointer.h"
 
 #include "lib_algebra/lib_algebra.h"
@@ -47,7 +47,7 @@
 #include "lib_disc/function_spaces/integrate.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/grid_function_user_data.h"
-#include "lib_disc/function_spaces/integrate.h"
+//#include "lib_disc/function_spaces/integrate.h"
 
 #include "lib_disc/spatial_disc/user_data/linker/darcy_velocity_linker.h"  // required for Darcy velocity linker
 

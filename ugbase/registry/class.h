@@ -57,10 +57,8 @@
 #endif
 
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 /// \addtogroup registry
 /// \{
@@ -85,7 +83,7 @@ class MethodPtrWrapper
 		
 		~MethodPtrWrapper()	{free(data);}
 		
-		void* get_raw_ptr() const {return data;}
+		[[nodiscard]] void* get_raw_ptr() const {return data;}
 		
 	protected:
 		void*	data;
@@ -141,7 +139,6 @@ class ExportedMethod : public ExportedFunctionBase
 #endif
 		}
 
-	/// \todo: replace this method with a better integrated way.
 		template <typename TFunc>
 		void create_parameter_stack()
 		{
@@ -182,7 +179,7 @@ class ExportedMethodGroup
 	using ProxyFunc = ExportedMethod::ProxyFunc;
 
 	public:
-		ExportedMethodGroup(const std::string& name) : m_name(name)
+		explicit ExportedMethodGroup(const std::string& name) : m_name(name)
 		{}
 
 		~ExportedMethodGroup()
@@ -192,7 +189,7 @@ class ExportedMethodGroup
 		}
 
 	///	name of function group
-		const std::string& name() const {return m_name;}
+		[[nodiscard]] const std::string& name() const {return m_name;}
 
 	///	adds an overload. Returns false if the overload already existed.
 		template <typename TFunc>
@@ -228,11 +225,11 @@ class ExportedMethodGroup
 		}
 
 		ExportedMethod* get_overload(size_t index) {
-			return m_overloads.at(index).m_func;
+			return m_overloads[index].m_func;
 		}
 
 		[[nodiscard]] const ExportedMethod* get_overload(size_t index) const {
-			return m_overloads.at(index).m_func;
+			return m_overloads[index].m_func;
 		}
 
 		template <typename TType>
@@ -268,7 +265,7 @@ class ExportedMethodGroup
 		}
 
 		[[nodiscard]] size_t get_overload_type_id(size_t index) const {
-			return m_overloads.at(index).m_typeID;
+			return m_overloads[index].m_typeID;
 		}
 
 	private:
@@ -392,16 +389,16 @@ class UG_API ExportedConstructor
 		[[nodiscard]] size_t num_parameter() const {return m_vvParamInfo.size();}
 
 	///	number of info strings for one parameter
-		[[nodiscard]] size_t num_infos(size_t i) const {return m_vvParamInfo.at(i).size();}
+		[[nodiscard]] size_t num_infos(size_t i) const {return m_vvParamInfo[i].size();}
 
 	/// name of parameter i
 		[[nodiscard]] const std::string& parameter_name(size_t i) const {return parameter_info(i, 0);}
 
 	///	type info of all parameters
-		[[nodiscard]] const std::string& parameter_info(size_t i, size_t j) const	{return m_vvParamInfo.at(i).at(j);}
+		[[nodiscard]] const std::string& parameter_info(size_t i, size_t j) const	{return m_vvParamInfo[i][j];}
 
 	/// type info of i th parameters
-		[[nodiscard]] const std::vector<std::string>& parameter_info_vec(size_t i) const {return m_vvParamInfo.at(i);}
+		[[nodiscard]] const std::vector<std::string>& parameter_info_vec(size_t i) const {return m_vvParamInfo[i];}
 
 	///	whole string of all type infos for of all parameters
 		[[nodiscard]] const std::string& parameter_info_string() const {return m_paramInfos;}
@@ -435,15 +432,15 @@ class UG_API ExportedConstructor
 			m_vvParamInfo.resize(m_paramsIn.size());
 
 		//	resize missing infos for each parameter
-			for(int i = 0; i < (int)m_vvParamInfo.size(); ++i)
-				for(size_t j = m_vvParamInfo.at(i).size(); j < MinNumInfos; ++j)
-					m_vvParamInfo.at(i).emplace_back("");
+			for(int i = 0; i < static_cast<int>(m_vvParamInfo.size()); ++i)
+				for(size_t j = m_vvParamInfo[i].size(); j < MinNumInfos; ++j)
+					m_vvParamInfo[i].emplace_back("");
 		}
 
 	protected:
 	// 	help function to tokenize the parameter string
 	static void tokenize(const std::string& str, std::vector<std::string>& tokens,
-	                     const char delimiter);
+	                     char delimiter);
 
 	protected:
 	private:
@@ -492,7 +489,7 @@ struct ConstructorProxy
 template <typename TClass>
 void DestructorProxy(void* obj)
 {
-	auto* pObj = (TClass*)obj;
+	auto* pObj = static_cast<TClass *>(obj);
 	delete pObj;
 }
 

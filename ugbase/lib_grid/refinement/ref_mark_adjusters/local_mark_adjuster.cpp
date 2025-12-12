@@ -32,7 +32,7 @@
 
 #include "local_mark_adjuster.h"
 
-namespace ug{
+namespace ug {
 	
 void LocalMarkAdjuster::
 ref_marks_changed(IRefiner& ref,

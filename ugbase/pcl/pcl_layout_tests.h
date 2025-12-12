@@ -35,24 +35,23 @@
 
 #include <map>
 #include <vector>
-#include <iomanip> // for 'std::setw()' etc.
+#include <iomanip>
 #include <boost/function.hpp>
 
 #include "common/log.h"
-#include "common/assert.h"
+//#include "common/assert.h"
 #include "common/serialization.h"
 #include "common/profiler/profiler.h"
 #include "common/util/binary_buffer.h"
 
 #include "pcl_base.h"
-#include "pcl_methods.h"
-#include "pcl_communication_structs.h"
+//#include "pcl_methods.h"
+//#include "pcl_communication_structs.h"
 #include "pcl_interface_communicator.h"
 #include "pcl_process_communicator.h"
 
 
-namespace pcl
-{
+namespace pcl {
 
 /// \addtogroup pcl
 /// \{
@@ -126,8 +125,8 @@ bool TestLayoutIsDoubleEnded(const ProcessCommunicator &processCommunicator,
 	for(size_t i=0; i<processCommunicator.size(); i++)
 	{
 		char bMasterToThisProcess, bSlaveToThisProcess;
-		ug::Deserialize(masterToThisProcessMap[i], bMasterToThisProcess);
-		ug::Deserialize(slaveToThisProcessMap[i], bSlaveToThisProcess);
+		Deserialize(masterToThisProcessMap[i], bMasterToThisProcess);
+		Deserialize(slaveToThisProcessMap[i], bSlaveToThisProcess);
 
 		int pid = processCommunicator.get_proc_id(i);
 		if(bMasterToThisProcess != bSlaveToProcess[i])

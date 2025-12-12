@@ -31,9 +31,10 @@
  */
 
 #include "orientation.h"
+
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 
-namespace ug{
+namespace ug {
 
 
 ///////////////////////////////////////////////////////////////////////////////

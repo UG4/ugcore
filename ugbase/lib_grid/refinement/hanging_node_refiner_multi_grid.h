@@ -36,8 +36,8 @@
 #include "hanging_node_refiner_base.h"
 #include "lib_grid/tools/selector_multi_grid.h"
 
-namespace ug
-{
+namespace ug {
+
 
 ///	\addtogroup lib_grid_algorithms_refinement
 ///	@{
@@ -92,7 +92,8 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 
 		virtual void assign_grid(MultiGrid& mg);
 
-		Grid* get_associated_grid() override {return m_pMG;}//depreciated
+
+		[[deprecated]] Grid* get_associated_grid() override {return m_pMG;}
 		Grid* grid() override {return m_pMG;}
 		virtual MultiGrid* multi_grid() {return m_pMG;}
 

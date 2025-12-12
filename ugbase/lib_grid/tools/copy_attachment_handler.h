@@ -42,7 +42,7 @@
     #include "lib_grid/parallelization/distributed_grid.h"        // DistributedGridManager
 #endif
 
-namespace ug{
+namespace ug {
 
 
 /**

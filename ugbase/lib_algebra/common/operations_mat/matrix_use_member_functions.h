@@ -33,9 +33,10 @@
 
 // MATRIX_USE_MEMBER_FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+#ifndef IG_UGBASE_LIB_ALGEBRA_COMMON_OPERATIONS_MAT_MATRIX_USE_MEMBER_FUNCTIONS_H
+#define IG_UGBASE_LIB_ALGEBRA_COMMON_OPERATIONS_MAT_MATRIX_USE_MEMBER_FUNCTIONS_H
 
-namespace ug
-{
+namespace ug {
 
 template<typename vector_t, typename matrix_t>
 struct mat_operations_class<vector_t, matrix_t, MATRIX_USE_MEMBER_FUNCTIONS>
@@ -98,3 +99,4 @@ struct mat_operations_class<vector_t, matrix_t, MATRIX_USE_MEMBER_FUNCTIONS>
 };
 
 }
+#endif

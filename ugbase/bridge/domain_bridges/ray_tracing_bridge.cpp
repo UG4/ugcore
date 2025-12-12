@@ -31,18 +31,18 @@
  */
 
 #include <vector>
+
 #include "registry/registry.h"
 #include "bridge/bridge.h"
 #include "bridge/util.h"
 #include "bridge/util_domain_dependent.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include "lib_grid/tools/subset_group.h"
-
-#include <lib_grid/algorithms/projections/overlying_subset_finder.hpp>
+#include "lib_grid/algorithms/projections/overlying_subset_finder.hpp"
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 /// TEMPORARY QUICK HACK! DON'T USE! WILL BE REPLACED SOON!
 class DomainRayTracer {

@@ -33,7 +33,11 @@
 #ifndef __H__UG__LIB_GRID__TOOLS__SURFACE_VIEW_IMPL__
 #define __H__UG__LIB_GRID__TOOLS__SURFACE_VIEW_IMPL__
 
-namespace ug{
+#include "surface_view.h"
+
+#include "lib_grid/parallelization/distributed_grid.h"
+
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 //	implementation of SurfaceViewElementIterator

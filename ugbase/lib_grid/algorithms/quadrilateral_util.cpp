@@ -31,9 +31,10 @@
  */
 
 #include "quadrilateral_util.h"
+
 #include "lib_grid/algorithms/geom_obj_util/edge_util.h"
 
-namespace ug{
+namespace ug {
 
 Quadrilateral* CreateQuadrilateral_NoRegistration(Grid& g, Face* tri1, Face* tri2)
 {

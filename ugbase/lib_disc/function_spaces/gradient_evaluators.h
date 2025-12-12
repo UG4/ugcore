@@ -33,14 +33,14 @@
 #ifndef __H__UG_DISC__GRADIENT_EVALUATORS__
 #define __H__UG_DISC__GRADIENT_EVALUATORS__
 
-#include "grid_function.h"
-#include "common/util/provider.h"
+// #include "grid_function.h"
+// #include "common/util/provider.h"
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 
-namespace ug{
+namespace ug {
 
 /**	Provides a function to evaluate the gradient of a given grid function efficiently
  * in each element.*/

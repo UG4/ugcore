@@ -31,9 +31,10 @@
  */
 
 #include "local_dof_set.h"
+
 #include "lib_disc/reference_element/reference_element_util.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // 	LocalDoFSet

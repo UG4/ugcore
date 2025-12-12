@@ -33,9 +33,9 @@
 #ifndef __H__UG__LIB_GRID__TOOLS__SURFACE_VIEW__
 #define __H__UG__LIB_GRID__TOOLS__SURFACE_VIEW__
 
-#ifdef UG_PARALLEL
-	#include "lib_grid/parallelization/distributed_grid.h"
-#endif
+//#ifdef UG_PARALLEL
+//	#include "lib_grid/parallelization/distributed_grid.h"
+//#endif
 
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/tools/grid_level.h"
@@ -43,7 +43,7 @@
 #include "lib_grid/algorithms/attachment_util.h"
 #include "common/util/flags.h"
 
-namespace ug{
+namespace ug {
 
 /** \ingroup lib_grid_tools
  *  \{ */
@@ -240,7 +240,7 @@ class SurfaceView
 			public:
 				ConstSurfaceViewElementIterator();
 
-				ConstSurfaceViewElementIterator(const SurfaceViewElementIterator<TElem>& iter);
+				/*explicit*/ ConstSurfaceViewElementIterator(const SurfaceViewElementIterator<TElem>& iter);
 
 			private:
 				using this_type = ConstSurfaceViewElementIterator;

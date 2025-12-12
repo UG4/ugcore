@@ -36,9 +36,9 @@
 //	only required for dummy-parameter ug::vector3*
 #include "common/math/ugmath_types.h"
 
-namespace ug{
-namespace pyra_rules
-{
+namespace ug {
+namespace pyra_rules {
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //	LOOKUP TABLES

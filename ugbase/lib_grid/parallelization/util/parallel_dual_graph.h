@@ -34,13 +34,13 @@
 #define __H__LIB_GRID__PARALLEL_DUAL_GRAPH__
 
 #include <vector>
+
 #include "lib_grid/lg_base.h"
 #include "pcl/pcl_process_communicator.h"
 #include "../distributed_grid.h"
 #include "../parallelization_util.h"
 
-namespace ug
-{
+namespace ug {
 
 ///	Generates the parallel dual graph of a MultiGrid as, e.g., required by Parmetis
 /** Indices on elements of TGeomBaseObj are distributed in the order in which
@@ -54,7 +54,7 @@ class ParallelDualGraph{
 	public:
 		using element_iterator_t = typename std::vector<TGeomBaseObj*>::iterator;
 
-		ParallelDualGraph(MultiGrid* pmg = nullptr);
+		explicit ParallelDualGraph(MultiGrid* pmg = nullptr);
 		~ParallelDualGraph();
 
 		void set_grid(MultiGrid* pmg);

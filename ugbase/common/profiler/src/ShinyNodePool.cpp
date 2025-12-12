@@ -42,7 +42,7 @@ namespace Shiny {
 //-----------------------------------------------------------------------------
 
 	ProfileNodePool* ProfileNodePool::createNodePool(uint32_t a_items) {
-		ProfileNodePool* pPool = static_cast<ProfileNodePool*>(
+		auto* pPool = static_cast<ProfileNodePool*>(
 			malloc(sizeof(ProfileNodePool) + sizeof(T) * (a_items - 1)));
 
 		pPool->nextPool = nullptr;
@@ -56,7 +56,7 @@ namespace Shiny {
 
 //-----------------------------------------------------------------------------
 
-	uint32_t ProfileNodePool::memoryUsageChain(void) {
+	uint32_t ProfileNodePool::memoryUsageChain() {
 		uint32_t bytes = ptr32(
 			reinterpret_cast<void*>(
 				  reinterpret_cast<char*>(endOfItems)
@@ -69,7 +69,7 @@ namespace Shiny {
 
 //-----------------------------------------------------------------------------
 
-	void ProfileNodePool::destroy(void) {
+	void ProfileNodePool::destroy() {
 		T* pItem = firstItem();
 
 		while (pItem != unusedItem())

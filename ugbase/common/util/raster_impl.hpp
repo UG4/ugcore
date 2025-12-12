@@ -33,16 +33,18 @@
 #ifndef __H__UG_raster_impl
 #define __H__UG_raster_impl
 
+#include "raster.h"
+
 #include <limits>
 #include <cstring>
-#include <algorithm>
+//#include <algorithm>
 #include <fstream>
 #include "common/error.h"
 #include "common/util/file_util.h"
 #include "common/util/string_util.h"
 #include "raster_kernels.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Raster::MultiIndex

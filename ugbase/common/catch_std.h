@@ -32,8 +32,9 @@
 
 #ifndef __H_COMMON_CATCH_STD_H_
 #define __H_COMMON_CATCH_STD_H_
-#include "log.h"
-#include "assert.h"
+
+#include "common/log.h"
+#include "common/assert.h"
 
 #ifdef NDEBUG
 #define UG_LOG_CATCH(expr)\

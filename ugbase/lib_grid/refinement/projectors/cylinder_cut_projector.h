@@ -35,7 +35,7 @@
 
 #include "refinement_projector.h"
 
-namespace ug{
+namespace ug {
 
 /// Refines linearly except for when a refined edge intersects the given cylinder
 /**	Refines linearly except for when a refined edge intersects the given cylinder.
@@ -74,8 +74,7 @@ public:
 	{}
 
 
-
-	virtual ~CylinderCutProjector () = default;
+	~CylinderCutProjector () override = default;
 
 	void set_center (const vector3& center)		{m_center = center;}
 	const vector3& center () const				{return m_center;}
@@ -87,8 +86,7 @@ public:
 	number radius () const						{return m_radius;}
 
 ///	called when a new vertex was created from an old edge.
-	virtual number new_vertex(Vertex* vrt, Edge* parent)
-	{
+	number new_vertex(Vertex* vrt, Edge* parent) override {
 		number t0, t1;
 		vector3 from = pos(parent->vertex(0));
 		vector3 dir;

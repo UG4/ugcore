@@ -38,7 +38,7 @@
 
 #include "../../common/operations.h"
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup small_algebra
 /// \{

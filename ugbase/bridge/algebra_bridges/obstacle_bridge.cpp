@@ -47,9 +47,9 @@
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
-namespace Obstacle{
+namespace ug {
+namespace bridge {
+namespace Obstacle {
 
 /**
  * \defgroup obstacle_bridge Obstacle Bridge

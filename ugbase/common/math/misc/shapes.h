@@ -33,10 +33,10 @@
 #ifndef __H__UG_shapes__
 #define __H__UG_shapes__
 
-#include "math_util.h"
+//#include "math_util.h"
 #include <iostream>
  
-namespace ug{
+namespace ug {
 
 template <typename vector_t>
 class Sphere{

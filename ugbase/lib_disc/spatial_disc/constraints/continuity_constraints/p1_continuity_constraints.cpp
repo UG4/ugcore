@@ -31,10 +31,11 @@
  */
 
 #include "p1_continuity_constraints.h"
-#include "lib_grid/algorithms/geom_obj_util/edge_util.h"
+
+//#include "lib_grid/algorithms/geom_obj_util/edge_util.h"
 #include "lib_grid/algorithms/debug_util.h"
 
-namespace ug{
+namespace ug {
 
 
 /// returns the vertices of the object constraining a hanging vertex

@@ -35,12 +35,12 @@
 
 #include <vector>
 #include <queue>
+
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "common/util/metaprogramming_util.h"
 #include "common/math/misc/math_constants.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

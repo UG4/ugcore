@@ -35,8 +35,7 @@
 
 #include "lib_grid/lg_base.h"
 
-namespace ug
-{
+namespace ug {
 
 ///	Creates an Icosahedron with the given radius. (outer circle)
 void GenerateIcosahedron(Grid& grid, const vector3& center,

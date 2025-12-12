@@ -36,8 +36,8 @@
 #include <string>
 #include "registry/registry.h"
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 void RegisterGridBridge_Grid(Registry& reg, std::string parentGroup);
 void RegisterGridBridge_SubsetHandler(Registry& reg, std::string parentGroup);

@@ -42,8 +42,7 @@
 #include "pcl_communication_structs.h"
 #include "pcl_process_communicator.h"
 
-namespace pcl
-{
+namespace pcl {
 
 /// \addtogroup pcl
 /// \{

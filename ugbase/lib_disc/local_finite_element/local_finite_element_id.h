@@ -35,7 +35,7 @@
 
 #include <sstream>
 
-namespace ug{
+namespace ug {
 
 
 // Doxygen group

@@ -49,13 +49,13 @@
 
 #ifdef LAPACK_AVAILABLE
 
-#include "lapack.h"
-#include "../small_algebra.h"
+//#include "lapack.h"
+//#include "../small_algebra.h"
 
 #include "lapack_invert.h"
 #include "lapack_densematrix_inverse.h"
 
-namespace ug{
+namespace ug {
 
 extern "C" // solve generalized eigenvalue system
 	void dggev_(char *cCalcLeftEV, char *cCalcRightEV, lapack_int *n,

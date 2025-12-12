@@ -43,7 +43,7 @@
 
 #include "common/util/sort_util.h"
 #include "common/util/binary_buffer.h"
-#include "common/serialization.h"
+//#include "common/serialization.h"
 
 
 #define NAE_APPEND
@@ -98,8 +98,7 @@ void Deserialize(TIStream& buf, std::vector<bool> &vec)
 	}
 }*/
 
-namespace ug
-{
+namespace ug {
 
 /**
  * ParallelNodes is a class to provide functions when adding nodes on other processes.

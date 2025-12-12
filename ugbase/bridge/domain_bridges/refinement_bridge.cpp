@@ -64,7 +64,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 /**
  * \defgroup refinement_bridge Refinement Bridge

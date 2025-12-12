@@ -33,16 +33,15 @@
 #ifndef __H__UG__LIB_DISC__PARALLELIZATION__PARALLELIZATION_UTIL__
 #define __H__UG__LIB_DISC__PARALLELIZATION__PARALLELIZATION_UTIL__
 
-#include "pcl/pcl_util.h"
+//#include "pcl/pcl_util.h"
 #include "lib_grid/parallelization/util/compol_interface_status.h"
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 #include "lib_algebra/parallelization/communication_policies.h"
-#include "lib_algebra/parallelization/parallel_vector.h"
-#include "lib_algebra/parallelization/parallel_matrix.h"
+//#include "lib_algebra/parallelization/parallel_vector.h"
+//#include "lib_algebra/parallelization/parallel_matrix.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
 
-namespace ug
-{
+namespace ug {
 
 /// creates the index layout for a level given a GridLayoutMap
 /**

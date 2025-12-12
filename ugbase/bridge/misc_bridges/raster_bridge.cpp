@@ -31,15 +31,16 @@
  */
 
 #include <string>
-#include "bridge/bridge.h"
+
+//#include "bridge/bridge.h"
 #include "bridge/util.h"
 #include "bridge/suffix_tag.h"
 #include "common/util/raster.h"
 
 using namespace std;
 
-namespace ug{
-namespace bridge{
+namespace ug {
+namespace bridge {
 
 template <typename TValue, int TDIM>
 static void RegisterRaster(Registry& reg, string name, string grp)

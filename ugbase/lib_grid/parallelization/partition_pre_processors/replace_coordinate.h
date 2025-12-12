@@ -33,7 +33,7 @@
 #ifndef __H__UG_replace_coordinate
 #define __H__UG_replace_coordinate
 
-namespace ug{
+namespace ug {
 
 ///	Temporarily replaces the specified coordinate in the given position attachment
 /**	\warning 	After 'partitioning_starts' was called, the coordinates of the

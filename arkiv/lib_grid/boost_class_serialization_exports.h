@@ -33,9 +33,12 @@
 #ifndef __H__UG_boost_class_serialization_exports
 #define __H__UG_boost_class_serialization_exports
 
+#include <boost/serialization/export.hpp>
+
 #include "refinement/refinement_projector.h"
 #include "refinement/projectors/sphere_projector.h"
 #include "refinement/projectors/cylinder_projector.h"
+
 BOOST_CLASS_EXPORT(ug::RefinementProjector);
 BOOST_CLASS_EXPORT(ug::SphereProjector);
 BOOST_CLASS_EXPORT(ug::CylinderProjector);

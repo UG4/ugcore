@@ -82,8 +82,8 @@ namespace Shiny {
 
 		//
 
-		SHINY_INLINE void _appendTicksToCurNode(void) {
-			register tick_t curTick;
+		SHINY_INLINE void _appendTicksToCurNode() {
+			tick_t curTick;
 			GetTicks(&curTick);
 
 			_curNode->appendTicks(curTick - _lastTick);
@@ -101,14 +101,14 @@ namespace Shiny {
 		ProfileNode* _createNode(ProfileNodeCache* a_cache, ProfileZone* a_pZone);
 		void _insertNode(ProfileNode* a_pNode);
 
-		void _init(void) {
+		void _init() {
 			_initialized = true;
 
 			rootNode.beginEntry();
 			GetTicks(&_lastTick);
 		}
 
-		void _uninit(void) {
+		void _uninit() {
 			_initialized = false;
 
 			rootNode.clear();
@@ -117,29 +117,29 @@ namespace Shiny {
 		}
 
 #if SHINY_PROFILER_LOOKUPRATE == TRUE
-		SHINY_INLINE void _incLookup(void) { _lookupCount++; }
-		SHINY_INLINE void _incLookupSuccess(void) { _lookupSuccessCount++; }
-		SHINY_INLINE float lookupSuccessRate(void) const { return ((float) _lookupSuccessCount) / ((float) _lookupCount); }
+		SHINY_INLINE void _incLookup() { _lookupCount++; }
+		SHINY_INLINE void _incLookupSuccess() { _lookupSuccessCount++; }
+		SHINY_INLINE float lookupSuccessRate() const { return ((float) _lookupSuccessCount) / ((float) _lookupCount); }
 
 #else
-		SHINY_INLINE void _incLookup(void) {}
-		SHINY_INLINE void _incLookupSuccess(void) {}
-		SHINY_INLINE float lookupSuccessRate(void) const { return -1; }
+		SHINY_INLINE void _incLookup() {}
+		SHINY_INLINE void _incLookupSuccess() {}
+		SHINY_INLINE float lookupSuccessRate() const { return -1; }
 #endif
 
-		void _resetZones(void);
-		void _destroyNodes(void);
+		void _resetZones();
+		void _destroyNodes();
 
-		SHINY_INLINE float tableUsage(void) const { return ((float) nodeCount) / ((float) _tableSize); }
+		SHINY_INLINE float tableUsage() const { return ((float) nodeCount) / ((float) _tableSize); }
 
-		uint32_t staticMemInBytes(void) {
+		uint32_t staticMemInBytes() {
 			// ASSUME: zones and cache are used as intended; throught the macros
 
 			return sizeof(instance) + sizeof(_dummyNodeTable[0]) + sizeof(ProfileNode::_dummy)
 				 + (zoneCount - 1) * (sizeof(ProfileZone) + sizeof(ProfileNodeCache));
 		}
 
-		uint32_t allocMemInBytes(void) {
+		uint32_t allocMemInBytes() {
 			return _tableSize * sizeof(ProfileNode*)
 				 + ((_firstNodePool)? _firstNodePool->memoryUsageChain() : 0);
 		}
@@ -158,26 +158,26 @@ namespace Shiny {
 			_curNode = a_node;
 		}
 
-		SHINY_INLINE void _endCurNode(void) {
+		SHINY_INLINE void _endCurNode() {
 			_appendTicksToCurNode();
 			_curNode = _curNode->parent;
 		}
 
 		//
 
-		void preLoad(void);
+		void preLoad();
 
-		void updateClean(void);
+		void updateClean();
 		void update(float a_damping = 0.9f);
 
-		void clear(void);
-		void destroy(void);
+		void clear();
+		void destroy();
 
 		bool output(const char *a_filename);
 		bool output(std::ostream &a_ostream = std::cout);
 
-		SHINY_INLINE std::string outputNodesAsString(void) { return OutputNodesAsString(&rootNode, nodeCount); }
-		SHINY_INLINE std::string outputZonesAsString(void) { return OutputZonesAsString(&rootZone, zoneCount); }
+		SHINY_INLINE std::string outputNodesAsString() { return OutputNodesAsString(&rootNode, nodeCount); }
+		SHINY_INLINE std::string outputZonesAsString() { return OutputZonesAsString(&rootZone, zoneCount); }
 
 		//
 

@@ -34,10 +34,10 @@
 #define __H__UG__attached_list__
 
 #include <iterator>
+
 #include "attachment_pipe.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 //	predeclarations

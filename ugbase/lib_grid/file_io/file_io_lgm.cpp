@@ -43,8 +43,7 @@ extern "C" {
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	ImportGridFromLGM
@@ -81,7 +80,7 @@ bool ImportGridFromLGM(Grid& grid,
 		linfo = lgm_info_new();
 
 		if(lgm_read(filename, l, linfo)){
-			LOG("WARNING in ImportGridFromLGM: " << linfo->err_msg << endl);
+			UG_LOG("WARNING in ImportGridFromLGM: " << linfo->err_msg << endl);
 			lgm_info_delete(linfo);
 			lgm_delete(l);
 			return false;
@@ -92,7 +91,7 @@ bool ImportGridFromLGM(Grid& grid,
 	// make sure lgm has dimension of 2 or 3
 	if(l->dim != 2 && l->dim != 3)
 	{
-		LOG("WARNING in ImportGridFromLGM: "
+		UG_LOG("WARNING in ImportGridFromLGM: "
 		    << "LGM is does not have dimension of 2 or 3!"
 		    << endl);
 		lgm_delete(l);

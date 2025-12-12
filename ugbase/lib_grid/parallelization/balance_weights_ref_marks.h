@@ -36,12 +36,12 @@
 #include "lib_grid/refinement/refiner_interface.h"
 #include "partitioner.h"
 
-namespace ug{
+namespace ug {
 
 class BalanceWeightsRefMarks : public IBalanceWeights
 {
 	public:
-		BalanceWeightsRefMarks(IRefiner* refiner) : m_refiner(refiner)	{};
+		explicit BalanceWeightsRefMarks(IRefiner* refiner) : m_refiner(refiner)	{};
 
 		number get_refined_weight(Vertex* e) override {
 			RefinementMark m = m_refiner->get_mark(e);

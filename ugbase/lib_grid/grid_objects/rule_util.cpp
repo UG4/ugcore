@@ -30,10 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "rule_util.h"
+
 #include <cassert>
 //ø #include <algorithm>
-#include <iostream>
-#include "rule_util.h"
+// #include <iostream>
+
 #include "tetrahedron_rules.h"
 //ø #include "octahedron_rules.h"
 #include "pyramid_rules.h"
@@ -41,8 +43,8 @@
 
 using namespace std;
 
-namespace ug{
-namespace shared_rules{
+namespace ug {
+namespace shared_rules {
 
 int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
 					const int faceVrtInds[][4],

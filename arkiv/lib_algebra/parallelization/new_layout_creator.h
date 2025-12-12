@@ -33,8 +33,7 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__NEW_LAYOUT_CREATOR_H_
 #define __H__LIB_ALGEBRA__PARALLELIZATION__NEW_LAYOUT_CREATOR_H_
 
-namespace ug
-{
+namespace ug {
 
 class NewLayoutCreator
 {

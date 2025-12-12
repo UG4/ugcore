@@ -33,13 +33,13 @@
 #ifndef __H__UGMATH__MATH_UTIL__
 #define __H__UGMATH__MATH_UTIL__
 
-#include <cstdlib>
+//#include <cstdlib>
 #include "math_constants.h"
 #include "../math_vector_matrix/math_vector.h"
 #include "../math_vector_matrix/math_vector_functions.h"
 #include "../ugmath_types.h"
 #include "../../ug_config.h"
-#include "eigenvalues.h"
+//#include "eigenvalues.h"
 
 // this is quite hacky...
 // some environments (on windows) seem to define a small type or variable.
@@ -48,8 +48,7 @@
 	#undef small
 #endif
 
-namespace ug
-{
+namespace ug {
 
 /**
  * \defgroup ugbase_mathutil Math Utilities

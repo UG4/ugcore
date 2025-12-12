@@ -29,10 +29,19 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
+#ifndef IG_UGBASE_LIB_DISC_SPATIAL_DISC_ELEM_DISC_ERR_EST_DATA_IMPL_H
+#define IG_UGBASE_LIB_DISC_SPATIAL_DISC_ELEM_DISC_ERR_EST_DATA_IMPL_H
 
-namespace ug{
+#include "err_est_data.h"
 
-// ******** class SideFluxErrEstData ********
+#include <boost/mpl/for_each.hpp>
+
+#ifdef UG_PARALLEL
+#include "lib_grid/parallelization/util/compol_attachment_reduce.h"
+#endif
+
+namespace ug {
+
 
 /// Allocates data structures for the error estimator
 template <typename TDomain>
@@ -1025,3 +1034,4 @@ void MultipleSideAndElemErrEstData<TDomain>::check_equal_elem_order()
 
 } // end of namespace ug
 
+#endif

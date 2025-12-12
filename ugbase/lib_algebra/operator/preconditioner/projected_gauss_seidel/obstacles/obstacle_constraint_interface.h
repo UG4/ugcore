@@ -36,12 +36,11 @@
 #include "lib_disc/common/multi_index.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
-
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 /// Interface for Obstacle Constraints
 /**

@@ -30,6 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "connection_viewer_output.h"
+
 #include <string>
 #include <fstream>
 #include <vector>
@@ -41,10 +43,9 @@
 
 using namespace std;
 
-namespace ug
-{
-namespace ConnectionViewer
-{
+namespace ug {
+namespace ConnectionViewer {
+
 bool g_parallelConnectionViewer=false;
 
 #ifdef UG_PARALLEL

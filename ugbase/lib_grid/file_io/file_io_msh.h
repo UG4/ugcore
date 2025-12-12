@@ -37,8 +37,8 @@
 #include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_grid/common_attachments.h"
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 ///	loads a grid from the GMSH ascii .msh format
 /**	Please check the GMSH manual for syntax information. */

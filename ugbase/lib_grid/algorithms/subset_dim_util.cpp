@@ -31,9 +31,10 @@
  */
 
 #include "subset_dim_util.h"
+
 #include "lib_grid/lg_base.h"
 
-namespace ug{
+namespace ug {
 
 /// returns if a subset is a regular grid
 bool SubsetIsRegularGrid(const SubsetHandler& sh, int si)

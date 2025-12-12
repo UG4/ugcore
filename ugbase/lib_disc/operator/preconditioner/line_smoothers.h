@@ -42,20 +42,20 @@
 #include "common/util/smart_pointer.h"
 #include "lib_algebra/operator/interface/preconditioner.h"
 
-#include "lib_algebra/algebra_common/core_smoothers.h"
+// #include "lib_algebra/algebra_common/core_smoothers.h"
 #include "lib_disc/function_spaces/dof_position_util.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 //#include "lib_disc/dof_manager/ordering/lexorder.h"
 #include "lib_disc/ordering_strategies/algorithms/lexorder.h"
-#include "lib_grid/algorithms/attachment_util.h"
-#include "lib_disc/common/groups_util.h"
+//#include "lib_grid/algorithms/attachment_util.h"
+//#include "lib_disc/common/groups_util.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
-	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
+	#include "lib_algebra/parallelization/parallel_matrix_overlap.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 // extern definition (in cpp file, avoiding conflicts)
 template<int dim>

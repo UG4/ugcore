@@ -33,9 +33,9 @@
 #ifndef ELEM_MODIFIER_H_
 #define ELEM_MODIFIER_H_
 
-#include "elem_disc_interface.h"
+// #include "elem_disc_interface.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TDomain>
 class IElemDisc;
@@ -57,7 +57,7 @@ class IElemDiscModifier
 	///	Constructor (setting default values)
 	/// \{
 		IElemDiscModifier(): m_pElemDisc(nullptr){};
-		IElemDiscModifier(IElemDisc<TDomain>* myElemDisc) : m_pElemDisc(myElemDisc) {};
+		explicit IElemDiscModifier(IElemDisc<TDomain>* myElemDisc) : m_pElemDisc(myElemDisc) {};
 	 /// \}
 
 	/// Virtual destructor

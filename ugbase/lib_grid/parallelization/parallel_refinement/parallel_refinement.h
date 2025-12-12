@@ -41,8 +41,7 @@
 #include "lib_grid/refinement/global_multi_grid_refiner.h"
 #include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup lib_grid_parallelization_refinement
 /// @{

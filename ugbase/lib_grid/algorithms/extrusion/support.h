@@ -11,13 +11,13 @@
 #define __SUPPORT_H__
 
 #include <iostream>
-#include <stdexcept>
-#include <cmath>
-#include <iostream>
-#include <stdlib.h>
+// #include <stdexcept>
+// #include <cmath>
+// #include <iostream>
+#include <cstdlib>
 #include <vector>
 #include <cassert>
-#include <string>
+// #include <string>
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -25,8 +25,7 @@
 
 #include "support3D.h"
 
-namespace ug
-{
+namespace ug {
 
 //namespace support
 //{

@@ -30,6 +30,11 @@
  * GNU Lesser General Public License for more details.
  */
 
+#ifndef IG_UGBASE_LIB_DISC_TIME_DISC_COMPOSITE_TIME_DISC_IMPL_H
+#define IG_UGBASE_LIB_DISC_TIME_DISC_COMPOSITE_TIME_DISC_IMPL_H
+
+#include "composite_time_disc.h"
+
 #include "common/error.h"  // UG_COND_THROW
 
 namespace ug {
@@ -222,7 +227,7 @@ SmartPtr<AssemblingTuner<TAlgebra> > CompositeTimeDiscretization<TAlgebra>::ass_
 {
 	SmartPtr<CompositeAssTuner> sp = make_sp(new CompositeAssTuner());
 	for (size_t i = 0; i < m_vTimeDisc.size(); ++i)
-		sp->add_ass_tuner(((IAssemble<TAlgebra>*)m_vTimeDisc[i].get())->ass_tuner());
+		sp->add_ass_tuner(static_cast<IAssemble<TAlgebra> *>(m_vTimeDisc[i].get())->ass_tuner());
 
 	return sp;
 }
@@ -262,4 +267,4 @@ SmartPtr<IConstraint<TAlgebra> > CompositeTimeDiscretization<TAlgebra>::constrai
 
 } // end namespace ug
 
-
+#endif

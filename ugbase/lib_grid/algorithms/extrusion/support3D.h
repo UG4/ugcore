@@ -9,9 +9,9 @@
 #define UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_SUPPORT3D_H_
 
 #include <iostream>
-#include <stdexcept>
+//#include <stdexcept>
 #include <cmath>
-#include <iostream>
+//#include <iostream>
 #include <cstdlib>
 #include <vector>
 #include <cassert>
@@ -21,7 +21,9 @@
 #include <vector>
 #include <type_traits>
 
-#include "support.h"
+//#include "support.h"
+#include "lib_grid/grid/grid.h"
+#include "lib_grid/common_attachments.h"
 
 // TODO FIXME
 // verschlanken,
@@ -30,11 +32,8 @@
 // nicht vertex spezifisch zB
 // sondern lowest dim oder so
 
-namespace ug
-{
-
-namespace support
-{
+namespace ug {
+namespace support {
 
 template<typename ELEMTYP>
 bool addElem(std::vector<ELEMTYP> & knownElems, ELEMTYP elemToAdd )
@@ -152,7 +151,7 @@ class AttachedGeneralElem
 public:
 	using PairLowEl = std::pair<LOWDIMELM,LOWDIMELM>;
 
-	using AttGenElm = AttachedGeneralElem<MANIFELM,LOWDIMELM,INDEX_TXP>;
+	using AttGenElm = AttachedGeneralElem;
 
 	// for fracture elements
 	AttachedGeneralElem( MANIFELM const & manifElm,
@@ -163,13 +162,12 @@ public:
 	{
 	};
 
-	MANIFELM const getManifElm() const { return m_manifElm;}
+	MANIFELM getManifElm() const { return m_manifElm;}
 //	PairLowEl const getLowElm() const { return m_lowElm; }
-	PairLowEl const getPairLowElm() const { return m_pairLowElm; }
+	PairLowEl getPairLowElm() const { return m_pairLowElm; }
 
-	bool const isNeighboured( AttGenElm const & attElm )
-	const
-	{
+	bool isNeighboured(AttGenElm const &attElm)
+	const {
 //		MANIFELM manifElmOther = attElm.getManifElm();
 		PairLowEl lowElmOther = attElm.getPairLowElm();
 //		INDEX_TXP sudoOther = attElm.getSudo();
@@ -188,7 +186,7 @@ public:
 		for( auto const t : test )
 		{
 			if( t )
-				countCorr++;
+				++countCorr;
 		}
 
 		if( countCorr == 1 )
@@ -200,10 +198,9 @@ public:
 		return false;
 	}
 
-	bool const isNeighbouredAtSpecificSide( AttGenElm const & attElm,
-			  	  	  	  	  	  	  	  	LOWDIMELM const & specificLDE )
-	const
-	{
+	bool isNeighbouredAtSpecificSide(AttGenElm const &attElm,
+	                                 LOWDIMELM const &specificLDE)
+	const {
 		PairLowEl lowElmOther = attElm.getPairLowElm();
 
 		PairLowEl lowElmThis = this->m_pairLowElm;
@@ -391,7 +388,7 @@ public:
 
 	VRT getCrossVertex() const { return m_crossVrt; }
 
-	FracTypVol getFracTyp() const { return m_fracTyp; }
+	[[nodiscard]] FracTypVol getFracTyp() const { return m_fracTyp; }
 
 	void addShiftVrtx( VRT const & vrt, bool isAtFreeSide = false )
 	{
@@ -475,13 +472,12 @@ public:
 
 //	MANIFELM const getManifElm() const { return m_manifElm;}
 //	PairLowEl const getLowElm() const { return m_lowElm; }
-	INDEX_TXP const getSudo() const { return m_sudo; };
+	INDEX_TXP getSudo() const { return m_sudo; };
 
-	NORMAL_VEC const getNormalVec() const { return m_normalVec; }
+	NORMAL_VEC getNormalVec() const { return m_normalVec; }
 
-	bool const testIfEquals( AttFractElm const & attElm )
-	const
-	{
+	bool testIfEquals(AttFractElm const &attElm)
+	const {
 		bool geomEqu = AttGenElm::testIfEquals(attElm);
 
 //		MANIFELM manifElmOther = attElm.getManifElm();
@@ -659,10 +655,7 @@ public:
 // due to the Stasi algorithm
 // [[deprecated]] ab C++14, leider nicht passend zur Konvention C++11
 // die Sudo-Liste wollen wir aber lassen
-template<
-typename T,
-typename ATT_ELEM
->
+template< typename T, typename ATT_ELEM >
 class VertexFracturePropertiesVol
 {
 public:
@@ -776,7 +769,7 @@ public:
 	}
 
 	// setter private to avoid abusive use
-	std::vector<T> const getSudoList() const
+	std::vector<T> getSudoList() const
 	{
 		return m_sudoList;
 	}
@@ -1002,7 +995,7 @@ public:
 
 	using AttFullDimElmInfo = AttachedFullDimElemInfo<FULLDIM_ELEM,MANIFELM,LOWDIMELM,INDEX_TXP,NORMAL_VEC>;
 
-	AttachedFullDimElemInfo( FULLDIM_ELEM const & fullDimElm )
+	explicit AttachedFullDimElemInfo( FULLDIM_ELEM const & fullDimElm )
 	: m_fullDimElm(fullDimElm),
 	  m_elementMarked(false),
 	  m_vecFractManifElm(VecAttachedFractManifElemInfo()),
@@ -1016,26 +1009,24 @@ public:
 	{
 	}
 
-	FULLDIM_ELEM const getFulldimElem() const
-	{
+	FULLDIM_ELEM getFulldimElem() const {
 		return m_fullDimElm;
 	}
 
-	bool const hasSameFulldimElem( AttFullDimElmInfo const & otherFullDimElmInf )
-	const
-	{
+	bool hasSameFulldimElem(AttFullDimElmInfo const &otherFullDimElmInf)
+	const {
 		FULLDIM_ELEM otherFullDimElm = otherFullDimElmInf.getFulldimElem();
 
 		return ( otherFullDimElm == m_fullDimElm );
 	}
 
-	bool const isMarked() const { return m_elementMarked; }
+	bool isMarked() const { return m_elementMarked; }
 
 	void markIt() { m_elementMarked = true; } // to allow in loop to be start element
 
-	bool const hasFracture() const { return ( m_vecFractManifElm.size() > 0 ); }
+	bool hasFracture() const { return ( m_vecFractManifElm.size() > 0 ); }
 
-	bool const hasUnclosedFracture() const { return ( m_vecUnclosedFractManifElm.size() > 0 ); }
+	bool hasUnclosedFracture() const { return ( m_vecUnclosedFractManifElm.size() > 0 ); }
 
 	bool addFractManifElem( AttachedFractManifElemInfo const & manifFractElm, Grid & grid )
 	{
@@ -1113,30 +1104,25 @@ public:
 //		return ! hasElemAlready;
 //	}
 
-	VecAttachedFractManifElemInfo const getVecFractManifElem() const
-	{
+	VecAttachedFractManifElemInfo getVecFractManifElem() const {
 		return m_vecFractManifElm;
 	}
 
-	VecAttachedFractManifElemInfo const getVecUnclosedFractManifElem() const
-	{
+	VecAttachedFractManifElemInfo getVecUnclosedFractManifElem() const {
 		return m_vecUnclosedFractManifElm;
 	}
 
 
-	VecAttachedGenerManifElemInfo const getVecGenerManifElem() const
-	{
+	VecAttachedGenerManifElemInfo getVecGenerManifElem() const {
 		return m_vecGenerManifElm;
 	}
 
-	VecAttachedBndryManifElemInfo const getVecBndryManifElem() const
-	{
+	VecAttachedBndryManifElemInfo getVecBndryManifElem() const {
 		return m_vecBndryManifElm;
 	}
 
 
-	bool const searchGenerManifElem( AttachedGenerManifElemInfo const & manifGenerElemOther, bool eraseFound = true )
-	{
+	bool searchGenerManifElem(AttachedGenerManifElemInfo const &manifGenerElemOther, bool eraseFound = true) {
 		bool found = searchManifElem( manifGenerElemOther, m_vecGenerManifElm, eraseFound );
 
 		if( found && eraseFound )
@@ -1147,8 +1133,7 @@ public:
 		return found;
 	}
 
-	bool const testFullDimElmNeighbour( AttFullDimElmInfo const & attFullDimElmInfOther, bool eraseFoundManif = true )
-	{
+	bool testFullDimElmNeighbour(AttFullDimElmInfo const &attFullDimElmInfOther, bool eraseFoundManif = true) {
 		VecAttachedGenerManifElemInfo const & vecGenerManifElmOther = attFullDimElmInfOther.getVecGenerManifElem();
 
 		bool manifNeighbored = false;
@@ -1173,8 +1158,8 @@ public:
 	bool searchGenerManifElem( NOGEN const & manifGenerElemOther, bool eraseFound ) = delete;
 
 //	bool const searchFractManifElem( AttachedFractManifElemInfo const & manifFractElemOther, bool eraseFound = true )
-	bool const searchFractManifElem( AttachedFractManifElemInfo const & manifFractElemOther, bool shiftToUnclosedFracts = true )
-	{
+	bool searchFractManifElem(AttachedFractManifElemInfo const &manifFractElemOther,
+	                          bool shiftToUnclosedFracts = true) {
 		bool found = searchManifElem( manifFractElemOther, m_vecFractManifElm, shiftToUnclosedFracts );
 
 		if( found && shiftToUnclosedFracts )
@@ -1201,8 +1186,7 @@ public:
 	template <typename NOGEN>
 	bool const searchFractManifElem( NOGEN const & manifFractElemOther, bool shiftToGeneral ) = delete;
 
-	bool const searchBndryManifElem( AttachedBndryManifElemInfo const & manifBndryElemOther )
-	{
+	bool searchBndryManifElem(AttachedBndryManifElemInfo const &manifBndryElemOther) {
 		return searchManifElem( manifBndryElemOther, m_vecBndryManifElm, false );
 	}
 
@@ -1374,11 +1358,10 @@ private:
 
 
 	template <typename ATT_MANIF_ELM_INF >
-	bool const searchManifElem( ATT_MANIF_ELM_INF const & manifElemOther,
-								std::vector<ATT_MANIF_ELM_INF> & memVecManifElem,
-								bool eraseFound = true )
-	const
-	{
+	bool searchManifElem(ATT_MANIF_ELM_INF const &manifElemOther,
+	                     std::vector<ATT_MANIF_ELM_INF> &memVecManifElem,
+	                     bool eraseFound = true)
+	const {
 
 		for( typename std::vector<ATT_MANIF_ELM_INF>::iterator afeiIter  = memVecManifElem.begin();
 															   afeiIter != memVecManifElem.end();
@@ -1494,11 +1477,11 @@ public:
 	VECTOR_TYP const & spuckNormalVector() const { return m_normalVect; }
 	VECTOR_TYP const & spuckBaseVector() const { return m_baseVect; }
 
-	int const spuckSudo() const { return m_sudo; }
+	int spuckSudo() const { return m_sudo; }
 
-	ManifoldType const spuckManifTyp() const { return m_manifTyp; }
+	ManifoldType spuckManifTyp() const { return m_manifTyp; }
 
-	number const spuckScaleShiftNormal() const { return m_scaleShiftNormal; }
+	number spuckScaleShiftNormal() const { return m_scaleShiftNormal; }
 
 	void schluckSudo( int sudo ) { m_sudo = sudo; }
 

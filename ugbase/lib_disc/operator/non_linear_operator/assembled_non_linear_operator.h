@@ -36,7 +36,7 @@
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_disc/assemble_interface.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TAlgebra>
 class AssembledOperator : public IOperator<typename TAlgebra::vector_type>

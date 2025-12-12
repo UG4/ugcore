@@ -30,10 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <string>
 #include "../dynamic_library_util.h"
 
-namespace ug{
+#include <string>
+
+
+namespace ug {
 
 
 /*std::string GetLastErrorString()

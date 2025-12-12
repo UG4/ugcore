@@ -41,7 +41,7 @@
 
 #include "lib_disc/common/local_algebra.h"
 
-namespace ug{
+namespace ug {
 
 /// \ingroup lib_disc_time_assemble
 /// @{

@@ -56,8 +56,8 @@
 #include "static_assert.h"
 #include "util/metaprogramming_util.h"
 
-// depreciated, currently here for backward compatibility
-#define LOG(msg) UG_LOG(msg)
+// deprecated, currently here for backward compatibility
+// #define LOG(msg) UG_LOG(msg)
 #define STATIC_ASSERT(expr, msg) UG_STATIC_ASSERT(expr, msg)
 
 ////////////////////////////////////////////////////////////////////////////////

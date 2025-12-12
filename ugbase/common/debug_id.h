@@ -32,13 +32,16 @@
 
 #ifndef __H__UG__COMMON__DEBUG_ID_H
 #define __H__UG__COMMON__DEBUG_ID_H
+
 #include <vector>
 #include <map>
 #include <string>
-#include "common/util/crc32.h"
 #include <sstream>
 
-namespace ug{
+#include "common/util/crc32.h"
+
+
+namespace ug {
 
 /// \addtogroup ugbase_common
 /// \{
@@ -94,10 +97,10 @@ class DebugID
 {
 public:
 /// registers the DebugID at DebugIDManager
-	DebugID(const char *str);
-	
-	
-	DebugID(uint32 hash) { m_hash = hash; }
+	explicit DebugID(const char *str);
+
+
+	explicit DebugID(uint32 hash) { m_hash = hash; }
 /// returns the debug level via GetDebugIDManager.
 	inline int get_debug_level() const;
 
@@ -214,7 +217,7 @@ public:
 			return str.str();
 		}
 
-		const std::vector<std::string> &get_registered_debug_IDs_arr() const
+		[[nodiscard]] const std::vector<std::string> &get_registered_debug_IDs_arr() const
 		{
 			return m_dbgLevelIdentifiers;
 		}

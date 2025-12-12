@@ -30,18 +30,19 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "grid_adaption.h"
+
 #include <queue>
 #include <stack>
+
 #include "lib_grid/lg_base.h"
 #include "../geom_obj_util/geom_obj_util.h"
 #include "lib_grid/refinement/regular_refinement.h"
 #include "lib_grid/refinement/projectors/cylinder_cut_projector.h"
-#include "grid_adaption.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 							   Vertex* vrtCenter, const vector3& normal,

@@ -53,8 +53,8 @@
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
-#include "lib_disc/common/groups_util.h"
-#include "lib_disc/common/geometry_util.h"
+//#include "lib_disc/common/groups_util.h"
+//#include "lib_disc/common/geometry_util.h"
 #include "lib_disc/function_spaces/integrate.h"
 #include "lib_grid/algorithms/debug_util.h"  // for ElementDebugInfo
 #include "lib_grid/tools/periodic_boundary_manager.h"
@@ -63,7 +63,7 @@
 #include "dof_position_util.h"
 
 #ifdef UG_PARALLEL
-#include "pcl/pcl.h"
+//#include "pcl/pcl.h"
 #endif
 
 namespace ug {
@@ -850,7 +850,7 @@ void SaveVectorDiffForConnectionViewer(
 // from connection_viewer_input.h
 // with additional checks
 template<typename vector_type>
-bool ReadVector(const std::string& filename, vector_type &vec)
+bool ReadVector(std::string filename, vector_type &vec,int dim)
 {
     Progress p;
 	std::cout << " Reading std::vector from " <<  filename << "... ";
@@ -866,7 +866,7 @@ bool ReadVector(const std::string& filename, vector_type &vec)
 	assert(version == 1);
 	assert(dimension == dim);
 	// todo check positions and not just size
-	assert(gridsize == (int)vec.size());
+	assert(gridsize == static_cast<int>(vec.size()));
 	
 
 	PROGRESS_START(prog, gridsize*2, "ReadVector " << dimension << "d from " << filename << " , " << gridsize << " x " << gridsize);
@@ -912,7 +912,7 @@ void LoadVector(TGridFunction& u,const char* filename){
 	PROFILE_FUNC();
 	typename TGridFunction::algebra_type::vector_type b;
 	b.resize(u.num_indices());
-	ReadVector(filename,b /*,TGridFunction::dim*/);
+	ReadVector(filename,b, TGridFunction::dim);
 	u.assign(b);
 }
 

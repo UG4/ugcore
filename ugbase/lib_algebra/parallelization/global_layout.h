@@ -37,13 +37,14 @@
 
 #include <vector>
 #include <map>
+
 #include "pcl/pcl.h"
 #include "parallelization.h"
-#include "lib_algebra/parallelization/parallelization.h"
+//#include "lib_algebra/parallelization/parallelization.h"
 
-namespace ug
-{
-	using GlobalLayout = std::map<int, std::vector<AlgebraID> >;
+namespace ug {
+
+using GlobalLayout = std::map<int, std::vector<AlgebraID> >;
 
 void ReceiveGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, const std::vector<int> &srcprocs,
 		GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout);

@@ -33,20 +33,20 @@
 #ifndef __H__UG__CPU_ALGEBRA__SPARSEMATRIX_IMPL__
 #define __H__UG__CPU_ALGEBRA__SPARSEMATRIX_IMPL__
 
-// creation etc
-
-#include <fstream>
-#include <cstring>
-
-#include "lib_algebra/common/operations_vec.h"
-#include "common/profiler/profiler.h"
 #include "sparsematrix.h"
+
+// creation etc
+//#include <fstream>
+//#include <cstring>
 #include <vector>
 #include <algorithm>
 
+#include "lib_algebra/common/operations_vec.h"
+#include "common/profiler/profiler.h"
 
 
-namespace ug{
+
+namespace ug {
 
 // defined in C99, and sometimes part of <math.h>, <cmath>
 template <typename __T> inline bool

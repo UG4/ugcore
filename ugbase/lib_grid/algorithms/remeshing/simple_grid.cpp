@@ -30,14 +30,17 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cassert>
-#include "common/math/ugmath.h"
 #include "simple_grid.h"
+
+#include <cassert>
+
+#include "common/math/ugmath.h"
+
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 void SimpleGrid::clear()
 {

@@ -41,8 +41,7 @@
 
 #ifndef LAPACK_AVAILABLE
 
-namespace ug
-{
+namespace ug {
 
 template<typename matrix_t>
 bool LUDecomp(DenseMatrix<matrix_t> &A, size_t *pInterchange)

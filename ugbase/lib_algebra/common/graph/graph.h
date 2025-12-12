@@ -48,14 +48,15 @@
 #include <fstream>
 #include <algorithm> // for lower_bound
 #include <vector>
+
 #include "lib_algebra/common/stl_debug.h"
-
 #include "common/assert.h"
-#include "common/log.h"
+//#include "common/log.h"
 
 
 
-namespace ug{
+namespace ug {
+
 //!
 //! cgraph graph class
 class cgraph

@@ -35,7 +35,7 @@
 #include <lib_grid/callbacks/subset_callbacks.h>
 #include <lib_grid/callbacks/selection_callbacks.h>
 
-namespace ug{
+namespace ug {
 
 ProjectionHandler::
 ProjectionHandler () :

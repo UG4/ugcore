@@ -33,7 +33,7 @@
 #ifndef __H__COMMON__UTIL__PROVIDER__
 #define __H__COMMON__UTIL__PROVIDER__
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup ugbase_common_util
 /// \{

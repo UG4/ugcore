@@ -43,7 +43,7 @@
 #include "./function_group.h"
 #include "lib_algebra/small_algebra/small_algebra.h"
 
-namespace ug{
+namespace ug {
 
 
 class LocalIndices

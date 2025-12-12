@@ -30,10 +30,11 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "file_io_stl.h"
+
 #include <fstream>
 #include <algorithm>
 
-#include "file_io_stl.h"
 #include "common/util/loader/loader_util.h"
 #include "common/util/string_util.h"
 #include "lib_grid/lg_base.h"
@@ -43,8 +44,7 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 bool LoadGridFromSTL(Grid& grid, const char* filename,
 					ISubsetHandler* pSH,

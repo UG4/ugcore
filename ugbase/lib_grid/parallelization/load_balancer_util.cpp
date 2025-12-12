@@ -30,12 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <cmath>
 #include "load_balancer_util.h"
+
+// #include <cmath>
+
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 SPProcessHierarchy
 CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
@@ -87,7 +89,7 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 //	create the process hierarchy
 	size_t curNumProcs = 1;
 	int lastDistLvl = minDistLvl - 2;
-	for(size_t lvl = (size_t)minDistLvl; lvl < numLvls; ++lvl){
+	for(size_t lvl = static_cast<size_t>(minDistLvl); lvl < numLvls; ++lvl){
 		int numRedistProcs = maxNumRedistProcs;
 		if(curNumProcs * numRedistProcs > numProcsInvolved){
 			numRedistProcs = numProcsInvolved / curNumProcs;

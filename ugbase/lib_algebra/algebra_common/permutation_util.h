@@ -33,13 +33,16 @@
 #ifndef __H__UG__CPU_ALGEBRA__PERMUTATION_UTIL__
 #define __H__UG__CPU_ALGEBRA__PERMUTATION_UTIL__
 
+#include <vector>
+
 #include "common/common.h"
 #include "common/profiler/profiler.h"
 #include "common/error.h"
 #include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h"
-#include <vector>
 
-namespace ug{
+
+namespace ug {
+
 /**
  * Function to return a permutation of a matrix
  * @param[out] PA the permuted matrix PA(perm[r], perm[c]) = A(r, c)

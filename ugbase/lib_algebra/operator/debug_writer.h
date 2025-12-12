@@ -38,7 +38,7 @@
 #include "common/profiler/profiler.h"
 #include "common/util/file_util.h"
 
-namespace ug{
+namespace ug {
 
 /// Interface for providing vertex positions
 template <size_t dim>

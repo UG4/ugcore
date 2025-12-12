@@ -36,8 +36,7 @@
 #include "pcl/pcl_communication_structs.h"
 #include "lib_grid/tools/bool_marker.h"
 
-namespace ug
-{
+namespace ug {
 
 ///	adds marking at extracting side
 template <typename TLayout>

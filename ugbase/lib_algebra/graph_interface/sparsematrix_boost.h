@@ -13,15 +13,17 @@
 #ifndef UG_SPARSEMATRIX_BOOST_H
 #define UG_SPARSEMATRIX_BOOST_H
 
-#include "common/util/trace.h"
-#include "lib_algebra/cpu_algebra/sparsematrix.h"
+#include <cstdint> // for std::intmax_t
 
 #include <boost/graph/properties.hpp> // put_get_helper
 #include <boost/iterator/counting_iterator.hpp>
 
-#include <cstdint> // for std::intmax_t
+#include "common/util/trace.h"
+#include "lib_algebra/cpu_algebra/sparsematrix.h"
 
-namespace boost{
+
+
+namespace boost {
 
 using ug::iszero; // for now
 
@@ -476,7 +478,7 @@ get(edge_all_t, ug::SparseMatrix<T> & g) { incomplete();
 
 } // boost
 
-namespace ug{
+namespace ug {
 
 // used from boost::print_graph, graph_utility.hpp.
 // must be in ug, because of ADL. why don't they call boost::{out_edges,vertices}?

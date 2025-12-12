@@ -35,10 +35,10 @@
 
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/tools/subset_handler_grid.h"
-#include "lib_grid/common_attachments.h"
+// #include "lib_grid/common_attachments.h"
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 /**
  * PLEASE NOTE: This algorithm uses Grid::mark

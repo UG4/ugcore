@@ -37,16 +37,16 @@
 #include <string>
 #include <sstream>
 
-#include "lib_algebra/operator/interface/operator.h"
+//#include "lib_algebra/operator/interface/operator.h"
 #include "lib_algebra/operator/interface/preconditioned_linear_operator_inverse.h"
 #include "lib_algebra/operator/interface/linear_solver_profiling.h"
 #include "lib_algebra/operator/interface/pprocess.h"
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
 #endif
 #include "common/util/string_util.h"
 
-namespace ug{
+namespace ug {
 
 ///	the BiCGStab method as a solver for linear operators
 /**

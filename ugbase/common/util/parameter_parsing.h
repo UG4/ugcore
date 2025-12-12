@@ -35,8 +35,7 @@
 
 #include "common/ug_config.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_util
 /// \{

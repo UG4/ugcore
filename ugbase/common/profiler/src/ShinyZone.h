@@ -65,7 +65,7 @@ namespace Shiny {
 
 		//
 
-		bool isInited(void) const { return _state != 0; }
+		bool isInited() const { return _state != 0; }
 
 		void init(ProfileZone* a_prev) {
 			_state = STATE_INITIALIZED;
@@ -73,11 +73,11 @@ namespace Shiny {
 			a_prev->next = this;
 		}
 
-		void uninit(void) {
+		void uninit() {
 			_state = STATE_HIDDEN;
 		}
 
-		void preUpdateChain(void) {
+		void preUpdateChain() {
 			data.clearCurrent();
 			if (next) next->preUpdateChain();
 		}
@@ -87,10 +87,10 @@ namespace Shiny {
 			if (next) next->updateChain(a_damping);
 		}
 
-		bool isUpdating(void) const { return _state == STATE_UPDATING; }
+		bool isUpdating() const { return _state == STATE_UPDATING; }
 
-		void enableUpdating(void) { _state = STATE_UPDATING; }
-		void disableUpdating(void) { _state = STATE_INITIALIZED; }
+		void enableUpdating() { _state = STATE_UPDATING; }
+		void disableUpdating() { _state = STATE_INITIALIZED; }
 	};
 
 } // namespace Shiny

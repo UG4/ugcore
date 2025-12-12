@@ -33,12 +33,13 @@
 #ifndef __H__LIB_GRID__EXTRUDER_UTIL_IMPL__
 #define __H__LIB_GRID__EXTRUDER_UTIL_IMPL__
 
-#include <vector>
 #include "extruder_util.h"
+
+#include <vector>
+
 #include "extrusion/extrude.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 template <typename TIterator>

@@ -39,7 +39,7 @@
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/tools/subset_handler_grid.h"
 
-namespace ug{
+namespace ug {
 
 /// \addtogroup lib_grid_parallelization_distribution
 ///	\{
@@ -188,12 +188,12 @@ class IPartitioner{
 			UG_THROW("Partition-Post-Processing is currently not supported by the chosen partitioner.");
 		}
 
-		virtual ConstSPProcessHierarchy current_process_hierarchy() const = 0;
-		virtual ConstSPProcessHierarchy next_process_hierarchy() const = 0;
+		[[nodiscard]] virtual ConstSPProcessHierarchy current_process_hierarchy() const = 0;
+		[[nodiscard]] virtual ConstSPProcessHierarchy next_process_hierarchy() const = 0;
 
-		virtual bool supports_balance_weights() const {return false;}
-		virtual bool supports_communication_weights() const {return false;}
-		virtual bool supports_repartitioning() const {return false;}
+		[[nodiscard]] virtual bool supports_balance_weights() const {return false;}
+		[[nodiscard]] virtual bool supports_communication_weights() const {return false;}
+		[[nodiscard]] virtual bool supports_repartitioning() const {return false;}
 
 	/**	clustered siblings help to ensure that all vertices which are connected to
 	 * a constrained vertex through are on the same process as the constrained vertex.
@@ -229,7 +229,7 @@ class IPartitioner{
 	///	returns the processes map. Updated during partitioning. may be nullptr.
 	/**	If nullptr is returned, this means that each subset index corresponds to a
 	 * global proc-rank.*/
-		virtual const std::vector<int>* get_process_map() const = 0;
+		[[nodiscard]] virtual const std::vector<int>* get_process_map() const = 0;
 
 	///	indicates whether problems occurred during the last partitioning
 	/**	\note	if partition(...) returns true, the partition map is valid,
@@ -237,7 +237,7 @@ class IPartitioner{
 		virtual bool problems_occurred() {return m_problemsOccurred;}
 
 		void set_verbose(bool verbose) {m_verbose = verbose;}
-		bool verbose() const {return m_verbose;}
+		[[nodiscard]] bool verbose() const {return m_verbose;}
 
 	protected:
 		bool m_problemsOccurred;

@@ -33,8 +33,8 @@
 #ifndef __H__COMMON__ASSERT__
 #define __H__COMMON__ASSERT__
 
-#include <cassert>
-#include "common/log.h"
+#include <cassert> // assert in macro definition
+#include "common/log.h" // log in macro definition
 #include "ug_config.h"
 
 /// \addtogroup ugbase_common

@@ -38,10 +38,8 @@
 
 #include "common/util/string_util.h"
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug {
+namespace bridge {
 
 ExportedFunctionBase::
 ExportedFunctionBase(	const std::string& funcName, const std::string& funcOptions,

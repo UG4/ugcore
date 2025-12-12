@@ -35,10 +35,10 @@
 
 #include <vector>
 #include <cassert>
+
 #include "lib_grid/lg_base.h"
 
-namespace ug
-{
+namespace ug {
 
 ///	\addtogroup lib_grid_algorithms_refinement_subdivision
 ///	@{

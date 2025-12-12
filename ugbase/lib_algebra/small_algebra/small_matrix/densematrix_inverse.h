@@ -37,8 +37,8 @@
 #include "densevector.h"
 #include "block_dense.h"
 #include "common/common.h"
-#include "lib_algebra/small_algebra/small_algebra.h"  // for InvertNdyn
-#include <algorithm>
+//#include "lib_algebra/small_algebra/small_algebra.h"  // for InvertNdyn
+//#include <algorithm>
 
 //
 namespace ug {

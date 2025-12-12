@@ -30,10 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <string>
 #include "file_io.h"
+
+#include <string>
+
 #include "lib_grid/algorithms/attachment_util.h"
-#include "common/util/path_provider.h"
+// #include "common/util/path_provider.h"
 #include "common/util/file_util.h"
 #include "common/util/string_util.h"
 #include "lib_grid/parallelization/distributed_grid.h"
@@ -67,8 +69,7 @@
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 //	this method performs the actual loading.

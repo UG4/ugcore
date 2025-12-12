@@ -36,12 +36,12 @@
 #define UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_3D_H_
 
 #include <vector>
+
 #include "lib_grid/lg_base.h"
 #include "expand_layers.h"
-#include "expand_layers_arte.h"
+// #include "expand_layers_arte.h"
 
-namespace ug
-{
+namespace ug {
 
 
 bool ExpandFractures3dArte( Grid& grid, SubsetHandler& sh,

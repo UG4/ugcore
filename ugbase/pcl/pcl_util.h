@@ -33,11 +33,11 @@
 #ifndef __H__PCL_UTIL__
 #define __H__PCL_UTIL__
 
-#include <iostream>
+//#include <iostream>
 #include <vector>
-#include <algorithm>
+//#include <algorithm>
 #include <string>
-#include <functional>  // for std::less
+//#include <functional>  // for std::less
 
 #include "common/util/binary_buffer.h"
 

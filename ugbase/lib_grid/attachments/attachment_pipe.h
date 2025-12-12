@@ -37,15 +37,15 @@
 #include <vector>
 #include <stack>
 #include <cassert>
-#include "common/static_assert.h"
+
+// #include "common/static_assert.h"
 #include "common/types.h"
 #include "common/util/uid.h"
 #include "common/util/hash.h"
 #include "common/ug_config.h"
 
 
-namespace ug
-{
+namespace ug {
 
 // PREDECLARATIONS
 class IAttachment;

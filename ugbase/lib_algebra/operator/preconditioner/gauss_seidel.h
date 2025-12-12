@@ -37,15 +37,15 @@
 #include "lib_algebra/algebra_common/core_smoothers.h"
 #include "lib_algebra/algebra_common/sparsematrix_util.h"
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
 	#include "lib_algebra/parallelization/matrix_overlap.h"
-	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
+	#include "lib_algebra/parallelization/parallel_matrix_overlap.h"
 #endif
 
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
 #include "lib_algebra/algebra_common/permutation_util.h"
 
-namespace ug{
+namespace ug {
 
 template<typename TAlgebra>
 class GaussSeidelBase : public IPreconditioner<TAlgebra>

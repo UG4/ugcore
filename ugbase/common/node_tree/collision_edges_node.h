@@ -34,12 +34,13 @@
 #define __H__UG__NODE_TREE__COLLSISION_EDGES_NODE__
 
 #include <vector>
+
 #include "node.h"
 #include "collision_element_info.h"
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
+
 class CollisionEdgesNode;
 
 ////////////////////////////////////////////////////////////////////////

@@ -36,7 +36,7 @@
 #include "reference_element.h"
 #include "lib_grid/grid_objects/grid_objects.h"
 
-namespace ug{
+namespace ug {
 
 /// traits for reference elements
 /**

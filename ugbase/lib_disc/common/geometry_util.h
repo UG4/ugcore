@@ -42,7 +42,7 @@
 #include "lib_disc/domain_traits.h"
 #include "common/util/provider.h"
 
-namespace ug{
+namespace ug {
 
 ///////////////////////////////////////////////////////////////
 /// Volume of an Element in a given Dimension

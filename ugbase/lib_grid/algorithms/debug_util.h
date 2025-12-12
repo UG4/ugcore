@@ -36,8 +36,7 @@
 #include "lib_grid/lg_base.h"
 #include "lib_grid/tools/surface_view.h"
 
-namespace ug
-{
+namespace ug {
 
 /**
  * Methods that log informations on grids, subset-handlers, ...

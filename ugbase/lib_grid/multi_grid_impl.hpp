@@ -32,12 +32,13 @@
 #ifndef IG_UGBASE_LIB_GRID_MULTIGRID_IMPL_HPP
 #define IG_UGBASE_LIB_GRID_MULTIGRID_IMPL_HPP
 
-#include "common/static_assert.h"
 #include "multi_grid.h"
 
+#include "common/static_assert.h"
 
-namespace ug
-{
+
+
+namespace ug {
 /*
 template <typename TChild, typename TElem>
 int MultiGrid::num_children(TElem* elem)

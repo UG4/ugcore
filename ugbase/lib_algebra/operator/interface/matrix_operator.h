@@ -36,7 +36,7 @@
 #include "linear_operator.h"
 #include "lib_algebra/common/operations_mat/matrix_algebra_types.h"
 
-namespace ug{
+namespace ug {
 
 
 ///////////////////////////////////////////////////////////////////////////////

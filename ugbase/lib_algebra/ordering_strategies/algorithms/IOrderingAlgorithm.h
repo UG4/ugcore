@@ -35,7 +35,7 @@
 
 #include "common/util/smart_pointer.h"
 
-namespace ug{
+namespace ug {
 
 /*
 	Interface for ordering algorithms. O_t denotes the ordering container type.

@@ -32,7 +32,7 @@
 
 #include "smooth_projector.h"
 
-namespace ug{
+namespace ug {
 
 void SmoothProjector::
 refinement_ends ()	

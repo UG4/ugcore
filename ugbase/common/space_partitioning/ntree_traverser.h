@@ -36,9 +36,10 @@
 #include <algorithm>
 #include <utility>
 #include <vector>
+
 #include "ntree_traversal.h"
 
-namespace ug{
+namespace ug {
 
 template <typename tree_t>
 class Traverser_FindLowestLeafNodeLevel

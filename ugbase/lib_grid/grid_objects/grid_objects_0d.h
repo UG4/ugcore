@@ -35,10 +35,10 @@
 
 #include "../grid/grid.h"
 #include "common/math/ugmath.h"
-#include "common/assert.h"
+// #include "common/assert.h"
 
-namespace ug
-{
+namespace ug {
+
 ////////////////////////////////////////////////////////////////////////
 ///	These numbers define where in the vertex-section-container a vertex will be stored.
 /**	The order of the constants must not be changed! Algorithms may exist that rely on it.*/

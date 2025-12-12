@@ -32,11 +32,14 @@
 //  This file is parsed from UG 3.9.
 //  It provides the Gauss Quadratures for a reference pyramid.
 
-
-#include "../quadrature.h"
 #include "gauss_quad_pyramid.h"
 
-namespace ug{
+#include "../quadrature.h"
+
+
+#include "lib_disc/reference_element/reference_element.h"
+
+namespace ug {
 
 template <>
 number GaussQuadBase<GaussQuadrature<ReferencePyramid, 2>, 3, 2, 8>::m_vWeight[8] =

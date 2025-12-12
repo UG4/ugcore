@@ -36,8 +36,9 @@
 #define __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUAD__GAUSS_QUAD_VERTEX__
 
 #include "gauss_quad.h"
+#include "lib_disc/reference_element/reference_element.h"
 
-namespace ug{
+namespace ug {
 
 
 // TODO: This class might be superfluous now that the specializations below exist.

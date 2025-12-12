@@ -35,7 +35,8 @@
 
 #include "common/math/misc/math_constants.h"
 #include "lib_grid/algorithms/geom_obj_util/edge_util.h"
-namespace ug{
+
+namespace ug {
 
 template <typename TEdgeIterator>
 void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,

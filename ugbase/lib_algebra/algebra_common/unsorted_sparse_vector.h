@@ -34,9 +34,10 @@
 #define UNSORTED_VECTOR_H_
 
 #include <vector>
+
 #include "connection.h"
 
-namespace ug{
+namespace ug {
 
 /**
  * This is in most cases faster than the std::map-based SparseVector in sparse_vector.h

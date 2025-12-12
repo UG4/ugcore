@@ -126,7 +126,7 @@ namespace Shiny {
 
 //-----------------------------------------------------------------------------
 
-	void ProfileManager::preLoad(void) {
+	void ProfileManager::preLoad() {
 		if (!_initialized) {
 			_init();
 
@@ -135,8 +135,11 @@ namespace Shiny {
 		}
 	}
 
+	void ProfileManager::updateClean() {
+	}
 
-//-----------------------------------------------------------------------------
+
+	//-----------------------------------------------------------------------------
 
 	void ProfileManager::update(float a_damping) {
 		_appendTicksToCurNode();
@@ -157,7 +160,7 @@ namespace Shiny {
 
 //-----------------------------------------------------------------------------
 
-	void ProfileManager::clear(void) {
+	void ProfileManager::clear() {
 		destroy();
 		preLoad();
 	}
@@ -165,7 +168,7 @@ namespace Shiny {
 
 //-----------------------------------------------------------------------------
 
-	void ProfileManager::destroy(void) {
+	void ProfileManager::destroy() {
 		_resetZones();
 		_destroyNodes();
 		_uninit();
@@ -328,7 +331,7 @@ namespace Shiny {
 
 //-----------------------------------------------------------------------------
 
-	void ProfileManager::_resetZones(void) {
+	void ProfileManager::_resetZones() {
 		ProfileZone *pZone, *pNextZone;
 
 		pZone = &rootZone;
@@ -350,7 +353,7 @@ namespace Shiny {
 
 //-----------------------------------------------------------------------------
 
-	void ProfileManager::_destroyNodes(void) {
+	void ProfileManager::_destroyNodes() {
 		if (_firstNodePool) {
 			_firstNodePool->destroy();
 			_firstNodePool = nullptr;

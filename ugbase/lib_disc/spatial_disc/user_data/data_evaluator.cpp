@@ -30,12 +30,13 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "data_evaluator.h"
+
 #include <sstream>
 
-#include "data_evaluator.h"
 //ø #include "lib_disc/common/groups_util.h"
 
-namespace ug{
+namespace ug {
 
 DebugID DID_DATA_EVALUATOR("DATA_EVALUATOR");
 

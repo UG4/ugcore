@@ -36,7 +36,7 @@
 #include "lib_grid/lg_base.h"
 #include "common/util/field.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 void UG_API

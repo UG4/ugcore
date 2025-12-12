@@ -30,8 +30,10 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <iostream>
 #include "common/log.h"
+
+#include <iostream>
+
 #include "common/profiler/profiler.h"
 #include <cassert>
 
@@ -43,7 +45,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 // predefined standard DebugIDs. todo: move some of those in the appropriate modules,
 // syntax for subgroups ?

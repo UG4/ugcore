@@ -33,25 +33,32 @@
 #ifndef __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA_IMPL_
 #define __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA_IMPL_
 
-#ifdef UG_FOR_LUA
 #include "lua_user_data.h"
-#endif
+
+
+extern "C" {
+#include "bindings/lua/externals/lua/lauxlib.h"
+}
+
 #include "lib_disc/spatial_disc/user_data/linker/linker_traits.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
+
 #include "info_commands.h"
 #include "common/util/number_util.h"
+#include "bindings/lua/lua_traits.h"
 
-#if 0
-#define PROFILE_CALLBACK() PROFILE_FUNC_GROUP("luacallback")
-#define PROFILE_CALLBACK_BEGIN(name) PROFILE_BEGIN_GROUP(name, "luacallback")
-#define PROFILE_CALLBACK_END()	PROFILE_END()
-#else
+//#if 0
+// #define PROFILE_CALLBACK() PROFILE_FUNC_GROUP("luacallback")
+//#define PROFILE_CALLBACK_BEGIN(name) PROFILE_BEGIN_GROUP(name, "luacallback")
+// #define PROFILE_CALLBACK_END()	PROFILE_END()
+//#else
 #define PROFILE_CALLBACK()
 #define PROFILE_CALLBACK_BEGIN(name)
 #define PROFILE_CALLBACK_END()
-#endif
-namespace ug{
+//#endif
+
+namespace ug {
 
 #ifdef USE_LUA2C
 	extern bool useLuaCompiler;

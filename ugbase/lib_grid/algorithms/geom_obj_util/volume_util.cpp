@@ -31,14 +31,14 @@
  */
 
 #include "volume_util.h"
+
 #include "lib_grid/lg_base.h"
 #include "edge_util.h"
 #include "lib_grid/grid_objects/tetrahedron_rules.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	GetNeighbours - sreiter

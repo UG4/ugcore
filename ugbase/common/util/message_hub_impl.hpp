@@ -33,8 +33,11 @@
 #ifndef __H__UG__message_hub_impl__
 #define __H__UG__message_hub_impl__
 
-namespace ug
-{
+#include "message_hub.h"
+
+#include "metaprogramming_util.h"
+
+namespace ug {
 
 
 template <typename TMsg>

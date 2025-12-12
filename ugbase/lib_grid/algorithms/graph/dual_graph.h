@@ -36,8 +36,7 @@
 #include <vector>
 #include "lib_grid/lg_base.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 /**

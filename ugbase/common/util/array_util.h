@@ -33,10 +33,9 @@
 #ifndef __H__UTIL__ARRAY_UTIL__
 #define __H__UTIL__ARRAY_UTIL__
 
-#include <algorithm>
+// #include <algorithm>
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup ugbase_common_types
 /// \{

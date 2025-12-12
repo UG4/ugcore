@@ -41,8 +41,8 @@
 #endif
 
 
-namespace ug
-{
+namespace ug {
+
 	constexpr number SMALL = 1.0e-12;
 	constexpr number SMALL_SQ = SMALL * SMALL;
 

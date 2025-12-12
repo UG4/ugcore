@@ -36,7 +36,7 @@
 #include "lib_disc/domain.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // 	Value Access Base class

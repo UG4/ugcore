@@ -34,11 +34,12 @@
 #define __H__UG__parallel_dual_graph_impl__
 
 #include "parallel_dual_graph.h"
+
 #include "compol_gather_vec_attachment.h"
 #include "compol_copy_attachment.h"
 #include "../distributed_grid.h"
 
-namespace ug{
+namespace ug {
 
 template <typename TGeomBaseObj, typename TIndexType, typename TConnectingObj>
 ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::

@@ -31,10 +31,10 @@
  */
 
 #include "grid_base_objects.h"
+
 #include "grid_util.h"
 
-namespace ug
-{
+namespace ug {
 
 const char* GRID_BASE_OBJECT_SINGULAR_NAMES[] = {"vertex", "edge", "face", "volume"};
 const char* GRID_BASE_OBJECT_PLURAL_NAMES[] = {"vertices", "edges", "faces", "volume"};

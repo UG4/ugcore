@@ -43,12 +43,12 @@ class MemInfo
 		// OS-dependent method
 		void memory_consumption();
 
-		number local_resident_memory() const;
-		number local_virtual_memory() const;
-		number global_resident_memory() const;
-		number global_virtual_memory() const;
-		number max_resident_memory() const;
-		number max_virtual_memory() const;
+		[[nodiscard]] number local_resident_memory() const;
+		[[nodiscard]] number local_virtual_memory() const;
+		[[nodiscard]] number global_resident_memory() const;
+		[[nodiscard]] number global_virtual_memory() const;
+		[[nodiscard]] number max_resident_memory() const;
+		[[nodiscard]] number max_virtual_memory() const;
 
 	protected:
 		void communicate_process_values();

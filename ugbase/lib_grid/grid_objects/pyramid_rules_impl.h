@@ -34,10 +34,11 @@
 #define __H__UG_pyramid_rules_impl
 
 #include "pyramid_rules.h"
+
 #include "grid_object_ids.h"
 
-namespace ug{
-namespace pyra_rules{
+namespace ug {
+namespace pyra_rules {
 
 template <typename TCmp>
 int ConvertToTetrahedra(int* newIndsOut, TCmp cmp)

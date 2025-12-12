@@ -34,10 +34,13 @@
 #define __H__LIB_DISC__OPERATOR__COMPOSITE_CONVERGENCE_CHECK_IMPL__
 
 #include "composite_conv_check.h"
-#include "common/util/string_util.h"
+
 #include <boost/core/enable_if.hpp>
 
-namespace ug{
+#include "common/util/string_util.h"
+
+
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Composite convergence check

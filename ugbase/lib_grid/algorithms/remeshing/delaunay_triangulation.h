@@ -42,8 +42,7 @@
 // #include "lib_grid/algorithms/geom_obj_util/edge_util.h"
 #include "lib_grid/callbacks/basic_callbacks.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 template <typename TAAPos>

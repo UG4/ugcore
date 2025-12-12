@@ -36,19 +36,21 @@
  * \brief Implementation of OS independent file utility functions
  */
 
+#include <vector>
+#include <cstring>
+
 #include "common/util/file_util.h"
 #include "common/ug_config.h"
 #include "common/error.h"
 #include "common/assert.h"
 #include "common/profiler/profiler.h"
 #include "path_provider.h"
-#include <vector>
-#include <cstring>
+
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
+
 /// !!! Serial i/o version !!!
 UG_API bool FileExists( const char *filename )
 {

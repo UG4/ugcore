@@ -30,8 +30,10 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <sstream>
 #include "surface_view.h"
+
+#include <sstream>
+
 #include "common/assert.h"
 #include "lib_grid/parallelization/util/compol_boolmarker.h"
 #include "lib_grid/file_io/file_io.h"
@@ -45,7 +47,7 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug {
 
 ///	adds marking at extracting side
 //todo:	change to ComPol_AttachmentBinaryOr

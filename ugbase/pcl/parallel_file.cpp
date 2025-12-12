@@ -42,7 +42,7 @@
 
 
 
-namespace pcl{
+namespace pcl {
 
 
 void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, const std::string &strFilename, const ProcessCommunicator &pc)

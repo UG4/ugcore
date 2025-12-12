@@ -32,10 +32,11 @@
 #ifndef PCL_UTIL_IMPL_H
 #define PCL_UTIL_IMPL_H
 
+#include "pcl_util.h"
+
 #include "common/util/binary_buffer.h"
 #include "common/serialization.h"
 
-#include "pcl_util.h"
 
 namespace pcl {
 	template<typename TLayout, typename TSelector>

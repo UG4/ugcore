@@ -34,7 +34,7 @@
 #include "horizontal_anisotropy_adjuster.h"
 //ø #include "common/util/vec_for_each.h"
 
-namespace ug{
+namespace ug {
 
 static inline bool IsVertical(const vector1&, const vector1&)
 {

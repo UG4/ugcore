@@ -31,13 +31,14 @@
  */
 
 #include "problem_detection_util.h"
+
 #include "lib_grid/grid_objects/tetrahedron_rules.h"
 #include "common/math/misc/math_util.h"
 #include "lib_grid/grid/grid.h"
 #include "debug_util.h"
 #include "isolated_elements.h"
 
-namespace ug{
+namespace ug {
 
 int IsSliver(const vector3& v0, const vector3& v1, const vector3& v2,
 			  const vector3& v3, number thresholdRatio)

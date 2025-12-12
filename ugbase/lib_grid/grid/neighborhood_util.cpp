@@ -31,6 +31,7 @@
  */
 
 #include "neighborhood_util.h"
+
 #include "grid.h"
 #include "common/common.h"
 

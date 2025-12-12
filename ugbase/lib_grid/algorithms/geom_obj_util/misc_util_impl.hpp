@@ -34,16 +34,17 @@
 #define __H__LIB_GRID__MISC_UTIL__IMPL__
 
 #include "misc_util.h"
+
+#include <limits>
+
 #include "lib_grid/grid/grid_util.h"
-#include "vertex_util.h"
+//#include "vertex_util.h"
 #include "edge_util.h"
 #include "face_util.h"
 #include "volume_util.h"
 
-#include <limits>
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 template <typename TElem>

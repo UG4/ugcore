@@ -38,7 +38,7 @@
 #include "common/error.h"
 #include "common/util/smart_pointer.h"
 
-namespace ug{
+namespace ug {
 
 ///////////////////////////////////////////////////////////////////////////////
 // Inverse of a Matrix-based Linear Operator

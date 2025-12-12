@@ -41,7 +41,7 @@
 #include "fv1_geom.h"
 #include "hfv1_geom.h"
 
-namespace ug{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // ConstructGridOfSCVF

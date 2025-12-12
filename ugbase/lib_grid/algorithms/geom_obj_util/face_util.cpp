@@ -30,17 +30,18 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include "face_util.h"
+
 #include <vector>
-#include <stack>
+//#include <stack>
 #include <cassert>
 #include "vertex_util.h"
-#include "face_util.h"
+
 //ø #include "../attachment_util.h"
 
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 int GetFaceIndex(Volume* vol, Face* f)
@@ -360,7 +361,7 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 //TODO: improve this!
 	if(!grid.option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
 	{
-		LOG("WARNING: autoenabling FACEOPT_AUTOGENERATE_EDGES in GetNeighbours(Face).\n");
+		UG_LOG("WARNING: autoenabling FACEOPT_AUTOGENERATE_EDGES in GetNeighbours(Face).\n");
 		grid.enable_options(FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
 	}
 	

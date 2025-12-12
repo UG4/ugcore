@@ -33,12 +33,11 @@
 #ifndef UGBASE__LIB_GRID__REFINEMENT__MARKING_UTILS_H
 #define UGBASE__LIB_GRID__REFINEMENT__MARKING_UTILS_H
 
+#include <string>
+#include <vector>
 
 #include "common/types.h"               // for number
 #include "common/util/smart_pointer.h"  // for SmartPtr, ConstSmartPtr
-
-#include <string>
-#include <vector>
 
 
 namespace ug {

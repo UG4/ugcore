@@ -39,7 +39,7 @@
 #define PINVIT_PROFILE_BEGIN(t) PROFILE_BEGIN_GROUP(t, "pinvit algebra")
 #define PINVIT_PROFILE_END() PROFILE_END()
 
-namespace ug{
+namespace ug {
 
 /*template<typename mat_type, typename vec_type, typename densematrix_type>
 void MultiEnergyProd(const SparseMatrix<mat_type> &A,

@@ -33,12 +33,14 @@
 #ifndef __H__UG_global_attachments
 #define __H__UG_global_attachments
 
+#include <algorithm>
+
 #include "attachments/attachment_info_traits.h"
 #include "attachments/attachment_io_traits.h"
 #include "algorithms/serialization.h"
-#include <algorithm>
 
-namespace ug{
+
+namespace ug {
 
 ///	Global attachments are automatically read/written from/to files and are considered during redistribution
 class GlobalAttachments {

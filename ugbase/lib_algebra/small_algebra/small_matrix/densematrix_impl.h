@@ -45,17 +45,15 @@
 #ifndef __H__UG__COMMON__DENSEMATRIX_IMPL_H__
 #define __H__UG__COMMON__DENSEMATRIX_IMPL_H__
 
+#include "densematrix.h"
+
 #include "print.h"
 #include "../blocks.h"
 
 // constructors
-namespace ug{
+namespace ug {
 
 
-template<typename TStorage>
-DenseMatrix<TStorage>::DenseMatrix() : TStorage()
-{
-}
 
 template<typename TStorage>
 DenseMatrix<TStorage>::DenseMatrix(const DenseMatrix<TStorage> &rhs) : TStorage(rhs)

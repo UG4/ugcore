@@ -36,11 +36,10 @@
 #include "lib_algebra/operator/interface/linear_iterator.h"
 #include "lib_algebra/operator/interface/matrix_operator.h"
 #include "lib_algebra/operator/debug_writer.h"
-
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
-namespace ug{
+namespace ug {
 
 /**
  * Abstract base class for transforming iterations.

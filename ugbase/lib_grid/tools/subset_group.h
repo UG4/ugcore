@@ -35,9 +35,10 @@
 
 #include <vector>
 #include <string>
+
 #include "lib_grid/tools/subset_handler_interface.h"
 
-namespace ug{
+namespace ug {
 
 /// Group of subsets
 /**

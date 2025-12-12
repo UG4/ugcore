@@ -73,7 +73,7 @@ class AutoProfileNode
 
 	private:
 		void release();
-		inline bool is_active()		{return m_bActive;}
+		[[nodiscard]] inline bool is_active() const {return m_bActive;}
 
 	private:
 		bool m_bActive;

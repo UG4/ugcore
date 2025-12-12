@@ -30,21 +30,22 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include <string>
+#include <sstream>
+
 #include "registry/registry.h"
-#include "bridge/bridge.h"
+// #include "bridge/bridge.h"
 #include "common/profiler/profiler.h"
 #include "common/profiler/profile_node.h"
 #include "ug.h" // Required for UGOutputProfileStatsOnExit.
-#include <string>
-#include <sstream>
+
 #include "../util_overloaded.h"
 #ifdef UG_CPU_FREQ
 	#include "common/profiler/freq_adapt.h"
 #endif
 using namespace std;
 
-namespace ug
-{
+namespace ug {
 
 static void UpdateProfiler_BridgeImpl(number damping){
 	PROFILER_UPDATE(damping);

@@ -36,9 +36,9 @@
 #include "group_node.h"
 #include "common/math/ugmath.h"
 
-namespace ug{
-namespace node_tree
-{
+namespace ug {
+namespace node_tree {
+
 
 class BoxedGroupNode;
 

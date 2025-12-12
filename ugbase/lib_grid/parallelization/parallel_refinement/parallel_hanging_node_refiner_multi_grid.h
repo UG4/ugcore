@@ -38,8 +38,7 @@
 #include "../distributed_grid.h"
 #include "pcl/pcl_interface_communicator.h"
 
-namespace ug
-{
+namespace ug {
 
 /// \addtogroup lib_grid_parallelization_refinement
 /// @{
@@ -56,9 +55,9 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 		using BaseClass::copy_marks_to_vmasters;
 		using BaseClass::copy_marks_to_vslaves;
 
-		ParallelHangingNodeRefiner_MultiGrid(SPRefinementProjector projector = nullptr);
+		explicit ParallelHangingNodeRefiner_MultiGrid(SPRefinementProjector projector = nullptr);
 
-		ParallelHangingNodeRefiner_MultiGrid(
+		explicit ParallelHangingNodeRefiner_MultiGrid(
 				DistributedGridManager& distGridMgr,
 				SPRefinementProjector projector = nullptr);
 

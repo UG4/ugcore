@@ -32,6 +32,7 @@
 
 #ifndef __H__LIB_ALGEBRA__LAPACK_AGGLOMERATING_LU_OPERATOR__
 #define __H__LIB_ALGEBRA__LAPACK_AGGLOMERATING_LU_OPERATOR__
+
 #include <iostream>
 #include <sstream>
 
@@ -41,11 +42,11 @@
 
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/collect_matrix.h"
-	#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
 	#include "lib_algebra/parallelization/parallelization_util.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 
 #ifdef UG_PARALLEL

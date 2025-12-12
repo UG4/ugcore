@@ -35,8 +35,7 @@
 
 #include "attachment_util.h"
 
-namespace ug
-{
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 //	SetAttachmentValues

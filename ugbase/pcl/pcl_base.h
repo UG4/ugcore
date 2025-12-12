@@ -33,8 +33,7 @@
 #ifndef __H__PCL__PCL_BASE__
 #define __H__PCL__PCL_BASE__
 
-namespace pcl
-{
+namespace pcl {
 
 /// \addtogroup pcl
 /// \{

@@ -51,7 +51,8 @@
 #endif
 
 #include "small_algebra/small_algebra.h"
-namespace ug{
+
+namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 //   CPU Algebra

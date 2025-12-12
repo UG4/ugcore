@@ -35,7 +35,7 @@
 
 #include "../ref_mark_adjuster_interface.h"
 
-namespace ug{
+namespace ug {
 
 class StdHNodeAdjuster;
 using SPStdHNodeAdjuster = SmartPtr<StdHNodeAdjuster>;

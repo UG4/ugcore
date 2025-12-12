@@ -37,12 +37,12 @@
 #include "lib_algebra/operator/interface/preconditioner.h"
 
 #ifdef UG_PARALLEL
-	#include "pcl/pcl_util.h"
-	#include "lib_algebra/parallelization/parallelization_util.h"
-	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
+	//#include "pcl/pcl_util.h"
+	//#include "lib_algebra/parallelization/parallelization_util.h"
+	#include "lib_algebra/parallelization/parallel_matrix_overlap.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 static constexpr size_t MAXBLOCKSIZE = 53;
 

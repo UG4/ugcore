@@ -33,18 +33,18 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__DEBUG_ITERATOR__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__DEBUG_ITERATOR__
 
-#include "lib_algebra/operator/interface/preconditioner.h"
+//#include "lib_algebra/operator/interface/preconditioner.h"
 #include "lib_algebra/operator/interface/preconditioned_linear_operator_inverse.h"
-#include "lib_algebra/algebra_common/sparsematrix_util.h"
+//#include "lib_algebra/algebra_common/sparsematrix_util.h"
 #include "lib_algebra/operator/debug_writer.h"
 
 
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
-	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
+	//#include "lib_algebra/parallelization/parallelization.h"
+	//#include "lib_algebra/parallelization/parallel_matrix_overlap.h"
 #endif
 
-namespace ug{
+namespace ug {
 
 /// Debugging iterator
 /**

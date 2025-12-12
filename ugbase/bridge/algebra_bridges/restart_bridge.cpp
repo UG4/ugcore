@@ -95,7 +95,7 @@ void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, const std::string &strFi
 #endif
 
 
-namespace ug{
+namespace ug {
 
 /// Serialize for ParallelVector<T>
 #ifdef UG_PARALLEL
@@ -162,8 +162,8 @@ void ReadFromFile(T &v, std::string filename)
 
 
 
-namespace bridge{
-namespace Restart{
+namespace bridge {
+namespace Restart {
 
 /**
  * \defgroup precond_bridge Preconditioner Bridge

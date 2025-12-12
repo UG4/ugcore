@@ -35,7 +35,7 @@
 
 #include "dof_distribution_info.h"
 
-namespace ug{
+namespace ug {
 
 class DoFIndexStorage : public DoFDistributionInfoProvider
 {
