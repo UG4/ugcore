@@ -496,6 +496,12 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 
 		Elems2BQuenched elem2BQuenched( vfld5ThisEdgePr );
 
+		if( ! elem2BQuenched.checkIntegrity())
+		{
+			UG_LOG("an elem to be quenched not integer" << std::endl);
+			return false;
+		}
+
 		m_vecElems2BQuenched.push_back(elem2BQuenched);
 
 		itOuter = vvef5.erase(itOuter);

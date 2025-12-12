@@ -368,6 +368,8 @@ public:
 		prLdE = m_pairLowDimElem;
 	}
 
+	INDEXTYP spuckSudo() { return m_sudo; }
+
 private:
 
 	PairFullLowDimTwin m_pairFullLowDimTwin;
@@ -646,12 +648,14 @@ public:
 
 			if( ! pairLowdimElmAssigned )
 			{
-				m_pairLowDimElem = fldmq.spuckPairLowDimElem;
+				fldmq.spuckPairLowDimElem(m_pairLowDimElem);
 				pairLowdimElmAssigned = true;
+
 			}
 			else
 			{
-				PairLowDimElem testPrLDE = fldmq.spuckPairLowDimElem;
+				PairLowDimElem testPrLDE;
+				fldmq.spuckPairLowDimElem(testPrLDE);
 
 				if( m_pairLowDimElem != testPrLDE )
 				{
@@ -758,9 +762,8 @@ public:
 private:
 
 	VERTEXTYP m_centerVrtx, m_originalCenterVrtx;
-	PairLowDimElem m_pairLowDimElem;
-
 	VecFullLowDimManifQuintuplet m_vecFullLowDimManifQuintpl;
+	PairLowDimElem m_pairLowDimElem;
 	INDEXTYP m_sudo;
 
 };
