@@ -73,9 +73,7 @@ private:
 															 VolumeElementFaceQuintuplet & vef5
 															);
 
-	bool establishElems2BeQuenched( VecVolumeElementFaceQuintuplet & vvef5,
-									Elems2BQuenched & elem2BQuenched
-								  );
+	bool establishElems2BeQuenched();
 
 	VecVolumeElementFaceQuintuplet m_vecVolElmFac5;
 
@@ -85,7 +83,7 @@ private:
 	std::vector<Face*> m_disappearingFacs;
 //	std::vector<Edge*> m_disappearingEdgs;
 
-
+	using EdgePair = std::pair<Edge*,Edge*>;
 };
 
 } /* namespace diamonds */

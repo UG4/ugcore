@@ -70,7 +70,7 @@ public:
 
 	void spuckOldAndShiftVrtx( VrtxPair & vrtp ) { vrtp = m_oldAndshiftVrtx; }
 
-	void spuckLowdimElem ( LOWDIMELM & lowdimElm ) { lowdimElm = m_lowDimElm; }
+	void spuckLowDimElem ( LOWDIMELM & lowdimElm ) { lowdimElm = m_lowDimElm; }
 
 	INDEXTYP spuckSudo() { return m_sudo; }
 
@@ -250,14 +250,14 @@ public:
 	using FullLowDimTwin = FulldimLowdimTwin<FULLDIMELEM,LOWDIMELEM,INDEXTYP>;
 	using PairFullLowDimTwin = std::pair<FullLowDimTwin,FullLowDimTwin>;
 	using PairVrtcs = std::pair<VERTEXTYP,VERTEXTYP>;
-	using PairLowdimElem = std::pair<LOWDIMELEM,LOWDIMELEM>;
+	using PairLowDimElem = std::pair<LOWDIMELEM,LOWDIMELEM>;
 
 	FullLowDimManifQuintuplet( PairFullLowDimTwin const & fullLowPr, MANIFELEM const & manif )
 	: m_pairFullLowDimTwin(fullLowPr),
 	  m_manifElem(manif),
 	  m_centerVrtx(nullptr),
 	  m_shiftVrtcs(PairVrtcs()),
-	  m_pairLowdimElem(PairLowdimElem()),
+	  m_pairLowDimElem(PairLowDimElem()),
 	  m_sudo(0)
 	{};
 
@@ -266,7 +266,7 @@ public:
 	  m_manifElem(nullptr),
 	  m_centerVrtx(nullptr),
 	  m_shiftVrtcs(PairVrtcs()),
-	  m_pairLowdimElem(PairLowdimElem()),
+	  m_pairLowDimElem(PairLowDimElem()),
 	  m_sudo(0)
 	{};
 
@@ -336,11 +336,17 @@ public:
 		VERTEXTYP vrtOne = m_shiftVrtcs.first;
 		VERTEXTYP vrtTwo = m_shiftVrtcs.second;
 
-		if( fldOne != m_pairFullLowDimTwin.second || fldTwo != m_pairFullLowDimTwin.first )
-		{
-			UG_LOG("swappign not worked " << std::endl);
-			return false;
-		}
+//		if( fldOne != m_pairFullLowDimTwin.second || fldTwo != m_pairFullLowDimTwin.first )
+//		{
+//			UG_LOG("swappign not worked " << std::endl);
+//			return false;
+//		}
+
+//		if( fldOne != m_pairFullLowDimTwin.second || fldTwo != m_pairFullLowDimTwin.first )
+//		{
+//			UG_LOG("swappign not worked " << std::endl);
+//			return false;
+//		}
 
 		if( vrtOne != m_shiftVrtcs.second || vrtTwo != m_shiftVrtcs.first )
 		{
@@ -348,12 +354,18 @@ public:
 			return false;
 		}
 
+		if( ! checkIntegrity() )
+		{
+			UG_LOG("not integer any more after swap entries" << std::endl);
+			return false;
+		}
+
 		return true;
 	}
 
-	void spuckPairLowdimElem( PairLowdimElem & prLdE )
+	void spuckPairLowDimElem( PairLowDimElem & prLdE )
 	{
-		prLdE = m_pairLowdimElem;
+		prLdE = m_pairLowDimElem;
 	}
 
 private:
@@ -362,7 +374,7 @@ private:
 	MANIFELEM m_manifElem;
 	VERTEXTYP m_centerVrtx;
 	PairVrtcs m_shiftVrtcs;
-	PairLowdimElem m_pairLowdimElem;
+	PairLowDimElem m_pairLowDimElem;
 	INDEXTYP m_sudo;
 
 	bool checkIntegrityVols()
@@ -439,7 +451,7 @@ private:
 		//		edgeOne = m_pairFullLowDimTwin.first.spuckLowDimElem();
 		//		edgeTwo = m_pairFullLowDimTwin.first.spuckLowDimElem();
 
-		m_pairLowdimElem = PairLowdimElem( edgeOne, edgeTwo );
+		m_pairLowDimElem = PairLowDimElem( edgeOne, edgeTwo );
 
 		Vertex * centerVrtx;
 		Vertex * shiftVrtxOne;
@@ -573,21 +585,21 @@ public:
 
 	using FullLowDimManifQntpl = FullLowDimManifQuintuplet<FULLDIMELEM,MANIFELEM,LOWDIMELEM,VERTEXTYP,INDEXTYP>;
 	using VecFullLowDimManifQuintuplet = std::vector<FullLowDimManifQntpl>;
-	using PairLowdimElem = std::pair<LOWDIMELEM,LOWDIMELEM>;
+	using PairLowDimElem = std::pair<LOWDIMELEM,LOWDIMELEM>;
 
 	ElemsToBeQuenched4DiamSpace( VecFullLowDimManifQuintuplet const & vfldm5 )
 	: m_centerVrtx(nullptr),
 	  m_originalCenterVrtx(nullptr),
 	  m_vecFullLowDimManifQuintpl(vfldm5),
-	  m_pairLowDimElem(PairLowdimElem()),
-	  m_sudo(vfldm5[0].spuckSudo())
+	  m_pairLowDimElem(PairLowDimElem()),
+	  m_sudo(0)
 	{}
 
 	ElemsToBeQuenched4DiamSpace()
 	: m_centerVrtx(nullptr),
 	  m_originalCenterVrtx(nullptr),
 	  m_vecFullLowDimManifQuintpl(VecFullLowDimManifQuintuplet()),
-	  m_pairLowDimElem(PairLowdimElem()),
+	  m_pairLowDimElem(PairLowDimElem()),
 	  m_sudo(0)
 	{}
 
@@ -634,12 +646,12 @@ public:
 
 			if( ! pairLowdimElmAssigned )
 			{
-				m_pairLowDimElem = fldmq.spuckPairLowdimElem;
+				m_pairLowDimElem = fldmq.spuckPairLowDimElem;
 				pairLowdimElmAssigned = true;
 			}
 			else
 			{
-				PairLowdimElem testPrLDE = fldmq.spuckPairLowdimElem;
+				PairLowDimElem testPrLDE = fldmq.spuckPairLowDimElem;
 
 				if( m_pairLowDimElem != testPrLDE )
 				{
@@ -736,7 +748,7 @@ public:
 		vfldm5 = m_vecFullLowDimManifQuintpl;
 	}
 
-	void spuckPairLowDimElem( PairLowdimElem & plde )
+	void spuckPairLowDimElem( PairLowDimElem & plde )
 	{
 		plde = m_pairLowDimElem;
 	}
@@ -746,7 +758,7 @@ public:
 private:
 
 	VERTEXTYP m_centerVrtx, m_originalCenterVrtx;
-	PairLowdimElem m_pairLowDimElem;
+	PairLowDimElem m_pairLowDimElem;
 
 	VecFullLowDimManifQuintuplet m_vecFullLowDimManifQuintpl;
 	INDEXTYP m_sudo;
