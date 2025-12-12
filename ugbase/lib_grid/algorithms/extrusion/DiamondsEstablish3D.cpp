@@ -507,18 +507,102 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 		itOuter = vvef5.erase(itOuter);
 	}
 
-//	for( Elems2BQuenched & e2bq : m_vecElems2BQuenched )
-//	{
-//		IndexType sudoNum = m_sh.num_subsets();
-//
-//		IndexType sudoVols = sudoNum;
-//		IndexType sudoFacs = sudoNum+1;
-//		IndexType sudoEdgs = sudoNum+2;
-//		IndexType sudoVrtx = sudoNum+3;
-//
-//
-//
-//	}
+	for( Elems2BQuenched & e2bq : m_vecElems2BQuenched )
+	{
+		IndexType sudoNum = m_sh.num_subsets();
+
+		IndexType sudoVols = sudoNum;
+		IndexType sudoFacs = sudoNum+1;
+		IndexType sudoEdgs = sudoNum+2;
+		IndexType sudoVrtx = sudoNum+3;
+
+		VecVolumeElementFaceQuintuplet vve5;
+
+		EdgePair edgP;
+		e2bq.spuckPairLowDimElem(edgP);
+
+		e2bq.spuckVecFullLowDimManifQuintuplet(vve5);
+
+		for( VolumeElementFaceQuintuplet & v: vve5 )
+		{
+			Volume * vol1;
+			Volume * vol2;
+			Face * fac;
+			Edge * edg1;
+			Edge * edg2;
+			Vertex * vrtC;
+			Vertex * vrtE1;
+			Vertex * vrtE2;
+
+			std::pair<VolumeElementTwin,VolumeElementTwin> pvv;
+
+			v.spuckPairFullLowDimTwin(pvv);
+
+			pvv.first.spuckFullDimElem(vol1);
+			pvv.second.spuckFullDimElem(vol2);
+
+			v.spuckManifElem( fac );
+
+			pvv.first.spuckLowDimElem(edg1);
+			pvv.second.spuckLowDimElem(edg2);
+
+			v.spuckCenterVertex(vrtC);
+
+			VrtxPair vp;
+			v.spuckShiftVrtcs(vp);
+
+			vrtE1 = vp.first;
+			vrtE2 = vp.second;
+
+
+			Volume * newVol1;
+			Volume * newVol2;
+
+			newVol1 = *m_grid.create<Prism>(
+							PrismDescriptor( vol1->vertex(0),
+									vol1->vertex(1),
+									vol1->vertex(2),
+									vol1->vertex(3),
+									vol1->vertex(4),
+									vol1->vertex(5)
+								)
+								);
+
+			newVol2 = *m_grid.create<Prism>(
+							PrismDescriptor( vol2->vertex(0),
+									vol2->vertex(1),
+									vol2->vertex(2),
+									vol2->vertex(3),
+									vol2->vertex(4),
+									vol2->vertex(5)
+								)
+								);
+
+
+			m_sh.assign_subset(newVol1, sudoVols);
+			m_sh.assign_subset(newVol2, sudoVols);
+
+			m_sh.assign_subset(fac, sudoFacs);
+//			m_sh.assign_subset(edg1, sudoEdgs);
+//			m_sh.assign_subset(edg2, sudoEdgs);
+//			m_sh.assign_subset(vrtC, sudoVrtx);
+//			m_sh.assign_subset(vrtE1, sudoVrtx);
+//			m_sh.assign_subset(vrtE2, sudoVrtx);
+
+
+		}
+
+
+
+		m_sh.assign_subset(edgP.first,sudoEdgs);
+		m_sh.assign_subset(edgP.second,sudoEdgs);
+
+		Vertex * centerV;
+
+		e2bq.spuckCenterVertex(centerV);
+		m_sh.assign_subset(centerV, sudoVrtx);
+
+	}
 
 
 	return true;

@@ -328,13 +328,15 @@ public:
 	bool swapEntries()
 	{
 		std::swap( m_pairFullLowDimTwin.first, m_pairFullLowDimTwin.second );
-		std::swap( m_shiftVrtcs.first, m_shiftVrtcs.second );
-
-		FullLowDimTwin fldOne = m_pairFullLowDimTwin.first;
-		FullLowDimTwin fldTwo = m_pairFullLowDimTwin.second;
 
 		VERTEXTYP vrtOne = m_shiftVrtcs.first;
 		VERTEXTYP vrtTwo = m_shiftVrtcs.second;
+
+		std::swap( m_shiftVrtcs.first, m_shiftVrtcs.second );
+
+//		FullLowDimTwin fldOne = m_pairFullLowDimTwin.first;
+//		FullLowDimTwin fldTwo = m_pairFullLowDimTwin.second;
+
 
 //		if( fldOne != m_pairFullLowDimTwin.second || fldTwo != m_pairFullLowDimTwin.first )
 //		{
