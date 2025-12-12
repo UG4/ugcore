@@ -149,7 +149,7 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 				  itVMVOuter != vecVolManifVrtxCopy.end(); )
 	{
 
-		UG_LOG("out round " << d_out << std::endl);
+//		UG_LOG("out round " << d_out << std::endl);
 
 		bool partnerFound = false;
 
@@ -171,7 +171,7 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 		for( typename VecVolManifVrtxCombi::iterator itVMVInner = itVMVOuter + 1;
 					  itVMVInner != vecVolManifVrtxCopy.end(); )
 		{
-			UG_LOG("start in " << d_in << std::endl);
+//			UG_LOG("start in " << d_in << std::endl);
 
 			VolManifVrtxCombi inner = *itVMVInner;
 
@@ -232,11 +232,11 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 			}
 
 
-			UG_LOG("end in " << d_in << std::endl);
+//			UG_LOG("end in " << d_in << std::endl);
 			d_in++;
 		}
 
-		UG_LOG("first round finished " << std::endl);
+//		UG_LOG("first round finished " << std::endl);
 		if( ! partnerFound )
 		{
 			UG_LOG("no partner found " << std::endl);
@@ -247,7 +247,7 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 			itVMVOuter = vecVolManifVrtxCopy.erase(itVMVOuter);
 		}
 
-		UG_LOG("end out " << d_out << std::endl);
+//		UG_LOG("end out " << d_out << std::endl);
 		d_out++;
 	}
 
@@ -507,6 +507,8 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 		itOuter = vvef5.erase(itOuter);
 	}
 
+//	int d_q = 10;
+
 	for( Elems2BQuenched & e2bq : m_vecElems2BQuenched )
 	{
 		IndexType sudoNum = m_sh.num_subsets();
@@ -523,85 +525,127 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 
 		e2bq.spuckVecFullLowDimManifQuintuplet(vve5);
 
-		for( VolumeElementFaceQuintuplet & v: vve5 )
+		Vertex * centerVrtx;
+		e2bq.spuckCenterVertex(centerVrtx);
+
+		Grid::VertexAttachmentAccessor<APosition> aaPos;
+
+		vector3 vertexLocation;
+
+		if( centerVrtx != nullptr )
+			vertexLocation = aaPos[centerVrtx];
+		else
 		{
-			Volume * vol1;
-			Volume * vol2;
-			Face * fac;
-			Edge * edg1;
-			Edge * edg2;
-			Vertex * vrtC;
-			Vertex * vrtE1;
-			Vertex * vrtE2;
-
-			std::pair<VolumeElementTwin,VolumeElementTwin> pvv;
-
-			v.spuckPairFullLowDimTwin(pvv);
-
-			pvv.first.spuckFullDimElem(vol1);
-			pvv.second.spuckFullDimElem(vol2);
-
-			v.spuckManifElem( fac );
-
-			pvv.first.spuckLowDimElem(edg1);
-			pvv.second.spuckLowDimElem(edg2);
-
-			v.spuckCenterVertex(vrtC);
-
-			VrtxPair vp;
-			v.spuckShiftVrtcs(vp);
-
-			vrtE1 = vp.first;
-			vrtE2 = vp.second;
-
-
-			Volume * newVol1;
-			Volume * newVol2;
-
-			newVol1 = *m_grid.create<Prism>(
-							PrismDescriptor( vol1->vertex(0),
-									vol1->vertex(1),
-									vol1->vertex(2),
-									vol1->vertex(3),
-									vol1->vertex(4),
-									vol1->vertex(5)
-								)
-								);
-
-			newVol2 = *m_grid.create<Prism>(
-							PrismDescriptor( vol2->vertex(0),
-									vol2->vertex(1),
-									vol2->vertex(2),
-									vol2->vertex(3),
-									vol2->vertex(4),
-									vol2->vertex(5)
-								)
-								);
-
-
-			m_sh.assign_subset(newVol1, sudoVols);
-			m_sh.assign_subset(newVol2, sudoVols);
-
-			m_sh.assign_subset(fac, sudoFacs);
-//			m_sh.assign_subset(edg1, sudoEdgs);
-//			m_sh.assign_subset(edg2, sudoEdgs);
-//			m_sh.assign_subset(vrtC, sudoVrtx);
-//			m_sh.assign_subset(vrtE1, sudoVrtx);
-//			m_sh.assign_subset(vrtE2, sudoVrtx);
-
-
+			UG_LOG("center null " << std::endl);
 		}
 
+		number x = vertexLocation[0];
+		number y = vertexLocation[1];
+		number z = vertexLocation[2];
+
+		number distSq = ( x - 0.5 )*( x - 0.5 ) + ( y - 0.5 )*( y - 0.5 ) + ( z - 0.5 )*( z - 0.5 );
+
+		if( distSq < 0.02 )
+		{
+
+			for( VolumeElementFaceQuintuplet & v: vve5 )
+			{
+				Volume * vol1;
+				Volume * vol2;
+				Face * fac;
+				Edge * edg1;
+				Edge * edg2;
+				Vertex * vrtC;
+				Vertex * vrtE1;
+				Vertex * vrtE2;
+
+				std::pair<VolumeElementTwin,VolumeElementTwin> pvv;
+
+				v.spuckPairFullLowDimTwin(pvv);
+
+				pvv.first.spuckFullDimElem(vol1);
+				pvv.second.spuckFullDimElem(vol2);
+
+				v.spuckManifElem( fac );
+
+				pvv.first.spuckLowDimElem(edg1);
+				pvv.second.spuckLowDimElem(edg2);
+
+				v.spuckCenterVertex(vrtC);
+
+				VrtxPair vp;
+				v.spuckShiftVrtcs(vp);
+
+				vrtE1 = vp.first;
+				vrtE2 = vp.second;
 
 
-		m_sh.assign_subset(edgP.first,sudoEdgs);
-		m_sh.assign_subset(edgP.second,sudoEdgs);
+				Volume * newVol1;
+				Volume * newVol2;
 
-		Vertex * centerV;
+				newVol1 = *m_grid.create<Prism>(
+								PrismDescriptor( vol1->vertex(0),
+										vol1->vertex(1),
+										vol1->vertex(2),
+										vol1->vertex(3),
+										vol1->vertex(4),
+										vol1->vertex(5)
+									)
+									);
 
-		e2bq.spuckCenterVertex(centerV);
-		m_sh.assign_subset(centerV, sudoVrtx);
+				newVol2 = *m_grid.create<Prism>(
+								PrismDescriptor( vol2->vertex(0),
+										vol2->vertex(1),
+										vol2->vertex(2),
+										vol2->vertex(3),
+										vol2->vertex(4),
+										vol2->vertex(5)
+									)
+									);
 
+
+				m_sh.assign_subset(newVol1, sudoVols);
+				m_sh.assign_subset(newVol2, sudoVols);
+
+				Face * newFac;
+
+				newFac = *m_grid.create<Triangle>(TriangleDescriptor( fac->vertex(0), fac->vertex(1), fac->vertex(2) ));
+
+				m_sh.assign_subset(newFac, sudoFacs);
+
+
+	//			m_sh.assign_subset(vol1, sudoVols);
+	//			m_sh.assign_subset(vol2, sudoVols);
+
+				//			m_sh.assign_subset(fac, sudoFacs);
+
+
+	//			m_sh.assign_subset(fac, sudoFacs);
+	//			m_sh.assign_subset(edg1, sudoEdgs);
+	//			m_sh.assign_subset(edg2, sudoEdgs);
+	//			m_sh.assign_subset(vrtC, sudoVrtx);
+	//			m_sh.assign_subset(vrtE1, sudoVrtx);
+	//			m_sh.assign_subset(vrtE2, sudoVrtx);
+
+
+			}
+
+
+
+			m_sh.assign_subset(edgP.first,sudoEdgs);
+			m_sh.assign_subset(edgP.second,sudoEdgs);
+
+			Vertex * centerV;
+
+			e2bq.spuckCenterVertex(centerV);
+			m_sh.assign_subset(centerV, sudoVrtx);
+
+//		if( d_q == 20 )
+//			return true;
+//
+//		d_q++;
+//
+		}
 	}
 
 

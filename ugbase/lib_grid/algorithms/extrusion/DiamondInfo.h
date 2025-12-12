@@ -744,7 +744,7 @@ public:
 		center = m_centerVrtx;
 	}
 
-	void spuchOrigCenterVertex( VERTEXTYP & origCenterVrtx )
+	void spuckOrigCenterVertex( VERTEXTYP & origCenterVrtx )
 	{
 		origCenterVrtx = m_originalCenterVrtx;
 	}
