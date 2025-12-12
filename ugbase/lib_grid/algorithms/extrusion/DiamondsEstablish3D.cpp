@@ -515,13 +515,6 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 {
 	UG_LOG("want to find regions to be shrinked" << std::endl);
 
-	IndexType sudoNum = m_sh.num_subsets();
-
-	IndexType sudoVols = sudoNum;
-	IndexType sudoFacs = sudoNum+1;
-	IndexType sudoEdgs = sudoNum+2;
-	IndexType sudoVrtx = sudoNum+3;
-
 
 	VecVolManifVrtxCombi vecVolManifVrtxCopy = m_vecVolManifVrtxCombiToShrink4Diams;
 
@@ -680,6 +673,13 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 
 	for( auto & v: m_vecVolElmFac5 )
 	{
+		IndexType sudoNum = m_sh.num_subsets();
+
+		IndexType sudoVols = sudoNum;
+		IndexType sudoFacs = sudoNum+1;
+		IndexType sudoEdgs = sudoNum+2;
+		IndexType sudoVrtx = sudoNum+3;
+
 		Volume * vol1;
 		Volume * vol2;
 		Face * fac;
