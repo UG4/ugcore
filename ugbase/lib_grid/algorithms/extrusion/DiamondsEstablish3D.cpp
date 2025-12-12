@@ -614,50 +614,7 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 			d_in++;
 		}
 
-//		for( auto & v: m_vecVolElmFac5 )
-//		{
-//			Volume * vol1;
-//			Volume * vol2;
-//			Face * fac;
-//			Edge * edg1;
-//			Edge * edg2;
-//			Vertex * vrtC;
-//			Vertex * vrtE1;
-//			Vertex * vrtE2;
-//
-//			std::pair<VolumeElementTwin,VolumeElementTwin> pvv;
-//
-//			v.spuckPairFullLowDimTwin(pvv);
-//
-//			pvv.first.spuckFullDimElem(vol1);
-//			pvv.second.spuckFullDimElem(vol2);
-//
-//			v.spuckManifElem( fac );
-//
-//			pvv.first.spuckLowDimElem(edg1);
-//			pvv.second.spuckLowDimElem(edg2);
-//
-//			v.spuckCenterVertex(vrtC);
-//
-//			VrtxPair vp;
-//			v.spuckShiftVrtcs(vp);
-//
-//			vrtE1 = vp.first;
-//			vrtE2 = vp.second;
-//
-//			m_sh.assign_subset(vol1, sudoVols);
-//			m_sh.assign_subset(vol2, sudoVols);
-//			m_sh.assign_subset(fac, sudoFacs);
-//			m_sh.assign_subset(edg1, sudoEdgs);
-//			m_sh.assign_subset(edg2, sudoEdgs);
-//			m_sh.assign_subset(vrtC, sudoVrtx);
-//			m_sh.assign_subset(vrtE1, sudoVrtx);
-//			m_sh.assign_subset(vrtE2, sudoVrtx);
-//
-//		}
-//
-//		UG_LOG("first round finished " << std::endl);
-//		return false;
+		UG_LOG("first round finished " << std::endl);
 		if( ! partnerFound )
 		{
 			UG_LOG("no partner found " << std::endl);
@@ -843,7 +800,8 @@ bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
 bool DiamondsEstablish3D::establishElems2BeQuenched( VecVolumeElementFaceQuintuplet & vvef5,
 													 Elems2BQuenched & elem2BQuenched )
 {
-	// TODO FIXME
+
+
 
 	return true;
 }

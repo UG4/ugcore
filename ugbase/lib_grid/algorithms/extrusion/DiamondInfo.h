@@ -250,12 +250,14 @@ public:
 	using FullLowDimTwin = FulldimLowdimTwin<FULLDIMELEM,LOWDIMELEM,INDEXTYP>;
 	using PairFullLowDimTwin = std::pair<FullLowDimTwin,FullLowDimTwin>;
 	using PairVrtcs = std::pair<VERTEXTYP,VERTEXTYP>;
+	using PairLowdimElem = std::pair<LOWDIMELEM,LOWDIMELEM>;
 
 	FullLowDimManifQuintuplet( PairFullLowDimTwin const & fullLowPr, MANIFELEM const & manif )
 	: m_pairFullLowDimTwin(fullLowPr),
 	  m_manifElem(manif),
 	  m_centerVrtx(nullptr),
 	  m_shiftVrtcs(PairVrtcs()),
+	  m_pairLowdimElem(PairLowdimElem()),
 	  m_sudo(0)
 	{};
 
@@ -264,6 +266,7 @@ public:
 	  m_manifElem(nullptr),
 	  m_centerVrtx(nullptr),
 	  m_shiftVrtcs(PairVrtcs()),
+	  m_pairLowdimElem(PairLowdimElem()),
 	  m_sudo(0)
 	{};
 
@@ -348,12 +351,18 @@ public:
 		return true;
 	}
 
+	void spuckPairLowdimElem( PairLowdimElem & prLdE )
+	{
+		prLdE = m_pairLowdimElem;
+	}
+
 private:
 
 	PairFullLowDimTwin m_pairFullLowDimTwin;
 	MANIFELEM m_manifElem;
 	VERTEXTYP m_centerVrtx;
 	PairVrtcs m_shiftVrtcs;
+	PairLowdimElem m_pairLowdimElem;
 	INDEXTYP m_sudo;
 
 	bool checkIntegrityVols()
@@ -429,6 +438,8 @@ private:
 		m_pairFullLowDimTwin.second.spuckLowDimElem(edgeTwo);
 		//		edgeOne = m_pairFullLowDimTwin.first.spuckLowDimElem();
 		//		edgeTwo = m_pairFullLowDimTwin.first.spuckLowDimElem();
+
+		m_pairLowdimElem = PairLowdimElem( edgeOne, edgeTwo );
 
 		Vertex * centerVrtx;
 		Vertex * shiftVrtxOne;
@@ -562,13 +573,22 @@ public:
 
 	using FullLowDimManifQntpl = FullLowDimManifQuintuplet<FULLDIMELEM,MANIFELEM,LOWDIMELEM,VERTEXTYP,INDEXTYP>;
 	using VecFullLowDimManifQuintuplet = std::vector<FullLowDimManifQntpl>;
+	using PairLowdimElem = std::pair<LOWDIMELEM,LOWDIMELEM>;
 
 	ElemsToBeQuenched4DiamSpace( VecFullLowDimManifQuintuplet const & vfldm5 )
-	: m_centerVrtx(nullptr), m_originalCenterVrtx(nullptr), m_vecFullLowDimManifQuintpl(vfldm5), m_sudo(vfldm5[0].spuckSudo())
+	: m_centerVrtx(nullptr),
+	  m_originalCenterVrtx(nullptr),
+	  m_vecFullLowDimManifQuintpl(vfldm5),
+	  m_pairLowDimElem(PairLowdimElem()),
+	  m_sudo(vfldm5[0].spuckSudo())
 	{}
 
 	ElemsToBeQuenched4DiamSpace()
-	: m_centerVrtx(nullptr), m_originalCenterVrtx(nullptr),m_vecFullLowDimManifQuintpl(VecFullLowDimManifQuintuplet()), m_sudo(0)
+	: m_centerVrtx(nullptr),
+	  m_originalCenterVrtx(nullptr),
+	  m_vecFullLowDimManifQuintpl(VecFullLowDimManifQuintuplet()),
+	  m_pairLowDimElem(PairLowdimElem()),
+	  m_sudo(0)
 	{}
 
 
@@ -577,6 +597,8 @@ public:
 		bool centerAssigned = false;
 
 		bool sudoAssigned = false;
+
+		bool pairLowdimElmAssigned = false;
 
 		for( auto & fldmq : m_vecFullLowDimManifQuintpl )
 		{
@@ -610,6 +632,40 @@ public:
 				}
 			}
 
+			if( ! pairLowdimElmAssigned )
+			{
+				m_pairLowDimElem = fldmq.spuckPairLowdimElem;
+				pairLowdimElmAssigned = true;
+			}
+			else
+			{
+				PairLowdimElem testPrLDE = fldmq.spuckPairLowdimElem;
+
+				if( m_pairLowDimElem != testPrLDE )
+				{
+					// check for swaped pair
+					std::swap(testPrLDE.first, testPrLDE.second);
+
+					if( testPrLDE !=  m_pairLowDimElem )
+					{
+						UG_LOG("different lowdim pairs " << std::endl);
+						return false;
+					}
+
+					if( ! fldmq.swapEntries() )
+					{
+						UG_LOG("entries not swappable" << std::endl);
+						return false;
+					}
+
+					if( ! fldmq.checkIntegrity() )
+					{
+						UG_LOG("quintuplet not integer any more " << std::endl);
+						return false;
+					}
+				}
+			}
+
 			if( ! sudoAssigned )
 			{
 				m_sudo = fldmq.spuckSudo();
@@ -633,7 +689,11 @@ public:
 //			}
 		}
 
-		if( ! centerAssigned || m_centerVrtx == nullptr || ! sudoAssigned )
+		if(    ! centerAssigned
+			|| m_centerVrtx == nullptr
+			|| ! pairLowdimElmAssigned
+			|| ! sudoAssigned
+		  )
 		{
 			UG_LOG("CEnter problem " << std::endl);
 			return false;
@@ -676,11 +736,18 @@ public:
 		vfldm5 = m_vecFullLowDimManifQuintpl;
 	}
 
+	void spuckPairLowDimElem( PairLowdimElem & plde )
+	{
+		plde = m_pairLowDimElem;
+	}
+
 	INDEXTYP spuckSudo() { return m_sudo; }
 
 private:
 
 	VERTEXTYP m_centerVrtx, m_originalCenterVrtx;
+	PairLowdimElem m_pairLowDimElem;
+
 	VecFullLowDimManifQuintuplet m_vecFullLowDimManifQuintpl;
 	INDEXTYP m_sudo;
 
