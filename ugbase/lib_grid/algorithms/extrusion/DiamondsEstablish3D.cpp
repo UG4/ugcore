@@ -23,6 +23,7 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 		:
 			m_grid(grid),
 			m_sh(sh),
+			m_aaPos(Grid::VertexAttachmentAccessor<APosition>()),
 			m_vecVolManifVrtxCombiToShrink4Diams(vecVolManifVrtxC),
 			m_vecVolElmFac5(VecVolumeElementFaceQuintuplet()),
 			m_vecElems2BQuenched(VecElems2BQuenched()),
@@ -81,9 +82,27 @@ DiamondsEstablish3D::~DiamondsEstablish3D()
 	// Auto-generated destructor stub
 }
 
+bool DiamondsEstablish3D::initialize()
+{
+	if(!m_grid.has_vertex_attachment(aPosition) )
+	{
+		UG_LOG("Error in ExpandFractures Arte 3D: Missing position attachment");
+		return false;
+	}
+
+	m_aaPos = Grid::VertexAttachmentAccessor<APosition>(m_grid, aPosition);
+
+	return true;
+}
 
 bool DiamondsEstablish3D::createTheDiamonds()
 {
+	if( ! initialize())
+	{
+		UG_LOG("initialization diamonds did not work " << std::endl);
+		return false;
+	}
+
 	if( ! figureOutTheEdges() )
 	{
 		UG_LOG("Edges not found " << std::endl);
@@ -528,12 +547,10 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 		Vertex * centerVrtx;
 		e2bq.spuckCenterVertex(centerVrtx);
 
-		Grid::VertexAttachmentAccessor<APosition> aaPos;
-
 		vector3 vertexLocation;
 
 		if( centerVrtx != nullptr )
-			vertexLocation = aaPos[centerVrtx];
+			vertexLocation = m_aaPos[centerVrtx];
 		else
 		{
 			UG_LOG("center null " << std::endl);
@@ -617,7 +634,7 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 	//			m_sh.assign_subset(vol1, sudoVols);
 	//			m_sh.assign_subset(vol2, sudoVols);
 
-				//			m_sh.assign_subset(fac, sudoFacs);
+//				m_sh.assign_subset(fac, sudoFacs);
 
 
 	//			m_sh.assign_subset(fac, sudoFacs);
@@ -627,18 +644,29 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 	//			m_sh.assign_subset(vrtE1, sudoVrtx);
 	//			m_sh.assign_subset(vrtE2, sudoVrtx);
 
+				Edge * edgOne;
+				Edge * edgTwo;
+
+				edgOne = *m_grid.create<RegularEdge>(EdgeDescriptor( edgP.first->vertex(0), edgP.first->vertex(1) ));
+				edgTwo = *m_grid.create<RegularEdge>(EdgeDescriptor( edgP.second->vertex(0), edgP.second->vertex(1) ));
+
+				m_sh.assign_subset(edgOne,sudoEdgs);
+				m_sh.assign_subset(edgTwo,sudoEdgs);
+
+				Vertex * centerV;
+
+				e2bq.spuckCenterVertex(centerV);
+
+				Vertex * newCenter = *m_grid.create<RegularVertex>();
+
+				m_aaPos[newCenter] = m_aaPos[centerV];
+
+				m_sh.assign_subset(newCenter, sudoVrtx);
 
 			}
 
 
 
-			m_sh.assign_subset(edgP.first,sudoEdgs);
-			m_sh.assign_subset(edgP.second,sudoEdgs);
-
-			Vertex * centerV;
-
-			e2bq.spuckCenterVertex(centerV);
-			m_sh.assign_subset(centerV, sudoVrtx);
 
 //		if( d_q == 20 )
 //			return true;

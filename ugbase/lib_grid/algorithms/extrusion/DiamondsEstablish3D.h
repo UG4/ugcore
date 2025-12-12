@@ -47,12 +47,15 @@ public:
 
 	bool createTheDiamonds();
 
+
 private:
 
 	Grid & m_grid;
 	SubsetHandler & m_sh;
+	Grid::VertexAttachmentAccessor<APosition> m_aaPos;
 	VecVolManifVrtxCombi m_vecVolManifVrtxCombiToShrink4Diams;
 
+	bool initialize();
 	bool figureOutTheEdges();
 
 	bool findRegions2BShrinked();
