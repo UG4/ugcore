@@ -71,6 +71,9 @@
 namespace ug
 {
 
+namespace arte
+{
+
 ArteExpandFracs3D::ArteExpandFracs3D(
 		Grid & grid, SubsetHandler & sh,
 	    std::vector<FractureInfo> const & fracInfos,
@@ -9279,5 +9282,7 @@ bool ArteExpandFracs3D::createTheDiamonds()
 //
 //	return true;
 }
+
+} /* namespace arte */
 
 } /* namespace ug */

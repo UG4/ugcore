@@ -50,8 +50,11 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug
+{
 
+namespace arte
+{
 
 bool ExpandFractures3dArte( Grid& grid, SubsetHandler& sh,
 						    std::vector<FractureInfo> const & fracInfos,
@@ -83,7 +86,7 @@ bool ExpandFractures3dArte( Grid& grid, SubsetHandler& sh,
 
 }
 
-
+}
 
 }// end of namespace
 

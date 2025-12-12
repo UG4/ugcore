@@ -24,6 +24,8 @@
 namespace ug
 {
 
+namespace arte
+{
 ////////////////////////////////////////////7
 
 namespace diamonds
@@ -318,6 +320,32 @@ public:
 	void spuckManifElem( MANIFELEM & m )
 	{
 		m = m_manifElem;
+	}
+
+	bool swapEntries()
+	{
+		std::swap( m_pairFullLowDimTwin.first, m_pairFullLowDimTwin.second );
+		std::swap( m_shiftVrtcs.first, m_shiftVrtcs.second );
+
+		FullLowDimTwin fldOne = m_pairFullLowDimTwin.first;
+		FullLowDimTwin fldTwo = m_pairFullLowDimTwin.second;
+
+		VERTEXTYP vrtOne = m_shiftVrtcs.first;
+		VERTEXTYP vrtTwo = m_shiftVrtcs.second;
+
+		if( fldOne != m_pairFullLowDimTwin.second || fldTwo != m_pairFullLowDimTwin.first )
+		{
+			UG_LOG("swappign not worked " << std::endl);
+			return false;
+		}
+
+		if( vrtOne != m_shiftVrtcs.second || vrtTwo != m_shiftVrtcs.first )
+		{
+			UG_LOG("swaping vrtx not work " << std::endl);
+			return false;
+		}
+
+		return true;
 	}
 
 private:
@@ -664,8 +692,9 @@ private:
 
 
 
-
 } // end of namespace diamonds
+
+} // end of namespace arte
 
 } // end of namespace ug
 

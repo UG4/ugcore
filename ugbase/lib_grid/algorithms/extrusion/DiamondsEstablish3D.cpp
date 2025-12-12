@@ -10,6 +10,9 @@
 namespace ug
 {
 
+namespace arte
+{
+
 namespace diamonds
 {
 
@@ -671,54 +674,54 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 
 	UG_LOG("end of search reached diams " << std::endl);
 
-	for( auto & v: m_vecVolElmFac5 )
-	{
-		IndexType sudoNum = m_sh.num_subsets();
-
-		IndexType sudoVols = sudoNum;
-		IndexType sudoFacs = sudoNum+1;
-		IndexType sudoEdgs = sudoNum+2;
-		IndexType sudoVrtx = sudoNum+3;
-
-		Volume * vol1;
-		Volume * vol2;
-		Face * fac;
-		Edge * edg1;
-		Edge * edg2;
-		Vertex * vrtC;
-		Vertex * vrtE1;
-		Vertex * vrtE2;
-
-		std::pair<VolumeElementTwin,VolumeElementTwin> pvv;
-
-		v.spuckPairFullLowDimTwin(pvv);
-
-		pvv.first.spuckFullDimElem(vol1);
-		pvv.second.spuckFullDimElem(vol2);
-
-		v.spuckManifElem( fac );
-
-		pvv.first.spuckLowDimElem(edg1);
-		pvv.second.spuckLowDimElem(edg2);
-
-		v.spuckCenterVertex(vrtC);
-
-		VrtxPair vp;
-		v.spuckShiftVrtcs(vp);
-
-		vrtE1 = vp.first;
-		vrtE2 = vp.second;
-
-		m_sh.assign_subset(vol1, sudoVols);
-		m_sh.assign_subset(vol2, sudoVols);
-		m_sh.assign_subset(fac, sudoFacs);
-		m_sh.assign_subset(edg1, sudoEdgs);
-		m_sh.assign_subset(edg2, sudoEdgs);
-		m_sh.assign_subset(vrtC, sudoVrtx);
-		m_sh.assign_subset(vrtE1, sudoVrtx);
-		m_sh.assign_subset(vrtE2, sudoVrtx);
-
-	}
+//	for( auto & v: m_vecVolElmFac5 )
+//	{
+//		IndexType sudoNum = m_sh.num_subsets();
+//
+//		IndexType sudoVols = sudoNum;
+//		IndexType sudoFacs = sudoNum+1;
+//		IndexType sudoEdgs = sudoNum+2;
+//		IndexType sudoVrtx = sudoNum+3;
+//
+//		Volume * vol1;
+//		Volume * vol2;
+//		Face * fac;
+//		Edge * edg1;
+//		Edge * edg2;
+//		Vertex * vrtC;
+//		Vertex * vrtE1;
+//		Vertex * vrtE2;
+//
+//		std::pair<VolumeElementTwin,VolumeElementTwin> pvv;
+//
+//		v.spuckPairFullLowDimTwin(pvv);
+//
+//		pvv.first.spuckFullDimElem(vol1);
+//		pvv.second.spuckFullDimElem(vol2);
+//
+//		v.spuckManifElem( fac );
+//
+//		pvv.first.spuckLowDimElem(edg1);
+//		pvv.second.spuckLowDimElem(edg2);
+//
+//		v.spuckCenterVertex(vrtC);
+//
+//		VrtxPair vp;
+//		v.spuckShiftVrtcs(vp);
+//
+//		vrtE1 = vp.first;
+//		vrtE2 = vp.second;
+//
+//		m_sh.assign_subset(vol1, sudoVols);
+//		m_sh.assign_subset(vol2, sudoVols);
+//		m_sh.assign_subset(fac, sudoFacs);
+//		m_sh.assign_subset(edg1, sudoEdgs);
+//		m_sh.assign_subset(edg2, sudoEdgs);
+//		m_sh.assign_subset(vrtC, sudoVrtx);
+//		m_sh.assign_subset(vrtE1, sudoVrtx);
+//		m_sh.assign_subset(vrtE2, sudoVrtx);
+//
+//	}
 
 
 	UG_LOG("found regions to be shrinked" << std::endl);
@@ -849,5 +852,6 @@ bool DiamondsEstablish3D::establishElems2BeQuenched( VecVolumeElementFaceQuintup
 
 } /* namespace diamonds */
 
+} /* namespace arte */
 
 } /* namespace ug */

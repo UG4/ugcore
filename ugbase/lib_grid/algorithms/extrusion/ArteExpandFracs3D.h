@@ -66,7 +66,11 @@
 #ifndef UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_ARTEEXPANDFRACS3D_H_
 #define UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_ARTEEXPANDFRACS3D_H_
 
-namespace ug {
+namespace ug
+{
+
+namespace arte
+{
 
 class ArteExpandFracs3D
 {
@@ -553,6 +557,7 @@ private:
 //											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
 //											>( Vertex * const & oldVrt );
 
+} /* namespace arte */
 
 } /* namespace ug */
 

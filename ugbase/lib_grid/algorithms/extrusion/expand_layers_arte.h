@@ -40,7 +40,8 @@
 
 namespace ug
 {
-
+namespace arte
+{
 /**
  * 2 dimensional fracture expansion for finite extensions, using the Arte algorithm
  *
@@ -49,7 +50,7 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, std::vector<FractureI
 						    bool useTrianglesInDiamonds, bool establishDiamonds );
 
 
-
+}
 }
 
 #endif /* UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_EXPAND_LAYERS_ARTE_H_ */

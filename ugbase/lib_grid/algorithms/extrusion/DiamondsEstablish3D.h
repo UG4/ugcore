@@ -21,6 +21,9 @@
 namespace ug
 {
 
+namespace arte
+{
+
 namespace diamonds
 {
 
@@ -86,6 +89,8 @@ private:
 };
 
 } /* namespace diamonds */
+
+} /* namespace arte */
 
 } /* namespace ug */
 
