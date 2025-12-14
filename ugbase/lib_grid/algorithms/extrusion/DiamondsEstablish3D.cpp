@@ -28,9 +28,12 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_vecVolElmFac5(VecVolumeElementFaceQuintuplet()),
 			m_vecElems2BQuenched(VecElems2BQuenched()),
 			m_disappearingVols(std::vector<Volume*>()),
-			m_disappearingFacs(std::vector<Face*>())
+			m_disappearingFacs(std::vector<Face*>()),
+			m_elemGroupVrtx2BQuenched(ElemGroupVrtx2BQuenched4Diams())
 //			m_disappearingEdgs(std::vector<Edge*>())
 {
+	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
+		m_sel = Selector();
 }
 
 //bool DiamondsEstablish3D::createTheDiamonds()
@@ -103,6 +106,11 @@ bool DiamondsEstablish3D::createTheDiamonds()
 		return false;
 	}
 
+	if( ! setSelector() )
+		return false;
+
+	UG_LOG("selektiert" << std::endl);
+
 	if( ! figureOutTheEdges() )
 	{
 		UG_LOG("Edges not found " << std::endl);
@@ -121,11 +129,30 @@ bool DiamondsEstablish3D::createTheDiamonds()
 		return false;
 	}
 
+	if( ! sortElems2BQuenched())
+	{
+		UG_LOG("sorting quench impossible" << std::endl);
+		return false;
+	}
+
 	UG_LOG("Established diamonds" << std::endl);
 
 
 	return true;
 }
+
+bool DiamondsEstablish3D::setSelector()
+{
+
+	m_sel.assign_grid(m_grid);
+
+	m_sel.enable_autoselection(false);
+	m_sel.enable_selection_inheritance(true);	//required for select and mark, disabled later
+	m_sel.enable_strict_inheritance(false);
+
+	return true;
+}
+
 
 bool DiamondsEstablish3D::figureOutTheEdges()
 {
@@ -680,6 +707,60 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 
 	return true;
 }
+
+////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::sortElems2BQuenched()
+{
+	VecElems2BQuenched ve2bq = m_vecElems2BQuenched;
+
+	for( typename VecElems2BQuenched::iterator itOuter = ve2bq.begin();
+			      itOuter != ve2bq.end();
+	   )
+	{
+		Elems2BQuenched e2bqOuter = *itOuter;
+
+		Vertex * centerVrtxOuter;
+		VecElems2BQuenched vecElems2Q4ThisVrtx;
+		e2bqOuter.spuckOrigCenterVertex( centerVrtxOuter );
+
+		vecElems2Q4ThisVrtx.push_back(e2bqOuter);
+
+		for( typename VecElems2BQuenched::iterator itInner = ve2bq.begin() + 1;
+				      itInner != ve2bq.end();
+		   )
+		{
+			Elems2BQuenched e2bqInner = *itInner;
+
+			Vertex * centerVrtxInner;
+			e2bqInner.spuckOrigCenterVertex( centerVrtxInner );
+
+			if( centerVrtxOuter == centerVrtxInner )
+			{
+				vecElems2Q4ThisVrtx.push_back(e2bqInner);
+				itInner = ve2bq.erase(itInner);
+			}
+			else
+			{
+				itInner++;
+			}
+		}
+
+		ElemGroupVrtx2BQuenched4Diams egv2b( vecElems2Q4ThisVrtx );
+
+		if( ! egv2b.checkIntegrity() )
+		{
+			UG_LOG("elem group not integer for vertex" << std::endl);
+			return false;
+		}
+
+		itOuter = ve2bq.erase(itOuter);
+
+	}
+
+	return true;
+}
+
 ////////////////////////////////////////////////////////////////////////////
 
 

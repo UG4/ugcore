@@ -87,6 +87,16 @@ private:
 //	std::vector<Edge*> m_disappearingEdgs;
 
 	using EdgePair = std::pair<Edge*,Edge*>;
+
+	bool sortElems2BQuenched();
+
+	Selector m_sel;
+
+	bool setSelector();
+
+	using ElemGroupVrtx2BQuenched4Diams = ElemGroupVrtxToBeQuenched4DiamSpace<Volume*, Face*, Edge*, Vertex*, IndexType>;
+
+	ElemGroupVrtx2BQuenched4Diams m_elemGroupVrtx2BQuenched;
 };
 
 } /* namespace diamonds */

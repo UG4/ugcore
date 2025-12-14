@@ -773,6 +773,93 @@ private:
 
 /////////////////////////////////////////////////////////////////
 
+template <
+typename FULLDIMELEM,
+typename MANIFELEM,
+typename LOWDIMELEM,
+typename VERTEXTYP,
+typename INDEXTYP,
+typename = std::enable_if< std::is_pointer<FULLDIMELEM>::value>,
+typename = std::enable_if< std::is_pointer<MANIFELEM>::value>,
+typename = std::enable_if< std::is_pointer<LOWDIMELEM>::value>,
+typename = std::enable_if< std::is_pointer<VERTEXTYP>::value>
+>
+class ElemGroupVrtxToBeQuenched4DiamSpace
+{
+public:
+
+	using Elems2BQuenched4Diams = ElemsToBeQuenched4DiamSpace<FULLDIMELEM,MANIFELEM,LOWDIMELEM,VERTEXTYP,INDEXTYP>;
+
+	using VecElems2BQuenched4Diams = std::vector<Elems2BQuenched4Diams>;
+
+	ElemGroupVrtxToBeQuenched4DiamSpace( VecElems2BQuenched4Diams const & ve2bq4d )
+	: m_vecElems2bQuenched(ve2bq4d), m_origCenterVrtx(nullptr)
+	{}
+
+	ElemGroupVrtxToBeQuenched4DiamSpace()
+	: m_vecElems2bQuenched(VecElems2BQuenched4Diams()), m_origCenterVrtx(nullptr)
+	{}
+
+
+	bool checkIntegrity()
+	{
+		bool centerVrtxFound = false;
+
+		for( Elems2BQuenched4Diams & e2bq : m_vecElems2bQuenched )
+		{
+			if( ! e2bq.checkIntegrity() )
+			{
+				UG_LOG("quench elements not integer in vector at one point " << std::endl);
+				return false;
+			}
+
+			if( ! centerVrtxFound )
+			{
+				e2bq.spuckOrigCenterVertex(m_origCenterVrtx);
+				centerVrtxFound = true;
+			}
+			else
+			{
+				VERTEXTYP vrtTest;
+
+				e2bq.spuckOrigCenterVertex(vrtTest);
+
+				if( vrtTest != m_origCenterVrtx )
+				{
+					UG_LOG("center vertices do not agree in group " << std::endl);
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	void spuckOrigCenterVertex( VERTEXTYP & ocv )
+	{
+		ocv = m_origCenterVrtx;
+	}
+
+	void spuckVecElems2BQuenched4Diams( VecElems2BQuenched4Diams & ve2bq )
+	{
+		ve2bq = m_vecElems2bQuenched;
+	}
+
+	void changeVecElems2BQuenched4Diams( VecElems2BQuenched4Diams const & ve2bq )
+	{
+		m_vecElems2bQuenched = ve2bq;
+	}
+
+
+private:
+
+	VecElems2BQuenched4Diams m_vecElems2bQuenched;
+	VERTEXTYP m_origCenterVrtx;
+
+
+};
+
+
 
 
 
