@@ -143,6 +143,11 @@ private:
 
 	Grid::EdgeAttachmentAccessor<ABool> m_attAccsEdgeIsShiftEdge;
 
+	bool trafoQuintupleInfo2Attachments(VolumeElementFaceQuintuplet & vef5);
+
+	using VolumeEdgeTwin = FulldimLowdimTwin<Volume*,Edge*,IndexType>;
+	using PairVolumeEdgeTwin = std::pair<VolumeEdgeTwin, VolumeEdgeTwin>;
+
 };
 
 } /* namespace diamonds */

@@ -949,14 +949,18 @@ bool DiamondsEstablish3D::trafoCollectedInfo2Attachments()
 
 		for( Elems2BQuenched & e2bq : ve2bq )
 		{
-//			VecVolumeElementFaceQuintuplet vvef5;
-//
-//			e2bq.spuckVecFullLowDimManifQuintuplet(vvef5);
-//
-//			for( VolumeElementFaceQuintuplet & vef5 : vvef5 )
-//			{
-//
-//			}
+			VecVolumeElementFaceQuintuplet vvef5;
+
+			e2bq.spuckVecFullLowDimManifQuintuplet(vvef5);
+
+			for( VolumeElementFaceQuintuplet & vef5 : vvef5 )
+			{
+				if( ! trafoQuintupleInfo2Attachments(vef5))
+				{
+					UG_LOG("Quintuples do not get to attachments" << std::endl);
+					return false;
+				}
+			}
 //			debugE2bQ(e2bq);
 		}
 	}
@@ -965,6 +969,67 @@ bool DiamondsEstablish3D::trafoCollectedInfo2Attachments()
 
 	return true;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::trafoQuintupleInfo2Attachments(VolumeElementFaceQuintuplet & vef5 )
+{
+	VrtxPair vp;
+	vef5.spuckShiftVrtcs(vp);
+
+	m_attAccsVrtxIsShiftVrtx[vp.first] = true;
+	m_attAccsVrtxIsShiftVrtx[vp.second] = true;
+
+	PairVolumeEdgeTwin pvet;
+	vef5.spuckPairFullLowDimTwin(pvet);
+
+	VolumeEdgeTwin vetOne = pvet.first;
+	VolumeEdgeTwin vetTwo = pvet.second;
+
+	Volume * volOne;
+	Volume * volTwo;
+	Edge * edgOne;
+	Edge * edgTwo;
+
+	vetOne.spuckFullDimElem(volOne);
+	vetOne.spuckLowDimElem(edgOne);
+
+	vetTwo.spuckFullDimElem(volTwo);
+	vetTwo.spuckLowDimElem(edgTwo);
+
+	m_attAccsVolGetsShrinked[volOne] = true;
+	m_attAccsVolGetsShrinked[volTwo] = true;
+
+	m_attAccsEdgeIsShiftEdge[edgOne] = true;
+	m_attAccsEdgeIsShiftEdge[edgTwo] = true;
+
+
+	Face * fac;
+
+	vef5.spuckManifElem(fac);
+
+	m_attAccsFacIsTwinFac[fac] = true;
+
+
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////
+
+
+
+
 
 
 } /* namespace diamonds */
