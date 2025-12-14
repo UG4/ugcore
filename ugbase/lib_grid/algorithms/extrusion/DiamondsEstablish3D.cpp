@@ -49,7 +49,8 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_attInfoVecSudosTouchingVrtx(AttVecInt()),
 			m_attAccsInfoVecSudosTouchingVrtx(Grid::VertexAttachmentAccessor<AttVecInt>()),
 			m_attVrtxIsMidPtOfShiftVrtx(ABool()),
-			m_attAccsVrtxIsMidPtOfShiftVrtcs(Grid::VertexAttachmentAccessor<ABool>())
+			m_attAccsVrtxIsMidPtOfShiftVrtcs(Grid::VertexAttachmentAccessor<ABool>()),
+			m_vecCombiShiftVrtxMidVrtx(VecCombiShiftVrtxMidVrtx())
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -139,11 +140,15 @@ bool DiamondsEstablish3D::createTheDiamonds()
 		return false;
 	}
 
+	UG_LOG("edges figured out " << std::endl);
+
 	if( ! findRegions2BShrinked())
 	{
 		UG_LOG("Regions to be shrinked not found " << std::endl);
 		return false;
 	}
+
+	UG_LOG("regions to be shrinked found " << std::endl);
 
 	if( ! establishElems2BeQuenched() )
 	{
@@ -151,11 +156,15 @@ bool DiamondsEstablish3D::createTheDiamonds()
 		return false;
 	}
 
+	UG_LOG("quenching elements established " << std::endl);
+
 	if( ! sortElems2BQuenched())
 	{
 		UG_LOG("sorting quench impossible" << std::endl);
 		return false;
 	}
+
+	UG_LOG("sorted elements finished " << std::endl);
 
 	if( ! attachMarkers())
 	{
@@ -163,11 +172,15 @@ bool DiamondsEstablish3D::createTheDiamonds()
 		return false;
 	}
 
+	UG_LOG("markers attached" << std::endl);
+
 	if( ! assignBasicAtts())
 	{
 		UG_LOG("unassignale basic att" << std::endl);
 		return false;
 	}
+
+	UG_LOG("basic attcs assigned" << std::endl);
 
 	if( ! trafoCollectedInfo2Attachments())
 	{
@@ -175,11 +188,15 @@ bool DiamondsEstablish3D::createTheDiamonds()
 		return false;
 	}
 
+	UG_LOG("trafo collected infos " << std::endl);
+
 	if( ! createConditionForNewVrtcs())
 	{
 		UG_LOG("conditions for new vertices do not work " << std::endl);
 		return false;
 	}
+
+	UG_LOG("conditions for new vertices created" << std::endl);
 
 	if( ! distributeInfosForShrinkingVols())
 	{
@@ -187,11 +204,23 @@ bool DiamondsEstablish3D::createTheDiamonds()
 		return false;
 	}
 
+	UG_LOG("info distributed" << std::endl);
+
+	if( ! shrinkVolumes())
+	{
+		UG_LOG("shrinken schief gegangen " << std::endl);
+		return false;
+	}
+
+	UG_LOG("volumes shrinked " << std::endl);
+
 	if( ! detachMarkers())
 	{
 		UG_LOG("Markers do not get detouched D" << std::endl);
 		return false;
 	}
+
+	UG_LOG("markers detached" << std::endl);
 
 	UG_LOG("noch nicht soweit: Established diamonds" << std::endl);
 
@@ -967,20 +996,48 @@ bool DiamondsEstablish3D::assignBasicAtts()
 
 bool DiamondsEstablish3D::trafoCollectedInfo2Attachments()
 {
-	for(VertexIterator iterV = m_sel.vertices_begin(); iterV != m_sel.vertices_end(); iterV++)
+	//for(VertexIterator iterV = m_sel.vertices_begin(); iterV != m_sel.vertices_end(); iterV++)
+	for( ElemGroupVrtx2BQuenched4Diams & egv2bQ : m_vecElemGroupVrtx2BQuenched )
 	{
-		Vertex * centerV = *iterV;
+//		Vertex * centerV = *iterV;
+//
+//		ElemGroupVrtx2BQuenched4Diams egv2bQ = m_attAccsElmGrpVrtx2BQnchd[centerV];
+//
+//		Vertex * testVrtx;
+//		egv2bQ.spuckOrigCenterVertex(testVrtx);
+//
+//		if( testVrtx != nullptr )
+//		{
+//			UG_LOG("found test vertex not null " << m_aaPos[testVrtx] << std::endl);
+//
+//			if( centerV != nullptr )
+//				UG_LOG("also center not null " << m_aaPos[centerV] << std::endl);
+//		}
+//
+//
+//		if( testVrtx == nullptr )
+//		{
+//			UG_LOG("test vertex null " << std::endl);
+//
+//			if( centerV != nullptr )
+//				UG_LOG("for center " << m_aaPos[centerV] << std::endl);
+//
+//			continue;
+//		}
+//
+//		if( testVrtx != centerV )
+//		{
+//			UG_LOG("transfer did not work " << std::endl);
+//
+//			UG_LOG("different locations at " << m_aaPos[testVrtx] << " and " << m_aaPos[centerV] << std::endl);
+//
+//			return false;
+//		}
 
-		ElemGroupVrtx2BQuenched4Diams egv2bQ = m_attAccsElmGrpVrtx2BQnchd[centerV];
+		Vertex * centerV;
 
-		Vertex * testVrtx;
-		egv2bQ.spuckOrigCenterVertex(testVrtx);
+		egv2bQ.spuckOrigCenterVertex(centerV);
 
-		if( testVrtx != centerV )
-		{
-			UG_LOG("transfer did not work " << std::endl);
-			return false;
-		}
 
 		VecElems2BQuenched ve2bq;
 		egv2bQ.spuckVecElems2BQuenched4Diams(ve2bq);
@@ -1066,7 +1123,6 @@ bool DiamondsEstablish3D::trafoQuintupleInfo2Attachments(VolumeElementFaceQuintu
 	m_sel.select(edgOne);
 	m_sel.select(edgTwo);
 
-
 	Face * fac;
 
 	vef5.spuckManifElem(fac);
@@ -1086,26 +1142,13 @@ bool DiamondsEstablish3D::assignMidPointOfShiftVrtcs(Elems2BQuenched & e2bq)
 
 	e2bq.spuckShiftVrtcs(shiftVrtcs);
 
-	Vertex * vrtxOne;
-	Vertex * vrtxTwo;
+	Vertex * midPtVrtx;
 
-	vrtxOne = shiftVrtcs.first;
-	vrtxTwo = shiftVrtcs.second;
-
-	vector3 posOne = m_aaPos[vrtxOne];
-	vector3 posTwo = m_aaPos[vrtxTwo];
-
-	vector3 sum;
-
-	VecAdd(sum,posOne,posTwo);
-
-	vector3 scal;
-
-	VecScale(scal,sum,0.5);
-
-	Vertex * midPtVrtx = *m_grid.create<RegularVertex>();
-
-	m_aaPos[midPtVrtx] = scal;
+	if( !createMidVrtx(shiftVrtcs, midPtVrtx))
+	{
+		UG_LOG("mid vertex already created " << std::endl);
+//		return false;
+	}
 
 	e2bq.assignMidPointOfShiftVrtcs(midPtVrtx);
 
@@ -1113,6 +1156,77 @@ bool DiamondsEstablish3D::assignMidPointOfShiftVrtcs(Elems2BQuenched & e2bq)
 }
 
 //////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::createMidVrtx( VrtxPair const & shiftVrtcs, Vertex * & midPtVrtx )
+{
+
+	bool pairAlreadyCombined = false;
+
+	for( CombiShiftVrtxMidVrtx & csvmv : m_vecCombiShiftVrtxMidVrtx )
+	{
+		VrtxPair prNoSwap;
+
+		csvmv.spuckShiftVrtxPair(prNoSwap);
+
+		if( prNoSwap == shiftVrtcs )
+		{
+			pairAlreadyCombined = true;
+			csvmv.spuckSinglVrtx(midPtVrtx);
+
+			break;
+		}
+		else
+		{
+			std::swap( prNoSwap.first, prNoSwap.second );
+
+			if( prNoSwap == shiftVrtcs )
+			{
+				pairAlreadyCombined = true;
+				csvmv.spuckSinglVrtx(midPtVrtx);
+
+				break;
+			}
+
+			if( pairAlreadyCombined )
+				break;
+
+		}
+	}
+
+	if( ! pairAlreadyCombined )
+	{
+
+		Vertex * vrtxOne;
+		Vertex * vrtxTwo;
+
+		vrtxOne = shiftVrtcs.first;
+		vrtxTwo = shiftVrtcs.second;
+
+
+		vector3 posOne = m_aaPos[vrtxOne];
+		vector3 posTwo = m_aaPos[vrtxTwo];
+
+		vector3 sum;
+
+		VecAdd(sum,posOne,posTwo);
+
+		vector3 scal;
+
+		VecScale(scal,sum,0.5);
+
+		midPtVrtx = *m_grid.create<RegularVertex>();
+
+		m_aaPos[midPtVrtx] = scal;
+
+		CombiShiftVrtxMidVrtx csvmvNew( shiftVrtcs, midPtVrtx );
+
+		m_vecCombiShiftVrtxMidVrtx.push_back(csvmvNew);
+	}
+
+	return (! pairAlreadyCombined);
+
+}
+
 //////////////////////////////////////////////////////////////////////////////////
 
 bool DiamondsEstablish3D::createConditionForNewVrtcs()
@@ -1178,7 +1292,7 @@ bool DiamondsEstablish3D::distributeInfosForShrinkingVols()
 				vetOne.spuckFullDimElem(volOne);
 				vetTwo.spuckFullDimElem(volTwo);
 
-				if( !teachMidVrtx2Vol(volOne,newMidVrtx) || ! teachMidVrtx2Vol(volTwo,newMidVrtx) )
+				if( !teachMidVrtx2Vol(volOne, centerVrtx, newMidVrtx) || ! teachMidVrtx2Vol(volTwo,centerVrtx,newMidVrtx) )
 				{
 					UG_LOG("not taughtable" << std::endl);
 					return false;
@@ -1195,9 +1309,9 @@ bool DiamondsEstablish3D::distributeInfosForShrinkingVols()
 
 //////////////////////////////////////////////////////////////////////////////////
 
-bool DiamondsEstablish3D::teachMidVrtx2Vol( Volume * const & vol, Vertex * const & midVrtx )
+bool DiamondsEstablish3D::teachMidVrtx2Vol( Volume * const & vol, Vertex * const & origVrtx, Vertex * const & midVrtx )
 {
-	IndexType taught;
+	IndexType taught = 0;
 
 	std::vector<Vertex*> & newVrts4Fac = m_attAccsVrtVecVol[ vol ];
 
@@ -1205,19 +1319,198 @@ bool DiamondsEstablish3D::teachMidVrtx2Vol( Volume * const & vol, Vertex * const
 	{
 		Vertex* volVrt = (vol)->vertex(indVrt);
 
-		if(  volVrt == midVrtx)
+		if(  origVrtx == volVrt )
 		{
 			newVrts4Fac[ indVrt ] = midVrtx;
 			taught++;
 		}
 	}
 
-	return ( taught == 1 );
+	if( taught != 1 )
+	{
+		UG_LOG("strange problem with the volume " << taught << std::endl);
+		m_sh.assign_subset(vol, m_sh.num_subsets());
+		return false;
+	}
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////////
 
+bool DiamondsEstablish3D::shrinkVolumes()
+{
+	//	holds local side vertex indices
+	std::vector<size_t>	locVrtInds;
 
+	//	first we create new edges from selected ones which are connected to
+	//	inner vertices. This allows to preserve old subsets.
+	//	Since we have to make sure that we use the right vertices,
+	//	we have to iterate over the selected volumes and perform all actions on the edges
+	//	of those volumes.
+
+	int volNum = 0;
+
+	for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end(); ++iter_sv)
+	{
+		volNum++;
+
+		Volume* sv = *iter_sv;
+
+		UG_LOG("Diamond entering volume to create new elems " << CalculateCenter(sv, m_aaPos) << std::endl);
+
+		//	check for each edge whether it has to be copied.
+		for(size_t i_edge = 0; i_edge < sv->num_edges(); ++i_edge)
+		{
+			Edge* e = m_grid.get_edge(sv, i_edge);
+
+			if(m_sel.is_selected(e))
+			{
+				//	check the associated vertices through the volumes aaVrtVecVol attachment.
+				//	If at least one has an associated new vertex and if no edge between the
+				//	new vertices already exists, we'll create the new edge.
+				size_t ind0, ind1;
+				sv->get_vertex_indices_of_edge(ind0, ind1, i_edge);
+				Vertex* nv0 = (m_attAccsVrtVecVol[sv])[ind0];
+				Vertex* nv1 = (m_attAccsVrtVecVol[sv])[ind1];
+
+				if(nv0 || nv1)
+				{
+					//	if one vertex has no associated new one, then we use the vertex itself
+					if(!nv0)
+						nv0 = sv->vertex(ind0);
+					if(!nv1)
+						nv1 = sv->vertex(ind1);
+
+					//	create the new edge if it not already exists.
+					if( ! m_grid.get_edge(nv0, nv1))
+						m_grid.create_by_cloning(e, EdgeDescriptor(nv0, nv1), e);
+				}
+			}
+		}
+	}
+
+
+
+	UG_LOG("Vol enter clone finished " << std::endl);
+
+	//	now we create new faces from selected ones which are connected to
+	//	inner vertices. This allows to preserve old subsets.
+	//	Since we have to make sure that we use the right vertices,
+	//	we have to iterate over the selected volumes and perform all actions on the side-faces
+	//	of those volumes.
+
+	FaceDescriptor fd;
+
+	int volNum2 = 0;
+
+	for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end(); ++iter_sv)
+	{
+		volNum2++;
+
+		Volume* sv = *iter_sv;
+		//	check for each face whether it has to be copied.
+
+		UG_LOG("Diamond Face descriptor for vol " << CalculateCenter(sv, m_aaPos) << std::endl);
+
+		for(size_t i_face = 0; i_face < sv->num_faces(); ++i_face)
+		{
+			Face* sf = m_grid.get_face(sv, i_face);
+
+			if( m_sel.is_selected(sf))
+			{
+				//	check the associated vertices through the volumes aaVrtVecVol attachment.
+				//	If no face between the new vertices already exists, we'll create the new face.
+				sv->get_vertex_indices_of_face(locVrtInds, i_face);
+				fd.set_num_vertices(sf->num_vertices());
+
+				for(size_t i = 0; i < sf->num_vertices(); ++i)
+				{
+					Vertex* nVrt = (m_attAccsVrtVecVol[sv])[locVrtInds[i]];
+
+					if(nVrt)
+						fd.set_vertex(i, nVrt);
+					else
+						fd.set_vertex(i, sv->vertex(locVrtInds[i]));
+				}
+
+				//	if the new face does not already exist, we'll create it
+				if(!m_grid.get_face(fd))
+					m_grid.create_by_cloning(sf, fd, sf);
+			}
+		}
+	}
+
+	UG_LOG("Face descriptor left" << std::endl);
+
+	//	Expand all faces.
+	//	Since volumes are replaced on the fly, we have to take care with the iterator.
+	//	record all new volumes in a vector. This will help to adjust positions later on.
+
+	std::vector<Volume*> newFractureVolumes;
+	std::vector<IndexType> subsOfNewVolumes;
+
+	// create alternative volumes where there are ending crossing clefts
+
+	VolumeDescriptor vd;
+
+	// beim Volumen fängt das Abfangen an, es muss abgefragt werden, ob das Volumen aus
+	// einem Segment ist, wo bisher falsch expandiert wird
+	// erst beim Face ab zu fangen ist viel zu spät TODO FIXME
+	// nicht zu vergessen, die Edges ordentlich sortiert zu sammeln, die zwei endende Vertizes enthalten,
+	// und dann zu splitten, wenn alle Attachements entfernt sind, dann Neustart anfordern mit neuer Geometrie
+
+	int sudoNewVols = m_sh.num_subsets();
+
+	int volNum3 = 0;
+
+	for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end();)
+	{
+		volNum3++;
+
+		if( volNum3 == volNum2 || volNum3 == volNum )
+			break;
+
+		Volume* sv = *iter_sv;
+		++iter_sv;
+
+		UG_LOG("Diamond Volume new creation try at " << CalculateCenter(sv, m_aaPos) << std::endl);
+
+		//	now expand the fracture faces of sv to volumes.
+//		for(size_t i_side = 0; i_side < sv->num_sides(); ++i_side)
+//		{
+//			//	get the local vertex indices of the side of the volume
+//			sv->get_vertex_indices_of_face(locVrtInds, i_side);
+//
+//			Face* tFace = m_grid.get_side(sv, i_side);
+//
+//			if(tFace)
+//			{}
+//		}
+
+		//	now set up a new volume descriptor and replace the volume.
+		if(vd.num_vertices() != sv->num_vertices())
+			vd.set_num_vertices(sv->num_vertices());
+
+		for(size_t i_vrt = 0; i_vrt < sv->num_vertices(); ++i_vrt)
+		{
+			if( (m_attAccsVrtVecVol[sv])[i_vrt] )
+				vd.set_vertex(i_vrt, (m_attAccsVrtVecVol[sv])[i_vrt]);
+			else
+				vd.set_vertex(i_vrt, sv->vertex(i_vrt));
+		}
+
+		m_grid.create_by_cloning(sv, vd, sv);
+		m_grid.erase(sv);
+
+	}
+
+	UG_LOG("Volumes erzeugt " << std::endl);
+
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////////////
 
 
 

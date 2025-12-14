@@ -164,8 +164,19 @@ private:
 
 	bool distributeInfosForShrinkingVols();
 
-	bool teachMidVrtx2Vol( Volume * const & vol, Vertex * const & midVrtx );
+	bool teachMidVrtx2Vol( Volume * const & vol, Vertex * const & origVrtx, Vertex * const & midVrtx );
 
+	bool shrinkVolumes();
+
+	bool establishNewVertex( Vertex * const & shiVrtxOne, Vertex * const & shiVrtxTwo, Vertex * & midVrtx );
+
+	using CombiShiftVrtxMidVrtx = CombiPairSingle<Vertex*>;
+
+	using VecCombiShiftVrtxMidVrtx = std::vector<CombiShiftVrtxMidVrtx>;
+
+	VecCombiShiftVrtxMidVrtx m_vecCombiShiftVrtxMidVrtx;
+
+	bool createMidVrtx( VrtxPair const & shiftVrtcs, Vertex * & midVrtx );
 };
 
 } /* namespace diamonds */

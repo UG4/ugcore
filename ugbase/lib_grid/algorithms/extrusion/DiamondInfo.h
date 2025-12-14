@@ -926,7 +926,42 @@ private:
 };
 
 
+////////////////////////////////////////////////////////
 
+
+template<
+typename VERTEXTYP
+>
+class CombiPairSingle
+{
+
+public:
+
+	using VRTXPAIR = std::pair<VERTEXTYP,VERTEXTYP>;
+
+	CombiPairSingle( VRTXPAIR const & vertPr, VERTEXTYP const & midVrtx )
+	: m_vrtxPair(vertPr), m_midVrtx(midVrtx)
+	{
+	}
+
+	void spuckShiftVrtxPair( VRTXPAIR & vp )
+	{
+		vp = m_vrtxPair;
+	}
+
+	void spuckSinglVrtx( VERTEXTYP & vrt )
+	{
+		vrt = m_midVrtx;
+	}
+
+private:
+
+	VRTXPAIR m_vrtxPair;
+	VERTEXTYP m_midVrtx;
+
+};
+
+////////////////////////////////////////////////////////
 
 
 } // end of namespace diamonds
