@@ -131,8 +131,17 @@ private:
 
 	Grid::VolumeAttachmentAccessor<AttVrtVec> m_attAccsVrtVecVol;
 
+	ABool m_attMarkVrtxIsCenterVrtx;
 
+	Grid::VertexAttachmentAccessor<ABool> m_attAccsVrtxIsCenterVrtx;
 
+	ABool m_attMarkVrtxIsShiftVrtx;
+
+	Grid::VertexAttachmentAccessor<ABool> m_attAccsVrtxIsShiftVrtx;
+
+	ABool m_attMarkEdgeIsShiftEdge;
+
+	Grid::EdgeAttachmentAccessor<ABool> m_attAccsEdgeIsShiftEdge;
 
 };
 

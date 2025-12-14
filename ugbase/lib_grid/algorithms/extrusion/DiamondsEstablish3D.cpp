@@ -39,7 +39,13 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_attMarkVolGetsShrinked(ABool()),
 			m_attAccsVolGetsShrinked(Grid::VolumeAttachmentAccessor<ABool>()),
 			m_attVrtVec(AttVrtVec()),
-			m_attAccsVrtVecVol(Grid::VolumeAttachmentAccessor<AttVrtVec>())
+			m_attAccsVrtVecVol(Grid::VolumeAttachmentAccessor<AttVrtVec>()),
+			m_attMarkVrtxIsCenterVrtx(ABool()),
+			m_attAccsVrtxIsCenterVrtx(Grid::VertexAttachmentAccessor<ABool>()),
+			m_attMarkVrtxIsShiftVrtx(ABool()),
+			m_attAccsVrtxIsShiftVrtx(Grid::VertexAttachmentAccessor<ABool>()),
+			m_attMarkEdgeIsShiftEdge(ABool()),
+			m_attAccsEdgeIsShiftEdge(Grid::EdgeAttachmentAccessor<ABool>())
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -852,6 +858,25 @@ bool DiamondsEstablish3D::attachMarkers()
 
 	m_attAccsVrtVecVol = Grid::VolumeAttachmentAccessor<AttVrtVec>(m_grid, m_attVrtVec);
 
+	m_attMarkVrtxIsCenterVrtx = ABool();
+
+	m_grid.attach_to_vertices_dv(m_attMarkVrtxIsCenterVrtx,false);
+
+	m_attAccsVrtxIsCenterVrtx = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_attMarkVrtxIsCenterVrtx);
+
+	m_attMarkVrtxIsShiftVrtx = ABool();
+
+	m_grid.attach_to_vertices_dv(m_attMarkVrtxIsShiftVrtx,false);
+
+	m_attAccsVrtxIsShiftVrtx = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_attMarkVrtxIsShiftVrtx);
+
+	m_attMarkEdgeIsShiftEdge = ABool();
+
+	m_grid.attach_to_edges_dv(m_attMarkEdgeIsShiftEdge,false);
+
+	m_attAccsEdgeIsShiftEdge = Grid::EdgeAttachmentAccessor<ABool>( m_grid, m_attMarkEdgeIsShiftEdge );
+
+
 	return true;
 }
 
@@ -868,6 +893,12 @@ bool DiamondsEstablish3D::detachMarkers()
 
 	m_grid.detach_from_volumes( m_attVrtVec );
 
+	m_grid.detach_from_vertices(m_attMarkVrtxIsCenterVrtx);
+
+	m_grid.detach_from_vertices(m_attMarkVrtxIsShiftVrtx);
+
+	m_grid.detach_from_edges(m_attMarkEdgeIsShiftEdge);
+
 	return true;
 }
 
@@ -883,6 +914,7 @@ bool DiamondsEstablish3D::assignBasicAtts()
 		m_sel.select(centerVrtx);
 
 		m_attAccsElmGrpVrtx2BQnchd[centerVrtx] = egv2bq;
+		m_attAccsVrtxIsCenterVrtx[centerVrtx] = true;
 
 		m_sel.select( m_grid.associated_edges_begin(centerVrtx), m_grid.associated_edges_end(centerVrtx) );
 		m_sel.select( m_grid.associated_faces_begin(centerVrtx), m_grid.associated_faces_end(centerVrtx) );
