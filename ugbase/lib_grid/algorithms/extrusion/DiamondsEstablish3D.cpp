@@ -190,6 +190,9 @@ bool DiamondsEstablish3D::createTheDiamonds()
 
 	UG_LOG("trafo collected infos " << std::endl);
 
+	//	disable selection inheritance to avoid infinite recursion.
+	m_sel.enable_selection_inheritance(false);
+
 	if( ! createConditionForNewVrtcs())
 	{
 		UG_LOG("conditions for new vertices do not work " << std::endl);
@@ -240,6 +243,7 @@ bool DiamondsEstablish3D::setSelector()
 	m_sel.enable_autoselection(false);
 	m_sel.enable_selection_inheritance(true);	//required for select and mark, disabled later
 	m_sel.enable_strict_inheritance(false);
+
 
 	return true;
 }
@@ -1471,6 +1475,13 @@ bool DiamondsEstablish3D::shrinkVolumes()
 		Volume* sv = *iter_sv;
 		++iter_sv;
 
+		if( volNum3 == volNum2+1 || volNum3 == volNum+1 )
+		{
+			m_sh.assign_subset(sv,m_sh.num_subsets());
+			UG_LOG("Abbrechen notwendig bei " << CalculateCenter(sv, m_aaPos) << std::endl);
+//			break;
+		}
+
 		UG_LOG("Diamond Volume new creation try at " << CalculateCenter(sv, m_aaPos) << std::endl);
 
 		//	now expand the fracture faces of sv to volumes.
@@ -1500,8 +1511,6 @@ bool DiamondsEstablish3D::shrinkVolumes()
 		m_grid.create_by_cloning(sv, vd, sv);
 		m_grid.erase(sv);
 
-		if( volNum3 == volNum2 || volNum3 == volNum )
-			break;
 	}
 
 
