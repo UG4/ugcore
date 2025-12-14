@@ -1005,6 +1005,19 @@ bool DiamondsEstablish3D::trafoCollectedInfo2Attachments()
 			e2bq.spuckMidPointOfShiftVrtcs(midPtVrtx);
 			m_attAccsVrtxIsMidPtOfShiftVrtcs[midPtVrtx] = true;
 
+			m_sel.select(midPtVrtx);
+
+			EdgePair ep;
+			e2bq.spuckPairLowDimElem(ep);
+			m_sel.select(ep.first);
+			m_sel.select(ep.second);
+
+			VrtxPair vp;
+			e2bq.spuckShiftVrtcs(vp);
+			m_sel.select(vp.first);
+			m_sel.select(vp.second);
+
+
 		}
 	}
 
@@ -1047,11 +1060,20 @@ bool DiamondsEstablish3D::trafoQuintupleInfo2Attachments(VolumeElementFaceQuintu
 	m_attAccsEdgeIsShiftEdge[edgOne] = true;
 	m_attAccsEdgeIsShiftEdge[edgTwo] = true;
 
+	m_sel.select(volOne);
+	m_sel.select(volTwo);
+
+	m_sel.select(edgOne);
+	m_sel.select(edgTwo);
+
+
 	Face * fac;
 
 	vef5.spuckManifElem(fac);
 
 	m_attAccsFacIsTwinFac[fac] = true;
+
+	m_sel.select(fac);
 
 	return true;
 }
