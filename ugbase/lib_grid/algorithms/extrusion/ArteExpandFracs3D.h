@@ -100,9 +100,9 @@ private:
 
 	Grid::VertexAttachmentAccessor<APosition> m_aaPos;
 
-	//	objects for temporary results
-	FaceDescriptor m_facDescr;
-	VolumeDescriptor m_volDescr;
+//	//	objects for temporary results
+//	FaceDescriptor m_facDescr;
+//	VolumeDescriptor m_volDescr;
 
 //	std::vector<Edge*> m_tmpEdges; // used for temporary results.
 //	std::vector<Face*> m_tmpFaces; // used for temporary results.

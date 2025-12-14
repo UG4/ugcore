@@ -96,7 +96,25 @@ private:
 
 	using ElemGroupVrtx2BQuenched4Diams = ElemGroupVrtxToBeQuenched4DiamSpace<Volume*, Face*, Edge*, Vertex*, IndexType>;
 
-	ElemGroupVrtx2BQuenched4Diams m_elemGroupVrtx2BQuenched;
+	using VecElemGroupVrtx2BQnchd4D = std::vector<ElemGroupVrtx2BQuenched4Diams>;
+
+	VecElemGroupVrtx2BQnchd4D m_vecElemGroupVrtx2BQuenched;
+
+	bool attachMarkers();
+	bool detachMarkers();
+	bool assignBasicAtts();
+
+	using AttElemGrpVrtx2BQuenchd = Attachment<ElemGroupVrtx2BQuenched4Diams>;
+
+	AttElemGrpVrtx2BQuenchd m_attElmGrpVrtx2BQnchd;
+
+	Grid::VertexAttachmentAccessor<AttElemGrpVrtx2BQuenchd> m_attAccsElmGrpVrtx2BQnchd;
+
+	bool trafoCollectedInfo2Attachments();
+
+	void debugE2bQ(Elems2BQuenched & e2bq);
+
+
 };
 
 } /* namespace diamonds */

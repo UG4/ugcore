@@ -29,8 +29,9 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_vecElems2BQuenched(VecElems2BQuenched()),
 			m_disappearingVols(std::vector<Volume*>()),
 			m_disappearingFacs(std::vector<Face*>()),
-			m_elemGroupVrtx2BQuenched(ElemGroupVrtx2BQuenched4Diams())
-//			m_disappearingEdgs(std::vector<Edge*>())
+			m_vecElemGroupVrtx2BQuenched(VecElemGroupVrtx2BQnchd4D()),
+			m_attElmGrpVrtx2BQnchd(AttElemGrpVrtx2BQuenchd()),
+			m_attAccsElmGrpVrtx2BQnchd(Grid::VertexAttachmentAccessor<AttElemGrpVrtx2BQuenchd>())
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -98,6 +99,9 @@ bool DiamondsEstablish3D::initialize()
 	return true;
 }
 
+/////////////////////////////////////////////////////////////////
+
+
 bool DiamondsEstablish3D::createTheDiamonds()
 {
 	if( ! initialize())
@@ -135,11 +139,39 @@ bool DiamondsEstablish3D::createTheDiamonds()
 		return false;
 	}
 
-	UG_LOG("Established diamonds" << std::endl);
+	if( ! attachMarkers())
+	{
+		UG_LOG("Markers do not want D" << std::endl);
+		return false;
+	}
+
+	if( ! assignBasicAtts())
+	{
+		UG_LOG("unassignale basic att" << std::endl);
+		return false;
+	}
+
+	if( ! trafoCollectedInfo2Attachments())
+	{
+		UG_LOG("untrafoable infos" << std::endl);
+		return false;
+	}
+
+	if( ! detachMarkers())
+	{
+		UG_LOG("Markers do not get detouched D" << std::endl);
+		return false;
+	}
+
+	UG_LOG("noch nicht soweit: Established diamonds" << std::endl);
+
 
 
 	return true;
 }
+
+/////////////////////////////////////////////////////////////////
+
 
 bool DiamondsEstablish3D::setSelector()
 {
@@ -153,6 +185,7 @@ bool DiamondsEstablish3D::setSelector()
 	return true;
 }
 
+/////////////////////////////////////////////////////////////////
 
 bool DiamondsEstablish3D::figureOutTheEdges()
 {
@@ -555,8 +588,14 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 
 //	int d_q = 10;
 
-#if 0
-	for( Elems2BQuenched & e2bq : m_vecElems2BQuenched )
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////////7
+
+void DiamondsEstablish3D::debugE2bQ(Elems2BQuenched & e2bq)
+{
+//	for( Elems2BQuenched & e2bq : m_vecElems2BQuenched )
 	{
 		IndexType sudoNum = m_sh.num_subsets();
 
@@ -703,9 +742,6 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 //
 		}
 	}
-#endif
-
-	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -754,6 +790,8 @@ bool DiamondsEstablish3D::sortElems2BQuenched()
 			return false;
 		}
 
+		m_vecElemGroupVrtx2BQuenched.push_back( egv2b );
+
 		itOuter = ve2bq.erase(itOuter);
 
 	}
@@ -762,6 +800,95 @@ bool DiamondsEstablish3D::sortElems2BQuenched()
 }
 
 ////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::attachMarkers()
+{
+//	m_aAdjMarkerVFP = AttVertFracProp();
+//
+////	support::VertexFracturePropertiesVol<IndexType> vfp0; // false, 0 );
+//	VertxFracPropts vfp0; // false, 0 );
+//	// default value: no boundary fracture, no fractures crossing
+//
+//	m_grid.attach_to_vertices_dv( m_aAdjMarkerVFP, vfp0 );
+//	m_aaMarkVrtVFP = Grid::VertexAttachmentAccessor<AttVertFracProp> ( m_grid, m_aAdjMarkerVFP );
+
+	m_attElmGrpVrtx2BQnchd = AttElemGrpVrtx2BQuenchd();
+
+	ElemGroupVrtx2BQuenched4Diams egv2bQEmpty;
+
+	m_grid.attach_to_vertices_dv( m_attElmGrpVrtx2BQnchd, egv2bQEmpty );
+
+	m_attAccsElmGrpVrtx2BQnchd = Grid::VertexAttachmentAccessor<AttElemGrpVrtx2BQuenchd>( m_grid, m_attElmGrpVrtx2BQnchd);
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::detachMarkers()
+{
+	m_grid.detach_from_vertices(m_attElmGrpVrtx2BQnchd);
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::assignBasicAtts()
+{
+	for( ElemGroupVrtx2BQuenched4Diams egv2bq : m_vecElemGroupVrtx2BQuenched )
+	{
+		Vertex * centerVrtx;
+		egv2bq.spuckOrigCenterVertex(centerVrtx);
+
+		m_sel.select(centerVrtx);
+
+		m_attAccsElmGrpVrtx2BQnchd[centerVrtx] = egv2bq;
+	}
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::trafoCollectedInfo2Attachments()
+{
+	for(VertexIterator iterV = m_sel.vertices_begin(); iterV != m_sel.vertices_end(); iterV++)
+	{
+		Vertex * centerV = *iterV;
+
+		ElemGroupVrtx2BQuenched4Diams egv2bQ = m_attAccsElmGrpVrtx2BQnchd[centerV];
+
+		Vertex * testVrtx;
+		egv2bQ.spuckOrigCenterVertex(testVrtx);
+
+		if( testVrtx != centerV )
+		{
+			UG_LOG("transfer did not work " << std::endl);
+			return false;
+		}
+
+		VecElems2BQuenched ve2bq;
+		egv2bQ.spuckVecElems2BQuenched4Diams(ve2bq);
+
+		for( Elems2BQuenched & e2bq : ve2bq )
+		{
+//			VecVolumeElementFaceQuintuplet vvef5;
+//
+//			e2bq.spuckVecFullLowDimManifQuintuplet(vvef5);
+//
+//			for( VolumeElementFaceQuintuplet & vef5 : vvef5 )
+//			{
+//
+//			}
+			debugE2bQ(e2bq);
+		}
+	}
+
+
+
+	return true;
+}
 
 
 } /* namespace diamonds */
