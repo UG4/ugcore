@@ -1468,9 +1468,6 @@ bool DiamondsEstablish3D::shrinkVolumes()
 	{
 		volNum3++;
 
-		if( volNum3 == volNum2 || volNum3 == volNum )
-			break;
-
 		Volume* sv = *iter_sv;
 		++iter_sv;
 
@@ -1503,9 +1500,24 @@ bool DiamondsEstablish3D::shrinkVolumes()
 		m_grid.create_by_cloning(sv, vd, sv);
 		m_grid.erase(sv);
 
+		if( volNum3 == volNum2 || volNum3 == volNum )
+			break;
 	}
 
+
+
 	UG_LOG("Volumes erzeugt " << std::endl);
+
+
+//	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
+//	{
+//		Face* f = *iter;
+//		++iter;
+//
+//		m_grid.erase(f);
+//	}
+
+	UG_LOG("Gesichter entfernt " << std::endl);
 
 	return true;
 }
