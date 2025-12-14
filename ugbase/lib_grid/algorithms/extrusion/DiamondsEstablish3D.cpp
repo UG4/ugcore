@@ -47,8 +47,9 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_attMarkEdgeIsShiftEdge(ABool()),
 			m_attAccsEdgeIsShiftEdge(Grid::EdgeAttachmentAccessor<ABool>()),
 			m_attInfoVecSudosTouchingVrtx(AttVecInt()),
-			m_attAccsInfoVecSudosTouchingVrtx(Grid::VertexAttachmentAccessor<AttVecInt>())
-
+			m_attAccsInfoVecSudosTouchingVrtx(Grid::VertexAttachmentAccessor<AttVecInt>()),
+			m_attVrtxIsMidPtOfShiftVrtx(ABool()),
+			m_attAccsVrtxIsMidPtOfShiftVrtcs(Grid::VertexAttachmentAccessor<ABool>())
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -171,6 +172,18 @@ bool DiamondsEstablish3D::createTheDiamonds()
 	if( ! trafoCollectedInfo2Attachments())
 	{
 		UG_LOG("untrafoable infos" << std::endl);
+		return false;
+	}
+
+	if( ! createConditionForNewVrtcs())
+	{
+		UG_LOG("conditions for new vertices do not work " << std::endl);
+		return false;
+	}
+
+	if( ! distributeInfosForShrinkingVols())
+	{
+		UG_LOG("info distribution did not work " << std::endl);
 		return false;
 	}
 
@@ -891,6 +904,11 @@ bool DiamondsEstablish3D::attachMarkers()
 
 	m_attAccsInfoVecSudosTouchingVrtx = Grid::VertexAttachmentAccessor<AttVecInt>( m_grid, m_attInfoVecSudosTouchingVrtx);
 
+	m_attVrtxIsMidPtOfShiftVrtx = ABool();
+
+	m_grid.attach_to_vertices_dv(m_attVrtxIsMidPtOfShiftVrtx,false);
+
+	m_attAccsVrtxIsMidPtOfShiftVrtcs = Grid::VertexAttachmentAccessor<ABool>(m_grid, m_attVrtxIsMidPtOfShiftVrtx);
 
 	return true;
 }
@@ -916,6 +934,7 @@ bool DiamondsEstablish3D::detachMarkers()
 
 	m_grid.detach_from_vertices(m_attInfoVecSudosTouchingVrtx);
 
+	m_grid.detach_from_vertices(m_attVrtxIsMidPtOfShiftVrtx);
 
 	return true;
 }
@@ -984,7 +1003,7 @@ bool DiamondsEstablish3D::trafoCollectedInfo2Attachments()
 
 			Vertex * midPtVrtx;
 			e2bq.spuckMidPointOfShiftVrtcs(midPtVrtx);
-			m_attAccsVrtxIsMidPtOfShiftVrtx[midPtVrtx] = true;
+			m_attAccsVrtxIsMidPtOfShiftVrtcs[midPtVrtx] = true;
 
 		}
 	}
@@ -1073,7 +1092,50 @@ bool DiamondsEstablish3D::assignMidPointOfShiftVrtcs(Elems2BQuenched & e2bq)
 
 //////////////////////////////////////////////////////////////////////////////////
 
+bool DiamondsEstablish3D::distributeInfosForShrinkingVols()
+{
+	// 	for( Volume * const & vol : volsInSegm )
+//	{
+//		std::vector<Vertex*> & newVrts4Fac = m_aaVrtVecVol[ vol ];
+//
+//		for(size_t indVrt = 0; indVrt < (vol)->num_vertices();  indVrt++ )
+//		{
+//			Vertex* volVrt = (vol)->vertex(indVrt);
+//
+//			if(  volVrt == oldVrt )
+//			{
+//				newVrts4Fac[ indVrt ] = newShiftVrtx;
+//			}
+//		}
+//	}
+// FACES detektieren, die verschoben werden müssen!!!
+
+	return true;
+}
+
 //////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::createConditionForNewVrtcs()
+{
+
+	//	iterate over all surrounding volumes to enable volume changes, this loop taken from SR but shortened
+	for(VolumeIterator iterSurrVol = m_sel.volumes_begin(); iterSurrVol != m_sel.volumes_end(); iterSurrVol++ )
+	{
+		Volume * sv = *iterSurrVol;
+
+		std::vector<Vertex*>& newVrts = m_attAccsVrtVecVol[sv];
+		newVrts.resize(sv->num_vertices());
+
+		for(size_t iVrt = 0; iVrt < sv->num_vertices(); iVrt++ )
+		{
+			newVrts[iVrt] = nullptr;
+		}
+			// erstmal so tun, als ob keine neuen Vertizes erzeugt werden an den alten Vertizes
+	}
+
+	return true;
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////
 

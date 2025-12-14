@@ -158,7 +158,11 @@ private:
 
 	ABool m_attVrtxIsMidPtOfShiftVrtx;
 
-	Grid::VertexAttachmentAccessor<ABool> m_attAccsVrtxIsMidPtOfShiftVrtx;
+	Grid::VertexAttachmentAccessor<ABool> m_attAccsVrtxIsMidPtOfShiftVrtcs;
+
+	bool distributeInfosForShrinkingVols();
+
+	bool createConditionForNewVrtcs();
 };
 
 } /* namespace diamonds */
