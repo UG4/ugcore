@@ -148,6 +148,12 @@ private:
 	using VolumeEdgeTwin = FulldimLowdimTwin<Volume*,Edge*,IndexType>;
 	using PairVolumeEdgeTwin = std::pair<VolumeEdgeTwin, VolumeEdgeTwin>;
 
+	using AttVecInt = Attachment<std::vector<IndexType>>;
+
+	AttVecInt m_attInfoVecSudosTouchingVrtx;
+
+	Grid::VertexAttachmentAccessor<AttVecInt> m_attAccsInfoVecSudosTouchingVrtx;
+
 };
 
 } /* namespace diamonds */

@@ -45,7 +45,10 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_attMarkVrtxIsShiftVrtx(ABool()),
 			m_attAccsVrtxIsShiftVrtx(Grid::VertexAttachmentAccessor<ABool>()),
 			m_attMarkEdgeIsShiftEdge(ABool()),
-			m_attAccsEdgeIsShiftEdge(Grid::EdgeAttachmentAccessor<ABool>())
+			m_attAccsEdgeIsShiftEdge(Grid::EdgeAttachmentAccessor<ABool>()),
+			m_attInfoVecSudosTouchingVrtx(AttVecInt()),
+			m_attAccsInfoVecSudosTouchingVrtx(Grid::VertexAttachmentAccessor<AttVecInt>())
+
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -876,6 +879,12 @@ bool DiamondsEstablish3D::attachMarkers()
 
 	m_attAccsEdgeIsShiftEdge = Grid::EdgeAttachmentAccessor<ABool>( m_grid, m_attMarkEdgeIsShiftEdge );
 
+	m_attInfoVecSudosTouchingVrtx = AttVecInt();
+
+	m_grid.attach_to_vertices_dv(m_attInfoVecSudosTouchingVrtx, std::vector<IndexType>());
+
+	m_attAccsInfoVecSudosTouchingVrtx = Grid::VertexAttachmentAccessor<AttVecInt>( m_grid, m_attInfoVecSudosTouchingVrtx);
+
 
 	return true;
 }
@@ -899,6 +908,9 @@ bool DiamondsEstablish3D::detachMarkers()
 
 	m_grid.detach_from_edges(m_attMarkEdgeIsShiftEdge);
 
+	m_grid.detach_from_vertices(m_attInfoVecSudosTouchingVrtx);
+
+
 	return true;
 }
 
@@ -915,6 +927,7 @@ bool DiamondsEstablish3D::assignBasicAtts()
 
 		m_attAccsElmGrpVrtx2BQnchd[centerVrtx] = egv2bq;
 		m_attAccsVrtxIsCenterVrtx[centerVrtx] = true;
+		m_attAccsInfoVecSudosTouchingVrtx[centerVrtx] = egv2bq.spuckSudoList();
 
 		m_sel.select( m_grid.associated_edges_begin(centerVrtx), m_grid.associated_edges_end(centerVrtx) );
 		m_sel.select( m_grid.associated_faces_begin(centerVrtx), m_grid.associated_faces_end(centerVrtx) );

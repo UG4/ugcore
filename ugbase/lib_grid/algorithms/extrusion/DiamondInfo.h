@@ -793,11 +793,11 @@ public:
 	using VecElems2BQuenched4Diams = std::vector<Elems2BQuenched4Diams>;
 
 	ElemGroupVrtxToBeQuenched4DiamSpace( VecElems2BQuenched4Diams const & ve2bq4d )
-	: m_vecElems2bQuenched(ve2bq4d), m_origCenterVrtx(nullptr)
+	: m_vecElems2bQuenched(ve2bq4d), m_origCenterVrtx(nullptr), m_vecSudos(std::vector<INDEXTYP>())
 	{}
 
 	ElemGroupVrtxToBeQuenched4DiamSpace()
-	: m_vecElems2bQuenched(VecElems2BQuenched4Diams()), m_origCenterVrtx(nullptr)
+	: m_vecElems2bQuenched(VecElems2BQuenched4Diams()), m_origCenterVrtx(nullptr), m_vecSudos(std::vector<INDEXTYP>())
 	{}
 
 
@@ -830,6 +830,10 @@ public:
 					return false;
 				}
 			}
+
+			INDEXTYP sudo = e2bq.spuckSudo();
+
+			addElem(m_vecSudos,sudo);
 		}
 
 		return true;
@@ -850,12 +854,13 @@ public:
 		m_vecElems2bQuenched = ve2bq;
 	}
 
+	std::vector<INDEXTYP> spuckSudoList() { return m_vecSudos; }
 
 private:
 
 	VecElems2BQuenched4Diams m_vecElems2bQuenched;
 	VERTEXTYP m_origCenterVrtx;
-
+	std::vector<INDEXTYP> m_vecSudos;
 
 };
 
