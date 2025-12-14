@@ -1091,28 +1091,6 @@ bool DiamondsEstablish3D::assignMidPointOfShiftVrtcs(Elems2BQuenched & e2bq)
 }
 
 //////////////////////////////////////////////////////////////////////////////////
-
-bool DiamondsEstablish3D::distributeInfosForShrinkingVols()
-{
-	// 	for( Volume * const & vol : volsInSegm )
-//	{
-//		std::vector<Vertex*> & newVrts4Fac = m_aaVrtVecVol[ vol ];
-//
-//		for(size_t indVrt = 0; indVrt < (vol)->num_vertices();  indVrt++ )
-//		{
-//			Vertex* volVrt = (vol)->vertex(indVrt);
-//
-//			if(  volVrt == oldVrt )
-//			{
-//				newVrts4Fac[ indVrt ] = newShiftVrtx;
-//			}
-//		}
-//	}
-// FACES detektieren, die verschoben werden müssen!!!
-
-	return true;
-}
-
 //////////////////////////////////////////////////////////////////////////////////
 
 bool DiamondsEstablish3D::createConditionForNewVrtcs()
@@ -1123,7 +1101,7 @@ bool DiamondsEstablish3D::createConditionForNewVrtcs()
 	{
 		Volume * sv = *iterSurrVol;
 
-		std::vector<Vertex*>& newVrts = m_attAccsVrtVecVol[sv];
+		std::vector<Vertex*> & newVrts = m_attAccsVrtVecVol[sv];
 		newVrts.resize(sv->num_vertices());
 
 		for(size_t iVrt = 0; iVrt < sv->num_vertices(); iVrt++ )
@@ -1139,7 +1117,81 @@ bool DiamondsEstablish3D::createConditionForNewVrtcs()
 
 //////////////////////////////////////////////////////////////////////////////////
 
+bool DiamondsEstablish3D::distributeInfosForShrinkingVols()
+{
+	for( ElemGroupVrtx2BQuenched4Diams & egv2bq :  m_vecElemGroupVrtx2BQuenched )
+	{
+		VecElems2BQuenched ve2bq;
+
+		egv2bq.spuckVecElems2BQuenched4Diams(ve2bq);
+
+		for( Elems2BQuenched & e2bq : ve2bq )
+		{
+			VecVolumeElementFaceQuintuplet vvef5;
+
+			e2bq.spuckVecFullLowDimManifQuintuplet(vvef5);
+
+			Vertex * centerVrtx;
+
+			egv2bq.spuckOrigCenterVertex(centerVrtx);
+
+			Vertex * newMidVrtx;
+
+			e2bq.spuckMidPointOfShiftVrtcs(newMidVrtx);
+
+			for( VolumeElementFaceQuintuplet & vef5 : vvef5 )
+			{
+				PairVolumeEdgeTwin pvet;
+
+				vef5.spuckPairFullLowDimTwin(pvet);
+
+				VolumeEdgeTwin vetOne, vetTwo;
+
+				vetOne = pvet.first;
+				vetTwo = pvet.second;
+
+				Volume * volOne;
+				Volume * volTwo;
+
+				vetOne.spuckFullDimElem(volOne);
+				vetTwo.spuckFullDimElem(volTwo);
+
+				if( !teachMidVrtx2Vol(volOne,newMidVrtx) || ! teachMidVrtx2Vol(volTwo,newMidVrtx) )
+				{
+					UG_LOG("not taughtable" << std::endl);
+					return false;
+				}
+			}
+		}
+	}
+
+	// TODO FIXME FACES detektieren, die verschoben werden müssen!!!
+
+	return true;
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::teachMidVrtx2Vol( Volume * const & vol, Vertex * const & midVrtx )
+{
+	IndexType taught;
+
+	std::vector<Vertex*> & newVrts4Fac = m_attAccsVrtVecVol[ vol ];
+
+	for( IndexType indVrt = 0; indVrt < (vol)->num_vertices();  indVrt++ )
+	{
+		Vertex* volVrt = (vol)->vertex(indVrt);
+
+		if(  volVrt == midVrtx)
+		{
+			newVrts4Fac[ indVrt ] = midVrtx;
+			taught++;
+		}
+	}
+
+	return ( taught == 1 );
+}
 
 //////////////////////////////////////////////////////////////////////////////////
 

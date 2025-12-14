@@ -160,9 +160,12 @@ private:
 
 	Grid::VertexAttachmentAccessor<ABool> m_attAccsVrtxIsMidPtOfShiftVrtcs;
 
+	bool createConditionForNewVrtcs();
+
 	bool distributeInfosForShrinkingVols();
 
-	bool createConditionForNewVrtcs();
+	bool teachMidVrtx2Vol( Volume * const & vol, Vertex * const & midVrtx );
+
 };
 
 } /* namespace diamonds */
