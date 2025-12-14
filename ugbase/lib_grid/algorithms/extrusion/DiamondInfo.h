@@ -590,13 +590,17 @@ public:
 	using FullLowDimManifQntpl = FullLowDimManifQuintuplet<FULLDIMELEM,MANIFELEM,LOWDIMELEM,VERTEXTYP,INDEXTYP>;
 	using VecFullLowDimManifQuintuplet = std::vector<FullLowDimManifQntpl>;
 	using PairLowDimElem = std::pair<LOWDIMELEM,LOWDIMELEM>;
+	using PairVrtcs = std::pair<VERTEXTYP,VERTEXTYP>;
+
 
 	ElemsToBeQuenched4DiamSpace( VecFullLowDimManifQuintuplet const & vfldm5 )
 	: m_centerVrtx(nullptr),
 	  m_originalCenterVrtx(nullptr),
 	  m_vecFullLowDimManifQuintpl(vfldm5),
 	  m_pairLowDimElem(PairLowDimElem()),
-	  m_sudo(0)
+	  m_sudo(0),
+	  m_shiftVrtcs(PairVrtcs()),
+	  m_midPointOfShiftVrtcs(nullptr)
 	{}
 
 	ElemsToBeQuenched4DiamSpace()
@@ -604,7 +608,9 @@ public:
 	  m_originalCenterVrtx(nullptr),
 	  m_vecFullLowDimManifQuintpl(VecFullLowDimManifQuintuplet()),
 	  m_pairLowDimElem(PairLowDimElem()),
-	  m_sudo(0)
+	  m_sudo(0),
+	  m_shiftVrtcs(PairVrtcs()),
+	  m_midPointOfShiftVrtcs(nullptr)
 	{}
 
 
@@ -615,6 +621,8 @@ public:
 		bool sudoAssigned = false;
 
 		bool pairLowdimElmAssigned = false;
+
+		bool pairShiftVrtcsAssigned = false;
 
 		for( auto & fldmq : m_vecFullLowDimManifQuintpl )
 		{
@@ -700,6 +708,42 @@ public:
 				}
 			}
 
+			if( ! pairShiftVrtcsAssigned )
+			{
+				fldmq.spuckShiftVrtcs(m_shiftVrtcs);
+				pairShiftVrtcsAssigned = true;
+			}
+			else
+			{
+				PairVrtcs testPrV;
+
+				fldmq.spuckShiftVrtcs(testPrV);
+
+				if( m_shiftVrtcs != testPrV )
+				{
+					// check for swaped pair
+					std::swap(testPrV.first, testPrV.second);
+
+					if( testPrV !=  m_shiftVrtcs )
+					{
+						UG_LOG("different shift vertex pairs V" << std::endl);
+						return false;
+					}
+
+					if( ! fldmq.swapEntries() )
+					{
+						UG_LOG("entries not swappable V" << std::endl);
+						return false;
+					}
+
+					if( ! fldmq.checkIntegrity() )
+					{
+						UG_LOG("quintuplet not integer any more V" << std::endl);
+						return false;
+					}
+				}
+			}
+
 //			if( fldmq.spuckCenterVertex() != m_centerVrtx )
 //			{
 //				UG_LOG("Center vertex not identical " << std::endl);
@@ -761,12 +805,29 @@ public:
 
 	INDEXTYP spuckSudo() { return m_sudo; }
 
+	void spuckShiftVrtcs( PairVrtcs & pv )
+	{
+		pv = m_shiftVrtcs;
+	}
+
+	void assignMidPointOfShiftVrtcs( VERTEXTYP const & mp )
+	{
+		m_midPointOfShiftVrtcs = mp;
+	}
+
+	void spuckMidPointOfShiftVrtcs( VERTEXTYP & mp )
+	{
+		mp = m_midPointOfShiftVrtcs;
+	}
+
 private:
 
 	VERTEXTYP m_centerVrtx, m_originalCenterVrtx;
 	VecFullLowDimManifQuintuplet m_vecFullLowDimManifQuintpl;
 	PairLowDimElem m_pairLowDimElem;
 	INDEXTYP m_sudo;
+	PairVrtcs m_shiftVrtcs;
+	VERTEXTYP m_midPointOfShiftVrtcs;
 
 };
 

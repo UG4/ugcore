@@ -598,6 +598,12 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 			return false;
 		}
 
+		if( ! assignMidPointOfShiftVrtcs(elem2BQuenched))
+		{
+			UG_LOG("mid point not assignable" << std::endl);
+			return false;
+		}
+
 		m_vecElems2BQuenched.push_back(elem2BQuenched);
 
 		itOuter = vvef5.erase(itOuter);
@@ -975,6 +981,11 @@ bool DiamondsEstablish3D::trafoCollectedInfo2Attachments()
 				}
 			}
 //			debugE2bQ(e2bq);
+
+			Vertex * midPtVrtx;
+			e2bq.spuckMidPointOfShiftVrtcs(midPtVrtx);
+			m_attAccsVrtxIsMidPtOfShiftVrtx[midPtVrtx] = true;
+
 		}
 	}
 
@@ -1017,18 +1028,48 @@ bool DiamondsEstablish3D::trafoQuintupleInfo2Attachments(VolumeElementFaceQuintu
 	m_attAccsEdgeIsShiftEdge[edgOne] = true;
 	m_attAccsEdgeIsShiftEdge[edgTwo] = true;
 
-
 	Face * fac;
 
 	vef5.spuckManifElem(fac);
 
 	m_attAccsFacIsTwinFac[fac] = true;
 
-
 	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::assignMidPointOfShiftVrtcs(Elems2BQuenched & e2bq)
+{
+	VrtxPair shiftVrtcs;
+
+	e2bq.spuckShiftVrtcs(shiftVrtcs);
+
+	Vertex * vrtxOne;
+	Vertex * vrtxTwo;
+
+	vrtxOne = shiftVrtcs.first;
+	vrtxTwo = shiftVrtcs.second;
+
+	vector3 posOne = m_aaPos[vrtxOne];
+	vector3 posTwo = m_aaPos[vrtxTwo];
+
+	vector3 sum;
+
+	VecAdd(sum,posOne,posTwo);
+
+	vector3 scal;
+
+	VecScale(scal,sum,0.5);
+
+	Vertex * midPtVrtx = *m_grid.create<RegularVertex>();
+
+	m_aaPos[midPtVrtx] = scal;
+
+	e2bq.assignMidPointOfShiftVrtcs(midPtVrtx);
+
+	return true;
+}
 
 //////////////////////////////////////////////////////////////////////////////////
 

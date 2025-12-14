@@ -154,6 +154,11 @@ private:
 
 	Grid::VertexAttachmentAccessor<AttVecInt> m_attAccsInfoVecSudosTouchingVrtx;
 
+	bool assignMidPointOfShiftVrtcs( Elems2BQuenched & e2bq );
+
+	ABool m_attVrtxIsMidPtOfShiftVrtx;
+
+	Grid::VertexAttachmentAccessor<ABool> m_attAccsVrtxIsMidPtOfShiftVrtx;
 };
 
 } /* namespace diamonds */
