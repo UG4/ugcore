@@ -114,6 +114,25 @@ private:
 
 	void debugE2bQ(Elems2BQuenched & e2bq);
 
+	ABool m_attMarkTwinFace; // used to know if an face is twin face
+
+	Grid::FaceAttachmentAccessor<ABool> m_attAccsFacIsTwinFac;
+
+	ABool m_attMarkShiftFace; // used to know if an face is shift face
+
+	Grid::FaceAttachmentAccessor<ABool> m_attAccsFacIsShiftFac;
+
+	ABool m_attMarkVolGetsShrinked;
+	Grid::VolumeAttachmentAccessor<ABool> m_attAccsVolGetsShrinked;
+
+	using AttVrtVec = Attachment<std::vector<Vertex*> >;
+
+	AttVrtVec m_attVrtVec;
+
+	Grid::VolumeAttachmentAccessor<AttVrtVec> m_attAccsVrtVecVol;
+
+
+
 
 };
 

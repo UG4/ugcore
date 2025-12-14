@@ -31,7 +31,15 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_disappearingFacs(std::vector<Face*>()),
 			m_vecElemGroupVrtx2BQuenched(VecElemGroupVrtx2BQnchd4D()),
 			m_attElmGrpVrtx2BQnchd(AttElemGrpVrtx2BQuenchd()),
-			m_attAccsElmGrpVrtx2BQnchd(Grid::VertexAttachmentAccessor<AttElemGrpVrtx2BQuenchd>())
+			m_attAccsElmGrpVrtx2BQnchd(Grid::VertexAttachmentAccessor<AttElemGrpVrtx2BQuenchd>()),
+			m_attMarkTwinFace(ABool()),
+			m_attAccsFacIsTwinFac(Grid::FaceAttachmentAccessor<ABool>()),
+			m_attMarkShiftFace(ABool()),
+			m_attAccsFacIsShiftFac(Grid::FaceAttachmentAccessor<ABool>()),
+			m_attMarkVolGetsShrinked(ABool()),
+			m_attAccsVolGetsShrinked(Grid::VolumeAttachmentAccessor<ABool>()),
+			m_attVrtVec(AttVrtVec()),
+			m_attAccsVrtVecVol(Grid::VolumeAttachmentAccessor<AttVrtVec>())
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -820,6 +828,30 @@ bool DiamondsEstablish3D::attachMarkers()
 
 	m_attAccsElmGrpVrtx2BQnchd = Grid::VertexAttachmentAccessor<AttElemGrpVrtx2BQuenchd>( m_grid, m_attElmGrpVrtx2BQnchd);
 
+	m_attMarkTwinFace = ABool(); // used to know if an face is twin face
+
+	m_grid.attach_to_faces_dv( m_attMarkTwinFace, false );
+
+	m_attAccsFacIsTwinFac = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_attMarkTwinFace );
+
+	m_attMarkShiftFace = ABool(); // used to know if an face is shift face
+
+	m_grid.attach_to_faces_dv( m_attMarkShiftFace, false );
+
+	m_attAccsFacIsShiftFac = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_attMarkShiftFace );
+
+	m_attMarkVolGetsShrinked = ABool();
+
+	m_grid.attach_to_volumes_dv( m_attMarkVolGetsShrinked, false );
+
+	m_attAccsVolGetsShrinked = Grid::VolumeAttachmentAccessor<ABool>( m_grid, m_attMarkVolGetsShrinked );
+
+	m_attVrtVec = AttVrtVec();
+
+	m_grid.attach_to_volumes_dv(m_attVrtVec, std::vector<Vertex*>());
+
+	m_attAccsVrtVecVol = Grid::VolumeAttachmentAccessor<AttVrtVec>(m_grid, m_attVrtVec);
+
 	return true;
 }
 
@@ -828,6 +860,13 @@ bool DiamondsEstablish3D::attachMarkers()
 bool DiamondsEstablish3D::detachMarkers()
 {
 	m_grid.detach_from_vertices(m_attElmGrpVrtx2BQnchd);
+
+	m_grid.detach_from_faces(m_attMarkTwinFace);
+	m_grid.detach_from_faces(m_attMarkShiftFace);
+
+	m_grid.detach_from_volumes(m_attMarkVolGetsShrinked);
+
+	m_grid.detach_from_volumes( m_attVrtVec );
 
 	return true;
 }
@@ -844,6 +883,11 @@ bool DiamondsEstablish3D::assignBasicAtts()
 		m_sel.select(centerVrtx);
 
 		m_attAccsElmGrpVrtx2BQnchd[centerVrtx] = egv2bq;
+
+		m_sel.select( m_grid.associated_edges_begin(centerVrtx), m_grid.associated_edges_end(centerVrtx) );
+		m_sel.select( m_grid.associated_faces_begin(centerVrtx), m_grid.associated_faces_end(centerVrtx) );
+		m_sel.select( m_grid.associated_volumes_begin(centerVrtx), m_grid.associated_volumes_end(centerVrtx) );
+
 	}
 
 	return true;
@@ -881,7 +925,7 @@ bool DiamondsEstablish3D::trafoCollectedInfo2Attachments()
 //			{
 //
 //			}
-			debugE2bQ(e2bq);
+//			debugE2bQ(e2bq);
 		}
 	}
 
