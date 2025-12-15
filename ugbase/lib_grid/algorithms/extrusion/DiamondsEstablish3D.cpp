@@ -1518,13 +1518,13 @@ bool DiamondsEstablish3D::shrinkVolumes()
 	UG_LOG("Volumes erzeugt " << std::endl);
 
 
-//	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
-//	{
-//		Face* f = *iter;
-//		++iter;
-//
-//		m_grid.erase(f);
-//	}
+	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
+	{
+		Face* f = *iter;
+		++iter;
+
+		m_grid.erase(f);
+	}
 
 	UG_LOG("Gesichter entfernt " << std::endl);
 
