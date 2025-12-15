@@ -61,7 +61,6 @@ namespace ug {
  */
 template <	typename TElem, int TWorldDim>
 class HFV1Geometry : public FVGeometryBase{
-	private:
 	/// type of reference element
 		using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
@@ -114,18 +113,18 @@ class HFV1Geometry : public FVGeometryBase{
 				static constexpr size_t m_numCorners = hfv1_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
 
 			public:
-				SCVF() {};
+				SCVF() = default;
 
 			/// index of SubControlVolume on one side of the scvf
 			/// NO! return value is the associated NODE_ID; this is not the same!
-				inline size_t from() const {return m_from;}
+				[[nodiscard]] inline size_t from() const {return m_from;}
 
 			/// index of SubControlVolume on one side of the scvf
 			/// NO! return value is the associated NODE_ID; this is not the same!
-				inline size_t to() const {return m_to;}
+				[[nodiscard]] inline size_t to() const {return m_to;}
 
 			/// number of integration points on scvf
-				inline size_t num_ip() const {return m_numIP;}
+				[[nodiscard]] inline size_t num_ip() const {return m_numIP;}
 
 			/// local integration point of scvf
 				inline const MathVector<dim>& local_ip() const {return localIP;}
@@ -140,13 +139,13 @@ class HFV1Geometry : public FVGeometryBase{
 				inline const MathMatrix<worldDim,dim>& JTInv() const {return JtInv;}
 
 			/// Determinante of Jacobian in integration point
-				inline number detJ() const {return detj;}
+				[[nodiscard]] inline number detJ() const {return detj;}
 
 			/// number of shape functions
-				inline size_t num_sh() const {return vShape.size();}
+				[[nodiscard]] inline size_t num_sh() const {return vShape.size();}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t sh) const
+				[[nodiscard]] inline number shape(size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid ip index"); return vShape[sh];}
 
 			/// value of local gradient of shape function i in integration point
@@ -164,7 +163,7 @@ class HFV1Geometry : public FVGeometryBase{
 				inline const MathVector<worldDim>* global_grad_vector() const {return &globalGrad[0];}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return m_numCorners;}
+				[[nodiscard]] inline size_t num_corners() const {return m_numCorners;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -218,10 +217,10 @@ class HFV1Geometry : public FVGeometryBase{
 				SCV() : m_numCorners(m_maxNumCorners) {};
 
 			/// node id that this scv is associated to
-				inline size_t node_id() const {return nodeId;}
+				[[nodiscard]] inline size_t node_id() const {return nodeId;}
 
 			/// number of integration points
-				inline size_t num_ip() const {return m_numIP;}
+				[[nodiscard]] inline size_t num_ip() const {return m_numIP;}
 
 			/// local integration point of scv
 				inline const MathVector<dim>& local_ip() const {return m_vLocPos[0];}
@@ -230,10 +229,10 @@ class HFV1Geometry : public FVGeometryBase{
 				inline const MathVector<worldDim>& global_ip() const {return m_vGloPos[0];}
 
 			/// volume of scv
-				inline number volume() const {return vol;}
+				[[nodiscard]] inline number volume() const {return vol;}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return m_numCorners;}
+				[[nodiscard]] inline size_t num_corners() const {return m_numCorners;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -267,32 +266,32 @@ class HFV1Geometry : public FVGeometryBase{
 		void print();
 
 	///	get the element
-		GridObject* elem() const {return m_pElem;}
+		[[nodiscard]] GridObject* elem() const {return m_pElem;}
 
 	public:
 	/// number of SubControlVolumeFaces
-		inline size_t num_scvf() const {return m_vSCVF.size();}
+		[[nodiscard]] inline size_t num_scvf() const {return m_vSCVF.size();}
 
 	/// const access to SubControlVolumeFace number i
 		inline const SCVF& scvf(size_t i) const
 			{UG_ASSERT(i < num_scvf(), "Invalid Index."); return m_vSCVF[i];}
 
 	/// number of SubControlVolumes
-		size_t num_scv() const {return m_vSCV.size();}
+		[[nodiscard]] size_t num_scv() const {return m_vSCV.size();}
 
 	/// const access to SubControlVolume number i
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
 
 	/// number of shape functions
-		inline size_t num_sh() const
+		[[nodiscard]] inline size_t num_sh() const
 		{
 			return m_numSh;
 		};
 
 	public:
 	/// returns number of all scv ips
-		size_t num_scvf_ips() const {return m_vGlobSCVFIP.size();}
+		[[nodiscard]] size_t num_scvf_ips() const {return m_vGlobSCVFIP.size();}
 
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<worldDim>* scvf_global_ips() const {return &m_vGlobSCVFIP[0];}
@@ -301,7 +300,7 @@ class HFV1Geometry : public FVGeometryBase{
 		const MathVector<dim>* scvf_local_ips() const {return &m_vLocSCVFIP[0];}
 
 	/// returns number of all scv ips
-		size_t num_scv_ips() const {return m_vGlobSCVIP.size();}
+		[[nodiscard]] size_t num_scv_ips() const {return m_vGlobSCVIP.size();}
 
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<worldDim>* scv_global_ips() const {return &m_vGlobSCVIP[0];}
@@ -446,8 +445,8 @@ class HFV1Geometry : public FVGeometryBase{
 			friend class HFV1Geometry<TElem, TWorldDim>;
 		public:
 			NewEdgeInfo() : m_from(-1), m_to(-1){}
-            size_t from() const {return m_from;}
-            size_t to() const {return m_to;}
+            [[nodiscard]] size_t from() const {return m_from;}
+            [[nodiscard]] size_t to() const {return m_to;}
 		private:
 			size_t m_from;
 			size_t m_to;
@@ -458,10 +457,10 @@ class HFV1Geometry : public FVGeometryBase{
                 friend class HFV1Geometry<TElem, TWorldDim>;
             public:
             	NatEdgeInfo() : nodeId(-1), numChildEdges(0) {for(size_t i=0; i<2; ++i) childEdge[i] = -1;}
-                bool is_hanging() const {return numChildEdges == 2;}
-                size_t node_id() const {UG_ASSERT(is_hanging(), "Should only be called, if edge is hanging."); return nodeId;}
-                size_t num_child_edges() const {return numChildEdges;}
-                size_t child_edge(size_t i) const {UG_ASSERT(i < num_child_edges(), "Wrong id."); return childEdge[i];}
+                [[nodiscard]] bool is_hanging() const {return numChildEdges == 2;}
+                [[nodiscard]] size_t node_id() const {UG_ASSERT(is_hanging(), "Should only be called, if edge is hanging."); return nodeId;}
+                [[nodiscard]] size_t num_child_edges() const {return numChildEdges;}
+                [[nodiscard]] size_t child_edge(size_t i) const {UG_ASSERT(i < num_child_edges(), "Wrong id."); return childEdge[i];}
 
             private:
                 size_t nodeId;
@@ -564,13 +563,13 @@ class DimHFV1Geometry : public FVGeometryBase{
 				SCVF() = default;
 
 			/// index of SubControlVolume on one side of the scvf
-				inline size_t from() const {return m_from;}
+				[[nodiscard]] inline size_t from() const {return m_from;}
 
 			/// index of SubControlVolume on one side of the scvf
-				inline size_t to() const {return m_to;}
+				[[nodiscard]] inline size_t to() const {return m_to;}
 
 			/// number of integration points on scvf
-				inline size_t num_ip() const {return m_numIP;}
+				[[nodiscard]] inline size_t num_ip() const {return m_numIP;}
 
 			/// local integration point of scvf
 				inline const MathVector<dim>& local_ip() const {return localIP;}
@@ -585,13 +584,13 @@ class DimHFV1Geometry : public FVGeometryBase{
 				inline const MathMatrix<worldDim,dim>& JTInv() const {return JtInv;}
 
 			/// Determinante of Jacobian in integration point
-				inline number detJ() const {return detj;}
+				[[nodiscard]] inline number detJ() const {return detj;}
 
 			/// number of shape functions
-				inline size_t num_sh() const {return vShape.size();}
+				[[nodiscard]] inline size_t num_sh() const {return vShape.size();}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t sh) const
+				[[nodiscard]] inline number shape(size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid ip index"); return vShape[sh];}
 
 			/// value of local gradient of shape function i in integration point
@@ -609,7 +608,7 @@ class DimHFV1Geometry : public FVGeometryBase{
 				inline const MathVector<worldDim>* global_grad_vector() const {return &globalGrad[0];}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return m_numCorners;}
+				[[nodiscard]] inline size_t num_corners() const {return m_numCorners;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -663,10 +662,10 @@ class DimHFV1Geometry : public FVGeometryBase{
 				SCV() : m_numCorners(m_maxNumCorners) {};
 
 			/// node id that this scv is associated to
-				inline size_t node_id() const {return nodeId;}
+				[[nodiscard]] inline size_t node_id() const {return nodeId;}
 
 			/// number of integration points
-				inline size_t num_ip() const {return m_numIP;}
+				[[nodiscard]] inline size_t num_ip() const {return m_numIP;}
 
 			/// local integration point of scv
 				inline const MathVector<dim>& local_ip() const {return m_vLocPos[0];}
@@ -675,10 +674,10 @@ class DimHFV1Geometry : public FVGeometryBase{
 				inline const MathVector<worldDim>& global_ip() const {return m_vGloPos[0];}
 
 			/// volume of scv
-				inline number volume() const {return vol;}
+				[[nodiscard]] inline number volume() const {return vol;}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return m_numCorners;}
+				[[nodiscard]] inline size_t num_corners() const {return m_numCorners;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -689,13 +688,13 @@ class DimHFV1Geometry : public FVGeometryBase{
 					{UG_ASSERT(co < num_corners(), "Invalid corner index."); return m_vGloPos[co];}
 					
 			/// number of shape functions
-				inline size_t num_sh() const {return numSH;}
+				[[nodiscard]] inline size_t num_sh() const {return numSH;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t sh) const {return vShape[sh];}
+				[[nodiscard]] inline number shape(size_t sh) const {return vShape[sh];}
 
 			/// vector of shape functions in ip point
-				inline const number* shape_vector() const {return vShape;}
+				[[nodiscard]] inline const number* shape_vector() const {return vShape;}
 
 			/// value of local gradient of shape function i in integration point
 				inline const MathVector<dim>& local_grad(size_t sh) const
@@ -715,7 +714,7 @@ class DimHFV1Geometry : public FVGeometryBase{
 				inline const MathMatrix<worldDim,dim>& JTInv() const {return JtInv;}
 
 			/// Determinant of Jacobian in integration point
-				inline number detJ() const {return detj;}
+				[[nodiscard]] inline number detJ() const {return detj;}
 
 			private:
 				size_t nodeId; // node id of associated node
@@ -753,28 +752,28 @@ class DimHFV1Geometry : public FVGeometryBase{
 
 	public:
 	/// number of SubControlVolumeFaces
-		inline size_t num_scvf() const {return m_vSCVF.size();}
+		[[nodiscard]] inline size_t num_scvf() const {return m_vSCVF.size();}
 
 	/// const access to SubControlVolumeFace number i
 		inline const SCVF& scvf(size_t i) const
 			{UG_ASSERT(i < num_scvf(), "Invalid Index."); return m_vSCVF[i];}
 
 	/// number of SubControlVolumes
-		size_t num_scv() const {return m_vSCV.size();}
+		[[nodiscard]] size_t num_scv() const {return m_vSCV.size();}
 
 	/// const access to SubControlVolume number i
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
 
 	/// number of shape functions
-		inline size_t num_sh() const
+		[[nodiscard]] inline size_t num_sh() const
 		{
 			return m_numSh;
 		};
 
 	public:
 	/// returns number of all scv ips
-		size_t num_scvf_ips() const {return m_vGlobSCVFIP.size();}
+		[[nodiscard]] size_t num_scvf_ips() const {return m_vGlobSCVFIP.size();}
 
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<worldDim>* scvf_global_ips() const {return &m_vGlobSCVFIP[0];}
@@ -783,7 +782,7 @@ class DimHFV1Geometry : public FVGeometryBase{
 		const MathVector<dim>* scvf_local_ips() const {return &m_vLocSCVFIP[0];}
 
 	/// returns number of all scv ips
-		size_t num_scv_ips() const {return m_vGlobSCVIP.size();}
+		[[nodiscard]] size_t num_scv_ips() const {return m_vGlobSCVIP.size();}
 
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<worldDim>* scv_global_ips() const {return &m_vGlobSCVIP[0];}
@@ -914,8 +913,8 @@ class DimHFV1Geometry : public FVGeometryBase{
 			friend class DimHFV1Geometry<TDim, TWorldDim>;
 		public:
 			NewEdgeInfo() : m_from(-1), m_to(-1){}
-            size_t from() const {return m_from;}
-            size_t to() const {return m_to;}
+            [[nodiscard]] size_t from() const {return m_from;}
+            [[nodiscard]] size_t to() const {return m_to;}
 		private:
 			size_t m_from;
 			size_t m_to;
@@ -926,10 +925,10 @@ class DimHFV1Geometry : public FVGeometryBase{
                 friend class DimHFV1Geometry<TDim, TWorldDim>;
             public:
             	NatEdgeInfo() : nodeId(-1), numChildEdges(0) {for(size_t i=0; i<2; ++i) childEdge[i] = -1;}
-                bool is_hanging() const {return numChildEdges == 2;}
-                size_t node_id() const {UG_ASSERT(is_hanging(), "Should only be called, if edge is hanging."); return nodeId;}
-                size_t num_child_edges() const {return numChildEdges;}
-                size_t child_edge(size_t i) const {UG_ASSERT(i < num_child_edges(), "Wrong id."); return childEdge[i];}
+                [[nodiscard]] bool is_hanging() const {return numChildEdges == 2;}
+                [[nodiscard]] size_t node_id() const {UG_ASSERT(is_hanging(), "Should only be called, if edge is hanging."); return nodeId;}
+                [[nodiscard]] size_t num_child_edges() const {return numChildEdges;}
+                [[nodiscard]] size_t child_edge(size_t i) const {UG_ASSERT(i < num_child_edges(), "Wrong id."); return childEdge[i];}
 
             private:
                 size_t nodeId;
@@ -1034,10 +1033,10 @@ class HFV1ManifoldGeometry
 				BF() = default;
 
 			/// node id that this bf is associated to
-				inline size_t node_id() const {return nodeId;}
+				[[nodiscard]] inline size_t node_id() const {return nodeId;}
 
 			/// number of integration points
-				inline size_t num_ip() const {return m_numIP;}
+				[[nodiscard]] inline size_t num_ip() const {return m_numIP;}
 
 			/// local integration point of scvf
 				inline const MathVector<dim>& local_ip() const //{return localIP;}
@@ -1048,10 +1047,10 @@ class HFV1ManifoldGeometry
 				{return m_vGloPos[0];}	// <-- here too
 
 			/// volume of bf
-				inline number volume() const {return vol;}
+				[[nodiscard]] inline number volume() const {return vol;}
 
 			/// number of corners, that bound the bf
-				inline size_t num_corners() const {return numCorners;}
+				[[nodiscard]] inline size_t num_corners() const {return numCorners;}
 
 			/// return local position of corner number i
 				inline const MathVector<dim>& local_corner(size_t i) const
@@ -1062,10 +1061,10 @@ class HFV1ManifoldGeometry
 					{UG_ASSERT(i < num_corners(), "Invalid index."); return m_vGloPos[i];}
 
 			/// number of shape functions
-				inline size_t num_sh() const {return vShape.size();}
+				[[nodiscard]] inline size_t num_sh() const {return vShape.size();}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t i, size_t ip) const
+				[[nodiscard]] inline number shape(size_t i, size_t ip) const
 					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vShape[i];}
 
 			private:
@@ -1104,7 +1103,7 @@ class HFV1ManifoldGeometry
 		const MathVector<worldDim>* corners() const {return m_gloMid[0];}
 */
 	/// number of BoundaryFaces
-		inline size_t num_bf() const {return m_vBF.size();}
+		[[nodiscard]] inline size_t num_bf() const {return m_vBF.size();}
 
 	/// const access to Boundary Face number i
 		inline const BF& bf(size_t i) const
@@ -1114,13 +1113,13 @@ class HFV1ManifoldGeometry
 		const MathVector<worldDim>* bf_global_ips() const {return &m_vGlobBFIP[0];}
 
 	/// returns number of all scvf ips
-		size_t num_bf_global_ips() const {return m_vGlobBFIP.size();}
+		[[nodiscard]] size_t num_bf_global_ips() const {return m_vGlobBFIP.size();}
 
 	/// returns all ips of scvf as they appear in scv loop
 		const MathVector<dim>* bf_local_ips() const {return &m_vLocBFIP[0];}
 
 	/// returns number of all scvf ips
-		size_t num_bf_local_ips() const {return m_vLocBFIP.size();}
+		[[nodiscard]] size_t num_bf_local_ips() const {return m_vLocBFIP.size();}
 
 	protected:
 		void compute_side_midpoints(MathVector<dim>& locSideMid,
@@ -1173,8 +1172,8 @@ class HFV1ManifoldGeometry
 
 			public:
 				NewEdgeInfo() : m_from(-1), m_to(-1){}
-				size_t from() const {return m_from;}
-				size_t to() const {return m_to;}
+				[[nodiscard]] size_t from() const {return m_from;}
+				[[nodiscard]] size_t to() const {return m_to;}
 			private:
 				size_t m_from;
 				size_t m_to;
@@ -1185,10 +1184,10 @@ class HFV1ManifoldGeometry
 			friend class HFV1ManifoldGeometry<TElem, TWorldDim>;
 			public:
 				NatEdgeInfo() : nodeId(-1), numChildEdges(0) {for(size_t i=0; i<2; ++i) childEdge[i] = -1;}
-				bool is_hanging() const {return numChildEdges == 2;}
-				size_t node_id() const {UG_ASSERT(is_hanging(), "Should only be called, if edge is hanging."); return nodeId;}
-				size_t num_child_edges() const {return numChildEdges;}
-				size_t child_edge(size_t i) const {UG_ASSERT(i < num_child_edges(), "Wrong id."); return childEdge[i];}
+				[[nodiscard]] bool is_hanging() const {return numChildEdges == 2;}
+				[[nodiscard]] size_t node_id() const {UG_ASSERT(is_hanging(), "Should only be called, if edge is hanging."); return nodeId;}
+				[[nodiscard]] size_t num_child_edges() const {return numChildEdges;}
+				[[nodiscard]] size_t child_edge(size_t i) const {UG_ASSERT(i < num_child_edges(), "Wrong id."); return childEdge[i];}
 
 			private:
 				size_t nodeId;

@@ -94,7 +94,7 @@ class DiracSourceDisc
 	public:
 
 	/// Constructor with c-strings
-		DiracSourceDisc(const char* functions = "", const char* subsets = "")
+		explicit DiracSourceDisc(const char* functions = "", const char* subsets = "")
 			: IElemDisc<TDomain>(functions, subsets), m_bNonRegularGrid(false) /*, m_bCurrElemIsHSlave(false)*/
 		{
 			register_all_funcs();
@@ -108,7 +108,7 @@ class DiracSourceDisc
 		}
 
 	/// Destructor
-		virtual ~DiracSourceDisc() = default;
+		~DiracSourceDisc() override = default;
 
 
 	
@@ -129,10 +129,10 @@ class DiracSourceDisc
 
 	public:	// inherited from IElemDisc
 	///	type of trial space for each function used
-		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
+		void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid) override;
 
 	///	returns if hanging nodes are used
-		virtual bool use_hanging() const;
+		bool use_hanging() const override;
 
 	protected:
 	

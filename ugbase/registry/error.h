@@ -54,9 +54,9 @@ struct UGRegistryError : UGError
 		UG_ERR_LOG("#### Registry ERROR ("<<name_<<"):"<<msg_<<"\n");
 	}
 
-	UGRegistryError(const std::string &msg_,
-	                const char* file = " -- no file -- ",
-	                const unsigned long line = 0)
+	explicit UGRegistryError(const std::string &msg_,
+	                         const char* file = " -- no file -- ",
+	                         const unsigned long line = 0)
 	:	UGError(msg_, file, line),
 		name("-- no name --"), msg(msg_)
 	{

@@ -68,7 +68,7 @@ class FunctionPattern
 		void set_subset_handler(ConstSmartPtr<ISubsetHandler> spSH);
 
 	/// get underlying subset handler
-		ConstSmartPtr<ISubsetHandler> subset_handler() const {return m_spSH;}
+		[[nodiscard]] ConstSmartPtr<ISubsetHandler> subset_handler() const {return m_spSH;}
 
 	/// add single solutions of LocalShapeFunctionSetID to the entire domain
 	/**
@@ -104,7 +104,7 @@ class FunctionPattern
 		void lock()	{m_bLocked = true;}
 
 	///	returns if pattern is locked
-		bool is_locked() const {return m_bLocked;}
+		[[nodiscard]] bool is_locked() const {return m_bLocked;}
 
 	/// clear all functions
 		void clear()
@@ -114,7 +114,7 @@ class FunctionPattern
 		}
 
 	///	number of subsets
-		int num_subsets() const {return m_spSH->num_subsets();}
+		[[nodiscard]] int num_subsets() const {return m_spSH->num_subsets();}
 
 	///	returns a subset group consisting of the subsets specified by their names
 		SubsetGroup subset_grp_by_name(const char* names) const
@@ -132,19 +132,19 @@ class FunctionPattern
 		}
 
 	/// returns the subset id
-		int subset_id_by_name(const char* name) const;
+		[[nodiscard]] int subset_id_by_name(const char* name) const;
 
 	///	dimension of subset
-		int dim_subset(int si) const {return DimensionOfSubset(*m_spSH, si);}
+		[[nodiscard]] int dim_subset(int si) const {return DimensionOfSubset(*m_spSH, si);}
 
 	///	returns the name of a subset
-		const char* subset_name(int si) const {return m_spSH->subset_info(si).name.c_str();}
+		[[nodiscard]] const char* subset_name(int si) const {return m_spSH->subset_info(si).name.c_str();}
 
 	/// number of discrete functions this dof distributor handles
-		size_t num_fct() const {return m_vFunction.size();}
+		[[nodiscard]] size_t num_fct() const {return m_vFunction.size();}
 
 	/// number of discrete functions on a subset
-		size_t num_fct(int si) const
+		[[nodiscard]] size_t num_fct(int si) const
 		{
 			size_t num = 0;
 			for(size_t fct = 0; fct < num_fct(); ++fct)
@@ -156,16 +156,16 @@ class FunctionPattern
 
 	/// returns the trial space of a discrete function
 	/// \{
-		const LFEID& local_finite_element_id(size_t fct) const
+		[[nodiscard]] const LFEID& local_finite_element_id(size_t fct) const
 		{
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
 			return m_vFunction[fct].id;
 		}
-		const LFEID& lfeid(size_t fct) const {return local_finite_element_id(fct);}
+		[[nodiscard]] const LFEID& lfeid(size_t fct) const {return local_finite_element_id(fct);}
 	/// \}
 
 	/// returns the name of a discrete function
-		const char* name(size_t fct) const
+		[[nodiscard]] const char* name(size_t fct) const
 		{
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
 			return m_vFunction[fct].name.c_str();
@@ -181,7 +181,7 @@ class FunctionPattern
 		}
 
 	/// returns function id of the loc_fct's function on subset si
-		size_t fct_id(size_t loc_fct, int si) const
+		[[nodiscard]] size_t fct_id(size_t loc_fct, int si) const
 		{
 			size_t fct = 0;
 			for(size_t i = 0; i < loc_fct; ++i)
@@ -195,21 +195,21 @@ class FunctionPattern
 		size_t fct_id_by_name(const char* name) const;
 
 	/// returns the dimension in which solution lives
-		int dim(size_t fct) const
+		[[nodiscard]] int dim(size_t fct) const
 		{
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
 			return m_vFunction[fct].id.dim();
 		}
 
 	/// returns true if the discrete function nr_fct is defined on subset si
-		bool is_def_in_subset(size_t fct, int si) const
+		[[nodiscard]] bool is_def_in_subset(size_t fct, int si) const
 		{
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
 			return m_vFunction[fct].is_def_in_subset(si);
 		}
 
 	/// returns true if the discrete function nr_fct is defined on all subsets
-		bool is_def_everywhere(size_t fct) const
+		[[nodiscard]] bool is_def_everywhere(size_t fct) const
 		{
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
 			return m_vFunction[fct].is_def_everywhere();
@@ -233,14 +233,14 @@ class FunctionPattern
 			bool everywhere;
 			SubsetGroup subsetIndices;
 
-			bool is_def_in_subset(int si) const
+			[[nodiscard]] bool is_def_in_subset(int si) const
 			{
 				if(everywhere) return true;
 				if(subsetIndices.contains(si)) return true;
 				return false;
 			}
 
-			bool is_def_everywhere() const {return everywhere;}
+			[[nodiscard]] bool is_def_everywhere() const {return everywhere;}
 		};
 
 	protected:

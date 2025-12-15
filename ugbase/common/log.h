@@ -132,7 +132,7 @@ class UG_API LogAssistant
 		void flush_error_log();
 
 	/// sets the debug level of all tags to 'lev'
-		bool set_debug_levels(int lev)
+		bool set_debug_levels(int lev) const
 		{
 			return GetDebugIDManager().set_debug_levels(lev);
 		}
@@ -152,13 +152,13 @@ class UG_API LogAssistant
 		
 		
 	/// sets the debug level of debugID
-		inline bool set_debug_level(DebugID &debugID, int level)
+		inline bool set_debug_level(DebugID &debugID, int level) const
 		{
 			return GetDebugIDManager().set_debug_level(debugID, level);
 		}
 		
 	/// returns the debug level of debugID
-		inline bool set_debug_level(const char* debugID, int level)
+		inline bool set_debug_level(const char* debugID, int level) const
 		{
 			return GetDebugIDManager().set_debug_level(debugID, level);
 		}
@@ -166,7 +166,7 @@ class UG_API LogAssistant
 		bool set_debug_level_noninline(const char* debugID, int level);
 		
 	/// returns the debug level of debugID
-		inline std::string get_registered_debug_IDs()
+		inline std::string get_registered_debug_IDs() const
 		{
 			return GetDebugIDManager().get_registered_debug_IDs();
 		}
@@ -176,7 +176,7 @@ class UG_API LogAssistant
 		void set_output_process(int procRank);
 
 	///	returns the rank of the current output-process or -1 if all procs perform output.
-		inline int get_output_process();
+		inline int get_output_process() const;
 
 	///	returns true if the current process is an output process.
 	/**	This is always true, if the application is executed in a serial environment.*/
@@ -231,11 +231,11 @@ inline LogAssistant& GetLogAssistant();
 
 /// returns number 'size' in a more human readable format (using IEC binary prefixes)
 inline std::string ConvertNumber (uint64_t size, unsigned int width,
-                                  unsigned int numDisplayedDigits);
+                                  int numDisplayedDigits);
 
 /// returns number 'size' in a more human readable format (using SI prefixes)
 inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
-                                    unsigned int numDisplayedDigits);
+                                    int numDisplayedDigits);
 
 // end group ugbase_common
 /// \}

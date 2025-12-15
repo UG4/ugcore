@@ -36,7 +36,8 @@
 #include <cstddef>
 #include <iostream>
 
-#include "../../types.h"
+#include "common/types.h"
+#include "common/config.hpp"
 
 namespace ug {
 
@@ -71,6 +72,14 @@ class MathTensor
 		MathTensor() = default;
 		MathTensor(const MathTensor& v)	{assign(v);}
 
+		MathTensor(MathTensor&& v) noexcept {
+			std::swap(v.m_data, m_data);
+		}
+		MathTensor& operator = ( MathTensor&& v ) noexcept {
+			std::swap(v.m_data, m_data);
+			return *this;
+		}
+
 		// operations with other vectors
 		MathTensor& operator =  (const MathTensor& v)
 		{
@@ -78,8 +87,8 @@ class MathTensor
 			return *this;
 		}
 
-		inline size_t size() const {return N;}
-		inline size_t rank() const {return TRank;}
+		[[nodiscard]] inline size_t size() const {return N;}
+		[[nodiscard]] inline size_t rank() const {return TRank;}
 
 	///	sets all values of the tensor to a value
 		MathTensor& operator =(T val) {set(val); return *this;}
@@ -92,7 +101,12 @@ class MathTensor
 		inline void assign(const MathTensor<TRank, N, T>& v){for(size_t i = 0; i < N; ++i) m_data[i] = v[i];}
 
 	protected:
+#if defined(FEATURE_MEMORY_ALIGNED) && FEATURE_MEMORY_ALIGNED == 1
+		alignas(64) value_type m_data[N];
+#else
 		value_type	m_data[N];
+#endif
+
 };
 
 
@@ -113,9 +127,16 @@ class MathTensor<1, N, T>
 		static constexpr size_t Rank = 1;
 
 	public:
-		MathTensor(const bool init = true) { if(init) set(0.0);}
+		explicit MathTensor(const bool init = true) { if(init) set(0.0);}
 		MathTensor(const MathTensor& v)	{assign(v);}
+		MathTensor( MathTensor&& v) noexcept {
+			std::swap(v.m_data, m_data);
+		}
 
+		MathTensor& operator = ( MathTensor&& v) noexcept {
+			std::swap(v.m_data, m_data);
+			return *this;
+		}
 		// operations with other vectors
 		MathTensor& operator =  (const MathTensor& v)
 		{
@@ -123,8 +144,8 @@ class MathTensor<1, N, T>
 			return *this;
 		}
 
-		inline size_t size() const {return N;}
-		inline size_t rank() const {return 1;}
+		[[nodiscard]] inline size_t size() const {return N;}
+		[[nodiscard]] inline size_t rank() const {return 1;}
 
 	///	sets all values of the tensor to a value
 		MathTensor& operator = (T val) {set(val); return *this;}
@@ -137,11 +158,16 @@ class MathTensor<1, N, T>
 		inline void assign(const MathTensor& v) {for(size_t i = 0; i < N; ++i) m_data[i] = v[i];}
 
 	protected:
-		value_type	m_data[N];
+#if defined(FEATURE_MEMORY_ALIGNED) && FEATURE_MEMORY_ALIGNED == 1
+		alignas(64) value_type m_data[N];
+#else
+		value_type m_data[N];
+#endif
+
 };
 
 template <size_t TRank, size_t N, typename T>
-std::ostream& operator << (std::ostream& outStream, const ug::MathTensor<TRank, N, T>& v)
+std::ostream& operator << (std::ostream& outStream, const MathTensor<TRank, N, T>& v)
 {
 	outStream << "[";
 	for(size_t i = 0; i < v.size()-1; ++i)
@@ -169,18 +195,26 @@ public:
 	static constexpr size_t Rank = TEntry::Rank+1;
 
 public:
-	MathTensorX() { }
-	MathTensorX(const MathTensorX& v)	{assign(v);}
+	MathTensorX() = default;
+	MathTensorX(const MathTensorX& v) {assign(v);}
+
+	MathTensorX( MathTensorX&& v) noexcept {
+		std::swap(v.m_data, m_data);
+	}
+	MathTensorX& operator = ( MathTensorX&& v ) noexcept {
+		std::swap(v.m_data, m_data);
+		return *this;
+	}
 
 	// operations with other vectors
-	MathTensorX& operator =  (const MathTensorX& v)
+	MathTensorX& operator = (const MathTensorX& v)
 	{
 		if(this != &v){assign(v);}
 		return *this;
 	}
 
-	inline size_t size() const {return N;}
-	inline size_t rank() const {return Rank;}
+	[[nodiscard]] inline size_t size() const {return N;}
+	[[nodiscard]] inline size_t rank() const {return Rank;}
 
 	inline value_type& operator [] (size_t i)				{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
 	inline const value_type& operator [] (size_t i) const	{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
@@ -189,7 +223,12 @@ protected:
 	inline void assign(const MathTensorX& v) {for(size_t i = 0; i < N; ++i) m_data[i] = v[i];}
 
 protected:
+#if defined(FEATURE_MEMORY_ALIGNED) && FEATURE_MEMORY_ALIGNED == 1
+	alignas(64) TEntry m_data[N];
+#else
 	TEntry m_data[N];
+#endif
+
 };
 
 template <size_t N, typename T = number>
@@ -225,7 +264,10 @@ std::ostream& operator << (std::ostream& outStream, const MathTensorX<TEntry, N>
 // end group math_tensor
 /// \}
 
+
 }//	end of namespace
+
+
 
 
 #endif

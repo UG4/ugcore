@@ -352,11 +352,11 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	}
 	for(size_t i = 0; i < m_rRefElem.num(2)+8; ++i)
 	{
-		UG_DLOG(DID_FV1_GEOM, 2, "	Face midpoint " << i << ": " << ((dim >= 2) ? m_vvGloMid[2][i] : 0) << std::endl);
+		UG_DLOG(DID_FV1_GEOM, 2, "	Face midpoint " << i << ": " << ((dim >= 2) ? m_vvGloMid[2][i] : MathVector<worldDim>(0)) << std::endl);
 	}
 	for(size_t i = 0; i < m_rRefElem.num(3)+4; ++i)
 	{
-		UG_DLOG(DID_FV1_GEOM, 2, "	Volume midpoint " << i << ": " << ((dim >= 3) ? m_vvGloMid[3][i] : 0) << std::endl);
+		UG_DLOG(DID_FV1_GEOM, 2, "	Volume midpoint " << i << ": " << ((dim >= 3) ? m_vvGloMid[3][i] : MathVector<worldDim>(0)) << std::endl);
 	}
 
 // 	compute global informations for scvf

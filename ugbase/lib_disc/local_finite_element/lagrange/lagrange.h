@@ -95,19 +95,19 @@ class LagrangeLSFS<ReferenceVertex, TOrder>
 		LagrangeLSFS() = default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]]inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			return true;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline shape_type shape(size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline shape_type shape(size_t i, const MathVector<dim>& x) const
 		{
 			return 1.0;
 		}
@@ -136,22 +136,22 @@ class FlexLagrangeLSFS<ReferenceVertex>
 		FlexLagrangeLSFS() = default;
 
 	///	Constructor
-		FlexLagrangeLSFS(size_t order) {p = order;}
+		explicit FlexLagrangeLSFS(size_t order) {p = order;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			return true;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline shape_type shape(size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline shape_type shape(size_t i, const MathVector<dim>& x) const
 		{
 			return 1.0;
 		}
@@ -212,20 +212,20 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			pos = EquidistantLagrange1D::position(multi_index(i)[0], p);
 			return true;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline shape_type shape(size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline shape_type shape(size_t i, const MathVector<dim>& x) const
 		{
 			return m_vPolynom[multi_index(i)[0]].value(x[0]);
 		}
@@ -237,14 +237,14 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -253,14 +253,14 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 			return MathVector<1,int>(i);
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			return ind[0];
@@ -303,26 +303,26 @@ class FlexLagrangeLSFS<ReferenceEdge>
 		FlexLagrangeLSFS() {set_order(1);}
 
 	///	Constructor
-		FlexLagrangeLSFS(size_t order) {set_order(order);}
+		explicit FlexLagrangeLSFS(size_t order) {set_order(order);}
 
 	///	sets the order
 		void set_order(size_t order);
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			pos = EquidistantLagrange1D::position(multi_index(i)[0], p);
 			return true;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline shape_type shape(size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline shape_type shape(size_t i, const MathVector<dim>& x) const
 		{
 			return m_vPolynom[multi_index(i)[0]].value(x[0]);
 		}
@@ -334,14 +334,14 @@ class FlexLagrangeLSFS<ReferenceEdge>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -350,14 +350,14 @@ class FlexLagrangeLSFS<ReferenceEdge>
 		}
 
 	///	return Multi index for index i
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 			return MathVector<1,int>(i);
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			return ind[0];
@@ -426,13 +426,13 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const override {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -445,14 +445,14 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	forward
 			return shape(multi_index(i), x);
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceTriangle::check_position(x);
@@ -507,14 +507,14 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -523,7 +523,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -536,12 +536,12 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
 			int i0 = i, i1;
-			for(i1 = 0; i1 < (int)p; ++i1)
+			for(i1 = 0; i1 < static_cast<int>(p); ++i1)
 			{
 				const int diff = i0 - (p+1-i1);
 				if(diff < 0) break;
@@ -589,16 +589,16 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 		FlexLagrangeLSFS() {set_order(1);}
 
 	///	Constructor
-		FlexLagrangeLSFS(size_t order) {set_order(order);}
+		explicit FlexLagrangeLSFS(size_t order) {set_order(order);}
 
 	///	sets the order
 		void set_order(size_t order);
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
 		inline bool position(size_t i, MathVector<dim>& pos) const
@@ -614,14 +614,14 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	forward
 			return shape(multi_index(i), x);
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceTriangle::check_position(x);
@@ -676,14 +676,14 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -692,7 +692,7 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -705,12 +705,12 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 		}
 
 	///	return the multi_index for an index
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
 			int i0 = i, i1;
-			for(i1 = 0; i1 < (int)p; ++i1)
+			for(i1 = 0; i1 < static_cast<int>(p); ++i1)
 			{
 				const int diff = i0 - (p+1-i1);
 				if(diff < 0) break;
@@ -787,13 +787,13 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -806,14 +806,14 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	forward
 			return shape(multi_index(i), x);
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceQuadrilateral::check_position(x);
@@ -852,14 +852,14 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -868,7 +868,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -876,7 +876,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -918,19 +918,19 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 		FlexLagrangeLSFS() {set_order(1);}
 
 	///	Constructor
-		FlexLagrangeLSFS(size_t order) {set_order(order);}
+		explicit FlexLagrangeLSFS(size_t order) {set_order(order);}
 
 	///	sets the order
 		void set_order(size_t order);
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -943,14 +943,14 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	forward
 			return shape(multi_index(i), x);
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceQuadrilateral::check_position(x);
@@ -989,14 +989,14 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -1005,7 +1005,7 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -1013,7 +1013,7 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 		}
 
 	///	return the multi_index for an index
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -1084,13 +1084,13 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -1103,14 +1103,14 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	forward
 			return shape(multi_index(i), x);
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceTetrahedron::check_position(x);
@@ -1165,14 +1165,14 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -1181,7 +1181,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -1201,12 +1201,12 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
 			int i0 = i, i1 = 0, i2 = 0;
-			for(i2 = 0; i2 <= (int)p; ++i2)
+			for(i2 = 0; i2 <= static_cast<int>(p); ++i2)
 			{
 				const int binom = BinomCoeff(p+2-i2, p-i2);
 
@@ -1214,7 +1214,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 				const int diff = i0 - binom;
 				if(diff < 0)
 				{
-					for(i1 = 0; i1 <= (int)p; ++i1)
+					for(i1 = 0; i1 <= static_cast<int>(p); ++i1)
 					{
 						// if i1 is correct return values
 						const int diff =  i0 - (p+1-i2-i1);
@@ -1275,19 +1275,19 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 		FlexLagrangeLSFS() {set_order(1);}
 
 	///	Constructor
-		FlexLagrangeLSFS(size_t order) {set_order(order);}
+		explicit FlexLagrangeLSFS(size_t order) {set_order(order);}
 
 	///	sets the order
 		void set_order(size_t order);
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -1300,14 +1300,14 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	forward
 			return shape(multi_index(i), x);
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceTetrahedron::check_position(x);
@@ -1362,14 +1362,14 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -1378,7 +1378,7 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -1398,12 +1398,12 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 		}
 
 	///	return the multi_index for an index
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
 			int i0 = i, i1 = 0, i2 = 0;
-			for(i2 = 0; i2 <= (int)p; ++i2)
+			for(i2 = 0; i2 <= static_cast<int>(p); ++i2)
 			{
 				const int binom = BinomCoeff(p+2-i2, p-i2);
 
@@ -1411,7 +1411,7 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 				const int diff = i0 - binom;
 				if(diff < 0)
 				{
-					for(i1 = 0; i1 <= (int)p; ++i1)
+					for(i1 = 0; i1 <= static_cast<int>(p); ++i1)
 					{
 						// if i1 is correct return values
 						const int diff =  i0 - (p+1-i2-i1);
@@ -1504,13 +1504,13 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const override {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -1525,14 +1525,14 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	forward
 			return shape(multi_index(i), x);
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferencePrism::check_position(x);
@@ -1598,14 +1598,14 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -1614,7 +1614,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -1629,14 +1629,14 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
 			const size_t i2 = i / dofPerLayer;
 
 			int i0 = i - i2*dofPerLayer, i1;
-			for(i1 = 0; i1 < (int)p; ++i1)
+			for(i1 = 0; i1 < static_cast<int>(p); ++i1)
 			{
 				const int diff = i0 - (p+1-i1);
 				if(diff < 0)
@@ -1686,19 +1686,19 @@ class FlexLagrangeLSFS<ReferencePrism>
 		FlexLagrangeLSFS() {set_order(1);}
 
 	///	Constructor
-		FlexLagrangeLSFS(size_t order) {set_order(order);}
+		explicit FlexLagrangeLSFS(size_t order) {set_order(order);}
 
 	///	sets the order
 		void set_order(size_t order);
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const override {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -1713,14 +1713,14 @@ class FlexLagrangeLSFS<ReferencePrism>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	forward
 			return shape(multi_index(i), x);
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferencePrism::check_position(x);
@@ -1786,14 +1786,14 @@ class FlexLagrangeLSFS<ReferencePrism>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -1802,7 +1802,7 @@ class FlexLagrangeLSFS<ReferencePrism>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -1817,14 +1817,14 @@ class FlexLagrangeLSFS<ReferencePrism>
 		}
 
 	///	return the multi_index for an index
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
 			const size_t i2 = i / dofPerLayer;
 
 			int i0 = i - i2*dofPerLayer, i1;
-			for(i1 = 0; i1 < (int)p; ++i1)
+			for(i1 = 0; i1 < static_cast<int>(p); ++i1)
 			{
 				const int diff = i0 - (p+1-i1);
 				if(diff < 0)
@@ -1923,13 +1923,13 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const override {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -1942,7 +1942,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	only first order
 			if(p != 1) UG_THROW("Only 1. order Lagrange Pyramid implemented.");
@@ -1963,7 +1963,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferencePyramid::check_position(x);
@@ -2025,14 +2025,14 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -2041,7 +2041,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -2059,14 +2059,14 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
 		//	get z layer
 			int iTmp = i;
 			int i2;
-			for(i2 = 0; i2 < (int)p; ++i2)
+			for(i2 = 0; i2 < static_cast<int>(p); ++i2)
 			{
 				const int diff = iTmp - (p+1-i2)*(p+1-i2);
 				if(diff < 0) break;
@@ -2136,13 +2136,13 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const override {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -2155,14 +2155,14 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	forward
 			return shape(multi_index(i), x);
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceHexahedron::check_position(x);
@@ -2202,14 +2202,14 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -2218,7 +2218,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -2226,7 +2226,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	return the multi_index for an index
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -2268,19 +2268,19 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 		FlexLagrangeLSFS() {set_order(1);}
 
 	///	Constructor
-		FlexLagrangeLSFS(size_t order) {set_order(order);}
+		explicit FlexLagrangeLSFS(size_t order) {set_order(order);}
 
 	///	sets the order
 		void set_order(size_t order);
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const override {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -2293,14 +2293,14 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	forward
 			return shape(multi_index(i), x);
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceHexahedron::check_position(x);
@@ -2340,14 +2340,14 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
@@ -2356,7 +2356,7 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 		}
 
 	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 
@@ -2364,7 +2364,7 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 		}
 
 	///	return the multi_index for an index
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		[[nodiscard]] inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 
@@ -2420,10 +2420,10 @@ class LagrangeLSFS<ReferenceOctahedron, TOrder>
 
 	public:
 	///	Shape type
-	using shape_type = typename base_type::shape_type;
+		using shape_type = typename base_type::shape_type;
 
 	///	Gradient type
-	using grad_type = typename base_type::grad_type;
+		using grad_type = typename base_type::grad_type;
 
 	public:
 	///	Order of Shape functions
@@ -2440,13 +2440,13 @@ class LagrangeLSFS<ReferenceOctahedron, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const override {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -2459,7 +2459,7 @@ class LagrangeLSFS<ReferenceOctahedron, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	only first order
 			if(p != 1) UG_THROW("Only 1. order Lagrange Octahedron implemented.");
@@ -2505,7 +2505,7 @@ class LagrangeLSFS<ReferenceOctahedron, TOrder>
 		}
 
 	///	shape value for a Multi Index
-		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 
@@ -2627,14 +2627,14 @@ class LagrangeLSFS<ReferenceOctahedron, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline const MathVector<dim,int>& multi_index(size_t i) const
+		[[nodiscard]] inline const MathVector<dim,int>& multi_index(size_t i) const
 		{
 			check_index(i);
 			return m_vMultiIndex[i];
 		}
 
 	///	return the index for a multi_index
-		inline size_t index(const MathVector<dim,int>& ind) const
+		[[nodiscard]] inline size_t index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)

@@ -145,16 +145,16 @@ class ScaleAddLinker
 		}
 
 	///	returns number of functions the input depends on
-		size_t input_num_fct(size_t i) const {return base_type::input_num_fct(2*i);}
+		[[nodiscard]] size_t input_num_fct(size_t i) const {return base_type::input_num_fct(2*i);}
 
 	///	returns the number in the common FctGrp for a fct of an input
-		size_t input_common_fct(size_t i, size_t fct) const	{return base_type::input_common_fct(2*i, fct);}
+		[[nodiscard]] size_t input_common_fct(size_t i, size_t fct) const {return base_type::input_common_fct(2*i, fct);}
 
 	///	returns number of functions the scaling depends on
-		size_t scale_num_fct(size_t i) const {return base_type::input_num_fct(2*i+1);}
+		[[nodiscard]] size_t scale_num_fct(size_t i) const {return base_type::input_num_fct(2*i+1);}
 
 	///	returns the number in the common FctGrp for a fct of a scaling
-		size_t scale_common_fct(size_t i, size_t fct) const	{return base_type::input_common_fct(2*i+1, fct);}
+		[[nodiscard]] size_t scale_common_fct(size_t i, size_t fct) const	{return base_type::input_common_fct(2*i+1, fct);}
 
 	protected:
 	///	data input

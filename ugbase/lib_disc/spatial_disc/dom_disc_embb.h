@@ -612,14 +612,14 @@ public:
 	}
 	
 ///	returns true if the corner is "inside" (use after check_elem_lsf)
-	bool corner_inside
+	[[nodiscard]] bool corner_inside
 	(
 		size_t co ///< the corner
 	) const
 	{return m_extrapol.corner_inside (co);}
 	
 ///	returns the effective value of the LSF at a corner (use after check_elem_lsf)
-	number lsf_at
+	[[nodiscard]] number lsf_at
 	(
 		size_t co ///< the corner
 	) const
@@ -683,7 +683,7 @@ using matrix_type = typename algebra_type::matrix_type;
 	using extrapolation_type = TExtrapolation;
 	
 ///	class constructor
-	LSGFConstraint
+	explicit LSGFConstraint
 	(
 		extrapolation_type & rExtrapolation ///< the GF extrapolation
 	)
@@ -759,7 +759,7 @@ using matrix_type = typename algebra_type::matrix_type;
 	}
 
 ///	returns the type of the constraints
-	int type () const override {return CT_DIRICHLET;}
+	[[nodiscard]] int type () const override {return CT_DIRICHLET;}
 	
 private:
 	
@@ -817,7 +817,7 @@ public:
 	
 public:
 ///	default Constructor
-	LSGFDomainDiscretization (SmartPtr<approx_space_type> pApproxSpace)
+	explicit LSGFDomainDiscretization (SmartPtr<approx_space_type> pApproxSpace)
 	: 	DomainDiscretizationBase<domain_type, algebra_type, gass_type> (pApproxSpace),
 		m_spLSFGFConstraint (new ls_constraint_type (this->extrapolation ()))
 	{
@@ -828,7 +828,7 @@ public:
 	}
 
 /// virtual destructor
-	~LSGFDomainDiscretization () override {};
+	~LSGFDomainDiscretization () override = default;
 	
 ///	set the level-set function and check it
 	void set_LSF
@@ -1005,13 +1005,13 @@ public:
 	}
 	
 ///	returns true if the corner is "inside" (use after check_elem_lsf)
-	bool corner_inside
+	[[nodiscard]] bool corner_inside
 	(
 		size_t co ///< the corner
 	) const override {return gass_type::corner_inside (co);}
 	
 ///	returns the effective value of the LSF at a corner (use after check_elem_lsf)
-	number lsf_at
+	[[nodiscard]] number lsf_at
 	(
 		size_t co ///< the corner
 	) const override {return gass_type::lsf_at (co);}

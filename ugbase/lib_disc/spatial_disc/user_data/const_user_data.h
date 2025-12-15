@@ -114,13 +114,13 @@ class StdConstData
 		}
 
 	///	returns if data is constant
-		bool constant() const override {return true;}
+		[[nodiscard]] bool constant() const override {return true;}
 
 	///	returns if grid function is needed for evaluation
-		bool requires_grid_fct() const override {return false;}
+		[[nodiscard]] bool requires_grid_fct() const override {return false;}
 
 	///	returns if provided data is continuous over geometric object boundaries
-		bool continuous() const override {return true;}
+		[[nodiscard]] bool continuous() const override {return true;}
 
 	protected:
 	///	access to implementation
@@ -156,7 +156,7 @@ class ConstUserNumber
 		ConstUserNumber() {set(0.0);}
 
 	///	creates user number with value
-		ConstUserNumber(number val) {set(val);}
+		explicit ConstUserNumber(number val) {set(val);}
 
 	///	set constant value
 		void set(number val) {m_Number = val;}
@@ -168,7 +168,7 @@ class ConstUserNumber
 		inline void evaluate (number& value) const {value = m_Number;}
 
 	/// get value
-		number get() const {return m_Number;}
+		[[nodiscard]] number get() const {return m_Number;}
 
 	protected:
 		number m_Number;
@@ -190,10 +190,10 @@ class ConstUserVector
 		ConstUserVector() {set_all_entries(0.0);}
 
 	///	Constructor: set all the entries to the given value
-		ConstUserVector(number val) {set_all_entries(val);}
+		explicit ConstUserVector(number val) {set_all_entries(val);}
 
 	///	Constructor: initialize with a given std::vector
-		ConstUserVector(const std::vector<number>& val) {set_vector(val);}
+		explicit ConstUserVector(const std::vector<number>& val) {set_vector(val);}
 
 	///	set all vector entries
 		void set_all_entries(number val) { m_Vector = val;}
@@ -235,7 +235,7 @@ class ConstUserMatrix
 		ConstUserMatrix() {set_diag_tensor(1.0);}
 
 	///	Constructor setting the diagonal
-		ConstUserMatrix(number val) {set_diag_tensor(val);}
+		explicit ConstUserMatrix(number val) {set_diag_tensor(val);}
 
 	///	set diagonal of matrix to a vector
 		void set_diag_tensor(number val)
@@ -281,13 +281,13 @@ class ConstUserTensor
 		ConstUserTensor() {set(0.0);}
 
 	///	Constructor setting the diagonal
-		ConstUserTensor(number val) {set(val);}
+		explicit ConstUserTensor(number val) {set(val);}
 
 	///	set diagonal of matrix to a vector
 		void set(number val) {m_Tensor.set(val);}
 
 	///	print current setting
-		void print() const{UG_LOG("ConstUserTensor:\n" << m_Tensor << "\n");}
+		void print() const {UG_LOG("ConstUserTensor:\n" << m_Tensor << "\n");}
 
 	///	evaluate
 		inline void evaluate (MathTensor<TRank, dim>& value) const{value = m_Tensor;}

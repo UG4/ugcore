@@ -90,7 +90,7 @@ public:
 	void set_default (number v) {def_val = v;}
 	
 ///	Returns true because without a grid function, we do not get the element
-	bool requires_grid_fct() const override {return true;}
+	[[nodiscard]] bool requires_grid_fct() const override {return true;}
 
 ///	Evaluation for the global coordinates
 	inline void evaluate

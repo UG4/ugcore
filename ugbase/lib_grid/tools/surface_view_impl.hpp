@@ -206,8 +206,8 @@ ConstSurfaceViewElementIterator(const SurfaceViewElementIterator<TElem>& iter)
 	m_si = iter.m_si;
 	m_topLvl = iter.m_topLvl;
 	m_lvl = iter.m_lvl;
-	m_elemIter = iter.m_elemIter;
-	m_iterEndSection = iter.m_iterEndSection;
+	m_elemIter = typename geometry_traits<TElem>::const_iterator(iter.m_elemIter);
+	m_iterEndSection = typename geometry_traits<TElem>::const_iterator(iter.m_iterEndSection);
 }
 
 template <typename TElem>

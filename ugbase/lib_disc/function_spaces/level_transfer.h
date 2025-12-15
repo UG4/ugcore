@@ -144,7 +144,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 					for(size_t i = 0; i < vFineIndex.size(); ++i)
 						uFine[ vFineIndex[i] ] = 0.0;
 
-					Face* pParent = static_cast<Face*>(parent);
+					auto* pParent = static_cast<Face*>(parent);
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
 						Vertex* faceVrt = pParent->vertex(i);
@@ -163,7 +163,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 					for(size_t i = 0; i < vFineIndex.size(); ++i)
 						uFine[ vFineIndex[i] ] = 0.0;
 
-					Volume* pParent = static_cast<Volume*>(parent);
+					auto* pParent = static_cast<Volume*>(parent);
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
 						Vertex* hexVrt = pParent->vertex(i);

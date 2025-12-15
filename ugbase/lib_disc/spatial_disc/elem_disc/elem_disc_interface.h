@@ -68,16 +68,16 @@ enum ElemDiscType
 /// Proxy struct for generic passing of any vector type
 struct VectorProxyBase
 {
-	virtual ~VectorProxyBase() {};
+	virtual ~VectorProxyBase() = default;
 	virtual number evaluate(const DoFIndex& di) const = 0;
 };
 
 template <typename TVector>
-struct VectorProxy : public VectorProxyBase
+struct VectorProxy : VectorProxyBase
 {
-	VectorProxy(const TVector& v) : m_v(v) {}
+	explicit VectorProxy(const TVector& v) : m_v(v) {}
 
-	virtual number evaluate(const DoFIndex& di) const {return DoFRef(m_v, di);}
+	number evaluate(const DoFIndex& di) const override {return DoFRef(m_v, di);}
 
 	const TVector& m_v;
 
@@ -141,13 +141,13 @@ public:
 	virtual void prep_timestep(number future_time, number time, VectorProxyBase* u);
 
 	/// prepare the time step element-wise
-	virtual void prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	virtual void prep_timestep_elem(number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	virtual prepares the loop over all elements of one type
-	virtual void prep_elem_loop(const ReferenceObjectID roid, const int si);
+	virtual void prep_elem_loop(ReferenceObjectID roid, int si);
 
 	///	virtual prepare one elements for assembling
-	virtual void prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+	virtual void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
 
 	///	virtual postprocesses the loop over all elements of one type
 	virtual void fsh_elem_loop();
@@ -156,7 +156,7 @@ public:
 	virtual void fsh_timestep(number time, VectorProxyBase* u);
 
 	/// virtual finish the time step element-wise
-	virtual void fsh_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	virtual void fsh_timestep_elem(number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// Assembling of Jacobian (Stiffness part)
 	virtual void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -179,13 +179,13 @@ public:
 
 	///	function dispatching call to implementation
 	/// \{
-	void do_prep_timestep(number future_time, const number time, VectorProxyBase* u, size_t algebra_id);
-	void do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-	void do_prep_elem_loop(const ReferenceObjectID roid, const int si);
-	void do_prep_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+	void do_prep_timestep(number future_time, number time, VectorProxyBase* u, size_t algebra_id);
+	void do_prep_timestep_elem(number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	void do_prep_elem_loop(ReferenceObjectID roid, int si);
+	void do_prep_elem(LocalVector& u, GridObject* elem, ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
 	void do_fsh_elem_loop();
-	void do_fsh_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
-	void do_fsh_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	void do_fsh_timestep(number time, VectorProxyBase* u, size_t algebra_id);
+	void do_fsh_timestep_elem(number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 	void do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 	void do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 	void do_add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -259,7 +259,7 @@ private:
 // 	types of loop function pointers
 	using PrepareElemLoopFct = void(T::*)(ReferenceObjectID roid, int si);
 
-	using PrepareElemFct = void(T::*)(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+	using PrepareElemFct = void(T::*)(const ug::LocalVector& u, ug::GridObject* elem, ug::ReferenceObjectID roid, const ug::MathVector<dim> vCornerCoords[]);
 
 	using FinishElemLoopFct = void(T::*)();
 
@@ -440,7 +440,7 @@ public:
 	void set_error_estimator(SmartPtr<IErrEstData<TDomain> > ee) {m_spErrEstData = ee; m_bDoErrEst = true;}
 
 	/// find out whether or not a posteriori error estimation is to be performed for this disc
-	bool err_est_enabled() const {return m_bDoErrEst;}
+	[[nodiscard]] bool err_est_enabled() const {return m_bDoErrEst;}
 
 	///	returns the pointer to the error estimator data object (or nullptr)
 	virtual SmartPtr<IErrEstData<TDomain> > err_est_data() {return m_spErrEstData;}
@@ -494,7 +494,7 @@ class IElemDiscBase
 		
 	public:
 	///	Constructor
-		IElemDiscBase(const char* functions = "", const char* subsets = "");
+		explicit IElemDiscBase(const char* functions = "", const char* subsets = "");
 
 	///	Constructor
 		IElemDiscBase(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset);
@@ -570,25 +570,25 @@ class IElemDiscBase
 		void set_subsets(const std::vector<std::string>& subsets);
 
 	/// number of functions this discretization handles
-		size_t num_fct() const {return m_vFct.size();}
+		[[nodiscard]] size_t num_fct() const {return m_vFct.size();}
 
 	///	returns the symbolic functions
-		const std::vector<std::string>& symb_fcts() const {return m_vFct;}
+		[[nodiscard]] const std::vector<std::string>& symb_fcts() const {return m_vFct;}
 
 	/// number of subsets this discretization handles
-		size_t num_subsets() const {return m_vSubset.size();}
+		[[nodiscard]] size_t num_subsets() const {return m_vSubset.size();}
 
 	///	returns the symbolic subsets
-		const std::vector<std::string>& symb_subsets() const {return m_vSubset;}
+		[[nodiscard]] const std::vector<std::string>& symb_subsets() const {return m_vSubset;}
 
 	///	returns the current function pattern
-		ConstSmartPtr<FunctionPattern> function_pattern() const {return m_spFctPattern;}
+		[[nodiscard]] ConstSmartPtr<FunctionPattern> function_pattern() const {return m_spFctPattern;}
 
 	///	returns the current function group
-		const FunctionGroup& function_group() const {return m_fctGrp;}
+		[[nodiscard]] const FunctionGroup& function_group() const {return m_fctGrp;}
 
 	///	returns the current function index mapping
-		const FunctionIndexMapping& map() const {return m_fctIndexMap;}
+		[[nodiscard]] const FunctionIndexMapping& map() const {return m_fctIndexMap;}
 
 	///	checks the setup of the elem disc
 		void check_setup(bool bNonRegularGrid);
@@ -623,7 +623,7 @@ class IElemDiscBase
 		void register_import(IDataImport<dim>& Imp);
 
 	///	returns number of imports
-		size_t num_imports() const {return m_vIImport.size();}
+		[[nodiscard]] size_t num_imports() const {return m_vIImport.size();}
 
 	/// returns an import
 		IDataImport<dim>& get_import(size_t i)
@@ -659,7 +659,7 @@ class IElemDiscBase
 		void set_time_independent();
 
 	///	returns if assembling is time-dependent
-		bool is_time_dependent() const {return (m_pLocalVectorTimeSeries != nullptr) && !m_bStationaryForced;}
+		[[nodiscard]] bool is_time_dependent() const {return (m_pLocalVectorTimeSeries != nullptr) && !m_bStationaryForced;}
 
 	///	sets that the assembling is always stationary (even in instationary case)
 		void set_stationary(bool bStationaryForced = true) {m_bStationaryForced = bStationaryForced;}
@@ -682,10 +682,10 @@ class IElemDiscBase
 		void set_time_point(const size_t timePoint) {m_timePoint = timePoint;}
 
 	///	returns the currently considered time point of the time-disc scheme
-		size_t time_point() const {return m_timePoint;}
+		[[nodiscard]] size_t time_point() const {return m_timePoint;}
 
 	///	returns currently set timepoint
-		number time() const
+		[[nodiscard]] number time() const
 		{
 			if(m_pLocalVectorTimeSeries) return m_pLocalVectorTimeSeries->time(m_timePoint);
 			else return 0.0;
@@ -701,19 +701,19 @@ class IElemDiscBase
 	 *
 	 * \returns vLocalTimeSol		vector of local time Solutions
 	 */
-		const LocalVectorTimeSeries* local_time_solutions() const
+		[[nodiscard]] const LocalVectorTimeSeries* local_time_solutions() const
 		{return m_pLocalVectorTimeSeries;}
 
 	///	returns the weight factors of the time-disc scheme
 	///	\{
-		const std::vector<number>& mass_scales() const {return m_vScaleMass;}
-		const std::vector<number>& stiff_scales() const {return m_vScaleStiff;}
+		[[nodiscard]] const std::vector<number>& mass_scales() const {return m_vScaleMass;}
+		[[nodiscard]] const std::vector<number>& stiff_scales() const {return m_vScaleStiff;}
 
-		number mass_scale(const size_t timePoint) const {return m_vScaleMass[timePoint];}
-		number stiff_scale(const size_t timePoint) const {return m_vScaleStiff[timePoint];}
+		[[nodiscard]] number mass_scale(const size_t timePoint) const {return m_vScaleMass[timePoint];}
+		[[nodiscard]] number stiff_scale(const size_t timePoint) const {return m_vScaleStiff[timePoint];}
 
-		number mass_scale() const {return m_vScaleMass[m_timePoint];}
-		number stiff_scale() const {return m_vScaleStiff[m_timePoint];}
+		[[nodiscard]] number mass_scale() const {return m_vScaleMass[m_timePoint];}
+		[[nodiscard]] number stiff_scale() const {return m_vScaleStiff[m_timePoint];}
 	///	\}
 
 	protected:
@@ -739,7 +739,7 @@ class IElemDiscBase
 	////////////////////////////
 	public:
 	///	 returns the type of elem disc
-		virtual int type() const {return EDT_ELEM | EDT_SIDE;}
+		[[nodiscard]] virtual int type() const {return EDT_ELEM | EDT_SIDE;}
 
 	/// requests assembling for trial spaces and grid type
 	/**
@@ -760,7 +760,7 @@ class IElemDiscBase
 	 * in case of non-regular grid. This may not be the case for e.g. finite
 	 * element assemblings but is needed for finite volumes
 	 */
-		virtual bool use_hanging() const {return false;}
+		[[nodiscard]] virtual bool use_hanging() const {return false;}
 };
 
 

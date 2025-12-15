@@ -71,7 +71,7 @@ class SectionContainer
 		void clear_section(int sectionIndex);
 
 		iterator insert(const TValue& val, int sectionIndex);
-		void erase(const iterator& iter, int sectionIndex);
+		void erase(const iterator& elemHandle, int sectionIndex);
 
 		inline iterator begin()	{return m_container.begin();}
 		inline iterator end()	{return m_container.end();}
@@ -103,16 +103,16 @@ class SectionContainer
 	 *	given section at all.*/
 		value_type& back(int secIndex = -1);
 			
-		uint num_elements(int sectionIndex) const;
-		inline uint num_elements() const	{return m_numElements;}
-		inline int num_sections() const		{return (int)m_vSections.size();}
+		[[nodiscard]] uint num_elements(int sectionIndex) const;
+		[[nodiscard]] inline uint num_elements() const {return m_numElements;}
+		[[nodiscard]] inline int num_sections() const {return (int)m_vSections.size();}
 
 	///	returns the container for raw access.
 	/**	Use this method with extreme care. Changes to the elements
 	 * and to the layout of the container may most likely result in a
 	 * corruption of the SectionContainer.
 	 */
-		inline Container& get_container()			{return m_container;}
+		inline Container& get_container() {return m_container;}
 
 	///	appends the elements of the given container to the current one
 	/**	Note that the append operation is performed for each section separately.

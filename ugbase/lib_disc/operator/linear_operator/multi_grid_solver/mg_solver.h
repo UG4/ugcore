@@ -214,10 +214,10 @@ class AssembledMultiGridCycle :
 	///////////////////////////////////////////////////////////////////////////
 
 	///	name
-		const char* name() const override {return "Geometric MultiGrid";}
+		[[nodiscard]] const char* name() const override {return "Geometric MultiGrid";}
 
 	///	returns if parallel solving is supported
-		bool supports_parallel() const override {
+		[[nodiscard]] bool supports_parallel() const override {
 			if(!m_spPreSmootherPrototype->supports_parallel())
 				return false;
 			if(!m_spPostSmootherPrototype->supports_parallel())
@@ -226,13 +226,13 @@ class AssembledMultiGridCycle :
 		}
 
 	///	returns information about configuration parameters
-		std::string config_string() const override;
+		[[nodiscard]] std::string config_string() const override;
 
 	/// Prepare for Operator J(u) and linearization point u (current solution)
-		bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u) override;
+		[[nodiscard]] bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u) override;
 
 	///	Prepare for Linear Operator L
-		bool init(SmartPtr<ILinearOperator<vector_type> > L) override;
+		[[nodiscard]] bool init(SmartPtr<ILinearOperator<vector_type> > L) override;
 
 	///	does not call init on base-solver during initialization
 	/**	Use this method with care. It can be useful e.g. during repeated
@@ -242,7 +242,7 @@ class AssembledMultiGridCycle :
 	 *			direct calls to init_base_solver.
 	 * \{ */
 		virtual void ignore_init_for_base_solver(bool ignore);
-		virtual bool ignore_init_for_base_solver() const;
+		[[nodiscard]] virtual bool ignore_init_for_base_solver() const;
 	/** \\ */
 
 	/// If the nonzero entry pattern of the matrix does not change
@@ -254,10 +254,10 @@ class AssembledMultiGridCycle :
 		void force_reinit();
 
 	///	Compute new correction c = B*d
-		bool apply(vector_type& c, const vector_type& d) override;
+		[[nodiscard]] bool apply(vector_type& c, const vector_type& d) override;
 
 	///	Compute new correction c = B*d and return new defect d := d - A*c
-		bool apply_update_defect(vector_type& c, vector_type& d) override;
+		[[nodiscard]] bool apply_update_defect(vector_type& c, vector_type& d) override;
 
 	///	Clone
 		SmartPtr<ILinearIterator<vector_type> > clone() override;
@@ -530,8 +530,8 @@ class AssembledMultiGridCycle :
 	 * \param[in]		spGF		Level Vector to write for debug purpose
 	 * \param[in]		name		Filename
 	 */
-		inline void write_debug(ConstSmartPtr<GF> spGF, std::string name, int cycleNo = -1);
-		void write_debug(const GF& rGF, std::string name, int cycleNo = -1);
+		inline void write_debug(ConstSmartPtr<GF> spGF, const std::string& name, int cycleNo = -1);
+		void write_debug(const GF& rGF, const std::string& name, int cycleNo = -1);
 
 	///	writes debug output for a level matrix only on smooth path
 	/**
@@ -542,9 +542,9 @@ class AssembledMultiGridCycle :
 	 * \param[in]		name		Filename
 	 */
 	/// \{
-		void write_debug(const matrix_type& mat, std::string name,
+		void write_debug(const matrix_type& mat, const std::string &name,
 		                 const GridLevel& glTo, const GridLevel& glFrom);
-		void write_debug(const matrix_type& mat, std::string name,
+		void write_debug(const matrix_type& mat, const std::string& name,
 		                 const GF& rTo, const GF& rFrom);
 	/// \}
 	
@@ -555,7 +555,7 @@ class AssembledMultiGridCycle :
 		void leave_debug_writer_section(GridLevel& orig_gl);
 
 	///	logs a level-data-struct to the terminal
-		void log_debug_data(int lvl, int cycleNo, std::string name);
+		void log_debug_data(int lvl, int cycleNo, const std::string& name);
 
 	///	Calls MGStats::set_defect (if available) with the given parameters
 		void mg_stats_defect(GF& gf, int lvl, typename mg_stats_type::Stage stage);

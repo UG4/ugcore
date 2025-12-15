@@ -153,7 +153,7 @@ void TangentialSmoothSimple(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 			if(numConnected == 0)
 				continue;
 
-			VecScale(c, c, 1. / (number)numConnected);
+			VecScale(c, c, 1. / static_cast<number>(numConnected));
 
 		//	project the center of connected vertices to the plane through vrt
 			vector3 cp;

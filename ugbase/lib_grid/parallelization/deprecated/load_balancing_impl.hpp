@@ -138,13 +138,13 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 	//	get the cell index
 		int xInd = 0;
 		if(numCellsX > 1)
-				xInd = (int)((number)numCellsX * (center.x() - min.x()) / width);
+				xInd = static_cast<int>(static_cast<number>(numCellsX) * (center.x() - min.x()) / width);
 		int yInd = 0;
 		if(numCellsY > 1)
-			yInd = (int)((number)numCellsY * (center.y() - min.y()) / height);
+			yInd = static_cast<int>(static_cast<number>(numCellsY) * (center.y() - min.y()) / height);
 		int zInd = 0;
 		if(numCellsZ > 1)
-			zInd = (int)((number)numCellsZ * (center.z() - min.z()) / depth);
+			zInd = static_cast<int>(static_cast<number>(numCellsZ) * (center.z() - min.z()) / depth);
 
 	//	calculate the subset index (one could think of several alternatives here)
 		int si = zInd * numCellsX * numCellsY + yInd * numCellsX + xInd;

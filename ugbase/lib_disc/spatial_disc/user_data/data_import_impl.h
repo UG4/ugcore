@@ -235,7 +235,7 @@ void DataImport<TData,dim>::clear_ips()
 }
 
 template <typename TData, int dim>
-void DataImport<TData,dim>::add_jacobian(LocalMatrix& J, const number scale)
+void DataImport<TData,dim>::add_jacobian(LocalMatrix& J, number scale)
 {
 	UG_ASSERT(m_spDependentUserData.valid(), "No Export set.");
 

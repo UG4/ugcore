@@ -241,12 +241,12 @@ class GridFunction
 
 	///	returns dof distribution
 	/// \{
-		ConstSmartPtr<DoFDistribution> dof_distribution() const {return m_spDD;}
-		ConstSmartPtr<DoFDistribution> dd() const {return dof_distribution();}
+		[[nodiscard]] ConstSmartPtr<DoFDistribution> dof_distribution() const {return m_spDD;}
+		[[nodiscard]] ConstSmartPtr<DoFDistribution> dd() const {return dof_distribution();}
 	/// \}
 
 	///	returns the grid level
-		const GridLevel& grid_level() const {return m_spDD->grid_level();}
+		[[nodiscard]] const GridLevel& grid_level() const {return m_spDD->grid_level();}
 
 	/// iterator for elements where this grid function is defined
 	/// \{
@@ -302,16 +302,16 @@ class GridFunction
 
 	public:
 	/// return the number of indices distributed (proc local)
-		size_t num_indices() const {return m_spDD->num_indices();}
+		[[nodiscard]] size_t num_indices() const {return m_spDD->num_indices();}
 
 	/// return the number of indices distributed on subset si (proc local)
-		size_t num_indices(int si) const {return m_spDD->num_indices(si);}
+		[[nodiscard]] size_t num_indices(int si) const {return m_spDD->num_indices(si);}
 
 	/// return the number of dofs distributed (global)
 	/// \{
-		size_t num_dofs() const {return num_dofs(DoFCount::ALL_FCT);}
-		size_t num_dofs(int fct) const {return num_dofs(fct, DoFCount::ALL_SUBSET);}
-		size_t num_dofs(int fct, int si) const;
+		[[nodiscard]] size_t num_dofs() const {return num_dofs(DoFCount::ALL_FCT);}
+		[[nodiscard]] size_t num_dofs(int fct) const {return num_dofs(fct, DoFCount::ALL_SUBSET);}
+		[[nodiscard]] size_t num_dofs(int fct, int si) const;
 	/// \}
 
 	/// get all indices of the element
@@ -354,13 +354,13 @@ class GridFunction
 
 	public:
 	/// return m_bManaged
-		bool managed() const {return m_bManaged;}
+		[[nodiscard]] bool managed() const {return m_bManaged;}
 		
 	///	retruns true if the grid-function is redistributed together with the grid in parallel applications
 	/**	\note	if redistribution is disabled, values corresponding to elements
 	 *			which were received during redistribution will not be initialized
 	 *			and may be completely random.*/
-		bool redistribution_enabled() const	{return m_bRedistribute;}
+		[[nodiscard]] bool redistribution_enabled() const	{return m_bRedistribute;}
 
 	///	enables or disables redistribution for this grid function
 	/**	\note	if redistribution is disabled, values corresponding to elements

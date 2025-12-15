@@ -81,11 +81,11 @@ public:
 	size_t fct()
 	{return m_fct;}
 
-	const LFEID &id() const
+	[[nodiscard]] const LFEID &id() const
 	{return m_id;}
 
 	//! returns true, iff scalar function is defined in subset si
-	bool is_def_in_subset(int si) const
+	[[nodiscard]] bool is_def_in_subset(int si) const
 	{ return m_gridFct.is_def_in_subset(m_fct, si); }
 
 	///	returns domain (forward)
@@ -95,7 +95,7 @@ public:
 	ConstSmartPtr<domain_type> domain() const {return m_gridFct.domain();}
 
 	template <typename TElem>
-	size_t dof_indices(TElem* elem, std::vector<DoFIndex>& ind, bool bHang = false, bool bClear = true) const
+	[[nodiscard]] size_t dof_indices(TElem* elem, std::vector<DoFIndex>& ind, bool bHang = false, bool bClear = true) const
 	{return m_gridFct.dof_indices(elem, m_fct, ind, bHang, bClear);}
 
 private:
@@ -144,21 +144,21 @@ class IIntegrand
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<1> vLocIP[],
 		                    const MathMatrix<1, worldDim> vJT[],
-		                    const size_t numIP) = 0;
+		                    size_t numIP) = 0;
 		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    GridObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<2> vLocIP[],
 		                    const MathMatrix<2, worldDim> vJT[],
-		                    const size_t numIP) = 0;
+		                    size_t numIP) = 0;
 		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    GridObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<3> vLocIP[],
 		                    const MathMatrix<3, worldDim> vJT[],
-		                    const size_t numIP) = 0;
+		                    size_t numIP) = 0;
 	/// \}
 
 		virtual ~IIntegrand() = default;
@@ -188,34 +188,33 @@ class StdIntegrand : public IIntegrand<TData, TWorldDim>
 
 	/// \copydoc IIntegrand::values
 	/// \{
-		virtual void values(TData vValue[],
-		                    const MathVector<worldDim> vGlobIP[],
-		                    GridObject* pElem,
-	                        const MathVector<worldDim> vCornerCoords[],
-		                    const MathVector<1> vLocIP[],
-		                    const MathMatrix<1, worldDim> vJT[],
-		                    const size_t numIP)
-		{
+	void values(TData vValue[],
+	            const MathVector<worldDim> vGlobIP[],
+	            GridObject* pElem,
+	            const MathVector<worldDim> vCornerCoords[],
+	            const MathVector<1> vLocIP[],
+	            const MathMatrix<1, worldDim> vJT[],
+	            const size_t numIP) override {
 			getImpl().template evaluate<1>(vValue,vGlobIP,pElem,vCornerCoords,vLocIP,vJT,numIP);
 		}
-		virtual void values(TData vValue[],
-		                    const MathVector<worldDim> vGlobIP[],
-		                    GridObject* pElem,
-	                        const MathVector<worldDim> vCornerCoords[],
-		                    const MathVector<2> vLocIP[],
-		                    const MathMatrix<2, worldDim> vJT[],
-		                    const size_t numIP)
-		{
+
+	void values(TData vValue[],
+	            const MathVector<worldDim> vGlobIP[],
+	            GridObject* pElem,
+	            const MathVector<worldDim> vCornerCoords[],
+	            const MathVector<2> vLocIP[],
+	            const MathMatrix<2, worldDim> vJT[],
+	            const size_t numIP) override {
 			getImpl().template evaluate<2>(vValue,vGlobIP,pElem,vCornerCoords,vLocIP,vJT,numIP);
 		}
-		virtual void values(TData vValue[],
-		                    const MathVector<worldDim> vGlobIP[],
-		                    GridObject* pElem,
-	                        const MathVector<worldDim> vCornerCoords[],
-		                    const MathVector<3> vLocIP[],
-		                    const MathMatrix<3, worldDim> vJT[],
-		                    const size_t numIP)
-		{
+
+	void values(TData vValue[],
+	            const MathVector<worldDim> vGlobIP[],
+	            GridObject* pElem,
+	            const MathVector<worldDim> vCornerCoords[],
+	            const MathVector<3> vLocIP[],
+	            const MathMatrix<3, worldDim> vJT[],
+	            const size_t numIP) override {
 			getImpl().template evaluate<3>(vValue,vGlobIP,pElem,vCornerCoords,vLocIP,vJT,numIP);
 		}
 	/// \}
@@ -306,8 +305,7 @@ number Integrate(TConstIterator iterBegin,
 
 	//	get quadrature Rule for reference object id and order
 		try{
-		const QuadratureRule<dim>& rQuadRule
-					= QuadratureRuleProvider<dim>::get(roid, quadOrder, type);
+		const QuadratureRule<dim>& rQuadRule = QuadratureRuleProvider<dim>::get(roid, quadOrder, type);
 
 	//	get reference element mapping by reference object id
 		DimReferenceMapping<dim, WorldDim>& mapping
@@ -647,14 +645,14 @@ class UserDataIntegrandSq
 		}
 	protected:
 
-		number inner_prod(const number &d1, const number &d2) const
+		[[nodiscard]] number inner_prod(const number &d1, const number &d2) const
 		{return d1*d2;}
 
-		number inner_prod(const MathVector<worldDim> &d1, const MathVector<worldDim> &d2) const
+		[[nodiscard]] number inner_prod(const MathVector<worldDim> &d1, const MathVector<worldDim> &d2) const
 		{return VecDot(d1, d2);}
 
 		template<typename T>
-		number inner_prod(const T &d1, const T &d2) const
+		[[nodiscard]] number inner_prod(const T &d1, const T &d2) const
 		{ UG_ASSERT(0, "NOT IMPLEMENTED"); return 0.0;}
 };
 
@@ -821,26 +819,26 @@ class UserDataDistIntegrandSq
 
 	protected:
 
-			number inner_prod(const number &d1, const number &d2) const
+			[[nodiscard]] number inner_prod(const number &d1, const number &d2) const
 			{return d1*d2;}
 
-			number inner_prod(const MathVector<worldDim> &d1, const MathVector<worldDim> &d2) const
+			[[nodiscard]] number inner_prod(const MathVector<worldDim> &d1, const MathVector<worldDim> &d2) const
 			{return VecDot(d1, d2);}
 
 			template<typename T>
-			number inner_prod(const T &d1, const T &d2) const
+			[[nodiscard]] number inner_prod(const T &d1, const T &d2) const
 			{ UG_ASSERT(0, "NOT IMPLEMENTED"); return 0.0;}
 
 
 
-			number inner_dist2(const number &v1, const number &v2) const
+			[[nodiscard]] number inner_dist2(const number &v1, const number &v2) const
 			{ return (v1-v2)*(v1-v2); }
 
-			number inner_dist2(const MathVector<worldDim> &v1, const MathVector<worldDim> &v2) const
+			[[nodiscard]] number inner_dist2(const MathVector<worldDim> &v1, const MathVector<worldDim> &v2) const
 			{ return VecDistanceSq(v1, v2); }
 
 			template<typename T>
-			number inner_dist2(const T &d1, const T &d2) const
+			[[nodiscard]] number inner_dist2(const T &d1, const T &d2) const
 			{ UG_ASSERT(0, "NOT IMPLEMENTED"); return 0.0;}
 
 };
@@ -997,8 +995,8 @@ class MaximumDistIntegrand
 			m_max = -std::numeric_limits<double>::infinity();
 		}
 
-		double min() { return m_min; }
-		double max() { return m_max; }
+		[[nodiscard]] double min() const { return m_min; }
+		[[nodiscard]] double max() const { return m_max; }
 
 	/// \copydoc IIntegrand::values
 		template <int elemDim>
@@ -1290,8 +1288,7 @@ class H1ErrorIntegrand
 		{}
 
 	///	sets subset
-		virtual void set_subset(int si)
-		{
+		void set_subset(int si) override {
 			if(!m_scalarData.is_def_in_subset(si))
 				UG_THROW("H1Error: Grid function component"
 						<<m_scalarData.fct()<<" not defined on subset "<<si);
@@ -2114,7 +2111,6 @@ class H1SemiIntegrand
  *
  * \param[in]		gridFct	grid function
  * \param[in]		cmp			symbolic name of component function
- * \param[in]		time		time point
  * \param[in]		quadOrder	order of quadrature rule
  * \param[in]		subsets		subsets, where to compute (OPTIONAL)
  * \param[in]		weights		element-wise weights (OPTIONAL)
@@ -3641,8 +3637,7 @@ number IntegralNormalComponentOnManifoldGeneral(
 
 		//	side quad rule
 			const ReferenceObjectID sideRoid = pSide->reference_object_id();
-			const QuadratureRule<dim-1>& rSideQuadRule
-					= QuadratureRuleProvider<dim-1>::get(sideRoid, quadOrder);
+			const QuadratureRule<dim-1>& rSideQuadRule = QuadratureRuleProvider<dim-1>::get(sideRoid, quadOrder);
 
 		// 	normal
 			MathVector<WorldDim> Normal;

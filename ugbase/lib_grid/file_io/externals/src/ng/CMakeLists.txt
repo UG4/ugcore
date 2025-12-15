@@ -1,13 +1,13 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10)
 
 ####
 # libng Project
 ####
 
-project(LIBNG)
+project (LIBNG)
 
 # build libng library
-add_library(ng
+add_library (ng
 	include/ng.h
 	include/ng_info.h
 	include/ng_node.h

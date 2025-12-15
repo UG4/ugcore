@@ -55,8 +55,8 @@ interpolate(number x, number y, int interpOrder) const
 	switch(interpOrder){
 		case 0: {
 			pair<int, int> ind = coordinate_to_index(x, y);
-			if( ind.first >= 0 && ind.first < (int)m_field.width() &&
-				ind.second >= 0 && ind.second < (int)m_field.height())
+			if( ind.first >= 0 && ind.first < static_cast<int>(m_field.width()) &&
+				ind.second >= 0 && ind.second < static_cast<int>(m_field.height()))
 			{
 				return m_field.at(ind.first, ind.second);
 			}
@@ -66,17 +66,17 @@ interpolate(number x, number y, int interpOrder) const
 			int cx = int((x - m_offset.x()) / m_cellSize.x());
 			int cy = int((y - m_offset.y()) / m_cellSize.y());
 			
-			const number vx = (x - ((number)cx * m_cellSize.x() + m_offset.x()))
+			const number vx = (x - (static_cast<number>(cx) * m_cellSize.x() + m_offset.x()))
 							  / m_cellSize.x();
-			const number vy = (y - ((number)cy * m_cellSize.y() + m_offset.y()))
+			const number vy = (y - (static_cast<number>(cy) * m_cellSize.y() + m_offset.y()))
 							  / m_cellSize.y();
 			const number ux = 1-vx;
 			const number uy = 1-vy;
 
 			if(		(cx >= 0)
 				&&	(cy >= 0)
-				&&	(cx + 1 < (int)m_field.width())
-				&&	(cy + 1 < (int)m_field.height()) )
+				&&	(cx + 1 < static_cast<int>(m_field.width()))
+				&&	(cy + 1 < static_cast<int>(m_field.height())) )
 			{
 
 				return	ux*uy*m_field.at(cx, cy) + vx*uy*m_field.at(cx+1,cy)
@@ -84,11 +84,11 @@ interpolate(number x, number y, int interpOrder) const
 			}
 			else{
 				const int x0 = max(cx, 0);
-				const int x1 = min(cx + 1, (int)m_field.width() - 1);
+				const int x1 = min(cx + 1, static_cast<int>(m_field.width()) - 1);
 				const int y0 = max(cy, 0);
-				const int y1 = min(cy + 1, (int)m_field.height() - 1);
+				const int y1 = min(cy + 1, static_cast<int>(m_field.height()) - 1);
 
-				if(x0 >= (int)m_field.width() || x1 < 0 || y0 >= (int)m_field.height() || y1 < 0)
+				if(x0 >= static_cast<int>(m_field.width()) || x1 < 0 || y0 >= static_cast<int>(m_field.height()) || y1 < 0)
 					return m_noDataValue;
 
 				return	ux*uy*m_field.at(x0, y0) + vx*uy*m_field.at(x1,y0)
@@ -113,12 +113,12 @@ coordinate_to_index(number x, number y) const
 
 	pair<int, int> c;
 	if(m_cellSize.x() != 0)
-		c.first = (int)(roundOffset + (x - m_offset.x()) / m_cellSize.x());
+		c.first = static_cast<int>(roundOffset + (x - m_offset.x()) / m_cellSize.x());
 	else
 		c.first = 0;
 	
 	if(m_cellSize.y() != 0)
-		c.second = (int)(roundOffset + (y - m_offset.y()) / m_cellSize.y());
+		c.second = static_cast<int>(roundOffset + (y - m_offset.y()) / m_cellSize.y());
 	else
 		c.second = 0;
 	return c;
@@ -126,14 +126,14 @@ coordinate_to_index(number x, number y) const
 
 vector2 Heightfield::index_to_coordinate(int ix, int iy) const
 {
-	return vector2(	m_offset.x() + (number)ix * m_cellSize.x(),
-					m_offset.y() + (number)iy * m_cellSize.y());
+	return vector2(	m_offset.x() + static_cast<number>(ix) * m_cellSize.x(),
+					m_offset.y() + static_cast<number>(iy) * m_cellSize.y());
 }
 
 vector2 Heightfield::extent() const
 {
-	return vector2(m_cellSize.x() * (number)m_field.width(),
-				   m_cellSize.y() * (number)m_field.height());
+	return vector2(m_cellSize.x() * static_cast<number>(m_field.width()),
+				   m_cellSize.y() * static_cast<number>(m_field.height()));
 }
 
 void Heightfield::blur(number alpha, size_t numIterations)

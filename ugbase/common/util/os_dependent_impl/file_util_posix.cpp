@@ -105,7 +105,7 @@ bool GetDirectoriesInDirectory(std::vector<std::string>& dirsOut, const char* di
 		stat(tFilename.c_str(), &statbuf);
 
 		if(S_ISDIR(statbuf.st_mode))
-			dirsOut.push_back(entry->d_name);
+			dirsOut.emplace_back(entry->d_name);
 	}
 
 	closedir(curDir);
@@ -134,7 +134,7 @@ bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir)
 		stat(tFilename.c_str(), &statbuf);
 
 		if(S_ISREG(statbuf.st_mode))
-			filesOut.push_back(entry->d_name);
+			filesOut.emplace_back(entry->d_name);
 	}
 
 	closedir(curDir);

@@ -56,7 +56,7 @@ void CollectConstraining(std::vector<Vertex*>& vConstrainingVrt,
 		GridObject* constrainingObject = hgVrt->get_constraining_object();
 		if(constrainingObject){
 		//	cast to constraining edge
-			ConstrainingEdge* constrainingEdge = dynamic_cast<ConstrainingEdge*>(constrainingObject);
+			auto constrainingEdge = dynamic_cast<ConstrainingEdge*>(constrainingObject);
 
 		//	check that edge is correct
 			if(constrainingEdge == nullptr)
@@ -67,8 +67,7 @@ void CollectConstraining(std::vector<Vertex*>& vConstrainingVrt,
 			for(size_t i_cde = 0; i_cde < constrainingEdge->num_constrained_edges(); ++i_cde)
 			{
 			//	get constrained edge
-				ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(
-													constrainingEdge->constrained_edge(i_cde));
+				auto constrainedEdge = dynamic_cast<ConstrainedEdge*>( constrainingEdge->constrained_edge(i_cde));
 
 			//	check
 				if(constrainedEdge == nullptr)
@@ -107,8 +106,7 @@ void CollectConstraining(std::vector<Vertex*>& vConstrainingVrt,
 		GridObject* constrainingObject = hgVrt->get_constraining_object();
 		if(constrainingObject){
 		//	cast to constraining quadrilateral
-			ConstrainingQuadrilateral* bigQuad =
-					dynamic_cast<ConstrainingQuadrilateral*>(constrainingObject);
+			auto bigQuad = dynamic_cast<ConstrainingQuadrilateral*>(constrainingObject);
 
 		//	check that quad is correct
 			if(bigQuad == nullptr)

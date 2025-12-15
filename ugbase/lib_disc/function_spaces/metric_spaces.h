@@ -473,7 +473,7 @@ public:
 	using base_type::scaling;
 
 	/// scaling (OVERRIDE)
-	double scaling() const override
+	[[nodiscard]] double scaling() const override
 	{ return (m_spSpatialSpace->scaling()*m_tScale); }
 
 	/// characteristic time
@@ -481,7 +481,7 @@ public:
 	{  m_tScale = tScale; }
 
 	/// print config string
-	std::string config_string() const override
+	[[nodiscard]] std::string config_string() const override
 	{
 		std::stringstream ss;
 		ss << "TimeDependentSpace for " <<  std::endl;
@@ -507,7 +507,7 @@ public:
 	using weighted_obj_type = IObjectWithWeights<weight_type>;
 
 	/// CTOR
-	L2ComponentSpace(const char *fctNames)
+	explicit L2ComponentSpace(const char *fctNames)
 	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
 
 	L2ComponentSpace(const char *fctNames, int order)
@@ -520,7 +520,7 @@ public:
 	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight) {};
 
 	/// DTOR
-	~L2ComponentSpace() override {};
+	~L2ComponentSpace() override = default;
 
 	using IComponentSpace<TGridFunction>::norm;
 	using IComponentSpace<TGridFunction>::distance;
@@ -564,10 +564,10 @@ public:
 	L2QuotientSpace(const char *fctNames, int order)
 	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
 
-	L2QuotientSpace(const char *fctNames,  int order, double weight, const char* ssNames=0)
+	L2QuotientSpace(const char *fctNames,  int order, double weight, const char* ssNames=nullptr)
 	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(weight))) {};
 
-	L2QuotientSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
+	L2QuotientSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=nullptr)
 	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight) {};
 
 	/// DTOR
@@ -639,10 +639,10 @@ public:
 	H1SemiComponentSpace(const char *fctNames, int order)
 	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))) {};
 
-	H1SemiComponentSpace(const char *fctNames, int order, number weight, const char* ssNames=0)
+	H1SemiComponentSpace(const char *fctNames, int order, number weight, const char* ssNames=nullptr)
 	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(weight)))  {};
 
-	H1SemiComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
+	H1SemiComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=nullptr)
 	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight) {};
 
 	H1SemiComponentSpace(const char *fctNames, int order, const char* ssNames, ConstSmartPtr<weight_type> spWeight)
@@ -763,10 +763,10 @@ public:
 	H1EnergyComponentSpace(const char *fctNames, int order)
 	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))), m_spVelocity(nullptr) {};
 
-	H1EnergyComponentSpace(const char *fctNames, int order, number weight, const char* ssNames=0)
+	H1EnergyComponentSpace(const char *fctNames, int order, number weight, const char* ssNames=nullptr)
 	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(weight))), m_spVelocity(nullptr)  {};
 
-	H1EnergyComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
+	H1EnergyComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=nullptr)
 	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(nullptr) {};
 
 	/*H1EnergyComponentSpace(const char *fctNames, int order, const char* ssNames, ConstSmartPtr<weight_type> spWeight)
@@ -914,8 +914,7 @@ public:
 	    std::stringstream ss;
 	    ss << "CompositeSpace:" << std::endl;
 
-	    for (typename std::vector<weighted_obj_type>::const_iterator it = m_spWeightedSubspaces.begin();
-	    		it!= m_spWeightedSubspaces.end(); ++it)
+	    for (auto it = m_spWeightedSubspaces.begin(); it!= m_spWeightedSubspaces.end(); ++it)
 	    { ss << it->first->config_string(); }
 
 	    return ss.str();
@@ -925,8 +924,7 @@ public:
 	//! Forward update to all members
 	void update_time_data(number t)
 	{
-		for (typename std::vector<weighted_obj_type>::iterator it = m_spWeightedSubspaces.begin();
-			it!= m_spWeightedSubspaces.end(); ++it)
+		for (auto it = m_spWeightedSubspaces.begin(); it!= m_spWeightedSubspaces.end(); ++it)
 		{
 			SmartPtr<time_dependent_obj_type> spSpaceT = it->first.template cast_dynamic<time_dependent_obj_type> ();
 			if (spSpaceT.valid()) spSpaceT->update_time_data(t);
@@ -936,7 +934,7 @@ public:
 	//! Check, if any object is time-dependent.
 	[[nodiscard]] bool is_time_dependent() const
 	{
-		for (typename std::vector<weighted_obj_type>::const_iterator it = m_spWeightedSubspaces.begin();
+		for (auto it = m_spWeightedSubspaces.begin();
 				it!= m_spWeightedSubspaces.end(); ++it)
 		{
 			SmartPtr<time_dependent_obj_type> spSpaceT = it->first.template cast_dynamic<time_dependent_obj_type>();

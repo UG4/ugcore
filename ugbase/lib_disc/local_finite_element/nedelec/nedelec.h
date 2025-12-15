@@ -77,23 +77,23 @@ class NedelecLDS
 		}
 
 	///	returns the type of reference element
-		ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
-		size_t num_dof() const {return nsh;};
+		[[nodiscard]] size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		size_t num_dof(ReferenceObjectID type) const
+		[[nodiscard]] size_t num_dof(ReferenceObjectID type) const
 		{
 			if(ReferenceElementDimension(type) == 1) return 1;
 			else return 0;
 		}
 
 	///	returns the dof storage
-		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
+		[[nodiscard]] const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
 
 	///	returns if the local dof position are exact
-		bool exact_position_available() const {return true;};
+		[[nodiscard]] bool exact_position_available() const {return true;};
 
 	protected:
 	///	number of shapes (== number of edges)
@@ -152,16 +152,16 @@ class NedelecLSFS<ReferenceTriangle>
 
 	public:
 	///	Constructor
-		NedelecLSFS() {};
+		NedelecLSFS() = default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return false;}
+		[[nodiscard]] inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -180,7 +180,7 @@ class NedelecLSFS<ReferenceTriangle>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline MathVector<dim> shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline MathVector<dim> shape(const size_t i, const MathVector<dim>& x) const
 		{
 			UG_THROW ("NedelecLSFS: Nedelec shapes cannot be computed in the reference space.");
 		}
@@ -235,13 +235,13 @@ class NedelecLSFS<ReferenceTetrahedron>
 		NedelecLSFS() = default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return false;}
+		[[nodiscard]] inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -275,7 +275,7 @@ class NedelecLSFS<ReferenceTetrahedron>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline MathVector<dim> shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline MathVector<dim> shape(const size_t i, const MathVector<dim>& x) const
 		{
 			UG_THROW ("NedelecLSFS: Nedelec shapes cannot be computed in the reference space.");
 		}

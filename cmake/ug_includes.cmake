@@ -37,20 +37,18 @@
 # If you're creating an executable or a library which mainly depends on ug4,
 # including this file in your CMakeLists.txt may be a good idea.
 ################################################################################
-
+message("<ug_includes.cmake>")
 # this is added because of CMake Policy CMP0042 of CMake 3.0.2
 # and removes a warning
 if (NOT DEFINED CMAKE_MACOSX_RPATH)
 	set (CMAKE_MACOSX_RPATH 0)
 endif ()
-
 ################################################################################
 # Make sure code is only executed once.
 # (no indent here, since it affects the whole file)
 if (UG_CMAKE_INCLUDES_INCLUDED)
 	return ()
 endif ()
-
 set (UG_CMAKE_INCLUDES_INCLUDED on)
 
 ################################################################################
@@ -169,7 +167,6 @@ add_definitions (-DUG_PROFILER_SHINY_CHECK_CONSISTENCY)
 # cmake-options can either be on or off.
 # note: none-on/off-variables are set below, and the docstring is set at the end of this file
 
-
 # the following options are real cmake-options
 option (NATIVE "Enables compilation for the cpu architecture of the build system" OFF)
 option (STATIC_BUILD "Enables static linking. Valid options are: ON, OFF" OFF)
@@ -205,6 +202,7 @@ option (USE_PYBIND11 "Use PYBIND11" OFF)
 option (USE_JSON "Use JSON" OFF)
 option (USE_XEUS "Use XEUS" OFF)
 option (USE_SANITIZER "Use " OFF)
+
 
 ################################################################################
 # set default values for pseudo-options
@@ -337,15 +335,16 @@ if (STATIC_BUILD)
 	set (buildEmbeddedPlugins ON)
 	set (targetLibraryName ${targetLibraryName}_s)
 	add_definitions (-DUG_STATIC)
+
 else (STATIC_BUILD)
 	set (buildDynamicLib ON)
 	set (UG_SHARED ON)
+
 endif ()
 
 if (buildEmbeddedPlugins)
 	add_definitions (-DUG_EMBEDDED_PLUGINS)
 endif ()
-
 
 ########################################
 # DIM
@@ -513,6 +512,7 @@ else ()
 		message (STATUS "Info: Found Boost ${Boost_VERSION} in <${Boost_INCLUDE_DIRS}>")
 		link_directories ("${Boost_INCLUDE_DIRS}/../lib")
 		set (linkLibraries ${linkLibraries} boost_serialization)
+
 	else ()
 		message (FATAL_ERROR "Info: Boost not found. Please use internal boost (-DINTERNAL_BOOST=ON)")
 	endif ()
@@ -702,3 +702,4 @@ mark_as_advanced (BUILTIN_MPI)
 #message ( STATUS "### Log useful CMake variables - END ###########################################")
 #message ( STATUS "################################################################################")
 #message ( STATUS "")
+message("</ug_includes.cmake>")

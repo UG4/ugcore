@@ -53,7 +53,7 @@ namespace lua {
 
 extern const bool IMLPICIT_SMART_PTR_TO_PTR_CONVERSION;
 
-enum UserDataWrapperTypes{
+enum UserDataWrapperTypes : byte_t{
 	RAW_POINTER = 1,
 	SMART_POINTER = 1 << 1,
 	IS_CONST = 1 << 2
@@ -62,24 +62,24 @@ enum UserDataWrapperTypes{
 struct UserDataWrapper{
 	byte_t type;
 
-	bool is_const()		{return (type & IS_CONST) == IS_CONST;}
-	bool is_raw_ptr()	{return (type & RAW_POINTER) == RAW_POINTER;}
-	bool is_smart_ptr()	{return (type & SMART_POINTER) == SMART_POINTER;}
+	[[nodiscard]] bool is_const() const {return (type & IS_CONST) == IS_CONST;}
+	[[nodiscard]] bool is_raw_ptr() const {return (type & RAW_POINTER) == RAW_POINTER;}
+	[[nodiscard]] bool is_smart_ptr() const {return (type & SMART_POINTER) == SMART_POINTER;}
 };
 
-struct SmartUserDataWrapper : public UserDataWrapper
+struct SmartUserDataWrapper : UserDataWrapper
 {
 	SmartPtr<void>	smartPtr;
 };
 
-struct ConstSmartUserDataWrapper : public UserDataWrapper
+struct ConstSmartUserDataWrapper : UserDataWrapper
 {
 	ConstSmartPtr<void>	smartPtr;
 };
 
-struct RawUserDataWrapper : public UserDataWrapper
+struct RawUserDataWrapper : UserDataWrapper
 {
-	void*	obj;
+	void* obj;
 	void (*deleteFunc)(const void*);
 };
 

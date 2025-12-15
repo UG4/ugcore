@@ -578,7 +578,7 @@ class ReferencePyramid : public DimReferenceElement<3>
 		[[nodiscard]] int dimension() const {return dim;}
 
 	/// \copydoc ug::ReferenceElement::size()
-		[[nodiscard]] number size() const	{return 1.0/3.0;}
+		[[nodiscard]] number size() const {return 1.0/3.0;}
 
 	///	\copydoc ug::DimReferenceElement::check_position()
 		inline static void check_position(const MathVector<dim>& pos)

@@ -62,8 +62,8 @@ namespace ug {
  * \param[in,out] vToken    tokenized parts
  * \param[in]     delimiter char used as separator
  */
-UG_API void TokenizeString( const std::string& str, std::vector<std::string>& vToken, 
-                            const char delimiter=',' );
+UG_API void TokenizeString( const std::string& str, std::vector<std::string>& vToken,
+                            char delimiter=',' );
 
 /**
  * \brief splits the string into parts based on a separating character
@@ -73,7 +73,7 @@ UG_API void TokenizeString( const std::string& str, std::vector<std::string>& vT
  * \return tokenized parts
  */
 UG_API std::vector<std::string> TokenizeString( const std::string& str,
-                                                const char delimiter=',' );
+                                                char delimiter=',' );
 
 /**
  * \brief splits the string into parts based on a separating character
@@ -83,7 +83,7 @@ UG_API std::vector<std::string> TokenizeString( const std::string& str,
  * \return tokenized parts
  */
 UG_API std::vector<std::string> TokenizeString( const char* str,
-                                                const char delimiter=',' );
+                                                char delimiter=',' );
 
 /**
  * \brief splits the string into trimmed parts based on a separating char
@@ -94,7 +94,7 @@ UG_API std::vector<std::string> TokenizeString( const char* str,
  * \param[in]     delimiter char used as separator
  */
 UG_API void TokenizeTrimString(const std::string& str, std::vector<std::string>& vToken,
-							   const char delimiter=',');
+                               char delimiter=',');
 
 /**
  * \brief splits the string into trimmed parts based on a separating char
@@ -103,8 +103,8 @@ UG_API void TokenizeTrimString(const std::string& str, std::vector<std::string>&
  * \param[in] delimiter char used as separator
  * \return tokenized and trimmed parts
  */
-UG_API std::vector<std::string> TokenizeTrimString( const std::string& str, 
-                                                    const char delimiter=',' );
+UG_API std::vector<std::string> TokenizeTrimString( const std::string& str,
+                                                    char delimiter=',' );
 
 /**
  * \brief removes all white space from a string, also within the string
@@ -128,7 +128,7 @@ UG_API std::string TrimString(const std::string& str);
  * \return the modified string
  */
 UG_API std::string SnipString(const std::string& str, size_t totalSize,
-                              size_t replaceLast = 0, const char replace = '.');
+                              size_t replaceLast = 0, char replace = '.');
 
 /**
  * \brief creates a truncated string and may add truncation symbol at front
@@ -139,7 +139,7 @@ UG_API std::string SnipString(const std::string& str, size_t totalSize,
  * \return the modified string
  */
 UG_API std::string SnipStringFront(const std::string& str, size_t totalSize,
-                                   size_t replaceFront = 0, const char replace = '.');
+                                   size_t replaceFront = 0, char replace = '.');
 
 /**
  * \brief returns the number of digits of an integer (expressed with base 10)
@@ -370,10 +370,16 @@ inline std::string ToString(const T &t)
  * \brief returns a string suitable for XML files
  * this functions escapes the characters <, >, ', " and &
  * @sa http://www.hdfgroup.org/HDF5/XML/xml_escape_chars.htm
+ * this function replaces XML special characters with their escaped versions:
+  * & -> &amp;
+  * " -> &quot;
+  * ' -> "&apos;
+  * < -> &lt;
+  * > -> &gt;
  * @param[in] s
  * @return escaped string
  */
-UG_API std::string XMLStringEscape(std::string s);
+UG_API std::string XMLStringEscape(const std::string& s);
 
 /**
  * \brief wildcard matches like bla.* or *.bla or t?st
@@ -382,18 +388,6 @@ UG_API std::string XMLStringEscape(std::string s);
  * @return true if match otherwise false
  */
 UG_API bool WildcardMatch(const char *str, const char *pattern);
-
-/**
- * this function replaces XML special characters with their escaped versions:
- * & -> &amp;
- * " -> &quot;
- * ' -> "&apos;
- * < -> &lt;
- * > -> &gt;
- * @param s a normal text
- * @return a text where special XML characters are escaped
- */
-UG_API std::string XMLStringEscape(std::string s);
 
 // end group ugbase_common_util_strings
 /// \}

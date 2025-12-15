@@ -90,14 +90,13 @@ class MiniBubbleLDS : public LocalDoFSet
 		}
 
 	///	returns the type of reference element
-		ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID roid() const override {return TRefElem::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
-		size_t num_dof() const {return nsh;};
+		[[nodiscard]] size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		size_t num_dof(ReferenceObjectID type) const
-		{
+		[[nodiscard]] size_t num_dof(ReferenceObjectID type) const override {
 			const int d = ReferenceElementDimension(type);
 			if (d==0) return 1;         // vertices
 			if (d == refDim)   return 1;    // element
@@ -105,10 +104,10 @@ class MiniBubbleLDS : public LocalDoFSet
 		}
 
 	///	returns the dof storage
-		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
+		[[nodiscard]] const LocalDoF& local_dof(size_t dof) const override {return m_vLocalDoF[dof];}
 
 	///	returns if the local dof position are exact
-		bool exact_position_available() const {return true;};
+		[[nodiscard]] bool exact_position_available() const {return true;};
 
 	protected:
 	///	number of shapes
@@ -155,16 +154,16 @@ class MiniBubbleLSFS<ReferenceEdge>
 
 	public:
 	///	Constructor
-		MiniBubbleLSFS(){}
+		MiniBubbleLSFS()= default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const override {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -177,7 +176,7 @@ class MiniBubbleLSFS<ReferenceEdge>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			// ReferenceEdge::check_position(x);
 
@@ -243,13 +242,13 @@ class MiniBubbleLSFS<ReferenceTriangle>
 		MiniBubbleLSFS()= default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const override {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -267,7 +266,7 @@ class MiniBubbleLSFS<ReferenceTriangle>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			// ReferenceTriangle::check_position(x);
 
@@ -344,16 +343,16 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 
 	public:
 	///	Constructor
-		MiniBubbleLSFS(){}
+		MiniBubbleLSFS()= default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const override {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -376,7 +375,7 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			// ReferenceQuadrilateral::check_position(x);
 
@@ -461,13 +460,13 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 		MiniBubbleLSFS()= default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -482,7 +481,7 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			// ReferenceTetrahedron::check_position(x);
 			//number prod = x[0]*x[1]*x[2];
@@ -567,14 +566,14 @@ class MiniBubbleLSFS<ReferenceHexahedron>
 		MiniBubbleLSFS()= default;
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
+		[[nodiscard]] inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const override {return nsh;}
 
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			static const DimReferenceElement<3>& refElem = ReferenceElementProvider::get<3>(ROID_HEXAHEDRON);
 
@@ -592,7 +591,7 @@ class MiniBubbleLSFS<ReferenceHexahedron>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 
 			switch(i)

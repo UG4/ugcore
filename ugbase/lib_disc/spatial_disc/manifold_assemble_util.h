@@ -86,7 +86,7 @@ static void MarkAllElemsForAssemblyButHSlaves(SmartPtr<IAssemble<TAlgebra> > ass
 //	TODO: encapsulate BoolMarker in SmartPtr in ass_tuner.h
 
 #ifdef UG_PARALLEL
-	BoolMarker* p_bMarker = new BoolMarker(grid);
+	auto p_bMarker = new BoolMarker(grid);
 
 //	Unmark H slaves in all element types
 	MarkAllElemsForAssemblyButHSlaves<Vertex>(grid, *p_bMarker);

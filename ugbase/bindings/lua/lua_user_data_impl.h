@@ -302,7 +302,7 @@ evaluate(TData& D, const MathVector<dim>& x, number time, int si) const
 		double ret[lua_traits<TData>::size+1];
 		m_luaComp.call(ret, d);
 		//TData D2;
-		TRet *t=NULL;
+		TRet *t=nullptr;
 		lua_traits<TData>::read(D, ret, t);
 		return lua_traits<TRet>::do_return(ret[0]);
 	}
@@ -687,7 +687,7 @@ void LuaUserFunction<TData,dim,TDataIn>::operator () (TData& out, int numArgs, .
 				m_luaComp.name() << ", " << m_luaComp.num_in() << " != " << numArgs << " or " << m_luaComp.num_out() << " != " << lua_traits<TData>::size);
 		m_luaComp.call(ret, d);
 		//TData D2;
-		void *t=NULL;
+		void *t=nullptr;
 		//TData out2;
 		lua_traits<TData>::read(out, ret, t);
 		return;
@@ -767,7 +767,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vecto
 		double ret[lua_traits<TData>::size];
 		m_luaComp.call(ret, d);
 		//TData D2;
-		void *t=NULL;
+		void *t=nullptr;
 		//TData out2;
 		UG_ASSERT(m_luaComp.num_out() == lua_traits<TData>::size, m_luaComp.name() << ", " << m_luaComp.num_out() << " != " << lua_traits<TData>::size);
 		lua_traits<TData>::read(out, ret, t);
@@ -852,7 +852,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 		double ret[lua_traits<TData>::size+1];
 		luaComp.call(ret, d);
 		//TData D2;
-		void *t=NULL;
+		void *t=nullptr;
 		//TData out2;
 		lua_traits<TData>::read(out, ret, t);
 		return;

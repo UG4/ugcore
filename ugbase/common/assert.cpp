@@ -110,11 +110,9 @@ string get_gcc_backtrace()
 #if defined UG_POSIX && !defined ANDROID && !defined UG_CYGWIN
 	stringstream ss;
 	void *array[100];
-	size_t size;
-	char **strings;
 
-	size = backtrace (array, 100);
-	strings = backtrace_symbols (array, size);
+	size_t size = backtrace(array, 100);
+	char **strings = backtrace_symbols(array, size);
 
 	for (size_t i = 0; i < size; i++)
 		ss << i << ":\n" << ug::demangle_block(strings[i]);

@@ -81,8 +81,8 @@ class Flag {
 		Flag operator | (const Flag& flag) const {return Flag(m_value | flag.m_value);}
 		Flag operator &= (const Flag& flag) {m_value &= flag.m_value; return *this;}
 		Flag operator |= (const Flag& flag) {m_value |= flag.m_value; return *this;}
-		Flag operator = (const Flag& flag) {m_value = flag.m_value; return *this;} // ø todo return Flag& ?
-		Flag operator = (TStorageType val) {m_value = val; return *this;}// ø todo return Flag& ?
+		Flag& operator = (const Flag& flag) {m_value = flag.m_value; return *this;} // ø todo return Flag& ?
+		Flag& operator = (TStorageType val) {m_value = val; return *this;}// ø todo return Flag& ?
 
 		TStorageType operator () () const {return m_value;}
 		TStorageType get() const {return m_value;}

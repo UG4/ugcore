@@ -106,8 +106,9 @@ class LuaUserData
 	 * @param luaCallback		Name of Lua Callback Function
 	 */
 	///{
-		LuaUserData(const char* luaCallback);
-		LuaUserData(LuaFunctionHandle handle);
+	explicit LuaUserData(const char* luaCallback);
+
+	explicit LuaUserData(LuaFunctionHandle handle);
 	///}
 
 	///	destructor: frees lua callback, unregisters from LuaUserDataFactory if used
@@ -181,11 +182,11 @@ class LuaUserDataFactory
 
 	protected:
 	///	private constructor, since singleton
-		LuaUserDataFactory(){};
+		LuaUserDataFactory()= default;
 
 	//	disallow copy
-		LuaUserDataFactory(const LuaUserDataFactory&);
-		LuaUserDataFactory& operator = (const LuaUserDataFactory&);
+		LuaUserDataFactory(const LuaUserDataFactory&) = delete;
+		LuaUserDataFactory& operator = (const LuaUserDataFactory&) = delete;
 
 	///	singleton provider
 		static LuaUserDataFactory& instance()
@@ -240,7 +241,7 @@ class LuaUserFunction
 	: public StdDataLinker<LuaUserFunction<TData, dim, TDataIn>, TData, dim>
 {
 	public:
-		using base_type = StdDataLinker<LuaUserFunction<TData, dim, TDataIn>, TData, dim>;
+		using base_type = StdDataLinker<LuaUserFunction, TData, dim>;
 		using base_type::set_input;
 
 	public:
@@ -299,7 +300,7 @@ class LuaUserFunction
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
 		                     LocalVector* u,
-		                     const MathMatrix<refDim, dim>* vJT = NULL) const;
+		                     const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
 		template <int refDim>
 		void eval_and_deriv(TData vValue[],
@@ -313,7 +314,7 @@ class LuaUserFunction
 		                    bool bDeriv,
 		                    int s,
 		                    std::vector<std::vector<TData> > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL);
+		                    const MathMatrix<refDim, dim>* vJT = nullptr);
 
 	protected:
 	///	sets the Lua function used to compute the data
@@ -430,7 +431,7 @@ class LuaFunction : public IFunction<TData, TDataIn>
 
 namespace bridge {
 
-void RegisterLuaUserData(Registry& reg, std::string grp);
+void RegisterLuaUserData(Registry& reg, const std::string &grp);
 
 } // end namepace bridge
 } // end namespace ug

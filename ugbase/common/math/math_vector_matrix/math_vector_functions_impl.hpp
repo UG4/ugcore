@@ -57,8 +57,7 @@ template <typename vector_target_t, typename vector_source_t>
 void VecCopy(vector_target_t& target, const vector_source_t& source,
 			 typename vector_target_t::value_type fill)
 {
-	using std::min;
-	size_t minSize = min(target.size(), source.size());
+	size_t minSize = std::min(target.size(), source.size());
 	for(size_t i = 0; i < minSize; ++i)
 		target[i] = source[i];
 
@@ -408,7 +407,7 @@ VecAngle(const vector_t& v1, const vector_t& v2)
 		number a = VecDot(v1, v2) / l;
 		if(a >= 1)
 			return 0;
-		else if(a <= -1)
+		if(a <= -1)
 			return PI;
 		return acos(a);
 	}
@@ -424,7 +423,7 @@ VecAngleNorm(const vector_t& v1, const vector_t& v2)
 	number a = VecDot(v1, v2);
 	if(a >= 1)
 		return 0;
-	else if(a <= -1)
+	if(a <= -1)
 		return PI;
 	return acos(a);
 }
@@ -503,7 +502,7 @@ VecNormalize(vector_t& vOut, const vector_t& v)
 {
 	typename vector_t::value_type len = VecLength(v);
 	if(len > 0)
-		VecScale(vOut, v, (typename vector_t::value_type) 1 / len);
+		VecScale(vOut, v, static_cast<typename vector_t::value_type>(1) / len);
 	else
 		vOut = v;
 }
@@ -617,7 +616,7 @@ VecPNorm(const vector_t& v, unsigned int p)
 		len += std::pow(v[i], p);
 	}
 
-	return std::pow(len, (typename vector_t::value_type) 1/ p);
+	return std::pow(len, static_cast<typename vector_t::value_type>(1)/ p);
 }
 
 template <typename vector_t>

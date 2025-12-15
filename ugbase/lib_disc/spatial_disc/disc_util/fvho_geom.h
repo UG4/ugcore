@@ -160,16 +160,16 @@ class FVGeometry : public FVGeometryBase
 				SCVF() = default;
 
 			/// index of SubControlVolume on one side of the scvf
-				inline size_t from() const {return From;}
+				[[nodiscard]] inline size_t from() const {return From;}
 
 			/// index of SubControlVolume on one side of the scvf
-				inline size_t to() const {return To;}
+				[[nodiscard]] inline size_t to() const {return To;}
 
 			/// number of integration points on scvf
-				inline size_t num_ip() const {return nip;}
+				[[nodiscard]] inline size_t num_ip() const {return nip;}
 
 			///	integration weight
-				inline number weight(size_t ip) const
+				[[nodiscard]] inline number weight(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip]*vDetJMap[ip];}
 
 			/// local integration point of scvf
@@ -188,14 +188,14 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vJtInv[ip];}
 
 			/// Determinant of Jacobian in integration point
-				inline number detJ(size_t ip) const
+				[[nodiscard]] inline number detJ(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vDetJ[ip];}
 
 			/// number of shape functions
-				inline size_t num_sh() const {return nsh;}
+				[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t ip, size_t sh) const
+				[[nodiscard]] inline number shape(size_t ip, size_t sh) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
 
 			/// vector of shape functions in ip point
@@ -221,7 +221,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip];}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return numCo;}
+				[[nodiscard]] inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -278,7 +278,7 @@ class FVGeometry : public FVGeometryBase
 				SCV() = default;
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return numCo;}
+				[[nodiscard]] inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -289,13 +289,13 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			/// node id that this scv is associated to
-				inline size_t node_id() const {return nodeId;}
+				[[nodiscard]] inline size_t node_id() const {return nodeId;}
 
 			/// number of integration points
-				inline size_t num_ip() const {return nip;}
+				[[nodiscard]] inline size_t num_ip() const {return nip;}
 
 			///	weigth of integration point
-				inline number weight(size_t ip) const
+				[[nodiscard]] inline number weight(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip]*vDetJMap[ip];}
 
 			/// local integration point of scv
@@ -311,18 +311,18 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vJtInv[ip];}
 
 			/// Determinant of Jacobian in integration point
-				inline number detJ(size_t ip) const
+				[[nodiscard]] inline number detJ(size_t ip) const
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vDetJ[ip];}
 
 			/// number of shape functions
-				inline size_t num_sh() const {return nsh;}
+				[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t ip, size_t sh) const
+				[[nodiscard]] inline number shape(size_t ip, size_t sh) const
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vvShape[ip][sh];}
 
 			/// vector of shape functions in ip point
-				inline const number* shape_vector(size_t ip) const
+				[[nodiscard]] inline const number* shape_vector(size_t ip) const
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vvShape[ip];}
 
 			/// value of local gradient of shape function i in integration point
@@ -383,19 +383,19 @@ class FVGeometry : public FVGeometryBase
 				BF() = default;
 
 			/// index of SubControlVolume of the bf
-				inline size_t node_id() const {return nodeId;}
+				[[nodiscard]] inline size_t node_id() const {return nodeId;}
 
 			/// outer normal on bf. Norm is equal to area
 				inline const MathVector<worldDim>& normal() const {return Normal;} // includes area
 
 			/// volume of bf
-				inline number volume() const {return Vol;}
+				[[nodiscard]] inline number volume() const {return Vol;}
 
 			/// number of integration points on scvf
-				inline size_t num_ip() const {return nip;}
+				[[nodiscard]] inline size_t num_ip() const {return nip;}
 
 			///	integration weight
-				inline number weight(size_t ip) const
+				[[nodiscard]] inline number weight(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip];}
 
 			/// local integration point of scvf
@@ -411,18 +411,18 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vJtInv[ip];}
 
 			/// Determinant of Jacobian in integration point
-				inline number detJ(size_t ip) const
+				[[nodiscard]] inline number detJ(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vDetJ[ip];}
 
 			/// number of shape functions
-				inline size_t num_sh() const {return nsh;}
+				[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t ip, size_t sh) const
+				[[nodiscard]] inline number shape(size_t ip, size_t sh) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
 
 			/// vector of shape functions in ip point
-				inline const number* shape_vector(size_t ip) const
+				[[nodiscard]] inline const number* shape_vector(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip];}
 
 			/// value of local gradient of shape function i in integration point
@@ -444,7 +444,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip];}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return numCo;}
+				[[nodiscard]] inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -507,25 +507,25 @@ class FVGeometry : public FVGeometryBase
 		                           const ISubsetHandler* ish = nullptr);
 
 	/// number of SubControlVolumeFaces
-		inline size_t num_scvf() const {return numSCVF;};
+		[[nodiscard]] inline size_t num_scvf() const {return numSCVF;};
 
 	/// const access to SubControlVolumeFace number i
 		inline const SCVF& scvf(size_t i) const
 			{UG_ASSERT(i < num_scvf(), "Invalid Index."); return m_vSCVF[i];}
 
 	/// number of SubControlVolumes
-		inline size_t num_scv() const {return numSCV;}
+		[[nodiscard]] inline size_t num_scv() const {return numSCV;}
 
 	/// const access to SubControlVolume number i
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
 
 	/// number of shape functions
-		inline size_t num_sh() const {return nsh;}
+		[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 	public:
 	/// returns number of all scvf ips
-		size_t num_scvf_ips() const {return numSCVFIP;}
+		[[nodiscard]] size_t num_scvf_ips() const {return numSCVFIP;}
 
 	/// returns all ips of scvf as they appear in scv loop
 		const MathVector<dim>* scvf_local_ips() const {return m_vLocSCVF_IP;}
@@ -534,7 +534,7 @@ class FVGeometry : public FVGeometryBase
 		const MathVector<worldDim>* scvf_global_ips() const {return m_vGlobSCVF_IP;}
 
 	/// returns number of all scv ips
-		size_t num_scv_ips() const {return numSCVIP;}
+		[[nodiscard]] size_t num_scv_ips() const {return numSCVIP;}
 
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<dim>* scv_local_ips() const {return m_vLocSCV_IP;}
@@ -591,7 +591,7 @@ class FVGeometry : public FVGeometryBase
 		inline size_t num_boundary_subsets() {return m_mapVectorBF.size();}
 
 	/// number of all boundary faces
-		inline size_t num_bf() const
+		[[nodiscard]] inline size_t num_bf() const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			size_t num = 0;
@@ -601,7 +601,7 @@ class FVGeometry : public FVGeometryBase
 		}
 
 	/// number of boundary faces on subset 'subsetIndex'
-		inline size_t num_bf(int si) const
+		[[nodiscard]] inline size_t num_bf(int si) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			it = m_mapVectorBF.find(si);
@@ -709,16 +709,16 @@ class DimFVGeometry : public FVGeometryBase
 				SCVF() = default;
 
 			/// index of SubControlVolume on one side of the scvf
-				inline size_t from() const {return From;}
+				[[nodiscard]] inline size_t from() const {return From;}
 
 			/// index of SubControlVolume on one side of the scvf
-				inline size_t to() const {return To;}
+				[[nodiscard]] inline size_t to() const {return To;}
 
 			/// number of integration points on scvf
-				inline size_t num_ip() const {return nip;}
+				[[nodiscard]] inline size_t num_ip() const {return nip;}
 
 			///	integration weight
-				inline number weight(size_t ip) const
+				[[nodiscard]] inline number weight(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip]*vDetJMap[ip];}
 
 			/// local integration point of scvf
@@ -737,18 +737,18 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vJtInv[ip];}
 
 			/// Determinant of Jacobian in integration point
-				inline number detJ(size_t ip) const
+				[[nodiscard]] inline number detJ(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vDetJ[ip];}
 
 			/// number of shape functions
-				inline size_t num_sh() const {return nsh;}
+				[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t ip, size_t sh) const
+				[[nodiscard]] inline number shape(size_t ip, size_t sh) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
 
 			/// vector of shape functions in ip point
-				inline const number* shape_vector(size_t ip) const
+				[[nodiscard]] inline const number* shape_vector(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvShape[ip][0];}
 
 			/// value of local gradient of shape function i in integration point
@@ -770,7 +770,7 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvGlobalGrad[ip][0];}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return numCo;}
+				[[nodiscard]] inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -826,7 +826,7 @@ class DimFVGeometry : public FVGeometryBase
 				SCV() = default;
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return numCo;}
+				[[nodiscard]] inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -837,13 +837,13 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
 			/// node id that this scv is associated to
-				inline size_t node_id() const {return nodeId;}
+				[[nodiscard]] inline size_t node_id() const {return nodeId;}
 
 			/// number of integration points
-				inline size_t num_ip() const {return nip;}
+				[[nodiscard]] inline size_t num_ip() const {return nip;}
 
 			///	weigth of integration point
-				inline number weight(size_t ip) const
+				[[nodiscard]] inline number weight(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip]*vDetJMap[ip];}
 
 			/// local integration point of scv
@@ -859,18 +859,18 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vJtInv[ip];}
 
 			/// Determinant of Jacobian in integration point
-				inline number detJ(size_t ip) const
+				[[nodiscard]] inline number detJ(size_t ip) const
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vDetJ[ip];}
 
 			/// number of shape functions
-				inline size_t num_sh() const {return nsh;}
+				[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t ip, size_t sh) const
+				[[nodiscard]] inline number shape(size_t ip, size_t sh) const
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vvShape[ip][sh];}
 
 			/// vector of shape functions in ip point
-				inline const number* shape_vector(size_t ip) const
+				[[nodiscard]] inline const number* shape_vector(size_t ip) const
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return &vvShape[ip][0];}
 
 			/// value of local gradient of shape function i in integration point
@@ -930,19 +930,19 @@ class DimFVGeometry : public FVGeometryBase
 				BF() = default;
 
 			/// index of SubControlVolume of the bf
-				inline size_t node_id() const {return nodeId;}
+				[[nodiscard]] inline size_t node_id() const {return nodeId;}
 
 			/// outer normal on bf. Norm is equal to area
 				inline const MathVector<worldDim>& normal() const {return Normal;} // includes area
 
 			/// volume of bf
-				inline number volume() const {return Vol;}
+				[[nodiscard]] inline number volume() const {return Vol;}
 
 			/// number of integration points on scvf
-				inline size_t num_ip() const {return nip;}
+				[[nodiscard]] inline size_t num_ip() const {return nip;}
 
 			///	integration weight
-				inline number weight(size_t ip) const
+				[[nodiscard]] inline number weight(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip];}
 
 			/// local integration point of scvf
@@ -958,18 +958,18 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vJtInv[ip];}
 
 			/// Determinant of Jacobian in integration point
-				inline number detJ(size_t ip) const
+				[[nodiscard]] inline number detJ(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vDetJ[ip];}
 
 			/// number of shape functions
-				inline size_t num_sh() const {return nsh;}
+				[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 			/// value of shape function i in integration point
-				inline number shape(size_t ip, size_t sh) const
+				[[nodiscard]] inline number shape(size_t ip, size_t sh) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
 
 			/// vector of shape functions in ip point
-				inline const number* shape_vector(size_t ip) const
+				[[nodiscard]] inline const number* shape_vector(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvShape[ip][0];}
 
 			/// value of local gradient of shape function i in integration point
@@ -991,7 +991,7 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvGlobalGrad[ip][0];}
 
 			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return numCo;}
+				[[nodiscard]] inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -1063,25 +1063,25 @@ class DimFVGeometry : public FVGeometryBase
 		                           const ISubsetHandler* ish = nullptr);
 
 	/// number of SubControlVolumeFaces
-		inline size_t num_scvf() const {return m_numSCVF;};
+		[[nodiscard]] inline size_t num_scvf() const {return m_numSCVF;};
 
 	/// const access to SubControlVolumeFace number i
 		inline const SCVF& scvf(size_t i) const
 			{UG_ASSERT(i < num_scvf(), "Invalid Index."); return m_vSCVF[i];}
 
 	/// number of SubControlVolumes
-		inline size_t num_scv() const {return m_numSCV;}
+		[[nodiscard]] inline size_t num_scv() const {return m_numSCV;}
 
 	/// const access to SubControlVolume number i
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
 
 	/// number of shape functions
-		inline size_t num_sh() const {return m_nsh;};
+		[[nodiscard]] inline size_t num_sh() const {return m_nsh;};
 
 	public:
 	/// returns number of all scvf ips
-		size_t num_scvf_ips() const {return m_numSCVFIP;}
+		[[nodiscard]] size_t num_scvf_ips() const {return m_numSCVFIP;}
 
 	/// returns all ips of scvf as they appear in scv loop
 		const MathVector<dim>* scvf_local_ips() const {return &(m_vLocSCVF_IP[0]);}
@@ -1090,7 +1090,7 @@ class DimFVGeometry : public FVGeometryBase
 		const MathVector<worldDim>* scvf_global_ips() const {return &(m_vGlobSCVF_IP[0]);}
 
 	/// returns number of all scv ips
-		size_t num_scv_ips() const {return m_numSCVIP;}
+		[[nodiscard]] size_t num_scv_ips() const {return m_numSCVIP;}
 
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<dim>* scv_local_ips() const {return &(m_vLocSCV_IP[0]);}
@@ -1147,17 +1147,17 @@ class DimFVGeometry : public FVGeometryBase
 		inline size_t num_boundary_subsets() {return m_mapVectorBF.size();}
 
 	/// number of all boundary faces
-		inline size_t num_bf() const
+		[[nodiscard]] inline size_t num_bf() const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			size_t num = 0;
-			for ( it=m_mapVectorBF.begin() ; it != m_mapVectorBF.end(); it++ )
+			for ( it=m_mapVectorBF.begin() ; it != m_mapVectorBF.end(); ++it )
 				num += (*it).second.size();
 			return num;
 		}
 
 	/// number of boundary faces on subset 'subsetIndex'
-		inline size_t num_bf(int si) const
+		[[nodiscard]] inline size_t num_bf(int si) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			it = m_mapVectorBF.find(si);

@@ -75,8 +75,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 
 //	request for quadrature rule
 	try{
-	const QuadratureRule<dim>& quadRule
-			= QuadratureRuleProvider<dim>::get(roid, orderQuad);
+	const QuadratureRule<dim>& quadRule = QuadratureRuleProvider<dim>::get(roid, orderQuad);
 
 //	copy quad informations
 	m_nip = quadRule.size();
@@ -96,8 +95,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 
 //	request for trial space
 	try{
-	const LocalShapeFunctionSet<dim>& lsfs
-		 = LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
+	const LocalShapeFunctionSet<dim>& lsfs = LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
 
 //	copy shape infos
 	m_nsh = lsfs.num_sh();
@@ -134,7 +132,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCorner,
 	ReferenceObjectID roid = pElem->reference_object_id();
 
 //	if already prepared for this roid, skip update of local values
-	if(roid != m_roid || lfeID != m_lfeID || (int)orderQuad != m_quadOrder)
+	if(roid != m_roid || lfeID != m_lfeID || static_cast<int>(orderQuad) != m_quadOrder)
 		update_local(roid, lfeID, orderQuad);
 
 //	get reference element mapping

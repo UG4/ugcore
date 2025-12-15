@@ -169,11 +169,11 @@ class ParameterInfo
 	///	structure to store a data entry with additional information
 		struct EntryType{
 			EntryType() :
-				type(Variant::VT_INVALID), pClassNameNode(nullptr), bVector(false)
+				bVector(false),type(Variant::VT_INVALID), pClassNameNode(nullptr)
 			{}
+			bool bVector;							//< boolean if vector data
 			Variant::Type type;						//<	enum ParameterTypes indicating stored type
 			const ClassNameNode* pClassNameNode; 	//< class name for user defined data
-			bool bVector;							//< boolean if vector data
 		};
 
 	//	This array is of fixed size, since we want to introduce a minimal
@@ -405,7 +405,7 @@ class ParameterStack : public ParameterInfo
 	protected:
 	///	return element in param stack cast to native type
 		template <typename T>
-		inline T _to_native(int index) const{
+		[[nodiscard]] inline T _to_native(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			return m_vEntry[index].to<T>();
 		}
@@ -429,7 +429,7 @@ class ParameterStack : public ParameterInfo
 
 	///	return element in param stack casted to native type vector
 		template <typename T>
-		inline std::vector<T>& _to_native_vector(int index) const{
+		[[nodiscard]] inline std::vector<T>& _to_native_vector(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			SmartPtr<void> smartPtr = m_vEntry[index].to<SmartPtr<void> >();
 			SmartPtr<std::vector<T> > spVec = smartPtr.cast_reinterpret<std::vector<T>, FreeDelete>();
@@ -458,7 +458,7 @@ class ParameterStack : public ParameterInfo
 
 	///	return element in param stack cast to native type vector
 		template <typename TPtr>
-		inline SmartPtr<std::vector<std::pair<TPtr, const ClassNameNode*> > > _to_void_pointer_vector(int index) const{
+		[[nodiscard]] inline SmartPtr<std::vector<std::pair<TPtr, const ClassNameNode*> > > _to_void_pointer_vector(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			SmartPtr<void> smartPtr = m_vEntry[index].to<SmartPtr<void> >();
 			SmartPtr<std::vector<std::pair<TPtr, const ClassNameNode*> > > spVec = smartPtr.cast_reinterpret<std::vector<std::pair<TPtr, const ClassNameNode*> > , FreeDelete>();
@@ -479,7 +479,7 @@ class ParameterStack : public ParameterInfo
 		inline T to(int index) const {return ToType<T>::to(this, index);}
 
 	///	return element in param stack as plain variant
-		const Variant& get(int index) const	{return m_vEntry[index];}
+		[[nodiscard]] const Variant& get(int index) const	{return m_vEntry[index];}
 		
 	private:
 	///	fixed size array storing the data for a stack entry

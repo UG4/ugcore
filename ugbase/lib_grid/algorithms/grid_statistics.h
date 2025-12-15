@@ -156,7 +156,7 @@ void PrintElementEdgeRatios(Grid& grid, TIterator elemsBegin, TIterator elemsEnd
 		UG_LOG("---\n");
 	}
 	else{
-		avRatio /= (number)num;
+		avRatio /= static_cast<number>(num);
 		UG_LOG("min: " << minRatio << ",  max: " << maxRatio << ",  av: " << avRatio);
 		
 		if(num > 1){
@@ -168,7 +168,7 @@ void PrintElementEdgeRatios(Grid& grid, TIterator elemsBegin, TIterator elemsEnd
 				sdSum = com.allreduce(sdSum, PCL_RO_SUM);
 			#endif
 
-			number sd = sqrt(sdSum / ((number)num - 1));
+			number sd = sqrt(sdSum / (static_cast<number>(num) - 1));
 			UG_LOG(",  sd: " << sd);
 		}
 		UG_LOG(endl);

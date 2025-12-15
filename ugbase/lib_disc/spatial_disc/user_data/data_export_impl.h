@@ -55,9 +55,9 @@ template <typename TData, int dim>
 void DataExport<TData, dim>::clear_fct()
 {
 	for(size_t roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
-		eval_fct<1>((ReferenceObjectID)roid).invalidate();
-		eval_fct<2>((ReferenceObjectID)roid).invalidate();
-		eval_fct<3>((ReferenceObjectID)roid).invalidate();
+		eval_fct<1>(static_cast<ReferenceObjectID>(roid)).invalidate();
+		eval_fct<2>(static_cast<ReferenceObjectID>(roid)).invalidate();
+		eval_fct<3>(static_cast<ReferenceObjectID>(roid)).invalidate();
 	}
 }
 

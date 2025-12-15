@@ -687,6 +687,7 @@ number CalculateOctahedronVolume(const vector3& a, const vector3& b,
 ////////////////////////////////////////////////////////////////////////
 //	BinomialCoefficient
 ///	Returns the BinomialCoefficient
+///	results valid for up to n=29 for all k
 /**
  * Returns:
  * 	  n!

@@ -27,7 +27,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
-
+message("<plugin_registration_routines.cmake>")
 ################################################################################
 # Register a core plugin. Registered plugins can be enabled through an option. 
 # The global property ugPluginNames will contain the names of all registered plugins.
@@ -90,7 +90,7 @@ function (ListPlugins)
 	foreach (plugin ${plugins})
 		if (${${plugin}} STREQUAL "ON")
 			set (enabledPluginsStr ${enabledPluginsStr} ${plugin})
-		else (${${plugin}} STREQUAL "ON")
+		else ()
 			set (disabledPluginsStr ${disabledPluginsStr} ${plugin})
 		endif ()
 	endforeach ()
@@ -132,7 +132,7 @@ function (ListPlugins)
 
 	message (STATUS "")
 	message (STATUS "Hint: To enable/disable a plugin 'PLUGIN_NAME' use the cmake option: -DPLUGIN_NAME=ON/OFF")
-	
+	message (STATUS "")
 endfunction ()
 
 
@@ -232,3 +232,4 @@ function (WriteStaticPluginsHeader)
 		"#endif\n")
 
 endfunction ()
+message("</plugin_registration_routines.cmake>")

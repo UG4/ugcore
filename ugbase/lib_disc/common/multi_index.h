@@ -252,7 +252,7 @@ class MultiIndex<3, size_t>
 };
 
 template <int N>
-std::ostream& operator << (std::ostream& outStream, const ug::MultiIndex<N>& v)
+std::ostream& operator << (std::ostream& outStream, const MultiIndex<N>& v)
 {
 	outStream << "[" ;
 	for(size_t i = 0; i < N; ++i)

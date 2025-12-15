@@ -75,10 +75,10 @@ class BinaryStreamBuffer : public std::streambuf
 	/// returns a pointer to the front of the buffer or nullptr if the buffer is empty.
 		inline char_type* buffer()				{return reinterpret_cast<char_type*>(GetDataPtr(m_dataBuf));}
 
-		inline const char_type* buffer() const	{return reinterpret_cast<const char_type*>(GetDataPtr(m_dataBuf));}
+		[[nodiscard]] inline const char_type* buffer() const	{return reinterpret_cast<const char_type*>(GetDataPtr(m_dataBuf));}
 
 	/// returns the size of the buffer in bytes.
-		size_t size() const;
+		[[nodiscard]] size_t size() const;
 
 	/// advances the write-pointer by jumpSize bytes
 		void write_jump(size_t jumpSize);
@@ -87,17 +87,17 @@ class BinaryStreamBuffer : public std::streambuf
 		void read_jump(size_t jumpSize);
 
 	/// returns the read-position
-		size_t get_read_pos() const;
+		[[nodiscard]] size_t get_read_pos() const;
 			
 	//	implementation of virtual std::streambuf methods.
-		virtual int_type overflow(int_type c = traits_type::eof());
+		int_type overflow(int_type c = traits_type::eof()) override;
 
-		virtual int_type underflow();
+		int_type underflow() override;
 
 	protected:
 	///	returns pointer to the first entry behind the buffer.
 		inline char_type* end()					{return buffer() + m_dataBuf.size();}
-		inline const char_type* end() const		{return buffer() + m_dataBuf.size();}
+		[[nodiscard]] inline const char_type* end() const		{return buffer() + m_dataBuf.size();}
 
 	protected:
 		std::vector<unsigned char>	m_dataBuf;
@@ -109,7 +109,7 @@ class BinaryStream : public std::iostream
 {
 	public:
 		BinaryStream() : std::iostream(&m_streamBuf)	{}
-		BinaryStream(size_t newSize) : std::iostream(&m_streamBuf)	{resize(newSize);}
+		explicit BinaryStream(size_t newSize) : std::iostream(&m_streamBuf)	{resize(newSize);}
 
 		inline void clear()	//< clears the data and resets the read and write positions.
 			{m_streamBuf.clear();}
@@ -139,8 +139,7 @@ class BinaryStream : public std::iostream
 	/** \todo this method should be removed. The normal stream-methdos should be used
 	 *		instead (eof,...). However - those do not seem to work properly in the moment.
 	 */
-		inline bool can_read_more()
-			{return m_streamBuf.get_read_pos() < size();}
+		inline bool can_read_more() const {return m_streamBuf.get_read_pos() < size();}
 	protected:
 		BinaryStreamBuffer	m_streamBuf;
 };

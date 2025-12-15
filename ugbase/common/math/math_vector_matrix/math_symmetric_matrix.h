@@ -32,14 +32,16 @@
 
 #ifndef SYM_MATRIX_H_
 #define SYM_MATRIX_H_
+// used by plugin NavierStokes
 
 #include <cstddef>
 #include <ostream>
 #include <iomanip>
 
-#include "../../types.h"
-#include "math_vector.h"
+#include "common/types.h"
 #include "common/assert.h"
+#include "common/config.hpp"
+#include "math_vector.h"
 
 namespace ug {
 
@@ -68,9 +70,17 @@ class MathSymmetricMatrix
 		static constexpr std::size_t ColSize = N;
 
 	public:
-		MathSymmetricMatrix() {}
-		MathSymmetricMatrix(const MathSymmetricMatrix& v)	{assign(v);}
-		
+		MathSymmetricMatrix() = default;
+		MathSymmetricMatrix(const MathSymmetricMatrix& v) {assign(v);}
+
+		MathSymmetricMatrix(MathSymmetricMatrix&& v) noexcept {
+			std::swap(v.m_data,m_data);
+		}
+		MathSymmetricMatrix& operator = (MathSymmetricMatrix&& v) noexcept {
+			std::swap(v.m_data,m_data);
+			return *this;
+		}
+
 		/**
 		 * \brief Assigns the elements of the given matrix to this one.
 		 *
@@ -207,38 +217,44 @@ class MathSymmetricMatrix
 			return res;
 		}
 
-		inline std::size_t num_rows() const {return N;}
-		inline std::size_t num_cols() const {return N;}
+		[[nodiscard]] inline std::size_t num_rows() const {return N;}
+		[[nodiscard]] inline std::size_t num_cols() const {return N;}
 
 		inline value_type& entry(std::size_t row, std::size_t col)				
 		{
 			UG_ASSERT(row < N && col < N, "Accessing "<<N<<"x"<<N<<"Matrix at entry ("<<row<<","<<col<<")"); 
 			if (row<col) return m_data[row * N - (row - 1) * row / 2 + col - row];
-				else return m_data[col * N - (col - 1) * col / 2 + row - col];
+			        else return m_data[col * N - (col - 1) * col / 2 + row - col];
 		}
 		
 		inline const value_type& entry(std::size_t row, std::size_t col) const
 		{
 			UG_ASSERT(row < N && col < N, "Accessing "<<N<<"x"<<N<<"Matrix at entry ("<<row<<","<<col<<")"); 
 			if (row<col) return m_data[row * N - (row - 1) * row / 2 + col - row];
-				else return m_data[col * N - (col - 1) * col / 2 + row - col];
+				    else return m_data[col * N - (col - 1) * col / 2 + row - col];
 		}
 
-		inline value_type& operator [] (std::size_t index)				{UG_ASSERT(index < m_size, "Invalid index"); return m_data[index];}
-		inline const value_type& operator [] (std::size_t index) const	{UG_ASSERT(index < m_size, "Invalid index"); return m_data[index];}
+		inline value_type& operator [] (std::size_t index) {
+			UG_ASSERT(index < m_size, "Invalid index");
+			return m_data[index];
+		}
+		inline const value_type& operator [] (std::size_t index) const {
+			UG_ASSERT(index < m_size, "Invalid index");
+			return m_data[index];
+		}
 
 		inline value_type& operator () (std::size_t row, std::size_t col)
 		{
 			UG_ASSERT(row < N && col < N, "Accessing "<<N<<"x"<<N<<"Matrix at entry ("<<row<<","<<col<<")"); 
 			if (row<col) return m_data[row * N - (row - 1) * row / 2 + col - row];
-				else return m_data[col * N - (col - 1) * col / 2 + row - col];
+				    else return m_data[col * N - (col - 1) * col / 2 + row - col];
 		}
 		
 		inline const value_type& operator () (std::size_t row, std::size_t col) const
 		{
 			UG_ASSERT(row < N && col < N, "Accessing "<<N<<"x"<<N<<"Matrix at entry ("<<row<<","<<col<<")"); 
 			if (row<col) return m_data[row * N - (row - 1) * row / 2 + col - row];
-				else return m_data[col * N - (col - 1) * col / 2 + row - col];
+				    else return m_data[col * N - (col - 1) * col / 2 + row - col];
 		}
 
 		// frobenius norm |A|_{F} = \sqrt{ 2 \sum_{i,j} A_{i,j} } 
@@ -261,15 +277,19 @@ class MathSymmetricMatrix
 		}
 		
 	protected:
-		static constexpr size_t m_size = (N*N+N)/2;
-		
+
+	static constexpr size_t m_size = (N*N+N)/2;
+#if defined(FEATURE_MEMORY_ALIGNED) && FEATURE_MEMORY_ALIGNED == 1
+		alignas(64) value_type m_data[m_size];
+#elif
 		value_type m_data[m_size];
+#endif
 
 		inline void assign(const MathSymmetricMatrix& v)
 		{
 			for(std::size_t i = 0; i < m_size; ++i)
 			{
-				m_data[i] = v[i];
+				m_data[i] = v.m_data[i];
 			}
 		}
 };

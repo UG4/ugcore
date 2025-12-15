@@ -85,7 +85,7 @@ print(const char* filename, Domain<TDim>& domain)
 
 		write_comment(File);
 
-		File << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"";
+		File << R"(<VTKFile type="UnstructuredGrid" version="0.1" byte_order=")";
 		if(IsLittleEndian()) File << "LittleEndian";
 		else File << "BigEndian";
 		File << "\">\n";
@@ -156,11 +156,11 @@ write_empty_grid_piece(VTKFileWriter& File, bool binary)
 	else
 		File << n;
 	File << "\n        </DataArray>\n";
-	File << "        <DataArray type=\"Int32\" Name=\"offsets\" format="
+	File << R"(        <DataArray type="Int32" Name="offsets" format=)"
 		 <<	(binary ? "\"binary\"" : "\"ascii\"") << ">\n";
 	File << VTKFileWriter::base64_binary << n << VTKFileWriter::normal;
 	File << "\n        </DataArray>\n";
-	File << "        <DataArray type=\"Int8\" Name=\"types\" format="
+	File << R"(        <DataArray type="Int8" Name="types" format=)"
 		 <<	(binary ? "\"binary\"" : "\"ascii\"") << ">\n";
 	if(binary)
 		File << VTKFileWriter::base64_binary << n << VTKFileWriter::normal;
@@ -178,7 +178,7 @@ write_empty_grid_piece(VTKFileWriter& File, bool binary)
 template <int TDim>
 void VTKOutput<TDim>::
 write_comment(VTKFileWriter& File) const {
-	if (!m_sComment.size()){
+	if (m_sComment.empty()){
 		return;
 	}
 

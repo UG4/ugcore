@@ -201,7 +201,7 @@ class BaseLSFS
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		inline void grad(grad_type& g, size_t i, const MathVector<dim>& x) const
 		{
-			 getImpl().grad(g, i, x); return;
+			 getImpl().grad(g, i, x);
 		}
 
 	//////////////////////////////////////////

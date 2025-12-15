@@ -229,7 +229,7 @@ void vtk_export_ho
 	if (order == 1)
 	{
 		// print out new grid function on desired subsets
-		bool printAll = ssg.size() == (size_t) u->subset_handler()->num_subsets();
+		bool printAll = ssg.size() == static_cast<size_t>(u->subset_handler()->num_subsets());
 		if (printAll)
 			vtkOutput->print(filename, *u, step, time);
 		else

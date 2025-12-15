@@ -65,11 +65,11 @@ class QuadratureRuleProvider
 	private:
 	///	private constructor performing standard registering
 		QuadratureRuleProvider();
-
+public:
 	//	disallow copy
 		QuadratureRuleProvider(const QuadratureRuleProvider&) = delete;
 		QuadratureRuleProvider& operator = (const QuadratureRuleProvider&) = delete;
-
+private:
 	///	singleton provider
 		static QuadratureRuleProvider<dim>& instance()
 		{

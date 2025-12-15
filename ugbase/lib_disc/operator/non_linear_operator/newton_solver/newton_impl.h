@@ -395,7 +395,7 @@ void NewtonSolver<TAlgebra>::print_average_convergence() const
 		UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << m_vTotalLinSolverSteps[call] / static_cast<double>(m_vLinSolverCalls[call]) << " | ");
 		allNonLinRatesProduct *= pow(static_cast<number>(m_vNonLinSolverRates[call])/static_cast<double>(m_vLinSolverCalls[call]),static_cast<double>(m_vLinSolverCalls[call]));
 		UG_LOG(std::setw(16) << std::setprecision(6) << std::scientific << m_vNonLinSolverRates[call] / static_cast<double>(m_vLinSolverCalls[call]) << " | ");
-		allLinRatesProduct *= (number)std::pow(static_cast<number>(m_vLinSolverRates[call])/static_cast<double>(m_vLinSolverCalls[call]),static_cast<number>(m_vTotalLinSolverSteps[call]));
+		allLinRatesProduct *= std::pow(static_cast<number>(m_vLinSolverRates[call])/static_cast<double>(m_vLinSolverCalls[call]),static_cast<number>(m_vTotalLinSolverSteps[call]));
 		UG_LOG(std::setw(13) << std::setprecision(6) << std::scientific << m_vLinSolverRates[call] / static_cast<double>(m_vLinSolverCalls[call]));
 		UG_LOG("\n");
 	}
@@ -403,8 +403,8 @@ void NewtonSolver<TAlgebra>::print_average_convergence() const
 	UG_LOG(std::setw(9) << allCalls << " | ");
 	UG_LOG(std::setw(15) << allLinSteps << " | ");
 	UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << allLinSteps / static_cast<number>(allCalls) << " | ");
-	UG_LOG(std::setw(16) << std::setprecision(6) << std::scientific << std::pow((number)allNonLinRatesProduct,(number)1.0/static_cast<number>(allCalls)) << " | ");
-	UG_LOG(std::setw(13) << std::setprecision(6) << std::scientific << std::pow((number)allLinRatesProduct,(number)1.0/static_cast<number>(allLinSteps)));
+	UG_LOG(std::setw(16) << std::setprecision(6) << std::scientific << std::pow(allNonLinRatesProduct,1.0/static_cast<number>(allCalls)) << " | ");
+	UG_LOG(std::setw(13) << std::setprecision(6) << std::scientific << std::pow(allLinRatesProduct,1.0/static_cast<number>(allLinSteps)));
 	UG_LOG("\n");
 }
 

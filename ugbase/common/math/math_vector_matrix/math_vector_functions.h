@@ -402,7 +402,7 @@ VecAbsIsLess(const vector_t& v1, const vector_t& v2);
 template <typename vector_t>
 inline
 bool
-VecAbsIsLess(const vector_t& v1, const typename vector_t::value_type s);
+VecAbsIsLess(const vector_t& v1, typename vector_t::value_type s);
 
 /// checks if the given point is in the bounding box given by two other points
 template <typename vector_t>

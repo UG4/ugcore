@@ -32,8 +32,8 @@
 # ugbase
 ################################################
 
-cmake_minimum_required(VERSION 2.8.12...3.27.1)
-
+cmake_minimum_required(VERSION 3.10...3.27.1)
+message("<ugbase>")
 project(P_UGBASE)
 
 # set global output paths for UGBASE
@@ -46,9 +46,9 @@ set(Sources	ug.cpp)
 
 if(BUILD_ONE_LIB)
 	EXPORTSOURCES(ugbase ${Sources})
-else(BUILD_ONE_LIB)
+else()
 	add_library(ugbase ${Sources})
-endif(BUILD_ONE_LIB)
+endif()
 
 ########################
 # information on the current compilation environment
@@ -62,13 +62,13 @@ add_subdirectory(common)
 # lib_grid
 if(buildGrid)
 	add_subdirectory(lib_grid)
-endif(buildGrid)
+endif()
 
 ########################
 # lib_registry
 if(buildRegistry)
 	add_subdirectory(registry)
-endif(buildRegistry)
+endif()
 
 ########################
 # bindings
@@ -76,39 +76,41 @@ if(buildBindings)
 	add_subdirectory(bindings/lua)
 	if(buildForVRL)
     	add_subdirectory(bindings/vrl)
-	endif(buildForVRL)
-endif(buildBindings)
+	endif()
+endif()
 
 ########################
 # lib_algebra
 if(buildAlgebra)
 	add_subdirectory(lib_algebra)	
-endif(buildAlgebra)
+endif()
 
 ########################
 # lib_disc
 if(buildDisc)
 	add_subdirectory(lib_disc)
-endif(buildDisc)
+endif()
+
 
 ########################
 # pcl
 if(PARALLEL)
 	add_subdirectory(pcl)
-endif(PARALLEL)
+endif()
 
 ########################
 # bridge
 if(buildBridge)
 	add_subdirectory(bridge)
-endif(buildBridge)
+endif()
 
 ########################
 # ug4 shell
 if(buildUGShell)
     add_subdirectory(ug_shell)
-endif(buildUGShell)
+endif()
 
 if(INTERNAL_BOOST)
 	add_subdirectory(../../externals/BoostForUG4/ externals/BoostForUG4/)
-endif(INTERNAL_BOOST)
+endif()
+message("</ugbase>")

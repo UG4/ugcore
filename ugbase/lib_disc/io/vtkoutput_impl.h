@@ -37,7 +37,7 @@
 //other libraries
 #include <cstdio>
 #include <iostream>
-#include <cstring>
+//#include <cstring>
 #include <string>
 //#include <algorithm>
 
@@ -89,7 +89,7 @@ void VTKOutput<TDim>::
 write_item_to_file(VTKFileWriter& File, float data) const
 {
 	if(m_bBinary)
-		File << (float) data;
+		File << data;
 	else
 		write_asc_float (File, data) << ' ';
 }
@@ -100,7 +100,7 @@ void VTKOutput<TDim>::
 write_item_to_file(VTKFileWriter& File, const MathVector<1>& data) const
 {
 	if(m_bBinary)
-		File << static_cast<float>(data[0]) << (float) 0.f << (float) 0.f;
+		File << static_cast<float>(data[0]) << 0.f << 0.f;
 	else
 		write_asc_float (File, data[0]) << " 0 0 ";
 }
@@ -110,7 +110,7 @@ void VTKOutput<TDim>::
 write_item_to_file(VTKFileWriter& File, const MathVector<2>& data) const
 {
 	if(m_bBinary)
-		File << (float) data[0] << (float) data[1] << (float) 0.f;
+		File << static_cast<float>(data[0]) << static_cast<float>(data[1]) << 0.f;
 	else
 	{
 		write_asc_float (File, data[0]) << ' ';
@@ -123,7 +123,7 @@ void VTKOutput<TDim>::
 write_item_to_file(VTKFileWriter& File, const MathVector<3>& data) const
 {
 	if(m_bBinary)
-		File << (float) data[0] << (float) data[1] << (float) data[2];
+		File << static_cast<float>(data[0]) << static_cast<float>(data[1]) << static_cast<float>(data[2]);
 	else
 	{
 		write_asc_float (File, data[0]) << ' ';
@@ -137,7 +137,7 @@ void VTKOutput<TDim>::
 write_item_to_file(VTKFileWriter& File, const MathMatrix<1,1>& data) const
 {
 	if(m_bBinary)
-		File << static_cast<float>(data(0, 0)) << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f;
+		File << static_cast<float>(data(0, 0)) << 0.f << 0.f << 0.f << 0.f << 0.f << 0.f << 0.f << 0.f;
 	else
 		write_asc_float (File, data(0,0)) << " 0 0 0 0 0 0 0 0 ";
 }
@@ -148,8 +148,8 @@ write_item_to_file(VTKFileWriter& File, const MathMatrix<2,2>& data) const
 {
 	if(m_bBinary)
 	{
-		File << static_cast<float>(data(0, 0)) << static_cast<float>(data(0, 1)) << (float) 0.f;
-		File << static_cast<float>(data(1, 0)) << static_cast<float>(data(1, 1)) << (float) 0.f << (float) 0.f << (float) 0.f << (float) 0.f;
+		File << static_cast<float>(data(0, 0)) << static_cast<float>(data(0, 1)) << 0.f;
+		File << static_cast<float>(data(1, 0)) << static_cast<float>(data(1, 1)) << 0.f << 0.f << 0.f << 0.f;
 	}
 	else
 	{
@@ -300,7 +300,7 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 
 		write_comment(File);
 
-		File << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"";
+		File << R"(<VTKFile type="UnstructuredGrid" version="0.1" byte_order=")";
 		if(IsLittleEndian()) File << "LittleEndian";
 		else File << "BigEndian";
 		File << "\">\n";
@@ -433,7 +433,7 @@ print_subsets(const char* filename, TFunction& u, const SubsetGroup& ssGrp, int 
 
 		write_comment(File);
 
-		File << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"";
+		File << R"(<VTKFile type="UnstructuredGrid" version="0.1" byte_order=")";
 		if(IsLittleEndian()) File << "LittleEndian";
 		else File << "BigEndian";
 		File << "\">\n";
@@ -782,7 +782,7 @@ write_points_elementwise(VTKFileWriter& File,
 		TElem *elem = *iterBegin;
 
 	//	loop vertices of the element
-		for(size_t i = 0; i < (size_t) ref_elem_type::numCorners; ++i)
+		for(size_t i = 0; i < static_cast<size_t>(ref_elem_type::numCorners); ++i)
 		{
 		//	get vertex of element
 			Vertex* v = GetVertex(elem, i);
@@ -1015,7 +1015,7 @@ write_cell_connectivity(VTKFileWriter& File,
 {
 	File << VTKFileWriter::normal;
 //	write opening tag to indicate that connections will be written
-	File << "        <DataArray type=\"Int32\" Name=\"connectivity\" format="
+	File << R"(        <DataArray type="Int32" Name="connectivity" format=)"
 		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 	int n = sizeof(int) * numConn;
 
@@ -1692,8 +1692,7 @@ write_nodal_values(VTKFileWriter& File, TFunction& u,
 			write_nodal_values_elementwise<Prism>(File, u, vFct, grid, ssGrp[i]);
 			write_nodal_values_elementwise<Octahedron>(File, u, vFct, grid, ssGrp[i]);
 			write_nodal_values_elementwise<Hexahedron>(File, u, vFct, grid, ssGrp[i]); break;
-			default: UG_THROW("VTK::write_nodal_values: Dimension " << dim <<
-									" is not supported.");
+			default: UG_THROW("VTK::write_nodal_values: Dimension " << dim << " is not supported.");
 		}
 	}
 
@@ -2009,8 +2008,7 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 	for(size_t f = 0; f < vFct.size(); ++f)
 	{
 		const LFEID lfeID = u.local_finite_element_id(vFct[f]);
-		const LocalShapeFunctionSet<dim>& lsfs
-			 = LocalFiniteElementProvider::get<dim>(roid, lfeID);
+		const LocalShapeFunctionSet<dim>& lsfs = LocalFiniteElementProvider::get<dim>(roid, lfeID);
 
 		vNsh[f] = lsfs.num_sh();
 		lsfs.shapes(vvShape[f], localIP);
@@ -2093,8 +2091,7 @@ write_cell_values(VTKFileWriter& File, TFunction& u,
 			write_cell_values_elementwise<Prism>(File, u, vFct, grid, ssGrp[i]);
 			write_cell_values_elementwise<Octahedron>(File, u, vFct, grid, ssGrp[i]);
 			write_cell_values_elementwise<Hexahedron>(File, u, vFct, grid, ssGrp[i]); break;
-			default: UG_THROW("VTK::write_cell_values: Dimension " << dim <<
-									" is not supported.");
+			default: UG_THROW("VTK::write_cell_values: Dimension " << dim << " is not supported.");
 		}
 	}
 

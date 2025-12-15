@@ -54,7 +54,7 @@ void OctReferenceMappingTest(std::vector<number> vCornerCoord0, std::vector<numb
 	UG_LOG(">> Starting OctReferenceMappingTest: " << std::endl);
 
 	std::vector<MathVector<3, number> > vCornerCoords;
-	std::vector<MathVector<3, number> > vLocPos(1, 0.0);
+	std::vector<MathVector<3, number> > vLocPos(1, MathVector<3, number>(0.0));
 	std::vector<MathVector<3, number> > vGlobPositions;
 
 	MathVector<3> GlobPos(vGlobPos[0], vGlobPos[1], vGlobPos[2]);
@@ -91,7 +91,7 @@ void TetReferenceMappingTest(std::vector<number> vCornerCoord0, std::vector<numb
 	UG_LOG(">> Starting TetReferenceMappingTest: " << std::endl);
 
 	std::vector<MathVector<3, number> > vCornerCoords;
-	std::vector<MathVector<3, number> > vLocPos(1, 0.0);
+	std::vector<MathVector<3, number> > vLocPos(1, MathVector<3, number>(0.0));
 	std::vector<MathVector<3, number> > vGlobPositions;
 
 	MathVector<3> GlobPos(vGlobPos[0], vGlobPos[1], vGlobPos[2]);
@@ -125,7 +125,7 @@ void EdgeReferenceMappingTest(std::vector<number> vCornerCoord0, std::vector<num
 	UG_LOG(">> Starting EdgeReferenceMappingTest: " << std::endl);
 
 	std::vector<MathVector<3, number> > vCornerCoords;
-	std::vector<MathVector<1, number> > vLocPos(1, 0.0);
+	std::vector<MathVector<1, number> > vLocPos(1, MathVector<1, number>(0.0));
 	std::vector<MathVector<3, number> > vGlobPositions;
 
 	MathVector<3> GlobPos(vGlobPos[0], vGlobPos[1], vGlobPos[2]);

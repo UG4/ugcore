@@ -270,11 +270,11 @@ public:
 
 	/// get the local side integration points for a specific roid
 		template <int refDim>
-		const MathVector<refDim>* side_local_ips(const ReferenceObjectID roid);
+		const MathVector<refDim>* side_local_ips(ReferenceObjectID roid);
 
 	/// get the local elem integration points for a specific roid
 		template <int refDim>
-		const MathVector<refDim>* elem_local_ips(const ReferenceObjectID roid);
+		const MathVector<refDim>* elem_local_ips(ReferenceObjectID roid);
 
 	/// get all global side integration points
 		MathVector<TDomain::dim>* all_side_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -289,19 +289,19 @@ public:
 		size_t num_side_ips(const side_type* pSide);
 
 	/// get number of side IPs of a specific side type
-		size_t num_side_ips(const ReferenceObjectID roid);
+		size_t num_side_ips(ReferenceObjectID roid);
 
 	/// get number of first IP belonging to a specific side
-		size_t first_side_ips(const ReferenceObjectID roid, const size_t side);
+		[[nodiscard]] size_t first_side_ips(ReferenceObjectID roid, size_t side) const;
 
 	/// get number of side IPs
-		size_t num_all_side_ips(const ReferenceObjectID roid);
+		size_t num_all_side_ips(ReferenceObjectID roid);
 
 	/// get number of elem IPs
-		size_t num_elem_ips(const ReferenceObjectID roid);
+		size_t num_elem_ips(ReferenceObjectID roid);
 
 	/// get index of specific side IP in sideIP array returned by side_local_ips
-		size_t side_ip_index(const ReferenceObjectID roid, const size_t side, const size_t ip);
+		[[nodiscard]] size_t side_ip_index(ReferenceObjectID roid, size_t side, size_t ip) const;
 
 	///	get the surface view
 		ConstSmartPtr<SurfaceView>& surface_view () {return m_spSV;};
@@ -424,7 +424,7 @@ class MultipleErrEstData : public IErrEstData<TDomain>
 		static constexpr int dim = TDomain::dim;
 
 	///	class constructor
-		MultipleErrEstData(ConstSmartPtr<ApproximationSpace<TDomain> > approx)
+	explicit MultipleErrEstData(ConstSmartPtr<ApproximationSpace<TDomain> > approx)
 		: IErrEstData<TDomain>(), m_spApprox(approx),
 		  m_fctGrp(m_spApprox->dof_distribution_info())
 		{
@@ -458,7 +458,7 @@ class MultipleErrEstData : public IErrEstData<TDomain>
 		}
 
 	/// getting the number of underlying error estimator data objects
-		size_t num() const {return m_vEed.size();};
+		[[nodiscard]] size_t num() const {return m_vEed.size();};
 
 	/// accessing the underlying error estimator data objects via function id
 		TErrEstData* get(size_t uid)
@@ -491,7 +491,7 @@ class MultipleErrEstData : public IErrEstData<TDomain>
 		std::vector<TErrEstData*> m_vEed;
 
 		/// approx space
-		ConstSmartPtr<ApproximationSpace<TDomain> > m_spApprox;
+		ConstSmartPtr<ApproximationSpace<TDomain> > m_spApprox{};
 
 		/// function group (in order to map fcts to error estimator objects)
 		FunctionGroup m_fctGrp;
@@ -511,7 +511,7 @@ class MultipleSideAndElemErrEstData
 	using elem_type = typename SideAndElemErrEstData<TDomain>::elem_type;
 
 	/// constructor
-		MultipleSideAndElemErrEstData(ConstSmartPtr<ApproximationSpace<TDomain> > approx)
+	explicit MultipleSideAndElemErrEstData(ConstSmartPtr<ApproximationSpace<TDomain> > approx)
 			: MultipleErrEstData<TDomain, SideAndElemErrEstData<TDomain> >(approx),
 			  m_bEqSideOrder(false), m_bEqElemOrder(false) {};
 
@@ -523,10 +523,10 @@ class MultipleSideAndElemErrEstData
 		void add(SmartPtr<SideAndElemErrEstData<TDomain> > spEed, const char* fct) override;
 
 	/// returns whether all underlying err ests have the same elem and side integration orders
-		bool equal_side_order() const {return m_bEqSideOrder;}
+		[[nodiscard]] bool equal_side_order() const {return m_bEqSideOrder;}
 
 	/// returns whether all underlying err ests have the same elem and side integration orders
-		bool equal_elem_order() const {return m_bEqElemOrder;}
+		[[nodiscard]] bool equal_elem_order() const {return m_bEqElemOrder;}
 
 	protected:
 		/// find out whether all underlying err_ests have the same integration orders

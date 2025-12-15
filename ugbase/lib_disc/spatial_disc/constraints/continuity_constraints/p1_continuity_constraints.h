@@ -62,48 +62,48 @@ class SymP1Constraints
 
 	public:
 		SymP1Constraints() : IDomainConstraint<TDomain, TAlgebra>(), m_bAssembleLinearProblem(false) {}
-		virtual ~SymP1Constraints() = default;
 
-		virtual int type() const {return CT_HANGING;}
+		~SymP1Constraints() override = default;
+
+		int type() const override {return CT_HANGING;}
 
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
                              ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
-   							 const number s_a0 = 1.0);
+   							 const number s_a0 = 1.0) override;
 
 		void adjust_defect(vector_type& d, const vector_type& u,
 		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
                            ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
 						   const std::vector<number>* vScaleMass = nullptr,
-                           const std::vector<number>* vScaleStiff = nullptr);
+                           const std::vector<number>* vScaleStiff = nullptr) override;
 
 		void adjust_rhs(vector_type& rhs, const vector_type& u,
-		                ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0);
+		                ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0) override;
 
 		void adjust_linear(matrix_type& mat, vector_type& rhs,
-		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0);
+		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0) override;
 
 		void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
-							 int type, number time = 0.0);
+							 int type, number time = 0.0) override;
 
 		void adjust_prolongation(matrix_type& P,
 								 ConstSmartPtr<DoFDistribution> ddFine,
 								 ConstSmartPtr<DoFDistribution> ddCoarse,
 								 int type,
-								 number time = 0.0);
+								 number time = 0.0) override;
 
 		void adjust_restriction(matrix_type& R,
 								ConstSmartPtr<DoFDistribution> ddCoarse,
 								ConstSmartPtr<DoFDistribution> ddFine,
 								int type,
-								number time = 0.0);
+								number time = 0.0) override;
 
-		virtual void adjust_correction
-		(	vector_type& u,
-			ConstSmartPtr<DoFDistribution> dd,
-			int type,
-			number time = 0.0
-		);
+		void adjust_correction(vector_type& u,
+								ConstSmartPtr<DoFDistribution> dd,
+								int type,
+								number time = 0.0
+							) override;
 
 	protected:
 		bool m_bAssembleLinearProblem;
@@ -130,48 +130,47 @@ class OneSideP1Constraints
 
 	public:
 		OneSideP1Constraints() : IDomainConstraint<TDomain, TAlgebra>(), m_bAssembleLinearProblem(false) {}
-		virtual ~OneSideP1Constraints() = default;
 
-		virtual int type() const {return CT_HANGING;}
+		~OneSideP1Constraints() override = default;
+
+		[[nodiscard]] virtual int type() const {return CT_HANGING;}
 
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
                              ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
-							 const number s_a0 = 1.0);
+		                     number s_a0 = 1.0) override;
 
 		void adjust_defect(vector_type& d, const vector_type& u,
 		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
                            ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
 						   const std::vector<number>* vScaleMass = nullptr,
-                           const std::vector<number>* vScaleStiff = nullptr);
+                           const std::vector<number>* vScaleStiff = nullptr) override;
 
 		void adjust_rhs(vector_type& rhs, const vector_type& u,
-		                ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0);
+		                ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0) override;
 
 		void adjust_linear(matrix_type& mat, vector_type& rhs,
-		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0);
+		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0) override;
 
 		void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
-							 int type, number time = 0.0);
+							 int type, number time = 0.0) override;
 
 		void adjust_prolongation(matrix_type& P,
 								 ConstSmartPtr<DoFDistribution> ddFine,
 								 ConstSmartPtr<DoFDistribution> ddCoarse,
 								 int type,
-								 number time = 0.0);
+								 number time = 0.0) override;
 
 		void adjust_restriction(matrix_type& R,
 								ConstSmartPtr<DoFDistribution> ddCoarse,
 								ConstSmartPtr<DoFDistribution> ddFine,
 								int type,
-								number time = 0.0);
+								number time = 0.0) override;
 
-		virtual void adjust_correction
-		(	vector_type& u,
-			ConstSmartPtr<DoFDistribution> dd,
-			int type,
-			number time = 0.0
-		);
+		void adjust_correction(vector_type& u,
+								ConstSmartPtr<DoFDistribution> dd,
+								int type,
+								number time = 0.0) override;
 
 	protected:
 		bool m_bAssembleLinearProblem;

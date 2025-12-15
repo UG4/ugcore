@@ -319,7 +319,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 					{
 						// 	try on line u := u - lambda*p
 
-						if( ! m_newtonUpdater->updateSolution(u, 1.0, s, (-1)*m_lambdaStart*std::pow(m_lambdaReduce, (number)best), p) )
+						if( ! m_newtonUpdater->updateSolution(u, 1.0, s, (-1)*m_lambdaStart*std::pow(m_lambdaReduce, static_cast<number>(best)), p) )
 						{
 							UG_LOG("Update in Line Search kmax did not work.\n");
 
@@ -339,7 +339,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 					{
 //#else
 					// 	try on line u := u - lambda*p
-						VecScaleAdd(u, 1.0, s, (-1)*m_lambdaStart*std::pow(m_lambdaReduce, (number)best), p);
+						VecScaleAdd(u, 1.0, s, (-1)*m_lambdaStart*std::pow(m_lambdaReduce, static_cast<number>(best)), p);
 					// 	compute new Defect
 						spOp->prepare(u);
 						spOp->apply(d, u);

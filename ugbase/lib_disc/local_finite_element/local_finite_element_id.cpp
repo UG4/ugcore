@@ -71,7 +71,7 @@ LFEID ConvertStringToLFEID(const char* type, int dim, int order)
 
 //	compare
 	LFEID::SpaceType eType = LFEID::NONE;
-		 if(typeStr == "lagrange") eType = LFEID::LAGRANGE;
+	if(typeStr == "lagrange") eType = LFEID::LAGRANGE;
 	else if(typeStr == "crouzeix-raviart") eType = LFEID::CROUZEIX_RAVIART;
 	else if(typeStr == "piecewise-constant") eType = LFEID::PIECEWISE_CONSTANT;
 	else if(typeStr == "mini") eType = LFEID::MINI;

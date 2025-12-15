@@ -28,8 +28,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-cmake_minimum_required (VERSION 2.8.12...3.27.1)
-
+cmake_minimum_required (VERSION 3.10...3.27.1)
+message( "<ugcore>")
 ################################################
 # ug4
 ################################################
@@ -47,6 +47,8 @@ include ("cmake/ug_includes.cmake")
 include ("cmake/ug_cpack_config.cmake")
 ########################
 # compile plugins
+message(STATUS "${buildPlugins} buildPlugins")
+
 if (buildPlugins)
 	include ("cmake/plugin_registration_routines.cmake")
 	set (pluginDir ${UG_ROOT_PATH}/plugins)
@@ -80,7 +82,7 @@ if (buildPlugins)
 		EraseUnusedPlugins ()
 	endif ()
 endif ()
-
+message(STATUS "buildTools")
 
 if (buildTools)
 	set (toolDir ${UG_ROOT_PATH}/tools)
@@ -116,7 +118,7 @@ add_subdirectory (ugbase)
 
 if (BUILD_DOXYDOCU)
    ADD_SUBDIRECTORY (docs)
-endif (BUILD_DOXYDOCU)
+endif ()
 
 ########################
 if (BUILD_ONE_LIB)
@@ -128,55 +130,47 @@ if (BUILD_ONE_LIB)
 	get_property (ug4libLinkerFlags GLOBAL PROPERTY ugLinkerFlags)
 	get_property (ug4libSingleFileCompileFlagsFiles GLOBAL PROPERTY ugSingleFileCompileFlagsFiles)
 	get_property (ug4libSingleFileCompileFlagsDefs GLOBAL PROPERTY ugSingleFileCompileFlagsDefs)
-	
+
 	if (buildEmbeddedPlugins)
 		add_definitions (${ug4libDefinitions})
 		link_directories (${ug4LinkPaths})
 		set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${ug4libLinkerFlags}")
 		set (CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} ${ug4libLinkerFlags}")
 	endif ()
-	
+
 	if (buildDynamicLib)
 		add_definitions (-DBUILDING_DYNAMIC_LIBRARY)
 		if (WIN32)
 			add_definitions (-DLUA_BUILD_AS_DLL -DLUA_LIB -DLUA_CORE)
 		endif ()
 
-		if (CUDA_FOUND)
-			# dynamic; w/ cuda
-		   CUDA_add_library (${targetLibraryName} SHARED ${ug4libSources})
-		else()
-		   # dynamic; w/o cuda
-		   add_library (${targetLibraryName} SHARED ${ug4libSources})
-		   install (TARGETS ${targetLibraryName}
-		   			LIBRARY DESTINATION lib
-		   			COMPONENT libraries)
-		endif ()
+	   # dynamic; w/o cuda
+	   add_library (${targetLibraryName} SHARED ${ug4libSources})
+	   install (TARGETS ${targetLibraryName}
+				LIBRARY DESTINATION lib
+				COMPONENT libraries)
+
 		#ug_add_library (${targetLibraryName} SHARED ${ug4libSources})
-		
+
 		if (buildCompileInfo AND NOT buildEmbeddedPlugins)
 			add_dependencies (${targetLibraryName} CompileInfo)
 			target_link_libraries (${targetLibraryName} CompileInfo)
 		endif ()
 
 	else()
-		if (CUDA_FOUND)
-			CUDA_add_library(${targetLibraryName} ${ug4libSources})
-		else()
-			add_library(${targetLibraryName} ${ug4libSources})
-		endif ()
+
+		add_library (${targetLibraryName} ${ug4libSources})
 
 		if (buildCompileInfo AND NOT buildEmbeddedPlugins)
 			add_dependencies(${targetLibraryName} CompileInfo_s)
 			target_link_libraries(${targetLibraryName} CompileInfo_s)
 
 		endif ()
-
 	endif ()
-  
+
   target_include_directories (${targetLibraryName} PUBLIC ${ug4libIncludes})
   target_link_libraries (${targetLibraryName} ${ug4libDependencies} ${linkLibraries})
-  
+
   target_enable_sanitizers (${targetLibraryName} ${USE_SANITIZER})
 
 	if (buildEmbeddedPlugins)
@@ -186,7 +180,7 @@ if (BUILD_ONE_LIB)
     if (UNIX AND buildCompileInfo)
 		  add_dependencies(${targetLibraryName} updateCompileInfo)
     endif ()
-		
+
 		# apply single file definitions
 		list (LENGTH ug4libSingleFileCompileFlagsFiles len)
 		if (${len} GREATER 0)
@@ -199,5 +193,9 @@ if (BUILD_ONE_LIB)
 			endforeach ()
 		endif ()
 	endif ()
-   
+
 endif ()
+message( "</ugcore>")
+
+get_property(_t DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+message(STATUS "Directory targets: ${_t}")

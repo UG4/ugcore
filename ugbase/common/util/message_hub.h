@@ -120,7 +120,7 @@ class MessageHub
 				Error(const char* msg, ErrorIds errorId) :
 					UGError(msg), m_errorId(errorId) {}
 
-				ErrorIds get_message_hub_error_id()	{return m_errorId;}
+				[[nodiscard]] ErrorIds get_message_hub_error_id() const {return m_errorId;}
 
 			protected:
 				ErrorIds m_errorId;

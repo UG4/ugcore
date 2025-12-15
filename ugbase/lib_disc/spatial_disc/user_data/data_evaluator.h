@@ -62,13 +62,13 @@ class DataEvaluatorBase
 		DataEvaluatorBase(int discPart,
 		              const std::vector<TElemDisc*>& vElemDisc,
 		              ConstSmartPtr<FunctionPattern> fctPat,
-		              const bool bNonRegularGrid,
+		              bool bNonRegularGrid,
 		              LocalVectorTimeSeries* locTimeSeries = nullptr,
 		              const std::vector<number>* vScaleMass = nullptr,
 		              const std::vector<number>* vScaleStiff = nullptr);
 
 	///	sets the time point for data evaluation
-		void set_time_point(const size_t timePoint);
+		void set_time_point(size_t timePoint);
 
 	///	returns if local time series is really needed for assembling
 		bool time_series_needed() const {return m_bNeedLocTimeSeries;}
@@ -79,7 +79,7 @@ class DataEvaluatorBase
 		
 
 	///	prepares the element loop for all IElemDiscs for the computation of the error estimator
-		void prepare_err_est_elem_loop(const ReferenceObjectID id, int si);
+		void prepare_err_est_elem_loop(ReferenceObjectID id, int si);
 
 	///	prepares the element for all IElemDiscs
 		void prepare_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[],
@@ -87,15 +87,15 @@ class DataEvaluatorBase
 
 	///	compute contributions of the local error indicators in one element for all IElemDiscs
 		void compute_err_est_A_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind,
-								  const number scaleMass = (number) 1.0, const number scaleStiff = (number) 1.0);
+		                            number scaleMass = 1.0, number scaleStiff = 1.0);
 
 	///	compute contributions of the local error indicators in one element for all IElemDiscs
 		void compute_err_est_M_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind,
-								  const number scaleMass = (number) 1.0, const number scaleStiff = (number) 1.0);
+		                            number scaleMass = 1.0, number scaleStiff = 1.0);
 
 	///	compute contributions of the local error indicators in one element for all IElemDiscs
 		void compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind,
-								  const number scaleMass = (number) 1.0, const number scaleStiff = (number) 1.0);
+		                              number scaleMass = 1.0, number scaleStiff = 1.0);
 
 	///	finishes the error estimator element loop for all IElemDiscs
 		void finish_err_est_elem_loop();
@@ -188,26 +188,26 @@ public:
 	///////////////////////////////////////////
 
 		///	prepares all time-dependent IElemDiscs
-			void prepare_timestep(number future_time, const number time, VectorProxyBase* u, size_t algebra_id);
+			void prepare_timestep(number future_time, number time, VectorProxyBase* u, size_t algebra_id);
 
 		///	prepares the elements of all time-dependent IElemDiscs
-			void prepare_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+			void prepare_timestep_elem(number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 		///	prepares the element loop for all IElemDiscs
-			void prepare_elem_loop(const ReferenceObjectID id, int si);
+			void prepare_elem_loop(ReferenceObjectID id, int si);
 
 		///	prepares the element for all IElemDiscs
-			void prepare_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[],
+			void prepare_elem(LocalVector& u, GridObject* elem, ReferenceObjectID roid, const MathVector<dim> vCornerCoords[],
 			                  const LocalIndices& ind, bool bDeriv = false);
 
 		///	finishes the element loop for all IElemDiscs
 			void finish_elem_loop();
 
 		/// finishes all time-dependent IElemDiscs
-			void finish_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
+			void finish_timestep(number time, VectorProxyBase* u, size_t algebra_id);
 
 		///	finishes the elements of all time-dependent IElemDiscs
-			void finish_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+			void finish_timestep_elem(number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 		///	compute local stiffness matrix for all IElemDiscs
 			void add_jac_A_elem(LocalMatrix& A, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);

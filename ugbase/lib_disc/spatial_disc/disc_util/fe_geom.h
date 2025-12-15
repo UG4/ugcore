@@ -78,13 +78,13 @@ class FEGeometry
 		FEGeometry();
 
 	/// number of integration points
-		size_t num_ip() const {return nip;}
+		[[nodiscard]] size_t num_ip() const {return nip;}
 
 	/// number of shape functions
-		size_t num_sh() const {return nsh;}
+		[[nodiscard]] size_t num_sh() const {return nsh;}
 
 	/// weight for integration point
-		number weight(size_t ip) const {return m_vDetJ[ip] * m_rQuadRule.weight(ip);}
+		[[nodiscard]] number weight(size_t ip) const {return m_vDetJ[ip] * m_rQuadRule.weight(ip);}
 
 	/// local integration point
 		const MathVector<dim>& local_ip(size_t ip) const {return m_rQuadRule.point(ip);}
@@ -103,7 +103,7 @@ class FEGeometry
 		const MathVector<worldDim>* global_ips() const{return &m_vIPGlobal[0];}
 
 		/// shape function at ip
-		number shape(size_t ip, size_t sh) const
+		[[nodiscard]] number shape(size_t ip, size_t sh) const
 		{
 			UG_ASSERT(ip < nip, "Wrong index"); UG_ASSERT(sh < nsh, "Wrong index");
 			return m_vvShape[ip][sh];
@@ -202,13 +202,13 @@ class DimFEGeometry
 		DimFEGeometry(ReferenceObjectID roid, size_t order, LFEID lfeid);
 
 	/// number of integration points
-		size_t num_ip() const {return m_nip;}
+		[[nodiscard]] size_t num_ip() const {return m_nip;}
 
 	/// number of shape functions
-		size_t num_sh() const {return m_nsh;}
+		[[nodiscard]] size_t num_sh() const {return m_nsh;}
 
 	/// weight for integration point
-		number weight(size_t ip) const
+		[[nodiscard]] number weight(size_t ip) const
 		{
 			UG_ASSERT(ip < m_nip, "Wrong index");
 			return m_vDetJ[ip] * m_vQuadWeight[ip];
@@ -235,7 +235,7 @@ class DimFEGeometry
 		const MathVector<worldDim>* global_ips() const{return &m_vIPGlobal[0];}
 
 	/// shape function at ip
-		number shape(size_t ip, size_t sh) const
+		[[nodiscard]] number shape(size_t ip, size_t sh) const
 		{
 			UG_ASSERT(ip < m_vvShape.size(), "Wrong index");
 			UG_ASSERT(sh < m_vvShape[ip].size(), "Wrong index");
@@ -283,19 +283,19 @@ class DimFEGeometry
 		class BF
 		{
 			public:
-				BF() {}
+				BF() = default;
 
 				/// outer normal on bf. Norm is equal to area
 				inline const MathVector<worldDim>& normal() const {return Normal;} // includes area
 
 				/// volume of bf
-				inline number volume() const {return Vol;}
+				[[nodiscard]] inline number volume() const {return Vol;}
 
 				/// number of integration points on scvf
-				inline size_t num_ip() const {return nip;}
+				[[nodiscard]] inline size_t num_ip() const {return nip;}
 
 				///	integration weight
-				inline number weight(size_t ip) const
+				[[nodiscard]] inline number weight(size_t ip) const
 				{UG_ASSERT(ip<num_ip(), "Wrong index"); return vDetJ[ip] * vWeight[ip];}
 
 				/// local integration point of scvf
@@ -311,18 +311,18 @@ class DimFEGeometry
 								{UG_ASSERT(ip<num_ip(), "Wrong index"); return vJtInv[ip];}
 
 				/// Determinant of Jacobian in integration point
-				inline number detJ(size_t ip) const
+				[[nodiscard]] inline number detJ(size_t ip) const
 				{UG_ASSERT(ip<num_ip(), "Wrong index"); return vDetJ[ip];}
 
 				/// number of shape functions
-				inline size_t num_sh() const {return nsh;}
+				[[nodiscard]] inline size_t num_sh() const {return nsh;}
 
 				/// value of shape function i in integration point
-				inline number shape(size_t ip, size_t sh) const
+				[[nodiscard]] inline number shape(size_t ip, size_t sh) const
 				{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
 
 				/// vector of shape functions in ip point
-				inline const number* shape_vector(size_t ip) const
+				[[nodiscard]] inline const number* shape_vector(size_t ip) const
 								{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvShape[ip][0];}
 
 				/// value of local gradient of shape function i in integration point
@@ -379,25 +379,25 @@ class DimFEGeometry
 		inline void clear_boundary_subsets() {m_mapVectorBF.clear();}
 
 	/// number of registered boundary subsets
-		inline size_t num_boundary_subsets() {return m_mapVectorBF.size();}
+		[[nodiscard]] inline size_t num_boundary_subsets() const {return m_mapVectorBF.size();}
 
 	/// number of all boundary faces
-		inline size_t num_bf() const
+		[[nodiscard]] inline size_t num_bf() const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			size_t num = 0;
-			for ( it=m_mapVectorBF.begin() ; it != m_mapVectorBF.end(); it++ )
-				num += (*it).second.size();
+			for ( it=m_mapVectorBF.begin() ; it != m_mapVectorBF.end(); ++it )
+				num += it->second.size();
 			return num;
 		}
 
 	/// number of boundary faces on subset 'subsetIndex'
-		inline size_t num_bf(int si) const
+		[[nodiscard]] inline size_t num_bf(int si) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			it = m_mapVectorBF.find(si);
 			if(it == m_mapVectorBF.end()) return 0;
-			else return (*it).second.size();
+			else return it->second.size();
 		}
 
 	/// returns the boundary face i for subsetIndex
@@ -407,7 +407,7 @@ class DimFEGeometry
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			it = m_mapVectorBF.find(si);
 			if(it == m_mapVectorBF.end()) UG_THROW("DimFVGeom: No BndSubset: "<<si);
-			return (*it).second[i];
+			return it->second[i];
 		}
 
 	/// returns reference to vector of boundary faces for subsetIndex
@@ -416,7 +416,7 @@ class DimFEGeometry
 			typename std::map<int, std::vector<BF> >::const_iterator it;
 			it = m_mapVectorBF.find(si);
 			if(it == m_mapVectorBF.end()) return m_vEmptyVectorBF;
-			return (*it).second;
+			return it->second;
 		}
 
 	protected:

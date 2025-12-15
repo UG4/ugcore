@@ -47,7 +47,7 @@
 macro (android_ndk_gdb_enable)
     if (ANDROID)
         # create custom target that depends on the real target so it gets executed afterwards
-        add_custom_target(NDK_GDB ALL)
+        add_custom_target (NDK_GDB ALL)
         
         if (${ARGC})
             set (ANDROID_PROJECT_DIR ${ARGV0})

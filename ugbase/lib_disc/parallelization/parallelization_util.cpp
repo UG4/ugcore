@@ -313,8 +313,7 @@ bool CreateSurfaceIndexLayout(	IndexLayout& layoutOut,
 void FindPositionInInterfaces(std::vector<std::pair<int, size_t> >& vIndexInterface,
                                      const IndexLayout& layout, size_t index)
 {
-	for(IndexLayout::const_iterator interface_iter = layout.begin();
-				interface_iter != layout.end(); ++interface_iter)
+	for(auto interface_iter = layout.begin(); interface_iter != layout.end(); ++interface_iter)
 	{
 	//	get interface
 		const IndexLayout::Interface& interface = layout.interface(interface_iter);
@@ -348,16 +347,14 @@ bool AddExtraProcessEntriesToSubdomainLayout(
 
 	int localProc = pcl::ProcRank();
 
-	for(IndexLayout::iterator interface_iter = processMasterLayoutIn.begin();
-			interface_iter != processMasterLayoutIn.end(); ++interface_iter)
+	for(auto interface_iter = processMasterLayoutIn.begin(); interface_iter != processMasterLayoutIn.end(); ++interface_iter)
 	{
 	//	get interface
 		IndexLayout::Interface& interface = processMasterLayoutIn.interface(interface_iter);
 		int targetProc = processMasterLayoutIn.proc_id(interface_iter);
 
 	//	loop over indices
-		for( IndexLayout::Interface::iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+		for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 		//  get index
 			const size_t index = interface.get_element(iter);
@@ -392,16 +389,14 @@ bool AddExtraProcessEntriesToSubdomainLayout(
 	communicator.communicate();
 
 //	add slaves
-	for(IndexLayout::iterator interface_iter = processSlaveLayoutIn.begin();
-			interface_iter != processSlaveLayoutIn.end(); ++interface_iter)
+	for(auto interface_iter = processSlaveLayoutIn.begin(); interface_iter != processSlaveLayoutIn.end(); ++interface_iter)
 	{
 	//	get interface
 		IndexLayout::Interface& interface = processSlaveLayoutIn.interface(interface_iter);
 		int targetProc = processSlaveLayoutIn.proc_id(interface_iter);
 
 	//	loop over indices
-		for( IndexLayout::Interface::iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+		for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 		//  get index
 			const size_t index = interface.get_element(iter);
@@ -434,14 +429,13 @@ void PermuteIndicesInIndexLayout(	IndexLayout& layout,
 	using Index = Interface::Element;
 
 //	iterate over all interfaces
-	for(InterfaceIter iiter = layout.begin(); iiter != layout.end(); ++iiter)
+	for(auto iiter = layout.begin(); iiter != layout.end(); ++iiter)
 	{
 	//	get interface
 		Interface& interface = layout.interface(iiter);
 
 	//	iterate over all elements
-		for(IndexIter indIter = interface.begin();
-			indIter != interface.end(); ++indIter)
+		for(auto indIter = interface.begin(); indIter != interface.end(); ++indIter)
 		{
 		//	get old index
 			Index oldIndex = interface.get_element(indIter);
@@ -478,7 +472,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 	int localSubdom = ddInfoIn->map_proc_id_to_subdomain_id(localProc);
 
 //	iterate over all interfaces
-	for(InterfaceIterator iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter)
+	for(auto iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter)
 	{
 		ElemInterface& elemInterface = elemLayout.interface(iIter);
 		int targetProc = elemLayout.proc_id(iIter);
@@ -490,8 +484,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 
 		//	iterate over entries in the elemInterface and add associated
 		//	dofs to the indexInterface
-			for(ElemIterator eIter = elemInterface.begin();
-				eIter != elemInterface.end(); ++eIter)
+			for(auto eIter = elemInterface.begin(); eIter != elemInterface.end(); ++eIter)
 			{
 				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
 				std::vector<size_t> indices;

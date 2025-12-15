@@ -56,7 +56,7 @@ int LuaStackToParams(ParameterStack& ps,
 {
 //	make sure that we have the right amount of parameters
 //	if the sizes do not match, return -1.
-	if((lua_gettop(L)) - offsetToFirstParam != (int)psInfo.size())
+	if((lua_gettop(L)) - offsetToFirstParam != psInfo.size())
 		return -1;
 
 //	initialize temporary variables
@@ -69,40 +69,40 @@ int LuaStackToParams(ParameterStack& ps,
 		bool bIsVector = psInfo.is_vector(i);
 
 	//	compute stack index, stack-indices start with 1
-		int index = (int)i + offsetToFirstParam + 1;
+		int index = i + offsetToFirstParam + 1;
 
 	//	check for nil
-		if(lua_type(L, index) == LUA_TNONE) return (int)i + 1;
+		if(lua_type(L, index) == LUA_TNONE) return i + 1;
 
 	//	try to read in expected type
 		switch(type){
 			case Variant::VT_BOOL:{
 				if(!PushLuaStackEntryToParamStack<bool>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 			case Variant::VT_INT:{
 				if(!PushLuaStackEntryToParamStack<int>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 			case Variant::VT_SIZE_T:{
 				if(!PushLuaStackEntryToParamStack<size_t>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 			case Variant::VT_FLOAT:{
 				if(!PushLuaStackEntryToParamStack<float>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 			case Variant::VT_DOUBLE:{
 				if(!PushLuaStackEntryToParamStack<double>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 			case Variant::VT_CSTRING:{
 				if(!PushLuaStackEntryToParamStack<const char*>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 			case Variant::VT_STDSTRING:{
 				if(!PushLuaStackEntryToParamStack<std::string>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 			case Variant::VT_POINTER:{
 			//	NOTE that smart-ptrs are implicitly used as normal pointers here.
@@ -112,7 +112,7 @@ int LuaStackToParams(ParameterStack& ps,
 			//	this strategy).
 				if(!PushLuaStackPointerEntryToParamStack<void*>
 					(ps, L, index, psInfo.class_name(i), bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 			case Variant::VT_CONST_POINTER:{
 			//	NOTE that smart-ptrs are implicitly used as normal pointers here.
@@ -122,39 +122,38 @@ int LuaStackToParams(ParameterStack& ps,
 			//	this strategy).
 				if(!PushLuaStackPointerEntryToParamStack<const void*>
 					(ps, L, index, psInfo.class_name(i), bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 			case Variant::VT_SMART_POINTER:{
 				if(!PushLuaStackPointerEntryToParamStack<SmartPtr<void> >
 					(ps, L, index, psInfo.class_name(i), bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 			case Variant::VT_CONST_SMART_POINTER:{
 				if(!PushLuaStackPointerEntryToParamStack<ConstSmartPtr<void> >
 					(ps, L, index, psInfo.class_name(i), bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 
 #ifdef UG_FOR_LUA
 			case Variant::VT_LUA_FUNCTION_HANDLE:{
 				if(!PushLuaStackEntryToParamStack<LuaFunctionHandle>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 			case Variant::VT_LUA_TABLE_HANDLE:{
 				if(!PushLuaStackEntryToParamStack<LuaTableHandle>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
+					badParam = i + 1;
 			}break;
 #endif
 
 			default:{//	unknown type
-				badParam = (int)i + 1;
+				badParam = i + 1;
 			}break;
 		}
 
 	//	check if param has been read correctly
 		if(badParam){
 			return badParam;
-		}else{
 		}
 	}
 
@@ -211,7 +210,7 @@ int ParamsToLuaStack(const ParameterStack& ps, lua_State* L)
 		}
 	}
 
-	return (int)ps.size();
+	return ps.size();
 }
 
 }

@@ -28,7 +28,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-
+message("<ug_cpack_config.cmake>")
 # This file is used for cpack configuration.
 set (CPACK_PACKAGE_NAME "UG4")
 set (CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/UG4")
@@ -53,3 +53,4 @@ include (CPack)
 cpack_add_component (applications DISPLAY_NAME "Executables")
 cpack_add_component (libraries DISPLAY_NAME "Libraries")
 cpack_add_component (sources DISPLAY_NAME "Sources")
+message("</ug_cpack_config.cmake>")

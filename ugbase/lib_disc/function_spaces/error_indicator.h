@@ -193,8 +193,7 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
 				LocalFiniteElementProvider::get<dim>(roid, LFEID(LFEID::CROUZEIX_RAVIART, dim, 1));
 
 	//	create a reference mapping
-		DimReferenceMapping<dim, dim>& map
-			= ReferenceMappingProvider::get<dim, dim>(roid);
+		DimReferenceMapping<dim, dim>& map = ReferenceMappingProvider::get<dim, dim>(roid);
 
 	//	get local Mid Point
 		MathVector<dim> localIP = ReferenceElementCenter<dim>(roid);
@@ -307,7 +306,7 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 	//	get the element
 		element_type* elem = *iter;
 		
-		MathVector<dim> vGlobalGrad=0;
+		MathVector<dim> vGlobalGrad = MathVector<dim>(0.0);
 	
 	//  get sides of element		
 		grid.associated_elements_sorted(sides, elem );
@@ -1444,8 +1443,8 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 					aaNumContribsVrt[v] += aaNumContribsVrt[vrts[i]];
 					++numConstr;
 				}
-				aaGradVrt[v] /= (number)numConstr;
-				aaNumContribsVrt[v] /= (number)numConstr;
+				aaGradVrt[v] /= static_cast<number>(numConstr);
+				aaNumContribsVrt[v] /= static_cast<number>(numConstr);
 			}
 		}
 

@@ -69,7 +69,7 @@ public:
 			++m_count;
 	}
 
-	inline size_t result() const
+	[[nodiscard]] inline size_t result() const
 	{return m_count;}
 
 private:
@@ -133,7 +133,7 @@ private:
 template <typename T, int TDIM>
 class Blur {
 public:
-	Blur (T alpha) :
+	explicit Blur (T alpha) :
 		m_alpha (alpha)
 	{}
 

@@ -666,10 +666,10 @@ void NeuriteProjector::average_params
 	vector2 v(0.0);
 	size_t nForeignParents = 0;
 	std::vector<number> foreignParentRad(8, 0.0);
-	vector3 foreignParentPosCenter = 0.0;
+	vector3 foreignParentPosCenter = vector3(0.0);
 
 	size_t nForeignChildren = 0;
-	vector3 foreignChildrenPosCenter = 0.0;
+	vector3 foreignChildrenPosCenter = vector3(0.0);
 
 	for (size_t i = 0; i < nVrt; ++i)
 	{

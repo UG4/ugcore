@@ -51,20 +51,20 @@ namespace ug {
 class UserDataInfo {
 	public:
 	///	returns dimension
-		virtual int get_dim() const = 0;
+		[[nodiscard]] virtual int get_dim() const = 0;
 
 	///	returns type of data as string (e.g. "Number", "Vector", "Matrix")
-		virtual std::string type() const = 0;
+		[[nodiscard]] virtual std::string type() const = 0;
 
 	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool continuous() const = 0;
+		[[nodiscard]] virtual bool continuous() const = 0;
 
 	/// virtual destructor
 		virtual ~UserDataInfo() = default;
 
 	public:
 	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const = 0;
+		[[nodiscard]] virtual bool requires_grid_fct() const = 0;
 
 	///	sets the function pattern for a possibly needed grid function
 		virtual void set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt) {
@@ -72,13 +72,13 @@ class UserDataInfo {
 		}
 
 	///	Function Group of functions
-		const FunctionGroup& function_group() const {return m_fctGrp;}
+		[[nodiscard]] const FunctionGroup& function_group() const {return m_fctGrp;}
 
 	///	get function mapping
-		const FunctionIndexMapping& map() const{return m_map;}
+		[[nodiscard]] const FunctionIndexMapping& map() const{return m_map;}
 
 	///	number of functions this export depends on
-		size_t num_fct() const {return m_map.num_fct();}
+		[[nodiscard]] size_t num_fct() const {return m_map.num_fct();}
 		
 	/// sets the name of the object (s. the field m_objName)
 		/**
@@ -146,16 +146,16 @@ class UserData : virtual public UserDataInfo
 		using return_type = TRet;
 
 	///	returns dimension
-		int get_dim() const override {return dim;}
+		[[nodiscard]] int get_dim() const override {return dim;}
 
 	///	returns type of data as string (e.g. "Number", "Vector", "Matrix")
-		std::string type() const override {return user_data_traits<TData>::name();}
+		[[nodiscard]] std::string type() const override {return user_data_traits<TData>::name();}
 
 	///	returns if provided data is continuous over geometric object boundaries
-		bool continuous() const override = 0;
+		[[nodiscard]] bool continuous() const override = 0;
 
 	///	returns if grid function is needed for evaluation
-		bool requires_grid_fct() const override = 0;
+		[[nodiscard]] bool requires_grid_fct() const override = 0;
 
 	public:
 	///	returns value for a global position
@@ -166,7 +166,7 @@ class UserData : virtual public UserDataInfo
 	///	returns values for global positions
 		virtual void operator ()(TData vValue[],
 								const MathVector<dim> vGlobIP[],
-								number time, int si, const size_t nip) const = 0;
+								number time, int si, size_t nip) const = 0;
 		
 	///	returns a value at a vertex
 		virtual void operator () (TData& value,
@@ -219,7 +219,7 @@ class UserData : virtual public UserDataInfo
 		                        GridObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<1> vLocIP[],
-		                        const size_t nip,
+		                        size_t nip,
 		                        LocalVector* u,
 		                        const MathMatrix<1, dim>* vJT = nullptr) const = 0;
 
@@ -229,7 +229,7 @@ class UserData : virtual public UserDataInfo
 		                        GridObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<2> vLocIP[],
-		                        const size_t nip,
+		                        size_t nip,
 		                        LocalVector* u,
 		                        const MathMatrix<2, dim>* vJT = nullptr) const = 0;
 
@@ -239,7 +239,7 @@ class UserData : virtual public UserDataInfo
 		                        GridObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<3> vLocIP[],
-		                        const size_t nip,
+		                        size_t nip,
 		                        LocalVector* u,
 		                        const MathMatrix<3, dim>* vJT = nullptr) const = 0;
 	///	\}
@@ -270,7 +270,7 @@ class ICplUserData : virtual public UserDataInfo
 		void set_subset(int si) {m_si = si;}
 
 	///	returns the subset of evaluation
-		int subset() const {return m_si;}
+		[[nodiscard]] int subset() const {return m_si;}
 
 	///	set evaluation time
 		void set_times(const std::vector<number>& vTime) {m_vTime = vTime;}
@@ -279,17 +279,17 @@ class ICplUserData : virtual public UserDataInfo
 		void set_time_point(size_t timePoint) {m_timePoint = timePoint;}
 		
 	///	returns the current time point
-		size_t time_point() {return m_timePoint;}
+		[[nodiscard]] size_t time_point() const {return m_timePoint;}
 
 	///	get the current evaluation time
-		number time() const {return m_vTime[m_timePoint];}
+		[[nodiscard]] number time() const {return m_vTime[m_timePoint];}
 
 	public:
 	///	returns if data is constant
-		virtual bool constant() const {return false;}
+		[[nodiscard]] virtual bool constant() const {return false;}
 
 	///	number of other Data this data depends on
-		virtual size_t num_needed_data() const {return 0;}
+		[[nodiscard]] virtual size_t num_needed_data() const {return 0;}
 
 	///	return needed data
 		virtual SmartPtr<ICplUserData> needed_data(size_t i) {return nullptr;}
@@ -314,17 +314,17 @@ class ICplUserData : virtual public UserDataInfo
 
 	public:
 	///	returns if data depends on solution
-		virtual bool zero_derivative() const {return true;}
+		[[nodiscard]] virtual bool zero_derivative() const {return true;}
 
 	///	resize arrays
 		virtual void update_dof_sizes(const LocalIndices& ind) {}
 
 	public:
 	///	returns the number of ip series
-		size_t num_series() const {return m_vNumIP.size();}
+		[[nodiscard]] size_t num_series() const {return m_vNumIP.size();}
 
 	/// returns the number of integration points
-		size_t num_ip(size_t s) const {UG_ASSERT(s < num_series(), "Invalid series"); return m_vNumIP[s];}
+		[[nodiscard]] size_t num_ip(size_t s) const {UG_ASSERT(s < num_series(), "Invalid series"); return m_vNumIP[s];}
 
 	///	set local positions, returns series id
 	/**
@@ -337,8 +337,8 @@ class ICplUserData : virtual public UserDataInfo
 	 */
 		template <int ldim>
 		size_t register_local_ip_series(const MathVector<ldim>* vPos,
-										const size_t numIP,
-										const int timePointSpec,
+										size_t numIP,
+										int timePointSpec,
 										bool bMayChange = true);
 
 	///	set local positions without the specification of the time point, returns series id
@@ -347,7 +347,7 @@ class ICplUserData : virtual public UserDataInfo
 										const size_t numIP,
 										bool bMayChange = true)
 		{
-			return this->template register_local_ip_series<ldim> (vPos, numIP, -1, bMayChange);
+			return this->register_local_ip_series<ldim> (vPos, numIP, -1, bMayChange);
 		};
 
 	///	sets new local ip positions for a local ip series
@@ -357,8 +357,8 @@ class ICplUserData : virtual public UserDataInfo
 	 * flag set to true.
 	 */
 		template <int ldim>
-		void set_local_ips(const size_t seriesId, const MathVector<ldim>* vPos,
-						   const size_t numIP);
+		void set_local_ips(size_t seriesId, const MathVector<ldim>* vPos,
+		                   size_t numIP);
 
 	///	sets a new time point for a local ip series
 	/**
@@ -366,10 +366,10 @@ class ICplUserData : virtual public UserDataInfo
 	 * Of course this is only possible for a ip series with the bMayChange
 	 * flag set to true.
 	 */
-		void set_time_point(const size_t seriesId, const int timePointSpec);
+		void set_time_point(size_t seriesId, int timePointSpec);
 
 	///	returns current local ip dimension
-		int dim_local_ips() const {return m_locPosDim;}
+		[[nodiscard]] int dim_local_ips() const {return m_locPosDim;}
 
 	///	returns local ips
 		template <int ldim>
@@ -380,16 +380,16 @@ class ICplUserData : virtual public UserDataInfo
 		const MathVector<ldim>& local_ip(size_t s, size_t ip) const;
 		
 	///	returns the time point specification (note: it may be -1, i.e. not specified)
-		inline int time_point_specification(size_t s) const;
+		[[nodiscard]] inline int time_point_specification(size_t s) const;
 		
 	///	returns the time point specification (in particular, the current one, if the own one not specified)
-		inline size_t time_point(size_t s) const;
+		[[nodiscard]] inline size_t time_point(size_t s) const;
 		
 	///	get the specified evaluation time
-		number time(size_t s) const {return m_vTime[time_point(s)];}
+		[[nodiscard]] number time(size_t s) const {return m_vTime[time_point(s)];}
 
 	///	returns true iff the time point specification is equal to the current one, or not specified
-		inline bool at_current_time(size_t s) const;
+		[[nodiscard]] inline bool at_current_time(size_t s) const;
 
 	///	set global positions
 		void set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP);
@@ -417,7 +417,7 @@ class ICplUserData : virtual public UserDataInfo
 		virtual void local_ip_series_added(const size_t seriesID){m_vvGlobPos.resize(seriesID+1);}
 
 	///	callback invoked, if a local ip series has been changed
-		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP) = 0;
+		virtual void local_ips_changed(size_t seriesID, size_t newNumIP) = 0;
 
 	///	callback invoked, when local ips are cleared
 		virtual void local_ip_series_to_be_cleared() {m_vvGlobPos.clear();}
@@ -441,9 +441,9 @@ class ICplUserData : virtual public UserDataInfo
 		std::vector<const MathVector<1>*>& get_local_ips(Int2Type<1>) {return m_pvLocIP1d;}
 		std::vector<const MathVector<2>*>& get_local_ips(Int2Type<2>) {return m_pvLocIP2d;}
 		std::vector<const MathVector<3>*>& get_local_ips(Int2Type<3>) {return m_pvLocIP3d;}
-		const std::vector<const MathVector<1>*>& get_local_ips(Int2Type<1>) const {return m_pvLocIP1d;}
-		const std::vector<const MathVector<2>*>& get_local_ips(Int2Type<2>) const {return m_pvLocIP2d;}
-		const std::vector<const MathVector<3>*>& get_local_ips(Int2Type<3>) const {return m_pvLocIP3d;}
+		[[nodiscard]] const std::vector<const MathVector<1>*>& get_local_ips(Int2Type<1>) const {return m_pvLocIP1d;}
+		[[nodiscard]] const std::vector<const MathVector<2>*>& get_local_ips(Int2Type<2>) const {return m_pvLocIP2d;}
+		[[nodiscard]] const std::vector<const MathVector<3>*>& get_local_ips(Int2Type<3>) const {return m_pvLocIP3d;}
 
 	protected:
 	///	flags if local ips may change
@@ -535,7 +535,7 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 			}
 
 	///	returns flag, if data is evaluated (for conditional data)
-		bool defined(size_t s, size_t ip) const
+		[[nodiscard]] bool defined(size_t s, size_t ip) const
 			{check_series_ip(s,ip); return m_vvBoolFlag[s][ip];}
 
 	///	destructor
@@ -555,13 +555,13 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 		inline void check_series_ip(size_t s, size_t ip) const;
 
 	///	resizes the data field, when local ip changed signaled
-		void local_ip_series_added(const size_t seriesID) override;
+		void local_ip_series_added(size_t seriesID) override;
 
 	///	free the data field memory and set series to zero
 		void local_ip_series_to_be_cleared() override;
 
 	///	implement callback, called when local IPs changed
-		void local_ips_changed(const size_t seriesID, const size_t newNumIP) override;
+		void local_ips_changed(size_t seriesID, size_t newNumIP) override;
 
 	///	callback, invoked when storage of data has changed for a series
 		virtual void value_storage_changed(const size_t seriesID) {}
@@ -610,14 +610,14 @@ class DependentUserData : public CplUserData<TData, dim>
 
 	///	sets the associated symbolic functions
 	/// \{
-		DependentUserData(const char* symbFct) {set_functions(symbFct);}
-		DependentUserData(const std::string& symbFct) {set_functions(symbFct);}
-		DependentUserData(const std::vector<std::string>& symbFct) {set_functions(symbFct);}
+		explicit DependentUserData(const char* symbFct) {set_functions(symbFct);}
+		explicit DependentUserData(const std::string& symbFct) {set_functions(symbFct);}
+		explicit DependentUserData(const std::vector<std::string>& symbFct) {set_functions(symbFct);}
 	/// \}
 
 	public:
 	/// number of shapes for local function
-		size_t num_sh(size_t fct) const
+		[[nodiscard]] size_t num_sh(size_t fct) const
 		{
 			UG_ASSERT(fct < m_vvNumDoFPerFct.size(), "Wrong index");
 			return m_vvNumDoFPerFct[fct];
@@ -640,14 +640,14 @@ class DependentUserData : public CplUserData<TData, dim>
 			{check_s_ip_fct(s,ip,fct);return &(m_vvvvDeriv[s][ip][fct][0]);}
 
 	///	sets all derivative values to zero
-		static void set_zero(std::vector<std::vector<TData> > vvvDeriv[], const size_t nip);
+		static void set_zero(std::vector<std::vector<TData> > vvvDeriv[], size_t nip);
 
 	public:
 	///	returns that data depends on solution
-		bool zero_derivative() const override {return false;}
+		[[nodiscard]] bool zero_derivative() const override {return false;}
 
 	///	returns if grid function is needed for evaluation
-		bool requires_grid_fct() const override {return true;}
+		[[nodiscard]] bool requires_grid_fct() const override {return true;}
 
 	///	resize lin defect arrays
 		void update_dof_sizes(const LocalIndices& ind) override;
@@ -681,10 +681,10 @@ class DependentUserData : public CplUserData<TData, dim>
 		inline void check_s_ip_fct_dof(size_t s, size_t ip, size_t fct, size_t dof) const;
 
 	///	resizes the derivative field when local ip change is signaled
-		void local_ip_series_added(const size_t seriesID) override;
+		void local_ip_series_added(size_t seriesID) override;
 
 	///	implement callback, called when local IPs changed
-		void local_ips_changed(const size_t seriesID, const size_t newNumIP) override;
+		void local_ips_changed(size_t seriesID, size_t newNumIP) override;
 
 	///	implement callback, invoked when local ips are cleared
 		void local_ip_series_to_be_cleared() override;
@@ -693,7 +693,7 @@ class DependentUserData : public CplUserData<TData, dim>
 		void resize_deriv_array();
 
 	///	resizes the derivative arrays for current number of ips of a single series
-		void resize_deriv_array(const size_t seriesID);
+		void resize_deriv_array(size_t seriesID);
 
 	protected:
 	///	number of functions and their dofs

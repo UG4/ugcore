@@ -56,7 +56,7 @@ inline number ReturnValueToNumber(lua_State* L, int index){
 
 /// Helper to access a return value on the stack.
 /**	If the value can't be converted to a boolean, an error is thrown*/
-inline number ReturnValueToBool(lua_State* L, int index){
+inline int ReturnValueToBool(lua_State* L, int index){
 	if(!lua_isboolean(L, index))
 		UG_THROW("ReturnValueToBool: Data passed from Lua: "
 						"Can't convert return value to boolean!");
@@ -68,7 +68,7 @@ inline number ReturnValueToBool(lua_State* L, int index){
 /**	If the value can't be converted to a integer, an error is thrown*/
 inline int ReturnValueToInteger(lua_State* L, int index){
 	if(!lua_isnumber(L, index))
-		UG_THROW("ReturnValueToBool: Data passed from Lua: "
+		UG_THROW("ReturnValueToInteger: Data passed from Lua: "
 						"Can't convert return value to integer!");
 
 	return lua_tointeger(L, index);
@@ -258,9 +258,9 @@ struct lua_traits< MathVector<dim> >
 
 	static std::string name()
 	{
-		std::stringstream ss;
-		ss << "Vector";
-		return ss.str();
+		//std::stringstream ss;
+		//ss << "Vector";
+		return "Vector";//ss.str();
 	}
 };
 
@@ -331,9 +331,9 @@ struct lua_traits< MathMatrix<dim, dim> >
 
 	static std::string name()
 	{
-		std::stringstream ss;
-		ss << "Matrix";
-		return ss.str();
+		//std::stringstream ss;
+		//ss << "Matrix";
+		return "Matrix";//ss.str();
 	}
 };
 	

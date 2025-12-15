@@ -55,8 +55,7 @@ void NumeriereKnoten(const std::vector<std::vector<size_t> > &vvConnections,
 	vNewIndex[v] = N;
 	N++;
 	const std::vector<size_t> connections = vvConnections[v];
-	std::vector<size_t>::const_iterator AdjacencIter;
-	for (AdjacencIter = connections.begin(); AdjacencIter != connections.end(); ++AdjacencIter)
+	for (auto AdjacencIter = connections.begin(); AdjacencIter != connections.end(); ++AdjacencIter)
 	{
 		vAncestorsCount[*AdjacencIter]--;
 		if (vAncestorsCount[*AdjacencIter] == 0)
@@ -186,11 +185,11 @@ void OrderDownwind(ApproximationSpace<TDomain>& approxSpace,
 	UG_LOG ("OrderDownwind: This function is obsolete and may cause problems. Avoid it! Alternatives: Ordering strategies in solvers etc.\n");
 	
 	// TODO: implement for variable time and subset
-	number time = 0.0;
 	int si = 0;
 	std::vector<SmartPtr<DoFDistribution> > vDD = approxSpace.dof_distributions();
 	UG_DLOG(LIB_DISC_ORDER, 2, "Starting DownwindOrdering." << std::endl);
 	for(size_t i = 0; i < vDD.size(); ++i){
+		number time = 0.0;
 		UG_DLOG(LIB_DISC_ORDER, 2, "Ordering Domain Distribution " << i << "." << std::endl);
 		OrderDownwindForDofDist<TDomain>(vDD[i], approxSpace.domain(), spVelocity, time, si, threshold);
 	}
@@ -251,8 +250,7 @@ void OrderDownwind(ApproximationSpace<TDomain>& approxSpace, const char* strVelo
 {
 	static constexpr int dim = TDomain::dim;
 
-	SmartPtr<UserData<MathVector<dim>, dim> > spVelocity
-	 = make_sp(new LuaUserData<MathVector<dim>, dim>(strVelocity));
+	SmartPtr<UserData<MathVector<dim>, dim> > spVelocity = make_sp(new LuaUserData<MathVector<dim>, dim>(strVelocity));
 
 	OrderDownwind<TDomain>(approxSpace, spVelocity, threshold);
 }

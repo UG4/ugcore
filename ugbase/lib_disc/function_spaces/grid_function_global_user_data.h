@@ -246,7 +246,7 @@ class GlobalGridFunctionNumberData
 		// evaluates at given position
 		number evaluate_global(std::vector<number> vPos)
 		{
-			if((int)vPos.size() != dim)
+			if(static_cast<int>(vPos.size()) != dim)
 				UG_THROW("Expected "<<dim<<" components, but given "<<vPos.size());
 
 			MathVector<dim> x;
@@ -341,7 +341,7 @@ class GlobalGridFunctionGradientData
 
 		virtual ~GlobalGridFunctionGradientData() = default;
 
-		virtual bool continuous() const
+		[[nodiscard]] virtual bool continuous() const
 		{
 			return false;
 		}

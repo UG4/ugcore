@@ -96,8 +96,7 @@ init(const TGridFunction &u, const std::vector<std::string>& vSchurCmps)
 {
 	UG_DLOG(SchurDebug, 3, "UzawaSlicing::init" << std::endl);
 
-	ConstSmartPtr<DoFDistributionInfo> ddinfo =
-			u.approx_space()->dof_distribution_info();
+	ConstSmartPtr<DoFDistributionInfo> ddinfo = u.approx_space()->dof_distribution_info();
 
 	// fill this vector
 	std::vector<DoFIndex> vIndex;
@@ -243,7 +242,7 @@ protected:
 		// Interface for IPreconditioner
 
 		///	name
-		const char* name() const override {return "IUzawaBase";}
+		[[nodiscard]] const char* name() const override {return "IUzawaBase";}
 
 		///	initializes the preconditioner
 		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override;
@@ -258,7 +257,7 @@ protected:
 public:
 
 			///	returns if parallel solving is supported
-		bool supports_parallel() const override {
+		[[nodiscard]] bool supports_parallel() const override {
 				UG_ASSERT(m_spForwardInverse.valid() && m_SpSchurComplementInverse.valid(), "Need valid iter");
 				return (m_spForwardInverse->supports_parallel() && m_SpSchurComplementInverse->supports_parallel());
 
@@ -411,12 +410,12 @@ protected:
 protected:
 
 
-		void my_write_debug(const matrix_type& mat, std::string name, const TGridFunction& rTo, const TGridFunction& rFrom)
+		void my_write_debug(const matrix_type& mat, const std::string& name, const TGridFunction& rTo, const TGridFunction& rFrom)
 		{
 			my_write_debug(mat, name, rTo.grid_level(), rFrom.grid_level());
 		}
 
-		void my_write_debug(const matrix_type& mat, std::string name, const GridLevel& glTo, const GridLevel& glFrom)
+		void my_write_debug(const matrix_type& mat, const std::string &name, const GridLevel& glTo, const GridLevel& glFrom)
 		{
 			PROFILE_FUNC_GROUP("debug");
 
@@ -435,7 +434,7 @@ protected:
 			m_spGridFunctionDebugWriter->set_grid_level(currGL);
 		}
 
-		virtual void my_write_debug(const TGridFunction& rGF, std::string name)
+		virtual void my_write_debug(const TGridFunction& rGF, const std::string& name)
 		{
 			int m_dbgIterCnt = 0;
 			PROFILE_FUNC_GROUP("debug");

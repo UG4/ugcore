@@ -202,7 +202,7 @@ struct LuaParsing<void*>{
 
 		//	extract the pointer to the object.
 		//	udata is either a RawUserData or a SmartUserDataWrapper
-		void* obj = NULL;
+		void* obj = nullptr;
 		if(udata->is_raw_ptr())
 			obj = static_cast<RawUserDataWrapper*>(udata)->obj;
 		else if(udata->is_smart_ptr() && IMLPICIT_SMART_PTR_TO_PTR_CONVERSION)
@@ -239,12 +239,11 @@ struct LuaParsing<const void*>{
 	                        lua_State* L, int index, const char* baseClassName){
 		if(!lua_isuserdata(L, index)) return false;
 
-		UserDataWrapper* udata =
-			reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+		auto* udata = reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
 
 		//	extract the pointer to the object.
 		//	udata is either a RawUserData or a SmartUserDataWrapper
-		const void* obj = NULL;
+		const void* obj = nullptr;
 
 		if(udata->is_raw_ptr())
 			obj = static_cast<RawUserDataWrapper*>(udata)->obj;
@@ -263,7 +262,7 @@ struct LuaParsing<const void*>{
 
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+		auto* classNameNode = static_cast<const ClassNameNode *>(lua_touserdata(L, -1));
 		lua_pop(L, 2);
 
 		if(!classNameNode) return false;
@@ -279,7 +278,7 @@ struct LuaParsing<const void*>{
 	static void push(lua_State* L, const void* data, const char* className){
 	//	we're removing const with a cast. However, it was made sure that
 	//	obj is treated as a const value.
-		CreateNewUserData(L, (void*)data, className, nullptr, true);
+		CreateNewUserData(L, const_cast<void *>(data), className, nullptr, true);
 	}
 };
 
@@ -289,18 +288,17 @@ struct LuaParsing<SmartPtr<void> >{
 	                        lua_State* L, int index, const char* baseClassName){
 		if(!lua_isuserdata(L, index)) return false;
 
-		UserDataWrapper* udata =
-			reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+		auto* udata = static_cast<UserDataWrapper*>(lua_touserdata(L, index));
 
 		if(!udata->is_smart_ptr()) return false;
 		if(udata->is_const()) return false;
 
-		SmartPtr<void>& obj = ((SmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
+		SmartPtr<void>& obj = static_cast<SmartUserDataWrapper *>(lua_touserdata(L, index))->smartPtr;
 
 		if(lua_getmetatable(L, index) == 0) return false;
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+		const auto* classNameNode = static_cast<const ClassNameNode *>(lua_touserdata(L, -1));
 		lua_pop(L, 2);
 
 		if(!classNameNode) return false;
@@ -324,21 +322,20 @@ struct LuaParsing<ConstSmartPtr<void> >{
 	                        lua_State* L, int index, const char* baseClassName){
 		if(!lua_isuserdata(L, index)) return false;
 
-		UserDataWrapper* udata =
-			reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+		auto* udata = static_cast<UserDataWrapper*>(lua_touserdata(L, index));
 
 		if(!udata->is_smart_ptr()) return false;
 
 		ConstSmartPtr<void> obj;
-		if(((UserDataWrapper*)lua_touserdata(L, index))->is_const())
-			obj = ((ConstSmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
+		if(static_cast<UserDataWrapper *>(lua_touserdata(L, index))->is_const())
+			obj = static_cast<ConstSmartUserDataWrapper *>(lua_touserdata(L, index))->smartPtr;
 		else
-			obj = ((SmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
+			obj = static_cast<SmartUserDataWrapper *>(lua_touserdata(L, index))->smartPtr;
 
 		if(lua_getmetatable(L, index) == 0) return false;
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+		auto* classNameNode = static_cast<const ClassNameNode *>(lua_touserdata(L, -1));
 		lua_pop(L, 2);
 
 		if(!classNameNode) return false;

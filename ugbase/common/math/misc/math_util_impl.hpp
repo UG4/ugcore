@@ -106,7 +106,7 @@ void CalculateCenter(vector_t& centerOut, const vector_t* pointSet,
 		for(size_t i = 0; i < numPoints; ++i)
 			VecAdd(centerOut, centerOut, pointSet[i]);
 	
-		VecScale(centerOut, centerOut, 1. / (number)numPoints);
+		VecScale(centerOut, centerOut, 1. / static_cast<number>(numPoints));
 	}
 }
 

@@ -59,7 +59,7 @@ class StdDataLinker
 
 		void operator () (TData vValue[],
 		                  const MathVector<dim> vGlobIP[],
-		                  number time, int si, const size_t nip) const override;
+		                  number time, int si, size_t nip) const override;
 
 		template <int refDim>
 		inline void evaluate(TData vValue[],
@@ -68,7 +68,7 @@ class StdDataLinker
 							 GridObject* elem,
 							 const MathVector<dim> vCornerCoords[],
 							 const MathVector<refDim> vLocIP[],
-							 const size_t nip,
+							 size_t nip,
 							 LocalVector* u,
 							 const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
@@ -90,17 +90,17 @@ class StdDataLinker
 
 	public:
 	///	returns that a grid function is needed for evaluation
-		bool requires_grid_fct() const override;
+		[[nodiscard]] bool requires_grid_fct() const override;
 
 	///	returns if provided data is continuous over geometric object boundaries
-		bool continuous() const override;
+		[[nodiscard]] bool continuous() const override;
 
 	///	returns if derivative is zero
-		bool zero_derivative() const override;
+		[[nodiscard]] bool zero_derivative() const override;
 
 	public:
 	///	returns if the derivative of the i'th input is zero
-		bool zero_derivative(size_t i) const
+		[[nodiscard]] bool zero_derivative(size_t i) const
 		{
 			if(!m_vspICplUserData[i].valid()) return true;
 			return m_vspICplUserData[i]->zero_derivative();
@@ -124,10 +124,10 @@ class StdDataLinker
 		}
 
 	///	number of inputs
-		virtual size_t num_input() const {return num_needed_data();}
+		[[nodiscard]] virtual size_t num_input() const {return num_needed_data();}
 
 	///	number of other Data this data depends on
-		size_t num_needed_data() const override {return m_vspICplUserData.size();}
+		[[nodiscard]] size_t num_needed_data() const override {return m_vspICplUserData.size();}
 
 	///	return needed data
 		SmartPtr<ICplUserData<dim> > needed_data(size_t i) override
@@ -145,7 +145,7 @@ class StdDataLinker
 
 	protected:
 	///	returns number of functions the input depends on
-		size_t input_num_fct(size_t i) const
+		[[nodiscard]] size_t input_num_fct(size_t i) const
 		{
 			UG_ASSERT(i < m_vspUserDataInfo.size(), "Input invalid");
 			if(!m_vspUserDataInfo[i].valid()) return 0;
@@ -153,7 +153,7 @@ class StdDataLinker
 		}
 
 	///	returns the number in the common FctGrp for a fct of an input
-		size_t input_common_fct(size_t i, size_t fct) const
+		[[nodiscard]] size_t input_common_fct(size_t i, size_t fct) const
 		{
 			UG_ASSERT(i < m_vMap.size(), "Input Map invalid");
 			UG_ASSERT(fct < m_vMap[i].num_fct(), "Input Map invalid for fct");
@@ -161,7 +161,7 @@ class StdDataLinker
 		}
 
 	///	returns the series id set for the i'th input
-		size_t series_id(size_t i, size_t s) const
+		[[nodiscard]] size_t series_id(size_t i, size_t s) const
 		{
 			UG_ASSERT(i < m_vvSeriesID.size(), "invalid index");
 			UG_ASSERT(s < m_vvSeriesID[i].size(), "invalid index");

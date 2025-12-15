@@ -47,7 +47,7 @@ void SetLagrangeVertexLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
 {
 //	loop all vertices
 	for(size_t i = 0; i< rRef.num(0); ++i)
-		vLocalDoF.push_back(LocalDoF(0, i, 0));
+		vLocalDoF.emplace_back(0, i, 0);
 }
 
 void SetLagrangeEdgeLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
@@ -64,7 +64,7 @@ void SetLagrangeEdgeLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
 		for(size_t i = 1; i < p; ++i)
 		{
 		//	set: dim=1, id=e, offset=i-1
-			vLocalDoF.push_back(LocalDoF(1, e, i-1));
+			vLocalDoF.emplace_back(1, e, i-1);
 		}
 	}
 }
@@ -93,7 +93,7 @@ void SetLagrangeFaceLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
 			for(size_t i = 1; i < p-off; ++i)
 			{
 			//	set: dim=2, id=f, offset=cnt
-				vLocalDoF.push_back(LocalDoF(2, f, cnt++));
+				vLocalDoF.emplace_back(2, f, cnt++);
 			}
 		}
 	}
@@ -119,7 +119,7 @@ void SetLagrangeVolumeLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
 				for(size_t m0 = 1; m0 < p-m2-m1; ++m0)
 				{
 				//	set: dim=2, id=0, offset=i
-					vLocalDoF.push_back(LocalDoF(3, 0, cnt++));
+					vLocalDoF.emplace_back(3, 0, cnt++);
 				}
 		break;
 
@@ -130,7 +130,7 @@ void SetLagrangeVolumeLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
 			for(int i=1; i <= static_cast<int>(p) -2; ++i) numInnerDoF += i*i;
 
 			for(size_t i = 0; i < numInnerDoF; ++i)
-				vLocalDoF.push_back(LocalDoF(3, 0, i));
+				vLocalDoF.emplace_back(3, 0, i);
 		}
 		break;
 
@@ -140,7 +140,7 @@ void SetLagrangeVolumeLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
 				for(size_t m0 = 1; m0 < p-m1; ++m0)
 				{
 				//	set: dim=2, id=0, offset=i
-					vLocalDoF.push_back(LocalDoF(3, 0, cnt++));
+					vLocalDoF.emplace_back(3, 0, cnt++);
 				}
 		break;
 
@@ -150,7 +150,7 @@ void SetLagrangeVolumeLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
 				for(size_t m0 = 1; m0 < p; ++m0)
 				{
 				//	set: dim=2, id=0, offset=i
-					vLocalDoF.push_back(LocalDoF(3, 0, cnt++));
+					vLocalDoF.emplace_back(3, 0, cnt++);
 				}
 		break;
 
@@ -194,16 +194,16 @@ size_t LagrangeNumDoFOnSub(const ReferenceObjectID elem,
 	switch(elem){
 		case ROID_VERTEX:
 			if(sub == ROID_VERTEX) return 1;
-			else return 0;
+			return 0;
 		case ROID_EDGE:
-				 if(sub == ROID_VERTEX) 	return 1;
-			else if(sub == ROID_EDGE) 		return p-1;
-			else return 0;
+			if(sub == ROID_VERTEX) 	return 1;
+			if(sub == ROID_EDGE) 		return p-1;
+			return 0;
 		case ROID_TRIANGLE:
 			if(sub == ROID_VERTEX)   return 1;
 			if(sub == ROID_EDGE) 	  return (p-1);
 			if(sub == ROID_TRIANGLE) return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
-			else return 0;
+			return 0;
 		case ROID_QUADRILATERAL:
 			if(sub == ROID_VERTEX)		   return 1;
 			if(sub == ROID_EDGE) 		   return (p-1);

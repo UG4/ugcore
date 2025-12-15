@@ -87,7 +87,7 @@ namespace ug {
  * which will return a constant enumerated in Variant::Type.
  */
 class UG_API Variant{
-	public: // TODO?: hide enum
+	public:
 		enum Type{
 			VT_INVALID = 0,
 			VT_BOOL = 1,

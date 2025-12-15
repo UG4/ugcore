@@ -60,27 +60,27 @@ class CrouzeixRaviartBase
 		}
 
 	///	returns the type of reference element
-		ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
-		size_t num_dof() const {return nsh;};
-		size_t num_sh() const {return nsh;}
+		[[nodiscard]] size_t num_dof() const {return nsh;};
+		[[nodiscard]] size_t num_sh() const {return nsh;}
 
 	///	returns the number of DoFs on a sub-geometric object type
-		size_t num_dof(ReferenceObjectID type) const
+		[[nodiscard]] size_t num_dof(ReferenceObjectID type) const
 		{
 			if(ReferenceElementDimension(type) == dim-1) return 1;
 			else return 0;
 		}
 
 	///	returns the dof storage
-		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
+		[[nodiscard]] const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
 
 	///	returns if the local dof position are exact
-		bool exact_position_available() const {return true;};
+		[[nodiscard]] bool exact_position_available() const {return true;};
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		bool continuous() const {return false;}
+		[[nodiscard]] bool continuous() const {return false;}
 
 	protected:
 	///	association to elements
@@ -109,7 +109,7 @@ class CrouzeixRaviartLSFS<ReferenceTriangle>
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -125,7 +125,7 @@ class CrouzeixRaviartLSFS<ReferenceTriangle>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			switch(i)
 			{
@@ -173,7 +173,7 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -192,7 +192,7 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			switch(i)
 			{
@@ -242,7 +242,7 @@ class CrouzeixRaviartLSFS<ReferenceTetrahedron>
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -258,14 +258,13 @@ class CrouzeixRaviartLSFS<ReferenceTetrahedron>
 				case 3: pos[0] = 1.0/3.0;
 						pos[1] = 0.0;
 						pos[2] = 1.0/3.0; return true;
-						return true;
 				default: UG_THROW("CrouzeixRaviartLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			switch(i)
 			{
@@ -320,7 +319,7 @@ class CrouzeixRaviartLSFS<ReferenceHexahedron>
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -349,7 +348,7 @@ class CrouzeixRaviartLSFS<ReferenceHexahedron>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			switch(i)
 			{
@@ -411,7 +410,7 @@ class CrouzeixRaviartLSFS<ReferencePrism>
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -436,7 +435,7 @@ class CrouzeixRaviartLSFS<ReferencePrism>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			switch(i)
 			{
@@ -495,7 +494,7 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -520,7 +519,7 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			switch(i)
 			{

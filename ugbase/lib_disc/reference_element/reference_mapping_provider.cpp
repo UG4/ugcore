@@ -84,7 +84,7 @@ class DimReferenceMappingWrapper
 		}
 
 	///	map global coordinate to local coordinate
-			void global_to_local(MathVector<dim>& locPos,
+		void global_to_local(MathVector<dim>& locPos,
 							 const MathVector<worldDim>& globPos,
 							 const size_t maxIter = 1000,
 							 const number tol = 1e-10) const override {
@@ -176,7 +176,7 @@ class DimReferenceMappingWrapper
 		}
 
 	///	returns the determinate of the jacobian
-		number sqrt_gram_det(const MathVector<dim>& locPos) const override {
+		[[nodiscard]] number sqrt_gram_det(const MathVector<dim>& locPos) const override {
 			return TRefMapping::sqrt_gram_det(locPos);
 		}
 

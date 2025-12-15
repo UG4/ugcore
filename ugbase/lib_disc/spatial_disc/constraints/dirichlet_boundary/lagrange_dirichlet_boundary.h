@@ -99,7 +99,7 @@ class DirichletBoundary
 			{clear();}
 
 	/// constructor with flag for Dirichlet-Columns.
-		DirichletBoundary(bool DirichletColumns)
+		explicit DirichletBoundary(bool DirichletColumns)
 			:	m_bInvertSubsetSelection(false),
 				m_bDirichletColumns(DirichletColumns),
 				m_A(nullptr)
@@ -120,7 +120,7 @@ class DirichletBoundary
 #endif
 
 	///	destructor
-		~DirichletBoundary() = default;
+		~DirichletBoundary() override = default;
 
 	///	adds a lua callback (cond and non-cond)
 #ifdef UG_FOR_LUA
@@ -154,7 +154,7 @@ class DirichletBoundary
 		void invert_subset_selection() {m_bInvertSubsetSelection = true;};
 	
 	///	sets the approximation space to work on
-		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
+		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace) override;
 
 	///	removes all scheduled dirichlet data.
 		void clear();
@@ -186,54 +186,54 @@ class DirichletBoundary
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
                              ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
-							 const number s_a0 = 1.0);
+		                     number s_a0 = 1.0) override;
 
 	/// sets a zero value in the defect for all dirichlet indices
 		void adjust_defect(vector_type& d, const vector_type& u,
 		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
                            ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
 						   const std::vector<number>* vScaleMass = nullptr,
-						   const std::vector<number>* vScaleStiff = nullptr);
+						   const std::vector<number>* vScaleStiff = nullptr) override;
 
 	/// sets the dirichlet value in the solution for all dirichlet indices
 		void adjust_solution(vector_type& u,
-		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0);
+		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0) override;
 
 	/// sets zero to correction
-		virtual void adjust_correction(vector_type& c, ConstSmartPtr<DoFDistribution> dd, int type,
-									   number time = 0.0);
+		void adjust_correction(vector_type& c, ConstSmartPtr<DoFDistribution> dd, int type,
+	                       number time = 0.0) override;
 
 	///	sets unity rows in A and dirichlet values in right-hand side b
 		void adjust_linear(matrix_type& A, vector_type& b,
-		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0);
+		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0) override;
 
 	///	sets the dirichlet value in the right-hand side
 		void adjust_rhs(vector_type& b, const vector_type& u,
-		                ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0);
+		                ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0) override;
 
 	/// @copydoc IConstraint::adjust_error()
-		virtual void adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type,
-								  number time = 0.0,
-								  ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
-								  const std::vector<number>* vScaleMass = nullptr,
-								  const std::vector<number>* vScaleStiff = nullptr);
+		void adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type,
+		                  number time = 0.0,
+		                  ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
+		                  const std::vector<number>* vScaleMass = nullptr,
+		                  const std::vector<number>* vScaleStiff = nullptr) override;
 
 	///	sets constraints in prolongation
-		virtual void adjust_prolongation(matrix_type& P,
-										 ConstSmartPtr<DoFDistribution> ddFine,
-										 ConstSmartPtr<DoFDistribution> ddCoarse,
-										 int type,
-										 number time = 0.0);
+		void adjust_prolongation(matrix_type& P,
+		                         ConstSmartPtr<DoFDistribution> ddFine,
+		                         ConstSmartPtr<DoFDistribution> ddCoarse,
+		                         int type,
+		                         number time = 0.0) override;
 
 	///	sets constraints in restriction
-		virtual void adjust_restriction(matrix_type& R,
-										ConstSmartPtr<DoFDistribution> ddCoarse,
-										ConstSmartPtr<DoFDistribution> ddFine,
-										int type,
-										number time = 0.0);
+		void adjust_restriction(matrix_type& R,
+		                        ConstSmartPtr<DoFDistribution> ddCoarse,
+		                        ConstSmartPtr<DoFDistribution> ddFine,
+		                        int type,
+		                        number time = 0.0) override;
 
 	///	returns the type of the constraints
-		virtual int type() const {return CT_DIRICHLET;}
+		int type() const override {return CT_DIRICHLET;}
 
 	protected:
 		void check_functions_and_subsets(FunctionGroup& functionGroup,
@@ -341,8 +341,9 @@ class DirichletBoundary
 			static constexpr bool setSolValue = true;
 			static constexpr size_t numFct = 1;
 			using value_type = MathVector<1>;
+
 			NumberData(SmartPtr<UserData<number, dim> > functor_,
-			           std::string fctName_, std::string ssName_)
+			           const std::string& fctName_, const std::string& ssName_)
 				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
 			{}
 
@@ -367,7 +368,7 @@ class DirichletBoundary
 			static constexpr size_t numFct = 1;
 			using value_type = MathVector<1>;
 			CondNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
-			              std::string fctName_, std::string ssName_)
+			              const std::string& fctName_, const std::string& ssName_)
 				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
 			{}
 			bool operator () (MathVector<1>& val, const MathVector<dim> x,
@@ -391,7 +392,7 @@ class DirichletBoundary
 			static constexpr size_t numFct = 1;
 			using value_type = MathVector<1>;
 			ConstNumberData(number value_,
-			              std::string fctName_, std::string ssName_)
+			              const std::string& fctName_, const std::string& ssName_)
 				: functor(value_), fctName(fctName_), ssName(ssName_)
 			{}
 			inline bool operator () (MathVector<1>& val, const MathVector<dim> x,
@@ -415,7 +416,7 @@ class DirichletBoundary
 			static const size_t numFct = dim;
 			using value_type = MathVector<dim>;
 			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > value_,
-			           std::string fctName_, std::string ssName_)
+			           const std::string& fctName_, const std::string& ssName_)
 				: spFunctor(value_), fctName(fctName_), ssName(ssName_)
 			{}
 			bool operator () (MathVector<dim>& val, const MathVector<dim> x,
@@ -438,7 +439,7 @@ class DirichletBoundary
 			static constexpr bool setSolValue = false;
 			static constexpr size_t numFct = 1;
 			using value_type = MathVector<1>;
-			OldNumberData(std::string fctName_, std::string ssName_)
+			OldNumberData(const std::string& fctName_, const std::string& ssName_)
 				: fctName(fctName_), ssName(ssName_)
 			{}
 			inline bool operator () (MathVector<1>& val, const MathVector<dim> x,

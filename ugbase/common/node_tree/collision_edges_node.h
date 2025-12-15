@@ -73,11 +73,11 @@ class CollisionEdgesNode : public Node
 							   CollisionElementID* pEdgeIDs,
 							   int numEdges);
 							   
-		virtual int num_edges() const;
+		[[nodiscard]] virtual int num_edges() const;
 		
 		virtual void get_edge(int index, int& ind1Out, int& ind2Out) const;
 		
-		virtual const int* get_edges() const;
+		[[nodiscard]] virtual const int* get_edges() const;
 
 		virtual void set_edge_id(int edgeIndex,
 								 CollisionElementID edgeID);

@@ -525,7 +525,7 @@ assemble_restriction(matrix_type& R,
 
 						} else {
 							UG_THROW("StdTransfer: For CR parent must be full-dim "
-									"elem or a side (dim-1). But has dim: "<<parentDim);
+									"elem or a side (dim-1). But has dim: " << parentDim);
 						}
 
 
@@ -608,11 +608,11 @@ prolongation(const GridLevel& fineGL, const GridLevel& coarseGL,
 {
 	if(fineGL.level() - coarseGL.level() != 1)
 		UG_THROW("StdTransfer: Can only project between successive level, "
-				"but fine = "<<fineGL<<", coarse = "<<coarseGL);
+				"but fine = " << fineGL << ", coarse = " << coarseGL);
 
 	if(fineGL.type() != coarseGL.type())
 		UG_THROW("StdTransfer: Can only project between dof distributions of "
-				"same type, but fine = "<<fineGL<<", coarse = "<<coarseGL);
+				"same type, but fine = " << fineGL<<", coarse = " << coarseGL);
 
 	// remove old revisions
 	remove_outdated(m_mProlongation, spApproxSpace->revision());
@@ -671,11 +671,11 @@ restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
 {
 	if(fineGL.level() - coarseGL.level() != 1)
 		UG_THROW("StdTransfer: Can only project between successive level, "
-				"but fine = "<<fineGL<<", coarse = "<<coarseGL);
+				"but fine = " << fineGL << ", coarse = " << coarseGL);
 
 	if(fineGL.type() != coarseGL.type())
 		UG_THROW("StdTransfer: Can only project between dof distributions of "
-				"same type, but fine = "<<fineGL<<", coarse = "<<coarseGL);
+				"same type, but fine = " << fineGL << ", coarse = " << coarseGL);
 
 	// remove old revisions
 	remove_outdated(m_mRestriction, spApproxSpace->revision());
@@ -752,8 +752,8 @@ prolongate(GF& uFine, const GF& uCoarse)
 		}
 
 	}
-	UG_CATCH_THROW("StdTransfer:prolongation: Failed for fine = "<<fineGL<<" and "
-	               " coarse = "<<coarseGL);
+	UG_CATCH_THROW("StdTransfer:prolongation: Failed for fine = " << fineGL << " and "
+	               " coarse = " << coarseGL);
 
 // 	check CR functions
 #ifdef UG_PARALLEL
@@ -802,8 +802,8 @@ do_restrict(GF& uCoarse, const GF& uFine)
 			}
 		}
 
-	} UG_CATCH_THROW("StdTransfer:do_restrict: Failed for fine = "<<fineGL<<" and "
-	                 " coarse = "<<coarseGL);
+	} UG_CATCH_THROW("StdTransfer:do_restrict: Failed for fine = " << fineGL << " and "
+	                 " coarse = " << coarseGL);
 }
 
 template <typename TDomain, typename TAlgebra>

@@ -81,7 +81,7 @@ class CuckooClock{
   }
 
   //! returns total time (in seconds)
-  double cuckoo() {return 1.0*m_ttotal/ CLOCKS_PER_SEC;}
+  double cuckoo() const {return 1.0*m_ttotal/ CLOCKS_PER_SEC;}
 
 protected:
 

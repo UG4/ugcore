@@ -77,7 +77,7 @@ class CollisionTrianglesNode : public Node
 								   CollisionElementID* pTriIDs,
 								   size_t numTris);
 		
-		virtual size_t num_triangles() const;
+		[[nodiscard]] virtual size_t num_triangles() const;
 		
 		virtual void get_triangle(size_t index, int& ind1Out,
 								  int& ind2Out, int& ind3Out) const;

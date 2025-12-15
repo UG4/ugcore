@@ -197,11 +197,11 @@ class IAssemble
 
 	/// \{
 		virtual SmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() = 0;
-		virtual ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const = 0;
+		[[nodiscard]] virtual ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const = 0;
 	/// \}
 
 	///	returns the number of constraints
-		virtual size_t num_constraints() const = 0;
+		[[nodiscard]] virtual size_t num_constraints() const = 0;
 
 	///	returns the i'th constraint
 		virtual SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) = 0;

@@ -105,11 +105,11 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 		const size_t numIndex = vInd.size();
 
 		// fill local block matrix
-		bool bFound;
 		mat.resize(numIndex, numIndex);
 		mat = 0.0;
 		for (size_t j = 0; j<numIndex; j++){
 			for (size_t k=0;k<numIndex;k++){
+				bool bFound;
 				const_row_iterator it = A.get_connection(vInd[j],vInd[k], bFound);
 				if(bFound){
 					mat.subassign(j*blockSize,k*blockSize,it.value());
@@ -170,7 +170,7 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 			// compute weights & fill map
 			for (size_t j = 0; j<numIndex; j++)
 			{
-				std::vector<size_t>::iterator it = find (vIndElim.begin(), vIndElim.end(), vInd[j]);
+				auto it = find (vIndElim.begin(), vIndElim.end(), vInd[j]);
 				if (it != vIndElim.end()) {
 					// eliminate this row
 					mapElim.push_back(j);
@@ -357,7 +357,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 		~ElementGaussSeidel() override = default;
 
 	///	returns if parallel solving is supported
-		bool supports_parallel() const override {return true;}
+		[[nodiscard]] bool supports_parallel() const override {return true;}
 
 	/// set relaxation parameter
 		void set_relax(number omega){m_relax=omega;};
@@ -375,7 +375,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 
 	protected:
 	///	Name of preconditioner
-		const char* name() const override {return "ElementGaussSeidel";}
+		[[nodiscard]] const char* name() const override {return "ElementGaussSeidel";}
 
 	///	Preprocess routine
 		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override {
@@ -393,7 +393,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 			return true;
 		}
 
-		bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
+		[[nodiscard]] bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d) override {
 			GridFunction<TDomain, TAlgebra>* pC
 							= dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
 			if(pC == nullptr)

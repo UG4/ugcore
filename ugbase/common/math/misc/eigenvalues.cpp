@@ -50,16 +50,16 @@ static void rot(number A[3][3], const number s, const number tau,
 }
 
 // For symmetrische Matrizen:
-bool CalculateEigenvalues(const ug::matrix33& mat, number& lambdaMinOut,
+bool CalculateEigenvalues(const matrix33& mat, number& lambdaMinOut,
 						number& lambdaMedOut, number& lambdaMaxOut,
-						ug::vector3& evMinOut, ug::vector3& evMedOut,
-						ug::vector3& evMaxOut)
+						vector3& evMinOut, vector3& evMedOut,
+						vector3& evMaxOut)
 {	
   
   number A[3][3];
   
   int i, j, ip, iq;
-  number tresh, theta, tau, t, sm, s, h, g, c;
+  number tresh, t;
 	
   int n = 3;
 	
@@ -89,7 +89,7 @@ bool CalculateEigenvalues(const ug::matrix33& mat, number& lambdaMinOut,
   //int nrot = 0;
 	
   for(i = 1; i <= 50; i++) {
-    sm = 0.0f;
+    number sm = 0.0f;
     
     for(ip = 0; ip < 2; ip++) 
       for(iq = ip+1; iq < 3; iq ++)
@@ -151,25 +151,25 @@ bool CalculateEigenvalues(const ug::matrix33& mat, number& lambdaMinOut,
 		
     for(ip = 0; ip < (n-1); ip++) {
       for(iq = ip+1; iq < 3; iq++)  {
-        g = 100.0f * fabs(A[ip][iq]);
+        number g = 100.0f * fabs(A[ip][iq]);
 				
         if((i > 4) && ((fabs(d[ip])+g) == fabs(d[ip])) && ((fabs(d[iq])+g) == fabs(d[iq])))
 					A[ip][iq] = 0.0f;
 				
         else if(fabs(A[ip][iq]) > tresh) {
-          h = d[iq] - d[ip];
+          number h = d[iq] - d[ip];
 					
           if((fabs(h)+g) == fabs(h))
             t = A[ip][iq] / h;
           else {
-            theta = 0.5f * h / A[ip][iq];
+            number theta = 0.5f * h / A[ip][iq];
             t = 1.0f / (fabs(theta) + sqrt(1.0f + theta * theta));
             if(theta < 0.0f) t *= -1.0f;
           }
 					
-          c = 1.0f / sqrt(1.0f + t * t);
-          s = t * c;
-          tau = s / (1.0f + c);
+          number c = 1.0f / sqrt(1.0f + t * t);
+          number s = t * c;
+          number tau = s / (1.0f + c);
           h = t * A[ip][iq];
           z[ip] -= h;
           z[iq] += h;

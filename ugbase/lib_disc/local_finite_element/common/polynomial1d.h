@@ -73,10 +73,10 @@ class Polynomial1D
 	 * highest coefficient stored. Note that no checking is performed if
 	 * the leading coefficient is zero.
 	 */
-		size_t degree() const {return m_vCoeff.size() - 1;}
+		[[nodiscard]] size_t degree() const {return m_vCoeff.size() - 1;}
 
 	///	evaluate the value of the polynom at x
-		number value(const number x) const
+		[[nodiscard]] number value(const number x) const
 		{
 		//	get degree of polynomial (is >= 0 by construction)
 			const size_t deg = m_vCoeff.size() - 1;
@@ -91,7 +91,7 @@ class Polynomial1D
 		}
 
 	///	returns the derivative of this polynomial as a polynomial
-		Polynomial1D derivative() const
+		[[nodiscard]] Polynomial1D derivative() const
 		{
 		//	if only constant present, return empty Polynomial
 			if(degree() == 0)
@@ -130,7 +130,7 @@ class Polynomial1D
 		}
 
 	///	multiply by a scalar
-		Polynomial1D& operator *=(number scale)
+		Polynomial1D& operator *= (number scale)
 		{
 		//	multiply
 			for(size_t i = 0; i <= degree(); ++i)

@@ -157,8 +157,7 @@ QuadratureRuleProvider<2>::create_gauss_legendre_rule(ReferenceObjectID roid,
 
 template <>
 const QuadratureRule<3>*
-QuadratureRuleProvider<3>::create_gauss_legendre_rule(ReferenceObjectID roid,
-                                                size_t order)
+QuadratureRuleProvider<3>::create_gauss_legendre_rule(ReferenceObjectID roid,                              size_t order)
 {
 	QuadratureRule<3>* q = nullptr;
 	try{
@@ -225,8 +224,7 @@ QuadratureRuleProvider<TDim>::get_quad_rule(ReferenceObjectID roid,
                                             QuadType type)
 {
 	//	check if order present, else resize and create
-	if(order >= m_vRule[type][roid].size() ||
-			m_vRule[type][roid][order] == nullptr)
+	if(order >= m_vRule[type][roid].size() || m_vRule[type][roid][order] == nullptr)
 		create_rule(roid, order, type);
 
 	//	return correct order

@@ -204,7 +204,8 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 		m_spConvCheck->update(*spD);
 
 	//	write defect for debug
-		std::string name("NLJacobi_Defect"); name.append(ext);
+		std::string name("NLJacobi_Defect");
+		name.append(ext);
 		write_debug(*spD, name.c_str());
 	}
 

@@ -61,20 +61,20 @@ class NeumannBoundaryFV1
 
 	public:
 	///	default constructor
-		NeumannBoundaryFV1(const char* function);
+		explicit NeumannBoundaryFV1(const char* function);
 
 	///	add a boundary value
 	///	\{
-		void add(SmartPtr<CplUserData<number, dim> > data, 			const char* BndSubsets, const char* InnerSubsets);
-		void add(SmartPtr<CplUserData<number, dim, bool> > user, 		const char* BndSubsets, const char* InnerSubsets);
-		void add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, 	const char* BndSubsets, const char* InnerSubsets);
+		void add(SmartPtr<CplUserData<number, dim> > data, const char* BndSubsets, const char* InnerSubsets) override;
+		void add(SmartPtr<CplUserData<number, dim, bool> > user, const char* BndSubsets, const char* InnerSubsets) override;
+		void add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, const char* BndSubsets, const char* InnerSubsets) override;
 	/// \}
 
 	protected:
 		using typename base_type::Data;
 
 	///	Unconditional scalar user data
-		struct NumberData : public base_type::Data
+		struct NumberData : base_type::Data
 		{
 			NumberData(SmartPtr<CplUserData<number, dim> > data,
 			           std::string BndSubsets, std::string InnerSubsets)
@@ -89,7 +89,7 @@ class NeumannBoundaryFV1
 			template <typename TElem, typename TFVGeom>
 			void lin_def(const LocalVector& u,
 			             std::vector<std::vector<number> > vvvLinDef[],
-			             const size_t nip);
+			             size_t nip);
 
 			template <int refDim>
 			void set_local_ips(const MathVector<refDim>* ips, std::size_t nIPs)
@@ -109,7 +109,7 @@ class NeumannBoundaryFV1
 		};
 
 	///	Conditional scalar user data
-		struct BNDNumberData : public base_type::Data
+		struct BNDNumberData : base_type::Data
 		{
 			BNDNumberData(SmartPtr<CplUserData<number, dim, bool> > functor_,
 						  std::string BndSubsets, std::string InnerSubsets)
@@ -119,7 +119,7 @@ class NeumannBoundaryFV1
 		};
 
 	///	Unconditional vector user data
-		struct VectorData : public base_type::Data
+		struct VectorData : base_type::Data
 		{
 			VectorData(SmartPtr<CplUserData<MathVector<dim>, dim> > functor_,
 			           std::string BndSubsets, std::string InnerSubsets)
@@ -140,15 +140,15 @@ class NeumannBoundaryFV1
 
 	public:
 	///	type of trial space for each function used
-		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
+		void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid) override;
 
 	protected:
 	///	assembling functions for fv1
 	///	\{
 		template<typename TElem, typename TFVGeom>
-		void prep_elem_loop(const ReferenceObjectID roid, const int si);
+		void prep_elem_loop(ReferenceObjectID roid, int si);
 		template<typename TElem, typename TFVGeom>
-		void prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+		void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
 		template<typename TElem, typename TFVGeom>
 		void fsh_elem_loop();
 		template<typename TElem, typename TFVGeom>
@@ -156,7 +156,7 @@ class NeumannBoundaryFV1
 
 	///	prepares the loop over all elements of one type for the computation of the error estimator
 		template <typename TElem, typename TFVGeom>
-		void prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
+		void prep_err_est_elem_loop(ReferenceObjectID roid, int si);
 
 	///	prepares the element for assembling the error estimator
 		template <typename TElem, typename TFVGeom>

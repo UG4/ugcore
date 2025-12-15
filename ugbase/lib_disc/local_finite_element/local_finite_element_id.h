@@ -123,13 +123,13 @@ class LFEID
 			: m_type(type), m_dim(dim), m_order(order) {}
 
 	///	returns the order of the local finite element
-		int order() const {return m_order;}
+		[[nodiscard]] int order() const {return m_order;}
 
 	///	returns the space dimension of the local finite element
-		int dim() const {return m_dim;}
+		[[nodiscard]] int dim() const {return m_dim;}
 
 	///	returns the type of the local finite element
-		SpaceType type() const {return m_type;}
+		[[nodiscard]] SpaceType type() const {return m_type;}
 
 	///	equality check
 		bool operator == (const LFEID& v) const

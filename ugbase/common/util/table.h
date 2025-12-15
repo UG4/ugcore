@@ -108,13 +108,13 @@ class Table
 		const T& operator () (size_t rowInd, size_t colInd) const;
 
 	/// uses operator () to get a value
-		const T &get(size_t rowInd, size_t colInd) const
+		[[nodiscard]] const T &get(size_t rowInd, size_t colInd) const
 		{
 			return operator () (rowInd, colInd);
 		}
 
-		size_t num_rows() const;
-		size_t num_cols() const;
+		[[nodiscard]] size_t num_rows() const;
+		[[nodiscard]] size_t num_cols() const;
 		
 
 
@@ -168,23 +168,23 @@ class Table
 		}
 
 		std::ostream& stream(std::ostream& os) const;
-		std::string to_latex() const;
-		std::string to_string() const;
+		[[nodiscard]] std::string to_latex() const;
+		[[nodiscard]] std::string to_string() const;
 		std::string to_csv(const char *seperator) const;
 
-		char get_row_sep(size_t row) const
+		[[nodiscard]] char get_row_sep(size_t row) const
 		{
 			if(row >= m_rowSep.size()) return m_defaultRowSeperator;
 			return m_rowSep[row] != 0x00 ? m_rowSep[row] : m_defaultRowSeperator;
 		}
 
-		char get_col_sep(size_t col) const
+		[[nodiscard]] char get_col_sep(size_t col) const
 		{
 			if(col >= m_colSep.size()) return m_defaultColSeperator;
 			return m_colSep[col] != 0x00 ? m_colSep[col] : m_defaultColSeperator;
 		}
 
-		char get_col_alignment(size_t col) const
+		[[nodiscard]] char get_col_alignment(size_t col) const
 		{
 			if(col >= m_colAlign.size()) return m_defaultColAlignment;
 			return m_colAlign[col] != 0x00 ? m_colAlign[col] : m_defaultColAlignment;

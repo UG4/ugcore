@@ -92,8 +92,8 @@ void DoFDistribution::check_subsets()
 //	check, that all geom objects are assigned to a subset
 	if(	m_spMGSH->num<Vertex>() != multi_grid()->num<Vertex>())
 	{
-		geometry_traits<Vertex>::const_iterator iter = multi_grid()->begin<Vertex>();
-		geometry_traits<Vertex>::const_iterator iterEnd = multi_grid()->end<Vertex>();
+		auto iter = multi_grid()->begin<Vertex>();
+		auto iterEnd = multi_grid()->end<Vertex>();
 		for (; iter != iterEnd; ++iter)
 			if (m_spMGSH->get_subset_index(*iter) == -1)
 				UG_LOGN("Missing subset info for " << ElementDebugInfo(*multi_grid(), *iter));
@@ -104,8 +104,8 @@ void DoFDistribution::check_subsets()
 	}
 	if(	m_spMGSH->num<Edge>() != multi_grid()->num<Edge>())
 	{
-		geometry_traits<Edge>::const_iterator iter = multi_grid()->begin<Edge>();
-		geometry_traits<Edge>::const_iterator iterEnd = multi_grid()->end<Edge>();
+		auto iter = multi_grid()->begin<Edge>();
+		auto iterEnd = multi_grid()->end<Edge>();
 		for (; iter != iterEnd; ++iter)
 			if (m_spMGSH->get_subset_index(*iter) == -1)
 				UG_LOGN("Missing subset info for " << ElementDebugInfo(*multi_grid(), *iter));
@@ -954,8 +954,7 @@ sort_constrained_faces(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 {
 	static constexpr int dim = TBaseElem::dim;
 	ReferenceObjectID roid = elem->reference_object_id();
-	const DimReferenceElement<dim>& refElem
-			= ReferenceElementProvider::get<dim>(roid);
+	const DimReferenceElement<dim>& refElem = ReferenceElementProvider::get<dim>(roid);
 	const size_t numVrt = constrainingObj->num_vertices();
 	sortedInd.resize(4);
 	Vertex* vrt = nullptr;

@@ -89,7 +89,7 @@ std::string HistogrammString(std::vector<double> values)
 	const int height = 10;
 	for(int h=height; h>=0; h--)
 	{
-		ss << (histmax*h)/((double)height) << "\t";
+		ss << (histmax*h)/static_cast<double>(height) << "\t";
 		for(size_t i=0; i<N; i++)
 		{
 			if(hist[i]*height > histmax*h) ss << "#";

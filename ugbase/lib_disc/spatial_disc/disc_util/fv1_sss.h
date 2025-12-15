@@ -55,7 +55,7 @@ private:
 public:
 
 ///	class constructor (with the default constructor for data)
-	FVPointSourceOrSink
+	explicit FVPointSourceOrSink
 	(
 		const MathVector<dim>& _point ///< coordinates of the source/sink
 	)
@@ -70,7 +70,7 @@ public:
 	: TData(_data), point(_point) {}
 
 ///	class constructor (with the default constructor for data)
-	FVPointSourceOrSink
+	explicit FVPointSourceOrSink
 	(
 		const std::vector<number>& _point ///< coordinates of the source/sink
 	)
@@ -229,8 +229,8 @@ public:
 	using line_sss_type = FVLineSourceOrSink<dim, TLineData>;
 
 private:
-	typename std::vector<SmartPtr<point_sss_type> > ListP;
-	typename std::vector<SmartPtr<line_sss_type> > ListL;
+	std::vector<SmartPtr<point_sss_type> > ListP;
+	std::vector<SmartPtr<line_sss_type> > ListL;
 	
 public:
 

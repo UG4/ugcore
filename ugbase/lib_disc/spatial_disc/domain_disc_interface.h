@@ -248,10 +248,10 @@ class IDomainDiscretization : public IAssemble<TAlgebra>, public IDomainErrorInd
 	 */
 		virtual void assemble_jacobian(matrix_type& J,
 		                               ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-		                               const number s_a, const GridLevel& gl) = 0;
+		                               number s_a, const GridLevel& gl) = 0;
 		virtual void assemble_jacobian(matrix_type& J,
 		                               ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-		                               const number s_a0,
+		                               number s_a0,
 		                               ConstSmartPtr<DoFDistribution> dd) = 0;
 
 	///	assembles jacobian on surface level
@@ -393,7 +393,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>, public IDomainErrorInd
 
 
 	///	returns the number of post processes
-		size_t num_constraints() const override = 0;
+		[[nodiscard]] size_t num_constraints() const override = 0;
 
 	///	returns the i'th post process
 		SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) override = 0;

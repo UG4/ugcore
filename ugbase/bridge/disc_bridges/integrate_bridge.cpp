@@ -193,7 +193,7 @@ void RegisterBridge_Integrate(Registry& reg, string grp)
 	using Functionality = Integrate::Functionality;
 
 	{
-		reg.add_function("TestQuadRule", &ug::TestQuadRule);
+		reg.add_function("TestQuadRule", &TestQuadRule);
 	}
 
 	try{

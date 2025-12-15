@@ -131,7 +131,7 @@ public:
 		size_t number;
 	};
 
-	StringTableStream &operator << (RepeatedCol c)
+	StringTableStream &operator << (const RepeatedCol& c)
 	{
 		for(size_t i=0; i<c.number; i++)
 			*this << c.content;
@@ -156,7 +156,7 @@ public:
 	 * @param contentToRepeat	what to repeat
 	 * @return RepeatedCol-struct for <<-ing into sts
 	 */
-	RepeatedCol empty_col(size_t i)
+	static RepeatedCol empty_col(size_t i)
 	{
 		return RepeatedCol("", i);
 	}
@@ -190,12 +190,12 @@ public:
 		s(r, c) = ToString(t);
 	}
 
-	StringTableStream &operator << (std::string str)
+	StringTableStream &operator << (const std::string& str)
 	{
 		*this << str.c_str();
 		return *this;
 	}
-	std::string to_string() const
+	[[nodiscard]] std::string to_string() const
 	{
 		return s.to_string();
 	}

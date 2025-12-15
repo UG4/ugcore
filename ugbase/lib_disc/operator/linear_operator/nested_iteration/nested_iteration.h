@@ -183,7 +183,7 @@ class NestedIterationSolver
 
 	protected:
 		void estimate_and_mark_domain(const grid_function_type& u, SmartPtr<IElementMarkingStrategy<TDomain> > spMarking,  bool bClearMarks = true);
-		number refine_domain(const grid_function_type& u);
+		/*number refine_domain(const grid_function_type& u);*/
 		number coarsen_domain(const grid_function_type& u);
 
 

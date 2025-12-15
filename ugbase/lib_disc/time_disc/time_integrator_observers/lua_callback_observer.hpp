@@ -22,7 +22,7 @@ public:
 	LuaCallbackObserver()
 	: m_lua_callback(nullptr), m_lua_id(0) {}
 
-	LuaCallbackObserver(int lua_id)
+	explicit LuaCallbackObserver(int lua_id)
 	: m_lua_callback(nullptr), m_lua_id(lua_id) {}
 
 	~LuaCallbackObserver() override = default;
@@ -35,7 +35,7 @@ public:
 
 		number lua_return_value;
 		m_u = uNew;
-		(*m_lua_callback)(lua_return_value, 4, (number) step, time, dt, (number) m_lua_id);
+		(*m_lua_callback)(lua_return_value, 4, step, time, dt, m_lua_id);
 
 		return lua_return_value == 1;
 	}

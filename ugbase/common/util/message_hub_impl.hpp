@@ -87,10 +87,9 @@ register_callback_impl(std::function<void (const IMessage&)> callback,
 {
 	size_t id = GetUniqueTypeID<TMsg>();
 	CallbackEntryList& callbacks = m_callbackMap[id];
-	CallbackEntryIterator cbIter = callbacks.insert(callbacks.end(),
-													CallbackEntry(callback, nullptr));
+	auto cbIter = callbacks.insert(callbacks.end(), CallbackEntry(callback, nullptr));
 
-	CallbackId* cbId = new CallbackId(this, id, cbIter, autoFree);
+	auto* cbId = new CallbackId(this, id, cbIter, autoFree);
 
 	cbIter->m_callbackId = cbId;
 

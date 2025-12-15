@@ -106,7 +106,7 @@ class DomainDiscretizationBase
 		
 	public:
 	///	default Constructor
-		DomainDiscretizationBase(SmartPtr<approx_space_type> pApproxSpace) :
+		explicit DomainDiscretizationBase(SmartPtr<approx_space_type> pApproxSpace) :
 			m_bErrorCalculated(false),
 			m_spApproxSpace(pApproxSpace), m_spAssTuner(new AssemblingTuner<TAlgebra>)
 		{};
@@ -502,7 +502,7 @@ public:
 		}
 
 	///	returns number of registered constraints
-		size_t num_constraints() const override {return m_vConstraint.size();}
+		[[nodiscard]] size_t num_constraints() const override {return m_vConstraint.size();}
 
 	///	returns the i:th constraint
 		SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) override {return m_vConstraint[i];}
@@ -520,7 +520,7 @@ public:
 
 	protected:
 	///	returns the level dof distribution
-		ConstSmartPtr<DoFDistribution> dd(const GridLevel& gl) const{return m_spApproxSpace->dof_distribution(gl);}
+		[[nodiscard]] ConstSmartPtr<DoFDistribution> dd(const GridLevel& gl) const{return m_spApproxSpace->dof_distribution(gl);}
 
 	protected:
 	///	vector holding all registered elem discs
@@ -686,7 +686,7 @@ class DomainDiscretization
 		
 	public:
 	///	default Constructor
-	DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace)
+    explicit DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace)
 		: DomainDiscretizationBase<domain_type, algebra_type, gass_type> (pApproxSpace)
 		{};
 

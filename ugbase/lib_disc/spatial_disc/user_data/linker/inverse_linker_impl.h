@@ -125,11 +125,10 @@ evaluate (number& value,
 	//	reset value
 	value = 1.0;
 
-	number valDivisor=0;
-	number valDividend=0;
-
 	for(size_t c = 0; c < m_vpDivisorData.size(); ++c)
 	{
+		number valDividend=0;
+		number valDivisor=0;
 		(*m_vpDivisorData[c])(valDivisor, globIP, time, si);
 		(*m_vpDividendData[c])(valDividend, globIP, time, si);
 		UG_ASSERT(valDivisor!=0, "DIVISOR IS 0");

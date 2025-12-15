@@ -44,12 +44,13 @@ namespace ug {
 
 
 namespace detail{
+
 namespace archivar{
 	template <typename TArchive, typename TBase, typename TDerived>
 	void CallArchiveOnDerivedClass (TArchive& ar, TBase& base, const char* name)
 	{
 		BOOST_STATIC_ASSERT((boost::is_base_of<TBase, TDerived>::value));
-		TDerived& derived = dynamic_cast<TDerived&>(base);
+		auto& derived = dynamic_cast<TDerived&>(base);
 		ar & make_nvp(name, derived);
 	}
 }

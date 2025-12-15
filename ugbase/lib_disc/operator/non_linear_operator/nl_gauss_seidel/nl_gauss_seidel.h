@@ -181,7 +181,7 @@ class NLGaussSeidelSolver
 		bool apply(vector_type& u) override;
 
 	///	returns information about configuration parameters
-		std::string config_string() const override {
+		[[nodiscard]] std::string config_string() const override {
 			std::stringstream ss;
 			ss << "NonlinearGaussSeidelSolver( damp = " << m_damp << ")\n";
 			ss << " ConvergenceCheck: ";

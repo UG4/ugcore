@@ -106,7 +106,7 @@ class SubdivRules_PLoop
 			{return vector2(0.5, 0.5);}
 
 		number proj_inner_center_weight(size_t valence) const
-			{return 1.0 - (number)valence / (0.375 / get_beta(valence) + valence);}
+			{return 1.0 - static_cast<number>(valence) / (0.375 / get_beta(valence) + valence);}
 		
 		number proj_inner_nbr_weight(size_t valence) const
 			{return 1.0 / (0.375 / get_beta(valence) + valence);}

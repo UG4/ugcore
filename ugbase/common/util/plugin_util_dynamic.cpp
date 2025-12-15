@@ -59,6 +59,7 @@ bool PluginLoaded(const string &name)
 
 bool LoadPlugins(const char* pluginPath, const string &parentGroup, bridge::Registry& reg, bool bPrefixGroup)
 {
+	std::cout <<"ø" << "plugin_path=" << pluginPath << std::endl;
 	PROFILE_FUNC();
 	using FctInitPlugin = void(*)(bridge::Registry*, string);
 
@@ -76,10 +77,10 @@ bool LoadPlugins(const char* pluginPath, const string &parentGroup, bridge::Regi
 	int suffixLen = suffixStr.size(); // includes '.'
 
 	for(size_t i = 0; i < files.size(); ++i){
-
+		std::cout <<"ø" << i << ": " << files[i] << std::endl;
 	//	extract the plugins name from the file-name
 		int nameStart = prefixLen;
-		int nameLength = (int)files[i].size() - suffixLen - nameStart;
+		int nameLength = static_cast<int>(files[i].size()) - suffixLen - nameStart;
 
 	//	exclude MAC OS X hidden folder custom file ".DS_Store" from plugin consideration
 		#ifdef __APPLE__
@@ -89,8 +90,7 @@ bool LoadPlugins(const char* pluginPath, const string &parentGroup, bridge::Regi
 	//	check that plugin name can exist
 		if(nameLength <= 0)
 		{
-			UG_ERR_LOG("Plugin-filename '" << files[i] <<
-					"' too short. Ignoring plugin.\n");
+			UG_ERR_LOG("Plugin-filename '" << files[i] << "' too short. Ignoring plugin.\n");
 			bSuccess = false;
 			continue;
 		}
@@ -122,7 +122,7 @@ bool LoadPlugins(const char* pluginPath, const string &parentGroup, bridge::Regi
 		try{
 			libHandle = OpenLibrary(fullPluginName.c_str());
 		}
-		catch(std::string errMsg)
+		catch(const std::string& errMsg)
 		{
 			UG_ERR_LOG("PLUGIN-ERROR: Couldn't open plugin " << files[i] << endl);
 			UG_ERR_LOG("Error Message: " << errMsg << "\n");

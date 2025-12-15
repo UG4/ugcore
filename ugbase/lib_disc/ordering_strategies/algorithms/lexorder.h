@@ -87,7 +87,7 @@ public:
 		return make_sp(new LexOrdering(*this));
 	}
 
-	void parse(){
+	void parse() const {
 		if(sizeof(m_dir) == 0){
 			UG_THROW(name() << "::parse: empty string\n");
 		}

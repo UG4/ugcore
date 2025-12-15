@@ -192,37 +192,37 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		switch(dim)
 		{
 		case 0:
-			this->template AssembleMassMatrix<RegularVertex>
+			this->AssembleMassMatrix<RegularVertex>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			break;
 		case 1:
-			this->template AssembleMassMatrix<RegularEdge>
+			this->AssembleMassMatrix<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleMassMatrix<ConstrainingEdge>
+			this->AssembleMassMatrix<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			break;
 		case 2:
-			this->template AssembleMassMatrix<Triangle>
+			this->AssembleMassMatrix<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
-			this->template AssembleMassMatrix<Quadrilateral>
+			this->AssembleMassMatrix<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleMassMatrix<ConstrainingTriangle>
+			this->AssembleMassMatrix<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
-			this->template AssembleMassMatrix<ConstrainingQuadrilateral>
+			this->AssembleMassMatrix<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			break;
 		case 3:
-			this->template AssembleMassMatrix<Tetrahedron>
+			this->AssembleMassMatrix<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
-			this->template AssembleMassMatrix<Pyramid>
+			this->AssembleMassMatrix<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
-			this->template AssembleMassMatrix<Prism>
+			this->AssembleMassMatrix<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
-			this->template AssembleMassMatrix<Hexahedron>
+			this->AssembleMassMatrix<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
-			this->template AssembleMassMatrix<Octahedron>
+			this->AssembleMassMatrix<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			break;
 		default:
@@ -294,7 +294,7 @@ AssembleMassMatrix( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		//	general case: assembling over all elements in subset si
 		gass_type::template AssembleMassMatrix<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
-				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+				dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, M, u, m_spAssTuner);
 	}
 }
@@ -352,37 +352,37 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		switch(dim)
 		{
 		case 0:
-			this->template AssembleStiffnessMatrix<RegularVertex>
+			this->AssembleStiffnessMatrix<RegularVertex>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			break;
 		case 1:
-			this->template AssembleStiffnessMatrix<RegularEdge>
+			this->AssembleStiffnessMatrix<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleStiffnessMatrix<ConstrainingEdge>
+			this->AssembleStiffnessMatrix<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			break;
 		case 2:
-			this->template AssembleStiffnessMatrix<Triangle>
+			this->AssembleStiffnessMatrix<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
-			this->template AssembleStiffnessMatrix<Quadrilateral>
+			this->AssembleStiffnessMatrix<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleStiffnessMatrix<ConstrainingTriangle>
+			this->AssembleStiffnessMatrix<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
-			this->template AssembleStiffnessMatrix<ConstrainingQuadrilateral>
+			this->AssembleStiffnessMatrix<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			break;
 		case 3:
-			this->template AssembleStiffnessMatrix<Tetrahedron>
+			this->AssembleStiffnessMatrix<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
-			this->template AssembleStiffnessMatrix<Pyramid>
+			this->AssembleStiffnessMatrix<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
-			this->template AssembleStiffnessMatrix<Prism>
+			this->AssembleStiffnessMatrix<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
-			this->template AssembleStiffnessMatrix<Hexahedron>
+			this->AssembleStiffnessMatrix<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
-			this->template AssembleStiffnessMatrix<Octahedron>
+			this->AssembleStiffnessMatrix<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			break;
 		default:
@@ -454,7 +454,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		//	general case: assembling over all elements in subset si
 		gass_type::template AssembleStiffnessMatrix<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
-				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+				dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, A, u, m_spAssTuner);
 	}
 }
@@ -537,37 +537,37 @@ assemble_jacobian(matrix_type& J,
 		switch(dim)
 		{
 		case 0:
-			this->template AssembleJacobian<RegularVertex>
+			this->AssembleJacobian<RegularVertex>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			break;
 		case 1:
-			this->template AssembleJacobian<RegularEdge>
+			this->AssembleJacobian<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleJacobian<ConstrainingEdge>
+			this->AssembleJacobian<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			break;
 		case 2:
-			this->template AssembleJacobian<Triangle>
+			this->AssembleJacobian<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
-			this->template AssembleJacobian<Quadrilateral>
+			this->AssembleJacobian<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleJacobian<ConstrainingTriangle>
+			this->AssembleJacobian<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
-			this->template AssembleJacobian<ConstrainingQuadrilateral>
+			this->AssembleJacobian<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			break;
 		case 3:
-			this->template AssembleJacobian<Tetrahedron>
+			this->AssembleJacobian<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
-			this->template AssembleJacobian<Pyramid>
+			this->AssembleJacobian<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
-			this->template AssembleJacobian<Prism>
+			this->AssembleJacobian<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
-			this->template AssembleJacobian<Hexahedron>
+			this->AssembleJacobian<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
-			this->template AssembleJacobian<Octahedron>
+			this->AssembleJacobian<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			break;
 		default:
@@ -638,7 +638,7 @@ AssembleJacobian(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		//	general case: assembling over all elements in subset si
 		gass_type::template AssembleJacobian<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
-				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+				dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, J, u, m_spAssTuner);
 	}
 }
@@ -712,37 +712,37 @@ assemble_defect(vector_type& d,
 		switch(dim)
 		{
 		case 0:
-			this->template AssembleDefect<RegularVertex>
+			this->AssembleDefect<RegularVertex>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			break;
 		case 1:
-			this->template AssembleDefect<RegularEdge>
+			this->AssembleDefect<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleDefect<ConstrainingEdge>
+			this->AssembleDefect<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			break;
 		case 2:
-			this->template AssembleDefect<Triangle>
+			this->AssembleDefect<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
-			this->template AssembleDefect<Quadrilateral>
+			this->AssembleDefect<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleDefect<ConstrainingTriangle>
+			this->AssembleDefect<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
-			this->template AssembleDefect<ConstrainingQuadrilateral>
+			this->AssembleDefect<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			break;
 		case 3:
-			this->template AssembleDefect<Tetrahedron>
+			this->AssembleDefect<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
-			this->template AssembleDefect<Pyramid>
+			this->AssembleDefect<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
-			this->template AssembleDefect<Prism>
+			this->AssembleDefect<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
-			this->template AssembleDefect<Hexahedron>
+			this->AssembleDefect<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
-			this->template AssembleDefect<Octahedron>
+			this->AssembleDefect<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			break;
 		default:
@@ -827,7 +827,7 @@ AssembleDefect( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		//	general case: assembling over all elements in subset si
 		gass_type::template AssembleDefect<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
-				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+				dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, d, u, m_spAssTuner);
 	}
 }
@@ -885,37 +885,37 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		switch(dim)
 		{
 		case 0:
-			this->template AssembleLinear<RegularVertex>
+			this->AssembleLinear<RegularVertex>
 					(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			break;
 		case 1:
-			this->template AssembleLinear<RegularEdge>
+			this->AssembleLinear<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleLinear<ConstrainingEdge>
+			this->AssembleLinear<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			break;
 		case 2:
-			this->template AssembleLinear<Triangle>
+			this->AssembleLinear<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
-			this->template AssembleLinear<Quadrilateral>
+			this->AssembleLinear<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleLinear<ConstrainingTriangle>
+			this->AssembleLinear<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
-			this->template AssembleLinear<ConstrainingQuadrilateral>
+			this->AssembleLinear<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			break;
 		case 3:
-			this->template AssembleLinear<Tetrahedron>
+			this->AssembleLinear<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
-			this->template AssembleLinear<Pyramid>
+			this->AssembleLinear<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
-			this->template AssembleLinear<Prism>
+			this->AssembleLinear<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
-			this->template AssembleLinear<Hexahedron>
+			this->AssembleLinear<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
-			this->template AssembleLinear<Octahedron>
+			this->AssembleLinear<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			break;
 		default:
@@ -988,7 +988,7 @@ AssembleLinear( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		//	general case: assembling over all elements in subset si
 		gass_type::template AssembleLinear<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
-				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+				dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, A, rhs, m_spAssTuner);
 	}
 }
@@ -1046,37 +1046,37 @@ assemble_rhs(vector_type& rhs,
 		switch(dim)
 		{
 		case 0:
-			this->template AssembleRhs<RegularVertex>
+			this->AssembleRhs<RegularVertex>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			break;
 		case 1:
-			this->template AssembleRhs<RegularEdge>
+			this->AssembleRhs<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleRhs<ConstrainingEdge>
+			this->AssembleRhs<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			break;
 		case 2:
-			this->template AssembleRhs<Triangle>
+			this->AssembleRhs<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
-			this->template AssembleRhs<Quadrilateral>
+			this->AssembleRhs<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleRhs<ConstrainingTriangle>
+			this->AssembleRhs<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
-			this->template AssembleRhs<ConstrainingQuadrilateral>
+			this->AssembleRhs<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			break;
 		case 3:
-			this->template AssembleRhs<Tetrahedron>
+			this->AssembleRhs<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
-			this->template AssembleRhs<Pyramid>
+			this->AssembleRhs<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
-			this->template AssembleRhs<Prism>
+			this->AssembleRhs<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
-			this->template AssembleRhs<Hexahedron>
+			this->AssembleRhs<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
-			this->template AssembleRhs<Octahedron>
+			this->AssembleRhs<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			break;
 		default:
@@ -1146,7 +1146,7 @@ AssembleRhs(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	{
 		//	general case: assembling over all elements in subset si
 		gass_type::template AssembleRhs<TElem>
-			(vElemDisc, m_spApproxSpace->domain(), dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, m_spApproxSpace->domain(), dd, dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, rhs, u, m_spAssTuner);
 	}
 }
@@ -1285,37 +1285,37 @@ prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		switch(dim)
 		{
 		case 0:
-			this->template PrepareTimestepElem<RegularVertex>
+			this->PrepareTimestepElem<RegularVertex>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 1:
-			this->template PrepareTimestepElem<RegularEdge>
+			this->PrepareTimestepElem<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template PrepareTimestepElem<ConstrainingEdge>
+			this->PrepareTimestepElem<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 2:
-			this->template PrepareTimestepElem<Triangle>
+			this->PrepareTimestepElem<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template PrepareTimestepElem<Quadrilateral>
+			this->PrepareTimestepElem<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template PrepareTimestepElem<ConstrainingTriangle>
+			this->PrepareTimestepElem<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template PrepareTimestepElem<ConstrainingQuadrilateral>
+			this->PrepareTimestepElem<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 3:
-			this->template PrepareTimestepElem<Tetrahedron>
+			this->PrepareTimestepElem<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template PrepareTimestepElem<Pyramid>
+			this->PrepareTimestepElem<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template PrepareTimestepElem<Prism>
+			this->PrepareTimestepElem<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template PrepareTimestepElem<Hexahedron>
+			this->PrepareTimestepElem<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template PrepareTimestepElem<Octahedron>
+			this->PrepareTimestepElem<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		default:
@@ -1366,7 +1366,7 @@ PrepareTimestepElem(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		//	general case: assembling over all elements in subset si
 		gass_type::template PrepareTimestepElem<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
-				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+				dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, vSol, m_spAssTuner);
 	}
 }
@@ -1447,37 +1447,37 @@ assemble_jacobian(matrix_type& J,
 		switch(dim)
 		{
 		case 0:
-			this->template AssembleJacobian<RegularVertex>
+			this->AssembleJacobian<RegularVertex>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			break;
 		case 1:
-			this->template AssembleJacobian<RegularEdge>
+			this->AssembleJacobian<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleJacobian<ConstrainingEdge>
+			this->AssembleJacobian<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			break;
 		case 2:
-			this->template AssembleJacobian<Triangle>
+			this->AssembleJacobian<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
-			this->template AssembleJacobian<Quadrilateral>
+			this->AssembleJacobian<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleJacobian<ConstrainingTriangle>
+			this->AssembleJacobian<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
-			this->template AssembleJacobian<ConstrainingQuadrilateral>
+			this->AssembleJacobian<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			break;
 		case 3:
-			this->template AssembleJacobian<Tetrahedron>
+			this->AssembleJacobian<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
-			this->template AssembleJacobian<Pyramid>
+			this->AssembleJacobian<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
-			this->template AssembleJacobian<Prism>
+			this->AssembleJacobian<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
-			this->template AssembleJacobian<Hexahedron>
+			this->AssembleJacobian<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
-			this->template AssembleJacobian<Octahedron>
+			this->AssembleJacobian<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			break;
 		default:
@@ -1550,7 +1550,7 @@ AssembleJacobian(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 	{
 		gass_type::template AssembleJacobian<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
-				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+				dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, J, vSol, s_a0, m_spAssTuner);
 	}
 }
@@ -1626,37 +1626,37 @@ assemble_defect(vector_type& d,
 		switch(dim)
 		{
 		case 0:
-			this->template AssembleDefect<RegularVertex>
+			this->AssembleDefect<RegularVertex>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			break;
 		case 1:
-			this->template AssembleDefect<RegularEdge>
+			this->AssembleDefect<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleDefect<ConstrainingEdge>
+			this->AssembleDefect<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			break;
 		case 2:
-			this->template AssembleDefect<Triangle>
+			this->AssembleDefect<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
-			this->template AssembleDefect<Quadrilateral>
+			this->AssembleDefect<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleDefect<ConstrainingTriangle>
+			this->AssembleDefect<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
-			this->template AssembleDefect<ConstrainingQuadrilateral>
+			this->AssembleDefect<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			break;
 		case 3:
-			this->template AssembleDefect<Tetrahedron>
+			this->AssembleDefect<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
-			this->template AssembleDefect<Pyramid>
+			this->AssembleDefect<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
-			this->template AssembleDefect<Prism>
+			this->AssembleDefect<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
-			this->template AssembleDefect<Hexahedron>
+			this->AssembleDefect<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
-			this->template AssembleDefect<Octahedron>
+			this->AssembleDefect<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			break;
 		default:
@@ -1730,7 +1730,7 @@ AssembleDefect( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		//	general case: assembling over all elements in subset si
 		gass_type::template AssembleDefect<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
-				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+				dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
 	}
 }
@@ -1791,37 +1791,37 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		switch(dim)
 		{
 		case 0:
-			this->template AssembleLinear<RegularVertex>
+			this->AssembleLinear<RegularVertex>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		case 1:
-			this->template AssembleLinear<RegularEdge>
+			this->AssembleLinear<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleLinear<ConstrainingEdge>
+			this->AssembleLinear<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		case 2:
-			this->template AssembleLinear<Triangle>
+			this->AssembleLinear<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
-			this->template AssembleLinear<Quadrilateral>
+			this->AssembleLinear<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleLinear<ConstrainingTriangle>
+			this->AssembleLinear<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
-			this->template AssembleLinear<ConstrainingQuadrilateral>
+			this->AssembleLinear<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		case 3:
-			this->template AssembleLinear<Tetrahedron>
+			this->AssembleLinear<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
-			this->template AssembleLinear<Pyramid>
+			this->AssembleLinear<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
-			this->template AssembleLinear<Prism>
+			this->AssembleLinear<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
-			this->template AssembleLinear<Hexahedron>
+			this->AssembleLinear<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
-			this->template AssembleLinear<Octahedron>
+			this->AssembleLinear<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		default:
@@ -1900,7 +1900,7 @@ AssembleLinear( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		//	general case: assembling over all elements in subset si
 		gass_type::template AssembleLinear<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
-				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+				dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
 	}
 }
@@ -1959,37 +1959,37 @@ assemble_rhs(vector_type& rhs,
 		switch(dim)
 		{
 		case 0:
-			this->template AssembleRhs<RegularVertex>
+			this->AssembleRhs<RegularVertex>
 			 	 (vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		case 1:
-			this->template AssembleRhs<RegularEdge>
+			this->AssembleRhs<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleRhs<ConstrainingEdge>
+			this->AssembleRhs<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		case 2:
-			this->template AssembleRhs<Triangle>
+			this->AssembleRhs<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
-			this->template AssembleRhs<Quadrilateral>
+			this->AssembleRhs<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleRhs<ConstrainingTriangle>
+			this->AssembleRhs<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
-			this->template AssembleRhs<ConstrainingQuadrilateral>
+			this->AssembleRhs<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		case 3:
-			this->template AssembleRhs<Tetrahedron>
+			this->AssembleRhs<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
-			this->template AssembleRhs<Pyramid>
+			this->AssembleRhs<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
-			this->template AssembleRhs<Prism>
+			this->AssembleRhs<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
-			this->template AssembleRhs<Hexahedron>
+			this->AssembleRhs<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
-			this->template AssembleRhs<Octahedron>
+			this->AssembleRhs<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		default:
@@ -2063,7 +2063,7 @@ AssembleRhs(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		//	general case: assembling over all elements in subset si
 		gass_type::template AssembleRhs<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
-				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+				dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
 	}
 }
@@ -2154,37 +2154,37 @@ init_all_exports(ConstSmartPtr<DoFDistribution> dd, bool bAsTimeDependent)
 		switch(dim)
 		{
 		case 0:
-			this->template InitAllExports<RegularVertex>
+			this->InitAllExports<RegularVertex>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			break;
 		case 1:
-			this->template InitAllExports<RegularEdge>
+			this->InitAllExports<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template InitAllExports<ConstrainingEdge>
+			this->InitAllExports<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			break;
 		case 2:
-			this->template InitAllExports<Triangle>
+			this->InitAllExports<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
-			this->template InitAllExports<Quadrilateral>
+			this->InitAllExports<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template InitAllExports<ConstrainingTriangle>
+			this->InitAllExports<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
-			this->template InitAllExports<ConstrainingQuadrilateral>
+			this->InitAllExports<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			break;
 		case 3:
-			this->template InitAllExports<Tetrahedron>
+			this->InitAllExports<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
-			this->template InitAllExports<Pyramid>
+			this->InitAllExports<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
-			this->template InitAllExports<Prism>
+			this->InitAllExports<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
-			this->template InitAllExports<Hexahedron>
+			this->InitAllExports<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
-			this->template InitAllExports<Octahedron>
+			this->InitAllExports<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, bAsTimeDependent);
 			break;
 		default:
@@ -2237,7 +2237,7 @@ InitAllExports(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		//	general case: assembling over all elements in subset si
 		gass_type::template InitAllExports<TElem>
 			(vElemDisc, dd,
-				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+				dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, bAsTimeDependent);
 	}
 }
@@ -2279,7 +2279,7 @@ calc_error
 	PROFILE_FUNC_GROUP("error_estimator");
 
 //	get multigrid
-	SmartPtr<MultiGrid> pMG = ((DoFDistribution *) dd.get())->multi_grid();
+	SmartPtr<MultiGrid> pMG = const_cast<DoFDistribution *>(dd.get())->multi_grid();
 
 // check, whether separate error data exists
 	const bool useErrorData = !m_vDomainElemError.empty();
@@ -2338,7 +2338,7 @@ calc_error
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	Elem Disc on the subset
-		using error_vector_type = typename std::vector<IElemError<TDomain>*>;
+		using error_vector_type = std::vector<IElemError<TDomain>*>;
 		error_vector_type vSubsetElemError;
 
 	//	get all element discretizations that work on the subset
@@ -2376,33 +2376,33 @@ calc_error
 			switch (dim)
 			{
 			case 1:
-				this->template AssembleErrorEstimator<RegularEdge>
+				this->AssembleErrorEstimator<RegularEdge>
 					(vSubsetElemError, dd, si, bNonRegularGrid, u);
 				// When assembling over lower-dim manifolds that contain hanging nodes:
-				this->template AssembleErrorEstimator<ConstrainingEdge>
+				this->AssembleErrorEstimator<ConstrainingEdge>
 					(vSubsetElemError, dd, si, bNonRegularGrid, u);
 				break;
 			case 2:
-				this->template AssembleErrorEstimator<Triangle>
+				this->AssembleErrorEstimator<Triangle>
 					(vSubsetElemError, dd, si, bNonRegularGrid, u);
-				this->template AssembleErrorEstimator<Quadrilateral>
+				this->AssembleErrorEstimator<Quadrilateral>
 					(vSubsetElemError, dd, si, bNonRegularGrid, u);
 				// When assembling over lower-dim manifolds that contain hanging nodes:
-				this->template AssembleErrorEstimator<ConstrainingTriangle>
+				this->AssembleErrorEstimator<ConstrainingTriangle>
 					(vSubsetElemError, dd, si, bNonRegularGrid, u);
-				this->template AssembleErrorEstimator<ConstrainingQuadrilateral>
+				this->AssembleErrorEstimator<ConstrainingQuadrilateral>
 					(vSubsetElemError, dd, si, bNonRegularGrid, u);
 				break;
 			case 3:
-				this->template AssembleErrorEstimator<Tetrahedron>
+				this->AssembleErrorEstimator<Tetrahedron>
 					(vSubsetElemError, dd, si, bNonRegularGrid, u);
-				this->template AssembleErrorEstimator<Pyramid>
+				this->AssembleErrorEstimator<Pyramid>
 					(vSubsetElemError, dd, si, bNonRegularGrid, u);
-				this->template AssembleErrorEstimator<Prism>
+				this->AssembleErrorEstimator<Prism>
 					(vSubsetElemError, dd, si, bNonRegularGrid, u);
-				this->template AssembleErrorEstimator<Hexahedron>
+				this->AssembleErrorEstimator<Hexahedron>
 					(vSubsetElemError, dd, si, bNonRegularGrid, u);
-				this->template AssembleErrorEstimator<Octahedron>
+				this->AssembleErrorEstimator<Octahedron>
 					(vSubsetElemError, dd, si, bNonRegularGrid, u);
 				break;
 			default:
@@ -2482,8 +2482,8 @@ calc_error
 
 		// map attachments to grid function
 		ConstSmartPtr<SurfaceView> sv = uVTK->approx_space()->dof_distribution(gl)->surface_view();
-		elem_iter_type elem_iter_end = sv->template end<elem_type> (gl, SurfaceView::ALL);
-		for (elem_iter_type elem = sv->template begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
+		elem_iter_type elem_iter_end = sv->end<elem_type> (gl, SurfaceView::ALL);
+		for (elem_iter_type elem = sv->begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
 		{
 			// 	get global indices
 			uVTK->approx_space()->dof_distribution(gl)->indices(*elem, ind, false);
@@ -2541,7 +2541,7 @@ AssembleErrorEstimator(	const std::vector<IElemError<domain_type>*>& vElemDisc,
 	//	general case: assembling over all elements in subset si
 	gass_type::template AssembleErrorEstimator<TElem>
 		(vElemDisc, m_spApproxSpace->domain(), dd,
-			dd->template begin<TElem>(si), dd->template end<TElem>(si),
+			dd->begin<TElem>(si), dd->end<TElem>(si),
 				si, bNonRegularGrid, u);
 }
 
@@ -2562,7 +2562,7 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	PROFILE_FUNC_GROUP("error_estimator");
 
 //	get multigrid
-	SmartPtr<MultiGrid> pMG = ((DoFDistribution *) dd.get())->multi_grid();
+	SmartPtr<MultiGrid> pMG = const_cast<DoFDistribution *>(dd.get())->multi_grid();
 
 // check, whether separate error data exists
 	const bool useErrorData = !m_vDomainElemError.empty();
@@ -2638,33 +2638,33 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 			switch (dim)
 			{
 			case 1:
-				this->template AssembleErrorEstimator<RegularEdge>
+				this->AssembleErrorEstimator<RegularEdge>
 					(vSubsetElemError, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				// When assembling over lower-dim manifolds that contain hanging nodes:
-				this->template AssembleErrorEstimator<ConstrainingEdge>
+				this->AssembleErrorEstimator<ConstrainingEdge>
 					(vSubsetElemError, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				break;
 			case 2:
-				this->template AssembleErrorEstimator<Triangle>
+				this->AssembleErrorEstimator<Triangle>
 					(vSubsetElemError, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
-				this->template AssembleErrorEstimator<Quadrilateral>
+				this->AssembleErrorEstimator<Quadrilateral>
 					(vSubsetElemError, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				// When assembling over lower-dim manifolds that contain hanging nodes:
-				this->template AssembleErrorEstimator<ConstrainingTriangle>
+				this->AssembleErrorEstimator<ConstrainingTriangle>
 					(vSubsetElemError, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
-				this->template AssembleErrorEstimator<ConstrainingQuadrilateral>
+				this->AssembleErrorEstimator<ConstrainingQuadrilateral>
 					(vSubsetElemError, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				break;
 			case 3:
-				this->template AssembleErrorEstimator<Tetrahedron>
+				this->AssembleErrorEstimator<Tetrahedron>
 					(vSubsetElemError, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
-				this->template AssembleErrorEstimator<Pyramid>
+				this->AssembleErrorEstimator<Pyramid>
 					(vSubsetElemError, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
-				this->template AssembleErrorEstimator<Prism>
+				this->AssembleErrorEstimator<Prism>
 					(vSubsetElemError, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
-				this->template AssembleErrorEstimator<Hexahedron>
+				this->AssembleErrorEstimator<Hexahedron>
 					(vSubsetElemError, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
-				this->template AssembleErrorEstimator<Octahedron>
+				this->AssembleErrorEstimator<Octahedron>
 					(vSubsetElemError, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				break;
 			default:
@@ -2711,8 +2711,8 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	// loop surface elements
 	ConstSmartPtr<SurfaceView> sv = dd->surface_view();
 	const GridLevel& gl = dd->grid_level();
-	elem_iter_type elem_iter_end = sv->template end<elem_type> (gl, SurfaceView::ALL);
-	for (elem_iter_type elem = sv->template begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
+	elem_iter_type elem_iter_end = sv->end<elem_type> (gl, SurfaceView::ALL);
+	for (elem_iter_type elem = sv->begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
 	{
 		// clear attachment
 		m_mgElemErrors.error(*elem) = 0.0;
@@ -2734,7 +2734,7 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		LocalIndices ind; LocalVector locU;
 
 		// cast u_vtk to grid_function
-		GridFunction<TDomain,TAlgebra>* uVTK = dynamic_cast<GridFunction<TDomain,TAlgebra>*>(u_vtk);
+		auto* uVTK = dynamic_cast<GridFunction<TDomain,TAlgebra>*>(u_vtk);
 		if (!uVTK)
 		{
 			UG_THROW("Argument passed as output for error function is not a GridFunction.");
@@ -2745,8 +2745,8 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 
 		// map attachments to grid function
 		ConstSmartPtr<SurfaceView> sv = uVTK->approx_space()->dof_distribution(gl)->surface_view();
-		elem_iter_type elem_iter_end = sv->template end<elem_type> (gl, SurfaceView::ALL);
-		for (elem_iter_type elem = sv->template begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
+		elem_iter_type elem_iter_end = sv->end<elem_type> (gl, SurfaceView::ALL);
+		for (elem_iter_type elem = sv->begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
 		{
 			// 	get global indices
 			uVTK->approx_space()->dof_distribution(gl)->indices(*elem, ind, false);
@@ -2800,7 +2800,7 @@ AssembleErrorEstimator(	const std::vector<IElemError<domain_type>*>& vElemDisc,
 	//	general case: assembling over all elements in subset si
 	gass_type::template AssembleErrorEstimator<TElem>
 		(vElemDisc, m_spApproxSpace->domain(), dd,
-			dd->template begin<TElem>(si), dd->template end<TElem>(si),
+			dd->begin<TElem>(si), dd->end<TElem>(si),
 				si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 }
 
@@ -2835,7 +2835,7 @@ invalidate_error()
 	{
 		m_bErrorCalculated = false;
 		m_mgElemErrors.detach_indicators();
-		// this->m_pMG->template detach_from<elem_type>(this->m_aError);
+		// this->m_pMG->detach_from<elem_type>(this->m_aError);
 	}
 }
 
@@ -3013,7 +3013,7 @@ FinishTimestepElem(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		//	general case: assembling over all elements in subset si
 		gass_type::template FinishTimestepElem<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
-				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+				dd->begin<TElem>(si), dd->end<TElem>(si), si,
 					bNonRegularGrid, vSol, m_spAssTuner);
 	}
 }

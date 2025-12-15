@@ -105,13 +105,13 @@ class CompositeTimeDiscretization
 		);
 
 		/// @copydoc ITimeDiscretization<TAlgebra>::future_time()
-		virtual number future_time() const;
+		[[nodiscard]] virtual number future_time() const;
 
 		/// @copydoc ITimeDiscretization<TAlgebra>::num_prev_steps()
-		virtual size_t num_prev_steps() const;
+		[[nodiscard]] virtual size_t num_prev_steps() const;
 
 		/// @copydoc ITimeDiscretization<TAlgebra>::num_stages()
-		virtual size_t num_stages() const;
+		[[nodiscard]] virtual size_t num_stages() const;
 
 		/// @copydoc ITimeDiscretization<TAlgebra>::set_stage()
 		virtual void set_stage(size_t stage);
@@ -138,16 +138,16 @@ class CompositeTimeDiscretization
 
 		///\{
 		/// @copydoc IAssemble::ass_tuner
-		SmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() override;
+		[[nodiscard]] SmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() override;
 
-		ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const override;
+		[[nodiscard]] ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const override;
 		///\}
 
 		///	@copydoc IAssemble::num_constraints
-		size_t num_constraints() const override;
+		[[nodiscard]] size_t num_constraints() const override;
 
 		///	@copydoc IAssemble::constraint
-		SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) override;
+		[[nodiscard]] SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) override;
 
 	protected:
 		std::vector<SmartPtr<ITimeDiscretization<TAlgebra> > > m_vTimeDisc;

@@ -129,8 +129,8 @@ void CheckHook()
 	}
 	else
 	{
-		const int DEBUG_HOOK_MASK = LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE;
-		const int PROFILER_HOOK_MASK = LUA_MASKCALL | LUA_MASKRET;
+		constexpr int DEBUG_HOOK_MASK = LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE;
+		constexpr int PROFILER_HOOK_MASK = LUA_MASKCALL | LUA_MASKRET;
 		
 		if(bDebugging && curHookMask != DEBUG_HOOK_MASK)
 		{
@@ -176,14 +176,12 @@ void AddBreakpoint(const char*source, int line)
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void PrintBreakpoints()
 {
-	std::map<std::string, std::map<int, bool> >::iterator it1;
-	std::map<int, bool>::iterator it2;
-	for(it1 = breakpoints.begin(); it1 != breakpoints.end(); ++it1)
+	for(auto it1 = breakpoints.begin(); it1 != breakpoints.end(); ++it1)
 	{
-		std::map<int, bool> &m = (*it1).second;
-		for(it2 = m.begin(); it2 != m.end(); ++it2)
+		std::map<int, bool> &m = it1->second;
+		for(auto it2 = m.begin(); it2 != m.end(); ++it2)
 		{
-			UG_LOG((*it1).first << ":" << (*it2).first << ((*it2).second?" enabled":" disabled") << "\n")
+			UG_LOG(it1->first << ":" << it2->first << ( it2->second?" enabled":" disabled") << "\n")
 		}
 	}
 }
@@ -210,7 +208,7 @@ void breakpoint()
 	else if(r == DEBUG_CONTINUE)
 	{
 		debugMode = DEBUG_CONTINUE;
-		bDebugging = breakpoints.size() > 0;
+		bDebugging = !breakpoints.empty();
 		CheckHook();
 	}
 	else if(r == DEBUG_NEXT || r == DEBUG_STEP || r == DEBUG_FINISH)
@@ -296,7 +294,7 @@ void luaDebug(lua_State *L, const char *source, int line)
 			if(entry.currentline >= 0)
 			{
 				std::map<int, bool> &m = breakpoints[entry.source+1];
-				std::map<int, bool>::iterator it = m.find(entry.currentline);
+				auto it = m.find(entry.currentline);
 				//UG_LOG(entry.source+1 << ":" << entry.currentline << "\n");
 				if(it != m.end() && it->second == true &&
 						(lastline != entry.currentline || lastsource!=entry.source+1))
@@ -667,15 +665,15 @@ bool RegisterLuaDebug(bridge::Registry &reg)
 
 
 
-void SetLuaDebug(lua_State* L, string id)
+void SetLuaDebug(lua_State* L, const string &id)
 {
-	string name = id;
+	const string& name = id;
 	string rest = name;
-	string pre = "";
+	string pre;
 
 	while(true)
 	{
-		int dotPos = rest.find(".");
+		int dotPos = rest.find('.');
 		if(dotPos == -1) break;
 		string sub = rest.substr(0, dotPos);
 		rest = rest.substr(dotPos+1, rest.size());
@@ -684,7 +682,7 @@ void SetLuaDebug(lua_State* L, string id)
 		//string p = std::string("") + "debugID." + pre+sub + " = " + "debugID." + pre+sub + " or {}\n" + "function debugID." + pre+sub + ".set_group_level(level) GetLogAssistant():set_debug_level(\"" + pre+sub + ".*\", level) end\n";
 		string p = std::string("") + "debugID." + pre+sub + " = " + "debugID." + pre+sub + " or {}\n" + "debugID." + pre+sub + ".id = \"" + pre+sub + "\"\n";
 		//UG_LOGN(p);
-		script::ParseAndExecuteBuffer(p.c_str(), "SetLuaDebug");
+		ParseAndExecuteBuffer(p.c_str(), "SetLuaDebug");
 		pre = pre+sub+".";
 
 	}
@@ -693,12 +691,12 @@ void SetLuaDebug(lua_State* L, string id)
 //	string p = std::string("") + "debugID." + name + " = " + "debugID." + name + " or {}\n" + "function debugID." + name + ".set_level(level) GetLogAssistant():set_debug_level(\"" + name + "\", level) end\n";
 	string p = std::string("") + "debugID." + name + " = " + "debugID." + name + " or {}\n" + "debugID." + name + ".id = \"" + name + "\"\n";
 	//UG_LOGN(p);
-	script::ParseAndExecuteBuffer(p.c_str(), "SetLuaDebug");
+	ParseAndExecuteBuffer(p.c_str(), "SetLuaDebug");
 }
 
 void SetLuaDebugIDs(lua_State* L)
 {
-	script::ParseAndExecuteBuffer(
+	ParseAndExecuteBuffer(
 			"debugID = {}\n"
 			"function SetDebugLevel(did, level)\n"
 			"if(did == nil) then\n"

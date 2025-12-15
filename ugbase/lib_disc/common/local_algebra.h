@@ -74,7 +74,7 @@ class LocalIndices
 		}
 
 	///	returns the local finite element id of a function
-		const LFEID& local_finite_element_id(size_t fct) const
+		[[nodiscard]] const LFEID& local_finite_element_id(size_t fct) const
 		{
 			UG_ASSERT(fct < m_vLFEID.size(), "Invalid index: "<<fct);
 			return m_vLFEID[fct];
@@ -208,7 +208,7 @@ class LocalVector
 		LocalVector() : m_pIndex(nullptr) {m_vvValue.clear();}
 
 	///	Constructor
-		LocalVector(const LocalIndices& ind) {resize(ind);}
+		explicit LocalVector(const LocalIndices& ind) {resize(ind);}
 
 	///	resize for current local indices
 		void resize(const LocalIndices& ind)
@@ -222,7 +222,7 @@ class LocalVector
 		}
 
 	/// get current local indices
-		const LocalIndices& get_indices() const {return *m_pIndex;}
+		[[nodiscard]] const LocalIndices& get_indices() const {return *m_pIndex;}
 
 		///////////////////////////
 		// vector functions

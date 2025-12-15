@@ -118,7 +118,7 @@ bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut, Selector& sel, TA
 	grid.end_marking();
 
 	if(n > 0){
-		VecScale(centerOut, centerOut, 1. / (number)n);
+		VecScale(centerOut, centerOut, 1. / static_cast<number>(n));
 		return true;
 	}
 	return false;

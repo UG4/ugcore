@@ -150,22 +150,22 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 
 	public:
 	/// get underlying subset handler
-		ConstSmartPtr<MGSubsetHandler> subset_handler() const {return m_spMGSH;}
+		[[nodiscard]] ConstSmartPtr<MGSubsetHandler> subset_handler() const {return m_spMGSH;}
 
 	///	returns the number of level
-		size_t num_levels() const {return m_spMGSH->num_levels();}
+		[[nodiscard]] size_t num_levels() const {return m_spMGSH->num_levels();}
 
 	///	returns the approximation space
-		ConstSmartPtr<SurfaceView> surface_view() const {return m_spSurfaceView;}
+		[[nodiscard]] ConstSmartPtr<SurfaceView> surface_view() const {return m_spSurfaceView;}
 
 	///	returns if dofs are grouped
-		bool grouped() const {return m_bGrouped;}
+		[[nodiscard]] bool grouped() const {return m_bGrouped;}
 
 	///	returns if ghosts might be present on a level
-		bool might_contain_ghosts(int lvl) const;
+		[[nodiscard]] bool might_contain_ghosts(int lvl) const;
 
 	///	returns if ghosts might be present on any level
-		bool might_contain_ghosts() const;
+		[[nodiscard]] bool might_contain_ghosts() const;
 
 	///	returns dof distribution for a grid level
 	/// \{
@@ -175,17 +175,17 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 
 	///	returns dof distribution for a grid level
 	/// \{
-		ConstSmartPtr<DoFDistribution> dof_distribution(const GridLevel& gl, bool bCreate = true) const;
-		ConstSmartPtr<DoFDistribution> dd(const GridLevel& gl, bool bCreate = true) const;
+		[[nodiscard]] ConstSmartPtr<DoFDistribution> dof_distribution(const GridLevel& gl, bool bCreate = true) const;
+		[[nodiscard]] ConstSmartPtr<DoFDistribution> dd(const GridLevel& gl, bool bCreate = true) const;
 	/// \}
 
 	///	returns all currently created dof distributions
-		std::vector<SmartPtr<DoFDistribution> > dof_distributions() const;
+		[[nodiscard]] std::vector<SmartPtr<DoFDistribution> > dof_distributions() const;
 
 	///	returns dof distribution info
 	/// \{
-		ConstSmartPtr<DoFDistributionInfo> ddinfo() const {return m_spDoFDistributionInfo;}
-		ConstSmartPtr<DoFDistributionInfo> dof_distribution_info() const {return ddinfo();}
+		[[nodiscard]] ConstSmartPtr<DoFDistributionInfo> ddinfo() const {return m_spDoFDistributionInfo;}
+		[[nodiscard]] ConstSmartPtr<DoFDistributionInfo> dof_distribution_info() const {return ddinfo();}
 	///	\}
 
 	///	prints statistic about DoF Distribution
@@ -208,7 +208,7 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 		void init_top_surface();
 
 	///	returns the current revision
-		const RevisionCounter& revision() const {return m_RevCnt;}
+		[[nodiscard]] const RevisionCounter& revision() const {return m_RevCnt;}
 
 	protected:
 	///	creates a dof distribution
@@ -302,7 +302,7 @@ class ApproximationSpace : public IApproximationSpace
 	///	Return the domain
 		SmartPtr<TDomain> domain() {return m_spDomain;}
 
-		int get_dim_bridge() const { return dim; }
+		[[nodiscard]] int get_dim_bridge() const { return dim; }
 		static constexpr int get_dim() { return dim; }
 
 	protected:

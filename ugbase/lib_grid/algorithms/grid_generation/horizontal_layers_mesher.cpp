@@ -228,7 +228,7 @@ void ExtrudeLayers (
 			Vertex* v = curVrts[icur];
 			vector2 c(aaPos[v].x(), aaPos[v].y());
 			number upperVal = curUpperLayerHeight[icur];
-			number height = layers.relative_to_global_height(c, (number) ilayer);
+			number height = layers.relative_to_global_height(c, ilayer);
 
 			// bool searching = true;
 			int curLayer = ilayer;
@@ -238,7 +238,7 @@ void ExtrudeLayers (
 				pair<int, number> val = layers.trace_line_down(c, curLayer);
 				number lowerVal = 0;
 				if(val.first >= 0)
-					lowerVal = layers.relative_to_global_height(c, (number) val.first);
+					lowerVal = layers.relative_to_global_height(c, val.first);
 
 				// if(curLayer == 0 && val.first >= 0
 				// 	&& upperVal - lowerVal < layers.min_height(curLayer))
@@ -563,7 +563,7 @@ void ExtrudeLayersMixed (
 			Vertex* v = curVrts[icur];
 			vector2 c(aaPos[v].x(), aaPos[v].y());
 			number curH = aaPos[v].z();
-			// number nextH = layers.relative_to_global_height(c, (number) nextLayer);
+			// number nextH = layers.relative_to_global_height(c,  nextLayer);
 			number nextH = layers.heightfield(nextLayer).interpolate(c, 1);
 			if(curH - nextH < layers.min_height(nextLayer)){
 				nextVrts.push_back(v);

@@ -91,7 +91,7 @@ class ReferenceMapping
 		void update(const std::vector<MathVector<worldDim> >& vCornerCoord);
 
 	///	returns if mapping is affine
-		bool is_linear() const;
+		[[nodiscard]] bool is_linear() const;
 
 	///	map local coordinate to global coordinate
 		void local_to_global(MathVector<worldDim>& globPos,
@@ -193,7 +193,7 @@ class BaseReferenceMapping
 {
 	public:
 	///	returns if mapping is affine
-		bool is_linear() const {return isLinear;}
+		[[nodiscard]] bool is_linear() const {return isLinear;}
 
 	///	map local coordinate to global coordinate for n local positions
 		void local_to_global(MathVector<worldDim>* vGlobPos,
@@ -819,8 +819,7 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 		static constexpr bool isLinear = true;
 
 	public:
-		using base_type = BaseReferenceMapping<ReferenceTetrahedron::dim, TWorldDim, true,
-			ReferenceMapping<ReferenceTetrahedron, TWorldDim> >;
+		using base_type = BaseReferenceMapping<ReferenceTetrahedron::dim, TWorldDim, true, ReferenceMapping >;
 		using base_type::local_to_global;
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
@@ -999,8 +998,7 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 
 template <int TWorldDim>
 class ReferenceMapping<ReferencePrism, TWorldDim>
-	: public BaseReferenceMapping<ReferencePrism::dim, TWorldDim, false,
-								  ReferenceMapping<ReferencePrism, TWorldDim> >
+	: public BaseReferenceMapping<ReferencePrism::dim, TWorldDim, false, ReferenceMapping<ReferencePrism, TWorldDim> >
 {
 	public:
 	///	world dimension

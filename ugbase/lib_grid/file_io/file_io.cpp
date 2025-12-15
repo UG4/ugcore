@@ -527,7 +527,7 @@ bool SaveGridHierarchyTransformed(MultiGrid& mg, ISubsetHandler& sh,
 		for(VertexIterator iter = mg.begin<Vertex>(lvl);
 			iter != mg.end<Vertex>(lvl); ++iter)
 		{
-			aaPos[*iter].z() += (number)lvl * offset;
+			aaPos[*iter].z() += static_cast<number>(lvl) * offset;
 		}
 	}
 
@@ -566,7 +566,7 @@ bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename,
 		for(VertexIterator iter = mg.begin<Vertex>(lvl);
 			iter != mg.end<Vertex>(lvl); ++iter)
 		{
-			aaPos[*iter].z() += (number)lvl * offset;
+			aaPos[*iter].z() += static_cast<number>(lvl) * offset;
 		}
 	}
 
@@ -713,7 +713,7 @@ bool SaveSurfaceViewTransformed(MultiGrid& mg, const SurfaceView& sv,
 		for(VertexIterator iter = mg.begin<Vertex>(lvl);
 			iter != mg.end<Vertex>(lvl); ++iter)
 		{
-			aaPos[*iter].z() += (number)lvl * offset;
+			aaPos[*iter].z() += static_cast<number>(lvl) * offset;
 		}
 	}
 

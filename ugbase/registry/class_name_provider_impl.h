@@ -258,42 +258,42 @@ cast_to(const void* ptr, const ClassNameNode*& node)
 
 template <typename T>
 SmartPtr<T> ClassCastProvider::
-cast_to(SmartPtr<void> spDerivVoid, const ClassNameNode*& node)
+cast_to(SmartPtr<void> ptr, const ClassNameNode*& node)
 {
 //	get base name
 	const std::string& baseName = ClassNameProvider<T>::name();
 
 //	extract plain pointer
-	void* rawPtr = spDerivVoid.get();
+	void* rawPtr = ptr.get();
 
 //	cast the plain pointer
 	rawPtr = cast_to_base_class(rawPtr, node, baseName);
 
 //	sets as pointer to the smart ptr
-	spDerivVoid.set_impl<T, FreeDelete>(rawPtr);
+	ptr.set_impl<T, FreeDelete>(rawPtr);
 
 //	return it
-	return spDerivVoid.cast_reinterpret<T, FreeDelete>();
+	return ptr.cast_reinterpret<T, FreeDelete>();
 }
 
 template <typename T>
 ConstSmartPtr<T> ClassCastProvider::
-cast_to(ConstSmartPtr<void> spDerivVoid, const ClassNameNode*& node)
+cast_to(ConstSmartPtr<void> ptr, const ClassNameNode*& node)
 {
 //	get base name
 	const std::string& baseName = ClassNameProvider<T>::name();
 
 //	extract plain pointer
-	const void* rawPtr = spDerivVoid.get();
+	const void* rawPtr = ptr.get();
 
 //	cast the plain pointer
 	rawPtr = cast_to_base_class(rawPtr, node, baseName);
 
 //	sets as pointer to the smart ptr
-	spDerivVoid.set_impl<T, FreeDelete>(rawPtr);
+	ptr.set_impl<T, FreeDelete>(rawPtr);
 
 //	return it
-	return spDerivVoid.cast_reinterpret<T, FreeDelete>();
+	return ptr.cast_reinterpret<T, FreeDelete>();
 }
 } // end namespace ug
 } // end namespace bridge

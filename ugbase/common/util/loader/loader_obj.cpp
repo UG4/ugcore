@@ -94,7 +94,7 @@ static void split_parameters(ParameterList* pParamList, const char* pParamString
 //TODO: IMPROVE THIS FUNCTION!!! MOVE IT TO A COMMON UTIL-FILE
 string replace_chars(string& str, char cToR, char cNew)
 {
-	char* nStr = new char[str.length() + 1];
+	auto nStr = new char[str.length() + 1];
 	memcpy(nStr, str.c_str(), str.length());
 	nStr[str.length()] = 0;
 	char* tPtr = nStr;
@@ -453,7 +453,7 @@ int LoaderObj::get_material_index_by_name(const char* name) const
 	int counter = 0;
 	for(auto iter = m_vMaterials.begin(); iter != m_vMaterials.end(); ++iter)
 	{
-		if(iter->m_strName.compare(name) == 0)
+		if(iter->m_strName == name)
 			return counter;
 		counter++;
 	}

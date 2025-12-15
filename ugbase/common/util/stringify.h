@@ -65,10 +65,8 @@ class Stringify
 {
 public:
 	std::stringstream ss;
-	Stringify()
-	{
+	Stringify()	= default;
 
-	}
 	template<typename T>
 	Stringify &operator << (T t)
 	{

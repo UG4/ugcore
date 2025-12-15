@@ -163,7 +163,7 @@ void PointerConstArray<TPtr>::
 reserve(size_t capacity, bool copyOldData)
 {
 	if(capacity > m_capacity){
-		PtrArray newData = new TPtr[capacity];
+		auto newData = new TPtr[capacity];
 
 		if(m_data && copyOldData)
 			memcpy(newData, m_data, sizeof(TPtr) * m_capacity);

@@ -82,91 +82,80 @@ class LocalShapeFunctionSetWrapper
 
 	public:
 	///	constructor
-		LocalShapeFunctionSetWrapper(){}
+		LocalShapeFunctionSetWrapper() = default;
 
 	public:
 	///	\copydoc ug::LocalDoFSet::type()
-		virtual ReferenceObjectID roid() const {return ImplType::roid();}
+		[[nodiscard]] ReferenceObjectID roid() const override {return ImplType::roid();}
 
 	///	\copydoc ug::LocalDoFSet::num_sh()
-		virtual size_t num_sh() const {return ImplType::num_sh();}
+		[[nodiscard]] size_t num_sh() const override {return ImplType::num_sh();}
 
 	///	\copydoc ug::LocalDoFSet::num_dof()
-		virtual size_t num_dof(ReferenceObjectID roid) const {return ImplType::num_dof(roid);}
+		[[nodiscard]] size_t num_dof(ReferenceObjectID roid) const override {return ImplType::num_dof(roid);}
 
 	///	\copydoc ug::LocalDoFSet::local_dof()
-		virtual const LocalDoF& local_dof(size_t dof) const {return ImplType::local_dof(dof);}
+		[[nodiscard]] const LocalDoF& local_dof(size_t dof) const override {return ImplType::local_dof(dof);}
 
 	///	\copydoc ug::LocalDoFSet::exact_position_available()
-		virtual bool exact_position_available() const {return ImplType::exact_position_available();}
+		[[nodiscard]] bool exact_position_available() const override {return ImplType::exact_position_available();}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		virtual bool position(size_t i, MathVector<dim>& pos) const
-		{
+		[[nodiscard]] bool position(size_t i, MathVector<dim>& pos) const override {
 			return ImplType::position(i, pos);
 		}
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		virtual bool continuous() const {return ImplType::continuous();}
+		[[nodiscard]] bool continuous() const override {return ImplType::continuous();}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		virtual shape_type shape(size_t i, const MathVector<dim>& x) const
-		{
+		[[nodiscard]] shape_type shape(size_t i, const MathVector<dim>& x) const override {
 			return ImplType::shape(i, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		virtual void shape(shape_type& s, size_t i, const MathVector<dim>& x) const
-		{
+		void shape(shape_type& s, size_t i, const MathVector<dim>& x) const override {
 			using baseType = BaseLSFS<TImpl, TImpl::dim,
 				typename TImpl::shape_type,
 				typename TImpl::grad_type>;
-
-				  	  	  	  	  	  	  	   baseType::shape(s, i, x);
+				baseType::shape(s, i, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
-		virtual void shapes(shape_type* vShape, const MathVector<dim>& x) const
-		{
+		void shapes(shape_type* vShape, const MathVector<dim>& x) const override {
 			ImplType::shapes(vShape, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
-		virtual void shapes(std::vector<shape_type>& vShape, const MathVector<dim>& x) const
-		{
+		void shapes(std::vector<shape_type>& vShape, const MathVector<dim>& x) const override {
 			ImplType::shapes(vShape, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
-		virtual void shapes(std::vector<std::vector<shape_type> >& vvShape,
-							const std::vector<MathVector<dim> >& vLocPos) const
-		{
+		void shapes(std::vector<std::vector<shape_type> >& vvShape,
+	            const std::vector<MathVector<dim> >& vLocPos) const override {
 			ImplType::shapes(vvShape, vLocPos);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		virtual void grad(grad_type& g, size_t i, const MathVector<dim>& x) const
-		{
+		void grad(grad_type& g, size_t i, const MathVector<dim>& x) const override {
 			ImplType::grad(g, i, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
-		virtual void grads(grad_type* vGrad, const MathVector<dim>& x) const
-		{
+		void grads(grad_type* vGrad, const MathVector<dim>& x) const override {
 			ImplType::grads(vGrad, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
-		virtual void grads(std::vector<grad_type>& vGrad, const MathVector<dim>& x) const
-		{
+		void grads(std::vector<grad_type>& vGrad, const MathVector<dim>& x) const override {
 			ImplType::grads(vGrad, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
-		virtual void grads(std::vector<std::vector<grad_type> >& vvGrad,
-						   const std::vector<MathVector<dim> >& vLocPos) const
-		{
+		void grads(std::vector<std::vector<grad_type> >& vvGrad,
+	           const std::vector<MathVector<dim> >& vLocPos) const override {
 			ImplType::grads(vvGrad, vLocPos);
 		}
 };
@@ -238,7 +227,7 @@ class SubLocalDoFSet : public DimLocalDoFSet<TDim>
 						for(size_t offset = 0; offset < vLocalDoFID.size(); ++offset){
 
 							const LocalDoF* pLocalDoF = nullptr;
-							size_t localDoFID = (size_t)-1;
+							size_t localDoFID = static_cast<size_t>(-1);
 							for(size_t dof = 0; dof < vLocalDoFID.size(); ++dof){
 								if(set.local_dof(vLocalDoFID[dof]).offset() == offset){
 									pLocalDoF = &set.local_dof(vLocalDoFID[dof]);
@@ -275,7 +264,7 @@ class SubLocalDoFSet : public DimLocalDoFSet<TDim>
 							}
 
 						//	add
-							vLocalDoF.push_back(LocalDoF(subDim, i, offset));
+							vLocalDoF.emplace_back(subDim, i, offset);
 							vLocalPos.push_back(locPos);
 						}
 					}
@@ -286,13 +275,12 @@ class SubLocalDoFSet : public DimLocalDoFSet<TDim>
 		}
 
 	public:
-		virtual ReferenceObjectID roid() const {return m_roid;};
-		virtual size_t num_dof(ReferenceObjectID roid) const {return m_vNumDoF[roid];}
-		virtual size_t num_sh() const {return m_vLocalDoF.size();}
-		virtual const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
-		virtual bool exact_position_available() const {return m_bExactPos;}
-		virtual bool position(size_t i, MathVector<TDim>& pos) const
-		{
+		[[nodiscard]] ReferenceObjectID roid() const override {return m_roid;};
+		[[nodiscard]] size_t num_dof(ReferenceObjectID roid) const override {return m_vNumDoF[roid];}
+		[[nodiscard]] size_t num_sh() const override {return m_vLocalDoF.size();}
+		[[nodiscard]] const LocalDoF& local_dof(size_t dof) const override {return m_vLocalDoF[dof];}
+		[[nodiscard]] bool exact_position_available() const override {return m_bExactPos;}
+		bool position(size_t i, MathVector<TDim>& pos) const override {
 			pos = m_vLocalPos[i];
 			return exact_position_available();
 		}
@@ -529,7 +517,6 @@ void LocalFiniteElementProvider::create_crouxeiz_raviart_set(const LFEID& id)
 	if(id == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
 		register_set(id, ConstSmartPtr<LocalShapeFunctionSet<dim> >(
 					 new LocalShapeFunctionSetWrapper<CrouzeixRaviartLSFS<TRefElem> >));
-	return;
 }
 
 void LocalFiniteElementProvider::
@@ -575,7 +562,7 @@ create_set(const LFEID& id)
 		case LFEID::MINI:
 
 			for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
-				const ReferenceObjectID roid = (ReferenceObjectID) r;
+				auto roid = static_cast<ReferenceObjectID>(r);
 				const int dim = ReferenceElementDimension(roid);
 
 				if(dim <= id.dim())
@@ -589,7 +576,7 @@ create_set(const LFEID& id)
 		case LFEID::NEDELEC:
 
 			for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
-				const ReferenceObjectID roid = (ReferenceObjectID) r;
+				auto roid = static_cast<ReferenceObjectID>(r);
 				const int dim = ReferenceElementDimension(roid);
 
 				if(dim == id.dim())
@@ -615,7 +602,7 @@ create_sub_dof_set(ReferenceObjectID roid, const LFEID& id)
 	// contains roid as a sub element
 
 	for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
-		const ReferenceObjectID elemRoid = (ReferenceObjectID) r;
+		auto elemRoid = static_cast<ReferenceObjectID>(r);
 		const int elemDim = ReferenceElementDimension(elemRoid);
 
 		// we only take elements that are in the dimension of the space
@@ -696,14 +683,6 @@ create_dof_set(ReferenceObjectID roid, const LFEID& id)
 }
 
 
-LocalFiniteElementProvider::
-LocalFiniteElementProvider()
-{};
-
-LocalFiniteElementProvider::
-~LocalFiniteElementProvider()
-{};
-
 const LocalDoFSet& LocalFiniteElementProvider::
 get_dofs(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 {
@@ -730,7 +709,7 @@ get_dofs(const LFEID& id, bool bCreate)
 {
 //	init provider and search for identifier
 	using Map = std::map<LFEID, CommonLocalDoFSet>;
-	Map::const_iterator iter = inst().m_mCommonDoFSet.find(id);
+	auto iter = inst().m_mCommonDoFSet.find(id);
 
 //	if not found
 	if(iter == m_mCommonDoFSet.end()){
@@ -747,7 +726,7 @@ get_dofs(const LFEID& id, bool bCreate)
 
 bool LocalFiniteElementProvider::continuous(const LFEID& id, bool bCreate)
 {
-	std::map<LFEID, bool>::iterator iter = m_mContSpace.find(id);
+	auto iter = m_mContSpace.find(id);
 	if(iter == m_mContSpace.end())
 	{
 	//	try to create the set

@@ -132,7 +132,7 @@ number ComputeAvg
  */
 template<typename TElem>
 void ComputeMinMax
-(	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
+(	MultiGrid::AttachmentAccessor<TElem, Attachment<number> >& aaError,
 	ConstSmartPtr<DoFDistribution> dd,
 	number& min, number& max, number& totalErr, size_t& numElem,
 	number& minLocal, number& maxLocal, number& totalErrLocal, size_t& numElemLocal
@@ -146,8 +146,8 @@ void ComputeMinMax
 	numElem = 0;
 
 //	get element iterator
-	const_iterator iter = dd->template begin<TElem>();
-	const_iterator iterEnd = dd->template end<TElem>();
+	const_iterator iter = dd->begin<TElem>();
+	const_iterator iterEnd = dd->end<TElem>();
 
 //	loop all elements to find the maximum of the error
 	for (; iter != iterEnd; ++iter)
@@ -251,8 +251,8 @@ void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >&
 //	reset counter
 	int numMarkedRefine = 0, numMarkedCoarse = 0;
 
-	const_iterator iter = dd->template begin<TElem>();
-	const_iterator iterEnd = dd->template end<TElem>();
+	const_iterator iter = dd->begin<TElem>();
+	const_iterator iterEnd = dd->end<TElem>();
 
 //	loop elements for marking
 	for(; iter != iterEnd; ++iter)
@@ -341,8 +341,8 @@ void MarkElementsForRefinement
 //	reset counter
 	size_t numMarkedRefine = 0;
 
-	const_iterator iter = dd->template begin<TElem>();
-	const_iterator iterEnd = dd->template end<TElem>();
+	const_iterator iter = dd->begin<TElem>();
+	const_iterator iterEnd = dd->end<TElem>();
 
 //	loop elements for marking
 	for (; iter != iterEnd; ++iter)
@@ -393,7 +393,7 @@ void MarkElementsForRefinement
 template<typename TElem>
 void MarkElementsForCoarsening
 (	MultiGrid::AttachmentAccessor<TElem,
-	ug::Attachment<number> >& aaError,
+		Attachment<number> >& aaError,
 		IRefiner& refiner,
 		ConstSmartPtr<DoFDistribution> dd,
 		number TOL,
@@ -417,8 +417,8 @@ void MarkElementsForCoarsening
 //	reset counter
 	size_t numMarkedCoarse = 0;
 
-	const_iterator iter = dd->template begin<TElem>();
-	const_iterator iterEnd = dd->template end<TElem>();
+	const_iterator iter = dd->begin<TElem>();
+	const_iterator iterEnd = dd->end<TElem>();
 
 //	loop elements for marking
 	for (; iter != iterEnd; ++iter)
@@ -511,7 +511,7 @@ void MarkElementsAbsolute(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<nu
 	const MultiGrid* mg = dd->multi_grid().get();
 	int topLvl = 0;
 	if(mg)
-		topLvl = (int)mg->top_level();
+		topLvl = static_cast<int>(mg->top_level());
 	else
 		refTopLvlOnly = false;
 

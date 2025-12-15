@@ -202,20 +202,17 @@ void NeumannBoundaryBase<TDomain>::
 add(const char* name, const char* function, const char* subsets)
 {
 	if(LuaUserData<number, dim>::check_callback_returns(name)){
-		SmartPtr<CplUserData<number, dim> > sp =
-							LuaUserDataFactory<number, dim>::create(name);
+		SmartPtr<CplUserData<number, dim> > sp = LuaUserDataFactory<number, dim>::create(name);
 		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<number, dim, bool>::check_callback_returns(name)){
-		SmartPtr<CplUserData<number, dim, bool> > sp =
-				LuaUserDataFactory<number, dim, bool>::create(name);
+		SmartPtr<CplUserData<number, dim, bool> > sp = LuaUserDataFactory<number, dim, bool>::create(name);
 		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(name)){
-		SmartPtr<CplUserData<MathVector<dim>, dim> > sp =
-				LuaUserDataFactory<MathVector<dim>, dim>::create(name);
+		SmartPtr<CplUserData<MathVector<dim>, dim> > sp = LuaUserDataFactory<MathVector<dim>, dim>::create(name);
 		add(sp, function, subsets);
 		return;
 	}
@@ -258,20 +255,17 @@ void NeumannBoundaryBase<TDomain>::
 add(LuaFunctionHandle fct, const char* function, const char* subsets)
 {
 	if(LuaUserData<number, dim>::check_callback_returns(fct)){
-		SmartPtr<CplUserData<number, dim> > sp =
-							make_sp(new LuaUserData<number, dim>(fct));
+		SmartPtr<CplUserData<number, dim> > sp = make_sp(new LuaUserData<number, dim>(fct));
 		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<number, dim, bool>::check_callback_returns(fct)){
-		SmartPtr<CplUserData<number, dim, bool> > sp =
-							make_sp(new LuaUserData<number, dim, bool>(fct));
+		SmartPtr<CplUserData<number, dim, bool> > sp = make_sp(new LuaUserData<number, dim, bool>(fct));
 		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(fct)){
-		SmartPtr<CplUserData<MathVector<dim>, dim> > sp =
-							make_sp(new LuaUserData<MathVector<dim>, dim>(fct));
+		SmartPtr<CplUserData<MathVector<dim>, dim> > sp = make_sp(new LuaUserData<MathVector<dim>, dim>(fct));
 		add(sp, function, subsets);
 		return;
 	}

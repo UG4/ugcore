@@ -113,7 +113,7 @@ class P1LagrangeElemTransfer
 	, public ElemRestrictionBase<TDomain, P1LagrangeElemTransfer<TDomain> >
 {
 	public:
-		P1LagrangeElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
+	explicit P1LagrangeElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
 		~P1LagrangeElemTransfer() override = default;
 
@@ -173,7 +173,7 @@ class P1LagrangeElemTransfer
 			const int numChild = mg->num_children<Vertex>(parent);
 			if(numChild != 1) UG_THROW("Num child Vertex must be 1");
 
-			Vertex* child = mg->get_child<Vertex>(parent, 0);
+			auto* child = mg->get_child<Vertex>(parent, 0);
 
 			vValueChild.access_inner(child);
 			vValueParent.access_closure(parent);
@@ -201,7 +201,7 @@ class StdLagrangeElemTransfer
 		static constexpr int dim = TDomain::dim;
 
 	public:
-		StdLagrangeElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
+		explicit StdLagrangeElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
 		~StdLagrangeElemTransfer() override = default;
 
@@ -245,7 +245,7 @@ class StdLagrangeElemTransfer
 					ReferenceMappingProvider::get<pdim, dim>(parentRoid, vCornerParent);
 
 			//	get local position of DoF
-				std::vector<MathVector<pdim> > vLocPos(vDoFPos.size(), 0.0);
+				std::vector<MathVector<pdim> > vLocPos(vDoFPos.size(), MathVector<pdim>(0.0));
 				map.global_to_local(vLocPos, vDoFPos);
 
 			//	evaluate coarse shape fct at fine local point
@@ -309,7 +309,7 @@ class StdLagrangeElemTransfer
 			if(numChild != 1) UG_THROW("Num child Vertex must be 1");
 
 		//	get child
-			Vertex* child = mg->get_child<Vertex>(parent, 0);
+			auto* child = mg->get_child<Vertex>(parent, 0);
 
 		//	access the values
 			vValueChild.access_inner(child);
@@ -390,7 +390,7 @@ class StdLagrangeElemTransfer
 			TransferValueAccessor& vValueChild = *IElemRestriction<TDomain>::m_vValueChild;
             TransferValueAccessor& vValueParent = *IElemRestriction<TDomain>::m_vValueParent;
 
-			Vertex* child = mg->get_child<Vertex>(parent, 0);
+			auto* child = mg->get_child<Vertex>(parent, 0);
 
 			vValueChild.access_inner(child);
 			vValueParent.access_inner(parent);
@@ -414,7 +414,7 @@ class CrouzeixRaviartElemTransfer
 		static constexpr int dim = TDomain::dim;
 
 	public:
-		CrouzeixRaviartElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
+	explicit CrouzeixRaviartElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
 		~CrouzeixRaviartElemTransfer() override = default;
 
@@ -492,7 +492,7 @@ class CrouzeixRaviartElemTransfer
 						ReferenceMappingProvider::get<pdim, dim>(parentRoid, vCornerParent);
 
 				//	get local position of DoF
-					std::vector<MathVector<pdim> > vLocPos(vDoFPos.size(), 0.0);
+					std::vector<MathVector<pdim> > vLocPos(vDoFPos.size(), MathVector<pdim>(0.0));
 					map.global_to_local(vLocPos, vDoFPos);
 
 				//	evaluate coarse shape fct at fine local point

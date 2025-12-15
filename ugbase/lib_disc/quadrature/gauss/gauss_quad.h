@@ -52,10 +52,10 @@ class GaussQuadBase
 		static constexpr size_t dim = TDim;
 
 	/// Position Type in Reference Element Space
-	using position_type = MathVector<dim>;
+		using position_type = MathVector<dim>;
 
 	///	Type of weights
-	using weight_type = number;
+		using weight_type = number;
 
 	/// Order of quadrature rule
 		static constexpr size_t p = TOrder;
@@ -105,7 +105,7 @@ class FlexGaussQuadrature
 {
 	public:
 	///	Constructor
-		FlexGaussQuadrature(int order);
+		explicit FlexGaussQuadrature(int order);
 
 	///	Destructor
 		~FlexGaussQuadrature() override = default;

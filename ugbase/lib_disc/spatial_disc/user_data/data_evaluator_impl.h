@@ -120,7 +120,7 @@ add_data_to_eval_data(std::vector<SmartPtr<ICplUserData<dim> > >& vEvalData,
 //	search if element already contained in list. Then, the element
 //	did start the adding procedure before and a circle dependency
 //	is found
-	itEnd = vTryingToAdd.end(); itEnd--;
+	itEnd = vTryingToAdd.end(); --itEnd;
 	it = find(vTryingToAdd.begin(), itEnd, *itEnd);
 
 //	if found, return error of circle dependency
@@ -369,7 +369,7 @@ prepare_err_est_elem_loop(const ReferenceObjectID id, int si)
 
 //	evaluate constant data
 	for(size_t i = 0; i < m_vConstData.size(); ++i)
-		m_vConstData[i]->compute((LocalVector*)nullptr, nullptr, nullptr, false);
+		m_vConstData[i]->compute(static_cast<LocalVector *>(nullptr), nullptr, nullptr, false);
 }
 
 template <typename TDomain, typename TElemDisc>

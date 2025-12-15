@@ -97,7 +97,7 @@ void OrderDirectionYForDofDist(SmartPtr<DoFDistribution> dd,
 		int numDoFOnGeomObj = -1;
 		for(int si = 0; si < dd->num_subsets(); ++si){
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
-				const int numDoF = dd->num_dofs((ReferenceObjectID)roid, si);
+				const int numDoF = dd->num_dofs(static_cast<ReferenceObjectID>(roid), si);
 
 				if(numDoF == 0) continue;
 
@@ -112,8 +112,8 @@ void OrderDirectionYForDofDist(SmartPtr<DoFDistribution> dd,
 		}
 
 	//	b) check for non-mixed spaces
-		std::vector<bool> bSingleSpaceUsage(NUM_REFERENCE_OBJECTS, true);
-		std::vector<bool> vHasDoFs(NUM_REFERENCE_OBJECTS, false);
+		std::vector bSingleSpaceUsage(NUM_REFERENCE_OBJECTS, true);
+		std::vector vHasDoFs(NUM_REFERENCE_OBJECTS, false);
 		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
 
 			LFEID lfeID = dd->local_finite_element_id(fct);
@@ -132,7 +132,7 @@ void OrderDirectionYForDofDist(SmartPtr<DoFDistribution> dd,
 				}
 			}
 		}
-		std::vector<bool> bSortableComp(dd->num_fct(), true);
+		std::vector bSortableComp(dd->num_fct(), true);
 		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
 
 			LFEID lfeID = dd->local_finite_element_id(fct);
@@ -221,8 +221,8 @@ void OrderDirectionZForDofDist(SmartPtr<DoFDistribution> dd,
 		}
 
 	//	b) check for non-mixed spaces
-		std::vector<bool> bSingleSpaceUsage(NUM_REFERENCE_OBJECTS, true);
-		std::vector<bool> vHasDoFs(NUM_REFERENCE_OBJECTS, false);
+		std::vector bSingleSpaceUsage(NUM_REFERENCE_OBJECTS, true);
+		std::vector vHasDoFs(NUM_REFERENCE_OBJECTS, false);
 		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
 
 			LFEID lfeID = dd->local_finite_element_id(fct);
@@ -241,7 +241,7 @@ void OrderDirectionZForDofDist(SmartPtr<DoFDistribution> dd,
 				}
 			}
 		}
-		std::vector<bool> bSortableComp(dd->num_fct(), true);
+		std::vector bSortableComp(dd->num_fct(), true);
 		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
 
 			LFEID lfeID = dd->local_finite_element_id(fct);
@@ -411,7 +411,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		LineGaussSeidel(SmartPtr<ApproximationSpace<TDomain> > approxSpace){
+		explicit LineGaussSeidel(SmartPtr<ApproximationSpace<TDomain> > approxSpace){
 			m_spApproxSpace = approxSpace;
 			m_init = false;
 			m_nr_forwardx=1;
@@ -489,7 +489,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 
 	// 	Clone
 	SmartPtr<ILinearIterator<vector_type> > clone() override {
-			SmartPtr<LineGaussSeidel<domain_type,algebra_type> > newInst(new LineGaussSeidel<domain_type,algebra_type>(m_spApproxSpace));
+			SmartPtr<LineGaussSeidel > newInst(new LineGaussSeidel(m_spApproxSpace));
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
 			newInst->set_num_steps(this->get_num_forwardx(),this->get_num_backwardx(),this->get_num_forwardy(),this->get_num_backwardy(),
@@ -604,7 +604,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 
 		// backward in x direction
 		for (size_t count=0;count<m_nr_backwardx;count++){
-			for	(i=x.size()-1; (int)i>= 0; i--)
+			for	(i=x.size()-1; static_cast<int>(i)>= 0; i--)
 			{
 				s = b[i];
 
@@ -666,7 +666,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 
 			s = b[i];
 
-			for(typename matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i) ; ++it){
+			for(auto it = A.begin_row(i); it != A.end_row(i) ; ++it){
 				if (it.index()==i) continue;
 				// s -= it.value() * x[it.index()];
 				MatMultAdd(s, 1.0, s, -1.0, it.value(), x[it.index()]);
@@ -952,7 +952,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 					};
 					// compute rhs
 					typename vector_type::value_type sj = b[blockind[j]];
-					for(typename matrix_type::const_row_iterator it = A.begin_row(blockind[j]); it != A.end_row(blockind[j]) ; ++it){
+					for(auto it = A.begin_row(blockind[j]); it != A.end_row(blockind[j]) ; ++it){
 						MatMultAdd(sj, 1.0, sj, -1.0, it.value(), x[it.index()]);
 					};
 					s.subassign(j,sj);
@@ -985,7 +985,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 					};
 					// compute rhs
 					typename vector_type::value_type sj = b[blockind[j]];
-					for(typename matrix_type::const_row_iterator it = A.begin_row(blockind[j]); it != A.end_row(blockind[j]) ; ++it){
+					for(auto it = A.begin_row(blockind[j]); it != A.end_row(blockind[j]) ; ++it){
 						MatMultAdd(sj, 1.0, sj, -1.0, it.value(), x[it.index()]);
 					};
 					s.subassign(j,sj);
@@ -1009,7 +1009,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		for (size_t sortedi=0;sortedi < m_ind_end; sortedi++){
 			i = indY[sortedi];
 				blocksize=0;
-				for(typename matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i) ; ++it){
+				for(auto it = A.begin_row(i); it != A.end_row(i) ; ++it){
 					blockind[blocksize] = it.index();
 					x[it.index()] = 0;
 					blocksize++;
@@ -1024,7 +1024,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 					};
 					// compute rhs
 					typename vector_type::value_type sj = b[blockind[j]];
-					for(typename matrix_type::const_row_iterator it = A.begin_row(blockind[j]); it != A.end_row(blockind[j]) ; ++it){
+					for(auto it = A.begin_row(blockind[j]); it != A.end_row(blockind[j]) ; ++it){
 						MatMultAdd(sj, 1.0, sj, -1.0, it.value(), x[it.index()]);
 					};
 					s.subassign(j,sj);
@@ -1042,7 +1042,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		for (size_t sortedi=m_ind_end-1;static_cast<int>(sortedi) >= 0; sortedi--){
 			i = indY[sortedi];
 				blocksize=0;
-				for(typename matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i) ; ++it){
+				for(auto it = A.begin_row(i); it != A.end_row(i) ; ++it){
 					blockind[blocksize] = it.index();
 					x[it.index()] = 0;
 					blocksize++;
@@ -1057,7 +1057,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 					};
 					// compute rhs
 					typename vector_type::value_type sj = b[blockind[j]];
-					for(typename matrix_type::const_row_iterator it = A.begin_row(blockind[j]); it != A.end_row(blockind[j]) ; ++it){
+					for(auto it = A.begin_row(blockind[j]); it != A.end_row(blockind[j]) ; ++it){
 						MatMultAdd(sj, 1.0, sj, -1.0, it.value(), x[it.index()]);
 					};
 					s.subassign(j,sj);
@@ -1077,7 +1077,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		for (size_t sortedi=0;sortedi < m_ind_end; sortedi++){
 				i = indZ[sortedi];
 				blocksize=0;
-				for(typename matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i) ; ++it){
+				for(auto it = A.begin_row(i); it != A.end_row(i) ; ++it){
 					blockind[blocksize] = it.index();
 					x[it.index()] = 0;
 					blocksize++;
@@ -1092,7 +1092,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 					};
 					// compute rhs
 					typename vector_type::value_type sj = b[blockind[j]];
-					for(typename matrix_type::const_row_iterator it = A.begin_row(blockind[j]); it != A.end_row(blockind[j]) ; ++it){
+					for(auto it = A.begin_row(blockind[j]); it != A.end_row(blockind[j]) ; ++it){
 						MatMultAdd(sj, 1.0, sj, -1.0, it.value(), x[it.index()]);
 					};
 					s.subassign(j,sj);
@@ -1110,7 +1110,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		for (size_t sortedi=m_ind_end-1;static_cast<int>(sortedi) >= 0; sortedi--){
 			i = indZ[sortedi];
 				blocksize=0;
-				for(typename matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i) ; ++it){
+				for(auto it = A.begin_row(i); it != A.end_row(i) ; ++it){
 					blockind[blocksize] = it.index();
 					x[it.index()] = 0;
 					blocksize++;
@@ -1125,7 +1125,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 					};
 					// compute rhs
 					typename vector_type::value_type sj = b[blockind[j]];
-					for(typename matrix_type::const_row_iterator it = A.begin_row(blockind[j]); it != A.end_row(blockind[j]) ; ++it){
+					for(auto it = A.begin_row(blockind[j]); it != A.end_row(blockind[j]) ; ++it){
 						MatMultAdd(sj, 1.0, sj, -1.0, it.value(), x[it.index()]);
 					};
 					s.subassign(j,sj);

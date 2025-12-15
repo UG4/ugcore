@@ -121,7 +121,7 @@ namespace LuaUserData {
 
 
 template <typename TData, int dim>
-void RegisterLuaUserDataType(Registry& reg, string type, string grp)
+void RegisterLuaUserDataType(Registry& reg, const string& type, const string& grp)
 {
 	string suffix = GetDimensionSuffix<dim>();
 	string tag = GetDimensionTag<dim>();
@@ -168,7 +168,7 @@ struct Functionality
  * @param grp				group for sorting of functionality
  */
 template <int dim>
-static void Dimension(Registry& reg, string grp)
+static void Dimension(Registry& reg, const string& grp)
 {
 	string suffix = GetDimensionSuffix<dim>();
 	string tag = GetDimensionTag<dim>();
@@ -255,7 +255,7 @@ static void Dimension(Registry& reg, string grp)
  * @param reg				registry
  * @param grp				group for sorting of functionality
  */
-static void Common(Registry& reg, string grp)
+static void Common(Registry& reg, const string &grp)
 {
 
 //	LuaUserNumberNumberFunction
@@ -281,7 +281,7 @@ static void Common(Registry& reg, string grp)
 }; // end Functionality
 }// end LuaUserData
 
-void RegisterLuaUserData(Registry& reg, string grp)
+void RegisterLuaUserData(Registry& reg, const string &grp)
 {
 	using Functionality = LuaUserData::Functionality;
 

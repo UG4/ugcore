@@ -88,7 +88,7 @@ class InverseLinker
 		                     GridObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     const MathVector<refDim> vLocIP[],
-		                     const size_t nip,
+		                     size_t nip,
 		                     LocalVector* u,
 		                     const MathMatrix<refDim, dim>* vJT = nullptr) const;
 
@@ -99,7 +99,7 @@ class InverseLinker
 		                    GridObject* elem,
 		                    const MathVector<dim> vCornerCoords[],
 		                    const MathVector<refDim> vLocIP[],
-		                    const size_t nip,
+		                    size_t nip,
 		                    LocalVector* u,
 		                    bool bDeriv,
 		                    int s,
@@ -108,7 +108,7 @@ class InverseLinker
 
 	protected:
 	///	divisor at ip of input
-		const number& divisor_value(size_t i, size_t s, size_t ip) const
+		[[nodiscard]] const number& divisor_value(size_t i, size_t s, size_t ip) const
 		{
 			UG_ASSERT(i < m_vpDivisorData.size(), "Input not needed");
 			UG_ASSERT(m_vpDivisorData[i].valid(), "Input invalid");
@@ -116,7 +116,7 @@ class InverseLinker
 		}
 
 	///	divisor of data at input at ip
-		const number& divisor_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof) const
+		[[nodiscard]] const number& divisor_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof) const
 		{
 			UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
 			UG_ASSERT(m_vpDependData[i].valid(), "Input invalid");
@@ -124,7 +124,7 @@ class InverseLinker
 		}
 
 	///	dividend at ip of input
-		const number& dividend_value(size_t i, size_t s, size_t ip) const
+		[[nodiscard]] const number& dividend_value(size_t i, size_t s, size_t ip) const
 		{
 			UG_ASSERT(i < m_vpDividendData.size(), "Input not needed");
 			UG_ASSERT(m_vpDividendData[i].valid(), "Input invalid");
@@ -132,7 +132,7 @@ class InverseLinker
 		}
 
 	///	derivative of dividend at input at ip
-		const number& dividend_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof) const
+		[[nodiscard]] const number& dividend_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof) const
 		{
 			UG_ASSERT(i < m_vpDividendDependData.size(), "Input not needed");
 			UG_ASSERT(m_vpDividendDependData[i].valid(), "Input invalid");
@@ -140,16 +140,16 @@ class InverseLinker
 		}
 
 	///	returns number of functions the divisor depends on
-		size_t divisor_num_fct(size_t i) const {return base_type::input_num_fct(2*i);}
+		[[nodiscard]] size_t divisor_num_fct(size_t i) const {return base_type::input_num_fct(2*i);}
 
 	///	returns the number in the common FctGrp for a fct of an divisor
-		size_t divisor_common_fct(size_t i, size_t fct) const	{return base_type::input_common_fct(2*i, fct);}
+		[[nodiscard]] size_t divisor_common_fct(size_t i, size_t fct) const {return base_type::input_common_fct(2*i, fct);}
 
 	///	returns number of functions the dividend depends on
-		size_t dividend_num_fct(size_t i) const {return base_type::input_num_fct(2*i+1);}
+		[[nodiscard]] size_t dividend_num_fct(size_t i) const {return base_type::input_num_fct(2*i+1);}
 
 	///	returns the number in the common FctGrp for a fct of a dividend
-		size_t dividend_common_fct(size_t i, size_t fct) const	{return base_type::input_common_fct(2*i+1, fct);}
+		[[nodiscard]] size_t dividend_common_fct(size_t i, size_t fct) const {return base_type::input_common_fct(2*i+1, fct);}
 
 	protected:
 	///	data Dividend

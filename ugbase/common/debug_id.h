@@ -102,7 +102,7 @@ public:
 
 	explicit DebugID(uint32 hash) { m_hash = hash; }
 /// returns the debug level via GetDebugIDManager.
-	inline int get_debug_level() const;
+	[[nodiscard]] inline int get_debug_level() const;
 
 /// sets the debug level via GetDebugIDManager.
 	inline bool set_debug_level(int level);
@@ -143,7 +143,7 @@ class DebugIDManager
 {
 private:
 	/// returns the debug level of debugIDhash, -1 if not found
-		inline int get_debug_level(uint32 debugIDhash) const
+		[[nodiscard]] inline int get_debug_level(uint32 debugIDhash) const
 		{
 			auto it = m_dbgLevels.find(debugIDhash);
 			if(it == m_dbgLevels.end()) return -1;
@@ -171,7 +171,7 @@ public:
 			return m_dbgLevels.find(crc32(debugIDname)) != m_dbgLevels.end();
 		}
 	/// returns the debug level of debugID, -1 if not found
-		inline int get_debug_level(const DebugID &debugID) const
+		[[nodiscard]] inline int get_debug_level(const DebugID &debugID) const
 		{
 			return get_debug_level(debugID.m_hash);
 		}
@@ -208,7 +208,7 @@ public:
 		bool set_debug_levels(int lev);
 
 	/// returns a string describing all registered debugIDs.
-		std::string get_registered_debug_IDs() const
+		[[nodiscard]] std::string get_registered_debug_IDs() const
 		{
 			std::stringstream str;
 			str << "DebugIDs:\n";
@@ -314,7 +314,7 @@ class TemporaryDebugLevel
 {
 
 public:
-	TemporaryDebugLevel(DebugID &debugID){}
+	explicit TemporaryDebugLevel(DebugID &debugID){}
 	/// change the debugID level in this scope
 	TemporaryDebugLevel(DebugID &debugID, int temporaryDebugLevel){}
 	/// change the debugID level in this scope to another debugID plus some diff.

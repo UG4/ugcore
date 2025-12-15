@@ -165,7 +165,7 @@ const void *getPtr(lua::UserDataWrapper *self)
 TheSerializer theSerializer;
 #endif
 
-void WriteLUAObject2(lua_State* L, std::string name, std::ostream &s)
+void WriteLUAObject2(lua_State* L, const std::string& name, std::ostream &s)
 {
 	//UG_LOG(" " << lua_tostring(L, -1) << "\n");
 	if(lua_isnil(L, -1))
@@ -259,7 +259,7 @@ void WriteLUAObject2(lua_State* L, std::string name, std::ostream &s)
 	}
 
 }
-void WriteLUAObject(lua_State* L, std::string name, std::ostream &s)
+void WriteLUAObject(lua_State* L, const std::string &name, std::ostream &s)
 {
 	lua_getglobal(L, name.c_str());
 	WriteLUAObject2(L, name, s);
@@ -308,8 +308,8 @@ bool RegisterSerializationCommands(Registry &reg, const char* parentGroup)
 	try
 	{
 //		reg.add_function("LuaList_writeObjects", &LuaList_writeObjects, grp.c_str());
-		reg.add_function("LuaWrite", &LuaWrite, grp.c_str());
-		reg.add_function("LuaWriteCout", &LuaWriteCout, grp.c_str());
+		reg.add_function("LuaWrite", &LuaWrite, grp);
+		reg.add_function("LuaWriteCout", &LuaWriteCout, grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 

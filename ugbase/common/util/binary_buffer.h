@@ -58,7 +58,7 @@ class BinaryBuffer
 		BinaryBuffer();
 
 	///	creates a binary buffer and reserves bufSize bytes.
-		BinaryBuffer(size_t bufSize);
+		explicit BinaryBuffer(size_t bufSize);
 
 	///	clears the buffer
 	/**	This method does not free associated memory. It only
@@ -73,13 +73,13 @@ class BinaryBuffer
 		void reserve(size_t newSize);
 
 	///	returns the capacity (reserved memory) of the buffer
-		inline size_t capacity() const;
+		[[nodiscard]] inline size_t capacity() const;
 
 	///	returns the current read-pos (in bytes)
-		inline size_t read_pos() const;
+		[[nodiscard]] inline size_t read_pos() const;
 
 	///	returns the current write-pos (in bytes)
-		inline size_t write_pos() const;
+		[[nodiscard]] inline size_t write_pos() const;
 
 	///	reads data of the given size (in bytes)
 	/**	This automatically advances the read position.*/
@@ -93,7 +93,7 @@ class BinaryBuffer
 		inline char* buffer();
 
 	///	returns true if the read-position reached the write-position
-		inline bool eof() const;
+		[[nodiscard]] inline bool eof() const;
 
 	///	sets the read position (in bytes).
 		void set_read_pos(size_t pos);

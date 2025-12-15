@@ -295,7 +295,7 @@ number ParallelVector<TVector>::norm() const
 	PARVEC_PROFILE_END();
 
 	// 	step 4: return global norm ( = square root of summed squared local norms)
-	return sqrt((number)tNormGlobal);
+	return sqrt(tNormGlobal);
 }
 
 template <typename TVector>
@@ -322,7 +322,7 @@ number ParallelVector<TVector>::maxnorm() const
 	PARVEC_PROFILE_END();
 
 	// 	step 4: return global norm ( = square root of summed squared local norms)
-	return (number)tNormGlobal;
+	return tNormGlobal;
 }
 
 template <typename TVector>

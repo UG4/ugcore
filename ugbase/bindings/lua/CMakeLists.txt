@@ -28,29 +28,29 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-include("../../../cmake/ug_cmake_versions.cmake")
+include ("../../../cmake/ug_cmake_versions.cmake")
 
 ####
 # uginterface Library
 ####
 
-project(P_UGSCRIPT)
+project (P_UGSCRIPT)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-include_directories(${P_UGSCRIPT_SOURCE_DIR}/externals/lua)
+include_directories (${P_UGSCRIPT_SOURCE_DIR}/externals/lua)
 
-include("../../../cmake/ug_includes.cmake")
+include ("../../../cmake/ug_includes.cmake")
 
-if(UNIX)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_POSIX")
-endif(UNIX)
+if (UNIX)
+	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_POSIX")
+endif ()
 
 if (NOT USE_LUAJIT) 
 # use default version (shipped with ug4) 
-set(srcLua	externals/lua/lapi.c
+set (srcLua	externals/lua/lapi.c
 			externals/lua/lauxlib.c
 			externals/lua/lbaselib.c
 			externals/lua/lcode.c
@@ -85,7 +85,7 @@ set(srcLua	externals/lua/lapi.c
 			externals/lua/lvm.c
 			externals/lua/lzio.c)
 
-set(headersLua	externals/lua/lapi.h
+set (headersLua	externals/lua/lapi.h
 				externals/lua/lauxlib.h
 				externals/lua/lcode.h
 				externals/lua/ldebug.h
@@ -113,10 +113,10 @@ set(headersLua	externals/lua/lapi.h
 				externals/lua/lundump.h
 				externals/lua/lvm.h
 				externals/lua/lzio.h)
-else (NOT USE_LUAJIT)
+else ()
 # not need to compile when using luajit library 
-set(srcLua )
-endif(NOT USE_LUAJIT)
+set (srcLua )
+endif ()
 
 #find_package(BISON)
 #find_package(FLEX)
@@ -129,7 +129,7 @@ endif(NOT USE_LUAJIT)
 
 
 
-set(srcUGScript		lua_util.cpp
+set (srcUGScript	lua_util.cpp
 					info_commands.cpp
 					bindings_lua.cpp
 					lua_debug.cpp
@@ -137,7 +137,7 @@ set(srcUGScript		lua_util.cpp
 					lua_serialization.cpp
 					lua_table_handle.cpp)
 
-set(srcLUACompiler	compiler/parser.cpp
+set (srcLUACompiler	compiler/parser.cpp
 					compiler/lexer.cpp
 					compiler/lua_parser_class.cpp
 					compiler/lua_parser_class_create_c.cpp
@@ -153,21 +153,21 @@ set(srcLUACompiler	compiler/parser.cpp
 
 
 
-set(Sources ${srcUGScript} ${srcLua})
+set (Sources ${srcUGScript} ${srcLua})
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.
-if(buildAlgebra)
-	set(Sources ${Sources} lua_user_data.cpp)
-endif(buildAlgebra)
+if (buildAlgebra)
+	set (Sources ${Sources} lua_user_data.cpp)
+endif ()
 
-if(USE_LUA2C)
-	set(Sources ${Sources} ${srcLUACompiler})
-endif(USE_LUA2C)
+if (USE_LUA2C)
+	set (Sources ${Sources} ${srcLUACompiler})
+endif ()
 
 
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES(ugbase/bindings/lua  ${Sources})
-else(BUILD_ONE_LIB)
-	add_library(bindings_lua  ${Sources})
-endif(BUILD_ONE_LIB)
+	EXPORTSOURCES (ugbase/bindings/lua  ${Sources})
+else ()
+	add_library (bindings_lua  ${Sources})
+endif ()

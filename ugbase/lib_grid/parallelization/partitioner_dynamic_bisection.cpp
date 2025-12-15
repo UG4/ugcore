@@ -829,7 +829,7 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 //					UG_LOG("Preparing for recursion in node " << iNode << endl);
 //					UG_LOG("elemsLeftOut.size(): " << elemsLeftOut.size() <<
 //							", elemsRightOut.size(): " << elemsRightOut.size() << "\n");
-					number newRatioLeft = (number)gMissingLeft / (number)(gMissingLeft + gMissingRight);
+					number newRatioLeft = gMissingLeft / (gMissingLeft + gMissingRight);
 					tn.ratioLeft = newRatioLeft;
 					tn.elems = elemsCut;
 				}

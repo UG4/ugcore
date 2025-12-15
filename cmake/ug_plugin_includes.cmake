@@ -27,7 +27,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
-
+message("<ug_plugin_includes.cmake>")
 
 # Plugins are currently build as dynamic libraries.
 add_definitions (-DBUILDING_DYNAMIC_LIBRARY)
@@ -67,3 +67,4 @@ function (UGInstall name returned_path)
     
     set (${returned_path} "$ENV{UG4_LOCAL_INSTALL_DIR}/${name}/used/" PARENT_SCOPE)
 endfunction ()
+message("</ug_plugin_includes.cmake>")

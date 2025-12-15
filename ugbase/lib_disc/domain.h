@@ -156,19 +156,19 @@ class IDomain
 		virtual ~IDomain() = default;
 
 	///	World Dimension
-		virtual int get_dim() const = 0;
+		[[nodiscard]] virtual int get_dim() const = 0;
 		
 	///	returns Grid
 		inline SmartPtr<TGrid> grid() {return m_spGrid;};
 
 	///	const access to Grid
-		inline ConstSmartPtr<TGrid> const grid() const {return m_spGrid;};
+		[[nodiscard]] inline ConstSmartPtr<TGrid> const grid() const {return m_spGrid;};
 
 	///	returns Subset Handler
 		inline SmartPtr<TSubsetHandler> subset_handler() {return m_spSH;};
 
 	///	const access to Subset Handler
-		inline const ConstSmartPtr<TSubsetHandler> subset_handler() const {return m_spSH;};
+		[[nodiscard]] inline const ConstSmartPtr<TSubsetHandler> subset_handler() const {return m_spSH;};
 
 	///	returns the message hub of the grid
 		SPMessageHub message_hub() {return m_spGrid->message_hub();}

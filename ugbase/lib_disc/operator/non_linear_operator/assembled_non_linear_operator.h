@@ -73,7 +73,7 @@ public:
 		void set_level(const GridLevel& gl) {m_gridLevel = gl;}
 
 	///	returns the level used for assembling
-		const GridLevel& level() const {return m_gridLevel;}
+		[[nodiscard]] const GridLevel& level() const {return m_gridLevel;}
 
 	///	Init
 		void init() override {}

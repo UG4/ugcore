@@ -60,7 +60,7 @@ class Hash
 		explicit Hash(size_t hashSize);
 
 		void resize_hash(size_t size);
-		size_t hash_size() const;
+		[[nodiscard]] size_t hash_size() const;
 
 //		void enable_auto_hash_resize(float maxElemToHashSizeRatio,
 //									 float bestElemToHashSizeRatio);
@@ -76,14 +76,14 @@ class Hash
 	/**	Use reserve to adjust this capacity. If the capacity would be too small
 	 * to insert a new element, it will be automatically increased on element insertion.
 	 * \sa reserve*/
-		size_t capacity() const;
+		[[nodiscard]] size_t capacity() const;
 
 	///	returns the number of key-value-pairs currently stored in the hash
-		size_t size() const;
+		// [[nodiscard]] size_t size() const;
 
 		void clear();
 
-		bool empty() const;
+		[[nodiscard]] bool empty() const;
 		bool has_entry(const key_t& key) const;
 
 		value_t& get_entry(const key_t& key);

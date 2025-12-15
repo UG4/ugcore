@@ -45,7 +45,6 @@ template<typename TDomain>
 class NeumannBoundaryFE
 	: public NeumannBoundaryBase<TDomain>
 {
-	private:
 	///	Base class type
 		using base_type = NeumannBoundaryBase<TDomain>;
 
@@ -58,20 +57,20 @@ class NeumannBoundaryFE
 
 	public:
 	///	default constructor
-		NeumannBoundaryFE(const char* function);
+	explicit NeumannBoundaryFE(const char* function);
 
 	///	add a boundary value
 	///	\{
-		void add(SmartPtr<CplUserData<number, dim> > data, 			const char* BndSubsets, const char* InnerSubsets);
-		void add(SmartPtr<CplUserData<number, dim, bool> > user, 		const char* BndSubsets, const char* InnerSubsets);
-		void add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, 	const char* BndSubsets, const char* InnerSubsets);
+		void add(SmartPtr<CplUserData<number, dim> > data, 			const char* BndSubsets, const char* InnerSubsets) override;
+		void add(SmartPtr<CplUserData<number, dim, bool> > user, 		const char* BndSubsets, const char* InnerSubsets) override;
+		void add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, 	const char* BndSubsets, const char* InnerSubsets) override;
 	/// \}
 
 	protected:
 		using typename base_type::Data;
 
 	///	Unconditional scalar user data
-		struct NumberData : public base_type::Data
+		struct NumberData : base_type::Data
 		{
 			NumberData(SmartPtr<CplUserData<number, dim> > data,
 					   std::string BndSubsets, std::string InnerSubsets,
@@ -97,7 +96,7 @@ class NeumannBoundaryFE
 		friend struct NumberData;
 
 	///	Conditional scalar user data
-		struct BNDNumberData : public base_type::Data
+		struct BNDNumberData : base_type::Data
 		{
 			BNDNumberData(SmartPtr<CplUserData<number, dim, bool> > functor_,
 						  std::string BndSubsets, std::string InnerSubsets)
@@ -107,7 +106,7 @@ class NeumannBoundaryFE
 		};
 
 	///	Unconditional vector user data
-		struct VectorData : public base_type::Data
+		struct VectorData : base_type::Data
 		{
 			VectorData(SmartPtr<CplUserData<MathVector<dim>, dim> > functor_,
 					   std::string BndSubsets, std::string InnerSubsets)
@@ -124,7 +123,7 @@ class NeumannBoundaryFE
 
 	public:
 	///	type of trial space for each function used
-		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
+	void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid) override;
 
 	protected:
 	///	current order of disc scheme

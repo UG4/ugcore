@@ -225,7 +225,7 @@ bool ICplUserData<dim>::at_current_time(size_t s) const
 
 	int time_spec;
 	if ((time_spec = m_vTimePoint[s]) >= 0)
-		return ((size_t) time_spec) == m_timePoint;
+		return static_cast<size_t>(time_spec) == m_timePoint;
 	return true;
 }
 

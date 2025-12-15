@@ -1285,7 +1285,7 @@ public:
 	 {
 	 }*/
 
-	virtual bool update(vector_type &vec) {
+	bool update(vector_type &vec) override {
 		PROFILE_FUNC_GROUP("debug");
 		UG_ASSERT(m_pGridFunc != nullptr,
 				"provide a grid function with set_reference_grid_function");

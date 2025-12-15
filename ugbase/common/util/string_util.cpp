@@ -176,7 +176,7 @@ void AppendCounterToString( string& str, const string &indicator, int counter,
 
 string AppendSpacesToString(string& str, int totalLength)
 {
-	int numSpaces = max((int)(totalLength-str.length()), 0);
+	int numSpaces = max(static_cast<int>(totalLength - str.length()), 0);
 	for(int i = 0; i < numSpaces; ++i) str.append(" ");
 
 	return str;
@@ -184,8 +184,8 @@ string AppendSpacesToString(string& str, int totalLength)
 
 string::size_type GetDirectorySeperatorPos(const string &str)
 {
-	string::size_type pos1 = str.rfind("/");
-	string::size_type pos2 = str.rfind("\\");
+	string::size_type pos1 = str.rfind('/');
+	string::size_type pos2 = str.rfind('\\');
 	if(pos1 != string::npos)
 	{
 		if(pos2 != string::npos && pos2 > pos1) return pos2;
@@ -211,25 +211,49 @@ string PathFromFilename(const string &str)
 string FilenameWithoutExtension(string str)
 {
 	str = FilenameWithoutPath(str);
-	string::size_type pos = str.rfind(".");
+	string::size_type pos = str.rfind('.');
 	if( pos != string::npos ) return str.substr(0, pos );
 	else return str;
 }
 
 string FilenameAndPathWithoutExtension(string str)
 {
-	string::size_type pos = str.rfind(".");
+	string::size_type pos = str.rfind('.');
 	if( pos != string::npos ) return str.substr(0, pos );
 	else return str;
 }
 
 string GetFilenameExtension(const string &str)
 {
-	string::size_type pos = str.rfind(".");
+	string::size_type pos = str.rfind('.');
 	if( pos != string::npos ) return str.substr(pos+1);
 	else return "";
 }
 
+#if defined(FEATURE_RENEWED_REPLACE_ALL) && FEATURE_RENEWED_REPLACE_ALL == 1
+string ReplaceAll(std::string target, const std::string& oldstr, const std::string& newstr) {
+	if (oldstr.empty() || oldstr == newstr) return target;
+
+	std::string result;
+	result.reserve(target.size());
+
+	size_t pos = 0;
+	size_t found;
+
+	while ((found = target.find(oldstr, pos)) != std::string::npos) {
+		// append part before match
+		result.append(target, pos, found - pos);
+		// append replacement
+		result.append(newstr);
+		pos = found + oldstr.size();
+	}
+
+	// append the remainder
+	result.append(target, pos, target.size() - pos);
+
+	return result;
+}
+#else
 string ReplaceAll( string target, const string& oldstr, const string& newstr ) {
 	// no substitution necessary
 	if (oldstr == newstr) {
@@ -243,6 +267,7 @@ string ReplaceAll( string target, const string& oldstr, const string& newstr ) {
 
 	return target;
 }
+#endif
 
 bool StartsWith(const string& str, const string& begin) {
 	return str.find(begin) == 0;
@@ -315,8 +340,8 @@ size_t LevenshteinDistance( const string& s1, const string& s2 )
   size_t n1 = s1.length();
   size_t n2 = s2.length();
 
-  size_t* p = new size_t[ n2+1 ];
-  size_t* q = new size_t[ n2+1 ];
+  auto p = new size_t[ n2+1 ];
+  auto q = new size_t[ n2+1 ];
   size_t* r;
 
   p[ 0 ] = 0;
@@ -364,7 +389,7 @@ string GetFileLines(const char *filename, size_t fromline, size_t toline, bool i
 	if(filename[0] == '@') filename++;
 	char buf[512];
 	fstream file(filename, std::ios::in);
-	if(file.is_open() == false) return string("");
+	if(file.is_open() == false) return "";
 	for(size_t i=0; i<fromline && !file.eof(); i++)
 		file.getline(buf, 512);
 	stringstream ss;
@@ -429,14 +454,14 @@ bool WildcardMatch(const char *str, const char *pattern)
 	return true;
 }
 
-string XMLStringEscape(string s)
+string XMLStringEscape(const string& s)
 {
-	s = ReplaceAll(s, "&", "&amp;");
-	s = ReplaceAll(s, "\"", "&quot;");
-	s = ReplaceAll(s, "\'", "&apos;");
-	s = ReplaceAll(s, "<", "&lt;");
-	s = ReplaceAll(s, ">", "&gt;");
-	return s;
+	string stemp = ReplaceAll(s, "&", "&amp;");
+	stemp = ReplaceAll(stemp, "\"", "&quot;");
+	stemp = ReplaceAll(stemp, "\'", "&apos;");
+	stemp = ReplaceAll(stemp, "<", "&lt;");
+	stemp = ReplaceAll(stemp, ">", "&gt;");
+	return stemp;
 }
 
 static constexpr char shiftCharacters[] = "|#[+";
@@ -458,7 +483,7 @@ char ConfigShiftRotation(char c)
 
 string ConfigShift(string s)
 {
-	if(s.find("\n") == string::npos)
+	if(s.find('\n') == string::npos)
 		return s;
 
 	stringstream ss;
@@ -490,6 +515,7 @@ string ConfigShift(string s)
 
 string GetBytesSizeString(size_t s, int length)
 {
+	//ø todo compare with  std::string ConvertNumber(uint64_t size, unsigned int width, unsigned int numDisplayedDigits)
 	stringstream ss;
 	if(length!=0)
 		ss << setw(length-3);

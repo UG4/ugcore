@@ -143,13 +143,13 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	///	\}
 
 	///	returns the future time point (i.e. the one that will be computed)
-		virtual number future_time() const = 0;
+		[[nodiscard]] virtual number future_time() const = 0;
 
 	/// returns number of previous time steps needed
-		virtual size_t num_prev_steps() const = 0;
+		[[nodiscard]] virtual size_t num_prev_steps() const = 0;
 
 	///	returns the number of stages
-		virtual size_t num_stages() const = 0;
+		[[nodiscard]] virtual size_t num_stages() const = 0;
 
 	///	sets the stage
 		virtual void set_stage(size_t stage) = 0;
@@ -159,7 +159,7 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 		{return m_spDomDisc;}
 
 	///	returns the number of constraint
-		size_t num_constraints() const override {
+		[[nodiscard]] size_t num_constraints() const override {
 			return m_spDomDisc->num_constraints();
 		}
 

@@ -51,7 +51,7 @@
 #include "ug_config.h"
 #include "types.h"
 #include "log.h"
-#include "assert.h"
+#include "common/assert.h"
 #include "error.h"
 #include "static_assert.h"
 #include "util/metaprogramming_util.h"

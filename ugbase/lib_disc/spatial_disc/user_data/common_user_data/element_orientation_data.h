@@ -66,7 +66,7 @@ public:
 public:
 
 ///	Constructor
-	EdgeOrientation(SmartPtr<TDomain> domain) : m_spDomain(domain)
+	explicit EdgeOrientation(SmartPtr<TDomain> domain) : m_spDomain(domain)
 	{}
 
 ///	Indicator functions are discontinuous

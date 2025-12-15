@@ -121,13 +121,13 @@ class IConvectionShapes
 		}
 
 	/// destructor
-		virtual ~IConvectionShapes() {};
+		virtual ~IConvectionShapes() = default;
 
 	///	returns number of shapes
-		size_t num_sh() const {return m_numSh;}
+		[[nodiscard]] size_t num_sh() const {return m_numSh;}
 
 	///	returns number of sub control volume faces
-		size_t num_scvf() const {return m_numScvf;}
+		[[nodiscard]] size_t num_scvf() const {return m_numScvf;}
 
 	/// shape value
 		number operator () (size_t scvf, size_t sh) const
@@ -146,7 +146,7 @@ class IConvectionShapes
 		}
 
 	///	returns if upwind shape w.r.t. ip vel is non-zero
-		bool non_zero_deriv_diffusion() const {return m_bNonZeroDerivDiffusion;}
+		[[nodiscard]] bool non_zero_deriv_diffusion() const {return m_bNonZeroDerivDiffusion;}
 
 	///	upwind shapes for ip vel
 		const MathMatrix<dim,dim>& D_diffusion(size_t scvf, size_t sh) const

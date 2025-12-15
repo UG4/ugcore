@@ -163,7 +163,7 @@ void SetLuaNamespaceInTable(const string& name, const string &value)
 		}
 		else
 		{
-			SetLuaNamespaceInTable(restname.c_str(), value);
+			SetLuaNamespaceInTable(restname, value);
 			lua_pop(L, 1);
 		}
 	}
@@ -299,7 +299,7 @@ bool GetLuaNamespace(lua_State* L, const string &name)
 	lua_getglobal(L, tokens[0].c_str());
 	if(lua_isnil(L, -1))
 	{
-		return 0; 	// global name not found
+		return false; 	// global name not found
 	}
 
 	size_t i=1;
@@ -442,7 +442,7 @@ string LuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thefunc
 int UGTypeInfo(const char *p)
 {
 	UG_LOG("\n");
-	const bridge::Registry &reg = GetUGRegistry();
+	const Registry &reg = GetUGRegistry();
 
 	// check if it is a class
 	const ClassGroupDesc *cg = reg.get_class_group(p);
@@ -559,7 +559,7 @@ int UGTypeInfo(const char *p)
  */
 bool ClassInstantiations(const char *classname)
 {
-	bridge::Registry &reg = GetUGRegistry();
+	Registry &reg = GetUGRegistry();
 	// search for the class
 	const IExportedClass *c = reg.get_class(classname);
 	if(c == nullptr)
@@ -579,8 +579,7 @@ bool ClassInstantiations(const char *classname)
 	// iterate through all of lua's global string table
 	for(int i=0; i<G(L)->strt.size; i++)
 	{
-		TString *obj;
-		for (obj = G(L)->strt.hash[i]; obj != nullptr; obj = obj->u.hnext)
+		for (TString *obj = G(L)->strt.hash[i]; obj != nullptr; obj = obj->u.hnext)
 		{
 			// get the string
 			TString *ts = obj;
@@ -852,7 +851,7 @@ void GetLuaGlobal_classInstantiations(std::vector<std::string> &classInstantiati
 
 void LuaList_classes()
 {
-	bridge::Registry &reg = GetUGRegistry();
+	Registry &reg = GetUGRegistry();
 	std::vector<std::string> classes;
 	classes.reserve(reg.num_classes());
 	for(size_t j=0; j<reg.num_classes(); ++j)
@@ -884,7 +883,7 @@ void LuaList_scriptFunctions()
 	UG_LOG(endl << "--- Script Functions: ---" << endl)
 
 	if(scriptFunctions.empty())	return;
-	int maxLength = (*max_element(scriptFunctions.begin(), scriptFunctions.end(), IsLonger)).size();
+	int maxLength = max_element(scriptFunctions.begin(), scriptFunctions.end(), IsLonger)->size();
 	for(size_t i=0; i<scriptFunctions.size(); i++)
 	{
 		lua_getglobal(L, scriptFunctions[i].c_str());  /* get global 'f' */
@@ -914,10 +913,10 @@ void LuaList_luaObjects()
 
 	UG_LOG(endl << "--- Lua Objects: ----------------" << endl)
 	if(luaObjects.empty()) return;
-	int maxLength = (*max_element(luaObjects.begin(), luaObjects.end(), IsLonger)).size();
+	int maxLength = max_element(luaObjects.begin(), luaObjects.end(), IsLonger)->size();
 	for(size_t i=0; i<luaObjects.size(); i++)
 	{
-		if(luaObjects[i].compare("_G") == 0) continue;
+		if(luaObjects[i] == "_G") continue;
 		if(luaObjects[i] == "package") continue;
 		lua_getglobal(L, luaObjects[i].c_str());
 		UG_LOG(left << setw(maxLength) << luaObjects[i]);
@@ -942,7 +941,7 @@ void LuaList_classInstantiations()
 
 	UG_LOG(endl << "--- Class Instantiations: ---------" << endl)
 	if(instantiations.empty()) return;
-	int maxLength = (*max_element(instantiations.begin(), instantiations.end(), IsLonger)).size();
+	int maxLength = max_element(instantiations.begin(), instantiations.end(), IsLonger)->size();
 	for(size_t i=0; i<instantiations.size(); i++)
 	{
 		lua_getglobal(L, instantiations[i].c_str());
@@ -955,18 +954,18 @@ void LuaList_classInstantiations()
 		if(static_cast<lua::UserDataWrapper *>(ptr)->is_raw_ptr()){
 			type = "raw ptr ";
 		}
-		else if(((lua::UserDataWrapper*)ptr)->is_smart_ptr()){
+		else if(static_cast<lua::UserDataWrapper *>(ptr)->is_smart_ptr()){
 
 		//	invalidate the associated smart-pointer
-			if(((lua::UserDataWrapper*)ptr)->is_const())
+			if(static_cast<lua::UserDataWrapper *>(ptr)->is_const())
 			{
 				type = "ConstSmartPtr ";
-				ref = ((lua::ConstSmartUserDataWrapper*)ptr)->smartPtr.refcount();
+				ref = static_cast<lua::ConstSmartUserDataWrapper *>(ptr)->smartPtr.refcount();
 			}
 			else
 			{
 				type = "SmartPtr ";
-				ref =  ((lua::SmartUserDataWrapper*)ptr)->smartPtr.refcount();
+				ref =  static_cast<lua::SmartUserDataWrapper *>(ptr)->smartPtr.refcount();
 			}
 		}
 
@@ -1006,7 +1005,7 @@ string GetLuaTypeString(lua_State* L, int index)
 {
 	if(lua_isnil(L, index))
 		return "nil";
-	string str("");
+	string str;
 	// somehow lua_typeinfo always prints userdata
 	if(lua_isboolean(L, index)) str.append("boolean/");
 	if(lua_iscfunction(L, index)) str.append("cfunction/");

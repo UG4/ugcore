@@ -291,10 +291,10 @@ class UG_API Grid
 	 *	VertexOptions, EdgeOptions, FaceOptions and VolumeOptions.
 	 *	See GridOptions for possible combinations.*/
 		void set_options(uint options);
-		uint get_options() const;
+		[[nodiscard]] uint get_options() const;
 		void enable_options(uint options);	///< see set_options for a description of valid parameters.
 		void disable_options(uint options);	///< see set_options for a description of valid parameters.
-		bool option_is_enabled(uint option) const;///< see set_options for a description of valid parameters.
+		[[nodiscard]] bool option_is_enabled(uint option) const;///< see set_options for a description of valid parameters.
 
 	////////////////////////////////////////////////
 	//	parallelism
@@ -324,7 +324,7 @@ class UG_API Grid
 	 * methods of a distributed grid manager.
 	 * \{ */
 		inline DistributedGridManager* distributed_grid_manager();
-		inline const DistributedGridManager* distributed_grid_manager() const;
+		[[nodiscard]] inline const DistributedGridManager* distributed_grid_manager() const;
 	/** \} */
 
 	////////////////////////////////////////////////
@@ -334,7 +334,7 @@ class UG_API Grid
 	 * If the grid may contain periodic boundaries, it instantiate a PeriodicBoundaryManager.*/
 		void set_periodic_boundaries(bool);
 	/// returns true, if grid has the possibility to handle periodic boundaries.
-		bool has_periodic_boundaries() const;
+		[[nodiscard]] bool has_periodic_boundaries() const;
 
 	///	returns a pointer to the associated periodic boundary manager.
 	/**	The method returns nullptr, if no periodic boundary get_attachment_accessor for the given
@@ -344,7 +344,7 @@ class UG_API Grid
 	 * methods of the peridodic boundary manager.
 	 * \{ */
 		PeriodicBoundaryManager* periodic_boundary_manager();
-		const PeriodicBoundaryManager* periodic_boundary_manager() const;
+		[[nodiscard]] const PeriodicBoundaryManager* periodic_boundary_manager() const;
 	/** \} */
 
 
@@ -549,11 +549,11 @@ class UG_API Grid
 	////////////////////////////////////////////////
 	//	element numbers
 		template <typename TGeomObj>
-		size_t num() const;
-		inline size_t num_vertices() const	{return num<Vertex>();}
-		inline size_t num_edges() const		{return num<Edge>();}
-		inline size_t num_faces()	const		{return num<Face>();}
-		inline size_t num_volumes()const		{return num<Volume>();}
+		[[nodiscard]] size_t num() const;
+		[[nodiscard]] inline size_t num_vertices() const {return num<Vertex>();}
+		[[nodiscard]] inline size_t num_edges() const {return num<Edge>();}
+		[[nodiscard]] inline size_t num_faces()	const {return num<Face>();}
+		[[nodiscard]] inline size_t num_volumes()const {return num<Volume>();}
 
 		size_t vertex_fragmentation();	///< returns the number of unused vertex-data-entries.
 		size_t edge_fragmentation();		///< returns the number of unused edge-data-entries.
@@ -563,7 +563,7 @@ class UG_API Grid
 	///	returns the size of the associated attachment containers.
 	/**	valid types for TGeomObj are Vertex, Edge, Face, Volume.*/
 		template <typename TGeomObj>
-		size_t attachment_container_size() const;
+		[[nodiscard]] size_t attachment_container_size() const;
 
 	////////////////////////////////////////////////
 	//	connectivity-information
@@ -619,7 +619,7 @@ class UG_API Grid
 	/**	\} */
 
 	///	This overload is only useful to avoid compile issues in templated code
-		Vertex* get_element(const VertexDescriptor& vd)	{return vd.vertex();}
+		Vertex* get_element(const VertexDescriptor& vd) const {return vd.vertex();}
 		
 
 	////////////////////////////////////////////////

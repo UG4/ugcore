@@ -214,7 +214,7 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 		number previous_defect() const { return m_lastDefect; }
 		int step() const override {return m_currentStep;}
 		number rate() const override {return m_currentDefect/m_lastDefect;};
-		number avg_rate() const override {return std::pow((number)m_ratesProduct,(number)1.0/step());}
+		number avg_rate() const override {return std::pow(m_ratesProduct,1.0/step());}
 
 		int get_offset() const override {return m_offset;}
 		void set_offset(int offset) override {m_offset = offset;}

@@ -192,7 +192,7 @@ CalculateCenter(const EdgeVertices* e, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
 	VecScaleAdd(v, w0, aaPos[e->vertex(0)], w1, aaPos[e->vertex(1)]);
 
 	if((w0 + w1) != 0)
-		VecScale(v, v, 1. / (number)(w0 + w1));
+		VecScale(v, v, 1. / static_cast<number>(w0 + w1));
 
 	return v;
 }

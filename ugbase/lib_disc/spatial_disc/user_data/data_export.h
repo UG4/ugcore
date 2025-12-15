@@ -33,7 +33,6 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EXPORT__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EXPORT__
 
-#include "data_export.h"
 
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/local_algebra.h"
@@ -57,7 +56,7 @@ class ValueDataExport
 	: public StdDependentUserData<ValueDataExport<dim>,number,dim>
 {
 	public:
-		ValueDataExport(const char* functions){this->set_functions(functions);}
+	explicit ValueDataExport(const char* functions){this->set_functions(functions);}
 
 		template <int refDim>
 		void eval_and_deriv(number vValue[],
@@ -75,7 +74,7 @@ class ValueDataExport
 
 		virtual void check_setup() const;
 
-		virtual bool continuous() const;
+		[[nodiscard]] virtual bool continuous() const;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +86,7 @@ class GradientDataExport
 	: public StdDependentUserData<GradientDataExport<dim>, MathVector<dim>,dim>
 {
 	public:
-		GradientDataExport(const char* functions){this->set_functions(functions);}
+		explicit GradientDataExport(const char* functions){this->set_functions(functions);}
 
 		template <int refDim>
 		void eval_and_deriv(MathVector<dim> vValue[],
@@ -105,7 +104,7 @@ class GradientDataExport
 
 		virtual void check_setup() const;
 
-		virtual bool continuous() const{return false;}
+		[[nodiscard]] virtual bool continuous() const{return false;}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -117,7 +116,7 @@ class VectorDataExport
 	: public StdDependentUserData<VectorDataExport<dim>, MathVector<dim>,dim>
 {
 	public:
-		VectorDataExport(const char* functions){this->set_functions(functions);}
+		explicit VectorDataExport(const char* functions){this->set_functions(functions);}
 
 		template <int refDim>
 		void eval_and_deriv(MathVector<dim> vValue[],
@@ -135,7 +134,7 @@ class VectorDataExport
 
 		virtual void check_setup() const;
 
-		virtual bool continuous() const;
+		[[nodiscard]] virtual bool continuous() const;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -152,7 +151,7 @@ class DataExport :
 {
 	public:
 	///	default constructor
-		DataExport(const char* functions);
+		explicit DataExport(const char* functions);
 
 		template <int refDim>
 		void eval_and_deriv(TData vValue[],
@@ -209,16 +208,16 @@ class DataExport :
 		void remove_needed_data(SmartPtr<ICplUserData<dim> > data);
 
 	///	number of other Data this data depends on
-		virtual size_t num_needed_data() const {return m_vDependData.size();}
+		[[nodiscard]] virtual size_t num_needed_data() const {return m_vDependData.size();}
 
 	///	return needed data
 		virtual SmartPtr<ICplUserData<dim> > needed_data(size_t i) {return m_vDependData.at(i);}
 
 	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool continuous() const {return false;}
+		[[nodiscard]] virtual bool continuous() const {return false;}
 
 	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return true;}
+		[[nodiscard]] virtual bool requires_grid_fct() const {return true;}
 
 	protected:
 		/* The following classes are used to implement the functors to support
@@ -240,7 +239,7 @@ class DataExport :
 				                const MathVector<refDim> vLocIP[],
 				                const size_t nip,
 				                bool bDeriv,
-				                std::vector<std::vector<TData> > vvvDeriv[]) const = 0;
+				                std::vector<std::vector<TData> > vvvDeriv[]) const = 0 ;
 				virtual ~FunctorBase() = default;
 		};
 
@@ -259,7 +258,7 @@ class DataExport :
 			                         std::vector<std::vector<TData> > vvvDeriv[]);
 
 			public:
-				FreeFunctionFunctor(FreeFunc f) : m_f(f) {}
+				explicit FreeFunctionFunctor(FreeFunc f) : m_f(f) {}
 
 				void operator ()(TData vValue[],
 				                const MathVector<dim> vGlobIP[],
@@ -270,7 +269,7 @@ class DataExport :
 				                const MathVector<refDim> vLocIP[],
 				                const size_t nip,
 				                bool bDeriv,
-				                std::vector<std::vector<TData> > vvvDeriv[]) const
+				                std::vector<std::vector<TData> > vvvDeriv[]) const override
 				{
 					m_f(vValue, vGlobIP, time, si, u, elem, vCornerCoords, vLocIP, nip, bDeriv, vvvDeriv);
 				}
@@ -321,7 +320,7 @@ class DataExport :
 				Functor() : m_spImpl(nullptr) {}
 
 				template <typename FreeFunc>
-				Functor(FreeFunc f) : m_spImpl(new FreeFunctionFunctor<refDim>(f)) {}
+				explicit Functor(FreeFunc f) : m_spImpl(new FreeFunctionFunctor<refDim>(f)) {}
 
 				template <typename TClass, typename MemFunc>
 				Functor(TClass* obj, MemFunc f) : m_spImpl(new MemberFunctionFunctor<TClass, refDim>(obj, f)) {}
@@ -333,15 +332,15 @@ class DataExport :
 				                GridObject* elem,
 				                const MathVector<dim> vCornerCoords[],
 				                const MathVector<refDim> vLocIP[],
-				                const size_t nip,
+				                size_t nip,
 				                bool bDeriv,
 				                std::vector<std::vector<TData> > vvvDeriv[]) const
 				{
 					(*m_spImpl)(vValue, vGlobIP, time, si, u, elem, vCornerCoords, vLocIP, nip, bDeriv, vvvDeriv);
 				}
 
-				bool valid() const {return m_spImpl.valid();}
-				bool invalid() const {return m_spImpl.invalid();}
+				[[nodiscard]] bool valid() const {return m_spImpl.valid();}
+				[[nodiscard]] bool invalid() const {return m_spImpl.invalid();}
 				void invalidate() {m_spImpl = SmartPtr<FunctorBase<refDim> >();}
 
 			protected:
@@ -363,7 +362,7 @@ class DataExport :
 		Functor<2> m_vCompFct2d[NUM_REFERENCE_OBJECTS];
 		Functor<3> m_vCompFct3d[NUM_REFERENCE_OBJECTS];
 
-		bool eval_fct_set(ReferenceObjectID id) const;
+		[[nodiscard]] bool eval_fct_set(ReferenceObjectID id) const;
 
 	protected:
 	///	data the export depends on

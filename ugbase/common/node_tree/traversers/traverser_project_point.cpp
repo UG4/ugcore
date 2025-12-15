@@ -58,7 +58,7 @@ Ansatz: Falls nach dem Abarbeiten der nächst kleineren Box der Status
 
 Traverser_ProjectPoint::Traverser_ProjectPoint()
 {
-	m_closestElemID = -1;
+	m_closestElemID = CollisionElementID(-1);
 	m_closestElemType = 0;
 }
 
@@ -69,7 +69,7 @@ project(const vector3& point, SPNode nodeGraph,
 {
 	m_searchState = SEARCHING;
 	m_distance = -1.0;
-	m_closestElemID = -1;
+	m_closestElemID = CollisionElementID(-1);
 	m_closestElemType = 0;
 	m_point = point;
 	

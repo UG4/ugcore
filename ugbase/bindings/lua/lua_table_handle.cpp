@@ -86,8 +86,8 @@ public:
 		assert(from);
 		if (*from) {
 			assert((**from)._attach_count > 0);
-			--((**from)._attach_count);
-			if ((**from)._attach_count == 0) { untested();
+			--((*from)->_attach_count);
+			if ((*from)->_attach_count == 0) { untested();
 				delete *from;
 			}else{
 			}
@@ -96,7 +96,7 @@ public:
 		}
 	}
 
-	size_t size() const{
+	[[nodiscard]] size_t size() const{
 		size_t n = 0;
 #if 0 // count them. skip nils.
 		lua_pushnil(_L);
@@ -110,7 +110,7 @@ public:
 		return n;
 	}
 
-	Variant get(int const& key) const{
+	[[nodiscard]] Variant get(int const& key) const{
 		lua_rawgeti(_L, LUA_REGISTRYINDEX, _ref);
 		lua_rawgeti(_L, _index, key+1); // lua starts at 1.
 
@@ -121,7 +121,7 @@ public:
 
 		return ret;
 	}
-	Variant get(std::string const& key) const{
+	[[nodiscard]] Variant get(std::string const& key) const{
 		lua_rawgeti(_L, LUA_REGISTRYINDEX, _ref);
 		lua_getfield(_L, _index, key.c_str());
 
@@ -196,8 +196,7 @@ LuaTableHandle& LuaTableHandle::operator = (LuaTableHandle const& p)
 	return *this;
 }
 
-LuaTableHandle& LuaTableHandle::operator = (LuaTableHandle&& p)
-{
+LuaTableHandle& LuaTableHandle::operator = (LuaTableHandle&& p) noexcept {
 	impl::LuaTableHandle_::attach(p._data, &_data);
 	impl::LuaTableHandle_::detach(&p._data);
 	return *this;

@@ -59,7 +59,7 @@ template <int index>
 struct ParameterStackToTypeValueList<TypeList<>, index> :
 		TypeValueList<TypeList<> >
 {
-	ParameterStackToTypeValueList(const ParameterStack& in) {}
+	explicit ParameterStackToTypeValueList(const ParameterStack& in) {}
 };
 
 // implementation for non-empty TypeValueList
@@ -70,7 +70,7 @@ struct ParameterStackToTypeValueList :
 	using head = typename TTypeList::head;
 	using tail = typename TTypeList::tail;
 
-	ParameterStackToTypeValueList(const ParameterStack& in) :
+	explicit ParameterStackToTypeValueList(const ParameterStack& in) :
 		TypeValueList<TTypeList>(	in.to<head>(index),
 									ParameterStackToTypeValueList<tail, index+1>(in))
 			{}

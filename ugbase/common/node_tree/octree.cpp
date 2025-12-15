@@ -205,8 +205,8 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 
 		//	compute bounding box from ParentBox and index
 			subBoxMin.x() = boxMin.x() + .5 * boxSize.x() * (subNodeInd % 2);
-			subBoxMin.y() = boxMin.y() + .5 * boxSize.y() * (int)(subNodeInd / 4);
-			subBoxMin.z() = boxMin.z() + .5 * boxSize.z() * (int)((subNodeInd % 4) / 2);
+			subBoxMin.y() = boxMin.y() + .5 * boxSize.y() * static_cast<int>(subNodeInd / 4);
+			subBoxMin.z() = boxMin.z() + .5 * boxSize.z() * static_cast<int>((subNodeInd % 4) / 2);
 			subBoxMax.x() = subBoxMin.x() + .5 * boxSize.x();
 			subBoxMax.y() = subBoxMin.y() + .5 * boxSize.y();
 			subBoxMax.z() = subBoxMin.z() + .5 * boxSize.z();

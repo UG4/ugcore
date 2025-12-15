@@ -120,7 +120,7 @@ void InterpolateOnDiffVertices(SmartPtr<UserData<number, TGridFunction::dim> > s
 				spGridFct->dof_indices(vrt, fct, ind);
 
 			// 	loop all dofs
-				for(size_t i = 0; i < ind.size(); ++i)
+				for(size_t i = 0; i < ind.size(); ++i) // todo rename i ?
 				{
 				//	set value
 					DoFRef(*spGridFct, ind[i]) = val;
@@ -194,20 +194,19 @@ void InterpolateOnDiffElements(
 {
 //	get reference element type
 	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
-	const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
+	constexpr ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	dimension of reference element
-	const int dim = ref_elem_type::dim;
-
+	constexpr int dim = ref_elem_type::dim;
 
 //	domain type and position_type
 	using domain_type = typename TGridFunction::domain_type;
 	using position_type = typename domain_type::position_type;
 
 //	get iterators
-	typename TGridFunction::template traits<TElem>::const_iterator iterEnd, iter;
-	iterEnd = spGridFct->template end<TElem>(si);
-	iter = spGridFct->template begin<TElem>(si);
+	// typename TGridFunction::template traits<TElem>::const_iterator iterEnd, iter;
+	auto iterEnd = spGridFct->template end<TElem>(si);
+	auto iter = spGridFct->template begin<TElem>(si);
 
 //	check if something to do:
 	if(iter == iterEnd) return;
@@ -348,7 +347,7 @@ void InterpolateOnDiffElements(SmartPtr<UserData<number, TGridFunction::dim> > s
 	}
 }
 
-/**
+/***
  * This function interpolates a grid function on an element by element loop. On
  * each element the all associated (up to the boundary of the element) are
  * interpolated and the values are stored in the grid function.

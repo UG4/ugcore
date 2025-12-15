@@ -66,39 +66,39 @@ class PiecewiseConstantLSFS
 
 	public:
 	///	\copydoc ug::DimLocalDoFSet::roid()
-		ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
 
 	///	\copydoc ug::DimLocalDoFSet::num_dof()
-		size_t num_dof() const {return 1;};
+		[[nodiscard]] size_t num_dof() const {return 1;};
 
 	///	\copydoc ug::DimLocalDoFSet::num_dof()
-		size_t num_dof(ReferenceObjectID type) const
+		[[nodiscard]] size_t num_dof(ReferenceObjectID type) const
 		{
 			if (type == TRefElem::REFERENCE_OBJECT_ID)   return 1;
 			else return 0;
 		}
 
 	///	\copydoc ug::DimLocalDoFSet::local_dof()
-		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF;}
+		[[nodiscard]] const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF;}
 
 	///	\copydoc ug::DimLocalDoFSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		[[nodiscard]] inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			pos = bary; return true;
 		}
 
 	///	\copydoc ug::DimLocalDoFSet::exact_position_available()
-		bool exact_position_available() const {return true;};
+		[[nodiscard]] bool exact_position_available() const {return true;};
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		bool continuous() const {return false;}
+		[[nodiscard]] bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		size_t num_sh() const {return 1;}
+		[[nodiscard]] size_t num_sh() const {return 1;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		number shape(const size_t i, const MathVector<dim>& x) const
+		[[nodiscard]] number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			return 1;
 		}

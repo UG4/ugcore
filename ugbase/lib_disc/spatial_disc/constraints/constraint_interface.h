@@ -74,7 +74,7 @@ class IConstraint
 		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                             ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
 		                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = nullptr,
-									 const number s_a0 = 1.0) = 0;
+		                             number s_a0 = 1.0) = 0;
 
 	///	adapts defect to enforce constraints
 		virtual void adjust_defect(vector_type& d, const vector_type& u,

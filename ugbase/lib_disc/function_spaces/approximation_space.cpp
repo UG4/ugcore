@@ -527,7 +527,7 @@ void PrintDoFCount(const vector<DoFCount>& vDC,
 	const bool bPrintSubset = (sflags.find("subset") != string::npos);
 
 //	check for output
-	if(vDC.size() == 0)
+	if(vDC.empty())
 		UG_THROW("Expected something to print.")
 
 //	constants for size of output
@@ -554,12 +554,12 @@ void PrintDoFCount(const vector<DoFCount>& vDC,
 
 //	Components
 	vector<pair<string,int> > vCmp;
-	vCmp.push_back(pair<string,int>("all", ALL_FCT));
+	vCmp.emplace_back("all", ALL_FCT);
 	if(bPrintCmps){
 		ssHead << setw(COMPONENT) << "Comps" << sSep;
 		for(int fct = 0; fct < static_cast<int>(vDC[0].num_fct()); ++fct){
 			stringstream name; name << fct << ": "<< vDC[0].name(fct);
-			vCmp.push_back(pair<string,int>(SnipString(name.str(), COMPONENT, 2), fct));
+			vCmp.emplace_back(SnipString(name.str(), COMPONENT, 2), fct);
 		}
 	}
 
@@ -605,7 +605,7 @@ void PrintDoFCount(const vector<DoFCount>& vDC,
 
 	//	always print unique (w.r.t interface) number
 		vector<pair<string, byte_t> > vInIS;
-		vInIS.push_back(pair<string,byte_t>("unique",UNIQUE_ES));
+		vInIS.emplace_back("unique",UNIQUE_ES);
 		vector<pair<string, byte_t> > vContainsIS;
 
 	//	if PrintInterface: add more output
@@ -815,7 +815,7 @@ void IApproximationSpace::print_statistic(std::string flags) const
 
 	PROFILE_BEGIN(CountGlobalDoFStatistic);
 	for(size_t i = 0; i < vDC.size(); ++i)
-		vDC[i].sum_values_over_procs(ug::GetLogAssistant().get_output_process());
+		vDC[i].sum_values_over_procs(GetLogAssistant().get_output_process());
 	PROFILE_END();
 
 	PROFILE_BEGIN(PrintGlobalDoFStatistic);

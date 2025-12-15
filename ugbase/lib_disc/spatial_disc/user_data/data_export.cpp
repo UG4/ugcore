@@ -72,7 +72,6 @@ void ValueDataExport<dim>::eval_and_deriv(number vValue[],
 
 //	request for trial space
 	try{
-
 	const LocalShapeFunctionSet<refDim>& rTrialSpace
 		 = LocalFiniteElementProvider::get<refDim>(roid, lfeID);
 
@@ -104,7 +103,7 @@ void ValueDataExport<dim>::eval_and_deriv(number vValue[],
 template <int dim>
 void ValueDataExport<dim>::check_setup() const
 {
-	if((int)this->function_group().size() != 1)
+	if(static_cast<int>(this->function_group().size()) != 1)
 		UG_THROW("ValueDataExport: Expected to work on "<<1<<" function, "
 		         "but only set "<<this->function_group().size()<<" ("<<
 		         this->function_group().names()<<").");
@@ -155,7 +154,6 @@ void GradientDataExport<dim>::eval_and_deriv(MathVector<dim> vValue[],
 		 = LocalFiniteElementProvider::get<refDim>(roid, lfeID);
 
 //	Reference Mapping
-	MathMatrix<dim, refDim> JTInv;
 	std::vector<MathMatrix<refDim, dim> > vJTtmp;
 	if(!vJT){
 		DimReferenceMapping<refDim, dim>& map
@@ -168,12 +166,13 @@ void GradientDataExport<dim>::eval_and_deriv(MathVector<dim> vValue[],
 
 //	storage for shape function at ip
 	std::vector<MathVector<refDim> > vLocGrad;
-	MathVector<refDim> locGrad;
 
-//	loop ips
+	//	loop ips
 	for(size_t ip = 0; ip < nip; ++ip)
 	{
-	//	evaluate at shapes at ip
+		MathVector<refDim> locGrad;
+		MathMatrix<dim, refDim> JTInv;
+		//	evaluate at shapes at ip
 		rTrialSpace.grads(vLocGrad, vLocIP[ip]);
 
 	//	compute grad at ip
@@ -198,7 +197,7 @@ void GradientDataExport<dim>::eval_and_deriv(MathVector<dim> vValue[],
 template <int dim>
 void GradientDataExport<dim>::check_setup() const
 {
-	if((int)this->function_group().size() != 1)
+	if(static_cast<int>(this->function_group().size()) != 1)
 		UG_THROW("GradientDataExport: Expected to work on "<<1<<" function, "
 		         "but only set "<<this->function_group().size()<<" ("<<
 		         this->function_group().names()<<").");
@@ -271,7 +270,7 @@ void VectorDataExport<dim>::eval_and_deriv(MathVector<dim> vValue[],
 template <int dim>
 void VectorDataExport<dim>::check_setup() const
 {
-	if((int)this->function_group().size() != dim)
+	if(static_cast<int>(this->function_group().size()) != dim)
 		UG_THROW("VectorDataExport: Expected to work on "<<dim<<" functions, "
 		         "but only set "<<this->function_group().size()<<" ("<<
 		         this->function_group().names()<<").");

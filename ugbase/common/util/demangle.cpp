@@ -83,7 +83,7 @@ string demangle_block(const char *str)
 string demangle(const char *str)
 {
 	int status;
-	char *realname = abi::__cxa_demangle(str, 0, 0, &status);
+	char *realname = abi::__cxa_demangle(str, nullptr, nullptr, &status);
 	if(status==0)
 		return realname; // demangle successfull
 	else

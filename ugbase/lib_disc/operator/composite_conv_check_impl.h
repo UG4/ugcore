@@ -194,7 +194,7 @@ norm(const TVector& vec, const std::vector<DoFIndex>& vMultiIndex)
 #endif
 
 	// return global norm
-	return sqrt((number) norm);
+	return sqrt(norm);
 }
 
 
@@ -470,16 +470,16 @@ void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 		UG_LOG("\n");
 
 		//  number of symbols to print before name and info
-		int num_sym = 18;
-		int num_line_length = 80;
+		constexpr int num_sym = 18;
+		constexpr int num_line_length = 80;
 
-		int max_length = std::max(m_name.length(), m_info.length());
-		int space_left = std::max(num_line_length - max_length - num_sym, 0);
+		const int max_length = std::max(m_name.length(), m_info.length());
+		const int space_left = std::max(num_line_length - max_length - num_sym, 0);
 
 	//	print name line
 		print_offset();
 		UG_LOG(repeat(m_symbol, num_sym));
-		int pre_space = (int)(max_length -(int)m_name.length()) / 2;
+		int pre_space = (max_length -static_cast<int>(m_name.length())) / 2;
 		UG_LOG(repeat(' ', pre_space));
 		UG_LOG("  "<< m_name << "  ");
 		UG_LOG(repeat(' ', max_length - pre_space -m_name.length()));

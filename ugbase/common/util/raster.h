@@ -75,12 +75,12 @@ class Raster{
 		class MultiIndex {
 			public:
 				MultiIndex() = default;
-				MultiIndex(size_t i);
+				explicit MultiIndex(size_t i);
 
-				int	dim () const;
-				void 		set (size_t i);
-				size_t&		operator [] (int d);
-				size_t		operator [] (int d) const;
+				[[nodiscard]] int	dim () const;
+				void set (size_t i);
+				size_t& operator [] (int d);
+				size_t operator [] (int d) const;
 
 				friend std::ostream& operator << (std::ostream& o, const MultiIndex& mi)
 				{
@@ -101,10 +101,12 @@ class Raster{
 		class Coordinate {
 			public:
 				Coordinate() = default;
-				Coordinate(number c);
-				Coordinate(const MathVector<TDIM, number>& v);
 
-				int	dim () const;
+				explicit Coordinate(number c);
+
+				explicit Coordinate(const MathVector<TDIM, number>& v);
+
+				[[nodiscard]] int	dim () const;
 				void 		set (number c);
 				number&		operator [] (int d);
 				number		operator [] (int d) const;
@@ -142,7 +144,7 @@ class Raster{
 	 *	dimension, i.e., the distance between neighbored nodes is '1' by default.
 	 *	The min-corner is at the origin. You may change those through
 	 *	'set_extension' and 'set_min_corner'.*/
-		Raster (const MultiIndex& numNodes);
+		explicit Raster (const MultiIndex& numNodes);
 		
 	///	Creates a new raster with the specified number of nodes and the specified extension.
 	/** Internally calls 'set_num_nodes', 'create', 'set_extension', and 'set_min_corner.
@@ -158,7 +160,7 @@ class Raster{
 		void load_from_asc (const char* filename);
 		void save_to_asc (const char* filename) const;
 
-		int dim () const;
+		[[nodiscard]] int dim () const;
 
 	///	sets the number of nodes that shall be used by the raster.
 	/**	At least one node is required per dimension. After having set all
@@ -167,9 +169,9 @@ class Raster{
 		void set_num_nodes (const MultiIndex& mi);
 
 	///	returns the total number of nodes in the raster
-		size_t num_nodes_total () const;
+		[[nodiscard]] size_t num_nodes_total () const;
 	///	returns the number of nodes in the specified dimension
-		size_t num_nodes (int dim) const;
+		[[nodiscard]] size_t num_nodes (int dim) const;
 	///	returns the number of nodes for each dimension in a multi-index.
 		const MultiIndex& num_nodes () const;
 
@@ -192,19 +194,19 @@ class Raster{
 		const Coordinate& min_corner () const;
 
 	///	returns the coordinate of the min-corner of the raster for the given dimension
-		number min_corner (int dim) const;
+		[[nodiscard]] number min_corner (int dim) const;
 
 	///	sets the extension of the raster. Used for interpolation at cursor.
 	/** \{ */
 		void set_extension (int dim, number ext);
-		void set_extension (const Coordinate& coord);
+		void set_extension (const Coordinate& ext);
 	/** \} */
 
 	///	returns the extension of the raster
 		const Coordinate& extension () const;
 
 	///	returns the extension of the raster for the given dimension
-		number extension (int dim) const;
+		[[nodiscard]] number extension (int dim) const;
 
 	///	sets the value that shall be considered as 'no-data-value'
 		void set_no_data_value(T val);

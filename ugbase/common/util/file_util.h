@@ -79,13 +79,13 @@ UG_API bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* 
 /**
  * \brief Checks the existence of a given directory
  *
- * \param[in] name of the directory to be checked
+ * \param[in] dirname of the directory to be checked
  * \return \c true if the specified directory exists, \c false otherwise
  */
 UG_API bool DirectoryExists(const char* dirname);
-static inline bool DirectoryExists( std::string filename)
+static inline bool DirectoryExists( const std::string& dirname)
 {
-	return DirectoryExists(filename.c_str());
+	return DirectoryExists(dirname.c_str());
 }
 /**
  * \brief Checks the existence of a given file

@@ -63,7 +63,7 @@ public:
 	[[nodiscard]] Variant get(int const& key) const;
 
 	LuaTableHandle& operator = (const LuaTableHandle&);
-	LuaTableHandle& operator = (LuaTableHandle&&);
+	LuaTableHandle& operator = (LuaTableHandle&&) noexcept;
 
 private:
 	impl::LuaTableHandle_* _data;

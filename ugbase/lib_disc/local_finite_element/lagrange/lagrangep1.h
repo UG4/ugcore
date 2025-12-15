@@ -81,16 +81,16 @@ class LagrangeP1
 		LagrangeP1() : LagrangeLDS<TRefElem>(1) {}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		bool continuous() const {return true;}
+		[[nodiscard]] bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		size_t num_sh() const { return nsh;}
+		[[nodiscard]] size_t num_sh() const { return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		bool position(size_t i, MathVector<dim>& pos) const;
+		[[nodiscard]] bool position(size_t i, MathVector<dim>& pos) const;
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		shape_type shape(size_t i, const MathVector<dim>& x) const;
+		[[nodiscard]] shape_type shape(size_t i, const MathVector<dim>& x) const;
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		void grad(grad_type& value, size_t i, const MathVector<dim>& x) const;

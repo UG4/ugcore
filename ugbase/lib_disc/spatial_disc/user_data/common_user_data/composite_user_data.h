@@ -71,7 +71,7 @@ public:
 	{
 		UG_ASSERT (si >= 0, "CompositeUserData: Non-existing subset index!");
 		
-		if ((size_t) si >= m_vData.size ())
+		if (static_cast<size_t>(si) >= m_vData.size ())
 			m_vData.resize (si + 1);
 		m_vData[si] = ref;
 		

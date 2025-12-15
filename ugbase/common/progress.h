@@ -63,7 +63,7 @@ public:
 	void calc_next_value()
 	{
 		dNextValueToUpdate = (posNow+1)*m_total/m_length;
-		iNextValueToUpdate = (int) dNextValueToUpdate;
+		iNextValueToUpdate = static_cast<int>(dNextValueToUpdate);
 	}
 	void start(double total, std::string msg="");
 

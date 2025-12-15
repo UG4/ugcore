@@ -56,7 +56,7 @@ class ConvectionShapesNoUpwind
 		using base_type = IConvectionShapes<TDim>;
 
 	///	This class
-		using this_type = ConvectionShapesNoUpwind<TDim>;
+		using this_type = ConvectionShapesNoUpwind;
 
 	///	Dimension
 		static constexpr int dim = TDim;
@@ -117,7 +117,7 @@ class ConvectionShapesNoUpwind
 		struct RegisterRefDimFunc
 		{
 			this_type* m_pThis;
-			RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
+			explicit RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
 			template<typename TRefDim> void operator () (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
 		};
 
@@ -164,7 +164,7 @@ update(const TFVGeom* geo,
 	//	corners, but scvf.num_sh() currently returns the number of corners.
 	//	this is actually enough to interpolate the function, but still we
 	//	should reset the interpolation adding for hanging dofs to zero
-		for(size_t sh = scvf.num_sh(); sh < numSH; sh++)
+		for(size_t sh = scvf.num_sh(); sh < numSH; ++sh)
 			conv_shape(ip, sh) = 0.0;
 
 	//	Write Derivatives if wanted
@@ -173,7 +173,7 @@ update(const TFVGeom* geo,
 				VecScale(D_vel(ip, sh), scvf.normal(), scvf.shape(sh));
 
 			// temporary, see above
-			for(size_t sh = scvf.num_sh(); sh < numSH; sh++)
+			for(size_t sh = scvf.num_sh(); sh < numSH; ++sh)
 				VecSet(D_vel(ip, sh), 0.0);
 		}
 
@@ -237,7 +237,7 @@ class ConvectionShapesFullUpwind
 		struct RegisterElemFunc
 		{
 			this_type* m_pThis;
-			RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
+			explicit RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
 			template<typename TElem> void operator () (TElem &)
 			{
 				m_pThis->register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
@@ -258,7 +258,7 @@ class ConvectionShapesFullUpwind
 		struct RegisterRefDimFunc
 		{
 			this_type* m_pThis;
-			RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
+			explicit RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
 			template<typename TRefDim> void operator () (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
 		};
 
@@ -352,7 +352,7 @@ class ConvectionShapesWeightedUpwind
 		using base_type = IConvectionShapes<TDim>;
 
 	///	This class
-		using this_type = ConvectionShapesWeightedUpwind<TDim>;
+		using this_type = ConvectionShapesWeightedUpwind;
 
 	///	Dimension
 		static constexpr int dim = TDim;
@@ -380,7 +380,7 @@ class ConvectionShapesWeightedUpwind
 		}
 
 	///	constructor
-		ConvectionShapesWeightedUpwind(number weight)
+		explicit ConvectionShapesWeightedUpwind(number weight)
 		{
 			set_weight(weight);
 
@@ -413,7 +413,7 @@ class ConvectionShapesWeightedUpwind
 		struct RegisterElemFunc
 		{
 			this_type* m_pThis;
-			RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
+			explicit RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
 			template<typename TElem> void operator () (TElem &)
 			{
 				m_pThis->register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
@@ -434,7 +434,7 @@ class ConvectionShapesWeightedUpwind
 		struct RegisterRefDimFunc
 		{
 			this_type* m_pThis;
-			RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
+			explicit RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
 			template<typename TRefDim> void operator () (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
 		};
 
@@ -511,7 +511,7 @@ update(const TFVGeom* geo,
 				VecScale(D_vel(ip, sh), scvf.normal(),
 				         	 	 	 	 	 (1.-m_weight)*scvf.shape(sh));
 		//	see comment above
-			for(size_t sh = scvf.num_sh(); sh < numSH; sh++)
+			for(size_t sh = scvf.num_sh(); sh < numSH; ++sh)
 				VecSet(D_vel(ip, sh), 0.0);
 
 		//	add full upwind part of derivatives
@@ -575,7 +575,7 @@ class ConvectionShapesPartialUpwind
 		struct RegisterElemFunc
 		{
 			this_type* m_pThis;
-			RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
+			explicit RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
 			template<typename TElem> void operator () (TElem &)
 			{
 				m_pThis->register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
@@ -595,7 +595,7 @@ class ConvectionShapesPartialUpwind
 		struct RegisterRefDimFunc
 		{
 			this_type* m_pThis;
-			RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
+			explicit RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
 			template<typename TRefDim> void operator () (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
 		};
 
@@ -748,8 +748,8 @@ update(const TFVGeom* geo,
 
 		if (computeDeriv)
 		{
-			for (size_t k = 0; k < (size_t)dim; k++)
-				for (size_t l = 0; l < (size_t)dim; l++)
+			for (size_t k = 0; k < static_cast<size_t>(dim); k++)
+				for (size_t l = 0; l < static_cast<size_t>(dim); l++)
 				{
 					conv_shape_diffusion(i, from)(k,l) = gradFrom[k]*gradTo[l]*vol;
 					conv_shape_diffusion(i, to)(k,l) = - gradFrom[k]*gradTo[l]*vol;
@@ -813,7 +813,7 @@ private:
 	struct RegisterElemFunc
 	{
 		this_type *m_pThis;
-		RegisterElemFunc(this_type *pThis) : m_pThis(pThis) {}
+		explicit RegisterElemFunc(this_type *pThis) : m_pThis(pThis) {}
 		template <typename TElem>
 		void operator () (TElem &)
 		{
@@ -835,7 +835,7 @@ private:
 	struct RegisterRefDimFunc
 	{
 		this_type *m_pThis;
-		RegisterRefDimFunc(this_type *pThis) : m_pThis(pThis) {}
+		explicit RegisterRefDimFunc(this_type *pThis) : m_pThis(pThis) {}
 		template <typename TRefDim>
 		void operator () (TRefDim &) { m_pThis->register_func_for_refDim<TRefDim::value>(); }
 	};
@@ -1025,7 +1025,7 @@ private:
 	struct RegisterElemFunc
 	{
 		this_type *m_pThis;
-		RegisterElemFunc(this_type *pThis) : m_pThis(pThis) {}
+		explicit RegisterElemFunc(this_type *pThis) : m_pThis(pThis) {}
 		template <typename TElem>
 		void operator () (TElem &)
 		{
@@ -1047,7 +1047,7 @@ private:
 	struct RegisterRefDimFunc
 	{
 		this_type *m_pThis;
-		RegisterRefDimFunc(this_type *pThis) : m_pThis(pThis) {}
+		explicit RegisterRefDimFunc(this_type *pThis) : m_pThis(pThis) {}
 		template <typename TRefDim>
 		void operator () (TRefDim &) { m_pThis->register_func_for_refDim<TRefDim::value>(); }
 	};
@@ -1091,14 +1091,14 @@ bool ConvectionShapesLinearProfileSkewedUpwind<TDim>::
 			// No upwind!
 			for (size_t sh = 0; sh < scvf.num_sh(); sh++)
 				conv_shape(ip, sh) = flux * scvf.shape(sh);
-			for (size_t sh = scvf.num_sh(); sh < numSH; sh++)
+			for (size_t sh = scvf.num_sh(); sh < numSH; ++sh)
 				conv_shape(ip, sh) = 0.0;
 			if (computeDeriv)
 			{
 				for (size_t sh = 0; sh < scvf.num_sh(); sh++)
 					VecScale(D_vel(ip, sh), scvf.normal(), scvf.shape(sh));
 				// temporary, see above
-				for (size_t sh = scvf.num_sh(); sh < numSH; sh++)
+				for (size_t sh = scvf.num_sh(); sh < numSH; ++sh)
 					VecSet(D_vel(ip, sh), 0.0);
 			}
 			continue;
@@ -1114,20 +1114,19 @@ bool ConvectionShapesLinearProfileSkewedUpwind<TDim>::
 		//	corners, but scvf.num_sh() currently returns the number of corners.
 		//	this is actually enough to interpolate the function, but still we
 		//	should reset the interpolation adding for hanging dofs to zero
-		for (size_t sh = scvf.num_sh(); sh < numSH; sh++)
+		for (size_t sh = scvf.num_sh(); sh < numSH; ++sh)
 			conv_shape(ip, sh) = 0.0;
 
 		const MathVector<dim> *vCornerCoords = geo->corners();
 		// Reference element type
 		using TRefElem = typename TFVGeom::ref_elem_type;
 		size_t side = 0;
-		MathVector<dim> globalIntersection;
 		MathVector<TRefElem::dim> localIntersection;
 
-		try
-		{
+		try {
+			MathVector<dim> globalIntersection;
 			ElementSideRayIntersection<TRefElem, dim>(side, globalIntersection, localIntersection,
-													  scvf.global_ip(), Velocity[ip], false /* search upwind */, vCornerCoords);
+			                                          scvf.global_ip(), Velocity[ip], false /* search upwind */, vCornerCoords);
 		}
 		UG_CATCH_THROW("GetLinearProfileSkewedUpwindShapes: Cannot find cut side.");
 

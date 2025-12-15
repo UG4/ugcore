@@ -90,7 +90,7 @@ CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosV
 
 //	average
 	if(numVrts > 0)
-		VecScale(v, v, 1./(number)numVrts);
+		VecScale(v, v, 1./static_cast<number>(numVrts));
 
 	return v;
 }
@@ -121,7 +121,7 @@ CalculateCenter(const FaceVertices* f, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
 
 //	average
 	if(totalWeight != 0)
-		VecScale(v, v, 1./(number)totalWeight);
+		VecScale(v, v, 1./static_cast<number>(totalWeight));
 
 	return v;
 }

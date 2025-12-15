@@ -48,7 +48,9 @@ namespace ug {
 // mOut = m1 + m2
 template <typename matrix_t>
 inline void
-MatAdd(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2);
+MatAdd(matrix_t& mOut,
+       const matrix_t& m1,
+       const matrix_t& m2);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Subtraction of Matrices
@@ -58,7 +60,9 @@ MatAdd(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2);
 // mOut = m1 - m2
 template <typename matrix_t>
 inline void
-MatSubtract(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2);
+MatSubtract(matrix_t& mOut,
+            const matrix_t& m1,
+            const matrix_t& m2);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Multiplication of Matrices
@@ -69,63 +73,73 @@ MatSubtract(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2);
 template <size_t N, size_t M, size_t L, typename T>
 inline void
 MatMultiply(MathMatrix<N, M, T>& mOut,
-        const MathMatrix<N, L, T>& m1, const MathMatrix<L, M, T>& m2);
+            const MathMatrix<N, L, T>& m1,
+            const MathMatrix<L, M, T>& m2);
 
 ///	multiply three matrices and stores the result in a fourth one
 // mOut = m1 * m2 * m3
 template <size_t N, size_t M, size_t L, size_t P, typename T>
 inline void
-MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1,
-        const MathMatrix<L, P, T>& m2, const MathMatrix<P, M, T>& m3);
+MatMultiply(MathMatrix<N, M, T>& mOut,
+            const MathMatrix<N, L, T>& m1,
+            const MathMatrix<L, P, T>& m2,
+            const MathMatrix<P, M, T>& m3);
 
 ///	multiply two transposed matrices and stores the result in a third one
 // mOut = m1^T * m2^T
 template <size_t N, size_t M, size_t L, typename T>
 inline void
 MatMultiplyTransposed(MathMatrix<N, M, T>& mOut,
-                      const MathMatrix<L, N, T>& m1, const MathMatrix<M, L, T>& m2);
+                      const MathMatrix<L, N, T>& m1,
+                      const MathMatrix<M, L, T>& m2);
 
 ///	multiply a transposed matrix with itself and stores the result in a second one
 // mOut = m^T * m
 template <size_t N, size_t M, typename T>
 inline void
-MatMultiplyMTM(MathMatrix<N, N, T>& mOut, const MathMatrix<M, N, T>& m);
+MatMultiplyMTM(MathMatrix<N, N, T>& mOut,
+               const MathMatrix<M, N, T>& m);
 
 ///	multiply a matrix with its transposed and stores the result in a second one
 // mOut = m * m^T
 template <size_t N, size_t M, typename T>
 inline void
-MatMultiplyMMT(MathMatrix<M, M, T>& mOut, const MathMatrix<M, N, T>& m);
+MatMultiplyMMT(MathMatrix<M, M, T>& mOut,
+               const MathMatrix<M, N, T>& m);
 
 ///	multiply a matrix with the transposed of a second one and stores the result in mOut
 // mOut = m1 * m2^T
 template <size_t N, size_t M, size_t L, typename T>
 inline void
-MatMultiplyMBT(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1,
-        const MathMatrix<M, L, T>& m2);
+MatMultiplyMBT(MathMatrix<N, M, T>& mOut,
+               const MathMatrix<N, L, T>& m1,
+               const MathMatrix<M, L, T>& m2);
 
 ///	multiply the transposed of a matrix with a matrix and stores the result in mOut
 // mOut = m1^T * m2
 template <size_t N, size_t M, size_t L, typename T>
 inline void
-MatMultiplyMTB(MathMatrix<N, M, T>& mOut, const MathMatrix<L, N, T>& m1,
-        const MathMatrix<L, M, T>& m2);
+MatMultiplyMTB(MathMatrix<N, M, T>& mOut,
+               const MathMatrix<L, N, T>& m1,
+               const MathMatrix<L, M, T>& m2);
 
 ///	multiply a matrix m2 with a matrix m1 from left and its transpose m1^T from right
 ///	and stores the result in mOut
 // mOut = m1 * m2 * m1^T
 template <size_t N, size_t M, typename T>
 inline void
-MatMultiplyMBMT(MathMatrix<N, N, T>& mOut, const MathMatrix<N, M, T>& m1,
-        const MathMatrix<M, M, T>& m2);
+MatMultiplyMBMT(MathMatrix<N, N, T>& mOut,
+                const MathMatrix<N, M, T>& m1,
+                const MathMatrix<M, M, T>& m2);
 
 ///	multiply a matrix m2 with a matrix m1 from right and its transpose m1^T from left
 ///	and stores the result in mOut
 // mOut = m1^T * m2 * m1
 template <size_t N, size_t M, typename T>
 inline void
-MatMultiplyMTBM(MathMatrix<N, N, T>& mOut, const MathMatrix<M, N, T>& m1,
-        const MathMatrix<M, M, T>& m2);
+MatMultiplyMTBM(MathMatrix<N, N, T>& mOut,
+                const MathMatrix<M, N, T>& m1,
+                const MathMatrix<M, M, T>& m2);
 
 ////////////////////////////////////////////////////////////////////////////////
 // "Contraction" for Matrices (note: contraction is usually known regarding tensors!)
@@ -133,7 +147,8 @@ MatMultiplyMTBM(MathMatrix<N, N, T>& mOut, const MathMatrix<M, N, T>& m1,
 
 template <typename matrix_t>
 inline typename matrix_t::value_type
-MatContraction(const matrix_t& m1, const matrix_t& m2);
+MatContraction(const matrix_t& m1,
+               const matrix_t& m2);
 
 ////////////////////////////////////////////////////////////////////////////////
 // "Deviator" and trace for Matrices

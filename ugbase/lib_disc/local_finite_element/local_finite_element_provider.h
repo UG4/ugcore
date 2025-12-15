@@ -60,14 +60,14 @@ namespace ug {
 class LocalFiniteElementProvider {
 	private:
 	// 	disallow private constructor
-		LocalFiniteElementProvider();
+		LocalFiniteElementProvider() = default;
 
 	// disallow copy and assignment (intentionally left unimplemented)
 		LocalFiniteElementProvider(const LocalFiniteElementProvider&);
 		LocalFiniteElementProvider& operator = (const LocalFiniteElementProvider&);
 
 	// 	private destructor
-		~LocalFiniteElementProvider();
+		~LocalFiniteElementProvider() = default;
 
 	// 	Singleton provider
 		inline static LocalFiniteElementProvider& inst()

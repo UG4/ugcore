@@ -71,22 +71,23 @@ template <typename TData, int dim, typename TRet>
 double LognormalRandomField<TData,dim,TRet>::gasdev()
 {
 	// from Numerical Recipes
-	int iset;
 	static double gset;
-	double fac, rsq, v1, v2, x1, x2;
 
-	iset = 0;
+	int iset = 0;
 	if (iset == 0)
 	{
+		double v2;
+		double v1;
+		double rsq;
 		do
 		{
-			x1 = urand(0.0, 1.0);
-			x2 = urand(0.0, 1.0);
+			double x1 = urand(0.0, 1.0);
+			double x2 = urand(0.0, 1.0);
 			v1 = 2.0 * x1 - 1.0;
 			v2 = 2.0 * x2 - 1.0;
 			rsq = v1 * v1 + v2 * v2;
 		} while (rsq >= 1.0 || rsq == 0.0);
-		fac = sqrt(-2.0 * log(rsq) / rsq);
+		double fac = sqrt(-2.0 * log(rsq) / rsq);
 		gset = v1 * fac;
 		iset = 1;
 		return v2 * fac;

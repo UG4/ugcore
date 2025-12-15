@@ -89,8 +89,8 @@ bool FileTypeIs( const char* filename, const char* extension )
 {
 	PROFILE_FUNC();
 	std::string name( filename );
-	size_t iExtPos = name.find_last_of(".");
-	return ( iExtPos != std::string::npos && name.substr(iExtPos).compare(extension) == 0 );
+	size_t iExtPos = name.find_last_of('.');
+	return ( iExtPos != std::string::npos && name.substr(iExtPos) == extension );
 }
 
 /// !!! Serial i/o version !!!
@@ -129,7 +129,7 @@ UG_API bool FileCompare( const char *file1, const char *file2 )
     UG_THROW( "One or both files could not be opened:" << file1 << ", " << file2 );
   }
 
-  string line1 = "", line2 = "";
+  string line1, line2;
   bool diff = false;
   while( !f1.eof() || !f2.eof() ) {
     getline( f1, line1 );

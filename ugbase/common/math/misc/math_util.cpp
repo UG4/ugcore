@@ -190,7 +190,7 @@ bool FindNormal(vector3& normOut, const vector3& v)
 	VecNormalize(n, v);
 	
 //TODO: check whether 0.7 is a good threshold
-	const number dotThreshold = 0.7;
+constexpr number dotThreshold = 0.7;
 	
 //	try projections of the unit-normals onto the
 //	plane which is defined by normOut and the origin.
@@ -447,7 +447,6 @@ number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
 //
 //	V = 1/6 * |VecDot( (a-d) , VecCross((b-d), (c-d)) )|
 //
-	number tetrahedronVolume;
 	vector3 ad;
 	vector3 bd;
 	vector3 cd;
@@ -459,7 +458,7 @@ number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
 
 	VecCross(cross, bd, cd);
 
-	tetrahedronVolume = abs(VecDot(ad, cross) / 6);
+	number tetrahedronVolume = abs(VecDot(ad, cross) / 6);
 
 	return tetrahedronVolume;
 }
@@ -561,7 +560,7 @@ int BinomCoeff(int n, int k)
 	if(n-k>k) return BinomCoeff(n,n-k);
 
 //	if equal binomCoeff is always one
-	if(n==k) return 1;
+	if(n==k || k == 0) return 1;
 
 //	do recursion
 	return BinomCoeff(n-1,k)*n/(n-k);

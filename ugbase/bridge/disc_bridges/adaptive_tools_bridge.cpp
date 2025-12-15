@@ -213,7 +213,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	// MarkOutOfRangeElems
 	using TGridFunction = GridFunction<TDomain, TAlgebra>;
 	reg.add_function("MarkOutOfRangeElems", static_cast<void (*) (SmartPtr<IRefiner>, ConstSmartPtr<TGridFunction>, size_t, number, number)>(MarkOutOfRangeElems<TGridFunction>),
-		grp.c_str(), "", "refiner # grid function # component # lower bound # upper bound",
+		grp, "", "refiner # grid function # component # lower bound # upper bound",
 		"Marks elements next to out-of-range DoFs for refinement");
 
 }
@@ -397,11 +397,11 @@ static void Domain(Registry& reg, string grp)
 			reg.add_class_to_group(name, "AbsoluteMarking", tag);
 	}
 
-	reg.add_function("MarkGlobal", &MarkGlobal<TDomain>, grp.c_str(), "", "refiner#domain", "");
-	reg.add_function("MarkSubsets", &MarkSubsets<TDomain>, grp.c_str(), "", "refiner#domain#subset names (as vector of string)", "");
-	reg.add_function("MarkAlongSurface", &MarkAlongSurface<TDomain>, grp.c_str(), "", "refiner#domain#vector of surface names#vector of volume names", "");
-	reg.add_function("MarkAnisotropic", &MarkAnisotropic<TDomain>, grp.c_str(), "", "refiner#domain#anisotropy threshold (<=1)", "");
-	reg.add_function("MarkAnisotropicX", &MarkAnisotropicOnlyX<TDomain>, grp.c_str(), "", "refiner#domain#anisotropy threshold (<=1)", "");
+	reg.add_function("MarkGlobal", &MarkGlobal<TDomain>, grp, "", "refiner#domain", "");
+	reg.add_function("MarkSubsets", &MarkSubsets<TDomain>, grp, "", "refiner#domain#subset names (as vector of string)", "");
+	reg.add_function("MarkAlongSurface", &MarkAlongSurface<TDomain>, grp, "", "refiner#domain#vector of surface names#vector of volume names", "");
+	reg.add_function("MarkAnisotropic", &MarkAnisotropic<TDomain>, grp, "", "refiner#domain#anisotropy threshold (<=1)", "");
+	reg.add_function("MarkAnisotropicX", &MarkAnisotropicOnlyX<TDomain>, grp, "", "refiner#domain#anisotropy threshold (<=1)", "");
 }
 
 /**

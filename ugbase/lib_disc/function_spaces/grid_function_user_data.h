@@ -272,7 +272,7 @@ class GridFunctionVectorData
 				"name in component vector.");
 	}
 
-	virtual bool continuous() const
+	[[nodiscard]] virtual bool continuous() const
 	{
 		for(int i = 0; i < dim; ++i)
 			if(!LocalFiniteElementProvider::continuous(m_vlfeID[i]))
@@ -298,7 +298,7 @@ class GridFunctionVectorData
 		const ReferenceObjectID roid = elem->reference_object_id();
 
 		//	memory for shapes
-		std::vector<number> vShape; // ø todo move to inner scope?
+		std::vector<number> vShape;
 		//	memory for indices
 		std::vector<DoFIndex> ind;
 
@@ -562,7 +562,7 @@ class GridFunctionGradientComponentData
 		m_lfeID = spGridFct->local_finite_element_id( m_fct );
 	};
 
-	virtual bool continuous() const
+	[[nodiscard]] virtual bool continuous() const
 	{
 		return false;
 	}

@@ -118,7 +118,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	if (m_snkTransportData.invalid()) return;
 	UG_LOG("'DiracSourceDisc::add_jac_A_elem' called for " << vCornerCoords[0] << std::endl);
 	// Request source strength form user data.
-	const int co = 0;
+	constexpr int co = 0;
 	double snkSVal;
 	(*m_snkTransportData)(snkSVal, m_srcCoord, this->time(), -1);
 	J(_C_, co, _C_, co) -= snkSVal;
@@ -133,7 +133,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 {
 	if (m_snkTransportData.invalid()) return;
 	// Request source strength form user data.
-	const int co = 0;
+	constexpr int co = 0;
 	double snkSVal;
 	UG_LOG("'DiracSourceDisc::add_def_A_elem' called for " << vCornerCoords[0] << std::endl);
 	(*m_snkTransportData)(snkSVal, m_srcCoord, this->time (), -1);
@@ -153,7 +153,7 @@ add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCo
 	UG_ASSERT(vCornerCoords[0] == m_srcCoord, "Source must be located at element corner!");
 
 	// Request source strength form user data.
-	const int co = 0;
+	constexpr int co = 0;
 	double srcVal;
 	(*m_srcData)(srcVal, m_srcCoord, this->time (), -1);
 	 rhs(0, co) += srcVal;

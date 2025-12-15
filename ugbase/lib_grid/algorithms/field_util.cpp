@@ -51,8 +51,8 @@ void CreateGridFromField(Grid& grid,
 
 //	iterate over cells and create triangles or quadrilaterals between
 //	adjacent vertices
-	const int fieldWidth = (int)field.width();
-	const int fieldHeight = (int)field.height();
+	const int fieldWidth = static_cast<int>(field.width());
+	const int fieldHeight = static_cast<int>(field.height());
 
 	for(int irow = 0; irow + 1 < fieldHeight; ++irow){
 		for(int icol = 0; icol + 1 < fieldWidth; ++icol){
@@ -75,7 +75,7 @@ void CreateGridFromField(Grid& grid,
 				if(val[i] != noDataValue)
 					++numVals;
 				else if(firstInvalid == -1)
-					firstInvalid = (int)i;
+					firstInvalid = static_cast<int>(i);
 			}
 
 			if(numVals < 3)
@@ -90,8 +90,8 @@ void CreateGridFromField(Grid& grid,
 				if((val[i] != noDataValue) && (!vrt)){
 					vrt = *grid.create<RegularVertex>();
 					aaPos[vrt] =
-						vector3(offset.x() + cellSize.x() * (number)ic,
-								offset.y() + cellSize.y() * (number)ir,
+						vector3(offset.x() + cellSize.x() * static_cast<number>(ic),
+								offset.y() + cellSize.y() * static_cast<number>(ir),
 								field.at(ic, ir));
 					vrtField.at(ic, ir) = vrt;
 				}
@@ -127,8 +127,8 @@ void CreateGridFromFieldBoundary(Grid& grid,
 
 //	iterate over cells and create triangles or quadrilaterals between
 //	adjacent vertices
-	const int fieldWidth = (int)field.width();
-	const int fieldHeight = (int)field.height();
+	const int fieldWidth = static_cast<int>(field.width());
+	const int fieldHeight = static_cast<int>(field.height());
 
 	for(int irow = 0; irow + 1 < fieldHeight; ++irow){
 		for(int icol = 0; icol + 1 < fieldWidth; ++icol){
@@ -151,7 +151,7 @@ void CreateGridFromFieldBoundary(Grid& grid,
 				if(val[i] != noDataValue)
 					++numVals;
 				else if(firstInvalid == -1)
-					firstInvalid = (int)i;
+					firstInvalid = static_cast<int>(i);
 			}
 
 			if(numVals < 3)
@@ -171,8 +171,8 @@ void CreateGridFromFieldBoundary(Grid& grid,
 					if((val[ind[i]] != noDataValue) && (!vrt)){
 						vrt = *grid.create<RegularVertex>();
 						aaPos[vrt] =
-							vector3(offset.x() + cellSize.x() * (number)ic,
-									offset.y() + cellSize.y() * (number)ir,
+							vector3(offset.x() + cellSize.x() * static_cast<number>(ic),
+									offset.y() + cellSize.y() * static_cast<number>(ir),
 									val[ind[i]]);
 						vrtField.at(ic, ir) = vrt;
 					}
@@ -210,8 +210,8 @@ void CreateGridFromFieldBoundary(Grid& grid,
 							if((val[ind[i]] != noDataValue) && (!vrt)){
 								vrt = *grid.create<RegularVertex>();
 								aaPos[vrt] =
-									vector3(offset.x() + cellSize.x() * (number)ic,
-											offset.y() + cellSize.y() * (number)ir,
+									vector3(offset.x() + cellSize.x() * static_cast<number>(ic),
+											offset.y() + cellSize.y() * static_cast<number>(ir),
 											val[ind[i]]);
 								vrtField.at(ic, ir) = vrt;
 							}

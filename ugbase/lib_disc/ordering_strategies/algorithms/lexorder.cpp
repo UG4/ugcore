@@ -130,7 +130,7 @@ void OrderLexForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> dom
 	int numDoFOnGeomObj = -1;
 	for(int si = 0; si < dd->num_subsets(); ++si){
 		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
-			const int numDoF = dd->num_dofs((ReferenceObjectID)roid, si);
+			const int numDoF = dd->num_dofs(static_cast<ReferenceObjectID>(roid), si);
 
 			if(numDoF == 0) continue;
 
@@ -153,7 +153,7 @@ void OrderLexForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> dom
 		const CommonLocalDoFSet& locDoF = LocalFiniteElementProvider::get_dofs(lfeID);
 
 		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
-			const int numDoF = locDoF.num_dof((ReferenceObjectID)roid);
+			const int numDoF = locDoF.num_dof(static_cast<ReferenceObjectID>(roid));
 
 			if(numDoF <= 0) continue;
 
@@ -172,7 +172,7 @@ void OrderLexForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> dom
 		const CommonLocalDoFSet& locDoF = LocalFiniteElementProvider::get_dofs(lfeID);
 
 		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
-			if(locDoF.num_dof((ReferenceObjectID)roid) != 0){
+			if(locDoF.num_dof(static_cast<ReferenceObjectID>(roid)) != 0){
 				if(bSingleSpaceUsage[roid] == false)
 					bSortableComp[fct] = false;
 			}

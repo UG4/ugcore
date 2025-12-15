@@ -158,10 +158,10 @@ class DimLocalDoFSet : public LocalDoFSet
 {
 	public:
 	/// constructor
-		DimLocalDoFSet();
+		DimLocalDoFSet() = default;
 
 	///	returns if the local dof position are exact
-		virtual bool exact_position_available() const = 0;
+		[[nodiscard]] virtual bool exact_position_available() const = 0;
 
 	///	local position of DoF i
 	/**
@@ -207,7 +207,7 @@ class CommonLocalDoFSet
 		void add(const LocalDoFSet& set);
 
 	///	number of dofs on a reference element type
-		int num_dof(ReferenceObjectID roid) const {return m_vNumDoF[roid];}
+		[[nodiscard]] int num_dof(ReferenceObjectID roid) const {return m_vNumDoF[roid];}
 
 	protected:
 		int m_vNumDoF[NUM_REFERENCE_OBJECTS];

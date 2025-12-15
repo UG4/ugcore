@@ -1102,7 +1102,7 @@ inline bool IntersectCoplanarTriangles(std::vector<vector2>& edgesOut,
 				continue;
 			//vector2 n(d.y() / refLen, -d.x() / refLen);
 			vector2 n(d.y(), -d.x());
-			VecScale(n, n, (number) 1 / refLen);
+			VecScale(n, n, static_cast<number>(1) / refLen);
 			vector2 v;
 			VecSubtract(v, t0[i2], t0[i0]);
 			number refDot = VecDot(v, n);

@@ -54,10 +54,10 @@ class Field {
 		inline T&		at(size_t x, size_t y);
 		inline const T&	at(size_t x, size_t y) const;
 
-		size_t 		width() const		{return m_width;}
-		size_t 		height() const		{return m_height;}
-		size_t 		size() const		{return m_width * m_height;}
-		size_t		capacity() const	{return m_capacity;}
+		[[nodiscard]] size_t width() const		{return m_width;}
+		[[nodiscard]] size_t height() const		{return m_height;}
+		[[nodiscard]] size_t size() const		{return m_width * m_height;}
+		[[nodiscard]] size_t capacity() const	{return m_capacity;}
 		T*			data()				{return m_data;}
 		const T*	data() const		{return m_data;}
 
@@ -67,16 +67,16 @@ class Field {
 		void swap(Field& f) noexcept;
 
 	private:
-		inline size_t array_index(size_t x, size_t y) const;
+		size_t array_index(size_t x, size_t y) const;
 
 	//	BEGIN SERIALIZATION
 		friend class boost::serialization::access;
 
 		template <typename Archive>
-		void save( Archive& ar, const unsigned int version) const;
+		void save( Archive& ar, unsigned int version) const;
 
 		template <typename Archive>
-		void load( Archive& ar, const unsigned int version);
+		void load( Archive& ar, unsigned int version);
 		
 		BOOST_SERIALIZATION_SPLIT_MEMBER()
 	//	END SERIALIZATION

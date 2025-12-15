@@ -55,9 +55,8 @@
 
 
 namespace ug {
-
-bool CompareScalar(const std::pair<number, size_t> &p1,
-		const std::pair<number, size_t> &p2)
+inline bool CompareScalar(const std::pair<number, size_t> &p1,
+	                      const std::pair<number, size_t> &p2)
 {
 	return p1.first<p2.first;
 }
@@ -89,7 +88,7 @@ public:
 		return make_sp(new DirectionalOrdering(*this));
 	}
 
-	void compute(){
+	void compute() override {
 		m_vScalars.resize(m_vPositions.size());
 		small_vec_t pos;
 		for(size_t i = 0; i < m_vPositions.size(); ++i){
@@ -109,7 +108,7 @@ public:
 		#endif
 	}
 
-	void init(M_t* A, const V_t& V){
+	void init(M_t* A, const V_t& V) override {
 		const GridFunc_t* pGridF;
 		unsigned n;
 
@@ -138,25 +137,25 @@ public:
 		#endif
 	}
 
-	void init(M_t* A){
+	void init(M_t* A) override {
 		UG_THROW(name() << "::init: Cannot initialize smoother without a geometry. Specify the 2nd argument for init!");
 	}
 
-	void init(M_t* A, const V_t&, const O_t& inv_map){
+	void init(M_t* A, const V_t&, const O_t& inv_map) override {
 		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 	}
 
-	void init(M_t* A, const O_t& inv_map){
+	void init(M_t* A, const O_t& inv_map) override {
 		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 	}
 
-	void check(){
+	void check() override {
 		if(!is_permutation(o)){
 			UG_THROW(name() << "::check: Not a permutation!");
 		}
 	}
 
-	O_t& ordering(){
+	O_t& ordering() override {
 		return o;
 	}
 
@@ -164,7 +163,7 @@ public:
 		m_dir = dir;
 	}
 
-	virtual const char* name() const {return "DirectionalOrdering";}
+	const char* name() const override {return "DirectionalOrdering";}
 
 private:
 	O_t o;

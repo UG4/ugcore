@@ -62,7 +62,7 @@ error_logger()
 }
 
 inline int LogAssistant::
-get_output_process()
+get_output_process() const
 {
 	return m_outputProc;
 }
@@ -76,11 +76,11 @@ GetLogAssistant()
 inline unsigned int
 GetNumberOfDigits (uint64_t i)
 {
-    return i > 0 ? static_cast<unsigned int>(log10((double) i)) + 1 : 1;
+    return i > 0 ? static_cast<unsigned int>(log10(i)) + 1 : 1;
 }
 
 inline std::string
-ConvertNumber (uint64_t size, unsigned int width, unsigned int numDisplayedDigits)
+ConvertNumber (uint64_t size, unsigned int width, int numDisplayedDigits)
 {
 	std::stringstream ss;
 
@@ -88,37 +88,37 @@ ConvertNumber (uint64_t size, unsigned int width, unsigned int numDisplayedDigit
 		if (size >= UNIT_EXA) {
 
 			ss << std::setprecision(numDisplayedDigits)
-			   << (((double)size) / UNIT_EXA)
+			   << (static_cast<double>(size) / UNIT_EXA)
 			   << " Ei";
 
 		} else if (size >= UNIT_PETA) {
 
 			ss << std::setprecision(numDisplayedDigits)
-			   << (((double)size) / UNIT_PETA)
+			   << (static_cast<double>(size) / UNIT_PETA)
 			   << " Pi";
 
 		} else if (size >= UNIT_TERA) {
 			
 			ss << std::setprecision(numDisplayedDigits)
-			   << (((double)size) / UNIT_TERA)
+			   << (static_cast<double>(size) / UNIT_TERA)
 			   << " Ti";
 
 		} else if (size >= UNIT_GIGA) {
 			
 			ss << std::setprecision(numDisplayedDigits)
-			   << (((double)size) / UNIT_GIGA)
+			   << (static_cast<double>(size) / UNIT_GIGA)
 			   << " Gi";
 
 		} else if (size >= UNIT_MEGA) {
 
 			ss << std::setprecision(numDisplayedDigits)
-			   << (((double)size) / UNIT_MEGA)
+			   << (static_cast<double>(size) / UNIT_MEGA)
 			   << " Mi";
 
 		} else if (size >= UNIT_KILO) {
 
 			ss << std::setprecision(numDisplayedDigits)
-			   << (((double)size) / UNIT_KILO)
+			   << (static_cast<double>(size) / UNIT_KILO)
 			   << " Ki";
 
 		}
@@ -131,7 +131,7 @@ ConvertNumber (uint64_t size, unsigned int width, unsigned int numDisplayedDigit
 }
 
 inline std::string
-ConvertNumberSI (uint64_t size, unsigned int width, unsigned int numDisplayedDigits)
+ConvertNumberSI (uint64_t size, unsigned int width, int numDisplayedDigits)
 {
 	std::stringstream ss;
 
@@ -139,37 +139,37 @@ ConvertNumberSI (uint64_t size, unsigned int width, unsigned int numDisplayedDig
 		if (size >= UNIT_EXA_SI) {
 
 			ss << std::setprecision(numDisplayedDigits)
-			   << (((double)size) / UNIT_EXA_SI)
+			   << (static_cast<double>(size) / UNIT_EXA_SI)
 			   << " E";
 
 		} else if (size >= UNIT_PETA_SI) {
 
 			ss << std::setprecision(numDisplayedDigits)
-			   << (((double)size) / UNIT_PETA_SI)
+			   << (static_cast<double>(size) / UNIT_PETA_SI)
 			   << " P";
 
 		} else if (size >= UNIT_TERA_SI) {
 			
 			ss << std::setprecision(numDisplayedDigits)
-			   << (((double)size) / UNIT_TERA_SI)
+			   << (static_cast<double>(size) / UNIT_TERA_SI)
 			   << " T";
 
 		} else if (size >= UNIT_GIGA_SI) {
 			
 			ss << std::setprecision(numDisplayedDigits)
-			   << (((double)size) / UNIT_GIGA_SI)
+			   << (static_cast<double>(size) / UNIT_GIGA_SI)
 			   << " G";
 
 		} else if (size >= UNIT_MEGA_SI) {
 
 			ss << std::setprecision(numDisplayedDigits)
-			   << (((double)size) / UNIT_MEGA_SI)
+			   << (static_cast<double>(size) / UNIT_MEGA_SI)
 			   << " M";
 
 		} else if (size >= UNIT_KILO_SI) {
 
 			ss << std::setprecision(numDisplayedDigits)
-			   << (((double)size) / UNIT_KILO_SI)
+			   << (static_cast<double>(size) / UNIT_KILO_SI)
 			   << " K";
 
 		}

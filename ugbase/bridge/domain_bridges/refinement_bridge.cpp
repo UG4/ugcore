@@ -1203,8 +1203,8 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 			*/
 
 			int refine = 0;
-			callback(refine, 6, pos.x(), pos.y(), pos.z(), /*h,*/ (number)lvl,
-					 (number)sh.get_subset_index(e), (number)time);
+			callback(refine, 6, pos.x(), pos.y(), pos.z(), /*h,*/ lvl,
+					 static_cast<number>(sh.get_subset_index(e)), time);
 			if(refine)
 				refiner->mark(e);
 		}
@@ -1245,8 +1245,8 @@ void MarkForCoarsen_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refin
 			TPos tpos = CalculateCenter(e, aaPos);
 			vector3 pos;
 			VecCopy(pos, tpos, 0);
-			callback(coarsen, 6, pos.x(), pos.y(), pos.z(), (number)g.get_level(e),
-					 (number)sh.get_subset_index(e), (number)time);
+			callback(coarsen, 6, pos.x(), pos.y(), pos.z(), static_cast<number>(g.get_level(e)),
+					 static_cast<number>(sh.get_subset_index(e)), time);
 			if(coarsen){
 				refiner->mark(e, RM_COARSEN);
 			}

@@ -69,7 +69,7 @@ update_local_data()
 	for (size_t j=1;j<m_rRefElem.num(0);j++){
 	   	localBary+=m_rRefElem.corner(j);
 	}
-	localBary*=1./(number)m_rRefElem.num(0);
+	localBary*=1./static_cast<number>(m_rRefElem.num(0));
 
 // 	set up local informations for SubControlVolumeFaces (scvf)
 // 	each scvf is associated to one edge of the element
@@ -158,7 +158,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	   globalBary+=vCornerCoords[j];
 	   m_vCo[j] = vCornerCoords[j];
 	}
-	globalBary*=1./(number)m_rRefElem.num(0);
+	globalBary*=1./static_cast<number>(m_rRefElem.num(0));
 
 // 	compute global informations for scvf
 	for(size_t i = 0; i < num_scvf(); ++i)
@@ -200,7 +200,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		std::vector<Edge*> vEdges;
 		CollectEdgesSorted(vEdges, grid, pElem);
 		for(size_t side = 0; side < vEdges.size(); ++side){
-			ConstrainingEdge* constrainingObj = dynamic_cast<ConstrainingEdge*>(vEdges[side]);
+			auto constrainingObj = dynamic_cast<ConstrainingEdge*>(vEdges[side]);
 			if(constrainingObj == nullptr) continue;
 			
 			// found constraining edge
@@ -272,7 +272,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		CollectFacesSorted(vFaces, grid, pElem);
 		handledEdges.clear();
 		for(size_t face = 0; face < vFaces.size(); ++face){
-			ConstrainingFace* constrainingObj = dynamic_cast<ConstrainingFace*>(vFaces[face]);
+			auto constrainingObj = dynamic_cast<ConstrainingFace*>(vFaces[face]);
 			if(constrainingObj == nullptr) continue;
 			// found constraining face
 			MathVector<worldDim> globalMidpoint = m_vSCV[face].vGlobIP;
@@ -340,7 +340,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 				else m_vSCV[ind].Vol = ElementSize<scv_type1,worldDim>(m_vSCV[ind].vGloPos);
 				if (m_vSCV[ind].Vol<0) m_vSCV[ind].Vol *= -1;
 				m_vSCV[ind].Normal = faceNormal;
-				m_vSCV[ind].Normal *= (number) m_vSCV[ind].Vol / faceVol;
+				m_vSCV[ind].Normal *= static_cast<number>(m_vSCV[ind].Vol) / faceVol;
 				m_rTrialSpace.shapes(&(m_vSCV[ind].vShape[0]), m_vSCV[ind].local_ip());
 				m_rTrialSpace.grads(&(m_vSCV[ind].vLocalGrad[0]), m_vSCV[ind].local_ip());
 				m_vSCV[ind].nodeID = numDofs+i;
@@ -355,15 +355,15 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 				m_vSCV[ind].Vol = faceVol - volSum;
 				m_vSCV[ind].nodeID=numDofs+3;
 				m_vSCV[ind].Normal = faceNormal;
-				m_vSCV[ind].Normal *= (number) m_vSCV[ind].Vol / faceVol;
+				m_vSCV[ind].Normal *= static_cast<number>(m_vSCV[ind].Vol) / faceVol;
 				m_vSCV[ind].vGlobIP = m_vSCV[face].vGloPos[1];
 				m_vSCV[ind].vLocIP = m_vSCV[face].vLocPos[1];
 				for (size_t j=0;j<2;j++){
 					m_vSCV[ind].vGlobIP += m_vSCV[numSCV+j].vGloPos[1];
 					m_vSCV[ind].vLocIP += m_vSCV[numSCV+j].vLocPos[1];
 				}
-				m_vSCV[ind].vGlobIP *= (number)1.0/3.0;
-				m_vSCV[ind].vLocIP *= (number)1.0/3.0;
+				m_vSCV[ind].vGlobIP *= 1.0/3.0;
+				m_vSCV[ind].vLocIP *= 1.0/3.0;
 				m_vGlobUnkCoords[ind] = m_vSCV[ind].vGlobIP;
 				m_vLocUnkCoords[ind] = m_vSCV[ind].vLocIP;
 				m_vSCV[ind].numCorners = numFaceCo + 1;
@@ -491,7 +491,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 				m_vCD[numConstrainedDofs].cDofInd[i] = numDofs+i;
 				size_t ind=face;
 				if (i>0) ind = numSCV+i-1;
-				m_vCD[numConstrainedDofs].cDofWeights[i] = (number)m_vSCV[ind].Vol / faceVol;
+				m_vCD[numConstrainedDofs].cDofWeights[i] = static_cast<number>(m_vSCV[ind].Vol) / faceVol;
 			}
 			numSCV+=3;
 			numDofs+=4;

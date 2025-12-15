@@ -84,12 +84,12 @@ class GlobAttachmentElementUserData
 	
 	//	UserData interface
 		
-		bool continuous () const override
+		[[nodiscard]] bool continuous () const override
 		{
 			return false;
 		}
 
-		bool requires_grid_fct () const override
+		[[nodiscard]] bool requires_grid_fct () const override
 		{
 			return true;
 		}
@@ -111,7 +111,7 @@ class GlobAttachmentElementUserData
 		{
 			UG_ASSERT (refDim == dim, "GlobAttachmentElementUserData: Dimensionality of the element should be equal to the world dimensionality.");
 			
-			eval_on_elem ((elem_type *) elem, nip, vValue);
+			eval_on_elem (static_cast<elem_type *>(elem), nip, vValue);
 		}
 	
 	//	StdUserData interface
@@ -127,7 +127,7 @@ class GlobAttachmentElementUserData
 			UG_ASSERT (elem->base_object_id() == dim, "GlobAttachmentElementUserData: Dimensionality of the element should be equal to the world dimensionality.");
 			
 			for (size_t s = 0; s < this->num_series (); ++s)
-				eval_on_elem ((elem_type *) elem, this->num_ip (s), this->values (s));
+				eval_on_elem (static_cast<elem_type *>(elem), this->num_ip (s), this->values (s));
 		}
 
 		void compute
@@ -141,7 +141,7 @@ class GlobAttachmentElementUserData
 			UG_ASSERT (elem->base_object_id() == dim, "GlobAttachmentElementUserData: Dimensionality of the element should be equal to the world dimensionality.");
 			
 			for (size_t s = 0; s < this->num_series (); ++s)
-				eval_on_elem ((elem_type *) elem, this->num_ip (s), this->values (s));
+				eval_on_elem (static_cast<elem_type *>(elem), this->num_ip (s), this->values (s));
 		}
 
 		void operator () ///< cannot be implemented here

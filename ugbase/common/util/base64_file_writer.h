@@ -98,9 +98,9 @@ public:
 	 *                     file or truncate existing.
 	 * \throws UGError if \c filename can not be opened or is not writeable
 	 */
-	Base64FileWriter(const char* filename,
-				const std::ios_base::openmode mode = (std::ios_base::out |
-														std::ios_base::trunc));
+	explicit Base64FileWriter(const char* filename,
+	                 std::ios_base::openmode mode = (std::ios_base::out |
+	                                                 std::ios_base::trunc));
 
 	/**
 	 * \brief Destructor, which properly flushs encoder's internal buffer and closes file stream
@@ -110,7 +110,7 @@ public:
 public:
 
 	void open(const char *filename,
-			const std::ios_base::openmode mode = std::ios_base::out );
+	          std::ios_base::openmode mode = std::ios_base::out );
 
 	/**
 	 * \brief gets the current set format
@@ -126,7 +126,7 @@ public:
 	 * \brief Switch between normal and base64 encoded output
 	 * \param format one of the values defined in Base64FileWriter::fmtflag
 	 */
-	Base64FileWriter& operator << (const fmtflag format);
+	Base64FileWriter& operator << (fmtflag format);
 
 	// insert plain standard types to this filewriter
 	Base64FileWriter& operator << (int i);

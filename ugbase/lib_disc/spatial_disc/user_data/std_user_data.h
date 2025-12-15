@@ -70,7 +70,7 @@ class StdUserData : public TBase
 	///	returns value for global positions
 		virtual void operator () (TData vValue[],
 								const MathVector<dim> vGlobIP[],
-								number time, int si, const size_t nip) const = 0;
+								number time, int si, size_t nip) const = 0;
 
 	///	returns values for local and global positions
 	///	\{
@@ -134,9 +134,9 @@ class StdDependentUserData
 	public:
 		StdDependentUserData() = default;
 
-		StdDependentUserData(const char* symbFct) {this->set_functions(symbFct);}
-		StdDependentUserData(const std::string& symbFct) {this->set_functions(symbFct);}
-		StdDependentUserData(const std::vector<std::string>& symbFct) {this->set_functions(symbFct);}
+		explicit StdDependentUserData(const char* symbFct) {this->set_functions(symbFct);}
+		explicit StdDependentUserData(const std::string& symbFct) {this->set_functions(symbFct);}
+		explicit StdDependentUserData(const std::vector<std::string>& symbFct) {this->set_functions(symbFct);}
 
 	public:
 		void operator () (TData& value,

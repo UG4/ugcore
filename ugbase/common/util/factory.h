@@ -121,8 +121,8 @@ public:
 		m_classNames.push_back(className);
 	}
 
-	size_t num_classes() const								{return m_classNames.size();}
-	const std::string& class_name(const size_t i) const		{return m_classNames.at(i);}
+	[[nodiscard]] size_t num_classes() const								{return m_classNames.size();}
+	[[nodiscard]] const std::string& class_name(const size_t i) const		{return m_classNames.at(i);}
 	const std::string& class_name(const TBase& cls) const
 	{
 		std::string typeName = typeid(cls).name();

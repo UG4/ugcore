@@ -48,7 +48,7 @@ size_t LocalDoFSet::num_sh() const
 {
 	size_t sum = 0;
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
-		sum += num_dof((ReferenceObjectID)i);
+		sum += num_dof(static_cast<ReferenceObjectID>(i));
 	return sum;
 }
 
@@ -66,7 +66,7 @@ bool LocalDoFSet::operator == (const LocalDoFSet& v) const
 	if(num_dof() != v.num_dof()) return false;
 
 	for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
-		const ReferenceObjectID roid = (ReferenceObjectID)r;
+		auto roid = static_cast<ReferenceObjectID>(r);
 		if(num_dof(roid) != v.num_dof(roid)) return false;
 	}
 
@@ -80,9 +80,6 @@ bool LocalDoFSet::operator == (const LocalDoFSet& v) const
 // 	DimLocalDoFSet
 ////////////////////////////////////////////////////////////////////////////////
 
-template <int TDim>
-DimLocalDoFSet<TDim>::DimLocalDoFSet(){
-}
 
 template <int TDim>
 bool DimLocalDoFSet<TDim>::operator == (const DimLocalDoFSet& v) const
@@ -128,7 +125,7 @@ void CommonLocalDoFSet::add(const LocalDoFSet& set)
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
 	//	get roid
-		const ReferenceObjectID roid = (ReferenceObjectID) i;
+		auto roid = (ReferenceObjectID) i;
 
 	//	do not override values of same dimension
 		if(ReferenceElementDimension(roid) == set.dim()
@@ -140,7 +137,7 @@ void CommonLocalDoFSet::add(const LocalDoFSet& set)
 
 	//	check if already value set and iff the same
 		if(m_vNumDoF[i] != NOT_SPECIFIED)
-			if(m_vNumDoF[i] != (int)set.num_dof(roid))
+			if(m_vNumDoF[i] != static_cast<int>(set.num_dof(roid)))
 				UG_THROW("LocalDoFSetIntersection::add: Adding DoF-Spezification "
 						"for "<<roid<<" as Subelement of Space for "<<set.roid()<<
 						": Values does not match ("<<m_vNumDoF[i]<<" <-> "
@@ -161,7 +158,7 @@ std::ostream& operator << (std::ostream& out,	const CommonLocalDoFSet& v)
 {
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
-		auto roid = (ReferenceObjectID) i;
+		auto roid = static_cast<ReferenceObjectID>(i);
 
 		out << std::setw(14) << roid << ":   ";
 		if(v.num_dof(roid) == CommonLocalDoFSet::NOT_SPECIFIED)
@@ -177,7 +174,7 @@ std::ostream& operator << (std::ostream& out,	const LocalDoFSet& v)
 {
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
-		auto roid = (ReferenceObjectID) i;
+		auto roid = static_cast<ReferenceObjectID>(i);
 		out << std::setw(14) << roid << ":   " << v.num_dof(roid) << "\n";
 	}
 	return out;

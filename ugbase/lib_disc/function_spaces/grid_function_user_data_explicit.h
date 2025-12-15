@@ -343,7 +343,7 @@ public:
 			for(size_t i = 0; i < tokens.size(); ++i)
 				RemoveWhitespaceFromString(tokens[i]);
 
-			if((int)tokens.size() != dim)
+			if(static_cast<int>(tokens.size()) != dim)
 				UG_THROW("ExplicitGridFunctionVector: Needed " << dim << " components "
 				         "in symbolic function names, but given: " << cmps << '.');
 

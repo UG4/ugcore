@@ -68,7 +68,7 @@ static void ParamStackEntryToLuaStack(const ParameterStack& ps, lua_State* L,
 		const std::vector<T>& vec = ps.to<std::vector<T> >(index);
 		lua_createtable(L, vec.size(), 0);
 		int newTable = lua_gettop(L);
-		for(int i=0; i < (int)vec.size(); i++) {
+		for(int i=0; i < static_cast<int>(vec.size()); i++) {
 			lua::LuaParsing<T>::push(L, vec[i]);
 			lua_rawseti(L, newTable, i + 1);
 		}
@@ -87,7 +87,7 @@ static void ParamStackPointerEntryToLuaStack(const ParameterStack& ps, lua_State
 		SmartPtr<std::vector<std::pair<T, const ClassNameNode*> > > spVec = ps.to<SmartPtr<std::vector<std::pair<T, const ClassNameNode*> > > >(index);
 		lua_createtable(L, spVec->size(), 0);
 		int newTable = lua_gettop(L);
-		for(int i=0; i < (int)spVec->size(); i++) {
+		for(int i=0; i < static_cast<int>(spVec->size()); i++) {
 			lua::LuaParsing<T>::push(L, (*spVec)[i].first, (*spVec)[i].second->name().c_str());
 			lua_rawseti(L, newTable, i + 1);
 		}
@@ -106,8 +106,7 @@ static bool PushLuaStackEntryToParamStack(ParameterStack& ps, lua_State* L,
 	}
 	else {
 		if (lua_istable(L, index)){
-			SmartPtr<std::vector<T> > spVec
-							= SmartPtr<std::vector<T> >(new std::vector<T>());
+			SmartPtr<std::vector<T> > spVec = SmartPtr<std::vector<T> >(new std::vector<T>());
 			lua_pushnil(L);
 			while (lua_next(L, index) != 0) {
 				if(!lua::LuaParsing<T>::check(L, -1)) {
@@ -141,8 +140,7 @@ static bool PushLuaStackPointerEntryToParamStack(ParameterStack& ps, lua_State* 
 	}
 	else {
 		if (lua_istable(L, index)){
-			SmartPtr<std::vector<result_type> > spVec
-				= SmartPtr<std::vector<result_type> >(new std::vector<result_type>());
+			SmartPtr<std::vector<result_type>> spVec = SmartPtr<std::vector<result_type>>(new std::vector<result_type>());
 			lua_pushnil(L);
 			while (lua_next(L, index) != 0) {
 				if(!lua::LuaParsing<T>::checkAndGet(res, L, -1, baseClassName)) {

@@ -62,7 +62,7 @@ void SideFluxErrEstData<TDomain>::alloc_err_est_data
 	
 //	Prepare the attachment for the jumps of the fluxes over the sides:
 	using side_type = typename domain_traits<dim>::side_type;
-	MultiGrid * pMG = (MultiGrid *) (spSV->subset_handler()->multi_grid());
+	auto pMG = const_cast<MultiGrid *>(spSV->subset_handler()->multi_grid());
 	pMG->template attach_to_dv<side_type,ANumber>(m_aFluxJumpOverSide, 0);
 	m_aaFluxJump.access(*pMG, m_aFluxJumpOverSide);
 };
@@ -102,7 +102,7 @@ void SideFluxErrEstData<TDomain>::release_err_est_data ()
 {
 //	Release the attachment
 	using side_type = typename domain_traits<dim>::side_type;
-	MultiGrid * pMG = (MultiGrid *) (m_spSV->subset_handler()->multi_grid());
+	auto pMG = const_cast<MultiGrid *>(m_spSV->subset_handler()->multi_grid());
 	m_aaFluxJump.invalidate ();
 	pMG->detach_from<side_type> (m_aFluxJumpOverSide);
 	//m_spSV = ConstSmartPtr<SurfaceView> (nullptr);	// this raises a rte
@@ -316,8 +316,6 @@ const MathVector<refDim>* SideAndElemErrEstData<TDomain>::side_local_ips(const R
 			 "for the local side IPs of all of its sides" << std::endl
 			 << "or with refDim == TDomain::dim-1 and a (TDomain::dim-1)-dimensional roid"
 			 "for the local side IPs for a side of this roid.");
-
-	return nullptr;
 }
 
 template <typename TDomain>
@@ -441,7 +439,7 @@ size_t SideAndElemErrEstData<TDomain>::num_side_ips(const ReferenceObjectID roid
 }
 
 template <typename TDomain>
-size_t SideAndElemErrEstData<TDomain>::first_side_ips(const ReferenceObjectID roid, const size_t side)
+size_t SideAndElemErrEstData<TDomain>::first_side_ips(const ReferenceObjectID roid, const size_t side) const
 {
 	return m_sideIPsStartIndex[roid][side];
 }
@@ -467,7 +465,7 @@ size_t SideAndElemErrEstData<TDomain>::side_ip_index
 (	const ReferenceObjectID roid,
 	const size_t side,
 	const size_t ip
-)
+) const
 {
 	// TODO: check validity of side index
 	return m_sideIPsStartIndex[roid][side];
@@ -494,19 +492,19 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 	m_spSV = spSV;
 
 //	prepare the attachments and their accessors
-	MultiGrid* pMG = (MultiGrid*) (ssh->multi_grid());
+	auto pMG = const_cast<MultiGrid *>(ssh->multi_grid());
 
 //	sides
-	pMG->template attach_to_dv<side_type, attachment_type >(m_aSide, std::vector<number>(0));
+	pMG->attach_to_dv<side_type, attachment_type >(m_aSide, std::vector<number>(0));
 	m_aaSide.access(*pMG, m_aSide);
 
 //	elems
-	pMG->template attach_to_dv<elem_type, attachment_type >(m_aElem, std::vector<number>(0));
+	pMG->attach_to_dv<elem_type, attachment_type >(m_aElem, std::vector<number>(0));
 	m_aaElem.access(*pMG, m_aElem);
 
 //	construct subset group from subset info
 	m_ssg.set_subset_handler(ssh);
-	if (m_vSs.size() == 0) m_ssg.add_all();
+	if (m_vSs.empty()) m_ssg.add_all();
 	else m_ssg.add(m_vSs);
 
 //	find out whether we work on an elem subset or a side subset
@@ -599,10 +597,10 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 
 		// loop rim side children
 		bool resize_parent = false;
-		const size_t num_children = pMG->template num_children<side_type>(c_rim_side);
+		const size_t num_children = pMG->num_children<side_type>(c_rim_side);
 		for (size_t ch = 0; ch < num_children; ch++)
 		{
-			side_type* child_side = pMG->template get_child<side_type>(c_rim_side, ch);
+			side_type* child_side = pMG->get_child<side_type>(c_rim_side, ch);
 
 			// get roid of side
 			ReferenceObjectID child_roid = child_side->reference_object_id();
@@ -686,8 +684,8 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 	//for (t_iterator rim_side_iter = m_spSV->template begin<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM);
 	//	rim_side_iter != end_rim_side_iter; ++rim_side_iter)
 	using side_iter_type = typename Grid::traits<side_type>::const_iterator;
-	side_iter_type end_side = pMG->template end<side_type>();
-	for (side_iter_type side_iter = pMG->template begin<side_type>(); side_iter != end_side; ++side_iter)
+	side_iter_type end_side = pMG->end<side_type>();
+	for (side_iter_type side_iter = pMG->begin<side_type>(); side_iter != end_side; ++side_iter)
 	{
 		// get the sides on both the levels (coarse and fine)
 		side_type* c_rim_side = *side_iter;
@@ -699,12 +697,12 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 		if (num_side_ips(c_rim_side) == 0) continue;
 
 		// distinguish hanging nodes and clozure elements by number of children
-		const size_t num_children = pMG->template num_children<side_type>(c_rim_side);
+		const size_t num_children = pMG->num_children<side_type>(c_rim_side);
 
 		// closure elements
 		if (num_children == 1)
 		{
-			side_type* f_rim_side = pMG->template get_child<side_type>(c_rim_side, 0);
+			side_type* f_rim_side = pMG->get_child<side_type>(c_rim_side, 0);
 
 			// add up total jump and save it for both sides
 			for (size_t i = 0; i < m_aaSide[c_rim_side].size(); i++)
@@ -738,7 +736,7 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 			for (size_t ch = 0; ch < num_children; ch++)
 			{
 				// get fine side
-				side_type* f_rim_side = pMG->template get_child<side_type>(c_rim_side, ch);
+				side_type* f_rim_side = pMG->get_child<side_type>(c_rim_side, ch);
 
 				// map fine side local IPs to global
 				std::vector<MathVector<dim> > f_coCo;
@@ -778,10 +776,10 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 				number val = 0.0;
 
 				// we have to loop all child sides
-				for (size_t ch = 0; ch < pMG->template num_children<side_type>(c_rim_side); ch++)
+				for (size_t ch = 0; ch < pMG->num_children<side_type>(c_rim_side); ch++)
 				{
 					// get fine side
-					side_type* f_rim_side = pMG->template get_child<side_type>(c_rim_side, ch);
+					side_type* f_rim_side = pMG->get_child<side_type>(c_rim_side, ch);
 
 					// map fine side local IPs to global
 					std::vector<MathVector<dim> > f_coCo;
@@ -863,7 +861,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 
 // side terms
 	// get the sides of the element
-	MultiGrid* pErrEstGrid = (MultiGrid*) (surface_view()->subset_handler()->multi_grid());
+	auto* pErrEstGrid = const_cast<MultiGrid *>(surface_view()->subset_handler()->multi_grid());
 	typename MultiGrid::traits<side_type>::secure_container side_list;
 	pErrEstGrid->associated_elements(side_list, pElem);
 
@@ -921,13 +919,13 @@ template <typename TDomain>
 void SideAndElemErrEstData<TDomain>::release_err_est_data ()
 {
 //	release the attachments
-	MultiGrid * pMG = (MultiGrid *) (m_spSV->subset_handler()->multi_grid());
+	auto pMG = const_cast<MultiGrid *>(m_spSV->subset_handler()->multi_grid());
 
 	m_aaSide.invalidate();
-	pMG->template detach_from<side_type>(m_aSide);
+	pMG->detach_from<side_type>(m_aSide);
 
 	m_aaElem.invalidate();
-	pMG->template detach_from<elem_type>(m_aElem);
+	pMG->detach_from<elem_type>(m_aElem);
 	//m_spSV = ConstSmartPtr<SurfaceView> (nullptr);	// this raises a rte
 };
 

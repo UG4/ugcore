@@ -58,7 +58,7 @@ class NeumannBoundaryBase
 
 	public:
 	///	default constructor
-		NeumannBoundaryBase(const char* function);
+		explicit NeumannBoundaryBase(const char* function);
 
 	///	add a boundary value
 	///	\{
@@ -85,7 +85,7 @@ class NeumannBoundaryBase
 	///	base class for user data
 		struct Data
 		{
-			Data(std::string BndSubsets_, std::string InnerSubsets_)
+			Data(const std::string &BndSubsets_, const std::string &InnerSubsets_)
 							: BndSubsetNames(BndSubsets_), InnerSubsetNames(InnerSubsets_) {}
 			SubsetGroup BndSSGrp;
 			std::string BndSubsetNames;

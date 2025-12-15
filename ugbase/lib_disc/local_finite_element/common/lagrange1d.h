@@ -65,7 +65,7 @@ class Lagrange1D
 		}
 
 	///	returns the position of the i'th interpolation point
-		number position(const size_t i) const
+		[[nodiscard]] number position(const size_t i) const
 		{
 			UG_ASSERT(i < m_vPos.size(), "Invalid index");
 			return m_vPos[i];

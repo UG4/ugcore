@@ -165,26 +165,26 @@ class UG_API GridObject
 
 	///	create an instance of the derived type
 	/**	Make sure to overload this method in derivates of this class!*/
-		virtual GridObject* create_empty_instance() const {return nullptr;}
+		[[nodiscard]] virtual GridObject* create_empty_instance() const {return nullptr;}
 
-		virtual int container_section() const = 0;
-		virtual byte_t base_object_id() const = 0;
+		[[nodiscard]] virtual int container_section() const = 0;
+		[[nodiscard]] virtual byte_t base_object_id() const = 0;
 	/**
 	 * A reference object represents a class of geometric objects.
 	 * Tetrahedrons, Triangles etc are such classes.
 	 * Reference ids should be defined in the file in which concrete geometric objects are defined.
 	 */
-		virtual ReferenceObjectID reference_object_id() const = 0;///	returns the id of the reference-object.
+		[[nodiscard]] virtual ReferenceObjectID reference_object_id() const = 0;///	returns the id of the reference-object.
 
 	///	returns true if the object constrains other objects.
 	/**	This is normally only the case for special constraining objects.
 	 * The default implementation returns false.*/
-		virtual bool is_constraining() const					{return false;}
+		[[nodiscard]] virtual bool is_constraining() const {return false;}
 
 	///	returns true if the object is constrained by other objects.
 	/**	This is normally only the case for special constrained objects.
 	 * The default implementation returns false.*/
-		virtual bool is_constrained() const						{return false;}
+		[[nodiscard]] virtual bool is_constrained() const {return false;}
 
 	///	removes a constraint link to the grid object.
 	/**	This method is e.g. called on the constraining edges of a constrained
@@ -201,14 +201,14 @@ class UG_API GridObject
 	 * can be used for debugging, when one wants to identify an element at several
 	 * places in the code.
 	 */
-		inline uint grid_data_index() const				{return m_gridDataIndex;}
+		[[nodiscard]] inline uint grid_data_index() const {return m_gridDataIndex;}
 
 	protected:
 	///	ATTENTION: Use this method with extreme care!
 	/**	This method is for internal use only and should almost never be called
 	 * by a user of lib_grid. The method sets the attachment data index and is
 	 * mainly used by attachment-traits classes.*/
-		inline void set_grid_data_index(uint index)		{m_gridDataIndex = index;}
+		inline void set_grid_data_index(uint index) {m_gridDataIndex = index;}
 
 	protected:
 		uint m_gridDataIndex;//	index to grid-attached data.
@@ -258,7 +258,7 @@ class UG_API Vertex : public GridObject
 
 		~Vertex() override = default;
 
-		inline uint num_sides() const {return 0;}
+		[[nodiscard]] inline uint num_sides() const {return 0;}
 
 		[[nodiscard]] int container_section() const override {return -1;}
 		[[nodiscard]] byte_t base_object_id() const override {return GridBaseObjectId::VERTEX;}
@@ -288,7 +288,7 @@ public:
 	VertexDescriptor() = default;
 	explicit VertexDescriptor(Vertex* v) : m_v(v)	{}
 	VertexDescriptor(const VertexDescriptor& d) : m_v (d.m_v)	{}
-	~VertexDescriptor() = default;
+	virtual ~VertexDescriptor() = default;
 
 	VertexDescriptor& operator = (const VertexDescriptor& d)
 	{m_v = d.m_v; return *this;}
@@ -296,16 +296,16 @@ public:
 	inline void set_vertex(Vertex* v)		{m_v = v;}
 	inline void set_vertex(uint, Vertex* v)	{m_v = v;}
 
-	inline Vertex* vertex () const 				{return m_v;}
-	virtual Vertex* vertex(size_t) const		{return m_v;}
-	Vertex* operator [] (size_t) const	 		{return m_v;}
+	[[nodiscard]] inline Vertex* vertex () const 				{return m_v;}
+	[[nodiscard]] virtual Vertex* vertex(size_t) const		{return m_v;}
+	[[nodiscard]] Vertex* operator [] (size_t) const	 		{return m_v;}
 
-	virtual ConstVertexArray vertices() const	{return &m_v;}
-	virtual size_t num_vertices() const			{return 1;}
+	[[nodiscard]] virtual ConstVertexArray vertices() const	{return &m_v;}
+	[[nodiscard]] virtual size_t num_vertices() const			{return 1;}
 
 //	compatibility with std::vector for some template routines
 ///	returns the number of vertices.
-	inline size_t size() const					{return 1;}
+	[[nodiscard]] inline size_t size() const    {return 1;}
 
 private:
 	Vertex* m_v;
@@ -325,7 +325,7 @@ class UG_API IVertexGroup
 
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
-		inline size_t size() const	{return num_vertices();}
+		[[nodiscard]] inline size_t size() const {return num_vertices();}
 	///	returns the i-th vertex.
 		inline Vertex* operator [] (size_t index) const {return vertex(index);}
 };
@@ -336,12 +336,12 @@ class UG_API CustomVertexGroup : public IVertexGroup
 {
 	public:
 		CustomVertexGroup() = default;
-		explicit CustomVertexGroup(size_t numVrts)			{m_vrts.resize(numVrts);}
+		explicit CustomVertexGroup(size_t numVrts) {m_vrts.resize(numVrts);}
 		~CustomVertexGroup() override = default;
 
-		Vertex* vertex(size_t index) const override {return m_vrts[index];}
-		ConstVertexArray vertices() const override {return &m_vrts.front();}
-		size_t num_vertices() const override {return m_vrts.size();}
+		[[nodiscard]] Vertex* vertex(size_t index) const override {return m_vrts[index];}
+		[[nodiscard]] ConstVertexArray vertices() const override {return &m_vrts.front();}
+		[[nodiscard]] size_t num_vertices() const override {return m_vrts.size();}
 
 		void set_num_vertices(size_t newSize) {m_vrts.resize(newSize);}
 		void resize(size_t newSize) {m_vrts.resize(newSize);}
@@ -363,13 +363,13 @@ class UG_API EdgeVertices : public IVertexGroup
 	friend class Grid;
 	public:
 		~EdgeVertices() override = default;
-		Vertex* vertex(size_t index) const override {return m_vertices[index];}
-		ConstVertexArray vertices() const override {return m_vertices;}
-		size_t num_vertices() const override {return 2;}
+		[[nodiscard]] Vertex* vertex(size_t index) const override {return m_vertices[index];}
+		[[nodiscard]] ConstVertexArray vertices() const override {return m_vertices;}
+		[[nodiscard]] size_t num_vertices() const override {return 2;}
 
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
-		inline size_t size() const {return 2;}
+		[[nodiscard]] inline size_t size() const {return 2;}
 	///	returns the i-th vertex.
 		Vertex* operator [] (size_t index) const {return m_vertices[index];}
 
@@ -422,11 +422,11 @@ class UG_API Edge : public GridObject, public EdgeVertices
 
 		~Edge() override = default;
 
-		int container_section() const override {return -1;}
-		byte_t base_object_id() const override {return GridBaseObjectId::EDGE;}
-		ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
+		[[nodiscard]] int container_section() const override {return -1;}
+		[[nodiscard]] byte_t base_object_id() const override {return GridBaseObjectId::EDGE;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
 
-		inline uint num_sides() const {return 2;}
+		[[nodiscard]] inline uint num_sides() const {return 2;}
 
 	///	retrieves the vertex on the opposing side to the specified one.
 	/**	If the specified vertex is not part of the edge, false is returned.
@@ -490,7 +490,7 @@ class UG_API FaceVertices : public IVertexGroup
 
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
-		inline size_t size() const	{return num_vertices();}
+		[[nodiscard]] inline size_t size() const {return num_vertices();}
 	///	returns the i-th vertex.
 		inline Vertex* operator [] (size_t index) const {return vertex(index);}
 };
@@ -554,7 +554,7 @@ class UG_API Face : public GridObject, public FaceVertices
 	 *	this class. This is required to allow the use of this class
 	 *	for compile-time method selection by dummy-parameters.
 	 *	It is cruical that derived classes overload this method.*/
-		virtual Edge* create_edge(int index)	{return nullptr;}	///< create the edge with index i and return it.
+		virtual Edge* create_edge(int index) {return nullptr;}	///< create the edge with index i and return it.
 
 
 	///	retrieves the edge-descriptor for the opposing side to the specified one.
@@ -685,7 +685,7 @@ class UG_API FaceDescriptor : public FaceVertices
 {
 	public:
 		FaceDescriptor();
-		FaceDescriptor(uint numVertices);
+		explicit FaceDescriptor(uint numVertices);
 		FaceDescriptor(const FaceDescriptor& fd);
 		FaceDescriptor(Vertex* v0, Vertex* v1, Vertex* v2) :
 			m_numVertices(3)
@@ -731,7 +731,7 @@ class UG_API VolumeVertices : public IVertexGroup
 
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
-		inline size_t size() const	{return num_vertices();}
+		[[nodiscard]] inline size_t size() const {return num_vertices();}
 	///	returns the i-th vertex.
 		inline Vertex* operator [] (size_t index) const {return vertex(index);}
 };
@@ -778,17 +778,17 @@ class UG_API Volume : public GridObject, public VolumeVertices
 
 		~Volume() override = default;
 
-		virtual EdgeDescriptor edge_desc(int index) const				{return EdgeDescriptor(nullptr, nullptr);}
-		virtual void edge_desc(int index, EdgeDescriptor& edOut) const	{edOut = EdgeDescriptor(nullptr, nullptr);}
-		virtual uint num_edges() const									{return 0;}
+		[[nodiscard]] virtual EdgeDescriptor edge_desc(int index) const {return EdgeDescriptor(nullptr, nullptr);}
+		virtual void edge_desc(int index, EdgeDescriptor& edOut) const {edOut = EdgeDescriptor(nullptr, nullptr);}
+		[[nodiscard]] virtual uint num_edges() const {return 0;}
 
-		virtual FaceDescriptor face_desc(int index) const				{return FaceDescriptor(0);}
-		virtual void face_desc(int index, FaceDescriptor& fdOut) const	{fdOut = FaceDescriptor(0);}
-		virtual uint num_faces() const									{return 0;}
-		inline uint num_sides() const									{return num_faces();}
+		[[nodiscard]] virtual FaceDescriptor face_desc(int index) const {return FaceDescriptor(0);}
+		virtual void face_desc(int index, FaceDescriptor& fdOut) const {fdOut = FaceDescriptor(0);}
+		[[nodiscard]] virtual uint num_faces() const {return 0;}
+		[[nodiscard]] inline uint num_sides() const {return num_faces();}
 
-		virtual Edge* create_edge(int index)	{return nullptr;}	///< create the edge with index i and return it.
-		virtual Face* create_face(int index)		{return nullptr;}	///< create the face with index i and return it.
+		virtual Edge* create_edge(int index) {return nullptr;}	///< create the edge with index i and return it.
+		virtual Face* create_face(int index) {return nullptr;}	///< create the face with index i and return it.
 		
 	///	returns the local indices of an edge of the volume.
 	/**	Default implementation throws a UGError*/
@@ -923,9 +923,9 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 */
 	 	virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
-		int container_section() const override {return -1;}
-		byte_t base_object_id() const override {return GridBaseObjectId::VOLUME;}
-		ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
+		[[nodiscard]] int container_section() const override {return -1;}
+		[[nodiscard]] byte_t base_object_id() const override {return GridBaseObjectId::VOLUME;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
 
 	/**	creates the volumes that result from the splitting of the edge with index 'splitEdgeIndex'.*/
 		//virtual void create_volumes_by_edge_split(int splitEdgeIndex,
@@ -952,7 +952,7 @@ class UG_API VolumeDescriptor : public VolumeVertices
 {
 	public:
 		VolumeDescriptor() = default;
-		VolumeDescriptor(uint numVertices);
+		explicit VolumeDescriptor(uint numVertices);
 		VolumeDescriptor(const VolumeDescriptor& vd);
 
 		~VolumeDescriptor() override = default;
@@ -960,9 +960,9 @@ class UG_API VolumeDescriptor : public VolumeVertices
 		VolumeDescriptor& operator = (const VolumeDescriptor& vv);
 		VolumeDescriptor& operator = (const VolumeVertices& vv);
 
-		Vertex* vertex(size_t index) const override {return m_vertices[index];}
-		ConstVertexArray vertices() const override {return m_vertices;}
-		size_t num_vertices() const override {return m_numVertices;}
+		[[nodiscard]] Vertex* vertex(size_t index) const override {return m_vertices[index];}
+		[[nodiscard]] ConstVertexArray vertices() const override {return m_vertices;}
+		[[nodiscard]] size_t num_vertices() const override {return m_numVertices;}
 
 		inline void set_num_vertices(uint numVertices)		{m_numVertices = numVertices;}
 		inline void set_vertex(uint index, Vertex* vrt)	{m_vertices[index] = vrt;}

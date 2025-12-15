@@ -210,20 +210,20 @@ class ClassCastProvider
 	 * as a reinterpreted cast to the type specified by the template argument.
 	 * If conversion fails, an exception of type UGError_ClassCastFailed is thrown.
 	 *
-	 * \param[in]	pDerivVoid		void pointer to Derived object
+	 * \param[in]	ptr		void pointer to Derived object
 	 * \param[in,out]	node		on entry: class name node corresponding to pDerivVoid
 	 * 								on exit:  class name node corresponding to baseName
 	 * \returns		void* to base class
 	 */
 	/// \{
 		template <typename T>
-		static T* cast_to(void* pDerivVoid, const ClassNameNode*& node);
+		static T* cast_to(void* ptr, const ClassNameNode*& node);
 		template <typename T>
-		static const T* cast_to(const void* pDerivVoid, const ClassNameNode*& node);
+		static const T* cast_to(const void* ptr, const ClassNameNode*& node);
 		template <typename T>
-		static SmartPtr<T> cast_to(SmartPtr<void> pDerivVoid, const ClassNameNode*& node);
+		static SmartPtr<T> cast_to(SmartPtr<void> ptr, const ClassNameNode*& node);
 		template <typename T>
-		static ConstSmartPtr<T> cast_to(ConstSmartPtr<void> pDerivVoid, const ClassNameNode*& node);
+		static ConstSmartPtr<T> cast_to(ConstSmartPtr<void> ptr, const ClassNameNode*& node);
 	///	\}
 
 	protected:

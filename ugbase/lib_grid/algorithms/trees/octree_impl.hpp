@@ -101,7 +101,7 @@ for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++
 		for(size_t i = 0; i < numVertices; ++i){
 			Vertex* v = elem->vertex(i);
 			if(aaInt[v] == -1){
-				aaInt[v] = (int)vPoints.size();
+				aaInt[v] = static_cast<int>(vPoints.size());
 				vPoints.push_back(aaPos[v]);
 			}
 			
@@ -109,7 +109,7 @@ for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++
 		}
 		
 	//	insert the element-id (the pointer to the associated grid element)
-		vElemIDs.push_back(elem);
+		vElemIDs.emplace_back(elem);
 	}
 	
 //	arrays have been created. remove obsolete attachments

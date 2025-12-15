@@ -451,7 +451,7 @@ interpolate (const Coordinate& coord, int order) const
 				}
 				else{
 					lc[d] = ( coord[d]
-							  - ((number)mi[d] * m_cellExtension[d]
+							  - (static_cast<number>(mi[d]) * m_cellExtension[d]
 							  	 + m_minCorner[d]))
 							/ m_cellExtension[d];
 				}
@@ -765,7 +765,7 @@ load_from_asc (const char* filename)
 	set_min_corner(minCoord);
 	Coordinate extension = cellSize;
 	for(int d = 0; d < TDIM; ++d)
-		extension[d] *= (number)(numNodes[d] - 1);
+		extension[d] *= static_cast<number>(numNodes[d] - 1);
 	set_extension(extension);
 	set_no_data_value(noDataValue);
 

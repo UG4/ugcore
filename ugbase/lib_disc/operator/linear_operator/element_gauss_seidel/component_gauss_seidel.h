@@ -94,7 +94,7 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 		~ComponentGaussSeidel() override = default;
 
 	///	returns if parallel solving is supported
-		bool supports_parallel() const override {return true;}
+		[[nodiscard]] bool supports_parallel() const override {return true;}
 
 		void set_alpha(number alpha)
 		{m_alpha = alpha;}
@@ -107,7 +107,7 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 
 	protected:
 	///	Name of preconditioner
-		const char* name() const override {return "ComponentGaussSeidel";}
+		[[nodiscard]] const char* name() const override {return "ComponentGaussSeidel";}
 
 	///	Preprocess routine
 		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) override;

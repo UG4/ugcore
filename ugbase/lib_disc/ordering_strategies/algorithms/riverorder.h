@@ -71,27 +71,27 @@ public:
 	RiverOrdering() : m_ssIdx(-1){}
 
 	/// clone constructor
-	RiverOrdering( const LexOrdering<TAlgebra, TDomain, O_t> &parent )
+	explicit RiverOrdering( const LexOrdering<TAlgebra, TDomain, O_t> &parent )
 			: baseclass(), m_ssIdx(parent.m_ssIdx){}
 
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new RiverOrdering<TAlgebra, TDomain, O_t>(*this));
+		return make_sp(new RiverOrdering(*this));
 	}
 
 
 	vd get_source_vertex(std::vector<BOOL>& visited, G_t& g){
-		for(unsigned i = 0; i < boost::num_vertices(g); ++i){
+		for(unsigned i = 0; i < num_vertices(g); ++i){
 			if(!visited[i] && m_sources[i]){
-				if(boost::in_degree(i, g) == 1){
+				if(in_degree(i, g) == 1){
 					visited[i] = true;
 					adj_iter nIt, nEnd;
-					boost::tie(nIt, nEnd) = boost::adjacent_vertices(i, g);
+					boost::tie(nIt, nEnd) = adjacent_vertices(i, g);
 					m_sources[*nIt] = true;
-					boost::clear_vertex(i, g);
+					clear_vertex(i, g);
 					return i;
 				}
-				else if(boost::in_degree(i, g) == 0){
+				else if(in_degree(i, g) == 0){
 					visited[i] = true;
 					return i;
 				}
@@ -103,7 +103,7 @@ public:
 	}
 
 	void topological_ordering(O_t& o, G_t& g){
-		size_t n = boost::num_vertices(g);
+		size_t n = num_vertices(g);
 		std::vector<BOOL> visited(n, false);
 		for(unsigned i = 0; i < n; ++i){
 			auto v = get_source_vertex(visited, g);
@@ -111,7 +111,7 @@ public:
 		}
 	}
 
-	void compute(){
+	void compute() override {
 		topological_ordering(o, g);
 
 		g = G_t(0);
@@ -121,17 +121,17 @@ public:
 		#endif
 	}
 
-	void check(){
+	void check() override {
 		if(!is_permutation(o)){
 			UG_THROW(name() << "::check: Not a permutation!");
 		}
 	}
 
-	O_t& ordering(){
+	O_t& ordering() override {
 		return o;
 	}
 
-	void init(M_t* A, const V_t& V){
+	void init(M_t* A, const V_t& V) override {
 		const GridFunc_t* pGridF;
 		size_t numSources = 0;
 		std::string ssName;
@@ -158,7 +158,7 @@ public:
 
 			std::vector<std::vector<size_t> > vvConnection(n);
 			try{
-				dd->get_connections<ug::Edge>(vvConnection);
+				dd->get_connections<Edge>(vvConnection);
 			}
 			UG_CATCH_THROW(name() << "::init: No adjacency graph available!");
 
@@ -180,13 +180,13 @@ public:
 		m_sources = std::vector<BOOL>(n, false);
 
 		//select source vertices according to m_ssIdx
-		using ugVertIt_t = typename GridFunc_t::template traits<ug::Vertex>::const_iterator;
+		using ugVertIt_t = typename GridFunc_t::template traits<Vertex>::const_iterator;
 
-		ugVertIt_t ugVertIt = pGridF->template begin<ug::Vertex>();
-		ugVertIt_t ugVertEnd = pGridF->template end<ug::Vertex>();
+		ugVertIt_t ugVertIt = pGridF->template begin<Vertex>();
+		ugVertIt_t ugVertEnd = pGridF->template end<Vertex>();
 		size_t k = 0;
 		for(; ugVertIt != ugVertEnd; ++ugVertIt, ++k){
-			ug::Vertex* v = *ugVertIt;
+			Vertex* v = *ugVertIt;
 
 			int si = pGridF->domain()->subset_handler()->get_subset_index(v);
 
@@ -203,19 +203,19 @@ public:
 		#endif
 	}
 
-	void init(M_t*){
+	void init(M_t*) override {
 		UG_THROW(name() << "::init: Cannot initialize smoother without a geometry. Specify the 2nd argument for init!");
 	}
 
-	void init(M_t*, const V_t&, const O_t&){
+	void init(M_t*, const V_t&, const O_t&) override {
 		UG_THROW(name() << "::init: Algorithm does not support induced subgraph version!");
 	}
 
-	void init(M_t*, const O_t&){
+	void init(M_t*, const O_t&) override {
 		UG_THROW(name() << "::init: Algorithm does not support induced subgraph version!");
 	}
 
-	virtual const char* name() const {return "RiverOrdering";}
+	[[nodiscard]] const char* name() const override {return "RiverOrdering";}
 
 	void select_sources(const char* ssName){
 		//m_ssIdx = ssIdx;

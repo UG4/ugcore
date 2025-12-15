@@ -164,10 +164,10 @@ void AdaptionSurfaceGridFunction<TDomain>::
 copy_to_surface(GridFunction<TDomain,TAlgebra>& rSurfaceFct)
 {
 	GFUNCADAPT_PROFILE_FUNC();
-	if(rSurfaceFct.max_dofs(VERTEX))copy_to_surface<Vertex,TAlgebra>(rSurfaceFct);
-	if(rSurfaceFct.max_dofs(EDGE)) 	copy_to_surface<Edge,TAlgebra>(rSurfaceFct);
-	if(rSurfaceFct.max_dofs(FACE))	copy_to_surface<Face,TAlgebra>(rSurfaceFct);
-	if(rSurfaceFct.max_dofs(VOLUME))copy_to_surface<Volume,TAlgebra>(rSurfaceFct);
+	if(rSurfaceFct.max_dofs(VERTEX)) copy_to_surface<Vertex,TAlgebra>(rSurfaceFct);
+	if(rSurfaceFct.max_dofs(EDGE)) copy_to_surface<Edge,TAlgebra>(rSurfaceFct);
+	if(rSurfaceFct.max_dofs(FACE)) copy_to_surface<Face,TAlgebra>(rSurfaceFct);
+	if(rSurfaceFct.max_dofs(VOLUME)) copy_to_surface<Volume,TAlgebra>(rSurfaceFct);
 
 	#ifdef UG_PARALLEL
 	rSurfaceFct.set_storage_type(m_ParallelStorageType);

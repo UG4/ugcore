@@ -51,8 +51,8 @@ namespace node_tree {
  */
 struct CollisionElementID{
 	CollisionElementID() : m_intID(-1) {}
-	CollisionElementID(void* p)	: m_ptrID(p) {}
-	CollisionElementID(int i)	: m_intID(i) {}
+	explicit CollisionElementID(void* p)	: m_ptrID(p) {}
+	explicit CollisionElementID(int i)	: m_intID(i) {}
 
 	[[nodiscard]] inline bool is_valid() const {return m_intID != -1;}
 	

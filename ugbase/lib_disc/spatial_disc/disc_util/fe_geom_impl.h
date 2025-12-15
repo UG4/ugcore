@@ -86,7 +86,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCorner,
 	UG_ASSERT(orderQuad <= m_rQuadRule.order(), "Wrong order requested.");
 
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != nullptr, "Wrong element type.");
-	TElem* pElem = static_cast<TElem*>(elem);
+	auto* pElem = static_cast<TElem*>(elem);
 
 //	check if element changed
 	if(pElem == m_pElem) return;

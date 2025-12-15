@@ -63,7 +63,7 @@ void AveragePositions(TPosition& vOut, const TPosition* vCornerCoords, size_t nu
 	{
 		vOut += vCornerCoords[j];
 	}
-	vOut *= 1./(number)num;
+	vOut *= 1./static_cast<number>(num);
 }
 
 
@@ -1324,12 +1324,12 @@ template <int TDim, int TWorldDim> struct fv1_dim_traits_base
 ///	Traits for Finite Volumes for a generic element of the fixed dimensionalities
 template <int TDim, int TWorldDim> struct fv1_dim_traits;
 
-template <> struct fv1_dim_traits<1, 1> : public fv1_traits<ReferenceEdge, 1>, public fv1_dim_traits_base<1, 1> {};
-template <> struct fv1_dim_traits<1, 2> : public fv1_traits<ReferenceEdge, 2>, public fv1_dim_traits_base<1, 2> {};
-template <> struct fv1_dim_traits<1, 3> : public fv1_traits<ReferenceEdge, 3>, public fv1_dim_traits_base<1, 3> {};
+template <> struct fv1_dim_traits<1, 1> : fv1_traits<ReferenceEdge, 1>, fv1_dim_traits_base<1, 1> {};
+template <> struct fv1_dim_traits<1, 2> : fv1_traits<ReferenceEdge, 2>, fv1_dim_traits_base<1, 2> {};
+template <> struct fv1_dim_traits<1, 3> : fv1_traits<ReferenceEdge, 3>, fv1_dim_traits_base<1, 3> {};
 
-template <> struct fv1_dim_traits<2, 2> : public fv1_traits_ReferenceFace2d, public fv1_dim_traits_base<2, 2> {};
-template <> struct fv1_dim_traits<2, 3> : public fv1_traits_ReferenceFace3d, public fv1_dim_traits_base<2, 3>
+template <> struct fv1_dim_traits<2, 2> : fv1_traits_ReferenceFace2d, fv1_dim_traits_base<2, 2> {};
+template <> struct fv1_dim_traits<2, 3> : fv1_traits_ReferenceFace3d, fv1_dim_traits_base<2, 3>
 {
 	static void NormalOnSCVF(MathVector<3>& outNormal,
 							 const MathVector<3>* vSCVFCorner,
@@ -1345,7 +1345,7 @@ template <> struct fv1_dim_traits<2, 3> : public fv1_traits_ReferenceFace3d, pub
 
 };
 
-template <> struct fv1_dim_traits<3, 3>	: public fv1_traits_ReferenceVolume, public fv1_dim_traits_base<3, 3> {};
+template <> struct fv1_dim_traits<3, 3>	: fv1_traits_ReferenceVolume, fv1_dim_traits_base<3, 3> {};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Hanging Finite Volume Traits
@@ -1373,19 +1373,19 @@ struct hfv1_traits_ReferenceEdge
 	using scv_type = ReferenceEdge;
 };
 
-template <> struct hfv1_traits<ReferenceEdge, 1> : public hfv1_traits_ReferenceEdge
+template <> struct hfv1_traits<ReferenceEdge, 1> : hfv1_traits_ReferenceEdge
 {
 	static void NormalOnSCVF(MathVector<1>& outNormal, const MathVector<1>* vCornerCoords)
 		{ElementNormal<ReferenceVertex, 1>(outNormal, vCornerCoords);}
 };
 
-template <> struct hfv1_traits<ReferenceEdge, 2> : public hfv1_traits_ReferenceEdge
+template <> struct hfv1_traits<ReferenceEdge, 2> : hfv1_traits_ReferenceEdge
 {
 	static void NormalOnSCVF(MathVector<2>& outNormal, const MathVector<2>* vCornerCoords)
 		{UG_THROW("Not implemented");}
 };
 
-template <> struct hfv1_traits<ReferenceEdge, 3> : public hfv1_traits_ReferenceEdge
+template <> struct hfv1_traits<ReferenceEdge, 3> : hfv1_traits_ReferenceEdge
 {
 	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
 		{UG_THROW("Not implemented");}
@@ -1402,25 +1402,25 @@ struct hfv1_traits_ReferenceFace
 	using scv_type = ReferenceQuadrilateral;
 };
 
-template <> struct hfv1_traits<ReferenceTriangle, 2> : public hfv1_traits_ReferenceFace
+template <> struct hfv1_traits<ReferenceTriangle, 2> : hfv1_traits_ReferenceFace
 {
 	static void NormalOnSCVF(MathVector<2>& outNormal, const MathVector<2>* vCornerCoords)
 		{ElementNormal<ReferenceEdge, 2>(outNormal, vCornerCoords);}
 };
 
-template <> struct hfv1_traits<ReferenceTriangle, 3> : public hfv1_traits_ReferenceFace
+template <> struct hfv1_traits<ReferenceTriangle, 3> : hfv1_traits_ReferenceFace
 {
 	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
 		{UG_THROW("Not implemented");}
 };
 
-template <> struct hfv1_traits<ReferenceQuadrilateral, 2> : public hfv1_traits_ReferenceFace
+template <> struct hfv1_traits<ReferenceQuadrilateral, 2> : hfv1_traits_ReferenceFace
 {
 	static void NormalOnSCVF(MathVector<2>& outNormal, const MathVector<2>* vCornerCoords)
 		{ElementNormal<ReferenceEdge, 2>(outNormal, vCornerCoords);}
 };
 
-template <> struct hfv1_traits<ReferenceQuadrilateral, 3> : public hfv1_traits_ReferenceFace
+template <> struct hfv1_traits<ReferenceQuadrilateral, 3> : hfv1_traits_ReferenceFace
 {
 	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
 		{UG_THROW("Not implemented");}
@@ -1438,31 +1438,31 @@ struct hfv1_traits_ReferenceVolume
 	using scv_type = ReferenceTetrahedron;
 };
 
-template <> struct hfv1_traits<ReferenceTetrahedron, 3> : public hfv1_traits_ReferenceVolume
+template <> struct hfv1_traits<ReferenceTetrahedron, 3> : hfv1_traits_ReferenceVolume
 {
 	static constexpr size_t NumCornersOfSCVF = 3;
 	static constexpr size_t MaxNumCornersOfSCV = 8;
 };
 
-template <> struct hfv1_traits<ReferencePrism, 3> : public hfv1_traits_ReferenceVolume
+template <> struct hfv1_traits<ReferencePrism, 3> : hfv1_traits_ReferenceVolume
 {
 	static constexpr size_t NumCornersOfSCVF = 3;
 	static constexpr size_t MaxNumCornersOfSCV = 8;
 };
 
-template <> struct hfv1_traits<ReferencePyramid, 3> : public hfv1_traits_ReferenceVolume
+template <> struct hfv1_traits<ReferencePyramid, 3> : hfv1_traits_ReferenceVolume
 {
 	static constexpr size_t NumCornersOfSCVF = 3;
 	static constexpr size_t MaxNumCornersOfSCV = 10;
 };
 
-template <> struct hfv1_traits<ReferenceHexahedron, 3> : public hfv1_traits_ReferenceVolume
+template <> struct hfv1_traits<ReferenceHexahedron, 3> : hfv1_traits_ReferenceVolume
 {
 	static constexpr size_t NumCornersOfSCVF = 3;
 	static constexpr size_t MaxNumCornersOfSCV = 8;
 };
 
-template <> struct hfv1_traits<ReferenceOctahedron, 3> : public hfv1_traits_ReferenceVolume
+template <> struct hfv1_traits<ReferenceOctahedron, 3> : hfv1_traits_ReferenceVolume
 {
 	static constexpr size_t NumCornersOfSCVF = 3;
 	static constexpr size_t MaxNumCornersOfSCV = 8;

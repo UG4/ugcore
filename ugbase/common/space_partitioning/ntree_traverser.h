@@ -66,7 +66,7 @@ class Traverser_FindLowestLeafNodeLevel
 
 		void end_traversal(const tree_t&) const	{}
 
-		size_t result() const {return m_lowestLeafNodeLvl;}
+		[[nodiscard]] size_t result() const {return m_lowestLeafNodeLvl;}
 
 	private:
 		size_t m_lowestLeafNodeLvl;
@@ -86,7 +86,7 @@ template <typename tree_t>
 class Traverser_MinMaxNumElements
 {
 	public:
-		Traverser_MinMaxNumElements(size_t lvl) :
+		explicit Traverser_MinMaxNumElements(size_t lvl) :
 			m_lvl(lvl), m_minNumElements(0), m_maxNumElements(0),
 			m_elemCount(0), m_firstEval(true)	{}
 
@@ -151,7 +151,7 @@ class Traverser_FindContainingElement
 		using elem_t = typename tree_t::elem_t;
 		using vector_t = typename tree_t::vector_t;
 
-		Traverser_FindContainingElement(const vector_t& point) :
+		explicit Traverser_FindContainingElement(const vector_t& point) :
 			m_point(point),
 			m_foundElem(false)
 		{}
@@ -231,7 +231,7 @@ class Traverser_FindElementsInIntersectingNodes
 		using vector_t = typename tree_t::vector_t;
 		using box_t = typename tree_t::box_t;
 
-		Traverser_FindElementsInIntersectingNodes(const box_t& bbox) :
+		explicit Traverser_FindElementsInIntersectingNodes(const box_t& bbox) :
 			m_bbox(bbox)
 		{}
 

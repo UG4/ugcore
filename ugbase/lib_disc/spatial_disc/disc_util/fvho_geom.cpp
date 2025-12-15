@@ -1022,7 +1022,7 @@ update_local_data()
 			MathVector<dim> pos; pos = 0.0;
 			for(int i = 0; i < dim; ++i)
 			{
-				const number frac = vMultiIndex[se][co][i] / ((number)p);
+				const number frac = vMultiIndex[se][co][i] / static_cast<number>(p);
 				VecScaleAppend(pos, frac, direction[i]);
 			}
 			m_vSubElem[se].vvLocMid[0][co] = pos;
@@ -1411,7 +1411,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 	m_quadOrderSCV = orderQuad;
 
 //	resize sub elements
-	m_numSubElem = (size_t) std::pow((double) m_orderShape, dim);
+	m_numSubElem = static_cast<size_t>(std::pow(static_cast<double>(m_orderShape), dim));
 	m_vSubElem.resize(m_numSubElem);
 
 //	get the multi indices for the sub elements and the boundary flags
@@ -1439,7 +1439,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 			MathVector<dim> pos; pos = 0.0;
 			for(int i = 0; i < dim; ++i)
 			{
-				const number frac = vMultiIndex[se][co][i] / ((number)m_orderShape);
+				const number frac = vMultiIndex[se][co][i] / static_cast<number>(m_orderShape);
 				VecScaleAppend(pos, frac, direction[i]);
 			}
 			m_vSubElem[se].vvLocMid[0][co] = pos;
@@ -1479,8 +1479,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 
 //	request for quadrature rule
 	const ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
-	const QuadratureRule<dim-1>& rSCVFQuadRule
-			= QuadratureRuleProvider<dim-1>::get(scvfRoid, m_quadOrderSCVF);
+	const QuadratureRule<dim-1>& rSCVFQuadRule = QuadratureRuleProvider<dim-1>::get(scvfRoid, m_quadOrderSCVF);
 
 	const int nipSCVF = rSCVFQuadRule.size();
 	m_numSCVFIP = m_numSCVF * nipSCVF;
@@ -1636,11 +1635,11 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
 	if(m_pElem == pElem) return; else m_pElem = pElem;
 
 //	get reference element type
-	ReferenceObjectID roid = (ReferenceObjectID)pElem->reference_object_id();
+	ReferenceObjectID roid = pElem->reference_object_id();
 
 //	if already prepared for this roid, skip update of local values
 	if(m_roid != roid || lfeID != m_lfeID ||
-	   (int)quadOrder != m_quadOrderSCVF || (int)quadOrder != m_quadOrderSCV)
+	   static_cast<int>(quadOrder) != m_quadOrderSCVF || static_cast<int>(quadOrder) != m_quadOrderSCV)
 			update_local(roid, lfeID, quadOrder);
 
 //	get reference element mapping
@@ -1814,7 +1813,7 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 
 			//	compute global mids for vertices on this subelem
 			//	(needed to calculate normal - at least if dim < worldDim)
-				for (size_t m = 0; m < (size_t) maxMid; ++m)
+				for (size_t m = 0; m < static_cast<size_t>(maxMid); ++m)
 					rMapping.local_to_global(m_vSubElem[se].vvGloMid[0][m], m_vSubElem[se].vvLocMid[0][m]);
 
 			//	resize vector

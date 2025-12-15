@@ -66,23 +66,23 @@ public:
 
 		size_t k = 0;
 
-		using const_iterator = typename IteratorProvider<TGridFunction>::template traits<ug::Vertex>::const_iterator;
-		const_iterator iterBegin = IteratorProvider<TGridFunction>::template begin<ug::Vertex>(*m_u, -1);
-		const_iterator iterEnd = IteratorProvider<TGridFunction>::template end<ug::Vertex>(*m_u, -1);
+		using const_iterator = typename IteratorProvider<TGridFunction>::template traits<Vertex>::const_iterator;
+		const_iterator iterBegin = IteratorProvider<TGridFunction>::template begin<Vertex>(*m_u, -1);
+		const_iterator iterEnd = IteratorProvider<TGridFunction>::template end<Vertex>(*m_u, -1);
 		for( ; iterBegin != iterEnd; ++iterBegin, ++k)
 		{
-			ug::Vertex* v = *iterBegin;
+			Vertex* v = *iterBegin;
 			index[k] = m_aaVrtIndex[v];
 		}
 
 		k = 0;
 		std::vector<DoFIndex> ind(1);
 
-		iterBegin = IteratorProvider<TGridFunction>::template begin<ug::Vertex>(*m_u, -1);
-		iterEnd = IteratorProvider<TGridFunction>::template end<ug::Vertex>(*m_u, -1);
+		iterBegin = IteratorProvider<TGridFunction>::template begin<Vertex>(*m_u, -1);
+		iterEnd = IteratorProvider<TGridFunction>::template end<Vertex>(*m_u, -1);
 		for( ; iterBegin != iterEnd; ++iterBegin, ++k)
 		{
-			ug::Vertex* v = *iterBegin;
+			Vertex* v = *iterBegin;
 
 		//	get vector holding all indices on the vertex
 			m_u->inner_dof_indices(v, 0, ind);

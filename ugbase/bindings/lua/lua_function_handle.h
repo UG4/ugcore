@@ -36,9 +36,8 @@
 namespace ug {
 
 /// Handle for a lua reference
-class LuaFunctionHandle
+struct LuaFunctionHandle
 {
-	public:
 		int ref;
 };
 

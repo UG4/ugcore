@@ -190,7 +190,7 @@ class PathProvider
 			return DirectoryExists(absoluteDirname.c_str());
 		}
 	private:
-		PathProvider()	 = default;
+		PathProvider() = default;
 		PathProvider(const PathProvider&)	{}
 
 		static PathProvider& inst()

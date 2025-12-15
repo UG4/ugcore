@@ -150,7 +150,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::
 clear_add_fct()
 {
 	for(size_t i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
-			clear_add_fct((ReferenceObjectID) i);
+			clear_add_fct(static_cast<ReferenceObjectID>(i));
 
 	for (size_t i = 0; i < bridge::NUM_ALGEBRA_TYPES; ++i)
 	{
@@ -164,7 +164,7 @@ void IElemEstimatorFuncs<TLeaf, TDomain>::
 clear_add_fct()
 {
 	for(size_t i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
-			clear_add_fct((ReferenceObjectID) i);
+			clear_add_fct(static_cast<ReferenceObjectID>(i));
 }
 /*
 template <typename TDomain>

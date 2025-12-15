@@ -151,8 +151,10 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad, bool bThrowOnErr
 
 #ifdef UG_PARALLEL
 	if(pcl::NumProcs() == 1) bDistributedLoad = false;
-	if(pcl::ProcRank() == 0 || bDistributedLoad==false)
+	if(pcl::ProcRank() == 0 || bDistributedLoad==false) {
 		bSuccess = GetAbsoluteUGScriptFilename(filename, absoluteFilename);
+		std::cout << "absolut_script_filename = " << absoluteFilename << std::endl;
+	}
 	bSuccess = pcl::AllProcsTrue(bSuccess);
 #else
 	bSuccess = GetAbsoluteUGScriptFilename(filename, absoluteFilename);
@@ -210,11 +212,10 @@ static void UpdateScriptAfterRegistryChange(bridge::Registry* pReg)
 	
 //	this can be called since CreateBindings automatically avoids
 //	double registration
-	bridge::lua::CreateBindings_LUA(GetDefaultLuaState(),
-										*pReg);
+	bridge::lua::CreateBindings_LUA(GetDefaultLuaState(),	*pReg);
 }
 
-void RegisterDefaultLuaBridge(bridge::Registry* reg, std::string grp)
+void RegisterDefaultLuaBridge(bridge::Registry* reg, const std::string& grp)
 {
 	if(reg->functionname_registered("ug_load_script"))
 		return;
@@ -448,7 +449,7 @@ int UGGetClassName(lua_State *L)
 	{
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const bridge::ClassNameNode* classNameNode = static_cast<const bridge::ClassNameNode *>(lua_touserdata(L, -1));
+		auto* classNameNode = static_cast<const bridge::ClassNameNode *>(lua_touserdata(L, -1));
 		lua_pop(L, 2);
 
 		if(classNameNode)
@@ -469,7 +470,7 @@ int UGGetClassGroup(lua_State *L)
 	{
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const bridge::ClassNameNode* classNameNode = (const bridge::ClassNameNode*) lua_touserdata(L, -1);
+		auto* classNameNode = static_cast<const bridge::ClassNameNode *>(lua_touserdata(L, -1));
 		lua_pop(L, 2);
 
 		if(classNameNode)
@@ -501,7 +502,7 @@ int UGIsBaseClass(lua_State *L)
 	{
 		lua_pushstring(L, "class_name_node");
 		lua_rawget(L, -2);
-		const bridge::ClassNameNode* classNameNode = (const bridge::ClassNameNode*) lua_touserdata(L, -1);
+		auto* classNameNode = static_cast<const bridge::ClassNameNode *>(lua_touserdata(L, -1));
 		lua_pop(L, 2);
 
 		if(classNameNode)

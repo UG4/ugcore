@@ -121,9 +121,9 @@ bool ImportGridFromLGM(Grid& grid,
 
 		// set vertex coordinates
 		aaPosition[vert] = vector3(
-			(number)point[0],
-			(number)point[1],
-			(l->dim == 3) ? (number)point[2] : (number)0.
+			point[0],
+			point[1],
+			(l->dim == 3) ? point[2] : 0.
 		);
 	}
 

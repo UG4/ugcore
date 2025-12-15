@@ -113,7 +113,7 @@ class DomainLoadBalancer : public LoadBalancer
 		using base_class::add_serializer;
 
 	/**	Adds serializers for the domains position attachment and for its subset handler.*/
-		DomainLoadBalancer(SmartPtr<TDomain> dom) : m_dom(dom)
+		explicit DomainLoadBalancer(SmartPtr<TDomain> dom) : m_dom(dom)
 		{
 			base_class::set_grid(dom->grid().get());
 
@@ -141,7 +141,7 @@ class DomainLoadBalancer : public LoadBalancer
 template <typename TDomain, typename TPartitioner>
 class DomainPartitioner : public TPartitioner{
 	public:
-		DomainPartitioner(TDomain& dom){
+	explicit DomainPartitioner(TDomain& dom){
 			TPartitioner::set_grid(dom.grid().get(), dom.position_attachment());
 		}
 };
@@ -149,7 +149,7 @@ class DomainPartitioner : public TPartitioner{
 template <typename TDomain, typename TBalanceWeights>
 class DomainBalanceWeights : public TBalanceWeights{
 	public:
-		DomainBalanceWeights(TDomain& dom){
+	explicit DomainBalanceWeights(TDomain& dom){
 			TBalanceWeights::set_grid(dom.grid().get(), dom.position_attachment());
 		}
 };
@@ -157,7 +157,7 @@ class DomainBalanceWeights : public TBalanceWeights{
 template <typename TDomain, typename TCommunicationCostWeights>
 class DomainCommunicationCostWeights : public TCommunicationCostWeights{
 	public:
-		DomainCommunicationCostWeights(TDomain& dom){
+	explicit DomainCommunicationCostWeights(TDomain& dom){
 			TCommunicationCostWeights::set_grid(dom.grid().get(), dom.position_attachment());
 		}
 };

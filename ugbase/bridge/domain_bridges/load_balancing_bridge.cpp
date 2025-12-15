@@ -146,7 +146,7 @@ namespace ug {
 				vector3 p;
 				VecCopy(p, c, 0);
 				number weight;
-				m_callback(weight, 5, p.x(), p.y(), p.z(), (number)m_pmg->get_level(e), m_time);
+				m_callback(weight, 5, p.x(), p.y(), p.z(), static_cast<number>(m_pmg->get_level(e)), m_time);
 				return weight;
 			}
 

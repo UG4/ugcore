@@ -1,13 +1,13 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10)
 
 ####
 # liblgm Project
 ####
 
-project(LIBLGM)
+project (LIBLGM)
 
 # build liblgm library
-add_library(lgm
+add_library (lgm
 	include/lgm.h
 	include/lgm_info.h
 	include/lgm_line.h

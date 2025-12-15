@@ -73,7 +73,7 @@ number SqNormOfLegendrePoly
 	size_t k ///< index of the polynomial, \f$k \ge 0\f$
 )
 {
-	return (number) 1 / (2 * k + 1);
+	return static_cast<number>(1) / (2 * k + 1);
 }
 
 /** returns the values of the normalized Legendre polynomials
@@ -90,7 +90,7 @@ number NormalizedLegendrePoly
 	number x ///< argument of the polynomial
 )
 {
-	return sqrt (((number) (2 * k + 1))) * LegendrePoly (k, x);
+	return sqrt (2 * k + 1) * LegendrePoly (k, x);
 }
 
 /** returns the values of the Chebyshev polynomials of the first kind

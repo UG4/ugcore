@@ -57,7 +57,7 @@ class ProjectionLinker
 public:
 
 ///	Constructor
-	ProjectionLinker
+	explicit ProjectionLinker
 	(
 		SmartPtr<CplUserData<MathVector<dim>, dim> > spVector ///< vector to project
 	)
@@ -69,7 +69,7 @@ public:
 	}
 	
 ///	Constructor
-	ProjectionLinker
+	explicit ProjectionLinker
 	(
 		MathVector<dim> vector ///< vector to project
 	)
@@ -81,7 +81,7 @@ public:
 	}
 	
 ///	Returns true because without a grid function, we do not get the element to project to!
-	bool requires_grid_fct() const override {return true;}
+	[[nodiscard]] bool requires_grid_fct() const override {return true;}
 
 ///	Evaluation with no element is impossible
 	inline void evaluate

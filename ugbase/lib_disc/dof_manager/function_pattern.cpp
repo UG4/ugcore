@@ -80,11 +80,12 @@ void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID)
 		tmpSSGrp.add_all();
 
 	// 	add to function list, everywhere = true, copy SubsetGroup
-		m_vFunction.push_back(Function(name, lfeID, true, tmpSSGrp));
+		m_vFunction.emplace_back(name, lfeID, true, tmpSSGrp);
 	}
 }
 
-void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID,
+void FunctionPattern::add(const std::vector<std::string>& vName,
+                          LFEID lfeID,
                           const SubsetGroup& ssGrp)
 {
 //	add all names
@@ -119,7 +120,8 @@ void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID,
 	}
 }
 
-void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID,
+void FunctionPattern::add(const std::vector<std::string>& vName,
+						  LFEID lfeID,
                           const std::vector<std::string>& vSubset)
 {
 	add(vName, lfeID, SubsetGroup(m_spSH, vSubset));

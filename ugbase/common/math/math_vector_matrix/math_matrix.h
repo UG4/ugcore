@@ -40,6 +40,7 @@
 #include "../../types.h"
 #include "math_vector.h"
 #include "common/assert.h"
+#include "common/config.hpp"
 
 namespace ug {
 
@@ -70,6 +71,13 @@ class MathMatrix
 	public:
 		MathMatrix() = default;
 		MathMatrix(const MathMatrix& v)	{assign(v);}
+
+
+		MathMatrix(MathMatrix&& v) noexcept {std::swap(v.m_data, m_data);}
+		MathMatrix& operator = (MathMatrix&& v) noexcept {
+			std::swap(v.m_data, m_data);
+			return *this;
+		}
 
 		/**
 		 * \brief Assigns the elements of the given matrix to this one.
@@ -212,8 +220,8 @@ class MathMatrix
 			return res;
 		}
 
-		inline std::size_t num_rows() const {return N;}
-		inline std::size_t num_cols() const {return M;}
+		[[nodiscard]] inline std::size_t num_rows() const {return N;}
+		[[nodiscard]] inline std::size_t num_cols() const {return M;}
 
 		inline value_type* operator [] (std::size_t index){
 			UG_ASSERT(index < N, "Invalid index");
@@ -243,8 +251,11 @@ class MathMatrix
 		}
 
 	protected:
+#if defined(FEATURE_MEMORY_ALIGNED) && FEATURE_MEMORY_ALIGNED == 1
+		alignas(64) value_type m_data[N][M];
+#else
 		value_type m_data[N][M];
-
+#endif
 		inline void assign(const MathMatrix& v)
 		{
 			for(std::size_t i = 0; i < N; ++i){

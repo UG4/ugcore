@@ -141,7 +141,7 @@ public:
 		VecSet(LocalGravity, 0.0);
 		
 	//	Loop shape functions
-		for(size_t sh = 0; sh < (size_t) m_nCo; sh++)
+		for(size_t sh = 0; sh < static_cast<size_t>(m_nCo); sh++)
 			for(size_t d = 0; d < refDim; d++)
 				LocalGravity[d] += vConsGravity[sh][d] * vLocalGrad[sh][d];
 
@@ -434,7 +434,7 @@ void StdLinConsistentGravity<1>::prepare
 {
 	UG_ASSERT (n_co == 2, "StdLinConsistentGravity: Illegal number of corners of an edge.");
 	m_nCo = n_co;
-	this->template prepare_edge<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+	this->prepare_edge<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
 }
 
 /// spacialization of the method for faces (reference dimension 2)
@@ -452,10 +452,10 @@ void StdLinConsistentGravity<2>::prepare
 	switch (m_nCo = n_co)
 	{
 		case 3:
-			this->template prepare_triangle<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+			this->prepare_triangle<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
 			break;
 		case 4:
-			this->template prepare_quadrilateral<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+			this->prepare_quadrilateral<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
 			break;
 		default:
 			UG_THROW ("StdLinConsistentGravity: Illegal number of corners ("
@@ -478,16 +478,16 @@ void StdLinConsistentGravity<3>::prepare
 	switch (m_nCo = n_co)
 	{
 		case 4:
-			this->template prepare_tetrahedron<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+			this->prepare_tetrahedron<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
 			break;
 		case 5:
-			this->template prepare_pyramid<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+			this->prepare_pyramid<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
 			break;
 		case 6:
-			this->template prepare_prism<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+			this->prepare_prism<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
 			break;
 		case 8:
-			this->template prepare_hexahedron<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+			this->prepare_hexahedron<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
 			break;
 		default:
 			UG_THROW ("StdLinConsistentGravity: Illegal number of corners ("
@@ -586,7 +586,6 @@ protected:
 		const MathVector<dim>& PhysicalGravity ///< the gravity vector (MUST BE (0, ..., 0, g))
 	)
 	{
-		number DensityIP, Diff, gradient;
 		MathVector<refDim> LocalPoint;
 		MathVector<dim> ShiftedGlobalPoint;
 		MathMatrix<refDim,dim> JT;
@@ -597,12 +596,12 @@ protected:
 		for (size_t i = 1; i < dim+1; i++)
 		{
 			VecSubtract (ShiftedGlobalPoint, vCorners[i], vCorners[0]);
-			Diff = ShiftedGlobalPoint [dim-1];
+			number Diff = ShiftedGlobalPoint[dim - 1];
 
 			ShiftedGlobalPoint [dim-1] = 0.0;
 			TransposedMatVecMult (LocalPoint, JT, ShiftedGlobalPoint);
 			
-			DensityIP = 1;
+			number DensityIP = 1;
 			for (size_t j = 0; j < dim; j++) DensityIP -= LocalPoint[j]; //GN(0)=1-local(0)-local(1)-...
 			DensityIP *= vDensity[0];
 			for (size_t j = 1; j < dim+1; j++)
@@ -610,7 +609,7 @@ protected:
 			
 			for(size_t j = 0; j < dim-1; ++j)
 			{
-				gradient = 0.0;
+				number gradient = 0.0;
 				for (size_t k = 0; k < dim; k++)
 					gradient += JT[j][k] * (vDensity[k+1] - vDensity[0]);
 				vConsGravity[i][j] = Diff * PhysicalGravity[dim-1] * gradient;
@@ -635,12 +634,11 @@ void StdLinConsistentGravityX<2>::prepare
 	if (dim == 2 && n_co == 3 && PhysicalGravity[0] == 0.0) // use the enhanced version
 	{
 		m_nCo = -3;
-		this->template prepare_simplex<ReferenceTriangle, dim>
+		this->prepare_simplex<ReferenceTriangle, dim>
 			(vConsGravity, vCorners, vDensity, PhysicalGravity);
 	}
 	else // use the standard version
-		base_type::template prepare<dim>
-			(vConsGravity, n_co, vCorners, vDensity, PhysicalGravity);
+		base_type::prepare<dim>(vConsGravity, n_co, vCorners, vDensity, PhysicalGravity);
 }
 
 /// spacialization of the method for volumes (reference dimension 3)
@@ -658,11 +656,11 @@ void StdLinConsistentGravityX<3>::prepare
 	if (dim == 3 && n_co == 4 && PhysicalGravity[0] == 0.0 && PhysicalGravity[1] == 0.0) // use the enhanced version
 	{
 		m_nCo = -4;
-		this->template prepare_simplex<ReferenceTetrahedron, dim>
+		this->prepare_simplex<ReferenceTetrahedron, dim>
 			(vConsGravity, vCorners, vDensity, PhysicalGravity);
 	}
 	else // use the standard version
-		base_type::template prepare<dim>
+		base_type::prepare<dim>
 			(vConsGravity, n_co, vCorners, vDensity, PhysicalGravity);
 }
 

@@ -140,13 +140,13 @@ public:
 		const size_t numIndex  = this->size();
 
 		// fill local block matrix
-		bool bFound;
 		m_Aloc.resize(numIndex, numIndex);
 		m_Aloc = 0.0;
 		for (size_t j = 0; j<numIndex; j++)
 		{
 			for (size_t k=0;k<numIndex;k++)
 			{
+				bool bFound;
 				const_row_iterator it = A.get_connection(m_vInd[j],m_vInd[k], bFound);
 				if(bFound){
 					m_Aloc.subassign(j*blockSize,k*blockSize,it.value());
@@ -245,7 +245,7 @@ public:
 	/// virtual DTOR
 	~LocalDoFSubspace() override = default;
 
-	bool check(void *obj) const
+	[[nodiscard]] bool check(void *obj) const
 	{ return (dynamic_cast<TObject*> (obj) != nullptr); }
 
 	/// Extract local data (based on group obj)
@@ -361,7 +361,7 @@ public:
 	/// virtual DTOR
 	~VertexBasedSubspace() override = default;
 
-	bool check(void *obj) const
+	[[nodiscard]] bool check(void *obj) const
 	{ return true; /*return (dynamic_cast<TObject*> (obj) != nullptr);*/ }
 
 	/// Extract indices for local DoFs.

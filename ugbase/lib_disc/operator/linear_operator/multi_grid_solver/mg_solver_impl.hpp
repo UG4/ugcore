@@ -412,7 +412,7 @@ init()
 		UG_THROW("GMG::init: Restriction not set.");
 
 //	get current toplevel
-	const GF* pSol = dynamic_cast<const GF*>(m_pSurfaceSol);
+	auto* pSol = dynamic_cast<const GF*>(m_pSurfaceSol);
 	if(pSol){
 		m_surfaceLev = pSol->dof_distribution()->grid_level().level();
 	}
@@ -1183,8 +1183,7 @@ init_base_solver()
 	//	create layout with only v-master (v-slave do not exist on gathering proc)
 	//	especially: remove h-layouts and set proc-comm to process-only
 		#ifdef UG_PARALLEL
-		SmartPtr<AlgebraLayouts> spOneProcLayout =
-				SmartPtr<AlgebraLayouts>(new AlgebraLayouts);
+		SmartPtr<AlgebraLayouts> spOneProcLayout = SmartPtr<AlgebraLayouts>(new AlgebraLayouts);
 		spOneProcLayout->clear();
 		spOneProcLayout->vertical_master() = ld.t->layouts()->vertical_master();
 		spOneProcLayout->proc_comm() = pcl::ProcessCommunicator(pcl::PCD_LOCAL);
@@ -1649,7 +1648,7 @@ init_level_memory(int baseLev, int topLev)
 	if(m_bGatheredBaseUsed && gathered_base_master()){
 		// note: we can safely call this here, since the dd has already been
 		//		created in the level loop
-		GridLevel glGhosts = GridLevel(baseLev, m_GridLevelType, true);
+		auto glGhosts = GridLevel(baseLev, m_GridLevelType, true);
 		spGatheredBaseCorr = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
 
 		spGatheredBaseMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >(
@@ -1922,7 +1921,8 @@ prolongation_and_postsmooth(int lev)
 			}
 
 		//	a)  Compute t = B*d with some iterator B
-			GridLevel gw_gl; enter_debug_writer_section(gw_gl, "PostSmoother", lev, lf.n_post_calls, nu);
+			GridLevel gw_gl;
+			enter_debug_writer_section(gw_gl, "PostSmoother", lev, lf.n_post_calls, nu);
 			if(!lf.PostSmoother->apply(*lf.st, *lf.sd))
 				UG_THROW("GMG: Smoothing step "<<nu+1<<" on level "<<lev<<" failed.");
 			leave_debug_writer_section(gw_gl);
@@ -1943,7 +1943,7 @@ prolongation_and_postsmooth(int lev)
 	}
 	UG_CATCH_THROW("GMG: Post-Smoothing on level "<<lev<<" failed. ")
 	GMG_PROFILE_END();
-	lf.n_post_calls++;
+	++lf.n_post_calls;
 
 //	update the defect if required. In full-ref case, the defect is not needed
 //	anymore, since it will be restricted anyway. For adaptive case, however,
@@ -2139,14 +2139,14 @@ lmgc(int lev, int cycleType)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-write_debug(ConstSmartPtr<GF> spGF, std::string name, int cycleNo)
+write_debug(ConstSmartPtr<GF> spGF, const std::string& name, int cycleNo)
 {
 	write_debug(*spGF, name, cycleNo);
 }
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-write_debug(const GF& rGF, std::string name, int cycleNo)
+write_debug(const GF& rGF, const std::string& name, int cycleNo)
 {
 	PROFILE_FUNC_GROUP("debug");
 
@@ -2169,7 +2169,7 @@ write_debug(const GF& rGF, std::string name, int cycleNo)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-write_debug(const matrix_type& mat, std::string name, const GF& rTo, const GF& rFrom)
+write_debug(const matrix_type& mat, const std::string& name, const GF& rTo, const GF& rFrom)
 {
 	GridLevel glFrom = rFrom.grid_level();
 	GridLevel glTo = rTo.grid_level();
@@ -2178,7 +2178,7 @@ write_debug(const matrix_type& mat, std::string name, const GF& rTo, const GF& r
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-write_debug(const matrix_type& mat, std::string name, const GridLevel& glTo, const GridLevel& glFrom)
+write_debug(const matrix_type& mat, const std::string &name, const GridLevel& glTo, const GridLevel& glFrom)
 {
 	PROFILE_FUNC_GROUP("debug");
 
@@ -2228,7 +2228,7 @@ leave_debug_writer_section(GridLevel& dw_orig_gl)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-log_debug_data(int lvl, int cycleNo, std::string name)
+log_debug_data(int lvl, int cycleNo, const std::string& name)
 {
 	if(m_spDebugWriter.valid()){
 		std::string defName("Def_"); defName.append(name);
@@ -2243,7 +2243,7 @@ log_debug_data(int lvl, int cycleNo, std::string name)
 	if(!bEnableSerialNorm && !bEnableParallelNorm) return;
 
 	std::string prefix;
-	if(lvl < (int)m_vLevData.size())
+	if(lvl < static_cast<int>(m_vLevData.size()))
 		prefix.assign(2 + 2 * (m_vLevData.size() - lvl), ' ');
 	prefix.append(name).append(" on lev ").append(ToString(lvl)).append(": ");
 

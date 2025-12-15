@@ -72,7 +72,7 @@ class IDataImport
 {
 	public:
 	/// Constructor
-		IDataImport(bool compLinDefect = true)
+	explicit IDataImport(bool compLinDefect = true)
 			: m_spICplUserData(nullptr), m_part(STIFF),
 			 m_bCompLinDefect(compLinDefect)
 		{}
@@ -101,22 +101,22 @@ class IDataImport
 		void set_comp_lin_defect(bool b) {m_bCompLinDefect = b;}
 
 	///	returns if import is located in mass part (for time dependent problems)
-		DiscPart part() const {return m_part;}
+		[[nodiscard]] DiscPart part() const {return m_part;}
 
 	/// returns if data is set
-		virtual bool data_given() const = 0;
+		[[nodiscard]] virtual bool data_given() const = 0;
 
 	/// returns if data is constant
 	/**
 	 * This method, returns if the connected data is constant.
 	 */
-		virtual bool constant() const = 0;
+		[[nodiscard]] virtual bool constant() const = 0;
 
 	///	returns if data depends on unknown functions
 	/**
 	 * This method returns if the data depends on the unknown functions.
 	 */
-		bool zero_derivative() const
+		[[nodiscard]] bool zero_derivative() const
 		{
 			if(!m_spICplUserData.valid()) return true;
 			else if (m_spICplUserData->zero_derivative()) return true;
@@ -130,13 +130,13 @@ class IDataImport
 		void set_map(const FunctionIndexMapping& map){m_map = map;}
 
 	///	get function mapping
-		const FunctionIndexMapping& map() const{return m_map;}
+		[[nodiscard]] const FunctionIndexMapping& map() const{return m_map;}
 
 	///	get function mapping of dependent data
-		const FunctionIndexMapping& conn_map() const{return m_spICplUserData->map();}
+		[[nodiscard]] const FunctionIndexMapping& conn_map() const{return m_spICplUserData->map();}
 
 	/// number of functions
-		size_t num_fct() const {return m_map.num_fct();}
+		[[nodiscard]] size_t num_fct() const {return m_map.num_fct();}
 
 	///	sets the geometric object type
 		virtual void set_roid(ReferenceObjectID id) = 0;
@@ -151,7 +151,7 @@ class IDataImport
 		virtual void update_dof_sizes(const LocalIndices& ind) = 0;
 
 	///	add jacobian entries introduced by this import
-		virtual void add_jacobian(LocalMatrix& J, const number scale) = 0;
+		virtual void add_jacobian(LocalMatrix& J, number scale) = 0;
 
 	///	removes the positions
 		virtual void clear_ips() = 0;
@@ -180,7 +180,7 @@ class DataImport : public IDataImport<dim>
 {
 	public:
 	/// Constructor
-		DataImport(bool bLinDefect = true) : IDataImport<dim>(bLinDefect),
+		explicit DataImport(bool bLinDefect = true) : IDataImport<dim>(bLinDefect),
 			m_id(ROID_UNKNOWN),
 			m_seriesID(-1),	m_spUserData(nullptr), m_vValue(nullptr),
 			m_numIP(0), m_spDependentUserData(nullptr)
@@ -200,7 +200,7 @@ class DataImport : public IDataImport<dim>
 		SmartPtr<CplUserData<TData, dim> > user_data(){return m_spUserData;}
 
 	///	returns true if data given
-	bool data_given() const override {return m_spUserData.valid();}
+		[[nodiscard]] bool data_given() const override {return m_spUserData.valid();}
 
 
 	/////////////////////////////////////////
@@ -208,7 +208,7 @@ class DataImport : public IDataImport<dim>
 	/////////////////////////////////////////
 
 	/// \copydoc IDataImport::constant()
-		bool constant() const override {
+		[[nodiscard]] bool constant() const override {
 			if(data_given()) return m_spUserData->constant();
 			else return false;
 		}
@@ -240,7 +240,7 @@ class DataImport : public IDataImport<dim>
 	/////////////////////////////////////////
 
 	/// number of integration points
-		size_t num_ip() const {return m_numIP;}
+		[[nodiscard]] size_t num_ip() const {return m_numIP;}
 
 	///	set the local integration points
 		template <int ldim>
@@ -282,7 +282,7 @@ class DataImport : public IDataImport<dim>
 	/////////////////////////////////////////
 
 	/// number of shapes for local function
-		size_t num_sh(size_t fct) const
+		[[nodiscard]] size_t num_sh(size_t fct) const
 		{
 			UG_ASSERT(fct <  m_vvNumDoFPerFct[fct], "Invalid index");
 			return m_vvNumDoFPerFct[fct];
@@ -305,7 +305,7 @@ class DataImport : public IDataImport<dim>
 			{check_ip_fct_sh(ip,fct,sh);return m_vvvLinDefect[ip][fct][sh];}
 
 	/// compute jacobian for derivative w.r.t. non-system owned unknowns
-		void add_jacobian(LocalMatrix& J, const number scale) override;
+		void add_jacobian(LocalMatrix& J, number scale) override;
 
 	///	resize lin defect arrays
 		void update_dof_sizes(const LocalIndices& ind) override;
@@ -328,14 +328,14 @@ class DataImport : public IDataImport<dim>
 		             void (TClass::*func)(
 		            		 const LocalVector& u,
 		            		 std::vector<std::vector<TData> > vvvLinDefect[],
-		            		 const size_t nip));
+				             size_t nip));
 
 	///	register evaluation of linear defect for a element
 		void set_fct(ReferenceObjectID id,
 					 void (*func)(
 							 const LocalVector& u,
 							 std::vector<std::vector<TData> > vvvLinDefect[],
-							 const size_t nip));
+							 size_t nip));
 
 	///	clear all evaluation functions
 		void clear_fct();

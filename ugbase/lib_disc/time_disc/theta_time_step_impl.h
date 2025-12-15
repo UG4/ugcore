@@ -279,7 +279,7 @@ calc_error(const vector_type& u, error_vector_type* u_vtk)
 //	assemble error estimators using current iterate
 	try
 	{
-		GridLevel gl = GridLevel();	// new TOP-SURFACE grid level
+		auto gl = GridLevel();	// new TOP-SURFACE grid level
 		this->m_spDomDisc->calc_error(m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl, u_vtk);
 	}
 	UG_CATCH_THROW("MultiStepTimeDiscretization: Cannot assemble error estimators.");

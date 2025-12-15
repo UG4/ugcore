@@ -245,7 +245,7 @@ void ShapesAtGlobalPositionVertex(std::vector<std::vector<number> >& vvShape,
                                   const LFEID& lfeID)
 {
 //	get local position of DoF
-	std::vector<MathVector<0> > vLocPos(vGlobPos.size(), 0.0);
+	std::vector<MathVector<0> > vLocPos(vGlobPos.size(), MathVector<0>(0.0));
 
 //	evaluate coarse shape fct at fine local point
 	try{
@@ -264,7 +264,7 @@ void ShapesAtGlobalPositionElem(std::vector<std::vector<number> >& vvShape,
                                 const LFEID& lfeID)
 {
 //	get local position of DoF
-	std::vector<MathVector<refDim> > vLocPos(vGlobPos.size(), 0.0);
+	std::vector<MathVector<refDim> > vLocPos(vGlobPos.size(), MathVector<refDim>(0.0));
 	try{
 		DimReferenceMapping<refDim, dim>& map =
 				ReferenceMappingProvider::get<refDim, dim>(roid, vCornerCoord);
@@ -517,8 +517,8 @@ void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
 	using const_iterator = DoFDistribution::traits<Vertex>::const_iterator;
 
 //	loop all vertices
-	const_iterator iter = dd->begin<Vertex>(SurfaceView::ALL);
-	const_iterator iterEnd = dd->end<Vertex>(SurfaceView::ALL);
+	auto iter = dd->begin<Vertex>(SurfaceView::ALL);
+	auto iterEnd = dd->end<Vertex>(SurfaceView::ALL);
 
 //	algebra indices vector
 	std::vector<size_t> ind;
@@ -822,7 +822,7 @@ bool CheckDoFPositions(ConstSmartPtr<TDomain> domain,
 {
 //	number of total dofs
 	int nr = dd->num_indices();
-	std::vector<MathVector<TDomain::dim> > vPos(nr, -1);
+	std::vector<MathVector<TDomain::dim> > vPos(nr, MathVector<TDomain::dim>(-1));
 
 //	extract for all element types
 	bool bRes = true;

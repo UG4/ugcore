@@ -32,6 +32,8 @@
 
 #include "progress.h"
 
+#include <utility>
+
 #include "log.h"
 #include "util/ostream_util.h"
 
@@ -113,7 +115,7 @@ void Progress::setD(double now)
 	{
 		if(myDepth == lastUpdateDepth)
 		{
-			int i2=(int)(m_length*now/m_total);
+			int i2=static_cast<int>(m_length * now / m_total);
 			if(i2 != posNow)
 			{
 				for(; posNow<i2; posNow++)
@@ -126,7 +128,7 @@ void Progress::setD(double now)
 	}
 	else if(get_clock_s() - startS > m_minSecondsUntilProgress)
 	{
-		if(m_msg.length() > 0)
+		if(!m_msg.empty())
 			{UG_LOG("\n" << m_msg);}
 		UG_LOG("\n");
 //		UG_LOG("." << repeat('_', m_length) << ".\n");
@@ -164,7 +166,7 @@ void Progress::stop()
 }
 void Progress::start(double total, std::string msg)
 {
-	m_msg = msg;
+	m_msg = std::move(msg);
 	m_now = 0;
 	m_total = total;
 	bStarted=false;

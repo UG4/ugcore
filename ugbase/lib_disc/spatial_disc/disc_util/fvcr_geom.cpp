@@ -70,7 +70,7 @@ update_local_data()
 	for (size_t j=1;j<m_rRefElem.num(0);j++){
 	   	localBary+=m_rRefElem.corner(j);
 	}
-	localBary*=1./(number)m_rRefElem.num(0);
+	localBary*=1./static_cast<number>(m_rRefElem.num(0));
 
 // 	set up local informations for SubControlVolumeFaces (scvf)
 // 	each scvf is associated to one vertex (2d) / edge (3d) of the element
@@ -167,7 +167,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 	for (size_t j=1;j<m_rRefElem.num(0);j++){
 	   globalBary+=vCornerCoords[j];
 	}
-	globalBary*=1./(number)m_rRefElem.num(0);
+	globalBary*=1./static_cast<number>(m_rRefElem.num(0));
 
 // 	compute global informations for scvf
 	for(size_t i = 0; i < num_scvf(); ++i)
@@ -279,7 +279,7 @@ update_hanging(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, con
 	if(m_roid != pElem->reference_object_id())
 	{
 	//	remember new roid
-		m_roid = (ReferenceObjectID) pElem->reference_object_id();
+		m_roid = pElem->reference_object_id();
 
 	//	update local data
 		update_local_data();
@@ -295,7 +295,7 @@ update_hanging(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, con
 	for (size_t j=1;j<m_rRefElem.num(0);j++){
 	   globalBary+=vCornerCoords[j];
 	}
-	globalBary*=1./(number)m_rRefElem.num(0);
+	globalBary*=1./static_cast<number>(m_rRefElem.num(0));
 
 // 	compute global informations for scvf
 	for(size_t i = 0; i < num_scvf(); ++i)
@@ -526,7 +526,7 @@ update_hanging(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, con
 				if (m_vSCV[ind].Vol<0) m_vSCV[ind].Vol *= -1;
 				volSum+=m_vSCV[ind].Vol;
 				m_vSCV[ind].Normal = faceNormal;
-				m_vSCV[ind].Normal *= (number) m_vSCV[ind].Vol / faceVol;
+				m_vSCV[ind].Normal *= static_cast<number>(m_vSCV[ind].Vol) / faceVol;
 				rTrialSpace.shapes(&(m_vSCV[ind].vShape[0]), m_vSCV[ind].local_ip());
 				rTrialSpace.grads(&(m_vSCV[ind].vLocalGrad[0]), m_vSCV[ind].local_ip());
 				m_vSCV[ind].nodeID = m_numDofs+i;
@@ -537,15 +537,15 @@ update_hanging(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, con
 				m_vSCV[ind].Vol = faceVol - volSum;
 				m_vSCV[ind].nodeID=m_numDofs+3;
 				m_vSCV[ind].Normal = faceNormal;
-				m_vSCV[ind].Normal *= (number) m_vSCV[ind].Vol / faceVol;
+				m_vSCV[ind].Normal *= static_cast<number>(m_vSCV[ind].Vol) / faceVol;
 				m_vSCV[ind].vGlobIP = m_vSCV[face].vGloPos[1];
 				m_vSCV[ind].vLocIP = m_vSCV[face].vLocPos[1];
 				for (size_t j=0;j<2;j++){
 					m_vSCV[ind].vGlobIP += m_vSCV[m_numSCV+j].vGloPos[1];
 					m_vSCV[ind].vLocIP += m_vSCV[m_numSCV+j].vLocPos[1];
 				}
-				m_vSCV[ind].vGlobIP *= (number)1.0/3.0;
-				m_vSCV[ind].vLocIP *= (number)1.0/3.0;
+				m_vSCV[ind].vGlobIP *= 1.0/3.0;
+				m_vSCV[ind].vLocIP *= 1.0/3.0;
 				m_vGlobUnkCoords[ind] = m_vSCV[ind].vGlobIP;
 				m_vLocUnkCoords[ind] = m_vSCV[ind].vLocIP;
 				m_vSCV[ind].numCorners = numFaceCo + 1;
@@ -688,7 +688,7 @@ update_hanging(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, con
 				m_vCD[m_numConstrainedDofs].cDofInd[i] = m_numDofs+i;
 				size_t ind=face;
 				if (i>0) ind = m_numSCV+i-1;
-				m_vCD[m_numConstrainedDofs].cDofWeights[i] = (number)m_vSCV[ind].Vol / faceVol;
+				m_vCD[m_numConstrainedDofs].cDofWeights[i] = static_cast<number>(m_vSCV[ind].Vol) / faceVol;
 			}
 			m_numSCV+=3+keepOffset;
 			m_numDofs+=4;
@@ -779,7 +779,7 @@ update_geometric_data(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 	for (size_t j=1;j<rRefElem.num(0);j++){
 	   globalBary+=vCornerCoords[j];
 	}
-	globalBary*=1./(number)rRefElem.num(0);
+	globalBary*=1./static_cast<number>(rRefElem.num(0));
 
 // 	compute global informations for scvf
 	for(size_t i = 0; i < num_scvf(); ++i)
@@ -951,7 +951,7 @@ update_local_data()
 	for (size_t j=1;j<m_rRefElem.num(0);j++){
 	   	localBary+=m_rRefElem.corner(j);
 	}
-	localBary*=1./(number)m_rRefElem.num(0);
+	localBary*=1./static_cast<number>(m_rRefElem.num(0));
 
 // 	set up local informations for SubControlVolumeFaces (scvf)
 // 	each scvf is associated to one vertex (2d) / edge (3d) of the element
@@ -1016,7 +1016,7 @@ void CRFVGeometry<TElem, TWorldDim>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != nullptr, "Wrong element type.");
-	TElem* pElem = static_cast<TElem*>(elem);
+	auto* pElem = static_cast<TElem*>(elem);
 
 // 	If already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;
@@ -1028,7 +1028,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	   globalBary+=vCornerCoords[j];
 	   m_vCo[j] = vCornerCoords[j];
 	}
-	globalBary*=1./(number)m_rRefElem.num(0);
+	globalBary*=1./static_cast<number>(m_rRefElem.num(0));
 
 // 	compute global informations for scvf
 	for(size_t i = 0; i < num_scvf(); ++i)
