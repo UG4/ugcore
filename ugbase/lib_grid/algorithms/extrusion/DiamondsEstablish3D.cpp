@@ -55,7 +55,11 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_attAccsInfoVecSudosTouchingVrtx(Grid::VertexAttachmentAccessor<AttVecInt>()),
 			m_attVrtxIsMidPtOfShiftVrtx(ABool()),
 			m_attAccsVrtxIsMidPtOfShiftVrtcs(Grid::VertexAttachmentAccessor<ABool>()),
-			m_vecCombiShiftVrtxMidVrtx(VecCombiShiftVrtxMidVrtx())
+			m_vecCombiShiftVrtxMidVrtx(VecCombiShiftVrtxMidVrtx()),
+			m_attMidPtVrtxOfShiftVrtx(AVertex()),
+			m_attAccsMidPtVrtxOfShiftVrtx(Grid::VertexAttachmentAccessor<AVertex>()),
+			m_attCenterVrtxOfShiftVrtx(AVertex()),
+			m_attAccsCenterVrtxOfShiftVrtx(Grid::VertexAttachmentAccessor<AVertex>())
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -966,6 +970,16 @@ bool DiamondsEstablish3D::attachMarkers()
 
 	m_attAccsVrtxIsMidPtOfShiftVrtcs = Grid::VertexAttachmentAccessor<ABool>(m_grid, m_attVrtxIsMidPtOfShiftVrtx);
 
+	m_attMidPtVrtxOfShiftVrtx = AVertex();
+
+	m_grid.attach_to_vertices_dv(m_attMidPtVrtxOfShiftVrtx, nullptr);
+
+	m_attAccsMidPtVrtxOfShiftVrtx = Grid::VertexAttachmentAccessor<AVertex>( m_grid, m_attMidPtVrtxOfShiftVrtx );
+
+	m_attCenterVrtxOfShiftVrtx = AVertex();
+
+	m_attAccsCenterVrtxOfShiftVrtx = Grid::VertexAttachmentAccessor<AVertex>( m_grid, m_attCenterVrtxOfShiftVrtx );
+
 	return true;
 }
 
@@ -994,6 +1008,10 @@ bool DiamondsEstablish3D::detachMarkers()
 	m_grid.detach_from_vertices(m_attInfoVecSudosTouchingVrtx);
 
 	m_grid.detach_from_vertices(m_attVrtxIsMidPtOfShiftVrtx);
+
+	m_grid.detach_from_vertices(m_attMidPtVrtxOfShiftVrtx);
+
+	m_grid.detach_from_vertices(m_attCenterVrtxOfShiftVrtx);
 
 	return true;
 }
@@ -1101,9 +1119,16 @@ bool DiamondsEstablish3D::trafoCollectedInfo2Attachments()
 
 			VrtxPair vp;
 			e2bq.spuckShiftVrtcs(vp);
-			m_sel.select(vp.first);
-			m_sel.select(vp.second);
+			Vertex * shiftVrtxOne = vp.first;
+			Vertex * shiftVrtxTwo = vp.second;
+			m_sel.select(shiftVrtxOne);
+			m_sel.select(shiftVrtxTwo);
 
+			m_attAccsMidPtVrtxOfShiftVrtx[shiftVrtxOne] = midPtVrtx;
+			m_attAccsMidPtVrtxOfShiftVrtx[shiftVrtxTwo] = midPtVrtx;
+
+			m_attAccsCenterVrtxOfShiftVrtx[shiftVrtxOne] = centerV;
+			m_attAccsCenterVrtxOfShiftVrtx[shiftVrtxTwo] = centerV;
 
 		}
 	}
@@ -1599,16 +1624,25 @@ bool DiamondsEstablish3D::determineShiftFaces()
 		if( numShiftVrcs == 2 && numCentrVrtcs == 2 )
 		{
 			m_attAccsFacIsShiftFac[fac] = true;
+			m_attAccsFacIsShiftQuadriliteralFac[fac] = true;
+
+			if( typeid(*fac) != typeid(Quadrilateral) )
+			{
+				UG_LOG("4 vertices but not Quadriliteral? " << CalculateCenter( fac, m_aaPos ) << " -> " << typeid(*fac).name() << std::endl);
+			}
 
 		}
 		else if( numShiftVrcs == 2 && numCentrVrtcs == 1 )
 		{
 			m_attAccsFacIsShiftFac[fac] = true;
+			m_attAccsFacIsShiftTriangleFac[fac] = true;
+			UG_LOG("was ist das für ein Typ " << CalculateCenter( fac, m_aaPos ) << " -> " << typeid(*fac).name() << std::endl );
 		}
 
 		if( numCentrVrtcs > 2 || numShiftVrcs > 2 )
 		{
 			UG_LOG("too much shift or center vertices  in one face " << std::endl);
+			UG_LOG("weia was ist das für ein Typ " << CalculateCenter( fac, m_aaPos ) << " -> " << typeid(*fac).name() << std::endl );
 			return false;
 		}
 

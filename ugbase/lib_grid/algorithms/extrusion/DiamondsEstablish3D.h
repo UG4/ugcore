@@ -189,6 +189,15 @@ private:
 	VecCombiShiftVrtxMidVrtx m_vecCombiShiftVrtxMidVrtx;
 
 	bool createMidVrtx( VrtxPair const & shiftVrtcs, Vertex * & midVrtx );
+
+	AVertex m_attMidPtVrtxOfShiftVrtx;
+
+	Grid::VertexAttachmentAccessor<AVertex> m_attAccsMidPtVrtxOfShiftVrtx;
+
+	AVertex m_attCenterVrtxOfShiftVrtx;
+
+	Grid::VertexAttachmentAccessor<AVertex> m_attAccsCenterVrtxOfShiftVrtx;
+
 };
 
 } /* namespace diamonds */
