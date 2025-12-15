@@ -122,6 +122,18 @@ private:
 
 	Grid::FaceAttachmentAccessor<ABool> m_attAccsFacIsShiftFac;
 
+	ABool m_attMarkShiftTriangleFace; // used to know if an face is shift face
+
+	Grid::FaceAttachmentAccessor<ABool> m_attAccsFacIsShiftTriangleFac;
+
+	ABool m_attMarkShiftQuadriliteralFace; // used to know if an face is shift face
+
+	Grid::FaceAttachmentAccessor<ABool> m_attAccsFacIsShiftQuadriliteralFac;
+
+
+
+	bool determineShiftFaces();
+
 	ABool m_attMarkVolGetsShrinked;
 	Grid::VolumeAttachmentAccessor<ABool> m_attAccsVolGetsShrinked;
 

@@ -6,6 +6,7 @@
  */
 
 #include <lib_grid/algorithms/extrusion/DiamondsEstablish3D.h>
+#include <typeinfo>
 
 namespace ug
 {
@@ -36,6 +37,10 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_attAccsFacIsTwinFac(Grid::FaceAttachmentAccessor<ABool>()),
 			m_attMarkShiftFace(ABool()),
 			m_attAccsFacIsShiftFac(Grid::FaceAttachmentAccessor<ABool>()),
+			m_attMarkShiftTriangleFace(ABool()),
+			m_attAccsFacIsShiftTriangleFac(Grid::FaceAttachmentAccessor<ABool>()),
+			m_attMarkShiftQuadriliteralFace(ABool()),
+			m_attAccsFacIsShiftQuadriliteralFac(Grid::FaceAttachmentAccessor<ABool>()),
 			m_attMarkVolGetsShrinked(ABool()),
 			m_attAccsVolGetsShrinked(Grid::VolumeAttachmentAccessor<ABool>()),
 			m_attVrtVec(AttVrtVec()),
@@ -208,6 +213,12 @@ bool DiamondsEstablish3D::createTheDiamonds()
 	}
 
 	UG_LOG("info distributed" << std::endl);
+
+	if( ! determineShiftFaces())
+	{
+		UG_LOG("shift faces not determinable " << std::endl);
+		return false;
+	}
 
 	if( ! shrinkVolumes())
 	{
@@ -901,6 +912,18 @@ bool DiamondsEstablish3D::attachMarkers()
 
 	m_attAccsFacIsShiftFac = Grid::FaceAttachmentAccessor<ABool>( m_grid, m_attMarkShiftFace );
 
+	m_attMarkShiftTriangleFace = ABool(); // used to know if an face is shift face
+
+	m_grid.attach_to_faces_dv(m_attMarkShiftTriangleFace, false);
+
+	m_attAccsFacIsShiftTriangleFac = Grid::FaceAttachmentAccessor<ABool>(m_grid, m_attMarkShiftTriangleFace);
+
+	m_attMarkShiftQuadriliteralFace = ABool(); // used to know if an face is shift face
+
+	m_grid.attach_to_faces_dv(m_attMarkShiftQuadriliteralFace, false);
+
+	m_attAccsFacIsShiftQuadriliteralFac = Grid::FaceAttachmentAccessor<ABool>(m_grid, m_attMarkShiftQuadriliteralFace);
+
 	m_attMarkVolGetsShrinked = ABool();
 
 	m_grid.attach_to_volumes_dv( m_attMarkVolGetsShrinked, false );
@@ -954,6 +977,9 @@ bool DiamondsEstablish3D::detachMarkers()
 
 	m_grid.detach_from_faces(m_attMarkTwinFace);
 	m_grid.detach_from_faces(m_attMarkShiftFace);
+
+	m_grid.detach_from_faces(m_attMarkShiftTriangleFace);
+	m_grid.detach_from_faces(m_attMarkShiftQuadriliteralFace);
 
 	m_grid.detach_from_volumes(m_attMarkVolGetsShrinked);
 
@@ -1533,7 +1559,66 @@ bool DiamondsEstablish3D::shrinkVolumes()
 
 //////////////////////////////////////////////////////////////////////////////////
 
+bool DiamondsEstablish3D::determineShiftFaces()
+{
 
+	for(FaceIterator iterF = m_sel.begin<Face>(); iterF != m_sel.end<Face>();)
+	{
+		Face* fac = *iterF;
+
+		IndexType numShiftVrcs = 0;
+		IndexType numCentrVrtcs = 0;
+
+		if( typeid(*fac) == typeid(Triangle) )
+		{
+			UG_LOG("we have a triangle " << CalculateCenter( fac, m_aaPos ) << " -> " << typeid(*fac).name() << std::endl);
+		}
+		else if( typeid(*fac) == typeid(Quadrilateral) )
+		{
+			UG_LOG("we have a quadriliteral " << CalculateCenter( fac, m_aaPos ) << " -> " << typeid(*fac).name() << std::endl);
+		}
+		else
+		{
+			UG_LOG("we have whatever at " << CalculateCenter( fac, m_aaPos ) << " -> " << typeid(*fac).name() << std::endl);
+		}
+
+		for( IndexType iVrt = 0; iVrt < fac->num_vertices(); iVrt++ )
+		{
+			Vertex * vrt = fac->vertex(iVrt);
+
+			if( m_attAccsVrtxIsCenterVrtx[vrt] )
+			{
+				numCentrVrtcs++;
+			}
+			else if( m_attAccsVrtxIsShiftVrtx[vrt] )
+			{
+				numShiftVrcs++;
+			}
+		}
+
+		if( numShiftVrcs == 2 && numCentrVrtcs == 2 )
+		{
+			m_attAccsFacIsShiftFac[fac] = true;
+
+		}
+		else if( numShiftVrcs == 2 && numCentrVrtcs == 1 )
+		{
+			m_attAccsFacIsShiftFac[fac] = true;
+		}
+
+		if( numCentrVrtcs > 2 || numShiftVrcs > 2 )
+		{
+			UG_LOG("too much shift or center vertices  in one face " << std::endl);
+			return false;
+		}
+
+		iterF++;
+	}
+
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////////////
 
 
 } /* namespace diamonds */
