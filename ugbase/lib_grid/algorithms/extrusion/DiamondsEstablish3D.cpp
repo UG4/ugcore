@@ -45,6 +45,8 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_attAccsVolGetsShrinked(Grid::VolumeAttachmentAccessor<ABool>()),
 			m_attVrtVec(AttVrtVec()),
 			m_attAccsVrtVecVol(Grid::VolumeAttachmentAccessor<AttVrtVec>()),
+//			m_attVrtVecFace(AttVrtVec()),
+//			m_attAccsVrtVecFace(Grid::VolumeAttachmentAccessor<AttVrtVec>()),
 			m_attMarkVrtxIsCenterVrtx(ABool()),
 			m_attAccsVrtxIsCenterVrtx(Grid::VertexAttachmentAccessor<ABool>()),
 			m_attMarkVrtxIsShiftVrtx(ABool()),
@@ -938,6 +940,12 @@ bool DiamondsEstablish3D::attachMarkers()
 
 	m_grid.attach_to_volumes_dv(m_attVrtVec, std::vector<Vertex*>());
 
+//	m_attVrtVecFace = AttVrtVec();
+//
+//	m_grid.attach_to_faces(m_attVrtVecFace, std::vector<Vertex*>());
+//
+//	m_attAccsVrtVecFace = Grid::VolumeAttachmentAccessor<AttVrtVec>(m_grid, m_attVrtVecFace);
+
 	m_attAccsVrtVecVol = Grid::VolumeAttachmentAccessor<AttVrtVec>(m_grid, m_attVrtVec);
 
 	m_attMarkVrtxIsCenterVrtx = ABool();
@@ -998,6 +1006,8 @@ bool DiamondsEstablish3D::detachMarkers()
 	m_grid.detach_from_volumes(m_attMarkVolGetsShrinked);
 
 	m_grid.detach_from_volumes( m_attVrtVec );
+
+//	m_grid.detach_from_volumes(m_attVrtVecFace);
 
 	m_grid.detach_from_vertices(m_attMarkVrtxIsCenterVrtx);
 
@@ -1302,6 +1312,21 @@ bool DiamondsEstablish3D::createConditionForNewVrtcs()
 			// erstmal so tun, als ob keine neuen Vertizes erzeugt werden an den alten Vertizes
 	}
 
+//	for( FaceIterator iterFac = m_sel.faces_begin(); iterFac != m_sel.faces_end(); iterFac++)
+//	{
+//		Face * fac = *iterFac;
+//
+//		std::vector<Vertex*> & newVrts = m_attAccsVrtVecFace[fac];
+//
+//		newVrts.resize(fac->num_vertices());
+//
+//		for(size_t iVrt = 0; iVrt < sv->num_vertices(); iVrt++ )
+//		{
+//			newVrts[iVrt] = nullptr;
+//		}
+//
+//	}
+
 	return true;
 }
 
@@ -1530,22 +1555,76 @@ bool DiamondsEstablish3D::shrinkVolumes()
 		{
 			m_sh.assign_subset(sv,m_sh.num_subsets());
 			UG_LOG("Abbrechen notwendig bei " << CalculateCenter(sv, m_aaPos) << std::endl);
+			return false;
 //			break;
 		}
 
 		UG_LOG("Diamond Volume new creation try at " << CalculateCenter(sv, m_aaPos) << std::endl);
 
 		//	now expand the fracture faces of sv to volumes.
-//		for(size_t i_side = 0; i_side < sv->num_sides(); ++i_side)
-//		{
-//			//	get the local vertex indices of the side of the volume
-//			sv->get_vertex_indices_of_face(locVrtInds, i_side);
-//
-//			Face* tFace = m_grid.get_side(sv, i_side);
-//
-//			if(tFace)
-//			{}
-//		}
+		for(IndexType iSideVol = 0; iSideVol < sv->num_sides(); iSideVol++)
+		{
+			//	get the local vertex indices of the side of the volume
+			sv->get_vertex_indices_of_face(locVrtInds, iSideVol);
+
+			Face* sideFace = m_grid.get_side(sv, iSideVol);
+
+			if( sideFace )
+			{
+				if( m_attAccsFacIsShiftFac[sideFace] )
+				{
+					Volume * shiftVol = nullptr;
+
+					if( m_attAccsFacIsShiftQuadriliteralFac[sideFace] )
+					{
+						std::vector<Vertex*> centerVrtcs;
+						std::vector<Vertex*> shiftVrtcs;
+						std::vector<Vertex*> midPtVrtcs;
+
+						for( IndexType vrtxInd = 0; vrtxInd < sideFace->num_vertices(); vrtxInd++ )
+						{
+							Vertex * sideVrtx = sideFace->vertex(vrtxInd);
+
+							if( m_attAccsVrtxIsCenterVrtx[sideVrtx] )
+							{
+								centerVrtcs.push_back(sideVrtx);
+							}
+							else if( m_attAccsVrtxIsShiftVrtx[sideVrtx] )
+							{
+								shiftVrtcs.push_back(sideVrtx);
+							}
+							else
+							{
+								UG_LOG("not center not shift but shift face? "
+										<< CalculateCenter( sideFace, m_aaPos ) << std::endl );
+								return false;
+							}
+						}
+
+						if( ! findShiftFaceVertices( centerVrtcs, shiftVrtcs, midPtVrtcs ))
+						{
+							UG_LOG("vertices of shift face strange "
+									<< CalculateCenter( sideFace, m_aaPos ) << std::endl);
+							return false;
+						}
+
+						shiftVol = *m_grid.create<Prism>(
+								PrismDescriptor( centerVrtcs[0],shiftVrtcs[0],midPtVrtcs[0],
+												centerVrtcs[1],shiftVrtcs[1], midPtVrtcs[1]
+										       )
+											   );
+
+
+						// TODO HIER ERZEUGUNG DIAMANTEN
+					}
+
+					if( shiftVol )
+					{
+						m_sh.assign_subset(shiftVol, sudoNewVols);
+					}
+				}
+			}
+		}
 
 		//	now set up a new volume descriptor and replace the volume.
 		if(vd.num_vertices() != sv->num_vertices())
@@ -1571,10 +1650,11 @@ bool DiamondsEstablish3D::shrinkVolumes()
 
 	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
 	{
-		Face* f = *iter;
+		Face* fac = *iter;
 		++iter;
 
-		m_grid.erase(f);
+		if( ! m_attAccsFacIsShiftFac[fac] )
+			m_grid.erase(fac);
 	}
 
 	UG_LOG("Gesichter entfernt " << std::endl);
@@ -1654,6 +1734,68 @@ bool DiamondsEstablish3D::determineShiftFaces()
 
 //////////////////////////////////////////////////////////////////////////////////
 
+bool DiamondsEstablish3D::findShiftFaceVertices(
+		std::vector<Vertex*> & centerVrtcs,
+		std::vector<Vertex*> & shiftVrtcs,
+		std::vector<Vertex*> & midPtVrtcs
+)
+{
+
+	// figure out to which center vertex which shift vertex belongs
+
+	if( centerVrtcs.size() != 2 || shiftVrtcs.size() != 2 )
+	{
+		UG_LOG("strange face behaviour for shift face" << std::endl);
+//				<< CalculateCenter( fac, m_aaPos ) << std::endl);
+		return false;
+	}
+
+	if( ! checkAttsOfShiftFaceVrtcs( centerVrtcs, shiftVrtcs) )
+	{
+		std::swap( shiftVrtcs[0], shiftVrtcs[1] );
+
+		if( ! checkAttsOfShiftFaceVrtcs( centerVrtcs, shiftVrtcs) )
+		{
+			UG_LOG("shift and swap vertices do not agree independent of ordering" << std::endl);
+			return false;
+		}
+	}
+
+	for( Vertex * & spv : shiftVrtcs )
+	{
+		midPtVrtcs.push_back( m_attAccsMidPtVrtxOfShiftVrtx[spv] );
+	}
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::checkAttsOfShiftFaceVrtcs( std::vector<Vertex*> const & centerVrtcs, std::vector<Vertex*> const & shiftVrtcs )
+{
+	Vertex * const & centerVrtxOne = centerVrtcs[0];
+	Vertex * const & centerVrtxTwo = centerVrtcs[1];
+
+	Vertex * const & shiftVrtxOne = shiftVrtcs[0];
+	Vertex * const & shiftVrtxTwo = shiftVrtcs[1];
+
+	if( m_attAccsCenterVrtxOfShiftVrtx[shiftVrtxOne] == centerVrtxOne )
+	{
+		if( m_attAccsCenterVrtxOfShiftVrtx[shiftVrtxTwo] == centerVrtxTwo )
+		{
+			return true;
+		}
+		else
+		{
+//			UG_LOG("shift and center vertex do not fit together " << std::endl);
+			return false;
+		}
+	}
+
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
 
 } /* namespace diamonds */
 

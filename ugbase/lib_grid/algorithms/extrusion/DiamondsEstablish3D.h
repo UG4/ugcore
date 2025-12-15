@@ -130,8 +130,6 @@ private:
 
 	Grid::FaceAttachmentAccessor<ABool> m_attAccsFacIsShiftQuadriliteralFac;
 
-
-
 	bool determineShiftFaces();
 
 	ABool m_attMarkVolGetsShrinked;
@@ -142,6 +140,11 @@ private:
 	AttVrtVec m_attVrtVec;
 
 	Grid::VolumeAttachmentAccessor<AttVrtVec> m_attAccsVrtVecVol;
+
+//	AttVrtVec m_attVrtVecFace;
+//
+//	Grid::VolumeAttachmentAccessor<AttVrtVec> m_attAccsVrtVecFace;
+
 
 	ABool m_attMarkVrtxIsCenterVrtx;
 
@@ -198,6 +201,12 @@ private:
 
 	Grid::VertexAttachmentAccessor<AVertex> m_attAccsCenterVrtxOfShiftVrtx;
 
+	bool findShiftFaceVertices( std::vector<Vertex*> & centerVrtcs,
+			  	  	  	  	    std::vector<Vertex*> & shiftVrtcs,
+								std::vector<Vertex*> & midPtVrtcs
+								 );
+
+	bool checkAttsOfShiftFaceVrtcs( std::vector<Vertex*> const & centerVrtcs, std::vector<Vertex*> const & shiftVrtcs );
 };
 
 } /* namespace diamonds */
