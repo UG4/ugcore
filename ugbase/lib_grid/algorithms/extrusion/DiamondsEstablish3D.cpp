@@ -1544,24 +1544,18 @@ bool DiamondsEstablish3D::shrinkVolumes()
 
 	int sudoNewVols = m_sh.num_subsets();
 
-	int volNum3 = 0;
+	std::vector<Volume*> newVols;
+
 
 	for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end();)
 	{
-		volNum3++;
 
 		Volume* sv = *iter_sv;
 		++iter_sv;
 
-		if( volNum3 == volNum2+1 || volNum3 == volNum+1 )
-		{
-			m_sh.assign_subset(sv,m_sh.num_subsets());
-			UG_LOG("Abbrechen notwendig bei " << CalculateCenter(sv, m_aaPos) << std::endl);
-			return false;
-//			break;
-		}
 
 		UG_LOG("Diamond Volume new creation try at " << CalculateCenter(sv, m_aaPos) << std::endl);
+
 
 		//	now expand the fracture faces of sv to volumes.
 		for(IndexType iSideVol = 0; iSideVol < sv->num_sides(); iSideVol++)
@@ -1571,18 +1565,21 @@ bool DiamondsEstablish3D::shrinkVolumes()
 
 			Face* sideFace = m_grid.get_side(sv, iSideVol);
 
+			Volume * shiftVol = nullptr;
+
 			if( sideFace )
 			{
+
 				if( m_attAccsFacIsShiftFac[sideFace] )
 				{
-					Volume * shiftVol = nullptr;
-//					Volume * shiftVol2 = nullptr;
 
 					if( m_attAccsFacIsShiftQuadriliteralFac[sideFace] )
 					{
+
 						std::vector<Vertex*> centerVrtcs;
 						std::vector<Vertex*> shiftVrtcs;
 						std::vector<Vertex*> midPtVrtcs;
+
 
 						for( IndexType vrtxInd = 0; vrtxInd < sideFace->num_vertices(); vrtxInd++ )
 						{
@@ -1604,7 +1601,7 @@ bool DiamondsEstablish3D::shrinkVolumes()
 							}
 						}
 
-						if( ! findShiftFaceVertices( centerVrtcs, shiftVrtcs, midPtVrtcs ))
+						if( ! findShiftFaceVertices( sv, shiftVrtcs, midPtVrtcs ))
 						{
 							UG_LOG("vertices of shift face strange "
 									<< CalculateCenter( sideFace, m_aaPos ) << std::endl);
@@ -1613,31 +1610,61 @@ bool DiamondsEstablish3D::shrinkVolumes()
 
 						UG_LOG("Diamentenerzeugung fuer " << CalculateCenter( sideFace, m_aaPos ) << std::endl);
 
+//						centers.push_back(centerVrtcs);
+//						shifts.push_back(shiftVrtcs);
+//						midPts.push_back(midPtVrtcs);
+
 						shiftVol = *m_grid.create<Prism>(
 								           PrismDescriptor( centerVrtcs[0], shiftVrtcs[0], midPtVrtcs[0],
 											            	centerVrtcs[1], shiftVrtcs[1], midPtVrtcs[1]
 										       	   	   	  )
 											   	   	   	 );
-//						shiftVol2 = *m_grid.create<Prism>(
-//								           PrismDescriptor( shiftVrtcs[0], midPtVrtcs[0], centerVrtcs[0],
-//											                shiftVrtcs[1], midPtVrtcs[1], centerVrtcs[1]
+
+//						newVols.push_back(shiftVol);
+//						numFacs++;
+
+//						if( numFacs == 1 )
+//							return true;
+//						Volume * shiftVol2 = *m_grid.create<Prism>(
+//								           PrismDescriptor(
+//											                shiftVrtcs[1], midPtVrtcs[1], centerVrtcs[1],
+//															shiftVrtcs[0], midPtVrtcs[0], centerVrtcs[0]
 //										       	   	   	  )
 //											   	   	   	 );
 
+//						m_sh.assign_subset(shiftVol,sudoNewVols);
+//						m_sh.assign_subset(shiftVol2,m_sh.num_subsets()+2);
+
 						UG_LOG("Diamentenerzeugung geschafft " << CalculateCenter( sideFace, m_aaPos ) << std::endl);
+
+//						return true;
 
 						// TODO HIER ERZEUGUNG DIAMANTEN
 					}
 
-					if( shiftVol )
-					{
-						m_sh.assign_subset(shiftVol, sudoNewVols);
-//						m_sh.assign_subset(shiftVol, sudoNewVols+1);
-
+//					if( shiftVol && shiftVol2 )
+//					{
+//						m_sh.assign_subset(shiftVol, sudoNewVols);
+//						m_sh.assign_subset(shiftVol2, sudoNewVols+1);
+//
+//						m_sh.assign_subset( centerVrtcs[0], m_sh.num_subsets() );
+//						m_sh.assign_subset( centerVrtcs[1], m_sh.num_subsets() );
+//						m_sh.assign_subset( midPtVrtcs[0], m_sh.num_subsets() );
+//						m_sh.assign_subset( midPtVrtcs[1], m_sh.num_subsets() );
+//						m_sh.assign_subset( shiftVrtcs[0], m_sh.num_subsets() );
+//						m_sh.assign_subset( shiftVrtcs[1], m_sh.num_subsets() );
+//
+//
 //						return true;
-					}
+//					}
 				}
 			}
+
+			if( shiftVol )
+			{
+				m_sh.assign_subset(shiftVol,m_sh.num_subsets());
+			}
+
 		}
 
 		//	now set up a new volume descriptor and replace the volume.
@@ -1657,21 +1684,48 @@ bool DiamondsEstablish3D::shrinkVolumes()
 
 	}
 
-
+	for( Volume * v : newVols )
+	{
+		m_sh.assign_subset(v,m_sh.num_subsets());
+	}
 
 	UG_LOG("Volumes erzeugt " << std::endl);
 
 
-	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
-	{
-		Face* fac = *iter;
-		++iter;
-
-		if( ! m_attAccsFacIsShiftFac[fac] )
-			m_grid.erase(fac);
-	}
+//	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
+//	{
+//		Face* fac = *iter;
+//		++iter;
+//
+//		if( ! m_attAccsFacIsShiftFac[fac] )
+//			m_grid.erase(fac);
+//	}
 
 	UG_LOG("Gesichter entfernt " << std::endl);
+
+//	int suse = m_sh.num_subsets();
+//
+//	for( int i = 0; i < centers.size(); i++ )
+//	{
+//		std::vector<Vertex*> centerVrtcs = centers[i];
+//		std::vector<Vertex*> shiftVrtcs = shifts[i];
+//		std::vector<Vertex*> midPtVrtcs = midPts[i];
+//
+//		UG_LOG("versuche neues Volumen nr " << i << std::endl);
+//
+//		Volume * shiftVol = *m_grid.create<Prism>(
+//				PrismDescriptor( centerVrtcs[0], shiftVrtcs[0], midPtVrtcs[0],
+//						centerVrtcs[1], shiftVrtcs[1], midPtVrtcs[1]
+//				)
+//		);
+//
+//		m_sh.assign_subset(shiftVol, suse);
+//
+//		UG_LOG("neue Volumen " << i << CalculateCenter(shiftVol,m_aaPos) << std::endl);
+//
+//	}
+
+	UG_LOG("neue Volumen erzeugt " << std::endl);
 
 	return true;
 }
@@ -1810,6 +1864,37 @@ bool DiamondsEstablish3D::checkAttsOfShiftFaceVrtcs( std::vector<Vertex*> const 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::findShiftFaceVertices( Volume * & vol,
+  	  	    std::vector<Vertex*> & shiftVrtcs,
+		std::vector<Vertex*> & midPtVrtcs
+		 )
+{
+	midPtVrtcs = std::vector<Vertex*>(2);
+
+	std::vector<Vertex*> & newVrts4Fac = m_attAccsVrtVecVol[ vol ];
+
+	for( IndexType indVrt = 0; indVrt < (vol)->num_vertices();  indVrt++ )
+	{
+		Vertex* volVrt = (vol)->vertex(indVrt);
+
+		for( int i = 0; i < 2; i++ )
+		{
+			Vertex * shiVe = shiftVrtcs[i];
+
+			if(  shiVe == volVrt )
+			{
+				midPtVrtcs[i] = newVrts4Fac[indVrt];
+			}
+		}
+	}
+
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+
 
 } /* namespace diamonds */
 

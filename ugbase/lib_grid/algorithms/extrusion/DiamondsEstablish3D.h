@@ -206,6 +206,12 @@ private:
 								std::vector<Vertex*> & midPtVrtcs
 								 );
 
+	bool findShiftFaceVertices( Volume * & vol,
+			  	  	  	  	    std::vector<Vertex*> & shiftVrtcs,
+								std::vector<Vertex*> & midPtVrtcs
+								 );
+
+
 	bool checkAttsOfShiftFaceVrtcs( std::vector<Vertex*> const & centerVrtcs, std::vector<Vertex*> const & shiftVrtcs );
 };
 
