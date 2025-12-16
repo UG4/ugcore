@@ -207,7 +207,7 @@ private:
 								 );
 
 	bool findShiftFaceVertices( Volume * & vol,
-			  	  	  	  	    std::vector<Vertex*> & shiftVrtcs,
+			  	  	  	  	    std::vector<Vertex*> & centerVrtcs,
 								std::vector<Vertex*> & midPtVrtcs
 								 );
 

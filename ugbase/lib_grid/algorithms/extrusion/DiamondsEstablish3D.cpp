@@ -1601,7 +1601,7 @@ bool DiamondsEstablish3D::shrinkVolumes()
 							}
 						}
 
-						if( ! findShiftFaceVertices( sv, shiftVrtcs, midPtVrtcs ))
+						if( ! findShiftFaceVertices( sv, centerVrtcs, midPtVrtcs ))
 						{
 							UG_LOG("vertices of shift face strange "
 									<< CalculateCenter( sideFace, m_aaPos ) << std::endl);
@@ -1866,7 +1866,7 @@ bool DiamondsEstablish3D::checkAttsOfShiftFaceVrtcs( std::vector<Vertex*> const 
 ////////////////////////////////////////////////////////////////////////////////////
 
 bool DiamondsEstablish3D::findShiftFaceVertices( Volume * & vol,
-  	  	    std::vector<Vertex*> & shiftVrtcs,
+  	  	    std::vector<Vertex*> & centerVrtcs,
 		std::vector<Vertex*> & midPtVrtcs
 		 )
 {
@@ -1880,9 +1880,9 @@ bool DiamondsEstablish3D::findShiftFaceVertices( Volume * & vol,
 
 		for( int i = 0; i < 2; i++ )
 		{
-			Vertex * shiVe = shiftVrtcs[i];
+			Vertex * ceVe = centerVrtcs[i];
 
-			if(  shiVe == volVrt )
+			if(  ceVe == volVrt )
 			{
 				midPtVrtcs[i] = newVrts4Fac[indVrt];
 			}
