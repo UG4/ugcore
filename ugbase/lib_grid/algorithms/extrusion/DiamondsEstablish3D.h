@@ -238,6 +238,8 @@ private:
 	using VecCombiCntrVrtxSudo = std::vector<CombiCenterVrtxSudo<Vertex*, IndexType>>;
 
 	VecCombiCntrVrtxSudo m_vecCombiCntrVrtxSudo;
+
+	bool assignSudoOfNewVols2VolAndSubElems( Volume * & vol, IndexType sudo );
 };
 
 } /* namespace diamonds */

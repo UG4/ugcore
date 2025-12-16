@@ -1975,7 +1975,12 @@ bool DiamondsEstablish3D::postprocessNewDiamVols()
 		{
 			if( ccvs.spuckSudoVec() == sudoVec )
 			{
-				m_sh.assign_subset(vol, ccvs.spuckNewSudo());
+//				m_sh.assign_subset(vol, ccvs.spuckNewSudo());
+				if( ! assignSudoOfNewVols2VolAndSubElems(vol,ccvs.spuckNewSudo() ) )
+				{
+					UG_LOG("sudos not assignable" << std::endl);
+					return false;
+				}
 				break;
 			}
 		}
@@ -2000,7 +2005,12 @@ bool DiamondsEstablish3D::postprocessNewDiamVols()
 		{
 			if( ccvs.spuckSudoVec() == sudoVec )
 			{
-				m_sh.assign_subset(vol, ccvs.spuckNewSudo());
+//				m_sh.assign_subset(vol, ccvs.spuckNewSudo());
+				if( ! assignSudoOfNewVols2VolAndSubElems(vol,ccvs.spuckNewSudo() ) )
+				{
+					UG_LOG("sudos not assignable" << std::endl);
+					return false;
+				}
 				break;
 			}
 		}
@@ -2048,6 +2058,63 @@ bool DiamondsEstablish3D::generateNewDiamSudos(Vertex * & centerV, IndxVec sudoL
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::assignSudoOfNewVols2VolAndSubElems(Volume * & vol, IndexType sudo)
+{
+	if( ! vol )
+	{
+		UG_LOG("vol to assign sudo null " << std::endl);
+		return false;
+	}
+
+	m_sh.assign_subset(vol, sudo);
+
+	for(IndexType iFace = 0; iFace < vol->num_faces(); ++iFace)
+	{
+		Face * fac = m_grid.get_face(vol, iFace);
+
+		if( ! fac )
+		{
+			UG_LOG("face null sudo " << std::endl);
+			return false;
+		}
+
+		m_sh.assign_subset( fac, sudo );
+
+	}
+
+	for(IndexType iEdge = 0; iEdge < vol->num_edges(); ++iEdge)
+	{
+		Edge* edg = m_grid.get_edge(vol, iEdge);
+
+		if( ! edg )
+		{
+			UG_LOG("edge null sudo " << std::endl);
+			return false;
+		}
+
+		m_sh.assign_subset( edg, sudo );
+
+	}
+
+	for( IndexType iVrt = 0; iVrt < vol->num_vertices(); iVrt++ )
+	{
+		Vertex * vrt = vol->vertex(iVrt);
+
+		if( !vrt )
+		{
+			UG_LOG("vertex null sudo " << std::endl);
+			return false;
+		}
+
+		m_sh.assign_subset( vrt, sudo );
+	}
+
+	return true;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////
 
 
 } /* namespace diamonds */
