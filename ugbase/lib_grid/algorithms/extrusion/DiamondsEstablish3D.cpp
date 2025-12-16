@@ -1615,8 +1615,8 @@ bool DiamondsEstablish3D::shrinkVolumes()
 //						midPts.push_back(midPtVrtcs);
 
 						shiftVol = *m_grid.create<Prism>(
-								           PrismDescriptor( centerVrtcs[0], shiftVrtcs[0], midPtVrtcs[0],
-											            	centerVrtcs[1], shiftVrtcs[1], midPtVrtcs[1]
+								           PrismDescriptor( centerVrtcs[0], midPtVrtcs[0], shiftVrtcs[1],
+											            	centerVrtcs[1], midPtVrtcs[1], shiftVrtcs[0]
 										       	   	   	  )
 											   	   	   	 );
 
