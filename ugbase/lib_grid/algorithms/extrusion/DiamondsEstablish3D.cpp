@@ -1722,10 +1722,10 @@ bool DiamondsEstablish3D::shrinkVolumes()
 				}
 			}
 
-			if( shiftVol )
-			{
-				m_sh.assign_subset(shiftVol,m_sh.num_subsets());
-			}
+//			if( shiftVol )
+//			{
+//				m_sh.assign_subset(shiftVol,m_sh.num_subsets());
+//			}
 
 		}
 
