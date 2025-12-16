@@ -65,7 +65,9 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_vecCombiNewVolsTwoCross(VecCombiNewVolsProps()),
 			m_vecCombiNewVolsThreeCross(VecCombiNewVolsProps()),
 			m_sudosTable(VecIndxVec()),
-			m_vecCombiCntrVrtxSudo(VecCombiCntrVrtxSudo())
+			m_vecCombiCntrVrtxSudo(VecCombiCntrVrtxSudo()),
+			m_attEdgeCanBeRemoved(ABool()),
+			m_attAccsEdgeCanBeRemoved(Grid::EdgeAttachmentAccessor<ABool>())
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -229,6 +231,16 @@ bool DiamondsEstablish3D::createTheDiamonds()
 		UG_LOG("shift faces not determinable " << std::endl);
 		return false;
 	}
+
+	UG_LOG("detect removable edges " << std::endl);
+
+	if( ! detectRemovableEdges())
+	{
+		UG_LOG("removable edges not detected " << std::endl);
+		return false;
+	}
+
+	UG_LOG("shrink volumes " << std::endl);
 
 	if( ! shrinkVolumes())
 	{
@@ -1002,6 +1014,12 @@ bool DiamondsEstablish3D::attachMarkers()
 
 	m_attAccsCenterVrtxOfShiftVrtx = Grid::VertexAttachmentAccessor<AVertex>( m_grid, m_attCenterVrtxOfShiftVrtx );
 
+	m_attEdgeCanBeRemoved = ABool();
+
+	m_grid.attach_to_edges_dv(m_attEdgeCanBeRemoved, false);
+
+	m_attAccsEdgeCanBeRemoved = Grid::EdgeAttachmentAccessor<ABool>( m_grid, m_attEdgeCanBeRemoved);
+
 	return true;
 }
 
@@ -1036,6 +1054,8 @@ bool DiamondsEstablish3D::detachMarkers()
 	m_grid.detach_from_vertices(m_attMidPtVrtxOfShiftVrtx);
 
 	m_grid.detach_from_vertices(m_attCenterVrtxOfShiftVrtx);
+
+	m_grid.detach_from_edges(m_attEdgeCanBeRemoved);
 
 	return true;
 }
@@ -1753,6 +1773,18 @@ bool DiamondsEstablish3D::shrinkVolumes()
 
 	UG_LOG("Volumes erzeugt " << std::endl);
 
+	for( EdgeIterator itEdg = m_sel.begin<Edge>(); itEdg != m_sel.end<Edge>(); )
+	{
+		Edge * edg = *itEdg;
+		itEdg++;
+
+		if( m_attAccsEdgeCanBeRemoved[edg] )
+		{
+			m_grid.erase(edg);
+		}
+	}
+
+	UG_LOG("unnoetige Ecken entfernt " << std::endl);
 
 	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
 	{
@@ -1764,6 +1796,7 @@ bool DiamondsEstablish3D::shrinkVolumes()
 	}
 
 	UG_LOG("Gesichter entfernt " << std::endl);
+
 
 //	int suse = m_sh.num_subsets();
 //
@@ -2113,6 +2146,63 @@ bool DiamondsEstablish3D::assignSudoOfNewVols2VolAndSubElems(Volume * & vol, Ind
 	return true;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::detectRemovableEdges()
+{
+
+	for( FaceIterator itFac = m_sel.begin<Face>(); itFac != m_sel.end<Face>(); itFac++)
+	{
+		Face * fac = *itFac;
+
+		if( ! fac )
+		{
+			UG_LOG("face does not exist " << std::endl);
+			return false;
+		}
+
+		if( m_attAccsFacIsTwinFac[fac] )
+		{
+			for( IndexType iEdg = 0; iEdg < fac->num_edges(); iEdg++)
+			{
+				Edge * edg = m_grid.get_edge(fac,iEdg);
+
+				if( ! edg )
+				{
+					UG_LOG("edge does not exist " << std::endl);
+					return false;
+				}
+
+				IndexType numAssoCenterVrcs;
+
+				for( IndexType iV = 0; iV < 2; iV++ )
+				{
+					Vertex * vrt = edg->vertex(iV);
+
+					if( ! vrt )
+					{
+						UG_LOG("vertex does not exist " << std::endl);
+						return false;
+					}
+
+					if( m_attAccsVrtxIsCenterVrtx[vrt] )
+					{
+						numAssoCenterVrcs++;
+					}
+				}
+
+				if( numAssoCenterVrcs == 1 )
+				{
+					m_attAccsEdgeCanBeRemoved[edg] = true;
+				}
+
+			}
+		}
+	}
+
+	return true;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////
 

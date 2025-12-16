@@ -240,6 +240,12 @@ private:
 	VecCombiCntrVrtxSudo m_vecCombiCntrVrtxSudo;
 
 	bool assignSudoOfNewVols2VolAndSubElems( Volume * & vol, IndexType sudo );
+
+	ABool m_attEdgeCanBeRemoved;
+
+	Grid::EdgeAttachmentAccessor<ABool> m_attAccsEdgeCanBeRemoved;
+
+	bool detectRemovableEdges();
 };
 
 } /* namespace diamonds */
