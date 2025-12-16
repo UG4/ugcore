@@ -2014,9 +2014,9 @@ bool DiamondsEstablish3D::postprocessNewDiamVols()
 
 bool DiamondsEstablish3D::generateNewDiamSudos(Vertex * & centerV, IndxVec sudoList )
 {
-	bool sudoCombiKnown = addElem(m_sudosTable, sudoList);
+	bool sudoCombiUnKnown = addElem(m_sudosTable, sudoList);
 
-	if( sudoCombiKnown )
+	if( ! sudoCombiUnKnown )
 	{
 		for( CombiCntrVrtxSudo & ccvs : m_vecCombiCntrVrtxSudo )
 		{
@@ -2034,9 +2034,17 @@ bool DiamondsEstablish3D::generateNewDiamSudos(Vertex * & centerV, IndxVec sudoL
 		m_sh.assign_subset(centerV,newSudo);
 		CombiCntrVrtxSudo ccvs( sudoList, newSudo );
 		m_vecCombiCntrVrtxSudo.push_back(ccvs);
+		UG_LOG("NNNNNNNNNNNNNNNNNNNN" << std::endl);
+		UG_LOG("creating new sudo of " << std::endl);
+		for( auto & i : sudoList )
+		{
+			UG_LOG("list part " << i << std::endl);
+		}
+		UG_LOG("DDDDDDDDDDDDDDDDDDDD" << std::endl);
+
 	}
 
-	return ( ! sudoCombiKnown );
+	return ( sudoCombiUnKnown );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
