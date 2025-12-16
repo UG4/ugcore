@@ -986,6 +986,8 @@ bool DiamondsEstablish3D::attachMarkers()
 
 	m_attCenterVrtxOfShiftVrtx = AVertex();
 
+	m_grid.attach_to_vertices_dv( m_attCenterVrtxOfShiftVrtx, nullptr);
+
 	m_attAccsCenterVrtxOfShiftVrtx = Grid::VertexAttachmentAccessor<AVertex>( m_grid, m_attCenterVrtxOfShiftVrtx );
 
 	return true;
@@ -1574,6 +1576,7 @@ bool DiamondsEstablish3D::shrinkVolumes()
 				if( m_attAccsFacIsShiftFac[sideFace] )
 				{
 					Volume * shiftVol = nullptr;
+//					Volume * shiftVol2 = nullptr;
 
 					if( m_attAccsFacIsShiftQuadriliteralFac[sideFace] )
 					{
@@ -1608,12 +1611,20 @@ bool DiamondsEstablish3D::shrinkVolumes()
 							return false;
 						}
 
-						shiftVol = *m_grid.create<Prism>(
-								PrismDescriptor( centerVrtcs[0],shiftVrtcs[0],midPtVrtcs[0],
-												centerVrtcs[1],shiftVrtcs[1], midPtVrtcs[1]
-										       )
-											   );
+						UG_LOG("Diamentenerzeugung fuer " << CalculateCenter( sideFace, m_aaPos ) << std::endl);
 
+						shiftVol = *m_grid.create<Prism>(
+								           PrismDescriptor( centerVrtcs[0], shiftVrtcs[0], midPtVrtcs[0],
+											            	centerVrtcs[1], shiftVrtcs[1], midPtVrtcs[1]
+										       	   	   	  )
+											   	   	   	 );
+//						shiftVol2 = *m_grid.create<Prism>(
+//								           PrismDescriptor( shiftVrtcs[0], midPtVrtcs[0], centerVrtcs[0],
+//											                shiftVrtcs[1], midPtVrtcs[1], centerVrtcs[1]
+//										       	   	   	  )
+//											   	   	   	 );
+
+						UG_LOG("Diamentenerzeugung geschafft " << CalculateCenter( sideFace, m_aaPos ) << std::endl);
 
 						// TODO HIER ERZEUGUNG DIAMANTEN
 					}
@@ -1621,6 +1632,9 @@ bool DiamondsEstablish3D::shrinkVolumes()
 					if( shiftVol )
 					{
 						m_sh.assign_subset(shiftVol, sudoNewVols);
+//						m_sh.assign_subset(shiftVol, sudoNewVols+1);
+
+//						return true;
 					}
 				}
 			}
