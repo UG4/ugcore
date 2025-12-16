@@ -2162,10 +2162,16 @@ bool DiamondsEstablish3D::detectRemovableEdges()
 			return false;
 		}
 
+		UG_LOG("looking into twin facs try " << std::endl);
+
 		if( m_attAccsFacIsTwinFac[fac] )
 		{
+			UG_LOG("inside twin facs try " << std::endl);
+
 			for( IndexType iEdg = 0; iEdg < fac->num_edges(); iEdg++)
 			{
+				UG_LOG("inside edges of twins try " << std::endl);
+
 				Edge * edg = m_grid.get_edge(fac,iEdg);
 
 				if( ! edg )
@@ -2174,7 +2180,7 @@ bool DiamondsEstablish3D::detectRemovableEdges()
 					return false;
 				}
 
-				IndexType numAssoCenterVrcs;
+				IndexType numAssoCenterVrcs = 0;
 
 				for( IndexType iV = 0; iV < 2; iV++ )
 				{
@@ -2191,6 +2197,8 @@ bool DiamondsEstablish3D::detectRemovableEdges()
 						numAssoCenterVrcs++;
 					}
 				}
+
+				UG_LOG("number of associatec center vertices is " << numAssoCenterVrcs << std::endl);
 
 				if( numAssoCenterVrcs == 1 )
 				{
