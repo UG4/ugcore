@@ -61,7 +61,11 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_attMidPtVrtxOfShiftVrtx(AVertex()),
 			m_attAccsMidPtVrtxOfShiftVrtx(Grid::VertexAttachmentAccessor<AVertex>()),
 			m_attCenterVrtxOfShiftVrtx(AVertex()),
-			m_attAccsCenterVrtxOfShiftVrtx(Grid::VertexAttachmentAccessor<AVertex>())
+			m_attAccsCenterVrtxOfShiftVrtx(Grid::VertexAttachmentAccessor<AVertex>()),
+			m_vecCombiNewVolsTwoCross(VecCombiNewVolsProps()),
+			m_vecCombiNewVolsThreeCross(VecCombiNewVolsProps()),
+			m_sudosTable(VecIndxVec()),
+			m_vecCombiCntrVrtxSudo(VecCombiCntrVrtxSudo())
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -233,6 +237,14 @@ bool DiamondsEstablish3D::createTheDiamonds()
 	}
 
 	UG_LOG("volumes shrinked " << std::endl);
+
+	if( ! postprocessNewDiamVols())
+	{
+		UG_LOG("postprocessing diam vols not working" << std::endl);
+		return false;
+	}
+
+	UG_LOG("diam vols postprocessed" << std::endl);
 
 	if( ! detachMarkers())
 	{
@@ -1032,6 +1044,7 @@ bool DiamondsEstablish3D::detachMarkers()
 
 bool DiamondsEstablish3D::assignBasicAtts()
 {
+
 	for( ElemGroupVrtx2BQuenched4Diams egv2bq : m_vecElemGroupVrtx2BQuenched )
 	{
 		Vertex * centerVrtx;
@@ -1041,11 +1054,14 @@ bool DiamondsEstablish3D::assignBasicAtts()
 
 		m_attAccsElmGrpVrtx2BQnchd[centerVrtx] = egv2bq;
 		m_attAccsVrtxIsCenterVrtx[centerVrtx] = true;
-		m_attAccsInfoVecSudosTouchingVrtx[centerVrtx] = egv2bq.spuckSudoList();
+		IndxVec sudoList = egv2bq.spuckSudoList();
+		m_attAccsInfoVecSudosTouchingVrtx[centerVrtx] = sudoList;
 
 		m_sel.select( m_grid.associated_edges_begin(centerVrtx), m_grid.associated_edges_end(centerVrtx) );
 		m_sel.select( m_grid.associated_faces_begin(centerVrtx), m_grid.associated_faces_end(centerVrtx) );
 		m_sel.select( m_grid.associated_volumes_begin(centerVrtx), m_grid.associated_volumes_end(centerVrtx) );
+
+		bool sudoAlreadyKnown = generateNewDiamSudos(centerVrtx, sudoList);
 
 	}
 
@@ -1059,45 +1075,9 @@ bool DiamondsEstablish3D::trafoCollectedInfo2Attachments()
 	//for(VertexIterator iterV = m_sel.vertices_begin(); iterV != m_sel.vertices_end(); iterV++)
 	for( ElemGroupVrtx2BQuenched4Diams & egv2bQ : m_vecElemGroupVrtx2BQuenched )
 	{
-//		Vertex * centerV = *iterV;
-//
-//		ElemGroupVrtx2BQuenched4Diams egv2bQ = m_attAccsElmGrpVrtx2BQnchd[centerV];
-//
-//		Vertex * testVrtx;
-//		egv2bQ.spuckOrigCenterVertex(testVrtx);
-//
-//		if( testVrtx != nullptr )
-//		{
-//			UG_LOG("found test vertex not null " << m_aaPos[testVrtx] << std::endl);
-//
-//			if( centerV != nullptr )
-//				UG_LOG("also center not null " << m_aaPos[centerV] << std::endl);
-//		}
-//
-//
-//		if( testVrtx == nullptr )
-//		{
-//			UG_LOG("test vertex null " << std::endl);
-//
-//			if( centerV != nullptr )
-//				UG_LOG("for center " << m_aaPos[centerV] << std::endl);
-//
-//			continue;
-//		}
-//
-//		if( testVrtx != centerV )
-//		{
-//			UG_LOG("transfer did not work " << std::endl);
-//
-//			UG_LOG("different locations at " << m_aaPos[testVrtx] << " and " << m_aaPos[centerV] << std::endl);
-//
-//			return false;
-//		}
-
 		Vertex * centerV;
 
 		egv2bQ.spuckOrigCenterVertex(centerV);
-
 
 		VecElems2BQuenched ve2bq;
 		egv2bQ.spuckVecElems2BQuenched4Diams(ve2bq);
@@ -1141,6 +1121,8 @@ bool DiamondsEstablish3D::trafoCollectedInfo2Attachments()
 
 			m_attAccsCenterVrtxOfShiftVrtx[shiftVrtxOne] = centerV;
 			m_attAccsCenterVrtxOfShiftVrtx[shiftVrtxTwo] = centerV;
+
+			// TODO FIXME hier die sudo Liste auch noch an den Center Vertex hängen als attachment
 
 		}
 	}
@@ -1544,7 +1526,8 @@ bool DiamondsEstablish3D::shrinkVolumes()
 
 	int sudoNewVols = m_sh.num_subsets();
 
-	std::vector<Volume*> newVols;
+//	std::vector<Volume*> newVolsTwoCut;
+//	std::vector<Volume*> newVolsThreeCut;
 
 
 	for(VolumeIterator iter_sv = m_sel.volumes_begin(); iter_sv != m_sel.volumes_end();)
@@ -1601,6 +1584,18 @@ bool DiamondsEstablish3D::shrinkVolumes()
 							}
 						}
 
+						if( centerVrtcs.size() != 2 || shiftVrtcs.size() != 2 )
+						{
+							UG_LOG("strange face behaviour for shift face of fac and vol "
+										<< CalculateCenter( sideFace, m_aaPos )
+										<< " ---- "
+										<< CalculateCenter( sv, m_aaPos )
+										<< std::endl);
+								return false;
+						}
+
+						std::swap( shiftVrtcs[0], shiftVrtcs[1] );
+
 						if( ! findShiftFaceVertices( sv, centerVrtcs, midPtVrtcs ))
 						{
 							UG_LOG("vertices of shift face strange "
@@ -1614,13 +1609,79 @@ bool DiamondsEstablish3D::shrinkVolumes()
 //						shifts.push_back(shiftVrtcs);
 //						midPts.push_back(midPtVrtcs);
 
-						// sehr sonderbar, wieso folgende Reihenfolge notwendig, damit es klappt:
+//						// sehr sonderbar, wieso folgende Reihenfolge notwendig, damit es klappt:
+//
+//						shiftVol = *m_grid.create<Prism>(
+//								           PrismDescriptor( centerVrtcs[0], midPtVrtcs[0], shiftVrtcs[1],
+//											            	centerVrtcs[1], midPtVrtcs[1], shiftVrtcs[0]
+//										       	   	   	  )
+//											   	   	   	 );
+//						// sehr sonderbar, wieso folgende Reihenfolge notwendig, damit es klappt:
 
 						shiftVol = *m_grid.create<Prism>(
-								           PrismDescriptor( centerVrtcs[0], midPtVrtcs[0], shiftVrtcs[1],
-											            	centerVrtcs[1], midPtVrtcs[1], shiftVrtcs[0]
+								           PrismDescriptor( centerVrtcs[0], midPtVrtcs[0], shiftVrtcs[0],
+											            	centerVrtcs[1], midPtVrtcs[1], shiftVrtcs[1]
 										       	   	   	  )
 											   	   	   	 );
+
+						int isThreeCross = -1;
+						IndexType foundThreeCross = 0;
+
+						VrtxIndxCombi vrtxSudosCombiCenters;
+
+						for( int i = 0; i < 2; i++ )
+						{
+							Vertex * cntrVrtx = centerVrtcs[i];
+
+							IndxVec sudoVec = m_attAccsInfoVecSudosTouchingVrtx[cntrVrtx];
+
+							IndexType sudoNums = sudoVec.size();
+
+							VrtxIndxPair centerVrtxSudos( cntrVrtx, sudoVec );
+
+							vrtxSudosCombiCenters.push_back(centerVrtxSudos);
+
+							if( sudoNums < 2 )
+							{
+								UG_LOG("no cross but new prism " << std::endl);
+								return false;
+							}
+							else if( sudoNums == 2 )
+							{
+								;
+							}
+							else if( sudoNums == 3 )
+							{
+								isThreeCross = i;
+								foundThreeCross++;
+							}
+							else
+							{
+								UG_LOG("strange sudo number " << std::endl);
+								return false;
+							}
+						}
+
+						if( foundThreeCross > 0 )
+						{
+							if( foundThreeCross != 1 )
+							{
+								UG_LOG("three cross vertices too much " << std::endl);
+								return false;
+							}
+
+							CombiNewVolsProps cnvp( shiftVol, sideFace, vrtxSudosCombiCenters, shiftVrtcs, midPtVrtcs, isThreeCross );
+
+							m_vecCombiNewVolsThreeCross.push_back(cnvp);
+						}
+						else
+						{
+							CombiNewVolsProps cnvp( shiftVol, sideFace, vrtxSudosCombiCenters, shiftVrtcs, midPtVrtcs );
+
+							m_vecCombiNewVolsTwoCross.push_back(cnvp);
+						}
+
+						//m_attAccsInfoVecSudosTouchingVrtx
 
 //						newVols.push_back(shiftVol);
 //						numFacs++;
@@ -1641,7 +1702,6 @@ bool DiamondsEstablish3D::shrinkVolumes()
 
 //						return true;
 
-						// TODO HIER ERZEUGUNG DIAMANTEN
 					}
 
 //					if( shiftVol && shiftVol2 )
@@ -1686,10 +1746,10 @@ bool DiamondsEstablish3D::shrinkVolumes()
 
 	}
 
-	for( Volume * v : newVols )
-	{
-		m_sh.assign_subset(v,m_sh.num_subsets());
-	}
+//	for( Volume * v : newVols )
+//	{
+//		m_sh.assign_subset(v,m_sh.num_subsets());
+//	}
 
 	UG_LOG("Volumes erzeugt " << std::endl);
 
@@ -1804,40 +1864,40 @@ bool DiamondsEstablish3D::determineShiftFaces()
 
 //////////////////////////////////////////////////////////////////////////////////
 
-bool DiamondsEstablish3D::findShiftFaceVertices(
-		std::vector<Vertex*> & centerVrtcs,
-		std::vector<Vertex*> & shiftVrtcs,
-		std::vector<Vertex*> & midPtVrtcs
-)
-{
-
-	// figure out to which center vertex which shift vertex belongs
-
-	if( centerVrtcs.size() != 2 || shiftVrtcs.size() != 2 )
-	{
-		UG_LOG("strange face behaviour for shift face" << std::endl);
-//				<< CalculateCenter( fac, m_aaPos ) << std::endl);
-		return false;
-	}
-
-	if( ! checkAttsOfShiftFaceVrtcs( centerVrtcs, shiftVrtcs) )
-	{
-		std::swap( shiftVrtcs[0], shiftVrtcs[1] );
-
-		if( ! checkAttsOfShiftFaceVrtcs( centerVrtcs, shiftVrtcs) )
-		{
-			UG_LOG("shift and swap vertices do not agree independent of ordering" << std::endl);
-			return false;
-		}
-	}
-
-	for( Vertex * & spv : shiftVrtcs )
-	{
-		midPtVrtcs.push_back( m_attAccsMidPtVrtxOfShiftVrtx[spv] );
-	}
-
-	return true;
-}
+//bool DiamondsEstablish3D::findShiftFaceVertices(
+//		std::vector<Vertex*> & centerVrtcs,
+//		std::vector<Vertex*> & shiftVrtcs,
+//		std::vector<Vertex*> & midPtVrtcs
+//)
+//{
+//
+//	// figure out to which center vertex which shift vertex belongs
+//
+//	if( centerVrtcs.size() != 2 || shiftVrtcs.size() != 2 )
+//	{
+//		UG_LOG("strange face behaviour for shift face" << std::endl);
+////				<< CalculateCenter( fac, m_aaPos ) << std::endl);
+//		return false;
+//	}
+//
+//	if( ! checkAttsOfShiftFaceVrtcs( centerVrtcs, shiftVrtcs) )
+//	{
+//		std::swap( shiftVrtcs[0], shiftVrtcs[1] );
+//
+//		if( ! checkAttsOfShiftFaceVrtcs( centerVrtcs, shiftVrtcs) )
+//		{
+//			UG_LOG("shift and swap vertices do not agree independent of ordering" << std::endl);
+//			return false;
+//		}
+//	}
+//
+//	for( Vertex * & spv : shiftVrtcs )
+//	{
+//		midPtVrtcs.push_back( m_attAccsMidPtVrtxOfShiftVrtx[spv] );
+//	}
+//
+//	return true;
+//}
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -1893,6 +1953,90 @@ bool DiamondsEstablish3D::findShiftFaceVertices( Volume * & vol,
 
 
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::postprocessNewDiamVols()
+{
+	for( CombiNewVolsProps & cnvp : m_vecCombiNewVolsTwoCross )
+	{
+		VrtxIndxCombi viCombiCenter;
+		cnvp.spuckCenterVrtcsSudos(viCombiCenter);
+		Volume * vol;
+		cnvp.spuckFulldimElem(vol);
+
+		VrtxIndxPair vrtxIndxPr( viCombiCenter[0] );
+
+		Vertex * center = vrtxIndxPr.first;
+		IndxVec sudoVec = vrtxIndxPr.second;
+
+		for( CombiCntrVrtxSudo & ccvs: m_vecCombiCntrVrtxSudo )
+		{
+			if( ccvs.spuckSudoVec() == sudoVec )
+			{
+				m_sh.assign_subset(vol, ccvs.spuckNewSudo());
+				break;
+			}
+		}
+
+	}
+
+	for( CombiNewVolsProps & cnvp : m_vecCombiNewVolsThreeCross )
+	{
+		VrtxIndxCombi viCombiCenter;
+		cnvp.spuckCenterVrtcsSudos(viCombiCenter);
+		Volume * vol;
+		cnvp.spuckFulldimElem(vol);
+
+		IndexType i3c = cnvp.spuckThreeCrossIndex();
+
+		VrtxIndxPair vrtxIndxPr( viCombiCenter[i3c] );
+
+		Vertex * center = vrtxIndxPr.first;
+		IndxVec sudoVec = vrtxIndxPr.second;
+
+		for( CombiCntrVrtxSudo & ccvs: m_vecCombiCntrVrtxSudo )
+		{
+			if( ccvs.spuckSudoVec() == sudoVec )
+			{
+				m_sh.assign_subset(vol, ccvs.spuckNewSudo());
+				break;
+			}
+		}
+
+	}
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::generateNewDiamSudos(Vertex * & centerV, IndxVec sudoList )
+{
+	bool sudoCombiKnown = addElem(m_sudosTable, sudoList);
+
+	if( sudoCombiKnown )
+	{
+		for( CombiCntrVrtxSudo & ccvs : m_vecCombiCntrVrtxSudo )
+		{
+			if( ccvs.spuckSudoVec() == sudoList )
+			{
+				ccvs.schluckVertex(centerV);
+				m_sh.assign_subset(centerV, ccvs.spuckNewSudo());
+				break;
+			}
+		}
+	}
+	else
+	{
+		IndexType newSudo = m_sh.num_subsets();
+		m_sh.assign_subset(centerV,newSudo);
+		CombiCntrVrtxSudo ccvs( sudoList, newSudo );
+		m_vecCombiCntrVrtxSudo.push_back(ccvs);
+	}
+
+	return ( ! sudoCombiKnown );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

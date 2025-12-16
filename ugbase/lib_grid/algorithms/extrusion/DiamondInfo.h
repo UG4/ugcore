@@ -20,6 +20,7 @@
 #include <utility>
 #include <vector>
 #include <type_traits>
+#include <algorithm>
 
 namespace ug
 {
@@ -897,6 +898,8 @@ public:
 			addElem(m_vecSudos,sudo);
 		}
 
+		std::sort(m_vecSudos.begin(), m_vecSudos.end());
+
 		return true;
 	}
 
@@ -960,6 +963,151 @@ private:
 	VERTEXTYP m_midVrtx;
 
 };
+
+////////////////////////////////////////////////////////
+
+template<
+typename FULLDIMELEM,
+typename MANIFELEM,
+typename LOWDIMELEM,
+typename VRTXTYPE,
+typename INDEXTYP,
+typename = std::enable_if< std::is_pointer<FULLDIMELEM>::value>,
+typename = std::enable_if< std::is_pointer<MANIFELEM>::value>,
+typename = std::enable_if< std::is_pointer<LOWDIMELEM>::value>,
+typename = std::enable_if< std::is_pointer<VRTXTYPE>::value>
+>
+class CombiEntitiesProperties
+{
+public:
+
+	using VrtxVec = std::vector<VRTXTYPE>;
+	using IndxVec = std::vector<INDEXTYP>;
+	using VrtxIndxPair = std::pair<VRTXTYPE,IndxVec>;
+	using VrtxIndxCombi = std::vector<VrtxIndxPair>;
+
+	CombiEntitiesProperties( FULLDIMELEM const & fulldmelm,
+							 MANIFELEM const & manifelm,
+							 VrtxIndxCombi const & centerVrtcsSudos,
+							 VrtxVec const & shiftVrtcs,
+							 VrtxVec const & midPtVrtcs,
+							 int isThreeCross = -1
+							)
+							: m_fulldimElem(fulldmelm),
+							  m_manifElem(manifelm),
+							  m_lowdimElem(nullptr),
+							  m_centerVrtcsSudos(centerVrtcsSudos),
+							  m_shiftVrtcs(shiftVrtcs),
+							  m_midPtVrtcs(midPtVrtcs),
+							  m_isThreeCross(isThreeCross)
+							{
+							}
+
+	CombiEntitiesProperties()
+							: m_fulldimElem(nullptr),
+							  m_manifElem(nullptr),
+							  m_lowdimElem(nullptr),
+							  m_centerVrtcsSudos(VrtxIndxCombi()),
+							  m_shiftVrtcs(VrtxVec()),
+							  m_midPtVrtcs(VrtxVec()),
+							  m_isThreeCross(-1)
+							{
+							}
+
+	bool schluckLowdimElem( LOWDIMELEM const & ld )
+	{
+		if( ld != nullptr)
+		{
+			m_lowdimElem = ld;
+			return true;
+		}
+
+		return false;
+	}
+
+	void spuckFulldimElem( FULLDIMELEM & fde )
+	{
+		fde = m_fulldimElem;
+	}
+
+	void spuckManifElem( MANIFELEM & manif )
+	{
+		manif = m_manifElem;
+	}
+
+	void spuckLowdimElem( LOWDIMELEM & lde )
+	{
+		lde = m_lowdimElem;
+	}
+
+	void spuckCenterVrtcsSudos( VrtxIndxCombi & vic )
+	{
+		vic = m_centerVrtcsSudos;
+	}
+
+	void spuckShiftVrtcs( VrtxVec & sv )
+	{
+		sv = m_shiftVrtcs;
+	}
+
+	void spuckMidPtVrtcs( VrtxVec & mpv )
+	{
+		mpv = m_midPtVrtcs;
+	}
+
+	int spuckThreeCrossIndex() { return m_isThreeCross; }
+
+private:
+	FULLDIMELEM m_fulldimElem;
+	MANIFELEM m_manifElem;
+	LOWDIMELEM m_lowdimElem;
+	VrtxIndxCombi m_centerVrtcsSudos;
+	VrtxVec m_shiftVrtcs;
+	VrtxVec m_midPtVrtcs;
+	int m_isThreeCross;
+
+};
+
+////////////////////////////////////////////////////////
+
+template
+<
+typename VERTEXTYP,
+typename INDEXTYP
+>
+class CombiCenterVrtxSudo
+{
+	using VrtxVec = std::vector<VERTEXTYP>;
+
+	using IndxVec = std::vector<INDEXTYP>;
+
+public:
+
+	CombiCenterVrtxSudo( IndxVec const & sdV, INDEXTYP newSudo )
+	: m_sudoVec(sdV), m_vrtxVec(VrtxVec()), m_newSudo(newSudo)
+	{
+	}
+
+	void schluckVertex( VERTEXTYP const & vrt )
+	{
+		m_vrtxVec.push_back(vrt);
+	}
+
+	IndxVec spuckSudoVec() { return m_sudoVec; }
+
+	void spuckVertexVec( VrtxVec & vv )
+	{
+		vv = m_vrtxVec;
+	}
+
+	INDEXTYP spuckNewSudo() { return m_newSudo; }
+
+private:
+	IndxVec m_sudoVec;
+	VrtxVec m_vrtxVec;
+	INDEXTYP m_newSudo;
+};
+
 
 ////////////////////////////////////////////////////////
 

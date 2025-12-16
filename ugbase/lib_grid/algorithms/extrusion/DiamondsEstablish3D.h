@@ -201,10 +201,10 @@ private:
 
 	Grid::VertexAttachmentAccessor<AVertex> m_attAccsCenterVrtxOfShiftVrtx;
 
-	bool findShiftFaceVertices( std::vector<Vertex*> & centerVrtcs,
-			  	  	  	  	    std::vector<Vertex*> & shiftVrtcs,
-								std::vector<Vertex*> & midPtVrtcs
-								 );
+//	bool findShiftFaceVertices( std::vector<Vertex*> & centerVrtcs,
+//			  	  	  	  	    std::vector<Vertex*> & shiftVrtcs,
+//								std::vector<Vertex*> & midPtVrtcs
+//								 );
 
 	bool findShiftFaceVertices( Volume * & vol,
 			  	  	  	  	    std::vector<Vertex*> & centerVrtcs,
@@ -213,6 +213,31 @@ private:
 
 
 	bool checkAttsOfShiftFaceVrtcs( std::vector<Vertex*> const & centerVrtcs, std::vector<Vertex*> const & shiftVrtcs );
+
+	using CombiNewVolsProps = CombiEntitiesProperties<Volume*, Face*, Edge*, Vertex*, IndexType>;
+
+	using VecCombiNewVolsProps = std::vector<CombiNewVolsProps>;
+
+	VecCombiNewVolsProps m_vecCombiNewVolsTwoCross, m_vecCombiNewVolsThreeCross;
+
+	using IndxVec = std::vector<IndexType>;
+
+	using VrtxIndxPair = std::pair<Vertex*, IndxVec>;
+
+	using VrtxIndxCombi = std::vector<VrtxIndxPair>;
+
+	bool postprocessNewDiamVols();
+
+	bool generateNewDiamSudos( Vertex * & centerV, IndxVec sudoList );
+
+	using VecIndxVec = std::vector<IndxVec>;
+
+	VecIndxVec m_sudosTable;
+
+	using CombiCntrVrtxSudo = CombiCenterVrtxSudo<Vertex*, IndexType>;
+	using VecCombiCntrVrtxSudo = std::vector<CombiCenterVrtxSudo<Vertex*, IndexType>>;
+
+	VecCombiCntrVrtxSudo m_vecCombiCntrVrtxSudo;
 };
 
 } /* namespace diamonds */
