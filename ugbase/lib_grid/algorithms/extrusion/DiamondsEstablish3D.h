@@ -248,6 +248,10 @@ private:
 	bool detectRemovableEdges();
 
 	bool splitThreeCrossLargeDiams( CombiNewVolsProps & combiNewVolsProps );
+
+	AInt m_attNewSudoOfVrtx;
+
+	Grid::VertexAttachmentAccessor<AInt> m_attAccsNewSudoOfVrtx;
 };
 
 } /* namespace diamonds */

@@ -67,7 +67,9 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_sudosTable(VecIndxVec()),
 			m_vecCombiCntrVrtxSudo(VecCombiCntrVrtxSudo()),
 			m_attEdgeCanBeRemoved(ABool()),
-			m_attAccsEdgeCanBeRemoved(Grid::EdgeAttachmentAccessor<ABool>())
+			m_attAccsEdgeCanBeRemoved(Grid::EdgeAttachmentAccessor<ABool>()),
+			m_attNewSudoOfVrtx(AInt()),
+			m_attAccsNewSudoOfVrtx(Grid::VertexAttachmentAccessor<AInt>())
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -1020,6 +1022,12 @@ bool DiamondsEstablish3D::attachMarkers()
 
 	m_attAccsEdgeCanBeRemoved = Grid::EdgeAttachmentAccessor<ABool>( m_grid, m_attEdgeCanBeRemoved);
 
+	m_attNewSudoOfVrtx = AInt();
+
+	m_grid.attach_to_vertices_dv( m_attNewSudoOfVrtx, -1 );
+
+	m_attAccsNewSudoOfVrtx = Grid::VertexAttachmentAccessor<AInt>( m_grid, m_attNewSudoOfVrtx );
+
 	return true;
 }
 
@@ -1056,6 +1064,8 @@ bool DiamondsEstablish3D::detachMarkers()
 	m_grid.detach_from_vertices(m_attCenterVrtxOfShiftVrtx);
 
 	m_grid.detach_from_edges(m_attEdgeCanBeRemoved);
+
+	m_grid.detach_from_vertices(m_attNewSudoOfVrtx);
 
 	return true;
 }
@@ -2080,6 +2090,7 @@ bool DiamondsEstablish3D::generateNewDiamSudos(Vertex * & centerV, IndxVec sudoL
 			{
 				ccvs.schluckVertex(centerV);
 				m_sh.assign_subset(centerV, ccvs.spuckNewSudo());
+				m_attAccsNewSudoOfVrtx[centerV] = ccvs.spuckNewSudo();
 				break;
 			}
 		}
@@ -2088,6 +2099,7 @@ bool DiamondsEstablish3D::generateNewDiamSudos(Vertex * & centerV, IndxVec sudoL
 	{
 		IndexType newSudo = m_sh.num_subsets();
 		m_sh.assign_subset(centerV,newSudo);
+		m_attAccsNewSudoOfVrtx[centerV] = newSudo;
 		CombiCntrVrtxSudo ccvs( sudoList, newSudo );
 		m_vecCombiCntrVrtxSudo.push_back(ccvs);
 		UG_LOG("NNNNNNNNNNNNNNNNNNNN" << std::endl);
@@ -2278,12 +2290,14 @@ bool DiamondsEstablish3D::splitThreeCrossLargeDiams( CombiNewVolsProps & combiNe
 					       	   	   	  )
 						   	   	   	 );
 
-	m_sh.assign_subset( splitVolPrism, m_sh.num_subsets() );
+	assignSudoOfNewVols2VolAndSubElems(splitVolPrism, m_attAccsNewSudoOfVrtx[centerOther]);
+//	m_sh.assign_subset( splitVolPrism, m_attAccsNewSudoOfVrtx[centerOther] );
 
 	Volume * splitVolTetra = *m_grid.create<Tetrahedron>(
 							TetrahedronDescriptor( shiftVrtxDiam, midPtDiam, cutVrtx, centerDiam  ) );
 
-	m_sh.assign_subset( splitVolTetra, m_sh.num_subsets() );
+//	m_sh.assign_subset( splitVolTetra,  m_attAccsNewSudoOfVrtx[centerDiam] );
+	assignSudoOfNewVols2VolAndSubElems(splitVolTetra, m_attAccsNewSudoOfVrtx[centerDiam]);
 
 	m_grid.erase(vol);
 
