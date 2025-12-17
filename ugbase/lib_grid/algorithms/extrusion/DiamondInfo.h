@@ -986,6 +986,8 @@ public:
 	using VrtxIndxPair = std::pair<VRTXTYPE,IndxVec>;
 	using VrtxIndxCombi = std::vector<VrtxIndxPair>;
 
+	using FulldimPr = std::pair<FULLDIMELEM,FULLDIMELEM>;
+
 	CombiEntitiesProperties( FULLDIMELEM const & fulldmelm,
 							 MANIFELEM const & manifelm,
 							 VrtxIndxCombi const & centerVrtcsSudos,
@@ -999,6 +1001,8 @@ public:
 							  m_centerVrtcsSudos(centerVrtcsSudos),
 							  m_shiftVrtcs(shiftVrtcs),
 							  m_midPtVrtcs(midPtVrtcs),
+							  m_prNewFulldimElems(FulldimPr()),
+							  m_newSplitVrtx(nullptr),
 							  m_isThreeCross(isThreeCross)
 							{
 							}
@@ -1010,6 +1014,8 @@ public:
 							  m_centerVrtcsSudos(VrtxIndxCombi()),
 							  m_shiftVrtcs(VrtxVec()),
 							  m_midPtVrtcs(VrtxVec()),
+							  m_prNewFulldimElems(FulldimPr()),
+							  m_newSplitVrtx(nullptr),
 							  m_isThreeCross(-1)
 							{
 							}
@@ -1057,6 +1063,26 @@ public:
 
 	int spuckThreeCrossIndex() { return m_isThreeCross; }
 
+	void schluckNewFulldimPair( FulldimPr const & fdp )
+	{
+		m_prNewFulldimElems = fdp;
+	}
+
+	void schluckNewSplitVrtx( VRTXTYPE const & vrt )
+	{
+		m_newSplitVrtx = vrt;
+	}
+
+	void spuckNewFulldimPair( FulldimPr & fdp )
+	{
+		fdp = m_prNewFulldimElems;
+	}
+
+	void spuckNewSplitVrtx( VRTXTYPE & vrt )
+	{
+		vrt = m_newSplitVrtx;
+	}
+
 private:
 	FULLDIMELEM m_fulldimElem;
 	MANIFELEM m_manifElem;
@@ -1064,6 +1090,8 @@ private:
 	VrtxIndxCombi m_centerVrtcsSudos;
 	VrtxVec m_shiftVrtcs;
 	VrtxVec m_midPtVrtcs;
+	FulldimPr m_prNewFulldimElems;
+	VRTXTYPE m_newSplitVrtx;
 	int m_isThreeCross;
 
 };

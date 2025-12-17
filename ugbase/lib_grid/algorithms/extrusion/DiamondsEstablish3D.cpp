@@ -2050,6 +2050,19 @@ bool DiamondsEstablish3D::postprocessNewDiamVols()
 
 	}
 
+	UG_LOG("try to split diam vols " << std::endl);
+
+	for( CombiNewVolsProps & cnvp : m_vecCombiNewVolsThreeCross )
+	{
+		if( ! splitThreeCrossLargeDiams(cnvp) )
+		{
+			UG_LOG("splitting not possible");
+			return false;
+		}
+	}
+
+	UG_LOG("all diam vols splitted " << std::endl);
+
 	return true;
 }
 
@@ -2211,6 +2224,73 @@ bool DiamondsEstablish3D::detectRemovableEdges()
 
 	return true;
 }
+
+///////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::splitThreeCrossLargeDiams( CombiNewVolsProps & combiNewVolsProps )
+{
+	VrtxIndxCombi viCombiCenter;
+	combiNewVolsProps.spuckCenterVrtcsSudos(viCombiCenter);
+	Volume * vol;
+	combiNewVolsProps.spuckFulldimElem(vol);
+
+	IndexType ind3CrossSide = combiNewVolsProps.spuckThreeCrossIndex();
+
+	IndexType indOtherSide = ( ind3CrossSide + 1 ) % 2;
+
+	VrtxIndxPair diamCenterVrtxPr( viCombiCenter[ind3CrossSide] );
+
+	Vertex * centerDiam = diamCenterVrtxPr.first;
+
+	VrtxIndxPair diamOtherVrtxPr( viCombiCenter[ indOtherSide ] );
+
+	Vertex * centerOther = diamOtherVrtxPr.first;
+
+	std::vector<Vertex*> midPtVrtcs;
+	combiNewVolsProps.spuckMidPtVrtcs(midPtVrtcs);
+
+	Vertex * midPtDiam = midPtVrtcs[ind3CrossSide];
+	Vertex * midPtOther = midPtVrtcs[indOtherSide];
+
+	vector3 centerDiamVec3 = m_aaPos[centerDiam];
+	vector3 midPtDiamVec3 = m_aaPos[midPtDiam];
+	vector3 centerOtherVec3 = m_aaPos[centerOther];
+
+	vector3 cutPtVec3;
+
+	DropAPerpendicular(cutPtVec3, midPtDiamVec3, centerDiamVec3, centerOtherVec3);
+
+	Vertex * cutVrtx = *m_grid.create<RegularVertex>();
+
+	m_aaPos[cutVrtx] = cutPtVec3;
+
+	combiNewVolsProps.schluckNewSplitVrtx(cutVrtx);
+
+	std::vector<Vertex*> shiftVrtcs;
+	combiNewVolsProps.spuckShiftVrtcs(shiftVrtcs);
+
+	Vertex * shiftVrtxDiam = shiftVrtcs[ind3CrossSide];
+	Vertex * shiftVrtxOther = shiftVrtcs[ indOtherSide];
+
+	Volume * splitVolPrism = *m_grid.create<Prism>(
+			           	   	   PrismDescriptor( cutVrtx, midPtDiam, shiftVrtxDiam,
+						            			centerOther, midPtOther, shiftVrtxOther
+					       	   	   	  )
+						   	   	   	 );
+
+	m_sh.assign_subset( splitVolPrism, m_sh.num_subsets() );
+
+	Volume * splitVolTetra = *m_grid.create<Tetrahedron>(
+							TetrahedronDescriptor( shiftVrtxDiam, midPtDiam, cutVrtx, centerDiam  ) );
+
+	m_sh.assign_subset( splitVolTetra, m_sh.num_subsets() );
+
+	m_grid.erase(vol);
+
+
+	return true;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////
 

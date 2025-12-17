@@ -246,6 +246,8 @@ private:
 	Grid::EdgeAttachmentAccessor<ABool> m_attAccsEdgeCanBeRemoved;
 
 	bool detectRemovableEdges();
+
+	bool splitThreeCrossLargeDiams( CombiNewVolsProps & combiNewVolsProps );
 };
 
 } /* namespace diamonds */
