@@ -252,6 +252,10 @@ private:
 	AInt m_attNewSudoOfVrtx;
 
 	Grid::VertexAttachmentAccessor<AInt> m_attAccsNewSudoOfVrtx;
+
+	std::vector<Face*> m_faces2BDeletedAtLastStep;
+	std::vector<Edge*> m_edges2BDeletedAtLastStep;
+
 };
 
 } /* namespace diamonds */

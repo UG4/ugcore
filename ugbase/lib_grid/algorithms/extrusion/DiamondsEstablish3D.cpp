@@ -69,7 +69,9 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_attEdgeCanBeRemoved(ABool()),
 			m_attAccsEdgeCanBeRemoved(Grid::EdgeAttachmentAccessor<ABool>()),
 			m_attNewSudoOfVrtx(AInt()),
-			m_attAccsNewSudoOfVrtx(Grid::VertexAttachmentAccessor<AInt>())
+			m_attAccsNewSudoOfVrtx(Grid::VertexAttachmentAccessor<AInt>()),
+			m_faces2BDeletedAtLastStep(std::vector<Face*>()),
+			m_edges2BDeletedAtLastStep(std::vector<Edge*>())
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -2071,6 +2073,29 @@ bool DiamondsEstablish3D::postprocessNewDiamVols()
 		}
 	}
 
+	for( Face * fac :  m_faces2BDeletedAtLastStep )
+	{
+		if( ! fac )
+		{
+			UG_LOG("want to delete null fac " << std::endl);
+			return false;
+		}
+
+		m_grid.erase(fac);
+	}
+
+	for( Edge * edg : m_edges2BDeletedAtLastStep )
+	{
+		if( ! edg )
+		{
+			UG_LOG("want to delete edge unexisting at end " << std::endl);
+			return false;
+		}
+
+		m_grid.erase(edg);
+	}
+
+
 	UG_LOG("all diam vols splitted " << std::endl);
 
 	return true;
@@ -2298,6 +2323,54 @@ bool DiamondsEstablish3D::splitThreeCrossLargeDiams( CombiNewVolsProps & combiNe
 
 //	m_sh.assign_subset( splitVolTetra,  m_attAccsNewSudoOfVrtx[centerDiam] );
 	assignSudoOfNewVols2VolAndSubElems(splitVolTetra, m_attAccsNewSudoOfVrtx[centerDiam]);
+
+	// figure out the faces and the edges which later should be erased
+
+	IndexType numEdgesFound = 0;
+
+	Edge* centersEdg = nullptr;
+
+	for( IndexType iEdg = 0; iEdg < vol->num_edges(); iEdg++)
+	{
+		Edge * edg = m_grid.get_edge(vol, iEdg);
+
+		if( EdgeContains(edg, centerDiam ) && EdgeContains(edg, centerOther))
+		{
+			centersEdg = edg;
+			numEdgesFound++;
+		}
+	}
+
+	if( numEdgesFound != 1 )
+	{
+		UG_LOG("edges found at end " << numEdgesFound << std::endl);
+		return false;
+	}
+
+	addElem(m_edges2BDeletedAtLastStep,centersEdg);
+
+	std::vector<Face*> faces2Del;
+
+	for( IndexType iFac = 0; iFac < vol->num_faces(); iFac++)
+	{
+		Face * fac = m_grid.get_face(vol, iFac);
+
+		if( FaceContains(fac, centersEdg) )
+		{
+			faces2Del.push_back(fac);
+		}
+	}
+
+	if( faces2Del.size() != 2 )
+	{
+		UG_LOG("strange number of faces to del at fin " << faces2Del.size() << std::endl);
+		return false;
+	}
+
+	for( Face * f : faces2Del )
+	{
+		addElem(m_faces2BDeletedAtLastStep, f);
+	}
 
 	m_grid.erase(vol);
 
