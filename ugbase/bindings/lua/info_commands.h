@@ -100,6 +100,14 @@ UG_API bool GetLuaNamespace(lua_State* L, const std::string &name);
   */
 UG_API double LuaGetNumber(lua_State *L, const char *name, double notAvailable);
 
+ /**
+ * \brief returns an integer to a lua-variable.
+ * \param L				the lua state
+ * \param name			name of the variable. namespaces are possible (like math.pi)
+ * \param notAvailable	return value if variable was not found
+  */
+UG_API int LuaGetInteger(lua_State *L, const char *name, int notAvailable);
+
 /**
  * \brief returns the string to a lua-variable.
  * \param L				the lua state

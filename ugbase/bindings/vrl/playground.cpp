@@ -40,11 +40,11 @@ namespace vrl {
 
 
 TestClass::TestClass() {
-	UG_LOG("Constructor TestClass() called." << std::endl);
+	UG_LOG("Constructor TestClass() called.\n");
 }
 
 TestClass::TestClass(std::string name) {
-	UG_LOG("Constructor TestClass(std::string name) called." << std::endl);
+	UG_LOG("Constructor TestClass(std::string name) called.\n");
 }
 
 int TestClass::add(int a, int b) {
@@ -52,7 +52,7 @@ int TestClass::add(int a, int b) {
 }
 
 std::string TestClass::getString() {
-	UG_LOG("Test123" << std::endl);
+	UG_LOG("Test123\n");
 	return "Test123";
 }
 

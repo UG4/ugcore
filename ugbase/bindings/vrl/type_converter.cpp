@@ -569,48 +569,48 @@ void printParamType(const uint type, size_t index) {
 
 	switch (type) {
 	case ug::Variant::VT_INVALID: {
-		UG_LOG("Param " << index << " = VT_INVALID" << std::endl)
+		UG_LOG("Param " << index << " = VT_INVALID\n")
 	}
 		break;
 	case ug::Variant::VT_BOOL: {
-		UG_LOG("Param " << index << " = VT_BOOL" << std::endl)
+		UG_LOG("Param " << index << " = VT_BOOL\n")
 	}
 		break;
 	case ug::Variant::VT_INT: {
-		UG_LOG("Param " << index << " = VT_INT" << std::endl)
+		UG_LOG("Param " << index << " = VT_INT\n")
 	}
 		break;
 	case ug::Variant::VT_SIZE_T: {
-		UG_LOG("Param " << index << " = VT_SIZE_T" << std::endl)
+		UG_LOG("Param " << index << " = VT_SIZE_T\n")
 	}
 		break;
 	case ug::Variant::VT_FLOAT:
 	case ug::Variant::VT_DOUBLE: {
-		UG_LOG("Param " << index << " = VT_NUMBER" << std::endl)
+		UG_LOG("Param " << index << " = VT_NUMBER\n")
 	}
 		break;
 	case ug::Variant::VT_CSTRING: {
-		UG_LOG("Param " << index << " = VT_CSTRING" << std::endl)
+		UG_LOG("Param " << index << " = VT_CSTRING\n")
 	}
 		break;
 	case ug::Variant::VT_STDSTRING: {
-		UG_LOG("Param " << index << " = VT_STDSTRING" << std::endl)
+		UG_LOG("Param " << index << " = VT_STDSTRING\n")
 	}
 		break;
 	case ug::Variant::VT_POINTER: {
-		UG_LOG("Param " << index << " = VT_POINTER" << std::endl)
+		UG_LOG("Param " << index << " = VT_POINTER\n")
 	}
 		break;
 	case ug::Variant::VT_CONST_POINTER: {
-		UG_LOG("Param " << index << " = VT_CONST_POINTER" << std::endl)
+		UG_LOG("Param " << index << " = VT_CONST_POINTER\n")
 	}
 		break;
 	case ug::Variant::VT_SMART_POINTER: {
-		UG_LOG("Param " << index << " = VT_SMART_POINTER" << std::endl)
+		UG_LOG("Param " << index << " = VT_SMART_POINTER\n")
 	}
 		break;
 	case ug::Variant::VT_CONST_SMART_POINTER: {
-		UG_LOG("Param " << index << " = VT_CONST_SMART_POINTER" << std::endl)
+		UG_LOG("Param " << index << " = VT_CONST_SMART_POINTER\n")
 	}
 		break;
 	default:

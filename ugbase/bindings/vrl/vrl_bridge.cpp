@@ -67,7 +67,7 @@ void Log(std::string s) {
 }
 
 void Logln(std::string s) {
-	UG_LOG(s << std::endl);
+	UG_LOG(s << "\n");
 }
 
 void ThrowIf(bool b, std::string s) {

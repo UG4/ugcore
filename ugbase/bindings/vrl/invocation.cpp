@@ -71,7 +71,7 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 	//
 	//	// search in map first and return result if entry exists
 	//	if (methods.find(signature.c_str()) != methods.end()) {
-	//		UG_LOG("FOUND:" << signature << std::endl);
+	//		UG_LOG("FOUND:" << signature << "\n");
 	//		return methods[signature.c_str()];
 	//	}
 

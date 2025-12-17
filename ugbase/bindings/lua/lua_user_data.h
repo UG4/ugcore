@@ -14,7 +14,7 @@
  * 
  * (2) The following notice must be displayed at a prominent place in the
  * terminal output of covered works: "Based on UG4 (www.ug4.org/license)".
- * 
+ *
  * (3) The following bibliography is recommended for citation and must be
  * preserved in all covered files:
  * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
@@ -412,6 +412,47 @@ class LuaFunction : public IFunction<TData, TDataIn>
 
 	///	evaluates the data
 		virtual void operator () (TData& out, int numArgs, ...);
+
+	protected:
+	///	callback name as string
+		std::string m_cbValueName;
+
+	///	reference to lua function
+		int m_cbValueRef;
+
+	///	lua state
+		lua_State*	m_L;
+
+	///	number of arguments to use
+		size_t m_numArgs;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// LuaFunction
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * \tparam		TData		Return value type
+ */
+template <typename TData>
+class LuaCallbackFunction
+{
+	public:
+	///	constructor
+		LuaCallbackFunction();
+		virtual ~LuaCallbackFunction() = default;
+
+	///	sets the Lua function used to compute the data
+	/**
+	 * This function sets the lua callback. The name of the function is
+	 * passed as a string. Make sure, that the function name is defined
+	 * when executing the script.
+	 */
+		void set_lua_callback(const char* luaCallback, size_t numArgs);
+
+	///	evaluates the data
+		virtual void operator() (TData& out, int numArgs, int step, double time, double dt, int lua_id);
 
 	protected:
 	///	callback name as string

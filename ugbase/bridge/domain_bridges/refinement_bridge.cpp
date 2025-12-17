@@ -56,6 +56,7 @@
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/util/attachment_operations.hpp"
 #include "lib_grid/parallelization/parallel_refinement/parallel_refinement.h"
+#include "lib_grid/parallelization/parallel_refinement/parallel_global_subdivision_refiner.h"
 #endif
 
 #include "common/math/misc/math_util.h"

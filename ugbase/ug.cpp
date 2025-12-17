@@ -263,7 +263,7 @@ int UGFinalizeNoPCLFinalize()
 	GetLogAssistant().flush_error_log();
 	
 	if (outputProfileStats) {
-		UG_LOG(std::endl);
+		UG_LOG("\n");
 	//	output the profiled data.
 		PROFILER_UPDATE();
 

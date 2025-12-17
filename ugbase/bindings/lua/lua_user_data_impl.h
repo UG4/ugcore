@@ -1165,7 +1165,81 @@ void LuaFunction<TData,TDataIn>::operator () (TData& out, int numArgs, ...)
 
     PROFILE_CALLBACK_END();
 }
+////////////////////////////////////////////////////////////////////////////////
+// LuaCallbackFunction
+////////////////////////////////////////////////////////////////////////////////
 
+template <typename TData>
+LuaCallbackFunction<TData>::LuaCallbackFunction() : m_numArgs(0)
+{
+	m_L = ug::script::GetDefaultLuaState();
+	m_cbValueRef = LUA_NOREF;
+}
+
+template <typename TData>
+void LuaCallbackFunction<TData>::set_lua_callback(const char* luaCallback, size_t numArgs)
+{
+//	store name (string) of callback
+	m_cbValueName = luaCallback;
+
+//	obtain a reference
+	lua_getglobal(m_L, m_cbValueName.c_str());
+
+//	make sure that the reference is valid
+	if(lua_isnil(m_L, -1)){
+		UG_THROW("LuaFunction::set_lua_callback(...):"
+				"Specified lua callback does not exist: " << m_cbValueName);
+	}
+
+//	store reference to lua function
+	m_cbValueRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
+
+//	remember number of arguments to be used
+	m_numArgs = numArgs;
+}
+
+template <typename TData>
+void LuaCallbackFunction<TData>::operator() (TData& out, int numArgs, int step, double time, double dt, int lua_id)
+{
+	PROFILE_CALLBACK_BEGIN(operatorBracket);
+	UG_ASSERT(numArgs == (int)m_numArgs, "Number of arguments mismatched.");
+
+//	push the callback function on the stack
+	lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_cbValueRef);
+
+
+	//	push data to lua stack
+		lua_traits<int>::push(m_L, step);
+		lua_traits<double>::push(m_L, time);
+		lua_traits<double>::push(m_L, dt);
+		lua_traits<int>::push(m_L, lua_id);
+
+
+//	compute total args size
+	size_t argSize = lua_traits<int>::size * numArgs;
+
+//	compute total return size
+	size_t retSize = lua_traits<TData>::size;
+
+//	call lua function
+	if(lua_pcall(m_L, argSize, retSize, 0) != 0)
+		UG_THROW("LuaFunction::operator(...): Error while "
+					"running callback '" << m_cbValueName << "',"
+					" lua message: "<< lua_tostring(m_L, -1));
+
+	try{
+	//	read return value
+		lua_traits<TData>::read(m_L, out);
+		UG_COND_THROW(IsFiniteAndNotTooBig(out)==false, out);
+	}
+	UG_CATCH_THROW("LuaFunction::operator(...): Error while running "
+					"callback '" << m_cbValueName << "'");
+
+//	pop values
+	lua_pop(m_L, retSize);
+
+    PROFILE_CALLBACK_END();
+}
 
 
 } // end namespace ug

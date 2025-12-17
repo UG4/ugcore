@@ -60,7 +60,7 @@ namespace vrl {
 	}
 	
 	BasicTest::~BasicTest() {
-		UG_LOG("~BasicTest" << std::endl);
+		UG_LOG("~BasicTest\n");
 	}
 	
 

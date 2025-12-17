@@ -34,7 +34,10 @@
 #define	LUA_TRAITS_H
 
 #include "common/util/number_util.h"
+
+extern "C" {
 #include "externals/lua/lua.h"
+}
 
 namespace ug {
 ///////////////////////////////////////////////////////////////////////////////

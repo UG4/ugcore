@@ -120,13 +120,13 @@ bool checkException(JNIEnv* env, std::string msg, bool throwCPPException) {
 	std::string exMsg = getExceptionMessageString(env,ex);
 
 	if (exMsg!="") {
-		UG_LOG(msg << " (See Java exception for details)"<< std::endl);
+		UG_LOG(msg << " (See Java exception for details)\n");
 		exMsg = msg + "<font color=\"red\">" + exMsg + "</font>\n";
 		
 		if (throwCPPException) {
 			UG_THROW(exMsg);
 		} else {
-			UG_LOG(exMsg << std::endl);
+			UG_LOG(exMsg << "\n");
 		}
 	}
 

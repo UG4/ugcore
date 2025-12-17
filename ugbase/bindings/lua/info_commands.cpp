@@ -249,6 +249,18 @@ double LuaGetNumber(lua_State *L, const char *name, double notAvailable)
 	lua_pop(L, 1);
 	return d;
 }
+int LuaGetInteger(lua_State *L, const char *name, int notAvailable)
+{
+	LUA_STACK_CHECK(L, 0);
+	if(GetLuaNamespace(L, name)==false || !lua_isinteger(L, -1))
+	{
+		lua_pop(L, 1);
+		return notAvailable;
+	}
+	int d = lua_tointeger(L, -1);
+	lua_pop(L, 1);
+	return d;
+}
 
 string LuaGetString(lua_State *L, const char *name, const char *notAvailable)
 {
@@ -1013,7 +1025,8 @@ string GetLuaTypeString(lua_State* L, int index)
 	if(lua_islightuserdata(L, index)) str.append("lightuserdata/");
 	if(lua_isnil(L, index)) str.append("nil/");
 	if(lua_isnone(L, index)) str.append("none/");
-	if(lua_isnumber(L, index)) 	str.append("number/");
+	if(lua_isnumber(L, index)) str.append("number/");
+	if(lua_isinteger(L, index)) str.append("integer/");
 	if(lua_isstring(L, index)) str.append("string/");
 
 	if(lua_istable(L, index)) {

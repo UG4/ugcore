@@ -88,7 +88,7 @@ void quit_all_mpi_procs_in_parallel()
 {
 #ifdef UG_PARALLEL
 	if(pcl::NumProcs() > 1){
-		UG_LOG(errSymb<<"ABORTING all mpi processes."<<std::endl)
+		UG_LOG(errSymb<<"ABORTING all mpi processes.\n")
 		pcl::Abort();
 	}
 #endif
@@ -487,7 +487,7 @@ int ugshell_main(int argc, char* argv[])
 		}
 		catch(SoftAbort& err){
 			UG_LOG("Execution of script-buffer aborted with the following message:\n")
-			UG_LOG(err.get_msg() << std::endl);
+			UG_LOG(err.get_msg() << "\n");
 		}
 		catch(LuaError& err) {
 			PathProvider::clear_current_path_stack();
@@ -495,7 +495,7 @@ int ugshell_main(int argc, char* argv[])
 				if(!err.get_msg().empty()){
 					UG_LOG("LUA-ERROR: \n");
 					for(size_t i=0;i<err.num_msg();++i)
-						UG_LOG(err.get_msg(i)<<endl);
+						UG_LOG(err.get_msg(i)<<"\n");
 				}
 			}
 			UG_LOG(errSymb<<"ABORTING script parsing.\n");
@@ -523,7 +523,7 @@ int ugshell_main(int argc, char* argv[])
 			}
 			catch(SoftAbort& err){
 				UG_LOG("Execution of script-buffer aborted with the following message:\n");
-				UG_LOG(err.get_msg() << std::endl);
+				UG_LOG(err.get_msg() << "\n");
 			}
 		}
 
@@ -547,7 +547,7 @@ int ugshell_main(int argc, char* argv[])
 		}
 		catch(SoftAbort& err){
 			UG_LOG("Execution of interactive shell aborted with the following message:\n");
-			UG_LOG(err.get_msg() << std::endl);
+			UG_LOG(err.get_msg() << "\n");
 		}
 	}
 

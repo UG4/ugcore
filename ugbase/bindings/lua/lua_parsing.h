@@ -71,26 +71,26 @@ struct LuaParsing<bool>{
 template <>
 struct LuaParsing<int>{
 	static bool check(lua_State* L, int index){
-		return lua_isnumber(L, index);
+		return lua_isinteger(L, index);
 	}
 	static int get(lua_State* L, int index){
-		return (int)lua_tointeger(L, index);
+		return static_cast<int>(lua_tointeger(L, index));
 	}
 	static void push(lua_State* L, int data){
-		lua_pushnumber(L, data);
+		lua_pushinteger(L, data);
 	}
 };
 
 template <>
 struct LuaParsing<size_t>{
 	static bool check(lua_State* L, int index){
-		return lua_isnumber(L, index);
+		return lua_isinteger(L, index);
 	}
 	static size_t get(lua_State* L, int index){
 		return lua_tointeger(L, index);
 	}
 	static void push(lua_State* L, size_t data){
-		lua_pushnumber(L, (lua_Number)data);
+		lua_pushinteger(L, (lua_Number)data);
 	}
 };
 
