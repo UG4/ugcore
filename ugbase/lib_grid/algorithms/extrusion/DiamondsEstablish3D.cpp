@@ -2124,6 +2124,15 @@ bool DiamondsEstablish3D::generateNewDiamSudos(Vertex * & centerV, IndxVec sudoL
 	{
 		IndexType newSudo = m_sh.num_subsets();
 		m_sh.assign_subset(centerV,newSudo);
+
+		std::string sudoName = std::string("diamond_");
+		for( IndexType & sd : sudoList )
+		{
+			sudoName += std::string("_") + std::string( const_cast<char*>( m_sh.get_subset_name( sd ) ) );
+		}
+
+		m_sh.set_subset_name(sudoName.c_str(), newSudo);
+
 		m_attAccsNewSudoOfVrtx[centerV] = newSudo;
 		CombiCntrVrtxSudo ccvs( sudoList, newSudo );
 		m_vecCombiCntrVrtxSudo.push_back(ccvs);
