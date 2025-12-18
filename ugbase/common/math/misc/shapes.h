@@ -58,7 +58,7 @@ class Sphere{
 
 template <typename vector_t>
 struct AABox{
-	AABox()	{}
+	AABox()	= default;
 	AABox(const vector_t& nMin, const vector_t& nMax) : min(nMin), max(nMax)	{}
 
 ///	calculates the bounding box to the given set of points.
@@ -68,7 +68,7 @@ struct AABox{
 	AABox(const AABox& b1, const AABox& b2);
 
 ///	calculates the bounding box of the given sphere
-	AABox(const Sphere<vector_t>& s);
+	explicit AABox(const Sphere<vector_t>& s);
 
 ///	calculates the bounding box of a given box and an additional point
 	AABox(const AABox& b, const vector_t& v);

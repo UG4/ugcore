@@ -8,7 +8,7 @@
  * terms of the GNU Lesser General Public License version 3 (as published by the
  * Free Software Foundation) with the following additional attribution
  * requirements (according to LGPL/GPL v3 §7):
- * UML_LOOK
+ *
  * (1) The following notice must be displayed in the Appropriate Legal Notices
  * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
  * 

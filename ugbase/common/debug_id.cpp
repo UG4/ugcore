@@ -67,7 +67,7 @@ bool DebugIDManager::
 set_debug_levels(int lev)
 {
 	for(auto it=m_dbgLevels.begin(); it != m_dbgLevels.end(); ++it)
-		(*it).second = lev;
+		it->second = lev;
 	return true;
 }
 

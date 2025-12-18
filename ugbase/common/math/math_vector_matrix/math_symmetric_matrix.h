@@ -72,7 +72,7 @@ class MathSymmetricMatrix
 	public:
 		MathSymmetricMatrix() = default;
 		MathSymmetricMatrix(const MathSymmetricMatrix& v) {assign(v);}
-
+#if defined(FEATURE_MOVE_SYMMETRIC_MATRIX) && FEATURE_MOVE_SYMMETRIC_MATRIX  == 1
 		MathSymmetricMatrix(MathSymmetricMatrix&& v) noexcept {
 			std::swap(v.m_data,m_data);
 		}
@@ -80,7 +80,7 @@ class MathSymmetricMatrix
 			std::swap(v.m_data,m_data);
 			return *this;
 		}
-
+#endif
 		/**
 		 * \brief Assigns the elements of the given matrix to this one.
 		 *
@@ -281,7 +281,7 @@ class MathSymmetricMatrix
 	static constexpr size_t m_size = (N*N+N)/2;
 #if defined(FEATURE_MEMORY_ALIGNED) && FEATURE_MEMORY_ALIGNED == 1
 		alignas(64) value_type m_data[m_size];
-#elif
+#else
 		value_type m_data[m_size];
 #endif
 
