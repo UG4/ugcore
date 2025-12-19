@@ -80,21 +80,21 @@ class UG_API RegularEdge : public Edge
 				m_vertices[1] = descriptor.vertex(1);
 			}
 
-		virtual ~RegularEdge() = default;
+		~RegularEdge() override = default;
 
-		virtual GridObject* create_empty_instance() const	{return new RegularEdge;}
+		GridObject* create_empty_instance() const override {return new RegularEdge;}
 
-		virtual int container_section() const	{return EdgeContainerSections::CSEDGE_REGULAR_EDGE;}
-		virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_EDGE;}
+		int container_section() const override {return EdgeContainerSections::CSEDGE_REGULAR_EDGE;}
+		ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_EDGE;}
 
 	///	virtual refine. Returns pointers to Edge.
 	/**
 	 * create 2 new edges, connecting the original edges end-points with vrtNew.
 	 * \sa Edge::refine.
 	 */
-		virtual bool refine(std::vector<Edge*>& vNewEdgesOut,
-							Vertex* newVertex,
-							Vertex** pSubstituteVrts = nullptr);
+		bool refine(std::vector<Edge*>& vNewEdgesOut,
+	            Vertex* newVertex,
+	            Vertex** pSubstituteVrts = nullptr) override;
 
 //TODO:	Think about this method. It is not safe!
 	///	non virtual refine. Returns pointers to RegularEdge.
@@ -164,28 +164,25 @@ class UG_API ConstrainedEdge : public Edge
 				m_vertices[1] = descriptor.vertex(1);
 			}
 
-		virtual ~ConstrainedEdge()
-		{
+		~ConstrainedEdge() override {
 			if(m_pConstrainingObject)
 				m_pConstrainingObject->remove_constraint_link(this);
 		}
 
-		virtual GridObject* create_empty_instance() const	{return new ConstrainedEdge;}
+		[[nodiscard]] GridObject* create_empty_instance() const override {return new ConstrainedEdge;}
 
-		virtual int container_section() const	{return EdgeContainerSections::CSEDGE_CONSTRAINED_EDGE;}
-		virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_EDGE;}
+		[[nodiscard]] int container_section() const override {return EdgeContainerSections::CSEDGE_CONSTRAINED_EDGE;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_EDGE;}
 
-		virtual bool is_constrained() const			{return true;}
+		[[nodiscard]] bool is_constrained() const override {return true;}
 
-		virtual void remove_constraint_link(const Edge* e)
-		{
+		void remove_constraint_link(const Edge* e) override {
 			if(m_pConstrainingObject == static_cast<const GridObject*>(e)){
 				m_pConstrainingObject = nullptr;
 			}
 		}
 
-		virtual void remove_constraint_link(const Face* f)
-		{
+		void remove_constraint_link(const Face* f) override {
 			if(m_pConstrainingObject == static_cast<const GridObject*>(f)){
 				m_pConstrainingObject = nullptr;
 			}
@@ -198,9 +195,9 @@ class UG_API ConstrainedEdge : public Edge
 	 * existing links of constrained/constraining objects.
 	 * \sa Edge::refine.
 	 */
-		virtual bool refine(std::vector<Edge*>& vNewEdgesOut,
-							Vertex* newVertex,
-							Vertex** pSubstituteVrts = nullptr);
+		[[nodiscard]] bool refine(std::vector<Edge*>& vNewEdgesOut,
+	            Vertex* newVertex,
+	            Vertex** pSubstituteVrts = nullptr) override;
 
 //TODO:	Think about this method. It is not safe!
 	///	non virtual refine. Returns pointers to ConstrainedEdge.
@@ -245,7 +242,7 @@ template <>
 class geometry_traits<ConstrainedEdge>
 {
 	public:
-	using iterator = GenericGridObjectIterator<ConstrainedEdge*, EdgeIterator>;
+		using iterator = GenericGridObjectIterator<ConstrainedEdge*, EdgeIterator>;
 		using const_iterator = ConstGenericGridObjectIterator<ConstrainedEdge*, EdgeIterator,
 			ConstEdgeIterator>;
 
@@ -308,21 +305,19 @@ class UG_API ConstrainingEdge : public Edge
 			}
 		}
 
-		virtual GridObject* create_empty_instance() const	{return new ConstrainingEdge;}
+		[[nodiscard]] GridObject* create_empty_instance() const override {return new ConstrainingEdge;}
 
-		virtual int container_section() const	{return EdgeContainerSections::CSEDGE_CONSTRAINING_EDGE;}
-		virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_EDGE;}
+		[[nodiscard]] int container_section() const override {return EdgeContainerSections::CSEDGE_CONSTRAINING_EDGE;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_EDGE;}
 
-		virtual bool is_constraining() const	{return true;}
+		[[nodiscard]] bool is_constraining() const override {return true;}
 
-		
-		virtual void remove_constraint_link(const Vertex* vrt)
-		{
+
+		void remove_constraint_link(const Vertex* vrt) override {
 			unconstrain_object(vrt);
 		}
 
-		virtual void remove_constraint_link(const Edge* e)
-		{
+		void remove_constraint_link(const Edge* e) override {
 			unconstrain_object(e);
 		}
 
@@ -333,9 +328,9 @@ class UG_API ConstrainingEdge : public Edge
 	 * The refine has no effect on constrained objects. The user has to manually copy them.
 	 * \sa Edge::refine.
 	 */
-		virtual bool refine(std::vector<Edge*>& vNewEdgesOut,
-							Vertex* newVertex,
-							Vertex** pSubstituteVrts = nullptr);
+		bool refine(std::vector<Edge*>& vNewEdgesOut,
+	            Vertex* newVertex,
+	            Vertex** pSubstituteVrts = nullptr) override;
 
 //TODO:	Think about this method. It is not safe!
 	///	non virtual refine. Returns pointers to ConstrainingEdge.
@@ -363,36 +358,32 @@ class UG_API ConstrainingEdge : public Edge
 
 		inline bool is_constrained_object(Vertex* vrt)
 			{
-				std::vector<Vertex*>::iterator iter = find(m_constrainedVertices.begin(),
-																m_constrainedVertices.end(), vrt);
+				auto iter = find(m_constrainedVertices.begin(), m_constrainedVertices.end(), vrt);
 				return iter != m_constrainedVertices.end();
 			}
 
 		inline bool is_constrained_object(Edge* edge)
 			{
-				std::vector<Edge*>::iterator iter = find(m_constrainedEdges.begin(),
-																m_constrainedEdges.end(), edge);
+				auto iter = find(m_constrainedEdges.begin(), m_constrainedEdges.end(), edge);
 				return iter != m_constrainedEdges.end();
 			}
 
 		inline void unconstrain_object(const Vertex* vrt)
 			{
-				std::vector<Vertex*>::iterator iter = find(m_constrainedVertices.begin(),
-																m_constrainedVertices.end(), vrt);
+				auto iter = find(m_constrainedVertices.begin(), m_constrainedVertices.end(), vrt);
 				if(iter != m_constrainedVertices.end())
 					m_constrainedVertices.erase(iter);
 			}
 
 		inline void unconstrain_object(const Edge* edge)
 			{
-				std::vector<Edge*>::iterator iter = find(m_constrainedEdges.begin(),
-																m_constrainedEdges.end(), edge);
+				auto iter = find(m_constrainedEdges.begin(), m_constrainedEdges.end(), edge);
 				if(iter != m_constrainedEdges.end())
 					m_constrainedEdges.erase(iter);
 			}
 
-		inline void clear_constrained_vertices()	{m_constrainedVertices.clear();}
-		inline void clear_constrained_edges()		{m_constrainedEdges.clear();}
+		inline void clear_constrained_vertices() {m_constrainedVertices.clear();}
+		inline void clear_constrained_edges() {m_constrainedEdges.clear();}
 		inline void clear_constrained_objects()
 			{
 				clear_constrained_vertices();
@@ -400,20 +391,20 @@ class UG_API ConstrainingEdge : public Edge
 			}
 
 	//	NUMBER OF CONSTRAINED ELEMENTS
-		inline size_t num_constrained_vertices() const	{return m_constrainedVertices.size();}
-		inline size_t num_constrained_edges() const		{return m_constrainedEdges.size();}
+		[[nodiscard]] inline size_t num_constrained_vertices() const {return m_constrainedVertices.size();}
+		[[nodiscard]] inline size_t num_constrained_edges() const {return m_constrainedEdges.size();}
 
 		template <typename TElem> size_t num_constrained() const;
 
 
 	//	ACCESS TO CONSTRAINED ELEMENTS
-		Vertex* constrained_vertex(size_t ind) const
+		[[nodiscard]] Vertex* constrained_vertex(size_t ind) const
 		{
 			UG_ASSERT(ind < m_constrainedVertices.size(), "bad index");
 			return m_constrainedVertices[ind];
 		}
 
-		Edge* constrained_edge(size_t ind) const
+		[[nodiscard]] Edge* constrained_edge(size_t ind) const
 		{
 			UG_ASSERT(ind < m_constrainedEdges.size(), "bad index");
 			return m_constrainedEdges[ind];
@@ -430,7 +421,7 @@ template <>
 class geometry_traits<ConstrainingEdge>
 {
 	public:
-	using iterator = GenericGridObjectIterator<ConstrainingEdge*, EdgeIterator>;
+		using iterator = GenericGridObjectIterator<ConstrainingEdge*, EdgeIterator>;
 		using const_iterator = ConstGenericGridObjectIterator<ConstrainingEdge*, EdgeIterator,
 			ConstEdgeIterator>;
 

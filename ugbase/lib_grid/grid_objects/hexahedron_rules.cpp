@@ -41,7 +41,6 @@
 namespace ug {
 namespace hex_rules {
 
-
 ///	Output are the vertices of a rotated quadrilateral.
 void RotateQuad(int vrtsOut[4], const int quad[4], int steps)
 {
@@ -463,7 +462,7 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool
 bool IsRegularRefRule(const int edgeMarks)
 {
 	// static const int edges[3][4] = {{0, 2, 8, 10}, {4, 5, 6, 7}, {1, 3, 9, 11}};
-	static constexpr int allEdges[3] = {1285,	//0b010100000101}
+	static constexpr int allEdges[3] = {1285,	//0b010100000101} // ø todo use binary number format instead
 										240,	//0b000011110000
 										2570};	//0b101000001010
 	int clearedMarks = 0;

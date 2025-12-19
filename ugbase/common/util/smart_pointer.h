@@ -297,7 +297,7 @@ class ConstSmartPtr
 	friend class ConstSmartPtr<void>;
 
 	public:
-		/*implicit*/ explicit ConstSmartPtr() : m_ptr(nullptr), m_refCount(nullptr) {}
+		/*implicit*/ ConstSmartPtr() : m_ptr(nullptr), m_refCount(nullptr) {}
 		/*implicit*/ ConstSmartPtr(const T* ptr) : m_ptr(ptr), m_refCount(nullptr) {if(ptr) m_refCount = new int(1);}
 		/*implicit*/ ConstSmartPtr(std::nullptr_t) : m_ptr(nullptr), m_refCount(nullptr)	{}
 		ConstSmartPtr(const ConstSmartPtr& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
@@ -408,21 +408,21 @@ class ConstSmartPtr
 
 		const T* get() const	{return m_ptr;}
 
-		int refcount() const {if(m_refCount) return *m_refCount; return 0;}
+		[[nodiscard]] int refcount() const {if(m_refCount) return *m_refCount; return 0;}
 
 	///	returns true if the pointer is valid, false if not.
-		inline bool valid() const	{return m_ptr != nullptr;}
+		[[nodiscard]] inline bool valid() const	{return m_ptr != nullptr;}
 
 		// pointer compat -- behave like std::shared_ptr<T>
 		explicit operator bool () const noexcept { return m_ptr != nullptr; }
 
 	///	returns true if the pointer is invalid, false if not.
-		inline bool invalid() const	{return m_ptr == nullptr;}
+		[[nodiscard]] inline bool invalid() const	{return m_ptr == nullptr;}
 
 	///	preforms a dynamic cast
 		template <typename TDest>
 		ConstSmartPtr<TDest, FreePolicy> cast_dynamic() const{
-			const TDest* p = dynamic_cast<const TDest*>(m_ptr);
+			const auto* p = dynamic_cast<const TDest*>(m_ptr);
 			if(p) return ConstSmartPtr<TDest, FreePolicy>(p, m_refCount);
 			else return ConstSmartPtr<TDest, FreePolicy>(nullptr);
 		}
@@ -430,7 +430,7 @@ class ConstSmartPtr
 	///	performs a static cast
 		template <typename TDest>
 		ConstSmartPtr<TDest, FreePolicy> cast_static() const{
-			const TDest* p = static_cast<const TDest*>(m_ptr);
+			const auto* p = static_cast<const TDest*>(m_ptr);
 			if(p) return ConstSmartPtr<TDest, FreePolicy>(p, m_refCount);
 			else return ConstSmartPtr<TDest, FreePolicy>(nullptr);
 		}
@@ -469,7 +469,7 @@ class ConstSmartPtr
 	 *	versions of the SmartPtr class.
 	 *	It is featured in order to allow to implement a template-constructor
 	 *	that casts element-pointers of a smart pointer.*/
-		int* refcount_ptr() const {return m_refCount;}
+		[[nodiscard]] int* refcount_ptr() const {return m_refCount;}
 
 	private:
 	///	decrements the refCount and frees the encapsulated pointer if required.
@@ -612,23 +612,23 @@ class SmartPtr<void>
 		}
 
 	///	returns true if the pointer is valid, false if not.
-		inline bool valid() const {return m_ptr != nullptr;}
+		[[nodiscard]] inline bool valid() const {return m_ptr != nullptr;}
 
 		// pointer compat -- behave like std::shared_ptr<T>
 		explicit operator bool () const noexcept { return m_ptr != nullptr; }
 
 	///	returns true if the pointer is invalid, false if not.
-		inline bool invalid() const	{return m_ptr == nullptr;}
+		[[nodiscard]] inline bool invalid() const	{return m_ptr == nullptr;}
 
 		void invalidate()				{if(valid())	release(); m_ptr = nullptr;}
 
-		void* get()				{return m_ptr;}
-		const void* get() const	{return m_ptr;}
+		[[nodiscard]] void* get()				{return m_ptr;}
+		[[nodiscard]] const void* get() const	{return m_ptr;}
 
-		int refcount() const {if(m_refCountPtr) return *m_refCountPtr; return 0;}
+		[[nodiscard]] int refcount() const {if(m_refCountPtr) return *m_refCountPtr; return 0;}
 
 	private:
-		void release() {
+		void release() const {
 			if(m_refCountPtr)
 			{
 				(*m_refCountPtr)--;
@@ -776,22 +776,22 @@ class ConstSmartPtr<void>
 		}
 
 	///	returns true if the pointer is valid, false if not.
-		inline bool valid() const {return m_ptr != nullptr;}
+		[[nodiscard]] inline bool valid() const {return m_ptr != nullptr;}
 
 		// pointer compat -- behave like std::shared_ptr<T>
 		explicit operator bool () const noexcept { return m_ptr != nullptr; }
 
 	///	returns true if the pointer is invalid, false if not.
-		inline bool invalid() const	{return m_ptr == nullptr;}
+		[[nodiscard]] inline bool invalid() const	{return m_ptr == nullptr;}
 
 		void invalidate()				{if(valid())	release(); m_ptr = nullptr;}
 
-		const void* get() const	{return m_ptr;}
+		[[nodiscard]] const void* get() const	{return m_ptr;}
 
-		int refcount() const {if(m_refCountPtr) return *m_refCountPtr; return 0;}
+		[[nodiscard]] int refcount() const {if(m_refCountPtr) return *m_refCountPtr; return 0;}
 
 	private:
-		void release() {
+		void release() const {
 			if(m_refCountPtr)
 			{
 				(*m_refCountPtr)--;

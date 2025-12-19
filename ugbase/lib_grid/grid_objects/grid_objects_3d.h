@@ -45,7 +45,7 @@ namespace ug {
 ////////////////////////////////////////////////////////////////////////
 ///	These numbers define where in the volume-section-container a volume will be stored.
 /**	The order of the constants must not be changed! Algorithms may exist that rely on it.*/
-enum VolumeContainerSectionsw
+enum VolumeContainerSections
 {
 	CSVOL_NONE = -1,
 	CSVOL_TETRAHEDRON = 0,
@@ -157,7 +157,7 @@ class UG_API Tetrahedron : public Volume
 
 		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
-		[[nodiscard]] int container_section() const override {return VolumeContainerSectionsw::CSVOL_TETRAHEDRON;}
+		[[nodiscard]] int container_section() const override {return VolumeContainerSections::CSVOL_TETRAHEDRON;}
 
 		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_TETRAHEDRON;}
 
@@ -181,7 +181,7 @@ class geometry_traits<Tetrahedron>
 
 		enum
 		{
-			CONTAINER_SECTION = VolumeContainerSectionsw::CSVOL_TETRAHEDRON,
+			CONTAINER_SECTION = VolumeContainerSections::CSVOL_TETRAHEDRON,
 			BASE_OBJECT_ID = GridBaseObjectId::VOLUME
 		};
 		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TETRAHEDRON;
@@ -296,7 +296,7 @@ class UG_API Hexahedron : public Volume
 
 		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
-		[[nodiscard]] int container_section() const override {return VolumeContainerSectionsw::CSVOL_HEXAHEDRON;}
+		[[nodiscard]] int container_section() const override {return VolumeContainerSections::CSVOL_HEXAHEDRON;}
 		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_HEXAHEDRON;}
 
 	protected:
@@ -319,7 +319,7 @@ class geometry_traits<Hexahedron>
 
 		enum
 		{
-			CONTAINER_SECTION = VolumeContainerSectionsw::CSVOL_HEXAHEDRON,
+			CONTAINER_SECTION = VolumeContainerSections::CSVOL_HEXAHEDRON,
 			BASE_OBJECT_ID = GridBaseObjectId::VOLUME
 		};
 		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_HEXAHEDRON;
@@ -433,7 +433,7 @@ class UG_API Prism : public Volume
 
 		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
-		[[nodiscard]] int container_section() const override {return VolumeContainerSectionsw::CSVOL_PRISM;}
+		[[nodiscard]] int container_section() const override {return VolumeContainerSections::CSVOL_PRISM;}
 		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_PRISM;}
 
 	protected:
@@ -456,7 +456,7 @@ class geometry_traits<Prism>
 
 		enum
 		{
-			CONTAINER_SECTION = VolumeContainerSectionsw::CSVOL_PRISM,
+			CONTAINER_SECTION = VolumeContainerSections::CSVOL_PRISM,
 			BASE_OBJECT_ID = GridBaseObjectId::VOLUME
 		};
 		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_PRISM;
@@ -568,7 +568,7 @@ class UG_API Pyramid : public Volume
 
 		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
-		[[nodiscard]] int container_section() const override {return VolumeContainerSectionsw::CSVOL_PYRAMID;}
+		[[nodiscard]] int container_section() const override {return VolumeContainerSections::CSVOL_PYRAMID;}
 		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_PYRAMID;}
 
 	protected:
@@ -591,7 +591,7 @@ class geometry_traits<Pyramid>
 
 		enum
 		{
-			CONTAINER_SECTION = VolumeContainerSectionsw::CSVOL_PYRAMID,
+			CONTAINER_SECTION = VolumeContainerSections::CSVOL_PYRAMID,
 			BASE_OBJECT_ID = GridBaseObjectId::VOLUME
 		};
 		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_PYRAMID;
@@ -619,8 +619,8 @@ class UG_API OctahedronDescriptor
 		explicit OctahedronDescriptor(const VolumeVertices& vv);
 		OctahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6);
 
-		inline uint num_vertices() const	{return 6;}
-		inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
+		[[nodiscard]] inline uint num_vertices() const	{return 6;}
+		[[nodiscard]] inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[6];
@@ -707,7 +707,7 @@ class UG_API Octahedron : public Volume
 
 		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
-		[[nodiscard]] int container_section() const override {return VolumeContainerSectionsw::CSVOL_OCTAHEDRON;}
+		[[nodiscard]] int container_section() const override {return VolumeContainerSections::CSVOL_OCTAHEDRON;}
 		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_OCTAHEDRON;}
 
 	protected:
@@ -730,7 +730,7 @@ class geometry_traits<Octahedron>
 
 		enum
 		{
-			CONTAINER_SECTION = VolumeContainerSectionsw::CSVOL_OCTAHEDRON,
+			CONTAINER_SECTION = VolumeContainerSections::CSVOL_OCTAHEDRON,
 			BASE_OBJECT_ID = GridBaseObjectId::VOLUME
 		};
 		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_OCTAHEDRON;

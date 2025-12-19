@@ -304,7 +304,10 @@ UG_API std::vector<std::string> FindDuplicates(const std::vector<std::string>& v
  * \param[in] nr number of times to repeat \c c
  * \return string with \c nr times \c c
  */
-UG_API std::string repeat(char c, int nr);
+/*UG_API*/inline std::string repeat(char c, int nr)
+ {
+   return std::string(nr > 0 ? nr : 0, c);
+ }
 
 /**
  * \brief Calculate Levenshtein Distance of to strings
@@ -329,7 +332,9 @@ UG_API size_t LevenshteinDistance( const std::string& s1, const std::string& s2 
  *   line and a tab.
  * \return lines fromline to toline of file filename.
  */
-UG_API std::string GetFileLines( const char *filename, size_t fromline, size_t toline, 
+UG_API std::string GetFileLines( const char *filename,
+                                 size_t fromline,
+                                 size_t toline,
                                  bool includeLineNumbers );
 
 /**

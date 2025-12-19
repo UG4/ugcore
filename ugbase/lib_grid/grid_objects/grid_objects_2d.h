@@ -76,13 +76,13 @@ class ConstrainingQuadrilateral;
 class UG_API TriangleDescriptor
 {
 	public:
-		TriangleDescriptor()	{}
+		TriangleDescriptor()	= default;
 		TriangleDescriptor(const TriangleDescriptor& td);
 		TriangleDescriptor(Vertex* v1, Vertex* v2, Vertex* v3);
 
-		inline uint num_vertices() const					{return 3;}
-		inline void set_vertex(uint index, Vertex* v)	{m_vertex[index] = v;}
-		inline Vertex* vertex(size_t index) const			{return m_vertex[index];}
+		[[nodiscard]] inline uint num_vertices() const {return 3;}
+		inline void set_vertex(uint index, Vertex* v) {m_vertex[index] = v;}
+		[[nodiscard]] inline Vertex* vertex(size_t index) const {return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[3];
@@ -113,14 +113,14 @@ class UG_API CustomTriangle : public BaseClass
 		CustomTriangle(const TriangleDescriptor& td);
 		CustomTriangle(Vertex* v1, Vertex* v2, Vertex* v3);
 
-		virtual GridObject* create_empty_instance() const	{return new ConcreteTriangleType;}
-		virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_TRIANGLE;}
+		[[nodiscard]] virtual GridObject* create_empty_instance() const	{return new ConcreteTriangleType;}
+		[[nodiscard]] virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_TRIANGLE;}
 
-		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
-		virtual Face::ConstVertexArray vertices() const		{return m_vertices;}
-		virtual size_t num_vertices() const	{return 3;}
+		[[nodiscard]] virtual Vertex* vertex(size_t index) const {return m_vertices[index];}
+		[[nodiscard]] virtual Face::ConstVertexArray vertices() const {return m_vertices;}
+		[[nodiscard]] virtual size_t num_vertices() const {return 3;}
 
-		virtual EdgeDescriptor edge_desc(int index) const
+		[[nodiscard]] virtual EdgeDescriptor edge_desc(int index) const
 			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % 3]);}
 
 		virtual void edge_desc(int index, EdgeDescriptor& edOut) const
@@ -177,9 +177,9 @@ class UG_API Triangle :
 
 		Triangle() = default;
 		Triangle(const TriangleDescriptor& td) : BaseClass(td)	{}
-		Triangle(Vertex* v1, Vertex* v2, Vertex* v3) : BaseClass(v1, v2, v3)	{}
+		Triangle(Vertex* v1, Vertex* v2, Vertex* v3) : BaseClass(v1, v2, v3) {}
 
-		int container_section() const override	{return FaceContainerSections::CSFACE_TRIANGLE;}
+		[[nodiscard]] int container_section() const override {return FaceContainerSections::CSFACE_TRIANGLE;}
 
 	protected:
 		Edge* create_edge(int index) override {
@@ -192,8 +192,7 @@ class geometry_traits<Triangle>
 {
 	public:
 		using iterator = GenericGridObjectIterator<Triangle*, FaceIterator>;
-		using const_iterator = ConstGenericGridObjectIterator<Triangle*, FaceIterator,
-			ConstFaceIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<Triangle*, FaceIterator, ConstFaceIterator>;
 
 		using Descriptor = TriangleDescriptor;	///< Faces can't be created directly
 		using grid_base_object = Face;
@@ -221,9 +220,9 @@ class UG_API QuadrilateralDescriptor
 		QuadrilateralDescriptor(const QuadrilateralDescriptor& qd);
 		QuadrilateralDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4);
 
-		inline uint num_vertices() const {return 4;}
+		[[nodiscard]] inline uint num_vertices() const {return 4;}
 		inline void set_vertex(uint index, Vertex* v) {m_vertex[index] = v;}
-		inline Vertex* vertex(size_t index) const {return m_vertex[index];}
+		[[nodiscard]] inline Vertex* vertex(size_t index) const {return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[4];
@@ -252,13 +251,13 @@ class UG_API CustomQuadrilateral : public BaseClass
 	public:
 		using typename BaseClass::ConstVertexArray;
 
-		CustomQuadrilateral()	{}
+		CustomQuadrilateral() = default;
 		CustomQuadrilateral(const QuadrilateralDescriptor& qd);
 		CustomQuadrilateral(Vertex* v1, Vertex* v2,
 							Vertex* v3, Vertex* v4);
 
-		GridObject* create_empty_instance() const override	{return new ConcreteQuadrilateralType;}
-		ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_QUADRILATERAL;}
+		[[nodiscard]] GridObject* create_empty_instance() const override	{return new ConcreteQuadrilateralType;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_QUADRILATERAL;}
 
 		[[nodiscard]] Vertex* vertex(size_t index) const override	{return m_vertices[index];}
 		[[nodiscard]] Face::ConstVertexArray vertices() const override		{return m_vertices;}
@@ -330,7 +329,7 @@ class UG_API Quadrilateral :
 		Quadrilateral(Vertex* v1, Vertex* v2,
 					  Vertex* v3, Vertex* v4) : BaseClass(v1, v2, v3, v4)	{}
 
-		int container_section() const override {return FaceContainerSections::CSFACE_QUADRILATERAL;}
+		[[nodiscard]] int container_section() const override {return FaceContainerSections::CSFACE_QUADRILATERAL;}
 
 	protected:
 		Edge* create_edge(int index) override {
@@ -342,7 +341,7 @@ template <>
 class geometry_traits<Quadrilateral>
 {
 	public:
-	using iterator = GenericGridObjectIterator<Quadrilateral*, FaceIterator>;
+		using iterator = GenericGridObjectIterator<Quadrilateral*, FaceIterator>;
 		using const_iterator = ConstGenericGridObjectIterator<Quadrilateral*, FaceIterator, ConstFaceIterator>;
 
 		using Descriptor = QuadrilateralDescriptor;	///< Faces can't be created directly
@@ -392,9 +391,9 @@ class UG_API ConstrainedFace : public Face
 				m_parentBaseObjectId = pObj->base_object_id();
 		}
 
-		inline GridObject* get_constraining_object() const {return m_pConstrainingObject;}
+		[[nodiscard]] inline GridObject* get_constraining_object() const {return m_pConstrainingObject;}
 
-		inline int get_parent_base_object_id() const {return m_parentBaseObjectId;}
+		[[nodiscard]] inline int get_parent_base_object_id() const {return m_parentBaseObjectId;}
 		inline void set_parent_base_object_id(int id)
 		{
 			if((m_parentBaseObjectId != -1) && (m_parentBaseObjectId != id)){
@@ -406,7 +405,7 @@ class UG_API ConstrainedFace : public Face
 			m_parentBaseObjectId = id;
 		}
 
-		bool is_constrained() const override {return true;}
+		[[nodiscard]] bool is_constrained() const override {return true;}
 
 		void remove_constraint_link(const Face* f) override {
 			if(m_pConstrainingObject == static_cast<const GridObject*>(f))
@@ -444,7 +443,7 @@ class UG_API ConstrainedTriangle :
 		ConstrainedTriangle(Vertex* v1, Vertex* v2, Vertex* v3) :
 			BaseTriangle(v1, v2, v3)	{}
 
-		int container_section() const override {return FaceContainerSections::CSFACE_CONSTRAINED_TRIANGLE;}
+		[[nodiscard]] int container_section() const override {return FaceContainerSections::CSFACE_CONSTRAINED_TRIANGLE;}
 
 	protected:
 		Edge* create_edge(int index) override {
@@ -496,10 +495,10 @@ class UG_API ConstrainedQuadrilateral :
 		ConstrainedQuadrilateral(Vertex* v1, Vertex* v2,
 								 Vertex* v3, Vertex* v4) : BaseClass(v1, v2, v3, v4)	{}
 
-		int container_section() const override {return FaceContainerSections::CSFACE_CONSTRAINED_QUADRILATERAL;}
+		[[nodiscard]] int container_section() const override {return FaceContainerSections::CSFACE_CONSTRAINED_QUADRILATERAL;}
 
 	protected:
-		Edge* create_edge(int index) override {
+		[[nodiscard]] Edge* create_edge(int index) override {
 				return new ConstrainedEdge(m_vertices[index], m_vertices[(index+1) % 4]);
 			}
 };
@@ -510,8 +509,7 @@ class geometry_traits<ConstrainedQuadrilateral>
 {
 	public:
 		using iterator = GenericGridObjectIterator<ConstrainedQuadrilateral*, FaceIterator>;
-		using const_iterator = ConstGenericGridObjectIterator<ConstrainedQuadrilateral*,
-			FaceIterator, ConstFaceIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<ConstrainedQuadrilateral*, FaceIterator, ConstFaceIterator>;
 
 		using Descriptor = QuadrilateralDescriptor;	///< Faces can't be created directly
 		using grid_base_object = Face;
@@ -585,22 +583,19 @@ class UG_API ConstrainingFace : public Face
 
 		inline bool is_constrained_object(Vertex* vrt)
 			{
-				auto iter = find(m_constrainedVertices.begin(),
-															m_constrainedVertices.end(), vrt);
+				auto iter = find(m_constrainedVertices.begin(), m_constrainedVertices.end(), vrt);
 				return iter != m_constrainedVertices.end();
 			}
 
 		inline bool is_constrained_object(Edge* edge)
 			{
-				auto iter = find(m_constrainedEdges.begin(),
-															m_constrainedEdges.end(), edge);
+				auto iter = find(m_constrainedEdges.begin(), m_constrainedEdges.end(), edge);
 				return iter != m_constrainedEdges.end();
 			}
 
 		inline bool is_constrained_object(Face* face)
 			{
-				auto iter = find(m_constrainedFaces.begin(),
-														m_constrainedFaces.end(), face);
+				auto iter = find(m_constrainedFaces.begin(), m_constrainedFaces.end(), face);
 				return iter != m_constrainedFaces.end();
 			}
 
@@ -618,16 +613,14 @@ class UG_API ConstrainingFace : public Face
 
 		inline void unconstrain_object(const Vertex* vrt)
 			{
-				auto iter = find(m_constrainedVertices.begin(),
-															 m_constrainedVertices.end(), vrt);
+				auto iter = find(m_constrainedVertices.begin(), m_constrainedVertices.end(), vrt);
 				if(iter != m_constrainedVertices.end())
 					m_constrainedVertices.erase(iter);
 			}
 
 		inline void unconstrain_object(const Edge* edge)
 			{
-				auto iter = find(m_constrainedEdges.begin(),
-						   m_constrainedEdges.end(), edge);
+				auto iter = find(m_constrainedEdges.begin(), m_constrainedEdges.end(), edge);
 
 				if(iter != m_constrainedEdges.end())
 					m_constrainedEdges.erase(iter);
@@ -635,15 +628,14 @@ class UG_API ConstrainingFace : public Face
 
 		inline void unconstrain_object(const Face* face)
 			{
-				std::vector<Face*>::iterator iter = find(m_constrainedFaces.begin(),
-														m_constrainedFaces.end(), face);
+				auto iter = find(m_constrainedFaces.begin(), m_constrainedFaces.end(), face);
 				if(iter != m_constrainedFaces.end())
 					m_constrainedFaces.erase(iter);
 			}
 
-		inline void clear_constrained_vertices()	{m_constrainedVertices.clear();}
-		inline void clear_constrained_edges()		{m_constrainedEdges.clear();}
-		inline void clear_constrained_faces()		{m_constrainedFaces.clear();}
+		inline void clear_constrained_vertices() {m_constrainedVertices.clear();}
+		inline void clear_constrained_edges() {m_constrainedEdges.clear();}
+		inline void clear_constrained_faces() {m_constrainedFaces.clear();}
 		inline void clear_constrained_objects()
 			{
 				clear_constrained_vertices();
@@ -651,32 +643,32 @@ class UG_API ConstrainingFace : public Face
 				clear_constrained_faces();
 			}
 
-		inline size_t num_constrained_vertices() const
+		[[nodiscard]] inline size_t num_constrained_vertices() const
 		{return m_constrainedVertices.size();}
 
-		inline size_t num_constrained_edges() const
+		[[nodiscard]] inline size_t num_constrained_edges() const
 		{return m_constrainedEdges.size();}
 
-		inline size_t num_constrained_faces() const
+		[[nodiscard]] inline size_t num_constrained_faces() const
 		{return m_constrainedFaces.size();}
 
 
 		template <typename TElem> size_t num_constrained() const;
 
 
-		inline Vertex* constrained_vertex(size_t ind) const
+		[[nodiscard]] inline Vertex* constrained_vertex(size_t ind) const
 			{
 				UG_ASSERT(ind < m_constrainedVertices.size(), "bad index.");
 				return m_constrainedVertices[ind];
 			}
 
-		inline Edge* constrained_edge(size_t ind) const
+		[[nodiscard]] inline Edge* constrained_edge(size_t ind) const
 			{
 				UG_ASSERT(ind < m_constrainedEdges.size(), "bad index.");
 				return m_constrainedEdges[ind];
 			}
 
-		inline Face* constrained_face(size_t ind) const
+		[[nodiscard]] inline Face* constrained_face(size_t ind) const
 			{
 				UG_ASSERT(ind < m_constrainedFaces.size(), "bad index.");
 				return m_constrainedFaces[ind];
@@ -715,7 +707,7 @@ class UG_API ConstrainingTriangle :
 		ConstrainingTriangle(Vertex* v1, Vertex* v2, Vertex* v3) :
 			BaseTriangle(v1, v2, v3)	{reserve_memory();}
 
-		int container_section() const override {return FaceContainerSections::CSFACE_CONSTRAINING_TRIANGLE;}
+		[[nodiscard]] int container_section() const override {return FaceContainerSections::CSFACE_CONSTRAINING_TRIANGLE;}
 
 	protected:
 		void reserve_memory()
@@ -724,7 +716,7 @@ class UG_API ConstrainingTriangle :
 				m_constrainedFaces.reserve(4);
 			}
 
-	Edge* create_edge(int index) override {
+		Edge* create_edge(int index) override {
 				return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 3]);
 			}
 };
@@ -775,7 +767,7 @@ class UG_API ConstrainingQuadrilateral :
 								  Vertex* v3, Vertex* v4) :
 			BaseClass(v1, v2, v3, v4)	{reserve_memory();}
 
-		int container_section() const override {return FaceContainerSections::CSFACE_CONSTRAINING_QUADRILATERAL;}
+		[[nodiscard]] int container_section() const override {return FaceContainerSections::CSFACE_CONSTRAINING_QUADRILATERAL;}
 
 	protected:
 		void reserve_memory()

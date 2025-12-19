@@ -202,7 +202,7 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
  *					specify multiple refine-edges using or-combinations. E.g.,
  *					'edgeMarks = (1<<i) | (1<<j)' would indicate that the
  *					i-th and the j-th edge shall be refined.*/
-bool IsRegularRefRule(const int edgeMarks);
+bool IsRegularRefRule(int edgeMarks);
 
 
 /// fills an array of integers describing tetrahedra that shall replace the prism

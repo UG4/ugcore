@@ -58,7 +58,7 @@
 
 // deprecated, currently here for backward compatibility
 // #define LOG(msg) UG_LOG(msg)
-#define STATIC_ASSERT(expr, msg) UG_STATIC_ASSERT(expr, msg)
+//#define STATIC_ASSERT(expr, msg) UG_STATIC_ASSERT(expr, msg)
 
 ////////////////////////////////////////////////////////////////////////////////
 // save pointer (de-)allocation

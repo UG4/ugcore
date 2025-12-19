@@ -66,10 +66,10 @@ class UG_API RegularVertex : public Vertex
 
 		virtual ~RegularVertex() = default;
 
-		virtual GridObject* create_empty_instance() const	{return new RegularVertex;}
+		[[nodiscard]] GridObject* create_empty_instance() const override {return new RegularVertex;}
 
-		virtual int container_section() const	{return VertexContainerSections::CSVRT_REGULAR_VERTEX;}
-		virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_VERTEX;}
+		[[nodiscard]] int container_section() const override {return VertexContainerSections::CSVRT_REGULAR_VERTEX;}
+		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_VERTEX;}
 };
 
 template <>
@@ -77,8 +77,7 @@ class geometry_traits<RegularVertex>
 {
 	public:
 		using iterator = GenericGridObjectIterator<RegularVertex*, VertexIterator>;
-		using const_iterator = ConstGenericGridObjectIterator<RegularVertex*, VertexIterator,
-			ConstVertexIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<RegularVertex*, VertexIterator, ConstVertexIterator>;
 
 		using grid_base_object = Vertex;
 
@@ -113,28 +112,26 @@ class UG_API ConstrainedVertex : public Vertex
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedVertex*>(pObj) != nullptr;}
 
 		ConstrainedVertex()	: m_constrainingObj(nullptr), m_parentBaseObjectId(-1)	{}
-		virtual ~ConstrainedVertex()
-		{
+
+		~ConstrainedVertex() override {
 			if(m_constrainingObj)
 				m_constrainingObj->remove_constraint_link(this);
 		}
 
-		virtual GridObject* create_empty_instance() const	{return new ConstrainedVertex;}
+		GridObject* create_empty_instance() const override {return new ConstrainedVertex;}
 
-		virtual int container_section() const	{return VertexContainerSections::CSVRT_CONSTRAINED_VERTEX;}
-		virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_VERTEX;}
+		int container_section() const override {return VertexContainerSections::CSVRT_CONSTRAINED_VERTEX;}
+		ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_VERTEX;}
 
-		virtual bool is_constrained() const			{return true;}
+		bool is_constrained() const override {return true;}
 
-		virtual void remove_constraint_link(const Edge* e)
-		{
+		void remove_constraint_link(const Edge* e) override {
 			if(m_constrainingObj == static_cast<const GridObject*>(e)){
 				m_constrainingObj = nullptr;
 			}
 		}
 
-		virtual void remove_constraint_link(const Face* f)
-		{
+		void remove_constraint_link(const Face* f) override {
 			if(m_constrainingObj == static_cast<const GridObject*>(f)){
 				m_constrainingObj = nullptr;
 			}
@@ -147,8 +144,8 @@ class UG_API ConstrainedVertex : public Vertex
 				m_parentBaseObjectId = constrObj->base_object_id();
 		}
 
-		inline GridObject* get_constraining_object()	{return m_constrainingObj;}
-		inline int get_parent_base_object_id()				{return m_parentBaseObjectId;}
+		inline GridObject* get_constraining_object() const {return m_constrainingObj;}
+		inline int get_parent_base_object_id() const {return m_parentBaseObjectId;}
 		inline void set_parent_base_object_id(int id)
 		{
 			if((m_parentBaseObjectId != -1) && (m_parentBaseObjectId != id)){
@@ -160,9 +157,9 @@ class UG_API ConstrainedVertex : public Vertex
 			m_parentBaseObjectId = id;
 		}
 
-		inline const vector2& get_local_coordinates() const	{return m_localCoord;}
-		inline number get_local_coordinate_1() const		{return m_localCoord.x();}
-		inline number get_local_coordinate_2() const		{return m_localCoord.y();}
+		[[nodiscard]] inline const vector2& get_local_coordinates() const {return m_localCoord;}
+		[[nodiscard]] inline number get_local_coordinate_1() const {return m_localCoord.x();}
+		[[nodiscard]] inline number get_local_coordinate_2() const {return m_localCoord.y();}
 
 		inline void set_local_coordinates(number x, number y)		{m_localCoord.x() = x; m_localCoord.y() = y;}
 		inline void set_local_coordinates(const vector2& coords)	{m_localCoord = coords;}
@@ -180,9 +177,7 @@ class geometry_traits<ConstrainedVertex>
 {
 	public:
 		using iterator = GenericGridObjectIterator<ConstrainedVertex*, VertexIterator>;
-		using const_iterator = ConstGenericGridObjectIterator<ConstrainedVertex*, VertexIterator,
-			ConstVertexIterator>;
-
+		using const_iterator = ConstGenericGridObjectIterator<ConstrainedVertex*, VertexIterator, ConstVertexIterator>;
 		using grid_base_object = Vertex;
 
 		enum

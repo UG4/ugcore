@@ -370,13 +370,6 @@ size_t LevenshteinDistance( const string& s1, const string& s2 )
   return tmp;
 }
 
-string repeat(char c, int nr)
-{
-	if(nr > 0)
-		return string(nr, c);
-	else
-		return string("");
-}
 
 bool IsLonger(const string &a, const string &b)
 {
