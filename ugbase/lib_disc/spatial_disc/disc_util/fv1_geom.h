@@ -505,7 +505,7 @@ class FV1Geometry_gen : public FVGeometryBase
 		[[nodiscard]] size_t num_sh() const {return nsh;};
 
 	///	returns reference object id
-		[[nodiscard]] ReferenceObjectID roid() const {return ref_elem_type::REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t roid() const {return ref_elem_type::REFERENCE_OBJECT_ID;}
 
 
 	public:
@@ -1085,10 +1085,10 @@ class DimFV1Geometry : public FVGeometryBase
 		const MathVector<worldDim>* coe_global() const {return &(m_vvGloMid[dim][0]);}
 
 	///	returns reference object id
-		[[nodiscard]] ReferenceObjectID roid() const {return m_roid;}
+		[[nodiscard]] ReferenceObjectID_t roid() const {return m_roid;}
 
 	///	update local data
-		void update_local(ReferenceObjectID roid);
+		void update_local(ReferenceObjectID_t roid);
 
 	protected:
 	//	global and local ips on SCVF
@@ -1158,7 +1158,7 @@ class DimFV1Geometry : public FVGeometryBase
 		GridObject* m_pElem;
 
 	///	current reference object id
-		ReferenceObjectID m_roid;
+		ReferenceObjectID_t m_roid;
 
 	///	current number of scv
 		size_t m_numSCV;
@@ -1194,10 +1194,10 @@ class FV1ManifoldGeometry
 {
 	public:
 	// 	type of element
-	using elem_type = TElem;
+		using elem_type = TElem;
 
 	// 	type of reference element
-	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
+		using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	public:
 	// 	order

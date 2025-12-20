@@ -62,7 +62,7 @@ template <	typename TElem,	int TWorldDim,
 			typename TTrialSpace, typename TQuadratureRule>
 void
 FEGeometry<TElem,TWorldDim,TTrialSpace,TQuadratureRule>::
-update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
+update_local(ReferenceObjectID_t roid, const LFEID& lfeID, size_t orderQuad)
 {
 	if(roid != geometry_traits<TElem>::REFERENCE_OBJECT_ID)
 		UG_THROW("FEGeometry::update: Geometry only for "

@@ -577,7 +577,7 @@ update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoord
 
 template <int TDim, int TWorldDim>
 void DimFV1Geometry<TDim, TWorldDim>::
-update_local(ReferenceObjectID roid)
+update_local(ReferenceObjectID_t roid)
 {
 	m_roid = roid;
 	

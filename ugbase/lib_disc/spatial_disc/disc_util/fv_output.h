@@ -118,15 +118,15 @@ void ConstructGridOfSCVF(ISubsetHandler& shOut,
 	TFVGeom<TElem, TWorldDim> geo;
 
 	// iterators for primary grid
-	typename SurfaceView::traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = surfView.begin<TElem>(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false), SurfaceView::SURFACE);
-	iterEnd = surfView.end<TElem>(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false), SurfaceView::SURFACE);
+	//typename SurfaceView::traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	auto iterBegin = surfView.begin<TElem>(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false), SurfaceView::SURFACE);
+	auto iterEnd = surfView.end<TElem>(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false), SurfaceView::SURFACE);
 
 	// corners of element
 	std::vector<MathVector<TWorldDim> > vCornerCoords;
 
 	// iterate over primary grid
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(auto iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get element
 		TElem* elem = *iter;
@@ -305,15 +305,15 @@ void ConstructGridOfSCV(ISubsetHandler& shOut, const SurfaceView& surfView,
 	TFVGeom<TElem, TWorldDim> geo;
 
 	// iterators for primary grid
-	typename SurfaceView::traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = surfView.begin<TElem>(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false), SurfaceView::SURFACE);
-	iterEnd = surfView.end<TElem>(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false), SurfaceView::SURFACE);
+	//typename SurfaceView::traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	auto iterBegin = surfView.begin<TElem>(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false), SurfaceView::SURFACE);
+	auto iterEnd = surfView.end<TElem>(GridLevel(GridLevel::TOP, GridLevel::ViewType::SURFACE, false), SurfaceView::SURFACE);
 
 	// corners of element
 	std::vector<MathVector<TWorldDim> > vCornerCoords;
 
 	// iterate over primary grid
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(auto iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get element
 		TElem* elem = *iter;
