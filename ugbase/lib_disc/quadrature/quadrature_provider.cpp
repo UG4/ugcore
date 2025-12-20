@@ -69,8 +69,7 @@ QuadratureRuleProvider<0>::create_gauss_rule(ReferenceObjectID roid,
 
 template <>
 const QuadratureRule<1>*
-QuadratureRuleProvider<1>::create_gauss_rule(ReferenceObjectID roid,
-                                                size_t order)
+QuadratureRuleProvider<1>::create_gauss_rule(ReferenceObjectID_t roid, size_t order)
 {
 	QuadratureRule<1>* q = nullptr;
 	try{
@@ -84,7 +83,7 @@ QuadratureRuleProvider<1>::create_gauss_rule(ReferenceObjectID roid,
 
 template <>
 const QuadratureRule<2>*
-QuadratureRuleProvider<2>::create_gauss_rule(ReferenceObjectID roid,
+QuadratureRuleProvider<2>::create_gauss_rule(ReferenceObjectID_t roid,
                                                 size_t order)
 {
 	QuadratureRule<2>* q = nullptr;
@@ -100,7 +99,7 @@ QuadratureRuleProvider<2>::create_gauss_rule(ReferenceObjectID roid,
 
 template <>
 const QuadratureRule<3>*
-QuadratureRuleProvider<3>::create_gauss_rule(ReferenceObjectID roid,
+QuadratureRuleProvider<3>::create_gauss_rule(ReferenceObjectID_t roid,
                                                 size_t order)
 {
 	QuadratureRule<3>* q = nullptr;
@@ -123,14 +122,14 @@ QuadratureRuleProvider<3>::create_gauss_rule(ReferenceObjectID roid,
 
 template <>
 const QuadratureRule<0>*
-QuadratureRuleProvider<0>::create_gauss_legendre_rule(ReferenceObjectID roid, size_t order)
+QuadratureRuleProvider<0>::create_gauss_legendre_rule(ReferenceObjectID_t roid, size_t order)
 {
 	return nullptr;
 }
 
 template <>
 const QuadratureRule<1>*
-QuadratureRuleProvider<1>::create_gauss_legendre_rule(ReferenceObjectID roid, size_t order)
+QuadratureRuleProvider<1>::create_gauss_legendre_rule(ReferenceObjectID_t roid, size_t order)
 {
 	QuadratureRule<1>* q = nullptr;
 	try{
@@ -141,7 +140,7 @@ QuadratureRuleProvider<1>::create_gauss_legendre_rule(ReferenceObjectID roid, si
 
 template <>
 const QuadratureRule<2>*
-QuadratureRuleProvider<2>::create_gauss_legendre_rule(ReferenceObjectID roid,
+QuadratureRuleProvider<2>::create_gauss_legendre_rule(ReferenceObjectID_t roid,
                                                 size_t order)
 {
 	QuadratureRule<2>* q = nullptr;
@@ -157,7 +156,7 @@ QuadratureRuleProvider<2>::create_gauss_legendre_rule(ReferenceObjectID roid,
 
 template <>
 const QuadratureRule<3>*
-QuadratureRuleProvider<3>::create_gauss_legendre_rule(ReferenceObjectID roid,                              size_t order)
+QuadratureRuleProvider<3>::create_gauss_legendre_rule(ReferenceObjectID_t roid, size_t order)
 {
 	QuadratureRule<3>* q = nullptr;
 	try{
@@ -179,7 +178,7 @@ QuadratureRuleProvider<3>::create_gauss_legendre_rule(ReferenceObjectID roid,   
 
 template <>
 const QuadratureRule<1>*
-QuadratureRuleProvider<1>::create_newton_cotes_rule(ReferenceObjectID roid, size_t order)
+QuadratureRuleProvider<1>::create_newton_cotes_rule(ReferenceObjectID_t roid, size_t order)
 {
 	QuadratureRule<1>* q = nullptr;
 	try{
@@ -190,7 +189,7 @@ QuadratureRuleProvider<1>::create_newton_cotes_rule(ReferenceObjectID roid, size
 
 template <int TDim>
 const QuadratureRule<TDim>*
-QuadratureRuleProvider<TDim>::create_newton_cotes_rule(ReferenceObjectID roid, size_t order)
+QuadratureRuleProvider<TDim>::create_newton_cotes_rule(ReferenceObjectID_t roid, size_t order)
 {
 	return nullptr;
 }
@@ -219,7 +218,7 @@ QuadratureRuleProvider<TDim>::~QuadratureRuleProvider()
 
 template <int TDim>
 const QuadratureRule<TDim>&
-QuadratureRuleProvider<TDim>::get_quad_rule(ReferenceObjectID roid,
+QuadratureRuleProvider<TDim>::get_quad_rule(ReferenceObjectID_t roid,
                                             size_t order,
                                             QuadType type)
 {
@@ -233,7 +232,7 @@ QuadratureRuleProvider<TDim>::get_quad_rule(ReferenceObjectID roid,
 
 template <int TDim>
 void
-QuadratureRuleProvider<TDim>::create_rule(ReferenceObjectID roid,
+QuadratureRuleProvider<TDim>::create_rule(ReferenceObjectID_t roid,
                                           size_t order,
                                           QuadType type)
 {
@@ -277,7 +276,7 @@ QuadratureRuleProvider<TDim>::create_rule(ReferenceObjectID roid,
 
 template <int TDim>
 const QuadratureRule<TDim>&
-QuadratureRuleProvider<TDim>::get(ReferenceObjectID roid, size_t order,
+QuadratureRuleProvider<TDim>::get(ReferenceObjectID_t roid, size_t order,
                                        QuadType type)
 {
 //	forward request

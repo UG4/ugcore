@@ -1677,13 +1677,13 @@ adjust_error
 
 			// loop elements of side_type (only!)
 			// elements of measure 0 in the boundary are ignored.
-			for( ; iter != iterEnd; iter++)
+			for( ; iter != iterEnd; ++iter)
 			{
 				// get vertex
 				side_type* elem = *iter;
 
 				// get reference object id
-				ReferenceObjectID roid = elem->reference_object_id();
+				ReferenceObjectID_t roid = elem->reference_object_id();
 
 				// get corner coords (for later use in calculating global IPs)
 				std::vector<typename TDomain::position_type> vCoCo;

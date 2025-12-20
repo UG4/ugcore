@@ -192,7 +192,7 @@ class ReferenceMappingProvider {
 
 	//	casts void to map
 		template <int TDim, int TWorldDim>
-		DimReferenceMapping<TDim, TWorldDim>* get_mapping(ReferenceObjectID roid)
+		DimReferenceMapping<TDim, TWorldDim>* get_mapping(ReferenceObjectID_t roid)
 		{
 			UG_STATIC_ASSERT(TDim <= 3, only_implemented_for_ref_dim_smaller_equal_3);
 			UG_STATIC_ASSERT(TWorldDim <= 3, only_implemented_for_ref_dim_smaller_equal_3);
@@ -204,7 +204,7 @@ class ReferenceMappingProvider {
 
 	//	casts map to void
 		template <int TDim, int TWorldDim>
-		void set_mapping(ReferenceObjectID roid, DimReferenceMapping<TDim, TWorldDim>& map)
+		void set_mapping(ReferenceObjectID_t roid, DimReferenceMapping<TDim, TWorldDim>& map)
 		{
 			m_vvvMapping[TDim][TWorldDim][roid] = reinterpret_cast<void*>(&map);
 		}
@@ -222,7 +222,7 @@ class ReferenceMappingProvider {
 	 * \tparam		TWorldDim	(physical) world dimension
 	 */
 		template <int TDim, int TWorldDim>
-		static DimReferenceMapping<TDim, TWorldDim>& get(ReferenceObjectID roid)
+		static DimReferenceMapping<TDim, TWorldDim>& get(ReferenceObjectID_t roid)
 		{
 			DimReferenceMapping<TDim, TWorldDim>* pMap = inst().get_mapping<TDim, TWorldDim>(roid);
 			if(!pMap){
@@ -245,7 +245,7 @@ class ReferenceMappingProvider {
 	 * \tparam		TWorldDim		(physical) world dimension
 	 */
 		template <int TDim, int TWorldDim>
-		static DimReferenceMapping<TDim, TWorldDim>& get(ReferenceObjectID roid,
+		static DimReferenceMapping<TDim, TWorldDim>& get(ReferenceObjectID_t roid,
 		                                                 const std::vector<MathVector<TWorldDim> >& vCornerCoord)
 		{
 			DimReferenceMapping<TDim, TWorldDim>& map = get<TDim, TWorldDim>(roid);
@@ -266,7 +266,7 @@ class ReferenceMappingProvider {
 	 * \tparam		TWorldDim		(physical) world dimension
 	 */
 		template <int TDim, int TWorldDim>
-		static DimReferenceMapping<TDim, TWorldDim>& get(ReferenceObjectID roid,
+		static DimReferenceMapping<TDim, TWorldDim>& get(ReferenceObjectID_t roid,
 														 const MathVector<TWorldDim>* vCornerCoord)
 		{
 			DimReferenceMapping<TDim, TWorldDim>& map = get<TDim, TWorldDim>(roid);

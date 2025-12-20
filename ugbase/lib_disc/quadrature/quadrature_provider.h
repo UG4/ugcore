@@ -87,16 +87,16 @@ private:
 
 	///	provide rule, try to create it if not already present
 		static const QuadratureRule<TDim>&
-		get_quad_rule(ReferenceObjectID roid, size_t order, QuadType type);
+		get_quad_rule(ReferenceObjectID_t roid, size_t order, QuadType type);
 
 	///	creates rule at this provider
-		static void create_rule(ReferenceObjectID roid, size_t order, QuadType type);
+		static void create_rule(ReferenceObjectID_t roid, size_t order, QuadType type);
 
 	///	rule creation, returns nullptr if unavailable
 	/// \{
-		static const QuadratureRule<TDim>* create_gauss_rule(ReferenceObjectID roid, size_t order);
-		static const QuadratureRule<TDim>* create_newton_cotes_rule(ReferenceObjectID roid, size_t order);
-		static const QuadratureRule<TDim>* create_gauss_legendre_rule(ReferenceObjectID roid, size_t order);
+		static const QuadratureRule<TDim>* create_gauss_rule(ReferenceObjectID_t roid, size_t order);
+		static const QuadratureRule<TDim>* create_newton_cotes_rule(ReferenceObjectID_t roid, size_t order);
+		static const QuadratureRule<TDim>* create_gauss_legendre_rule(ReferenceObjectID_t roid, size_t order);
 	/// \}
 
 	public:
@@ -123,7 +123,7 @@ private:
 	 * \param[in]	order		Order of requested quadrature rule
 	 */
 		static const QuadratureRule<TDim>&
-		get(ReferenceObjectID roid, size_t order, QuadType type = QuadType::BEST);
+		get(ReferenceObjectID_t roid, size_t order, QuadType type = QuadType::BEST);
 };
 
 // Init static member

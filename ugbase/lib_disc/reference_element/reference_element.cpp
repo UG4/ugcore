@@ -160,14 +160,14 @@ ReferenceElementProvider()
 
 bool ReferenceElementProvider::add_elem(const ReferenceElement& elem)
 {
-	const ReferenceObjectID roid = elem.roid();
+	const ReferenceObjectID_t roid = elem.roid();
 	UG_ASSERT(roid >= 0, "roid ="<<roid<<" wrong")
 	UG_ASSERT(roid < NUM_REFERENCE_OBJECTS, "roid ="<<roid<<" wrong")
 	m_vElem[roid] = &elem;
 	return true;
 }
 
-const ReferenceElement& ReferenceElementProvider::get_elem(ReferenceObjectID roid)
+const ReferenceElement& ReferenceElementProvider::get_elem(ReferenceObjectID_t roid)
 {
 	UG_ASSERT(roid >= 0, "roid ="<<roid<<" wrong")
 	UG_ASSERT(roid < NUM_REFERENCE_OBJECTS, "roid ="<<roid<<" wrong")
@@ -178,7 +178,7 @@ const ReferenceElement& ReferenceElementProvider::get_elem(ReferenceObjectID roi
 template <int dim>
 bool ReferenceElementProvider::add_dim_elem(const DimReferenceElement<dim>& elem)
 {
-	const ReferenceObjectID roid = elem.roid();
+	const ReferenceObjectID_t roid = elem.roid();
 	UG_ASSERT(roid >= 0, "roid ="<<roid<<" wrong")
 	UG_ASSERT(roid < NUM_REFERENCE_OBJECTS, "roid ="<<roid<<" wrong")
 	static const DimReferenceElement<dim>** vDimElem = get_vector<dim>();

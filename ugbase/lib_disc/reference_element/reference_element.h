@@ -74,7 +74,7 @@ class ReferenceElement
 		ReferenceElement();
 
 	/// returns the reference object id
-		[[nodiscard]] ReferenceObjectID roid() const
+		[[nodiscard]] ReferenceObjectID_t roid() const
 			{return m_vRefElemType[m_dim][0];}
 
 	/// returns the dimension where reference element lives
@@ -129,11 +129,11 @@ class ReferenceElement
 			{return m_id[dim_i][i][dim_j][j];}
 
 	/// number of reference elements this element contains
-		[[nodiscard]] size_t num(ReferenceObjectID type) const
+		[[nodiscard]] size_t num(ReferenceObjectID_t type) const
 			{return m_vNumRefElem[type];}
 
 	/// reference element type of obj nr i in dimension dim_i
-		[[nodiscard]] ReferenceObjectID roid(int dim_i, size_t i) const
+		[[nodiscard]] ReferenceObjectID_t roid(int dim_i, size_t i) const
 			{return m_vRefElemType[dim_i][i];}
 
 	/// print informations about the reference element
@@ -168,7 +168,7 @@ class ReferenceElement
 		size_t m_vNumRefElem[ReferenceObjectID::NUM_REFERENCE_OBJECTS];
 
 	///	type of reference elements
-		ReferenceObjectID m_vRefElemType[MAXDIM+1][MAXOBJECTS];
+		ReferenceObjectID_t m_vRefElemType[MAXDIM+1][MAXOBJECTS];
 };
 
 /// dimension dependent base class for reference elements
@@ -214,7 +214,7 @@ class DimReferenceElement : public ReferenceElement
 /// Exception thrown when reference element not found
 struct UGError_ReferenceElementMissing : UGError
 {
-	UGError_ReferenceElementMissing(int dim_, ReferenceObjectID roid_)
+	UGError_ReferenceElementMissing(int dim_, ReferenceObjectID_t roid_)
 	: UGError(""), dim(dim_), roid(roid_)
 	{
 		std::stringstream ss; ss << "Reference Element not found for "
@@ -222,7 +222,7 @@ struct UGError_ReferenceElementMissing : UGError
 		push_msg(ss.str());
 	}
 	int dim;
-	ReferenceObjectID roid;
+	ReferenceObjectID_t roid;
 };
 
 /// Provider for Reference Elements
@@ -247,7 +247,7 @@ class ReferenceElementProvider
 		static bool add_elem(const ReferenceElement& elem);
 
 	///	returns a Reference Element
-		static const ReferenceElement& get_elem(ReferenceObjectID roid);
+		static const ReferenceElement& get_elem(ReferenceObjectID_t roid);
 
 	///	vector storing all ReferenceElement
 		static const ReferenceElement* m_vElem[ReferenceObjectID::NUM_REFERENCE_OBJECTS];
@@ -258,7 +258,7 @@ class ReferenceElementProvider
 
 	///	returns a Reference Element
 		template <int dim>
-		static const DimReferenceElement<dim>& get_dim_elem(ReferenceObjectID roid)
+		static const DimReferenceElement<dim>& get_dim_elem(ReferenceObjectID_t roid)
 		{
 			UG_ASSERT(roid >= 0, "roid ="<<roid<<" wrong")
 			UG_ASSERT(roid < NUM_REFERENCE_OBJECTS, "roid ="<<roid<<" wrong")
@@ -278,13 +278,13 @@ class ReferenceElementProvider
 	public:
 	///	returns a dimension dependent Reference Element
 		template <int dim>
-		inline static const DimReferenceElement<dim>& get(ReferenceObjectID roid)
+		inline static const DimReferenceElement<dim>& get(ReferenceObjectID_t roid)
 		{
 			return instance().get_dim_elem<dim>(roid);
 		}
 
 	///	returns a Reference Element
-		inline static const ReferenceElement& get(ReferenceObjectID roid)
+		inline static const ReferenceElement& get(ReferenceObjectID_t roid)
 		{
 			return instance().get_elem(roid);
 		}
@@ -304,7 +304,7 @@ class ReferenceVertex : public DimReferenceElement<0>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_VERTEX;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_VERTEX;
 
 	///	dimension of reference element
 		static constexpr int dim = 0;
@@ -329,7 +329,7 @@ class ReferenceVertex : public DimReferenceElement<0>
 		ReferenceVertex();
 
 	/// \copydoc ug::ReferenceElement::reference_object_id()
-		[[nodiscard]] ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const {return REFERENCE_OBJECT_ID;}
 
 	/// \copydoc ug::ReferenceElement::dimension()
 		[[nodiscard]] int dimension() const {return dim;}
@@ -346,7 +346,7 @@ class ReferenceEdge : public DimReferenceElement<1>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
 
 	///	dimension of reference element
 		static constexpr int dim = 1;
@@ -371,7 +371,7 @@ class ReferenceEdge : public DimReferenceElement<1>
 		ReferenceEdge();
 
 	/// \copydoc ug::ReferenceElement::reference_object_id()
-		[[nodiscard]] ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const {return REFERENCE_OBJECT_ID;}
 
 	/// \copydoc ug::ReferenceElement::dimension()
 		[[nodiscard]] int dimension() const {return dim;}
@@ -395,7 +395,7 @@ class ReferenceTriangle : public DimReferenceElement<2>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TRIANGLE;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TRIANGLE;
 
 	///	dimension of reference element
 		static constexpr int dim = 2;
@@ -420,7 +420,7 @@ class ReferenceTriangle : public DimReferenceElement<2>
 		ReferenceTriangle();
 
 	/// \copydoc ug::ReferenceElement::reference_object_id()
-		[[nodiscard]] ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const {return REFERENCE_OBJECT_ID;}
 
 	/// \copydoc ug::ReferenceElement::dimension()
 		[[nodiscard]] int dimension() const {return dim;}
@@ -446,7 +446,7 @@ class ReferenceQuadrilateral : public DimReferenceElement<2>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_QUADRILATERAL;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_QUADRILATERAL;
 
 	///	dimension of reference element
 		static constexpr int dim = 2;
@@ -470,7 +470,7 @@ class ReferenceQuadrilateral : public DimReferenceElement<2>
 		ReferenceQuadrilateral();
 
 	/// \copydoc ug::ReferenceElement::reference_object_id()
-		[[nodiscard]] ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const {return REFERENCE_OBJECT_ID;}
 
 	/// \copydoc ug::ReferenceElement::dimension()
 		[[nodiscard]] int dimension() const {return dim;}
@@ -495,7 +495,7 @@ class ReferenceTetrahedron : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TETRAHEDRON;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TETRAHEDRON;
 
 	///	dimension of reference element
 		static constexpr int dim = 3;
@@ -520,7 +520,7 @@ class ReferenceTetrahedron : public DimReferenceElement<3>
 		ReferenceTetrahedron();
 
 	/// \copydoc ug::ReferenceElement::reference_object_id()
-		[[nodiscard]] ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const {return REFERENCE_OBJECT_ID;}
 
 	/// \copydoc ug::ReferenceElement::dimension()
 		[[nodiscard]] int dimension() const {return dim;}
@@ -547,7 +547,7 @@ class ReferencePyramid : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_PYRAMID;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_PYRAMID;
 
 	///	dimension of reference element
 		static constexpr int dim = 3;
@@ -572,7 +572,7 @@ class ReferencePyramid : public DimReferenceElement<3>
 		ReferencePyramid();
 
 	/// \copydoc ug::ReferenceElement::reference_object_id()
-		[[nodiscard]] ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const {return REFERENCE_OBJECT_ID;}
 
 	/// \copydoc ug::ReferenceElement::dimension()
 		[[nodiscard]] int dimension() const {return dim;}
@@ -596,7 +596,7 @@ class ReferencePrism : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_PRISM;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_PRISM;
 
 	///	dimension of reference element
 		static constexpr int dim = 3;
@@ -621,7 +621,7 @@ class ReferencePrism : public DimReferenceElement<3>
 		ReferencePrism();
 
 	/// \copydoc ug::ReferenceElement::reference_object_id()
-		[[nodiscard]] ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const {return REFERENCE_OBJECT_ID;}
 
 	/// \copydoc ug::ReferenceElement::dimension()
 		[[nodiscard]] int dimension() const {return dim;}
@@ -649,7 +649,7 @@ class ReferenceHexahedron : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_HEXAHEDRON;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_HEXAHEDRON;
 
 	///	dimension of reference element
 		static constexpr int dim = 3;
@@ -674,7 +674,7 @@ class ReferenceHexahedron : public DimReferenceElement<3>
 		ReferenceHexahedron();
 
 	/// \copydoc ug::ReferenceElement::reference_object_id()
-		[[nodiscard]] ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const {return REFERENCE_OBJECT_ID;}
 
 	/// \copydoc ug::ReferenceElement::dimension()
 		[[nodiscard]] int dimension() const {return dim;}
@@ -700,7 +700,7 @@ class ReferenceOctahedron : public DimReferenceElement<3>
 {
 	public:
 	///	type of reference element
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_OCTAHEDRON;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_OCTAHEDRON;
 
 	///	dimension of reference element
 		static constexpr int dim = 3;
@@ -725,7 +725,7 @@ class ReferenceOctahedron : public DimReferenceElement<3>
 		ReferenceOctahedron();
 
 	/// \copydoc ug::ReferenceElement::reference_object_id()
-		[[nodiscard]] ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const {return REFERENCE_OBJECT_ID;}
 
 	/// \copydoc ug::ReferenceElement::dimension()
 		[[nodiscard]] int dimension() const {return dim;}

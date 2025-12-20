@@ -37,7 +37,7 @@
 namespace ug {
 
 /// returns the reference element dimension at run-time
-inline int ReferenceElementDimension(ReferenceObjectID roid)
+inline int ReferenceElementDimension(ReferenceObjectID_t roid)
 {
 	switch(roid)
 	{
@@ -57,10 +57,10 @@ inline int ReferenceElementDimension(ReferenceObjectID roid)
 
 /// returns the Center of a reference element at run-time
 template <int dim>
-inline MathVector<dim> ReferenceElementCenter(ReferenceObjectID roid);
+inline MathVector<dim> ReferenceElementCenter(ReferenceObjectID_t roid);
 
 template <>
-inline MathVector<1> ReferenceElementCenter<1>(ReferenceObjectID roid)
+inline MathVector<1> ReferenceElementCenter<1>(ReferenceObjectID_t roid)
 {
 	switch(roid)
 	{
@@ -70,7 +70,7 @@ inline MathVector<1> ReferenceElementCenter<1>(ReferenceObjectID roid)
 }
 
 template <>
-inline MathVector<2> ReferenceElementCenter<2>(ReferenceObjectID roid)
+inline MathVector<2> ReferenceElementCenter<2>(ReferenceObjectID_t roid)
 {
 	switch(roid)
 	{
@@ -81,7 +81,7 @@ inline MathVector<2> ReferenceElementCenter<2>(ReferenceObjectID roid)
 }
 
 template <>
-inline MathVector<3> ReferenceElementCenter<3>(ReferenceObjectID roid)
+inline MathVector<3> ReferenceElementCenter<3>(ReferenceObjectID_t roid)
 {
 	switch(roid)
 	{
