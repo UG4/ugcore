@@ -54,7 +54,8 @@ namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
 ///	enumeration of the GridBaseObjects that make up a grid.
-enum GridBaseObjectId
+using GridBaseObjectId_t = uint;
+enum GridBaseObjectId : uint
 {
 	VERTEX = 0,
 	EDGE,
@@ -69,7 +70,8 @@ extern const char* GRID_BASE_OBJECT_PLURAL_NAMES[];
 ////////////////////////////////////////////////////////////////////////
 //	Reference-Object IDs
 ///	these ids are used to identify the shape of a geometric object.
-enum ReferenceObjectID
+
+enum ReferenceObjectID : int
 {
 	ROID_UNKNOWN = -1,
 	ROID_VERTEX,
@@ -83,6 +85,7 @@ enum ReferenceObjectID
 	ROID_OCTAHEDRON,
 	NUM_REFERENCE_OBJECTS
 };
+using ReferenceObjectID_t = ReferenceObjectID;
 
 inline
 ReferenceObjectID operator ++ (ReferenceObjectID& roid, int)
@@ -168,13 +171,13 @@ class UG_API GridObject
 		[[nodiscard]] virtual GridObject* create_empty_instance() const {return nullptr;}
 
 		[[nodiscard]] virtual int container_section() const = 0;
-		[[nodiscard]] virtual byte_t base_object_id() const = 0;
+		[[nodiscard]] virtual GridBaseObjectId_t base_object_id() const = 0;
 	/**
 	 * A reference object represents a class of geometric objects.
 	 * Tetrahedrons, Triangles etc are such classes.
 	 * Reference ids should be defined in the file in which concrete geometric objects are defined.
 	 */
-		[[nodiscard]] virtual ReferenceObjectID reference_object_id() const = 0;///	returns the id of the reference-object.
+		[[nodiscard]] virtual ReferenceObjectID_t reference_object_id() const = 0;///	returns the id of the reference-object.
 
 	///	returns true if the object constrains other objects.
 	/**	This is normally only the case for special constraining objects.
@@ -261,14 +264,14 @@ class UG_API Vertex : public GridObject
 		[[nodiscard]] inline uint num_sides() const {return 0;}
 
 		[[nodiscard]] int container_section() const override {return -1;}
-		[[nodiscard]] byte_t base_object_id() const override {return GridBaseObjectId::VERTEX;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
+		[[nodiscard]] GridBaseObjectId_t base_object_id() const override {return GridBaseObjectId::VERTEX;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
 
 	///	returns a value that can be used for hashing.
 	/**	this value is unique per grid.
 	 *	It is only set correctly if the vertex has been created
 	 *	by the grid or has been properly registered at it.*/
-		inline uint32 get_hash_value() const	{return m_hashValue;}
+		[[nodiscard]] inline uint32 get_hash_value() const	{return m_hashValue;}
 
 	protected:
 		uint32	m_hashValue;//	a unique value for each vertex in a grid.
@@ -423,8 +426,8 @@ class UG_API Edge : public GridObject, public EdgeVertices
 		~Edge() override = default;
 
 		[[nodiscard]] int container_section() const override {return -1;}
-		[[nodiscard]] byte_t base_object_id() const override {return GridBaseObjectId::EDGE;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
+		[[nodiscard]] GridBaseObjectId_t base_object_id() const override {return GridBaseObjectId::EDGE;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
 
 		[[nodiscard]] inline uint num_sides() const {return 2;}
 
@@ -547,8 +550,8 @@ class UG_API Face : public GridObject, public FaceVertices
 		[[nodiscard]] inline uint num_sides() const	{return num_edges();}
 
 		[[nodiscard]] int container_section() const override {return -1;}
-		[[nodiscard]] byte_t base_object_id() const override {return GridBaseObjectId::FACE;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
+		[[nodiscard]] GridBaseObjectId_t base_object_id() const override {return GridBaseObjectId::FACE;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
 
 	/**	A default implementation is featured to allow empty instances of
 	 *	this class. This is required to allow the use of this class
@@ -895,7 +898,7 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 *					specify multiple refine-edges using or-combinations:
 	 *					'edgeMarks = (1<<i) | (1<<j)' would indicate that the
 	 *					i-th and the j-th edge shall be refined.*/
-		virtual bool is_regular_ref_rule(int edgeMarks) const	{return false;}
+		virtual bool is_regular_ref_rule(int edgeMarks) const {return false;}
 
 	/**
 	 * The collapse_edge method creates new geometric objects by collapsing the specified edge.

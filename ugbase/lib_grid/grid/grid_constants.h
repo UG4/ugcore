@@ -37,11 +37,11 @@ namespace ug {
 
 /// \addtogroup lib_grid
 /// @{
-
+	using GridOptions_t = uint32_t;
 ////////////////////////////////////////////////////////////////////////
 //	VertexOptions
 ///	Used to specify the way in which Grid manages vertex-specific data.
-enum VertexOptions : uint32_t
+enum VertexOptions : GridOptions_t
 {
 	VRTOPT_NONE = 0x00000000,
 	VRTOPT_STORE_ASSOCIATED_EDGES = 0x00000001,
@@ -52,7 +52,7 @@ enum VertexOptions : uint32_t
 ////////////////////////////////////////////////////////////////////////
 //	EdgeOptions
 ///	Used to specify the way in which Grid manages edge-specific data.
-enum EdgeOptions : uint32_t
+enum EdgeOptions : GridOptions_t
 {
 	EDGEOPT_NONE = 0x00000000,
 	EDGEOPT_STORE_ASSOCIATED_FACES = 0x00000100,
@@ -62,7 +62,7 @@ enum EdgeOptions : uint32_t
 ////////////////////////////////////////////////////////////////////////
 //	FaceOptions
 ///	Used to specify the way in which Grid manages face-specific data.
-enum FaceOptions : uint32_t
+enum FaceOptions : GridOptions_t
 {
 	FACEOPT_NONE = 0x00000000,
 	FACEOPT_STORE_ASSOCIATED_EDGES = 0x00010000,	///< minor speed-improvement for grid.get_edge(Face*, int)
@@ -73,7 +73,7 @@ enum FaceOptions : uint32_t
 ////////////////////////////////////////////////////////////////////////
 //	VolumeOptions
 ///	Used to specify the way in which Grid manages volume-specific data.
-enum VolumeOptions : uint32_t
+enum VolumeOptions : GridOptions_t
 {
 	VOLOPT_NONE = 0x00000000,
 	VOLOPT_STORE_ASSOCIATED_EDGES = 0x01000000,		///< minor speed-improvement for grid.get_edge(Volume*, int)
@@ -85,7 +85,7 @@ enum VolumeOptions : uint32_t
 ////////////////////////////////////////////////////////////////////////
 //	GridOptions
 ///	Specify how references between associated objects are stored in a grid.
-enum GridOptions : uint32_t
+enum GridOptions : GridOptions_t
 {
 	GRIDOPT_NONE = 0x00000000,
 	GRIDOPT_NO_INTERCONNECTION = 0x00000000,
@@ -98,24 +98,24 @@ enum GridOptions : uint32_t
 											| VertexOptions::VRTOPT_STORE_ASSOCIATED_VOLUMES,
 
 ///	sides are automatically created
-	GRIDOPT_AUTOGENERATE_SIDES = static_cast<uint32_t>(FaceOptions::FACEOPT_AUTOGENERATE_EDGES)
-	                             | static_cast<uint32_t>(VolumeOptions::VOLOPT_AUTOGENERATE_FACES),
+	GRIDOPT_AUTOGENERATE_SIDES =	  static_cast<GridOptions_t>(FaceOptions::FACEOPT_AUTOGENERATE_EDGES)
+									| static_cast<GridOptions_t>(VolumeOptions::VOLOPT_AUTOGENERATE_FACES),
 
 ///	All elements store references to associated lower dimensional geometric objects
 /**	Additionally GRIDOPT_VERTEXCENTRIC_INTERCONNECTION is used.*/
-	GRIDOPT_STANDARD_INTERCONNECTION = GRIDOPT_VERTEXCENTRIC_INTERCONNECTION
-										| GRIDOPT_AUTOGENERATE_SIDES
-										| FaceOptions::FACEOPT_STORE_ASSOCIATED_EDGES
-										| VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES
-										| VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES,
+	GRIDOPT_STANDARD_INTERCONNECTION =	   (GRIDOPT_VERTEXCENTRIC_INTERCONNECTION)
+										|  (GRIDOPT_AUTOGENERATE_SIDES)
+										|  static_cast<GridOptions_t>(FaceOptions::FACEOPT_STORE_ASSOCIATED_EDGES)
+										|  static_cast<GridOptions_t>(VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES)
+										|  static_cast<GridOptions_t>(VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES),
 
 ///	All elements store references to all associated elements
 /**	This includes GRIDOPT_VERTEXCENTRIC_INTERCONNECTION and
  * GRIDOPT_STANDARD_INTERCONNECTION.*/
-	GRIDOPT_FULL_INTERCONNECTION = GRIDOPT_STANDARD_INTERCONNECTION
-									| EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES
-									| EdgeOptions::EDGEOPT_STORE_ASSOCIATED_VOLUMES
-									| FaceOptions::FACEOPT_STORE_ASSOCIATED_VOLUMES,
+	GRIDOPT_FULL_INTERCONNECTION =  (GRIDOPT_STANDARD_INTERCONNECTION)
+									|  static_cast<GridOptions_t>(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_FACES)
+									|  static_cast<GridOptions_t>(EdgeOptions::EDGEOPT_STORE_ASSOCIATED_VOLUMES)
+									|  static_cast<GridOptions_t>(FaceOptions::FACEOPT_STORE_ASSOCIATED_VOLUMES),
 
 	GRIDOPT_DEFAULT = GRIDOPT_VERTEXCENTRIC_INTERCONNECTION
 					  | GRIDOPT_AUTOGENERATE_SIDES
@@ -123,35 +123,35 @@ enum GridOptions : uint32_t
 
 inline constexpr GridOptions operator | (VolumeOptions a, FaceOptions b) {
 		return static_cast<GridOptions>(
-			static_cast<uint32_t>(a) | static_cast<uint32_t>(b) );
+			static_cast<GridOptions_t>(a) | static_cast<GridOptions_t>(b) );
 	}
 inline constexpr GridOptions operator | (FaceOptions a, EdgeOptions b) {
 	return static_cast<GridOptions>(
-		static_cast<uint32_t>(a) | static_cast<uint32_t>(b) );
+		static_cast<GridOptions_t>(a) | static_cast<GridOptions_t>(b) );
 }
 inline constexpr GridOptions operator | (EdgeOptions a, FaceOptions b) {
 	return static_cast<GridOptions>(
-		static_cast<uint32_t>(a) | static_cast<uint32_t>(b) );
+		static_cast<GridOptions_t>(a) | static_cast<GridOptions_t>(b) );
 }
 inline constexpr GridOptions operator | (FaceOptions a, VolumeOptions b) {
 	return static_cast<GridOptions>(
-		static_cast<uint32_t>(a) | static_cast<uint32_t>(b) );
+		static_cast<GridOptions_t>(a) | static_cast<GridOptions_t>(b) );
 }
 inline constexpr GridOptions operator | (GridOptions a, VolumeOptions b) {
 	return static_cast<GridOptions>(
-		static_cast<uint32_t>(a) | static_cast<uint32_t>(b) );
+		static_cast<GridOptions_t>(a) | static_cast<GridOptions_t>(b) );
 }
 inline constexpr GridOptions operator | (GridOptions a, EdgeOptions b) {
 	return static_cast<GridOptions>(
-		static_cast<uint32_t>(a) | static_cast<uint32_t>(b) );
+		static_cast<GridOptions_t>(a) | static_cast<GridOptions_t>(b) );
 }
 inline constexpr GridOptions operator | (GridOptions a, FaceOptions b) {
 	return static_cast<GridOptions>(
-		static_cast<uint32_t>(a) | static_cast<uint32_t>(b) );
+		static_cast<GridOptions_t>(a) | static_cast<GridOptions_t>(b) );
 }
 inline constexpr GridOptions operator | (FaceOptions a, GridOptions b) {
 	return static_cast<GridOptions>(
-		static_cast<uint32_t>(a) | static_cast<uint32_t>(b) );
+		static_cast<GridOptions_t>(a) | static_cast<GridOptions_t>(b) );
 }
 /// @}
 }

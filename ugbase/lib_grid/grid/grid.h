@@ -48,6 +48,7 @@
 #include "grid_object_collection.h"
 #include "element_storage.h"
 #include "grid_base_object_traits.h"
+#include "grid_constants.h"
 
 //	Define PROFILE_GRID to profile some often used gird-methods
 //#define PROFILE_GRID
@@ -260,13 +261,13 @@ class UG_API Grid
 	///	initialises the grid and sets the option GRIDOPT_DEFAULT.
 	/**	Pass a custom option to the alternative constructor in order
 	 *  to initialise the grid with your options.
-	 *	\sa Grid(uint options)*/
+	 *	\sa Grid(GridOptions options)*/
 		Grid();
 
 	///	initialises the grid with the given option.
 	/**	pass an or-combination of constants enumerated in
 	 *  VertexOptions, EdgeOptions, FaceOptions, VolumeOptions and GridOptions.*/
-		Grid(uint options);
+		Grid(GridOptions_t options);
 
 	///	copies all elements and some attachments from the passed grid to this grid.
 	/**	While all elements and the options are copied completely from the source-grid,
@@ -290,11 +291,11 @@ class UG_API Grid
 	 *	using an or-combination of the constants enumerated in
 	 *	VertexOptions, EdgeOptions, FaceOptions and VolumeOptions.
 	 *	See GridOptions for possible combinations.*/
-		void set_options(uint options);
-		[[nodiscard]] uint get_options() const;
-		void enable_options(uint options);	///< see set_options for a description of valid parameters.
-		void disable_options(uint options);	///< see set_options for a description of valid parameters.
-		[[nodiscard]] bool option_is_enabled(uint option) const;///< see set_options for a description of valid parameters.
+		void set_options(GridOptions_t options);
+		[[nodiscard]] GridOptions_t get_options() const;
+		void enable_options(GridOptions_t options);	///< see set_options for a description of valid parameters.
+		void disable_options(GridOptions_t options);	///< see set_options for a description of valid parameters.
+		[[nodiscard]] bool option_is_enabled(GridOptions_t option) const;///< see set_options for a description of valid parameters.
 
 	////////////////////////////////////////////////
 	//	parallelism
@@ -555,10 +556,10 @@ class UG_API Grid
 		[[nodiscard]] inline size_t num_faces()	const {return num<Face>();}
 		[[nodiscard]] inline size_t num_volumes()const {return num<Volume>();}
 
-		size_t vertex_fragmentation();	///< returns the number of unused vertex-data-entries.
-		size_t edge_fragmentation();		///< returns the number of unused edge-data-entries.
-		size_t face_fragmentation();		///< returns the number of unused face-data-entries.
-		size_t volume_fragmentation();	///< returns the number of unused volume-data-entries.
+		size_t vertex_fragmentation() const; ///< returns the number of unused vertex-data-entries.
+		size_t edge_fragmentation() const; ///< returns the number of unused edge-data-entries.
+		size_t face_fragmentation() const; ///< returns the number of unused face-data-entries.
+		size_t volume_fragmentation() const; ///< returns the number of unused volume-data-entries.
 
 	///	returns the size of the associated attachment containers.
 	/**	valid types for TGeomObj are Vertex, Edge, Face, Volume.*/
@@ -1008,12 +1009,12 @@ class UG_API Grid
 		void register_volume(Volume* v, GridObject* pParent = nullptr);///< pDF specifies the element from which v derives its values
 		void unregister_volume(Volume* v);
 
-		void change_options(uint optsNew);
+		void change_options(GridOptions_t optsNew);
 
-		void change_vertex_options(uint optsNew);
-		void change_edge_options(uint optsNew);
-		void change_face_options(uint optsNew);
-		void change_volume_options(uint optsNew);
+		void change_vertex_options(GridOptions_t optsNew);
+		void change_edge_options(GridOptions_t optsNew);
+		void change_face_options(GridOptions_t optsNew);
+		void change_volume_options(GridOptions_t optsNew);
 
 		void vertex_store_associated_edges(bool bStoreIt);
 		void vertex_store_associated_faces(bool bStoreIt);
@@ -1035,7 +1036,7 @@ class UG_API Grid
 							TElem* pSrc, TElem* pDest);
 
 	//	some methods that simplify auto-enabling of grid options
-		inline void autoenable_option(uint option, const char* caller, const char* optionName);
+		inline void autoenable_option(GridOptions_t option, const char* caller, const char* optionName);
 
 	//	neighbourhood access
 		template <typename TGeomObj>
@@ -1156,7 +1157,7 @@ class UG_API Grid
 		FaceElementStorage m_faceElementStorage;
 		VolumeElementStorage m_volumeElementStorage;
 
-		uint m_options;
+		GridOptions_t m_options;
 		uint32 m_hashCounter;
 
 	//	observer handling

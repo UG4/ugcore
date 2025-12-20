@@ -379,7 +379,7 @@ class VectorValuedUserDataEvaluator
 				sumWeights += weight;
 				
 				//	reference object id
-				const ReferenceObjectID roid = element->reference_object_id();
+				ReferenceObjectID_t roid = element->reference_object_id();
 				DimReferenceElement<dim> refElem = ReferenceElementProvider::get<dim>(roid);
 
 				// calculate the elements center in local coordinates
@@ -474,7 +474,7 @@ class VectorValuedUserDataEvaluator
 			int si = u->domain()->subset_handler()->get_subset_index(elem);
 
 			//	reference object id
-			const ReferenceObjectID roid = elem->reference_object_id();
+			ReferenceObjectID_t roid = elem->reference_object_id();
 
 			//	get local position of DoF
 			DimReferenceMapping<dim, dim>& map

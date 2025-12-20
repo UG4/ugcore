@@ -73,7 +73,7 @@ Grid::Grid() :
 	change_options(GridOptions::GRIDOPT_DEFAULT);
 }
 
-Grid::Grid(uint options) :
+Grid::Grid(GridOptions_t options) :
 	m_aVertexContainer("Grid_VertexContainer", false),
 	m_aEdgeContainer("Grid_EdgeContainer", false),
 	m_aFaceContainer("Grid_FaceContainer", false),
@@ -228,7 +228,7 @@ void Grid::clear()
 void Grid::clear_geometry()
 {
 //	disable all options to speed it up
-	uint opts = get_options();
+	GridOptions_t opts = get_options();
 	set_options(GridOptions::GRIDOPT_NONE);
 	
 	clear<Volume>();
@@ -251,8 +251,7 @@ void Grid::clear_attachments()
 	AttachmentPipe& ap = get_attachment_pipe<TElem>();
 
 //	collect all attachment entries
-	for(typename AttachmentPipe::ConstAttachmentEntryIterator iter = ap.attachments_begin();
-		iter != ap.attachments_end(); ++iter)
+	for(auto iter = ap.attachments_begin(); iter != ap.attachments_end(); ++iter)
 	{
 			vEntries.push_back(*iter);
 	}
@@ -294,8 +293,7 @@ template <typename TAttachmentPipe>
 void Grid::copy_user_attachments(const TAttachmentPipe& apSrc, TAttachmentPipe& apDest,
 								vector<int>& srcDataIndices)
 {
-	for(typename TAttachmentPipe::ConstAttachmentEntryIterator iter = apSrc.attachments_begin();
-		iter != apSrc.attachments_end(); ++iter)
+	for(auto iter = apSrc.attachments_begin(); iter != apSrc.attachments_end(); ++iter)
 	{
 		const AttachmentEntry& ae = *iter;
 		if(ae.m_userData == 1){
@@ -306,7 +304,7 @@ void Grid::copy_user_attachments(const TAttachmentPipe& apSrc, TAttachmentPipe& 
 
 		//	we use the containers copy-method
 			conSrc.copy_to_container(&conDest, &srcDataIndices.front(),
-									 (int)srcDataIndices.size());
+									 static_cast<int>(srcDataIndices.size()));
 		}
 	}
 }
@@ -608,26 +606,22 @@ void Grid::flip_orientation(Volume* vol)
 	}
 }
 
-size_t Grid::vertex_fragmentation()
-{
+size_t Grid::vertex_fragmentation() const {
 	return m_vertexElementStorage.m_attachmentPipe.num_data_entries()
 			- m_vertexElementStorage.m_attachmentPipe.num_elements();
 }
 
-size_t Grid::edge_fragmentation()
-{
+size_t Grid::edge_fragmentation() const {
 	return m_edgeElementStorage.m_attachmentPipe.num_data_entries()
 			- m_edgeElementStorage.m_attachmentPipe.num_elements();
 }
 
-size_t Grid::face_fragmentation()
-{
+size_t Grid::face_fragmentation() const {
 	return m_faceElementStorage.m_attachmentPipe.num_data_entries()
 			- m_faceElementStorage.m_attachmentPipe.num_elements();
 }
 
-size_t Grid::volume_fragmentation()
-{
+size_t Grid::volume_fragmentation() const {
 	return m_volumeElementStorage.m_attachmentPipe.num_data_entries()
 			- m_volumeElementStorage.m_attachmentPipe.num_elements();
 }
@@ -672,7 +666,7 @@ template <typename TAttachmentPipe, typename TElem>
 void Grid::pass_on_values(TAttachmentPipe& attachmentPipe,
 							TElem* pSrc, TElem* pDest)
 {
-	for(auto iter = attachmentPipe.attachments_begin(); iter != attachmentPipe.attachments_end(); iter++)
+	for(auto iter = attachmentPipe.attachments_begin(); iter != attachmentPipe.attachments_end(); ++iter)
 	{
 		if((*iter).m_userData == 1)
 			(*iter).m_pContainer->copy_data(get_attachment_data_index(pSrc),
@@ -702,32 +696,32 @@ void Grid::pass_on_values(Volume* objSrc, Volume* objDest)
 
 ////////////////////////////////////////////////////////////////////////
 //	options
-void Grid::set_options(uint options)
+void Grid::set_options(GridOptions_t options)
 {
 	change_options(options);
 }
 
-uint Grid::get_options() const
+GridOptions_t Grid::get_options() const
 {
 	return m_options;
 }
 
-void Grid::enable_options(uint options)
+void Grid::enable_options(GridOptions_t options)
 {
 	change_options(m_options | options);
 }
 
-void Grid::disable_options(uint options)
+void Grid::disable_options(GridOptions_t options)
 {
 	change_options(m_options & (~options));
 }
 
-bool Grid::option_is_enabled(uint option) const
+bool Grid::option_is_enabled(GridOptions_t option) const
 {
 	return (m_options & option) == option;
 }
 
-void Grid::change_options(uint optsNew)
+void Grid::change_options(GridOptions_t optsNew)
 {
 	change_vertex_options(optsNew &	0x000000FF);
 	change_edge_options(optsNew & 	0x0000FF00);
@@ -1083,22 +1077,15 @@ Edge* Grid::get_edge(Face* f, int ind)
 	{
 		if(option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
 			return m_aaEdgeContainerFACE[f][ind];
-		else{
-			EdgeDescriptor ed;
-			f->edge_desc(ind, ed);
-			return find_edge_in_associated_edges(f, ed);
-		}
-	}
-	else
-	{
-	//	get the descriptor of the i-th edge
 		EdgeDescriptor ed;
 		f->edge_desc(ind, ed);
-	//	it doesn't. find the edge by checking vertices.
-		return find_edge_in_associated_edges(ed.vertex(0), ed);
+		return find_edge_in_associated_edges(f, ed);
 	}
-	
-	return nullptr;
+	//	get the descriptor of the i-th edge
+	EdgeDescriptor ed;
+	f->edge_desc(ind, ed);
+	//	it doesn't. find the edge by checking vertices.
+	return find_edge_in_associated_edges(ed.vertex(0), ed);
 }
 
 Edge* Grid::get_edge(Volume* v, int ind)
@@ -1113,22 +1100,15 @@ Edge* Grid::get_edge(Volume* v, int ind)
 		{
 			return m_aaEdgeContainerVOLUME[v][ind];
 		}
-		else{
-			EdgeDescriptor ed;
-			v->edge_desc(ind, ed);
-			return find_edge_in_associated_edges(v, ed);
-		}
-	}
-	else
-	{
-	//	get the descriptor of the i-th edge
 		EdgeDescriptor ed;
 		v->edge_desc(ind, ed);
+		return find_edge_in_associated_edges(v, ed);
+		}
+	//	get the descriptor of the i-th edge
+	EdgeDescriptor ed;
+	v->edge_desc(ind, ed);
 	//	it doesn't. find the edge by checking vertices.
-		return find_edge_in_associated_edges(ed.vertex(0), ed);
-	}
-
-	return nullptr;
+	return find_edge_in_associated_edges(ed.vertex(0), ed);
 }
 
 Face* Grid::get_face(const FaceVertices& fv)
@@ -1144,19 +1124,14 @@ Face* Grid::get_face(Volume* v, int ind)
 	//	if autogenerate is enabeld, faces are sorted.
 		if(option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES))
 			return m_aaFaceContainerVOLUME[v][ind];
-		else{
-			FaceDescriptor fd;
-			v->face_desc(ind, fd);
-			return find_face_in_associated_faces(v, fd);
-		}
-	}
-	else {
 		FaceDescriptor fd;
 		v->face_desc(ind, fd);
-	//	it does not. check associated faces of the first vertex of fd.
-		return find_face_in_associated_faces(fd.vertex(0), fd);
+		return find_face_in_associated_faces(v, fd);
 	}
-	return nullptr;
+	FaceDescriptor fd;
+	v->face_desc(ind, fd);
+	//	it does not. check associated faces of the first vertex of fd.
+	return find_face_in_associated_faces(fd.vertex(0), fd);
 }
 
 Volume* Grid::get_volume(const VolumeVertices& vv)

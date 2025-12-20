@@ -99,7 +99,7 @@ evaluation process, by calling (e.g. in the constructor):
 \endcode
 
 The request of a local integration point series must be done in
-<b> prep_elem_loop(const ReferenceObjectID roid, const int si) </b>, like e.g.
+<b> prep_elem_loop(ReferenceObjectID_t roid, const int si) </b>, like e.g.
 
 \code
 template<	template <class TElem, int TWorldDim> class TFVGeom,
@@ -107,7 +107,7 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TAlgebra>
 template<typename TElem>
 bool FVConvectionDiffusion<TFVGeom, TDomain, TAlgebra>::
-prep_elem_loop(const ReferenceObjectID roid, const int si)
+prep_elem_loop(ReferenceObjectID_t roid, const int si)
 {
 //  get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type

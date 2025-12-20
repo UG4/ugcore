@@ -748,12 +748,12 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 						"\n     %                   " : "\n"));
 
 		} // end loop over feti subdomain primals 'pvTo_j' of current proc
-		if (((size_t)vNumPrimalVariablesPerProc[procInFetiSD] == 0) || vLocalPrimalLocalID.size() == 0)
-			UG_LOG((((size_t)vNumPrimalVariablesPerProc[procInFetiSD] != 0) && (vLocalPrimalLocalID.size() != 0) ? "     %+\n" : "\n"));
+		if ((static_cast<size_t>(vNumPrimalVariablesPerProc[procInFetiSD]) == 0) || vLocalPrimalLocalID.empty())
+			UG_LOG(((static_cast<size_t>(vNumPrimalVariablesPerProc[procInFetiSD]) != 0) && (!vLocalPrimalLocalID.empty()) ? "     %+\n" : "\n"));
 	} // end loop over procs in feti subdomain
 
 	UG_LOG("     %  - done.\n");
-	UG_LOG("     %  -------------------------------------------------------------------" << std::endl); 
+	UG_LOG("     %  -------------------------------------------------------------------" << std::endl);
 
 // Further checks
 	if (primalCounter != vSubdomPrimalRootID.size()) {

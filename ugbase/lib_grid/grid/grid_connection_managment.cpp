@@ -1723,10 +1723,10 @@ void Grid::unregister_volume(Volume* v)
 	m_volumeElementStorage.m_attachmentPipe.unregister_element(v);
 }
 
-void Grid::change_volume_options(uint optsNew)
+void Grid::change_volume_options(GridOptions_t optsNew)
 {
 //	check if associated edge information has to be created or removed.
-	if(OPTIONS_CONTAIN_OPTION(optsNew, VOLOPT_STORE_ASSOCIATED_EDGES))
+	if((((optsNew) & (VOLOPT_STORE_ASSOCIATED_EDGES)) == (VOLOPT_STORE_ASSOCIATED_EDGES)))
 	{
 		if(!option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_EDGES))
 			volume_store_associated_edges(true);
@@ -1738,7 +1738,7 @@ void Grid::change_volume_options(uint optsNew)
 	}
 
 //	check if associated face information has to be created or removed.
-	if(OPTIONS_CONTAIN_OPTION(optsNew, VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES))
+	if((((optsNew) & (VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES)) == (VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES)))
 	{
 		if(!option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES))
 			volume_store_associated_faces(true);
@@ -1750,7 +1750,7 @@ void Grid::change_volume_options(uint optsNew)
 	}
 
 //	enable or disable edge-auto-generation
-	if(OPTIONS_CONTAIN_OPTION(optsNew, VOLOPT_AUTOGENERATE_EDGES))
+	if((((optsNew) & (VOLOPT_AUTOGENERATE_EDGES)) == (VOLOPT_AUTOGENERATE_EDGES)))
 	{
 		if(!option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_EDGES))
 			volume_autogenerate_edges(true);
@@ -1762,14 +1762,14 @@ void Grid::change_volume_options(uint optsNew)
 	}
 
 //	enable or disable face-auto-generation
-	if(OPTIONS_CONTAIN_OPTION(optsNew, VOLOPT_AUTOGENERATE_FACES))
+	if((((optsNew) & (VOLOPT_AUTOGENERATE_FACES)) == (VOLOPT_AUTOGENERATE_FACES)))
 	{
-		if(!option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
+		if(!option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES))
 			volume_autogenerate_faces(true);
 	}
 	else
 	{
-		if(option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
+		if(option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES))
 			volume_autogenerate_faces(false);
 	}
 }
@@ -1985,13 +1985,13 @@ void Grid::volume_autogenerate_faces(bool bAutogen)
 {
 	if(bAutogen)
 	{
-		if(!option_is_enabled(FaceOptions::FACEOPT_AUTOGENERATE_EDGES))
+		if(!option_is_enabled(VolumeOptions::VOLOPT_AUTOGENERATE_FACES))
 		{
 			bool volsStoreFaces = option_is_enabled(VolumeOptions::VOLOPT_STORE_ASSOCIATED_FACES);
 			FaceDescriptor fd;
 
 		//	generate all missing faces now!
-			for(VolumeIterator iter = volumes_begin(); iter != volumes_end(); iter++)
+			for(VolumeIterator iter = volumes_begin(); iter != volumes_end(); ++iter)
 			{
 				Volume* v = *iter;
 			//	check for each face of the volume if it exists. if not create it and link it to the face.
@@ -2023,7 +2023,7 @@ void Grid::volume_autogenerate_faces(bool bAutogen)
 			}
 
 		//	store the option
-			m_options |= FaceOptions::FACEOPT_AUTOGENERATE_EDGES;
+			m_options |= VolumeOptions::VOLOPT_AUTOGENERATE_FACES;
 
 		//	if FACEOPT_AUTOGENERATE_EDGES is active, too, then all volume-edges exist.
 		//	Now, if VOLOPT_STORE_ASSOCIATED_EDGES is active but
@@ -2040,7 +2040,7 @@ void Grid::volume_autogenerate_faces(bool bAutogen)
 	else
 	{
 	//	stop auto-generation
-		m_options &= (~FaceOptions::FACEOPT_AUTOGENERATE_EDGES);
+		m_options &= (~VolumeOptions::VOLOPT_AUTOGENERATE_FACES);
 	}
 }
 
