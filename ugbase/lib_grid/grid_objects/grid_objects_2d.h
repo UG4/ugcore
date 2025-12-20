@@ -114,7 +114,7 @@ class UG_API CustomTriangle : public BaseClass
 		CustomTriangle(Vertex* v1, Vertex* v2, Vertex* v3);
 
 		[[nodiscard]] virtual GridObject* create_empty_instance() const	{return new ConcreteTriangleType;}
-		[[nodiscard]] virtual ReferenceObjectID reference_object_id() const {return ReferenceObjectID::ROID_TRIANGLE;}
+		[[nodiscard]] virtual ReferenceObjectID_t reference_object_id() const {return ReferenceObjectID::ROID_TRIANGLE;}
 
 		[[nodiscard]] virtual Vertex* vertex(size_t index) const {return m_vertices[index];}
 		[[nodiscard]] virtual Face::ConstVertexArray vertices() const {return m_vertices;}
@@ -202,7 +202,7 @@ class geometry_traits<Triangle>
 			CONTAINER_SECTION = FaceContainerSections::CSFACE_TRIANGLE,
 			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TRIANGLE;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TRIANGLE;
 };
 
 using TriangleIterator = geometry_traits<Triangle>::iterator;
@@ -257,7 +257,7 @@ class UG_API CustomQuadrilateral : public BaseClass
 							Vertex* v3, Vertex* v4);
 
 		[[nodiscard]] GridObject* create_empty_instance() const override	{return new ConcreteQuadrilateralType;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_QUADRILATERAL;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_QUADRILATERAL;}
 
 		[[nodiscard]] Vertex* vertex(size_t index) const override	{return m_vertices[index];}
 		[[nodiscard]] Face::ConstVertexArray vertices() const override		{return m_vertices;}
@@ -352,7 +352,7 @@ class geometry_traits<Quadrilateral>
 			CONTAINER_SECTION = FaceContainerSections::CSFACE_QUADRILATERAL,
 			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_QUADRILATERAL;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_QUADRILATERAL;
 };
 
 using QuadrilateralIterator = geometry_traits<Quadrilateral>::iterator;
@@ -467,7 +467,7 @@ class geometry_traits<ConstrainedTriangle>
 			CONTAINER_SECTION = FaceContainerSections::CSFACE_CONSTRAINED_TRIANGLE,
 			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TRIANGLE;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TRIANGLE;
 };
 
 using ConstrainedTriangleIterator = geometry_traits<ConstrainedTriangle>::iterator;
@@ -519,7 +519,7 @@ class geometry_traits<ConstrainedQuadrilateral>
 			CONTAINER_SECTION = FaceContainerSections::CSFACE_CONSTRAINED_QUADRILATERAL,
 			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_QUADRILATERAL;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_QUADRILATERAL;
 };
 
 using ConstrainedQuadrilateralIterator = geometry_traits<ConstrainedQuadrilateral>::iterator;
@@ -737,7 +737,7 @@ class geometry_traits<ConstrainingTriangle>
 			CONTAINER_SECTION = FaceContainerSections::CSFACE_CONSTRAINING_TRIANGLE,
 			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TRIANGLE;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TRIANGLE;
 };
 
 using ConstrainingTriangleIterator = geometry_traits<ConstrainingTriangle>::iterator;
@@ -799,7 +799,7 @@ class geometry_traits<ConstrainingQuadrilateral>
 			CONTAINER_SECTION = FaceContainerSections::CSFACE_CONSTRAINING_QUADRILATERAL,
 			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_QUADRILATERAL;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_QUADRILATERAL;
 };
 
 using ConstrainingQuadrilateralIterator = geometry_traits<ConstrainingQuadrilateral>::iterator;

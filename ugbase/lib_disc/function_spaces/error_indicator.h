@@ -86,7 +86,7 @@ void ComputeGradientLagrange1(TFunction& u, size_t fct,
 		element_type* elem = *iter;
 
 	//	reference object type
-		ReferenceObjectID roid = elem->reference_object_id();
+		ReferenceObjectID_t roid = elem->reference_object_id();
 
 	//	get trial space
 		const LocalShapeFunctionSet<dim>& lsfs =
@@ -186,7 +186,7 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
 		grid.associated_elements_sorted(sides, elem );
 
 	//	reference object type
-		ReferenceObjectID roid = elem->reference_object_id();
+		ReferenceObjectID_t roid = elem->reference_object_id();
 
 	//	get trial space
 		const LocalShapeFunctionSet<dim>& lsfs =
@@ -312,7 +312,7 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 		grid.associated_elements_sorted(sides, elem );
 
 	//	reference object type
-		ReferenceObjectID roid = elem->reference_object_id();
+		ReferenceObjectID_t roid = elem->reference_object_id();
 
 		const DimReferenceElement<dim>& rRefElem
 				= ReferenceElementProvider::get<dim>(roid);

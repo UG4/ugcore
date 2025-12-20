@@ -85,7 +85,7 @@ class UG_API RegularEdge : public Edge
 		GridObject* create_empty_instance() const override {return new RegularEdge;}
 
 		int container_section() const override {return EdgeContainerSections::CSEDGE_REGULAR_EDGE;}
-		ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_EDGE;}
+		ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_EDGE;}
 
 	///	virtual refine. Returns pointers to Edge.
 	/**
@@ -123,7 +123,7 @@ class geometry_traits<RegularEdge>
 			CONTAINER_SECTION = EdgeContainerSections::CSEDGE_REGULAR_EDGE,
 			BASE_OBJECT_ID = GridBaseObjectId::EDGE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
 };
 
 using RegularEdgeIterator = geometry_traits<RegularEdge>::iterator;
@@ -172,7 +172,7 @@ class UG_API ConstrainedEdge : public Edge
 		[[nodiscard]] GridObject* create_empty_instance() const override {return new ConstrainedEdge;}
 
 		[[nodiscard]] int container_section() const override {return EdgeContainerSections::CSEDGE_CONSTRAINED_EDGE;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_EDGE;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_EDGE;}
 
 		[[nodiscard]] bool is_constrained() const override {return true;}
 
@@ -254,7 +254,7 @@ class geometry_traits<ConstrainedEdge>
 			CONTAINER_SECTION = EdgeContainerSections::CSEDGE_CONSTRAINED_EDGE,
 			BASE_OBJECT_ID = GridBaseObjectId::EDGE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
 };
 
 using ConstrainedEdgeIterator = geometry_traits<ConstrainedEdge>::iterator;
@@ -308,7 +308,7 @@ class UG_API ConstrainingEdge : public Edge
 		[[nodiscard]] GridObject* create_empty_instance() const override {return new ConstrainingEdge;}
 
 		[[nodiscard]] int container_section() const override {return EdgeContainerSections::CSEDGE_CONSTRAINING_EDGE;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_EDGE;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_EDGE;}
 
 		[[nodiscard]] bool is_constraining() const override {return true;}
 
@@ -433,7 +433,7 @@ class geometry_traits<ConstrainingEdge>
 			CONTAINER_SECTION = EdgeContainerSections::CSEDGE_CONSTRAINING_EDGE,
 			BASE_OBJECT_ID = GridBaseObjectId::EDGE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
 };
 
 using ConstrainingEdgeIterator = geometry_traits<ConstrainingEdge>::iterator;

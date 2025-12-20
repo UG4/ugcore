@@ -188,7 +188,7 @@ inline void AdaptionSurfaceGridFunction<TDomain>::obj_created(TBaseElem* elem){
 	vvVal.resize(m_spDDInfo->num_fct());
 
 //	get geom obj infos
-	const ReferenceObjectID roid = elem->reference_object_id();
+	const ReferenceObjectID_t roid = elem->reference_object_id();
 	const int si = m_spDomain->subset_handler()->get_subset_index(elem);
 
 //	for each fct cmp resize to number of dofs associated with elem

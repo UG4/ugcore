@@ -293,19 +293,15 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 
 	TAAPos aaPos = info.position_accessor();
 
-	int stepCount = 0;
-
-//	helper to collect neighbors
-	Face* nbrFaces[2];
-	queue<Vertex*> qvrts; // used during splits
-	vector<Vertex*> vrts;
-	vector<Edge*> edges;
-	vector<Edge*> closeEdges; // used during splits
-	vector<Face*> faces;
-
 	MakeDelaunay(info);
 
 	if(minAngle > 0 && maxSteps != 0){
+		vector<Face*> faces;
+		vector<Edge*> closeEdges;
+		vector<Edge*> edges;
+		vector<Vertex*> vrts;
+		queue<Vertex*> qvrts;
+		int stepCount = 0;
 		const number offCenterThresholdAngle = 1.1 * minAngle;
 		const number offCenterATan = atan(deg_to_rad(0.5 * offCenterThresholdAngle));
 		// UG_LOG("off-center atan: " << offCenterATan << endl);
@@ -431,6 +427,7 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 					const bool isSegment = info.is_segment(nextEdge);
 					split |= isSegment;
 					if(!split){
+						Face* nbrFaces[2];
 						int numNbrs = GetAssociatedFaces(nbrFaces, grid, nextEdge, 2);
 						if(numNbrs != 2)
 							split = true;

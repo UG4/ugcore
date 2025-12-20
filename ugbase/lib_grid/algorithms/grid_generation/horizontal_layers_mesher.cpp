@@ -376,37 +376,43 @@ void ExtrudeLayers (
 		Grid::volume_traits::secure_container	assVols;
 
 	//	all triangle-interface-elements shall store 'true' in aaIsInterface
-		for(Grid::traits<Face>::iterator _feI = grid.begin<Face>(); _feI != grid.end<Face>(); ++_feI){ Face* f = *_feI;{
+		for(auto _feI = grid.begin<Face>(); _feI != grid.end<Face>(); ++_feI){
+			Face* f = *_feI;
 			if(f->num_vertices() != 3)
 				continue;
 
 			grid.associated_elements(assVols, f);
 			if(assVols.size() == 1){
-				for(size_t _feI = 0; _feI < f->num_vertices(); ++_feI){ Vertex* vrt = f->vertex(_feI);{
+				for(size_t _feI = 0; _feI < f->num_vertices(); ++_feI){
+					Vertex* vrt = f->vertex(_feI);
 					aaInterface[vrt] = true;
-				}};
+				}
 			}
 			else{
 				int si = -1;
-				for(size_t _vfeI = 0; _vfeI < assVols.size(); ++_vfeI){ Volume* v = assVols[_vfeI];{
+				for(size_t _vfeI = 0; _vfeI < assVols.size(); ++_vfeI){
+					Volume* v = assVols[_vfeI];
 					if(si == -1)
 						si = sh.get_subset_index(v);
 					else if(sh.get_subset_index(v) != si){
-						for(size_t _feI = 0; _feI < f->num_vertices(); ++_feI){ Vertex* vrt = f->vertex(_feI);{
+						for(size_t _feI = 0; _feI < f->num_vertices(); ++_feI){
+							Vertex* vrt = f->vertex(_feI);
 							aaInterface[vrt] = true;
-						}};
+						}
 						break;
 					}
-				}};
+				}
 			}
-		}};
+		}
 
 	//	all lower vertices of elements in invalidSub are collapse candidates and
 	//	are thus not considered to be interface elements
 		Grid::edge_traits::secure_container assEdges;
-		for(size_t _vfeI = 0; _vfeI < invalidVols.size(); ++_vfeI){ Volume* vol = invalidVols[_vfeI];{
+		for(size_t _vfeI = 0; _vfeI < invalidVols.size(); ++_vfeI){
+			Volume* vol = invalidVols[_vfeI];
 			grid.associated_elements(assEdges, vol);
-			for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){ Edge* e = assEdges[_vfeI];{
+			for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){
+				Edge* e = assEdges[_vfeI];
 				Vertex* v0 = e->vertex(0);
 				Vertex* v1 = e->vertex(1);
 
@@ -418,20 +424,23 @@ void ExtrudeLayers (
 				else if((-dir.z() > SMALL) && (fabs(dir.x()) < SMALL) && (fabs(dir.y()) < SMALL)){
 					aaInterface[v1] = false;
 				}
-			}};
-		}};
+			}
+		}
 
 	//	all unmarked vertices are collapse candidates
 		vector<Vertex*> candidates;
-		for(Grid::traits<Vertex>::iterator _feI = grid.begin<Vertex>(); _feI != grid.end<Vertex>(); ++_feI){ Vertex* vrt = *_feI;{
+		for(auto _feI = grid.begin<Vertex>(); _feI != grid.end<Vertex>(); ++_feI){
+			Vertex* vrt = *_feI;
 			if(!aaInterface[vrt])
 				candidates.push_back(vrt);
-		}};
+		}
 
 	//	merge each candidate with the next upper vertex.
-		for(size_t _vfeI = 0; _vfeI < candidates.size(); ++_vfeI){ Vertex* vrt = candidates[_vfeI];{
+		for(size_t _vfeI = 0; _vfeI < candidates.size(); ++_vfeI){
+			Vertex* vrt = candidates[_vfeI];
 			grid.associated_elements(assEdges, vrt);
-			for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){ Edge* e = assEdges[_vfeI];{
+			for(size_t _vfeI = 0; _vfeI < assEdges.size(); ++_vfeI){
+				Edge* e = assEdges[_vfeI];
 				Vertex* cv = GetConnectedVertex(e, vrt);
 				if(cv == vrt)
 					continue;
@@ -442,8 +451,8 @@ void ExtrudeLayers (
 					CollapseEdge(grid, e, cv);
 					break;
 				}
-			}};
-		}};
+			}
+		}
 
 	//	clean up
 		grid.detach_from_vertices(aInterface);
@@ -490,7 +499,7 @@ void ExtrudeLayersMixed (
 //	given layers-stack. Only those will be used during extrusion
 //	all considered vertices will be marked.
 	const RasterLayers::layer_t& top = layers.top();
-	const int topLayerInd = (int)layers.num_layers() - 1;
+	const int topLayerInd = static_cast<int>(layers.num_layers()) - 1;
 	for(VertexIterator i = grid.begin<Vertex>(); i != grid.end<Vertex>(); ++i){
 		Vertex* v = *i;
 		vector2 c(aaPos[v].x(), aaPos[v].y());
@@ -498,7 +507,7 @@ void ExtrudeLayersMixed (
 		number val = layers.heightfield(topLayerInd).interpolate(c, 1);
 		if(val != top.heightfield.no_data_value()){
 			aaPos[v].z() = val;
-			aaVrtInd[v] = (int)curVrts.size();
+			aaVrtInd[v] = static_cast<int>(curVrts.size());
 			curVrts.push_back(v);
 			sh.assign_subset(v, topLayerInd);
 		}

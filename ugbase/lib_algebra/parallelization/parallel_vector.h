@@ -56,31 +56,15 @@ namespace ug {
  *
  * \tparam 	TVector		Sequential Vector type
  */
-template <typename TVector = Vector<double>>
+template <typename TVector>
 class ParallelVector : public TVector
 {
 	public:
-
-	/*static_assert(!std::is_same_v<TVector,
-		Vector< DenseMatrix< FixedArray2<double,2,2,eMatrixOrdering::RowMajor> > >
-	>, "This type of ParallelVector is not allowed.");
-
-	static_assert(!std::is_same_v<TVector,
-		Vector< DenseMatrix< FixedArray2<double,3,3,eMatrixOrdering::RowMajor> > >
-	>, "This type of ParallelVector is not allowed.");
-	static_assert(!std::is_same_v<TVector,
-		Vector< DenseMatrix< FixedArray2<double,2,2,eMatrixOrdering::ColMajor> > >
-	>, "This type of ParallelVector is not allowed.");
-
-	static_assert(!std::is_same_v<TVector,
-		Vector< DenseMatrix< FixedArray2<double,3,3,eMatrixOrdering::ColMajor> > >
-	>, "This type of ParallelVector is not allowed.");*/
-
-		using value_type = typename TVector::value_type;
-		using size_type = size_t;
-		using vector_type = typename TVector::vector_type;
-		///	own type
-		using this_type = ParallelVector;
+	using value_type = typename TVector::value_type;
+	using size_type = size_t;
+	using vector_type = typename TVector::vector_type;
+	///	own type
+	using this_type = ParallelVector;
 
 	private:
 	// 	disallow copy constructor

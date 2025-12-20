@@ -379,7 +379,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 
 		///	extracts the indices of the vertices
 		template<typename TBaseElem>
-		void indices_on_vertex(TBaseElem* elem, ReferenceObjectID roid,
+		void indices_on_vertex(TBaseElem* elem, ReferenceObjectID_t roid,
 		                       LocalIndices& ind,
 		                       const Grid::SecureVertexContainer& vElem) const;
 
@@ -406,13 +406,13 @@ class DoFDistribution : public DoFDistributionInfoProvider
 
 		/// extracts the indices of the subelement of an element
 		template<typename TBaseElem, typename TSubBaseElem>
-		void indices(TBaseElem* elem, ReferenceObjectID roid,
+		void indices(TBaseElem* elem, ReferenceObjectID_t roid,
 		             LocalIndices& ind,
 		             const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const;
 
 		/// extracts the indices of a subelement of an element
 		template<typename TBaseElem, typename TSubBaseElem>
-		void dof_indices(TBaseElem* elem, ReferenceObjectID roid,
+		void dof_indices(TBaseElem* elem, ReferenceObjectID_t roid,
 		                   size_t fct, std::vector<DoFIndex>& ind,
 		                   const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const;
 
@@ -444,7 +444,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 	protected:
 		/// adds indices to a geometric object
 		template <typename TBaseObject>
-		void add(TBaseObject* obj, ReferenceObjectID roid, int si);
+		void add(TBaseObject* obj, ReferenceObjectID_t roid, int si);
 
 		///	checks that subset assignment is ok
 		void check_subsets();

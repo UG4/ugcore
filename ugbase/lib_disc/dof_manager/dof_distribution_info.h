@@ -66,42 +66,42 @@ class DoFDistributionInfo : public FunctionPattern
 		[[nodiscard]] size_t max_dofs(const int dim) const {return m_vMaxDoFsInDim[dim];}
 
 		/// returns the maximum number of dofs on a grid base object type
-		[[nodiscard]] size_t max_dofs(const GridBaseObjectId gbo) const {return m_vMaxDoFsInDim[gbo];}
+		[[nodiscard]] size_t max_dofs(GridBaseObjectId_t gbo) const {return m_vMaxDoFsInDim[gbo];}
 
 		/// returns the maximum number of dofs on reference object type
-		[[nodiscard]] size_t max_dofs(const ReferenceObjectID roid) const {return m_vMaxDoFsOnROID[roid];}
+		[[nodiscard]] size_t max_dofs(ReferenceObjectID_t roid) const {return m_vMaxDoFsOnROID[roid];}
 
 		/// returns the maximum number of dofs in a dimension on a subset
 		[[nodiscard]] size_t max_dofs(const int dim, const int si) const {return m_vvMaxDoFsInDimPerSubset[dim][si];}
 
 		/// returns the maximum number of dofs on a grid base object on a subset
-		[[nodiscard]] size_t max_dofs(const GridBaseObjectId gbo, const int si) const {return m_vvMaxDoFsInDimPerSubset[gbo][si];}
+		[[nodiscard]] size_t max_dofs(GridBaseObjectId_t gbo, const int si) const {return m_vvMaxDoFsInDimPerSubset[gbo][si];}
 
 		///	returns the number of dofs on a Reference Object on a subset
-		[[nodiscard]] size_t num_dofs(const ReferenceObjectID roid, const int si) const {return m_vvNumDoFsOnROIDPerSubset[roid][si];}
+		[[nodiscard]] size_t num_dofs(ReferenceObjectID_t roid, const int si) const {return m_vvNumDoFsOnROIDPerSubset[roid][si];}
 
 
 		/// returns the maximal number of dofs on a dimension for a function component
 		[[nodiscard]] size_t max_fct_dofs(const size_t fct, int dim) const {return m_vFctInfo[fct].vMaxDoFsInDim[dim];}
 
 		/// returns the maximal number of dofs on a base object type for a function component
-		[[nodiscard]] size_t max_fct_dofs(const size_t fct, const GridBaseObjectId gbo) const {return m_vFctInfo[fct].vMaxDoFsInDim[gbo];}
+		[[nodiscard]] size_t max_fct_dofs(const size_t fct, GridBaseObjectId_t gbo) const {return m_vFctInfo[fct].vMaxDoFsInDim[gbo];}
 
 		///	returns the number of dofs on a reference object for a function component
-		[[nodiscard]] size_t max_fct_dofs(const size_t fct, const ReferenceObjectID roid) const {return m_vFctInfo[fct].vMaxDoFsOnROID[roid];}
+		[[nodiscard]] size_t max_fct_dofs(const size_t fct, ReferenceObjectID_t roid) const {return m_vFctInfo[fct].vMaxDoFsOnROID[roid];}
 
 		/// returns the maximum number of dofs in a dimension on a subset for a function component
 		[[nodiscard]] size_t max_fct_dofs(const size_t fct, const int dim, const int si) const {return m_vFctInfo[fct].vvMaxDoFsInDimPerSubset[dim][si];}
 
 		/// returns the maximum number of dofs on a grid base object on a subset for a function component
-		[[nodiscard]] size_t max_fct_dofs(const size_t fct, const GridBaseObjectId gbo, const int si) const {return m_vFctInfo[fct].vvMaxDoFsInDimPerSubset[gbo][si];}
+		[[nodiscard]] size_t max_fct_dofs(const size_t fct, GridBaseObjectId_t gbo, const int si) const {return m_vFctInfo[fct].vvMaxDoFsInDimPerSubset[gbo][si];}
 
 		///	returns the number of dofs on a Reference Object on a subset for a function component
-		[[nodiscard]] size_t num_fct_dofs(const size_t fct, const ReferenceObjectID roid, const int si) const {return m_vFctInfo[fct].vvNumDoFsOnROIDPerSubset[roid][si];}
+		[[nodiscard]] size_t num_fct_dofs(const size_t fct, ReferenceObjectID_t roid, const int si) const {return m_vFctInfo[fct].vvNumDoFsOnROIDPerSubset[roid][si];}
 
 
 		///	returns the offset for reference element, subset and function
-		[[nodiscard]] size_t offset(const ReferenceObjectID roid, const int si, const size_t fct) const {return m_vFctInfo[fct].vvOffsets[roid][si];}
+		[[nodiscard]] size_t offset(ReferenceObjectID_t roid, const int si, const size_t fct) const {return m_vFctInfo[fct].vvOffsets[roid][si];}
 
 
 		///	prints informations
@@ -232,42 +232,42 @@ class DoFDistributionInfoProvider{
 		[[nodiscard]] size_t max_dofs(const int dim) const {return m_spDDI->max_dofs(dim);}
 
 		/// returns the maximum number of dofs on a grid base object type
-		[[nodiscard]] size_t max_dofs(const GridBaseObjectId gbo) const {return m_spDDI->max_dofs(gbo);}
+		[[nodiscard]] size_t max_dofs(GridBaseObjectId_t gbo) const {return m_spDDI->max_dofs(gbo);}
 
 		/// returns the maximum number of dofs on reference object type
-		[[nodiscard]] size_t max_dofs(const ReferenceObjectID roid) const {return m_spDDI->max_dofs(roid);}
+		[[nodiscard]] size_t max_dofs(ReferenceObjectID_t roid) const {return m_spDDI->max_dofs(roid);}
 
 		/// returns the maximum number of dofs in a dimension on a subset
 		[[nodiscard]] size_t max_dofs(const int dim, const int si) const {return m_spDDI->max_dofs(dim, si);}
 
 		/// returns the maximum number of dofs on a grid base object on a subset
-		[[nodiscard]] size_t max_dofs(const GridBaseObjectId gbo, const int si) const {return m_spDDI->max_dofs(gbo, si);}
+		[[nodiscard]] size_t max_dofs(GridBaseObjectId_t gbo, const int si) const {return m_spDDI->max_dofs(gbo, si);}
 
 		///	returns the number of dofs on a Reference Object on a subset
-		[[nodiscard]] size_t num_dofs(const ReferenceObjectID roid, const int si) const {return m_spDDI->num_dofs(roid, si);}
+		[[nodiscard]] size_t num_dofs(ReferenceObjectID_t roid, const int si) const {return m_spDDI->num_dofs(roid, si);}
 
 
 		/// returns the maximal number of dofs on a dimension for a function component
 		[[nodiscard]] size_t max_fct_dofs(const size_t fct, int dim) const {return m_spDDI->max_fct_dofs(fct, dim);}
 
 		/// returns the maximal number of dofs on a base object type for a function component
-		[[nodiscard]] size_t max_fct_dofs(const size_t fct, const GridBaseObjectId gbo) const {return m_spDDI->max_fct_dofs(fct, gbo);}
+		[[nodiscard]] size_t max_fct_dofs(const size_t fct, GridBaseObjectId_t gbo) const {return m_spDDI->max_fct_dofs(fct, gbo);}
 
 		///	returns the number of dofs on a reference object for a function component
-		[[nodiscard]] size_t max_fct_dofs(const size_t fct, const ReferenceObjectID roid) const {return m_spDDI->max_fct_dofs(fct, roid);}
+		[[nodiscard]] size_t max_fct_dofs(const size_t fct, ReferenceObjectID_t roid) const {return m_spDDI->max_fct_dofs(fct, roid);}
 
 		/// returns the maximum number of dofs in a dimension on a subset for a function component
 		[[nodiscard]] size_t max_fct_dofs(const size_t fct, const int dim, const int si) const {return m_spDDI->max_fct_dofs(fct, dim, si);}
 
 		/// returns the maximum number of dofs on a grid base object on a subset for a function component
-		[[nodiscard]] size_t max_fct_dofs(const size_t fct, const GridBaseObjectId gbo, const int si) const {return m_spDDI->max_fct_dofs(fct, gbo, si);}
+		[[nodiscard]] size_t max_fct_dofs(const size_t fct, GridBaseObjectId_t gbo, const int si) const {return m_spDDI->max_fct_dofs(fct, gbo, si);}
 
 		///	returns the number of dofs on a Reference Object on a subset for a function component
-		[[nodiscard]] size_t num_fct_dofs(const size_t fct, const ReferenceObjectID roid, const int si) const {return m_spDDI->num_fct_dofs(fct, roid, si);}
+		[[nodiscard]] size_t num_fct_dofs(const size_t fct, ReferenceObjectID_t roid, const int si) const {return m_spDDI->num_fct_dofs(fct, roid, si);}
 
 
 		///	returns the offset for reference element, subset and function
-		[[nodiscard]] size_t offset(const ReferenceObjectID roid, const int si, const size_t fct) const {return m_spDDI->offset(roid,si,fct);}
+		[[nodiscard]] size_t offset(ReferenceObjectID_t roid, const int si, const size_t fct) const {return m_spDDI->offset(roid,si,fct);}
 
 
 		///	prints statistic on local dof distribution

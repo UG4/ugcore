@@ -46,7 +46,7 @@ namespace ug {
  */
 /// \{
 template <int dim>
-bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, ReferenceObjectID roid,
+bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, ReferenceObjectID_t roid,
                       const std::vector<MathVector<dim> >& vCornerCoord, const LFEID& lfeID);
 
 
@@ -60,7 +60,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
  */
 /// \{
 template <int dim>
-bool DoFPosition(std::vector<MathVector<dim> >& vPos, ReferenceObjectID roid,
+bool DoFPosition(std::vector<MathVector<dim> >& vPos, ReferenceObjectID_t roid,
                  const std::vector<MathVector<dim> >& vCornerCoord, const LFEID& lfeID);
 
 template <typename TDomain>
@@ -75,7 +75,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
 template <int dim>
 void ShapesAtGlobalPosition(std::vector<std::vector<number> >& vvShape,
                            const std::vector<MathVector<dim> >& vGlobPos,
-                           ReferenceObjectID roid,
+                           ReferenceObjectID_t roid,
                            const std::vector<MathVector<dim> >& vCornerCoord,
                            const LFEID& lfeID);
 template <typename TDomain>

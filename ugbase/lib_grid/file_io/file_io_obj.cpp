@@ -108,7 +108,7 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 			//	create edges
 				for(size_t i = 0; i < obj.m_vEdgeList.size(); i+=2){
 					for(size_t j = i; j < i+2; ++j){
-						if(obj.m_vEdgeList[j] < 0 || obj.m_vEdgeList[j] >= (int)vVertices.size()){
+						if(obj.m_vEdgeList[j] < 0 || obj.m_vEdgeList[j] >= static_cast<int>(vVertices.size())){
 							UG_THROW("Bad vertex index in edge " << i / 2 << ": " << obj.m_vEdgeList[i] + 1);
 						}
 					}

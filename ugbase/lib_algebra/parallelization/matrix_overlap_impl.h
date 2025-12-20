@@ -260,10 +260,10 @@ class ComPol_MatCreateOverlap
 			BinaryBuffer sendBuf;
 			// size of the message for the i-th process in slaveProcs
 			vector msgSizeForSlaveProcs(slaveProcs.size(), 0);
-			int slaveInd = -1;
 
 		//	create new master-overlap and add connections to matrix
 			{
+				int slaveInd = -1;
 				IndexLayout::Interface* itfc = nullptr;
 				vector<bool> added;// keeps track of whether an index was already added.
 

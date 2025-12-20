@@ -159,7 +159,7 @@ class UG_API Tetrahedron : public Volume
 
 		[[nodiscard]] int container_section() const override {return VolumeContainerSections::CSVOL_TETRAHEDRON;}
 
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_TETRAHEDRON;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_TETRAHEDRON;}
 
 	protected:
 		void set_vertex(uint index, Vertex* pVrt) override {m_vertices[index] = pVrt;}
@@ -184,7 +184,7 @@ class geometry_traits<Tetrahedron>
 			CONTAINER_SECTION = VolumeContainerSections::CSVOL_TETRAHEDRON,
 			BASE_OBJECT_ID = GridBaseObjectId::VOLUME
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TETRAHEDRON;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_TETRAHEDRON;
 };
 
 using TetrahedronIterator = geometry_traits<Tetrahedron>::iterator;
@@ -297,7 +297,7 @@ class UG_API Hexahedron : public Volume
 		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
 		[[nodiscard]] int container_section() const override {return VolumeContainerSections::CSVOL_HEXAHEDRON;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_HEXAHEDRON;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_HEXAHEDRON;}
 
 	protected:
 		void set_vertex(uint index, Vertex* pVrt) override {m_vertices[index] = pVrt;}
@@ -322,7 +322,7 @@ class geometry_traits<Hexahedron>
 			CONTAINER_SECTION = VolumeContainerSections::CSVOL_HEXAHEDRON,
 			BASE_OBJECT_ID = GridBaseObjectId::VOLUME
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_HEXAHEDRON;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_HEXAHEDRON;
 };
 
 using HexahedronIterator = geometry_traits<Hexahedron>::iterator;
@@ -434,7 +434,7 @@ class UG_API Prism : public Volume
 		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
 		[[nodiscard]] int container_section() const override {return VolumeContainerSections::CSVOL_PRISM;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_PRISM;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_PRISM;}
 
 	protected:
 		void set_vertex(uint index, Vertex* pVrt) override {m_vertices[index] = pVrt;}
@@ -448,8 +448,7 @@ class geometry_traits<Prism>
 {
 	public:
 		using iterator = GenericGridObjectIterator<Prism*, VolumeIterator>;
-		using const_iterator = ConstGenericGridObjectIterator<Prism*, VolumeIterator,
-			ConstVolumeIterator>;
+		using const_iterator = ConstGenericGridObjectIterator<Prism*, VolumeIterator, ConstVolumeIterator>;
 
 		using Descriptor = PrismDescriptor;
 		using grid_base_object = Volume;
@@ -459,7 +458,7 @@ class geometry_traits<Prism>
 			CONTAINER_SECTION = VolumeContainerSections::CSVOL_PRISM,
 			BASE_OBJECT_ID = GridBaseObjectId::VOLUME
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_PRISM;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_PRISM;
 };
 
 using PrismIterator = geometry_traits<Prism>::iterator;
@@ -569,7 +568,7 @@ class UG_API Pyramid : public Volume
 		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
 		[[nodiscard]] int container_section() const override {return VolumeContainerSections::CSVOL_PYRAMID;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_PYRAMID;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_PYRAMID;}
 
 	protected:
 		void set_vertex(uint index, Vertex* pVrt) override {m_vertices[index] = pVrt;}
@@ -594,7 +593,7 @@ class geometry_traits<Pyramid>
 			CONTAINER_SECTION = VolumeContainerSections::CSVOL_PYRAMID,
 			BASE_OBJECT_ID = GridBaseObjectId::VOLUME
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_PYRAMID;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_PYRAMID;
 };
 
 using PyramidIterator = geometry_traits<Pyramid>::iterator;
@@ -708,7 +707,7 @@ class UG_API Octahedron : public Volume
 		void get_flipped_orientation(VolumeDescriptor& vdOut) const override;
 
 		[[nodiscard]] int container_section() const override {return VolumeContainerSections::CSVOL_OCTAHEDRON;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_OCTAHEDRON;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_OCTAHEDRON;}
 
 	protected:
 		void set_vertex(uint index, Vertex* pVrt) override {m_vertices[index] = pVrt;}
@@ -733,7 +732,7 @@ class geometry_traits<Octahedron>
 			CONTAINER_SECTION = VolumeContainerSections::CSVOL_OCTAHEDRON,
 			BASE_OBJECT_ID = GridBaseObjectId::VOLUME
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_OCTAHEDRON;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_OCTAHEDRON;
 };
 
 using OctahedronIterator = geometry_traits<Octahedron>::iterator;

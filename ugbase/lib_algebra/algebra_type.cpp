@@ -31,7 +31,6 @@
  */
 
 #include "algebra_type.h"
-
 #include "common/common.h"
 
 namespace ug {

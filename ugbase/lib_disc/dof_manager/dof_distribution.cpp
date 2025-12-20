@@ -140,7 +140,7 @@ SurfaceView::SurfaceConstants DoFDistribution::defaultValidSurfState() const{
 
 template <typename TBaseObject>
 void DoFDistribution::
-add(TBaseObject* obj, const ReferenceObjectID roid, const int si)
+add(TBaseObject* obj, const ReferenceObjectID_t roid, const int si)
 {
 	UG_ASSERT(si >= 0, "Invalid subset index passed");
 
@@ -188,7 +188,7 @@ extract_inner_algebra_indices(TBaseElem* elem,
 {
 //	get roid type and subset index
 	const int si = m_spMGSH->get_subset_index(elem);
-	const ReferenceObjectID roid = elem->reference_object_id();
+	const ReferenceObjectID_t roid = elem->reference_object_id();
 
 //	check if dofs present
 	if(num_dofs(roid,si) > 0)
@@ -258,7 +258,7 @@ size_t DoFDistribution::inner_algebra_indices_for_fct(GridObject* elem,
 
 //	get roid type and subset index
 	const int si = m_spMGSH->get_subset_index(elem);
-	const ReferenceObjectID roid = elem->reference_object_id();
+	const ReferenceObjectID_t roid = elem->reference_object_id();
 
 //	check if dofs present
 	if(num_dofs(roid,si) > 0)
@@ -335,7 +335,7 @@ size_t DoFDistribution::_algebra_indices(TBaseElem* elem,
 
 template<typename TBaseElem, typename TSubBaseElem>
 void DoFDistribution::
-dof_indices(TBaseElem* elem, const ReferenceObjectID roid,
+dof_indices(TBaseElem* elem, ReferenceObjectID_t roid,
               size_t fct, std::vector<DoFIndex>& ind,
               const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const
 {
@@ -355,7 +355,7 @@ dof_indices(TBaseElem* elem, const ReferenceObjectID roid,
 		if(!is_def_in_subset(fct, si)) continue;
 
 	//	get reference object id for subselement
-		const ReferenceObjectID subRoid = subElem->reference_object_id();
+		ReferenceObjectID_t subRoid = subElem->reference_object_id();
 
 	//	check if dof given
 		if(num_dofs(subRoid,si) == 0) continue;
@@ -417,7 +417,7 @@ size_t DoFDistribution::_inner_dof_indices(TBaseElem* elem, size_t fct,
 	if(!is_def_in_subset(fct, si)) return ind.size();
 
 //	get roid type
-	const ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 
 //	get number of DoFs in this sub-geometric object
 	const size_t numDoFsOnSub = num_fct_dofs(fct,roid,si);
@@ -470,7 +470,7 @@ constrained_vertex_dof_indices(size_t fct,std::vector<DoFIndex>& ind,
 			TConstrained* vrt = constrainingObj->constrained_vertex(j);
 
 		//	get roid
-			const ReferenceObjectID subRoid = vrt->reference_object_id();
+			ReferenceObjectID_t subRoid = vrt->reference_object_id();
 
 		//	check if dof given
 			if(num_dofs(subRoid,si) == 0) continue;
@@ -534,7 +534,7 @@ constrained_edge_dof_indices(TBaseElem* elem,size_t fct,std::vector<DoFIndex>& i
 			TConstrained* edg = constrainingObj->constrained_edge(sortedInd[j]);
 
 			//	get roid
-			const ReferenceObjectID subRoid = edg->reference_object_id();
+			ReferenceObjectID_t subRoid = edg->reference_object_id();
 
 			//	get subset index
 			int si = m_spMGSH->get_subset_index(edg);
@@ -609,7 +609,7 @@ constrained_face_dof_indices(TBaseElem* elem,size_t fct,std::vector<DoFIndex>& i
 			TConstrained* face = constrainingObj->constrained_face(sortedInd[j]);
 
 			//	get roid
-			const ReferenceObjectID subRoid = face->reference_object_id();
+			ReferenceObjectID_t subRoid = face->reference_object_id();
 
 			//	get subset index
 			int si = m_spMGSH->get_subset_index(face);
@@ -669,7 +669,7 @@ size_t DoFDistribution::_dof_indices(TBaseElem* elem, size_t fct,
 	static constexpr int dim = TBaseElem::dim;
 
 //	reference object id
-	const ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 
 //	storage for (maybe needed) subelements
 	Grid::SecureVertexContainer vCorner;
@@ -722,12 +722,12 @@ size_t DoFDistribution::_dof_indices(TBaseElem* elem, size_t fct,
 }
 
 template<typename TBaseElem>
-void DoFDistribution::indices_on_vertex(TBaseElem* elem, const ReferenceObjectID roid,
+void DoFDistribution::indices_on_vertex(TBaseElem* elem, ReferenceObjectID_t roid,
                                           LocalIndices& ind,
                                           const Grid::SecureVertexContainer& vElem) const
 {
 //	get reference object id for subelement
-	static constexpr ReferenceObjectID subRoid = ROID_VERTEX;
+	static constexpr ReferenceObjectID_t subRoid = ROID_VERTEX;
 
 //	add normal dofs
 	for(size_t i = 0; i < vElem.size(); ++i)
@@ -770,7 +770,7 @@ void DoFDistribution::indices_on_vertex(TBaseElem* elem, const ReferenceObjectID
 }
 
 template<typename TBaseElem, typename TSubBaseElem>
-void DoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
+void DoFDistribution::indices(TBaseElem* elem, ReferenceObjectID_t roid,
                                 LocalIndices& ind,
                                 const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const
 {
@@ -787,7 +787,7 @@ void DoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
 		const int si = m_spMGSH->get_subset_index(subElem);
 
 	//	get reference object id for subselement
-		const ReferenceObjectID subRoid = subElem->reference_object_id();
+		const ReferenceObjectID_t subRoid = subElem->reference_object_id();
 
 	//	loop all functions
 		for(size_t fct = 0; fct < num_fct(); ++fct)
@@ -863,7 +863,7 @@ constrained_vertex_indices(LocalIndices& ind,
 			TConstrained* vrt = constrainingObj->constrained_vertex(j);
 
 		//	get roid
-			const ReferenceObjectID subRoid = vrt->reference_object_id();
+			const ReferenceObjectID_t subRoid = vrt->reference_object_id();
 
 		//	get subset index
 			int si = m_spMGSH->get_subset_index(vrt);
@@ -902,7 +902,7 @@ void DoFDistribution::
 sort_constrained_edges(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstraining* constrainingObj,size_t objIndex) const
 {
 	static constexpr int dim = TBaseElem::dim;
-	ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 	const DimReferenceElement<dim>& refElem
 		= ReferenceElementProvider::get<dim>(roid);
 	// get edge belonging to reference id vertex 0 on edge
@@ -953,7 +953,7 @@ void DoFDistribution::
 sort_constrained_faces(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstraining* constrainingObj,size_t objIndex) const
 {
 	static constexpr int dim = TBaseElem::dim;
-	ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 	const DimReferenceElement<dim>& refElem = ReferenceElementProvider::get<dim>(roid);
 	const size_t numVrt = constrainingObj->num_vertices();
 	sortedInd.resize(4);
@@ -1020,7 +1020,7 @@ constrained_edge_indices(TBaseElem* elem,LocalIndices& ind,
 			TConstrained* edg = constrainingObj->constrained_edge(sortedInd[j]);
 
 			//	get roid
-			const ReferenceObjectID subRoid = edg->reference_object_id();
+			const ReferenceObjectID_t subRoid = edg->reference_object_id();
 
 			//	get subset index
 			int si = m_spMGSH->get_subset_index(edg);
@@ -1076,7 +1076,7 @@ constrained_face_indices(TBaseElem* elem,LocalIndices& ind,
 			TConstrained* face = constrainingObj->constrained_face(sortedInd[j]);
 
 			//	get roid
-			const ReferenceObjectID subRoid = face->reference_object_id();
+			const ReferenceObjectID_t subRoid = face->reference_object_id();
 
 			//	get subset index
 			int si = m_spMGSH->get_subset_index(face);
@@ -1136,7 +1136,7 @@ void DoFDistribution::_indices(TBaseElem* elem, LocalIndices& ind, bool bHang) c
 		if(max_dofs(VOLUME) > 0) m_pMG->associated_elements_sorted(vVol, elem);
 
 //	get reference object id
-	const ReferenceObjectID roid = elem->reference_object_id();
+	const ReferenceObjectID_t roid = elem->reference_object_id();
 
 //	get regular dofs on all subelements and the element itself
 //	use specialized function for vertices (since only one position and one reference object)
@@ -1374,7 +1374,7 @@ void DoFDistribution::reinit()
 				}
 
 			//	create a dof and copy it down to SHADOW_COPY parents
-				const ReferenceObjectID roid = elem->reference_object_id();
+				const ReferenceObjectID_t roid = elem->reference_object_id();
 				add(elem, roid, si);
 
 				auto* p = dynamic_cast<TBaseElem*>(mg.get_parent(elem));
@@ -1405,7 +1405,7 @@ void DoFDistribution::reinit()
 				TBaseElem* elem = *iter;
 
 			//	get roid
-				const ReferenceObjectID roid = elem->reference_object_id();
+				ReferenceObjectID_t roid = elem->reference_object_id();
 
 			//	add element
 				add(elem, roid, si);
@@ -1571,7 +1571,7 @@ void DoFDistribution::sum_dof_count(DoFCount& cnt) const
 // 	loop elems
 	for(; iter != iterEnd; ++iter){
 		TBaseElem* elem = *iter;
-		const ReferenceObjectID roid = elem->reference_object_id();
+		ReferenceObjectID_t roid = elem->reference_object_id();
 		const int si = sv.subset_handler()->get_subset_index(elem);
 
 		// Surface State
@@ -1696,7 +1696,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 		for(int si = 0; si < num_subsets(); ++si)
 			for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 			{
-				const auto roid = (ReferenceObjectID) i;
+				ReferenceObjectID_t roid = static_cast<ReferenceObjectID_t>(i);
 				if(num_dofs(roid,si) == 0) continue;
 				if(numDoFs == 0) {numDoFs = num_dofs(roid,si); continue;}
 				if(num_dofs(roid,si) != numDoFs)

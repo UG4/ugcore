@@ -49,13 +49,15 @@ class TE_TRANSPOSED
 {
 public:
 	using value_type = typename T::value_type;
+
 	explicit TE_TRANSPOSED(const T&_t) : t(_t) {}
-	inline size_t num_rows() const
+
+	[[nodiscard]] inline size_t num_rows() const
 	{
 		return t.num_cols();
 	}
 	
-	inline size_t num_cols() const
+	[[nodiscard]] inline size_t num_cols() const
 	{
 		return t.num_rows();
 	}
@@ -68,7 +70,8 @@ public:
 	value_type &operator () (size_t r, size_t c)
 	{
 		return t(c, r);
-	}	
+	}
+
 private:	
 	const T &t;
 };
@@ -109,7 +112,7 @@ public:
 	enum { is_static = storage_traits1<TStorage>::is_static};
 	enum { static_size = storage_traits1<TStorage>::static_size};
 
-	using this_type = DenseVector<TStorage>;
+	using this_type = DenseVector;
 
 	// use the interface of TStorage
 	using base = TStorage;

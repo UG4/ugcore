@@ -69,7 +69,7 @@ class UG_API RegularVertex : public Vertex
 		[[nodiscard]] GridObject* create_empty_instance() const override {return new RegularVertex;}
 
 		[[nodiscard]] int container_section() const override {return VertexContainerSections::CSVRT_REGULAR_VERTEX;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_VERTEX;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_VERTEX;}
 };
 
 template <>
@@ -87,7 +87,7 @@ class geometry_traits<RegularVertex>
 			BASE_OBJECT_ID = GridBaseObjectId::VERTEX
 		};
 
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_VERTEX;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_VERTEX;
 };
 
 using RegularVertexIterator = geometry_traits<RegularVertex>::iterator;
@@ -121,7 +121,7 @@ class UG_API ConstrainedVertex : public Vertex
 		GridObject* create_empty_instance() const override {return new ConstrainedVertex;}
 
 		int container_section() const override {return VertexContainerSections::CSVRT_CONSTRAINED_VERTEX;}
-		ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_VERTEX;}
+		ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_VERTEX;}
 
 		bool is_constrained() const override {return true;}
 
@@ -185,7 +185,7 @@ class geometry_traits<ConstrainedVertex>
 			CONTAINER_SECTION = VertexContainerSections::CSVRT_CONSTRAINED_VERTEX,
 			BASE_OBJECT_ID = GridBaseObjectId::VERTEX
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_VERTEX;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_VERTEX;
 };
 
 using ConstrainedVertexIterator = geometry_traits<ConstrainedVertex>::iterator;

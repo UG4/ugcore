@@ -294,8 +294,7 @@ void SetInterfaceValues(TVector* pVec,
 	PROFILE_FUNC_GROUP("algebra parallelization");
 
 //	loop over indices
-	for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
-			iter != interface.end(); ++iter)
+	for(auto iter = interface.begin(); iter != interface.end(); ++iter)
 	{
 	//  get index
 		const size_t index = interface.get_element(iter);
@@ -319,7 +318,7 @@ void SetLayoutValues(	TVector* pVec,
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterators
-	IndexLayout::const_iterator iter = layout.begin();
+	auto iter = layout.begin();
 	auto end = layout.end();
 
 //	iterate over interfaces
@@ -354,7 +353,7 @@ void ScaleLayoutValues(	TVector* pVec,
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterators
-	IndexLayout::const_iterator iter = layout.begin();
+	auto iter = layout.begin();
 	auto end = layout.end();
 
 //	iterate over interfaces

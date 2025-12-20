@@ -243,7 +243,7 @@ void AssignIndices(typename geometry_traits<TElem>::iterator iterBegin,
 	while(iterBegin != iterEnd)
 	{
 		aaInt[*iterBegin] = index++;
-		iterBegin++;
+		++iterBegin;
 	}
 }
 

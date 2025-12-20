@@ -154,7 +154,7 @@ int NumAssociatedVolumes(Grid& grid, Face* f)
 	{
 	//	iterate over all volumes which are connected to the first vertex
 	//	and check if they contain the face...
-	auto iterEnd = grid.associated_volumes_end(f->vertex(0));
+		auto iterEnd = grid.associated_volumes_end(f->vertex(0));
 		for(auto iter = grid.associated_volumes_begin(f->vertex(0));
 		    iter != iterEnd; ++iter)
 		{

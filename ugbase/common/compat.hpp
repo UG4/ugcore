@@ -11,11 +11,15 @@
   #define HAS_RANGES 0
 #endif
 
+
+
 #if defined(__cpp_lib_ranges_contains)
   #define HAS_RANGES_CONTAINS 1
 #else
   #define HAS_RANGES_CONTAINS 0
 #endif
+
+
 
 
 #if HAS_RANGES_CONTAINS
@@ -30,3 +34,4 @@
 
 // erase , remove
 // find
+// transform

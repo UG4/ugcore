@@ -310,7 +310,7 @@ number ParallelVector<TVector>::maxnorm() const
 					" ParallelStorageType to unique.");
 
 	// 	step 2: compute process-local defect norm, square them
-	double tNormLocal = (double)TVector::maxnorm();
+	double tNormLocal = static_cast<double>(TVector::maxnorm());
 
 	// 	step 3: sum squared local norms
 	PARVEC_PROFILE_BEGIN(ParVec_norm_allreduce);

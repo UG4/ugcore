@@ -368,10 +368,10 @@ inline number ElementSize<ReferenceOctahedron, 3>(const MathVector<3>* vCornerCo
 ///////////////////////////////////////////////////////////////
 
 template <int dim>
-inline number ElementSize(ReferenceObjectID roid, const MathVector<dim>* vCornerCoords);
+inline number ElementSize(ReferenceObjectID_t roid, const MathVector<dim>* vCornerCoords);
 
 template <>
-inline number ElementSize<1>(ReferenceObjectID roid, const MathVector<1>* vCornerCoords)
+inline number ElementSize<1>(ReferenceObjectID_t roid, const MathVector<1>* vCornerCoords)
 {
 	switch(roid)
 	{
@@ -382,7 +382,7 @@ inline number ElementSize<1>(ReferenceObjectID roid, const MathVector<1>* vCorne
 }
 
 template <>
-inline number ElementSize<2>(ReferenceObjectID roid, const MathVector<2>* vCornerCoords)
+inline number ElementSize<2>(ReferenceObjectID_t roid, const MathVector<2>* vCornerCoords)
 {
 	switch(roid)
 	{
@@ -395,7 +395,7 @@ inline number ElementSize<2>(ReferenceObjectID roid, const MathVector<2>* vCorne
 }
 
 template <>
-inline number ElementSize<3>(ReferenceObjectID roid, const MathVector<3>* vCornerCoords)
+inline number ElementSize<3>(ReferenceObjectID_t roid, const MathVector<3>* vCornerCoords)
 {
 	switch(roid)
 	{
@@ -590,10 +590,10 @@ inline void ElementNormal<ReferenceQuadrilateral, 3>(MathVector<3>& normalOut, c
 ///////////////////////////////////////////////////////////////
 
 template <int dim>
-inline void ElementNormal(ReferenceObjectID roid, MathVector<dim>& normalOut, const MathVector<dim>* vCornerCoords);
+inline void ElementNormal(ReferenceObjectID_t roid, MathVector<dim>& normalOut, const MathVector<dim>* vCornerCoords);
 
 template <>
-inline void ElementNormal<1>(ReferenceObjectID roid, MathVector<1>& normalOut, const MathVector<1>* vCornerCoords)
+inline void ElementNormal<1>(ReferenceObjectID_t roid, MathVector<1>& normalOut, const MathVector<1>* vCornerCoords)
 {
 	switch(roid)
 	{
@@ -603,7 +603,7 @@ inline void ElementNormal<1>(ReferenceObjectID roid, MathVector<1>& normalOut, c
 }
 
 template <>
-inline void ElementNormal<2>(ReferenceObjectID roid, MathVector<2>& normalOut, const MathVector<2>* vCornerCoords)
+inline void ElementNormal<2>(ReferenceObjectID_t roid, MathVector<2>& normalOut, const MathVector<2>* vCornerCoords)
 {
 	switch(roid)
 	{
@@ -614,7 +614,7 @@ inline void ElementNormal<2>(ReferenceObjectID roid, MathVector<2>& normalOut, c
 }
 
 template <>
-inline void ElementNormal<3>(ReferenceObjectID roid, MathVector<3>& normalOut, const MathVector<3>* vCornerCoords)
+inline void ElementNormal<3>(ReferenceObjectID_t roid, MathVector<3>& normalOut, const MathVector<3>* vCornerCoords)
 {
 	switch(roid)
 	{
@@ -646,7 +646,7 @@ inline void SideNormal(MathVector<TWorldDim>& normalOut, int side, const MathVec
 	
 //	Get own reference element and the side roid:
 	auto & rRefElem = (TRefElem&) ReferenceElementProvider::get(TRefElem::REFERENCE_OBJECT_ID);
-	ReferenceObjectID sideRoid = rRefElem.roid(dim-1,side);
+	ReferenceObjectID_t sideRoid = rRefElem.roid(dim-1,side);
 	
 //	Get the coordinates of the vertices:
 	MathVector<TWorldDim> vSideCorner [(dim == TWorldDim)? maxSideCorners : maxSideCorners + 1];
@@ -671,10 +671,10 @@ inline void SideNormal(MathVector<TWorldDim>& normalOut, int side, const MathVec
 
 ///	Computation of the side normal for a generic reference element:
 template <int dim>
-inline void SideNormal(ReferenceObjectID roid, MathVector<dim>& normalOut, int side, const MathVector<dim>* vCornerCoords);
+inline void SideNormal(ReferenceObjectID_t roid, MathVector<dim>& normalOut, int side, const MathVector<dim>* vCornerCoords);
 
 template <>
-inline void SideNormal<1>(ReferenceObjectID roid, MathVector<1>& normalOut, int side, const MathVector<1>* vCornerCoords)
+inline void SideNormal<1>(ReferenceObjectID_t roid, MathVector<1>& normalOut, int side, const MathVector<1>* vCornerCoords)
 {
 	switch(roid)
 	{
@@ -684,7 +684,7 @@ inline void SideNormal<1>(ReferenceObjectID roid, MathVector<1>& normalOut, int 
 }
 
 template <>
-inline void SideNormal<2>(ReferenceObjectID roid, MathVector<2>& normalOut, int side, const MathVector<2>* vCornerCoords)
+inline void SideNormal<2>(ReferenceObjectID_t roid, MathVector<2>& normalOut, int side, const MathVector<2>* vCornerCoords)
 {
 	switch(roid)
 	{
@@ -696,7 +696,7 @@ inline void SideNormal<2>(ReferenceObjectID roid, MathVector<2>& normalOut, int 
 }
 
 template <>
-inline void SideNormal<3>(ReferenceObjectID roid, MathVector<3>& normalOut, int side, const MathVector<3>* vCornerCoords)
+inline void SideNormal<3>(ReferenceObjectID_t roid, MathVector<3>& normalOut, int side, const MathVector<3>* vCornerCoords)
 {
 	switch(roid)
 	{
@@ -1037,10 +1037,10 @@ inline void ComputeElementExtensionsSq(const MathVector<TWorldDim>* vCornerCoord
 
 
 template <int dim>
-inline void ElementExtensionsSq(ReferenceObjectID roid, MathVector<dim>& ext, const MathVector<dim>* vCornerCoords);
+inline void ElementExtensionsSq(ReferenceObjectID_t roid, MathVector<dim>& ext, const MathVector<dim>* vCornerCoords);
 
 template <>
-inline void ElementExtensionsSq<1>(ReferenceObjectID roid, MathVector<1>& ext, const MathVector<1>* vCornerCoords)
+inline void ElementExtensionsSq<1>(ReferenceObjectID_t roid, MathVector<1>& ext, const MathVector<1>* vCornerCoords)
 {
 	switch(roid)
 	{
@@ -1051,7 +1051,7 @@ inline void ElementExtensionsSq<1>(ReferenceObjectID roid, MathVector<1>& ext, c
 }
 
 template <>
-inline void ElementExtensionsSq<2>(ReferenceObjectID roid, MathVector<2>& ext, const MathVector<2>* vCornerCoords)
+inline void ElementExtensionsSq<2>(ReferenceObjectID_t roid, MathVector<2>& ext, const MathVector<2>* vCornerCoords)
 {
 	switch(roid)
 	{
@@ -1064,7 +1064,7 @@ inline void ElementExtensionsSq<2>(ReferenceObjectID roid, MathVector<2>& ext, c
 }
 
 template <>
-inline void ElementExtensionsSq<3>(ReferenceObjectID roid, MathVector<3>& ext, const MathVector<3>* vCornerCoords)
+inline void ElementExtensionsSq<3>(ReferenceObjectID_t roid, MathVector<3>& ext, const MathVector<3>* vCornerCoords)
 {
 	switch(roid)
 	{

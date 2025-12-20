@@ -176,10 +176,11 @@ void ConvertToTetrahedra (
 
 	for(TVolIter iv = volsBegin; iv != volsEnd; ++iv){
 		grid.associated_elements(faces, *iv);
-		for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){ Face* f = faces[_vfeI];{
+		for(size_t _vfeI = 0; _vfeI < faces.size(); ++_vfeI){
+			Face* f = faces[_vfeI];
 			if(f->num_vertices() == 4)
 				quads.push_back(f);
-		}};
+		}
 	}
 
 //	remove double entries

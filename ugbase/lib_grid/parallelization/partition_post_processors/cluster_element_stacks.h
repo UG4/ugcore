@@ -112,7 +112,8 @@ class ClusterElementStacks : public IPartitionPostProcessor
 			typename Grid::traits<elem_t>::secure_container	elems;
 			typename Grid::traits<side_t>::secure_container sides;
 
-			for(typename Grid::traits<elem_t>::iterator _feI = mg.begin<elem_t>(partitionLvl); _feI != mg.end<elem_t>(partitionLvl); ++_feI){ elem_t* rootElem = *_feI;{
+			for(auto _feI = mg.begin<elem_t>(partitionLvl); _feI != mg.end<elem_t>(partitionLvl); ++_feI){
+				elem_t* rootElem = *_feI;
 				if(aaProcessed[rootElem])
 					continue;
 
@@ -126,22 +127,24 @@ class ClusterElementStacks : public IPartitionPostProcessor
 					stack.pop();
 
 					mg.associated_elements(sides, elem);
-					for(size_t _vfeI = 0; _vfeI < sides.size(); ++_vfeI){ side_t* s = sides[_vfeI];{
+					for(size_t _vfeI = 0; _vfeI < sides.size(); ++_vfeI){
+						side_t* s = sides[_vfeI];
 						vector_t n = CalculateNormal(s, aaPos);
 						if(fabs(VecDot(n, stackingDir)) > SMALL){
 						//	cluster neighbors of that side
 							mg.associated_elements(elems, s);
-							for(size_t _vfeI = 0; _vfeI < elems.size(); ++_vfeI){ elem_t* nbr = elems[_vfeI];{
+							for(size_t _vfeI = 0; _vfeI < elems.size(); ++_vfeI){
+								elem_t* nbr = elems[_vfeI];
 								if(!aaProcessed[nbr]){
 									stack.push(nbr);
 									aaProcessed[nbr] = true;
 									sh.assign_subset(nbr, newSi);
 								}	
-							}};
+							}
 						}
-					}};
+					}
 				}
-			}};
+			}
 		}
 
 		void partitioning_done() override {
