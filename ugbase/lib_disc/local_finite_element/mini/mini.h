@@ -90,13 +90,13 @@ class MiniBubbleLDS : public LocalDoFSet
 		}
 
 	///	returns the type of reference element
-		[[nodiscard]] ReferenceObjectID roid() const override {return TRefElem::REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t roid() const override {return TRefElem::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
 		[[nodiscard]] size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		[[nodiscard]] size_t num_dof(ReferenceObjectID type) const override {
+		[[nodiscard]] size_t num_dof(ReferenceObjectID_t type) const override {
 			const int d = ReferenceElementDimension(type);
 			if (d==0) return 1;         // vertices
 			if (d == refDim)   return 1;    // element

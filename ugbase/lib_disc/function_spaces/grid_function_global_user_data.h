@@ -170,7 +170,7 @@ class GlobalGridFunctionNumberData
 				CollectCornerCoordinates(vCornerCoords, *elem, *m_spGridFct->domain());
 
 			//	reference object id
-				const ReferenceObjectID roid = elem->reference_object_id();
+				ReferenceObjectID_t roid = elem->reference_object_id();
 
 			//	get local position of DoF
 				DimReferenceMapping<elemDim, dim>& map
@@ -370,7 +370,7 @@ class GlobalGridFunctionGradientData
 				CollectCornerCoordinates(vCornerCoords, *elem, *m_spGridFct->domain());
 
 			//	reference object id
-				const ReferenceObjectID roid = elem->reference_object_id();
+				ReferenceObjectID_t roid = elem->reference_object_id();
 
 			//	get local position of DoF
 				DimReferenceMapping<dim, dim>& map

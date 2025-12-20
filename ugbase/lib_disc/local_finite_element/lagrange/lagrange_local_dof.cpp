@@ -208,7 +208,7 @@ size_t LagrangeNumDoFOnSub(const ReferenceObjectID elem,
 			if(sub == ROID_VERTEX)		   return 1;
 			if(sub == ROID_EDGE) 		   return (p-1);
 			if(sub == ROID_QUADRILATERAL) return (p-1)*(p-1);
-			else return 0;
+			return 0;
 		case ROID_TETRAHEDRON:
 			if(sub == ROID_VERTEX)      return 1;
 			if(sub == ROID_EDGE) 	     return (p-1);
@@ -216,7 +216,7 @@ size_t LagrangeNumDoFOnSub(const ReferenceObjectID elem,
 			if(sub == ROID_TRIANGLE)    return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
 			//	same as for a 3d tetrahedron of order p-4
 			if(sub == ROID_TETRAHEDRON) return ((p>3) ? BinomCoeff(p-1, p-4) : 0);
-			else return 0;
+			return 0;
 		case ROID_PRISM:
 			if(sub == ROID_VERTEX)        return 1;
 			if(sub == ROID_EDGE)          return (p-1);
@@ -226,7 +226,7 @@ size_t LagrangeNumDoFOnSub(const ReferenceObjectID elem,
 			if(sub == ROID_QUADRILATERAL) return (p-1)*(p-1);
 		//	same as for a 3d prism of order p-2
 			if(sub == ROID_PRISM)		   return ((p>2) ? BinomCoeff(p-1, p-3)*(p-1) : 0);
-			else return 0;
+			return 0;
 		case ROID_PYRAMID:
 			if(sub == ROID_VERTEX)			return 1;
 			if(sub == ROID_EDGE) 			return (p-1);
@@ -236,25 +236,25 @@ size_t LagrangeNumDoFOnSub(const ReferenceObjectID elem,
 			if(sub == ROID_QUADRILATERAL)	return (p-1)*(p-1);
 		//	same as for a 3d pyramid of order p-2
 			if(sub == ROID_PYRAMID)		return ((p>2) ? GetNumberOfDoFsOfPyramid(p-3) : 0);
-			else return 0;
+			return 0;
 		case ROID_HEXAHEDRON:
 			if(sub == ROID_VERTEX)		   return 1;
 			if(sub == ROID_EDGE) 	 	   return (p-1);
 			if(sub == ROID_QUADRILATERAL) return (p-1)*(p-1);
 			if(sub == ROID_HEXAHEDRON)    return (p-1)*(p-1)*(p-1);
-			else return 0;
+			return 0;
 		case ROID_OCTAHEDRON:
 			if(p != 1)
 			{
 				UG_THROW("LagrangeNumDoFOnSub: Octahedral elements only implemented for order p = 1.");
 			}
 			if(sub == ROID_VERTEX)		return 1;
-			else return 0;
+			return 0;
 		default: UG_THROW("LagrangeLDS: Invalid ReferenceObjectID: "<<elem);
 	}
 }
 
-size_t LagrangeNumDoFs(const ReferenceObjectID elem, const size_t p)
+size_t LagrangeNumDoFs(ReferenceObjectID_t elem, const size_t p)
 {
 	switch(elem){
 		case ROID_VERTEX: 			return 1;
@@ -296,7 +296,7 @@ void LagrangeLDS<TRefElem>::set_order(size_t order)
 }
 
 template <typename TRefElem>
-size_t LagrangeLDS<TRefElem>::num_dof(ReferenceObjectID type) const
+size_t LagrangeLDS<TRefElem>::num_dof(ReferenceObjectID_t type) const
 {
 	return LagrangeNumDoFOnSub(roid(), type, p);
 }

@@ -125,7 +125,7 @@ class GridFunctionNumberData
 		                    const MathMatrix<refDim, dim>* vJT = nullptr) const
 		{
 			//	reference object id
-			const ReferenceObjectID roid = elem->reference_object_id();
+			ReferenceObjectID_t roid = elem->reference_object_id();
 
 			//	get trial space
 			try{
@@ -295,7 +295,7 @@ class GridFunctionVectorData
 	                    const MathMatrix<refDim, dim>* vJT = nullptr) const
 	{
 		//	reference object id
-		const ReferenceObjectID roid = elem->reference_object_id();
+		ReferenceObjectID_t roid = elem->reference_object_id();
 
 		//	memory for shapes
 		std::vector<number> vShape;
@@ -436,7 +436,7 @@ class GridFunctionGradientData
 	                    const MathMatrix<refDim, dim>* vJT = nullptr) const
 	{
 		//	reference object id
-		const ReferenceObjectID roid = elem->reference_object_id();
+		ReferenceObjectID_t roid = elem->reference_object_id();
 
 		//	get reference element mapping by reference object id
 		std::vector<MathMatrix<refDim, dim> > vJTTmp(nip);
@@ -585,7 +585,7 @@ class GridFunctionGradientComponentData
 	                    const MathMatrix<refDim, dim>* vJT = nullptr) const
 	{
 		//	reference object id
-		const ReferenceObjectID roid = elem->reference_object_id();
+		ReferenceObjectID_t roid = elem->reference_object_id();
 
 		//	get reference element mapping by reference object id
 		std::vector<MathMatrix<refDim, dim> > vJTTmp( nip );

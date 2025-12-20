@@ -454,11 +454,11 @@ void ExpectedErrorMarkingStrategy<TDomain>::mark
 	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 	// create vector of local element (squared) errors
-	const_iterator iter = dd->begin<TElem>();
-	const const_iterator iterEnd = dd->end<TElem>();
+
+	auto iterEnd = dd->end<TElem>();
 	std::vector<TElem*> elemVec;
 	number locError = 0.0;
-	for (; iter != iterEnd; ++iter)
+	for (auto iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 		TElem* elem = *iter;
 

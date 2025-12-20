@@ -148,16 +148,16 @@ class LFEID
 		bool operator < (const LFEID& v) const
 		{
 			if(m_type != v.m_type) return m_type < v.m_type;
-			else if(m_dim != v.m_dim) return m_dim < v.m_dim;
-			else return m_order < v.m_order;
+			if(m_dim != v.m_dim) return m_dim < v.m_dim;
+			return m_order < v.m_order;
 		}
 
 	///	operator >
 		bool operator > (const LFEID& v) const
 		{
 			if(m_type != v.m_type) return m_type > v.m_type;
-			else if(m_dim != v.m_dim) return m_dim > v.m_dim;
-			else return m_order > v.m_order;
+			if(m_dim != v.m_dim) return m_dim > v.m_dim;
+			return m_order > v.m_order;
 		}
 
 	///	operator <=

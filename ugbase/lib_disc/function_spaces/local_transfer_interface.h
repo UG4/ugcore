@@ -85,7 +85,7 @@ class IElemProlongation
 			m_vValueParent = vValueParent;
 		}
 
-		virtual bool perform_prolongation_on(GridBaseObjectId gbo) = 0;
+		virtual bool perform_prolongation_on(GridBaseObjectId_t gbo) = 0;
 
 		virtual void prolongate(Vertex* parent) = 0;
 		virtual void prolongate(Edge* parent) = 0;
@@ -159,7 +159,7 @@ class IElemRestriction
 			m_vValueParent = vValueParent;
 		}
 
-		virtual bool perform_restriction_on(GridBaseObjectId gbo) = 0;
+		virtual bool perform_restriction_on(GridBaseObjectId_t gbo) = 0;
 
 		virtual void do_restrict(Vertex* parent) = 0;
 		virtual void do_restrict(Edge* parent) = 0;

@@ -926,7 +926,7 @@ write_cell_connectivity(VTKFileWriter& File,
 	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	get reference element id
-	static constexpr ReferenceObjectID refID = ref_elem_type::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID_t refID = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	get iterators
 	using const_iterator = typename IteratorProvider<T>::template traits<TElem>::const_iterator;
@@ -1165,7 +1165,7 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, const int si)
 	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	get object type
-	static constexpr ReferenceObjectID refID = ref_elem_type::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID_t refID = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	type
 	char type;
@@ -1976,12 +1976,11 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
-	static constexpr ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID_t roid = ref_elem_type::REFERENCE_OBJECT_ID;
 	static constexpr int dim = ref_elem_type::dim;
 	static constexpr size_t numCo = ref_elem_type::numCorners;
 
 //	index vector
-	std::vector<DoFIndex> vMultInd;
 
 //	get iterators
 	using const_iterator = typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator;
@@ -1998,8 +1997,9 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 
 //	request for trial space
 	try{
+		std::vector<DoFIndex> vMultInd;
 
-	// avoid passing this code, since LocalShapeFunctionSet might not exist for RefElem-Type
+		// avoid passing this code, since LocalShapeFunctionSet might not exist for RefElem-Type
 	if(iterBegin == iterEnd) return;
 
 	std::vector<std::vector<number> > vvShape(vFct.size());

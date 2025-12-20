@@ -705,7 +705,7 @@ class UserDataDistIntegrandSq
 
 		///	sets subset
 		void set_subset(int si) override
-	{
+		{
 			if(!m_fineData.is_def_in_subset(si))
 				UG_THROW("UserDataDistIntegrandSq: Grid function component"
 						<<m_fineData.fct()<<" not defined on subset "<<si);
@@ -749,7 +749,7 @@ class UserDataDistIntegrandSq
 			CollectCornerCoordinates(vCornerCoarse, *static_cast<TElem*>(pCoarseElem), *m_coarseData.domain());
 
 		//	get Reference Mapping
-			const ReferenceObjectID coarseROID = pCoarseElem->reference_object_id();
+			ReferenceObjectID_t coarseROID = pCoarseElem->reference_object_id();
 			DimReferenceMapping<elemDim, worldDim>& map
 				= ReferenceMappingProvider::get<elemDim, worldDim>(coarseROID, vCornerCoarse);
 
@@ -1009,7 +1009,7 @@ class MaximumDistIntegrand
 		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			const ReferenceObjectID roid = pElem->reference_object_id();
+			ReferenceObjectID_t roid = pElem->reference_object_id();
 
 			try{
 				//	get trial space
@@ -1113,7 +1113,7 @@ class L2ErrorIntegrand
 		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			const ReferenceObjectID roid = pElem->reference_object_id();
+			ReferenceObjectID_t roid = pElem->reference_object_id();
 
 			try{
 		//	get trial space
@@ -1306,7 +1306,7 @@ class H1ErrorIntegrand
 		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			const ReferenceObjectID roid = pElem->reference_object_id();
+			ReferenceObjectID_t roid = pElem->reference_object_id();
 
 			DimReferenceMapping<elemDim, worldDim>& map
 				= ReferenceMappingProvider::get<elemDim, worldDim>(roid, vCornerCoords);
@@ -1613,7 +1613,7 @@ class L2Integrand
 		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			ReferenceObjectID roid = pElem->reference_object_id();
+			ReferenceObjectID_t roid = pElem->reference_object_id();
 
 		// element weights
 			using ipdata_type = typename weight_type::data_type;
@@ -1670,7 +1670,6 @@ class L2Integrand
  * \param[in]		subsets		subsets, where to interpolate
  * 								(nullptr indicates that all full-dimensional subsets
  * 								shall be considered)
- * \param spWeight				weighting
  * \returns			number 		l2-norm
  */
 
@@ -1836,8 +1835,8 @@ class L2DistIntegrand
 			}
 
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			const ReferenceObjectID fineROID = pFineElem->reference_object_id();
-			const ReferenceObjectID coarseROID = pCoarseElem->reference_object_id();
+			ReferenceObjectID_t fineROID = pFineElem->reference_object_id();
+			ReferenceObjectID_t coarseROID = pCoarseElem->reference_object_id();
 
 		//	get corner coordinates
 			std::vector<MathVector<worldDim> > vCornerCoarse;
@@ -2005,7 +2004,7 @@ class H1SemiIntegrand
 		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			const ReferenceObjectID roid = pElem->reference_object_id();
+			ReferenceObjectID_t roid = pElem->reference_object_id();
 			const TGridFunction &gridFct= m_scalarData.grid_function();
 
 			DimReferenceMapping<elemDim, worldDim>& map
@@ -2255,8 +2254,8 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 			}
 
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			const ReferenceObjectID fineROID = pFineElem->reference_object_id();
-			const ReferenceObjectID coarseROID = pCoarseElem->reference_object_id();
+			ReferenceObjectID_t fineROID = pFineElem->reference_object_id();
+			ReferenceObjectID_t coarseROID = pCoarseElem->reference_object_id();
 
 		//	get corner coordinates
 			std::vector<MathVector<worldDim> > vCornerCoarse;
@@ -2491,7 +2490,7 @@ class H1EnergyIntegrand
 		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			const ReferenceObjectID roid = pElem->reference_object_id();
+			ReferenceObjectID_t roid = pElem->reference_object_id();
 			const TGridFunction &gridFct= m_scalarData.grid_function();
 
 			DimReferenceMapping<elemDim, worldDim>& map
@@ -2743,8 +2742,8 @@ class H1EnergyDistIntegrand
 			}
 
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			const ReferenceObjectID fineROID = pFineElem->reference_object_id();
-			const ReferenceObjectID coarseROID = pCoarseElem->reference_object_id();
+			ReferenceObjectID_t fineROID = pFineElem->reference_object_id();
+			ReferenceObjectID_t coarseROID = pCoarseElem->reference_object_id();
 
 		//	get corner coordinates
 			std::vector<MathVector<worldDim> > vCornerCoarse;
@@ -2943,7 +2942,7 @@ class H1NormIntegrand
 		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			const ReferenceObjectID roid = pElem->reference_object_id();
+			ReferenceObjectID_t roid = pElem->reference_object_id();
 
 			DimReferenceMapping<elemDim, worldDim>& map
 				= ReferenceMappingProvider::get<elemDim, worldDim>(roid, vCornerCoords);
@@ -3125,8 +3124,8 @@ class H1DistIntegrand
 			}
 
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			const ReferenceObjectID fineROID = pFineElem->reference_object_id();
-			const ReferenceObjectID coarseROID = pCoarseElem->reference_object_id();
+			ReferenceObjectID_t fineROID = pFineElem->reference_object_id();
+			ReferenceObjectID_t coarseROID = pCoarseElem->reference_object_id();
 
 		//	get corner coordinates
 			std::vector<MathVector<worldDim> > vCornerCoarse;
@@ -3297,7 +3296,7 @@ class StdFuncIntegrand
 		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			ReferenceObjectID roid = pElem->reference_object_id();
+			ReferenceObjectID_t roid = pElem->reference_object_id();
 
 			const LFEID m_id = m_pGridFct->local_finite_element_id(m_fct);
 
@@ -3528,7 +3527,7 @@ number IntegralNormalComponentOnManifoldUsingFV1Geom(TConstIterator iterBegin,
 			const int bndSubset = bndSSGrp[s];
 
 		//	get all bf of this subset
-		using	BF = typename DimFV1Geometry<dim>::BF;
+			using	BF = typename DimFV1Geometry<dim>::BF;
 			const std::vector<BF>& vBF = geo.bf(bndSubset);
 
 		//	loop boundary faces
@@ -3604,7 +3603,7 @@ number IntegralNormalComponentOnManifoldGeneral(
 		CollectCornerCoordinates(vCorner, *pElem, aaPos, true);
 
 	//	get reference object id
-		const ReferenceObjectID elemRoid = pElem->reference_object_id();
+		ReferenceObjectID_t elemRoid = pElem->reference_object_id();
 
 	//	get sides
 		typename Grid::traits<Side>::secure_container vSide;
@@ -3636,7 +3635,7 @@ number IntegralNormalComponentOnManifoldGeneral(
 			}
 
 		//	side quad rule
-			const ReferenceObjectID sideRoid = pSide->reference_object_id();
+			ReferenceObjectID_t sideRoid = pSide->reference_object_id();
 			const QuadratureRule<dim-1>& rSideQuadRule = QuadratureRuleProvider<dim-1>::get(sideRoid, quadOrder);
 
 		// 	normal
@@ -3941,9 +3940,9 @@ number IntegrateNormalComponentOnManifold(TGridFunction& u, const char* cmp,
 		using grid_base_object = typename domain_traits<dim>::grid_base_object;
 
 	//	get iterators for all elems on subset
-		using const_iterator = typename TGridFunction::template dim_traits<dim>::const_iterator;
-		const_iterator iter = u.template begin<grid_base_object>();
-		const_iterator iterEnd = u.template end<grid_base_object>();
+		// using const_iterator = typename TGridFunction::template dim_traits<dim>::const_iterator;
+		auto iter = u.template begin<grid_base_object>();
+		auto iterEnd = u.template end<grid_base_object>();
 
 	//	create a FV1 Geometry
 		DimFV1Geometry<dim> geo;

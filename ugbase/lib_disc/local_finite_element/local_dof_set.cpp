@@ -125,7 +125,7 @@ void CommonLocalDoFSet::add(const LocalDoFSet& set)
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
 	//	get roid
-		auto roid = (ReferenceObjectID) i;
+		auto roid = static_cast<ReferenceObjectID_t>(i);
 
 	//	do not override values of same dimension
 		if(ReferenceElementDimension(roid) == set.dim()
@@ -158,7 +158,7 @@ std::ostream& operator << (std::ostream& out,	const CommonLocalDoFSet& v)
 {
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
-		auto roid = static_cast<ReferenceObjectID>(i);
+		auto roid = static_cast<ReferenceObjectID_t>(i);
 
 		out << std::setw(14) << roid << ":   ";
 		if(v.num_dof(roid) == CommonLocalDoFSet::NOT_SPECIFIED)
@@ -174,7 +174,7 @@ std::ostream& operator << (std::ostream& out,	const LocalDoFSet& v)
 {
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
-		auto roid = static_cast<ReferenceObjectID>(i);
+		auto roid =  static_cast<ReferenceObjectID_t>(i);
 		out << std::setw(14) << roid << ":   " << v.num_dof(roid) << "\n";
 	}
 	return out;

@@ -93,7 +93,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 
 	//  get parent and level where coarse grid function is defined
 		GridObject* parent = mg->get_parent(vrt);
-		const ReferenceObjectID parentBaseObjectID = parent->reference_object_id();
+		ReferenceObjectID_t parentBaseObjectID = parent->reference_object_id();
 		int parentLevel = mg->get_level(parent);
 		while(parentLevel > coarseTopLevel){
 			parent = mg->get_parent(parent);
@@ -275,7 +275,7 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 			}
 
 		//	type of father
-			const ReferenceObjectID coarseROID = coarseElem->reference_object_id();
+			ReferenceObjectID_t coarseROID = coarseElem->reference_object_id();
 
 		//	loop all components
 			for(size_t fct = 0; fct < coarseDD->num_fct(); fct++)

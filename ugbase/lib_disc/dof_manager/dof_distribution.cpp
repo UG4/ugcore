@@ -140,7 +140,7 @@ SurfaceView::SurfaceConstants DoFDistribution::defaultValidSurfState() const{
 
 template <typename TBaseObject>
 void DoFDistribution::
-add(TBaseObject* obj, const ReferenceObjectID_t roid, const int si)
+add(TBaseObject* obj, ReferenceObjectID_t roid, const int si)
 {
 	UG_ASSERT(si >= 0, "Invalid subset index passed");
 
@@ -188,7 +188,7 @@ extract_inner_algebra_indices(TBaseElem* elem,
 {
 //	get roid type and subset index
 	const int si = m_spMGSH->get_subset_index(elem);
-	const ReferenceObjectID_t roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 
 //	check if dofs present
 	if(num_dofs(roid,si) > 0)
@@ -355,7 +355,7 @@ dof_indices(TBaseElem* elem, ReferenceObjectID_t roid,
 		if(!is_def_in_subset(fct, si)) continue;
 
 	//	get reference object id for subselement
-		ReferenceObjectID_t subRoid = subElem->reference_object_id();
+		const ReferenceObjectID_t subRoid = subElem->reference_object_id();
 
 	//	check if dof given
 		if(num_dofs(subRoid,si) == 0) continue;

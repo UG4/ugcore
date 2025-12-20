@@ -38,11 +38,11 @@
 namespace ug {
 
 /// returns number of DoFs on element type for order p
-size_t LagrangeNumDoFs(ReferenceObjectID elem, size_t p);
+size_t LagrangeNumDoFs(ReferenceObjectID_t elem, size_t p);
 
 ///	returns number of DoFs Subelement for an element type and order p
-size_t LagrangeNumDoFOnSub(ReferenceObjectID elem,
-                           ReferenceObjectID sub, size_t p);
+size_t LagrangeNumDoFOnSub(ReferenceObjectID_t elem,
+                           ReferenceObjectID_t sub, size_t p);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -61,13 +61,13 @@ class LagrangeLDS : public LocalDoFSet
 		void set_order(size_t order);
 
 	///	returns the type of reference element
-		[[nodiscard]] ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
 		[[nodiscard]] size_t num_dof() const {return m_vLocalDoF.size();};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		[[nodiscard]] size_t num_dof(ReferenceObjectID roid) const;
+		[[nodiscard]] size_t num_dof(ReferenceObjectID_t roid) const;
 
 	///	returns the dof storage
 		[[nodiscard]] const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}

@@ -138,7 +138,6 @@ void ComputeMinMax
 	number& minLocal, number& maxLocal, number& totalErrLocal, size_t& numElemLocal
 )
 {
-	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 //	reset maximum of error
 	max = 0.0, min = std::numeric_limits<number>::max();
@@ -146,11 +145,11 @@ void ComputeMinMax
 	numElem = 0;
 
 //	get element iterator
-	const_iterator iter = dd->begin<TElem>();
-	const_iterator iterEnd = dd->end<TElem>();
+
+	auto iterEnd = dd->end<TElem>();
 
 //	loop all elements to find the maximum of the error
-	for (; iter != iterEnd; ++iter)
+	for (auto iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 	//	get element
 		TElem* elem = *iter;
@@ -226,7 +225,6 @@ void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >&
 		number refineFrac, number coarseFrac,
 		int maxLevel)
 {
-	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 // compute minimal/maximal/ total error and number of elements
 	number min, max, totalErr;
@@ -251,11 +249,11 @@ void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >&
 //	reset counter
 	int numMarkedRefine = 0, numMarkedCoarse = 0;
 
-	const_iterator iter = dd->begin<TElem>();
-	const_iterator iterEnd = dd->end<TElem>();
+
+	auto iterEnd = dd->end<TElem>();
 
 //	loop elements for marking
-	for(; iter != iterEnd; ++iter)
+	for(auto iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 	//	get element
 		TElem* elem = *iter;
@@ -317,7 +315,6 @@ void MarkElementsForRefinement
 	int maxLevel
 )
 {
-	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 // compute minimal/maximal/ total error and number of elements
 	number min, max, totalErr;
@@ -341,11 +338,11 @@ void MarkElementsForRefinement
 //	reset counter
 	size_t numMarkedRefine = 0;
 
-	const_iterator iter = dd->begin<TElem>();
-	const_iterator iterEnd = dd->end<TElem>();
+
+	auto iterEnd = dd->end<TElem>();
 
 //	loop elements for marking
-	for (; iter != iterEnd; ++iter)
+	for (auto iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 	//	get element
 		TElem* elem = *iter;
@@ -401,7 +398,6 @@ void MarkElementsForCoarsening
 		int minLevel = 0
 )
 {
-	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 // compute minimal/maximal/ total error and number of elements
 	number min, max, totalErr;
@@ -417,11 +413,11 @@ void MarkElementsForCoarsening
 //	reset counter
 	size_t numMarkedCoarse = 0;
 
-	const_iterator iter = dd->begin<TElem>();
-	const_iterator iterEnd = dd->end<TElem>();
+
+	auto iterEnd = dd->end<TElem>();
 
 //	loop elements for marking
-	for (; iter != iterEnd; ++iter)
+	for (auto iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 	//	get element
 		TElem* elem = *iter;
@@ -503,11 +499,10 @@ void MarkElementsAbsolute(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<nu
 						  int maxLevel,
 						  bool refTopLvlOnly = false)
 {
-	using const_iterator = typename DoFDistribution::traits<TElem>::const_iterator;
 
 	int numMarkedRefine = 0, numMarkedCoarse = 0;
-	const_iterator iter = dd->begin<TElem>();
-	const_iterator iterEnd = dd->end<TElem>();
+
+
 	const MultiGrid* mg = dd->multi_grid().get();
 	int topLvl = 0;
 	if(mg)
@@ -516,7 +511,8 @@ void MarkElementsAbsolute(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<nu
 		refTopLvlOnly = false;
 
 //	loop elements for marking
-	for(; iter != iterEnd; ++iter)
+	auto iterEnd = dd->end<TElem>();
+	for(auto iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 		TElem* elem = *iter;
 

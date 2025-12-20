@@ -86,13 +86,13 @@ class LocalShapeFunctionSetWrapper
 
 	public:
 	///	\copydoc ug::LocalDoFSet::type()
-		[[nodiscard]] ReferenceObjectID roid() const override {return ImplType::roid();}
+		[[nodiscard]] ReferenceObjectID_t roid() const override {return ImplType::roid();}
 
 	///	\copydoc ug::LocalDoFSet::num_sh()
 		[[nodiscard]] size_t num_sh() const override {return ImplType::num_sh();}
 
 	///	\copydoc ug::LocalDoFSet::num_dof()
-		[[nodiscard]] size_t num_dof(ReferenceObjectID roid) const override {return ImplType::num_dof(roid);}
+		[[nodiscard]] size_t num_dof(ReferenceObjectID_t roid) const override {return ImplType::num_dof(roid);}
 
 	///	\copydoc ug::LocalDoFSet::local_dof()
 		[[nodiscard]] const LocalDoF& local_dof(size_t dof) const override {return ImplType::local_dof(dof);}
@@ -174,7 +174,7 @@ class SubLocalDoFSet : public DimLocalDoFSet<TDim>
 
 	public:
 		template <int setDim>
-		SubLocalDoFSet(const ReferenceObjectID roid,
+		SubLocalDoFSet(const ReferenceObjectID_t roid,
 					   const DimLocalDoFSet<setDim>& set)
 		   : m_roid(roid),
 			 m_bExactPos(set.exact_position_available()),
@@ -210,7 +210,7 @@ class SubLocalDoFSet : public DimLocalDoFSet<TDim>
 					for(size_t i = 0; i < setRefElem.num(dim, id, subDim); ++i){
 						const size_t subID = setRefElem.id(dim, id, subDim, i);
 
-						const ReferenceObjectID sroid =  setRefElem.roid(subDim, subID);
+						ReferenceObjectID_t sroid =  setRefElem.roid(subDim, subID);
 						vNumDoF[sroid] = set.num_dof(sroid);
 
 					//	get local DoFs on sub
@@ -275,8 +275,8 @@ class SubLocalDoFSet : public DimLocalDoFSet<TDim>
 		}
 
 	public:
-		[[nodiscard]] ReferenceObjectID roid() const override {return m_roid;};
-		[[nodiscard]] size_t num_dof(ReferenceObjectID roid) const override {return m_vNumDoF[roid];}
+		[[nodiscard]] ReferenceObjectID_t roid() const override {return m_roid;};
+		[[nodiscard]] size_t num_dof(ReferenceObjectID_t roid) const override {return m_vNumDoF[roid];}
 		[[nodiscard]] size_t num_sh() const override {return m_vLocalDoF.size();}
 		[[nodiscard]] const LocalDoF& local_dof(size_t dof) const override {return m_vLocalDoF[dof];}
 		[[nodiscard]] bool exact_position_available() const override {return m_bExactPos;}
@@ -304,7 +304,7 @@ class SubLocalDoFSet : public DimLocalDoFSet<TDim>
 
 
 	protected:
-		const ReferenceObjectID m_roid; ///< Reference ID this DoF Set is for
+		const ReferenceObjectID_t m_roid; ///< Reference ID this DoF Set is for
 		const bool m_bExactPos;
 
 		bool m_bInit;
@@ -321,7 +321,7 @@ template <typename TRefElem>
 void LocalFiniteElementProvider::create_lagrange_set(const LFEID& id)
 {
 //	reference object id
-	static constexpr ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID_t roid = TRefElem::REFERENCE_OBJECT_ID;
 	static constexpr int dim = TRefElem::dim;
 
 //	only order >= 1 available
@@ -372,7 +372,7 @@ void LocalFiniteElementProvider::create_lagrange_set(const LFEID& id)
 }
 
 void LocalFiniteElementProvider::
-create_lagrange_set(ReferenceObjectID roid, const LFEID& id)
+create_lagrange_set(ReferenceObjectID_t roid, const LFEID& id)
 {
 	UG_DLOG(DID_LOCAL_FINITE_ELEMENT_PROVIDER, 2, ">>OCT_DISC_DEBUG: " << "local_finite_element_provider.cpp: " << "create_lagrange_set(): " << roid << std::endl);
 	switch(roid){
@@ -413,7 +413,7 @@ template <typename TRefElem>
 void LocalFiniteElementProvider::create_mini_bubble_set(const LFEID& id)
 {
 //	reference object id
-	static constexpr ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID_t roid = TRefElem::REFERENCE_OBJECT_ID;
 	static constexpr int dim = TRefElem::dim;
 
 //	if refdim == dim create the space
@@ -453,7 +453,7 @@ void LocalFiniteElementProvider::create_mini_bubble_set(const LFEID& id)
 }
 
 void LocalFiniteElementProvider::
-create_mini_bubble_set(ReferenceObjectID roid, const LFEID& id)
+create_mini_bubble_set(ReferenceObjectID_t roid, const LFEID& id)
 {
 	switch(roid){
 		case ROID_EDGE:			create_mini_bubble_set<ReferenceEdge>(id); return;
@@ -475,7 +475,7 @@ void LocalFiniteElementProvider::create_nedelec_set(const LFEID& id)
 }
 
 void LocalFiniteElementProvider::
-create_nedelec_set(ReferenceObjectID roid, const LFEID& id)
+create_nedelec_set(ReferenceObjectID_t roid, const LFEID& id)
 {
 	switch(roid){
 		case ROID_TRIANGLE:		create_nedelec_set<ReferenceTriangle>(id); return;
@@ -494,7 +494,7 @@ void LocalFiniteElementProvider::create_piecewise_constant_set(const LFEID& id)
 }
 
 void LocalFiniteElementProvider::
-create_piecewise_constant_set(ReferenceObjectID roid, const LFEID& id)
+create_piecewise_constant_set(ReferenceObjectID_t roid, const LFEID& id)
 {
 	switch(roid){
 		case ROID_EDGE:			create_piecewise_constant_set<ReferenceEdge>(id); return;
@@ -520,7 +520,7 @@ void LocalFiniteElementProvider::create_crouxeiz_raviart_set(const LFEID& id)
 }
 
 void LocalFiniteElementProvider::
-create_crouxeiz_raviart_set(ReferenceObjectID roid, const LFEID& id)
+create_crouxeiz_raviart_set(ReferenceObjectID_t roid, const LFEID& id)
 {
 	switch(roid){
 		// no space for dim <= 1
@@ -535,7 +535,7 @@ create_crouxeiz_raviart_set(ReferenceObjectID roid, const LFEID& id)
 }
 
 void LocalFiniteElementProvider::
-create_set(ReferenceObjectID roid, const LFEID& id)
+create_set(ReferenceObjectID_t roid, const LFEID& id)
 {
 	try{
 		switch(id.type())
@@ -562,7 +562,7 @@ create_set(const LFEID& id)
 		case LFEID::MINI:
 
 			for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
-				auto roid = static_cast<ReferenceObjectID>(r);
+				auto roid = static_cast<ReferenceObjectID_t>(r);
 				const int dim = ReferenceElementDimension(roid);
 
 				if(dim <= id.dim())
@@ -576,11 +576,11 @@ create_set(const LFEID& id)
 		case LFEID::NEDELEC:
 
 			for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
-				auto roid = static_cast<ReferenceObjectID>(r);
+				auto roid = static_cast<ReferenceObjectID_t>(r);
 				const int dim = ReferenceElementDimension(roid);
 
 				if(dim == id.dim())
-					create_set((ReferenceObjectID)roid, id);
+					create_set(roid, id);
 			}
 			break;
 
@@ -590,7 +590,7 @@ create_set(const LFEID& id)
 
 template <int rdim, int dim>
 void LocalFiniteElementProvider::
-create_sub_dof_set(ReferenceObjectID roid, const LFEID& id)
+create_sub_dof_set(ReferenceObjectID_t roid, const LFEID& id)
 {
 	if(dim != id.dim())
 		UG_THROW("Dimension must match here, internal error. ("<<dim<<","<<id.dim()<<")");
@@ -602,7 +602,7 @@ create_sub_dof_set(ReferenceObjectID roid, const LFEID& id)
 	// contains roid as a sub element
 
 	for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
-		auto elemRoid = static_cast<ReferenceObjectID>(r);
+		auto elemRoid = static_cast<ReferenceObjectID_t>(r);
 		const int elemDim = ReferenceElementDimension(elemRoid);
 
 		// we only take elements that are in the dimension of the space
@@ -646,7 +646,7 @@ create_sub_dof_set(ReferenceObjectID roid, const LFEID& id)
 }
 
 void LocalFiniteElementProvider::
-create_dof_set(ReferenceObjectID roid, const LFEID& id)
+create_dof_set(ReferenceObjectID_t roid, const LFEID& id)
 {
 	const int dim = id.dim();
 	const int rdim = ReferenceElementDimension(roid);
@@ -684,11 +684,10 @@ create_dof_set(ReferenceObjectID roid, const LFEID& id)
 
 
 const LocalDoFSet& LocalFiniteElementProvider::
-get_dofs(ReferenceObjectID roid, const LFEID& id, bool bCreate)
+get_dofs(ReferenceObjectID_t roid, const LFEID& id, bool bCreate)
 {
 //	init provider and search for identifier
-	using Map = std::map<LFEID, LocalDoFSets>;
-	Map::const_iterator iter = inst().m_mLocalDoFSets.find(id);
+	auto iter = inst().m_mLocalDoFSets.find(id);
 
 //	if not found
 	if(iter == m_mLocalDoFSets.end() || (iter->second)[roid].invalid()){
@@ -745,7 +744,7 @@ bool LocalFiniteElementProvider::continuous(const LFEID& id, bool bCreate)
 void LocalFiniteElementProvider::register_set(const LFEID& id, ConstSmartPtr<LocalDoFSet> set)
 {
 //	reference object id
-	const ReferenceObjectID roid = set->roid();
+	ReferenceObjectID_t roid = set->roid();
 
 //	register
 	m_mLocalDoFSets[id][roid] = set;

@@ -62,7 +62,7 @@ class GradientEvaluator_LagrangeP1{
 			TFunction& u = *m_pu;
 
 		//	reference object type
-			ReferenceObjectID roid = elem->reference_object_id();
+			ReferenceObjectID_t roid = elem->reference_object_id();
 
 		//	get trial space
 			const LocalShapeFunctionSet<dim>& lsfs =

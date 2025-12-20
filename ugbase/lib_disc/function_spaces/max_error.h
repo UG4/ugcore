@@ -148,7 +148,7 @@ void MaxErrorOnElements(
 {
 //	get reference element type
 	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
-	const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
+	ReferenceObjectID_t roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	dimension of reference element
 	const int dim = ref_elem_type::dim;

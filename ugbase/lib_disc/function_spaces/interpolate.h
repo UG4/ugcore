@@ -194,7 +194,7 @@ void InterpolateOnDiffElements(
 {
 //	get reference element type
 	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
-	constexpr ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
+	ReferenceObjectID_t roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	dimension of reference element
 	constexpr int dim = ref_elem_type::dim;
@@ -347,7 +347,7 @@ void InterpolateOnDiffElements(SmartPtr<UserData<number, TGridFunction::dim> > s
 	}
 }
 
-/***
+/**
  * This function interpolates a grid function on an element by element loop. On
  * each element the all associated (up to the boundary of the element) are
  * interpolated and the values are stored in the grid function.

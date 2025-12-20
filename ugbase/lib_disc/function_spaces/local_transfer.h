@@ -52,7 +52,7 @@ class PiecewiseConstantElemTransfer
 
 		~PiecewiseConstantElemTransfer() override = default;
 
-		bool perform_prolongation_on(GridBaseObjectId gbo) override
+		bool perform_prolongation_on(GridBaseObjectId_t gbo) override
 		{
 			if(m_lfeid.dim() == gbo) return true;
 			return false;
@@ -75,7 +75,7 @@ class PiecewiseConstantElemTransfer
 			}
 		}
 
-		bool perform_restriction_on(GridBaseObjectId gbo) override
+		bool perform_restriction_on(GridBaseObjectId_t gbo) override
 		{
 			if(m_lfeid.dim() == gbo) return true;
 			return false;
@@ -117,7 +117,7 @@ class P1LagrangeElemTransfer
 
 		~P1LagrangeElemTransfer() override = default;
 
-		bool perform_prolongation_on(GridBaseObjectId gbo) override
+		bool perform_prolongation_on(GridBaseObjectId_t gbo) override
 		{
 			if(m_lfeid.dim() < gbo) return false;
 			return true;
@@ -150,7 +150,7 @@ class P1LagrangeElemTransfer
 			vValueChild[0] *= 1.0/numVrt;
 		}
 
-		bool perform_restriction_on(GridBaseObjectId gbo) override
+		bool perform_restriction_on(GridBaseObjectId_t gbo) override
 		{
 			if(gbo == VERTEX) return true;
 			return false;
@@ -205,7 +205,7 @@ class StdLagrangeElemTransfer
 
 		~StdLagrangeElemTransfer() override = default;
 
-		bool perform_prolongation_on(GridBaseObjectId gbo) override
+		bool perform_prolongation_on(GridBaseObjectId_t gbo) override
 		{
 			if(m_lfeid.order() == 1 && gbo != VERTEX) return false;
 			if(m_lfeid.dim() < gbo) return false;
@@ -219,7 +219,7 @@ class StdLagrangeElemTransfer
 		                TransferValueAccessor& vValueParent,
 		                const LocalShapeFunctionSet<TParent::dim>& lsfs,
 		                const std::vector<MathVector<dim> >& vCornerParent,
-		                const ReferenceObjectID parentRoid)
+		                const ReferenceObjectID_t parentRoid)
 		{
 			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
 			static constexpr int pdim = TParent::dim;
@@ -270,7 +270,7 @@ class StdLagrangeElemTransfer
 			static constexpr int pdim = TElem::dim;
 
 		//	get reference object ids
-			const ReferenceObjectID parentRoid = parent->reference_object_id();
+			ReferenceObjectID_t parentRoid = parent->reference_object_id();
 
 		//	access the values
 			vValueParent.access_closure(parent);
@@ -319,7 +319,7 @@ class StdLagrangeElemTransfer
 		}
 
 
-		bool perform_restriction_on(GridBaseObjectId gbo) override
+		bool perform_restriction_on(GridBaseObjectId_t gbo) override
 		{
 			if(m_lfeid.dim() < gbo) return false;
 			return true;
@@ -414,11 +414,11 @@ class CrouzeixRaviartElemTransfer
 		static constexpr int dim = TDomain::dim;
 
 	public:
-	explicit CrouzeixRaviartElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
+		explicit CrouzeixRaviartElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
 		~CrouzeixRaviartElemTransfer() override = default;
 
-		bool perform_prolongation_on(GridBaseObjectId gbo) override
+		bool perform_prolongation_on(GridBaseObjectId_t gbo) override
 		{
 		//	prolongation from elems that have a side as child
 			if(m_lfeid.dim()-1 == gbo) return true;
@@ -461,7 +461,7 @@ class CrouzeixRaviartElemTransfer
 
 			//	get reference object ids
 				static constexpr int pdim = TElem::dim;
-				const ReferenceObjectID parentRoid = parentElem->reference_object_id();
+				ReferenceObjectID_t parentRoid = parentElem->reference_object_id();
 
 			//	access the values
 				vValueParent.access_closure(parentElem);
@@ -563,7 +563,7 @@ class CrouzeixRaviartElemTransfer
 			}
 		};
 
-		bool perform_restriction_on(GridBaseObjectId gbo) override
+		bool perform_restriction_on(GridBaseObjectId_t gbo) override
 		{
 		//	restriction only on sides
 			if(m_lfeid.dim()-1 == gbo) return true;

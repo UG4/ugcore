@@ -123,7 +123,7 @@ class LocalDoFSet
 		int dim() const;
 
 	///	returns the Reference object id of the corresponding grid object
-		virtual ReferenceObjectID roid() const = 0;
+		virtual ReferenceObjectID_t roid() const = 0;
 
 	///	returns the total number of dofs on the finite element
 	/// \{
@@ -132,7 +132,7 @@ class LocalDoFSet
 	/// \}
 
 	///	returns the number of DoFs on a sub-geometric object type
-		virtual size_t num_dof(ReferenceObjectID roid) const = 0;
+		virtual size_t num_dof(ReferenceObjectID_t roid) const = 0;
 
 	///	returns the DoFs storage
 		virtual const LocalDoF& local_dof(size_t dof) const = 0;
@@ -207,7 +207,7 @@ class CommonLocalDoFSet
 		void add(const LocalDoFSet& set);
 
 	///	number of dofs on a reference element type
-		[[nodiscard]] int num_dof(ReferenceObjectID roid) const {return m_vNumDoF[roid];}
+		[[nodiscard]] int num_dof(ReferenceObjectID_t roid) const {return m_vNumDoF[roid];}
 
 	protected:
 		int m_vNumDoF[NUM_REFERENCE_OBJECTS];

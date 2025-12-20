@@ -115,7 +115,7 @@ template <typename TDomain> class AdaptionSurfaceGridFunction;
  * \tparam 	TDomain				domain type
  * \tparam	TAlgebra			algebra type
  */
-template <typename TDomain, typename TAlgebra = CPUAlgebra>
+template <typename TDomain, typename TAlgebra>
 class GridFunction
 	: 	public TAlgebra::vector_type,
 	  	public IGridFunction,

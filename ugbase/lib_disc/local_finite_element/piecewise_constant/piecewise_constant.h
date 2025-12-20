@@ -66,13 +66,13 @@ class PiecewiseConstantLSFS
 
 	public:
 	///	\copydoc ug::DimLocalDoFSet::roid()
-		[[nodiscard]] ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
 
 	///	\copydoc ug::DimLocalDoFSet::num_dof()
 		[[nodiscard]] size_t num_dof() const {return 1;};
 
 	///	\copydoc ug::DimLocalDoFSet::num_dof()
-		[[nodiscard]] size_t num_dof(ReferenceObjectID type) const
+		[[nodiscard]] size_t num_dof(ReferenceObjectID_t type) const
 		{
 			if (type == TRefElem::REFERENCE_OBJECT_ID)   return 1;
 			else return 0;

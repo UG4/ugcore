@@ -77,13 +77,13 @@ class NedelecLDS
 		}
 
 	///	returns the type of reference element
-		[[nodiscard]] ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
+		[[nodiscard]] ReferenceObjectID_t roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
 
 	///	returns the total number of DoFs on the finite element
 		[[nodiscard]] size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		[[nodiscard]] size_t num_dof(ReferenceObjectID type) const
+		[[nodiscard]] size_t num_dof(ReferenceObjectID_t type) const
 		{
 			if(ReferenceElementDimension(type) == 1) return 1;
 			else return 0;

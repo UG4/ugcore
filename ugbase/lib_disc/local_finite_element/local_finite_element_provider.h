@@ -81,47 +81,47 @@ class LocalFiniteElementProvider {
 	///	\{
 		template <typename TRefElem>
 		static void create_lagrange_set(const LFEID& id);
-		static void create_lagrange_set(ReferenceObjectID roid, const LFEID& id);
+		static void create_lagrange_set(ReferenceObjectID_t roid, const LFEID& id);
 	///	\}
 
 	/// create the mini bubble space
 	///	\{
 		template <typename TRefElem>
 		static void create_mini_bubble_set(const LFEID& id);
-		static void create_mini_bubble_set(ReferenceObjectID roid, const LFEID& id);
+		static void create_mini_bubble_set(ReferenceObjectID_t roid, const LFEID& id);
 	///	\}
 
 	/// creates nedelec space
 	///	\{
 		template <typename TRefElem>
 		static void create_nedelec_set(const LFEID& id);
-		static void create_nedelec_set(ReferenceObjectID roid, const LFEID& id);
+		static void create_nedelec_set(ReferenceObjectID_t roid, const LFEID& id);
 	///	\}
 
 	/// creates piecewise constant space
 	///	\{
 		template <typename TRefElem>
 		static void create_piecewise_constant_set(const LFEID& id);
-		static void create_piecewise_constant_set(ReferenceObjectID roid, const LFEID& id);
+		static void create_piecewise_constant_set(ReferenceObjectID_t roid, const LFEID& id);
 	///	\}
 
 	/// creates crouxeiz-raviart space
 	///	\{
 		template <typename TRefElem>
 		static void create_crouxeiz_raviart_set(const LFEID& id);
-		static void create_crouxeiz_raviart_set(ReferenceObjectID roid, const LFEID& id);
+		static void create_crouxeiz_raviart_set(ReferenceObjectID_t roid, const LFEID& id);
 	///	\}
 
 	///	creates new set at runtime if available
-		static void create_set(ReferenceObjectID roid, const LFEID& id);
+		static void create_set(ReferenceObjectID_t roid, const LFEID& id);
 
 	///	creates new set at runtime if available
 		static void create_set(const LFEID& id);
 
 	///	creates dof set on sub elements
 		template <int rdim, int dim>
-		static void create_sub_dof_set(ReferenceObjectID roid, const LFEID& id);
-		static void create_dof_set(ReferenceObjectID roid, const LFEID& id);
+		static void create_sub_dof_set(ReferenceObjectID_t roid, const LFEID& id);
+		static void create_dof_set(ReferenceObjectID_t roid, const LFEID& id);
 
 	private:
 		template <int dim, typename TShape, typename TGrad>
@@ -210,20 +210,20 @@ class LocalFiniteElementProvider {
 	///\{
 		template <int dim, typename TShape, typename TGrad>
 		static const LocalShapeFunctionSet<dim, TShape, TGrad>&
-		get(ReferenceObjectID roid, const LFEID& id, bool bCreate = true);
+		get(ReferenceObjectID_t roid, const LFEID& id, bool bCreate = true);
 
 		template <int dim>
 		static const LocalShapeFunctionSet<dim>&
-		get(ReferenceObjectID roid, const LFEID& id, bool bCreate = true)
+		get(ReferenceObjectID_t roid, const LFEID& id, bool bCreate = true)
 			{return get<dim,number,MathVector<dim> >(roid, id, bCreate);}
 
 		template <int dim, typename TShape, typename TGrad>
 		static ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> >
-		getptr(ReferenceObjectID roid, const LFEID& id, bool bCreate = true);
+		getptr(ReferenceObjectID_t roid, const LFEID& id, bool bCreate = true);
 
 		template <int dim>
 		static ConstSmartPtr<LocalShapeFunctionSet<dim> >
-		getptr(ReferenceObjectID roid, const LFEID& id, bool bCreate = true)
+		getptr(ReferenceObjectID_t roid, const LFEID& id, bool bCreate = true)
 			{return getptr<dim,number,MathVector<dim> >(roid, id, bCreate);}
 	///\}
 
@@ -232,17 +232,17 @@ class LocalFiniteElementProvider {
 		static const CommonLocalDoFSet& get_dofs(const LFEID& id, bool bCreate = true);
 
 	///	returns the local DoF set base for an id
-		static const LocalDoFSet& get_dofs(ReferenceObjectID roid, const LFEID& id, bool bCreate = true);
+		static const LocalDoFSet& get_dofs(ReferenceObjectID_t roid, const LFEID& id, bool bCreate = true);
 
 	///	returns the local DoF set base for an id
 	/// \{
 		template <int dim>
 		static const DimLocalDoFSet<dim>&
-		get_dofs(ReferenceObjectID roid, const LFEID& id, bool bCreate = true);
+		get_dofs(ReferenceObjectID_t roid, const LFEID& id, bool bCreate = true);
 
 		template <int dim>
 		static ConstSmartPtr<DimLocalDoFSet<dim> >
-		get_dof_ptr(ReferenceObjectID roid, const LFEID& id, bool bCreate = true);
+		get_dof_ptr(ReferenceObjectID_t roid, const LFEID& id, bool bCreate = true);
 	/// \}
 
 	///returns if a Local Shape Function Set is continuous

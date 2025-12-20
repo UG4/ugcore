@@ -70,7 +70,6 @@ if(PARALLEL)
 						parallelization/parallel_index_layout.cpp
 						parallelization/parallel_nodes.cpp	
 						parallelization/algebra_layouts.cpp
-						parallelization/parallel_vector.cpp
 						 )
 endif(PARALLEL)
 
@@ -79,9 +78,7 @@ if(CUDA_FOUND)
 			 	gpu_algebra/cuda/cuda_error.cpp
 				gpu_algebra/cuda/cuda_manager.cpp                
                 gpu_algebra/cuda/common_cuda.cu
-			parallelization/parallel_vector.cpp
-
-	)
+				)
 endif(CUDA_FOUND)
 
 ##########################
