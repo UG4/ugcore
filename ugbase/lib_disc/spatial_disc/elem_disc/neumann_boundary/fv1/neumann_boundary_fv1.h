@@ -146,9 +146,9 @@ class NeumannBoundaryFV1
 	///	assembling functions for fv1
 	///	\{
 		template<typename TElem, typename TFVGeom>
-		void prep_elem_loop(ReferenceObjectID roid, int si);
+		void prep_elem_loop(ReferenceObjectID_t roid, int si);
 		template<typename TElem, typename TFVGeom>
-		void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+		void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[]);
 		template<typename TElem, typename TFVGeom>
 		void fsh_elem_loop();
 		template<typename TElem, typename TFVGeom>
@@ -156,7 +156,7 @@ class NeumannBoundaryFV1
 
 	///	prepares the loop over all elements of one type for the computation of the error estimator
 		template <typename TElem, typename TFVGeom>
-		void prep_err_est_elem_loop(ReferenceObjectID roid, int si);
+		void prep_err_est_elem_loop(ReferenceObjectID_t roid, int si);
 
 	///	prepares the element for assembling the error estimator
 		template <typename TElem, typename TFVGeom>

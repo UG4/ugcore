@@ -62,8 +62,8 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		using ISubsetHandler::assign_subset;
 		
 	public:
-		explicit MultiGridSubsetHandler(uint supportedElements = SubsetHandlerElements::SHE_ALL);
-		explicit MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements = SubsetHandlerElements::SHE_ALL);
+		explicit MultiGridSubsetHandler(SubsetHandlerElements_t supportedElements = SubsetHandlerElements::SHE_ALL);
+		explicit MultiGridSubsetHandler(MultiGrid& mg, SubsetHandlerElements_t supportedElements = SubsetHandlerElements::SHE_ALL);
 	/**	WARNING: Don't call the copy-constructor from derived classes,
 	  *	Since it calls virtual methods.*/
 		MultiGridSubsetHandler(const MultiGridSubsetHandler& sh);
@@ -293,18 +293,18 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		
 		struct Subset
 		{
-			VertexSectionContainer	m_vertices;
-			EdgeSectionContainer	m_edges;
-			FaceSectionContainer	m_faces;
-			VolumeSectionContainer	m_volumes;
+			VertexSectionContainer m_vertices;
+			EdgeSectionContainer m_edges;
+			FaceSectionContainer m_faces;
+			VolumeSectionContainer m_volumes;
 		};
 
 		using SubsetVec = std::vector<Subset*>;
 		using LevelVec = std::vector<SubsetVec>;
 
 	///	returns the subset with index si on the given level
-		inline Subset* subset(int si, int level)	{return m_levels[level][si];}
-		[[nodiscard]] inline const Subset* subset(int si, int level)	const {return m_levels[level][si];}
+		inline Subset* subset(int si, int level) {return m_levels[level][si];}
+		[[nodiscard]] inline const Subset* subset(int si, int level) const {return m_levels[level][si];}
 
 	///	creates a new subset. Caller is responsible for deletion
 		[[nodiscard]] Subset* new_subset() const;

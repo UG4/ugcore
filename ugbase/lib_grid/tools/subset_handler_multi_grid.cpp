@@ -42,7 +42,7 @@ namespace ug {
 ////////////////////////////////////////////////////////////////////////
 //	MultiGridSubsetHandler implementation
 MultiGridSubsetHandler::
-MultiGridSubsetHandler(uint supportedElements) :
+MultiGridSubsetHandler(SubsetHandlerElements_t supportedElements) :
 	ISubsetHandler(supportedElements),
 	m_aSharedEntryVRT("MGSubsetHandler_SharedListEntryVRT", false),
 	m_aSharedEntryEDGE("MGSubsetHandler_SharedListEntryEDGE", false),
@@ -54,7 +54,7 @@ MultiGridSubsetHandler(uint supportedElements) :
 }
 
 MultiGridSubsetHandler::
-MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements) :
+MultiGridSubsetHandler(MultiGrid& mg, SubsetHandlerElements_t supportedElements) :
 	ISubsetHandler(supportedElements),
 	m_aSharedEntryVRT("MGSubsetHandler_SharedListEntryVRT", false),
 	m_aSharedEntryEDGE("MGSubsetHandler_SharedListEntryEDGE", false),
@@ -74,7 +74,9 @@ MultiGridSubsetHandler(const MultiGridSubsetHandler& sh) :
 	m_aSharedEntryFACE("MGSubsetHandler_SharedListEntryFACE", false),
 	m_aSharedEntryVOL("MGSubsetHandler_SharedListEntryVOL", false)
 {
-	if(MultiGrid* pGrid = sh.m_pMG){
+	MultiGrid* pGrid = sh.m_pMG;
+
+	if(pGrid){
 //TODO: remove virtual function calls from constructor
 		assign_grid(*pGrid);		
 		assign_subset_handler(sh);
@@ -428,19 +430,15 @@ get_grid_objects_in_level(int level) const
 
 MultiGridSubsetHandler::Subset* MultiGridSubsetHandler::new_subset() const
 	{
-	auto sub = new Subset();
+	auto* sub = new Subset();
 	if(elements_are_supported(SubsetHandlerElements::SHE_VERTEX))
-		sub->m_vertices.get_container().set_pipe(
-				&m_pGrid->get_attachment_pipe<Vertex>(), m_aSharedEntryVRT);
+		sub->m_vertices.get_container().set_pipe(&m_pGrid->get_attachment_pipe<Vertex>(), m_aSharedEntryVRT);
 	if(elements_are_supported(SubsetHandlerElements::SHE_EDGE))
-		sub->m_edges.get_container().set_pipe(
-				&m_pGrid->get_attachment_pipe<Edge>(), m_aSharedEntryEDGE);
+		sub->m_edges.get_container().set_pipe(&m_pGrid->get_attachment_pipe<Edge>(), m_aSharedEntryEDGE);
 	if(elements_are_supported(SubsetHandlerElements::SHE_FACE))
-		sub->m_faces.get_container().set_pipe(
-				&m_pGrid->get_attachment_pipe<Face>(), m_aSharedEntryFACE);
+		sub->m_faces.get_container().set_pipe(&m_pGrid->get_attachment_pipe<Face>(), m_aSharedEntryFACE);
 	if(elements_are_supported(SubsetHandlerElements::SHE_VOLUME))
-		sub->m_volumes.get_container().set_pipe(
-				&m_pGrid->get_attachment_pipe<Volume>(), m_aSharedEntryVOL);
+		sub->m_volumes.get_container().set_pipe(&m_pGrid->get_attachment_pipe<Volume>(), m_aSharedEntryVOL);
 	return sub;
 }
 

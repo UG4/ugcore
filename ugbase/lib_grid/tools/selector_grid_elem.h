@@ -66,7 +66,7 @@ namespace ug {
  *
  * This is a specialization of ISelector for the class Grid that only
  * works on one element type (either Vertex, Edge, Face or
- * Volume). Normally you will use the type definitions VertexSelector,
+ * Volume). Normally you will use the typedefs VertexSelector,
  * EdgeSelector, FaceSelector or VolumeSelector instead of this class.
  *
  * The following methods are the most used:

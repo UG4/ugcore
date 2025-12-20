@@ -397,7 +397,7 @@ class UG_API ISelector : public GridObserver
 		
 	//	will use a default constructor
 		using AUChar = Attachment<unsigned char>;
-		AUChar								m_aSelected;
+		AUChar m_aSelected;
 
 		Grid::AttachmentAccessor<Vertex, AUChar> m_aaSelVRT;
 		Grid::AttachmentAccessor<Edge, AUChar> m_aaSelEDGE;

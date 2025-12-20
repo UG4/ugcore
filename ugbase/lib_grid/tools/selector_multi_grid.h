@@ -92,7 +92,7 @@ class MultiGrid;
  * // number of selected vertices on level 1
  * int nSelVrts = sel.num<Vertex>(1);
  *
- * second// total number of selected triangles
+ * // total number of selected triangles
  * int nSelTris = sel.num<Triangle>();
  *
  * // iteration over all faces
@@ -199,8 +199,8 @@ class UG_API MGSelector : public ISelector
 		};
 
 
-		explicit MGSelector(byte_t supportedElements = SE_ALL);
-		explicit MGSelector(MultiGrid& grid, byte_t supportedElements = SE_ALL);
+		explicit MGSelector(SubsetHandlerElements_t supportedElements = SE_ALL);
+		explicit MGSelector(MultiGrid& grid, SubsetHandlerElements_t supportedElements = SE_ALL);
 
 		~MGSelector() override;
 
@@ -213,21 +213,21 @@ class UG_API MGSelector : public ISelector
 	 *	\sa Selector::enable_element_support*/
 	//	forwards to protected ISelector method. This rather complicated setup
 	//	is required to avoid virtual method calls during construction.
-		inline void set_supported_elements(byte_t shElements);
+		inline void set_supported_elements(SubsetHandlerElements_t shElements);
 
 	///	enable support for element-types. Does not invalidate previous settings.
 	/**	pass an or-combination of constants enumerated in SelectorElements.*/
 	//	forwards to protected ISelector method. This rather complicated setup
 	//	is required to avoid virtual method calls during construction.
-		inline void enable_element_support(byte_t shElements);
+		inline void enable_element_support(SubsetHandlerElements_t shElements);
 
 	///	disable support for element-types.
 	/**	pass an or-combination of constants enumerated in SelectorElements.*/
 	//	forwards to protected ISelector method. This rather complicated setup
 	//	is required to avoid virtual method calls during construction.
-		void disable_element_support(byte_t shElements);
+		void disable_element_support(SubsetHandlerElements_t shElements);
 
-		[[nodiscard]] inline size_t num_levels() const	{return m_levels.size();}
+		[[nodiscard]] inline size_t num_levels() const {return m_levels.size();}
 		[[nodiscard]] inline size_t top_level() const
 		{
 			size_t l = m_levels.size();

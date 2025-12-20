@@ -538,7 +538,7 @@ ResetSubsetIndices(Grid* pGrid, TAAInd& aaInd)
 	using iterator = typename geometry_traits<TElem>::iterator;
 //	in the given subset to newInd.
 	for(iterator iter = pGrid->begin<TElem>();
-		iter != pGrid->end<TElem>(); iter++)
+		iter != pGrid->end<TElem>(); ++iter)
 		aaInd[*iter] = -1;
 }
 
@@ -1111,8 +1111,7 @@ volume_created(Grid* grid, Volume* vol, GridObject* pParent,
 		if((pParent != nullptr) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == GridBaseObjectId::VOLUME){
-					assign_subset(vol, get_subset_index(
-										reinterpret_cast<Volume*>(pParent)));
+					assign_subset(vol, get_subset_index(reinterpret_cast<Volume*>(pParent)));
 				}
 				else if(m_defaultSubsetIndex != -1)
 					assign_subset(vol, m_defaultSubsetIndex);

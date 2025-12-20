@@ -82,7 +82,7 @@ inline void ISelector::select(TIterator iterBegin, TIterator iterEnd, byte_t sta
 {
 	while(iterBegin != iterEnd){
 		select(*iterBegin, status);
-		++iterBegin; // ø todo check if prefix variant ++iterBegin is possible
+		++iterBegin;
 	}
 }
 

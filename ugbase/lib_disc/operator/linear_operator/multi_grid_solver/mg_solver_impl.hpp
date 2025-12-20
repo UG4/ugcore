@@ -1372,15 +1372,15 @@ init_noghost_to_ghost_mapping(	std::vector<size_t>& vNoGhostToGhostMap,
 								ConstSmartPtr<DoFDistribution> spNoGhostDD,
 								ConstSmartPtr<DoFDistribution> spGhostDD)
 {
-	using iter_type = typename DoFDistribution::traits<TElem>::const_iterator;
-	iter_type iter = spNoGhostDD->begin<TElem>();
-	iter_type iterEnd = spNoGhostDD->end<TElem>();
+	//using iter_type = typename DoFDistribution::traits<TElem>::const_iterator;
+
+	auto iterEnd = spNoGhostDD->end<TElem>();
 
 //	vector of indices
 	std::vector<size_t> vGhostInd, vNoGhostInd;
 
 //	loop all elements of type
-	for( ; iter != iterEnd; ++iter){
+	for( auto iter = spNoGhostDD->begin<TElem>(); iter != iterEnd; ++iter){
 	//	get elem
 		TElem* elem = *iter;
 

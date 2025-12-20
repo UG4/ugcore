@@ -207,7 +207,7 @@ bool AddEntriesToSurfaceIndexLayout(IndexLayout& indexLayoutOut,
 	using IndexInterface = IndexLayout::Interface;
 
 //	iterate over all grid element interfaces
-	for(InterfaceIterator iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter)
+	for(auto iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter)
 	{
 	//	get a grid element interface
 		ElemInterface& elemInterface = elemLayout.interface(iIter);
@@ -217,8 +217,7 @@ bool AddEntriesToSurfaceIndexLayout(IndexLayout& indexLayoutOut,
 											elemLayout.proc_id(iIter));
 
 	//	iterate over entries in the grid element interface
-		for(ElemIterator eIter = elemInterface.begin();
-			eIter != elemInterface.end(); ++eIter)
+		for(auto eIter = elemInterface.begin(); eIter != elemInterface.end(); ++eIter)
 		{
 		//	get the grid element
 			typename ElemInterface::Element elem = elemInterface.get_element(eIter);

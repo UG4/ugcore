@@ -194,7 +194,7 @@ void InterpolateOnDiffElements(
 {
 //	get reference element type
 	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
-	ReferenceObjectID_t roid = ref_elem_type::REFERENCE_OBJECT_ID;
+	constexpr ReferenceObjectID_t roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	dimension of reference element
 	constexpr int dim = ref_elem_type::dim;

@@ -68,8 +68,9 @@ class ITransferOperator
 	///	adds a dirichlet post process (not added if already registered)
 		virtual void add_constraint(SmartPtr<IConstraint<TAlgebra> > pp){
 			//	add only once
-			if(std::find(m_vConstraint.begin(), m_vConstraint.end(), pp) !=
-					m_vConstraint.end()) return;
+			//if(std::find(m_vConstraint.begin(), m_vConstraint.end(), pp) != m_vConstraint.end())
+			if(ug_compat_contains(m_vConstraint,pp))
+				return;
 			m_vConstraint.push_back(pp);
 		};
 

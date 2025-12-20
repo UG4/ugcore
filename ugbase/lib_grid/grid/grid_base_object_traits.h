@@ -112,7 +112,7 @@ class geometry_traits<Vertex>
 			CONTAINER_SECTION = -1,
 			BASE_OBJECT_ID = GridBaseObjectId::VERTEX
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_VERTEX;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_VERTEX;
 };
 
 
@@ -131,7 +131,7 @@ class geometry_traits<Edge>
 			CONTAINER_SECTION = -1,
 			BASE_OBJECT_ID = GridBaseObjectId::EDGE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_EDGE;
 };
 
 
@@ -150,7 +150,7 @@ class geometry_traits<Face>
 			CONTAINER_SECTION = -1,
 			BASE_OBJECT_ID = GridBaseObjectId::FACE
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_UNKNOWN;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_UNKNOWN;
 };
 
 template <>
@@ -168,7 +168,7 @@ class geometry_traits<Volume>
 			CONTAINER_SECTION = -1,
 			BASE_OBJECT_ID = GridBaseObjectId::VOLUME
 		};
-		static constexpr ReferenceObjectID REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_UNKNOWN;
+		static constexpr ReferenceObjectID_t REFERENCE_OBJECT_ID = ReferenceObjectID::ROID_UNKNOWN;
 };
 
 }//	end of namespace

@@ -185,7 +185,7 @@ template<typename TElem, typename TFVGeom>
 void DiracSourceDisc<TDomain>::
 register_func()
 {
-	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	using T = this_type;
 
 	this->clear_add_fct(id);

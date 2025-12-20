@@ -35,6 +35,9 @@
 
 #include "subset_handler_interface.h"
 
+#include "common/error.h"
+
+
 namespace ug {
 
 /*

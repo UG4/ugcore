@@ -549,7 +549,7 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 						CollectCornerCoordinates(vCornerFine, *fineElem, *uFine.domain());
 
 					//	type of child
-						const ReferenceObjectID fineROID = fineElem->reference_object_id();
+						ReferenceObjectID_t fineROID = fineElem->reference_object_id();
 
 					//	get local finite element trial spaces
 						const LocalShapeFunctionSet<locDim>& lsfs

@@ -39,7 +39,7 @@
 namespace ug {
 
 ////////////////////////////////////////////////////////////////////////
-MGSelector::MGSelector(byte_t supportedElements) :
+MGSelector::MGSelector(SubsetHandlerElements_t supportedElements) :
 	ISelector(supportedElements),
 	m_aSharedEntryVRT("MGSelector_SharedListEntryVRT"),
 	m_aSharedEntryEDGE("MGSelector_SharedListEntryEDGE"),
@@ -49,7 +49,7 @@ MGSelector::MGSelector(byte_t supportedElements) :
 	m_pMultiGrid = nullptr;
 }
 
-MGSelector::MGSelector(MultiGrid& grid, byte_t supportedElements) :
+MGSelector::MGSelector(MultiGrid& grid, SubsetHandlerElements_t supportedElements) :
 	ISelector(supportedElements), m_pMultiGrid(nullptr),
 	m_aSharedEntryVRT("MGSelector_SharedListEntryVRT"),
 	m_aSharedEntryEDGE("MGSelector_SharedListEntryEDGE"),
@@ -92,7 +92,7 @@ void MGSelector::assign_grid(MultiGrid& grid)
 void MGSelector::assign_grid(MultiGrid* grid)
 {
 	if(grid != m_pMultiGrid){
-		byte_t elementSupport = m_supportedElements;
+		SubsetHandlerElements_t elementSupport = m_supportedElements;
 	//	if a grid already exists, we'll perform cleanup
 		if(m_pMultiGrid)
 			cleanup();
@@ -113,7 +113,7 @@ void MGSelector::assign_grid(MultiGrid* grid)
 	}
 }
 
-void MGSelector::set_supported_elements(byte_t shElements)
+void MGSelector::set_supported_elements(SubsetHandlerElements_t shElements)
 {
 //	do this in two steps:
 //	1: disable the element-support that is no longer required.
@@ -127,7 +127,7 @@ void MGSelector::set_supported_elements(byte_t shElements)
 	enable_element_support(shElements & (~m_supportedElements));
 }
 
-void MGSelector::enable_element_support(byte_t shElements)
+void MGSelector::enable_element_support(SubsetHandlerElements_t shElements)
 {
 	if((shElements & SE_VERTEX) && (!elements_are_supported(SE_VERTEX)))
 		m_pMultiGrid->attach_to_vertices(m_aSharedEntryVRT);
@@ -162,7 +162,7 @@ void MGSelector::enable_element_support(byte_t shElements)
 	ISelector::enable_element_support(shElements);
 }
 
-void MGSelector::disable_element_support(byte_t shElements)
+void MGSelector::disable_element_support(SubsetHandlerElements_t shElements)
 {
 	//	release the attachments in the current grid
 	for(size_t i = 0; i < m_levels.size(); ++i){

@@ -101,10 +101,11 @@ void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain
 	std::vector<size_t>::iterator AdjIter;
 	std::vector<size_t> vAdjacency;
 
-	MathVector<TDomain::dim> vVel1, vPos1, vPos2, vDir1_2;
+	MathVector<TDomain::dim> vPos1, vPos2;
 	size_t i;
-	for (VertexIter = vvConnections.begin(), i=0; VertexIter != vvConnections.end(); VertexIter++, i++)
+	for (VertexIter = vvConnections.begin(), i=0; VertexIter != vvConnections.end(); ++VertexIter, ++i)
 	{
+		MathVector<TDomain::dim> vVel1;
 		UG_DLOG(LIB_DISC_ORDER, 2, "Filtering vertex " << i << " adjacency vector." <<std::endl);
 		// count how many vertex were kept / removed per adjacency vector
 		#ifdef UG_ENABLE_DEBUG_LOGS
@@ -126,6 +127,7 @@ void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain
 			AdjIter = VertexIter->begin();
 			while (AdjIter != VertexIter->end())
 			{
+				MathVector<TDomain::dim> vDir1_2;
 				// get position of second trait
 				vPos2 = vPositions.at(*AdjIter).first;
 

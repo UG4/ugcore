@@ -104,7 +104,7 @@ void NeumannBoundaryFV1<TDomain>::update_subset_groups()
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void NeumannBoundaryFV1<TDomain>::
-prep_elem_loop(const ReferenceObjectID roid, const int si)
+prep_elem_loop(ReferenceObjectID_t roid, const int si)
 {
 	update_subset_groups();
 	m_si = si;
@@ -140,7 +140,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 //	clear imports, since we will set them afterwards
 	this->clear_imports();
 
-	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	set lin defect fct for imports
 	for(size_t data = 0; data < m_vNumberData.size(); ++data)
@@ -158,7 +158,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void NeumannBoundaryFV1<TDomain>::
-prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
+prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[])
 {
 //  update Geometry for this element
 	static TFVGeom& geo = GeomProvider<TFVGeom >::get();
@@ -281,7 +281,7 @@ fsh_elem_loop()
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 void NeumannBoundaryFV1<TDomain>::
-prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
+prep_err_est_elem_loop(ReferenceObjectID_t roid, const int si)
 {
 	//	get the error estimator data object and check that it is of the right type
 	//	we check this at this point in order to be able to dispense with this check later on
@@ -305,7 +305,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 //	clear imports, since we will set them now
 	this->clear_imports();
 
-	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	set lin defect fct for imports
 	for (size_t data = 0; data < m_vNumberData.size(); ++data)
@@ -377,12 +377,12 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
 	if (err_est_data->surface_view().get() == nullptr) {UG_THROW("Error estimator has nullptr surface view.");}
-	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
+	auto pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
 
 //	get the sides of the element
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::side_type>::secure_container side_list;
 	pErrEstGrid->associated_elements_sorted(side_list, (TElem*) elem);
-	if (side_list.size() != (size_t) ref_elem_type::numSides)
+	if (side_list.size() != static_cast<size_t>(ref_elem_type::numSides))
 		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFV1::compute_err_est_elem'");
 
 	//	Number Data
@@ -412,7 +412,7 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 	}
 
 	// store global side IPs
-	ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 	MathVector<dim>* glob_ips = err_est_data->all_side_global_ips(elem, vCornerCoords);
 
 	//	conditional Number Data
@@ -618,7 +618,7 @@ template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void NeumannBoundaryFV1<TDomain>::register_func()
 {
-	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	using T = this_type;
 
 	this->clear_add_fct(id);

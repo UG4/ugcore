@@ -66,7 +66,7 @@ enum SubsetHandlerElements : byte_t
 	SHE_VOLUME = 1 << 3,
 	SHE_ALL = SHE_VERTEX | SHE_EDGE | SHE_FACE | SHE_VOLUME
 };
-using SubsetHandlerElements_t = byte_t;
+using SubsetHandlerElements_t = byte_t; // todo ø check if this and selector_t is used correct
 
 ////////////////////////////////////////////////////////////////////////
 //	SubsetState
@@ -246,12 +246,12 @@ class UG_API ISubsetHandler : public GridObserver
 	///	pass an or-combination of SubsetHandlerElements to supportedElements.
 	/**	supportedElements define the elements on which the SubsetHandler works.
 	 *	Default is SHE_ALL (all element-types).*/
-		explicit ISubsetHandler(byte_t supportedElements = SubsetHandlerElements::SHE_ALL);
+		explicit ISubsetHandler(SubsetHandlerElements_t supportedElements = SHE_ALL);
 
 	///	pass a grid and an or-combination of SubsetHandlerElements to supportedElements.
 	/**	supportedElements define the elements on which the SubsetHandler works.
 	 *	Default is SHE_ALL (all element-types).*/
-		explicit ISubsetHandler(Grid& grid, byte_t supportedElements = SubsetHandlerElements::SHE_ALL);
+		explicit ISubsetHandler(Grid& grid, SubsetHandlerElements_t supportedElements = SHE_ALL);
 
 	/**	The destructor automatically unregisters the subset-handler from the grid.
 	 *	on deregistration erase_subset_lists of the derived class will be called.*/
@@ -273,20 +273,20 @@ class UG_API ISubsetHandler : public GridObserver
 
 	///	returns true if the given element-types are supported.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
-		[[nodiscard]] bool elements_are_supported(byte_t shElements) const;
+		bool elements_are_supported(SubsetHandlerElements_t shElements) const;
 
 	///	set the type of elements that shall be handled by the SubsetHandler.
 	/**	Pass an or-combination of constants enumerated in SubsetHandlerElements.
 	 *	\sa SubsetHandler::enable_element_support*/
-		void set_supported_elements(byte_t shElements);
+		void set_supported_elements(SubsetHandlerElements_t shElements);
 
 	///	enable support for element-types. Does not invalidate previous settings.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
-		void enable_element_support(byte_t shElements);
+		void enable_element_support(SubsetHandlerElements_t shElements);
 
 	///	disable support for element-types.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
-		void disable_element_support(byte_t shElements);
+		void disable_element_support(SubsetHandlerElements_t shElements);
 
 	/**	new elements will be automatically assigned to this subset.
 	 * 	set this to a negative value to avoid automatic assignment (-1 by default).
@@ -586,7 +586,7 @@ class UG_API ISubsetHandler : public GridObserver
 	/**	Use with care! Only indices are affected. The elements are not
 	 *	removed from any lists.
 	 *	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
-		void reset_subset_indices(byte_t shElements = SubsetHandlerElements::SHE_ALL);
+		void reset_subset_indices(SubsetHandlerElements_t shElements = SHE_ALL);
 
 	///	creates all required infos (and pipes) up to the given index.
 		void create_required_subsets(int index);
@@ -728,13 +728,13 @@ class UG_API ISubsetHandler : public GridObserver
 		ISubsetHandler(const ISubsetHandler& sh) = default;
 
 	protected:
-		using ASubsetIndex = AInt;
-		//using ADataIndex = Attachment<uint>;
-		using SubsetInfoVec = std::vector<SubsetInfo>;
-		/*using VertexAttachmentPipeVec = std::vector<VertexAttachmentPipe*>;
-		using EdgeAttachmentPipeVec = std::vector<EdgeAttachmentPipe*>;
-		using FaceAttachmentPipeVec = std::vector<FaceAttachmentPipe*>;
-		using VolumeAttachmentPipeVec = std::vector<VolumeAttachmentPipe*>;*/
+		typedef AInt					ASubsetIndex;
+		//typedef Attachment<uint>		ADataIndex;
+		typedef std::vector<SubsetInfo>	SubsetInfoVec;
+		/*typedef std::vector<VertexAttachmentPipe*>	VertexAttachmentPipeVec;
+		typedef std::vector<EdgeAttachmentPipe*>	EdgeAttachmentPipeVec;
+		typedef std::vector<FaceAttachmentPipe*>	FaceAttachmentPipeVec;
+		typedef std::vector<VolumeAttachmentPipe*>	VolumeAttachmentPipeVec;*/
 
 	protected:
 		Grid*				m_pGrid;

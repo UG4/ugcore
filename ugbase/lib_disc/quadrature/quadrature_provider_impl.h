@@ -47,7 +47,7 @@ QuadratureRuleProvider<TDim>::get(size_t order, QuadType type)
 				" element, but at provider of different dimension.");
 
 //	get reference object id
-	ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+	ReferenceObjectID_t roid = TRefElem::REFERENCE_OBJECT_ID;
 
 //	forward request
 	return instance().get_quad_rule(roid, order, type);

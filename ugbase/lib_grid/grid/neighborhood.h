@@ -87,9 +87,6 @@ constexpr NeighborhoodType operator & (NeighborhoodType lhs, NeighborhoodType rh
  * \param vrt				vertex
  * \param nbhType: Accepts or-combinations of any NeighborhoodType
  *					enumerated constants.
- * \param considerEdge todo
- * \param considerFace todo
- * \param considerVol todo
  */
 void CollectNeighbors(std::vector<Vertex*>& vNeighborsOut,
 						Grid& grid, Vertex* vrt, NeighborhoodType nbhType = NeighborhoodType::NHT_EDGE_NEIGHBORS,

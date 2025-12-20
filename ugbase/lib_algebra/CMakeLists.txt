@@ -69,7 +69,7 @@ if(PARALLEL)
 						parallelization/global_layout.cpp
 						parallelization/parallel_index_layout.cpp
 						parallelization/parallel_nodes.cpp	
-						parallelization/algebra_layouts.cpp
+						parallelization/algebra_layouts.cpp						
 						 )
 endif(PARALLEL)
 

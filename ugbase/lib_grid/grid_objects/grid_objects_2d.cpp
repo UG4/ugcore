@@ -438,7 +438,6 @@ create_faces_by_edge_split(int splitEdgeIndex,
 	int ind2 = (ind0 + 2) % 4;
 	int ind3 = (ind0 + 3) % 4;
 
-	TriangleDescriptor td;
 
 //	edge-split generates 3 triangles
 	vNewFacesOut.push_back(new RefTriType(vrts[ind0], newVertex, vrts[ind3]));
