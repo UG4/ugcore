@@ -446,7 +446,8 @@ void SelectEdgesByDirection(
 	number maxDot = cos(deg_to_rad(minDeviationAngle));
 	number minDot = cos(deg_to_rad(maxDeviationAngle));
 
-	for(Grid::traits<Edge>::iterator _feI = g.begin<Edge>(); _feI != g.end<Edge>(); ++_feI){ Edge* e = *_feI;{
+	for(auto _feI = g.begin<Edge>(); _feI != g.end<Edge>(); ++_feI){
+		Edge* e = *_feI;
 		vector3 dir;
 		VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
 		VecNormalize(dir, dir);
@@ -456,7 +457,7 @@ void SelectEdgesByDirection(
 		{
 			sel.select(e);
 		}
-	}};
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -480,7 +481,8 @@ void SelectSubsetEdgesByDirection(
 	number maxDot = cos(deg_to_rad(minDeviationAngle));
 	number minDot = cos(deg_to_rad(maxDeviationAngle));
 
-	for(Grid::traits<Edge>::iterator _feI = sh.begin<Edge>(subsetIndex); _feI != sh.end<Edge>(subsetIndex); ++_feI){ Edge* e = *_feI;{
+	for(auto _feI = sh.begin<Edge>(subsetIndex); _feI != sh.end<Edge>(subsetIndex); ++_feI){
+		Edge* e = *_feI;
 		vector3 dir;
 		VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
 		VecNormalize(dir, dir);
@@ -490,7 +492,7 @@ void SelectSubsetEdgesByDirection(
 		{
 			sel.select(e);
 		}
-	}};
+	}
 }
 
 

@@ -464,7 +464,7 @@ void ComputeMultiIndicesOfSubElement<1>(std::vector<MathVector<1, int> >* vvMult
                                         bool* vIsBndElem,
                                         std::vector<int>* vElemBndSide,
                                         std::vector<size_t>* vIndex,
-                                        ReferenceObjectID roid,
+                                        ReferenceObjectID_t roid,
                                         int p)
 {
 //	switch for roid
@@ -516,7 +516,7 @@ void ComputeMultiIndicesOfSubElement<2>(std::vector<MathVector<2, int> >* vvMult
                                         bool* vIsBndElem,
                                         std::vector<int>* vElemBndSide,
                                         std::vector<size_t>* vIndex,
-                                        ReferenceObjectID roid,
+                                        ReferenceObjectID_t roid,
                                         int p)
 {
 //	switch for roid
@@ -641,7 +641,7 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMult
                                         bool* vIsBndElem,
                                         std::vector<int>* vElemBndSide,
                                         std::vector<size_t>* vIndex,
-                                        ReferenceObjectID roid,
+                                        ReferenceObjectID_t roid,
                                         int p)
 {
 //	switch for roid
@@ -967,7 +967,7 @@ FVGeometry()
 
 template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
 void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
-update_local(ReferenceObjectID roid, const LFEID& lfeID,
+update_local(ReferenceObjectID_t roid, const LFEID& lfeID,
                   size_t quadOrder)
 {
 	if(roid != geometry_traits<TElem>::REFERENCE_OBJECT_ID)
@@ -999,7 +999,7 @@ void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
 update_local_data()
 {
 //	get reference object id
-	ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
+	ReferenceObjectID_t roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	determine corners of sub elements
 	bool vIsBndElem[numSubElem];
@@ -1401,7 +1401,7 @@ DimFVGeometry()	: m_pElem(nullptr) {}
 
 template <int TWorldDim, int TDim>
 void DimFVGeometry<TWorldDim, TDim>::
-update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
+update_local(ReferenceObjectID_t roid, const LFEID& lfeID, size_t orderQuad)
 {
 //	save setting we prepare the local data for
 	m_roid = roid;
@@ -1767,7 +1767,7 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 	const DimReferenceElement<dim>& rRefElem
 		= ReferenceElementProvider::get<dim>(m_roid);
 
-	const ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
 	const QuadratureRule<dim-1>& rSCVFQuadRule
 			= QuadratureRuleProvider<dim-1>::get(scvfRoid, m_quadOrderSCVF);
 

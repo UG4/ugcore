@@ -33,6 +33,7 @@
 #include "neumann_boundary_base.h"
 //ø #include "lib_disc/common/groups_util.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
+#include "common/compat.hpp"
 
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_user_data.h"
@@ -83,7 +84,8 @@ add_inner_subsets(const char* InnerSubsets)
 	std::vector<std::string> vSubsets = this->symb_subsets();
 	std::vector<std::string> vNew = TokenizeTrimString(InnerSubsets);
 	for(size_t i = 0; i < vNew.size(); ++i)
-		if(std::find(vSubsets.begin(), vSubsets.end(), vNew[i]) == vSubsets.end())
+		//if(std::find(vSubsets.begin(), vSubsets.end(), vNew[i]) == vSubsets.end())
+		if(ug_compat_contains(vSubsets,vNew[i]))
 			vSubsets.push_back(vNew[i]);
 	this->set_subsets(vSubsets);
 

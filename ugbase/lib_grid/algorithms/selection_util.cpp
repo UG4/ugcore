@@ -286,7 +286,7 @@ static void SelectParents(MultiGrid& mg, MGSelector& msel,
 		if(parent)
 			msel.select(parent);
 
-		iterBegin++;
+		++iterBegin;
 	}
 }
 
@@ -329,20 +329,17 @@ void ExtendSelection(TSelector& sel, size_t extSize, ISelector::status_t status)
 					grid.mark(vrt);
 
 				//	select associated volumes, faces and edges.
-					for(Grid::AssociatedEdgeIterator asIter = grid.associated_edges_begin(vrt);
-						asIter != grid.associated_edges_end(vrt); ++asIter)
+					for(auto asIter = grid.associated_edges_begin(vrt); asIter != grid.associated_edges_end(vrt); ++asIter)
 					{
 						sel.select(*asIter, status);
 					}
 
-					for(Grid::AssociatedFaceIterator asIter = grid.associated_faces_begin(vrt);
-						asIter != grid.associated_faces_end(vrt); ++asIter)
+					for(auto asIter = grid.associated_faces_begin(vrt); asIter != grid.associated_faces_end(vrt); ++asIter)
 					{
 						sel.select(*asIter, status);
 					}
 
-					for(Grid::AssociatedVolumeIterator asIter = grid.associated_volumes_begin(vrt);
-						asIter != grid.associated_volumes_end(vrt); ++asIter)
+					for(auto asIter = grid.associated_volumes_begin(vrt); asIter != grid.associated_volumes_end(vrt); ++asIter)
 					{
 						sel.select(*asIter, status);
 					}
@@ -367,7 +364,7 @@ void SelectionFill(Selector& sel, typename Grid::traits<typename TGeomObj::side>
 	using GeomObjIter = typename geometry_traits<TGeomObj>::iterator;
 	using Side = typename TGeomObj::lower_dim_base_object;
 
-	if(sel.grid() == 0){
+	if(sel.grid() == nullptr){
 		UG_LOG("WARNING in SelectionFill: A grid has to be assigned! Aborting.\n");
 		return;
 	}
@@ -428,7 +425,7 @@ void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements)
 
 //	we'll iterate through the levels from top to bottom.
 //	in each level we'll select the parents of all selected elements.
-	for(int i = (int)msel.num_levels() - 1; i >= 0; --i)
+	for(int i = static_cast<int>(msel.num_levels()) - 1; i >= 0; --i)
 	{
 		if(selectAssociatedElements)
 		{
@@ -509,8 +506,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree, number normalWe
 		Edge* lastEdge = nullptr;
 		int counter = 0;
 		
-		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(srcVrt);
-			iter != grid.associated_edges_end(srcVrt); ++iter)
+		for(auto iter = grid.associated_edges_begin(srcVrt); iter != grid.associated_edges_end(srcVrt); ++iter)
 		{
 			Edge* e = *iter;
 			if(sel.is_selected(e)){
@@ -552,8 +548,8 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree, number normalWe
 			bool ignoreNormalChecks = false;
 			
 			int counter = 0;
-			Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(srcVrt);
-			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(srcVrt);
+			auto iterEnd = grid.associated_edges_end(srcVrt);
+			for(auto iter = grid.associated_edges_begin(srcVrt);
 				iter != iterEnd; ++iter)
 			{
 				Edge* e = *iter;
@@ -705,8 +701,7 @@ void SelectInnerSelectionVertices(TSelector& sel)
 		bool foundUnselected = false;
 		
 	//	volumes
-		for(Grid::AssociatedVolumeIterator aIter = grid.associated_volumes_begin(v);
-			aIter != grid.associated_volumes_end(v); ++ aIter)
+		for(auto aIter = grid.associated_volumes_begin(v); aIter != grid.associated_volumes_end(v); ++ aIter)
 		{
 			if(!sel.is_selected(*aIter)){
 				foundUnselected = true;
@@ -716,8 +711,7 @@ void SelectInnerSelectionVertices(TSelector& sel)
 
 	//	face		
 		if(!foundUnselected){
-			for(Grid::AssociatedFaceIterator aIter = grid.associated_faces_begin(v);
-				aIter != grid.associated_faces_end(v); ++ aIter)
+			for(auto aIter = grid.associated_faces_begin(v); aIter != grid.associated_faces_end(v); ++ aIter)
 			{
 				if(!sel.is_selected(*aIter)){
 					foundUnselected = true;
@@ -728,8 +722,7 @@ void SelectInnerSelectionVertices(TSelector& sel)
 	
 	//	edge		
 		if(!foundUnselected){
-			for(Grid::AssociatedEdgeIterator aIter = grid.associated_edges_begin(v);
-				aIter != grid.associated_edges_end(v); ++ aIter)
+			for(auto aIter = grid.associated_edges_begin(v); aIter != grid.associated_edges_end(v); ++ aIter)
 			{
 				if(!sel.is_selected(*aIter)){
 					foundUnselected = true;
@@ -904,8 +897,7 @@ void DeselectBoundarySelectionVertices(TSelector& sel)
 			bool foundUnselected = false;
 			
 		//	volumes
-			for(Grid::AssociatedVolumeIterator aIter = grid.associated_volumes_begin(v);
-				aIter != grid.associated_volumes_end(v); ++ aIter)
+			for(auto aIter = grid.associated_volumes_begin(v); aIter != grid.associated_volumes_end(v); ++ aIter)
 			{
 				if(!sel.is_selected(*aIter)){
 					foundUnselected = true;
@@ -915,8 +907,7 @@ void DeselectBoundarySelectionVertices(TSelector& sel)
 
 		//	face		
 			if(!foundUnselected){
-				for(Grid::AssociatedFaceIterator aIter = grid.associated_faces_begin(v);
-					aIter != grid.associated_faces_end(v); ++ aIter)
+				for(auto aIter = grid.associated_faces_begin(v); aIter != grid.associated_faces_end(v); ++ aIter)
 				{
 					if(!sel.is_selected(*aIter)){
 						foundUnselected = true;
@@ -927,8 +918,7 @@ void DeselectBoundarySelectionVertices(TSelector& sel)
 		
 		//	edge		
 			if(!foundUnselected){
-				for(Grid::AssociatedEdgeIterator aIter = grid.associated_edges_begin(v);
-					aIter != grid.associated_edges_end(v); ++ aIter)
+				for(auto aIter = grid.associated_edges_begin(v); aIter != grid.associated_edges_end(v); ++ aIter)
 				{
 					if(!sel.is_selected(*aIter)){
 						foundUnselected = true;
@@ -1226,9 +1216,9 @@ void GetSelectedElementIndices (const ISelector& sel, std::vector<size_t>& indsO
 	AssignIndices (g.begin<elem_t>(), g.end<elem_t>(), aaIndex);
 
 	GridObjectCollection goc = sel.get_grid_objects ();
-	using iter_t = typename GridObjectCollection::traits<elem_t>::iterator;
+	// typedef typename GridObjectCollection::traits<elem_t>::iterator iter_t;
 	for(size_t ilvl = 0; ilvl < goc.num_levels(); ++ilvl){
-		for(iter_t ielem = goc.begin<elem_t>(ilvl); ielem != goc.end<elem_t>(ilvl); ++ielem)
+		for(auto ielem = goc.begin<elem_t>(ilvl); ielem != goc.end<elem_t>(ilvl); ++ielem)
 		{
 			indsOut.push_back(aaIndex[*ielem]);
 		}

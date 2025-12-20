@@ -165,32 +165,31 @@ class UG_API GridObjectCollection
 		typename geometry_traits<TGeomObj>::const_iterator
 		end(size_t level = 0) const;
 
-		inline ConstVertexIterator vertices_begin(size_t level = 0) const {return begin<Vertex>(level);}
-		inline ConstVertexIterator vertices_end(size_t level = 0) const {return end<Vertex>(level);}
-		inline ConstEdgeIterator edges_begin(size_t level = 0) const {return begin<Edge>(level);}
-		inline ConstEdgeIterator edges_end(size_t level = 0) const {return end<Edge>(level);}
-		inline ConstFaceIterator faces_begin(size_t level = 0) const {return begin<Face>(level);}
-		inline ConstFaceIterator faces_end(size_t level = 0) const {return end<Face>(level);}
-		inline ConstVolumeIterator volumes_begin(size_t level = 0) const {return begin<Volume>(level);}
-		inline ConstVolumeIterator volumes_end(size_t level = 0) const {return end<Volume>(level);}
+		[[nodiscard]] inline ConstVertexIterator vertices_begin(size_t level = 0) const {return begin<Vertex>(level);}
+		[[nodiscard]] inline ConstVertexIterator vertices_end(size_t level = 0) const {return end<Vertex>(level);}
+		[[nodiscard]] inline ConstEdgeIterator edges_begin(size_t level = 0) const {return begin<Edge>(level);}
+		[[nodiscard]] inline ConstEdgeIterator edges_end(size_t level = 0) const {return end<Edge>(level);}
+		[[nodiscard]] inline ConstFaceIterator faces_begin(size_t level = 0) const {return begin<Face>(level);}
+		[[nodiscard]] inline ConstFaceIterator faces_end(size_t level = 0) const {return end<Face>(level);}
+		[[nodiscard]] inline ConstVolumeIterator volumes_begin(size_t level = 0) const {return begin<Volume>(level);}
+		[[nodiscard]] inline ConstVolumeIterator volumes_end(size_t level = 0) const {return end<Volume>(level);}
 		
 	//	element numbers
 		template <typename TGeomObj>
-		size_t num() const;
+		[[nodiscard]] size_t num() const;
 		
-		inline size_t num_vertices() const	{return num<Vertex>();}
-		inline size_t num_edges() const		{return num<Edge>();}
-		inline size_t num_faces() const		{return num<Face>();}
-		inline size_t num_volumes() const	{return num<Volume>();}
+		[[nodiscard]] inline size_t num_vertices() const	{return num<Vertex>();}
+		[[nodiscard]] inline size_t num_edges() const		{return num<Edge>();}
+		[[nodiscard]] inline size_t num_faces() const		{return num<Face>();}
+		[[nodiscard]] inline size_t num_volumes() const	{return num<Volume>();}
 		
 		template <typename TGeomObj>
-		inline
-		size_t num(size_t level) const;
+		[[nodiscard]] inline size_t num(size_t level) const;
 		
-		inline size_t num_vertices(size_t level) const	{return num<Vertex>(level);}
-		inline size_t num_edges(size_t level) const		{return num<Edge>(level);}
-		inline size_t num_faces(size_t level) const		{return num<Face>(level);}
-		inline size_t num_volumes(size_t level) const	{return num<Volume>(level);}
+		[[nodiscard]] inline size_t num_vertices(size_t level) const	{return num<Vertex>(level);}
+		[[nodiscard]] inline size_t num_edges(size_t level) const		{return num<Edge>(level);}
+		[[nodiscard]] inline size_t num_faces(size_t level) const		{return num<Face>(level);}
+		[[nodiscard]] inline size_t num_volumes(size_t level) const	{return num<Volume>(level);}
 		
 	protected:
 		void assign(const GridObjectCollection& goc);

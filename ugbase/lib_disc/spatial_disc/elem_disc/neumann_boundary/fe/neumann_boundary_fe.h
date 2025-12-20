@@ -61,9 +61,9 @@ class NeumannBoundaryFE
 
 	///	add a boundary value
 	///	\{
-		void add(SmartPtr<CplUserData<number, dim> > data, 			const char* BndSubsets, const char* InnerSubsets) override;
-		void add(SmartPtr<CplUserData<number, dim, bool> > user, 		const char* BndSubsets, const char* InnerSubsets) override;
-		void add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, 	const char* BndSubsets, const char* InnerSubsets) override;
+		void add(SmartPtr<CplUserData<number, dim> > data, const char* BndSubsets, const char* InnerSubsets) override;
+		void add(SmartPtr<CplUserData<number, dim, bool> > user, const char* BndSubsets, const char* InnerSubsets) override;
+		void add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, const char* BndSubsets, const char* InnerSubsets) override;
 	/// \}
 
 	protected:
@@ -140,9 +140,9 @@ class NeumannBoundaryFE
 	///	assembling functions for fv1
 	///	\{
 		template<typename TElem, typename TFEGeom>
-		void prep_elem_loop(const ReferenceObjectID roid, const int si);
+		void prep_elem_loop(ReferenceObjectID_t roid, const int si);
 		template<typename TElem, typename TFEGeom>
-		void prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+		void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[]);
 		template<typename TElem, typename TFEGeom>
 		void finish_elem_loop();
 		template<typename TElem, typename TFEGeom>

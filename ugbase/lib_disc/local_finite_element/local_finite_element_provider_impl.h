@@ -71,7 +71,7 @@ register_set(const LFEID& id,
 	using Map = std::map<LFEID, LocalShapeFunctionSets<dim, TShape, TGrad> >;
 	Map& map = inst().lsfs_map<dim, TShape, TGrad>();
 	LocalShapeFunctionSets<dim, TShape, TGrad>& vLSFS = map[id];
-	const ReferenceObjectID roid = set->roid();
+	ReferenceObjectID_t roid = set->roid();
 
 	if(vLSFS[roid].valid()){
 		UG_THROW("LocalFiniteElementProvider::register_set(): "
@@ -104,7 +104,7 @@ register_set(const LFEID& id,
 	Map& map = inst().lds_map<dim>();
 	DimLocalDoFSets<dim>& vLDS = map[id];
 
-	const ReferenceObjectID roid = set->roid();
+	ReferenceObjectID_t roid = set->roid();
 
 	if(vLDS[roid].valid()){
 		UG_THROW("LocalFiniteElementProvider::register_set(): "
@@ -122,7 +122,7 @@ register_set(const LFEID& id,
 template <int dim, typename TShape, typename TGrad>
 ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> >
 LocalFiniteElementProvider::
-getptr(ReferenceObjectID roid, const LFEID& id, bool bCreate)
+getptr(ReferenceObjectID_t roid, const LFEID& id, bool bCreate)
 {
 //	init provider and get map
 	using Map = std::map<LFEID, LocalShapeFunctionSets<dim, TShape, TGrad> >;
@@ -147,7 +147,7 @@ getptr(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 template <int dim, typename TShape, typename TGrad>
 const LocalShapeFunctionSet<dim, TShape, TGrad>&
 LocalFiniteElementProvider::
-get(ReferenceObjectID roid, const LFEID& id, bool bCreate)
+get(ReferenceObjectID_t roid, const LFEID& id, bool bCreate)
 {
 	ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > ptr =
 			getptr<dim,TShape,TGrad>(roid, id, bCreate);
@@ -166,7 +166,7 @@ get(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 template <int dim>
 ConstSmartPtr<DimLocalDoFSet<dim> >
 LocalFiniteElementProvider::
-get_dof_ptr(ReferenceObjectID roid, const LFEID& id, bool bCreate)
+get_dof_ptr(ReferenceObjectID_t roid, const LFEID& id, bool bCreate)
 {
 //	init provider and get map
 	using Map = std::map<LFEID, DimLocalDoFSets<dim> >;
@@ -191,7 +191,7 @@ get_dof_ptr(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 template <int dim>
 const DimLocalDoFSet<dim>&
 LocalFiniteElementProvider::
-get_dofs(ReferenceObjectID roid, const LFEID& id, bool bCreate)
+get_dofs(ReferenceObjectID_t roid, const LFEID& id, bool bCreate)
 {
 	ConstSmartPtr<DimLocalDoFSet<dim> > ptr =
 			get_dof_ptr<dim>(roid, id, bCreate);

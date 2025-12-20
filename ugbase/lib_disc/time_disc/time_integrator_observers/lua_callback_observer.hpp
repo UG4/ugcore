@@ -17,7 +17,7 @@ class LuaCallbackObserver
 public:
 	using base_type = ITimeIntegratorObserver<TDomain, TAlgebra>;
 	using grid_function_type = GridFunction<TDomain, TAlgebra>;
-	using lua_function_type = LuaFunction<number, number>;
+	using lua_function_type = LuaCallbackFunction<number>;
 
 	LuaCallbackObserver()
 	: m_lua_callback(nullptr), m_lua_id(0) {}

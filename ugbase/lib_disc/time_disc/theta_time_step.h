@@ -287,7 +287,7 @@ class ThetaTimeStep
 
 		}
 
-		number m_theta{};
+		number m_theta;
 
 		size_t m_stage;
 

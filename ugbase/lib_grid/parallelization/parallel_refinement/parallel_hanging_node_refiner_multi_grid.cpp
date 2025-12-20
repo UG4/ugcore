@@ -535,7 +535,7 @@ template <typename TLayout>
 class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-	using Layout = TLayout;
+		using Layout = TLayout;
 		using GeomObj = typename Layout::Type;
 		using Element = typename Layout::Element;
 		using Interface = typename Layout::Interface;
@@ -557,7 +557,7 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 			{
 				Element elem = interface.get_element(iter);
 				byte_t refMark = m_sel.get_selection_status(elem);
-				buff.write((char*)&refMark, sizeof(byte_t));
+				buff.write((char*)&refMark, sizeof(byte_t)); // todo ø other critical place
 			}
 
 			return true;

@@ -125,8 +125,8 @@ class FEGeometry
 
 	public:
 	/// update Geometry for roid
-		void update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad);
-		void update_local(ReferenceObjectID roid, const LFEID& lfeID){
+		void update_local(ReferenceObjectID_t roid, const LFEID& lfeID, size_t orderQuad);
+		void update_local(ReferenceObjectID_t roid, const LFEID& lfeID){
 			update_local(roid, lfeID, 2*lfeID.order() + 1);
 		}
 
@@ -199,7 +199,7 @@ class DimFEGeometry
 		DimFEGeometry(size_t order, LFEID lfeid);
 
 	///	Constructor
-		DimFEGeometry(ReferenceObjectID roid, size_t order, LFEID lfeid);
+		DimFEGeometry(ReferenceObjectID_t roid, size_t order, LFEID lfeid);
 
 	/// number of integration points
 		[[nodiscard]] size_t num_ip() const {return m_nip;}
@@ -259,8 +259,8 @@ class DimFEGeometry
 		}
 
 	/// update Geometry for roid
-		void update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad);
-		void update_local(ReferenceObjectID roid, const LFEID& lfeID){
+		void update_local(ReferenceObjectID_t roid, const LFEID& lfeID, size_t orderQuad);
+		void update_local(ReferenceObjectID_t roid, const LFEID& lfeID){
 			update_local(roid, lfeID, 2*lfeID.order() + 1);
 		}
 
@@ -425,7 +425,7 @@ class DimFEGeometry
 
 	protected:
 	///	current reference object id the local values are prepared for
-		ReferenceObjectID m_roid;
+		ReferenceObjectID_t m_roid;
 
 	///	current element
 		GridObject* m_pElem;

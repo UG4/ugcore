@@ -1165,11 +1165,10 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 	UG_LOG("  +++ VarianceMarkingEta: error : "<< this->m_latest_error << " (meanEta : " << elemMean << " on "<< numElem << " elements).\n");
 
 	// init iterators
-	const_iterator iter;
-	const const_iterator iterEnd = dd->end<TElem>();
+	auto iterEnd = dd->end<TElem>();
 
 	number elemVar = 0.0;
-	for (iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
+	for (auto iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 		TElem* elem = *iter;
 
@@ -1220,7 +1219,7 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 	std::size_t numMarkedCoarsen = 0;
 
 	//	loop elements for marking
-	for (iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
+	for (auto iter = dd->begin<TElem>(); iter != iterEnd; ++iter)
 	{
 		//	get element
 		TElem* elem = *iter;

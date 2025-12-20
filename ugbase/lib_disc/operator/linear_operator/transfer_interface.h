@@ -37,6 +37,7 @@
 #include "lib_grid/tools/grid_level.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
+#include "common/compat.hpp"
 
 namespace ug {
 

@@ -58,7 +58,7 @@ DimFEGeometry(size_t order, LFEID lfeid) :
 
 template <int TWorldDim, int TRefDim>
 DimFEGeometry<TWorldDim,TRefDim>::
-DimFEGeometry(ReferenceObjectID roid, size_t order, LFEID lfeid) :
+DimFEGeometry(ReferenceObjectID_t roid, size_t order, LFEID lfeid) :
 	m_roid(roid), m_quadOrder(order), m_lfeID(lfeid),
 	m_vIPLocal(nullptr), m_vQuadWeight(nullptr)
 {}
@@ -66,7 +66,7 @@ DimFEGeometry(ReferenceObjectID roid, size_t order, LFEID lfeid) :
 template <int TWorldDim, int TRefDim>
 void
 DimFEGeometry<TWorldDim,TRefDim>::
-update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
+update_local(ReferenceObjectID_t roid, const LFEID& lfeID, size_t orderQuad)
 {
 //	remember current setting
 	m_roid = roid;
@@ -129,7 +129,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCorner,
 	else m_pElem = pElem;
 
 //	get reference element type
-	ReferenceObjectID roid = pElem->reference_object_id();
+	ReferenceObjectID_t roid = pElem->reference_object_id();
 
 //	if already prepared for this roid, skip update of local values
 	if(roid != m_roid || lfeID != m_lfeID || static_cast<int>(orderQuad) != m_quadOrder)
@@ -167,7 +167,7 @@ update_boundary_faces(GridObject* pElem,
 	using Side = typename domain_traits<dim>::side_type;
 
 	//	get reference element type
-	const ReferenceObjectID roid = pElem->reference_object_id();
+	ReferenceObjectID_t roid = pElem->reference_object_id();
 
 	//	get grid
 	Grid& grid = *(ish->grid());
@@ -218,7 +218,7 @@ update_boundary_faces(GridObject* pElem,
 				vBF.resize(vBF.size()+1);
 				BF& bf = vBF.back();
 
-				const ReferenceObjectID sideRoid = rRefElem.roid(dim-1,side);
+				ReferenceObjectID_t sideRoid = rRefElem.roid(dim-1,side);
 
 				std::vector<MathVector<worldDim> > vSideCorner(rRefElem.num(dim-1, side, 0));
 				std::vector<MathVector<dim> > vLocalSideCorner(rRefElem.num(dim-1, side, 0));

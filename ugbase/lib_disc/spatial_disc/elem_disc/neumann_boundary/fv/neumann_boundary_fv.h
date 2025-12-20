@@ -145,9 +145,9 @@ class NeumannBoundaryFV
 	///	assembling functions for fv1
 	///	\{
 		template<typename TElem, typename TFVGeom>
-		void prep_elem_loop(ReferenceObjectID roid, int si);
+		void prep_elem_loop(ReferenceObjectID_t roid, int si);
 		template<typename TElem, typename TFVGeom>
-		void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+		void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[]);
 		template<typename TElem, typename TFVGeom>
 		void finish_elem_loop();
 		template<typename TElem, typename TFVGeom>

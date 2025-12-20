@@ -114,7 +114,7 @@ assemble_prolongation_p1(matrix_type& P,
 			}
 
 		//	type of father
-			const ReferenceObjectID roid = parent->reference_object_id();
+			ReferenceObjectID_t roid = parent->reference_object_id();
 
 		//	loop all components
 			for(size_t fct = 0; fct < fineDD.num_fct(); fct++)

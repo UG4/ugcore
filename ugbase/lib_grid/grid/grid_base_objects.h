@@ -289,7 +289,7 @@ public:
 	using ConstVertexArray = Vertex* const*;
 
 	VertexDescriptor() = default;
-	explicit VertexDescriptor(Vertex* v) : m_v(v)	{}
+	VertexDescriptor(Vertex* v) : m_v(v)	{}
 	VertexDescriptor(const VertexDescriptor& d) : m_v (d.m_v)	{}
 	virtual ~VertexDescriptor() = default;
 
@@ -299,12 +299,12 @@ public:
 	inline void set_vertex(Vertex* v)		{m_v = v;}
 	inline void set_vertex(uint, Vertex* v)	{m_v = v;}
 
-	[[nodiscard]] inline Vertex* vertex () const 				{return m_v;}
-	[[nodiscard]] virtual Vertex* vertex(size_t) const		{return m_v;}
-	[[nodiscard]] Vertex* operator [] (size_t) const	 		{return m_v;}
+	[[nodiscard]] inline Vertex* vertex () const {return m_v;}
+	[[nodiscard]] virtual Vertex* vertex(size_t) const {return m_v;}
+	[[nodiscard]] Vertex* operator [] (size_t) const {return m_v;}
 
 	[[nodiscard]] virtual ConstVertexArray vertices() const	{return &m_v;}
-	[[nodiscard]] virtual size_t num_vertices() const			{return 1;}
+	[[nodiscard]] virtual size_t num_vertices() const {return 1;}
 
 //	compatibility with std::vector for some template routines
 ///	returns the number of vertices.
