@@ -65,7 +65,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILUTScalarPreconditioner(double eps=1e-6) :
+		explicit ILUTScalarPreconditioner(double eps=1e-6) :
 			m_eps(eps), m_info(false), m_show_progress(true), m_bSort(true)
 		{};
 
@@ -88,7 +88,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 		~ILUTScalarPreconditioner() override = default;
 
 	///	returns if parallel solving is supported
-		bool supports_parallel() const override {return true;}
+		[[nodiscard]] bool supports_parallel() const override {return true;}
 
 	///	sets threshold for incomplete LU factorisation (added 01122010ih)
 		void set_threshold(number thresh)
@@ -130,7 +130,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 			const matrix_type &A = M;
 #endif
 
-			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
+			UG_STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
 
 			ilut = make_sp(new ILUTPreconditioner<CPUAlgebra>(m_eps));
 			ilut->set_info(m_info);

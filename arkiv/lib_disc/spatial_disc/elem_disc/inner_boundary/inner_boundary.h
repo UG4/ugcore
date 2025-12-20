@@ -171,7 +171,7 @@ class FV1InnerBoundaryElemDisc
 	 * at the data imports.
 	 */
 		template<typename TElem, typename TFVGeom>
-		void prep_elem_loop(const ReferenceObjectID roid, const int si);
+		void prep_elem_loop(ReferenceObjectID_t roid, const int si);
 
 	///	prepares the element for assembling
 	/**
@@ -180,7 +180,7 @@ class FV1InnerBoundaryElemDisc
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template<typename TElem, typename TFVGeom>
-		void prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+		void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[]);
 
 	///	finishes the loop over all elements
 		template<typename TElem, typename TFVGeom>
@@ -208,7 +208,7 @@ class FV1InnerBoundaryElemDisc
 
 	///	prepares the loop over all elements of one type for the computation of the error estimator
 		template <typename TElem, typename TFVGeom>
-		void prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
+		void prep_err_est_elem_loop(ReferenceObjectID_t roid, const int si);
 
 	///	prepares the element for assembling the error estimator
 		template <typename TElem, typename TFVGeom>

@@ -92,7 +92,7 @@ template<typename A> class TE_AMV_X
 public:
 	//! cast this class down to original class A.
 	const A& cast() const {return static_cast<const A&>(*this); }
-	const TRANSPOSED<TE_AMV_X<A> > T() const { return TRANSPOSED<TE_AMV_X<A> > (*this); }
+	TRANSPOSED<TE_AMV_X<A> > T() const { return TRANSPOSED<TE_AMV_X<A> > (*this); }
 };
 
 

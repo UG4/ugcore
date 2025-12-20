@@ -117,7 +117,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		Jacobi() {this->set_damp(1.0); m_bBlock = true;};
 
 	///	constructor setting the damping parameter
-		Jacobi(number damp) {this->set_damp(damp); m_bBlock = true;};
+		explicit Jacobi(number damp) {this->set_damp(damp); m_bBlock = true;};
 
 	/// clone constructor
 		Jacobi( const Jacobi &parent )

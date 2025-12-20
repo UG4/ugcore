@@ -42,7 +42,8 @@
 
 #include "log.h"
 #include "util/variant.h"
-#include "error.h"
+#include "common/error.h"
+
 
 namespace ug {
 
@@ -337,7 +338,6 @@ void Serialize(TOStream& buf, const Variant& v)
 
 		default:
 			UG_THROW("Unknown variant type in Serialize:" << v.type());
-			break;
 	}
 }
 

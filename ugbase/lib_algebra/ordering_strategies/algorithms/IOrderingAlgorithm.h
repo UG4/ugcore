@@ -73,7 +73,7 @@ public:
 
 	virtual SmartPtr<IOrderingAlgorithm > clone() = 0;
 
-	virtual const char* name() const = 0;
+	[[nodiscard]] virtual const char* name() const = 0;
 };
 
 }

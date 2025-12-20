@@ -55,10 +55,10 @@ class CombinedLinearIterator : public ILinearIterator<X,Y>
 		{};
 
 		//	Name of Iterator
-		const char* name() const override = 0;
+		[[nodiscard]] const char* name() const override = 0;
 
 		///	returns if parallel solving is supported
-		bool supports_parallel() const override {
+		[[nodiscard]] bool supports_parallel() const override {
 			for(size_t i = 0; i < m_vIterator.size(); ++i)
 				if(!m_vIterator[i]->supports_parallel())
 					return false;
@@ -100,15 +100,15 @@ class LinearIteratorProduct : public CombinedLinearIterator<X,Y>
 	public:
 		LinearIteratorProduct() = default;
 
-		LinearIteratorProduct(const std::vector<SmartPtr<ILinearIterator<X,Y> > >& vIterator)
+		explicit LinearIteratorProduct(const std::vector<SmartPtr<ILinearIterator<X,Y> > >& vIterator)
 			: CombinedLinearIterator<X,Y>(vIterator)
 		{};
 
 		//	Name of Iterator
-		virtual const char* name() const {return "IteratorProduct";}
+		[[nodiscard]] virtual const char* name() const {return "IteratorProduct";}
 
 		// 	Prepare for Operator J(u) and linearization point u (current solution)
-		virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) {
+		bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) override {
 			bool bRes = true;
 			for(size_t i = 0; i < m_vIterator.size(); i++){
 				if ((i>0) && (m_vIterator[i]==m_vIterator[i-1])) continue;
@@ -118,8 +118,7 @@ class LinearIteratorProduct : public CombinedLinearIterator<X,Y>
 		}
 
 		// Prepare for Linear Operator L
-		virtual bool init(SmartPtr<ILinearOperator<Y,X> > L)
-		{
+		bool init(SmartPtr<ILinearOperator<Y,X> > L) override {
 			bool bRes = true;
 			for(size_t i = 0; i < m_vIterator.size(); i++) {
 				if ((i>0) && (m_vIterator[i]==m_vIterator[i-1])) continue;
@@ -129,16 +128,14 @@ class LinearIteratorProduct : public CombinedLinearIterator<X,Y>
 		}
 
 		// Compute correction
-		virtual bool apply(Y& c, const X& d)
-		{
+		bool apply(Y& c, const X& d) override {
 			// create temporary defect and forward request
 			SmartPtr<X> spDTmp = d.clone();
 			return apply_update_defect(c, *spDTmp);
 		}
 
 		// Compute correction and update defect
-		virtual bool apply_update_defect(Y& c, X& d)
-		{
+		bool apply_update_defect(Y& c, X& d) override {
 			SmartPtr<Y> spCTmp = c.clone_without_values();
 
 			bool bRes = true;
@@ -152,7 +149,7 @@ class LinearIteratorProduct : public CombinedLinearIterator<X,Y>
 		}
 
 		//	Clone
-		virtual SmartPtr<ILinearIterator<X,Y> > clone() {
+		SmartPtr<ILinearIterator<X,Y> > clone() override {
 			return make_sp(new LinearIteratorProduct(*this));
 		}
 };
@@ -168,15 +165,15 @@ class LinearIteratorSum : public CombinedLinearIterator<X,Y>
 	public:
 		LinearIteratorSum() = default;
 
-		LinearIteratorSum(const std::vector<SmartPtr<ILinearIterator<X,Y> > >& vIterator)
+		explicit LinearIteratorSum(const std::vector<SmartPtr<ILinearIterator<X,Y> > >& vIterator)
 			: CombinedLinearIterator<X,Y>(vIterator)
 		{};
 
 		//	Name of Iterator
-		virtual const char* name() const {return "IteratorProduct";}
+		[[nodiscard]] virtual const char* name() const {return "IteratorProduct";}
 
 		// 	Prepare for Operator J(u) and linearization point u (current solution)
-		virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) {
+		bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) override {
 			m_spOp = J;
 			bool bRes = true;
 			for(size_t i = 0; i < m_vIterator.size(); i++){
@@ -187,8 +184,7 @@ class LinearIteratorSum : public CombinedLinearIterator<X,Y>
 		}
 
 		// Prepare for Linear Operator L
-		virtual bool init(SmartPtr<ILinearOperator<Y,X> > L)
-		{
+		bool init(SmartPtr<ILinearOperator<Y,X> > L) override {
 			m_spOp = L;
 			bool bRes = true;
 			for(size_t i = 0; i < m_vIterator.size(); i++) {
@@ -199,8 +195,7 @@ class LinearIteratorSum : public CombinedLinearIterator<X,Y>
 		}
 
 		// Compute correction
-		virtual bool apply(Y& c, const X& d)
-		{
+		bool apply(Y& c, const X& d) override {
 			// create temporary correction
 			SmartPtr<Y> spCTmp = c.clone_without_values();
 
@@ -218,15 +213,14 @@ class LinearIteratorSum : public CombinedLinearIterator<X,Y>
 		}
 
 		//	Compute correction and update defect
-		virtual bool apply_update_defect(Y& c, X& d)
-		{
+		bool apply_update_defect(Y& c, X& d) override {
 			bool bRet = apply(c, d);
 			m_spOp->apply_sub(d, c);
 			return bRet;
 		}
 
 		//	Clone
-		virtual SmartPtr<ILinearIterator<X,Y> > clone() {
+		SmartPtr<ILinearIterator<X,Y> > clone() override {
 			return make_sp(new LinearIteratorSum(*this));
 		}
 

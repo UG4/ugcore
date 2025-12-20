@@ -114,7 +114,7 @@ class IExternalSolver
 				return;
 
 			if( A.num_rows() == 0 || A.num_cols() == 0) { m_size = 0; return; }
-			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
+			UG_STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
 
 			CPUAlgebra::matrix_type mat;
 

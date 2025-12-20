@@ -82,7 +82,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 	///	Constructor
-		ILUTPreconditioner(double eps=1e-6)
+		explicit ILUTPreconditioner(double eps=1e-6)
 			: m_eps(eps), m_info(false), m_show_progress(true), m_bSortIsIdentity(false)
 		{
 			//default was set true
@@ -256,7 +256,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		{
 			PROFILE_BEGIN_GROUP(ILUT_preprocess, "ilut algebra");
 			//matrix_type &mat = *pOp;
-			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
+			UG_STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
 			write_debug(mat, "ILUT_PreprocessIn");
 
 			matrix_type* A;

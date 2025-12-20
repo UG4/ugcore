@@ -53,7 +53,6 @@
 
 //#include "smart_ptr_vector.h"
 
-// constructors
 namespace ug {
 
 
@@ -157,10 +156,11 @@ private:
 	size_t m_currentAdditionalCorrections;
 
 public:
-	std::string tostring()
+	[[nodiscard]]  std::string tostring() const
 	{
 		return config_string();
 	}
+
 	[[nodiscard]] virtual std::string config_string() const
 	{
 		std::stringstream ss;

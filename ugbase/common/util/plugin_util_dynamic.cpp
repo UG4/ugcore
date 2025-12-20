@@ -59,7 +59,6 @@ bool PluginLoaded(const string &name)
 
 bool LoadPlugins(const char* pluginPath, const string &parentGroup, bridge::Registry& reg, bool bPrefixGroup)
 {
-	std::cout <<"ø" << "plugin_path=" << pluginPath << std::endl;
 	PROFILE_FUNC();
 	using FctInitPlugin = void(*)(bridge::Registry*, string);
 
@@ -77,7 +76,7 @@ bool LoadPlugins(const char* pluginPath, const string &parentGroup, bridge::Regi
 	int suffixLen = suffixStr.size(); // includes '.'
 
 	for(size_t i = 0; i < files.size(); ++i){
-		std::cout <<"ø" << i << ": " << files[i] << std::endl;
+
 	//	extract the plugins name from the file-name
 		int nameStart = prefixLen;
 		int nameLength = static_cast<int>(files[i].size()) - suffixLen - nameStart;

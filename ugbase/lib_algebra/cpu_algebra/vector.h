@@ -52,8 +52,8 @@ namespace ug {
 /// \{
 
 //!
-template <typename TValueType = double>
-class Vector
+template <typename TValueType>
+class Vector //: public IVector
 {
 public:
 	using value_type = TValueType;

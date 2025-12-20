@@ -91,8 +91,8 @@ class OperatorInverseIterator : public ILinearIterator<typename TAlgebra::vector
 		{
 			m_name = std::string("OperatorInverseIterator(") + std::string(m_opInv->name()) + std::string(")");
 		}
-		~OperatorInverseIterator() = default;
-		std::string m_name;
+		~OperatorInverseIterator() override = default;
+
 
 	///	returns if parallel solving is supported
 		virtual bool supports_parallel() const
@@ -144,6 +144,8 @@ class OperatorInverseIterator : public ILinearIterator<typename TAlgebra::vector
 			}
 			return true;
 		}
+
+		std::string m_name;
 
 };
 

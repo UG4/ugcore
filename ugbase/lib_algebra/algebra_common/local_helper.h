@@ -167,7 +167,7 @@ private:
  * - num_cols()
  * - row_index(size_t i)
  * - col_index(size_t j)
- * - operator () (size_t i, size_t j)
+ * - operator()(size_t i, size_t j)
  * so that mat(i,j) will go to SparseMat(mat.row_index(i), mat.col_index(j))
  * \param mat the whole local matrix type
  */

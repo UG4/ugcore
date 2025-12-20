@@ -1064,7 +1064,7 @@ class DimFV1IBGeometry : public FVGeometryBase
 		GridObject* m_pElem;
 
 	///	current reference object id
-		ReferenceObjectID m_roid;
+		ReferenceObjectID_t m_roid;
 
 	///	current number of scv
 		size_t m_numSCV;

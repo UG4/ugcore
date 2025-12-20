@@ -453,6 +453,7 @@ adjust_restriction(matrix_type& R, ConstSmartPtr<DoFDistribution> ddCoarse,
 	using iter_type = vector<DoFIndex>::iterator;
 	iter_type dofIter = m_vActiveDofs.begin();
 	iter_type dofIterEnd = m_vActiveDofs.end();
+
 	for( ; dofIter != dofIterEnd; ++dofIter)
 	{
 		UG_LOG("IObstacleConstraint<TDomain,TAlgebra>::"

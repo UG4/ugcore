@@ -36,8 +36,8 @@
 #include <iterator>
 
 #include "common/log.h"
-#include "bridge/bridge.h"
-#include "common/profiler/profiler.h"
+//#include "bridge/bridge.h"
+//#include "common/profiler/profiler.h"
 #include "path_provider.h"
 #include "plugin_util.h"
 #include "embedded_plugins.h"	// created by cmake in the build directory
@@ -69,9 +69,9 @@ vector<string> GetLoadedPlugins()
 	string plugins = string(ListOfEmbeddedPlugins());
 
 	std::stringstream ss(plugins);
-	istream_iterator<std::string> begin(ss);
+	std::istream_iterator<std::string> begin(ss);
 	std::istream_iterator<std::string> end;
-	std::vector<std::string> pluginNames(begin, end);
+	std::vector pluginNames(begin, end);
 	std::copy(pluginNames.begin(), pluginNames.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
 
 	return pluginNames;

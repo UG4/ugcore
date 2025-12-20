@@ -45,8 +45,8 @@ template<typename vector_t>
 inline void VecSet(vector_t &dest, number alpha,
                    const std::vector<size_t> vIndex)
 {
-	std::vector<size_t>::const_iterator iter = vIndex.begin();
-	std::vector<size_t>::const_iterator iterEnd = vIndex.end();
+	auto iter = vIndex.begin();
+	auto iterEnd = vIndex.end();
 
 	for(; iter < iterEnd; ++iter)
 	{
@@ -62,8 +62,8 @@ inline void VecScaleAssign(vector_t &dest,
                            number alpha1, const vector_t &v1,
                            const std::vector<size_t> vIndex)
 {
-	std::vector<size_t>::const_iterator iter = vIndex.begin();
-	std::vector<size_t>::const_iterator iterEnd = vIndex.end();
+	auto iter = vIndex.begin();
+	auto iterEnd = vIndex.end();
 
 	for(; iter < iterEnd; ++iter)
 	{
@@ -81,8 +81,8 @@ inline void VecScaleAdd(vector_t &dest,
                          number alpha2, const vector_t &v2,
                          const std::vector<size_t> vIndex)
 {
-	std::vector<size_t>::const_iterator iter = vIndex.begin();
-	std::vector<size_t>::const_iterator iterEnd = vIndex.end();
+	auto iter = vIndex.begin();
+	auto iterEnd = vIndex.end();
 
 	for(; iter < iterEnd; ++iter)
 	{
@@ -103,8 +103,8 @@ inline void VecScaleAdd(vector_t &dest,
                         number alpha3, const vector_t &v3,
                         const std::vector<size_t> vIndex)
 {
-	std::vector<size_t>::const_iterator iter = vIndex.begin();
-	std::vector<size_t>::const_iterator iterEnd = vIndex.end();
+	auto iter = vIndex.begin();
+	auto iterEnd = vIndex.end();
 
 	for(; iter < iterEnd; ++iter)
 	{
@@ -125,8 +125,8 @@ template<typename vector_t>
 inline void VecProd(const vector_t &a, const vector_t &b,
                     number &sum, const std::vector<size_t> vIndex)
 {
-	std::vector<size_t>::const_iterator iter = vIndex.begin();
-	std::vector<size_t>::const_iterator iterEnd = vIndex.end();
+	auto iter = vIndex.begin();
+	auto iterEnd = vIndex.end();
 
 	for(; iter < iterEnd; ++iter)
 	{

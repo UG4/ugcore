@@ -153,7 +153,7 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 		TElem* sideElem = *iter;
 
 	//	reference object type
-		ReferenceObjectID roid = sideElem->reference_object_id();
+		ReferenceObjectID_t roid = sideElem->reference_object_id();
 
 		const DimReferenceElement<dim-1>& rRefElem
 				= ReferenceElementProvider::get<dim-1>(roid);
@@ -385,7 +385,7 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv_elem(TIterator iterBegin,
 		loclagrangeMatInv = 0.0;
 
 		//	reference object type and geometry
-		ReferenceObjectID sideRoid = elem->reference_object_id();
+		ReferenceObjectID_t sideRoid = elem->reference_object_id();
 		sideGeo geo(sideRoid, 3, LFEID(LFEID::LAGRANGE, dim, 1));
 
 		//	prepare geometry for type and order
@@ -543,7 +543,7 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv_elem(TIterator iterBegin,
 		TElem* elem = *iter;
 
 	//	reference object type
-		ReferenceObjectID roid = elem->reference_object_id();
+		ReferenceObjectID_t roid = elem->reference_object_id();
 
 		const DimReferenceElement<dim-1>& rRefElem
 				= ReferenceElementProvider::get<dim-1>(roid);

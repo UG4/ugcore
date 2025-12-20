@@ -63,7 +63,7 @@ void checksub(const CPUAlgebra::matrix_type &A)
 	std::vector<double> alpha(N, 0);
 
 	size_t iUnsymmetric=0;
-	const double unsymmetricEps = 1e-8;
+	constexpr double unsymmetricEps = 1e-8;
 	for(size_t r=0; r<A.num_rows(); r++)
 	{
 		double dUnsymmetric = 0;

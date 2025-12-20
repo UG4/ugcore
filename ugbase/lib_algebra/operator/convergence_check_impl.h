@@ -113,7 +113,7 @@ void StdConvCheck<TVector>::start_defect(number initialDefect)
 		UG_LOG("\n");
 	//	print info line
 		print_offset();
-		if(!m_info.empty())
+		if(m_info.length() > 0)
 		{
 			UG_LOG(repeat(m_symbol, num_sym));
 			UG_LOG("  "<< m_info << "  ");

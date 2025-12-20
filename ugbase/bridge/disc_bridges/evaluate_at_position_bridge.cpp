@@ -167,11 +167,10 @@ class NumberValuedUserDataEvaluator
 			int si = u->domain()->subset_handler()->get_subset_index(elem);
 
 			//	reference object id
-			const ReferenceObjectID roid = elem->reference_object_id();
+			ReferenceObjectID_t roid = elem->reference_object_id();
 
 			//	get local position of DoF
-			DimReferenceMapping<dim, dim>& map
-				= ReferenceMappingProvider::get<dim, dim>(roid, vCornerCoords);
+			DimReferenceMapping<dim, dim>& map = ReferenceMappingProvider::get<dim, dim>(roid, vCornerCoords);
 			MathVector<dim> locPos;
 			VecSet(locPos, 0.5);
 			map.global_to_local(locPos, globalPosition);

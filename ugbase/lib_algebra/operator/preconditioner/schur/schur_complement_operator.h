@@ -69,13 +69,13 @@ class SchurComplementOperator
 {
 	public:
 
-	// 	Algebra type
+	/// 	Algebra type
 		using algebra_type = TAlgebra;
 
-	// 	Vector type
+	/// 	Vector type
 		using vector_type = typename TAlgebra::vector_type;
 
-	// 	Matrix type
+	/// 	Matrix type
 		using matrix_type = typename TAlgebra::matrix_type;
 
 

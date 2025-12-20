@@ -29,7 +29,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
-
+// used by plugin: SuperLU
 #ifndef __H__LIB_ALGEBRA__OPERATOR__INTERFACE__CONSTRAINED_LINEAR_ITERATOR__
 #define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__CONSTRAINED_LINEAR_ITERATOR__
 

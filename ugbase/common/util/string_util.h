@@ -304,7 +304,7 @@ UG_API std::vector<std::string> FindDuplicates(const std::vector<std::string>& v
  * \param[in] nr number of times to repeat \c c
  * \return string with \c nr times \c c
  */
-/*UG_API*/inline std::string repeat(char c, int nr)
+/*UG_API*/static inline std::string repeat(char c, int nr)
  {
    return std::string(nr > 0 ? nr : 0, c);
  }

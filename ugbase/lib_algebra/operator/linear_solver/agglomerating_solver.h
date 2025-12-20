@@ -385,7 +385,7 @@ class AgglomeratingIterator : public
 		using base_type = AgglomeratingBase<ILinearIterator<vector_type>, algebra_type >;
 
 	public:
-		AgglomeratingIterator(SmartPtr<ILinearIterator<vector_type> > splinIt)
+		explicit AgglomeratingIterator(SmartPtr<ILinearIterator<vector_type> > splinIt)
 		{
 			UG_COND_THROW(splinIt.valid()==false, "linOpInverse has to be != nullptr");
 			m_splinIt = splinIt;

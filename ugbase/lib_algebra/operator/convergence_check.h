@@ -202,27 +202,27 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 
 		bool post() override;
 
-		[[nodiscard]] std::string config_string() const override
+		std::string config_string() const override
 		{
 			std::stringstream ss;
 			ss << "StdConvCheck( max steps = " << m_maxSteps << ", min defect = " << m_minDefect << ", relative reduction = " << m_relReduction << ")";
 			return ss.str();
 		}
 
-		[[nodiscard]] number reduction() const override {return m_currentDefect/m_initialDefect;};
-		[[nodiscard]] number defect() const override {return m_currentDefect;};
-		[[nodiscard]] number previous_defect() const { return m_lastDefect; }
-		[[nodiscard]] int step() const override {return m_currentStep;}
-		[[nodiscard]] number rate() const override {return m_currentDefect/m_lastDefect;};
-		[[nodiscard]] number avg_rate() const override {return std::pow(m_ratesProduct,1.0/step());}
+		number reduction() const override {return m_currentDefect/m_initialDefect;};
+		number defect() const override {return m_currentDefect;};
+		number previous_defect() const { return m_lastDefect; }
+		int step() const override {return m_currentStep;}
+		number rate() const override {return m_currentDefect/m_lastDefect;};
+		number avg_rate() const override {return std::pow(m_ratesProduct,1.0/step());}
 
-		[[nodiscard]] int get_offset() const override {return m_offset;}
+		int get_offset() const override {return m_offset;}
 		void set_offset(int offset) override {m_offset = offset;}
 		void set_symbol(char symbol) override {m_symbol = symbol;}
 		void set_name(std::string name) override {m_name = name;}
 		void set_info(std::string info) override {m_info = info;}
-		std::vector<number> get_defects() const { return _defects;}
-		[[nodiscard]] number get_defect(size_t i) const { return _defects[i];}
+		const std::vector<number> get_defects() const { return _defects;}
+		number get_defect(size_t i) const { return _defects[i];}
 		void print_line(std::string line) override;
 
 		SmartPtr<IConvergenceCheck<TVector> > clone() override {

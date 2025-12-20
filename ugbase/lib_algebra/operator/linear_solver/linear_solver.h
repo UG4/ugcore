@@ -41,6 +41,7 @@
 #include "lib_algebra/operator/interface/pprocess.h"
 #ifdef UG_PARALLEL
 	//#include "lib_algebra/parallelization/parallelization.h"
+	#include "lib_algebra/parallelization/parallel_storage_type.h"
 #endif
 
 namespace ug {

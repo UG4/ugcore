@@ -378,7 +378,7 @@ protected:
 				else {
 					UG_DLOG(SchurDebug, 7, "Deleting:" << myindex << std::endl);
 					interf.erase(eiter);
-					eiter--; // ø todo prfx ?
+					--eiter;
 				}
 
 			}

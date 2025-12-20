@@ -524,7 +524,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 		UG_LOG("     %  - Huh!??: intraFetiSubdomComm.size() = " << intraFetiSubdomComm.size() <<
 			   " != vNumPrimalVariablesPerProc.size() = " << vNumPrimalVariablesPerProc.size() << std::endl);
 
-	UG_LOG("     %  -------------------------------------------------------------------" << std::endl); 
+	UG_LOG("     %  -------------------------------------------------------------------" << std::endl);
 	UG_LOG("     %  - Assemble entries of Schur complement matrix on 'primal root proc' " << std::setw(4) << m_primalRootProc   << std::endl);
 	UG_LOG("     %  - Log number of primal variables ('#pv') for proc ('output proc')   " << std::setw(4) << pcl::ProcRank() << std::endl);
 	UG_LOG("     %  -    number of processes on this feti subdomain:      " << intraFetiSubdomComm.size() << ","  << std::endl);

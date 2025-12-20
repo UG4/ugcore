@@ -214,7 +214,15 @@ class IVectorDebugWriter
 		}
 		
 	protected:
-	
+
+	///	help function to get local ips
+		std::vector<MathVector<1> >& get_pos(Int2Type<1>) {return m_vPos1d;}
+		std::vector<MathVector<2> >& get_pos(Int2Type<2>) {return m_vPos2d;}
+		std::vector<MathVector<3> >& get_pos(Int2Type<3>) {return m_vPos3d;}
+		const std::vector<MathVector<1> >& get_pos(Int2Type<1>) const {return m_vPos1d;}
+		const std::vector<MathVector<2> >& get_pos(Int2Type<2>) const {return m_vPos2d;}
+		const std::vector<MathVector<3> >& get_pos(Int2Type<3>) const {return m_vPos3d;}
+
 	///	debugging writer context
 		SmartPtr<DebugWriterContext> m_spContext;
 
@@ -226,13 +234,6 @@ class IVectorDebugWriter
 		std::vector<MathVector<2> > m_vPos2d;
 		std::vector<MathVector<3> > m_vPos3d;
 
-	///	help function to get local ips
-		std::vector<MathVector<1> >& get_pos(Int2Type<1>) {return m_vPos1d;}
-		std::vector<MathVector<2> >& get_pos(Int2Type<2>) {return m_vPos2d;}
-		std::vector<MathVector<3> >& get_pos(Int2Type<3>) {return m_vPos3d;}
-		const std::vector<MathVector<1> >& get_pos(Int2Type<1>) const {return m_vPos1d;}
-		const std::vector<MathVector<2> >& get_pos(Int2Type<2>) const {return m_vPos2d;}
-		const std::vector<MathVector<3> >& get_pos(Int2Type<3>) const {return m_vPos3d;}
 };
 
 /// base class for all debug writer
@@ -300,7 +301,7 @@ class VectorDebugWritingObject
 
 		//	check ending
 			size_t iExtPos = name.find_last_of('.');
-			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".vec") != 0)
+			if(iExtPos != std::string::npos && name.substr(iExtPos) != ".vec")
 				UG_THROW("Only '.vec' format supported for vectors, but"
 								" filename is '"<<name<<"'.");
 
@@ -312,7 +313,7 @@ class VectorDebugWritingObject
 		}
 		
 	///	prints a debugger message (listing all the sections)
-		void print_debugger_message(std::string msg)
+		void print_debugger_message(const std::string& msg)
 		{
 			print_debugger_message(msg.c_str());
 		}
@@ -323,7 +324,7 @@ class VectorDebugWritingObject
 		}
 
 	/// enters a debugging section
-		void enter_vector_debug_writer_section(std::string secDir)
+		void enter_vector_debug_writer_section(const std::string &secDir)
 		{
 				enter_vector_debug_writer_section(secDir.c_str());
 		}
@@ -386,14 +387,15 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 		ConstSmartPtr<IDebugWriter<algebra_type> > debug_writer() const {return m_spDebugWriter;}
 
 	/// returns true if the debug writer is set
-		bool debug_writer_valid() const {return m_spDebugWriter.valid();}
+		[[nodiscard]] bool debug_writer_valid() const {return m_spDebugWriter.valid();}
 		
 	protected:
 	///	write debug output for a matrix (if debug writer set)
-		void write_debug(const matrix_type& mat, const char* filename)
+		void write_debug(const matrix_type& mat, const char* filename) /* hide */
 		{
 			write_debug(mat, std::string(filename));
 		}
+
 	///	write debug output for a matrix (if debug writer set)
 		void virtual write_debug(const matrix_type& mat, std::string name) {
 			PROFILE_FUNC_GROUP("algebra debug");
@@ -402,7 +404,7 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 
 		//	check ending
 			size_t iExtPos = name.find_last_of('.');
-			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".mat") != 0)
+			if(iExtPos != std::string::npos && name.substr(iExtPos) != ".mat")
 				UG_THROW("Only '.mat' format supported for matrices, but"
 								" filename is '"<<name<<"'.");
 

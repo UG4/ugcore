@@ -188,7 +188,7 @@ apply(vector_type &c, const vector_type& d)
 		iter_type iter = m_spvObsConstraint.begin();
 		iter_type iterEnd = m_spvObsConstraint.end();
 
-		for( ; iter != iterEnd; iter++)
+		for( ; iter != iterEnd; ++iter)
 			(*iter)->reset_active_dofs();
 	}
 

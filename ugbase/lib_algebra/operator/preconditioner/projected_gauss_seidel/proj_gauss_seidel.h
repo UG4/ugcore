@@ -107,7 +107,7 @@ class ProjGaussSeidel:
 		}
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
-		void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax) override;
+		void step(const matrix_type& mat, vector_type& c, const vector_type& d, number relax) override;
 };
 
 template <typename TDomain, typename TAlgebra>
@@ -129,7 +129,7 @@ class ProjBackwardGaussSeidel:
 
 	protected:
 	///	name
-		const char* name() const override {return "Projected Backward GaussSeidel";}
+		[[nodiscard]] const char* name() const override {return "Projected Backward GaussSeidel";}
 
 	public:
 		ProjBackwardGaussSeidel() : base_type() {}

@@ -97,7 +97,7 @@ class IObstacleConstraint:
 
 	public:
 	/// constructor for an obstacle defined on some subset(s)
-		IObstacleConstraint(const GridFunction<TDomain, TAlgebra>& u)
+		explicit IObstacleConstraint(const GridFunction<TDomain, TAlgebra>& u)
 		{
 			clear();
 
@@ -110,7 +110,7 @@ class IObstacleConstraint:
 			//clear();
 			UG_THROW("In 'IObstacleConstraint()': A constructor with a GridFunction as parameter"
 					"is needed here!");
-		};
+		}; // ø todo delete?
 
 	///	adds a lua callback (cond and non-cond)
 	#ifdef UG_FOR_LUA

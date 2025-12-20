@@ -121,7 +121,7 @@ void FV1InnerBoundaryElemDisc<TImpl, TDomain>::prep_timestep
 template <typename TImpl, typename TDomain>
 template<typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
-prep_elem_loop(const ReferenceObjectID roid, const int si)
+prep_elem_loop(ReferenceObjectID_t roid, const int si)
 {
 	m_si = si;
 
@@ -148,7 +148,7 @@ fsh_elem_loop()
 template <typename TImpl, typename TDomain>
 template<typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
-prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
+prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[])
 {
 #ifdef UG_PARALLEL
 	DistributedGridManager& dgm = *this->approx_space()->domain()->grid()->distributed_grid_manager();
@@ -364,7 +364,7 @@ add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCo
 template <typename TImpl, typename TDomain>
 template <typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
-prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
+prep_err_est_elem_loop(ReferenceObjectID_t roid, const int si)
 {
 	m_si = si;
 
@@ -441,7 +441,7 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
 	// roid
-	ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 
 	// set local positions
 	if (TFVGeom::usesHangingNodes)
@@ -506,7 +506,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 	}
 
 	// global IPs
-	ReferenceObjectID roid = side->reference_object_id();
+	ReferenceObjectID_t roid = side->reference_object_id();
 	size_t numSideIPs = err_est_data->get(0)->num_side_ips(roid);
 	MathVector<dim>* globIPs = err_est_data->get(0)->side_global_ips(side, vCornerCoords);
 
@@ -593,7 +593,7 @@ template<typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 register_fv1_func()
 {
-	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	using T = this_type;
 
 	this->clear_add_fct(id);
