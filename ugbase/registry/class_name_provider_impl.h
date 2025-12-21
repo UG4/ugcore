@@ -206,7 +206,7 @@ void* StaticVoidCast(void* DerivVoidPtr)
 {
 //	cast to derived class; this assumes, that the void pointer points to the
 //	beginning of the data field of the Derived object
-	auto* pDeriv = static_cast<TDerived*>(DerivVoidPtr); // ø was reinterpret_cast
+	TDerived* pDeriv = reinterpret_cast<TDerived*>(DerivVoidPtr);
 
 //	static case to the Derid class
 	auto* pBase = static_cast<TBase*>(pDeriv);
@@ -239,7 +239,7 @@ cast_to(void* ptr, const ClassNameNode*& node)
 	ptr = cast_to_base_class(ptr, node, baseName);
 
 //	return it
-	return static_cast<T*>(ptr); // ø was reinterpret_cast
+	return reinterpret_cast<T*>(ptr);
 }
 
 template <typename T>
@@ -253,7 +253,7 @@ cast_to(const void* ptr, const ClassNameNode*& node)
 	ptr = cast_to_base_class(ptr, node, baseName);
 
 //	return it
-	return static_cast<const T*>(ptr); // ø was reinterpret_cast
+	return reinterpret_cast<const T*>(ptr);
 }
 
 template <typename T>

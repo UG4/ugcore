@@ -93,7 +93,7 @@ class MethodPtrWrapper
 ///	Performs a reinterpret cast on the given pointer, then calls delete on it
 template <typename TClass> void CastAndDelete(const void* ptr)
 {
-	delete static_cast<const TClass*>(ptr); // ø was reinterpret_cast
+	delete reinterpret_cast<const TClass*>(ptr);
 }
 
 template <> inline void CastAndDelete<void>(const void* ptr)
