@@ -144,10 +144,10 @@ public:
 	virtual void prep_timestep_elem(number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	virtual prepares the loop over all elements of one type
-	virtual void prep_elem_loop(ReferenceObjectID roid, int si);
+	virtual void prep_elem_loop(ReferenceObjectID_t roid, int si);
 
 	///	virtual prepare one elements for assembling
-	virtual void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+	virtual void prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[]);
 
 	///	virtual postprocesses the loop over all elements of one type
 	virtual void fsh_elem_loop();
@@ -181,8 +181,8 @@ public:
 	/// \{
 	void do_prep_timestep(number future_time, number time, VectorProxyBase* u, size_t algebra_id);
 	void do_prep_timestep_elem(number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-	void do_prep_elem_loop(ReferenceObjectID roid, int si);
-	void do_prep_elem(LocalVector& u, GridObject* elem, ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+	void do_prep_elem_loop(ReferenceObjectID_t roid, int si);
+	void do_prep_elem(LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[]);
 	void do_fsh_elem_loop();
 	void do_fsh_timestep(number time, VectorProxyBase* u, size_t algebra_id);
 	void do_fsh_timestep_elem(number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -199,46 +199,46 @@ public:
 protected:
 	// 	register the functions
 	template <typename TAssFunc> void set_prep_timestep_fct(size_t algebra_id, TAssFunc func);
-	template <typename TAssFunc> void set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func);
+	template <typename TAssFunc> void set_prep_timestep_elem_fct(ReferenceObjectID_t id, TAssFunc func);
 	template <typename TAssFunc> void set_fsh_timestep_fct(size_t algebra_id, TAssFunc func);
-	template <typename TAssFunc> void set_fsh_timestep_elem_fct(ReferenceObjectID id, TAssFunc func);
+	template <typename TAssFunc> void set_fsh_timestep_elem_fct(ReferenceObjectID_t id, TAssFunc func);
 
-	template <typename TAssFunc> void set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
-	template <typename TAssFunc> void set_prep_elem_fct(ReferenceObjectID id, TAssFunc func);
-	template <typename TAssFunc> void set_fsh_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
+	template <typename TAssFunc> void set_prep_elem_loop_fct(ReferenceObjectID_t id, TAssFunc func);
+	template <typename TAssFunc> void set_prep_elem_fct(ReferenceObjectID_t id, TAssFunc func);
+	template <typename TAssFunc> void set_fsh_elem_loop_fct(ReferenceObjectID_t id, TAssFunc func);
 
-	template <typename TAssFunc> void set_add_jac_A_elem_fct(ReferenceObjectID id, TAssFunc func);
-	template <typename TAssFunc> void set_add_jac_M_elem_fct(ReferenceObjectID id, TAssFunc func);
-	template <typename TAssFunc> void set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func);
-	template <typename TAssFunc> void set_add_def_A_expl_elem_fct(ReferenceObjectID id, TAssFunc func);
-	template <typename TAssFunc> void set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func);
-	template <typename TAssFunc> void set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
+	template <typename TAssFunc> void set_add_jac_A_elem_fct(ReferenceObjectID_t id, TAssFunc func);
+	template <typename TAssFunc> void set_add_jac_M_elem_fct(ReferenceObjectID_t id, TAssFunc func);
+	template <typename TAssFunc> void set_add_def_A_elem_fct(ReferenceObjectID_t id, TAssFunc func);
+	template <typename TAssFunc> void set_add_def_A_expl_elem_fct(ReferenceObjectID_t id, TAssFunc func);
+	template <typename TAssFunc> void set_add_def_M_elem_fct(ReferenceObjectID_t id, TAssFunc func);
+	template <typename TAssFunc> void set_add_rhs_elem_fct(ReferenceObjectID_t id, TAssFunc func);
 
 
 
 	//	unregister functions
 	void remove_prep_timestep_fct(size_t algebra_id);
-	void remove_prep_timestep_elem_fct(ReferenceObjectID id);
+	void remove_prep_timestep_elem_fct(ReferenceObjectID_t id);
 	void remove_fsh_timestep_fct(size_t algebra_id);
-	void remove_fsh_timestep_elem_fct(ReferenceObjectID id);
+	void remove_fsh_timestep_elem_fct(ReferenceObjectID_t id);
 
-	void remove_prep_elem_loop_fct(ReferenceObjectID id);
-	void remove_prep_elem_fct(ReferenceObjectID id);
-	void remove_fsh_elem_loop_fct(ReferenceObjectID id);
+	void remove_prep_elem_loop_fct(ReferenceObjectID_t id);
+	void remove_prep_elem_fct(ReferenceObjectID_t id);
+	void remove_fsh_elem_loop_fct(ReferenceObjectID_t id);
 
-	void remove_add_jac_A_elem_fct(ReferenceObjectID id);
-	void remove_add_jac_M_elem_fct(ReferenceObjectID id);
-	void remove_add_def_A_elem_fct(ReferenceObjectID id);
-	void remove_add_def_A_expl_elem_fct(ReferenceObjectID id);
-	void remove_add_def_M_elem_fct(ReferenceObjectID id);
-	void remove_add_rhs_elem_fct(ReferenceObjectID id);
+	void remove_add_jac_A_elem_fct(ReferenceObjectID_t id);
+	void remove_add_jac_M_elem_fct(ReferenceObjectID_t id);
+	void remove_add_def_A_elem_fct(ReferenceObjectID_t id);
+	void remove_add_def_A_expl_elem_fct(ReferenceObjectID_t id);
+	void remove_add_def_M_elem_fct(ReferenceObjectID_t id);
+	void remove_add_rhs_elem_fct(ReferenceObjectID_t id);
 
 protected:
 	///	sets all assemble functions to the corresponding virtual ones
 	void set_default_add_fct();
 
 	///	sets all assemble functions to nullptr for a given ReferenceObjectID
-	void clear_add_fct(ReferenceObjectID id);
+	void clear_add_fct(ReferenceObjectID_t id);
 
 	///	sets all assemble functions to nullptr (for all ReferenceObjectID's)
 	void clear_add_fct();
@@ -257,9 +257,9 @@ private:
 	using FinishTimestepElemFct = void(T::*)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 // 	types of loop function pointers
-	using PrepareElemLoopFct = void(T::*)(ReferenceObjectID roid, int si);
+	using PrepareElemLoopFct = void(T::*)(ReferenceObjectID_t roid, int si);
 
-	using PrepareElemFct = void(T::*)(const ug::LocalVector& u, ug::GridObject* elem, ug::ReferenceObjectID roid, const ug::MathVector<dim> vCornerCoords[]);
+	using PrepareElemFct = void(T::*)(const LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[]);
 
 	using FinishElemLoopFct = void(T::*)();
 
@@ -309,14 +309,14 @@ public:
  * assembling routines can be called. Keep in mind, that the elements are
  * looped type by type, thus this function has to be called very few times.
  */
-	void set_roid(ReferenceObjectID id, int discType);
+	void set_roid(ReferenceObjectID_t id, int discType);
 
 	/// check, if all inputs have been set
-	void check_roid(ReferenceObjectID roid, int discType);
+	void check_roid(ReferenceObjectID_t roid, int discType);
 
 protected:
 /// current Geometric Object
-	ReferenceObjectID m_roid;
+	ReferenceObjectID_t m_roid;
 };
 
 
@@ -346,7 +346,7 @@ public:
 	///	World dimension
 	static constexpr int dim = TDomain::dim;
 
-	void do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
+	void do_prep_err_est_elem_loop(const ReferenceObjectID_t roid, const int si);
 	void do_prep_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 	void do_compute_err_est_A_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
 	void do_compute_err_est_M_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
@@ -355,7 +355,7 @@ public:
 
 public:
 	///	virtual prepares the loop over all elements of one type for the computation of the error estimator
-		virtual void prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
+		virtual void prep_err_est_elem_loop(const ReferenceObjectID_t roid, const int si);
 
 	///	virtual prepares the loop over all elements of one type for the computation of the error estimator
 		virtual void prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -373,24 +373,24 @@ public:
 		virtual void fsh_err_est_elem_loop();
 
 protected:
-		template <typename TAssFunc> void set_prep_err_est_elem_loop(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_prep_err_est_elem(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_compute_err_est_A_elem(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_compute_err_est_M_elem(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_compute_err_est_rhs_elem(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_fsh_err_est_elem_loop(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_prep_err_est_elem_loop(ReferenceObjectID_t id, TAssFunc func);
+		template <typename TAssFunc> void set_prep_err_est_elem(ReferenceObjectID_t id, TAssFunc func);
+		template <typename TAssFunc> void set_compute_err_est_A_elem(ReferenceObjectID_t id, TAssFunc func);
+		template <typename TAssFunc> void set_compute_err_est_M_elem(ReferenceObjectID_t id, TAssFunc func);
+		template <typename TAssFunc> void set_compute_err_est_rhs_elem(ReferenceObjectID_t id, TAssFunc func);
+		template <typename TAssFunc> void set_fsh_err_est_elem_loop(ReferenceObjectID_t id, TAssFunc func);
 
-		void remove_prep_err_est_elem_loop(ReferenceObjectID id);
-		void remove_prep_err_est_elem(ReferenceObjectID id);
-		void remove_compute_err_est_A_elem(ReferenceObjectID id);
-		void remove_compute_err_est_M_elem(ReferenceObjectID id);
-		void remove_compute_err_est_rhs_elem(ReferenceObjectID id);
-		void remove_fsh_err_est_elem_loop(ReferenceObjectID id);
+		void remove_prep_err_est_elem_loop(ReferenceObjectID_t id);
+		void remove_prep_err_est_elem(ReferenceObjectID_t id);
+		void remove_compute_err_est_A_elem(ReferenceObjectID_t id);
+		void remove_compute_err_est_M_elem(ReferenceObjectID_t id);
+		void remove_compute_err_est_rhs_elem(ReferenceObjectID_t id);
+		void remove_fsh_err_est_elem_loop(ReferenceObjectID_t id);
 
-		///	sets all assemble functions to nullptr for a given ReferenceObjectID
-		void clear_add_fct(ReferenceObjectID id);
+		///	sets all assemble functions to nullptr for a given ReferenceObjectID_t
+		void clear_add_fct(ReferenceObjectID_t id);
 
-		///	sets all assemble functions to nullptr (for all ReferenceObjectID's)
+		///	sets all assemble functions to nullptr (for all ReferenceObjectID_t's)
 		void clear_add_fct();
 
 		///	sets all assemble functions to the corresponding virtual ones
@@ -403,7 +403,7 @@ private:
 	using T = IElemEstimatorFuncs<TLeaf, TDomain>;
 
 	//	types of the error estimator assembler
-	using PrepareErrEstElemLoopFct = void(T::*)(ReferenceObjectID roid, int si);
+	using PrepareErrEstElemLoopFct = void(T::*)(ReferenceObjectID_t roid, int si);
 
 	using PrepareErrEstElemFct = void(T::*)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
@@ -461,14 +461,14 @@ public:
  * assembling routines can be called. Keep in mind, that the elements are
  * looped type by type, thus this function has to be called very few times.
  */
-	void set_roid(ReferenceObjectID id, int discType);
+	void set_roid(ReferenceObjectID_t id, int discType);
 
 	/// check, if all inputs have been set
-	void check_roid(ReferenceObjectID roid, int discType);
+	void check_roid(ReferenceObjectID_t roid, int discType);
 
 protected:
 /// current Geometric Object
-	ReferenceObjectID m_roid;
+	ReferenceObjectID_t m_roid;
 };
 
 ///	base class for all element-wise discretizations
@@ -785,11 +785,11 @@ public:
 
 protected:
 
-	///	sets all assemble functions to nullptr for a given ReferenceObjectID
-	void clear_add_fct(ReferenceObjectID id)
+	///	sets all assemble functions to nullptr for a given ReferenceObjectID_t
+	void clear_add_fct(ReferenceObjectID_t id)
 	{ estimator_base_type::clear_add_fct(id); }
 
-	///	sets all assemble functions to nullptr (for all ReferenceObjectID's)
+	///	sets all assemble functions to nullptr (for all ReferenceObjectID_t's)
 	void clear_add_fct()
 	{ estimator_base_type::clear_add_fct(); }
 
@@ -830,14 +830,14 @@ public:
 
 protected:
 
-	///	sets all assemble functions to nullptr for a given ReferenceObjectID
-		void clear_add_fct(ReferenceObjectID id)
+	///	sets all assemble functions to nullptr for a given ReferenceObjectID_t
+		void clear_add_fct(ReferenceObjectID_t id)
 		{
 			base_type::clear_add_fct(id);
 			assemble_base_type::clear_add_fct(id);
 		}
 
-	///	sets all assemble functions to nullptr (for all ReferenceObjectID's)
+	///	sets all assemble functions to nullptr (for all ReferenceObjectID_t's)
 		void clear_add_fct()
 		{
 			base_type::clear_add_fct();

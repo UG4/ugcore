@@ -643,10 +643,10 @@ class DimCRFVGeometry : public FVGeometryBase
 		const MathVector<worldDim>* scv_global_ips() const {return m_vGlobUnkCoords;}
 		
 	/// returns local barycenter
-		[[nodiscard]] const MathVector<dim> local_bary() const {return localBary;}
+		[[nodiscard]] MathVector<dim> local_bary() const {return localBary;}
 		
     /// returns global barycenter
-		[[nodiscard]] const MathVector<worldDim> global_bary() const {return globalBary;}
+		[[nodiscard]] MathVector<worldDim> global_bary() const {return globalBary;}
 
 	protected:
 	//	global and local ips on SCVF
@@ -720,7 +720,7 @@ class DimCRFVGeometry : public FVGeometryBase
 		GridObject* m_pElem;
 
 	///	current reference object id
-		ReferenceObjectID m_roid;
+		ReferenceObjectID_t m_roid;
 		
 	/// current reference element
 		DimReferenceElement<dim> m_rRefElem;
@@ -1168,10 +1168,10 @@ class CRFVGeometry : public FVGeometryBase
 		const MathVector<worldDim>* scv_global_ips() const {return m_vGlobUnkCoords;}
 
 	/// returns local barycenter
-		[[nodiscard]] const MathVector<dim> local_bary() const {return localBary;}
+		[[nodiscard]] MathVector<dim> local_bary() const {return localBary;}
 
 	/// returns global barycenter
-		[[nodiscard]] const MathVector<worldDim> global_bary() const {return globalBary;}
+		[[nodiscard]] MathVector<worldDim> global_bary() const {return globalBary;}
 
 	protected:
 	//	global and local ips on SCVF

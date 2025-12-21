@@ -201,7 +201,7 @@ public:
 			*fd_elem, *m_spDomain, true);
 		
 	//	Convert the local ip coordinates (use the global coordinates as they are the same)
-		const ReferenceObjectID fd_roid = fd_elem->reference_object_id ();
+		ReferenceObjectID_t fd_roid = fd_elem->reference_object_id ();
 		DimReferenceMapping<dim, dim> & fd_map
 			= ReferenceMappingProvider::get<dim, dim> (fd_roid, fd_elem_corner_coords);
 		std::vector<MathVector<dim> > fd_loc_ip (nip);
@@ -214,7 +214,7 @@ public:
 		//TODO: Note that u is here a dummy parameter: We do not have enough data for it.
 	
 	//	Project the vectors
-		const ReferenceObjectID roid = elem->reference_object_id ();
+		ReferenceObjectID_t roid = elem->reference_object_id ();
 		DimReferenceMapping<refDim, dim> & map
 			= ReferenceMappingProvider::get<refDim, dim> (roid, vCornerCoords);
 		for (size_t ip = 0; ip < nip; ip++)
@@ -412,7 +412,7 @@ public:
 			*fd_elem, *m_spDomain, true);
 		
 	//	Convert the local ip coordinates (use the global coordinates as they are the same)
-		const ReferenceObjectID fd_roid = fd_elem->reference_object_id ();
+		ReferenceObjectID_t fd_roid = fd_elem->reference_object_id ();
 		DimReferenceMapping<dim, dim> & fd_map
 			= ReferenceMappingProvider::get<dim, dim> (fd_roid, fd_elem_corner_coords);
 		std::vector<MathVector<dim> > fd_loc_ip (nip);
@@ -428,7 +428,7 @@ public:
 		//TODO: Note that u is here a dummy parameter: We do not have enough data for it.
 	
 	//	Scale and project the vectors
-		const ReferenceObjectID roid = elem->reference_object_id ();
+		ReferenceObjectID_t roid = elem->reference_object_id ();
 		DimReferenceMapping<refDim, dim> & map
 			= ReferenceMappingProvider::get<refDim, dim> (roid, vCornerCoords);
 		for (size_t ip = 0; ip < nip; ip++)
@@ -621,7 +621,7 @@ public:
 			*fd_elem, *m_spDomain, true);
 		
 	//	Convert the local ip coordinates (use the global coordinates as they are the same)
-		const ReferenceObjectID fd_roid = fd_elem->reference_object_id ();
+		ReferenceObjectID_t fd_roid = fd_elem->reference_object_id ();
 		DimReferenceMapping<dim, dim> & fd_map
 			= ReferenceMappingProvider::get<dim, dim> (fd_roid, fd_elem_corner_coords);
 		std::vector<MathVector<dim> > fd_loc_ip (nip);

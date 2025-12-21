@@ -128,7 +128,7 @@ class FVGeometry : public FVGeometryBase
 		static constexpr int quadOrderSCV = TQuadOrder;
 
 	///	type of quadrature rule
-	using scv_quad_rule_type = GaussQuadrature<scv_type, quadOrderSCV>;
+		using scv_quad_rule_type = GaussQuadrature<scv_type, quadOrderSCV>;
 
 	///	number of scv ip
 		static constexpr size_t numSCVIP = scv_quad_rule_type::nip * numSCV;

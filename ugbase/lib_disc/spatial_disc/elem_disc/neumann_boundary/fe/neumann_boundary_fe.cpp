@@ -111,7 +111,7 @@ void NeumannBoundaryFE<TDomain>::update_subset_groups()
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void NeumannBoundaryFE<TDomain>::
-prep_elem_loop(const ReferenceObjectID roid, const int si)
+prep_elem_loop(ReferenceObjectID_t roid, const int si)
 {
 	update_subset_groups();
 	m_si = si;
@@ -153,7 +153,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 //	clear imports, since we will set them afterwards
 	this->clear_imports();
 
-	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	set lin defect fct for imports
 	for(size_t data = 0; data < m_vNumberData.size(); ++data)
@@ -171,7 +171,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void NeumannBoundaryFE<TDomain>::
-prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
+prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[])
 {
 //  update Geometry for this element
 	TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
@@ -380,7 +380,7 @@ template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void NeumannBoundaryFE<TDomain>::register_func()
 {
-	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+	ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	using T = this_type;
 
 	this->clear_add_fct(id);

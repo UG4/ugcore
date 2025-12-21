@@ -190,7 +190,7 @@ void SideAndElemErrEstData<TDomain>::init_quadrature()
 
 	// fill in values for local side IPs (must be transformed from side local coords to elem local coords)
 	// and fill IP indexing structure along the way
-	for (ReferenceObjectID roid = ROID_VERTEX; roid != NUM_REFERENCE_OBJECTS; roid++)
+	for (ReferenceObjectID_t roid = ROID_VERTEX; roid != NUM_REFERENCE_OBJECTS; roid++)
 	{
 		// get reference element for roid
 		const ReferenceElement& re = ReferenceElementProvider::get(roid);
@@ -207,7 +207,7 @@ void SideAndElemErrEstData<TDomain>::init_quadrature()
 		for (size_t side = 0; side < ref_elem.num(ref_dim-1); side++)
 		{
 			// get side roid
-			ReferenceObjectID side_roid = ref_elem.roid(ref_dim-1, side);
+			ReferenceObjectID_t side_roid = ref_elem.roid(ref_dim-1, side);
 
 			// get number of IPs for this roid from quad rules
 			if (!quadRuleSide[side_roid])
@@ -288,7 +288,7 @@ number& SideAndElemErrEstData<TDomain>::operator () (elem_type* pElem, size_t ip
 
 template <typename TDomain>
 template <int refDim>
-const MathVector<refDim>* SideAndElemErrEstData<TDomain>::side_local_ips(const ReferenceObjectID roid)
+const MathVector<refDim>* SideAndElemErrEstData<TDomain>::side_local_ips(ReferenceObjectID_t roid)
 {
 	// the usual case: return all side IPs of an element (belonging to all sides)
 	if (TDomain::dim == refDim)
@@ -320,7 +320,7 @@ const MathVector<refDim>* SideAndElemErrEstData<TDomain>::side_local_ips(const R
 
 template <typename TDomain>
 template <int refDim>
-const MathVector<refDim>* SideAndElemErrEstData<TDomain>::elem_local_ips(const ReferenceObjectID roid)
+const MathVector<refDim>* SideAndElemErrEstData<TDomain>::elem_local_ips(ReferenceObjectID_t roid)
 {
 //	return nullptr if dim is not fitting (not meaningful for the purpose of error estimation)
 	if (TDomain::dim != refDim) return nullptr;
@@ -343,7 +343,7 @@ MathVector<TDomain::dim>* SideAndElemErrEstData<TDomain>::all_side_global_ips
 )
 {
 	// get reference object ID
-	ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 
 	// get reference mapping
 	DimReferenceMapping<dim,dim>& ref_map =
@@ -372,7 +372,7 @@ MathVector<TDomain::dim>* SideAndElemErrEstData<TDomain>::side_global_ips
 )
 {
 	// get reference object ID
-	ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 
 	// get reference mapping
 	DimReferenceMapping<dim-1,dim>& ref_map =
@@ -401,7 +401,7 @@ MathVector<TDomain::dim>* SideAndElemErrEstData<TDomain>::elem_global_ips
 )
 {
 	// get reference object ID
-	ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 
 	// get reference mapping
 	DimReferenceMapping<dim,dim>& ref_map =
@@ -429,7 +429,7 @@ size_t SideAndElemErrEstData<TDomain>::num_side_ips(const side_type* pSide)
 }
 
 template <typename TDomain>
-size_t SideAndElemErrEstData<TDomain>::num_side_ips(const ReferenceObjectID roid)
+size_t SideAndElemErrEstData<TDomain>::num_side_ips(ReferenceObjectID_t roid)
 {
 	// check that quad rule exists
 	UG_COND_THROW(!quadRuleSide[roid],
@@ -439,20 +439,20 @@ size_t SideAndElemErrEstData<TDomain>::num_side_ips(const ReferenceObjectID roid
 }
 
 template <typename TDomain>
-size_t SideAndElemErrEstData<TDomain>::first_side_ips(const ReferenceObjectID roid, const size_t side) const
+size_t SideAndElemErrEstData<TDomain>::first_side_ips(ReferenceObjectID_t roid, const size_t side) const
 {
 	return m_sideIPsStartIndex[roid][side];
 }
 
 
 template <typename TDomain>
-size_t SideAndElemErrEstData<TDomain>::num_all_side_ips(const ReferenceObjectID roid)
+size_t SideAndElemErrEstData<TDomain>::num_all_side_ips(ReferenceObjectID_t roid)
 {
 	return m_SideIPcoords[roid].size();
 }
 
 template <typename TDomain>
-size_t SideAndElemErrEstData<TDomain>::num_elem_ips(const ReferenceObjectID roid)
+size_t SideAndElemErrEstData<TDomain>::num_elem_ips(ReferenceObjectID_t roid)
 {
 	// check that quad rule exists
 	UG_COND_THROW(!quadRuleElem[roid], "Requesting elem IPs for roid " << roid << ", but no quadrature rule has been created for it.");
@@ -462,7 +462,7 @@ size_t SideAndElemErrEstData<TDomain>::num_elem_ips(const ReferenceObjectID roid
 
 template <typename TDomain>
 size_t SideAndElemErrEstData<TDomain>::side_ip_index
-(	const ReferenceObjectID roid,
+(	ReferenceObjectID_t roid,
 	const size_t side,
 	const size_t ip
 ) const
@@ -533,7 +533,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 			elem_type* elem = *elem_iter;
 
 		//	get roid of elem
-			ReferenceObjectID roid = elem->reference_object_id();
+			ReferenceObjectID_t roid = elem->reference_object_id();
 
 		//	get number of IPs from quadrature rule for the roid and specified side quadrature order
 			size_t size = quadRuleElem[roid]->size();
@@ -550,7 +550,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 				side_type* pSide = side_list[side];
 
 			//	get roid of side
-				ReferenceObjectID roid = pSide->reference_object_id();
+				ReferenceObjectID_t roid = pSide->reference_object_id();
 
 			//	get number of IPs from quadrature rule for the roid and specified side quadrature order
 				size_t size = quadRuleSide[roid]->size();
@@ -603,7 +603,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 			side_type* child_side = pMG->get_child<side_type>(c_rim_side, ch);
 
 			// get roid of side
-			ReferenceObjectID child_roid = child_side->reference_object_id();
+			ReferenceObjectID_t child_roid = child_side->reference_object_id();
 
 			// get number of IPs from quadrature rule for the roid and specified side quadrature order
 			size_t child_size = quadRuleSide[child_roid]->size();
@@ -618,7 +618,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 		if (resize_parent)
 		{
 			// get roid of side
-			ReferenceObjectID roid = c_rim_side->reference_object_id();
+			ReferenceObjectID_t roid = c_rim_side->reference_object_id();
 
 			// get number of IPs from quadrature rule for the roid and specified side quadrature order
 			size_t size = quadRuleSide[roid]->size();
@@ -825,7 +825,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 
 // elem terms
 	// info about reference element type
-	ReferenceObjectID roid = pElem->reference_object_id();
+	ReferenceObjectID_t roid = pElem->reference_object_id();
 	const DimReferenceElement<dim>& refElem = ReferenceElementProvider::get<dim>(roid);
 
 	// only take into account elem contributions of the subsets defined in the constructor
@@ -871,7 +871,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 		side_type* pSide = side_list[side];
 
 		// info about reference side type
-		ReferenceObjectID side_roid = pSide->reference_object_id();
+		ReferenceObjectID_t side_roid = pSide->reference_object_id();
 
 		// check number of integration points
 		size_t nsIPs = quadRuleSide[side_roid]->size();

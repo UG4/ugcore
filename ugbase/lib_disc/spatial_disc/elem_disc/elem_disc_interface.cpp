@@ -82,7 +82,7 @@ set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 }
 
 template <typename TLeaf, typename TDomain>
-void IElemAssembleFuncs<TLeaf, TDomain>::clear_add_fct(ReferenceObjectID id)
+void IElemAssembleFuncs<TLeaf, TDomain>::clear_add_fct(ReferenceObjectID_t id)
 {
 	m_vPrepareTimestepElemFct[id] = nullptr;
 	m_vFinishTimestepElemFct[id] = nullptr;
@@ -103,7 +103,7 @@ void IElemAssembleFuncs<TLeaf, TDomain>::clear_add_fct(ReferenceObjectID id)
 
 
 template <typename TLeaf, typename TDomain>
-void IElemEstimatorFuncs<TLeaf, TDomain>::clear_add_fct(ReferenceObjectID id)
+void IElemEstimatorFuncs<TLeaf, TDomain>::clear_add_fct(ReferenceObjectID_t id)
 {
 	m_vPrepareErrEstElemLoopFct[id] = nullptr;
 	m_vPrepareErrEstElemFct[id] = nullptr;
@@ -115,7 +115,7 @@ void IElemEstimatorFuncs<TLeaf, TDomain>::clear_add_fct(ReferenceObjectID id)
 
 
 //template <typename TDomain>
-//void IElemDisc<TDomain>::clear_add_fct(ReferenceObjectID id)
+//void IElemDisc<TDomain>::clear_add_fct(ReferenceObjectID_t id)
 //{
 	/*m_vPrepareTimestepElemFct[id] = nullptr;
 	m_vFinishTimestepElemFct[id] = nullptr;
@@ -365,7 +365,7 @@ void IElemDiscBase<TDomain>::register_import(IDataImport<dim>& Imp)
 
 template <typename TLeaf, typename TDomain>
 void IElemEstimatorFuncs<TLeaf, TDomain>::
-check_roid(ReferenceObjectID roid, int discType)
+check_roid(ReferenceObjectID_t roid, int discType)
 {
 
 }
@@ -373,7 +373,7 @@ check_roid(ReferenceObjectID roid, int discType)
 
 template <typename TLeaf, typename TDomain>
 void IElemEstimatorFuncs<TLeaf, TDomain>::
-set_roid(ReferenceObjectID roid, int discType)
+set_roid(ReferenceObjectID_t roid, int discType)
 {
 	m_roid = roid;
 
@@ -388,7 +388,7 @@ set_roid(ReferenceObjectID roid, int discType)
 
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::
-check_roid(ReferenceObjectID roid, int discType)
+check_roid(ReferenceObjectID_t roid, int discType)
 {
 	if(m_vPrepareElemLoopFct[roid]==nullptr)
 		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem_loop' for "<<roid<<" (world dim: "<<dim<<")");
@@ -419,7 +419,7 @@ check_roid(ReferenceObjectID roid, int discType)
 
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::
-set_roid(ReferenceObjectID roid, int discType)
+set_roid(ReferenceObjectID_t roid, int discType)
 {
 	m_roid = roid;
 
@@ -455,7 +455,7 @@ void IElemDiscBase<TDomain>::set_time_independent()
 //	throw functions
 ////////////////////////////////////////////////////////////////////////////////
 
-inline void ThrowMissingVirtualMethod(const char* method, const ReferenceObjectID roid){
+inline void ThrowMissingVirtualMethod(const char* method, ReferenceObjectID_t roid){
 	UG_THROW("ElemDisc: No override for the essential assembling function "
 			 "'"<<method<<"' for " << roid << " implemented!");
 }
@@ -493,7 +493,7 @@ do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const
 
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::
-do_prep_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
+do_prep_elem(LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[])
 {
 	//	access by map
 	u.access_by_map(asLeaf().map());
@@ -530,7 +530,7 @@ do_fsh_timestep_elem(const number time, LocalVector& u, GridObject* elem, const 
 
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::
-do_prep_elem_loop(const ReferenceObjectID roid, const int si)
+do_prep_elem_loop(ReferenceObjectID_t roid, const int si)
 {
 //	set id and disc part (this checks the assemble functions)
 	set_roid(roid, si);
@@ -659,7 +659,7 @@ do_add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCorne
 
 template <typename TLeaf, typename TDomain>
 void IElemEstimatorFuncs<TLeaf, TDomain>::
-do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
+do_prep_err_est_elem_loop(ReferenceObjectID_t roid, const int si)
 {
 //	set id and disc part (this checks the assemble functions)
 	set_roid(roid, si);
@@ -766,7 +766,7 @@ prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, co
 
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::
-prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
+prep_elem(const LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("prep_elem", elem->reference_object_id ());
 }
@@ -787,7 +787,7 @@ fsh_timestep_elem(const number time, const LocalVector& u, GridObject* elem, con
 
 template <typename TLeaf, typename TDomain>
 void IElemAssembleFuncs<TLeaf, TDomain>::
-prep_elem_loop(const ReferenceObjectID roid, const int si)
+prep_elem_loop(ReferenceObjectID_t roid, const int si)
 {
 	ThrowMissingVirtualMethod("prep_elem_loop", roid);
 }
@@ -843,7 +843,7 @@ add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCo
 
 template <typename TLeaf, typename TDomain>
 void IElemEstimatorFuncs<TLeaf, TDomain>::
-prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
+prep_err_est_elem_loop(ReferenceObjectID_t roid, const int si)
 {
 	// ThrowMissingVirtualMethod("prep_err_est_elem_loop", roi);
 }

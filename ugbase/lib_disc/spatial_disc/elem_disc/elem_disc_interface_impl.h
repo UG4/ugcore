@@ -57,120 +57,120 @@ void IElemAssembleFuncs<TLeaf, TDomain>::remove_prep_timestep_fct(size_t algebra
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemAssembleFuncs<TLeaf, TDomain>::set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemAssembleFuncs<TLeaf, TDomain>::set_prep_timestep_elem_fct(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vPrepareTimestepElemFct[id] = static_cast<PrepareTimestepElemFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemAssembleFuncs<TLeaf, TDomain>::remove_prep_timestep_elem_fct(ReferenceObjectID id)
+void IElemAssembleFuncs<TLeaf, TDomain>::remove_prep_timestep_elem_fct(ReferenceObjectID_t id)
 {
 	m_vPrepareTimestepElemFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemAssembleFuncs<TLeaf, TDomain>::set_prep_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemAssembleFuncs<TLeaf, TDomain>::set_prep_elem_fct(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vPrepareElemFct[id] = static_cast<PrepareElemFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemAssembleFuncs<TLeaf, TDomain>::remove_prep_elem_fct(ReferenceObjectID id)
+void IElemAssembleFuncs<TLeaf, TDomain>::remove_prep_elem_fct(ReferenceObjectID_t id)
 {
 	m_vPrepareElemFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemAssembleFuncs<TLeaf, TDomain>::set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
+void IElemAssembleFuncs<TLeaf, TDomain>::set_prep_elem_loop_fct(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vPrepareElemLoopFct[id] = static_cast<PrepareElemLoopFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemAssembleFuncs<TLeaf, TDomain>::remove_prep_elem_loop_fct(ReferenceObjectID id)
+void IElemAssembleFuncs<TLeaf, TDomain>::remove_prep_elem_loop_fct(ReferenceObjectID_t id)
 {
 	m_vPrepareElemLoopFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemAssembleFuncs<TLeaf, TDomain>::set_fsh_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
+void IElemAssembleFuncs<TLeaf, TDomain>::set_fsh_elem_loop_fct(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vFinishElemLoopFct[id] = static_cast<FinishElemLoopFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemAssembleFuncs<TLeaf, TDomain>::remove_fsh_elem_loop_fct(ReferenceObjectID id)
+void IElemAssembleFuncs<TLeaf, TDomain>::remove_fsh_elem_loop_fct(ReferenceObjectID_t id)
 {
 	m_vFinishElemLoopFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemAssembleFuncs<TLeaf, TDomain>::set_add_jac_A_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemAssembleFuncs<TLeaf, TDomain>::set_add_jac_A_elem_fct(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vElemJAFct[id] = static_cast<ElemJAFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_jac_A_elem_fct(ReferenceObjectID id)
+void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_jac_A_elem_fct(ReferenceObjectID_t id)
 {
 	m_vElemJAFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemAssembleFuncs<TLeaf, TDomain>::set_add_jac_M_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemAssembleFuncs<TLeaf, TDomain>::set_add_jac_M_elem_fct(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vElemJMFct[id] = static_cast<ElemJMFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_jac_M_elem_fct(ReferenceObjectID id)
+void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_jac_M_elem_fct(ReferenceObjectID_t id)
 {
 	m_vElemJMFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemAssembleFuncs<TLeaf, TDomain>::set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemAssembleFuncs<TLeaf, TDomain>::set_add_def_A_elem_fct(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vElemdAFct[id] = static_cast<ElemdAFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_def_A_elem_fct(ReferenceObjectID id)
+void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_def_A_elem_fct(ReferenceObjectID_t id)
 {
 	m_vElemdAFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemAssembleFuncs<TLeaf, TDomain>::set_add_def_A_expl_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemAssembleFuncs<TLeaf, TDomain>::set_add_def_A_expl_elem_fct(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vElemdAExplFct[id] = static_cast<ElemdAFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_def_A_expl_elem_fct(ReferenceObjectID id)
+void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_def_A_expl_elem_fct(ReferenceObjectID_t id)
 {
 	m_vElemdAExplFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemAssembleFuncs<TLeaf, TDomain>::set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemAssembleFuncs<TLeaf, TDomain>::set_add_def_M_elem_fct(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vElemdMFct[id] = static_cast<ElemdMFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_def_M_elem_fct(ReferenceObjectID id)
+void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_def_M_elem_fct(ReferenceObjectID_t id)
 {
 	m_vElemdMFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemAssembleFuncs<TLeaf, TDomain>::set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemAssembleFuncs<TLeaf, TDomain>::set_add_rhs_elem_fct(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vElemRHSFct[id] = static_cast<ElemRHSFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_rhs_elem_fct(ReferenceObjectID id)
+void IElemAssembleFuncs<TLeaf, TDomain>::remove_add_rhs_elem_fct(ReferenceObjectID_t id)
 {
 	m_vElemRHSFct[id] = nullptr;
 };
@@ -189,84 +189,84 @@ void IElemAssembleFuncs<TLeaf, TDomain>::remove_fsh_timestep_fct(size_t algebra_
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemAssembleFuncs<TLeaf, TDomain>::set_fsh_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemAssembleFuncs<TLeaf, TDomain>::set_fsh_timestep_elem_fct(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vFinishTimestepElemFct[id] = static_cast<FinishTimestepElemFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemAssembleFuncs<TLeaf, TDomain>::remove_fsh_timestep_elem_fct(ReferenceObjectID id)
+void IElemAssembleFuncs<TLeaf, TDomain>::remove_fsh_timestep_elem_fct(ReferenceObjectID_t id)
 {
 	m_vFinishTimestepElemFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemEstimatorFuncs<TLeaf, TDomain>::set_prep_err_est_elem_loop(ReferenceObjectID id, TAssFunc func)
+void IElemEstimatorFuncs<TLeaf, TDomain>::set_prep_err_est_elem_loop(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vPrepareErrEstElemLoopFct[id] = static_cast<PrepareErrEstElemLoopFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemEstimatorFuncs<TLeaf, TDomain>::remove_prep_err_est_elem_loop(ReferenceObjectID id)
+void IElemEstimatorFuncs<TLeaf, TDomain>::remove_prep_err_est_elem_loop(ReferenceObjectID_t id)
 {
 	m_vPrepareErrEstElemLoopFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemEstimatorFuncs<TLeaf, TDomain>::set_prep_err_est_elem(ReferenceObjectID id, TAssFunc func)
+void IElemEstimatorFuncs<TLeaf, TDomain>::set_prep_err_est_elem(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vPrepareErrEstElemFct[id] = static_cast<PrepareErrEstElemFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemEstimatorFuncs<TLeaf, TDomain>::remove_prep_err_est_elem(ReferenceObjectID id)
+void IElemEstimatorFuncs<TLeaf, TDomain>::remove_prep_err_est_elem(ReferenceObjectID_t id)
 {
 	m_vPrepareErrEstElemFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemEstimatorFuncs<TLeaf, TDomain>::set_compute_err_est_A_elem(ReferenceObjectID id, TAssFunc func)
+void IElemEstimatorFuncs<TLeaf, TDomain>::set_compute_err_est_A_elem(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vElemComputeErrEstAFct[id] = static_cast<ElemComputeErrEstAFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemEstimatorFuncs<TLeaf, TDomain>::remove_compute_err_est_A_elem(ReferenceObjectID id)
+void IElemEstimatorFuncs<TLeaf, TDomain>::remove_compute_err_est_A_elem(ReferenceObjectID_t id)
 {
 	m_vElemComputeErrEstAFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemEstimatorFuncs<TLeaf, TDomain>::set_compute_err_est_M_elem(ReferenceObjectID id, TAssFunc func)
+void IElemEstimatorFuncs<TLeaf, TDomain>::set_compute_err_est_M_elem(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vElemComputeErrEstMFct[id] = static_cast<ElemComputeErrEstMFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemEstimatorFuncs<TLeaf, TDomain>::remove_compute_err_est_M_elem(ReferenceObjectID id)
+void IElemEstimatorFuncs<TLeaf, TDomain>::remove_compute_err_est_M_elem(ReferenceObjectID_t id)
 {
 	m_vElemComputeErrEstMFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemEstimatorFuncs<TLeaf, TDomain>::set_compute_err_est_rhs_elem(ReferenceObjectID id, TAssFunc func)
+void IElemEstimatorFuncs<TLeaf, TDomain>::set_compute_err_est_rhs_elem(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vElemComputeErrEstRhsFct[id] = static_cast<ElemComputeErrEstRhsFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemEstimatorFuncs<TLeaf, TDomain>::remove_compute_err_est_rhs_elem(ReferenceObjectID id)
+void IElemEstimatorFuncs<TLeaf, TDomain>::remove_compute_err_est_rhs_elem(ReferenceObjectID_t id)
 {
 	m_vElemComputeErrEstRhsFct[id] = nullptr;
 };
 
 template <typename TLeaf, typename TDomain>
 template<typename TAssFunc>
-void IElemEstimatorFuncs<TLeaf, TDomain>::set_fsh_err_est_elem_loop(ReferenceObjectID id, TAssFunc func)
+void IElemEstimatorFuncs<TLeaf, TDomain>::set_fsh_err_est_elem_loop(ReferenceObjectID_t id, TAssFunc func)
 {
 	m_vFinishErrEstElemLoopFct[id] = static_cast<FinishErrEstElemLoopFct>(func);
 };
 template <typename TLeaf, typename TDomain>
-void IElemEstimatorFuncs<TLeaf, TDomain>::remove_fsh_err_est_elem_loop(ReferenceObjectID id)
+void IElemEstimatorFuncs<TLeaf, TDomain>::remove_fsh_err_est_elem_loop(ReferenceObjectID_t id)
 {
 	m_vFinishErrEstElemLoopFct[id] = nullptr;
 };

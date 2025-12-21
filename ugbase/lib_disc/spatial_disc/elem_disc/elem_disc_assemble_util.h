@@ -125,7 +125,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -232,7 +232,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -339,7 +339,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -452,7 +452,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -590,7 +590,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -727,7 +727,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -915,7 +915,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -1046,7 +1046,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -1262,7 +1262,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -1376,7 +1376,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -1607,7 +1607,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -1763,7 +1763,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -1864,7 +1864,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	dummy local time series (only to simulate the instationary case for the initialization)
 		LocalVectorTimeSeries locTimeSeries;
@@ -1925,7 +1925,7 @@ public:
 		if(iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
@@ -2035,7 +2035,7 @@ public:
 		if (iterBegin == iterEnd) return;
 
 	//	reference object id
-		static constexpr ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+		static constexpr ReferenceObjectID_t id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
 		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];

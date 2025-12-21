@@ -270,11 +270,11 @@ public:
 
 	/// get the local side integration points for a specific roid
 		template <int refDim>
-		const MathVector<refDim>* side_local_ips(ReferenceObjectID roid);
+		const MathVector<refDim>* side_local_ips(ReferenceObjectID_t roid);
 
 	/// get the local elem integration points for a specific roid
 		template <int refDim>
-		const MathVector<refDim>* elem_local_ips(ReferenceObjectID roid);
+		const MathVector<refDim>* elem_local_ips(ReferenceObjectID_t roid);
 
 	/// get all global side integration points
 		MathVector<TDomain::dim>* all_side_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -289,19 +289,19 @@ public:
 		size_t num_side_ips(const side_type* pSide);
 
 	/// get number of side IPs of a specific side type
-		size_t num_side_ips(ReferenceObjectID roid);
+		size_t num_side_ips(ReferenceObjectID_t roid);
 
 	/// get number of first IP belonging to a specific side
-		[[nodiscard]] size_t first_side_ips(ReferenceObjectID roid, size_t side) const;
+		[[nodiscard]] size_t first_side_ips(ReferenceObjectID_t roid, size_t side) const;
 
 	/// get number of side IPs
-		size_t num_all_side_ips(ReferenceObjectID roid);
+		size_t num_all_side_ips(ReferenceObjectID_t roid);
 
 	/// get number of elem IPs
-		size_t num_elem_ips(ReferenceObjectID roid);
+		size_t num_elem_ips(ReferenceObjectID_t roid);
 
 	/// get index of specific side IP in sideIP array returned by side_local_ips
-		[[nodiscard]] size_t side_ip_index(ReferenceObjectID roid, size_t side, size_t ip) const;
+		[[nodiscard]] size_t side_ip_index(ReferenceObjectID_t roid, size_t side, size_t ip) const;
 
 	///	get the surface view
 		ConstSmartPtr<SurfaceView>& surface_view () {return m_spSV;};
@@ -336,9 +336,8 @@ protected:
 				size_t m_quadOrder;
 				template< typename TElem > void operator () (TElem&)
 				{
-					const ReferenceObjectID roid = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-					m_ppQuadRule[roid] =
-						const_cast<QuadratureRule<refDim>*>(&QuadratureRuleProvider<refDim>::get(roid, m_quadOrder));
+					ReferenceObjectID_t roid = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+					m_ppQuadRule[roid] = const_cast<QuadratureRule<refDim>*>(&QuadratureRuleProvider<refDim>::get(roid, m_quadOrder));
 				}
 		};
 
