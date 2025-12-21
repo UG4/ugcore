@@ -343,9 +343,9 @@ template <typename TGrid, typename TSubsetHandler>
 std::vector<std::string> IDomain<TGrid,TSubsetHandler>::
 additional_subset_handler_names() const
 {
-	using iterator_t = typename std::map<std::string, SmartPtr<TSubsetHandler> >::const_iterator;
+	// using iterator_t = typename std::map<std::string, SmartPtr<TSubsetHandler> >::const_iterator;
 	std::vector<std::string> names;
-	for(iterator_t iter = m_additionalSH.begin(); iter != m_additionalSH.end(); ++iter){
+	for(auto iter = m_additionalSH.begin(); iter != m_additionalSH.end(); ++iter){
 		if(iter->second.valid())
 			names.push_back(iter->first);
 	}
@@ -527,8 +527,8 @@ broadcast_refinement_projector (
 			else
 			{
 				using map_it_t = typename std::map<std::string, SmartPtr<TSubsetHandler> >::const_iterator;
-				map_it_t it = m_additionalSH.begin();
-				map_it_t it_end = m_additionalSH.end();
+				auto it = m_additionalSH.begin();
+				auto it_end = m_additionalSH.end();
 				for (; it != it_end; ++it)
 				{
 					if (it->first == sh_name)

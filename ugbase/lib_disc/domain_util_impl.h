@@ -173,13 +173,13 @@ number ElementSize(const TElem& elem, const TDomain& domain)
 ////////////////////////////////////////////////////////////////////////
 
 template <typename TElem, typename TDomain>
-number ElementDiameterSq(const TElem& elem, TDomain& domain)
+number ElementDiameterSq(TElem& elem, TDomain& domain)
 {
 	return ElementDiameterSq(*domain.grid(), domain.position_accessor(), &elem);
 }
 
 template <typename TElem, typename TDomain>
-number ElementDiameter(const TElem& elem, TDomain& domain)
+number ElementDiameter(TElem& elem, TDomain& domain)
 {
 	return ElementDiameter(*domain.grid(), domain.position_accessor(), &elem);
 }

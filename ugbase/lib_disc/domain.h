@@ -60,20 +60,20 @@ class DomainInfo
 	public:
 		using int_t = unsigned long long;
 
-		[[nodiscard]] inline int element_type() const									{return m_elementType;}
-		[[nodiscard]] inline size_t num_levels() const								{return m_numElems.size();}
+		[[nodiscard]] inline int element_type() const {return m_elementType;}
+		[[nodiscard]] inline size_t num_levels() const {return m_numElems.size();}
 	///	returns the global number of elements on the given level (excluding ghosts...)
-		[[nodiscard]] inline size_t num_elements_on_level(size_t lvl) const			{return (size_t)m_numElems[lvl];}
+		[[nodiscard]] inline size_t num_elements_on_level(size_t lvl) const {return static_cast<size_t>(m_numElems[lvl]);}
 	///	returns the global number of surface elements (elements without children)
-		[[nodiscard]] inline size_t num_surface_elements() const						{return (size_t)m_numSurfElems;}
+		[[nodiscard]] inline size_t num_surface_elements() const {return static_cast<size_t>(m_numSurfElems);}
 	///	returns the local number of elements on the given level (excluding ghosts...)
-		[[nodiscard]] inline size_t num_local_elements_on_level(size_t lvl) const		{return (size_t)m_numLocalElems[lvl];}
+		[[nodiscard]] inline size_t num_local_elements_on_level(size_t lvl) const {return static_cast<size_t>(m_numLocalElems[lvl]);}
 	///	returns the minimum number of elements a process has on a given leven (excluding ghosts)
-		[[nodiscard]] inline size_t min_num_local_elements_on_level(size_t lvl) const	{return (size_t)m_minNumLocalElems[lvl];}
+		[[nodiscard]] inline size_t min_num_local_elements_on_level(size_t lvl) const {return static_cast<size_t>(m_minNumLocalElems[lvl]);}
 	///	returns the maximum number of elements a process has on a given leven (excluding ghosts)
-		[[nodiscard]] inline size_t max_num_local_elements_on_level(size_t lvl) const	{return (size_t)m_maxNumLocalElems[lvl];}
+		[[nodiscard]] inline size_t max_num_local_elements_on_level(size_t lvl) const {return static_cast<size_t>(m_maxNumLocalElems[lvl]);}
 	///	returns the local number of ghosts on the given level
-		[[nodiscard]] inline size_t num_local_ghosts_on_level(size_t lvl) const		{return (size_t)m_numLocalGhosts[lvl];}
+		[[nodiscard]] inline size_t num_local_ghosts_on_level(size_t lvl) const {return static_cast<size_t>(m_numLocalGhosts[lvl]);}
 
 		[[nodiscard]] inline size_t num_subsets() const
 			{return m_subsetDims.size();}
@@ -89,7 +89,7 @@ class DomainInfo
 				return static_cast<size_t>(total);
 			}
 
-		inline void set_info(GridBaseObjectId elemType,
+		inline void set_info(GridBaseObjectId_t elemType,
 								const std::vector<int_t>& numElems,
 								const std::vector<int_t>& numLocalElems,
 								const std::vector<int_t>& minNumLocalElems,
@@ -110,7 +110,7 @@ class DomainInfo
 		[[nodiscard]] std::string to_string() const;
 
 	private:
-		GridBaseObjectId	m_elementType;
+		GridBaseObjectId_t	m_elementType;
 		std::vector<int_t>	m_numElems;
 		std::vector<int_t>	m_numLocalElems;///< local number of elements excluding ghosts.
 		std::vector<int_t>	m_minNumLocalElems;
@@ -222,7 +222,7 @@ class IDomain
 		[[nodiscard]] SPRefinementProjector refinement_projector() const;
 
 	///	returns the geometry of the domain
-		virtual SPIGeometry3d geometry3d() const = 0;
+		[[nodiscard]] virtual SPIGeometry3d geometry3d() const = 0;
 
 	protected:
 		#ifdef UG_PARALLEL
