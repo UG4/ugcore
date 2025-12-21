@@ -169,7 +169,7 @@ class DataExport :
 
 	///	register evaluation of export function
 		template <typename TClass, int refDim>
-		void set_fct(ReferenceObjectID id, TClass* obj,
+		void set_fct(ReferenceObjectID_t id, TClass* obj,
 		             void (TClass::*func)(	TData vValue[],
 		      								const MathVector<dim> vGlobIP[],
 		    								number time, int si,
@@ -183,7 +183,7 @@ class DataExport :
 
 	///	register evaluation of export function
 		template <int refDim>
-		void set_fct(ReferenceObjectID id,
+		void set_fct(ReferenceObjectID_t id,
 		             void (*func)(	TData vValue[],
 									const MathVector<dim> vGlobIP[],
 									number time, int si,
@@ -348,21 +348,21 @@ class DataExport :
 		};
 
 		template <int refDim>
-		Functor<refDim>& eval_fct(ReferenceObjectID id) {return eval_fct(id, Int2Type<refDim>());}
+		Functor<refDim>& eval_fct(ReferenceObjectID_t id) {return eval_fct(id, Int2Type<refDim>());}
 		template <int refDim>
-		const Functor<refDim>& eval_fct(ReferenceObjectID id) const {return eval_fct(id, Int2Type<refDim>());}
+		const Functor<refDim>& eval_fct(ReferenceObjectID_t id) const {return eval_fct(id, Int2Type<refDim>());}
 
-		Functor<1>& eval_fct(ReferenceObjectID id, Int2Type<1>) {return m_vCompFct1d[id];}
-		Functor<2>& eval_fct(ReferenceObjectID id, Int2Type<2>) {return m_vCompFct2d[id];}
-		Functor<3>& eval_fct(ReferenceObjectID id, Int2Type<3>) {return m_vCompFct3d[id];}
-		const Functor<1>& eval_fct(ReferenceObjectID id, Int2Type<1>) const {return m_vCompFct1d[id];}
-		const Functor<2>& eval_fct(ReferenceObjectID id, Int2Type<2>) const {return m_vCompFct2d[id];}
-		const Functor<3>& eval_fct(ReferenceObjectID id, Int2Type<3>) const {return m_vCompFct3d[id];}
+		Functor<1>& eval_fct(ReferenceObjectID_t id, Int2Type<1>) {return m_vCompFct1d[id];}
+		Functor<2>& eval_fct(ReferenceObjectID_t id, Int2Type<2>) {return m_vCompFct2d[id];}
+		Functor<3>& eval_fct(ReferenceObjectID_t id, Int2Type<3>) {return m_vCompFct3d[id];}
+		const Functor<1>& eval_fct(ReferenceObjectID_t id, Int2Type<1>) const {return m_vCompFct1d[id];}
+		const Functor<2>& eval_fct(ReferenceObjectID_t id, Int2Type<2>) const {return m_vCompFct2d[id];}
+		const Functor<3>& eval_fct(ReferenceObjectID_t id, Int2Type<3>) const {return m_vCompFct3d[id];}
 		Functor<1> m_vCompFct1d[NUM_REFERENCE_OBJECTS];
 		Functor<2> m_vCompFct2d[NUM_REFERENCE_OBJECTS];
 		Functor<3> m_vCompFct3d[NUM_REFERENCE_OBJECTS];
 
-		[[nodiscard]] bool eval_fct_set(ReferenceObjectID id) const;
+		[[nodiscard]] bool eval_fct_set(ReferenceObjectID_t id) const;
 
 	protected:
 	///	data the export depends on

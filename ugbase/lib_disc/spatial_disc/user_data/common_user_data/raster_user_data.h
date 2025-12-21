@@ -68,8 +68,7 @@ private:
 
 
 public:
-
-	RasterUserData(SmartPtr<TRaster> myRaster)
+	explicit RasterUserData(SmartPtr<TRaster> myRaster)
 	: m_spRaster(myRaster), m_interpOrder(1), m_rescale(1.0)
 	{}
 

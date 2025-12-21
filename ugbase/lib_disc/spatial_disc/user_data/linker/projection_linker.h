@@ -115,7 +115,7 @@ public:
 		(*m_spVector) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
 		
 	//	2. Prepare the data of the element
-		const ReferenceObjectID roid = elem->reference_object_id ();
+		ReferenceObjectID_t roid = elem->reference_object_id ();
 		DimReferenceMapping<refDim, dim>& rMapping = ReferenceMappingProvider::get<refDim, dim> (roid);
 		rMapping.update (vCornerCoords);
 		
@@ -153,7 +153,7 @@ public:
 		const MathVector<dim>* vVector = m_spVector->values (s);
 		
 	//	2a. Prepare the data of the element
-		const ReferenceObjectID roid = elem->reference_object_id ();
+		ReferenceObjectID_t roid = elem->reference_object_id ();
 		DimReferenceMapping<refDim, dim>& rMapping = ReferenceMappingProvider::get<refDim, dim> (roid);
 		rMapping.update (vCornerCoords);
 		

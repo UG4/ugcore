@@ -200,7 +200,7 @@ class UserData : virtual public UserDataInfo
 			operator () (&value, &globIP, time, si, elem, vCornerCoords, &locIP, 1, u);
 		}
 
-		TRet operator () (TData& value,
+		TRet operator () (TData& value, // ø todo return
 						 const MathVector<dim>& globIP,
 						 number time, int si,
 						 GridObject* elem,

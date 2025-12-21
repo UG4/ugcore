@@ -62,7 +62,7 @@ void ValueDataExport<dim>::eval_and_deriv(number vValue[],
 	static constexpr int _C_ = 0;
 
 //	reference object id
-	const ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 
 //	local finite element id
 	const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
@@ -140,7 +140,7 @@ void GradientDataExport<dim>::eval_and_deriv(MathVector<dim> vValue[],
 	static constexpr int _C_ = 0;
 
 //	reference object id
-	const ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 
 //	local finite element id
 	const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
@@ -223,7 +223,7 @@ void VectorDataExport<dim>::eval_and_deriv(MathVector<dim> vValue[],
                     const MathMatrix<refDim, dim>* vJT) const
 {
 //	reference object id
-	const ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 
 //	access local vector by map
 	u->access_by_map(this->map());

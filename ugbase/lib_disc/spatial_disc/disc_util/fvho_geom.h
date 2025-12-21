@@ -676,7 +676,7 @@ class DimFVGeometry : public FVGeometryBase
 {
 	public:
 	///	traits used
-	using traits = fv1_dim_traits<TDim, TWorldDim>;
+		using traits = fv1_dim_traits<TDim, TWorldDim>;
 
 	///	dimension of reference element
 		static constexpr int dim = TDim;
@@ -1039,8 +1039,8 @@ class DimFVGeometry : public FVGeometryBase
 		DimFVGeometry();
 
 	///	update local data
-		void update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad);
-		void update_local(ReferenceObjectID roid, const LFEID& lfeID)
+		void update_local(ReferenceObjectID_t roid, const LFEID& lfeID, size_t orderQuad);
+		void update_local(ReferenceObjectID_t roid, const LFEID& lfeID)
 		{
 			update_local(roid, lfeID, lfeID.order() + 1);
 		}
@@ -1195,7 +1195,7 @@ class DimFVGeometry : public FVGeometryBase
 		GridObject* m_pElem;
 
 	///	current reference object id
-		ReferenceObjectID m_roid;
+		ReferenceObjectID_t m_roid;
 
 	///	current order
 		int m_orderShape;

@@ -237,10 +237,10 @@ protected:
 	///	sets all assemble functions to the corresponding virtual ones
 	void set_default_add_fct();
 
-	///	sets all assemble functions to nullptr for a given ReferenceObjectID
+	///	sets all assemble functions to nullptr for a given ReferenceObjectID_t
 	void clear_add_fct(ReferenceObjectID_t id);
 
-	///	sets all assemble functions to nullptr (for all ReferenceObjectID's)
+	///	sets all assemble functions to nullptr (for all ReferenceObjectID_t's)
 	void clear_add_fct();
 
 private:
@@ -259,7 +259,7 @@ private:
 // 	types of loop function pointers
 	using PrepareElemLoopFct = void(T::*)(ReferenceObjectID_t roid, int si);
 
-	using PrepareElemFct = void(T::*)(const LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[]);
+	using PrepareElemFct = void(T::*)(const ug::LocalVector& u, ug::GridObject* elem, ug::ReferenceObjectID_t roid, const ug::MathVector<dim> vCornerCoords[]);
 
 	using FinishElemLoopFct = void(T::*)();
 
@@ -346,7 +346,7 @@ public:
 	///	World dimension
 	static constexpr int dim = TDomain::dim;
 
-	void do_prep_err_est_elem_loop(const ReferenceObjectID_t roid, const int si);
+	void do_prep_err_est_elem_loop(ReferenceObjectID_t roid, const int si);
 	void do_prep_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 	void do_compute_err_est_A_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
 	void do_compute_err_est_M_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
@@ -355,7 +355,7 @@ public:
 
 public:
 	///	virtual prepares the loop over all elements of one type for the computation of the error estimator
-		virtual void prep_err_est_elem_loop(const ReferenceObjectID_t roid, const int si);
+		virtual void prep_err_est_elem_loop(ReferenceObjectID_t roid, const int si);
 
 	///	virtual prepares the loop over all elements of one type for the computation of the error estimator
 		virtual void prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);

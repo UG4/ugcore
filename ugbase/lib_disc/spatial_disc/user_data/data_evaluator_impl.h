@@ -330,7 +330,7 @@ void DataEvaluatorBase<TDomain, TElemDisc>::set_time_point(const size_t timePoin
 
 template <typename TDomain, typename TElemDisc>
 void DataEvaluatorBase<TDomain, TElemDisc>::
-prepare_err_est_elem_loop(const ReferenceObjectID id, int si)
+prepare_err_est_elem_loop(ReferenceObjectID_t id, int si)
 {
 // 	prepare loop (elem disc set local ip series here)
 	try{

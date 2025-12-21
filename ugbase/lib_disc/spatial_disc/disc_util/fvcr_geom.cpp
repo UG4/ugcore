@@ -341,7 +341,7 @@ update_hanging(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, con
 		std::vector<Edge*> vEdges;
 		CollectEdgesSorted(vEdges, grid, pElem);
 		for(size_t side = 0; side < vEdges.size(); ++side){
-			ConstrainingEdge* constrainingObj = dynamic_cast<ConstrainingEdge*>(vEdges[side]);
+			auto constrainingObj = dynamic_cast<ConstrainingEdge*>(vEdges[side]);
 			if(constrainingObj == nullptr) continue;
 			
 			// found constraining edge

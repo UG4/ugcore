@@ -46,7 +46,7 @@ DebugID DID_DATA_EVALUATOR("DATA_EVALUATOR");
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
-prepare_elem_loop(const ReferenceObjectID id, int si)
+prepare_elem_loop(ReferenceObjectID_t id, int si)
 {
 // 	prepare loop (elem disc set local ip series here)
 	try{
@@ -157,7 +157,7 @@ prepare_timestep_elem(const number time, LocalVector& u, GridObject* elem, const
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
-prepare_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[],
+prepare_elem(LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[],
              const LocalIndices& ind,
              bool bDeriv)
 {

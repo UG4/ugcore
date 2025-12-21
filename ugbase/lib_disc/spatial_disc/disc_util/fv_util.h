@@ -1235,7 +1235,7 @@ template <int TDim, int TWorldDim> struct fv1_dim_traits_base
 	static void dim_get_num_SCV_and_SCVF
 	(
 		const ref_elem_type& refElem, ///< reference element object
-		ReferenceObjectID roid, ///< reference element object id
+		ReferenceObjectID_t roid, ///< reference element object id
 		size_t& numSCV, ///< to write the number of the SCVs
 		size_t& numSCVF ///< to write the number of the SCVFs
 	)
@@ -1268,7 +1268,7 @@ template <int TDim, int TWorldDim> struct fv1_dim_traits_base
 	static void get_dim_scvf_from_to
 	(
 		const ref_elem_type& refElem, ///< reference element object
-		ReferenceObjectID roid, ///< reference element object id
+		ReferenceObjectID_t roid, ///< reference element object id
 		size_t i, ///< index of the scvf
 		size_t& From, ///< to write the from-index
 		size_t& To ///< to write the to-index
@@ -1301,7 +1301,7 @@ template <int TDim, int TWorldDim> struct fv1_dim_traits_base
 	static size_t dim_scv_node_id
 	(
 		const ref_elem_type& refElem, ///< reference element object
-		ReferenceObjectID roid, ///< reference element object id
+		ReferenceObjectID_t roid, ///< reference element object id
 		size_t i ///< index of the scv
 	)
 	{

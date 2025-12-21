@@ -79,7 +79,7 @@ class DataEvaluatorBase
 		
 
 	///	prepares the element loop for all IElemDiscs for the computation of the error estimator
-		void prepare_err_est_elem_loop(ReferenceObjectID id, int si);
+		void prepare_err_est_elem_loop(ReferenceObjectID_t id, int si);
 
 	///	prepares the element for all IElemDiscs
 		void prepare_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[],
@@ -194,10 +194,10 @@ public:
 			void prepare_timestep_elem(number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 		///	prepares the element loop for all IElemDiscs
-			void prepare_elem_loop(ReferenceObjectID id, int si);
+			void prepare_elem_loop(ReferenceObjectID_t id, int si);
 
 		///	prepares the element for all IElemDiscs
-			void prepare_elem(LocalVector& u, GridObject* elem, ReferenceObjectID roid, const MathVector<dim> vCornerCoords[],
+			void prepare_elem(LocalVector& u, GridObject* elem, ReferenceObjectID_t roid, const MathVector<dim> vCornerCoords[],
 			                  const LocalIndices& ind, bool bDeriv = false);
 
 		///	finishes the element loop for all IElemDiscs
