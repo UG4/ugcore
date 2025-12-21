@@ -48,7 +48,7 @@ DataImport<TData,dim>::~DataImport()
 }
 
 template <typename TData, int dim>
-void DataImport<TData,dim>::set_roid(ReferenceObjectID id)
+void DataImport<TData,dim>::set_roid(ReferenceObjectID_t id)
 {
 	if(id == ROID_UNKNOWN)
 		UG_THROW("DataImport::set_roid: Setting unknown ReferenceObjectId.");
@@ -80,7 +80,7 @@ template <typename TData, int dim>
 template <typename TClass>
 void
 DataImport<TData,dim>::
-set_fct(ReferenceObjectID id, TClass* obj,
+set_fct(ReferenceObjectID_t id, TClass* obj,
         void (TClass::*func)(const LocalVector& u,
         					 std::vector<std::vector<TData> > vvvLinDefect[],
         					 const size_t nip))
@@ -94,7 +94,7 @@ set_fct(ReferenceObjectID id, TClass* obj,
 template <typename TData, int dim>
 void
 DataImport<TData,dim>::
-set_fct(ReferenceObjectID id,
+set_fct(ReferenceObjectID_t id,
              void (*func)(const LocalVector& u,
             		 	  std::vector<std::vector<TData> > vvvLinDefect[],
             		 	  const size_t nip))

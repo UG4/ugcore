@@ -139,7 +139,7 @@ class IDataImport
 		[[nodiscard]] size_t num_fct() const {return m_map.num_fct();}
 
 	///	sets the geometric object type
-		virtual void set_roid(ReferenceObjectID id) = 0;
+		virtual void set_roid(ReferenceObjectID_t id) = 0;
 
 	///	checks if ready for evaluation
 		virtual void check_setup() = 0;
@@ -324,14 +324,14 @@ class DataImport : public IDataImport<dim>
 
 	///	register evaluation of linear defect for a element
 		template <typename TClass>
-		void set_fct(ReferenceObjectID id, TClass* obj,
+		void set_fct(ReferenceObjectID_t id, TClass* obj,
 		             void (TClass::*func)(
 		            		 const LocalVector& u,
 		            		 std::vector<std::vector<TData> > vvvLinDefect[],
 				             size_t nip));
 
 	///	register evaluation of linear defect for a element
-		void set_fct(ReferenceObjectID id,
+		void set_fct(ReferenceObjectID_t id,
 					 void (*func)(
 							 const LocalVector& u,
 							 std::vector<std::vector<TData> > vvvLinDefect[],
@@ -373,7 +373,7 @@ class DataImport : public IDataImport<dim>
 		void resize_defect_array();
 
 	/// current Geom Object
-		ReferenceObjectID m_id;
+		ReferenceObjectID_t m_id;
 
 	///	function pointers for all elem types
 		LinDefectFunc m_vLinDefectFunc[NUM_REFERENCE_OBJECTS];

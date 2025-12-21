@@ -55,9 +55,9 @@ template <typename TData, int dim>
 void DataExport<TData, dim>::clear_fct()
 {
 	for(size_t roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
-		eval_fct<1>(static_cast<ReferenceObjectID>(roid)).invalidate();
-		eval_fct<2>(static_cast<ReferenceObjectID>(roid)).invalidate();
-		eval_fct<3>(static_cast<ReferenceObjectID>(roid)).invalidate();
+		eval_fct<1>(static_cast<ReferenceObjectID_t>(roid)).invalidate();
+		eval_fct<2>(static_cast<ReferenceObjectID_t>(roid)).invalidate();
+		eval_fct<3>(static_cast<ReferenceObjectID_t>(roid)).invalidate();
 	}
 }
 
@@ -77,7 +77,7 @@ void DataExport<TData, dim>::eval_and_deriv(TData vValue[],
                     const MathMatrix<refDim, dim>* vJT) const
 {
 	u->access_by_map(this->map());
-	const ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID_t roid = elem->reference_object_id();
 	const Functor<refDim>& func = eval_fct<refDim>(roid);
 	if(func.invalid())
 		UG_THROW("DataExport: no evaluation function set for "<<
@@ -90,7 +90,7 @@ void DataExport<TData, dim>::eval_and_deriv(TData vValue[],
 template <typename TData, int dim>
 template <typename TClass, int refDim>
 void DataExport<TData, dim>::
-set_fct(ReferenceObjectID id, TClass* obj,
+set_fct(ReferenceObjectID_t id, TClass* obj,
         void (TClass::*func)(	TData vValue[],
 								const MathVector<dim> vGlobIP[],
 								number time, int si,
@@ -111,7 +111,7 @@ set_fct(ReferenceObjectID id, TClass* obj,
 template <typename TData, int dim>
 template <int refDim>
 void DataExport<TData, dim>::
-set_fct(ReferenceObjectID id,
+set_fct(ReferenceObjectID_t id,
         void (*func)(	TData vValue[],
         				const MathVector<dim> vGlobIP[],
 						number time, int si,
@@ -130,7 +130,7 @@ set_fct(ReferenceObjectID id,
 }
 
 template <typename TData, int dim>
-bool DataExport<TData, dim>::eval_fct_set(ReferenceObjectID id) const
+bool DataExport<TData, dim>::eval_fct_set(ReferenceObjectID_t id) const
 {
 	const int d = ReferenceElementDimension(id);
 	bool bRes = false;

@@ -2482,8 +2482,8 @@ calc_error
 
 		// map attachments to grid function
 		ConstSmartPtr<SurfaceView> sv = uVTK->approx_space()->dof_distribution(gl)->surface_view();
-		elem_iter_type elem_iter_end = sv->end<elem_type> (gl, SurfaceView::ALL);
-		for (elem_iter_type elem = sv->begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
+		auto elem_iter_end = sv->end<elem_type> (gl, SurfaceView::ALL);
+		for (auto elem = sv->begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
 		{
 			// 	get global indices
 			uVTK->approx_space()->dof_distribution(gl)->indices(*elem, ind, false);
@@ -2745,8 +2745,8 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 
 		// map attachments to grid function
 		ConstSmartPtr<SurfaceView> sv = uVTK->approx_space()->dof_distribution(gl)->surface_view();
-		elem_iter_type elem_iter_end = sv->end<elem_type> (gl, SurfaceView::ALL);
-		for (elem_iter_type elem = sv->begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
+		auto elem_iter_end = sv->end<elem_type> (gl, SurfaceView::ALL);
+		for (auto elem = sv->begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
 		{
 			// 	get global indices
 			uVTK->approx_space()->dof_distribution(gl)->indices(*elem, ind, false);

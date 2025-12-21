@@ -75,7 +75,7 @@ using pos_type = typename TAVrtPos::ValueType;
 	std::vector<NbrInfo> nbrInfos;
 	std::vector<Vertex*> vrts;
 	std::vector<number> nbrWgts;
-	
+
 //	if volumes are contained in the grid, we currently only perform projection
 //	of boundary elements (no creases...)
 	if(grid.num<Volume>() > 0){
@@ -105,7 +105,7 @@ using pos_type = typename TAVrtPos::ValueType;
 	}
 	else{
 	//	iterate through all vertices
-		for(VertexIterator iter = grid.vertices_begin();
+		for(auto iter = grid.vertices_begin();
 			iter != grid.vertices_end(); ++iter)
 		{
 			Vertex* v = *iter;

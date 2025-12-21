@@ -399,11 +399,6 @@ class IDomainDiscretization : public IAssemble<TAlgebra>, public IDomainErrorInd
 		SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) override = 0;
 };
 
-template <typename TAlgebra>
-void IDomainDiscretization<TAlgebra>::assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl)
-{
-}
-
 /// @}
 
 } // namespace ug

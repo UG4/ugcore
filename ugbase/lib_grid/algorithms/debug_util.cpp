@@ -565,12 +565,13 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-enum class ConstraintTypes : byte_t{
+using ConstraintTypes_t = byte_t;
+enum class ConstraintTypes : ConstraintTypes_t {
 	CT_NONE = 0,
 	CT_CONSTRAINING = 1,
 	CT_CONSTRAINED = 1 << 1
 };
-using ConstraintTypes_t = byte_t;
+
 
 constexpr ConstraintTypes& operator |= (ConstraintTypes &lhs, ConstraintTypes rhs) noexcept {
 	lhs = static_cast<ConstraintTypes>(
