@@ -616,7 +616,7 @@ class UG_API Face : public GridObject, public FaceVertices
 	 *					specify multiple refine-edges using or-combinations:
 	 *					'edgeMarks = (1<<i) | (1<<j)' would indicate that the
 	 *					i-th and the j-th edge shall be refined.*/
-		virtual bool is_regular_ref_rule(int edgeMarks) const	{return false;}
+		[[nodiscard]] virtual bool is_regular_ref_rule(int edgeMarks) const	{return false;}
 
 	/**
 	 * The collapse_edge method creates new geometric objects by collapsing the specified edge.
@@ -927,8 +927,8 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 	virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
 		[[nodiscard]] int container_section() const override {return -1;}
-		[[nodiscard]] byte_t base_object_id() const override {return GridBaseObjectId::VOLUME;}
-		[[nodiscard]] ReferenceObjectID reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
+		[[nodiscard]] GridBaseObjectId_t base_object_id() const override {return GridBaseObjectId::VOLUME;}
+		[[nodiscard]] ReferenceObjectID_t reference_object_id() const override {return ReferenceObjectID::ROID_UNKNOWN;}
 
 	/**	creates the volumes that result from the splitting of the edge with index 'splitEdgeIndex'.*/
 		//virtual void create_volumes_by_edge_split(int splitEdgeIndex,

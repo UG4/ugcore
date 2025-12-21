@@ -738,7 +738,7 @@ public:
 
 	VertexFracturePropertiesVol & operator ++ ( int a )
 	{
-		m_numberCountedFracsInVertex++;
+		++m_numberCountedFracsInVertex;
 		return *this;
 	}
 

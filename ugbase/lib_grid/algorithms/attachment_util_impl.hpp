@@ -146,8 +146,7 @@ template <typename TElemIter, typename TAttachment>
 bool CopyAttachments(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd,
 					 TAttachment& aSrc, TAttachment& aDest)
 {
-	using TElem = typename PtrToValueType<
-		typename TElemIter::value_type>::base_type;
+	using TElem = typename PtrToValueType<typename TElemIter::value_type>::base_type;
 
 //	make sure the attachments are properly attached.
 	if(!grid.has_attachment<TElem>(aSrc))

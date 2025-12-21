@@ -127,11 +127,12 @@ void PrintElementEdgeRatios(Grid& grid, TIterator elemsBegin, TIterator elemsEnd
 		grid.associated_elements(edges, elem);
 		number shortest = numeric_limits<double>::max();
 		number longest = 0;
-		for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){ Edge* e = edges[_vfeI];{
+		for(size_t _vfeI = 0; _vfeI < edges.size(); ++_vfeI){
+			Edge* e = edges[_vfeI];
 			number l = EdgeLength(e, aaPos);
 			shortest = min(shortest, l);
 			longest = max(longest, l);
-		}};
+		}
 
 		number ratio = 0;
 		if(longest > 0)

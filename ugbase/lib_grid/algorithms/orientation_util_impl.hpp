@@ -163,8 +163,8 @@ CheckOrientation(Volume* vol, TAAPosVRT& aaPosVRT)
 //	now check for each side whether it points away from the center.
 	size_t numFaces = vol->num_faces();
 	FaceDescriptor fd;
-	vector_t normal;
 	for(size_t i = 0; i < numFaces; ++i){
+		vector_t normal;
 		vol->face_desc(i, fd);
 		CalculateNormal(normal, &fd, aaPosVRT);
 		

@@ -573,7 +573,7 @@ handle_created_element(TElem* pElem, GridObject* pParent,
 	//	we'll replace all occurrences of the parent in all interfaces.
 	//	If a replacement takes place, the parent has to be of the same type
 	//	as pElem.
-		TElem* parent = dynamic_cast<TElem*>(pParent);
+		auto parent = dynamic_cast<TElem*>(pParent);
 		if(parent){
 		//	copy info
 			ElementInfo<TElem>& elemInfo = elem_info(pElem);

@@ -1953,8 +1953,8 @@ bool DistributeGrid(MultiGrid& mg,
 	std::vector<BinaryBuffer> outBufs(sendToRanks.size());
 
 //	the magic number is used for debugging to make sure that the stream is read correctly
-	int magicNumber1 = 75234587;
-	int magicNumber2 = 560245;
+	static constexpr int magicNumber1 = 75234587;
+	static constexpr int magicNumber2 = 560245;
 
 	ADistInfo aDistInfo = distInfos.dist_info_attachment();
 

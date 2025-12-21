@@ -64,9 +64,10 @@ load_from_files(const std::vector<SPLayerDesc>& layerDescs)
 {
 	vector<LayerDesc>	descs;
 	descs.reserve(layerDescs.size());
-	for(size_t _vfeI = 0; _vfeI < layerDescs.size(); ++_vfeI){ const SPLayerDesc& d = layerDescs[_vfeI];{
+	for(size_t _vfeI = 0; _vfeI < layerDescs.size(); ++_vfeI){
+		const SPLayerDesc& d = layerDescs[_vfeI];
 		descs.push_back(*d);	
-	}};
+	}
 	load_from_files(descs);
 }
 
@@ -75,9 +76,10 @@ load_from_files(const std::vector<std::string>& filenames, number minHeight)
 {
 	vector<LayerDesc>	descs;
 	descs.reserve(filenames.size());
-	for(size_t _vfeI = 0; _vfeI < filenames.size(); ++_vfeI){ const std::string& fname = filenames[_vfeI];{
+	for(size_t _vfeI = 0; _vfeI < filenames.size(); ++_vfeI){
+		const std::string& fname = filenames[_vfeI];
 		descs.push_back(LayerDesc(fname, minHeight));	
-	}};
+	}
 	load_from_files(descs);
 }
 

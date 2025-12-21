@@ -607,7 +607,7 @@ void MultiEdgeSplit(Grid& grid, Edge* edge,
 	CollectFaces(faces, grid, edge);
 	for(size_t i = 0; i < faces.size(); ++i){
 		if(faces[i]->num_vertices() > 3){
-			Quadrilateral* q = dynamic_cast<Quadrilateral*>(faces[i]);
+			auto* q = dynamic_cast<Quadrilateral*>(faces[i]);
 			if(q)
 				Triangulate(grid, q, &aaPos);
 		}
@@ -627,9 +627,9 @@ void MultiEdgeSplit(Grid& grid, Edge* edge,
 	}
 
 	FaceDescriptor fd(3);
-	TriangleDescriptor td;
+	//TriangleDescriptor td;
 
-	std::multimap<number, Vertex*>::iterator iter = vrtMap.begin();
+	auto iter = vrtMap.begin();
 	Vertex* curVrt = edge->vertex(0);
 	Vertex* nextVrt = iter->second;
 	while(nextVrt){

@@ -62,7 +62,8 @@ RayElementIntersectionImpl(
 	typename Grid::traits<side_t>::secure_container sides;
 	g.associated_elements(sides, e);
 
-	for(size_t _vfeI = 0; _vfeI < sides.size(); ++_vfeI){ side_t* s = sides[_vfeI];{
+	for(size_t _vfeI = 0; _vfeI < sides.size(); ++_vfeI){
+		side_t* s = sides[_vfeI];
 		number tsmin, tsmax;
 		if(RayElementIntersection(tsmin, tsmax, from, dir, s, g, aaPos, sml)){
 			if(numIntersections == 0)
@@ -73,7 +74,7 @@ RayElementIntersectionImpl(
 			}
 			++numIntersections;
 		}
-	}};
+	}
 
 	sminOut = smin;
 	smaxOut = smax;

@@ -95,14 +95,14 @@ class DistributedGridManager : public GridObserver
 	//	assignment
 		void assign(MultiGrid& grid);
 			
-		inline MultiGrid* get_assigned_grid()	{return m_pGrid;}
-		[[nodiscard]] inline const MultiGrid* get_assigned_grid()	const {return m_pGrid;}
+		inline MultiGrid* get_assigned_grid() {return m_pGrid;}
+		[[nodiscard]] inline const MultiGrid* get_assigned_grid() const {return m_pGrid;}
 
 	//	layout access
 	/**	if you change the layout externally, be sure to call
 	 *	DistributedGrid::layout_changed() afterward.*/
-		inline GridLayoutMap& grid_layout_map()				{return m_gridLayoutMap;}
-		[[nodiscard]] inline const GridLayoutMap& grid_layout_map() const	{return m_gridLayoutMap;}
+		inline GridLayoutMap& grid_layout_map() {return m_gridLayoutMap;}
+		[[nodiscard]] inline const GridLayoutMap& grid_layout_map() const {return m_gridLayoutMap;}
 		
 	///	call this method if you altered the layout externally.
 	/**	This should be done as seldom as possible.

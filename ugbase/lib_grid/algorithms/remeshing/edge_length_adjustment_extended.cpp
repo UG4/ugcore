@@ -145,7 +145,7 @@ static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
 			if(!grid.is_marked(vrt)){
 				grid.mark(vrt);
 				int counter = 0;
-				for(Grid::AssociatedEdgeIterator nbIter = grid.associated_edges_begin(vrt);
+				for(auto nbIter = grid.associated_edges_begin(vrt);
 					nbIter != grid.associated_edges_end(vrt); ++nbIter)
 				{
 					if(shMarks.get_subset_index(*nbIter) != RemeshingElementMarks::REM_NONE)

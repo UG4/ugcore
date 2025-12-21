@@ -564,13 +564,13 @@ void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, TAPosition& aPos)
 	#endif
 
 //	Loop all levels from toplevel down to base level
-	for(int lvl = (int)mg.top_level(); lvl > 0; --lvl)
+	for(int lvl = static_cast<int>(mg.top_level()); lvl > 0; --lvl)
 	{
 	//	Loop all vertices of current level and submit positions to parent vertices
 		for(VertexIterator vrtIter = mg.begin<Vertex>(lvl); vrtIter != mg.end<Vertex>(lvl); ++vrtIter)
 		{
 			Vertex* v = *vrtIter;
-			auto parent = dynamic_cast<Vertex*>(mg.get_parent(v));
+			auto* parent = dynamic_cast<Vertex*>(mg.get_parent(v));
 
 		//	Only, if parent vertex exists
 			if(parent)
@@ -1724,7 +1724,7 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 						UG_THROW("ERROR in CalculateSmoothVolumePosInTopLevel: identified opposing vertex actually not included in current volume.");
 					}
 
-					if(j != i && j != (size_t)GetVertexIndex(vol, oppVrt))
+					if(j != i && j != static_cast<size_t>(GetVertexIndex(vol, oppVrt)))
 					{
 						VecAdd(p, p, aaPos[vol->vertex(j)]);
 					}
@@ -1756,7 +1756,7 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 			//	Summate coordinates of DIRECT neighbor vertices to vrt inside octahedron
 				for(size_t j = 0; j < vol->num_vertices(); ++j)
 				{
-					if(j != i && j != (size_t)GetVertexIndex(vol, oppVrt))
+					if(j != i && j != static_cast<size_t>(GetVertexIndex(vol, oppVrt)))
 					{
 						VecAdd(p, p, aaPos[vol->vertex(j)]);
 					}
@@ -1897,7 +1897,7 @@ void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandle
 						UG_THROW("ERROR in CalculateConstrainedSmoothVolumePosInTopLevel: identified opposing vertex actually not included in current volume.");
 					}
 
-					if(j != i && j != (size_t)GetVertexIndex(vol, oppVrt))
+					if(j != i && j != static_cast<size_t>(GetVertexIndex(vol, oppVrt)))
 					{
 					//	Only consider non-manifold direct neighbors
 						if(markSH.get_subset_index(vol->vertex(j)) == -1)
@@ -2446,7 +2446,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
 			else if(mg.get_parent(vrt)->reference_object_id() == ReferenceObjectID::ROID_EDGE)
 			{
 			//	Get parent edge
-				auto parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
+				auto* parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
 
 				aaPos[vrt] =  aaSmoothBndPosOddVrt[parentEdge];
 			}
@@ -2591,7 +2591,7 @@ void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& 
 			if(mg.get_parent(vrt)->reference_object_id() == ReferenceObjectID::ROID_EDGE)
 			{
 			//	Get parent edge
-				auto parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
+				auto* parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
 
 				aaPos[vrt] =  aaSmoothBndPosOddVrt[parentEdge];
 			}
