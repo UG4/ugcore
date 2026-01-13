@@ -48,7 +48,7 @@ namespace arte
 
 bool ExpandFractures3dArte( Grid& grid, SubsetHandler& sh,
 						    std::vector<FractureInfo> const & fracInfos,
-							bool useTrianglesInDiamonds, bool establishDiamonds );
+							bool diamondsOnlyPreform, bool establishDiamonds );
 }
 
 }//	end of namespace

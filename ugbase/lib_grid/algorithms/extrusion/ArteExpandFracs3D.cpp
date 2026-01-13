@@ -77,11 +77,11 @@ namespace arte
 ArteExpandFracs3D::ArteExpandFracs3D(
 		Grid & grid, SubsetHandler & sh,
 	    std::vector<FractureInfo> const & fracInfos,
-		bool useTrianglesInDiamonds, bool establishDiamonds )
+		bool diamondsOnlyPreform, bool establishDiamonds )
 	: m_grid(grid),
 	  m_sh(sh),
 	  m_fracInfos(fracInfos),
-	  m_useTrianglesInDiamonds(useTrianglesInDiamonds),
+	  m_diamondsOnlyPreform(diamondsOnlyPreform),
 	  m_establishDiamonds(establishDiamonds),
 	  m_aaPos(Grid::VertexAttachmentAccessor<APosition>()),
 //	  m_facDescr(FaceDescriptor()),
@@ -9265,7 +9265,7 @@ bool ArteExpandFracs3D::createTheDiamonds()
 
 	UG_LOG("Establishing diamonds" << std::endl);
 
-	return establishDiams.createTheDiamonds();
+	return establishDiams.createTheDiamonds(m_diamondsOnlyPreform);
 
 //	IndexType sudos = m_sh.num_subsets();
 //

@@ -58,7 +58,7 @@ namespace arte
 
 bool ExpandFractures3dArte( Grid& grid, SubsetHandler& sh,
 						    std::vector<FractureInfo> const & fracInfos,
-							bool useTrianglesInDiamonds, bool establishDiamonds )
+							bool diamondsOnlyPreform, bool establishDiamonds )
 {
 
 	bool need2Restart = false;
@@ -69,7 +69,7 @@ bool ExpandFractures3dArte( Grid& grid, SubsetHandler& sh,
 	{
 
 		ArteExpandFracs3D ef3dA ( grid, sh, fracInfos,
-							  useTrianglesInDiamonds, establishDiamonds );
+							  diamondsOnlyPreform, establishDiamonds );
 
 		runResult = ef3dA.run( need2Restart );
 

@@ -45,7 +45,7 @@ public:
 
 	virtual ~DiamondsEstablish3D();
 
-	bool createTheDiamonds();
+	bool createTheDiamonds( bool diamondsOnlyPreform = false );
 
 
 private:
@@ -54,6 +54,7 @@ private:
 	SubsetHandler & m_sh;
 	Grid::VertexAttachmentAccessor<APosition> m_aaPos;
 	VecVolManifVrtxCombi m_vecVolManifVrtxCombiToShrink4Diams;
+	bool m_diamondsOnlyPreform;
 
 	bool initialize();
 	bool figureOutTheEdges();

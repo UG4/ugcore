@@ -27,6 +27,7 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_aaPos(Grid::VertexAttachmentAccessor<APosition>()),
 			m_vecVolManifVrtxCombiToShrink4Diams(vecVolManifVrtxC),
 			m_vecVolElmFac5(VecVolumeElementFaceQuintuplet()),
+			m_diamondsOnlyPreform(false),
 			m_vecElems2BQuenched(VecElems2BQuenched()),
 			m_disappearingVols(std::vector<Volume*>()),
 			m_disappearingFacs(std::vector<Face*>()),
@@ -142,8 +143,10 @@ bool DiamondsEstablish3D::initialize()
 /////////////////////////////////////////////////////////////////
 
 
-bool DiamondsEstablish3D::createTheDiamonds()
+bool DiamondsEstablish3D::createTheDiamonds( bool diamondsOnlyPreform )
 {
+	m_diamondsOnlyPreform = diamondsOnlyPreform;
+
 	if( ! initialize())
 	{
 		UG_LOG("initialization diamonds did not work " << std::endl);
@@ -253,6 +256,11 @@ bool DiamondsEstablish3D::createTheDiamonds()
 	}
 
 	UG_LOG("volumes shrinked " << std::endl);
+
+//	if( diamondsOnlyPreform )
+//	{
+//		UG_LOG("diamonds only preform, stopping diamond postprocessing at this stage " << std::endl);
+//	}
 
 	if( ! postprocessNewDiamVols())
 	{
@@ -2062,41 +2070,49 @@ bool DiamondsEstablish3D::postprocessNewDiamVols()
 
 	}
 
-	UG_LOG("try to split diam vols " << std::endl);
-
-	for( CombiNewVolsProps & cnvp : m_vecCombiNewVolsThreeCross )
+	if( ! m_diamondsOnlyPreform )
 	{
-		if( ! splitThreeCrossLargeDiams(cnvp) )
-		{
-			UG_LOG("splitting not possible");
-			return false;
-		}
-	}
 
-	for( Face * fac :  m_faces2BDeletedAtLastStep )
-	{
-		if( ! fac )
+		UG_LOG("try to split diam vols " << std::endl);
+
+		for( CombiNewVolsProps & cnvp : m_vecCombiNewVolsThreeCross )
 		{
-			UG_LOG("want to delete null fac " << std::endl);
-			return false;
+			if( ! splitThreeCrossLargeDiams(cnvp) )
+			{
+				UG_LOG("splitting not possible");
+				return false;
+			}
 		}
 
-		m_grid.erase(fac);
-	}
-
-	for( Edge * edg : m_edges2BDeletedAtLastStep )
-	{
-		if( ! edg )
+		for( Face * fac :  m_faces2BDeletedAtLastStep )
 		{
-			UG_LOG("want to delete edge unexisting at end " << std::endl);
-			return false;
+			if( ! fac )
+			{
+				UG_LOG("want to delete null fac " << std::endl);
+				return false;
+			}
+
+			m_grid.erase(fac);
 		}
 
-		m_grid.erase(edg);
+		for( Edge * edg : m_edges2BDeletedAtLastStep )
+		{
+			if( ! edg )
+			{
+				UG_LOG("want to delete edge unexisting at end " << std::endl);
+				return false;
+			}
+
+			m_grid.erase(edg);
+		}
+
+
+		UG_LOG("all diam vols splitted " << std::endl);
 	}
-
-
-	UG_LOG("all diam vols splitted " << std::endl);
+	else
+	{
+		UG_LOG("No split of preform diamonds, remaining at preform " << std::endl);
+	}
 
 	return true;
 }

@@ -79,7 +79,7 @@ public:
 
 	ArteExpandFracs3D( Grid & grid, SubsetHandler & sh,
 		    std::vector<FractureInfo> const & fracInfos,
-			bool useTrianglesInDiamonds, bool establishDiamonds );
+			bool diamondsOnlyPreform, bool establishDiamonds );
 
 	virtual ~ArteExpandFracs3D();
 
@@ -96,7 +96,7 @@ private:
 	Grid & m_grid;
 	SubsetHandler & m_sh;
 	std::vector<FractureInfo> m_fracInfos;
-	bool m_useTrianglesInDiamonds, m_establishDiamonds;
+	bool m_diamondsOnlyPreform, m_establishDiamonds;
 
 	Grid::VertexAttachmentAccessor<APosition> m_aaPos;
 
