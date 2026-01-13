@@ -150,6 +150,7 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	m_sel = Selector();
 
 	UG_LOG("----------------------------" << std::endl);
+	UG_LOG("----------------------------" << std::endl);
 
 	UG_LOG("EXPANDING PROCEDURE ARTE 3D " << std::endl);
 
@@ -158,6 +159,11 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 		UG_LOG("Fracture old " << fi.subsetIndex << " new " << fi.newSubsetIndex << " width " << fi.width << std::endl);
 	}
 
+	UG_LOG("----------------------------" << std::endl);
+
+	UG_LOG("DIAMONDS pre " << m_diamondsOnlyPreform << " and establish " << m_establishDiamonds << std::endl);
+
+	UG_LOG("----------------------------" << std::endl);
 	UG_LOG("----------------------------" << std::endl);
 }
 
