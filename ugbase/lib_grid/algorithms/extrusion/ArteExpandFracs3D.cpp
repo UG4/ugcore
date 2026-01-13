@@ -341,7 +341,7 @@ bool ArteExpandFracs3D::run( bool & needToRestart )
 		}
 	}
 
-	UG_LOG("diamonds created if desired")
+	UG_LOG("diamonds created if desired" << std::endl);
 
 	return true;
 }
