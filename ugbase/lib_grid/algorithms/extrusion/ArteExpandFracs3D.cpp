@@ -148,6 +148,17 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
+
+	UG_LOG("----------------------------" << std::endl);
+
+	UG_LOG("EXPANDING PROCEDURE ARTE 3D " << std::endl);
+
+	for( FractureInfo const & fi : m_fracInfos )
+	{
+		UG_LOG("Fracture old " << fi.subsetIndex << " new " << fi.newSubsetIndex << " width " << fi.width << std::endl);
+	}
+
+	UG_LOG("----------------------------" << std::endl);
 }
 
 
