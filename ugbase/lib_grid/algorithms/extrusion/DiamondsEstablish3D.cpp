@@ -72,7 +72,12 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_attNewSudoOfVrtx(AInt()),
 			m_attAccsNewSudoOfVrtx(Grid::VertexAttachmentAccessor<AInt>()),
 			m_faces2BDeletedAtLastStep(std::vector<Face*>()),
-			m_edges2BDeletedAtLastStep(std::vector<Edge*>())
+			m_edges2BDeletedAtLastStep(std::vector<Edge*>()),
+			m_attCentersCutPts(AttVec3Vec()),
+			m_attAccsCentersCutPts(Grid::EdgeAttachmentAccessor<AttVec3Vec>()),
+//			m_edgesCut4Diams(std::vector<Edge*>()),
+			m_attDiamCentrVrtx(AVertex()),
+			m_attAccsDiamCentrVrtx(Grid::EdgeAttachmentAccessor<AVertex>())
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -262,11 +267,27 @@ bool DiamondsEstablish3D::createTheDiamonds( bool diamondsOnlyPreform )
 //		UG_LOG("diamonds only preform, stopping diamond postprocessing at this stage " << std::endl);
 //	}
 
-	if( ! postprocessNewDiamVols())
+	if( ! assignSudos2DiamsPreform())
 	{
 		UG_LOG("postprocessing diam vols not working" << std::endl);
 		return false;
 	}
+
+	UG_LOG("sudos to preforms assigned " << std::endl);
+
+	if( ! m_diamondsOnlyPreform )
+	{
+		if( ! splitDiamsPreform2Diams())
+		{
+			UG_LOG("did not manage to split diams" << std::endl);
+			return false;
+		}
+	}
+	else
+	{
+		UG_LOG("No split of preform diamonds, remaining at preform " << std::endl);
+	}
+
 
 	UG_LOG("diam vols postprocessed" << std::endl);
 
@@ -1038,6 +1059,18 @@ bool DiamondsEstablish3D::attachMarkers()
 
 	m_attAccsNewSudoOfVrtx = Grid::VertexAttachmentAccessor<AInt>( m_grid, m_attNewSudoOfVrtx );
 
+	m_attCentersCutPts = AttVec3Vec();
+
+	m_grid.attach_to_edges_dv( m_attCentersCutPts, std::vector<vector3>() );
+
+	m_attAccsCentersCutPts = Grid::EdgeAttachmentAccessor<AttVec3Vec>( m_grid, m_attCentersCutPts );
+
+	m_attDiamCentrVrtx = AVertex();
+
+	m_grid.attach_to_edges_dv( m_attDiamCentrVrtx, nullptr);
+
+	m_attAccsDiamCentrVrtx = Grid::EdgeAttachmentAccessor<AVertex>( m_grid, m_attDiamCentrVrtx);
+
 	return true;
 }
 
@@ -1076,6 +1109,10 @@ bool DiamondsEstablish3D::detachMarkers()
 	m_grid.detach_from_edges(m_attEdgeCanBeRemoved);
 
 	m_grid.detach_from_vertices(m_attNewSudoOfVrtx);
+
+	m_grid.detach_from_edges( m_attCentersCutPts );
+
+	m_grid.detach_from_edges(m_attDiamCentrVrtx);
 
 	return true;
 }
@@ -2010,7 +2047,7 @@ bool DiamondsEstablish3D::findShiftFaceVertices( Volume * & vol,
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-bool DiamondsEstablish3D::postprocessNewDiamVols()
+bool DiamondsEstablish3D::assignSudos2DiamsPreform()
 {
 	for( CombiNewVolsProps & cnvp : m_vecCombiNewVolsTwoCross )
 	{
@@ -2070,54 +2107,120 @@ bool DiamondsEstablish3D::postprocessNewDiamVols()
 
 	}
 
-	if( ! m_diamondsOnlyPreform )
+	return true;
+
+}
+
+/////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::splitDiamsPreform2Diams()
+{
+	UG_LOG("try to split diam vols " << std::endl);
+
+	for( CombiNewVolsProps & cnvp : m_vecCombiNewVolsThreeCross )
 	{
-
-		UG_LOG("try to split diam vols " << std::endl);
-
-		for( CombiNewVolsProps & cnvp : m_vecCombiNewVolsThreeCross )
+		if( ! determineSplitPts(cnvp) )
 		{
-			if( ! splitThreeCrossLargeDiams(cnvp) )
-			{
-				UG_LOG("splitting not possible");
-				return false;
-			}
+			UG_LOG("split points determination not possible");
+			return false;
 		}
-
-		for( Face * fac :  m_faces2BDeletedAtLastStep )
-		{
-			if( ! fac )
-			{
-				UG_LOG("want to delete null fac " << std::endl);
-				return false;
-			}
-
-			m_grid.erase(fac);
-		}
-
-		for( Edge * edg : m_edges2BDeletedAtLastStep )
-		{
-			if( ! edg )
-			{
-				UG_LOG("want to delete edge unexisting at end " << std::endl);
-				return false;
-			}
-
-			m_grid.erase(edg);
-		}
-
-
-		UG_LOG("all diam vols splitted " << std::endl);
 	}
-	else
+
+	for( Edge * const & edg : m_edges2BDeletedAtLastStep )
 	{
-		UG_LOG("No split of preform diamonds, remaining at preform " << std::endl);
+		if( ! determineCutPtAtEdge(edg))
+		{
+			UG_LOG("edge point not determinable" << std::endl);
+			return false;
+		}
 	}
+
+	for( CombiNewVolsProps & cnvp : m_vecCombiNewVolsThreeCross )
+	{
+		if( ! splitThreeCrossLargeDiams(cnvp) )
+		{
+			UG_LOG("splitting not possible");
+			return false;
+		}
+	}
+
+
+	for( Face * fac :  m_faces2BDeletedAtLastStep )
+	{
+		if( ! fac )
+		{
+			UG_LOG("want to delete null fac " << std::endl);
+			return false;
+		}
+
+		m_grid.erase(fac);
+	}
+
+	for( Edge * edg : m_edges2BDeletedAtLastStep )
+	{
+		if( ! edg )
+		{
+			UG_LOG("want to delete edge unexisting at end " << std::endl);
+			return false;
+		}
+
+		m_grid.erase(edg);
+	}
+
+
+	UG_LOG("all diam vols splitted " << std::endl);
+
+//	else
+//	{
+//		UG_LOG("No split of preform diamonds, remaining at preform " << std::endl);
+//	}
 
 	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::determineCutPtAtEdge( Edge * const & edg )
+{
+
+	std::vector<vector3> cutPtVec = m_attAccsCentersCutPts[edg];
+
+	IndexType cutPtVecSize = cutPtVec.size();
+
+	if( cutPtVec.size() == 0 )
+	{
+		UG_LOG("no cut vectors " << std::endl);
+		return false;
+	}
+
+	// average the cut points
+
+	vector3 vecSum;
+
+	for( vector3 const & vec2Add : cutPtVec )
+	{
+		vector3 tempSum = vecSum;
+
+		VecAdd(vecSum, tempSum, vec2Add );
+	}
+
+	number scale = 1. / static_cast<number>(cutPtVecSize);
+
+	vector3 avrgVec;
+
+	VecScale(avrgVec, vecSum, scale);
+
+	Vertex * cutVrtx = *m_grid.create<RegularVertex>();
+
+	m_aaPos[cutVrtx] = avrgVec;
+
+	m_attAccsDiamCentrVrtx[edg] = cutVrtx;
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+
 
 bool DiamondsEstablish3D::generateNewDiamSudos(Vertex * & centerV, IndxVec sudoList )
 {
@@ -2289,7 +2392,7 @@ bool DiamondsEstablish3D::detectRemovableEdges()
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-bool DiamondsEstablish3D::splitThreeCrossLargeDiams( CombiNewVolsProps & combiNewVolsProps )
+bool DiamondsEstablish3D::determineSplitPts( CombiNewVolsProps & combiNewVolsProps )
 {
 	VrtxIndxCombi viCombiCenter;
 	combiNewVolsProps.spuckCenterVrtcsSudos(viCombiCenter);
@@ -2322,14 +2425,116 @@ bool DiamondsEstablish3D::splitThreeCrossLargeDiams( CombiNewVolsProps & combiNe
 
 	DropAPerpendicular(cutPtVec3, midPtDiamVec3, centerDiamVec3, centerOtherVec3);
 
-	Vertex * cutVrtx = *m_grid.create<RegularVertex>();
+	// figure out the edge to which this point belongs
 
-	m_aaPos[cutVrtx] = cutPtVec3;
+	Edge * edgOfVrtcs = nullptr;
+
+	if( ! figureOutEdgeOfVrtcs( edgOfVrtcs, centerDiam, centerOther ) )
+	{
+		UG_LOG("vertices do not belong to an edge " << std::endl);
+		return false;
+	}
+
+	if( edgOfVrtcs != nullptr )
+	{
+//		addElem(m_edgesCut4Diams, edgOfVrtcs);
+		addElem(m_edges2BDeletedAtLastStep,edgOfVrtcs);
+
+		m_attAccsCentersCutPts[edgOfVrtcs].push_back( cutPtVec3 );
+
+		if( ! combiNewVolsProps.schluckLowdimElem( edgOfVrtcs ) )
+		{
+			UG_LOG("edge already known" << std::endl);
+			return false;
+		}
+	}
+	else
+	{
+		UG_LOG("no edge found " << std::endl);
+		return false;
+	}
+
+
+	return true;
+
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::figureOutEdgeOfVrtcs( Edge * & edgOfVrtcs, Vertex * const & vertexOne, Vertex * const & vertexTwo )
+{
+
+	for( Grid::AssociatedEdgeIterator itEdgOne  = m_grid.associated_edges_begin( vertexOne );
+			          	  	  	      itEdgOne != m_grid.associated_edges_end( vertexOne );
+			          	  	  	      itEdgOne++
+	   )
+	{
+		Edge * edgOne = *itEdgOne;
+
+		if( edgOne )
+		{
+
+
+			for( Grid::AssociatedEdgeIterator itEdgTwo  = m_grid.associated_edges_begin( vertexTwo );
+											  itEdgTwo != m_grid.associated_edges_end( vertexTwo );
+											  itEdgTwo++
+			   )
+			{
+				Edge * edgTwo = *itEdgTwo;
+
+				if( edgTwo )
+				{
+					if( edgOne == edgTwo )
+					{
+						edgOfVrtcs = edgOne;
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+
+
+bool DiamondsEstablish3D::splitThreeCrossLargeDiams( CombiNewVolsProps & combiNewVolsProps )
+{
+	VrtxIndxCombi viCombiCenter;
+	combiNewVolsProps.spuckCenterVrtcsSudos(viCombiCenter);
+	Volume * vol;
+	combiNewVolsProps.spuckFulldimElem(vol);
+
+	Edge * centersEdg;
+	combiNewVolsProps.spuckLowdimElem( centersEdg );
+
+	Vertex * cutVrtx;
+	cutVrtx = m_attAccsDiamCentrVrtx[centersEdg];
 
 	combiNewVolsProps.schluckNewSplitVrtx(cutVrtx);
 
 	std::vector<Vertex*> shiftVrtcs;
 	combiNewVolsProps.spuckShiftVrtcs(shiftVrtcs);
+
+	IndexType ind3CrossSide = combiNewVolsProps.spuckThreeCrossIndex();
+
+	IndexType indOtherSide = ( ind3CrossSide + 1 ) % 2;
+
+	VrtxIndxPair diamCenterVrtxPr( viCombiCenter[ind3CrossSide] );
+
+	Vertex * centerDiam = diamCenterVrtxPr.first;
+
+	VrtxIndxPair diamOtherVrtxPr( viCombiCenter[ indOtherSide ] );
+
+	Vertex * centerOther = diamOtherVrtxPr.first;
+
+	std::vector<Vertex*> midPtVrtcs;
+	combiNewVolsProps.spuckMidPtVrtcs(midPtVrtcs);
+
+	Vertex * midPtDiam = midPtVrtcs[ind3CrossSide];
+	Vertex * midPtOther = midPtVrtcs[indOtherSide];
 
 	Vertex * shiftVrtxDiam = shiftVrtcs[ind3CrossSide];
 	Vertex * shiftVrtxOther = shiftVrtcs[ indOtherSide];
@@ -2345,35 +2550,35 @@ bool DiamondsEstablish3D::splitThreeCrossLargeDiams( CombiNewVolsProps & combiNe
 
 	Volume * splitVolTetra = *m_grid.create<Tetrahedron>(
 							TetrahedronDescriptor( shiftVrtxDiam, midPtDiam, cutVrtx, centerDiam  ) );
-
-//	m_sh.assign_subset( splitVolTetra,  m_attAccsNewSudoOfVrtx[centerDiam] );
+//
+////	m_sh.assign_subset( splitVolTetra,  m_attAccsNewSudoOfVrtx[centerDiam] );
 	assignSudoOfNewVols2VolAndSubElems(splitVolTetra, m_attAccsNewSudoOfVrtx[centerDiam]);
-
+//
 	// figure out the faces and the edges which later should be erased
-
-	IndexType numEdgesFound = 0;
-
-	Edge* centersEdg = nullptr;
-
-	for( IndexType iEdg = 0; iEdg < vol->num_edges(); iEdg++)
-	{
-		Edge * edg = m_grid.get_edge(vol, iEdg);
-
-		if( EdgeContains(edg, centerDiam ) && EdgeContains(edg, centerOther))
-		{
-			centersEdg = edg;
-			numEdgesFound++;
-		}
-	}
-
-	if( numEdgesFound != 1 )
-	{
-		UG_LOG("edges found at end " << numEdgesFound << std::endl);
-		return false;
-	}
-
-	addElem(m_edges2BDeletedAtLastStep,centersEdg);
-
+//
+//	IndexType numEdgesFound = 0;
+//
+//	Edge* centersEdg = nullptr;
+//
+//	for( IndexType iEdg = 0; iEdg < vol->num_edges(); iEdg++)
+//	{
+//		Edge * edg = m_grid.get_edge(vol, iEdg);
+//
+//		if( EdgeContains(edg, centerDiam ) && EdgeContains(edg, centerOther))
+//		{
+//			centersEdg = edg;
+//			numEdgesFound++;
+//		}
+//	}
+//
+//	if( numEdgesFound != 1 )
+//	{
+//		UG_LOG("edges found at end " << numEdgesFound << std::endl);
+//		return false;
+//	}
+//
+//	addElem(m_edges2BDeletedAtLastStep,centersEdg);
+//
 	std::vector<Face*> faces2Del;
 
 	for( IndexType iFac = 0; iFac < vol->num_faces(); iFac++)

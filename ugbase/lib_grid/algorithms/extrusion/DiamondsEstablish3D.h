@@ -227,7 +227,9 @@ private:
 
 	using VrtxIndxCombi = std::vector<VrtxIndxPair>;
 
-	bool postprocessNewDiamVols();
+	bool assignSudos2DiamsPreform();
+
+	bool splitDiamsPreform2Diams();
 
 	bool generateNewDiamSudos( Vertex * & centerV, IndxVec sudoList );
 
@@ -250,12 +252,30 @@ private:
 
 	bool splitThreeCrossLargeDiams( CombiNewVolsProps & combiNewVolsProps );
 
+	bool determineSplitPts( CombiNewVolsProps & combiNewVolsProps );
+
+	bool figureOutEdgeOfVrtcs( Edge * & edgOfVrtcs, Vertex * const & vertexOne, Vertex * const & vertexTwo );
+
 	AInt m_attNewSudoOfVrtx;
 
 	Grid::VertexAttachmentAccessor<AInt> m_attAccsNewSudoOfVrtx;
 
 	std::vector<Face*> m_faces2BDeletedAtLastStep;
 	std::vector<Edge*> m_edges2BDeletedAtLastStep;
+
+	using AttVec3Vec = Attachment<std::vector<vector3>>;
+
+	AttVec3Vec m_attCentersCutPts;
+
+	Grid::EdgeAttachmentAccessor<AttVec3Vec> m_attAccsCentersCutPts;
+
+//	std::vector<Edge*> m_edgesCut4Diams;
+
+	AVertex m_attDiamCentrVrtx;
+
+	Grid::EdgeAttachmentAccessor<AVertex> m_attAccsDiamCentrVrtx;
+
+	bool determineCutPtAtEdge( Edge * const & edg );
 
 };
 
