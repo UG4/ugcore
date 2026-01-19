@@ -1017,7 +1017,7 @@ number AverageFunctionDifference(
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain, typename TAlgebra>
-class GridFunctionDebugWriter: public IDebugWriter<TAlgebra>
+class GridFunctionDebugWriter final : public IDebugWriter<TAlgebra>
 {
 	///	dimension
 	static const int dim = TDomain::dim;
@@ -1238,8 +1238,7 @@ protected:
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TGridFunction>
-class GridFunctionPositionProvider: public IPositionProvider<
-		TGridFunction::domain_type::dim> {
+class GridFunctionPositionProvider: public IPositionProvider<TGridFunction::domain_type::dim> {
 public:
 	///	Constructor
 	GridFunctionPositionProvider() :

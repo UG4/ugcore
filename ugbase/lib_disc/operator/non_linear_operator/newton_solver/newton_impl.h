@@ -452,7 +452,7 @@ int NewtonSolver<TAlgebra>::total_linsolver_steps() const
 template <typename TAlgebra>
 double NewtonSolver<TAlgebra>::total_average_linear_steps() const
 {
-	return total_linsolver_steps()/((double)total_linsolver_calls());
+	return total_linsolver_steps()/static_cast<double>(total_linsolver_calls());
 }
 
 

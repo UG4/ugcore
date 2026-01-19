@@ -114,7 +114,7 @@ class SmartPtr
 		explicit SmartPtr() : m_ptr(0), m_refCount(0)	{}
 		explicit SmartPtr(T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
 		SmartPtr(NullSmartPtr) : m_ptr(0), m_refCount(0)	{}
-		SmartPtr(const SmartPtr& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
+		SmartPtr(const SmartPtr<T>& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
 		{
 			if(m_refCount) (*m_refCount)++;
 		}
@@ -123,9 +123,7 @@ class SmartPtr
 	 *	derivates of T. Make sure that the pointer-type of TSmartPtr is castable
 	 *	to T*.*/
 		template <class TPtr>
-		SmartPtr(const SmartPtr<TPtr, FreePolicy>& sp) :
-			m_ptr(sp.get_nonconst()),
-			m_refCount(sp.refcount_ptr())
+		SmartPtr(const SmartPtr<TPtr, FreePolicy>& sp): m_ptr(sp.get_nonconst()), m_refCount(sp.refcount_ptr())
 		{
 			if(m_refCount) (*m_refCount)++;
 		}
@@ -146,7 +144,7 @@ class SmartPtr
 			return *this;
 		}
 
-		SmartPtr& operator=(const SmartPtr& sp) {
+		SmartPtr& operator=(const SmartPtr<T>& sp) {
 			if(m_ptr)
 				release();
 			m_ptr = sp.m_ptr;
@@ -751,9 +749,9 @@ class ConstSmartPtr<void>
 		{
 			if(m_ptr)
 				release();
-			m_ptr = 0;
-			m_refCountPtr = 0;
-			m_freeFunc = 0;
+			m_ptr = nullptr;
+			m_refCountPtr = nullptr;
+			m_freeFunc = nullptr;
 			return *this;
 		}
 

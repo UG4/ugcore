@@ -389,19 +389,19 @@ void Newton_Solver_Adaptive<TAlgebra>::print_average_convergence() const
 		allCalls += m_vLinSolverCalls[call];
 		UG_LOG(std::setw(15) << m_vTotalLinSolverSteps[call] << " | ");
 		allLinSteps += m_vTotalLinSolverSteps[call];
-		UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << m_vTotalLinSolverSteps[call] / (double)m_vLinSolverCalls[call] << " | ");
+		UG_LOG(std::setw(13) << /*std::setprecision(2) <<*/ std::fixed << m_vTotalLinSolverSteps[call] / (double)m_vLinSolverCalls[call] << " | ");
 		allNonLinRatesProduct *= pow((number)m_vNonLinSolverRates[call]/(double)m_vLinSolverCalls[call],(double)m_vLinSolverCalls[call]);
-		UG_LOG(std::setw(16) << std::setprecision(6) << std::scientific << m_vNonLinSolverRates[call] / (double)m_vLinSolverCalls[call] << " | ");
+		UG_LOG(std::setw(16) << /*std::setprecision(6) <<*/ std::scientific << m_vNonLinSolverRates[call] / (double)m_vLinSolverCalls[call] << " | ");
 		allLinRatesProduct *= (number)std::pow((number)m_vLinSolverRates[call]/(double)m_vLinSolverCalls[call],(number)m_vTotalLinSolverSteps[call]);
-		UG_LOG(std::setw(13) << std::setprecision(6) << std::scientific << m_vLinSolverRates[call] / (double)m_vLinSolverCalls[call]);
+		UG_LOG(std::setw(13) << /*std::setprecision(6) <<*/ std::scientific << m_vLinSolverRates[call] / (double)m_vLinSolverCalls[call]);
 		UG_LOG("\n");
 	}
 	UG_LOG( "        all | ");
 	UG_LOG(std::setw(9) << allCalls << " | ");
 	UG_LOG(std::setw(15) << allLinSteps << " | ");
-	UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << allLinSteps / (number)allCalls << " | ");
-	UG_LOG(std::setw(16) << std::setprecision(6) << std::scientific << std::pow((number)allNonLinRatesProduct,(number)1.0/(number)allCalls) << " | ");
-	UG_LOG(std::setw(13) << std::setprecision(6) << std::scientific << std::pow((number)allLinRatesProduct,(number)1.0/(number)allLinSteps));
+	UG_LOG(std::setw(13) /*<< std::setprecision(2) << std::fixed <<*/ allLinSteps / (number)allCalls << " | ");
+	UG_LOG(std::setw(16) /*<< std::setprecision(6) << std::scientific <<*/ std::pow((number)allNonLinRatesProduct,(number)1.0/(number)allCalls) << " | ");
+	UG_LOG(std::setw(13) /*<< std::setprecision(6) << std::scientific <<*/ std::pow((number)allLinRatesProduct,(number)1.0/(number)allLinSteps));
 	UG_LOG("\n");
 }
 

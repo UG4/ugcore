@@ -214,7 +214,15 @@ class IVectorDebugWriter
 		}
 		
 	protected:
-	
+
+		///	help function to get local ips
+		std::vector<MathVector<1> >& get_pos(Int2Type<1>) {return m_vPos1d;}
+		std::vector<MathVector<2> >& get_pos(Int2Type<2>) {return m_vPos2d;}
+		std::vector<MathVector<3> >& get_pos(Int2Type<3>) {return m_vPos3d;}
+		const std::vector<MathVector<1> >& get_pos(Int2Type<1>) const {return m_vPos1d;}
+		const std::vector<MathVector<2> >& get_pos(Int2Type<2>) const {return m_vPos2d;}
+		const std::vector<MathVector<3> >& get_pos(Int2Type<3>) const {return m_vPos3d;}
+
 	///	debugging writer context
 		SmartPtr<DebugWriterContext> m_spContext;
 
@@ -226,13 +234,6 @@ class IVectorDebugWriter
 		std::vector<MathVector<2> > m_vPos2d;
 		std::vector<MathVector<3> > m_vPos3d;
 
-	///	help function to get local ips
-		std::vector<MathVector<1> >& get_pos(Int2Type<1>) {return m_vPos1d;}
-		std::vector<MathVector<2> >& get_pos(Int2Type<2>) {return m_vPos2d;}
-		std::vector<MathVector<3> >& get_pos(Int2Type<3>) {return m_vPos3d;}
-		const std::vector<MathVector<1> >& get_pos(Int2Type<1>) const {return m_vPos1d;}
-		const std::vector<MathVector<2> >& get_pos(Int2Type<2>) const {return m_vPos2d;}
-		const std::vector<MathVector<3> >& get_pos(Int2Type<3>) const {return m_vPos3d;}
 };
 
 /// base class for all debug writer
