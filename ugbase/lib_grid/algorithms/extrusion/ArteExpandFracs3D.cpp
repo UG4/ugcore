@@ -7529,14 +7529,35 @@ bool ArteExpandFracs3D::createNewElements()
 	std::vector<Volume*> newFractureVolumes;
 	std::vector<IndexType> subsOfNewVolumes;
 
-	// create alternative volumes where there are ending crossing clefts
+//	constexpr bool useOldMethodECC = false;
+//
+//	// create alternative volumes where there are ending crossing clefts
+//
+//	if( useOldMethodECC )
+//	{
+//	//	etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes );
+//		if( ! etablishVolumesAtEndingCrossingClefts( newFractureVolumes, subsOfNewVolumes ) )
+//		{
+//			UG_LOG("unable to establish volumes at ending crossing clefts" << std::endl);
+//			return false;
+//		}
+//	}
+//	else // new method
+//	{
+//		if( ! etablishVolumesAtEndingCrossingFractures( newFractureVolumes, subsOfNewVolumes ) )
+//		{
+//			UG_LOG("unable to establish volumes at ending crossing clefts" << std::endl);
+//			return false;
+//		}
+//
+//	}
 
-//	etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes );
-	if( ! etablishVolumesAtEndingCrossingClefts( newFractureVolumes, subsOfNewVolumes ) )
+	if( ! etablishVolumesAtEndingCrossingFractures( newFractureVolumes, subsOfNewVolumes ) )
 	{
 		UG_LOG("unable to establish volumes at ending crossing clefts" << std::endl);
 		return false;
 	}
+
 
 //	return false;
 
@@ -8132,6 +8153,7 @@ ArteExpandFracs3D::IndexType ArteExpandFracs3D::deleteEndingCrossingCleftOrigFac
 
 ////////////////////////////////////////////////////////////
 
+#if 0
 bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes )
 {
 
@@ -9275,6 +9297,1410 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 
 	return true;
 }
+#endif
+
+/////////////////////////////////////////////////////////////
+
+
+bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes )
+{
+
+	// TODO FIXME das hier anpassen an neue Methode
+
+	for( EndingCrossingFractureSegmentInfo & ecfsi : m_vecEndCrossFractSegmInfo )
+	{
+		Vertex * baseVrtx = ecfsi.spuckUnclosedVrtx();
+
+		Vertex * shiftVrtx = ecfsi.spuckShiftVrtx();
+
+		Edge * cutEdge = ecfsi.spuckOldLowDimElCut();
+
+		Vertex * secondVrtxCutEdge = nullptr;
+
+		if( cutEdge->vertex(0) == baseVrtx )
+		{
+			secondVrtxCutEdge = cutEdge->vertex(1);
+		}
+		else if( cutEdge->vertex(1) == baseVrtx )
+		{
+			secondVrtxCutEdge = cutEdge->vertex(0);
+		}
+		else
+		{
+			UG_LOG("no second vertex of cut edge " << std::endl);
+			UG_THROW("no second vertex of cut edge " << std::endl);
+			return false;
+		}
+
+		Edge * divisionEdge = *m_grid.create<RegularEdge>( EdgeDescriptor( secondVrtxCutEdge, shiftVrtx ) );
+
+		IndexType subsetECC = ecfsi.spuckSudoFractEnding();
+
+		m_sh.assign_subset(divisionEdge, subsetECC);
+
+		Face * hiddenCutFracFace = *m_grid.create<Triangle>(TriangleDescriptor( baseVrtx, shiftVrtx, secondVrtxCutEdge ));
+
+		m_sh.assign_subset(hiddenCutFracFace, subsetECC);
+
+		IndexType subsNewFacesEdges = m_sh.get_subset_index(hiddenCutFracFace);
+
+		if( subsNewFacesEdges != subsetECC )
+		{
+			UG_LOG("subsets must be equal as equal assigned " << std::endl);
+			return false;
+		}
+
+		for(size_t iEdge = 0; iEdge < hiddenCutFracFace->num_edges(); ++iEdge)
+		{
+			Edge* edg = m_grid.get_edge(hiddenCutFracFace, iEdge);
+
+			m_sh.assign_subset( edg, subsNewFacesEdges );
+			UG_LOG("HEDGE CENTER " << CalculateCenter( edg, m_aaPos ) << std::endl );
+
+			UG_LOG("HEdge subdom " << m_sh.get_subset_index(edg) << std::endl );
+
+		}
+
+		if( ! ecfsi.schluckHiddenCutFractManifEl( hiddenCutFracFace ))
+		{
+			UG_LOG("hidden cut face Problem" << std::endl);
+			UG_THROW("hidden cut face Problem" << std::endl);
+		}
+
+		Face * endingFractFacCutting = ecfsi.spuckEndingFractManifCutting();
+
+		IndexType const triangVrtxNum = 3;
+
+		if( endingFractFacCutting->num_vertices() != triangVrtxNum )
+		{
+			UG_LOG("only triangles allowed " << std::endl);
+			UG_THROW("only triangles allowed " << std::endl);
+		}
+
+
+		IndexType foundNotTouchVrtx = 0;
+
+		Vertex * notTouchingVrtx = nullptr;
+
+
+		// figure out that vertex of the ending fracture faces that is not touching the crossing not ending cleft
+		for( IndexType vrtIndx = 0; vrtIndx < triangVrtxNum; vrtIndx++ )
+		{
+			Vertex * testVrt = endingFractFacCutting->vertex(vrtIndx);
+
+			if( ! EdgeContains( cutEdge, testVrt ) )
+			{
+				foundNotTouchVrtx++;
+				notTouchingVrtx = testVrt;
+			}
+		}
+
+		if( foundNotTouchVrtx != 1 || ! notTouchingVrtx  )
+		{
+			UG_LOG("not touching vertex not found " << std::endl);
+			UG_THROW("not touching vertex not found " << std::endl);
+		}
+
+		// replace the face that touches with an edge
+		Face * replaceEndingFractCutFac = *m_grid.create<Triangle>(TriangleDescriptor( shiftVrtx, secondVrtxCutEdge, notTouchingVrtx ));
+
+		m_sh.assign_subset( replaceEndingFractCutFac, subsetECC );
+
+		IndexType subsNewFacesEdgesC = m_sh.get_subset_index(replaceEndingFractCutFac);
+
+		UG_LOG("EDGE NUMBER CCS CC " << replaceEndingFractCutFac->num_edges() << std::endl);
+
+		for(size_t iEdge = 0; iEdge < replaceEndingFractCutFac->num_edges(); ++iEdge)
+		{
+			Edge* edg = m_grid.get_edge(replaceEndingFractCutFac, iEdge);
+
+			m_sh.assign_subset( edg, subsNewFacesEdgesC );
+			UG_LOG("EDGE CENTER " << CalculateCenter( edg, m_aaPos ) << std::endl );
+
+			UG_LOG("Edge subdom " << m_sh.get_subset_index(edg) << std::endl );
+
+		}
+
+//		// replace the face that has only the base vertex common, if existing
+
+		for( Face * const & endingFractFacNotCutting : ecfsi.spuckVecEndingFractManifNotCutting() )
+		{
+			if( endingFractFacNotCutting )
+			{
+
+				if( endingFractFacNotCutting->num_vertices() != triangVrtxNum )
+				{
+					UG_LOG("only triangles allowed NC" << std::endl);
+					UG_THROW("only triangles allowed NC" << std::endl);
+				}
+
+				std::vector<Vertex*> vrtcsNotBase;
+
+				// figure out those vertices which are not the basis vertex
+				for( IndexType vrtIndx = 0; vrtIndx < triangVrtxNum; vrtIndx++ )
+				{
+					Vertex * testVrt = endingFractFacNotCutting->vertex(vrtIndx);
+
+					if( testVrt != baseVrtx )
+						vrtcsNotBase.push_back(testVrt);
+				}
+
+				if( vrtcsNotBase.size() != 2 )
+				{
+					UG_LOG("strange number vertices " << vrtcsNotBase.size() << std::endl);
+					UG_THROW("strange number vertices " << vrtcsNotBase.size() << std::endl);
+				}
+
+				Face * replaceEndingFractNotCutFac = *m_grid.create<Triangle>(TriangleDescriptor( shiftVrtx, vrtcsNotBase[0], vrtcsNotBase[1] ));
+
+				m_sh.assign_subset( replaceEndingFractNotCutFac, subsetECC );
+
+				IndexType subsNewFacesEdges = m_sh.get_subset_index(replaceEndingFractNotCutFac);
+
+				UG_LOG("EDGE NUMBER CCS " << replaceEndingFractNotCutFac->num_edges() << std::endl);
+
+				for(size_t iEdge = 0; iEdge < replaceEndingFractNotCutFac->num_edges(); ++iEdge)
+				{
+					Edge* edg = m_grid.get_edge(replaceEndingFractNotCutFac, iEdge);
+
+					m_sh.assign_subset( edg, subsNewFacesEdges );
+
+					UG_LOG("EDGE CENTER " << CalculateCenter( edg, m_aaPos ) << std::endl );
+
+					UG_LOG("Edge subdom " << m_sh.get_subset_index(edg) << std::endl );
+
+				}
+
+			}
+
+		}
+
+		for( Volume * const & sv : ecfsi.spuckVecFulldimEl() )
+		{
+
+			UG_LOG("CEC Volume new creation try at " << CalculateCenter(sv, m_aaPos) << std::endl);
+
+			bool volHasEndingCrossingCleftFace = m_volAttAccsVolTouchesEndingCrossingCleft[sv];
+
+			// should be true!
+
+			if( ! volHasEndingCrossingCleftFace )
+			{
+				UG_LOG("Was ist da los, ending cleft und doch nicht " << std::endl);
+				UG_THROW("Was ist da los, ending cleft und doch nicht " << std::endl);
+			}
+
+			// check if volume contains the base vertex
+
+			if( ! VolumeContains(sv, baseVrtx))
+			{
+				UG_LOG("VOlume ausdehenen ECC ohne base vertex " << std::endl);
+				UG_THROW("VOlume ausdehenen ECC ohne base vertex " << std::endl);
+			}
+
+			//	now expand the fracture faces of sv to volumes.
+			for(size_t i_side = 0; i_side < sv->num_sides(); ++i_side)
+			{
+				//	holds local side vertex indices
+				std::vector<size_t>	locVrtInds;
+
+				//	get the local vertex indices of the side of the volume
+				sv->get_vertex_indices_of_face(locVrtInds, i_side);
+
+				Face* tFace = m_grid.get_side(sv, i_side);
+
+				if(tFace)
+				{
+					if( m_aaMarkFaceIsFracB[tFace] )
+					{
+						bool faceIsSegmLimEndCrossCleft = m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft[tFace];
+						bool faceIsEndingCleftCrossFace = m_aaMarkFaceWithEndingCrossingCleft[tFace];
+
+						UG_LOG("Volumenerzeugung Versuch ECC Anfang" << std::endl);
+
+						Volume* expVol = nullptr;
+
+						Volume* expVolTwo = nullptr;
+
+						Volume* expVolECC = nullptr;
+
+						bool expVolCreated = false;
+
+						UG_LOG("EXP VOL TEST " << std::endl);
+
+						if(locVrtInds.size() == 3)
+						{
+							size_t iv0 = locVrtInds[0];
+							size_t iv1 = locVrtInds[1];
+							size_t iv2 = locVrtInds[2];
+
+							// figure out which vertex is the base vertex
+
+							int indBasVrtx = -1;
+							int indSecondVrtx = -1;
+							int indExtVrtx = -1;
+
+//							if( ! VolumeContains(sv, secondVrtxCutEdge))
+//							{
+//								UG_LOG("VOlume does not contain second cut edge " << std::endl);
+//								return false;
+//							}
+
+							for( IndexType vrtxInd = 0; vrtxInd < sv->num_vertices(); vrtxInd++ )
+							{
+								if( sv->vertex(vrtxInd) == baseVrtx )
+									indBasVrtx = vrtxInd;
+
+								if( sv->vertex(vrtxInd) == secondVrtxCutEdge )
+									indSecondVrtx = vrtxInd;
+
+								if( indBasVrtx != vrtxInd && indSecondVrtx != vrtxInd )
+								{
+									for( IndexType vrtOnFac = 0; vrtOnFac < tFace->num_vertices(); vrtOnFac++)
+									{
+										if( tFace->vertex(vrtOnFac) == sv->vertex(vrtxInd) )
+										{
+											indExtVrtx = vrtxInd;
+										}
+									}
+
+								}
+							}
+
+//							if( iv0 == indBasVrtx && iv1 == indSecondVrtx )
+//							{
+//								indExtVrtx = iv2;
+//							}
+//							else if( iv1 == indBasVrtx && iv0 == indSecondVrtx )
+//							{
+//								indExtVrtx == iv2;
+//							}
+//							else if( iv1 == indBasVrtx && iv2 == indSecondVrtx )
+//							{
+//								indExtVrtx == iv0;
+//							}
+//							else if( iv2 == indBasVrtx && iv1 == indSecondVrtx )
+//							{
+//								indExtVrtx == iv0;
+//							}
+//							else if( iv0 == indBasVrtx && iv2 == indSecondVrtx )
+//							{
+//								indExtVrtx == iv1;
+//							}
+//							else if( iv2 == indBasVrtx && iv0 == indSecondVrtx )
+//							{
+//								indExtVrtx == iv1;
+//							}
+
+							// der Index des Basisvertex ist tabu für die Ausehnung der endenden fracture
+
+							bool belongsToEndingCleftFaces = (endingFractFacCutting == tFace);
+
+							bool belongstToEndingNotCuttingFacs = false;
+
+							for( Face * const & endingFractFacNotCutting : ecfsi.spuckVecEndingFractManifNotCutting() )
+							{
+								if( tFace == endingFractFacNotCutting )
+								{
+									belongsToEndingCleftFaces = true;
+									belongstToEndingNotCuttingFacs = true;
+									UG_LOG("Want to create for not cutting ending fract face vol " << std::endl);
+								}
+							}
+
+							if( belongsToEndingCleftFaces != faceIsEndingCleftCrossFace )
+							{
+								UG_LOG("Widerspruch ending but not ending ECC" << std::endl);
+								UG_THROW("Widerspruch ending but not ending ECC" << std::endl);
+
+							}
+
+							if( belongsToEndingCleftFaces )
+							{
+								if( ! faceIsEndingCleftCrossFace )
+								{
+									UG_LOG("Widerspruch ending but not ending ECC" << std::endl);
+								}
+
+								if( iv0 == indBasVrtx )
+								{
+									if(    ( m_aaVrtVecVol[sv] )[iv0]
+										&& ( m_aaVrtVecVol[sv] )[iv1]
+										&& ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new pyramid
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv1),
+//																		(m_aaVrtVecVol[sv])[iv2],
+//																		(m_aaVrtVecVol[sv])[iv1],
+//																		(m_aaVrtVecVol[sv])[iv0]));
+
+
+
+										expVol = *m_grid.create<Pyramid>(
+														PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0]));
+
+									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											 && ( m_aaVrtVecVol[sv] )[iv1]
+									)
+									{
+										//	create a new tetrahedron
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv1),
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0],
+															sv->vertex(iv2)));
+									}
+//									else if(    ( m_aaVrtVecVol[sv] )[iv1]
+//											 && ( m_aaVrtVecVol[sv] )[iv2]
+//									)
+//									{
+//										//	create a new Pyramid
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+//															(m_aaVrtVecVol[sv])[iv2],
+//															(m_aaVrtVecVol[sv])[iv1],
+//															sv->vertex(iv0)));
+//									}
+									else if(    (m_aaVrtVecVol[sv])[iv0]
+											 && (m_aaVrtVecVol[sv])[iv2]
+									)
+									{
+										//	create a new tetrahedron
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv2),
+															(m_aaVrtVecVol[sv])[iv0],
+															(m_aaVrtVecVol[sv])[iv2],
+															sv->vertex(iv1)));
+									}
+//									else if( ( m_aaVrtVecVol[sv])[iv0] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv0]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv1] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv1]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv2] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv2]));
+//									}
+									else
+									{
+										//	Text from SR, still similar:
+										//  this code-block should never be entered. If it is entered then
+										//	we either selected the wrong faces (this shouldn't happen), or there
+										//	are selected faces, which have fracture-boundary-vertices only.
+										//	This is the same is if inner fracture edges exists, which are
+										//	connected to two boundary vertices.
+										//	Since we tried to remove those edges above, something went wrong.
+										//	remove the temporary attachments and throw an error
+
+										UG_LOG("Tetraeder ECC Fehlt eine Loesung " << std::endl);
+										detachMarkers();
+										throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+										return false;
+									}
+
+								}
+								else if( iv1 == indBasVrtx )
+								{
+									if(    ( m_aaVrtVecVol[sv] )[iv0]
+										&& ( m_aaVrtVecVol[sv] )[iv1]
+										&& ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new prism
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor( sv->vertex(iv2), sv->vertex(iv0),
+//																				(m_aaVrtVecVol[sv])[iv2],
+//																				(m_aaVrtVecVol[sv])[iv1],
+//																				(m_aaVrtVecVol[sv])[iv0]));
+
+
+										expVol = *m_grid.create<Pyramid>(
+														PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+															(m_aaVrtVecVol[sv])[iv0],
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1]));
+
+									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											 && ( m_aaVrtVecVol[sv] )[iv1]
+									)
+									{
+										//	create a new Pyramid
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv0),
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0],
+															sv->vertex(iv2)));
+									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											 && ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new Pyramid
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv2),
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1],
+															sv->vertex(iv0)));
+									}
+//									else if(    (m_aaVrtVecVol[sv])[iv0]
+//											 && (m_aaVrtVecVol[sv])[iv2]
+//									)
+//									{
+//										//	create a new Pyramid
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+//															(m_aaVrtVecVol[sv])[iv0],
+//															(m_aaVrtVecVol[sv])[iv2],
+//															sv->vertex(iv1)));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv0] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv0]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv1] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv1]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv2] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv2]));
+//									}
+									else
+									{
+										//	Text from SR, still similar:
+										//  this code-block should never be entered. If it is entered then
+										//	we either selected the wrong faces (this shouldn't happen), or there
+										//	are selected faces, which have fracture-boundary-vertices only.
+										//	This is the same is if inner fracture edges exists, which are
+										//	connected to two boundary vertices.
+										//	Since we tried to remove those edges above, something went wrong.
+										//	remove the temporary attachments and throw an error
+
+										UG_LOG("Tetraeder ECC Fehlt eine Loesung " << std::endl);
+										detachMarkers();
+										throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+										return false;
+									}
+								}
+								else if( iv2 == indBasVrtx )
+								{
+									if(    ( m_aaVrtVecVol[sv] )[iv0]
+										&& ( m_aaVrtVecVol[sv] )[iv1]
+										&& ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new prism
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv0),
+//																		(m_aaVrtVecVol[sv])[iv2],
+//																		(m_aaVrtVecVol[sv])[iv1],
+//																		(m_aaVrtVecVol[sv])[iv0]));
+
+										expVol = *m_grid.create<Pyramid>(
+														PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+															(m_aaVrtVecVol[sv])[iv1],
+															(m_aaVrtVecVol[sv])[iv0],
+															(m_aaVrtVecVol[sv])[iv2]));
+
+									}
+//									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+//											 && ( m_aaVrtVecVol[sv] )[iv1]
+//									)
+//									{
+//										//	create a new Pyramid
+//										expVol = *m_grid.create<Pyramid>(
+//														PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+//															(m_aaVrtVecVol[sv])[iv1],
+//															(m_aaVrtVecVol[sv])[iv0],
+//															sv->vertex(iv2)));
+//									}
+									else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											 && ( m_aaVrtVecVol[sv] )[iv2]
+									)
+									{
+										//	create a new Pyramid
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv1),
+															(m_aaVrtVecVol[sv])[iv2],
+															(m_aaVrtVecVol[sv])[iv1],
+															sv->vertex(iv0)));
+									}
+									else if(    (m_aaVrtVecVol[sv])[iv0]
+											 && (m_aaVrtVecVol[sv])[iv2]
+									)
+									{
+										//	create a new Pyramid
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(iv0),
+															(m_aaVrtVecVol[sv])[iv0],
+															(m_aaVrtVecVol[sv])[iv2],
+															sv->vertex(iv1)));
+									}
+//									else if( ( m_aaVrtVecVol[sv])[iv0] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv0]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv1] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv1]));
+//									}
+//									else if( ( m_aaVrtVecVol[sv])[iv2] )
+//									{
+//										//	create a new Tetrahedron
+//										expVol = *m_grid.create<Tetrahedron>(
+//														TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																			 (m_aaVrtVecVol[sv])[iv2]));
+//									}
+									else
+									{
+										//	Text from SR, still similar:
+										//  this code-block should never be entered. If it is entered then
+										//	we either selected the wrong faces (this shouldn't happen), or there
+										//	are selected faces, which have fracture-boundary-vertices only.
+										//	This is the same is if inner fracture edges exists, which are
+										//	connected to two boundary vertices.
+										//	Since we tried to remove those edges above, something went wrong.
+										//	remove the temporary attachments and throw an error
+
+										UG_LOG("Tetraeder ECC Fehlt eine Loesung " << std::endl);
+										detachMarkers();
+										throw(UGError("Error in ExpandFractures3d Arte Stasi. Implementation Error."));
+										return false;
+									}
+
+								}
+
+								if( belongstToEndingNotCuttingFacs )
+								{
+									if( expVol )
+									{
+										UG_LOG("not cutting vol created at " << CalculateCenter(expVol, m_aaPos ) << std::endl );
+//										m_sh.assign_subset(expVol, m_sh.num_subsets());
+									}
+									else
+									{
+										UG_LOG("was not able to create vol for not cutting " << std::endl);
+									}
+								}
+							}
+							else
+							{
+								// test if face belongs to the closed faces
+
+								std::pair<Face*,Face*> const & closedNeighbrs = ecfsi.spuckPairNeighbouredFractClosedManifEl();
+
+								if( closedNeighbrs.first == tFace || closedNeighbrs.second == tFace )
+								{
+									if( iv0 == indBasVrtx )
+									{
+										if( iv1 == indSecondVrtx )
+										{
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+											)
+											{
+												expVolECC = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor( sv->vertex(iv0), ( m_aaVrtVecVol[sv] )[iv0], sv->vertex(iv1), ( m_aaVrtVecVol[sv] )[iv1] ) );
+											}
+										}
+										else if( iv2 == indSecondVrtx )
+										{
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVolECC = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor( sv->vertex(iv0), ( m_aaVrtVecVol[sv] )[iv0], sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv2] ) );
+											}
+										}
+									}
+									else if( iv1 == indBasVrtx )
+									{
+										if( iv0 == indSecondVrtx )
+										{
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+											)
+											{
+												expVolECC = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor( sv->vertex(iv1), ( m_aaVrtVecVol[sv] )[iv1], sv->vertex(iv0), ( m_aaVrtVecVol[sv] )[iv0] ) );
+											}
+										}
+										else if( iv2 == indSecondVrtx )
+										{
+											if(    ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVolECC = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor( sv->vertex(iv1), ( m_aaVrtVecVol[sv] )[iv1], sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv2] ) );
+											}
+										}
+									}
+									else if( iv2 == indBasVrtx )
+									{
+										if( iv0 == indSecondVrtx )
+										{
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVolECC = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor( sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv2], sv->vertex(iv0), ( m_aaVrtVecVol[sv] )[iv0] ) );
+											}
+										}
+										else if( iv1 == indSecondVrtx )
+										{
+											if(    ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVolECC = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor( sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv2], sv->vertex(iv1), ( m_aaVrtVecVol[sv] )[iv1] ) );
+											}
+										}
+									}
+
+									if( expVolECC )
+									{
+										UG_LOG("new form volume created for ECC " << std::endl);
+										expVolCreated = true;
+										//m_sh.assign_subset(expVolECC, m_sh.num_subsets());
+									}
+									else
+									{
+										UG_LOG("NO new form volume created for ECC " << std::endl);
+									}
+
+//									// figure out the vertex that is not from the cut edge
+//
+//									Vertex * freeVrtx = nullptr;
+//
+//									// wasn das für ein Käse.....
+//									for( IndexType vrtxInd = 0; vrtxInd < triangVrtxNum; vrtxInd++ )
+////									for( IndexType vrtxInd = 0; vrtxInd < sv->num_vertices(); vrtxInd++ )
+//									{
+//										if( ! EdgeContains(cutEdge, tFace->vertex(vrtxInd)))
+//											freeVrtx = tFace->vertex(vrtxInd);
+//									}
+//
+//									if( freeVrtx == nullptr )
+//									{
+//										UG_LOG("Immer noch null " << std::endl);
+//										UG_THROW("Immer noch null " << std::endl);
+//									}
+
+//									int freeVrtxInd = -1;
+//									int secondCutEdgVrtxInd = -1;
+//
+//									for( IndexType vrtxInd = 0; vrtxInd < sv->num_vertices(); vrtxInd++ )
+//									{
+//										if( ! EdgeContains(cutEdge, freeVrtx))
+//											freeVrtxInd = vrtxInd;
+//
+//										if( secondVrtxCutEdge == secondVrtxCutEdge)
+//											secondCutEdgVrtxInd = vrtxInd;
+//									}
+
+
+									// for the "pyramid", exclude the base Vertex
+									// for the other tetrahedron, exclude the shifted of the non-base of the cut edge
+									// i.e. of secondVrtxCutEdge
+
+//									Vertex * vrtxNotFromCutEdge = tFace->vertex(freeVrtxInd);
+
+									// relate iv0, iv1, iv2 to vrtxNotFromCutEdge, base
+
+									if( indExtVrtx < 0 || indBasVrtx < 0 || indSecondVrtx < 0 )
+									{
+										UG_LOG("vertex indices not existent " << indExtVrtx << " " << indBasVrtx << " " << indSecondVrtx << std::endl);
+										for( int i = 0; i < 3; i++)
+											UG_LOG("local indices are " << i << " " << locVrtInds[i] << std::endl);
+										return false;
+									}
+
+									if(    ( m_aaVrtVecVol[sv] )[indBasVrtx]
+										&& ( m_aaVrtVecVol[sv] )[indSecondVrtx]
+										&& ( m_aaVrtVecVol[sv] )[indExtVrtx]
+									)
+									{
+										expVol = *m_grid.create<Pyramid>(
+														PyramidDescriptor(
+														sv->vertex(indSecondVrtx), sv->vertex(indExtVrtx),
+														( m_aaVrtVecVol[sv] )[indExtVrtx],
+														( m_aaVrtVecVol[sv] )[indSecondVrtx],
+														sv->vertex(indBasVrtx)
+														));
+
+
+										expVolTwo = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor( sv->vertex(indBasVrtx),
+																			   ( m_aaVrtVecVol[sv] )[indSecondVrtx],
+																			   ( m_aaVrtVecVol[sv] )[indBasVrtx],
+																			   ( m_aaVrtVecVol[sv] )[indExtVrtx]
+																			   ));
+
+									}
+									else if(    ( m_aaVrtVecVol[sv] )[indBasVrtx]
+											 && ( m_aaVrtVecVol[sv] )[indSecondVrtx]
+									)
+									{
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(
+														sv->vertex(indSecondVrtx), sv->vertex(indExtVrtx),
+														( m_aaVrtVecVol[sv] )[indSecondVrtx],
+														sv->vertex(indBasVrtx)
+														));
+
+
+										expVolTwo = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor( sv->vertex(indBasVrtx),
+																			   ( m_aaVrtVecVol[sv] )[indSecondVrtx],
+																			   ( m_aaVrtVecVol[sv] )[indBasVrtx],
+																			   sv->vertex(indExtVrtx)
+																			   ));
+									}
+//										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+//											&& ( m_aaVrtVecVol[sv] )[iv2]
+//										)
+//										{
+//
+//										}
+									else if(    ( m_aaVrtVecVol[sv] )[indBasVrtx]
+										     && ( m_aaVrtVecVol[sv] )[indExtVrtx]
+									)
+									{
+
+										expVol = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(
+														sv->vertex(indSecondVrtx), sv->vertex(indExtVrtx),
+														( m_aaVrtVecVol[sv] )[indExtVrtx],
+														sv->vertex(indBasVrtx)
+														));
+
+
+										expVolTwo = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor( sv->vertex(indBasVrtx),
+																			   sv->vertex(indSecondVrtx),
+																			   ( m_aaVrtVecVol[sv] )[indBasVrtx],
+																			   ( m_aaVrtVecVol[sv] )[indExtVrtx]
+																			   ));
+									} //
+									else if(    ( m_aaVrtVecVol[sv] )[indBasVrtx] )
+									{
+
+										expVolTwo = *m_grid.create<Tetrahedron>(
+														TetrahedronDescriptor(sv->vertex(indExtVrtx), sv->vertex(indSecondVrtx), sv->vertex(indBasVrtx),
+																			 (m_aaVrtVecVol[sv])[indBasVrtx]));
+									} //
+
+// WEG
+#if 0
+
+									if( iv0 == indBasVrtx )
+									{
+										if( iv1 == indSecondVrtx )
+										{
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Pyramid>(
+																PyramidDescriptor(
+																sv->vertex(iv1), sv->vertex(iv2),
+																( m_aaVrtVecVol[sv] )[iv2],
+																( m_aaVrtVecVol[sv] )[iv1],
+																sv->vertex(iv0)
+																));
+
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor( sv->vertex(iv0),
+																					   ( m_aaVrtVecVol[sv] )[iv1],
+																					   ( m_aaVrtVecVol[sv] )[iv0],
+																					   ( m_aaVrtVecVol[sv] )[iv2]
+																					   ));
+
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+													 && ( m_aaVrtVecVol[sv] )[iv1]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(
+																sv->vertex(iv1), sv->vertex(iv2),
+																( m_aaVrtVecVol[sv] )[iv1],
+																sv->vertex(iv0)
+																));
+
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor( sv->vertex(iv0),
+																					   ( m_aaVrtVecVol[sv] )[iv1],
+																					   ( m_aaVrtVecVol[sv] )[iv0],
+																					   sv->vertex(iv2)
+																					   ));
+											}
+	//										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+	//											&& ( m_aaVrtVecVol[sv] )[iv2]
+	//										)
+	//										{
+	//
+	//										}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+												     && ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(
+																sv->vertex(iv1), sv->vertex(iv2),
+																( m_aaVrtVecVol[sv] )[iv2],
+																sv->vertex(iv0)
+																));
+
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor( sv->vertex(iv0),
+																					   sv->vertex(iv1),
+																					   ( m_aaVrtVecVol[sv] )[iv0],
+																					   ( m_aaVrtVecVol[sv] )[iv2]
+																					   ));
+											} //
+											else if(    ( m_aaVrtVecVol[sv] )[iv0] )
+											{
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+											} //
+
+										}
+										else if( iv2 == indSecondVrtx )
+										{
+											// HIER GEHT ES WEITER
+
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Pyramid>(
+																PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+																	(m_aaVrtVecVol[sv])[iv2],
+																	(m_aaVrtVecVol[sv])[iv1],
+																	( m_aaVrtVecVol[sv] )[iv0]));
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+													 && ( m_aaVrtVecVol[sv] )[iv1]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), ( m_aaVrtVecVol[sv] )[iv0],
+																					 (m_aaVrtVecVol[sv])[iv1]));
+
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+											}
+	//										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+	//											&& ( m_aaVrtVecVol[sv] )[iv2]
+	//										)
+	//										{
+	//
+	//										}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+												     && ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1),  ( m_aaVrtVecVol[sv] )[iv0],
+																					 (m_aaVrtVecVol[sv])[iv2]));
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+											} //
+											else if(    ( m_aaVrtVecVol[sv] )[iv0] )
+											{
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+											} //
+
+										}
+
+
+
+
+									}
+
+									if( iv1 == indBasVrtx )
+									{
+
+										if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+											expVol = *m_grid.create<Pyramid>(
+															PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+																(m_aaVrtVecVol[sv])[iv0],
+																(m_aaVrtVecVol[sv])[iv2],
+																( m_aaVrtVecVol[sv] )[iv1]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv1]));
+
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											     && ( m_aaVrtVecVol[sv] )[iv1]
+										)
+										{
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv1], sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv0]));
+
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv1]));
+
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											    && ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv1], sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv1]));
+
+										}
+//										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+//											&& ( m_aaVrtVecVol[sv] )[iv2]
+//										)
+//										{
+//
+//										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv1] )
+										{
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv1]));
+
+										}
+
+
+									}
+
+									if( iv2 == indBasVrtx )
+									{
+
+										if(    ( m_aaVrtVecVol[sv] )[iv0]
+											&& ( m_aaVrtVecVol[sv] )[iv1]
+											&& ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+											expVol = *m_grid.create<Pyramid>(
+															PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+																(m_aaVrtVecVol[sv])[iv1],
+																(m_aaVrtVecVol[sv])[iv0],
+																( m_aaVrtVecVol[sv] )[iv2]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+										}
+
+	//									else if(    ( m_aaVrtVecVol[sv] )[iv0]
+	//										&& ( m_aaVrtVecVol[sv] )[iv1]
+	//									)
+	//									{
+	//
+	//									}
+										else if(    ( m_aaVrtVecVol[sv] )[iv1]
+											     && ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(( m_aaVrtVecVol[sv] )[iv2], sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv1]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor( sv->vertex(iv1) , sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+											     && ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), ( m_aaVrtVecVol[sv] )[iv0],
+																				 (m_aaVrtVecVol[sv])[iv2]));
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+										} //
+										else if( ( m_aaVrtVecVol[sv] )[iv2]
+										)
+										{
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor( sv->vertex(iv1) , sv->vertex(iv1), sv->vertex(iv0),
+																				 (m_aaVrtVecVol[sv])[iv2]));
+										}
+
+
+
+									}
+#endif
+								}
+
+
+								std::vector<Face*> const & closedNotNeighbr = ecfsi.spuckVecClosedFracManifElNoNeighbr();
+
+								for( Face * fac : closedNotNeighbr )
+								{
+									if( fac == tFace )
+									{
+										if( iv0 == indBasVrtx )
+										{
+
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+
+//												expVol = *m_grid.create<Tetrahedron>(
+//																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+//																					 (m_aaVrtVecVol[sv])[iv0]));
+//
+//												expVolTwo = *m_grid.create<Pyramid>(
+//																PyramidDescriptor(sv->vertex(iv1), sv->vertex(iv2),
+//																	(m_aaVrtVecVol[sv])[iv2],
+//																	(m_aaVrtVecVol[sv])[iv1],
+//																	( m_aaVrtVecVol[sv] )[iv0]));
+
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor( ( m_aaVrtVecVol[sv] )[iv2],
+																					   ( m_aaVrtVecVol[sv] )[iv1],
+																					   ( m_aaVrtVecVol[sv] )[iv0],
+																					   sv->vertex(iv0)
+																					 )
+																					 );
+
+												expVolTwo = *m_grid.create<Pyramid>(
+																PyramidDescriptor( sv->vertex(iv1), sv->vertex(iv2),
+																				   (m_aaVrtVecVol[sv])[iv2],
+																				   (m_aaVrtVecVol[sv])[iv1],
+																				   sv->vertex(iv0)
+																));
+
+
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+												     && ( m_aaVrtVecVol[sv] )[iv1]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv1]));
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv0), ( m_aaVrtVecVol[sv] )[iv0],
+																					 (m_aaVrtVecVol[sv])[iv1]));
+
+											}
+//											else if(    ( m_aaVrtVecVol[sv] )[iv1]
+//												&& ( m_aaVrtVecVol[sv] )[iv2]
+//											)
+//											{
+//
+//											}
+//												&& ( m_aaVrtVecVol[sv] )[iv2]
+//											)
+//											{
+//
+//											}
+											else if( ( m_aaVrtVecVol[sv] )[iv0] )
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+
+
+											}
+
+
+
+
+										}
+
+										if( iv1 == indBasVrtx )
+										{
+
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor( (m_aaVrtVecVol[sv])[iv2], (m_aaVrtVecVol[sv])[iv1], (m_aaVrtVecVol[sv])[iv0],
+																						sv->vertex(iv1)
+																					 )
+																					);
+
+												expVolTwo = *m_grid.create<Pyramid>(
+																PyramidDescriptor(sv->vertex(iv2), sv->vertex(iv0),
+																	(m_aaVrtVecVol[sv])[iv0],
+																	(m_aaVrtVecVol[sv])[iv2],
+																	sv->vertex(iv1)
+																));
+
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+													 && ( m_aaVrtVecVol[sv] )[iv1]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv1], ( m_aaVrtVecVol[sv] )[iv0],
+																					 sv->vertex(iv1)));
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv1]
+												     && ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv2]));
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv1], sv->vertex(iv0),
+																					 sv->vertex(iv1)));
+
+											}
+//											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+//												&& ( m_aaVrtVecVol[sv] )[iv2]
+//											)
+//											{
+//
+//											}
+											else if( ( m_aaVrtVecVol[sv] )[iv1] )
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv1]));
+
+											}
+
+
+										}
+
+										if( iv2 == indBasVrtx )
+										{
+											if(    ( m_aaVrtVecVol[sv] )[iv0]
+												&& ( m_aaVrtVecVol[sv] )[iv1]
+												&& ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), ( m_aaVrtVecVol[sv] )[iv1], ( m_aaVrtVecVol[sv] )[iv0],
+																					 (m_aaVrtVecVol[sv])[iv2]));
+
+												expVolTwo = *m_grid.create<Pyramid>(
+																PyramidDescriptor(sv->vertex(iv0), sv->vertex(iv1),
+																	(m_aaVrtVecVol[sv])[iv1],
+																	(m_aaVrtVecVol[sv])[iv0],
+																	sv->vertex(iv2) ));
+
+											}
+	//										else if(    ( m_aaVrtVecVol[sv] )[iv0]
+	//											&& ( m_aaVrtVecVol[sv] )[iv1]
+	//										)
+	//										{
+	//
+	//										}
+											else if(    ( m_aaVrtVecVol[sv] )[iv1]
+													 && ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv1]));
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor( (m_aaVrtVecVol[sv])[iv2], (m_aaVrtVecVol[sv])[iv1], sv->vertex(iv0),
+																					 sv->vertex(iv2) ));
+
+											}
+											else if(    ( m_aaVrtVecVol[sv] )[iv0]
+												     && ( m_aaVrtVecVol[sv] )[iv2]
+											)
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv0]));
+
+												expVolTwo = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor( ( m_aaVrtVecVol[sv] )[iv2], sv->vertex(iv1), sv->vertex(iv0),
+																					    sv->vertex(iv2) ));
+
+											}	//
+											else if( ( m_aaVrtVecVol[sv] )[iv2] )
+											{
+												expVol = *m_grid.create<Tetrahedron>(
+																TetrahedronDescriptor(sv->vertex(iv2), sv->vertex(iv1), sv->vertex(iv0),
+																					 (m_aaVrtVecVol[sv])[iv2]));
+
+
+											}
+
+										}
+
+									}
+								}
+							}
+
+
+						}
+						else
+						{
+							//	traditionally only tetrahedrons are supported. This section thus raises an error
+							// Markus tries to implement also Hexahedra
+		//									grid.detach_from_vertices(aVrtVec);
+		//								grid.detach_from_volumes(aVrtVec);
+		//							grid.detach_from_vertices(aAdjMarker);
+		//							grid.detach_from_edges(aAdjMarker);
+							detachMarkers();
+							throw(UGError("Incomplete implementation error in ExpandFractures3d Arte ending crossing clefts."));
+							return false;
+						}
+
+						UG_LOG("EXP VOL IS " << expVolCreated << std::endl);
+
+						if( expVolECC )
+						{
+							UG_LOG("adding subset ecc exp Vol ECC" << std::endl);
+							subsOfNewVolumes.push_back(subsetECC);
+							m_sh.assign_subset(expVolECC, subsetECC);
+							newFractureVolumes.push_back(expVolECC);
+						}
+
+						if( expVolCreated )
+						{
+							UG_LOG("EXP VOL REALLY CREATED " << std::endl);
+
+							if( expVolECC )
+							{
+								UG_LOG("adding subset ecc exp Vol ECC" << std::endl);
+								subsOfNewVolumes.push_back(subsetECC);
+								m_sh.assign_subset(expVolECC, subsetECC);
+								newFractureVolumes.push_back(expVolECC);
+							}
+							else
+							{
+								UG_LOG("EXP VOL CREATED BUT NULL" << std::endl);
+								return false;
+							}
+						}
+
+						if(expVol)
+						{
+							UG_LOG("exp vol is existing" << std::endl);
+
+							IndexType newSubs = m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex;
+
+							subsOfNewVolumes.push_back( newSubs );
+
+							m_sh.assign_subset(expVol, newSubs);
+
+							newFractureVolumes.push_back(expVol);
+						}
+
+						if(expVolTwo)
+						{
+
+							IndexType newSubs = m_fracInfosBySubset.at(m_sh.get_subset_index(tFace)).newSubsetIndex;
+
+							subsOfNewVolumes.push_back( newSubs );
+
+							m_sh.assign_subset(expVolTwo, newSubs);
+
+							newFractureVolumes.push_back(expVolTwo);
+						}
+
+					}
+				}
+			}
+		}
+	}
+
+
+	return true;
+}
+
+
+
+//////////////////////////////////////////////////////////////
 
 bool ArteExpandFracs3D::createTheDiamonds()
 {

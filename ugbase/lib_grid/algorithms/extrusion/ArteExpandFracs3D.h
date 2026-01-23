@@ -487,7 +487,12 @@ private:
 
 	std::vector<Vertex*> m_vrtxArisesFromExpandedEndingCrossingCleft;
 
+	// first attempt working but not perfect
 	bool etablishVolumesAtEndingCrossingClefts( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes );
+
+	// second attempt, should be nearly perfect
+	bool etablishVolumesAtEndingCrossingFractures( std::vector<Volume*> & newFractureVolumes, std::vector<IndexType> & subsOfNewVolumes );
+
 
 	IndexType deleteEndingCrossingCleftOrigFacs();
 
