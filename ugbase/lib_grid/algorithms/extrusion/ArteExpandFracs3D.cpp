@@ -9554,17 +9554,17 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 								if( sv->vertex(vrtxInd) == secondVrtxCutEdge )
 									indSecondVrtx = vrtxInd;
 
-								if( indBasVrtx != vrtxInd && indSecondVrtx != vrtxInd )
-								{
-									for( IndexType vrtOnFac = 0; vrtOnFac < tFace->num_vertices(); vrtOnFac++)
-									{
-										if( tFace->vertex(vrtOnFac) == sv->vertex(vrtxInd) )
-										{
-											indExtVrtx = vrtxInd;
-										}
-									}
-
-								}
+//								if( indBasVrtx != vrtxInd && indSecondVrtx != vrtxInd )
+//								{
+//									for( IndexType vrtOnFac = 0; vrtOnFac < tFace->num_vertices(); vrtOnFac++)
+//									{
+//										if( tFace->vertex(vrtOnFac) == sv->vertex(vrtxInd) )
+//										{
+//											indExtVrtx = vrtxInd;
+//										}
+//									}
+//
+//								}
 							}
 
 //							if( iv0 == indBasVrtx && iv1 == indSecondVrtx )
@@ -10045,6 +10045,23 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 									// relate iv0, iv1, iv2 to vrtxNotFromCutEdge, base
 
+									for( IndexType vrtxInd = 0; vrtxInd < sv->num_vertices(); vrtxInd++ )
+									{
+
+										if( indBasVrtx != vrtxInd && indSecondVrtx != vrtxInd )
+										{
+											for( IndexType vrtOnFac = 0; vrtOnFac < tFace->num_vertices(); vrtOnFac++)
+											{
+												if( tFace->vertex(vrtOnFac) == sv->vertex(vrtxInd) )
+												{
+													indExtVrtx = vrtxInd;
+												}
+											}
+
+										}
+									}
+
+
 									if( indExtVrtx < 0 || indBasVrtx < 0 || indSecondVrtx < 0 )
 									{
 										UG_LOG("vertex indices not existent " << indExtVrtx << " " << indBasVrtx << " " << indSecondVrtx << std::endl);
@@ -10415,6 +10432,104 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 								{
 									if( fac == tFace )
 									{
+										// TODO FIXME HIER das vereinfachen!!!! null basis, eins und zwei Rest, selbst mit falscher Orientierung
+
+										IndexType indOne = -1;
+										IndexType indTwo = -1;
+
+										if( iv0 == indBasVrtx )
+										{
+											indOne = iv1;
+											indTwo = iv2;
+										}
+										else if( iv1 == indBasVrtx )
+										{
+											indOne = iv0;
+											indTwo = iv2;
+										}
+										else if( iv2 == indBasVrtx )
+										{
+											indOne = iv0;
+											indTwo = iv1;
+										}
+										else
+										{
+											UG_LOG("no index found for one and two " << std::endl);
+											return false;
+										}
+
+										if(    ( m_aaVrtVecVol[sv] )[indBasVrtx]
+											&& ( m_aaVrtVecVol[sv] )[indOne]
+											&& ( m_aaVrtVecVol[sv] )[indTwo]
+										)
+										{
+
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor( ( m_aaVrtVecVol[sv] )[indTwo],
+																				   ( m_aaVrtVecVol[sv] )[indOne],
+																				   ( m_aaVrtVecVol[sv] )[indBasVrtx],
+																				   sv->vertex(indBasVrtx)
+																				 )
+																				 );
+
+											expVolTwo = *m_grid.create<Pyramid>(
+															PyramidDescriptor( sv->vertex(indOne), sv->vertex(indTwo),
+																			   (m_aaVrtVecVol[sv])[indTwo],
+																			   (m_aaVrtVecVol[sv])[indOne],
+																			   sv->vertex(indBasVrtx)
+															));
+
+
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[indBasVrtx]
+											     && ( m_aaVrtVecVol[sv] )[indOne]
+										)
+										{
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor( sv->vertex(indTwo),
+																				   ( m_aaVrtVecVol[sv] )[indOne],
+																				   ( m_aaVrtVecVol[sv] )[indBasVrtx],
+																				   sv->vertex(indBasVrtx)
+																				 )
+																				 );
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor( sv->vertex(indOne), sv->vertex(indTwo),
+																			   (m_aaVrtVecVol[sv])[indOne],
+																			   sv->vertex(indBasVrtx)
+															));
+
+										}
+										else if(    ( m_aaVrtVecVol[sv] )[indBasVrtx]
+											     && ( m_aaVrtVecVol[sv] )[indTwo]
+										)
+										{
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor( ( m_aaVrtVecVol[sv] )[indTwo],
+																				   	sv->vertex(indOne),
+																				   ( m_aaVrtVecVol[sv] )[indBasVrtx],
+																				   sv->vertex(indBasVrtx)
+																				 )
+																				 );
+
+											expVolTwo = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor( sv->vertex(indOne), sv->vertex(indTwo),
+																			   (m_aaVrtVecVol[sv])[indTwo],
+																			   sv->vertex(indBasVrtx)
+															));
+
+										}
+										else if( ( m_aaVrtVecVol[sv] )[indBasVrtx] )
+										{
+											expVol = *m_grid.create<Tetrahedron>(
+															TetrahedronDescriptor(sv->vertex(indTwo), sv->vertex(indOne), sv->vertex(indBasVrtx),
+																				 (m_aaVrtVecVol[sv])[indBasVrtx]));
+
+
+										}
+
+// START WEG
+#if 0
 										if( iv0 == indBasVrtx )
 										{
 
@@ -10615,6 +10730,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 											}
 
 										}
+#endif
 
 									}
 								}
