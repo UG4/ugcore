@@ -40,8 +40,11 @@ public:
 
 	using VrtxPair = std::pair<Vertex*,Vertex*>;
 
+	using SideDiamElemsDirectCreated = diamonds::SideElemsOfDiamsCreatedDirectly<Volume*, IndexType>;
 
-	DiamondsEstablish3D( Grid & grid, SubsetHandler & sh, VecVolManifVrtxCombi const & vecVolManifVrtxC );
+	using VecSideDiamElemsDirectCreated = std::vector<SideDiamElemsDirectCreated>;
+
+	DiamondsEstablish3D( Grid & grid, SubsetHandler & sh, VecVolManifVrtxCombi const & vecVolManifVrtxC, VecSideDiamElemsDirectCreated const & vecSidDiamElmDirect );
 
 	virtual ~DiamondsEstablish3D();
 
@@ -277,6 +280,15 @@ private:
 
 	bool determineCutPtAtEdge( Edge * const & edg );
 
+	VecSideDiamElemsDirectCreated m_vecSideDiamElmsDirectCreate;
+
+	bool exemptDirectCreatedElemsFromRemove();
+
+	ABool m_attEdgIsDirectCreatedEdge;
+	Grid::EdgeAttachmentAccessor<ABool> m_attAccsEdgIsDirectCreatedEdge;
+
+	ABool m_attFacIsDirectCreatedFac;
+	Grid::FaceAttachmentAccessor<ABool> m_attAccsFacIsDirectCreatedFac;
 };
 
 } /* namespace diamonds */

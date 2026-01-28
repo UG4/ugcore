@@ -34,6 +34,34 @@ namespace diamonds
 
 ///////////////////////////////////////////
 
+template
+<
+typename FULLDIMELM,
+typename INDEXTYP
+>
+class SideElemsOfDiamsCreatedDirectly
+{
+public:
+
+	SideElemsOfDiamsCreatedDirectly( FULLDIMELM const & fudielm, INDEXTYP subsEnd, INDEXTYP subsNotEnd )
+	: m_fulldimElm(fudielm), m_subsEnding(subsEnd), m_subsNotEnding(subsNotEnd)
+	{}
+
+	FULLDIMELM spuckFulldimElm() { return m_fulldimElm; }
+
+	INDEXTYP spuckSubsEnding() { return m_subsEnding; }
+
+	INDEXTYP spuckSubsNotEnding() { return m_subsNotEnding; }
+
+private:
+
+	FULLDIMELM m_fulldimElm;
+	INDEXTYP m_subsEnding, m_subsNotEnding;
+};
+
+////////////////////////////////////////////////////////
+
+
 ////////////////////////////////////////////////////////////////
 
 template <
@@ -1138,6 +1166,7 @@ private:
 
 
 ////////////////////////////////////////////////////////
+
 
 
 } // end of namespace diamonds

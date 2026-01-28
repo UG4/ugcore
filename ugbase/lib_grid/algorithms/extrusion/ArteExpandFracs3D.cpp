@@ -142,7 +142,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_allowedSqueeze(0.9),
 	  m_vrtcsViolatingExpansion(std::vector<Vertex*>()),
 	  m_volsViolatingExpansion(std::vector<Volume*>()),
-	  m_vecVolManifVrtxCombiToShrink4Diams(VecVolManifVrtxCombi())
+	  m_vecVolManifVrtxCombiToShrink4Diams(VecVolManifVrtxCombi()),
+	  m_vecSideDiamElmsDirectCreate(VecSideDiamElemsDirectCreated())
 //	  m_diamInfos3D(std::vector<DiamantInfo3D>()),
 //	  m_oldNewVrtcs4Diams(std::vector<VrtxPair>())
 {
@@ -7866,9 +7867,16 @@ bool ArteExpandFracs3D::createNewElements()
 
 						// check if contains a crossing point
 
+						if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, tFace, newSubs ) )
+						{
+							UG_LOG("adding to shrink standard case did not work " << std::endl);
+							return false;
+						}
+
+
+#if 0
 						IndexType constexpr maxVolVrtxNum = 3;  // restricts algo to tetrahedral based grids
 
-#if 1
 //						std::vector<VrtxPair> oldShiftVrtcs;
 
 						for( auto const & crossVrtx : m_vrtcsCrossingPts )
@@ -7898,51 +7906,54 @@ bool ArteExpandFracs3D::createNewElements()
 //						{
 //						}
 
-#else
+//#else
 
-						bool containsCrossVrtx = false;
 
-						for( auto const & crossVrtx : m_vrtcsCrossingPts )
-						{
-							for( IndexType i = 0; i < maxVolVrtxNum; i++ )
-							{
-								IndexType iv = locVrtInds[i];
-								Vertex * oldVrt = sv->vertex(iv);
 
-								if( oldVrt == crossVrtx )
-								{
-									containsCrossVrtx = true;
-									break;
-								}
-							}
-
-							if( containsCrossVrtx )
-								break;
-						}
-
-						if( containsCrossVrtx )
-						{
-							std::vector<VrtxPair> oldShiftVrtcs;
-
-							for( IndexType i = 0; i < maxVolVrtxNum; i++ )
-							{
-								IndexType iv = locVrtInds[i];
-
-								Vertex * shiVrt = ( m_aaVrtVecVol[sv] )[iv];
-
-								if( shiVrt )
-								{
-									Vertex * oldVrt = sv->vertex(iv);
-									VrtxPair cv( oldVrt, shiVrt );
-									oldShiftVrtcs.push_back(cv);
-								}
-							}
-
-							VolManifVrtxCombi vmvc( expVol, tFace, oldShiftVrtcs, newSubs );
-
-							m_vecVolManifVrtxCombiToShrink4Diams.push_back(vmvc);
-						}
-
+//
+//						bool containsCrossVrtx = false;
+//
+//						for( auto const & crossVrtx : m_vrtcsCrossingPts )
+//						{
+//							for( IndexType i = 0; i < maxVolVrtxNum; i++ )
+//							{
+//								IndexType iv = locVrtInds[i];
+//								Vertex * oldVrt = sv->vertex(iv);
+//
+//								if( oldVrt == crossVrtx )
+//								{
+//									containsCrossVrtx = true;
+//									break;
+//								}
+//							}
+//
+//							if( containsCrossVrtx )
+//								break;
+//						}
+//
+//						if( containsCrossVrtx )
+//						{
+//							std::vector<VrtxPair> oldShiftVrtcs;
+//
+//							for( IndexType i = 0; i < maxVolVrtxNum; i++ )
+//							{
+//								IndexType iv = locVrtInds[i];
+//
+//								Vertex * shiVrt = ( m_aaVrtVecVol[sv] )[iv];
+//
+//								if( shiVrt )
+//								{
+//									Vertex * oldVrt = sv->vertex(iv);
+//									VrtxPair cv( oldVrt, shiVrt );
+//									oldShiftVrtcs.push_back(cv);
+//								}
+//							}
+//
+//							VolManifVrtxCombi vmvc( expVol, tFace, oldShiftVrtcs, newSubs );
+//
+//							m_vecVolManifVrtxCombiToShrink4Diams.push_back(vmvc);
+//						}
+//
 #endif
 
 					}
@@ -9408,6 +9419,12 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 		IndexType subsNewFacesEdgesC = m_sh.get_subset_index(replaceEndingFractCutFac);
 
+		if( subsNewFacesEdgesC != subsetECC )
+		{
+			UG_LOG("strange face subsets, stopping, ueberfluessige Indizes eingefuehrt" << std::endl);
+			return false;
+		}
+
 		UG_LOG("EDGE NUMBER CCS CC " << replaceEndingFractCutFac->num_edges() << std::endl);
 
 		for(size_t iEdge = 0; iEdge < replaceEndingFractCutFac->num_edges(); ++iEdge)
@@ -9624,6 +9641,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 								if( iv0 == indBasVrtx )
 								{
+
 									if(    ( m_aaVrtVecVol[sv] )[iv0]
 										&& ( m_aaVrtVecVol[sv] )[iv1]
 										&& ( m_aaVrtVecVol[sv] )[iv2]
@@ -10230,7 +10248,6 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 										}
 										else if( iv2 == indSecondVrtx )
 										{
-											// HIER GEHT ES WEITER
 
 											if(    ( m_aaVrtVecVol[sv] )[iv0]
 												&& ( m_aaVrtVecVol[sv] )[iv1]
@@ -10432,7 +10449,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 								{
 									if( fac == tFace )
 									{
-										// TODO FIXME HIER das vereinfachen!!!! null basis, eins und zwei Rest, selbst mit falscher Orientierung
+										// null basis, eins und zwei Rest, selbst mit falscher Orientierung
 
 										IndexType indOne = -1;
 										IndexType indTwo = -1;
@@ -10753,12 +10770,24 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 						UG_LOG("EXP VOL IS " << expVolCreated << std::endl);
 
+
 						if( expVolECC )
 						{
 							UG_LOG("adding subset ecc exp Vol ECC" << std::endl);
 							subsOfNewVolumes.push_back(subsetECC);
 							m_sh.assign_subset(expVolECC, subsetECC);
 							newFractureVolumes.push_back(expVolECC);
+
+//							if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolECC, tFace, subsetECC) )
+//							{
+//								UG_LOG("adding to shrink subs ecc did not work " << std::endl);
+//								return false;
+//							}
+
+							// NOCH ZU DEN DIAMANTEN INFOS DAZU HÄNGEN
+							SideDiamElemsDirectCreated sidiel( expVolECC, subsetECC, ecfsi.spuckSudoFractNotEnding() );
+
+							m_vecSideDiamElmsDirectCreate.push_back(sidiel);
 						}
 
 						if( expVolCreated )
@@ -10790,6 +10819,27 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 							m_sh.assign_subset(expVol, newSubs);
 
 							newFractureVolumes.push_back(expVol);
+
+							Face * face2Remember4Diam = tFace;
+
+							// hier Unterscheidung, wenn Face zerschnitten worden ist
+
+							for( IndexType iFac = 0; iFac < expVol->num_faces(); iFac++)
+							{
+								Face * fac = m_grid.get_side(expVol, iFac);
+
+								if( checkIfFacesVerticesCoincide( replaceEndingFractCutFac, fac ) )
+								{
+									face2Remember4Diam = fac;
+								}
+							}
+
+
+							if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, face2Remember4Diam, newSubs ) )
+							{
+								UG_LOG("adding exp vol for ecc did not work  " << std::endl);
+								return false;
+							}
 						}
 
 						if(expVolTwo)
@@ -10802,6 +10852,12 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 							m_sh.assign_subset(expVolTwo, newSubs);
 
 							newFractureVolumes.push_back(expVolTwo);
+
+//							if( ! addNewVol2Shrink4Diams(locVrtInds,sv, expVolTwo, tFace, newSubs) )
+//							{
+//								UG_LOG("adding exp vol two ecc did not work " << std::endl);
+//								return false;
+//							}
 						}
 
 					}
@@ -10814,13 +10870,55 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 	return true;
 }
 
+/////////////////////////////////////////////////////////////////
+
+bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVrtInds, Volume * const & oldVol, Volume * const & newVol, Face * const & fac, IndexType subs)
+{
+	IndexType constexpr maxFacVrtxNum = 3;  // restricts algo to triangular based fractures
+
+	for( auto const & crossVrtx : m_vrtcsCrossingPts )
+	{
+		//		for( IndexType i = 0; i < maxVolVrtxNum; i++ )
+		for( IndexType i = 0; i < maxFacVrtxNum; i++ )
+		{
+			IndexType iv = locVrtInds[i];
+			Vertex * oldVrt = oldVol->vertex(iv);
+
+			if( oldVrt == crossVrtx )
+			{
+				Vertex * shiVrt = ( m_aaVrtVecVol[oldVol] )[iv];
+
+				if( shiVrt )
+				{
+//					Vertex * oldVrt = oldVol->vertex(iv);
+					VrtxPair osv( oldVrt, shiVrt );
+					VolManifVrtxCombi vmvc( newVol, fac, osv, subs );
+
+					if( ! vmvc.checkIntegrity(m_grid))
+					{
+						UG_LOG("combi to shrink not integer" << std::endl);
+						m_sh.assign_subset(oldVol, m_sh.num_subsets());
+						m_sh.assign_subset(oldVol, m_sh.num_subsets());
+						m_sh.assign_subset(newVol, m_sh.num_subsets());
+						return false;
+					}
+
+					m_vecVolManifVrtxCombiToShrink4Diams.push_back(vmvc);
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
 
 
 //////////////////////////////////////////////////////////////
 
 bool ArteExpandFracs3D::createTheDiamonds()
 {
-	diamonds::DiamondsEstablish3D establishDiams( m_grid, m_sh, m_vecVolManifVrtxCombiToShrink4Diams );
+	diamonds::DiamondsEstablish3D establishDiams( m_grid, m_sh, m_vecVolManifVrtxCombiToShrink4Diams, m_vecSideDiamElmsDirectCreate );
 
 	UG_LOG("Establishing diamonds" << std::endl);
 

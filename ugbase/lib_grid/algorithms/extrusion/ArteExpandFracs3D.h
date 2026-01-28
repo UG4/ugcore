@@ -527,6 +527,14 @@ private:
 	std::vector<Vertex*> m_vrtcsCrossingPts;
 
 	bool createTheDiamonds();
+
+	bool addNewVol2Shrink4Diams( std::vector<size_t> const & locVrtInds, Volume * const & oldVol, Volume * const & newVol, Face * const & fac, IndexType subs );
+
+	using SideDiamElemsDirectCreated = diamonds::SideElemsOfDiamsCreatedDirectly<Volume*, IndexType>;
+
+	using VecSideDiamElemsDirectCreated = std::vector<SideDiamElemsDirectCreated>;
+
+	VecSideDiamElemsDirectCreated m_vecSideDiamElmsDirectCreate;
 };
 
 // specification has to be declared outside central class context, else compilation error

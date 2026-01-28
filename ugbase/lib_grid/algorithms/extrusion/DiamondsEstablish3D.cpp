@@ -19,7 +19,8 @@ namespace diamonds
 
 DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 										  SubsetHandler & sh,
-										  DiamondsEstablish3D::VecVolManifVrtxCombi const & vecVolManifVrtxC
+										  DiamondsEstablish3D::VecVolManifVrtxCombi const & vecVolManifVrtxC,
+										  DiamondsEstablish3D::VecSideDiamElemsDirectCreated const & vecSidDiamElmDirect
 										 )
 		:
 			m_grid(grid),
@@ -77,7 +78,12 @@ DiamondsEstablish3D::DiamondsEstablish3D( Grid & grid,
 			m_attAccsCentersCutPts(Grid::EdgeAttachmentAccessor<AttVec3Vec>()),
 //			m_edgesCut4Diams(std::vector<Edge*>()),
 			m_attDiamCentrVrtx(AVertex()),
-			m_attAccsDiamCentrVrtx(Grid::EdgeAttachmentAccessor<AVertex>())
+			m_attAccsDiamCentrVrtx(Grid::EdgeAttachmentAccessor<AVertex>()),
+			m_vecSideDiamElmsDirectCreate(vecSidDiamElmDirect),
+			m_attEdgIsDirectCreatedEdge(ABool()),
+			m_attAccsEdgIsDirectCreatedEdge( Grid::EdgeAttachmentAccessor<ABool>() ),
+			m_attFacIsDirectCreatedFac(ABool()),
+			m_attAccsFacIsDirectCreatedFac(Grid::FaceAttachmentAccessor<ABool>())
 {
 	//	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 		m_sel = Selector();
@@ -252,6 +258,14 @@ bool DiamondsEstablish3D::createTheDiamonds( bool diamondsOnlyPreform )
 		return false;
 	}
 
+	UG_LOG("exepting direct created elems" << std::endl);
+
+	if( ! exemptDirectCreatedElemsFromRemove() )
+	{
+		UG_LOG("exepting not possible" << std::endl);
+		return false;
+	}
+
 	UG_LOG("shrink volumes " << std::endl);
 
 	if( ! shrinkVolumes())
@@ -413,7 +427,11 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 					PairVolFacVrtxCmb prVolFacVrtxC( outer, inner );
 					VolumeElementFaceQuintuplet vef5;
 
-					trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( prVolFacVrtxC, vef5 );
+					if( ! trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( prVolFacVrtxC, vef5 ) )
+					{
+						UG_LOG("twin found but trafo did not work" << std::endl);
+						return false;
+					}
 
 					if( ! vef5.checkIntegrity() )
 					{
@@ -1071,6 +1089,16 @@ bool DiamondsEstablish3D::attachMarkers()
 
 	m_attAccsDiamCentrVrtx = Grid::EdgeAttachmentAccessor<AVertex>( m_grid, m_attDiamCentrVrtx);
 
+	m_attEdgIsDirectCreatedEdge = ABool();
+	m_grid.attach_to_edges_dv(m_attEdgIsDirectCreatedEdge, false);
+
+	m_attAccsEdgIsDirectCreatedEdge = Grid::EdgeAttachmentAccessor<ABool>( m_grid, m_attEdgIsDirectCreatedEdge);
+
+	m_attFacIsDirectCreatedFac = ABool();
+	m_grid.attach_to_faces_dv(m_attFacIsDirectCreatedFac, false);
+	m_attAccsFacIsDirectCreatedFac = Grid::FaceAttachmentAccessor<ABool>(m_grid, m_attFacIsDirectCreatedFac);
+
+
 	return true;
 }
 
@@ -1114,6 +1142,10 @@ bool DiamondsEstablish3D::detachMarkers()
 
 	m_grid.detach_from_edges(m_attDiamCentrVrtx);
 
+	m_grid.detach_from_edges(m_attEdgIsDirectCreatedEdge);
+
+	m_grid.detach_from_faces(m_attFacIsDirectCreatedFac);
+
 	return true;
 }
 
@@ -1141,6 +1173,16 @@ bool DiamondsEstablish3D::assignBasicAtts()
 		bool sudoAlreadyKnown = generateNewDiamSudos(centerVrtx, sudoList);
 
 	}
+
+//	for(VolumeIterator iterSurrVol = m_sel.volumes_begin(); iterSurrVol != m_sel.volumes_end(); iterSurrVol++ )
+//	{
+//		Volume * sv = *iterSurrVol;
+//
+//		m_sh.assign_subset(sv, m_sh.num_subsets());
+//
+//	}
+//
+//	return false;
 
 	return true;
 }
@@ -1433,6 +1475,9 @@ bool DiamondsEstablish3D::distributeInfosForShrinkingVols()
 				vetOne.spuckFullDimElem(volOne);
 				vetTwo.spuckFullDimElem(volTwo);
 
+//				m_sh.assign_subset(volOne, m_sh.num_subsets());
+//				m_sh.assign_subset(volTwo, m_sh.num_subsets());
+
 				if( !teachMidVrtx2Vol(volOne, centerVrtx, newMidVrtx) || ! teachMidVrtx2Vol(volTwo,centerVrtx,newMidVrtx) )
 				{
 					UG_LOG("not taughtable" << std::endl);
@@ -1443,6 +1488,8 @@ bool DiamondsEstablish3D::distributeInfosForShrinkingVols()
 	}
 
 	// TODO FIXME FACES detektieren, die verschoben werden müssen!!!
+
+//	return false;
 
 	return true;
 }
@@ -1818,7 +1865,10 @@ bool DiamondsEstablish3D::shrinkVolumes()
 				vd.set_vertex(i_vrt, sv->vertex(i_vrt));
 		}
 
+//		m_sh.assign_subset(sv,m_sh.num_subsets());
+
 		m_grid.create_by_cloning(sv, vd, sv);
+
 		m_grid.erase(sv);
 
 	}
@@ -1829,13 +1879,23 @@ bool DiamondsEstablish3D::shrinkVolumes()
 //	}
 
 	UG_LOG("Volumes erzeugt " << std::endl);
+#if 1
+
+	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
+	{
+		Face* fac = *iter;
+		++iter;
+
+		if( ! m_attAccsFacIsShiftFac[fac] && ! m_attAccsFacIsDirectCreatedFac[fac] )
+			m_grid.erase(fac);
+	}
 
 	for( EdgeIterator itEdg = m_sel.begin<Edge>(); itEdg != m_sel.end<Edge>(); )
 	{
 		Edge * edg = *itEdg;
 		itEdg++;
 
-		if( m_attAccsEdgeCanBeRemoved[edg] )
+		if( m_attAccsEdgeCanBeRemoved[edg] && ! m_attAccsEdgIsDirectCreatedEdge[edg] )
 		{
 			m_grid.erase(edg);
 		}
@@ -1843,15 +1903,7 @@ bool DiamondsEstablish3D::shrinkVolumes()
 
 	UG_LOG("unnoetige Ecken entfernt " << std::endl);
 
-	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
-	{
-		Face* fac = *iter;
-		++iter;
-
-		if( ! m_attAccsFacIsShiftFac[fac] )
-			m_grid.erase(fac);
-	}
-
+#endif
 	UG_LOG("Gesichter entfernt " << std::endl);
 
 
@@ -2610,6 +2662,56 @@ bool DiamondsEstablish3D::splitThreeCrossLargeDiams( CombiNewVolsProps & combiNe
 
 
 ///////////////////////////////////////////////////////////////////////////////////
+
+bool DiamondsEstablish3D::exemptDirectCreatedElemsFromRemove()
+{
+	UG_LOG("size of side elements " << m_vecSideDiamElmsDirectCreate.size() << std::endl);
+
+	IndexType d_s = 0;
+
+	for( SideDiamElemsDirectCreated & sedcd : m_vecSideDiamElmsDirectCreate )
+	{
+//		UG_LOG("side elems treat " << d_s << std::endl);
+
+		Volume * vol2Save = sedcd.spuckFulldimElm();
+
+		if( vol2Save )
+		{
+
+			for( IndexType indFac = 0; indFac < vol2Save->num_faces(); indFac++ )
+			{
+//				UG_LOG("ifa" << indFac << std::endl)
+
+				Face * fac = m_grid.get_side(vol2Save, indFac);
+
+				m_attAccsFacIsDirectCreatedFac[fac] = true;
+			}
+
+			for( IndexType indEdg = 0; indEdg < vol2Save->num_edges(); indEdg++ )
+			{
+//				UG_LOG("ied" << indEdg << std::endl)
+
+				Edge * edg = m_grid.get_edge(vol2Save, indEdg);
+				m_attAccsEdgIsDirectCreatedEdge[edg] = true;
+			}
+		}
+		else
+		{
+			UG_LOG("NO VOL SIDE " << std::endl);
+			return false;
+		}
+
+//		UG_LOG("side elems treatED " << d_s << std::endl);
+		d_s++;
+
+
+	}
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+
 
 
 } /* namespace diamonds */
