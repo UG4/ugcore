@@ -2740,6 +2740,64 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
+template<typename IndexType>
+bool collectFaceVertices( std::vector<Vertex*> & facVrt, Face * const & fac )
+{
+	if( fac == nullptr )
+		return false;
+
+	facVrt.clear();
+
+	for( IndexType iF = 0; iF < fac->num_vertices(); iF++ )
+	{
+		Vertex * vrt = fac->vertex(iF);
+
+		facVrt.push_back( vrt );
+	}
+
+	return true;
+}
+
+
+template
+<typename IndexType>
+bool checkIfFacesVerticesCoincide( Face * const & facOne, Face * const & facTwo )
+{
+
+	if( facOne->size() != facTwo->size() )
+		return false;
+
+	std::vector<Vertex* > facOneVrtcs, facTwoVrtcs;
+
+	collectFaceVertices<IndexType>( facOneVrtcs, facOne );
+	collectFaceVertices<IndexType>( facTwoVrtcs, facTwo );
+
+	for( auto const & vrtOne : facOneVrtcs )
+	{
+		bool found = false;
+
+		IndexType numFd = 0;
+
+		for( auto const & vrtTwo : facTwoVrtcs )
+		{
+			if( vrtOne == vrtTwo )
+			{
+				found = true;
+				numFd++;
+			}
+		}
+
+		if( ! found || numFd != 1 )
+			return false;
+	}
+
+	return true;
+}
+
+
+////////////////////////////////////////////////////////
+
+
 }
 
 }

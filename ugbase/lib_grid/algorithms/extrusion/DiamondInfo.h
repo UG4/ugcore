@@ -37,17 +37,20 @@ namespace diamonds
 template
 <
 typename FULLDIMELM,
+typename VERTEXTYP,
 typename INDEXTYP
 >
 class SideElemsOfDiamsCreatedDirectly
 {
 public:
 
-	SideElemsOfDiamsCreatedDirectly( FULLDIMELM const & fudielm, INDEXTYP subsEnd, INDEXTYP subsNotEnd )
-	: m_fulldimElm(fudielm), m_subsEnding(subsEnd), m_subsNotEnding(subsNotEnd)
+	SideElemsOfDiamsCreatedDirectly( FULLDIMELM const & fudielm, VERTEXTYP const & connectVrtx, INDEXTYP subsEnd, INDEXTYP subsNotEnd )
+	: m_fulldimElm(fudielm), m_connectVrtx(connectVrtx), m_subsEnding(subsEnd), m_subsNotEnding(subsNotEnd)
 	{}
 
 	FULLDIMELM spuckFulldimElm() { return m_fulldimElm; }
+
+	VERTEXTYP spuckConnectVrtx() { return m_connectVrtx; }
 
 	INDEXTYP spuckSubsEnding() { return m_subsEnding; }
 
@@ -56,6 +59,7 @@ public:
 private:
 
 	FULLDIMELM m_fulldimElm;
+	VERTEXTYP m_connectVrtx; // the vertex at the other end of the cut edge, where the fractures are all closed
 	INDEXTYP m_subsEnding, m_subsNotEnding;
 };
 
@@ -1166,6 +1170,7 @@ private:
 
 
 ////////////////////////////////////////////////////////
+
 
 
 

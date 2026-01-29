@@ -249,7 +249,7 @@ private:
 
 	bool checkIfFacesVerticesCoincide( Face * const & facOne, Face * const & facTwo );
 
-	bool collectFaceVertices( std::vector<Vertex*> & facVrt, Face * const & fac );
+//	bool collectFaceVertices( std::vector<Vertex*> & facVrt, Face * const & fac );
 
 	bool createConditionForNewVrtcs();
 
@@ -528,9 +528,9 @@ private:
 
 	bool createTheDiamonds();
 
-	bool addNewVol2Shrink4Diams( std::vector<size_t> const & locVrtInds, Volume * const & oldVol, Volume * const & newVol, Face * const & fac, IndexType subs );
+	bool addNewVol2Shrink4Diams( std::vector<size_t> const & locVrtInds, Volume * const & oldVol, Volume * const & newVol, Face * const & fac, IndexType subs, bool comesFromEndingCrossingFract = false );
 
-	using SideDiamElemsDirectCreated = diamonds::SideElemsOfDiamsCreatedDirectly<Volume*, IndexType>;
+	using SideDiamElemsDirectCreated = diamonds::SideElemsOfDiamsCreatedDirectly<Volume*, Vertex*, IndexType>;
 
 	using VecSideDiamElemsDirectCreated = std::vector<SideDiamElemsDirectCreated>;
 

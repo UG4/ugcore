@@ -40,7 +40,7 @@ public:
 
 	using VrtxPair = std::pair<Vertex*,Vertex*>;
 
-	using SideDiamElemsDirectCreated = diamonds::SideElemsOfDiamsCreatedDirectly<Volume*, IndexType>;
+	using SideDiamElemsDirectCreated = diamonds::SideElemsOfDiamsCreatedDirectly<Volume*, Vertex*, IndexType>;
 
 	using VecSideDiamElemsDirectCreated = std::vector<SideDiamElemsDirectCreated>;
 

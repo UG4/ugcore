@@ -7,6 +7,7 @@
 
 #include <lib_grid/algorithms/extrusion/DiamondsEstablish3D.h>
 #include <typeinfo>
+#include "support3D.h"
 
 namespace ug
 {
@@ -420,7 +421,8 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 				Face * faceInner;
 				inner.spuckManif(faceInner);
 
-				if( faceInner == faceOuter )
+//				if( faceInner == faceOuter )
+				if( support::checkIfFacesVerticesCoincide<IndexType>(faceInner,faceOuter))
 				{
 					// twin found
 
@@ -474,6 +476,11 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 		if( ! partnerFound )
 		{
 			UG_LOG("no partner found " << std::endl);
+			Volume * volOut;
+			outer.spuckFulldimElem(volOut);
+			m_sh.assign_subset(faceOuter,m_sh.num_subsets());
+			m_sh.assign_subset(volOut, m_sh.num_subsets());
+
 			return false;
 		}
 		else
@@ -2307,13 +2314,13 @@ bool DiamondsEstablish3D::generateNewDiamSudos(Vertex * & centerV, IndxVec sudoL
 		m_attAccsNewSudoOfVrtx[centerV] = newSudo;
 		CombiCntrVrtxSudo ccvs( sudoList, newSudo );
 		m_vecCombiCntrVrtxSudo.push_back(ccvs);
-		UG_LOG("NNNNNNNNNNNNNNNNNNNN" << std::endl);
+//		UG_LOG("NNNNNNNNNNNNNNNNNNNN" << std::endl);
 		UG_LOG("creating new sudo of " << std::endl);
 		for( auto & i : sudoList )
 		{
 			UG_LOG("list part " << i << std::endl);
 		}
-		UG_LOG("DDDDDDDDDDDDDDDDDDDD" << std::endl);
+//		UG_LOG("DDDDDDDDDDDDDDDDDDDD" << std::endl);
 
 	}
 
